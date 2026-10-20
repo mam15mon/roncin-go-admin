@@ -1,5 +1,6 @@
 import { DatePicker, Form, type FormInstance, Input, Modal } from 'antd';
 import React from 'react';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import {
   invoiceIssueActionText,
   invoiceIssueDateLabel,
@@ -22,6 +23,10 @@ export function InvoiceIssueModal({
   onCancel,
   onOk,
 }: InvoiceIssueModalProps) {
+  const { markDirty } = useUnsavedChangesGuard({
+    enabled: open,
+    identity: issueTarget?.id,
+  });
   const issueDateLabel = invoiceIssueDateLabel(issueTarget?.direction);
   return (
     <Modal
@@ -31,7 +36,7 @@ export function InvoiceIssueModal({
       onCancel={onCancel}
       onOk={() => void onOk()}
     >
-      <Form form={issueForm} layout="vertical">
+      <Form form={issueForm} layout="vertical" onValuesChange={markDirty}>
         <Form.Item
           name="taxInvoiceNo"
           label="税务发票号码"
@@ -68,6 +73,10 @@ export function InvoiceRedFlushModal({
   onCancel,
   onOk,
 }: InvoiceRedFlushModalProps) {
+  const { markDirty } = useUnsavedChangesGuard({
+    enabled: open,
+    identity: redFlushTarget?.id,
+  });
   return (
     <Modal
       title={`红冲 ${redFlushTarget?.organizationName || '所属公司未标识'} 的发票 ${redFlushTarget?.taxInvoiceNo || ''}`}
@@ -78,7 +87,7 @@ export function InvoiceRedFlushModal({
       onCancel={onCancel}
       onOk={() => void onOk()}
     >
-      <Form form={redFlushForm} layout="vertical">
+      <Form form={redFlushForm} layout="vertical" onValuesChange={markDirty}>
         <Form.Item
           name="redInvoiceNo"
           label="红字发票号码"

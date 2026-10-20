@@ -1,23 +1,11 @@
-import { AsyncPopconfirm } from '@/components/ui';
 import { FileDoneOutlined, PlusOutlined } from '@ant-design/icons';
 import type {
   ActionType,
   ProColumns,
   ProFormInstance,
 } from '@ant-design/pro-components';
-import {
-  ModalForm,
-  ProFormText,
-  ProFormTextArea,
-} from '@ant-design/pro-components';
-import {
-  Alert,
-  App,
-  Button,
-  Drawer,
-  Space,
-  Typography,
-} from 'antd';
+import { ProFormText, ProFormTextArea } from '@ant-design/pro-components';
+import { Alert, App, Button, Drawer, Space, Typography } from 'antd';
 import {
   forwardRef,
   useEffect,
@@ -26,6 +14,8 @@ import {
   useState,
 } from 'react';
 import {
+  AsyncPopconfirm,
+  GuardedModalForm,
   ProFormSearchableSelect,
   ResponsiveProTable as ProTable,
 } from '@/components/ui';
@@ -350,7 +340,8 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
               <AsyncPopconfirm
                 title="确定移除该放货凭证？"
                 onConfirm={async (): Promise<false | undefined> => {
-                  if (!ensureCanManage() || !order?.id || !record.id) return false;
+                  if (!ensureCanManage() || !order?.id || !record.id)
+                    return false;
                   const writeResponse2 =
                     await orderReleasePodServiceRemoveReleasePod({
                       orderId: order.id,
@@ -445,7 +436,8 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
           )}
         </Drawer>
 
-        <ModalForm<ReleasePodFormValues>
+        <GuardedModalForm<ReleasePodFormValues>
+          guardIdentity={editingRecord?.id}
           title={editingRecord ? '编辑放货凭证' : '添加放货凭证'}
           open={modalOpen}
           formRef={formRef}
@@ -525,7 +517,7 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
             placeholder="请输入备注说明 (可选)"
             fieldProps={{ maxLength: 500, showCount: true }}
           />
-        </ModalForm>
+        </GuardedModalForm>
       </>
     );
   },

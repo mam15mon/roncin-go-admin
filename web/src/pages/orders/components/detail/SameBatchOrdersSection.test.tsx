@@ -18,7 +18,12 @@ vi.mock('@/services/roncin/orderService', () => ({
 }));
 
 vi.mock('@/router/history', () => ({
-  history: { push: historyPushMock },
+  history: {
+    get location() {
+      return window.location;
+    },
+    push: historyPushMock,
+  },
 }));
 
 describe('SameBatchOrdersSection', () => {

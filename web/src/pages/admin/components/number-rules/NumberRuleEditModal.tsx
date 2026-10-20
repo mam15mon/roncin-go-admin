@@ -1,5 +1,4 @@
 import {
-  ModalForm,
   ProFormDigit,
   ProFormSelect,
   ProFormSwitch,
@@ -7,6 +6,7 @@ import {
 } from '@ant-design/pro-components';
 import { Col, type FormInstance } from 'antd';
 import React from 'react';
+import { GuardedModalForm } from '@/components/ui';
 import {
   DOC_TYPES,
   getDocTypeMeta,
@@ -31,7 +31,8 @@ export default function NumberRuleEditModal({
   onFinish,
 }: NumberRuleEditModalProps) {
   return (
-    <ModalForm
+    <GuardedModalForm
+      guardIdentity={editingItem?.id}
       title={
         editingItem
           ? `编辑【${getDocTypeMeta(editingItem.documentType)?.label || '单据'}】规则`
@@ -130,6 +131,6 @@ export default function NumberRuleEditModal({
           unCheckedChildren="停用"
         />
       </Col>
-    </ModalForm>
+    </GuardedModalForm>
   );
 }

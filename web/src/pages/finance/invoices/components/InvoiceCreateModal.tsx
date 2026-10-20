@@ -11,6 +11,7 @@ import {
   Typography,
 } from 'antd';
 import React, { useEffect, useState } from 'react';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { MODAL_SIZE, ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
@@ -52,6 +53,7 @@ export default function InvoiceCreateModal({
   onOk,
 }: InvoiceCreateModalProps) {
   const { message } = App.useApp();
+  const { markDirty } = useUnsavedChangesGuard({ enabled: open });
   const queryClient = useQueryClient();
   const [organizationID, setOrganizationID] = useState<string>();
   const [selectedProfile, setSelectedProfile] =
@@ -167,7 +169,12 @@ export default function InvoiceCreateModal({
       onCancel={onCancel}
       onOk={() => void onOk()}
     >
-      <Form form={createForm} layout="inline" style={{ marginBottom: 12 }}>
+      <Form
+        form={createForm}
+        layout="inline"
+        style={{ marginBottom: 12 }}
+        onValuesChange={markDirty}
+      >
         <Form.Item label="所属公司">
           <Select
             aria-label="所属公司"
@@ -265,6 +272,7 @@ export default function InvoiceCreateModal({
           selectedRowKeys: selectedIDs,
           preserveSelectedRowKeys: true,
           onChange: (keys, rows) => {
+            markDirty();
             const m = new Map(selectedBills.map((x) => [x.id, x]));
             rows.forEach((x) => {
               m.set(x.id, x);

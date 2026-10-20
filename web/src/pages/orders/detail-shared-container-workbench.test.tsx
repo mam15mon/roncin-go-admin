@@ -32,7 +32,12 @@ vi.mock('@/app/access', () => ({
 vi.mock('./order-fee-panel', () => ({ default: () => null }));
 
 vi.mock('@/router/history', () => ({
-  history: { push: vi.fn() },
+  history: {
+    get location() {
+      return window.location;
+    },
+    push: vi.fn(),
+  },
 }));
 
 vi.mock('./use-order-detail-data', () => ({

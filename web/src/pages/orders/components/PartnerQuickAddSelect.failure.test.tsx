@@ -34,7 +34,12 @@ vi.mock('@/app/AppProvider', () => ({
 }));
 
 vi.mock('@/router/history', () => ({
-  history: { push: (...args: unknown[]) => pushMock(...args) },
+  history: {
+    get location() {
+      return window.location;
+    },
+    push: (...args: unknown[]) => pushMock(...args),
+  },
 }));
 
 vi.mock('@/services/roncin/partnerService', () => ({

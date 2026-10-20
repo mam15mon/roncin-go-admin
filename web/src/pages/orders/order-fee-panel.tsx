@@ -12,6 +12,7 @@ import React, {
 } from 'react';
 import { useAccess } from '@/app/access';
 import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
+import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
 import { ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { PartnerRoleType } from '@/enums.generated';
@@ -57,6 +58,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
   function OrderFeePanel(_, ref) {
     const access = useAccess();
     const queryClient = useQueryClient();
+    const getModalOwnerSignal = useModalOwnerSignal();
     const { message, modal } = App.useApp();
     const actionRef = useRef<ActionType | undefined>(undefined);
     const feeOptionsRequestRef = useRef(0);
@@ -275,7 +277,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
 
           return undefined;
         },
-        { optional: true },
+        { optional: true, signal: getModalOwnerSignal() },
       );
     };
 

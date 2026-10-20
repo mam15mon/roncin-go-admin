@@ -1,4 +1,3 @@
-import { AsyncPopconfirm } from '@/components/ui';
 import {
   CalendarOutlined,
   DeleteOutlined,
@@ -6,7 +5,6 @@ import {
   PlusOutlined,
 } from '@ant-design/icons';
 import {
-  ModalForm,
   ProFormDateRangePicker,
   ProFormSelect,
   ProFormText,
@@ -27,6 +25,7 @@ import {
 } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useEffect, useState } from 'react';
+import { AsyncPopconfirm, GuardedModalForm } from '@/components/ui';
 import { partnerContractStatusMeta } from '@/constants/statusMeta';
 import { PartnerContractStatus } from '@/enums.generated';
 import {
@@ -403,7 +402,8 @@ export default function ContractCardList({
       </Spin>
 
       {/* Contract Modal */}
-      <ModalForm
+      <GuardedModalForm
+        guardIdentity={editingContract?.id}
         title={
           editingContract ? '编辑合同信息' : `添加${roleLabel || '企业'}合同`
         }
@@ -478,7 +478,7 @@ export default function ContractCardList({
             fieldProps={{ rows: 2 }}
           />
         </Col>
-      </ModalForm>
+      </GuardedModalForm>
     </div>
   );
 }

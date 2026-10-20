@@ -27,6 +27,7 @@ import React, {
 import { useParams } from 'react-router';
 import { useAccess } from '@/app/access';
 import { resolveTabKey } from '@/components/layout/routeUtils';
+import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
 import { SectionCard } from '@/components/ui';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
 import type {
@@ -143,6 +144,7 @@ export default function OrderDetailPage() {
   const releasePodPanelRef = useRef<ReleasePodPanelRef | null>(null);
   const abnormalCasePanelRef = useRef<AbnormalCasePanelRef | null>(null);
   const orderFeePanelRef = useRef<OrderFeePanelRef | null>(null);
+  const getModalOwnerSignal = useModalOwnerSignal();
   const statusTransitionConfirmOpenRef = useRef(false);
 
   const {
@@ -593,6 +595,7 @@ export default function OrderDetailPage() {
         refreshStatusState,
         {
           afterClose,
+          signal: getModalOwnerSignal(),
           canSubmit: () =>
             ensureStatusActionAllowed(
               OrderAllowedAction.ORDER_ALLOWED_ACTION_TRANSITION_FLOW,
@@ -623,6 +626,7 @@ export default function OrderDetailPage() {
         refreshStatusState,
         {
           afterClose,
+          signal: getModalOwnerSignal(),
           canSubmit: () =>
             ensureStatusActionAllowed(action, { requiresBusinessWrite }),
         },
@@ -644,6 +648,7 @@ export default function OrderDetailPage() {
         refreshStatusState,
         {
           afterClose,
+          signal: getModalOwnerSignal(),
           canSubmit: () => ensureStatusActionAllowed(action),
         },
       ),

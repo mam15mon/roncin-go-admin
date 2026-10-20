@@ -16,7 +16,12 @@ import SeaExportDetailFeatures from './SeaExportDetailFeatures';
 const mockPush = vi.hoisted(() => vi.fn());
 
 vi.mock('@/router/history', () => ({
-  history: { push: mockPush },
+  history: {
+    get location() {
+      return window.location;
+    },
+    push: mockPush,
+  },
 }));
 
 vi.mock('@/services/roncin/seaOrderChangeService', () => ({

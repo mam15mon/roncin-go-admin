@@ -1,3 +1,4 @@
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import {
   DownloadOutlined,
   FileExcelOutlined,
@@ -48,6 +49,7 @@ export default function PartnerExcelImportModal({
   currentRoleType,
   currentRoleLabel,
 }: PartnerExcelImportModalProps) {
+  const { markDirty, resetDirty } = useUnsavedChangesGuard({ enabled: open, identity: currentRoleType });
   const { message } = App.useApp();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [importing, setImporting] = useState(false);
@@ -60,6 +62,7 @@ export default function PartnerExcelImportModal({
   const [parseErrors, setParseErrors] = useState<string[]>([]);
 
   const reset = () => {
+    resetDirty();
     setFileList([]);
     setParsedItems([]);
     setParseErrors([]);
@@ -229,6 +232,7 @@ export default function PartnerExcelImportModal({
         });
       });
 
+      if (items.length) markDirty();
       setParsedItems(items);
       setParseErrors(errors);
       if (items.length === 0 && errors.length > 0) {
@@ -403,7 +407,7 @@ export default function PartnerExcelImportModal({
           </div>
           <Radio.Group
             value={importMode}
-            onChange={(e) => setImportMode(e.target.value)}
+            onChange={(e) => { markDirty(); setImportMode(e.target.value); }}
           >
             <Radio value={PartnerImportMode.PARTNER_IMPORT_MODE_UPSERT}>
               存在则更新 (按单位编码匹配，已存在则覆盖更新)
@@ -430,9 +434,7 @@ export default function PartnerExcelImportModal({
             return false;
           }}
           onRemove={() => {
-            setFileList([]);
-            setParsedItems([]);
-            setParseErrors([]);
+            reset();
           }}
           maxCount={1}
         >

@@ -1,11 +1,9 @@
-import { AsyncPopconfirm } from '@/components/ui';
 import { PlusOutlined, WarningOutlined } from '@ant-design/icons';
 import type {
   ActionType,
   ProColumns,
   ProFormInstance,
 } from '@ant-design/pro-components';
-import { ModalForm } from '@ant-design/pro-components';
 import { App, Button, Drawer, Space, Typography } from 'antd';
 import {
   forwardRef,
@@ -15,6 +13,8 @@ import {
   useState,
 } from 'react';
 import {
+  AsyncPopconfirm,
+  GuardedModalForm,
   ProFormSearchableSelect,
   ResponsiveProTable as ProTable,
 } from '@/components/ui';
@@ -183,7 +183,8 @@ const AbnormalCasePanel = forwardRef<
               <AsyncPopconfirm
                 title="确定解决该异常？"
                 onConfirm={async (): Promise<false | undefined> => {
-                  if (!ensureCanManage() || !order?.id || !record.id) return false;
+                  if (!ensureCanManage() || !order?.id || !record.id)
+                    return false;
                   const writeResponse1 =
                     await orderAbnormalCaseServiceResolveAbnormalCase(
                       { orderId: order.id, id: record.id },
@@ -204,7 +205,8 @@ const AbnormalCasePanel = forwardRef<
             <AsyncPopconfirm
               title="确定移除该异常？"
               onConfirm={async (): Promise<false | undefined> => {
-                if (!ensureCanManage() || !order?.id || !record.id) return false;
+                if (!ensureCanManage() || !order?.id || !record.id)
+                  return false;
                 const writeResponse2 =
                   await orderAbnormalCaseServiceRemoveAbnormalCase({
                     orderId: order.id,
@@ -287,7 +289,7 @@ const AbnormalCasePanel = forwardRef<
         )}
       </Drawer>
 
-      <ModalForm<AbnormalCaseFormValues>
+      <GuardedModalForm<AbnormalCaseFormValues>
         title="标记订单异常"
         open={modalOpen}
         formRef={formRef}
@@ -317,7 +319,7 @@ const AbnormalCasePanel = forwardRef<
           options={options}
           placeholder="请选择异常类型"
         />
-      </ModalForm>
+      </GuardedModalForm>
     </>
   );
 });

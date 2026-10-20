@@ -18,7 +18,12 @@ import {
 
 const { historyPush } = vi.hoisted(() => ({ historyPush: vi.fn() }));
 vi.mock('@/router/history', () => ({
-  history: { push: historyPush },
+  history: {
+    get location() {
+      return window.location;
+    },
+    push: historyPush,
+  },
 }));
 
 import type { FeeBillTrackingView } from './feeBillTracking';

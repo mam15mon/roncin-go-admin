@@ -8,6 +8,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { DRAWER_SIZE } from '@/components/ui';
 import {
   BillGroupingMode,
@@ -92,6 +93,7 @@ export default function BillCreationWorkbench({
     mode === 'NETTING'
       ? BillGroupingMode.BILL_GROUPING_MODE_NETTING
       : BillGroupingMode.BILL_GROUPING_MODE_NORMAL;
+  const { markDirty, resetDirty } = useUnsavedChangesGuard({ enabled: open });
   const queryClient = useQueryClient();
   const { message } = App.useApp();
   const [form] = Form.useForm<WorkbenchFormValue>();
@@ -523,6 +525,7 @@ export default function BillCreationWorkbench({
       );
       if (!isWriteResponse(response, true)) return false;
       if (!response.data) throw new Error('服务端未返回建单结果');
+      resetDirty();
       setResult(response.data);
       setCurrent(3);
       message.success(`批次 ${response.data.batchNo || ''} 已原子生成`);
@@ -719,11 +722,13 @@ export default function BillCreationWorkbench({
         <BillSplitStrategyCards
           splitByOrder={splitByOrder}
           setSplitByOrder={(checked) => {
+            markDirty();
             setSplitByOrder(checked);
             invalidatePreview();
           }}
           splitByTaxRate={splitByTaxRate}
           setSplitByTaxRate={(checked) => {
+            markDirty();
             setSplitByTaxRate(checked);
             invalidatePreview();
           }}
@@ -742,8 +747,14 @@ export default function BillCreationWorkbench({
           loading={loading}
           splitByOrder={splitByOrder}
           splitByTaxRate={splitByTaxRate}
-          onSplitByOrderChange={setSplitByOrder}
-          onSplitByTaxRateChange={setSplitByTaxRate}
+          onSplitByOrderChange={(checked) => {
+            markDirty();
+            setSplitByOrder(checked);
+          }}
+          onSplitByTaxRateChange={(checked) => {
+            markDirty();
+            setSplitByTaxRate(checked);
+          }}
           activeGroupKey={activeGroupKey}
           onActiveGroupKeyChange={setActiveGroupKey}
           invalidGroupKeys={invalidGroupKeys}
@@ -751,6 +762,7 @@ export default function BillCreationWorkbench({
           loadPreview={runPreview}
           onRemoveFee={handleRemoveFee}
           onConfigurationChange={handleConfigurationChange}
+          onUserEdit={markDirty}
         />
       )}
 

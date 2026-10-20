@@ -19,10 +19,14 @@ export function bindRouter(router: AppRouter) {
 
 export const history = {
   push: (to: string) => {
-    if (routerRef) routerRef.navigate(to);
+    return routerRef?.navigate(to);
   },
   replace: (to: string) => {
-    if (routerRef) routerRef.navigate(to, { replace: true });
+    return routerRef?.navigate(to, { replace: true });
+  },
+  // 切换边界在目标提交后复用现有错误页，包含 lazy 失败但 Outlet 为空的情况。
+  get hasRouteError(): boolean {
+    return Boolean(routerRef?.state.errors);
   },
   get location(): Location {
     return routerRef

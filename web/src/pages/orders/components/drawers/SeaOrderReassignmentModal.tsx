@@ -1,3 +1,4 @@
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import {
   Alert,
   App,
@@ -65,6 +66,7 @@ export const SeaOrderReassignmentModal: React.FC<
   initialShippingLineId,
   initialShippingLineName,
 }) => {
+  const { markDirty } = useUnsavedChangesGuard({ enabled: open, identity: orderId });
   const [form] = Form.useForm();
   const { message, modal } = App.useApp();
 
@@ -534,7 +536,7 @@ export const SeaOrderReassignmentModal: React.FC<
         initialValues={{
           responsibilityType: 'OWN_COMPANY',
         }}
-        onValuesChange={() => triggerPreview()}
+        onValuesChange={() => { markDirty(); triggerPreview(); }}
       >
         <Row gutter={16}>
           <Col span={12}>
@@ -542,6 +544,7 @@ export const SeaOrderReassignmentModal: React.FC<
               <Radio.Group
                 value={targetType}
                 onChange={(e) => {
+                  markDirty();
                   setTargetType(e.target.value);
                   if (e.target.value === 'new') {
                     setCandidateMatched(null);
@@ -602,6 +605,7 @@ export const SeaOrderReassignmentModal: React.FC<
                 }),
               )}
               onChange={(id) => {
+                markDirty();
                 const te = (candidateMatched.transportExecutions ?? []).find(
                   (item) => item.id === id,
                 );

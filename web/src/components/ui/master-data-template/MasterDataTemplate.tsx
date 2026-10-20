@@ -1,4 +1,3 @@
-import { AsyncPopconfirm } from '../async-popconfirm';
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -12,7 +11,6 @@ import {
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import {
-  ModalForm,
   ProFormCheckbox,
   ProFormDigit,
   ProFormRadio,
@@ -37,7 +35,9 @@ import {
   Typography,
 } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { GuardedModalForm } from '@/components/ui/GuardedModalForm';
 import { formatDate } from '@/utils/format';
+import { AsyncPopconfirm } from '../async-popconfirm';
 import { useColumnSettings } from '../column-settings';
 import { ResponsiveProTable } from '../responsive-table';
 import type {
@@ -786,7 +786,8 @@ export function MasterDataTemplate<
       </Card>
 
       {/* 3. Dynamic Create / Edit Modal Form */}
-      <ModalForm
+      <GuardedModalForm
+        guardIdentity={editingItem?.id}
         title={
           editingItem
             ? `编辑${title.replace(/管理|维护/g, '')} - ${editingItem.code}`
@@ -929,7 +930,7 @@ export function MasterDataTemplate<
             </Col>
           );
         })}
-      </ModalForm>
+      </GuardedModalForm>
     </div>
   );
 }

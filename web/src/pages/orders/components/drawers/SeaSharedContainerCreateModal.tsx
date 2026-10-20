@@ -1,6 +1,7 @@
 import type { FormInstance } from 'antd';
 import { Col, Form, Input, InputNumber, Modal, Row, Select } from 'antd';
 import React from 'react';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 
 /** 新建共享物理箱表单值（必填项由表单校验保证）。 */
 export type SeaSharedContainerFormValues = {
@@ -31,6 +32,7 @@ export default function SeaSharedContainerCreateModal({
   onCancel,
   onFinish,
 }: SeaSharedContainerCreateModalProps) {
+  const { markDirty } = useUnsavedChangesGuard({ enabled: open });
   return (
     <Modal
       title="新建跨订单共享物理箱"
@@ -44,6 +46,7 @@ export default function SeaSharedContainerCreateModal({
         form={form}
         layout="vertical"
         onFinish={onFinish}
+        onValuesChange={markDirty}
         initialValues={{
           packageCount: 0,
           grossWeightKg: '0.000',

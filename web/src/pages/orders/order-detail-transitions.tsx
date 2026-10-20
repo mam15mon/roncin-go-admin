@@ -1,6 +1,9 @@
 import { type App, Input, Select, Space } from 'antd';
+import { resolveTabKey } from '@/components/layout/routeUtils';
+import { registerTabCloseGuard } from '@/components/layout/tabCloseGuard';
 import { orderFlowStatusMeta, statusText } from '@/constants/statusMeta';
 import { OrderClosureStatus, OrderTerminationStatus } from '@/enums.generated';
+import { history } from '@/router/history';
 import {
   orderServiceTransitionOrderClosure,
   orderServiceTransitionOrderStatus,
@@ -15,7 +18,48 @@ type TransitionApp = Pick<AppInstance, 'modal' | 'message'>;
 type ConfirmTransitionOptions = {
   canSubmit?: () => boolean;
   afterClose?: () => void;
+  signal?: AbortSignal;
 };
+
+/** 临时原因输入随所属订单页销毁，避免组织切换后留下旧订单提交闭包。 */
+function showTransitionConfirm(
+  app: TransitionApp,
+  options: ConfirmTransitionOptions,
+  content: (
+    markDirty: () => void,
+  ) => Parameters<TransitionApp['modal']['confirm']>[0],
+) {
+  let dirty = false;
+  const unregister = registerTabCloseGuard(
+    resolveTabKey(history.location.pathname),
+    {
+      isDirty: () => dirty,
+    },
+  );
+  const config = content(() => {
+    dirty = true;
+  });
+  const confirmation = app.modal.confirm({
+    ...config,
+    afterClose: () => {
+      unregister();
+      options.signal?.removeEventListener('abort', destroy);
+      options.afterClose?.();
+    },
+    onOk: (...args) => {
+      if (options.signal?.aborted) return Promise.reject();
+      return config.onOk?.(...args);
+    },
+  });
+  function destroy() {
+    unregister();
+    confirmation.destroy();
+  }
+  options.signal?.addEventListener('abort', destroy, { once: true });
+  if (options.signal?.aborted) destroy();
+  void confirmation.then(unregister, unregister);
+  return confirmation;
+}
 
 /** 主流程状态流转确认弹窗：目标状态由用户点击的流程节点固定。 */
 export function confirmOrderFlow(
@@ -50,9 +94,9 @@ export function confirmOrderFlow(
   );
   let reason = '';
 
-  app.modal.confirm({
+  showTransitionConfirm(app, options, (markDirty) => ({
     title: '流转订单状态',
-    afterClose: options.afterClose,
+
     content: (
       <Space vertical style={{ width: '100%', marginTop: 12 }}>
         <div>
@@ -64,6 +108,7 @@ export function confirmOrderFlow(
           maxLength={500}
           showCount
           onChange={(event) => {
+            markDirty();
             reason = event.target.value;
           }}
         />
@@ -87,10 +132,10 @@ export function confirmOrderFlow(
 
       return undefined;
     },
-  }).then(
-      () => {},
-      () => {},
-    );
+  })).then(
+    () => {},
+    () => {},
+  );
   return true;
 }
 
@@ -114,7 +159,7 @@ export function confirmOrderTermination(
     targetStatus === OrderTerminationStatus.ORDER_TERMINATION_STATUS_ACTIVE &&
     order.terminationStatus ===
       OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED;
-  app.modal.confirm({
+  showTransitionConfirm(app, options, (markDirty) => ({
     title:
       targetStatus === OrderTerminationStatus.ORDER_TERMINATION_STATUS_ACTIVE
         ? isRestore
@@ -124,7 +169,7 @@ export function confirmOrderTermination(
             OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATING
           ? '发起退关/终止'
           : '完成退关/终止',
-    afterClose: options.afterClose,
+
     content: (
       <Space vertical style={{ width: '100%', marginTop: 12 }}>
         {targetStatus !==
@@ -140,6 +185,7 @@ export function confirmOrderTermination(
               { label: '其他', value: 5 },
             ]}
             onChange={(value) => {
+              markDirty();
               terminationType = value;
             }}
           />
@@ -149,6 +195,7 @@ export function confirmOrderTermination(
           maxLength={500}
           showCount
           onChange={(event) => {
+            markDirty();
             reason = event.target.value;
           }}
         />
@@ -188,10 +235,10 @@ export function confirmOrderTermination(
 
       return undefined;
     },
-  }).then(
-      () => {},
-      () => {},
-    );
+  })).then(
+    () => {},
+    () => {},
+  );
   return true;
 }
 
@@ -212,9 +259,9 @@ export function confirmOrderClosure(
   let reason = '';
   const isReopen =
     targetStatus === OrderClosureStatus.ORDER_CLOSURE_STATUS_OPEN;
-  app.modal.confirm({
+  showTransitionConfirm(app, options, (markDirty) => ({
     title: isReopen ? '反结案/重新激活订单' : '完结订单',
-    afterClose: options.afterClose,
+
     content: (
       <Space vertical style={{ width: '100%', marginTop: 12 }}>
         <Input.TextArea
@@ -224,6 +271,7 @@ export function confirmOrderClosure(
           maxLength={500}
           showCount
           onChange={(event) => {
+            markDirty();
             reason = event.target.value;
           }}
         />
@@ -251,9 +299,9 @@ export function confirmOrderClosure(
 
       return undefined;
     },
-  }).then(
-      () => {},
-      () => {},
-    );
+  })).then(
+    () => {},
+    () => {},
+  );
   return true;
 }

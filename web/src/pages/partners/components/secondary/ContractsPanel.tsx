@@ -9,7 +9,6 @@ import type {
   ProFormInstance,
 } from '@ant-design/pro-components';
 import {
-  ModalForm,
   ProFormDateRangePicker,
   ProFormSelect,
   ProFormText,
@@ -18,7 +17,10 @@ import {
 import { App, Button, Space, Typography } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
-import { ResponsiveProTable as ProTable } from '@/components/ui';
+import {
+  GuardedModalForm,
+  ResponsiveProTable as ProTable,
+} from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { partnerContractStatusMeta, statusTag } from '@/constants/statusMeta';
 import { PartnerContractStatus } from '@/enums.generated';
@@ -178,7 +180,8 @@ export default function ContractsPanel({
         ]}
       />
 
-      <ModalForm<ContractFormValues>
+      <GuardedModalForm<ContractFormValues>
+        guardIdentity={editingContract?.id}
         title={editingContract ? '编辑商务合同' : '新增商务合同'}
         open={modalOpen}
         formRef={formRef}
@@ -293,7 +296,7 @@ export default function ContractsPanel({
           placeholder="其他补充约定"
           fieldProps={{ rows: 3, maxLength: 2000, showCount: true }}
         />
-      </ModalForm>
+      </GuardedModalForm>
     </>
   );
 }

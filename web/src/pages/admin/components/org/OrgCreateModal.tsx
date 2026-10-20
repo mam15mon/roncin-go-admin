@@ -1,11 +1,8 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
-import {
-  ModalForm,
-  ProFormSelect,
-  ProFormText,
-} from '@ant-design/pro-components';
+import { ProFormSelect, ProFormText } from '@ant-design/pro-components';
 import { Alert, App } from 'antd';
 import React, { useRef } from 'react';
+import { GuardedModalForm } from '@/components/ui';
 import { getCurrencyOptions } from '@/features/master-data/currencies';
 import { adminServiceCreateOrganization } from '@/services/roncin/adminService';
 import { isWriteResponse } from '@/utils/api';
@@ -35,7 +32,7 @@ export default function OrgCreateModal({
   const childKindMeta = getOrganizationKindMeta(childKind);
 
   return (
-    <ModalForm<CreateFormValues>
+    <GuardedModalForm<CreateFormValues>
       title={
         parentOrg
           ? `新增${childKindMeta?.label ?? ''}（所属上级：${parentOrg.name}）`
@@ -110,6 +107,6 @@ export default function OrgCreateModal({
           rules={[{ required: true, message: '请选择公司本币' }]}
         />
       )}
-    </ModalForm>
+    </GuardedModalForm>
   );
 }

@@ -8,6 +8,7 @@ import {
 } from '@testing-library/react';
 import { App } from 'antd';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { getAnyDirtyTabKey } from '@/components/layout/tabCloseGuard';
 
 const serviceMocks = vi.hoisted(() => ({
   createVerification: vi.fn(),
@@ -173,6 +174,7 @@ import VerificationWorkbench from './VerificationWorkbench';
 
 describe('核销创建工作台组织候选', () => {
   beforeEach(() => {
+    window.history.replaceState({}, '', '/finance/verifications');
     serviceMocks.createVerification.mockReset();
     serviceMocks.listFinanceOrganizationOptions.mockReset();
     serviceMocks.listFinanceSettlementPartyOptions.mockReset();
@@ -209,7 +211,9 @@ describe('核销创建工作台组织候选', () => {
         bills: [{ id: 'bill-a', billNo: 'BILL-A', unverifiedAmount: '10' }],
       },
     });
-    serviceMocks.createVerification.mockResolvedValue({ data: { id: 'verification-new' } });
+    serviceMocks.createVerification.mockResolvedValue({
+      data: { id: 'verification-new' },
+    });
   });
 
   const selectOrganizationAndParty = async (organizationName: string) => {
@@ -278,6 +282,7 @@ describe('核销创建工作台组织候选', () => {
     expect(await screen.findByText('FLOW-A')).toBeInTheDocument();
     expect(screen.getByText('BILL-A')).toBeInTheDocument();
 
+    expect(getAnyDirtyTabKey()).toBeUndefined();
     const cashflowRow = screen.getByText('FLOW-A').closest('tr');
     const billRow = screen.getByText('BILL-A').closest('tr');
     if (!cashflowRow || !billRow) throw new Error('候选表格行不存在');
@@ -287,7 +292,16 @@ describe('核销创建工作台组织候选', () => {
       expect(within(cashflowRow).getByRole('checkbox')).toBeChecked();
       expect(within(billRow).getByRole('checkbox')).toBeChecked();
     });
+    expect(getAnyDirtyTabKey()).toBeUndefined();
     fireEvent.click(screen.getByRole('button', { name: /按余额自动分配/ }));
+    expect(getAnyDirtyTabKey()).toBe('/finance/verifications');
+    fireEvent.change(screen.getByLabelText('第 1 行核销金额'), {
+      target: { value: '9' },
+    });
+    fireEvent.change(screen.getByLabelText('第 1 行核销金额'), {
+      target: { value: '10.00000000' },
+    });
+    expect(getAnyDirtyTabKey()).toBe('/finance/verifications');
     expect(await screen.findByLabelText('第 1 行核销金额')).toHaveValue(
       '10.00000000',
     );
@@ -310,6 +324,11 @@ describe('核销创建工作台组织候选', () => {
       ),
     );
     await waitFor(() => expect(onCreated).toHaveBeenCalledOnce());
+    expect(getAnyDirtyTabKey()).toBeUndefined();
+    fireEvent.change(screen.getByLabelText('第 1 行核销金额'), {
+      target: { value: '9' },
+    });
+    expect(getAnyDirtyTabKey()).toBe('/finance/verifications');
   });
 
   it('切换公司清空上一组织候选与选择，并只向新组织请求结算单位', async () => {
@@ -389,5 +408,19 @@ describe('核销创建工作台组织候选', () => {
       name: '结算单位 organization-a (PARTY)',
     });
     expect(normalOption).toBeEnabled();
+  });
+  it('纯 state 备注输入会保护，关闭后清理', async () => {
+    const view = renderWithClient(
+      <App>
+        <VerificationWorkbench open onClose={vi.fn()} onCreated={vi.fn()} />
+      </App>,
+    );
+    expect(getAnyDirtyTabKey()).toBeUndefined();
+    fireEvent.change(screen.getByLabelText('核销备注'), {
+      target: { value: '待保存备注' },
+    });
+    expect(getAnyDirtyTabKey()).toBe('/finance/verifications');
+    view.unmount();
+    expect(getAnyDirtyTabKey()).toBeUndefined();
   });
 });

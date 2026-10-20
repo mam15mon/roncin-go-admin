@@ -1,5 +1,6 @@
 import { Modal, Select, Space } from 'antd';
 import type { Dispatch, SetStateAction } from 'react';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 
 type BatchAssigneeModalProps = {
   open: boolean;
@@ -25,6 +26,7 @@ export default function BatchAssigneeModal({
   searchAssignees,
   onOk,
 }: BatchAssigneeModalProps) {
+  const { markDirty } = useUnsavedChangesGuard({ enabled: open });
   return (
     <Modal
       title="批量维护关联人员"
@@ -35,7 +37,10 @@ export default function BatchAssigneeModal({
       <Space orientation="vertical" style={{ width: '100%' }}>
         <Select
           value={mode}
-          onChange={setMode}
+          onChange={(value) => {
+            setMode(value);
+            markDirty();
+          }}
           options={[
             { label: '关联所选人员', value: 'assign' },
             { label: '移除所选人员', value: 'remove' },
@@ -50,7 +55,10 @@ export default function BatchAssigneeModal({
           }}
           options={assigneeOptions}
           value={batchAssignees}
-          onChange={setBatchAssignees}
+          onChange={(values) => {
+            setBatchAssignees(values);
+            markDirty();
+          }}
           placeholder="搜索并选择当前组织人员"
         />
       </Space>

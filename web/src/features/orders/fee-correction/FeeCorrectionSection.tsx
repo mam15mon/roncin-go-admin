@@ -1,10 +1,15 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { ModalForm, ProFormTextArea } from '@ant-design/pro-components';
+import { ProFormTextArea } from '@ant-design/pro-components';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, App, Button, Descriptions, Space, Spin, Tag } from 'antd';
 import { type ReactNode, useRef, useState } from 'react';
 import { useInitialState } from '@/app/AppProvider';
-import { ResponsiveProTable, ResponsiveTable } from '@/components/ui';
+import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
+import {
+  GuardedModalForm,
+  ResponsiveProTable,
+  ResponsiveTable,
+} from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   feeReviewCommentFieldProps,
@@ -161,6 +166,7 @@ export function FeeCorrectionSection({
   onChanged?: () => void;
   renderCreate?: (refresh: () => void) => ReactNode;
 }) {
+  const getModalOwnerSignal = useModalOwnerSignal();
   const app = App.useApp();
   const queryClient = useQueryClient();
   const { initialState } = useInitialState();
@@ -235,27 +241,29 @@ export function FeeCorrectionSection({
               type="link"
               size="small"
               onClick={() =>
-                app.modal.confirm({
-                  title: '撤回这笔费用更正申请？',
-                  onOk: async () => {
-                    const response =
-                      await orderFeeServiceWithdrawOrderFeeCorrection(
-                        { orderId, id: row.id || '' },
-                        {
-                          orderId,
-                          id: row.id || '',
-                          expectedVersion: row.version,
-                        },
-                      );
-                    if (!isWriteResponse(response, true))
-                      return Promise.reject();
-                    if (!response?.success) throw new Error('撤回未成功');
-                    refresh();
-                  },
-                }).then(
-      () => {},
-      () => {},
-    )
+                app.modal
+                  .confirm({
+                    title: '撤回这笔费用更正申请？',
+                    onOk: async () => {
+                      const response =
+                        await orderFeeServiceWithdrawOrderFeeCorrection(
+                          { orderId, id: row.id || '' },
+                          {
+                            orderId,
+                            id: row.id || '',
+                            expectedVersion: row.version,
+                          },
+                        );
+                      if (!isWriteResponse(response, true))
+                        return Promise.reject();
+                      if (!response?.success) throw new Error('撤回未成功');
+                      refresh();
+                    },
+                  })
+                  .then(
+                    () => {},
+                    () => {},
+                  )
               }
             >
               撤回
@@ -287,6 +295,7 @@ export function FeeCorrectionSection({
 
                     return undefined;
                   },
+                  { signal: getModalOwnerSignal() },
                 )
               }
             >
@@ -333,7 +342,7 @@ export function FeeCorrectionSection({
           expandedRowRender: (row) => <FeeCorrectionComparison request={row} />,
         }}
       />
-      <ModalForm<{ comment: string }>
+      <GuardedModalForm<{ comment: string }>
         title="审核费用更正"
         open={Boolean(review)}
         width={860}
@@ -460,7 +469,7 @@ export function FeeCorrectionSection({
           ]}
           fieldProps={feeReviewCommentFieldProps}
         />
-      </ModalForm>
+      </GuardedModalForm>
     </>
   );
 }

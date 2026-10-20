@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
+import { getAnyDirtyTabKey } from '@/components/layout/tabCloseGuard';
 import { renderWithApp } from '@root/tests/renderWithApp';
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { App } from 'antd';
@@ -59,4 +62,57 @@ it.each([
   await waitFor(() => expect(completed).toHaveBeenCalledOnce());
   await waitFor(() => expect(dialog).toHaveClass('ant-zoom-leave'));
   expect(submit).toHaveBeenCalledTimes(5);
+});
+
+it('原因输入标脏；所属订单页卸载销毁 App modal，不能在新工作区提交旧订单', async () => {
+  window.history.replaceState({}, '', '/orders/sea-export/order-1');
+  function Entry() {
+    const app = App.useApp();
+    const getOwnerSignal = useModalOwnerSignal();
+    return (
+      <button
+        type="button"
+        onClick={() =>
+          confirmOrderClosure(
+            app,
+            { id: 'order-1', version: '7' },
+            OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED,
+            vi.fn(),
+            { signal: getOwnerSignal() },
+          )
+        }
+      >
+        打开订单结案
+      </button>
+    );
+  }
+  function Shell() {
+    const [visible, setVisible] = useState(true);
+    return (
+      <>
+        <button type="button" onClick={() => setVisible(false)}>
+          销毁旧工作区
+        </button>
+        {visible && <Entry />}
+      </>
+    );
+  }
+  renderWithApp(<Shell />);
+  fireEvent.click(screen.getByText('打开订单结案'));
+  expect(getAnyDirtyTabKey()).toBeUndefined();
+  fireEvent.change(screen.getByPlaceholderText('请输入完结原因（必填）'), {
+    target: { value: '北京订单待提交原因' },
+  });
+  expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');
+  fireEvent.click(screen.getByText('销毁旧工作区'));
+  expect(getAnyDirtyTabKey()).toBeUndefined();
+  await waitFor(() =>
+    expect(screen.getByRole('dialog')).toHaveClass('ant-zoom-leave'),
+  );
+  fireEvent.click(
+    within(screen.getByRole('dialog')).getByRole('button', {
+      name: /确\s*定$/,
+    }),
+  );
+  expect(orderServiceTransitionOrderClosure).not.toHaveBeenCalled();
 });

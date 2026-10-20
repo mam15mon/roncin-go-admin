@@ -1,3 +1,4 @@
+import { getAnyDirtyTabKey } from '@/components/layout/tabCloseGuard';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
@@ -61,6 +62,7 @@ function renderModal(baseCurrency = 'CNY') {
 
 describe('ExchangeRateSyncModal', () => {
   beforeEach(() => {
+    window.history.replaceState({}, '', '/finance/exchange-rates');
     vi.clearAllMocks();
     localStorage.clear();
     serviceMocks.syncExchangeRates.mockResolvedValue({
@@ -162,7 +164,7 @@ describe('ExchangeRateSyncModal', () => {
     // 微调应收汇率（商业加点）。
     const arInput = screen.getByDisplayValue('6.7523');
     fireEvent.change(arInput, { target: { value: '6.8' } });
-    fireEvent.click(screen.getByRole('button', { name: '确认发布' }));
+    fireEvent.click(screen.getByRole('button', { name: /确认发布/ }));
     await waitFor(() => {
       expect(serviceMocks.syncExchangeRates).toHaveBeenCalledTimes(1);
     });
@@ -190,7 +192,7 @@ describe('ExchangeRateSyncModal', () => {
         /请检查网络后重试，或使用「新建汇率」手工录入本周汇率/,
       ),
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '确认发布' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /确认发布/ })).toBeDisabled();
     expect(serviceMocks.syncExchangeRates).not.toHaveBeenCalled();
   });
 
@@ -210,4 +212,27 @@ describe('ExchangeRateSyncModal', () => {
     renderModal('HKD');
     expect(screen.getByText(/一键同步周汇率（本币 HKD）/)).toBeInTheDocument();
   });
+  it('默认抓取不脏，三类真实汇率编辑均保护，发布失败保留输入且成功清理', async () => {
+    serviceMocks.fetchExchangeRates.mockResolvedValue(previewResponse);
+    serviceMocks.syncExchangeRates.mockResolvedValueOnce(undefined).mockResolvedValueOnce({ success: true });
+    const callbacks = renderModal();
+    expect(getAnyDirtyTabKey()).toBeUndefined();
+    fireEvent.click(screen.getByRole('button', { name: /抓取牌价/ }));
+    await screen.findByDisplayValue('6.7523');
+    expect(getAnyDirtyTabKey()).toBeUndefined();
+    for (const [before, after] of [['6.7523', '6.8'], ['6.7117', '6.7'], ['6.7320', '6.75']]) {
+      fireEvent.change(screen.getByDisplayValue(before), { target: { value: after } });
+      expect(getAnyDirtyTabKey()).toBe('/finance/exchange-rates');
+    }
+    fireEvent.click(screen.getByRole('button', { name: /确认发布/ }));
+    await waitFor(() => expect(serviceMocks.syncExchangeRates).toHaveBeenCalledTimes(1));
+    expect(callbacks.onClose).not.toHaveBeenCalled();
+    expect(screen.getByDisplayValue('6.8')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole('button', { name: /确认发布/ })).not.toHaveClass('ant-btn-loading'));
+    expect(getAnyDirtyTabKey()).toBe('/finance/exchange-rates');
+    fireEvent.click(screen.getByRole('button', { name: /确认发布/ }));
+    await waitFor(() => expect(callbacks.onClose).toHaveBeenCalledOnce());
+    expect(getAnyDirtyTabKey()).toBeUndefined();
+  });
+
 });

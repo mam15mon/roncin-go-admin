@@ -420,25 +420,25 @@ export function SeaMasterBillFields({
                 </div>
               )}
 
-              <Select
-                value={candidateTeId}
-                placeholder="请选择本票关联的实际航次"
-                disabled={batchDirectBlocked}
-                options={(candidate.transportExecutions ?? []).map((te) => ({
-                  value: te.id,
-                  label: `${te.vesselName || '-'} / ${te.voyageNo || '-'} / ${formatDate(te.etd, 'date')}`,
-                }))}
-                onChange={(value) => {
-                  const te = candidate.transportExecutions?.find(
-                    (item) => item.id === value,
-                  );
-                  form?.setFieldValue('seaMasterBillCandidateTeId', value);
-                  form?.setFieldValue(
-                    'seaMasterBillExpectedCandidateTeVersion',
-                    te?.version,
-                  );
-                }}
-              />
+              <Form.Item name="seaMasterBillCandidateTeId" noStyle>
+                <Select
+                  placeholder="请选择本票关联的实际航次"
+                  disabled={batchDirectBlocked}
+                  options={(candidate.transportExecutions ?? []).map((te) => ({
+                    value: te.id,
+                    label: `${te.vesselName || '-'} / ${te.voyageNo || '-'} / ${formatDate(te.etd, 'date')}`,
+                  }))}
+                  onChange={(value) => {
+                    const te = candidate.transportExecutions?.find(
+                      (item) => item.id === value,
+                    );
+                    form?.setFieldValue(
+                      'seaMasterBillExpectedCandidateTeVersion',
+                      te?.version,
+                    );
+                  }}
+                />
+              </Form.Item>
 
               {selectedCandidateTe && (
                 <div style={{ fontSize: 13, color: '#595959' }}>
@@ -552,12 +552,28 @@ export function SeaAssociatedHouseBillsField() {
   );
 }
 
+function ClearContainerRequests({
+  onChange,
+}: {
+  onChange?: (value: API.OrderContainerRequestInput[]) => void;
+}) {
+  return (
+    <Button
+      danger
+      size="small"
+      htmlType="button"
+      onClick={() => onChange?.([])}
+    >
+      清空箱量计划
+    </Button>
+  );
+}
+
 export function SeaContainerPlanFields({
   options,
 }: {
   options: SelectOption[];
 }) {
-  const form = Form.useFormInstance();
   const shipmentType = Form.useWatch('shipmentType');
   const containerRequests = (Form.useWatch('containerRequests') ??
     []) as API.OrderContainerRequestInput[];
@@ -581,14 +597,9 @@ export function SeaContainerPlanFields({
           }
           action={
             containerRequests.length > 0 ? (
-              <Button
-                danger
-                size="small"
-                htmlType="button"
-                onClick={() => form?.setFieldValue('containerRequests', [])}
-              >
-                清空箱量计划
-              </Button>
+              <Form.Item name="containerRequests" noStyle>
+                <ClearContainerRequests />
+              </Form.Item>
             ) : undefined
           }
           style={{ padding: '4px 12px' }}

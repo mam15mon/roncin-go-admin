@@ -20,7 +20,9 @@ vi.mock('@ant-design/pro-components', () => ({
   ProFormText: ({ label }: { label: string }) => <span>{label}</span>,
 }));
 
-vi.mock('@/components/ui', () => ({
+vi.mock('@/components/ui', async () => ({
+  GuardedModalForm: (await import('@/components/ui/GuardedModalForm'))
+    .GuardedModalForm,
   ProFormSearchableSelect: ({ label }: { label: string }) => (
     <span>{label}</span>
   ),

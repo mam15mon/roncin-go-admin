@@ -24,6 +24,7 @@ const routes: UmiRoute[] = [
   },
   {
     path: '/welcome',
+    organizationSwitch: { keep: true },
     name: '工作台',
     icon: 'dashboard',
     access: 'canAccessPlatform',
@@ -35,6 +36,7 @@ const routes: UmiRoute[] = [
   },
   {
     path: '/enterprise-resources/config',
+    organizationSwitch: { keep: true },
     name: '企业资源配置管理',
     access: 'canReadEnterpriseResources',
     hideInMenu: true,
@@ -42,6 +44,7 @@ const routes: UmiRoute[] = [
   },
   {
     path: '/partners/customers',
+    organizationSwitch: { keep: true },
     name: '客户',
     icon: 'contacts',
     access: 'canReadPartners',
@@ -50,6 +53,7 @@ const routes: UmiRoute[] = [
   },
   {
     path: '/partners/customers/create',
+    organizationSwitch: { list: '/partners/customers' },
     name: '新建客户',
     access: 'canCreatePartners',
     hideInMenu: true,
@@ -57,6 +61,7 @@ const routes: UmiRoute[] = [
   },
   {
     path: '/partners/customers/:id',
+    organizationSwitch: { list: '/partners/customers' },
     name: '客户详情',
     access: 'canReadPartners',
     hideInMenu: true,
@@ -64,6 +69,7 @@ const routes: UmiRoute[] = [
   },
   {
     path: '/partners/suppliers',
+    organizationSwitch: { keep: true },
     name: '供应商',
     icon: 'shop',
     access: 'canReadPartners',
@@ -72,6 +78,7 @@ const routes: UmiRoute[] = [
   },
   {
     path: '/partners/suppliers/create',
+    organizationSwitch: { list: '/partners/suppliers' },
     name: '新建供应商',
     access: 'canCreatePartners',
     hideInMenu: true,
@@ -79,6 +86,7 @@ const routes: UmiRoute[] = [
   },
   {
     path: '/partners/suppliers/:id',
+    organizationSwitch: { list: '/partners/suppliers' },
     name: '供应商详情',
     access: 'canReadPartners',
     hideInMenu: true,
@@ -86,6 +94,7 @@ const routes: UmiRoute[] = [
   },
   {
     path: '/partners/foreign-agents',
+    organizationSwitch: { keep: true },
     name: '国外代理',
     icon: 'global',
     access: 'canReadPartners',
@@ -94,6 +103,7 @@ const routes: UmiRoute[] = [
   },
   {
     path: '/partners/foreign-agents/create',
+    organizationSwitch: { list: '/partners/foreign-agents' },
     name: '新建国外代理',
     access: 'canCreatePartners',
     hideInMenu: true,
@@ -101,6 +111,7 @@ const routes: UmiRoute[] = [
   },
   {
     path: '/partners/foreign-agents/:id',
+    organizationSwitch: { list: '/partners/foreign-agents' },
     name: '国外代理详情',
     access: 'canReadPartners',
     hideInMenu: true,
@@ -118,12 +129,14 @@ const routes: UmiRoute[] = [
     routes: [
       {
         path: '/orders/sea-export',
+        organizationSwitch: { keep: true },
         name: '海运出口',
         access: 'canReadSEOrders',
         component: './orders/list',
       },
       {
         path: '/orders/:kind/new',
+        organizationSwitch: { list: '/orders/:kind' },
         name: '新建订单',
         access: 'canCreateAnyOrders',
         hideInMenu: true,
@@ -131,6 +144,7 @@ const routes: UmiRoute[] = [
       },
       {
         path: '/orders/sea-export/:id/split',
+        organizationSwitch: { list: '/orders/sea-export' },
         name: '海运出口拆票',
         access: 'canSplitSEOrders',
         hideInMenu: true,
@@ -138,6 +152,7 @@ const routes: UmiRoute[] = [
       },
       {
         path: '/orders/:kind/:id',
+        organizationSwitch: { list: '/orders/:kind' },
         name: '订单详情',
         access: 'canReadAnyOrders',
         hideInMenu: true,
@@ -145,6 +160,7 @@ const routes: UmiRoute[] = [
       },
       {
         path: '/orders/:kind/:id/fees',
+        organizationSwitch: { list: '/orders/:kind' },
         name: '费用录入',
         access: 'canAccessAnyOrderFees',
         hideInMenu: true,
@@ -160,12 +176,14 @@ const routes: UmiRoute[] = [
     routes: [
       {
         path: '/finance/fees',
+        organizationSwitch: { keep: true },
         name: '集运费用明细',
         access: 'canReadFinanceFees',
         component: './finance/fees',
       },
       {
         path: '/finance/fees/detail/:orderId',
+        organizationSwitch: { list: '/finance/fees' },
         name: '费用详情',
         access: 'canReadFinanceFees',
         hideInMenu: true,
@@ -173,48 +191,56 @@ const routes: UmiRoute[] = [
       },
       {
         path: '/finance/bills',
+        organizationSwitch: { keep: true },
         name: '账单管理',
         access: 'canReadFinanceBills',
         component: './finance/bills',
       },
       {
         path: '/finance/invoices',
+        organizationSwitch: { keep: true },
         name: '开票记录',
         access: 'canReadFinanceInvoices',
         component: './finance/invoices',
       },
       {
         path: '/finance/cashflows',
+        organizationSwitch: { keep: true },
         name: '收付管理',
         access: 'canReadFinanceCashflows',
         component: './finance/cashflows',
       },
       {
         path: '/finance/verifications',
+        organizationSwitch: { keep: true },
         name: '核销管理',
         access: 'canReadFinanceVerifications',
         component: './finance/verifications',
       },
       {
         path: '/finance/nettings',
+        organizationSwitch: { keep: true },
         name: '对冲管理',
         access: 'canReadFinanceNettings',
         component: './finance/nettings',
       },
       {
         path: '/finance/commissions',
+        organizationSwitch: { keep: true },
         name: '提成管理',
         access: 'canReadFinanceCommissions',
         component: './finance/commissions',
       },
       {
         path: '/finance/exchange-rates',
+        organizationSwitch: { keep: true },
         name: '汇率管理',
         access: 'canReadExchangeRates',
         component: './finance/exchange-rates',
       },
       {
         path: '/finance/fee-settings',
+        organizationSwitch: { keep: true },
         name: '费用设置',
         access: 'canReadFeeSettings',
         component: './finance/fee-settings',
@@ -236,6 +262,7 @@ const routes: UmiRoute[] = [
   },
   {
     path: '/master-data',
+    organizationSwitch: { keep: true },
     name: '主数据',
     icon: 'database',
     access: 'canReadMasterData',
@@ -244,6 +271,7 @@ const routes: UmiRoute[] = [
   },
   {
     path: '/admin/notification-test',
+    organizationSwitch: { keep: true },
     name: '通知测试',
     access: 'canPreviewNotifications',
     hideInMenu: true,
@@ -251,6 +279,7 @@ const routes: UmiRoute[] = [
   },
   {
     path: '/admin',
+    organizationSwitch: { keep: true },
     name: '系统管理',
     icon: 'setting',
     access: 'canAccessPlatform',

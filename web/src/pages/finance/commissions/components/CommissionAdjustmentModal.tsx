@@ -1,12 +1,12 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
-import {
-  ModalForm,
-  ProFormDigit,
-  ProFormTextArea,
-} from '@ant-design/pro-components';
+import { ProFormDigit, ProFormTextArea } from '@ant-design/pro-components';
 import { Alert, App } from 'antd';
 import React, { useRef, useState } from 'react';
-import { MODAL_SIZE, ProFormSearchableSelect } from '@/components/ui';
+import {
+  GuardedModalForm,
+  MODAL_SIZE,
+  ProFormSearchableSelect,
+} from '@/components/ui';
 import { settlementServiceCreateCommissionAdjustment } from '@/services/roncin/settlementService';
 import { isWriteResponse } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
@@ -31,7 +31,8 @@ export default function CommissionAdjustmentModal({
   const [adjustmentIdempotencyKey] = useState(() => generateUUID());
 
   return (
-    <ModalForm<AdjustmentValues>
+    <GuardedModalForm<AdjustmentValues>
+      guardIdentity={detail?.id}
       formRef={formRef}
       title={`新增提成调整${detail?.commissionNo ? ` · ${detail.commissionNo}` : ''}`}
       open={open}
@@ -114,6 +115,6 @@ export default function CommissionAdjustmentModal({
         label="补充备注"
         fieldProps={{ maxLength: 500, showCount: true }}
       />
-    </ModalForm>
+    </GuardedModalForm>
   );
 }

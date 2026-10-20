@@ -54,6 +54,8 @@ vi.mock('@ant-design/pro-components', () => ({
 }));
 
 vi.mock('@/components/ui', async () => ({
+  GuardedModalForm: (await import('@/components/ui/GuardedModalForm'))
+    .GuardedModalForm,
   ResponsiveProTable: (await import('@ant-design/pro-components')).ProTable,
   SearchFilterTemplate: (props: Record<string, any>) => {
     componentProps.searchFilter = props;

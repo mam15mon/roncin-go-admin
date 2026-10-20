@@ -59,7 +59,12 @@ vi.mock('@/app/AppProvider', () => ({
 }));
 
 vi.mock('@/router/history', () => ({
-  history: { push: historyState.push },
+  history: {
+    get location() {
+      return window.location;
+    },
+    push: historyState.push,
+  },
 }));
 
 vi.mock('../list-query', () => ({

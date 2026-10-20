@@ -27,7 +27,12 @@ const xlsxMock = vi.hoisted(() => ({
 vi.mock('xlsx', () => xlsxMock);
 
 vi.mock('@/router/history', () => ({
-  history: { push: vi.fn() },
+  history: {
+    get location() {
+      return { ...window.location, pathname: routeState.pathname };
+    },
+    push: vi.fn(),
+  },
 }));
 
 vi.mock('@/app/access', () => ({

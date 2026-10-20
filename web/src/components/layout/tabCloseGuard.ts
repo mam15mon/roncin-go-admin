@@ -32,7 +32,7 @@ export type TabCloseGuard = {
   message?: string;
 };
 
-const guards = new Map<string, TabCloseGuard>();
+const guards = new Map<string, Set<TabCloseGuard>>();
 const confirmedDepartures = new Set<TabCloseGuard>();
 
 /** 已确认的关闭/组织切换动作期间，路由阻断复用这次确认；异步失败后自动撤销。 */
@@ -42,8 +42,7 @@ function runConfirmedDeparture(
 ) {
   // 批量关闭一次确认覆盖本次关闭范围，不能只放行首个脏页签。
   const departingGuards = tabKeys.flatMap((key) => {
-    const guard = guards.get(key);
-    return guard?.isDirty() ? [guard] : [];
+    return [...(guards.get(key) ?? [])].filter((guard) => guard.isDirty());
   });
   for (const guard of departingGuards) confirmedDepartures.add(guard);
   let asynchronous = false;
@@ -64,8 +63,13 @@ function runConfirmedDeparture(
 
 /** 路由离开只复用当前已注册表单的确认，不放行其它表单或下一次导航。 */
 export function isTabDepartureConfirmed(tabKey: string): boolean {
-  const guard = guards.get(tabKey);
-  return Boolean(guard && confirmedDepartures.has(guard));
+  const dirtyGuards = [...(guards.get(tabKey) ?? [])].filter((guard) =>
+    guard.isDirty(),
+  );
+  return (
+    dirtyGuards.length > 0 &&
+    dirtyGuards.every((guard) => confirmedDepartures.has(guard))
+  );
 }
 
 /**
@@ -75,11 +79,14 @@ export function registerTabCloseGuard(
   tabKey: string,
   guard: TabCloseGuard,
 ): () => void {
-  guards.set(tabKey, guard);
+  const tabGuards = guards.get(tabKey) ?? new Set<TabCloseGuard>();
+  tabGuards.add(guard);
+  guards.set(tabKey, tabGuards);
   return () => {
-    if (guards.get(tabKey) === guard) {
+    tabGuards.delete(guard);
+    confirmedDepartures.delete(guard);
+    if (tabGuards.size === 0 && guards.get(tabKey) === tabGuards)
       guards.delete(tabKey);
-    }
   };
 }
 
@@ -88,15 +95,18 @@ export function registerTabCloseGuard(
  * 同时检查实时状态与持久草稿，避免表单状态更新前的瞬间关闭漏掉已写入的草稿。
  */
 export function isTabDirty(tabKey: string, draftScope?: string): boolean {
-  const guard = guards.get(tabKey);
-  return Boolean(guard?.isDirty()) || hasTabDraft(tabKey, draftScope);
+  return (
+    [...(guards.get(tabKey) ?? [])].some((guard) => guard.isDirty()) ||
+    hasTabDraft(tabKey, draftScope)
+  );
 }
 
 /**
  * 获取指定 tabKey 注册的提示文案，默认返回标准文案
  */
 export function getTabGuardMessage(tabKey: string): string {
-  const guard = guards.get(tabKey);
+  const tabGuards = [...(guards.get(tabKey) ?? [])];
+  const guard = tabGuards.find((item) => item.isDirty()) ?? tabGuards[0];
   return guard?.message || '修改的信息尚未保存，您确定要离开吗？';
 }
 
@@ -107,8 +117,8 @@ export function getTabGuardMessage(tabKey: string): string {
  * 不应为切换扫描全部 sessionStorage 草稿。
  */
 export function getAnyDirtyTabKey(): string | undefined {
-  for (const [tabKey, guard] of guards) {
-    if (guard.isDirty()) {
+  for (const [tabKey, tabGuards] of guards) {
+    if ([...tabGuards].some((guard) => guard.isDirty())) {
       return tabKey;
     }
   }
@@ -134,12 +144,12 @@ export function confirmIfAnyTabDirty(
 
   const confirmFn = resolveConfirmFn(customConfirmModal);
   confirmFn({
-    title: '提示',
-    content: getTabGuardMessage(dirtyTabKey),
+    title: '切换组织',
+    content: `${getTabGuardMessage(dirtyTabKey)} 切换组织将关闭当前编辑，未保存内容不会带入新组织。`,
     okText: '确定离开',
     cancelText: '取消',
     centered: true,
-    onOk: () => runConfirmedDeparture([dirtyTabKey], onConfirm),
+    onOk: () => runConfirmedDeparture([...guards.keys()], onConfirm),
     onCancel,
   });
 

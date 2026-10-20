@@ -14,6 +14,7 @@ import type { DefaultOptionType } from 'antd/es/select';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import { useEffect, useMemo, useState } from 'react';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import {
@@ -70,6 +71,10 @@ export default function SeaTransportExecutionUpdateModal({
   onSuccess,
   searchLocations,
 }: SeaTransportExecutionUpdateModalProps) {
+  const { markDirty } = useUnsavedChangesGuard({
+    enabled: open,
+    identity: order.id,
+  });
   const [form] = Form.useForm<VoyageUpdateFormValues>();
   const { message } = App.useApp();
   const [previewing, setPreviewing] = useState(false);
@@ -172,7 +177,12 @@ export default function SeaTransportExecutionUpdateModal({
             idempotencyKey,
           },
         );
-      if (!isWriteResponse(writeResponse1) || !writeResponse1.transportExecution?.id || !writeResponse1.versionId) return false;
+      if (
+        !isWriteResponse(writeResponse1) ||
+        !writeResponse1.transportExecution?.id ||
+        !writeResponse1.versionId
+      )
+        return false;
       await onSuccess();
       onClose();
     } catch (error: unknown) {
@@ -255,6 +265,7 @@ export default function SeaTransportExecutionUpdateModal({
         form={form}
         layout="vertical"
         onValuesChange={() => {
+          markDirty();
           setPreview(undefined);
           setPreviewInput(undefined);
         }}

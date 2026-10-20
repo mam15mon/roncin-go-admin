@@ -1,6 +1,7 @@
-import { ModalForm, ProFormText } from '@ant-design/pro-components';
+import { ProFormText } from '@ant-design/pro-components';
 import { Alert, App, Typography } from 'antd';
 import React from 'react';
+import { GuardedModalForm } from '@/components/ui';
 import { adminServiceResetUserPassword } from '@/services/roncin/adminService';
 import { isWriteResponse } from '@/utils/api';
 
@@ -20,7 +21,8 @@ export default function ResetPasswordModal({
   const { message } = App.useApp();
 
   return (
-    <ModalForm<{ username?: string; password?: string }>
+    <GuardedModalForm<{ username?: string; password?: string }>
+      guardIdentity={user?.id}
       title={
         user?.hasPassword
           ? `重置登录密码：${user?.displayName || user?.username || ''}`
@@ -102,6 +104,6 @@ export default function ResetPasswordModal({
         extra="密码至少 12 位，设置后请及时通知用户"
         rules={[{ required: true, min: 12, message: '密码至少 12 位' }]}
       />
-    </ModalForm>
+    </GuardedModalForm>
   );
 }

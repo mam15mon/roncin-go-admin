@@ -12,6 +12,7 @@ import {
 } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
+import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
 import {
   type FinanceLedgerMetricCard,
   FinanceLedgerTemplate,
@@ -59,6 +60,7 @@ function nettingStatusTag(status?: number) {
 
 export default function FinanceNettingsPage() {
   const access = useAccess();
+  const getModalOwnerSignal = useModalOwnerSignal();
   const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [detail, setDetail] = useState<API.FinanceNetting>();
@@ -81,10 +83,10 @@ export default function FinanceNettingsPage() {
   }, []);
 
   const reload = () => actionRef.current?.reload();
-  const nettingActions = makeVersionActions<API.FinanceNetting>({
-    modal,
-    message,
-  });
+  const nettingActions = makeVersionActions<API.FinanceNetting>(
+    { modal, message },
+    getModalOwnerSignal,
+  );
 
   const confirmNetting = (record: API.FinanceNetting) => {
     nettingActions.run(

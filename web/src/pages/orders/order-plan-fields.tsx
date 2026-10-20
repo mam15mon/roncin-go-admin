@@ -232,21 +232,41 @@ export function OrderContainerRequestFields({
 }: {
   options: SelectOption[];
 }) {
-  const form = Form.useFormInstance();
-  const containerRequests = (Form.useWatch('containerRequests', form) ??
-    []) as API.OrderContainerRequestInput[];
+  return (
+    <Col span={24}>
+      <Form.Item
+        name="containerRequests"
+        label="箱型箱量"
+        tooltip="这里只维护订单级配箱计划；实际箱号、封号与箱货分配在箱货信息中维护"
+        style={{ marginBottom: 12 }}
+      >
+        <ContainerRequestsControl options={options} />
+      </Form.Item>
+    </Col>
+  );
+}
 
+/** 通过 Form.Item 的公开值事件提交用户编辑，交由订单模板统一管理草稿与 dirty。 */
+function ContainerRequestsControl({
+  options,
+  value: containerRequests = [],
+  onChange,
+}: {
+  options: SelectOption[];
+  value?: API.OrderContainerRequestInput[];
+  onChange?: (value: API.OrderContainerRequestInput[]) => void;
+}) {
   const handleAdd = () => {
     const next = [
       ...containerRequests,
-      { containerSpecId: options[0]?.value || '', quantity: 1 },
+      { containerSpecId: String(options[0]?.value ?? ''), quantity: 1 },
     ];
-    form?.setFieldValue('containerRequests', next);
+    onChange?.(next);
   };
 
   const handleRemove = (index: number) => {
     const next = containerRequests.filter((_, idx) => idx !== index);
-    form?.setFieldValue('containerRequests', next);
+    onChange?.(next);
   };
 
   const handleChange = (
@@ -260,117 +280,104 @@ export function OrderContainerRequestFields({
       }
       return item;
     });
-    form?.setFieldValue('containerRequests', next);
+    onChange?.(next);
   };
 
   return (
-    <Col span={24}>
-      <Form.Item name="containerRequests" hidden>
-        <input type="hidden" />
-      </Form.Item>
-      <Form.Item
-        label="箱型箱量"
-        tooltip="这里只维护订单级配箱计划；实际箱号、封号与箱货分配在箱货信息中维护"
-        style={{ marginBottom: 12 }}
+    <>
+      <span style={{ display: 'none' }}>计划箱型箱量</span>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          flexWrap: 'wrap',
+        }}
       >
-        <span style={{ display: 'none' }}>计划箱型箱量</span>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            flexWrap: 'wrap',
-          }}
-        >
-          {containerRequests.length === 0 ? (
-            <div
-              className="roncin-container-plan-item"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+        {containerRequests.length === 0 ? (
+          <div
+            className="roncin-container-plan-item"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          >
+            <Select
+              placeholder="请选择"
+              options={options}
+              showSearch={{ optionFilterProp: 'label' }}
+              style={{ width: 140 }}
+              onChange={(val) => {
+                onChange?.([{ containerSpecId: val, quantity: 1 }]);
+              }}
+            />
+            <InputNumber
+              min={1}
+              max={999}
+              defaultValue={1}
+              precision={0}
+              style={{ width: 90 }}
+              disabled
+            />
+            <Button
+              type="link"
+              icon={<PlusCircleFilled style={{ color: '#1677ff' }} />}
+              onClick={handleAdd}
+              style={{ padding: 0, height: 32, fontSize: 13 }}
             >
-              <Select
-                placeholder="请选择"
-                options={options}
-                showSearch={{ optionFilterProp: 'label' }}
-                style={{ width: 140 }}
-                onChange={(val) => {
-                  form?.setFieldValue('containerRequests', [
-                    { containerSpecId: val, quantity: 1 },
-                  ]);
+              新增计划箱型箱量
+            </Button>
+          </div>
+        ) : (
+          <>
+            {containerRequests.map((req, idx) => (
+              <div
+                key={req.id || `cr-${req.containerSpecId}-${idx}`}
+                className="roncin-container-plan-item"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  background: '#fafafa',
+                  padding: '2px 8px',
+                  borderRadius: 4,
+                  border: '1px solid #f0f0f0',
                 }}
-              />
-              <InputNumber
-                min={1}
-                max={999}
-                defaultValue={1}
-                precision={0}
-                style={{ width: 90 }}
-                disabled
-              />
-              <Button
-                type="link"
-                icon={<PlusCircleFilled style={{ color: '#1677ff' }} />}
-                onClick={handleAdd}
-                style={{ padding: 0, height: 32, fontSize: 13 }}
               >
-                新增计划箱型箱量
-              </Button>
-            </div>
-          ) : (
-            <>
-              {containerRequests.map((req, idx) => (
-                <div
-                  key={req.id || `cr-${req.containerSpecId}-${idx}`}
-                  className="roncin-container-plan-item"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    background: '#fafafa',
-                    padding: '2px 8px',
-                    borderRadius: 4,
-                    border: '1px solid #f0f0f0',
-                  }}
-                >
-                  <Select
-                    value={req.containerSpecId || undefined}
-                    placeholder="请选择"
-                    options={options}
-                    showSearch={{ optionFilterProp: 'label' }}
-                    style={{ width: 130 }}
-                    onChange={(val) =>
-                      handleChange(idx, 'containerSpecId', val)
-                    }
-                  />
-                  <InputNumber
-                    value={req.quantity || 1}
-                    min={1}
-                    max={999}
-                    precision={0}
-                    style={{ width: 80 }}
-                    onChange={(val) => handleChange(idx, 'quantity', val ?? 1)}
-                  />
-                  <Button
-                    type="text"
-                    danger
-                    size="small"
-                    icon={<DeleteOutlined style={{ fontSize: 12 }} />}
-                    onClick={() => handleRemove(idx)}
-                    style={{ padding: '0 4px', height: 24 }}
-                  />
-                </div>
-              ))}
-              <Button
-                type="link"
-                icon={<PlusCircleFilled style={{ color: '#1677ff' }} />}
-                onClick={handleAdd}
-                style={{ padding: 0, height: 32, fontSize: 13 }}
-              >
-                新增计划箱型箱量
-              </Button>
-            </>
-          )}
-        </div>
-      </Form.Item>
-    </Col>
+                <Select
+                  value={req.containerSpecId || undefined}
+                  placeholder="请选择"
+                  options={options}
+                  showSearch={{ optionFilterProp: 'label' }}
+                  style={{ width: 130 }}
+                  onChange={(val) => handleChange(idx, 'containerSpecId', val)}
+                />
+                <InputNumber
+                  value={req.quantity || 1}
+                  min={1}
+                  max={999}
+                  precision={0}
+                  style={{ width: 80 }}
+                  onChange={(val) => handleChange(idx, 'quantity', val ?? 1)}
+                />
+                <Button
+                  type="text"
+                  danger
+                  size="small"
+                  icon={<DeleteOutlined style={{ fontSize: 12 }} />}
+                  onClick={() => handleRemove(idx)}
+                  style={{ padding: '0 4px', height: 24 }}
+                />
+              </div>
+            ))}
+            <Button
+              type="link"
+              icon={<PlusCircleFilled style={{ color: '#1677ff' }} />}
+              onClick={handleAdd}
+              style={{ padding: 0, height: 32, fontSize: 13 }}
+            >
+              新增计划箱型箱量
+            </Button>
+          </>
+        )}
+      </div>
+    </>
   );
 }

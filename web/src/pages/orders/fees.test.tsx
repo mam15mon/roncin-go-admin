@@ -42,7 +42,12 @@ vi.mock('./components/fees/fee-review/OrderFeeReview', () => ({
 }));
 
 vi.mock('@/router/history', () => ({
-  history: { push: vi.fn() },
+  history: {
+    get location() {
+      return window.location;
+    },
+    push: vi.fn(),
+  },
 }));
 
 vi.mock('@/app/access', () => ({
@@ -78,6 +83,8 @@ vi.mock('react-router', async (importOriginal) => {
 });
 
 vi.mock('@/components/ui', async () => ({
+  GuardedModalForm: (await import('@/components/ui/GuardedModalForm'))
+    .GuardedModalForm,
   ResponsiveProTable: (await import('@ant-design/pro-components')).ProTable,
   FinanceSummaryBoard: ({ selectedRows, allRows }: any) => (
     <div data-testid="finance-summary-board">

@@ -16,32 +16,34 @@ import OrganizationSwitcher from './OrganizationSwitcher';
 
 const {
   authServiceSwitchOrganizationMock,
-  clearOrderMasterDataCacheMock,
   messageErrorMock,
   messageSuccessMock,
+  messageInfoMock,
   modalConfirmMock,
   replaceMock,
-  setInitialStateMock,
+  switchWorkspaceMock,
 } = vi.hoisted(() => ({
   authServiceSwitchOrganizationMock: vi.fn(),
-  clearOrderMasterDataCacheMock: vi.fn(),
   messageErrorMock: vi.fn(),
   messageSuccessMock: vi.fn(),
+  messageInfoMock: vi.fn(),
   modalConfirmMock: vi.fn(),
   replaceMock: vi.fn(),
-  setInitialStateMock: vi.fn(),
+  switchWorkspaceMock: vi.fn(),
 }));
 
 let currentUser: API.CurrentUser;
 
 vi.mock('@/router/history', () => ({
-  history: { replace: replaceMock },
+  history: {
+    replace: replaceMock,
+    location: { pathname: '/admin', search: '?tab=roles' },
+  },
 }));
 
 vi.mock('@/app/AppProvider', () => ({
   useInitialState: () => ({
     initialState: { currentUser },
-    setInitialState: setInitialStateMock,
   }),
 }));
 
@@ -52,6 +54,7 @@ vi.mock('antd', async (importOriginal) => {
       message: {
         error: messageErrorMock,
         success: messageSuccessMock,
+        info: messageInfoMock,
       },
     }),
   });
@@ -108,10 +111,6 @@ vi.mock('@/utils/appFeedback', () => ({
   }),
 }));
 
-vi.mock('@/features/orders/options', () => ({
-  clearOrderMasterDataCache: clearOrderMasterDataCacheMock,
-}));
-
 vi.mock('@/services/roncin/authService', () => ({
   authServiceSwitchOrganization: authServiceSwitchOrganizationMock,
 }));
@@ -119,6 +118,9 @@ vi.mock('@/services/roncin/authService', () => ({
 function createUser(organizationId = 'org-1'): API.CurrentUser {
   return {
     id: 'user-1',
+    permissionCapabilities: ['system.platform.access', 'system.role.read'].map(
+      (key) => ({ key, dataScope: 'organization' }),
+    ),
     currentOrganization: {
       id: organizationId,
       code: organizationId === 'org-1' ? 'TJ' : 'BJ',
@@ -141,6 +143,7 @@ describe('OrganizationSwitcher', () => {
   beforeEach(() => {
     currentUser = createUser();
     vi.clearAllMocks();
+    switchWorkspaceMock.mockResolvedValue(undefined);
     _clearAllTabCloseGuards();
   });
 
@@ -155,7 +158,9 @@ describe('OrganizationSwitcher', () => {
       currentOrganization: { id: 'org-1', code: 'TJ', name: '天津公司' },
       organizations: [{ id: 'org-1', code: 'TJ', name: '天津公司' }],
     };
-    const { container, unmount } = render(<OrganizationSwitcher />);
+    const { container, unmount } = render(
+      <OrganizationSwitcher onSwitchWorkspace={switchWorkspaceMock} />,
+    );
     expect(container.firstChild).toBeNull();
     unmount();
 
@@ -167,13 +172,13 @@ describe('OrganizationSwitcher', () => {
       ],
     };
     const { container: containerWithoutCurrent } = render(
-      <OrganizationSwitcher />,
+      <OrganizationSwitcher onSwitchWorkspace={switchWorkspaceMock} />,
     );
     expect(containerWithoutCurrent.firstChild).toBeNull();
   });
 
   it('多组织时展示当前组织入口：当前项打勾置灰，其他组织可切换', () => {
-    render(<OrganizationSwitcher />);
+    render(<OrganizationSwitcher onSwitchWorkspace={switchWorkspaceMock} />);
 
     expect(
       screen.getByRole('button', { name: '切换当前组织' }),
@@ -188,7 +193,7 @@ describe('OrganizationSwitcher', () => {
   });
 
   it('点击当前组织不发起切换请求', () => {
-    render(<OrganizationSwitcher />);
+    render(<OrganizationSwitcher onSwitchWorkspace={switchWorkspaceMock} />);
 
     fireEvent.click(menuButton('org-1'));
 
@@ -202,7 +207,7 @@ describe('OrganizationSwitcher', () => {
     authServiceSwitchOrganizationMock.mockResolvedValue({
       data: createUser('org-2'),
     });
-    render(<OrganizationSwitcher />);
+    render(<OrganizationSwitcher onSwitchWorkspace={switchWorkspaceMock} />);
 
     fireEvent.click(menuButton('org-2'));
 
@@ -222,82 +227,85 @@ describe('OrganizationSwitcher', () => {
       });
       // 等待切换链路完全收敛：跳转已发生且 loading 复位（按钮恢复可用），
       // 避免用例结束后仍有状态更新落地触发 act 警告
-      expect(replaceMock).toHaveBeenCalledWith('/welcome');
+      expect(switchWorkspaceMock).toHaveBeenCalledWith(
+        createUser('org-2'),
+        '/admin?tab=roles',
+      );
       expect(
         screen.getByRole('button', { name: '切换当前组织' }),
       ).toBeEnabled();
     });
-    expect(replaceMock).toHaveBeenCalledWith('/welcome');
+    expect(switchWorkspaceMock).toHaveBeenCalledWith(
+      createUser('org-2'),
+      '/admin?tab=roles',
+    );
   });
 
-  it('切换成功：全屏 loading、清空主数据缓存后重建状态并回到工作台', async () => {
-    const switchedUser = createUser('org-2');
-    const callOrder: string[] = [];
-    clearOrderMasterDataCacheMock.mockImplementation(() => {
-      callOrder.push('clearCache');
-    });
-    setInitialStateMock.mockImplementation(() => {
-      callOrder.push('setInitialState');
-    });
-    replaceMock.mockImplementation(() => {
-      callOrder.push('replace');
-    });
-
-    let resolveSwitch: ((value: { data: API.CurrentUser }) => void) | undefined;
-    authServiceSwitchOrganizationMock.mockReturnValue(
-      new Promise<{ data: API.CurrentUser }>((resolve) => {
-        resolveSwitch = resolve;
+  it('切换成功时保持 loading，直到业务工作区和目标路由完成转换', async () => {
+    let resolveWorkspace: (() => void) | undefined;
+    switchWorkspaceMock.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveWorkspace = resolve;
       }),
     );
-    render(<OrganizationSwitcher />);
-
+    authServiceSwitchOrganizationMock.mockResolvedValue({
+      data: createUser('org-2'),
+    });
+    render(<OrganizationSwitcher onSwitchWorkspace={switchWorkspaceMock} />);
     fireEvent.click(menuButton('org-2'));
-
-    // 切换期间展示全屏 loading 与目标组织
     expect(await screen.findByText('正在切换至 北京公司…')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(switchWorkspaceMock).toHaveBeenCalledWith(
+        createUser('org-2'),
+        '/admin?tab=roles',
+      ),
+    );
     expect(screen.getByRole('button', { name: '切换当前组织' })).toBeDisabled();
-
-    if (!resolveSwitch) {
-      throw new Error('切换请求未初始化');
-    }
-    resolveSwitch({ data: switchedUser });
-
-    await waitFor(() => {
-      expect(replaceMock).toHaveBeenCalledWith('/welcome');
-    });
-    const updateInitialState = setInitialStateMock.mock.calls[0][0];
-    expect(updateInitialState({ currentUser })).toEqual({
-      currentUser: switchedUser,
-    });
-    expect(clearOrderMasterDataCacheMock).toHaveBeenCalledWith();
-    // 缓存清理必须先于新组织状态挂载
-    expect(callOrder).toEqual(['clearCache', 'setInitialState', 'replace']);
+    expect(messageSuccessMock).not.toHaveBeenCalled();
+    await act(async () => resolveWorkspace?.());
     expect(messageSuccessMock).toHaveBeenCalledWith('已切换至 北京公司');
+    expect(screen.getByRole('button', { name: '切换当前组织' })).toBeEnabled();
+  });
+
+  it('目标公司缺少当前子页签权限时回工作台并说明原因', async () => {
+    const nextUser = createUser('org-2');
+    nextUser.permissionCapabilities = [
+      { key: 'system.platform.access', dataScope: 'organization' },
+    ];
+    authServiceSwitchOrganizationMock.mockResolvedValue({ data: nextUser });
+    render(<OrganizationSwitcher onSwitchWorkspace={switchWorkspaceMock} />);
+    fireEvent.click(menuButton('org-2'));
+    await waitFor(() =>
+      expect(switchWorkspaceMock).toHaveBeenCalledWith(nextUser, '/welcome'),
+    );
+    expect(messageInfoMock).toHaveBeenCalledWith(
+      '当前组织无权访问该功能，已返回工作台',
+    );
   });
 
   it('请求失败时保留当前状态与路由', async () => {
     authServiceSwitchOrganizationMock.mockRejectedValue(new Error('network'));
-    render(<OrganizationSwitcher />);
+    render(<OrganizationSwitcher onSwitchWorkspace={switchWorkspaceMock} />);
 
     fireEvent.click(menuButton('org-2'));
 
     await waitFor(() => {
       expect(authServiceSwitchOrganizationMock).toHaveBeenCalledTimes(1);
     });
-    expect(setInitialStateMock).not.toHaveBeenCalled();
+    expect(switchWorkspaceMock).not.toHaveBeenCalled();
     expect(replaceMock).not.toHaveBeenCalled();
   });
 
   it('服务端未返回新会话时保留当前状态与路由并提示失败', async () => {
     authServiceSwitchOrganizationMock.mockResolvedValue({ data: undefined });
-    render(<OrganizationSwitcher />);
+    render(<OrganizationSwitcher onSwitchWorkspace={switchWorkspaceMock} />);
 
     fireEvent.click(menuButton('org-2'));
 
     await waitFor(() => {
       expect(messageErrorMock).toHaveBeenCalledWith('组织切换失败，请稍后重试');
     });
-    expect(setInitialStateMock).not.toHaveBeenCalled();
+    expect(switchWorkspaceMock).not.toHaveBeenCalled();
     expect(replaceMock).not.toHaveBeenCalled();
   });
 
@@ -308,7 +316,7 @@ describe('OrganizationSwitcher', () => {
         resolveSwitch = resolve;
       }),
     );
-    render(<OrganizationSwitcher />);
+    render(<OrganizationSwitcher onSwitchWorkspace={switchWorkspaceMock} />);
 
     fireEvent.click(menuButton('org-2'));
     fireEvent.click(menuButton('org-2'));
@@ -319,7 +327,10 @@ describe('OrganizationSwitcher', () => {
     }
     resolveSwitch({ data: createUser('org-2') });
     await waitFor(() => {
-      expect(replaceMock).toHaveBeenCalledWith('/welcome');
+      expect(switchWorkspaceMock).toHaveBeenCalledWith(
+        createUser('org-2'),
+        '/admin?tab=roles',
+      );
     });
   });
 });

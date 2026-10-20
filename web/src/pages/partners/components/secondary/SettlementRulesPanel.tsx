@@ -5,7 +5,6 @@ import type {
   ProFormInstance,
 } from '@ant-design/pro-components';
 import {
-  ModalForm,
   ProFormDigit,
   ProFormSelect,
   ProFormSwitch,
@@ -13,7 +12,10 @@ import {
 } from '@ant-design/pro-components';
 import { App, Button, Space, Tag } from 'antd';
 import React, { useRef, useState } from 'react';
-import { ResponsiveProTable as ProTable } from '@/components/ui';
+import {
+  GuardedModalForm,
+  ResponsiveProTable as ProTable,
+} from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   PartnerRoleType,
@@ -335,7 +337,8 @@ export default function SettlementRulesPanel({
         ]}
       />
 
-      <ModalForm<SettlementRuleFormValues>
+      <GuardedModalForm<SettlementRuleFormValues>
+        guardIdentity={editingRule?.id}
         title={editingRule ? '编辑结算规则' : '新增结算规则'}
         open={modalOpen}
         formRef={formRef}
@@ -499,7 +502,7 @@ export default function SettlementRulesPanel({
           rules={[{ required: true, message: '请输入结算币种' }]}
         />
         <ProFormSwitch name="isActive" label="规则启用状态" initialValue />
-      </ModalForm>
+      </GuardedModalForm>
     </>
   );
 }

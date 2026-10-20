@@ -1,3 +1,4 @@
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { DownloadOutlined, UploadOutlined } from '@ant-design/icons';
 import type { UploadFile } from 'antd';
 import { Alert, Button, Modal, Space, Upload } from 'antd';
@@ -45,6 +46,7 @@ export default function ResourceImportModal({
   onDownloadTemplate,
   message,
 }: ResourceImportModalProps) {
+  const { markDirty, resetDirty } = useUnsavedChangesGuard({ enabled: open, identity: active.type });
   return (
     <Modal
       title={`批量导入${active.label.replace('管理', '')}`}
@@ -81,6 +83,7 @@ export default function ResourceImportModal({
                 );
                 if (!parsedRows.length)
                   throw new Error('CSV 文件没有可导入的数据行');
+                markDirty();
                 setRows(parsedRows);
                 setPreview(undefined);
               } catch (error) {
@@ -96,6 +99,7 @@ export default function ResourceImportModal({
             }}
             onChange={({ fileList }) => setFiles(fileList.slice(-1))}
             onRemove={() => {
+              resetDirty();
               setFiles([]);
               setRows([]);
               setPreview(undefined);

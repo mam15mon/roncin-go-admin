@@ -1,5 +1,6 @@
 import { Checkbox, Modal, Select, Space } from 'antd';
 import type { Dispatch, SetStateAction } from 'react';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { addressTypes } from '../resourceConstants';
 
 type BatchAddressTypeModalProps = {
@@ -22,6 +23,7 @@ export default function BatchAddressTypeModal({
   setBatchAddressTypes,
   onOk,
 }: BatchAddressTypeModalProps) {
+  const { markDirty } = useUnsavedChangesGuard({ enabled: open });
   return (
     <Modal
       title="批量维护地址类型"
@@ -32,7 +34,10 @@ export default function BatchAddressTypeModal({
       <Space orientation="vertical" style={{ width: '100%' }}>
         <Select
           value={mode}
-          onChange={setMode}
+          onChange={(value) => {
+            setMode(value);
+            markDirty();
+          }}
           options={[
             { label: '分配所选类型', value: 'assign' },
             { label: '移除所选类型', value: 'remove' },
@@ -41,7 +46,10 @@ export default function BatchAddressTypeModal({
         <Checkbox.Group
           options={addressTypes}
           value={batchAddressTypes}
-          onChange={(values) => setBatchAddressTypes(values as number[])}
+          onChange={(values) => {
+            setBatchAddressTypes(values as number[]);
+            markDirty();
+          }}
         />
       </Space>
     </Modal>

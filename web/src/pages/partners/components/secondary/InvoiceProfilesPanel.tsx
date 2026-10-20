@@ -5,7 +5,6 @@ import type {
   ProFormInstance,
 } from '@ant-design/pro-components';
 import {
-  ModalForm,
   ProFormDependency,
   ProFormSelect,
   ProFormSwitch,
@@ -13,7 +12,10 @@ import {
 } from '@ant-design/pro-components';
 import { Alert, App, Button, Space, Tag, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
-import { ResponsiveProTable as ProTable } from '@/components/ui';
+import {
+  GuardedModalForm,
+  ResponsiveProTable as ProTable,
+} from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   partnerServiceCreatePartnerInvoiceProfile,
@@ -159,7 +161,8 @@ export default function InvoiceProfilesPanel({
         ]}
       />
 
-      <ModalForm<InvoiceProfileFormValues>
+      <GuardedModalForm<InvoiceProfileFormValues>
+        guardIdentity={editingProfile?.id}
         title={editingProfile ? '编辑开票抬头' : '新增开票抬头'}
         open={modalOpen}
         formRef={formRef}
@@ -300,7 +303,7 @@ export default function InvoiceProfilesPanel({
             );
           }}
         </ProFormDependency>
-      </ModalForm>
+      </GuardedModalForm>
     </>
   );
 }

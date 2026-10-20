@@ -14,6 +14,7 @@ import {
 import type { MessageInstance } from 'antd/es/message/interface';
 import type { RcFile } from 'antd/es/upload';
 import type { Dispatch, SetStateAction } from 'react';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { MODAL_SIZE } from '@/components/ui';
 import { isRequestTimeoutError } from '@/requestErrorConfig';
 import { enterpriseResourceServicePrepareEnterpriseResourceImageUpload } from '@/services/roncin/enterpriseResourceService';
@@ -77,6 +78,10 @@ export default function ResourceEditorModal({
   tagGroups,
   message,
 }: ResourceEditorModalProps) {
+  const { markDirty } = useUnsavedChangesGuard({
+    enabled: open,
+    identity: `${active.type}:${editing?.id ?? 'new'}`,
+  });
   return (
     <Modal
       title={editing ? `编辑${active.label}` : `新建${active.label}`}
@@ -87,7 +92,7 @@ export default function ResourceEditorModal({
       onCancel={() => setOpen(false)}
       destroyOnHidden
     >
-      <Form form={form} layout="vertical">
+      <Form form={form} layout="vertical" onValuesChange={markDirty}>
         <Space align="start" size={16} style={{ width: '100%' }}>
           <Form.Item
             name="shortName"
@@ -354,8 +359,12 @@ export default function ResourceEditorModal({
                   );
                 }
               }}
-              onChange={({ fileList }) => setImageFiles(fileList)}
+              onChange={({ fileList }) => {
+                markDirty();
+                setImageFiles(fileList);
+              }}
               onRemove={() => {
+                markDirty();
                 setImageFiles([]);
                 return true;
               }}

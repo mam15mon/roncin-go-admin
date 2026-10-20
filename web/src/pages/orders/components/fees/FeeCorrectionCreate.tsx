@@ -1,5 +1,5 @@
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import {
-  ModalForm,
   ProFormDependency,
   ProFormSelect,
   ProFormTextArea,
@@ -7,6 +7,7 @@ import {
 import { App, Button } from 'antd';
 import dayjs from 'dayjs';
 import { useState } from 'react';
+import { GuardedModalForm } from '@/components/ui';
 import { orderFeeServiceCreateOrderFeeCorrection } from '@/services/roncin/orderFeeService';
 import { isWriteResponse } from '@/utils/api';
 import { normalizeDecimalInput } from '@/utils/decimal';
@@ -41,6 +42,10 @@ export default function FeeCorrectionCreate({
   const [session, setSession] = useState<Session>();
   const [selectionOpen, setSelectionOpen] = useState(false);
   const [selectionKey, setSelectionKey] = useState(generateUUID);
+  const { markDirty, resetDirty } = useUnsavedChangesGuard({
+    enabled: selectionOpen || Boolean(session),
+    identity: orderId,
+  });
   const currentFees = fees.filter(
     (fee) => !fee.supersededByRequestId && fee.economicEffect !== 'DECREASE',
   );
@@ -85,6 +90,7 @@ export default function FeeCorrectionCreate({
     );
     if (!isWriteResponse(response, true)) return false;
     if (!response?.success) return false;
+    resetDirty();
     message.success('费用更正已提交审批');
     setSession(undefined);
     onCreated();
@@ -103,7 +109,7 @@ export default function FeeCorrectionCreate({
       >
         申请费用更正
       </Button>
-      <ModalForm<Selection>
+      <GuardedModalForm<Selection>
         key={selectionKey}
         title="选择费用更正方式"
         open={selectionOpen}
@@ -122,6 +128,7 @@ export default function FeeCorrectionCreate({
             source: values.operation === 1 ? undefined : selected,
           };
           if (values.operation === 3) return submit(next);
+          markDirty();
           setSession(next);
           return true;
         }}
@@ -166,7 +173,7 @@ export default function FeeCorrectionCreate({
             </>
           )}
         </ProFormDependency>
-      </ModalForm>
+      </GuardedModalForm>
       {session && (
         <FeeSupplementModal
           key={session.key}

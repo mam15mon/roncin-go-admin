@@ -22,6 +22,7 @@ interface SplitAttachmentsAndNotesSectionProps {
   setNote: (value: string | ((prev: string) => string)) => void;
   orderId: string;
   confirmationForm: FormInstance;
+  onUserEdit?: () => void;
 }
 
 /** 拆票页区块 5/6/7：附件共享引用继承、拆票说明与承运方外部确认。 */
@@ -34,6 +35,7 @@ export default function SplitAttachmentsAndNotesSection({
   setNote,
   orderId,
   confirmationForm,
+  onUserEdit,
 }: SplitAttachmentsAndNotesSectionProps) {
   // 附件继承列
   const attColumns: ColumnsType<API.SeaOrderSplitAttachmentItem> = [
@@ -147,7 +149,11 @@ export default function SplitAttachmentsAndNotesSection({
             </Space>
           }
         >
-          <Form form={confirmationForm} layout="vertical">
+          <Form
+            form={confirmationForm}
+            layout="vertical"
+            onValuesChange={onUserEdit}
+          >
             <SeaExternalConfirmationFields orderId={orderId} />
           </Form>
         </SectionCard>
