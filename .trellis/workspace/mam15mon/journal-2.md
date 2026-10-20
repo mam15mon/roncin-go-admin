@@ -1921,3 +1921,41 @@ HTML直接输出本次扫码iframe，前端复用原浏览上下文；开发与G
 ### Next Steps
 
 - 仅本地合入main，不推送；main工作区留在/tmp/roncin-org-switch-20261020，原目录并行任务不受影响
+
+
+## Session 149: 公共计费单位补齐与订单数量确认带入
+<!-- trellis-session: v=2 fp=8b63ca1481d3df25 -->
+
+**Date**: 2026-10-20
+**Task**: 公共计费单位补齐与订单数量确认带入
+**Branch**: `codex/billing-unit-quantity-assist`
+
+### Summary
+
+完成38项公共计费单位及开发seed统一、计划/实际箱量与CBM/KG/吨/RT确认带入，独立前后端review并修复缓存/冻结边界；开发库迁移已生效。完成check:fast、合并后check:web与真实PostgreSQL376项分组验收，升级必要Excelize安全依赖，集成组织切换未保存保护。
+
+### Main Changes
+
+- 公共单位目录38项，sync-dev完整补缺且保留管理员配置。
+- 录费统一预览来源、输入、公式和建议数量，确认后重算金额并登记未保存保护。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d621d229` | feat: 补齐公共计费单位并统一开发种子目录 |
+| `0f04609b` | feat: 支持录费时确认带入订单箱量与货量 |
+| `7f1da6ac` | fix: 更新表格解析安全依赖并对齐测试时限 |
+| `5a405e58` | merge: 同步主分支并保护带入数量的未保存修改 |
+
+### Testing
+
+- [OK] check:fast PASS；合并后check:web 288文件1606例PASS，原12例Skip；真实PG data376/376无Skip，迁移与后台任务包PASS；漏洞扫描无未处理可达漏洞。
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 按用户授权合并main，删除本次工作分支并push。

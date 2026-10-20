@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-2.md`
-- **Total Sessions**: 148
+- **Total Sessions**: 149
 - **Last Active**: 2026-10-20
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-2.md` | ~1923 | Active |
+| `journal-2.md` | ~1961 | Active |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
 
@@ -30,6 +30,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 149 | 2026-10-20 | 公共计费单位补齐与订单数量确认带入 | `d621d229`, `0f04609b`, `7f1da6ac`, `5a405e58` | `codex/billing-unit-quantity-assist` |
 | 148 | 2026-10-20 | 切换组织保留功能位置与未保存编辑保护 | `166282a3` | `codex/retain-page-on-org-switch` |
 | 146 | 2026-10-20 | 修复管理员角色最大权限全选 | `87fcd7b7` | `main` |
 | 145 | 2026-10-19 | 钉钉通知 ActionCard 改版交付 | `84df33d1`, `957425ec`, `8eb809c7`, `6e6d3a27`, `3e6ddc6a` | `codex/dingtalk-notification-cards` |
