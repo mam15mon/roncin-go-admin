@@ -231,6 +231,7 @@ var operationAccessRules = map[string]accessRule{
 	"/order.v1.OrderFeeService/ListOrderFeeCorrectionRequests":                                  {mode: accessModeAuthenticated},
 	"/order.v1.OrderFeeService/ListOrderFeeSupplementRequests":                                  {mode: accessModeAuthenticated},
 	"/order.v1.OrderFeeService/ListOrderFeeTagOptions":                                          {mode: accessModeOrderPermission, scope: biz.DataScopeOrganization, orderOperation: access.OrderOperation("fee.read")},
+	"/order.v1.OrderFeeService/PreviewFeeQuantity":                                              {mode: accessModeOrderPermission, scope: biz.DataScopeOrganization, orderOperation: access.OrderOperation("fee.read")},
 	"/order.v1.OrderFeeService/PreviewOrderFeeCorrectionApproval":                               {mode: accessModeAuthenticated},
 	"/order.v1.OrderFeeService/PreviewOrderFeeReview":                                           {mode: accessModeAuthenticated},
 	"/order.v1.OrderFeeService/PreviewOrderFeeReviews":                                          {mode: accessModeAuthenticated},

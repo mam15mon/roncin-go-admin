@@ -125,6 +125,7 @@ type OrderFeeSettingOption struct {
 }
 
 type OrderFeeBillingUnitOption struct {
+	IsContainerUnit       bool
 	ID                    uuid.UUID
 	Code                  string
 	Name                  string
@@ -155,6 +156,7 @@ type OrderFeeOptions struct {
 }
 
 type OrderFeeRepo interface {
+	QuantitySource(ctx context.Context, organizationID, orderID, billingUnitID uuid.UUID, source string) (*FeeQuantitySource, error)
 	Options(ctx context.Context, organizationID, orderID uuid.UUID) (*OrderFeeOptions, error)
 	ResolveCatalog(ctx context.Context, organizationID, orderID, feeSettingID, billingUnitID uuid.UUID, allowDisabledUnit bool) (*OrderFeeCatalogSnapshot, error)
 	List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderFee, error)

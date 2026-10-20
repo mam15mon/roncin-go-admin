@@ -63,4 +63,44 @@ describe('useFeeExchangePreview 请求隔离', () => {
     expect(result.current.exchangeRateStatus).toBe('idle');
     expect(result.current.exchangeRatePreview).toBeUndefined();
   });
+  it('确认数量只更新金额，保留手工汇率且不额外解析；普通变更仍解析汇率', async () => {
+    resolveExchangeRate.mockResolvedValue({
+      exchangeRate: '7.1',
+      exchangeRateSource: 'SYSTEM',
+    });
+    const setFieldValue = vi.fn();
+    const formRef = {
+      current: {
+        getFieldsValue: () => ({
+          direction: 1,
+          currency: 'USD',
+          expenseDate: '2026-10-20',
+          quantity: '8',
+          unitPrice: '100',
+          exchangeRateOverride: '7.2',
+        }),
+        setFieldValue,
+      } as unknown as ProFormInstance<FeeFormValues>,
+    };
+    const { result } = renderHook(
+      () => useFeeExchangePreview('order-A', formRef),
+      { wrapper },
+    );
+    act(() => result.current.setManualExchangeRate(true));
+    act(() => result.current.handleValuesChange({ amountOnly: true }));
+    expect(result.current.totalPreview).toBe('800.00');
+    expect(result.current.manualExchangeRate).toBe(true);
+    expect(setFieldValue).not.toHaveBeenCalled();
+    expect(resolveExchangeRate).not.toHaveBeenCalled();
+    act(() => result.current.handleValuesChange());
+    await waitFor(() =>
+      expect(result.current.exchangeRateStatus).toBe('resolved'),
+    );
+    expect(result.current.manualExchangeRate).toBe(false);
+    expect(setFieldValue).toHaveBeenCalledWith(
+      'exchangeRateOverride',
+      undefined,
+    );
+    expect(resolveExchangeRate).toHaveBeenCalledTimes(1);
+  });
 });

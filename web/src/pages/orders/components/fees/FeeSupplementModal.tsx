@@ -16,6 +16,7 @@ import {
 } from '@/components/ui';
 import { useFeeExchangePreview } from '../../use-fee-exchange-preview';
 import type { FeeFormValues } from './FeeFormModal';
+import { FeeQuantityFormAssist } from './FeeQuantityAssist';
 import { PAYABLE } from './feeConstants';
 import { feeQuantityRuleError } from './feeQuantityRule';
 
@@ -357,6 +358,14 @@ export default function FeeSupplementModal({
           <ProFormText
             name="quantity"
             label="数量"
+            extra={
+              <FeeQuantityFormAssist
+                orderId={orderId}
+                billingUnits={billingUnits}
+                active={open}
+                onValuesChange={() => handleValuesChange({ amountOnly: true })}
+              />
+            }
             rules={[
               { required: true, message: '请输入数量' },
               {

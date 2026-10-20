@@ -2625,6 +2625,21 @@ declare namespace API {
     amountsByBaseCurrency?: FeeLedgerBaseCurrencyAmount[];
   };
 
+  type FeeQuantityInput = {
+    label?: string;
+    value?: string;
+    unit?: string;
+  };
+
+  type FeeQuantityPreview = {
+    available?: boolean;
+    quantity?: string;
+    sourceLabel?: string;
+    formula?: string;
+    inputs?: FeeQuantityInput[];
+    reason?: string;
+  };
+
   type FeeSetting = {
     id?: string;
     /** 科目归属公司，系统初始目录使用独立模板接口。 */
@@ -5089,6 +5104,7 @@ declare namespace API {
     code?: string;
     name?: string;
     quantityMustBeInteger?: boolean;
+    isContainerUnit?: boolean;
   };
 
   type OrderFeeCorrectionApprovalData = {
@@ -5324,6 +5340,12 @@ declare namespace API {
     keyword?: string;
     page?: number;
     pageSize?: number;
+  };
+
+  type OrderFeeServicePreviewFeeQuantityParams = {
+    orderId: string;
+    billingUnitId?: string;
+    source?: string;
   };
 
   type OrderFeeServicePreviewOrderFeeCorrectionApprovalParams = {
@@ -6430,6 +6452,14 @@ declare namespace API {
     message?: string;
     data?: ExchangeRateImportBatch;
     previewToken?: string;
+    traceId?: string;
+  };
+
+  type PreviewFeeQuantityResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FeeQuantityPreview;
     traceId?: string;
   };
 

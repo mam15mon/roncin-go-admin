@@ -2,6 +2,7 @@ import { App } from 'antd';
 import { useRef, useState } from 'react';
 import { financeErrorReasons } from '@/errorReasons.generated';
 import { orderFeeServiceResolveFeeExchangeRate } from '@/services/roncin/orderFeeService';
+import { calculateExactFeeTotal } from '@/utils/decimal';
 import { formatAmount, trimDecimal } from '@/utils/format';
 
 type ExchangeRateStatus = 'idle' | 'loading' | 'resolved' | 'missing' | 'error';
@@ -35,6 +36,11 @@ export function useOrderFeePanelExchangeRate(editingFee?: API.OrderFee) {
     );
     setExchangeRateStatus(fee.exchangeRate ? 'resolved' : 'missing');
     setManualExchangeRate(false);
+  };
+
+  const updateAmountPreview = (quantity?: string, unitPrice?: string) => {
+    const total = calculateExactFeeTotal(quantity, unitPrice);
+    setTotalPreview(total ? formatAmount(total) : undefined);
   };
 
   const resolveExchangeRate = (
@@ -79,6 +85,7 @@ export function useOrderFeePanelExchangeRate(editingFee?: API.OrderFee) {
 
   return {
     totalPreview,
+    updateAmountPreview,
     exchangeRatePreview,
     exchangeRateStatus,
     manualExchangeRate,

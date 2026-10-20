@@ -220,6 +220,25 @@ export async function orderFeeServiceListFeeOptions(
   );
 }
 
+/** PreviewFeeQuantity 预览本订单数量来源与计算依据，确认后由调用方填入表单。 GET /api/v1/orders/${param0}/fee-quantity-preview */
+export async function orderFeeServicePreviewFeeQuantity(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServicePreviewFeeQuantityParams,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, ...queryParams } = params;
+  return request<API.PreviewFeeQuantityResponse>(
+    `/api/v1/orders/${param0}/fee-quantity-preview`,
+    {
+      method: "GET",
+      params: {
+        ...queryParams,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/orders/${param0}/fee-review */
 export async function orderFeeServiceGetOrderFeeReview(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

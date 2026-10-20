@@ -37,6 +37,7 @@ const (
 	OrderFeeService_RevokeOrderFeeReview_FullMethodName              = "/order.v1.OrderFeeService/RevokeOrderFeeReview"
 	OrderFeeService_ListFeeOptions_FullMethodName                    = "/order.v1.OrderFeeService/ListFeeOptions"
 	OrderFeeService_ListFees_FullMethodName                          = "/order.v1.OrderFeeService/ListFees"
+	OrderFeeService_PreviewFeeQuantity_FullMethodName                = "/order.v1.OrderFeeService/PreviewFeeQuantity"
 	OrderFeeService_ResolveFeeExchangeRate_FullMethodName            = "/order.v1.OrderFeeService/ResolveFeeExchangeRate"
 	OrderFeeService_AddFee_FullMethodName                            = "/order.v1.OrderFeeService/AddFee"
 	OrderFeeService_UpdateFee_FullMethodName                         = "/order.v1.OrderFeeService/UpdateFee"
@@ -82,6 +83,8 @@ type OrderFeeServiceClient interface {
 	ListFeeOptions(ctx context.Context, in *ListFeeOptionsRequest, opts ...grpc.CallOption) (*ListFeeOptionsResponse, error)
 	// ListFees 获取指定订单的费用列表。
 	ListFees(ctx context.Context, in *ListFeesRequest, opts ...grpc.CallOption) (*ListFeesResponse, error)
+	// PreviewFeeQuantity 预览本订单数量来源与计算依据，确认后由调用方填入表单。
+	PreviewFeeQuantity(ctx context.Context, in *PreviewFeeQuantityRequest, opts ...grpc.CallOption) (*PreviewFeeQuantityResponse, error)
 	// ResolveFeeExchangeRate 按费用发生日解析币种折本位币的公共参考汇率。
 	ResolveFeeExchangeRate(ctx context.Context, in *ResolveFeeExchangeRateRequest, opts ...grpc.CallOption) (*ResolveFeeExchangeRateResponse, error)
 	// AddFee 录入订单费用，总金额由服务端按数量乘单价精确计算。
@@ -315,6 +318,16 @@ func (c *orderFeeServiceClient) ListFees(ctx context.Context, in *ListFeesReques
 	return out, nil
 }
 
+func (c *orderFeeServiceClient) PreviewFeeQuantity(ctx context.Context, in *PreviewFeeQuantityRequest, opts ...grpc.CallOption) (*PreviewFeeQuantityResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PreviewFeeQuantityResponse)
+	err := c.cc.Invoke(ctx, OrderFeeService_PreviewFeeQuantity_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *orderFeeServiceClient) ResolveFeeExchangeRate(ctx context.Context, in *ResolveFeeExchangeRateRequest, opts ...grpc.CallOption) (*ResolveFeeExchangeRateResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ResolveFeeExchangeRateResponse)
@@ -502,6 +515,8 @@ type OrderFeeServiceServer interface {
 	ListFeeOptions(context.Context, *ListFeeOptionsRequest) (*ListFeeOptionsResponse, error)
 	// ListFees 获取指定订单的费用列表。
 	ListFees(context.Context, *ListFeesRequest) (*ListFeesResponse, error)
+	// PreviewFeeQuantity 预览本订单数量来源与计算依据，确认后由调用方填入表单。
+	PreviewFeeQuantity(context.Context, *PreviewFeeQuantityRequest) (*PreviewFeeQuantityResponse, error)
 	// ResolveFeeExchangeRate 按费用发生日解析币种折本位币的公共参考汇率。
 	ResolveFeeExchangeRate(context.Context, *ResolveFeeExchangeRateRequest) (*ResolveFeeExchangeRateResponse, error)
 	// AddFee 录入订单费用，总金额由服务端按数量乘单价精确计算。
@@ -608,6 +623,9 @@ func (UnimplementedOrderFeeServiceServer) ListFeeOptions(context.Context, *ListF
 }
 func (UnimplementedOrderFeeServiceServer) ListFees(context.Context, *ListFeesRequest) (*ListFeesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListFees not implemented")
+}
+func (UnimplementedOrderFeeServiceServer) PreviewFeeQuantity(context.Context, *PreviewFeeQuantityRequest) (*PreviewFeeQuantityResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PreviewFeeQuantity not implemented")
 }
 func (UnimplementedOrderFeeServiceServer) ResolveFeeExchangeRate(context.Context, *ResolveFeeExchangeRateRequest) (*ResolveFeeExchangeRateResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ResolveFeeExchangeRate not implemented")
@@ -1002,6 +1020,24 @@ func _OrderFeeService_ListFees_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrderFeeService_PreviewFeeQuantity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PreviewFeeQuantityRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderFeeServiceServer).PreviewFeeQuantity(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderFeeService_PreviewFeeQuantity_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderFeeServiceServer).PreviewFeeQuantity(ctx, req.(*PreviewFeeQuantityRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _OrderFeeService_ResolveFeeExchangeRate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ResolveFeeExchangeRateRequest)
 	if err := dec(in); err != nil {
@@ -1368,6 +1404,10 @@ var OrderFeeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListFees",
 			Handler:    _OrderFeeService_ListFees_Handler,
+		},
+		{
+			MethodName: "PreviewFeeQuantity",
+			Handler:    _OrderFeeService_PreviewFeeQuantity_Handler,
 		},
 		{
 			MethodName: "ResolveFeeExchangeRate",

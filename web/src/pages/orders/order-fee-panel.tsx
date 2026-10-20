@@ -1,5 +1,9 @@
 import { PlusOutlined, TagOutlined } from '@ant-design/icons';
-import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import type {
+  ActionType,
+  ProColumns,
+  ProFormInstance,
+} from '@ant-design/pro-components';
 import { useQueryClient } from '@tanstack/react-query';
 import { Alert, App, Button, Drawer } from 'antd';
 import dayjs from 'dayjs';
@@ -59,6 +63,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     const queryClient = useQueryClient();
     const { message, modal } = App.useApp();
     const actionRef = useRef<ActionType | undefined>(undefined);
+    const formRef = useRef<ProFormInstance<FeeFormValues>>(undefined);
     const feeOptionsRequestRef = useRef(0);
     const createIdempotencyKeyRef = useRef(generateUUID());
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -147,6 +152,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
 
     const {
       totalPreview,
+      updateAmountPreview,
       exchangeRatePreview,
       exchangeRateStatus,
       manualExchangeRate,
@@ -157,7 +163,10 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     } = useOrderFeePanelExchangeRate(editingFee);
 
     const handleValuesChange = () => {
-      // values change handler for fee total calculation
+      updateAmountPreview(
+        formRef.current?.getFieldValue('quantity'),
+        formRef.current?.getFieldValue('unitPrice'),
+      );
     };
 
     const openCreate = () => {
@@ -526,6 +535,9 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
         />
 
         <FeeFormModal
+          formRef={formRef}
+          orderId={order?.id ?? ''}
+          quantityAssistDisabled={feeWritesDisabled}
           open={modalOpen}
           onOpenChange={setModalOpen}
           editingFee={editingFee}
@@ -549,6 +561,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             if (ensureFeeWriteAllowed()) setQuickAddPartnerModalOpen(true);
           }}
           onValuesChange={handleValuesChange}
+          onQuantityChange={handleValuesChange}
           onFeeSettingSelect={(setting) => {
             setSelectedFeeSetting(setting);
             if (setting?.defaultCurrency && order?.id) {

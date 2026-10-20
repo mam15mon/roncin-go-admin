@@ -91,6 +91,12 @@ service OrderFeeService {
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/fees"};
   }
 
+  // PreviewFeeQuantity 预览本订单数量来源与计算依据，确认后由调用方填入表单。
+  rpc PreviewFeeQuantity(PreviewFeeQuantityRequest) returns (PreviewFeeQuantityResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/fee-quantity-preview"};
+  }
+
   // ResolveFeeExchangeRate 按费用发生日解析币种折本位币的公共参考汇率。
   rpc ResolveFeeExchangeRate(ResolveFeeExchangeRateRequest) returns (ResolveFeeExchangeRateResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.read" scope: DATA_SCOPE_ORGANIZATION};
@@ -317,6 +323,7 @@ message OrderFeeBillingUnitOption {
   string code = 2;
   string name = 3;
   bool quantity_must_be_integer = 4;
+  bool is_container_unit = 5;
 }
 
 message ListFeeOptionsResponse {
@@ -965,3 +972,30 @@ message ApproveOrderFeeCorrectionResponse {bool success = 1; int32 code = 2; str
 message RejectOrderFeeCorrectionResponse {bool success = 1; int32 code = 2; string message = 3; OrderFeeCorrectionRequestData data = 4; string trace_id = 5;}
 message WithdrawOrderFeeCorrectionResponse {bool success = 1; int32 code = 2; string message = 3; OrderFeeCorrectionRequestData data = 4; string trace_id = 5;}
 message ListOrderFeeCorrectionRequestsResponse {bool success = 1; int32 code = 2; string message = 3; repeated OrderFeeCorrectionRequestData data = 4; int32 total = 5; int32 page = 6; int32 page_size = 7; string trace_id = 8;}
+
+// source 显式选择 PLANNED（订舱计划）或 ACTUAL（实际登记）；货量仅支持 ACTUAL。
+message PreviewFeeQuantityRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string billing_unit_id = 2 [(google.api.field_behavior) = REQUIRED];
+  string source = 3 [(google.api.field_behavior) = REQUIRED];
+}
+message FeeQuantityInput {
+  string label = 1;
+  string value = 2;
+  string unit = 3;
+}
+message FeeQuantityPreview {
+  bool available = 1;
+  string quantity = 2;
+  string source_label = 3;
+  string formula = 4;
+  repeated FeeQuantityInput inputs = 5;
+  string reason = 6;
+}
+message PreviewFeeQuantityResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  FeeQuantityPreview data = 4;
+  string trace_id = 5;
+}

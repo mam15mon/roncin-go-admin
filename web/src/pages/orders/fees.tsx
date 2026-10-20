@@ -839,6 +839,8 @@ export default function OrderFeesPage() {
 
       {/* 4. 费用录入/编辑 ModalForm */}
       <FeeFormModal
+        orderId={targetOrderId ?? ''}
+        quantityAssistDisabled={feeWritesDisabled}
         formRef={formRef}
         open={modalOpen}
         onOpenChange={setModalOpen}
@@ -857,6 +859,7 @@ export default function OrderFeesPage() {
         onOpenQuickAddFee={handleOpenQuickAddFee}
         onOpenQuickAddPartner={handleOpenQuickAddPartner}
         onValuesChange={handleValuesChange}
+        onQuantityChange={() => handleValuesChange({ amountOnly: true })}
         onFeeSettingSelect={setSelectedFeeSetting}
         onSubmit={handleModalSubmit}
       />

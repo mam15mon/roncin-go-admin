@@ -85,7 +85,7 @@ export function useFeeExchangePreview(
       });
   };
 
-  const handleValuesChange = () => {
+  const handleValuesChange = (options?: { amountOnly?: boolean }) => {
     const values = formRef?.current?.getFieldsValue();
     if (!values) return;
     const { quantity, unitPrice, currency, expenseDate, direction } = values;
@@ -100,7 +100,13 @@ export function useFeeExchangePreview(
     } else {
       setTotalPreview(undefined);
     }
-    if (orderId && direction && currency && expenseDate) {
+    if (
+      !options?.amountOnly &&
+      orderId &&
+      direction &&
+      currency &&
+      expenseDate
+    ) {
       resolveExchangeRate(
         orderId,
         Number(direction),

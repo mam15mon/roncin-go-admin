@@ -206,7 +206,7 @@ func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid
 		result.Currencies = append(result.Currencies, biz.OrderFeeCurrencyOption{Code: currency.Code, Name: currency.Name, MinorUnit: currency.MinorUnit})
 	}
 	for _, billingUnit := range billingUnits {
-		result.BillingUnits = append(result.BillingUnits, biz.OrderFeeBillingUnitOption{ID: billingUnit.ID, Code: billingUnit.Code, Name: billingUnit.Name, QuantityMustBeInteger: billingUnit.QuantityMustBeInteger})
+		result.BillingUnits = append(result.BillingUnits, biz.OrderFeeBillingUnitOption{ID: billingUnit.ID, Code: billingUnit.Code, Name: billingUnit.Name, QuantityMustBeInteger: billingUnit.QuantityMustBeInteger, IsContainerUnit: billingUnit.IsContainerUnit})
 	}
 	for _, feeSetting := range feeSettings {
 		billingUnit, billingErr := feeSetting.Edges.BillingUnitOrErr()

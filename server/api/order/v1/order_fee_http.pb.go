@@ -36,6 +36,7 @@ const OperationOrderFeeServiceListFees = "/order.v1.OrderFeeService/ListFees"
 const OperationOrderFeeServiceListOrderFeeCorrectionRequests = "/order.v1.OrderFeeService/ListOrderFeeCorrectionRequests"
 const OperationOrderFeeServiceListOrderFeeSupplementRequests = "/order.v1.OrderFeeService/ListOrderFeeSupplementRequests"
 const OperationOrderFeeServiceListOrderFeeTagOptions = "/order.v1.OrderFeeService/ListOrderFeeTagOptions"
+const OperationOrderFeeServicePreviewFeeQuantity = "/order.v1.OrderFeeService/PreviewFeeQuantity"
 const OperationOrderFeeServicePreviewOrderFeeCorrectionApproval = "/order.v1.OrderFeeService/PreviewOrderFeeCorrectionApproval"
 const OperationOrderFeeServicePreviewOrderFeeReview = "/order.v1.OrderFeeService/PreviewOrderFeeReview"
 const OperationOrderFeeServicePreviewOrderFeeReviews = "/order.v1.OrderFeeService/PreviewOrderFeeReviews"
@@ -92,6 +93,8 @@ type OrderFeeServiceHTTPServer interface {
 	// fee.read 注解提前挡住，也不泄露无权申请。
 	ListOrderFeeSupplementRequests(context.Context, *ListOrderFeeSupplementRequestsRequest) (*ListOrderFeeSupplementRequestsResponse, error)
 	ListOrderFeeTagOptions(context.Context, *ListOrderFeeTagOptionsRequest) (*ListOrderFeeTagOptionsResponse, error)
+	// PreviewFeeQuantity PreviewFeeQuantity 预览本订单数量来源与计算依据，确认后由调用方填入表单。
+	PreviewFeeQuantity(context.Context, *PreviewFeeQuantityRequest) (*PreviewFeeQuantityResponse, error)
 	PreviewOrderFeeCorrectionApproval(context.Context, *PreviewOrderFeeCorrectionApprovalRequest) (*PreviewOrderFeeCorrectionApprovalResponse, error)
 	PreviewOrderFeeReview(context.Context, *PreviewOrderFeeReviewRequest) (*PreviewOrderFeeReviewResponse, error)
 	PreviewOrderFeeReviews(context.Context, *PreviewOrderFeeReviewsRequest) (*PreviewOrderFeeReviewsResponse, error)
@@ -138,6 +141,7 @@ func RegisterOrderFeeServiceHTTPServer(s *http.Server, srv OrderFeeServiceHTTPSe
 	r.Handle("POST", "/api/v1/orders/{order_id}/fee-review/revoke", _OrderFeeService_RevokeOrderFeeReview0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/orders/{order_id}/fee-options", _OrderFeeService_ListFeeOptions0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/orders/{order_id}/fees", _OrderFeeService_ListFees0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/orders/{order_id}/fee-quantity-preview", _OrderFeeService_PreviewFeeQuantity0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/orders/{order_id}/fee-exchange-rate", _OrderFeeService_ResolveFeeExchangeRate0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders/{order_id}/fees", _OrderFeeService_AddFee0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/orders/{order_id}/fees/{id}", _OrderFeeService_UpdateFee0_HTTP_Handler(srv))
@@ -546,6 +550,28 @@ func _OrderFeeService_ListFees0_HTTP_Handler(srv OrderFeeServiceHTTPServer) func
 	}
 }
 
+func _OrderFeeService_PreviewFeeQuantity0_HTTP_Handler(srv OrderFeeServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in PreviewFeeQuantityRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOrderFeeServicePreviewFeeQuantity)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.PreviewFeeQuantity(ctx, req.(*PreviewFeeQuantityRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PreviewFeeQuantityResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _OrderFeeService_ResolveFeeExchangeRate0_HTTP_Handler(srv OrderFeeServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in ResolveFeeExchangeRateRequest
@@ -938,6 +964,8 @@ type OrderFeeServiceHTTPClient interface {
 	// fee.read 注解提前挡住，也不泄露无权申请。
 	ListOrderFeeSupplementRequests(ctx context.Context, req *ListOrderFeeSupplementRequestsRequest, opts ...http.CallOption) (rsp *ListOrderFeeSupplementRequestsResponse, err error)
 	ListOrderFeeTagOptions(ctx context.Context, req *ListOrderFeeTagOptionsRequest, opts ...http.CallOption) (rsp *ListOrderFeeTagOptionsResponse, err error)
+	// PreviewFeeQuantity PreviewFeeQuantity 预览本订单数量来源与计算依据，确认后由调用方填入表单。
+	PreviewFeeQuantity(ctx context.Context, req *PreviewFeeQuantityRequest, opts ...http.CallOption) (rsp *PreviewFeeQuantityResponse, err error)
 	PreviewOrderFeeCorrectionApproval(ctx context.Context, req *PreviewOrderFeeCorrectionApprovalRequest, opts ...http.CallOption) (rsp *PreviewOrderFeeCorrectionApprovalResponse, err error)
 	PreviewOrderFeeReview(ctx context.Context, req *PreviewOrderFeeReviewRequest, opts ...http.CallOption) (rsp *PreviewOrderFeeReviewResponse, err error)
 	PreviewOrderFeeReviews(ctx context.Context, req *PreviewOrderFeeReviewsRequest, opts ...http.CallOption) (rsp *PreviewOrderFeeReviewsResponse, err error)
@@ -1299,6 +1327,23 @@ func (c *OrderFeeServiceHTTPClientImpl) ListOrderFeeTagOptions(ctx context.Conte
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationOrderFeeServiceListOrderFeeTagOptions),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PreviewFeeQuantity PreviewFeeQuantity 预览本订单数量来源与计算依据，确认后由调用方填入表单。
+func (c *OrderFeeServiceHTTPClientImpl) PreviewFeeQuantity(ctx context.Context, in *PreviewFeeQuantityRequest, opts ...http.CallOption) (*PreviewFeeQuantityResponse, error) {
+	var out PreviewFeeQuantityResponse
+	pattern := "/api/v1/orders/{order_id}/fee-quantity-preview"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationOrderFeeServicePreviewFeeQuantity),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

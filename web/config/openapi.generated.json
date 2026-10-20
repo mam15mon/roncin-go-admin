@@ -9651,6 +9651,51 @@
         }
       }
     },
+    "/api/v1/orders/{orderId}/fee-quantity-preview": {
+      "get": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "description": "PreviewFeeQuantity 预览本订单数量来源与计算依据，确认后由调用方填入表单。",
+        "operationId": "OrderFeeService_PreviewFeeQuantity",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "billingUnitId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.PreviewFeeQuantityResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/orders/{orderId}/fee-review": {
       "get": {
         "tags": [
@@ -27480,6 +27525,46 @@
           }
         }
       },
+      "order.v1.FeeQuantityInput": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.FeeQuantityPreview": {
+        "type": "object",
+        "properties": {
+          "available": {
+            "type": "boolean"
+          },
+          "quantity": {
+            "type": "string"
+          },
+          "sourceLabel": {
+            "type": "string"
+          },
+          "formula": {
+            "type": "string"
+          },
+          "inputs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.FeeQuantityInput"
+            }
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
       "order.v1.FeeSupplementCommissionImpact": {
         "type": "object",
         "properties": {
@@ -29452,6 +29537,9 @@
           },
           "quantityMustBeInteger": {
             "type": "boolean"
+          },
+          "isContainerUnit": {
+            "type": "boolean"
           }
         }
       },
@@ -30687,6 +30775,27 @@
           }
         },
         "description": "PreviewChangeSeaDocumentModeResponse 预览模式切换响应。"
+      },
+      "order.v1.PreviewFeeQuantityResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/order.v1.FeeQuantityPreview"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
       },
       "order.v1.PreviewOrderFeeCorrectionApprovalRequest": {
         "type": "object",

@@ -50,4 +50,16 @@ describe('useOrderFeePanelExchangeRate', () => {
     expect(result.current.manualExchangeRate).toBe(false);
     expect(messageError).toHaveBeenCalledWith('服务不可用');
   });
+  it('确认数量后即时更新金额且保留手工汇率，继续手改和清空可重算', () => {
+    const { result } = renderHook(() => useOrderFeePanelExchangeRate());
+    act(() => result.current.setManualExchangeRate(true));
+    act(() => result.current.updateAmountPreview('8', '100'));
+    expect(result.current.totalPreview).toBe('800.00');
+    expect(result.current.manualExchangeRate).toBe(true);
+    expect(resolveExchangeRate).not.toHaveBeenCalled();
+    act(() => result.current.updateAmountPreview('9', '100'));
+    expect(result.current.totalPreview).toBe('900.00');
+    act(() => result.current.updateAmountPreview('', '100'));
+    expect(result.current.totalPreview).toBeUndefined();
+  });
 });

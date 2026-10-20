@@ -14,7 +14,16 @@ import {
   ProFormDatePicker,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { Alert, App, Button, Dropdown, type MenuProps, Space, Tag } from 'antd';
+import {
+  Alert,
+  App,
+  Button,
+  Dropdown,
+  Form,
+  type MenuProps,
+  Space,
+  Tag,
+} from 'antd';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -52,6 +61,7 @@ import {
 import { getErrorMessage } from '@/utils/errorMessage';
 import { formatAmount, formatDate, trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
+import FeeQuantityAssist from './FeeQuantityAssist';
 import type { FeeBillTrackingView } from './feeBillTracking';
 import {
   clearFeeColumnPreference,
@@ -1158,9 +1168,9 @@ export default function OrderFeeTableTabs({
       {
         title: '数量',
         dataIndex: 'quantity',
-        width: 90,
+        width: 130,
         align: 'right',
-        formItemProps: {
+        formItemProps: (form, { rowKey }) => ({
           rules: [
             { required: true, message: '请输入数量' },
             {
@@ -1170,7 +1180,50 @@ export default function OrderFeeTableTabs({
               ),
             },
           ],
-        },
+          extra: (
+            <Form.Item noStyle shouldUpdate>
+              {() => (
+                <FeeQuantityAssist
+                  orderId={orderId}
+                  billingUnit={billingUnits?.find(
+                    (unit) =>
+                      unit.id === form.getFieldValue([rowKey, 'billingUnitId']),
+                  )}
+                  disabled={
+                    feeWritesDisabled ||
+                    [
+                      ...(latestReceivableResultRef.current?.items ?? []),
+                      ...(latestPayableResultRef.current?.items ?? []),
+                    ].some(
+                      (fee) =>
+                        fee.id === String(rowKey) && fee.hasActiveBill === true,
+                    )
+                  }
+                  onConfirm={(quantity) => {
+                    form.setFieldValue([rowKey, 'quantity'], quantity);
+                    refreshAmountPreview(rowKey, form);
+                    const baseline = [
+                      ...(latestReceivableResultRef.current?.items ?? []),
+                      ...(latestPayableResultRef.current?.items ?? []),
+                    ].find((fee) => fee.id === String(rowKey));
+                    const error = feeQuantityRuleError(
+                      quantity,
+                      form.getFieldValue([rowKey, 'billingUnitId']),
+                      billingUnits ?? [],
+                      baseline,
+                    );
+                    form.setFields([
+                      {
+                        name: [rowKey, 'quantity'],
+                        errors: error ? [error] : [],
+                      },
+                    ]);
+                  }}
+                />
+              )}
+            </Form.Item>
+          ),
+        }),
         render: (_, record) => trimDecimal(record.quantity),
         fieldProps: (form, { rowKey }) => ({
           placeholder: '1',

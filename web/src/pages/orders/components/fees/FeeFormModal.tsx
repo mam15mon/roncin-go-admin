@@ -20,6 +20,7 @@ import {
   normalizeDecimalInput,
   quantityOrPricePattern,
 } from '@/utils/decimal';
+import { FeeQuantityFormAssist } from './FeeQuantityAssist';
 import { feeQuantityRuleError } from './feeQuantityRule';
 
 const positiveDecimalRule =
@@ -47,6 +48,8 @@ export type FeeFormValues = {
 };
 
 type FeeFormModalProps = {
+  orderId: string;
+  quantityAssistDisabled?: boolean;
   formRef?: React.RefObject<ProFormInstance<FeeFormValues> | undefined>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -65,11 +68,14 @@ type FeeFormModalProps = {
   onOpenQuickAddFee: () => void;
   onOpenQuickAddPartner: () => void;
   onValuesChange: () => void;
+  onQuantityChange: () => void;
   onFeeSettingSelect: (setting?: API.OrderFeeSettingOption) => void;
   onSubmit: (values: FeeFormValues) => Promise<boolean>;
 };
 
 export default function FeeFormModal({
+  orderId,
+  quantityAssistDisabled = false,
   formRef,
   open,
   onOpenChange,
@@ -88,6 +94,7 @@ export default function FeeFormModal({
   onOpenQuickAddFee,
   onOpenQuickAddPartner,
   onValuesChange,
+  onQuantityChange,
   onFeeSettingSelect,
   onSubmit,
 }: FeeFormModalProps) {
@@ -262,6 +269,15 @@ export default function FeeFormModal({
           <ProFormText
             name="quantity"
             label="数量"
+            extra={
+              <FeeQuantityFormAssist
+                orderId={orderId}
+                billingUnits={billingUnits}
+                active={open}
+                disabled={quantityAssistDisabled || isFeeBilled}
+                onValuesChange={onQuantityChange}
+              />
+            }
             rules={[
               { required: true, message: '请输入数量' },
               {
