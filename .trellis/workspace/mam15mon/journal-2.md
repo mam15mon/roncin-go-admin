@@ -1855,3 +1855,33 @@ HTML直接输出本次扫码iframe，前端复用原浏览上下文；开发与G
 ### Status
 
 [OK] **Completed**
+
+
+## Session 146: 修复管理员角色最大权限全选
+<!-- trellis-session: v=2 fp=89a9c441ca48ab63 -->
+
+**Date**: 2026-10-20
+**Task**: 修复管理员角色最大权限全选
+**Branch**: `main`
+
+### Summary
+
+修复公司角色全选混入系统权限造成的防提权报错；独立审查补齐字典失败保护及手动重试。最终独立主分支集合check:web通过，专用PostgreSQL最大公司权限创建/编辑及非法拒绝通过。
+
+### Main Changes
+
+- 角色候选与access共用auth/me有效能力；编辑原权限保留；隔离整合排除并行海运提交。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `87fcd7b7` | fix: 修正角色全选权限范围并保护原授权 |
+
+### Testing
+
+- [OK] 最终check:web：269文件/1523用例通过，既有1文件/12用例跳过；真实PostgreSQL两项集成PASS且无SKIP。
+
+### Status
+
+[OK] **Completed**
