@@ -185,6 +185,7 @@ export default function ContractsPanel({
         title={editingContract ? '编辑商务合同' : '新增商务合同'}
         open={modalOpen}
         formRef={formRef}
+        dateFormatter={false}
         initialValues={
           editingContract
             ? {

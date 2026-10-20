@@ -153,6 +153,23 @@ antd 6 下会静默失效，测试表现为「元素找不到」或「回调未�
     context」警告，应改 `App.useApp()`（生产链路由 src/main.tsx 统一 `<App>` 包裹，测试渲染需自行补
     `<App>` 或复用 tests/renderWithApp.tsx）。
 
+## 合同表单日期提交回归
+
+1. **适用场景**：`ContractCardList`、`ContractsPanel` 中创建或编辑合同有效期。
+2. **入口**：`GuardedModalForm` / `ModalForm.onFinish`；服务端
+   `parseContractDates` 使用 `time.Parse(time.RFC3339, value)`。
+3. **契约**：ProComponents 默认 `dateFormatter: 'string'` 会将日期转换为字符串。
+   回调需要调用 Dayjs 方法时，表单显式设置 `dateFormatter={false}`；提交合同有效期
+   使用本地日期的 `startOf('day').toISOString()`，生成 RFC3339，而非 `YYYY-MM-DD`。
+4. **校验矩阵**：创建和编辑均发送有效 RFC3339 起止时间；创建请求不含手工
+   `contractNo`；关闭、失败等表单行为继续由官方提交生命周期管理。
+5. **示例**：显式保留 Dayjs 后转 ISO 是正常路径；收到字符串后调用 `.format()` /
+   `.startOf()` 会报错；只输出纯日期会被服务端拒绝。
+6. **必需验证**：保留真实 `GuardedModalForm`、ProForm 日期转换与提交事件，仅 mock
+   服务请求；从两个合同入口实际提交创建和编辑，断言载荷日期及编号字段。
+7. **错误与正确**：错误是将默认转换后的回调值仅靠类型标注当作 Dayjs；正确是
+   表单 `dateFormatter={false}` 与回调日期处理保持一致。
+
 ## 禁令
 
 - 页面自行拼接后端主机地址（必须走统一请求配置 / 生成客户端）。

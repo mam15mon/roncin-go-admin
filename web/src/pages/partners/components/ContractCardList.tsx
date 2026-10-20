@@ -161,8 +161,8 @@ export default function ContractCardList({
     if (!partnerId) return false;
     try {
       const dateRange: [Dayjs, Dayjs] = values.dateRange || [dayjs(), dayjs()];
-      const startDate = dateRange[0].format('YYYY-MM-DD');
-      const endDate = dateRange[1].format('YYYY-MM-DD');
+      const startDate = dateRange[0].startOf('day').toISOString();
+      const endDate = dateRange[1].startOf('day').toISOString();
 
       if (editingContract?.id) {
         const writeResponse2 = await partnerServiceUpdatePartnerContract(
@@ -410,6 +410,7 @@ export default function ContractCardList({
         form={form}
         onOpenChange={setModalOpen}
         onFinish={handleSave}
+        dateFormatter={false}
         modalProps={{
           destroyOnHidden: true,
           mask: { closable: false },
