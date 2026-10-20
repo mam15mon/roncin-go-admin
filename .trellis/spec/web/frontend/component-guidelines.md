@@ -41,7 +41,10 @@
   ProLayout 菜单并排除空组。不得为移动展示取消业务详情 `hideInMenu`。
 - AppLayout 依据 Grid 的 md 断点，仅移动时用官方 `menuDataRender` 追加菜单；顶栏快捷菜单
   仅 `<768px` 隐藏，768px 保留桌面入口。带 query 的设置页签按实际目标匹配 selectedKey，
-  菜单 Link 必须传递 `item.onClick`，保留 ProLayout 点击后关 Drawer 的默认动作。
+  菜单 Link 仅在 `item.isMobile` 为 true 时传递 `item.onClick`，保留移动端点击后关
+  Drawer 的默认动作；桌面端点击菜单保持原折叠状态。ProLayout 注入的回调会直接
+  执行 `onCollapse(true)`，不能无条件绑定。回归须同时覆盖桌面/移动业务菜单跳转
+  与收起回调，以及移动端带 query 的补充菜单关闭抽屉。
 - 海运单证标题/长标签与箱计划使用具名 class，在 `<768px` 支持 wrap/min-width:0；
   通知人 Segmented 使用组件公开 semantic classNames 限定本组件 label/item 换行和收缩，
   不全局改 Antd 内部类，不用整页 overflow-x:hidden 裁切。FormRow 已具备窄屏单列，不因

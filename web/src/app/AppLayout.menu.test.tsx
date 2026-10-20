@@ -1,7 +1,7 @@
 import type { ProLayoutProps } from '@ant-design/pro-components';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
-import { MemoryRouter } from 'react-router';
+import { MemoryRouter, useLocation } from 'react-router';
 import { afterEach, expect, it, vi } from 'vitest';
 import access from '@/access';
 import { history } from '@/router/history';
@@ -55,7 +55,20 @@ vi.mock('@/router/history', () => ({ history: { replace: vi.fn() } }));
 vi.mock('@ant-design/pro-components', () => ({
   ProLayout: (props: ProLayoutProps) => {
     captured = props;
-    const groups = props.menuDataRender?.([]) ?? [];
+    const groups =
+      props.menuDataRender?.([
+        {
+          key: 'orders',
+          name: '订单管理',
+          children: [
+            {
+              key: 'sea-export',
+              path: '/orders/sea-export',
+              name: '海运出口',
+            },
+          ],
+        },
+      ]) ?? [];
     return (
       <div>
         {groups.map((group) => (
@@ -65,7 +78,12 @@ vi.mock('@ant-design/pro-components', () => ({
               <React.Fragment key={item.key}>
                 {typeof props.menuItemRender === 'function'
                   ? props.menuItemRender(
-                      { ...item, isUrl: false, onClick: closeDrawer },
+                      {
+                        ...item,
+                        isUrl: false,
+                        isMobile: !state.md,
+                        onClick: closeDrawer,
+                      },
                       <span>{item.name}</span>,
                       {},
                     )
@@ -78,6 +96,12 @@ vi.mock('@ant-design/pro-components', () => ({
     );
   },
 }));
+
+function CurrentLocation() {
+  const location = useLocation();
+  return <output aria-label="当前路径">{location.pathname}</output>;
+}
+
 afterEach(() => {
   cleanup();
   state.loggedIn = true;
@@ -111,6 +135,28 @@ it('移动Drawer共享权限入口保留query并调用官方关闭回调；设�
   fireEvent.click(users);
   expect(closeDrawer).toHaveBeenCalledOnce();
 });
+
+it.each([
+  { mode: '桌面端', md: true, closeCount: 0 },
+  { mode: '移动端', md: false, closeCount: 1 },
+])(
+  '$mode点击业务菜单正常跳转，仅移动端调用收起回调',
+  async ({ md, closeCount }) => {
+    state.md = md;
+    render(
+      <MemoryRouter initialEntries={['/welcome']}>
+        <AppLayout />
+        <CurrentLocation />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole('link', { name: '海运出口' }));
+
+    expect(await screen.findByText('/orders/sea-export')).toBeInTheDocument();
+    expect(closeDrawer).toHaveBeenCalledTimes(closeCount);
+  },
+);
+
 it('md桌面不追加移动组，无权限移动不输出空组', () => {
   state.md = true;
   const view = render(

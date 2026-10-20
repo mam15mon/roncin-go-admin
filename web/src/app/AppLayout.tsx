@@ -189,7 +189,7 @@ export function AppLayout() {
         item.path ? (
           <Link
             to={item.path}
-            onClick={item.onClick}
+            onClick={item.isMobile ? item.onClick : undefined}
             className="roncin-menu-item-link"
           >
             {dom}
