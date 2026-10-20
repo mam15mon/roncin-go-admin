@@ -1,5 +1,6 @@
 import { DownloadOutlined, SwapOutlined } from '@ant-design/icons';
 import {
+  GridContext,
   ProFormDigit,
   ProFormSelect,
   ProFormTextArea,
@@ -9,7 +10,68 @@ import { createStyles } from 'antd-style';
 import React, { useState } from 'react';
 import { FormRow, PackageCountInput } from '@/components/ui';
 
+const NON_GRID_CONTEXT = { grid: false };
+
 const useVerticalFormStyles = createStyles(({ css }) => ({
+  measurementMatrix: css`
+    display: grid;
+    grid-template-columns: 40px repeat(3, minmax(0, 1fr));
+    column-gap: 16px;
+
+    .measurement-column,
+    .measurement-row-labels {
+      display: grid;
+      grid-template-rows: 20px 24px minmax(32px, auto);
+      row-gap: 4px;
+      min-width: 0;
+    }
+    .measurement-heading {
+      font-size: 12px;
+      color: rgba(0, 0, 0, 0.65);
+    }
+    .measurement-cell {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      gap: 8px;
+      font-size: 13px;
+    }
+    .measurement-row-labels {
+      align-items: center;
+      font-size: 12px;
+      color: rgba(0, 0, 0, 0.45);
+    }
+    .measurement-mobile-label {
+      display: none;
+    }
+    .measurement-input {
+      flex: 1;
+      min-width: 0;
+    }
+    fieldset.measurement-input {
+      border: 0;
+      padding: 0;
+      margin: 0;
+    }
+    .ant-form-item {
+      margin-bottom: 0;
+    }
+
+    @media (max-width: 992px) {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 12px;
+
+      .measurement-row-labels {
+        display: none;
+      }
+      .measurement-mobile-label {
+        display: inline-block;
+        flex: 0 0 40px;
+        color: rgba(0, 0, 0, 0.45);
+        font-size: 12px;
+      }
+    }
+  `,
   verticalFields: css`
     .ant-form-item {
       width: 100% !important;
@@ -116,7 +178,7 @@ export function SeaBillContentFormFields({
 }: {
   namePathPrefix: (string | number)[];
   disabled?: boolean;
-  /** false 时以三列表单展示实际件重尺，不展示委托对照表。 */
+  /** false 时以紧凑三列矩阵对照委托摘要与实际件重尺。 */
   showCargoMeasurements?: boolean;
   /** showCargoMeasurements=false 时的区块标题（默认 HBL 实际件重尺）。 */
   measurementsTitle?: string;
@@ -1046,85 +1108,103 @@ export function SeaBillContentFormFields({
             )}
           </div>
         ) : (
-          <FormRow cols={3} className={styles.verticalFields}>
-            <div>
-              <div style={{ marginBottom: 12 }}>
-                <div
-                  style={{
-                    fontSize: 12,
-                    color: 'rgba(0, 0, 0, 0.45)',
-                    marginBottom: 4,
-                  }}
-                >
-                  委托件数及单位
-                </div>
-                <output aria-label="委托件数及单位" style={{ fontSize: 13 }}>
-                  {trimDecimal(consignedPackages)}
-                  {consignedPackageUnit ? ` ${consignedPackageUnit}` : ''}
-                </output>
+          <GridContext.Provider value={NON_GRID_CONTEXT}>
+            <div className={styles.measurementMatrix}>
+              <div className="measurement-row-labels" aria-hidden="true">
+                <span />
+                <span>委托</span>
+                <span>实际</span>
               </div>
-              <Form.Item label="实际件数及单位" style={{ marginBottom: 0 }}>
-                <PackageCountInput
-                  countName={[...namePathPrefix, 'packageCount']}
-                  unitName={[...namePathPrefix, 'packageUnit']}
-                  countPlaceholder="0"
-                  unitPlaceholder="请选择单位"
-                  unitWidth={104}
-                  disabled={disabled}
-                />
-              </Form.Item>
-            </div>
-            <div>
-              <div style={{ marginBottom: 12 }}>
-                <div
-                  style={{
-                    fontSize: 12,
-                    color: 'rgba(0, 0, 0, 0.45)',
-                    marginBottom: 4,
-                  }}
-                >
-                  委托毛重（KGS）
+              <div className="measurement-column">
+                <div className="measurement-heading">件数及单位</div>
+                <div className="measurement-cell">
+                  <span className="measurement-mobile-label" aria-hidden="true">
+                    委托
+                  </span>
+                  <output aria-label="委托件数及单位">
+                    {trimDecimal(consignedPackages)}
+                    {consignedPackageUnit ? ` ${consignedPackageUnit}` : ''}
+                  </output>
                 </div>
-                <output aria-label="委托毛重（KGS）" style={{ fontSize: 13 }}>
-                  {trimDecimal(consignedGrossWeightKg)}
-                </output>
-              </div>
-              <ProFormDigit
-                name={[...namePathPrefix, 'grossWeightKg']}
-                label="实际毛重（KGS）"
-                placeholder="0"
-                disabled={disabled}
-                min={0}
-                formItemProps={{ style: { marginBottom: 0 } }}
-                fieldProps={{ precision: 3, style: { width: '100%' } }}
-              />
-            </div>
-            <div>
-              <div style={{ marginBottom: 12 }}>
-                <div
-                  style={{
-                    fontSize: 12,
-                    color: 'rgba(0, 0, 0, 0.45)',
-                    marginBottom: 4,
-                  }}
-                >
-                  委托体积（CBM）
+                <div className="measurement-cell">
+                  <span className="measurement-mobile-label" aria-hidden="true">
+                    实际
+                  </span>
+                  <fieldset
+                    className="measurement-input"
+                    aria-label="实际件数及单位"
+                  >
+                    <PackageCountInput
+                      countName={[...namePathPrefix, 'packageCount']}
+                      unitName={[...namePathPrefix, 'packageUnit']}
+                      countPlaceholder="0"
+                      unitPlaceholder="请选择单位"
+                      unitWidth={104}
+                      disabled={disabled}
+                    />
+                  </fieldset>
                 </div>
-                <output aria-label="委托体积（CBM）" style={{ fontSize: 13 }}>
-                  {trimDecimal(consignedVolumeCbm)}
-                </output>
               </div>
-              <ProFormDigit
-                name={[...namePathPrefix, 'volumeCbm']}
-                label="实际体积（CBM）"
-                placeholder="0"
-                disabled={disabled}
-                min={0}
-                formItemProps={{ style: { marginBottom: 0 } }}
-                fieldProps={{ precision: 3, style: { width: '100%' } }}
-              />
+              <div className="measurement-column">
+                <div className="measurement-heading">毛重（KGS）</div>
+                <div className="measurement-cell">
+                  <span className="measurement-mobile-label" aria-hidden="true">
+                    委托
+                  </span>
+                  <output aria-label="委托毛重（KGS）">
+                    {trimDecimal(consignedGrossWeightKg)}
+                  </output>
+                </div>
+                <div className="measurement-cell">
+                  <span className="measurement-mobile-label" aria-hidden="true">
+                    实际
+                  </span>
+                  <div className="measurement-input">
+                    <ProFormDigit
+                      name={[...namePathPrefix, 'grossWeightKg']}
+                      placeholder="0"
+                      disabled={disabled}
+                      min={0}
+                      fieldProps={{
+                        'aria-label': '实际毛重（KGS）',
+                        precision: 3,
+                        style: { width: '100%' },
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="measurement-column">
+                <div className="measurement-heading">体积（CBM）</div>
+                <div className="measurement-cell">
+                  <span className="measurement-mobile-label" aria-hidden="true">
+                    委托
+                  </span>
+                  <output aria-label="委托体积（CBM）">
+                    {trimDecimal(consignedVolumeCbm)}
+                  </output>
+                </div>
+                <div className="measurement-cell">
+                  <span className="measurement-mobile-label" aria-hidden="true">
+                    实际
+                  </span>
+                  <div className="measurement-input">
+                    <ProFormDigit
+                      name={[...namePathPrefix, 'volumeCbm']}
+                      placeholder="0"
+                      disabled={disabled}
+                      min={0}
+                      fieldProps={{
+                        'aria-label': '实际体积（CBM）',
+                        precision: 3,
+                        style: { width: '100%' },
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
-          </FormRow>
+          </GridContext.Provider>
         )}
         <FormRow cols={4}>
           <div

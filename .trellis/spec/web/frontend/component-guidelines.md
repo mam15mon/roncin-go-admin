@@ -327,9 +327,10 @@ if (
 
 - `SeaDocumentSection` 的 MBL/HBL 正文使用普通容器，保留最外层分节卡片与输入框，
   不再嵌套带边框、阴影的正文 Card；内部小节用加粗标题与留白区分。
-- `SeaBillContentFormFields(showCargoMeasurements=false)` 用 `FormRow cols={3}`
-  并排展示件数及单位、毛重（KGS）、体积（CBM）。每个指标组上方显示只读委托值，
-  下方编辑当前提单实际值；窄屏单列后同指标仍相邻，不增加表格横竖线。
+- `SeaBillContentFormFields(showCargoMeasurements=false)` 使用紧凑无框网格，顶部三列
+  仅显示一次件数及单位、毛重（KGS）、体积（CBM），桌面左侧统一显示「委托／实际」
+  行标签，委托值紧邻对应实际输入。窄屏按指标成组，局部显示委托／实际，保持相邻。
+  不增加表格横竖线；去掉重复可见字段标签时保留完整可访问名称。
 - 委托编辑字段只在「货物与商业」注册一次；摘要读取订单级 `totalPackages`、
   `totalPackageUnit`、`totalGrossWeightKg`、`totalVolumeCbm`，使用支持未注册值的
   `Form.useWatch(name, { form, preserve: true })`。数量经 `trimDecimal` 展示，
