@@ -1,5 +1,6 @@
 import { Modal, Select } from 'antd';
 import type { Dispatch, SetStateAction } from 'react';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 
 type BatchAssociationModalProps = {
   open: boolean;
@@ -23,6 +24,7 @@ export default function BatchAssociationModal({
   searchPartners,
   onOk,
 }: BatchAssociationModalProps) {
+  const { markDirty } = useUnsavedChangesGuard({ enabled: open });
   return (
     <Modal
       title={mode === 'link' ? '批量关联企业' : '批量解除企业关联'}
@@ -39,7 +41,10 @@ export default function BatchAssociationModal({
         }}
         options={partnerOptions}
         value={partners}
-        onChange={setPartners}
+        onChange={(values) => {
+          setPartners(values);
+          markDirty();
+        }}
         placeholder="搜索并选择企业"
       />
     </Modal>

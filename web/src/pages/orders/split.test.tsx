@@ -21,6 +21,9 @@ vi.mock('@/app/access', () => ({
 
 vi.mock('@/router/history', () => ({
   history: {
+    get location() {
+      return window.location;
+    },
     push: vi.fn(),
   },
 }));

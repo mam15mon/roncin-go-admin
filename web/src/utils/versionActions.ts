@@ -19,6 +19,7 @@ type VersionParams<T extends VersionedRecord> = {
 /** 统一从版本化记录提取接口动作所需的 ID 与乐观锁版本。 */
 export function makeVersionActions<T extends VersionedRecord>(
   app: Pick<AppInstance, 'modal' | 'message'>,
+  getOwnerSignal?: () => AbortSignal,
 ) {
   const paramsOf = (record: T): VersionParams<T> | undefined => {
     if (!record.id || !record.version) return undefined;
@@ -53,7 +54,7 @@ export function makeVersionActions<T extends VersionedRecord>(
         app,
         title,
         (reason) => onSubmit(params, reason, record),
-        options,
+        { ...options, signal: options?.signal ?? getOwnerSignal?.() },
       );
     },
   };

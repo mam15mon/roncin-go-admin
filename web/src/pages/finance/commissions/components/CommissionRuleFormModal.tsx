@@ -1,6 +1,5 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
 import {
-  ModalForm,
   ProFormDateRangePicker,
   ProFormDigit,
   ProFormSelect,
@@ -11,7 +10,11 @@ import {
 import { Alert } from 'antd';
 import dayjs from 'dayjs';
 import React from 'react';
-import { MODAL_SIZE, ProFormSearchableSelect } from '@/components/ui';
+import {
+  GuardedModalForm,
+  MODAL_SIZE,
+  ProFormSearchableSelect,
+} from '@/components/ui';
 import type { RuleValues } from '../types';
 import type { EmployeeOption } from './commissionRuleShared';
 
@@ -51,7 +54,7 @@ export default function CommissionRuleFormModal({
     (editingRule?.effectiveFrom ?? '') <= dayjs().format('YYYY-MM-DD');
 
   return (
-    <ModalForm<RuleValues>
+    <GuardedModalForm<RuleValues>
       formRef={formRef}
       key={editingRule?.id || 'new-rule'}
       title={editingRule ? '编辑提成方案' : '新建提成方案'}
@@ -204,6 +207,6 @@ export default function CommissionRuleFormModal({
           placeholder="搜索当前组织员工"
         />
       )}
-    </ModalForm>
+    </GuardedModalForm>
   );
 }

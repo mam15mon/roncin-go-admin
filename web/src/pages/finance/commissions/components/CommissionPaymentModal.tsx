@@ -1,8 +1,9 @@
-import { ModalForm, ProFormCheckbox } from '@ant-design/pro-components';
+import { ProFormCheckbox } from '@ant-design/pro-components';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Alert, Descriptions, Spin, Table } from 'antd';
 import React, { useRef } from 'react';
 import { useInitialState } from '@/app/AppProvider';
+import { GuardedModalForm } from '@/components/ui';
 import {
   settlementServiceMarkCommissionPaid,
   settlementServicePreviewCommissionPayment,
@@ -45,7 +46,8 @@ export default function CommissionPaymentModal({
       settlementServiceMarkCommissionPaid({ id: record.id as string }, body),
   });
   return (
-    <ModalForm
+    <GuardedModalForm
+      guardIdentity={record.id}
       title={`登记提成发放 ${record.commissionNo || ''}`}
       open
       modalProps={{ destroyOnHidden: true }}
@@ -157,6 +159,6 @@ export default function CommissionPaymentModal({
           </ProFormCheckbox>
         </>
       )}
-    </ModalForm>
+    </GuardedModalForm>
   );
 }

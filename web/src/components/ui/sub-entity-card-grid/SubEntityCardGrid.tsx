@@ -1,6 +1,5 @@
 import { PlusOutlined } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
-import { ModalForm } from '@ant-design/pro-components';
 import {
   Button,
   Col,
@@ -12,6 +11,7 @@ import {
   Tag,
 } from 'antd';
 import React, { type ReactNode, useRef, useState } from 'react';
+import { GuardedModalForm } from '@/components/ui/GuardedModalForm';
 
 export interface SubEntityCardGridProps<
   TItem extends { id?: string | number },
@@ -171,7 +171,8 @@ export function SubEntityCardGrid<
         </Row>
       )}
 
-      <ModalForm<TFormValues>
+      <GuardedModalForm<TFormValues>
+        guardIdentity={editingIndex}
         title={editingItem ? `编辑${entityName}` : `添加${entityName}`}
         open={modalOpen}
         form={form}
@@ -192,7 +193,7 @@ export function SubEntityCardGrid<
         }}
       >
         {renderFormItems(editingItem, form, editingIndex)}
-      </ModalForm>
+      </GuardedModalForm>
     </div>
   );
 }

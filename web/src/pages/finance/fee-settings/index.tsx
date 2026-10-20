@@ -10,6 +10,7 @@ import {
   type MultiTabCenterTabItem,
   MultiTabCenterTemplate,
 } from '@/components/ui';
+import { isWorkspaceTabVisible } from '@/router/workspaceTabs';
 import BillingUnitsPanel from './components/BillingUnitsPanel';
 import CustomSettingsPanel from './components/CustomSettingsPanel';
 import FeeItemsPanel from './components/FeeItemsPanel';
@@ -28,7 +29,11 @@ export default function FeeSettingsPage() {
       key: 'fee-settings',
       label: access.isSystemWorkspace ? '初始费用目录' : '费用科目',
       icon: <AccountBookOutlined />,
-      visible: access.canReadFeeSettings,
+      visible: isWorkspaceTabVisible(
+        '/finance/fee-settings',
+        'fee-settings',
+        access,
+      ),
       tooltip:
         '维护基础费用科目字典（如海运费、港杂费、报关费、拖车费等）、默认收付币种与税率规则',
       children: access.isSystemWorkspace ? (
@@ -41,7 +46,11 @@ export default function FeeSettingsPage() {
       key: 'billing-units',
       label: '计费单位',
       icon: <CalculatorOutlined />,
-      visible: access.canReadFeeSettings,
+      visible: isWorkspaceTabVisible(
+        '/finance/fee-settings',
+        'billing-units',
+        access,
+      ),
       tooltip:
         '定义计费计量基准（如按票、CBM、车、箱量等），并区分常规计量单位与集装箱箱型单位',
       children: <BillingUnitsPanel />,
@@ -50,7 +59,11 @@ export default function FeeSettingsPage() {
       key: 'taxable-services',
       label: '货物或应税劳务',
       icon: <FileTextOutlined />,
-      visible: access.canOperateBusiness && access.canReadFeeSettings,
+      visible: isWorkspaceTabVisible(
+        '/finance/fee-settings',
+        'taxable-services',
+        access,
+      ),
       tooltip: '维护商品编码、发票货物或应税劳务名称与默认开票税率',
       children: <TaxableServicesPanel />,
     },
@@ -58,7 +71,11 @@ export default function FeeSettingsPage() {
       key: 'custom-settings',
       label: '自定义规则',
       icon: <SlidersOutlined />,
-      visible: access.canOperateBusiness && access.canReadFinanceBills,
+      visible: isWorkspaceTabVisible(
+        '/finance/fee-settings',
+        'custom-settings',
+        access,
+      ),
       tooltip: '配置账单创建后允许修改的费用字段等组织级自定义财务规则',
       children: <CustomSettingsPanel />,
     },

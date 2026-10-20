@@ -1,5 +1,5 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { ModalForm, ProFormTextArea } from '@ant-design/pro-components';
+import { ProFormTextArea } from '@ant-design/pro-components';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Alert,
@@ -17,7 +17,12 @@ import {
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import { useInitialState } from '@/app/AppProvider';
-import { ResponsiveProTable as ProTable } from '@/components/ui';
+import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
+import {
+  GuardedModalForm,
+  ResponsiveProTable as ProTable,
+} from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { orderErrorReasons } from '@/errorReasons.generated';
 import {
@@ -151,6 +156,12 @@ export default function FeeSupplementSection({
   billingUnits,
   onFeeTablesReload,
 }: FeeSupplementSectionProps) {
+  const [cancelReasonOpen, setCancelReasonOpen] = useState(false);
+  const { markDirty: markCancelReasonDirty } = useUnsavedChangesGuard({
+    enabled: cancelReasonOpen,
+    identity: orderId,
+  });
+  const getModalOwnerSignal = useModalOwnerSignal();
   const { message, modal } = App.useApp();
   const { initialState } = useInitialState();
   const queryClient = useQueryClient();
@@ -407,6 +418,7 @@ export default function FeeSupplementSection({
         });
       },
       {
+        signal: getModalOwnerSignal(),
         placeholder: '请输入驳回原因（必填）',
         requiredMessage: '请输入驳回原因',
       },
@@ -544,8 +556,14 @@ export default function FeeSupplementSection({
     const targetOrderId = orderId;
     if (!targetOrderId || !record.id || !record.feeId) return;
     let cancelReason = '';
+    setCancelReasonOpen(true);
+    const ownerSignal = getModalOwnerSignal();
     const confirmation = modal.confirm({
       title: '撤销补录费用？',
+      afterClose: () => {
+        setCancelReasonOpen(false);
+        ownerSignal.removeEventListener('abort', destroyCancelReason);
+      },
       content: (
         <div>
           <p>
@@ -560,6 +578,7 @@ export default function FeeSupplementSection({
             showCount
             placeholder="请输入撤销原因（必填）"
             onChange={(event) => {
+              markCancelReasonDirty();
               cancelReason = event.target.value.trim();
             }}
           />
@@ -568,6 +587,7 @@ export default function FeeSupplementSection({
       okText: '确认撤销',
       okButtonProps: { danger: true },
       onOk: (_close) => {
+        if (ownerSignal.aborted) return Promise.reject();
         if (!cancelReason) {
           message.warning('请输入撤销原因');
           return;
@@ -613,6 +633,10 @@ export default function FeeSupplementSection({
         });
       },
     });
+    function destroyCancelReason() {
+      confirmation.destroy();
+    }
+    ownerSignal.addEventListener('abort', destroyCancelReason, { once: true });
     void confirmation.then(
       () => {},
       () => {},
@@ -830,7 +854,7 @@ export default function FeeSupplementSection({
         }}
         locale={{ emptyText: '暂无补录申请' }}
       />
-      <ModalForm<{ comment?: string }>
+      <GuardedModalForm<{ comment?: string }>
         title="审核补录费用与提成影响"
         open={!!reviewRequest && reviewRequest.orderId === orderId}
         width={760}
@@ -1043,7 +1067,7 @@ export default function FeeSupplementSection({
               : []),
           ]}
         />
-      </ModalForm>
+      </GuardedModalForm>
       <FeeSupplementModal
         key={resubmitRequest?.id ?? 'new'}
         orderId={orderId}

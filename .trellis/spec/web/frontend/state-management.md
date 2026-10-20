@@ -448,3 +448,8 @@ escapeCsvCell(protectFormula(value));
 - 校验器依赖外部异步状态时，React 状态变化不会自动清除 Form 已保存的错误。核对结束、失败或关联确认变化后，应对相关字段执行完整 `validateFields`；可使用 `{ dirty: true }` 避免未交互字段提前显示必填错误。禁止直接清空错误而掩盖格式或业务冲突。
 - 通过 `setFieldValue` 保存但没有 Form.Item 注册的业务字段，使用 `Form.useWatch(name, { form, preserve: true })` 监听；否则自动关联 ID、航次 ID 等可能无法回显。
 - 回归测试必须使用真实字段注册结构，不能额外添加生产中不存在的隐藏 Form.Item 来让监听生效。范本：`SeaMasterBillFields.validation.test.tsx`。
+
+## 组织切换与编辑保护
+
+切换组织的安全落点、异步身份/路由边界、多表单未保存守卫和业务确认框所有权见
+[组织切换规范](./organization-switch.md)。新增编辑入口应按该文档绑定真实用户事件，并验证失败保留输入。

@@ -1,4 +1,3 @@
-import { AsyncPopconfirm } from '@/components/ui';
 import {
   CheckOutlined,
   CloseCircleOutlined,
@@ -6,7 +5,6 @@ import {
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import {
-  ModalForm,
   ProFormDatePicker,
   type ProFormInstance,
   ProFormText,
@@ -17,9 +15,12 @@ import { App, Form, Select, Space, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
+import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
 import {
+  AsyncPopconfirm,
   type FinanceLedgerMetricCard,
   FinanceLedgerTemplate,
+  GuardedModalForm,
   ProFormSearchableSelect,
 } from '@/components/ui';
 import { useListQueryState } from '@/components/ui/list-query-state';
@@ -49,8 +50,8 @@ import { makeVersionActions } from '@/utils/versionActions';
 
 import {
   cashflowExportColumns,
-  cashflowStates as states,
   paymentMethodOptions,
+  cashflowStates as states,
 } from './ledgerExport';
 
 /** 台账内置搜索表单提交的筛选字段（keyword 等分页字段由模板统一注入，不在此声明） */
@@ -81,6 +82,7 @@ const decimalRule = {
 
 export default function FinanceCashflowsPage() {
   const access = useAccess();
+  const getModalOwnerSignal = useModalOwnerSignal();
   const queryState = useListQueryState<{
     direction?: string;
     status?: string;
@@ -172,10 +174,10 @@ export default function FinanceCashflowsPage() {
       .join(' / ') || '-';
 
   const reload = () => actionRef.current?.reload();
-  const cashflowActions = makeVersionActions<API.FinanceCashflow>({
-    modal,
-    message,
-  });
+  const cashflowActions = makeVersionActions<API.FinanceCashflow>(
+    { modal, message },
+    getModalOwnerSignal,
+  );
   const confirm = (r: API.FinanceCashflow) =>
     cashflowActions.run(
       r,
@@ -543,7 +545,7 @@ export default function FinanceCashflowsPage() {
           return { ...toTableRequest(r), total: Number(r.total ?? 0) };
         }}
       />
-      <ModalForm<Values>
+      <GuardedModalForm<Values>
         title="登记资金流水"
         open={open}
         form={form}
@@ -738,7 +740,7 @@ export default function FinanceCashflowsPage() {
           label="备注"
           fieldProps={{ maxLength: 500 }}
         />
-      </ModalForm>
+      </GuardedModalForm>
     </>
   );
 }

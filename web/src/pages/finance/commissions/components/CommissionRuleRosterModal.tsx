@@ -10,6 +10,7 @@ import {
 } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React from 'react';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { MODAL_SIZE, ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import {
@@ -162,6 +163,9 @@ function RosterChangeForms({
   const { message } = App.useApp();
   const [addForm] = Form.useForm<RosterChangeValues>();
   const [removeForm] = Form.useForm<RosterChangeValues>();
+  const addGuard = useUnsavedChangesGuard({ identity: rosterRule.id });
+  const removeGuard = useUnsavedChangesGuard({ identity: rosterRule.id });
+
   const today = dayjs().format('YYYY-MM-DD');
   const currentEmployees = (rosterRule.assignments ?? [])
     .filter((item) => !item.effectiveTo)
@@ -204,8 +208,10 @@ function RosterChangeForms({
         message.success('员工已按变更生效日退出方案名单');
       }
       if (action === 'assign') {
+        addGuard.resetDirty();
         addForm.resetFields();
       } else {
+        removeGuard.resetDirty();
         removeForm.resetFields();
       }
       onChanged();
@@ -220,6 +226,7 @@ function RosterChangeForms({
     <div style={{ display: 'grid', gap: 16 }}>
       <Form
         form={addForm}
+        onValuesChange={addGuard.markDirty}
         layout="inline"
         onFinish={(values) => void submit(values, 'assign')}
       >
@@ -253,6 +260,7 @@ function RosterChangeForms({
       </Form>
       <Form
         form={removeForm}
+        onValuesChange={removeGuard.markDirty}
         layout="inline"
         onFinish={(values) => void submit(values, 'remove')}
       >

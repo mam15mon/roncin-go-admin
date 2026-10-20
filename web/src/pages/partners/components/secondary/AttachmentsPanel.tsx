@@ -4,14 +4,13 @@ import type {
   ProColumns,
   ProFormInstance,
 } from '@ant-design/pro-components';
-import {
-  ModalForm,
-  ProFormDigit,
-  ProFormText,
-} from '@ant-design/pro-components';
+import { ProFormDigit, ProFormText } from '@ant-design/pro-components';
 import { Alert, App, Button, Space, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
-import { ResponsiveProTable as ProTable } from '@/components/ui';
+import {
+  GuardedModalForm,
+  ResponsiveProTable as ProTable,
+} from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   partnerServiceListPartnerAttachments,
@@ -137,7 +136,7 @@ export default function AttachmentsPanel({
         ]}
       />
 
-      <ModalForm<AttachmentFormValues>
+      <GuardedModalForm<AttachmentFormValues>
         title="登记往来单位证照与附件"
         open={modalOpen}
         formRef={formRef}
@@ -220,7 +219,7 @@ export default function AttachmentsPanel({
           placeholder="请输入请求幂等键"
           rules={[{ required: true, message: '请输入幂等键' }]}
         />
-      </ModalForm>
+      </GuardedModalForm>
     </>
   );
 }

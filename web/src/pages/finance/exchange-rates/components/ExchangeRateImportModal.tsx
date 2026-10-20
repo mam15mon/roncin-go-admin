@@ -1,3 +1,4 @@
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -31,6 +32,7 @@ type Props = {
 };
 
 export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
+  const { markDirty, resetDirty } = useUnsavedChangesGuard({ enabled: open });
   const { message } = App.useApp();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [previewing, setPreviewing] = useState(false);
@@ -40,6 +42,7 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
   const [batch, setBatch] = useState<API.ExchangeRateImportBatch>();
 
   const reset = () => {
+    resetDirty();
     setFileList([]);
     setPreviewing(false);
     setConfirming(false);
@@ -93,6 +96,7 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
         longRequestOptions,
       );
 
+      if (res.previewToken && res.data?.canConfirm) markDirty();
       setPreviewToken(res.previewToken);
       setBatch(res.data);
       if (res.data?.canConfirm) {

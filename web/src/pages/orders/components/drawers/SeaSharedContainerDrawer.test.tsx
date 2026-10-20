@@ -1,3 +1,4 @@
+import { getAnyDirtyTabKey } from '@/components/layout/tabCloseGuard';
 import {
   act,
   fireEvent,
@@ -160,6 +161,7 @@ describe('SeaSharedContainerDrawer', () => {
     );
 
   beforeEach(() => {
+    window.history.replaceState({}, '', '/orders/sea-export/order-1');
     vi.resetAllMocks();
     listContainersSpy.mockResolvedValue({
       data: [balancedContainer],
@@ -283,10 +285,12 @@ describe('SeaSharedContainerDrawer', () => {
       expect(screen.getByText('多货物行一')).toBeInTheDocument();
     });
 
+    expect(getAnyDirtyTabKey()).toBeUndefined();
     // 第一页：为 order-multi 的第一条货物录入 30 件（表格首行是 order-1，第二行是 cargo-m1）
     const packageInputs = screen.getAllByRole('spinbutton');
     fireEvent.change(packageInputs[1], { target: { value: '30' } });
     fireEvent.blur(packageInputs[1]);
+    expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');
 
     // 未保存直接翻到第二页
     fireEvent.click(screen.getByTitle('2'));
@@ -306,9 +310,10 @@ describe('SeaSharedContainerDrawer', () => {
     expect(preserved?.packageCount).toBe(30);
     expect(preserved?.expectedCargoItemVersion).toBe('1');
     expect(payload.orderId).toBe('order-1');
+    await waitFor(() => expect(getAnyDirtyTabKey()).toBeUndefined());
   });
 
-  it('确认分配失败时展示错误并强制重新加载共享箱状态', async () => {
+  it('确认分配失败保留待提交草稿和守卫，不以重查覆盖输入', async () => {
     // 初始分配恰好守恒，确认按钮可用
     const confirmSpy = vi
       .spyOn(service, 'seaSharedContainerServiceConfirmSeaSharedContainer')
@@ -319,6 +324,9 @@ describe('SeaSharedContainerDrawer', () => {
       expect(screen.getByText('确认分配')).toBeInTheDocument();
     });
 
+    expect(getAnyDirtyTabKey()).toBeUndefined();
+    fireEvent.click(screen.getAllByText('全部填入')[0]);
+    expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');
     fireEvent.click(screen.getByText('确认分配'));
 
     await waitFor(() => {
@@ -335,10 +343,9 @@ describe('SeaSharedContainerDrawer', () => {
         document.body.textContent?.includes('共享箱已被更新，请刷新后重试'),
       ).toBe(true);
     });
-    // 失败后必须重新加载，避免停留在过期版本
-    await waitFor(() => {
-      expect(listContainersSpy.mock.calls.length).toBeGreaterThan(1);
-    });
+    expect(listContainersSpy).toHaveBeenCalledOnce();
+    expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');
+    expect(screen.getAllByRole('spinbutton')[0]).toHaveValue('100');
   });
 
   it('首次直接点击全部填入后保存，payload 携带完整身份与期望版本', async () => {

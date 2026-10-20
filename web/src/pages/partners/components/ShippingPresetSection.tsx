@@ -1,4 +1,3 @@
-import { AsyncPopconfirm } from '@/components/ui';
 import {
   ContainerOutlined,
   DeleteOutlined,
@@ -11,7 +10,6 @@ import {
   UsergroupAddOutlined,
 } from '@ant-design/icons';
 import {
-  ModalForm,
   ProFormDigit,
   ProFormSwitch,
   ProFormText,
@@ -33,6 +31,7 @@ import {
   Typography,
 } from 'antd';
 import React, { useEffect, useMemo, useState } from 'react';
+import { AsyncPopconfirm, GuardedModalForm } from '@/components/ui';
 import { PartnerShippingPresetType } from '@/enums.generated';
 import {
   partnerServiceCreatePartnerShippingPreset,
@@ -545,7 +544,8 @@ export default function ShippingPresetSection({
       </Spin>
 
       {/* Preset Modal */}
-      <ModalForm
+      <GuardedModalForm
+        guardIdentity={editingPreset?.id}
         title={
           editingPreset
             ? `编辑常用${currentPresetMeta?.short || ''}`
@@ -682,7 +682,7 @@ export default function ShippingPresetSection({
             fieldProps={{ rows: 2 }}
           />
         </Col>
-      </ModalForm>
+      </GuardedModalForm>
     </div>
   );
 }

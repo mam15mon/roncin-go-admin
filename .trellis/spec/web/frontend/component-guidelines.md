@@ -55,6 +55,7 @@
 - **表格数据流一律走官方 `request` 协议**：严禁在外层自建 `data/loading/query` 状态去架空 ProTable；服务端分页列表与搜索一律优先通过 ProTable 的 `request={(params) => Promise<{ data, success, total }>}` 消费接口，由组件内建引擎自动调度分页与防竞态。
 - **刷新与重置一律走官方 `actionRef`**：新增、编辑、删除或启停操作成功后，统一通过 `actionRef.current?.reload()` 触发列表刷新，严禁层层透传手写的 `reload/fetchList` 触发式回调。
 - **模态表单生命周期一律走 `ModalForm.onFinish`**：异步提交必须返回 Promise，由 ProComponents 自动接管提交中 loading 态与成功关闭，严禁在外部手工维护 `confirmLoading` 镜像状态。
+- **编辑弹窗的未保存保护**：当前可编辑模态表单统一使用 `@/components/ui` 的 `GuardedModalForm`，保留官方 Promise、`formRef` 和受控/trigger 打开方式；仅用户 `onValuesChange` 标脏，明确 `onFinish === true`、关闭或更换编辑对象才清理。角色权限、图片、关联条目等 Form 外的待提交状态用 `useUnsavedChangesGuard` 显式接入真实编辑事件；搜索、展开、初始化和候选自动回填不标脏。保存失败仍保留输入和脏状态，不用外部 loading 镜像替代官方生命周期。
 - **自定义 Hook 依赖防护**：在封装涉及异步请求的 Hook 时，纯动作型回调（如 api 函数、数据转换 map 函数）必须使用 `useRef` 保障引用稳定性，严禁将未 memoize 的内联函数作为 `useCallback` 依赖引发渲染死循环（`Maximum update depth exceeded`）。
 
 ## 金额与数量显示规范 (Amount Display Standards)

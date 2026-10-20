@@ -3,6 +3,7 @@ import { App, DatePicker, Space } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
+import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
 import {
   ResponsiveProTable as ProTable,
   SearchFilterTemplate,
@@ -56,6 +57,7 @@ export function isApplicationConflictError(error: unknown): boolean {
  */
 export default function CommissionApplicationsPanel() {
   const access = useAccess();
+  const getModalOwnerSignal = useModalOwnerSignal();
   const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const committedFiltersRef = useRef<CommittedApplicationFilters>({});
@@ -101,39 +103,41 @@ export default function CommissionApplicationsPanel() {
     if (!record.id || !record.version) return;
     const id = record.id;
     const version = record.version;
-    modal.confirm({
-      title: `批准 ${record.employeeName || '员工'} ${record.applicationMonth || ''} 月度申请？`,
-      content: (
-        <div>
-          <p>
-            {`整单共 ${record.commissionCount ?? 0} 笔、本位币合计 ${decimalText(record.totalCommissionAmount)} ${record.baseCurrency || ''}；批准将整批确认申请内全部提成，不支持部分批准。`}
-          </p>
-          <p style={{ color: '#faad14' }}>
-            任一明细有问题时应整单驳回；批准只确认提成计算结果。
-          </p>
-        </div>
-      ),
-      okText: '整单批准',
-      onOk: async () => {
-        try {
-          const writeResponse1 =
-            await settlementServiceApproveCommissionApplication(
-              { id },
-              { id, expectedVersion: version },
-            );
-          if (!isWriteResponse(writeResponse1, true)) return Promise.reject();
-          message.success('申请已整单批准');
-          reload();
-          setDetailId(undefined);
-        } catch (error: unknown) {
-          handleDecisionError(error, '批准失败');
-          throw error;
-        }
-      },
-    }).then(
-      () => {},
-      () => {},
-    );
+    modal
+      .confirm({
+        title: `批准 ${record.employeeName || '员工'} ${record.applicationMonth || ''} 月度申请？`,
+        content: (
+          <div>
+            <p>
+              {`整单共 ${record.commissionCount ?? 0} 笔、本位币合计 ${decimalText(record.totalCommissionAmount)} ${record.baseCurrency || ''}；批准将整批确认申请内全部提成，不支持部分批准。`}
+            </p>
+            <p style={{ color: '#faad14' }}>
+              任一明细有问题时应整单驳回；批准只确认提成计算结果。
+            </p>
+          </div>
+        ),
+        okText: '整单批准',
+        onOk: async () => {
+          try {
+            const writeResponse1 =
+              await settlementServiceApproveCommissionApplication(
+                { id },
+                { id, expectedVersion: version },
+              );
+            if (!isWriteResponse(writeResponse1, true)) return Promise.reject();
+            message.success('申请已整单批准');
+            reload();
+            setDetailId(undefined);
+          } catch (error: unknown) {
+            handleDecisionError(error, '批准失败');
+            throw error;
+          }
+        },
+      })
+      .then(
+        () => {},
+        () => {},
+      );
   };
 
   const reject = (record: Application) => {
@@ -163,6 +167,7 @@ export default function CommissionApplicationsPanel() {
       },
       {
         danger: true,
+        signal: getModalOwnerSignal(),
         placeholder: '请输入驳回原因（必填）',
         requiredMessage: '请输入驳回原因',
       },

@@ -2,6 +2,10 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { Form } from 'antd';
 import React, { useEffect } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  confirmIfAnyTabDirty,
+  getAnyDirtyTabKey,
+} from '@/components/layout/tabCloseGuard';
 import type { BillFormValues } from './billConstants';
 
 const mocks = vi.hoisted(() => ({ accounts: vi.fn() }));
@@ -58,6 +62,7 @@ function EditHarness({ editing }: { editing?: API.FinanceBill }) {
 
 describe('BillEditModal 结算账户候选', () => {
   beforeEach(() => {
+    window.history.replaceState({}, '', '/finance/bills');
     mocks.accounts.mockReset();
   });
 
@@ -185,5 +190,44 @@ describe('BillEditModal 结算账户候选', () => {
     expect(screen.getByTestId('estimated-invoice-rate')).toHaveTextContent(
       '7.2',
     );
+  });
+  it('自动默认账户不标脏，实际修改备注后保护；换账单重新初始化', async () => {
+    mocks.accounts.mockResolvedValue({
+      data: [{ id: 'default', isDefault: true }],
+    });
+    const view = render(
+      <EditHarness editing={{ id: 'bill-guard', currency: 'CNY' }} />,
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId('settlement-account-id')).toHaveTextContent(
+        'default',
+      ),
+    );
+    expect(getAnyDirtyTabKey()).toBeUndefined();
+    fireEvent.change(screen.getByLabelText('备注'), {
+      target: { value: '北京账单待保存说明' },
+    });
+    expect(getAnyDirtyTabKey()).toBe('/finance/bills');
+    let confirmation:
+      | Parameters<NonNullable<Parameters<typeof confirmIfAnyTabDirty>[1]>>[0]
+      | undefined;
+    const switchOrganization = vi.fn(async () => {
+      throw new Error('组织切换失败');
+    });
+    confirmIfAnyTabDirty(switchOrganization, (options) => {
+      confirmation = options;
+    });
+    confirmation?.onCancel?.();
+    expect(switchOrganization).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('备注')).toHaveValue('北京账单待保存说明');
+    confirmIfAnyTabDirty(switchOrganization, (options) => {
+      confirmation = options;
+    });
+    await expect(confirmation?.onOk?.()).rejects.toThrow('组织切换失败');
+    expect(getAnyDirtyTabKey()).toBe('/finance/bills');
+    view.rerender(
+      <EditHarness editing={{ id: 'bill-next', currency: 'CNY' }} />,
+    );
+    await waitFor(() => expect(getAnyDirtyTabKey()).toBeUndefined());
   });
 });

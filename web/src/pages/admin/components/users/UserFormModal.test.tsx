@@ -34,6 +34,8 @@ vi.mock('@ant-design/pro-components', () => ({
 }));
 
 vi.mock('@/components/ui', async () => ({
+  GuardedModalForm: (await import('@/components/ui/GuardedModalForm'))
+    .GuardedModalForm,
   AsyncPopconfirm: (await import('@/components/ui/async-popconfirm'))
     .AsyncPopconfirm,
   ResponsiveTable: (await import('antd')).Table,

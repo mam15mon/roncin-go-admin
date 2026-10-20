@@ -9,11 +9,7 @@ import {
   TagsOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import {
-  ModalForm,
-  ProFormDatePicker,
-  ProFormTextArea,
-} from '@ant-design/pro-components';
+import { ProFormDatePicker, ProFormTextArea } from '@ant-design/pro-components';
 import {
   Alert,
   App,
@@ -28,12 +24,14 @@ import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import {
   ColumnSettingsEntry,
   type ColumnSettingsField,
   type ColumnSettingsValue,
   defaultSelectFilterOption,
   ResponsiveEditableProTable as EditableProTable,
+  GuardedModalForm,
   ProFormSearchableSelect,
   SectionCard,
   scrollToFirstTableError,
@@ -217,6 +215,15 @@ export default function OrderFeeTableTabs({
   const [payableEditableKeys, setPayableEditableKeys] = useState<React.Key[]>(
     [],
   );
+  // 两侧均为单行编辑；分别登记，保存或取消其中一侧不清另一侧待提交输入。
+  const receivableGuard = useUnsavedChangesGuard({
+    enabled: receivableEditableKeys.length > 0,
+    identity: `${orderId}:${receivableEditableKeys.join(',')}`,
+  });
+  const payableGuard = useUnsavedChangesGuard({
+    enabled: payableEditableKeys.length > 0,
+    identity: `${orderId}:${payableEditableKeys.join(',')}`,
+  });
 
   // 列设置状态：应收/应付共享同一份偏好；编辑进行中禁用入口，避免丢失未保存行。
   const columnEditing =
@@ -899,6 +906,8 @@ export default function OrderFeeTableTabs({
         if (!isWriteResponse(writeResponse2, true)) return false;
         message.success('费用更新成功');
       }
+      if (direction === RECEIVABLE) receivableGuard.resetDirty();
+      else payableGuard.resetDirty();
       receivableActionRef.current?.reload();
       payableActionRef.current?.reload();
       onFeeSaved?.();
@@ -1200,6 +1209,8 @@ export default function OrderFeeTableTabs({
                     )
                   }
                   onConfirm={(quantity) => {
+                    if (isReceivable) receivableGuard.markDirty();
+                    else payableGuard.markDirty();
                     form.setFieldValue([rowKey, 'quantity'], quantity);
                     refreshAmountPreview(rowKey, form);
                     const baseline = [
@@ -1503,6 +1514,13 @@ export default function OrderFeeTableTabs({
             type: 'single',
             editableKeys: receivableEditableKeys,
             onChange: setReceivableEditableKeys,
+            formProps: {
+              // EditableProTable.onValuesChange 内部防抖 64ms；用字段事件同步保护紧接着的组织切换。
+              onFieldsChange: (fields) => {
+                if (fields.some((field) => field.touched))
+                  receivableGuard.markDirty();
+              },
+            },
             onSave: (key, row, originRow, newLine) =>
               handleSaveFee(key, row, originRow, Boolean(newLine)),
             actionRender: (row, _config, defaultDom) =>
@@ -1643,6 +1661,12 @@ export default function OrderFeeTableTabs({
             type: 'single',
             editableKeys: payableEditableKeys,
             onChange: setPayableEditableKeys,
+            formProps: {
+              onFieldsChange: (fields) => {
+                if (fields.some((field) => field.touched))
+                  payableGuard.markDirty();
+              },
+            },
             onSave: (key, row, originRow, newLine) =>
               handleSaveFee(key, row, originRow, Boolean(newLine)),
             actionRender: (row, _config, defaultDom) =>
@@ -1774,7 +1798,7 @@ export default function OrderFeeTableTabs({
       />
 
       {/* 批量修改结算单位 */}
-      <ModalForm<{ settlementPartyId: string }>
+      <GuardedModalForm<{ settlementPartyId: string }>
         open={bulkActionContext?.type === 'settlementParty'}
         onOpenChange={(open) => !open && setBulkActionContext(undefined)}
         title={`批量修改结算单位（已选 ${
@@ -1830,10 +1854,10 @@ export default function OrderFeeTableTabs({
             code: p.code,
           }))}
         />
-      </ModalForm>
+      </GuardedModalForm>
 
       {/* 批量修改费用时间 */}
-      <ModalForm<{ expenseDate: string | Dayjs }>
+      <GuardedModalForm<{ expenseDate: string | Dayjs }>
         open={bulkActionContext?.type === 'expenseDate'}
         onOpenChange={(open) => !open && setBulkActionContext(undefined)}
         title={`批量修改费用时间（已选 ${
@@ -1891,10 +1915,10 @@ export default function OrderFeeTableTabs({
             showTime: { format: 'HH:mm' },
           }}
         />
-      </ModalForm>
+      </GuardedModalForm>
 
       {/* 批量删除费用 */}
-      <ModalForm<{ reason?: string }>
+      <GuardedModalForm<{ reason?: string }>
         open={bulkActionContext?.type === 'remove'}
         onOpenChange={(open) => !open && setBulkActionContext(undefined)}
         title={`批量删除费用（已选 ${
@@ -1957,7 +1981,7 @@ export default function OrderFeeTableTabs({
           placeholder="请输入删除原因，仅写入审计明细（最长 500 字）"
           fieldProps={{ rows: 3, maxLength: 500, showCount: true }}
         />
-      </ModalForm>
+      </GuardedModalForm>
     </>
   );
 }

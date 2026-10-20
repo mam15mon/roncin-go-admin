@@ -50,7 +50,13 @@ vi.mock('@/components/layout/useRouteLeaveGuard', () => ({
 }));
 
 vi.mock('@/router/history', () => ({
-  history: { push: vi.fn(), replace: vi.fn() },
+  history: {
+    get location() {
+      return { ...window.location, pathname: routeState.pathname };
+    },
+    push: vi.fn(),
+    replace: vi.fn(),
+  },
 }));
 
 vi.mock('@/app/access', () => ({

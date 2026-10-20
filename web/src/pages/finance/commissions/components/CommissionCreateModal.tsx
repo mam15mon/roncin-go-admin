@@ -1,9 +1,5 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
-import {
-  ModalForm,
-  ProFormDependency,
-  ProFormTextArea,
-} from '@ant-design/pro-components';
+import { ProFormDependency, ProFormTextArea } from '@ant-design/pro-components';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { TableColumnsType } from 'antd';
 import {
@@ -18,7 +14,9 @@ import {
   Typography,
 } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import {
+  GuardedModalForm,
   MODAL_SIZE,
   ProFormSearchableSelect,
   ResponsiveTable as Table,
@@ -95,6 +93,7 @@ export default function CommissionCreateModal({
 }: CommissionCreateModalProps) {
   const { message } = App.useApp();
   const formRef = useRef<ProFormInstance | undefined>(undefined);
+  const { markDirty, resetDirty } = useUnsavedChangesGuard({ enabled: open });
   const [preview, setPreview] = useState<API.CommissionCalculation>();
   const [previewSignature, setPreviewSignature] = useState('');
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -295,6 +294,7 @@ export default function CommissionCreateModal({
   };
 
   const handleSelectNetting = (record: API.FinanceNetting) => {
+    markDirty();
     setSelectedNetting(record);
     resetPreview();
     formRef.current?.setFieldsValue({
@@ -304,7 +304,7 @@ export default function CommissionCreateModal({
   };
 
   return (
-    <ModalForm<CreateValues>
+    <GuardedModalForm<CreateValues>
       formRef={formRef}
       title="生成提成"
       open={open}
@@ -352,6 +352,7 @@ export default function CommissionCreateModal({
             organizationId: organizationId ?? '',
           });
           if (!isWriteResponse(writeResponse1, true)) return false;
+          resetDirty();
           message.success('提成草稿已生成，列表已按创建结果刷新');
           onOpenChange(false);
           setSourceType('verification');
@@ -681,6 +682,6 @@ export default function CommissionCreateModal({
           草稿确认时会重新校验人员归属与方案；来源或方案变化后必须取消并重新生成。
         </span>
       </Space>
-    </ModalForm>
+    </GuardedModalForm>
   );
 }

@@ -5,6 +5,7 @@ import dayjs, { type Dayjs } from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
 import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
+import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
 import {
   type FinanceLedgerMetricCard,
   FinanceLedgerTemplate,
@@ -55,6 +56,7 @@ type BillSearchParams = {
 
 export default function FinanceBillsPage() {
   const access = useAccess();
+  const getModalOwnerSignal = useModalOwnerSignal();
   const queryState = useListQueryState<{
     search: BillSearchParams;
     organizationId?: string;
@@ -238,7 +240,10 @@ export default function FinanceBillsPage() {
   ];
 
   const reload = () => actionRef.current?.reload();
-  const billActions = makeVersionActions<API.FinanceBill>({ modal, message });
+  const billActions = makeVersionActions<API.FinanceBill>(
+    { modal, message },
+    getModalOwnerSignal,
+  );
   const openCreate = () => {
     setWorkbenchOpen(true);
   };

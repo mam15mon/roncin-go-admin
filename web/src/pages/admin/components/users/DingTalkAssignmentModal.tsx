@@ -1,8 +1,8 @@
 import type { ActionType, ProFormInstance } from '@ant-design/pro-components';
-import { ModalForm, ProFormDependency } from '@ant-design/pro-components';
+import { ProFormDependency } from '@ant-design/pro-components';
 import { Alert, App, Space, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
-import { ProFormSearchableSelect } from '@/components/ui';
+import { GuardedModalForm, ProFormSearchableSelect } from '@/components/ui';
 import { AdminOrganizationKind } from '@/enums.generated';
 import { getRequestErrorMessage } from '@/requestErrorConfig';
 import { adminServiceBatchAuthorizeDingTalkUsers } from '@/services/roncin/adminService';
@@ -55,7 +55,7 @@ export default function DingTalkAssignmentModal({
     (user) => user.displayName || user.username || '未命名人员',
   );
   return (
-    <ModalForm<AssignmentValues>
+    <GuardedModalForm<AssignmentValues>
       title={
         users.length === 1 && !users[0].pendingAssignment
           ? '重新开通钉钉人员'
@@ -236,6 +236,6 @@ export default function DingTalkAssignmentModal({
           ))
         }
       </ProFormDependency>
-    </ModalForm>
+    </GuardedModalForm>
   );
 }

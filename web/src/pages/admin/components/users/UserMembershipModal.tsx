@@ -1,12 +1,8 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
-import {
-  ModalForm,
-  ProFormDependency,
-  ProFormSwitch,
-} from '@ant-design/pro-components';
+import { ProFormDependency, ProFormSwitch } from '@ant-design/pro-components';
 import { Alert, App } from 'antd';
 import React, { useRef } from 'react';
-import { ProFormSearchableSelect } from '@/components/ui';
+import { GuardedModalForm, ProFormSearchableSelect } from '@/components/ui';
 import {
   adminServiceCreateUserMemberships,
   adminServiceUpdateUserMembership,
@@ -51,7 +47,8 @@ export default function UserMembershipModal({
   );
 
   return (
-    <ModalForm<UserMembershipFormValues>
+    <GuardedModalForm<UserMembershipFormValues>
+      guardIdentity={membershipEditing?.id}
       key={membershipEditing?.id ?? 'create'}
       title={membershipEditing ? '编辑组织成员关系' : '加入其他组织'}
       open={open}
@@ -181,6 +178,6 @@ export default function UserMembershipModal({
           disabled={userId === currentUserId && membershipEditing.enabled}
         />
       )}
-    </ModalForm>
+    </GuardedModalForm>
   );
 }

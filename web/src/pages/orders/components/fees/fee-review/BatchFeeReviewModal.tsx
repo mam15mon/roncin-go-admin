@@ -1,4 +1,4 @@
-import { ModalForm, ProFormTextArea } from '@ant-design/pro-components';
+import { ProFormTextArea } from '@ant-design/pro-components';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Alert,
@@ -10,7 +10,7 @@ import {
 } from 'antd';
 import React, { useMemo, useRef, useState } from 'react';
 import { useInitialState } from '@/app/AppProvider';
-import { ResponsiveTable as Table } from '@/components/ui';
+import { GuardedModalForm, ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   FeeReviewStatus,
@@ -247,7 +247,7 @@ export function BatchFeeReviewModal({
     lockVisibleKeys: ['order', 'comment', 'result'],
   });
   return (
-    <ModalForm<{ comments?: Record<string, string> }>
+    <GuardedModalForm<{ comments?: Record<string, string> }>
       open
       title={`批量审核订单费用包（${orderIds.length}票）`}
       width="96vw"
@@ -370,6 +370,6 @@ export function BatchFeeReviewModal({
           columns={columnSettings.columns}
         />
       )}
-    </ModalForm>
+    </GuardedModalForm>
   );
 }

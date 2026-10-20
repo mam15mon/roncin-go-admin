@@ -1,4 +1,3 @@
-import { AsyncPopconfirm } from '@/components/ui';
 import { ReloadOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
@@ -18,7 +17,8 @@ import Decimal from 'decimal.js';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router';
 import { useAccess } from '@/app/access';
-import { StickyFooterBar } from '@/components/ui';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
+import { AsyncPopconfirm, StickyFooterBar } from '@/components/ui';
 import { OrderBusinessType } from '@/enums.generated';
 import { history } from '@/router/history';
 import {
@@ -130,6 +130,9 @@ export default function SeaOrderSplitPage() {
   const loadingContext = splitContextQuery.isFetching;
 
   // 拆票结果集：至少 1 个 ORIGINAL + 1 个 CREATED
+  const { markDirty, resetDirty } = useUnsavedChangesGuard({
+    identity: orderId,
+  });
   const [results, setResults] = useState<ResultConfig[]>([]);
 
   // 分配状态
@@ -613,6 +616,7 @@ export default function SeaOrderSplitPage() {
   // 添加新票
   const handleAddResult = () => {
     if (!ensureSplitEditable()) return;
+    markDirty();
     const nextIdx = results.filter((r) => r.role === 'CREATED').length + 1;
     const newKey = `res-new-${Date.now()}`;
     const defaultHouseNo = splitContext?.currentHouseBill?.houseNo
@@ -663,6 +667,7 @@ export default function SeaOrderSplitPage() {
       message.warning('拆票必须至少保留一个拆出新票');
       return;
     }
+    markDirty();
     const updated = results.filter((r) => r.key !== key);
     const nextContainers = { ...containerAssignments };
     Object.keys(nextContainers).forEach((cId) => {
@@ -813,9 +818,15 @@ export default function SeaOrderSplitPage() {
           confirmation,
         },
       );
-      if (!isWriteResponse(resp) || !resp.data?.splitEventId || resp.data.originalOrder?.orderId !== orderId) return false;
+      if (
+        !isWriteResponse(resp) ||
+        !resp.data?.splitEventId ||
+        resp.data.originalOrder?.orderId !== orderId
+      )
+        return false;
 
       const createdCount = resp?.data?.createdOrders?.length || 0;
+      resetDirty();
       message.success(`拆票成功！原票已更新，成功生成 ${createdCount} 张新票`);
       history.push(`/orders/sea-export/${orderId}`);
     } catch (error: unknown) {
@@ -908,7 +919,10 @@ export default function SeaOrderSplitPage() {
 
               <SplitResultsSection
                 results={results}
-                setResults={setResults}
+                setResults={(value) => {
+                  markDirty();
+                  setResults(value);
+                }}
                 splitContext={splitContext}
                 canReassign={canReassign}
                 carrierOptions={carrierOptions}
@@ -923,18 +937,30 @@ export default function SeaOrderSplitPage() {
                 splitContext={splitContext}
                 results={results}
                 containerAssignments={containerAssignments}
-                setContainerAssignments={setContainerAssignments}
+                setContainerAssignments={(value) => {
+                  markDirty();
+                  setContainerAssignments(value);
+                }}
                 cargoAllocations={cargoAllocations}
-                setCargoAllocations={setCargoAllocations}
+                setCargoAllocations={(value) => {
+                  markDirty();
+                  setCargoAllocations(value);
+                }}
                 sharedAllocations={sharedAllocations}
-                setSharedAllocations={setSharedAllocations}
+                setSharedAllocations={(value) => {
+                  markDirty();
+                  setSharedAllocations(value);
+                }}
               />
 
               <SplitFeesSection
                 splitContext={splitContext}
                 results={results}
                 feeAssignments={feeAssignments}
-                setFeeAssignments={setFeeAssignments}
+                setFeeAssignments={(value) => {
+                  markDirty();
+                  setFeeAssignments(value);
+                }}
                 feeCurrencySummaries={feeCurrencySummaries}
               />
 
@@ -942,11 +968,18 @@ export default function SeaOrderSplitPage() {
                 splitContext={splitContext}
                 results={results}
                 attAssignments={attAssignments}
-                setAttAssignments={setAttAssignments}
+                setAttAssignments={(value) => {
+                  markDirty();
+                  setAttAssignments(value);
+                }}
                 note={note}
-                setNote={setNote}
+                setNote={(value) => {
+                  markDirty();
+                  setNote(value);
+                }}
                 orderId={orderId}
                 confirmationForm={confirmationForm}
+                onUserEdit={markDirty}
               />
 
               <SplitConservationSection

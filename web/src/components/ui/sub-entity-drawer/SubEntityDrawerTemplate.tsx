@@ -1,11 +1,9 @@
-import { AsyncPopconfirm } from '../async-popconfirm';
 import { PlusOutlined } from '@ant-design/icons';
 import type {
   ActionType,
   ProColumns,
   ProFormInstance,
 } from '@ant-design/pro-components';
-import { ModalForm } from '@ant-design/pro-components';
 import { App, Button, Drawer, Space } from 'antd';
 import React, {
   forwardRef,
@@ -14,7 +12,9 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { GuardedModalForm } from '@/components/ui/GuardedModalForm';
 import { isWriteResponse, toTableRequest } from '@/utils/api';
+import { AsyncPopconfirm } from '../async-popconfirm';
 import { useColumnSettings } from '../column-settings';
 import { ResponsiveProTable } from '../responsive-table';
 
@@ -255,7 +255,8 @@ export function SubEntityDrawerTemplateInner<
         )}
       </Drawer>
 
-      <ModalForm<TFormValues>
+      <GuardedModalForm<TFormValues>
+        guardIdentity={editingItem}
         title={editingItem ? `编辑${entityName}` : `添加${entityName}`}
         open={modalOpen}
         formRef={formRef}
@@ -294,7 +295,7 @@ export function SubEntityDrawerTemplateInner<
         }}
       >
         {renderFormItems(editingItem, formRef, parentRecord)}
-      </ModalForm>
+      </GuardedModalForm>
     </>
   );
 }

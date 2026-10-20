@@ -11,6 +11,7 @@ import {
 } from 'antd';
 import Decimal from 'decimal.js';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { FinanceBillStatus, PartnerRoleType } from '@/enums.generated';
 import { BillTermsCreditWarnings } from '@/features/finance/bill-creation';
 import { getCurrencyOptions } from '@/features/master-data/currencies';
@@ -40,6 +41,10 @@ export default function BillEditModal({
   onCancel,
   onOk,
 }: BillEditModalProps) {
+  const { markDirty } = useUnsavedChangesGuard({
+    enabled: open,
+    identity: editing?.id,
+  });
   const [accountOptions, setAccountOptions] = useState<
     API.FinanceSettlementAccountOption[]
   >([]);
@@ -180,7 +185,7 @@ export default function BillEditModal({
       onCancel={onCancel}
       onOk={() => void onOk()}
     >
-      <Form form={form} layout="vertical">
+      <Form form={form} layout="vertical" onValuesChange={markDirty}>
         <BillTermsCreditWarnings
           direction={editing?.direction}
           isCasual={counterparty?.isCasual}

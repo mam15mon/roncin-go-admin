@@ -1,6 +1,5 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
 import {
-  ModalForm,
   ProFormDatePicker,
   ProFormSelect,
   ProFormText,
@@ -10,8 +9,10 @@ import { Alert, Checkbox, Col, Row, Typography } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import {
   ExchangeRatePreviewCard,
+  GuardedModalForm,
   ProFormSearchableSelect,
 } from '@/components/ui';
 import { useFeeExchangePreview } from '../../use-fee-exchange-preview';
@@ -56,6 +57,10 @@ export default function FeeSupplementModal({
   correction = false,
   initialDirection = PAYABLE,
 }: FeeSupplementModalProps) {
+  const { markDirty, resetDirty } = useUnsavedChangesGuard({
+    enabled: open,
+    identity: initialRequest?.id,
+  });
   const access = useAccess();
   const [confirmSystemRate, setConfirmSystemRate] = useState(false);
   const [showRateConfirmationError, setShowRateConfirmationError] =
@@ -154,7 +159,8 @@ export default function FeeSupplementModal({
   ]);
 
   return (
-    <ModalForm<FeeSupplementFormValues>
+    <GuardedModalForm<FeeSupplementFormValues>
+      guardIdentity={initialRequest?.id}
       title={correction ? '填写更正后的费用' : '补录费用（应付）'}
       open={open}
       formRef={internalFormRef}
@@ -173,7 +179,10 @@ export default function FeeSupplementModal({
           setShowRateConfirmationError(true);
           return Promise.resolve(false);
         }
-        return onSubmit(values);
+        return onSubmit(values).then((result) => {
+          if (result === true) resetDirty();
+          return result;
+        });
       }}
       onValuesChange={(changedValues) => {
         const rateBasisChanged =
@@ -249,6 +258,7 @@ export default function FeeSupplementModal({
               <Checkbox
                 checked={confirmSystemRate}
                 onChange={(event) => {
+                  markDirty();
                   setConfirmSystemRate(event.target.checked);
                   setShowRateConfirmationError(false);
                 }}
@@ -363,7 +373,10 @@ export default function FeeSupplementModal({
                 orderId={orderId}
                 billingUnits={billingUnits}
                 active={open}
-                onValuesChange={() => handleValuesChange({ amountOnly: true })}
+                onValuesChange={() => {
+                  markDirty();
+                  handleValuesChange({ amountOnly: true });
+                }}
               />
             }
             rules={[
@@ -416,6 +429,7 @@ export default function FeeSupplementModal({
             onEnableManual={
               access.canOverrideFeeExchangeRate
                 ? () => {
+                    markDirty();
                     setManualRateCleared(false);
                     setManualExchangeRate(true);
                   }
@@ -465,6 +479,6 @@ export default function FeeSupplementModal({
           />
         </Col>
       </Row>
-    </ModalForm>
+    </GuardedModalForm>
   );
 }

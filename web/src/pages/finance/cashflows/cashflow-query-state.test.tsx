@@ -33,7 +33,9 @@ vi.mock('@/app/access', () => ({
     canOperateOrganization: () => true,
   }),
 }));
-vi.mock('@/components/ui', () => ({
+vi.mock('@/components/ui', async () => ({
+  GuardedModalForm: (await import('@/components/ui/GuardedModalForm'))
+    .GuardedModalForm,
   FinanceLedgerTemplate: (p: LedgerProps) => {
     state.ledger = p;
     state.searchForm = { setFieldsValue: vi.fn() };

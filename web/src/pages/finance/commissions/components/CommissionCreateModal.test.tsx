@@ -40,6 +40,8 @@ vi.mock('@ant-design/pro-components', () => ({
 }));
 
 vi.mock('@/components/ui', async () => ({
+  GuardedModalForm: (await import('@/components/ui/GuardedModalForm'))
+    .GuardedModalForm,
   ResponsiveTable: (await import('antd')).Table,
   MODAL_SIZE: { SM: 520, MD: 680, LG: 960, XL: 1200 },
   DRAWER_SIZE: { SM: 600, MD: 860, LG: 1080, XL: 1200 },
@@ -372,7 +374,9 @@ describe('提成预览 CNY 快照', () => {
         lines: [],
       },
     });
-    serviceMocks.createCommission.mockResolvedValue({ data: { id: 'commission-new' } });
+    serviceMocks.createCommission.mockResolvedValue({
+      data: { id: 'commission-new' },
+    });
     renderWithClient(
       <App>
         <CommissionCreateModal

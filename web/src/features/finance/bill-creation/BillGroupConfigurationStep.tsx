@@ -51,6 +51,7 @@ type BillGroupConfigurationStepProps = {
   ) => Promise<boolean>;
   onRemoveFee: (feeId?: string) => void;
   onConfigurationChange: () => void;
+  onUserEdit?: () => void;
 };
 
 /** 建账工作台第 3 步：拆单策略微调、汇总、对冲配对与逐叶子账单资料 */
@@ -73,6 +74,7 @@ export default function BillGroupConfigurationStep({
   loadPreview,
   onRemoveFee,
   onConfigurationChange,
+  onUserEdit,
 }: BillGroupConfigurationStepProps) {
   const groups = preview.data ?? [];
   const activeGroup = groups.find((group) => group.groupKey === activeGroupKey);
@@ -82,6 +84,7 @@ export default function BillGroupConfigurationStep({
       form={form}
       layout="vertical"
       onValuesChange={(changedValues) => {
+        onUserEdit?.();
         if (!changedValues?.groups) return;
         const shouldRefresh = Object.values(changedValues.groups).some(
           (groupValue: Partial<GroupFormValue>) => {

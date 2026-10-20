@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { DRAWER_SIZE } from '@/components/ui';
 import {
   seaSharedContainerServiceConfirmSeaSharedContainer,
@@ -72,6 +73,10 @@ export default function SeaSharedContainerDrawer({
   const [selectedContainerId, setSelectedContainerId] = useState<string | null>(
     null,
   );
+  const { markDirty, resetDirty } = useUnsavedChangesGuard({
+    enabled: open && Boolean(contextKey),
+    identity: `${contextKey}:${selectedContainerId}`,
+  });
   const [candidates, setCandidates] = useState<
     API.SeaSharedContainerCandidateOrder[]
   >([]);
@@ -267,6 +272,7 @@ export default function SeaSharedContainerDrawer({
       field: 'packageCount' | 'grossWeightKg' | 'volumeCbm',
       value: number | string | null,
     ) => {
+      markDirty();
       const key = `${identity.orderId}:${identity.cargoItemId}`;
       setDrafts((prev) => {
         const existing = prev[key] ?? identity;
@@ -282,12 +288,13 @@ export default function SeaSharedContainerDrawer({
         };
       });
     },
-    [],
+    [markDirty],
   );
 
   // 快捷填入该货物的全部总件重尺；首次操作（无既有草稿）时以行身份+版本兜底，
   // 避免产出缺少 ID 与期望版本的孤儿数量项
   const handleFillAllCargo = useCallback((record: CargoAllocationItem) => {
+    markDirty();
     const key = `${record.draft.orderId}:${record.draft.cargoItemId}`;
     setDrafts((prev) => ({
       ...prev,
@@ -298,7 +305,7 @@ export default function SeaSharedContainerDrawer({
         volumeCbm: record.totalVolumeCbm,
       },
     }));
-  }, []);
+  }, [markDirty]);
 
   // 提交前校验选中共享箱仍属于当前上下文，通过时返回该共享箱与收窄后的 ID
   const ensureSubmitContext = (): {
@@ -355,11 +362,11 @@ export default function SeaSharedContainerDrawer({
           },
         );
       if (!isWriteResponse(writeResponse1, true)) return false;
+      resetDirty();
       message.success('共享箱分配草稿已保存');
       reloadCurrentContext();
     } catch (err: unknown) {
       message.error(err instanceof Error ? err.message : '保存草稿失败');
-      reloadCurrentContext();
     } finally {
       setSubmitting(false);
     }
@@ -390,11 +397,11 @@ export default function SeaSharedContainerDrawer({
           },
         );
       if (!isWriteResponse(writeResponse2, true)) return false;
+      resetDirty();
       message.success('共享箱分配已确认生效');
       reloadCurrentContext();
     } catch (err: unknown) {
       message.error(err instanceof Error ? err.message : '确认分配失败');
-      reloadCurrentContext();
     } finally {
       setSubmitting(false);
     }

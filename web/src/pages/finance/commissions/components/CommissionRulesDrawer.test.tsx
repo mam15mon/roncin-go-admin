@@ -70,6 +70,8 @@ vi.mock('@ant-design/pro-components', () => ({
 }));
 
 vi.mock('@/components/ui', async () => ({
+  GuardedModalForm: (await import('@/components/ui/GuardedModalForm'))
+    .GuardedModalForm,
   ResponsiveProTable: (await import('@ant-design/pro-components')).ProTable,
   ResponsiveTable: (await import('antd')).Table,
   MODAL_SIZE: { SM: 520, MD: 680, LG: 960, XL: 1200 },

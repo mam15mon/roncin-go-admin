@@ -1,20 +1,13 @@
-import { AsyncPopconfirm } from '@/components/ui';
 import { ApartmentOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
-import { ModalForm, ProFormText } from '@ant-design/pro-components';
+import { ProFormText } from '@ant-design/pro-components';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  Alert,
-  App,
-  Button,
-  Segmented,
-  Space,
-  Tag,
-  Typography,
-} from 'antd';
+import { Alert, App, Button, Segmented, Space, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useEffect, useState } from 'react';
 import {
+  AsyncPopconfirm,
+  GuardedModalForm,
   ProFormSearchableSelect,
   ResponsiveTable as Table,
 } from '@/components/ui';
@@ -218,7 +211,8 @@ export default function UserFormModal({
   });
 
   return (
-    <ModalForm<UserFormValues>
+    <GuardedModalForm<UserFormValues>
+      guardIdentity={editing?.id}
       title={
         editing
           ? `编辑用户：${editing.displayName || editing.username}`
@@ -433,6 +427,6 @@ export default function UserFormModal({
           onReload();
         }}
       />
-    </ModalForm>
+    </GuardedModalForm>
   );
 }

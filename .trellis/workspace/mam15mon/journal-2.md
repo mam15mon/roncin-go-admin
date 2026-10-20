@@ -1885,3 +1885,39 @@ HTML直接输出本次扫码iframe，前端复用原浏览上下文；开发与G
 ### Status
 
 [OK] **Completed**
+
+
+## Session 148: 切换组织保留功能位置与未保存编辑保护
+<!-- trellis-session: v=2 fp=0d056a0c900bced3 -->
+
+**Date**: 2026-10-20
+**Task**: 切换组织保留功能位置与未保存编辑保护
+**Branch**: `codex/retain-page-on-org-switch`
+
+### Summary
+
+完成可访问列表及子页签保留、详情回所属列表、权限落点和异步身份路由隔离；覆盖真实Form、行内编辑、state及导入输入。独立审查发现均已修复，最终check:web通过285文件1587项，12项既有skip；原开发目录的计费单位任务保留。
+
+### Main Changes
+
+- 复用集中路由与既有access确定组织切换落点；完成导航提交后才挂新组织业务树
+- 多guard与真实用户事件保护覆盖现有编辑入口，失败保留输入与dirty，业务确认框随工作区销毁
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `166282a3` | feat: 切换组织保留功能页面并保护未保存输入 |
+
+### Testing
+
+- [OK] pnpm run check:web通过：285测试文件、1587项；权限/枚举/架构/重复/Biome/tsc通过
+- [OK] git diff --check及暂存新增文件检查通过；测试网络噪声和既有lint提示详见任务review.md
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 仅本地合入main，不推送；main工作区留在/tmp/roncin-org-switch-20261020，原目录并行任务不受影响

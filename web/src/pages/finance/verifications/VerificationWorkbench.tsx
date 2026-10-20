@@ -21,6 +21,7 @@ import type { ColumnsType } from 'antd/es/table';
 import dayjs, { type Dayjs } from 'dayjs';
 import Decimal from 'decimal.js';
 import { useEffect, useMemo, useState } from 'react';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { MODAL_SIZE, ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
@@ -74,6 +75,7 @@ export default function VerificationWorkbench({
   onClose,
   onCreated,
 }: Props) {
+  const { markDirty, resetDirty } = useUnsavedChangesGuard({ enabled: open });
   const { message } = App.useApp();
   const [scope, setScope] = useState<Scope>({
     direction: 'RECEIVABLE',
@@ -239,6 +241,7 @@ export default function VerificationWorkbench({
         balance: item.unverifiedAmount || '0',
       })),
     );
+    if (next.length) markDirty();
     setAllocations(next);
     if (next.length === 0) message.warning('请先选择资金流水和账单');
   };
@@ -310,6 +313,7 @@ export default function VerificationWorkbench({
         idempotencyKey: generateUUID(),
       });
       if (!isWriteResponse(writeResponse1, true)) return false;
+      resetDirty();
       message.success('核销成功，资金与账单余额已同步更新');
       onCreated();
       onClose();
@@ -362,15 +366,16 @@ export default function VerificationWorkbench({
           aria-label={`第 ${index + 1} 行核销金额`}
           value={value}
           suffix={scope.currency}
-          onChange={(event) =>
+          onChange={(event) => {
+            markDirty();
             setAllocations((current) =>
               current.map((item, itemIndex) =>
                 itemIndex === index
                   ? { ...item, amount: event.target.value.trim() }
                   : item,
               ),
-            )
-          }
+            );
+          }}
         />
       ),
     },
@@ -519,10 +524,11 @@ export default function VerificationWorkbench({
               aria-label="核销日期"
               value={scope.verificationDate}
               style={{ width: '100%', marginTop: 6 }}
-              onChange={(verificationDate) =>
-                verificationDate &&
-                setScope((value) => ({ ...value, verificationDate }))
-              }
+              onChange={(verificationDate) => {
+                if (!verificationDate) return;
+                markDirty();
+                setScope((value) => ({ ...value, verificationDate }));
+              }}
             />
           </Col>
         </Row>
@@ -659,9 +665,10 @@ export default function VerificationWorkbench({
           maxLength={500}
           placeholder="核销备注（选填）"
           style={{ marginTop: 12 }}
-          onChange={(event) =>
-            setScope((value) => ({ ...value, note: event.target.value }))
-          }
+          onChange={(event) => {
+            markDirty();
+            setScope((value) => ({ ...value, note: event.target.value }));
+          }}
         />
       </Card>
     </Modal>

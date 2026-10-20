@@ -16,6 +16,7 @@ import { SettingTableTemplate } from './SettingTableTemplate';
 // Mock 路由与历史模块
 vi.mock('@/router/history', () => ({
   history: {
+    location: { pathname: '/settings', search: '', hash: '' },
     replace: vi.fn(),
   },
 }));

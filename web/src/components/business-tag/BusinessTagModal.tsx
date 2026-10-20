@@ -10,6 +10,7 @@ import {
   Tag,
 } from 'antd';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import {
   enterpriseResourceServiceCreateEnterpriseResource,
   enterpriseResourceServiceListEnterpriseTagGroups,
@@ -76,6 +77,12 @@ export function BusinessTagModal({
     { label: string; value: string; color?: string }[]
   >([]);
   const [quickForm] = Form.useForm<{ groupId: string; name: string }>();
+  const { markDirty: markAssignmentDirty, resetDirty: resetAssignmentDirty } =
+    useUnsavedChangesGuard({ enabled: open, identity: defaultMode });
+  const { markDirty: markQuickCreateDirty, resetDirty: resetQuickCreateDirty } =
+    useUnsavedChangesGuard({
+      enabled: open && canQuickCreate && mode === 'assign' && quickCreateOpen,
+    });
 
   const fetchOptions = loadOptions ?? orderTagServiceListOrderTagOptions;
   const loadTagOptions = async (keyword?: string) => {
@@ -124,6 +131,8 @@ export function BusinessTagModal({
     setSubmitting(true);
     try {
       if ((await onSubmit(mode, selectedTagIds)) === false) return;
+      resetAssignmentDirty();
+      resetQuickCreateDirty();
       onCancel();
     } finally {
       setSubmitting(false);
@@ -143,6 +152,7 @@ export function BusinessTagModal({
     });
     if (!isWriteResponse(response, true)) return false;
     message.success('标签已创建');
+    resetQuickCreateDirty();
     setQuickCreateOpen(false);
     quickForm.resetFields();
     const createdID = response.data?.id;
@@ -163,6 +173,7 @@ export function BusinessTagModal({
         ...current.filter((tag) => tag.id !== createdID),
       ]);
       setSelectedTagIds([createdID]);
+      markAssignmentDirty();
     }
 
     return undefined;
@@ -186,6 +197,7 @@ export function BusinessTagModal({
             onChange={(value) => {
               setMode(value as BusinessTagModalMode);
               setSelectedTagIds([]);
+              resetAssignmentDirty();
             }}
             options={[
               { label: '添加标签', value: 'assign' },
@@ -203,7 +215,10 @@ export function BusinessTagModal({
               : '选择要移除的标签（含已停用）'
           }
           value={selectedTagIds}
-          onChange={setSelectedTagIds}
+          onChange={(ids) => {
+            setSelectedTagIds(ids);
+            markAssignmentDirty();
+          }}
           loading={loading}
           showSearch={{
             filterOption: false,
@@ -273,6 +288,7 @@ export function BusinessTagModal({
           <Form
             form={quickForm}
             layout="inline"
+            onValuesChange={markQuickCreateDirty}
             onFinish={() => void submitQuickCreate()}
           >
             <Form.Item

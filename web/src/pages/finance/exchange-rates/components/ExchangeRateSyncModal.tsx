@@ -1,3 +1,4 @@
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import {
   HistoryOutlined,
   InfoCircleOutlined,
@@ -177,6 +178,7 @@ export function ExchangeRateSyncModal({
   onClose,
   onSuccess,
 }: ExchangeRateSyncModalProps) {
+  const { markDirty, resetDirty } = useUnsavedChangesGuard({ enabled: open, identity: baseCurrency });
   const { message } = App.useApp();
   const [target, setTarget] =
     useState<ExchangeRateSyncTargetValue>('CURRENT_WEEK');
@@ -225,6 +227,7 @@ export function ExchangeRateSyncModal({
   };
 
   const handlePrecisionChange = (nextPrec: ExchangeRatePrecision) => {
+    if (draftRows.length) markDirty();
     setPrecision(nextPrec);
     setDraftRows((currentDrafts) =>
       currentDrafts.map((draft) => {
@@ -275,6 +278,7 @@ export function ExchangeRateSyncModal({
     field: keyof ExchangeRateSyncDraftRow,
     value: string,
   ) => {
+    markDirty();
     setDraftRows((rows) =>
       rows.map((row) =>
         row.fromCurrency === fromCurrency ? { ...row, [field]: value } : row,
@@ -284,6 +288,7 @@ export function ExchangeRateSyncModal({
 
   // 一键套用上次记住的微调加点（如 USD +0.02、EUR +0.02 等）
   const handleApplyLastMarkups = () => {
+    if (draftRows.length) markDirty();
     const markups = loadLastMarkups();
     let appliedCount = 0;
     setDraftRows((rows) =>
@@ -322,6 +327,7 @@ export function ExchangeRateSyncModal({
 
   // 一键还原为中行抓取的原始牌价
   const handleRestoreRaw = () => {
+    if (draftRows.length) markDirty();
     setDraftRows(
       rawRows.map((row) => ({
         ...row,
@@ -376,6 +382,7 @@ export function ExchangeRateSyncModal({
         saveLastMarkups(currentMarkups);
       }
 
+      resetDirty();
       message.success('周汇率已发布生效，本次微调加点已自动记忆');
       onSuccess();
       onClose();

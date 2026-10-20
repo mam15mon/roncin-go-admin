@@ -5,7 +5,6 @@ import type {
   ProFormInstance,
 } from '@ant-design/pro-components';
 import {
-  ModalForm,
   ProFormSelect,
   ProFormSwitch,
   ProFormText,
@@ -13,7 +12,10 @@ import {
 } from '@ant-design/pro-components';
 import { App, Button, Space, Tag, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
-import { ResponsiveProTable as ProTable } from '@/components/ui';
+import {
+  GuardedModalForm,
+  ResponsiveProTable as ProTable,
+} from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { PartnerAccountUsage } from '@/enums.generated';
 import {
@@ -197,7 +199,8 @@ export default function AccountsPanel({
         ]}
       />
 
-      <ModalForm<API.PartnerAccountInput>
+      <GuardedModalForm<API.PartnerAccountInput>
+        guardIdentity={editingAccount?.id}
         title={editingAccount ? '编辑结算账户' : '新增结算账户'}
         open={modalOpen}
         formRef={formRef}
@@ -316,7 +319,7 @@ export default function AccountsPanel({
           label="备注说明"
           fieldProps={{ rows: 3, maxLength: 500, showCount: true }}
         />
-      </ModalForm>
+      </GuardedModalForm>
     </>
   );
 }

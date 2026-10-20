@@ -21,6 +21,7 @@ import {
 } from 'antd';
 import React, { useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
+import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
 import {
   ResponsiveProTable as ProTable,
   SearchFilterTemplate,
@@ -78,6 +79,7 @@ type CommissionView = 'ledger' | 'pending-decrease' | 'applications';
 
 export default function FinanceCommissionsPage() {
   const access = useAccess();
+  const getModalOwnerSignal = useModalOwnerSignal();
   const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [view, setView] = useState<CommissionView>('ledger');
@@ -143,15 +145,16 @@ export default function FinanceCommissionsPage() {
       setExporting(false);
     }
   };
-  const commissionActions = makeVersionActions<API.FinanceCommission>({
-    modal,
-    message,
-  });
+  const commissionActions = makeVersionActions<API.FinanceCommission>(
+    { modal, message },
+    getModalOwnerSignal,
+  );
   const adjustmentActions = makeVersionActions<API.FinanceCommissionAdjustment>(
     {
       modal,
       message,
     },
+    getModalOwnerSignal,
   );
 
   const openDetailById = async (commissionId?: string) => {

@@ -1,5 +1,6 @@
 import { Alert, Form, type FormInstance, Input, Modal } from 'antd';
 import React from 'react';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { FinanceInvoiceStatus } from '@/enums.generated';
 import {
   invoiceDraftCancelDescription,
@@ -28,6 +29,10 @@ export default function InvoiceCancelModal({
   onCancel,
   onOk,
 }: InvoiceCancelModalProps) {
+  const { markDirty } = useUnsavedChangesGuard({
+    enabled: open,
+    identity: cancelTarget?.id,
+  });
   const issued =
     cancelTarget?.status === FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_ISSUED;
   const actionVerb = issued ? '作废' : '取消';
@@ -65,7 +70,7 @@ export default function InvoiceCancelModal({
           {invoiceDraftCancelDescription}
         </p>
       )}
-      <Form form={cancelForm} layout="vertical">
+      <Form form={cancelForm} layout="vertical" onValuesChange={markDirty}>
         <Form.Item
           name="reason"
           label={`${actionVerb}原因`}

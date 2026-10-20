@@ -1,5 +1,4 @@
 import {
-  ModalForm,
   ProFormDatePicker,
   ProFormDigit,
   ProFormSelect,
@@ -9,7 +8,11 @@ import {
 import { Alert } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React from 'react';
-import { MODAL_SIZE, ProFormSearchableSelect } from '@/components/ui';
+import {
+  GuardedModalForm,
+  MODAL_SIZE,
+  ProFormSearchableSelect,
+} from '@/components/ui';
 import type { EmployeeOption } from './commissionRuleShared';
 
 /** CopyValues 复制为新方案表单值。 */
@@ -49,7 +52,8 @@ export default function CommissionRuleCopyModal({
   onFinish,
 }: CommissionRuleCopyModalProps) {
   return (
-    <ModalForm<CopyValues>
+    <GuardedModalForm<CopyValues>
+      guardIdentity={copySourceRule?.id}
       key={copySourceRule?.id || 'copy-rule'}
       title="复制为新方案"
       open={Boolean(copySourceRule)}
@@ -162,6 +166,6 @@ export default function CommissionRuleCopyModal({
         label="方案说明"
         fieldProps={{ maxLength: 500 }}
       />
-    </ModalForm>
+    </GuardedModalForm>
   );
 }

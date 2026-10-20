@@ -1,7 +1,8 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
-import { ModalForm } from '@ant-design/pro-components';
 import { Alert, App, Button } from 'antd';
 import React, { useMemo, useState } from 'react';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
+import { GuardedModalForm } from '@/components/ui';
 import {
   adminServiceCreateRole,
   adminServiceUpdateRole,
@@ -70,6 +71,10 @@ export default function RoleFormModal({
   onSuccess,
 }: RoleFormModalProps) {
   const { message } = App.useApp();
+  const { markDirty, resetDirty } = useUnsavedChangesGuard({
+    enabled: open,
+    identity: editing?.id,
+  });
 
   // 当前所选的服务模块与二级业务线
   const [selectedModuleId, setSelectedModuleId] = useState<string>('all');
@@ -119,8 +124,10 @@ export default function RoleFormModal({
   const cannotSubmit =
     permissionsLoading || permissionsError || unavailableKeys.length > 0;
   // 全选、清空等操作也保留不可配置的已有授权；仅由有相应能力的人处理。
-  const setSelectedPermissionKeys = (keys: string[]) =>
+  const setSelectedPermissionKeys = (keys: string[]) => {
+    markDirty();
     onSelectionChange([...new Set([...keys, ...unavailableExistingKeys])]);
+  };
 
   // 已选键 Set 索引
   const selectedSet = useMemo(
@@ -299,7 +306,8 @@ export default function RoleFormModal({
   };
 
   return (
-    <ModalForm<RoleFormValues>
+    <GuardedModalForm<RoleFormValues>
+      guardIdentity={editing?.id}
       title={
         editing ? `编辑角色：${editing.name} (${editing.code})` : '新增角色'
       }
@@ -350,6 +358,7 @@ export default function RoleFormModal({
             if (!isWriteResponse(writeResponse2, true)) return false;
             message.success('角色已成功创建');
           }
+          resetDirty();
           onOpenChange(false);
           onSuccess();
           return true;
@@ -475,6 +484,6 @@ export default function RoleFormModal({
           </div>
         </div>
       </div>
-    </ModalForm>
+    </GuardedModalForm>
   );
 }

@@ -1,11 +1,8 @@
-import {
-  ModalForm,
-  ProFormCheckbox,
-  ProFormTextArea,
-} from '@ant-design/pro-components';
+import { ProFormCheckbox, ProFormTextArea } from '@ant-design/pro-components';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Alert, App, Button, Drawer, Space, Spin, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
+import { GuardedModalForm } from '@/components/ui';
 import {
   FeeReviewStatus,
   FeeReviewSummary,
@@ -127,7 +124,7 @@ export function OrderFeeReviewActions({
         )}
       </Space>
       {action && (
-        <ModalForm<{ comment?: string; completenessConfirmed?: boolean }>
+        <GuardedModalForm<{ comment?: string; completenessConfirmed?: boolean }>
           key={action}
           title={titles[action]}
           open
@@ -211,7 +208,7 @@ export function OrderFeeReviewActions({
             ]}
             fieldProps={feeReviewCommentFieldProps}
           />
-        </ModalForm>
+        </GuardedModalForm>
       )}
     </>
   );

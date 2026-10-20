@@ -1,8 +1,8 @@
 import { EditOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { ModalForm } from '@ant-design/pro-components';
 import { App, Button, Card } from 'antd';
 import React, { useMemo, useRef, useState } from 'react';
+import { GuardedModalForm } from '@/components/ui/GuardedModalForm';
 import { toTableRequest } from '@/utils/api';
 import { useColumnSettings } from '../column-settings';
 import { ResponsiveProTable } from '../responsive-table';
@@ -202,7 +202,8 @@ export function SettingTableTemplate<
         ]}
       />
 
-      <ModalForm<TFormValues>
+      <GuardedModalForm<TFormValues>
+        guardIdentity={editingRecord}
         title={editingRecord ? `编辑${entityName}` : `新建${entityName}`}
         open={modalOpen}
         initialValues={currentInitialValues}
@@ -222,7 +223,7 @@ export function SettingTableTemplate<
         onFinish={handleFinish}
       >
         {renderFormItems(editingRecord)}
-      </ModalForm>
+      </GuardedModalForm>
     </Card>
   );
 }

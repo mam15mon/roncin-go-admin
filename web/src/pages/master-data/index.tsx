@@ -5,12 +5,13 @@ import {
   RocketOutlined,
   SendOutlined,
 } from '@ant-design/icons';
-import { useAccess } from '@/app/access';
 import React from 'react';
+import { useAccess } from '@/app/access';
 import {
   type MultiTabCenterTabItem,
   MultiTabCenterTemplate,
 } from '@/components/ui';
+import { isWorkspaceTabVisible } from '@/router/workspaceTabs';
 import AirlinesPanel from './components/AirlinesPanel';
 import AirportsPanel from './components/AirportsPanel';
 import CitiesPanel from './components/CitiesPanel';
@@ -27,7 +28,7 @@ export default function MasterDataPage() {
       key: 'ports',
       label: '海运港口',
       icon: <CompassOutlined />,
-      visible: access.canReadMasterDataPorts,
+      visible: isWorkspaceTabVisible('/master-data', 'ports', access),
       tooltip:
         '维护全球港口五字码 (UN/LOCODE)、所属国家地区及海陆铁多式联运枢纽属性',
       children: <PortsPanel />,
@@ -36,7 +37,7 @@ export default function MasterDataPage() {
       key: 'airports',
       label: '空运机场',
       icon: <SendOutlined />,
-      visible: access.canReadMasterDataAirports,
+      visible: isWorkspaceTabVisible('/master-data', 'airports', access),
       tooltip:
         '维护国际航空运输协会 (IATA) 机场三字码、ICAO 四字码及城市空港基础资料',
       children: <AirportsPanel />,
@@ -45,7 +46,7 @@ export default function MasterDataPage() {
       key: 'airlines',
       label: '航空公司',
       icon: <RocketOutlined />,
-      visible: access.canReadMasterDataAirlines,
+      visible: isWorkspaceTabVisible('/master-data', 'airlines', access),
       tooltip:
         '维护航司 IATA 二字码、ICAO 三字码、运单三位前缀及主营航线基础资料',
       children: <AirlinesPanel />,
@@ -54,7 +55,7 @@ export default function MasterDataPage() {
       key: 'shipping-lines',
       label: '船公司',
       icon: <GlobalOutlined />,
-      visible: access.canReadMasterDataShippingLines,
+      visible: isWorkspaceTabVisible('/master-data', 'shipping-lines', access),
       tooltip: '维护船司标准载体代码 (SCAC)、英文缩写及订舱跟踪信息',
       children: <ShippingLinesPanel />,
     },
@@ -62,7 +63,7 @@ export default function MasterDataPage() {
       key: 'countries',
       label: '国家与地区',
       icon: <GlobalOutlined />,
-      visible: access.canReadMasterDataItems,
+      visible: isWorkspaceTabVisible('/master-data', 'countries', access),
       tooltip:
         '维护 ISO 3166-1 国家与地区二字码/三字码、中英文标准全称及大洲归属',
       children: <CountriesPanel />,
@@ -71,7 +72,7 @@ export default function MasterDataPage() {
       key: 'cities',
       label: '城市区划',
       icon: <CompassOutlined />,
-      visible: access.canReadMasterDataAdministrativeRegions,
+      visible: isWorkspaceTabVisible('/master-data', 'cities', access),
       tooltip: '维护行政区划代码、城市中英文名称、所属省州与时区基础数据',
       children: <CitiesPanel />,
     },
@@ -79,7 +80,7 @@ export default function MasterDataPage() {
       key: 'currencies',
       label: '货币币种',
       icon: <DollarOutlined />,
-      visible: access.canReadMasterDataCurrencies,
+      visible: isWorkspaceTabVisible('/master-data', 'currencies', access),
       tooltip: '维护 ISO 4217 货币三字代码、货币符号、中文名称及小数精度位',
       children: <CurrenciesPanel />,
     },

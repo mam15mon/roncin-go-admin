@@ -16,6 +16,7 @@ import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import React, { useCallback, useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import {
@@ -223,6 +224,10 @@ export default function SeaDocumentHistoryActions({
   const [eventPage, setEventPage] = useState(1);
   const [eventsLoading, setEventsLoading] = useState(false);
   const [mode, setMode] = useState<ActionMode | null>(null);
+  const { markDirty } = useUnsavedChangesGuard({
+    enabled: mode !== null,
+    identity: `${documentId}:${mode}`,
+  });
   const [preview, setPreview] = useState<ChangePreview | null>(null);
   const [previewPayload, setPreviewPayload] = useState<PreviewPayload | null>(
     null,
@@ -698,6 +703,7 @@ export default function SeaDocumentHistoryActions({
           form={form}
           layout="vertical"
           onValuesChange={() => {
+            markDirty();
             setPreview(null);
             setPreviewPayload(null);
           }}

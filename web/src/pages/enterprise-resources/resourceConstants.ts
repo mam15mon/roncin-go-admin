@@ -1,12 +1,6 @@
-export const resourceTabs = [
-  { key: 'addresses', label: '地址管理', type: 1 },
-  { key: 'remarks', label: '备注管理', type: 2 },
-  { key: 'images', label: '图片管理', type: 3 },
-  { key: 'tags', label: '标签管理', type: 4 },
-  { key: 'consignees', label: '收货人管理', type: 6 },
-  { key: 'shippers', label: '发货人管理', type: 5 },
-  { key: 'notify-parties', label: '通知人管理', type: 7 },
-] as const;
+import { enterpriseResourceTabs as resourceTabs } from '@/router/workspaceTabs';
+
+export { resourceTabs };
 
 export type ResourceTab = (typeof resourceTabs)[number];
 

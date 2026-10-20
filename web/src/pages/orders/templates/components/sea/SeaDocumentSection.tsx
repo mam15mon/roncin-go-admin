@@ -17,6 +17,7 @@ import {
 import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import {
   OrderBusinessType,
   OrderReleasePodStatus,
@@ -97,6 +98,9 @@ export function SeaDocumentSectionComponent({
   const [releasePods, setReleasePods] = useState<API.OrderReleasePod[]>([]);
   const [releasePodsError, setReleasePodsError] = useState<string | null>(null);
   const [modeModalOpen, setModeModalOpen] = useState(false);
+  const { markDirty: markModeDirty } = useUnsavedChangesGuard({
+    enabled: modeModalOpen,
+  });
   const [modeTarget, setModeTarget] = useState<SeaDocumentStructure>();
   const [modePreview, setModePreview] =
     useState<API.SeaDocumentModeChangePreview | null>(null);
@@ -500,7 +504,11 @@ export function SeaDocumentSectionComponent({
             idempotencyKey: modeIdempotencyKey,
           },
         );
-      if (!isWriteResponse(writeResponse3) || writeResponse3.data?.orderId !== orderId) return false;
+      if (
+        !isWriteResponse(writeResponse3) ||
+        writeResponse3.data?.orderId !== orderId
+      )
+        return false;
       message.success(
         modeTarget === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
           ? '已切换为有货代分单（HOUSE） 并建立当前 HBL'
@@ -839,6 +847,7 @@ export function SeaDocumentSectionComponent({
           layout="vertical"
           preserve={false}
           onValuesChange={(changedValues) => {
+            markModeDirty();
             if (Object.keys(changedValues).length === 0) return;
             setModePreview(null);
             setModeIdempotencyKey(`sea-document-mode:${generateUUID()}`);

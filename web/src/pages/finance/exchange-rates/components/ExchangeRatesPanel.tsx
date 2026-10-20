@@ -1,4 +1,3 @@
-import { AsyncPopconfirm } from '@/components/ui';
 import {
   CloudSyncOutlined,
   DownloadOutlined,
@@ -9,7 +8,6 @@ import {
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import {
-  ModalForm,
   ProFormDatePicker,
   ProFormSelect,
   ProFormText,
@@ -18,7 +16,11 @@ import { App, Button, Card, Form, Space, Tag, Tooltip } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
-import { ResponsiveProTable as ProTable } from '@/components/ui';
+import {
+  AsyncPopconfirm,
+  GuardedModalForm,
+  ResponsiveProTable as ProTable,
+} from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { getCurrencies } from '@/features/master-data/currencies';
 import {
@@ -351,7 +353,8 @@ export function ExchangeRatesPanel() {
         ]}
       />
 
-      <ModalForm<ExchangeRateFormValues>
+      <GuardedModalForm<ExchangeRateFormValues>
+        guardIdentity={editing?.id}
         title={editing ? '编辑汇率' : '新建汇率'}
         open={modalOpen}
         initialValues={initialValues}
@@ -484,7 +487,7 @@ export function ExchangeRatesPanel() {
           extra="中行折算价口径（可空），缺省按应收/应付中间价记录"
           rules={[{ validator: rateRule('基准汇率', false) }]}
         />
-      </ModalForm>
+      </GuardedModalForm>
 
       <ExchangeRateImportModal
         open={importModalOpen}

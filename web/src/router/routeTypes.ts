@@ -16,4 +16,6 @@ export interface UmiRoute {
   layout?: boolean;
   hideInMenu?: boolean;
   routes?: UmiRoute[];
+  /** 组织切换只保留功能位置，记录页显式声明其所属列表。 */
+  organizationSwitch?: { keep: true } | { list: string };
 }

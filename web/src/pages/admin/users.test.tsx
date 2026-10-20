@@ -47,7 +47,10 @@ vi.mock('@/app/AppProvider', () => ({
 }));
 
 vi.mock('@/router/history', () => ({
-  history: { replace: vi.fn() },
+  history: {
+    replace: vi.fn(),
+    location: { pathname: '/admin', search: '', hash: '' },
+  },
 }));
 
 vi.mock('react-router', async (importOriginal) => {

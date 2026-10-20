@@ -1,9 +1,13 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { renderWithApp } from '@root/tests/renderWithApp';
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { Button } from 'antd';
 import { useRef } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  confirmIfAnyTabDirty,
+  getAnyDirtyTabKey,
+} from '@/components/layout/tabCloseGuard';
 import {
   orderFeeServicePreviewFeeQuantity,
   orderFeeServiceResolveFeeExchangeRate,
@@ -92,6 +96,7 @@ async function confirmQuantity() {
 
 describe('费用数量带入表单入口', () => {
   beforeEach(() => {
+    window.history.replaceState({}, '', '/orders/sea-export/order-1/fees');
     vi.mocked(orderFeeServicePreviewFeeQuantity).mockResolvedValue({
       data: {
         available: true,
@@ -110,7 +115,27 @@ describe('费用数量带入表单入口', () => {
     renderWithApp(<OrdinaryForm />);
     fireEvent.click(screen.getByRole('button', { name: '载入复制费用' }));
     expect(screen.getByLabelText('数量')).toHaveValue('1');
+    expect(getAnyDirtyTabKey()).toBeUndefined();
+    fireEvent.click(screen.getByRole('button', { name: '从订单带入' }));
+    await screen.findByText('8 计费吨');
+    fireEvent.click(
+      within(
+        screen
+          .getAllByRole('dialog')
+          .find((dialog) =>
+            within(dialog).queryByText('从订单带入数量'),
+          ) as HTMLElement,
+      ).getByRole('button', { name: /取\s*消/ }),
+    );
+    expect(getAnyDirtyTabKey()).toBeUndefined();
     await confirmQuantity();
+    const switchOrganization = vi.fn();
+    const confirmation = vi.fn();
+    expect(confirmIfAnyTabDirty(switchOrganization, confirmation)).toBe(false);
+    expect(confirmation).toHaveBeenCalledOnce();
+    confirmation.mock.calls[0][0].onCancel?.();
+    expect(switchOrganization).not.toHaveBeenCalled();
+    expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');
     expect(screen.getByLabelText('数量')).toHaveValue('8');
     expect(await screen.findByText(/800\.00/)).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('数量'), { target: { value: '9' } });
@@ -138,7 +163,12 @@ describe('费用数量带入表单入口', () => {
           }}
         />,
       );
+      expect(getAnyDirtyTabKey()).toBeUndefined();
       await confirmQuantity();
+      const switchOrganization = vi.fn();
+      expect(confirmIfAnyTabDirty(switchOrganization, vi.fn())).toBe(false);
+      expect(switchOrganization).not.toHaveBeenCalled();
+      expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');
       expect(screen.getByLabelText('数量')).toHaveValue('8');
       expect(await screen.findByText(/800\.00/)).toBeInTheDocument();
     },

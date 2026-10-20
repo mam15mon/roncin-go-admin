@@ -75,6 +75,8 @@ vi.mock('@ant-design/pro-components', () => ({
 }));
 
 vi.mock('@/components/ui', async () => ({
+  GuardedModalForm: (await import('@/components/ui/GuardedModalForm'))
+    .GuardedModalForm,
   ResponsiveProTable: (await import('@ant-design/pro-components')).ProTable,
   SearchFilterTemplate: ({ extraRight }: { extraRight: React.ReactNode }) => (
     <div>{extraRight}</div>

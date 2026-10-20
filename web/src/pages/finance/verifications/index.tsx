@@ -11,6 +11,7 @@ import {
 } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
+import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
 import {
   type FinanceLedgerMetricCard,
   FinanceLedgerTemplate,
@@ -43,6 +44,7 @@ type VerificationLedgerFilterParams = {
 
 export default function FinanceVerificationsPage() {
   const access = useAccess();
+  const getModalOwnerSignal = useModalOwnerSignal();
   const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [open, setOpen] = useState(false);
@@ -72,10 +74,10 @@ export default function FinanceVerificationsPage() {
       .join(' / ') || '-';
 
   const reload = () => actionRef.current?.reload();
-  const verificationActions = makeVersionActions<API.FinanceVerification>({
-    modal,
-    message,
-  });
+  const verificationActions = makeVersionActions<API.FinanceVerification>(
+    { modal, message },
+    getModalOwnerSignal,
+  );
   const reverse = (r: API.FinanceVerification) => {
     verificationActions.confirm(
       r,

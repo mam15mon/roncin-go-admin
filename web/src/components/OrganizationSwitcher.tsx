@@ -2,15 +2,25 @@ import { CheckOutlined, DownOutlined, SwapOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { App, Button, Spin } from 'antd';
 import React, { useRef, useState } from 'react';
+import access from '@/access';
 import { useInitialState } from '@/app/AppProvider';
 import HeaderDropdown from '@/components/HeaderDropdown';
-import { clearOrderMasterDataCache } from '@/features/orders/options';
 import { history } from '@/router/history';
+import { resolveOrganizationSwitchDestination } from '@/router/organizationSwitchDestination';
 import { authServiceSwitchOrganization } from '@/services/roncin/authService';
 import { confirmIfAnyTabDirty } from './layout/tabCloseGuard';
 
-export default function OrganizationSwitcher() {
-  const { initialState, setInitialState } = useInitialState();
+export type OrganizationSwitcherProps = {
+  onSwitchWorkspace: (
+    user: API.CurrentUser,
+    destination: string,
+  ) => Promise<void>;
+};
+
+export default function OrganizationSwitcher({
+  onSwitchWorkspace,
+}: OrganizationSwitcherProps) {
+  const { initialState } = useInitialState();
   const { message } = App.useApp();
   const [switchingOrgName, setSwitchingOrgName] = useState<string>();
   const switchInProgressRef = useRef(false);
@@ -34,18 +44,17 @@ export default function OrganizationSwitcher() {
         message.error('组织切换失败，请稍后重试');
         return;
       }
-      // 服务端已按新组织轮转会话凭据；响应 data 即新会话的权限主体，
-      // 与 auth/me 同构。组织身份决定 workspace key；不得把这次更新降为
-      // transition 后又先跳转，否则工作台可能短暂以旧组织身份挂载并发起旧组织请求。
-      clearOrderMasterDataCache();
-      setInitialState((state) => ({
-        ...state,
-        currentUser: response.data,
-      }));
-      history.replace('/welcome');
+      const destination = resolveOrganizationSwitchDestination(
+        history.location,
+        access({ currentUser: response.data }),
+      );
+      await onSwitchWorkspace(response.data, destination.path);
+      if (destination.accessDenied) {
+        message.info('当前组织无权访问该功能，已返回工作台');
+      }
       message.success(`已切换至 ${organizationName}`);
     } catch {
-      // 统一请求错误处理已负责展示失败原因；这里仅保证失败不改变当前工作区。
+      // 接口失败由统一请求层提示，原工作区保持；成功后的导航异常由布局边界处理。
     } finally {
       setSwitchingOrgName(undefined);
       switchInProgressRef.current = false;

@@ -11,6 +11,7 @@ import {
   Typography,
 } from 'antd';
 import React, { useEffect } from 'react';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { PartnerRoleType } from '@/enums.generated';
 import { partnerServiceUpdatePartner } from '@/services/roncin/partnerService';
 import { isWriteResponse } from '@/utils/api';
@@ -43,6 +44,10 @@ export default function RoleSwitchModal({
   onClose,
   onSuccess,
 }: RoleSwitchModalProps) {
+  const { markDirty, resetDirty } = useUnsavedChangesGuard({
+    enabled: open,
+    identity: partner?.id,
+  });
   const { message } = App.useApp();
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = React.useState(false);
@@ -59,6 +64,7 @@ export default function RoleSwitchModal({
   }, [open, partner, form]);
 
   const handleQuickSelect = (type: PartnerRoleType) => {
+    markDirty();
     form.setFieldsValue({ roleTypes: [type] });
   };
 
@@ -94,6 +100,7 @@ export default function RoleSwitchModal({
       );
       if (!isWriteResponse(writeResponse1, true)) return false;
 
+      resetDirty();
       message.success('业务角色转换成功');
       onSuccess();
       onClose();
@@ -158,7 +165,7 @@ export default function RoleSwitchModal({
           </div>
         </div>
 
-        <Form form={form} layout="vertical">
+        <Form form={form} layout="vertical" onValuesChange={markDirty}>
           <Form.Item
             name="roleTypes"
             label="目标业务角色 (可单选转换或多选并存)"

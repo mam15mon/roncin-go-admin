@@ -1,7 +1,6 @@
 import { PlusOutlined } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import {
-  ModalForm,
   ProFormDatePicker,
   ProFormText,
   ProFormTextArea,
@@ -10,8 +9,10 @@ import { App, Col, Row } from 'antd';
 import type { Dayjs } from 'dayjs';
 import React, { useRef } from 'react';
 import { useAccess } from '@/app/access';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import {
   ExchangeRatePreviewCard,
+  GuardedModalForm,
   ProFormSearchableSelect,
   scrollToFirstFormError,
 } from '@/components/ui';
@@ -105,8 +106,13 @@ export default function FeeFormModal({
   const activeFormRef = formRef ?? internalFormRef;
   const { message } = App.useApp();
 
+  const { markDirty, resetDirty } = useUnsavedChangesGuard({
+    enabled: open,
+    identity: editingFee?.id,
+  });
   return (
-    <ModalForm<FeeFormValues>
+    <GuardedModalForm<FeeFormValues>
+      guardIdentity={editingFee?.id}
       title={
         editingFee
           ? `编辑${modalDirection === 1 ? '应收' : '应付'}费用`
@@ -115,7 +121,11 @@ export default function FeeFormModal({
       open={open}
       formRef={activeFormRef}
       onOpenChange={onOpenChange}
-      onFinish={onSubmit}
+      onFinish={async (values) => {
+        const result = await onSubmit(values);
+        if (result === true) resetDirty();
+        return result;
+      }}
       onValuesChange={() => {
         onValuesChange();
         if (activeFormRef.current?.getFieldValue('quantity')) {
@@ -275,7 +285,10 @@ export default function FeeFormModal({
                 billingUnits={billingUnits}
                 active={open}
                 disabled={quantityAssistDisabled || isFeeBilled}
-                onValuesChange={onQuantityChange}
+                onValuesChange={() => {
+                  markDirty();
+                  onQuantityChange();
+                }}
               />
             }
             rules={[
@@ -346,7 +359,10 @@ export default function FeeFormModal({
             ratePreview={exchangeRatePreview}
             onEnableManual={
               access.canOverrideFeeExchangeRate
-                ? () => setManualExchangeRate(true)
+                ? () => {
+                    markDirty();
+                    setManualExchangeRate(true);
+                  }
                 : undefined
             }
           />
@@ -380,6 +396,6 @@ export default function FeeFormModal({
           />
         </Col>
       </Row>
-    </ModalForm>
+    </GuardedModalForm>
   );
 }

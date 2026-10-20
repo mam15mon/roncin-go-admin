@@ -9,6 +9,10 @@ import {
 } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  confirmIfAnyTabDirty,
+  getAnyDirtyTabKey,
+} from '@/components/layout/tabCloseGuard';
+import {
   orderFeeServiceListFees,
   orderFeeServicePreviewFeeQuantity,
 } from '@/services/roncin/orderFeeService';
@@ -51,6 +55,7 @@ function table() {
 
 describe('行内费用数量带入', () => {
   beforeEach(() => {
+    window.history.replaceState({}, '', '/orders/sea-export/order-1/fees');
     vi.mocked(orderFeeServiceListFees).mockResolvedValue({
       data: [
         {
@@ -77,31 +82,62 @@ describe('行内费用数量带入', () => {
     });
   });
 
-  it('真实可编辑数量字段确认后写入数量并即时更新总金额，取消编辑后销毁入口', async () => {
-    renderWithApp(table());
-    await screen.findByText('拼箱费用');
-    fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
-    const fromOrder = await screen.findByRole('button', { name: '从订单带入' });
-    fireEvent.click(fromOrder);
-    await screen.findByText('8 立方米');
-    fireEvent.click(screen.getByRole('button', { name: '确认带入' }));
-    const row = screen.getByText('保存').closest('tr');
-    expect(row).not.toBeNull();
-    expect(
-      within(row as HTMLElement).getByDisplayValue('8'),
-    ).toBeInTheDocument();
-    expect(
-      await within(row as HTMLElement).findByText('800.00 CNY'),
-    ).toBeInTheDocument();
-    await act(async () => {
-      fireEvent.click(within(row as HTMLElement).getByText('取消'));
-    });
-    await waitFor(() =>
+  it.each([1, 2])(
+    '方向%s确认后同步标脏并重算金额，组织切换可取消，取消编辑后清理',
+    async (direction) => {
+      vi.mocked(orderFeeServiceListFees).mockResolvedValue({
+        data: [
+          {
+            id: 'fee-1',
+            direction,
+            quantity: '1',
+            unitPrice: '100',
+            totalAmount: '100',
+            currency: 'CNY',
+            billingUnitId: 'unit',
+            billingUnit: '立方米',
+            feeName: '拼箱费用',
+            version: '1',
+          },
+        ],
+      });
+      renderWithApp(table());
+      await screen.findByText('拼箱费用');
+      fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
+      const fromOrder = await screen.findByRole('button', {
+        name: '从订单带入',
+      });
+      fireEvent.click(fromOrder);
+      await screen.findByText('8 立方米');
+      expect(getAnyDirtyTabKey()).toBeUndefined();
+      fireEvent.click(screen.getByRole('button', { name: '确认带入' }));
+      const switchOrganization = vi.fn();
+      const confirmation = vi.fn();
+      expect(confirmIfAnyTabDirty(switchOrganization, confirmation)).toBe(
+        false,
+      );
+      expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');
+      confirmation.mock.calls[0][0].onCancel?.();
+      expect(switchOrganization).not.toHaveBeenCalled();
+      const row = screen.getByText('保存').closest('tr');
+      expect(row).not.toBeNull();
       expect(
-        screen.queryByRole('button', { name: '从订单带入' }),
-      ).not.toBeInTheDocument(),
-    );
-  });
+        within(row as HTMLElement).getByDisplayValue('8'),
+      ).toBeInTheDocument();
+      expect(
+        await within(row as HTMLElement).findByText('800.00 CNY'),
+      ).toBeInTheDocument();
+      await act(async () => {
+        fireEvent.click(within(row as HTMLElement).getByText('取消'));
+      });
+      await waitFor(() =>
+        expect(
+          screen.queryByRole('button', { name: '从订单带入' }),
+        ).not.toBeInTheDocument(),
+      );
+      expect(getAnyDirtyTabKey()).toBeUndefined();
+    },
+  );
   it('已建账费用即使进入现有编辑态也不能使用数量带入', async () => {
     vi.mocked(orderFeeServiceListFees).mockResolvedValue({
       data: [

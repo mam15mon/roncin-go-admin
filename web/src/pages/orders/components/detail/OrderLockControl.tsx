@@ -1,3 +1,4 @@
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import {
   HistoryOutlined,
   LockOutlined,
@@ -169,6 +170,7 @@ export default function OrderLockControl({
   const [locking, setLocking] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
   const [unlockModalVisible, setUnlockModalVisible] = useState(false);
+  const { markDirty: markUnlockDirty } = useUnsavedChangesGuard({ enabled: unlockModalVisible, identity: orderId });
   const [unlockHistoryVisible, setUnlockHistoryVisible] = useState(false);
   const [unlockRoute, setUnlockRoute] = useState<UnlockRoute>('ROLE_DIRECT');
   const [unlockForm] = Form.useForm<{ reason?: string }>();
@@ -402,7 +404,7 @@ export default function OrderLockControl({
           {unlockRoute === 'DINGTALK_APPROVAL' &&
             '提交后将通过统一订单解锁审批流程，指派给具备对应业务类型锁定权限的角色成员。'}
         </div>
-        <Form form={unlockForm} layout="vertical" onFinish={handleUnlockSubmit}>
+        <Form form={unlockForm} layout="vertical" onFinish={handleUnlockSubmit} onValuesChange={markUnlockDirty}>
           <Form.Item
             name="reason"
             label="解锁原因"

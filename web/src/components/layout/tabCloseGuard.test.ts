@@ -43,6 +43,44 @@ describe('tabCloseGuard', () => {
     expect(isTabDirty('/orders/sea-export')).toBe(false);
   });
 
+  it('同一页签父子表单独立登记，注销其中一个仍保护另一个', () => {
+    const closeParent = registerTabCloseGuard('/partners/customers', {
+      isDirty: () => true,
+    });
+    const closeChild = registerTabCloseGuard('/partners/customers', {
+      isDirty: () => false,
+    });
+    expect(isTabDirty('/partners/customers')).toBe(true);
+    closeChild();
+    expect(isTabDirty('/partners/customers')).toBe(true);
+    closeParent();
+    expect(isTabDirty('/partners/customers')).toBe(false);
+  });
+
+  it('组织切换一次确认覆盖全部页签和同页多个守卫，失败后再次提醒', async () => {
+    registerTabCloseGuard('/first', { isDirty: () => true });
+    registerTabCloseGuard('/first', { isDirty: () => true });
+    registerTabCloseGuard('/second', { isDirty: () => true });
+    let rejectAction: ((reason: Error) => void) | undefined;
+    const modal = vi.fn();
+    confirmIfAnyTabDirty(
+      () =>
+        new Promise<void>((_, reject) => {
+          rejectAction = reject;
+        }),
+      modal,
+    );
+    const action = modal.mock.calls[0][0].onOk();
+    expect(isTabDepartureConfirmed('/first')).toBe(true);
+    expect(isTabDepartureConfirmed('/second')).toBe(true);
+    rejectAction?.(new Error('切换失败'));
+    await expect(action).rejects.toThrow('切换失败');
+    expect(isTabDepartureConfirmed('/first')).toBe(false);
+    expect(isTabDepartureConfirmed('/second')).toBe(false);
+    expect(confirmIfAnyTabDirty(vi.fn(), modal)).toBe(false);
+    expect(modal).toHaveBeenCalledTimes(2);
+  });
+
   it('未挂载但存在草稿的 tab 依然判定为 dirty', () => {
     const tabKey = '/orders/sea-export';
     const draftScope = getFormDraftScope('user-1', 'org-1');
@@ -128,7 +166,9 @@ describe('tabCloseGuard', () => {
       expect(onConfirm).not.toHaveBeenCalled();
       expect(modal).toHaveBeenCalledTimes(1);
       const modalProps = modal.mock.calls[0][0];
-      expect(modalProps.content).toBe('订单尚未保存');
+      expect(modalProps.title).toBe('切换组织');
+      expect(modalProps.content).toContain('订单尚未保存');
+      expect(modalProps.content).toContain('未保存内容不会带入新组织');
 
       modalProps.onCancel();
       expect(onCancel).toHaveBeenCalledTimes(1);

@@ -16,7 +16,6 @@ import type {
   ProFormInstance,
 } from '@ant-design/pro-components';
 import {
-  ModalForm,
   PageContainer,
   ProFormSelect,
   ProFormSwitch,
@@ -37,6 +36,7 @@ import { useLocation } from 'react-router';
 import * as XLSX from 'xlsx';
 import { useAccess } from '@/app/access';
 import {
+  GuardedModalForm,
   ResponsiveProTable as ProTable,
   SearchFilterTemplate,
 } from '@/components/ui';
@@ -650,7 +650,7 @@ function PartnersContent() {
         onSuccess={() => actionRef.current?.reload()}
       />
 
-      <ModalForm<BlacklistFormValues>
+      <GuardedModalForm<BlacklistFormValues>
         title={`角色黑名单管理 - ${blacklistPartner?.legalName ?? ''}`}
         open={blacklistModalOpen}
         formRef={blacklistFormRef}
@@ -715,7 +715,7 @@ function PartnersContent() {
           rules={[{ required: true, message: '请输入黑名单变更原因' }]}
           fieldProps={{ rows: 4, maxLength: 500, showCount: true }}
         />
-      </ModalForm>
+      </GuardedModalForm>
 
       <PartnerSecondary
         partner={secondaryPartner}

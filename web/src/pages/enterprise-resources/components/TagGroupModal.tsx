@@ -1,4 +1,3 @@
-import { AsyncPopconfirm } from '@/components/ui';
 import type { FormInstance } from 'antd';
 import {
   Button,
@@ -11,6 +10,8 @@ import {
   Tag,
 } from 'antd';
 import type { Dispatch, SetStateAction } from 'react';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
+import { AsyncPopconfirm } from '@/components/ui';
 import { enterpriseResourceServiceDeleteEnterpriseTagGroup } from '@/services/roncin/enterpriseResourceService';
 import { isWriteResponse } from '@/utils/api';
 
@@ -36,6 +37,10 @@ export default function TagGroupModal({
   loadTagGroups,
   onSave,
 }: TagGroupModalProps) {
+  const { markDirty } = useUnsavedChangesGuard({
+    enabled: open,
+    identity: editingGroup?.id,
+  });
   return (
     <Modal
       title={editingGroup ? '编辑标签组' : '新建标签组'}
@@ -44,7 +49,12 @@ export default function TagGroupModal({
       onCancel={() => setOpen(false)}
       destroyOnHidden
     >
-      <Form form={groupForm} layout="vertical" initialValues={{ sortOrder: 0 }}>
+      <Form
+        form={groupForm}
+        layout="vertical"
+        initialValues={{ sortOrder: 0 }}
+        onValuesChange={markDirty}
+      >
         <Form.Item name="name" label="组名" rules={[{ required: true }]}>
           <Input maxLength={100} />
         </Form.Item>

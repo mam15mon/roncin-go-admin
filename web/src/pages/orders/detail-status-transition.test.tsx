@@ -43,7 +43,14 @@ vi.mock('@/app/access', () => ({
 // 本文件验证订单资料/动作编排，费用抽屉独立用例覆盖其查询与审核流程。
 vi.mock('./order-fee-panel', () => ({ default: () => null }));
 
-vi.mock('@/router/history', () => ({ history: { push: vi.fn() } }));
+vi.mock('@/router/history', () => ({
+  history: {
+    get location() {
+      return window.location;
+    },
+    push: vi.fn(),
+  },
+}));
 
 vi.mock('./order-kinds/registry', () => ({
   getOrderKindDefinition: () => ({

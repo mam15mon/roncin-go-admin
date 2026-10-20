@@ -1,19 +1,16 @@
-import { AsyncPopconfirm } from '@/components/ui';
 import { PlusOutlined } from '@ant-design/icons';
 import type {
   ActionType,
   ProColumns,
   ProFormInstance,
 } from '@ant-design/pro-components';
-import {
-  ModalForm,
-  ProFormText,
-  ProFormTextArea,
-} from '@ant-design/pro-components';
+import { ProFormText, ProFormTextArea } from '@ant-design/pro-components';
 import { Alert, App, Button, Drawer, Space, Tag } from 'antd';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import {
+  AsyncPopconfirm,
   DRAWER_SIZE,
+  GuardedModalForm,
   MODAL_SIZE,
   ProFormSearchableSelect,
   ResponsiveProTable as ProTable,
@@ -346,7 +343,8 @@ const ShippingDocumentDrawer = forwardRef<
         )}
       </Drawer>
 
-      <ModalForm<ShippingDocumentFormValues>
+      <GuardedModalForm<ShippingDocumentFormValues>
+        guardIdentity={editingShippingDocument?.id}
         title={editingShippingDocument ? '编辑分单 (HBL)' : '添加分单 (HBL)'}
         open={modalOpen && !isUnimplementedTransportMode(transportMode)}
         formRef={formRef}
@@ -431,7 +429,7 @@ const ShippingDocumentDrawer = forwardRef<
           placeholder="请输入备注"
           fieldProps={{ rows: 3, maxLength: 500 }}
         />
-      </ModalForm>
+      </GuardedModalForm>
     </>
   );
 });

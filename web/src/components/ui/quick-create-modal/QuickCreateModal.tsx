@@ -1,5 +1,6 @@
 import { Alert, App, Button, Form, type FormInstance, Modal } from 'antd';
 import React, { type ReactNode, useRef, useState } from 'react';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 
 /** 可选附加底部动作：点击不触发表单校验或提交，可读取当前表单实例。 */
 export interface QuickCreateModalExtraAction<
@@ -58,6 +59,7 @@ export function QuickCreateModal<
   const form = externalForm || internalForm;
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
+  const { markDirty, resetDirty } = useUnsavedChangesGuard({ enabled: open });
 
   const handleSave = async () => {
     if (savingRef.current) return;
@@ -78,6 +80,7 @@ export function QuickCreateModal<
       if (result !== undefined && result !== null) {
         onSuccess?.(result);
         form.resetFields();
+        resetDirty();
       }
     } catch (error) {
       message.error(error instanceof Error ? error.message : '保存失败');
@@ -90,6 +93,7 @@ export function QuickCreateModal<
   const handleCancel = () => {
     if (savingRef.current) return;
     form.resetFields();
+    resetDirty();
     onCancel();
   };
 
@@ -142,6 +146,7 @@ export function QuickCreateModal<
         form={form}
         layout="vertical"
         preserve={false}
+        onValuesChange={markDirty}
         initialValues={initialValues}
       >
         {alertText && (

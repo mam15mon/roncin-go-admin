@@ -1,12 +1,12 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
 import {
-  ModalForm,
   ProFormSelect,
   ProFormSwitch,
   ProFormText,
 } from '@ant-design/pro-components';
 import { App, Typography } from 'antd';
 import React, { useRef } from 'react';
+import { GuardedModalForm } from '@/components/ui';
 import { getCurrencyOptions } from '@/features/master-data/currencies';
 import { adminServiceUpdateOrganization } from '@/services/roncin/adminService';
 import { isWriteResponse } from '@/utils/api';
@@ -31,7 +31,8 @@ export default function OrgEditModal({
   const formRef = useRef<ProFormInstance | undefined>(undefined);
 
   return (
-    <ModalForm<EditFormValues>
+    <GuardedModalForm<EditFormValues>
+      guardIdentity={editingOrg?.id}
       title={`编辑组织：${editingOrg?.name ?? ''}`}
       open={open}
       formRef={formRef}
@@ -109,6 +110,6 @@ export default function OrgEditModal({
           }
         />
       )}
-    </ModalForm>
+    </GuardedModalForm>
   );
 }
