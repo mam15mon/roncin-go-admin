@@ -1,4 +1,11 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import type { FormInstance } from 'antd';
 import { App, Form } from 'antd';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -214,5 +221,86 @@ describe('SeaDocumentSectionComponent', () => {
       expect(content?.grossWeightKg).toBe(12000.5);
       expect(content?.volumeCbm).toBe(32.4);
     });
+  });
+
+  it('委托只读摘要同步源数据，MBL 与 HBL 实际件重尺独立编辑和带入', async () => {
+    let capturedForm!: FormInstance;
+    render(
+      <TestForm
+        initialValues={{
+          seaDocumentStructure:
+            SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE,
+          totalPackages: 0,
+          totalVolumeCbm: '10.500',
+          seaMasterBillContent: { packageCount: 8, grossWeightKg: 12.125 },
+          seaHouseBill: { content: { packageCount: 3, grossWeightKg: 4.5 } },
+        }}
+        exposeForm={(form) => {
+          capturedForm = form;
+        }}
+      />,
+    );
+
+    let panel = within(screen.getByRole('tabpanel'));
+    expect(panel.getByLabelText('委托件数及单位')).toHaveTextContent(/^0$/);
+    expect(panel.getByLabelText('委托毛重（KGS）')).toHaveTextContent(/^-$/);
+    expect(panel.getByLabelText('委托体积（CBM）')).toHaveTextContent(/^10.5$/);
+    fireEvent.change(panel.getByLabelText('实际毛重（KGS）'), {
+      target: { value: '15.125' },
+    });
+    await waitFor(() => {
+      expect(
+        capturedForm.getFieldValue(['seaMasterBillContent', 'grossWeightKg']),
+      ).toBe(15.125);
+    });
+
+    fireEvent.click(screen.getByRole('tab', { name: /分单 \(HBL\)/ }));
+    panel = within(screen.getByRole('tabpanel'));
+    expect(panel.getByLabelText('实际毛重（KGS）')).toHaveValue('4.500');
+    act(() => {
+      capturedForm.setFieldsValue({
+        totalPackages: 20,
+        totalPackageUnit: 'CTNS',
+        totalGrossWeightKg: 33.25,
+        totalVolumeCbm: 6.5,
+      });
+    });
+    await waitFor(() => {
+      expect(panel.getByLabelText('委托件数及单位')).toHaveTextContent(
+        /^20 CTNS$/,
+      );
+      expect(panel.getByLabelText('委托毛重（KGS）')).toHaveTextContent(
+        /^33.25$/,
+      );
+      expect(panel.getByLabelText('委托体积（CBM）')).toHaveTextContent(
+        /^6.5$/,
+      );
+    });
+    expect(
+      capturedForm.getFieldValue(['seaHouseBill', 'content', 'grossWeightKg']),
+    ).toBe(4.5);
+    fireEvent.click(panel.getByRole('button', { name: /带入委托件重尺/ }));
+    await waitFor(() => {
+      expect(
+        capturedForm.getFieldValue(['seaHouseBill', 'content']),
+      ).toMatchObject({
+        packageCount: 20,
+        packageUnit: 'CTNS',
+        grossWeightKg: 33.25,
+        volumeCbm: 6.5,
+      });
+    });
+    expect(
+      capturedForm.getFieldValue(['seaMasterBillContent', 'packageCount']),
+    ).toBe(8);
+    expect(
+      capturedForm.getFieldValue(['seaMasterBillContent', 'grossWeightKg']),
+    ).toBe(15.125);
+    fireEvent.click(screen.getByRole('tab', { name: /主单 \(MBL\)/ }));
+    panel = within(screen.getByRole('tabpanel'));
+    expect(panel.getByLabelText('委托件数及单位')).toHaveTextContent(
+      /^20 CTNS$/,
+    );
+    expect(panel.getByLabelText('实际毛重（KGS）')).toHaveValue('15.125');
   });
 });

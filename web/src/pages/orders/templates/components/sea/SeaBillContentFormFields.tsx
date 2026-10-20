@@ -61,6 +61,7 @@ const useVerticalFormStyles = createStyles(({ css }) => ({
 }));
 
 import { partnerServiceGetPartner } from '@/services/roncin/partnerService';
+import { trimDecimal } from '@/utils/format';
 
 import {
   DEFAULT_BILL_FORM,
@@ -115,7 +116,7 @@ export function SeaBillContentFormFields({
 }: {
   namePathPrefix: (string | number)[];
   disabled?: boolean;
-  /** false 时隐藏委托侧对照列，仅展示实际件重尺录入。 */
+  /** false 时以三列表单展示实际件重尺，不展示委托对照表。 */
   showCargoMeasurements?: boolean;
   /** showCargoMeasurements=false 时的区块标题（默认 HBL 实际件重尺）。 */
   measurementsTitle?: string;
@@ -140,10 +141,22 @@ export function SeaBillContentFormFields({
 
   // 件重尺对照差值：委托侧为订单级汇总字段，实际侧在提单内容前缀下；
   // 汇总行实时计算「实际 - 委托」差额，仅展示异常项，全部一致时收敛为一条绿色提示。
-  const consignedPackages = Form.useWatch('totalPackages', form);
-  const consignedPackageUnit = Form.useWatch('totalPackageUnit', form);
-  const consignedGrossWeightKg = Form.useWatch('totalGrossWeightKg', form);
-  const consignedVolumeCbm = Form.useWatch('totalVolumeCbm', form);
+  const consignedPackages = Form.useWatch('totalPackages', {
+    form,
+    preserve: true,
+  });
+  const consignedPackageUnit = Form.useWatch('totalPackageUnit', {
+    form,
+    preserve: true,
+  });
+  const consignedGrossWeightKg = Form.useWatch('totalGrossWeightKg', {
+    form,
+    preserve: true,
+  });
+  const consignedVolumeCbm = Form.useWatch('totalVolumeCbm', {
+    form,
+    preserve: true,
+  });
   const actualPackages = Form.useWatch(
     [...namePathPrefix, 'packageCount'],
     form,
@@ -185,9 +198,7 @@ export function SeaBillContentFormFields({
   const hasComparableMeasurement = measurementCompares.some(
     (item) => item.status !== 'incomplete',
   );
-  const comparisonGridColumns = showCargoMeasurements
-    ? '96px 1fr 1fr'
-    : '96px 1fr';
+  const comparisonGridColumns = '96px 1fr 1fr';
   const comparisonHeadCellStyle = {
     padding: '6px 12px',
     fontSize: 12,
@@ -694,15 +705,6 @@ export function SeaBillContentFormFields({
             className="roncin-sea-bill-heading-label"
             style={{ display: 'flex', alignItems: 'center' }}
           >
-            <div
-              style={{
-                width: 3,
-                height: 14,
-                backgroundColor: '#1677ff',
-                borderRadius: 2,
-                marginRight: 8,
-              }}
-            />
             <span style={{ fontSize: 13, fontWeight: 600, color: '#1f2329' }}>
               实际与提单货物描述 (Actual B/L Marks & Cargo)
             </span>
@@ -832,8 +834,7 @@ export function SeaBillContentFormFields({
         </FormRow>
       </div>
 
-      {/* 委托 vs 实际件重尺对照：标题行右侧放「带入委托件重尺」操作；
-          对照数据以轻量表格呈现，左列客户委托、右列订舱/实际，底部汇总行自动比对差额 */}
+      {/* 件重尺标题右侧保留带入动作；实际数据单独录入时使用普通表单分组。 */}
       <div
         className="roncin-sea-bill-heading"
         style={{
@@ -849,15 +850,6 @@ export function SeaBillContentFormFields({
           className="roncin-sea-bill-heading-label"
           style={{ display: 'flex', alignItems: 'center' }}
         >
-          <div
-            style={{
-              width: 3,
-              height: 14,
-              backgroundColor: '#1677ff',
-              borderRadius: 2,
-              marginRight: 8,
-            }}
-          />
           <span style={{ fontSize: 13, fontWeight: 600, color: '#1f2329' }}>
             {showCargoMeasurements
               ? '委托 vs 实际件重尺对照'
@@ -884,56 +876,66 @@ export function SeaBillContentFormFields({
         )}
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
-        {/* 件重尺对照表格：指标行头 + 左列客户委托 + 右列订舱/实际；
-            字段名与既有契约一致（委托侧订单级、实际侧提单内容前缀下），
-            HBL 专属模式（showCargoMeasurements=false）隐藏委托列与汇总行 */}
-        <div
-          style={{
-            border: '1px solid #f0f0f0',
-            borderRadius: 4,
-            overflow: 'hidden',
-          }}
-        >
+        {showCargoMeasurements ? (
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: comparisonGridColumns,
-              background: '#fafafa',
+              border: '1px solid #f0f0f0',
+              borderRadius: 4,
+              overflow: 'hidden',
             }}
           >
-            <div style={comparisonHeadCellStyle}>指标</div>
-            {showCargoMeasurements && (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: comparisonGridColumns,
+                background: '#fafafa',
+              }}
+            >
+              <div style={comparisonHeadCellStyle}>指标</div>
+              {showCargoMeasurements && (
+                <div
+                  style={{
+                    ...comparisonHeadCellStyle,
+                    borderLeft: '1px solid #f0f0f0',
+                  }}
+                >
+                  客户委托
+                </div>
+              )}
               <div
                 style={{
                   ...comparisonHeadCellStyle,
                   borderLeft: '1px solid #f0f0f0',
                 }}
               >
-                客户委托
+                订舱/实际
               </div>
-            )}
+            </div>
             <div
               style={{
-                ...comparisonHeadCellStyle,
-                borderLeft: '1px solid #f0f0f0',
+                display: 'grid',
+                gridTemplateColumns: comparisonGridColumns,
+                borderTop: '1px solid #f0f0f0',
               }}
             >
-              订舱/实际
-            </div>
-          </div>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: comparisonGridColumns,
-              borderTop: '1px solid #f0f0f0',
-            }}
-          >
-            <div style={comparisonLabelCellStyle}>件数</div>
-            {showCargoMeasurements && (
+              <div style={comparisonLabelCellStyle}>件数</div>
+              {showCargoMeasurements && (
+                <div style={comparisonValueCellStyle}>
+                  <PackageCountInput
+                    countName="totalPackages"
+                    unitName="totalPackageUnit"
+                    countPlaceholder="0"
+                    unitPlaceholder="请选择单位"
+                    unitWidth={104}
+                    style={{ width: '100%' }}
+                    disabled={disabled}
+                  />
+                </div>
+              )}
               <div style={comparisonValueCellStyle}>
                 <PackageCountInput
-                  countName="totalPackages"
-                  unitName="totalPackageUnit"
+                  countName={[...namePathPrefix, 'packageCount']}
+                  unitName={[...namePathPrefix, 'packageUnit']}
                   countPlaceholder="0"
                   unitPlaceholder="请选择单位"
                   unitWidth={104}
@@ -941,120 +943,189 @@ export function SeaBillContentFormFields({
                   disabled={disabled}
                 />
               </div>
-            )}
-            <div style={comparisonValueCellStyle}>
-              <PackageCountInput
-                countName={[...namePathPrefix, 'packageCount']}
-                unitName={[...namePathPrefix, 'packageUnit']}
-                countPlaceholder="0"
-                unitPlaceholder="请选择单位"
-                unitWidth={104}
-                style={{ width: '100%' }}
-                disabled={disabled}
-              />
             </div>
-          </div>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: comparisonGridColumns,
-              borderTop: '1px solid #f0f0f0',
-            }}
-          >
-            <div style={comparisonLabelCellStyle}>毛重（KGS）</div>
-            {showCargoMeasurements && (
-              <div style={comparisonValueCellStyle}>
-                <ProFormDigit
-                  name="totalGrossWeightKg"
-                  placeholder="0"
-                  disabled={disabled}
-                  min={0}
-                  noStyle
-                  fieldProps={{ precision: 3, style: { width: '100%' } }}
-                />
-              </div>
-            )}
-            <div style={comparisonValueCellStyle}>
-              <ProFormDigit
-                name={[...namePathPrefix, 'grossWeightKg']}
-                placeholder="0"
-                disabled={disabled}
-                min={0}
-                noStyle
-                fieldProps={{ precision: 3, style: { width: '100%' } }}
-              />
-            </div>
-          </div>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: comparisonGridColumns,
-              borderTop: '1px solid #f0f0f0',
-            }}
-          >
-            <div style={comparisonLabelCellStyle}>体积（CBM）</div>
-            {showCargoMeasurements && (
-              <div style={comparisonValueCellStyle}>
-                <ProFormDigit
-                  name="totalVolumeCbm"
-                  placeholder="0"
-                  disabled={disabled}
-                  min={0}
-                  noStyle
-                  fieldProps={{ precision: 3, style: { width: '100%' } }}
-                />
-              </div>
-            )}
-            <div style={comparisonValueCellStyle}>
-              <ProFormDigit
-                name={[...namePathPrefix, 'volumeCbm']}
-                placeholder="0"
-                disabled={disabled}
-                min={0}
-                noStyle
-                fieldProps={{ precision: 3, style: { width: '100%' } }}
-              />
-            </div>
-          </div>
-          {showCargoMeasurements && (
             <div
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                gap: 12,
-                padding: '6px 12px',
-                background: '#fafafa',
+                display: 'grid',
+                gridTemplateColumns: comparisonGridColumns,
                 borderTop: '1px solid #f0f0f0',
-                fontSize: 12,
               }}
             >
-              <span style={{ fontWeight: 600, color: 'rgba(0, 0, 0, 0.65)' }}>
-                汇总
-              </span>
-              {flaggedMeasurements.length > 0 ? (
-                flaggedMeasurements.map((item) => (
-                  <span
-                    key={item.label}
-                    style={{ color: '#fa8c16', fontWeight: 500 }}
-                  >
-                    {item.status === 'unitMismatch'
-                      ? `${item.label}：委托与实际单位不一致`
-                      : `${item.label}：实际${formatMeasurementDiff(item.diff)}${item.unit ? ` ${item.unit}` : ''}`}
-                  </span>
-                ))
-              ) : hasComparableMeasurement ? (
-                <span style={{ color: '#52c41a', fontWeight: 500 }}>
-                  ✓ 委托与实际件重尺一致
-                </span>
-              ) : (
-                <span style={{ color: 'rgba(0, 0, 0, 0.45)' }}>
-                  录入委托与实际件重尺后自动比对差额
-                </span>
+              <div style={comparisonLabelCellStyle}>毛重（KGS）</div>
+              {showCargoMeasurements && (
+                <div style={comparisonValueCellStyle}>
+                  <ProFormDigit
+                    name="totalGrossWeightKg"
+                    placeholder="0"
+                    disabled={disabled}
+                    min={0}
+                    noStyle
+                    fieldProps={{ precision: 3, style: { width: '100%' } }}
+                  />
+                </div>
               )}
+              <div style={comparisonValueCellStyle}>
+                <ProFormDigit
+                  name={[...namePathPrefix, 'grossWeightKg']}
+                  placeholder="0"
+                  disabled={disabled}
+                  min={0}
+                  noStyle
+                  fieldProps={{ precision: 3, style: { width: '100%' } }}
+                />
+              </div>
             </div>
-          )}
-        </div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: comparisonGridColumns,
+                borderTop: '1px solid #f0f0f0',
+              }}
+            >
+              <div style={comparisonLabelCellStyle}>体积（CBM）</div>
+              {showCargoMeasurements && (
+                <div style={comparisonValueCellStyle}>
+                  <ProFormDigit
+                    name="totalVolumeCbm"
+                    placeholder="0"
+                    disabled={disabled}
+                    min={0}
+                    noStyle
+                    fieldProps={{ precision: 3, style: { width: '100%' } }}
+                  />
+                </div>
+              )}
+              <div style={comparisonValueCellStyle}>
+                <ProFormDigit
+                  name={[...namePathPrefix, 'volumeCbm']}
+                  placeholder="0"
+                  disabled={disabled}
+                  min={0}
+                  noStyle
+                  fieldProps={{ precision: 3, style: { width: '100%' } }}
+                />
+              </div>
+            </div>
+            {showCargoMeasurements && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 12,
+                  padding: '6px 12px',
+                  background: '#fafafa',
+                  borderTop: '1px solid #f0f0f0',
+                  fontSize: 12,
+                }}
+              >
+                <span style={{ fontWeight: 600, color: 'rgba(0, 0, 0, 0.65)' }}>
+                  汇总
+                </span>
+                {flaggedMeasurements.length > 0 ? (
+                  flaggedMeasurements.map((item) => (
+                    <span
+                      key={item.label}
+                      style={{ color: '#fa8c16', fontWeight: 500 }}
+                    >
+                      {item.status === 'unitMismatch'
+                        ? `${item.label}：委托与实际单位不一致`
+                        : `${item.label}：实际${formatMeasurementDiff(item.diff)}${item.unit ? ` ${item.unit}` : ''}`}
+                    </span>
+                  ))
+                ) : hasComparableMeasurement ? (
+                  <span style={{ color: '#52c41a', fontWeight: 500 }}>
+                    ✓ 委托与实际件重尺一致
+                  </span>
+                ) : (
+                  <span style={{ color: 'rgba(0, 0, 0, 0.45)' }}>
+                    录入委托与实际件重尺后自动比对差额
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        ) : (
+          <FormRow cols={3} className={styles.verticalFields}>
+            <div>
+              <div style={{ marginBottom: 12 }}>
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: 'rgba(0, 0, 0, 0.45)',
+                    marginBottom: 4,
+                  }}
+                >
+                  委托件数及单位
+                </div>
+                <output aria-label="委托件数及单位" style={{ fontSize: 13 }}>
+                  {trimDecimal(consignedPackages)}
+                  {consignedPackageUnit ? ` ${consignedPackageUnit}` : ''}
+                </output>
+              </div>
+              <Form.Item label="实际件数及单位" style={{ marginBottom: 0 }}>
+                <PackageCountInput
+                  countName={[...namePathPrefix, 'packageCount']}
+                  unitName={[...namePathPrefix, 'packageUnit']}
+                  countPlaceholder="0"
+                  unitPlaceholder="请选择单位"
+                  unitWidth={104}
+                  disabled={disabled}
+                />
+              </Form.Item>
+            </div>
+            <div>
+              <div style={{ marginBottom: 12 }}>
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: 'rgba(0, 0, 0, 0.45)',
+                    marginBottom: 4,
+                  }}
+                >
+                  委托毛重（KGS）
+                </div>
+                <output aria-label="委托毛重（KGS）" style={{ fontSize: 13 }}>
+                  {trimDecimal(consignedGrossWeightKg)}
+                </output>
+              </div>
+              <ProFormDigit
+                name={[...namePathPrefix, 'grossWeightKg']}
+                label="实际毛重（KGS）"
+                placeholder="0"
+                disabled={disabled}
+                min={0}
+                formItemProps={{ style: { marginBottom: 0 } }}
+                fieldProps={{ precision: 3, style: { width: '100%' } }}
+              />
+            </div>
+            <div>
+              <div style={{ marginBottom: 12 }}>
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: 'rgba(0, 0, 0, 0.45)',
+                    marginBottom: 4,
+                  }}
+                >
+                  委托体积（CBM）
+                </div>
+                <output aria-label="委托体积（CBM）" style={{ fontSize: 13 }}>
+                  {trimDecimal(consignedVolumeCbm)}
+                </output>
+              </div>
+              <ProFormDigit
+                name={[...namePathPrefix, 'volumeCbm']}
+                label="实际体积（CBM）"
+                placeholder="0"
+                disabled={disabled}
+                min={0}
+                formItemProps={{ style: { marginBottom: 0 } }}
+                fieldProps={{ precision: 3, style: { width: '100%' } }}
+              />
+            </div>
+          </FormRow>
+        )}
         <FormRow cols={4}>
           <div
             style={{

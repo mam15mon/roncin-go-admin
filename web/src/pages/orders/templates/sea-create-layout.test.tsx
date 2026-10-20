@@ -156,7 +156,7 @@ describe('SE 新建与详情五卡片合同', () => {
     expect(bookingSection).toHaveTextContent('提单模式');
   });
 
-  it('委托件重尺只出现在货物与商业卡，提单页签只保留实际侧', () => {
+  it('委托件重尺仅在货物与商业卡编辑，提单页签提供只读对照与实际录入', () => {
     let _form!: FormInstance;
     const { container } = render(
       <SectionCards
@@ -179,7 +179,7 @@ describe('SE 新建与详情五卡片合同', () => {
     expect(cargoSection).toHaveTextContent('委托件数');
     expect(cargoSection).toHaveTextContent('委托毛重');
     expect(cargoSection).toHaveTextContent('委托体积');
-    // 提单卡 MBL 页签展示实际件重尺标题，不再出现委托对照列。
+    // 提单卡保留实际件重尺标题；委托摘要不重复注册编辑字段。
     expect(screen.getByText('MBL 实际件重尺')).toBeVisible();
     expect(screen.queryByText('委托 vs 实际件重尺对照')).toBeNull();
     expect(screen.queryByText('关联放货记录')).toBeNull();

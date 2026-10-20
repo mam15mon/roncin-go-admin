@@ -312,6 +312,22 @@ if (
 - 切到 DIRECT 后分单字段不参与必填校验，提交不携带 HBL；切回 HOUSE 后恢复分单表单与校验。详情模式切换仍遵循原有权限、预览与执行流程。
 - 回归验证覆盖初始 DIRECT、HOUSE → DIRECT → HOUSE、分节导航同步及提交数据；保留三个签发主体合法值，不因文案调整擅自设置默认签发方。
 
+## 海运提单正文与件重尺对比
+
+- `SeaDocumentSection` 的 MBL/HBL 正文使用普通容器，保留最外层分节卡片与输入框，
+  不再嵌套带边框、阴影的正文 Card；内部小节用加粗标题与留白区分。
+- `SeaBillContentFormFields(showCargoMeasurements=false)` 用 `FormRow cols={3}`
+  并排展示件数及单位、毛重（KGS）、体积（CBM）。每个指标组上方显示只读委托值，
+  下方编辑当前提单实际值；窄屏单列后同指标仍相邻，不增加表格横竖线。
+- 委托编辑字段只在「货物与商业」注册一次；摘要读取订单级 `totalPackages`、
+  `totalPackageUnit`、`totalGrossWeightKg`、`totalVolumeCbm`，使用支持未注册值的
+  `Form.useWatch(name, { form, preserve: true })`。数量经 `trimDecimal` 展示，
+  空值为 `-`，零保留为 `0`，未填写单位时不补默认单位。
+- 实际值沿用 `seaMasterBillContent` / `seaHouseBill.content` 独立路径；委托源变更
+  只更新摘要，点击「带入委托件重尺」才复制到当前提单，不能自动覆盖已录实际值。
+- 回归验证覆盖摘要随源变化、零值/空值、带入只影响当前提单、页签及 HOUSE/DIRECT
+  切换保留实际值、只读状态，以及桌面三列和窄屏同指标就近对照。
+
 ## 海运出口订单三维状态卡
 
 ### 1. Scope / Trigger

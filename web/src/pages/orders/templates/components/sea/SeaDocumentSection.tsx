@@ -533,15 +533,7 @@ export function SeaDocumentSectionComponent({
       </span>
     ),
     children: (
-      <Card
-        size="small"
-        variant="outlined"
-        style={{
-          background: '#ffffff',
-          borderRadius: 6,
-          borderColor: '#f0f0f0',
-        }}
-      >
+      <div>
         {isDetail && mblDetail ? (
           <Row gutter={[16, 8]} style={{ marginBottom: 16 }}>
             <Col xs={24} md={8}>
@@ -603,7 +595,7 @@ export function SeaDocumentSectionComponent({
             </Button>
           </div>
         ) : null}
-      </Card>
+      </div>
     ),
   };
 
@@ -618,15 +610,7 @@ export function SeaDocumentSectionComponent({
       </span>
     ),
     children: (
-      <Card
-        size="small"
-        variant="outlined"
-        style={{
-          background: '#ffffff',
-          borderRadius: 6,
-          borderColor: '#f0f0f0',
-        }}
-      >
+      <div>
         {isDetail && houseBill ? (
           <Row
             justify="space-between"
@@ -708,7 +692,7 @@ export function SeaDocumentSectionComponent({
             </Button>
           </div>
         ) : null}
-      </Card>
+      </div>
     ),
   };
 
