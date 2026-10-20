@@ -27,7 +27,6 @@ const (
 	DocumentTypeWriteOff          DocumentType = "write_off"
 	DocumentTypeReceiptPayment    DocumentType = "receipt_payment"
 	DocumentTypeContract          DocumentType = "contract"
-	DocumentTypeHouseBill         DocumentType = "house_bill"
 	DocumentTypeInvoice           DocumentType = "invoice"
 	DocumentTypeCommission        DocumentType = "commission"
 	DocumentTypeNetting           DocumentType = "netting"
@@ -36,7 +35,7 @@ const (
 func (value DocumentType) Valid() bool {
 	switch value {
 	case DocumentTypeOrder, DocumentTypeBill, DocumentTypeBillBatch, DocumentTypeWriteOff,
-		DocumentTypeReceiptPayment, DocumentTypeContract, DocumentTypeHouseBill,
+		DocumentTypeReceiptPayment, DocumentTypeContract,
 		DocumentTypeInvoice, DocumentTypeCommission, DocumentTypeNetting:
 		return true
 	default:
@@ -111,7 +110,6 @@ func DefaultNumberRules() []NumberRule {
 		{DocumentType: DocumentTypeWriteOff, Prefix: "WO", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
 		{DocumentType: DocumentTypeReceiptPayment, Prefix: "PR", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
 		{DocumentType: DocumentTypeContract, Prefix: "CT", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
-		{DocumentType: DocumentTypeHouseBill, DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: false},
 		{DocumentType: DocumentTypeInvoice, DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: false},
 		{DocumentType: DocumentTypeCommission, Prefix: "CM", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
 		{DocumentType: DocumentTypeNetting, Prefix: "NT", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},

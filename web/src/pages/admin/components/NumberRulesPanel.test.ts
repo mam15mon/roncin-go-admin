@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { DOC_TYPES, filterVisibleNumberRules } from './NumberRulesPanel';
 
 describe('单据编号规则体系', () => {
-  it('仅展示当前支持的 10 类业务单据编号规则', () => {
-    expect(DOC_TYPES).toHaveLength(10);
+  it('仅展示当前支持的 9 类业务单据编号规则', () => {
+    expect(DOC_TYPES).toHaveLength(9);
     const keys = DOC_TYPES.map((item) => item.key);
     expect(keys).toContain('DOCUMENT_TYPE_ORDER');
     expect(keys).toContain('DOCUMENT_TYPE_BILL');
@@ -13,7 +13,6 @@ describe('单据编号规则体系', () => {
     expect(keys).toContain('DOCUMENT_TYPE_WRITE_OFF');
     expect(keys).toContain('DOCUMENT_TYPE_COMMISSION');
     expect(keys).toContain('DOCUMENT_TYPE_NETTING');
-    expect(keys).toContain('DOCUMENT_TYPE_HOUSE_BILL');
     expect(keys).toContain('DOCUMENT_TYPE_CONTRACT');
   });
 
@@ -34,7 +33,6 @@ describe('单据编号规则体系', () => {
       'order',
       'bill',
       'batch',
-      'house',
     ]);
   });
 
@@ -44,6 +42,5 @@ describe('单据编号规则体系', () => {
     );
 
     expect(prefixes.DOCUMENT_TYPE_INVOICE).toBe('');
-    expect(prefixes.DOCUMENT_TYPE_HOUSE_BILL).toBe('');
   });
 });

@@ -640,8 +640,6 @@ func documentTypeFromAPI(value v1.DocumentType) biz.DocumentType {
 		return biz.DocumentTypeReceiptPayment
 	case v1.DocumentType_DOCUMENT_TYPE_CONTRACT:
 		return biz.DocumentTypeContract
-	case v1.DocumentType_DOCUMENT_TYPE_HOUSE_BILL:
-		return biz.DocumentTypeHouseBill
 	case v1.DocumentType_DOCUMENT_TYPE_INVOICE:
 		return biz.DocumentTypeInvoice
 	case v1.DocumentType_DOCUMENT_TYPE_COMMISSION:
@@ -667,8 +665,6 @@ func documentTypeToAPI(value biz.DocumentType) v1.DocumentType {
 		return v1.DocumentType_DOCUMENT_TYPE_RECEIPT_PAYMENT
 	case biz.DocumentTypeContract:
 		return v1.DocumentType_DOCUMENT_TYPE_CONTRACT
-	case biz.DocumentTypeHouseBill:
-		return v1.DocumentType_DOCUMENT_TYPE_HOUSE_BILL
 	case biz.DocumentTypeInvoice:
 		return v1.DocumentType_DOCUMENT_TYPE_INVOICE
 	case biz.DocumentTypeCommission:

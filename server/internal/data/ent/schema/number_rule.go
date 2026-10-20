@@ -17,7 +17,7 @@ func (NumberRule) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("organization_id", uuid.Nil),
 		// coload_house_bill 仅用于读取迁移后保留的历史配置，不再向领域层和 API 暴露。
-		field.Enum("document_type").Values("order", "bill", "bill_batch", "write_off", "receipt_payment", "contract", "house_bill", "coload_house_bill", "invoice", "commission", "netting"),
+		field.Enum("document_type").Values("order", "bill", "bill_batch", "write_off", "receipt_payment", "contract", "coload_house_bill", "invoice", "commission", "netting"),
 		field.String("prefix").MaxLen(32),
 		field.Enum("date_format").Values("yyyyMMdd", "yyyyMM", "yyyy", "none").Default("yyyyMMdd"),
 		field.Int("sequence_length").Default(4).Min(1).Max(12),

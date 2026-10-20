@@ -78,14 +78,6 @@ export const DOC_TYPES: DocTypeMeta[] = [
     defaultPrefix: 'NT',
   },
   {
-    key: 'DOCUMENT_TYPE_HOUSE_BILL',
-    numValue: 9,
-    label: '分提单号 (HBL)',
-    shortLabel: '分单',
-    color: 'volcano',
-    defaultPrefix: '',
-  },
-  {
     key: 'DOCUMENT_TYPE_CONTRACT',
     numValue: 6,
     label: '合同协议编号',
