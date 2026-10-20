@@ -19,6 +19,7 @@ func TestFeeQuantityPreviewRules(t *testing.T) {
 		{name: "毛重", code: "KG", source: "ACTUAL", weight: "2500", volume: "8", cargo: 1, want: "2500"},
 		{name: "吨", code: "TON", source: "ACTUAL", weight: "2500", volume: "8", cargo: 1, want: "2.5"},
 		{name: "RT体积大", code: "RT", source: "ACTUAL", weight: "2500", volume: "8", cargo: 1, want: "8"},
+		{name: "AC4c_8000KG与25CBM得到25RT", code: "RT", source: "ACTUAL", weight: "8000", volume: "25", cargo: 1, want: "25"},
 		{name: "RT重量大", code: "RT", source: "ACTUAL", weight: "9500", volume: "8", cargo: 1, want: "9.5"},
 		{name: "计划3箱", code: "40HQ", source: "PLANNED", containers: 3, container: true, matched: true, want: "3"},
 		{name: "实际2箱", code: "40HQ", source: "ACTUAL", containers: 2, container: true, matched: true, want: "2"},
