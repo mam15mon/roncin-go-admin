@@ -53,3 +53,7 @@
 合并后 pnpm run check:web PASS：288 个文件、1606 个用例通过，原有海运模板 1 文件、12 用例仍跳过；类型、架构与 Biome 门禁通过。go build ./cmd/server 通过（产物位于仓库外）。
 
 所有五个一次性验收数据库已删除，查询确认无本任务测试库残留；开发库只执行正常增量迁移，没有数据重置。
+
+## 交付状态
+
+任务已归档，会话已记录。完成主分支集成后 fast-forward 合并 main，并成功推送 origin/main；本次 codex/billing-unit-quantity-assist 工作分支已删除。其他既有分支与工作区保留。

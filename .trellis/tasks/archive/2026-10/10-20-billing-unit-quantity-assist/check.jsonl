@@ -3,5 +3,5 @@
 {"file": ".trellis/spec/server/backend/order-fee-review.md", "reason": "费用冻结与审核边界"}
 {"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "正式迁移、组织隔离与数据访问边界"}
 {"file": ".trellis/spec/web/frontend/state-management.md", "reason": "预览请求状态与异步结果隔离"}
-{"file": ".trellis/tasks/10-20-billing-unit-quantity-assist/research/current-state.md", "reason": "当前事实及代码定位"}
+{"file": ".trellis/tasks/archive/2026-10/10-20-billing-unit-quantity-assist/research/current-state.md", "reason": "当前事实及代码定位"}
 {"file": ".trellis/spec/server/backend/order-fee-quantity-preview.md", "reason": "本任务数量来源、十进制预览与用户确认的跨层契约"}

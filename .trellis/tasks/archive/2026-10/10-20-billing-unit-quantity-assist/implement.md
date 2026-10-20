@@ -26,7 +26,7 @@
 - [x] 独立后端/前端 review 与发现问题修复，定向测试和类型检查。
 - [x] 开发库正式迁移，7 项补到 38 项，既有设置保留。
 - [x] 完整 check:fast 与独立 PostgreSQL 验收完成，最终记录已整理，按 finish-work 归档。
-- [ ] 已获授权并完成主分支集成检查，待 finish 后合并 main、删除本次工作分支并推送。
+- [x] 已合并 main、删除 codex/billing-unit-quantity-assist 并成功推送 origin/main；当前工作区位于 main。
 
 ## 验证
 
