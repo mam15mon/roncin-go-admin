@@ -1,4 +1,3 @@
-import { AsyncPopconfirm } from '@/components/ui';
 import {
   DeleteOutlined,
   EditOutlined,
@@ -11,10 +10,14 @@ import type {
   ProColumns,
   ProFormInstance,
 } from '@ant-design/pro-components';
+import { useQuery } from '@tanstack/react-query';
 import { App, Button, Space, Tag, Tooltip } from 'antd';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
+import { createPermissionCapabilityChecker } from '@/access';
+import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import {
+  AsyncPopconfirm,
   ResponsiveProTable as ProTable,
   SearchFilterTemplate,
 } from '@/components/ui';
@@ -24,7 +27,12 @@ import {
   adminServiceListPermissions,
   adminServiceListRoles,
 } from '@/services/roncin/adminService';
-import { isWriteResponse, toTableRequest, unwrapList } from '@/utils/api';
+import {
+  ensureListResponse,
+  isWriteResponse,
+  toTableRequest,
+  unwrapList,
+} from '@/utils/api';
 import {
   buildPermissionTree,
   filterPermissionTree,
@@ -39,12 +47,13 @@ type RoleSearchParams = {
 
 export default function RolesPanel() {
   const access = useAccess();
+  const { initialState } = useInitialState();
+  const currentUser = initialState?.currentUser;
   const { message } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const formRef = useRef<ProFormInstance | undefined>(undefined);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<API.AdminRole>();
-  const [permissions, setPermissions] = useState<API.AdminPermission[]>([]);
 
   // Permission tree state inside modal
   const [selectedPermissionKeys, setSelectedPermissionKeys] = useState<
@@ -57,13 +66,26 @@ export default function RolesPanel() {
     access.canReadPermissions && access.canReadOrganizations;
   const [searchParams, setSearchParams] = useState<RoleSearchParams>({});
 
-  // Load all permissions
-  useEffect(() => {
-    if (!access.canReadPermissions) return;
-    adminServiceListPermissions()
-      .then((response) => setPermissions(unwrapList(response)))
-      .catch(() => message.error('加载权限字典失败'));
-  }, [access.canReadPermissions, message]);
+  const permissionQuery = useQuery({
+    queryKey: ['admin', 'permissions'],
+    queryFn: async () => {
+      const response = await adminServiceListPermissions();
+      return unwrapList(ensureListResponse(response, '加载权限字典失败'));
+    },
+    enabled: access.canReadPermissions,
+    meta: { errorMessage: '加载权限字典失败' },
+  });
+  const reloadPermissions = () => {
+    if (access.canReadPermissions) void permissionQuery.refetch();
+  };
+
+  // 字典保留完整事实；角色候选只取当前工作台 auth/me 的有效能力。
+  const permissions = useMemo(() => {
+    const has = createPermissionCapabilityChecker(currentUser);
+    return (permissionQuery.data ?? []).filter(
+      (permission) => permission.key && has(permission.key),
+    );
+  }, [currentUser, permissionQuery.data]);
 
   const permissionTree = useMemo(
     () => buildPermissionTree(permissions),
@@ -78,7 +100,11 @@ export default function RolesPanel() {
   const openCreate = () => {
     setEditing(undefined);
     // 默认勾选基础权限，避免漏勾后该角色用户登录无任何可进页面。
-    setSelectedPermissionKeys([ROLE_BASE_PERMISSION_KEY]);
+    setSelectedPermissionKeys(
+      permissionTree.allLeafKeys.includes(ROLE_BASE_PERMISSION_KEY)
+        ? [ROLE_BASE_PERMISSION_KEY]
+        : [],
+    );
     setPermissionKeyword('');
     setExpandedKeys(permissionTree.initialExpandedKeys);
     setAutoExpandParent(false);
@@ -285,7 +311,10 @@ export default function RolesPanel() {
             <Button
               key="refresh"
               icon={<ReloadOutlined />}
-              onClick={() => actionRef.current?.reload()}
+              onClick={() => {
+                actionRef.current?.reload();
+                reloadPermissions();
+              }}
             >
               刷新
             </Button>
@@ -295,6 +324,7 @@ export default function RolesPanel() {
                 type="primary"
                 icon={<PlusOutlined />}
                 onClick={openCreate}
+                disabled={!permissionQuery.isSuccess}
               >
                 新增角色
               </Button>
@@ -340,6 +370,11 @@ export default function RolesPanel() {
         editing={editing}
         formRef={formRef}
         permissions={permissions}
+        permissionsLoading={
+          permissionQuery.isPending || permissionQuery.isFetching
+        }
+        permissionsError={permissionQuery.isError}
+        onReloadPermissions={reloadPermissions}
         allLeafKeys={permissionTree.allLeafKeys}
         allGroupKeys={permissionTree.allBranchKeys}
         filteredTreeData={filteredTreeData}

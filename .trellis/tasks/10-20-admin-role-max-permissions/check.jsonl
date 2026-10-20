@@ -1,0 +1,7 @@
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "auth/me 有效能力及禁止旧权限回退"}
+{"file": ".trellis/spec/server/backend/role-workspace-ownership.md", "reason": "角色工作台边界"}
+{"file": ".trellis/spec/server/backend/retire-role-data-scope.md", "reason": "角色有效范围由工作台推导"}
+{"file": ".trellis/tasks/10-20-admin-role-max-permissions/research/root-cause.md", "reason": "全选字典与工作台写入边界不一致的根因"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端验收与定向测试要求"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "新增真实 PostgreSQL 角色回归测试必须实际 PASS，不以 SKIP 充当通过"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "测试隔离 Schema、正式迁移与真实数据库边界"}

@@ -1,6 +1,6 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { ModalForm } from '@ant-design/pro-components';
-import { App } from 'antd';
+import { Alert, App, Button } from 'antd';
 import React, { useMemo, useState } from 'react';
 import {
   adminServiceCreateRole,
@@ -45,6 +45,9 @@ interface RoleFormModalProps {
   permissionKeyword?: string;
   setPermissionKeyword?: (kw: string) => void;
   permissions?: API.AdminPermission[];
+  permissionsLoading?: boolean;
+  permissionsError?: boolean;
+  onReloadPermissions?: () => void;
   onSuccess: () => void;
 }
 
@@ -57,10 +60,13 @@ export default function RoleFormModal({
   requiresByPermission = {},
   permissionNameByKey = {},
   selectedPermissionKeys,
-  setSelectedPermissionKeys,
+  setSelectedPermissionKeys: onSelectionChange,
   permissionKeyword: controlledKeyword,
   setPermissionKeyword: controlledSetKeyword,
   permissions,
+  permissionsLoading = false,
+  permissionsError = false,
+  onReloadPermissions,
   onSuccess,
 }: RoleFormModalProps) {
   const { message } = App.useApp();
@@ -81,7 +87,7 @@ export default function RoleFormModal({
 
   // 构造权限矩阵模型：优先使用传入的 permissions，若未提供则降级由 allLeafKeys 等字段构造
   const effectivePermissions: PermissionDefinition[] = useMemo(() => {
-    if (permissions && permissions.length > 0) {
+    if (permissions !== undefined) {
       return permissions;
     }
     if (allLeafKeys && allLeafKeys.length > 0) {
@@ -99,6 +105,22 @@ export default function RoleFormModal({
     () => buildPermissionMatrix(effectivePermissions),
     [effectivePermissions],
   );
+
+  const availableKeys = new Set(matrixModel.allLeafKeys);
+  const unavailableExistingKeys = (editing?.permissionKeys ?? []).filter(
+    (key) => !availableKeys.has(key),
+  );
+  const unavailableKeys = [
+    ...new Set([
+      ...unavailableExistingKeys,
+      ...selectedPermissionKeys.filter((key) => !availableKeys.has(key)),
+    ]),
+  ];
+  const cannotSubmit =
+    permissionsLoading || permissionsError || unavailableKeys.length > 0;
+  // 全选、清空等操作也保留不可配置的已有授权；仅由有相应能力的人处理。
+  const setSelectedPermissionKeys = (keys: string[]) =>
+    onSelectionChange([...new Set([...keys, ...unavailableExistingKeys])]);
 
   // 已选键 Set 索引
   const selectedSet = useMemo(
@@ -294,7 +316,18 @@ export default function RoleFormModal({
         onCancel: () => onOpenChange(false),
       }}
       onOpenChange={onOpenChange}
+      submitter={{ submitButtonProps: { disabled: cannotSubmit } }}
       onFinish={async (values) => {
+        if (cannotSubmit) {
+          message.error(
+            permissionsError
+              ? '加载可授予权限失败，请重新加载权限后重试'
+              : permissionsLoading
+                ? '正在加载可授予权限，请稍后重试'
+                : '角色包含当前不可授予的权限，请由具备相应权限的管理员处理',
+          );
+          return false;
+        }
         try {
           if (editing?.id) {
             const writeResponse1 = await adminServiceUpdateRole(
@@ -330,8 +363,45 @@ export default function RoleFormModal({
 
       {/* 按业务模块与功能配置权限 */}
       <div style={{ marginTop: 8 }}>
+        <Alert
+          type={permissionsError ? 'error' : 'info'}
+          showIcon
+          title={
+            permissionsError
+              ? '加载可授予权限失败，暂不能保存，请重新加载权限后重试。'
+              : permissionsLoading
+                ? '正在加载可授予权限…'
+                : `仅展示你在当前工作台可授予的 ${matrixModel.allLeafKeys.length} 项权限；「全选读写」选择此范围内的全部权限。`
+          }
+          action={
+            permissionsError && onReloadPermissions ? (
+              <Button
+                size="small"
+                loading={permissionsLoading}
+                onClick={onReloadPermissions}
+              >
+                重新加载权限
+              </Button>
+            ) : undefined
+          }
+          style={{ marginBottom: 10 }}
+        />
+        {!permissionsLoading &&
+          !permissionsError &&
+          unavailableKeys.length > 0 && (
+            <Alert
+              type="warning"
+              showIcon
+              title="角色包含当前不可授予的权限，暂不能保存"
+              description={`以下权限已保留，请由具备相应权限的管理员处理：${unavailableKeys.join('、')}`}
+              style={{ marginBottom: 10 }}
+            />
+          )}
         <PermissionMatrixHeader
-          selectedCount={selectedPermissionKeys.length}
+          selectedCount={
+            selectedPermissionKeys.filter((key) => availableKeys.has(key))
+              .length
+          }
           totalCount={matrixModel.allLeafKeys.length}
           readSelectedCount={readSelectedCount}
           writeSelectedCount={writeSelectedCount}

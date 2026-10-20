@@ -132,12 +132,12 @@ function orderPermission(
     : '';
 }
 
-export default function access(
-  initialState: { currentUser?: API.CurrentUser } | undefined,
+export function createPermissionCapabilityChecker(
+  currentUser?: API.CurrentUser,
 ) {
   // 服务端按同一权限的有效角色授权聚合范围；禁止借用其他角色的范围。
   const capabilities = new Map(
-    (initialState?.currentUser?.permissionCapabilities ?? []).map((item) => [
+    (currentUser?.permissionCapabilities ?? []).map((item) => [
       item.key,
       item.dataScope,
     ]),
@@ -147,11 +147,17 @@ export default function access(
     organization_tree: 2,
     all: 3,
   };
-  const has = (
+  return (
     permission: string,
     minimum: 'organization' | 'all' = 'organization',
   ) =>
     (scopeRank[capabilities.get(permission) ?? ''] ?? 0) >= scopeRank[minimum];
+}
+
+export default function access(
+  initialState: { currentUser?: API.CurrentUser } | undefined,
+) {
+  const has = createPermissionCapabilityChecker(initialState?.currentUser);
   const hasAny = (...items: string[]) => items.some((item) => has(item));
   // 组织身份来自 auth/me 的 kind（阶段一契约），不复制第二套权限真相：
   // 公共资料维护入口仅系统管理工作台可见。

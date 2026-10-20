@@ -27,6 +27,18 @@ vi.mock('@/components/ui', () => ({
 }));
 
 vi.mock('antd', () => ({
+  Alert: ({
+    title,
+    description,
+  }: {
+    title: React.ReactNode;
+    description?: React.ReactNode;
+  }) => (
+    <div role="alert">
+      {title}
+      {description}
+    </div>
+  ),
   App: { useApp: () => ({ message: { error: vi.fn(), success: vi.fn() } }) },
   Button: ({
     children,
@@ -112,6 +124,7 @@ function RoleFormHarness({
       editing={editing}
       formRef={{ current: undefined }}
       allLeafKeys={[]}
+      permissions={[{ key: 'business.order.read' }]}
       allGroupKeys={[]}
       filteredTreeData={[]}
       requiresByPermission={{}}
