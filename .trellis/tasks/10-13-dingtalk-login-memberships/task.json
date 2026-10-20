@@ -33,10 +33,13 @@
     "web/src/pages/user/login",
     "web/src/pages/admin/components/users"
   ],
-  "notes": "2026-10-13 四个子任务代码已提交；review 三项问题已修复，真实 PostgreSQL 认证回归及 check:fast 通过。真实企业扫码及其余联合验收待完成，保持 in_progress。",
+  "notes": "2026-10-20 用户在本会话明确确认这 6 项任务均已完成；按用户确认收尾，历史待验收描述不再作为当前阻塞。此次仅同步记录与归档，未重跑测试或补充具体实测结果。",
   "meta": {
     "implementation": "four_children_committed",
-    "acceptance": "pending_runtime_verification",
-    "review_fixes": "implemented_and_verified"
+    "acceptance": "completed_by_user_confirmation",
+    "review_fixes": "implemented_and_verified",
+    "previous_completion_notes": "2026-10-13 四个子任务代码已提交；review 三项问题已修复，真实 PostgreSQL 认证回归及 check:fast 通过。真实企业扫码及其余联合验收待完成，保持 in_progress。",
+    "completion_confirmed_at": "2026-10-20",
+    "completion_basis": "用户明确确认全部 6 项任务已完成；本轮未重新执行验收。"
   }
 }

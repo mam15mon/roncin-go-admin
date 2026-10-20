@@ -31,9 +31,13 @@
     "web/src/pages/admin/users.tsx",
     "web/src/pages/user/login/dingtalk-callback.tsx"
   ],
-  "notes": "2026-10-09 实施与自动验证已完成，真实全企业同步 27 人、0 失败，工号移除、空头像显示、同步摘要和排队速度已修正。用户授权合并 main 并删除工作分支。实际扫码回调 localhost 配置已修正，浏览器实测进入“尚未分配组织”提示；已开通与停用账号真实扫码尚未验证，保留任务待最终人工验收，不归档为全部验收完成。",
+  "notes": "2026-10-20 用户在本会话明确确认这 6 项任务均已完成；按用户确认收尾，历史待验收描述不再作为当前阻塞。此次仅同步记录与归档，未重跑测试或补充具体实测结果。",
   "meta": {
-    "implementation_status": "代码完成，准备合并 main；真实待分配扫码已通过，其余状态待人工验收",
-    "verification": "最新 check:fast 通过：前端 1073 PASS、12 既有 SKIP；后端完整门禁通过。另注入专用 PostgreSQL 的 12 项通讯录定向测试全部 PASS、无 SKIP；真实同步与待分配扫码通过。"
+    "implementation_status": "已完成；2026-10-20 用户确认收尾。",
+    "verification": "最新 check:fast 通过：前端 1073 PASS、12 既有 SKIP；后端完整门禁通过。另注入专用 PostgreSQL 的 12 项通讯录定向测试全部 PASS、无 SKIP；真实同步与待分配扫码通过。",
+    "previous_completion_notes": "2026-10-09 实施与自动验证已完成，真实全企业同步 27 人、0 失败，工号移除、空头像显示、同步摘要和排队速度已修正。用户授权合并 main 并删除工作分支。实际扫码回调 localhost 配置已修正，浏览器实测进入“尚未分配组织”提示；已开通与停用账号真实扫码尚未验证，保留任务待最终人工验收，不归档为全部验收完成。",
+    "acceptance": "completed_by_user_confirmation",
+    "completion_confirmed_at": "2026-10-20",
+    "completion_basis": "用户明确确认全部 6 项任务已完成；本轮未重新执行验收。"
   }
 }
