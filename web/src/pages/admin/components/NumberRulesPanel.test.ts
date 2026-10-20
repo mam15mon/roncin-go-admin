@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { DOC_TYPES, filterVisibleNumberRules } from './NumberRulesPanel';
 
 describe('单据编号规则体系', () => {
-  it('全量支持 14 类业务单据编号规则', () => {
-    expect(DOC_TYPES).toHaveLength(14);
+  it('仅展示当前支持的 10 类业务单据编号规则', () => {
+    expect(DOC_TYPES).toHaveLength(10);
     const keys = DOC_TYPES.map((item) => item.key);
     expect(keys).toContain('DOCUMENT_TYPE_ORDER');
     expect(keys).toContain('DOCUMENT_TYPE_BILL');
@@ -14,19 +14,19 @@ describe('单据编号规则体系', () => {
     expect(keys).toContain('DOCUMENT_TYPE_COMMISSION');
     expect(keys).toContain('DOCUMENT_TYPE_NETTING');
     expect(keys).toContain('DOCUMENT_TYPE_HOUSE_BILL');
-    expect(keys).toContain('DOCUMENT_TYPE_QUOTATION');
     expect(keys).toContain('DOCUMENT_TYPE_CONTRACT');
-    expect(keys).toContain('DOCUMENT_TYPE_FREIGHT_RATE');
-    expect(keys).toContain('DOCUMENT_TYPE_INTERNAL_REFERENCE');
-    expect(keys).toContain('DOCUMENT_TYPE_CUSTOMER_REFERENCE');
   });
 
-  it('保留所有 13 类合法单据规则', () => {
+  it('隐藏已删除的编号规则与未知类型', () => {
     const rules = [
       { id: 'order', documentType: 1 },
       { id: 'bill', documentType: 2 },
       { id: 'batch', documentType: 14 },
       { id: 'house', documentType: 9 },
+      { id: 'quotation', documentType: 3 },
+      { id: 'freight-rate', documentType: 12 },
+      { id: 'internal-reference', documentType: 7 },
+      { id: 'customer-reference', documentType: 8 },
       { id: 'unknown', documentType: 999 },
     ] as API.NumberRule[];
 
@@ -45,7 +45,5 @@ describe('单据编号规则体系', () => {
 
     expect(prefixes.DOCUMENT_TYPE_INVOICE).toBe('');
     expect(prefixes.DOCUMENT_TYPE_HOUSE_BILL).toBe('');
-    expect(prefixes.DOCUMENT_TYPE_INTERNAL_REFERENCE).toBe('');
-    expect(prefixes.DOCUMENT_TYPE_CUSTOMER_REFERENCE).toBe('');
   });
 });

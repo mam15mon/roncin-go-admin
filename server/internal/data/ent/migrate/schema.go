@@ -3209,7 +3209,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "document_type", Type: field.TypeEnum, Enums: []string{"order", "bill", "bill_batch", "quotation", "write_off", "receipt_payment", "contract", "internal_reference", "customer_reference", "house_bill", "coload_house_bill", "invoice", "freight_rate", "commission", "netting"}},
+		{Name: "document_type", Type: field.TypeEnum, Enums: []string{"order", "bill", "bill_batch", "write_off", "receipt_payment", "contract", "house_bill", "coload_house_bill", "invoice", "commission", "netting"}},
 		{Name: "prefix", Type: field.TypeString, Size: 32},
 		{Name: "date_format", Type: field.TypeEnum, Enums: []string{"yyyyMMdd", "yyyyMM", "yyyy", "none"}, Default: "yyyyMMdd"},
 		{Name: "sequence_length", Type: field.TypeInt, Default: 4},

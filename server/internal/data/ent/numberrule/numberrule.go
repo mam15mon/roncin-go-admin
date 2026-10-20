@@ -104,21 +104,17 @@ type DocumentType string
 
 // DocumentType values.
 const (
-	DocumentTypeOrder             DocumentType = "order"
-	DocumentTypeBill              DocumentType = "bill"
-	DocumentTypeBillBatch         DocumentType = "bill_batch"
-	DocumentTypeQuotation         DocumentType = "quotation"
-	DocumentTypeWriteOff          DocumentType = "write_off"
-	DocumentTypeReceiptPayment    DocumentType = "receipt_payment"
-	DocumentTypeContract          DocumentType = "contract"
-	DocumentTypeInternalReference DocumentType = "internal_reference"
-	DocumentTypeCustomerReference DocumentType = "customer_reference"
-	DocumentTypeHouseBill         DocumentType = "house_bill"
-	DocumentTypeColoadHouseBill   DocumentType = "coload_house_bill"
-	DocumentTypeInvoice           DocumentType = "invoice"
-	DocumentTypeFreightRate       DocumentType = "freight_rate"
-	DocumentTypeCommission        DocumentType = "commission"
-	DocumentTypeNetting           DocumentType = "netting"
+	DocumentTypeOrder           DocumentType = "order"
+	DocumentTypeBill            DocumentType = "bill"
+	DocumentTypeBillBatch       DocumentType = "bill_batch"
+	DocumentTypeWriteOff        DocumentType = "write_off"
+	DocumentTypeReceiptPayment  DocumentType = "receipt_payment"
+	DocumentTypeContract        DocumentType = "contract"
+	DocumentTypeHouseBill       DocumentType = "house_bill"
+	DocumentTypeColoadHouseBill DocumentType = "coload_house_bill"
+	DocumentTypeInvoice         DocumentType = "invoice"
+	DocumentTypeCommission      DocumentType = "commission"
+	DocumentTypeNetting         DocumentType = "netting"
 )
 
 func (dt DocumentType) String() string {
@@ -128,7 +124,7 @@ func (dt DocumentType) String() string {
 // DocumentTypeValidator is a validator for the "document_type" field enum values. It is called by the builders before save.
 func DocumentTypeValidator(dt DocumentType) error {
 	switch dt {
-	case DocumentTypeOrder, DocumentTypeBill, DocumentTypeBillBatch, DocumentTypeQuotation, DocumentTypeWriteOff, DocumentTypeReceiptPayment, DocumentTypeContract, DocumentTypeInternalReference, DocumentTypeCustomerReference, DocumentTypeHouseBill, DocumentTypeColoadHouseBill, DocumentTypeInvoice, DocumentTypeFreightRate, DocumentTypeCommission, DocumentTypeNetting:
+	case DocumentTypeOrder, DocumentTypeBill, DocumentTypeBillBatch, DocumentTypeWriteOff, DocumentTypeReceiptPayment, DocumentTypeContract, DocumentTypeHouseBill, DocumentTypeColoadHouseBill, DocumentTypeInvoice, DocumentTypeCommission, DocumentTypeNetting:
 		return nil
 	default:
 		return fmt.Errorf("numberrule: invalid enum value for document_type field: %q", dt)

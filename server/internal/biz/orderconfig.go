@@ -24,25 +24,20 @@ const (
 	DocumentTypeOrder             DocumentType = "order"
 	DocumentTypeBill              DocumentType = "bill"
 	DocumentTypeBillBatch         DocumentType = "bill_batch"
-	DocumentTypeQuotation         DocumentType = "quotation"
 	DocumentTypeWriteOff          DocumentType = "write_off"
 	DocumentTypeReceiptPayment    DocumentType = "receipt_payment"
 	DocumentTypeContract          DocumentType = "contract"
-	DocumentTypeInternalReference DocumentType = "internal_reference"
-	DocumentTypeCustomerReference DocumentType = "customer_reference"
 	DocumentTypeHouseBill         DocumentType = "house_bill"
 	DocumentTypeInvoice           DocumentType = "invoice"
-	DocumentTypeFreightRate       DocumentType = "freight_rate"
 	DocumentTypeCommission        DocumentType = "commission"
 	DocumentTypeNetting           DocumentType = "netting"
 )
 
 func (value DocumentType) Valid() bool {
 	switch value {
-	case DocumentTypeOrder, DocumentTypeBill, DocumentTypeBillBatch, DocumentTypeQuotation, DocumentTypeWriteOff,
-		DocumentTypeReceiptPayment, DocumentTypeContract, DocumentTypeInternalReference,
-		DocumentTypeCustomerReference, DocumentTypeHouseBill, DocumentTypeInvoice,
-		DocumentTypeFreightRate, DocumentTypeCommission, DocumentTypeNetting:
+	case DocumentTypeOrder, DocumentTypeBill, DocumentTypeBillBatch, DocumentTypeWriteOff,
+		DocumentTypeReceiptPayment, DocumentTypeContract, DocumentTypeHouseBill,
+		DocumentTypeInvoice, DocumentTypeCommission, DocumentTypeNetting:
 		return true
 	default:
 		return false
@@ -113,15 +108,11 @@ func DefaultNumberRules() []NumberRule {
 		{DocumentType: DocumentTypeOrder, DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
 		{DocumentType: DocumentTypeBill, Prefix: "BI", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
 		{DocumentType: DocumentTypeBillBatch, Prefix: "BG", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
-		{DocumentType: DocumentTypeQuotation, Prefix: "QO", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
 		{DocumentType: DocumentTypeWriteOff, Prefix: "WO", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
 		{DocumentType: DocumentTypeReceiptPayment, Prefix: "PR", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
 		{DocumentType: DocumentTypeContract, Prefix: "CT", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
-		{DocumentType: DocumentTypeInternalReference, DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: false},
-		{DocumentType: DocumentTypeCustomerReference, DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: false},
 		{DocumentType: DocumentTypeHouseBill, DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: false},
 		{DocumentType: DocumentTypeInvoice, DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: false},
-		{DocumentType: DocumentTypeFreightRate, Prefix: "FR", DateFormat: DateFormatYYYYMM, SequenceLength: 3, ResetPolicy: ResetPolicyMonthly, Enabled: true},
 		{DocumentType: DocumentTypeCommission, Prefix: "CM", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
 		{DocumentType: DocumentTypeNetting, Prefix: "NT", DateFormat: DateFormatYYYYMMDD, SequenceLength: 5, ResetPolicy: ResetPolicyDaily, Enabled: true},
 	}

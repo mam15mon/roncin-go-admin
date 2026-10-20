@@ -634,24 +634,16 @@ func documentTypeFromAPI(value v1.DocumentType) biz.DocumentType {
 		return biz.DocumentTypeBill
 	case v1.DocumentType_DOCUMENT_TYPE_BILL_BATCH:
 		return biz.DocumentTypeBillBatch
-	case v1.DocumentType_DOCUMENT_TYPE_QUOTATION:
-		return biz.DocumentTypeQuotation
 	case v1.DocumentType_DOCUMENT_TYPE_WRITE_OFF:
 		return biz.DocumentTypeWriteOff
 	case v1.DocumentType_DOCUMENT_TYPE_RECEIPT_PAYMENT:
 		return biz.DocumentTypeReceiptPayment
 	case v1.DocumentType_DOCUMENT_TYPE_CONTRACT:
 		return biz.DocumentTypeContract
-	case v1.DocumentType_DOCUMENT_TYPE_INTERNAL_REFERENCE:
-		return biz.DocumentTypeInternalReference
-	case v1.DocumentType_DOCUMENT_TYPE_CUSTOMER_REFERENCE:
-		return biz.DocumentTypeCustomerReference
 	case v1.DocumentType_DOCUMENT_TYPE_HOUSE_BILL:
 		return biz.DocumentTypeHouseBill
 	case v1.DocumentType_DOCUMENT_TYPE_INVOICE:
 		return biz.DocumentTypeInvoice
-	case v1.DocumentType_DOCUMENT_TYPE_FREIGHT_RATE:
-		return biz.DocumentTypeFreightRate
 	case v1.DocumentType_DOCUMENT_TYPE_COMMISSION:
 		return biz.DocumentTypeCommission
 	case v1.DocumentType_DOCUMENT_TYPE_NETTING:
@@ -669,24 +661,16 @@ func documentTypeToAPI(value biz.DocumentType) v1.DocumentType {
 		return v1.DocumentType_DOCUMENT_TYPE_BILL
 	case biz.DocumentTypeBillBatch:
 		return v1.DocumentType_DOCUMENT_TYPE_BILL_BATCH
-	case biz.DocumentTypeQuotation:
-		return v1.DocumentType_DOCUMENT_TYPE_QUOTATION
 	case biz.DocumentTypeWriteOff:
 		return v1.DocumentType_DOCUMENT_TYPE_WRITE_OFF
 	case biz.DocumentTypeReceiptPayment:
 		return v1.DocumentType_DOCUMENT_TYPE_RECEIPT_PAYMENT
 	case biz.DocumentTypeContract:
 		return v1.DocumentType_DOCUMENT_TYPE_CONTRACT
-	case biz.DocumentTypeInternalReference:
-		return v1.DocumentType_DOCUMENT_TYPE_INTERNAL_REFERENCE
-	case biz.DocumentTypeCustomerReference:
-		return v1.DocumentType_DOCUMENT_TYPE_CUSTOMER_REFERENCE
 	case biz.DocumentTypeHouseBill:
 		return v1.DocumentType_DOCUMENT_TYPE_HOUSE_BILL
 	case biz.DocumentTypeInvoice:
 		return v1.DocumentType_DOCUMENT_TYPE_INVOICE
-	case biz.DocumentTypeFreightRate:
-		return v1.DocumentType_DOCUMENT_TYPE_FREIGHT_RATE
 	case biz.DocumentTypeCommission:
 		return v1.DocumentType_DOCUMENT_TYPE_COMMISSION
 	case biz.DocumentTypeNetting:
