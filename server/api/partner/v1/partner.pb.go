@@ -4772,7 +4772,6 @@ func (x *PartnerContract) GetAllowedStatuses() []PartnerContractStatus {
 
 type CreatePartnerContractInput struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
-	ContractNo        string                 `protobuf:"bytes,1,opt,name=contract_no,json=contractNo,proto3" json:"contract_no,omitempty"`
 	Name              string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Status            PartnerContractStatus  `protobuf:"varint,3,opt,name=status,proto3,enum=partner.v1.PartnerContractStatus" json:"status,omitempty"`
 	StartDate         string                 `protobuf:"bytes,4,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
@@ -4812,13 +4811,6 @@ func (x *CreatePartnerContractInput) ProtoReflect() protoreflect.Message {
 // Deprecated: Use CreatePartnerContractInput.ProtoReflect.Descriptor instead.
 func (*CreatePartnerContractInput) Descriptor() ([]byte, []int) {
 	return file_partner_v1_partner_proto_rawDescGZIP(), []int{48}
-}
-
-func (x *CreatePartnerContractInput) GetContractNo() string {
-	if x != nil {
-		return x.ContractNo
-	}
-	return ""
 }
 
 func (x *CreatePartnerContractInput) GetName() string {
@@ -7937,10 +7929,8 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"created_at\x18\f \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
 	"updated_at\x18\r \x01(\tR\tupdatedAt\x12L\n" +
-	"\x10allowed_statuses\x18\x0e \x03(\x0e2!.partner.v1.PartnerContractStatusR\x0fallowedStatuses\"\xd4\x02\n" +
-	"\x1aCreatePartnerContractInput\x12$\n" +
-	"\vcontract_no\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
-	"contractNo\x12\x17\n" +
+	"\x10allowed_statuses\x18\x0e \x03(\x0e2!.partner.v1.PartnerContractStatusR\x0fallowedStatuses\"\xc1\x02\n" +
+	"\x1aCreatePartnerContractInput\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tB\x03\xe0A\x02R\x04name\x12>\n" +
 	"\x06status\x18\x03 \x01(\x0e2!.partner.v1.PartnerContractStatusB\x03\xe0A\x02R\x06status\x12\"\n" +
 	"\n" +
@@ -7949,7 +7939,7 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\rpayment_terms\x18\x06 \x01(\tR\fpaymentTerms\x12-\n" +
 	"\x12dispute_resolution\x18\a \x01(\tR\x11disputeResolution\x12\x1f\n" +
 	"\vother_notes\x18\b \x01(\tR\n" +
-	"otherNotes\"\xae\x02\n" +
+	"otherNotesJ\x04\b\x01\x10\x02R\vcontract_no\"\xae\x02\n" +
 	"\x1aUpdatePartnerContractInput\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x02R\x04name\x12>\n" +
 	"\x06status\x18\x02 \x01(\x0e2!.partner.v1.PartnerContractStatusB\x03\xe0A\x02R\x06status\x12\"\n" +

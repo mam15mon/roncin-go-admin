@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"time"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
@@ -247,17 +248,27 @@ func (r *partnerContractRepo) Get(ctx context.Context, organizationID, partnerID
 }
 
 func (r *partnerContractRepo) Create(ctx context.Context, organizationID, partnerID uuid.UUID, input *biz.PartnerContract, audit *biz.AuditEvent) (*biz.PartnerContract, error) {
-	if _, err := r.partner(ctx, organizationID, partnerID); err != nil {
-		return nil, err
-	}
 	var created *ent.PartnerContract
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if _, err := tx.Partner.Query().Where(partnerent.IDEQ(partnerID), partnerent.OrganizationIDEQ(organizationID)).ForShare().Only(ctx); err != nil {
+			return mapEntError(err, biz.ErrPartnerContractInvalidArgument, nil)
+		}
+		allocatedAt := time.Now().UTC()
+		rule, sequence, err := allocateNumberInTx(ctx, tx, organizationID, biz.DocumentTypeContract, allocatedAt)
+		if err != nil {
+			return err
+		}
+		contractNo, err := biz.FormatAllocatedNumber(allocatedAt, rule, sequence, "")
+		if err != nil {
+			return err
+		}
 		var createErr error
-		created, createErr = tx.PartnerContract.Create().SetPartnerID(partnerID).SetContractNo(input.ContractNo).SetName(input.Name).SetStatus(partnercontractent.Status(input.Status)).SetStartDate(input.StartDate).SetEndDate(input.EndDate).SetPaymentTerms(input.PaymentTerms).SetDisputeResolution(input.DisputeResolution).SetOtherNotes(input.OtherNotes).Save(ctx)
+		created, createErr = tx.PartnerContract.Create().SetPartnerID(partnerID).SetContractNo(contractNo).SetName(input.Name).SetStatus(partnercontractent.Status(input.Status)).SetStartDate(input.StartDate).SetEndDate(input.EndDate).SetPaymentTerms(input.PaymentTerms).SetDisputeResolution(input.DisputeResolution).SetOtherNotes(input.OtherNotes).Save(ctx)
 		if createErr != nil {
 			return mapEntConstraint(createErr, "partner_contract_no_key", biz.ErrPartnerContractNoExists)
 		}
 		audit.Details["contract.id"] = created.ID.String()
+		audit.Details["contract.no"] = contractNo
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
 	if err != nil {

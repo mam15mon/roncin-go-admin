@@ -1668,7 +1668,6 @@ declare namespace API {
   };
 
   type CreatePartnerContractInput = {
-    contractNo: string;
     name: string;
     status: number;
     startDate: string;

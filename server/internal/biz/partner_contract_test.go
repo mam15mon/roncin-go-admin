@@ -49,7 +49,7 @@ func TestPartnerContractRejectsInvalidDateAndTransition(t *testing.T) {
 	start := time.Date(2026, time.August, 20, 0, 0, 0, 0, time.UTC)
 	usecase := NewPartnerContractUsecase(&partnerContractRepoStub{})
 	if _, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), uuid.New(), &PartnerContract{
-		ContractNo: "HT-001", Name: "年度合同", Status: PartnerContractPending, StartDate: start, EndDate: start,
+		Name: "年度合同", Status: PartnerContractPending, StartDate: start, EndDate: start,
 	}); err != ErrPartnerContractInvalidArgument {
 		t.Fatalf("reversed date error = %v, want ErrPartnerContractInvalidArgument", err)
 	}
@@ -60,6 +60,23 @@ func TestPartnerContractRejectsInvalidDateAndTransition(t *testing.T) {
 		Name: "年度合同", Status: PartnerContractActive, StartDate: start, EndDate: start.AddDate(1, 0, 0),
 	}); err != ErrPartnerContractStatusConflict {
 		t.Fatalf("terminal transition error = %v, want ErrPartnerContractStatusConflict", err)
+	}
+}
+
+func TestPartnerContractCreateReservesNumberForServer(t *testing.T) {
+	start := time.Date(2026, time.August, 20, 0, 0, 0, 0, time.UTC)
+	repo := &partnerContractRepoStub{}
+	usecase := NewPartnerContractUsecase(repo)
+	input := &PartnerContract{Name: "年度合同", Status: PartnerContractPending, StartDate: start, EndDate: start.AddDate(1, 0, 0)}
+	if _, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), uuid.New(), input); err != nil {
+		t.Fatalf("创建合同应接受由服务端分配编号: %v", err)
+	}
+	if repo.created.ContractNo != "" {
+		t.Fatalf("仓储取号前合同编号 = %q，期望为空", repo.created.ContractNo)
+	}
+	input.ContractNo = "MANUAL-001"
+	if _, err := usecase.Create(context.Background(), uuid.New(), uuid.New(), uuid.New(), input); err != ErrPartnerContractInvalidArgument {
+		t.Fatalf("手工编号错误 = %v，期望 ErrPartnerContractInvalidArgument", err)
 	}
 }
 

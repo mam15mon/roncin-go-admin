@@ -45,7 +45,7 @@ const contractStatusOptions = Object.entries(partnerContractStatusMeta).map(
 
 /** 合同编辑表单值（必填项由表单校验保证运行时必有值）。 */
 type ContractFormValues = {
-  contractNo: string;
+  contractNo?: string;
   name: string;
   status: number;
   dateRange?: [Dayjs, Dayjs];
@@ -189,7 +189,6 @@ export default function ContractCardList({
           {
             partnerId,
             contract: {
-              contractNo: values.contractNo?.trim(),
               name: values.name?.trim(),
               status: values.status,
               startDate,
@@ -426,9 +425,8 @@ export default function ContractCardList({
           <ProFormText
             name="contractNo"
             label="合同编号"
-            placeholder="例如：CT-2026-0089"
-            disabled={Boolean(editingContract)}
-            rules={[{ required: true, message: '请输入合同编号' }]}
+            placeholder="保存后自动生成"
+            disabled
           />
         </Col>
         <Col span={12}>

@@ -22908,15 +22908,12 @@ components:
                     type: string
         partner.v1.CreatePartnerContractInput:
             required:
-                - contractNo
                 - name
                 - status
                 - startDate
                 - endDate
             type: object
             properties:
-                contractNo:
-                    type: string
                 name:
                     type: string
                 status:

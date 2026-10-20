@@ -237,12 +237,11 @@ export default function ContractsPanel({
             if (!isWriteResponse(writeResponse1, true)) return false;
             message.success('合同已成功更新');
           } else {
-            if (!values.contractNo) return false;
             const writeResponse2 = await partnerServiceCreatePartnerContract(
               { partnerId: partner.id },
               {
                 partnerId: partner.id,
-                contract: { ...common, contractNo: values.contractNo.trim() },
+                contract: common,
               },
             );
             if (!isWriteResponse(writeResponse2, true)) return false;
@@ -255,10 +254,9 @@ export default function ContractsPanel({
       >
         <ProFormText
           name="contractNo"
-          label="合同唯一编号"
-          placeholder="例如：CT-2026-0001"
-          disabled={Boolean(editingContract)}
-          rules={[{ required: !editingContract, message: '请输入合同编号' }]}
+          label="合同编号"
+          placeholder="保存后自动生成"
+          disabled
         />
         <ProFormText
           name="name"

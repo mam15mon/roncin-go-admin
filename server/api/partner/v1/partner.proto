@@ -696,7 +696,8 @@ message PartnerContract {
 }
 
 message CreatePartnerContractInput {
-  string contract_no = 1 [(google.api.field_behavior) = REQUIRED];
+  reserved 1;
+  reserved "contract_no";
   string name = 2 [(google.api.field_behavior) = REQUIRED];
   PartnerContractStatus status = 3 [(google.api.field_behavior) = REQUIRED];
   string start_date = 4 [(google.api.field_behavior) = REQUIRED];

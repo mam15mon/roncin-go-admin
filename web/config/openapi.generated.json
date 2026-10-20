@@ -35208,7 +35208,6 @@
       },
       "partner.v1.CreatePartnerContractInput": {
         "required": [
-          "contractNo",
           "name",
           "status",
           "startDate",
@@ -35216,9 +35215,6 @@
         ],
         "type": "object",
         "properties": {
-          "contractNo": {
-            "type": "string"
-          },
           "name": {
             "type": "string"
           },

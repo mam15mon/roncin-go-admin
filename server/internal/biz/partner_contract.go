@@ -121,7 +121,7 @@ func normalizePartnerContract(input *PartnerContract, creating bool, previous *P
 	output.PaymentTerms = strings.TrimSpace(output.PaymentTerms)
 	output.DisputeResolution = strings.TrimSpace(output.DisputeResolution)
 	output.OtherNotes = strings.TrimSpace(output.OtherNotes)
-	if (creating && (output.ContractNo == "" || utf8.RuneCountInString(output.ContractNo) > 100)) || output.Name == "" || !output.Status.Valid() || output.StartDate.IsZero() || output.EndDate.IsZero() || !output.StartDate.Before(output.EndDate) || utf8.RuneCountInString(output.Name) > 200 || utf8.RuneCountInString(output.PaymentTerms) > 2000 || utf8.RuneCountInString(output.DisputeResolution) > 2000 || utf8.RuneCountInString(output.OtherNotes) > 2000 {
+	if (creating && output.ContractNo != "") || output.Name == "" || !output.Status.Valid() || output.StartDate.IsZero() || output.EndDate.IsZero() || !output.StartDate.Before(output.EndDate) || utf8.RuneCountInString(output.Name) > 200 || utf8.RuneCountInString(output.PaymentTerms) > 2000 || utf8.RuneCountInString(output.DisputeResolution) > 2000 || utf8.RuneCountInString(output.OtherNotes) > 2000 {
 		return nil, ErrPartnerContractInvalidArgument
 	}
 	if creating && output.Status != PartnerContractPending && output.Status != PartnerContractActive {

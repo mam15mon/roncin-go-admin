@@ -50,7 +50,7 @@ func (s *PartnerService) CreatePartnerContract(ctx context.Context, request *v1.
 		return nil, err
 	}
 	created, err := s.contractUsecase.Create(ctx, principal.Organization.ID, principal.UserID, partnerID, &biz.PartnerContract{
-		ContractNo: input.GetContractNo(), Name: input.GetName(), Status: partnerContractStatusFromAPI(input.GetStatus()),
+		Name: input.GetName(), Status: partnerContractStatusFromAPI(input.GetStatus()),
 		StartDate: startDate, EndDate: endDate, PaymentTerms: input.GetPaymentTerms(), DisputeResolution: input.GetDisputeResolution(), OtherNotes: input.GetOtherNotes(),
 	})
 	if err != nil {
