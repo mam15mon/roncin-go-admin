@@ -1,0 +1,6 @@
+{"file": ".trellis/spec/domain/architecture-map.md", "reason": "公共订单及财务复用边界"}
+{"file": ".trellis/spec/server/backend/order-fee-quantity-preview.md", "reason": "KG毛重与计费重来源边界"}
+{"file": ".trellis/spec/server/backend/order-fee-review.md", "reason": "审核冻结与建账门禁"}
+{"file": ".trellis/spec/server/backend/order-lock-and-document-version.md", "reason": "业务锁和版本控制"}
+{"file": ".trellis/spec/web/frontend/capability-navigation.md", "reason": "前端复用入口"}
+{"file": ".trellis/tasks/10-20-air-export-business-loop/research.md", "reason": "项目证据及竞品借鉴限制"}
