@@ -332,7 +332,10 @@ func TestFeeReviewNotificationOrderEntry(t *testing.T) {
 	if actual := feeReviewOrderEntry(&ent.Order{ID: id, BusinessType: "SE"}); actual != expected {
 		t.Fatalf("海运出口入口错误: %q", actual)
 	}
-	for _, kind := range []string{"SI", "AE", "AI", "LAND", "RAIL"} {
+	if actual := feeReviewOrderEntry(&ent.Order{ID: id, BusinessType: "AE"}); actual != "\n订单入口：/orders/air-export/"+id.String()+"/fees" {
+		t.Fatalf("空运出口入口错误: %q", actual)
+	}
+	for _, kind := range []string{"SI", "AI", "LAND", "RAIL"} {
 		if actual := feeReviewOrderEntry(&ent.Order{ID: id, BusinessType: orderent.BusinessType(kind)}); actual != "" {
 			t.Fatalf("未注册类型%s不应生成入口: %q", kind, actual)
 		}

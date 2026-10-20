@@ -45,27 +45,30 @@ func notificationTestOrderScopes(p *Principal) []OrderOrganizationScope {
 	if p == nil {
 		return nil
 	}
-	read, err := p.ResolvePermissionOrganizationScope(access.OrderPermission(access.OrderBusinessSE, access.OrderRead))
-	if err != nil {
-		return nil
-	}
-	fee, err := p.ResolvePermissionOrganizationScope(access.OrderPermission(access.OrderBusinessSE, access.OrderFeeRead))
-	if err != nil {
-		return nil
-	}
-	var ids []uuid.UUID
-	for _, id := range read.ReadableOrganizationIDs {
-		for _, feeID := range fee.ReadableOrganizationIDs {
-			if id == feeID {
-				ids = append(ids, id)
-				break
+	var scopes []OrderOrganizationScope
+	for _, businessType := range []OrderBusinessType{OrderBusinessSE, OrderBusinessAE} {
+		read, err := p.ResolvePermissionOrganizationScope(access.OrderPermission(access.OrderBusinessType(businessType), access.OrderRead))
+		if err != nil {
+			continue
+		}
+		fee, err := p.ResolvePermissionOrganizationScope(access.OrderPermission(access.OrderBusinessType(businessType), access.OrderFeeRead))
+		if err != nil {
+			continue
+		}
+		var ids []uuid.UUID
+		for _, id := range read.ReadableOrganizationIDs {
+			for _, feeID := range fee.ReadableOrganizationIDs {
+				if id == feeID {
+					ids = append(ids, id)
+					break
+				}
 			}
 		}
+		if len(ids) > 0 {
+			scopes = append(scopes, OrderOrganizationScope{BusinessType: businessType, OrganizationIDs: ids})
+		}
 	}
-	if len(ids) == 0 {
-		return nil
-	}
-	return []OrderOrganizationScope{{BusinessType: OrderBusinessSE, OrganizationIDs: ids}}
+	return scopes
 }
 
 var notificationTestTypes = []NotificationTestType{
@@ -113,7 +116,7 @@ func (uc *NotificationTestUsecase) Catalog(ctx context.Context, principal *Princ
 	return c, nil
 }
 
-func notificationTestDelivery(typ string, orderID *uuid.UUID, orderNo string) (*NotificationDelivery, error) {
+func notificationTestDelivery(typ string, selectedOrder *Order) (*NotificationDelivery, error) {
 
 	id := uuid.MustParse("00000000-0000-4000-8000-000000000001")
 	d := &NotificationDelivery{RecipientDisplayName: "示例员工", DingTalkUserID: "preview-only", Channel: NotificationChannelDingTalk, Template: typ, ResourceID: id}
@@ -130,12 +133,14 @@ func notificationTestDelivery(typ string, orderID *uuid.UUID, orderNo string) (*
 		if typ == "FEE_REVIEW_RESULT" {
 			d.Parameter = "示例审批人：已退回"
 		}
-		if orderID != nil {
-			d.ResourceID = *orderID
-			if orderNo != "" {
-				d.ReferenceCode = orderNo
+		if selectedOrder != nil {
+			d.ResourceID = selectedOrder.ID
+			if selectedOrder.OrderNo != "" {
+				d.ReferenceCode = selectedOrder.OrderNo
 			}
-			d.Parameter += "\n订单入口：/orders/sea-export/" + d.ResourceID.String() + "/fees"
+			if path := OrderFeesPath(selectedOrder.BusinessType, d.ResourceID); path != "" {
+				d.Parameter += "\n订单入口：" + path
+			}
 		}
 	case NotificationTemplateFeeSupplementApprovalPending:
 		d.ResourceType, d.ReferenceCode, d.Parameter = "FEE_SUPPLEMENT_REQUEST", "TEST-ORDER-001", "测试补录摘要"
@@ -165,7 +170,7 @@ func (uc *NotificationTestUsecase) build(ctx context.Context, principal *Princip
 	if !user.Enabled {
 		return DingTalkMessage{}, nil, ErrPermissionDenied
 	}
-	orderNo := ""
+	var selectedOrder *Order
 	if orderID != nil {
 		if typ != "FEE_REVIEW_PENDING" && typ != "FEE_REVIEW_RESULT" {
 			return DingTalkMessage{}, nil, ErrAdminInvalidArgument
@@ -181,9 +186,9 @@ func (uc *NotificationTestUsecase) build(ctx context.Context, principal *Princip
 		if e != nil {
 			return DingTalkMessage{}, nil, e
 		}
-		orderNo = order.OrderNo
+		selectedOrder = order
 	}
-	d, err := notificationTestDelivery(typ, orderID, orderNo)
+	d, err := notificationTestDelivery(typ, selectedOrder)
 	if err != nil {
 		return DingTalkMessage{}, nil, err
 	}

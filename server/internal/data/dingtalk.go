@@ -322,6 +322,7 @@ func validDingTalkActionPath(path string) bool {
 	}
 	for _, route := range []struct{ prefix, suffix string }{
 		{"/orders/sea-export/", "/fees"},
+		{"/orders/air-export/", "/fees"},
 		{"/commission-adjustments/", "/my-supplement-source"},
 	} {
 		if strings.HasPrefix(path, route.prefix) && strings.HasSuffix(path, route.suffix) {
