@@ -92,10 +92,10 @@ export default function NumberRuleEditModal({
           name="dateFormat"
           label="日期格式"
           options={[
-            { label: '年月日 (yyyyMMdd 示例: 20260823)', value: 1 },
-            { label: '年月 (yyyyMM 示例: 202608)', value: 2 },
-            { label: '年 (yyyy 示例: 2026)', value: 3 },
-            { label: '无日期 (仅前缀+流水号)', value: 4 },
+            { label: '年月日（yyyyMMdd，例如 20260823）', value: 1 },
+            { label: '年月（yyyyMM，例如 202608）', value: 2 },
+            { label: '年（yyyy，例如 2026）', value: 3 },
+            { label: '无日期（仅前缀和流水号）', value: 4 },
           ]}
           rules={[{ required: true, message: '请选择日期格式' }]}
         />
@@ -106,8 +106,8 @@ export default function NumberRuleEditModal({
           label="流水号位数"
           min={1}
           max={12}
-          placeholder="例如：4 (生成 0001)"
-          rules={[{ required: true, message: '请输入流水号位数 (1-12)' }]}
+          placeholder="例如 4，生成 0001"
+          rules={[{ required: true, message: '请输入流水号位数（1–12）' }]}
         />
       </Col>
       <Col span={24}>
@@ -115,10 +115,10 @@ export default function NumberRuleEditModal({
           name="resetPolicy"
           label="重置周期"
           options={[
-            { label: '每日重置 (推荐配合年月日)', value: 1 },
-            { label: '每月重置 (推荐配合年月)', value: 2 },
-            { label: '每年重置 (推荐配合年)', value: 3 },
-            { label: '永不重置 (递增累加)', value: 4 },
+            { label: '每日重置（推荐配合年月日）', value: 1 },
+            { label: '每月重置（推荐配合年月）', value: 2 },
+            { label: '每年重置（推荐配合年）', value: 3 },
+            { label: '永不重置（递增累加）', value: 4 },
           ]}
           rules={[{ required: true, message: '请选择重置周期' }]}
         />

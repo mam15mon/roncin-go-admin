@@ -1,6 +1,6 @@
 import { CopyOutlined, EditOutlined } from '@ant-design/icons';
 import { Button, Card, Space, Switch, Tag, Tooltip } from 'antd';
-import React from 'react';
+import React, { type CSSProperties } from 'react';
 import {
   DATE_FORMATS,
   type DocTypeMeta,
@@ -17,6 +17,21 @@ interface NumberRuleCardProps {
   onOpenEdit: (rule: API.NumberRule) => void;
   onCopyPreview: (text: string) => void;
 }
+
+const attributeRowStyle: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: '72px minmax(0, 1fr)',
+  alignItems: 'center',
+  columnGap: 8,
+  minHeight: 22,
+};
+
+const attributeValueStyle: CSSProperties = {
+  minWidth: 0,
+  textAlign: 'right',
+  overflowWrap: 'anywhere',
+  color: '#262626',
+};
 
 export default function NumberRuleCard({
   rule,
@@ -36,7 +51,7 @@ export default function NumberRuleCard({
       style={{
         borderRadius: 8,
         border: '1px solid #e8e8e8',
-        overflow: 'hidden',
+        minWidth: 0,
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
@@ -45,7 +60,7 @@ export default function NumberRuleCard({
       }}
       styles={{
         body: {
-          padding: '16px',
+          padding: 16,
           display: 'flex',
           flexDirection: 'column',
           flex: 1,
@@ -60,10 +75,11 @@ export default function NumberRuleCard({
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'flex-start',
-            marginBottom: 12,
+            gap: 8,
+            marginBottom: 14,
           }}
         >
-          <div>
+          <div style={{ minWidth: 0 }}>
             <Tag
               color={meta.color}
               style={{
@@ -71,6 +87,7 @@ export default function NumberRuleCard({
                 fontWeight: 600,
                 padding: '2px 8px',
                 marginBottom: 4,
+                marginRight: 0,
               }}
             >
               {meta.shortLabel}
@@ -80,6 +97,7 @@ export default function NumberRuleCard({
                 fontSize: 14,
                 fontWeight: 600,
                 color: '#262626',
+                lineHeight: '20px',
               }}
             >
               {meta.label}
@@ -87,7 +105,7 @@ export default function NumberRuleCard({
           </div>
 
           {/* Status Switch */}
-          <Space size={6} align="center">
+          <Space size={6} align="center" style={{ flexShrink: 0 }}>
             <span
               style={{
                 fontSize: 12,
@@ -115,22 +133,17 @@ export default function NumberRuleCard({
             marginBottom: 14,
             display: 'flex',
             flexDirection: 'column',
-            gap: 6,
+            gap: 4,
           }}
         >
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
+          <div style={attributeRowStyle}>
             <span style={{ color: '#8c8c8c' }}>前缀代码：</span>
             {meta.numValue === 1 ? (
               <Tooltip title="订单前缀由系统根据订单流向 (如 SE/SI/AE/AI) 自动匹配">
                 <Tag
                   color="blue"
                   style={{
+                    ...attributeValueStyle,
                     fontFamily: 'ui-monospace, monospace',
                     fontWeight: 600,
                     margin: 0,
@@ -142,6 +155,7 @@ export default function NumberRuleCard({
             ) : (
               <Tag
                 style={{
+                  ...attributeValueStyle,
                   fontFamily: 'ui-monospace, monospace',
                   fontWeight: 600,
                   color: rule.prefix ? '#1677ff' : '#8c8c8c',
@@ -153,12 +167,12 @@ export default function NumberRuleCard({
             )}
           </div>
           {meta.businessCodes && (
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div style={attributeRowStyle}>
               <span style={{ color: '#8c8c8c' }}>业务流向：</span>
               <span
                 style={{
+                  ...attributeValueStyle,
                   fontFamily: 'ui-monospace, monospace',
-                  color: '#262626',
                   fontSize: 11,
                 }}
               >
@@ -166,19 +180,19 @@ export default function NumberRuleCard({
               </span>
             </div>
           )}
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div style={attributeRowStyle}>
             <span style={{ color: '#8c8c8c' }}>日期格式：</span>
-            <span style={{ color: '#262626' }}>{dateMeta.label}</span>
+            <span style={attributeValueStyle}>{dateMeta.label}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div style={attributeRowStyle}>
             <span style={{ color: '#8c8c8c' }}>流水位数：</span>
-            <span style={{ color: '#262626' }}>
+            <span style={attributeValueStyle}>
               {rule.sequenceLength || 4} 位数字
             </span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div style={attributeRowStyle}>
             <span style={{ color: '#8c8c8c' }}>重置策略：</span>
-            <span style={{ color: '#262626' }}>{resetMeta.label}</span>
+            <span style={attributeValueStyle}>{resetMeta.label}</span>
           </div>
         </div>
       </div>
@@ -192,7 +206,8 @@ export default function NumberRuleCard({
             alignItems: 'center',
             fontSize: 11,
             color: '#8c8c8c',
-            marginBottom: 4,
+            gap: 8,
+            marginBottom: 6,
           }}
         >
           <span>单号示例预览：</span>
@@ -211,6 +226,8 @@ export default function NumberRuleCard({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            gap: 8,
+            minHeight: 36,
             marginBottom: 12,
           }}
         >
@@ -222,6 +239,8 @@ export default function NumberRuleCard({
               fontWeight: 600,
               color: '#389e0d',
               letterSpacing: '0.5px',
+              minWidth: 0,
+              overflowWrap: 'anywhere',
             }}
           >
             {sample.text}
@@ -232,7 +251,7 @@ export default function NumberRuleCard({
               size="small"
               icon={<CopyOutlined style={{ fontSize: 12, color: '#52c41a' }} />}
               onClick={() => onCopyPreview(sample.text)}
-              style={{ height: 22, width: 22, padding: 0 }}
+              style={{ height: 22, width: 22, padding: 0, flexShrink: 0 }}
             />
           </Tooltip>
         </div>

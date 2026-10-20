@@ -193,7 +193,7 @@ export function NumberRulesPanel() {
   // Copy Preview Number
   const handleCopyPreview = (num: string) => {
     navigator.clipboard?.writeText(num);
-    message.success(`已复制单号示例: ${num}`);
+    message.success(`已复制单号示例：${num}`);
   };
 
   // Table Columns (for Table Mode)
@@ -208,7 +208,7 @@ export function NumberRulesPanel() {
         return (
           <Tag
             color={meta?.color || 'blue'}
-            style={{ fontSize: 12, padding: '2px 8px' }}
+            style={{ fontSize: 12, padding: '2px 8px', marginRight: 0 }}
           >
             {meta?.label || `单据 ${docType}`}
           </Tag>
@@ -365,9 +365,9 @@ export function NumberRulesPanel() {
           borderRadius: 8,
           marginBottom: 16,
           backgroundColor: '#ffffff',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.03)',
+          border: '1px solid #f0f0f0',
         }}
-        styles={{ body: { padding: '14px 20px' } }}
+        styles={{ body: { padding: '16px 20px' } }}
       >
         <div
           style={{
@@ -375,14 +375,23 @@ export function NumberRulesPanel() {
             justifyContent: 'space-between',
             alignItems: 'center',
             flexWrap: 'wrap',
-            gap: 12,
+            gap: '12px 20px',
           }}
         >
-          <Space size={10} align="center">
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              flex: '1 1 360px',
+              minWidth: 0,
+            }}
+          >
             <div
               style={{
                 width: 38,
                 height: 38,
+                flexShrink: 0,
                 borderRadius: 8,
                 backgroundColor: '#e6f4ff',
                 color: '#1677ff',
@@ -394,7 +403,7 @@ export function NumberRulesPanel() {
             >
               <NumberOutlined />
             </div>
-            <div>
+            <div style={{ minWidth: 0 }}>
               <div
                 style={{
                   fontSize: 16,
@@ -404,15 +413,18 @@ export function NumberRulesPanel() {
               >
                 单据自动编号规则
               </div>
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                集中维护订单、账单、批次、发票、核销、流水及提成等全链路 13
-                类业务单据的自动出号规则
+              <Text
+                type="secondary"
+                style={{ fontSize: 12, lineHeight: '18px' }}
+              >
+                集中维护订单、账单、批次、发票、核销、流水及提成等{' '}
+                {DOC_TYPES.length} 类业务单据的自动出号规则
               </Text>
             </div>
-          </Space>
+          </div>
 
           {/* Action Tools */}
-          <Space size={10}>
+          <Space size={[8, 8]} wrap>
             {/* View Switcher: Card vs Table */}
             <Radio.Group
               value={viewMode}
@@ -487,7 +499,7 @@ export function NumberRulesPanel() {
               };
 
               return (
-                <Col xs={24} sm={12} md={8} lg={6} key={rule.id}>
+                <Col xs={24} sm={12} lg={8} xxl={6} key={rule.id}>
                   <NumberRuleCard
                     rule={rule}
                     meta={meta}
@@ -507,7 +519,7 @@ export function NumberRulesPanel() {
             style={{
               borderRadius: 8,
               backgroundColor: '#ffffff',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.03)',
+              border: '1px solid #f0f0f0',
             }}
             styles={{ body: { padding: 0 } }}
           >
