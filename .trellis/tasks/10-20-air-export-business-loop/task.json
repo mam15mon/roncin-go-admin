@@ -23,12 +23,17 @@
   "relatedFiles": [],
   "notes": "",
   "meta": {
-    "planning_status": "revised_plan_pending_parameter_and_flow_decisions",
+    "planning_status": "business_decisions_recorded_implementation_not_started",
     "evidence_base": "484d6060",
     "master_waybill_scope": "shared_multi_order_confirmed",
     "weight_proposal": "reference_manual_confirmation_with_bubble_share_and_fee_snapshot",
     "plan_revision_date": "2026-10-21",
     "batch_operations_scope": "member_view_continuous_create_explicit_link",
-    "implementation_started": false
+    "implementation_started": false,
+    "weight_defaults": "confirmed_6000_share1_half_up_0.001kg",
+    "workflow_scope": "confirmed_signing_flight_milestones_financial_close_separate",
+    "creation_documents": "mawb_hawb_required",
+    "house_number_scope": "unique_per_master_reusable_across_masters",
+    "airline_identity_scenario": "not_answered_no_scope_expansion"
   }
 }
