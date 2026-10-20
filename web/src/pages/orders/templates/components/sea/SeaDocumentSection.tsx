@@ -320,7 +320,7 @@ export function SeaDocumentSectionComponent({
       : [];
 
   const renderReleasePods = (items: API.OrderReleasePod[]) => {
-    if (!canReadReleasePods) return null;
+    if (!isDetail || !canReadReleasePods) return null;
     if (releasePodsError) {
       return (
         <Alert
@@ -873,7 +873,11 @@ export function SeaDocumentSectionComponent({
             <ProFormTextArea
               noStyle
               placeholder="说明客户请求及本次 HOUSE/DIRECT 切换原因"
-              fieldProps={{ rows: 3, maxLength: 500, showCount: true }}
+              fieldProps={{
+                autoSize: { minRows: 3, maxRows: 6 },
+                maxLength: 500,
+                showCount: true,
+              }}
             />
           </Form.Item>
           <div style={{ marginTop: 12, marginBottom: 12 }}>

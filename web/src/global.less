@@ -947,6 +947,22 @@ body,
   }
 }
 
+// 新建订单桌面操作与标题同行，窄屏在页头内自然换行。
+.roncin-order-create-header .roncin-page-header-main-row {
+  flex-wrap: wrap;
+
+  .roncin-page-header-title-area {
+    flex: 1 1 280px;
+    flex-wrap: wrap;
+  }
+
+  .roncin-page-header-extra {
+    flex-wrap: wrap;
+    max-width: 100%;
+    margin-inline-start: auto;
+  }
+}
+
 // Card 紧凑高密度与清晰边框
 .ant-card {
   border: 1px solid #e2e8f0 !important;

@@ -47,6 +47,8 @@ describe('OrderPageHeader', () => {
         orderKind="sea-export"
         navigationTitle="海运出口"
         subTitle="填写业务委托与配舱信息"
+        actions={<button type="button">创建订单</button>}
+        extra={<button type="button">取消</button>}
       />,
     );
 
@@ -59,6 +61,16 @@ describe('OrderPageHeader', () => {
     // 当前页标题与副标题（当前页仅作为 title 渲染，面包屑中不再包含）
     expect(screen.getByText('新建订单')).toBeInTheDocument();
     expect(screen.getByText('填写业务委托与配舱信息')).toBeInTheDocument();
+    const actionArea = document.querySelector('.roncin-page-header-extra');
+    expect(actionArea).toContainElement(
+      screen.getByRole('button', { name: '创建订单' }),
+    );
+    expect(actionArea).toContainElement(
+      screen.getByRole('button', { name: '取消' }),
+    );
+    expect(
+      document.querySelector('.roncin-page-header-actions-row'),
+    ).toBeNull();
 
     // 主要返回按钮返回列表
     const backBtn = screen.getByRole('button', { name: /返回列表/ });

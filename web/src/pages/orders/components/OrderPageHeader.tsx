@@ -1,6 +1,6 @@
-import { history } from '@/router/history';
 import React, { type ReactNode } from 'react';
 import { PageHeaderShell } from '@/components/ui';
+import { history } from '@/router/history';
 
 export type OrderPageKind = 'create' | 'detail' | 'fees' | 'split';
 
@@ -83,8 +83,18 @@ export const OrderPageHeader: React.FC<OrderPageHeaderProps> = ({
       backText={backText}
       breadcrumbs={breadcrumbs}
       tags={tags}
-      extra={extra}
-      actions={actions}
+      className={page === 'create' ? 'roncin-order-create-header' : undefined}
+      extra={
+        page === 'create' ? (
+          <>
+            {extra}
+            {actions}
+          </>
+        ) : (
+          extra
+        )
+      }
+      actions={page === 'create' ? undefined : actions}
     />
   );
 };

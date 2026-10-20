@@ -232,7 +232,7 @@ export function OrderFormTemplate<T>({
       title={section.title}
       extra={section.extra}
     >
-      <Row gutter={16}>{section.content}</Row>
+      <Row gutter={0}>{section.content}</Row>
     </SectionCard>
   );
 

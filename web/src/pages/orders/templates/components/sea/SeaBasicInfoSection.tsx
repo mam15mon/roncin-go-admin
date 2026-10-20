@@ -6,6 +6,7 @@ import {
   ProFormText,
 } from '@ant-design/pro-components';
 import { Form, Input, Tooltip } from 'antd';
+import { createStyles } from 'antd-style';
 import React from 'react';
 import {
   CurrencyAmountInput,
@@ -110,12 +111,36 @@ export function SeaOrderReferenceField({
   );
 }
 
+const useServiceTypeStyles = createStyles(({ css }) => ({
+  container: css`
+    width: 100%;
+    container-type: inline-size;
+  `,
+  options: css`
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+    @container (max-width: 950px) {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+    @container (max-width: 500px) {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    @container (max-width: 320px) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  `,
+}));
+
 export function SeaServiceTypeFields({ options }: { options: SelectOption[] }) {
+  const { styles } = useServiceTypeStyles();
   return (
-    <div style={{ width: '100%' }}>
+    <div className={styles.container}>
       <ProFormCheckbox.Group
         name="serviceTypeIds"
         label="服务类型"
+        fieldProps={{ className: styles.options }}
         options={options.map((option) => ({
           label: option.label,
           value: option.value,
@@ -177,8 +202,8 @@ export function SeaDangerousGoodsFields({
   }
 
   return (
-    <FormRow cols={6}>
-      <div style={{ gridColumn: 'span 2' }}>
+    <FormRow cols={3}>
+      <div>
         <Form.Item
           label="UN NO."
           name="unNumber"
@@ -196,12 +221,12 @@ export function SeaDangerousGoodsFields({
           />
         </Form.Item>
       </div>
-      <div style={{ gridColumn: 'span 2' }}>
+      <div>
         <Form.Item label="CLASS NO." name="hazardClass">
           <TooltipInput placeholder="类别" maxLength={16} disabled={disabled} />
         </Form.Item>
       </div>
-      <div style={{ gridColumn: 'span 2' }}>
+      <div>
         <ProFormDateTimePicker
           name="declarationCutoffAt"
           label="截申报时间"
@@ -415,35 +440,31 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
   } = props;
   return {
     orderIdentity: (
-      <FormRow cols={6}>
+      <>
         <ProFormText
           name="orderNo"
           label="订单编号"
           placeholder={props.isDetail ? '订单编号' : '保存后自动生成'}
           fieldProps={{ disabled: true }}
         />
-        {!props.isDetail ? (
+        {!props.isDetail && (
           <ProFormDatePicker
             name="orderDate"
             label="订单编号时间"
             tooltip="编号时间仅在订单初次保存前可修改"
             fieldProps={{ style: { width: '100%' } }}
           />
-        ) : (
-          <div style={{ gridColumn: 'span 5' }} />
         )}
-      </FormRow>
+      </>
     ),
     customer: (
-      <FormRow cols={6}>
-        <div style={{ gridColumn: 'span 2' }}>
-          <SeaCustomerField
-            searchCustomers={searchCustomers}
-            readonly={props.readonly}
-            setCustomerCode={setCustomerCode}
-            personnelOptions={props.personnelOptions}
-          />
-        </div>
+      <FormRow cols={4}>
+        <SeaCustomerField
+          searchCustomers={searchCustomers}
+          readonly={props.readonly}
+          setCustomerCode={setCustomerCode}
+          personnelOptions={props.personnelOptions}
+        />
         <Form.Item label="委托单位代码" name="customerCode">
           <TooltipInput disabled placeholder="选择委托单位后自动带出" />
         </Form.Item>
@@ -452,13 +473,11 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
           label="集运/跨境"
           options={shipmentModeOptions}
         />
-        <div style={{ gridColumn: 'span 2' }}>
-          <ProFormRadio.Group
-            name="shipmentType"
-            label="托运类型"
-            options={shipmentTypeOptions}
-          />
-        </div>
+        <ProFormRadio.Group
+          name="shipmentType"
+          label="托运类型"
+          options={shipmentTypeOptions}
+        />
       </FormRow>
     ),
     services: <SeaServiceTypeFields options={serviceTypeOptions} />,
@@ -479,18 +498,14 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
     ),
     references: (
       <>
-        <div style={{ gridColumn: 'span 2' }}>
-          <SeaOrderReferenceField
-            name="customerReferenceNo"
-            isDetail={props.isDetail}
-          />
-        </div>
-        <div style={{ gridColumn: 'span 2' }}>
-          <SeaOrderReferenceField
-            name="internalReferenceNo"
-            isDetail={props.isDetail}
-          />
-        </div>
+        <SeaOrderReferenceField
+          name="customerReferenceNo"
+          isDetail={props.isDetail}
+        />
+        <SeaOrderReferenceField
+          name="internalReferenceNo"
+          isDetail={props.isDetail}
+        />
       </>
     ),
     booking: (
@@ -510,7 +525,7 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
     ),
     agents: (
       <>
-        <div style={{ gridColumn: 'span 2' }}>
+        <div>
           <PartnerQuickAddSelect
             name="bookingAgentId"
             displayName="订舱代理"
@@ -520,7 +535,7 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
             disabled={props.readonly}
           />
         </div>
-        <div style={{ gridColumn: 'span 2' }}>
+        <div>
           <PartnerQuickAddSelect
             name="foreignAgentId"
             displayName="国外代理"
@@ -585,7 +600,7 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
       </Form.Item>
     ),
     commercial: (
-      <FormRow cols={6}>
+      <FormRow cols={4}>
         <ProFormDateTimePicker
           name="receivedAt"
           label="接单时间"
@@ -596,9 +611,11 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
           label="货好时间"
           fieldProps={{ style: { width: '100%' } }}
         />
-        <Form.Item label="工厂" name="factoryName">
-          <TooltipInput placeholder="请输入工厂" maxLength={200} />
-        </Form.Item>
+        <div style={{ gridColumn: 'span 2' }}>
+          <Form.Item label="工厂" name="factoryName">
+            <TooltipInput placeholder="请输入工厂" maxLength={200} />
+          </Form.Item>
+        </div>
       </FormRow>
     ),
   };

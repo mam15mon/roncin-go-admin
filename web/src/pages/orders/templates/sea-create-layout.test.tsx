@@ -131,7 +131,7 @@ describe('SE 新建与详情五卡片合同', () => {
     ).toEqual(expected);
   });
 
-  it('第二卡内部按订舱与主单、航线与船期、箱量与截关、操作补充编排', () => {
+  it('第二卡按业务分组编排，操作备注合并为一行', () => {
     let _form!: FormInstance;
     render(
       <SectionCards
@@ -147,7 +147,8 @@ describe('SE 新建与详情五卡片合同', () => {
     expect(bookingSection).toHaveTextContent('订舱与主单');
     expect(bookingSection).toHaveTextContent('航线与船期');
     expect(bookingSection).toHaveTextContent('箱量与截关');
-    expect(bookingSection).toHaveTextContent('操作补充');
+    expect(bookingSection).not.toHaveTextContent('操作补充');
+    expect(within(bookingSection).getAllByText('操作备注')).toHaveLength(1);
     // 订舱号、船公司、MBL 主单号、提单模式同在第一小节。
     expect(bookingSection).toHaveTextContent('订舱号');
     expect(bookingSection).toHaveTextContent('船公司');
@@ -181,6 +182,8 @@ describe('SE 新建与详情五卡片合同', () => {
     // 提单卡 MBL 页签展示实际件重尺标题，不再出现委托对照列。
     expect(screen.getByText('MBL 实际件重尺')).toBeVisible();
     expect(screen.queryByText('委托 vs 实际件重尺对照')).toBeNull();
+    expect(screen.queryByText('关联放货记录')).toBeNull();
+    expect(screen.queryByText('暂无关联放货记录')).toBeNull();
   });
 
   it('散杂托运在货物与商业卡展示散杂计费吨提示', () => {

@@ -40,13 +40,21 @@ export function SeaCargoDescriptionFields() {
           name="goodsDescription"
           label="委托品名 / 货物描述"
           placeholder="请输入客户委托申报的中英文品名或货物描述"
-          fieldProps={{ maxLength: 1000, showCount: true, rows: 3 }}
+          fieldProps={{
+            maxLength: 1000,
+            showCount: true,
+            autoSize: { minRows: 4, maxRows: 6 },
+          }}
         />
         <ProFormTextArea
           name="specialRequirements"
           label="特殊要求"
           placeholder="请输入客户或货物的特殊运输、装卸要求"
-          fieldProps={{ maxLength: 1000, showCount: true, rows: 3 }}
+          fieldProps={{
+            maxLength: 1000,
+            showCount: true,
+            autoSize: { minRows: 4, maxRows: 6 },
+          }}
         />
       </FormRow>
     </>
@@ -61,7 +69,7 @@ export function SeaConsignedMeasurementFields({
 }) {
   return (
     <>
-      <FormRow cols={4}>
+      <FormRow cols={3}>
         <Form.Item label="委托件数" style={{ marginBottom: 0 }}>
           <PackageCountInput
             countName="totalPackages"

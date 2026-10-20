@@ -57,10 +57,12 @@ export function getSeaTemplateSections(
       title: '业务与客户',
       content: (
         <div style={{ display: 'grid', gap: 12, width: '100%' }}>
-          {basic.orderIdentity}
+          <FormRow cols={4}>
+            {basic.orderIdentity}
+            {basic.references}
+          </FormRow>
           {basic.customer}
           {basic.services}
-          <FormRow cols={4}>{basic.references}</FormRow>
         </div>
       ),
     },
@@ -70,19 +72,18 @@ export function getSeaTemplateSections(
       content: (
         <div style={{ display: 'grid', gap: 12, width: '100%' }}>
           <SeaFieldGroup title="订舱与主单">
-            <FormRow cols={6}>
+            <FormRow cols={4}>
               {basic.booking}
               {basic.carrier}
               {transport.master}
             </FormRow>
-            <FormRow cols={6}>
+            <FormRow cols={3}>
               {basic.agents}
               {basic.shippingAgent}
             </FormRow>
-            <FormRow cols={6}>
-              <div style={{ gridColumn: 'span 3' }}>
-                <SeaDocumentModeDisplayField props={props} />
-              </div>
+            <FormRow cols={2}>
+              <SeaDocumentModeDisplayField props={props} />
+              {transport.ownership}
             </FormRow>
             <SeaCollapsibleNotesField
               name="bookingNotes"
@@ -92,7 +93,7 @@ export function getSeaTemplateSections(
             />
           </SeaFieldGroup>
           <SeaFieldGroup title="航线与船期">
-            <FormRow cols={6}>
+            <FormRow cols={4}>
               {transport.vessel}
               {transport.schedule}
             </FormRow>
@@ -100,10 +101,7 @@ export function getSeaTemplateSections(
           </SeaFieldGroup>
           <SeaFieldGroup title="箱量与截关">
             {transport.containers}
-            <FormRow cols={6}>
-              <div style={{ gridColumn: 'span 2' }}>{transport.ownership}</div>
-              {transport.cutoffs}
-            </FormRow>
+            <FormRow cols={4}>{transport.cutoffs}</FormRow>
             <SeaCollapsibleNotesField
               name="allocationNotes"
               label="配舱备注"
@@ -111,14 +109,13 @@ export function getSeaTemplateSections(
               disabled={props.readonly}
             />
           </SeaFieldGroup>
-          <SeaFieldGroup title="操作补充">
-            <SeaCollapsibleNotesField
-              name="operationNotes"
-              label="操作备注"
-              placeholder="请输入操作备注"
-              disabled={props.readonly}
-            />
-          </SeaFieldGroup>
+          <SeaCollapsibleNotesField
+            name="operationNotes"
+            label="操作备注"
+            placeholder="请输入操作备注"
+            disabled={props.readonly}
+            sectionHeading
+          />
         </div>
       ),
     },
@@ -130,7 +127,7 @@ export function getSeaTemplateSections(
           {basic.categories}
           {basic.dangerous}
           <SeaCargoDescriptionFields />
-          <FormRow cols={6}>
+          <FormRow cols={4}>
             {basic.trade}
             {basic.contract}
             {basic.cargoValue}

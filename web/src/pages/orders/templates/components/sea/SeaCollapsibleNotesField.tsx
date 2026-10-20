@@ -17,11 +17,13 @@ export function SeaCollapsibleNotesField({
   label,
   placeholder,
   disabled,
+  sectionHeading = false,
 }: {
   name: string;
   label: string;
   placeholder?: string;
   disabled?: boolean;
+  sectionHeading?: boolean;
 }) {
   const form = Form.useFormInstance();
   const value = Form.useWatch(name, form) as string | undefined;
@@ -54,7 +56,9 @@ export function SeaCollapsibleNotesField({
         <span
           style={{
             fontSize: 13,
-            fontWeight: 500,
+            fontWeight: sectionHeading ? 600 : 500,
+            borderInlineStart: sectionHeading ? '3px solid #1677ff' : undefined,
+            paddingInlineStart: sectionHeading ? 8 : undefined,
             color: 'rgba(0, 0, 0, 0.88)',
           }}
         >
@@ -76,7 +80,11 @@ export function SeaCollapsibleNotesField({
           name={name}
           placeholder={placeholder}
           disabled={disabled}
-          fieldProps={{ maxLength: 1000, showCount: true, rows: 3 }}
+          fieldProps={{
+            maxLength: 1000,
+            showCount: true,
+            autoSize: { minRows: 4, maxRows: 6 },
+          }}
         />
       </div>
     </div>

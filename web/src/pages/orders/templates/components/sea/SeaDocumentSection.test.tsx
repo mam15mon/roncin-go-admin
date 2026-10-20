@@ -239,6 +239,8 @@ describe('SeaDocumentSectionComponent', () => {
       name: /切换为仅船公司主单（DIRECT）/,
     });
     expect(switchButton).toBeEnabled();
+    expect(screen.getAllByText('关联放货记录').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('暂无关联放货记录').length).toBeGreaterThan(0);
     fireEvent.click(switchButton);
     fireEvent.change(
       screen.getByPlaceholderText('说明客户请求及本次 HOUSE/DIRECT 切换原因'),

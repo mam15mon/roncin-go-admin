@@ -459,7 +459,7 @@ export function SeaBillContentFormFields({
               name={[...namePathPrefix, 'shipperText']}
               placeholder="请输入发货人英文名称与详细地址"
               disabled={disabled}
-              fieldProps={{ rows: 3 }}
+              fieldProps={{ autoSize: { minRows: 5, maxRows: 10 } }}
               noStyle
             />
           </div>
@@ -528,7 +528,7 @@ export function SeaBillContentFormFields({
               name={[...namePathPrefix, 'consigneeText']}
               placeholder="请输入收货人名称与地址 (TO ORDER 或具体收货人)"
               disabled={disabled}
-              fieldProps={{ rows: 3 }}
+              fieldProps={{ autoSize: { minRows: 5, maxRows: 10 } }}
               noStyle
             />
           </div>
@@ -612,7 +612,7 @@ export function SeaBillContentFormFields({
                 name={[...namePathPrefix, 'notifyPartyText']}
                 placeholder="请输入通知人名称与详细地址 (例如：SAME AS CONSIGNEE)"
                 disabled={disabled}
-                fieldProps={{ rows: 3 }}
+                fieldProps={{ autoSize: { minRows: 5, maxRows: 10 } }}
                 noStyle
               />
             ) : (
@@ -620,7 +620,7 @@ export function SeaBillContentFormFields({
                 name={[...namePathPrefix, 'secondNotifyPartyText']}
                 placeholder="请输入第二通知人名称与详细地址 (选填，多数提单无需填写)"
                 disabled={disabled}
-                fieldProps={{ rows: 3 }}
+                fieldProps={{ autoSize: { minRows: 5, maxRows: 10 } }}
                 noStyle
               />
             )}
@@ -672,7 +672,7 @@ export function SeaBillContentFormFields({
               name={[...namePathPrefix, 'foreignAgentText']}
               placeholder="请输入目的港/国外代理名称、地址与联系方式"
               disabled={disabled}
-              fieldProps={{ rows: 3 }}
+              fieldProps={{ autoSize: { minRows: 5, maxRows: 10 } }}
               noStyle
             />
           </div>
@@ -768,7 +768,7 @@ export function SeaBillContentFormFields({
               name={[...namePathPrefix, 'marksText']}
               placeholder="请输入唛头信息 (例如：N/M)"
               disabled={disabled}
-              fieldProps={{ rows: 3 }}
+              fieldProps={{ autoSize: { minRows: 6, maxRows: 12 } }}
               noStyle
             />
           </div>
@@ -825,7 +825,7 @@ export function SeaBillContentFormFields({
               name={[...namePathPrefix, 'goodsDescriptionText']}
               placeholder="请输入提单打印品名与货物描述"
               disabled={disabled}
-              fieldProps={{ rows: 3 }}
+              fieldProps={{ autoSize: { minRows: 6, maxRows: 12 } }}
               noStyle
             />
           </div>
@@ -1237,7 +1237,11 @@ export function SeaBillContentFormFields({
             label="提单特别条款 (Clauses)"
             placeholder="选填，请输入提单特别条款"
             disabled={disabled}
-            fieldProps={{ maxLength: 1000, showCount: true, rows: 2 }}
+            fieldProps={{
+              maxLength: 1000,
+              showCount: true,
+              autoSize: { minRows: 3, maxRows: 6 },
+            }}
           />
         </FormRow>
       </div>

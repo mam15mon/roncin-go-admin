@@ -307,7 +307,7 @@ export function SeaMasterBillFields({
 
   return (
     <>
-      <div style={{ gridColumn: 'span 2' }}>
+      <div>
         <Form.Item
           name="seaMasterBillMasterNo"
           label="MBL 主单号"
@@ -661,7 +661,7 @@ export function getSeaTransportFields(props: TemplateProps) {
       />
     ),
     vessel: (
-      <div style={{ gridColumn: 'span 2' }}>
+      <div>
         <ProFormText
           name="vesselVoyage"
           label="船名航次"
@@ -686,8 +686,8 @@ export function getSeaTransportFields(props: TemplateProps) {
       </div>
     ),
     ports: (
-      <FormRow cols={6}>
-        <div style={{ gridColumn: 'span 2' }}>
+      <FormRow cols={4}>
+        <div>
           <ProFormSearchableSelect
             name="originLocationId"
             label="起运港"
@@ -697,7 +697,7 @@ export function getSeaTransportFields(props: TemplateProps) {
             placeholder="请选择起运港或地点"
           />
         </div>
-        <div style={{ gridColumn: 'span 2' }}>
+        <div>
           <ProFormSearchableSelect
             name="destinationLocationId"
             label="目的港"
