@@ -15,6 +15,7 @@
 | [DingTalk Notification Test](./dingtalk-notification-test.md) | 独立Admin预览、本人测试发送、无效验证码与受控费用链接 | ✅ |
 | [Sea Export Document Contract](./sea-export-document-contract.md) | 海运操作票、共享 MBL、运输执行与 HBL 跨层契约 | ✅ |
 | [Air Export Contract](./air-export-contract.md) | 空运共享 MAWB/HAWB、成员与单证历史、流程、重量确认和费用来源 | ✅ |
+| [Order Shared Enum Field](./order-shared-enum-field.md) | 订单共享契约新增可选枚举字段的五层配方、迁移列形与更新语义 | ✅ |
 | [Order Lock and Document Version](./order-lock-and-document-version.md) | 海运出口订单业务锁、不可变版本与共享 MBL 固定锁序 | ✅ |
 | [Sea Document Change History](./sea-document-change-history.md) | 海运提单改单、作废、Switch、财务门禁与不可变历史 | ✅ |
 | [Finance Bill Currency](./finance-bill-currency.md) | 普通账单固定费用币种边界、账单日汇率、核销/对冲本位币口径与预计开票快照 | ✅ |
