@@ -19,127 +19,169 @@ import { masterDataServiceListAirlines } from '@/services/roncin/masterDataServi
 import { ensureListResponse } from '@/utils/api';
 import type { TemplateProps } from '../../types';
 
-/** 共同资料只有新建主单或主单明确编辑命令能够写入。 */
-export function AirMasterFields({
+type AirMasterFieldProps = Pick<
+  TemplateProps,
+  'searchLocations' | 'locationOptions' | 'readonly'
+>;
+
+/** 主单身份与航线字段：主运单号、航空公司、起运/目的机场与航班号。 */
+export function AirMasterRouteFields({
   props,
   prefix = ['airMaster'],
   includeIdentity = true,
   master,
 }: {
-  props: Pick<
-    TemplateProps,
-    'searchLocations' | 'locationOptions' | 'readonly'
-  >;
+  props: AirMasterFieldProps;
   prefix?: string[];
   includeIdentity?: boolean;
   master?: API.AirMasterWaybill;
 }) {
   const name = (key: string) => [...prefix, key];
   return (
+    <FormRow cols={4}>
+      {includeIdentity && (
+        <ProFormText
+          name={name('masterNo')}
+          label="主运单号（MAWB）"
+          rules={[
+            { required: true, message: '请输入主运单号' },
+            {
+              validator: async (_, value) => {
+                const normalized = String(value || '').replace(/[\s-]/g, '');
+                if (
+                  normalized &&
+                  (!/^\d{11}$/.test(normalized) ||
+                    Number(normalized.slice(3, 10)) % 7 !==
+                      Number(normalized[10]))
+                )
+                  throw new Error(
+                    '请输入 11 位有效航空主单号（含模 7 校验位）',
+                  );
+              },
+            },
+          ]}
+          fieldProps={{ maxLength: 20 }}
+          disabled={props.readonly || Boolean(master)}
+        />
+      )}
+      <ProFormSearchableSelect
+        name={name('airlineId')}
+        label="航空公司"
+        rules={[{ required: true, message: '请选择航空公司' }]}
+        disabled={props.readonly}
+        options={
+          master?.content?.airlineId
+            ? [
+                {
+                  value: master.content.airlineId,
+                  label: master.airlineName || '',
+                },
+              ]
+            : undefined
+        }
+        request={async ({ keyWords }) => {
+          const response = ensureListResponse(
+            await masterDataServiceListAirlines({
+              page: 1,
+              pageSize: 50,
+              keyword: keyWords,
+              enabled: true,
+            }),
+            '航空公司加载失败',
+          );
+          return (response.data ?? []).map((item) => ({
+            value: item.id || '',
+            label: `${item.nameZh || item.nameEn || ''} (${item.iataCode || item.icaoCode || ''})`,
+          }));
+        }}
+      />
+      {(['originAirportId', 'destinationAirportId'] as const).map(
+        (key, index) => (
+          <ProFormSearchableSelect
+            key={key}
+            name={name(key)}
+            label={index === 0 ? '起运机场' : '目的机场'}
+            options={[
+              ...props.locationOptions,
+              ...(master?.content?.[key]
+                ? [
+                    {
+                      value: master.content[key] || '',
+                      label:
+                        index === 0
+                          ? master.originAirportName || ''
+                          : master.destinationAirportName || '',
+                    },
+                  ]
+                : []),
+            ]}
+            rules={[{ required: true, message: '请选择机场' }]}
+            disabled={props.readonly}
+            request={({ keyWords }) => props.searchLocations(keyWords)}
+          />
+        ),
+      )}
+      <ProFormText
+        name={name('flightNo')}
+        label="航班号"
+        disabled={props.readonly}
+        fieldProps={{ maxLength: 40 }}
+      />
+    </FormRow>
+  );
+}
+
+/** 班期字段：计划起飞/到达与实际起飞/到达。 */
+export function AirMasterScheduleFields({
+  props,
+  prefix = ['airMaster'],
+}: {
+  props: AirMasterFieldProps;
+  prefix?: string[];
+}) {
+  const name = (key: string) => [...prefix, key];
+  return (
+    <FormRow cols={4}>
+      <ProFormDateTimePicker
+        name={name('etd')}
+        label="计划起飞"
+        disabled={props.readonly}
+        fieldProps={{ style: { width: '100%' } }}
+      />
+      <ProFormDateTimePicker
+        name={name('eta')}
+        label="计划到达"
+        disabled={props.readonly}
+        fieldProps={{ style: { width: '100%' } }}
+      />
+      <ProFormDateTimePicker
+        name={name('actualDepartureAt')}
+        label="实际起飞"
+        disabled={props.readonly}
+        fieldProps={{ style: { width: '100%' } }}
+      />
+      <ProFormDateTimePicker
+        name={name('actualArrivalAt')}
+        label="实际到达"
+        disabled={props.readonly}
+        fieldProps={{ style: { width: '100%' } }}
+      />
+    </FormRow>
+  );
+}
+
+/** 申报字段：截单/报关截止、主单单证状态与主单申报件重尺。 */
+export function AirMasterDeclarationFields({
+  props,
+  prefix = ['airMaster'],
+}: {
+  props: AirMasterFieldProps;
+  prefix?: string[];
+}) {
+  const name = (key: string) => [...prefix, key];
+  return (
     <>
       <FormRow cols={4}>
-        {includeIdentity && (
-          <ProFormText
-            name={name('masterNo')}
-            label="主运单号（MAWB）"
-            rules={[
-              { required: true, message: '请输入主运单号' },
-              {
-                validator: async (_, value) => {
-                  const normalized = String(value || '').replace(/[\s-]/g, '');
-                  if (
-                    normalized &&
-                    (!/^\d{11}$/.test(normalized) ||
-                      Number(normalized.slice(3, 10)) % 7 !==
-                        Number(normalized[10]))
-                  )
-                    throw new Error(
-                      '请输入 11 位有效航空主单号（含模 7 校验位）',
-                    );
-                },
-              },
-            ]}
-            fieldProps={{ maxLength: 20 }}
-            disabled={props.readonly || Boolean(master)}
-          />
-        )}
-        <ProFormSearchableSelect
-          name={name('airlineId')}
-          label="航空公司"
-          rules={[{ required: true, message: '请选择航空公司' }]}
-          disabled={props.readonly}
-          options={
-            master?.content?.airlineId
-              ? [
-                  {
-                    value: master.content.airlineId,
-                    label: master.airlineName || '',
-                  },
-                ]
-              : undefined
-          }
-          request={async ({ keyWords }) => {
-            const response = ensureListResponse(
-              await masterDataServiceListAirlines({
-                page: 1,
-                pageSize: 50,
-                keyword: keyWords,
-                enabled: true,
-              }),
-              '航空公司加载失败',
-            );
-            return (response.data ?? []).map((item) => ({
-              value: item.id || '',
-              label: `${item.nameZh || item.nameEn || ''} (${item.iataCode || item.icaoCode || ''})`,
-            }));
-          }}
-        />
-        {(['originAirportId', 'destinationAirportId'] as const).map(
-          (key, index) => (
-            <ProFormSearchableSelect
-              key={key}
-              name={name(key)}
-              label={index === 0 ? '起运机场' : '目的机场'}
-              options={[
-                ...props.locationOptions,
-                ...(master?.content?.[key]
-                  ? [
-                      {
-                        value: master.content[key] || '',
-                        label:
-                          index === 0
-                            ? master.originAirportName || ''
-                            : master.destinationAirportName || '',
-                      },
-                    ]
-                  : []),
-              ]}
-              rules={[{ required: true, message: '请选择机场' }]}
-              disabled={props.readonly}
-              request={({ keyWords }) => props.searchLocations(keyWords)}
-            />
-          ),
-        )}
-        <ProFormText
-          name={name('flightNo')}
-          label="航班号"
-          disabled={props.readonly}
-          fieldProps={{ maxLength: 40 }}
-        />
-      </FormRow>
-      <FormRow cols={4}>
-        <ProFormDateTimePicker
-          name={name('etd')}
-          label="计划起飞"
-          disabled={props.readonly}
-          fieldProps={{ style: { width: '100%' } }}
-        />
-        <ProFormDateTimePicker
-          name={name('eta')}
-          label="计划到达"
-          disabled={props.readonly}
-          fieldProps={{ style: { width: '100%' } }}
-        />
         <ProFormDateTimePicker
           name={name('documentCutoffAt')}
           label="截单时间"
@@ -149,20 +191,6 @@ export function AirMasterFields({
         <ProFormDateTimePicker
           name={name('customsCutoffAt')}
           label="报关截止"
-          disabled={props.readonly}
-          fieldProps={{ style: { width: '100%' } }}
-        />
-      </FormRow>
-      <FormRow cols={4}>
-        <ProFormDateTimePicker
-          name={name('actualDepartureAt')}
-          label="实际起飞"
-          disabled={props.readonly}
-          fieldProps={{ style: { width: '100%' } }}
-        />
-        <ProFormDateTimePicker
-          name={name('actualArrivalAt')}
-          label="实际到达"
           disabled={props.readonly}
           fieldProps={{ style: { width: '100%' } }}
         />
@@ -201,8 +229,34 @@ export function AirMasterFields({
           fieldProps={{ precision: 3 }}
         />
       </FormRow>
+    </>
+  );
+}
+
+/** 共同资料只有新建主单或主单明确编辑命令能够写入。 */
+export function AirMasterFields({
+  props,
+  prefix = ['airMaster'],
+  includeIdentity = true,
+  master,
+}: {
+  props: AirMasterFieldProps;
+  prefix?: string[];
+  includeIdentity?: boolean;
+  master?: API.AirMasterWaybill;
+}) {
+  return (
+    <>
+      <AirMasterRouteFields
+        props={props}
+        prefix={prefix}
+        includeIdentity={includeIdentity}
+        master={master}
+      />
+      <AirMasterScheduleFields props={props} prefix={prefix} />
+      <AirMasterDeclarationFields props={props} prefix={prefix} />
       <ProFormTextArea
-        name={name('notes')}
+        name={[...prefix, 'notes']}
         label="主单备注"
         disabled={props.readonly}
         fieldProps={{ maxLength: 1000 }}
