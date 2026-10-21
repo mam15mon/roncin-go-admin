@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "质量检查命令与禁令，验收选取最小检查集"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "核对重组后表单是否符合模板与显示口径规范"}
