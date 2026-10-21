@@ -7,7 +7,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
-import { Form } from 'antd';
+import { Form, type FormInstance } from 'antd';
 import { describe, expect, it, vi } from 'vitest';
 import { getAirTemplateSections } from './air-template';
 import type { TemplateProps } from './types';
@@ -54,12 +54,21 @@ const user = {
 function SectionCards({
   initialValues,
   isDetail = false,
+  cargoCategoryOptions = props.cargoCategoryOptions,
+  exposeForm,
 }: {
   initialValues?: Record<string, unknown>;
   isDetail?: boolean;
+  cargoCategoryOptions?: TemplateProps['cargoCategoryOptions'];
+  exposeForm?: (form: FormInstance) => void;
 }) {
   const [form] = Form.useForm();
-  const sections = getAirTemplateSections({ ...props, isDetail });
+  exposeForm?.(form);
+  const sections = getAirTemplateSections({
+    ...props,
+    cargoCategoryOptions,
+    isDetail,
+  });
   return (
     <ProForm
       form={form}
@@ -182,10 +191,22 @@ describe('AE 新建与详情五卡片合同', () => {
     await flushMountRequests();
   });
 
-  it('本票货物卡在品类与货物描述之间渲染危险品联动区块（默认收起）', async () => {
-    renderWithApp(<SectionCards />, { user });
+  it('本票货物卡在品类与货物描述之间渲染危险品联动区块，勾选危险品后展开', async () => {
+    let form!: FormInstance;
+    renderWithApp(
+      <SectionCards
+        cargoCategoryOptions={[
+          { label: '危险品', value: 'cat-dg', code: 'DANGEROUS' },
+        ]}
+        exposeForm={(instance) => {
+          form = instance;
+        }}
+      />,
+      { user },
+    );
     const cargo = screen.getByRole('region', { name: '本票货物' });
-    const motion = within(cargo).getByTestId('sea-dangerous-goods-motion');
+    // 渲染初始即收起（未勾选任何品类）。
+    let motion = within(cargo).getByTestId('sea-dangerous-goods-motion');
     expect(motion).toHaveAttribute('data-open', 'false');
     expect(motion).toHaveAttribute('aria-hidden', 'true');
     // 顺序即模板编排：货物品类 → 危险品联动 → 货物描述。
@@ -199,7 +220,14 @@ describe('AE 新建与详情五卡片合同', () => {
       motion.compareDocumentPosition(descriptionLabel) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
+    // 勾选危险品品类后联动展开：options 接线正确（误传服务类型等候选时用例失败）。
+    await act(async () => {
+      form.setFieldsValue({ cargoCategoryIds: ['cat-dg'] });
+    });
     await flushMountRequests();
+    motion = within(cargo).getByTestId('sea-dangerous-goods-motion');
+    expect(motion).toHaveAttribute('data-open', 'true');
+    expect(motion).toHaveAttribute('aria-hidden', 'false');
   });
 
   it('切到关联已有主单时收起航线/申报小节与主单备注，保留操作备注', async () => {
