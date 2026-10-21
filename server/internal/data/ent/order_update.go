@@ -401,6 +401,26 @@ func (_u *OrderUpdate) ClearHazardClass() *OrderUpdate {
 	return _u
 }
 
+// SetDangerousPackingGroup sets the "dangerous_packing_group" field.
+func (_u *OrderUpdate) SetDangerousPackingGroup(v order.DangerousPackingGroup) *OrderUpdate {
+	_u.mutation.SetDangerousPackingGroup(v)
+	return _u
+}
+
+// SetNillableDangerousPackingGroup sets the "dangerous_packing_group" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableDangerousPackingGroup(v *order.DangerousPackingGroup) *OrderUpdate {
+	if v != nil {
+		_u.SetDangerousPackingGroup(*v)
+	}
+	return _u
+}
+
+// ClearDangerousPackingGroup clears the value of the "dangerous_packing_group" field.
+func (_u *OrderUpdate) ClearDangerousPackingGroup() *OrderUpdate {
+	_u.mutation.ClearDangerousPackingGroup()
+	return _u
+}
+
 // SetFactoryName sets the "factory_name" field.
 func (_u *OrderUpdate) SetFactoryName(v string) *OrderUpdate {
 	_u.mutation.SetFactoryName(v)
@@ -2851,6 +2871,11 @@ func (_u *OrderUpdate) check() error {
 			return &ValidationError{Name: "hazard_class", err: fmt.Errorf(`ent: validator failed for field "Order.hazard_class": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.DangerousPackingGroup(); ok {
+		if err := order.DangerousPackingGroupValidator(v); err != nil {
+			return &ValidationError{Name: "dangerous_packing_group", err: fmt.Errorf(`ent: validator failed for field "Order.dangerous_packing_group": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.FactoryName(); ok {
 		if err := order.FactoryNameValidator(v); err != nil {
 			return &ValidationError{Name: "factory_name", err: fmt.Errorf(`ent: validator failed for field "Order.factory_name": %w`, err)}
@@ -3145,6 +3170,12 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.HazardClassCleared() {
 		_spec.ClearField(order.FieldHazardClass, field.TypeString)
+	}
+	if value, ok := _u.mutation.DangerousPackingGroup(); ok {
+		_spec.SetField(order.FieldDangerousPackingGroup, field.TypeEnum, value)
+	}
+	if _u.mutation.DangerousPackingGroupCleared() {
+		_spec.ClearField(order.FieldDangerousPackingGroup, field.TypeEnum)
 	}
 	if value, ok := _u.mutation.FactoryName(); ok {
 		_spec.SetField(order.FieldFactoryName, field.TypeString, value)
@@ -5382,6 +5413,26 @@ func (_u *OrderUpdateOne) SetNillableHazardClass(v *string) *OrderUpdateOne {
 // ClearHazardClass clears the value of the "hazard_class" field.
 func (_u *OrderUpdateOne) ClearHazardClass() *OrderUpdateOne {
 	_u.mutation.ClearHazardClass()
+	return _u
+}
+
+// SetDangerousPackingGroup sets the "dangerous_packing_group" field.
+func (_u *OrderUpdateOne) SetDangerousPackingGroup(v order.DangerousPackingGroup) *OrderUpdateOne {
+	_u.mutation.SetDangerousPackingGroup(v)
+	return _u
+}
+
+// SetNillableDangerousPackingGroup sets the "dangerous_packing_group" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableDangerousPackingGroup(v *order.DangerousPackingGroup) *OrderUpdateOne {
+	if v != nil {
+		_u.SetDangerousPackingGroup(*v)
+	}
+	return _u
+}
+
+// ClearDangerousPackingGroup clears the value of the "dangerous_packing_group" field.
+func (_u *OrderUpdateOne) ClearDangerousPackingGroup() *OrderUpdateOne {
+	_u.mutation.ClearDangerousPackingGroup()
 	return _u
 }
 
@@ -7848,6 +7899,11 @@ func (_u *OrderUpdateOne) check() error {
 			return &ValidationError{Name: "hazard_class", err: fmt.Errorf(`ent: validator failed for field "Order.hazard_class": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.DangerousPackingGroup(); ok {
+		if err := order.DangerousPackingGroupValidator(v); err != nil {
+			return &ValidationError{Name: "dangerous_packing_group", err: fmt.Errorf(`ent: validator failed for field "Order.dangerous_packing_group": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.FactoryName(); ok {
 		if err := order.FactoryNameValidator(v); err != nil {
 			return &ValidationError{Name: "factory_name", err: fmt.Errorf(`ent: validator failed for field "Order.factory_name": %w`, err)}
@@ -8159,6 +8215,12 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	}
 	if _u.mutation.HazardClassCleared() {
 		_spec.ClearField(order.FieldHazardClass, field.TypeString)
+	}
+	if value, ok := _u.mutation.DangerousPackingGroup(); ok {
+		_spec.SetField(order.FieldDangerousPackingGroup, field.TypeEnum, value)
+	}
+	if _u.mutation.DangerousPackingGroupCleared() {
+		_spec.ClearField(order.FieldDangerousPackingGroup, field.TypeEnum)
 	}
 	if value, ok := _u.mutation.FactoryName(); ok {
 		_spec.SetField(order.FieldFactoryName, field.TypeString, value)

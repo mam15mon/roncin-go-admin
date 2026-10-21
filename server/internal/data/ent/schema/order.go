@@ -50,6 +50,9 @@ func (Order) Fields() []ent.Field {
 		field.String("insurance_currency").Optional().MinLen(3).MaxLen(3),
 		field.String("un_number").Optional().MaxLen(4),
 		field.String("hazard_class").Optional().MaxLen(16),
+		// 危险品包装类别（IATA DGR）：nil 兼「未填 / 不适用」双语义
+		// （Class 1/2/7 无包装类别），UNSPECIFIED 不落库。
+		field.Enum("dangerous_packing_group").Values("PG_I", "PG_II", "PG_III").Optional().Nillable(),
 		field.String("factory_name").Optional().MaxLen(200),
 		field.String("cargo_ready_at").Optional().MaxLen(64),
 		field.String("declaration_cutoff_at").Optional().MaxLen(64),

@@ -58,6 +58,8 @@ const (
 	FieldUnNumber = "un_number"
 	// FieldHazardClass holds the string denoting the hazard_class field in the database.
 	FieldHazardClass = "hazard_class"
+	// FieldDangerousPackingGroup holds the string denoting the dangerous_packing_group field in the database.
+	FieldDangerousPackingGroup = "dangerous_packing_group"
 	// FieldFactoryName holds the string denoting the factory_name field in the database.
 	FieldFactoryName = "factory_name"
 	// FieldCargoReadyAt holds the string denoting the cargo_ready_at field in the database.
@@ -526,6 +528,7 @@ var Columns = []string{
 	FieldInsuranceCurrency,
 	FieldUnNumber,
 	FieldHazardClass,
+	FieldDangerousPackingGroup,
 	FieldFactoryName,
 	FieldCargoReadyAt,
 	FieldDeclarationCutoffAt,
@@ -694,6 +697,30 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// DangerousPackingGroup defines the type for the "dangerous_packing_group" enum field.
+type DangerousPackingGroup string
+
+// DangerousPackingGroup values.
+const (
+	DangerousPackingGroupPG_I   DangerousPackingGroup = "PG_I"
+	DangerousPackingGroupPG_II  DangerousPackingGroup = "PG_II"
+	DangerousPackingGroupPG_III DangerousPackingGroup = "PG_III"
+)
+
+func (dpg DangerousPackingGroup) String() string {
+	return string(dpg)
+}
+
+// DangerousPackingGroupValidator is a validator for the "dangerous_packing_group" field enum values. It is called by the builders before save.
+func DangerousPackingGroupValidator(dpg DangerousPackingGroup) error {
+	switch dpg {
+	case DangerousPackingGroupPG_I, DangerousPackingGroupPG_II, DangerousPackingGroupPG_III:
+		return nil
+	default:
+		return fmt.Errorf("order: invalid enum value for dangerous_packing_group field: %q", dpg)
+	}
+}
 
 // BusinessType defines the type for the "business_type" enum field.
 type BusinessType string
@@ -1169,6 +1196,11 @@ func ByUnNumber(opts ...sql.OrderTermOption) OrderOption {
 // ByHazardClass orders the results by the hazard_class field.
 func ByHazardClass(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldHazardClass, opts...).ToFunc()
+}
+
+// ByDangerousPackingGroup orders the results by the dangerous_packing_group field.
+func ByDangerousPackingGroup(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDangerousPackingGroup, opts...).ToFunc()
 }
 
 // ByFactoryName orders the results by the factory_name field.

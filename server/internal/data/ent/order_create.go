@@ -322,6 +322,20 @@ func (_c *OrderCreate) SetNillableHazardClass(v *string) *OrderCreate {
 	return _c
 }
 
+// SetDangerousPackingGroup sets the "dangerous_packing_group" field.
+func (_c *OrderCreate) SetDangerousPackingGroup(v order.DangerousPackingGroup) *OrderCreate {
+	_c.mutation.SetDangerousPackingGroup(v)
+	return _c
+}
+
+// SetNillableDangerousPackingGroup sets the "dangerous_packing_group" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableDangerousPackingGroup(v *order.DangerousPackingGroup) *OrderCreate {
+	if v != nil {
+		_c.SetDangerousPackingGroup(*v)
+	}
+	return _c
+}
+
 // SetFactoryName sets the "factory_name" field.
 func (_c *OrderCreate) SetFactoryName(v string) *OrderCreate {
 	_c.mutation.SetFactoryName(v)
@@ -1822,6 +1836,11 @@ func (_c *OrderCreate) check() error {
 			return &ValidationError{Name: "hazard_class", err: fmt.Errorf(`ent: validator failed for field "Order.hazard_class": %w`, err)}
 		}
 	}
+	if v, ok := _c.mutation.DangerousPackingGroup(); ok {
+		if err := order.DangerousPackingGroupValidator(v); err != nil {
+			return &ValidationError{Name: "dangerous_packing_group", err: fmt.Errorf(`ent: validator failed for field "Order.dangerous_packing_group": %w`, err)}
+		}
+	}
 	if v, ok := _c.mutation.FactoryName(); ok {
 		if err := order.FactoryNameValidator(v); err != nil {
 			return &ValidationError{Name: "factory_name", err: fmt.Errorf(`ent: validator failed for field "Order.factory_name": %w`, err)}
@@ -2161,6 +2180,10 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.HazardClass(); ok {
 		_spec.SetField(order.FieldHazardClass, field.TypeString, value)
 		_node.HazardClass = value
+	}
+	if value, ok := _c.mutation.DangerousPackingGroup(); ok {
+		_spec.SetField(order.FieldDangerousPackingGroup, field.TypeEnum, value)
+		_node.DangerousPackingGroup = &value
 	}
 	if value, ok := _c.mutation.FactoryName(); ok {
 		_spec.SetField(order.FieldFactoryName, field.TypeString, value)
@@ -3325,6 +3348,24 @@ func (u *OrderUpsert) UpdateHazardClass() *OrderUpsert {
 // ClearHazardClass clears the value of the "hazard_class" field.
 func (u *OrderUpsert) ClearHazardClass() *OrderUpsert {
 	u.SetNull(order.FieldHazardClass)
+	return u
+}
+
+// SetDangerousPackingGroup sets the "dangerous_packing_group" field.
+func (u *OrderUpsert) SetDangerousPackingGroup(v order.DangerousPackingGroup) *OrderUpsert {
+	u.Set(order.FieldDangerousPackingGroup, v)
+	return u
+}
+
+// UpdateDangerousPackingGroup sets the "dangerous_packing_group" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateDangerousPackingGroup() *OrderUpsert {
+	u.SetExcluded(order.FieldDangerousPackingGroup)
+	return u
+}
+
+// ClearDangerousPackingGroup clears the value of the "dangerous_packing_group" field.
+func (u *OrderUpsert) ClearDangerousPackingGroup() *OrderUpsert {
+	u.SetNull(order.FieldDangerousPackingGroup)
 	return u
 }
 
@@ -4750,6 +4791,27 @@ func (u *OrderUpsertOne) UpdateHazardClass() *OrderUpsertOne {
 func (u *OrderUpsertOne) ClearHazardClass() *OrderUpsertOne {
 	return u.Update(func(s *OrderUpsert) {
 		s.ClearHazardClass()
+	})
+}
+
+// SetDangerousPackingGroup sets the "dangerous_packing_group" field.
+func (u *OrderUpsertOne) SetDangerousPackingGroup(v order.DangerousPackingGroup) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetDangerousPackingGroup(v)
+	})
+}
+
+// UpdateDangerousPackingGroup sets the "dangerous_packing_group" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateDangerousPackingGroup() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateDangerousPackingGroup()
+	})
+}
+
+// ClearDangerousPackingGroup clears the value of the "dangerous_packing_group" field.
+func (u *OrderUpsertOne) ClearDangerousPackingGroup() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearDangerousPackingGroup()
 	})
 }
 
@@ -6511,6 +6573,27 @@ func (u *OrderUpsertBulk) UpdateHazardClass() *OrderUpsertBulk {
 func (u *OrderUpsertBulk) ClearHazardClass() *OrderUpsertBulk {
 	return u.Update(func(s *OrderUpsert) {
 		s.ClearHazardClass()
+	})
+}
+
+// SetDangerousPackingGroup sets the "dangerous_packing_group" field.
+func (u *OrderUpsertBulk) SetDangerousPackingGroup(v order.DangerousPackingGroup) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetDangerousPackingGroup(v)
+	})
+}
+
+// UpdateDangerousPackingGroup sets the "dangerous_packing_group" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateDangerousPackingGroup() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateDangerousPackingGroup()
+	})
+}
+
+// ClearDangerousPackingGroup clears the value of the "dangerous_packing_group" field.
+func (u *OrderUpsertBulk) ClearDangerousPackingGroup() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.ClearDangerousPackingGroup()
 	})
 }
 

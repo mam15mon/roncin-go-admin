@@ -79943,6 +79943,7 @@ type OrderMutation struct {
 	insurance_currency                      *string
 	un_number                               *string
 	hazard_class                            *string
+	dangerous_packing_group                 *order.DangerousPackingGroup
 	factory_name                            *string
 	cargo_ready_at                          *string
 	declaration_cutoff_at                   *string
@@ -81144,6 +81145,55 @@ func (m *OrderMutation) HazardClassCleared() bool {
 func (m *OrderMutation) ResetHazardClass() {
 	m.hazard_class = nil
 	delete(m.clearedFields, order.FieldHazardClass)
+}
+
+// SetDangerousPackingGroup sets the "dangerous_packing_group" field.
+func (m *OrderMutation) SetDangerousPackingGroup(opg order.DangerousPackingGroup) {
+	m.dangerous_packing_group = &opg
+}
+
+// DangerousPackingGroup returns the value of the "dangerous_packing_group" field in the mutation.
+func (m *OrderMutation) DangerousPackingGroup() (r order.DangerousPackingGroup, exists bool) {
+	v := m.dangerous_packing_group
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDangerousPackingGroup returns the old "dangerous_packing_group" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldDangerousPackingGroup(ctx context.Context) (v *order.DangerousPackingGroup, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDangerousPackingGroup is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDangerousPackingGroup requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDangerousPackingGroup: %w", err)
+	}
+	return oldValue.DangerousPackingGroup, nil
+}
+
+// ClearDangerousPackingGroup clears the value of the "dangerous_packing_group" field.
+func (m *OrderMutation) ClearDangerousPackingGroup() {
+	m.dangerous_packing_group = nil
+	m.clearedFields[order.FieldDangerousPackingGroup] = struct{}{}
+}
+
+// DangerousPackingGroupCleared returns if the "dangerous_packing_group" field was cleared in this mutation.
+func (m *OrderMutation) DangerousPackingGroupCleared() bool {
+	_, ok := m.clearedFields[order.FieldDangerousPackingGroup]
+	return ok
+}
+
+// ResetDangerousPackingGroup resets all changes to the "dangerous_packing_group" field.
+func (m *OrderMutation) ResetDangerousPackingGroup() {
+	m.dangerous_packing_group = nil
+	delete(m.clearedFields, order.FieldDangerousPackingGroup)
 }
 
 // SetFactoryName sets the "factory_name" field.
@@ -85858,7 +85908,7 @@ func (m *OrderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderMutation) Fields() []string {
-	fields := make([]string, 0, 79)
+	fields := make([]string, 0, 80)
 	if m.created_at != nil {
 		fields = append(fields, order.FieldCreatedAt)
 	}
@@ -85921,6 +85971,9 @@ func (m *OrderMutation) Fields() []string {
 	}
 	if m.hazard_class != nil {
 		fields = append(fields, order.FieldHazardClass)
+	}
+	if m.dangerous_packing_group != nil {
+		fields = append(fields, order.FieldDangerousPackingGroup)
 	}
 	if m.factory_name != nil {
 		fields = append(fields, order.FieldFactoryName)
@@ -86146,6 +86199,8 @@ func (m *OrderMutation) Field(name string) (ent.Value, bool) {
 		return m.UnNumber()
 	case order.FieldHazardClass:
 		return m.HazardClass()
+	case order.FieldDangerousPackingGroup:
+		return m.DangerousPackingGroup()
 	case order.FieldFactoryName:
 		return m.FactoryName()
 	case order.FieldCargoReadyAt:
@@ -86313,6 +86368,8 @@ func (m *OrderMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldUnNumber(ctx)
 	case order.FieldHazardClass:
 		return m.OldHazardClass(ctx)
+	case order.FieldDangerousPackingGroup:
+		return m.OldDangerousPackingGroup(ctx)
 	case order.FieldFactoryName:
 		return m.OldFactoryName(ctx)
 	case order.FieldCargoReadyAt:
@@ -86584,6 +86641,13 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetHazardClass(v)
+		return nil
+	case order.FieldDangerousPackingGroup:
+		v, ok := value.(order.DangerousPackingGroup)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDangerousPackingGroup(v)
 		return nil
 	case order.FieldFactoryName:
 		v, ok := value.(string)
@@ -87147,6 +87211,9 @@ func (m *OrderMutation) ClearedFields() []string {
 	if m.FieldCleared(order.FieldHazardClass) {
 		fields = append(fields, order.FieldHazardClass)
 	}
+	if m.FieldCleared(order.FieldDangerousPackingGroup) {
+		fields = append(fields, order.FieldDangerousPackingGroup)
+	}
 	if m.FieldCleared(order.FieldFactoryName) {
 		fields = append(fields, order.FieldFactoryName)
 	}
@@ -87337,6 +87404,9 @@ func (m *OrderMutation) ClearField(name string) error {
 		return nil
 	case order.FieldHazardClass:
 		m.ClearHazardClass()
+		return nil
+	case order.FieldDangerousPackingGroup:
+		m.ClearDangerousPackingGroup()
 		return nil
 	case order.FieldFactoryName:
 		m.ClearFactoryName()
@@ -87546,6 +87616,9 @@ func (m *OrderMutation) ResetField(name string) error {
 		return nil
 	case order.FieldHazardClass:
 		m.ResetHazardClass()
+		return nil
+	case order.FieldDangerousPackingGroup:
+		m.ResetDangerousPackingGroup()
 		return nil
 	case order.FieldFactoryName:
 		m.ResetFactoryName()

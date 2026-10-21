@@ -1616,6 +1616,36 @@ func HazardClassContainsFold(v string) predicate.Order {
 	return predicate.Order(sql.FieldContainsFold(FieldHazardClass, v))
 }
 
+// DangerousPackingGroupEQ applies the EQ predicate on the "dangerous_packing_group" field.
+func DangerousPackingGroupEQ(v DangerousPackingGroup) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldDangerousPackingGroup, v))
+}
+
+// DangerousPackingGroupNEQ applies the NEQ predicate on the "dangerous_packing_group" field.
+func DangerousPackingGroupNEQ(v DangerousPackingGroup) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldDangerousPackingGroup, v))
+}
+
+// DangerousPackingGroupIn applies the In predicate on the "dangerous_packing_group" field.
+func DangerousPackingGroupIn(vs ...DangerousPackingGroup) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldDangerousPackingGroup, vs...))
+}
+
+// DangerousPackingGroupNotIn applies the NotIn predicate on the "dangerous_packing_group" field.
+func DangerousPackingGroupNotIn(vs ...DangerousPackingGroup) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldDangerousPackingGroup, vs...))
+}
+
+// DangerousPackingGroupIsNil applies the IsNil predicate on the "dangerous_packing_group" field.
+func DangerousPackingGroupIsNil() predicate.Order {
+	return predicate.Order(sql.FieldIsNull(FieldDangerousPackingGroup))
+}
+
+// DangerousPackingGroupNotNil applies the NotNil predicate on the "dangerous_packing_group" field.
+func DangerousPackingGroupNotNil() predicate.Order {
+	return predicate.Order(sql.FieldNotNull(FieldDangerousPackingGroup))
+}
+
 // FactoryNameEQ applies the EQ predicate on the "factory_name" field.
 func FactoryNameEQ(v string) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldFactoryName, v))

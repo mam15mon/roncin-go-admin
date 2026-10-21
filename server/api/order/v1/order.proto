@@ -154,6 +154,20 @@ enum ShipmentMode {
   SHIPMENT_MODE_CROSS_BORDER = 2;
 }
 
+// DangerousPackingGroup 危险品包装类别（IATA DGR）。
+// 仅适用于部分危险类别：Class 3/4/5.1/6.1/8 及部分 Class 9；
+// Class 1（爆炸品）、2（气体）、7（放射性）没有包装类别。
+// UNSPECIFIED 兼「未填」与「不适用」双语义，禁止据此实现
+// “勾选危险品必填包装类别”类校验（会误伤 Class 2/7）。
+// UN 号与允许的 PG 集合的联动是 DGR 查表关系而非推导关系，
+// 未来如做校验须以查表实现；本枚举模型不阻碍该扩展。
+enum DangerousPackingGroup {
+  DANGEROUS_PACKING_GROUP_UNSPECIFIED = 0;
+  DANGEROUS_PACKING_GROUP_I = 1;   // Ⅰ类包装（危险性最大）
+  DANGEROUS_PACKING_GROUP_II = 2;  // Ⅱ类包装
+  DANGEROUS_PACKING_GROUP_III = 3; // Ⅲ类包装（危险性最小）
+}
+
 // OrderReferenceType 订单业务编号类型。
 enum OrderReferenceType {
   ORDER_REFERENCE_TYPE_UNSPECIFIED = 0;
@@ -360,6 +374,8 @@ message Order {
   repeated OrderShippingDocument shipping_documents = 57;
   repeated OrderContainerRequest container_requests = 58;
   optional string declaration_cutoff_at = 59;
+  // 危险品包装类别；语义与适用范围见 DangerousPackingGroup 枚举说明。
+  optional DangerousPackingGroup dangerous_packing_group = 103;
   optional double total_gross_weight_kg = 60;
   optional double total_volume_cbm = 61;
   OrderTerminationStatus termination_status = 62;
@@ -632,6 +648,8 @@ message CreateOrderRequest {
   repeated OrderShippingDocumentInput shipping_documents = 50;
   repeated OrderContainerRequestInput container_requests = 51;
   optional string declaration_cutoff_at = 52;
+  // 危险品包装类别；语义与适用范围见 DangerousPackingGroup 枚举说明。
+  optional DangerousPackingGroup dangerous_packing_group = 62;
   optional double total_gross_weight_kg = 53;
   optional double total_volume_cbm = 54;
   optional string shipper_short_name = 55;
@@ -699,6 +717,8 @@ message UpdateOrderRequest {
   repeated OrderShippingDocumentInput shipping_documents = 50;
   repeated OrderContainerRequestInput container_requests = 51;
   optional string declaration_cutoff_at = 52;
+  // 危险品包装类别；语义与适用范围见 DangerousPackingGroup 枚举说明。
+  optional DangerousPackingGroup dangerous_packing_group = 62;
   optional double total_gross_weight_kg = 53;
   optional double total_volume_cbm = 54;
   optional string shipper_short_name = 55;
@@ -706,7 +726,7 @@ message UpdateOrderRequest {
   optional SeaMasterBillInput sea_master_bill = 57;
   optional SeaOrderDocumentInput sea_document = 58;
   optional string booking_no = 59;
-  // idempotency_key 订单更新幂等键：可选，传入即启用；同键 + 同 expected_version
+  // idempotency_key 订单更新幂等键：可选，传入即启用幂等；同键 + 同 expected_version
   // 的重放返回当前订单，否则走既有乐观锁冲突。
   optional string idempotency_key = 60;
   optional AirOrderInput air_export = 61;

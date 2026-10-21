@@ -109,6 +109,10 @@ func orderToBiz(item *ent.Order) *biz.Order {
 		value := biz.OrderShipmentMode(*item.ShipmentMode)
 		result.ShipmentMode = &value
 	}
+	if item.DangerousPackingGroup != nil {
+		value := biz.OrderDangerousPackingGroup(*item.DangerousPackingGroup)
+		result.DangerousPackingGroup = &value
+	}
 	result.ServiceTypeIDs = make([]uuid.UUID, 0, len(item.Edges.ServiceTypes))
 	for _, link := range item.Edges.ServiceTypes {
 		result.ServiceTypeIDs = append(result.ServiceTypeIDs, link.MasterDataItemID)
@@ -242,6 +246,11 @@ func setOrderOptionalReferences(update *ent.OrderUpdateOne, input *biz.Order) {
 	} else {
 		update.SetShipmentMode(orderent.ShipmentMode(*input.ShipmentMode))
 	}
+	if input.DangerousPackingGroup == nil {
+		update.ClearDangerousPackingGroup()
+	} else {
+		update.SetDangerousPackingGroup(orderent.DangerousPackingGroup(*input.DangerousPackingGroup))
+	}
 	if input.OriginLocationID == nil {
 		update.ClearOriginLocationID()
 	} else {
@@ -312,6 +321,14 @@ func orderShipmentModeToEnt(value *biz.OrderShipmentMode) *orderent.ShipmentMode
 		return nil
 	}
 	result := orderent.ShipmentMode(*value)
+	return &result
+}
+
+func orderDangerousPackingGroupToEnt(value *biz.OrderDangerousPackingGroup) *orderent.DangerousPackingGroup {
+	if value == nil {
+		return nil
+	}
+	result := orderent.DangerousPackingGroup(*value)
 	return &result
 }
 

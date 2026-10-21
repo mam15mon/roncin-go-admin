@@ -339,3 +339,37 @@ func orderShipmentModeToAPI(value *biz.OrderShipmentMode) *v1.ShipmentMode {
 	}
 	return &result
 }
+func orderDangerousPackingGroupFromAPI(value *v1.DangerousPackingGroup) *biz.OrderDangerousPackingGroup {
+	if value == nil {
+		return nil
+	}
+	var result biz.OrderDangerousPackingGroup
+	switch *value {
+	case v1.DangerousPackingGroup_DANGEROUS_PACKING_GROUP_I:
+		result = biz.OrderDangerousPackingI
+	case v1.DangerousPackingGroup_DANGEROUS_PACKING_GROUP_II:
+		result = biz.OrderDangerousPackingII
+	case v1.DangerousPackingGroup_DANGEROUS_PACKING_GROUP_III:
+		result = biz.OrderDangerousPackingIII
+	default:
+		return nil
+	}
+	return &result
+}
+func orderDangerousPackingGroupToAPI(value *biz.OrderDangerousPackingGroup) *v1.DangerousPackingGroup {
+	if value == nil {
+		return nil
+	}
+	var result v1.DangerousPackingGroup
+	switch *value {
+	case biz.OrderDangerousPackingI:
+		result = v1.DangerousPackingGroup_DANGEROUS_PACKING_GROUP_I
+	case biz.OrderDangerousPackingII:
+		result = v1.DangerousPackingGroup_DANGEROUS_PACKING_GROUP_II
+	case biz.OrderDangerousPackingIII:
+		result = v1.DangerousPackingGroup_DANGEROUS_PACKING_GROUP_III
+	default:
+		return nil
+	}
+	return &result
+}

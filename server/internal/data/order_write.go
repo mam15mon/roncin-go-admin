@@ -72,6 +72,7 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 			SetNillableShipmentType(orderShipmentTypeToEnt(input.ShipmentType)).
 			SetNillableContainerOwnership(orderContainerOwnershipToEnt(input.ContainerOwnership)).
 			SetNillableShipmentMode(orderShipmentModeToEnt(input.ShipmentMode)).
+			SetNillableDangerousPackingGroup(orderDangerousPackingGroupToEnt(input.DangerousPackingGroup)).
 			SetFlowStatus(orderent.FlowStatusDRAFT).
 			SetTerminationStatus(orderent.TerminationStatusACTIVE).
 			SetClosureStatus(orderent.ClosureStatusOPEN).

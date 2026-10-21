@@ -189,6 +189,7 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 		CargoValue: request.GetCargoValue(), CargoCurrency: request.GetCargoCurrency(), InsurancePremium: request.GetInsurancePremium(), InsuranceCurrency: request.GetInsuranceCurrency(),
 		UNNumber: request.GetUnNumber(), HazardClass: request.GetHazardClass(), FactoryName: request.GetFactoryName(), CargoReadyAt: request.GetCargoReadyAt(),
 		DeclarationCutoffAt: request.GetDeclarationCutoffAt(), ReceivedAt: request.GetReceivedAt(),
+		DangerousPackingGroup: orderDangerousPackingGroupFromAPI(request.DangerousPackingGroup),
 		BusinessType: orderBusinessTypeFromAPI(request.GetBusinessType()), TradeDirection: orderTradeDirectionFromAPI(request.GetTradeDirection()),
 		TradeTerm: orderTradeTermFromAPI(request.GetTradeTerm()), PaymentTerm: orderPaymentTermFromAPI(request.GetPaymentTerm()),
 		ShipmentType: orderShipmentTypeFromAPI(request.ShipmentType), ContainerOwnership: orderContainerOwnershipFromAPI(request.ContainerOwnership), ShipmentMode: orderShipmentModeFromAPI(request.ShipmentMode),
@@ -296,6 +297,9 @@ func mergeOrderUpdateRequest(existing *biz.Order, request *v1.UpdateOrderRequest
 	}
 	if request.DeclarationCutoffAt != nil {
 		output.DeclarationCutoffAt = request.GetDeclarationCutoffAt()
+	}
+	if request.DangerousPackingGroup != nil {
+		output.DangerousPackingGroup = orderDangerousPackingGroupFromAPI(request.DangerousPackingGroup)
 	}
 	if request.ReceivedAt != nil {
 		output.ReceivedAt = request.GetReceivedAt()

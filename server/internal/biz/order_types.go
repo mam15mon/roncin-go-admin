@@ -187,6 +187,20 @@ func (v OrderShipmentMode) Valid() bool {
 	return v == OrderShipmentTraditionalForwarding || v == OrderShipmentCrossBorder
 }
 
+// OrderDangerousPackingGroup 危险品包装类别（IATA DGR）。空值兼「未填」与
+// 「不适用」双语义：Class 1/2/7 没有包装类别，禁止做空值即必填的校验。
+type OrderDangerousPackingGroup string
+
+const (
+	OrderDangerousPackingI   OrderDangerousPackingGroup = "PG_I"
+	OrderDangerousPackingII  OrderDangerousPackingGroup = "PG_II"
+	OrderDangerousPackingIII OrderDangerousPackingGroup = "PG_III"
+)
+
+func (v OrderDangerousPackingGroup) Valid() bool {
+	return v == OrderDangerousPackingI || v == OrderDangerousPackingII || v == OrderDangerousPackingIII
+}
+
 type OrderReferenceType string
 
 const (
@@ -261,62 +275,65 @@ type Order struct {
 	InsuranceCurrency       string
 	UNNumber                string
 	HazardClass             string
-	FactoryName             string
-	CargoReadyAt            string
-	DeclarationCutoffAt     string
-	ReceivedAt              string
-	BusinessType            OrderBusinessType
-	TradeDirection          OrderTradeDirection
-	TradeTerm               OrderTradeTerm
-	PaymentTerm             OrderPaymentTerm
-	ShipmentType            *OrderShipmentType
-	ContainerOwnership      *OrderContainerOwnership
-	ShipmentMode            *OrderShipmentMode
-	FlowStatus              OrderFlowStatus
-	TerminationStatus       OrderTerminationStatus
-	TerminationType         *OrderTerminationType
-	TerminationReason       string
-	TerminatedAt            *time.Time
-	TerminatedBy            *uuid.UUID
-	ClosureStatus           OrderClosureStatus
-	ClosureReason           string
-	ClosedAt                *time.Time
-	ClosedBy                *uuid.UUID
-	LockedAt                *time.Time
-	IsShared                bool
-	Version                 uint64
-	Tags                    []*BusinessTagSummary
-	HasActiveException      bool
-	ActiveExceptionCount    int
-	AllowedActions          []OrderAllowedAction
-	ServiceTypeIDs          []uuid.UUID
-	CargoCategoryIDs        []uuid.UUID
-	OriginLocationID        *uuid.UUID
-	DestinationLocationID   *uuid.UUID
-	DischargeLocationID     *uuid.UUID
-	TransitLocationID       *uuid.UUID
-	VesselVoyage            string
-	ETD                     string
-	ETA                     string
-	SICutoff                string
-	DocCutoff               string
-	CustomsCutoff           string
-	VGMCutoff               string
-	GoodsDescription        string
-	TotalPackages           *int
-	TotalGrossWeightKg      *float64
-	TotalVolumeCbm          *float64
-	TotalPackageUnit        string
-	SpecialRequirements     string
-	OrderDate               string
-	BookingNo               string
-	Notes                   string
-	BookingNotes            string
-	AllocationNotes         string
-	OperationNotes          string
-	PersonnelAssignments    []*OrderPersonnel
-	ShippingDocuments       []*OrderShippingDocument
-	ContainerRequests       []*OrderContainerRequest
+	// DangerousPackingGroup 为可选危险品包装类别；nil 表示未填或不适用
+	// （Class 1/2/7 无包装类别），更新时 nil 走清空语义。
+	DangerousPackingGroup *OrderDangerousPackingGroup
+	FactoryName           string
+	CargoReadyAt          string
+	DeclarationCutoffAt   string
+	ReceivedAt            string
+	BusinessType          OrderBusinessType
+	TradeDirection        OrderTradeDirection
+	TradeTerm             OrderTradeTerm
+	PaymentTerm           OrderPaymentTerm
+	ShipmentType          *OrderShipmentType
+	ContainerOwnership    *OrderContainerOwnership
+	ShipmentMode          *OrderShipmentMode
+	FlowStatus            OrderFlowStatus
+	TerminationStatus     OrderTerminationStatus
+	TerminationType       *OrderTerminationType
+	TerminationReason     string
+	TerminatedAt          *time.Time
+	TerminatedBy          *uuid.UUID
+	ClosureStatus         OrderClosureStatus
+	ClosureReason         string
+	ClosedAt              *time.Time
+	ClosedBy              *uuid.UUID
+	LockedAt              *time.Time
+	IsShared              bool
+	Version               uint64
+	Tags                  []*BusinessTagSummary
+	HasActiveException    bool
+	ActiveExceptionCount  int
+	AllowedActions        []OrderAllowedAction
+	ServiceTypeIDs        []uuid.UUID
+	CargoCategoryIDs      []uuid.UUID
+	OriginLocationID      *uuid.UUID
+	DestinationLocationID *uuid.UUID
+	DischargeLocationID   *uuid.UUID
+	TransitLocationID     *uuid.UUID
+	VesselVoyage          string
+	ETD                   string
+	ETA                   string
+	SICutoff              string
+	DocCutoff             string
+	CustomsCutoff         string
+	VGMCutoff             string
+	GoodsDescription      string
+	TotalPackages         *int
+	TotalGrossWeightKg    *float64
+	TotalVolumeCbm        *float64
+	TotalPackageUnit      string
+	SpecialRequirements   string
+	OrderDate             string
+	BookingNo             string
+	Notes                 string
+	BookingNotes          string
+	AllocationNotes       string
+	OperationNotes        string
+	PersonnelAssignments  []*OrderPersonnel
+	ShippingDocuments     []*OrderShippingDocument
+	ContainerRequests     []*OrderContainerRequest
 	// IdempotencyKey 为请求幂等键（创建/订单更新可选输入，传入即启用幂等）；
 	// 读取路径同时承载落库的最新键，供重放意图比对使用。
 	IdempotencyKey         string
