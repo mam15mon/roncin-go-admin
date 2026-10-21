@@ -31,3 +31,26 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 153: 空运出口危险品三元组对齐海运交互
+<!-- trellis-session: v=2 fp=077ed52509b45e21 -->
+
+**Date**: 2026-10-21
+**Task**: 空运出口危险品三元组对齐海运交互
+**Branch**: `main`
+
+### Summary
+
+空运出口「本票货物」卡接入 SeaDangerousGoodsFields：勾选危险品动效展开 UN NO./CLASS NO./截申报时间，取消清值、UN 四位校验仅选中激活；air form-adapter 按海运范式补三字段序列化与 dayjs 回填。契约与服务端零改动（Order 共享字段，写路径 kind 无关）。trellis-check 6/6 验收通过，展开态断言锁 options 接线；海运路径零变化。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `ef6502c3` | feat: 空运出口补危险品 UN NO. / CLASS NO. / 截申报时间三元组 |
+| `a0950af0` | test: 空运危险品布局用例补勾选危险品后展开断言锁定 options 接线 |
+
+### Status
+
+[OK] **Completed**
