@@ -87,6 +87,7 @@ export function getAirTemplateSections(
           <SeaDangerousGoodsFields
             options={props.cargoCategoryOptions}
             disabled={props.readonly}
+            showPackingGroup
           />
           <SeaCargoDescriptionFields />
           <FormRow cols={3}>

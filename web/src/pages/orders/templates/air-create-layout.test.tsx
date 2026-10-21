@@ -228,6 +228,13 @@ describe('AE 新建与详情五卡片合同', () => {
     motion = within(cargo).getByTestId('sea-dangerous-goods-motion');
     expect(motion).toHaveAttribute('data-open', 'true');
     expect(motion).toHaveAttribute('aria-hidden', 'false');
+    // 空运动效区比海运多第四字段：包装类别（IATA DGR PG）。
+    await waitFor(() => {
+      expect(within(cargo).getByText('包装类别')).toBeVisible();
+    });
+    expect(
+      within(cargo).getByRole('combobox', { name: /包装类别/ }),
+    ).toBeInTheDocument();
   });
 
   it('切到关联已有主单时收起航线/申报小节与主单备注，保留操作备注', async () => {

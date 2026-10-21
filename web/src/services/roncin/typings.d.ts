@@ -1827,6 +1827,8 @@ declare namespace API {
     shippingDocuments?: OrderShippingDocumentInput[];
     containerRequests?: OrderContainerRequestInput[];
     declarationCutoffAt?: string;
+    /** 危险品包装类别；语义与适用范围见 DangerousPackingGroup 枚举说明。 */
+    dangerousPackingGroup?: number;
     totalGrossWeightKg?: number;
     totalVolumeCbm?: number;
     shipperShortName?: string;
@@ -5112,6 +5114,8 @@ declare namespace API {
     shippingDocuments?: OrderShippingDocument[];
     containerRequests?: OrderContainerRequest[];
     declarationCutoffAt?: string;
+    /** 危险品包装类别；语义与适用范围见 DangerousPackingGroup 枚举说明。 */
+    dangerousPackingGroup?: number;
     totalGrossWeightKg?: number;
     totalVolumeCbm?: number;
     terminationStatus?: number;
@@ -9274,6 +9278,8 @@ declare namespace API {
     shippingDocuments?: OrderShippingDocumentInput[];
     containerRequests?: OrderContainerRequestInput[];
     declarationCutoffAt?: string;
+    /** 危险品包装类别；语义与适用范围见 DangerousPackingGroup 枚举说明。 */
+    dangerousPackingGroup?: number;
     totalGrossWeightKg?: number;
     totalVolumeCbm?: number;
     shipperShortName?: string;
@@ -9281,7 +9287,7 @@ declare namespace API {
     seaMasterBill?: SeaMasterBillInput;
     seaDocument?: SeaOrderDocumentInput;
     bookingNo?: string;
-    /** idempotency_key 订单更新幂等键：可选，传入即启用；同键 + 同 expected_version
+    /** idempotency_key 订单更新幂等键：可选，传入即启用幂等；同键 + 同 expected_version
  的重放返回当前订单，否则走既有乐观锁冲突。 */
     idempotencyKey?: string;
     airExport?: AirOrderInput;

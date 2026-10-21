@@ -3,6 +3,7 @@ import {
   ProFormDatePicker,
   ProFormDateTimePicker,
   ProFormRadio,
+  ProFormSelect,
   ProFormText,
 } from '@ant-design/pro-components';
 import { Form, Input, Tooltip } from 'antd';
@@ -14,6 +15,7 @@ import {
   ProFormSearchableSelect,
 } from '@/components/ui';
 import {
+  DangerousPackingGroup,
   OrderReferenceType,
   PartnerAssignmentRole,
   PartnerRoleType,
@@ -184,9 +186,12 @@ const useDangerousGoodsStyles = createStyles(({ css }) => ({
 export function SeaDangerousGoodsFields({
   options,
   disabled,
+  showPackingGroup = false,
 }: {
   options: SelectOption[];
   disabled?: boolean;
+  /** 仅空运出口需要包装类别（IATA DGR）；海运不传，渲染保持三字段不变。 */
+  showPackingGroup?: boolean;
 }) {
   const { styles } = useDangerousGoodsStyles();
   const form = Form.useFormInstance();
@@ -224,6 +229,7 @@ export function SeaDangerousGoodsFields({
         unNumber: undefined,
         hazardClass: undefined,
         declarationCutoffAt: undefined,
+        dangerousPackingGroup: undefined,
       });
     }
     prevIsDgRef.current = isDangerousGoodsSelected;
@@ -239,7 +245,7 @@ export function SeaDangerousGoodsFields({
     >
       <div className="dangerous-goods-clip">
         <div className="dangerous-goods-content">
-          <FormRow cols={3}>
+          <FormRow cols={showPackingGroup ? 4 : 3}>
             <div>
               <Form.Item
                 label="UN NO."
@@ -281,12 +287,33 @@ export function SeaDangerousGoodsFields({
                 fieldProps={{ style: { width: '100%' } }}
               />
             </div>
+            {showPackingGroup && (
+              <div>
+                <ProFormSelect
+                  name="dangerousPackingGroup"
+                  label="包装类别"
+                  tooltip="IATA DGR 包装类别：Ⅰ类危险性最大、Ⅲ类最小；Class 1/2/7 无包装类别，可留空"
+                  options={dangerousPackingGroupOptions}
+                  disabled={disabled || !isDangerousGoodsSelected}
+                  fieldProps={{
+                    style: { width: '100%' },
+                    allowClear: true,
+                  }}
+                />
+              </div>
+            )}
           </FormRow>
         </div>
       </div>
     </div>
   );
 }
+
+export const dangerousPackingGroupOptions = [
+  { label: 'Ⅰ类', value: DangerousPackingGroup.DANGEROUS_PACKING_GROUP_I },
+  { label: 'Ⅱ类', value: DangerousPackingGroup.DANGEROUS_PACKING_GROUP_II },
+  { label: 'Ⅲ类', value: DangerousPackingGroup.DANGEROUS_PACKING_GROUP_III },
+];
 
 function SeaCarrierField({
   isDetail,

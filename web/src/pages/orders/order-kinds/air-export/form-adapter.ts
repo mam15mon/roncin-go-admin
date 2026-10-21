@@ -60,6 +60,7 @@ type CommonValues = Pick<
   | 'cargoCategoryIds'
   | 'unNumber'
   | 'hazardClass'
+  | 'dangerousPackingGroup'
   | 'declarationCutoffAt'
   | 'totalPackages'
   | 'totalGrossWeightKg'
@@ -88,6 +89,8 @@ function commonFields(values: Partial<CommonValues>) {
     cargoCategoryIds: values.cargoCategoryIds,
     unNumber: values.unNumber?.trim() || undefined,
     hazardClass: values.hazardClass?.trim() || undefined,
+    // UNSPECIFIED(0) 视同未选：未选 / 不适用（Class 1/2/7）都不携带。
+    dangerousPackingGroup: values.dangerousPackingGroup || undefined,
     declarationCutoffAt: values.declarationCutoffAt
       ? dayjs(values.declarationCutoffAt).toISOString()
       : undefined,

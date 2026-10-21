@@ -9,6 +9,7 @@ import {
 import { Button, Form, type FormInstance } from 'antd';
 import React from 'react';
 import { describe, expect, it } from 'vitest';
+import { DangerousPackingGroup } from '@/enums.generated';
 import { SeaDangerousGoodsFields } from './SeaBasicInfoSection';
 
 const sampleCargoOptions = [
@@ -47,6 +48,8 @@ function DgController() {
             unNumber: '1993',
             hazardClass: '3',
             declarationCutoffAt: '2026-09-15 12:00',
+            dangerousPackingGroup:
+              DangerousPackingGroup.DANGEROUS_PACKING_GROUP_II,
           });
         }}
         data-testid="fill-dg-fields"
@@ -62,6 +65,9 @@ function DgController() {
       <div data-testid="cutoff-val">
         {String(form.getFieldValue('declarationCutoffAt') ?? '')}
       </div>
+      <div data-testid="pg-val">
+        {String(form.getFieldValue('dangerousPackingGroup') ?? '')}
+      </div>
     </>
   );
 }
@@ -70,10 +76,12 @@ function TestHarness({
   initialValues,
   options = sampleCargoOptions,
   exposeForm,
+  showPackingGroup,
 }: {
   initialValues?: Record<string, unknown>;
   options?: typeof sampleCargoOptions;
   exposeForm?: (form: FormInstance) => void;
+  showPackingGroup?: boolean;
 }) {
   const [form] = Form.useForm();
   exposeForm?.(form);
@@ -84,7 +92,10 @@ function TestHarness({
         label="货物品类"
         options={options}
       />
-      <SeaDangerousGoodsFields options={options} />
+      <SeaDangerousGoodsFields
+        options={options}
+        showPackingGroup={showPackingGroup}
+      />
       <DgController />
     </ProForm>
   );
@@ -241,5 +252,84 @@ describe('SeaDangerousGoodsFields 品类联动', () => {
     fireEvent.change(unInput, { target: { value: '1203' } });
     fireEvent.transitionEnd(motion, { propertyName: 'grid-template-rows' });
     expect(unInput).toHaveValue('1203');
+  });
+
+  it('不传 showPackingGroup（海运）不渲染包装类别字段', () => {
+    render(<TestHarness initialValues={{ cargoCategoryIds: ['cat-dg'] }} />);
+
+    expect(screen.getByText('UN NO.')).toBeVisible();
+    expect(screen.queryByText('包装类别')).not.toBeInTheDocument();
+  });
+
+  it('传 showPackingGroup（空运）勾选危险品后展开包装类别下拉并可清空', async () => {
+    render(
+      <TestHarness
+        showPackingGroup
+        initialValues={{ cargoCategoryIds: ['cat-general'] }}
+      />,
+    );
+
+    // 未勾选危险品：包装类别随动效收起。
+    expect(screen.getByText('包装类别')).not.toBeVisible();
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('toggle-dg-on'));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('包装类别')).toBeVisible();
+    });
+    const pgSelect = screen.getByRole('combobox', {
+      name: /包装类别/,
+    }) as HTMLInputElement;
+    expect(pgSelect).toBeEnabled();
+    // 三档选项来自 DangerousPackingGroup 枚举（过滤关闭下拉的隐藏残留 DOM）。
+    fireEvent.mouseDown(pgSelect);
+    for (const label of ['Ⅰ类', 'Ⅱ类', 'Ⅲ类']) {
+      await waitFor(() => {
+        const candidates = screen.getAllByText(label).filter((element) => {
+          const dropdown = element.closest('.ant-select-dropdown');
+          return (
+            dropdown !== null &&
+            !dropdown.className.includes('-hidden') &&
+            !dropdown.className.includes('ant-slide-up-leave')
+          );
+        });
+        expect(candidates.length).toBeGreaterThan(0);
+      });
+    }
+  });
+
+  it('传 showPackingGroup 取消勾选危险品后包装类别随三元组一起清空', async () => {
+    let form!: FormInstance;
+    render(
+      <TestHarness
+        showPackingGroup
+        initialValues={{ cargoCategoryIds: ['cat-dg'] }}
+        exposeForm={(instance) => {
+          form = instance;
+        }}
+      />,
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('fill-dg-fields'));
+    });
+    expect(form.getFieldValue('unNumber')).toBe('1993');
+    expect(form.getFieldValue('dangerousPackingGroup')).toBe(
+      DangerousPackingGroup.DANGEROUS_PACKING_GROUP_II,
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('toggle-dg-off'));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('包装类别')).not.toBeVisible();
+      expect(form.getFieldValue('dangerousPackingGroup')).toBeUndefined();
+      expect(form.getFieldValue('unNumber')).toBeUndefined();
+      expect(form.getFieldValue('hazardClass')).toBeUndefined();
+      expect(form.getFieldValue('declarationCutoffAt')).toBeUndefined();
+    });
   });
 });

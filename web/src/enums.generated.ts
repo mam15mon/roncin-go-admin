@@ -370,6 +370,15 @@ export const ShipmentMode = {
 
 export type ShipmentMode = (typeof ShipmentMode)[keyof typeof ShipmentMode];
 
+export const DangerousPackingGroup = {
+  DANGEROUS_PACKING_GROUP_UNSPECIFIED: 0,
+  DANGEROUS_PACKING_GROUP_I: 1,
+  DANGEROUS_PACKING_GROUP_II: 2,
+  DANGEROUS_PACKING_GROUP_III: 3,
+} as const;
+
+export type DangerousPackingGroup = (typeof DangerousPackingGroup)[keyof typeof DangerousPackingGroup];
+
 export const OrderReferenceType = {
   ORDER_REFERENCE_TYPE_UNSPECIFIED: 0,
   ORDER_REFERENCE_TYPE_CUSTOMER: 1,
