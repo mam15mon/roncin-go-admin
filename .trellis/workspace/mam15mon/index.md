@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 153
+- **Total Sessions**: 154
 - **Last Active**: 2026-10-21
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~56 | Active |
+| `journal-3.md` | ~80 | Active |
 | `journal-2.md` | ~2003 | Archived |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 154 | 2026-10-21 | 空运出口危险品包装类别 PG 枚举全链路 | `26bb579f`, `278a32f1`, `0184b451` | `main` |
 | 153 | 2026-10-21 | 空运出口危险品三元组对齐海运交互 | `ef6502c3`, `a0950af0` | `main` |
 | 152 | 2026-10-21 | 空运出口表单 UI 对齐海运出口五卡片架构 | `632f5320`, `234663d3`, `97cb74d7`, `201ba2ad`, `82a34fcc` | `main` |
 | 150 | 2026-10-21 | 完成空运出口共享主单、重量确认与财务闭环 | `2c55ca5b`, `63b1b644`, `884f0e20`, `4a8f55f2`, `b9b2ecd0`, `53a88ada`, `4a1ecd78`, `ec88c2b2`, `5301514c` | `codex/air-export-business-loop` |

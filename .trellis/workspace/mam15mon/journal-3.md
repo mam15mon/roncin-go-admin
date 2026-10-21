@@ -54,3 +54,27 @@
 ### Status
 
 [OK] **Completed**
+
+
+## Session 154: 空运出口危险品包装类别 PG 枚举全链路
+<!-- trellis-session: v=2 fp=1f5c22fd5d04f9c0 -->
+
+**Date**: 2026-10-21
+**Task**: 空运出口危险品包装类别 PG 枚举全链路
+**Branch**: `main`
+
+### Summary
+
+Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipment_type 五层链路：proto→biz 领域类型→service switch→ent Nillable+迁移 character varying NULL→web client）；空运危险品动效区加包装类别第四字段（showPackingGroup prop，海运零变化），proto 注释含 DGR 适用范围/UNSPECIFIED 双语义/UN↔PG 查表钩子三要素。trellis-check 7/7 通过、生成器重跑零差异、迁移幂等；固化订单共享枚举字段配方入 server spec。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `26bb579f` | feat: 订单契约新增危险品包装类别枚举字段 |
+| `278a32f1` | feat: 空运出口危险品区接入包装类别字段 |
+| `0184b451` | refactor: 收窄包装类别选项常量为模块内私有 |
+
+### Status
+
+[OK] **Completed**
