@@ -28,6 +28,7 @@ const useVerticalFormStyles = createStyles(({ css }) => ({
     .measurement-heading {
       font-size: 12px;
       color: rgba(0, 0, 0, 0.65);
+      padding-inline-start: 12px;
     }
     .measurement-cell {
       display: flex;
@@ -35,10 +36,35 @@ const useVerticalFormStyles = createStyles(({ css }) => ({
       min-width: 0;
       gap: 8px;
       font-size: 13px;
+      line-height: 21px;
+    }
+    output {
+      display: block;
+      margin: 0;
+      padding: 0 12px;
+      line-height: 21px;
+    }
+    output.measurement-packages {
+      display: flex;
+      flex: 1;
+      min-width: 0;
+      padding: 0;
+    }
+    .measurement-package-count {
+      flex: 1;
+      min-width: 0;
+      padding: 0 12px;
+    }
+    .measurement-package-unit {
+      flex: 0 0 104px;
+      box-sizing: border-box;
+      /* 连体 Select 与数字输入共用边框，单位文字起点比独立输入少 1px。 */
+      padding: 0 11px;
     }
     .measurement-row-labels {
       align-items: center;
-      font-size: 12px;
+      font-size: 13px;
+      line-height: 21px;
       color: rgba(0, 0, 0, 0.45);
     }
     .measurement-mobile-label {
@@ -68,7 +94,9 @@ const useVerticalFormStyles = createStyles(({ css }) => ({
         display: inline-block;
         flex: 0 0 40px;
         color: rgba(0, 0, 0, 0.45);
-        font-size: 12px;
+      }
+      .measurement-heading {
+        padding-inline-start: 60px;
       }
     }
   `,
@@ -1121,9 +1149,16 @@ export function SeaBillContentFormFields({
                   <span className="measurement-mobile-label" aria-hidden="true">
                     委托
                   </span>
-                  <output aria-label="委托件数及单位">
-                    {trimDecimal(consignedPackages)}
-                    {consignedPackageUnit ? ` ${consignedPackageUnit}` : ''}
+                  <output
+                    className="measurement-packages"
+                    aria-label="委托件数及单位"
+                  >
+                    <span className="measurement-package-count">
+                      {trimDecimal(consignedPackages)}
+                    </span>{' '}
+                    <span className="measurement-package-unit">
+                      {consignedPackageUnit || ''}
+                    </span>
                   </output>
                 </div>
                 <div className="measurement-cell">
@@ -1168,6 +1203,12 @@ export function SeaBillContentFormFields({
                       fieldProps={{
                         'aria-label': '实际毛重（KGS）',
                         precision: 3,
+                        formatter: (value, { userTyping, input }) =>
+                          userTyping
+                            ? input
+                            : value == null || String(value) === ''
+                              ? ''
+                              : trimDecimal(value),
                         style: { width: '100%' },
                       }}
                     />
@@ -1197,6 +1238,12 @@ export function SeaBillContentFormFields({
                       fieldProps={{
                         'aria-label': '实际体积（CBM）',
                         precision: 3,
+                        formatter: (value, { userTyping, input }) =>
+                          userTyping
+                            ? input
+                            : value == null || String(value) === ''
+                              ? ''
+                              : trimDecimal(value),
                         style: { width: '100%' },
                       }}
                     />

@@ -3,7 +3,7 @@
   "name": "company-admin-provisioning",
   "title": "新公司管理员自动加入与初始化补齐",
   "description": "创建公司时初始化公司管理员角色并加入指定管理员，bootstrap:admin 为现有公司补齐管理员成员关系与角色",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": "backend",
   "scope": "server",
   "package": null,
@@ -11,7 +11,7 @@
   "creator": "mam15mon",
   "assignee": "mam15mon",
   "createdAt": "2026-10-13",
-  "completedAt": null,
+  "completedAt": "2026-10-20",
   "branch": "codex/dingtalk-login-memberships",
   "base_branch": "main",
   "worktree_path": "/home/vince/roncin-go-admin-worktrees/dingtalk-login-memberships",
@@ -28,9 +28,12 @@
     "server/cmd/bootstrap-admin/main_integration_test.go",
     "server/internal/data/system_company_authorization_integration_test.go"
   ],
-  "notes": "2026-10-13 用户批准实施；代码已本地提交，静态审查通过；实际数据库、浏览器和扫码验收未执行，保留任务待验收、不归档。",
+  "notes": "2026-10-20 用户在本会话明确确认这 6 项任务均已完成；按用户确认收尾，历史待验收描述不再作为当前阻塞。此次仅同步记录与归档，未重跑测试或补充具体实测结果。",
   "meta": {
     "implementation": "committed",
-    "acceptance": "pending_runtime_verification"
+    "acceptance": "completed_by_user_confirmation",
+    "previous_completion_notes": "2026-10-13 用户批准实施；代码已本地提交，静态审查通过；实际数据库、浏览器和扫码验收未执行，保留任务待验收、不归档。",
+    "completion_confirmed_at": "2026-10-20",
+    "completion_basis": "用户明确确认全部 6 项任务已完成；本轮未重新执行验收。"
   }
 }

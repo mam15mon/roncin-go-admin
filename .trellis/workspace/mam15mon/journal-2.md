@@ -1887,21 +1887,16 @@ HTML直接输出本次扫码iframe，前端复用原浏览上下文；开发与G
 [OK] **Completed**
 
 
-## Session 148: 切换组织保留功能位置与未保存编辑保护
-<!-- trellis-session: v=2 fp=0d056a0c900bced3 -->
+## Session 147: 收尾钉钉与组织管理历史任务
+<!-- trellis-session: v=2 fp=391b40e2433285d9 -->
 
 **Date**: 2026-10-20
-**Task**: 切换组织保留功能位置与未保存编辑保护
-**Branch**: `codex/retain-page-on-org-switch`
+**Task**: 收尾钉钉与组织管理历史任务
+**Branch**: `codex/fix-admin-role-max-permissions`
 
 ### Summary
 
-完成可访问列表及子页签保留、详情回所属列表、权限落点和异步身份路由隔离；覆盖真实Form、行内编辑、state及导入输入。独立审查发现均已修复，最终check:web通过285文件1587项，12项既有skip；原开发目录的计费单位任务保留。
-
-### Main Changes
-
-- 复用集中路由与既有access确定组织切换落点；完成导航提交后才挂新组织业务树
-- 多guard与真实用户事件保护覆盖现有编辑入口，失败保留输入与dirty，业务确认框随工作区销毁
+用户明确确认 6 项任务均已完成；同步完成依据并归档 2 个顶层任务及 4 个子任务。保留历史验收记录，本轮不重跑业务测试或操作数据库。
 
 ### Git Commits
 
@@ -1921,6 +1916,22 @@ HTML直接输出本次扫码iframe，前端复用原浏览上下文；开发与G
 ### Next Steps
 
 - 仅本地合入main，不推送；main工作区留在/tmp/roncin-org-switch-20261020，原目录并行任务不受影响
+
+## Session 148: 切换组织保留功能位置与未保存编辑保护
+<!-- trellis-session: v=2 fp=0d056a0c900bced3 -->
+
+**Date**: 2026-10-20
+**Task**: 切换组织保留功能位置与未保存编辑保护
+**Branch**: `codex/retain-page-on-org-switch`
+
+### Summary
+
+完成可访问列表及子页签保留、详情回所属列表、权限落点和异步身份路由隔离；覆盖真实Form、行内编辑、state及导入输入。独立审查发现均已修复，最终check:web通过285文件1587项，12项既有skip；原开发目录的计费单位任务保留。
+
+### Main Changes
+
+- 复用集中路由与既有access确定组织切换落点；完成导航提交后才挂新组织业务树
+- 多guard与真实用户事件保护覆盖现有编辑入口，失败保留输入与dirty，业务确认框随工作区销毁
 
 
 ## Session 149: 公共计费单位补齐与订单数量确认带入
@@ -1985,6 +1996,7 @@ HTML直接输出本次扫码iframe，前端复用原浏览上下文；开发与G
 | `4a1ecd78` | test: 验证空运验收要求的海运RT数量算例 |
 | `ec88c2b2` | test: 验证空运共享主单重量流程与双向财务闭环 |
 | `5301514c` | docs: 固化空运共享主单契约与完整验收证据 |
+| `3e0913cf` | docs: 按用户确认收尾钉钉与组织管理任务 |
 
 ### Status
 

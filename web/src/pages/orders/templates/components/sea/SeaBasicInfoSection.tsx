@@ -150,6 +150,37 @@ export function SeaServiceTypeFields({ options }: { options: SelectOption[] }) {
   );
 }
 
+const useDangerousGoodsStyles = createStyles(({ css }) => ({
+  reveal: css`
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      grid-template-rows 180ms ease,
+      opacity 180ms ease,
+      visibility 0s 180ms;
+
+    &[data-open='true'] {
+      grid-template-rows: 1fr;
+      opacity: 1;
+      visibility: visible;
+      transition-delay: 0s;
+    }
+    .dangerous-goods-clip {
+      min-height: 0;
+      overflow: hidden;
+    }
+    .dangerous-goods-content {
+      padding-top: 12px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  `,
+}));
+
 export function SeaDangerousGoodsFields({
   options,
   disabled,
@@ -157,6 +188,7 @@ export function SeaDangerousGoodsFields({
   options: SelectOption[];
   disabled?: boolean;
 }) {
+  const { styles } = useDangerousGoodsStyles();
   const form = Form.useFormInstance();
   const cargoCategoryIds = (Form.useWatch('cargoCategoryIds') ??
     form?.getFieldValue('cargoCategoryIds')) as (string | number)[] | undefined;
@@ -197,45 +229,62 @@ export function SeaDangerousGoodsFields({
     prevIsDgRef.current = isDangerousGoodsSelected;
   }, [isDangerousGoodsSelected, form]);
 
-  if (!isDangerousGoodsSelected) {
-    return null;
-  }
-
   return (
-    <FormRow cols={3}>
-      <div>
-        <Form.Item
-          label="UN NO."
-          name="unNumber"
-          rules={[
-            {
-              pattern: /^\d{4}$/,
-              message: 'UN NO. 应为 4 位数字',
-            },
-          ]}
-        >
-          <TooltipInput
-            placeholder="4位数字"
-            maxLength={4}
-            disabled={disabled}
-          />
-        </Form.Item>
+    <div
+      className={styles.reveal}
+      data-testid="sea-dangerous-goods-motion"
+      data-open={isDangerousGoodsSelected}
+      aria-hidden={!isDangerousGoodsSelected}
+      inert={!isDangerousGoodsSelected}
+    >
+      <div className="dangerous-goods-clip">
+        <div className="dangerous-goods-content">
+          <FormRow cols={3}>
+            <div>
+              <Form.Item
+                label="UN NO."
+                name="unNumber"
+                rules={
+                  isDangerousGoodsSelected
+                    ? [
+                        {
+                          pattern: /^\d{4}$/,
+                          message: 'UN NO. 应为 4 位数字',
+                        },
+                      ]
+                    : undefined
+                }
+              >
+                <TooltipInput
+                  placeholder="4位数字"
+                  maxLength={4}
+                  disabled={disabled || !isDangerousGoodsSelected}
+                />
+              </Form.Item>
+            </div>
+            <div>
+              <Form.Item label="CLASS NO." name="hazardClass">
+                <TooltipInput
+                  placeholder="类别"
+                  maxLength={16}
+                  disabled={disabled || !isDangerousGoodsSelected}
+                />
+              </Form.Item>
+            </div>
+            <div>
+              <ProFormDateTimePicker
+                name="declarationCutoffAt"
+                label="截申报时间"
+                tooltip="主要监管或舱单申报截止时间；VGM、SI、截关仍使用各自独立节点"
+                readonly={disabled}
+                disabled={!isDangerousGoodsSelected}
+                fieldProps={{ style: { width: '100%' } }}
+              />
+            </div>
+          </FormRow>
+        </div>
       </div>
-      <div>
-        <Form.Item label="CLASS NO." name="hazardClass">
-          <TooltipInput placeholder="类别" maxLength={16} disabled={disabled} />
-        </Form.Item>
-      </div>
-      <div>
-        <ProFormDateTimePicker
-          name="declarationCutoffAt"
-          label="截申报时间"
-          tooltip="主要监管或舱单申报截止时间；VGM、SI、截关仍使用各自独立节点"
-          readonly={disabled}
-          fieldProps={{ style: { width: '100%' } }}
-        />
-      </div>
-    </FormRow>
+    </div>
   );
 }
 
