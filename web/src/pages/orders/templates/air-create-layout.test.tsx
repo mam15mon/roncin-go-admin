@@ -182,6 +182,26 @@ describe('AE 新建与详情五卡片合同', () => {
     await flushMountRequests();
   });
 
+  it('本票货物卡在品类与货物描述之间渲染危险品联动区块（默认收起）', async () => {
+    renderWithApp(<SectionCards />, { user });
+    const cargo = screen.getByRole('region', { name: '本票货物' });
+    const motion = within(cargo).getByTestId('sea-dangerous-goods-motion');
+    expect(motion).toHaveAttribute('data-open', 'false');
+    expect(motion).toHaveAttribute('aria-hidden', 'true');
+    // 顺序即模板编排：货物品类 → 危险品联动 → 货物描述。
+    const categoryLabel = within(cargo).getByText('货物品类');
+    const descriptionLabel = within(cargo).getByText(/委托品名/);
+    expect(
+      categoryLabel.compareDocumentPosition(motion) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      motion.compareDocumentPosition(descriptionLabel) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    await flushMountRequests();
+  });
+
   it('切到关联已有主单时收起航线/申报小节与主单备注，保留操作备注', async () => {
     renderWithApp(<SectionCards />, { user });
     const booking = screen.getByRole('region', { name: '订舱与运输' });

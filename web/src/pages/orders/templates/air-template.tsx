@@ -14,6 +14,7 @@ import {
 import { AirMasterTransportSection } from './components/air/AirMasterFields';
 import {
   SeaCustomerField,
+  SeaDangerousGoodsFields,
   SeaOrderReferenceField,
   SeaServiceTypeFields,
 } from './components/sea/SeaBasicInfoSection';
@@ -82,6 +83,10 @@ export function getAirTemplateSections(
             name="cargoCategoryIds"
             label="货物品类"
             options={props.cargoCategoryOptions}
+          />
+          <SeaDangerousGoodsFields
+            options={props.cargoCategoryOptions}
+            disabled={props.readonly}
           />
           <SeaCargoDescriptionFields />
           <FormRow cols={3}>

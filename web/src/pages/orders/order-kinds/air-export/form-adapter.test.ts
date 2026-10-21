@@ -66,4 +66,57 @@ describe('空运表单契约', () => {
       '2026-10-21T06:45:00.000Z',
     );
   });
+
+  it('危险品三元组随共同资料序列化：填写时携带，未填写时不携带', () => {
+    const filled = airExportFormAdapter.buildCreatePayload({
+      customerId: 'customer',
+      paymentTerm: 1,
+      unNumber: ' 1263 ',
+      hazardClass: ' 3 ',
+      declarationCutoffAt: dayjs('2026-10-21T14:45:00+08:00'),
+    });
+    expect(filled.unNumber).toBe('1263');
+    expect(filled.hazardClass).toBe('3');
+    expect(filled.declarationCutoffAt).toBe('2026-10-21T06:45:00.000Z');
+
+    const updated = airExportFormAdapter.buildUpdatePayload('order', '9', {
+      customerId: 'customer',
+      paymentTerm: 1,
+      unNumber: '1263',
+      hazardClass: '3',
+      declarationCutoffAt: '2026-10-21T06:45:00.000Z',
+    });
+    expect(updated.unNumber).toBe('1263');
+    expect(updated.hazardClass).toBe('3');
+    expect(updated.declarationCutoffAt).toBe('2026-10-21T06:45:00.000Z');
+
+    const empty = airExportFormAdapter.buildCreatePayload({
+      customerId: 'customer',
+      paymentTerm: 1,
+      unNumber: '   ',
+    });
+    expect(empty.unNumber).toBeUndefined();
+    expect(empty.hazardClass).toBeUndefined();
+    expect(empty.declarationCutoffAt).toBeUndefined();
+  });
+
+  it('详情回填携带危险品三元组，截申报时间转为 dayjs 对象回显', () => {
+    const values = airExportFormAdapter.buildDetailInitialValues(
+      {
+        customerId: 'customer',
+        unNumber: '1263',
+        hazardClass: '3',
+        declarationCutoffAt: '2026-10-21T06:45:00.000Z',
+      },
+      [],
+      [],
+    );
+    expect(values.unNumber).toBe('1263');
+    expect(values.hazardClass).toBe('3');
+    const cutoff = values.declarationCutoffAt;
+    expect(dayjs.isDayjs(cutoff)).toBe(true);
+    if (dayjs.isDayjs(cutoff)) {
+      expect(cutoff.toISOString()).toBe('2026-10-21T06:45:00.000Z');
+    }
+  });
 });

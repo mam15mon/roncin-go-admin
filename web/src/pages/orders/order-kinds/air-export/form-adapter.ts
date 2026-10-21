@@ -58,6 +58,9 @@ type CommonValues = Pick<
   | 'specialRequirements'
   | 'serviceTypeIds'
   | 'cargoCategoryIds'
+  | 'unNumber'
+  | 'hazardClass'
+  | 'declarationCutoffAt'
   | 'totalPackages'
   | 'totalGrossWeightKg'
   | 'totalVolumeCbm'
@@ -83,6 +86,11 @@ function commonFields(values: Partial<CommonValues>) {
     specialRequirements: values.specialRequirements?.trim() || undefined,
     serviceTypeIds: values.serviceTypeIds,
     cargoCategoryIds: values.cargoCategoryIds,
+    unNumber: values.unNumber?.trim() || undefined,
+    hazardClass: values.hazardClass?.trim() || undefined,
+    declarationCutoffAt: values.declarationCutoffAt
+      ? dayjs(values.declarationCutoffAt).toISOString()
+      : undefined,
     totalPackages: values.totalPackages,
     totalGrossWeightKg: values.totalGrossWeightKg,
     totalVolumeCbm: values.totalVolumeCbm,
@@ -146,6 +154,10 @@ export const airExportFormAdapter: OrderKindFormAdapter = {
       orderNo: order.orderNo,
       customerId: order.customerId,
       orderDate: dayjs(order.orderDate || order.createdAt),
+      // commonFields 序列化为 ISO 字符串；表单 DatePicker 需要 dayjs 对象回显。
+      declarationCutoffAt: order.declarationCutoffAt
+        ? dayjs(order.declarationCutoffAt)
+        : undefined,
       ...Object.fromEntries(
         personnelFields.map(([field, role]) => [
           field,
