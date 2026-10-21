@@ -11,6 +11,7 @@ import { onSeaFormErrorReveal } from '../../sea-form-error-reveal';
  * - 初始展开态由数据（详情回填 / 草稿恢复）到达后自动确定；用户手动
  *   收起或展开后，同单普通重绘尊重该选择，切单由页面重挂载重置。
  * - 提交校验失败时经 sea-form-error-reveal 链路强制展开以便滚动定位。
+ * - name 支持嵌套路径（如 ['airMaster', 'notes']），testid 以「.」拼接。
  */
 export function SeaCollapsibleNotesField({
   name,
@@ -19,7 +20,7 @@ export function SeaCollapsibleNotesField({
   disabled,
   sectionHeading = false,
 }: {
-  name: string;
+  name: string | (string | number)[];
   label: string;
   placeholder?: string;
   disabled?: boolean;
@@ -31,19 +32,21 @@ export function SeaCollapsibleNotesField({
   // null 表示用户尚未手动干预，展开态跟随是否有内容。
   const [manualExpanded, setManualExpanded] = useState<boolean | null>(null);
   const expanded = manualExpanded ?? hasContent;
+  const namePath = Array.isArray(name) ? name : [name];
+  const nameKey = namePath.join('.');
 
   useEffect(
     () =>
       onSeaFormErrorReveal((fields) => {
-        if (fields.some((field) => field.name[0] === name)) {
+        if (fields.some((field) => field.name.join('.') === nameKey)) {
           setManualExpanded(true);
         }
       }),
-    [name],
+    [nameKey],
   );
 
   return (
-    <div data-testid={`sea-notes-${name}`} style={{ width: '100%' }}>
+    <div data-testid={`sea-notes-${nameKey}`} style={{ width: '100%' }}>
       <div
         style={{
           display: 'flex',
