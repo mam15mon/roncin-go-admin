@@ -1,7 +1,7 @@
 import { Form, Radio } from 'antd';
-import React from 'react';
 import { FormRow } from '@/components/ui';
 import { SeaDocumentStructure } from '@/enums.generated';
+import { TemplateFieldGroup } from './components/FieldGroup';
 import {
   extractPersonnelFromPartnerAssignments,
   getSeaBaseInfoFields,
@@ -71,7 +71,7 @@ export function getSeaTemplateSections(
       title: '订舱与运输',
       content: (
         <div style={{ display: 'grid', gap: 12, width: '100%' }}>
-          <SeaFieldGroup title="订舱与主单">
+          <TemplateFieldGroup title="订舱与主单">
             <FormRow cols={4}>
               {basic.booking}
               {basic.carrier}
@@ -91,15 +91,15 @@ export function getSeaTemplateSections(
               placeholder="请输入订舱备注"
               disabled={props.readonly}
             />
-          </SeaFieldGroup>
-          <SeaFieldGroup title="航线与船期">
+          </TemplateFieldGroup>
+          <TemplateFieldGroup title="航线与船期">
             <FormRow cols={4}>
               {transport.vessel}
               {transport.schedule}
             </FormRow>
             {transport.ports}
-          </SeaFieldGroup>
-          <SeaFieldGroup title="箱量与截关">
+          </TemplateFieldGroup>
+          <TemplateFieldGroup title="箱量与截关">
             {transport.containers}
             <FormRow cols={4}>{transport.cutoffs}</FormRow>
             <SeaCollapsibleNotesField
@@ -108,7 +108,7 @@ export function getSeaTemplateSections(
               placeholder="请输入配舱备注"
               disabled={props.readonly}
             />
-          </SeaFieldGroup>
+          </TemplateFieldGroup>
           <SeaCollapsibleNotesField
             name="operationNotes"
             label="操作备注"
@@ -143,35 +143,6 @@ export function getSeaTemplateSections(
     buildSeaDocumentSection(props),
     buildSeaPersonnelSection(props),
   ];
-}
-
-/** 第二卡内的小节标题：品牌蓝竖标 + 分组名，不套子卡片。 */
-function SeaFieldGroup({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div style={{ display: 'grid', gap: 12, width: '100%' }}>
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <div
-          style={{
-            width: 3,
-            height: 14,
-            backgroundColor: '#1677ff',
-            borderRadius: 2,
-            marginRight: 8,
-          }}
-        />
-        <span style={{ fontSize: 13, fontWeight: 600, color: '#1f2329' }}>
-          {title}
-        </span>
-      </div>
-      {children}
-    </div>
-  );
 }
 
 /**
