@@ -309,7 +309,7 @@ export function SeaDangerousGoodsFields({
   );
 }
 
-export const dangerousPackingGroupOptions = [
+const dangerousPackingGroupOptions = [
   { label: 'Ⅰ类', value: DangerousPackingGroup.DANGEROUS_PACKING_GROUP_I },
   { label: 'Ⅱ类', value: DangerousPackingGroup.DANGEROUS_PACKING_GROUP_II },
   { label: 'Ⅲ类', value: DangerousPackingGroup.DANGEROUS_PACKING_GROUP_III },
