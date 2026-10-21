@@ -1,6 +1,12 @@
 import { ProForm } from '@ant-design/pro-components';
 import { renderWithApp } from '@root/tests/renderWithApp';
-import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { Form } from 'antd';
 import { describe, expect, it, vi } from 'vitest';
 import { getAirTemplateSections } from './air-template';
@@ -70,6 +76,16 @@ function SectionCards({
   );
 }
 
+// 挂载期 request 型下拉会发起异步选项查询；在 act 内冲刷微任务，
+// 确保用例结束前已触发的异步流全部落地，避免迟到 setState 触发 act 警告。
+async function flushMountRequests() {
+  await act(async () => {
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+}
+
 describe('AE 新建与详情五卡片合同', () => {
   it('新建与详情返回同一套五卡片 key、标题与顺序（对齐海运出口节奏）', () => {
     const expected = [
@@ -89,28 +105,38 @@ describe('AE 新建与详情五卡片合同', () => {
     ).toEqual(expected);
   });
 
-  it('订舱与运输卡按小节分组编排：主单与订舱 / 航线与班期 / 时刻与申报', () => {
+  it('订舱与运输卡按小节分组编排：主单与订舱 / 航线与班期 / 时刻与申报', async () => {
     renderWithApp(<SectionCards />, { user });
     const booking = screen.getByRole('region', { name: '订舱与运输' });
-    expect(booking).toHaveTextContent('主单与订舱');
-    expect(booking).toHaveTextContent('航线与班期');
-    expect(booking).toHaveTextContent('时刻与申报');
-    // 主单备注与操作备注为可折叠备注（NEW 模式两者都挂载）。
+    // textContent 顺序即 DOM 顺序：三个小节标题按固定顺序出现。
+    const groupIndexes = ['主单与订舱', '航线与班期', '时刻与申报'].map(
+      (title) => booking.textContent?.indexOf(title) ?? -1,
+    );
+    expect(groupIndexes.every((index) => index >= 0)).toBe(true);
+    expect([...groupIndexes].sort((a, b) => a - b)).toEqual(groupIndexes);
+    // 主单备注与操作备注为可折叠备注（NEW 模式两者都挂载，主单备注在前）。
+    const masterNotes = within(booking).getByTestId(
+      'sea-notes-airMaster.notes',
+    );
+    const operationNotes = within(booking).getByTestId(
+      'sea-notes-operationNotes',
+    );
+    expect(masterNotes).toBeInTheDocument();
+    expect(operationNotes).toBeInTheDocument();
     expect(
-      within(booking).getByTestId('sea-notes-airMaster.notes'),
-    ).toBeInTheDocument();
-    expect(
-      within(booking).getByTestId('sea-notes-operationNotes'),
-    ).toBeInTheDocument();
+      masterNotes.compareDocumentPosition(operationNotes) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     // 订舱号归入订舱与运输卡的主单小节；不渲染海运专属备注字段。
     expect(booking).toHaveTextContent('订舱号');
     expect(booking).toHaveTextContent('主运单号（MAWB）');
     expect(booking).toHaveTextContent('航班号');
     expect(booking).not.toHaveTextContent('订舱备注');
     expect(booking).not.toHaveTextContent('配舱备注');
+    await flushMountRequests();
   });
 
-  it('业务与客户卡不再包含订舱号，分单信息卡承接 HAWB 与单证资料', () => {
+  it('业务与客户卡不再包含订舱号，分单信息卡承接 HAWB 与单证资料', async () => {
     renderWithApp(<SectionCards />, { user });
     const business = screen.getByRole('region', { name: '业务与客户' });
     expect(business).toHaveTextContent('订单编号');
@@ -124,9 +150,10 @@ describe('AE 新建与详情五卡片合同', () => {
     expect(documents).toHaveTextContent('本票单证资料');
     // 详情已签发才展示的修改原因在新建模式不出现。
     expect(documents).not.toHaveTextContent('已签发分单修改原因');
+    await flushMountRequests();
   });
 
-  it('详情模式展示共享主单摘要与订舱号，主单编辑字段收起', () => {
+  it('详情模式展示共享主单摘要与订舱号，主单编辑字段收起', async () => {
     renderWithApp(
       <SectionCards
         isDetail
@@ -152,6 +179,7 @@ describe('AE 新建与详情五卡片合同', () => {
 
     const documents = screen.getByRole('region', { name: '分单信息' });
     expect(documents).toHaveTextContent('已签发分单修改原因');
+    await flushMountRequests();
   });
 
   it('切到关联已有主单时收起航线/申报小节与主单备注，保留操作备注', async () => {
@@ -174,5 +202,6 @@ describe('AE 新建与详情五卡片合同', () => {
     expect(
       within(existing).getByTestId('sea-notes-operationNotes'),
     ).toBeInTheDocument();
+    await flushMountRequests();
   });
 });
