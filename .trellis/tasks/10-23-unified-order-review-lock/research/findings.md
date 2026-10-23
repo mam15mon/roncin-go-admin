@@ -12,7 +12,7 @@
 | 对冲回退 | `server/internal/data/finance_netting.go:460`、`:490` | 草稿取消与已确认反对冲分别处理，不能漏掉账单取消依赖。 |
 | 锁后费用更正 | `server/internal/data/order_fee_correction_apply.go:69` | 当前支持保留原费、生成冲回及替代费用，已有账单及资金事实不覆盖；用户已选择 A，新流程不允许对仍已建账的原费用走该路径。 |
 | 补审资格 | `server/internal/data/order_fee_supplement_lock.go:201`、`server/internal/data/order_fee_correction.go:56` | 当前按实时费用审核权限校验，并不限定原锁定人；需对齐用户指定锁定／审核人员的规则。 |
-| 自动锁 | `server/internal/data/order_lock_apply.go:37` | 自动锁定没有人工 lockedBy；不能直接当作人工审核通过。统一后自动锁的处置需明确。 |
+| 自动锁 | `server/internal/data/order_lock_apply.go:37` | 自动锁定没有人工 lockedBy；不能直接当作人工审核通过。用户已确认取消自动锁，统一人工审核并锁定；移除各触发入口，同时保留真实财务事实及其审计。 |
 | 财务进度 | `web/src/features/finance/fee-progress/index.ts:6`、`server/internal/data/settlement.go:94` | 用户列出的七种状态均已有；当前按整张关联账单开票及核销／对冲进度投影，不是费用行独立核销状态，避免新增重复状态机。 |
 
 ## 历史契约与本轮规则的差异
@@ -27,4 +27,4 @@
 
 ## 后续设计关注
 
-继续收敛审批人员资格、自动锁与人工审核、解锁／结案、合并账单回退影响及待审期间其他费用建账范围。Schema、权限和正式迁移设计在产品边界明确后完成；当前只提交规划资料，不执行迁移、不修改产品代码。
+已确认取消自动锁。继续收敛审批人员资格、解锁／结案、合并账单回退影响及待审期间其他费用建账范围。自动锁退役需同步清理 biz/order_auto_lock.go 及建账、费用删除、核销和对冲等触发方；人工审核保留单证历史保护。Schema、权限和正式迁移设计在产品边界明确后完成；当前只提交规划资料，不执行迁移、不修改产品代码。
