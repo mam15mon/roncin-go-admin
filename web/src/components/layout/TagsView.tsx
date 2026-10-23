@@ -16,7 +16,6 @@ import { Dropdown } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router';
 import { useInitialState } from '@/app/AppProvider';
-import { EllipsisTooltip } from '@/components/ui';
 import { useClearListQueries } from '@/components/ui/list-query-state';
 import { history } from '@/router/history';
 import { clearTabDrafts, getFormDraftScope } from './formDraft';
@@ -398,11 +397,7 @@ export const TagsView: React.FC = () => {
               >
                 {/* 标签主体内容 */}
                 {getRouteIcon(tag.key)}
-                <span className="roncin-chrome-tab-title">
-                  <EllipsisTooltip autoDetect maxWidth="100%">
-                    {tag.title}
-                  </EllipsisTooltip>
-                </span>
+                <span className="roncin-chrome-tab-title">{tag.title}</span>
                 {tag.closable && (
                   <button
                     type="button"
