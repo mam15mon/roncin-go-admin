@@ -35345,8 +35345,7 @@
         "required": [
           "id",
           "expectedVersion",
-          "targetStatus",
-          "reason"
+          "targetStatus"
         ],
         "type": "object",
         "properties": {
@@ -35361,7 +35360,8 @@
             "format": "enum"
           },
           "reason": {
-            "type": "string"
+            "type": "string",
+            "description": "完结订单时选填；反结案时必填，由业务层按目标状态校验。"
           }
         }
       },

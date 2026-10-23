@@ -22949,7 +22949,6 @@ components:
                 - id
                 - expectedVersion
                 - targetStatus
-                - reason
             type: object
             properties:
                 id:
@@ -22961,6 +22960,7 @@ components:
                     format: enum
                 reason:
                     type: string
+                    description: 完结订单时选填；反结案时必填，由业务层按目标状态校验。
         order.v1.TransitionOrderClosureResponse:
             type: object
             properties:

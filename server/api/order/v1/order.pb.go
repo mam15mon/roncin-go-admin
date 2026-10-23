@@ -4977,9 +4977,10 @@ type TransitionOrderClosureRequest struct {
 	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	ExpectedVersion uint64                 `protobuf:"varint,2,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
 	TargetStatus    OrderClosureStatus     `protobuf:"varint,3,opt,name=target_status,json=targetStatus,proto3,enum=order.v1.OrderClosureStatus" json:"target_status,omitempty"`
-	Reason          string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// 完结订单时选填；反结案时必填，由业务层按目标状态校验。
+	Reason        *string `protobuf:"bytes,4,opt,name=reason,proto3,oneof" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *TransitionOrderClosureRequest) Reset() {
@@ -5034,8 +5035,8 @@ func (x *TransitionOrderClosureRequest) GetTargetStatus() OrderClosureStatus {
 }
 
 func (x *TransitionOrderClosureRequest) GetReason() string {
-	if x != nil {
-		return x.Reason
+	if x != nil && x.Reason != nil {
+		return *x.Reason
 	}
 	return ""
 }
@@ -7680,12 +7681,13 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\rtarget_status\x18\x03 \x01(\x0e2 .order.v1.OrderTerminationStatusB\x03\xe0A\x02R\ftargetStatus\x12N\n" +
 	"\x10termination_type\x18\x04 \x01(\x0e2\x1e.order.v1.OrderTerminationTypeH\x00R\x0fterminationType\x88\x01\x01\x12\x1b\n" +
 	"\x06reason\x18\x05 \x01(\tB\x03\xe0A\x02R\x06reasonB\x13\n" +
-	"\x11_termination_type\"\xc9\x01\n" +
+	"\x11_termination_type\"\xd4\x01\n" +
 	"\x1dTransitionOrderClosureRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
 	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12F\n" +
 	"\rtarget_status\x18\x03 \x01(\x0e2\x1c.order.v1.OrderClosureStatusB\x03\xe0A\x02R\ftargetStatus\x12\x1b\n" +
-	"\x06reason\x18\x04 \x01(\tB\x03\xe0A\x02R\x06reason\"\x9a\x01\n" +
+	"\x06reason\x18\x04 \x01(\tH\x00R\x06reason\x88\x01\x01B\t\n" +
+	"\a_reason\"\x9a\x01\n" +
 	"\x10GetOrderResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -8265,6 +8267,7 @@ func file_order_v1_order_proto_init() {
 	file_order_v1_order_proto_msgTypes[24].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[25].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[26].OneofWrappers = []any{}
+	file_order_v1_order_proto_msgTypes[27].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[38].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[39].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[40].OneofWrappers = []any{}

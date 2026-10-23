@@ -763,7 +763,8 @@ message TransitionOrderClosureRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
   uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
   OrderClosureStatus target_status = 3 [(google.api.field_behavior) = REQUIRED];
-  string reason = 4 [(google.api.field_behavior) = REQUIRED];
+  // 完结订单时选填；反结案时必填，由业务层按目标状态校验。
+  optional string reason = 4;
 }
 
 // GetOrderResponse 单条订单响应。

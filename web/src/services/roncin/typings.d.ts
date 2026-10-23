@@ -8826,7 +8826,8 @@ declare namespace API {
     id: string;
     expectedVersion: string;
     targetStatus: number;
-    reason: string;
+    /** 完结订单时选填；反结案时必填，由业务层按目标状态校验。 */
+    reason?: string;
   };
 
   type TransitionOrderClosureResponse = {

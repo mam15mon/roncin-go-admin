@@ -21,10 +21,30 @@ vi.mock('@/services/roncin/orderService', () => ({
 
 beforeEach(() => vi.clearAllMocks());
 
+it('完结订单不填写原因也能提交并关闭确认框', async () => {
+  vi.mocked(orderServiceTransitionOrderClosure).mockResolvedValueOnce({ success: true, data: { id: 'order-1' } });
+  const completed = vi.fn();
+  function Entry() {
+    const app = App.useApp();
+    return <button type="button" onClick={() => confirmOrderClosure(app, { id: 'order-1', version: '7' }, OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED, completed)}>直接完结</button>;
+  }
+  renderWithApp(<Entry />);
+  fireEvent.click(screen.getByText('直接完结'));
+  const dialog = await screen.findByRole('dialog');
+  expect(screen.getByPlaceholderText('请输入完结原因（选填）')).toHaveValue('');
+  fireEvent.click(within(dialog).getByRole('button', { name: /确\s*定$/ }));
+  await waitFor(() => expect(completed).toHaveBeenCalledOnce());
+  expect(orderServiceTransitionOrderClosure).toHaveBeenCalledWith(
+    { id: 'order-1' },
+    { id: 'order-1', expectedVersion: '7', targetStatus: OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED, reason: undefined },
+  );
+  await waitFor(() => expect(dialog).toHaveClass('ant-zoom-leave'));
+});
+
 it.each([
   { name: '主流程', confirm: confirmOrderFlow, api: orderServiceTransitionOrderStatus, target: OrderFlowStatus.ORDER_FLOW_STATUS_BOOKED, reason: '请输入流转原因（选填）', required: false },
   { name: '退关', confirm: confirmOrderTermination, api: orderServiceTransitionOrderTermination, target: OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATING, reason: '请输入原因（必填）', required: true },
-  { name: '结案', confirm: confirmOrderClosure, api: orderServiceTransitionOrderClosure, target: OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED, reason: '请输入完结原因（必填）', required: true },
+  { name: '结案', confirm: confirmOrderClosure, api: orderServiceTransitionOrderClosure, target: OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED, reason: '请输入完结原因（选填）', required: false },
 ])('$name真实Modal失败留窗保留原因，成功重试关闭且不产生未处理拒绝', async ({ confirm, api, target, reason, required }) => {
   const submit = vi.mocked(api);
   submit
@@ -100,7 +120,7 @@ it('原因输入标脏；所属订单页卸载销毁 App modal，不能在新工
   renderWithApp(<Shell />);
   fireEvent.click(screen.getByText('打开订单结案'));
   expect(getAnyDirtyTabKey()).toBeUndefined();
-  fireEvent.change(screen.getByPlaceholderText('请输入完结原因（必填）'), {
+  fireEvent.change(screen.getByPlaceholderText('请输入完结原因（选填）'), {
     target: { value: '北京订单待提交原因' },
   });
   expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');

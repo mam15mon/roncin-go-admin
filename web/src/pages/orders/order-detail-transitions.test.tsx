@@ -141,21 +141,48 @@ describe('订单详情状态确认函数', () => {
     expect(app.message.success).not.toHaveBeenCalled();
   });
 
-  it.each([
-    [OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED, '请输入完结原因'],
-    [OrderClosureStatus.ORDER_CLOSURE_STATUS_OPEN, '请输入反结案原因'],
-  ])('完结与反结案原因均为必填', async (targetStatus, errorMessage) => {
+  it.each(['', '  '])('完结允许空原因或纯空格原因：%j', async (reason) => {
+    const { app, getConfig } = createApp();
+    const onCompleted = vi.fn();
+    transitionClosure.mockResolvedValueOnce({ data: { id: 'order-1' } });
+    confirmOrderClosure(
+      app,
+      { id: 'order-1', version: '9' },
+      OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED,
+      onCompleted,
+    );
+    render(getConfig().content);
+    fireEvent.change(screen.getByPlaceholderText('请输入完结原因（选填）'), {
+      target: { value: reason },
+    });
+    await getConfig().onOk();
+
+    expect(transitionClosure).toHaveBeenCalledWith(
+      { id: 'order-1' },
+      {
+        id: 'order-1',
+        expectedVersion: '9',
+        targetStatus: OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED,
+        reason: undefined,
+      },
+    );
+    expect(app.message.error).not.toHaveBeenCalled();
+    expect(app.message.success).toHaveBeenCalledWith('完结订单成功');
+    expect(onCompleted).toHaveBeenCalledOnce();
+  });
+
+  it('反结案仍必须填写原因', async () => {
     const { app, getConfig } = createApp();
     confirmOrderClosure(
       app,
       { id: 'order-1', version: '9' } as API.Order,
-      targetStatus,
+      OrderClosureStatus.ORDER_CLOSURE_STATUS_OPEN,
       vi.fn(),
     );
 
     await expect(getConfig().onOk()).rejects.toBeUndefined();
 
-    expect(app.message.error).toHaveBeenCalledWith(errorMessage);
+    expect(app.message.error).toHaveBeenCalledWith('请输入反结案原因');
     expect(transitionClosure).not.toHaveBeenCalled();
   });
 
@@ -177,7 +204,7 @@ describe('订单详情状态确认函数', () => {
         onCompleted,
       );
       render(getConfig().content);
-      fireEvent.change(screen.getByPlaceholderText('请输入完结原因（必填）'), {
+      fireEvent.change(screen.getByPlaceholderText('请输入完结原因（选填）'), {
         target: { value: '业务已完成' },
       });
       if (failure === 'empty') {

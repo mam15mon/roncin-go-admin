@@ -571,6 +571,38 @@ func TestOrderClosureRequiresTerminalBusinessAndNoBlockers(t *testing.T) {
 	}
 }
 
+func TestOrderClosureReasonOptionalOnlyWhenClosing(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		target  OrderClosureStatus
+		reason  string
+		wantErr bool
+	}{
+		{"完结可不填原因", OrderClosureClosed, "", false},
+		{"完结纯空格视为未填", OrderClosureClosed, "  ", false},
+		{"反结案必须填写原因", OrderClosureOpen, "", true},
+		{"反结案纯空格不合法", OrderClosureOpen, "  ", true},
+		{"完结原因不得超过五百字", OrderClosureClosed, strings.Repeat("原", 501), true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			current := OrderClosureOpen
+			if tc.target == OrderClosureOpen {
+				current = OrderClosureClosed
+			}
+			repo := &orderRepoStub{closureReadiness: &OrderClosureReadiness{FlowStatus: OrderFlowDocumentReleased, TerminationStatus: OrderTerminationActive, ClosureStatus: current}}
+			uc := NewOrderUsecase(repo, nil, nil, nil, nil, nil)
+			_, err := uc.TransitionClosure(context.Background(), uuid.New(), uuid.New(), uuid.New(), 1, tc.target, tc.reason)
+			if tc.wantErr {
+				if err != ErrOrderClosureInvalid || repo.closureEvent != nil {
+					t.Fatalf("原因不合法必须拒绝写入: err=%v event=%v", err, repo.closureEvent)
+				}
+			} else if err != nil || repo.closureEvent == nil || repo.closureReason != "" {
+				t.Fatalf("空原因完结应成功并记录事件: err=%v repo=%#v", err, repo)
+			}
+		})
+	}
+}
+
 func TestOrderClosurePendingSupplement(t *testing.T) {
 	readiness := &OrderClosureReadiness{FlowStatus: OrderFlowDocumentReleased, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, HasPendingFeeSupplement: true}
 	repo := &orderRepoStub{closureReadiness: readiness}

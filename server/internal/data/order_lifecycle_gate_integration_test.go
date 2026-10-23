@@ -261,7 +261,7 @@ func TestOrderLifecycleGatePostgres(t *testing.T) {
 		version := mustAdvanceFlowToReleased(t, usecase, fixture, created)
 		version = mustLockOrderDirectly(t, data, fixture, created.ID)
 
-		closed, err := usecase.TransitionClosure(ctx, fixture.organizationID, fixture.actorID, created.ID, version, biz.OrderClosureClosed, "放单完成结案")
+		closed, err := usecase.TransitionClosure(ctx, fixture.organizationID, fixture.actorID, created.ID, version, biz.OrderClosureClosed, "")
 		if err != nil {
 			t.Fatalf("锁定的 DOCUMENT_RELEASED 订单结案应成功: %v", err)
 		}
@@ -274,6 +274,9 @@ func TestOrderLifecycleGatePostgres(t *testing.T) {
 		}
 		if stored.LockedAt == nil || stored.LockGeneration != 1 {
 			t.Fatalf("结案不应清除业务锁状态: %#v", stored)
+		}
+		if closed.ClosureReason != "" || stored.ClosureReason != nil && *stored.ClosureReason != "" {
+			t.Fatalf("空原因完结不得生成默认原因: %#v", stored.ClosureReason)
 		}
 
 		reopened, err := usecase.TransitionClosure(ctx, fixture.organizationID, fixture.actorID, created.ID, closed.Version, biz.OrderClosureOpen, "结案错误反结案")
