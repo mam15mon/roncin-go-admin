@@ -76,11 +76,6 @@ export type FeeRowPreview = {
 /** 按行 key 索引的编辑预览集合。 */
 export type FeeRowPreviewMap = Record<string, FeeRowPreview>;
 
-/** 未保存或缺少计算输入时的占位：服务端尚未计算，前端暂无实时预览。 */
-function pendingSaveCell() {
-  return <span style={{ color: '#8c8c8c' }}>待保存</span>;
-}
-
 /** 税额实时计算：含税总价、税率（百分数值）推不含税总额与税金，两位小数。 */
 function computeTaxBreakdown(
   total: string,
@@ -196,15 +191,16 @@ export function buildOptionalFeeColumns(
       },
       render: (_, record) => {
         const preview = previewOf(record);
-        if (preview?.unitPrice && preview.taxRate) {
+        if (preview?.unitPrice !== undefined) {
           const netUnit = computeNetUnitPrice(
             preview.unitPrice,
             preview.taxRate,
           );
-          if (netUnit !== undefined)
-            return monoAmountCell(formatAmount(netUnit));
+          return netUnit === undefined
+            ? '-'
+            : monoAmountCell(formatAmount(netUnit));
         }
-        if (!record.version) return pendingSaveCell();
+        if (!record.version) return '-';
         // 历史不含税行单价即不含税口径，直接展示；protojson 省略零值，
         // wire 上非 true（含 undefined）即不含税行，禁止 === false 死分支。
         if (record.taxInclusive !== true) {
@@ -233,7 +229,7 @@ export function buildOptionalFeeColumns(
       render: (_, record) => {
         const previewTaxRate = previewOf(record)?.taxRate;
         const taxRate = previewTaxRate ?? record.taxRate;
-        if (!previewTaxRate && !record.version) return pendingSaveCell();
+        if (previewTaxRate === undefined && !record.version) return '-';
         if (taxRate === undefined || taxRate === null || taxRate === '') {
           return '-';
         }
@@ -256,11 +252,11 @@ export function buildOptionalFeeColumns(
       shouldCellUpdate: () => true,
       render: (_, record) => {
         const preview = previewOf(record);
-        if (preview?.amount && preview.taxRate) {
-          const breakdown = computeTaxBreakdown(
-            preview.amount.total,
-            preview.taxRate,
-          );
+        if (preview?.unitPrice !== undefined) {
+          const breakdown =
+            preview.amount && preview.taxRate
+              ? computeTaxBreakdown(preview.amount.total, preview.taxRate)
+              : undefined;
           if (breakdown) {
             return (
               <span style={{ fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
@@ -268,8 +264,9 @@ export function buildOptionalFeeColumns(
               </span>
             );
           }
+          return '-';
         }
-        if (!record.version) return pendingSaveCell();
+        if (!record.version) return '-';
         return (
           <span style={{ fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
             {formatAmount(record.taxAmount)}
@@ -286,11 +283,11 @@ export function buildOptionalFeeColumns(
       shouldCellUpdate: () => true,
       render: (_, record) => {
         const preview = previewOf(record);
-        if (preview?.amount && preview.taxRate) {
-          const breakdown = computeTaxBreakdown(
-            preview.amount.total,
-            preview.taxRate,
-          );
+        if (preview?.unitPrice !== undefined) {
+          const breakdown =
+            preview.amount && preview.taxRate
+              ? computeTaxBreakdown(preview.amount.total, preview.taxRate)
+              : undefined;
           if (breakdown) {
             return (
               <span style={{ fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
@@ -298,8 +295,9 @@ export function buildOptionalFeeColumns(
               </span>
             );
           }
+          return '-';
         }
-        if (!record.version) return pendingSaveCell();
+        if (!record.version) return '-';
         return (
           <span style={{ fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
             {formatAmount(record.netAmount)}
@@ -316,17 +314,24 @@ export function buildOptionalFeeColumns(
       shouldCellUpdate: () => true,
       render: (_, record) => {
         const preview = previewOf(record);
+        const rate = preview?.rate
+          ? preview.rate.status === 'resolved'
+            ? preview.rate.rate
+            : undefined
+          : record.exchangeRate;
         const previewBase =
-          preview?.amount && preview.rate?.status === 'resolved'
+          preview?.amount && rate
             ? new Decimal(preview.amount.total)
-                .mul(new Decimal(preview.rate.rate ?? '1'))
+                .mul(new Decimal(rate))
                 .toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
                 .toString()
             : undefined;
-        const amount = formatAmount(previewBase ?? record.baseCurrencyAmount);
-        if (amount === '-') {
-          return !record.version && !previewBase ? pendingSaveCell() : '-';
-        }
+        const amount = formatAmount(
+          preview?.unitPrice !== undefined
+            ? previewBase
+            : record.baseCurrencyAmount,
+        );
+        if (amount === '-') return '-';
         return (
           <Space size={4}>
             <span style={{ fontFamily: 'monospace', whiteSpace: 'nowrap' }}>

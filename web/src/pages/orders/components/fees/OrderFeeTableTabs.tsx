@@ -612,7 +612,7 @@ export default function OrderFeeTableTabs({
   };
 
   // 单价/数量/币种变化后重算总金额预览，并同步行内单价供不含税单价列
-  // 实时折算；输入不完整时清除该行对应预览。
+  // 实时折算；输入不完整时保留空预览，避免显示保存前的值。
   const refreshAmountPreview = (
     rowKey: React.Key | undefined,
     form?: {
@@ -632,37 +632,22 @@ export default function OrderFeeTableTabs({
       : '';
     const hasUnitPrice =
       unitPriceInput !== '' && Number.isFinite(Number(unitPriceInput));
-    setRowPreviews((prev) => {
-      const current = prev[key];
-      if (!total && !hasUnitPrice) {
-        if (!current?.amount && current?.unitPrice === undefined) return prev;
-        const next = { ...current };
-        delete next.amount;
-        delete next.unitPrice;
-        if (
-          !next.rate &&
-          next.feeCode === undefined &&
-          next.taxRate === undefined &&
-          next.unitPrice === undefined
-        ) {
-          const { [key]: _removed, ...rest } = prev;
-          return rest;
-        }
-        return { ...prev, [key]: next };
-      }
-      const next: RowEditPreview = { ...current };
-      if (hasUnitPrice) {
-        next.unitPrice = unitPriceInput;
-      } else {
-        delete next.unitPrice;
-      }
-      if (total) {
-        next.amount = { total, currency: String(currency || 'CNY') };
-      } else {
-        delete next.amount;
-      }
-      return { ...prev, [key]: next };
-    });
+    const feeSettingId = form?.getFieldValue([rowKey, 'feeSettingId']);
+    const taxRate = feeSettings?.find(
+      (item) => item.id === feeSettingId,
+    )?.taxRate;
+    setRowPreviews((prev) => ({
+      ...prev,
+      [key]: {
+        ...prev[key],
+        // 空字符串明确表示当前输入已清空，计算列不能复用保存前的值。
+        unitPrice: hasUnitPrice ? unitPriceInput : '',
+        taxRate: taxRate ?? '',
+        amount: total
+          ? { total, currency: String(currency || 'CNY') }
+          : undefined,
+      },
+    }));
   };
 
   // 选择费用项目后同步预览费用代码与默认税率列。
@@ -1018,8 +1003,8 @@ export default function OrderFeeTableTabs({
                   option.defaultCurrency,
                   form?.getFieldValue([rowKey, 'expenseDate']),
                 );
-                refreshAmountPreview(rowKey, form);
               }
+              refreshAmountPreview(rowKey, form);
               if (option.defaultBillingUnitId) {
                 const bu = billingUnits?.find(
                   (u) => u.id === option.defaultBillingUnitId,
@@ -1349,6 +1334,12 @@ export default function OrderFeeTableTabs({
         shouldCellUpdate: () => true,
         render: (_, record) => {
           const preview = rowPreviews[String(record.id ?? '')]?.amount;
+          if (
+            rowPreviews[String(record.id ?? '')]?.unitPrice !== undefined &&
+            !preview
+          ) {
+            return '-';
+          }
           if (preview) {
             return (
               <span
