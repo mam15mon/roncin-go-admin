@@ -59,10 +59,13 @@ export function FeeQuantitySourceFields({
   prefix = [],
   onSourceChange,
   disabled = false,
+  actionTabIndex,
 }: {
   prefix?: (string | number)[];
   onSourceChange: () => void;
   disabled?: boolean;
+  /** 辅助操作不打断行内字段的连续录入。 */
+  actionTabIndex?: number;
 }) {
   return (
     <Form.Item noStyle shouldUpdate>
@@ -103,6 +106,7 @@ export function FeeQuantitySourceFields({
                 <Button
                   type="link"
                   size="small"
+                  tabIndex={actionTabIndex}
                   disabled={disabled}
                   onClick={() => {
                     form.setFieldValue([...prefix, 'quantitySource'], {

@@ -85,6 +85,37 @@ import {
   orderColumnsByPreference,
 } from './orderFeeOptionalColumns';
 
+/** 费用行按当前可见列顺序切换输入字段，跳过清空及带入等辅助按钮。 */
+const handleFeeRowTab = (event: React.KeyboardEvent<HTMLElement>) => {
+  if (event.key !== 'Tab' || event.altKey || event.ctrlKey || event.metaKey)
+    return;
+  const target = event.target;
+  if (
+    !(
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement
+    )
+  )
+    return;
+  const fields = Array.from(
+    event.currentTarget.querySelectorAll<
+      HTMLInputElement | HTMLTextAreaElement
+    >('input:not([type="hidden"]):not([type="checkbox"]), textarea'),
+  ).filter(
+    (field) =>
+      !field.disabled &&
+      field.tabIndex >= 0 &&
+      field.getClientRects().length > 0,
+  );
+  const index = fields.indexOf(target);
+  if (index < 0) return;
+  const next = fields[index + (event.shiftKey ? -1 : 1)];
+  if (!next) return;
+  event.preventDefault();
+  event.stopPropagation();
+  next.focus();
+};
+
 const positiveDecimalRule =
   (pattern: RegExp, messageText: string) => (_: unknown, value?: string) => {
     if (!value) return Promise.resolve();
@@ -967,6 +998,7 @@ export default function OrderFeeTableTabs({
         valueType: 'select',
         fieldProps: (form, { rowKey }) => ({
           showSearch: true,
+          autoFocus: true,
           placeholder: '请选择费用项目',
           options: (feeSettings || []).map((item) => ({
             label: `${item.nameZh || item.nameEn || item.feeCode} (${item.feeCode})`,
@@ -1165,6 +1197,9 @@ export default function OrderFeeTableTabs({
         fieldProps: (form, { rowKey }) => ({
           placeholder: '0.00',
           allowClear: false,
+          onFocus: (event: React.FocusEvent<HTMLInputElement>) => {
+            event.currentTarget.select();
+          },
           style: { textAlign: 'right' },
           styles: { input: { textAlign: 'right' } },
           onChange: () => {
@@ -1197,6 +1232,7 @@ export default function OrderFeeTableTabs({
               {() => (
                 <FeeQuantitySourceFields
                   prefix={[rowKey || '']}
+                  actionTabIndex={-1}
                   disabled={
                     feeWritesDisabled ||
                     [
@@ -1220,12 +1256,16 @@ export default function OrderFeeTableTabs({
         fieldProps: (form, { rowKey }) => ({
           placeholder: '1',
           allowClear: false,
+          onFocus: (event: React.FocusEvent<HTMLInputElement>) => {
+            event.currentTarget.select();
+          },
           style: { textAlign: 'right' },
           styles: { input: { textAlign: 'right' } },
           suffix: (
             <Form.Item noStyle shouldUpdate>
               {() => (
                 <FeeQuantityAssist
+                  tabIndex={-1}
                   allowChargeable={
                     order?.businessType === OrderBusinessType.BUSINESS_TYPE_AE
                   }
@@ -1545,6 +1585,7 @@ export default function OrderFeeTableTabs({
           pagination={false}
           scroll={{ x: 'max-content' }}
           recordCreatorProps={false}
+          onRow={() => ({ onKeyDownCapture: handleFeeRowTab })}
           editable={{
             type: 'single',
             editableKeys: receivableEditableKeys,
@@ -1692,6 +1733,7 @@ export default function OrderFeeTableTabs({
           pagination={false}
           scroll={{ x: 'max-content' }}
           recordCreatorProps={false}
+          onRow={() => ({ onKeyDownCapture: handleFeeRowTab })}
           editable={{
             type: 'single',
             editableKeys: payableEditableKeys,

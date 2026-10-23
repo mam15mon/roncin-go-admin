@@ -25,6 +25,8 @@ type FeeQuantityAssistProps = {
   billingUnit?: BillingUnit;
   disabled?: boolean;
   active?: boolean;
+  /** 行内录入时允许辅助入口退出 Tab 序列。 */
+  tabIndex?: number;
   allowChargeable?: boolean;
   onConfirm: (quantity: string, source?: API.FeeQuantitySelection) => void;
 };
@@ -45,6 +47,7 @@ function QuantityAssistSession({
   billingUnit,
   onConfirm,
   allowChargeable = true,
+  tabIndex,
 }: FeeQuantityAssistProps) {
   const [open, setOpen] = useState(false);
   const [source, setSource] = useState<'PLANNED' | 'ACTUAL'>('ACTUAL');
@@ -62,6 +65,7 @@ function QuantityAssistSession({
       <Button
         type="link"
         size="small"
+        tabIndex={tabIndex}
         style={{ padding: 0, fontSize: 12, height: 'auto' }}
         disabled={!orderId || !billingUnit?.id || !supportsOrderQuantity}
         onClick={() => {
