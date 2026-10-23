@@ -4,7 +4,7 @@
   "title": "统一订单审核锁与费用账务回退",
   "description": "统一订单锁与费用审核；未锁定且未建账费用可编辑，锁定后新增、修改、调减及作废经补审生效，已建账费用按权限回退。",
   "status": "planning",
-  "dev_type": null,
+  "dev_type": "fullstack",
   "scope": null,
   "package": "web",
   "priority": "P2",
@@ -30,6 +30,6 @@
     "web/src/pages/orders/fees.tsx",
     "web/src/features/finance/fee-progress/index.ts"
   ],
-  "notes": "用户已授权规划；锁后新增、修改、调减、作废均补审后生效；选择 A：原费先回退到未建账再补审，保持订单锁定；已确认取消收款自动锁，统一人工审核并锁定。待收敛补审人员资格，尚未批准实施。",
+  "notes": "规划文档已完成，待用户审阅最终方案后实施。已确认：统一人工审核锁、取消自动锁、已建账原费先回退再补审、同公司有该订单审核权限者均可补审。",
   "meta": {}
 }
