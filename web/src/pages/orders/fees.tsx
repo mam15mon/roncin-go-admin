@@ -422,13 +422,12 @@ export default function OrderFeesPage() {
 
   const handleModalSubmit = async (values: FeeFormValues) => {
     if (!orderId || !ensureFeeWriteAllowed()) return false;
-    const expenseDate = dayjs(values.expenseDate).format('YYYY-MM-DD HH:mm');
+    const expenseDate = dayjs(values.expenseDate).format('YYYY-MM-DD');
     const preservesManualSnapshot =
       editingFee?.exchangeRateSource === 'MANUAL' &&
       !manualExchangeRate &&
       values.currency === editingFee.currency &&
-      expenseDate ===
-        dayjs(editingFee.expenseDate).format('YYYY-MM-DD HH:mm') &&
+      expenseDate === dayjs(editingFee.expenseDate).format('YYYY-MM-DD') &&
       (values.direction ?? modalDirection) === editingFee.direction;
     if (
       exchangeRateStatus === 'missing' &&

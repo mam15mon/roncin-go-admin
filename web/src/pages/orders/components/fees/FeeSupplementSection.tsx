@@ -674,7 +674,7 @@ export default function FeeSupplementSection({
         <Space orientation="vertical" size={0}>
           <span>{record.feeName || record.feeCode || '-'}</span>
           <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-            {`${record.quantity || '-'} × ${record.unitPrice || '-'} = ${formatAmount(record.totalAmount)} ${record.currency || ''} · 发生日期 ${record.expenseDate || '-'}`}
+            {`${record.quantity || '-'} × ${record.unitPrice || '-'} = ${formatAmount(record.totalAmount)} ${record.currency || ''} · 发生日期 ${formatDate(record.expenseDate, 'date')}`}
           </Typography.Text>
         </Space>
       ),
@@ -919,7 +919,7 @@ export default function FeeSupplementSection({
                 {
                   key: 'date',
                   label: '发生日期',
-                  children: formatDate(reviewRequest.expenseDate, 'minute'),
+                  children: formatDate(reviewRequest.expenseDate, 'date'),
                 },
                 {
                   key: 'reason',

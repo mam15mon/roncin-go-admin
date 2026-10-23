@@ -1,6 +1,6 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { Space, Tag } from 'antd';
-import { formatAmount, trimDecimal } from '@/utils/format';
+import { formatAmount, formatDate, trimDecimal } from '@/utils/format';
 import { feeDirectionCode, PAYABLE, RECEIVABLE } from './feeConstants';
 import { FeeQuantityValue } from './feeQuantitySource';
 
@@ -122,9 +122,7 @@ export function feeBaseColumns(
     title: panel ? '费用日期' : '发生日期',
     dataIndex: 'expenseDate',
     width: panel ? 110 : 220,
-    ...(!panel && {
-      render: (_: unknown, record: API.OrderFee) => record.expenseDate || '-',
-    }),
+    render: (_, record) => formatDate(record.expenseDate, 'date'),
   };
   const noteColumn: ProColumns<API.OrderFee> = {
     title: '备注',

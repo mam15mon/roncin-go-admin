@@ -373,8 +373,7 @@ export default function FeeFormModal({
             disabled={isFeeBilled}
             fieldProps={{
               style: { width: '100%' },
-              format: 'YYYY-MM-DD HH:mm',
-              showTime: { format: 'HH:mm' },
+              format: 'YYYY-MM-DD',
             }}
           />
         </Col>

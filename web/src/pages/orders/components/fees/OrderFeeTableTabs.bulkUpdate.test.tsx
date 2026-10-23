@@ -19,7 +19,7 @@ import {
   unbilledFeeB,
 } from './OrderFeeTableTabs.bulkActions.fixtures';
 
-describe('OrderFeeTableTabs 批量修改单位与时间', () => {
+describe('OrderFeeTableTabs 批量修改单位与日期', () => {
   beforeEach(resetBulkActionMocks);
 
   it('批量改结算单位：提交版本快照 targets 与目标单位，成功后清空选择并刷新（A2/A3）', async () => {
@@ -83,26 +83,27 @@ describe('OrderFeeTableTabs 批量修改单位与时间', () => {
     expect(props.onFeeSaved).toHaveBeenCalled();
   });
 
-  it('批量改费用时间：按分钟精度提交 YYYY-MM-DD HH:mm', async () => {
+  it('批量改费用日期：仅选择日期并提交 YYYY-MM-DD', async () => {
     listFees.mockResolvedValue({ data: [unbilledFeeA] } as any);
     const { props } = makeProps('order-1');
     props.selectedReceivableFeeIds = ['fee-a'];
     await renderTabs(props);
     await screen.findByText('海运费');
 
-    await triggerBulkAction('批量改费用时间');
+    await triggerBulkAction('批量改费用日期');
     await waitFor(() =>
       expect(
-        screen.getByText('批量修改费用时间（已选 1 笔应收费用）'),
+        screen.getByText('批量修改费用日期（已选 1 笔应收费用）'),
       ).toBeInTheDocument(),
     );
 
-    const pickerInput = screen.getByPlaceholderText('请选择费用发生时间');
-    fireEvent.change(pickerInput, {
-      target: { value: '2026-09-23 14:30' },
+    const pickerInput = screen.getByPlaceholderText('请选择费用发生日期');
+    await act(async () => {
+      fireEvent.click(pickerInput);
+      fireEvent.change(pickerInput, { target: { value: '2026-09-23' } });
+      fireEvent.keyDown(pickerInput, { key: 'Enter' });
     });
-    fireEvent.keyDown(pickerInput, { key: 'Enter' });
-    await act(async () => {});
+    expect(document.querySelector('.ant-picker-time-panel')).toBeNull();
 
     await act(async () => {
       within(getDialog()).getByRole('button', { name: '确定修改' }).click();
@@ -114,7 +115,7 @@ describe('OrderFeeTableTabs 批量修改单位与时间', () => {
         {
           orderId: 'order-1',
           targets: [{ feeId: 'fee-a', expectedVersion: '3' }],
-          expenseDate: '2026-09-23 14:30',
+          expenseDate: '2026-09-23',
         },
       ),
     );

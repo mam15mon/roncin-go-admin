@@ -305,14 +305,13 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
 
     const handleModalSubmit = async (values: FeeFormValues) => {
       if (!order?.id || !ensureFeeWriteAllowed()) return false;
-      const expenseDate = dayjs(values.expenseDate).format('YYYY-MM-DD HH:mm');
+      const expenseDate = dayjs(values.expenseDate).format('YYYY-MM-DD');
       const direction = values.direction ?? RECEIVABLE;
       const preservesManualSnapshot =
         editingFee?.exchangeRateSource === 'MANUAL' &&
         !manualExchangeRate &&
         values.currency === editingFee.currency &&
-        expenseDate ===
-          dayjs(editingFee.expenseDate).format('YYYY-MM-DD HH:mm') &&
+        expenseDate === dayjs(editingFee.expenseDate).format('YYYY-MM-DD') &&
         direction === editingFee.direction;
       if (
         exchangeRateStatus === 'missing' &&

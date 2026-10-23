@@ -55,7 +55,10 @@ const props = {
 };
 beforeEach(() => {
   vi.clearAllMocks();
-  api.create.mockResolvedValue({ success: true, data: { id: 'correction-new' } });
+  api.create.mockResolvedValue({
+    success: true,
+    data: { id: 'correction-new' },
+  });
 });
 describe('费用更正申请入口', () => {
   it('替代申请绑定原费用版本并保留原费名税率', async () => {
@@ -82,6 +85,7 @@ describe('费用更正申请入口', () => {
           feeNameOverride: '约定运费',
           taxRateOverride: '6',
           taxInclusive: true,
+          expenseDate: '2026-10-10',
         }),
       }),
     ]);

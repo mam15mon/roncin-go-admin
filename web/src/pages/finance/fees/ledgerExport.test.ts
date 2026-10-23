@@ -42,7 +42,7 @@ describe('fees 台账导出字段', () => {
       financialProgress: 1,
       billNo: 'B001',
       orderNo: 'O001',
-      expenseDate: '2026-10-01',
+      expenseDate: '2026-10-01 14:30',
       updatedAt: '2026-10-17T14:44:52Z',
     };
     const values = Object.fromEntries(

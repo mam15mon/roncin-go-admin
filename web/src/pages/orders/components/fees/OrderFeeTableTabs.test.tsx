@@ -397,6 +397,9 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     await waitFor(() => {
       expect(screen.getAllByText('CNY').length).toBeGreaterThan(0);
       expect(screen.getByDisplayValue('1')).toBeInTheDocument();
+      expect(
+        screen.getByDisplayValue(/^\d{4}-\d{2}-\d{2}$/),
+      ).toBeInTheDocument();
       expect(screen.getAllByText('票').length).toBeGreaterThan(0);
       expect(screen.getAllByText('测试客户').length).toBeGreaterThan(0);
       expect(screen.getByText('保存')).toBeInTheDocument();

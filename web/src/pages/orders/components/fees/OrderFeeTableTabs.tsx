@@ -454,7 +454,7 @@ export default function OrderFeeTableTabs({
       {
         key: 'expenseDate',
         icon: <ClockCircleOutlined />,
-        label: '批量改费用时间',
+        label: '批量改费用日期',
         onClick: () => setBulkActionContext({ direction, type: 'expenseDate' }),
       },
       {
@@ -691,7 +691,7 @@ export default function OrderFeeTableTabs({
         billingUnit: defaultBillingUnit?.name,
         settlementPartyId: defaultPartyId,
         settlementPartyName: defaultPartyName,
-        expenseDate: dayjs().format('YYYY-MM-DD HH:mm'),
+        expenseDate: dayjs().format('YYYY-MM-DD'),
       },
       { position: 'top' },
     );
@@ -716,7 +716,7 @@ export default function OrderFeeTableTabs({
         billingUnit: defaultBillingUnit?.name,
         settlementPartyId: defaultPartyId,
         settlementPartyName: defaultPartyName,
-        expenseDate: dayjs().format('YYYY-MM-DD HH:mm'),
+        expenseDate: dayjs().format('YYYY-MM-DD'),
       },
       { position: 'top' },
     );
@@ -871,7 +871,7 @@ export default function OrderFeeTableTabs({
       ),
       unitPrice: normalizeDecimalInput(String(row.unitPrice)),
       currency: row.currency,
-      expenseDate: dayjs(row.expenseDate).format('YYYY-MM-DD HH:mm'),
+      expenseDate: dayjs(row.expenseDate).format('YYYY-MM-DD'),
       note: row.note?.trim() || undefined,
       taxInclusive: true,
     };
@@ -1427,16 +1427,10 @@ export default function OrderFeeTableTabs({
           rules: [{ required: true, message: '请选择发生日期' }],
         },
         render: (_, record) =>
-          record.expenseDate
-            ? formatDate(
-                record.expenseDate,
-                record.expenseDate.includes(' ') ? 'minute' : 'date',
-              )
-            : '-',
+          record.expenseDate ? formatDate(record.expenseDate, 'date') : '-',
         fieldProps: (form, { rowKey }) => ({
           style: { width: '100%' },
-          format: 'YYYY-MM-DD HH:mm',
-          showTime: { format: 'HH:mm' },
+          format: 'YYYY-MM-DD',
           onChange: (date: dayjs.Dayjs | null) => {
             resolveRowRatePreview(
               rowKey,
@@ -1897,11 +1891,11 @@ export default function OrderFeeTableTabs({
         />
       </GuardedModalForm>
 
-      {/* 批量修改费用时间 */}
+      {/* 批量修改费用日期 */}
       <GuardedModalForm<{ expenseDate: string | Dayjs }>
         open={bulkActionContext?.type === 'expenseDate'}
         onOpenChange={(open) => !open && setBulkActionContext(undefined)}
-        title={`批量修改费用时间（已选 ${
+        title={`批量修改费用日期（已选 ${
           (bulkActionContext?.direction === RECEIVABLE
             ? selectedReceivableFeeIds
             : selectedPayableFeeIds
@@ -1920,40 +1914,37 @@ export default function OrderFeeTableTabs({
             message.warning('请先勾选要修改的费用');
             return false;
           }
-          if (rejectBilledRows(rows, '批量修改费用时间')) return false;
+          if (rejectBilledRows(rows, '批量修改费用日期')) return false;
           try {
             const response = await orderFeeServiceBulkUpdateOrderFees(
               { orderId },
               {
                 orderId,
                 targets: buildBulkTargets(rows),
-                expenseDate: dayjs(values.expenseDate).format(
-                  'YYYY-MM-DD HH:mm',
-                ),
+                expenseDate: dayjs(values.expenseDate).format('YYYY-MM-DD'),
               },
             );
             if (!isWriteResponse(response)) return false;
             message.success(
-              `已修改 ${response.updatedCount ?? rows.length} 笔费用的费用时间`,
+              `已修改 ${response.updatedCount ?? rows.length} 笔费用的费用日期`,
             );
             handleBulkDone(direction);
             setBulkActionContext(undefined);
             return true;
           } catch (error) {
-            message.error(getErrorMessage(error, '批量修改费用时间失败'));
+            message.error(getErrorMessage(error, '批量修改费用日期失败'));
             return false;
           }
         }}
       >
         <ProFormDatePicker
           name="expenseDate"
-          label="费用发生时间"
-          rules={[{ required: true, message: '请选择费用发生时间' }]}
+          label="费用发生日期"
+          rules={[{ required: true, message: '请选择费用发生日期' }]}
           fieldProps={{
             style: { width: '100%' },
-            placeholder: '请选择费用发生时间',
-            format: 'YYYY-MM-DD HH:mm',
-            showTime: { format: 'HH:mm' },
+            placeholder: '请选择费用发生日期',
+            format: 'YYYY-MM-DD',
           }}
         />
       </GuardedModalForm>

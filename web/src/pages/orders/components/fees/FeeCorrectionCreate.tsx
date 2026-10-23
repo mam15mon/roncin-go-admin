@@ -72,7 +72,7 @@ export default function FeeCorrectionCreate({
               quantity: normalizeDecimalInput(String(values.quantity)),
               unitPrice: normalizeDecimalInput(String(values.unitPrice)),
               currency: values.currency,
-              expenseDate: dayjs(values.expenseDate).format('YYYY-MM-DD HH:mm'),
+              expenseDate: dayjs(values.expenseDate).format('YYYY-MM-DD'),
               note: values.note,
               exchangeRateOverride: values.exchangeRateOverride,
               taxInclusive: source ? source.taxInclusive === true : true,

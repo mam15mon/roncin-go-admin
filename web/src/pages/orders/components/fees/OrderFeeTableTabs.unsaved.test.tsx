@@ -121,6 +121,10 @@ it('行内真实输入同步保护；单纯进入编辑不脏，取消一侧不�
     fireEvent.click(within(payableRow).getByText('保存'));
   });
   await waitFor(() => expect(orderFeeServiceUpdateFee).toHaveBeenCalledOnce());
+  expect(orderFeeServiceUpdateFee).toHaveBeenCalledWith(
+    expect.anything(),
+    expect.objectContaining({ expenseDate: '2026-10-20' }),
+  );
   expect(payableInput).toHaveValue('应付未保存');
   expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');
   vi.mocked(orderFeeServiceUpdateFee).mockResolvedValue({

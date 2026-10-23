@@ -12,7 +12,7 @@ import { feeLedgerProgressLabels } from '@/features/finance/fee-progress';
 import { FeeReviewStatus } from '@/features/orders/fee-review';
 import { searchPartnerOptions } from '@/features/partners';
 import { history } from '@/router/history';
-import { formatAmount, trimDecimal } from '@/utils/format';
+import { formatAmount, formatDate, trimDecimal } from '@/utils/format';
 
 const feeLedgerBusinessTypeValueEnum = Object.fromEntries(
   ['SE', 'SI', 'AE', 'AI', 'LAND', 'RAIL'].map((code) => [
@@ -414,6 +414,7 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
       dataIndex: 'expenseDate',
       width: 110,
       search: false,
+      render: (_, row) => formatDate(row.expenseDate, 'date'),
     },
     {
       title: 'SO号',
