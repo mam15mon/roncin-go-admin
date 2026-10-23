@@ -5,7 +5,10 @@ import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { feeCatalogServiceListTaxableServices } from '@/services/roncin/feeCatalogService';
-import { orderFeeServiceListOrderFeeSupplementRequests } from '@/services/roncin/orderFeeService';
+import {
+  orderFeeServiceListOrderFeeCorrectionRequests,
+  orderFeeServiceListOrderFeeSupplementRequests,
+} from '@/services/roncin/orderFeeService';
 import { settlementServiceGetFeeLedgerOrderDetail } from '@/services/roncin/settlementService';
 import OrderFeesPage from './fees';
 
@@ -92,12 +95,8 @@ vi.mock('@/components/ui', async () => ({
       {allRows.map((item: API.OrderFee) => item.id).join(',')}
     </div>
   ),
-  SectionCard: ({ title, children }: any) => (
-    <div data-testid="fee-supplement-card">
-      {title}
-      {children}
-    </div>
-  ),
+  SectionCard: (await import('@/components/ui/page-shell/SectionCard'))
+    .SectionCard,
   ProFormSearchableSelect: (props: any) => (
     <div data-testid={`ui-select-${props.name}`}>{props.label}</div>
   ),
@@ -505,6 +504,11 @@ describe('订单费用页锁后费用补录', () => {
         pageSize: 10,
       }),
     );
+    expect(screen.getByRole('button', { name: '费用补录' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
+    fireEvent.click(screen.getByRole('button', { name: '费用补录' }));
     expect(
       await screen.findByRole('button', { name: '补录费用' }),
     ).toBeInTheDocument();
@@ -530,9 +534,36 @@ describe('订单费用页锁后费用补录', () => {
         total: 1,
       },
     });
+    vi.mocked(
+      orderFeeServiceListOrderFeeCorrectionRequests,
+    ).mockResolvedValueOnce({
+      success: true,
+      data: [{ id: 'correction-1', reason: '更正测试记录', status: 'PENDING' }],
+      total: 1,
+    });
     page.unmount();
     renderPage();
-    expect(await screen.findByText('撤回并重提')).toBeInTheDocument();
+    expect(await screen.findByText('撤回并重提')).toBeVisible();
+    expect(await screen.findByText('更正测试记录')).toBeVisible();
+    expect(screen.getByRole('button', { name: '费用补录' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
+    expect(screen.getByRole('button', { name: '费用更正' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
+    fireEvent.click(screen.getByRole('button', { name: '费用补录' }));
+    fireEvent.click(screen.getByRole('button', { name: '费用更正' }));
+    fireEvent.click(screen.getByRole('button', { name: '准备当前订单费用' }));
+    expect(screen.getByRole('button', { name: '费用补录' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
+    expect(screen.getByRole('button', { name: '费用更正' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
     expect(
       screen.queryByRole('button', { name: '补录费用' }),
     ).not.toBeInTheDocument();
@@ -549,10 +580,34 @@ describe('订单费用页锁后费用补录', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('订单未锁定时不展示补录入口', async () => {
-    renderPage();
+  it('订单未锁定时不展示补录入口，空的补录与更正分节默认收起且可手动展开', async () => {
+    const { rerender, queryClient } = renderPage();
 
     await waitFor(() => expect(listSupplements).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(screen.getByText('暂无补录申请')).toBeInTheDocument(),
+    );
+    for (const title of ['费用补录', '费用更正']) {
+      const toggle = screen.getByRole('button', { name: title });
+      expect(toggle).toHaveAttribute('aria-expanded', 'false');
+      fireEvent.click(toggle);
+      expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    }
+    mockParams = { kind: 'sea-export', id: 'order-B' };
+    rerenderFeesPage(rerender, queryClient);
+    await waitFor(() =>
+      expect(listSupplements).toHaveBeenCalledWith({
+        orderId: 'order-B',
+        page: 1,
+        pageSize: 10,
+      }),
+    );
+    for (const title of ['费用补录', '费用更正']) {
+      expect(screen.getByRole('button', { name: title })).toHaveAttribute(
+        'aria-expanded',
+        'false',
+      );
+    }
     expect(
       screen.queryByRole('button', { name: '补录费用' }),
     ).not.toBeInTheDocument();

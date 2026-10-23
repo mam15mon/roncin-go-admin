@@ -161,9 +161,12 @@ export function FeeCorrectionSection({
   orderId,
   onChanged,
   renderCreate,
+  onRecordsLoaded,
 }: {
   orderId: string;
   onChanged?: () => void;
+  /** 通知外层是否有申请记录，用于分节的默认展开。 */
+  onRecordsLoaded?: (hasRecords: boolean) => void;
   renderCreate?: (refresh: () => void) => ReactNode;
 }) {
   const getModalOwnerSignal = useModalOwnerSignal();
@@ -338,6 +341,7 @@ export function FeeCorrectionSection({
           if (!response) throw new Error('更正申请加载失败');
           return toTableRequest(response);
         }}
+        onLoad={(records) => onRecordsLoaded?.(records.length > 0)}
         expandable={{
           expandedRowRender: (row) => <FeeCorrectionComparison request={row} />,
         }}

@@ -84,6 +84,10 @@ export default function OrderFeesPage() {
   );
   const targetOrderId = canAccessPage ? orderId : undefined;
   const feeReview = useOrderFeeReview(targetOrderId);
+  const [hasSupplements, setHasSupplements] = useState(false);
+  const [hasCorrections, setHasCorrections] = useState(false);
+  const [supplementCollapsed, setSupplementCollapsed] = useState<boolean>();
+  const [correctionCollapsed, setCorrectionCollapsed] = useState<boolean>();
 
   const receivableActionRef = useRef<ActionType | undefined>(undefined);
   const payableActionRef = useRef<ActionType | undefined>(undefined);
@@ -267,6 +271,10 @@ export default function OrderFeesPage() {
     setSelectedPayableFeeIds([]);
     setAllReceivableItems([]);
     setAllPayableItems([]);
+    setHasSupplements(false);
+    setHasCorrections(false);
+    setSupplementCollapsed(undefined);
+    setCorrectionCollapsed(undefined);
     setSelectedFeeSetting(undefined);
     setReceivableSummary({ totalAmount: 0, count: 0 });
     setPayableSummary({ totalAmount: 0, count: 0 });
@@ -772,7 +780,12 @@ export default function OrderFeesPage() {
       />
 
       {/* 3.1 锁后费用补录：订单身份变化时经 key 整体重建，清空申请、弹窗与异步状态 */}
-      <SectionCard title="费用补录" collapsible>
+      <SectionCard
+        title="费用补录"
+        collapsible
+        collapsed={supplementCollapsed ?? !hasSupplements}
+        onCollapseChange={setSupplementCollapsed}
+      >
         <FeeSupplementSection
           key={targetOrderId}
           orderId={orderId || ''}
@@ -788,14 +801,21 @@ export default function OrderFeesPage() {
           currencies={currencies}
           billingUnits={billingUnits}
           onFeeTablesReload={reloadFeeTables}
+          onRecordsLoaded={setHasSupplements}
         />
       </SectionCard>
 
-      <SectionCard title="费用更正" collapsible>
+      <SectionCard
+        title="费用更正"
+        collapsible
+        collapsed={correctionCollapsed ?? !hasCorrections}
+        onCollapseChange={setCorrectionCollapsed}
+      >
         <FeeCorrectionSection
           key={targetOrderId}
           orderId={orderId || ''}
           onChanged={reloadFeeTables}
+          onRecordsLoaded={setHasCorrections}
           renderCreate={(refresh) => (
             <FeeCorrectionCreate
               orderId={orderId || ''}

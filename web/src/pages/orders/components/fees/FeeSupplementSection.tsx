@@ -143,6 +143,8 @@ type FeeSupplementSectionProps = FeeSupplementOptions & {
   hasPendingSupplement: boolean;
   /** 审批通过生成未建账费用后，调用方刷新费用表格。 */
   onFeeTablesReload: () => void;
+  /** 通知外层是否有申请记录，用于分节的默认展开。 */
+  onRecordsLoaded?: (hasRecords: boolean) => void;
 };
 
 export default function FeeSupplementSection({
@@ -155,6 +157,7 @@ export default function FeeSupplementSection({
   currencies,
   billingUnits,
   onFeeTablesReload,
+  onRecordsLoaded,
 }: FeeSupplementSectionProps) {
   const [cancelReasonOpen, setCancelReasonOpen] = useState(false);
   const { markDirty: markCancelReasonDirty } = useUnsavedChangesGuard({
@@ -852,6 +855,7 @@ export default function FeeSupplementSection({
             total: response.data?.total ?? data.length,
           };
         }}
+        onLoad={(records) => onRecordsLoaded?.(records.length > 0)}
         locale={{ emptyText: '暂无补录申请' }}
       />
       <GuardedModalForm<{ comment?: string }>
