@@ -7,7 +7,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
-import { App, Form, type FormInstance } from 'antd';
+import { App, ConfigProvider, Form, type FormInstance } from 'antd';
 import { describe, expect, it, vi } from 'vitest';
 import {
   SeaDocumentStructure,
@@ -95,20 +95,23 @@ function SectionCards({
     (section) => !sectionKeys || sectionKeys.includes(section.key),
   );
   return (
-    <App>
-      <ProForm
-        form={form}
-        submitter={false}
-        layout="vertical"
-        initialValues={initialValues}
-      >
-        {sections.map((section) => (
-          <section key={section.key} aria-label={section.title}>
-            {section.content}
-          </section>
-        ))}
-      </ProForm>
-    </App>
+    // CSS 零动画不会停止 rc-motion 帧队列；业务断言使用无动画上下文。
+    <ConfigProvider theme={{ token: { motion: false } }}>
+      <App>
+        <ProForm
+          form={form}
+          submitter={false}
+          layout="vertical"
+          initialValues={initialValues}
+        >
+          {sections.map((section) => (
+            <section key={section.key} aria-label={section.title}>
+              {section.content}
+            </section>
+          ))}
+        </ProForm>
+      </App>
+    </ConfigProvider>
   );
 }
 

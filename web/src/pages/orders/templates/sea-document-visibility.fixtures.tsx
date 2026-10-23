@@ -1,6 +1,6 @@
 import { type ProFormInstance, ProFormText } from '@ant-design/pro-components';
 import { render, screen } from '@testing-library/react';
-import { App } from 'antd';
+import { App, ConfigProvider } from 'antd';
 import { expect, vi } from 'vitest';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
 import type { OrderFormTemplateActions } from '@/components/ui/order-template/types';
@@ -78,30 +78,33 @@ export function setup(
     (section) => section.key === 'seaDocument',
   );
   const result = render(
-    <App>
-      <OrderFormTemplate
-        formRef={formRef}
-        actionsRef={actionsRef}
-        initialValues={{ seaDocumentStructure: mode }}
-        enableCloseGuard={false}
-        submitter={false}
-        sections={[
-          {
-            key: 'mode',
-            title: '提单模式',
-            content: (
-              <>
-                <ProFormText name="masterNo" />
-                <SeaCreateDocumentModeField />
-              </>
-            ),
-          },
-          ...sections,
-        ]}
-        onFinish={onFinish}
-        onRevealError={({ errorFields }) => revealSeaFormErrors(errorFields)}
-      />
-    </App>,
+    // CSS 零动画不会停止 rc-motion 帧队列；业务断言使用无动画上下文。
+    <ConfigProvider theme={{ token: { motion: false } }}>
+      <App>
+        <OrderFormTemplate
+          formRef={formRef}
+          actionsRef={actionsRef}
+          initialValues={{ seaDocumentStructure: mode }}
+          enableCloseGuard={false}
+          submitter={false}
+          sections={[
+            {
+              key: 'mode',
+              title: '提单模式',
+              content: (
+                <>
+                  <ProFormText name="masterNo" />
+                  <SeaCreateDocumentModeField />
+                </>
+              ),
+            },
+            ...sections,
+          ]}
+          onFinish={onFinish}
+          onRevealError={({ errorFields }) => revealSeaFormErrors(errorFields)}
+        />
+      </App>
+    </ConfigProvider>,
   );
   return { ...result, formRef, actionsRef };
 }
