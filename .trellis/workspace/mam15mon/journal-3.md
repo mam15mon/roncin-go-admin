@@ -115,3 +115,25 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Next Steps
 
 - 完成本地 main 合并并用 git branch -d 删除已合并工作分支。
+
+
+## Session 156: 全局表格多列冻结与铺排排序完成
+<!-- trellis-session: v=2 fp=c7f86ea7d4296f45 -->
+
+**Date**: 2026-10-23
+**Task**: 全局表格多列冻结与铺排排序完成
+**Branch**: `codex/table-column-layout`
+
+### Summary
+
+实现全局字段多列左右冻结、全量网格铺排、连续编号及拖动和精确移位；独立 review 修复生命周期、结构锚点与低高度布局。完整前端门禁303文件1653用例通过，浏览器22组及真实业务页4组通过。按用户授权合并main、删除任务分支并推送；保留其他会话的海运测试及工作台任务改动。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `384e9d1c` | feat: 支持全局表格多列冻结与铺排排序 |
+
+### Status
+
+[OK] **Completed**
