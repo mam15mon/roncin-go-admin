@@ -179,6 +179,33 @@ describe('订单数量确认带入', () => {
     expect(screen.getByRole('button', { name: '从订单带入' })).toBeDisabled();
   });
 
+  it('不支持的单位入口置灰，点击不请求或打开弹窗；切换到支持单位恢复可用', async () => {
+    const onConfirm = vi.fn();
+    const { rerender } = renderWithApp(
+      <FeeQuantityAssist
+        orderId="order-1"
+        billingUnit={{ id: 'unit-ticket', name: '票', code: 'TICKET' }}
+        onConfirm={onConfirm}
+      />,
+    );
+    const trigger = screen.getByRole('button', { name: '从订单带入' });
+    expect(trigger).toBeDisabled();
+    fireEvent.click(trigger);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(preview).not.toHaveBeenCalled();
+    expect(onConfirm).not.toHaveBeenCalled();
+    rerender(
+      <FeeQuantityAssist
+        orderId="order-1"
+        billingUnit={unit}
+        onConfirm={onConfirm}
+      />,
+    );
+    expect(screen.getByRole('button', { name: '从订单带入' })).toBeEnabled();
+    fireEvent.click(screen.getByRole('button', { name: '从订单带入' }));
+    await screen.findByText('8 计费吨');
+  });
+
   it('失败响应不产生可确认数量，重试后可恢复', async () => {
     preview.mockResolvedValueOnce({});
     renderWithApp(

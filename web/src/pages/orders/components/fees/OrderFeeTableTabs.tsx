@@ -1177,7 +1177,7 @@ export default function OrderFeeTableTabs({
         dataIndex: 'quantity',
         width: 210,
         align: 'right',
-        formItemProps: (_form, { rowKey }) => ({
+        formItemProps: (form, { rowKey }) => ({
           rules: [
             { required: true, message: '请输入数量' },
             {
@@ -1187,7 +1187,12 @@ export default function OrderFeeTableTabs({
               ),
             },
           ],
-          extra: (
+          // 无来源说明时不渲染 extra，避免空说明区撑高单元格使输入框偏上。
+          extra: form.getFieldValue([
+            rowKey,
+            'quantitySource',
+            'confirmationId',
+          ]) ? (
             <Form.Item noStyle shouldUpdate>
               {() => (
                 <FeeQuantitySourceFields
@@ -1209,7 +1214,7 @@ export default function OrderFeeTableTabs({
                 />
               )}
             </Form.Item>
-          ),
+          ) : undefined,
         }),
         render: (_, record) => <FeeQuantityValue fee={record} />,
         fieldProps: (form, { rowKey }) => ({

@@ -53,13 +53,17 @@ function QuantityAssistSession({
   >('GROSS_WEIGHT');
   const containerUnit =
     billingUnit?.isContainerUnit || billingUnit?.code === 'CONT';
+  // 与服务端数量预览支持的单位范围一致；其他单位保留手工录入。
+  const supportsOrderQuantity =
+    containerUnit ||
+    ['CBM', 'KG', 'TON', 'RT'].includes(billingUnit?.code ?? '');
   return (
     <>
       <Button
         type="link"
         size="small"
-        style={{ padding: 0, fontSize: 12 }}
-        disabled={!orderId || !billingUnit?.id}
+        style={{ padding: 0, fontSize: 12, height: 'auto' }}
+        disabled={!orderId || !billingUnit?.id || !supportsOrderQuantity}
         onClick={() => {
           setSource('ACTUAL');
           setBasis('GROSS_WEIGHT');
