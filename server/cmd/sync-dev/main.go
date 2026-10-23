@@ -16,6 +16,7 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/shopspring/decimal"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data"
@@ -43,7 +44,7 @@ import (
 	ordercommissionattributionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	ordercontainerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
-	orderfeesupplementrequestent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
+	correctionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	orderlockrecordent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	ordermilestoneent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
@@ -172,9 +173,6 @@ func runSeed(ctx context.Context, client *ent.Client) (*seedContext, error) {
 		}
 		if err := seedOrdersAndFees(ctx, sc); err != nil {
 			return fmt.Errorf("业务订单与费用明细同步失败: %w", err)
-		}
-		if err := seedCreatedOrderFeeReviews(ctx, sc); err != nil {
-			return fmt.Errorf("新建演示订单费用审核同步失败: %w", err)
 		}
 		if err := seedFinanceBillsAndCashflows(ctx, sc); err != nil {
 			return fmt.Errorf("财务账单、流水与核销同步失败: %w", err)
@@ -1353,16 +1351,6 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 			}
 		}
 
-		// 人工锁定票：按真实锁定链路创建单证版本快照、订单锁字段与锁定记录
-		if o.isLocked && sc.adminUser != nil {
-			if _, err := ensureOrderLockedWithRecord(ctx, sc, ord, lockSeedSpec{
-				lockSource:     orderlockrecordent.LockSourceMANUAL,
-				manualLockedBy: sc.adminUser.ID,
-			}); err != nil {
-				return fmt.Errorf("锁定订单 %s: %w", o.orderNo, err)
-			}
-		}
-
 		// 费用明细
 		for _, f := range o.fees {
 			feeKey := fmt.Sprintf("DEV-FEE-%s-%s-%s", o.orderNo, f.dir, f.code)
@@ -1370,7 +1358,7 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 			if orderFee == nil {
 				// 已进入审核流程的既有订单由真实操作维护，重复同步不能补写费用
 				// 改变批准快照；新流程演示事实仅为本次新建的种子订单生成。
-				if !sc.newOrderIDs[ord.ID] && (ord.FeeReviewStatus == orderent.FeeReviewStatusPENDING || ord.FeeReviewStatus == orderent.FeeReviewStatusAPPROVED) {
+				if !sc.newOrderIDs[ord.ID] && ord.LockedAt != nil {
 					continue
 				}
 				party := sc.partners[f.party]
@@ -1409,6 +1397,15 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 			}
 			sc.orderFees[feeKey] = orderFee
 		}
+		// 人工锁定票：按真实锁定链路创建单证版本快照、订单锁字段与锁定记录
+		if o.isLocked && sc.adminUser != nil {
+			if _, err := ensureOrderLockedWithRecord(ctx, sc, ord, lockSeedSpec{
+				manualLockedBy: sc.adminUser.ID,
+			}); err != nil {
+				return fmt.Errorf("锁定订单 %s: %w", o.orderNo, err)
+			}
+		}
+
 	}
 	return nil
 }
@@ -1920,11 +1917,7 @@ func seedFinanceBillsAndCashflows(ctx context.Context, sc *seedContext) error {
 }
 
 type lockSeedSpec struct {
-	lockSource      orderlockrecordent.LockSource
-	manualLockedBy  uuid.UUID
-	autoTriggerType orderlockrecordent.TriggerType
-	autoResourceID  uuid.UUID
-	autoTriggeredBy uuid.UUID
+	manualLockedBy uuid.UUID
 }
 
 // ensureOrderLockedWithRecord 模拟真实锁定链路：为已具备 ACTIVE 主单关系的订单
@@ -1995,7 +1988,7 @@ func ensureOrderLockedWithRecord(ctx context.Context, sc *seedContext, ord *ent.
 	orderUpdate := tx.Order.UpdateOne(ord).
 		SetLockedAt(lockedAt).
 		SetLockGeneration(lockGeneration).
-		SetLockSource(orderent.LockSource(spec.lockSource)).
+		SetLockSource(orderent.LockSourceMANUAL).
 		SetVersion(orderVersionAtLock)
 	recordCreate := tx.OrderLockRecord.Create().
 		SetOrganizationID(company.ID).
@@ -2003,28 +1996,27 @@ func ensureOrderLockedWithRecord(ctx context.Context, sc *seedContext, ord *ent.
 		SetOrderNo(ord.OrderNo).
 		SetBusinessType(orderlockrecordent.BusinessTypeSE).
 		SetGeneration(lockGeneration).
-		SetLockSource(spec.lockSource).
+		SetLockSource(orderlockrecordent.LockSourceMANUAL).
 		SetLockedAt(lockedAt).
 		SetOrderVersionAtLock(orderVersionAtLock).
 		SetIdempotencyKey(idemKey).
 		SetRequestFingerprint("DEV-LOCK-FP-" + ord.OrderNo).
 		SetMasterBillID(mbl.ID).
 		SetTransportExecutionID(exec.ID)
-	if spec.lockSource == orderlockrecordent.LockSourceMANUAL {
-		orderUpdate = orderUpdate.SetLockedBy(spec.manualLockedBy)
-		recordCreate = recordCreate.SetLockedBy(spec.manualLockedBy)
-		manualActor = &spec.manualLockedBy
-	} else {
-		orderUpdate = orderUpdate.
-			ClearLockedBy().
-			SetAutoLockTriggerType(orderent.AutoLockTriggerType(spec.autoTriggerType)).
-			SetAutoLockTriggerResourceID(spec.autoResourceID).
-			SetAutoLockTriggeredBy(spec.autoTriggeredBy)
-		recordCreate = recordCreate.
-			SetTriggerType(spec.autoTriggerType).
-			SetTriggerResourceID(spec.autoResourceID).
-			SetTriggeredBy(spec.autoTriggeredBy)
+	orderUpdate = orderUpdate.SetLockedBy(spec.manualLockedBy)
+	recordCreate = recordCreate.SetLockedBy(spec.manualLockedBy)
+	manualActor = &spec.manualLockedBy
+	snapshot, fingerprint, err := data.LoadOrderFeeReviewSnapshot(ctx, tx.Client(), ord.ID)
+	if err != nil {
+		return nil, err
 	}
+	encoded, err := json.Marshal(snapshot)
+	if err != nil {
+		return nil, err
+	}
+	recordCreate = recordCreate.SetFeeSnapshot(encoded).SetFeeContentVersion(ord.FeeContentVersion).
+		SetFeeContentFingerprint(fingerprint).SetReviewComment("开发演示：完整订单与费用已核对，人工审核并锁定")
+
 	if _, err := orderUpdate.Save(ctx); err != nil {
 		return nil, err
 	}
@@ -2120,7 +2112,7 @@ func ensureSeedTransportExecutionVersion(ctx context.Context, tx *ent.Tx, orgID 
 	return created.ID, nil
 }
 
-// 8. 订单锁治理：核销自动锁、钉钉解锁审批与锁后费用补录
+// 8. 统一人工审核锁、钉钉解锁审批与锁后费用变更补审
 func seedOrderLockGovernance(ctx context.Context, sc *seedContext) error {
 	tx := sc.tx
 	co := sc.company
@@ -2131,29 +2123,17 @@ func seedOrderLockGovernance(ctx context.Context, sc *seedContext) error {
 		return fmt.Errorf("缺少订单锁治理所需测试员工 (zhaofang/zhangqiang)")
 	}
 
-	// SE26090002 应收已全额核销，模拟核销动作触发的系统自动锁定
+	// 已结清订单仍由明确的人工审核人员审核并锁定。
 	ord2 := sc.orders["SE26090002"]
 	if ord2 == nil {
-		return fmt.Errorf("缺少订单 SE26090002，无法注入自动锁")
+		return fmt.Errorf("缺少订单 SE26090002")
 	}
-	vf, err := tx.FinanceVerification.Query().Where(
-		financeverificationent.OrganizationIDEQ(co.ID),
-		financeverificationent.VerificationNoEQ("VF-AR-26090001"),
-	).First(ctx)
+	lockRec2, err := ensureOrderLockedWithRecord(ctx, sc, ord2, lockSeedSpec{manualLockedBy: zhaofang.ID})
 	if err != nil {
-		return fmt.Errorf("查询核销记录 VF-AR-26090001: %w", err)
-	}
-	lockRec2, err := ensureOrderLockedWithRecord(ctx, sc, ord2, lockSeedSpec{
-		lockSource:      orderlockrecordent.LockSourceAUTO_SETTLEMENT,
-		autoTriggerType: orderlockrecordent.TriggerTypeVERIFICATION,
-		autoResourceID:  vf.ID,
-		autoTriggeredBy: zhaofang.ID,
-	})
-	if err != nil {
-		return fmt.Errorf("自动锁定订单 SE26090002: %w", err)
+		return fmt.Errorf("审核并锁定订单 SE26090002: %w", err)
 	}
 
-	// 销售张强对自动锁订单发起钉钉解锁审批（审批中）
+	// 销售张强对已审核订单发起钉钉解锁审批（审批中）
 	unlockExists, _ := tx.OrderUnlockRequest.Query().Where(
 		orderunlockrequestent.OrganizationIDEQ(co.ID),
 		orderunlockrequestent.IdempotencyKeyEQ("DEV-UNLOCK-SE26090002"),
@@ -2181,150 +2161,48 @@ func seedOrderLockGovernance(ctx context.Context, sc *seedContext) error {
 		}
 	}
 
-	// 仅新建演示票构造补录：先批准一笔，再创建依据新快照的待审申请。
+	// 仅新建演示票创建锁后待补审 ADD；批准前不进入正式费用。
 	ord4, err := tx.Order.Query().Where(orderent.OrganizationIDEQ(co.ID), orderent.OrderNoEQ("SE26090004")).First(ctx)
 	if err != nil {
-		return fmt.Errorf("查询订单 SE26090004: %w", err)
+		return err
 	}
 	if !sc.newOrderIDs[ord4.ID] {
 		return nil
 	}
-	if ord4.ApprovedFeeReviewEventID == nil {
-		return fmt.Errorf("订单 SE26090004 未批准整票费用，无法注入补录")
-	}
-	wangli := sc.users["wangli"]
-
-	supp2Key := "DEV-SUPP-SE26090004-STORAGE"
-	supp2, _ := tx.OrderFeeSupplementRequest.Query().Where(
-		orderfeesupplementrequestent.OrganizationIDEQ(co.ID),
-		orderfeesupplementrequestent.IdempotencyKeyEQ(supp2Key),
-	).First(ctx)
-	if supp2 == nil {
-		createdSupp, err := tx.OrderFeeSupplementRequest.Create().
-			SetOrganizationID(co.ID).
-			SetOrderID(ord4.ID).
-			SetLockBasis(orderfeesupplementrequestent.LockBasisAPPROVAL).
-			SetApprovedFeeReviewEventID(*ord4.ApprovedFeeReviewEventID).
-			SetApprovedFeeContentVersion(ord4.FeeContentVersion).
-			SetIdempotencyKey(supp2Key).
-			SetRequestFingerprint("DEV-SUPP-FP-SE26090004-STORAGE").
-			SetDirection(orderfeesupplementrequestent.DirectionPAYABLE).
-			SetFeeSettingID(sc.feeSettings["STORAGE"].ID).
-			SetFeeCode("STORAGE").
-			SetFeeName("码头堆存费").
-			SetSettlementPartyID(sc.partners["SUPP-SHCC-05"].ID).
-			SetBillingUnitID(sc.billingUnits["CONT"].ID).
-			SetBillingUnit(sc.billingUnits["CONT"].Name).
-			SetTaxRate("6.00").
-			SetQuantity("1.0000").
-			SetUnitPrice("350.0000").
-			SetTotalAmount("350.00000000").
-			SetNetAmount("350.00000000").
-			SetTaxAmount("0.00000000").
-			SetCurrency("CNY").
-			SetExchangeRate("1.00000000").
-			SetExchangeRateSource(orderfeesupplementrequestent.ExchangeRateSourceSYSTEM).
-			SetExchangeRateDate("2026-09-21").
-			SetBaseCurrency("CNY").
-			SetBaseCurrencyAmount("350.00000000").
-			SetExpenseDate("2026-09-21").
-			SetReason("目的港免堆期外的堆存费漏录，仓库账单已核对").
-			SetRequestedBy(wangli.ID).
-			SetRequestedAt(time.Now().UTC()).
-			SetStatus(orderfeesupplementrequestent.StatusAPPROVED).
-			SetDecidedBy(zhaofang.ID).
-			SetDecidedAt(time.Now().UTC()).
-			SetDecisionReason("堆存费发票已核验，金额无误，同意补录").
-			Save(ctx)
-		if err != nil {
-			return fmt.Errorf("创建费用补录申请 (堆存费): %w", err)
-		}
-		supp2 = createdSupp
-
-		// 审批通过后按快照生成的 UNBILLED 费用（supplement_request_id 反向关联）
-		feeKey := "DEV-FEE-SE26090004-PAYABLE-STORAGE-SUPP"
-		feeExists, _ := tx.OrderFee.Query().Where(orderfeeent.OrderIDEQ(ord4.ID), orderfeeent.IdempotencyKeyEQ(feeKey)).Exist(ctx)
-		if !feeExists {
-			_, err := tx.OrderFee.Create().
-				SetOrderID(ord4.ID).
-				SetIdempotencyKey(feeKey).
-				SetDirection(orderfeeent.DirectionPAYABLE).
-				SetFeeSettingID(sc.feeSettings["STORAGE"].ID).
-				SetFeeCode("STORAGE").
-				SetFeeName("码头堆存费(补录)").
-				SetSettlementPartyID(sc.partners["SUPP-SHCC-05"].ID).
-				SetBillingUnitID(sc.billingUnits["CONT"].ID).
-				SetBillingUnit(sc.billingUnits["CONT"].Name).
-				SetTaxRate("6.00").
-				SetQuantity("1.0000").
-				SetUnitPrice("350.0000").
-				SetTotalAmount("350.00000000").
-				SetNetAmount("350.00000000").
-				SetTaxAmount("0.00000000").
-				SetCurrency("CNY").
-				SetExchangeRate("1.00000000").
-				SetExchangeRateSource(orderfeeent.ExchangeRateSourceSYSTEM).
-				SetExchangeRateDate("2026-09-21").
-				SetBaseCurrency("CNY").
-				SetBaseCurrencyAmount("350.00000000").
-				SetExpenseDate("2026-09-21").
-				SetSupplementRequestID(supp2.ID).
-				Save(ctx)
-			if err != nil {
-				return fmt.Errorf("创建补录生成费用 (堆存费): %w", err)
-			}
-		}
-	}
-	ord4, err = seedSupplementReviewSnapshot(ctx, sc, ord4.ID, supp2.ID)
+	lockRec4, err := ensureOrderLockedWithRecord(ctx, sc, ord4, lockSeedSpec{manualLockedBy: zhaofang.ID})
 	if err != nil {
-		return fmt.Errorf("更新已批准补录费用快照: %w", err)
+		return err
 	}
-	sc.orders[ord4.OrderNo] = ord4
-
-	supp1Key := "DEV-SUPP-SE26090004-TRUCK"
-	supp1Exists, _ := tx.OrderFeeSupplementRequest.Query().Where(
-		orderfeesupplementrequestent.OrganizationIDEQ(co.ID),
-		orderfeesupplementrequestent.IdempotencyKeyEQ(supp1Key),
-	).Exist(ctx)
-	if !supp1Exists {
-		_, err := tx.OrderFeeSupplementRequest.Create().
-			SetOrganizationID(co.ID).
-			SetOrderID(ord4.ID).
-			SetLockBasis(orderfeesupplementrequestent.LockBasisAPPROVAL).
-			SetApprovedFeeReviewEventID(*ord4.ApprovedFeeReviewEventID).
-			SetApprovedFeeContentVersion(ord4.FeeContentVersion).
-			SetIdempotencyKey(supp1Key).
-			SetRequestFingerprint("DEV-SUPP-FP-SE26090004-TRUCK").
-			SetDirection(orderfeesupplementrequestent.DirectionPAYABLE).
-			SetFeeSettingID(sc.feeSettings["TRUCK"].ID).
-			SetFeeCode("TRUCK").
-			SetFeeName("集装箱拖车费").
-			SetSettlementPartyID(sc.partners["SUPP-YJTC-04"].ID).
-			SetBillingUnitID(sc.billingUnits["CONT"].ID).
-			SetBillingUnit(sc.billingUnits["CONT"].Name).
-			SetTaxRate("9.00").
-			SetQuantity("1.0000").
-			SetUnitPrice("780.0000").
-			SetTotalAmount("780.00000000").
-			SetNetAmount("780.00000000").
-			SetTaxAmount("0.00000000").
-			SetCurrency("CNY").
-			SetExchangeRate("1.00000000").
-			SetExchangeRateSource(orderfeesupplementrequestent.ExchangeRateSourceSYSTEM).
-			SetExchangeRateDate("2026-09-21").
-			SetBaseCurrency("CNY").
-			SetBaseCurrencyAmount("780.00000000").
-			SetExpenseDate("2026-09-21").
-			SetReason("旺季拖车附加费漏录，供应商账单已到，需补录应付成本").
-			SetRequestedBy(wangli.ID).
-			SetRequestedAt(time.Now().UTC()).
-			Save(ctx)
-		if err != nil {
-			return fmt.Errorf("创建费用补录申请 (拖车费): %w", err)
-		}
-		if err := tx.Order.UpdateOneID(ord4.ID).AddFeeReviewVersion(1).Exec(ctx); err != nil {
-			return err
-		}
+	snapshot, _, err := data.LoadOrderFeeReviewSnapshot(ctx, tx.Client(), ord4.ID)
+	if err != nil {
+		return err
+	}
+	if len(snapshot.Fees) == 0 {
+		return fmt.Errorf("演示订单缺少费用模板")
+	}
+	after := *snapshot.Fees[0]
+	after.ID = uuid.New()
+	after.Direction = biz.OrderFeePayable
+	after.Quantity = decimal.NewFromInt(1)
+	after.UnitPrice = decimal.NewFromInt(780)
+	after.TotalAmount = decimal.NewFromInt(780)
+	after.NetAmount = decimal.NewFromInt(780)
+	after.TaxAmount = decimal.Zero
+	after.BaseCurrencyAmount = after.TotalAmount.Mul(after.ExchangeRate).RoundBank(8)
+	after.HasActiveBill = false
+	payload, err := json.Marshal(&after)
+	if err != nil {
+		return err
+	}
+	_, err = tx.OrderFeeCorrectionRequest.Create().SetOrganizationID(co.ID).SetOrderID(ord4.ID).
+		SetOperation(correctionent.OperationADD).SetAfterSnapshot(payload).
+		SetLockRecordID(lockRec4.ID).SetLockGeneration(lockRec4.Generation).
+		SetApprovedFeeContentVersion(ord4.FeeContentVersion).SetApprovedFeeReviewVersion(ord4.FeeReviewVersion).
+		SetReason("目的港拖车附加费漏录，供应商账单已核对，申请补审").
+		SetIdempotencyKey("DEV-CORRECTION-SE26090004-TRUCK").SetRequestFingerprint(biz.FeeReviewHash(payload)).
+		SetRequestedBy(sc.users["wangli"].ID).SetRequestedAt(time.Now().UTC()).Save(ctx)
+	if err != nil {
+		return err
 	}
 
 	return nil

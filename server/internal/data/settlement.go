@@ -35,40 +35,7 @@ type settlementRepo struct {
 	data *Data
 }
 
-// financeLockedOrderPredicate 返回订单费用财务锁定的统一净额谓词：
-//
-//	有效提成净额 = Σ 提成线金额（提成单 status ∈ {CONFIRMED, PAID}）
-//	            + Σ 符号化调整单金额（status ∈ {CONFIRMED, PAID}，冲减记负）
-//
-// 净额 > 0 视为财务锁定；净额 ≤ 0 表示提成已被全额冲减，自动释放费用编辑锁。
-// 费用写入拦截（lockOrderForFeeMutation）必须复用本谓词；台账 finance_locked
-// 投影使用 financeCommissionLockNetAmount 的 Go 口径，两处语义必须同步维护。
-func financeLockedOrderPredicate() predicate.Order {
-	return func(selector *entsql.Selector) {
-		selector.Where(entsql.P(func(builder *entsql.Builder) {
-			orderID := selector.C(order.FieldID)
-			builder.WriteString("COALESCE((SELECT SUM(fcl.commission_amount) FROM finance_commission_lines AS fcl JOIN finance_commissions AS fc ON fc.id = fcl.commission_id WHERE fcl.order_id = ")
-			builder.Ident(orderID)
-			builder.WriteString(" AND fc.status IN (")
-			builder.Arg(financecommission.StatusCONFIRMED)
-			builder.WriteString(", ")
-			builder.Arg(financecommission.StatusPAID)
-			builder.WriteString(")), 0) + COALESCE((SELECT SUM(CASE WHEN fca.direction = ")
-			builder.Arg(financecommissionadjustment.DirectionDECREASE)
-			builder.WriteString(" THEN -fca.amount ELSE fca.amount END) FROM finance_commission_adjustments AS fca WHERE fca.order_id = ")
-			builder.Ident(orderID)
-			builder.WriteString(" AND fca.status IN (")
-			builder.Arg(financecommissionadjustment.StatusCONFIRMED)
-			builder.WriteString(", ")
-			builder.Arg(financecommissionadjustment.StatusPAID)
-			builder.WriteString(")), 0) > 0")
-		}))
-	}
-}
-
-// financeCommissionLockNetAmount 是 finance_locked 投影的 Go 侧净额口径，
-// 与 financeLockedOrderPredicate 的 SQL 表达式语义一致：仅统计 CONFIRMED/PAID
-// 的提成线与调整单，冲减方向记负；净额 ≤ 0 释放费用编辑锁。
+// financeCommissionLockNetAmount 汇总已确认、已发提成与调整的经济净额，供财务证据展示。
 func financeCommissionLockNetAmount(lines []*ent.FinanceCommissionLine, adjustments []*ent.FinanceCommissionAdjustment) (decimal.Decimal, error) {
 	result := decimal.Zero
 	for _, line := range lines {
@@ -229,7 +196,7 @@ func applyFeeLedgerBillProjection(ledgerItem *biz.FeeLedgerItem, billLines []*en
 }
 
 // feeLedgerOrderQuery 装载台账列表与订单详情共用的订单关系。提成线与调整单的
-// 加载条件必须与 financeLockedOrderPredicate 的净额口径一致（CONFIRMED/PAID，
+// 仅加载已确认或已发提成（CONFIRMED/PAID，
 // 冲减方向在 financeCommissionLockNetAmount 中符号化）。
 func feeLedgerOrderQuery(query *ent.OrderQuery) *ent.OrderQuery {
 	return query.
@@ -362,24 +329,19 @@ func (r *settlementRepo) GetFeeLedgerOrderDetail(ctx context.Context, organizati
 	if err != nil {
 		return nil, err
 	}
-	financeLockLines, err := item.Edges.FinanceCommissionLinesOrErr()
-	if err != nil {
-		return nil, err
-	}
-	financeLockAdjustments, err := item.Edges.FinanceCommissionAdjustmentsOrErr()
-	if err != nil {
-		return nil, err
-	}
-	financeLockNet, err := financeCommissionLockNetAmount(financeLockLines, financeLockAdjustments)
-	if err != nil {
-		return nil, err
-	}
-	approvalErr := validateApprovedOrderFees(ctx, client, item)
 	pending, pendingErr := client.OrderFeeSupplementRequest.Query().Where(supplementent.OrderIDEQ(item.ID), supplementent.StatusEQ(supplementent.StatusPENDING)).Exist(ctx)
 	if pendingErr != nil {
 		return nil, pendingErr
 	}
 	pendingCorrection, err := client.OrderFeeCorrectionRequest.Query().Where(correctionent.OrderIDEQ(item.ID), correctionent.StatusEQ(correctionent.StatusPENDING)).Exist(ctx)
+	if err != nil {
+		return nil, err
+	}
+	feeIDs := make([]uuid.UUID, 0, len(item.Edges.Fees))
+	for _, f := range item.Edges.Fees {
+		feeIDs = append(feeIDs, f.ID)
+	}
+	pendingSources, err := pendingCorrectionSourceFees(ctx, client, feeIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -393,10 +355,7 @@ func (r *settlementRepo) GetFeeLedgerOrderDetail(ctx context.Context, organizati
 		if !biz.IsCurrentFee(fee) && !(fee.EconomicEffect == biz.OrderFeeEconomicDecrease && fee.AccountingRequired) {
 			continue
 		}
-		ledgerItem := &biz.FeeLedgerItem{FeeReviewStatus: string(item.FeeReviewStatus), HasPendingFeeSupplement: pending, HasPendingFeeCorrection: pendingCorrection, CanBill: approvalErr == nil && biz.RequiresAccounting(fee) && !fee.HasActiveBill, Fee: fee, OrganizationID: item.OrganizationID, OrganizationName: organization.Name, OrderNo: item.OrderNo, Business: string(item.BusinessType), CustomerID: customer.ID, CustomerName: customer.LegalName, FinancialProgress: biz.FeeLedgerUnbilled, FinanceLocked: financeLockNet.IsPositive()}
-		if approvalErr != nil {
-			ledgerItem.BlockedReasons = append(ledgerItem.BlockedReasons, approvalErr.Error())
-		}
+		ledgerItem := &biz.FeeLedgerItem{OrderLocked: item.LockedAt != nil, HasPendingFeeSupplement: pending, HasPendingFeeCorrection: pendingCorrection, CanBill: biz.RequiresAccounting(fee) && !fee.HasActiveBill && !pendingSources[fee.ID], Fee: fee, OrganizationID: item.OrganizationID, OrganizationName: organization.Name, OrderNo: item.OrderNo, Business: string(item.BusinessType), CustomerID: customer.ID, CustomerName: customer.LegalName, FinancialProgress: biz.FeeLedgerUnbilled}
 		if fee.HasActiveBill {
 			ledgerItem.BlockedReasons = append(ledgerItem.BlockedReasons, "费用已进入有效账单")
 		}
@@ -485,12 +444,12 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationIDs []uu
 	if filter.ExpenseDateTo != "" {
 		predicates = append(predicates, orderfee.ExpenseDateLTE(filter.ExpenseDateTo))
 	}
-	if filter.FinanceLocked != nil {
-		lockedOrder := financeLockedOrderPredicate()
-		if !*filter.FinanceLocked {
-			lockedOrder = order.Not(lockedOrder)
+	if filter.OrderLocked != nil {
+		p := order.LockedAtNotNil()
+		if !*filter.OrderLocked {
+			p = order.LockedAtIsNil()
 		}
-		predicates = append(predicates, orderfee.HasOrderWith(lockedOrder))
+		predicates = append(predicates, orderfee.HasOrderWith(p))
 	}
 	if len(filter.TagIDs) > 0 {
 		predicates = append(predicates, orderfee.HasEnterpriseTagLinksWith(orderfeeenterprisetag.TagResourceIDIn(filter.TagIDs...)))
@@ -499,9 +458,6 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationIDs []uu
 		predicates = append(predicates, feeLedgerFinancialProgressPredicate(filter.FinancialProgress))
 	}
 
-	if filter.FeeReviewStatus != "" {
-		predicates = append(predicates, orderfee.HasOrderWith(order.FeeReviewStatusEQ(order.FeeReviewStatus(filter.FeeReviewStatus))))
-	}
 	if filter.HasPendingFeeSupplement != nil {
 		p := order.HasFeeSupplementRequestsWith(supplementent.StatusEQ(supplementent.StatusPENDING))
 		if !*filter.HasPendingFeeSupplement {
@@ -569,7 +525,11 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationIDs []uu
 	for _, item := range items {
 		orders = append(orders, item.Edges.Order)
 	}
-	approvalCache, _, err := batchFeeReviewApprovalStates(ctx, client, orders)
+	feeIDs := make([]uuid.UUID, 0, len(items))
+	for _, item := range items {
+		feeIDs = append(feeIDs, item.ID)
+	}
+	pendingSources, err := pendingCorrectionSourceFees(ctx, client, feeIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -621,30 +581,16 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationIDs []uu
 			return nil, organizationErr
 		}
 		ledgerItem.OrganizationName = organization.Name
-		ledgerItem.FeeReviewStatus = string(businessOrder.FeeReviewStatus)
-		approvalErr := approvalCache[businessOrder.ID]
+		ledgerItem.OrderLocked = businessOrder.LockedAt != nil
 		ledgerItem.HasPendingFeeSupplement = pendingSupplements[businessOrder.ID]
 		ledgerItem.HasPendingFeeCorrection = pendingCorrections[businessOrder.ID]
-		ledgerItem.CanBill = approvalErr == nil && biz.RequiresAccounting(fee) && !fee.HasActiveBill
-		if approvalErr != nil {
-			ledgerItem.BlockedReasons = append(ledgerItem.BlockedReasons, approvalErr.Error())
+		ledgerItem.CanBill = biz.RequiresAccounting(fee) && !fee.HasActiveBill && !pendingSources[fee.ID]
+		if pendingSources[fee.ID] {
+			ledgerItem.BlockedReasons = append(ledgerItem.BlockedReasons, "原费用存在待补审申请，暂不能建账")
 		}
 		if fee.HasActiveBill {
 			ledgerItem.BlockedReasons = append(ledgerItem.BlockedReasons, "费用已进入有效账单")
 		}
-		financeLockLines, edgeErr := businessOrder.Edges.FinanceCommissionLinesOrErr()
-		if edgeErr != nil {
-			return nil, edgeErr
-		}
-		financeLockAdjustments, edgeErr := businessOrder.Edges.FinanceCommissionAdjustmentsOrErr()
-		if edgeErr != nil {
-			return nil, edgeErr
-		}
-		financeLockNet, netErr := financeCommissionLockNetAmount(financeLockLines, financeLockAdjustments)
-		if netErr != nil {
-			return nil, netErr
-		}
-		ledgerItem.FinanceLocked = financeLockNet.IsPositive()
 		billLines, edgeErr := item.Edges.FinanceBillLinesOrErr()
 		if edgeErr != nil {
 			return nil, edgeErr

@@ -16,7 +16,6 @@ import (
 	applicationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionapplication"
 	applicationline "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionapplicationline"
 	commissionline "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
-	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	fee "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 )
 
@@ -155,7 +154,7 @@ func TestCommissionApplicationFinanceReadPostgres(t *testing.T) {
 }
 
 // TestCommissionApplicationApprovePostgres 覆盖整单批准主链路：版本门禁、明细
-// 提成整批转 CONFIRMED、财务锁净额联动、决策审计与批准后重复提交拒绝。
+// 提成整批转 CONFIRMED、提成经济净额联动、决策审计与批准后重复提交拒绝。
 func TestCommissionApplicationApprovePostgres(t *testing.T) {
 	if os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE") == "" {
 		t.Skip("未配置临时 PostgreSQL 集成测试数据库")
@@ -203,24 +202,17 @@ func TestCommissionApplicationApprovePostgres(t *testing.T) {
 		t.Fatalf("提成确认审计应指向财务操作者: %+v", commissionRow)
 	}
 
-	// 财务锁净额口径：确认后净额 60 > 0，订单费用写入被财务锁谓词拦截。
+	// 批准后提成经济净额为 60，作为财务证据保留。
 	lockLines, err := fixture.data.db.FinanceCommissionLine.Query().Where(commissionline.CommissionIDEQ(commissionRow.ID)).All(ctx)
 	if err != nil {
 		t.Fatalf("查询提成行失败: %v", err)
 	}
 	netAmount, err := financeCommissionLockNetAmount(lockLines, nil)
 	if err != nil {
-		t.Fatalf("计算财务锁净额失败: %v", err)
+		t.Fatalf("计算提成经济净额失败: %v", err)
 	}
 	if netAmount.StringFixed(8) != "60.00000000" {
-		t.Fatalf("批准后订单财务锁净额应为 60: %s", netAmount)
-	}
-	lockedCount, err := fixture.data.db.Order.Query().Where(orderent.IDEQ(fixture.orderID), financeLockedOrderPredicate()).Count(ctx)
-	if err != nil {
-		t.Fatalf("查询财务锁谓词失败: %v", err)
-	}
-	if lockedCount != 1 {
-		t.Fatalf("批准后订单应被财务锁谓词命中: %d", lockedCount)
+		t.Fatalf("批准后订单提成经济净额应为 60: %s", netAmount)
 	}
 
 	// 决策审计与逐笔确认审计各恰好一条。
@@ -352,7 +344,6 @@ func TestCommissionApplicationApproveRollbackPostgres(t *testing.T) {
 		Save(ctx); err != nil {
 		t.Fatalf("修改来源费用制造指纹漂移失败: %v", err)
 	}
-	seedApprovedFeeSnapshotForTest(t, driftFixture.data, driftFixture.orderID, driftFixture.actorID)
 	if _, err := driftUsecase.Approve(ctx, driftScope, driftFixture.actorID, driftApplication.ID, 1); !errors.Is(err, biz.ErrCommissionSourceChanged) {
 		t.Fatalf("指纹变化的批准应返回来源已变化: %v", err)
 	}
@@ -388,7 +379,6 @@ func TestCommissionApplicationApproveRollbackPostgres(t *testing.T) {
 		Save(ctx); err != nil {
 		t.Fatalf("创建未建账阻断费用失败: %v", err)
 	}
-	seedApprovedFeeSnapshotForTest(t, draftFixture.data, draftFixture.orderID, draftFixture.actorID)
 	_, draftApplication := draftFixture.submitSingleLineApplication(t, "draftfee")
 	if _, err := draftUsecase.Approve(ctx, draftScope, draftFixture.actorID, draftApplication.ID, 1); !errors.Is(err, biz.ErrCommissionUnconfirmedFees) {
 		t.Fatalf("未建账费用阻断的批准应返回未确认费用: %v", err)

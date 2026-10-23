@@ -20,7 +20,6 @@ import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
 import { ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { OrderBusinessType, PartnerRoleType } from '@/enums.generated';
-import { useOrderFeeReview } from '@/features/orders/fee-review';
 import {
   orderFeeServiceAddFee,
   orderFeeServiceBatchAssignOrderFeeTags,
@@ -90,11 +89,6 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     >([]);
     const [_selectedFeeSetting, setSelectedFeeSetting] =
       useState<API.OrderFeeSettingOption>();
-    const [financeLocked, setFinanceLocked] = useState(false);
-    const [_financeLockReason, setFinanceLockReason] = useState('');
-    const [_financeLockCommissionNos, setFinanceLockCommissionNos] = useState<
-      string[]
-    >([]);
     const [customerName, setCustomerName] = useState('');
     const [feeOptionsReady, setFeeOptionsReady] = useState(false);
     const [feeOptionsError, setFeeOptionsError] = useState('');
@@ -109,36 +103,33 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     } = useOrderLockState(order?.id);
     const lockWritePolicy = getOrderBusinessWritePolicy({
       state: lockState,
+      order,
       loading: lockStateLoading,
       error: lockStateError,
       canOperate: access.canOperateOrganization(order?.organizationId),
     });
-    const feeReview = useOrderFeeReview(order?.id, drawerOpen);
-    const feeWritesDisabled =
-      financeLocked ||
-      lockWritePolicy.disabled ||
-      feeReview.isError ||
-      feeReview.data?.canEdit !== true;
-    const feeWritePolicyRef = useRef({ financeLocked, lockWritePolicy });
-    feeWritePolicyRef.current = { financeLocked, lockWritePolicy };
+    const feeWritesDisabled = lockWritePolicy.disabled;
+    const feeWritePolicyRef = useRef(lockWritePolicy);
+    feeWritePolicyRef.current = lockWritePolicy;
 
-    const ensureFeeWriteAllowed = () => {
-      if (feeReview.isError || feeReview.data?.canEdit !== true) {
-        message.warning(
-          feeReview.data?.blockedReasons?.join('；') ||
-            '费用审核信息未就绪或费用已冻结',
-        );
-        return false;
-      }
+    const ensureFeeWriteAllowed = (
+      fee?: API.OrderFee,
+      capability: 'canEdit' | 'canDelete' = 'canEdit',
+    ) => {
       const currentPolicy = feeWritePolicyRef.current;
-      if (currentPolicy.lockWritePolicy.disabled) {
+      if (currentPolicy.disabled) {
         message.warning(
-          currentPolicy.lockWritePolicy.reason || '订单业务费用当前不可编辑',
+          lockState?.isLocked
+            ? '订单已审核锁定，费用变更请前往费用页面申请补录并补审'
+            : currentPolicy.reason || '订单费用当前不可编辑',
         );
         return false;
       }
-      if (currentPolicy.financeLocked) {
-        message.warning('存在有效提成，原费用不能直接修改；新增成本请申请补录');
+      if (fee && fee[capability] !== true) {
+        message.warning(
+          fee.blockedReasons?.join('；') ||
+            '费用当前不可编辑，请先完成账务回退',
+        );
         return false;
       }
       return true;
@@ -182,7 +173,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
     };
 
     const openEdit = (fee: API.OrderFee) => {
-      if (!ensureFeeWriteAllowed()) return;
+      if (!ensureFeeWriteAllowed(fee)) return;
       setEditingFee(fee);
       const setting = feeSettings.find((item) => item.id === fee.feeSettingId);
       setSelectedFeeSetting(setting);
@@ -205,9 +196,6 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
         setFeeSettings([]);
         setBillingUnits([]);
         setSelectedFeeSetting(undefined);
-        setFinanceLocked(false);
-        setFinanceLockReason('');
-        setFinanceLockCommissionNos([]);
         setCustomerName('');
         setFeeOptionsReady(false);
         setFeeOptionsError('');
@@ -222,9 +210,6 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
           setSettlementParties(response.settlementParties ?? []);
           setFeeSettings(response.feeSettings ?? []);
           setBillingUnits(response.billingUnits ?? []);
-          setFinanceLocked(Boolean(response.financeLocked));
-          setFinanceLockReason(response.financeLockReason ?? '');
-          setFinanceLockCommissionNos(response.financeLockCommissionNos ?? []);
           setCustomerName(response.customerName ?? '');
           setFeeOptionsReady(true);
         } catch (error) {
@@ -271,7 +256,7 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
         { modal, message },
         '确认删除该笔费用？',
         async (reason): Promise<false | undefined> => {
-          if (!ensureFeeWriteAllowed()) return false;
+          if (!ensureFeeWriteAllowed(record, 'canDelete')) return false;
           const writeResponse1 = await orderFeeServiceRemoveFee({
             orderId,
             id: feeId,
@@ -414,9 +399,6 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
             setFeeSettings([]);
             setBillingUnits([]);
             setSelectedFeeSetting(undefined);
-            setFinanceLocked(false);
-            setFinanceLockReason('');
-            setFinanceLockCommissionNos([]);
             setCustomerName('');
             setFeeOptionsReady(false);
             setFeeOptionsError('');

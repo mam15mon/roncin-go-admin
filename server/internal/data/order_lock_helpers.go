@@ -84,17 +84,9 @@ func computeHBLContentHash(hbl *ent.SeaHouseBill) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func computeLockOrderFingerprint(organizationID, orderID uuid.UUID, expectedVersion uint64, callerID uuid.UUID) string {
+func computeLockOrderFingerprint(organizationID, orderID uuid.UUID, expectedVersion uint64, callerID uuid.UUID, review biz.OrderLockReviewInput) string {
 	h := sha256.New()
-	fmt.Fprintf(h, "org:%s|order:%s|ver:%d|caller:%s", organizationID, orderID, expectedVersion, callerID)
-	return hex.EncodeToString(h.Sum(nil))
-}
-
-// computeAutoLockFingerprint 为自动锁定记录生成稳定请求指纹：同一触发单据对同一
-// 订单的重复检查可被幂等约束收敛，不与人工幂等键空间重叠。
-func computeAutoLockFingerprint(organizationID, orderID, resourceID uuid.UUID, triggerType string) string {
-	h := sha256.New()
-	fmt.Fprintf(h, "org:%s|order:%s|trigger:%s|resource:%s|auto:1", organizationID, orderID, triggerType, resourceID)
+	fmt.Fprintf(h, "org:%s|order:%s|ver:%d|caller:%s|fee_ver:%d|fee_fp:%s|comment:%s", organizationID, orderID, expectedVersion, callerID, review.ExpectedFeeContentVersion, review.FeeContentFingerprint, review.Comment)
 	return hex.EncodeToString(h.Sum(nil))
 }
 

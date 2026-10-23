@@ -1,18 +1,26 @@
-import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import {
   HistoryOutlined,
   LockOutlined,
   UnlockOutlined,
 } from '@ant-design/icons';
-import { App, Button, Form, Input, Modal, Tag, Tooltip } from 'antd';
-import dayjs from 'dayjs';
-import React, { useEffect, useState } from 'react';
+import { ProFormTextArea } from '@ant-design/pro-components';
+import { Alert, App, Button, Form, Input, Modal, Tag, Tooltip } from 'antd';
+import React, { useContext, useEffect, useState } from 'react';
+import { appInitialStateContext } from '@/app/initialStateContext';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
+import { GuardedModalForm } from '@/components/ui';
 import { OrderBusinessType } from '@/enums.generated';
+import {
+  FeeReviewSummary,
+  feeReviewCommentFieldProps,
+  feeReviewCommentRule,
+} from '@/features/orders/fee-review';
 import {
   orderLockServiceLockOrder,
   orderLockServiceRequestOrderUnlock,
 } from '@/services/roncin/orderLockService';
 import { isWriteResponse } from '@/utils/api';
+import { formatDate } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
 import { getOrderBusinessTypeLabel } from '../../use-order-lock-state';
 import UnlockRequestHistoryDrawer from './UnlockRequestHistoryDrawer';
@@ -42,56 +50,16 @@ export function getOrderLockConfirmationDescription(
   businessType?: number,
 ): string {
   if (businessType === OrderBusinessType.BUSINESS_TYPE_SE) {
-    return '锁定后将固定 MBL/HBL 提单不可变版本，并冻结订单业务资料和费用。如需修改必须先解锁。';
+    return '锁定后将固定 MBL/HBL 提单不可变版本，订单业务资料和费用进入审核锁定。锁后费用变更须申请补录并补审，已建账费用须先完成账务回退。';
   }
-  return '锁定后将冻结订单业务资料和费用。如需修改必须先解锁。';
+  return '审核后订单业务资料和费用进入锁定。锁后费用变更须申请补录并补审，已建账费用须先完成账务回退。';
 }
 
-/** 自动锁定触发类型的稳定展示文案；未知取值原样透出，不猜测。 */
-const LOCK_TRIGGER_TYPE_TEXT: Record<string, string> = {
-  VERIFICATION: '应收核销',
-  NETTING: '应收对冲',
-  FEE_BILLED: '费用进入账单',
-  FEE_CANCEL: '未建账费用删除',
-};
-
-export function getOrderLockTriggerTypeText(triggerType?: string): string {
-  if (!triggerType) return '-';
-  return LOCK_TRIGGER_TYPE_TEXT[triggerType] ?? triggerType;
-}
-
-export type OrderLockSourceDisplay = {
-  /** 锁定归属主文案：MANUAL 展示实际锁定人，AUTO_SETTLEMENT 固定系统文案。 */
-  actorText: string;
-  isAuto: boolean;
-  /** 自动锁定触发审计行（触发类型、触发单据、触发操作人）。 */
-  triggerLines: string[];
-};
-
-/**
- * 锁定来源展示投影：只消费服务端返回的 lock_source 与触发审计字段，
- * 不根据 locked_by 是否为空在前端猜测来源。
- */
+/** 审核锁仅展示服务端记录的人工审核人。 */
 export function getOrderLockSourceDisplay(
-  state: Pick<
-    API.OrderLockStateData,
-    'lockSource' | 'lockedBy' | 'lockedByName' | 'currentLockRecord'
-  >,
-): OrderLockSourceDisplay {
-  if (state.lockSource === 'AUTO_SETTLEMENT') {
-    const record = state.currentLockRecord;
-    const triggerLines = [
-      `触发类型：${getOrderLockTriggerTypeText(record?.triggerType)}`,
-      `触发单据：${record?.triggerResourceId || '-'}`,
-      `触发操作人：${record?.triggeredByName || record?.triggeredBy || '-'}`,
-    ];
-    return { actorText: '系统自动锁定', isAuto: true, triggerLines };
-  }
-  return {
-    actorText: state.lockedByName || state.lockedBy || '人工锁定',
-    isAuto: false,
-    triggerLines: [],
-  };
+  state: Pick<API.OrderLockStateData, 'lockedBy' | 'lockedByName'>,
+) {
+  return { actorText: state.lockedByName || state.lockedBy || '审核人待确认' };
 }
 
 function getUnlockTitle(route: UnlockRoute, businessType?: number): string {
@@ -114,14 +82,12 @@ export function OrderLockStatusTag({
   if (!state.isLocked) {
     return (
       <Tag color="success" icon={<UnlockOutlined />}>
-        {businessTypeLabel} · 未锁定
+        {businessTypeLabel} · 未审核
       </Tag>
     );
   }
 
-  const timeText = state.lockedAt
-    ? dayjs(state.lockedAt).format('YYYY-MM-DD HH:mm')
-    : '';
+  const timeText = state.lockedAt ? formatDate(state.lockedAt, 'minute') : '';
   const sourceDisplay = getOrderLockSourceDisplay(state);
   return (
     <Tooltip
@@ -129,17 +95,14 @@ export function OrderLockStatusTag({
         <div style={{ fontSize: 12 }}>
           <div>业务类型：{businessTypeLabel}</div>
           <div>锁定轮次：第 {state.lockGeneration} 代</div>
-          {sourceDisplay.isAuto ? (
-            <>
-              <div>锁定来源：系统自动锁定</div>
-              {sourceDisplay.triggerLines.map((line) => (
-                <div key={line}>{line}</div>
-              ))}
-            </>
-          ) : (
-            <div>锁定人：{sourceDisplay.actorText}</div>
+          <div>审核人：{sourceDisplay.actorText}</div>
+          {timeText && <div>审核时间：{timeText}</div>}
+          {state.currentLockRecord?.reviewComment && (
+            <div>审核意见：{state.currentLockRecord.reviewComment}</div>
           )}
-          {timeText && <div>锁定时间：{timeText}</div>}
+          {state.currentLockRecord?.feeContentVersion && (
+            <div>审核费用版本：{state.currentLockRecord.feeContentVersion}</div>
+          )}
           {state.activeUnlockRequest && (
             <div style={{ marginTop: 4, color: '#faad14' }}>
               当前解锁申请：{state.activeUnlockRequest.status}（
@@ -150,7 +113,7 @@ export function OrderLockStatusTag({
       }
     >
       <Tag color="error" icon={<LockOutlined />}>
-        {businessTypeLabel} · 已锁定 · {sourceDisplay.actorText}
+        {businessTypeLabel} · 已审核锁定 · {sourceDisplay.actorText}
         {timeText ? ` · ${timeText}` : ''}
       </Tag>
     </Tooltip>
@@ -166,11 +129,17 @@ export default function OrderLockControl({
   onRetry,
   onSynchronize,
 }: OrderLockControlProps) {
-  const { message, modal } = App.useApp();
-  const [locking, setLocking] = useState(false);
+  const { message } = App.useApp();
+  const workspaceId = useContext(appInitialStateContext)?.initialState
+    ?.currentUser?.currentOrganization?.id;
+  const [lockSnapshot, setLockSnapshot] = useState<API.OrderLockStateData>();
+  const [lockKey, setLockKey] = useState(generateIdempotencyKey);
   const [unlocking, setUnlocking] = useState(false);
   const [unlockModalVisible, setUnlockModalVisible] = useState(false);
-  const { markDirty: markUnlockDirty } = useUnsavedChangesGuard({ enabled: unlockModalVisible, identity: orderId });
+  const { markDirty: markUnlockDirty } = useUnsavedChangesGuard({
+    enabled: unlockModalVisible,
+    identity: orderId,
+  });
   const [unlockHistoryVisible, setUnlockHistoryVisible] = useState(false);
   const [unlockRoute, setUnlockRoute] = useState<UnlockRoute>('ROLE_DIRECT');
   const [unlockForm] = Form.useForm<{ reason?: string }>();
@@ -182,61 +151,32 @@ export default function OrderLockControl({
     }
   }, [error, loading, state, unlockForm, unlockModalVisible]);
 
+  useEffect(() => {
+    setLockSnapshot(undefined);
+    setUnlockModalVisible(false);
+    setUnlockHistoryVisible(false);
+  }, [orderId, workspaceId]);
+
   const expectedOrderVersion = state?.orderVersion;
   const versionMissing = !expectedOrderVersion;
+  const reviewSnapshotMissing =
+    versionMissing ||
+    !state?.feeContentVersion ||
+    !state?.feeContentFingerprint;
   const businessTypeLabel = getOrderBusinessTypeLabel(state?.businessType);
 
   const handleLock = () => {
-    if (!state?.canLock || !expectedOrderVersion) {
-      message.warning('订单锁状态或版本已变化，请刷新后重试');
+    if (
+      !state?.canLock ||
+      !state.orderVersion ||
+      !state.feeContentVersion ||
+      !state.feeContentFingerprint
+    ) {
+      message.warning('订单审核快照或版本已变化，请刷新后重试');
       return;
     }
-    modal.confirm({
-      title: `锁定${businessTypeLabel}订单`,
-      content: (
-        <div>
-          <p>
-            确定要锁定订单 <b>{orderNo || state.orderNo || orderId}</b> 吗？
-          </p>
-          <p style={{ color: '#64748b' }}>
-            {getOrderLockConfirmationDescription(state.businessType)}
-          </p>
-        </div>
-      ),
-      okText: '确认锁定',
-      cancelText: '取消',
-      okButtonProps: { danger: true },
-      onOk: async () => {
-        setLocking(true);
-        try {
-          const response = await orderLockServiceLockOrder(
-            { orderId },
-            {
-              orderId,
-              expectedOrderVersion,
-              idempotencyKey: generateIdempotencyKey(),
-            },
-          );
-          if (!isWriteResponse(response) || response.data?.state?.orderId !== orderId) return Promise.reject();
-          if (response?.success) {
-            message.success('订单已成功锁定');
-            await onSynchronize();
-          }
-        } catch (requestError: unknown) {
-          message.error(
-            requestError instanceof Error
-              ? requestError.message
-              : '锁定订单失败',
-          );
-          throw requestError;
-        } finally {
-          setLocking(false);
-        }
-      },
-    }).then(
-      () => {},
-      () => {},
-    );
+    setLockKey(generateIdempotencyKey());
+    setLockSnapshot({ ...state, orderId });
   };
 
   const openUnlockModal = (route: UnlockRoute) => {
@@ -268,7 +208,8 @@ export default function OrderLockControl({
           reason: values.reason?.trim() || undefined,
         },
       );
-      if (!isWriteResponse(response) || !response.data?.request?.id) return false;
+      if (!isWriteResponse(response) || !response.data?.request?.id)
+        return false;
       if (response?.success) {
         const actualRoute = response.data?.request?.route;
         const actualStatus = response.data?.request?.status;
@@ -310,8 +251,8 @@ export default function OrderLockControl({
     return undefined;
   };
 
-  const lockBlockedTip = versionMissing
-    ? '订单版本信息缺失，请刷新后重试'
+  const lockBlockedTip = reviewSnapshotMissing
+    ? '订单或费用审核快照缺失，请刷新后重试'
     : state?.lockBlockedReasons?.join('；');
   const unlockBlockedTip = versionMissing
     ? '订单版本信息缺失，请刷新后重试'
@@ -331,17 +272,18 @@ export default function OrderLockControl({
 
       {state && !state.isLocked && (
         <Tooltip
-          title={!state.canLock || versionMissing ? lockBlockedTip : undefined}
+          title={
+            !state.canLock || reviewSnapshotMissing ? lockBlockedTip : undefined
+          }
         >
           <span>
             <Button
               style={{ color: '#d4380d', borderColor: '#ffbb96' }}
               icon={<LockOutlined />}
-              disabled={!state.canLock || versionMissing || loading}
-              loading={locking}
+              disabled={!state.canLock || reviewSnapshotMissing || loading}
               onClick={handleLock}
             >
-              锁定订单
+              审核并锁定
             </Button>
           </span>
         </Tooltip>
@@ -384,6 +326,83 @@ export default function OrderLockControl({
         </Tooltip>
       )}
 
+      {lockSnapshot && (
+        <GuardedModalForm<{ comment?: string }>
+          key={lockKey}
+          title={`审核并锁定${getOrderBusinessTypeLabel(lockSnapshot.businessType)}订单`}
+          open
+          width={900}
+          modalProps={{ destroyOnHidden: true }}
+          onOpenChange={(open) => {
+            if (!open) setLockSnapshot(undefined);
+          }}
+          onFinish={async (values) => {
+            if (
+              lockSnapshot.orderId !== orderId ||
+              !lockSnapshot.orderVersion ||
+              !lockSnapshot.feeContentVersion ||
+              !lockSnapshot.feeContentFingerprint
+            )
+              return false;
+            try {
+              const response = await orderLockServiceLockOrder(
+                { orderId },
+                {
+                  orderId,
+                  expectedOrderVersion: lockSnapshot.orderVersion,
+                  expectedFeeContentVersion: lockSnapshot.feeContentVersion,
+                  feeContentFingerprint: lockSnapshot.feeContentFingerprint,
+                  idempotencyKey: lockKey,
+                  comment: values.comment?.trim(),
+                },
+              );
+              if (
+                !isWriteResponse(response) ||
+                response.data?.state?.orderId !== orderId
+              )
+                return false;
+              message.success('订单已审核并锁定');
+              await onSynchronize();
+              setLockSnapshot(undefined);
+              return true;
+            } catch {
+              return false;
+            }
+          }}
+        >
+          <p>订单：{orderNo || lockSnapshot.orderNo || orderId}</p>
+          <p>
+            {getOrderLockConfirmationDescription(lockSnapshot.businessType)}
+          </p>
+          <FeeReviewSummary summary={lockSnapshot.feeSummary} />
+          {Number(lockSnapshot.feeSummary?.profit) < 0 && (
+            <Alert
+              type="warning"
+              showIcon
+              title="该订单亏损，请填写审核意见说明原因。"
+              style={{ marginBlock: 12 }}
+            />
+          )}
+          <ProFormTextArea
+            name="comment"
+            label="审核意见"
+            rules={[
+              feeReviewCommentRule,
+              ...(Number(lockSnapshot.feeSummary?.profit) < 0
+                ? [
+                    {
+                      required: true,
+                      whitespace: true,
+                      message: '请填写亏损原因',
+                    },
+                  ]
+                : []),
+            ]}
+            fieldProps={feeReviewCommentFieldProps}
+          />
+        </GuardedModalForm>
+      )}
+
       <Modal
         title={getUnlockTitle(unlockRoute, state?.businessType)}
         open={unlockModalVisible}
@@ -404,7 +423,12 @@ export default function OrderLockControl({
           {unlockRoute === 'DINGTALK_APPROVAL' &&
             '提交后将通过统一订单解锁审批流程，指派给具备对应业务类型锁定权限的角色成员。'}
         </div>
-        <Form form={unlockForm} layout="vertical" onFinish={handleUnlockSubmit} onValuesChange={markUnlockDirty}>
+        <Form
+          form={unlockForm}
+          layout="vertical"
+          onFinish={handleUnlockSubmit}
+          onValuesChange={markUnlockDirty}
+        >
           <Form.Item
             name="reason"
             label="解锁原因"

@@ -407,15 +407,15 @@ describe('工作台提成分桶与冲减语义', () => {
 });
 
 describe('工作台财务卡与组织切换', () => {
-  it('补录审批待办按实时资格出现，读取权限控制冲减与待发摘要', async () => {
+  it('费用更正补审待办按实时资格出现，读取权限控制冲减与待发摘要', async () => {
     serviceMocks.getOverview.mockResolvedValue(
       overviewResponse({
         hasCommissionEligibility: false,
         finance: {
           canReadCommission: undefined as unknown as boolean,
           canManageCommission: undefined as unknown as boolean,
-          pendingSupplementApprovalCount: 1,
-          pendingSupplementApprovals: [
+          pendingCorrectionApprovalCount: 1,
+          pendingCorrectionApprovals: [
             {
               requestId: 'req-1',
               businessType: 'SE',
@@ -424,7 +424,7 @@ describe('工作台财务卡与组织切换', () => {
               feeName: '滞箱费',
               currency: 'CNY',
               amount: '900.00',
-              reason: '锁后补录',
+              reason: '锁后更正',
               requestedByName: '李四',
               requestedAt: '2026-09-10 10:00:00',
             },
@@ -459,7 +459,7 @@ describe('工作台财务卡与组织切换', () => {
           canManageCommission: true,
           confirmedCommissionCount: 7,
           pendingDecreaseCount: 3,
-          pendingSupplementApprovalCount: 0,
+          pendingCorrectionApprovalCount: 0,
         },
       }),
     );

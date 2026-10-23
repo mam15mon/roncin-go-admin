@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockhousebillsnapshot"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
@@ -193,6 +194,21 @@ func (_u *OrderLockRecordUpdate) AddUnlockRequests(v ...*OrderUnlockRequest) *Or
 	return _u.AddUnlockRequestIDs(ids...)
 }
 
+// AddFeeCorrectionRequestIDs adds the "fee_correction_requests" edge to the OrderFeeCorrectionRequest entity by IDs.
+func (_u *OrderLockRecordUpdate) AddFeeCorrectionRequestIDs(ids ...uuid.UUID) *OrderLockRecordUpdate {
+	_u.mutation.AddFeeCorrectionRequestIDs(ids...)
+	return _u
+}
+
+// AddFeeCorrectionRequests adds the "fee_correction_requests" edges to the OrderFeeCorrectionRequest entity.
+func (_u *OrderLockRecordUpdate) AddFeeCorrectionRequests(v ...*OrderFeeCorrectionRequest) *OrderLockRecordUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFeeCorrectionRequestIDs(ids...)
+}
+
 // SetAppliedUnlockRequestID sets the "applied_unlock_request" edge to the OrderUnlockRequest entity by ID.
 func (_u *OrderLockRecordUpdate) SetAppliedUnlockRequestID(id uuid.UUID) *OrderLockRecordUpdate {
 	_u.mutation.SetAppliedUnlockRequestID(id)
@@ -257,6 +273,27 @@ func (_u *OrderLockRecordUpdate) RemoveUnlockRequests(v ...*OrderUnlockRequest) 
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveUnlockRequestIDs(ids...)
+}
+
+// ClearFeeCorrectionRequests clears all "fee_correction_requests" edges to the OrderFeeCorrectionRequest entity.
+func (_u *OrderLockRecordUpdate) ClearFeeCorrectionRequests() *OrderLockRecordUpdate {
+	_u.mutation.ClearFeeCorrectionRequests()
+	return _u
+}
+
+// RemoveFeeCorrectionRequestIDs removes the "fee_correction_requests" edge to OrderFeeCorrectionRequest entities by IDs.
+func (_u *OrderLockRecordUpdate) RemoveFeeCorrectionRequestIDs(ids ...uuid.UUID) *OrderLockRecordUpdate {
+	_u.mutation.RemoveFeeCorrectionRequestIDs(ids...)
+	return _u
+}
+
+// RemoveFeeCorrectionRequests removes "fee_correction_requests" edges to OrderFeeCorrectionRequest entities.
+func (_u *OrderLockRecordUpdate) RemoveFeeCorrectionRequests(v ...*OrderFeeCorrectionRequest) *OrderLockRecordUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFeeCorrectionRequestIDs(ids...)
 }
 
 // ClearAppliedUnlockRequest clears the "applied_unlock_request" edge to the OrderUnlockRequest entity.
@@ -345,6 +382,18 @@ func (_u *OrderLockRecordUpdate) sqlSave(ctx context.Context) (_node int, err er
 				ps[i](selector)
 			}
 		}
+	}
+	if _u.mutation.FeeSnapshotCleared() {
+		_spec.ClearField(orderlockrecord.FieldFeeSnapshot, field.TypeJSON)
+	}
+	if _u.mutation.FeeContentVersionCleared() {
+		_spec.ClearField(orderlockrecord.FieldFeeContentVersion, field.TypeUint64)
+	}
+	if _u.mutation.FeeContentFingerprintCleared() {
+		_spec.ClearField(orderlockrecord.FieldFeeContentFingerprint, field.TypeString)
+	}
+	if _u.mutation.ReviewCommentCleared() {
+		_spec.ClearField(orderlockrecord.FieldReviewComment, field.TypeString)
 	}
 	if _u.mutation.TriggerTypeCleared() {
 		_spec.ClearField(orderlockrecord.FieldTriggerType, field.TypeEnum)
@@ -449,6 +498,51 @@ func (_u *OrderLockRecordUpdate) sqlSave(ctx context.Context) (_node int, err er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderunlockrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FeeCorrectionRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderlockrecord.FeeCorrectionRequestsTable,
+			Columns: []string{orderlockrecord.FeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFeeCorrectionRequestsIDs(); len(nodes) > 0 && !_u.mutation.FeeCorrectionRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderlockrecord.FeeCorrectionRequestsTable,
+			Columns: []string{orderlockrecord.FeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FeeCorrectionRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderlockrecord.FeeCorrectionRequestsTable,
+			Columns: []string{orderlockrecord.FeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -711,6 +805,21 @@ func (_u *OrderLockRecordUpdateOne) AddUnlockRequests(v ...*OrderUnlockRequest) 
 	return _u.AddUnlockRequestIDs(ids...)
 }
 
+// AddFeeCorrectionRequestIDs adds the "fee_correction_requests" edge to the OrderFeeCorrectionRequest entity by IDs.
+func (_u *OrderLockRecordUpdateOne) AddFeeCorrectionRequestIDs(ids ...uuid.UUID) *OrderLockRecordUpdateOne {
+	_u.mutation.AddFeeCorrectionRequestIDs(ids...)
+	return _u
+}
+
+// AddFeeCorrectionRequests adds the "fee_correction_requests" edges to the OrderFeeCorrectionRequest entity.
+func (_u *OrderLockRecordUpdateOne) AddFeeCorrectionRequests(v ...*OrderFeeCorrectionRequest) *OrderLockRecordUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFeeCorrectionRequestIDs(ids...)
+}
+
 // SetAppliedUnlockRequestID sets the "applied_unlock_request" edge to the OrderUnlockRequest entity by ID.
 func (_u *OrderLockRecordUpdateOne) SetAppliedUnlockRequestID(id uuid.UUID) *OrderLockRecordUpdateOne {
 	_u.mutation.SetAppliedUnlockRequestID(id)
@@ -775,6 +884,27 @@ func (_u *OrderLockRecordUpdateOne) RemoveUnlockRequests(v ...*OrderUnlockReques
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveUnlockRequestIDs(ids...)
+}
+
+// ClearFeeCorrectionRequests clears all "fee_correction_requests" edges to the OrderFeeCorrectionRequest entity.
+func (_u *OrderLockRecordUpdateOne) ClearFeeCorrectionRequests() *OrderLockRecordUpdateOne {
+	_u.mutation.ClearFeeCorrectionRequests()
+	return _u
+}
+
+// RemoveFeeCorrectionRequestIDs removes the "fee_correction_requests" edge to OrderFeeCorrectionRequest entities by IDs.
+func (_u *OrderLockRecordUpdateOne) RemoveFeeCorrectionRequestIDs(ids ...uuid.UUID) *OrderLockRecordUpdateOne {
+	_u.mutation.RemoveFeeCorrectionRequestIDs(ids...)
+	return _u
+}
+
+// RemoveFeeCorrectionRequests removes "fee_correction_requests" edges to OrderFeeCorrectionRequest entities.
+func (_u *OrderLockRecordUpdateOne) RemoveFeeCorrectionRequests(v ...*OrderFeeCorrectionRequest) *OrderLockRecordUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFeeCorrectionRequestIDs(ids...)
 }
 
 // ClearAppliedUnlockRequest clears the "applied_unlock_request" edge to the OrderUnlockRequest entity.
@@ -894,6 +1024,18 @@ func (_u *OrderLockRecordUpdateOne) sqlSave(ctx context.Context) (_node *OrderLo
 			}
 		}
 	}
+	if _u.mutation.FeeSnapshotCleared() {
+		_spec.ClearField(orderlockrecord.FieldFeeSnapshot, field.TypeJSON)
+	}
+	if _u.mutation.FeeContentVersionCleared() {
+		_spec.ClearField(orderlockrecord.FieldFeeContentVersion, field.TypeUint64)
+	}
+	if _u.mutation.FeeContentFingerprintCleared() {
+		_spec.ClearField(orderlockrecord.FieldFeeContentFingerprint, field.TypeString)
+	}
+	if _u.mutation.ReviewCommentCleared() {
+		_spec.ClearField(orderlockrecord.FieldReviewComment, field.TypeString)
+	}
 	if _u.mutation.TriggerTypeCleared() {
 		_spec.ClearField(orderlockrecord.FieldTriggerType, field.TypeEnum)
 	}
@@ -997,6 +1139,51 @@ func (_u *OrderLockRecordUpdateOne) sqlSave(ctx context.Context) (_node *OrderLo
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderunlockrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FeeCorrectionRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderlockrecord.FeeCorrectionRequestsTable,
+			Columns: []string{orderlockrecord.FeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFeeCorrectionRequestsIDs(); len(nodes) > 0 && !_u.mutation.FeeCorrectionRequestsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderlockrecord.FeeCorrectionRequestsTable,
+			Columns: []string{orderlockrecord.FeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FeeCorrectionRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderlockrecord.FeeCorrectionRequestsTable,
+			Columns: []string{orderlockrecord.FeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

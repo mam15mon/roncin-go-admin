@@ -3,7 +3,11 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { OrderBusinessType } from '@/enums.generated';
+import {
+  OrderBusinessType,
+  OrderClosureStatus,
+  OrderTerminationStatus,
+} from '@/enums.generated';
 import { orderLockServiceGetOrderLockState } from '@/services/roncin/orderLockService';
 import {
   getOrderBusinessWritePolicy,
@@ -180,5 +184,26 @@ describe('getOrderBusinessWritePolicy', () => {
         error: null,
       }),
     ).toEqual({ disabled: false });
+  });
+  it.each([
+    { closureStatus: OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED },
+    {
+      terminationStatus:
+        OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATING,
+    },
+    {
+      terminationStatus:
+        OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED,
+    },
+  ])('未锁定也保持结案和终止的普通写保护：%j', (state) => {
+    expect(
+      getOrderBusinessWritePolicy({
+        canOperate: true,
+        state: { isLocked: false },
+        order: state,
+        loading: false,
+        error: null,
+      }).disabled,
+    ).toBe(true);
   });
 });

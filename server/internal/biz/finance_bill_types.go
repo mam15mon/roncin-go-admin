@@ -24,9 +24,6 @@ const (
 )
 
 func FinanceBillPurposeForFee(fee *OrderFee) FinanceBillPurpose {
-	if fee.EconomicEffect == OrderFeeEconomicDecrease {
-		return FinanceBillCorrectionReversal
-	}
 	return FinanceBillNormal
 }
 
@@ -111,7 +108,7 @@ type FinanceBillLine struct {
 }
 
 type FinanceBillableFee struct {
-	FeeReviewStatus         string
+	OrderLocked             bool
 	HasPendingFeeSupplement bool
 	HasPendingFeeCorrection bool
 	CanBill                 bool

@@ -3,7 +3,7 @@
   "name": "unified-order-review-lock",
   "title": "统一订单审核锁与费用账务回退",
   "description": "统一订单锁与费用审核；未锁定且未建账费用可编辑，锁定后新增、修改、调减及作废经补审生效，已建账费用按权限回退。",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": "fullstack",
   "scope": null,
   "package": "web",

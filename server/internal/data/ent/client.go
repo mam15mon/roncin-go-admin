@@ -14744,6 +14744,22 @@ func (c *OrderFeeCorrectionRequestClient) GetX(ctx context.Context, id uuid.UUID
 	return obj
 }
 
+// QueryLockRecord queries the lock_record edge of a OrderFeeCorrectionRequest.
+func (c *OrderFeeCorrectionRequestClient) QueryLockRecord(_m *OrderFeeCorrectionRequest) *OrderLockRecordQuery {
+	query := (&OrderLockRecordClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID, id),
+			sqlgraph.To(orderlockrecord.Table, orderlockrecord.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderfeecorrectionrequest.LockRecordTable, orderfeecorrectionrequest.LockRecordColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryOrganization queries the organization edge of a OrderFeeCorrectionRequest.
 func (c *OrderFeeCorrectionRequestClient) QueryOrganization(_m *OrderFeeCorrectionRequest) *OrganizationQuery {
 	query := (&OrganizationClient{config: c.config}).Query()
@@ -16095,6 +16111,22 @@ func (c *OrderLockRecordClient) QueryUnlockRequests(_m *OrderLockRecord) *OrderU
 			sqlgraph.From(orderlockrecord.Table, orderlockrecord.FieldID, id),
 			sqlgraph.To(orderunlockrequest.Table, orderunlockrequest.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, orderlockrecord.UnlockRequestsTable, orderlockrecord.UnlockRequestsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFeeCorrectionRequests queries the fee_correction_requests edge of a OrderLockRecord.
+func (c *OrderLockRecordClient) QueryFeeCorrectionRequests(_m *OrderLockRecord) *OrderFeeCorrectionRequestQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderlockrecord.Table, orderlockrecord.FieldID, id),
+			sqlgraph.To(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderlockrecord.FeeCorrectionRequestsTable, orderlockrecord.FeeCorrectionRequestsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil

@@ -34,7 +34,6 @@ const permissions = {
   financeFeeSettingCreate: 'system.finance.fee_setting.create',
   financeFeeSettingUpdate: 'system.finance.fee_setting.update',
   financeFeeRead: 'system.finance.fee.read',
-  financeFeeReview: 'system.finance.fee.review',
   financeFeeTag: 'system.finance.fee.tag',
   financeBillRead: 'system.finance.bill.read',
   financeBillCreate: 'system.finance.bill.create',
@@ -233,7 +232,6 @@ export default function access(
       permissions.financeExchangeRateRead,
       permissions.financeFeeSettingRead,
     ].some((permission) => has(permission)),
-    canReviewOrderFees: canOperateBusiness && has(permissions.financeFeeReview),
     canReadFinanceFees: canOperateBusiness && has(permissions.financeFeeRead),
     canManageFinanceFeeTags:
       canOperateBusiness && has(permissions.financeFeeTag),
@@ -402,14 +400,11 @@ export default function access(
     canCreateAnyOrders: [1, 2, 3, 4].some((businessType) =>
       canOrder(businessType, 'create'),
     ),
-    // 费用页承载录入、整票费用审核及业务锁操作，分别允许对应权限进入。
-    // 实际审核资格由服务端按实时费用审核授权及组织范围独立判定。
-    canAccessAnyOrderFees:
-      (canOperateBusiness && has(permissions.financeFeeReview)) ||
-      [1, 2, 3, 4].some(
-        (businessType) =>
-          canOrder(businessType, 'fee.read') || canOrder(businessType, 'lock'),
-      ),
+    // 费用页承载录入与订单审核，具体操作资格仍由服务端实时复核。
+    canAccessAnyOrderFees: [1, 2, 3, 4].some(
+      (businessType) =>
+        canOrder(businessType, 'fee.read') || canOrder(businessType, 'lock'),
+    ),
     canReadSEOrders: canOrder(1, 'read'),
     canSplitSEOrders: canOrder(1, 'split'),
     canReadSIOrders: canOrder(2, 'read'),

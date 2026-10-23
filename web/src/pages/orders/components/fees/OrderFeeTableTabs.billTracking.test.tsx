@@ -60,6 +60,8 @@ function makeProps(orderId: string) {
     setReceivableSummary: vi.fn(),
     setPayableSummary: vi.fn(),
     canCreateFinanceBills: false,
+    canCreateFees: true,
+    canDeleteFees: true,
     feeWritesDisabled: true,
     onOpenBillWorkbench: vi.fn(),
     getTableColumns: undefined,
@@ -109,6 +111,8 @@ describe('OrderFeeTableTabs 关联账单列', () => {
     listFees.mockResolvedValue({
       data: [
         {
+          canEdit: false,
+          canBill: false,
           id: 'fee-billed',
           direction: RECEIVABLE,
           hasActiveBill: true,
@@ -117,6 +121,8 @@ describe('OrderFeeTableTabs 关联账单列', () => {
           feeName: '海运费',
         },
         {
+          canEdit: true,
+          canBill: true,
           id: 'fee-unbilled',
           direction: RECEIVABLE,
           expenseDate: '2026-09-20',
@@ -171,6 +177,8 @@ describe('OrderFeeTableTabs 关联账单列', () => {
     listFees.mockResolvedValue({
       data: [
         {
+          canEdit: true,
+          canBill: true,
           id: 'fee-1',
           direction: RECEIVABLE,
           expenseDate: '2026-09-20',
@@ -216,6 +224,8 @@ describe('OrderFeeTableTabs 关联账单列', () => {
     listFees.mockResolvedValue({
       data: [
         {
+          canEdit: true,
+          canBill: true,
           id: 'fee-1',
           direction: RECEIVABLE,
           expenseDate: '2026-09-20',

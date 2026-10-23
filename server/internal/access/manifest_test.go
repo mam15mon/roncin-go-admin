@@ -108,6 +108,7 @@ func TestOrderLockPermissionIsIndependentForEveryBusinessType(t *testing.T) {
 		wantRequires := []string{
 			OrderPermission(businessType, OrderRead),
 			OrderPermission(businessType, OrderUpdate),
+			OrderPermission(businessType, OrderFeeRead),
 		}
 		if !slicesEqual(permission.Requires, wantRequires) {
 			t.Fatalf("权限 %s 依赖 = %v，期望 %v", key, permission.Requires, wantRequires)

@@ -632,7 +632,6 @@ func (uc *FinanceBillUsecase) CreateBatch(ctx context.Context, organizationID, a
 	if err == nil {
 		createdBatch, lookupErr := uc.repo.GetBatchByIdempotencyKey(ctx, organizationID, input.IdempotencyKey)
 		if lookupErr == nil && createdBatch != nil {
-			uc.triggerAutoLockForBills(ctx, organizationID, actorID, createdBatch.Bills)
 		}
 		return createdBatch, lookupErr
 	}

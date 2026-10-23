@@ -14,8 +14,10 @@ import (
 	adjustment "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	allocation "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	delivery "github.com/roncin/roncin-go-admin/server/internal/data/ent/notificationdelivery"
+	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	fee "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	event "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeereviewevent"
+	lockent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	role "github.com/roncin/roncin-go-admin/server/internal/data/ent/role"
 	assignment "github.com/roncin/roncin-go-admin/server/internal/data/ent/roleassignment"
 	"github.com/shopspring/decimal"
@@ -26,7 +28,11 @@ func commissionCorrectionTestAudit(f *commissionPostgresFixture, id uuid.UUID) *
 }
 func commissionCorrectionTestCleanup(t *testing.T, f *commissionPostgresFixture, requests *[]uuid.UUID) {
 	t.Helper()
-	(&workbenchIntegrationFixture{t: t, data: f.data, organizationID: f.organizationID, suffix: f.suffix}).grantFeeReviewPermission(f.employeeID)
+	if _, err := f.data.db.Order.UpdateOneID(f.orderID).SetBusinessType(orderent.BusinessTypeSI).Save(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	(&workbenchIntegrationFixture{t: t, data: f.data, organizationID: f.organizationID, suffix: f.suffix}).grantWorkbenchPermission(f.employeeID, "business.order.si.lock", "business.order.si.read", "business.order.si.update", "business.order.si.fee.read")
+	seedManualOrderReviewForTest(t, f.data, f.orderID, f.actorID)
 	t.Cleanup(func() {
 		ctx := context.Background()
 		_, _ = f.data.db.NotificationDelivery.Delete().Where(delivery.HasBackgroundTaskWith(background.OrganizationIDEQ(f.organizationID))).Exec(ctx)
@@ -58,6 +64,7 @@ func commissionCorrectionTestCleanup(t *testing.T, f *commissionPostgresFixture,
 				t.Errorf("清理更正申请: %v", err)
 			}
 		}
+		_, _ = f.data.db.OrderLockRecord.Delete().Where(lockent.OrderIDEQ(f.orderID)).Exec(ctx)
 	})
 }
 
@@ -83,7 +90,7 @@ func applyCommissionCorrectionTest(t *testing.T, f *commissionPostgresFixture, r
 		if err != nil {
 			return err
 		}
-		req := &biz.OrderFeeCorrectionRequest{ID: id, OrganizationID: f.organizationID, OrderID: f.orderID, Operation: "ADD", After: after, Before: before, ApprovedFeeReviewEventID: *rawOrder.ApprovedFeeReviewEventID, ApprovedFeeContentVersion: rawOrder.FeeContentVersion, ApprovedFeeReviewVersion: rawOrder.FeeReviewVersion, Reason: "更正回归", IdempotencyKey: id.String(), RequestFingerprint: "test-" + id.String(), RequestedBy: f.actorID, RequestedAt: time.Now().UTC(), Status: "PENDING", Version: 1}
+		req := &biz.OrderFeeCorrectionRequest{ID: id, OrganizationID: f.organizationID, OrderID: f.orderID, Operation: "ADD", After: after, Before: before, LockRecordID: *evidence.LockRecordID, LockGeneration: evidence.BusinessLockGeneration, ApprovedFeeContentVersion: rawOrder.FeeContentVersion, ApprovedFeeReviewVersion: rawOrder.FeeReviewVersion, Reason: "更正回归", IdempotencyKey: id.String(), RequestFingerprint: "test-" + id.String(), RequestedBy: f.actorID, RequestedAt: time.Now().UTC(), Status: "PENDING", Version: 1}
 		_ = evidence
 		if before != nil {
 			req.Operation = "REPLACE"
@@ -168,24 +175,24 @@ func TestFeeCorrectionCommissionPartialRevenuePostgres(t *testing.T) {
 	}
 	var before *biz.OrderFee
 	for _, fee := range fees {
-		if fee.Direction == biz.OrderFeeReceivable {
+		if fee.Direction == biz.OrderFeePayable {
 			before = fee
 		}
 	}
 	after := *before
 	after.ID = uuid.New()
 	after.Quantity = decimal.NewFromInt(1)
-	after.UnitPrice = decimal.NewFromInt(800)
+	after.UnitPrice = decimal.NewFromInt(200)
 	after.TotalAmount = after.UnitPrice
 	after.NetAmount = after.UnitPrice
 	after.BaseCurrencyAmount = after.UnitPrice
-	impact := applyCommissionCorrectionTest(t, f, &requests, before, &after)
-	if len(impact.Lines) != 1 || !impact.Lines[0].TargetAmount.Equal(decimal.NewFromInt(25)) || !impact.Lines[0].Difference.Equal(decimal.NewFromInt(-5)) {
-		t.Fatalf("Q1应25且调减5: %+v", impact)
+	impact := applyCommissionCorrectionTest(t, f, &requests, nil, &after)
+	if len(impact.Lines) != 1 || !impact.Lines[0].TargetAmount.Equal(decimal.NewFromInt(20)) || !impact.Lines[0].Difference.Equal(decimal.NewFromInt(-10)) {
+		t.Fatalf("部分回款增加成本后应20且调减10: %+v", impact)
 	}
 	result, err := uc.Get(ctx, f.organizationID, parent.ID)
-	if err != nil || !result.EffectiveCommissionAmount.Equal(decimal.NewFromInt(25)) {
-		t.Fatalf("有效权益应25: %+v,%v", result, err)
+	if err != nil || !result.EffectiveCommissionAmount.Equal(decimal.NewFromInt(20)) {
+		t.Fatalf("有效权益应20: %+v,%v", result, err)
 	}
 }
 func TestFeeCorrectionCommissionPaidNetRebuildPostgres(t *testing.T) {
@@ -217,7 +224,7 @@ func TestFeeCorrectionCommissionPaidNetRebuildPostgres(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
-			seedApprovedFeeSnapshotForTest(t, f.data, f.orderID, f.actorID)
+			seedManualOrderReviewForTest(t, f.data, f.orderID, f.actorID)
 			uc := f.newUsecase(NewCommissionRepo(f.data))
 			created, err := uc.Create(ctx, f.organizationID, f.actorID, f.input("net-rebuild"))
 			if err != nil {

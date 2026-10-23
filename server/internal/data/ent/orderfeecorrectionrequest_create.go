@@ -19,6 +19,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -120,6 +121,42 @@ func (_c *OrderFeeCorrectionRequestCreate) SetAfterSnapshot(v json.RawMessage) *
 // SetApprovedFeeReviewEventID sets the "approved_fee_review_event_id" field.
 func (_c *OrderFeeCorrectionRequestCreate) SetApprovedFeeReviewEventID(v uuid.UUID) *OrderFeeCorrectionRequestCreate {
 	_c.mutation.SetApprovedFeeReviewEventID(v)
+	return _c
+}
+
+// SetNillableApprovedFeeReviewEventID sets the "approved_fee_review_event_id" field if the given value is not nil.
+func (_c *OrderFeeCorrectionRequestCreate) SetNillableApprovedFeeReviewEventID(v *uuid.UUID) *OrderFeeCorrectionRequestCreate {
+	if v != nil {
+		_c.SetApprovedFeeReviewEventID(*v)
+	}
+	return _c
+}
+
+// SetLockRecordID sets the "lock_record_id" field.
+func (_c *OrderFeeCorrectionRequestCreate) SetLockRecordID(v uuid.UUID) *OrderFeeCorrectionRequestCreate {
+	_c.mutation.SetLockRecordID(v)
+	return _c
+}
+
+// SetNillableLockRecordID sets the "lock_record_id" field if the given value is not nil.
+func (_c *OrderFeeCorrectionRequestCreate) SetNillableLockRecordID(v *uuid.UUID) *OrderFeeCorrectionRequestCreate {
+	if v != nil {
+		_c.SetLockRecordID(*v)
+	}
+	return _c
+}
+
+// SetLockGeneration sets the "lock_generation" field.
+func (_c *OrderFeeCorrectionRequestCreate) SetLockGeneration(v uint64) *OrderFeeCorrectionRequestCreate {
+	_c.mutation.SetLockGeneration(v)
+	return _c
+}
+
+// SetNillableLockGeneration sets the "lock_generation" field if the given value is not nil.
+func (_c *OrderFeeCorrectionRequestCreate) SetNillableLockGeneration(v *uint64) *OrderFeeCorrectionRequestCreate {
+	if v != nil {
+		_c.SetLockGeneration(*v)
+	}
 	return _c
 }
 
@@ -267,6 +304,11 @@ func (_c *OrderFeeCorrectionRequestCreate) SetNillableID(v *uuid.UUID) *OrderFee
 		_c.SetID(*v)
 	}
 	return _c
+}
+
+// SetLockRecord sets the "lock_record" edge to the OrderLockRecord entity.
+func (_c *OrderFeeCorrectionRequestCreate) SetLockRecord(v *OrderLockRecord) *OrderFeeCorrectionRequestCreate {
+	return _c.SetLockRecordID(v.ID)
 }
 
 // SetOrganization sets the "organization" edge to the Organization entity.
@@ -468,9 +510,6 @@ func (_c *OrderFeeCorrectionRequestCreate) check() error {
 			return &ValidationError{Name: "operation", err: fmt.Errorf(`ent: validator failed for field "OrderFeeCorrectionRequest.operation": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.ApprovedFeeReviewEventID(); !ok {
-		return &ValidationError{Name: "approved_fee_review_event_id", err: errors.New(`ent: missing required field "OrderFeeCorrectionRequest.approved_fee_review_event_id"`)}
-	}
 	if _, ok := _c.mutation.ApprovedFeeContentVersion(); !ok {
 		return &ValidationError{Name: "approved_fee_content_version", err: errors.New(`ent: missing required field "OrderFeeCorrectionRequest.approved_fee_content_version"`)}
 	}
@@ -599,7 +638,11 @@ func (_c *OrderFeeCorrectionRequestCreate) createSpec() (*OrderFeeCorrectionRequ
 	}
 	if value, ok := _c.mutation.ApprovedFeeReviewEventID(); ok {
 		_spec.SetField(orderfeecorrectionrequest.FieldApprovedFeeReviewEventID, field.TypeUUID, value)
-		_node.ApprovedFeeReviewEventID = value
+		_node.ApprovedFeeReviewEventID = &value
+	}
+	if value, ok := _c.mutation.LockGeneration(); ok {
+		_spec.SetField(orderfeecorrectionrequest.FieldLockGeneration, field.TypeUint64, value)
+		_node.LockGeneration = &value
 	}
 	if value, ok := _c.mutation.ApprovedFeeContentVersion(); ok {
 		_spec.SetField(orderfeecorrectionrequest.FieldApprovedFeeContentVersion, field.TypeUint64, value)
@@ -648,6 +691,23 @@ func (_c *OrderFeeCorrectionRequestCreate) createSpec() (*OrderFeeCorrectionRequ
 	if value, ok := _c.mutation.ApprovalToken(); ok {
 		_spec.SetField(orderfeecorrectionrequest.FieldApprovalToken, field.TypeString, value)
 		_node.ApprovalToken = &value
+	}
+	if nodes := _c.mutation.LockRecordIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   orderfeecorrectionrequest.LockRecordTable,
+			Columns: []string{orderfeecorrectionrequest.LockRecordColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderlockrecord.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.LockRecordID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1041,6 +1101,12 @@ func (u *OrderFeeCorrectionRequestUpsertOne) UpdateNewValues() *OrderFeeCorrecti
 		}
 		if _, exists := u.create.mutation.ApprovedFeeReviewEventID(); exists {
 			s.SetIgnore(orderfeecorrectionrequest.FieldApprovedFeeReviewEventID)
+		}
+		if _, exists := u.create.mutation.LockRecordID(); exists {
+			s.SetIgnore(orderfeecorrectionrequest.FieldLockRecordID)
+		}
+		if _, exists := u.create.mutation.LockGeneration(); exists {
+			s.SetIgnore(orderfeecorrectionrequest.FieldLockGeneration)
 		}
 		if _, exists := u.create.mutation.ApprovedFeeContentVersion(); exists {
 			s.SetIgnore(orderfeecorrectionrequest.FieldApprovedFeeContentVersion)
@@ -1457,6 +1523,12 @@ func (u *OrderFeeCorrectionRequestUpsertBulk) UpdateNewValues() *OrderFeeCorrect
 			}
 			if _, exists := b.mutation.ApprovedFeeReviewEventID(); exists {
 				s.SetIgnore(orderfeecorrectionrequest.FieldApprovedFeeReviewEventID)
+			}
+			if _, exists := b.mutation.LockRecordID(); exists {
+				s.SetIgnore(orderfeecorrectionrequest.FieldLockRecordID)
+			}
+			if _, exists := b.mutation.LockGeneration(); exists {
+				s.SetIgnore(orderfeecorrectionrequest.FieldLockGeneration)
 			}
 			if _, exists := b.mutation.ApprovedFeeContentVersion(); exists {
 				s.SetIgnore(orderfeecorrectionrequest.FieldApprovedFeeContentVersion)

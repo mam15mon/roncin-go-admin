@@ -287,11 +287,14 @@ message ListFeeLedgerRequest {
   optional string customer_id = 11;
   optional FeeLedgerFinancialProgress financial_progress = 12;
   optional string bill_no = 13;
-  optional bool finance_locked = 14;
+  reserved 14;
+  reserved "finance_locked";
   repeated string tag_ids = 15;
   optional string organization_id = 16;
-  string fee_review_status = 17;
+  reserved 17;
+  reserved "fee_review_status";
   optional bool has_pending_fee_supplement = 18;
+  optional bool order_locked = 19;
 }
 
 message FeeLedgerItem {
@@ -326,17 +329,20 @@ message FeeLedgerItem {
   string customer_name = 28;
   FeeLedgerFinancialProgress financial_progress = 29;
   optional string bill_no = 30;
-  bool finance_locked = 31;
+  reserved 31;
+  reserved "finance_locked";
   repeated finance.v1.BusinessTagSummary tags = 34;
   string organization_id = 35;
   string organization_name = 36;
-  string fee_review_status = 37;
+  reserved 37;
+  reserved "fee_review_status";
   bool has_pending_fee_supplement = 38;
   bool can_bill = 39;
   repeated string blocked_reasons = 40;
   string economic_effect = 41;
   optional string correction_request_id = 42;
   bool has_pending_fee_correction = 43;
+  bool order_locked = 44;
   reserved 32 to 33;
 }
 

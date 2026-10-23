@@ -48,6 +48,8 @@ function makeProps(orderId: string) {
     setReceivableSummary: vi.fn(),
     setPayableSummary: vi.fn(),
     canCreateFinanceBills: false,
+    canCreateFees: true,
+    canDeleteFees: true,
     feeWritesDisabled: true,
     onOpenBillWorkbench: vi.fn(),
     getTableColumns: undefined,
@@ -56,6 +58,8 @@ function makeProps(orderId: string) {
 }
 
 const taxFee = {
+  canEdit: true,
+  canBill: true,
   id: 'fee-tax-1',
   direction: RECEIVABLE,
   currency: 'USD',

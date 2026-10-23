@@ -37,11 +37,10 @@ describe('FeeSupplementModal', () => {
     accessState.canOverrideFeeExchangeRate = false;
   });
 
-  it('说明补录不会修改原费用且不展示方向选项', () => {
+  it('说明补审后生效且支持应收应付', () => {
     renderModal(vi.fn().mockResolvedValue(true));
-    expect(screen.getByText(/不会修改原有费用/)).toBeInTheDocument();
-    // 补录固定应付方向，不提供应收选项。
-    expect(screen.queryByText('应收')).not.toBeInTheDocument();
+    expect(screen.getByText(/补审批准后费用才正式生效/)).toBeInTheDocument();
+    expect(screen.getByLabelText('费用方向')).toBeInTheDocument();
   });
 
   it('补录原因与费用字段必填，缺省提交被拦截', async () => {
@@ -77,7 +76,7 @@ describe('FeeSupplementModal', () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
-  it('撤回重提预填原始费用字段和原因备注，不被新建默认值覆盖', () => {
+  it('更正预填原始费用字段和原因备注，不被新建默认值覆盖', () => {
     renderModal(vi.fn().mockResolvedValue(true), {
       id: 'sup-1',
       feeSettingId: 'fs-1',
@@ -91,9 +90,6 @@ describe('FeeSupplementModal', () => {
       note: '旧备注',
     });
 
-    expect(
-      screen.getByText('已预填撤回申请，请核对后作为新申请提交'),
-    ).toBeInTheDocument();
     expect(screen.getByLabelText('数量')).toHaveValue('7');
     expect(screen.getByLabelText('单价')).toHaveValue('88');
     expect(screen.getByLabelText('补录原因')).toHaveValue('仓储费遗漏');

@@ -33,8 +33,7 @@ const (
 
 	// LockSourceManual 人工锁定：locked_by 必填，归属实际锁定人。
 	LockSourceManual = "MANUAL"
-	// LockSourceAutoSettlement 结清事件驱动的系统自动锁定：locked_by 为空，
-	// 页面固定展示【系统自动锁定】，触发审计记录在 trigger 字段。
+	// LockSourceAutoSettlement 仅用于读取退役自动锁历史，不允许创建新记录。
 	LockSourceAutoSettlement = "AUTO_SETTLEMENT"
 )
 
@@ -83,6 +82,9 @@ type OrderLockState struct {
 	LockedByName            *string
 	LockSource              *string
 	OrderVersion            uint64
+	FeeContentVersion       uint64
+	FeeContentFingerprint   string
+	FeeSummary              *FeeReviewSummary
 	CanLock                 bool
 	CanRoleDirectUnlock     bool
 	CanAdminEmergencyUnlock bool
@@ -95,31 +97,34 @@ type OrderLockState struct {
 
 // OrderLockRecord 锁定周期事实记录。
 type OrderLockRecord struct {
-	ID                   uuid.UUID
-	OrganizationID       uuid.UUID
-	OrderID              uuid.UUID
-	OrderNo              string
-	BusinessType         OrderBusinessType
-	Generation           uint64
-	LockSource           string
-	LockedBy             *uuid.UUID
-	LockedByName         string
-	LockedAt             time.Time
-	OrderVersionAtLock   uint64
-	TriggerType          *string
-	TriggerResourceID    *uuid.UUID
-	TriggeredBy          *uuid.UUID
-	TriggeredByName      *string
-	MasterBillID         *uuid.UUID
-	MasterBillVersionID  *uuid.UUID
-	UnlockedBy           *uuid.UUID
-	UnlockedByName       *string
-	UnlockedAt           *time.Time
-	OrderVersionAtUnlock *uint64
-	UnlockRequestID      *uuid.UUID
-	UnlockReason         *string
-	UnlockMode           *string
-	HouseBillSnapshots   []*OrderLockHouseBillSnapshot
+	ID                    uuid.UUID
+	OrganizationID        uuid.UUID
+	OrderID               uuid.UUID
+	OrderNo               string
+	BusinessType          OrderBusinessType
+	Generation            uint64
+	LockSource            string
+	LockedBy              *uuid.UUID
+	LockedByName          string
+	LockedAt              time.Time
+	OrderVersionAtLock    uint64
+	FeeContentVersion     *uint64
+	FeeContentFingerprint *string
+	ReviewComment         *string
+	TriggerType           *string
+	TriggerResourceID     *uuid.UUID
+	TriggeredBy           *uuid.UUID
+	TriggeredByName       *string
+	MasterBillID          *uuid.UUID
+	MasterBillVersionID   *uuid.UUID
+	UnlockedBy            *uuid.UUID
+	UnlockedByName        *string
+	UnlockedAt            *time.Time
+	OrderVersionAtUnlock  *uint64
+	UnlockRequestID       *uuid.UUID
+	UnlockReason          *string
+	UnlockMode            *string
+	HouseBillSnapshots    []*OrderLockHouseBillSnapshot
 }
 
 // OrderLockHouseBillSnapshot 锁定瞬时有效 HBL 快照。
@@ -189,10 +194,17 @@ type OrderUnlockResult struct {
 	Request *OrderUnlockRequest
 }
 
+// OrderLockReviewInput 绑定审核人已查看的费用内容，防止审核期间费用被覆盖。
+type OrderLockReviewInput struct {
+	ExpectedFeeContentVersion uint64
+	FeeContentFingerprint     string
+	Comment                   string
+}
+
 // OrderLockRepo 订单锁数据访问接口。
 type OrderLockRepo interface {
 	GetOrderLockState(ctx context.Context, organizationID, orderID uuid.UUID, caller *Principal) (*OrderLockState, error)
-	LockOrder(ctx context.Context, caller *Principal, orderID uuid.UUID, expectedOrderVersion uint64, idempotencyKey string, audit *AuditEvent) (*OrderLockResult, error)
+	LockOrder(ctx context.Context, caller *Principal, orderID uuid.UUID, expectedOrderVersion uint64, idempotencyKey string, review OrderLockReviewInput, audit *AuditEvent) (*OrderLockResult, error)
 	RequestOrderUnlock(ctx context.Context, caller *Principal, orderID uuid.UUID, expectedOrderVersion uint64, idempotencyKey string, reason *string, audit *AuditEvent) (*OrderUnlockResult, error)
 	ListOrderUnlockRequests(ctx context.Context, organizationID, orderID uuid.UUID, page, pageSize int) ([]*OrderUnlockRequest, int, error)
 	GetOrderUnlockRequest(ctx context.Context, organizationID, orderID, requestID uuid.UUID) (*OrderUnlockRequest, error)
@@ -221,8 +233,12 @@ func (uc *OrderLockUsecase) GetOrderLockState(ctx context.Context, organizationI
 	return state, nil
 }
 
-func (uc *OrderLockUsecase) LockOrder(ctx context.Context, caller *Principal, orderID uuid.UUID, expectedOrderVersion uint64, idempotencyKey string, audit *AuditEvent) (*OrderLockResult, error) {
+func (uc *OrderLockUsecase) LockOrder(ctx context.Context, caller *Principal, orderID uuid.UUID, expectedOrderVersion uint64, idempotencyKey string, review OrderLockReviewInput, audit *AuditEvent) (*OrderLockResult, error) {
 	idempotencyKey = strings.TrimSpace(idempotencyKey)
+	review.Comment = strings.TrimSpace(review.Comment)
+	if review.ExpectedFeeContentVersion == 0 || len(review.FeeContentFingerprint) != 64 || utf8.RuneCountInString(review.Comment) > 1000 || containsControl(review.Comment) {
+		return nil, ErrOrderInvalidArgument
+	}
 	if caller == nil || caller.UserID == uuid.Nil || caller.Organization.ID == uuid.Nil || orderID == uuid.Nil || expectedOrderVersion == 0 ||
 		idempotencyKey == "" || utf8.RuneCountInString(idempotencyKey) > 128 || containsControl(idempotencyKey) {
 		return nil, ErrOrderInvalidArgument
@@ -230,7 +246,7 @@ func (uc *OrderLockUsecase) LockOrder(ctx context.Context, caller *Principal, or
 	if !caller.CanOperateBusiness() {
 		return nil, ErrOperatingCompanyRequired
 	}
-	return uc.repo.LockOrder(ctx, caller, orderID, expectedOrderVersion, idempotencyKey, audit)
+	return uc.repo.LockOrder(ctx, caller, orderID, expectedOrderVersion, idempotencyKey, review, audit)
 }
 
 func (uc *OrderLockUsecase) RequestOrderUnlock(ctx context.Context, caller *Principal, orderID uuid.UUID, expectedOrderVersion uint64, idempotencyKey string, reason *string, audit *AuditEvent) (*OrderUnlockResult, error) {

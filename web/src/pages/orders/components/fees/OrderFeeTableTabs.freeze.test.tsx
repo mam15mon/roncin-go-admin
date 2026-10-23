@@ -49,6 +49,8 @@ function makeProps(orderId: string) {
     setReceivableSummary: vi.fn(),
     setPayableSummary: vi.fn(),
     canCreateFinanceBills: false,
+    canCreateFees: true,
+    canDeleteFees: true,
     feeWritesDisabled: true,
     onOpenBillWorkbench: vi.fn(),
     columnSettingScope: scope,
@@ -84,7 +86,16 @@ describe('订单费用自定义多列冻结', () => {
     window.localStorage.clear();
     listFees.mockReset();
     listFees.mockResolvedValue({
-      data: [{ id: 'fee-1', version: '1', direction: 1, feeName: '海运费' }],
+      data: [
+        {
+          canEdit: true,
+          canBill: true,
+          id: 'fee-1',
+          version: '1',
+          direction: 1,
+          feeName: '海运费',
+        },
+      ],
     } as Awaited<ReturnType<typeof listFees>>);
   });
   it('应收同时冻结两列并解除操作冻结，刷新后应付共享且保留显隐', async () => {

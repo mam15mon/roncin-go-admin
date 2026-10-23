@@ -12,9 +12,6 @@ type OrderFeeHeaderProps = {
   orderId: string;
   configTitle: string;
   customerName?: string;
-  financeLocked: boolean;
-  financeLockReason?: string;
-  financeLockCommissionNos: string[];
   lockWritePolicy: OrderBusinessWritePolicy;
   onRetryLockState: () => Promise<API.OrderLockStateData | null>;
   receivableSummary: { totalAmount: number; count: number };
@@ -29,9 +26,6 @@ export default function OrderFeeHeader({
   orderId: _orderId,
   configTitle,
   customerName,
-  financeLocked: _financeLocked,
-  financeLockReason: _financeLockReason,
-  financeLockCommissionNos: _financeLockCommissionNos,
   lockWritePolicy: _lockWritePolicy,
   onRetryLockState: _onRetryLockState,
   receivableSummary,

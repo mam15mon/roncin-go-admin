@@ -10,6 +10,30 @@ import (
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 )
 
+func TestOrderToBizReviewStatusFollowsManualOrderLock(t *testing.T) {
+	lockedAt := time.Now().UTC()
+	for _, tc := range []struct {
+		name       string
+		lockedAt   *time.Time
+		oldStatus  orderent.FeeReviewStatus
+		wantStatus string
+	}{
+		{"锁定订单不读取旧未提交状态", &lockedAt, orderent.FeeReviewStatusUNSUBMITTED, "APPROVED"},
+		{"已解锁订单不读取历史批准状态", nil, orderent.FeeReviewStatusAPPROVED, "UNSUBMITTED"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			order := orderToBiz(&ent.Order{
+				LockedAt:        tc.lockedAt,
+				FeeReviewStatus: tc.oldStatus,
+				Edges:           ent.OrderEdges{Organization: &ent.Organization{}},
+			})
+			if order.FeeReview.Status != tc.wantStatus {
+				t.Fatalf("审核状态=%s，期望 %s", order.FeeReview.Status, tc.wantStatus)
+			}
+		})
+	}
+}
+
 func TestOrderAllowedActionsEditFollowsBusinessContentGate(t *testing.T) {
 	allFlowStatuses := []biz.OrderFlowStatus{
 		biz.OrderFlowDraft,

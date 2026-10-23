@@ -83,6 +83,7 @@ func (Order) Fields() []ent.Field {
 		field.UUID("auto_lock_triggered_by", uuid.Nil).Optional().Nillable(),
 		field.Bool("is_shared").Default(false),
 		field.Uint64("version").Default(1),
+		// 独立整票费用审批已退役，以下审批字段只保留历史证据，不作为当前状态。
 		field.Enum("fee_review_status").Values("UNSUBMITTED", "PENDING", "APPROVED", "REJECTED", "REVOKED").Default("UNSUBMITTED"),
 		field.Uint64("fee_content_version").Default(1),
 		field.Uint64("fee_review_version").Default(1),
@@ -159,7 +160,6 @@ func (Order) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("organization_id", "order_no").Unique(),
 		index.Fields("organization_id", "idempotency_key").Unique(),
-		index.Fields("organization_id", "fee_review_status"),
 		index.Fields("organization_id", "flow_status"),
 		index.Fields("organization_id", "termination_status"),
 		index.Fields("organization_id", "closure_status"),

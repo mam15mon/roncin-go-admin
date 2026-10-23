@@ -43,7 +43,7 @@ type OrderClosureReadiness struct {
 
 // OrderClosurePendingSupplementError 保持结案错误码，返回当前请求的具体阻断原因。
 func OrderClosurePendingSupplementError() *errors.Error {
-	return errors.Conflict(ErrOrderClosureBlocked.Reason, "存在待审核补录，请先处理后再结案")
+	return errors.Conflict(ErrOrderClosureBlocked.Reason, "存在待审费用变更，请先处理后再结案")
 }
 
 var allowedSEFlowTransitions = map[OrderFlowStatus][]OrderFlowStatus{

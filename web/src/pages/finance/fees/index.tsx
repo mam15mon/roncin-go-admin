@@ -427,7 +427,7 @@ export default function FinanceFeeLedgerPage() {
           const invalidRows = rows.filter((row) => !canCreateBill(row));
           if (invalidRows.length > 0) {
             message.warning(
-              '请选择整票已批准、无待审批补录或更正且未建账的费用；具体原因见建账限制列',
+              '请选择可建账的未建账费用；待审补录仅限制对应原费用，具体原因见建账限制列',
             );
             return;
           }
@@ -460,7 +460,7 @@ export default function FinanceFeeLedgerPage() {
                     );
                     if (invalidRows.length > 0) {
                       message.warning(
-                        '请选择整票已批准、无待审批补录或更正且未建账的费用；具体原因见建账限制列',
+                        '请选择可建账的未建账费用；待审补录仅限制对应原费用，具体原因见建账限制列',
                       );
                       return;
                     }
@@ -550,7 +550,12 @@ export default function FinanceFeeLedgerPage() {
             businessType: filterParams.businessType || undefined,
             direction: filterParams.direction || undefined,
             financialProgress: filterParams.financialProgress || undefined,
-            feeReviewStatus: filterParams.feeReviewStatus,
+            orderLocked:
+              filterParams.orderLocked === 'LOCKED'
+                ? true
+                : filterParams.orderLocked === 'UNLOCKED'
+                  ? false
+                  : undefined,
             hasPendingFeeSupplement:
               filterParams.hasPendingFeeSupplement === 'yes'
                 ? true
@@ -560,12 +565,7 @@ export default function FinanceFeeLedgerPage() {
             customerId: filterParams.customerId || undefined,
             settlementPartyId: filterParams.settlementPartyId || undefined,
             currency: filterParams.currency || undefined,
-            financeLocked:
-              filterParams.financeLocked === 'LOCKED'
-                ? true
-                : filterParams.financeLocked === 'UNLOCKED'
-                  ? false
-                  : undefined,
+
             expenseDateFrom,
             expenseDateTo,
             tagIds: tagFilterIds?.length ? tagFilterIds : undefined,

@@ -2,7 +2,6 @@ import { DeleteOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { Button, Popconfirm, Tag, Typography } from 'antd';
 import React from 'react';
-import { FeeReviewStatus } from '@/features/orders/fee-review';
 import { formatAmount } from '@/utils/format';
 
 const { Text } = Typography;
@@ -36,16 +35,14 @@ export const baseFeeColumns: ProColumns<API.FeeLedgerItem>[] = [
     search: false,
   },
   {
-    title: '费用审核',
-    key: 'feeReviewStatus',
+    title: '订单审核',
+    key: 'orderLocked',
     width: 190,
     search: false,
     render: (_, row) => (
-      <FeeReviewStatus
-        status={row.feeReviewStatus}
-        pendingSupplement={row.hasPendingFeeSupplement}
-        pendingCorrection={row.hasPendingFeeCorrection}
-      />
+      <Tag color={row.orderLocked ? 'blue' : 'default'}>
+        {row.orderLocked ? '已审核' : '未审核'}
+      </Tag>
     ),
   },
   {

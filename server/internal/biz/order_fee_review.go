@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/go-kratos/kratos/v3/errors"
@@ -61,6 +60,12 @@ func BuildFeeReviewSnapshot(fees []*OrderFee) (*FeeReviewSnapshot, string, error
 		copy := *fee
 		copy.Version = 0
 		copy.HasActiveBill = false
+		copy.CanEdit = false
+		copy.CanDelete = false
+		copy.CanBill = false
+		copy.CanCorrect = false
+		copy.HasPendingChange = false
+		copy.BlockedReasons = nil
 		copy.CreatedAt = time.Time{}
 		copy.UpdatedAt = time.Time{}
 		copy.IdempotencyKey = ""
@@ -140,24 +145,8 @@ type OrderFeeReview struct {
 	NotificationFailedCount  int
 	NotificationUnboundCount int
 }
-type FeeReviewAction struct {
-	OrderID                uuid.UUID
-	ExpectedReviewVersion  uint64
-	ExpectedContentVersion uint64
-	SubmissionID           *uuid.UUID
-	PreviewToken           string
-	Comment                string
-	IdempotencyKey         string
-	CompletenessConfirmed  bool
-}
-type FeeReviewResult struct {
-	OrderID uuid.UUID
-	Data    *OrderFeeReview
-	Err     error
-}
 type OrderFeeReviewRepo interface {
 	Get(context.Context, *Principal, uuid.UUID) (*OrderFeeReview, error)
-	Act(context.Context, *Principal, string, FeeReviewAction) (*OrderFeeReview, error)
 }
 type OrderFeeReviewUsecase struct{ repo OrderFeeReviewRepo }
 
@@ -166,80 +155,4 @@ func NewOrderFeeReviewUsecase(repo OrderFeeReviewRepo) *OrderFeeReviewUsecase {
 }
 func (u *OrderFeeReviewUsecase) Get(ctx context.Context, p *Principal, id uuid.UUID) (*OrderFeeReview, error) {
 	return u.repo.Get(ctx, p, id)
-}
-func (u *OrderFeeReviewUsecase) Act(ctx context.Context, p *Principal, action string, input FeeReviewAction) (*OrderFeeReview, error) {
-	if err := ValidateFeeReviewAction(action, input); err != nil {
-		return nil, err
-	}
-	input.Comment = strings.TrimSpace(input.Comment)
-	input.IdempotencyKey = strings.TrimSpace(input.IdempotencyKey)
-	return u.repo.Act(ctx, p, action, input)
-}
-func ValidateFeeReviewIDs(ids []uuid.UUID) error {
-	if len(ids) == 0 || len(ids) > MaxListPageSize {
-		return ErrFeeReviewInvalid
-	}
-	seen := map[uuid.UUID]bool{}
-	for _, id := range ids {
-		if id == uuid.Nil || seen[id] {
-			return ErrFeeReviewInvalid
-		}
-		seen[id] = true
-	}
-	return nil
-}
-func (u *OrderFeeReviewUsecase) PreviewBatch(ctx context.Context, p *Principal, ids []uuid.UUID) ([]FeeReviewResult, error) {
-	if err := ValidateFeeReviewIDs(ids); err != nil {
-		return nil, err
-	}
-	out := make([]FeeReviewResult, 0, len(ids))
-	for _, id := range ids {
-		data, err := u.Get(ctx, p, id)
-		out = append(out, FeeReviewResult{OrderID: id, Data: data, Err: err})
-	}
-	return out, nil
-}
-func (u *OrderFeeReviewUsecase) ApproveBatch(ctx context.Context, p *Principal, inputs []FeeReviewAction) ([]FeeReviewResult, error) {
-	ids := make([]uuid.UUID, 0, len(inputs))
-	for _, item := range inputs {
-		ids = append(ids, item.OrderID)
-	}
-	if err := ValidateFeeReviewIDs(ids); err != nil {
-		return nil, err
-	}
-	for _, input := range inputs {
-		if err := ValidateFeeReviewAction("APPROVE", input); err != nil {
-			return nil, err
-		}
-	}
-	out := make([]FeeReviewResult, 0, len(inputs))
-	for _, input := range inputs {
-		data, err := u.Act(ctx, p, "APPROVE", input)
-		out = append(out, FeeReviewResult{OrderID: input.OrderID, Data: data, Err: err})
-	}
-	return out, nil
-}
-
-func ValidFeeReviewStatus(status string) bool {
-	switch status {
-	case "", "UNSUBMITTED", "PENDING", "APPROVED", "REJECTED", "REVOKED":
-		return true
-	default:
-		return false
-	}
-}
-
-func ValidateFeeReviewAction(action string, input FeeReviewAction) error {
-	input.Comment = strings.TrimSpace(input.Comment)
-	input.IdempotencyKey = strings.TrimSpace(input.IdempotencyKey)
-	if input.OrderID == uuid.Nil || input.ExpectedReviewVersion == 0 || input.ExpectedContentVersion == 0 || input.IdempotencyKey == "" || len(input.IdempotencyKey) > 128 || len([]rune(input.Comment)) > 1000 {
-		return ErrFeeReviewInvalid
-	}
-	if (action == "REJECT" || action == "REVOKE") && input.Comment == "" {
-		return ErrFeeReviewInvalid
-	}
-	if action == "SUBMIT" && !input.CompletenessConfirmed {
-		return errors.BadRequest("FEE_REVIEW_COMPLETENESS_REQUIRED", "请确认整票应收应付已完整录入")
-	}
-	return nil
 }

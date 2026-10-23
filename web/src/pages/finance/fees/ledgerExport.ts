@@ -5,7 +5,6 @@ import {
 } from '@/constants/statusMeta';
 import { FeeLedgerFinancialProgress } from '@/enums.generated';
 import { feeLedgerProgressLabels } from '@/features/finance/fee-progress';
-import { feeReviewStatusOptions } from '@/features/orders/fee-review';
 import { type CsvColumn, csvAmount, csvDecimal } from '@/utils/csv';
 import { formatDate } from '@/utils/format';
 
@@ -74,11 +73,8 @@ export const feeExportColumns: CsvColumn<API.FeeLedgerItem>[] = [
     value: (row) => csvAmount(row.baseCurrencyAmount),
   },
   {
-    header: '费用审核',
-    value: (row) =>
-      feeReviewStatusOptions.find(
-        (option) => option.value === row.feeReviewStatus,
-      )?.label ?? '',
+    header: '订单审核',
+    value: (row) => (row.orderLocked ? '已审核锁定' : '未审核'),
   },
   {
     header: '待审补录',

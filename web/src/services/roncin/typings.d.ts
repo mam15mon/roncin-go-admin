@@ -541,52 +541,6 @@ declare namespace API {
     traceId?: string;
   };
 
-  type ApproveOrderFeeReviewRequest = {
-    orderId?: string;
-    expectedReviewVersion?: string;
-    expectedContentVersion?: string;
-    submissionId?: string;
-    previewToken?: string;
-    comment?: string;
-    idempotencyKey?: string;
-    completenessConfirmed?: boolean;
-  };
-
-  type ApproveOrderFeeReviewResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderFeeReviewData;
-    traceId?: string;
-  };
-
-  type ApproveOrderFeeReviewsRequest = {
-    items?: OrderFeeReviewActionData[];
-  };
-
-  type ApproveOrderFeeReviewsResponse = {
-    data?: OrderFeeReviewResult[];
-    traceId?: string;
-  };
-
-  type ApproveOrderFeeSupplementRequest = {
-    orderId: string;
-    id: string;
-    expectedVersion: string;
-    previewToken: string;
-    comment?: string;
-  };
-
-  type ApproveOrderFeeSupplementResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderFeeSupplementRequestData;
-    /** 审批生成的补录费用。 */
-    fee?: OrderFee;
-    traceId?: string;
-  };
-
   type AssignCommissionRuleEmployeesRequest = {
     id: string;
     change: CommissionRuleEmployeeChangeInput;
@@ -974,24 +928,6 @@ declare namespace API {
     groupName?: string;
     groupColor?: string;
     enabled?: boolean;
-  };
-
-  type CancelApprovedOrderFeeSupplementRequest = {
-    orderId: string;
-    id: string;
-    /** 目标费用乐观锁版本；版本竞争时稳定拒绝且零写入。 */
-    expectedVersion: string;
-    reason: string;
-  };
-
-  type CancelApprovedOrderFeeSupplementResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    traceId?: string;
-    /** 撤销成功后刷新的申请数据：申请保持 APPROVED，fee_id 为空表示生成费用已删除，
- can_cancel=false 并携带阻断原因；不再返回已删除的费用实体。 */
-    data?: OrderFeeSupplementRequestData;
   };
 
   type CancelBillRequest = {
@@ -1746,33 +1682,6 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: OrderFeeCorrectionRequestData;
-    traceId?: string;
-  };
-
-  type CreateOrderFeeSupplementRequest = {
-    orderId: string;
-    /** 补录仅接受正数应付成本；应收方向在服务边界与领域边界双重拒绝。 */
-    direction: number;
-    feeSettingId: string;
-    settlementPartyId: string;
-    billingUnitId: string;
-    quantity: string;
-    unitPrice: string;
-    currency: string;
-    expenseDate: string;
-    note?: string;
-    exchangeRateOverride?: string;
-    taxInclusive?: boolean;
-    /** 补录原因必填，参与 request_fingerprint。 */
-    reason: string;
-    idempotencyKey: string;
-  };
-
-  type CreateOrderFeeSupplementResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderFeeSupplementRequestData;
     traceId?: string;
   };
 
@@ -2806,17 +2715,16 @@ declare namespace API {
     customerName?: string;
     financialProgress?: number;
     billNo?: string;
-    financeLocked?: boolean;
     tags?: BusinessTagSummary[];
     organizationId?: string;
     organizationName?: string;
-    feeReviewStatus?: string;
     hasPendingFeeSupplement?: boolean;
     canBill?: boolean;
     blockedReasons?: string[];
     economicEffect?: string;
     correctionRequestId?: string;
     hasPendingFeeCorrection?: boolean;
+    orderLocked?: boolean;
   };
 
   type FeeLedgerOrderDetail = {
@@ -4200,9 +4108,6 @@ declare namespace API {
     baseCurrency?: string;
     feeSettings?: OrderFeeSettingOption[];
     billingUnits?: OrderFeeBillingUnitOption[];
-    financeLocked?: boolean;
-    financeLockReason?: string;
-    financeLockCommissionNos?: string[];
     customerId?: string;
     customerName?: string;
   };
@@ -4773,6 +4678,9 @@ declare namespace API {
     orderId: string;
     expectedOrderVersion: string;
     idempotencyKey: string;
+    expectedFeeContentVersion: string;
+    feeContentFingerprint: string;
+    comment?: string;
   };
 
   type LockOrderResponse = {
@@ -5396,6 +5304,10 @@ declare namespace API {
     canBill?: boolean;
     canCorrect?: boolean;
     quantitySource?: FeeQuantitySelection;
+    canEdit?: boolean;
+    hasPendingChange?: boolean;
+    blockedReasons?: string[];
+    canDelete?: boolean;
   };
 
   type OrderFeeBillingUnitOption = {
@@ -5449,6 +5361,8 @@ declare namespace API {
     commissionImpacts?: FeeCorrectionCommissionImpactData[];
     approvedCurrentSummary?: OrderFeeReviewSummary;
     approvedProjectedSummary?: OrderFeeReviewSummary;
+    lockRecordId?: string;
+    lockGeneration?: string;
   };
 
   type OrderFeeCorrectionTarget = {
@@ -5471,17 +5385,6 @@ declare namespace API {
     code?: string;
     name?: string;
     minorUnit?: number;
-  };
-
-  type OrderFeeReviewActionData = {
-    orderId?: string;
-    expectedReviewVersion?: string;
-    expectedContentVersion?: string;
-    submissionId?: string;
-    previewToken?: string;
-    comment?: string;
-    idempotencyKey?: string;
-    completenessConfirmed?: boolean;
   };
 
   type OrderFeeReviewData = {
@@ -5538,14 +5441,6 @@ declare namespace API {
     hasPendingChange?: boolean;
   };
 
-  type OrderFeeReviewResult = {
-    orderId?: string;
-    success?: boolean;
-    reason?: string;
-    message?: string;
-    data?: OrderFeeReviewData;
-  };
-
   type OrderFeeReviewSummary = {
     baseCurrency?: string;
     receivable?: string;
@@ -5567,15 +5462,6 @@ declare namespace API {
     id: string;
   };
 
-  type OrderFeeServiceApproveOrderFeeReviewParams = {
-    orderId: string;
-  };
-
-  type OrderFeeServiceApproveOrderFeeSupplementParams = {
-    orderId: string;
-    id: string;
-  };
-
   type OrderFeeServiceBatchAssignOrderFeeTagsParams = {
     orderId: string;
   };
@@ -5592,16 +5478,7 @@ declare namespace API {
     orderId: string;
   };
 
-  type OrderFeeServiceCancelApprovedOrderFeeSupplementParams = {
-    orderId: string;
-    id: string;
-  };
-
   type OrderFeeServiceCreateOrderFeeCorrectionParams = {
-    orderId: string;
-  };
-
-  type OrderFeeServiceCreateOrderFeeSupplementParams = {
     orderId: string;
   };
 
@@ -5653,10 +5530,6 @@ declare namespace API {
     id: string;
   };
 
-  type OrderFeeServicePreviewOrderFeeReviewParams = {
-    orderId: string;
-  };
-
   type OrderFeeServicePreviewOrderFeeSupplementApprovalParams = {
     orderId: string;
     id: string;
@@ -5664,15 +5537,6 @@ declare namespace API {
   };
 
   type OrderFeeServiceRejectOrderFeeCorrectionParams = {
-    orderId: string;
-    id: string;
-  };
-
-  type OrderFeeServiceRejectOrderFeeReviewParams = {
-    orderId: string;
-  };
-
-  type OrderFeeServiceRejectOrderFeeSupplementParams = {
     orderId: string;
     id: string;
   };
@@ -5692,29 +5556,12 @@ declare namespace API {
     expenseDate?: string;
   };
 
-  type OrderFeeServiceRevokeOrderFeeReviewParams = {
-    orderId: string;
-  };
-
-  type OrderFeeServiceSubmitOrderFeeReviewParams = {
-    orderId: string;
-  };
-
   type OrderFeeServiceUpdateFeeParams = {
     orderId: string;
     id: string;
   };
 
   type OrderFeeServiceWithdrawOrderFeeCorrectionParams = {
-    orderId: string;
-    id: string;
-  };
-
-  type OrderFeeServiceWithdrawOrderFeeReviewParams = {
-    orderId: string;
-  };
-
-  type OrderFeeServiceWithdrawOrderFeeSupplementParams = {
     orderId: string;
     id: string;
   };
@@ -5830,7 +5677,7 @@ declare namespace API {
     unlockMode?: string;
     houseBillSnapshots?: OrderLockHouseBillSnapshotData[];
     businessType?: number;
-    /** 锁定来源：MANUAL 人工锁定；AUTO_SETTLEMENT 结清事件驱动的系统自动锁定。 */
+    /** MANUAL 为人工审核锁；AUTO_SETTLEMENT 仅保留退役自动锁历史。 */
     lockSource?: string;
     /** 自动锁定触发审计：触发类型（VERIFICATION/NETTING/FEE_CONFIRM/FEE_CANCEL）、
  触发单据与触发操作人。人工锁定时为空。 */
@@ -5838,6 +5685,9 @@ declare namespace API {
     triggerResourceId?: string;
     triggeredBy?: string;
     triggeredByName?: string;
+    feeContentVersion?: string;
+    feeContentFingerprint?: string;
+    reviewComment?: string;
   };
 
   type OrderLockResultData = {
@@ -5886,8 +5736,11 @@ declare namespace API {
     activeUnlockRequest?: OrderUnlockRequestData;
     currentLockRecord?: OrderLockRecordData;
     businessType?: number;
-    /** 锁定来源：MANUAL 归属实际锁定人；AUTO_SETTLEMENT 前端固定展示【系统自动锁定】。 */
+    /** 当前审核来源为 MANUAL；AUTO_SETTLEMENT 仅保留已结束周期的审计历史。 */
     lockSource?: string;
+    feeContentVersion?: string;
+    feeContentFingerprint?: string;
+    feeSummary?: OrderFeeReviewSummary;
   };
 
   type OrderMilestone = {
@@ -6043,8 +5896,6 @@ declare namespace API {
     tagIds?: string[];
     isLocked?: boolean;
     isShared?: boolean;
-    feeReviewStatus?: string;
-    hasPendingFeeSupplement?: boolean;
   };
 
   type OrderServiceListPersonnelOptionsParams = {
@@ -6841,23 +6692,6 @@ declare namespace API {
     traceId?: string;
   };
 
-  type PreviewOrderFeeReviewResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderFeeReviewData;
-    traceId?: string;
-  };
-
-  type PreviewOrderFeeReviewsRequest = {
-    orderIds?: string[];
-  };
-
-  type PreviewOrderFeeReviewsResponse = {
-    data?: OrderFeeReviewResult[];
-    traceId?: string;
-  };
-
   type PreviewOrderFeeSupplementApprovalData = {
     baseCurrency?: string;
     currentReceivable?: string;
@@ -7046,40 +6880,6 @@ declare namespace API {
     traceId?: string;
   };
 
-  type RejectOrderFeeReviewRequest = {
-    orderId?: string;
-    expectedReviewVersion?: string;
-    expectedContentVersion?: string;
-    submissionId?: string;
-    previewToken?: string;
-    comment?: string;
-    idempotencyKey?: string;
-    completenessConfirmed?: boolean;
-  };
-
-  type RejectOrderFeeReviewResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderFeeReviewData;
-    traceId?: string;
-  };
-
-  type RejectOrderFeeSupplementRequest = {
-    orderId: string;
-    id: string;
-    expectedVersion: string;
-    reason?: string;
-  };
-
-  type RejectOrderFeeSupplementResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderFeeSupplementRequestData;
-    traceId?: string;
-  };
-
   type RemoveAbnormalCaseResponse = {
     success?: boolean;
     code?: number;
@@ -7263,25 +7063,6 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FinanceVerification;
-    traceId?: string;
-  };
-
-  type RevokeOrderFeeReviewRequest = {
-    orderId?: string;
-    expectedReviewVersion?: string;
-    expectedContentVersion?: string;
-    submissionId?: string;
-    previewToken?: string;
-    comment?: string;
-    idempotencyKey?: string;
-    completenessConfirmed?: boolean;
-  };
-
-  type RevokeOrderFeeReviewResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderFeeReviewData;
     traceId?: string;
   };
 
@@ -8570,11 +8351,10 @@ declare namespace API {
     customerId?: string;
     financialProgress?: number;
     billNo?: string;
-    financeLocked?: boolean;
     tagIds?: string[];
     organizationId?: string;
-    feeReviewStatus?: string;
     hasPendingFeeSupplement?: boolean;
+    orderLocked?: boolean;
   };
 
   type SettlementServiceListFinanceBillTagAssignmentOptionsParams = {
@@ -8740,25 +8520,6 @@ declare namespace API {
     message?: string;
     traceId?: string;
     data?: WorkbenchMyCommissionApplication;
-  };
-
-  type SubmitOrderFeeReviewRequest = {
-    orderId?: string;
-    expectedReviewVersion?: string;
-    expectedContentVersion?: string;
-    submissionId?: string;
-    previewToken?: string;
-    comment?: string;
-    idempotencyKey?: string;
-    completenessConfirmed?: boolean;
-  };
-
-  type SubmitOrderFeeReviewResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderFeeReviewData;
-    traceId?: string;
   };
 
   type SwitchOrganizationRequest = {
@@ -9661,39 +9422,6 @@ declare namespace API {
     traceId?: string;
   };
 
-  type WithdrawOrderFeeReviewRequest = {
-    orderId?: string;
-    expectedReviewVersion?: string;
-    expectedContentVersion?: string;
-    submissionId?: string;
-    previewToken?: string;
-    comment?: string;
-    idempotencyKey?: string;
-    completenessConfirmed?: boolean;
-  };
-
-  type WithdrawOrderFeeReviewResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderFeeReviewData;
-    traceId?: string;
-  };
-
-  type WithdrawOrderFeeSupplementRequest = {
-    orderId: string;
-    id: string;
-    expectedVersion: string;
-  };
-
-  type WithdrawOrderFeeSupplementResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderFeeSupplementRequestData;
-    traceId?: string;
-  };
-
   type WithdrawSeaSharedContainerRequest = {
     id: string;
     expectedVersion: string;
@@ -9769,6 +9497,20 @@ declare namespace API {
     estimated?: WorkbenchEstimatedOpportunity;
   };
 
+  type WorkbenchCorrectionApprovalItem = {
+    requestId?: string;
+    orderId?: string;
+    orderNo?: string;
+    feeCode?: string;
+    feeName?: string;
+    currency?: string;
+    amount?: string;
+    reason?: string;
+    requestedByName?: string;
+    requestedAt?: string;
+    businessType?: string;
+  };
+
   type WorkbenchEstimatedOpportunity = {
     opportunityCount?: number;
     estimatedAmount?: string;
@@ -9780,14 +9522,13 @@ declare namespace API {
     canManageCommission?: boolean;
     /** confirmed_commission_count 是当前组织已确认待发提成数量（组织范围）。 */
     confirmedCommissionCount?: number;
-    /** pending_decrease_count 是当前组织 LOCKED_FEE_SUPPLEMENT + DECREASE + DRAFT
- 冲减建议数量（待处理、尚未扣回）。 */
+    /** pending_decrease_count 是当前组织已确认、尚未执行的冲减建议数量。 */
     pendingDecreaseCount?: number;
-    pendingSupplementApprovalCount?: number;
-    pendingSupplementApprovals?: WorkbenchSupplementApprovalItem[];
-    /** supplement_approvals_truncated 为真时表示 PENDING 候选超出服务端有界扫描
+    pendingCorrectionApprovalCount?: number;
+    pendingCorrectionApprovals?: WorkbenchCorrectionApprovalItem[];
+    /** correction_approvals_truncated 为真时表示 PENDING 候选超出服务端有界扫描
  上限，计数仅为已扫描部分的下界。 */
-    supplementApprovalsTruncated?: boolean;
+    correctionApprovalsTruncated?: boolean;
   };
 
   type WorkbenchMyApplicationLine = {
@@ -9911,20 +9652,6 @@ declare namespace API {
   type WorkbenchServiceListMyRecentOrdersParams = {
     page?: number;
     pageSize?: number;
-  };
-
-  type WorkbenchSupplementApprovalItem = {
-    requestId?: string;
-    orderId?: string;
-    orderNo?: string;
-    feeCode?: string;
-    feeName?: string;
-    currency?: string;
-    amount?: string;
-    reason?: string;
-    requestedByName?: string;
-    requestedAt?: string;
-    businessType?: string;
   };
 
   type WorkbenchTodoSummary = {

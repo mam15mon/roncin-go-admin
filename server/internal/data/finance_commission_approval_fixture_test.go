@@ -2,16 +2,19 @@ package data
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	lockent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 )
 
-// seedApprovedFeeSnapshotForTest 为隔离数据库夹具建立当前整票批准证据。
+// seedManualOrderReviewForTest 为隔离数据库夹具建立当前整票批准证据。
 // 测试中直接修改费用后必须显式重建批准，不能依靠运行期兼容或回退。
-func seedApprovedFeeSnapshotForTest(t *testing.T, d *Data, orderID, actorID uuid.UUID) {
+func seedManualOrderReviewForTest(t *testing.T, d *Data, orderID, actorID uuid.UUID) {
 	t.Helper()
 	err := d.WithinTransaction(context.Background(), func(ctx context.Context) error {
 		client, err := d.client(ctx)
@@ -26,11 +29,23 @@ func seedApprovedFeeSnapshotForTest(t *testing.T, d *Data, orderID, actorID uuid
 		if err != nil {
 			return err
 		}
-		event, err := appendFeeReviewEvent(ctx, client, o, actorID, "APPROVE", "集成夹具人工审核", uuid.NewString(), fingerprint, nil, nil, snapshot, fingerprint)
+		payload, err := json.Marshal(snapshot)
 		if err != nil {
 			return err
 		}
-		return client.Order.UpdateOneID(orderID).SetFeeReviewStatus(orderent.FeeReviewStatusAPPROVED).SetCurrentFeeReviewEventID(event.ID).SetApprovedFeeReviewEventID(event.ID).AddFeeReviewVersion(1).Exec(ctx)
+		now := time.Now().UTC()
+		if o.LockedAt != nil {
+			_, err := client.OrderLockRecord.Update().Where(lockent.OrderIDEQ(orderID), lockent.UnlockedAtIsNil()).SetUnlockedAt(now).SetUnlockedBy(actorID).SetOrderVersionAtUnlock(o.Version).SetUnlockReason("测试重审").SetUnlockMode(lockent.UnlockModeROLE_DIRECT).Save(ctx)
+			if err != nil {
+				return err
+			}
+		}
+		_, err = client.OrderLockRecord.Create().SetOrganizationID(o.OrganizationID).SetOrderID(o.ID).SetOrderNo(o.OrderNo).SetBusinessType(lockent.BusinessType(o.BusinessType)).SetGeneration(o.LockGeneration + 1).SetLockedBy(actorID).SetLockedAt(now).SetOrderVersionAtLock(o.Version + 1).SetFeeSnapshot(payload).SetFeeContentVersion(o.FeeContentVersion).SetFeeContentFingerprint(fingerprint).SetReviewComment("集成夹具人工审核").SetIdempotencyKey(uuid.NewString()).SetRequestFingerprint(fingerprint).Save(ctx)
+		if err != nil {
+			return err
+		}
+		return client.Order.UpdateOneID(orderID).SetLockedAt(now).SetLockedBy(actorID).SetLockSource(orderent.LockSourceMANUAL).SetLockGeneration(o.LockGeneration + 1).AddVersion(1).Exec(ctx)
+
 	})
 	if err != nil {
 		t.Fatalf("建立整票费用批准夹具: %v", err)

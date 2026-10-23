@@ -90,16 +90,25 @@ export function makeFee(partial: Partial<API.OrderFee>): API.OrderFee {
 }
 
 export const unbilledFeeA = makeFee({
+  canEdit: true,
+  canDelete: true,
+  canBill: true,
   id: 'fee-a',
   version: '3',
   feeName: '海运费',
 });
 export const unbilledFeeB = makeFee({
+  canEdit: true,
+  canDelete: true,
+  canBill: true,
   id: 'fee-b',
   version: '1',
   feeName: '拖车费',
 });
 export const billedFeeC = makeFee({
+  canEdit: false,
+  canDelete: false,
+  canBill: false,
   id: 'fee-c',
   version: '5',
   hasActiveBill: true,
@@ -127,6 +136,8 @@ export function makeProps(orderId: string) {
       setReceivableSummary: vi.fn(),
       setPayableSummary: vi.fn(),
       canCreateFinanceBills: true,
+      canCreateFees: true,
+      canDeleteFees: true,
       feeWritesDisabled: false,
       onOpenBillWorkbench: vi.fn(),
       onFeeSaved: vi.fn(),

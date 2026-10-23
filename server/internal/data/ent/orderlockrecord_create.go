@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockhousebillsnapshot"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
@@ -114,6 +116,54 @@ func (_c *OrderLockRecordCreate) SetLockedAt(v time.Time) *OrderLockRecordCreate
 // SetOrderVersionAtLock sets the "order_version_at_lock" field.
 func (_c *OrderLockRecordCreate) SetOrderVersionAtLock(v uint64) *OrderLockRecordCreate {
 	_c.mutation.SetOrderVersionAtLock(v)
+	return _c
+}
+
+// SetFeeSnapshot sets the "fee_snapshot" field.
+func (_c *OrderLockRecordCreate) SetFeeSnapshot(v json.RawMessage) *OrderLockRecordCreate {
+	_c.mutation.SetFeeSnapshot(v)
+	return _c
+}
+
+// SetFeeContentVersion sets the "fee_content_version" field.
+func (_c *OrderLockRecordCreate) SetFeeContentVersion(v uint64) *OrderLockRecordCreate {
+	_c.mutation.SetFeeContentVersion(v)
+	return _c
+}
+
+// SetNillableFeeContentVersion sets the "fee_content_version" field if the given value is not nil.
+func (_c *OrderLockRecordCreate) SetNillableFeeContentVersion(v *uint64) *OrderLockRecordCreate {
+	if v != nil {
+		_c.SetFeeContentVersion(*v)
+	}
+	return _c
+}
+
+// SetFeeContentFingerprint sets the "fee_content_fingerprint" field.
+func (_c *OrderLockRecordCreate) SetFeeContentFingerprint(v string) *OrderLockRecordCreate {
+	_c.mutation.SetFeeContentFingerprint(v)
+	return _c
+}
+
+// SetNillableFeeContentFingerprint sets the "fee_content_fingerprint" field if the given value is not nil.
+func (_c *OrderLockRecordCreate) SetNillableFeeContentFingerprint(v *string) *OrderLockRecordCreate {
+	if v != nil {
+		_c.SetFeeContentFingerprint(*v)
+	}
+	return _c
+}
+
+// SetReviewComment sets the "review_comment" field.
+func (_c *OrderLockRecordCreate) SetReviewComment(v string) *OrderLockRecordCreate {
+	_c.mutation.SetReviewComment(v)
+	return _c
+}
+
+// SetNillableReviewComment sets the "review_comment" field if the given value is not nil.
+func (_c *OrderLockRecordCreate) SetNillableReviewComment(v *string) *OrderLockRecordCreate {
+	if v != nil {
+		_c.SetReviewComment(*v)
+	}
 	return _c
 }
 
@@ -433,6 +483,21 @@ func (_c *OrderLockRecordCreate) AddUnlockRequests(v ...*OrderUnlockRequest) *Or
 	return _c.AddUnlockRequestIDs(ids...)
 }
 
+// AddFeeCorrectionRequestIDs adds the "fee_correction_requests" edge to the OrderFeeCorrectionRequest entity by IDs.
+func (_c *OrderLockRecordCreate) AddFeeCorrectionRequestIDs(ids ...uuid.UUID) *OrderLockRecordCreate {
+	_c.mutation.AddFeeCorrectionRequestIDs(ids...)
+	return _c
+}
+
+// AddFeeCorrectionRequests adds the "fee_correction_requests" edges to the OrderFeeCorrectionRequest entity.
+func (_c *OrderLockRecordCreate) AddFeeCorrectionRequests(v ...*OrderFeeCorrectionRequest) *OrderLockRecordCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFeeCorrectionRequestIDs(ids...)
+}
+
 // SetAppliedUnlockRequestID sets the "applied_unlock_request" edge to the OrderUnlockRequest entity by ID.
 func (_c *OrderLockRecordCreate) SetAppliedUnlockRequestID(id uuid.UUID) *OrderLockRecordCreate {
 	_c.mutation.SetAppliedUnlockRequestID(id)
@@ -560,6 +625,16 @@ func (_c *OrderLockRecordCreate) check() error {
 	if _, ok := _c.mutation.OrderVersionAtLock(); !ok {
 		return &ValidationError{Name: "order_version_at_lock", err: errors.New(`ent: missing required field "OrderLockRecord.order_version_at_lock"`)}
 	}
+	if v, ok := _c.mutation.FeeContentFingerprint(); ok {
+		if err := orderlockrecord.FeeContentFingerprintValidator(v); err != nil {
+			return &ValidationError{Name: "fee_content_fingerprint", err: fmt.Errorf(`ent: validator failed for field "OrderLockRecord.fee_content_fingerprint": %w`, err)}
+		}
+	}
+	if v, ok := _c.mutation.ReviewComment(); ok {
+		if err := orderlockrecord.ReviewCommentValidator(v); err != nil {
+			return &ValidationError{Name: "review_comment", err: fmt.Errorf(`ent: validator failed for field "OrderLockRecord.review_comment": %w`, err)}
+		}
+	}
 	if v, ok := _c.mutation.TriggerType(); ok {
 		if err := orderlockrecord.TriggerTypeValidator(v); err != nil {
 			return &ValidationError{Name: "trigger_type", err: fmt.Errorf(`ent: validator failed for field "OrderLockRecord.trigger_type": %w`, err)}
@@ -660,6 +735,22 @@ func (_c *OrderLockRecordCreate) createSpec() (*OrderLockRecord, *sqlgraph.Creat
 	if value, ok := _c.mutation.OrderVersionAtLock(); ok {
 		_spec.SetField(orderlockrecord.FieldOrderVersionAtLock, field.TypeUint64, value)
 		_node.OrderVersionAtLock = value
+	}
+	if value, ok := _c.mutation.FeeSnapshot(); ok {
+		_spec.SetField(orderlockrecord.FieldFeeSnapshot, field.TypeJSON, value)
+		_node.FeeSnapshot = value
+	}
+	if value, ok := _c.mutation.FeeContentVersion(); ok {
+		_spec.SetField(orderlockrecord.FieldFeeContentVersion, field.TypeUint64, value)
+		_node.FeeContentVersion = &value
+	}
+	if value, ok := _c.mutation.FeeContentFingerprint(); ok {
+		_spec.SetField(orderlockrecord.FieldFeeContentFingerprint, field.TypeString, value)
+		_node.FeeContentFingerprint = &value
+	}
+	if value, ok := _c.mutation.ReviewComment(); ok {
+		_spec.SetField(orderlockrecord.FieldReviewComment, field.TypeString, value)
+		_node.ReviewComment = &value
 	}
 	if value, ok := _c.mutation.TriggerType(); ok {
 		_spec.SetField(orderlockrecord.FieldTriggerType, field.TypeEnum, value)
@@ -859,6 +950,22 @@ func (_c *OrderLockRecordCreate) createSpec() (*OrderLockRecord, *sqlgraph.Creat
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderunlockrequest.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FeeCorrectionRequestsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   orderlockrecord.FeeCorrectionRequestsTable,
+			Columns: []string{orderlockrecord.FeeCorrectionRequestsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(orderfeecorrectionrequest.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1111,6 +1218,18 @@ func (u *OrderLockRecordUpsertOne) UpdateNewValues() *OrderLockRecordUpsertOne {
 		}
 		if _, exists := u.create.mutation.OrderVersionAtLock(); exists {
 			s.SetIgnore(orderlockrecord.FieldOrderVersionAtLock)
+		}
+		if _, exists := u.create.mutation.FeeSnapshot(); exists {
+			s.SetIgnore(orderlockrecord.FieldFeeSnapshot)
+		}
+		if _, exists := u.create.mutation.FeeContentVersion(); exists {
+			s.SetIgnore(orderlockrecord.FieldFeeContentVersion)
+		}
+		if _, exists := u.create.mutation.FeeContentFingerprint(); exists {
+			s.SetIgnore(orderlockrecord.FieldFeeContentFingerprint)
+		}
+		if _, exists := u.create.mutation.ReviewComment(); exists {
+			s.SetIgnore(orderlockrecord.FieldReviewComment)
 		}
 		if _, exists := u.create.mutation.TriggerType(); exists {
 			s.SetIgnore(orderlockrecord.FieldTriggerType)
@@ -1518,6 +1637,18 @@ func (u *OrderLockRecordUpsertBulk) UpdateNewValues() *OrderLockRecordUpsertBulk
 			}
 			if _, exists := b.mutation.OrderVersionAtLock(); exists {
 				s.SetIgnore(orderlockrecord.FieldOrderVersionAtLock)
+			}
+			if _, exists := b.mutation.FeeSnapshot(); exists {
+				s.SetIgnore(orderlockrecord.FieldFeeSnapshot)
+			}
+			if _, exists := b.mutation.FeeContentVersion(); exists {
+				s.SetIgnore(orderlockrecord.FieldFeeContentVersion)
+			}
+			if _, exists := b.mutation.FeeContentFingerprint(); exists {
+				s.SetIgnore(orderlockrecord.FieldFeeContentFingerprint)
+			}
+			if _, exists := b.mutation.ReviewComment(); exists {
+				s.SetIgnore(orderlockrecord.FieldReviewComment)
 			}
 			if _, exists := b.mutation.TriggerType(); exists {
 				s.SetIgnore(orderlockrecord.FieldTriggerType)

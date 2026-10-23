@@ -49,6 +49,8 @@ function makeProps() {
     setReceivableSummary: vi.fn(),
     setPayableSummary: vi.fn(),
     canCreateFinanceBills: false,
+    canCreateFees: true,
+    canDeleteFees: true,
     feeWritesDisabled: false,
     onOpenBillWorkbench: vi.fn(),
     feeSettings: [{ id: 'setting-of', feeCode: 'OF', nameZh: '海运费' }],
@@ -69,6 +71,8 @@ beforeEach(() => {
   listFees.mockResolvedValue({
     data: [RECEIVABLE, PAYABLE].map((direction) => ({
       id: `fee-${direction}`,
+      canEdit: true,
+      canBill: true,
       direction,
       version: '1',
       note: direction === RECEIVABLE ? '应收测试费' : '应付测试费',
@@ -128,7 +132,7 @@ it('行内真实输入同步保护；单纯进入编辑不脏，取消一侧不�
   expect(payableInput).toHaveValue('应付未保存');
   expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');
   vi.mocked(orderFeeServiceUpdateFee).mockResolvedValue({
-    data: { id: 'fee-2' },
+    data: { canEdit: true, canBill: true, id: 'fee-2' },
   });
   await act(async () => {
     fireEvent.click(within(payableRow).getByText('保存'));

@@ -1,11 +1,8 @@
 package data
 
 import (
-	"github.com/shopspring/decimal"
-
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
-	commissionadjustmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 )
 
 func supplementSnapshotFromEnt(item *ent.OrderFeeSupplementRequest) (biz.OrderFeeSupplementFeeSnapshot, error) {
@@ -128,98 +125,5 @@ func supplementRequestToBiz(item *ent.OrderFeeSupplementRequest) (*biz.OrderFeeS
 		}
 		result.FinancialLockNetAmount = &net
 	}
-	return result, nil
-}
-
-// commissionImpactLineToBiz 把锁定的父单、订单行与调整聚合为边际计算上下文行：
-// 双层余额按「CONFIRMED/PAID 符号化合计 − 其他 DRAFT DECREASE 预留」统计，
-// DRAFT INCREASE 不提前扩张余额。
-func commissionImpactLineToBiz(parent *ent.FinanceCommission, line *ent.FinanceCommissionLine, adjustments []*ent.FinanceCommissionAdjustment) (*biz.OrderFeeSupplementCommissionLine, error) {
-	parentAmount, err := decimalOf(parent.CommissionAmount)
-	if err != nil {
-		return nil, err
-	}
-	ratePercent, err := decimalOf(line.RatePercent)
-	if err != nil {
-		return nil, err
-	}
-	lineAmount, err := decimalOf(line.CommissionAmount)
-	if err != nil {
-		return nil, err
-	}
-	realizedRevenue, err := decimalOf(line.RealizedRevenue)
-	if err != nil {
-		return nil, err
-	}
-	result := &biz.OrderFeeSupplementCommissionLine{
-		CommissionID:           parent.ID,
-		CommissionNo:           parent.CommissionNo,
-		CommissionStatus:       string(parent.Status),
-		CommissionAmount:       parentAmount,
-		AdjustmentSequence:     parent.AdjustmentSequence,
-		EmployeeID:             parent.EmployeeID,
-		EmployeeName:           parent.EmployeeName,
-		ParentBaseCurrency:     parent.BaseCurrency,
-		LineID:                 line.ID,
-		OrderID:                line.OrderID,
-		OrderNo:                line.OrderNo,
-		CalculationVersion:     parent.CalculationVersion,
-		CalculationBasis:       biz.CommissionCalculationBasis(line.CalculationBasis),
-		CalculationRatePercent: ratePercent,
-		RealizedRevenue:        realizedRevenue,
-		LineCommissionAmount:   lineAmount,
-		LineBaseCurrency:       line.BaseCurrency,
-		SnapshotStatus:         snapshotStatusOrEmpty(line.SnapshotStatus),
-	}
-	if line.TotalReceivableSnapshot != nil {
-		receivable, parseErr := decimalOf(*line.TotalReceivableSnapshot)
-		if parseErr != nil {
-			return nil, parseErr
-		}
-		result.TotalReceivableSnapshot = &receivable
-	}
-	if line.TotalPayableSnapshot != nil {
-		payable, parseErr := decimalOf(*line.TotalPayableSnapshot)
-		if parseErr != nil {
-			return nil, parseErr
-		}
-		result.TotalPayableSnapshot = &payable
-	}
-	parentEffective := parentAmount
-	lineEffective := lineAmount
-	parentDraftDecrease := decimal.Zero
-	lineDraftDecrease := decimal.Zero
-	for _, adjustment := range adjustments {
-		amount, parseErr := decimalOf(adjustment.Amount)
-		if parseErr != nil {
-			return nil, parseErr
-		}
-		isDecrease := adjustment.Direction == commissionadjustmentent.DirectionDECREASE
-		switch adjustment.Status {
-		case commissionadjustmentent.StatusCONFIRMED, commissionadjustmentent.StatusPAID:
-			if isDecrease {
-				parentEffective = parentEffective.Sub(amount)
-				if adjustment.OrderID == line.OrderID {
-					lineEffective = lineEffective.Sub(amount)
-				}
-			} else {
-				parentEffective = parentEffective.Add(amount)
-				if adjustment.OrderID == line.OrderID {
-					lineEffective = lineEffective.Add(amount)
-				}
-			}
-		case commissionadjustmentent.StatusDRAFT:
-			if isDecrease {
-				parentDraftDecrease = parentDraftDecrease.Add(amount)
-				if adjustment.OrderID == line.OrderID {
-					lineDraftDecrease = lineDraftDecrease.Add(amount)
-				}
-			}
-		}
-	}
-	result.LineEffective = lineEffective.Round(8)
-	result.ParentEffective = parentEffective.Round(8)
-	result.LineDraftDecrease = lineDraftDecrease.Round(8)
-	result.ParentDraftDecrease = parentDraftDecrease.Round(8)
 	return result, nil
 }

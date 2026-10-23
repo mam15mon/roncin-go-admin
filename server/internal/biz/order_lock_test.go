@@ -18,6 +18,7 @@ type orderLockRepoStub struct {
 	totalRequests  int
 	unlockRequest  *OrderUnlockRequest
 
+	lastLockReview           OrderLockReviewInput
 	lastLockIdempotencyKey   string
 	lastUnlockIdempotencyKey string
 	lastUnlockReason         *string
@@ -29,8 +30,9 @@ func (s *orderLockRepoStub) GetOrderLockState(ctx context.Context, organizationI
 	return s.state, nil
 }
 
-func (s *orderLockRepoStub) LockOrder(ctx context.Context, caller *Principal, orderID uuid.UUID, expectedOrderVersion uint64, idempotencyKey string, audit *AuditEvent) (*OrderLockResult, error) {
+func (s *orderLockRepoStub) LockOrder(ctx context.Context, caller *Principal, orderID uuid.UUID, expectedOrderVersion uint64, idempotencyKey string, review OrderLockReviewInput, audit *AuditEvent) (*OrderLockResult, error) {
 	s.lastLockIdempotencyKey = idempotencyKey
+	s.lastLockReview = review
 	return s.lockResult, nil
 }
 
@@ -114,13 +116,13 @@ func TestOrderLockUsecase_ValidationAndPagination(t *testing.T) {
 	principal.OrganizationNodes = []OrganizationScopeNode{{ID: principal.Organization.ID, Kind: OrganizationKindCompany}}
 
 	// 1. LockOrder requires idempotencyKey
-	_, err := uc.LockOrder(ctx, principal, orderID, 1, "", nil)
+	_, err := uc.LockOrder(ctx, principal, orderID, 1, "", OrderLockReviewInput{ExpectedFeeContentVersion: 1, FeeContentFingerprint: strings.Repeat("a", 64)}, nil)
 	if err == nil {
 		t.Error("expected error when idempotencyKey is empty")
 	}
 
 	// 2. LockOrder with idempotencyKey succeeds
-	_, err = uc.LockOrder(ctx, principal, orderID, 1, "  test-key-1  ", nil)
+	_, err = uc.LockOrder(ctx, principal, orderID, 1, "  test-key-1  ", OrderLockReviewInput{ExpectedFeeContentVersion: 1, FeeContentFingerprint: strings.Repeat("a", 64)}, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -149,14 +151,26 @@ func TestOrderLockUsecase_ValidationAndPagination(t *testing.T) {
 
 	// 5. 输入边界必须在领域层拒绝，不能依赖数据库字段长度或静默修正。
 	invalidCalls := []func() error{
-		func() error { _, err := uc.LockOrder(ctx, principal, orderID, 0, "key", nil); return err },
 		func() error {
-			_, err := uc.LockOrder(ctx, principal, orderID, 1, strings.Repeat("a", 129), nil)
+			_, err := uc.LockOrder(ctx, principal, orderID, 0, "key", OrderLockReviewInput{ExpectedFeeContentVersion: 1, FeeContentFingerprint: strings.Repeat("a", 64)}, nil)
 			return err
 		},
-		func() error { _, err := uc.LockOrder(ctx, principal, orderID, 1, "bad\nkey", nil); return err },
-		func() error { _, err := uc.LockOrder(ctx, nil, orderID, 1, "key", nil); return err },
-		func() error { _, err := uc.LockOrder(ctx, principal, uuid.Nil, 1, "key", nil); return err },
+		func() error {
+			_, err := uc.LockOrder(ctx, principal, orderID, 1, strings.Repeat("a", 129), OrderLockReviewInput{ExpectedFeeContentVersion: 1, FeeContentFingerprint: strings.Repeat("a", 64)}, nil)
+			return err
+		},
+		func() error {
+			_, err := uc.LockOrder(ctx, principal, orderID, 1, "bad\nkey", OrderLockReviewInput{ExpectedFeeContentVersion: 1, FeeContentFingerprint: strings.Repeat("a", 64)}, nil)
+			return err
+		},
+		func() error {
+			_, err := uc.LockOrder(ctx, nil, orderID, 1, "key", OrderLockReviewInput{ExpectedFeeContentVersion: 1, FeeContentFingerprint: strings.Repeat("a", 64)}, nil)
+			return err
+		},
+		func() error {
+			_, err := uc.LockOrder(ctx, principal, uuid.Nil, 1, "key", OrderLockReviewInput{ExpectedFeeContentVersion: 1, FeeContentFingerprint: strings.Repeat("a", 64)}, nil)
+			return err
+		},
 		func() error {
 			longReason := strings.Repeat("改", 501)
 			_, err := uc.RequestOrderUnlock(ctx, principal, orderID, 1, "key", &longReason, nil)
@@ -192,6 +206,26 @@ func TestOrderLockUsecase_ValidationAndPagination(t *testing.T) {
 		}
 		if !tc.wantErr && err != nil {
 			t.Errorf("pagination (%d,%d) unexpected error: %v", tc.page, tc.pageSize, err)
+		}
+	}
+}
+
+// 审核依据必须来自预览；缺少或超长依据在进入事务前拒绝。
+func TestOrderLockReviewInputValidation(t *testing.T) {
+	repo := &orderLockRepoStub{}
+	uc := NewOrderLockUsecase(repo)
+	p := &Principal{UserID: uuid.New(), Organization: Organization{Kind: OrganizationKindCompany, ID: uuid.New()}}
+	p.OrganizationNodes = []OrganizationScopeNode{{ID: p.Organization.ID, Kind: OrganizationKindCompany}}
+	valid := OrderLockReviewInput{ExpectedFeeContentVersion: 3, FeeContentFingerprint: strings.Repeat("a", 64), Comment: "  已核对亏损原因  "}
+	if _, err := uc.LockOrder(context.Background(), p, uuid.New(), 1, "review-key", valid, nil); err != nil {
+		t.Fatal(err)
+	}
+	if repo.lastLockReview.Comment != "已核对亏损原因" || repo.lastLockReview.ExpectedFeeContentVersion != 3 {
+		t.Fatalf("审核依据传递错误：%#v", repo.lastLockReview)
+	}
+	for _, review := range []OrderLockReviewInput{{}, {FeeContentFingerprint: "bad"}, {FeeContentFingerprint: strings.Repeat("a", 64), Comment: strings.Repeat("字", 1001)}} {
+		if _, err := uc.LockOrder(context.Background(), p, uuid.New(), 1, "key", review, nil); err == nil {
+			t.Fatalf("无效审核依据不应进入仓储：%#v", review)
 		}
 	}
 }

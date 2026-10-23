@@ -74,12 +74,23 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		}
 	}
 
+	var requiredReadPermissions []*ent.Permission
+	for _, key := range []string{"business.order.se.read", "business.order.se.fee.read"} {
+		permission, queryErr := data.db.Permission.Query().Where(permissionent.KeyEQ(key)).First(ctx)
+		if ent.IsNotFound(queryErr) {
+			permission, queryErr = data.db.Permission.Create().SetKey(key).SetName("审核读取权限").SetDescription("审核夹具").SetGroup("order").Save(ctx)
+		}
+		if queryErr != nil {
+			t.Fatal(queryErr)
+		}
+		requiredReadPermissions = append(requiredReadPermissions, permission)
+	}
 	// 3. 创建业务锁定角色 (data_scope: organization, permissions: lock, update)
 	seLockRole, err := data.db.Role.Create().
 		SetOrganizationID(org.ID).
 		SetCode("se_locker_"+suffix).
 		SetName("海运出口锁定专员-"+suffix).
-		AddPermissions(lockPerm, updatePerm).
+		AddPermissions(lockPerm, updatePerm).AddPermissions(requiredReadPermissions...).
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("创建业务锁定角色失败: %v", err)
@@ -478,8 +489,34 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		genericOrders[businessType] = createGenericOrder(businessType)
 	}
 
+	// AE 锁定必须有真实航空主分单关联；只创建裸订单不满足航空单证契约。
+	aviationCode := newTestSCAC()[:3]
+	airline := data.db.Airline.Create().SetIataCode(aviationCode[:2]).SetNameEn("Lock AE " + suffix).SetCountryCode("CN").SaveX(ctx)
+	originAirport := data.db.Airport.Create().SetIataCode("A" + aviationCode[:2]).SetNameEn("Lock AE Origin").SetCountryCode("CN").SaveX(ctx)
+	destinationAirport := data.db.Airport.Create().SetIataCode("B" + aviationCode[:2]).SetNameEn("Lock AE Destination").SetCountryCode("US").SaveX(ctx)
+	airMaster := data.db.AirMasterWaybill.Create().SetOrganizationID(org.ID).SetMasterNo("78112345675").SetAirlineID(airline.ID).SetOriginAirportID(originAirport.ID).SetDestinationAirportID(destinationAirport.ID).SaveX(ctx)
+	aeOrder := genericOrders[biz.OrderBusinessAE]
+	data.db.AirMasterWaybillOrderLink.Create().SetOrganizationID(org.ID).SetOrderID(aeOrder.ID).SetMasterWaybillID(airMaster.ID).SaveX(ctx)
+	data.db.AirHouseWaybill.Create().SetOrganizationID(org.ID).SetOrderID(aeOrder.ID).SetMasterWaybillID(airMaster.ID).SetHouseNo("LOCK-AE-" + suffix).SaveX(ctx)
+	t.Cleanup(func() {
+		for _, statement := range []string{"DELETE FROM air_master_waybill_order_links WHERE organization_id=$1", "DELETE FROM air_house_waybills WHERE organization_id=$1", "DELETE FROM air_master_waybills WHERE organization_id=$1"} {
+			if _, err := data.sqlDB.ExecContext(ctx, statement, org.ID); err != nil {
+				t.Error(err)
+			}
+		}
+		if err := data.db.Airline.DeleteOneID(airline.ID).Exec(ctx); err != nil {
+			t.Error(err)
+		}
+		if err := data.db.Airport.DeleteOneID(originAirport.ID).Exec(ctx); err != nil {
+			t.Error(err)
+		}
+		if err := data.db.Airport.DeleteOneID(destinationAirport.ID).Exec(ctx); err != nil {
+			t.Error(err)
+		}
+	})
+
 	t.Run("仅持有SE锁权限不能锁定AI订单", func(t *testing.T) {
-		_, err := orderLockRepo.LockOrder(ctx, rolePrincipal, genericOrders[biz.OrderBusinessAI].ID, 1, "idem-cross-type-"+suffix, nil)
+		_, err := orderLockRepo.LockOrder(ctx, rolePrincipal, genericOrders[biz.OrderBusinessAI].ID, 1, "idem-cross-type-"+suffix, lockTestReviewInput(t, data, ctx, genericOrders[biz.OrderBusinessAI].ID), nil)
 		if kErr := errors.FromError(err); kErr == nil || kErr.Reason != "ORDER_LOCK_ROLE_REQUIRED" {
 			t.Fatalf("跨类型锁定错误 = %v，期望 ORDER_LOCK_ROLE_REQUIRED", err)
 		}
@@ -493,7 +530,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 				lockKey := access.OrderPermission(accessType, access.OrderLock)
 				updateKey := access.OrderPermission(accessType, access.OrderUpdate)
 				permissions := make([]*ent.Permission, 0, 2)
-				for _, key := range []string{lockKey, updateKey} {
+				for _, key := range []string{lockKey, updateKey, access.OrderPermission(accessType, access.OrderRead), access.OrderPermission(accessType, access.OrderFeeRead)} {
 					permission, queryErr := data.db.Permission.Query().Where(permissionent.KeyEQ(key)).First(ctx)
 					if ent.IsNotFound(queryErr) {
 						permission, queryErr = data.db.Permission.Create().
@@ -526,7 +563,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 				if err != nil || state.BusinessType != businessType || !state.CanLock {
 					t.Fatalf("%s 锁状态 = %#v, err=%v", businessType, state, err)
 				}
-				lockResult, err := orderLockRepo.LockOrder(ctx, rolePrincipal, o.ID, 1, "idem-lock-"+strings.ToLower(string(businessType))+"-"+suffix, nil)
+				lockResult, err := orderLockRepo.LockOrder(ctx, rolePrincipal, o.ID, 1, "idem-lock-"+strings.ToLower(string(businessType))+"-"+suffix, lockTestReviewInput(t, data, ctx, o.ID), nil)
 				if err != nil {
 					t.Fatalf("锁定 %s 订单失败: %v", businessType, err)
 				}
@@ -540,8 +577,8 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 					t.Fatalf("%s 订单资料写错误 = %v，期望 ORDER_BUSINESS_LOCKED", businessType, updateErr)
 				}
 				feeErr := orderFeeRepo.Remove(ctx, org.ID, o.ID, uuid.New(), roleUser.ID, 1, "locked-remove", nil)
-				if kErr := errors.FromError(feeErr); kErr == nil || kErr.Reason != "ORDER_BUSINESS_LOCKED" {
-					t.Fatalf("%s 订单费用写错误 = %v，期望 ORDER_BUSINESS_LOCKED", businessType, feeErr)
+				if kErr := errors.FromError(feeErr); kErr == nil || kErr.Reason != "ORDER_ALREADY_LOCKED" {
+					t.Fatalf("%s 订单费用写错误 = %v，期望 ORDER_ALREADY_LOCKED", businessType, feeErr)
 				}
 				unlockResult, err := orderLockRepo.RequestOrderUnlock(ctx, rolePrincipal, o.ID, 2, "idem-unlock-"+strings.ToLower(string(businessType))+"-"+suffix, nil, nil)
 				if err != nil {
@@ -562,7 +599,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		if err != nil {
 			t.Fatalf("准备通用装运单证失败: %v", err)
 		}
-		if _, err := orderLockRepo.LockOrder(ctx, rolePrincipal, o.ID, 3, "idem-ae-doc-lock-"+suffix, nil); err != nil {
+		if _, err := orderLockRepo.LockOrder(ctx, rolePrincipal, o.ID, 3, "idem-ae-doc-lock-"+suffix, lockTestReviewInput(t, data, ctx, o.ID), nil); err != nil {
 			t.Fatalf("锁定装运单证测试订单失败: %v", err)
 		}
 		assertLocked := func(operation string, err error) {
@@ -592,7 +629,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			<-start
-			_, lockErr = orderLockRepo.LockOrder(ctx, rolePrincipal, o.ID, 1, "idem-si-doc-race-lock-"+suffix, nil)
+			_, lockErr = orderLockRepo.LockOrder(ctx, rolePrincipal, o.ID, 1, "idem-si-doc-race-lock-"+suffix, lockTestReviewInput(t, data, ctx, o.ID), nil)
 		}()
 		go func() {
 			defer wg.Done()
@@ -629,7 +666,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 	// --- 阶段 1：普通用户尝试锁定订单应被业务角色资格校验拦截 ---
 	t.Run("非海运出口业务角色成员锁定订单应被拦截", func(t *testing.T) {
 		audit := &biz.AuditEvent{Action: "order.lock", UserID: &normalUser.ID, Details: map[string]string{}}
-		_, err := orderLockRepo.LockOrder(ctx, normalPrincipal, orderA.ID, 1, "idem-test-unauthorized", audit)
+		_, err := orderLockRepo.LockOrder(ctx, normalPrincipal, orderA.ID, 1, "idem-test-unauthorized", lockTestReviewInput(t, data, ctx, orderA.ID), audit)
 		if err == nil {
 			t.Fatal("期望普通用户锁定返回错误，但成功了")
 		}
@@ -642,7 +679,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 	// --- 阶段 2：具备业务角色的成员成功锁定订单 ---
 	t.Run("具备角色的成员锁定订单并创建单证不可变版本快照", func(t *testing.T) {
 		audit := &biz.AuditEvent{Action: "order.lock", UserID: &roleUser.ID, Details: map[string]string{}}
-		lockRes, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderA.ID, 1, "idem-lock-key-1", audit)
+		lockRes, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderA.ID, 1, "idem-lock-key-1", lockTestReviewInput(t, data, ctx, orderA.ID), audit)
 		if err != nil {
 			t.Fatalf("角色用户锁定订单失败: %v", err)
 		}
@@ -754,7 +791,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 	t.Run("锁定幂等性契约：同键同指纹重放返回原结果、同键异指纹409、不同键已锁拦截", func(t *testing.T) {
 		audit := &biz.AuditEvent{Action: "order.lock", UserID: &roleUser.ID, Details: map[string]string{}}
 		// 1. 同键同指纹重放
-		res2, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderA.ID, 1, "idem-lock-key-1", audit)
+		res2, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderA.ID, 1, "idem-lock-key-1", lockTestReviewInput(t, data, ctx, orderA.ID), audit)
 		if err != nil {
 			t.Fatalf("幂等锁定重放失败: %v", err)
 		}
@@ -774,7 +811,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		}
 
 		// 2. 同键异指纹（版本不符或调用人不同）应返回 409 ORDER_STATUS_CONFLICT
-		_, err = orderLockRepo.LockOrder(ctx, rolePrincipal, orderA.ID, 2, "idem-lock-key-1", audit)
+		_, err = orderLockRepo.LockOrder(ctx, rolePrincipal, orderA.ID, 2, "idem-lock-key-1", lockTestReviewInput(t, data, ctx, orderA.ID), audit)
 		if err == nil {
 			t.Fatal("期望同键异指纹返回 409 错误，但成功了")
 		}
@@ -784,7 +821,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		}
 
 		// 3. 不同键对已锁定的订单再次锁定应返回 ORDER_ALREADY_LOCKED
-		_, err = orderLockRepo.LockOrder(ctx, rolePrincipal, orderA.ID, 1, "idem-lock-different-key", audit)
+		_, err = orderLockRepo.LockOrder(ctx, rolePrincipal, orderA.ID, 1, "idem-lock-different-key", lockTestReviewInput(t, data, ctx, orderA.ID), audit)
 		if err == nil {
 			t.Fatal("期望不同键锁定已锁订单返回错误，但成功了")
 		}
@@ -819,8 +856,8 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 			t.Errorf("元数据中缺少正确的 lock_generation: %v", kErr.Metadata)
 		}
 		feeErr := orderFeeRepo.Remove(ctx, org.ID, orderA.ID, uuid.New(), roleUser.ID, 1, "locked-remove", nil)
-		if kErr := errors.FromError(feeErr); kErr == nil || kErr.Reason != "ORDER_BUSINESS_LOCKED" {
-			t.Fatalf("SE 订单费用写错误 = %v，期望 ORDER_BUSINESS_LOCKED", feeErr)
+		if kErr := errors.FromError(feeErr); kErr == nil || kErr.Reason != "ORDER_ALREADY_LOCKED" {
+			t.Fatalf("SE 订单费用写错误 = %v，期望 ORDER_ALREADY_LOCKED", feeErr)
 		}
 	})
 
@@ -1128,7 +1165,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 	t.Run("超管紧急解锁代数2订单", func(t *testing.T) {
 		// 重新锁定订单（当前版本 4，锁定后代数 2，版本 5）
 		audit := &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success", Details: map[string]string{}}
-		lockRes, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderA.ID, 4, "idem-lock-key-2", audit)
+		lockRes, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderA.ID, 4, "idem-lock-key-2", lockTestReviewInput(t, data, ctx, orderA.ID), audit)
 		if err != nil {
 			t.Fatalf("第二周期锁定失败: %v", err)
 		}
@@ -1168,7 +1205,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 	t.Run("普通用户申请解锁生成审批中请求并快照候选人与后台任务", func(t *testing.T) {
 		// 重新锁定订单（当前版本 6，锁定后代数 3，版本 7）
 		audit := &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success", Details: map[string]string{}}
-		lockRes, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderA.ID, 6, "idem-lock-key-3", audit)
+		lockRes, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderA.ID, 6, "idem-lock-key-3", lockTestReviewInput(t, data, ctx, orderA.ID), audit)
 		if err != nil {
 			t.Fatalf("第三周期锁定失败: %v", err)
 		}
@@ -1256,7 +1293,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		linkMBL(orderC.ID, mbl.ID, seamasterbillorderlinkent.DocumentStructureDIRECT)
 
 		audit := &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success", Details: map[string]string{}}
-		lockRes, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderC.ID, 1, "idem-direct-lock-1", audit)
+		lockRes, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderC.ID, 1, "idem-direct-lock-1", lockTestReviewInput(t, data, ctx, orderC.ID), audit)
 		if err != nil {
 			t.Fatalf("DIRECT 零 HBL 锁定失败: %v", err)
 		}
@@ -1279,7 +1316,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		linkMBL(orderC2.ID, mbl.ID, seamasterbillorderlinkent.DocumentStructureDIRECT)
 		createHBL(orderC2.ID, mbl.ID, "HBL-INVALID-DIRECT-"+suffix)
 
-		_, err = orderLockRepo.LockOrder(ctx, rolePrincipal, orderC2.ID, 1, "idem-direct-invalid-lock", audit)
+		_, err = orderLockRepo.LockOrder(ctx, rolePrincipal, orderC2.ID, 1, "idem-direct-invalid-lock", lockTestReviewInput(t, data, ctx, orderC2.ID), audit)
 		if err == nil {
 			t.Fatal("DIRECT 单证结构含有 HBL 应被拦截，但成功了")
 		}
@@ -1334,7 +1371,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		hblD := createHBL(orderD.ID, mblD.ID, "HBL-D-"+suffix)
 
 		auditD := &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success", Details: map[string]string{}}
-		lockDRes, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderD.ID, 1, "idem-order-d-lock-1", auditD)
+		lockDRes, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderD.ID, 1, "idem-order-d-lock-1", lockTestReviewInput(t, data, ctx, orderD.ID), auditD)
 		if err != nil {
 			t.Fatalf("锁定 Order D 失败: %v", err)
 		}
@@ -1357,7 +1394,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 			t.Fatalf("更新 MBL 内容失败: %v", err)
 		}
 
-		lockDRes2, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderD.ID, 3, "idem-order-d-lock-2", auditD)
+		lockDRes2, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderD.ID, 3, "idem-order-d-lock-2", lockTestReviewInput(t, data, ctx, orderD.ID), auditD)
 		if err != nil {
 			t.Fatalf("再次锁定 Order D 失败: %v", err)
 		}
@@ -1441,7 +1478,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			audit := &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success", Details: map[string]string{}}
-			_, lockErr = orderLockRepo.LockOrder(ctx, rolePrincipal, orderE.ID, 1, "idem-concurrent-lock-1", audit)
+			_, lockErr = orderLockRepo.LockOrder(ctx, rolePrincipal, orderE.ID, 1, "idem-concurrent-lock-1", lockTestReviewInput(t, data, ctx, orderE.ID), audit)
 		}()
 
 		wg.Wait()
@@ -1475,13 +1512,13 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		go func() {
 			defer wgLock.Done()
 			audit := &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success", Details: map[string]string{}}
-			_, lockErr1 = orderLockRepo.LockOrder(ctx, rolePrincipal, orderF.ID, 1, "race-lock-key-1", audit)
+			_, lockErr1 = orderLockRepo.LockOrder(ctx, rolePrincipal, orderF.ID, 1, "race-lock-key-1", lockTestReviewInput(t, data, ctx, orderF.ID), audit)
 		}()
 
 		go func() {
 			defer wgLock.Done()
 			audit := &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success", Details: map[string]string{}}
-			_, lockErr2 = orderLockRepo.LockOrder(ctx, rolePrincipal, orderF.ID, 1, "race-lock-key-2", audit)
+			_, lockErr2 = orderLockRepo.LockOrder(ctx, rolePrincipal, orderF.ID, 1, "race-lock-key-2", lockTestReviewInput(t, data, ctx, orderF.ID), audit)
 		}()
 
 		wgLock.Wait()
@@ -1564,12 +1601,12 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		go func() {
 			defer lockWG.Done()
 			<-startLock
-			lockResult1, lockErr1 = orderLockRepo.LockOrder(ctx, rolePrincipal, orderG.ID, 1, "same-key-lock-race", &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success"})
+			lockResult1, lockErr1 = orderLockRepo.LockOrder(ctx, rolePrincipal, orderG.ID, 1, "same-key-lock-race", lockTestReviewInput(t, data, ctx, orderG.ID), &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success"})
 		}()
 		go func() {
 			defer lockWG.Done()
 			<-startLock
-			lockResult2, lockErr2 = orderLockRepo.LockOrder(ctx, rolePrincipal, orderG.ID, 1, "same-key-lock-race", &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success"})
+			lockResult2, lockErr2 = orderLockRepo.LockOrder(ctx, rolePrincipal, orderG.ID, 1, "same-key-lock-race", lockTestReviewInput(t, data, ctx, orderG.ID), &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success"})
 		}()
 		close(startLock)
 		lockWG.Wait()
@@ -1633,12 +1670,12 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			<-start
-			_, errI = orderLockRepo.LockOrder(ctx, rolePrincipal, orderI.ID, 1, "cross-order-same-key", &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success"})
+			_, errI = orderLockRepo.LockOrder(ctx, rolePrincipal, orderI.ID, 1, "cross-order-same-key", lockTestReviewInput(t, data, ctx, orderI.ID), &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success"})
 		}()
 		go func() {
 			defer wg.Done()
 			<-start
-			_, errJ = orderLockRepo.LockOrder(ctx, rolePrincipal, orderJ.ID, 1, "cross-order-same-key", &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success"})
+			_, errJ = orderLockRepo.LockOrder(ctx, rolePrincipal, orderJ.ID, 1, "cross-order-same-key", lockTestReviewInput(t, data, ctx, orderJ.ID), &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success"})
 		}()
 		close(start)
 		wg.Wait()
@@ -1675,7 +1712,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 			UserID:         &roleUser.ID,
 			Result:         "success",
 		}
-		_, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderH.ID, 1, "failing-audit-lock", failingAudit)
+		_, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderH.ID, 1, "failing-audit-lock", lockTestReviewInput(t, data, ctx, orderH.ID), failingAudit)
 		if err == nil {
 			t.Fatal("期望审计超长导致锁定失败，但成功了")
 		}
@@ -1695,7 +1732,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 
 		// 2. 直解过程中审计失败回滚
 		auditOK := &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success", Details: map[string]string{}}
-		_, err = orderLockRepo.LockOrder(ctx, rolePrincipal, orderH.ID, 1, "valid-lock-order-h", auditOK)
+		_, err = orderLockRepo.LockOrder(ctx, rolePrincipal, orderH.ID, 1, "valid-lock-order-h", lockTestReviewInput(t, data, ctx, orderH.ID), auditOK)
 		if err != nil {
 			t.Fatalf("正常锁定 Order H 失败: %v", err)
 		}
@@ -1727,7 +1764,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		orderK := createSEOrder("SE-" + suffix + "-K")
 		linkMBL(orderK.ID, mbl.ID, seamasterbillorderlinkent.DocumentStructureHOUSE)
 		createHBL(orderK.ID, mbl.ID, "HBL-DINGTALK-"+suffix)
-		if _, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderK.ID, 1, "ding-lock", &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success"}); err != nil {
+		if _, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderK.ID, 1, "ding-lock", lockTestReviewInput(t, data, ctx, orderK.ID), &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success"}); err != nil {
 			t.Fatalf("准备钉钉审批锁定订单失败: %v", err)
 		}
 		reason := "钉钉审批解锁"
@@ -1813,7 +1850,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		}
 
 		// 新建第二锁定代次和独立待审批请求，再模拟类型漂移；已批准的第一代历史保持不变。
-		if _, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderK.ID, 3, "ding-type-lock", &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success"}); err != nil {
+		if _, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderK.ID, 3, "ding-type-lock", lockTestReviewInput(t, data, ctx, orderK.ID), &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success"}); err != nil {
 			t.Fatalf("准备类型漂移锁定代次失败: %v", err)
 		}
 		typeResult, err := orderLockRepo.RequestOrderUnlock(ctx, normalPrincipal, orderK.ID, 4, "ding-type-unlock", nil, &biz.AuditEvent{Action: "order.unlock.request", OrganizationID: &org.ID, UserID: &normalUser.ID, Result: "success"})
@@ -1871,7 +1908,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		orderL := createSEOrder("SE-" + suffix + "-L")
 		linkMBL(orderL.ID, mbl.ID, seamasterbillorderlinkent.DocumentStructureHOUSE)
 		createHBL(orderL.ID, mbl.ID, "HBL-DINGTALK-REJECT-"+suffix)
-		if _, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderL.ID, 1, "ding-reject-lock", &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success"}); err != nil {
+		if _, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderL.ID, 1, "ding-reject-lock", lockTestReviewInput(t, data, ctx, orderL.ID), &biz.AuditEvent{Action: "order.lock", OrganizationID: &org.ID, UserID: &roleUser.ID, Result: "success"}); err != nil {
 			t.Fatal(err)
 		}
 		result, err := orderLockRepo.RequestOrderUnlock(ctx, normalPrincipal, orderL.ID, 2, "ding-reject-unlock", nil, &biz.AuditEvent{Action: "order.unlock.request", OrganizationID: &org.ID, UserID: &normalUser.ID, Result: "success"})
@@ -1925,7 +1962,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		orderM := createSEOrder("SE-" + suffix + "-M")
 		linkMBL(orderM.ID, mbl.ID, seamasterbillorderlinkent.DocumentStructureHOUSE)
 		createHBL(orderM.ID, mbl.ID, "HBL-DINGTALK-STALE-"+suffix)
-		if _, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderM.ID, 1, "ding-stale-lock", nil); err != nil {
+		if _, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderM.ID, 1, "ding-stale-lock", lockTestReviewInput(t, data, ctx, orderM.ID), nil); err != nil {
 			t.Fatal(err)
 		}
 		result, err := orderLockRepo.RequestOrderUnlock(ctx, normalPrincipal, orderM.ID, 2, "ding-stale-unlock", nil, nil)
@@ -1986,7 +2023,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		orderN := createSEOrder("SE-" + suffix + "-N")
 		linkMBL(orderN.ID, mbl.ID, seamasterbillorderlinkent.DocumentStructureHOUSE)
 		createHBL(orderN.ID, mbl.ID, "HBL-DINGTALK-RACE-"+suffix)
-		if _, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderN.ID, 1, "ding-race-lock", nil); err != nil {
+		if _, err := orderLockRepo.LockOrder(ctx, rolePrincipal, orderN.ID, 1, "ding-race-lock", lockTestReviewInput(t, data, ctx, orderN.ID), nil); err != nil {
 			t.Fatal(err)
 		}
 		pending, err := orderLockRepo.RequestOrderUnlock(ctx, normalPrincipal, orderN.ID, 2, "ding-race-pending", nil, nil)
@@ -2126,4 +2163,18 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 			t.Fatal(err)
 		}
 	})
+}
+
+// 旧锁单场景沿用真实当前费用快照，不能用占位指纹绕过新审核并发检查。
+func lockTestReviewInput(t *testing.T, d *Data, ctx context.Context, orderID uuid.UUID) biz.OrderLockReviewInput {
+	t.Helper()
+	o, err := d.db.Order.Get(ctx, orderID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, fingerprint, err := loadFeeReviewSnapshot(ctx, d.db, orderID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return biz.OrderLockReviewInput{ExpectedFeeContentVersion: o.FeeContentVersion, FeeContentFingerprint: fingerprint, Comment: "集成验证：已核对订单与费用"}
 }

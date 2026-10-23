@@ -100719,6 +100719,8 @@ type OrderFeeCorrectionRequestMutation struct {
 	after_snapshot                           *json.RawMessage
 	appendafter_snapshot                     json.RawMessage
 	approved_fee_review_event_id             *uuid.UUID
+	lock_generation                          *uint64
+	addlock_generation                       *int64
 	approved_fee_content_version             *uint64
 	addapproved_fee_content_version          *int64
 	approved_fee_review_version              *uint64
@@ -100736,6 +100738,8 @@ type OrderFeeCorrectionRequestMutation struct {
 	decision_reason                          *string
 	approval_token                           *string
 	clearedFields                            map[string]struct{}
+	lock_record                              *uuid.UUID
+	clearedlock_record                       bool
 	organization                             *uuid.UUID
 	clearedorganization                      bool
 	_order                                   *uuid.UUID
@@ -101316,7 +101320,7 @@ func (m *OrderFeeCorrectionRequestMutation) ApprovedFeeReviewEventID() (r uuid.U
 // OldApprovedFeeReviewEventID returns the old "approved_fee_review_event_id" field's value of the OrderFeeCorrectionRequest entity.
 // If the OrderFeeCorrectionRequest object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderFeeCorrectionRequestMutation) OldApprovedFeeReviewEventID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *OrderFeeCorrectionRequestMutation) OldApprovedFeeReviewEventID(ctx context.Context) (v *uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldApprovedFeeReviewEventID is only allowed on UpdateOne operations")
 	}
@@ -101330,9 +101334,141 @@ func (m *OrderFeeCorrectionRequestMutation) OldApprovedFeeReviewEventID(ctx cont
 	return oldValue.ApprovedFeeReviewEventID, nil
 }
 
+// ClearApprovedFeeReviewEventID clears the value of the "approved_fee_review_event_id" field.
+func (m *OrderFeeCorrectionRequestMutation) ClearApprovedFeeReviewEventID() {
+	m.approved_fee_review_event_id = nil
+	m.clearedFields[orderfeecorrectionrequest.FieldApprovedFeeReviewEventID] = struct{}{}
+}
+
+// ApprovedFeeReviewEventIDCleared returns if the "approved_fee_review_event_id" field was cleared in this mutation.
+func (m *OrderFeeCorrectionRequestMutation) ApprovedFeeReviewEventIDCleared() bool {
+	_, ok := m.clearedFields[orderfeecorrectionrequest.FieldApprovedFeeReviewEventID]
+	return ok
+}
+
 // ResetApprovedFeeReviewEventID resets all changes to the "approved_fee_review_event_id" field.
 func (m *OrderFeeCorrectionRequestMutation) ResetApprovedFeeReviewEventID() {
 	m.approved_fee_review_event_id = nil
+	delete(m.clearedFields, orderfeecorrectionrequest.FieldApprovedFeeReviewEventID)
+}
+
+// SetLockRecordID sets the "lock_record_id" field.
+func (m *OrderFeeCorrectionRequestMutation) SetLockRecordID(u uuid.UUID) {
+	m.lock_record = &u
+}
+
+// LockRecordID returns the value of the "lock_record_id" field in the mutation.
+func (m *OrderFeeCorrectionRequestMutation) LockRecordID() (r uuid.UUID, exists bool) {
+	v := m.lock_record
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLockRecordID returns the old "lock_record_id" field's value of the OrderFeeCorrectionRequest entity.
+// If the OrderFeeCorrectionRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeCorrectionRequestMutation) OldLockRecordID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLockRecordID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLockRecordID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLockRecordID: %w", err)
+	}
+	return oldValue.LockRecordID, nil
+}
+
+// ClearLockRecordID clears the value of the "lock_record_id" field.
+func (m *OrderFeeCorrectionRequestMutation) ClearLockRecordID() {
+	m.lock_record = nil
+	m.clearedFields[orderfeecorrectionrequest.FieldLockRecordID] = struct{}{}
+}
+
+// LockRecordIDCleared returns if the "lock_record_id" field was cleared in this mutation.
+func (m *OrderFeeCorrectionRequestMutation) LockRecordIDCleared() bool {
+	_, ok := m.clearedFields[orderfeecorrectionrequest.FieldLockRecordID]
+	return ok
+}
+
+// ResetLockRecordID resets all changes to the "lock_record_id" field.
+func (m *OrderFeeCorrectionRequestMutation) ResetLockRecordID() {
+	m.lock_record = nil
+	delete(m.clearedFields, orderfeecorrectionrequest.FieldLockRecordID)
+}
+
+// SetLockGeneration sets the "lock_generation" field.
+func (m *OrderFeeCorrectionRequestMutation) SetLockGeneration(u uint64) {
+	m.lock_generation = &u
+	m.addlock_generation = nil
+}
+
+// LockGeneration returns the value of the "lock_generation" field in the mutation.
+func (m *OrderFeeCorrectionRequestMutation) LockGeneration() (r uint64, exists bool) {
+	v := m.lock_generation
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLockGeneration returns the old "lock_generation" field's value of the OrderFeeCorrectionRequest entity.
+// If the OrderFeeCorrectionRequest object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeCorrectionRequestMutation) OldLockGeneration(ctx context.Context) (v *uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLockGeneration is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLockGeneration requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLockGeneration: %w", err)
+	}
+	return oldValue.LockGeneration, nil
+}
+
+// AddLockGeneration adds u to the "lock_generation" field.
+func (m *OrderFeeCorrectionRequestMutation) AddLockGeneration(u int64) {
+	if m.addlock_generation != nil {
+		*m.addlock_generation += u
+	} else {
+		m.addlock_generation = &u
+	}
+}
+
+// AddedLockGeneration returns the value that was added to the "lock_generation" field in this mutation.
+func (m *OrderFeeCorrectionRequestMutation) AddedLockGeneration() (r int64, exists bool) {
+	v := m.addlock_generation
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearLockGeneration clears the value of the "lock_generation" field.
+func (m *OrderFeeCorrectionRequestMutation) ClearLockGeneration() {
+	m.lock_generation = nil
+	m.addlock_generation = nil
+	m.clearedFields[orderfeecorrectionrequest.FieldLockGeneration] = struct{}{}
+}
+
+// LockGenerationCleared returns if the "lock_generation" field was cleared in this mutation.
+func (m *OrderFeeCorrectionRequestMutation) LockGenerationCleared() bool {
+	_, ok := m.clearedFields[orderfeecorrectionrequest.FieldLockGeneration]
+	return ok
+}
+
+// ResetLockGeneration resets all changes to the "lock_generation" field.
+func (m *OrderFeeCorrectionRequestMutation) ResetLockGeneration() {
+	m.lock_generation = nil
+	m.addlock_generation = nil
+	delete(m.clearedFields, orderfeecorrectionrequest.FieldLockGeneration)
 }
 
 // SetApprovedFeeContentVersion sets the "approved_fee_content_version" field.
@@ -101980,6 +102116,33 @@ func (m *OrderFeeCorrectionRequestMutation) ResetApprovalToken() {
 	delete(m.clearedFields, orderfeecorrectionrequest.FieldApprovalToken)
 }
 
+// ClearLockRecord clears the "lock_record" edge to the OrderLockRecord entity.
+func (m *OrderFeeCorrectionRequestMutation) ClearLockRecord() {
+	m.clearedlock_record = true
+	m.clearedFields[orderfeecorrectionrequest.FieldLockRecordID] = struct{}{}
+}
+
+// LockRecordCleared reports if the "lock_record" edge to the OrderLockRecord entity was cleared.
+func (m *OrderFeeCorrectionRequestMutation) LockRecordCleared() bool {
+	return m.LockRecordIDCleared() || m.clearedlock_record
+}
+
+// LockRecordIDs returns the "lock_record" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// LockRecordID instead. It exists only for internal usage by the builders.
+func (m *OrderFeeCorrectionRequestMutation) LockRecordIDs() (ids []uuid.UUID) {
+	if id := m.lock_record; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetLockRecord resets all changes to the "lock_record" edge.
+func (m *OrderFeeCorrectionRequestMutation) ResetLockRecord() {
+	m.lock_record = nil
+	m.clearedlock_record = false
+}
+
 // ClearOrganization clears the "organization" edge to the Organization entity.
 func (m *OrderFeeCorrectionRequestMutation) ClearOrganization() {
 	m.clearedorganization = true
@@ -102445,7 +102608,7 @@ func (m *OrderFeeCorrectionRequestMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderFeeCorrectionRequestMutation) Fields() []string {
-	fields := make([]string, 0, 24)
+	fields := make([]string, 0, 26)
 	if m.created_at != nil {
 		fields = append(fields, orderfeecorrectionrequest.FieldCreatedAt)
 	}
@@ -102475,6 +102638,12 @@ func (m *OrderFeeCorrectionRequestMutation) Fields() []string {
 	}
 	if m.approved_fee_review_event_id != nil {
 		fields = append(fields, orderfeecorrectionrequest.FieldApprovedFeeReviewEventID)
+	}
+	if m.lock_record != nil {
+		fields = append(fields, orderfeecorrectionrequest.FieldLockRecordID)
+	}
+	if m.lock_generation != nil {
+		fields = append(fields, orderfeecorrectionrequest.FieldLockGeneration)
 	}
 	if m.approved_fee_content_version != nil {
 		fields = append(fields, orderfeecorrectionrequest.FieldApprovedFeeContentVersion)
@@ -102546,6 +102715,10 @@ func (m *OrderFeeCorrectionRequestMutation) Field(name string) (ent.Value, bool)
 		return m.AfterSnapshot()
 	case orderfeecorrectionrequest.FieldApprovedFeeReviewEventID:
 		return m.ApprovedFeeReviewEventID()
+	case orderfeecorrectionrequest.FieldLockRecordID:
+		return m.LockRecordID()
+	case orderfeecorrectionrequest.FieldLockGeneration:
+		return m.LockGeneration()
 	case orderfeecorrectionrequest.FieldApprovedFeeContentVersion:
 		return m.ApprovedFeeContentVersion()
 	case orderfeecorrectionrequest.FieldApprovedFeeReviewVersion:
@@ -102603,6 +102776,10 @@ func (m *OrderFeeCorrectionRequestMutation) OldField(ctx context.Context, name s
 		return m.OldAfterSnapshot(ctx)
 	case orderfeecorrectionrequest.FieldApprovedFeeReviewEventID:
 		return m.OldApprovedFeeReviewEventID(ctx)
+	case orderfeecorrectionrequest.FieldLockRecordID:
+		return m.OldLockRecordID(ctx)
+	case orderfeecorrectionrequest.FieldLockGeneration:
+		return m.OldLockGeneration(ctx)
 	case orderfeecorrectionrequest.FieldApprovedFeeContentVersion:
 		return m.OldApprovedFeeContentVersion(ctx)
 	case orderfeecorrectionrequest.FieldApprovedFeeReviewVersion:
@@ -102709,6 +102886,20 @@ func (m *OrderFeeCorrectionRequestMutation) SetField(name string, value ent.Valu
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetApprovedFeeReviewEventID(v)
+		return nil
+	case orderfeecorrectionrequest.FieldLockRecordID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLockRecordID(v)
+		return nil
+	case orderfeecorrectionrequest.FieldLockGeneration:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLockGeneration(v)
 		return nil
 	case orderfeecorrectionrequest.FieldApprovedFeeContentVersion:
 		v, ok := value.(uint64)
@@ -102819,6 +103010,9 @@ func (m *OrderFeeCorrectionRequestMutation) AddedFields() []string {
 	if m.addsource_fee_version != nil {
 		fields = append(fields, orderfeecorrectionrequest.FieldSourceFeeVersion)
 	}
+	if m.addlock_generation != nil {
+		fields = append(fields, orderfeecorrectionrequest.FieldLockGeneration)
+	}
 	if m.addapproved_fee_content_version != nil {
 		fields = append(fields, orderfeecorrectionrequest.FieldApprovedFeeContentVersion)
 	}
@@ -102838,6 +103032,8 @@ func (m *OrderFeeCorrectionRequestMutation) AddedField(name string) (ent.Value, 
 	switch name {
 	case orderfeecorrectionrequest.FieldSourceFeeVersion:
 		return m.AddedSourceFeeVersion()
+	case orderfeecorrectionrequest.FieldLockGeneration:
+		return m.AddedLockGeneration()
 	case orderfeecorrectionrequest.FieldApprovedFeeContentVersion:
 		return m.AddedApprovedFeeContentVersion()
 	case orderfeecorrectionrequest.FieldApprovedFeeReviewVersion:
@@ -102859,6 +103055,13 @@ func (m *OrderFeeCorrectionRequestMutation) AddField(name string, value ent.Valu
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddSourceFeeVersion(v)
+		return nil
+	case orderfeecorrectionrequest.FieldLockGeneration:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLockGeneration(v)
 		return nil
 	case orderfeecorrectionrequest.FieldApprovedFeeContentVersion:
 		v, ok := value.(int64)
@@ -102901,6 +103104,15 @@ func (m *OrderFeeCorrectionRequestMutation) ClearedFields() []string {
 	if m.FieldCleared(orderfeecorrectionrequest.FieldAfterSnapshot) {
 		fields = append(fields, orderfeecorrectionrequest.FieldAfterSnapshot)
 	}
+	if m.FieldCleared(orderfeecorrectionrequest.FieldApprovedFeeReviewEventID) {
+		fields = append(fields, orderfeecorrectionrequest.FieldApprovedFeeReviewEventID)
+	}
+	if m.FieldCleared(orderfeecorrectionrequest.FieldLockRecordID) {
+		fields = append(fields, orderfeecorrectionrequest.FieldLockRecordID)
+	}
+	if m.FieldCleared(orderfeecorrectionrequest.FieldLockGeneration) {
+		fields = append(fields, orderfeecorrectionrequest.FieldLockGeneration)
+	}
 	if m.FieldCleared(orderfeecorrectionrequest.FieldApprovalResultSnapshot) {
 		fields = append(fields, orderfeecorrectionrequest.FieldApprovalResultSnapshot)
 	}
@@ -102941,6 +103153,15 @@ func (m *OrderFeeCorrectionRequestMutation) ClearField(name string) error {
 		return nil
 	case orderfeecorrectionrequest.FieldAfterSnapshot:
 		m.ClearAfterSnapshot()
+		return nil
+	case orderfeecorrectionrequest.FieldApprovedFeeReviewEventID:
+		m.ClearApprovedFeeReviewEventID()
+		return nil
+	case orderfeecorrectionrequest.FieldLockRecordID:
+		m.ClearLockRecordID()
+		return nil
+	case orderfeecorrectionrequest.FieldLockGeneration:
+		m.ClearLockGeneration()
 		return nil
 	case orderfeecorrectionrequest.FieldApprovalResultSnapshot:
 		m.ClearApprovalResultSnapshot()
@@ -102995,6 +103216,12 @@ func (m *OrderFeeCorrectionRequestMutation) ResetField(name string) error {
 	case orderfeecorrectionrequest.FieldApprovedFeeReviewEventID:
 		m.ResetApprovedFeeReviewEventID()
 		return nil
+	case orderfeecorrectionrequest.FieldLockRecordID:
+		m.ResetLockRecordID()
+		return nil
+	case orderfeecorrectionrequest.FieldLockGeneration:
+		m.ResetLockGeneration()
+		return nil
 	case orderfeecorrectionrequest.FieldApprovedFeeContentVersion:
 		m.ResetApprovedFeeContentVersion()
 		return nil
@@ -103043,7 +103270,10 @@ func (m *OrderFeeCorrectionRequestMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderFeeCorrectionRequestMutation) AddedEdges() []string {
-	edges := make([]string, 0, 10)
+	edges := make([]string, 0, 11)
+	if m.lock_record != nil {
+		edges = append(edges, orderfeecorrectionrequest.EdgeLockRecord)
+	}
 	if m.organization != nil {
 		edges = append(edges, orderfeecorrectionrequest.EdgeOrganization)
 	}
@@ -103081,6 +103311,10 @@ func (m *OrderFeeCorrectionRequestMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *OrderFeeCorrectionRequestMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case orderfeecorrectionrequest.EdgeLockRecord:
+		if id := m.lock_record; id != nil {
+			return []ent.Value{*id}
+		}
 	case orderfeecorrectionrequest.EdgeOrganization:
 		if id := m.organization; id != nil {
 			return []ent.Value{*id}
@@ -103137,7 +103371,7 @@ func (m *OrderFeeCorrectionRequestMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderFeeCorrectionRequestMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 10)
+	edges := make([]string, 0, 11)
 	if m.removednettings != nil {
 		edges = append(edges, orderfeecorrectionrequest.EdgeNettings)
 	}
@@ -103196,7 +103430,10 @@ func (m *OrderFeeCorrectionRequestMutation) RemovedIDs(name string) []ent.Value 
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderFeeCorrectionRequestMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 10)
+	edges := make([]string, 0, 11)
+	if m.clearedlock_record {
+		edges = append(edges, orderfeecorrectionrequest.EdgeLockRecord)
+	}
 	if m.clearedorganization {
 		edges = append(edges, orderfeecorrectionrequest.EdgeOrganization)
 	}
@@ -103234,6 +103471,8 @@ func (m *OrderFeeCorrectionRequestMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *OrderFeeCorrectionRequestMutation) EdgeCleared(name string) bool {
 	switch name {
+	case orderfeecorrectionrequest.EdgeLockRecord:
+		return m.clearedlock_record
 	case orderfeecorrectionrequest.EdgeOrganization:
 		return m.clearedorganization
 	case orderfeecorrectionrequest.EdgeOrder:
@@ -103262,6 +103501,9 @@ func (m *OrderFeeCorrectionRequestMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *OrderFeeCorrectionRequestMutation) ClearEdge(name string) error {
 	switch name {
+	case orderfeecorrectionrequest.EdgeLockRecord:
+		m.ClearLockRecord()
+		return nil
 	case orderfeecorrectionrequest.EdgeOrganization:
 		m.ClearOrganization()
 		return nil
@@ -103285,6 +103527,9 @@ func (m *OrderFeeCorrectionRequestMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *OrderFeeCorrectionRequestMutation) ResetEdge(name string) error {
 	switch name {
+	case orderfeecorrectionrequest.EdgeLockRecord:
+		m.ResetLockRecord()
+		return nil
 	case orderfeecorrectionrequest.EdgeOrganization:
 		m.ResetOrganization()
 		return nil
@@ -110713,6 +110958,12 @@ type OrderLockRecordMutation struct {
 	locked_at                          *time.Time
 	order_version_at_lock              *uint64
 	addorder_version_at_lock           *int64
+	fee_snapshot                       *json.RawMessage
+	appendfee_snapshot                 json.RawMessage
+	fee_content_version                *uint64
+	addfee_content_version             *int64
+	fee_content_fingerprint            *string
+	review_comment                     *string
 	trigger_type                       *orderlockrecord.TriggerType
 	trigger_resource_id                *uuid.UUID
 	air_document_snapshot              *map[string]string
@@ -110745,6 +110996,9 @@ type OrderLockRecordMutation struct {
 	unlock_requests                    map[uuid.UUID]struct{}
 	removedunlock_requests             map[uuid.UUID]struct{}
 	clearedunlock_requests             bool
+	fee_correction_requests            map[uuid.UUID]struct{}
+	removedfee_correction_requests     map[uuid.UUID]struct{}
+	clearedfee_correction_requests     bool
 	applied_unlock_request             *uuid.UUID
 	clearedapplied_unlock_request      bool
 	house_bill_snapshots               map[uuid.UUID]struct{}
@@ -111270,6 +111524,239 @@ func (m *OrderLockRecordMutation) AddedOrderVersionAtLock() (r int64, exists boo
 func (m *OrderLockRecordMutation) ResetOrderVersionAtLock() {
 	m.order_version_at_lock = nil
 	m.addorder_version_at_lock = nil
+}
+
+// SetFeeSnapshot sets the "fee_snapshot" field.
+func (m *OrderLockRecordMutation) SetFeeSnapshot(jm json.RawMessage) {
+	m.fee_snapshot = &jm
+	m.appendfee_snapshot = nil
+}
+
+// FeeSnapshot returns the value of the "fee_snapshot" field in the mutation.
+func (m *OrderLockRecordMutation) FeeSnapshot() (r json.RawMessage, exists bool) {
+	v := m.fee_snapshot
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeeSnapshot returns the old "fee_snapshot" field's value of the OrderLockRecord entity.
+// If the OrderLockRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderLockRecordMutation) OldFeeSnapshot(ctx context.Context) (v json.RawMessage, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeeSnapshot is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeeSnapshot requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeeSnapshot: %w", err)
+	}
+	return oldValue.FeeSnapshot, nil
+}
+
+// AppendFeeSnapshot adds jm to the "fee_snapshot" field.
+func (m *OrderLockRecordMutation) AppendFeeSnapshot(jm json.RawMessage) {
+	m.appendfee_snapshot = append(m.appendfee_snapshot, jm...)
+}
+
+// AppendedFeeSnapshot returns the list of values that were appended to the "fee_snapshot" field in this mutation.
+func (m *OrderLockRecordMutation) AppendedFeeSnapshot() (json.RawMessage, bool) {
+	if len(m.appendfee_snapshot) == 0 {
+		return nil, false
+	}
+	return m.appendfee_snapshot, true
+}
+
+// ClearFeeSnapshot clears the value of the "fee_snapshot" field.
+func (m *OrderLockRecordMutation) ClearFeeSnapshot() {
+	m.fee_snapshot = nil
+	m.appendfee_snapshot = nil
+	m.clearedFields[orderlockrecord.FieldFeeSnapshot] = struct{}{}
+}
+
+// FeeSnapshotCleared returns if the "fee_snapshot" field was cleared in this mutation.
+func (m *OrderLockRecordMutation) FeeSnapshotCleared() bool {
+	_, ok := m.clearedFields[orderlockrecord.FieldFeeSnapshot]
+	return ok
+}
+
+// ResetFeeSnapshot resets all changes to the "fee_snapshot" field.
+func (m *OrderLockRecordMutation) ResetFeeSnapshot() {
+	m.fee_snapshot = nil
+	m.appendfee_snapshot = nil
+	delete(m.clearedFields, orderlockrecord.FieldFeeSnapshot)
+}
+
+// SetFeeContentVersion sets the "fee_content_version" field.
+func (m *OrderLockRecordMutation) SetFeeContentVersion(u uint64) {
+	m.fee_content_version = &u
+	m.addfee_content_version = nil
+}
+
+// FeeContentVersion returns the value of the "fee_content_version" field in the mutation.
+func (m *OrderLockRecordMutation) FeeContentVersion() (r uint64, exists bool) {
+	v := m.fee_content_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeeContentVersion returns the old "fee_content_version" field's value of the OrderLockRecord entity.
+// If the OrderLockRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderLockRecordMutation) OldFeeContentVersion(ctx context.Context) (v *uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeeContentVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeeContentVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeeContentVersion: %w", err)
+	}
+	return oldValue.FeeContentVersion, nil
+}
+
+// AddFeeContentVersion adds u to the "fee_content_version" field.
+func (m *OrderLockRecordMutation) AddFeeContentVersion(u int64) {
+	if m.addfee_content_version != nil {
+		*m.addfee_content_version += u
+	} else {
+		m.addfee_content_version = &u
+	}
+}
+
+// AddedFeeContentVersion returns the value that was added to the "fee_content_version" field in this mutation.
+func (m *OrderLockRecordMutation) AddedFeeContentVersion() (r int64, exists bool) {
+	v := m.addfee_content_version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearFeeContentVersion clears the value of the "fee_content_version" field.
+func (m *OrderLockRecordMutation) ClearFeeContentVersion() {
+	m.fee_content_version = nil
+	m.addfee_content_version = nil
+	m.clearedFields[orderlockrecord.FieldFeeContentVersion] = struct{}{}
+}
+
+// FeeContentVersionCleared returns if the "fee_content_version" field was cleared in this mutation.
+func (m *OrderLockRecordMutation) FeeContentVersionCleared() bool {
+	_, ok := m.clearedFields[orderlockrecord.FieldFeeContentVersion]
+	return ok
+}
+
+// ResetFeeContentVersion resets all changes to the "fee_content_version" field.
+func (m *OrderLockRecordMutation) ResetFeeContentVersion() {
+	m.fee_content_version = nil
+	m.addfee_content_version = nil
+	delete(m.clearedFields, orderlockrecord.FieldFeeContentVersion)
+}
+
+// SetFeeContentFingerprint sets the "fee_content_fingerprint" field.
+func (m *OrderLockRecordMutation) SetFeeContentFingerprint(s string) {
+	m.fee_content_fingerprint = &s
+}
+
+// FeeContentFingerprint returns the value of the "fee_content_fingerprint" field in the mutation.
+func (m *OrderLockRecordMutation) FeeContentFingerprint() (r string, exists bool) {
+	v := m.fee_content_fingerprint
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFeeContentFingerprint returns the old "fee_content_fingerprint" field's value of the OrderLockRecord entity.
+// If the OrderLockRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderLockRecordMutation) OldFeeContentFingerprint(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFeeContentFingerprint is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFeeContentFingerprint requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFeeContentFingerprint: %w", err)
+	}
+	return oldValue.FeeContentFingerprint, nil
+}
+
+// ClearFeeContentFingerprint clears the value of the "fee_content_fingerprint" field.
+func (m *OrderLockRecordMutation) ClearFeeContentFingerprint() {
+	m.fee_content_fingerprint = nil
+	m.clearedFields[orderlockrecord.FieldFeeContentFingerprint] = struct{}{}
+}
+
+// FeeContentFingerprintCleared returns if the "fee_content_fingerprint" field was cleared in this mutation.
+func (m *OrderLockRecordMutation) FeeContentFingerprintCleared() bool {
+	_, ok := m.clearedFields[orderlockrecord.FieldFeeContentFingerprint]
+	return ok
+}
+
+// ResetFeeContentFingerprint resets all changes to the "fee_content_fingerprint" field.
+func (m *OrderLockRecordMutation) ResetFeeContentFingerprint() {
+	m.fee_content_fingerprint = nil
+	delete(m.clearedFields, orderlockrecord.FieldFeeContentFingerprint)
+}
+
+// SetReviewComment sets the "review_comment" field.
+func (m *OrderLockRecordMutation) SetReviewComment(s string) {
+	m.review_comment = &s
+}
+
+// ReviewComment returns the value of the "review_comment" field in the mutation.
+func (m *OrderLockRecordMutation) ReviewComment() (r string, exists bool) {
+	v := m.review_comment
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReviewComment returns the old "review_comment" field's value of the OrderLockRecord entity.
+// If the OrderLockRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderLockRecordMutation) OldReviewComment(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReviewComment is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReviewComment requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReviewComment: %w", err)
+	}
+	return oldValue.ReviewComment, nil
+}
+
+// ClearReviewComment clears the value of the "review_comment" field.
+func (m *OrderLockRecordMutation) ClearReviewComment() {
+	m.review_comment = nil
+	m.clearedFields[orderlockrecord.FieldReviewComment] = struct{}{}
+}
+
+// ReviewCommentCleared returns if the "review_comment" field was cleared in this mutation.
+func (m *OrderLockRecordMutation) ReviewCommentCleared() bool {
+	_, ok := m.clearedFields[orderlockrecord.FieldReviewComment]
+	return ok
+}
+
+// ResetReviewComment resets all changes to the "review_comment" field.
+func (m *OrderLockRecordMutation) ResetReviewComment() {
+	m.review_comment = nil
+	delete(m.clearedFields, orderlockrecord.FieldReviewComment)
 }
 
 // SetTriggerType sets the "trigger_type" field.
@@ -112387,6 +112874,60 @@ func (m *OrderLockRecordMutation) ResetUnlockRequests() {
 	m.removedunlock_requests = nil
 }
 
+// AddFeeCorrectionRequestIDs adds the "fee_correction_requests" edge to the OrderFeeCorrectionRequest entity by ids.
+func (m *OrderLockRecordMutation) AddFeeCorrectionRequestIDs(ids ...uuid.UUID) {
+	if m.fee_correction_requests == nil {
+		m.fee_correction_requests = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.fee_correction_requests[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFeeCorrectionRequests clears the "fee_correction_requests" edge to the OrderFeeCorrectionRequest entity.
+func (m *OrderLockRecordMutation) ClearFeeCorrectionRequests() {
+	m.clearedfee_correction_requests = true
+}
+
+// FeeCorrectionRequestsCleared reports if the "fee_correction_requests" edge to the OrderFeeCorrectionRequest entity was cleared.
+func (m *OrderLockRecordMutation) FeeCorrectionRequestsCleared() bool {
+	return m.clearedfee_correction_requests
+}
+
+// RemoveFeeCorrectionRequestIDs removes the "fee_correction_requests" edge to the OrderFeeCorrectionRequest entity by IDs.
+func (m *OrderLockRecordMutation) RemoveFeeCorrectionRequestIDs(ids ...uuid.UUID) {
+	if m.removedfee_correction_requests == nil {
+		m.removedfee_correction_requests = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.fee_correction_requests, ids[i])
+		m.removedfee_correction_requests[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFeeCorrectionRequests returns the removed IDs of the "fee_correction_requests" edge to the OrderFeeCorrectionRequest entity.
+func (m *OrderLockRecordMutation) RemovedFeeCorrectionRequestsIDs() (ids []uuid.UUID) {
+	for id := range m.removedfee_correction_requests {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FeeCorrectionRequestsIDs returns the "fee_correction_requests" edge IDs in the mutation.
+func (m *OrderLockRecordMutation) FeeCorrectionRequestsIDs() (ids []uuid.UUID) {
+	for id := range m.fee_correction_requests {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFeeCorrectionRequests resets all changes to the "fee_correction_requests" edge.
+func (m *OrderLockRecordMutation) ResetFeeCorrectionRequests() {
+	m.fee_correction_requests = nil
+	m.clearedfee_correction_requests = false
+	m.removedfee_correction_requests = nil
+}
+
 // SetAppliedUnlockRequestID sets the "applied_unlock_request" edge to the OrderUnlockRequest entity by id.
 func (m *OrderLockRecordMutation) SetAppliedUnlockRequestID(id uuid.UUID) {
 	m.applied_unlock_request = &id
@@ -112515,7 +113056,7 @@ func (m *OrderLockRecordMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderLockRecordMutation) Fields() []string {
-	fields := make([]string, 0, 26)
+	fields := make([]string, 0, 30)
 	if m.created_at != nil {
 		fields = append(fields, orderlockrecord.FieldCreatedAt)
 	}
@@ -112545,6 +113086,18 @@ func (m *OrderLockRecordMutation) Fields() []string {
 	}
 	if m.order_version_at_lock != nil {
 		fields = append(fields, orderlockrecord.FieldOrderVersionAtLock)
+	}
+	if m.fee_snapshot != nil {
+		fields = append(fields, orderlockrecord.FieldFeeSnapshot)
+	}
+	if m.fee_content_version != nil {
+		fields = append(fields, orderlockrecord.FieldFeeContentVersion)
+	}
+	if m.fee_content_fingerprint != nil {
+		fields = append(fields, orderlockrecord.FieldFeeContentFingerprint)
+	}
+	if m.review_comment != nil {
+		fields = append(fields, orderlockrecord.FieldReviewComment)
 	}
 	if m.trigger_type != nil {
 		fields = append(fields, orderlockrecord.FieldTriggerType)
@@ -112622,6 +113175,14 @@ func (m *OrderLockRecordMutation) Field(name string) (ent.Value, bool) {
 		return m.LockedAt()
 	case orderlockrecord.FieldOrderVersionAtLock:
 		return m.OrderVersionAtLock()
+	case orderlockrecord.FieldFeeSnapshot:
+		return m.FeeSnapshot()
+	case orderlockrecord.FieldFeeContentVersion:
+		return m.FeeContentVersion()
+	case orderlockrecord.FieldFeeContentFingerprint:
+		return m.FeeContentFingerprint()
+	case orderlockrecord.FieldReviewComment:
+		return m.ReviewComment()
 	case orderlockrecord.FieldTriggerType:
 		return m.TriggerType()
 	case orderlockrecord.FieldTriggerResourceID:
@@ -112683,6 +113244,14 @@ func (m *OrderLockRecordMutation) OldField(ctx context.Context, name string) (en
 		return m.OldLockedAt(ctx)
 	case orderlockrecord.FieldOrderVersionAtLock:
 		return m.OldOrderVersionAtLock(ctx)
+	case orderlockrecord.FieldFeeSnapshot:
+		return m.OldFeeSnapshot(ctx)
+	case orderlockrecord.FieldFeeContentVersion:
+		return m.OldFeeContentVersion(ctx)
+	case orderlockrecord.FieldFeeContentFingerprint:
+		return m.OldFeeContentFingerprint(ctx)
+	case orderlockrecord.FieldReviewComment:
+		return m.OldReviewComment(ctx)
 	case orderlockrecord.FieldTriggerType:
 		return m.OldTriggerType(ctx)
 	case orderlockrecord.FieldTriggerResourceID:
@@ -112793,6 +113362,34 @@ func (m *OrderLockRecordMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetOrderVersionAtLock(v)
+		return nil
+	case orderlockrecord.FieldFeeSnapshot:
+		v, ok := value.(json.RawMessage)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeeSnapshot(v)
+		return nil
+	case orderlockrecord.FieldFeeContentVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeeContentVersion(v)
+		return nil
+	case orderlockrecord.FieldFeeContentFingerprint:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFeeContentFingerprint(v)
+		return nil
+	case orderlockrecord.FieldReviewComment:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReviewComment(v)
 		return nil
 	case orderlockrecord.FieldTriggerType:
 		v, ok := value.(orderlockrecord.TriggerType)
@@ -112920,6 +113517,9 @@ func (m *OrderLockRecordMutation) AddedFields() []string {
 	if m.addorder_version_at_lock != nil {
 		fields = append(fields, orderlockrecord.FieldOrderVersionAtLock)
 	}
+	if m.addfee_content_version != nil {
+		fields = append(fields, orderlockrecord.FieldFeeContentVersion)
+	}
 	if m.addorder_version_at_unlock != nil {
 		fields = append(fields, orderlockrecord.FieldOrderVersionAtUnlock)
 	}
@@ -112935,6 +113535,8 @@ func (m *OrderLockRecordMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedGeneration()
 	case orderlockrecord.FieldOrderVersionAtLock:
 		return m.AddedOrderVersionAtLock()
+	case orderlockrecord.FieldFeeContentVersion:
+		return m.AddedFeeContentVersion()
 	case orderlockrecord.FieldOrderVersionAtUnlock:
 		return m.AddedOrderVersionAtUnlock()
 	}
@@ -112960,6 +113562,13 @@ func (m *OrderLockRecordMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddOrderVersionAtLock(v)
 		return nil
+	case orderlockrecord.FieldFeeContentVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFeeContentVersion(v)
+		return nil
 	case orderlockrecord.FieldOrderVersionAtUnlock:
 		v, ok := value.(int64)
 		if !ok {
@@ -112977,6 +113586,18 @@ func (m *OrderLockRecordMutation) ClearedFields() []string {
 	var fields []string
 	if m.FieldCleared(orderlockrecord.FieldLockedBy) {
 		fields = append(fields, orderlockrecord.FieldLockedBy)
+	}
+	if m.FieldCleared(orderlockrecord.FieldFeeSnapshot) {
+		fields = append(fields, orderlockrecord.FieldFeeSnapshot)
+	}
+	if m.FieldCleared(orderlockrecord.FieldFeeContentVersion) {
+		fields = append(fields, orderlockrecord.FieldFeeContentVersion)
+	}
+	if m.FieldCleared(orderlockrecord.FieldFeeContentFingerprint) {
+		fields = append(fields, orderlockrecord.FieldFeeContentFingerprint)
+	}
+	if m.FieldCleared(orderlockrecord.FieldReviewComment) {
+		fields = append(fields, orderlockrecord.FieldReviewComment)
 	}
 	if m.FieldCleared(orderlockrecord.FieldTriggerType) {
 		fields = append(fields, orderlockrecord.FieldTriggerType)
@@ -113036,6 +113657,18 @@ func (m *OrderLockRecordMutation) ClearField(name string) error {
 	switch name {
 	case orderlockrecord.FieldLockedBy:
 		m.ClearLockedBy()
+		return nil
+	case orderlockrecord.FieldFeeSnapshot:
+		m.ClearFeeSnapshot()
+		return nil
+	case orderlockrecord.FieldFeeContentVersion:
+		m.ClearFeeContentVersion()
+		return nil
+	case orderlockrecord.FieldFeeContentFingerprint:
+		m.ClearFeeContentFingerprint()
+		return nil
+	case orderlockrecord.FieldReviewComment:
+		m.ClearReviewComment()
 		return nil
 	case orderlockrecord.FieldTriggerType:
 		m.ClearTriggerType()
@@ -113117,6 +113750,18 @@ func (m *OrderLockRecordMutation) ResetField(name string) error {
 	case orderlockrecord.FieldOrderVersionAtLock:
 		m.ResetOrderVersionAtLock()
 		return nil
+	case orderlockrecord.FieldFeeSnapshot:
+		m.ResetFeeSnapshot()
+		return nil
+	case orderlockrecord.FieldFeeContentVersion:
+		m.ResetFeeContentVersion()
+		return nil
+	case orderlockrecord.FieldFeeContentFingerprint:
+		m.ResetFeeContentFingerprint()
+		return nil
+	case orderlockrecord.FieldReviewComment:
+		m.ResetReviewComment()
+		return nil
 	case orderlockrecord.FieldTriggerType:
 		m.ResetTriggerType()
 		return nil
@@ -113171,7 +113816,7 @@ func (m *OrderLockRecordMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderLockRecordMutation) AddedEdges() []string {
-	edges := make([]string, 0, 12)
+	edges := make([]string, 0, 13)
 	if m.organization != nil {
 		edges = append(edges, orderlockrecord.EdgeOrganization)
 	}
@@ -113201,6 +113846,9 @@ func (m *OrderLockRecordMutation) AddedEdges() []string {
 	}
 	if m.unlock_requests != nil {
 		edges = append(edges, orderlockrecord.EdgeUnlockRequests)
+	}
+	if m.fee_correction_requests != nil {
+		edges = append(edges, orderlockrecord.EdgeFeeCorrectionRequests)
 	}
 	if m.applied_unlock_request != nil {
 		edges = append(edges, orderlockrecord.EdgeAppliedUnlockRequest)
@@ -113257,6 +113905,12 @@ func (m *OrderLockRecordMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case orderlockrecord.EdgeFeeCorrectionRequests:
+		ids := make([]ent.Value, 0, len(m.fee_correction_requests))
+		for id := range m.fee_correction_requests {
+			ids = append(ids, id)
+		}
+		return ids
 	case orderlockrecord.EdgeAppliedUnlockRequest:
 		if id := m.applied_unlock_request; id != nil {
 			return []ent.Value{*id}
@@ -113273,9 +113927,12 @@ func (m *OrderLockRecordMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderLockRecordMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 12)
+	edges := make([]string, 0, 13)
 	if m.removedunlock_requests != nil {
 		edges = append(edges, orderlockrecord.EdgeUnlockRequests)
+	}
+	if m.removedfee_correction_requests != nil {
+		edges = append(edges, orderlockrecord.EdgeFeeCorrectionRequests)
 	}
 	if m.removedhouse_bill_snapshots != nil {
 		edges = append(edges, orderlockrecord.EdgeHouseBillSnapshots)
@@ -113293,6 +113950,12 @@ func (m *OrderLockRecordMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case orderlockrecord.EdgeFeeCorrectionRequests:
+		ids := make([]ent.Value, 0, len(m.removedfee_correction_requests))
+		for id := range m.removedfee_correction_requests {
+			ids = append(ids, id)
+		}
+		return ids
 	case orderlockrecord.EdgeHouseBillSnapshots:
 		ids := make([]ent.Value, 0, len(m.removedhouse_bill_snapshots))
 		for id := range m.removedhouse_bill_snapshots {
@@ -113305,7 +113968,7 @@ func (m *OrderLockRecordMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderLockRecordMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 12)
+	edges := make([]string, 0, 13)
 	if m.clearedorganization {
 		edges = append(edges, orderlockrecord.EdgeOrganization)
 	}
@@ -113335,6 +113998,9 @@ func (m *OrderLockRecordMutation) ClearedEdges() []string {
 	}
 	if m.clearedunlock_requests {
 		edges = append(edges, orderlockrecord.EdgeUnlockRequests)
+	}
+	if m.clearedfee_correction_requests {
+		edges = append(edges, orderlockrecord.EdgeFeeCorrectionRequests)
 	}
 	if m.clearedapplied_unlock_request {
 		edges = append(edges, orderlockrecord.EdgeAppliedUnlockRequest)
@@ -113369,6 +114035,8 @@ func (m *OrderLockRecordMutation) EdgeCleared(name string) bool {
 		return m.clearedtransport_execution_version
 	case orderlockrecord.EdgeUnlockRequests:
 		return m.clearedunlock_requests
+	case orderlockrecord.EdgeFeeCorrectionRequests:
+		return m.clearedfee_correction_requests
 	case orderlockrecord.EdgeAppliedUnlockRequest:
 		return m.clearedapplied_unlock_request
 	case orderlockrecord.EdgeHouseBillSnapshots:
@@ -113448,6 +114116,9 @@ func (m *OrderLockRecordMutation) ResetEdge(name string) error {
 		return nil
 	case orderlockrecord.EdgeUnlockRequests:
 		m.ResetUnlockRequests()
+		return nil
+	case orderlockrecord.EdgeFeeCorrectionRequests:
+		m.ResetFeeCorrectionRequests()
 		return nil
 	case orderlockrecord.EdgeAppliedUnlockRequest:
 		m.ResetAppliedUnlockRequest()

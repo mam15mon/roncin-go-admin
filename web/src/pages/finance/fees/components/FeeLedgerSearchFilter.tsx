@@ -6,14 +6,13 @@ import {
 } from '@/components/ui';
 import { FeeLedgerFinancialProgress } from '@/enums.generated';
 import { getCurrencyOptions } from '@/features/master-data/currencies';
-import { feeReviewStatusOptions } from '@/features/orders/fee-review';
 import { searchPartnerOptions } from '@/features/partners';
 
 export type FeeLedgerFilterParams = {
   keyword?: string;
   direction?: string;
   financialProgress?: number;
-  feeReviewStatus?: string;
+  orderLocked?: 'LOCKED' | 'UNLOCKED';
   hasPendingFeeSupplement?: 'yes' | 'no';
   settlementPartyId?: string;
   customerId?: string;
@@ -36,9 +35,6 @@ export type FeeLedgerFilterParams = {
   operatorName?: string;
   vesselName?: string;
   voyageNo?: string;
-
-  // 费用锁定
-  financeLocked?: 'LOCKED' | 'UNLOCKED';
 };
 
 export interface FeeLedgerSearchFilterProps {
@@ -130,11 +126,14 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
     },
 
     {
-      name: 'feeReviewStatus',
-      label: '费用审核',
+      name: 'orderLocked',
+      label: '订单审核',
       type: 'select',
       placeholder: '全部审核状态',
-      options: feeReviewStatusOptions,
+      options: [
+        { label: '未审核', value: 'UNLOCKED' },
+        { label: '已审核锁定', value: 'LOCKED' },
+      ],
     },
     {
       name: 'hasPendingFeeSupplement',
@@ -242,16 +241,6 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
       name: 'shipper',
       label: '发货人',
       placeholder: '输入发货人抬头',
-    },
-    {
-      name: 'financeLocked',
-      label: '提成保护',
-      type: 'select',
-      placeholder: '全部',
-      options: [
-        { label: '存在有效提成', value: 'LOCKED' },
-        { label: '未锁定', value: 'UNLOCKED' },
-      ],
     },
   ];
 

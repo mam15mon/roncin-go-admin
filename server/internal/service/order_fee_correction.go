@@ -22,6 +22,12 @@ func correctionOperationToAPI(value string) v1.OrderFeeCorrectionOperation {
 }
 func correctionRequestToAPI(r *biz.OrderFeeCorrectionRequest) *v1.OrderFeeCorrectionRequestData {
 	out := &v1.OrderFeeCorrectionRequestData{Id: r.ID.String(), OrderId: r.OrderID.String(), OrganizationId: r.OrganizationID.String(), Operation: correctionOperationToAPI(r.Operation), Status: r.Status, Version: r.Version, Reason: r.Reason, RequestedBy: r.RequestedBy.String(), RequestedByName: r.RequestedByName, RequestedAt: r.RequestedAt.UTC().Format(time.RFC3339), DecidedByName: r.DecidedByName, DecisionReason: r.DecisionReason, CanApprove: r.CanApprove, CanWithdraw: r.CanWithdraw, ApproverAvailable: r.CanApprove}
+	if r.LockRecordID != uuid.Nil {
+		id := r.LockRecordID.String()
+		out.LockRecordId = &id
+		generation := r.LockGeneration
+		out.LockGeneration = &generation
+	}
 	if r.SourceFeeID != nil {
 		value := r.SourceFeeID.String()
 		out.SourceFeeId = &value

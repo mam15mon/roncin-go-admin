@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	kratoserrors "github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
@@ -430,7 +429,7 @@ func findFeeLedgerItem(items []*biz.FeeLedgerItem, feeID uuid.UUID) *biz.FeeLedg
 	return nil
 }
 
-func requireFeeLedgerProjection(t *testing.T, scope string, item *biz.FeeLedgerItem, billNo string, progress biz.FeeLedgerFinancialProgress, financeLocked bool) {
+func requireFeeLedgerProjection(t *testing.T, scope string, item *biz.FeeLedgerItem, billNo string, progress biz.FeeLedgerFinancialProgress, orderLocked bool) {
 	t.Helper()
 	if item == nil {
 		t.Fatalf("%s：未找到台账条目", scope)
@@ -441,8 +440,8 @@ func requireFeeLedgerProjection(t *testing.T, scope string, item *biz.FeeLedgerI
 	if item.FinancialProgress != progress {
 		t.Fatalf("%s：financial_progress = %q，期望 %q", scope, item.FinancialProgress, progress)
 	}
-	if item.FinanceLocked != financeLocked {
-		t.Fatalf("%s：finance_locked = %v，期望 %v", scope, item.FinanceLocked, financeLocked)
+	if item.OrderLocked != orderLocked {
+		t.Fatalf("%s：order_locked = %v，期望 %v", scope, item.OrderLocked, orderLocked)
 	}
 }
 
@@ -585,10 +584,10 @@ func TestFeeLedgerNettingSettlementConsistencyPostgres(t *testing.T) {
 			t.Fatal("台账列表或详情没有返回费用")
 		}
 		for _, item := range result.Items {
-			requireFeeLedgerProjection(t, "锁定列表", item, item.BillNo, item.FinancialProgress, true)
+			requireFeeLedgerProjection(t, "锁定列表", item, item.BillNo, item.FinancialProgress, false)
 		}
 		for _, item := range detail.Items {
-			requireFeeLedgerProjection(t, "锁定详情", item, item.BillNo, item.FinancialProgress, true)
+			requireFeeLedgerProjection(t, "锁定详情", item, item.BillNo, item.FinancialProgress, false)
 		}
 	})
 }
@@ -714,122 +713,3 @@ func TestVerificationCreationCandidatesBeyondSettledLimitPostgres(t *testing.T) 
 // TestFeeLedgerCommissionNetLockReleasePostgres 验证 C1 净提成口径：全额冲减后
 // 费用财务锁自动释放（列表投影、筛选谓词与写入拦截三处一致），部分冲减或草稿
 // 调整不释放。
-func TestFeeLedgerCommissionNetLockReleasePostgres(t *testing.T) {
-	data, cleanup := getIntegrationData(t)
-	defer cleanup()
-	ctx := context.Background()
-
-	requireFeeMutationLock := func(t *testing.T, fixture *feeLedgerPostgresFixture, wantLocked bool) {
-		t.Helper()
-		err := data.WithTx(ctx, func(tx *ent.Tx) error {
-			return lockOrderForFeeMutation(ctx, tx, fixture.organizationID, fixture.orderID)
-		})
-		if wantLocked {
-			if kratoserrors.FromError(err).Reason != biz.ErrOrderFeeFinanceLocked.Reason {
-				t.Fatalf("费用写入拦截应返回 ORDER_FEE_FINANCE_LOCKED，实际: %v", err)
-			}
-			return
-		}
-		if err != nil {
-			t.Fatalf("净提成归零后费用写入应放行，实际: %v", err)
-		}
-	}
-
-	listFinanceLocked := func(t *testing.T, repo biz.SettlementRepo, organizationIDs []uuid.UUID, locked bool) int64 {
-		t.Helper()
-		result, err := repo.ListFeeLedger(ctx, organizationIDs, biz.FeeLedgerFilter{Page: 1, PageSize: 200, FinanceLocked: &locked})
-		if err != nil {
-			t.Fatalf("按财务锁状态查询台账失败: %v", err)
-		}
-		return result.Total
-	}
-
-	// 全额冲减释放：CONFIRMED 提成 10 + CONFIRMED 冲减 10 → 净额 0。
-	t.Run("全额冲减释放费用锁且三处口径一致", func(t *testing.T) {
-		fixture := newFeeLedgerPostgresFixture(t, data)
-		repo := NewSettlementRepo(data)
-		organizationIDs := []uuid.UUID{fixture.organizationID}
-		feeID := fixture.createLedgerFee("net-release", "100")
-		standalone := fixture.createActiveVerification("net-release", "10", nil)
-		commission := fixture.createConfirmedCommission("net-release", standalone)
-
-		// 冲减前：列表/详情锁定、筛选命中、写入拒绝。
-		if locked := listFinanceLocked(t, repo, organizationIDs, true); locked == 0 {
-			t.Fatal("确认提成后财务锁筛选应命中费用")
-		}
-		requireFeeMutationLock(t, fixture, true)
-		fixture.createCommissionAdjustment("net-release", commission, financecommissionadjustmentent.DirectionDECREASE, financecommissionadjustmentent.StatusCONFIRMED, "10")
-
-		// 冲减后：列表/详情解锁、筛选不再命中、写入放行。
-		if locked := listFinanceLocked(t, repo, organizationIDs, true); locked != 0 {
-			t.Fatalf("全额冲减后财务锁筛选仍命中 %d 条", locked)
-		}
-		if unlocked := listFinanceLocked(t, repo, organizationIDs, false); unlocked == 0 {
-			t.Fatal("全额冲减后未锁筛选应命中费用")
-		}
-		detail, err := repo.GetFeeLedgerOrderDetail(ctx, organizationIDs, fixture.orderID)
-		if err != nil {
-			t.Fatalf("查询台账订单详情失败: %v", err)
-		}
-		item := findFeeLedgerItem(detail.Items, feeID)
-		if item == nil || item.FinanceLocked {
-			t.Fatalf("全额冲减后详情 finance_locked 应为 false: %+v", item)
-		}
-		result, err := repo.ListFeeLedger(ctx, organizationIDs, biz.FeeLedgerFilter{Page: 1, PageSize: 200})
-		if err != nil {
-			t.Fatalf("查询费用台账失败: %v", err)
-		}
-		if listItem := findFeeLedgerItem(result.Items, feeID); listItem == nil || listItem.FinanceLocked {
-			t.Fatalf("全额冲减后列表 finance_locked 应为 false: %+v", listItem)
-		}
-		requireFeeMutationLock(t, fixture, false)
-	})
-
-	// 部分冲减：净额仍为正，锁保持。
-	t.Run("部分冲减保持费用锁", func(t *testing.T) {
-		fixture := newFeeLedgerPostgresFixture(t, data)
-		repo := NewSettlementRepo(data)
-		organizationIDs := []uuid.UUID{fixture.organizationID}
-		fixture.createLedgerFee("net-partial", "100")
-		standalone := fixture.createActiveVerification("net-partial", "10", nil)
-		commission := fixture.createConfirmedCommission("net-partial", standalone)
-		fixture.createCommissionAdjustment("net-partial", commission, financecommissionadjustmentent.DirectionDECREASE, financecommissionadjustmentent.StatusCONFIRMED, "4")
-
-		if locked := listFinanceLocked(t, repo, organizationIDs, true); locked == 0 {
-			t.Fatal("部分冲减后净额为正，财务锁应保持")
-		}
-		requireFeeMutationLock(t, fixture, true)
-	})
-
-	// 草稿调整不参与净额：锁保持；调整放大净额同样保持锁定。
-	t.Run("草稿调整不参与净额", func(t *testing.T) {
-		fixture := newFeeLedgerPostgresFixture(t, data)
-		repo := NewSettlementRepo(data)
-		organizationIDs := []uuid.UUID{fixture.organizationID}
-		fixture.createLedgerFee("net-draft", "100")
-		standalone := fixture.createActiveVerification("net-draft", "10", nil)
-		commission := fixture.createConfirmedCommission("net-draft", standalone)
-		fixture.createCommissionAdjustment("net-draft", commission, financecommissionadjustmentent.DirectionDECREASE, financecommissionadjustmentent.StatusDRAFT, "10")
-
-		if locked := listFinanceLocked(t, repo, organizationIDs, true); locked == 0 {
-			t.Fatal("草稿冲减不应释放财务锁")
-		}
-		requireFeeMutationLock(t, fixture, true)
-	})
-
-	// 冲减过量形成负净额同样视为已冲减完毕，释放锁。
-	t.Run("超额冲减净额为负释放费用锁", func(t *testing.T) {
-		fixture := newFeeLedgerPostgresFixture(t, data)
-		repo := NewSettlementRepo(data)
-		organizationIDs := []uuid.UUID{fixture.organizationID}
-		fixture.createLedgerFee("net-over", "100")
-		standalone := fixture.createActiveVerification("net-over", "10", nil)
-		commission := fixture.createConfirmedCommission("net-over", standalone)
-		fixture.createCommissionAdjustment("net-over", commission, financecommissionadjustmentent.DirectionDECREASE, financecommissionadjustmentent.StatusCONFIRMED, "12")
-
-		if locked := listFinanceLocked(t, repo, organizationIDs, true); locked != 0 {
-			t.Fatal("超额冲减净额为负，财务锁应释放")
-		}
-		requireFeeMutationLock(t, fixture, false)
-	})
-}

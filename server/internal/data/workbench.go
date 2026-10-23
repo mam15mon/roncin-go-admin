@@ -22,7 +22,7 @@ import (
 	orderabnormalcaseent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	attribution "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	fee "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
-	orderfeesupplementent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
+	correctionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -569,10 +569,9 @@ func (r *workbenchRepo) workbenchTodoSummary(ctx context.Context, client *ent.Cl
 	return summary, nil
 }
 
-// workbenchFinanceSummary 聚合财务提成/冲减摘要与补录审批待办：
+// workbenchFinanceSummary 聚合财务提成/冲减摘要与费用更正审批待办：
 //   - 提成/冲减计数仅在当前用户对当前组织具备 commission.read 时查询；
-//   - 补录审批只聚合当前用户实时具备直接解锁资格的 PENDING 申请，复用补录仓储
-//     同一资格谓词，不引入「财务角色即审批人」的第二套规则；
+//   - 更正审批逐单复用人工审核锁的实时授权谓词；
 //   - 扫描有界：PENDING 候选超过上限时计数仅为下界并置 truncated。
 func (r *workbenchRepo) workbenchFinanceSummary(ctx context.Context, client *ent.Client, scope biz.WorkbenchScope) (*biz.WorkbenchFinanceSummary, error) {
 	summary := &biz.WorkbenchFinanceSummary{
@@ -600,54 +599,60 @@ func (r *workbenchRepo) workbenchFinanceSummary(ctx context.Context, client *ent
 		summary.PendingDecreaseCount = pendingDecreaseCount
 	}
 
-	// 同组织所有补录候选复用一次费用审核真实 grant 判定，不按订单锁角色或 bootstrap 身份放行。
-	qualified, err := hasFeeReviewPermission(ctx, client, scope.OrganizationID, scope.UserID, false)
-	if err != nil {
-		return nil, err
-	}
-	if !qualified {
-		return summary, nil
-	}
-	requests, err := client.OrderFeeSupplementRequest.Query().Where(
-		orderfeesupplementent.OrganizationIDEQ(scope.OrganizationID),
-		orderfeesupplementent.StatusEQ(orderfeesupplementent.StatusPENDING),
+	requests, err := client.OrderFeeCorrectionRequest.Query().Where(
+		correctionent.OrganizationIDEQ(scope.OrganizationID),
+		correctionent.StatusEQ(correctionent.StatusPENDING),
 	).WithOrder().WithRequestedByUser(func(query *ent.UserQuery) {
 		query.Select(user.FieldID, user.FieldDisplayName)
-	}).Order(orderfeesupplementent.ByCreatedAt(entsql.OrderDesc()), orderfeesupplementent.ByID(entsql.OrderDesc())).
-		Limit(biz.WorkbenchSupplementScanLimit + 1).All(ctx)
+	}).Order(correctionent.ByRequestedAt(entsql.OrderDesc()), correctionent.ByID(entsql.OrderDesc())).
+		Limit(biz.WorkbenchCorrectionScanLimit + 1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	truncated := len(requests) > biz.WorkbenchSupplementScanLimit
+	truncated := len(requests) > biz.WorkbenchCorrectionScanLimit
 	if truncated {
-		requests = requests[:biz.WorkbenchSupplementScanLimit]
+		requests = requests[:biz.WorkbenchCorrectionScanLimit]
 	}
 	for _, requestItem := range requests {
 		if requestItem.Edges.Order == nil {
 			continue
 		}
-		summary.PendingSupplementApprovalCount++
-		if len(summary.PendingSupplementApprovals) < biz.WorkbenchSupplementItemLimit {
-			amount, amountErr := decimalOf(requestItem.TotalAmount)
-			if amountErr != nil {
-				return nil, amountErr
+		qualified, err := hasOrderReviewPermission(ctx, client, scope.OrganizationID, requestItem.OrderID, scope.UserID, false)
+		if err != nil {
+			return nil, err
+		}
+		if !qualified {
+			continue
+		}
+		summary.PendingCorrectionApprovalCount++
+		if len(summary.PendingCorrectionApprovals) < biz.WorkbenchCorrectionItemLimit {
+			value, err := correctionRequestToBiz(requestItem)
+			if err != nil {
+				return nil, err
 			}
-			summary.PendingSupplementApprovals = append(summary.PendingSupplementApprovals, &biz.WorkbenchSupplementApprovalItem{
+			feeValue := value.After
+			if feeValue == nil {
+				feeValue = value.Before
+			}
+			if feeValue == nil {
+				return nil, biz.ErrFeeCorrectionInvalid
+			}
+			summary.PendingCorrectionApprovals = append(summary.PendingCorrectionApprovals, &biz.WorkbenchCorrectionApprovalItem{
 				RequestID:       requestItem.ID,
 				OrderID:         requestItem.OrderID,
 				OrderNo:         requestItem.Edges.Order.OrderNo,
 				BusinessType:    string(requestItem.Edges.Order.BusinessType),
-				FeeCode:         requestItem.FeeCode,
-				FeeName:         requestItem.FeeName,
-				Currency:        requestItem.Currency,
-				Amount:          amount,
+				FeeCode:         feeValue.FeeCode,
+				FeeName:         feeValue.FeeName,
+				Currency:        feeValue.Currency,
+				Amount:          feeValue.TotalAmount,
 				Reason:          requestItem.Reason,
 				RequestedByName: workbenchDisplayName(requestItem.Edges.RequestedByUser),
-				RequestedAt:     requestItem.CreatedAt,
+				RequestedAt:     requestItem.RequestedAt,
 			})
 		}
 	}
-	summary.SupplementApprovalsTruncated = truncated
+	summary.CorrectionApprovalsTruncated = truncated
 	return summary, nil
 }
 

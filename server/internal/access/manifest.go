@@ -42,7 +42,6 @@ const (
 	FinanceFeeSettingRead      = "system.finance.fee_setting.read"
 	FinanceFeeSettingCreate    = "system.finance.fee_setting.create"
 	FinanceFeeSettingUpdate    = "system.finance.fee_setting.update"
-	FinanceFeeReview           = "system.finance.fee.review"
 	FinanceFeeRead             = "system.finance.fee.read"
 	FinanceFeeTag              = "system.finance.fee.tag"
 	FinanceBillConfigure       = "system.finance.bill.configure"
@@ -221,7 +220,6 @@ var manifest = append([]Permission{
 	{Key: FinanceFeeSettingCreate, Name: "新建费用设置", Group: "费用管理 · 费用设置", Description: "新建费用设置及关联基础资料", Requires: []string{FinanceFeeSettingRead}},
 	{Key: FinanceFeeSettingUpdate, Name: "编辑费用设置", Group: "费用管理 · 费用设置", Description: "编辑和停用费用设置及关联基础资料", Requires: []string{FinanceFeeSettingRead}},
 	{Key: FinanceFeeRead, Name: "查看费用总台账", Group: "费用管理 · 费用总台账", Description: "查看当前组织全部业务线的应收应付费用"},
-	{Key: FinanceFeeReview, Name: "费用审核", Group: "费用管理 · 费用总台账", Description: "审核整票费用、退回或撤销批准及审核成本补录", Requires: []string{FinanceFeeRead}},
 	{Key: FinanceFeeTag, Name: "维护费用标签", Group: "费用管理 · 费用总台账", Description: "在费用总台账批量添加或移除业务标签", Requires: []string{FinanceFeeRead}},
 	{Key: FinanceBillConfigure, Name: "配置公司账单策略", Group: "费用管理 · 账单", Description: "维护已计费费用编辑与信用额度管控策略", Requires: []string{FinanceBillRead}},
 	{Key: FinanceBillRead, Name: "查看账单", Group: "费用管理 · 账单", Description: "查看应收应付账单及明细"},
@@ -315,7 +313,7 @@ var orderPermissionDefinitions = []orderPermissionDefinition{
 	{operation: OrderFeeRead, name: "查看费用", resource: "费用", description: "查看订单应收应付费用"}, {operation: OrderFeeCreate, name: "录入费用", resource: "费用", description: "录入订单应收应付费用"}, {operation: OrderFeeUpdate, name: "编辑费用", resource: "费用", description: "修改订单应收应付费用"}, {operation: OrderFeeDelete, name: "删除费用", resource: "费用", description: "删除订单应收应付费用"},
 	{operation: OrderSplit, name: "拆票", resource: "订单", description: "执行海运出口拆票", businessTypes: []OrderBusinessType{OrderBusinessSE}},
 	{operation: OrderReassign, name: "整体改配", resource: "订单", description: "执行海运出口整体改配", businessTypes: []OrderBusinessType{OrderBusinessSE}},
-	{operation: OrderLock, name: "锁定/直接解锁订单", resource: "订单", description: "执行订单锁定与直接解锁"},
+	{operation: OrderLock, name: "审核并锁定/直接解锁订单", resource: "订单", description: "审核订单与费用、执行锁定与直接解锁及费用补审"},
 	{operation: OrderAmend, name: "改单", resource: "订单", description: "执行海运出口单证改单", businessTypes: []OrderBusinessType{OrderBusinessSE}},
 	{operation: OrderVoid, name: "作废提单", resource: "订单", description: "执行海运出口单证作废", businessTypes: []OrderBusinessType{OrderBusinessSE}},
 	{operation: OrderSwitch, name: "Switch B/L", resource: "订单", description: "执行海运出口换单（Switch B/L）", businessTypes: []OrderBusinessType{OrderBusinessSE}},
@@ -413,7 +411,10 @@ func orderManifest() []Permission {
 // 权限（里程碑、集装箱、费用等）还依赖该业务线的订单读权限。
 func orderPermissionRequires(businessType OrderBusinessType, operation OrderOperation) []string {
 	orderRead := OrderPermission(businessType, OrderRead)
-	if operation == OrderSplit || operation == OrderReassign || operation == OrderLock || operation == OrderAmend || operation == OrderVoid || operation == OrderSwitch {
+	if operation == OrderLock {
+		return []string{orderRead, OrderPermission(businessType, OrderUpdate), OrderPermission(businessType, OrderFeeRead)}
+	}
+	if operation == OrderSplit || operation == OrderReassign || operation == OrderAmend || operation == OrderVoid || operation == OrderSwitch {
 		return []string{orderRead, OrderPermission(businessType, OrderUpdate)}
 	}
 	resource := ""

@@ -12,7 +12,6 @@ import * as settlementService from "./settlementService";
 import * as feeCatalogService from "./feeCatalogService";
 import * as exchangeRateService from "./exchangeRateService";
 import * as masterDataService from "./masterDataService";
-import * as orderFeeService from "./orderFeeService";
 import * as orderService from "./orderService";
 import * as orderTagService from "./orderTagService";
 import * as seaSharedContainerService from "./seaSharedContainerService";
@@ -20,6 +19,7 @@ import * as orderAbnormalCaseService from "./orderAbnormalCaseService";
 import * as orderAttachmentService from "./orderAttachmentService";
 import * as orderCargoItemService from "./orderCargoItemService";
 import * as orderContainerService from "./orderContainerService";
+import * as orderFeeService from "./orderFeeService";
 import * as orderLockService from "./orderLockService";
 import * as orderMilestoneService from "./orderMilestoneService";
 import * as orderPersonnelService from "./orderPersonnelService";
@@ -40,7 +40,6 @@ export default {
   feeCatalogService,
   exchangeRateService,
   masterDataService,
-  orderFeeService,
   orderService,
   orderTagService,
   seaSharedContainerService,
@@ -48,6 +47,7 @@ export default {
   orderAttachmentService,
   orderCargoItemService,
   orderContainerService,
+  orderFeeService,
   orderLockService,
   orderMilestoneService,
   orderPersonnelService,

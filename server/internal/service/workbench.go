@@ -185,12 +185,12 @@ func workbenchFinanceSummaryToAPI(summary *biz.WorkbenchFinanceSummary) *workben
 		CanManageCommission:            summary.CanManageCommission,
 		ConfirmedCommissionCount:       int32(summary.ConfirmedCommissionCount),
 		PendingDecreaseCount:           int32(summary.PendingDecreaseCount),
-		PendingSupplementApprovalCount: int32(summary.PendingSupplementApprovalCount),
-		PendingSupplementApprovals:     make([]*workbenchv1.WorkbenchSupplementApprovalItem, 0, len(summary.PendingSupplementApprovals)),
-		SupplementApprovalsTruncated:   summary.SupplementApprovalsTruncated,
+		PendingCorrectionApprovalCount: int32(summary.PendingCorrectionApprovalCount),
+		PendingCorrectionApprovals:     make([]*workbenchv1.WorkbenchCorrectionApprovalItem, 0, len(summary.PendingCorrectionApprovals)),
+		CorrectionApprovalsTruncated:   summary.CorrectionApprovalsTruncated,
 	}
-	for _, item := range summary.PendingSupplementApprovals {
-		result.PendingSupplementApprovals = append(result.PendingSupplementApprovals, &workbenchv1.WorkbenchSupplementApprovalItem{
+	for _, item := range summary.PendingCorrectionApprovals {
+		result.PendingCorrectionApprovals = append(result.PendingCorrectionApprovals, &workbenchv1.WorkbenchCorrectionApprovalItem{
 			RequestId:       item.RequestID.String(),
 			OrderId:         item.OrderID.String(),
 			OrderNo:         item.OrderNo,

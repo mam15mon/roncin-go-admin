@@ -47,6 +47,14 @@ type OrderLockRecord struct {
 	LockedAt time.Time `json:"locked_at,omitempty"`
 	// OrderVersionAtLock holds the value of the "order_version_at_lock" field.
 	OrderVersionAtLock uint64 `json:"order_version_at_lock,omitempty"`
+	// FeeSnapshot holds the value of the "fee_snapshot" field.
+	FeeSnapshot json.RawMessage `json:"fee_snapshot,omitempty"`
+	// FeeContentVersion holds the value of the "fee_content_version" field.
+	FeeContentVersion *uint64 `json:"fee_content_version,omitempty"`
+	// FeeContentFingerprint holds the value of the "fee_content_fingerprint" field.
+	FeeContentFingerprint *string `json:"fee_content_fingerprint,omitempty"`
+	// ReviewComment holds the value of the "review_comment" field.
+	ReviewComment *string `json:"review_comment,omitempty"`
 	// TriggerType holds the value of the "trigger_type" field.
 	TriggerType *orderlockrecord.TriggerType `json:"trigger_type,omitempty"`
 	// TriggerResourceID holds the value of the "trigger_resource_id" field.
@@ -107,13 +115,15 @@ type OrderLockRecordEdges struct {
 	TransportExecutionVersion *SeaTransportExecutionVersion `json:"transport_execution_version,omitempty"`
 	// UnlockRequests holds the value of the unlock_requests edge.
 	UnlockRequests []*OrderUnlockRequest `json:"unlock_requests,omitempty"`
+	// FeeCorrectionRequests holds the value of the fee_correction_requests edge.
+	FeeCorrectionRequests []*OrderFeeCorrectionRequest `json:"fee_correction_requests,omitempty"`
 	// AppliedUnlockRequest holds the value of the applied_unlock_request edge.
 	AppliedUnlockRequest *OrderUnlockRequest `json:"applied_unlock_request,omitempty"`
 	// HouseBillSnapshots holds the value of the house_bill_snapshots edge.
 	HouseBillSnapshots []*OrderLockHouseBillSnapshot `json:"house_bill_snapshots,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [12]bool
+	loadedTypes [13]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -224,12 +234,21 @@ func (e OrderLockRecordEdges) UnlockRequestsOrErr() ([]*OrderUnlockRequest, erro
 	return nil, &NotLoadedError{edge: "unlock_requests"}
 }
 
+// FeeCorrectionRequestsOrErr returns the FeeCorrectionRequests value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrderLockRecordEdges) FeeCorrectionRequestsOrErr() ([]*OrderFeeCorrectionRequest, error) {
+	if e.loadedTypes[10] {
+		return e.FeeCorrectionRequests, nil
+	}
+	return nil, &NotLoadedError{edge: "fee_correction_requests"}
+}
+
 // AppliedUnlockRequestOrErr returns the AppliedUnlockRequest value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e OrderLockRecordEdges) AppliedUnlockRequestOrErr() (*OrderUnlockRequest, error) {
 	if e.AppliedUnlockRequest != nil {
 		return e.AppliedUnlockRequest, nil
-	} else if e.loadedTypes[10] {
+	} else if e.loadedTypes[11] {
 		return nil, &NotFoundError{label: orderunlockrequest.Label}
 	}
 	return nil, &NotLoadedError{edge: "applied_unlock_request"}
@@ -238,7 +257,7 @@ func (e OrderLockRecordEdges) AppliedUnlockRequestOrErr() (*OrderUnlockRequest, 
 // HouseBillSnapshotsOrErr returns the HouseBillSnapshots value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderLockRecordEdges) HouseBillSnapshotsOrErr() ([]*OrderLockHouseBillSnapshot, error) {
-	if e.loadedTypes[11] {
+	if e.loadedTypes[12] {
 		return e.HouseBillSnapshots, nil
 	}
 	return nil, &NotLoadedError{edge: "house_bill_snapshots"}
@@ -251,11 +270,11 @@ func (*OrderLockRecord) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case orderlockrecord.FieldLockedBy, orderlockrecord.FieldTriggerResourceID, orderlockrecord.FieldTriggeredBy, orderlockrecord.FieldMasterBillID, orderlockrecord.FieldMasterBillVersionID, orderlockrecord.FieldTransportExecutionID, orderlockrecord.FieldTransportExecutionVersionID, orderlockrecord.FieldUnlockedBy, orderlockrecord.FieldUnlockRequestID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case orderlockrecord.FieldAirDocumentSnapshot:
+		case orderlockrecord.FieldFeeSnapshot, orderlockrecord.FieldAirDocumentSnapshot:
 			values[i] = new([]byte)
-		case orderlockrecord.FieldGeneration, orderlockrecord.FieldOrderVersionAtLock, orderlockrecord.FieldOrderVersionAtUnlock:
+		case orderlockrecord.FieldGeneration, orderlockrecord.FieldOrderVersionAtLock, orderlockrecord.FieldFeeContentVersion, orderlockrecord.FieldOrderVersionAtUnlock:
 			values[i] = new(sql.NullInt64)
-		case orderlockrecord.FieldOrderNo, orderlockrecord.FieldBusinessType, orderlockrecord.FieldLockSource, orderlockrecord.FieldTriggerType, orderlockrecord.FieldUnlockReason, orderlockrecord.FieldUnlockMode, orderlockrecord.FieldIdempotencyKey, orderlockrecord.FieldRequestFingerprint:
+		case orderlockrecord.FieldOrderNo, orderlockrecord.FieldBusinessType, orderlockrecord.FieldLockSource, orderlockrecord.FieldFeeContentFingerprint, orderlockrecord.FieldReviewComment, orderlockrecord.FieldTriggerType, orderlockrecord.FieldUnlockReason, orderlockrecord.FieldUnlockMode, orderlockrecord.FieldIdempotencyKey, orderlockrecord.FieldRequestFingerprint:
 			values[i] = new(sql.NullString)
 		case orderlockrecord.FieldCreatedAt, orderlockrecord.FieldLockedAt, orderlockrecord.FieldUnlockedAt:
 			values[i] = new(sql.NullTime)
@@ -342,6 +361,35 @@ func (_m *OrderLockRecord) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field order_version_at_lock", values[i])
 			} else if value.Valid {
 				_m.OrderVersionAtLock = uint64(value.Int64)
+			}
+		case orderlockrecord.FieldFeeSnapshot:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field fee_snapshot", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.FeeSnapshot); err != nil {
+					return fmt.Errorf("unmarshal field fee_snapshot: %w", err)
+				}
+			}
+		case orderlockrecord.FieldFeeContentVersion:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field fee_content_version", values[i])
+			} else if value.Valid {
+				_m.FeeContentVersion = new(uint64)
+				*_m.FeeContentVersion = uint64(value.Int64)
+			}
+		case orderlockrecord.FieldFeeContentFingerprint:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field fee_content_fingerprint", values[i])
+			} else if value.Valid {
+				_m.FeeContentFingerprint = new(string)
+				*_m.FeeContentFingerprint = value.String
+			}
+		case orderlockrecord.FieldReviewComment:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field review_comment", values[i])
+			} else if value.Valid {
+				_m.ReviewComment = new(string)
+				*_m.ReviewComment = value.String
 			}
 		case orderlockrecord.FieldTriggerType:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -517,6 +565,11 @@ func (_m *OrderLockRecord) QueryUnlockRequests() *OrderUnlockRequestQuery {
 	return NewOrderLockRecordClient(_m.config).QueryUnlockRequests(_m)
 }
 
+// QueryFeeCorrectionRequests queries the "fee_correction_requests" edge of the OrderLockRecord entity.
+func (_m *OrderLockRecord) QueryFeeCorrectionRequests() *OrderFeeCorrectionRequestQuery {
+	return NewOrderLockRecordClient(_m.config).QueryFeeCorrectionRequests(_m)
+}
+
 // QueryAppliedUnlockRequest queries the "applied_unlock_request" edge of the OrderLockRecord entity.
 func (_m *OrderLockRecord) QueryAppliedUnlockRequest() *OrderUnlockRequestQuery {
 	return NewOrderLockRecordClient(_m.config).QueryAppliedUnlockRequest(_m)
@@ -581,6 +634,24 @@ func (_m *OrderLockRecord) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("order_version_at_lock=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrderVersionAtLock))
+	builder.WriteString(", ")
+	builder.WriteString("fee_snapshot=")
+	builder.WriteString(fmt.Sprintf("%v", _m.FeeSnapshot))
+	builder.WriteString(", ")
+	if v := _m.FeeContentVersion; v != nil {
+		builder.WriteString("fee_content_version=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.FeeContentFingerprint; v != nil {
+		builder.WriteString("fee_content_fingerprint=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := _m.ReviewComment; v != nil {
+		builder.WriteString("review_comment=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	if v := _m.TriggerType; v != nil {
 		builder.WriteString("trigger_type=")

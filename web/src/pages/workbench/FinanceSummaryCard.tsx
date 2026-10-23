@@ -13,7 +13,7 @@ import { amountWithCurrency, workbenchOrderPath } from './display';
 const { Text } = Typography;
 
 type Finance = API.WorkbenchFinanceSummary;
-type ApprovalItem = API.WorkbenchSupplementApprovalItem;
+type ApprovalItem = API.WorkbenchCorrectionApprovalItem;
 
 type Props = {
   finance: Finance;
@@ -27,8 +27,8 @@ type Props = {
 export default function FinanceSummaryCard({ finance }: Props) {
   const canRead = finance.canReadCommission === true;
   const canManage = finance.canManageCommission === true;
-  const approvalCount = finance.pendingSupplementApprovalCount ?? 0;
-  const approvals: ApprovalItem[] = finance.pendingSupplementApprovals ?? [];
+  const approvalCount = finance.pendingCorrectionApprovalCount ?? 0;
+  const approvals: ApprovalItem[] = finance.pendingCorrectionApprovals ?? [];
   const hasApprovals = approvalCount > 0 || approvals.length > 0;
 
   if (!canRead && !hasApprovals) {
@@ -53,10 +53,10 @@ export default function FinanceSummaryCard({ finance }: Props) {
           <div>
             <Space size={8} style={{ marginBottom: 8 }}>
               <FileDoneOutlined style={{ color: '#faad14' }} />
-              <Text strong>锁后费用补录审批</Text>
+              <Text strong>锁后费用更正补审</Text>
               <Tag color="warning">{approvalCount} 条待审批</Tag>
             </Space>
-            {finance.supplementApprovalsTruncated === true ? (
+            {finance.correctionApprovalsTruncated === true ? (
               <Text
                 type="secondary"
                 style={{ display: 'block', fontSize: 12, marginBottom: 8 }}

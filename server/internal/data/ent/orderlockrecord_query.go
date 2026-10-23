@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockhousebillsnapshot"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
@@ -44,6 +45,7 @@ type OrderLockRecordQuery struct {
 	withTransportExecution        *SeaTransportExecutionQuery
 	withTransportExecutionVersion *SeaTransportExecutionVersionQuery
 	withUnlockRequests            *OrderUnlockRequestQuery
+	withFeeCorrectionRequests     *OrderFeeCorrectionRequestQuery
 	withAppliedUnlockRequest      *OrderUnlockRequestQuery
 	withHouseBillSnapshots        *OrderLockHouseBillSnapshotQuery
 	modifiers                     []func(*sql.Selector)
@@ -303,6 +305,28 @@ func (_q *OrderLockRecordQuery) QueryUnlockRequests() *OrderUnlockRequestQuery {
 	return query
 }
 
+// QueryFeeCorrectionRequests chains the current query on the "fee_correction_requests" edge.
+func (_q *OrderLockRecordQuery) QueryFeeCorrectionRequests() *OrderFeeCorrectionRequestQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderlockrecord.Table, orderlockrecord.FieldID, selector),
+			sqlgraph.To(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, orderlockrecord.FeeCorrectionRequestsTable, orderlockrecord.FeeCorrectionRequestsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryAppliedUnlockRequest chains the current query on the "applied_unlock_request" edge.
 func (_q *OrderLockRecordQuery) QueryAppliedUnlockRequest() *OrderUnlockRequestQuery {
 	query := (&OrderUnlockRequestClient{config: _q.config}).Query()
@@ -549,6 +573,7 @@ func (_q *OrderLockRecordQuery) Clone() *OrderLockRecordQuery {
 		withTransportExecution:        _q.withTransportExecution.Clone(),
 		withTransportExecutionVersion: _q.withTransportExecutionVersion.Clone(),
 		withUnlockRequests:            _q.withUnlockRequests.Clone(),
+		withFeeCorrectionRequests:     _q.withFeeCorrectionRequests.Clone(),
 		withAppliedUnlockRequest:      _q.withAppliedUnlockRequest.Clone(),
 		withHouseBillSnapshots:        _q.withHouseBillSnapshots.Clone(),
 		// clone intermediate query.
@@ -667,6 +692,17 @@ func (_q *OrderLockRecordQuery) WithUnlockRequests(opts ...func(*OrderUnlockRequ
 	return _q
 }
 
+// WithFeeCorrectionRequests tells the query-builder to eager-load the nodes that are connected to
+// the "fee_correction_requests" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderLockRecordQuery) WithFeeCorrectionRequests(opts ...func(*OrderFeeCorrectionRequestQuery)) *OrderLockRecordQuery {
+	query := (&OrderFeeCorrectionRequestClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withFeeCorrectionRequests = query
+	return _q
+}
+
 // WithAppliedUnlockRequest tells the query-builder to eager-load the nodes that are connected to
 // the "applied_unlock_request" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *OrderLockRecordQuery) WithAppliedUnlockRequest(opts ...func(*OrderUnlockRequestQuery)) *OrderLockRecordQuery {
@@ -767,7 +803,7 @@ func (_q *OrderLockRecordQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	var (
 		nodes       = []*OrderLockRecord{}
 		_spec       = _q.querySpec()
-		loadedTypes = [12]bool{
+		loadedTypes = [13]bool{
 			_q.withOrganization != nil,
 			_q.withOrder != nil,
 			_q.withLockedByUser != nil,
@@ -778,6 +814,7 @@ func (_q *OrderLockRecordQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 			_q.withTransportExecution != nil,
 			_q.withTransportExecutionVersion != nil,
 			_q.withUnlockRequests != nil,
+			_q.withFeeCorrectionRequests != nil,
 			_q.withAppliedUnlockRequest != nil,
 			_q.withHouseBillSnapshots != nil,
 		}
@@ -862,6 +899,15 @@ func (_q *OrderLockRecordQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 			func(n *OrderLockRecord) { n.Edges.UnlockRequests = []*OrderUnlockRequest{} },
 			func(n *OrderLockRecord, e *OrderUnlockRequest) {
 				n.Edges.UnlockRequests = append(n.Edges.UnlockRequests, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withFeeCorrectionRequests; query != nil {
+		if err := _q.loadFeeCorrectionRequests(ctx, query, nodes,
+			func(n *OrderLockRecord) { n.Edges.FeeCorrectionRequests = []*OrderFeeCorrectionRequest{} },
+			func(n *OrderLockRecord, e *OrderFeeCorrectionRequest) {
+				n.Edges.FeeCorrectionRequests = append(n.Edges.FeeCorrectionRequests, e)
 			}); err != nil {
 			return nil, err
 		}
@@ -1191,6 +1237,39 @@ func (_q *OrderLockRecordQuery) loadUnlockRequests(ctx context.Context, query *O
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "lock_record_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *OrderLockRecordQuery) loadFeeCorrectionRequests(ctx context.Context, query *OrderFeeCorrectionRequestQuery, nodes []*OrderLockRecord, init func(*OrderLockRecord), assign func(*OrderLockRecord, *OrderFeeCorrectionRequest)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*OrderLockRecord)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(orderfeecorrectionrequest.FieldLockRecordID)
+	}
+	query.Where(predicate.OrderFeeCorrectionRequest(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(orderlockrecord.FeeCorrectionRequestsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.LockRecordID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "lock_record_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "lock_record_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

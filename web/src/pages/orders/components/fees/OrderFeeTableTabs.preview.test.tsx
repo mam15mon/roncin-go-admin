@@ -64,6 +64,8 @@ function makeProps(orderId: string) {
     setReceivableSummary: vi.fn(),
     setPayableSummary: vi.fn(),
     canCreateFinanceBills: true,
+    canCreateFees: true,
+    canDeleteFees: true,
     feeWritesDisabled: true,
     onOpenBillWorkbench: vi.fn(),
     onOpenFeeModal: vi.fn(),
@@ -89,6 +91,8 @@ describe('OrderFeeTableTabs 计算列实时预览', () => {
     listFees.mockResolvedValue({
       data: [
         {
+          canEdit: true,
+          canBill: true,
           id: 'fee-unbilled-3',
           direction: RECEIVABLE,
           currency: 'CNY',
@@ -152,6 +156,8 @@ describe('OrderFeeTableTabs 计算列实时预览', () => {
     listFees.mockResolvedValue({
       data: [
         {
+          canEdit: true,
+          canBill: true,
           id: 'fee-unbilled-4',
           direction: RECEIVABLE,
           currency: 'CNY',

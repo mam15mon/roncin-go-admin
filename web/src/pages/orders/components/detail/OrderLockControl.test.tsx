@@ -9,7 +9,6 @@ import {
 import OrderLockControl, {
   getOrderLockConfirmationDescription,
   getOrderLockSourceDisplay,
-  getOrderLockTriggerTypeText,
   OrderLockStatusTag,
 } from './OrderLockControl';
 
@@ -37,7 +36,7 @@ describe('OrderLockControl', () => {
     ).toContain('MBL/HBL');
     expect(
       getOrderLockConfirmationDescription(OrderBusinessType.BUSINESS_TYPE_AI),
-    ).toBe('锁定后将冻结订单业务资料和费用。如需修改必须先解锁。');
+    ).toContain('费用变更须申请补录并补审');
   });
 
   it('状态标签显示服务端返回的业务类型与锁状态', () => {
@@ -55,14 +54,15 @@ describe('OrderLockControl', () => {
     );
 
     expect(
-      screen.getByText(/空运进口 · 已锁定 · 测试用户/),
+      screen.getByText(/空运进口 · 已审核锁定 · 测试用户/),
     ).toBeInTheDocument();
   });
 
   it('动作完全使用服务端 can 字段，并以锁状态版本发起锁定', async () => {
-    lockOrder.mockResolvedValue({ success: true, data: { state: { orderId: 'order-ai' } } } as Awaited<
-      ReturnType<typeof lockOrder>
-    >);
+    lockOrder.mockResolvedValue({
+      success: true,
+      data: { state: { orderId: 'order-ai' } },
+    } as Awaited<ReturnType<typeof lockOrder>>);
     const onSynchronize = vi.fn().mockResolvedValue(undefined);
 
     render(
@@ -77,6 +77,8 @@ describe('OrderLockControl', () => {
             isLocked: false,
             canLock: true,
             orderVersion: '17',
+            feeContentVersion: '8',
+            feeContentFingerprint: 'server-fingerprint-8',
           }}
           loading={false}
           error={null}
@@ -87,16 +89,20 @@ describe('OrderLockControl', () => {
     );
 
     expect(screen.queryByRole('button', { name: '直接解锁' })).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: /锁定订单/ }));
+    fireEvent.click(screen.getByRole('button', { name: /审核并锁定/ }));
     expect(
-      (await screen.findAllByText('锁定空运进口订单')).length,
+      (await screen.findAllByText('审核并锁定空运进口订单')).length,
     ).toBeGreaterThan(0);
-    expect(screen.getByText(/冻结订单业务资料和费用/)).toBeInTheDocument();
+    expect(screen.getByText(/订单业务资料和费用进入锁定/)).toBeInTheDocument();
     expect(screen.queryByText(/MBL\/HBL/)).toBeNull();
 
-    fireEvent.click(screen.getByRole('button', { name: '确认锁定' }));
+    fireEvent.click(screen.getByRole('button', { name: /确.*认/ }));
     await waitFor(() => expect(lockOrder).toHaveBeenCalledTimes(1));
-    expect(lockOrder.mock.calls[0][1].expectedOrderVersion).toBe('17');
+    expect(lockOrder.mock.calls[0][1]).toMatchObject({
+      expectedOrderVersion: '17',
+      expectedFeeContentVersion: '8',
+      feeContentFingerprint: 'server-fingerprint-8',
+    });
     await waitFor(() => expect(onSynchronize).toHaveBeenCalledTimes(1));
   });
 
@@ -126,95 +132,71 @@ describe('OrderLockControl', () => {
     expect(requestUnlock).not.toHaveBeenCalled();
   });
 
-  it('人工锁定展示实际锁定人，不因 locked_by 缺失猜测来源', () => {
+  it('审核来源只展示实际审核人', () => {
     expect(
-      getOrderLockSourceDisplay({
-        lockSource: 'MANUAL',
-        lockedBy: 'user-1',
-        lockedByName: '张三',
-      }),
-    ).toEqual({ actorText: '张三', isAuto: false, triggerLines: [] });
-
-    // 无锁定人时回落中性文案，绝不因 locked_by 为空推断为系统自动锁定。
-    expect(
-      getOrderLockSourceDisplay({
-        lockSource: 'MANUAL',
-        lockedByName: undefined,
-      }).actorText,
-    ).toBe('人工锁定');
-    expect(
-      getOrderLockSourceDisplay({
-        lockSource: undefined,
-        lockedByName: undefined,
-      }).isAuto,
-    ).toBe(false);
+      getOrderLockSourceDisplay({ lockedBy: 'user-1', lockedByName: '张三' }),
+    ).toEqual({ actorText: '张三' });
+    expect(getOrderLockSourceDisplay({}).actorText).toBe('审核人待确认');
   });
 
-  it('自动锁定固定展示系统自动锁定并携带触发审计详情', () => {
-    render(
-      <OrderLockStatusTag
-        state={{
-          businessType: OrderBusinessType.BUSINESS_TYPE_SE,
-          isLocked: true,
-          lockSource: 'AUTO_SETTLEMENT',
-          currentLockRecord: {
-            lockSource: 'AUTO_SETTLEMENT',
-            triggerType: 'VERIFICATION',
-            triggerResourceId: 'VR-2026-001',
-            triggeredByName: '李四',
-          },
-        }}
-        loading={false}
-        error={null}
-      />,
-    );
-
-    expect(screen.getByText(/系统自动锁定/)).toBeInTheDocument();
-    expect(screen.queryByText(/测试用户/)).not.toBeInTheDocument();
-
-    expect(
-      getOrderLockSourceDisplay({
-        lockSource: 'AUTO_SETTLEMENT',
-        currentLockRecord: {
-          lockSource: 'AUTO_SETTLEMENT',
-          triggerType: 'VERIFICATION',
-          triggerResourceId: 'VR-2026-001',
-          triggeredByName: '李四',
-        },
-      }).triggerLines,
-    ).toEqual([
-      '触发类型：应收核销',
-      '触发单据：VR-2026-001',
-      '触发操作人：李四',
-    ]);
-    expect(getOrderLockTriggerTypeText('FEE_BILLED')).toBe('费用进入账单');
-    expect(getOrderLockTriggerTypeText('FEE_CANCEL')).toBe('未建账费用删除');
-    expect(getOrderLockTriggerTypeText('UNKNOWN_KIND')).toBe('UNKNOWN_KIND');
-    expect(getOrderLockTriggerTypeText(undefined)).toBe('-');
-  });
-
-  it('自动锁定后显式解锁入口保持可用', () => {
+  it('亏损时意见必填，失败保留审核快照和意见供重试', async () => {
+    lockOrder.mockResolvedValueOnce(undefined as never).mockResolvedValueOnce({
+      success: true,
+      data: { state: { orderId: 'loss-order' } },
+    });
     render(
       <App>
         <OrderLockControl
-          orderId="order-se-auto"
+          orderId="loss-order"
           state={{
-            businessType: OrderBusinessType.BUSINESS_TYPE_SE,
-            isLocked: true,
-            lockSource: 'AUTO_SETTLEMENT',
-            orderVersion: '9',
-            canRoleDirectUnlock: true,
-            canRequestUnlock: true,
+            canLock: true,
+            orderVersion: '3',
+            feeContentVersion: '9',
+            feeContentFingerprint: 'loss-fingerprint',
+            feeSummary: {
+              baseCurrency: 'CNY',
+              receivable: '100',
+              payable: '150',
+              profit: '-50',
+            },
           }}
           loading={false}
           error={null}
-          onRetry={vi.fn().mockResolvedValue(null)}
+          onRetry={vi.fn()}
           onSynchronize={vi.fn().mockResolvedValue(undefined)}
         />
       </App>,
     );
-
-    expect(screen.getByRole('button', { name: /直接解锁/ })).toBeEnabled();
-    expect(screen.getByRole('button', { name: /申请解锁/ })).toBeEnabled();
+    fireEvent.click(screen.getByRole('button', { name: /审核并锁定/ }));
+    fireEvent.click(screen.getByRole('button', { name: /确.*认/ }));
+    expect(await screen.findByText('请填写亏损原因')).toBeInTheDocument();
+    expect(lockOrder).not.toHaveBeenCalled();
+    fireEvent.change(screen.getByRole('textbox', { name: '审核意见' }), {
+      target: { value: '已核实完整成本' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /确.*认/ }));
+    await waitFor(() => expect(lockOrder).toHaveBeenCalledOnce());
+    expect(screen.getByRole('textbox', { name: '审核意见' })).toHaveValue(
+      '已核实完整成本',
+    );
+    fireEvent.click(screen.getByRole('button', { name: /确.*认/ }));
+    await waitFor(() => expect(lockOrder).toHaveBeenCalledTimes(2));
+    expect(lockOrder.mock.calls[1][1]).toEqual(lockOrder.mock.calls[0][1]);
+  });
+  it('服务端未返回费用审核快照时禁止锁定', () => {
+    render(
+      <App>
+        <OrderLockControl
+          orderId="missing-snapshot"
+          state={{ canLock: true, orderVersion: '1' }}
+          loading={false}
+          error={null}
+          onRetry={vi.fn()}
+          onSynchronize={vi.fn()}
+        />
+      </App>,
+    );
+    expect(screen.getByRole('button', { name: /审核并锁定/ })).toBeDisabled();
+    expect(lockOrder).not.toHaveBeenCalled();
   });
 });

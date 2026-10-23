@@ -419,8 +419,8 @@ export default function CommissionDetailDrawer({
           <Alert
             type="info"
             showIcon
-            title="逐订单计算快照与财务锁"
-            description="下列数据是生成提成时固化的计算证据。提成确认后，关联订单的原费用会进入财务锁定；支持展开行下钻查看每笔订单的具体费用明细构成。"
+            title="逐订单计算快照"
+            description="下列数据是生成提成时固化的计算证据。费用是否可修改由订单审核锁及逐费建账状态决定；可展开查看每笔订单的费用明细构成。"
           />
           <Table<API.FinanceCommissionLine>
             size="small"

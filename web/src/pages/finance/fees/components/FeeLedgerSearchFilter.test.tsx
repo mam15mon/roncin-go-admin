@@ -66,10 +66,10 @@ describe('FeeLedgerSearchFilter', () => {
     expect(screen.getByText('账单编号')).not.toBeNull();
     expect(screen.getByText('订单编号')).not.toBeNull();
     expect(screen.getByText('主提单号')).not.toBeNull();
-    expect(screen.getByText('提成保护')).not.toBeNull();
-    fireEvent.mouseDown(screen.getByLabelText('提成保护'));
-    expect(screen.getByText('存在有效提成')).not.toBeNull();
-    expect(screen.getByText('未锁定')).not.toBeNull();
+    expect(screen.queryByText('提成保护')).toBeNull();
+    fireEvent.mouseDown(screen.getByLabelText('订单审核'));
+    expect(screen.getByText('已审核锁定')).not.toBeNull();
+    expect(screen.getByText('未审核')).not.toBeNull();
     expect(screen.getByText(/收起/)).not.toBeNull();
 
     // 展开后挂载的结算单位/委托单位/计价币种远程下拉请求收敛

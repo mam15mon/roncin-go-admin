@@ -59,13 +59,16 @@ func (uc *OrderFeeCorrectionUsecase) Submit(ctx context.Context, p *Principal, o
 		if err != nil {
 			return err
 		}
-		r := &OrderFeeCorrectionRequest{ID: uuid.Must(uuid.NewV7()), OrganizationID: org, OrderID: order, Operation: in.Operation, SourceFeeID: in.SourceFeeID, ApprovedFeeReviewEventID: *evidence.ApprovedFeeReviewEventID, ApprovedFeeContentVersion: evidence.FeeContentVersion, ApprovedFeeReviewVersion: evidence.FeeReviewVersion, Reason: in.Reason, IdempotencyKey: in.IdempotencyKey, RequestFingerprint: fingerprint, RequestedBy: p.UserID, RequestedAt: time.Now().UTC(), Status: "PENDING", Version: 1}
+		r := &OrderFeeCorrectionRequest{ID: uuid.Must(uuid.NewV7()), OrganizationID: org, OrderID: order, Operation: in.Operation, SourceFeeID: in.SourceFeeID, LockRecordID: *evidence.LockRecordID, LockGeneration: evidence.BusinessLockGeneration, ApprovedFeeContentVersion: evidence.FeeContentVersion, ApprovedFeeReviewVersion: evidence.FeeReviewVersion, Reason: in.Reason, IdempotencyKey: in.IdempotencyKey, RequestFingerprint: fingerprint, RequestedBy: p.UserID, RequestedAt: time.Now().UTC(), Status: "PENDING", Version: 1}
 		if in.SourceFeeID != nil {
 			for _, f := range current {
 				if f.ID == *in.SourceFeeID {
 					r.Before = f
 					break
 				}
+			}
+			if r.Before != nil && r.Before.HasActiveBill {
+				return ErrOrderFeeBillOccupied
 			}
 			if r.Before == nil {
 				return ErrFeeCorrectionSource
@@ -154,7 +157,7 @@ func (uc *OrderFeeCorrectionUsecase) previewLocked(ctx context.Context, p *Princ
 	if r.Status != "PENDING" || r.Version != version {
 		return nil, ErrFeeCorrectionConflict
 	}
-	if evidence.ApprovedFeeReviewEventID == nil || r.ApprovedFeeReviewEventID != *evidence.ApprovedFeeReviewEventID || r.ApprovedFeeContentVersion != evidence.FeeContentVersion {
+	if evidence.LockRecordID == nil || r.LockRecordID != *evidence.LockRecordID || r.LockGeneration != evidence.BusinessLockGeneration {
 		return nil, ErrFeeCorrectionConflict
 	}
 	current, err := uc.repo.CurrentFees(ctx, order)
@@ -166,6 +169,9 @@ func (uc *OrderFeeCorrectionUsecase) previewLocked(ctx context.Context, p *Princ
 		for _, f := range current {
 			if f.ID == r.Before.ID {
 				found = true
+				if f.HasActiveBill {
+					return nil, ErrOrderFeeBillOccupied
+				}
 				if f.Version != r.Before.Version || feeCorrectionHash(feeSnapshotFromOrderFee(f)) != feeCorrectionHash(feeSnapshotFromOrderFee(r.Before)) {
 					return nil, ErrFeeCorrectionConflict
 				}

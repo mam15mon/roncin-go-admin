@@ -40,6 +40,8 @@ function makeProps(orderId: string) {
     setReceivableSummary: vi.fn(),
     setPayableSummary: vi.fn(),
     canCreateFinanceBills: false,
+    canCreateFees: true,
+    canDeleteFees: true,
     feeWritesDisabled: true,
     onOpenBillWorkbench: vi.fn(),
     getTableColumns: undefined,
@@ -48,6 +50,8 @@ function makeProps(orderId: string) {
 }
 
 const taxFee = {
+  canEdit: true,
+  canBill: true,
   id: 'fee-tax-1',
   direction: RECEIVABLE,
   currency: 'USD',
@@ -85,6 +89,8 @@ describe('OrderFeeTableTabs 只读金额列', () => {
     listFees.mockResolvedValue({
       data: [
         {
+          canEdit: true,
+          canBill: true,
           ...taxFee,
           id: 'fee-zero',
           unitPrice: '100',
@@ -112,6 +118,8 @@ describe('OrderFeeTableTabs 只读金额列', () => {
     listFees.mockResolvedValue({
       data: [
         {
+          canEdit: true,
+          canBill: true,
           ...taxFee,
           id: 'fee-gross',
           feeName: '含税行',
@@ -124,6 +132,8 @@ describe('OrderFeeTableTabs 只读金额列', () => {
           note: '备注',
         },
         {
+          canEdit: true,
+          canBill: true,
           ...taxFee,
           id: 'fee-net',
           feeName: '不含税行',
@@ -138,6 +148,8 @@ describe('OrderFeeTableTabs 只读金额列', () => {
           note: '备注',
         },
         {
+          canEdit: true,
+          canBill: true,
           ...taxFee,
           id: 'fee-norate',
           feeName: '缺税率行',

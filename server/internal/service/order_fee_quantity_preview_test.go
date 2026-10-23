@@ -23,7 +23,7 @@ func (r *feeQuantityPreviewServiceRepo) QuantitySource(_ context.Context, organi
 }
 func TestPreviewFeeQuantityService(t *testing.T) {
 	repo := &feeQuantityPreviewServiceRepo{}
-	s := NewOrderFeeService(biz.NewOrderFeeUsecase(repo, nil, nil, nil, nil, nil), nil, nil, nil, nil)
+	s := NewOrderFeeService(biz.NewOrderFeeUsecase(repo, nil, nil, nil, nil), nil, nil, nil, nil)
 	orderID, unitID, organizationID := uuid.New(), uuid.New(), uuid.New()
 	request := &v1.PreviewFeeQuantityRequest{OrderId: orderID.String(), BillingUnitId: unitID.String(), Source: "ACTUAL"}
 	if _, err := s.PreviewFeeQuantity(context.Background(), request); err == nil {

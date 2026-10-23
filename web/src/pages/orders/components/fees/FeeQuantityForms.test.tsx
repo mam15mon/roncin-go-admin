@@ -153,36 +153,32 @@ describe('费用数量带入表单入口', () => {
     expect(screen.getByLabelText('数量')).toHaveValue('9');
   });
 
-  it.each([false, true])(
-    '补录和更正（correction=%s）确认即时重算金额',
-    async (correction) => {
-      renderWithApp(
-        <FeeSupplementModal
-          {...options}
-          orderId="order-1"
-          open
-          onOpenChange={vi.fn()}
-          correction={correction}
-          onSubmit={vi.fn()}
-          initialRequest={{
-            id: 'request',
-            billingUnitId: 'unit',
-            quantity: '1',
-            unitPrice: '100',
-            currency: 'CNY',
-          }}
-        />,
-      );
-      expect(getAnyDirtyTabKey()).toBeUndefined();
-      await confirmQuantity();
-      const switchOrganization = vi.fn();
-      expect(confirmIfAnyTabDirty(switchOrganization, vi.fn())).toBe(false);
-      expect(switchOrganization).not.toHaveBeenCalled();
-      expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');
-      expect(screen.getByLabelText('数量')).toHaveValue('8');
-      expect(await screen.findByText(/800\.00/)).toBeInTheDocument();
-    },
-  );
+  it('统一费用补录确认即时重算金额', async () => {
+    renderWithApp(
+      <FeeSupplementModal
+        {...options}
+        orderId="order-1"
+        open
+        onOpenChange={vi.fn()}
+        onSubmit={vi.fn()}
+        initialRequest={{
+          id: 'request',
+          billingUnitId: 'unit',
+          quantity: '1',
+          unitPrice: '100',
+          currency: 'CNY',
+        }}
+      />,
+    );
+    expect(getAnyDirtyTabKey()).toBeUndefined();
+    await confirmQuantity();
+    const switchOrganization = vi.fn();
+    expect(confirmIfAnyTabDirty(switchOrganization, vi.fn())).toBe(false);
+    expect(switchOrganization).not.toHaveBeenCalled();
+    expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');
+    expect(screen.getByLabelText('数量')).toHaveValue('8');
+    expect(await screen.findByText(/800\.00/)).toBeInTheDocument();
+  });
 
   it('仅将确认重量来源改为纯手工也立即登记未保存保护', async () => {
     renderWithApp(<OrdinaryForm directSource />);

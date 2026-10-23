@@ -84,7 +84,7 @@ func bulkTargetsForTest(fees ...*OrderFee) []OrderFeeBulkTarget {
 }
 
 func newOrderFeeBulkUsecase(repo OrderFeeRepo, rateRepo ExchangeRateRepo) *OrderFeeUsecase {
-	return NewOrderFeeUsecase(repo, NewExchangeRateUsecase(rateRepo, nil), nil, newReminderModeCreditControl(), nil, nil)
+	return NewOrderFeeUsecase(repo, NewExchangeRateUsecase(rateRepo, nil), nil, newReminderModeCreditControl(), nil)
 }
 
 // TestBulkOrderFeeErrorKeepsSentinelMatch 断言批量错误保持单条哨兵错误的

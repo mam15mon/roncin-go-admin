@@ -34,7 +34,7 @@ type commissionEconomicPlan struct {
 }
 
 func commissionSystemSource(s adjustment.SourceType) bool {
-	return s == adjustment.SourceTypeLOCKED_FEE_SUPPLEMENT || s == adjustment.SourceTypeFEE_CORRECTION || s == adjustment.SourceTypeECONOMIC_REALLOCATION
+	return s == adjustment.SourceTypeLOCKED_FEE_SUPPLEMENT || s == adjustment.SourceTypeFEE_CORRECTION || s == adjustment.SourceTypeECONOMIC_REALLOCATION || s == adjustment.SourceTypeFEE_MUTATION
 }
 func commissionSignedAdjustment(row *ent.FinanceCommissionAdjustment) (decimal.Decimal, error) {
 	v, err := decimalOf(row.Amount)
@@ -299,13 +299,15 @@ func applyCommissionEconomicPlans(ctx context.Context, client *ent.Client, org, 
 		switch trigger.Kind {
 		case "FEE_CORRECTION":
 			builder.SetSourceType(adjustment.SourceTypeFEE_CORRECTION).SetSourceFeeCorrectionRequestID(trigger.ID)
+		case "FEE_MUTATION":
+			builder.SetSourceType(adjustment.SourceTypeFEE_MUTATION)
 		case "FEE_SUPPLEMENT":
 			builder.SetSourceType(adjustment.SourceTypeLOCKED_FEE_SUPPLEMENT).SetSourceFeeSupplementRequestID(trigger.ID)
 		default:
 			builder.SetSourceType(adjustment.SourceTypeECONOMIC_REALLOCATION)
 			if trigger.Kind == "VERIFICATION_CREATE" || trigger.Kind == "VERIFICATION_REVERSE" {
 				builder.SetSourceVerificationID(trigger.ID)
-			} else {
+			} else if trigger.Kind == "NETTING_CREATE" || trigger.Kind == "NETTING_REVERSE" {
 				builder.SetSourceNettingID(trigger.ID)
 			}
 		}
@@ -333,3 +335,24 @@ func auditCommissionEconomicPlan(ctx context.Context, client *ent.Client, org, a
 }
 
 var _ biz.FeeCorrectionCommissionRepo = (*feeCorrectionCommissionRepo)(nil)
+
+// reconcileOrdinaryFeeEconomics 将普通费用变更纳入同一经济净额算法，保留已发放事实并生成差额。
+// 调用方已按关联提成父单的订单闭包固定顺序锁定所有订单。
+func reconcileOrdinaryFeeEconomics(ctx context.Context, client *ent.Client, org, orderID uuid.UUID, audit *biz.AuditEvent) error {
+	if audit == nil || audit.UserID == nil {
+		return biz.ErrFeeCorrectionInvalid
+	}
+	projection, err := loadCommissionEconomicProjection(ctx, client, orderID, nil)
+	if err != nil {
+		return err
+	}
+	plans, err := planCommissionEconomicRows(ctx, client, org, orderID, projection, true)
+	if err != nil {
+		return err
+	}
+	order, err := client.Order.Get(ctx, orderID)
+	if err != nil {
+		return err
+	}
+	return applyCommissionEconomicPlans(ctx, client, org, *audit.UserID, biz.CommissionEconomicTrigger{Kind: "FEE_MUTATION", ID: orderID, Version: order.FeeContentVersion}, plans)
+}

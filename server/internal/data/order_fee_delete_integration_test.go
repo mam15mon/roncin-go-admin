@@ -120,14 +120,13 @@ func TestOrderFeeDeleteByBillOccupancyPostgres(t *testing.T) {
 		}
 	})
 
-	t.Run("整票批准后草稿占用行和未建账行均冻结", func(t *testing.T) {
+	t.Run("草稿占用行冻结且同票未建账费用可删除", func(t *testing.T) {
 		fixture = newFinanceBillPostgresFixture(t, data)
 		actor = fixture.actorID
 		orgIDs = []uuid.UUID{fixture.organizationID}
 		billUsecase = fixture.newUsecase(NewFinanceBillRepo(data))
 		occupiedID := fixture.createUnbilledFee("del-occupied")
 		freeID := fixture.createUnbilledFee("del-free")
-		fixture.approveFeePackage()
 		bill, err := billUsecase.Create(context.Background(), fixture.organizationID, actor, biz.CreateFinanceBillInput{
 			FeeIDs: []uuid.UUID{occupiedID}, BillDate: financeBillIntegrationDate,
 			IdempotencyKey: "bill-occupy-" + fixture.suffix, SettlementAccountID: fixture.accountID,
@@ -136,13 +135,13 @@ func TestOrderFeeDeleteByBillOccupancyPostgres(t *testing.T) {
 			t.Fatalf("建立草稿账单失败: %v", err)
 		}
 
-		if err := deleteFee(t, occupiedID, loadFeeVersion(t, occupiedID)); !errors.Is(err, biz.ErrFeeReviewFrozen) {
-			t.Fatalf("占用费用删除错误 = %v，期望 ErrFeeReviewFrozen", err)
+		if err := deleteFee(t, occupiedID, loadFeeVersion(t, occupiedID)); !errors.Is(err, biz.ErrOrderFeeBillOccupied) {
+			t.Fatalf("占用费用删除错误 = %v，期望 ErrOrderFeeBillOccupied", err)
 		}
-		// 整票批准冻结所有费用，未建账行也不能先删再让批准失效。
-		if err := deleteFee(t, freeID, 1); !errors.Is(err, biz.ErrFeeReviewFrozen) {
-			t.Fatalf("整票冻结未覆盖未建账行: %v", err)
+		if err := deleteFee(t, freeID, 1); err != nil {
+			t.Fatalf("同票未建账费用应可删除: %v", err)
 		}
+
 		if _, err := data.db.OrderFee.Get(context.Background(), occupiedID); err != nil {
 			t.Fatalf("被占用费用不应被删除: %v", err)
 		}
@@ -151,13 +150,12 @@ func TestOrderFeeDeleteByBillOccupancyPostgres(t *testing.T) {
 		}
 	})
 
-	t.Run("取消账单并撤销批准后可删除且历史行快照保留、来源置空", func(t *testing.T) {
+	t.Run("取消账单后可删除且历史行快照保留、来源置空", func(t *testing.T) {
 		fixture = newFinanceBillPostgresFixture(t, data)
 		actor = fixture.actorID
 		orgIDs = []uuid.UUID{fixture.organizationID}
 		billUsecase = fixture.newUsecase(NewFinanceBillRepo(data))
 		feeID := fixture.createUnbilledFee("del-after-cancel")
-		fixture.approveFeePackage()
 		bill, err := billUsecase.Create(context.Background(), fixture.organizationID, actor, biz.CreateFinanceBillInput{
 			FeeIDs: []uuid.UUID{feeID}, BillDate: financeBillIntegrationDate,
 			IdempotencyKey: "bill-cancel-del-" + fixture.suffix, SettlementAccountID: fixture.accountID,
@@ -169,10 +167,6 @@ func TestOrderFeeDeleteByBillOccupancyPostgres(t *testing.T) {
 			t.Fatalf("取消账单失败: %v", err)
 		}
 
-		if err := deleteFee(t, feeID, loadFeeVersion(t, feeID)); !errors.Is(err, biz.ErrFeeReviewFrozen) {
-			t.Fatalf("取消账单不应自动解冻费用: %v", err)
-		}
-		fixture.revokeFeePackage()
 		if err := deleteFee(t, feeID, loadFeeVersion(t, feeID)); err != nil {
 			t.Fatalf("取消账单后删除费用被拒绝: %v", err)
 		}
@@ -194,7 +188,6 @@ func TestOrderFeeDeleteByBillOccupancyPostgres(t *testing.T) {
 		orgIDs = []uuid.UUID{fixture.organizationID}
 		billUsecase = fixture.newUsecase(NewFinanceBillRepo(data))
 		feeID := fixture.createUnbilledFee("del-rebill")
-		fixture.approveFeePackage()
 		first, err := billUsecase.Create(context.Background(), fixture.organizationID, actor, biz.CreateFinanceBillInput{
 			FeeIDs: []uuid.UUID{feeID}, BillDate: financeBillIntegrationDate,
 			IdempotencyKey: "bill-rebill-1-" + fixture.suffix, SettlementAccountID: fixture.accountID,
@@ -212,8 +205,8 @@ func TestOrderFeeDeleteByBillOccupancyPostgres(t *testing.T) {
 		if err != nil {
 			t.Fatalf("重新建账失败: %v", err)
 		}
-		if err := deleteFee(t, feeID, loadFeeVersion(t, feeID)); !errors.Is(err, biz.ErrFeeReviewFrozen) {
-			t.Fatalf("重新建账后删除错误 = %v，期望 ErrFeeReviewFrozen", err)
+		if err := deleteFee(t, feeID, loadFeeVersion(t, feeID)); !errors.Is(err, biz.ErrOrderFeeBillOccupied) {
+			t.Fatalf("重新建账后删除错误 = %v，期望 ErrOrderFeeBillOccupied", err)
 		}
 		if second == nil {
 			t.Fatal("新账单缺失")
@@ -313,7 +306,6 @@ func TestOrderFeeDeleteByBillOccupancyPostgres(t *testing.T) {
 		orgIDs = []uuid.UUID{fixture.organizationID}
 		billUsecase = fixture.newUsecase(NewFinanceBillRepo(data))
 		feeID := fixture.createUnbilledFee("del-race")
-		fixture.approveFeePackage()
 		start := make(chan struct{})
 		var wg sync.WaitGroup
 		deleteErr := make(chan error, 1)
@@ -362,7 +354,7 @@ func TestOrderFeeDeleteByBillOccupancyPostgres(t *testing.T) {
 			if dangling != 0 {
 				t.Fatalf("删除胜出后出现悬挂活动账单行: %d", dangling)
 			}
-		case errors.Is(delResult, biz.ErrFeeReviewFrozen),
+		case errors.Is(delResult, biz.ErrOrderFeeBillOccupied),
 			errors.Is(delResult, biz.ErrOrderFeeVersionConflict):
 			// 整票批准冻结删除，费用保持完整，建账仍可成功。
 			if !feeExists {

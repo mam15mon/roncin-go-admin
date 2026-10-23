@@ -21,10 +21,7 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 	if err != nil {
 		return nil, err
 	}
-	filter := biz.FeeLedgerFilter{Page: page, PageSize: pageSize, FeeReviewStatus: request.GetFeeReviewStatus(), HasPendingFeeSupplement: request.HasPendingFeeSupplement}
-	if !biz.ValidFeeReviewStatus(filter.FeeReviewStatus) {
-		return nil, biz.ErrFeeReviewInvalid
-	}
+	filter := biz.FeeLedgerFilter{Page: page, PageSize: pageSize, HasPendingFeeSupplement: request.HasPendingFeeSupplement}
 	filter.Keyword = financeOptionalString(request.Keyword)
 	filter.BusinessType = financeOptionalString(request.BusinessType)
 	filter.Direction = biz.OrderFeeDirection(strings.ToUpper(financeOptionalString(request.Direction)))
@@ -33,7 +30,7 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 	filter.BillNo = financeOptionalString(request.BillNo)
 	filter.ExpenseDateFrom = financeOptionalString(request.ExpenseDateFrom)
 	filter.ExpenseDateTo = financeOptionalString(request.ExpenseDateTo)
-	filter.FinanceLocked = request.FinanceLocked
+	filter.OrderLocked = request.OrderLocked
 	tagIDs, err := parseUUIDValues(request.GetTagIds(), biz.ErrFinanceLedgerInvalidArgument)
 	if err != nil {
 		return nil, biz.ErrFinanceLedgerInvalidArgument
@@ -106,13 +103,13 @@ func (s *SettlementService) GetFeeLedgerOrderDetail(ctx context.Context, request
 func feeLedgerItemToAPI(item *biz.FeeLedgerItem, tags []*v1.BusinessTagSummary) *v1.FeeLedgerItem {
 	fee := item.Fee
 	result := &v1.FeeLedgerItem{
-		FeeReviewStatus: item.FeeReviewStatus, HasPendingFeeSupplement: item.HasPendingFeeSupplement, HasPendingFeeCorrection: item.HasPendingFeeCorrection, EconomicEffect: string(fee.EconomicEffect), CanBill: item.CanBill, BlockedReasons: item.BlockedReasons,
+		OrderLocked: item.OrderLocked, HasPendingFeeSupplement: item.HasPendingFeeSupplement, HasPendingFeeCorrection: item.HasPendingFeeCorrection, EconomicEffect: string(fee.EconomicEffect), CanBill: item.CanBill, BlockedReasons: item.BlockedReasons,
 		Id: fee.ID.String(), OrderId: fee.OrderID.String(), OrderNo: item.OrderNo, BusinessType: item.Business, CustomerId: item.CustomerID.String(), CustomerName: item.CustomerName, OrganizationId: item.OrganizationID.String(), OrganizationName: item.OrganizationName,
 		Direction: string(biz.SettlementDirection(fee)), FeeCode: fee.FeeCode, FeeName: fee.FeeName, SettlementPartyId: fee.SettlementPartyID.String(), SettlementPartyName: fee.SettlementPartyName, BillingUnit: fee.BillingUnit,
 		Quantity: fee.Quantity.StringFixed(4), UnitPrice: fee.UnitPrice.StringFixed(4), TotalAmount: fee.TotalAmount.StringFixed(8), NetAmount: fee.NetAmount.StringFixed(8), TaxAmount: fee.TaxAmount.StringFixed(8), Currency: fee.Currency,
 		ExchangeRate: fee.ExchangeRate.StringFixed(8), BaseCurrency: fee.BaseCurrency, BaseCurrencyAmount: fee.BaseCurrencyAmount.StringFixed(8), ExpenseDate: fee.ExpenseDate, Note: fee.Note, Version: fee.Version,
 		CreatedAt: fee.CreatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"), UpdatedAt: fee.UpdatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"), TaxRate: financeDecimalPointer(fee.TaxRate, 4),
-		FinancialProgress: feeLedgerFinancialProgressToAPI(item.FinancialProgress), FinanceLocked: item.FinanceLocked, Tags: tags,
+		FinancialProgress: feeLedgerFinancialProgressToAPI(item.FinancialProgress), Tags: tags,
 	}
 	if fee.CorrectionRequestID != nil {
 		v := fee.CorrectionRequestID.String()

@@ -610,7 +610,7 @@ func TestOrderClosurePendingSupplement(t *testing.T) {
 	organizationID, actorID, id := uuid.New(), uuid.New(), uuid.New()
 	_, err := usecase.TransitionClosure(context.Background(), organizationID, actorID, id, 8, OrderClosureClosed, "确认结案")
 	detail := errors.FromError(err)
-	if detail.Code != 409 || detail.Reason != "ORDER_CLOSURE_BLOCKED" || detail.Message != "存在待审核补录，请先处理后再结案" || repo.closureEvent != nil {
+	if detail.Code != 409 || detail.Reason != "ORDER_CLOSURE_BLOCKED" || detail.Message != "存在待审费用变更，请先处理后再结案" || repo.closureEvent != nil {
 		t.Fatalf("待审补录必须拒绝结案且不调用写入: err=%v event=%v", err, repo.closureEvent)
 	}
 	if ErrOrderClosureBlocked.Message != "订单尚未满足结案条件" {

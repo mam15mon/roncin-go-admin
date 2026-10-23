@@ -77,7 +77,7 @@ func newNettingPostgresFixture(t *testing.T, data *Data) *nettingPostgresFixture
 }
 
 func (f *nettingPostgresFixture) newUsecase() *biz.FinanceNettingUsecase {
-	return biz.NewFinanceNettingUsecase(NewFinanceNettingRepo(f.data), f.data, nil, nil)
+	return biz.NewFinanceNettingUsecase(NewFinanceNettingRepo(f.data), f.data, nil)
 }
 
 func (f *nettingPostgresFixture) input(key string) biz.CreateFinanceNettingInput {

@@ -59,7 +59,7 @@ func (s *OrderLockService) LockOrder(ctx context.Context, req *v1.LockOrderReque
 		Result:         "success",
 	}
 
-	res, err := s.usecase.LockOrder(ctx, principal, orderID, req.GetExpectedOrderVersion(), req.GetIdempotencyKey(), audit)
+	res, err := s.usecase.LockOrder(ctx, principal, orderID, req.GetExpectedOrderVersion(), req.GetIdempotencyKey(), biz.OrderLockReviewInput{ExpectedFeeContentVersion: req.GetExpectedFeeContentVersion(), FeeContentFingerprint: req.GetFeeContentFingerprint(), Comment: req.GetComment()}, audit)
 	if err != nil {
 		return nil, err
 	}
@@ -172,6 +172,9 @@ func orderLockStateToAPI(s *biz.OrderLockState) *v1.OrderLockStateData {
 		IsLocked:                s.IsLocked,
 		LockGeneration:          s.LockGeneration,
 		OrderVersion:            s.OrderVersion,
+		FeeContentVersion:       s.FeeContentVersion,
+		FeeContentFingerprint:   s.FeeContentFingerprint,
+		FeeSummary:              feeReviewSummaryToAPI(s.FeeSummary),
 		CanLock:                 s.CanLock,
 		CanRoleDirectUnlock:     s.CanRoleDirectUnlock,
 		CanAdminEmergencyUnlock: s.CanAdminEmergencyUnlock,
@@ -207,17 +210,20 @@ func orderLockRecordToAPI(r *biz.OrderLockRecord) *v1.OrderLockRecordData {
 		return nil
 	}
 	data := &v1.OrderLockRecordData{
-		Id:                 r.ID.String(),
-		OrderId:            r.OrderID.String(),
-		OrderNo:            r.OrderNo,
-		Generation:         r.Generation,
-		LockedByName:       r.LockedByName,
-		LockedAt:           r.LockedAt.Format(time.RFC3339),
-		OrderVersionAtLock: r.OrderVersionAtLock,
-		BusinessType:       orderBusinessTypeToAPI(r.BusinessType),
-		LockSource:         r.LockSource,
-		UnlockReason:       r.UnlockReason,
-		UnlockMode:         r.UnlockMode,
+		Id:                    r.ID.String(),
+		OrderId:               r.OrderID.String(),
+		OrderNo:               r.OrderNo,
+		Generation:            r.Generation,
+		LockedByName:          r.LockedByName,
+		LockedAt:              r.LockedAt.Format(time.RFC3339),
+		OrderVersionAtLock:    r.OrderVersionAtLock,
+		FeeContentVersion:     r.FeeContentVersion,
+		FeeContentFingerprint: r.FeeContentFingerprint,
+		ReviewComment:         r.ReviewComment,
+		BusinessType:          orderBusinessTypeToAPI(r.BusinessType),
+		LockSource:            r.LockSource,
+		UnlockReason:          r.UnlockReason,
+		UnlockMode:            r.UnlockMode,
 	}
 	if r.LockedBy != nil {
 		data.LockedBy = r.LockedBy.String()

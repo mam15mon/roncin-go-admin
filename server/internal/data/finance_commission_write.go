@@ -130,7 +130,7 @@ func (r *commissionRepo) Transition(ctx context.Context, org, id, actor uuid.UUI
 			return lockErr
 		}
 
-		if err := ensureCommissionOrdersReady(ctx, tx.Client(), orderUUIDsFromLines(preLines), target == biz.CommissionConfirmed); err != nil {
+		if err := ensureCommissionOrdersReady(ctx, tx.Client(), orderUUIDsFromLines(preLines)); err != nil {
 			return err
 		}
 		if target == biz.CommissionConfirmed {
@@ -250,7 +250,7 @@ func confirmCommissionsForApplicationApproval(ctx context.Context, tx *ent.Tx, o
 	if err := lockCommissionSourceOrderSet(ctx, tx.Client(), org, sources, orderUUIDsFromLines(lineRows)); err != nil {
 		return err
 	}
-	if err := ensureCommissionOrdersReady(ctx, tx.Client(), orderUUIDsFromLines(lineRows), true); err != nil {
+	if err := ensureCommissionOrdersReady(ctx, tx.Client(), orderUUIDsFromLines(lineRows)); err != nil {
 		return err
 	}
 	for _, parent := range parents {

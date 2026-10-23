@@ -27,6 +27,7 @@ export default function FeeCorrectionCreate({
   fees,
   canCreate,
   canUpdate,
+  canDelete,
   disabled,
   onCreated,
   ...options
@@ -35,6 +36,7 @@ export default function FeeCorrectionCreate({
   fees: API.OrderFee[];
   canCreate: boolean;
   canUpdate: boolean;
+  canDelete: boolean;
   disabled: boolean;
   onCreated: () => void;
 }) {
@@ -91,12 +93,12 @@ export default function FeeCorrectionCreate({
     if (!isWriteResponse(response, true)) return false;
     if (!response?.success) return false;
     resetDirty();
-    message.success('费用更正已提交审批');
+    message.success('费用补录已提交补审，批准后生效');
     setSession(undefined);
     onCreated();
     return true;
   };
-  if (!canCreate && !canUpdate) return null;
+  if (!canCreate && !canUpdate && !canDelete) return null;
   const source = session?.source;
   return (
     <>
@@ -107,20 +109,29 @@ export default function FeeCorrectionCreate({
           setSelectionOpen(true);
         }}
       >
-        申请费用更正
+        申请费用补录
       </Button>
       <GuardedModalForm<Selection>
         key={selectionKey}
-        title="选择费用更正方式"
+        title="选择费用补录方式"
         open={selectionOpen}
         onOpenChange={setSelectionOpen}
         modalProps={{ destroyOnHidden: true }}
-        initialValues={{ operation: canCreate ? 1 : 2 }}
+        initialValues={{ operation: canCreate ? 1 : canUpdate ? 2 : 3 }}
         onFinish={async (values) => {
+          if (
+            (values.operation === 1 && !canCreate) ||
+            (values.operation === 2 && !canUpdate) ||
+            (values.operation === 3 && !canDelete)
+          )
+            return false;
           const selected = currentFees.find(
             (fee) => fee.id === values.sourceFeeId,
           );
-          if (values.operation !== 1 && (!selected?.id || !selected.version))
+          if (
+            values.operation !== 1 &&
+            (!selected?.id || !selected.version || selected.canCorrect !== true)
+          )
             return false;
           const next = {
             ...values,
@@ -135,16 +146,12 @@ export default function FeeCorrectionCreate({
       >
         <ProFormSelect
           name="operation"
-          label="更正方式"
+          label="补录方式"
           rules={[{ required: true }]}
           options={[
             ...(canCreate ? [{ label: '追加应收或应付', value: 1 }] : []),
-            ...(canUpdate
-              ? [
-                  { label: '更正已有费用', value: 2 },
-                  { label: '整笔作废', value: 3 },
-                ]
-              : []),
+            ...(canUpdate ? [{ label: '更正已有费用', value: 2 }] : []),
+            ...(canDelete ? [{ label: '整笔作废', value: 3 }] : []),
           ]}
         />
         <ProFormDependency name={['operation']}>
@@ -158,7 +165,8 @@ export default function FeeCorrectionCreate({
                   fieldProps={{ showSearch: true, optionFilterProp: 'label' }}
                   options={currentFees.map((fee) => ({
                     value: fee.id,
-                    label: `${fee.direction === 1 ? '应收' : '应付'} ${fee.feeName} / ${fee.settlementPartyName} / ${formatAmount(fee.totalAmount)} ${fee.currency}`,
+                    disabled: fee.canCorrect !== true,
+                    label: `${fee.direction === 1 ? '应收' : '应付'} ${fee.feeName} / ${fee.settlementPartyName} / ${formatAmount(fee.totalAmount)} ${fee.currency}${fee.hasActiveBill ? '（须先回退至账单未建立）' : fee.hasPendingChange ? '（补审中）' : ''}`,
                   }))}
                 />
               )}
@@ -180,7 +188,6 @@ export default function FeeCorrectionCreate({
           {...options}
           orderId={orderId}
           open
-          correction
           initialDirection={source?.direction || 1}
           onOpenChange={(open) => {
             if (!open) setSession(undefined);

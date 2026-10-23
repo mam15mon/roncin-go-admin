@@ -25,8 +25,8 @@ func TestFeeCorrectionEconomicAndAccountingViews(t *testing.T) {
 	if IsCurrentFee(original) || IsCurrentFee(&inverse) || !IsCurrentFee(&replacement) {
 		t.Fatal("经济视图只能含当前正向叶子")
 	}
-	if RequiresAccounting(original) || !RequiresAccounting(&inverse) || !RequiresAccounting(&replacement) {
-		t.Fatal("账务候选须保留应建冲回行")
+	if RequiresAccounting(original) || RequiresAccounting(&inverse) || !RequiresAccounting(&replacement) {
+		t.Fatal("账务候选只能保留当前正式费用，内部冲回不得建账")
 	}
 	if SettlementDirection(&inverse) != OrderFeePayable || inverse.Direction != OrderFeeReceivable || !EconomicAmount(&inverse).Equal(decimal.NewFromInt(-100)) {
 		t.Fatal("冲回经济符号或资金方向错误")

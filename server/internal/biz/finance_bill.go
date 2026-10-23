@@ -38,38 +38,11 @@ type FinanceBillUsecase struct {
 	repo         FinanceBillRepo
 	exchangeRate *ExchangeRateUsecase
 	transactor   Transactor
-	autoLock     *AutoOrderLockUsecase
 	logger       *slog.Logger
 }
 
-func NewFinanceBillUsecase(repo FinanceBillRepo, exchangeRate *ExchangeRateUsecase, transactor Transactor, autoLock *AutoOrderLockUsecase, logger *slog.Logger) *FinanceBillUsecase {
-	return &FinanceBillUsecase{repo: repo, exchangeRate: exchangeRate, transactor: transactor, autoLock: autoLock, logger: logger}
-}
-
-// triggerAutoLockForBills 在建账事务成功提交后触发结清自动锁定重评：费用
-// UNBILLED→BILLED 可能解除“存在未建账费用”的阻断（如最后一笔未建账应付进入
-// 账单）。触发失败只记录警告日志，不得改变已提交的账单事实，也不伪装成建账失败。
-func (uc *FinanceBillUsecase) triggerAutoLockForBills(ctx context.Context, organizationID, actorID uuid.UUID, bills []*FinanceBill) {
-	if uc.autoLock == nil {
-		return
-	}
-	for _, bill := range bills {
-		if bill == nil || bill.ID == uuid.Nil {
-			continue
-		}
-		trigger := AutoOrderLockTrigger{
-			Type:           AutoLockTriggerFeeBilled,
-			ResourceID:     bill.ID,
-			OrganizationID: organizationID,
-			TriggeredBy:    actorID,
-		}
-		if err := uc.autoLock.RunSettlementLockCheck(ctx, trigger); err != nil && uc.logger != nil {
-			uc.logger.WarnContext(ctx, "建账触发的自动锁定重评失败",
-				slog.String("bill_id", bill.ID.String()),
-				slog.String("organization_id", organizationID.String()),
-				slog.String("error", err.Error()))
-		}
-	}
+func NewFinanceBillUsecase(repo FinanceBillRepo, exchangeRate *ExchangeRateUsecase, transactor Transactor, logger *slog.Logger) *FinanceBillUsecase {
+	return &FinanceBillUsecase{repo: repo, exchangeRate: exchangeRate, transactor: transactor, logger: logger}
 }
 
 func (uc *FinanceBillUsecase) List(ctx context.Context, organizationIDs []uuid.UUID, filter FinanceBillFilter) (*FinanceBillListResult, error) {
@@ -222,7 +195,6 @@ func (uc *FinanceBillUsecase) Create(ctx context.Context, organizationID, actorI
 		return transactionErr
 	})
 	if err == nil {
-		uc.triggerAutoLockForBills(ctx, organizationID, actorID, []*FinanceBill{created})
 		return uc.repo.Get(ctx, []uuid.UUID{organizationID}, created.ID)
 	}
 	existing, lookupErr := uc.repo.GetByIdempotencyKey(ctx, organizationID, normalized.IdempotencyKey)

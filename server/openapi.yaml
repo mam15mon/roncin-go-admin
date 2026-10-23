@@ -3582,10 +3582,6 @@ paths:
                   in: query
                   schema:
                     type: string
-                - name: financeLocked
-                  in: query
-                  schema:
-                    type: boolean
                 - name: tagIds
                   in: query
                   schema:
@@ -3596,11 +3592,11 @@ paths:
                   in: query
                   schema:
                     type: string
-                - name: feeReviewStatus
+                - name: hasPendingFeeSupplement
                   in: query
                   schema:
-                    type: string
-                - name: hasPendingFeeSupplement
+                    type: boolean
+                - name: orderLocked
                   in: query
                   schema:
                     type: boolean
@@ -4698,42 +4694,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/masterdata.v1.UpdateShippingLineResponse'
-    /api/v1/order-fee-reviews/approve:
-        post:
-            tags:
-                - OrderFeeService
-            operationId: OrderFeeService_ApproveOrderFeeReviews
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/order.v1.ApproveOrderFeeReviewsRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/order.v1.ApproveOrderFeeReviewsResponse'
-    /api/v1/order-fee-reviews/preview:
-        post:
-            tags:
-                - OrderFeeService
-            operationId: OrderFeeService_PreviewOrderFeeReviews
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/order.v1.PreviewOrderFeeReviewsRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/order.v1.PreviewOrderFeeReviewsResponse'
     /api/v1/order-personnel-options:
         get:
             tags:
@@ -5008,14 +4968,6 @@ paths:
                   schema:
                     type: boolean
                 - name: isShared
-                  in: query
-                  schema:
-                    type: boolean
-                - name: feeReviewStatus
-                  in: query
-                  schema:
-                    type: string
-                - name: hasPendingFeeSupplement
                   in: query
                   schema:
                     type: boolean
@@ -6128,144 +6080,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.GetOrderFeeReviewResponse'
-    /api/v1/orders/{orderId}/fee-review/approve:
-        post:
-            tags:
-                - OrderFeeService
-            operationId: OrderFeeService_ApproveOrderFeeReview
-            parameters:
-                - name: orderId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/order.v1.ApproveOrderFeeReviewRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/order.v1.ApproveOrderFeeReviewResponse'
-    /api/v1/orders/{orderId}/fee-review/preview:
-        get:
-            tags:
-                - OrderFeeService
-            operationId: OrderFeeService_PreviewOrderFeeReview
-            parameters:
-                - name: orderId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/order.v1.PreviewOrderFeeReviewResponse'
-    /api/v1/orders/{orderId}/fee-review/reject:
-        post:
-            tags:
-                - OrderFeeService
-            operationId: OrderFeeService_RejectOrderFeeReview
-            parameters:
-                - name: orderId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/order.v1.RejectOrderFeeReviewRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/order.v1.RejectOrderFeeReviewResponse'
-    /api/v1/orders/{orderId}/fee-review/revoke:
-        post:
-            tags:
-                - OrderFeeService
-            operationId: OrderFeeService_RevokeOrderFeeReview
-            parameters:
-                - name: orderId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/order.v1.RevokeOrderFeeReviewRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/order.v1.RevokeOrderFeeReviewResponse'
-    /api/v1/orders/{orderId}/fee-review/submit:
-        post:
-            tags:
-                - OrderFeeService
-            operationId: OrderFeeService_SubmitOrderFeeReview
-            parameters:
-                - name: orderId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/order.v1.SubmitOrderFeeReviewRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/order.v1.SubmitOrderFeeReviewResponse'
-    /api/v1/orders/{orderId}/fee-review/withdraw:
-        post:
-            tags:
-                - OrderFeeService
-            operationId: OrderFeeService_WithdrawOrderFeeReview
-            parameters:
-                - name: orderId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/order.v1.WithdrawOrderFeeReviewRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/order.v1.WithdrawOrderFeeReviewResponse'
     /api/v1/orders/{orderId}/fee-supplement-requests:
         get:
             tags:
@@ -6298,33 +6112,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.ListOrderFeeSupplementRequestsResponse'
-        post:
-            tags:
-                - OrderFeeService
-            description: |-
-                CreateOrderFeeSupplement 基于有效整票费用批准发起受控正数应付成本补录。
-                 批准事件与内容版本由服务端锁内固化；同订单只允许一条待审补录，并提醒
-                 有效费用审核权限且组织范围匹配的候选人。
-            operationId: OrderFeeService_CreateOrderFeeSupplement
-            parameters:
-                - name: orderId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/order.v1.CreateOrderFeeSupplementRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/order.v1.CreateOrderFeeSupplementResponse'
     /api/v1/orders/{orderId}/fee-supplement-requests/{id}/approval-preview:
         get:
             tags:
@@ -6353,133 +6140,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.PreviewOrderFeeSupplementApprovalResponse'
-    /api/v1/orders/{orderId}/fee-supplement-requests/{id}/approve:
-        post:
-            tags:
-                - OrderFeeService
-            description: |-
-                ApproveOrderFeeSupplement 审批通过补录申请：复核固化的有效费用批准与整票利润、逐人提成预览，
-                 在同一事务创建补录费用、DECREASE+CONFIRMED 冲减并逐员工通知。
-            operationId: OrderFeeService_ApproveOrderFeeSupplement
-            parameters:
-                - name: orderId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/order.v1.ApproveOrderFeeSupplementRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/order.v1.ApproveOrderFeeSupplementResponse'
-    /api/v1/orders/{orderId}/fee-supplement-requests/{id}/cancel-fee:
-        post:
-            tags:
-                - OrderFeeService
-            description: |-
-                CancelApprovedOrderFeeSupplement 专用撤销已批准补录生成的费用：仅限最新有效、
-                 未被有效账单关联占用且未产生确认冲减的补录；同事务物理删除费用并撤销
-                 当前整票批准，APPROVED 申请事实及历史账单行快照保留。
-            operationId: OrderFeeService_CancelApprovedOrderFeeSupplement
-            parameters:
-                - name: orderId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/order.v1.CancelApprovedOrderFeeSupplementRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/order.v1.CancelApprovedOrderFeeSupplementResponse'
-    /api/v1/orders/{orderId}/fee-supplement-requests/{id}/reject:
-        post:
-            tags:
-                - OrderFeeService
-            description: RejectOrderFeeSupplement 驳回补录申请：只写申请终态与审计，不产生费用或调整。
-            operationId: OrderFeeService_RejectOrderFeeSupplement
-            parameters:
-                - name: orderId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/order.v1.RejectOrderFeeSupplementRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/order.v1.RejectOrderFeeSupplementResponse'
-    /api/v1/orders/{orderId}/fee-supplement-requests/{id}/withdraw:
-        post:
-            tags:
-                - OrderFeeService
-            description: |-
-                WithdrawOrderFeeSupplement 发起人撤回本人仍处于 PENDING 的申请；与审批并发时
-                 在同一申请行锁内竞争，只有先提交的一方成功，撤回成功不产生费用或调整。
-            operationId: OrderFeeService_WithdrawOrderFeeSupplement
-            parameters:
-                - name: orderId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/order.v1.WithdrawOrderFeeSupplementRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/order.v1.WithdrawOrderFeeSupplementResponse'
     /api/v1/orders/{orderId}/fee-tag-options:
         get:
             tags:
@@ -6665,7 +6325,7 @@ paths:
                 - OrderFeeService
             description: |-
                 UpdateFee 更新订单费用，总金额由服务端重新精确计算；未被有效账单关联占用
-                 （未建账）的费用可全量维护，已建账费用仅允许按财务策略修改并同步草稿账单。
+                 （未建账）且订单未锁定的费用可维护；已建账费用必须按权限回退账务。
             operationId: OrderFeeService_UpdateFee
             parameters:
                 - name: orderId
@@ -6729,7 +6389,7 @@ paths:
         post:
             tags:
                 - OrderLockService
-            description: LockOrder 锁定订单；海运出口同时固定单证不可变版本。
+            description: LockOrder 审核完整订单与费用并锁定；海运出口同时固定单证不可变版本。
             operationId: OrderLockService_LockOrder
             parameters:
                 - name: orderId
@@ -12710,8 +12370,6 @@ components:
                     format: enum
                 billNo:
                     type: string
-                financeLocked:
-                    type: boolean
                 tags:
                     type: array
                     items:
@@ -12719,8 +12377,6 @@ components:
                 organizationId:
                     type: string
                 organizationName:
-                    type: string
-                feeReviewStatus:
                     type: string
                 hasPendingFeeSupplement:
                     type: boolean
@@ -12735,6 +12391,8 @@ components:
                 correctionRequestId:
                     type: string
                 hasPendingFeeCorrection:
+                    type: boolean
+                orderLocked:
                     type: boolean
         finance.v1.FeeLedgerOrderDetail:
             type: object
@@ -17194,91 +16852,6 @@ components:
                     $ref: '#/components/schemas/order.v1.OrderFeeCorrectionRequestData'
                 traceId:
                     type: string
-        order.v1.ApproveOrderFeeReviewRequest:
-            type: object
-            properties:
-                orderId:
-                    type: string
-                expectedReviewVersion:
-                    type: string
-                expectedContentVersion:
-                    type: string
-                submissionId:
-                    type: string
-                previewToken:
-                    type: string
-                comment:
-                    type: string
-                idempotencyKey:
-                    type: string
-                completenessConfirmed:
-                    type: boolean
-        order.v1.ApproveOrderFeeReviewResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/order.v1.OrderFeeReviewData'
-                traceId:
-                    type: string
-        order.v1.ApproveOrderFeeReviewsRequest:
-            type: object
-            properties:
-                items:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/order.v1.OrderFeeReviewActionData'
-        order.v1.ApproveOrderFeeReviewsResponse:
-            type: object
-            properties:
-                data:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/order.v1.OrderFeeReviewResult'
-                traceId:
-                    type: string
-        order.v1.ApproveOrderFeeSupplementRequest:
-            required:
-                - orderId
-                - id
-                - expectedVersion
-                - previewToken
-            type: object
-            properties:
-                orderId:
-                    type: string
-                id:
-                    type: string
-                expectedVersion:
-                    type: string
-                previewToken:
-                    type: string
-                comment:
-                    type: string
-        order.v1.ApproveOrderFeeSupplementResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/order.v1.OrderFeeSupplementRequestData'
-                fee:
-                    allOf:
-                        - $ref: '#/components/schemas/order.v1.OrderFee'
-                    description: 审批生成的补录费用。
-                traceId:
-                    type: string
         order.v1.AssignPersonnelRequest:
             required:
                 - orderId
@@ -17505,41 +17078,6 @@ components:
             description: |-
                 Order 订单核心信息。
                  BusinessTagSummary 订单返回的组织标签概要。
-        order.v1.CancelApprovedOrderFeeSupplementRequest:
-            required:
-                - orderId
-                - id
-                - expectedVersion
-                - reason
-            type: object
-            properties:
-                orderId:
-                    type: string
-                id:
-                    type: string
-                expectedVersion:
-                    type: string
-                    description: 目标费用乐观锁版本；版本竞争时稳定拒绝且零写入。
-                reason:
-                    type: string
-        order.v1.CancelApprovedOrderFeeSupplementResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                traceId:
-                    type: string
-                data:
-                    allOf:
-                        - $ref: '#/components/schemas/order.v1.OrderFeeSupplementRequestData'
-                    description: |-
-                        撤销成功后刷新的申请数据：申请保持 APPROVED，fee_id 为空表示生成费用已删除，
-                         can_cancel=false 并携带阻断原因；不再返回已删除的费用实体。
         order.v1.CheckOrderReferenceResponse:
             type: object
             properties:
@@ -17657,66 +17195,6 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/order.v1.OrderFeeCorrectionRequestData'
-                traceId:
-                    type: string
-        order.v1.CreateOrderFeeSupplementRequest:
-            required:
-                - orderId
-                - direction
-                - feeSettingId
-                - settlementPartyId
-                - billingUnitId
-                - quantity
-                - unitPrice
-                - currency
-                - expenseDate
-                - reason
-                - idempotencyKey
-            type: object
-            properties:
-                orderId:
-                    type: string
-                direction:
-                    type: integer
-                    description: 补录仅接受正数应付成本；应收方向在服务边界与领域边界双重拒绝。
-                    format: enum
-                feeSettingId:
-                    type: string
-                settlementPartyId:
-                    type: string
-                billingUnitId:
-                    type: string
-                quantity:
-                    type: string
-                unitPrice:
-                    type: string
-                currency:
-                    type: string
-                expenseDate:
-                    type: string
-                note:
-                    type: string
-                exchangeRateOverride:
-                    type: string
-                taxInclusive:
-                    type: boolean
-                reason:
-                    type: string
-                    description: 补录原因必填，参与 request_fingerprint。
-                idempotencyKey:
-                    type: string
-        order.v1.CreateOrderFeeSupplementResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/order.v1.OrderFeeSupplementRequestData'
                 traceId:
                     type: string
         order.v1.CreateOrderRequest:
@@ -18737,14 +18215,6 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/order.v1.OrderFeeBillingUnitOption'
-                financeLocked:
-                    type: boolean
-                financeLockReason:
-                    type: string
-                financeLockCommissionNos:
-                    type: array
-                    items:
-                        type: string
                 customerId:
                     type: string
                 customerName:
@@ -19154,6 +18624,8 @@ components:
                 - orderId
                 - expectedOrderVersion
                 - idempotencyKey
+                - expectedFeeContentVersion
+                - feeContentFingerprint
             type: object
             properties:
                 orderId:
@@ -19161,6 +18633,12 @@ components:
                 expectedOrderVersion:
                     type: string
                 idempotencyKey:
+                    type: string
+                expectedFeeContentVersion:
+                    type: string
+                feeContentFingerprint:
+                    type: string
+                comment:
                     type: string
         order.v1.LockOrderResponse:
             type: object
@@ -19809,6 +19287,16 @@ components:
                     type: boolean
                 quantitySource:
                     $ref: '#/components/schemas/order.v1.FeeQuantitySelection'
+                canEdit:
+                    type: boolean
+                hasPendingChange:
+                    type: boolean
+                blockedReasons:
+                    type: array
+                    items:
+                        type: string
+                canDelete:
+                    type: boolean
             description: |-
                 OrderFee 是一条订单应收或应付费用。
                  所有十进制字段均使用普通十进制字符串，禁止科学计数法和浮点传输。
@@ -19914,6 +19402,10 @@ components:
                     $ref: '#/components/schemas/order.v1.OrderFeeReviewSummary'
                 approvedProjectedSummary:
                     $ref: '#/components/schemas/order.v1.OrderFeeReviewSummary'
+                lockRecordId:
+                    type: string
+                lockGeneration:
+                    type: string
         order.v1.OrderFeeCorrectionTarget:
             type: object
             properties:
@@ -19954,25 +19446,6 @@ components:
                 minorUnit:
                     type: integer
                     format: int32
-        order.v1.OrderFeeReviewActionData:
-            type: object
-            properties:
-                orderId:
-                    type: string
-                expectedReviewVersion:
-                    type: string
-                expectedContentVersion:
-                    type: string
-                submissionId:
-                    type: string
-                previewToken:
-                    type: string
-                comment:
-                    type: string
-                idempotencyKey:
-                    type: string
-                completenessConfirmed:
-                    type: boolean
         order.v1.OrderFeeReviewData:
             type: object
             properties:
@@ -20082,19 +19555,6 @@ components:
                     type: boolean
                 hasPendingChange:
                     type: boolean
-        order.v1.OrderFeeReviewResult:
-            type: object
-            properties:
-                orderId:
-                    type: string
-                success:
-                    type: boolean
-                reason:
-                    type: string
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/order.v1.OrderFeeReviewData'
         order.v1.OrderFeeReviewSummary:
             type: object
             properties:
@@ -20330,7 +19790,7 @@ components:
                     format: enum
                 lockSource:
                     type: string
-                    description: 锁定来源：MANUAL 人工锁定；AUTO_SETTLEMENT 结清事件驱动的系统自动锁定。
+                    description: MANUAL 为人工审核锁；AUTO_SETTLEMENT 仅保留退役自动锁历史。
                 triggerType:
                     type: string
                     description: |-
@@ -20341,6 +19801,12 @@ components:
                 triggeredBy:
                     type: string
                 triggeredByName:
+                    type: string
+                feeContentVersion:
+                    type: string
+                feeContentFingerprint:
+                    type: string
+                reviewComment:
                     type: string
         order.v1.OrderLockResultData:
             type: object
@@ -20393,7 +19859,13 @@ components:
                     format: enum
                 lockSource:
                     type: string
-                    description: 锁定来源：MANUAL 归属实际锁定人；AUTO_SETTLEMENT 前端固定展示【系统自动锁定】。
+                    description: 当前审核来源为 MANUAL；AUTO_SETTLEMENT 仅保留已结束周期的审计历史。
+                feeContentVersion:
+                    type: string
+                feeContentFingerprint:
+                    type: string
+                feeSummary:
+                    $ref: '#/components/schemas/order.v1.OrderFeeReviewSummary'
         order.v1.OrderMilestone:
             type: object
             properties:
@@ -20776,36 +20248,6 @@ components:
                     $ref: '#/components/schemas/order.v1.OrderFeeCorrectionApprovalData'
                 traceId:
                     type: string
-        order.v1.PreviewOrderFeeReviewResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/order.v1.OrderFeeReviewData'
-                traceId:
-                    type: string
-        order.v1.PreviewOrderFeeReviewsRequest:
-            type: object
-            properties:
-                orderIds:
-                    type: array
-                    items:
-                        type: string
-        order.v1.PreviewOrderFeeReviewsResponse:
-            type: object
-            properties:
-                data:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/order.v1.OrderFeeReviewResult'
-                traceId:
-                    type: string
         order.v1.PreviewOrderFeeSupplementApprovalData:
             type: object
             properties:
@@ -21092,68 +20534,6 @@ components:
                     $ref: '#/components/schemas/order.v1.OrderFeeCorrectionRequestData'
                 traceId:
                     type: string
-        order.v1.RejectOrderFeeReviewRequest:
-            type: object
-            properties:
-                orderId:
-                    type: string
-                expectedReviewVersion:
-                    type: string
-                expectedContentVersion:
-                    type: string
-                submissionId:
-                    type: string
-                previewToken:
-                    type: string
-                comment:
-                    type: string
-                idempotencyKey:
-                    type: string
-                completenessConfirmed:
-                    type: boolean
-        order.v1.RejectOrderFeeReviewResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/order.v1.OrderFeeReviewData'
-                traceId:
-                    type: string
-        order.v1.RejectOrderFeeSupplementRequest:
-            required:
-                - orderId
-                - id
-                - expectedVersion
-            type: object
-            properties:
-                orderId:
-                    type: string
-                id:
-                    type: string
-                expectedVersion:
-                    type: string
-                reason:
-                    type: string
-        order.v1.RejectOrderFeeSupplementResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/order.v1.OrderFeeSupplementRequestData'
-                traceId:
-                    type: string
         order.v1.RemoveAbnormalCaseResponse:
             type: object
             properties:
@@ -21329,39 +20709,6 @@ components:
                     type: string
                 exchangeRateSettingId:
                     type: string
-                traceId:
-                    type: string
-        order.v1.RevokeOrderFeeReviewRequest:
-            type: object
-            properties:
-                orderId:
-                    type: string
-                expectedReviewVersion:
-                    type: string
-                expectedContentVersion:
-                    type: string
-                submissionId:
-                    type: string
-                previewToken:
-                    type: string
-                comment:
-                    type: string
-                idempotencyKey:
-                    type: string
-                completenessConfirmed:
-                    type: boolean
-        order.v1.RevokeOrderFeeReviewResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/order.v1.OrderFeeReviewData'
                 traceId:
                     type: string
         order.v1.SameBatchOrderSummary:
@@ -22911,39 +22258,6 @@ components:
                 traceId:
                     type: string
             description: SetMilestoneResponse 单条订单里程碑响应。
-        order.v1.SubmitOrderFeeReviewRequest:
-            type: object
-            properties:
-                orderId:
-                    type: string
-                expectedReviewVersion:
-                    type: string
-                expectedContentVersion:
-                    type: string
-                submissionId:
-                    type: string
-                previewToken:
-                    type: string
-                comment:
-                    type: string
-                idempotencyKey:
-                    type: string
-                completenessConfirmed:
-                    type: boolean
-        order.v1.SubmitOrderFeeReviewResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/order.v1.OrderFeeReviewData'
-                traceId:
-                    type: string
         order.v1.TransitionOrderClosureRequest:
             required:
                 - id
@@ -23679,66 +22993,6 @@ components:
                     type: string
                 data:
                     $ref: '#/components/schemas/order.v1.OrderFeeCorrectionRequestData'
-                traceId:
-                    type: string
-        order.v1.WithdrawOrderFeeReviewRequest:
-            type: object
-            properties:
-                orderId:
-                    type: string
-                expectedReviewVersion:
-                    type: string
-                expectedContentVersion:
-                    type: string
-                submissionId:
-                    type: string
-                previewToken:
-                    type: string
-                comment:
-                    type: string
-                idempotencyKey:
-                    type: string
-                completenessConfirmed:
-                    type: boolean
-        order.v1.WithdrawOrderFeeReviewResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/order.v1.OrderFeeReviewData'
-                traceId:
-                    type: string
-        order.v1.WithdrawOrderFeeSupplementRequest:
-            required:
-                - orderId
-                - id
-                - expectedVersion
-            type: object
-            properties:
-                orderId:
-                    type: string
-                id:
-                    type: string
-                expectedVersion:
-                    type: string
-        order.v1.WithdrawOrderFeeSupplementResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/order.v1.OrderFeeSupplementRequestData'
                 traceId:
                     type: string
         order.v1.WithdrawSeaSharedContainerRequest:
@@ -25584,6 +24838,31 @@ components:
                  DRAFT=待财务确认；CONFIRMED=已确认待发；PAID=已发放；CANCELLED 不计入有效金额。
                  冲减三阶段：DRAFT=待处理、尚未扣回；CONFIRMED=已确认、尚未实际扣回；PAID=已扣回。
                  预计机会不属于任何已确认/已发金额，仅表示尚未生成的可靠估算。
+        workbench.v1.WorkbenchCorrectionApprovalItem:
+            type: object
+            properties:
+                requestId:
+                    type: string
+                orderId:
+                    type: string
+                orderNo:
+                    type: string
+                feeCode:
+                    type: string
+                feeName:
+                    type: string
+                currency:
+                    type: string
+                amount:
+                    type: string
+                reason:
+                    type: string
+                requestedByName:
+                    type: string
+                requestedAt:
+                    type: string
+                businessType:
+                    type: string
         workbench.v1.WorkbenchEstimatedOpportunity:
             type: object
             properties:
@@ -25613,21 +24892,19 @@ components:
                     format: int32
                 pendingDecreaseCount:
                     type: integer
-                    description: |-
-                        pending_decrease_count 是当前组织 LOCKED_FEE_SUPPLEMENT + DECREASE + DRAFT
-                         冲减建议数量（待处理、尚未扣回）。
+                    description: pending_decrease_count 是当前组织已确认、尚未执行的冲减建议数量。
                     format: int32
-                pendingSupplementApprovalCount:
+                pendingCorrectionApprovalCount:
                     type: integer
                     format: int32
-                pendingSupplementApprovals:
+                pendingCorrectionApprovals:
                     type: array
                     items:
-                        $ref: '#/components/schemas/workbench.v1.WorkbenchSupplementApprovalItem'
-                supplementApprovalsTruncated:
+                        $ref: '#/components/schemas/workbench.v1.WorkbenchCorrectionApprovalItem'
+                correctionApprovalsTruncated:
                     type: boolean
                     description: |-
-                        supplement_approvals_truncated 为真时表示 PENDING 候选超出服务端有界扫描
+                        correction_approvals_truncated 为真时表示 PENDING 候选超出服务端有界扫描
                          上限，计数仅为已扫描部分的下界。
             description: |-
                 WorkbenchFinanceSummary 按当前用户对当前工作区组织的实际权限出现：无
@@ -25807,31 +25084,6 @@ components:
                     type: string
                 createdAt:
                     type: string
-        workbench.v1.WorkbenchSupplementApprovalItem:
-            type: object
-            properties:
-                requestId:
-                    type: string
-                orderId:
-                    type: string
-                orderNo:
-                    type: string
-                feeCode:
-                    type: string
-                feeName:
-                    type: string
-                currency:
-                    type: string
-                amount:
-                    type: string
-                reason:
-                    type: string
-                requestedByName:
-                    type: string
-                requestedAt:
-                    type: string
-                businessType:
-                    type: string
         workbench.v1.WorkbenchTodoSummary:
             type: object
             properties:
@@ -25880,7 +25132,7 @@ tags:
     - name: OrderFeeService
       description: |-
         OrderFeeService 订单费用录入服务。
-         管理整票费用录入与人工审核；费用批准后冻结，财务仅从有效批准费用建账。
+         订单未锁定且费用未建账时直接维护；锁定后统一通过费用变更补审。
     - name: OrderLockService
       description: OrderLockService 订单业务锁与不可变单证版本服务。
     - name: OrderMilestoneService

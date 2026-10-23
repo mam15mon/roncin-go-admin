@@ -20,9 +20,11 @@ import {
 describe('OrderFeeTableTabs 批量删除', () => {
   beforeEach(resetBulkActionMocks);
 
-  it('批量删除：二次确认展示笔数，删除原因随请求传递', async () => {
+  it('只有删除权限也能批量删除，确认笔数及删除原因随请求传递', async () => {
     bulkRemove.mockResolvedValueOnce({ success: true, removedCount: 1 } as any);
-    listFees.mockResolvedValue({ data: [unbilledFeeA] } as any);
+    listFees.mockResolvedValue({
+      data: [{ ...unbilledFeeA, canEdit: false, canDelete: true }],
+    } as any);
     const { props } = makeProps('order-1');
     props.selectedReceivableFeeIds = ['fee-a'];
     await renderTabs(props);

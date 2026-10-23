@@ -72,4 +72,22 @@ describe('OrderFeeTableTabs 选行与建账资格', () => {
     ).toBeVisible();
     expect(props.onOpenBillWorkbench).not.toHaveBeenCalled();
   });
+  it('补审只阻断服务端标记的原费用，同票其他费用仍可建账', async () => {
+    const pendingFee = makeFee({
+      id: 'pending-source',
+      version: '1',
+      feeName: '待补审原费用',
+      canEdit: false,
+      canBill: false,
+      hasPendingChange: true,
+      blockedReasons: ['该费用有待审补录'],
+    });
+    listFees.mockResolvedValue({ data: [unbilledFeeA, pendingFee] } as any);
+    const { props } = makeProps('order-1');
+    props.selectedReceivableFeeIds = ['fee-a'];
+    await renderTabs(props);
+    await screen.findByText('待补审原费用');
+    fireEvent.click(screen.getByRole('button', { name: /生成账单（1）/ }));
+    expect(props.onOpenBillWorkbench).toHaveBeenCalledWith(['fee-a']);
+  });
 });

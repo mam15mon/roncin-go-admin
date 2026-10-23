@@ -24,7 +24,9 @@ func (OrderFeeCorrectionRequest) Fields() []ent.Field {
 		field.Uint64("source_fee_version").Optional().Nillable().Immutable(),
 		field.JSON("before_snapshot", json.RawMessage{}).Optional().Immutable(),
 		field.JSON("after_snapshot", json.RawMessage{}).Optional().Immutable(),
-		field.UUID("approved_fee_review_event_id", uuid.Nil).Immutable(),
+		field.UUID("approved_fee_review_event_id", uuid.Nil).Optional().Nillable().Immutable(),
+		field.UUID("lock_record_id", uuid.Nil).Optional().Nillable().Immutable(),
+		field.Uint64("lock_generation").Optional().Nillable().Immutable(),
 		field.Uint64("approved_fee_content_version").Immutable(),
 		field.Uint64("approved_fee_review_version").Immutable(),
 		field.JSON("approval_result_snapshot", json.RawMessage{}).Optional(),
@@ -43,6 +45,7 @@ func (OrderFeeCorrectionRequest) Fields() []ent.Field {
 }
 func (OrderFeeCorrectionRequest) Edges() []ent.Edge {
 	return []ent.Edge{
+		edge.From("lock_record", OrderLockRecord.Type).Ref("fee_correction_requests").Field("lock_record_id").Unique().Immutable().Annotations(entsql.OnDelete(entsql.NoAction)),
 		edge.From("organization", Organization.Type).Ref("fee_correction_requests").Field("organization_id").Unique().Required().Immutable(),
 		edge.From("order", Order.Type).Ref("fee_correction_requests").Field("order_id").Unique().Required().Immutable(),
 		edge.From("requested_by_user", User.Type).Ref("requested_fee_correction_requests").Field("requested_by").Unique().Required().Immutable(),
@@ -64,6 +67,7 @@ func (OrderFeeCorrectionRequest) Indexes() []ent.Index {
 }
 func (OrderFeeCorrectionRequest) Annotations() []schema.Annotation {
 	return []schema.Annotation{entsql.Checks(map[string]string{
+		"order_fee_correction_lock_basis_check":     "(lock_record_id IS NULL AND lock_generation IS NULL) OR (lock_record_id IS NOT NULL AND lock_generation > 0)",
 		"order_fee_correction_status_check":         "status IN ('PENDING','APPROVED','REJECTED','WITHDRAWN')",
 		"order_fee_correction_operation_check":      "(operation = 'ADD' AND source_fee_id IS NULL AND before_snapshot IS NULL AND after_snapshot IS NOT NULL) OR (operation = 'REPLACE' AND source_fee_id IS NOT NULL AND before_snapshot IS NOT NULL AND after_snapshot IS NOT NULL) OR (operation = 'VOID' AND source_fee_id IS NOT NULL AND before_snapshot IS NOT NULL AND after_snapshot IS NULL)",
 		"order_fee_correction_approval_basis_check": "approved_fee_content_version > 0 AND version > 0",

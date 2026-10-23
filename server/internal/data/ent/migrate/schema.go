@@ -2207,7 +2207,7 @@ var (
 		{Name: "commission_no", Type: field.TypeString, Size: 64},
 		{Name: "order_no", Type: field.TypeString, Size: 64},
 		{Name: "employee_name", Type: field.TypeString, Size: 100},
-		{Name: "source_type", Type: field.TypeEnum, Enums: []string{"MANUAL", "VERIFICATION_REVERSAL", "NETTING_REVERSAL", "LOCKED_FEE_SUPPLEMENT", "FEE_CORRECTION", "ECONOMIC_REALLOCATION"}, Default: "MANUAL"},
+		{Name: "source_type", Type: field.TypeEnum, Enums: []string{"MANUAL", "VERIFICATION_REVERSAL", "NETTING_REVERSAL", "LOCKED_FEE_SUPPLEMENT", "FEE_CORRECTION", "ECONOMIC_REALLOCATION", "FEE_MUTATION"}, Default: "MANUAL"},
 		{Name: "direction", Type: field.TypeEnum, Enums: []string{"INCREASE", "DECREASE"}},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED", "PAID", "CANCELLED"}, Default: "DRAFT"},
 		{Name: "base_currency", Type: field.TypeString, Size: 3},
@@ -3751,11 +3751,6 @@ var (
 				Columns: []*schema.Column{OrdersColumns[77], OrdersColumns[4]},
 			},
 			{
-				Name:    "order_organization_id_fee_review_status",
-				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[77], OrdersColumns[49]},
-			},
-			{
 				Name:    "order_organization_id_flow_status",
 				Unique:  false,
 				Columns: []*schema.Column{OrdersColumns[77], OrdersColumns[31]},
@@ -4440,7 +4435,8 @@ var (
 		{Name: "source_fee_version", Type: field.TypeUint64, Nullable: true},
 		{Name: "before_snapshot", Type: field.TypeJSON, Nullable: true},
 		{Name: "after_snapshot", Type: field.TypeJSON, Nullable: true},
-		{Name: "approved_fee_review_event_id", Type: field.TypeUUID},
+		{Name: "approved_fee_review_event_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "lock_generation", Type: field.TypeUint64, Nullable: true},
 		{Name: "approved_fee_content_version", Type: field.TypeUint64},
 		{Name: "approved_fee_review_version", Type: field.TypeUint64},
 		{Name: "approval_result_snapshot", Type: field.TypeJSON, Nullable: true},
@@ -4455,6 +4451,7 @@ var (
 		{Name: "approval_token", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "order_id", Type: field.TypeUUID},
 		{Name: "source_fee_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "lock_record_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "requested_by", Type: field.TypeUUID},
 		{Name: "decided_by", Type: field.TypeUUID, Nullable: true},
@@ -4467,31 +4464,37 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "order_fee_correction_requests_orders_fee_correction_requests",
-				Columns:    []*schema.Column{OrderFeeCorrectionRequestsColumns[20]},
+				Columns:    []*schema.Column{OrderFeeCorrectionRequestsColumns[21]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_fee_correction_requests_order_fees_targeted_correction_requests",
-				Columns:    []*schema.Column{OrderFeeCorrectionRequestsColumns[21]},
+				Columns:    []*schema.Column{OrderFeeCorrectionRequestsColumns[22]},
 				RefColumns: []*schema.Column{OrderFeesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
+				Symbol:     "order_fee_correction_requests_order_lock_records_fee_correction_requests",
+				Columns:    []*schema.Column{OrderFeeCorrectionRequestsColumns[23]},
+				RefColumns: []*schema.Column{OrderLockRecordsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
 				Symbol:     "order_fee_correction_requests_organizations_fee_correction_requests",
-				Columns:    []*schema.Column{OrderFeeCorrectionRequestsColumns[22]},
+				Columns:    []*schema.Column{OrderFeeCorrectionRequestsColumns[24]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_fee_correction_requests_users_requested_fee_correction_requests",
-				Columns:    []*schema.Column{OrderFeeCorrectionRequestsColumns[23]},
+				Columns:    []*schema.Column{OrderFeeCorrectionRequestsColumns[25]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_fee_correction_requests_users_decided_fee_correction_requests",
-				Columns:    []*schema.Column{OrderFeeCorrectionRequestsColumns[24]},
+				Columns:    []*schema.Column{OrderFeeCorrectionRequestsColumns[26]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -4505,17 +4508,17 @@ var (
 			{
 				Name:    "orderfeecorrectionrequest_organization_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{OrderFeeCorrectionRequestsColumns[22], OrderFeeCorrectionRequestsColumns[12]},
+				Columns: []*schema.Column{OrderFeeCorrectionRequestsColumns[24], OrderFeeCorrectionRequestsColumns[13]},
 			},
 			{
 				Name:    "orderfeecorrectionrequest_organization_id_order_id_requested_at",
 				Unique:  false,
-				Columns: []*schema.Column{OrderFeeCorrectionRequestsColumns[22], OrderFeeCorrectionRequestsColumns[20], OrderFeeCorrectionRequestsColumns[14]},
+				Columns: []*schema.Column{OrderFeeCorrectionRequestsColumns[24], OrderFeeCorrectionRequestsColumns[21], OrderFeeCorrectionRequestsColumns[15]},
 			},
 			{
 				Name:    "order_fee_correction_one_pending",
 				Unique:  true,
-				Columns: []*schema.Column{OrderFeeCorrectionRequestsColumns[20]},
+				Columns: []*schema.Column{OrderFeeCorrectionRequestsColumns[21]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "status = 'PENDING'",
 				},
@@ -4842,6 +4845,10 @@ var (
 		{Name: "lock_source", Type: field.TypeEnum, Enums: []string{"MANUAL", "AUTO_SETTLEMENT"}, Default: "MANUAL"},
 		{Name: "locked_at", Type: field.TypeTime},
 		{Name: "order_version_at_lock", Type: field.TypeUint64},
+		{Name: "fee_snapshot", Type: field.TypeJSON, Nullable: true},
+		{Name: "fee_content_version", Type: field.TypeUint64, Nullable: true},
+		{Name: "fee_content_fingerprint", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "review_comment", Type: field.TypeString, Nullable: true, Size: 1000},
 		{Name: "trigger_type", Type: field.TypeEnum, Nullable: true, Enums: []string{"VERIFICATION", "NETTING", "FEE_CANCEL", "FEE_BILLED"}},
 		{Name: "trigger_resource_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "air_document_snapshot", Type: field.TypeJSON, Nullable: true},
@@ -4870,61 +4877,61 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "order_lock_records_orders_lock_records",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[17]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[21]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_lock_records_order_unlock_requests_applied_unlock_request",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[18]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[22]},
 				RefColumns: []*schema.Column{OrderUnlockRequestsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "order_lock_records_organizations_order_lock_records",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[19]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[23]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_lock_records_sea_master_bills_lock_records",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[20]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[24]},
 				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_lock_records_sea_master_bill_versions_lock_records",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[21]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[25]},
 				RefColumns: []*schema.Column{SeaMasterBillVersionsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_lock_records_sea_transport_executions_lock_records",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[22]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[26]},
 				RefColumns: []*schema.Column{SeaTransportExecutionsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_lock_records_sea_transport_execution_versions_lock_records",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[23]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[27]},
 				RefColumns: []*schema.Column{SeaTransportExecutionVersionsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_lock_records_users_order_lock_records",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[24]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[28]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_lock_records_users_unlocked_order_lock_records",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[25]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[29]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "order_lock_records_users_auto_triggered_order_lock_records",
-				Columns:    []*schema.Column{OrderLockRecordsColumns[26]},
+				Columns:    []*schema.Column{OrderLockRecordsColumns[30]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -4933,22 +4940,22 @@ var (
 			{
 				Name:    "order_lock_record_order_generation",
 				Unique:  true,
-				Columns: []*schema.Column{OrderLockRecordsColumns[17], OrderLockRecordsColumns[4]},
+				Columns: []*schema.Column{OrderLockRecordsColumns[21], OrderLockRecordsColumns[4]},
 			},
 			{
 				Name:    "order_lock_record_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{OrderLockRecordsColumns[19], OrderLockRecordsColumns[15]},
+				Columns: []*schema.Column{OrderLockRecordsColumns[23], OrderLockRecordsColumns[19]},
 			},
 			{
 				Name:    "orderlockrecord_organization_id_order_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrderLockRecordsColumns[19], OrderLockRecordsColumns[17]},
+				Columns: []*schema.Column{OrderLockRecordsColumns[23], OrderLockRecordsColumns[21]},
 			},
 			{
 				Name:    "orderlockrecord_organization_id_locked_at",
 				Unique:  false,
-				Columns: []*schema.Column{OrderLockRecordsColumns[19], OrderLockRecordsColumns[6]},
+				Columns: []*schema.Column{OrderLockRecordsColumns[23], OrderLockRecordsColumns[6]},
 			},
 		},
 	}
@@ -7930,9 +7937,10 @@ func init() {
 		"commission_adjustment_direction_check":           "direction IN ('INCREASE', 'DECREASE')",
 		"commission_adjustment_execution_check":           "(execution_method IS NULL AND parent_payment_id IS NULL) OR (execution_method = 'OFFSET_WITH_PARENT' AND parent_payment_id = commission_id) OR (execution_method = 'SEPARATE' AND parent_payment_id IS NULL)",
 		"commission_adjustment_source_correction_check":   "(source_type = 'FEE_CORRECTION' AND source_fee_correction_request_id IS NOT NULL) OR (source_type <> 'FEE_CORRECTION' AND source_fee_correction_request_id IS NULL)",
+		"commission_adjustment_source_fee_mutation_check": "source_type <> 'FEE_MUTATION' OR (source_verification_id IS NULL AND source_netting_id IS NULL)",
 		"commission_adjustment_source_reallocation_check": "source_type <> 'ECONOMIC_REALLOCATION' OR ((source_verification_id IS NOT NULL AND source_netting_id IS NULL) OR (source_verification_id IS NULL AND source_netting_id IS NOT NULL))",
 		"commission_adjustment_source_supplement_check":   "(source_type = 'LOCKED_FEE_SUPPLEMENT' AND source_fee_supplement_request_id IS NOT NULL) OR (source_type <> 'LOCKED_FEE_SUPPLEMENT' AND source_fee_supplement_request_id IS NULL)",
-		"commission_adjustment_source_type_check":         "source_type IN ('MANUAL', 'VERIFICATION_REVERSAL', 'NETTING_REVERSAL', 'LOCKED_FEE_SUPPLEMENT','FEE_CORRECTION','ECONOMIC_REALLOCATION')",
+		"commission_adjustment_source_type_check":         "source_type IN ('MANUAL', 'VERIFICATION_REVERSAL', 'NETTING_REVERSAL', 'LOCKED_FEE_SUPPLEMENT','FEE_CORRECTION','ECONOMIC_REALLOCATION','FEE_MUTATION')",
 		"commission_adjustment_status_check":              "status IN ('DRAFT', 'CONFIRMED', 'PAID', 'CANCELLED')",
 	}
 	FinanceCommissionApplicationsTable.ForeignKeys[0].RefTable = OrganizationsTable
@@ -8071,12 +8079,14 @@ func init() {
 	}
 	OrderFeeCorrectionRequestsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderFeeCorrectionRequestsTable.ForeignKeys[1].RefTable = OrderFeesTable
-	OrderFeeCorrectionRequestsTable.ForeignKeys[2].RefTable = OrganizationsTable
-	OrderFeeCorrectionRequestsTable.ForeignKeys[3].RefTable = UsersTable
+	OrderFeeCorrectionRequestsTable.ForeignKeys[2].RefTable = OrderLockRecordsTable
+	OrderFeeCorrectionRequestsTable.ForeignKeys[3].RefTable = OrganizationsTable
 	OrderFeeCorrectionRequestsTable.ForeignKeys[4].RefTable = UsersTable
+	OrderFeeCorrectionRequestsTable.ForeignKeys[5].RefTable = UsersTable
 	OrderFeeCorrectionRequestsTable.Annotation = &entsql.Annotation{}
 	OrderFeeCorrectionRequestsTable.Annotation.Checks = map[string]string{
 		"order_fee_correction_approval_basis_check": "approved_fee_content_version > 0 AND version > 0",
+		"order_fee_correction_lock_basis_check":     "(lock_record_id IS NULL AND lock_generation IS NULL) OR (lock_record_id IS NOT NULL AND lock_generation > 0)",
 		"order_fee_correction_operation_check":      "(operation = 'ADD' AND source_fee_id IS NULL AND before_snapshot IS NULL AND after_snapshot IS NOT NULL) OR (operation = 'REPLACE' AND source_fee_id IS NOT NULL AND before_snapshot IS NOT NULL AND after_snapshot IS NOT NULL) OR (operation = 'VOID' AND source_fee_id IS NOT NULL AND before_snapshot IS NOT NULL AND after_snapshot IS NULL)",
 		"order_fee_correction_status_check":         "status IN ('PENDING','APPROVED','REJECTED','WITHDRAWN')",
 	}
@@ -8119,6 +8129,7 @@ func init() {
 	OrderLockRecordsTable.Annotation = &entsql.Annotation{}
 	OrderLockRecordsTable.Annotation.Checks = map[string]string{
 		"order_lock_records_business_type_document_refs_check": "(business_type = 'SE' AND master_bill_id IS NOT NULL AND master_bill_version_id IS NOT NULL AND transport_execution_id IS NOT NULL AND transport_execution_version_id IS NOT NULL) OR (business_type IN ('SI', 'AE', 'AI', 'LAND', 'RAIL') AND master_bill_id IS NULL AND master_bill_version_id IS NULL AND transport_execution_id IS NULL AND transport_execution_version_id IS NULL)",
+		"order_lock_records_fee_review_snapshot_check":         "(fee_snapshot IS NULL AND fee_content_version IS NULL AND fee_content_fingerprint IS NULL AND review_comment IS NULL) OR (fee_snapshot IS NOT NULL AND fee_content_version IS NOT NULL AND fee_content_fingerprint IS NOT NULL AND length(fee_content_fingerprint) = 64 AND review_comment IS NOT NULL)",
 		"order_lock_records_lock_source_check":                 "(lock_source = 'MANUAL' AND locked_by IS NOT NULL AND trigger_type IS NULL AND trigger_resource_id IS NULL AND triggered_by IS NULL) OR (lock_source = 'AUTO_SETTLEMENT' AND locked_by IS NULL AND trigger_type IS NOT NULL AND trigger_resource_id IS NOT NULL AND triggered_by IS NOT NULL)",
 	}
 	OrderMilestonesTable.ForeignKeys[0].RefTable = OrdersTable

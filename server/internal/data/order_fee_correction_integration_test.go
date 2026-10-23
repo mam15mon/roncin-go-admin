@@ -21,7 +21,7 @@ import (
 // newCorrectionTestUsecase 使用真实授权与提成适配器，不以空实现跳过共享事务。
 func newCorrectionTestUsecase(t *testing.T, f *feeSupplementPostgresFixture) *biz.OrderFeeCorrectionUsecase {
 	t.Helper()
-	for _, op := range []access.OrderOperation{access.OrderFeeCreate, access.OrderFeeUpdate, access.OrderFeeRead} {
+	for _, op := range []access.OrderOperation{access.OrderRead, access.OrderUpdate, access.OrderFeeCreate, access.OrderFeeUpdate, access.OrderFeeDelete, access.OrderFeeRead} {
 		key := access.OrderPermission(access.OrderBusinessType("SI"), op)
 		p, err := f.data.db.Permission.Query().Where(permissionent.KeyEQ(key)).First(f.ctx)
 		if ent.IsNotFound(err) {
@@ -36,7 +36,7 @@ func newCorrectionTestUsecase(t *testing.T, f *feeSupplementPostgresFixture) *bi
 	}
 	custom := biz.NewFinanceCustomSettingUsecase(NewFinanceCustomSettingRepo(f.data))
 	credit := biz.NewPartnerCreditUsecase(NewFinanceBillRepo(f.data).(biz.PartnerCreditRepo), custom)
-	fees := biz.NewOrderFeeUsecase(NewOrderFeeRepo(f.data), biz.NewExchangeRateUsecase(NewExchangeRateRepo(f.data), nil), custom, credit, nil, nil)
+	fees := biz.NewOrderFeeUsecase(NewOrderFeeRepo(f.data), biz.NewExchangeRateUsecase(NewExchangeRateRepo(f.data), nil), custom, credit, nil)
 	return biz.NewOrderFeeCorrectionUsecase(NewOrderFeeCorrectionRepo(f.data), fees, NewFeeCorrectionCommissionRepo(f.data), f.data)
 }
 func correctionTestInput(f *feeSupplementPostgresFixture, op, key string, source *biz.OrderFee, amount int64) *biz.OrderFeeCorrectionInput {
@@ -167,7 +167,7 @@ func TestFeeCorrectionEconomicOperationsPostgres(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if err = validateApprovedOrderFees(f.ctx, f.data.db, locked); err != nil {
+			if err = validateOrderApprovalSnapshot(f.ctx, f.data.db, locked); err != nil {
 				t.Fatalf("新批准经济快照无效: %v", err)
 			}
 		})
@@ -224,60 +224,6 @@ func TestFeeCorrectionRevenueAndPartyPostgres(t *testing.T) {
 				t.Fatalf("新正式费用未沿用批准对象: %+v", approved.After)
 			}
 		})
-	}
-}
-func TestFeeCorrectionPendingAndBusinessClosurePostgres(t *testing.T) {
-	f := newFeeSupplementFixture(t)
-	uc := newCorrectionTestUsecase(t, f)
-	o := readyClosureTestOrder(t, f)
-	before := correctionTestSource(t, f, o, biz.OrderFeePayable)
-	r, err := uc.Submit(f.ctx, f.approverPrincipal(), f.organizationID, o.ID, correctionTestInput(f, "REPLACE", "pending-core", before, 100), false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err = f.usecase.Create(f.ctx, f.requesterPrincipal(), f.organizationID, o.ID, f.supplementInput("mutex"), false); err == nil {
-		t.Fatal("更正待审应与补录互斥")
-	}
-	readiness, err := NewOrderRepo(f.data).ClosureReadiness(f.ctx, f.organizationID, o.ID)
-	if err != nil || !readiness.HasPendingFeeSupplement || readiness.HasUnbilledOrderFees {
-		t.Fatalf("待审结案阻断缺失: %+v %v", readiness, err)
-	}
-	if _, err = transitionClosureForTest(f.ctx, f, o, biz.OrderClosureClosed); err == nil {
-		t.Fatal("待审更正不能先结案")
-	}
-	err = f.data.WithTx(f.ctx, func(tx *ent.Tx) error {
-		eligible, _, err := evaluateAutoLockEligibility(f.ctx, tx, o.ID)
-		if eligible {
-			t.Fatal("待审更正不能自动锁单")
-		}
-		return err
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err = uc.Decide(f.ctx, f.approverPrincipal(), f.organizationID, o.ID, r.ID, r.Version, "WITHDRAWN", "申请撤回"); err != nil {
-		t.Fatal(err)
-	}
-	// 结案不要求回款；已结案和业务锁也允许受控更正。
-	closed, err := transitionClosureForTest(f.ctx, f, o, biz.OrderClosureClosed)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if closed.ClosureStatus != biz.OrderClosureClosed {
-		t.Fatal("业务已完成应可结案")
-	}
-	f.lockOrder(o)
-	r, err = uc.Submit(f.ctx, f.approverPrincipal(), f.organizationID, o.ID, correctionTestInput(f, "REPLACE", "closed-core", before, 100), false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	result := approveCorrectionForTest(t, f, uc, o, r)
-	if result.ReversalFeeID == nil || result.FinancialStatus != "ADJUSTMENT_UNBILLED" {
-		t.Fatalf("已建账更正须保留冲回财务待办: %+v", result)
-	}
-	inverse, err := f.data.db.OrderFee.Get(f.ctx, *result.ReversalFeeID)
-	if err != nil || !inverse.AccountingRequired || inverse.Direction != feeent.DirectionPAYABLE {
-		t.Fatalf("冲回应保留业务方向且需建账: %+v %v", inverse, err)
 	}
 }
 func TestFeeCorrectionPermissionsVersionsAndConcurrencyPostgres(t *testing.T) {
@@ -428,7 +374,7 @@ func TestFeeCorrectionApprovalRollbackPostgres(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if orderAfter.FeeContentVersion != orderBefore.FeeContentVersion || orderAfter.FeeReviewVersion != orderBefore.FeeReviewVersion || *orderAfter.ApprovedFeeReviewEventID != *orderBefore.ApprovedFeeReviewEventID {
+	if orderAfter.FeeContentVersion != orderBefore.FeeContentVersion || orderAfter.FeeReviewVersion != orderBefore.FeeReviewVersion || orderAfter.LockGeneration != orderBefore.LockGeneration {
 		t.Fatal("失败不得改经济/审核版本或批准事件")
 	}
 	pending, err := f.data.db.OrderFeeCorrectionRequest.Get(f.ctx, request.ID)
@@ -447,5 +393,5 @@ func TestFeeCorrectionApprovalRollbackPostgres(t *testing.T) {
 func normalFeeUsecaseForRollback(f *feeSupplementPostgresFixture) *biz.OrderFeeUsecase {
 	custom := biz.NewFinanceCustomSettingUsecase(NewFinanceCustomSettingRepo(f.data))
 	credit := biz.NewPartnerCreditUsecase(NewFinanceBillRepo(f.data).(biz.PartnerCreditRepo), custom)
-	return biz.NewOrderFeeUsecase(NewOrderFeeRepo(f.data), biz.NewExchangeRateUsecase(NewExchangeRateRepo(f.data), nil), custom, credit, nil, nil)
+	return biz.NewOrderFeeUsecase(NewOrderFeeRepo(f.data), biz.NewExchangeRateUsecase(NewExchangeRateRepo(f.data), nil), custom, credit, nil)
 }

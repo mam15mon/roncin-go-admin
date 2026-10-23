@@ -60,6 +60,8 @@ function makeProps(orderId: string) {
     setReceivableSummary: vi.fn(),
     setPayableSummary: vi.fn(),
     canCreateFinanceBills: false,
+    canCreateFees: true,
+    canDeleteFees: true,
     feeWritesDisabled: true,
     onOpenBillWorkbench: vi.fn(),
     getTableColumns: undefined,
@@ -89,13 +91,17 @@ describe('OrderFeeTableTabs 账单投影相关操作', () => {
   it('行内保存成功后通知页面刷新关联投影（A4）', async () => {
     const today = '2026-09-21';
     const onFeeSaved = vi.fn();
-    updateFee.mockResolvedValue({ data: { id: 'fee-edit-1' } } as any);
+    updateFee.mockResolvedValue({
+      data: { canEdit: true, canBill: true, id: 'fee-edit-1' },
+    } as any);
     listFees.mockResolvedValue({
       data: [
         {
+          canEdit: true,
+          canBill: true,
           id: 'fee-edit-1',
           direction: PAYABLE,
-          hasActiveBill: true,
+          hasActiveBill: false,
           currency: 'CNY',
           quantity: '1',
           unitPrice: '100',
@@ -138,11 +144,14 @@ describe('OrderFeeTableTabs 账单投影相关操作', () => {
     expect(updateFee).toHaveBeenCalledTimes(1);
   });
 
-  it('删除入口仅对未建账费用展示并回调页面删除流程', async () => {
+  it('只有删除权限的未建账费用仍可删除，已建账费用不开放操作', async () => {
     const onCancelFee = vi.fn();
     listFees.mockResolvedValue({
       data: [
         {
+          canEdit: false,
+          canDelete: true,
+          canBill: true,
           id: 'fee-unbilled',
           direction: RECEIVABLE,
           expenseDate: '2026-09-20',
@@ -150,6 +159,9 @@ describe('OrderFeeTableTabs 账单投影相关操作', () => {
           feeName: '拖车费',
         },
         {
+          canEdit: false,
+          canDelete: false,
+          canBill: false,
           id: 'fee-billed',
           direction: RECEIVABLE,
           hasActiveBill: true,
@@ -192,6 +204,8 @@ describe('OrderFeeTableTabs 账单投影相关操作', () => {
     listFees.mockResolvedValue({
       data: [
         {
+          canEdit: true,
+          canBill: true,
           id: 'fee-unbilled',
           direction: RECEIVABLE,
           expenseDate: '2026-09-20',
@@ -199,6 +213,8 @@ describe('OrderFeeTableTabs 账单投影相关操作', () => {
           feeName: '拖车费',
         },
         {
+          canEdit: false,
+          canBill: false,
           id: 'fee-billed',
           direction: RECEIVABLE,
           hasActiveBill: true,

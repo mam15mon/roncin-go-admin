@@ -2,7 +2,10 @@ package data
 
 import (
 	"context"
+	"github.com/go-kratos/kratos/v3/errors"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -40,7 +43,7 @@ func (r *financeBillRepo) Create(ctx context.Context, bill *biz.FinanceBill, aud
 		}
 		for _, fee := range fees {
 			line := expected[fee.ID]
-			if line == nil || entFeeSettlementDirection(fee) != bill.Direction || entFeeBillPurpose(fee) != bill.Purpose || !fee.AccountingRequired || fee.SupersededByRequestID != nil || fee.SettlementPartyID != bill.SettlementPartyID || fee.Currency != bill.Currency || fee.BaseCurrency != bill.BaseCurrency || fee.TotalAmount != line.TotalAmount.StringFixed(8) || fee.NetAmount != line.NetAmount.StringFixed(8) || fee.TaxAmount != line.TaxAmount.StringFixed(8) || fee.BaseCurrencyAmount != line.BaseCurrencyAmount.StringFixed(8) || !financeDecimalStringEqual(fee.TaxRate, line.TaxRate, 4) {
+			if line == nil || fee.EconomicEffect != orderfeeent.EconomicEffectINCREASE || entFeeSettlementDirection(fee) != bill.Direction || entFeeBillPurpose(fee) != bill.Purpose || !fee.AccountingRequired || fee.SupersededByRequestID != nil || fee.SettlementPartyID != bill.SettlementPartyID || fee.Currency != bill.Currency || fee.BaseCurrency != bill.BaseCurrency || fee.TotalAmount != line.TotalAmount.StringFixed(8) || fee.NetAmount != line.NetAmount.StringFixed(8) || fee.TaxAmount != line.TaxAmount.StringFixed(8) || fee.BaseCurrencyAmount != line.BaseCurrencyAmount.StringFixed(8) || !financeDecimalStringEqual(fee.TaxRate, line.TaxRate, 4) {
 				return biz.ErrFinanceBillFeeInvalid
 			}
 		}
@@ -238,32 +241,8 @@ func (r *financeBillRepo) Cancel(ctx context.Context, organizationIDs []uuid.UUI
 		if item.Status != financebillent.StatusDRAFT && item.Status != financebillent.StatusCONFIRMED {
 			return biz.ErrFinanceBillInvalidTransition
 		}
-		invoiced, err := tx.FinanceInvoiceBill.Query().Where(financeinvoicebillent.BillIDEQ(id), financeinvoicebillent.ActiveEQ(true)).Exist(ctx)
-		if err != nil {
+		if err := billCancellationDependencies(ctx, tx.Client(), item); err != nil {
 			return err
-		}
-		if invoiced {
-			return biz.ErrFinanceBillInvalidTransition
-		}
-		verified, err := tx.FinanceVerificationAllocation.Query().Where(verificationallocationent.BillIDEQ(id), verificationallocationent.ActiveEQ(true)).Exist(ctx)
-		if err != nil {
-			return err
-		}
-		if verified {
-			return biz.ErrFinanceBillInvalidTransition
-		}
-		netted, err := tx.FinanceNettingAllocation.Query().Where(
-			financenettingallocationent.BillIDEQ(id),
-			financenettingallocationent.Or(
-				financenettingallocationent.ActiveEQ(true),
-				financenettingallocationent.HasNettingWith(financenettingent.StatusEQ(financenettingent.StatusDRAFT)),
-			),
-		).Exist(ctx)
-		if err != nil {
-			return err
-		}
-		if netted {
-			return biz.ErrFinanceBillInvalidTransition
 		}
 		lines, err := tx.FinanceBillLine.Query().Where(financebilllineent.BillIDEQ(id), financebilllineent.ActiveEQ(true)).Order(financebilllineent.ByID()).ForUpdate().All(ctx)
 		if err != nil {
@@ -377,8 +356,58 @@ func entFeeSettlementDirection(fee *ent.OrderFee) biz.OrderFeeDirection {
 	return biz.OrderFeeReceivable
 }
 func entFeeBillPurpose(fee *ent.OrderFee) biz.FinanceBillPurpose {
-	if fee.EconomicEffect == orderfeeent.EconomicEffectDECREASE {
-		return biz.FinanceBillCorrectionReversal
-	}
 	return biz.FinanceBillNormal
+}
+
+// billCancellationDependencies 返回真实依赖与回退动作；整张账单释放占用后费用才回到未建账。
+func billCancellationDependencies(ctx context.Context, client *ent.Client, bill *ent.FinanceBill) error {
+	instructions := []string{}
+	details := []string{}
+	permissions := []string{}
+	invoices, err := client.FinanceInvoiceBill.Query().Where(financeinvoicebillent.BillIDEQ(bill.ID), financeinvoicebillent.ActiveEQ(true)).WithInvoice().Order(financeinvoicebillent.ByID()).All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, link := range invoices {
+		head := link.Edges.Invoice
+		action := "取消草稿发票"
+		permission := access.FinanceInvoiceUpdate
+		if string(head.Status) != "DRAFT" {
+			action = "红冲已开具发票"
+			permission = access.FinanceInvoiceUpdate
+		}
+		instructions = append(instructions, action+" "+head.RecordNo)
+		details = append(details, "invoice:"+head.ID.String())
+		permissions = append(permissions, permission)
+	}
+	verifications, err := client.FinanceVerificationAllocation.Query().Where(verificationallocationent.BillIDEQ(bill.ID), verificationallocationent.ActiveEQ(true)).WithVerification().Order(verificationallocationent.ByID()).All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, link := range verifications {
+		head := link.Edges.Verification
+		instructions = append(instructions, "反核销 "+head.VerificationNo)
+		details = append(details, "verification:"+head.ID.String())
+		permissions = append(permissions, access.FinanceVerificationReverse)
+	}
+	nettings, err := client.FinanceNettingAllocation.Query().Where(financenettingallocationent.BillIDEQ(bill.ID), financenettingallocationent.Or(financenettingallocationent.ActiveEQ(true), financenettingallocationent.HasNettingWith(financenettingent.StatusEQ(financenettingent.StatusDRAFT)))).WithNetting().Order(financenettingallocationent.ByID()).All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, link := range nettings {
+		head := link.Edges.Netting
+		action := "反对冲"
+		permission := access.FinanceNettingReverse
+		if head.Status == financenettingent.StatusDRAFT {
+			action = "取消草稿对冲"
+			permission = access.FinanceNettingReverse
+		}
+		instructions = append(instructions, action+" "+head.NettingNo)
+		details = append(details, "netting:"+head.ID.String())
+		permissions = append(permissions, permission)
+	}
+	if len(instructions) == 0 {
+		return nil
+	}
+	return errors.Conflict("FINANCE_BILL_CANCELLATION_BLOCKED", "请先按对应权限完成："+strings.Join(instructions, "；")+"；再整张取消账单 "+bill.BillNo+"（将释放该账单全部费用）").WithMetadata(map[string]string{"bill_id": bill.ID.String(), "bill_no": bill.BillNo, "dependencies": strings.Join(details, ","), "required_permissions": strings.Join(permissions, ","), "rollback_scope": "WHOLE_BILL"})
 }

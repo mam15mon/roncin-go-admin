@@ -691,7 +691,6 @@ func TestOrderCommissionSummaryPrivacyPostgres(t *testing.T) {
 		if err != nil {
 			t.Fatalf("创建操作提成失败: %v", err)
 		}
-		seedApprovedFeeSnapshotForTest(t, f.data, orderMixID, actorID)
 		if _, err = usecase.Confirm(ctx, org.organizationID, actorID, confirmedCommission.ID, confirmedCommission.Version); err != nil {
 			t.Fatalf("确认操作提成失败: %v", err)
 		}

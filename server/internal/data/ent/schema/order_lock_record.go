@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"encoding/json"
 	"time"
 
 	"entgo.io/ent"
@@ -20,6 +21,7 @@ func (OrderLockRecord) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}} }
 func (OrderLockRecord) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entsql.Checks(map[string]string{
+			"order_lock_records_fee_review_snapshot_check":         "(fee_snapshot IS NULL AND fee_content_version IS NULL AND fee_content_fingerprint IS NULL AND review_comment IS NULL) OR (fee_snapshot IS NOT NULL AND fee_content_version IS NOT NULL AND fee_content_fingerprint IS NOT NULL AND length(fee_content_fingerprint) = 64 AND review_comment IS NOT NULL)",
 			"order_lock_records_business_type_document_refs_check": "(business_type = 'SE' AND master_bill_id IS NOT NULL AND master_bill_version_id IS NOT NULL AND transport_execution_id IS NOT NULL AND transport_execution_version_id IS NOT NULL) OR (business_type IN ('SI', 'AE', 'AI', 'LAND', 'RAIL') AND master_bill_id IS NULL AND master_bill_version_id IS NULL AND transport_execution_id IS NULL AND transport_execution_version_id IS NULL)",
 			// 锁定来源一致性：人工锁定必须有 locked_by 且触发字段为空；
 			// 系统自动锁定必须无 locked_by 且触发类型、触发单据与触发操作人完整。
@@ -42,6 +44,11 @@ func (OrderLockRecord) Fields() []ent.Field {
 		field.UUID("locked_by", uuid.Nil).Optional().Nillable().Immutable(),
 		field.Time("locked_at").Immutable(),
 		field.Uint64("order_version_at_lock").Immutable(),
+		// 旧周期保留空值；新人工审核锁定必须写入完整费用快照。
+		field.JSON("fee_snapshot", json.RawMessage{}).Optional().Immutable(),
+		field.Uint64("fee_content_version").Optional().Nillable().Immutable(),
+		field.String("fee_content_fingerprint").MaxLen(64).Optional().Nillable().Immutable(),
+		field.String("review_comment").MaxRuneLen(1000).Optional().Nillable().Immutable(),
 		field.Enum("trigger_type").Values("VERIFICATION", "NETTING", "FEE_CANCEL", "FEE_BILLED").Optional().Nillable().Immutable(),
 		field.UUID("trigger_resource_id", uuid.Nil).Optional().Nillable().Immutable(),
 		field.UUID("triggered_by", uuid.Nil).Optional().Nillable().Immutable(),
@@ -73,6 +80,7 @@ func (OrderLockRecord) Edges() []ent.Edge {
 		edge.From("transport_execution", SeaTransportExecution.Type).Ref("lock_records").Field("transport_execution_id").Unique().Immutable(),
 		edge.From("transport_execution_version", SeaTransportExecutionVersion.Type).Ref("lock_records").Field("transport_execution_version_id").Unique().Immutable(),
 		edge.To("unlock_requests", OrderUnlockRequest.Type),
+		edge.To("fee_correction_requests", OrderFeeCorrectionRequest.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 		edge.To("applied_unlock_request", OrderUnlockRequest.Type).Field("unlock_request_id").Unique(),
 		edge.To("house_bill_snapshots", OrderLockHouseBillSnapshot.Type),
 	}

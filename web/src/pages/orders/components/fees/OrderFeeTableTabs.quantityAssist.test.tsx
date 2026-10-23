@@ -44,6 +44,8 @@ function table() {
       setAllPayableItems={vi.fn()}
       setReceivableSummary={vi.fn()}
       setPayableSummary={vi.fn()}
+      canCreateFees
+      canDeleteFees
       canCreateFinanceBills={false}
       feeWritesDisabled={false}
       onOpenBillWorkbench={vi.fn()}
@@ -59,6 +61,8 @@ describe('行内费用数量带入', () => {
     vi.mocked(orderFeeServiceListFees).mockResolvedValue({
       data: [
         {
+          canEdit: true,
+          canBill: true,
           id: 'fee-1',
           direction: 1,
           quantity: '1',
@@ -88,6 +92,8 @@ describe('行内费用数量带入', () => {
       vi.mocked(orderFeeServiceListFees).mockResolvedValue({
         data: [
           {
+            canEdit: true,
+            canBill: true,
             id: 'fee-1',
             direction,
             quantity: '1',
@@ -138,10 +144,12 @@ describe('行内费用数量带入', () => {
       expect(getAnyDirtyTabKey()).toBeUndefined();
     },
   );
-  it('已建账费用即使进入现有编辑态也不能使用数量带入', async () => {
+  it('已建账费用不开放编辑与数量带入', async () => {
     vi.mocked(orderFeeServiceListFees).mockResolvedValue({
       data: [
         {
+          canEdit: false,
+          canBill: false,
           id: 'fee-billed',
           direction: 1,
           quantity: '1',
@@ -155,8 +163,9 @@ describe('行内费用数量带入', () => {
     });
     renderWithApp(table());
     await screen.findByText('已建账费用');
-    fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
-    await screen.findByText('保存');
+    expect(
+      screen.queryByRole('button', { name: /编\s*辑/ }),
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: '从订单带入' }),
     ).not.toBeInTheDocument();

@@ -19,6 +19,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
@@ -31,6 +32,7 @@ type OrderFeeCorrectionRequestQuery struct {
 	order                               []orderfeecorrectionrequest.OrderOption
 	inters                              []Interceptor
 	predicates                          []predicate.OrderFeeCorrectionRequest
+	withLockRecord                      *OrderLockRecordQuery
 	withOrganization                    *OrganizationQuery
 	withOrder                           *OrderQuery
 	withRequestedByUser                 *UserQuery
@@ -76,6 +78,28 @@ func (_q *OrderFeeCorrectionRequestQuery) Unique(unique bool) *OrderFeeCorrectio
 func (_q *OrderFeeCorrectionRequestQuery) Order(o ...orderfeecorrectionrequest.OrderOption) *OrderFeeCorrectionRequestQuery {
 	_q.order = append(_q.order, o...)
 	return _q
+}
+
+// QueryLockRecord chains the current query on the "lock_record" edge.
+func (_q *OrderFeeCorrectionRequestQuery) QueryLockRecord() *OrderLockRecordQuery {
+	query := (&OrderLockRecordClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(orderfeecorrectionrequest.Table, orderfeecorrectionrequest.FieldID, selector),
+			sqlgraph.To(orderlockrecord.Table, orderlockrecord.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, orderfeecorrectionrequest.LockRecordTable, orderfeecorrectionrequest.LockRecordColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // QueryOrganization chains the current query on the "organization" edge.
@@ -490,6 +514,7 @@ func (_q *OrderFeeCorrectionRequestQuery) Clone() *OrderFeeCorrectionRequestQuer
 		order:                               append([]orderfeecorrectionrequest.OrderOption{}, _q.order...),
 		inters:                              append([]Interceptor{}, _q.inters...),
 		predicates:                          append([]predicate.OrderFeeCorrectionRequest{}, _q.predicates...),
+		withLockRecord:                      _q.withLockRecord.Clone(),
 		withOrganization:                    _q.withOrganization.Clone(),
 		withOrder:                           _q.withOrder.Clone(),
 		withRequestedByUser:                 _q.withRequestedByUser.Clone(),
@@ -504,6 +529,17 @@ func (_q *OrderFeeCorrectionRequestQuery) Clone() *OrderFeeCorrectionRequestQuer
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
+}
+
+// WithLockRecord tells the query-builder to eager-load the nodes that are connected to
+// the "lock_record" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *OrderFeeCorrectionRequestQuery) WithLockRecord(opts ...func(*OrderLockRecordQuery)) *OrderFeeCorrectionRequestQuery {
+	query := (&OrderLockRecordClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withLockRecord = query
+	return _q
 }
 
 // WithOrganization tells the query-builder to eager-load the nodes that are connected to
@@ -694,7 +730,8 @@ func (_q *OrderFeeCorrectionRequestQuery) sqlAll(ctx context.Context, hooks ...q
 	var (
 		nodes       = []*OrderFeeCorrectionRequest{}
 		_spec       = _q.querySpec()
-		loadedTypes = [10]bool{
+		loadedTypes = [11]bool{
+			_q.withLockRecord != nil,
 			_q.withOrganization != nil,
 			_q.withOrder != nil,
 			_q.withRequestedByUser != nil,
@@ -727,6 +764,12 @@ func (_q *OrderFeeCorrectionRequestQuery) sqlAll(ctx context.Context, hooks ...q
 	}
 	if len(nodes) == 0 {
 		return nodes, nil
+	}
+	if query := _q.withLockRecord; query != nil {
+		if err := _q.loadLockRecord(ctx, query, nodes, nil,
+			func(n *OrderFeeCorrectionRequest, e *OrderLockRecord) { n.Edges.LockRecord = e }); err != nil {
+			return nil, err
+		}
 	}
 	if query := _q.withOrganization; query != nil {
 		if err := _q.loadOrganization(ctx, query, nodes, nil,
@@ -806,6 +849,38 @@ func (_q *OrderFeeCorrectionRequestQuery) sqlAll(ctx context.Context, hooks ...q
 	return nodes, nil
 }
 
+func (_q *OrderFeeCorrectionRequestQuery) loadLockRecord(ctx context.Context, query *OrderLockRecordQuery, nodes []*OrderFeeCorrectionRequest, init func(*OrderFeeCorrectionRequest), assign func(*OrderFeeCorrectionRequest, *OrderLockRecord)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*OrderFeeCorrectionRequest)
+	for i := range nodes {
+		if nodes[i].LockRecordID == nil {
+			continue
+		}
+		fk := *nodes[i].LockRecordID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(orderlockrecord.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "lock_record_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 func (_q *OrderFeeCorrectionRequestQuery) loadOrganization(ctx context.Context, query *OrganizationQuery, nodes []*OrderFeeCorrectionRequest, init func(*OrderFeeCorrectionRequest), assign func(*OrderFeeCorrectionRequest, *Organization)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*OrderFeeCorrectionRequest)
@@ -1150,6 +1225,9 @@ func (_q *OrderFeeCorrectionRequestQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != orderfeecorrectionrequest.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if _q.withLockRecord != nil {
+			_spec.Node.AddColumnOnce(orderfeecorrectionrequest.FieldLockRecordID)
 		}
 		if _q.withOrganization != nil {
 			_spec.Node.AddColumnOnce(orderfeecorrectionrequest.FieldOrganizationID)

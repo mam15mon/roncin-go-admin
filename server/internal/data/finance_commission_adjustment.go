@@ -112,7 +112,7 @@ func (r *commissionRepo) GetMyFeeSupplementAdjustmentSource(ctx context.Context,
 	x, err := client.FinanceCommissionAdjustment.Query().Where(
 		adjustment.IDEQ(id),
 		adjustment.EmployeeIDEQ(userID),
-		adjustment.SourceTypeIn(adjustment.SourceTypeLOCKED_FEE_SUPPLEMENT, adjustment.SourceTypeFEE_CORRECTION, adjustment.SourceTypeECONOMIC_REALLOCATION),
+		adjustment.SourceTypeIn(adjustment.SourceTypeLOCKED_FEE_SUPPLEMENT, adjustment.SourceTypeFEE_CORRECTION, adjustment.SourceTypeECONOMIC_REALLOCATION, adjustment.SourceTypeFEE_MUTATION),
 		adjustment.HasOrganizationWith(
 			organizationent.EnabledEQ(true),
 			organizationent.HasMembershipsWith(membership.UserIDEQ(userID), membership.EnabledEQ(true)),
@@ -210,7 +210,7 @@ func (r *commissionRepo) CreateAdjustment(ctx context.Context, org, actor uuid.U
 		if err := lockOrdersSortedForFinance(ctx, tx, orderUUIDsFromLines(lines)); err != nil {
 			return err
 		}
-		if err := ensureCommissionOrdersReady(ctx, tx.Client(), orderUUIDsFromLines(lines), false); err != nil {
+		if err := ensureCommissionOrdersReady(ctx, tx.Client(), orderUUIDsFromLines(lines)); err != nil {
 			return err
 		}
 		parent, err := tx.FinanceCommission.Query().Where(commission.IDEQ(item.CommissionID), commission.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
@@ -280,7 +280,7 @@ func (r *commissionRepo) TransitionAdjustment(ctx context.Context, org, id, acto
 			return biz.ErrCommissionAdjustmentTransition
 		}
 		if target == biz.CommissionConfirmed || target == biz.CommissionPaid {
-			if err := ensureCommissionOrdersReady(ctx, tx.Client(), orderUUIDsFromLines(preLines), false); err != nil {
+			if err := ensureCommissionOrdersReady(ctx, tx.Client(), orderUUIDsFromLines(preLines)); err != nil {
 				return err
 			}
 		}

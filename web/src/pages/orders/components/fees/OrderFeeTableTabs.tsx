@@ -172,6 +172,8 @@ interface OrderFeeTableTabsProps {
   }) => void;
   setPayableSummary: (summary: { totalAmount: number; count: number }) => void;
   canCreateFinanceBills: boolean;
+  canCreateFees: boolean;
+  canDeleteFees: boolean;
   feeWritesDisabled: boolean;
   onOpenBillWorkbench: (feeIds: string[]) => void;
   onOpenFeeModal?: (direction: number, fee?: API.OrderFee) => void;
@@ -209,6 +211,8 @@ export default function OrderFeeTableTabs({
   setReceivableSummary,
   setPayableSummary,
   canCreateFinanceBills,
+  canCreateFees,
+  canDeleteFees,
   feeWritesDisabled,
   onOpenBillWorkbench,
   getTableColumns,
@@ -411,9 +415,13 @@ export default function OrderFeeTableTabs({
         expectedVersion: String(row.version),
       }));
 
-  /** 已建账（存在有效账单关联，草稿账单同样占用）行不参与改结算单位/改时间/删除/再次建账；显式报错，禁止静默过滤。 */
-  const rejectBilledRows = (rows: API.OrderFee[], actionText: string) => {
-    const billedRows = rows.filter((row) => row.hasActiveBill === true);
+  /** 批量写入与建账均消费服务端逐费能力；混合选择显式报错，禁止静默过滤。 */
+  const rejectUnavailableRows = (
+    rows: API.OrderFee[],
+    actionText: string,
+    capability: 'canEdit' | 'canDelete' | 'canBill' = 'canEdit',
+  ) => {
+    const billedRows = rows.filter((row) => row[capability] !== true);
     if (billedRows.length === 0) return false;
     const names = billedRows
       .map((row) => row.feeName || row.feeCode || row.id || '')
@@ -421,7 +429,7 @@ export default function OrderFeeTableTabs({
     const brief =
       names.slice(0, 3).join('、') + (names.length > 3 ? ' 等' : '');
     message.warning(
-      `选中费用中有 ${billedRows.length} 笔已建账，不能${actionText}（${brief}），请取消勾选后重试`,
+      `${billedRows.every((row) => row.hasActiveBill) ? `选中费用中有 ${billedRows.length} 笔已建账` : `选中费用中有 ${billedRows.length} 笔当前不可操作`}，不能${actionText}（${brief}），${billedRows.flatMap((row) => row.blockedReasons ?? []).join('；') || '请取消勾选后重试'}`,
     );
     return true;
   };
@@ -445,7 +453,7 @@ export default function OrderFeeTableTabs({
       message.warning('未找到勾选的费用，请刷新后重试');
       return;
     }
-    if (rejectBilledRows(rows, '生成账单')) return;
+    if (rejectUnavailableRows(rows, '生成账单', 'canBill')) return;
     onOpenBillWorkbench(rows.map((row) => String(row.id)));
   };
 
@@ -492,6 +500,7 @@ export default function OrderFeeTableTabs({
       },
       {
         key: 'remove',
+        disabled: !canDeleteFees,
         icon: <DeleteOutlined />,
         danger: true,
         label: '批量删除',
@@ -692,7 +701,7 @@ export default function OrderFeeTableTabs({
   };
 
   const handleAddReceivable = () => {
-    if (feeWritesDisabled) return;
+    if (feeWritesDisabled || !canCreateFees) return;
     const newId = `new_${Date.now()}`;
     const defaultPartyId = order?.customerId;
     const defaultPartyName =
@@ -717,7 +726,7 @@ export default function OrderFeeTableTabs({
   };
 
   const handleAddPayable = () => {
-    if (feeWritesDisabled) return;
+    if (feeWritesDisabled || !canCreateFees) return;
     const newId = `new_${Date.now()}`;
     const defaultPartyId = order?.bookingAgentId;
     const defaultPartyName = settlementParties?.find(
@@ -752,6 +761,16 @@ export default function OrderFeeTableTabs({
     const isNew =
       newLine || String(singleKey).startsWith('new_') || !originRow?.version;
     const direction = row.direction ?? RECEIVABLE;
+    if (
+      feeWritesDisabled ||
+      (isNew ? !canCreateFees : originRow.canEdit !== true)
+    ) {
+      message.warning(
+        originRow.blockedReasons?.join('；') ||
+          '费用当前不可修改，请刷新后重试',
+      );
+      return false;
+    }
 
     if (!row.feeSettingId) {
       message.error('请选择费用项目');
@@ -1227,7 +1246,7 @@ export default function OrderFeeTableTabs({
                       ...(latestPayableResultRef.current?.items ?? []),
                     ].some(
                       (fee) =>
-                        fee.id === String(rowKey) && fee.hasActiveBill === true,
+                        fee.id === String(rowKey) && fee.canEdit !== true,
                     )
                   }
                   onSourceChange={() => {
@@ -1268,7 +1287,7 @@ export default function OrderFeeTableTabs({
                       ...(latestPayableResultRef.current?.items ?? []),
                     ].some(
                       (fee) =>
-                        fee.id === String(rowKey) && fee.hasActiveBill === true,
+                        fee.id === String(rowKey) && fee.canEdit !== true,
                     )
                   }
                   onConfirm={(quantity, selection) => {
@@ -1487,22 +1506,24 @@ export default function OrderFeeTableTabs({
         render: (_, record, __, action) => {
           if (feeWritesDisabled) return [];
           return [
-            <Button
-              key="edit"
-              type="link"
-              size="small"
-              icon={<EditOutlined />}
-              onClick={() => {
-                if (record.id) {
-                  action?.startEditable(record.id);
-                }
-              }}
-            >
-              编辑
-            </Button>,
+            record.canEdit === true && (
+              <Button
+                key="edit"
+                type="link"
+                size="small"
+                icon={<EditOutlined />}
+                onClick={() => {
+                  if (record.id) {
+                    action?.startEditable(record.id);
+                  }
+                }}
+              >
+                编辑
+              </Button>
+            ),
             // 已建账（含草稿账单占用）费用不可删除，需先经财务链路取消账单；
-            // 补录生成费用由服务端拒绝普通删除并提示前往补录申请撤销。
-            record.hasActiveBill !== true && onCancelFee && (
+            // 补审产生的有效费用同样消费服务端当前能力。
+            canDeleteFees && record.canDelete === true && onCancelFee && (
               <Button
                 key="cancel"
                 type="link"
@@ -1551,7 +1572,7 @@ export default function OrderFeeTableTabs({
               key="add"
               type="primary"
               icon={<PlusOutlined />}
-              disabled={feeWritesDisabled}
+              disabled={feeWritesDisabled || !canCreateFees}
               onClick={handleAddReceivable}
             >
               新增应收费用
@@ -1699,7 +1720,7 @@ export default function OrderFeeTableTabs({
               key="add"
               type="primary"
               icon={<PlusOutlined />}
-              disabled={feeWritesDisabled}
+              disabled={feeWritesDisabled || !canCreateFees}
               onClick={handleAddPayable}
             >
               新增应付费用
@@ -1884,7 +1905,7 @@ export default function OrderFeeTableTabs({
             message.warning('请先勾选要修改的费用');
             return false;
           }
-          if (rejectBilledRows(rows, '批量修改结算单位')) return false;
+          if (rejectUnavailableRows(rows, '批量修改结算单位')) return false;
           try {
             const response = await orderFeeServiceBulkUpdateOrderFees(
               { orderId },
@@ -1943,7 +1964,7 @@ export default function OrderFeeTableTabs({
             message.warning('请先勾选要修改的费用');
             return false;
           }
-          if (rejectBilledRows(rows, '批量修改费用日期')) return false;
+          if (rejectUnavailableRows(rows, '批量修改费用日期')) return false;
           try {
             const response = await orderFeeServiceBulkUpdateOrderFees(
               { orderId },
@@ -2002,7 +2023,11 @@ export default function OrderFeeTableTabs({
             message.warning('请先勾选要删除的费用');
             return false;
           }
-          if (rejectBilledRows(rows, '批量删除')) return false;
+          if (
+            !canDeleteFees ||
+            rejectUnavailableRows(rows, '批量删除', 'canDelete')
+          )
+            return false;
           try {
             const response = await orderFeeServiceBulkRemoveOrderFees(
               { orderId },

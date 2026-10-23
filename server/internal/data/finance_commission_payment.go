@@ -11,7 +11,6 @@ import (
 	commission "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	adjustment "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
 	commissionline "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
-	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	correction "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	supplement "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/shopspring/decimal"
@@ -92,7 +91,7 @@ func populateAdjustmentExecutionCapability(result *biz.FinanceCommissionAdjustme
 }
 
 // ensureCommissionOrdersReady 调用方先锁定完整订单集合，待审补录与确认/发放在相同行串行。
-func ensureCommissionOrdersReady(ctx context.Context, client *ent.Client, orderIDs []uuid.UUID, requireApproval bool) error {
+func ensureCommissionOrdersReady(ctx context.Context, client *ent.Client, orderIDs []uuid.UUID) error {
 	pending, err := client.OrderFeeSupplementRequest.Query().Where(supplement.OrderIDIn(orderIDs...), supplement.StatusEQ(supplement.StatusPENDING)).Exist(ctx)
 	if err != nil {
 		return err
@@ -107,18 +106,7 @@ func ensureCommissionOrdersReady(ctx context.Context, client *ent.Client, orderI
 	if pending {
 		return biz.ErrFeeCorrectionPending
 	}
-	if !requireApproval {
-		return nil
-	}
-	orders, err := client.Order.Query().Where(orderent.IDIn(orderIDs...)).Order(orderent.ByID()).All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, o := range orders {
-		if err := validateOrderApprovalSnapshot(ctx, client, o); err != nil {
-			return err
-		}
-	}
+
 	return nil
 }
 
@@ -131,7 +119,7 @@ func lockCommissionPayment(ctx context.Context, tx *ent.Tx, org, id uuid.UUID) (
 	if err := lockOrdersSortedForFinance(ctx, tx, ids); err != nil {
 		return nil, nil, err
 	}
-	if err := ensureCommissionOrdersReady(ctx, tx.Client(), ids, false); err != nil {
+	if err := ensureCommissionOrdersReady(ctx, tx.Client(), ids); err != nil {
 		return nil, nil, err
 	}
 	parent, err := tx.FinanceCommission.Query().Where(commission.IDEQ(id), commission.OrganizationIDEQ(org)).ForUpdate().Only(ctx)

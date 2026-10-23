@@ -285,7 +285,6 @@ func (f *commissionApplicationFixture) newSourceOrder(index int) (uuid.UUID, uui
 	for _, item := range f.attributions {
 		f.addAttributionToOrder(order.ID, item.employeeID, item.role)
 	}
-	seedApprovedFeeSnapshotForTest(f.t, f.data, order.ID, f.actorID)
 	return order.ID, receivableFee.ID, billItem.ID
 }
 

@@ -60,8 +60,6 @@ export interface OrderListFilterParams {
   stage?: string; // 进程（未退关、已完结等）
   shareStatus?: 'all' | 'shared' | 'unshared'; // 分享状态
   isLocked?: 'all' | 'locked' | 'unlocked'; // 是否锁定
-  feeReviewStatus?: string;
-  hasPendingFeeSupplement?: boolean;
   tagIds?: string[]; // 订单标签（字典 ID，任一命中）
 
   // 分页与排序
@@ -155,7 +153,6 @@ export type BatchActionKey =
   | 'lock-unlock'
   | 'interest-to-receivable'
   | 'batch-modify-fields'
-  | 'review-fees'
   | 'manage-tags'
   | 'batch-import'
   | 'batch-delete';
@@ -165,7 +162,6 @@ export interface OrderListTemplateProps {
   queryStateIdentity?: { tabKey: string; listId: string };
   /** 是否显示标签管理入口 */
   showManageTags?: boolean;
-  showFeeReview?: boolean;
   /** 批量成功后仅取消成功行的选择。 */
   completedSelectionIds?: string[];
   /** 统一列设置表格标识（业务视图级）；缺省 `orders:list`。 */

@@ -120,7 +120,7 @@ func TestFinanceCorrectionMergedSettlementPostgres(t *testing.T) {
 	if _, err := correctionFinanceVerification(t, f, c2, old, "133.33333333"); err != biz.ErrFinanceCorrectionSettlementRequired {
 		t.Fatalf("原费未清需阻断普通核销: %v", err)
 	}
-	uc := biz.NewFinanceNettingUsecase(NewFinanceNettingRepo(data), data, nil, nil)
+	uc := biz.NewFinanceNettingUsecase(NewFinanceNettingRepo(data), data, nil)
 	create := func(first, second *ent.FinanceBill, key string) *biz.FinanceNetting {
 		n, err := uc.Create(ctx, f.organizationID, f.actorID, biz.CreateFinanceNettingInput{IdempotencyKey: key, Bills: []biz.FinanceNettingBillVersion{{BillID: first.ID, ExpectedVersion: 1}, {BillID: second.ID, ExpectedVersion: 1}}})
 		if err != nil {
@@ -198,7 +198,7 @@ func TestFinanceCorrectionUnpaidTransferBlockedPostgres(t *testing.T) {
 	newFee := correctionFinanceFee(t, f, "新", "100", &a.ID, &r.ID, fee.EconomicEffectINCREASE)
 	reverseBill := correctionFinanceBill(t, f, "reverse", bill.PurposeCORRECTION_REVERSAL, rev)
 	newBill := correctionFinanceBill(t, f, "new", bill.PurposeNORMAL, newFee)
-	uc := biz.NewFinanceNettingUsecase(NewFinanceNettingRepo(data), data, nil, nil)
+	uc := biz.NewFinanceNettingUsecase(NewFinanceNettingRepo(data), data, nil)
 	_, err := uc.Create(ctx, f.organizationID, f.actorID, biz.CreateFinanceNettingInput{IdempotencyKey: "先抵替代", Bills: []biz.FinanceNettingBillVersion{{BillID: reverseBill.ID, ExpectedVersion: 1}, {BillID: newBill.ID, ExpectedVersion: 1}}})
 	if err != biz.ErrFinanceNettingBalance {
 		t.Fatalf("未收不能转移覆盖: %v", err)
@@ -325,7 +325,7 @@ func TestFinanceCorrectionSuccessiveCashCoveragePostgres(t *testing.T) {
 	if _, err := correctionFinanceVerification(t, f, cash500, old, "500"); err != nil {
 		t.Fatal(err)
 	}
-	uc := biz.NewFinanceNettingUsecase(NewFinanceNettingRepo(data), data, nil, nil)
+	uc := biz.NewFinanceNettingUsecase(NewFinanceNettingRepo(data), data, nil)
 	offset := func(first, second *ent.FinanceBill, key string, expected string) {
 		n, err := uc.Create(ctx, f.organizationID, f.actorID, biz.CreateFinanceNettingInput{IdempotencyKey: key, Bills: []biz.FinanceNettingBillVersion{{BillID: first.ID, ExpectedVersion: 1}, {BillID: second.ID, ExpectedVersion: 1}}})
 		if err != nil {

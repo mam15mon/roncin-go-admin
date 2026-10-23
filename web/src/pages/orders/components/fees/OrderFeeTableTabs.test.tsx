@@ -75,6 +75,8 @@ function makeProps(orderId: string) {
     setReceivableSummary: vi.fn(),
     setPayableSummary: vi.fn(),
     canCreateFinanceBills: true,
+    canCreateFees: true,
+    canDeleteFees: true,
     feeWritesDisabled: true,
     onOpenBillWorkbench: vi.fn(),
     onOpenFeeModal: vi.fn(),
@@ -146,6 +148,8 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     );
 
     const feeB = {
+      canEdit: true,
+      canBill: true,
       id: 'fee-B',
       direction: RECEIVABLE,
       baseCurrencyAmount: '200',
@@ -161,6 +165,8 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     });
 
     const feeA = {
+      canEdit: true,
+      canBill: true,
       id: 'fee-A',
       direction: RECEIVABLE,
       baseCurrencyAmount: '999',
@@ -180,6 +186,8 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
   it('订单 A 已展示后切换到 B 时，立即移除 A 的表格行且 B 失败也不恢复', async () => {
     const responseB = deferred<any>();
     const feeA = {
+      canEdit: true,
+      canBill: true,
       id: 'visible-fee-A',
       direction: RECEIVABLE,
       baseCurrencyAmount: '100',
@@ -244,6 +252,8 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     );
 
     const feeB = {
+      canEdit: true,
+      canBill: true,
       id: 'visible-fee-B',
       direction: RECEIVABLE,
       baseCurrencyAmount: '200',
@@ -279,6 +289,8 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
       response.resolve({
         data: [
           {
+            canEdit: true,
+            canBill: true,
             id: 'fee-after-unmount',
             direction: RECEIVABLE,
           },
@@ -323,6 +335,8 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     );
 
     const feeB = {
+      canEdit: true,
+      canBill: true,
       id: 'payable-B',
       direction: PAYABLE,
       baseCurrencyAmount: '80',
@@ -338,6 +352,8 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     });
 
     const feeA = {
+      canEdit: true,
+      canBill: true,
       id: 'payable-A',
       direction: PAYABLE,
       baseCurrencyAmount: '666',
@@ -425,6 +441,8 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     listFees.mockResolvedValue({
       data: [
         {
+          canEdit: true,
+          canBill: true,
           id: 'fee-unbilled-1',
           direction: RECEIVABLE,
           currency: 'CNY',
@@ -504,6 +522,8 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     listFees.mockResolvedValue({
       data: [
         {
+          canEdit: true,
+          canBill: true,
           id: 'fee-unbilled-2',
           direction: RECEIVABLE,
           currency: 'CNY',

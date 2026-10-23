@@ -29,7 +29,7 @@ const (
 )
 
 type FeeLedgerFilter struct {
-	FeeReviewStatus         string
+	OrderLocked             *bool
 	HasPendingFeeSupplement *bool
 	Page                    int
 	PageSize                int
@@ -43,12 +43,11 @@ type FeeLedgerFilter struct {
 	BillNo                  string
 	ExpenseDateFrom         string
 	ExpenseDateTo           string
-	FinanceLocked           *bool
 	TagIDs                  []uuid.UUID
 }
 
 type FeeLedgerItem struct {
-	FeeReviewStatus         string
+	OrderLocked             bool
 	HasPendingFeeSupplement bool
 	HasPendingFeeCorrection bool
 	CanBill                 bool
@@ -62,7 +61,6 @@ type FeeLedgerItem struct {
 	CustomerName            string
 	FinancialProgress       FeeLedgerFinancialProgress
 	BillNo                  string
-	FinanceLocked           bool
 }
 
 // ResolveFeeLedgerFinancialProgress 依据账单事实解析费用台账的财务进度。

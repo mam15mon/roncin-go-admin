@@ -83,7 +83,7 @@ function Seed() {
         orderNo: '订单条件',
         settlementPartyId: 'party',
         expenseDateRange: [dayjs('2026-10-01'), dayjs('2026-10-12')],
-        financeLocked: 'LOCKED',
+        orderLocked: 'LOCKED',
       },
       organizationId: 'target-org',
       tagIds: ['tag'],
@@ -129,7 +129,7 @@ describe('费用查询恢复消费', () => {
         tagIds: ['tag'],
         expenseDateFrom: '2026-10-01',
         expenseDateTo: '2026-10-12',
-        financeLocked: true,
+        orderLocked: true,
       }),
     );
     act(() => state.search?.onSearch({ feeName: '新费用条件' }));

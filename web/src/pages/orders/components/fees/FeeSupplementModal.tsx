@@ -38,12 +38,11 @@ type FeeSupplementModalProps = FeeSupplementOptions & {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: FeeSupplementFormValues) => Promise<boolean>;
-  initialRequest?: API.OrderFeeSupplementRequestData;
-  correction?: boolean;
+  initialRequest?: Partial<API.OrderFee> & { reason?: string };
   initialDirection?: number;
 };
 
-/** 锁后费用补录表单：复用普通费用字段，固定应付方向并要求补录原因。 */
+/** 审核锁后统一费用补录表单，支持应收、应付新增与替换。 */
 export default function FeeSupplementModal({
   orderId,
   open,
@@ -54,7 +53,6 @@ export default function FeeSupplementModal({
   billingUnits,
   onSubmit,
   initialRequest,
-  correction = false,
   initialDirection = PAYABLE,
 }: FeeSupplementModalProps) {
   const { markDirty, resetDirty } = useUnsavedChangesGuard({
@@ -161,7 +159,7 @@ export default function FeeSupplementModal({
   return (
     <GuardedModalForm<FeeSupplementFormValues>
       guardIdentity={initialRequest?.id}
-      title={correction ? '填写更正后的费用' : '补录费用（应付）'}
+      title="填写补录费用"
       open={open}
       formRef={internalFormRef}
       initialValues={prefill}
@@ -223,21 +221,9 @@ export default function FeeSupplementModal({
       <Alert
         type="info"
         showIcon
-        title={
-          correction
-            ? '请填写更正后的完整费用；审批后保留原费用，生成对应冲回和替代记录。'
-            : '补录仅用于锁定订单追加真实发生的应付成本；审批通过后生成一条新的未建账应付费用，不会修改原有费用。应收方向不支持补录。'
-        }
+        title="补录可新增或更正应收、应付；补审批准后费用才正式生效。已建账原费用须先回退至账单未建立。"
         style={{ marginBottom: 16 }}
       />
-      {initialRequest && !correction && (
-        <Alert
-          type="info"
-          showIcon
-          title="已预填撤回申请，请核对后作为新申请提交"
-          style={{ marginBottom: 16 }}
-        />
-      )}
       {unavailable.length > 0 && (
         <Alert
           type="warning"
@@ -284,17 +270,15 @@ export default function FeeSupplementModal({
           style={{ marginBottom: 16 }}
         />
       )}
-      {correction && (
-        <ProFormSelect
-          name="direction"
-          label="费用方向"
-          rules={[{ required: true }]}
-          options={[
-            { label: '应收', value: 1 },
-            { label: '应付', value: 2 },
-          ]}
-        />
-      )}
+      <ProFormSelect
+        name="direction"
+        label="费用方向"
+        rules={[{ required: true }]}
+        options={[
+          { label: '应收', value: 1 },
+          { label: '应付', value: 2 },
+        ]}
+      />
       <Alert
         type="info"
         showIcon
@@ -459,20 +443,16 @@ export default function FeeSupplementModal({
         <Col span={24}>
           <ProFormTextArea
             name="reason"
-            label={correction ? '更正原因' : '补录原因'}
+            label="补录原因"
             rules={[
               {
                 required: true,
                 whitespace: true,
-                message: correction ? '请填写更正原因' : '请填写补录原因',
+                message: '请填写补录原因',
               },
               { max: 500, message: '补录原因不能超过 500 个字符' },
             ]}
-            placeholder={
-              correction
-                ? '请说明更正原因与业务背景（必填）'
-                : '请说明漏录成本的原因与业务背景（必填）'
-            }
+            placeholder="请说明补录原因与业务背景（必填）"
             fieldProps={{ rows: 3, maxLength: 500, showCount: true }}
           />
         </Col>

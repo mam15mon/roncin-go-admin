@@ -213,17 +213,18 @@ message WorkbenchFinanceSummary {
   bool can_manage_commission = 2;
   // confirmed_commission_count 是当前组织已确认待发提成数量（组织范围）。
   int32 confirmed_commission_count = 3;
-  // pending_decrease_count 是当前组织 LOCKED_FEE_SUPPLEMENT + DECREASE + DRAFT
-  // 冲减建议数量（待处理、尚未扣回）。
+  // pending_decrease_count 是当前组织已确认、尚未执行的冲减建议数量。
   int32 pending_decrease_count = 4;
-  int32 pending_supplement_approval_count = 5;
-  repeated WorkbenchSupplementApprovalItem pending_supplement_approvals = 6;
-  // supplement_approvals_truncated 为真时表示 PENDING 候选超出服务端有界扫描
+  reserved 5, 6, 7;
+  reserved "pending_supplement_approval_count", "pending_supplement_approvals", "supplement_approvals_truncated";
+  int32 pending_correction_approval_count = 8;
+  repeated WorkbenchCorrectionApprovalItem pending_correction_approvals = 9;
+  // correction_approvals_truncated 为真时表示 PENDING 候选超出服务端有界扫描
   // 上限，计数仅为已扫描部分的下界。
-  bool supplement_approvals_truncated = 7;
+  bool correction_approvals_truncated = 10;
 }
 
-message WorkbenchSupplementApprovalItem {
+message WorkbenchCorrectionApprovalItem {
   string request_id = 1;
   string order_id = 2;
   string order_no = 3;

@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"sort"
+	"strings"
 
 	"github.com/google/uuid"
 
@@ -74,9 +75,16 @@ func companyGrantMembershipIDs(ctx context.Context, client *ent.Client, companyI
 func qualifiedBusinessLockGrantPredicate(permissionKey string, targetOrganizationID uuid.UUID, membershipIDs []uuid.UUID, membershipPredicates ...predicate.Membership) predicate.RoleAssignment {
 	baseMembership := []predicate.Membership{membershipent.EnabledEQ(true), membershipent.OrganizationIDIn(membershipIDs...)}
 	baseMembership = append(baseMembership, membershipPredicates...)
+	rolePredicates := []predicate.Role{roleent.EnabledEQ(true), roleent.OrganizationIDEQ(targetOrganizationID), roleent.HasPermissionsWith(permissionent.KeyEQ(permissionKey))}
+	if strings.HasPrefix(permissionKey, "business.order.") && strings.HasSuffix(permissionKey, ".lock") {
+		base := strings.TrimSuffix(permissionKey, ".lock")
+		for _, required := range []string{base + ".read", base + ".update", base + ".fee.read"} {
+			rolePredicates = append(rolePredicates, roleent.HasPermissionsWith(permissionent.KeyEQ(required)))
+		}
+	}
 	return roleassignmentent.And(
 		roleassignmentent.HasMembershipWith(baseMembership...),
-		roleassignmentent.HasRoleWith(roleent.EnabledEQ(true), roleent.OrganizationIDEQ(targetOrganizationID), roleent.HasPermissionsWith(permissionent.KeyEQ(permissionKey))),
+		roleassignmentent.HasRoleWith(rolePredicates...),
 	)
 }
 

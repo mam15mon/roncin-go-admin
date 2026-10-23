@@ -2,14 +2,11 @@ package service
 
 import (
 	"context"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	v1 "github.com/roncin/roncin-go-admin/server/api/order/v1"
-	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
-	"github.com/shopspring/decimal"
 )
 
 // orderFeeSupplementToAPI 把补录申请领域对象转换为 API DTO；十进制字段与
@@ -108,76 +105,6 @@ func supplementViewCapabilities(data *v1.OrderFeeSupplementRequestData, view *bi
 	}
 }
 
-// CreateOrderFeeSupplement 发起锁后应付费用补录申请；方向应收在服务边界与
-// 领域边界双重拒绝，锁依据由服务端固化。
-func (s *OrderFeeService) CreateOrderFeeSupplement(ctx context.Context, request *v1.CreateOrderFeeSupplementRequest) (*v1.CreateOrderFeeSupplementResponse, error) {
-	principal, principalErr := biz.RequirePrincipal(ctx)
-	if principalErr != nil {
-		return nil, principalErr
-	}
-	orderID, err := uuid.Parse(request.GetOrderId())
-	if err != nil {
-		return nil, biz.ErrFeeSupplementInvalidArgument
-	}
-	feeSettingID, err := uuid.Parse(request.GetFeeSettingId())
-	if err != nil {
-		return nil, biz.ErrFeeSupplementInvalidArgument
-	}
-	partyID, err := uuid.Parse(request.GetSettlementPartyId())
-	if err != nil {
-		return nil, biz.ErrFeeSupplementInvalidArgument
-	}
-	billingUnitID, err := uuid.Parse(request.GetBillingUnitId())
-	if err != nil {
-		return nil, biz.ErrFeeSupplementInvalidArgument
-	}
-	quantity, err := parsePlainDecimal(request.GetQuantity())
-	if err != nil {
-		return nil, biz.ErrFeeSupplementInvalidArgument
-	}
-	unitPrice, err := parsePlainDecimal(request.GetUnitPrice())
-	if err != nil {
-		return nil, biz.ErrFeeSupplementInvalidArgument
-	}
-	// 双重校验第一层：补录固定应付方向。
-	direction, validDirection := orderFeeDirectionFromAPI(request.GetDirection())
-	if !validDirection {
-		return nil, biz.ErrFeeSupplementInvalidArgument
-	}
-	input := &biz.OrderFeeSupplementCreateInput{
-		Direction:         direction,
-		FeeSettingID:      feeSettingID,
-		SettlementPartyID: partyID,
-		BillingUnitID:     billingUnitID,
-		Quantity:          quantity,
-		UnitPrice:         unitPrice,
-		Currency:          request.GetCurrency(),
-		ExpenseDate:       request.GetExpenseDate(),
-		Note:              request.Note,
-		TaxInclusive:      true,
-		Reason:            request.GetReason(),
-		IdempotencyKey:    request.GetIdempotencyKey(),
-	}
-	if request.TaxInclusive != nil {
-		input.TaxInclusive = *request.TaxInclusive
-	}
-	if request.ExchangeRateOverride != nil {
-		override, parseErr := parsePlainDecimal(*request.ExchangeRateOverride)
-		if parseErr != nil {
-			return nil, biz.ErrFeeSupplementInvalidArgument
-		}
-		input.ExchangeRateOverride = &override
-	}
-	if strings.TrimSpace(input.Reason) == "" || strings.TrimSpace(input.IdempotencyKey) == "" {
-		return nil, biz.ErrFeeSupplementInvalidArgument
-	}
-	created, err := s.supplement.Create(ctx, principal, principal.Organization.ID, orderID, input, principal.HasPermissionInScope(access.FinanceExchangeRateUpdate, biz.DataScopeOrganization))
-	if err != nil {
-		return nil, err
-	}
-	return ok(ctx, &v1.CreateOrderFeeSupplementResponse{Data: orderFeeSupplementToAPI(created)}), nil
-}
-
 // ListOrderFeeSupplementRequests 订单维度分页读取补录申请；逐行授权与能力投影
 // 由领域层完成。
 func (s *OrderFeeService) ListOrderFeeSupplementRequests(ctx context.Context, request *v1.ListOrderFeeSupplementRequestsRequest) (*v1.ListOrderFeeSupplementRequestsResponse, error) {
@@ -206,120 +133,4 @@ func (s *OrderFeeService) ListOrderFeeSupplementRequests(ctx context.Context, re
 	return okList(ctx, &v1.ListOrderFeeSupplementRequestsResponse{
 		Data: &v1.ListOrderFeeSupplementRequestsData{Items: items, Total: int32(list.Total), Page: int32(list.Page), PageSize: int32(list.Size)},
 	}), nil
-}
-
-// PreviewOrderFeeSupplementApproval 返回只读毛利估算。
-func (s *OrderFeeService) PreviewOrderFeeSupplementApproval(ctx context.Context, request *v1.PreviewOrderFeeSupplementApprovalRequest) (*v1.PreviewOrderFeeSupplementApprovalResponse, error) {
-	principal, err := biz.RequirePrincipal(ctx)
-	if err != nil {
-		return nil, err
-	}
-	orderID, requestID, err := parseOrderFeeIdentity(request.GetOrderId(), request.GetId())
-	if err != nil || request.GetExpectedVersion() == 0 {
-		return nil, biz.ErrFeeSupplementInvalidArgument
-	}
-	preview, err := s.supplement.PreviewApproval(ctx, principal, principal.Organization.ID, orderID, requestID, request.GetExpectedVersion())
-	if err != nil {
-		return nil, err
-	}
-	data := &v1.PreviewOrderFeeSupplementApprovalData{
-		BaseCurrency:        preview.BaseCurrency,
-		CurrentReceivable:   preview.CurrentReceivable.StringFixed(8),
-		CurrentPayable:      preview.CurrentPayable.StringFixed(8),
-		CurrentProfit:       preview.CurrentProfit.StringFixed(8),
-		SupplementCost:      preview.SupplementCost.StringFixed(8),
-		ProjectedReceivable: preview.ProjectedReceivable.StringFixed(8),
-		ProjectedPayable:    preview.ProjectedPayable.StringFixed(8),
-		ProjectedProfit:     preview.ProjectedProfit.StringFixed(8),
-		ProfitChange:        preview.ProfitChange.StringFixed(8),
-		PreviewToken:        preview.PreviewToken,
-	}
-	for _, a := range preview.CommissionImpacts {
-		decrease := decimal.Zero
-		if a.Direction == biz.CommissionAdjustmentDecrease {
-			decrease = a.Amount
-		}
-		data.CommissionImpacts = append(data.CommissionImpacts, &v1.FeeSupplementCommissionImpact{CommissionId: a.CommissionID.String(), CommissionNo: a.CommissionNo, EmployeeId: a.EmployeeID.String(), EmployeeName: a.EmployeeName, BaseCurrency: a.BaseCurrency, AmountBefore: a.AmountBefore.StringFixed(8), AmountAfter: a.AmountAfter.StringFixed(8), DecreaseAmount: decrease.StringFixed(8), AdjustmentDirection: string(a.Direction), AdjustmentAmount: a.Amount.StringFixed(8), ExcessAmount: a.ExcessAmount.StringFixed(8), CommissionStatus: a.CommissionStatus})
-	}
-	if preview.CurrentProfitRate != nil {
-		value := preview.CurrentProfitRate.StringFixed(4)
-		data.CurrentProfitRate = &value
-	}
-	if preview.ProjectedProfitRate != nil {
-		value := preview.ProjectedProfitRate.StringFixed(4)
-		data.ProjectedProfitRate = &value
-	}
-	return ok(ctx, &v1.PreviewOrderFeeSupplementApprovalResponse{Data: data}), nil
-}
-
-// ApproveOrderFeeSupplement 审批通过补录申请；九步事务由领域层编排。
-func (s *OrderFeeService) ApproveOrderFeeSupplement(ctx context.Context, request *v1.ApproveOrderFeeSupplementRequest) (*v1.ApproveOrderFeeSupplementResponse, error) {
-	principal, principalErr := biz.RequirePrincipal(ctx)
-	if principalErr != nil {
-		return nil, principalErr
-	}
-	orderID, requestID, err := parseOrderFeeIdentity(request.GetOrderId(), request.GetId())
-	if err != nil || request.GetExpectedVersion() == 0 {
-		return nil, biz.ErrFeeSupplementInvalidArgument
-	}
-	result, err := s.supplement.Approve(ctx, principal, principal.Organization.ID, orderID, requestID, request.GetExpectedVersion(), request.GetPreviewToken(), request.GetComment())
-	if err != nil {
-		return nil, err
-	}
-	return ok(ctx, &v1.ApproveOrderFeeSupplementResponse{Data: orderFeeSupplementToAPI(result.Request), Fee: orderFeeToAPI(result.Fee)}), nil
-}
-
-// RejectOrderFeeSupplement 驳回补录申请，不产生费用或调整。
-func (s *OrderFeeService) RejectOrderFeeSupplement(ctx context.Context, request *v1.RejectOrderFeeSupplementRequest) (*v1.RejectOrderFeeSupplementResponse, error) {
-	principal, principalErr := biz.RequirePrincipal(ctx)
-	if principalErr != nil {
-		return nil, principalErr
-	}
-	orderID, requestID, err := parseOrderFeeIdentity(request.GetOrderId(), request.GetId())
-	if err != nil || request.GetExpectedVersion() == 0 {
-		return nil, biz.ErrFeeSupplementInvalidArgument
-	}
-	updated, err := s.supplement.Reject(ctx, principal, principal.Organization.ID, orderID, requestID, request.GetExpectedVersion(), request.Reason)
-	if err != nil {
-		return nil, err
-	}
-	return ok(ctx, &v1.RejectOrderFeeSupplementResponse{Data: orderFeeSupplementToAPI(updated)}), nil
-}
-
-// WithdrawOrderFeeSupplement 发起人撤回本人 PENDING 申请。
-func (s *OrderFeeService) WithdrawOrderFeeSupplement(ctx context.Context, request *v1.WithdrawOrderFeeSupplementRequest) (*v1.WithdrawOrderFeeSupplementResponse, error) {
-	principal, principalErr := biz.RequirePrincipal(ctx)
-	if principalErr != nil {
-		return nil, principalErr
-	}
-	orderID, requestID, err := parseOrderFeeIdentity(request.GetOrderId(), request.GetId())
-	if err != nil || request.GetExpectedVersion() == 0 {
-		return nil, biz.ErrFeeSupplementInvalidArgument
-	}
-	updated, err := s.supplement.Withdraw(ctx, principal, principal.Organization.ID, orderID, requestID, request.GetExpectedVersion())
-	if err != nil {
-		return nil, err
-	}
-	return ok(ctx, &v1.WithdrawOrderFeeSupplementResponse{Data: orderFeeSupplementToAPI(updated)}), nil
-}
-
-// CancelApprovedOrderFeeSupplement 专用作废已批准补录生成的费用。
-func (s *OrderFeeService) CancelApprovedOrderFeeSupplement(ctx context.Context, request *v1.CancelApprovedOrderFeeSupplementRequest) (*v1.CancelApprovedOrderFeeSupplementResponse, error) {
-	principal, principalErr := biz.RequirePrincipal(ctx)
-	if principalErr != nil {
-		return nil, principalErr
-	}
-	orderID, requestID, err := parseOrderFeeIdentity(request.GetOrderId(), request.GetId())
-	if err != nil || request.GetExpectedVersion() == 0 || strings.TrimSpace(request.GetReason()) == "" {
-		return nil, biz.ErrFeeSupplementInvalidArgument
-	}
-	result, err := s.supplement.CancelApprovedFee(ctx, principal, principal.Organization.ID, orderID, requestID, request.GetExpectedVersion(), request.GetReason())
-	if err != nil {
-		return nil, err
-	}
-	// 撤销成功后返回刷新的申请投影：APPROVED 保持不变，fee_id 为空表示生成
-	// 费用已删除，can_cancel=false 并携带阻断原因。
-	data := orderFeeSupplementToAPI(result.View.Request)
-	supplementViewCapabilities(data, result.View)
-	return ok(ctx, &v1.CancelApprovedOrderFeeSupplementResponse{Data: data}), nil
 }

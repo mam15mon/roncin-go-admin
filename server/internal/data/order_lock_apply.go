@@ -2,7 +2,9 @@ package data
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -14,27 +16,25 @@ import (
 	orderlockrecordent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 )
 
-// orderLockCoreSpec 描述一次锁定的来源身份：人工锁定携带锁定人与人工幂等事实；
-// 自动锁定 lockedBy 为空并携带触发审计字段。核心不包含调用人授权判断与
-// 自动锁定资格判定，这些前置校验由各自入口在进入核心前完成。
+// orderLockCoreSpec 描述人工审核锁定及其不可变费用证据。
 type orderLockCoreSpec struct {
-	lockSource         string
-	lockedBy           *uuid.UUID
-	idempotencyKey     string
-	requestFingerprint string
-	triggerType        orderlockrecordent.TriggerType
-	triggerResourceID  *uuid.UUID
-	triggeredBy        *uuid.UUID
-	// seaSnapshotActor 写入新建 SE 不可变版本 created_by 的人工锁定人；
-	// 自动锁定为 nil，版本 created_by 保持为空。
-	seaSnapshotActor *uuid.UUID
+	reviewerID            uuid.UUID
+	idempotencyKey        string
+	requestFingerprint    string
+	feeSnapshot           json.RawMessage
+	feeContentVersion     uint64
+	feeContentFingerprint string
+	reviewComment         string
 }
 
-// applyOrderLockCore 是人工与自动锁定共用的内部锁定核心。调用方必须已在当前
-// 事务内以 FOR UPDATE 取得 Order 行锁，并完成各自的授权、幂等与资格前置校验。
+// applyOrderLockCore 写入人工审核锁。调用方必须在当前事务内取得 Order 行锁，
+// 完成授权、费用审核内容及幂等校验。
 // 核心负责生命周期终态检查、SE 单证不可变版本快照、订单锁状态写入、锁定记录
 // 与 HBL 快照创建；任一步失败由调用方的事务整体回滚。
 func applyOrderLockCore(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, order *ent.Order, spec orderLockCoreSpec) (*ent.OrderLockRecord, *seaOrderLockSnapshot, error) {
+	if spec.reviewerID == uuid.Nil || len(spec.feeSnapshot) == 0 || len(spec.feeContentFingerprint) != 64 {
+		return nil, nil, biz.ErrFeeReviewInvalid
+	}
 	if order.TerminationStatus != orderent.TerminationStatusACTIVE || order.ClosureStatus != orderent.ClosureStatusOPEN {
 		return nil, nil, biz.ErrOrderStatusConflict
 	}
@@ -49,7 +49,7 @@ func applyOrderLockCore(ctx context.Context, tx *ent.Tx, organizationID uuid.UUI
 	var seaSnapshot *seaOrderLockSnapshot
 	if businessType == access.OrderBusinessSE {
 		var snapshotErr error
-		seaSnapshot, snapshotErr = createSeaOrderLockSnapshot(ctx, tx, organizationID, order.ID, spec.seaSnapshotActor)
+		seaSnapshot, snapshotErr = createSeaOrderLockSnapshot(ctx, tx, organizationID, order.ID, &spec.reviewerID)
 		if snapshotErr != nil {
 			return nil, nil, snapshotErr
 		}
@@ -62,17 +62,10 @@ func applyOrderLockCore(ctx context.Context, tx *ent.Tx, organizationID uuid.UUI
 	orderUpdate := tx.Order.UpdateOne(order).
 		SetLockedAt(now).
 		SetLockGeneration(newLockGen).
-		SetLockSource(orderent.LockSource(spec.lockSource)).
+		SetLockSource(orderent.LockSourceMANUAL).
 		SetVersion(orderVersionAtLock)
-	if spec.lockedBy != nil {
-		orderUpdate = orderUpdate.SetLockedBy(*spec.lockedBy)
-	}
-	if spec.triggerType != "" {
-		orderUpdate = orderUpdate.
-			SetAutoLockTriggerType(orderent.AutoLockTriggerType(spec.triggerType)).
-			SetAutoLockTriggerResourceID(*spec.triggerResourceID).
-			SetAutoLockTriggeredBy(*spec.triggeredBy)
-	}
+	orderUpdate = orderUpdate.SetLockedBy(spec.reviewerID)
+
 	if _, err := orderUpdate.Save(ctx); err != nil {
 		return nil, nil, err
 	}
@@ -83,20 +76,17 @@ func applyOrderLockCore(ctx context.Context, tx *ent.Tx, organizationID uuid.UUI
 		SetOrderNo(order.OrderNo).
 		SetBusinessType(orderlockrecordent.BusinessType(businessType)).
 		SetGeneration(newLockGen).
-		SetLockSource(orderlockrecordent.LockSource(spec.lockSource)).
+		SetLockSource(orderlockrecordent.LockSourceMANUAL).
 		SetLockedAt(now).
 		SetOrderVersionAtLock(orderVersionAtLock).
 		SetIdempotencyKey(spec.idempotencyKey).
-		SetRequestFingerprint(spec.requestFingerprint)
-	if spec.lockedBy != nil {
-		recordCreate = recordCreate.SetLockedBy(*spec.lockedBy)
-	}
-	if spec.triggerType != "" {
-		recordCreate = recordCreate.
-			SetTriggerType(spec.triggerType).
-			SetTriggerResourceID(*spec.triggerResourceID).
-			SetTriggeredBy(*spec.triggeredBy)
-	}
+		SetRequestFingerprint(spec.requestFingerprint).
+		SetFeeSnapshot(spec.feeSnapshot).
+		SetFeeContentVersion(spec.feeContentVersion).
+		SetFeeContentFingerprint(spec.feeContentFingerprint).
+		SetReviewComment(spec.reviewComment)
+	recordCreate = recordCreate.SetLockedBy(spec.reviewerID)
+
 	if seaSnapshot != nil {
 		recordCreate = recordCreate.
 			SetMasterBillID(seaSnapshot.MasterBillID).
@@ -134,15 +124,18 @@ func applyOrderLockCore(ctx context.Context, tx *ent.Tx, organizationID uuid.UUI
 	return rec, seaSnapshot, nil
 }
 
-func (r *orderLockRepo) LockOrder(ctx context.Context, caller *biz.Principal, orderID uuid.UUID, expectedOrderVersion uint64, idempotencyKey string, audit *biz.AuditEvent) (*biz.OrderLockResult, error) {
+func (r *orderLockRepo) LockOrder(ctx context.Context, caller *biz.Principal, orderID uuid.UUID, expectedOrderVersion uint64, idempotencyKey string, review biz.OrderLockReviewInput, audit *biz.AuditEvent) (*biz.OrderLockResult, error) {
 	if caller == nil {
 		return nil, biz.ErrOrderLockRoleRequired
 	}
 	organizationID := caller.Organization.ID
-	fingerprint := computeLockOrderFingerprint(organizationID, orderID, expectedOrderVersion, caller.UserID)
+	fingerprint := computeLockOrderFingerprint(organizationID, orderID, expectedOrderVersion, caller.UserID, review)
 
 	var resultRecord *ent.OrderLockRecord
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if err := lockFeeAuthorizationParents(ctx, tx.Client(), caller.UserID); err != nil {
+			return err
+		}
 		// 1. 锁序 1: Order FOR UPDATE，并以数据库中的权威业务类型解析权限。
 		order, queryErr := tx.Order.Query().
 			Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).
@@ -180,8 +173,7 @@ func (r *orderLockRepo) LockOrder(ctx context.Context, caller *biz.Principal, or
 			}
 			return biz.ErrOrderStatusConflict
 		}
-		// 人工入口保持与既有契约一致的检查顺序：先生命周期与锁状态，后预期版本；
-		// 内部核心随后会再次复核同样条件，保证自动入口获得同一套不变量。
+		// 先生命周期与锁状态，后预期版本；内部核心再次复核状态不变量。
 		if order.TerminationStatus != orderent.TerminationStatusACTIVE || order.ClosureStatus != orderent.ClosureStatusOPEN {
 			return biz.ErrOrderStatusConflict
 		}
@@ -192,13 +184,41 @@ func (r *orderLockRepo) LockOrder(ctx context.Context, caller *biz.Principal, or
 			return biz.ErrOrderStatusConflict
 		}
 
-		// 2. 共用内部锁定核心：生命周期终态检查、SE 快照、锁状态与锁定记录。
+		// 订单行锁串行化所有费用写入；在同一事务核对审核人查看的内容。
+		if order.FeeContentVersion != review.ExpectedFeeContentVersion {
+			return biz.ErrFeeReviewConflict
+		}
+		pending, pendingErr := hasPendingFeeSupplement(ctx, tx.Client(), order.ID)
+		if pendingErr != nil {
+			return pendingErr
+		}
+		if pending {
+			return biz.ErrFeeReviewPendingSupplement
+		}
+		snapshot, contentFingerprint, snapshotErr := loadFeeReviewSnapshot(ctx, tx.Client(), order.ID)
+		if snapshotErr != nil {
+			return snapshotErr
+		}
+		if contentFingerprint != review.FeeContentFingerprint {
+			return biz.ErrFeeReviewConflict
+		}
+		if snapshot.Summary.Profit.IsNegative() && strings.TrimSpace(review.Comment) == "" {
+			return biz.ErrFeeReviewInvalid
+		}
+		encodedSnapshot, encodeErr := json.Marshal(snapshot)
+		if encodeErr != nil {
+			return encodeErr
+		}
+
+		// 2. 原子固化人工审核费用证据、单证快照和唯一订单锁。
 		rec, seaSnapshot, coreErr := applyOrderLockCore(ctx, tx, organizationID, order, orderLockCoreSpec{
-			lockSource:         biz.LockSourceManual,
-			lockedBy:           &caller.UserID,
-			idempotencyKey:     idempotencyKey,
-			requestFingerprint: fingerprint,
-			seaSnapshotActor:   &caller.UserID,
+			reviewerID:            caller.UserID,
+			idempotencyKey:        idempotencyKey,
+			requestFingerprint:    fingerprint,
+			feeSnapshot:           encodedSnapshot,
+			feeContentVersion:     order.FeeContentVersion,
+			feeContentFingerprint: contentFingerprint,
+			reviewComment:         review.Comment,
 		})
 		if coreErr != nil {
 			return coreErr
@@ -211,11 +231,14 @@ func (r *orderLockRepo) LockOrder(ctx context.Context, caller *biz.Principal, or
 				audit.Action = "order.lock"
 			}
 			audit.Details = map[string]string{
-				"business_type":         string(businessType),
-				"order_id":              order.ID.String(),
-				"order_no":              order.OrderNo,
-				"lock_generation":       fmt.Sprintf("%d", rec.Generation),
-				"order_version_at_lock": fmt.Sprintf("%d", rec.OrderVersionAtLock),
+				"business_type":           string(businessType),
+				"order_id":                order.ID.String(),
+				"order_no":                order.OrderNo,
+				"lock_generation":         fmt.Sprintf("%d", rec.Generation),
+				"order_version_at_lock":   fmt.Sprintf("%d", rec.OrderVersionAtLock),
+				"fee_content_version":     fmt.Sprintf("%d", order.FeeContentVersion),
+				"fee_content_fingerprint": contentFingerprint,
+				"review_comment":          review.Comment,
 			}
 			if seaSnapshot != nil {
 				audit.Details["master_bill_id"] = seaSnapshot.MasterBillID.String()

@@ -24,7 +24,7 @@ GET  /api/v1/orders/{order_id}/unlock-requests/{request_id}
 核心仓储契约：
 
 ```go
-LockOrder(ctx, caller, orderID, expectedOrderVersion, idempotencyKey, audit)
+LockOrder(ctx, caller, orderID, expectedOrderVersion, idempotencyKey, review, audit)
 RequestOrderUnlock(ctx, caller, orderID, expectedOrderVersion, idempotencyKey, reason, audit)
 ListOrderUnlockRequests(ctx, organizationID, orderID, page, pageSize)
 GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
@@ -40,20 +40,19 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 
 ## 3. Contracts（请求 / 响应 / 配置）
 
-### 结清触发的自动锁定
+### 人工统一审核锁
 
-- `evaluateAutoLockEligibility(ctx, tx, orderID)` 在现有订单锁事务内，先阻断任意方向未建账费用，再按活动订单行定位关联应收账单。订单行只确定账单集合，不用于减去整账单核销金额。
-- 每张关联应收账单必须为 CONFIRMED，且原币总额精确等于该账单有效核销与对冲合计；有效核销要求 allocation.active 且核销单 ACTIVE，有效对冲要求 allocation.active 且对冲单 CONFIRMED。两类分摊分别读取并按 BillID 汇总，不直接 join 后求和。
-- DRAFT 账单不能视为结清；无有效结清事实不自动锁。不同账单、不同币种不相抵，超额分摊也不钳成零冒充结清。
-- 合并账单部分回款不能推断某票先结清；整账单全额结清后，各订单继续按原生命周期、未建账费用、共享 MBL 整组资格判断。自动业务锁不改变结案状态，不要求应付全额支付。
-- 复用单票 Order 锁及共享组既有固定锁序；反核销/反对冲通过 Order 优先锁序与自动检查串行化。重复触发保留既有幂等语义，不另建资金分配或锁模型。
+- 订单审核与费用审核合为一次人工锁定；锁定同时保存费用内容版本、指纹、收入/成本/利润和正式费用快照。旧费用审核写接口、独立审核权限和提成财务锁已退役，历史事件只读。
+- 结清、建账、核销/对冲及删除最后一条未建账费用均不触发自动审核锁定；反核销与反对冲也不解锁订单。
+- 建账不以审核为前置。锁定后正式费用仍可逐笔建账及继续财务处理；费用变更改走补录补审，源费有账单占用时先按实际依赖回退。
+- 订单详情、列表与费用摘要的当前审核状态一律从人工锁投影；不得读取旧 `fee_review_status` 决定运行态资格。
 
 ### 业务锁与生命周期
 
 
-- `LockOrderRequest` 必须包含合法 UUID `order_id`、大于零的 `expected_order_version` 和去除空白后非空的 `idempotency_key`。
+- `LockOrderRequest` 必须包含合法 UUID `order_id`、大于零的 `expected_order_version` 、大于零的 `expected_fee_content_version`、非空 `fee_content_fingerprint` 和去除空白后非空的 `idempotency_key`；亏损时 `comment` 必填。订单与费用版本、指纹均在锁内重验。
 - `RequestOrderUnlockRequest` 使用相同并发与幂等字段；`reason` 可选，管理员紧急解锁不得伪造默认原因。
-- 锁定资格按「有效 lock grant」统一计算（`internal/data/order_lock.go` 的 `qualifiedBusinessLockGrantPredicate`，单用户判断与候选查询必须复用同一谓词）：用户 enabled、membership enabled、角色 enabled 且真实持有目标类型显式 `business.order.<type>.lock` 权限（不按角色代码排除 `administrator` 等任何角色），角色归属目标公司，membership 位于该公司启用子树（部门/团队可参与，到其他公司截止）；不再按已退役的角色范围配置判断，系统或其他公司角色不得进入候选；锁权限只依赖同类型 read/update，不得跨类型授权。
+- 锁定资格按「有效 lock grant」统一计算（`internal/data/order_lock.go` 的 `qualifiedBusinessLockGrantPredicate`，单用户判断与候选查询必须复用同一谓词）：用户 enabled、membership enabled、角色 enabled 且真实持有目标类型显式 `business.order.<type>.lock` 权限（不按角色代码排除 `administrator` 等任何角色），角色归属目标公司，membership 位于该公司启用子树（部门/团队可参与，到其他公司截止）；不再按已退役的角色范围配置判断，系统或其他公司角色不得进入候选；同一角色须持有同类型 read/update/fee.read/lock，不跨角色拼接资格，不得跨类型授权。
 - bootstrap admin 显式具备锁单资格（`GetOrderLockState`/`LockOrder` 直接视为可锁），但不得进入普通审批候选池，回调也不得绕过候选快照。
 - 解锁固定分流：bootstrap admin → `ADMIN_EMERGENCY`；持有效 lock grant 的用户（含真实持锁权限的 `administrator` 角色）→ `ROLE_DIRECT`；普通订单编辑人 → `DINGTALK_APPROVAL`。
 - 审批候选人快照保存实际 `membership_id`、`role_id` 与 DingTalk UserID；同一用户有多个合格 grant 时按 RoleAssignment ID 升序取首个可追溯 grant；钉钉回调先校验审批人存在于快照，再以同一资格口径实时复核，权限或成员关系被撤销后旧候选回调稳定标记 `APPROVER_NOT_QUALIFIED`。
@@ -66,7 +65,7 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 - 列表分页必须满足 `page >= 1`、`1 <= page_size <= 200`；缺省值由 service 统一补齐。
 - 统一内容写门禁（`internal/data/order_lock.go` 的 `ensureOrderBusinessContentEditable`）：所有订单业务资料及子资源写入口在 Order `FOR UPDATE` 后校验，订单必须满足 `termination_status = ACTIVE`、`closure_status = OPEN` 且未业务锁定；校验顺序为先生命周期后业务锁，禁止另写第二套重复门禁（如原 `ensureReleasePodOrderEditable` 已删除并复用统一实现）。单证变更（MBL/HBL 改单、作废、模式变更）与订单级变更（共享航程船期更新、改配）同样复用该门禁：对事务内已按主键序 `FOR UPDATE` 锁定的目标及全部成员订单逐单校验，任一不满足即整体 409 回滚。
 - **门禁的预读面同源**：预览与按钮接口与 Execute 同口径感知门禁，避免"预览通过、提交才被拒"——单证/船期/改配预览将门禁事实并入 Impacts（`ORDER_BUSINESS_LOCK` 阻断事实，Executable=false）；`PreviewSplit` 写入 `ValidationErrors`（Reason=ORDER_GATE，预览正常返回）；`GetChangeActions` 将 `CanSplit/CanReassign` 置 false 并追加含订单号的原因（`orderBusinessEditBlockReason` 统一文案提取）。预读不做锁、不改变 Execute 的 409 语义；改配的终止/结案仍走既有 `SEA_ORDER_REASSIGNMENT_BLOCKED` 文案口径（`GateBlockedError` 仅透传业务锁 409）。
-- 生命周期命令的专属校验：`TransitionStatus` 显式要求 ACTIVE + OPEN + 未业务锁定（主流程推进属业务写入，锁定后不得推进）；`TransitionTermination` 只要求结案维度保持 OPEN，其中 `ACTIVE → TERMINATING` 仍要求订单未业务锁定，`TERMINATING → ACTIVE/TERMINATED` 与 `TERMINATED → ACTIVE` 不因业务锁被阻断；`TransitionClosure` 不校验业务锁，已锁定的 `DOCUMENT_RELEASED` 订单允许结案，反结案不受历史业务锁阻断，结案 readiness 在事务内重验，包含无待审补录；`OrderClosureReadiness.HasPendingFeeSupplement` 与锁内查询同源。待审返回 ORDER_CLOSURE_BLOCKED 及明确中文原因，不修改共享错误对象。结案后仍允许受控补录，不能将 CLOSED 与 PENDING 设为静态互斥（见费用审核规范）。
+- 生命周期命令的专属校验：`TransitionStatus` 显式要求 ACTIVE + OPEN + 未业务锁定（主流程推进属业务写入，锁定后不得推进）；`TransitionTermination` 只要求结案维度保持 OPEN，其中 `ACTIVE → TERMINATING` 仍要求订单未业务锁定，`TERMINATING → ACTIVE/TERMINATED` 与 `TERMINATED → ACTIVE` 不因业务锁被阻断；`TransitionClosure` 不校验业务锁，已锁定的 `DOCUMENT_RELEASED` 订单允许结案，反结案不受历史业务锁阻断，结案 readiness 在事务内重验，包含无待审补录；`OrderClosureReadiness.HasPendingFeeSupplement` 与锁内查询同源。待审返回 ORDER_CLOSURE_BLOCKED 及明确中文原因，不修改共享错误对象。锁后更正可覆盖结案订单；不能将 CLOSED 与 PENDING 设为静态互斥（见费用更正规范）。解锁前同样阻断待审更正，先撤回或补审。
 - SE 订单流转到 `TERMINATED` 时在同一事务结束活动 Link：按 Link ID 排序 `FOR UPDATE`，超过一条活动 Link 返回 `SEA_DOCUMENT_STRUCTURE_CONFLICT`（fail-closed，不静默修复）；更新为 `ENDED`、写入 UTC `ended_at`、固定中文 `ended_reason = "订单退关"` 并递增 Link 版本，不修改 MBL/TransportExecution 版本；Order、Link、生命周期事件、审计任一步失败全部回滚。`TERMINATED → ACTIVE` 只恢复订单状态，历史 Link 保持不可变。
 
 ## 4. Validation & Error Matrix
@@ -79,7 +78,8 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 | 目标订单已业务锁定，调用普通写入口 | `ORDER_BUSINESS_LOCKED`，metadata 含订单、代次、时间和锁定人 |
 | 已终止订单残留历史锁信息 | 优先返回终止类错误，不得误提示“先解锁即可编辑” |
 | 执行结案时存在 PENDING 补录 | ORDER_CLOSURE_BLOCKED（409，“存在待审核补录，请先处理后再结案”），无状态/事件部分写入 |
-| 合并账单部分回款或任一关联应收账单未全额结清 | NOT_ELIGIBLE_UNSETTLED_RECEIVABLE，不自动锁定 |
+| 合并账单部分/全部回款、建账或删除最后未建账费 | 不自动锁定，不追加人工审核事实 |
+| 审核时费用版本/指纹变化或亏损缺少意见 | 409 快照冲突或参数错误，不产生锁定及部分快照 |
 | 锁定的 `DOCUMENT_RELEASED` 订单执行结案、`TERMINATING/TERMINATED` 执行完成/取消/恢复 | 生命周期命令放行，不得被内容门禁误杀 |
 | 锁定订单发起退关（`ACTIVE → TERMINATING`） | `ORDER_BUSINESS_LOCKED`，保持“锁定资料不可发起退关” |
 | 调用人（非 bootstrap）没有覆盖目标组织的有效 lock grant | `ORDER_LOCK_ROLE_REQUIRED` |
@@ -95,9 +95,8 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 
 ## 5. Good / Base / Bad Cases
 
-- Good：A=100、B=200 合并应收300，收100时两票都不因金额巧合锁定，累计收300后再分别检查其它锁定资格。
-- Bad：A=B=100、合账200收100时，给两票各减100并都判结清；或用一张账单超额抵另一张账单欠款。
-
+- Good：A/B 供应商费用分别建账；账单结清仍保持未审核。具备同公司品类锁权限者检查资料与利润后人工锁定。
+- Bad：结清时后台自动写入人工审核事实；或要求先整票费用批准才允许给 A 供应商建账。
 
 - Good：按 UUID 升序一次性锁住共享 MBL 的全部活动成员 Order，再锁 MBL、目标 Link、TransportExecution；锁后重验成员集合，随后执行共享写入。
 - Good：SE 订单完成退关的事务先锁 Order，再按 Link ID 锁定并结束唯一活动 Link，随后写生命周期事件与审计，任一步失败整体回滚。
@@ -110,8 +109,7 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 
 ## 6. Tests Required
 
-- 自动锁真实 PostgreSQL：非共享订单与共享 MBL 下的合并部分等额回款、全额结清、同票多行去重、多账单/多币种、草稿/取消账单、有效父状态、纯对冲及混合结清、反转并发和重复触发；断言锁代次、审计及整组零部分写入。正式迁移初始化，SKIP 不算通过。
-
+- 真实 PostgreSQL：建账、部分/全额核销、对冲、删除最后未建账费用均不自动锁定；人工审核绑定订单/费用版本与指纹、亏损意见、费用不可变快照、并发写入及审计失败零部分写入。正式迁移初始化，SKIP 不算通过。
 
 - Biz：锁定/三路解锁资格、bootstrap 优先、幂等同键同/异指纹、错误 metadata。
 - Data/PostgreSQL 锁资格矩阵：组织内 ORG 角色、上级组织 TREE 角色（按真实上级 membership/role 快照）、ALL 范围 `administrator` 角色、无锁权限的 `administrator` 角色、bootstrap（可锁、应急解锁、不进候选池）、ORG 范围越组织与 TREE 范围兄弟组织拒绝、撤权后旧候选回调 `APPROVER_NOT_QUALIFIED`。
@@ -127,8 +125,8 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 ## 7. Wrong vs Correct
 
 ```text
-错误：本订单账单行金额 - 关联整张账单的全部核销/对冲 == 0。
-正确：定位关联应收账单；每张均 CONFIRMED 且整账单总额 == 该账单有效核销 + 有效对冲，再检查其它资格。
+错误：费用或账单结清即自动把订单标为已审核。
+正确：授权审核人显式提交订单版本、费用版本及指纹，在一个事务固化审核锁与费用/单证快照。
 ```
 
 

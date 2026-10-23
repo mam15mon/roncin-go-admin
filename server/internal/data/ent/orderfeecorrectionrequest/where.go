@@ -91,6 +91,16 @@ func ApprovedFeeReviewEventID(v uuid.UUID) predicate.OrderFeeCorrectionRequest {
 	return predicate.OrderFeeCorrectionRequest(sql.FieldEQ(FieldApprovedFeeReviewEventID, v))
 }
 
+// LockRecordID applies equality check predicate on the "lock_record_id" field. It's identical to LockRecordIDEQ.
+func LockRecordID(v uuid.UUID) predicate.OrderFeeCorrectionRequest {
+	return predicate.OrderFeeCorrectionRequest(sql.FieldEQ(FieldLockRecordID, v))
+}
+
+// LockGeneration applies equality check predicate on the "lock_generation" field. It's identical to LockGenerationEQ.
+func LockGeneration(v uint64) predicate.OrderFeeCorrectionRequest {
+	return predicate.OrderFeeCorrectionRequest(sql.FieldEQ(FieldLockGeneration, v))
+}
+
 // ApprovedFeeContentVersion applies equality check predicate on the "approved_fee_content_version" field. It's identical to ApprovedFeeContentVersionEQ.
 func ApprovedFeeContentVersion(v uint64) predicate.OrderFeeCorrectionRequest {
 	return predicate.OrderFeeCorrectionRequest(sql.FieldEQ(FieldApprovedFeeContentVersion, v))
@@ -429,6 +439,96 @@ func ApprovedFeeReviewEventIDLT(v uuid.UUID) predicate.OrderFeeCorrectionRequest
 // ApprovedFeeReviewEventIDLTE applies the LTE predicate on the "approved_fee_review_event_id" field.
 func ApprovedFeeReviewEventIDLTE(v uuid.UUID) predicate.OrderFeeCorrectionRequest {
 	return predicate.OrderFeeCorrectionRequest(sql.FieldLTE(FieldApprovedFeeReviewEventID, v))
+}
+
+// ApprovedFeeReviewEventIDIsNil applies the IsNil predicate on the "approved_fee_review_event_id" field.
+func ApprovedFeeReviewEventIDIsNil() predicate.OrderFeeCorrectionRequest {
+	return predicate.OrderFeeCorrectionRequest(sql.FieldIsNull(FieldApprovedFeeReviewEventID))
+}
+
+// ApprovedFeeReviewEventIDNotNil applies the NotNil predicate on the "approved_fee_review_event_id" field.
+func ApprovedFeeReviewEventIDNotNil() predicate.OrderFeeCorrectionRequest {
+	return predicate.OrderFeeCorrectionRequest(sql.FieldNotNull(FieldApprovedFeeReviewEventID))
+}
+
+// LockRecordIDEQ applies the EQ predicate on the "lock_record_id" field.
+func LockRecordIDEQ(v uuid.UUID) predicate.OrderFeeCorrectionRequest {
+	return predicate.OrderFeeCorrectionRequest(sql.FieldEQ(FieldLockRecordID, v))
+}
+
+// LockRecordIDNEQ applies the NEQ predicate on the "lock_record_id" field.
+func LockRecordIDNEQ(v uuid.UUID) predicate.OrderFeeCorrectionRequest {
+	return predicate.OrderFeeCorrectionRequest(sql.FieldNEQ(FieldLockRecordID, v))
+}
+
+// LockRecordIDIn applies the In predicate on the "lock_record_id" field.
+func LockRecordIDIn(vs ...uuid.UUID) predicate.OrderFeeCorrectionRequest {
+	return predicate.OrderFeeCorrectionRequest(sql.FieldIn(FieldLockRecordID, vs...))
+}
+
+// LockRecordIDNotIn applies the NotIn predicate on the "lock_record_id" field.
+func LockRecordIDNotIn(vs ...uuid.UUID) predicate.OrderFeeCorrectionRequest {
+	return predicate.OrderFeeCorrectionRequest(sql.FieldNotIn(FieldLockRecordID, vs...))
+}
+
+// LockRecordIDIsNil applies the IsNil predicate on the "lock_record_id" field.
+func LockRecordIDIsNil() predicate.OrderFeeCorrectionRequest {
+	return predicate.OrderFeeCorrectionRequest(sql.FieldIsNull(FieldLockRecordID))
+}
+
+// LockRecordIDNotNil applies the NotNil predicate on the "lock_record_id" field.
+func LockRecordIDNotNil() predicate.OrderFeeCorrectionRequest {
+	return predicate.OrderFeeCorrectionRequest(sql.FieldNotNull(FieldLockRecordID))
+}
+
+// LockGenerationEQ applies the EQ predicate on the "lock_generation" field.
+func LockGenerationEQ(v uint64) predicate.OrderFeeCorrectionRequest {
+	return predicate.OrderFeeCorrectionRequest(sql.FieldEQ(FieldLockGeneration, v))
+}
+
+// LockGenerationNEQ applies the NEQ predicate on the "lock_generation" field.
+func LockGenerationNEQ(v uint64) predicate.OrderFeeCorrectionRequest {
+	return predicate.OrderFeeCorrectionRequest(sql.FieldNEQ(FieldLockGeneration, v))
+}
+
+// LockGenerationIn applies the In predicate on the "lock_generation" field.
+func LockGenerationIn(vs ...uint64) predicate.OrderFeeCorrectionRequest {
+	return predicate.OrderFeeCorrectionRequest(sql.FieldIn(FieldLockGeneration, vs...))
+}
+
+// LockGenerationNotIn applies the NotIn predicate on the "lock_generation" field.
+func LockGenerationNotIn(vs ...uint64) predicate.OrderFeeCorrectionRequest {
+	return predicate.OrderFeeCorrectionRequest(sql.FieldNotIn(FieldLockGeneration, vs...))
+}
+
+// LockGenerationGT applies the GT predicate on the "lock_generation" field.
+func LockGenerationGT(v uint64) predicate.OrderFeeCorrectionRequest {
+	return predicate.OrderFeeCorrectionRequest(sql.FieldGT(FieldLockGeneration, v))
+}
+
+// LockGenerationGTE applies the GTE predicate on the "lock_generation" field.
+func LockGenerationGTE(v uint64) predicate.OrderFeeCorrectionRequest {
+	return predicate.OrderFeeCorrectionRequest(sql.FieldGTE(FieldLockGeneration, v))
+}
+
+// LockGenerationLT applies the LT predicate on the "lock_generation" field.
+func LockGenerationLT(v uint64) predicate.OrderFeeCorrectionRequest {
+	return predicate.OrderFeeCorrectionRequest(sql.FieldLT(FieldLockGeneration, v))
+}
+
+// LockGenerationLTE applies the LTE predicate on the "lock_generation" field.
+func LockGenerationLTE(v uint64) predicate.OrderFeeCorrectionRequest {
+	return predicate.OrderFeeCorrectionRequest(sql.FieldLTE(FieldLockGeneration, v))
+}
+
+// LockGenerationIsNil applies the IsNil predicate on the "lock_generation" field.
+func LockGenerationIsNil() predicate.OrderFeeCorrectionRequest {
+	return predicate.OrderFeeCorrectionRequest(sql.FieldIsNull(FieldLockGeneration))
+}
+
+// LockGenerationNotNil applies the NotNil predicate on the "lock_generation" field.
+func LockGenerationNotNil() predicate.OrderFeeCorrectionRequest {
+	return predicate.OrderFeeCorrectionRequest(sql.FieldNotNull(FieldLockGeneration))
 }
 
 // ApprovedFeeContentVersionEQ applies the EQ predicate on the "approved_fee_content_version" field.
@@ -1064,6 +1164,29 @@ func ApprovalTokenEqualFold(v string) predicate.OrderFeeCorrectionRequest {
 // ApprovalTokenContainsFold applies the ContainsFold predicate on the "approval_token" field.
 func ApprovalTokenContainsFold(v string) predicate.OrderFeeCorrectionRequest {
 	return predicate.OrderFeeCorrectionRequest(sql.FieldContainsFold(FieldApprovalToken, v))
+}
+
+// HasLockRecord applies the HasEdge predicate on the "lock_record" edge.
+func HasLockRecord() predicate.OrderFeeCorrectionRequest {
+	return predicate.OrderFeeCorrectionRequest(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, LockRecordTable, LockRecordColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLockRecordWith applies the HasEdge predicate on the "lock_record" edge with a given conditions (other predicates).
+func HasLockRecordWith(preds ...predicate.OrderLockRecord) predicate.OrderFeeCorrectionRequest {
+	return predicate.OrderFeeCorrectionRequest(func(s *sql.Selector) {
+		step := newLockRecordStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // HasOrganization applies the HasEdge predicate on the "organization" edge.

@@ -96,6 +96,21 @@ func OrderVersionAtLock(v uint64) predicate.OrderLockRecord {
 	return predicate.OrderLockRecord(sql.FieldEQ(FieldOrderVersionAtLock, v))
 }
 
+// FeeContentVersion applies equality check predicate on the "fee_content_version" field. It's identical to FeeContentVersionEQ.
+func FeeContentVersion(v uint64) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldEQ(FieldFeeContentVersion, v))
+}
+
+// FeeContentFingerprint applies equality check predicate on the "fee_content_fingerprint" field. It's identical to FeeContentFingerprintEQ.
+func FeeContentFingerprint(v string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldEQ(FieldFeeContentFingerprint, v))
+}
+
+// ReviewComment applies equality check predicate on the "review_comment" field. It's identical to ReviewCommentEQ.
+func ReviewComment(v string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldEQ(FieldReviewComment, v))
+}
+
 // TriggerResourceID applies equality check predicate on the "trigger_resource_id" field. It's identical to TriggerResourceIDEQ.
 func TriggerResourceID(v uuid.UUID) predicate.OrderLockRecord {
 	return predicate.OrderLockRecord(sql.FieldEQ(FieldTriggerResourceID, v))
@@ -494,6 +509,216 @@ func OrderVersionAtLockLT(v uint64) predicate.OrderLockRecord {
 // OrderVersionAtLockLTE applies the LTE predicate on the "order_version_at_lock" field.
 func OrderVersionAtLockLTE(v uint64) predicate.OrderLockRecord {
 	return predicate.OrderLockRecord(sql.FieldLTE(FieldOrderVersionAtLock, v))
+}
+
+// FeeSnapshotIsNil applies the IsNil predicate on the "fee_snapshot" field.
+func FeeSnapshotIsNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldIsNull(FieldFeeSnapshot))
+}
+
+// FeeSnapshotNotNil applies the NotNil predicate on the "fee_snapshot" field.
+func FeeSnapshotNotNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNotNull(FieldFeeSnapshot))
+}
+
+// FeeContentVersionEQ applies the EQ predicate on the "fee_content_version" field.
+func FeeContentVersionEQ(v uint64) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldEQ(FieldFeeContentVersion, v))
+}
+
+// FeeContentVersionNEQ applies the NEQ predicate on the "fee_content_version" field.
+func FeeContentVersionNEQ(v uint64) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNEQ(FieldFeeContentVersion, v))
+}
+
+// FeeContentVersionIn applies the In predicate on the "fee_content_version" field.
+func FeeContentVersionIn(vs ...uint64) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldIn(FieldFeeContentVersion, vs...))
+}
+
+// FeeContentVersionNotIn applies the NotIn predicate on the "fee_content_version" field.
+func FeeContentVersionNotIn(vs ...uint64) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNotIn(FieldFeeContentVersion, vs...))
+}
+
+// FeeContentVersionGT applies the GT predicate on the "fee_content_version" field.
+func FeeContentVersionGT(v uint64) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldGT(FieldFeeContentVersion, v))
+}
+
+// FeeContentVersionGTE applies the GTE predicate on the "fee_content_version" field.
+func FeeContentVersionGTE(v uint64) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldGTE(FieldFeeContentVersion, v))
+}
+
+// FeeContentVersionLT applies the LT predicate on the "fee_content_version" field.
+func FeeContentVersionLT(v uint64) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldLT(FieldFeeContentVersion, v))
+}
+
+// FeeContentVersionLTE applies the LTE predicate on the "fee_content_version" field.
+func FeeContentVersionLTE(v uint64) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldLTE(FieldFeeContentVersion, v))
+}
+
+// FeeContentVersionIsNil applies the IsNil predicate on the "fee_content_version" field.
+func FeeContentVersionIsNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldIsNull(FieldFeeContentVersion))
+}
+
+// FeeContentVersionNotNil applies the NotNil predicate on the "fee_content_version" field.
+func FeeContentVersionNotNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNotNull(FieldFeeContentVersion))
+}
+
+// FeeContentFingerprintEQ applies the EQ predicate on the "fee_content_fingerprint" field.
+func FeeContentFingerprintEQ(v string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldEQ(FieldFeeContentFingerprint, v))
+}
+
+// FeeContentFingerprintNEQ applies the NEQ predicate on the "fee_content_fingerprint" field.
+func FeeContentFingerprintNEQ(v string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNEQ(FieldFeeContentFingerprint, v))
+}
+
+// FeeContentFingerprintIn applies the In predicate on the "fee_content_fingerprint" field.
+func FeeContentFingerprintIn(vs ...string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldIn(FieldFeeContentFingerprint, vs...))
+}
+
+// FeeContentFingerprintNotIn applies the NotIn predicate on the "fee_content_fingerprint" field.
+func FeeContentFingerprintNotIn(vs ...string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNotIn(FieldFeeContentFingerprint, vs...))
+}
+
+// FeeContentFingerprintGT applies the GT predicate on the "fee_content_fingerprint" field.
+func FeeContentFingerprintGT(v string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldGT(FieldFeeContentFingerprint, v))
+}
+
+// FeeContentFingerprintGTE applies the GTE predicate on the "fee_content_fingerprint" field.
+func FeeContentFingerprintGTE(v string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldGTE(FieldFeeContentFingerprint, v))
+}
+
+// FeeContentFingerprintLT applies the LT predicate on the "fee_content_fingerprint" field.
+func FeeContentFingerprintLT(v string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldLT(FieldFeeContentFingerprint, v))
+}
+
+// FeeContentFingerprintLTE applies the LTE predicate on the "fee_content_fingerprint" field.
+func FeeContentFingerprintLTE(v string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldLTE(FieldFeeContentFingerprint, v))
+}
+
+// FeeContentFingerprintContains applies the Contains predicate on the "fee_content_fingerprint" field.
+func FeeContentFingerprintContains(v string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldContains(FieldFeeContentFingerprint, v))
+}
+
+// FeeContentFingerprintHasPrefix applies the HasPrefix predicate on the "fee_content_fingerprint" field.
+func FeeContentFingerprintHasPrefix(v string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldHasPrefix(FieldFeeContentFingerprint, v))
+}
+
+// FeeContentFingerprintHasSuffix applies the HasSuffix predicate on the "fee_content_fingerprint" field.
+func FeeContentFingerprintHasSuffix(v string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldHasSuffix(FieldFeeContentFingerprint, v))
+}
+
+// FeeContentFingerprintIsNil applies the IsNil predicate on the "fee_content_fingerprint" field.
+func FeeContentFingerprintIsNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldIsNull(FieldFeeContentFingerprint))
+}
+
+// FeeContentFingerprintNotNil applies the NotNil predicate on the "fee_content_fingerprint" field.
+func FeeContentFingerprintNotNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNotNull(FieldFeeContentFingerprint))
+}
+
+// FeeContentFingerprintEqualFold applies the EqualFold predicate on the "fee_content_fingerprint" field.
+func FeeContentFingerprintEqualFold(v string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldEqualFold(FieldFeeContentFingerprint, v))
+}
+
+// FeeContentFingerprintContainsFold applies the ContainsFold predicate on the "fee_content_fingerprint" field.
+func FeeContentFingerprintContainsFold(v string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldContainsFold(FieldFeeContentFingerprint, v))
+}
+
+// ReviewCommentEQ applies the EQ predicate on the "review_comment" field.
+func ReviewCommentEQ(v string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldEQ(FieldReviewComment, v))
+}
+
+// ReviewCommentNEQ applies the NEQ predicate on the "review_comment" field.
+func ReviewCommentNEQ(v string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNEQ(FieldReviewComment, v))
+}
+
+// ReviewCommentIn applies the In predicate on the "review_comment" field.
+func ReviewCommentIn(vs ...string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldIn(FieldReviewComment, vs...))
+}
+
+// ReviewCommentNotIn applies the NotIn predicate on the "review_comment" field.
+func ReviewCommentNotIn(vs ...string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNotIn(FieldReviewComment, vs...))
+}
+
+// ReviewCommentGT applies the GT predicate on the "review_comment" field.
+func ReviewCommentGT(v string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldGT(FieldReviewComment, v))
+}
+
+// ReviewCommentGTE applies the GTE predicate on the "review_comment" field.
+func ReviewCommentGTE(v string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldGTE(FieldReviewComment, v))
+}
+
+// ReviewCommentLT applies the LT predicate on the "review_comment" field.
+func ReviewCommentLT(v string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldLT(FieldReviewComment, v))
+}
+
+// ReviewCommentLTE applies the LTE predicate on the "review_comment" field.
+func ReviewCommentLTE(v string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldLTE(FieldReviewComment, v))
+}
+
+// ReviewCommentContains applies the Contains predicate on the "review_comment" field.
+func ReviewCommentContains(v string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldContains(FieldReviewComment, v))
+}
+
+// ReviewCommentHasPrefix applies the HasPrefix predicate on the "review_comment" field.
+func ReviewCommentHasPrefix(v string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldHasPrefix(FieldReviewComment, v))
+}
+
+// ReviewCommentHasSuffix applies the HasSuffix predicate on the "review_comment" field.
+func ReviewCommentHasSuffix(v string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldHasSuffix(FieldReviewComment, v))
+}
+
+// ReviewCommentIsNil applies the IsNil predicate on the "review_comment" field.
+func ReviewCommentIsNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldIsNull(FieldReviewComment))
+}
+
+// ReviewCommentNotNil applies the NotNil predicate on the "review_comment" field.
+func ReviewCommentNotNil() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldNotNull(FieldReviewComment))
+}
+
+// ReviewCommentEqualFold applies the EqualFold predicate on the "review_comment" field.
+func ReviewCommentEqualFold(v string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldEqualFold(FieldReviewComment, v))
+}
+
+// ReviewCommentContainsFold applies the ContainsFold predicate on the "review_comment" field.
+func ReviewCommentContainsFold(v string) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(sql.FieldContainsFold(FieldReviewComment, v))
 }
 
 // TriggerTypeEQ applies the EQ predicate on the "trigger_type" field.
@@ -1353,6 +1578,29 @@ func HasUnlockRequests() predicate.OrderLockRecord {
 func HasUnlockRequestsWith(preds ...predicate.OrderUnlockRequest) predicate.OrderLockRecord {
 	return predicate.OrderLockRecord(func(s *sql.Selector) {
 		step := newUnlockRequestsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasFeeCorrectionRequests applies the HasEdge predicate on the "fee_correction_requests" edge.
+func HasFeeCorrectionRequests() predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FeeCorrectionRequestsTable, FeeCorrectionRequestsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFeeCorrectionRequestsWith applies the HasEdge predicate on the "fee_correction_requests" edge with a given conditions (other predicates).
+func HasFeeCorrectionRequestsWith(preds ...predicate.OrderFeeCorrectionRequest) predicate.OrderLockRecord {
+	return predicate.OrderLockRecord(func(s *sql.Selector) {
+		step := newFeeCorrectionRequestsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

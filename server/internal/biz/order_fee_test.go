@@ -74,7 +74,7 @@ func TestOrderFeeAddSavesAsUnbilledAndImmediatelyBillable(t *testing.T) {
 	actorID := uuid.Must(uuid.NewV7())
 	orderID := uuid.Must(uuid.NewV7())
 	repo := &orderFeeAddCaptureRepoStub{}
-	usecase := NewOrderFeeUsecase(repo, NewExchangeRateUsecase(&orderFeeExchangeRateRepoStub{rate: decimal.NewFromInt(1)}, nil), nil, newReminderModeCreditControl(), nil, nil)
+	usecase := NewOrderFeeUsecase(repo, NewExchangeRateUsecase(&orderFeeExchangeRateRepoStub{rate: decimal.NewFromInt(1)}, nil), nil, newReminderModeCreditControl(), nil)
 
 	created, err := usecase.Add(ctx, organizationID, actorID, orderID, validOrderFeeForTest(), false)
 	if err != nil {
@@ -116,7 +116,7 @@ func TestOrderFeeUpdatePreservesOldRateSnapshotWithoutManualRequest(t *testing.T
 			}
 			repo := &orderFeeUpdateCaptureRepoStub{current: current}
 			rateRepo := &orderFeeExchangeRateRepoStub{rate: decimal.RequireFromString("7.4")}
-			usecase := NewOrderFeeUsecase(repo, NewExchangeRateUsecase(rateRepo, nil), nil, newReminderModeCreditControl(), nil, nil)
+			usecase := NewOrderFeeUsecase(repo, NewExchangeRateUsecase(rateRepo, nil), nil, newReminderModeCreditControl(), nil)
 			input := *current
 			note := "仅修改备注"
 			input.Note = &note
@@ -137,7 +137,7 @@ func TestOrderFeeUpdateRejectsForgedManualRate(t *testing.T) {
 	current.ID = uuid.Must(uuid.NewV7())
 	current.Version = 1
 	repo := &orderFeeUpdateCaptureRepoStub{current: current}
-	usecase := NewOrderFeeUsecase(repo, NewExchangeRateUsecase(&orderFeeExchangeRateRepoStub{rate: decimal.NewFromInt(1)}, nil), nil, newReminderModeCreditControl(), nil, nil)
+	usecase := NewOrderFeeUsecase(repo, NewExchangeRateUsecase(&orderFeeExchangeRateRepoStub{rate: decimal.NewFromInt(1)}, nil), nil, newReminderModeCreditControl(), nil)
 	input := *current
 	manualRate := decimal.RequireFromString("7.2")
 	input.ExchangeRateOverride = &manualRate
@@ -257,7 +257,7 @@ func TestNormalizeOrderFeeSupportsReceivableAndPayable(t *testing.T) {
 
 func TestResolveOrderFeeExchangeRateRejectsUnauthorizedOverride(t *testing.T) {
 	rateRepo := &orderFeeExchangeRateRepoStub{}
-	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo, nil), nil, newReminderModeCreditControl(), nil, nil)
+	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo, nil), nil, newReminderModeCreditControl(), nil)
 	override := decimal.RequireFromString("7.12345678")
 	fee := validOrderFeeForTest()
 	fee.ExchangeRateOverride = &override
@@ -273,7 +273,7 @@ func TestResolveOrderFeeExchangeRateRejectsUnauthorizedOverride(t *testing.T) {
 
 func TestResolveOrderFeeExchangeRateUsesExactManualSnapshot(t *testing.T) {
 	rateRepo := &orderFeeExchangeRateRepoStub{}
-	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo, nil), nil, newReminderModeCreditControl(), nil, nil)
+	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo, nil), nil, newReminderModeCreditControl(), nil)
 	override := decimal.RequireFromString("0.1")
 	settingID := uuid.Must(uuid.NewV7())
 	fee := validOrderFeeForTest()
@@ -296,7 +296,7 @@ func TestResolveOrderFeeExchangeRateUsesExactManualSnapshot(t *testing.T) {
 
 func TestResolveOrderFeeExchangeRateUsesSystemRateWithoutOverride(t *testing.T) {
 	rateRepo := &orderFeeExchangeRateRepoStub{rate: decimal.RequireFromString("7.12345678")}
-	usecase := NewOrderFeeUsecase(&orderFeeRepoStub{}, NewExchangeRateUsecase(rateRepo, nil), nil, newReminderModeCreditControl(), nil, nil)
+	usecase := NewOrderFeeUsecase(&orderFeeRepoStub{}, NewExchangeRateUsecase(rateRepo, nil), nil, newReminderModeCreditControl(), nil)
 	fee := validOrderFeeForTest()
 	fee.Currency = "USD"
 
@@ -342,7 +342,7 @@ func TestSameOrderFeeCreateIntentAcceptsRetryAndRejectsKeyReuse(t *testing.T) {
 
 func TestCalculateOrderFeeAmountsUsesTaxInclusiveAndBaseCurrencySnapshots(t *testing.T) {
 	rateRepo := &orderFeeExchangeRateRepoStub{}
-	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo, nil), nil, newReminderModeCreditControl(), nil, nil)
+	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo, nil), nil, newReminderModeCreditControl(), nil)
 	taxRate := decimal.RequireFromString("6")
 	fee := validOrderFeeForTest()
 	fee.TaxRate = &taxRate
@@ -363,7 +363,7 @@ func TestCalculateOrderFeeAmountsUsesTaxInclusiveAndBaseCurrencySnapshots(t *tes
 
 func TestCalculateOrderFeeAmountsAddsTaxForExclusivePrice(t *testing.T) {
 	rateRepo := &orderFeeExchangeRateRepoStub{}
-	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo, nil), nil, newReminderModeCreditControl(), nil, nil)
+	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo, nil), nil, newReminderModeCreditControl(), nil)
 	taxRate := decimal.RequireFromString("6")
 	fee := validOrderFeeForTest()
 	fee.TaxRate = &taxRate
@@ -395,7 +395,7 @@ func TestOrderFeeCreditGateBlocksExceededReceivablePartyOnly(t *testing.T) {
 	creditControl := NewPartnerCreditUsecase(&partnerCreditRepoStub{summaries: map[uuid.UUID]*PartnerCreditSummary{
 		exceededPartyID: {PartnerID: exceededPartyID, CreditLimitBase: &creditLimit, UnsettledReceivableBase: decimal.NewFromInt(200)},
 	}}, NewFinanceCustomSettingUsecase(&interventionModeSettingRepo{allowSelection: false}))
-	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(&orderFeeExchangeRateRepoStub{}, nil), nil, creditControl, nil, nil)
+	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(&orderFeeExchangeRateRepoStub{}, nil), nil, creditControl, nil)
 
 	receivable := validOrderFeeForTest()
 	receivable.SettlementPartyID = exceededPartyID
@@ -410,7 +410,7 @@ func TestOrderFeeCreditGateBlocksExceededReceivablePartyOnly(t *testing.T) {
 		t.Fatalf("应付方向不占用客户信用额度，不应被拦截: %v", err)
 	}
 
-	reminderUsecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(&orderFeeExchangeRateRepoStub{}, nil), nil, newReminderModeCreditControl(), nil, nil)
+	reminderUsecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(&orderFeeExchangeRateRepoStub{}, nil), nil, newReminderModeCreditControl(), nil)
 	if err := reminderUsecase.ensureReceivablePartySelectionAllowed(ctx, organizationID, receivable); err != nil {
 		t.Fatalf("仅提醒模式下超额客户应放行: %v", err)
 	}

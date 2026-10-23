@@ -77,6 +77,8 @@ func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
 	}
 	lockPerm := ensurePermission("business.order.si.lock", "海运进口订单锁定")
 	updatePerm := ensurePermission("business.order.si.update", "海运进口订单修改")
+	readPerm := ensurePermission("business.order.si.read", "海运进口订单读取")
+	feeReadPerm := ensurePermission("business.order.si.fee.read", "海运进口费用读取")
 
 	newUser := func(label string, bootstrap bool) *ent.User {
 		u, userErr := data.db.User.Create().
@@ -102,6 +104,12 @@ func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
 		return m
 	}
 	newRole := func(org *ent.Organization, code string, permissions ...*ent.Permission) *ent.Role {
+		for _, permission := range permissions {
+			if permission.ID == lockPerm.ID {
+				permissions = append(permissions, readPerm, updatePerm, feeReadPerm)
+				break
+			}
+		}
 		r, roleErr := data.db.Role.Create().
 			SetOrganizationID(org.ID).
 			SetCode(code).
@@ -274,7 +282,7 @@ func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
 		if err != nil || !state.CanLock || len(state.LockBlockedReasons) != 0 {
 			t.Fatalf("组织内角色锁状态 = %#v, err=%v", state, err)
 		}
-		if _, err := orderLockRepo.LockOrder(ctx, orgPrincipal, order.ID, 1, "grant-org-lock-"+suffix, nil); err != nil {
+		if _, err := orderLockRepo.LockOrder(ctx, orgPrincipal, order.ID, 1, "grant-org-lock-"+suffix, lockTestReviewInput(t, data, ctx, order.ID), nil); err != nil {
 			t.Fatalf("组织内角色锁定失败: %v", err)
 		}
 		result, err := orderLockRepo.RequestOrderUnlock(ctx, orgPrincipal, order.ID, 2, "grant-org-unlock-"+suffix, nil, nil)
@@ -289,7 +297,7 @@ func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
 		if err != nil || !state.CanLock {
 			t.Fatalf("上级树角色锁状态 = %#v, err=%v", state, err)
 		}
-		if _, err := orderLockRepo.LockOrder(ctx, treePrincipal, order.ID, 1, "grant-tree-lock-"+suffix, nil); err != nil {
+		if _, err := orderLockRepo.LockOrder(ctx, treePrincipal, order.ID, 1, "grant-tree-lock-"+suffix, lockTestReviewInput(t, data, ctx, order.ID), nil); err != nil {
 			t.Fatalf("上级树角色锁定失败: %v", err)
 		}
 		result, err := orderLockRepo.RequestOrderUnlock(ctx, treePrincipal, order.ID, 2, "grant-tree-unlock-"+suffix, nil, nil)
@@ -300,7 +308,7 @@ func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
 
 	t.Run("同公司administrator按显式功能权限办理", func(t *testing.T) {
 		order := createSIOrder()
-		if _, err := orderLockRepo.LockOrder(ctx, allAdminPrincipal, order.ID, 1, "grant-alladmin-lock-"+suffix, nil); err != nil {
+		if _, err := orderLockRepo.LockOrder(ctx, allAdminPrincipal, order.ID, 1, "grant-alladmin-lock-"+suffix, lockTestReviewInput(t, data, ctx, order.ID), nil); err != nil {
 			t.Fatalf("ALL 范围 administrator 持锁权限仍被拒绝: %v", err)
 		}
 		state, err := orderLockRepo.GetOrderLockState(ctx, child.ID, order.ID, allAdminPrincipal)
@@ -314,7 +322,7 @@ func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
 
 		noPermOrder := createSIOrder()
 		adminNoPermPrincipal := principalFor(adminNoPermUser, grantFor(noPermAdminRole))
-		_, err = orderLockRepo.LockOrder(ctx, adminNoPermPrincipal, noPermOrder.ID, 1, "grant-adminnoperm-lock-"+suffix, nil)
+		_, err = orderLockRepo.LockOrder(ctx, adminNoPermPrincipal, noPermOrder.ID, 1, "grant-adminnoperm-lock-"+suffix, lockTestReviewInput(t, data, ctx, noPermOrder.ID), nil)
 		if kErr := errors.FromError(err); kErr == nil || kErr.Reason != "ORDER_LOCK_ROLE_REQUIRED" {
 			t.Fatalf("无锁权限的 administrator 期望 ORDER_LOCK_ROLE_REQUIRED，得到: %v", err)
 		}
@@ -326,7 +334,7 @@ func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
 		if err != nil || !state.CanLock || len(state.LockBlockedReasons) != 0 {
 			t.Fatalf("bootstrap 锁状态 = %#v, err=%v", state, err)
 		}
-		lockResult, err := orderLockRepo.LockOrder(ctx, bootstrapPrincipal, order.ID, 1, "grant-bootstrap-lock-"+suffix, nil)
+		lockResult, err := orderLockRepo.LockOrder(ctx, bootstrapPrincipal, order.ID, 1, "grant-bootstrap-lock-"+suffix, lockTestReviewInput(t, data, ctx, order.ID), nil)
 		if err != nil {
 			t.Fatalf("bootstrap 锁定失败: %v", err)
 		}
@@ -350,20 +358,20 @@ func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
 	t.Run("系统角色和其他公司角色不得办理目标公司业务", func(t *testing.T) {
 		parentOrgOrder := createSIOrder()
 		parentOrgPrincipal := principalFor(parentOrgScopeUser, grantFor(parentOrgScopeRole, "business.order.si.lock"))
-		_, err := orderLockRepo.LockOrder(ctx, parentOrgPrincipal, parentOrgOrder.ID, 1, "grant-parentorg-lock-"+suffix, nil)
+		_, err := orderLockRepo.LockOrder(ctx, parentOrgPrincipal, parentOrgOrder.ID, 1, "grant-parentorg-lock-"+suffix, lockTestReviewInput(t, data, ctx, parentOrgOrder.ID), nil)
 		if kErr := errors.FromError(err); kErr == nil || kErr.Reason != "ORDER_LOCK_ROLE_REQUIRED" {
 			t.Fatalf("上级组织 ORG 范围锁定 child 订单期望拒绝，得到: %v", err)
 		}
 
 		siblingOrder := createSIOrder()
 		siblingTreePrincipal := principalFor(siblingTreeUser, grantFor(siblingTreeRole, "business.order.si.lock"))
-		_, err = orderLockRepo.LockOrder(ctx, siblingTreePrincipal, siblingOrder.ID, 1, "grant-sibling-lock-"+suffix, nil)
+		_, err = orderLockRepo.LockOrder(ctx, siblingTreePrincipal, siblingOrder.ID, 1, "grant-sibling-lock-"+suffix, lockTestReviewInput(t, data, ctx, siblingOrder.ID), nil)
 		if kErr := errors.FromError(err); kErr == nil || kErr.Reason != "ORDER_LOCK_ROLE_REQUIRED" {
 			t.Fatalf("兄弟组织 TREE 范围锁定 child 订单期望拒绝，得到: %v", err)
 		}
 
 		normalOrder := createSIOrder()
-		_, err = orderLockRepo.LockOrder(ctx, normalPrincipal, normalOrder.ID, 1, "grant-normal-lock-"+suffix, nil)
+		_, err = orderLockRepo.LockOrder(ctx, normalPrincipal, normalOrder.ID, 1, "grant-normal-lock-"+suffix, lockTestReviewInput(t, data, ctx, normalOrder.ID), nil)
 		if kErr := errors.FromError(err); kErr == nil || kErr.Reason != "ORDER_LOCK_ROLE_REQUIRED" {
 			t.Fatalf("无锁权限用户期望 ORDER_LOCK_ROLE_REQUIRED，得到: %v", err)
 		}
@@ -371,7 +379,7 @@ func TestOrderLockGrantScopes_PostgresFlows(t *testing.T) {
 
 	t.Run("候选池按统一口径生成且撤权后旧候选回调稳定拒绝", func(t *testing.T) {
 		order := createSIOrder()
-		if _, err := orderLockRepo.LockOrder(ctx, orgPrincipal, order.ID, 1, "grant-pipeline-lock-"+suffix, nil); err != nil {
+		if _, err := orderLockRepo.LockOrder(ctx, orgPrincipal, order.ID, 1, "grant-pipeline-lock-"+suffix, lockTestReviewInput(t, data, ctx, order.ID), nil); err != nil {
 			t.Fatalf("准备锁定失败: %v", err)
 		}
 		result, err := orderLockRepo.RequestOrderUnlock(ctx, normalPrincipal, order.ID, 2, "grant-pipeline-request-"+suffix, nil, nil)

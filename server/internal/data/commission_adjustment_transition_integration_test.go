@@ -27,8 +27,8 @@ func newAdjustmentTransitionUsecase(f *feeSupplementPostgresFixture) *biz.Commis
 	)
 }
 
-// insertAdjustmentRow 按指定方向/状态插入 MANUAL 来源调整行（LFS 来源的调整
-// 一律通过真实补录审批链路生成），金额为 8 位字符串。
+// insertAdjustmentRow 按指定方向/状态插入 MANUAL 来源调整行（更正 来源的调整
+// 一律通过真实费用变更补审链路生成），金额为 8 位字符串。
 func insertAdjustmentRow(f *feeSupplementPostgresFixture, order *ent.Order, parent *ent.FinanceCommission, direction commissionadjustmentent.Direction, status commissionadjustmentent.Status, amount, key, reason string) *ent.FinanceCommissionAdjustment {
 	f.t.Helper()
 	adjustment, err := f.data.db.FinanceCommissionAdjustment.Create().
@@ -157,7 +157,7 @@ func requireAdjustmentState(f *feeSupplementPostgresFixture, id uuid.UUID, wantS
 	}
 }
 
-// TestCommissionAdjustmentCancelGatePostgres 验证 LOCKED_FEE_SUPPLEMENT 来源的
+// TestCommissionAdjustmentCancelGatePostgres 验证 FEE_CORRECTION 来源的
 // 通用取消门禁（上一轮检查 MEDIUM-3 强制验收）：CONFIRMED/PAID 即使绕过页面
 // 直接调用通用取消接口也稳定拒绝且零写入；MANUAL 来源行为不变。
 func TestCommissionAdjustmentCancelGatePostgres(t *testing.T) {
@@ -168,29 +168,27 @@ func TestCommissionAdjustmentCancelGatePostgres(t *testing.T) {
 	uc := newAdjustmentTransitionUsecase(f)
 	actor := f.approverID
 
-	// 通过真实补录审批链路生成 LFS 调整，保证来源关联与业务事实完整。
-	newLFSAdjustment := func(order *ent.Order, key string) *ent.FinanceCommissionAdjustment {
+	// 通过真实费用变更补审链路生成 更正 调整，保证来源关联与业务事实完整。
+	newCorrectionAdjustment := func(order *ent.Order, key string) *ent.FinanceCommissionAdjustment {
 		f.t.Helper()
-		// 初始整票批准 + NATIVE 快照父单：补录批准后冲减直接为 CONFIRMED。
+		// 初始人工审核 + NATIVE 快照父单：补录批准后冲减直接为 CONFIRMED。
 		f.approveInitialFees(order)
 		f.createConfirmedCommissionWithSnapshot(order, "60.00000000", "10.0000", "1000.00000000", "400.00000000")
-		request := f.createSupplement(order, key)
-		f.approveSupplement(order, request.ID, 1)
-		adjustments := f.adjustmentsForRequest(request.ID)
+		adjustments := createCorrectionAdjustmentsForTest(f, order, key)
 		if len(adjustments) != 1 {
-			f.t.Fatalf("补录审批应生成一条 LFS 建议: got=%d", len(adjustments))
+			f.t.Fatalf("补录审批应生成一条 更正 建议: got=%d", len(adjustments))
 		}
 		return adjustments[0]
 	}
 
-	t.Run("LFS_CONFIRMED 直接调用通用取消接口稳定拒绝且零写入", func(t *testing.T) {
+	t.Run("更正_CONFIRMED 直接调用通用取消接口稳定拒绝且零写入", func(t *testing.T) {
 		f.setT(t)
 		order := f.createOrder("SE-CG-CONF-" + f.suffix)
 		f.lockOrder(order)
-		adjustment := newLFSAdjustment(order, "cancel-gate-conf-"+f.suffix)
+		adjustment := newCorrectionAdjustment(order, "cancel-gate-conf-"+f.suffix)
 		_, err := uc.CancelAdjustment(context.Background(), f.organizationID, actor, adjustment.ID, adjustment.Version, "尝试状态洗白")
 		if err == nil {
-			f.t.Fatal("LFS CONFIRMED 经通用取消接口未拒绝")
+			f.t.Fatal("更正 CONFIRMED 经通用取消接口未拒绝")
 		}
 		if kratoserrors.FromError(err).Reason != biz.ErrCommissionAdjustmentCancelNotAllowed.Reason {
 			f.t.Fatalf("稳定错误码不符: got=%s want=%s", kratoserrors.FromError(err).Reason, biz.ErrCommissionAdjustmentCancelNotAllowed.Reason)
@@ -198,11 +196,11 @@ func TestCommissionAdjustmentCancelGatePostgres(t *testing.T) {
 		requireAdjustmentState(f, adjustment.ID, "CONFIRMED", adjustment.Version, false)
 	})
 
-	t.Run("LFS_PAID 直接调用通用取消接口稳定拒绝且零写入", func(t *testing.T) {
+	t.Run("更正_PAID 直接调用通用取消接口稳定拒绝且零写入", func(t *testing.T) {
 		f.setT(t)
 		order := f.createOrder("SE-CG-PAID-" + f.suffix)
 		f.lockOrder(order)
-		adjustment := newLFSAdjustment(order, "cancel-gate-paid-"+f.suffix)
+		adjustment := newCorrectionAdjustment(order, "cancel-gate-paid-"+f.suffix)
 		parent, err := f.data.db.FinanceCommission.Get(context.Background(), adjustment.CommissionID)
 		if err != nil {
 			t.Fatal(err)
@@ -212,7 +210,7 @@ func TestCommissionAdjustmentCancelGatePostgres(t *testing.T) {
 		}
 		_, err = uc.CancelAdjustment(context.Background(), f.organizationID, actor, adjustment.ID, adjustment.Version+1, "尝试状态洗白")
 		if err == nil {
-			f.t.Fatal("LFS PAID 经通用取消接口未拒绝")
+			f.t.Fatal("更正 PAID 经通用取消接口未拒绝")
 		}
 		if kratoserrors.FromError(err).Reason != biz.ErrCommissionAdjustmentCancelNotAllowed.Reason {
 			f.t.Fatalf("稳定错误码不符: got=%s want=%s", kratoserrors.FromError(err).Reason, biz.ErrCommissionAdjustmentCancelNotAllowed.Reason)
@@ -343,11 +341,9 @@ func TestCommissionAdjustmentMySourcePostgres(t *testing.T) {
 	order := f.createOrder("SE-SRC-" + f.suffix)
 	f.approveInitialFees(order)
 	f.createConfirmedCommissionWithSnapshot(order, "60.00000000", "10.0000", "1000.00000000", "400.00000000")
-	request := f.createSupplement(order, "my-source-"+f.suffix)
-	f.approveSupplement(order, request.ID, 1)
-	adjustments := f.adjustmentsForRequest(request.ID)
+	adjustments := createCorrectionAdjustmentsForTest(f, order, "my-source-"+f.suffix)
 	if len(adjustments) != 1 {
-		f.t.Fatalf("补录审批应生成一条 LFS 建议: got=%d", len(adjustments))
+		f.t.Fatalf("补录审批应生成一条 更正 建议: got=%d", len(adjustments))
 	}
 	adjustment := adjustments[0]
 	principal := func(userID uuid.UUID) *biz.Principal {
@@ -400,4 +396,20 @@ func TestCommissionAdjustmentMySourcePostgres(t *testing.T) {
 			f.t.Fatalf("他人查询未稳定返回不存在: %v", err)
 		}
 	})
+}
+
+// createCorrectionAdjustmentsForTest 通过统一补审生成可追溯的系统提成差额。
+func createCorrectionAdjustmentsForTest(f *feeSupplementPostgresFixture, order *ent.Order, key string) []*ent.FinanceCommissionAdjustment {
+	f.t.Helper()
+	uc := newCorrectionTestUsecase(f.t, f)
+	request, err := uc.Submit(f.ctx, f.approverPrincipal(), f.organizationID, order.ID, correctionTestInput(f, "ADD", key, nil, 100), false)
+	if err != nil {
+		f.t.Fatalf("提交费用变更: %v", err)
+	}
+	approveCorrectionForTest(f.t, f, uc, order, request)
+	adjustments, err := f.data.db.FinanceCommissionAdjustment.Query().Where(commissionadjustmentent.SourceFeeCorrectionRequestIDEQ(request.ID)).All(f.ctx)
+	if err != nil {
+		f.t.Fatalf("读取费用变更提成差额: %v", err)
+	}
+	return adjustments
 }

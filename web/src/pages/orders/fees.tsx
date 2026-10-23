@@ -1,8 +1,8 @@
-import { LockOutlined, ReloadOutlined } from '@ant-design/icons';
+import { ReloadOutlined } from '@ant-design/icons';
 import type { ActionType, ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { App, Button, Card, Empty, Result, Spin, Tag } from 'antd';
+import { App, Button, Card, Empty, Result, Spin } from 'antd';
 import dayjs from 'dayjs';
 import React, {
   useCallback,
@@ -15,11 +15,7 @@ import { useParams } from 'react-router';
 import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import { FinanceSummaryBoard, SectionCard } from '@/components/ui';
-import {
-  OrderBusinessType,
-  OrderFlowStatus,
-  PartnerRoleType,
-} from '@/enums.generated';
+import { OrderBusinessType, PartnerRoleType } from '@/enums.generated';
 import { BillCreationWorkbench } from '@/features/finance/bill-creation';
 import { FeeCorrectionSection } from '@/features/orders/fee-correction';
 import { useOrderFeeReview } from '@/features/orders/fee-review';
@@ -36,11 +32,11 @@ import { normalizeDecimalInput } from '@/utils/decimal';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
+import { OrderLockStatusTag } from './components/detail/OrderLockControl';
 import FeeCorrectionCreate from './components/fees/FeeCorrectionCreate';
 import FeeFormModal, {
   type FeeFormValues,
 } from './components/fees/FeeFormModal';
-import FeeSupplementSection from './components/fees/FeeSupplementSection';
 import { OrderFeeReviewSection } from './components/fees/fee-review/OrderFeeReview';
 import type { FeeBillTrackingView } from './components/fees/feeBillTracking';
 import { RECEIVABLE } from './components/fees/feeConstants';
@@ -80,13 +76,11 @@ export default function OrderFeesPage() {
   const canAccessPage = Boolean(
     definition &&
       (access.canOrder(definition.businessType, 'fee.read') ||
-        access.canReviewOrderFees),
+        access.canOrder(definition.businessType, 'lock')),
   );
   const targetOrderId = canAccessPage ? orderId : undefined;
   const feeReview = useOrderFeeReview(targetOrderId);
-  const [hasSupplements, setHasSupplements] = useState(false);
   const [hasCorrections, setHasCorrections] = useState(false);
-  const [supplementCollapsed, setSupplementCollapsed] = useState<boolean>();
   const [correctionCollapsed, setCorrectionCollapsed] = useState<boolean>();
 
   const receivableActionRef = useRef<ActionType | undefined>(undefined);
@@ -106,9 +100,6 @@ export default function OrderFeesPage() {
     feeSettings,
     setFeeSettings,
     billingUnits,
-    financeLocked,
-    financeLockReason,
-    financeLockCommissionNos,
     customerName,
     loadData,
   } = useOrderFeeOptions(
@@ -121,11 +112,7 @@ export default function OrderFeesPage() {
     loading: lockStateLoading,
     error: lockStateError,
     refresh: refreshLockState,
-  } = useOrderLockState(
-    access.canOrder(definition?.businessType ?? '', 'fee.read')
-      ? targetOrderId
-      : undefined,
-  );
+  } = useOrderLockState(targetOrderId);
 
   const {
     totalPreview,
@@ -271,9 +258,7 @@ export default function OrderFeesPage() {
     setSelectedPayableFeeIds([]);
     setAllReceivableItems([]);
     setAllPayableItems([]);
-    setHasSupplements(false);
     setHasCorrections(false);
-    setSupplementCollapsed(undefined);
     setCorrectionCollapsed(undefined);
     setSelectedFeeSetting(undefined);
     setReceivableSummary({ totalAmount: 0, count: 0 });
@@ -287,38 +272,36 @@ export default function OrderFeesPage() {
 
   const lockWritePolicy = getOrderBusinessWritePolicy({
     state: lockState,
+    order,
     loading: lockStateLoading,
     error: lockStateError,
     canOperate: access.canOperateOrganization(order?.organizationId),
   });
-  const feeWritesDisabled =
-    financeLocked ||
-    lockWritePolicy.disabled ||
-    feeReview.isError ||
-    feeReview.data?.canEdit !== true;
-  const feeWritePolicyRef = useRef({
-    financeLocked,
-    lockWritePolicy,
-  });
-  feeWritePolicyRef.current = { financeLocked, lockWritePolicy };
+  const feeWritesDisabled = lockWritePolicy.disabled;
+  const feeWritePolicyRef = useRef(lockWritePolicy);
+  feeWritePolicyRef.current = lockWritePolicy;
 
-  const ensureFeeWriteAllowed = () => {
-    if (feeReview.isError || feeReview.data?.canEdit !== true) {
+  const ensureFeeWriteAllowed = (
+    fee?: API.OrderFee,
+    capability: 'canEdit' | 'canDelete' = 'canEdit',
+  ) => {
+    if (feeWritePolicyRef.current.disabled) {
       message.warning(
-        feeReview.data?.blockedReasons?.join('；') ||
-          '费用审核信息未就绪或费用已冻结',
+        lockState?.isLocked
+          ? '订单已审核锁定，费用变更请申请补录并补审'
+          : feeWritePolicyRef.current.reason || '订单费用当前不可编辑',
       );
       return false;
     }
-    const currentPolicy = feeWritePolicyRef.current;
-    if (currentPolicy.lockWritePolicy.disabled) {
-      message.warning(
-        currentPolicy.lockWritePolicy.reason || '订单业务费用当前不可编辑',
-      );
+    if (!fee && !access.canOrder(order?.businessType || '', 'fee.create')) {
+      message.warning('无费用录入权限');
       return false;
     }
-    if (currentPolicy.financeLocked) {
-      message.warning('存在有效提成，原费用不能直接修改；新增成本请申请补录');
+    if (fee && fee[capability] !== true) {
+      message.warning(
+        fee.blockedReasons?.join('；') ||
+          '该费用当前不可编辑，请先完成账务回退',
+      );
       return false;
     }
     return true;
@@ -363,7 +346,7 @@ export default function OrderFeesPage() {
   };
 
   const openFeeModal = (direction: number, fee?: API.OrderFee) => {
-    if (!ensureFeeWriteAllowed()) return;
+    if (!ensureFeeWriteAllowed(fee)) return;
     const requestedOrderId = targetOrderId;
     if (!requestedOrderId) return;
     const populationId = ++feeFormPopulationIdRef.current;
@@ -421,7 +404,7 @@ export default function OrderFeesPage() {
   };
 
   const handleModalSubmit = async (values: FeeFormValues) => {
-    if (!orderId || !ensureFeeWriteAllowed()) return false;
+    if (!orderId || !ensureFeeWriteAllowed(editingFee)) return false;
     const expenseDate = dayjs(values.expenseDate).format('YYYY-MM-DD');
     const preservesManualSnapshot =
       editingFee?.exchangeRateSource === 'MANUAL' &&
@@ -512,7 +495,7 @@ export default function OrderFeesPage() {
         okButtonProps: { danger: true },
         cancelText: '取消',
         onOk: async () => {
-          if (!ensureFeeWriteAllowed()) return Promise.reject();
+          if (!ensureFeeWriteAllowed(fee, 'canDelete')) return Promise.reject();
           try {
             const writeResponse3 = await orderFeeServiceRemoveFee({
               orderId,
@@ -571,31 +554,17 @@ export default function OrderFeesPage() {
           navigationTitle={definition.navigationTitle}
           orderId={orderId}
         />
-        <SectionCard title="整票费用包审核">
+        <SectionCard title="订单审核与锁定">
           <OrderFeeReviewSection
             orderId={targetOrderId}
             onChanged={() => void feeReview.refetch()}
           />
         </SectionCard>
-        <SectionCard title="费用更正审核">
+        <SectionCard title="费用补录补审">
           <FeeCorrectionSection
             key={targetOrderId}
             orderId={targetOrderId}
             onChanged={() => void feeReview.refetch()}
-          />
-        </SectionCard>
-        <SectionCard title="费用补录审核">
-          <FeeSupplementSection
-            key={targetOrderId}
-            orderId={targetOrderId}
-            canCreate={false}
-            feeReviewApproved={false}
-            hasPendingSupplement={Boolean(feeReview.data?.hasPendingChange)}
-            feeSettings={[]}
-            settlementParties={[]}
-            currencies={[]}
-            billingUnits={[]}
-            onFeeTablesReload={() => {}}
           />
         </SectionCard>
       </PageContainer>
@@ -670,19 +639,11 @@ export default function OrderFeesPage() {
         orderId={orderId}
         orderNo={order.orderNo}
         tags={
-          <>
-            {order.canModify !== true &&
-              order.flowStatus !== OrderFlowStatus.ORDER_FLOW_STATUS_DRAFT && (
-                <Tag color="warning" icon={<LockOutlined />}>
-                  已锁单
-                </Tag>
-              )}
-            {financeLocked && (
-              <Tag color="red" icon={<LockOutlined />}>
-                存在有效提成
-              </Tag>
-            )}
-          </>
+          <OrderLockStatusTag
+            state={lockState}
+            loading={lockStateLoading}
+            error={lockStateError}
+          />
         }
         extra={
           <Button
@@ -700,7 +661,7 @@ export default function OrderFeesPage() {
         }
       />
 
-      <SectionCard title="整票费用包审核">
+      <SectionCard title="订单审核与锁定">
         <OrderFeeReviewSection
           key={targetOrderId}
           orderId={orderId || ''}
@@ -719,9 +680,6 @@ export default function OrderFeesPage() {
         orderId={orderId || ''}
         configTitle={definition.title}
         customerName={customerName}
-        financeLocked={financeLocked}
-        financeLockReason={financeLockReason}
-        financeLockCommissionNos={financeLockCommissionNos}
         lockWritePolicy={lockWritePolicy}
         onRetryLockState={refreshLockState}
         receivableSummary={receivableSummary}
@@ -747,9 +705,10 @@ export default function OrderFeesPage() {
         setPayableSummary={setPayableSummary}
         canCreateFinanceBills={
           access.canOperateOrganization(order?.organizationId) &&
-          Boolean(access.canCreateFinanceBills) &&
-          feeReview.data?.canBill === true
+          Boolean(access.canCreateFinanceBills)
         }
+        canCreateFees={access.canOrder(order.businessType || '', 'fee.create')}
+        canDeleteFees={access.canOrder(order.businessType || '', 'fee.delete')}
         feeWritesDisabled={feeWritesDisabled}
         columnSettingScope={feeColumnSettingScope}
         feeBillTracking={feeBillTracking}
@@ -778,34 +737,8 @@ export default function OrderFeesPage() {
         onOpenFeeModal={openFeeModal}
       />
 
-      {/* 3.1 锁后费用补录：订单身份变化时经 key 整体重建，清空申请、弹窗与异步状态 */}
       <SectionCard
-        title="费用补录"
-        collapsible
-        collapsed={supplementCollapsed ?? !hasSupplements}
-        onCollapseChange={setSupplementCollapsed}
-      >
-        <FeeSupplementSection
-          key={targetOrderId}
-          orderId={orderId || ''}
-          canCreate={
-            access.canOperateOrganization(order.organizationId) &&
-            order.businessType !== undefined &&
-            access.canOrder(order.businessType, 'fee.create')
-          }
-          feeReviewApproved={feeReview.data?.status === 'APPROVED'}
-          hasPendingSupplement={Boolean(feeReview.data?.hasPendingChange)}
-          feeSettings={feeSettings}
-          settlementParties={settlementParties}
-          currencies={currencies}
-          billingUnits={billingUnits}
-          onFeeTablesReload={reloadFeeTables}
-          onRecordsLoaded={setHasSupplements}
-        />
-      </SectionCard>
-
-      <SectionCard
-        title="费用更正"
+        title="费用补录与补审"
         collapsible
         collapsed={correctionCollapsed ?? !hasCorrections}
         onCollapseChange={setCorrectionCollapsed}
@@ -827,8 +760,16 @@ export default function OrderFeesPage() {
                 access.canOperateOrganization(order.organizationId) &&
                 access.canOrder(order.businessType || '', 'fee.update')
               }
+              canDelete={
+                access.canOperateOrganization(order.organizationId) &&
+                access.canOrder(order.businessType || '', 'fee.delete')
+              }
               disabled={
-                feeReview.data?.status !== 'APPROVED' ||
+                lockState?.isLocked !== true ||
+                lockStateLoading ||
+                Boolean(lockStateError) ||
+                feeReview.isError ||
+                feeReview.isPending ||
                 Boolean(feeReview.data?.hasPendingChange)
               }
               feeSettings={feeSettings}

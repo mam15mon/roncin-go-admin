@@ -94,6 +94,13 @@ func (r *orderLockRepo) RequestOrderUnlock(ctx context.Context, caller *biz.Prin
 		if order.LockedAt == nil || lockRec.UnlockedAt != nil {
 			return biz.ErrOrderNotLocked
 		}
+		pending, pendingErr := hasPendingFeeSupplement(ctx, tx.Client(), order.ID)
+		if pendingErr != nil {
+			return pendingErr
+		}
+		if pending {
+			return biz.ErrFeeReviewPendingSupplement
+		}
 		if order.Version != expectedOrderVersion {
 			return biz.ErrOrderStatusConflict
 		}

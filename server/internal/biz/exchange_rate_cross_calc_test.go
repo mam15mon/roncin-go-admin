@@ -40,7 +40,7 @@ func TestExchangeRateNonCNYCompanySnapshotUsesDirectRate(t *testing.T) {
 		rateByPair:  map[string]decimal.Decimal{"USD→CAD": decimal.RequireFromString("1.50")},
 	}
 	rates := NewExchangeRateUsecase(repo, nil)
-	feeUsecase := NewOrderFeeUsecase(nil, rates, nil, newReminderModeCreditControl(), nil, nil)
+	feeUsecase := NewOrderFeeUsecase(nil, rates, nil, newReminderModeCreditControl(), nil)
 	fee := validOrderFeeForTest()
 	fee.Currency = "USD"
 	if err := feeUsecase.resolveExchangeRate(context.Background(), companyID, uuid.New(), fee, false); err != nil {
@@ -50,7 +50,7 @@ func TestExchangeRateNonCNYCompanySnapshotUsesDirectRate(t *testing.T) {
 		t.Fatalf("费用快照应记录公司直连汇率，实际 %s/%s", fee.ExchangeRate, fee.ExchangeRateSource)
 	}
 
-	billUsecase := NewFinanceBillUsecase(nil, rates, nil, nil, nil)
+	billUsecase := NewFinanceBillUsecase(nil, rates, nil, nil)
 	bill := &FinanceBill{Direction: OrderFeeReceivable, Currency: "USD", BaseCurrency: "CAD", TotalAmount: decimal.RequireFromString("100"), BillDate: "2026-09-12"}
 	if err := billUsecase.applyBillExchangeRate(context.Background(), companyID, bill); err != nil {
 		t.Fatalf("账单汇率解析失败: %v", err)

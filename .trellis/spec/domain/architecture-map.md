@@ -24,8 +24,8 @@ React 19 + Ant Design 6 (web/)          ←─ 同域部署 /api/* ─→   Go K
 | 订单/海运单证 | `biz/sea_order_change.go`、`biz/sea_document_change.go`、`biz/sea_master_bill.go`、`data/sea_*` | `pages/orders/**`（品类模板 `pages/orders/templates/components/sea/`，注册表 `pages/orders/order-kinds/`） |
 | 空运出口/共享主单/重量 | `biz/air_export.go`、`biz/air_weight.go`、`data/air_*` | `pages/orders/order-kinds/air-export/`、`templates/components/air/`（复用公共订单和财务） |
 | 订单候选缓存 | `service/order_query.go` | `features/orders/options`（字典/首批港口机场/人员候选，组织切换清理入口） |
-| 订单锁定 | `biz/order_lock.go`、`biz/order_auto_lock.go`、`data/order_lock_*.go` | `pages/orders`（锁状态条） |
-| 费用/审核/补录 | `biz/order_fee_review.go`、`data/order_fee_review*.go`、`data/order_fee_supplement_*.go` | `pages/orders/{list,fees}.tsx`、`features/orders/fee-review`（建账经 `features/finance/bill-creation`） |
+| 订单锁定 | `biz/order_lock.go`、`data/order_lock_*.go` | `pages/orders`（锁状态条） |
+| 费用/审核/补录 | `biz/order_fee.go`、`data/order_fee.go`、`data/order_fee_correction*.go` | `pages/orders/{list,fees}.tsx`、`features/orders/fee-review`（建账经 `features/finance/bill-creation`） |
 | 账单/对冲/核销 | `biz/finance_bill*.go`、`data/finance_bill_*.go` | `pages/finance/{bills,fees,cashflows,verifications}/**`、`features/finance/{bill-creation,bill-status,credit-control,exchange-gain-loss}` |
 | 提成（方案/台账/月度申请） | `biz/finance_commission*.go`、`data/finance_commission*.go` | `pages/finance/commissions/**`、`pages/workbench/**` |
 | 往来单位 | `biz/partner*.go` | `pages/partners/**`、`features/partners`（候选搜索 `searchPartnerOptions`） |
@@ -45,23 +45,20 @@ flowchart LR
     A[订单创建/草稿] --> B[单证: MBL+航次+HBL\n版本化历史]
     B --> C{拆票/改配\n守恒校验}
     C --> E[完整录入应收/应付]
-    E --> R[整票费用提交人工审核\n收入/成本/利润快照]
-    R --> D[批准冻结费用\n独立审核权限+组织范围]
-    D --> F[账单 费用汇单\n批量分组/对冲配对\n信用额度校验]
+    E --> D[人工订单审核锁\n资料和费用利润快照]
+    E --> F[账单 费用汇单\n批量分组/对冲配对\n信用额度校验]
     F --> G[核销 收付款\n按分配核销]
     G --> H[提成计提\n按归属+方案规则\nCNY 快照]
     H --> I[月度申请\n员工按自然月申请]
     I --> J[财务整批审批\n批准=整批确认]
     J --> K[净额发放\n已确认调整同时抵扣执行]
-    D --> S[受控补录成本\n一次审核费用及提成影响]
+    D --> S[新增/更改/作废费用申请\n补审后生效；先回退源费账单]
     S --> D
 ```
 
 要点（改代码前必须理解的链路约束）：
 
-1. **审核与锁的职责**：费用批准冻结内容并约束建账；业务锁限制业务修改，提成财务锁
-   保护确认/支付权益。解锁不是审批通过。补录成本批准自动刷新整票审批及确认提成冲减，
-   不要求先解锁；待审补录/更正阻止新建账及受影响提成确认/发放。批准后费用更正保留原记录，生成冲回/替代及提成净额调整，真实资金由财务另行执行；详见 `server/backend/order-fee-correction.md`。
+1. **统一人工审核锁**：订单资料与费用只保留一次人工审核锁；结清不自动锁。未锁且未建账的费用可直接修改，已建账含草稿均占用费用。建账不等待整票审核，可按供应商分批办理；锁后更正补审才生效，待审仅阻止源费用建账及受影响提成确认/发放。已付提成保留实付历史，通过经济重算生成差额，不设提成财务锁。账务回退按发票、核销、对冲实际依赖及权限办理，合并单据提示完整影响范围；详见 `server/backend/order-fee-correction.md`。
 2. **守恒不变量**：拆票与共享箱的件数/毛重/体积必须逐票守恒（前端实时校验 +
    服务端预览复核双层）；费用拆分按「方向+币种」守恒。
 3. **版本乐观锁贯穿**：订单/账单/提成/申请全部 `expected_version` 校验，
@@ -81,7 +78,8 @@ erDiagram
     Organization ||--o{ Order : owns
     Order ||--o{ OrderFee : bills
     Order ||--o{ OrderFeeReviewEvent : reviews
-    Order ||--o{ OrderFeeSupplementRequest : supplements
+    Order ||--o{ OrderLockRecord : reviews_and_locks
+    Order ||--o{ OrderFeeCorrectionRequest : corrections
     Order }o--o| SeaMasterBill : "link (active)"
     SeaMasterBill ||--o{ SeaTransportExecution : voyages
     Order ||--o| SeaHouseBill : "HOUSE 结构"
@@ -113,5 +111,5 @@ erDiagram
 1. 读根目录 `AGENTS.md`（协作规范 + 命令）。
 2. 读本目录 `glossary.md` + 本文，建立领域与模块图景。
 3. 任务涉及其它层时读 `.trellis/spec/{server,web}/` 对应规范。
-4. 用「§2 业务域地图」定位代码，用 `grep` 符号名直达实现。
+4. 用「§2 业务域地图」定位代码，用 `rg` 符号名直达实现。
 5. 改动后按 AGENTS.md 分阶段验证命令跑最小检查。

@@ -48,9 +48,7 @@ func newCrossOrderNettingFixture(t *testing.T) *commissionNettingPostgresFixture
 			t.Fatal(err)
 		}
 	}
-	for _, id := range f.orderIDs {
-		seedApprovedFeeSnapshotForTest(t, f.data, id, f.actorID)
-	}
+
 	return f
 }
 

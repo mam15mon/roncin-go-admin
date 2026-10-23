@@ -231,14 +231,14 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
       render: (val) => val || '-',
     },
     {
-      title: '费用审核',
-      key: 'feeReviewStatus',
-      dataIndex: 'feeReviewStatus',
+      title: '订单审核',
+      key: 'orderLocked',
+      dataIndex: 'orderLocked',
       width: 190,
       search: false,
       render: (_, row) => (
         <FeeReviewStatus
-          status={row.feeReviewStatus}
+          status={row.orderLocked ? 'APPROVED' : 'UNSUBMITTED'}
           pendingSupplement={row.hasPendingFeeSupplement}
           pendingCorrection={row.hasPendingFeeCorrection}
         />

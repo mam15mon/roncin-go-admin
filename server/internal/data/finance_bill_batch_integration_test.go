@@ -86,7 +86,6 @@ func TestFinanceBillBatchCreatePostgres(t *testing.T) {
 			t.Fatalf("修改费用事实失败: %v", err)
 		}
 
-		fixture.approveFeePackage()
 		_, err = usecase.CreateBatch(context.Background(), fixture.organizationID, fixture.actorUserID, input)
 		if !errors.Is(err, biz.ErrFinanceBillPreviewStale) {
 			t.Fatalf("陈旧令牌建批错误 = %v，期望 %v", err, biz.ErrFinanceBillPreviewStale)
@@ -210,7 +209,6 @@ func (f *financeBillBatchPostgresFixture) createBatchUnbilledFee(key string) uui
 func (f *financeBillBatchPostgresFixture) buildBatchInput(t *testing.T, usecase *biz.FinanceBillUsecase, idempotencyKey string, feeIDs []uuid.UUID) biz.CreateFinanceBillBatchInput {
 	t.Helper()
 	ctx := context.Background()
-	f.approveFeePackage()
 	policy := biz.FinanceBillGroupingPolicy{Mode: "NORMAL", SplitByOrder: true}
 	initial, err := usecase.PreviewBatch(ctx, f.organizationID, biz.PreviewFinanceBillBatchInput{FeeIDs: feeIDs, GroupingPolicy: policy})
 	if err != nil {
@@ -359,7 +357,6 @@ func (f *financeBillBatchPostgresFixture) cleanupNettingRows() {
 func (f *financeBillBatchPostgresFixture) buildNettingBatchInput(t *testing.T, usecase *biz.FinanceBillUsecase, idempotencyKey string, feeIDs []uuid.UUID) biz.CreateFinanceBillBatchInput {
 	t.Helper()
 	ctx := context.Background()
-	f.approveFeePackage()
 	policy := biz.FinanceBillGroupingPolicy{Mode: "NETTING", SplitByOrder: true}
 	initial, err := usecase.PreviewBatch(ctx, f.organizationID, biz.PreviewFinanceBillBatchInput{FeeIDs: feeIDs, GroupingPolicy: policy})
 	if err != nil {
@@ -451,7 +448,7 @@ func TestFinanceBillBatchNettingCreatePostgres(t *testing.T) {
 			t.Fatalf("批次确认不应改变对冲单状态: %#v", confirmedBatch.Nettings)
 		}
 
-		nettingUsecase := biz.NewFinanceNettingUsecase(NewFinanceNettingRepo(data), data, nil, nil)
+		nettingUsecase := biz.NewFinanceNettingUsecase(NewFinanceNettingRepo(data), data, nil)
 		confirmed, err := nettingUsecase.Confirm(context.Background(), []uuid.UUID{fixture.organizationID}, fixture.actorUserID, netting.ID, netting.Version)
 		if err != nil {
 			t.Fatalf("确认对冲单失败: %v", err)
@@ -500,7 +497,6 @@ func TestFinanceBillBatchNettingCreatePostgres(t *testing.T) {
 		fixture := newFinanceBillBatchPostgresFixture(t, data)
 		t.Cleanup(fixture.cleanupNettingRows)
 		feeIDs := []uuid.UUID{fixture.createBatchUnbilledFee("netting-single")}
-		fixture.approveFeePackage()
 		usecase := fixture.newUsecase(NewFinanceBillRepo(data))
 		_, err := usecase.PreviewBatch(context.Background(), fixture.organizationID, biz.PreviewFinanceBillBatchInput{
 			FeeIDs: feeIDs, GroupingPolicy: biz.FinanceBillGroupingPolicy{Mode: "NETTING", SplitByOrder: true},

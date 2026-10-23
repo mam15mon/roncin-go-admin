@@ -36,6 +36,14 @@ const (
 	FieldLockedAt = "locked_at"
 	// FieldOrderVersionAtLock holds the string denoting the order_version_at_lock field in the database.
 	FieldOrderVersionAtLock = "order_version_at_lock"
+	// FieldFeeSnapshot holds the string denoting the fee_snapshot field in the database.
+	FieldFeeSnapshot = "fee_snapshot"
+	// FieldFeeContentVersion holds the string denoting the fee_content_version field in the database.
+	FieldFeeContentVersion = "fee_content_version"
+	// FieldFeeContentFingerprint holds the string denoting the fee_content_fingerprint field in the database.
+	FieldFeeContentFingerprint = "fee_content_fingerprint"
+	// FieldReviewComment holds the string denoting the review_comment field in the database.
+	FieldReviewComment = "review_comment"
 	// FieldTriggerType holds the string denoting the trigger_type field in the database.
 	FieldTriggerType = "trigger_type"
 	// FieldTriggerResourceID holds the string denoting the trigger_resource_id field in the database.
@@ -88,6 +96,8 @@ const (
 	EdgeTransportExecutionVersion = "transport_execution_version"
 	// EdgeUnlockRequests holds the string denoting the unlock_requests edge name in mutations.
 	EdgeUnlockRequests = "unlock_requests"
+	// EdgeFeeCorrectionRequests holds the string denoting the fee_correction_requests edge name in mutations.
+	EdgeFeeCorrectionRequests = "fee_correction_requests"
 	// EdgeAppliedUnlockRequest holds the string denoting the applied_unlock_request edge name in mutations.
 	EdgeAppliedUnlockRequest = "applied_unlock_request"
 	// EdgeHouseBillSnapshots holds the string denoting the house_bill_snapshots edge name in mutations.
@@ -164,6 +174,13 @@ const (
 	UnlockRequestsInverseTable = "order_unlock_requests"
 	// UnlockRequestsColumn is the table column denoting the unlock_requests relation/edge.
 	UnlockRequestsColumn = "lock_record_id"
+	// FeeCorrectionRequestsTable is the table that holds the fee_correction_requests relation/edge.
+	FeeCorrectionRequestsTable = "order_fee_correction_requests"
+	// FeeCorrectionRequestsInverseTable is the table name for the OrderFeeCorrectionRequest entity.
+	// It exists in this package in order to avoid circular dependency with the "orderfeecorrectionrequest" package.
+	FeeCorrectionRequestsInverseTable = "order_fee_correction_requests"
+	// FeeCorrectionRequestsColumn is the table column denoting the fee_correction_requests relation/edge.
+	FeeCorrectionRequestsColumn = "lock_record_id"
 	// AppliedUnlockRequestTable is the table that holds the applied_unlock_request relation/edge.
 	AppliedUnlockRequestTable = "order_lock_records"
 	// AppliedUnlockRequestInverseTable is the table name for the OrderUnlockRequest entity.
@@ -193,6 +210,10 @@ var Columns = []string{
 	FieldLockedBy,
 	FieldLockedAt,
 	FieldOrderVersionAtLock,
+	FieldFeeSnapshot,
+	FieldFeeContentVersion,
+	FieldFeeContentFingerprint,
+	FieldReviewComment,
 	FieldTriggerType,
 	FieldTriggerResourceID,
 	FieldTriggeredBy,
@@ -226,6 +247,10 @@ var (
 	DefaultCreatedAt func() time.Time
 	// OrderNoValidator is a validator for the "order_no" field. It is called by the builders before save.
 	OrderNoValidator func(string) error
+	// FeeContentFingerprintValidator is a validator for the "fee_content_fingerprint" field. It is called by the builders before save.
+	FeeContentFingerprintValidator func(string) error
+	// ReviewCommentValidator is a validator for the "review_comment" field. It is called by the builders before save.
+	ReviewCommentValidator func(string) error
 	// UnlockReasonValidator is a validator for the "unlock_reason" field. It is called by the builders before save.
 	UnlockReasonValidator func(string) error
 	// IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
@@ -396,6 +421,21 @@ func ByOrderVersionAtLock(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOrderVersionAtLock, opts...).ToFunc()
 }
 
+// ByFeeContentVersion orders the results by the fee_content_version field.
+func ByFeeContentVersion(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFeeContentVersion, opts...).ToFunc()
+}
+
+// ByFeeContentFingerprint orders the results by the fee_content_fingerprint field.
+func ByFeeContentFingerprint(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFeeContentFingerprint, opts...).ToFunc()
+}
+
+// ByReviewComment orders the results by the review_comment field.
+func ByReviewComment(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldReviewComment, opts...).ToFunc()
+}
+
 // ByTriggerType orders the results by the trigger_type field.
 func ByTriggerType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTriggerType, opts...).ToFunc()
@@ -548,6 +588,20 @@ func ByUnlockRequests(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByFeeCorrectionRequestsCount orders the results by fee_correction_requests count.
+func ByFeeCorrectionRequestsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFeeCorrectionRequestsStep(), opts...)
+	}
+}
+
+// ByFeeCorrectionRequests orders the results by fee_correction_requests terms.
+func ByFeeCorrectionRequests(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFeeCorrectionRequestsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByAppliedUnlockRequestField orders the results by applied_unlock_request field.
 func ByAppliedUnlockRequestField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -636,6 +690,13 @@ func newUnlockRequestsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(UnlockRequestsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, UnlockRequestsTable, UnlockRequestsColumn),
+	)
+}
+func newFeeCorrectionRequestsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FeeCorrectionRequestsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FeeCorrectionRequestsTable, FeeCorrectionRequestsColumn),
 	)
 }
 func newAppliedUnlockRequestStep() *sqlgraph.Step {

@@ -51,12 +51,12 @@ func TestOrderLockDTOIncludesBusinessTypeAndOptionalSeaReferences(t *testing.T) 
 	auto := orderLockRecordToAPI(&biz.OrderLockRecord{
 		ID: uuid.New(), OrderID: orderID, OrderNo: "SE-002", BusinessType: biz.OrderBusinessSE,
 		Generation: 1, LockSource: biz.LockSourceAutoSettlement, LockedAt: autoLockedAt, OrderVersionAtLock: 3,
-		TriggerType: &[]string{string(biz.AutoLockTriggerVerification)}[0], TriggerResourceID: &triggerResourceID, TriggeredBy: &triggeredBy,
+		TriggerType: &[]string{"VERIFICATION"}[0], TriggerResourceID: &triggerResourceID, TriggeredBy: &triggeredBy,
 	})
 	if auto.GetLockSource() != biz.LockSourceAutoSettlement || auto.GetLockedBy() != "" || auto.GetLockedByName() != "" {
 		t.Fatalf("自动锁定记录不得归属实际锁定人: %#v", auto)
 	}
-	if auto.GetTriggerType() != string(biz.AutoLockTriggerVerification) || auto.GetTriggerResourceId() != triggerResourceID.String() || auto.GetTriggeredBy() != triggeredBy.String() {
+	if auto.GetTriggerType() != "VERIFICATION" || auto.GetTriggerResourceId() != triggerResourceID.String() || auto.GetTriggeredBy() != triggeredBy.String() {
 		t.Fatalf("自动锁定记录必须返回触发审计字段: %#v", auto)
 	}
 
@@ -74,7 +74,7 @@ func (*orderLockServiceRepoStub) GetOrderLockState(context.Context, uuid.UUID, u
 	return nil, nil
 }
 
-func (*orderLockServiceRepoStub) LockOrder(context.Context, *biz.Principal, uuid.UUID, uint64, string, *biz.AuditEvent) (*biz.OrderLockResult, error) {
+func (*orderLockServiceRepoStub) LockOrder(context.Context, *biz.Principal, uuid.UUID, uint64, string, biz.OrderLockReviewInput, *biz.AuditEvent) (*biz.OrderLockResult, error) {
 	return nil, nil
 }
 
@@ -132,5 +132,18 @@ func TestOrderLockServiceListPaginationBoundaries(t *testing.T) {
 				t.Fatalf("仓储收到错误分页: page=%d page_size=%d", repo.lastPage, repo.lastPageSize)
 			}
 		})
+	}
+}
+
+func TestOrderLockDTOCarriesUnifiedReviewEvidence(t *testing.T) {
+	version := uint64(7)
+	fingerprint, comment := "review-content", "已核对亏损原因"
+	record := orderLockRecordToAPI(&biz.OrderLockRecord{ID: uuid.New(), OrderID: uuid.New(), FeeContentVersion: &version, FeeContentFingerprint: &fingerprint, ReviewComment: &comment})
+	if record.GetFeeContentVersion() != version || record.GetFeeContentFingerprint() != fingerprint || record.GetReviewComment() != comment {
+		t.Fatalf("审核依据缺失：%#v", record)
+	}
+	state := orderLockStateToAPI(&biz.OrderLockState{OrderID: uuid.New(), FeeContentVersion: version, FeeContentFingerprint: fingerprint, FeeSummary: &biz.FeeReviewSummary{BaseCurrency: "CNY", ReceivableCount: 2, PayableCount: 3}})
+	if state.GetFeeContentVersion() != version || state.GetFeeContentFingerprint() != fingerprint || state.GetFeeSummary().GetPayableCount() != 3 {
+		t.Fatalf("审核预览缺失：%#v", state)
 	}
 }

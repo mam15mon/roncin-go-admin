@@ -17,7 +17,7 @@ service OrderLockService {
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/lock-state"};
   }
 
-  // LockOrder 锁定订单；海运出口同时固定单证不可变版本。
+  // LockOrder 审核完整订单与费用并锁定；海运出口同时固定单证不可变版本。
   rpc LockOrder(LockOrderRequest) returns (LockOrderResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "lock" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
@@ -68,6 +68,9 @@ message LockOrderRequest {
   string order_id = 1 [(google.api.field_behavior) = REQUIRED];
   uint64 expected_order_version = 2 [(google.api.field_behavior) = REQUIRED];
   string idempotency_key = 3 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_fee_content_version = 4 [(google.api.field_behavior) = REQUIRED];
+  string fee_content_fingerprint = 5 [(google.api.field_behavior) = REQUIRED];
+  string comment = 6;
 }
 
 message LockOrderResponse {
@@ -142,8 +145,11 @@ message OrderLockStateData {
   optional OrderUnlockRequestData active_unlock_request = 15;
   optional OrderLockRecordData current_lock_record = 16;
   BusinessType business_type = 17;
-  // 锁定来源：MANUAL 归属实际锁定人；AUTO_SETTLEMENT 前端固定展示【系统自动锁定】。
+  // 当前审核来源为 MANUAL；AUTO_SETTLEMENT 仅保留已结束周期的审计历史。
   optional string lock_source = 18;
+  uint64 fee_content_version = 19;
+  string fee_content_fingerprint = 20;
+  OrderFeeReviewSummary fee_summary = 21;
 }
 
 message OrderLockResultData {
@@ -183,7 +189,7 @@ message OrderLockRecordData {
   optional string unlock_mode = 17;
   repeated OrderLockHouseBillSnapshotData house_bill_snapshots = 18;
   BusinessType business_type = 19;
-  // 锁定来源：MANUAL 人工锁定；AUTO_SETTLEMENT 结清事件驱动的系统自动锁定。
+  // MANUAL 为人工审核锁；AUTO_SETTLEMENT 仅保留退役自动锁历史。
   string lock_source = 20;
   // 自动锁定触发审计：触发类型（VERIFICATION/NETTING/FEE_CONFIRM/FEE_CANCEL）、
   // 触发单据与触发操作人。人工锁定时为空。
@@ -191,6 +197,9 @@ message OrderLockRecordData {
   optional string trigger_resource_id = 22;
   optional string triggered_by = 23;
   optional string triggered_by_name = 24;
+  optional uint64 fee_content_version = 25;
+  optional string fee_content_fingerprint = 26;
+  optional string review_comment = 27;
 }
 
 message OrderLockHouseBillSnapshotData {

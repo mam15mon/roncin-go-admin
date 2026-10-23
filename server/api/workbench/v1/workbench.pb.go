@@ -993,14 +993,13 @@ type WorkbenchFinanceSummary struct {
 	CanManageCommission bool                   `protobuf:"varint,2,opt,name=can_manage_commission,json=canManageCommission,proto3" json:"can_manage_commission,omitempty"`
 	// confirmed_commission_count 是当前组织已确认待发提成数量（组织范围）。
 	ConfirmedCommissionCount int32 `protobuf:"varint,3,opt,name=confirmed_commission_count,json=confirmedCommissionCount,proto3" json:"confirmed_commission_count,omitempty"`
-	// pending_decrease_count 是当前组织 LOCKED_FEE_SUPPLEMENT + DECREASE + DRAFT
-	// 冲减建议数量（待处理、尚未扣回）。
+	// pending_decrease_count 是当前组织已确认、尚未执行的冲减建议数量。
 	PendingDecreaseCount           int32                              `protobuf:"varint,4,opt,name=pending_decrease_count,json=pendingDecreaseCount,proto3" json:"pending_decrease_count,omitempty"`
-	PendingSupplementApprovalCount int32                              `protobuf:"varint,5,opt,name=pending_supplement_approval_count,json=pendingSupplementApprovalCount,proto3" json:"pending_supplement_approval_count,omitempty"`
-	PendingSupplementApprovals     []*WorkbenchSupplementApprovalItem `protobuf:"bytes,6,rep,name=pending_supplement_approvals,json=pendingSupplementApprovals,proto3" json:"pending_supplement_approvals,omitempty"`
-	// supplement_approvals_truncated 为真时表示 PENDING 候选超出服务端有界扫描
+	PendingCorrectionApprovalCount int32                              `protobuf:"varint,8,opt,name=pending_correction_approval_count,json=pendingCorrectionApprovalCount,proto3" json:"pending_correction_approval_count,omitempty"`
+	PendingCorrectionApprovals     []*WorkbenchCorrectionApprovalItem `protobuf:"bytes,9,rep,name=pending_correction_approvals,json=pendingCorrectionApprovals,proto3" json:"pending_correction_approvals,omitempty"`
+	// correction_approvals_truncated 为真时表示 PENDING 候选超出服务端有界扫描
 	// 上限，计数仅为已扫描部分的下界。
-	SupplementApprovalsTruncated bool `protobuf:"varint,7,opt,name=supplement_approvals_truncated,json=supplementApprovalsTruncated,proto3" json:"supplement_approvals_truncated,omitempty"`
+	CorrectionApprovalsTruncated bool `protobuf:"varint,10,opt,name=correction_approvals_truncated,json=correctionApprovalsTruncated,proto3" json:"correction_approvals_truncated,omitempty"`
 	unknownFields                protoimpl.UnknownFields
 	sizeCache                    protoimpl.SizeCache
 }
@@ -1063,28 +1062,28 @@ func (x *WorkbenchFinanceSummary) GetPendingDecreaseCount() int32 {
 	return 0
 }
 
-func (x *WorkbenchFinanceSummary) GetPendingSupplementApprovalCount() int32 {
+func (x *WorkbenchFinanceSummary) GetPendingCorrectionApprovalCount() int32 {
 	if x != nil {
-		return x.PendingSupplementApprovalCount
+		return x.PendingCorrectionApprovalCount
 	}
 	return 0
 }
 
-func (x *WorkbenchFinanceSummary) GetPendingSupplementApprovals() []*WorkbenchSupplementApprovalItem {
+func (x *WorkbenchFinanceSummary) GetPendingCorrectionApprovals() []*WorkbenchCorrectionApprovalItem {
 	if x != nil {
-		return x.PendingSupplementApprovals
+		return x.PendingCorrectionApprovals
 	}
 	return nil
 }
 
-func (x *WorkbenchFinanceSummary) GetSupplementApprovalsTruncated() bool {
+func (x *WorkbenchFinanceSummary) GetCorrectionApprovalsTruncated() bool {
 	if x != nil {
-		return x.SupplementApprovalsTruncated
+		return x.CorrectionApprovalsTruncated
 	}
 	return false
 }
 
-type WorkbenchSupplementApprovalItem struct {
+type WorkbenchCorrectionApprovalItem struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	RequestId       string                 `protobuf:"bytes,1,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
 	OrderId         string                 `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
@@ -1101,20 +1100,20 @@ type WorkbenchSupplementApprovalItem struct {
 	sizeCache       protoimpl.SizeCache
 }
 
-func (x *WorkbenchSupplementApprovalItem) Reset() {
-	*x = WorkbenchSupplementApprovalItem{}
+func (x *WorkbenchCorrectionApprovalItem) Reset() {
+	*x = WorkbenchCorrectionApprovalItem{}
 	mi := &file_workbench_v1_workbench_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *WorkbenchSupplementApprovalItem) String() string {
+func (x *WorkbenchCorrectionApprovalItem) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*WorkbenchSupplementApprovalItem) ProtoMessage() {}
+func (*WorkbenchCorrectionApprovalItem) ProtoMessage() {}
 
-func (x *WorkbenchSupplementApprovalItem) ProtoReflect() protoreflect.Message {
+func (x *WorkbenchCorrectionApprovalItem) ProtoReflect() protoreflect.Message {
 	mi := &file_workbench_v1_workbench_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1126,82 +1125,82 @@ func (x *WorkbenchSupplementApprovalItem) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use WorkbenchSupplementApprovalItem.ProtoReflect.Descriptor instead.
-func (*WorkbenchSupplementApprovalItem) Descriptor() ([]byte, []int) {
+// Deprecated: Use WorkbenchCorrectionApprovalItem.ProtoReflect.Descriptor instead.
+func (*WorkbenchCorrectionApprovalItem) Descriptor() ([]byte, []int) {
 	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *WorkbenchSupplementApprovalItem) GetRequestId() string {
+func (x *WorkbenchCorrectionApprovalItem) GetRequestId() string {
 	if x != nil {
 		return x.RequestId
 	}
 	return ""
 }
 
-func (x *WorkbenchSupplementApprovalItem) GetOrderId() string {
+func (x *WorkbenchCorrectionApprovalItem) GetOrderId() string {
 	if x != nil {
 		return x.OrderId
 	}
 	return ""
 }
 
-func (x *WorkbenchSupplementApprovalItem) GetOrderNo() string {
+func (x *WorkbenchCorrectionApprovalItem) GetOrderNo() string {
 	if x != nil {
 		return x.OrderNo
 	}
 	return ""
 }
 
-func (x *WorkbenchSupplementApprovalItem) GetFeeCode() string {
+func (x *WorkbenchCorrectionApprovalItem) GetFeeCode() string {
 	if x != nil {
 		return x.FeeCode
 	}
 	return ""
 }
 
-func (x *WorkbenchSupplementApprovalItem) GetFeeName() string {
+func (x *WorkbenchCorrectionApprovalItem) GetFeeName() string {
 	if x != nil {
 		return x.FeeName
 	}
 	return ""
 }
 
-func (x *WorkbenchSupplementApprovalItem) GetCurrency() string {
+func (x *WorkbenchCorrectionApprovalItem) GetCurrency() string {
 	if x != nil {
 		return x.Currency
 	}
 	return ""
 }
 
-func (x *WorkbenchSupplementApprovalItem) GetAmount() string {
+func (x *WorkbenchCorrectionApprovalItem) GetAmount() string {
 	if x != nil {
 		return x.Amount
 	}
 	return ""
 }
 
-func (x *WorkbenchSupplementApprovalItem) GetReason() string {
+func (x *WorkbenchCorrectionApprovalItem) GetReason() string {
 	if x != nil {
 		return x.Reason
 	}
 	return ""
 }
 
-func (x *WorkbenchSupplementApprovalItem) GetRequestedByName() string {
+func (x *WorkbenchCorrectionApprovalItem) GetRequestedByName() string {
 	if x != nil {
 		return x.RequestedByName
 	}
 	return ""
 }
 
-func (x *WorkbenchSupplementApprovalItem) GetRequestedAt() string {
+func (x *WorkbenchCorrectionApprovalItem) GetRequestedAt() string {
 	if x != nil {
 		return x.RequestedAt
 	}
 	return ""
 }
 
-func (x *WorkbenchSupplementApprovalItem) GetBusinessType() string {
+func (x *WorkbenchCorrectionApprovalItem) GetBusinessType() string {
 	if x != nil {
 		return x.BusinessType
 	}
@@ -3284,16 +3283,17 @@ const file_workbench_v1_workbench_proto_rawDesc = "" +
 	"created_at\x18\b \x01(\tR\tcreatedAt\"\x8b\x01\n" +
 	"\x14WorkbenchTodoSummary\x12,\n" +
 	"\x12unbilled_fee_count\x18\x06 \x01(\x05R\x10unbilledFeeCount\x12.\n" +
-	"\x13open_abnormal_count\x18\x02 \x01(\x05R\x11openAbnormalCountJ\x04\b\x01\x10\x02R\x0fdraft_fee_count\"\xf3\x03\n" +
+	"\x13open_abnormal_count\x18\x02 \x01(\x05R\x11openAbnormalCountJ\x04\b\x01\x10\x02R\x0fdraft_fee_count\"\xe6\x04\n" +
 	"\x17WorkbenchFinanceSummary\x12.\n" +
 	"\x13can_read_commission\x18\x01 \x01(\bR\x11canReadCommission\x122\n" +
 	"\x15can_manage_commission\x18\x02 \x01(\bR\x13canManageCommission\x12<\n" +
 	"\x1aconfirmed_commission_count\x18\x03 \x01(\x05R\x18confirmedCommissionCount\x124\n" +
 	"\x16pending_decrease_count\x18\x04 \x01(\x05R\x14pendingDecreaseCount\x12I\n" +
-	"!pending_supplement_approval_count\x18\x05 \x01(\x05R\x1ependingSupplementApprovalCount\x12o\n" +
-	"\x1cpending_supplement_approvals\x18\x06 \x03(\v2-.workbench.v1.WorkbenchSupplementApprovalItemR\x1apendingSupplementApprovals\x12D\n" +
-	"\x1esupplement_approvals_truncated\x18\a \x01(\bR\x1csupplementApprovalsTruncated\"\xec\x02\n" +
-	"\x1fWorkbenchSupplementApprovalItem\x12\x1d\n" +
+	"!pending_correction_approval_count\x18\b \x01(\x05R\x1ependingCorrectionApprovalCount\x12o\n" +
+	"\x1cpending_correction_approvals\x18\t \x03(\v2-.workbench.v1.WorkbenchCorrectionApprovalItemR\x1apendingCorrectionApprovals\x12D\n" +
+	"\x1ecorrection_approvals_truncated\x18\n" +
+	" \x01(\bR\x1ccorrectionApprovalsTruncatedJ\x04\b\x05\x10\x06J\x04\b\x06\x10\aJ\x04\b\a\x10\bR!pending_supplement_approval_countR\x1cpending_supplement_approvalsR\x1esupplement_approvals_truncated\"\xec\x02\n" +
+	"\x1fWorkbenchCorrectionApprovalItem\x12\x1d\n" +
 	"\n" +
 	"request_id\x18\x01 \x01(\tR\trequestId\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x19\n" +
@@ -3570,7 +3570,7 @@ var file_workbench_v1_workbench_proto_goTypes = []any{
 	(*WorkbenchRecentOrder)(nil),                    // 10: workbench.v1.WorkbenchRecentOrder
 	(*WorkbenchTodoSummary)(nil),                    // 11: workbench.v1.WorkbenchTodoSummary
 	(*WorkbenchFinanceSummary)(nil),                 // 12: workbench.v1.WorkbenchFinanceSummary
-	(*WorkbenchSupplementApprovalItem)(nil),         // 13: workbench.v1.WorkbenchSupplementApprovalItem
+	(*WorkbenchCorrectionApprovalItem)(nil),         // 13: workbench.v1.WorkbenchCorrectionApprovalItem
 	(*ListMyCommissionsRequest)(nil),                // 14: workbench.v1.ListMyCommissionsRequest
 	(*ListMyCommissionsResponse)(nil),               // 15: workbench.v1.ListMyCommissionsResponse
 	(*WorkbenchMyCommission)(nil),                   // 16: workbench.v1.WorkbenchMyCommission
@@ -3606,7 +3606,7 @@ var file_workbench_v1_workbench_proto_depIdxs = []int32{
 	7,  // 7: workbench.v1.WorkbenchApplicationSummary.latest_application:type_name -> workbench.v1.WorkbenchApplicationBrief
 	1,  // 8: workbench.v1.WorkbenchApplicationBrief.status:type_name -> workbench.v1.WorkbenchCommissionApplicationStatus
 	9,  // 9: workbench.v1.WorkbenchCommissionSummary.estimated:type_name -> workbench.v1.WorkbenchEstimatedOpportunity
-	13, // 10: workbench.v1.WorkbenchFinanceSummary.pending_supplement_approvals:type_name -> workbench.v1.WorkbenchSupplementApprovalItem
+	13, // 10: workbench.v1.WorkbenchFinanceSummary.pending_correction_approvals:type_name -> workbench.v1.WorkbenchCorrectionApprovalItem
 	0,  // 11: workbench.v1.ListMyCommissionsRequest.status:type_name -> workbench.v1.WorkbenchCommissionStatus
 	16, // 12: workbench.v1.ListMyCommissionsResponse.data:type_name -> workbench.v1.WorkbenchMyCommission
 	0,  // 13: workbench.v1.WorkbenchMyCommission.status:type_name -> workbench.v1.WorkbenchCommissionStatus

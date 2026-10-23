@@ -11,9 +11,6 @@ interface OrderFeeOptionsBundle {
   settlementParties: API.OrderFeeSettlementPartyOption[];
   feeSettings: API.OrderFeeSettingOption[];
   billingUnits: API.OrderFeeBillingUnitOption[];
-  financeLocked: boolean;
-  financeLockReason: string;
-  financeLockCommissionNos: string[];
   customerName: string;
 }
 
@@ -55,7 +52,7 @@ function applyNextList<T extends { id?: string }>(
   };
 }
 
-/** 加载订单档案与费用录入候选项、财务锁定状态。 */
+/** 加载订单档案与费用录入候选项。 */
 export function useOrderFeeOptions(orderId?: string) {
   const feeOptionsQuery = useQuery({
     queryKey: ['orders', 'fee-options', { orderId }],
@@ -81,9 +78,6 @@ export function useOrderFeeOptions(orderId?: string) {
           settlementParties: optionsRes.settlementParties ?? [],
           feeSettings: optionsRes.feeSettings ?? [],
           billingUnits: optionsRes.billingUnits ?? [],
-          financeLocked: Boolean(optionsRes.financeLocked),
-          financeLockReason: optionsRes.financeLockReason || '',
-          financeLockCommissionNos: optionsRes.financeLockCommissionNos || [],
           customerName: optionsRes.customerName || '',
         };
       } catch (error) {
@@ -204,9 +198,6 @@ export function useOrderFeeOptions(orderId?: string) {
     feeSettings,
     setFeeSettings,
     billingUnits: bundle?.billingUnits ?? [],
-    financeLocked: Boolean(bundle?.financeLocked),
-    financeLockReason: bundle?.financeLockReason ?? '',
-    financeLockCommissionNos: bundle?.financeLockCommissionNos ?? [],
     customerName: bundle?.customerName ?? '',
     loadData,
   };

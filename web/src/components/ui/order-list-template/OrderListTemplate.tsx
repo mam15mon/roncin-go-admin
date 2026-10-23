@@ -37,7 +37,6 @@ export function OrderListTemplate({
   customColumns,
   extraColumns = [],
   trailingColumns = [],
-  showFeeReview = false,
   completedSelectionIds,
   queryOrders,
   onCreateOrder,
@@ -651,7 +650,6 @@ export function OrderListTemplate({
           onToggleFilter={() => setFilterVisible((prev) => !prev)}
           readonly={readonly}
           showManageTags={showManageTags}
-          showFeeReview={showFeeReview}
         />
 
         <ResponsiveProTable<OrderListItem>

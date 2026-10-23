@@ -43,7 +43,6 @@ import PersonnelDrawer, {
 import ShippingDocumentDrawer, {
   type ShippingDocumentDrawerRef,
 } from './components/drawers/ShippingDocumentDrawer';
-import { BatchFeeReviewModal } from './components/fees/fee-review/BatchFeeReviewModal';
 import { OrderFeeReviewDrawer } from './components/fees/fee-review/OrderFeeReview';
 import OrderCommissionSummaryCell from './components/OrderCommissionSummaryCell';
 import OrderCommissionSummaryModal from './components/OrderCommissionSummaryModal';
@@ -90,16 +89,13 @@ export default function OrderListPage() {
   );
   const { message } = App.useApp();
   const [reviewOrderId, setReviewOrderId] = useState<string>();
-  const [batchReviewIds, setBatchReviewIds] = useState<string[]>([]);
-  const [completedReviewIds, setCompletedReviewIds] = useState<string[]>([]);
   useEffect(() => {
     setReviewOrderId(undefined);
-    setBatchReviewIds([]);
     setActiveOrder(undefined);
   }, [workspaceId]);
   const reviewColumns: ProColumns<OrderListItem>[] = [
     {
-      title: '费用审核',
+      title: '订单审核',
       key: 'feeReview',
       width: 180,
       render: (_, row) => (
@@ -113,28 +109,19 @@ export default function OrderListPage() {
           }
         >
           <Button
-            type={row.rawRecord?.feeReview?.canApprove ? 'primary' : 'text'}
+            type="text"
             size="small"
             disabled={
               !access.canReadFinanceFees &&
-              !access.canReviewOrderFees &&
+              !access.canOrder(row.rawRecord?.businessType ?? '', 'lock') &&
               !access.canOrder(row.rawRecord?.businessType ?? '', 'fee.read')
             }
             onClick={() => setReviewOrderId(row.id)}
           >
-            {row.rawRecord?.feeReview?.canApprove ? (
-              '审核费用'
-            ) : (
-              <FeeReviewStatus
-                status={row.rawRecord?.feeReview?.status}
-                pendingSupplement={
-                  row.rawRecord?.feeReview?.hasPendingSupplement
-                }
-                pendingCorrection={
-                  row.rawRecord?.feeReview?.hasPendingCorrection
-                }
-              />
-            )}
+            <FeeReviewStatus
+              status={row.rawRecord?.lockedAt ? 'APPROVED' : 'UNSUBMITTED'}
+              pendingCorrection={row.rawRecord?.feeReview?.hasPendingCorrection}
+            />
           </Button>
         </Popover>
       ),
@@ -225,8 +212,6 @@ export default function OrderListPage() {
         subTitle={`统一维护${definition.title}全流程状态、主分单据、箱量配载、费用核算与业务履约轨迹`}
         extraColumns={commissionExtraColumns}
         trailingColumns={reviewColumns}
-        showFeeReview={access.canReviewOrderFees}
-        completedSelectionIds={completedReviewIds}
         options={{
           transportMode: definition.transportMode === 'air' ? 'air' : 'sea',
           loadPorts:
@@ -240,10 +225,6 @@ export default function OrderListPage() {
         }}
         showManageTags={access.canOrder(definition.businessType, 'update')}
         onBatchAction={(actionKey, rows) => {
-          if (actionKey === 'review-fees') {
-            setBatchReviewIds(rows.map((row) => row.id));
-            return;
-          }
           if (actionKey === 'manage-tags') {
             if (
               rows.some(
@@ -329,17 +310,6 @@ export default function OrderListPage() {
         onClose={() => setReviewOrderId(undefined)}
         onChanged={() => actionRef.current?.reload()}
       />
-      {batchReviewIds.length > 0 && (
-        <BatchFeeReviewModal
-          key={batchReviewIds.join(',')}
-          orderIds={batchReviewIds}
-          onClose={() => setBatchReviewIds([])}
-          onCompleted={(ids) => {
-            setCompletedReviewIds(ids);
-            actionRef.current?.reload();
-          }}
-        />
-      )}
       <BusinessTagModal
         open={tagModalOpen}
         loadOptions={(params) =>

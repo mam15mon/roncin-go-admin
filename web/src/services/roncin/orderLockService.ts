@@ -2,7 +2,7 @@
 /* eslint-disable */
 import { request } from "@/utils/requestClient";
 
-/** LockOrder 锁定订单；海运出口同时固定单证不可变版本。 POST /api/v1/orders/${param0}/lock */
+/** LockOrder 审核完整订单与费用并锁定；海运出口同时固定单证不可变版本。 POST /api/v1/orders/${param0}/lock */
 export async function orderLockServiceLockOrder(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.OrderLockServiceLockOrderParams,

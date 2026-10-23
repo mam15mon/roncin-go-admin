@@ -15,6 +15,9 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	financecashflowent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
+	commissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
+	adjustmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
+	commissionlineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
 	rule "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionrule"
 	verification "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	numberruleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
@@ -328,14 +331,12 @@ func newCommissionNettingPostgresFixture(t *testing.T) *commissionNettingPostgre
 	if confirmed.Status != biz.FinanceNettingConfirmed {
 		t.Fatalf("测试对冲单状态 = %s", confirmed.Status)
 	}
-	for _, orderID := range fixture.orderIDs {
-		seedApprovedFeeSnapshotForTest(t, data, orderID, fixture.actorID)
-	}
+
 	return fixture
 }
 
 func (f *commissionNettingPostgresFixture) newNettingUsecase() *biz.FinanceNettingUsecase {
-	return biz.NewFinanceNettingUsecase(NewFinanceNettingRepo(f.data), f.data, nil, nil)
+	return biz.NewFinanceNettingUsecase(NewFinanceNettingRepo(f.data), f.data, nil)
 }
 
 func (f *commissionNettingPostgresFixture) newUsecase() *biz.CommissionUsecase {
@@ -355,18 +356,24 @@ func (f *commissionNettingPostgresFixture) input(key string) biz.CreateCommissio
 	}
 }
 
-// requireFeeMutationLock 分别核验提成财务锁净额及独立的费用批准冻结。
-func (f *commissionNettingPostgresFixture) requireFeeMutationLock(orderID uuid.UUID, wantLocked bool) {
+// requireCommissionNet 验证经济净额及费用维护不再依赖提成锁。
+func (f *commissionNettingPostgresFixture) requireCommissionNet(orderID uuid.UUID, wantPositive bool) {
 	f.t.Helper()
-	locked, err := f.data.db.Order.Query().Where(orderent.IDEQ(orderID), financeLockedOrderPredicate()).Exist(context.Background())
-	if err != nil || locked != wantLocked {
-		f.t.Fatalf("提成财务锁 = %v，预期 %v: %v", locked, wantLocked, err)
+	ctx := context.Background()
+	lines, err := f.data.db.FinanceCommissionLine.Query().Where(commissionlineent.OrderIDEQ(orderID), commissionlineent.HasCommissionWith(commissionent.StatusIn(commissionent.StatusCONFIRMED, commissionent.StatusPAID))).All(ctx)
+	if err != nil {
+		f.t.Fatal(err)
 	}
-	err = f.data.WithTx(context.Background(), func(tx *ent.Tx) error {
-		return lockOrderForFeeMutation(context.Background(), tx, f.organizationID, orderID)
-	})
-	if !errors.Is(err, biz.ErrFeeReviewFrozen) {
-		f.t.Fatalf("财务锁归零仍须保留费用批准冻结: %v", err)
+	adjustments, err := f.data.db.FinanceCommissionAdjustment.Query().Where(adjustmentent.OrderIDEQ(orderID), adjustmentent.StatusIn(adjustmentent.StatusCONFIRMED, adjustmentent.StatusPAID)).All(ctx)
+	if err != nil {
+		f.t.Fatal(err)
+	}
+	net, err := financeCommissionLockNetAmount(lines, adjustments)
+	if err != nil || net.IsPositive() != wantPositive {
+		f.t.Fatalf("提成经济净额=%s，预期正数=%v: %v", net, wantPositive, err)
+	}
+	if err = f.data.WithTx(ctx, func(tx *ent.Tx) error { return lockOrderForFeeMutation(ctx, tx, f.organizationID, orderID) }); err != nil {
+		f.t.Fatalf("提成不得冻结未锁订单费用: %v", err)
 	}
 }
 
@@ -533,7 +540,7 @@ func TestCommissionNettingSourcePostgres(t *testing.T) {
 			t.Fatalf("发放后状态 = %s", paid.Status)
 		}
 		// 已支付提成形成正净额，费用写入被财务锁拦截。
-		fixture.requireFeeMutationLock(fixture.orderIDs[0], true)
+		fixture.requireCommissionNet(fixture.orderIDs[0], true)
 
 		nettingUsecase := fixture.newNettingUsecase()
 		current, err := nettingUsecase.Get(ctx, []uuid.UUID{fixture.organizationID}, fixture.nettingID)
@@ -583,7 +590,7 @@ func TestCommissionNettingSourcePostgres(t *testing.T) {
 			t.Fatalf("全额冲减金额不符: decrease=%s adjustment=%s effective=%s", totalDecrease.StringFixed(8), reloaded.AdjustmentAmount.StringFixed(8), reloaded.EffectiveCommissionAmount.StringFixed(8))
 		}
 		// 全额冲减后净额归零，费用财务锁释放。
-		fixture.requireFeeMutationLock(fixture.orderIDs[0], false)
+		fixture.requireCommissionNet(fixture.orderIDs[0], false)
 
 		// 反转后的对冲单不再进入提成候选。
 		candidates, err := usecase.ListNettingCandidates(ctx, fixture.organizationID, biz.CommissionNettingCandidateFilter{Page: 1, PageSize: 20})

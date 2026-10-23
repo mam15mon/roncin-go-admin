@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { businessTypeMeta } from '@/constants/statusMeta';
+import { OrderClosureStatus, OrderTerminationStatus } from '@/enums.generated';
 import { orderLockServiceGetOrderLockState } from '@/services/roncin/orderLockService';
 
 type OrderLockSnapshot = {
@@ -30,8 +31,10 @@ export function getOrderBusinessWritePolicy({
   loading,
   error,
   canOperate,
+  order,
 }: Pick<OrderLockSnapshot, 'state' | 'loading' | 'error'> & {
   canOperate: boolean;
+  order?: Pick<API.Order, 'closureStatus' | 'terminationStatus'>;
 }): OrderBusinessWritePolicy {
   if (!canOperate) {
     return { disabled: true, reason: '请切换至订单所属分公司工作台办理' };
@@ -44,6 +47,20 @@ export function getOrderBusinessWritePolicy({
   }
   if (!state) {
     return { disabled: true, reason: '订单锁定状态尚未加载，请重试' };
+  }
+  if (order?.closureStatus === OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED) {
+    return {
+      disabled: true,
+      reason: '订单已结案，不能直接修改；费用调整须通过补录补审办理',
+    };
+  }
+  if (
+    order?.terminationStatus ===
+      OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATING ||
+    order?.terminationStatus ===
+      OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED
+  ) {
+    return { disabled: true, reason: '订单正在终止或已终止，不能直接修改' };
   }
   if (state.isLocked) {
     return {

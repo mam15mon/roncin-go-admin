@@ -38,7 +38,7 @@ func IsCurrentFee(fee *OrderFee) bool {
 	return fee != nil && fee.EconomicEffect != OrderFeeEconomicDecrease && fee.SupersededByRequestID == nil
 }
 func RequiresAccounting(fee *OrderFee) bool {
-	return fee != nil && fee.AccountingRequired && fee.SupersededByRequestID == nil
+	return IsCurrentFee(fee) && fee.AccountingRequired
 }
 
 var (
@@ -59,6 +59,8 @@ type OrderFeeCorrectionRequest struct {
 	Before                    *OrderFee
 	After                     *OrderFee
 	ApprovedFeeReviewEventID  uuid.UUID
+	LockRecordID              uuid.UUID
+	LockGeneration            uint64
 	ApprovedFeeContentVersion uint64
 	ApprovedFeeReviewVersion  uint64
 	Reason                    string

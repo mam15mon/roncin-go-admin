@@ -14,6 +14,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -42,7 +43,11 @@ type OrderFeeCorrectionRequest struct {
 	// AfterSnapshot holds the value of the "after_snapshot" field.
 	AfterSnapshot json.RawMessage `json:"after_snapshot,omitempty"`
 	// ApprovedFeeReviewEventID holds the value of the "approved_fee_review_event_id" field.
-	ApprovedFeeReviewEventID uuid.UUID `json:"approved_fee_review_event_id,omitempty"`
+	ApprovedFeeReviewEventID *uuid.UUID `json:"approved_fee_review_event_id,omitempty"`
+	// LockRecordID holds the value of the "lock_record_id" field.
+	LockRecordID *uuid.UUID `json:"lock_record_id,omitempty"`
+	// LockGeneration holds the value of the "lock_generation" field.
+	LockGeneration *uint64 `json:"lock_generation,omitempty"`
 	// ApprovedFeeContentVersion holds the value of the "approved_fee_content_version" field.
 	ApprovedFeeContentVersion uint64 `json:"approved_fee_content_version,omitempty"`
 	// ApprovedFeeReviewVersion holds the value of the "approved_fee_review_version" field.
@@ -79,6 +84,8 @@ type OrderFeeCorrectionRequest struct {
 
 // OrderFeeCorrectionRequestEdges holds the relations/edges for other nodes in the graph.
 type OrderFeeCorrectionRequestEdges struct {
+	// LockRecord holds the value of the lock_record edge.
+	LockRecord *OrderLockRecord `json:"lock_record,omitempty"`
 	// Organization holds the value of the organization edge.
 	Organization *Organization `json:"organization,omitempty"`
 	// Order holds the value of the order edge.
@@ -101,7 +108,18 @@ type OrderFeeCorrectionRequestEdges struct {
 	SupersededFees []*OrderFee `json:"superseded_fees,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [10]bool
+	loadedTypes [11]bool
+}
+
+// LockRecordOrErr returns the LockRecord value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e OrderFeeCorrectionRequestEdges) LockRecordOrErr() (*OrderLockRecord, error) {
+	if e.LockRecord != nil {
+		return e.LockRecord, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: orderlockrecord.Label}
+	}
+	return nil, &NotLoadedError{edge: "lock_record"}
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -109,7 +127,7 @@ type OrderFeeCorrectionRequestEdges struct {
 func (e OrderFeeCorrectionRequestEdges) OrganizationOrErr() (*Organization, error) {
 	if e.Organization != nil {
 		return e.Organization, nil
-	} else if e.loadedTypes[0] {
+	} else if e.loadedTypes[1] {
 		return nil, &NotFoundError{label: organization.Label}
 	}
 	return nil, &NotLoadedError{edge: "organization"}
@@ -120,7 +138,7 @@ func (e OrderFeeCorrectionRequestEdges) OrganizationOrErr() (*Organization, erro
 func (e OrderFeeCorrectionRequestEdges) OrderOrErr() (*Order, error) {
 	if e.Order != nil {
 		return e.Order, nil
-	} else if e.loadedTypes[1] {
+	} else if e.loadedTypes[2] {
 		return nil, &NotFoundError{label: order.Label}
 	}
 	return nil, &NotLoadedError{edge: "order"}
@@ -131,7 +149,7 @@ func (e OrderFeeCorrectionRequestEdges) OrderOrErr() (*Order, error) {
 func (e OrderFeeCorrectionRequestEdges) RequestedByUserOrErr() (*User, error) {
 	if e.RequestedByUser != nil {
 		return e.RequestedByUser, nil
-	} else if e.loadedTypes[2] {
+	} else if e.loadedTypes[3] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "requested_by_user"}
@@ -142,7 +160,7 @@ func (e OrderFeeCorrectionRequestEdges) RequestedByUserOrErr() (*User, error) {
 func (e OrderFeeCorrectionRequestEdges) DecidedByUserOrErr() (*User, error) {
 	if e.DecidedByUser != nil {
 		return e.DecidedByUser, nil
-	} else if e.loadedTypes[3] {
+	} else if e.loadedTypes[4] {
 		return nil, &NotFoundError{label: user.Label}
 	}
 	return nil, &NotLoadedError{edge: "decided_by_user"}
@@ -153,7 +171,7 @@ func (e OrderFeeCorrectionRequestEdges) DecidedByUserOrErr() (*User, error) {
 func (e OrderFeeCorrectionRequestEdges) SourceFeeOrErr() (*OrderFee, error) {
 	if e.SourceFee != nil {
 		return e.SourceFee, nil
-	} else if e.loadedTypes[4] {
+	} else if e.loadedTypes[5] {
 		return nil, &NotFoundError{label: orderfee.Label}
 	}
 	return nil, &NotLoadedError{edge: "source_fee"}
@@ -162,7 +180,7 @@ func (e OrderFeeCorrectionRequestEdges) SourceFeeOrErr() (*OrderFee, error) {
 // NettingsOrErr returns the Nettings value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderFeeCorrectionRequestEdges) NettingsOrErr() ([]*FinanceNetting, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[6] {
 		return e.Nettings, nil
 	}
 	return nil, &NotLoadedError{edge: "nettings"}
@@ -171,7 +189,7 @@ func (e OrderFeeCorrectionRequestEdges) NettingsOrErr() ([]*FinanceNetting, erro
 // CommissionAdjustmentsOrErr returns the CommissionAdjustments value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderFeeCorrectionRequestEdges) CommissionAdjustmentsOrErr() ([]*FinanceCommissionAdjustment, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[7] {
 		return e.CommissionAdjustments, nil
 	}
 	return nil, &NotLoadedError{edge: "commission_adjustments"}
@@ -180,7 +198,7 @@ func (e OrderFeeCorrectionRequestEdges) CommissionAdjustmentsOrErr() ([]*Finance
 // SupersededCommissionAdjustmentsOrErr returns the SupersededCommissionAdjustments value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderFeeCorrectionRequestEdges) SupersededCommissionAdjustmentsOrErr() ([]*FinanceCommissionAdjustment, error) {
-	if e.loadedTypes[7] {
+	if e.loadedTypes[8] {
 		return e.SupersededCommissionAdjustments, nil
 	}
 	return nil, &NotLoadedError{edge: "superseded_commission_adjustments"}
@@ -189,7 +207,7 @@ func (e OrderFeeCorrectionRequestEdges) SupersededCommissionAdjustmentsOrErr() (
 // GeneratedFeesOrErr returns the GeneratedFees value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderFeeCorrectionRequestEdges) GeneratedFeesOrErr() ([]*OrderFee, error) {
-	if e.loadedTypes[8] {
+	if e.loadedTypes[9] {
 		return e.GeneratedFees, nil
 	}
 	return nil, &NotLoadedError{edge: "generated_fees"}
@@ -198,7 +216,7 @@ func (e OrderFeeCorrectionRequestEdges) GeneratedFeesOrErr() ([]*OrderFee, error
 // SupersededFeesOrErr returns the SupersededFees value or an error if the edge
 // was not loaded in eager-loading.
 func (e OrderFeeCorrectionRequestEdges) SupersededFeesOrErr() ([]*OrderFee, error) {
-	if e.loadedTypes[9] {
+	if e.loadedTypes[10] {
 		return e.SupersededFees, nil
 	}
 	return nil, &NotLoadedError{edge: "superseded_fees"}
@@ -209,17 +227,17 @@ func (*OrderFeeCorrectionRequest) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case orderfeecorrectionrequest.FieldSourceFeeID, orderfeecorrectionrequest.FieldDecidedBy:
+		case orderfeecorrectionrequest.FieldSourceFeeID, orderfeecorrectionrequest.FieldApprovedFeeReviewEventID, orderfeecorrectionrequest.FieldLockRecordID, orderfeecorrectionrequest.FieldDecidedBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case orderfeecorrectionrequest.FieldBeforeSnapshot, orderfeecorrectionrequest.FieldAfterSnapshot, orderfeecorrectionrequest.FieldApprovalResultSnapshot:
 			values[i] = new([]byte)
-		case orderfeecorrectionrequest.FieldSourceFeeVersion, orderfeecorrectionrequest.FieldApprovedFeeContentVersion, orderfeecorrectionrequest.FieldApprovedFeeReviewVersion, orderfeecorrectionrequest.FieldVersion:
+		case orderfeecorrectionrequest.FieldSourceFeeVersion, orderfeecorrectionrequest.FieldLockGeneration, orderfeecorrectionrequest.FieldApprovedFeeContentVersion, orderfeecorrectionrequest.FieldApprovedFeeReviewVersion, orderfeecorrectionrequest.FieldVersion:
 			values[i] = new(sql.NullInt64)
 		case orderfeecorrectionrequest.FieldOperation, orderfeecorrectionrequest.FieldReason, orderfeecorrectionrequest.FieldIdempotencyKey, orderfeecorrectionrequest.FieldRequestFingerprint, orderfeecorrectionrequest.FieldStatus, orderfeecorrectionrequest.FieldDecisionReason, orderfeecorrectionrequest.FieldApprovalToken:
 			values[i] = new(sql.NullString)
 		case orderfeecorrectionrequest.FieldCreatedAt, orderfeecorrectionrequest.FieldUpdatedAt, orderfeecorrectionrequest.FieldRequestedAt, orderfeecorrectionrequest.FieldDecidedAt:
 			values[i] = new(sql.NullTime)
-		case orderfeecorrectionrequest.FieldID, orderfeecorrectionrequest.FieldOrganizationID, orderfeecorrectionrequest.FieldOrderID, orderfeecorrectionrequest.FieldApprovedFeeReviewEventID, orderfeecorrectionrequest.FieldRequestedBy:
+		case orderfeecorrectionrequest.FieldID, orderfeecorrectionrequest.FieldOrganizationID, orderfeecorrectionrequest.FieldOrderID, orderfeecorrectionrequest.FieldRequestedBy:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -303,10 +321,25 @@ func (_m *OrderFeeCorrectionRequest) assignValues(columns []string, values []any
 				}
 			}
 		case orderfeecorrectionrequest.FieldApprovedFeeReviewEventID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field approved_fee_review_event_id", values[i])
-			} else if value != nil {
-				_m.ApprovedFeeReviewEventID = *value
+			} else if value.Valid {
+				_m.ApprovedFeeReviewEventID = new(uuid.UUID)
+				*_m.ApprovedFeeReviewEventID = *value.S.(*uuid.UUID)
+			}
+		case orderfeecorrectionrequest.FieldLockRecordID:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field lock_record_id", values[i])
+			} else if value.Valid {
+				_m.LockRecordID = new(uuid.UUID)
+				*_m.LockRecordID = *value.S.(*uuid.UUID)
+			}
+		case orderfeecorrectionrequest.FieldLockGeneration:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field lock_generation", values[i])
+			} else if value.Valid {
+				_m.LockGeneration = new(uint64)
+				*_m.LockGeneration = uint64(value.Int64)
 			}
 		case orderfeecorrectionrequest.FieldApprovedFeeContentVersion:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -409,6 +442,11 @@ func (_m *OrderFeeCorrectionRequest) assignValues(columns []string, values []any
 // This includes values selected through modifiers, order, etc.
 func (_m *OrderFeeCorrectionRequest) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
+}
+
+// QueryLockRecord queries the "lock_record" edge of the OrderFeeCorrectionRequest entity.
+func (_m *OrderFeeCorrectionRequest) QueryLockRecord() *OrderLockRecordQuery {
+	return NewOrderFeeCorrectionRequestClient(_m.config).QueryLockRecord(_m)
 }
 
 // QueryOrganization queries the "organization" edge of the OrderFeeCorrectionRequest entity.
@@ -515,8 +553,20 @@ func (_m *OrderFeeCorrectionRequest) String() string {
 	builder.WriteString("after_snapshot=")
 	builder.WriteString(fmt.Sprintf("%v", _m.AfterSnapshot))
 	builder.WriteString(", ")
-	builder.WriteString("approved_fee_review_event_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.ApprovedFeeReviewEventID))
+	if v := _m.ApprovedFeeReviewEventID; v != nil {
+		builder.WriteString("approved_fee_review_event_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.LockRecordID; v != nil {
+		builder.WriteString("lock_record_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.LockGeneration; v != nil {
+		builder.WriteString("lock_generation=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("approved_fee_content_version=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ApprovedFeeContentVersion))

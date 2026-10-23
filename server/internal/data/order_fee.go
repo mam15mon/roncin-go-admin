@@ -13,10 +13,6 @@ import (
 	feesettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	financebilllineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
-	commissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
-	commissionadjustmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
-	commissionlineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionline"
-	financecustomsettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderabnormalcaseent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
@@ -78,6 +74,13 @@ func (r *orderFeeRepo) List(ctx context.Context, organizationID, orderID uuid.UU
 		}
 		result = append(result, converted)
 	}
+	o, err := client.Order.Get(ctx, orderID)
+	if err != nil {
+		return nil, err
+	}
+	if err := attachFeeCapabilities(ctx, client, o, result); err != nil {
+		return nil, err
+	}
 	return result, nil
 }
 
@@ -90,7 +93,18 @@ func (r *orderFeeRepo) Get(ctx context.Context, organizationID, orderID, id uuid
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrOrderFeeNotFound, nil)
 	}
-	return orderFeeToBiz(item)
+	fee, err := orderFeeToBiz(item)
+	if err != nil {
+		return nil, err
+	}
+	o, err := client.Order.Get(ctx, orderID)
+	if err != nil {
+		return nil, err
+	}
+	if err := attachFeeCapabilities(ctx, client, o, []*biz.OrderFee{fee}); err != nil {
+		return nil, err
+	}
+	return fee, nil
 }
 
 func (r *orderFeeRepo) BilledBillContext(ctx context.Context, organizationID, orderID, id uuid.UUID) (*biz.BilledFeeBillContext, error) {
@@ -188,15 +202,6 @@ func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid
 		CustomerID:        customer.ID,
 		CustomerName:      customer.LegalName,
 	}
-	lockNos, err := r.financeLockCommissionNos(ctx, organizationID, orderID)
-	if err != nil {
-		return nil, err
-	}
-	if len(lockNos) > 0 {
-		result.FinanceLocked = true
-		result.FinanceLockCommissionNos = lockNos
-		result.FinanceLockReason = "关联提成已确认或已发放，原费用事实已锁定"
-	}
 	for _, party := range parties {
 		result.SettlementParties = append(result.SettlementParties, biz.OrderFeeSettlementPartyOption{ID: party.ID, Code: partnerCodeValue(party.Code), Name: party.LegalName})
 	}
@@ -228,76 +233,15 @@ func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid
 	return result, nil
 }
 
-// financeLockCommissionNos 返回仍使订单处于财务锁定的提成单号：与台账净额口径
-// 一致，有效提成净额 ≤ 0（已被全额冲减）时不视为锁定，费用编辑锁释放。
-func (r *orderFeeRepo) financeLockCommissionNos(ctx context.Context, organizationID, orderID uuid.UUID) ([]string, error) {
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return nil, err
-	}
-	items, err := client.FinanceCommissionLine.Query().Where(
-		commissionlineent.OrganizationIDEQ(organizationID),
-		commissionlineent.OrderIDEQ(orderID),
-		commissionlineent.HasCommissionWith(commissionent.StatusIn(commissionent.StatusCONFIRMED, commissionent.StatusPAID)),
-	).WithCommission().All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if len(items) == 0 {
-		return nil, nil
-	}
-	adjustments, err := client.FinanceCommissionAdjustment.Query().Where(
-		commissionadjustmentent.OrganizationIDEQ(organizationID),
-		commissionadjustmentent.OrderIDEQ(orderID),
-		commissionadjustmentent.StatusIn(commissionadjustmentent.StatusCONFIRMED, commissionadjustmentent.StatusPAID),
-	).All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	netAmount, err := financeCommissionLockNetAmount(items, adjustments)
-	if err != nil {
-		return nil, err
-	}
-	if !netAmount.IsPositive() {
-		return nil, nil
-	}
-	result := make([]string, 0, len(items))
-	seen := make(map[string]struct{}, len(items))
-	for _, item := range items {
-		parent, edgeErr := item.Edges.CommissionOrErr()
-		if edgeErr != nil {
-			return nil, edgeErr
-		}
-		if _, ok := seen[parent.CommissionNo]; ok {
-			continue
-		}
-		seen[parent.CommissionNo] = struct{}{}
-		result = append(result, parent.CommissionNo)
-	}
-	return result, nil
-}
-
 func lockOrderForFeeMutation(ctx context.Context, tx *ent.Tx, organizationID, orderID uuid.UUID) error {
-	order, err := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
-	if err != nil {
-		return mapEntError(err, biz.ErrOrderFeeNotFound, nil)
-	}
-	if order.FeeReviewStatus == orderent.FeeReviewStatusPENDING || order.FeeReviewStatus == orderent.FeeReviewStatusAPPROVED {
-		return biz.ErrFeeReviewFrozen
-	}
-	if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
-		return err
-	}
-	// 财务锁复用台账的统一净额谓词（同一 SQL 语义）：有效提成净额 ≤ 0 视为已被
-	// 全额冲减，释放费用编辑锁；净额 > 0 才拒绝写入，避免“列表显示已解锁、写入仍被拒”。
-	locked, err := tx.Order.Query().Where(orderent.IDEQ(orderID), financeLockedOrderPredicate()).Exist(ctx)
+	order, err := lockOrdersForFeeEconomics(ctx, tx, organizationID, orderID)
 	if err != nil {
 		return err
 	}
-	if locked {
-		return biz.ErrOrderFeeFinanceLocked
+	if order.LockedAt != nil {
+		return biz.ErrOrderAlreadyLocked
 	}
-	return nil
+	return ensureOrderBusinessEditable(ctx, tx, order)
 }
 
 func (r *orderFeeRepo) ResolveCatalog(ctx context.Context, organizationID, orderID, feeSettingID, billingUnitID uuid.UUID, allowDisabledUnit bool) (*biz.OrderFeeCatalogSnapshot, error) {
@@ -455,6 +399,9 @@ func (r *orderFeeRepo) Add(ctx context.Context, organizationID, orderID uuid.UUI
 			return err
 		}
 		attachFeeQuantityAudit(audit, input.QuantitySource)
+		if err := reconcileOrdinaryFeeEconomics(ctx, tx.Client(), organizationID, orderID, audit); err != nil {
+			return err
+		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
 	if err != nil {
@@ -471,7 +418,6 @@ func (r *orderFeeRepo) Add(ctx context.Context, organizationID, orderID uuid.UUI
 func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, input *biz.OrderFee, billExchangeRate *biz.ResolvedRate, audit *biz.AuditEvent) (*biz.OrderFee, error) {
 	var item *ent.OrderFee
 	var activeLine *ent.FinanceBillLine
-	var activeBill *ent.FinanceBill
 	var party *ent.Partner
 	var updated *ent.OrderFee
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
@@ -479,30 +425,15 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 			return lockErr
 		}
 		var queryErr error
-		// 定位有效账单关联（活动账单行且所属账单未取消）；命中后按「账单 → 账单行 →
-		// 费用」锁序加锁，与账单确认/取消保持一致，避免并发事务互相等待。
-		lineSnapshot, lineErr := tx.FinanceBillLine.Query().Where(
-			financebilllineent.OrderFeeIDEQ(id),
-			effectiveBillLinePredicate(),
-		).Only(ctx)
-		if lineErr != nil && !ent.IsNotFound(lineErr) {
-			return lineErr
-		}
-		if lineSnapshot != nil {
-			activeBill, queryErr = tx.FinanceBill.Query().Where(financebillent.IDEQ(lineSnapshot.BillID), financebillent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
-			if queryErr != nil {
-				return queryErr
-			}
-			activeLine, queryErr = tx.FinanceBillLine.Query().Where(financebilllineent.IDEQ(lineSnapshot.ID), financebilllineent.OrderFeeIDEQ(id), effectiveBillLinePredicate()).ForUpdate().Only(ctx)
-			if queryErr != nil {
-				return mapEntError(queryErr, biz.ErrBilledFeeBillLocked, nil)
-			}
-		}
+
 		item, queryErr = tx.OrderFee.Query().Where(orderfeeent.IDEQ(id), orderfeeent.OrderIDEQ(orderID)).WithSettlementParty().WithFinanceBillLines(effectiveBillLineFilter).ForUpdate().Only(ctx)
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderFeeNotFound, nil)
 		}
-		if item.CorrectionRequestID != nil || item.SupersededByRequestID != nil {
+		if len(item.Edges.FinanceBillLines) > 0 {
+			return biz.ErrOrderFeeBillOccupied
+		}
+		if item.SupersededByRequestID != nil || item.EconomicEffect == orderfeeent.EconomicEffectDECREASE {
 			return biz.ErrFeeCorrectionProtected
 		}
 		if item.Version != input.Version {
@@ -550,34 +481,7 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 				return biz.ErrOrderFeeCurrencyInvalid
 			}
 		}
-		if activeLine != nil {
-			if activeBill == nil || activeLine == nil {
-				return biz.ErrOrderFeeVersionConflict
-			}
-			if activeBill.Status != financebillent.StatusDRAFT {
-				return biz.ErrBilledFeeBillLocked
-			}
-			setting, settingErr := tx.FinanceCustomSetting.Query().Where(financecustomsettingent.OrganizationIDEQ(organizationID)).ForShare().Only(ctx)
-			if settingErr != nil {
-				return mapEntError(settingErr, biz.ErrBilledFeeEditDisabled, nil)
-			}
-			if !setting.BilledFeeEditEnabled {
-				return biz.ErrBilledFeeEditDisabled
-			}
-			current, convertErr := orderFeeToBiz(item)
-			if convertErr != nil {
-				return convertErr
-			}
-			if validateErr := biz.ValidateBilledFeeUpdate(current, input, financeCustomSettingToPolicy(setting)); validateErr != nil {
-				return validateErr
-			}
-			if item.Currency != input.Currency && activeBill.FeeCount != 1 {
-				return biz.ErrBilledFeeCurrencyConflict
-			}
-			if item.Currency != input.Currency && billExchangeRate == nil {
-				return biz.ErrFinanceBillInvalidArgument
-			}
-		}
+
 		builder := tx.OrderFee.UpdateOne(item).
 			SetDirection(orderfeeent.Direction(input.Direction)).
 			SetNillableFeeSettingID(input.FeeSettingID).
@@ -631,62 +535,14 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 		if updateErr != nil {
 			return updateErr
 		}
-		if activeLine != nil {
-			lineUpdate := tx.FinanceBillLine.UpdateOneID(activeLine.ID).
-				SetFeeCode(input.FeeCode).SetFeeName(input.FeeName).
-				SetQuantity(input.Quantity.StringFixed(4)).SetUnitPrice(input.UnitPrice.StringFixed(4)).
-				SetTotalAmount(input.TotalAmount.StringFixed(8)).SetNetAmount(input.NetAmount.StringFixed(8)).SetTaxAmount(input.TaxAmount.StringFixed(8)).
-				SetCurrency(input.Currency).SetExchangeRate(input.ExchangeRate.StringFixed(8)).SetBaseCurrencyAmount(input.BaseCurrencyAmount.StringFixed(8))
-			if input.TaxRate == nil {
-				lineUpdate.ClearTaxRate()
-			} else {
-				lineUpdate.SetTaxRate(input.TaxRate.StringFixed(4))
-			}
-			if _, updateErr := lineUpdate.Save(ctx); updateErr != nil {
-				return updateErr
-			}
-			lines, lineErr := tx.FinanceBillLine.Query().Where(financebilllineent.BillIDEQ(activeBill.ID), financebilllineent.ActiveEQ(true)).All(ctx)
-			if lineErr != nil {
-				return lineErr
-			}
-			total, net, tax := decimal.Zero, decimal.Zero, decimal.Zero
-			for _, line := range lines {
-				lineTotal, parseErr := decimalOf(line.TotalAmount)
-				if parseErr != nil {
-					return parseErr
-				}
-				lineNet, parseErr := decimalOf(line.NetAmount)
-				if parseErr != nil {
-					return parseErr
-				}
-				lineTax, parseErr := decimalOf(line.TaxAmount)
-				if parseErr != nil {
-					return parseErr
-				}
-				total, net, tax = total.Add(lineTotal), net.Add(lineNet), tax.Add(lineTax)
-			}
-			billRate, parseErr := decimalOf(activeBill.ExchangeRate)
-			if parseErr != nil {
-				return parseErr
-			}
-			billUpdate := tx.FinanceBill.UpdateOneID(activeBill.ID).SetTotalAmount(total.StringFixed(8)).SetNetAmount(net.StringFixed(8)).SetTaxAmount(tax.StringFixed(8)).SetVersion(activeBill.Version + 1)
-			if item.Currency != input.Currency {
-				billRate = billExchangeRate.Rate
-				// 币种变更后按账单当前业务日期固化的总部基准汇率重建账单汇率快照。
-				billUpdate.SetCurrency(input.Currency).SetExchangeRate(billRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(billExchangeRate.Source)).SetExchangeRateDate(activeBill.BillDate)
-				billUpdate.ClearExchangeRateSettingID()
-			}
-			billUpdate.SetBaseCurrencyAmount(total.Mul(billRate).RoundBank(8).StringFixed(8))
-			if _, updateErr := billUpdate.Save(ctx); updateErr != nil {
-				return updateErr
-			}
-			audit.Details["bill.id"] = activeBill.ID.String()
-			audit.Details["bill.previous_version"] = decimal.NewFromInt(int64(activeBill.Version)).String()
-		}
+
 		if err := tx.Order.UpdateOneID(orderID).AddFeeContentVersion(1).Exec(ctx); err != nil {
 			return err
 		}
 		attachFeeQuantityAudit(audit, input.QuantitySource)
+		if err := reconcileOrdinaryFeeEconomics(ctx, tx.Client(), organizationID, orderID, audit); err != nil {
+			return err
+		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
 	if err != nil {
@@ -719,13 +575,9 @@ func (r *orderFeeRepo) Remove(ctx context.Context, organizationID, orderID, id, 
 		if item.Version != expectedVersion {
 			return biz.ErrOrderFeeVersionConflict
 		}
-		// 补录生成的费用只能经补录申请专用撤销删除：普通入口一律拒绝，防止绕开
-		// 审批资格、批准时间倒序与冲减联动规则。
-		if item.CorrectionRequestID != nil || item.SupersededByRequestID != nil {
+		// 被替代的原费与内部冲回属于历史记录，当前正式费用按统一门禁处理。
+		if item.SupersededByRequestID != nil || item.EconomicEffect == orderfeeent.EconomicEffectDECREASE {
 			return biz.ErrFeeCorrectionProtected
-		}
-		if item.SupplementRequestID != nil {
-			return biz.ErrOrderFeeSupplementDeleteForbidden
 		}
 		// 占用复核以事务内事实为准：存在活动账单行且所属账单未取消即占用。
 		// 草稿账单同样视为已建立；已取消账单的历史行 active=false，不再阻断。
@@ -764,6 +616,9 @@ func (r *orderFeeRepo) Remove(ctx context.Context, organizationID, orderID, id, 
 		audit.Details["fee.settlement_party_name"] = party.LegalName
 		audit.Details["fee.previous_version"] = decimal.NewFromInt(int64(item.Version)).String()
 		if err := tx.Order.UpdateOneID(orderID).AddFeeContentVersion(1).Exec(ctx); err != nil {
+			return err
+		}
+		if err := reconcileOrdinaryFeeEconomics(ctx, tx.Client(), organizationID, orderID, audit); err != nil {
 			return err
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
@@ -806,7 +661,7 @@ func lockOrderFeesForBulk(ctx context.Context, tx *ent.Tx, orderID uuid.UUID, ta
 		}
 	}
 	for _, item := range items {
-		if item.CorrectionRequestID != nil || item.SupersededByRequestID != nil {
+		if item.SupersededByRequestID != nil || item.EconomicEffect == orderfeeent.EconomicEffectDECREASE {
 			return nil, biz.ErrFeeCorrectionProtected
 		}
 		if item.Version != versions[item.ID] {
@@ -903,7 +758,15 @@ func (r *orderFeeRepo) BulkUpdate(ctx context.Context, organizationID, orderID u
 				}
 			}
 		}
-		return tx.Order.UpdateOneID(orderID).AddFeeContentVersion(1).Exec(ctx)
+		if err := tx.Order.UpdateOneID(orderID).AddFeeContentVersion(1).Exec(ctx); err != nil {
+			return err
+		}
+		var audit *biz.AuditEvent
+		for _, candidate := range audits {
+			audit = candidate
+			break
+		}
+		return reconcileOrdinaryFeeEconomics(ctx, tx.Client(), organizationID, orderID, audit)
 	})
 }
 
@@ -942,11 +805,8 @@ func (r *orderFeeRepo) BulkRemove(ctx context.Context, organizationID, orderID u
 				}
 				return biz.BulkOrderFeeError(biz.ErrOrderFeeBillOccupied, item.ID, fmt.Sprintf("已进入未取消的账单 %s，请先取消对应账单后再删除", bill.BillNo))
 			}
-			if item.CorrectionRequestID != nil || item.SupersededByRequestID != nil {
+			if item.SupersededByRequestID != nil || item.EconomicEffect == orderfeeent.EconomicEffectDECREASE {
 				return biz.ErrFeeCorrectionProtected
-			}
-			if item.SupplementRequestID != nil {
-				return biz.BulkOrderFeeError(biz.ErrOrderFeeSupplementDeleteForbidden, item.ID, "补录生成的费用请通过补录申请专用撤销删除")
 			}
 		}
 		// 批量解析结算单位名称快照：按单位 ID 去重后在组织边界内一次查询，避免
@@ -987,7 +847,15 @@ func (r *orderFeeRepo) BulkRemove(ctx context.Context, organizationID, orderID u
 				}
 			}
 		}
-		return tx.Order.UpdateOneID(orderID).AddFeeContentVersion(1).Exec(ctx)
+		if err := tx.Order.UpdateOneID(orderID).AddFeeContentVersion(1).Exec(ctx); err != nil {
+			return err
+		}
+		var audit *biz.AuditEvent
+		for _, candidate := range audits {
+			audit = candidate
+			break
+		}
+		return reconcileOrdinaryFeeEconomics(ctx, tx.Client(), organizationID, orderID, audit)
 	})
 }
 

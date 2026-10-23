@@ -19,7 +19,7 @@ var (
 	ErrFeeSupplementApproverUnavailable = errors.Conflict("FEE_SUPPLEMENT_APPROVER_UNAVAILABLE", "当前没有具备费用审核权限且组织范围匹配的审批人，请先配置审批资格")
 	ErrFeeSupplementTransition          = errors.Conflict("FEE_SUPPLEMENT_TRANSITION", "当前补录申请状态不允许该操作")
 	// ErrFeeSupplementNotApplicable 当前整票费用无有效批准，不能提交受控成本补录。
-	ErrFeeSupplementNotApplicable = errors.Conflict("FEE_SUPPLEMENT_NOT_APPLICABLE", "订单费用尚未有效批准，请先完成费用审核")
+	ErrFeeSupplementNotApplicable = errors.Conflict("FEE_SUPPLEMENT_NOT_APPLICABLE", "订单需先审核锁定，费用变更统一通过补审处理")
 	// ErrFeeSupplementCancelBlocked 专用撤销被下游事实阻断；消息由仓储按具体
 	// 阻断原因动态构造，稳定 reason 便于前端识别。
 	ErrFeeSupplementCancelBlocked = errors.Conflict("FEE_SUPPLEMENT_CANCEL_BLOCKED", "当前补录费用不满足专用撤销条件")
@@ -177,63 +177,9 @@ func (r *OrderFeeSupplementRequest) Validate() error {
 // 费用快照与批准依据字段创建后不可变；组织级幂等键唯一由数据库唯一索引兜底，
 // 不得用先查后插替代。
 type OrderFeeSupplementRequestRepo interface {
-	// Create 幂等创建申请：同组织同幂等键同指纹返回既有申请，同键不同指纹
-	// 返回 ErrFeeSupplementIdempotencyConflict；审计与逐审批人通知由调用方
-	// 在同一共享事务内随申请一并写入。
-	Create(ctx context.Context, request *OrderFeeSupplementRequest, audit *AuditEvent) (*OrderFeeSupplementRequest, error)
-	// Get 读取申请及其不可变费用快照。
-	Get(ctx context.Context, organizationID, id uuid.UUID) (*OrderFeeSupplementRequest, error)
-	// ListByOrder 列出目标订单的全部补录申请。
-	ListByOrder(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderFeeSupplementRequest, error)
-	// LockForDecision 在事务内锁定申请行并重读最新状态，供审批、驳回与撤回
-	// 在同一行锁内竞争，先提交的一方成功，失败方返回状态冲突。
-	LockForDecision(ctx context.Context, organizationID, id uuid.UUID) (*OrderFeeSupplementRequest, error)
-	// SaveDecision 在锁内写入终态与决策字段，版本号自增；只接受状态机的合法
-	// 流转。
-	SaveDecision(ctx context.Context, request *OrderFeeSupplementRequest) error
-
-	// LockOrderForSupplement 按主键锁目标订单，复核当前整票有效批准；
-	// 这是批准冻结下的受控成本补录入口，不能复用解锁授权。
-	LockOrderForSupplement(ctx context.Context, organizationID, orderID uuid.UUID) (*OrderFeeSupplementLockEvidence, error)
-	// ReadLockEvidence 读取当前有效批准版本，供审批预览复核。
-	ReadLockEvidence(ctx context.Context, organizationID, orderID uuid.UUID) (*OrderFeeSupplementLockEvidence, error)
-	// GetOrderRef 读取订单号与业务类型，供权限判定与通知摘要使用。
-	GetOrderRef(ctx context.Context, organizationID, orderID uuid.UUID) (*OrderFeeSupplementOrderRef, error)
-	// ListLockGrantApprovers 解析当前实时具备目标订单费用审核权限的审批候选人
-	//（按 UserID 升序去重；bootstrap admin 不进入候选池）。同一目标订单与组织
-	// 范围内的解析必须与单用户资格判断复用同一谓词。
-	ListLockGrantApprovers(ctx context.Context, organizationID, orderID uuid.UUID) ([]OrderFeeSupplementApprover, error)
-	// HasRealtimeLockGrant 实时判断费用审核资格及组织范围，不复用解锁授权或管理员旁路。
-	HasRealtimeLockGrant(ctx context.Context, organizationID, orderID, userID uuid.UUID, isBootstrapAdmin bool) (bool, error)
-	// CancelCapability 只读投影专用作废能力与稳定阻断原因，列表与专用作废
-	// 命令复用同一校验口径。
-	CancelCapability(ctx context.Context, organizationID, orderID, requestID uuid.UUID) (*OrderFeeSupplementCancelCapability, error)
-	// ResolveFeeFactsForApproval 在审批事务的锁内重新解析结算对象、费用项、
-	// 计费单位、币种与费用发生日汇率，形成待创建费用但不落库；任一引用失效
-	// 时返回对应业务错误，整体回滚。
-	ResolveFeeFactsForApproval(ctx context.Context, organizationID, orderID uuid.UUID, snapshot *OrderFeeSupplementFeeSnapshot) (*OrderFee, error)
-	// LockCommissionImpactContext 按父单 UUID 升序 FOR UPDATE 锁定包含目标订单
-	// 的 CONFIRMED/PAID 提成父单、目标订单行与会影响余额的调整，返回边际影响
-	// 计算上下文（含此前未作废补录应付本位币合计）。
-	LockCommissionImpactContext(ctx context.Context, organizationID, orderID uuid.UUID) (*OrderFeeSupplementImpactContext, error)
-	// CreateApprovedFee 在审批事务内创建与申请一对一关联的 UNBILLED 补录费用；
-	// 幂等键由申请 ID 派生，supplement_request_id 反向关联。
-	CreateApprovedFee(ctx context.Context, organizationID, requestID uuid.UUID, fee *OrderFee, audit *AuditEvent) (*OrderFee, error)
-	// CreateDecreaseSuggestion 在审批事务内创建 DECREASE+CONFIRMED+LOCKED_FEE_SUPPLEMENT
-	// 调整：父单行内分配调整号并递增序号，来源关联必须指向补录申请。
-	CreateDecreaseSuggestion(ctx context.Context, organizationID, requestID uuid.UUID, suggestion *OrderFeeSupplementDecreaseSuggestion, audit *AuditEvent) error
-	// EnqueueApprovalPendingNotifications 在创建申请的同一事务内为审批人逐人
-	// 入队 FEE_SUPPLEMENT_APPROVAL_PENDING 通知（确定性 ID + 幂等键）。
-	EnqueueApprovalPendingNotifications(ctx context.Context, organizationID, requestID uuid.UUID, orderNo string, totalAmount decimal.Decimal, currency string, approvers []OrderFeeSupplementApprover) error
-	// EnqueueDecreaseSuggestedNotifications 在审批事务内为实际生成已确认提成冲减的
-	// 员工逐人入队 COMMISSION_DECREASE_SUGGESTED 通知（确定性 ID + 幂等键）。
-	EnqueueDecreaseSuggestedNotifications(ctx context.Context, organizationID uuid.UUID, orderNo string, suggestions []OrderFeeSupplementDecreaseSuggestion) error
-	// CancelApprovedFee 执行专用作废事务（design 5.1 六步，固定锁序 Order →
-	// 申请/费用 → 提成父单 → 调整），返回作废后的费用与被取消的调整 ID。
-	CancelApprovedFee(ctx context.Context, input *OrderFeeSupplementCancelInput) (*OrderFeeSupplementCancelResult, error)
-	// SaveAudit 在共享事务内写入业务审计；驳回与撤回等轻量决策复用本方法，
-	// 避免为单一审计写入扩展独立仓储命令。
-	SaveAudit(ctx context.Context, event *AuditEvent) error
+	GetOrderRef(context.Context, uuid.UUID, uuid.UUID) (*OrderFeeSupplementOrderRef, error)
+	ListByOrder(context.Context, uuid.UUID, uuid.UUID) ([]*OrderFeeSupplementRequest, error)
+	HasRealtimeLockGrant(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, bool) (bool, error)
 }
 
 // OrderFeeSupplementOrderRef 是权限判定与通知摘要所需的订单最小引用。
@@ -248,6 +194,7 @@ type OrderFeeSupplementOrderRef struct {
 // locked_at 与 lock_generation 为准；财务锁复用有效提成净额口径（净额 > 0），
 // 并携带版本化证据三元组（CONFIRMED/PAID 统一编码为 ACTIVE）。
 type OrderFeeSupplementLockEvidence struct {
+	LockRecordID             *uuid.UUID
 	ApprovedFeeReviewEventID *uuid.UUID
 	FeeContentVersion        uint64
 	FeeReviewVersion         uint64

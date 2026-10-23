@@ -334,7 +334,7 @@ func TestBillCreationCandidatesUseCreateWritableOrganization(t *testing.T) {
 	allowed, denied := uuid.New(), uuid.New()
 	p := &biz.Principal{Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: allowed}, OrganizationNodes: []biz.OrganizationScopeNode{{Kind: biz.OrganizationKindCompany, ID: allowed}}, RoleGrants: []biz.RoleGrant{{RoleCode: "creator", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{access.FinanceBillCreate: {}}}}}
 	repo := &billCreationCandidateServiceRepoStub{}
-	service := &SettlementService{billUsecase: biz.NewFinanceBillUsecase(repo, nil, nil, nil, nil)}
+	service := &SettlementService{billUsecase: biz.NewFinanceBillUsecase(repo, nil, nil, nil)}
 	ctx := biz.WithPrincipal(context.Background(), p)
 	permission, writable, ok := financeOrganizationPurposePermission(v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_BILL_CREATE)
 	if !ok || permission != access.FinanceBillCreate || !writable {
@@ -396,7 +396,7 @@ func TestBillSettlementAccountUpdateCandidatesRejectNonDraftBill(t *testing.T) {
 		Currency: "CNY", Status: biz.FinanceBillConfirmed,
 	}}
 	service := &SettlementService{
-		billUsecase:    biz.NewFinanceBillUsecase(billRepo, nil, nil, nil, nil),
+		billUsecase:    biz.NewFinanceBillUsecase(billRepo, nil, nil, nil),
 		accountUsecase: biz.NewPartnerAccountUsecase(&billSettlementAccountRepoStub{}),
 	}
 	if _, err := service.ListBillSettlementAccountUpdateCandidates(biz.WithPrincipal(context.Background(), principal), &v1.ListBillSettlementAccountUpdateCandidatesRequest{BillId: billID.String()}); !errors.Is(err, biz.ErrFinanceBillInvalidTransition) {
@@ -440,7 +440,7 @@ func TestBillBatchPreviewAndCreateRequireDeclaredSourceOrganization(t *testing.T
 		rate:    decimal.NewFromInt(1),
 	}
 	accountID := uuid.New()
-	service := &SettlementService{billUsecase: biz.NewFinanceBillUsecase(repo, biz.NewExchangeRateUsecase(rateRepo, nil), settlementServiceTransactorStub{}, nil, nil)}
+	service := &SettlementService{billUsecase: biz.NewFinanceBillUsecase(repo, biz.NewExchangeRateUsecase(rateRepo, nil), settlementServiceTransactorStub{}, nil)}
 	ctx := biz.WithPrincipal(context.Background(), principal)
 
 	policy := &v1.BillGroupingPolicy{Mode: v1.BillGroupingMode_BILL_GROUPING_MODE_NORMAL}
@@ -501,7 +501,7 @@ func TestListVerificationCreationCandidatesUsesCreateWritableOrganization(t *tes
 		}},
 	}
 	repo := &verificationCreationCandidateRepoStub{result: &biz.VerificationCreationCandidates{}}
-	service := &SettlementService{verificationUsecase: biz.NewVerificationUsecase(repo, nil, nil, nil, nil)}
+	service := &SettlementService{verificationUsecase: biz.NewVerificationUsecase(repo, nil, nil, nil)}
 	ctx := biz.WithPrincipal(context.Background(), principal)
 	_, err := service.ListVerificationCreationCandidates(ctx, &v1.ListVerificationCreationCandidatesRequest{
 		OrganizationId:    organizationID.String(),

@@ -287,6 +287,7 @@ const (
 	SourceTypeLOCKED_FEE_SUPPLEMENT SourceType = "LOCKED_FEE_SUPPLEMENT"
 	SourceTypeFEE_CORRECTION        SourceType = "FEE_CORRECTION"
 	SourceTypeECONOMIC_REALLOCATION SourceType = "ECONOMIC_REALLOCATION"
+	SourceTypeFEE_MUTATION          SourceType = "FEE_MUTATION"
 )
 
 func (st SourceType) String() string {
@@ -296,7 +297,7 @@ func (st SourceType) String() string {
 // SourceTypeValidator is a validator for the "source_type" field enum values. It is called by the builders before save.
 func SourceTypeValidator(st SourceType) error {
 	switch st {
-	case SourceTypeMANUAL, SourceTypeVERIFICATION_REVERSAL, SourceTypeNETTING_REVERSAL, SourceTypeLOCKED_FEE_SUPPLEMENT, SourceTypeFEE_CORRECTION, SourceTypeECONOMIC_REALLOCATION:
+	case SourceTypeMANUAL, SourceTypeVERIFICATION_REVERSAL, SourceTypeNETTING_REVERSAL, SourceTypeLOCKED_FEE_SUPPLEMENT, SourceTypeFEE_CORRECTION, SourceTypeECONOMIC_REALLOCATION, SourceTypeFEE_MUTATION:
 		return nil
 	default:
 		return fmt.Errorf("financecommissionadjustment: invalid enum value for source_type field: %q", st)

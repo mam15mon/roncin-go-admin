@@ -42,8 +42,14 @@ func TestRoleWorkspaceQualificationPostgres(t *testing.T) {
 	disabledChild := newOrg("QUAL-DISABLED-CHILD", organizationent.KindTeam, &disabledDepartment.ID, true)
 	nestedCompany := newOrg("QUAL-OTHER", organizationent.KindCompany, nil, true)
 	nestedDepartment := newOrg("QUAL-NESTED-DEPT", organizationent.KindDepartment, &nestedCompany.ID, true)
-	permissions := make([]*ent.Permission, 0, 3)
-	for _, key := range []string{access.OrderPermission(access.OrderBusinessSI, access.OrderLock), access.FinanceFeeReview, access.FinanceExchangeRateCreate} {
+	permissions := make([]*ent.Permission, 0, 5)
+	for _, key := range []string{
+		access.OrderPermission(access.OrderBusinessSI, access.OrderRead),
+		access.OrderPermission(access.OrderBusinessSI, access.OrderUpdate),
+		access.OrderPermission(access.OrderBusinessSI, access.OrderFeeRead),
+		access.OrderPermission(access.OrderBusinessSI, access.OrderLock),
+		access.FinanceExchangeRateCreate,
+	} {
 		permission, err := client.Permission.Query().Where(permissionent.KeyEQ(key)).Only(ctx)
 		if ent.IsNotFound(err) {
 			permission, err = client.Permission.Create().SetKey(key).SetName(key).SetGroup("测试").Save(ctx)
@@ -111,15 +117,6 @@ func TestRoleWorkspaceQualificationPostgres(t *testing.T) {
 		lockIDs = append(lockIDs, item.UserID)
 	}
 	assertUsers("锁定", lockIDs)
-	reviews, err := feeReviewGrants(ctx, client, company.ID)
-	if err != nil {
-		t.Fatal(err)
-	}
-	reviewIDs := make([]uuid.UUID, 0, len(reviews))
-	for _, item := range reviews {
-		reviewIDs = append(reviewIDs, item.Edges.Membership.UserID)
-	}
-	assertUsers("费用审核", reviewIDs)
 	reminders, err := NewExchangeRateReminderRepo(data).ListFinanceReminderRecipients(ctx, company.ID)
 	if err != nil {
 		t.Fatal(err)
@@ -132,7 +129,7 @@ func TestRoleWorkspaceQualificationPostgres(t *testing.T) {
 	for _, account := range append([]*ent.User{direct, dept}, invalid...) {
 		want := account.ID == direct.ID || account.ID == dept.ID
 		locked, lockErr := isUserQualifiedBusinessLockRole(ctx, client, company.ID, account.ID, access.OrderBusinessSI)
-		reviewed, reviewErr := hasRealtimeFeePermission(ctx, client, company.ID, account.ID, access.FinanceFeeReview, false)
+		reviewed, reviewErr := hasRealtimeFeePermission(ctx, client, company.ID, account.ID, access.OrderPermission(access.OrderBusinessSI, access.OrderLock), false)
 		if lockErr != nil || reviewErr != nil || locked != want || reviewed != want {
 			t.Fatalf("%s 实时资格错误: lock=%v/%v review=%v/%v want=%v", account.DisplayName, locked, lockErr, reviewed, reviewErr, want)
 		}

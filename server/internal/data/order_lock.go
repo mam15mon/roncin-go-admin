@@ -145,8 +145,7 @@ func (r *orderLockRepo) GetOrderLockState(ctx context.Context, organizationID, o
 			lockedByName = &u.DisplayName
 		}
 	}
-	// 锁定来源由服务端统一投影：MANUAL 归属实际锁定人；AUTO_SETTLEMENT 由前端
-	// 固定展示【系统自动锁定】，不根据 locked_by 为空自行猜测。
+	// 锁定来源由服务端统一投影。新审核锁仅由人工生成；历史来源保留审计展示。
 	var lockSource *string
 	if order.LockSource != nil {
 		value := string(*order.LockSource)
@@ -224,6 +223,20 @@ func (r *orderLockRepo) GetOrderLockState(ctx context.Context, organizationID, o
 		}
 	}
 
+	if isQualifiedBusinessRole {
+		snapshot, fingerprint, snapshotErr := loadFeeReviewSnapshot(ctx, client, order.ID)
+		if snapshotErr != nil {
+			return nil, snapshotErr
+		}
+		state.FeeContentVersion = order.FeeContentVersion
+		state.FeeContentFingerprint = fingerprint
+		state.FeeSummary = &snapshot.Summary
+	}
+	pending, pendingErr := hasPendingFeeSupplement(ctx, client, order.ID)
+	if pendingErr != nil {
+		return nil, pendingErr
+	}
+
 	// 只有 SE 锁定会形成海运单证版本，因此只对 SE 要求活动提单关系。
 	hasActiveLink := true
 	if businessType == access.OrderBusinessSE {
@@ -274,5 +287,13 @@ func (r *orderLockRepo) GetOrderLockState(ctx context.Context, organizationID, o
 		}
 	}
 
+	if pending {
+		state.CanLock = false
+		state.CanRoleDirectUnlock = false
+		state.CanAdminEmergencyUnlock = false
+		state.CanRequestUnlock = false
+		state.LockBlockedReasons = append(state.LockBlockedReasons, "存在待补审的费用变更")
+		state.UnlockBlockedReasons = append(state.UnlockBlockedReasons, "存在待补审的费用变更，请先审核或撤回")
+	}
 	return state, nil
 }

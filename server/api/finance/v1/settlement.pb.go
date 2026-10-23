@@ -663,11 +663,10 @@ type ListFeeLedgerRequest struct {
 	CustomerId              *string                     `protobuf:"bytes,11,opt,name=customer_id,json=customerId,proto3,oneof" json:"customer_id,omitempty"`
 	FinancialProgress       *FeeLedgerFinancialProgress `protobuf:"varint,12,opt,name=financial_progress,json=financialProgress,proto3,enum=finance.v1.FeeLedgerFinancialProgress,oneof" json:"financial_progress,omitempty"`
 	BillNo                  *string                     `protobuf:"bytes,13,opt,name=bill_no,json=billNo,proto3,oneof" json:"bill_no,omitempty"`
-	FinanceLocked           *bool                       `protobuf:"varint,14,opt,name=finance_locked,json=financeLocked,proto3,oneof" json:"finance_locked,omitempty"`
 	TagIds                  []string                    `protobuf:"bytes,15,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
 	OrganizationId          *string                     `protobuf:"bytes,16,opt,name=organization_id,json=organizationId,proto3,oneof" json:"organization_id,omitempty"`
-	FeeReviewStatus         string                      `protobuf:"bytes,17,opt,name=fee_review_status,json=feeReviewStatus,proto3" json:"fee_review_status,omitempty"`
 	HasPendingFeeSupplement *bool                       `protobuf:"varint,18,opt,name=has_pending_fee_supplement,json=hasPendingFeeSupplement,proto3,oneof" json:"has_pending_fee_supplement,omitempty"`
+	OrderLocked             *bool                       `protobuf:"varint,19,opt,name=order_locked,json=orderLocked,proto3,oneof" json:"order_locked,omitempty"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -786,13 +785,6 @@ func (x *ListFeeLedgerRequest) GetBillNo() string {
 	return ""
 }
 
-func (x *ListFeeLedgerRequest) GetFinanceLocked() bool {
-	if x != nil && x.FinanceLocked != nil {
-		return *x.FinanceLocked
-	}
-	return false
-}
-
 func (x *ListFeeLedgerRequest) GetTagIds() []string {
 	if x != nil {
 		return x.TagIds
@@ -807,16 +799,16 @@ func (x *ListFeeLedgerRequest) GetOrganizationId() string {
 	return ""
 }
 
-func (x *ListFeeLedgerRequest) GetFeeReviewStatus() string {
-	if x != nil {
-		return x.FeeReviewStatus
-	}
-	return ""
-}
-
 func (x *ListFeeLedgerRequest) GetHasPendingFeeSupplement() bool {
 	if x != nil && x.HasPendingFeeSupplement != nil {
 		return *x.HasPendingFeeSupplement
+	}
+	return false
+}
+
+func (x *ListFeeLedgerRequest) GetOrderLocked() bool {
+	if x != nil && x.OrderLocked != nil {
+		return *x.OrderLocked
 	}
 	return false
 }
@@ -852,17 +844,16 @@ type FeeLedgerItem struct {
 	CustomerName            string                     `protobuf:"bytes,28,opt,name=customer_name,json=customerName,proto3" json:"customer_name,omitempty"`
 	FinancialProgress       FeeLedgerFinancialProgress `protobuf:"varint,29,opt,name=financial_progress,json=financialProgress,proto3,enum=finance.v1.FeeLedgerFinancialProgress" json:"financial_progress,omitempty"`
 	BillNo                  *string                    `protobuf:"bytes,30,opt,name=bill_no,json=billNo,proto3,oneof" json:"bill_no,omitempty"`
-	FinanceLocked           bool                       `protobuf:"varint,31,opt,name=finance_locked,json=financeLocked,proto3" json:"finance_locked,omitempty"`
 	Tags                    []*BusinessTagSummary      `protobuf:"bytes,34,rep,name=tags,proto3" json:"tags,omitempty"`
 	OrganizationId          string                     `protobuf:"bytes,35,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
 	OrganizationName        string                     `protobuf:"bytes,36,opt,name=organization_name,json=organizationName,proto3" json:"organization_name,omitempty"`
-	FeeReviewStatus         string                     `protobuf:"bytes,37,opt,name=fee_review_status,json=feeReviewStatus,proto3" json:"fee_review_status,omitempty"`
 	HasPendingFeeSupplement bool                       `protobuf:"varint,38,opt,name=has_pending_fee_supplement,json=hasPendingFeeSupplement,proto3" json:"has_pending_fee_supplement,omitempty"`
 	CanBill                 bool                       `protobuf:"varint,39,opt,name=can_bill,json=canBill,proto3" json:"can_bill,omitempty"`
 	BlockedReasons          []string                   `protobuf:"bytes,40,rep,name=blocked_reasons,json=blockedReasons,proto3" json:"blocked_reasons,omitempty"`
 	EconomicEffect          string                     `protobuf:"bytes,41,opt,name=economic_effect,json=economicEffect,proto3" json:"economic_effect,omitempty"`
 	CorrectionRequestId     *string                    `protobuf:"bytes,42,opt,name=correction_request_id,json=correctionRequestId,proto3,oneof" json:"correction_request_id,omitempty"`
 	HasPendingFeeCorrection bool                       `protobuf:"varint,43,opt,name=has_pending_fee_correction,json=hasPendingFeeCorrection,proto3" json:"has_pending_fee_correction,omitempty"`
+	OrderLocked             bool                       `protobuf:"varint,44,opt,name=order_locked,json=orderLocked,proto3" json:"order_locked,omitempty"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -1100,13 +1091,6 @@ func (x *FeeLedgerItem) GetBillNo() string {
 	return ""
 }
 
-func (x *FeeLedgerItem) GetFinanceLocked() bool {
-	if x != nil {
-		return x.FinanceLocked
-	}
-	return false
-}
-
 func (x *FeeLedgerItem) GetTags() []*BusinessTagSummary {
 	if x != nil {
 		return x.Tags
@@ -1124,13 +1108,6 @@ func (x *FeeLedgerItem) GetOrganizationId() string {
 func (x *FeeLedgerItem) GetOrganizationName() string {
 	if x != nil {
 		return x.OrganizationName
-	}
-	return ""
-}
-
-func (x *FeeLedgerItem) GetFeeReviewStatus() string {
-	if x != nil {
-		return x.FeeReviewStatus
 	}
 	return ""
 }
@@ -1173,6 +1150,13 @@ func (x *FeeLedgerItem) GetCorrectionRequestId() string {
 func (x *FeeLedgerItem) GetHasPendingFeeCorrection() bool {
 	if x != nil {
 		return x.HasPendingFeeCorrection
+	}
+	return false
+}
+
+func (x *FeeLedgerItem) GetOrderLocked() bool {
+	if x != nil {
+		return x.OrderLocked
 	}
 	return false
 }
@@ -20385,7 +20369,7 @@ var File_finance_v1_settlement_proto protoreflect.FileDescriptor
 const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\n" +
 	"\x1bfinance/v1/settlement.proto\x12\n" +
-	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\xea\a\n" +
+	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\xe7\a\n" +
 	"\x14ListFeeLedgerRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
@@ -20400,13 +20384,12 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\vcustomer_id\x18\v \x01(\tH\aR\n" +
 	"customerId\x88\x01\x01\x12Z\n" +
 	"\x12financial_progress\x18\f \x01(\x0e2&.finance.v1.FeeLedgerFinancialProgressH\bR\x11financialProgress\x88\x01\x01\x12\x1c\n" +
-	"\abill_no\x18\r \x01(\tH\tR\x06billNo\x88\x01\x01\x12*\n" +
-	"\x0efinance_locked\x18\x0e \x01(\bH\n" +
-	"R\rfinanceLocked\x88\x01\x01\x12\x17\n" +
+	"\abill_no\x18\r \x01(\tH\tR\x06billNo\x88\x01\x01\x12\x17\n" +
 	"\atag_ids\x18\x0f \x03(\tR\x06tagIds\x12,\n" +
-	"\x0forganization_id\x18\x10 \x01(\tH\vR\x0eorganizationId\x88\x01\x01\x12*\n" +
-	"\x11fee_review_status\x18\x11 \x01(\tR\x0ffeeReviewStatus\x12@\n" +
-	"\x1ahas_pending_fee_supplement\x18\x12 \x01(\bH\fR\x17hasPendingFeeSupplement\x88\x01\x01B\n" +
+	"\x0forganization_id\x18\x10 \x01(\tH\n" +
+	"R\x0eorganizationId\x88\x01\x01\x12@\n" +
+	"\x1ahas_pending_fee_supplement\x18\x12 \x01(\bH\vR\x17hasPendingFeeSupplement\x88\x01\x01\x12&\n" +
+	"\forder_locked\x18\x13 \x01(\bH\fR\vorderLocked\x88\x01\x01B\n" +
 	"\n" +
 	"\b_keywordB\x10\n" +
 	"\x0e_business_typeB\f\n" +
@@ -20419,10 +20402,10 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\f_customer_idB\x15\n" +
 	"\x13_financial_progressB\n" +
 	"\n" +
-	"\b_bill_noB\x11\n" +
-	"\x0f_finance_lockedB\x12\n" +
+	"\b_bill_noB\x12\n" +
 	"\x10_organization_idB\x1d\n" +
-	"\x1b_has_pending_fee_supplementJ\x04\b\x06\x10\aR\x06status\"\xc5\f\n" +
+	"\x1b_has_pending_fee_supplementB\x0f\n" +
+	"\r_order_lockedJ\x04\b\x06\x10\aJ\x04\b\x0e\x10\x0fJ\x04\b\x11\x10\x12R\x06statusR\x0efinance_lockedR\x11fee_review_status\"\xc4\f\n" +
 	"\rFeeLedgerItem\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x19\n" +
@@ -20459,23 +20442,22 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"customerId\x12#\n" +
 	"\rcustomer_name\x18\x1c \x01(\tR\fcustomerName\x12U\n" +
 	"\x12financial_progress\x18\x1d \x01(\x0e2&.finance.v1.FeeLedgerFinancialProgressR\x11financialProgress\x12\x1c\n" +
-	"\abill_no\x18\x1e \x01(\tH\x02R\x06billNo\x88\x01\x01\x12%\n" +
-	"\x0efinance_locked\x18\x1f \x01(\bR\rfinanceLocked\x122\n" +
+	"\abill_no\x18\x1e \x01(\tH\x02R\x06billNo\x88\x01\x01\x122\n" +
 	"\x04tags\x18\" \x03(\v2\x1e.finance.v1.BusinessTagSummaryR\x04tags\x12'\n" +
 	"\x0forganization_id\x18# \x01(\tR\x0eorganizationId\x12+\n" +
-	"\x11organization_name\x18$ \x01(\tR\x10organizationName\x12*\n" +
-	"\x11fee_review_status\x18% \x01(\tR\x0ffeeReviewStatus\x12;\n" +
+	"\x11organization_name\x18$ \x01(\tR\x10organizationName\x12;\n" +
 	"\x1ahas_pending_fee_supplement\x18& \x01(\bR\x17hasPendingFeeSupplement\x12\x19\n" +
 	"\bcan_bill\x18' \x01(\bR\acanBill\x12'\n" +
 	"\x0fblocked_reasons\x18( \x03(\tR\x0eblockedReasons\x12'\n" +
 	"\x0feconomic_effect\x18) \x01(\tR\x0eeconomicEffect\x127\n" +
 	"\x15correction_request_id\x18* \x01(\tH\x03R\x13correctionRequestId\x88\x01\x01\x12;\n" +
-	"\x1ahas_pending_fee_correction\x18+ \x01(\bR\x17hasPendingFeeCorrectionB\a\n" +
+	"\x1ahas_pending_fee_correction\x18+ \x01(\bR\x17hasPendingFeeCorrection\x12!\n" +
+	"\forder_locked\x18, \x01(\bR\vorderLockedB\a\n" +
 	"\x05_noteB\v\n" +
 	"\t_tax_rateB\n" +
 	"\n" +
 	"\b_bill_noB\x18\n" +
-	"\x16_correction_request_idJ\x04\b\x06\x10\aJ\x04\b \x10\"R\x06status\"\xd6\x01\n" +
+	"\x16_correction_request_idJ\x04\b\x06\x10\aJ\x04\b\x1f\x10 J\x04\b%\x10&J\x04\b \x10\"R\x06statusR\x0efinance_lockedR\x11fee_review_status\"\xd6\x01\n" +
 	"\x1bFeeLedgerBaseCurrencyAmount\x12#\n" +
 	"\rbase_currency\x18\x01 \x01(\tR\fbaseCurrency\x124\n" +
 	"\x16receivable_base_amount\x18\x02 \x01(\tR\x14receivableBaseAmount\x12.\n" +

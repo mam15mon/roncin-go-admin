@@ -3223,44 +3223,42 @@ func (x *GetOrderRequest) GetId() string {
 
 // ListOrdersRequest 获取订单列表请求。
 type ListOrdersRequest struct {
-	state                   protoimpl.MessageState  `protogen:"open.v1"`
-	Page                    int32                   `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize                int32                   `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	Keyword                 string                  `protobuf:"bytes,3,opt,name=keyword,proto3" json:"keyword,omitempty"`
-	FlowStatus              *OrderFlowStatus        `protobuf:"varint,4,opt,name=flow_status,json=flowStatus,proto3,enum=order.v1.OrderFlowStatus,oneof" json:"flow_status,omitempty"`
-	BusinessType            *BusinessType           `protobuf:"varint,5,opt,name=business_type,json=businessType,proto3,enum=order.v1.BusinessType,oneof" json:"business_type,omitempty"`
-	CustomerId              string                  `protobuf:"bytes,6,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
-	TerminationStatus       *OrderTerminationStatus `protobuf:"varint,7,opt,name=termination_status,json=terminationStatus,proto3,enum=order.v1.OrderTerminationStatus,oneof" json:"termination_status,omitempty"`
-	ClosureStatus           *OrderClosureStatus     `protobuf:"varint,8,opt,name=closure_status,json=closureStatus,proto3,enum=order.v1.OrderClosureStatus,oneof" json:"closure_status,omitempty"`
-	HasActiveException      *bool                   `protobuf:"varint,9,opt,name=has_active_exception,json=hasActiveException,proto3,oneof" json:"has_active_exception,omitempty"`
-	NumberType              *OrderNumberFilterType  `protobuf:"varint,10,opt,name=number_type,json=numberType,proto3,enum=order.v1.OrderNumberFilterType,oneof" json:"number_type,omitempty"`
-	NumberKeyword           string                  `protobuf:"bytes,11,opt,name=number_keyword,json=numberKeyword,proto3" json:"number_keyword,omitempty"`
-	CreatedAtFrom           string                  `protobuf:"bytes,12,opt,name=created_at_from,json=createdAtFrom,proto3" json:"created_at_from,omitempty"`
-	CreatedAtTo             string                  `protobuf:"bytes,13,opt,name=created_at_to,json=createdAtTo,proto3" json:"created_at_to,omitempty"`
-	EtdFrom                 string                  `protobuf:"bytes,14,opt,name=etd_from,json=etdFrom,proto3" json:"etd_from,omitempty"`
-	EtdTo                   string                  `protobuf:"bytes,15,opt,name=etd_to,json=etdTo,proto3" json:"etd_to,omitempty"`
-	EtaFrom                 string                  `protobuf:"bytes,16,opt,name=eta_from,json=etaFrom,proto3" json:"eta_from,omitempty"`
-	EtaTo                   string                  `protobuf:"bytes,17,opt,name=eta_to,json=etaTo,proto3" json:"eta_to,omitempty"`
-	StatusTimeFrom          string                  `protobuf:"bytes,18,opt,name=status_time_from,json=statusTimeFrom,proto3" json:"status_time_from,omitempty"`
-	StatusTimeTo            string                  `protobuf:"bytes,19,opt,name=status_time_to,json=statusTimeTo,proto3" json:"status_time_to,omitempty"`
-	LockedAtFrom            string                  `protobuf:"bytes,20,opt,name=locked_at_from,json=lockedAtFrom,proto3" json:"locked_at_from,omitempty"`
-	LockedAtTo              string                  `protobuf:"bytes,21,opt,name=locked_at_to,json=lockedAtTo,proto3" json:"locked_at_to,omitempty"`
-	OriginLocationId        string                  `protobuf:"bytes,22,opt,name=origin_location_id,json=originLocationId,proto3" json:"origin_location_id,omitempty"`
-	DestinationLocationId   string                  `protobuf:"bytes,23,opt,name=destination_location_id,json=destinationLocationId,proto3" json:"destination_location_id,omitempty"`
-	ShippingLineId          string                  `protobuf:"bytes,24,opt,name=shipping_line_id,json=shippingLineId,proto3" json:"shipping_line_id,omitempty"`
-	ConsigneeShortName      string                  `protobuf:"bytes,25,opt,name=consignee_short_name,json=consigneeShortName,proto3" json:"consignee_short_name,omitempty"`
-	ShipperShortName        string                  `protobuf:"bytes,26,opt,name=shipper_short_name,json=shipperShortName,proto3" json:"shipper_short_name,omitempty"`
-	OperatorId              string                  `protobuf:"bytes,27,opt,name=operator_id,json=operatorId,proto3" json:"operator_id,omitempty"`
-	SalesId                 string                  `protobuf:"bytes,29,opt,name=sales_id,json=salesId,proto3" json:"sales_id,omitempty"`
-	CustomerServiceId       string                  `protobuf:"bytes,31,opt,name=customer_service_id,json=customerServiceId,proto3" json:"customer_service_id,omitempty"`
-	CreatorId               string                  `protobuf:"bytes,33,opt,name=creator_id,json=creatorId,proto3" json:"creator_id,omitempty"`
-	TagIds                  []string                `protobuf:"bytes,35,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
-	IsLocked                *bool                   `protobuf:"varint,37,opt,name=is_locked,json=isLocked,proto3,oneof" json:"is_locked,omitempty"`
-	IsShared                *bool                   `protobuf:"varint,38,opt,name=is_shared,json=isShared,proto3,oneof" json:"is_shared,omitempty"`
-	FeeReviewStatus         string                  `protobuf:"bytes,39,opt,name=fee_review_status,json=feeReviewStatus,proto3" json:"fee_review_status,omitempty"`
-	HasPendingFeeSupplement *bool                   `protobuf:"varint,40,opt,name=has_pending_fee_supplement,json=hasPendingFeeSupplement,proto3,oneof" json:"has_pending_fee_supplement,omitempty"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	state                 protoimpl.MessageState  `protogen:"open.v1"`
+	Page                  int32                   `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize              int32                   `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Keyword               string                  `protobuf:"bytes,3,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	FlowStatus            *OrderFlowStatus        `protobuf:"varint,4,opt,name=flow_status,json=flowStatus,proto3,enum=order.v1.OrderFlowStatus,oneof" json:"flow_status,omitempty"`
+	BusinessType          *BusinessType           `protobuf:"varint,5,opt,name=business_type,json=businessType,proto3,enum=order.v1.BusinessType,oneof" json:"business_type,omitempty"`
+	CustomerId            string                  `protobuf:"bytes,6,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
+	TerminationStatus     *OrderTerminationStatus `protobuf:"varint,7,opt,name=termination_status,json=terminationStatus,proto3,enum=order.v1.OrderTerminationStatus,oneof" json:"termination_status,omitempty"`
+	ClosureStatus         *OrderClosureStatus     `protobuf:"varint,8,opt,name=closure_status,json=closureStatus,proto3,enum=order.v1.OrderClosureStatus,oneof" json:"closure_status,omitempty"`
+	HasActiveException    *bool                   `protobuf:"varint,9,opt,name=has_active_exception,json=hasActiveException,proto3,oneof" json:"has_active_exception,omitempty"`
+	NumberType            *OrderNumberFilterType  `protobuf:"varint,10,opt,name=number_type,json=numberType,proto3,enum=order.v1.OrderNumberFilterType,oneof" json:"number_type,omitempty"`
+	NumberKeyword         string                  `protobuf:"bytes,11,opt,name=number_keyword,json=numberKeyword,proto3" json:"number_keyword,omitempty"`
+	CreatedAtFrom         string                  `protobuf:"bytes,12,opt,name=created_at_from,json=createdAtFrom,proto3" json:"created_at_from,omitempty"`
+	CreatedAtTo           string                  `protobuf:"bytes,13,opt,name=created_at_to,json=createdAtTo,proto3" json:"created_at_to,omitempty"`
+	EtdFrom               string                  `protobuf:"bytes,14,opt,name=etd_from,json=etdFrom,proto3" json:"etd_from,omitempty"`
+	EtdTo                 string                  `protobuf:"bytes,15,opt,name=etd_to,json=etdTo,proto3" json:"etd_to,omitempty"`
+	EtaFrom               string                  `protobuf:"bytes,16,opt,name=eta_from,json=etaFrom,proto3" json:"eta_from,omitempty"`
+	EtaTo                 string                  `protobuf:"bytes,17,opt,name=eta_to,json=etaTo,proto3" json:"eta_to,omitempty"`
+	StatusTimeFrom        string                  `protobuf:"bytes,18,opt,name=status_time_from,json=statusTimeFrom,proto3" json:"status_time_from,omitempty"`
+	StatusTimeTo          string                  `protobuf:"bytes,19,opt,name=status_time_to,json=statusTimeTo,proto3" json:"status_time_to,omitempty"`
+	LockedAtFrom          string                  `protobuf:"bytes,20,opt,name=locked_at_from,json=lockedAtFrom,proto3" json:"locked_at_from,omitempty"`
+	LockedAtTo            string                  `protobuf:"bytes,21,opt,name=locked_at_to,json=lockedAtTo,proto3" json:"locked_at_to,omitempty"`
+	OriginLocationId      string                  `protobuf:"bytes,22,opt,name=origin_location_id,json=originLocationId,proto3" json:"origin_location_id,omitempty"`
+	DestinationLocationId string                  `protobuf:"bytes,23,opt,name=destination_location_id,json=destinationLocationId,proto3" json:"destination_location_id,omitempty"`
+	ShippingLineId        string                  `protobuf:"bytes,24,opt,name=shipping_line_id,json=shippingLineId,proto3" json:"shipping_line_id,omitempty"`
+	ConsigneeShortName    string                  `protobuf:"bytes,25,opt,name=consignee_short_name,json=consigneeShortName,proto3" json:"consignee_short_name,omitempty"`
+	ShipperShortName      string                  `protobuf:"bytes,26,opt,name=shipper_short_name,json=shipperShortName,proto3" json:"shipper_short_name,omitempty"`
+	OperatorId            string                  `protobuf:"bytes,27,opt,name=operator_id,json=operatorId,proto3" json:"operator_id,omitempty"`
+	SalesId               string                  `protobuf:"bytes,29,opt,name=sales_id,json=salesId,proto3" json:"sales_id,omitempty"`
+	CustomerServiceId     string                  `protobuf:"bytes,31,opt,name=customer_service_id,json=customerServiceId,proto3" json:"customer_service_id,omitempty"`
+	CreatorId             string                  `protobuf:"bytes,33,opt,name=creator_id,json=creatorId,proto3" json:"creator_id,omitempty"`
+	TagIds                []string                `protobuf:"bytes,35,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
+	IsLocked              *bool                   `protobuf:"varint,37,opt,name=is_locked,json=isLocked,proto3,oneof" json:"is_locked,omitempty"`
+	IsShared              *bool                   `protobuf:"varint,38,opt,name=is_shared,json=isShared,proto3,oneof" json:"is_shared,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *ListOrdersRequest) Reset() {
@@ -3520,20 +3518,6 @@ func (x *ListOrdersRequest) GetIsLocked() bool {
 func (x *ListOrdersRequest) GetIsShared() bool {
 	if x != nil && x.IsShared != nil {
 		return *x.IsShared
-	}
-	return false
-}
-
-func (x *ListOrdersRequest) GetFeeReviewStatus() string {
-	if x != nil {
-		return x.FeeReviewStatus
-	}
-	return ""
-}
-
-func (x *ListOrdersRequest) GetHasPendingFeeSupplement() bool {
-	if x != nil && x.HasPendingFeeSupplement != nil {
-		return *x.HasPendingFeeSupplement
 	}
 	return false
 }
@@ -7336,7 +7320,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\a_reasonB\x0e\n" +
 	"\f_operator_id\"&\n" +
 	"\x0fGetOrderRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\x85\r\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xb3\f\n" +
 	"\x11ListOrdersRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x18\n" +
@@ -7377,9 +7361,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"creator_id\x18! \x01(\tR\tcreatorId\x12\x17\n" +
 	"\atag_ids\x18# \x03(\tR\x06tagIds\x12 \n" +
 	"\tis_locked\x18% \x01(\bH\x06R\bisLocked\x88\x01\x01\x12 \n" +
-	"\tis_shared\x18& \x01(\bH\aR\bisShared\x88\x01\x01\x12*\n" +
-	"\x11fee_review_status\x18' \x01(\tR\x0ffeeReviewStatus\x12@\n" +
-	"\x1ahas_pending_fee_supplement\x18( \x01(\bH\bR\x17hasPendingFeeSupplement\x88\x01\x01B\x0e\n" +
+	"\tis_shared\x18& \x01(\bH\aR\bisShared\x88\x01\x01B\x0e\n" +
 	"\f_flow_statusB\x10\n" +
 	"\x0e_business_typeB\x15\n" +
 	"\x13_termination_statusB\x11\n" +
@@ -7389,8 +7371,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\n" +
 	"_is_lockedB\f\n" +
 	"\n" +
-	"_is_sharedB\x1d\n" +
-	"\x1b_has_pending_fee_supplement\"\x88\x02\n" +
+	"_is_sharedJ\x04\b'\x10(J\x04\b(\x10)R\x11fee_review_statusR\x1ahas_pending_fee_supplement\"\x88\x02\n" +
 	"\x1aCheckOrderReferenceRequest\x12H\n" +
 	"\x0ereference_type\x18\x01 \x01(\x0e2\x1c.order.v1.OrderReferenceTypeB\x03\xe0A\x02R\rreferenceType\x12&\n" +
 	"\freference_no\x18\x02 \x01(\tB\x03\xe0A\x02R\vreferenceNo\x12$\n" +

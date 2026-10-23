@@ -78,7 +78,7 @@ describe('原因确认框归属与未保存保护', () => {
     await act(async () => view.rerender(<div>新工作区</div>));
     await waitFor(() => expect(getAnyDirtyTabKey()).toBeUndefined());
     const closingDialog = screen.queryByRole('dialog');
-    if (closingDialog) fireEvent.animationEnd(closingDialog);
+    if (closingDialog) fireEvent.transitionEnd(closingDialog);
     await waitFor(() =>
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
     );

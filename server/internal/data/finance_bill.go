@@ -376,6 +376,10 @@ func (r *financeBillRepo) LoadBillableFeesScoped(ctx context.Context, organizati
 	if err != nil {
 		return nil, err
 	}
+	pendingSources, err := pendingCorrectionSourceFees(ctx, client, feeIDs)
+	if err != nil {
+		return nil, err
+	}
 	result := make([]*biz.FinanceBillableFee, 0, len(items))
 	for _, item := range items {
 		fee, convertErr := orderFeeToBiz(item)
@@ -391,10 +395,10 @@ func (r *financeBillRepo) LoadBillableFeesScoped(ctx context.Context, organizati
 		if party != nil {
 			isCasual = party.IsCasual
 		}
-		if err := validateApprovedOrderFees(ctx, client, businessOrder); err != nil {
-			return nil, err
+		if pendingSources[fee.ID] {
+			return nil, biz.ErrFeeCorrectionPending
 		}
-		result = append(result, &biz.FinanceBillableFee{FeeReviewStatus: string(businessOrder.FeeReviewStatus), CanBill: !fee.HasActiveBill && biz.RequiresAccounting(fee), Fee: fee, OrganizationID: businessOrder.OrganizationID, OrderNo: businessOrder.OrderNo, BusinessType: string(businessOrder.BusinessType), SettlementPartyIsCasual: isCasual})
+		result = append(result, &biz.FinanceBillableFee{OrderLocked: businessOrder.LockedAt != nil, CanBill: !fee.HasActiveBill && biz.RequiresAccounting(fee), Fee: fee, OrganizationID: businessOrder.OrganizationID, OrderNo: businessOrder.OrderNo, BusinessType: string(businessOrder.BusinessType), SettlementPartyIsCasual: isCasual})
 	}
 	return result, nil
 }
@@ -518,7 +522,11 @@ func (r *financeBillRepo) ListCreationCandidates(ctx context.Context, organizati
 	for _, item := range items {
 		orders = append(orders, item.Edges.Order)
 	}
-	approvalStates, _, err := batchFeeReviewApprovalStates(ctx, client, orders)
+	feeIDs := make([]uuid.UUID, 0, len(items))
+	for _, item := range items {
+		feeIDs = append(feeIDs, item.ID)
+	}
+	pendingSources, err := pendingCorrectionSourceFees(ctx, client, feeIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -557,12 +565,15 @@ func (r *financeBillRepo) ListCreationCandidates(ctx context.Context, organizati
 		if party != nil {
 			isCasual = party.IsCasual
 		}
-		approvalErr := approvalStates[order.ID]
+		var approvalErr error
+		if pendingSources[fee.ID] {
+			approvalErr = biz.ErrFeeCorrectionPending
+		}
 		blocked := []string{}
 		if approvalErr != nil {
 			blocked = append(blocked, approvalErr.Error())
 		}
-		result.Items = append(result.Items, &biz.FinanceBillableFee{FeeReviewStatus: string(order.FeeReviewStatus), HasPendingFeeSupplement: pendingSupplements[order.ID], HasPendingFeeCorrection: pendingCorrections[order.ID], CanBill: approvalErr == nil, BlockedReasons: blocked, Fee: fee, OrganizationID: order.OrganizationID, OrderNo: order.OrderNo, BusinessType: string(order.BusinessType), SettlementPartyIsCasual: isCasual})
+		result.Items = append(result.Items, &biz.FinanceBillableFee{OrderLocked: order.LockedAt != nil, HasPendingFeeSupplement: pendingSupplements[order.ID], HasPendingFeeCorrection: pendingCorrections[order.ID], CanBill: approvalErr == nil, BlockedReasons: blocked, Fee: fee, OrganizationID: order.OrganizationID, OrderNo: order.OrderNo, BusinessType: string(order.BusinessType), SettlementPartyIsCasual: isCasual})
 	}
 	return result, nil
 }

@@ -23,11 +23,12 @@ func (FinanceCommissionAdjustment) Annotations() []schema.Annotation {
 			"commission_adjustment_direction_check":   "direction IN ('INCREASE', 'DECREASE')",
 			"commission_adjustment_status_check":      "status IN ('DRAFT', 'CONFIRMED', 'PAID', 'CANCELLED')",
 			"commission_adjustment_amount_positive":   "amount > 0",
-			"commission_adjustment_source_type_check": "source_type IN ('MANUAL', 'VERIFICATION_REVERSAL', 'NETTING_REVERSAL', 'LOCKED_FEE_SUPPLEMENT','FEE_CORRECTION','ECONOMIC_REALLOCATION')",
+			"commission_adjustment_source_type_check": "source_type IN ('MANUAL', 'VERIFICATION_REVERSAL', 'NETTING_REVERSAL', 'LOCKED_FEE_SUPPLEMENT','FEE_CORRECTION','ECONOMIC_REALLOCATION','FEE_MUTATION')",
 			// 来源关联互斥：仅锁后费用补录来源允许且必须携带补录申请关联；
 			// 人工与核销/对冲冲减来源不得携带该关联，防止来源错配绕过唯一键。
 			"commission_adjustment_source_correction_check":   "(source_type = 'FEE_CORRECTION' AND source_fee_correction_request_id IS NOT NULL) OR (source_type <> 'FEE_CORRECTION' AND source_fee_correction_request_id IS NULL)",
 			"commission_adjustment_source_reallocation_check": "source_type <> 'ECONOMIC_REALLOCATION' OR ((source_verification_id IS NOT NULL AND source_netting_id IS NULL) OR (source_verification_id IS NULL AND source_netting_id IS NOT NULL))",
+			"commission_adjustment_source_fee_mutation_check": "source_type <> 'FEE_MUTATION' OR (source_verification_id IS NULL AND source_netting_id IS NULL)",
 			"commission_adjustment_source_supplement_check":   "(source_type = 'LOCKED_FEE_SUPPLEMENT' AND source_fee_supplement_request_id IS NOT NULL) OR (source_type <> 'LOCKED_FEE_SUPPLEMENT' AND source_fee_supplement_request_id IS NULL)",
 		}),
 	}
@@ -44,7 +45,7 @@ func (FinanceCommissionAdjustment) Fields() []ent.Field {
 		field.String("order_no").NotEmpty().MaxLen(64).Immutable(),
 		field.UUID("employee_id", uuid.Nil).Immutable(),
 		field.String("employee_name").NotEmpty().MaxLen(100).Immutable(),
-		field.Enum("source_type").Values("MANUAL", "VERIFICATION_REVERSAL", "NETTING_REVERSAL", "LOCKED_FEE_SUPPLEMENT", "FEE_CORRECTION", "ECONOMIC_REALLOCATION").Default("MANUAL").Immutable(),
+		field.Enum("source_type").Values("MANUAL", "VERIFICATION_REVERSAL", "NETTING_REVERSAL", "LOCKED_FEE_SUPPLEMENT", "FEE_CORRECTION", "ECONOMIC_REALLOCATION", "FEE_MUTATION").Default("MANUAL").Immutable(),
 		field.UUID("source_verification_id", uuid.Nil).Optional().Nillable().Immutable(),
 		// 锁后费用补录来源的补录申请关联：数据库 CHECK 强制与 LOCKED_FEE_SUPPLEMENT
 		// 双向对应，外键 NO ACTION 禁止删除申请造成孤儿调整。

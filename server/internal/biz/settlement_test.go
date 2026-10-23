@@ -63,13 +63,13 @@ func TestResolveFeeLedgerFinancialProgressCoversSevenStates(t *testing.T) {
 func TestListFeeLedgerNormalizesFinancialProgressAndBillNumber(t *testing.T) {
 	repo := &settlementRepoStub{}
 	usecase := NewSettlementUsecase(repo)
-	financeLocked := true
+	orderLocked := true
 	_, err := usecase.ListFeeLedger(context.Background(), []uuid.UUID{uuid.Must(uuid.NewV7())}, FeeLedgerFilter{
 		Page:              1,
 		PageSize:          200,
 		FinancialProgress: "completed",
 		BillNo:            "  FB202608280001  ",
-		FinanceLocked:     &financeLocked,
+		OrderLocked:       &orderLocked,
 	})
 	if err != nil {
 		t.Fatalf("查询费用台账失败: %v", err)
@@ -80,8 +80,8 @@ func TestListFeeLedgerNormalizesFinancialProgressAndBillNumber(t *testing.T) {
 	if repo.filter.BillNo != "FB202608280001" {
 		t.Fatalf("账单编号 = %q，期望去除首尾空格", repo.filter.BillNo)
 	}
-	if repo.filter.FinanceLocked == nil || !*repo.filter.FinanceLocked {
-		t.Fatal("费用锁定筛选未传递到数据层")
+	if repo.filter.OrderLocked == nil || !*repo.filter.OrderLocked {
+		t.Fatal("订单审核锁筛选未传递到数据层")
 	}
 }
 

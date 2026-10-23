@@ -573,8 +573,8 @@ message ListOrdersRequest {
   repeated string tag_ids = 35;
   optional bool is_locked = 37;
   optional bool is_shared = 38;
-  string fee_review_status = 39;
-  optional bool has_pending_fee_supplement = 40;
+  reserved 39, 40;
+  reserved "fee_review_status", "has_pending_fee_supplement";
 }
 
 // CheckOrderReferenceRequest 检查订单业务编号是否重复。

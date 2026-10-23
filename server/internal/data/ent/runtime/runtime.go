@@ -6129,7 +6129,7 @@ func init() {
 	// orderfeecorrectionrequest.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	orderfeecorrectionrequest.UpdateDefaultUpdatedAt = orderfeecorrectionrequestDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// orderfeecorrectionrequestDescReason is the schema descriptor for reason field.
-	orderfeecorrectionrequestDescReason := orderfeecorrectionrequestFields[11].Descriptor()
+	orderfeecorrectionrequestDescReason := orderfeecorrectionrequestFields[13].Descriptor()
 	// orderfeecorrectionrequest.ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
 	orderfeecorrectionrequest.ReasonValidator = func() func(string) error {
 		validators := orderfeecorrectionrequestDescReason.Validators
@@ -6147,7 +6147,7 @@ func init() {
 		}
 	}()
 	// orderfeecorrectionrequestDescIdempotencyKey is the schema descriptor for idempotency_key field.
-	orderfeecorrectionrequestDescIdempotencyKey := orderfeecorrectionrequestFields[12].Descriptor()
+	orderfeecorrectionrequestDescIdempotencyKey := orderfeecorrectionrequestFields[14].Descriptor()
 	// orderfeecorrectionrequest.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
 	orderfeecorrectionrequest.IdempotencyKeyValidator = func() func(string) error {
 		validators := orderfeecorrectionrequestDescIdempotencyKey.Validators
@@ -6165,7 +6165,7 @@ func init() {
 		}
 	}()
 	// orderfeecorrectionrequestDescRequestFingerprint is the schema descriptor for request_fingerprint field.
-	orderfeecorrectionrequestDescRequestFingerprint := orderfeecorrectionrequestFields[13].Descriptor()
+	orderfeecorrectionrequestDescRequestFingerprint := orderfeecorrectionrequestFields[15].Descriptor()
 	// orderfeecorrectionrequest.RequestFingerprintValidator is a validator for the "request_fingerprint" field. It is called by the builders before save.
 	orderfeecorrectionrequest.RequestFingerprintValidator = func() func(string) error {
 		validators := orderfeecorrectionrequestDescRequestFingerprint.Validators
@@ -6183,15 +6183,15 @@ func init() {
 		}
 	}()
 	// orderfeecorrectionrequestDescVersion is the schema descriptor for version field.
-	orderfeecorrectionrequestDescVersion := orderfeecorrectionrequestFields[17].Descriptor()
+	orderfeecorrectionrequestDescVersion := orderfeecorrectionrequestFields[19].Descriptor()
 	// orderfeecorrectionrequest.DefaultVersion holds the default value on creation for the version field.
 	orderfeecorrectionrequest.DefaultVersion = orderfeecorrectionrequestDescVersion.Default.(uint64)
 	// orderfeecorrectionrequestDescDecisionReason is the schema descriptor for decision_reason field.
-	orderfeecorrectionrequestDescDecisionReason := orderfeecorrectionrequestFields[20].Descriptor()
+	orderfeecorrectionrequestDescDecisionReason := orderfeecorrectionrequestFields[22].Descriptor()
 	// orderfeecorrectionrequest.DecisionReasonValidator is a validator for the "decision_reason" field. It is called by the builders before save.
 	orderfeecorrectionrequest.DecisionReasonValidator = orderfeecorrectionrequestDescDecisionReason.Validators[0].(func(string) error)
 	// orderfeecorrectionrequestDescApprovalToken is the schema descriptor for approval_token field.
-	orderfeecorrectionrequestDescApprovalToken := orderfeecorrectionrequestFields[21].Descriptor()
+	orderfeecorrectionrequestDescApprovalToken := orderfeecorrectionrequestFields[23].Descriptor()
 	// orderfeecorrectionrequest.ApprovalTokenValidator is a validator for the "approval_token" field. It is called by the builders before save.
 	orderfeecorrectionrequest.ApprovalTokenValidator = orderfeecorrectionrequestDescApprovalToken.Validators[0].(func(string) error)
 	// orderfeecorrectionrequestDescID is the schema descriptor for id field.
@@ -6660,12 +6660,20 @@ func init() {
 			return nil
 		}
 	}()
+	// orderlockrecordDescFeeContentFingerprint is the schema descriptor for fee_content_fingerprint field.
+	orderlockrecordDescFeeContentFingerprint := orderlockrecordFields[12].Descriptor()
+	// orderlockrecord.FeeContentFingerprintValidator is a validator for the "fee_content_fingerprint" field. It is called by the builders before save.
+	orderlockrecord.FeeContentFingerprintValidator = orderlockrecordDescFeeContentFingerprint.Validators[0].(func(string) error)
+	// orderlockrecordDescReviewComment is the schema descriptor for review_comment field.
+	orderlockrecordDescReviewComment := orderlockrecordFields[13].Descriptor()
+	// orderlockrecord.ReviewCommentValidator is a validator for the "review_comment" field. It is called by the builders before save.
+	orderlockrecord.ReviewCommentValidator = orderlockrecordDescReviewComment.Validators[0].(func(string) error)
 	// orderlockrecordDescUnlockReason is the schema descriptor for unlock_reason field.
-	orderlockrecordDescUnlockReason := orderlockrecordFields[22].Descriptor()
+	orderlockrecordDescUnlockReason := orderlockrecordFields[26].Descriptor()
 	// orderlockrecord.UnlockReasonValidator is a validator for the "unlock_reason" field. It is called by the builders before save.
 	orderlockrecord.UnlockReasonValidator = orderlockrecordDescUnlockReason.Validators[0].(func(string) error)
 	// orderlockrecordDescIdempotencyKey is the schema descriptor for idempotency_key field.
-	orderlockrecordDescIdempotencyKey := orderlockrecordFields[24].Descriptor()
+	orderlockrecordDescIdempotencyKey := orderlockrecordFields[28].Descriptor()
 	// orderlockrecord.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
 	orderlockrecord.IdempotencyKeyValidator = func() func(string) error {
 		validators := orderlockrecordDescIdempotencyKey.Validators
@@ -6683,7 +6691,7 @@ func init() {
 		}
 	}()
 	// orderlockrecordDescRequestFingerprint is the schema descriptor for request_fingerprint field.
-	orderlockrecordDescRequestFingerprint := orderlockrecordFields[25].Descriptor()
+	orderlockrecordDescRequestFingerprint := orderlockrecordFields[29].Descriptor()
 	// orderlockrecord.RequestFingerprintValidator is a validator for the "request_fingerprint" field. It is called by the builders before save.
 	orderlockrecord.RequestFingerprintValidator = func() func(string) error {
 		validators := orderlockrecordDescRequestFingerprint.Validators

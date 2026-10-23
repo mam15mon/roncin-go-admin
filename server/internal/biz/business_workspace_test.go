@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -82,30 +83,9 @@ func TestHeadquartersAuthenticatedBusinessActionsRejectBeforeRepository(t *testi
 	p.UserID = uuid.New()
 	p.IsBootstrapAdmin = true
 	id := uuid.New()
-	supplement := NewOrderFeeSupplementUsecase(nil, nil, nil)
 	calls := []func() error{
 		func() error {
-			_, err := supplement.Create(context.Background(), p, p.Organization.ID, id, nil, false)
-			return err
-		},
-		func() error {
-			_, err := supplement.Approve(context.Background(), p, p.Organization.ID, id, id, 1)
-			return err
-		},
-		func() error {
-			_, err := supplement.Reject(context.Background(), p, p.Organization.ID, id, id, 1, nil)
-			return err
-		},
-		func() error {
-			_, err := supplement.Withdraw(context.Background(), p, p.Organization.ID, id, id, 1)
-			return err
-		},
-		func() error {
-			_, err := supplement.CancelApprovedFee(context.Background(), p, p.Organization.ID, id, id, 1, "撤销")
-			return err
-		},
-		func() error {
-			_, err := NewOrderLockUsecase(nil).LockOrder(context.Background(), p, id, 1, "lock", nil)
+			_, err := NewOrderLockUsecase(nil).LockOrder(context.Background(), p, id, 1, "lock", OrderLockReviewInput{ExpectedFeeContentVersion: 1, FeeContentFingerprint: strings.Repeat("a", 64)}, nil)
 			return err
 		},
 		func() error {

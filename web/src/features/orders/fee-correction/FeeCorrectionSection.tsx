@@ -94,7 +94,7 @@ export function FeeCorrectionComparison({ request }: { request: Correction }) {
           label: '账务影响',
           span: 2,
           children: request.beforeFee?.hasActiveBill
-            ? '原费用已建账，批准后原账保留，通过冲回账单及新费用处理差额；已开票部分由财务核对红冲重开。'
+            ? '原费用已建账，须先按权限撤销核销、发票等依赖并取消账单，回退至账单未建立后才能补录补审。'
             : request.afterFee
               ? '批准后新费用进入待建账；原费用如未建账则保留历史，不重复建账。'
               : '原费用未建账，批准后保留作废记录，无须创建零金额账单。',
@@ -192,7 +192,7 @@ export function FeeCorrectionSection({
         { orderId, id: review?.id || '' },
         { orderId, id: review?.id || '', expectedVersion: review?.version },
       );
-      if (!response?.data) throw new Error('更正审批预览失败，请刷新重试');
+      if (!response?.data) throw new Error('费用补审预览失败，请刷新重试');
       return response.data;
     },
   });
@@ -212,7 +212,7 @@ export function FeeCorrectionSection({
     },
     { title: '申请人', dataIndex: 'requestedByName', width: 100 },
     {
-      title: '更正方式',
+      title: '补录方式',
       dataIndex: 'operation',
       width: 100,
       render: (_, row) => operationLabels[row.operation ?? 0] || '-',
@@ -226,7 +226,15 @@ export function FeeCorrectionSection({
         <Tag>{statusLabels[row.status || ''] || row.status}</Tag>
       ),
     },
-    { title: '账务进度', dataIndex: 'financialStatus', width: 180 },
+    {
+      title: '账务进度',
+      dataIndex: 'financialStatus',
+      width: 180,
+      render: (_, row) =>
+        financialLabels[row.financialStatus || ''] ||
+        row.financialStatus ||
+        '-',
+    },
     {
       title: '操作',
       valueType: 'option',
@@ -246,7 +254,7 @@ export function FeeCorrectionSection({
               onClick={() =>
                 app.modal
                   .confirm({
-                    title: '撤回这笔费用更正申请？',
+                    title: '撤回这笔费用补录申请？',
                     onOk: async () => {
                       const response =
                         await orderFeeServiceWithdrawOrderFeeCorrection(
@@ -280,7 +288,7 @@ export function FeeCorrectionSection({
               onClick={() =>
                 confirmWithReason(
                   app,
-                  '驳回费用更正',
+                  '驳回费用补录',
                   async (reason): Promise<false | undefined> => {
                     const response =
                       await orderFeeServiceRejectOrderFeeCorrection(
@@ -338,7 +346,7 @@ export function FeeCorrectionSection({
             page: current || 1,
             pageSize: pageSize || 10,
           });
-          if (!response) throw new Error('更正申请加载失败');
+          if (!response) throw new Error('补录申请加载失败');
           return toTableRequest(response);
         }}
         onLoad={(records) => onRecordsLoaded?.(records.length > 0)}
@@ -347,7 +355,7 @@ export function FeeCorrectionSection({
         }}
       />
       <GuardedModalForm<{ comment: string }>
-        title="审核费用更正"
+        title="审核费用补录"
         open={Boolean(review)}
         width={860}
         modalProps={{ destroyOnHidden: true }}
@@ -386,7 +394,7 @@ export function FeeCorrectionSection({
               void preview.refetch();
               return false;
             }
-            app.message.success('费用更正已批准');
+            app.message.success('费用补录已批准');
             refresh();
             return true;
           } catch {

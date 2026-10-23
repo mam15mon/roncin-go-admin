@@ -268,6 +268,13 @@ func (r *dingTalkApprovalRepo) ApplyApproved(ctx context.Context, job *biz.DingT
 			return markApprovalStale(ctx, tx, event, request, "APPROVER_NOT_QUALIFIED", "钉钉审批人当前已不具备解锁业务角色资格")
 		}
 
+		pending, pendingErr := hasPendingFeeSupplement(ctx, tx.Client(), order.ID)
+		if pendingErr != nil {
+			return pendingErr
+		}
+		if pending {
+			return markApprovalStale(ctx, tx, event, request, "PENDING_FEE_CHANGE", "存在待补审的费用变更，请先审核或撤回")
+		}
 		newVersion := order.Version + 1
 		if _, err := tx.Order.UpdateOne(order).ClearLockedAt().ClearLockedBy().ClearLockSource().ClearAutoLockTriggerType().ClearAutoLockTriggerResourceID().ClearAutoLockTriggeredBy().SetVersion(newVersion).Save(ctx); err != nil {
 			return err

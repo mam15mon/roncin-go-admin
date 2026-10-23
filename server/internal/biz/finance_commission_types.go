@@ -36,6 +36,7 @@ const (
 	CommissionAdjustmentSourceLockedFeeSupplement  CommissionAdjustmentSourceType = "LOCKED_FEE_SUPPLEMENT"
 	CommissionAdjustmentSourceFeeCorrection        CommissionAdjustmentSourceType = "FEE_CORRECTION"
 	CommissionAdjustmentSourceEconomicReallocation CommissionAdjustmentSourceType = "ECONOMIC_REALLOCATION"
+	CommissionAdjustmentSourceFeeMutation          CommissionAdjustmentSourceType = "FEE_MUTATION"
 	cnyCurrency                                                                   = "CNY"
 )
 
@@ -544,7 +545,7 @@ func validCommissionAdjustmentSourceType(source CommissionAdjustmentSourceType) 
 	case CommissionAdjustmentSourceManual,
 		CommissionAdjustmentSourceVerificationReversal,
 		CommissionAdjustmentSourceNettingReversal,
-		CommissionAdjustmentSourceLockedFeeSupplement, CommissionAdjustmentSourceFeeCorrection, CommissionAdjustmentSourceEconomicReallocation:
+		CommissionAdjustmentSourceLockedFeeSupplement, CommissionAdjustmentSourceFeeCorrection, CommissionAdjustmentSourceEconomicReallocation, CommissionAdjustmentSourceFeeMutation:
 		return true
 	default:
 		return false

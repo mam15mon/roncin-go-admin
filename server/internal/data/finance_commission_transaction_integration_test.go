@@ -545,7 +545,6 @@ func newCommissionPostgresFixture(t *testing.T) *commissionPostgresFixture {
 		t.Fatalf("创建测试提成编号规则: %v", err)
 	}
 
-	seedApprovedFeeSnapshotForTest(t, data, fixture.orderID, fixture.actorID)
 	return fixture
 }
 

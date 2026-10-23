@@ -33,7 +33,7 @@ export function buildOrderFeePanelColumns({
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
-          {canUpdate && (
+          {canUpdate && record.canEdit === true && (
             <Button
               type="link"
               size="small"
@@ -43,9 +43,8 @@ export function buildOrderFeePanelColumns({
               编辑
             </Button>
           )}
-          {/* 已建账（含草稿账单占用）费用不可删除，需先经财务链路取消账单；
-              补录生成费用由服务端拒绝普通删除并提示前往补录申请撤销。 */}
-          {canDelete && record.hasActiveBill !== true && (
+          {/* 删除与修改分别消费服务端能力，账单占用和审核锁由后端统一判断。 */}
+          {canDelete && record.canDelete === true && (
             <Button
               type="link"
               danger

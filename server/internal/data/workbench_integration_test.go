@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"os"
 	"strings"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	financecashflowent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	commissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
@@ -21,7 +23,8 @@ import (
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	attribution "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	fee "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
-	orderfeesupplementent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
+	correctionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
+	lockent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	permissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/shopspring/decimal"
@@ -418,7 +421,7 @@ func (f *workbenchIntegrationFixture) createCommission(employeeID uuid.UUID, rul
 }
 
 // createAdjustment 直接落库一条调整单。
-func (f *workbenchIntegrationFixture) createAdjustment(commissionID, employeeID uuid.UUID, direction string, status commissionadjustmentent.Status, amount string, sourceType commissionadjustmentent.SourceType, supplementRequestID *uuid.UUID) uuid.UUID {
+func (f *workbenchIntegrationFixture) createAdjustment(commissionID, employeeID uuid.UUID, direction string, status commissionadjustmentent.Status, amount string, sourceType commissionadjustmentent.SourceType, correctionRequestID *uuid.UUID) uuid.UUID {
 	f.t.Helper()
 	create := f.data.db.FinanceCommissionAdjustment.Create().
 		SetOrganizationID(f.organizationID).
@@ -437,8 +440,8 @@ func (f *workbenchIntegrationFixture) createAdjustment(commissionID, employeeID 
 		SetAmount(amount).
 		SetReason("工作台测试调整").
 		SetVersion(1)
-	if supplementRequestID != nil {
-		create = create.SetSourceFeeSupplementRequestID(*supplementRequestID)
+	if correctionRequestID != nil {
+		create = create.SetSourceFeeCorrectionRequestID(*correctionRequestID)
 	}
 	item, err := create.Save(context.Background())
 	if err != nil {
@@ -447,58 +450,60 @@ func (f *workbenchIntegrationFixture) createAdjustment(commissionID, employeeID 
 	return item.ID
 }
 
-// createPendingSupplementRequest 建立真实批准证据后落库待审补录。
-func (f *workbenchIntegrationFixture) createPendingSupplementRequest(requestedBy uuid.UUID) uuid.UUID {
+// createPendingCorrectionRequest 建立人工审核依据及待审费用更正。
+func (f *workbenchIntegrationFixture) createPendingCorrectionRequest(requestedBy uuid.UUID) (uuid.UUID, uuid.UUID) {
 	f.t.Helper()
-	seedApprovedFeeSnapshotForTest(f.t, f.data, f.orderID, requestedBy)
-	order, err := f.data.db.Order.Get(context.Background(), f.orderID)
+	order, err := f.data.db.Order.Create().
+		SetIdempotencyKey(uuid.NewString()).
+		SetOrganizationID(f.organizationID).
+		SetOrderNo("WB-AE" + f.suffix).
+		SetCustomerID(f.customerID).
+		SetBusinessType(orderent.BusinessTypeAE).
+		SetTradeDirection(orderent.TradeDirectionExport).
+		SetPaymentTerm(orderent.PaymentTermPREPAID).
+		SetOrderDate(workbenchIntegrationDate).
+		Save(context.Background())
 	if err != nil {
 		f.t.Fatal(err)
 	}
-	item, err := f.data.db.OrderFeeSupplementRequest.Create().
+	seedManualOrderReviewForTest(f.t, f.data, order.ID, f.actorID)
+	lockRecord, err := f.data.db.OrderLockRecord.Query().Where(lockent.OrderIDEQ(order.ID), lockent.UnlockedAtIsNil()).Only(context.Background())
+	if err != nil {
+		f.t.Fatal(err)
+	}
+	after, err := json.Marshal(&biz.OrderFee{FeeCode: "DOC_FEE", FeeName: "单证费", Currency: "CNY", TotalAmount: decimal.RequireFromString("100")})
+	if err != nil {
+		f.t.Fatal(err)
+	}
+	item, err := f.data.db.OrderFeeCorrectionRequest.Create().
 		SetOrganizationID(f.organizationID).
-		SetOrderID(f.orderID).
-		SetLockBasis(orderfeesupplementent.LockBasisAPPROVAL).
-		SetApprovedFeeReviewEventID(*order.ApprovedFeeReviewEventID).
+		SetOrderID(order.ID).
+		SetOperation(correctionent.OperationADD).
+		SetLockRecordID(lockRecord.ID).
+		SetLockGeneration(order.LockGeneration + 1).
 		SetApprovedFeeContentVersion(order.FeeContentVersion).
-		SetIdempotencyKey("wb-supplement-" + uuid.NewString()).
+		SetApprovedFeeReviewVersion(order.FeeReviewVersion).
+		SetAfterSnapshot(after).
+		SetIdempotencyKey("wb-correction-" + uuid.NewString()).
 		SetRequestFingerprint("wb-fp-" + strings.ReplaceAll(uuid.NewString(), "-", "")[:24]).
-		SetDirection(orderfeesupplementent.DirectionPAYABLE).
-		SetFeeCode("DOC_FEE").
-		SetFeeName("单证费").
-		SetSettlementPartyID(f.customerID).
-		SetBillingUnit("票").
-		SetQuantity("1.0000").
-		SetUnitPrice("100.0000").
-		SetTotalAmount("100.00000000").
-		SetTaxInclusive(true).
-		SetNetAmount("100.00000000").
-		SetTaxAmount("0.00000000").
-		SetCurrency("CNY").
-		SetExchangeRate("1.00000000").
-		SetExchangeRateSource(orderfeesupplementent.ExchangeRateSourceSYSTEM).
-		SetExchangeRateDate(workbenchIntegrationDate).
-		SetBaseCurrency("CNY").
-		SetBaseCurrencyAmount("100.00000000").
-		SetExpenseDate(workbenchIntegrationDate).
-		SetReason("工作台测试补录").
+		SetReason("工作台测试费用更正").
 		SetRequestedBy(requestedBy).
 		SetRequestedAt(time.Now().UTC()).
-		SetStatus(orderfeesupplementent.StatusPENDING).
+		SetStatus(correctionent.StatusPENDING).
 		SetVersion(1).
 		Save(context.Background())
 	if err != nil {
-		f.t.Fatalf("创建测试补录申请: %v", err)
+		f.t.Fatalf("创建测试费用更正申请: %v", err)
 	}
-	return item.ID
+	return item.ID, order.ID
 }
 
-// grantFeeReviewPermission 授予员工当前组织费用审核权限（实时审批资格）。
-func (f *workbenchIntegrationFixture) grantFeeReviewPermission(employeeID uuid.UUID) {
-	f.grantWorkbenchPermission(employeeID, "system.finance.fee.review")
+// grantOrderReviewPermission 授予员工空运出口订单审核资格。
+func (f *workbenchIntegrationFixture) grantOrderReviewPermission(employeeID uuid.UUID) {
+	f.grantWorkbenchPermission(employeeID, "business.order.ae.read", "business.order.ae.update", "business.order.ae.fee.read", "business.order.ae.lock")
 }
 
-func (f *workbenchIntegrationFixture) grantWorkbenchPermission(employeeID uuid.UUID, permKey string) {
+func (f *workbenchIntegrationFixture) grantWorkbenchPermission(employeeID uuid.UUID, permKeys ...string) {
 	f.t.Helper()
 	ctx := context.Background()
 	membershipItem, err := f.data.db.Membership.Query().
@@ -507,23 +512,27 @@ func (f *workbenchIntegrationFixture) grantWorkbenchPermission(employeeID uuid.U
 	if err != nil {
 		f.t.Fatalf("查询成员资格: %v", err)
 	}
-	permissionItem, err := f.data.db.Permission.Create().
-		SetKey(permKey).
-		SetName("海运出口费用审核-工作台测试-" + f.suffix).
-		SetDescription("工作台集成测试").
-		SetGroup("order").
-		Save(ctx)
-	if err != nil {
-		permissionItem, err = f.data.db.Permission.Query().Where(permissionent.KeyEQ(permKey)).First(ctx)
-		if err != nil {
-			f.t.Fatalf("准备审核权限: %v", err)
+	permissions := make([]*ent.Permission, 0, len(permKeys))
+	for _, permKey := range permKeys {
+		permissionItem, createErr := f.data.db.Permission.Create().
+			SetKey(permKey).
+			SetName("订单审核-工作台测试-" + f.suffix).
+			SetDescription("工作台集成测试").
+			SetGroup("order").
+			Save(ctx)
+		if createErr != nil {
+			permissionItem, createErr = f.data.db.Permission.Query().Where(permissionent.KeyEQ(permKey)).First(ctx)
+			if createErr != nil {
+				f.t.Fatalf("准备审核权限: %v", createErr)
+			}
 		}
+		permissions = append(permissions, permissionItem)
 	}
 	roleItem, err := f.data.db.Role.Create().
 		SetOrganizationID(f.organizationID).
 		SetCode("wb_reviewer_" + strings.ReplaceAll(uuid.NewString(), "-", "")[:10]).
 		SetName("工作台费用审核资格-" + f.suffix).
-		AddPermissions(permissionItem).
+		AddPermissions(permissions...).
 		Save(ctx)
 	if err != nil {
 		f.t.Fatalf("创建审核资格角色: %v", err)
@@ -585,7 +594,7 @@ func TestWorkbenchOverviewGateMatrixPostgres(t *testing.T) {
 		if overview.Finance.CanReadCommission || overview.Finance.CanManageCommission {
 			t.Fatalf("未授权时财务权限标记应为假")
 		}
-		if overview.Finance.PendingSupplementApprovalCount != 0 {
+		if overview.Finance.PendingCorrectionApprovalCount != 0 {
 			t.Fatalf("无实时资格时审批计数应为零")
 		}
 	})
@@ -779,7 +788,7 @@ func TestWorkbenchReceivablesPostgres(t *testing.T) {
 }
 
 // TestWorkbenchFinanceSummaryPostgres 覆盖财务/审批摘要：权限标记由范围控制、
-// 待执行系统冲减计数、补录审批仅统计实时有资格者。
+// 待执行系统冲减计数、费用更正补审仅统计实时有资格者。
 func TestWorkbenchFinanceSummaryPostgres(t *testing.T) {
 	if os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE") == "" {
 		t.Skip("未配置临时 PostgreSQL 集成测试数据库")
@@ -790,8 +799,8 @@ func TestWorkbenchFinanceSummaryPostgres(t *testing.T) {
 	commissionEmployee := fixture.newEmployee("emp")
 	summaryRule := fixture.newRule("摘要销售方案", biz.CommissionRoleSales, "10.0000", "2026-01-01", nil)
 	commissionID := fixture.createCommission(commissionEmployee, summaryRule, biz.CommissionRoleSales, commissionent.StatusCONFIRMED, "90.00000000", nil, false)
-	requestID := fixture.createPendingSupplementRequest(commissionEmployee)
-	fixture.createAdjustment(commissionID, commissionEmployee, "DECREASE", commissionadjustmentent.StatusCONFIRMED, "5.00000000", commissionadjustmentent.SourceTypeLOCKED_FEE_SUPPLEMENT, &requestID)
+	requestID, requestOrderID := fixture.createPendingCorrectionRequest(commissionEmployee)
+	fixture.createAdjustment(commissionID, commissionEmployee, "DECREASE", commissionadjustmentent.StatusCONFIRMED, "5.00000000", commissionadjustmentent.SourceTypeFEE_CORRECTION, &requestID)
 
 	t.Run("无财务权限时计数缺省", func(t *testing.T) {
 		overview, err := fixture.repo().GetOverview(ctx, fixture.scope(commissionEmployee, nil))
@@ -801,7 +810,7 @@ func TestWorkbenchFinanceSummaryPostgres(t *testing.T) {
 		if overview.Finance.CanReadCommission || overview.Finance.ConfirmedCommissionCount != 0 || overview.Finance.PendingDecreaseCount != 0 {
 			t.Fatalf("无读取权限时提成计数不应返回: %+v", overview.Finance)
 		}
-		if overview.Finance.PendingSupplementApprovalCount != 0 {
+		if overview.Finance.PendingCorrectionApprovalCount != 0 {
 			t.Fatalf("无实时资格时补录审批计数应为零")
 		}
 	})
@@ -825,18 +834,18 @@ func TestWorkbenchFinanceSummaryPostgres(t *testing.T) {
 		}
 	})
 
-	t.Run("补录审批只统计实时有资格者", func(t *testing.T) {
+	t.Run("费用更正补审只统计实时有资格者", func(t *testing.T) {
 		approver := fixture.newEmployee("approver")
-		fixture.grantFeeReviewPermission(approver)
+		fixture.grantOrderReviewPermission(approver)
 		overview, err := fixture.repo().GetOverview(ctx, fixture.scope(approver, nil))
 		if err != nil {
 			t.Fatalf("读取审批人概览: %v", err)
 		}
-		if overview.Finance.PendingSupplementApprovalCount != 1 || len(overview.Finance.PendingSupplementApprovals) != 1 {
+		if overview.Finance.PendingCorrectionApprovalCount != 1 || len(overview.Finance.PendingCorrectionApprovals) != 1 {
 			t.Fatalf("实时有资格审批人应看到 1 条待办: %+v", overview.Finance)
 		}
-		item := overview.Finance.PendingSupplementApprovals[0]
-		if item.OrderID != fixture.orderID || item.RequestID != requestID || item.FeeCode != "DOC_FEE" {
+		item := overview.Finance.PendingCorrectionApprovals[0]
+		if item.OrderID != requestOrderID || item.RequestID != requestID || item.FeeCode != "DOC_FEE" {
 			t.Fatalf("审批待办投影不正确: %+v", item)
 		}
 		if item.Amount.Sign() <= 0 {
@@ -844,15 +853,15 @@ func TestWorkbenchFinanceSummaryPostgres(t *testing.T) {
 		}
 	})
 
-	t.Run("订单锁角色不能获得补录审批候选", func(t *testing.T) {
+	t.Run("其他业务线订单锁角色不能获得补审候选", func(t *testing.T) {
 		locker := fixture.newEmployee("locker")
 		fixture.grantWorkbenchPermission(locker, "business.order.se.lock")
 		overview, err := fixture.repo().GetOverview(ctx, fixture.scope(locker, nil))
 		if err != nil {
 			t.Fatal(err)
 		}
-		if overview.Finance.PendingSupplementApprovalCount != 0 || len(overview.Finance.PendingSupplementApprovals) != 0 {
-			t.Fatalf("锁角色不具备费用审核资格: %+v", overview.Finance)
+		if overview.Finance.PendingCorrectionApprovalCount != 0 || len(overview.Finance.PendingCorrectionApprovals) != 0 {
+			t.Fatalf("其他业务线锁角色不具备补审资格: %+v", overview.Finance)
 		}
 	})
 	t.Run("bootstrap 身份不自动获得审批资格", func(t *testing.T) {
@@ -862,8 +871,8 @@ func TestWorkbenchFinanceSummaryPostgres(t *testing.T) {
 		if err != nil {
 			t.Fatalf("读取概览: %v", err)
 		}
-		if overview.Finance.PendingSupplementApprovalCount != 0 {
-			t.Fatalf("bootstrap 身份不能代替审核 grant: %d", overview.Finance.PendingSupplementApprovalCount)
+		if overview.Finance.PendingCorrectionApprovalCount != 0 {
+			t.Fatalf("bootstrap 身份不能代替审核 grant: %d", overview.Finance.PendingCorrectionApprovalCount)
 		}
 	})
 }

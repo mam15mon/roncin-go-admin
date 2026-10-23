@@ -5,10 +5,7 @@ import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { feeCatalogServiceListTaxableServices } from '@/services/roncin/feeCatalogService';
-import {
-  orderFeeServiceListOrderFeeCorrectionRequests,
-  orderFeeServiceListOrderFeeSupplementRequests,
-} from '@/services/roncin/orderFeeService';
+import { orderFeeServiceListOrderFeeCorrectionRequests } from '@/services/roncin/orderFeeService';
 import { settlementServiceGetFeeLedgerOrderDetail } from '@/services/roncin/settlementService';
 import OrderFeesPage from './fees';
 
@@ -259,7 +256,10 @@ vi.mock('./components/fees/OrderFeeTableTabs', () => ({
       <button
         type="button"
         onClick={() =>
-          props.onOpenFeeModal(1, { id: `editing-${props.orderId}` })
+          props.onOpenFeeModal(1, {
+            id: `editing-${props.orderId}`,
+            canEdit: true,
+          })
         }
       >
         编辑当前订单费用
@@ -437,188 +437,64 @@ describe('订单费用页跨订单状态隔离', () => {
   });
 });
 
-describe('订单费用页锁后费用补录', () => {
-  const listSupplements = vi.mocked(
-    orderFeeServiceListOrderFeeSupplementRequests,
-  );
-
-  function renderPage() {
-    return renderFeesPage();
-  }
+describe('订单费用页统一补录入口', () => {
   beforeEach(() => {
     mockParams = { kind: 'sea-export', id: 'order-A' };
     feeTestState.lockState = { isLocked: false };
     feeTestState.canCreateFee = true;
     feeTestState.canReadFee = true;
     feeTestState.canLock = true;
-    feeTestState.feeOptions.mockClear();
     feeTestState.canOperate = true;
     feeTestState.hasPendingSupplement = false;
     vi.clearAllMocks();
-    listSupplements.mockResolvedValue({
-      data: { items: [], total: 0 },
-      success: true,
-    } as Awaited<ReturnType<typeof listSupplements>>);
   });
-
-  it('仅 lock 审批人可加载申请列表但不加载费用候选与表格', async () => {
+  it('仅审核人读取补审列表，不加载普通费用候选', async () => {
     feeTestState.canReadFee = false;
-    renderWithClient(
-      <App>
-        <OrderFeesPage />
-      </App>,
-    );
+    renderFeesPage();
     await waitFor(() =>
-      expect(orderFeeServiceListOrderFeeSupplementRequests).toHaveBeenCalled(),
+      expect(orderFeeServiceListOrderFeeCorrectionRequests).toHaveBeenCalled(),
     );
     expect(feeTestState.feeOptions).toHaveBeenCalledWith(undefined);
     expect(
       screen.queryByTestId('finance-summary-board'),
     ).not.toBeInTheDocument();
   });
-
-  it('当前业务类型既无费用查看也无 lock 权限时不加载申请', () => {
+  it('无费用读取和对应品类审核权限时拒绝进入', () => {
     feeTestState.canReadFee = false;
     feeTestState.canLock = false;
-    renderWithClient(
-      <App>
-        <OrderFeesPage />
-      </App>,
-    );
+    renderFeesPage();
     expect(screen.getByText('无权访问此业务类型')).toBeInTheDocument();
     expect(
-      orderFeeServiceListOrderFeeSupplementRequests,
-    ).not.toHaveBeenCalled();
-    expect(feeTestState.feeOptions).toHaveBeenCalledWith(undefined);
-  });
-
-  it('订单锁定时普通费用写入口关闭，但按 fee.create 能力开放补录入口', async () => {
-    feeTestState.lockState = { isLocked: true };
-    const page = renderPage();
-
-    // 补录申请区不依赖 fee.read，申请列表照常读取。
-    await waitFor(() =>
-      expect(listSupplements).toHaveBeenCalledWith({
-        orderId: 'order-A',
-        page: 1,
-        pageSize: 10,
-      }),
-    );
-    expect(screen.getByRole('button', { name: '费用补录' })).toHaveAttribute(
-      'aria-expanded',
-      'false',
-    );
-    fireEvent.click(screen.getByRole('button', { name: '费用补录' }));
-    expect(
-      await screen.findByRole('button', { name: '补录费用' }),
-    ).toBeInTheDocument();
-    // 普通新增入口在锁定时保持禁用（feeWritesDisabled 传递为 true）。
-    await waitFor(() => {
-      const tabs = screen.getByTestId('fee-table-state');
-      expect(tabs).toBeInTheDocument();
-    });
-    expect(screen.getByTestId('fee-form-modal')).toHaveTextContent('false|');
-    feeTestState.hasPendingSupplement = true;
-    listSupplements.mockResolvedValue({
-      success: true,
-      data: {
-        items: [
-          {
-            id: 'sup-1',
-            orderId: 'order-A',
-            version: '1',
-            status: 'PENDING',
-            canWithdraw: true,
-          },
-        ],
-        total: 1,
-      },
-    });
-    vi.mocked(
       orderFeeServiceListOrderFeeCorrectionRequests,
-    ).mockResolvedValueOnce({
-      success: true,
-      data: [{ id: 'correction-1', reason: '更正测试记录', status: 'PENDING' }],
-      total: 1,
-    });
+    ).not.toHaveBeenCalled();
+  });
+  it('锁后只保留一个补录入口，待审时不能另建申请', async () => {
+    feeTestState.lockState = { isLocked: true };
+    feeTestState.hasPendingSupplement = true;
+    renderFeesPage();
+    fireEvent.click(screen.getByRole('button', { name: '费用补录与补审' }));
+    expect(
+      await screen.findByRole('button', { name: '申请费用补录' }),
+    ).toBeDisabled();
+    expect(
+      screen.queryByRole('button', { name: '费用补录' }),
+    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '编辑当前订单费用' }));
+    expect(screen.getByTestId('fee-form-modal')).toHaveTextContent('false|');
+  });
+  it('已锁定无待审时按费用权限开放补录，跨公司隐藏申请入口', async () => {
+    feeTestState.lockState = { isLocked: true };
+    const page = renderFeesPage();
+    fireEvent.click(screen.getByRole('button', { name: '费用补录与补审' }));
+    expect(
+      await screen.findByRole('button', { name: '申请费用补录' }),
+    ).toBeEnabled();
     page.unmount();
-    renderPage();
-    expect(await screen.findByText('撤回并重提')).toBeVisible();
-    expect(await screen.findByText('更正测试记录')).toBeVisible();
-    expect(screen.getByRole('button', { name: '费用补录' })).toHaveAttribute(
-      'aria-expanded',
-      'true',
-    );
-    expect(screen.getByRole('button', { name: '费用更正' })).toHaveAttribute(
-      'aria-expanded',
-      'true',
-    );
-    fireEvent.click(screen.getByRole('button', { name: '费用补录' }));
-    fireEvent.click(screen.getByRole('button', { name: '费用更正' }));
-    fireEvent.click(screen.getByRole('button', { name: '准备当前订单费用' }));
-    expect(screen.getByRole('button', { name: '费用补录' })).toHaveAttribute(
-      'aria-expanded',
-      'false',
-    );
-    expect(screen.getByRole('button', { name: '费用更正' })).toHaveAttribute(
-      'aria-expanded',
-      'false',
-    );
-    expect(
-      screen.queryByRole('button', { name: '补录费用' }),
-    ).not.toBeInTheDocument();
-  });
-
-  it('无 fee.create 能力时不展示补录入口，但申请列表仍可读取', async () => {
-    feeTestState.lockState = { isLocked: true };
-    feeTestState.canCreateFee = false;
-    renderPage();
-
-    await waitFor(() => expect(listSupplements).toHaveBeenCalled());
-    expect(
-      screen.queryByRole('button', { name: '补录费用' }),
-    ).not.toBeInTheDocument();
-  });
-
-  it('订单未锁定时不展示补录入口，空的补录与更正分节默认收起且可手动展开', async () => {
-    const { rerender, queryClient } = renderPage();
-
-    await waitFor(() => expect(listSupplements).toHaveBeenCalled());
-    await waitFor(() =>
-      expect(screen.getByText('暂无补录申请')).toBeInTheDocument(),
-    );
-    for (const title of ['费用补录', '费用更正']) {
-      const toggle = screen.getByRole('button', { name: title });
-      expect(toggle).toHaveAttribute('aria-expanded', 'false');
-      fireEvent.click(toggle);
-      expect(toggle).toHaveAttribute('aria-expanded', 'true');
-    }
-    mockParams = { kind: 'sea-export', id: 'order-B' };
-    rerenderFeesPage(rerender, queryClient);
-    await waitFor(() =>
-      expect(listSupplements).toHaveBeenCalledWith({
-        orderId: 'order-B',
-        page: 1,
-        pageSize: 10,
-      }),
-    );
-    for (const title of ['费用补录', '费用更正']) {
-      expect(screen.getByRole('button', { name: title })).toHaveAttribute(
-        'aria-expanded',
-        'false',
-      );
-    }
-    expect(
-      screen.queryByRole('button', { name: '补录费用' }),
-    ).not.toBeInTheDocument();
-  });
-  it('跨公司只读订单有费用权限也不能补录，仍可查看申请列表', async () => {
     feeTestState.canOperate = false;
-    feeTestState.lockState = { isLocked: true };
-    renderPage();
-    await waitFor(() => expect(listSupplements).toHaveBeenCalled());
+    renderFeesPage();
+    fireEvent.click(screen.getByRole('button', { name: '费用补录与补审' }));
     expect(
-      screen.queryByRole('button', { name: '补录费用' }),
+      screen.queryByRole('button', { name: '申请费用补录' }),
     ).not.toBeInTheDocument();
   });
 });

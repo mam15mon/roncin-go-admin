@@ -21,10 +21,10 @@ const (
 	// WorkbenchEstimatedScanLimit 是「预计可计提」候选来源的有界扫描上限：
 	// 超出部分不参与金额合计，只以 HasMore 标记金额为不完整下界。
 	WorkbenchEstimatedScanLimit = 20
-	// WorkbenchSupplementScanLimit 是待审批补录申请的有界扫描上限。
-	WorkbenchSupplementScanLimit = 50
-	// WorkbenchSupplementItemLimit 是 Overview 摘要内返回的补录待办条数上限。
-	WorkbenchSupplementItemLimit = 5
+	// WorkbenchCorrectionScanLimit 是待审批费用更正的有界扫描上限。
+	WorkbenchCorrectionScanLimit = 50
+	// WorkbenchCorrectionItemLimit 是 Overview 摘要内返回的费用更正待办上限。
+	WorkbenchCorrectionItemLimit = 5
 )
 
 // WorkbenchScope 是工作台读模型的服务端主体范围：全部字段由 Service 从会话与
@@ -193,13 +193,13 @@ type WorkbenchFinanceSummary struct {
 	CanManageCommission            bool
 	ConfirmedCommissionCount       int
 	PendingDecreaseCount           int
-	PendingSupplementApprovalCount int
-	PendingSupplementApprovals     []*WorkbenchSupplementApprovalItem
-	SupplementApprovalsTruncated   bool
+	PendingCorrectionApprovalCount int
+	PendingCorrectionApprovals     []*WorkbenchCorrectionApprovalItem
+	CorrectionApprovalsTruncated   bool
 }
 
-// WorkbenchSupplementApprovalItem 是当前用户实时有权审批的 PENDING 补录申请。
-type WorkbenchSupplementApprovalItem struct {
+// WorkbenchCorrectionApprovalItem 是当前用户实时有权审批的待审费用更正。
+type WorkbenchCorrectionApprovalItem struct {
 	RequestID       uuid.UUID
 	OrderID         uuid.UUID
 	OrderNo         string

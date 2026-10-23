@@ -51,9 +51,12 @@ func (r *orderFeeCorrectionRepo) Authorize(ctx context.Context, p *biz.Principal
 	var allowed bool
 	switch action {
 	case "approve":
-		allowed, err = hasFeeReviewPermission(ctx, client, org, p.UserID, false)
+		allowed, err = hasOrderReviewPermission(ctx, client, org, o.ID, p.UserID, false)
 	case "submit:ADD", "submit:REPLACE", "submit:VOID":
 		operation := access.OrderFeeUpdate
+		if action == "submit:VOID" {
+			operation = access.OrderFeeDelete
+		}
 		if action == "submit:ADD" {
 			operation = access.OrderFeeCreate
 		}
@@ -108,7 +111,16 @@ func (r *orderFeeCorrectionRepo) CurrentFees(ctx context.Context, order uuid.UUI
 	return result, nil
 }
 func correctionRequestToBiz(row *ent.OrderFeeCorrectionRequest) (*biz.OrderFeeCorrectionRequest, error) {
-	r := &biz.OrderFeeCorrectionRequest{ID: row.ID, OrganizationID: row.OrganizationID, OrderID: row.OrderID, Operation: string(row.Operation), SourceFeeID: row.SourceFeeID, ApprovedFeeReviewEventID: row.ApprovedFeeReviewEventID, ApprovedFeeContentVersion: row.ApprovedFeeContentVersion, ApprovedFeeReviewVersion: row.ApprovedFeeReviewVersion, Reason: row.Reason, IdempotencyKey: row.IdempotencyKey, RequestFingerprint: row.RequestFingerprint, RequestedBy: row.RequestedBy, RequestedAt: row.RequestedAt, Status: string(row.Status), Version: row.Version, DecidedBy: row.DecidedBy, DecidedAt: row.DecidedAt, DecisionReason: row.DecisionReason, ApprovalToken: row.ApprovalToken}
+	r := &biz.OrderFeeCorrectionRequest{ID: row.ID, OrganizationID: row.OrganizationID, OrderID: row.OrderID, Operation: string(row.Operation), SourceFeeID: row.SourceFeeID, ApprovedFeeContentVersion: row.ApprovedFeeContentVersion, ApprovedFeeReviewVersion: row.ApprovedFeeReviewVersion, Reason: row.Reason, IdempotencyKey: row.IdempotencyKey, RequestFingerprint: row.RequestFingerprint, RequestedBy: row.RequestedBy, RequestedAt: row.RequestedAt, Status: string(row.Status), Version: row.Version, DecidedBy: row.DecidedBy, DecidedAt: row.DecidedAt, DecisionReason: row.DecisionReason, ApprovalToken: row.ApprovalToken}
+	if row.LockRecordID != nil {
+		r.LockRecordID = *row.LockRecordID
+	}
+	if row.LockGeneration != nil {
+		r.LockGeneration = *row.LockGeneration
+	}
+	if row.ApprovedFeeReviewEventID != nil {
+		r.ApprovedFeeReviewEventID = *row.ApprovedFeeReviewEventID
+	}
 	if len(row.ApprovalResultSnapshot) > 0 {
 		if err := json.Unmarshal(row.ApprovalResultSnapshot, &r.ApprovalResult); err != nil {
 			return nil, err
@@ -160,7 +172,7 @@ func (r *orderFeeCorrectionRepo) Get(ctx context.Context, org, id uuid.UUID) (*b
 		return nil, err
 	}
 	if p, principalErr := biz.RequirePrincipal(ctx); principalErr == nil {
-		grant, err := hasFeeReviewPermission(ctx, client, org, p.UserID, false)
+		grant, err := hasOrderReviewPermission(ctx, client, org, row.OrderID, p.UserID, false)
 		if err != nil {
 			return nil, err
 		}
@@ -200,7 +212,7 @@ func (r *orderFeeCorrectionRepo) List(ctx context.Context, org, order uuid.UUID,
 	if err != nil {
 		return nil, 0, err
 	}
-	grant, err := hasFeeReviewPermission(ctx, client, org, p.UserID, false)
+	grant, err := hasOrderReviewPermission(ctx, client, org, order, p.UserID, false)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -261,14 +273,14 @@ func (r *orderFeeCorrectionRepo) Create(ctx context.Context, value *biz.OrderFee
 	if pending {
 		return nil, biz.ErrFeeCorrectionPending
 	}
-	candidates, err := qualifiedFeeReviewCandidates(ctx, client, value.OrganizationID)
+	candidates, err := qualifiedOrderReviewCandidates(ctx, client, value.OrganizationID, value.OrderID)
 	if err != nil {
 		return nil, err
 	}
 	if len(candidates) == 0 {
 		return nil, biz.ErrFeeReviewNoApprover
 	}
-	builder := client.OrderFeeCorrectionRequest.Create().SetID(value.ID).SetOrganizationID(value.OrganizationID).SetOrderID(value.OrderID).SetOperation(correctionent.Operation(value.Operation)).SetNillableSourceFeeID(value.SourceFeeID).SetApprovedFeeReviewEventID(value.ApprovedFeeReviewEventID).SetApprovedFeeContentVersion(value.ApprovedFeeContentVersion).SetApprovedFeeReviewVersion(value.ApprovedFeeReviewVersion).SetReason(value.Reason).SetIdempotencyKey(value.IdempotencyKey).SetRequestFingerprint(value.RequestFingerprint).SetRequestedBy(value.RequestedBy).SetRequestedAt(value.RequestedAt)
+	builder := client.OrderFeeCorrectionRequest.Create().SetID(value.ID).SetOrganizationID(value.OrganizationID).SetOrderID(value.OrderID).SetOperation(correctionent.Operation(value.Operation)).SetNillableSourceFeeID(value.SourceFeeID).SetLockRecordID(value.LockRecordID).SetLockGeneration(value.LockGeneration).SetApprovedFeeContentVersion(value.ApprovedFeeContentVersion).SetApprovedFeeReviewVersion(value.ApprovedFeeReviewVersion).SetReason(value.Reason).SetIdempotencyKey(value.IdempotencyKey).SetRequestFingerprint(value.RequestFingerprint).SetRequestedBy(value.RequestedBy).SetRequestedAt(value.RequestedAt)
 	if value.Before != nil {
 		encoded, err := json.Marshal(value.Before)
 		if err != nil {

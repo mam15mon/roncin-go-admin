@@ -319,14 +319,17 @@ func TestAirExportFlowVersionsAndSnapshotsPostgres(t *testing.T) {
 	if e != nil || total != 3 || versions[0].Reason != "客户更正货描" {
 		t.Fatalf("不可变本票版本 %d %#v %v", total, versions, e)
 	}
-	// 人工/自动锁共用核心使用航空独立快照，不污染 SE 外键。
+	// 人工审核锁使用航空独立快照，不污染 SE 外键。
 	e = d.WithTx(ctx, func(tx *ent.Tx) error {
 		locked, e := tx.Order.Query().Where(orderent.IDEQ(o.ID)).ForUpdate().Only(ctx)
 		if e != nil {
 			return e
 		}
-		actor := f.actorID
-		rec, sea, e := applyOrderLockCore(ctx, tx, f.organizationID, locked, orderLockCoreSpec{lockSource: "MANUAL", lockedBy: &actor, idempotencyKey: "air-lock", requestFingerprint: "air-lock"})
+		spec, e := airTestReviewLockSpec(ctx, tx, locked, f.actorID, "air-lock")
+		if e != nil {
+			return e
+		}
+		rec, sea, e := applyOrderLockCore(ctx, tx, f.organizationID, locked, spec)
 		if e != nil {
 			return e
 		}
@@ -466,8 +469,11 @@ func TestAirExportMemberChangeAndLockRacePostgres(t *testing.T) {
 			if e != nil {
 				return e
 			}
-			actor := f.actorID
-			_, _, e = applyOrderLockCore(ctx, tx, f.organizationID, o, orderLockCoreSpec{lockSource: "MANUAL", lockedBy: &actor, idempotencyKey: "air-race-lock", requestFingerprint: "air-race-lock"})
+			spec, e := airTestReviewLockSpec(ctx, tx, o, f.actorID, "air-race-lock")
+			if e != nil {
+				return e
+			}
+			_, _, e = applyOrderLockCore(ctx, tx, f.organizationID, o, spec)
 			return e
 		})
 	}()
@@ -492,4 +498,17 @@ func TestAirExportMemberChangeAndLockRacePostgres(t *testing.T) {
 	if snapshot.Content.FlightNo != master.FlightNo {
 		t.Fatalf("锁后共享事实被改写 snapshot=%s current=%s", snapshot.Content.FlightNo, master.FlightNo)
 	}
+}
+
+// 航空单证并发测试直接验证锁核心，仍提供与人工审核入口相同的费用证据。
+func airTestReviewLockSpec(ctx context.Context, tx *ent.Tx, o *ent.Order, reviewer uuid.UUID, key string) (orderLockCoreSpec, error) {
+	snapshot, fingerprint, err := loadFeeReviewSnapshot(ctx, tx.Client(), o.ID)
+	if err != nil {
+		return orderLockCoreSpec{}, err
+	}
+	payload, err := json.Marshal(snapshot)
+	if err != nil {
+		return orderLockCoreSpec{}, err
+	}
+	return orderLockCoreSpec{reviewerID: reviewer, idempotencyKey: key, requestFingerprint: key, feeSnapshot: payload, feeContentVersion: o.FeeContentVersion, feeContentFingerprint: fingerprint, reviewComment: "航空单证集成验证：已核对订单与费用"}, nil
 }

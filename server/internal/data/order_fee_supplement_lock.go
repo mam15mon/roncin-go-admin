@@ -24,7 +24,7 @@ import (
 const financialLockEvidenceVersion = "FIN_LOCK_EVIDENCE_V1"
 
 // financialLockEvidenceComponents 是财务锁证据的参与事实集合：与财务锁净额
-// 口径（financeCommissionLockNetAmount / financeLockedOrderPredicate）完全同源，
+// 口径（financeCommissionLockNetAmount）完全同源，
 // 仅统计参与净额的 CONFIRMED/PAID 提成行与调整行。
 type financialLockEvidenceComponents struct {
 	lines       []*ent.FinanceCommissionLine
@@ -59,7 +59,7 @@ func (c *financialLockEvidenceComponents) hash() (string, error) {
 	return hex.EncodeToString(digest[:]), nil
 }
 
-// netAmount 复用台账财务锁净额的 Go 口径，禁止另写一套锁定公式。
+// netAmount 复用财务证据的提成经济净额口径。
 func (c *financialLockEvidenceComponents) netAmount() (decimal.Decimal, error) {
 	return financeCommissionLockNetAmount(c.lines, c.adjustments)
 }
@@ -85,10 +85,8 @@ func loadFinancialLockEvidence(ctx context.Context, client *ent.Client, organiza
 	return &financialLockEvidenceComponents{lines: lines, adjustments: adjustments}, nil
 }
 
-// lockOrderForSupplementInternal 在事务内锁定订单行并计算当前锁事实。补录是
-// 业务锁与提成净额财务锁的受控例外：这里不执行普通费用写入口的内容门禁与
-// 财务锁拒绝，但财务证据计算必须复用净额口径并在 Order 行锁内读取。
-func lockOrderForSupplementInternal(ctx context.Context, tx *ent.Tx, organizationID, orderID uuid.UUID) (*biz.OrderFeeSupplementLockEvidence, error) {
+// lockOrdersForFeeEconomics 固定顺序锁定经济来源关联的完整订单集合，并在锁内重验。
+func lockOrdersForFeeEconomics(ctx context.Context, tx *ent.Tx, organizationID, orderID uuid.UUID) (*ent.Order, error) {
 	ids, err := commissionEconomicExpandOrderIDs(ctx, tx.Client(), organizationID, []uuid.UUID{orderID})
 	if err != nil {
 		return nil, err
@@ -123,24 +121,29 @@ func lockOrderForSupplementInternal(ctx context.Context, tx *ent.Tx, organizatio
 	if order == nil {
 		return nil, biz.ErrOrderNotFound
 	}
-	return supplementLockEvidenceForOrder(ctx, tx.Client(), organizationID, orderID, order)
+	return order, nil
 }
 
-// ReadLockEvidence 使用与审批相同的证据计算，但不打开写事务或获取行锁。
-func (r *orderFeeSupplementRepo) ReadLockEvidence(ctx context.Context, organizationID, orderID uuid.UUID) (*biz.OrderFeeSupplementLockEvidence, error) {
-	client, err := r.data.client(ctx)
+func lockOrderForSupplementInternal(ctx context.Context, tx *ent.Tx, organizationID, orderID uuid.UUID) (*biz.OrderFeeSupplementLockEvidence, error) {
+	order, err := lockOrdersForFeeEconomics(ctx, tx, organizationID, orderID)
 	if err != nil {
 		return nil, err
 	}
-	order, err := client.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx)
-	if err != nil {
-		return nil, mapEntError(err, biz.ErrOrderNotFound, nil)
-	}
-	return supplementLockEvidenceForOrder(ctx, client, organizationID, orderID, order)
+	return supplementLockEvidenceForOrder(ctx, tx.Client(), organizationID, orderID, order)
 }
 
 func supplementLockEvidenceForOrder(ctx context.Context, client *ent.Client, organizationID, orderID uuid.UUID, order *ent.Order) (*biz.OrderFeeSupplementLockEvidence, error) {
+	if order.TerminationStatus == orderent.TerminationStatusTERMINATED {
+		return nil, biz.ErrOrderTerminated
+	}
+	if order.TerminationStatus != orderent.TerminationStatusACTIVE {
+		return nil, biz.ErrOrderTerminationInProgress
+	}
 	if err := validateOrderApprovalSnapshot(ctx, client, order); err != nil {
+		return nil, err
+	}
+	record, err := currentManualOrderLock(ctx, client, order)
+	if err != nil {
 		return nil, err
 	}
 	businessType, err := orderAccessBusinessType(order.BusinessType)
@@ -160,6 +163,7 @@ func supplementLockEvidenceForOrder(ctx context.Context, client *ent.Client, org
 		return nil, err
 	}
 	return &biz.OrderFeeSupplementLockEvidence{
+		LockRecordID:             &record.ID,
 		ApprovedFeeReviewEventID: order.ApprovedFeeReviewEventID,
 		FeeContentVersion:        order.FeeContentVersion,
 		FeeReviewVersion:         order.FeeReviewVersion,
@@ -190,21 +194,13 @@ func (r *orderFeeSupplementRepo) LockOrderForSupplement(ctx context.Context, org
 	return evidence, nil
 }
 
-func (r *orderFeeSupplementRepo) ListLockGrantApprovers(ctx context.Context, organizationID, orderID uuid.UUID) ([]biz.OrderFeeSupplementApprover, error) {
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return qualifiedFeeReviewCandidates(ctx, client, organizationID)
-}
-
 func (r *orderFeeSupplementRepo) HasRealtimeLockGrant(ctx context.Context, organizationID, orderID, userID uuid.UUID, isBootstrapAdmin bool) (bool, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return false, err
 	}
 	_, transactional := transactionFromContext(ctx)
-	return hasFeeReviewPermission(ctx, client, organizationID, userID, transactional)
+	return hasOrderReviewPermission(ctx, client, organizationID, orderID, userID, transactional)
 }
 
 // ---------------------------------------------------------------------------

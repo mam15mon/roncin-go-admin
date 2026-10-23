@@ -64,8 +64,6 @@ export async function queryOrderList(
     customerServiceId: params.customerServiceId,
     creatorId: params.creatorId,
     tagIds: params.tagIds,
-    feeReviewStatus: params.feeReviewStatus,
-    hasPendingFeeSupplement: params.hasPendingFeeSupplement,
     isLocked:
       params.isLocked === 'locked'
         ? true

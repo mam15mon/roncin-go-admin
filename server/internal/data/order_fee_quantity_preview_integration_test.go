@@ -17,7 +17,7 @@ func TestFeeQuantityPreviewPostgres(t *testing.T) {
 	ctx := context.Background()
 	client := f.data.db
 	repo := NewOrderFeeRepo(f.data)
-	uc := biz.NewOrderFeeUsecase(repo, nil, nil, nil, nil, nil)
+	uc := biz.NewOrderFeeUsecase(repo, nil, nil, nil, nil)
 	unit := func(code string, container bool) *ent.BillingUnit {
 		t.Helper()
 		item, err := client.BillingUnit.Query().Where(billingunitent.CodeEQ(code)).Only(ctx)

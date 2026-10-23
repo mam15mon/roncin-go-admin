@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
-	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	feeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	correctionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 )
@@ -79,7 +78,10 @@ func (r *orderFeeCorrectionRepo) Apply(ctx context.Context, request *biz.OrderFe
 		if source.SupersededByRequestID != nil || source.EconomicEffect != feeent.EconomicEffectINCREASE || source.Version != request.Before.Version {
 			return biz.ErrFeeCorrectionConflict
 		}
-		occupied := len(source.Edges.FinanceBillLines) > 0
+		if len(source.Edges.FinanceBillLines) > 0 {
+			return biz.ErrOrderFeeBillOccupied
+		}
+		occupied := false
 		if _, err = client.OrderFee.UpdateOne(source).SetSupersededByRequestID(request.ID).SetAccountingRequired(occupied).SetVersion(source.Version + 1).Save(ctx); err != nil {
 			return err
 		}
@@ -109,21 +111,10 @@ func (r *orderFeeCorrectionRepo) Apply(ctx context.Context, request *biz.OrderFe
 			return err
 		}
 	}
-	o, err := client.Order.UpdateOneID(request.OrderID).AddFeeContentVersion(1).AddFeeReviewVersion(1).Save(ctx)
-	if err != nil {
+	if err := client.Order.UpdateOneID(request.OrderID).AddFeeContentVersion(1).Exec(ctx); err != nil {
 		return err
 	}
-	snapshot, fingerprint, err := loadFeeReviewSnapshot(ctx, client, request.OrderID)
-	if err != nil {
-		return err
-	}
-	event, err := appendFeeReviewEvent(ctx, client, o, actor, "CORRECTION_APPROVE", comment, "correction:"+request.ID.String(), fingerprint, nil, nil, snapshot, fingerprint, &request.ID)
-	if err != nil {
-		return err
-	}
-	if err = client.Order.UpdateOneID(request.OrderID).SetFeeReviewStatus(orderent.FeeReviewStatusAPPROVED).SetCurrentFeeReviewEventID(event.ID).SetApprovedFeeReviewEventID(event.ID).Exec(ctx); err != nil {
-		return err
-	}
+
 	payload, err := json.Marshal(request.ApprovalResult)
 	if err != nil {
 		return err

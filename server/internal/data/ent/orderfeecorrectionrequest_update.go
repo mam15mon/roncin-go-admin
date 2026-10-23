@@ -473,6 +473,12 @@ func (_u *OrderFeeCorrectionRequestUpdate) sqlSave(ctx context.Context) (_node i
 	if _u.mutation.AfterSnapshotCleared() {
 		_spec.ClearField(orderfeecorrectionrequest.FieldAfterSnapshot, field.TypeJSON)
 	}
+	if _u.mutation.ApprovedFeeReviewEventIDCleared() {
+		_spec.ClearField(orderfeecorrectionrequest.FieldApprovedFeeReviewEventID, field.TypeUUID)
+	}
+	if _u.mutation.LockGenerationCleared() {
+		_spec.ClearField(orderfeecorrectionrequest.FieldLockGeneration, field.TypeUint64)
+	}
 	if value, ok := _u.mutation.ApprovalResultSnapshot(); ok {
 		_spec.SetField(orderfeecorrectionrequest.FieldApprovalResultSnapshot, field.TypeJSON, value)
 	}
@@ -1252,6 +1258,12 @@ func (_u *OrderFeeCorrectionRequestUpdateOne) sqlSave(ctx context.Context) (_nod
 	}
 	if _u.mutation.AfterSnapshotCleared() {
 		_spec.ClearField(orderfeecorrectionrequest.FieldAfterSnapshot, field.TypeJSON)
+	}
+	if _u.mutation.ApprovedFeeReviewEventIDCleared() {
+		_spec.ClearField(orderfeecorrectionrequest.FieldApprovedFeeReviewEventID, field.TypeUUID)
+	}
+	if _u.mutation.LockGenerationCleared() {
+		_spec.ClearField(orderfeecorrectionrequest.FieldLockGeneration, field.TypeUint64)
 	}
 	if value, ok := _u.mutation.ApprovalResultSnapshot(); ok {
 		_spec.SetField(orderfeecorrectionrequest.FieldApprovalResultSnapshot, field.TypeJSON, value)

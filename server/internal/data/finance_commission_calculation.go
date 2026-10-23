@@ -608,7 +608,7 @@ func lockCommissionSourceOrders(ctx context.Context, store commissionCalculation
 	if len(locked) != len(ids) {
 		return nil, biz.ErrCommissionSource
 	}
-	if err := ensureCommissionOrdersReady(ctx, store.client, ids, false); err != nil {
+	if err := ensureCommissionOrdersReady(ctx, store.client, ids); err != nil {
 		return nil, err
 	}
 	return ids, nil

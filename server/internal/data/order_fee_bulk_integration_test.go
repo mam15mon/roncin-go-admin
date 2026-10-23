@@ -28,7 +28,6 @@ func newOrderFeeBulkUsecase(data *Data) *biz.OrderFeeUsecase {
 		nil,
 		biz.NewPartnerCreditUsecase(NewFinanceBillRepo(data), biz.NewFinanceCustomSettingUsecase(NewFinanceCustomSettingRepo(data))),
 		nil,
-		nil,
 	)
 }
 
@@ -323,7 +322,6 @@ func TestOrderFeeBulkMaintenancePostgres(t *testing.T) {
 	t.Run("已进账单行混入修改整批拒绝", func(t *testing.T) {
 		billed := fixture.createUnbilledFee("bulk-billed")
 		free := fixture.createUnbilledFee("bulk-billed-free")
-		fixture.approveFeePackage()
 		bill, err := billUsecase.Create(context.Background(), organizationID, actor, biz.CreateFinanceBillInput{
 			FeeIDs: []uuid.UUID{billed}, BillDate: financeBillIntegrationDate,
 			IdempotencyKey: "bill-bulk-update-" + fixture.suffix, SettlementAccountID: fixture.accountID,
@@ -341,8 +339,8 @@ func TestOrderFeeBulkMaintenancePostgres(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		updateErr := usecase.BulkUpdate(ctx, organizationID, actor, orderID, targets, &newParty.ID, nil)
-		if !errors.Is(updateErr, biz.ErrFeeReviewFrozen) {
-			t.Fatalf("已建账行修改错误 = %v，期望 ErrFeeReviewFrozen", updateErr)
+		if !errors.Is(updateErr, biz.ErrBilledFeeFieldForbidden) {
+			t.Fatalf("已建账行修改错误 = %v，期望账单占用阻断", updateErr)
 		}
 
 		freeFee, queryErr := data.db.OrderFee.Get(context.Background(), free)
@@ -352,13 +350,12 @@ func TestOrderFeeBulkMaintenancePostgres(t *testing.T) {
 
 		// 已建账行删除同样整批拒绝，错误携带账单号便于界面定位。
 		removeErr := usecase.BulkRemove(ctx, organizationID, actor, orderID, targets, "")
-		if !errors.Is(removeErr, biz.ErrFeeReviewFrozen) {
-			t.Fatalf("占用行删除错误 = %v，期望 ErrFeeReviewFrozen", removeErr)
+		if !errors.Is(removeErr, biz.ErrOrderFeeBillOccupied) {
+			t.Fatalf("占用行删除错误 = %v，期望账单占用阻断", removeErr)
 		}
 		if _, err := billUsecase.Cancel(context.Background(), []uuid.UUID{organizationID}, actor, bill.ID, bill.Version, "恢复批量维护夹具"); err != nil {
 			t.Fatal(err)
 		}
-		fixture.revokeFeePackage()
 		exists, existErr := data.db.OrderFee.Query().Where(orderfeeent.IDIn(billed, free)).Count(context.Background())
 		if existErr != nil || exists != 2 {
 			t.Fatalf("整批回滚后费用应全部保留: count=%d err=%v", exists, existErr)

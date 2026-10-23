@@ -98,7 +98,7 @@ func TestAirWeightConfirmationAndFeeSourcePostgres(t *testing.T) {
 	if e != nil || !planFeePreview.Available || planFeePreview.Quantity != "105" || planFeePreview.QuantitySource.ConfirmationID != planConfirmed.ID {
 		t.Fatalf("计划确认带入不得串用实际130: %+v %v", planFeePreview, e)
 	}
-	gross, e := biz.NewOrderFeeUsecase(repo, nil, nil, nil, nil, nil).PreviewFeeQuantity(ctx, f.organizationID, a.ID, unit.ID, "ACTUAL", "GROSS_WEIGHT")
+	gross, e := biz.NewOrderFeeUsecase(repo, nil, nil, nil, nil).PreviewFeeQuantity(ctx, f.organizationID, a.ID, unit.ID, "ACTUAL", "GROSS_WEIGHT")
 	if e != nil || gross.Quantity != "100" {
 		t.Fatalf("KG默认毛重不得改变: %+v %v", gross, e)
 	}

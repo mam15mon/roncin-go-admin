@@ -77,7 +77,7 @@ func TestSettlementRepoListFeeLedgerUsesDatabasePaginationAndSummary(t *testing.
 	locked := true
 
 	organizationID := uuid.New()
-	mock.ExpectQuery(`SELECT COUNT.*FROM "order_fees".*organization_id.*finance_commission_lines.*finance_bill_lines.*finance_invoice_bills.*finance_verification_allocations`).
+	mock.ExpectQuery(`SELECT COUNT.*FROM "order_fees".*organization_id.*locked_at.*finance_bill_lines.*finance_invoice_bills.*finance_verification_allocations`).
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(3))
 	mock.ExpectQuery(`SELECT .*"active_count".*"base_amount".*FROM "order_fees".*GROUP BY`).
 		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "active_count", "base_amount"}).
@@ -91,7 +91,7 @@ func TestSettlementRepoListFeeLedgerUsesDatabasePaginationAndSummary(t *testing.
 		Page:              2,
 		PageSize:          20,
 		FinancialProgress: biz.FeeLedgerCompleted,
-		FinanceLocked:     &locked,
+		OrderLocked:       &locked,
 	})
 	if err != nil {
 		t.Fatalf("查询费用台账失败: %v", err)

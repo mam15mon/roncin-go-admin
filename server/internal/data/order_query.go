@@ -72,16 +72,6 @@ func (r *orderRepo) List(ctx context.Context, scopes []biz.OrderOrganizationScop
 		return nil, err
 	}
 	query := client.Order.Query().Where(orderOrganizationScopePredicate(scopes))
-	if options.FeeReviewStatus != "" {
-		query.Where(orderent.FeeReviewStatusEQ(orderent.FeeReviewStatus(options.FeeReviewStatus)))
-	}
-	if options.HasPendingFeeSupplement != nil {
-		predicate := orderHasPendingSupplementPredicate()
-		if !*options.HasPendingFeeSupplement {
-			predicate = orderent.Not(predicate)
-		}
-		query.Where(predicate)
-	}
 	if options.Keyword != "" {
 		query.Where(orderent.Or(orderent.OrderNoContainsFold(options.Keyword), orderent.VesselVoyageContainsFold(options.Keyword), orderent.GoodsDescriptionContainsFold(options.Keyword), airOrderNumberContainsFold(options.Keyword, false, false), airOrderNumberContainsFold(options.Keyword, true, false)))
 	}

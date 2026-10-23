@@ -36,6 +36,10 @@ const (
 	FieldAfterSnapshot = "after_snapshot"
 	// FieldApprovedFeeReviewEventID holds the string denoting the approved_fee_review_event_id field in the database.
 	FieldApprovedFeeReviewEventID = "approved_fee_review_event_id"
+	// FieldLockRecordID holds the string denoting the lock_record_id field in the database.
+	FieldLockRecordID = "lock_record_id"
+	// FieldLockGeneration holds the string denoting the lock_generation field in the database.
+	FieldLockGeneration = "lock_generation"
 	// FieldApprovedFeeContentVersion holds the string denoting the approved_fee_content_version field in the database.
 	FieldApprovedFeeContentVersion = "approved_fee_content_version"
 	// FieldApprovedFeeReviewVersion holds the string denoting the approved_fee_review_version field in the database.
@@ -64,6 +68,8 @@ const (
 	FieldDecisionReason = "decision_reason"
 	// FieldApprovalToken holds the string denoting the approval_token field in the database.
 	FieldApprovalToken = "approval_token"
+	// EdgeLockRecord holds the string denoting the lock_record edge name in mutations.
+	EdgeLockRecord = "lock_record"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
 	EdgeOrganization = "organization"
 	// EdgeOrder holds the string denoting the order edge name in mutations.
@@ -86,6 +92,13 @@ const (
 	EdgeSupersededFees = "superseded_fees"
 	// Table holds the table name of the orderfeecorrectionrequest in the database.
 	Table = "order_fee_correction_requests"
+	// LockRecordTable is the table that holds the lock_record relation/edge.
+	LockRecordTable = "order_fee_correction_requests"
+	// LockRecordInverseTable is the table name for the OrderLockRecord entity.
+	// It exists in this package in order to avoid circular dependency with the "orderlockrecord" package.
+	LockRecordInverseTable = "order_lock_records"
+	// LockRecordColumn is the table column denoting the lock_record relation/edge.
+	LockRecordColumn = "lock_record_id"
 	// OrganizationTable is the table that holds the organization relation/edge.
 	OrganizationTable = "order_fee_correction_requests"
 	// OrganizationInverseTable is the table name for the Organization entity.
@@ -171,6 +184,8 @@ var Columns = []string{
 	FieldBeforeSnapshot,
 	FieldAfterSnapshot,
 	FieldApprovedFeeReviewEventID,
+	FieldLockRecordID,
+	FieldLockGeneration,
 	FieldApprovedFeeContentVersion,
 	FieldApprovedFeeReviewVersion,
 	FieldApprovalResultSnapshot,
@@ -320,6 +335,16 @@ func ByApprovedFeeReviewEventID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldApprovedFeeReviewEventID, opts...).ToFunc()
 }
 
+// ByLockRecordID orders the results by the lock_record_id field.
+func ByLockRecordID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLockRecordID, opts...).ToFunc()
+}
+
+// ByLockGeneration orders the results by the lock_generation field.
+func ByLockGeneration(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLockGeneration, opts...).ToFunc()
+}
+
 // ByApprovedFeeContentVersion orders the results by the approved_fee_content_version field.
 func ByApprovedFeeContentVersion(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldApprovedFeeContentVersion, opts...).ToFunc()
@@ -383,6 +408,13 @@ func ByDecisionReason(opts ...sql.OrderTermOption) OrderOption {
 // ByApprovalToken orders the results by the approval_token field.
 func ByApprovalToken(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldApprovalToken, opts...).ToFunc()
+}
+
+// ByLockRecordField orders the results by lock_record field.
+func ByLockRecordField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLockRecordStep(), sql.OrderByField(field, opts...))
+	}
 }
 
 // ByOrganizationField orders the results by organization field.
@@ -488,6 +520,13 @@ func BySupersededFees(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newSupersededFeesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
+}
+func newLockRecordStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LockRecordInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, LockRecordTable, LockRecordColumn),
+	)
 }
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(

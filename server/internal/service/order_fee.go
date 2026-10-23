@@ -62,10 +62,7 @@ func (s *OrderFeeService) ListFeeOptions(ctx context.Context, request *v1.ListFe
 	for _, item := range options.BillingUnits {
 		billingUnits = append(billingUnits, &v1.OrderFeeBillingUnitOption{Id: item.ID.String(), Code: item.Code, Name: item.Name, QuantityMustBeInteger: item.QuantityMustBeInteger, IsContainerUnit: item.IsContainerUnit})
 	}
-	response := okList(ctx, &v1.ListFeeOptionsResponse{SettlementParties: parties, Currencies: currencies, FeeSettings: feeSettings, BillingUnits: billingUnits, BaseCurrency: options.BaseCurrency, FinanceLocked: options.FinanceLocked, FinanceLockCommissionNos: options.FinanceLockCommissionNos, CustomerId: options.CustomerID.String(), CustomerName: options.CustomerName})
-	if options.FinanceLockReason != "" {
-		response.FinanceLockReason = &options.FinanceLockReason
-	}
+	response := okList(ctx, &v1.ListFeeOptionsResponse{SettlementParties: parties, Currencies: currencies, FeeSettings: feeSettings, BillingUnits: billingUnits, BaseCurrency: options.BaseCurrency, CustomerId: options.CustomerID.String(), CustomerName: options.CustomerName})
 	return response, nil
 }
 
@@ -291,7 +288,7 @@ func orderFeeToAPI(value *biz.OrderFee) *v1.OrderFee {
 		BaseCurrencyAmount:  value.BaseCurrencyAmount.StringFixed(8),
 		Version:             value.Version,
 		Note:                value.Note,
-		HasActiveBill:       value.HasActiveBill, EconomicEffect: string(value.EconomicEffect), AccountingRequired: value.AccountingRequired, CanBill: biz.RequiresAccounting(value) && !value.HasActiveBill, CanCorrect: biz.IsCurrentFee(value),
+		HasActiveBill:       value.HasActiveBill, EconomicEffect: string(value.EconomicEffect), AccountingRequired: value.AccountingRequired, CanBill: value.CanBill, CanEdit: value.CanEdit, CanDelete: value.CanDelete, HasPendingChange: value.HasPendingChange, BlockedReasons: value.BlockedReasons, CanCorrect: value.CanCorrect,
 		CreatedAt: value.CreatedAt.UTC().Format(time.RFC3339),
 		UpdatedAt: value.UpdatedAt.UTC().Format(time.RFC3339),
 	}

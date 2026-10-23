@@ -335,10 +335,44 @@ export default function FinanceBillsPage() {
       },
     );
 
-  const cancelBill = (bill: API.FinanceBill) => {
+  const cancelBill = async (bill: API.FinanceBill) => {
+    if (!bill.id) return;
+    const signal = getModalOwnerSignal();
+    let fullBill: API.FinanceBill;
+    try {
+      const response = await settlementServiceGetBill(
+        { id: bill.id },
+        { signal },
+      );
+      if (signal.aborted) return;
+      if (
+        !response?.data?.id ||
+        !response.data.version ||
+        !response.data.lines?.length
+      ) {
+        message.error('账单明细未完整加载，请刷新后重试');
+        return;
+      }
+      fullBill = response.data;
+    } catch (error) {
+      if (!signal.aborted)
+        message.error(getErrorMessage(error, '加载账单取消影响范围失败'));
+      return;
+    }
+    const activeLines = (fullBill.lines ?? []).filter(
+      (line) => line.active !== false,
+    );
+    if (!activeLines.length) {
+      message.error('账单没有可释放的有效费用，请刷新后重试');
+      return;
+    }
+    const orderCount = new Set(activeLines.map((line) => line.orderId)).size;
+    const orderNos = [
+      ...new Set(activeLines.map((line) => line.orderNo).filter(Boolean)),
+    ];
     billActions.confirm(
-      bill,
-      `取消 ${bill.organizationName || '所属公司未标识'} 的账单并释放关联费用？`,
+      fullBill,
+      `确认取消 ${fullBill.organizationName || '所属公司未标识'} 的整张账单 ${fullBill.billNo || ''}？将释放涉及 ${orderCount} 个订单的 ${activeLines.length} 笔费用${orderNos.length ? `（${orderNos.join('、')}）` : ''}。合并账单内所有关联费用会一并释放；如有发票、核销或对冲，须先按提示逐步回退。`,
       async ({ id, expectedVersion }, reason): Promise<false | undefined> => {
         const writeResponse2 = await settlementServiceCancelBill(
           { id },
@@ -352,6 +386,7 @@ export default function FinanceBillsPage() {
       },
       {
         danger: true,
+        signal,
         placeholder: '请输入取消原因（必填）',
         requiredMessage: '请输入取消原因',
       },
