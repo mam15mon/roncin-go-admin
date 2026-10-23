@@ -137,3 +137,25 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 157: 统一订单审核锁与费用补审账务回退
+<!-- trellis-session: v=2 fp=4ebe75b5f1739a4b -->
+
+**Date**: 2026-10-23
+**Task**: 统一订单审核锁与费用补审账务回退
+**Branch**: `codex/unified-order-review-lock`
+
+### Summary
+
+完成统一人工订单审核锁，移除自动锁与整票费用审核写流程；费用按逐费建账占用控制编辑/删除，锁后 ADD/REPLACE/VOID 通过费用更正补审；补充账务回退依赖提示、合并账单整单取消影响范围、提成经济重算与 Go 1.26.10 漏洞修复。真实 PostgreSQL 定向场景和 check:fast 全量门禁通过。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `2e56e7e0` | feat: 统一订单审核锁与费用补审账务回退 |
+
+### Status
+
+[OK] **Completed**
