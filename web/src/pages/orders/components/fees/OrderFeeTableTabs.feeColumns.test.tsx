@@ -151,7 +151,7 @@ describe('OrderFeeTableTabs 列设置与只读金额列', () => {
     expect(JSON.parse(stored as string).hidden).toContain('netUnitPrice');
   });
 
-  it('不含税单价列默认顺序紧跟单价之后（A1）', async () => {
+  it('应收应付默认按计价、税额、折算、日期备注顺序展示', async () => {
     render(
       <App>
         <OrderFeeTableTabs {...makeProps('order-1')} />
@@ -160,13 +160,34 @@ describe('OrderFeeTableTabs 列设置与只读金额列', () => {
 
     await screen.findByText('海运费');
     await waitFor(() => expect(tableHeaderCount('不含税单价')).toBe(2));
-    const unitPriceHeader = screen.getAllByRole('columnheader', {
+    for (const unitPriceHeader of screen.getAllByRole('columnheader', {
       name: '单价',
-    })[0];
-    const headerTitles = Array.from(
-      unitPriceHeader.closest('tr')?.querySelectorAll('th') ?? [],
-    ).map((th) => th.textContent?.trim());
-    expect(headerTitles[headerTitles.indexOf('单价') + 1]).toBe('不含税单价');
+    })) {
+      const headerTitles = Array.from(
+        unitPriceHeader.closest('tr')?.querySelectorAll('th') ?? [],
+      )
+        .map((th) => th.textContent?.trim())
+        .filter(Boolean);
+      expect(headerTitles).toEqual([
+        '费用代码',
+        '费用名称',
+        '结算单位',
+        '币种',
+        '计费单位',
+        '数量',
+        '单价',
+        '不含税单价',
+        '总金额',
+        '税率(%)',
+        '税金',
+        '不含税总额',
+        '汇率',
+        '折本币金额',
+        '发生日期',
+        '备注',
+        '操作',
+      ]);
+    }
   });
 
   it('取消勾选即时隐藏列并写入偏好；重新挂载读取已保存偏好（A1）', async () => {

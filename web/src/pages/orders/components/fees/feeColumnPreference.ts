@@ -21,18 +21,18 @@ export const FEE_COLUMN_KEYS = [
   'feeSettingId',
   'settlementPartyId',
   'currency',
+  'billingUnitId',
+  'quantity',
   'unitPrice',
   'netUnitPrice',
-  'quantity',
-  'billingUnitId',
   'totalAmount',
-  'exchangeRate',
-  'expenseDate',
-  'note',
   'taxRate',
   'taxAmount',
   'netAmount',
+  'exchangeRate',
   'baseCurrencyAmount',
+  'expenseDate',
+  'note',
   'tags',
   'billNo',
   'financialProgress',
@@ -52,7 +52,7 @@ export interface FeeColumnDef {
   financeOnly?: boolean;
 }
 
-/** 默认列保持当前表格相对顺序；费用标签与关联账单列默认隐藏，含税单价折算列与税额四列默认可见。 */
+/** 默认列按费用对象、计价输入、原币税额、本币折算、日期备注排列；费用标签与关联账单列默认隐藏。 */
 export const DEFAULT_FEE_COLUMN_DEFS: FeeColumnDef[] = [
   {
     key: 'feeCode',
@@ -74,18 +74,18 @@ export const DEFAULT_FEE_COLUMN_DEFS: FeeColumnDef[] = [
     defaultVisible: true,
   },
   { key: 'currency', title: '币种', lockVisible: true, defaultVisible: true },
+  {
+    key: 'billingUnitId',
+    title: '计费单位',
+    lockVisible: true,
+    defaultVisible: true,
+  },
+  { key: 'quantity', title: '数量', lockVisible: true, defaultVisible: true },
   { key: 'unitPrice', title: '单价', lockVisible: true, defaultVisible: true },
   {
     key: 'netUnitPrice',
     title: '不含税单价',
     lockVisible: false,
-    defaultVisible: true,
-  },
-  { key: 'quantity', title: '数量', lockVisible: true, defaultVisible: true },
-  {
-    key: 'billingUnitId',
-    title: '计费单位',
-    lockVisible: true,
     defaultVisible: true,
   },
   {
@@ -94,19 +94,6 @@ export const DEFAULT_FEE_COLUMN_DEFS: FeeColumnDef[] = [
     lockVisible: false,
     defaultVisible: true,
   },
-  {
-    key: 'exchangeRate',
-    title: '汇率',
-    lockVisible: false,
-    defaultVisible: true,
-  },
-  {
-    key: 'expenseDate',
-    title: '发生日期',
-    lockVisible: true,
-    defaultVisible: true,
-  },
-  { key: 'note', title: '备注', lockVisible: false, defaultVisible: true },
   {
     key: 'taxRate',
     title: '税率(%)',
@@ -126,11 +113,24 @@ export const DEFAULT_FEE_COLUMN_DEFS: FeeColumnDef[] = [
     defaultVisible: true,
   },
   {
+    key: 'exchangeRate',
+    title: '汇率',
+    lockVisible: false,
+    defaultVisible: true,
+  },
+  {
     key: 'baseCurrencyAmount',
     title: '折本币金额',
     lockVisible: false,
     defaultVisible: true,
   },
+  {
+    key: 'expenseDate',
+    title: '发生日期',
+    lockVisible: true,
+    defaultVisible: true,
+  },
+  { key: 'note', title: '备注', lockVisible: false, defaultVisible: true },
   {
     key: 'tags',
     title: '费用标签',
