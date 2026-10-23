@@ -103,24 +103,32 @@ export function OrderListTemplate({
       {
         title: '进程',
         dataIndex: 'stage',
-        width: 90,
+        width: 160,
         sorter: true,
-        render: (_, record) => {
-          const val =
-            record.stage ||
-            (record.status === 'COMPLETED'
-              ? '已完结'
-              : record.status === 'CANCELLED'
-                ? '已退关'
-                : '未退关');
-          const color =
-            val === '已完结'
-              ? 'success'
-              : val === '已退关'
-                ? 'error'
-                : 'processing';
-          return <Tag color={color}>{val}</Tag>;
-        },
+        render: (_, record) =>
+          record.stage?.length ? (
+            <Space size={4}>
+              {record.stage.map((stage) => (
+                <Tag
+                  key={stage}
+                  color={
+                    stage === '已完结'
+                      ? 'success'
+                      : stage === '已退关'
+                        ? 'error'
+                        : stage === '退关中'
+                          ? 'warning'
+                          : 'processing'
+                  }
+                  style={{ marginInlineEnd: 0 }}
+                >
+                  {stage}
+                </Tag>
+              ))}
+            </Space>
+          ) : (
+            '-'
+          ),
       },
       // 3. 订单编号
       {
@@ -289,10 +297,7 @@ export function OrderListTemplate({
         title: '操作人员',
         dataIndex: 'operatorName',
         width: 130,
-        render: (_, record) =>
-          record.operatorName
-            ? `${record.operatorName}${record.operatorBranch ? ` (${record.operatorBranch})` : ''}`
-            : '-',
+        renderText: (val) => val || '-',
       },
       {
         title: '业务人员',
@@ -415,7 +420,7 @@ export function OrderListTemplate({
 
       // 13. 右侧固定状态与异常
       {
-        title: '订单状态',
+        title: '操作进度',
         dataIndex: 'statusName',
         width: 100,
         fixed: 'right',

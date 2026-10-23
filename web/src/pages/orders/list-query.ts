@@ -120,23 +120,31 @@ export async function queryOrderList(
       )
       .join(', ');
 
+    const stage: NonNullable<OrderListItem['stage']> = [];
+    if (
+      order.terminationStatus ===
+      OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED
+    ) {
+      stage.push('已退关');
+    } else if (
+      order.terminationStatus ===
+      OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATING
+    ) {
+      stage.push('退关中');
+    }
+    if (
+      order.closureStatus === OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED
+    ) {
+      stage.push('已完结');
+    }
+    if (stage.length === 0) stage.push('正常运作');
+
     return {
       id: order.id || '',
       orderNo: order.orderNo || '',
       orderKind: definition.kind,
       businessType: definition.navigationTitle,
-      stage:
-        order.closureStatus === OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED
-          ? '已完结'
-          : order.terminationStatus ===
-              OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED
-            ? '已退关'
-            : order.terminationStatus ===
-                OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATING
-              ? '退关中'
-              : order.hasActiveException
-                ? '异常挂起'
-                : '正常运作',
+      stage,
       // 委托单位名称以服务端投影为准；本地候选缓存（前50启用客户）仅作缺失兜底，任何情况不展示原始 ID。
       customerName:
         order.customerName || ctx.customerMap[order.customerId ?? ''] || '-',

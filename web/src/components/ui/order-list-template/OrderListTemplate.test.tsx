@@ -4,6 +4,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -52,11 +53,19 @@ describe('OrderListTemplate', () => {
           containerSummary: '2×40HQ',
           grossWeightKg: 18500,
           volumeCbm: 68,
-          statusName: '已配载',
-          abnormalLevel: 'normal',
+          operatorName: '张强',
+          operatorBranch: '上海分公司',
+          stage: ['已退关', '已完结'],
+          statusName: '已配舱',
+          abnormalLevel: 'high',
+        } as OrderListItem,
+        {
+          id: 'order-2',
+          orderNo: 'ORD202608260002',
+          stage: ['正常运作'],
         } as OrderListItem,
       ],
-      total: 1,
+      total: 2,
       success: true,
     });
 
@@ -84,7 +93,32 @@ describe('OrderListTemplate', () => {
       expect(screen.getByText('COSU632189472')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /更多/ }));
+    expect(
+      screen.getByRole('columnheader', { name: '操作进度' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('columnheader', { name: '订单状态' }),
+    ).not.toBeInTheDocument();
+    const orderRow = screen.getByText('ORD202608260001').closest('tr');
+    expect(orderRow).not.toBeNull();
+    const row = within(orderRow as HTMLElement);
+    const operatorCell = row.getByText('张强').closest('td');
+    expect(operatorCell).toHaveTextContent(/^张强$/);
+    expect(row.queryByText(/上海分公司/)).not.toBeInTheDocument();
+    const unassignedRow = screen.getByText('ORD202608260002').closest('tr');
+    expect(
+      unassignedRow?.cells[(operatorCell as HTMLTableCellElement).cellIndex],
+    ).toHaveTextContent(/^-$/);
+    const processCell = row.getByText('已退关').closest('td');
+    expect(processCell).not.toBeNull();
+    expect(
+      within(processCell as HTMLElement).getByText('已完结'),
+    ).toBeVisible();
+    expect(row.getByText('已配舱')).toBeVisible();
+    expect(row.getByText('异常')).toBeVisible();
+    expect(row.queryByText('异常挂起')).not.toBeInTheDocument();
+
+    fireEvent.click(row.getByRole('button', { name: /更多/ }));
     expect(screen.queryByText('流转状态')).not.toBeInTheDocument();
   });
 });

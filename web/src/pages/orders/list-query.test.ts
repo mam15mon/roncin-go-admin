@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { OrderTerminationStatus } from '@/enums.generated';
+import {
+  OrderClosureStatus,
+  OrderFlowStatus,
+  OrderTerminationStatus,
+} from '@/enums.generated';
 import { queryOrderList } from './list-query';
+import { airExportDefinition } from './order-kinds/air-export/definition';
 import { seaExportDefinition } from './order-kinds/sea-export/definition';
 
 const listOrdersMock = vi.hoisted(() => vi.fn());
@@ -66,7 +71,114 @@ describe('queryOrderList', () => {
         tagIds: ['tag-1'],
       }),
     );
+    expect(listOrdersMock.mock.calls[0][0]).not.toHaveProperty('closureStatus');
   });
+
+  it.each([
+    {
+      name: '正常运作',
+      terminationStatus: OrderTerminationStatus.ORDER_TERMINATION_STATUS_ACTIVE,
+      closureStatus: OrderClosureStatus.ORDER_CLOSURE_STATUS_OPEN,
+      stage: ['正常运作'],
+    },
+    {
+      name: '退关中',
+      terminationStatus:
+        OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATING,
+      closureStatus: OrderClosureStatus.ORDER_CLOSURE_STATUS_OPEN,
+      stage: ['退关中'],
+    },
+    {
+      name: '已退关',
+      terminationStatus:
+        OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED,
+      closureStatus: OrderClosureStatus.ORDER_CLOSURE_STATUS_OPEN,
+      stage: ['已退关'],
+    },
+    {
+      name: '正常完结',
+      terminationStatus: OrderTerminationStatus.ORDER_TERMINATION_STATUS_ACTIVE,
+      closureStatus: OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED,
+      stage: ['已完结'],
+    },
+    {
+      name: '退关后完结',
+      terminationStatus:
+        OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED,
+      closureStatus: OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED,
+      stage: ['已退关', '已完结'],
+    },
+  ])(
+    '$name 的进程独立于异常信息',
+    async ({ terminationStatus, closureStatus, stage }) => {
+      listOrdersMock.mockResolvedValue({
+        data: [false, true].map((hasActiveException, index) => ({
+          id: `order-${index}`,
+          terminationStatus,
+          closureStatus,
+          flowStatus: OrderFlowStatus.ORDER_FLOW_STATUS_BOOKED,
+          hasActiveException,
+        })),
+        total: 2,
+        success: true,
+      });
+
+      const result = await queryOrderList({}, seaExportDefinition, {
+        ports: [],
+        airports: [],
+        customerMap: {},
+        containerSpecMap: {},
+      });
+
+      expect(
+        result.data.map((row) => ({
+          stage: row.stage,
+          statusName: row.statusName,
+          abnormalLevel: row.abnormalLevel,
+        })),
+      ).toEqual([
+        { stage, statusName: '已订舱', abnormalLevel: 'normal' },
+        { stage, statusName: '已订舱', abnormalLevel: 'high' },
+      ]);
+    },
+  );
+
+  it.each([
+    ['海运', seaExportDefinition, '已放单'],
+    ['空运', airExportDefinition, '已签单'],
+  ] as const)(
+    '%s 操作节点不推断订单完结',
+    async (_name, definition, statusName) => {
+      listOrdersMock.mockResolvedValue({
+        data: [
+          {
+            id: 'order-1',
+            businessType: definition.businessType,
+            flowStatus: OrderFlowStatus.ORDER_FLOW_STATUS_DOCUMENT_RELEASED,
+            terminationStatus:
+              OrderTerminationStatus.ORDER_TERMINATION_STATUS_ACTIVE,
+            closureStatus: OrderClosureStatus.ORDER_CLOSURE_STATUS_OPEN,
+          },
+        ],
+        total: 1,
+        success: true,
+      });
+
+      const result = await queryOrderList({}, definition, {
+        ports: [],
+        airports: [],
+        customerMap: {},
+        containerSpecMap: {},
+      });
+
+      expect(result.data[0]).toEqual(
+        expect.objectContaining({
+          statusName,
+          stage: ['正常运作'],
+        }),
+      );
+    },
+  );
 
   it('使用港口、机场、客户和箱型主数据构造列表行', async () => {
     listOrdersMock.mockResolvedValue({
@@ -130,7 +242,7 @@ describe('queryOrderList', () => {
           paymentTerm: '预付 (PP)',
           tradeTerm: 'FOB',
           statusName: '已订舱',
-          stage: '正常运作',
+          stage: ['正常运作'],
         }),
       ],
       total: 1,

@@ -78,7 +78,8 @@ export interface OrderListItem {
   /** 页面注册定义提供的稳定路由标识（如 `sea-export`），模板不做业务解释。 */
   orderKind?: string;
   businessType?: string | number;
-  stage?: string; // 进程
+  /** 退关与完结可并存；业务页面完成映射，模板只负责展示。 */
+  stage?: ('正常运作' | '退关中' | '已退关' | '已完结')[];
   customerName?: string;
   customerId?: string;
   customerReferenceNo?: string;

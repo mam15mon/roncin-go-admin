@@ -358,6 +358,31 @@ if (
 - 回归验证覆盖摘要随源变化、零值/空值、带入只影响当前提单、页签及 HOUSE/DIRECT
   切换保留实际值、只读状态，以及桌面三列和窄屏同指标就近对照。
 
+## 订单列表状态展示
+
+- 列表区分三类信息：「进程」表达退关与完结事实，「操作进度」表达当前主流程节点，
+  「异常」表达活动异常；异常不能覆盖进程，完结不能覆盖退关历史。
+- `pages/orders/list-query.ts` 负责将服务端 `terminationStatus`、`closureStatus` 映射为
+  可并存的进程标签；公共 `OrderListTemplate` 只渲染行模型，不从 `rawRecord` 解读领域枚举。
+  进程列保留 `dataIndex: 'stage'`、操作进度列保留 `dataIndex: 'statusName'`，维持列偏好身份。
+
+| 退关状态 | 完结状态 | 进程标签 |
+| --- | --- | --- |
+| `ACTIVE` | `OPEN` | 正常运作 |
+| `TERMINATING` | `OPEN` | 退关中 |
+| `TERMINATED` | `OPEN` | 已退关 |
+| `ACTIVE` | `CLOSED` | 已完结 |
+| `TERMINATED` | `CLOSED` | 已退关、已完结（同一单元格同时显示） |
+
+- 主流程文案继续复用 `getOrderFlowStatusText(flowStatus, businessType)`，保留海运/空运差异；
+  不根据放单节点或收付款核销进度推断已完结。
+- 「已退关」筛选只约束 `terminationStatus=TERMINATED`，因此可包含已完结订单；
+  不为匹配单标签展示而擅自添加 `closureStatus=OPEN`。
+- 组织隔离的订单列表中，「操作人员」列只展示 `operatorName`（未分配为 `-`），
+  不再拼接 `operatorBranch` 公司名称。
+- 必需回归：退关后完结的双标签在同一单元格可见；活动异常不改变进程；操作进度列标题和
+  海空运节点文案正确。禁止用 `closureStatus === CLOSED ? '已完结' : ...` 的互斥优先级覆盖退关事实。
+
 ## 海运出口订单三维状态卡
 
 ### 1. Scope / Trigger
