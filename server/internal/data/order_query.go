@@ -35,6 +35,9 @@ func (r *orderRepo) Get(ctx context.Context, organizationID, id uuid.UUID) (*biz
 		return nil, mapEntError(err, biz.ErrOrderNotFound, nil)
 	}
 	result := orderToBiz(item)
+	if err := attachOrderStatusRecords(ctx, client, result); err != nil {
+		return nil, err
+	}
 	if err := attachOrderDisplayNames(ctx, client, []*biz.Order{result}); err != nil {
 		return nil, err
 	}

@@ -237,7 +237,17 @@ type OrderPersonnelFilter struct {
 	UserID *uuid.UUID
 }
 
+// OrderStatusRecord 表达某个状态节点最近一次实际进入时的操作信息。
+type OrderStatusRecord struct {
+	Dimension    string
+	Status       string
+	OperatorName string
+	ChangedAt    time.Time
+	Reason       string
+}
+
 type Order struct {
+	StatusRecords    []*OrderStatusRecord
 	FeeReview        *OrderFeeReview
 	ID               uuid.UUID
 	OrganizationID   uuid.UUID

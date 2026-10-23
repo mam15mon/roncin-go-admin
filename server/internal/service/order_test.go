@@ -30,6 +30,21 @@ func TestOrderDateRangeFromAPIUsesInclusiveEndDate(t *testing.T) {
 	}
 }
 
+func TestOrderStatusRecordsToAPI(t *testing.T) {
+	changedAt := time.Date(2026, 10, 23, 10, 3, 4, 0, time.FixedZone("CST", 8*60*60))
+	output := orderToAPI(&biz.Order{StatusRecords: []*biz.OrderStatusRecord{{
+		Dimension: "FLOW", Status: "BOOKED", OperatorName: "张操作",
+		ChangedAt: changedAt, Reason: "舱位已确认\n客户已知悉",
+	}}})
+	if len(output.StatusRecords) != 1 {
+		t.Fatalf("状态记录丢失: %#v", output.StatusRecords)
+	}
+	record := output.StatusRecords[0]
+	if record.Dimension != "FLOW" || record.Status != "BOOKED" || record.OperatorName != "张操作" || record.ChangedAt != "2026-10-23T02:03:04Z" || record.Reason != "舱位已确认\n客户已知悉" {
+		t.Fatalf("状态记录转换错误: %#v", record)
+	}
+}
+
 func TestOrderPersonnelFilterFromAPIOnlyAcceptsEmployee(t *testing.T) {
 	userID := uuid.New()
 	result, err := orderPersonnelFilterFromAPI(userID.String())

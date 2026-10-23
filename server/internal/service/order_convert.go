@@ -37,6 +37,12 @@ func orderToAPI(item *biz.Order) *v1.Order {
 		ShipperShortName: stringPtrIfNotEmpty(item.ShipperShortName), ConsigneeShortName: stringPtrIfNotEmpty(item.ConsigneeShortName), LockedAt: timePtrToString(item.LockedAt), IsShared: item.IsShared, Tags: businessTagSummariesToAPI(item.Tags),
 		CreatedAt: item.CreatedAt.UTC().Format(timeFormatRFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(timeFormatRFC3339),
 	}
+	for _, record := range item.StatusRecords {
+		result.StatusRecords = append(result.StatusRecords, &v1.OrderStatusRecord{
+			Dimension: record.Dimension, Status: record.Status, OperatorName: record.OperatorName,
+			ChangedAt: record.ChangedAt.UTC().Format(timeFormatRFC3339), Reason: record.Reason,
+		})
+	}
 	if r := item.FeeReview; r != nil {
 		result.FeeReview = &v1.OrderFeeReviewProjection{Status: r.Status, ContentVersion: r.ContentVersion, ReviewVersion: r.ReviewVersion, HasPendingSupplement: r.HasPendingSupplement, HasPendingCorrection: r.HasPendingCorrection, HasPendingChange: r.HasPendingChange, CanApprove: r.CanApprove, CanEdit: r.CanEdit, CanBill: r.CanBill, BlockedReasons: r.BlockedReasons, Summary: feeReviewSummaryToAPI(r.Summary)}
 		if r.SubmissionID != nil {

@@ -30208,6 +30208,12 @@
           },
           "shippingLineName": {
             "type": "string"
+          },
+          "statusRecords": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderStatusRecord"
+            }
           }
         }
       },
@@ -31773,6 +31779,28 @@
           }
         },
         "description": "OrderShippingDocumentInput 订单表单中的分单输入。"
+      },
+      "order.v1.OrderStatusRecord": {
+        "type": "object",
+        "properties": {
+          "dimension": {
+            "type": "string",
+            "description": "dimension 为 FLOW、TERMINATION 或 CLOSURE；status 为对应领域状态码。"
+          },
+          "status": {
+            "type": "string"
+          },
+          "operatorName": {
+            "type": "string"
+          },
+          "changedAt": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "description": "OrderStatusRecord 为每个状态节点最近一次实际进入的操作记录，仅详情返回。"
       },
       "order.v1.OrderUnlockApproverCandidateData": {
         "type": "object",

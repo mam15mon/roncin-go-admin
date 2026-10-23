@@ -5163,6 +5163,7 @@ declare namespace API {
     salesBranch?: string;
     creatorName?: string;
     shippingLineName?: string;
+    statusRecords?: OrderStatusRecord[];
   };
 
   type OrderAbnormalCase = {
@@ -6125,6 +6126,15 @@ declare namespace API {
   type OrderShippingDocumentServiceUpdateShippingDocumentParams = {
     orderId: string;
     id: string;
+  };
+
+  type OrderStatusRecord = {
+    /** dimension 为 FLOW、TERMINATION 或 CLOSURE；status 为对应领域状态码。 */
+    dimension?: string;
+    status?: string;
+    operatorName?: string;
+    changedAt?: string;
+    reason?: string;
   };
 
   type OrderTagServiceListOrderTagOptionsParams = {

@@ -7,6 +7,7 @@ import {
   OrderFlowStatus,
   OrderTerminationStatus,
 } from '@/enums.generated';
+import { formatDate } from '@/utils/format';
 import {
   buildOrderStatusSection,
   type OrderStatusSectionActions,
@@ -26,6 +27,143 @@ function renderStatusSection(
 }
 
 describe('OrderStatusSection', () => {
+  it('当前节点明确标识，下一步保持可流转且不冒充当前节点', () => {
+    renderStatusSection(
+      {
+        flowStatus: OrderFlowStatus.ORDER_FLOW_STATUS_BOOKED,
+        allowedTargetFlowStatuses: [
+          OrderFlowStatus.ORDER_FLOW_STATUS_SPACE_ALLOCATED,
+        ],
+        statusRecords: [{ dimension: 'FLOW', status: 'BOOKED' }],
+      },
+      { transitionFlow: vi.fn() },
+    );
+
+    expect(screen.getByText('当前：已订舱')).toBeInTheDocument();
+    expect(screen.getByText('当前').parentElement).toHaveAttribute(
+      'aria-current',
+      'step',
+    );
+    expect(screen.getByText('当前').parentElement).toHaveTextContent('已订舱');
+    expect(
+      screen.getByRole('button', { name: '流转到已配舱' }),
+    ).toHaveTextContent('可流转');
+    expect(
+      screen
+        .getByRole('button', { name: '流转到已配舱' })
+        .querySelector('[aria-current]'),
+    ).toBeNull();
+  });
+
+  it('草稿不将已订舱标为当前，跳过的拖车节点也不显示已完成', () => {
+    const { unmount } = renderStatusSection({
+      flowStatus: OrderFlowStatus.ORDER_FLOW_STATUS_DRAFT,
+    });
+    expect(screen.getByText('当前：草稿')).toBeInTheDocument();
+    expect(screen.queryByText('当前')).not.toBeInTheDocument();
+    unmount();
+
+    renderStatusSection({
+      flowStatus: OrderFlowStatus.ORDER_FLOW_STATUS_DOCUMENT_CUTOFF,
+      statusRecords: [
+        { dimension: 'FLOW', status: 'BOOKED' },
+        { dimension: 'FLOW', status: 'SPACE_ALLOCATED' },
+        { dimension: 'FLOW', status: 'DOCUMENT_CUTOFF' },
+      ],
+    });
+    expect(screen.getByText('拖车已安排').parentElement).toHaveTextContent(
+      '未完成',
+    );
+    expect(screen.getAllByText('已完成')).toHaveLength(2);
+  });
+
+  it('已完成节点悬停显示真实操作人、本地时间和多行备注', async () => {
+    const changedAt = '2026-10-23T02:03:04Z';
+    const transitionFlow = vi.fn();
+    renderStatusSection(
+      {
+        flowStatus: OrderFlowStatus.ORDER_FLOW_STATUS_SPACE_ALLOCATED,
+        statusRecords: [
+          {
+            dimension: 'FLOW',
+            status: 'BOOKED',
+            operatorName: '张操作',
+            changedAt,
+            reason: '舱位已确认\n客户已知悉',
+          },
+        ],
+      },
+      { transitionFlow },
+    );
+
+    fireEvent.mouseOver(screen.getByText('已订舱'));
+    expect(await screen.findByText('操作人：张操作')).toBeInTheDocument();
+    expect(
+      screen.getByText(`操作时间：${formatDate(changedAt, 'datetime')}`),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/备注：舱位已确认/)).toHaveTextContent(
+      '客户已知悉',
+    );
+    expect(transitionFlow).not.toHaveBeenCalled();
+  });
+
+  it('悬停无备注的当前节点明确显示无备注，未操作节点不伪造人员', async () => {
+    const { unmount } = renderStatusSection({
+      flowStatus: OrderFlowStatus.ORDER_FLOW_STATUS_BOOKED,
+      statusRecords: [
+        {
+          dimension: 'FLOW',
+          status: 'BOOKED',
+          operatorName: '李操作',
+          reason: '  ',
+        },
+      ],
+    });
+    fireEvent.mouseOver(screen.getByText('已订舱'));
+    expect(await screen.findByText('备注：无备注')).toBeInTheDocument();
+    unmount();
+
+    renderStatusSection({
+      flowStatus: OrderFlowStatus.ORDER_FLOW_STATUS_BOOKED,
+    });
+    fireEvent.mouseOver(screen.getByText('已配舱'));
+    expect(await screen.findByText('暂无操作记录')).toBeInTheDocument();
+    expect(screen.queryByText(/操作人：/)).not.toBeInTheDocument();
+  });
+
+  it('退关与完结徽标也使用对应维度的实际记录', async () => {
+    const { unmount } = renderStatusSection({
+      terminationStatus:
+        OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED,
+      statusRecords: [
+        {
+          dimension: 'TERMINATION',
+          status: 'TERMINATED',
+          operatorName: '王操作',
+          reason: '客户取消出运',
+        },
+      ],
+    });
+    fireEvent.mouseOver(screen.getByText('已退关'));
+    expect(await screen.findByText('备注：客户取消出运')).toBeInTheDocument();
+    unmount();
+
+    renderStatusSection({
+      closureStatus: OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED,
+      statusRecords: [
+        {
+          dimension: 'CLOSURE',
+          status: 'CLOSED',
+          operatorName: '赵操作',
+          reason: '业务已完成',
+        },
+      ],
+    });
+    fireEvent.mouseOver(screen.getByText('已完结'));
+    expect(await screen.findByText('操作人：赵操作')).toBeInTheDocument();
+    expect(screen.getByText('备注：业务已完成')).toBeInTheDocument();
+  });
+
   it('仅将服务端允许的草稿下一节点开放为按钮', () => {
     const transitionFlow = vi.fn();
     renderStatusSection(

@@ -312,6 +312,16 @@ message OrderFeeReviewProjection {
  bool has_pending_change = 13;
 }
 
+// OrderStatusRecord 为每个状态节点最近一次实际进入的操作记录，仅详情返回。
+message OrderStatusRecord {
+  // dimension 为 FLOW、TERMINATION 或 CLOSURE；status 为对应领域状态码。
+  string dimension = 1;
+  string status = 2;
+  string operator_name = 3;
+  string changed_at = 4;
+  string reason = 5;
+}
+
 message Order {
   string id = 1;
   string organization_id = 2;
@@ -423,6 +433,7 @@ message Order {
   optional string sales_branch = 98;
   optional string creator_name = 99;
   optional string shipping_line_name = 100;
+  repeated OrderStatusRecord status_records = 104;
 }
 
 message OrderCargoMeasurement {
