@@ -1,0 +1,7 @@
+{"file": ".trellis/spec/server/backend/order-lock-and-document-version.md", "reason": "现有订单锁、共享单证历史与自动锁边界；目标规则以本任务 PRD 为准"}
+{"file": ".trellis/spec/server/backend/order-fee-review.md", "reason": "识别需要替换的整票审批冻结和建账前置"}
+{"file": ".trellis/spec/server/backend/order-fee-correction.md", "reason": "费用更正、账务清偿与提成调整现有不变量"}
+{"file": ".trellis/spec/server/backend/finance-commission-lock.md", "reason": "整票财务锁退役影响及已发提成保护"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "事务、版本、锁序及迁移规范"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "页面状态刷新和组织隔离"}
+{"file": ".trellis/tasks/10-23-unified-order-review-lock/research/findings.md", "reason": "已核实证据、产品分歧和复用入口"}
