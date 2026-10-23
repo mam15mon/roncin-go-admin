@@ -1,0 +1,33 @@
+{
+  "id": "order-list-lifecycle-badges",
+  "name": "order-list-lifecycle-badges",
+  "title": "优化订单列表进程展示",
+  "description": "分别展示退关与完结事实，明确操作进度列，异常统一在异常列展示；保持后端业务规则。",
+  "status": "completed",
+  "dev_type": "frontend",
+  "scope": "orders",
+  "package": "web",
+  "priority": "P2",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-10-23",
+  "completedAt": "2026-10-23",
+  "branch": "codex/order-list-lifecycle-badges",
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": "a0d73b89",
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "web/src/pages/orders/list-query.ts",
+    "web/src/pages/orders/list-query.test.ts",
+    "web/src/components/ui/order-list-template/types.ts",
+    "web/src/components/ui/order-list-template/OrderListTemplate.tsx",
+    "web/src/components/ui/order-list-template/OrderListTemplate.test.tsx",
+    ".trellis/spec/web/frontend/component-guidelines.md"
+  ],
+  "notes": "",
+  "meta": {}
+}
