@@ -189,25 +189,27 @@ export function OrderFeeReviewActions({
                 title="该订单亏损，请在审批意见中说明亏损原因。"
               />
             )}
-          <ProFormTextArea
-            name="comment"
-            label={
-              action === 'reject' || action === 'revoke' ? '原因' : '审批意见'
-            }
-            rules={[
-              feeReviewCommentRule,
-              ...(requiredComment
-                ? [
-                    {
-                      required: true,
-                      whitespace: true,
-                      message: '请填写有效意见或原因',
-                    },
-                  ]
-                : []),
-            ]}
-            fieldProps={feeReviewCommentFieldProps}
-          />
+          {action !== 'submit' && (
+            <ProFormTextArea
+              name="comment"
+              label={
+                action === 'reject' || action === 'revoke' ? '原因' : '审批意见'
+              }
+              rules={[
+                feeReviewCommentRule,
+                ...(requiredComment
+                  ? [
+                      {
+                        required: true,
+                        whitespace: true,
+                        message: '请填写有效意见或原因',
+                      },
+                    ]
+                  : []),
+              ]}
+              fieldProps={feeReviewCommentFieldProps}
+            />
+          )}
         </GuardedModalForm>
       )}
     </>

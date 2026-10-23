@@ -4,7 +4,10 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { orderFeeServiceApproveOrderFeeReview } from '@/services/roncin/orderFeeService';
+import {
+  orderFeeServiceApproveOrderFeeReview,
+  orderFeeServiceSubmitOrderFeeReview,
+} from '@/services/roncin/orderFeeService';
 import { OrderFeeReviewActions } from './OrderFeeReview';
 
 vi.mock('@/app/AppProvider', () => ({
@@ -17,8 +20,12 @@ vi.mock('@/services/roncin/orderFeeService', async (original) => ({
   orderFeeServiceApproveOrderFeeReview: vi
     .fn()
     .mockResolvedValue({ success: true, data: { orderId: 'o1' } }),
+  orderFeeServiceSubmitOrderFeeReview: vi
+    .fn()
+    .mockResolvedValue({ success: true, data: { orderId: 'o1' } }),
 }));
 const approve = vi.mocked(orderFeeServiceApproveOrderFeeReview);
+const submitReview = vi.mocked(orderFeeServiceSubmitOrderFeeReview);
 const data: API.OrderFeeReviewData = {
   orderId: 'o1',
   reviewVersion: '3',
@@ -51,8 +58,57 @@ const data: API.OrderFeeReviewData = {
   },
 };
 
-describe('整票费用批准', () => {
+describe('整票费用审核', () => {
   beforeEach(() => vi.clearAllMocks());
+  it.each(['50', '-50'])(
+    '利润为 %s 时提交审核无需审批意见，但必须确认费用完整',
+    async (profit) => {
+      renderWithClient(
+        <App>
+          <OrderFeeReviewActions
+            data={{
+              ...data,
+              canSubmit: true,
+              canApprove: false,
+              status: 'UNSUBMITTED',
+              summary: { ...data.summary, profit },
+            }}
+            onChanged={vi.fn()}
+          />
+        </App>,
+      );
+      fireEvent.click(screen.getByRole('button', { name: '提交整票费用审核' }));
+      expect(screen.getByText('海运应收核对')).toBeInTheDocument();
+      expect(screen.getByText('海运应付核对')).toBeInTheDocument();
+      expect(
+        screen.queryByRole('textbox', { name: '审批意见' }),
+      ).not.toBeInTheDocument();
+      const confirm = screen.getByRole('button', { name: /确.*认/ });
+      fireEvent.click(confirm);
+      expect(
+        await screen.findByText('请确认整票费用录入完整'),
+      ).toBeInTheDocument();
+      expect(submitReview).not.toHaveBeenCalled();
+      fireEvent.click(
+        screen.getByRole('checkbox', {
+          name: '我已核对整票应收与应付，确认费用录入完整',
+        }),
+      );
+      fireEvent.click(confirm);
+      await waitFor(() => expect(submitReview).toHaveBeenCalledOnce());
+      expect(submitReview.mock.calls[0][1]).toMatchObject({
+        expectedReviewVersion: '3',
+        expectedContentVersion: '7',
+        previewToken: 'snapshot-1',
+        completenessConfirmed: true,
+      });
+      expect(submitReview.mock.calls[0][1]?.comment).toBeUndefined();
+      await waitFor(() =>
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
+      );
+      await act(async () => {});
+    },
+  );
   it('亏损审批意见必填，人工填写后提交该票快照', async () => {
     renderWithClient(
       <App>
