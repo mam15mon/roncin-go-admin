@@ -78,3 +78,40 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 155: 订单进程双标签与操作人员展示优化
+<!-- trellis-session: v=2 fp=812b8566d9eaa800 -->
+
+**Date**: 2026-10-23
+**Task**: 订单进程双标签与操作人员展示优化
+**Package**: web
+**Branch**: `codex/order-list-lifecycle-badges`
+
+### Summary
+
+完成订单列表退关与完结双标签、操作进度列命名、异常独立展示及操作人员仅姓名；独立 review 无阻塞，准备合并 main 并安全删除工作分支。
+
+### Main Changes
+
+- 共享订单列表的进程使用强类型数组，已退关与已完结可并存；异常仅在异常列显示。
+- 操作人员仅显示姓名，未分配保持占位；补充列表状态展示规范并归档任务。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `a0d73b89` | fix: 分开展示订单进程并精简操作人员 |
+
+### Testing
+
+- [OK] 定向回归2文件18用例、追加组件4用例、Biome、antd lint、tsc、diff检查均通过。
+- [OK] 完整前端门禁非测试项通过；默认及16并发的两个提单可见性失败单独17用例通过，最终4并发全量299文件1659用例通过（既有12用例跳过）。
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 完成本地 main 合并并用 git branch -d 删除已合并工作分支。
