@@ -88,7 +88,7 @@ describe('useColumnSettings', () => {
     );
     expect(JSON.parse(stored as string)).toEqual({
       order: ['code', 'customer', 'note'],
-      freeze: { first: false, last: true },
+      freeze: { left: [], right: ['option'] },
       hidden: ['customer'],
     });
     storageSpy.mockRestore();
@@ -97,7 +97,14 @@ describe('useColumnSettings', () => {
   it('上下移排序即时生效并持久化完整顺序', async () => {
     renderHarness({ tableKey: 'test:move', scope: SCOPE });
     await openSettings();
-    fireEvent.click(screen.getByRole('button', { name: '下移业务单号' }));
+    fireEvent.change(
+      screen.getByRole('spinbutton', { name: '业务单号目标序号' }),
+      { target: { value: '2' } },
+    );
+    fireEvent.keyDown(
+      screen.getByRole('spinbutton', { name: '业务单号目标序号' }),
+      { key: 'Enter', code: 'Enter' },
+    );
     expect(readHeaders()).toEqual(['客户名称', '业务单号', '备注', '操作']);
     expect(
       JSON.parse(
@@ -107,7 +114,7 @@ describe('useColumnSettings', () => {
       ),
     ).toEqual({
       order: ['customer', 'code', 'note'],
-      freeze: { first: false, last: true },
+      freeze: { left: [], right: ['option'] },
       hidden: [],
     });
   });
@@ -199,7 +206,7 @@ describe('useColumnSettings', () => {
       ),
     ).toEqual({
       order: ['code', 'customer', 'note'],
-      freeze: { first: false, last: true },
+      freeze: { left: [], right: ['option'] },
       hidden: [],
     });
     clearColumnSettingsPreference('test:clear', SCOPE);

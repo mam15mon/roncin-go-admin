@@ -364,7 +364,7 @@ function columnKeyOf(column: ProColumns<API.OrderFee>): string | undefined {
   return column.key ? String(column.key) : undefined;
 }
 
-/** 普通列先显隐排序，操作列始终必显且置末，最后按统一规则冻结当前首尾。 */
+/** 普通列先显隐排序，操作列始终必显且置末，最后按统一规则应用逐字段冻结。 */
 export function orderColumnsByPreference(
   columns: ProColumns<API.OrderFee>[],
   preference: FeeColumnPreference,

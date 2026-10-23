@@ -29,7 +29,7 @@ describe('列设置认证作用域', () => {
       {
         order: ['email', 'name'],
         hidden: ['name'],
-        freeze: { first: true, last: false },
+        freeze: { left: ['email'], right: [] },
       },
     );
     saveColumnSettingsPreference(
@@ -38,7 +38,7 @@ describe('列设置认证作用域', () => {
       {
         order: ['name', 'email'],
         hidden: ['email'],
-        freeze: { first: false, last: true },
+        freeze: { left: [], right: ['action'] },
       },
     );
     let currentUser = authUser('u1', 'o1');
@@ -98,7 +98,7 @@ describe('列设置认证作用域', () => {
     saveColumnSettingsPreference('test:one', scope, {
       order: ['email', 'name'],
       hidden: ['name'],
-      freeze: { first: true, last: false },
+      freeze: { left: ['email'], right: [] },
     });
     const { result, rerender } = renderHook(
       ({ tableKey }) =>

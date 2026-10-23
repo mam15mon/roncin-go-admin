@@ -4,8 +4,8 @@ import { appInitialStateContext } from '@/app/initialStateContext';
 import { ColumnSettingsEntry } from './ColumnSettingsEntry';
 import {
   applyColumnFreeze,
+  columnFreezeKey,
   deriveColumnFreezeDefaults,
-  getColumnFreezeTargets,
 } from './freeze';
 import {
   defaultColumnSettingsValue,
@@ -49,7 +49,7 @@ export interface UseColumnSettingsOptions {
   disabled?: boolean;
   disabledReason?: string;
   /**
-   * 增强版高级设置内容（如行配色）：提供时浮层底部出现「更多设置」，
+   * 增强版高级设置内容（如行配色）：提供时弹窗底部出现「更多设置」，
    * 点击打开二级弹窗展示该内容；内容状态由调用方自行维护与持久化。
    */
   advanced?: React.ReactNode;
@@ -136,7 +136,7 @@ function deriveFields(
 
 /**
  * 应用列配置：按偏好顺序输出受管列（隐藏列剔除），结构列保持在
- * 原始相对锚点（如操作列保持在最后）。首尾冻结在排序完成后统一应用。
+ * 原始相对锚点（如操作列保持在最后）。逐字段冻结在排序完成后统一应用。
  */
 function applyColumnSettings<C>(
   columns: unknown[],
@@ -188,13 +188,13 @@ function applyColumnSettings<C>(
 export interface UseColumnSettingsResult<C> {
   /** 应用显隐与排序后的列定义，直接传给 Table/ProTable。 */
   columns: C[];
-  /** 统一列设置入口按钮（含锚定浮层）；放入工具栏或表格上方右侧。 */
+  /** 统一列设置入口按钮（含全量铺排弹窗）；放入工具栏或表格上方右侧。 */
   entry: React.ReactNode;
 }
 
 /**
  * 全站统一列设置钩子：对列数组做显隐过滤与排序，对普通 Table 与
- * ProTable 一致适用。浮层内每次显隐、排序操作即时生效并自动持久化到
+ * ProTable 一致适用。弹窗内每次显隐、排序操作即时生效并自动持久化到
  * 浏览器本地（按「表格标识 + 用户 + 组织」隔离）；写入失败时明确提示
  * 且页面内设置保持生效，不静默降级。
  */
@@ -278,8 +278,17 @@ export function useColumnSettings<C = Record<string, unknown>>(
     [identity, local],
   );
   const value = useMemo(
-    () => resolveColumnSettingsValue(fields, defaultValue, storedValue),
-    [fields, defaultValue, storedValue],
+    () =>
+      resolveColumnSettingsValue(
+        fields,
+        defaultValue,
+        storedValue,
+        (columns as ColumnLike[]).flatMap((column) => {
+          const key = columnFreezeKey(column);
+          return key ? [key] : [];
+        }),
+      ),
+    [fields, defaultValue, storedValue, columns],
   );
 
   const effectiveColumns = useMemo(() => {
@@ -292,13 +301,26 @@ export function useColumnSettings<C = Record<string, unknown>>(
       ordered,
       value.freeze ?? deriveColumnFreezeDefaults(columns as ColumnLike[]),
       {
-        firstExcludedKeys: structuralKeys,
+        structuralKeys,
       },
     ) as C[];
   }, [columns, value, structuralKeys]);
 
-  const targets = getColumnFreezeTargets(effectiveColumns as ColumnLike[], {
-    firstExcludedKeys: structuralKeys,
+  const structuralFields: ColumnSettingsField[] = (
+    columns as ColumnLike[]
+  ).flatMap((column) => {
+    const key = columnFreezeKey(column);
+    if (
+      !key ||
+      !isStructuralColumn(column, key, new Set(structuralKeys)) ||
+      column.hideInTable ||
+      column.valueType === 'index' ||
+      column.valueType === 'indexBorder' ||
+      key === 'index'
+    )
+      return [];
+    const title = titleOverrides?.[key] ?? columnTitle(column);
+    return title ? [{ key, title, fixed: zoneOf(column.fixed) }] : [];
   });
 
   const handleValueChange = (next: ColumnSettingsValue) => {
@@ -326,18 +348,7 @@ export function useColumnSettings<C = Record<string, unknown>>(
         key={identity}
         fields={fields}
         value={value}
-        freezeTargets={{
-          first: targets.first
-            ? columnTitle(targets.first) ||
-              titleOverrides?.[columnKeyOf(targets.first, 0) ?? ''] ||
-              '未命名列'
-            : undefined,
-          last: targets.last
-            ? columnTitle(targets.last) ||
-              titleOverrides?.[columnKeyOf(targets.last, 0) ?? ''] ||
-              '未命名列'
-            : undefined,
-        }}
+        structuralFields={structuralFields}
         onChange={handleValueChange}
         onReset={handleReset}
         advanced={advanced}

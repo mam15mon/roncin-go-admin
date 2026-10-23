@@ -1,95 +1,33 @@
-.roncin-column-settings-row {
-  display: flex;
-  align-items: center;
-  padding: 4px 6px;
-  border-radius: 4px;
-  transition: background-color 0.15s ease;
-
-  // 右侧上下移微操作常态隐藏，悬浮该行时轻柔淡入，消除箭头瀑布噪音。
-  .roncin-column-settings-actions {
-    opacity: 0;
-    transition: opacity 0.15s ease;
-  }
-
-  .roncin-column-settings-handle {
-    margin-right: 6px;
-    color: #bfbfbf;
-    cursor: grab;
-    flex-shrink: 0;
-    transition: color 0.15s ease;
-  }
-
-  &:hover,
-  &:focus-within {
-    background-color: #fafafa;
-
-    .roncin-column-settings-actions {
-      opacity: 1;
-    }
-
-    .roncin-column-settings-handle {
-      color: #595959;
-    }
-  }
-
-  // 拖拽投放目标行的轻量高亮边界。
-  &.roncin-column-settings-drop-target {
-    box-shadow: inset 0 2px 0 #1677ff;
-  }
-
-  .ant-checkbox-wrapper {
-    flex: 1;
-    min-width: 0;
-    margin-right: 6px;
-  }
-
-  .roncin-column-settings-title {
-    display: inline-block;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    vertical-align: bottom;
-  }
-
-  .roncin-column-settings-lock {
-    margin-left: 4px;
-    padding: 0 4px;
-    border-radius: 2px;
-    background: #fafafa;
-    border: 1px solid #f0f0f0;
-    color: #8c8c8c;
-    font-size: 12px;
-    line-height: 16px;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
+.roncin-column-settings-panel { color: #262626; }
+.roncin-column-settings-toolbar { display: flex; align-items: center; gap: 16px; margin-bottom: 8px; .ant-input-affix-wrapper { width: 260px; margin-left: auto; } }
+.roncin-column-settings-help { color: #8c8c8c; font-size: 12px; margin-bottom: 10px; }
+.roncin-column-settings-search-tip { color: #d46b08; font-size: 12px; margin-bottom: 8px; }
+.roncin-column-settings-zones { display: flex; flex-direction: column; gap: 8px; }
+.roncin-column-settings-zone { border: 1px solid #f0f0f0; border-radius: 6px; padding: 6px 8px; }
+.roncin-column-settings-zone-heading { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; margin-bottom: 4px; span { color: #8c8c8c; font-weight: 400; } }
+.roncin-column-settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(276px, 100%), 1fr)); gap: 5px 8px; }
+.roncin-column-settings-row { display: flex; align-items: center; gap: 5px; min-width: 0; height: 34px; padding: 3px 5px; border: 1px solid #f0f0f0; border-radius: 4px; background: #fafafa;
+  .roncin-column-settings-handle { color: #8c8c8c; cursor: grab; padding: 4px 1px; flex-shrink: 0; }
+  .ant-input-number { width: 40px; flex-shrink: 0; }
+  .ant-input-number-input { padding-inline: 4px; text-align: center; font-variant-numeric: tabular-nums; }
+  .ant-checkbox-wrapper { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; span:last-child { overflow: hidden; text-overflow: ellipsis; } }
+  .ant-select { width: 83px; flex-shrink: 0; }
+  &:hover { border-color: #91caff; background: #f0f7ff; }
 }
-
-.roncin-column-settings-freeze {
-  margin-bottom: 8px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.roncin-column-settings-freeze-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 4px 0;
-}
-
-.roncin-column-settings-freeze-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.roncin-column-settings-freeze-target {
-  color: #8c8c8c;
-  font-size: 12px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.roncin-column-settings-drop-before { box-shadow: inset 3px 0 #1677ff; }
+.roncin-column-settings-drop-after { box-shadow: inset -3px 0 #1677ff; }
+.roncin-column-settings-dragging { opacity: .4; }
+.roncin-column-settings-zone-target { border-color: #1677ff; background: #e6f4ff; }
+.roncin-column-settings-empty { min-height: 26px; color: #bfbfbf; font-size: 12px; padding: 4px; }
+.roncin-column-settings-structural { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; font-size: 12px; margin-top: 10px; color: #8c8c8c; .roncin-column-settings-structural-field { display: flex; align-items: center; gap: 8px; color: #595959; } .ant-select { width: 90px; } }
+.roncin-column-settings-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 1px solid #f0f0f0; color: #8c8c8c; font-size: 12px; }
+@media (max-width: 600px) { .roncin-column-settings-toolbar { flex-wrap: wrap; gap: 8px; .ant-input-affix-wrapper { width: 100%; order: 3; } } }
+@media (min-width: 900px) and (max-height: 800px) {
+  .roncin-column-settings-help { margin-bottom: 6px; }
+  .roncin-column-settings-zones { gap: 6px; }
+  .roncin-column-settings-zone { padding-block: 4px; }
+  .roncin-column-settings-grid { gap: 3px 8px; }
+  .roncin-column-settings-row { height: 32px; padding-block: 2px; }
+  .roncin-column-settings-structural { margin-top: 6px; }
+  .roncin-column-settings-footer { margin-top: 6px; padding-top: 6px; }
 }

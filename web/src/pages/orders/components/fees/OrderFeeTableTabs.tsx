@@ -36,7 +36,6 @@ import {
   SectionCard,
   scrollToFirstTableError,
 } from '@/components/ui';
-import { getColumnFreezeTargets } from '@/components/ui/column-settings';
 import { OrderBusinessType } from '@/enums.generated';
 import { financeErrorReasons } from '@/errorReasons.generated';
 import { history } from '@/router/history';
@@ -320,7 +319,7 @@ export default function OrderFeeTableTabs({
     }
   };
 
-  /** 订单费用列设置元数据：含权限裁剪与必显标记，供统一浮层消费。 */
+  /** 订单费用列设置元数据：含权限裁剪与必显标记，供统一弹窗消费。 */
   const feeColumnFields: ColumnSettingsField[] = effectiveFeeColumnDefs(
     financeAvailable,
   )
@@ -328,15 +327,6 @@ export default function OrderFeeTableTabs({
     .map(({ key, title, lockVisible }) => ({ key, title, lockVisible }));
 
   const renderColumnToolbar = () => {
-    const targets = getColumnFreezeTargets(
-      orderColumnsByPreference(buildColumns(RECEIVABLE), feeColumnPref),
-    );
-    const targetTitle = (column: ProColumns<API.OrderFee> | undefined) => {
-      const key = column?.valueType === 'option' ? 'option' : column?.dataIndex;
-      return effectiveFeeColumnDefs(financeAvailable).find(
-        (def) => def.key === key,
-      )?.title;
-    };
     return (
       <Space size={8}>
         {feeBillTracking?.state === 'error' && (
@@ -365,10 +355,7 @@ export default function OrderFeeTableTabs({
         <ColumnSettingsEntry
           fields={feeColumnFields}
           value={feeColumnPref}
-          freezeTargets={{
-            first: targetTitle(targets.first),
-            last: targetTitle(targets.last),
-          }}
+          structuralFields={[{ key: 'option', title: '操作', fixed: 'right' }]}
           onChange={handleColumnSettingsChange}
           onReset={() =>
             handleColumnSettingsChange(

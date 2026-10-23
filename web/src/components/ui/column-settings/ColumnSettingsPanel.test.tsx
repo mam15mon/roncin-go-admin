@@ -4,220 +4,150 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import ColumnSettingsPanel from './ColumnSettingsPanel';
 import type { ColumnSettingsField, ColumnSettingsValue } from './types';
 
-const FIELDS: ColumnSettingsField[] = [
+const fields: ColumnSettingsField[] = [
   { key: 'code', title: '业务单号' },
   { key: 'customer', title: '客户名称' },
-  { key: 'note', title: '备注' },
-  { key: 'option', title: '操作', lockVisible: true, fixed: 'right' },
+  { key: 'note', title: '备注', lockVisible: true },
 ];
-
-const VALUE: ColumnSettingsValue = {
-  order: ['code', 'customer', 'note', 'option'],
-  hidden: [],
-};
-
-function renderPanel(
-  props: {
-    fields?: ColumnSettingsField[];
-    initial?: ColumnSettingsValue;
-    onOpenAdvanced?: () => void;
-  } = {},
+function setup(
+  initial: ColumnSettingsValue = {
+    order: ['code', 'customer', 'note'],
+    hidden: [],
+    freeze: { left: [], right: [] },
+  },
+  customFields = fields,
 ) {
   const onChange = vi.fn();
   const onReset = vi.fn();
+  const onOpenAdvanced = vi.fn();
   function Harness() {
-    const [value, setValue] = useState<ColumnSettingsValue>(
-      props.initial ?? VALUE,
-    );
+    const [value, setValue] = useState(initial);
     return (
       <ColumnSettingsPanel
-        fields={props.fields ?? FIELDS}
+        fields={customFields}
+        structuralFields={[{ key: 'option', title: '操作', fixed: 'right' }]}
         value={value}
         onChange={(next) => {
-          onChange(next);
           setValue(next);
+          onChange(next);
         }}
         onReset={onReset}
-        onOpenAdvanced={props.onOpenAdvanced}
+        onOpenAdvanced={onOpenAdvanced}
       />
     );
   }
   render(<Harness />);
-  return { onChange, onReset };
+  return { onChange, onReset, onOpenAdvanced };
 }
-
-describe('ColumnSettingsPanel', () => {
-  afterEach(() => {
-    cleanup();
-  });
-
-  function masterCheckbox() {
-    return screen.getByRole('checkbox', { name: /列展示/ });
-  }
-
-  it('渲染计数、必显标记与禁用态', () => {
-    renderPanel();
-    expect(masterCheckbox()).toBeChecked();
-    expect(screen.getByText(/列展示 \(4 \/ 4\)/)).toBeInTheDocument();
-    expect(screen.getByText('已显示 4 / 4')).toBeInTheDocument();
-    expect(screen.getByRole('checkbox', { name: '业务单号' })).toBeChecked();
-    expect(screen.getByRole('checkbox', { name: '操作' })).toBeDisabled();
-    expect(screen.getByText('必显')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '下移操作' })).toBeDisabled();
-  });
-
-  it('全选取消隐藏全部非必显列，必显列保持勾选', () => {
-    const { onChange } = renderPanel();
-    fireEvent.click(masterCheckbox());
-    expect(onChange).toHaveBeenCalledWith({
-      freeze: { first: false, last: true },
-      order: ['code', 'customer', 'note', 'option'],
-      hidden: ['code', 'customer', 'note'],
+function row(key: string) {
+  const element = document.querySelector(`[data-column-key="${key}"]`);
+  if (!element) throw new Error('未找到字段');
+  return element;
+}
+function drag(key: string, target: string) {
+  fireEvent.dragStart(
+    screen.getByRole('img', {
+      name: `拖动${fields.find((field) => field.key === key)?.title}`,
+    }),
+  );
+  fireEvent.drop(row(target), { clientX: 0 });
+}
+describe('全量铺排列设置', () => {
+  afterEach(cleanup);
+  it('连续编号、必显约束和全选保持一致', () => {
+    const { onChange } = setup();
+    expect(row('note')).toHaveAttribute('data-column-position', '3');
+    expect(screen.getByRole('checkbox', { name: '备注' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('checkbox', { name: /列展示/ }));
+    expect(onChange).toHaveBeenLastCalledWith({
+      order: ['code', 'customer', 'note'],
+      hidden: ['code', 'customer'],
+      freeze: { left: [], right: [] },
     });
+    fireEvent.click(screen.getByRole('checkbox', { name: /列展示/ }));
+    expect(screen.getByRole('checkbox', { name: '客户名称' })).toBeChecked();
   });
-
-  it('半选状态点击全选恢复全部显示', () => {
-    const { onChange } = renderPanel({
-      initial: { order: VALUE.order, hidden: ['customer'] },
-    });
-    const box = masterCheckbox().closest('.ant-checkbox');
-    expect(box).toHaveClass('ant-checkbox-indeterminate');
-    fireEvent.click(masterCheckbox());
-    expect(onChange).toHaveBeenCalledWith({
-      freeze: { first: false, last: true },
-      order: VALUE.order,
+  it('至少保留一列可见，结构操作列不参与显隐', () => {
+    setup(
+      undefined,
+      fields.map((field) => ({ ...field, lockVisible: false })),
+    );
+    fireEvent.click(screen.getByRole('checkbox', { name: /列展示/ }));
+    expect(screen.getByRole('checkbox', { name: '业务单号' })).toBeDisabled();
+    expect(screen.queryByRole('checkbox', { name: '操作' })).toBeNull();
+    expect(
+      screen.getByRole('combobox', { name: '操作冻结位置' }),
+    ).toBeInTheDocument();
+  });
+  it('跨行拖动和精确序号移位均更新完整顺序', () => {
+    const { onChange } = setup();
+    drag('note', 'code');
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ order: ['note', 'code', 'customer'] }),
+    );
+    const input = screen.getByRole('spinbutton', { name: '客户名称目标序号' });
+    fireEvent.change(input, { target: { value: '1' } });
+    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' });
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ order: ['customer', 'note', 'code'] }),
+    );
+    expect(row('customer')).toHaveAttribute('data-column-position', '1');
+  });
+  it('可拖入空冻结区并跨区排序，取消不写入', () => {
+    const { onChange } = setup();
+    const handle = screen.getByRole('img', { name: '拖动客户名称' });
+    fireEvent.dragStart(handle);
+    fireEvent.dragEnd(handle);
+    expect(onChange).not.toHaveBeenCalled();
+    fireEvent.dragStart(handle);
+    fireEvent.drop(
+      document.querySelector('[data-freeze-zone="left"]') as HTMLElement,
+    );
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        order: ['customer', 'code', 'note'],
+        freeze: { left: ['customer'], right: [] },
+      }),
+    );
+    drag('note', 'customer');
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        order: ['note', 'customer', 'code'],
+        freeze: { left: ['customer', 'note'], right: [] },
+      }),
+    );
+  });
+  it('搜索保留全局编号并禁止重排，显隐不改变冻结', () => {
+    const { onChange } = setup({
+      order: ['code', 'customer', 'note'],
       hidden: [],
+      freeze: { left: ['code', 'customer'], right: [] },
     });
-  });
-
-  it('无必显列时全选取消保留排序首列兜底', () => {
-    const plainFields: ColumnSettingsField[] = [
-      { key: 'a', title: '列甲' },
-      { key: 'b', title: '列乙' },
-      { key: 'c', title: '列丙' },
-    ];
-    const { onChange } = renderPanel({
-      fields: plainFields,
-      initial: { order: ['a', 'b', 'c'], hidden: [] },
-    });
-    fireEvent.click(masterCheckbox());
-    expect(onChange).toHaveBeenCalledWith({
-      freeze: { first: false, last: false },
-      order: ['a', 'b', 'c'],
-      hidden: ['b', 'c'],
-    });
-  });
-
-  it('全部为必显列时全选入口禁用', () => {
-    renderPanel({
-      fields: [
-        { key: 'a', title: '列甲', lockVisible: true },
-        { key: 'b', title: '列乙', lockVisible: true },
-      ],
-      initial: { order: ['a', 'b'], hidden: [] },
-    });
-    expect(masterCheckbox()).toBeDisabled();
-  });
-
-  it('取消勾选立即回调新的隐藏集合并更新计数', () => {
-    const { onChange } = renderPanel();
     fireEvent.click(screen.getByRole('checkbox', { name: '客户名称' }));
-    expect(onChange).toHaveBeenCalledWith({
-      freeze: { first: false, last: true },
-      order: ['code', 'customer', 'note', 'option'],
-      hidden: ['customer'],
-    });
-    expect(screen.getByText('已显示 3 / 4')).toBeInTheDocument();
-  });
-
-  it('必显列不可隐藏；唯一可见列取消勾选被阻止', () => {
-    renderPanel();
-    fireEvent.click(screen.getByRole('checkbox', { name: '业务单号' }));
-    fireEvent.click(screen.getByRole('checkbox', { name: '客户名称' }));
-    fireEvent.click(screen.getByRole('checkbox', { name: '备注' }));
-    expect(screen.getByText('已显示 1 / 4')).toBeInTheDocument();
-    expect(screen.getByRole('checkbox', { name: '操作' })).toBeDisabled();
-  });
-
-  it('无必显列时至少保留一列可见', () => {
-    const plainFields: ColumnSettingsField[] = [
-      { key: 'a', title: '列甲' },
-      { key: 'b', title: '列乙' },
-      { key: 'c', title: '列丙' },
-    ];
-    renderPanel({
-      fields: plainFields,
-      initial: { order: ['a', 'b', 'c'], hidden: [] },
-    });
-    fireEvent.click(screen.getByRole('checkbox', { name: '列甲' }));
-    fireEvent.click(screen.getByRole('checkbox', { name: '列乙' }));
-    expect(screen.getByRole('checkbox', { name: '列丙' })).toBeDisabled();
-    expect(screen.getByText('已显示 1 / 3')).toBeInTheDocument();
-  });
-
-  it('上下移立即回调完整顺序且首尾边界禁用', () => {
-    const { onChange } = renderPanel();
-    expect(screen.getByRole('button', { name: '上移业务单号' })).toBeDisabled();
-    fireEvent.click(screen.getByRole('button', { name: '下移业务单号' }));
-    expect(onChange).toHaveBeenCalledWith({
-      freeze: { first: false, last: true },
-      order: ['customer', 'code', 'note', 'option'],
-      hidden: [],
-    });
-  });
-
-  it('普通列可跨原固定区域排序，冻结目标跟随实际首尾', () => {
-    const { onChange } = renderPanel({
-      fields: [
-        { key: 'code', title: '业务单号', fixed: 'left' },
-        { key: 'customer', title: '客户名称' },
-        { key: 'note', title: '备注', fixed: 'right' },
-      ],
-      initial: {
-        order: ['code', 'customer', 'note'],
-        hidden: [],
-        freeze: { first: true, last: true },
-      },
-    });
-    fireEvent.click(screen.getByRole('button', { name: '上移备注' }));
-    expect(onChange).toHaveBeenCalledWith({
-      order: ['code', 'note', 'customer'],
-      hidden: [],
-      freeze: { first: true, last: true },
-    });
-    expect(screen.getByText('当前：客户名称')).toBeInTheDocument();
-  });
-
-  it('搜索过滤列表且搜索中禁用排序；空结果给出提示', () => {
-    renderPanel();
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        freeze: { left: ['code', 'customer'], right: [] },
+        hidden: ['customer'],
+      }),
+    );
     fireEvent.change(screen.getByPlaceholderText('搜索列名'), {
       target: { value: '客户' },
     });
-    expect(screen.getByText('客户名称')).toBeInTheDocument();
+    expect(row('customer')).toHaveAttribute('data-column-position', '2');
     expect(
-      screen.queryByRole('checkbox', { name: '业务单号' }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.getByText('搜索中无法调整顺序，清空搜索后可拖拽或使用箭头排序'),
-    ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '上移客户名称' })).toBeDisabled();
+      screen.getByRole('spinbutton', { name: '客户名称目标序号' }),
+    ).toBeDisabled();
+    expect(screen.queryByRole('checkbox', { name: '业务单号' })).toBeNull();
     fireEvent.change(screen.getByPlaceholderText('搜索列名'), {
       target: { value: '不存在' },
     });
     expect(screen.getByText('未找到匹配的列')).toBeInTheDocument();
   });
-
-  it('提供高级内容入口时出现「更多设置」并回调打开', () => {
-    const onOpenAdvanced = vi.fn();
-    renderPanel({ onOpenAdvanced });
+  it('恢复默认及高级设置仍由调用方管理', () => {
+    const { onReset, onOpenAdvanced } = setup();
+    fireEvent.click(screen.getByRole('button', { name: '恢复默认' }));
     fireEvent.click(screen.getByRole('button', { name: '更多设置' }));
-    expect(onOpenAdvanced).toHaveBeenCalledTimes(1);
-  });
-
-  it('未提供高级内容入口时不出现「更多设置」', () => {
-    renderPanel();
-    expect(
-      screen.queryByRole('button', { name: '更多设置' }),
-    ).not.toBeInTheDocument();
+    expect(onReset).toHaveBeenCalledOnce();
+    expect(onOpenAdvanced).toHaveBeenCalledOnce();
   });
 });

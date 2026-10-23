@@ -3,151 +3,126 @@ import { describe, expect, it } from 'vitest';
 import {
   applyColumnFreeze,
   deriveColumnFreezeDefaults,
-  getColumnFreezeTargets,
+  orderColumnKeys,
   resolveColumnFreeze,
 } from './freeze';
 
-describe('首尾冻结规则', () => {
-  it('首尾按可见顺序计算，并取消中间列的原固定设置', () => {
-    const headerCell = () => ({ width: 180 });
+describe('逐字段多列冻结', () => {
+  it('所有默认固定字段均保留，辅助列不写入偏好', () => {
+    expect(
+      deriveColumnFreezeDefaults([
+        { key: 'index', fixed: 'left' },
+        { key: 'a', fixed: 'left' },
+        { key: 'b', fixed: true },
+        { key: 'option', fixed: 'end' },
+      ]),
+    ).toEqual({ left: ['a', 'b'], right: ['option'] });
+  });
+  it('按身份冻结多列并排序，保留宽度、回调和原对象', () => {
+    const onHeaderCell = () => ({ width: 180 });
     const columns = [
-      {
-        key: 'name',
-        title: '姓名',
-        width: 180,
-        fixed: 'left' as const,
-        onHeaderCell: headerCell,
-      },
-      { key: 'email', title: '邮箱', fixed: 'left' as const },
-      { key: 'action', title: '操作', fixed: 'right' as const },
+      { key: 'a', fixed: 'left' as const },
+      { key: 'b', width: 180, onHeaderCell },
+      { key: 'c' },
+      { key: 'option', fixed: 'right' as const },
     ];
-    const frozen = applyColumnFreeze(columns, { first: true, last: true });
-    expect(frozen.map((column) => column.fixed)).toEqual([
+    const result = applyColumnFreeze(columns, {
+      left: ['b', 'c'],
+      right: ['option'],
+    });
+    expect(result.map((column) => column.key)).toEqual([
+      'b',
+      'c',
+      'a',
+      'option',
+    ]);
+    expect(result.map((column) => column.fixed)).toEqual([
+      'left',
       'left',
       false,
       'right',
     ]);
-    expect(frozen[0].onHeaderCell).toBe(headerCell);
-    expect(frozen[0].width).toBe(180);
-    expect(columns[1].fixed).toBe('left');
-    expect(
-      applyColumnFreeze(columns, { first: false, last: false }).map(
-        (column) => column.fixed,
-      ),
-    ).toEqual([false, false, false]);
+    expect(result[0].onHeaderCell).toBe(onHeaderCell);
+    expect(result[0].width).toBe(180);
+    expect(columns[0].fixed).toBe('left');
   });
-
-  it('选择、展开、序号保持结构规则，不作为首尾数据目标', () => {
+  it('哨兵、序号和显式结构锚点保持，操作列可解除固定', () => {
     const index = { key: 'index', valueType: 'index', fixed: 'left' as const };
-    const name = { key: 'name', title: '姓名' };
-    const action = { key: 'action', title: '操作' };
-    const columns = [
+    const result = applyColumnFreeze(
+      [
+        Table.SELECTION_COLUMN,
+        Table.EXPAND_COLUMN,
+        index,
+        { key: 'a' },
+        { key: 'b' },
+        { key: 'custom' },
+      ],
+      { left: ['b'], right: [] },
+      { structuralKeys: ['custom'] },
+    );
+    expect(result.slice(0, 3)).toEqual([
       Table.SELECTION_COLUMN,
       Table.EXPAND_COLUMN,
       index,
-      name,
-      action,
-    ];
-    expect(getColumnFreezeTargets(columns)).toEqual({
-      first: name,
-      last: action,
-    });
-    const frozen = applyColumnFreeze(columns, { first: true, last: true });
-    expect(frozen[0]).toBe(Table.SELECTION_COLUMN);
-    expect(frozen[1]).toBe(Table.EXPAND_COLUMN);
-    expect(frozen[2]).toBe(index);
-    expect(frozen[3]).toMatchObject({ fixed: 'left' });
-    expect(frozen[4]).toMatchObject({ fixed: 'right' });
+    ]);
+    expect(
+      result.slice(3).map((column) => ('key' in column ? column.key : '')),
+    ).toEqual(['b', 'a', 'custom']);
   });
-
-  it('无稳定key的操作列仍是合法尾列，辅助固定不产生默认开关', () => {
-    const columns = [
-      { valueType: 'index', fixed: 'left' as const },
-      { key: 'name' },
-      { title: '操作', valueType: 'option', fixed: 'right' as const },
-    ];
-    expect(deriveColumnFreezeDefaults(columns)).toEqual({
-      first: false,
-      last: true,
+  it('校验空数组、非法值、未知字段和双侧重复，不转换旧开关', () => {
+    const defaults = { left: ['a'], right: ['b'] };
+    expect(resolveColumnFreeze({ left: [], right: [] }, defaults)).toEqual({
+      left: [],
+      right: [],
     });
     expect(
-      applyColumnFreeze(columns, { first: true, last: false }).map(
-        (column) => column.fixed,
+      resolveColumnFreeze(
+        { left: ['a', 'a', 'unknown'], right: ['a', 'b'] },
+        defaults,
+        ['a', 'b'],
       ),
-    ).toEqual(['left', 'left', false]);
-    expect(getColumnFreezeTargets([{ key: 'action' }])).toEqual({
-      first: undefined,
-      last: { key: 'action' },
+    ).toEqual(defaults);
+    expect(resolveColumnFreeze({ left: null, right: [] }, defaults)).toEqual({
+      left: ['a'],
+      right: [],
     });
-  });
-
-  it('首尾重合时左侧优先，不改写两个开关', () => {
-    const columns: { key: string; fixed?: 'left' | 'right' | boolean }[] = [
-      { key: 'name' },
-    ];
+    expect(resolveColumnFreeze({ first: true, last: false }, defaults)).toEqual(
+      defaults,
+    );
     expect(
-      applyColumnFreeze(columns, { first: true, last: true })[0].fixed,
-    ).toBe('left');
-    expect(
-      applyColumnFreeze(columns, { first: false, last: true })[0].fixed,
-    ).toBe('right');
-    expect(getColumnFreezeTargets([])).toEqual({
-      first: undefined,
-      last: undefined,
-    });
+      orderColumnKeys(['a', 'b', 'c'], { left: ['c'], right: ['a'] }),
+    ).toEqual(['c', 'b', 'a']);
   });
-
-  it('隐藏与搜索列不参与首尾，列组使用真实可见叶列', () => {
-    const name = { key: 'name' };
-    const action = { key: 'option' };
-    const columns = [
-      { key: 'hidden', hidden: true },
-      { key: 'search', hideInTable: true },
-      { title: '资料', children: [name, { key: 'email' }] },
-      action,
-    ];
-    expect(getColumnFreezeTargets(columns)).toEqual({
-      first: name,
-      last: action,
-    });
-    const frozen = applyColumnFreeze(columns, { first: true, last: true });
-    expect(frozen[2]).toMatchObject({
-      children: [
-        { key: 'name', fixed: 'left' },
-        { key: 'email', fixed: false },
+  it('自定义标识操作列与仅搜索列保持原锚点', () => {
+    const result = applyColumnFreeze(
+      [
+        { key: 'a' },
+        { key: 'commands', valueType: 'option' },
+        { key: 'keyword', hideInTable: true },
+        { key: 'b' },
       ],
-    });
+      { left: ['b'], right: ['commands'] },
+    );
+    expect(result.map((column) => column.key)).toEqual([
+      'b',
+      'commands',
+      'keyword',
+      'a',
+    ]);
+    expect(result[1]).toMatchObject({ fixed: 'right' });
   });
-
-  it('显式结构字段排除首列，但末尾结构操作仍可以冻结', () => {
+  it('分组叶列支持多列冻结，无稳定标识结构列不被猜测', () => {
     const columns = [
-      { key: 'direction' },
-      { key: 'feeName' },
-      { key: 'customAction' },
+      { title: '资料', children: [{ key: 'a' }, { key: 'b' }] },
+      { valueType: 'option', fixed: 'right' as const },
     ];
     expect(
-      getColumnFreezeTargets(columns, {
-        firstExcludedKeys: ['direction', 'customAction'],
-      }),
-    ).toEqual({ first: columns[1], last: columns[2] });
-  });
-
-  it('非法偏好使用业务默认，false不被默认覆盖', () => {
-    expect(
-      resolveColumnFreeze(
-        { first: false, last: false },
-        { first: true, last: true },
-      ),
-    ).toEqual({ first: false, last: false });
-    expect(
-      resolveColumnFreeze(
-        { first: 'false', last: true },
-        { first: false, last: false },
-      ),
-    ).toEqual({ first: false, last: true });
-    expect(resolveColumnFreeze(null, { first: true, last: false })).toEqual({
-      first: true,
-      last: false,
+      applyColumnFreeze(columns, { left: ['a', 'b'], right: [] })[0],
+    ).toMatchObject({
+      children: [
+        { key: 'a', fixed: 'left' },
+        { key: 'b', fixed: 'left' },
+      ],
     });
   });
 });

@@ -1,5 +1,5 @@
 /**
- * 全站统一列设置：齿轮入口（含锚定浮层与高级设置二级弹窗）、
+ * 全站统一列设置：齿轮入口（含全量铺排弹窗与高级设置弹窗）、
  * 列数组适配钩子与浏览器偏好存取。页面只消费本目录公开能力，
  * 不再各自实现设置 UI。
  */
@@ -9,8 +9,9 @@ export { ColumnSettingsEntry } from './ColumnSettingsEntry';
 export type { ColumnFreezeOptions } from './freeze';
 export {
   applyColumnFreeze,
+  columnFreezeKey,
   deriveColumnFreezeDefaults,
-  getColumnFreezeTargets,
+  orderColumnKeys,
   resolveColumnFreeze,
 } from './freeze';
 export {
@@ -21,7 +22,6 @@ export {
   saveColumnSettingsPreference,
 } from './preference';
 export type {
-  ColumnFreezeTargetTitles,
   ColumnFreezeValue,
   ColumnSettingsField,
   ColumnSettingsPreference,

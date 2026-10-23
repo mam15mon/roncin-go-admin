@@ -6,7 +6,7 @@
 
 ## 背景与已确认事实
 
-- 用户已同意创建任务和规划，尚待最终方案批准后实施。
+- 用户已批准最终方案并授权实施、review、合并 main、删除任务分支和 push。
 - 用户明确要求「给所有的都排序，分成多列，我好方便拖动，我不希望我还需要去滚动容器」，布局交由实现方判断，不固定三列或三排。
 - 当前入口为 Popover（`web/src/components/ui/column-settings/ColumnSettingsEntry.tsx`），Panel 宽 300px，列表最大高度 420px（`ColumnSettingsPanel.tsx`），字段多时需要容器内滚动。
 - 公共类型 `types.ts`、冻结函数 `freeze.ts`、偏好 `preference.ts` 使用 first/last 开关，无法冻结多个自选字段。
@@ -59,4 +59,4 @@
 
 ## 方案状态
 
-需求已收敛，规划文档齐备，待用户批准最新方案后实施。
+实施、独立复核及最终前端门禁完成，验收标准已满足；按用户授权提交、合并 main、删除任务分支并推送。

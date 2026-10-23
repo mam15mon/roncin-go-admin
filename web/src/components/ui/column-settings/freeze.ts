@@ -2,11 +2,9 @@ import { Table } from 'antd';
 import type { Key } from 'react';
 import type { ColumnFreezeValue } from './types';
 
-/** 只描述展示层需要的官方列属性，保持业务列对象的类型和回调。 */
 interface FreezeColumn {
   key?: Key;
   dataIndex?: unknown;
-  title?: unknown;
   fixed?: 'left' | 'right' | 'start' | 'end' | boolean;
   valueType?: unknown;
   hideInTable?: boolean;
@@ -15,17 +13,20 @@ interface FreezeColumn {
 }
 
 export interface ColumnFreezeOptions {
-  /** 操作等结构列不作为首个业务列；仍可作为末尾冻结目标。 */
-  firstExcludedKeys?: readonly string[];
+  /** 结构列保留锚点，不参与普通业务列的区域重排。 */
+  structuralKeys?: readonly string[];
 }
 
-function keyOf(column: FreezeColumn): string | undefined {
+export function columnFreezeKey(column: FreezeColumn): string | undefined {
   if (column.key != null) return String(column.key);
   if (Array.isArray(column.dataIndex)) return column.dataIndex.join('-');
-  return typeof column.dataIndex === 'string' ||
+  if (
+    typeof column.dataIndex === 'string' ||
     typeof column.dataIndex === 'number'
-    ? String(column.dataIndex)
-    : undefined;
+  )
+    return String(column.dataIndex);
+  if (column.valueType === 'option') return 'option';
+  return undefined;
 }
 
 function isAuxiliary(column: FreezeColumn): boolean {
@@ -34,91 +35,127 @@ function isAuxiliary(column: FreezeColumn): boolean {
     column === Table.EXPAND_COLUMN ||
     column.valueType === 'index' ||
     column.valueType === 'indexBorder' ||
-    keyOf(column) === 'index'
+    columnFreezeKey(column) === 'index'
   );
 }
 
-function visibleLeaves(columns: readonly FreezeColumn[]): FreezeColumn[] {
-  return columns.flatMap((column) => {
-    if (column.hideInTable || column.hidden) return [];
-    return column.children ? visibleLeaves(column.children) : [column];
-  });
-}
-
-/** 缺省开关从原业务固定区域推导，选择/展开/序号自身不产生开关。 */
 export function deriveColumnFreezeDefaults(
   columns: readonly FreezeColumn[],
 ): ColumnFreezeValue {
-  const data = visibleLeaves(columns).filter((column) => !isAuxiliary(column));
-  return {
-    first: data.some(
-      (column) =>
-        column.fixed === 'left' ||
-        column.fixed === 'start' ||
-        column.fixed === true,
-    ),
-    last: data.some(
-      (column) => column.fixed === 'right' || column.fixed === 'end',
-    ),
-  };
+  const result: ColumnFreezeValue = { left: [], right: [] };
+  for (const column of columns) {
+    if (isAuxiliary(column)) continue;
+    if (column.children) {
+      const nested = deriveColumnFreezeDefaults(column.children);
+      result.left.push(...nested.left);
+      result.right.push(...nested.right);
+      continue;
+    }
+    const key = columnFreezeKey(column);
+    if (!key) continue;
+    if (
+      column.fixed === 'left' ||
+      column.fixed === 'start' ||
+      column.fixed === true
+    )
+      result.left.push(key);
+    if (column.fixed === 'right' || column.fixed === 'end')
+      result.right.push(key);
+  }
+  return result;
 }
 
-/** 缺失或非法开关使用业务默认，合法 false 必须保留。 */
+/** 仅解析当前字段冻结契约；旧首尾开关不具有字段冻结含义。 */
 export function resolveColumnFreeze(
   value: unknown,
   defaults: ColumnFreezeValue,
+  knownKeys?: readonly string[],
 ): ColumnFreezeValue {
-  const parsed = value && typeof value === 'object' ? value : {};
-  const first = 'first' in parsed ? parsed.first : undefined;
-  const last = 'last' in parsed ? parsed.last : undefined;
+  const parsed =
+    value && typeof value === 'object'
+      ? (value as Record<string, unknown>)
+      : {};
+  const known = knownKeys ? new Set(knownKeys) : undefined;
+  const clean = (input: unknown, fallback: string[]) =>
+    [
+      ...new Set(
+        Array.isArray(input) && input.every((key) => typeof key === 'string')
+          ? (input as string[])
+          : fallback,
+      ),
+    ].filter((key) => key.length > 0 && (!known || known.has(key)));
+  const left = clean(parsed.left, defaults.left);
+  const leftKeys = new Set(left);
   return {
-    first: typeof first === 'boolean' ? first : defaults.first,
-    last: typeof last === 'boolean' ? last : defaults.last,
+    left,
+    right: clean(parsed.right, defaults.right).filter(
+      (key) => !leftKeys.has(key),
+    ),
   };
 }
 
-/** 在最终可见顺序中识别首尾，供列应用和浮层目标提示共用。 */
-export function getColumnFreezeTargets<C extends FreezeColumn>(
-  columns: readonly C[],
-  options: ColumnFreezeOptions = {},
-): { first?: C; last?: C } {
-  const leaves = visibleLeaves(columns).filter(
-    (column) => !isAuxiliary(column),
-  );
-  const excluded = new Set(options.firstExcludedKeys);
-  const first = leaves.find(
-    (column) =>
-      column.valueType !== 'option' &&
-      keyOf(column) !== 'option' &&
-      keyOf(column) !== 'action' &&
-      !excluded.has(keyOf(column) ?? '') &&
-      (keyOf(column) !== undefined || column.dataIndex !== undefined),
-  );
-  return {
-    first: first as C | undefined,
-    last: leaves.at(-1) as C | undefined,
-  };
+/** 所有展示入口共享左冻结、普通、右冻结的唯一顺序。 */
+export function orderColumnKeys(
+  keys: readonly string[],
+  freeze: ColumnFreezeValue,
+): string[] {
+  const left = new Set(freeze.left);
+  const right = new Set(freeze.right);
+  return [
+    ...keys.filter((key) => left.has(key)),
+    ...keys.filter((key) => !left.has(key) && !right.has(key)),
+    ...keys.filter((key) => right.has(key) && !left.has(key)),
+  ];
 }
 
-/** 统一按首尾开关替换普通列的原固定设置，辅助结构列保持原规则。 */
+/** 冻结业务列并按区域排列，结构列和官方哨兵保持锚点。 */
 export function applyColumnFreeze<C extends FreezeColumn>(
   columns: readonly C[],
   freeze: ColumnFreezeValue,
   options: ColumnFreezeOptions = {},
 ): C[] {
-  const targets = getColumnFreezeTargets(columns, options);
-  const apply = (column: FreezeColumn): FreezeColumn => {
+  const left = new Set(freeze.left);
+  const right = new Set(freeze.right);
+  const structural = new Set([
+    'action',
+    'option',
+    ...(options.structuralKeys ?? []),
+  ]);
+  const apply = (column: C): C => {
     if (isAuxiliary(column)) return column;
-    if (column.children) {
-      return { ...column, fixed: false, children: column.children.map(apply) };
-    }
-    const fixed =
-      freeze.first && column === targets.first
-        ? 'left'
-        : freeze.last && column === targets.last
-          ? 'right'
-          : false;
-    return { ...column, fixed };
+    if (column.children)
+      return {
+        ...column,
+        fixed: false,
+        children: applyColumnFreeze(column.children, freeze, options),
+      };
+    const key = columnFreezeKey(column);
+    return key
+      ? {
+          ...column,
+          fixed: left.has(key) ? 'left' : right.has(key) ? 'right' : false,
+        }
+      : column;
   };
-  return columns.map(apply) as C[];
+  const applied = columns.map(apply);
+  const movable = applied.filter(
+    (column) =>
+      !isAuxiliary(column) &&
+      !column.children &&
+      column.valueType !== 'option' &&
+      !column.hideInTable &&
+      !!columnFreezeKey(column) &&
+      !structural.has(columnFreezeKey(column) as string),
+  );
+  const ordered = orderColumnKeys(
+    movable.map((column) => columnFreezeKey(column) as string),
+    freeze,
+  );
+  const byKey = new Map(
+    movable.map((column) => [columnFreezeKey(column), column]),
+  );
+  let index = 0;
+  return applied.map((column) =>
+    movable.includes(column) ? (byKey.get(ordered[index++]) as C) : column,
+  );
 }

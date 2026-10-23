@@ -1,0 +1,267 @@
+{
+  "results": [
+    {
+      "name": "全量可见 40字段 1366×768",
+      "pass": true,
+      "count": 40,
+      "maxBottom": 557.375,
+      "maxRight": 1325,
+      "minX": 41,
+      "rows": 10,
+      "columns": 4,
+      "scrolling": [],
+      "outside": []
+    },
+    {
+      "name": "全量可见 费用19字段 1366×768",
+      "pass": true,
+      "count": 19,
+      "maxBottom": 382.375,
+      "maxRight": 1325,
+      "minX": 41,
+      "rows": 5,
+      "columns": 4,
+      "scrolling": [],
+      "outside": []
+    },
+    {
+      "name": "全量可见 40字段 1440×900",
+      "pass": true,
+      "count": 40,
+      "maxBottom": 607.375,
+      "maxRight": 1399,
+      "minX": 41,
+      "rows": 10,
+      "columns": 4,
+      "scrolling": [],
+      "outside": []
+    },
+    {
+      "name": "全量可见 费用19字段 1440×900",
+      "pass": true,
+      "count": 19,
+      "maxBottom": 412.375,
+      "maxRight": 1399,
+      "minX": 41,
+      "rows": 5,
+      "columns": 4,
+      "scrolling": [],
+      "outside": []
+    },
+    {
+      "name": "全量可见 40字段 1920×1080",
+      "pass": true,
+      "count": 40,
+      "maxBottom": 490.375,
+      "maxRight": 1878.984375,
+      "minX": 41,
+      "rows": 7,
+      "columns": 6,
+      "scrolling": [],
+      "outside": []
+    },
+    {
+      "name": "全量可见 费用19字段 1920×1080",
+      "pass": true,
+      "count": 19,
+      "maxBottom": 373.375,
+      "maxRight": 1878.984375,
+      "minX": 41,
+      "rows": 4,
+      "columns": 6,
+      "scrolling": [],
+      "outside": []
+    },
+    {
+      "name": "40字段14左13普通13右在1366×768全部可见",
+      "pass": true,
+      "maxBottom": 633.375,
+      "dialogBottom": 728.21875
+    },
+    {
+      "name": "真实跨行拖动末列到首位",
+      "pass": true
+    },
+    {
+      "name": "左右多列冻结与面板表格顺序一致",
+      "pass": true
+    },
+    {
+      "name": "真实跨区域拖动并更新冻结侧",
+      "pass": true
+    },
+    {
+      "name": "目标序号精确移位并同步冻结区域",
+      "pass": true
+    },
+    {
+      "name": "隐藏再显示保留冻结选择",
+      "pass": true
+    },
+    {
+      "name": "搜索保留完整编号并禁止排序",
+      "pass": true
+    },
+    {
+      "name": "重挂载读取偏好及恢复默认",
+      "pass": true
+    },
+    {
+      "name": "真实拖到空冻结区域",
+      "pass": true
+    },
+    {
+      "name": "取消真实拖动不改变顺序",
+      "pass": true
+    },
+    {
+      "name": "plain 左右多列实际sticky几何",
+      "pass": true,
+      "initial": [
+        {
+          "label": "业务字段01",
+          "x": 12,
+          "right": 162,
+          "position": "sticky"
+        },
+        {
+          "label": "业务字段02",
+          "x": 162,
+          "right": 312,
+          "position": "sticky"
+        },
+        {
+          "label": "业务字段12",
+          "x": 1178,
+          "right": 1328,
+          "position": "sticky"
+        }
+      ],
+      "final": [
+        {
+          "label": "业务字段01",
+          "x": 12,
+          "right": 162,
+          "position": "sticky"
+        },
+        {
+          "label": "业务字段02",
+          "x": 162,
+          "right": 312,
+          "position": "sticky"
+        },
+        {
+          "label": "业务字段12",
+          "x": 1178,
+          "right": 1328,
+          "position": "sticky"
+        }
+      ]
+    },
+    {
+      "name": "pro 左右多列实际sticky几何",
+      "pass": true,
+      "initial": [
+        {
+          "label": "业务字段01",
+          "x": 36,
+          "right": 186,
+          "position": "sticky"
+        },
+        {
+          "label": "业务字段02",
+          "x": 186,
+          "right": 336,
+          "position": "sticky"
+        },
+        {
+          "label": "业务字段12",
+          "x": 1154,
+          "right": 1304,
+          "position": "sticky"
+        }
+      ],
+      "final": [
+        {
+          "label": "业务字段01",
+          "x": 36,
+          "right": 186,
+          "position": "sticky"
+        },
+        {
+          "label": "业务字段02",
+          "x": 186,
+          "right": 336,
+          "position": "sticky"
+        },
+        {
+          "label": "业务字段12",
+          "x": 1154,
+          "right": 1304,
+          "position": "sticky"
+        }
+      ]
+    },
+    {
+      "name": "可编辑表调宽保持输入节点和未提交值",
+      "pass": true
+    },
+    {
+      "name": "editable 左右多列实际sticky几何",
+      "pass": true,
+      "initial": [
+        {
+          "label": "业务字段01",
+          "x": 36,
+          "right": 276,
+          "position": "sticky"
+        },
+        {
+          "label": "业务字段02",
+          "x": 276,
+          "right": 426,
+          "position": "sticky"
+        },
+        {
+          "label": "业务字段12",
+          "x": 1154,
+          "right": 1304,
+          "position": "sticky"
+        }
+      ],
+      "final": [
+        {
+          "label": "业务字段01",
+          "x": 36,
+          "right": 276,
+          "position": "sticky"
+        },
+        {
+          "label": "业务字段02",
+          "x": 276,
+          "right": 426,
+          "position": "sticky"
+        },
+        {
+          "label": "业务字段12",
+          "x": 1154,
+          "right": 1304,
+          "position": "sticky"
+        }
+      ]
+    },
+    {
+      "name": "窄屏全部字段可访问且面板无横向溢出",
+      "pass": true,
+      "left": 12,
+      "right": 378,
+      "fields": 40,
+      "documentWidth": 390
+    },
+    {
+      "name": "编辑禁用时关闭面板并禁用入口",
+      "pass": true
+    }
+  ],
+  "errors": []
+}

@@ -137,7 +137,7 @@ describe('feeColumnPreference 本地存储', () => {
     const preference: FeeColumnPreference = {
       order: defaultFeeColumnPreference(false).order,
       hidden: ['taxRate'],
-      freeze: { first: true, last: false },
+      freeze: { left: ['feeCode'], right: [] },
     };
     expect(
       saveFeeColumnPreference(
@@ -219,10 +219,10 @@ describe('feeColumnPreference 本地存储', () => {
   });
 });
 
-describe('feeColumnPreference 首尾冻结', () => {
+describe('feeColumnPreference 字段冻结', () => {
   it('默认只冻结末尾操作列；未配置冻结时保留已有顺序与显隐', () => {
     const defaults = defaultFeeColumnPreference(false);
-    expect(defaults.freeze).toEqual({ first: false, last: true });
+    expect(defaults.freeze).toEqual({ left: [], right: ['option'] });
     const resolved = resolveFeeColumnPreference(
       { order: ['note', 'feeCode'], hidden: ['taxRate'] },
       false,
@@ -232,16 +232,19 @@ describe('feeColumnPreference 首尾冻结', () => {
     expect(resolved.freeze).toEqual(defaults.freeze);
   });
 
-  it('分别保存关闭和开启状态，冻结变化不被误判为恢复默认', () => {
+  it('保存指定冻结字段与空数组，冻结变化不被误判为恢复默认', () => {
     const defaults = defaultFeeColumnPreference(false);
-    const preference = { ...defaults, freeze: { first: true, last: false } };
+    const preference = {
+      ...defaults,
+      freeze: { left: ['feeCode'], right: [] },
+    };
     expect(isDefaultFeeColumnPreference(preference, false)).toBe(false);
     const scope = { userId: 'freeze-user', organizationId: 'freeze-org' };
     expect(saveFeeColumnPreference(scope, preference)).toBe(true);
     expect(loadFeeColumnPreference(scope)).toEqual(preference);
     expect(
       isDefaultFeeColumnPreference(
-        { ...defaults, freeze: { first: false, last: false } },
+        { ...defaults, freeze: { left: [], right: [] } },
         false,
       ),
     ).toBe(false);
@@ -254,14 +257,14 @@ describe('feeColumnPreference 首尾冻结', () => {
       JSON.stringify({
         order: ['note'],
         hidden: ['taxAmount'],
-        freeze: { first: 'true', last: false },
+        freeze: { left: 'bad', right: [] },
       }),
     );
     const resolved = resolveFeeColumnPreference(
       loadFeeColumnPreference(scope),
       false,
     );
-    expect(resolved.freeze).toEqual({ first: false, last: false });
+    expect(resolved.freeze).toEqual({ left: [], right: [] });
     expect(resolved.order[0]).toBe('note');
     expect(resolved.hidden).toContain('taxAmount');
   });
@@ -271,7 +274,7 @@ describe('feeColumnPreference 首尾冻结', () => {
       {
         order: ['option', 'note', 'billNo', 'note'],
         hidden: ['option', 'note'],
-        freeze: { first: true, last: true },
+        freeze: { left: ['feeCode'], right: ['option'] },
       },
       false,
     );
@@ -281,6 +284,6 @@ describe('feeColumnPreference 首尾冻结', () => {
     expect(resolved.order).not.toContain('billNo');
     expect(resolved.hidden).not.toContain('option');
     expect(resolved.hidden).toContain('note');
-    expect(resolved.freeze).toEqual({ first: true, last: true });
+    expect(resolved.freeze).toEqual({ left: ['feeCode'], right: ['option'] });
   });
 });

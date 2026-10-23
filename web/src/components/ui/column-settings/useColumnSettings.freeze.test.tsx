@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -8,15 +14,14 @@ import { useColumnSettings } from './useColumnSettings';
 const scope = { userId: 'u1', organizationId: 'o1' };
 const columns = [
   { key: 'index', title: '序号', valueType: 'index', fixed: 'left' as const },
-  { key: 'name', title: '姓名', fixed: 'left' as const, width: 180 },
+  { key: 'name', title: '姓名', fixed: 'left' as const },
   { key: 'email', title: '邮箱', fixed: 'left' as const },
   { key: 'phone', title: '电话' },
   { key: 'action', title: '操作', fixed: 'right' as const },
 ];
-
-function Inner({ tableKey = 'test:freeze' }: { tableKey?: string }) {
-  const settings = useColumnSettings<(typeof columns)[number]>({
-    tableKey,
+function Inner() {
+  const settings = useColumnSettings({
+    tableKey: 'test:freeze',
     columns,
     scope,
   });
@@ -27,111 +32,77 @@ function Inner({ tableKey = 'test:freeze' }: { tableKey?: string }) {
     </>
   );
 }
-
-async function open() {
-  fireEvent.click(screen.getByRole('button', { name: '列设置' }));
-  await screen.findByRole('switch', { name: '冻结首列' });
-}
-
-function readColumns() {
+function read() {
   return JSON.parse(
     screen.getByTestId('columns').textContent ?? '[]',
   ) as typeof columns;
 }
-
-describe('列设置首尾冻结交互', () => {
+async function open() {
+  fireEvent.click(screen.getByRole('button', { name: '列设置' }));
+  await screen.findByRole('combobox', { name: '姓名冻结位置' });
+}
+async function setFreeze(title: string, label: string) {
+  await act(async () => {
+    fireEvent.mouseDown(
+      screen.getByRole('combobox', { name: `${title}冻结位置` }),
+    );
+  });
+  fireEvent.click(
+    await screen.findByText(label, {
+      selector: '.ant-select-item-option-content',
+    }),
+  );
+}
+describe('逐字段冻结全链路', () => {
   afterEach(() => {
     cleanup();
     window.localStorage.clear();
     vi.restoreAllMocks();
   });
-
-  it('两个开关独立生效，操作与序号不进入排序或显隐', async () => {
+  it('业务默认保留两个左冻结，结构操作可独立解除', async () => {
     render(
       <App>
         <Inner />
       </App>,
     );
     await open();
-    expect(screen.getByRole('switch', { name: '冻结首列' })).toBeChecked();
-    expect(screen.getByRole('switch', { name: '冻结尾列' })).toBeChecked();
-    expect(
-      screen.queryByRole('checkbox', { name: '操作' }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('checkbox', { name: '序号' }),
-    ).not.toBeInTheDocument();
-    expect(readColumns().map((column) => column.fixed)).toEqual([
+    expect(read().map((column) => column.fixed)).toEqual([
       'left',
       'left',
-      false,
+      'left',
       false,
       'right',
     ]);
-    fireEvent.click(screen.getByRole('switch', { name: '冻结首列' }));
-    expect(readColumns().map((column) => column.fixed)).toEqual([
+    expect(screen.queryByRole('checkbox', { name: '操作' })).toBeNull();
+    expect(screen.queryByRole('checkbox', { name: '序号' })).toBeNull();
+    await setFreeze('操作', '不冻结');
+    await setFreeze('电话', '左冻结');
+    expect(read().map((column) => column.fixed)).toEqual([
+      'left',
+      'left',
+      'left',
       'left',
       false,
-      false,
-      false,
-      'right',
     ]);
-    fireEvent.click(screen.getByRole('switch', { name: '冻结尾列' }));
-    expect(readColumns().map((column) => column.fixed)).toEqual([
-      'left',
-      false,
-      false,
-      false,
-      false,
-    ]);
-    expect(screen.getByPlaceholderText('搜索列名')).toBeInTheDocument();
     expect(
       JSON.parse(
         window.localStorage.getItem(
           'roncin:column-settings:v1:test:freeze:u1:o1',
         ) ?? '{}',
       ).freeze,
-    ).toEqual({ first: false, last: false });
+    ).toEqual({ left: ['name', 'email', 'phone'], right: [] });
   });
-
-  it('隐藏和排序后首列跟随新顺序，设置搜索不改变目标', async () => {
-    render(
-      <App>
-        <Inner />
-      </App>,
-    );
-    await open();
-    fireEvent.click(screen.getByRole('button', { name: '上移邮箱' }));
-    expect(readColumns()[1]).toMatchObject({ key: 'email', fixed: 'left' });
-    expect(screen.getByText('当前：邮箱')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('checkbox', { name: '邮箱' }));
-    expect(readColumns()[1]).toMatchObject({ key: 'name', fixed: 'left' });
-    expect(screen.getByText('当前：姓名')).toBeInTheDocument();
-    fireEvent.change(screen.getByPlaceholderText('搜索列名'), {
-      target: { value: '电话' },
-    });
-    expect(screen.getByText('当前：姓名')).toBeInTheDocument();
-    expect(screen.getByText('当前：操作')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '上移电话' })).toBeDisabled();
-  });
-
-  it('重挂载保留关闭冻结与显隐，恢复默认同时重置冻结和顺序', async () => {
+  it('隐藏和重挂载保留字段冻结，恢复默认恢复完整区域', async () => {
     saveColumnSettingsPreference('test:freeze', scope, {
       order: ['phone', 'email', 'name'],
       hidden: ['name'],
-      freeze: { first: false, last: false },
+      freeze: { left: ['phone', 'email'], right: [] },
     });
     const first = render(
       <App>
         <Inner />
       </App>,
     );
-    expect(readColumns().map((column) => column.key)).toEqual([
-      'index',
-      'phone',
-      'email',
-      'action',
-    ]);
     first.unmount();
     render(
       <App>
@@ -139,28 +110,31 @@ describe('列设置首尾冻结交互', () => {
       </App>,
     );
     await open();
-    expect(screen.getByRole('switch', { name: '冻结首列' })).not.toBeChecked();
-    expect(screen.getByRole('switch', { name: '冻结尾列' })).not.toBeChecked();
+    expect(read().map((column) => column.key)).toEqual([
+      'index',
+      'phone',
+      'email',
+      'action',
+    ]);
+    fireEvent.click(screen.getByRole('checkbox', { name: '姓名' }));
+    expect(read().find((column) => column.key === 'name')?.fixed).toBe(false);
     fireEvent.click(screen.getByRole('button', { name: '恢复默认' }));
-    expect(readColumns().map((column) => column.key)).toEqual([
+    expect(read().map((column) => column.key)).toEqual([
       'index',
       'name',
       'email',
       'phone',
       'action',
     ]);
-    expect(readColumns().map((column) => column.fixed)).toEqual([
+    expect(read().map((column) => column.fixed)).toEqual([
       'left',
       'left',
-      false,
+      'left',
       false,
       'right',
     ]);
-    expect(screen.getByRole('switch', { name: '冻结首列' })).toBeChecked();
-    expect(screen.getByRole('switch', { name: '冻结尾列' })).toBeChecked();
   });
-
-  it('冻结保存失败仍生效且明确提示，浮层保持打开', async () => {
+  it('存储失败仍即时冻结且面板保持打开', async () => {
     vi.spyOn(window.localStorage, 'setItem').mockImplementation(() => {
       throw new Error('quota');
     });
@@ -170,15 +144,15 @@ describe('列设置首尾冻结交互', () => {
       </App>,
     );
     await open();
-    fireEvent.click(screen.getByRole('switch', { name: '冻结尾列' }));
-    expect(readColumns().at(-1)?.fixed).toBe(false);
+    await setFreeze('电话', '右冻结');
+    expect(read().find((column) => column.key === 'phone')?.fixed).toBe(
+      'right',
+    );
     expect(
       await screen.findByText(
         '列设置保存到本地浏览器失败，本次设置仅当前页面生效',
       ),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole('switch', { name: '冻结尾列' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: '列设置' })).toBeInTheDocument();
   });
 });

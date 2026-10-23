@@ -2,7 +2,7 @@
  * 列偏好的浏览器本地存取与合并逻辑。
  *
  * 存储 key 按「表格标识 + 用户 + 组织」隔离，同一业务视图跨实体复用，
- * 不使用实体 ID，避免逐订单产生配置；只存列 key、显隐、顺序与首尾冻结，
+ * 不使用实体 ID，避免逐订单产生配置；只存列 key、显隐、顺序与逐字段冻结，
  * 不含任何业务数据或身份秘密。
  */
 import { deriveColumnFreezeDefaults, resolveColumnFreeze } from './freeze';
@@ -43,15 +43,22 @@ export function loadColumnSettingsPreference(
     if (!isStringArray(order) || !isStringArray(hidden)) return null;
     const parsedFreeze: Partial<ColumnFreezeValue> = {};
     if (freeze && typeof freeze === 'object') {
-      if ('first' in freeze && typeof freeze.first === 'boolean')
-        parsedFreeze.first = freeze.first;
-      if ('last' in freeze && typeof freeze.last === 'boolean')
-        parsedFreeze.last = freeze.last;
+      for (const side of ['left', 'right'] as const) {
+        if (
+          side in freeze &&
+          isStringArray((freeze as Record<string, unknown>)[side])
+        )
+          parsedFreeze[side] = (freeze as Record<string, string[]>)[side];
+      }
     }
     return {
       order,
       hidden,
-      ...(Object.keys(parsedFreeze).length ? { freeze: parsedFreeze } : {}),
+      ...(freeze &&
+      typeof freeze === 'object' &&
+      ('left' in freeze || 'right' in freeze)
+        ? { freeze: parsedFreeze }
+        : {}),
     };
   } catch {
     return null;
@@ -119,6 +126,7 @@ export function resolveColumnSettingsValue(
   fields: ColumnSettingsField[],
   defaultValue: ColumnSettingsValue,
   stored: ColumnSettingsPreference | null | undefined,
+  freezeKeys?: readonly string[],
 ): ColumnSettingsValue {
   const known = new Set(fields.map((field) => field.key));
   const locked = new Set(
@@ -128,6 +136,11 @@ export function resolveColumnSettingsValue(
   const freeze = resolveColumnFreeze(
     stored?.freeze,
     defaultValue.freeze ?? deriveColumnFreezeDefaults(fields),
+    freezeKeys ?? [
+      ...fields.map((field) => field.key),
+      ...(defaultValue.freeze?.left ?? []),
+      ...(defaultValue.freeze?.right ?? []),
+    ],
   );
 
   const seen = new Set<string>();

@@ -10,7 +10,7 @@
 | [Capability Navigation](./capability-navigation.md) | 复用能力导航：场景→入口→职责，开发前先查 | ✅ |
 | [Duplicate Report](./duplicate-report.md) | 前后端疑似重复函数扫描、证据与审查限制 | ✅ |
 | [Directory Structure](./directory-structure.md) | 页面组织、features 分层与依赖边界 | ✅ |
-| [Column Settings](./column-settings.md) | 即时列设置、首尾冻结、偏好隔离和Pro适配 | ✅ |
+| [Column Settings](./column-settings.md) | 全量铺排排序、逐列多列冻结、偏好隔离和Pro适配 | ✅ |
 | [Component Guidelines](./component-guidelines.md) | UI 模板规范、公共组件与金额/时间显示口径 | ✅ |
 | [State Management](./state-management.md) | 服务端状态与请求客户端 | ✅ |
 | [Organization Switch](./organization-switch.md) | 组织切换落点、异步工作区转换与未保存输入保护 | ✅ |

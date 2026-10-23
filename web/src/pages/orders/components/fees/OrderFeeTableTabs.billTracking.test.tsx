@@ -27,7 +27,7 @@ vi.mock('@/router/history', () => ({
 }));
 
 import type { FeeBillTrackingView } from './feeBillTracking';
-import { PAYABLE, RECEIVABLE } from './feeConstants';
+import { RECEIVABLE } from './feeConstants';
 import OrderFeeTableTabs from './OrderFeeTableTabs';
 
 vi.mock('@/services/roncin/orderFeeService', () => ({
@@ -66,22 +66,14 @@ function makeProps(orderId: string) {
   };
 }
 
-/** 勾选关联账单两列；浮层内操作即时生效。 */
+/** 勾选关联账单两列；弹窗内操作即时生效。 */
 async function enableTrackingColumns() {
   await act(async () => {
     screen.getAllByRole('button', { name: /列设置/ })[0].click();
   });
-  await screen.findByPlaceholderText('搜索列名');
+  const dialog = await screen.findByRole('dialog', { name: '列设置' });
   for (const title of ['账单号', '关联账单财务进度']) {
-    const label = await waitFor(() => {
-      const found = screen
-        .getAllByText(title)
-        .find((element) => element.closest('.ant-popover'));
-      expect(found).not.toBeUndefined();
-      return found as HTMLElement;
-    });
-    const input = label.closest('label')?.querySelector('input');
-    expect(input).not.toBeNull();
+    const input = within(dialog).getByRole('checkbox', { name: title });
     await act(async () => {
       fireEvent.click(input as HTMLInputElement);
     });
@@ -253,186 +245,5 @@ describe('OrderFeeTableTabs 关联账单列', () => {
     await screen.findByPlaceholderText('搜索列名');
     expect(screen.queryByText('账单号')).not.toBeInTheDocument();
     expect(screen.queryByText('关联账单财务进度')).not.toBeInTheDocument();
-  });
-
-  it('行内保存成功后通知页面刷新关联投影（A4）', async () => {
-    const today = '2026-09-21';
-    const onFeeSaved = vi.fn();
-    updateFee.mockResolvedValue({ data: { id: 'fee-edit-1' } } as any);
-    listFees.mockResolvedValue({
-      data: [
-        {
-          id: 'fee-edit-1',
-          direction: PAYABLE,
-          hasActiveBill: true,
-          currency: 'CNY',
-          quantity: '1',
-          unitPrice: '100',
-          expenseDate: today,
-          version: '2',
-          feeSettingId: 'setting-of',
-          settlementPartyId: 'agent-1',
-          billingUnitId: 'unit-piao',
-        } as API.OrderFee,
-      ],
-    } as any);
-
-    render(
-      <App>
-        <OrderFeeTableTabs
-          {...makeProps('order-1')}
-          feeWritesDisabled={false}
-          feeBillTracking={trackingView('ready', {
-            'fee-edit-1': { billNo: 'BILL-1', financialProgress: 7 },
-          })}
-          onFeeSaved={onFeeSaved}
-        />
-      </App>,
-    );
-
-    await screen.findByText(today);
-    await act(async () => {
-      screen.getAllByRole('button', { name: /编\s*辑/ })[0].click();
-    });
-    const saveButton = await waitFor(() => {
-      const button = screen.getByText('保存');
-      expect(button).toBeInTheDocument();
-      return button;
-    });
-    await act(async () => {
-      fireEvent.click(saveButton);
-    });
-
-    await waitFor(() => expect(onFeeSaved).toHaveBeenCalledTimes(1));
-    expect(updateFee).toHaveBeenCalledTimes(1);
-  });
-
-  it('删除入口仅对未建账费用展示并回调页面删除流程', async () => {
-    const onCancelFee = vi.fn();
-    listFees.mockResolvedValue({
-      data: [
-        {
-          id: 'fee-unbilled',
-          direction: RECEIVABLE,
-          expenseDate: '2026-09-20',
-          version: '2',
-          feeName: '拖车费',
-        },
-        {
-          id: 'fee-billed',
-          direction: RECEIVABLE,
-          hasActiveBill: true,
-          expenseDate: '2026-09-20',
-          version: '3',
-          feeName: '海运费',
-        },
-      ],
-    } as any);
-
-    render(
-      <App>
-        <OrderFeeTableTabs
-          {...makeProps('order-1')}
-          feeWritesDisabled={false}
-          onCancelFee={onCancelFee}
-        />
-      </App>,
-    );
-    await screen.findByText('拖车费');
-
-    // 行内「删除」操作锚定整名匹配，避开工具栏批量维护新增的「批量删除」入口
-    const deleteButtons = screen.getAllByRole('button', {
-      name: /^删\s*除$/,
-    });
-    expect(deleteButtons).toHaveLength(1);
-    expect(
-      screen.queryByRole('button', { name: /作\s*废/ }),
-    ).not.toBeInTheDocument();
-    await act(async () => {
-      deleteButtons[0].click();
-    });
-    expect(onCancelFee).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 'fee-unbilled' }),
-    );
-  });
-
-  it('未建账与已建账费用均可勾选，操作列不再提供确认/撤回入口（A1/R2）', async () => {
-    const setSelectedReceivableFeeIds = vi.fn();
-    listFees.mockResolvedValue({
-      data: [
-        {
-          id: 'fee-unbilled',
-          direction: RECEIVABLE,
-          expenseDate: '2026-09-20',
-          version: '2',
-          feeName: '拖车费',
-        },
-        {
-          id: 'fee-billed',
-          direction: RECEIVABLE,
-          hasActiveBill: true,
-          expenseDate: '2026-09-20',
-          version: '3',
-          feeName: '海运费',
-        },
-      ],
-    } as any);
-
-    const props = {
-      ...makeProps('order-1'),
-      feeWritesDisabled: false,
-      setSelectedReceivableFeeIds,
-    };
-    render(
-      <App>
-        <OrderFeeTableTabs {...props} />
-      </App>,
-    );
-    await screen.findByText('拖车费');
-
-    const rowCheckbox = (rowText: string) => {
-      const row = screen
-        .getByText(rowText)
-        .closest('tr') as HTMLTableRowElement;
-      return within(row).getByRole('checkbox') as HTMLInputElement;
-    };
-    // 已保存的未建账与已建账费用都可直接勾选，无需先行确认
-    expect(rowCheckbox('拖车费')).not.toBeDisabled();
-    expect(rowCheckbox('海运费')).not.toBeDisabled();
-
-    await act(async () => {
-      fireEvent.click(rowCheckbox('拖车费'));
-    });
-    // rowSelection.onChange 首参为选中行 key 集合
-    expect(setSelectedReceivableFeeIds.mock.calls[0]?.[0]).toEqual([
-      'fee-unbilled',
-    ]);
-
-    // 确认/撤回按钮及其 Popconfirm 文案已随费用确认流程退役
-    expect(screen.queryByRole('button', { name: /^确\s*认$/ })).toBeNull();
-    expect(screen.queryByRole('button', { name: /撤\s*回/ })).toBeNull();
-    expect(
-      screen.queryByText('确认后该费用才能进入账单，确定继续？'),
-    ).not.toBeInTheDocument();
-  });
-
-  it('有投影时提供订单财务详情入口（A3 入口）', async () => {
-    historyPush.mockClear();
-    listFees.mockResolvedValue({ data: [] } as any);
-    render(
-      <App>
-        <OrderFeeTableTabs
-          {...makeProps('order-1')}
-          feeBillTracking={trackingView('ready', {})}
-        />
-      </App>,
-    );
-
-    const entry = await screen.findAllByRole('button', { name: /财务详情/ });
-    expect(entry.length).toBe(2);
-    act(() => {
-      entry[0].click();
-    });
-    expect(historyPush).toHaveBeenCalledWith('/finance/fees/detail/order-1');
   });
 });

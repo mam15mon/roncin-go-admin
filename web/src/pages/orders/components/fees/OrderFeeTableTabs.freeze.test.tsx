@@ -64,10 +64,22 @@ async function openSettings(tableIndex = 0) {
       screen.getAllByRole('button', { name: '列设置' })[tableIndex],
     );
   });
-  return screen.findByRole('switch', { name: '冻结首列' });
+  return screen.findByRole('combobox', { name: '费用名称冻结位置' });
+}
+async function setFreeze(title: string, label: string) {
+  await act(async () => {
+    fireEvent.mouseDown(
+      screen.getByRole('combobox', { name: `${title}冻结位置` }),
+    );
+  });
+  await act(async () => {
+    fireEvent.click(
+      screen.getByText(label, { selector: '.ant-select-item-option-content' }),
+    );
+  });
 }
 
-describe('订单费用首尾冻结即时设置', () => {
+describe('订单费用自定义多列冻结', () => {
   beforeEach(() => {
     window.localStorage.clear();
     listFees.mockReset();
@@ -75,54 +87,32 @@ describe('订单费用首尾冻结即时设置', () => {
       data: [{ id: 'fee-1', version: '1', direction: 1, feeName: '海运费' }],
     } as Awaited<ReturnType<typeof listFees>>);
   });
-
-  it('应收改开关后即时保存，刷新与应付入口均共享冻结和原显隐', async () => {
-    const props = {
-      ...makeProps('order-freeze'),
-      columnSettingScope: scope,
-    };
+  it('应收同时冻结两列并解除操作冻结，刷新后应付共享且保留显隐', async () => {
+    const props = makeProps('order-freeze');
     const rendered = render(
       <App>
         <OrderFeeTableTabs {...props} />
       </App>,
     );
     await screen.findByText('海运费');
-    const first = await openSettings();
-    expect(first).toHaveAttribute('aria-checked', 'false');
-    const last = screen.getByRole('switch', { name: '冻结尾列' });
-    expect(last).toHaveAttribute('aria-checked', 'true');
+    await openSettings();
+    await setFreeze('费用名称', '左冻结');
+    await setFreeze('结算单位', '左冻结');
+    await setFreeze('操作', '不冻结');
     await act(async () => {
-      fireEvent.click(first);
+      fireEvent.click(screen.getByRole('checkbox', { name: '费用代码' }));
     });
-    await act(async () => {
-      fireEvent.click(last);
-    });
-    expect(first).toHaveAttribute('aria-checked', 'true');
-    expect(last).toHaveAttribute('aria-checked', 'false');
-    const feeCodeLabel = screen
-      .getAllByText('费用代码')
-      .find((element) => element.closest('label'));
-    const feeCodeCheckbox = feeCodeLabel
-      ?.closest('label')
-      ?.querySelector('input');
-    expect(feeCodeCheckbox).not.toBeNull();
-    await act(async () => {
-      fireEvent.click(feeCodeCheckbox as HTMLInputElement);
-    });
-    expect(screen.getByText('当前：费用名称')).toBeInTheDocument();
-    expect(screen.getByText('当前：操作')).toBeInTheDocument();
-    expect(
-      screen.queryAllByRole('columnheader', { name: '费用代码' }),
-    ).toHaveLength(0);
     const stored = JSON.parse(
       window.localStorage.getItem(storageKey) as string,
     );
-    expect(stored.freeze).toEqual({ first: true, last: false });
-    expect(stored.hidden).toContain('tags');
+    expect(stored.freeze).toEqual({
+      left: ['feeSettingId', 'settlementPartyId'],
+      right: [],
+    });
     expect(stored.hidden).toContain('feeCode');
+    expect(stored.hidden).toContain('tags');
     expect(stored.order.at(-1)).toBe('option');
     rendered.unmount();
-
     render(
       <App>
         <OrderFeeTableTabs {...props} />
@@ -130,19 +120,22 @@ describe('订单费用首尾冻结即时设置', () => {
     );
     await screen.findByText('海运费');
     await openSettings(1);
-    expect(screen.getByRole('switch', { name: '冻结首列' })).toHaveAttribute(
-      'aria-checked',
-      'true',
-    );
-    expect(screen.getByRole('switch', { name: '冻结尾列' })).toHaveAttribute(
-      'aria-checked',
-      'false',
-    );
-    expect(screen.queryByRole('checkbox', { name: /操作/ })).toBeNull();
-    expect(screen.getByText('当前：费用名称')).toBeInTheDocument();
+    expect(
+      document
+        .querySelector('[data-column-key="feeSettingId"]')
+        ?.closest('[data-freeze-zone]'),
+    ).toHaveAttribute('data-freeze-zone', 'left');
+    expect(
+      document
+        .querySelector('[data-column-key="settlementPartyId"]')
+        ?.closest('[data-freeze-zone]'),
+    ).toHaveAttribute('data-freeze-zone', 'left');
+    expect(
+      screen.getByRole('checkbox', { name: '费用代码' }),
+    ).not.toBeChecked();
+    expect(screen.queryByRole('checkbox', { name: '操作' })).toBeNull();
   });
-
-  it('同实例切换组织立即应用对应顺序和开关，恢复默认同时恢复冻结并清除偏好', async () => {
+  it('同实例组织切换读取独立配置，恢复默认清除该组织偏好', async () => {
     saveFeeColumnPreference(scope, {
       ...defaultFeeColumnPreference(false),
       order: [
@@ -151,19 +144,19 @@ describe('订单费用首尾冻结即时设置', () => {
           (key) => key !== 'note',
         ),
       ],
-      freeze: { first: true, last: false },
+      freeze: { left: ['note'], right: [] },
     });
     const props = makeProps('order-scope');
     const { rerender } = render(
       <App>
-        <OrderFeeTableTabs {...props} columnSettingScope={scope} />
+        <OrderFeeTableTabs {...props} />
       </App>,
     );
     await screen.findByText('海运费');
     const titles = () =>
       Array.from(document.querySelector('thead')?.querySelectorAll('th') ?? [])
         .map((header) => header.textContent)
-        .filter((title) => title);
+        .filter(Boolean);
     expect(titles()[0]).toBe('备注');
     rerender(
       <App>
@@ -175,63 +168,43 @@ describe('订单费用首尾冻结即时设置', () => {
     );
     expect(titles()[0]).toBe('费用代码');
     await openSettings();
-    expect(screen.getByRole('switch', { name: '冻结首列' })).toHaveAttribute(
-      'aria-checked',
-      'false',
-    );
-    expect(screen.getByRole('switch', { name: '冻结尾列' })).toHaveAttribute(
-      'aria-checked',
-      'true',
-    );
+    await setFreeze('费用名称', '左冻结');
+    const key = 'roncin:order-fee-columns:v1:freeze-user:freeze-org-b';
+    expect(window.localStorage.getItem(key)).not.toBeNull();
     await act(async () => {
-      fireEvent.click(screen.getByRole('switch', { name: '冻结首列' }));
+      fireEvent.click(screen.getByRole('button', { name: '恢复默认' }));
     });
-    const organizationBKey =
-      'roncin:order-fee-columns:v1:freeze-user:freeze-org-b';
-    expect(window.localStorage.getItem(organizationBKey)).not.toBeNull();
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /恢复默认/ }));
-    });
-    expect(screen.getByRole('switch', { name: '冻结首列' })).toHaveAttribute(
-      'aria-checked',
-      'false',
-    );
-    expect(window.localStorage.getItem(organizationBKey)).toBeNull();
+    expect(window.localStorage.getItem(key)).toBeNull();
     expect(
       JSON.parse(window.localStorage.getItem(storageKey) as string).freeze,
-    ).toEqual({
-      first: true,
-      last: false,
-    });
+    ).toEqual({ left: ['note'], right: [] });
   });
-
-  it('冻结写入失败时保留当前开关效果并明确提示未持久保存', async () => {
+  it('冻结写入失败保留当前页面效果并明确提示', async () => {
     render(
       <App>
-        <OrderFeeTableTabs
-          {...makeProps('order-storage-failure')}
-          columnSettingScope={scope}
-        />
+        <OrderFeeTableTabs {...makeProps('order-storage-failure')} />
       </App>,
     );
     await screen.findByText('海运费');
-    const first = await openSettings();
+    await openSettings();
     const original = window.localStorage.setItem;
     window.localStorage.setItem = vi.fn(() => {
       throw new Error('本地存储已满');
     });
     try {
-      await act(async () => {
-        fireEvent.click(first);
-      });
-      expect(first).toHaveAttribute('aria-checked', 'true');
-      await waitFor(() => {
+      await setFreeze('费用名称', '左冻结');
+      expect(
+        document
+          .querySelector('[data-column-key="feeSettingId"]')
+          ?.closest('[data-freeze-zone]'),
+      ).toHaveAttribute('data-freeze-zone', 'left');
+      await waitFor(() =>
         expect(
           screen.getByText(
             '列设置保存到本地浏览器失败，本次设置仅当前页面生效',
           ),
-        ).toBeInTheDocument();
-      });
+        ).toBeInTheDocument(),
+      );
       expect(window.localStorage.getItem(storageKey)).toBeNull();
     } finally {
       window.localStorage.setItem = original;

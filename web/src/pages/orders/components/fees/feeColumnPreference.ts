@@ -2,17 +2,17 @@
  * 订单费用页列设置：列清单、默认显隐顺序与同浏览器偏好存取。
  *
  * 偏好按「用户 ID + 组织 ID」隔离在 localStorage，应收/应付两表共享一份，
- * 切换订单继续生效；只存列 key、显隐、顺序与首尾冻结，不含任何费用数据或身份秘密。
+ * 切换订单继续生效；只存列 key、显隐、顺序与逐字段冻结，不含任何费用数据或身份秘密。
  */
 import {
   type ColumnFreezeValue,
   resolveColumnFreeze,
 } from '@/components/ui/column-settings';
 
-/** 原费用表只固定末尾操作列，统一首尾冻结后保持相同默认效果。 */
+/** 原费用表只固定末尾操作列，统一逐字段冻结后保持相同默认效果。 */
 const DEFAULT_FEE_COLUMN_FREEZE: ColumnFreezeValue = {
-  first: false,
-  last: true,
+  left: [],
+  right: ['option'],
 };
 
 /** 订单费用表稳定列 key（与表格列 dataIndex 一一对应；操作列固定为 option）。 */
@@ -154,7 +154,7 @@ export const DEFAULT_FEE_COLUMN_DEFS: FeeColumnDef[] = [
   { key: 'option', title: '操作', lockVisible: true, defaultVisible: true },
 ];
 
-/** 用户提交的列偏好：完整顺序、隐藏列与表格首尾冻结。 */
+/** 用户提交的列偏好：完整顺序、隐藏列与表格逐字段冻结。 */
 export interface FeeColumnPreference {
   order: FeeColumnKey[];
   hidden: FeeColumnKey[];
@@ -190,8 +190,10 @@ function isSamePreference(a: FeeColumnPreference, b: FeeColumnPreference) {
   const aFreeze = resolveColumnFreeze(a.freeze, DEFAULT_FEE_COLUMN_FREEZE);
   const bFreeze = resolveColumnFreeze(b.freeze, DEFAULT_FEE_COLUMN_FREEZE);
   return (
-    aFreeze.first === bFreeze.first &&
-    aFreeze.last === bFreeze.last &&
+    aFreeze.left.length === bFreeze.left.length &&
+    aFreeze.left.every((key) => bFreeze.left.includes(key)) &&
+    aFreeze.right.length === bFreeze.right.length &&
+    aFreeze.right.every((key) => bFreeze.right.includes(key)) &&
     a.order.length === b.order.length &&
     a.order.every((key, index) => key === b.order[index]) &&
     a.hidden.length === b.hidden.length &&
@@ -259,7 +261,11 @@ export function resolveFeeColumnPreference(
   return {
     order,
     hidden: order.filter((key) => hidden.has(key)),
-    freeze: resolveColumnFreeze(stored.freeze, DEFAULT_FEE_COLUMN_FREEZE),
+    freeze: resolveColumnFreeze(
+      stored.freeze,
+      DEFAULT_FEE_COLUMN_FREEZE,
+      defs.map((def) => def.key),
+    ),
   };
 }
 

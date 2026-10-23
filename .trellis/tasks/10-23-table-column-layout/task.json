@@ -3,7 +3,7 @@
   "name": "table-column-layout",
   "title": "全局表格自定义冻结与全量铺排排序",
   "description": "支持逐列设置左右冻结，将列排序改为按可用视口多列铺排并明确编号，避免在窄浮层内滚动拖拽",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": "web",

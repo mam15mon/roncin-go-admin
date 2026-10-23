@@ -1,3 +1,4 @@
 {"file": ".trellis/spec/web/frontend/index.md", "reason": "全局前端边界和规范导航"}
 {"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "实现后定向测试和前端门禁要求"}
 {"file": ".trellis/spec/web/frontend/hook-guidelines.md", "reason": "受控设置和回调稳定性要求"}
+{"file": ".trellis/tasks/10-23-table-column-layout/research/review-scope.md", "reason": "独立复核的契约、状态和浏览器分工"}

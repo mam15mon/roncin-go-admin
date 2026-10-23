@@ -1,342 +1,381 @@
+import { HolderOutlined, SearchOutlined } from '@ant-design/icons';
 import {
-  DownOutlined,
-  HolderOutlined,
-  SearchOutlined,
-  UpOutlined,
-} from '@ant-design/icons';
-import { Button, Checkbox, Empty, Input, Switch, Tooltip } from 'antd';
+  Button,
+  Checkbox,
+  Empty,
+  Input,
+  InputNumber,
+  Select,
+  Tooltip,
+} from 'antd';
 import React, { useMemo, useState } from 'react';
 import './ColumnSettingsPanel.less';
-import { deriveColumnFreezeDefaults, resolveColumnFreeze } from './freeze';
+import {
+  deriveColumnFreezeDefaults,
+  orderColumnKeys,
+  resolveColumnFreeze,
+} from './freeze';
 import type {
-  ColumnFreezeTargetTitles,
+  ColumnFreezeValue,
   ColumnSettingsField,
   ColumnSettingsValue,
 } from './types';
 
-/** 受控渲染条目：字段元数据 + 当前可见性。 */
-interface PanelItem extends ColumnSettingsField {
-  visible: boolean;
-}
-
-/** 由当前生效配置构建展示条目：偏好顺序优先，未提及的新字段按可见兜底。 */
-function buildDraft(
-  fields: ColumnSettingsField[],
-  value: ColumnSettingsValue,
-): PanelItem[] {
-  const fieldMap = new Map(fields.map((field) => [field.key, field]));
-  const hiddenSet = new Set(value.hidden);
-  const seen = new Set<string>();
-  const draft: PanelItem[] = [];
-  for (const key of value.order) {
-    const field = fieldMap.get(key);
-    if (field && !seen.has(key)) {
-      draft.push({
-        ...field,
-        visible: field.lockVisible || !hiddenSet.has(key),
-      });
-      seen.add(key);
-    }
-  }
-  for (const field of fields) {
-    if (!seen.has(field.key)) {
-      draft.push({ ...field, visible: true });
-    }
-  }
-  return draft;
-}
-
-function draftToValue(draft: PanelItem[]): ColumnSettingsValue {
-  return {
-    order: draft.map((item) => item.key),
-    hidden: draft.filter((item) => !item.visible).map((item) => item.key),
-  };
-}
+type Zone = 'left' | 'none' | 'right';
+const ZONES: { key: Zone; title: string }[] = [
+  { key: 'left', title: '左侧冻结' },
+  { key: 'none', title: '普通列' },
+  { key: 'right', title: '右侧冻结' },
+];
+const FREEZE_OPTIONS = [
+  { value: 'left', label: '左冻结' },
+  { value: 'none', label: '不冻结' },
+  { value: 'right', label: '右冻结' },
+];
 
 export interface ColumnSettingsPanelProps {
-  /** 全量可配置字段；无权限字段由调用方裁剪，不得传入。 */
   fields: ColumnSettingsField[];
-  /** 当前生效配置（即时真相源），变更经 onChange 回流。 */
+  /** 不参与业务排序/显隐的结构列，保留其末尾锚点。 */
+  structuralFields?: ColumnSettingsField[];
   value: ColumnSettingsValue;
-  /** 实际表格首尾目标；不随列设置搜索结果变化。 */
-  freezeTargets?: ColumnFreezeTargetTitles;
-  /** 显隐或排序变更回调：每次交互立即触发，无草稿与保存步骤。 */
   onChange: (value: ColumnSettingsValue) => void;
-  /** 恢复默认回调：由调用方提交默认配置并持久化。 */
   onReset: () => void;
-  /** 提供时底部出现「更多设置」按钮（行配色等高级内容入口）。 */
   onOpenAdvanced?: () => void;
 }
 
-/**
- * 统一列设置浮层内容：顶部全选/统计与恢复默认、全宽搜索、带拖拽手柄的
- * 首尾冻结、统一排序列表与底栏计数摘要；全部操作即时回调生效。
- * 搜索中禁用顺序调整并提示清空搜索后排序，避免以筛选后序号操作完整顺序。
- */
+/** 全量铺排并即时生效；编号为完整设置顺序，搜索不改变编号。 */
 export default function ColumnSettingsPanel({
   fields,
+  structuralFields = [],
   value,
   onChange,
   onReset,
-  freezeTargets,
   onOpenAdvanced,
 }: ColumnSettingsPanelProps) {
   const [keyword, setKeyword] = useState('');
   const [draggingKey, setDraggingKey] = useState<string | null>(null);
-  const [dragOverKey, setDragOverKey] = useState<string | null>(null);
-
-  const draft = useMemo(() => buildDraft(fields, value), [fields, value]);
-
-  const trimmedKeyword = keyword.trim().toLowerCase();
-  const searching = trimmedKeyword.length > 0;
-
-  const matchesKeyword = (item: PanelItem) =>
-    !searching || item.title.toLowerCase().includes(trimmedKeyword);
-
-  const visibleCount = draft.filter((item) => item.visible).length;
-  const totalCount = draft.length;
-  // 可切换列：全选/清空只作用于非必显列；无必显列时清空需保留首列兜底。
-  const toggleableCount = draft.filter((item) => !item.lockVisible).length;
-  const masterChecked = totalCount > 0 && visibleCount === totalCount;
-  const masterIndeterminate = !masterChecked && visibleCount > 0;
-
+  const [dropTarget, setDropTarget] = useState<{
+    key?: string;
+    zone: Zone;
+    after?: boolean;
+  } | null>(null);
+  const searching = keyword.trim().length > 0;
+  const fieldMap = useMemo(
+    () => new Map(fields.map((field) => [field.key, field])),
+    [fields],
+  );
+  const knownKeys = [...fields, ...structuralFields].map((field) => field.key);
   const freeze = resolveColumnFreeze(
     value.freeze,
-    deriveColumnFreezeDefaults(fields),
+    deriveColumnFreezeDefaults([...fields, ...structuralFields]),
+    knownKeys,
   );
-  const visibleItems = draft.filter((item) => item.visible);
-  const targets = freezeTargets ?? {
-    first: visibleItems[0]?.title,
-    last: visibleItems.at(-1)?.title,
+  const keys = [
+    ...new Set([
+      ...value.order.filter((key) => fieldMap.has(key)),
+      ...fields.map((field) => field.key),
+    ]),
+  ];
+  const ordered = orderColumnKeys(keys, freeze);
+  const hidden = new Set(value.hidden);
+  const visibleCount = fields.filter(
+    (field) => field.lockVisible || !hidden.has(field.key),
+  ).length;
+  const allChecked = fields.length > 0 && visibleCount === fields.length;
+  const zoneOf = (key: string): Zone =>
+    freeze.left.includes(key)
+      ? 'left'
+      : freeze.right.includes(key)
+        ? 'right'
+        : 'none';
+  const emit = (
+    order: string[],
+    nextFreeze: ColumnFreezeValue = freeze,
+    nextHidden = value.hidden,
+  ) =>
+    onChange({
+      order: orderColumnKeys(order, nextFreeze),
+      hidden: nextHidden,
+      freeze: nextFreeze,
+    });
+  const freezeAt = (key: string, zone: Zone): ColumnFreezeValue => ({
+    left: [
+      ...freeze.left.filter((item) => item !== key),
+      ...(zone === 'left' ? [key] : []),
+    ],
+    right: [
+      ...freeze.right.filter((item) => item !== key),
+      ...(zone === 'right' ? [key] : []),
+    ],
+  });
+  const clearDrag = () => {
+    setDraggingKey(null);
+    setDropTarget(null);
   };
-  const emit = (next: PanelItem[]) =>
-    onChange({ ...draftToValue(next), freeze });
-
-  /** 全选/清空：必显列始终保留；无必显列时清空保留排序首列兜底。 */
-  const handleToggleAll = () => {
-    if (masterChecked) {
-      const hasLocked = draft.some((item) => item.lockVisible);
-      const keepKey = hasLocked ? null : draft[0]?.key;
-      emit(
-        draft.map((item) => {
-          if (item.lockVisible) return item;
-          if (keepKey && item.key === keepKey) return item;
-          return { ...item, visible: false };
-        }),
-      );
+  const move = (key: string, position: number) => {
+    if (searching) return;
+    const target =
+      ordered[Math.max(0, Math.min(ordered.length - 1, position - 1))];
+    if (!target || target === key) return;
+    const next = ordered.filter((item) => item !== key);
+    next.splice(Math.max(0, Math.min(next.length, position - 1)), 0, key);
+    emit(next, freezeAt(key, zoneOf(target)));
+  };
+  const drop = (zone: Zone, target?: string, after = false) => {
+    if (searching || !draggingKey || target === draggingKey) {
+      clearDrag();
       return;
     }
-    emit(draft.map((item) => ({ ...item, visible: true })));
+    const next = ordered.filter((key) => key !== draggingKey);
+    const index = target
+      ? next.indexOf(target) + (after ? 1 : 0)
+      : next.reduce(
+          (last, key, index) => (zoneOf(key) === zone ? index + 1 : last),
+          -1,
+        );
+    next.splice(index < 0 ? next.length : index, 0, draggingKey);
+    emit(next, freezeAt(draggingKey, zone));
+    clearDrag();
   };
-
-  const moveColumn = (key: string, direction: -1 | 1) => {
-    if (searching) return;
-    const index = draft.findIndex((item) => item.key === key);
-    if (index < 0) return;
-    const target = index + direction;
-    if (target < 0 || target >= draft.length) return;
-    const next = [...draft];
-    const [item] = next.splice(index, 1);
-    next.splice(target, 0, item);
-    emit(next);
-  };
-
-  const handleDrop = (targetKey: string) => {
-    if (searching || !draggingKey || draggingKey === targetKey) return;
-    const sourceIndex = draft.findIndex((item) => item.key === draggingKey);
-    const targetIndex = draft.findIndex((item) => item.key === targetKey);
-    if (sourceIndex < 0 || targetIndex < 0) return;
-    const next = [...draft];
-    const [item] = next.splice(sourceIndex, 1);
-    next.splice(targetIndex, 0, item);
-    emit(next);
-  };
-
-  const toggleVisible = (key: string, visible: boolean) => {
+  const toggleAll = () => {
+    const locked = fields.some((field) => field.lockVisible);
     emit(
-      draft.map((item) =>
-        item.key === key && !item.lockVisible ? { ...item, visible } : item,
-      ),
+      ordered,
+      freeze,
+      allChecked
+        ? fields
+            .filter(
+              (field) =>
+                !field.lockVisible && (locked || field.key !== ordered[0]),
+            )
+            .map((field) => field.key)
+        : [],
     );
   };
-
-  /** 可见列至少保留一列：唯一可见列不可取消勾选。 */
-  const canHide = (item: PanelItem) =>
-    !item.lockVisible && !(item.visible && visibleCount <= 1);
-
-  const renderRow = (item: PanelItem) => {
-    const itemIndex = draft.findIndex((row) => row.key === item.key);
-    const checkboxDisabled = !canHide(item);
-    const checkboxTooltip = item.lockVisible
-      ? '必显列，不可隐藏'
-      : checkboxDisabled
-        ? '至少保留一列显示'
-        : undefined;
-    const moveDisabled = searching;
-    const dropping =
-      !searching &&
-      draggingKey !== null &&
-      dragOverKey === item.key &&
-      draggingKey !== item.key;
-    return (
-      <div
-        key={item.key}
-        className={`roncin-column-settings-row${
-          dropping ? ' roncin-column-settings-drop-target' : ''
-        }`}
-        draggable={!searching}
-        onDragStart={() => setDraggingKey(item.key)}
-        onDragEnd={() => {
-          setDraggingKey(null);
-          setDragOverKey(null);
-        }}
-        onDragOver={(event) => {
-          if (searching) return;
-          event.preventDefault();
-          setDragOverKey(item.key);
-        }}
-        onDrop={() => {
-          handleDrop(item.key);
-          setDragOverKey(null);
-        }}
-        style={{
-          opacity: draggingKey === item.key ? 0.4 : 1,
-          cursor: searching ? 'default' : 'grab',
-        }}
-      >
-        <HolderOutlined className="roncin-column-settings-handle" />
-        <Tooltip title={checkboxTooltip}>
-          <Checkbox
-            checked={item.visible}
-            disabled={checkboxDisabled}
-            onChange={(event) => toggleVisible(item.key, event.target.checked)}
-          >
-            <Tooltip title={item.title}>
-              <span className="roncin-column-settings-title">{item.title}</span>
-            </Tooltip>
-          </Checkbox>
-        </Tooltip>
-        {item.lockVisible && (
-          <span className="roncin-column-settings-lock">必显</span>
-        )}
-        <span className="roncin-column-settings-actions">
-          <Button
-            type="text"
-            size="small"
-            aria-label={`上移${item.title}`}
-            icon={<UpOutlined />}
-            disabled={moveDisabled || itemIndex <= 0}
-            onClick={() => moveColumn(item.key, -1)}
-          />
-          <Button
-            type="text"
-            size="small"
-            aria-label={`下移${item.title}`}
-            icon={<DownOutlined />}
-            disabled={moveDisabled || itemIndex >= draft.length - 1}
-            onClick={() => moveColumn(item.key, 1)}
-          />
-        </span>
-      </div>
-    );
-  };
+  const matches = (field: ColumnSettingsField) =>
+    field.title.toLowerCase().includes(keyword.trim().toLowerCase());
 
   return (
-    <div style={{ width: 300, maxWidth: 'calc(100vw - 48px)' }}>
-      <div className="roncin-column-settings-freeze">
-        {(['first', 'last'] as const).map((side) => (
-          <div key={side} className="roncin-column-settings-freeze-row">
-            <div className="roncin-column-settings-freeze-text">
-              <span>{side === 'first' ? '冻结首列' : '冻结尾列'}</span>
-              <Tooltip title={targets[side]}>
-                <span className="roncin-column-settings-freeze-target">
-                  当前：{targets[side] ?? '无可冻结列'}
-                </span>
-              </Tooltip>
-            </div>
-            <Switch
-              size="small"
-              aria-label={side === 'first' ? '冻结首列' : '冻结尾列'}
-              checked={freeze[side]}
-              disabled={!targets[side]}
-              onChange={(checked) =>
-                onChange({ ...value, freeze: { ...freeze, [side]: checked } })
-              }
-            />
-          </div>
-        ))}
-      </div>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 8,
-        }}
-      >
+    <div className="roncin-column-settings-panel">
+      <div className="roncin-column-settings-toolbar">
         <Checkbox
-          checked={masterChecked}
-          indeterminate={masterIndeterminate}
-          disabled={toggleableCount === 0}
-          onChange={handleToggleAll}
+          checked={allChecked}
+          indeterminate={visibleCount > 0 && !allChecked}
+          disabled={fields.every((field) => field.lockVisible)}
+          onChange={toggleAll}
         >
-          列展示 ({visibleCount} / {totalCount})
+          列展示 ({visibleCount} / {fields.length})
         </Checkbox>
-        <Tooltip title="恢复默认冻结、显隐与顺序，立即生效">
-          <Button
-            type="link"
-            size="small"
-            style={{ padding: 0 }}
-            onClick={onReset}
-          >
-            恢复默认
-          </Button>
-        </Tooltip>
+        <Input
+          allowClear
+          size="small"
+          prefix={<SearchOutlined />}
+          placeholder="搜索列名"
+          value={keyword}
+          onChange={(event) => setKeyword(event.target.value)}
+        />
+        <Button size="small" onClick={onReset}>
+          恢复默认
+        </Button>
       </div>
-      <Input
-        allowClear
-        size="small"
-        prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
-        placeholder="搜索列名"
-        value={keyword}
-        onChange={(event) => setKeyword(event.target.value)}
-        style={{ marginBottom: 8 }}
-      />
+      <div className="roncin-column-settings-help">
+        从左到右、从上到下读取序号；拖动手柄调整位置，跨区域拖动会改变冻结。也可修改序号后按
+        Enter 精确移位。设置立即生效。
+      </div>
       {searching && (
-        <div style={{ marginBottom: 8, color: '#8c8c8c', fontSize: 12 }}>
-          搜索中无法调整顺序，清空搜索后可拖拽或使用箭头排序
+        <div className="roncin-column-settings-search-tip">
+          搜索中无法调整顺序，清空搜索后可拖拽或修改序号排序
         </div>
       )}
-      <div style={{ maxHeight: 420, overflowY: 'auto', paddingRight: 2 }}>
-        {draft.filter(matchesKeyword).map(renderRow)}
-        {draft.filter(matchesKeyword).length === 0 && (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description="未找到匹配的列"
-            style={{ padding: '24px 0' }}
-          />
-        )}
+      <div className="roncin-column-settings-zones">
+        {ZONES.map((zone) => {
+          const items = ordered
+            .filter((key) => zoneOf(key) === zone.key)
+            .map((key) => fieldMap.get(key) as ColumnSettingsField);
+          const matched = items.filter(matches);
+          return (
+            <section
+              key={zone.key}
+              className={`roncin-column-settings-zone${dropTarget?.zone === zone.key && !dropTarget.key ? ' roncin-column-settings-zone-target' : ''}`}
+              data-freeze-zone={zone.key}
+              aria-label={zone.title}
+              onDragOver={(event) => {
+                if (!draggingKey || searching) return;
+                event.preventDefault();
+                if (event.target === event.currentTarget)
+                  setDropTarget({ zone: zone.key });
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                drop(zone.key);
+              }}
+            >
+              <div className="roncin-column-settings-zone-heading">
+                {zone.title}
+                <span>{items.length} 列</span>
+              </div>
+              <div className="roncin-column-settings-grid">
+                {matched.map((item) => {
+                  const index = ordered.indexOf(item.key);
+                  const visible = item.lockVisible || !hidden.has(item.key);
+                  const canHide =
+                    !item.lockVisible && !(visible && visibleCount <= 1);
+                  return (
+                    <div
+                      key={item.key}
+                      data-column-key={item.key}
+                      data-column-position={index + 1}
+                      className={`roncin-column-settings-row${draggingKey === item.key ? ' roncin-column-settings-dragging' : ''}${dropTarget?.key === item.key ? (dropTarget.after ? ' roncin-column-settings-drop-after' : ' roncin-column-settings-drop-before') : ''}`}
+                      onDragOver={(event) => {
+                        if (!draggingKey || searching) return;
+                        event.preventDefault();
+                        event.stopPropagation();
+                        const rect =
+                          event.currentTarget.getBoundingClientRect();
+                        setDropTarget({
+                          key: item.key,
+                          zone: zone.key,
+                          after: event.clientX > rect.left + rect.width / 2,
+                        });
+                      }}
+                      onDrop={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        const rect =
+                          event.currentTarget.getBoundingClientRect();
+                        drop(
+                          zone.key,
+                          item.key,
+                          event.clientX > rect.left + rect.width / 2,
+                        );
+                      }}
+                    >
+                      <span
+                        className="roncin-column-settings-handle"
+                        draggable={!searching}
+                        aria-label={`拖动${item.title}`}
+                        role="img"
+                        onDragStart={(event) => {
+                          event.dataTransfer?.setData('text/plain', item.key);
+                          if (event.dataTransfer)
+                            event.dataTransfer.effectAllowed = 'move';
+                          setDraggingKey(item.key);
+                        }}
+                        onDragEnd={clearDrag}
+                      >
+                        <HolderOutlined />
+                      </span>
+                      <InputNumber
+                        key={`${item.key}:${index}`}
+                        size="small"
+                        aria-label={`${item.title}目标序号`}
+                        min={1}
+                        max={ordered.length}
+                        controls={false}
+                        defaultValue={index + 1}
+                        disabled={searching}
+                        onPressEnter={(event) => {
+                          const next = Number(
+                            (event.target as HTMLInputElement).value,
+                          );
+                          if (Number.isInteger(next)) move(item.key, next);
+                        }}
+                        onBlur={(event) => {
+                          const next = Number(
+                            (event.target as HTMLInputElement).value,
+                          );
+                          if (Number.isInteger(next) && next !== index + 1)
+                            move(item.key, next);
+                        }}
+                      />
+                      <Tooltip
+                        title={
+                          item.lockVisible
+                            ? `${item.title}（必显）`
+                            : item.title
+                        }
+                      >
+                        <Checkbox
+                          checked={visible}
+                          disabled={!canHide}
+                          onChange={(event) =>
+                            emit(
+                              ordered,
+                              freeze,
+                              event.target.checked
+                                ? value.hidden.filter((key) => key !== item.key)
+                                : [...value.hidden, item.key],
+                            )
+                          }
+                        >
+                          {item.title}
+                        </Checkbox>
+                      </Tooltip>
+                      <Select
+                        size="small"
+                        aria-label={`${item.title}冻结位置`}
+                        value={zone.key}
+                        options={FREEZE_OPTIONS}
+                        onChange={(next: Zone) =>
+                          emit(ordered, freezeAt(item.key, next))
+                        }
+                      />
+                    </div>
+                  );
+                })}
+                {!matched.length && !searching && (
+                  <div
+                    className="roncin-column-settings-empty"
+                    onDragOver={(event) => {
+                      if (!draggingKey) return;
+                      event.preventDefault();
+                      setDropTarget({ zone: zone.key });
+                    }}
+                  >
+                    拖到此处{zone.key === 'none' ? '取消冻结' : zone.title}
+                  </div>
+                )}
+              </div>
+            </section>
+          );
+        })}
       </div>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginTop: 8,
-          paddingTop: 8,
-          borderTop: '1px solid #f0f0f0',
-        }}
-      >
-        <span style={{ color: '#8c8c8c', fontSize: 12 }}>
-          已显示 {visibleCount} / {totalCount}
+      {searching && !fields.some(matches) && (
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          description="未找到匹配的列"
+        />
+      )}
+      {structuralFields.length > 0 && (
+        <div className="roncin-column-settings-structural">
+          <span>结构列 · 保留原位置</span>
+          {structuralFields.map((field) => (
+            <div
+              key={field.key}
+              className="roncin-column-settings-structural-field"
+            >
+              {field.title}
+              <Select
+                size="small"
+                aria-label={`${field.title}冻结位置`}
+                value={zoneOf(field.key)}
+                options={FREEZE_OPTIONS.filter(
+                  (option) => option.value !== 'left',
+                )}
+                onChange={(next: Zone) =>
+                  emit(ordered, freezeAt(field.key, next))
+                }
+              />
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="roncin-column-settings-footer">
+        <span>
+          已显示 {visibleCount} / {fields.length}
         </span>
         {onOpenAdvanced && (
-          <Button
-            type="link"
-            size="small"
-            style={{ padding: 0 }}
-            onClick={onOpenAdvanced}
-          >
+          <Button type="link" size="small" onClick={onOpenAdvanced}>
             更多设置
           </Button>
         )}
