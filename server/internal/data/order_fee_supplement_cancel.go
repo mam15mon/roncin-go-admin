@@ -10,12 +10,10 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderabnormalcaseent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
-	orderservicetypeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 )
 
-// loadFeeApplicability 读取订单的服务类型与异常案例适用范围，供费用项适用性
-// 复核使用；与 orderFeeRepo.loadApplicability 同一口径，仅以显式客户端参数
-// 支持事务内调用。
+// loadFeeApplicability 读取订单的异常案例适用范围，供费用项适用性复核使用；
+// 与 orderFeeRepo.loadApplicability 同一口径，仅以显式客户端参数支持事务内调用。
 func loadFeeApplicability(ctx context.Context, client *ent.Client, organizationID, orderID uuid.UUID) (*orderFeeApplicability, error) {
 	exists, err := client.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Exist(ctx)
 	if err != nil {
@@ -24,18 +22,11 @@ func loadFeeApplicability(ctx context.Context, client *ent.Client, organizationI
 	if !exists {
 		return nil, biz.ErrOrderFeeNotFound
 	}
-	serviceTypes, err := client.OrderServiceType.Query().Where(orderservicetypeent.OrderIDEQ(orderID)).All(ctx)
-	if err != nil {
-		return nil, err
-	}
 	abnormalCases, err := client.OrderAbnormalCase.Query().Where(orderabnormalcaseent.OrderIDEQ(orderID), orderabnormalcaseent.StatusEQ(orderabnormalcaseent.StatusACTIVE)).All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	result := &orderFeeApplicability{serviceTypeIDs: make(map[uuid.UUID]struct{}, len(serviceTypes)), abnormalCaseIDs: make(map[uuid.UUID]struct{}, len(abnormalCases))}
-	for _, serviceType := range serviceTypes {
-		result.serviceTypeIDs[serviceType.MasterDataItemID] = struct{}{}
-	}
+	result := &orderFeeApplicability{abnormalCaseIDs: make(map[uuid.UUID]struct{}, len(abnormalCases))}
 	for _, abnormalCase := range abnormalCases {
 		result.abnormalCaseIDs[abnormalCase.AbnormalCaseID] = struct{}{}
 	}

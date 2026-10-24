@@ -111,7 +111,7 @@ func newCommissionResolutionFixture(t *testing.T) *commissionResolutionFixture {
 		SetExchangeRateDate(financeCommissionIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("1000.00000000").
-		SetExpenseDate(financeCommissionIntegrationDate).
+
 		SetVersion(1).
 		Save(ctx)
 	if err != nil {
@@ -136,7 +136,7 @@ func newCommissionResolutionFixture(t *testing.T) *commissionResolutionFixture {
 		SetExchangeRateDate(financeCommissionIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("400.00000000").
-		SetExpenseDate(financeCommissionIntegrationDate).
+
 		SetVersion(1).
 		Save(ctx)
 	if err != nil {

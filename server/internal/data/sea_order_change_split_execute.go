@@ -1380,24 +1380,16 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 					}
 				}
 
-				// 复制服务类型与品类
-				serviceTypes, err := sourceOrder.QueryServiceTypes().All(ctx)
-				if err != nil {
-					return err
-				}
+				// 复制品类
 				cargoCategories, err := sourceOrder.QueryCargoCategories().All(ctx)
 				if err != nil {
 					return err
-				}
-				sIDs := make([]uuid.UUID, 0, len(serviceTypes))
-				for _, s := range serviceTypes {
-					sIDs = append(sIDs, s.MasterDataItemID)
 				}
 				cIDs := make([]uuid.UUID, 0, len(cargoCategories))
 				for _, c := range cargoCategories {
 					cIDs = append(cIDs, c.MasterDataItemID)
 				}
-				if err := replaceOrderSelections(ctx, tx, newOrder.ID, sIDs, cIDs); err != nil {
+				if err := replaceOrderSelections(ctx, tx, newOrder.ID, cIDs); err != nil {
 					return err
 				}
 
@@ -1930,7 +1922,6 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 						SetNillableExchangeRateSettingID(oldFee.ExchangeRateSettingID).
 						SetBaseCurrency(oldFee.BaseCurrency).
 						SetBaseCurrencyAmount(oldFee.BaseCurrencyAmount).
-						SetExpenseDate(oldFee.ExpenseDate).
 						SetNote(oldFee.Note).
 						SetVersion(1)
 

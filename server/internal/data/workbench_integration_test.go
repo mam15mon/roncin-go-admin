@@ -127,7 +127,7 @@ func newWorkbenchIntegrationFixture(t *testing.T) *workbenchIntegrationFixture {
 		SetExchangeRateDate(workbenchIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("1000.00000000").
-		SetExpenseDate(workbenchIntegrationDate).
+
 		SetVersion(1).
 		Save(ctx)
 	if err != nil {
@@ -153,7 +153,7 @@ func newWorkbenchIntegrationFixture(t *testing.T) *workbenchIntegrationFixture {
 		SetExchangeRateDate(workbenchIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("400.00000000").
-		SetExpenseDate(workbenchIntegrationDate).
+
 		SetVersion(1).
 		Save(ctx); err != nil {
 		t.Fatalf("创建测试应付费用: %v", err)

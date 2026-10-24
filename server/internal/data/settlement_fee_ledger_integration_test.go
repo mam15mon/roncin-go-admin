@@ -119,7 +119,7 @@ func (f *feeLedgerPostgresFixture) createLedgerFee(key, total string) uuid.UUID 
 		SetExchangeRateDate(financeBillIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount(total8).
-		SetExpenseDate(financeBillIntegrationDate).
+
 		SetVersion(1).
 		Save(context.Background())
 	if err != nil {

@@ -25,7 +25,7 @@ func reviewFixture(t *testing.T) (*feeSupplementPostgresFixture, *biz.OrderFeeRe
 		t.Fatal(err)
 	}
 	o := f.createOrder("REVIEW-" + f.suffix)
-	fee, err := f.data.db.OrderFee.Create().SetOrderID(o.ID).SetIdempotencyKey("review-fee").SetDirection(feeent.DirectionRECEIVABLE).SetFeeCode("REVIEW").SetFeeName("审核测试收入").SetSettlementPartyID(f.customerID).SetBillingUnit("票").SetQuantity("1").SetUnitPrice("100").SetTotalAmount("100").SetNetAmount("100").SetTaxAmount("0").SetCurrency("CNY").SetExchangeRate("1").SetExchangeRateSource(feeent.ExchangeRateSourceSYSTEM).SetExchangeRateDate("2026-10-12").SetBaseCurrency("CNY").SetBaseCurrencyAmount("100").SetExpenseDate("2026-10-12").Save(f.ctx)
+	fee, err := f.data.db.OrderFee.Create().SetOrderID(o.ID).SetIdempotencyKey("review-fee").SetDirection(feeent.DirectionRECEIVABLE).SetFeeCode("REVIEW").SetFeeName("审核测试收入").SetSettlementPartyID(f.customerID).SetBillingUnit("票").SetQuantity("1").SetUnitPrice("100").SetTotalAmount("100").SetNetAmount("100").SetTaxAmount("0").SetCurrency("CNY").SetExchangeRate("1").SetExchangeRateSource(feeent.ExchangeRateSourceSYSTEM).SetExchangeRateDate("2026-10-12").SetBaseCurrency("CNY").SetBaseCurrencyAmount("100").Save(f.ctx)
 	if err != nil {
 		t.Fatal(err)
 	}

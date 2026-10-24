@@ -372,7 +372,7 @@ func createTestSplitFixture(t *testing.T, env *splitTestEnv, suffix string, opts
 		SetExchangeRateDate("2026-09-07").
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("10650.00000000").
-		SetExpenseDate("2026-09-07").
+
 		SetVersion(1).
 		Save(ctx)
 	if err != nil {

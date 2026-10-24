@@ -60,7 +60,6 @@ func feeSnapshotFromOrderFee(fee *OrderFee) OrderFeeSupplementFeeSnapshot {
 		ExchangeRateSettingID: fee.ExchangeRateSettingID,
 		BaseCurrency:          fee.BaseCurrency,
 		BaseCurrencyAmount:    fee.BaseCurrencyAmount,
-		ExpenseDate:           fee.ExpenseDate,
 		Note:                  fee.Note,
 	}
 }

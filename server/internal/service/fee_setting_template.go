@@ -57,10 +57,6 @@ func feeTemplateFromAPI(v *v1.FeeSettingTemplateInput) (*biz.FeeSettingTemplate,
 	if e != nil {
 		return nil, biz.ErrFeeCatalogInvalidArgument
 	}
-	category, e := uuid.Parse(v.ChargeCategoryId)
-	if e != nil {
-		return nil, biz.ErrFeeCatalogInvalidArgument
-	}
 	abnormal, e := optionalCatalogUUID(v.AbnormalCaseId)
 	if e != nil {
 		return nil, e
@@ -73,10 +69,10 @@ func feeTemplateFromAPI(v *v1.FeeSettingTemplateInput) (*biz.FeeSettingTemplate,
 	if e != nil {
 		return nil, biz.ErrFeeCatalogInvalidArgument
 	}
-	return &biz.FeeSettingTemplate{FeeSetting: biz.FeeSetting{FeeCode: v.FeeCode, NameZH: v.NameZh, NameEN: v.NameEn, AliasName: v.AliasName, ChargeCategoryID: category, DefaultCurrency: v.DefaultCurrency, BillingUnitID: unit, AbnormalCaseID: abnormal, TaxRate: rate, SortOrder: int(v.SortOrder), Enabled: v.Enabled}, TaxableService: biz.TaxableService{Name: v.TaxableServiceName, ShortName: v.TaxableServiceShortName, GoodsCode: v.TaxableServiceGoodsCode, DefaultTaxRate: taxRate}}, nil
+	return &biz.FeeSettingTemplate{FeeSetting: biz.FeeSetting{FeeCode: v.FeeCode, NameZH: v.NameZh, NameEN: v.NameEn, AliasName: v.AliasName, DefaultCurrency: v.DefaultCurrency, BillingUnitID: unit, AbnormalCaseID: abnormal, TaxRate: rate, SortOrder: int(v.SortOrder), Enabled: v.Enabled}, TaxableService: biz.TaxableService{Name: v.TaxableServiceName, ShortName: v.TaxableServiceShortName, GoodsCode: v.TaxableServiceGoodsCode, DefaultTaxRate: taxRate}}, nil
 }
 func feeTemplateToAPI(v *biz.FeeSettingTemplate) *v1.FeeSettingTemplate {
-	input := &v1.FeeSettingTemplateInput{FeeCode: v.FeeCode, NameZh: v.NameZH, NameEn: v.NameEN, AliasName: v.AliasName, ChargeCategoryId: v.ChargeCategoryID.String(), DefaultCurrency: v.DefaultCurrency, BillingUnitId: v.BillingUnitID.String(), TaxRate: v.TaxRate.StringFixed(2), SortOrder: int32(v.SortOrder), Enabled: v.Enabled, TaxableServiceName: v.TaxableService.Name, TaxableServiceShortName: v.TaxableService.ShortName, TaxableServiceGoodsCode: v.TaxableService.GoodsCode, TaxableServiceDefaultTaxRate: v.TaxableService.DefaultTaxRate.StringFixed(2)}
+	input := &v1.FeeSettingTemplateInput{FeeCode: v.FeeCode, NameZh: v.NameZH, NameEn: v.NameEN, AliasName: v.AliasName, DefaultCurrency: v.DefaultCurrency, BillingUnitId: v.BillingUnitID.String(), TaxRate: v.TaxRate.StringFixed(2), SortOrder: int32(v.SortOrder), Enabled: v.Enabled, TaxableServiceName: v.TaxableService.Name, TaxableServiceShortName: v.TaxableService.ShortName, TaxableServiceGoodsCode: v.TaxableService.GoodsCode, TaxableServiceDefaultTaxRate: v.TaxableService.DefaultTaxRate.StringFixed(2)}
 	if v.AbnormalCaseID != nil {
 		s := v.AbnormalCaseID.String()
 		input.AbnormalCaseId = &s

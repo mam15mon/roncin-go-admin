@@ -275,12 +275,12 @@ func (r *exchangeRateRepo) DisableScoped(ctx context.Context, callerOrganization
 // PAYABLE→coalesce(ap_rate, rate)。未命中（含上周、未来周、历史开口行与公共行）
 // 返回 ErrExchangeRateMissing，由前端提示「请先维护汇率」或按权限手工覆盖（MANUAL）。
 func (r *exchangeRateRepo) ResolveRate(ctx context.Context, organizationID uuid.UUID, direction biz.OrderFeeDirection, fromCurrency, toCurrency, rateDate string) (biz.ResolvedRate, error) {
-	if fromCurrency == toCurrency {
-		return biz.ResolvedRate{Rate: decimal.NewFromInt(1), Source: biz.ExchangeRateSourceSystem}, nil
-	}
 	lookup, err := parseExchangeRateStorageTime(rateDate)
 	if err != nil {
 		return biz.ResolvedRate{}, biz.ErrExchangeRateInvalidArgument
+	}
+	if fromCurrency == toCurrency {
+		return biz.ResolvedRate{Rate: decimal.NewFromInt(1), Source: biz.ExchangeRateSourceSystem, Date: rateDate}, nil
 	}
 	rate, settingID, rowSource, found, err := r.resolveWeeklyRow(ctx, organizationID, direction, fromCurrency, toCurrency, lookup)
 	if err != nil {
@@ -289,7 +289,7 @@ func (r *exchangeRateRepo) ResolveRate(ctx context.Context, organizationID uuid.
 	if !found {
 		return biz.ResolvedRate{}, biz.ErrExchangeRateMissing
 	}
-	return biz.ResolvedRate{Rate: rate, Source: weeklySnapshotSource(rowSource), SettingID: settingID}, nil
+	return biz.ResolvedRate{Rate: rate, Source: weeklySnapshotSource(rowSource), SettingID: settingID, Date: lookup.Format("2006-01-02")}, nil
 }
 
 // weeklySnapshotSource 当周公司行的快照来源：牌价同步行标记 BOC_SYNC，其余标记 WEEKLY。

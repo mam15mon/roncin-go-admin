@@ -28,7 +28,7 @@ func (r *feeCatalogRepo) ListFeeSettings(ctx context.Context, organizationID uui
 		query.Where(feesettingent.Or(feesettingent.FeeCodeContainsFold(options.Keyword), feesettingent.NameZhContainsFold(options.Keyword), feesettingent.NameEnContainsFold(options.Keyword), feesettingent.AliasNameContainsFold(options.Keyword), feesettingent.SearchKeywordsContainsFold(options.Keyword)))
 	}
 	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.FeeSetting, error) {
-		return query.WithChargeCategory().WithBillingUnit().WithAbnormalCase().WithTaxableService().
+		return query.WithBillingUnit().WithAbnormalCase().WithTaxableService().
 			Order(feesettingent.BySortOrder(), feesettingent.ByFeeCode(), feesettingent.ByID()).
 			Offset(offset).Limit(limit).All(ctx)
 	}, options.Page, options.PageSize, feeSettingToBiz)
@@ -44,7 +44,7 @@ func (r *feeCatalogRepo) CreateFeeSetting(ctx context.Context, organizationID uu
 		builder := tx.FeeSetting.Create().
 			SetID(input.ID).SetOrganizationID(organizationID).
 			SetFeeCode(input.FeeCode).SetNameZh(input.NameZH).
-			SetNillableNameEn(input.NameEN).SetNillableAliasName(input.AliasName).SetChargeCategoryID(input.ChargeCategoryID).
+			SetNillableNameEn(input.NameEN).SetNillableAliasName(input.AliasName).
 			SetDefaultCurrency(input.DefaultCurrency).SetBillingUnitID(input.BillingUnitID).SetNillableAbnormalCaseID(input.AbnormalCaseID).
 			SetTaxRate(input.TaxRate.StringFixed(2)).SetTaxableServiceID(input.TaxableServiceID).SetEnabled(true).SetSortOrder(input.SortOrder)
 		if _, createErr := builder.Save(ctx); createErr != nil {
@@ -54,7 +54,7 @@ func (r *feeCatalogRepo) CreateFeeSetting(ctx context.Context, organizationID uu
 			return auditErr
 		}
 		saved, queryErr := tx.FeeSetting.Query().Where(feesettingent.IDEQ(input.ID)).
-			WithChargeCategory().WithBillingUnit().WithAbnormalCase().WithTaxableService().Only(ctx)
+			WithBillingUnit().WithAbnormalCase().WithTaxableService().Only(ctx)
 		if queryErr != nil {
 			return queryErr
 		}
@@ -84,7 +84,7 @@ func (r *feeCatalogRepo) UpdateFeeSetting(ctx context.Context, organizationID uu
 		builder := current.Update().
 			SetFeeCode(input.FeeCode).SetNameZh(input.NameZH).SetDefaultCurrency(input.DefaultCurrency).
 			SetBillingUnitID(input.BillingUnitID).SetTaxRate(input.TaxRate.StringFixed(2)).SetTaxableServiceID(input.TaxableServiceID).
-			SetEnabled(input.Enabled).SetSortOrder(input.SortOrder).SetChargeCategoryID(input.ChargeCategoryID)
+			SetEnabled(input.Enabled).SetSortOrder(input.SortOrder)
 		if input.NameEN == nil {
 			builder.ClearNameEn()
 		} else {
@@ -107,7 +107,7 @@ func (r *feeCatalogRepo) UpdateFeeSetting(ctx context.Context, organizationID uu
 			return auditErr
 		}
 		saved, queryErr := tx.FeeSetting.Query().Where(feesettingent.IDEQ(input.ID)).
-			WithChargeCategory().WithBillingUnit().WithAbnormalCase().WithTaxableService().Only(ctx)
+			WithBillingUnit().WithAbnormalCase().WithTaxableService().Only(ctx)
 		if queryErr != nil {
 			return queryErr
 		}
@@ -122,8 +122,8 @@ func (r *feeCatalogRepo) UpdateFeeSetting(ctx context.Context, organizationID uu
 }
 
 // validateFeeSettingReferences 校验费用设置引用（design §5 放宽）：计费单位与
-// 费用大类查 A 型全局表（无组织维度）；异常类型同属 A 型主数据；税务名称为
-// C 型组织私有，查「本组织有效行」；币种查全局币种表；全部要求 enabled。
+// 异常类型查 A 型全局表（无组织维度）；税务名称为 C 型组织私有，查「本组织有
+// 效行」；币种查全局币种表；全部要求 enabled。
 func (r *feeCatalogRepo) validateFeeSettingReferences(ctx context.Context, organizationID uuid.UUID, input *biz.FeeSetting) error {
 	client, err := r.data.client(ctx)
 	if err != nil {
@@ -142,13 +142,6 @@ func (r *feeCatalogRepo) validateFeeSettingReferences(ctx context.Context, organ
 	return nil
 }
 func validateFeePublicReferences(ctx context.Context, client *ent.Client, input *biz.FeeSetting) error {
-	chargeCategoryExists, err := client.MasterDataItem.Query().Where(masterdataitement.IDEQ(input.ChargeCategoryID), masterdataitement.KindEQ(masterdataitement.KindChargeCategory), masterdataitement.EnabledEQ(true)).Exist(ctx)
-	if err != nil {
-		return err
-	}
-	if !chargeCategoryExists {
-		return biz.ErrFeeCatalogReferenceInvalid
-	}
 	if input.AbnormalCaseID != nil {
 		exists, err := client.MasterDataItem.Query().Where(masterdataitement.IDEQ(*input.AbnormalCaseID), masterdataitement.KindEQ(masterdataitement.KindAbnormalCase), masterdataitement.EnabledEQ(true)).Exist(ctx)
 		if err != nil {
@@ -298,10 +291,7 @@ func feeSettingToBiz(item *ent.FeeSetting) (*biz.FeeSetting, error) {
 	if err != nil {
 		return nil, err
 	}
-	result := &biz.FeeSetting{ID: item.ID, OrganizationID: item.OrganizationID, FeeCode: item.FeeCode, NameZH: item.NameZh, NameEN: item.NameEn, AliasName: item.AliasName, ChargeCategoryID: item.ChargeCategoryID, DefaultCurrency: item.DefaultCurrency, BillingUnitID: item.BillingUnitID, BillingUnitName: billingUnit.Name, AbnormalCaseID: item.AbnormalCaseID, TaxRate: taxRate, TaxableServiceID: item.TaxableServiceID, TaxableServiceName: taxableService.Name, Enabled: item.Enabled, SortOrder: item.SortOrder, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
-	if item.Edges.ChargeCategory != nil {
-		result.ChargeCategoryName = item.Edges.ChargeCategory.Name
-	}
+	result := &biz.FeeSetting{ID: item.ID, OrganizationID: item.OrganizationID, FeeCode: item.FeeCode, NameZH: item.NameZh, NameEN: item.NameEn, AliasName: item.AliasName, DefaultCurrency: item.DefaultCurrency, BillingUnitID: item.BillingUnitID, BillingUnitName: billingUnit.Name, AbnormalCaseID: item.AbnormalCaseID, TaxRate: taxRate, TaxableServiceID: item.TaxableServiceID, TaxableServiceName: taxableService.Name, Enabled: item.Enabled, SortOrder: item.SortOrder, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
 	if item.Edges.AbnormalCase != nil {
 		name := item.Edges.AbnormalCase.Name
 		result.AbnormalCaseName = &name

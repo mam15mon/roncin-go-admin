@@ -160,7 +160,7 @@ func (f *commissionApplicationFixture) newSourceOrder(index int) (uuid.UUID, uui
 		SetExchangeRateDate(f.historicalDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("1000.00000000").
-		SetExpenseDate(f.historicalDate).
+
 		SetVersion(1).
 		Save(ctx)
 	if err != nil {
@@ -185,7 +185,7 @@ func (f *commissionApplicationFixture) newSourceOrder(index int) (uuid.UUID, uui
 		SetExchangeRateDate(f.historicalDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("400.00000000").
-		SetExpenseDate(f.historicalDate).
+
 		SetVersion(1).
 		Save(ctx)
 	if err != nil {

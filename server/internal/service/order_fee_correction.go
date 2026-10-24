@@ -107,7 +107,7 @@ func parseCorrectionTarget(t *v1.OrderFeeCorrectionTarget) (*biz.OrderFee, error
 	if err != nil {
 		return nil, biz.ErrFeeCorrectionInvalid
 	}
-	fee := &biz.OrderFee{Direction: direction, FeeSettingID: &setting, SettlementPartyID: party, BillingUnitID: &unit, Quantity: quantity, UnitPrice: price, Currency: t.Currency, ExpenseDate: t.ExpenseDate, Note: t.Note, TaxInclusive: true, FeeNameOverride: t.FeeNameOverride}
+	fee := &biz.OrderFee{Direction: direction, FeeSettingID: &setting, SettlementPartyID: party, BillingUnitID: &unit, Quantity: quantity, UnitPrice: price, Currency: t.Currency, Note: t.Note, TaxInclusive: true, FeeNameOverride: t.FeeNameOverride}
 	if t.TaxInclusive != nil {
 		fee.TaxInclusive = *t.TaxInclusive
 	}
@@ -160,7 +160,7 @@ func (s *OrderFeeService) CreateOrderFeeCorrection(ctx context.Context, r *v1.Cr
 	if err != nil {
 		return nil, err
 	}
-	data, err := s.correction.Submit(ctx, p, p.Organization.ID, order, input, p.HasPermissionInScope(access.FinanceExchangeRateUpdate, biz.DataScopeOrganization))
+	data, err := s.correction.Submit(ctx, p, p.Organization.ID, order, input, p.HasPermissionInScope(access.FinanceOrderFeeExchangeRateOverride, biz.DataScopeOrganization))
 	if err != nil {
 		return nil, err
 	}

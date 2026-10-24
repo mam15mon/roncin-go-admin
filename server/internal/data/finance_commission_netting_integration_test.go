@@ -168,7 +168,7 @@ func newCommissionNettingPostgresFixture(t *testing.T) *commissionNettingPostgre
 				SetExchangeRateDate(financeCommissionIntegrationDate).
 				SetBaseCurrency("CNY").
 				SetBaseCurrencyAmount(feeSpec.amount).
-				SetExpenseDate(financeCommissionIntegrationDate).
+
 				SetVersion(1).
 				Save(ctx)
 			if feeErr != nil {
@@ -678,7 +678,7 @@ func (f *commissionNettingPostgresFixture) createVerificationSource(ctx context.
 		SetExchangeRateDate(financeCommissionIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("200.00000000").
-		SetExpenseDate(financeCommissionIntegrationDate).
+
 		SetVersion(1).
 		Save(ctx)
 	if err != nil {

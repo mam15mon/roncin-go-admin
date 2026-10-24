@@ -540,7 +540,7 @@ func calculateCommissionFromSource(source *commissionCalculationSource, ruleItem
 				FeeID: feeItem.ID, SettlementPartyID: feeItem.SettlementPartyID, Direction: string(feeItem.Direction),
 				FeeCode: feeItem.FeeCode, FeeName: feeItem.FeeName, SettlementPartyName: party.LegalName,
 				Currency: feeItem.Currency, TotalAmount: totalAmount, ExchangeRate: exchangeRate,
-				BaseCurrency: feeItem.BaseCurrency, BaseCurrencyAmount: baseAmount, ExpenseDate: feeItem.ExpenseDate,
+				BaseCurrency: feeItem.BaseCurrency, BaseCurrencyAmount: baseAmount,
 			})
 			fingerprintParts = append(fingerprintParts, fmt.Sprintf("fee|%s|%s|%s|%s|%s|%s|%s|%d", feeItem.ID, feeItem.OrderID, feeItem.Direction, feeItem.TotalAmount, feeItem.ExchangeRate, feeItem.BaseCurrencyAmount, feeItem.BaseCurrency, feeItem.Version))
 		}

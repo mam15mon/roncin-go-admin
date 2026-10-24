@@ -23,18 +23,17 @@ var (
 type MasterDataKind string
 
 const (
-	MasterDataKindCurrency       MasterDataKind = "currency"
-	MasterDataKindCountry        MasterDataKind = "country"
-	MasterDataKindRegion         MasterDataKind = "region"
-	MasterDataKindContainerSpec  MasterDataKind = "container_spec"
-	MasterDataKindChargeCategory MasterDataKind = "charge_category"
-	MasterDataKindCargoCategory  MasterDataKind = "cargo_category"
-	MasterDataKindAbnormalCase   MasterDataKind = "abnormal_case"
+	MasterDataKindCurrency      MasterDataKind = "currency"
+	MasterDataKindCountry       MasterDataKind = "country"
+	MasterDataKindRegion        MasterDataKind = "region"
+	MasterDataKindContainerSpec MasterDataKind = "container_spec"
+	MasterDataKindCargoCategory MasterDataKind = "cargo_category"
+	MasterDataKindAbnormalCase  MasterDataKind = "abnormal_case"
 )
 
 func (kind MasterDataKind) Valid() bool {
 	switch kind {
-	case MasterDataKindCurrency, MasterDataKindCountry, MasterDataKindRegion, MasterDataKindContainerSpec, MasterDataKindChargeCategory, MasterDataKindCargoCategory, MasterDataKindAbnormalCase:
+	case MasterDataKindCurrency, MasterDataKindCountry, MasterDataKindRegion, MasterDataKindContainerSpec, MasterDataKindCargoCategory, MasterDataKindAbnormalCase:
 		return true
 	default:
 		return false
@@ -78,27 +77,6 @@ func DefaultOrderOptions() []MasterDataItem {
 		{"12GP", "0.6"},
 		{"40HC", "2"},
 	}
-	serviceTypes := []struct{ code, name string }{
-		{"BOOKING", "订舱"},
-		{"TRUCKING", "拖车"},
-		{"STUFFING", "内装"},
-		{"CUSTOMS_EXPORT", "报关"},
-		{"CUSTOMS_IMPORT", "清关"},
-		{"OVERSEA_SEGMENT", "海外段"},
-		{"INSURANCE", "保险"},
-		{"PALLET_CHARTER", "包板"},
-		{"CONTAINER_LEASE", "租箱"},
-		{"FUMIGATION", "熏蒸"},
-		{"DOC_BUY", "买单"},
-		{"CERTIFICATE", "办证"},
-		{"DOC_PREP", "制单"},
-		{"DANGEROUS_SERVICE", "危险品"},
-		{"OVERWEIGHT_SERVICE", "超重"},
-		{"DOCUMENT_EXCHANGE", "换单"},
-		{"WAREHOUSING", "仓储"},
-		{"INSPECTION", "报检"},
-		{"CONTAINER_PURCHASE", "买箱"},
-	}
 	cargoCategories := []struct{ code, name string }{
 		{"GENERAL", "普货"},
 		{"REEFER", "冷藏货物"},
@@ -107,13 +85,10 @@ func DefaultOrderOptions() []MasterDataItem {
 		{"BREAK_BULK_PIECE", "散杂件货"},
 	}
 
-	items := make([]MasterDataItem, 0, len(containerSpecs)+len(serviceTypes)+len(cargoCategories))
+	items := make([]MasterDataItem, 0, len(containerSpecs)+len(cargoCategories))
 	for index, item := range containerSpecs {
 		teuFactor := item.teuFactor
 		items = append(items, MasterDataItem{Kind: MasterDataKindContainerSpec, Code: item.code, Name: item.code, TEUFactor: &teuFactor, Source: "system", SortOrder: (index + 1) * 10, Enabled: true})
-	}
-	for index, item := range serviceTypes {
-		items = append(items, MasterDataItem{Kind: MasterDataKindChargeCategory, Code: item.code, Name: item.name, Source: "system", SortOrder: (index + 1) * 10, Enabled: true})
 	}
 	for index, item := range cargoCategories {
 		items = append(items, MasterDataItem{Kind: MasterDataKindCargoCategory, Code: item.code, Name: item.name, Source: "system", SortOrder: (index + 1) * 10, Enabled: true})

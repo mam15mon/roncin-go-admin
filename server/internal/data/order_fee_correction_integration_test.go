@@ -47,7 +47,7 @@ func correctionTestInput(f *feeSupplementPostgresFixture, op, key string, source
 	}
 	if op != "VOID" {
 		zero := decimal.Zero
-		in.After = &biz.OrderFee{Direction: biz.OrderFeePayable, FeeSettingID: &f.feeSettingID, BillingUnitID: &f.billingUnitID, SettlementPartyID: f.customerID, Quantity: decimal.NewFromInt(1), UnitPrice: decimal.NewFromInt(amount), TaxInclusive: true, TaxRateOverride: &zero, Currency: "CNY", ExpenseDate: "2026-09-01"}
+		in.After = &biz.OrderFee{Direction: biz.OrderFeePayable, FeeSettingID: &f.feeSettingID, BillingUnitID: &f.billingUnitID, SettlementPartyID: f.customerID, Quantity: decimal.NewFromInt(1), UnitPrice: decimal.NewFromInt(amount), TaxInclusive: true, TaxRateOverride: &zero, Currency: "CNY"}
 	}
 	return in
 }

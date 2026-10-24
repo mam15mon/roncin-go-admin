@@ -511,7 +511,7 @@ func (r *financeBillRepo) ListCreationCandidates(ctx context.Context, organizati
 	if err != nil {
 		return nil, err
 	}
-	items, err := query.WithSettlementParty().WithOrder().WithFinanceBillLines(effectiveBillLineFilter).Order(orderfeeent.ByExpenseDate(entsql.OrderDesc()), orderfeeent.ByID()).Offset((filter.Page - 1) * filter.PageSize).Limit(filter.PageSize).All(ctx)
+	items, err := query.WithSettlementParty().WithOrder().WithFinanceBillLines(effectiveBillLineFilter).Order(orderfeeent.ByCreatedAt(entsql.OrderDesc()), orderfeeent.ByID()).Offset((filter.Page - 1) * filter.PageSize).Limit(filter.PageSize).All(ctx)
 	if err != nil {
 		return nil, err
 	}

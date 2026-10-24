@@ -58,16 +58,13 @@ type FeeSetting struct {
 	NameZH         string
 	NameEN         *string
 	AliasName      *string
-	// ChargeCategoryID 必挂 A 型费用大类（合并报表底座）。
-	ChargeCategoryID   uuid.UUID
-	ChargeCategoryName string
-	DefaultCurrency    string
-	BillingUnitID      uuid.UUID
-	BillingUnitName    string
-	AbnormalCaseID     *uuid.UUID
-	AbnormalCaseName   *string
-	TaxRate            decimal.Decimal
-	TaxableServiceID   uuid.UUID
+	DefaultCurrency  string
+	BillingUnitID    uuid.UUID
+	BillingUnitName  string
+	AbnormalCaseID   *uuid.UUID
+	AbnormalCaseName *string
+	TaxRate          decimal.Decimal
+	TaxableServiceID uuid.UUID
 	TaxableServiceName string
 	Enabled            bool
 	SortOrder          int
@@ -258,7 +255,7 @@ func normalizeFeeSetting(input *FeeSetting) (*FeeSetting, error) {
 	return normalizeFeeSettingFields(input)
 }
 func normalizeFeeSettingFields(input *FeeSetting) (*FeeSetting, error) {
-	if input == nil || input.BillingUnitID == uuid.Nil || input.ChargeCategoryID == uuid.Nil || input.SortOrder < 0 {
+	if input == nil || input.BillingUnitID == uuid.Nil || input.SortOrder < 0 {
 		return nil, ErrFeeCatalogInvalidArgument
 	}
 	output := *input

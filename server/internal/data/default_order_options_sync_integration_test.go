@@ -33,24 +33,24 @@ func TestSyncDefaultOrderOptionsPostgres(t *testing.T) {
 		t.Fatalf("全局默认订单主数据数 = %d, want >= %d, error = %v", total, len(biz.DefaultOrderOptions()), err)
 	}
 
-	booking, err := client.MasterDataItem.Query().Where(
-		masterdataent.KindEQ(masterdataent.KindChargeCategory),
-		masterdataent.CodeEQ("BOOKING"),
+	spec, err := client.MasterDataItem.Query().Where(
+		masterdataent.KindEQ(masterdataent.KindCargoCategory),
+		masterdataent.CodeEQ("GENERAL"),
 	).Only(ctx)
 	if err != nil {
-		t.Fatalf("查询订舱费用大类: %v", err)
+		t.Fatalf("查询普货品类: %v", err)
 	}
-	if !strings.Contains(booking.SearchKeywords, "DINGCANG") {
-		t.Fatalf("订舱费用大类缺少拼音检索键: %q", booking.SearchKeywords)
+	if !strings.Contains(spec.SearchKeywords, "PUHUO") {
+		t.Fatalf("普货品类缺少拼音检索键: %q", spec.SearchKeywords)
 	}
-	if _, err := booking.Update().SetName("自定义订舱").SetEnabled(false).Save(ctx); err != nil {
-		t.Fatalf("修改订舱费用大类: %v", err)
+	if _, err := spec.Update().SetName("自定义普货").SetEnabled(false).Save(ctx); err != nil {
+		t.Fatalf("修改普货品类: %v", err)
 	}
 	if _, err := client.MasterDataItem.Delete().Where(
-		masterdataent.KindEQ(masterdataent.KindChargeCategory),
-		masterdataent.CodeEQ("TRUCKING"),
+		masterdataent.KindEQ(masterdataent.KindCargoCategory),
+		masterdataent.CodeEQ("REEFER"),
 	).Exec(ctx); err != nil {
-		t.Fatalf("删除拖车费用大类: %v", err)
+		t.Fatalf("删除冷藏品类: %v", err)
 	}
 
 	second, err := SyncDefaultOrderOptions(ctx, data.sqlDB)
@@ -60,9 +60,9 @@ func TestSyncDefaultOrderOptionsPostgres(t *testing.T) {
 	if second.Created < 1 {
 		t.Fatalf("补齐缺失订单主数据数量 = %d, want >= 1", second.Created)
 	}
-	booking, err = client.MasterDataItem.Query().Where(masterdataent.IDEQ(booking.ID)).Only(ctx)
-	if err != nil || booking.Name != "自定义订舱" || booking.Enabled {
-		t.Fatalf("同步覆盖了已有订舱主数据: booking=%#v error=%v", booking, err)
+	spec, err = client.MasterDataItem.Query().Where(masterdataent.IDEQ(spec.ID)).Only(ctx)
+	if err != nil || spec.Name != "自定义普货" || spec.Enabled {
+		t.Fatalf("同步覆盖了已有品类主数据: spec=%#v error=%v", spec, err)
 	}
 
 	third, err := SyncDefaultOrderOptions(ctx, data.sqlDB)

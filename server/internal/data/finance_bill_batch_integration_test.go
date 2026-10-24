@@ -195,7 +195,7 @@ func (f *financeBillBatchPostgresFixture) createBatchUnbilledFee(key string) uui
 		SetExchangeRateDate(financeBillIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("100.00000000").
-		SetExpenseDate(financeBillIntegrationDate).
+
 		SetVersion(1).
 		Save(context.Background())
 	if err != nil {
@@ -332,7 +332,7 @@ func (f *financeBillBatchPostgresFixture) createBatchUnbilledPayableFee(key stri
 		SetExchangeRateDate(financeBillIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("40.00000000").
-		SetExpenseDate(financeBillIntegrationDate).
+
 		SetVersion(1).
 		Save(context.Background())
 	if err != nil {

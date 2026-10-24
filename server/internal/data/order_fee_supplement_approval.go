@@ -73,7 +73,6 @@ func (r *orderFeeSupplementRepo) ResolveFeeFactsForApproval(ctx context.Context,
 		ExchangeRateSettingID: snapshot.ExchangeRateSettingID,
 		BaseCurrency:          snapshot.BaseCurrency,
 		BaseCurrencyAmount:    snapshot.BaseCurrencyAmount,
-		ExpenseDate:           snapshot.ExpenseDate,
 		Note:                  snapshot.Note,
 	}
 	return fee, nil

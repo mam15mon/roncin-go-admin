@@ -23,6 +23,8 @@ var (
 	ErrOrderFeeBillingUnitInvalid            = errors.BadRequest("ORDER_FEE_BILLING_UNIT_INVALID", "计费单位不存在、已停用或不属于当前组织")
 	ErrOrderFeeQuantityMustBeInteger         = errors.BadRequest("ORDER_FEE_QUANTITY_MUST_BE_INTEGER", "该计费单位的数量必须为正整数")
 	ErrOrderFeeExchangeRateOverrideForbidden = errors.Forbidden("ORDER_FEE_EXCHANGE_RATE_OVERRIDE_FORBIDDEN", "无权手工覆盖费用汇率")
+	ErrOrderFeeExchangeRateOverrideMismatch  = errors.Forbidden("ORDER_FEE_EXCHANGE_RATE_OVERRIDE_MISMATCH", "订单应收与应付费用币种不一致或尚不完整，不能手工调整汇率")
+	ErrOrderFeeEtdMissing                    = errors.BadRequest("ORDER_ETD_MISSING", "请先填写订单 ETD 后再解析汇率")
 	ErrOrderFeeVersionConflict               = errors.Conflict("ORDER_FEE_VERSION_CONFLICT", "订单费用已被其他操作人修改，请刷新后重试")
 	ErrOrderFeeBillOccupied                  = errors.Conflict("ORDER_FEE_BILL_OCCUPIED", "费用已建立账单，请先逐步回退至账单未建立后再修改或删除")
 	ErrOrderFeeSupplementDeleteForbidden     = errors.Conflict("ORDER_FEE_SUPPLEMENT_DELETE_FORBIDDEN", "补录生成的费用不能普通删除，请前往补录申请专用撤销")
@@ -91,7 +93,6 @@ type OrderFee struct {
 	ExchangeRateOverride  *decimal.Decimal
 	BaseCurrency          string
 	BaseCurrencyAmount    decimal.Decimal
-	ExpenseDate           string
 	Note                  *string
 	Version               uint64
 	CreatedAt             time.Time
@@ -163,6 +164,7 @@ type OrderFeeRepo interface {
 	ConfirmedQuantityPreview(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, string) (*FeeQuantityPreview, error)
 	QuantitySource(ctx context.Context, organizationID, orderID, billingUnitID uuid.UUID, source string) (*FeeQuantitySource, error)
 	Options(ctx context.Context, organizationID, orderID uuid.UUID) (*OrderFeeOptions, error)
+	OrderETDDate(ctx context.Context, organizationID, orderID uuid.UUID) (string, error)
 	ResolveCatalog(ctx context.Context, organizationID, orderID, feeSettingID, billingUnitID uuid.UUID, allowDisabledUnit bool) (*OrderFeeCatalogSnapshot, error)
 	List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderFee, error)
 	Get(ctx context.Context, organizationID, orderID, id uuid.UUID) (*OrderFee, error)
@@ -181,23 +183,10 @@ type OrderFeeBulkTarget struct {
 	ExpectedVersion uint64
 }
 
-// OrderFeeBulkRatePlan 批量改费用时间时系统来源汇率的逐行重解析结果：
-// 总额、数量与单价保持不变，折本币金额 = 总额 × 新汇率。
-type OrderFeeBulkRatePlan struct {
-	Rate       decimal.Decimal
-	Source     string
-	RateDate   string
-	SettingID  *uuid.UUID
-	BaseAmount decimal.Decimal
-}
-
-// OrderFeeBulkUpdateInput 批量定向修改计划：SettlementPartyID 与 ExpenseDate
-// 二选一；RatePlans 仅包含系统来源汇率行，手工来源行保持原汇率、来源与折本币。
+// OrderFeeBulkUpdateInput 批量定向修改计划：目前仅支持统一调整结算单位。
 type OrderFeeBulkUpdateInput struct {
 	Targets           []OrderFeeBulkTarget
 	SettlementPartyID *uuid.UUID
-	ExpenseDate       *string
-	RatePlans         map[uuid.UUID]*OrderFeeBulkRatePlan
 }
 
 // BulkOrderFeeError 为批量维护构造携带具体费用定位的业务错误：保持与单条
@@ -266,7 +255,11 @@ func (uc *OrderFeeUsecase) Add(ctx context.Context, organizationID, actorID, ord
 	if err := uc.resolveCatalog(ctx, organizationID, orderID, normalized, true, false); err != nil {
 		return nil, err
 	}
-	if err := uc.resolveExchangeRate(ctx, organizationID, orderID, normalized, canOverrideExchangeRate); err != nil {
+	existingFees, err := uc.repo.List(ctx, organizationID, orderID)
+	if err != nil {
+		return nil, err
+	}
+	if err := uc.resolveExchangeRate(ctx, organizationID, orderID, normalized, canOverrideExchangeRate, existingFees); err != nil {
 		return nil, err
 	}
 	if err := uc.calculateAmounts(ctx, organizationID, normalized); err != nil {
@@ -306,7 +299,6 @@ func sameOrderFeeCreateIntent(existing, requested *OrderFee) bool {
 		FeeQuantitySelectionsEqual(existing.QuantitySource, requested.QuantitySource) &&
 		existing.UnitPrice.Equal(requested.UnitPrice) &&
 		existing.Currency == requested.Currency &&
-		existing.ExpenseDate == requested.ExpenseDate &&
 		stringPointersEqual(existing.Note, requested.Note) &&
 		existing.TaxInclusive == requested.TaxInclusive &&
 		existing.TotalAmount.Equal(requested.TotalAmount) &&
@@ -344,10 +336,14 @@ func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, 
 	if err := uc.resolveCatalog(ctx, organizationID, orderID, normalized, false, uuidPointersEqual(current.BillingUnitID, normalized.BillingUnitID)); err != nil {
 		return nil, err
 	}
-	if normalized.ExchangeRateOverride == nil && normalized.Currency == current.Currency && normalized.Direction == current.Direction && normalized.ExpenseDate == current.ExpenseDate {
+	if normalized.ExchangeRateOverride == nil && normalized.Currency == current.Currency && normalized.Direction == current.Direction {
 		normalized.ExchangeRate, normalized.ExchangeRateSource, normalized.ExchangeRateDate, normalized.ExchangeRateSettingID = current.ExchangeRate, current.ExchangeRateSource, current.ExchangeRateDate, current.ExchangeRateSettingID
 	} else {
-		if err := uc.resolveExchangeRate(ctx, organizationID, orderID, normalized, canOverrideExchangeRate); err != nil {
+		existingFees, listErr := uc.repo.List(ctx, organizationID, orderID)
+		if listErr != nil {
+			return nil, listErr
+		}
+		if err := uc.resolveExchangeRate(ctx, organizationID, orderID, normalized, canOverrideExchangeRate, existingFees); err != nil {
 			return nil, err
 		}
 	}
@@ -371,7 +367,7 @@ func ValidateBilledFeeUpdate(current, requested *OrderFee, policy *BilledFeeEdit
 	if policy == nil || !policy.Enabled {
 		return ErrBilledFeeEditDisabled
 	}
-	if current.Direction != requested.Direction || current.SettlementPartyID != requested.SettlementPartyID || current.ExpenseDate != requested.ExpenseDate || !stringPointersEqual(current.Note, requested.Note) || current.TaxInclusive != requested.TaxInclusive {
+	if current.Direction != requested.Direction || current.SettlementPartyID != requested.SettlementPartyID || !stringPointersEqual(current.Note, requested.Note) || current.TaxInclusive != requested.TaxInclusive {
 		return ErrBilledFeeFieldForbidden
 	}
 	if !uuidPointersEqual(current.FeeSettingID, requested.FeeSettingID) || current.FeeCode != requested.FeeCode || !stringPointersEqual(current.FeeNameEN, requested.FeeNameEN) || !uuidPointersEqual(current.BillingUnitID, requested.BillingUnitID) || current.BillingUnit != requested.BillingUnit || !stringPointersEqual(current.TaxableServiceName, requested.TaxableServiceName) {
@@ -456,55 +452,98 @@ func ValidateFeeQuantityForUnit(quantity decimal.Decimal, mustBeInteger bool) er
 	return nil
 }
 
-// ResolveExchangeRate 按费用发生日与收支方向解析折本币周汇率（携带来源与命中行），
-// 供前端录入费用时预览；应收命中 ar_rate，应付命中 ap_rate。
-func (uc *OrderFeeUsecase) ResolveExchangeRate(ctx context.Context, organizationID, orderID uuid.UUID, direction OrderFeeDirection, currency, expenseDate string) (ResolvedRate, error) {
+// ResolveExchangeRate 按订单 ETD 所在自然周与收支方向解析折本币周汇率（携带
+// 来源与命中行），供前端录入费用时预览；应收命中 ar_rate，应付命中 ap_rate。
+func (uc *OrderFeeUsecase) ResolveExchangeRate(ctx context.Context, organizationID, orderID uuid.UUID, direction OrderFeeDirection, currency string) (ResolvedRate, error) {
 	if organizationID == uuid.Nil || orderID == uuid.Nil || (direction != OrderFeeReceivable && direction != OrderFeePayable) {
 		return ResolvedRate{}, ErrOrderFeeInvalidArgument
 	}
 	if _, err := uc.repo.Options(ctx, organizationID, orderID); err != nil {
 		return ResolvedRate{}, err
 	}
-	return uc.exchangeRate.ResolveRate(ctx, organizationID, direction, currency, expenseDateDay(expenseDate))
-}
-
-// isValidExpenseDate 校验发生日期：纯日期（YYYY-MM-DD）或精确到分钟
-// （YYYY-MM-DD HH:mm）。汇率按自然周解析，时刻不参与校验。
-func isValidExpenseDate(value string) bool {
-	if parsed, err := time.Parse("2006-01-02", value); err == nil && parsed.Format("2006-01-02") == value {
-		return true
+	etdDay, err := uc.orderETDDay(ctx, organizationID, orderID)
+	if err != nil {
+		return ResolvedRate{}, err
 	}
-	parsed, err := time.Parse("2006-01-02 15:04", value)
-	return err == nil && parsed.Format("2006-01-02 15:04") == value
+	return uc.exchangeRate.ResolveRate(ctx, organizationID, direction, currency, etdDay)
 }
 
-// expenseDateDay 截取发生日期的日期部分，供按周匹配的汇率解析使用。
-func expenseDateDay(expenseDate string) string {
-	if day, _, found := strings.Cut(expenseDate, " "); found {
-		return day
+// orderEtdBusinessDay 将订单 ETD（RFC3339 时刻）换算到业务时区后的自然日；
+// ETD 为空或格式不合法时返回 ErrOrderFeeEtdMissing，由前端提示先补 ETD。
+func orderEtdBusinessDay(etd string) (string, error) {
+	trimmed := strings.TrimSpace(etd)
+	parsed, err := time.Parse(time.RFC3339, trimmed)
+	if err != nil {
+		return "", ErrOrderFeeEtdMissing
 	}
-	return expenseDate
+	return parsed.In(exchangeRateBusinessLocation).Format("2006-01-02"), nil
 }
 
-func (uc *OrderFeeUsecase) resolveExchangeRate(ctx context.Context, organizationID, orderID uuid.UUID, fee *OrderFee, canOverrideExchangeRate bool) error {
+// orderETDDay 读取订单 ETD 并换算为业务时区自然日，供汇率按周解析使用。
+func (uc *OrderFeeUsecase) orderETDDay(ctx context.Context, organizationID, orderID uuid.UUID) (string, error) {
+	etd, err := uc.repo.OrderETDDate(ctx, organizationID, orderID)
+	if err != nil {
+		return "", err
+	}
+	return orderEtdBusinessDay(etd)
+}
+
+// orderFeeCurrencySetsMatch 判断「本笔提交合并订单既有费用后」的应收币种集合
+// 与应付币种集合是否一致且均非空；只有满足时才允许财务手工调整汇率。
+func orderFeeCurrencySetsMatch(existing []*OrderFee, pending *OrderFee) bool {
+	receivable := make(map[string]struct{})
+	payable := make(map[string]struct{})
+	for _, fee := range existing {
+		if fee.ID == pending.ID {
+			continue
+		}
+		if fee.Direction == OrderFeeReceivable {
+			receivable[fee.Currency] = struct{}{}
+		} else {
+			payable[fee.Currency] = struct{}{}
+		}
+	}
+	if pending.Direction == OrderFeeReceivable {
+		receivable[pending.Currency] = struct{}{}
+	} else {
+		payable[pending.Currency] = struct{}{}
+	}
+	if len(receivable) == 0 || len(payable) == 0 || len(receivable) != len(payable) {
+		return false
+	}
+	for currency := range receivable {
+		if _, ok := payable[currency]; !ok {
+			return false
+		}
+	}
+	return true
+}
+
+func (uc *OrderFeeUsecase) resolveExchangeRate(ctx context.Context, organizationID, orderID uuid.UUID, fee *OrderFee, canOverrideExchangeRate bool, existingFees []*OrderFee) error {
+	etdDay, err := uc.orderETDDay(ctx, organizationID, orderID)
+	if err != nil {
+		return err
+	}
 	if fee.ExchangeRateOverride != nil {
 		if !canOverrideExchangeRate {
 			return ErrOrderFeeExchangeRateOverrideForbidden
 		}
+		if !orderFeeCurrencySetsMatch(existingFees, fee) {
+			return ErrOrderFeeExchangeRateOverrideMismatch
+		}
 		fee.ExchangeRate = *fee.ExchangeRateOverride
 		fee.ExchangeRateSource = ExchangeRateSourceManual
-		// 汇率日期列恒存日期部分（10 字符）：发生日期支持分钟精度后不能整串落库。
-		fee.ExchangeRateDate = expenseDateDay(fee.ExpenseDate)
+		fee.ExchangeRateDate = etdDay
 		fee.ExchangeRateSettingID = nil
 		return nil
 	}
-	resolved, err := uc.exchangeRate.ResolveRate(ctx, organizationID, fee.Direction, fee.Currency, expenseDateDay(fee.ExpenseDate))
+	resolved, err := uc.exchangeRate.ResolveRate(ctx, organizationID, fee.Direction, fee.Currency, etdDay)
 	if err != nil {
 		return err
 	}
 	fee.ExchangeRate = resolved.Rate
 	fee.ExchangeRateSource = resolved.Source
-	fee.ExchangeRateDate = expenseDateDay(fee.ExpenseDate)
+	fee.ExchangeRateDate = etdDay
 	fee.ExchangeRateSettingID = resolved.SettingID
 	return nil
 }
@@ -556,30 +595,18 @@ func validateOrderFeeBulkTargets(targets []OrderFeeBulkTarget) error {
 	return nil
 }
 
-// BulkUpdate 批量定向修改未建账费用：结算单位或费用时间二选一，整批单一事务。
-// 用例层先读取目标费用并完成逐行汇率重解析（系统来源按新日期解析，任一缺失
-// 整批拒绝）与应收信用校验，再交由仓储在订单锁与费用行锁内复核归属、版本与
-// 状态后统一写入；任一行失败整批回滚，错误携带具体费用定位。
-func (uc *OrderFeeUsecase) BulkUpdate(ctx context.Context, organizationID, actorID, orderID uuid.UUID, targets []OrderFeeBulkTarget, settlementPartyID *uuid.UUID, expenseDate *string) error {
+// BulkUpdate 批量统一调整未建账费用的结算单位：整批单一事务。用例层先读取
+// 目标费用并完成应收信用校验，再交由仓储在订单锁与费用行锁内复核归属、版本
+// 与状态后统一写入；任一行失败整批回滚，错误携带具体费用定位。
+func (uc *OrderFeeUsecase) BulkUpdate(ctx context.Context, organizationID, actorID, orderID uuid.UUID, targets []OrderFeeBulkTarget, settlementPartyID *uuid.UUID) error {
 	if err := validateOrderFeeBulkTargets(targets); err != nil {
 		return err
 	}
 	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil {
 		return ErrOrderFeeInvalidArgument
 	}
-	// 目标值必须恰好提供一个。
-	if (settlementPartyID == nil) == (expenseDate == nil) {
+	if settlementPartyID == nil || *settlementPartyID == uuid.Nil {
 		return ErrOrderFeeInvalidArgument
-	}
-	if settlementPartyID != nil && *settlementPartyID == uuid.Nil {
-		return ErrOrderFeeInvalidArgument
-	}
-	newExpenseDate := ""
-	if expenseDate != nil {
-		newExpenseDate = strings.TrimSpace(*expenseDate)
-		if !isValidExpenseDate(newExpenseDate) {
-			return ErrOrderFeeInvalidArgument
-		}
 	}
 	fees, err := uc.repo.List(ctx, organizationID, orderID)
 	if err != nil {
@@ -598,50 +625,20 @@ func (uc *OrderFeeUsecase) BulkUpdate(ctx context.Context, organizationID, actor
 		targetFees = append(targetFees, fee)
 	}
 	input := &OrderFeeBulkUpdateInput{Targets: targets, SettlementPartyID: settlementPartyID}
-	if expenseDate != nil {
-		input.ExpenseDate = &newExpenseDate
+	// 批量目标共用同一结算单位：存在应收目标行时信用控制整批只需校验一次；
+	// 全应付批次与单条修改同口径不占用客户信用，直接放行。
+	anyReceivable := false
+	for _, fee := range targetFees {
+		if fee.Direction == OrderFeeReceivable {
+			anyReceivable = true
+			break
+		}
 	}
-	if settlementPartyID != nil {
-		// 批量目标共用同一结算单位：存在应收目标行时信用控制整批只需校验一次；
-		// 全应付批次与单条修改同口径不占用客户信用，直接放行。
-		anyReceivable := false
-		for _, fee := range targetFees {
-			if fee.Direction == OrderFeeReceivable {
-				anyReceivable = true
-				break
-			}
+	if anyReceivable {
+		probe := &OrderFee{Direction: OrderFeeReceivable, SettlementPartyID: *settlementPartyID}
+		if err := uc.ensureReceivablePartySelectionAllowed(ctx, organizationID, probe); err != nil {
+			return err
 		}
-		if anyReceivable {
-			probe := &OrderFee{Direction: OrderFeeReceivable, SettlementPartyID: *settlementPartyID}
-			if err := uc.ensureReceivablePartySelectionAllowed(ctx, organizationID, probe); err != nil {
-				return err
-			}
-		}
-	} else {
-		plans := make(map[uuid.UUID]*OrderFeeBulkRatePlan, len(targetFees))
-		for _, fee := range targetFees {
-			// 手工来源汇率保持原值、来源与折本币不动，不参与重解析。
-			if fee.ExchangeRateSource == ExchangeRateSourceManual {
-				continue
-			}
-			rateDate := expenseDateDay(newExpenseDate)
-			resolved, resolveErr := uc.exchangeRate.ResolveRate(ctx, organizationID, fee.Direction, fee.Currency, rateDate)
-			if resolveErr != nil {
-				if errors.Is(resolveErr, ErrExchangeRateMissing) {
-					return BulkOrderFeeError(ErrExchangeRateMissing, fee.ID, fmt.Sprintf("按新费用时间 %s 未命中 %s 折本币汇率，请先维护汇率", rateDate, fee.Currency))
-				}
-				return resolveErr
-			}
-			baseAmount := fee.TotalAmount.Mul(resolved.Rate).RoundBank(8)
-			if !totalAmountPattern.MatchString(baseAmount.String()) {
-				return BulkOrderFeeError(ErrOrderFeeInvalidArgument, fee.ID, "按新汇率重算折本币金额超出允许精度")
-			}
-			plans[fee.ID] = &OrderFeeBulkRatePlan{
-				Rate: resolved.Rate, Source: resolved.Source, RateDate: rateDate,
-				SettingID: resolved.SettingID, BaseAmount: baseAmount,
-			}
-		}
-		input.RatePlans = plans
 	}
 	audits := make(map[uuid.UUID]*AuditEvent, len(targetFees))
 	for _, fee := range targetFees {
@@ -705,7 +702,7 @@ func (uc *OrderFeeUsecase) BulkRemove(ctx context.Context, organizationID, actor
 }
 
 // orderFeeBulkUpdateAudit 为批量定向修改构建逐行审计事件：记录修改维度的
-// from→to、重解析汇率的 from→to 与批量来源标识；行内权威事实由仓储锁内补充。
+// from→to 与批量来源标识；行内权威事实由仓储锁内补充。
 func orderFeeBulkUpdateAudit(organizationID, actorID, orderID uuid.UUID, fee *OrderFee, input *OrderFeeBulkUpdateInput) *AuditEvent {
 	details := map[string]string{
 		"fee.id":        fee.ID.String(),
@@ -716,20 +713,9 @@ func orderFeeBulkUpdateAudit(organizationID, actorID, orderID uuid.UUID, fee *Or
 		"fee.currency":  fee.Currency,
 		"fee.bulk":      "true",
 	}
-	if input.SettlementPartyID != nil {
-		details["fee.settlement_party.from"] = fee.SettlementPartyID.String()
-		details["fee.settlement_party_name.from"] = fee.SettlementPartyName
-		details["fee.settlement_party.to"] = input.SettlementPartyID.String()
-	} else {
-		details["fee.expense_date.from"] = fee.ExpenseDate
-		details["fee.expense_date.to"] = *input.ExpenseDate
-		if plan := input.RatePlans[fee.ID]; plan != nil {
-			details["fee.exchange_rate.from"] = fee.ExchangeRate.StringFixed(8)
-			details["fee.exchange_rate.to"] = plan.Rate.StringFixed(8)
-			details["fee.base_currency_amount.from"] = fee.BaseCurrencyAmount.StringFixed(8)
-			details["fee.base_currency_amount.to"] = plan.BaseAmount.StringFixed(8)
-		}
-	}
+	details["fee.settlement_party.from"] = fee.SettlementPartyID.String()
+	details["fee.settlement_party_name.from"] = fee.SettlementPartyName
+	details["fee.settlement_party.to"] = input.SettlementPartyID.String()
 	return &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,
@@ -800,11 +786,6 @@ func normalizeOrderFee(input *OrderFee) (*OrderFee, error) {
 		outputName := value
 		input.FeeNameOverride = &outputName
 	}
-	// 发生日期支持到分钟：接受纯日期或“日期 HH:mm”两种精确格式，秒级精度不收。
-	expenseDate := strings.TrimSpace(input.ExpenseDate)
-	if !isValidExpenseDate(expenseDate) {
-		return nil, ErrOrderFeeInvalidArgument
-	}
 	var note *string
 	if input.Note != nil {
 		value := strings.TrimSpace(*input.Note)
@@ -824,7 +805,6 @@ func normalizeOrderFee(input *OrderFee) (*OrderFee, error) {
 	output.IdempotencyKey = idempotencyKey
 	output.TotalAmount = totalAmount
 	output.Currency = currency
-	output.ExpenseDate = expenseDate
 	output.Note = note
 	return &output, nil
 }

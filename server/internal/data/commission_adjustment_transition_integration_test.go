@@ -379,7 +379,7 @@ func TestCommissionAdjustmentMySourcePostgres(t *testing.T) {
 		if source.Status != biz.CommissionConfirmed || source.SuggestedAmount.Sign() <= 0 {
 			f.t.Fatalf("来源详情状态或建议金额不符: status=%s amount=%s", source.Status, source.SuggestedAmount)
 		}
-		if source.FeeExpenseDate != "2026-09-01" || source.FeeCurrency != "CNY" || source.FeeTotalAmount.Sign() <= 0 || source.SupplementReason == "" {
+		if source.FeeCurrency != "CNY" || source.FeeTotalAmount.Sign() <= 0 || source.SupplementReason == "" {
 			f.t.Fatalf("补录费用摘要不符: %+v", source)
 		}
 	})

@@ -75,7 +75,7 @@ func seedAirExportOrders(ctx context.Context, sc *seedContext) error {
 	if ent.IsNotFound(err) {
 		_, err = tx.FeeSetting.Create().SetOrganizationID(sc.company.ID).SetFeeCode("AF").SetNameZh("空运费").
 			SetNameEn("Air Freight").SetDefaultCurrency("CNY").SetBillingUnitID(unit.ID).
-			SetChargeCategoryID(sc.chargeCats["BOOKING"].ID).SetTaxableServiceID(taxable.ID).
+			SetTaxableServiceID(taxable.ID).
 			SetTaxRate("0").Save(ctx)
 	}
 	if err != nil {
@@ -109,9 +109,6 @@ func seedAirExportOrders(ctx context.Context, sc *seedContext) error {
 		}
 		if _, err = tx.OrderCargoItem.Create().SetOrganizationID(sc.company.ID).SetOrderID(ord.ID).
 			SetCargoName("空运共享主单演示货物").SetPackageCount(spec.packages).SetGrossWeightKg(spec.weight).SetVolumeCbm(spec.volume).Save(ctx); err != nil {
-			return err
-		}
-		if _, err = tx.OrderServiceType.Create().SetOrderID(ord.ID).SetMasterDataItemID(sc.chargeCats["BOOKING"].ID).Save(ctx); err != nil {
 			return err
 		}
 		for _, assignment := range []struct {

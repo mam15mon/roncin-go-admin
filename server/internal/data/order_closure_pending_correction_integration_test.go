@@ -29,7 +29,7 @@ func billClosureTestFees(t *testing.T, f *feeSupplementPostgresFixture, o *ent.O
 		create := f.data.db.FinanceBill.Create().SetOrganizationID(f.organizationID).SetBillNo("CLOSE-" + key).SetIdempotencyKey(key).
 			SetDirection(billent.Direction(fee.Direction)).SetStatus(billent.StatusCONFIRMED).SetSettlementPartyID(f.customerID).SetSettlementPartyName("结案测试结算单位").
 			SetCurrency(fee.Currency).SetBaseCurrency(fee.BaseCurrency).SetExchangeRate(fee.ExchangeRate).SetExchangeRateSource(billent.ExchangeRateSourceSYSTEM).SetExchangeRateDate(fee.ExchangeRateDate).
-			SetTotalAmount(fee.TotalAmount).SetNetAmount(fee.NetAmount).SetTaxAmount(fee.TaxAmount).SetBaseCurrencyAmount(fee.BaseCurrencyAmount).SetFeeCount(1).SetBillDate(fee.ExpenseDate)
+			SetTotalAmount(fee.TotalAmount).SetNetAmount(fee.NetAmount).SetTaxAmount(fee.TaxAmount).SetBaseCurrencyAmount(fee.BaseCurrencyAmount).SetFeeCount(1).SetBillDate(fee.ExchangeRateDate)
 		bill, err := withTestFinanceBillSettlementAccountSnapshot(create, uuid.New(), fee.Currency).Save(f.ctx)
 		if err != nil {
 			t.Fatal(err)

@@ -116,7 +116,6 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 	if err != nil {
 		return nil, biz.ErrOrderCustomerInvalid
 	}
-	serviceTypeIDs, err := parseUUIDValues(request.GetServiceTypeIds(), biz.ErrOrderInvalidArgument)
 	if err != nil {
 		return nil, err
 	}
@@ -193,7 +192,7 @@ func orderFromCreateRequest(request *v1.CreateOrderRequest) (*biz.Order, error) 
 		BusinessType: orderBusinessTypeFromAPI(request.GetBusinessType()), TradeDirection: orderTradeDirectionFromAPI(request.GetTradeDirection()),
 		TradeTerm: orderTradeTermFromAPI(request.GetTradeTerm()), PaymentTerm: orderPaymentTermFromAPI(request.GetPaymentTerm()),
 		ShipmentType: orderShipmentTypeFromAPI(request.ShipmentType), ContainerOwnership: orderContainerOwnershipFromAPI(request.ContainerOwnership), ShipmentMode: orderShipmentModeFromAPI(request.ShipmentMode),
-		ServiceTypeIDs: serviceTypeIDs, CargoCategoryIDs: cargoCategoryIDs,
+		CargoCategoryIDs: cargoCategoryIDs,
 		OriginLocationID: originLocationID, DestinationLocationID: destinationLocationID,
 		DischargeLocationID: dischargeLocationID, TransitLocationID: transitLocationID,
 		VesselVoyage: request.GetVesselVoyage(), ETD: request.GetEtd(), ETA: request.GetEta(), SICutoff: request.GetSiCutoff(), DocCutoff: request.GetDocCutoff(),
@@ -312,10 +311,6 @@ func mergeOrderUpdateRequest(existing *biz.Order, request *v1.UpdateOrderRequest
 	}
 	if request.ShipmentMode != nil {
 		output.ShipmentMode = orderShipmentModeFromAPI(request.ShipmentMode)
-	}
-	output.ServiceTypeIDs, err = parseUUIDValues(request.GetServiceTypeIds(), biz.ErrOrderInvalidArgument)
-	if err != nil {
-		return nil, err
 	}
 	output.CargoCategoryIDs, err = parseUUIDValues(request.GetCargoCategoryIds(), biz.ErrOrderInvalidArgument)
 	if err != nil {

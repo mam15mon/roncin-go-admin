@@ -209,7 +209,7 @@ func TestOrderCreateAudits(t *testing.T) {
 		ShippingLineID: &shippingLineID,
 		TradeDirection: OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
 		ETD: "2026-09-10T00:00:00Z", ETA: "2026-09-25T00:00:00Z",
-		ServiceTypeIDs: []uuid.UUID{uuid.New()}, CargoCategoryIDs: []uuid.UUID{uuid.New()},
+		CargoCategoryIDs: []uuid.UUID{uuid.New()},
 		PersonnelAssignments: []*OrderPersonnel{
 			{UserID: personnelUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleSales},
 			{UserID: personnelUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleOperator},
@@ -495,8 +495,14 @@ func TestOrderAllowedTargetFlowStatusesFollowDomainState(t *testing.T) {
 		ClosureStatus:     OrderClosureOpen,
 	}
 	targets := order.AllowedTargetFlowStatuses()
-	if len(targets) != 2 || targets[0] != OrderFlowTruckingArranged || targets[1] != OrderFlowDocumentCutoff {
+	want := []OrderFlowStatus{OrderFlowTruckingArranged, OrderFlowDocumentCutoff, OrderFlowCustomsDeclarationArranged, OrderFlowDocumentReleased}
+	if len(targets) != len(want) {
 		t.Fatalf("配舱后允许状态 = %v", targets)
+	}
+	for index, status := range want {
+		if targets[index] != status {
+			t.Fatalf("配舱后允许状态 = %v", targets)
+		}
 	}
 
 	order.TerminationStatus = OrderTerminationTerminating
@@ -543,7 +549,6 @@ func TestOrderClosureRequiresTerminalBusinessAndNoBlockers(t *testing.T) {
 		name      string
 		readiness *OrderClosureReadiness
 	}{
-		{name: "主流程未到终点", readiness: &OrderClosureReadiness{FlowStatus: OrderFlowCustomsDeclarationArranged, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen}},
 		{name: "存在活动异常", readiness: &OrderClosureReadiness{FlowStatus: OrderFlowDocumentReleased, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, HasActiveException: true}},
 		{name: "存在未出账费用", readiness: &OrderClosureReadiness{FlowStatus: OrderFlowDocumentReleased, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, HasUnbilledOrderFees: true}},
 	}
@@ -870,17 +875,15 @@ func TestNormalizeOrderRequiresCommissionPersonnelOnCreate(t *testing.T) {
 
 	t.Run("创建缺全三岗按固定顺序列出", func(t *testing.T) {
 		_, err := normalizeOrder(buildInput(nil), true)
-		if errors.Reason(err) != "ORDER_COMMISSION_PERSONNEL_MISSING" || !strings.Contains(err.Error(), "订单缺少销售、操作、客服人员，请在内部信息区补全后再开单") {
-			t.Fatalf("创建缺三岗错误 = %v", err)
+		if errors.Reason(err) != "ORDER_COMMISSION_PERSONNEL_MISSING" || !strings.Contains(err.Error(), "订单缺少操作人员") {
+			t.Fatalf("创建缺岗错误 = %v", err)
 		}
 	})
-	t.Run("创建缺单岗仅列出缺失岗位", func(t *testing.T) {
-		_, err := normalizeOrder(buildInput([]*OrderPersonnel{
-			{UserID: uuid.New(), OrganizationID: organizationID, Role: OrderPersonnelRoleSales},
+	t.Run("仅缺销售客服不阻断创建", func(t *testing.T) {
+		if _, err := normalizeOrder(buildInput([]*OrderPersonnel{
 			{UserID: uuid.New(), OrganizationID: organizationID, Role: OrderPersonnelRoleOperator},
-		}), true)
-		if errors.Reason(err) != "ORDER_COMMISSION_PERSONNEL_MISSING" || !strings.Contains(err.Error(), "订单缺少客服人员") || strings.Contains(err.Error(), "销售") {
-			t.Fatalf("创建缺客服错误 = %v", err)
+		}), true); err != nil {
+			t.Fatalf("销售客服由客户带入，缺失不应拦截创建: %v", err)
 		}
 	})
 	t.Run("三岗齐全创建通过", func(t *testing.T) {

@@ -316,7 +316,6 @@ type Order struct {
 	HasActiveException    bool
 	ActiveExceptionCount  int
 	AllowedActions        []OrderAllowedAction
-	ServiceTypeIDs        []uuid.UUID
 	CargoCategoryIDs      []uuid.UUID
 	OriginLocationID      *uuid.UUID
 	DestinationLocationID *uuid.UUID

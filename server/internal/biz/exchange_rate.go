@@ -125,6 +125,8 @@ type ResolvedRate struct {
 	Rate      decimal.Decimal
 	Source    string
 	SettingID *uuid.UUID
+	// Date 是本次解析命中的业务日（YYYY-MM-DD）；费用快照的汇率日期以此为口径。
+	Date string
 }
 
 type ExchangeRateListOptions struct {
@@ -306,7 +308,7 @@ func (uc *ExchangeRateUsecase) ResolveRate(ctx context.Context, organizationID u
 		return ResolvedRate{}, err
 	}
 	if currency == rateContext.BaseCurrency {
-		return ResolvedRate{Rate: decimal.NewFromInt(1), Source: ExchangeRateSourceSystem}, nil
+		return ResolvedRate{Rate: decimal.NewFromInt(1), Source: ExchangeRateSourceSystem, Date: targetDate}, nil
 	}
 	return uc.repo.ResolveRate(ctx, rateContext.OwnerOrganizationID, direction, currency, rateContext.BaseCurrency, targetDate)
 }

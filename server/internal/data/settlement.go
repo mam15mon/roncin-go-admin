@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"sort"
+	"time"
 
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -315,7 +316,7 @@ func (r *settlementRepo) GetFeeLedgerOrderDetail(ctx context.Context, organizati
 		WithFees(func(query *ent.OrderFeeQuery) {
 			query.WithSettlementParty().
 				WithFinanceBillLines(feeLedgerBillLineQuery).
-				Order(orderfee.ByExpenseDate(entsql.OrderDesc()), orderfee.ByID())
+				Order(orderfee.ByCreatedAt(entsql.OrderDesc()), orderfee.ByID())
 		}).
 		Only(ctx)
 	if err != nil {
@@ -438,11 +439,15 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationIDs []uu
 			),
 		))
 	}
-	if filter.ExpenseDateFrom != "" {
-		predicates = append(predicates, orderfee.ExpenseDateGTE(filter.ExpenseDateFrom))
+	if filter.CreatedDateFrom != "" {
+		if day, err := time.ParseInLocation("2006-01-02", filter.CreatedDateFrom, biz.ExchangeRateBusinessLocation()); err == nil {
+			predicates = append(predicates, orderfee.CreatedAtGTE(day))
+		}
 	}
-	if filter.ExpenseDateTo != "" {
-		predicates = append(predicates, orderfee.ExpenseDateLTE(filter.ExpenseDateTo))
+	if filter.CreatedDateTo != "" {
+		if day, err := time.ParseInLocation("2006-01-02", filter.CreatedDateTo, biz.ExchangeRateBusinessLocation()); err == nil {
+			predicates = append(predicates, orderfee.CreatedAtLT(day.AddDate(0, 0, 1)))
+		}
 	}
 	if filter.OrderLocked != nil {
 		p := order.LockedAtNotNil()
@@ -511,7 +516,7 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationIDs []uu
 		WithSettlementParty().
 		WithOrder(func(query *ent.OrderQuery) { feeLedgerOrderQuery(query) }).
 		WithFinanceBillLines(feeLedgerBillLineQuery).
-		Order(orderfee.ByExpenseDate(entsql.OrderDesc()), orderfee.ByCreatedAt(entsql.OrderDesc()), orderfee.ByID(entsql.OrderDesc())).
+		Order(orderfee.ByCreatedAt(entsql.OrderDesc()), orderfee.ByID(entsql.OrderDesc())).
 		Offset((filter.Page - 1) * filter.PageSize).
 		Limit(filter.PageSize).
 		All(ctx)

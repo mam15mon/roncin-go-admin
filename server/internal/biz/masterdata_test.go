@@ -66,14 +66,14 @@ func (s *masterDataRepoStub) Import(_ context.Context, organizationID uuid.UUID,
 
 func TestDefaultOrderOptions(t *testing.T) {
 	items := DefaultOrderOptions()
-	if len(items) != 42 {
-		t.Fatalf("DefaultOrderOptions() count = %d, want 42", len(items))
+	if len(items) != 23 {
+		t.Fatalf("DefaultOrderOptions() count = %d, want 23", len(items))
 	}
 
 	counts := map[MasterDataKind]int{}
 	seen := make(map[string]struct{}, len(items))
 	for _, item := range items {
-		if item.Kind != MasterDataKindContainerSpec && item.Kind != MasterDataKindChargeCategory && item.Kind != MasterDataKindCargoCategory {
+		if item.Kind != MasterDataKindContainerSpec && item.Kind != MasterDataKindCargoCategory {
 			t.Fatalf("unexpected kind %q", item.Kind)
 		}
 		key := string(item.Kind) + "/" + item.Code
@@ -86,7 +86,7 @@ func TestDefaultOrderOptions(t *testing.T) {
 			t.Fatalf("invalid default option: %#v", item)
 		}
 	}
-	if counts[MasterDataKindContainerSpec] != 18 || counts[MasterDataKindChargeCategory] != 19 || counts[MasterDataKindCargoCategory] != 5 {
+	if counts[MasterDataKindContainerSpec] != 18 || counts[MasterDataKindCargoCategory] != 5 {
 		t.Fatalf("option counts = %#v", counts)
 	}
 }
@@ -382,7 +382,6 @@ func TestMasterDataFieldConstraints(t *testing.T) {
 		MasterDataKindCurrency,
 		MasterDataKindCountry,
 		MasterDataKindContainerSpec,
-		MasterDataKindChargeCategory,
 		MasterDataKindCargoCategory,
 	}
 	for _, kind := range invalidParentCodeKinds {
@@ -412,7 +411,6 @@ func TestMasterDataFieldConstraints(t *testing.T) {
 		MasterDataKindCurrency,
 		MasterDataKindCountry,
 		MasterDataKindRegion,
-		MasterDataKindChargeCategory,
 		MasterDataKindCargoCategory,
 	}
 	for _, kind := range invalidTEUFactorKinds {

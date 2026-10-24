@@ -49,7 +49,6 @@ import (
 	ordermilestoneent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	orderreleasepodent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
-	orderservicetypeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	orderunlockrequestent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -91,7 +90,6 @@ type seedContext struct {
 	shippingLines             map[string]*ent.ShippingLine
 	billingUnits              map[string]*ent.BillingUnit
 	taxableSvcs               map[string]*ent.TaxableService
-	chargeCats                map[string]*ent.MasterDataItem
 	containerSpecs            map[string]*ent.MasterDataItem
 	feeSettings               map[string]*ent.FeeSetting
 	partners                  map[string]*ent.Partner
@@ -150,7 +148,6 @@ func runSeed(ctx context.Context, client *ent.Client) (*seedContext, error) {
 			shippingLines:  make(map[string]*ent.ShippingLine),
 			billingUnits:   make(map[string]*ent.BillingUnit),
 			taxableSvcs:    make(map[string]*ent.TaxableService),
-			chargeCats:     make(map[string]*ent.MasterDataItem),
 			containerSpecs: make(map[string]*ent.MasterDataItem),
 			feeSettings:    make(map[string]*ent.FeeSetting),
 			partners:       make(map[string]*ent.Partner),
@@ -433,38 +430,6 @@ func seedFinanceMasterData(ctx context.Context, sc *seedContext) error {
 		sc.taxableSvcs[s.name] = found
 	}
 
-	// 费用大类
-	chargeCatCodes := []string{"BOOKING", "TRUCKING", "STUFFING", "CUSTOMS_EXPORT"}
-	for _, c := range chargeCatCodes {
-		found, _ := tx.MasterDataItem.Query().Where(masterdataitem.KindEQ(masterdataitem.KindChargeCategory), masterdataitem.CodeEQ(c)).First(ctx)
-		if found == nil {
-			name := c
-			switch c {
-			case "BOOKING":
-				name = "订舱"
-			case "TRUCKING":
-				name = "拖车"
-			case "STUFFING":
-				name = "内装"
-			case "CUSTOMS_EXPORT":
-				name = "报关"
-			}
-			created, err := tx.MasterDataItem.Create().
-				SetKind(masterdataitem.KindChargeCategory).
-				SetCode(c).
-				SetName(name).
-				SetSource("system").
-				SetSortOrder(10).
-				SetEnabled(true).
-				Save(ctx)
-			if err != nil {
-				return fmt.Errorf("创建费用大类 %s: %w", c, err)
-			}
-			found = created
-		}
-		sc.chargeCats[c] = found
-	}
-
 	// 箱型
 	containerSpecCodes := []string{"20GP", "40HQ", "40GP"}
 	for _, c := range containerSpecCodes {
@@ -512,7 +477,6 @@ func seedFinanceMasterData(ctx context.Context, sc *seedContext) error {
 				SetNameEn(f.nameEn).
 				SetDefaultCurrency(f.currency).
 				SetBillingUnitID(sc.billingUnits[f.unit].ID).
-				SetChargeCategoryID(sc.chargeCats[f.cat].ID).
 				SetTaxableServiceID(sc.taxableSvcs[f.svc].ID).
 				SetTaxRate(f.taxRate).
 				SetSortOrder((idx + 1) * 10).
@@ -1173,28 +1137,6 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 		}
 		sc.orders[o.orderNo] = ord
 
-		// 订单服务类型（即费用大类）：费用项适用性按「订单服务类型 ⊇ 费用设置
-		// 大类」校验（feeSettingApplies），种子订单必须挂全种子费用科目涉及的
-		// 大类，否则费用录入与补录链路会被 ORDER_FEE_SETTING_INVALID 全量拒绝。
-		for _, catCode := range []string{"BOOKING", "TRUCKING", "CUSTOMS_EXPORT"} {
-			cat := sc.chargeCats[catCode]
-			exists, existErr := tx.OrderServiceType.Query().
-				Where(orderservicetypeent.OrderIDEQ(ord.ID), orderservicetypeent.MasterDataItemIDEQ(cat.ID)).
-				Exist(ctx)
-			if existErr != nil {
-				return fmt.Errorf("查询订单 %s 服务类型 %s: %w", o.orderNo, catCode, existErr)
-			}
-			if exists {
-				continue
-			}
-			if _, err := tx.OrderServiceType.Create().
-				SetOrderID(ord.ID).
-				SetMasterDataItemID(cat.ID).
-				Save(ctx); err != nil {
-				return fmt.Errorf("创建订单 %s 服务类型 %s: %w", o.orderNo, catCode, err)
-			}
-		}
-
 		// 订单协作人员
 		assigns := []struct {
 			username string
@@ -1388,7 +1330,6 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 					SetExchangeRateDate("2026-09-20").
 					SetBaseCurrency(f.baseCur).
 					SetBaseCurrencyAmount(f.baseAmt).
-					SetExpenseDate("2026-09-20").
 					Save(ctx)
 				if err != nil {
 					return fmt.Errorf("创建费用 %s: %w", feeKey, err)

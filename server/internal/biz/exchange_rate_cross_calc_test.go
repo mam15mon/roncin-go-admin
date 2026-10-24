@@ -40,10 +40,10 @@ func TestExchangeRateNonCNYCompanySnapshotUsesDirectRate(t *testing.T) {
 		rateByPair:  map[string]decimal.Decimal{"USD→CAD": decimal.RequireFromString("1.50")},
 	}
 	rates := NewExchangeRateUsecase(repo, nil)
-	feeUsecase := NewOrderFeeUsecase(nil, rates, nil, newReminderModeCreditControl(), nil)
+	feeUsecase := NewOrderFeeUsecase(&orderFeeRepoStub{}, rates, nil, newReminderModeCreditControl(), nil)
 	fee := validOrderFeeForTest()
 	fee.Currency = "USD"
-	if err := feeUsecase.resolveExchangeRate(context.Background(), companyID, uuid.New(), fee, false); err != nil {
+	if err := feeUsecase.resolveExchangeRate(context.Background(), companyID, uuid.New(), fee, false, nil); err != nil {
 		t.Fatalf("费用汇率解析失败: %v", err)
 	}
 	if !fee.ExchangeRate.Equal(decimal.RequireFromString("1.50")) || fee.ExchangeRateSource != ExchangeRateSourceWeekly {

@@ -3,7 +3,6 @@ package data
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -16,7 +15,6 @@ import (
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderabnormalcaseent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
-	orderservicetypeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/shopspring/decimal"
 )
@@ -26,7 +24,6 @@ type orderFeeRepo struct {
 }
 
 type orderFeeApplicability struct {
-	serviceTypeIDs  map[uuid.UUID]struct{}
 	abnormalCaseIDs map[uuid.UUID]struct{}
 }
 
@@ -148,11 +145,23 @@ func (r *orderFeeRepo) GetByIdempotencyKey(ctx context.Context, organizationID, 
 	return orderFeeToBiz(item)
 }
 
-func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid.UUID) (*biz.OrderFeeOptions, error) {
-	applicability, err := r.loadApplicability(ctx, organizationID, orderID)
-	if err != nil {
-		return nil, err
+// OrderETDDate 返回订单 ETD 原始字符串（RFC3339）；订单不存在时报不存在。
+func (r *orderFeeRepo) OrderETDDate(ctx context.Context, organizationID, orderID uuid.UUID) (string, error) {
+	if err := r.order(ctx, organizationID, orderID); err != nil {
+		return "", err
 	}
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return "", err
+	}
+	item, err := client.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx)
+	if err != nil {
+		return "", mapEntError(err, biz.ErrOrderFeeNotFound, nil)
+	}
+	return item.Etd, nil
+}
+
+func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid.UUID) (*biz.OrderFeeOptions, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
@@ -217,7 +226,7 @@ func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid
 		billingUnit, billingErr := feeSetting.Edges.BillingUnitOrErr()
 		taxableService, taxableErr := feeSetting.Edges.TaxableServiceOrErr()
 		_, currencyEnabled := enabledCurrencies[feeSetting.DefaultCurrency]
-		if billingErr != nil || taxableErr != nil || !billingUnit.Enabled || !taxableService.Enabled || !currencyEnabled || !feeSettingApplies(feeSetting, applicability) {
+		if billingErr != nil || taxableErr != nil || !billingUnit.Enabled || !taxableService.Enabled || !currencyEnabled {
 			continue
 		}
 		taxRate, parseErr := decimalOf(feeSetting.TaxRate)
@@ -294,18 +303,11 @@ func (r *orderFeeRepo) loadApplicability(ctx context.Context, organizationID, or
 	if err != nil {
 		return nil, err
 	}
-	serviceTypes, err := client.OrderServiceType.Query().Where(orderservicetypeent.OrderIDEQ(orderID)).All(ctx)
-	if err != nil {
-		return nil, err
-	}
 	abnormalCases, err := client.OrderAbnormalCase.Query().Where(orderabnormalcaseent.OrderIDEQ(orderID), orderabnormalcaseent.StatusEQ(orderabnormalcaseent.StatusACTIVE)).All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	result := &orderFeeApplicability{serviceTypeIDs: make(map[uuid.UUID]struct{}, len(serviceTypes)), abnormalCaseIDs: make(map[uuid.UUID]struct{}, len(abnormalCases))}
-	for _, serviceType := range serviceTypes {
-		result.serviceTypeIDs[serviceType.MasterDataItemID] = struct{}{}
-	}
+	result := &orderFeeApplicability{abnormalCaseIDs: make(map[uuid.UUID]struct{}, len(abnormalCases))}
 	for _, abnormalCase := range abnormalCases {
 		result.abnormalCaseIDs[abnormalCase.AbnormalCaseID] = struct{}{}
 	}
@@ -313,9 +315,6 @@ func (r *orderFeeRepo) loadApplicability(ctx context.Context, organizationID, or
 }
 
 func feeSettingApplies(feeSetting *ent.FeeSetting, applicability *orderFeeApplicability) bool {
-	if _, ok := applicability.serviceTypeIDs[feeSetting.ChargeCategoryID]; !ok {
-		return false
-	}
 	if feeSetting.AbnormalCaseID != nil {
 		if _, ok := applicability.abnormalCaseIDs[*feeSetting.AbnormalCaseID]; !ok {
 			return false
@@ -388,7 +387,6 @@ func (r *orderFeeRepo) Add(ctx context.Context, organizationID, orderID uuid.UUI
 			SetNillableExchangeRateSettingID(input.ExchangeRateSettingID).
 			SetBaseCurrency(input.BaseCurrency).
 			SetBaseCurrencyAmount(input.BaseCurrencyAmount.StringFixed(8)).
-			SetExpenseDate(input.ExpenseDate).
 			SetNillableNote(input.Note).
 			SetVersion(input.Version).
 			Save(ctx)
@@ -503,8 +501,7 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 			SetExchangeRateDate(input.ExchangeRateDate).
 			SetBaseCurrency(input.BaseCurrency).
 			SetBaseCurrencyAmount(input.BaseCurrencyAmount.StringFixed(8)).
-			SetVersion(item.Version + 1).
-			SetExpenseDate(input.ExpenseDate)
+			SetVersion(item.Version + 1)
 		if input.FeeNameEN != nil {
 			builder.SetFeeNameEn(*input.FeeNameEN)
 		} else {
@@ -720,33 +717,12 @@ func (r *orderFeeRepo) BulkUpdate(ctx context.Context, organizationID, orderID u
 		}
 		for _, item := range items {
 			if _, isBilled := occupied[item.ID]; isBilled {
-				return biz.BulkOrderFeeError(biz.ErrBilledFeeFieldForbidden, item.ID, "已建账费用不可修改结算单位/费用时间")
+				return biz.BulkOrderFeeError(biz.ErrBilledFeeFieldForbidden, item.ID, "已建账费用不可修改结算单位")
 			}
 		}
 		for _, item := range items {
 			builder := tx.OrderFee.UpdateOne(item).SetVersion(item.Version + 1)
-			if input.SettlementPartyID != nil {
-				builder.SetSettlementPartyID(*input.SettlementPartyID)
-			} else {
-				newExpenseDate := *input.ExpenseDate
-				builder.SetExpenseDate(newExpenseDate)
-				if plan := input.RatePlans[item.ID]; plan != nil {
-					builder.
-						SetExchangeRate(plan.Rate.StringFixed(8)).
-						SetExchangeRateSource(orderfeeent.ExchangeRateSource(plan.Source)).
-						SetExchangeRateDate(plan.RateDate).
-						SetBaseCurrencyAmount(plan.BaseAmount.StringFixed(8))
-					if plan.SettingID != nil {
-						builder.SetExchangeRateSettingID(*plan.SettingID)
-					} else {
-						builder.ClearExchangeRateSettingID()
-					}
-				} else {
-					// 手工来源：汇率、来源与折本币保持原值，汇率日期同步新发生日期的日期部分。
-					rateDate, _, _ := strings.Cut(newExpenseDate, " ")
-					builder.SetExchangeRateDate(rateDate)
-				}
-			}
+			builder.SetSettlementPartyID(*input.SettlementPartyID)
 			if _, updateErr := builder.Save(ctx); updateErr != nil {
 				return updateErr
 			}
@@ -933,7 +909,6 @@ func orderFeeToBiz(item *ent.OrderFee) (*biz.OrderFee, error) {
 		ExchangeRateSettingID: item.ExchangeRateSettingID,
 		BaseCurrency:          item.BaseCurrency,
 		BaseCurrencyAmount:    baseCurrencyAmount,
-		ExpenseDate:           item.ExpenseDate,
 		Version:               item.Version,
 		CreatedAt:             item.CreatedAt,
 		UpdatedAt:             item.UpdatedAt,

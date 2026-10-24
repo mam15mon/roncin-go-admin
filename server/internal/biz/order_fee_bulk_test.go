@@ -71,7 +71,6 @@ func bulkOrderFeeForTest(id uuid.UUID, direction OrderFeeDirection, currency, so
 	fee.ExchangeRateDate = "2026-08-30"
 	fee.BaseCurrency = "CNY"
 	fee.BaseCurrencyAmount = decimal.RequireFromString("700.00000000")
-	fee.ExpenseDate = "2026-08-30"
 	return fee
 }
 
@@ -110,7 +109,7 @@ func TestOrderFeeBulkUpdateSettlementPartySubmitsPlanAndAudits(t *testing.T) {
 	usecase := newOrderFeeBulkUsecase(repo, rateRepo)
 	newParty := uuid.Must(uuid.NewV7())
 
-	if err := usecase.BulkUpdate(context.Background(), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), bulkTargetsForTest(receivable, payable), &newParty, nil); err != nil {
+	if err := usecase.BulkUpdate(context.Background(), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), bulkTargetsForTest(receivable, payable), &newParty); err != nil {
 		t.Fatalf("批量改结算单位失败: %v", err)
 	}
 	if repo.bulkUpdate == nil {
@@ -118,9 +117,6 @@ func TestOrderFeeBulkUpdateSettlementPartySubmitsPlanAndAudits(t *testing.T) {
 	}
 	if repo.bulkUpdate.SettlementPartyID == nil || *repo.bulkUpdate.SettlementPartyID != newParty {
 		t.Fatalf("批量计划应携带目标结算单位: %+v", repo.bulkUpdate.SettlementPartyID)
-	}
-	if repo.bulkUpdate.ExpenseDate != nil || repo.bulkUpdate.RatePlans != nil {
-		t.Fatalf("批量改结算单位不应携带费用时间或汇率计划: %+v", repo.bulkUpdate)
 	}
 	if len(rateRepo.requests) != 0 {
 		t.Fatalf("批量改结算单位不应解析汇率，实际 %v", rateRepo.requests)
@@ -140,104 +136,26 @@ func TestOrderFeeBulkUpdateSettlementPartySubmitsPlanAndAudits(t *testing.T) {
 	}
 }
 
-// TestOrderFeeBulkUpdateExpenseDateResolvesSystemRatesPerRow 断言批量改费用
-// 时间逐行按新日期解析系统来源汇率（手工来源行跳过），折本币 = 总额 × 新汇率，
-// 且金额、数量与单价计划外字段不进入计划。
-func TestOrderFeeBulkUpdateExpenseDateResolvesSystemRatesPerRow(t *testing.T) {
-	systemFee := bulkOrderFeeForTest(uuid.Must(uuid.NewV7()), OrderFeeReceivable, "USD", ExchangeRateSourceSystem)
-	manualFee := bulkOrderFeeForTest(uuid.Must(uuid.NewV7()), OrderFeeReceivable, "USD", ExchangeRateSourceManual)
-	baseFee := bulkOrderFeeForTest(uuid.Must(uuid.NewV7()), OrderFeePayable, "CNY", ExchangeRateSourceSystem)
-	repo := &orderFeeBulkRepoStub{fees: []*OrderFee{systemFee, manualFee, baseFee}}
-	rateRepo := &orderFeeBulkRateRepoStub{rate: decimal.RequireFromString("7.2")}
-	usecase := newOrderFeeBulkUsecase(repo, rateRepo)
-	newDate := "2026-09-15 10:30"
-
-	if err := usecase.BulkUpdate(context.Background(), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), bulkTargetsForTest(systemFee, manualFee, baseFee), nil, &newDate); err != nil {
-		t.Fatalf("批量改费用时间失败: %v", err)
-	}
-	if repo.bulkUpdate == nil || repo.bulkUpdate.ExpenseDate == nil || *repo.bulkUpdate.ExpenseDate != newDate {
-		t.Fatalf("批量计划应携带分钟精度新费用时间: %+v", repo.bulkUpdate)
-	}
-	if _, exists := repo.bulkUpdate.RatePlans[manualFee.ID]; exists {
-		t.Fatal("手工来源汇率行不应进入重解析计划")
-	}
-	plan := repo.bulkUpdate.RatePlans[systemFee.ID]
-	if plan == nil {
-		t.Fatal("系统来源汇率行缺少重解析计划")
-	}
-	if plan.Rate.StringFixed(8) != "7.20000000" || plan.Source != ExchangeRateSourceSystem || plan.RateDate != "2026-09-15" {
-		t.Fatalf("汇率计划不正确: %+v", plan)
-	}
-	if plan.BaseAmount.StringFixed(8) != "720.00000000" {
-		t.Fatalf("折本币应为总额 100 × 新汇率 7.2，实际 %s", plan.BaseAmount.StringFixed(8))
-	}
-	if len(rateRepo.requests) != 1 || rateRepo.requests[0] != "USD@2026-09-15" {
-		t.Fatalf("仅外币系统来源行应解析汇率（本币行在用例内直接返回 1），实际 %v", rateRepo.requests)
-	}
-	// 本币行同样获得重解析计划：汇率恒为 1（SYSTEM），折本币 = 总额 × 1。
-	basePlan := repo.bulkUpdate.RatePlans[baseFee.ID]
-	if basePlan == nil || basePlan.Rate.StringFixed(8) != "1.00000000" || basePlan.BaseAmount.StringFixed(8) != "100.00000000" {
-		t.Fatalf("本币行重解析计划不正确: %+v", basePlan)
-	}
-	systemAudit := repo.updateAudits[systemFee.ID]
-	if systemAudit.Details["fee.expense_date.from"] != "2026-08-30" || systemAudit.Details["fee.expense_date.to"] != newDate {
-		t.Fatalf("费用时间 from→to 缺失: %+v", systemAudit.Details)
-	}
-	if systemAudit.Details["fee.exchange_rate.to"] != "7.20000000" {
-		t.Fatalf("汇率 from→to 缺失: %+v", systemAudit.Details)
-	}
-	if _, exists := repo.updateAudits[manualFee.ID].Details["fee.exchange_rate.to"]; exists {
-		t.Fatal("手工来源行审计不应记录汇率变化")
-	}
-}
-
-// TestOrderFeeBulkUpdateExpenseDateFailsWholeBatchOnMissingRate 断言任一行按
-// 新日期解析不到汇率时整批失败（携带费用定位），不触碰仓储。
-func TestOrderFeeBulkUpdateExpenseDateFailsWholeBatchOnMissingRate(t *testing.T) {
-	systemFee := bulkOrderFeeForTest(uuid.Must(uuid.NewV7()), OrderFeeReceivable, "USD", ExchangeRateSourceSystem)
-	repo := &orderFeeBulkRepoStub{fees: []*OrderFee{systemFee}}
-	usecase := newOrderFeeBulkUsecase(repo, &orderFeeBulkRateRepoStub{missing: true})
-	newDate := "2026-09-15"
-
-	err := usecase.BulkUpdate(context.Background(), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), bulkTargetsForTest(systemFee), nil, &newDate)
-	if !errors.Is(err, ErrExchangeRateMissing) {
-		t.Fatalf("汇率缺失应整批失败并保持哨兵语义，实际 %v", err)
-	}
-	if !strings.Contains(err.Error(), systemFee.ID.String()) {
-		t.Fatalf("汇率缺失错误应携带费用定位: %v", err)
-	}
-	if repo.bulkUpdate != nil {
-		t.Fatal("汇率缺失时不应提交仓储写入")
-	}
-}
-
-// TestOrderFeeBulkUpdateRejectsInvalidRequests 断言结构层拒绝：空目标、重复
-// 费用 ID、零版本、双目标值、缺失目标值、空结算单位与非法日期格式。
 func TestOrderFeeBulkUpdateRejectsInvalidRequests(t *testing.T) {
 	fee := bulkOrderFeeForTest(uuid.Must(uuid.NewV7()), OrderFeeReceivable, "USD", ExchangeRateSourceSystem)
 	party := uuid.Must(uuid.NewV7())
-	date := "2026-09-15"
-	badDate := "2026-09-15 10:30:05"
 	organizationID, actorID, orderID := uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7())
 	tests := []struct {
 		name    string
 		targets []OrderFeeBulkTarget
 		party   *uuid.UUID
-		date    *string
 	}{
 		{name: "空目标", targets: nil, party: &party},
 		{name: "重复费用", targets: []OrderFeeBulkTarget{{FeeID: fee.ID, ExpectedVersion: 1}, {FeeID: fee.ID, ExpectedVersion: 1}}, party: &party},
 		{name: "零版本", targets: []OrderFeeBulkTarget{{FeeID: fee.ID}}, party: &party},
-		{name: "双目标值", targets: bulkTargetsForTest(fee), party: &party, date: &date},
 		{name: "缺失目标值", targets: bulkTargetsForTest(fee)},
 		{name: "空结算单位", targets: bulkTargetsForTest(fee), party: &uuid.Nil},
-		{name: "秒级精度日期", targets: bulkTargetsForTest(fee), date: &badDate},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			repo := &orderFeeBulkRepoStub{fees: []*OrderFee{fee}}
 			usecase := newOrderFeeBulkUsecase(repo, &orderFeeBulkRateRepoStub{rate: decimal.NewFromInt(1)})
-			if err := usecase.BulkUpdate(context.Background(), organizationID, actorID, orderID, test.targets, test.party, test.date); err != ErrOrderFeeInvalidArgument {
+			if err := usecase.BulkUpdate(context.Background(), organizationID, actorID, orderID, test.targets, test.party); err != ErrOrderFeeInvalidArgument {
 				t.Fatalf("%s应被结构层拒绝，实际错误为 %v", test.name, err)
 			}
 			if repo.bulkUpdate != nil {
@@ -256,7 +174,7 @@ func TestOrderFeeBulkUpdateRejectsUnknownFee(t *testing.T) {
 	usecase := newOrderFeeBulkUsecase(repo, &orderFeeBulkRateRepoStub{rate: decimal.NewFromInt(1)})
 	party := uuid.Must(uuid.NewV7())
 
-	err := usecase.BulkUpdate(context.Background(), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), bulkTargetsForTest(known, unknown), &party, nil)
+	err := usecase.BulkUpdate(context.Background(), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), bulkTargetsForTest(known, unknown), &party)
 	if !errors.Is(err, ErrOrderFeeNotFound) {
 		t.Fatalf("越订单/未知费用应返回 NotFound，实际 %v", err)
 	}

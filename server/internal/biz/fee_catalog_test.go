@@ -14,20 +14,8 @@ func TestNormalizeFeeSettingAllowsGeneralFee(t *testing.T) {
 	if err != nil {
 		t.Fatalf("合法费用设置应通过校验: %v", err)
 	}
-	if value.ChargeCategoryID == uuid.Nil {
-		t.Fatalf("费用大类必挂，不应为空")
-	}
 	if value.AbnormalCaseID != nil {
 		t.Fatalf("可空关联不应被补值: abnormal_case_id=%v", value.AbnormalCaseID)
-	}
-}
-
-func TestNormalizeFeeSettingRequiresChargeCategory(t *testing.T) {
-	input := validFeeSettingForTest()
-	input.ChargeCategoryID = uuid.Nil
-
-	if _, err := normalizeFeeSetting(input); err != ErrFeeCatalogInvalidArgument {
-		t.Fatalf("未挂费用大类应被拒绝，实际错误为 %v", err)
 	}
 }
 
@@ -81,12 +69,11 @@ func TestNormalizeFeeSettingRequiresCatalogReferences(t *testing.T) {
 
 func validFeeSettingForTest() *FeeSetting {
 	return &FeeSetting{
-		FeeCode:          "OCEAN_FREIGHT",
-		NameZH:           "海运费",
-		ChargeCategoryID: uuid.Must(uuid.NewV7()),
-		DefaultCurrency:  "CNY",
-		BillingUnitID:    uuid.Must(uuid.NewV7()),
-		TaxRate:          decimal.RequireFromString("6.00"),
+		FeeCode:         "OCEAN_FREIGHT",
+		NameZH:          "海运费",
+		DefaultCurrency: "CNY",
+		BillingUnitID:   uuid.Must(uuid.NewV7()),
+		TaxRate:         decimal.RequireFromString("6.00"),
 		TaxableServiceID: uuid.Must(uuid.NewV7()),
 	}
 }

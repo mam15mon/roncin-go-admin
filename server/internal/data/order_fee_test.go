@@ -8,10 +8,8 @@ import (
 )
 
 func TestFeeSettingAppliesToOrderContext(t *testing.T) {
-	serviceTypeID := uuid.Must(uuid.NewV7())
 	abnormalCaseID := uuid.Must(uuid.NewV7())
 	applicability := &orderFeeApplicability{
-		serviceTypeIDs:  map[uuid.UUID]struct{}{serviceTypeID: {}},
 		abnormalCaseIDs: map[uuid.UUID]struct{}{abnormalCaseID: {}},
 	}
 	tests := []struct {
@@ -19,10 +17,9 @@ func TestFeeSettingAppliesToOrderContext(t *testing.T) {
 		setting *ent.FeeSetting
 		want    bool
 	}{
-		{name: "费用大类匹配", setting: &ent.FeeSetting{ChargeCategoryID: serviceTypeID}, want: true},
-		{name: "费用大类与异常情况均匹配", setting: &ent.FeeSetting{ChargeCategoryID: serviceTypeID, AbnormalCaseID: &abnormalCaseID}, want: true},
-		{name: "费用大类不匹配", setting: &ent.FeeSetting{ChargeCategoryID: *uuidPointerForOrderFeeTest()}, want: false},
-		{name: "异常情况不匹配", setting: &ent.FeeSetting{ChargeCategoryID: serviceTypeID, AbnormalCaseID: uuidPointerForOrderFeeTest()}, want: false},
+		{name: "无异常类型挂载", setting: &ent.FeeSetting{}, want: true},
+		{name: "异常类型匹配", setting: &ent.FeeSetting{AbnormalCaseID: &abnormalCaseID}, want: true},
+		{name: "异常类型不匹配", setting: &ent.FeeSetting{AbnormalCaseID: uuidPointerForOrderFeeTest()}, want: false},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

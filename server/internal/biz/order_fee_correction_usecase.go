@@ -101,7 +101,7 @@ func (uc *OrderFeeCorrectionUsecase) Submit(ctx context.Context, p *Principal, o
 			if after.TaxRateOverride != nil {
 				after.TaxRate = after.TaxRateOverride
 			}
-			if err = uc.fee.resolveExchangeRate(txCtx, org, order, after, override); err != nil {
+			if err = uc.fee.resolveExchangeRate(txCtx, org, order, after, override, current); err != nil {
 				return err
 			}
 			if err = uc.fee.calculateAmounts(txCtx, org, after); err != nil {

@@ -40,7 +40,6 @@ type feeSupplementPostgresFixture struct {
 	employeeID     uuid.UUID
 	feeSettingID   uuid.UUID
 	billingUnitID  uuid.UUID
-	chargeCategory uuid.UUID
 	lockRoleID     uuid.UUID
 	usecase        *biz.OrderFeeSupplementUsecase
 	commissionRepo biz.CommissionRepo
@@ -92,15 +91,10 @@ func newFeeSupplementFixture(t *testing.T) *feeSupplementPostgresFixture {
 	if taxableErr != nil {
 		t.Fatalf("创建税务名称: %v", taxableErr)
 	}
-	chargeCategory, categoryErr := data.db.MasterDataItem.Create().SetKind("charge_category").SetCode("FSUP-CAT-" + suffix).SetName("补录测试大类").SetEnabled(true).Save(ctx)
-	if categoryErr != nil {
-		t.Fatalf("创建费用大类: %v", categoryErr)
-	}
 	feeSetting, settingErr := data.db.FeeSetting.Create().
 		SetOrganizationID(org.ID).
 		SetFeeCode("FSUP_TRUCK").
 		SetNameZh("补录测试拖车费").
-		SetChargeCategoryID(chargeCategory.ID).
 		SetDefaultCurrency("CNY").
 		SetBillingUnitID(billingUnit.ID).
 		SetTaxRate("6.00").
@@ -164,7 +158,7 @@ func newFeeSupplementFixture(t *testing.T) *feeSupplementPostgresFixture {
 		t: t, data: data, ctx: ctx,
 		organizationID: org.ID, customerID: customer.ID,
 		requesterID: requester.ID, approverID: approver.ID, employeeID: employee.ID,
-		feeSettingID: feeSetting.ID, billingUnitID: billingUnit.ID, chargeCategory: chargeCategory.ID,
+		feeSettingID: feeSetting.ID, billingUnitID: billingUnit.ID,
 		lockRoleID:     role.ID,
 		usecase:        biz.NewOrderFeeSupplementUsecase(NewOrderFeeSupplementRepo(data)),
 		commissionRepo: NewCommissionRepo(data),
@@ -190,9 +184,6 @@ func (f *feeSupplementPostgresFixture) createOrder(orderNo string) *ent.Order {
 		Save(f.ctx)
 	if err != nil {
 		f.t.Fatalf("创建订单 %s: %v", orderNo, err)
-	}
-	if _, serviceErr := f.data.db.OrderServiceType.Create().SetOrderID(order.ID).SetMasterDataItemID(f.chargeCategory).Save(f.ctx); serviceErr != nil {
-		f.t.Fatalf("创建订单服务类型: %v", serviceErr)
 	}
 	return order
 }
@@ -519,7 +510,7 @@ func (f *feeSupplementPostgresFixture) approveInitialFees(order *ent.Order) {
 		direction orderfeeent.Direction
 		amount    string
 	}{{orderfeeent.DirectionRECEIVABLE, "1000"}, {orderfeeent.DirectionPAYABLE, "400"}} {
-		_, err := f.data.db.OrderFee.Create().SetOrderID(order.ID).SetIdempotencyKey(uuid.NewString()).SetDirection(row.direction).SetFeeCode("BASE").SetFeeName("原费用").SetSettlementPartyID(f.customerID).SetBillingUnit("票").SetQuantity("1").SetUnitPrice(row.amount).SetTotalAmount(row.amount).SetTaxInclusive(true).SetNetAmount(row.amount).SetTaxAmount("0").SetCurrency("CNY").SetExchangeRate("1").SetExchangeRateSource(orderfeeent.ExchangeRateSourceSYSTEM).SetExchangeRateDate("2026-09-01").SetBaseCurrency("CNY").SetBaseCurrencyAmount(row.amount).SetExpenseDate("2026-09-01").Save(f.ctx)
+		_, err := f.data.db.OrderFee.Create().SetOrderID(order.ID).SetIdempotencyKey(uuid.NewString()).SetDirection(row.direction).SetFeeCode("BASE").SetFeeName("原费用").SetSettlementPartyID(f.customerID).SetBillingUnit("票").SetQuantity("1").SetUnitPrice(row.amount).SetTotalAmount(row.amount).SetTaxInclusive(true).SetNetAmount(row.amount).SetTaxAmount("0").SetCurrency("CNY").SetExchangeRate("1").SetExchangeRateSource(orderfeeent.ExchangeRateSourceSYSTEM).SetExchangeRateDate("2026-09-01").SetBaseCurrency("CNY").SetBaseCurrencyAmount(row.amount).Save(f.ctx)
 		if err != nil {
 			f.t.Fatal(err)
 		}

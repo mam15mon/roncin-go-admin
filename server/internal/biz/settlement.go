@@ -41,8 +41,8 @@ type FeeLedgerFilter struct {
 	CustomerID              *uuid.UUID
 	Currency                string
 	BillNo                  string
-	ExpenseDateFrom         string
-	ExpenseDateTo           string
+	CreatedDateFrom         string
+	CreatedDateTo           string
 	TagIDs                  []uuid.UUID
 }
 
@@ -204,7 +204,7 @@ func (uc *SettlementUsecase) ListFeeLedger(ctx context.Context, organizationIDs 
 	if filter.Currency != "" && !ledgerCurrencyPattern.MatchString(filter.Currency) {
 		return nil, ErrFinanceLedgerInvalidArgument
 	}
-	for _, date := range []string{filter.ExpenseDateFrom, filter.ExpenseDateTo} {
+	for _, date := range []string{filter.CreatedDateFrom, filter.CreatedDateTo} {
 		if date == "" {
 			continue
 		}
@@ -212,7 +212,7 @@ func (uc *SettlementUsecase) ListFeeLedger(ctx context.Context, organizationIDs 
 			return nil, ErrFinanceLedgerInvalidArgument
 		}
 	}
-	if filter.ExpenseDateFrom != "" && filter.ExpenseDateTo != "" && filter.ExpenseDateFrom > filter.ExpenseDateTo {
+	if filter.CreatedDateFrom != "" && filter.CreatedDateTo != "" && filter.CreatedDateFrom > filter.CreatedDateTo {
 		return nil, ErrFinanceLedgerInvalidArgument
 	}
 	return uc.repo.ListFeeLedger(ctx, organizationIDs, filter)

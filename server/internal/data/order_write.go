@@ -12,6 +12,7 @@ import (
 	ordercommissionattributionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	orderlifecycleeventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
+	partnerassignmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
 )
 
 func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUID, input *biz.Order, audit *biz.AuditEvent) (*biz.Order, error) {
@@ -114,7 +115,7 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		if err := createAirOrderDocuments(ctx, tx, organizationID, actorID, created, input, airMaster); err != nil {
 			return err
 		}
-		if err := replaceOrderSelections(ctx, tx, created.ID, input.ServiceTypeIDs, input.CargoCategoryIDs); err != nil {
+		if err := replaceOrderSelections(ctx, tx, created.ID, input.CargoCategoryIDs); err != nil {
 			return err
 		}
 		if err := syncOrderShippingDocuments(ctx, tx, organizationID, input.BusinessType, created.ID, input.ShippingDocuments); err != nil {
@@ -135,6 +136,10 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		personnel := make([]*biz.OrderPersonnel, 0, len(input.PersonnelAssignments)+1)
 		personnel = append(personnel, &biz.OrderPersonnel{UserID: actorID, OrganizationID: organizationID, Role: biz.OrderPersonnelRoleCreator})
 		personnel = append(personnel, input.PersonnelAssignments...)
+		personnel, err = overrideOrderPersonnelFromCustomer(ctx, tx, organizationID, input.CustomerID, personnel)
+		if err != nil {
+			return err
+		}
 		if err := createOrderPersonnel(ctx, tx, organizationID, created.ID, created.OrderNo, personnel); err != nil {
 			return err
 		}
@@ -151,11 +156,49 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 	return r.Get(ctx, organizationID, createdID)
 }
 
+// overrideOrderPersonnelFromCustomer 以客户档案岗位配置为唯一真相覆盖订单人员
+// 中的销售/客服两岗：请求携带的手工值一律丢弃，改挂客户档案上该岗位 sortOrder
+// 最小的在册人员；客户未配置该岗位时订单上该岗位留空。
+func overrideOrderPersonnelFromCustomer(ctx context.Context, tx *ent.Tx, organizationID, customerID uuid.UUID, assignments []*biz.OrderPersonnel) ([]*biz.OrderPersonnel, error) {
+	rows, err := tx.PartnerAssignment.Query().
+		Where(
+			partnerassignmentent.PartnerIDEQ(customerID),
+			partnerassignmentent.OrganizationIDEQ(organizationID),
+			partnerassignmentent.RoleIn(partnerassignmentent.RoleSALES, partnerassignmentent.RoleCUSTOMER_SERVICE),
+		).
+		Order(partnerassignmentent.BySortOrder(), partnerassignmentent.ByID()).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	firstByRole := make(map[string]uuid.UUID, 2)
+	for _, row := range rows {
+		key := string(row.Role)
+		if _, exists := firstByRole[key]; !exists {
+			firstByRole[key] = row.UserID
+		}
+	}
+	filtered := make([]*biz.OrderPersonnel, 0, len(assignments)+2)
+	for _, item := range assignments {
+		if item.Role == biz.OrderPersonnelRoleSales || item.Role == biz.OrderPersonnelRoleCustomerService {
+			continue
+		}
+		filtered = append(filtered, item)
+	}
+	if userID, ok := firstByRole[string(partnerassignmentent.RoleSALES)]; ok {
+		filtered = append(filtered, &biz.OrderPersonnel{UserID: userID, OrganizationID: organizationID, Role: biz.OrderPersonnelRoleSales})
+	}
+	if userID, ok := firstByRole[string(partnerassignmentent.RoleCUSTOMER_SERVICE)]; ok {
+		filtered = append(filtered, &biz.OrderPersonnel{UserID: userID, OrganizationID: organizationID, Role: biz.OrderPersonnelRoleCustomerService})
+	}
+	return filtered, nil
+}
+
 // snapshotOrderCommissionAttributions 以同事务内已写入的订单人员（销售/操作/
 // 客服三岗）为唯一真相生成提成归属快照：source_assignment_id 记录订单人员行 ID，
-// customer_id 写入订单客户冗余列。三岗齐全由 biz 层创建门禁保证，本函数不再
-// 承担缺配校验；同岗同人由 normalizeOrder 去重保证，此处仅保留 userID:role
-// 防御性去重。
+// customer_id 写入订单客户冗余列。操作岗由创建门禁保证必有；销售/客服由客户
+// 档案带入，客户缺岗时不生成对应归属。同岗同人由 normalizeOrder 去重保证，
+// 此处仅保留 userID:role 防御性去重。
 func snapshotOrderCommissionAttributions(ctx context.Context, tx *ent.Tx, organizationID, orderID, customerID uuid.UUID, attributedAt time.Time) error {
 	personnel, err := tx.OrderPersonnel.Query().Where(
 		orderpersonnelent.OrderIDEQ(orderID),

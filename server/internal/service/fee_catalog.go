@@ -59,7 +59,7 @@ func (s *FeeCatalogService) CreateFeeSetting(ctx context.Context, request *v1.Cr
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	input, err := feeSettingInputFromAPI(request.GetFeeCode(), request.GetNameZh(), request.NameEn, request.AliasName, request.GetChargeCategoryId(), request.GetDefaultCurrency(), request.GetBillingUnitId(), request.AbnormalCaseId, request.GetTaxRate(), request.GetTaxableServiceId(), int(request.GetSortOrder()), true)
+	input, err := feeSettingInputFromAPI(request.GetFeeCode(), request.GetNameZh(), request.NameEn, request.AliasName, request.GetDefaultCurrency(), request.GetBillingUnitId(), request.AbnormalCaseId, request.GetTaxRate(), request.GetTaxableServiceId(), int(request.GetSortOrder()), true)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +79,7 @@ func (s *FeeCatalogService) UpdateFeeSetting(ctx context.Context, request *v1.Up
 	if err != nil {
 		return nil, biz.ErrFeeCatalogInvalidArgument
 	}
-	input, err := feeSettingInputFromAPI(request.GetFeeCode(), request.GetNameZh(), request.NameEn, request.AliasName, request.GetChargeCategoryId(), request.GetDefaultCurrency(), request.GetBillingUnitId(), request.AbnormalCaseId, request.GetTaxRate(), request.GetTaxableServiceId(), int(request.GetSortOrder()), request.GetEnabled())
+	input, err := feeSettingInputFromAPI(request.GetFeeCode(), request.GetNameZh(), request.NameEn, request.AliasName, request.GetDefaultCurrency(), request.GetBillingUnitId(), request.AbnormalCaseId, request.GetTaxRate(), request.GetTaxableServiceId(), int(request.GetSortOrder()), request.GetEnabled())
 	if err != nil {
 		return nil, err
 	}
@@ -226,17 +226,12 @@ func (s *FeeCatalogService) UpdateTaxableService(ctx context.Context, request *v
 	return ok(ctx, &v1.UpdateTaxableServiceResponse{Data: taxableServiceToAPI(updated)}), nil
 }
 
-func feeSettingInputFromAPI(feeCode, nameZH string, nameEN, aliasName *string, chargeCategoryText, defaultCurrency, billingUnitText string, abnormalCaseText *string, taxRateText, taxableServiceText string, sortOrder int, enabled bool) (*biz.FeeSetting, error) {
+func feeSettingInputFromAPI(feeCode, nameZH string, nameEN, aliasName *string, defaultCurrency, billingUnitText string, abnormalCaseText *string, taxRateText, taxableServiceText string, sortOrder int, enabled bool) (*biz.FeeSetting, error) {
 	billingUnitID, err := uuid.Parse(billingUnitText)
 	if err != nil {
 		return nil, biz.ErrFeeCatalogInvalidArgument
 	}
 	taxableServiceID, err := uuid.Parse(taxableServiceText)
-	if err != nil {
-		return nil, biz.ErrFeeCatalogInvalidArgument
-	}
-	// 费用大类必挂（A 型），解析失败统一入参错误。
-	chargeCategoryID, err := uuid.Parse(chargeCategoryText)
 	if err != nil {
 		return nil, biz.ErrFeeCatalogInvalidArgument
 	}
@@ -248,7 +243,7 @@ func feeSettingInputFromAPI(feeCode, nameZH string, nameEN, aliasName *string, c
 	if err != nil {
 		return nil, biz.ErrFeeCatalogInvalidArgument
 	}
-	return &biz.FeeSetting{FeeCode: feeCode, NameZH: nameZH, NameEN: nameEN, AliasName: aliasName, ChargeCategoryID: chargeCategoryID, DefaultCurrency: defaultCurrency, BillingUnitID: billingUnitID, AbnormalCaseID: abnormalCaseID, TaxRate: taxRate, TaxableServiceID: taxableServiceID, SortOrder: sortOrder, Enabled: enabled}, nil
+	return &biz.FeeSetting{FeeCode: feeCode, NameZH: nameZH, NameEN: nameEN, AliasName: aliasName, DefaultCurrency: defaultCurrency, BillingUnitID: billingUnitID, AbnormalCaseID: abnormalCaseID, TaxRate: taxRate, TaxableServiceID: taxableServiceID, SortOrder: sortOrder, Enabled: enabled}, nil
 }
 
 func optionalCatalogUUID(value *string) (*uuid.UUID, error) {
@@ -263,7 +258,7 @@ func optionalCatalogUUID(value *string) (*uuid.UUID, error) {
 }
 
 func feeSettingToAPI(value *biz.FeeSetting) *v1.FeeSetting {
-	result := &v1.FeeSetting{Id: value.ID.String(), FeeCode: value.FeeCode, NameZh: value.NameZH, NameEn: value.NameEN, AliasName: value.AliasName, ChargeCategoryId: value.ChargeCategoryID.String(), ChargeCategoryName: value.ChargeCategoryName, DefaultCurrency: value.DefaultCurrency, BillingUnitId: value.BillingUnitID.String(), BillingUnitName: value.BillingUnitName, AbnormalCaseName: value.AbnormalCaseName, TaxRate: value.TaxRate.StringFixed(2), TaxableServiceId: value.TaxableServiceID.String(), TaxableServiceName: value.TaxableServiceName, Enabled: value.Enabled, SortOrder: int32(value.SortOrder), CreatedAt: value.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: value.UpdatedAt.UTC().Format(time.RFC3339)}
+	result := &v1.FeeSetting{Id: value.ID.String(), FeeCode: value.FeeCode, NameZh: value.NameZH, NameEn: value.NameEN, AliasName: value.AliasName, DefaultCurrency: value.DefaultCurrency, BillingUnitId: value.BillingUnitID.String(), BillingUnitName: value.BillingUnitName, AbnormalCaseName: value.AbnormalCaseName, TaxRate: value.TaxRate.StringFixed(2), TaxableServiceId: value.TaxableServiceID.String(), TaxableServiceName: value.TaxableServiceName, Enabled: value.Enabled, SortOrder: int32(value.SortOrder), CreatedAt: value.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: value.UpdatedAt.UTC().Format(time.RFC3339)}
 	result.OrganizationId = value.OrganizationID.String()
 	if value.AbnormalCaseID != nil {
 		text := value.AbnormalCaseID.String()

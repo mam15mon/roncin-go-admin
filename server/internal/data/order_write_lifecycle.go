@@ -16,6 +16,20 @@ import (
 	seamasterbillorderlink "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 )
 
+// appendFlowTransitionEvents 在事务内写入主流程流转生命周期事件：跳转时被
+// 跳过的中间节点逐个补齐（from→to 相邻衔接），changed_at 统一为本次操作时刻，
+// 与前端时间轴「点击跳转即显示当前时间」的口径一致。
+func appendFlowTransitionEvents(ctx context.Context, tx *ent.Tx, orderID, actorID uuid.UUID, from, to biz.OrderFlowStatus, occurredAt time.Time, reason string) error {
+	previous := from
+	for _, node := range append(biz.SkippedFlowStatuses(from, to), to) {
+		if _, eventErr := tx.OrderLifecycleEvent.Create().SetOrderID(orderID).SetDimension(orderlifecycleeventent.DimensionFLOW).SetFromStatus(string(previous)).SetToStatus(string(node)).SetAction("transition").SetReason(reason).SetOperatorID(actorID).SetChangedAt(occurredAt).Save(ctx); eventErr != nil {
+			return eventErr
+		}
+		previous = node
+	}
+	return nil
+}
+
 func (r *orderRepo) TransitionStatus(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, targetStatus biz.OrderFlowStatus, reason string, actorID uuid.UUID, event *biz.OrderStatusChangedEvent) (*biz.Order, error) {
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		existing, _, queryErr := lockAirLifecycleTarget(ctx, tx, organizationID, id)
@@ -33,13 +47,14 @@ func (r *orderRepo) TransitionStatus(ctx context.Context, organizationID, id uui
 		if existing.LockedAt != nil {
 			return ensureOrderNotBusinessLocked(ctx, tx.User, existing)
 		}
+		// 仅对目标节点执行数据完整性校验；被跳过的中间节点不校验。
 		if e := validateAirFlowData(ctx, tx, existing, targetStatus, reason); e != nil {
 			return e
 		}
 		if _, updateErr := existing.Update().SetFlowStatus(orderent.FlowStatus(targetStatus)).SetVersion(existing.Version + 1).Save(ctx); updateErr != nil {
 			return updateErr
 		}
-		if _, eventErr := tx.OrderLifecycleEvent.Create().SetOrderID(id).SetDimension(orderlifecycleeventent.DimensionFLOW).SetFromStatus(string(event.FromStatus)).SetToStatus(string(targetStatus)).SetAction("transition").SetReason(reason).SetOperatorID(actorID).SetChangedAt(event.OccurredAt).Save(ctx); eventErr != nil {
+		if eventErr := appendFlowTransitionEvents(ctx, tx, id, actorID, event.FromStatus, targetStatus, event.OccurredAt, reason); eventErr != nil {
 			return eventErr
 		}
 		return writeAudit(ctx, tx.AuditLog, event.AuditEvent())
@@ -192,11 +207,6 @@ func (r *orderRepo) TransitionClosure(ctx context.Context, organizationID, id uu
 			if hasPendingSupplement {
 				return biz.OrderClosurePendingSupplementError()
 			}
-			flowFinished := biz.OrderFlowStatus(existing.FlowStatus) == biz.OrderFlowDocumentReleased
-			terminated := biz.OrderTerminationStatus(existing.TerminationStatus) == biz.OrderTerminationTerminated
-			if !flowFinished && !terminated {
-				return biz.ErrOrderClosureBlocked
-			}
 			hasActiveException, readinessErr := tx.OrderAbnormalCase.Query().Where(orderabnormalcaseent.OrderIDEQ(id), orderabnormalcaseent.StatusEQ(orderabnormalcaseent.StatusACTIVE)).Exist(ctx)
 			if readinessErr != nil {
 				return readinessErr
@@ -211,6 +221,15 @@ func (r *orderRepo) TransitionClosure(ctx context.Context, organizationID, id uu
 		}
 		update := existing.Update().SetClosureStatus(orderent.ClosureStatus(target)).SetVersion(existing.Version + 1)
 		if target == biz.OrderClosureClosed {
+			// 未完结订单直接结案：主流程未完成的先在同一事务补齐全部节点
+			// （含已放单，时间均为操作时刻）；已退关（TERMINATED）订单不补主流程。
+			currentFlow := biz.OrderFlowStatus(existing.FlowStatus)
+			if existing.TerminationStatus != orderent.TerminationStatusTERMINATED && currentFlow != biz.OrderFlowDocumentReleased {
+				if flowErr := appendFlowTransitionEvents(ctx, tx, id, actorID, currentFlow, biz.OrderFlowDocumentReleased, event.OccurredAt, "结案自动补齐主流程"); flowErr != nil {
+					return flowErr
+				}
+				update.SetFlowStatus(orderent.FlowStatus(biz.OrderFlowDocumentReleased))
+			}
 			update.SetClosureReason(reason).SetClosedAt(event.OccurredAt).SetClosedBy(actorID)
 		} else {
 			update.ClearClosureReason().ClearClosedAt().ClearClosedBy()

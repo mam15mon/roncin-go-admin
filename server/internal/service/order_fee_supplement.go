@@ -34,7 +34,6 @@ func orderFeeSupplementToAPI(value *biz.OrderFeeSupplementRequest) *v1.OrderFeeS
 		ExchangeRate:        value.Fee.ExchangeRate.StringFixed(8),
 		ExchangeRateSource:  value.Fee.ExchangeRateSource,
 		ExchangeRateDate:    value.Fee.ExchangeRateDate,
-		ExpenseDate:         value.Fee.ExpenseDate,
 		BaseCurrency:        value.Fee.BaseCurrency,
 		BaseCurrencyAmount:  value.Fee.BaseCurrencyAmount.StringFixed(8),
 		Reason:              value.Reason,

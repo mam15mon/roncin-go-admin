@@ -33,7 +33,6 @@ func createCorrectionFee(ctx context.Context, client *ent.Client, fee *biz.Order
 		SetExchangeRateDate(fee.ExchangeRateDate).
 		SetBaseCurrency(fee.BaseCurrency).
 		SetBaseCurrencyAmount(fee.BaseCurrencyAmount.StringFixed(8)).
-		SetExpenseDate(fee.ExpenseDate).
 		SetEconomicEffect(feeent.EconomicEffect(fee.EconomicEffect)).
 		SetAccountingRequired(fee.AccountingRequired).
 		SetNillableSourceFeeID(fee.SourceFeeID).

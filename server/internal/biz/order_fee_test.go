@@ -29,9 +29,20 @@ type orderFeeRepoStub struct {
 	OrderFeeRepo
 }
 
+// OrderETDDate 提供固定 ETD 时刻（业务时区 2026-09-18 零点），供汇率按 ETD
+// 解析的用例测试使用。
+func (r *orderFeeRepoStub) OrderETDDate(context.Context, uuid.UUID, uuid.UUID) (string, error) {
+	return "2026-09-18T00:00:00+08:00", nil
+}
+
+// List 返回空费用列表，供创建用例的同币种集合检查测试使用。
+func (r *orderFeeRepoStub) List(context.Context, uuid.UUID, uuid.UUID) ([]*OrderFee, error) {
+	return nil, nil
+}
+
 // orderFeeAddCaptureRepoStub 捕获 Add 用例提交给仓储的费用，用于断言保存时状态。
 type orderFeeAddCaptureRepoStub struct {
-	OrderFeeRepo
+	orderFeeRepoStub
 	added *OrderFee
 }
 
@@ -109,7 +120,7 @@ func TestOrderFeeUpdatePreservesOldRateSnapshotWithoutManualRequest(t *testing.T
 			current.Version = 1
 			current.ExchangeRate = decimal.RequireFromString("7.3")
 			current.ExchangeRateSource = source
-			current.ExchangeRateDate = current.ExpenseDate
+			current.ExchangeRateDate = "2026-09-18"
 			settingID := uuid.Must(uuid.NewV7())
 			if source == ExchangeRateSourceSystem {
 				current.ExchangeRateSettingID = &settingID
@@ -175,37 +186,6 @@ func TestNormalizeOrderFeePreservesEightDecimalProduct(t *testing.T) {
 	}
 }
 
-func TestNormalizeOrderFeeAcceptsMinutePrecisionExpenseDate(t *testing.T) {
-	fee := validOrderFeeForTest()
-	fee.ExpenseDate = "2026-08-24 14:30"
-
-	normalized, err := normalizeOrderFee(fee)
-	if err != nil {
-		t.Fatalf("分钟精度发生日期应被接受: %v", err)
-	}
-	if normalized.ExpenseDate != "2026-08-24 14:30" {
-		t.Fatalf("发生日期应原样保留，实际为 %s", normalized.ExpenseDate)
-	}
-}
-
-func TestNormalizeOrderFeeRejectsSecondPrecisionExpenseDate(t *testing.T) {
-	fee := validOrderFeeForTest()
-	fee.ExpenseDate = "2026-08-24 14:30:05"
-
-	if _, err := normalizeOrderFee(fee); err != ErrOrderFeeInvalidArgument {
-		t.Fatalf("秒级精度发生日期应被拒绝，实际错误为 %v", err)
-	}
-}
-
-func TestExpenseDateDayTrimsTimePart(t *testing.T) {
-	if got := expenseDateDay("2026-08-24 14:30"); got != "2026-08-24" {
-		t.Fatalf("带时刻的发生日期应截取日期部分，实际为 %s", got)
-	}
-	if got := expenseDateDay("2026-08-24"); got != "2026-08-24" {
-		t.Fatalf("纯日期应原样返回，实际为 %s", got)
-	}
-}
-
 func TestNormalizeOrderFeeRejectsExcessPrecision(t *testing.T) {
 	fee := validOrderFeeForTest()
 	fee.UnitPrice = decimal.RequireFromString("1.00001")
@@ -257,12 +237,12 @@ func TestNormalizeOrderFeeSupportsReceivableAndPayable(t *testing.T) {
 
 func TestResolveOrderFeeExchangeRateRejectsUnauthorizedOverride(t *testing.T) {
 	rateRepo := &orderFeeExchangeRateRepoStub{}
-	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo, nil), nil, newReminderModeCreditControl(), nil)
+	usecase := NewOrderFeeUsecase(&orderFeeRepoStub{}, NewExchangeRateUsecase(rateRepo, nil), nil, newReminderModeCreditControl(), nil)
 	override := decimal.RequireFromString("7.12345678")
 	fee := validOrderFeeForTest()
 	fee.ExchangeRateOverride = &override
 
-	err := usecase.resolveExchangeRate(context.Background(), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), fee, false)
+	err := usecase.resolveExchangeRate(context.Background(), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), fee, false, nil)
 	if err != ErrOrderFeeExchangeRateOverrideForbidden {
 		t.Fatalf("无权用户手工覆盖汇率应被拒绝，实际错误为 %v", err)
 	}
@@ -273,20 +253,24 @@ func TestResolveOrderFeeExchangeRateRejectsUnauthorizedOverride(t *testing.T) {
 
 func TestResolveOrderFeeExchangeRateUsesExactManualSnapshot(t *testing.T) {
 	rateRepo := &orderFeeExchangeRateRepoStub{}
-	usecase := NewOrderFeeUsecase(nil, NewExchangeRateUsecase(rateRepo, nil), nil, newReminderModeCreditControl(), nil)
+	usecase := NewOrderFeeUsecase(&orderFeeRepoStub{}, NewExchangeRateUsecase(rateRepo, nil), nil, newReminderModeCreditControl(), nil)
 	override := decimal.RequireFromString("0.1")
 	settingID := uuid.Must(uuid.NewV7())
 	fee := validOrderFeeForTest()
 	fee.ExchangeRateOverride = &override
 	fee.ExchangeRateSettingID = &settingID
 
-	if err := usecase.resolveExchangeRate(context.Background(), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), fee, true); err != nil {
+	existingFees := []*OrderFee{
+		{ID: uuid.Must(uuid.NewV7()), Direction: OrderFeeReceivable, Currency: fee.Currency},
+		{ID: uuid.Must(uuid.NewV7()), Direction: OrderFeePayable, Currency: fee.Currency},
+	}
+	if err := usecase.resolveExchangeRate(context.Background(), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), fee, true, existingFees); err != nil {
 		t.Fatalf("有权用户手工覆盖汇率失败: %v", err)
 	}
 	if got := fee.ExchangeRate.StringFixed(8); got != "0.10000000" {
 		t.Fatalf("手工汇率应精确保存为 0.10000000，实际为 %s", got)
 	}
-	if fee.ExchangeRateSource != "MANUAL" || fee.ExchangeRateDate != fee.ExpenseDate || fee.ExchangeRateSettingID != nil {
+	if fee.ExchangeRateSource != "MANUAL" || fee.ExchangeRateDate != "2026-09-18" || fee.ExchangeRateSettingID != nil {
 		t.Fatalf("手工汇率快照元数据不正确: source=%s date=%s setting_id=%v", fee.ExchangeRateSource, fee.ExchangeRateDate, fee.ExchangeRateSettingID)
 	}
 	if rateRepo.resolveCalls != 0 {
@@ -300,7 +284,7 @@ func TestResolveOrderFeeExchangeRateUsesSystemRateWithoutOverride(t *testing.T) 
 	fee := validOrderFeeForTest()
 	fee.Currency = "USD"
 
-	if err := usecase.resolveExchangeRate(context.Background(), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), fee, false); err != nil {
+	if err := usecase.resolveExchangeRate(context.Background(), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), fee, false, nil); err != nil {
 		t.Fatalf("系统汇率解析失败: %v", err)
 	}
 	if got := fee.ExchangeRate.StringFixed(8); got != "7.12345678" || fee.ExchangeRateSource != "SYSTEM" || fee.ExchangeRateSettingID != nil {
@@ -309,8 +293,8 @@ func TestResolveOrderFeeExchangeRateUsesSystemRateWithoutOverride(t *testing.T) 
 	if rateRepo.resolveCalls != 1 {
 		t.Fatalf("未覆盖时应解析一次系统汇率，实际调用 %d 次", rateRepo.resolveCalls)
 	}
-	if len(rateRepo.resolveDates) != 1 || rateRepo.resolveDates[0] != fee.ExpenseDate {
-		t.Fatalf("订单费用汇率必须按费用发生日解析，实际 %v 期望 %s", rateRepo.resolveDates, fee.ExpenseDate)
+	if len(rateRepo.resolveDates) != 1 || rateRepo.resolveDates[0] != "2026-09-18" {
+		t.Fatalf("订单费用汇率必须按订单 ETD 解析，实际 %v 期望 2026-09-18", rateRepo.resolveDates)
 	}
 }
 
@@ -479,7 +463,7 @@ func billedOrderFeeForTest() *OrderFee {
 	fee.TaxableServiceName = stringPointer("国际货物运输代理服务")
 	fee.ExchangeRate = decimal.NewFromInt(1)
 	fee.ExchangeRateSource = "BASE_CURRENCY"
-	fee.ExchangeRateDate = fee.ExpenseDate
+	fee.ExchangeRateDate = "2026-09-18"
 	fee.BaseCurrency = "CNY"
 	fee.TotalAmount = decimal.RequireFromString("106")
 	fee.NetAmount = decimal.RequireFromString("100")
@@ -502,7 +486,6 @@ func validOrderFeeForTest() *OrderFee {
 		UnitPrice:         decimal.RequireFromString("100"),
 		Currency:          "CNY",
 		ExchangeRate:      decimal.RequireFromString("1"),
-		ExpenseDate:       "2026-08-24",
 		TaxInclusive:      true,
 	}
 }

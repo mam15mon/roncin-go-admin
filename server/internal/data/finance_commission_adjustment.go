@@ -148,7 +148,6 @@ func (r *commissionRepo) GetMyFeeSupplementAdjustmentSource(ctx context.Context,
 			result.FeeTotalAmount = f.TotalAmount
 			result.FeeBaseCurrency = f.BaseCurrency
 			result.FeeBaseCurrencyAmount = f.BaseCurrencyAmount
-			result.FeeExpenseDate = f.ExpenseDate
 		} else if x.SourceVerificationID != nil {
 			v, err := client.FinanceVerification.Get(ctx, *x.SourceVerificationID)
 			if err != nil {
@@ -195,7 +194,7 @@ func (r *commissionRepo) GetMyFeeSupplementAdjustmentSource(ctx context.Context,
 		AdjustmentID: x.ID, AdjustmentNo: x.AdjustmentNo, OrderNo: x.OrderNo, CommissionNo: x.CommissionNo,
 		Status: biz.CommissionStatus(x.Status), SuggestedAmount: amount, BaseCurrency: x.BaseCurrency, CreatedAt: x.CreatedAt, SourceType: biz.CommissionAdjustmentSourceType(x.SourceType), Direction: biz.CommissionAdjustmentDirection(x.Direction), SourceReferenceID: x.SourceFeeSupplementRequestID,
 		FeeCode: request.FeeCode, FeeName: request.FeeName, FeeCurrency: request.Currency, FeeTotalAmount: feeTotal,
-		FeeBaseCurrency: request.BaseCurrency, FeeBaseCurrencyAmount: feeBase, FeeExpenseDate: request.ExpenseDate,
+		FeeBaseCurrency: request.BaseCurrency, FeeBaseCurrencyAmount: feeBase,
 		SupplementReason: request.Reason,
 	}, nil
 }

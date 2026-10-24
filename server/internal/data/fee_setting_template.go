@@ -31,7 +31,7 @@ func (r *feeCatalogRepo) SaveFeeSettingTemplate(ctx context.Context, v *biz.FeeS
 			return err
 		}
 		if create {
-			b := tx.FeeSettingTemplate.Create().SetID(v.ID).SetFeeCode(v.FeeCode).SetNameZh(v.NameZH).SetChargeCategoryID(v.ChargeCategoryID).SetDefaultCurrency(v.DefaultCurrency).SetBillingUnitID(v.BillingUnitID).SetTaxRate(v.TaxRate.StringFixed(2)).SetEnabled(v.Enabled).SetSortOrder(v.SortOrder).SetTaxableServiceName(v.TaxableService.Name).SetTaxableServiceDefaultTaxRate(v.TaxableService.DefaultTaxRate.StringFixed(2))
+			b := tx.FeeSettingTemplate.Create().SetID(v.ID).SetFeeCode(v.FeeCode).SetNameZh(v.NameZH).SetDefaultCurrency(v.DefaultCurrency).SetBillingUnitID(v.BillingUnitID).SetTaxRate(v.TaxRate.StringFixed(2)).SetEnabled(v.Enabled).SetSortOrder(v.SortOrder).SetTaxableServiceName(v.TaxableService.Name).SetTaxableServiceDefaultTaxRate(v.TaxableService.DefaultTaxRate.StringFixed(2))
 			b.SetNillableNameEn(v.NameEN)
 			b.SetNillableAliasName(v.AliasName)
 			b.SetNillableAbnormalCaseID(v.AbnormalCaseID)
@@ -43,7 +43,7 @@ func (r *feeCatalogRepo) SaveFeeSettingTemplate(ctx context.Context, v *biz.FeeS
 			if err != nil {
 				return mapEntError(err, biz.ErrFeeSettingNotFound, nil)
 			}
-			b := current.Update().SetFeeCode(v.FeeCode).SetNameZh(v.NameZH).SetChargeCategoryID(v.ChargeCategoryID).SetDefaultCurrency(v.DefaultCurrency).SetBillingUnitID(v.BillingUnitID).SetTaxRate(v.TaxRate.StringFixed(2)).SetEnabled(v.Enabled).SetSortOrder(v.SortOrder).SetTaxableServiceName(v.TaxableService.Name).SetTaxableServiceDefaultTaxRate(v.TaxableService.DefaultTaxRate.StringFixed(2))
+			b := current.Update().SetFeeCode(v.FeeCode).SetNameZh(v.NameZH).SetDefaultCurrency(v.DefaultCurrency).SetBillingUnitID(v.BillingUnitID).SetTaxRate(v.TaxRate.StringFixed(2)).SetEnabled(v.Enabled).SetSortOrder(v.SortOrder).SetTaxableServiceName(v.TaxableService.Name).SetTaxableServiceDefaultTaxRate(v.TaxableService.DefaultTaxRate.StringFixed(2))
 			if v.NameEN == nil {
 				b.ClearNameEn()
 			} else {
@@ -90,7 +90,7 @@ func feeTemplateToBiz(v *ent.FeeSettingTemplate) (*biz.FeeSettingTemplate, error
 	if e != nil {
 		return nil, e
 	}
-	return &biz.FeeSettingTemplate{FeeSetting: biz.FeeSetting{ID: v.ID, FeeCode: v.FeeCode, NameZH: v.NameZh, NameEN: v.NameEn, AliasName: v.AliasName, ChargeCategoryID: v.ChargeCategoryID, DefaultCurrency: v.DefaultCurrency, BillingUnitID: v.BillingUnitID, AbnormalCaseID: v.AbnormalCaseID, TaxRate: rate, SortOrder: v.SortOrder, Enabled: v.Enabled, CreatedAt: v.CreatedAt, UpdatedAt: v.UpdatedAt}, TaxableService: biz.TaxableService{Name: v.TaxableServiceName, ShortName: v.TaxableServiceShortName, GoodsCode: v.TaxableServiceGoodsCode, DefaultTaxRate: taxRate}}, nil
+	return &biz.FeeSettingTemplate{FeeSetting: biz.FeeSetting{ID: v.ID, FeeCode: v.FeeCode, NameZH: v.NameZh, NameEN: v.NameEn, AliasName: v.AliasName, DefaultCurrency: v.DefaultCurrency, BillingUnitID: v.BillingUnitID, AbnormalCaseID: v.AbnormalCaseID, TaxRate: rate, SortOrder: v.SortOrder, Enabled: v.Enabled, CreatedAt: v.CreatedAt, UpdatedAt: v.UpdatedAt}, TaxableService: biz.TaxableService{Name: v.TaxableServiceName, ShortName: v.TaxableServiceShortName, GoodsCode: v.TaxableServiceGoodsCode, DefaultTaxRate: taxRate}}, nil
 }
 
 // initializeCompanyFeeSettings 仅在新建公司事务中复制一次，不与后续模板修改联动。
@@ -117,7 +117,7 @@ func initializeCompanyFeeSettings(ctx context.Context, c *ent.Client, organizati
 		if taxable.DefaultTaxRate != v.TaxableServiceDefaultTaxRate || !sameOptionalText(taxable.ShortName, v.TaxableServiceShortName) || !sameOptionalText(taxable.GoodsCode, v.TaxableServiceGoodsCode) {
 			return biz.ErrFeeCatalogReferenceInvalid
 		}
-		_, err = c.FeeSetting.Create().SetID(uuid.Must(uuid.NewV7())).SetOrganizationID(organizationID).SetFeeCode(v.FeeCode).SetNameZh(v.NameZh).SetNillableNameEn(v.NameEn).SetNillableAliasName(v.AliasName).SetChargeCategoryID(v.ChargeCategoryID).SetDefaultCurrency(v.DefaultCurrency).SetBillingUnitID(v.BillingUnitID).SetNillableAbnormalCaseID(v.AbnormalCaseID).SetTaxRate(v.TaxRate).SetTaxableServiceID(taxable.ID).SetEnabled(true).SetSortOrder(v.SortOrder).Save(ctx)
+		_, err = c.FeeSetting.Create().SetID(uuid.Must(uuid.NewV7())).SetOrganizationID(organizationID).SetFeeCode(v.FeeCode).SetNameZh(v.NameZh).SetNillableNameEn(v.NameEn).SetNillableAliasName(v.AliasName).SetDefaultCurrency(v.DefaultCurrency).SetBillingUnitID(v.BillingUnitID).SetNillableAbnormalCaseID(v.AbnormalCaseID).SetTaxRate(v.TaxRate).SetTaxableServiceID(taxable.ID).SetEnabled(true).SetSortOrder(v.SortOrder).Save(ctx)
 		if err != nil {
 			return err
 		}

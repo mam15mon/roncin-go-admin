@@ -587,7 +587,7 @@ func (f *financeBillPostgresFixture) createUnbilledFeeWithCurrency(key, currency
 		SetExchangeRateDate(financeBillIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount(baseAmount).
-		SetExpenseDate(financeBillIntegrationDate).
+
 		SetVersion(1).
 		Save(context.Background())
 	if err != nil {

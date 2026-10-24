@@ -374,7 +374,7 @@ func TestCommissionApplicationApproveRollbackPostgres(t *testing.T) {
 		SetExchangeRateDate(draftFixture.historicalDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("50.00000000").
-		SetExpenseDate(draftFixture.historicalDate).
+
 		SetVersion(1).
 		Save(ctx); err != nil {
 		t.Fatalf("创建未建账阻断费用失败: %v", err)

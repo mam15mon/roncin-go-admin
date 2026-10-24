@@ -272,7 +272,7 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 		if _, updateErr := update.Save(ctx); updateErr != nil {
 			return mapEntConstraint(updateErr, "order_organization_id_order_no", biz.ErrOrderNumberExists)
 		}
-		if replaceErr := replaceOrderSelections(ctx, tx, id, input.ServiceTypeIDs, input.CargoCategoryIDs); replaceErr != nil {
+		if replaceErr := replaceOrderSelections(ctx, tx, id, input.CargoCategoryIDs); replaceErr != nil {
 			return replaceErr
 		}
 		if syncErr := syncOrderShippingDocuments(ctx, tx, organizationID, input.BusinessType, id, input.ShippingDocuments); syncErr != nil {

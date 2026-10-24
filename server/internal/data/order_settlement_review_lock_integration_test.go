@@ -283,7 +283,7 @@ func (f *settlementOrderLockFixture) createReceivableBillAmounts(orders []*ent.O
 			SetExchangeRateDate(financeBillIntegrationDate).
 			SetBaseCurrency("CNY").
 			SetBaseCurrencyAmount(decimal.RequireFromString(lineAmount).Mul(decimal.RequireFromString("7.2")).StringFixed(8)).
-			SetExpenseDate(financeBillIntegrationDate).
+
 			SetVersion(1).
 			Save(f.ctx)
 		if feeErr != nil {

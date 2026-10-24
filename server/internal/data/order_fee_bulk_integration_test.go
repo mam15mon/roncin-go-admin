@@ -53,7 +53,7 @@ func createBulkFee(t *testing.T, data *Data, orderID, settlementPartyID uuid.UUI
 		SetExchangeRateDate(financeBillIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount(baseAmount).
-		SetExpenseDate(financeBillIntegrationDate).
+
 		SetVersion(1).
 		Save(context.Background())
 	if err != nil {
@@ -116,7 +116,7 @@ func TestOrderFeeBulkMaintenancePostgres(t *testing.T) {
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-		if err := usecase.BulkUpdate(ctx, organizationID, actor, orderID, targetsOf(first, second), &newParty.ID, nil); err != nil {
+		if err := usecase.BulkUpdate(ctx, organizationID, actor, orderID, targetsOf(first, second), &newParty.ID); err != nil {
 			t.Fatalf("批量改结算单位失败: %v", err)
 		}
 		for feeID, snapshot := range snapshots {
@@ -149,58 +149,6 @@ func TestOrderFeeBulkMaintenancePostgres(t *testing.T) {
 		}
 		if bulkAudits != 2 {
 			t.Fatalf("批量改结算单位应逐行写入审计，实际 %d 条", bulkAudits)
-		}
-	})
-
-	t.Run("批量改费用时间重解析系统汇率并保留手工汇率", func(t *testing.T) {
-		systemFee := createBulkFee(t, data, orderID, fixture.partnerID, "bulk-date-system", "USD", "7.00000000", "700.00000000", orderfeeent.ExchangeRateSourceSYSTEM)
-		manualFee := createBulkFee(t, data, orderID, fixture.partnerID, "bulk-date-manual", "USD", "6.50000000", "650.00000000", orderfeeent.ExchangeRateSourceMANUAL)
-		setting, settingErr := data.db.ExchangeRateSetting.Create().
-			SetOrganizationID(organizationID).
-			SetFromCurrency("USD").
-			SetToCurrency("CNY").
-			SetEffectiveFrom(time.Date(2026, 9, 14, 0, 0, 0, 0, biz.ExchangeRateBusinessLocation())).
-			SetRate("7.25000000").
-			SetIsActive(true).
-			Save(context.Background())
-		if settingErr != nil {
-			t.Fatalf("创建新周期汇率失败: %v", settingErr)
-		}
-
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		newDate := "2026-09-15 10:30"
-		if err := usecase.BulkUpdate(ctx, organizationID, actor, orderID, targetsOf(systemFee, manualFee), nil, &newDate); err != nil {
-			t.Fatalf("批量改费用时间失败: %v", err)
-		}
-		system, err := data.db.OrderFee.Get(context.Background(), systemFee)
-		if err != nil {
-			t.Fatalf("读取系统汇率费用: %v", err)
-		}
-		if system.ExpenseDate != newDate {
-			t.Fatalf("系统汇率行费用时间 = %s，期望 %s", system.ExpenseDate, newDate)
-		}
-		if system.ExchangeRate != "7.25000000" || system.ExchangeRateSource == orderfeeent.ExchangeRateSourceMANUAL || system.ExchangeRateSettingID == nil || *system.ExchangeRateSettingID != setting.ID {
-			t.Fatalf("系统汇率行应按新日期重解析: rate=%s source=%s setting=%s", system.ExchangeRate, system.ExchangeRateSource, system.ExchangeRateSettingID)
-		}
-		if system.ExchangeRateDate != "2026-09-15" {
-			t.Fatalf("汇率日期应取新日期的日期部分，实际 %s", system.ExchangeRateDate)
-		}
-		if system.BaseCurrencyAmount != "725.00000000" {
-			t.Fatalf("折本币应=总额 100×新汇率 7.25，实际 %s", system.BaseCurrencyAmount)
-		}
-		if system.TotalAmount != "100.00000000" || system.Quantity != "1.0000" || system.UnitPrice != "100.0000" {
-			t.Fatalf("批量改费用时间不得改动金额、数量与单价: %+v", system)
-		}
-		manual, err := data.db.OrderFee.Get(context.Background(), manualFee)
-		if err != nil {
-			t.Fatalf("读取手工汇率费用: %v", err)
-		}
-		if manual.ExchangeRate != "6.50000000" || manual.ExchangeRateSource != orderfeeent.ExchangeRateSourceMANUAL || manual.BaseCurrencyAmount != "650.00000000" {
-			t.Fatalf("手工汇率应保持原值与来源: rate=%s source=%s base=%s", manual.ExchangeRate, manual.ExchangeRateSource, manual.BaseCurrencyAmount)
-		}
-		if manual.ExpenseDate != newDate || manual.ExchangeRateDate != "2026-09-15" {
-			t.Fatalf("手工汇率行费用时间与汇率日期应随新日期更新: expense=%s rate_date=%s", manual.ExpenseDate, manual.ExchangeRateDate)
 		}
 	})
 
@@ -301,7 +249,7 @@ func TestOrderFeeBulkMaintenancePostgres(t *testing.T) {
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-		err := usecase.BulkUpdate(ctx, organizationID, actor, orderID, targets, &newParty.ID, nil)
+		err := usecase.BulkUpdate(ctx, organizationID, actor, orderID, targets, &newParty.ID)
 		if !errors.Is(err, biz.ErrOrderFeeVersionConflict) {
 			t.Fatalf("版本冲突错误 = %v，期望 ErrOrderFeeVersionConflict", err)
 		}
@@ -338,7 +286,7 @@ func TestOrderFeeBulkMaintenancePostgres(t *testing.T) {
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-		updateErr := usecase.BulkUpdate(ctx, organizationID, actor, orderID, targets, &newParty.ID, nil)
+		updateErr := usecase.BulkUpdate(ctx, organizationID, actor, orderID, targets, &newParty.ID)
 		if !errors.Is(updateErr, biz.ErrBilledFeeFieldForbidden) {
 			t.Fatalf("已建账行修改错误 = %v，期望账单占用阻断", updateErr)
 		}
@@ -382,7 +330,7 @@ func TestOrderFeeBulkMaintenancePostgres(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		// 用例层按订单归属预检拒绝；直接调用仓储同样在行锁内复核归属。
-		err := usecase.BulkUpdate(ctx, organizationID, actor, orderID, []biz.OrderFeeBulkTarget{{FeeID: otherFee, ExpectedVersion: 1}, {FeeID: ownFee, ExpectedVersion: 1}}, &newParty.ID, nil)
+		err := usecase.BulkUpdate(ctx, organizationID, actor, orderID, []biz.OrderFeeBulkTarget{{FeeID: otherFee, ExpectedVersion: 1}, {FeeID: ownFee, ExpectedVersion: 1}}, &newParty.ID)
 		if !errors.Is(err, biz.ErrOrderFeeNotFound) || !strings.Contains(err.Error(), otherFee.String()) {
 			t.Fatalf("越订单目标应携带定位拒绝，实际 %v", err)
 		}

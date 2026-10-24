@@ -43,10 +43,10 @@ func feeCatalogBranchContext(branchID, headquartersID uuid.UUID, permissions ...
 	})
 }
 
-// newFeeCatalogReferences 准备费用设置引用脚手架：A 型计费单位与费用大类（全局）、
+// newFeeCatalogReferences 准备费用设置引用脚手架：A 型计费单位（全局）、
 // 总部与分公司各自的 C 型税务名称行。返回值依次为计费单位、总部税务名称、
-// 分公司税务名称、费用大类 ID。
-func newFeeCatalogReferences(t *testing.T, data *Data, hqID, branchID uuid.UUID) (uuid.UUID, uuid.UUID, uuid.UUID, uuid.UUID) {
+// 分公司税务名称 ID。
+func newFeeCatalogReferences(t *testing.T, data *Data, hqID, branchID uuid.UUID) (uuid.UUID, uuid.UUID, uuid.UUID) {
 	t.Helper()
 	suffix := uuid.NewString()[:8]
 	ctx := context.Background()
@@ -68,20 +68,13 @@ func newFeeCatalogReferences(t *testing.T, data *Data, hqID, branchID uuid.UUID)
 	if err != nil {
 		t.Fatalf("创建分公司税务名称: %v", err)
 	}
-	chargeCategory, err := data.db.MasterDataItem.Create().
-		SetKind("charge_category").SetCode("FC-CAT-" + suffix).
-		SetName("费用科目测试大类").SetEnabled(true).Save(ctx)
-	if err != nil {
-		t.Fatalf("创建费用大类: %v", err)
-	}
-	return billingUnit.ID, hqTaxable.ID, branchTaxable.ID, chargeCategory.ID
+	return billingUnit.ID, hqTaxable.ID, branchTaxable.ID
 }
 
-func feeSettingInputForTest(code string, billingUnitID, chargeCategoryID, taxableServiceID uuid.UUID) *biz.FeeSetting {
+func feeSettingInputForTest(code string, billingUnitID, taxableServiceID uuid.UUID) *biz.FeeSetting {
 	return &biz.FeeSetting{
 		FeeCode:          code,
 		NameZH:           "费用科目测试-" + code,
-		ChargeCategoryID: chargeCategoryID,
 		DefaultCurrency:  "CNY",
 		BillingUnitID:    billingUnitID,
 		TaxRate:          decimal.RequireFromString("6.00"),
@@ -96,22 +89,22 @@ func TestFeeCatalogReferenceValidationPostgres(t *testing.T) {
 	data, cleanup := getIntegrationData(t)
 	defer cleanup()
 	hqID, branchID := newCrossCalcOrgTree(t, data)
-	billingUnitID, hqTaxableID, branchTaxableID, chargeCategoryID := newFeeCatalogReferences(t, data, hqID, branchID)
+	billingUnitID, hqTaxableID, branchTaxableID := newFeeCatalogReferences(t, data, hqID, branchID)
 	usecase := biz.NewFeeCatalogUsecase(NewFeeCatalogRepo(data))
 	branchCtx := feeCatalogBranchContext(branchID, hqID, access.FinanceFeeSettingCreate)
 
 	t.Run("分公司创建必须挂本组织税务名称", func(t *testing.T) {
-		if _, err := usecase.CreateFeeSetting(branchCtx, branchID, uuid.New(), feeSettingInputForTest("FC_REF_TAXABLE", billingUnitID, chargeCategoryID, hqTaxableID)); !errors.Is(err, biz.ErrFeeCatalogReferenceInvalid) {
+		if _, err := usecase.CreateFeeSetting(branchCtx, branchID, uuid.New(), feeSettingInputForTest("FC_REF_TAXABLE", billingUnitID, hqTaxableID)); !errors.Is(err, biz.ErrFeeCatalogReferenceInvalid) {
 			t.Fatalf("引用他组织税务名称应被拒绝，实际 %v", err)
 		}
-		if _, err := usecase.CreateFeeSetting(branchCtx, branchID, uuid.New(), feeSettingInputForTest("FC_REF_TAXABLE", billingUnitID, chargeCategoryID, branchTaxableID)); err != nil {
+		if _, err := usecase.CreateFeeSetting(branchCtx, branchID, uuid.New(), feeSettingInputForTest("FC_REF_TAXABLE", billingUnitID, branchTaxableID)); err != nil {
 			t.Fatalf("引用本组织税务名称应通过: %v", err)
 		}
 	})
 
 	t.Run("A 型全局引用对分公司开放", func(t *testing.T) {
 		// 计费单位与费用大类均为 A 型全局行（无组织维度），分公司直接引用应通过。
-		if _, err := usecase.CreateFeeSetting(branchCtx, branchID, uuid.New(), feeSettingInputForTest("FC_REF_GLOBAL", billingUnitID, chargeCategoryID, branchTaxableID)); err != nil {
+		if _, err := usecase.CreateFeeSetting(branchCtx, branchID, uuid.New(), feeSettingInputForTest("FC_REF_GLOBAL", billingUnitID, branchTaxableID)); err != nil {
 			t.Fatalf("引用 A 型全局计费单位与费用大类应通过: %v", err)
 		}
 	})
@@ -123,10 +116,6 @@ func TestFeeCatalogReferenceValidationPostgres(t *testing.T) {
 		if err != nil {
 			t.Fatalf("创建停用计费单位: %v", err)
 		}
-		disabledCategory, err := data.db.MasterDataItem.Create().SetKind("charge_category").SetCode("FC-DIS-CAT-" + suffix).SetName("停用大类").SetEnabled(false).Save(ctx)
-		if err != nil {
-			t.Fatalf("创建停用费用大类: %v", err)
-		}
 		disabledTaxable, err := data.db.TaxableService.Create().SetOrganizationID(branchID).SetName("停用应税服务-" + suffix).SetDefaultTaxRate("0").SetEnabled(false).Save(ctx)
 		if err != nil {
 			t.Fatalf("创建停用税务名称: %v", err)
@@ -135,9 +124,8 @@ func TestFeeCatalogReferenceValidationPostgres(t *testing.T) {
 			name  string
 			input *biz.FeeSetting
 		}{
-			{"停用计费单位", feeSettingInputForTest("FC_DIS_UNIT", disabledUnit.ID, chargeCategoryID, branchTaxableID)},
-			{"停用费用大类", feeSettingInputForTest("FC_DIS_CAT", billingUnitID, disabledCategory.ID, branchTaxableID)},
-			{"停用税务名称", feeSettingInputForTest("FC_DIS_TAX", billingUnitID, chargeCategoryID, disabledTaxable.ID)},
+			{"停用计费单位", feeSettingInputForTest("FC_DIS_UNIT", disabledUnit.ID, branchTaxableID)},
+			{"停用税务名称", feeSettingInputForTest("FC_DIS_TAX", billingUnitID, disabledTaxable.ID)},
 		}
 		for _, testCase := range cases {
 			if _, err := usecase.CreateFeeSetting(branchCtx, branchID, uuid.New(), testCase.input); !errors.Is(err, biz.ErrFeeCatalogReferenceInvalid) {
@@ -151,11 +139,11 @@ func TestFeeCatalogCompanyTemplatesPostgres(t *testing.T) {
 	d, cleanup := getIntegrationData(t)
 	defer cleanup()
 	system, company := newCrossCalcOrgTree(t, d)
-	unit, _, taxID, category := newFeeCatalogReferences(t, d, system, company)
+	unit, _, taxID := newFeeCatalogReferences(t, d, system, company)
 	uc := biz.NewFeeCatalogUsecase(NewFeeCatalogRepo(d))
 	systemCtx := feeCatalogHeadquartersContext(system, access.FinanceFeeSettingCreate, access.FinanceFeeSettingUpdate, access.FinanceFeeSettingRead)
 	companyCtx := feeCatalogBranchContext(company, system, access.FinanceFeeSettingCreate, access.FinanceFeeSettingUpdate)
-	input := &biz.FeeSettingTemplate{FeeSetting: *feeSettingInputForTest("FC_TEMPLATE", unit, category, uuid.Nil), TaxableService: biz.TaxableService{Name: "模板应税服务", DefaultTaxRate: decimal.NewFromInt(6)}}
+	input := &biz.FeeSettingTemplate{FeeSetting: *feeSettingInputForTest("FC_TEMPLATE", unit, uuid.Nil), TaxableService: biz.TaxableService{Name: "模板应税服务", DefaultTaxRate: decimal.NewFromInt(6)}}
 	input.Enabled = true
 	bad := *input
 	bad.TaxableService.Name = ""
@@ -175,7 +163,7 @@ func TestFeeCatalogCompanyTemplatesPostgres(t *testing.T) {
 	if _, err := uc.SaveFeeSettingTemplate(companyCtx, uuid.Nil, input); err == nil {
 		t.Fatal("公司不得维护系统模板")
 	}
-	if _, err := uc.CreateFeeSetting(systemCtx, system, uuid.New(), feeSettingInputForTest("FC_SYSTEM", unit, category, taxID)); err == nil {
+	if _, err := uc.CreateFeeSetting(systemCtx, system, uuid.New(), feeSettingInputForTest("FC_SYSTEM", unit, taxID)); err == nil {
 		t.Fatal("系统工作台不得创建公司科目")
 	}
 	err = d.WithTx(context.Background(), func(tx *ent.Tx) error {
@@ -214,7 +202,7 @@ func TestFeeCatalogCompanyTemplatesPostgres(t *testing.T) {
 		}
 		if item.ID == source.ID || item.OrganizationID != company || item.NameZh != source.NameZh ||
 			!sameOptionalText(item.NameEn, source.NameEn) || !sameOptionalText(item.AliasName, source.AliasName) ||
-			item.ChargeCategoryID != source.ChargeCategoryID || item.BillingUnitID != source.BillingUnitID ||
+			item.BillingUnitID != source.BillingUnitID ||
 			item.DefaultCurrency != source.DefaultCurrency || item.TaxRate != source.TaxRate ||
 			item.Enabled != source.Enabled || item.SortOrder != source.SortOrder ||
 			(item.AbnormalCaseID == nil) != (source.AbnormalCaseID == nil) ||
@@ -241,7 +229,7 @@ func TestFeeCatalogCompanyTemplatesPostgres(t *testing.T) {
 		t.Fatal(err)
 	}
 	otherCtx := feeCatalogBranchContext(other.ID, system, access.FinanceFeeSettingUpdate)
-	if _, err := uc.UpdateFeeSetting(otherCtx, other.ID, uuid.New(), copied.ID, feeSettingInputForTest("FC_TEMPLATE", unit, category, taxID)); !errors.Is(err, biz.ErrFeeSettingNotFound) {
+	if _, err := uc.UpdateFeeSetting(otherCtx, other.ID, uuid.New(), copied.ID, feeSettingInputForTest("FC_TEMPLATE", unit, taxID)); !errors.Is(err, biz.ErrFeeSettingNotFound) {
 		t.Fatalf("跨公司更新必须不可见: %v", err)
 	}
 	result, err := uc.ListFeeSettings(companyCtx, company, biz.FeeCatalogListOptions{Page: 1, PageSize: 200})

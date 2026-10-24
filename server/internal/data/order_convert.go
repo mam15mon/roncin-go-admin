@@ -11,7 +11,6 @@ import (
 	ordercargoent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	ordercontainerrequestent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
-	orderserviceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	ordershippingdocumentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	seamasterbillorderlink "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 )
@@ -25,7 +24,6 @@ func withOrderEdges(query *ent.OrderQuery) *ent.OrderQuery {
 			q.WithUser()
 			q.WithOrganization()
 		}).
-		WithServiceTypes(func(q *ent.OrderServiceTypeQuery) { q.Order(orderserviceent.ByCreatedAt()) }).
 		WithCargoCategories(func(q *ent.OrderCargoCategoryQuery) { q.Order(ordercargoent.ByCreatedAt()) }).
 		WithShippingDocuments(func(q *ent.OrderShippingDocumentQuery) {
 			q.Order(ordershippingdocumentent.ByCreatedAt())
@@ -112,10 +110,6 @@ func orderToBiz(item *ent.Order) *biz.Order {
 	if item.DangerousPackingGroup != nil {
 		value := biz.OrderDangerousPackingGroup(*item.DangerousPackingGroup)
 		result.DangerousPackingGroup = &value
-	}
-	result.ServiceTypeIDs = make([]uuid.UUID, 0, len(item.Edges.ServiceTypes))
-	for _, link := range item.Edges.ServiceTypes {
-		result.ServiceTypeIDs = append(result.ServiceTypeIDs, link.MasterDataItemID)
 	}
 	result.IdempotencyKey = item.IdempotencyKey
 	result.CargoCategoryIDs = make([]uuid.UUID, 0, len(item.Edges.CargoCategories))

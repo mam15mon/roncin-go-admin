@@ -46,30 +46,54 @@ func OrderClosurePendingSupplementError() *errors.Error {
 	return errors.Conflict(ErrOrderClosureBlocked.Reason, "存在待审费用变更，请先处理后再结案")
 }
 
-var allowedSEFlowTransitions = map[OrderFlowStatus][]OrderFlowStatus{
-	OrderFlowDraft:                      {OrderFlowBooked},
-	OrderFlowBooked:                     {OrderFlowSpaceAllocated},
-	OrderFlowSpaceAllocated:             {OrderFlowTruckingArranged, OrderFlowDocumentCutoff},
-	OrderFlowTruckingArranged:           {OrderFlowDocumentCutoff},
-	OrderFlowDocumentCutoff:             {OrderFlowCustomsDeclarationArranged},
-	OrderFlowCustomsDeclarationArranged: {OrderFlowDocumentReleased},
+// seFlowStatusOrder 主流程状态的严格推进顺序（下标即推进序）。
+var seFlowStatusOrder = []OrderFlowStatus{
+	OrderFlowDraft,
+	OrderFlowBooked,
+	OrderFlowSpaceAllocated,
+	OrderFlowTruckingArranged,
+	OrderFlowDocumentCutoff,
+	OrderFlowCustomsDeclarationArranged,
+	OrderFlowDocumentReleased,
 }
 
-func validSEFlowTransition(from, to OrderFlowStatus) bool {
-	for _, target := range allowedSEFlowTransitions[from] {
-		if target == to {
-			return true
+// seFlowStatusIndex 返回状态在推进序列中的下标；非法状态返回 -1。
+func seFlowStatusIndex(status OrderFlowStatus) int {
+	for index, candidate := range seFlowStatusOrder {
+		if candidate == status {
+			return index
 		}
 	}
-	return false
+	return -1
 }
 
-// AllowedTargetFlowStatuses 返回当前订单可执行的主流程目标状态。
+// validSEFlowTransition 允许跳转到任意严格靠后的主流程状态：被跳过的中间节点
+// 由仓储层在同一事务内自动补齐完成（补齐时间同为本次操作时刻）。
+func validSEFlowTransition(from, to OrderFlowStatus) bool {
+	fromIndex, toIndex := seFlowStatusIndex(from), seFlowStatusIndex(to)
+	return fromIndex >= 0 && toIndex > fromIndex
+}
+
+// SkippedFlowStatuses 返回从当前状态推进到目标状态时被跳过的中间状态序列，
+// 供仓储层补齐生命周期事件使用；相邻推进返回空。
+func SkippedFlowStatuses(from, to OrderFlowStatus) []OrderFlowStatus {
+	fromIndex, toIndex := seFlowStatusIndex(from), seFlowStatusIndex(to)
+	if fromIndex < 0 || toIndex <= fromIndex {
+		return nil
+	}
+	return seFlowStatusOrder[fromIndex+1 : toIndex]
+}
+
+// AllowedTargetFlowStatuses 返回当前订单可执行的主流程目标状态（全部后续节点）。
 func (order *Order) AllowedTargetFlowStatuses() []OrderFlowStatus {
 	if (order.BusinessType != OrderBusinessSE && order.BusinessType != OrderBusinessAE) || order.TerminationStatus != OrderTerminationActive || order.ClosureStatus != OrderClosureOpen {
 		return nil
 	}
-	return append([]OrderFlowStatus(nil), allowedSEFlowTransitions[order.FlowStatus]...)
+	fromIndex := seFlowStatusIndex(order.FlowStatus)
+	if fromIndex < 0 || fromIndex+1 >= len(seFlowStatusOrder) {
+		return nil
+	}
+	return append([]OrderFlowStatus(nil), seFlowStatusOrder[fromIndex+1:]...)
 }
 
 func validTerminationTransition(from, to OrderTerminationStatus) bool {
@@ -138,8 +162,9 @@ func (uc *OrderUsecase) TransitionTermination(ctx context.Context, organizationI
 // TransitionClosure 校验并执行订单结案或反结案。
 //
 // 结案与反结案是生命周期命令，不经过内容写门禁也不校验业务锁：已业务锁定的
-// DOCUMENT_RELEASED 订单允许结案；结案 readiness（主流程完成或终止完成、无
-// 活动异常、无未开账费用、无待审核补录）由仓储层在事务内重验。
+// DOCUMENT_RELEASED 订单允许结案；结案 readiness（无活动异常、无未开账费用、
+// 无待审核补录）由仓储层在事务内重验。主流程未完成的订单直接结案时，仓储层
+// 在同一事务内自动补齐全部主流程节点（含已放单，时间均为操作时刻）。
 // 结案原因选填，反结案仍必须提供原因。
 func (uc *OrderUsecase) TransitionClosure(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, target OrderClosureStatus, reason string) (*Order, error) {
 	reason = strings.TrimSpace(reason)
@@ -157,9 +182,7 @@ func (uc *OrderUsecase) TransitionClosure(ctx context.Context, organizationID, a
 		if readiness.HasPendingFeeSupplement {
 			return nil, OrderClosurePendingSupplementError()
 		}
-		flowFinished := readiness.FlowStatus == OrderFlowDocumentReleased
-		terminated := readiness.TerminationStatus == OrderTerminationTerminated
-		if (!flowFinished && !terminated) || readiness.HasActiveException || readiness.HasUnbilledOrderFees {
+		if readiness.HasActiveException || readiness.HasUnbilledOrderFees {
 			return nil, ErrOrderClosureBlocked
 		}
 	}

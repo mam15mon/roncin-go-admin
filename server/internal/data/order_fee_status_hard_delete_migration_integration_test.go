@@ -362,7 +362,7 @@ func createReplaySupplementChain(t *testing.T, data *Data, ctx context.Context, 
 		SetExchangeRateDate(financeBillIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("100.00000000").
-		SetExpenseDate(financeBillIntegrationDate).
+
 		SetReason("迁移重放测试补录").
 		SetRequestedBy(actorID).
 		SetRequestedAt(decidedAt).
@@ -395,7 +395,7 @@ func createReplaySupplementChain(t *testing.T, data *Data, ctx context.Context, 
 		SetExchangeRateDate(financeBillIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("100.00000000").
-		SetExpenseDate(financeBillIntegrationDate).
+
 		SetVersion(1).
 		Save(ctx)
 	if feeErr != nil {

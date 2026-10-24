@@ -66,7 +66,6 @@ func newOrderFeeSupplementRequestFixture(basis OrderFeeSupplementLockBasis) *Ord
 			ExchangeRate:       decimal.RequireFromString("1.00000000"),
 			BaseCurrency:       "CNY",
 			BaseCurrencyAmount: decimal.RequireFromString("120.00000000"),
-			ExpenseDate:        "2026-09-18",
 		},
 	}
 	switch basis {

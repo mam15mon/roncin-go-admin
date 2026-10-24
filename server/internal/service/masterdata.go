@@ -423,8 +423,6 @@ func masterDataKindFromAPI(value v1.MasterDataKind) biz.MasterDataKind {
 		return biz.MasterDataKindRegion
 	case v1.MasterDataKind_MASTER_DATA_KIND_CONTAINER_SPEC:
 		return biz.MasterDataKindContainerSpec
-	case v1.MasterDataKind_MASTER_DATA_KIND_CHARGE_CATEGORY:
-		return biz.MasterDataKindChargeCategory
 	case v1.MasterDataKind_MASTER_DATA_KIND_CARGO_CATEGORY:
 		return biz.MasterDataKindCargoCategory
 	case v1.MasterDataKind_MASTER_DATA_KIND_ABNORMAL_CASE:
@@ -444,8 +442,6 @@ func masterDataKindToAPI(value biz.MasterDataKind) v1.MasterDataKind {
 		return v1.MasterDataKind_MASTER_DATA_KIND_REGION
 	case biz.MasterDataKindContainerSpec:
 		return v1.MasterDataKind_MASTER_DATA_KIND_CONTAINER_SPEC
-	case biz.MasterDataKindChargeCategory:
-		return v1.MasterDataKind_MASTER_DATA_KIND_CHARGE_CATEGORY
 	case biz.MasterDataKindCargoCategory:
 		return v1.MasterDataKind_MASTER_DATA_KIND_CARGO_CATEGORY
 	case biz.MasterDataKindAbnormalCase:

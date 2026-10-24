@@ -109,11 +109,11 @@ func (s *OrderFeeService) ResolveFeeExchangeRate(ctx context.Context, request *v
 	if !valid {
 		return nil, biz.ErrOrderFeeInvalidArgument
 	}
-	resolved, err := s.usecase.ResolveExchangeRate(ctx, principal.Organization.ID, orderID, direction, request.GetCurrency(), request.GetExpenseDate())
+	resolved, err := s.usecase.ResolveExchangeRate(ctx, principal.Organization.ID, orderID, direction, request.GetCurrency())
 	if err != nil {
 		return nil, err
 	}
-	return ok(ctx, &v1.ResolveFeeExchangeRateResponse{ExchangeRate: resolved.Rate.StringFixed(8), ExchangeRateSource: resolved.Source, ExchangeRateDate: request.GetExpenseDate()}), nil
+	return ok(ctx, &v1.ResolveFeeExchangeRateResponse{ExchangeRate: resolved.Rate.StringFixed(8), ExchangeRateSource: resolved.Source, ExchangeRateDate: resolved.Date}), nil
 }
 
 func (s *OrderFeeService) AddFee(ctx context.Context, request *v1.AddFeeRequest) (*v1.AddFeeResponse, error) {
@@ -121,7 +121,7 @@ func (s *OrderFeeService) AddFee(ctx context.Context, request *v1.AddFeeRequest)
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	orderID, input, err := orderFeeInputFromAPI(request.GetOrderId(), request.GetDirection(), request.GetFeeSettingId(), request.GetSettlementPartyId(), request.GetBillingUnitId(), request.GetQuantity(), request.GetUnitPrice(), request.GetCurrency(), request.GetExpenseDate(), request.GetNote(), request.ExchangeRateOverride, request.GetIdempotencyKey(), request.TaxInclusive)
+	orderID, input, err := orderFeeInputFromAPI(request.GetOrderId(), request.GetDirection(), request.GetFeeSettingId(), request.GetSettlementPartyId(), request.GetBillingUnitId(), request.GetQuantity(), request.GetUnitPrice(), request.GetCurrency(), request.GetNote(), request.ExchangeRateOverride, request.GetIdempotencyKey(), request.TaxInclusive)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +129,7 @@ func (s *OrderFeeService) AddFee(ctx context.Context, request *v1.AddFeeRequest)
 	if err != nil {
 		return nil, err
 	}
-	created, err := s.usecase.Add(ctx, principal.Organization.ID, principal.UserID, orderID, input, principal.HasPermissionInScope(access.FinanceExchangeRateUpdate, biz.DataScopeOrganization))
+	created, err := s.usecase.Add(ctx, principal.Organization.ID, principal.UserID, orderID, input, principal.HasPermissionInScope(access.FinanceOrderFeeExchangeRateOverride, biz.DataScopeOrganization))
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +145,7 @@ func (s *OrderFeeService) UpdateFee(ctx context.Context, request *v1.UpdateFeeRe
 	if err != nil {
 		return nil, biz.ErrOrderFeeInvalidArgument
 	}
-	orderID, input, err := orderFeeInputFromAPI(request.GetOrderId(), request.GetDirection(), request.GetFeeSettingId(), request.GetSettlementPartyId(), request.GetBillingUnitId(), request.GetQuantity(), request.GetUnitPrice(), request.GetCurrency(), request.GetExpenseDate(), request.GetNote(), request.ExchangeRateOverride, "", request.TaxInclusive)
+	orderID, input, err := orderFeeInputFromAPI(request.GetOrderId(), request.GetDirection(), request.GetFeeSettingId(), request.GetSettlementPartyId(), request.GetBillingUnitId(), request.GetQuantity(), request.GetUnitPrice(), request.GetCurrency(), request.GetNote(), request.ExchangeRateOverride, "", request.TaxInclusive)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +164,7 @@ func (s *OrderFeeService) UpdateFee(ctx context.Context, request *v1.UpdateFeeRe
 	if request.FeeName != nil {
 		input.FeeNameOverride = request.FeeName
 	}
-	updated, err := s.usecase.Update(ctx, principal.Organization.ID, principal.UserID, orderID, id, input, principal.HasPermissionInScope(access.FinanceExchangeRateUpdate, biz.DataScopeOrganization))
+	updated, err := s.usecase.Update(ctx, principal.Organization.ID, principal.UserID, orderID, id, input, principal.HasPermissionInScope(access.FinanceOrderFeeExchangeRateOverride, biz.DataScopeOrganization))
 	if err != nil {
 		return nil, err
 	}
@@ -195,11 +195,11 @@ func (s *OrderFeeService) BulkUpdateOrderFees(ctx context.Context, request *v1.B
 	if err != nil {
 		return nil, err
 	}
-	settlementPartyID, expenseDate, err := parseOrderFeeBulkUpdateValue(request.SettlementPartyId, request.ExpenseDate)
+	settlementPartyID, err := parseOrderFeeBulkUpdateParty(request.SettlementPartyId)
 	if err != nil {
 		return nil, err
 	}
-	if err := s.usecase.BulkUpdate(ctx, principal.Organization.ID, principal.UserID, orderID, targets, settlementPartyID, expenseDate); err != nil {
+	if err := s.usecase.BulkUpdate(ctx, principal.Organization.ID, principal.UserID, orderID, targets, settlementPartyID); err != nil {
 		return nil, err
 	}
 	return ok(ctx, &v1.BulkUpdateOrderFeesResponse{UpdatedCount: int32(len(targets))}), nil
@@ -246,20 +246,16 @@ func parseOrderFeeBulkTargets(orderIDText string, requestTargets []*v1.BulkOrder
 	return orderID, targets, nil
 }
 
-// parseOrderFeeBulkUpdateValue 解析批量修改的目标值：结算单位 ID 或费用时间
-// 二选一，必须恰好提供一个且结算单位 ID 是合法 UUID；日期格式由领域层校验。
-func parseOrderFeeBulkUpdateValue(settlementPartyIDText, expenseDateText *string) (*uuid.UUID, *string, error) {
-	if (settlementPartyIDText == nil) == (expenseDateText == nil) {
-		return nil, nil, biz.ErrOrderFeeInvalidArgument
+// parseOrderFeeBulkUpdateParty 解析批量修改的统一结算单位 ID，必须提供且合法。
+func parseOrderFeeBulkUpdateParty(settlementPartyIDText *string) (*uuid.UUID, error) {
+	if settlementPartyIDText == nil {
+		return nil, biz.ErrOrderFeeInvalidArgument
 	}
-	if settlementPartyIDText != nil {
-		partyID, err := uuid.Parse(*settlementPartyIDText)
-		if err != nil || partyID == uuid.Nil {
-			return nil, nil, biz.ErrOrderFeeInvalidArgument
-		}
-		return &partyID, nil, nil
+	partyID, err := uuid.Parse(*settlementPartyIDText)
+	if err != nil || partyID == uuid.Nil {
+		return nil, biz.ErrOrderFeeInvalidArgument
 	}
-	return nil, expenseDateText, nil
+	return &partyID, nil
 }
 
 func orderFeeToAPI(value *biz.OrderFee) *v1.OrderFee {
@@ -283,7 +279,6 @@ func orderFeeToAPI(value *biz.OrderFee) *v1.OrderFee {
 		ExchangeRate:        value.ExchangeRate.StringFixed(8),
 		ExchangeRateSource:  value.ExchangeRateSource,
 		ExchangeRateDate:    value.ExchangeRateDate,
-		ExpenseDate:         value.ExpenseDate,
 		BaseCurrency:        value.BaseCurrency,
 		BaseCurrencyAmount:  value.BaseCurrencyAmount.StringFixed(8),
 		Version:             value.Version,
@@ -325,7 +320,7 @@ func orderFeeToAPI(value *biz.OrderFee) *v1.OrderFee {
 	return result
 }
 
-func orderFeeInputFromAPI(orderIDText string, direction v1.OrderFeeDirection, feeSettingIDText, partyIDText, billingUnitIDText, quantityText, unitPriceText, currency, expenseDate, note string, exchangeRateOverrideText *string, idempotencyKey string, taxInclusive *bool) (uuid.UUID, *biz.OrderFee, error) {
+func orderFeeInputFromAPI(orderIDText string, direction v1.OrderFeeDirection, feeSettingIDText, partyIDText, billingUnitIDText, quantityText, unitPriceText, currency, note string, exchangeRateOverrideText *string, idempotencyKey string, taxInclusive *bool) (uuid.UUID, *biz.OrderFee, error) {
 	orderID, err := uuid.Parse(orderIDText)
 	if err != nil {
 		return uuid.Nil, nil, biz.ErrOrderFeeInvalidArgument
@@ -363,7 +358,6 @@ func orderFeeInputFromAPI(orderIDText string, direction v1.OrderFeeDirection, fe
 		Quantity:          quantity,
 		UnitPrice:         unitPrice,
 		Currency:          currency,
-		ExpenseDate:       expenseDate,
 		TaxInclusive:      true,
 	}
 	if taxInclusive != nil {

@@ -104,7 +104,7 @@ func (f *financeInvoicePostgresFixture) createConfirmedBill(key string) *ent.Fin
 		SetExchangeRateDate(financeInvoiceIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("100.00000000").
-		SetExpenseDate(financeInvoiceIntegrationDate).
+
 		SetVersion(1).
 		Save(ctx)
 	if err != nil {

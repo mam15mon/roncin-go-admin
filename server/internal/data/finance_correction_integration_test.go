@@ -20,7 +20,7 @@ import (
 
 func correctionFinanceFee(t *testing.T, f *financeInvoicePostgresFixture, key, amount string, source, correction *uuid.UUID, effect fee.EconomicEffect) *ent.OrderFee {
 	t.Helper()
-	builder := f.data.db.OrderFee.Create().SetOrderID(f.orderID).SetIdempotencyKey(key).SetDirection(fee.DirectionRECEIVABLE).SetEconomicEffect(effect).SetFeeCode(key).SetFeeName(key).SetSettlementPartyID(f.partnerID).SetBillingUnit("票").SetQuantity("1").SetUnitPrice(amount).SetTotalAmount(amount).SetNetAmount(amount).SetTaxAmount("0").SetTaxRate("0").SetCurrency("CNY").SetExchangeRate("1").SetExchangeRateSource(fee.ExchangeRateSourceSYSTEM).SetExchangeRateDate(financeInvoiceIntegrationDate).SetBaseCurrency("CNY").SetBaseCurrencyAmount(amount).SetExpenseDate(financeInvoiceIntegrationDate).SetNillableSourceFeeID(source).SetNillableCorrectionRequestID(correction)
+	builder := f.data.db.OrderFee.Create().SetOrderID(f.orderID).SetIdempotencyKey(key).SetDirection(fee.DirectionRECEIVABLE).SetEconomicEffect(effect).SetFeeCode(key).SetFeeName(key).SetSettlementPartyID(f.partnerID).SetBillingUnit("票").SetQuantity("1").SetUnitPrice(amount).SetTotalAmount(amount).SetNetAmount(amount).SetTaxAmount("0").SetTaxRate("0").SetCurrency("CNY").SetExchangeRate("1").SetExchangeRateSource(fee.ExchangeRateSourceSYSTEM).SetExchangeRateDate(financeInvoiceIntegrationDate).SetBaseCurrency("CNY").SetBaseCurrencyAmount(amount).SetNillableSourceFeeID(source).SetNillableCorrectionRequestID(correction)
 	result, err := builder.Save(context.Background())
 	if err != nil {
 		t.Fatal(err)

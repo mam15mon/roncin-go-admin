@@ -69,7 +69,7 @@ type FinanceCommissionAdjustment struct {
 type CommissionFeeDetail struct {
 	FeeID, SettlementPartyID                         uuid.UUID
 	Direction, FeeCode, FeeName, SettlementPartyName string
-	Currency, BaseCurrency, ExpenseDate, Status      string
+	Currency, BaseCurrency, Status      string
 	TotalAmount, ExchangeRate, BaseCurrencyAmount    decimal.Decimal
 }
 
@@ -473,7 +473,6 @@ type MyFeeSupplementAdjustmentSource struct {
 	FeeTotalAmount        decimal.Decimal
 	FeeBaseCurrency       string
 	FeeBaseCurrencyAmount decimal.Decimal
-	FeeExpenseDate        string
 	SupplementReason      string
 }
 

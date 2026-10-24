@@ -57,35 +57,28 @@ func TestParseOrderFeeBulkTargetsAcceptsValidInput(t *testing.T) {
 	}
 }
 
-// TestParseOrderFeeBulkUpdateValueEnforcesExactlyOneTarget 断言批量修改目标值
-// 二选一约束：缺失、同时给出与非法结算单位 UUID 均拒绝。
-func TestParseOrderFeeBulkUpdateValueEnforcesExactlyOneTarget(t *testing.T) {
-	party := uuid.NewString()
-	date := "2026-09-15 10:30"
+// TestParseOrderFeeBulkUpdatePartyRequiresSettlementParty 断言批量修改必须提供
+// 合法的统一结算单位：缺失、非法 UUID 与空 UUID 均拒绝。
+func TestParseOrderFeeBulkUpdatePartyRequiresSettlementParty(t *testing.T) {
 	tests := []struct {
 		name  string
 		party *string
-		date  *string
 	}{
 		{name: "缺失目标值"},
-		{name: "双目标值", party: &party, date: &date},
 		{name: "非法结算单位 UUID", party: &[]string{"not-a-uuid"}[0]},
 		{name: "空结算单位 UUID", party: &[]string{uuid.Nil.String()}[0]},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			if _, _, err := parseOrderFeeBulkUpdateValue(test.party, test.date); err != biz.ErrOrderFeeInvalidArgument {
+			if _, err := parseOrderFeeBulkUpdateParty(test.party); err != biz.ErrOrderFeeInvalidArgument {
 				t.Fatalf("%s应被结构层拒绝，实际错误为 %v", test.name, err)
 			}
 		})
 	}
 
-	parsedParty, parsedDate, err := parseOrderFeeBulkUpdateValue(&party, nil)
-	if err != nil || parsedParty == nil || parsedParty.String() != party || parsedDate != nil {
-		t.Fatalf("合法结算单位目标值解析不正确: party=%v date=%v err=%v", parsedParty, parsedDate, err)
-	}
-	parsedParty, parsedDate, err = parseOrderFeeBulkUpdateValue(nil, &date)
-	if err != nil || parsedParty != nil || parsedDate == nil || *parsedDate != date {
-		t.Fatalf("合法费用时间目标值解析不正确: party=%v date=%v err=%v", parsedParty, parsedDate, err)
+	party := uuid.NewString()
+	parsedParty, err := parseOrderFeeBulkUpdateParty(&party)
+	if err != nil || parsedParty == nil || parsedParty.String() != party {
+		t.Fatalf("合法结算单位目标值解析不正确: party=%v err=%v", parsedParty, err)
 	}
 }

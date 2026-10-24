@@ -57,7 +57,6 @@ func supplementSnapshotFromEnt(item *ent.OrderFeeSupplementRequest) (biz.OrderFe
 		ExchangeRateSettingID: item.ExchangeRateSettingID,
 		BaseCurrency:          item.BaseCurrency,
 		BaseCurrencyAmount:    baseCurrencyAmount,
-		ExpenseDate:           item.ExpenseDate,
 	}
 	if item.TaxRate != nil {
 		taxRate, parseErr := decimalOf(*item.TaxRate)

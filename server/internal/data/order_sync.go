@@ -15,7 +15,6 @@ import (
 	ordercargoent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargocategory"
 	ordercontainerrequestent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
-	orderserviceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	ordershippingdocumentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
@@ -67,9 +66,6 @@ func validateOrderReferences(ctx context.Context, tx *ent.Tx, organizationID uui
 		if !validCurrency {
 			return biz.ErrOrderInvalidArgument
 		}
-	}
-	if err := validateMasterDataIDs(ctx, tx, organizationID, input.ServiceTypeIDs, masterdataent.KindChargeCategory); err != nil {
-		return err
 	}
 	if err := validateMasterDataIDs(ctx, tx, organizationID, input.CargoCategoryIDs, masterdataent.KindCargoCategory); err != nil {
 		return err
@@ -213,17 +209,9 @@ func validateMasterDataIDs(ctx context.Context, tx *ent.Tx, organizationID uuid.
 	return nil
 }
 
-func replaceOrderSelections(ctx context.Context, tx *ent.Tx, orderID uuid.UUID, serviceTypeIDs, cargoCategoryIDs []uuid.UUID) error {
-	if _, err := tx.OrderServiceType.Delete().Where(orderserviceent.OrderIDEQ(orderID)).Exec(ctx); err != nil {
-		return err
-	}
+func replaceOrderSelections(ctx context.Context, tx *ent.Tx, orderID uuid.UUID, cargoCategoryIDs []uuid.UUID) error {
 	if _, err := tx.OrderCargoCategory.Delete().Where(ordercargoent.OrderIDEQ(orderID)).Exec(ctx); err != nil {
 		return err
-	}
-	for _, id := range serviceTypeIDs {
-		if _, err := tx.OrderServiceType.Create().SetOrderID(orderID).SetMasterDataItemID(id).Save(ctx); err != nil {
-			return err
-		}
 	}
 	for _, id := range cargoCategoryIDs {
 		if _, err := tx.OrderCargoCategory.Create().SetOrderID(orderID).SetMasterDataItemID(id).Save(ctx); err != nil {

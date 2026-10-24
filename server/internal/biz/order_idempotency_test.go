@@ -26,8 +26,7 @@ func idempotentCreateInput(organizationID uuid.UUID) *Order {
 		ShippingLineID: &shippingLineID,
 		TradeDirection: OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
 		ETD: "2026-09-10T00:00:00Z", ETA: "2026-09-25T00:00:00Z",
-		ServiceTypeIDs:   []uuid.UUID{uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7())},
-		CargoCategoryIDs: []uuid.UUID{uuid.Must(uuid.NewV7())},
+		CargoCategoryIDs: []uuid.UUID{uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7())},
 		PersonnelAssignments: []*OrderPersonnel{
 			{UserID: commissionUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleSales},
 			{UserID: commissionUserID, OrganizationID: organizationID, Role: OrderPersonnelRoleOperator},
@@ -40,14 +39,14 @@ func idempotentCreateInput(organizationID uuid.UUID) *Order {
 }
 
 // buildExistingFromCreate 以创建请求为模板构造幂等键命中的既有订单，
-// 载体字段与请求一致（ServiceTypeIDs 顺序打乱，验证集合比较与顺序无关）。
+// 载体字段与请求一致（CargoCategoryIDs 顺序打乱，验证集合比较与顺序无关）。
 func buildExistingFromCreate(input *Order) *Order {
 	existing := *input
 	existing.ID = uuid.Must(uuid.NewV7())
 	existing.OrderNo = "SE0009"
 	existing.Version = 1
 	existing.OrderDate = "2026-09-13T00:00:00Z"
-	existing.ServiceTypeIDs = []uuid.UUID{input.ServiceTypeIDs[1], input.ServiceTypeIDs[0]}
+	existing.CargoCategoryIDs = []uuid.UUID{input.CargoCategoryIDs[1], input.CargoCategoryIDs[0]}
 	return &existing
 }
 
@@ -193,9 +192,9 @@ func TestSameOrderCreateIntentIgnoresServerDefaultsAndSelectionOrder(t *testing.
 	}
 
 	otherSelection := *input
-	otherSelection.ServiceTypeIDs = []uuid.UUID{uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7())}
+	otherSelection.CargoCategoryIDs = append([]uuid.UUID{uuid.Must(uuid.NewV7())}, otherSelection.CargoCategoryIDs...)
 	if sameOrderCreateIntent(existing, &otherSelection) {
-		t.Fatal("服务类型集合不同应判定为意图冲突")
+		t.Fatal("品类集合不同应判定为意图冲突")
 	}
 
 	otherCount := *input

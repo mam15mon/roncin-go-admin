@@ -102,7 +102,6 @@ type OrderFeeSupplementFeeSnapshot struct {
 	ExchangeRateSettingID *uuid.UUID
 	BaseCurrency          string
 	BaseCurrencyAmount    decimal.Decimal
-	ExpenseDate           string
 	Note                  *string
 }
 
@@ -339,7 +338,6 @@ func BuildOrderFeeSupplementFingerprint(orderID uuid.UUID, fee OrderFeeSupplemen
 		"net|" + fee.NetAmount.StringFixed(8),
 		"tax|" + fee.TaxAmount.StringFixed(8),
 		"currency|" + fee.Currency,
-		"expense_date|" + fee.ExpenseDate,
 		"note|" + stringOrDash(fee.Note),
 		"reason|" + reason,
 	}
