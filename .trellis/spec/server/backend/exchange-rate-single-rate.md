@@ -33,7 +33,13 @@ ResolveRate(ctx context.Context, companyID uuid.UUID, direction OrderFeeDirectio
 
 新解析仅查目标自然周的本公司启用行。相同币种返回 `rate=1`、来源 `SYSTEM`；应收取 `ar_rate`、应付取 `ap_rate`，空值沿用 `rate`。命中行快照携带设置 ID，来源为 `WEEKLY` 或 `BOC_SYNC`。不存在上周继承、公共直连、公共历史回溯或公共交叉套算。外部牌价预览可计算交叉报价，它不读取数据库公共行。跨组织资金流仍按原币记账。
 
-`MANUAL` 只代表有 `update` 权限者显式输入；不能静默生成公司周配置。保留既有单据的手工快照不等于新手工输入，更新其他字段时不得因此要求重新输入，也不得允许借旧来源改价。旧 `INHERITED_LAST_WEEK`、`DERIVED`、公共行 `SYSTEM` 来源仅供已有快照展示；不删除枚举或历史 SQL 约束，也不重算已保存金额。
+`MANUAL` 只代表有显式手工输入权限者输入；不能静默生成公司周配置。保留既有单据的手工快照不等于新手工输入，更新其他字段时不得因此要求重新输入，也不得允许借旧来源改价。旧 `INHERITED_LAST_WEEK`、`DERIVED`、公共行 `SYSTEM` 来源仅供已有快照展示；不删除枚举或历史 SQL 约束，也不重算已保存金额。
+
+**订单费用汇率的解析与手工覆盖口径**（2026-10 起）：
+
+- 订单费用（应收与应付）折本币汇率统一按**订单 ETD** 所在自然周解析，解析日期不再是费用发生日期（发生日期字段已退役，录入时间以 `created_at` 为准）；费用快照的 `exchange_rate_date` 记录 ETD 所在业务日。订单未填写 ETD 时解析返回 `ORDER_ETD_MISSING`，前端提示先补 ETD。
+- 订单费用中的手工汇率覆盖使用独立权限 `system.finance.order_fee.exchange_rate.override`（「调整订单费用汇率」），与维护公司周汇率的 `update` 权限分离；且仅当订单内应收费用币种集合与应付费用币种集合一致且均非空时允许（`orderFeeCurrencySetsMatch`），否则返回 `ORDER_FEE_EXCHANGE_RATE_OVERRIDE_MISMATCH`。
+- 账单、资金流水等其他折本币调用的权限与日期口径不变（账单按账单日期、资金流水仍用 `update` 权限）。
 
 ## 4. 校验与错误矩阵
 
