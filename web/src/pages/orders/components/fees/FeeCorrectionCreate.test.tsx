@@ -40,7 +40,6 @@ const source: API.OrderFee = {
   totalAmount: '1000',
   taxInclusive: true,
   taxRate: '6',
-  expenseDate: '2026-10-10',
 };
 const props = {
   orderId: 'o1',
@@ -87,7 +86,6 @@ describe('费用更正申请入口', () => {
           feeNameOverride: '约定运费',
           taxRateOverride: '6',
           taxInclusive: true,
-          expenseDate: '2026-10-10',
         }),
       }),
     ]);

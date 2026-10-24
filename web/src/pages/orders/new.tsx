@@ -44,7 +44,6 @@ export default function NewOrderPage() {
     loading,
     error,
     retry,
-    serviceTypeOptions,
     cargoCategoryOptions,
     locationOptions,
     searchLocations,
@@ -55,8 +54,7 @@ export default function NewOrderPage() {
 
   const templateProps = useMemo(
     () => ({
-      serviceTypeOptions,
-      cargoCategoryOptions,
+        cargoCategoryOptions,
       locationOptions,
       searchLocations,
       currencyOptions,
@@ -84,8 +82,7 @@ export default function NewOrderPage() {
         : undefined,
     }),
     [
-      serviceTypeOptions,
-      cargoCategoryOptions,
+        cargoCategoryOptions,
       locationOptions,
       searchLocations,
       currencyOptions,
@@ -239,8 +236,7 @@ export default function NewOrderPage() {
       sections={sections}
       initialValues={definition.form.buildCreateDefaults({
         creator: templateProps.creator,
-        serviceTypeOptions,
-        cargoCategoryOptions,
+            cargoCategoryOptions,
       })}
       onFinish={handleFinish}
       onRevealError={({ errorFields }) => revealSeaFormErrors(errorFields)}

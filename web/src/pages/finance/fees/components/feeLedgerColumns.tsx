@@ -410,11 +410,11 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
       ),
     },
     {
-      title: '费用时间',
-      dataIndex: 'expenseDate',
+      title: '录入日期',
+      dataIndex: 'createdAt',
       width: 110,
       search: false,
-      render: (_, row) => formatDate(row.expenseDate, 'date'),
+      render: (_, row) => formatDate(row.createdAt, 'date'),
     },
     {
       title: 'SO号',

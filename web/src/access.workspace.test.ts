@@ -88,10 +88,11 @@ describe('系统管理与分公司有效业务能力', () => {
     expect(headquarters.canReadSEOrders).toBe(false);
   });
 
-  it('汇率维护和单据手工输入仅在授权公司工作台可用', () => {
+  it('汇率维护和订单费用汇率调整仅在授权公司工作台可用', () => {
     const permissions = [
       'system.finance.exchange_rate.read',
       'system.finance.exchange_rate.update',
+      'system.finance.order_fee.exchange_rate.override',
     ];
     const company = workspace(
       AuthOrganizationKind.ORGANIZATION_KIND_COMPANY,

@@ -94,7 +94,7 @@ export const renderExpandedFees = (record: API.FinanceCommissionLine) => {
       <Table<API.CommissionFeeDetail>
         rowKey={(item) =>
           item.feeId ||
-          `${item.feeCode}-${item.expenseDate}-${item.totalAmount}`
+          `${item.feeCode}-${item.totalAmount}`
         }
         columns={feeColumns}
         dataSource={record.fees}

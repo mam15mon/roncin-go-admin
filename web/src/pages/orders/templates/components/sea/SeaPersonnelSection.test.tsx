@@ -11,7 +11,6 @@ import {
 // buildSeaPersonnelSection 仅消费 personnelOptions/creator/isDetail，
 // 其余模板属性按 types.ts 补全为空实现。
 const baseTemplateProps: TemplateProps = {
-  serviceTypeOptions: [],
   cargoCategoryOptions: [],
   locationOptions: [],
   searchLocations: vi.fn().mockResolvedValue([]),
@@ -26,7 +25,7 @@ const baseTemplateProps: TemplateProps = {
   personnelOptions: [],
 };
 
-/** 提成归属相关三岗：仅新建模式必填。 */
+/** 提成归属相关三岗：操作人员仅新建模式必填；业务/客服由客户带入且只读。 */
 const COMMISSION_STAFF_LABELS = ['操作人员', '业务人员', '客服人员'] as const;
 const OPTIONAL_STAFF_LABELS = ['关联人员', '单证人员', '商务人员'] as const;
 
@@ -109,14 +108,20 @@ describe('订单人员选择', () => {
 });
 
 describe('buildSeaPersonnelSection 提成三岗必填', () => {
-  it('新建模式下操作/业务/客服显示必填标识，其余人员保持选填', () => {
+  it('新建模式下仅操作人员必填，业务/客服与其余人员保持选填且只读', () => {
     render(<SectionHost onFinish={vi.fn()} />);
 
-    for (const label of COMMISSION_STAFF_LABELS) {
-      expectLabelRequired(label, true);
-    }
-    for (const label of OPTIONAL_STAFF_LABELS) {
+    expectLabelRequired('操作人员', true);
+    for (const label of ['业务人员', '客服人员', ...OPTIONAL_STAFF_LABELS]) {
       expectLabelRequired(label, false);
+    }
+    // 业务/客服由客户带入，选择器恒只读。
+    for (const label of ['业务人员', '客服人员']) {
+      const labelElement = screen.getByText(label).closest('label');
+      const formItem = labelElement?.closest('.ant-form-item');
+      expect(
+        formItem?.querySelector('.ant-select-disabled'),
+      ).not.toBeNull();
     }
   });
 
@@ -128,15 +133,15 @@ describe('buildSeaPersonnelSection 提成三岗必填', () => {
     }
   });
 
-  it('新建模式空三岗提交被阻断并提示补选', async () => {
+  it('新建模式缺操作人员提交被阻断；业务/客服允许为空', async () => {
     const onFinish = vi.fn();
     render(<SectionHost onFinish={onFinish} />);
 
     fireEvent.click(screen.getByRole('button', { name: '提交' }));
 
     expect(await screen.findByText('请选择操作人员')).toBeInTheDocument();
-    expect(screen.getByText('请选择业务人员')).toBeInTheDocument();
-    expect(screen.getByText('请选择客服人员')).toBeInTheDocument();
+    expect(screen.queryByText('请选择业务人员')).not.toBeInTheDocument();
+    expect(screen.queryByText('请选择客服人员')).not.toBeInTheDocument();
     expect(onFinish).not.toHaveBeenCalled();
   });
 });

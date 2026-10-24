@@ -17,7 +17,7 @@ export type FeeLedgerFilterParams = {
   settlementPartyId?: string;
   customerId?: string;
   billNo?: string;
-  expenseDateRange?: [Dayjs, Dayjs];
+  createdAtRange?: [Dayjs, Dayjs];
 
   // 单据与往来
   orderNo?: string;
@@ -148,10 +148,10 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
 
     // --- 展开后展示的其余 17 项业务字段 (一行 6 列) ---
     {
-      name: 'expenseDateRange',
-      label: '费用时间',
+      name: 'createdAtRange',
+      label: '录入日期',
       type: 'date-range',
-      placeholder: ['开始时间', '结束时间'],
+      placeholder: ['开始日期', '结束日期'],
     },
     {
       name: 'customerId',

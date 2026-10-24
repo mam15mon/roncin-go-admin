@@ -26,7 +26,7 @@ describe('useOrderFeePanelExchangeRate', () => {
     const { result } = renderHook(() => useOrderFeePanelExchangeRate());
 
     act(() =>
-      result.current.resolveExchangeRate('order-1', 1, 'USD', '2026-08-29'),
+      result.current.resolveExchangeRate('order-1', 1, 'USD'),
     );
 
     await waitFor(() =>
@@ -41,7 +41,7 @@ describe('useOrderFeePanelExchangeRate', () => {
     const { result } = renderHook(() => useOrderFeePanelExchangeRate());
 
     act(() =>
-      result.current.resolveExchangeRate('order-1', 1, 'USD', '2026-08-29'),
+      result.current.resolveExchangeRate('order-1', 1, 'USD'),
     );
 
     await waitFor(() =>

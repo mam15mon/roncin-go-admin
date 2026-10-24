@@ -46,7 +46,6 @@ export type FeeFormValues = {
   quantity: string;
   quantitySource?: API.FeeQuantitySelection;
   billingUnitId: string;
-  expenseDate: string | Dayjs;
   exchangeRateOverride?: string;
   note?: string;
 };
@@ -125,16 +124,7 @@ export default function FeeFormModal({
       }
       open={open}
       formRef={activeFormRef}
-      initialValues={
-        editingFee
-          ? {
-              ...editingFee,
-              expenseDate: editingFee.expenseDate
-                ? dayjs(editingFee.expenseDate)
-                : undefined,
-            }
-          : undefined
-      }
+      initialValues={editingFee ? { ...editingFee } : undefined}
       onOpenChange={onOpenChange}
       onFinish={async (values) => {
         const result = await onSubmit(values);
@@ -365,19 +355,6 @@ export default function FeeFormModal({
             }))}
           />
         </Col>
-        <Col span={12}>
-          <ProFormDatePicker
-            name="expenseDate"
-            label="发生日期"
-            rules={[{ required: true, message: '请选择发生日期' }]}
-            disabled={isFeeBilled}
-            fieldProps={{
-              style: { width: '100%' },
-              format: 'YYYY-MM-DD',
-            }}
-          />
-        </Col>
-
         {/* 汇率与金额计算预览 */}
         <Col span={24}>
           <ExchangeRatePreviewCard

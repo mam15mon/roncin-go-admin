@@ -144,17 +144,6 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
       ]),
   );
 
-  const serviceTypeOptions = effectiveMasterOptions
-    .filter(
-      (item) =>
-        isMasterDataKind(item.kind, MASTER_DATA_KINDS.SERVICE_TYPE) &&
-        item.enabled !== false,
-    )
-    .map((item) => ({
-      label: item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
-      value: item.id ?? '',
-    }));
-
   const cargoCategoryOptions = effectiveMasterOptions
     .filter(
       (item) =>
@@ -327,7 +316,6 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
     customerMap: effectiveCustomerMap,
     containerSpecOptions,
     containerSpecMap,
-    serviceTypeOptions,
     cargoCategoryOptions,
     locationOptions,
     searchLocations,

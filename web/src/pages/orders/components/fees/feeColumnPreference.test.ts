@@ -26,7 +26,7 @@ describe('feeColumnPreference 列定义与默认值', () => {
         'unitPrice',
         'quantity',
         'billingUnitId',
-        'expenseDate',
+        'createdAt',
         'option',
       ]),
     );

@@ -97,7 +97,7 @@ describe('OrderFeeTableTabs 计算列实时预览', () => {
           direction: RECEIVABLE,
           currency: 'CNY',
           quantity: '1',
-          expenseDate: today,
+          createdAt: today,
           version: '2',
           feeSettingId: 'setting-of',
           settlementPartyId: 'customer-1',
@@ -123,7 +123,7 @@ describe('OrderFeeTableTabs 计算列实时预览', () => {
       </App>,
     );
 
-    await screen.findByText(today);
+    await screen.findByText(`${today} 00:00`);
     await act(async () => {
       screen.getByRole('button', { name: /编\s*辑/ }).click();
     });
@@ -170,7 +170,7 @@ describe('OrderFeeTableTabs 计算列实时预览', () => {
           netAmount: '123',
           baseCurrencyAmount: '123',
           exchangeRate: '1',
-          expenseDate: today,
+          createdAt: today,
           version: '2',
           feeSettingId: 'setting-of',
           settlementPartyId: 'customer-1',
@@ -204,7 +204,7 @@ describe('OrderFeeTableTabs 计算列实时预览', () => {
       </App>,
     );
 
-    await screen.findByText(today);
+    await screen.findByText(`${today} 00:00`);
     await act(async () => {
       screen.getByRole('button', { name: /编\s*辑/ }).click();
     });

@@ -16,7 +16,6 @@ type Props = {
   billingUnits: API.BillingUnit[];
   taxableServices?: API.TaxableService[];
   currencies: API.Currency[];
-  serviceTypes: API.MasterDataItem[];
   abnormalCases: API.MasterDataItem[];
 };
 
@@ -26,7 +25,6 @@ export default function FeeSettingFields({
   billingUnits,
   taxableServices = [],
   currencies,
-  serviceTypes,
   abnormalCases,
 }: Props) {
   return (
@@ -62,19 +60,6 @@ export default function FeeSettingFields({
         name="aliasName"
         label="费用别名"
         fieldProps={{ maxLength: 64 }}
-      />
-      <ProFormSearchableSelect
-        colProps={{ span: 12 }}
-        name="chargeCategoryId"
-        label="费用大类"
-        options={serviceTypes.map((item) => ({
-          label: `${item.name} (${item.code})`,
-          value: item.id,
-          code: item.code,
-          name: item.name,
-        }))}
-        placeholder="请选择费用大类"
-        rules={[{ required: true, message: '请选择费用大类' }]}
       />
       <ProFormSearchableSelect
         colProps={{ span: 12 }}

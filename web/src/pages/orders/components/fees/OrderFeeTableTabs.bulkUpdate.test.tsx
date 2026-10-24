@@ -83,41 +83,4 @@ describe('OrderFeeTableTabs 批量修改单位与日期', () => {
     expect(props.onFeeSaved).toHaveBeenCalled();
   });
 
-  it('批量改费用日期：仅选择日期并提交 YYYY-MM-DD', async () => {
-    listFees.mockResolvedValue({ data: [unbilledFeeA] } as any);
-    const { props } = makeProps('order-1');
-    props.selectedReceivableFeeIds = ['fee-a'];
-    await renderTabs(props);
-    await screen.findByText('海运费');
-
-    await triggerBulkAction('批量改费用日期');
-    await waitFor(() =>
-      expect(
-        screen.getByText('批量修改费用日期（已选 1 笔应收费用）'),
-      ).toBeInTheDocument(),
-    );
-
-    const pickerInput = screen.getByPlaceholderText('请选择费用发生日期');
-    await act(async () => {
-      fireEvent.click(pickerInput);
-      fireEvent.change(pickerInput, { target: { value: '2026-09-23' } });
-      fireEvent.keyDown(pickerInput, { key: 'Enter' });
-    });
-    expect(document.querySelector('.ant-picker-time-panel')).toBeNull();
-
-    await act(async () => {
-      within(getDialog()).getByRole('button', { name: '确定修改' }).click();
-    });
-
-    await waitFor(() =>
-      expect(bulkUpdate).toHaveBeenCalledWith(
-        { orderId: 'order-1' },
-        {
-          orderId: 'order-1',
-          targets: [{ feeId: 'fee-a', expectedVersion: '3' }],
-          expenseDate: '2026-09-23',
-        },
-      ),
-    );
-  });
 });

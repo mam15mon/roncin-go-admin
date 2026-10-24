@@ -7,7 +7,6 @@ import {
   getSeaBaseInfoFields,
   SeaCustomerField,
   SeaDangerousGoodsFields,
-  SeaServiceTypeFields,
   TooltipInput,
 } from './components/sea/SeaBasicInfoSection';
 import {
@@ -37,7 +36,6 @@ export {
   SeaCustomerField,
   SeaDangerousGoodsFields,
   SeaScheduleDateFields,
-  SeaServiceTypeFields,
   TooltipInput,
 };
 
@@ -62,7 +60,6 @@ export function getSeaTemplateSections(
             {basic.references}
           </FormRow>
           {basic.customer}
-          {basic.services}
         </div>
       ),
     },

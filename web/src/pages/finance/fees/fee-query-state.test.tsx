@@ -82,7 +82,7 @@ function Seed() {
       search: {
         orderNo: '订单条件',
         settlementPartyId: 'party',
-        expenseDateRange: [dayjs('2026-10-01'), dayjs('2026-10-12')],
+        createdAtRange: [dayjs('2026-10-01'), dayjs('2026-10-12')],
         orderLocked: 'LOCKED',
       },
       organizationId: 'target-org',
@@ -127,8 +127,8 @@ describe('费用查询恢复消费', () => {
         keyword: '订单条件',
         organizationId: 'target-org',
         tagIds: ['tag'],
-        expenseDateFrom: '2026-10-01',
-        expenseDateTo: '2026-10-12',
+        createdAtFrom: '2026-10-01',
+        createdAtTo: '2026-10-12',
         orderLocked: true,
       }),
     );

@@ -115,7 +115,6 @@ describe('NewOrderPage', () => {
       loading: false,
       error: null,
       retry: defaultRetry,
-      serviceTypeOptions: [],
       cargoCategoryOptions: [
         { label: '化工品', value: 'cat-chem', code: 'CHEM' },
         { label: '普通货物', value: 'cat-gen-id', code: 'GENERAL' },
@@ -148,7 +147,6 @@ describe('NewOrderPage', () => {
       loading: true,
       error: null,
       retry: defaultRetry,
-      serviceTypeOptions: [],
       cargoCategoryOptions: [],
       locationOptions: [],
       searchLocations: vi.fn(),
@@ -170,7 +168,6 @@ describe('NewOrderPage', () => {
       loading: false,
       error: new Error('后端主数据服务不可用'),
       retry: defaultRetry,
-      serviceTypeOptions: [],
       cargoCategoryOptions: [],
       locationOptions: [],
       searchLocations: vi.fn(),
@@ -206,7 +203,6 @@ describe('NewOrderPage', () => {
       loading: false,
       error: null,
       retry: defaultRetry,
-      serviceTypeOptions: [],
       cargoCategoryOptions: [
         { label: '普货', value: 'cat-pu-wrong', code: 'OTHER' },
         { label: '集装箱普通货', value: 'cat-gen-correct', code: 'GENERAL' },
@@ -231,7 +227,6 @@ describe('NewOrderPage', () => {
       loading: false,
       error: null,
       retry: defaultRetry,
-      serviceTypeOptions: [],
       cargoCategoryOptions: [
         { label: '危险品', value: 'cat-dg', code: 'DG' },
         { label: '普货', value: 'cat-pu-fallback' },
@@ -256,7 +251,6 @@ describe('NewOrderPage', () => {
       loading: false,
       error: null,
       retry: defaultRetry,
-      serviceTypeOptions: [],
       cargoCategoryOptions: [
         { label: '危险品', value: 'cat-dg', code: 'DG' },
         { label: '化工品', value: 'cat-chem', code: 'CHEM' },

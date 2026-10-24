@@ -19,7 +19,7 @@ describe('feeBaseColumns', () => {
       'billingUnit',
       'totalAmount',
       'exchangeRate',
-      'expenseDate',
+      'createdAt',
       'note',
     ]);
     expect(columns.map((column) => column.width)).toEqual([
@@ -50,7 +50,7 @@ describe('feeBaseColumns', () => {
       'unitPrice',
       'totalAmount',
       'exchangeRate',
-      'expenseDate',
+      'createdAt',
       'note',
     ]);
     expect(columns.map((column) => column.width)).toEqual([

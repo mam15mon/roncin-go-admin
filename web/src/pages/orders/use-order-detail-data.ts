@@ -13,7 +13,6 @@ import {
   fetchOrderMasterData,
   isMasterDataKind,
   MASTER_DATA_KINDS,
-  requireSeaServiceTypeOptions,
   resolveOrderLocationOptions,
   searchOrderLocations,
 } from './common';
@@ -28,7 +27,6 @@ interface OrderDetailBundle {
   order: API.Order | undefined;
   shippingDocs: API.OrderShippingDocument[];
   personnel: API.OrderPersonnel[];
-  serviceTypeOptions: SelectOption[];
   cargoCategoryOptions: SelectOption[];
   locationOptions: SelectOption[];
   currencyOptions: SelectOption[];
@@ -104,10 +102,6 @@ export function useOrderDetailData(
           personnel: unwrapList(
             ensureListResponse(personnelRes, '订单人员加载失败，请稍后重试'),
           ),
-          serviceTypeOptions:
-            transportMode === 'sea'
-              ? requireSeaServiceTypeOptions(masterData.serviceTypeOptions)
-              : masterData.serviceTypeOptions,
           cargoCategoryOptions: masterData.cargoCategoryOptions,
           locationOptions: resolveOrderLocationOptions(
             definition.transportMode,
@@ -213,7 +207,6 @@ export function useOrderDetailData(
     loadedOrganizationId: bundle ? organizationId : undefined,
     shippingDocs: bundle?.shippingDocs ?? [],
     personnel: bundle?.personnel ?? [],
-    serviceTypeOptions: bundle?.serviceTypeOptions ?? [],
     cargoCategoryOptions: bundle?.cargoCategoryOptions ?? [],
     locationOptions: bundle?.locationOptions ?? [],
     searchLocations,

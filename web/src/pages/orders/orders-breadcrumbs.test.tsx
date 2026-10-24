@@ -123,11 +123,6 @@ vi.mock('./common', async (importOriginal) => {
   return {
     ...actual,
     fetchOrderMasterData: vi.fn().mockResolvedValue({
-      serviceTypeOptions: actual.seaServiceTypes.map(({ code, name }) => ({
-        code,
-        label: name,
-        value: code,
-      })),
       cargoCategoryOptions: [],
       seaLocationOptions: [],
       airLocationOptions: [],

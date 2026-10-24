@@ -61,7 +61,7 @@ describe('FeeLedgerSearchFilter', () => {
     fireEvent.click(screen.getByText(/展开/));
 
     expect(screen.getByText('结算单位')).not.toBeNull();
-    expect(screen.getByText('费用时间')).not.toBeNull();
+    expect(screen.getByText('录入日期')).not.toBeNull();
     expect(screen.getByText('委托单位')).not.toBeNull();
     expect(screen.getByText('账单编号')).not.toBeNull();
     expect(screen.getByText('订单编号')).not.toBeNull();

@@ -56,7 +56,6 @@ type CommonValues = Pick<
   | 'contractNo'
   | 'goodsDescription'
   | 'specialRequirements'
-  | 'serviceTypeIds'
   | 'cargoCategoryIds'
   | 'unNumber'
   | 'hazardClass'
@@ -85,7 +84,6 @@ function commonFields(values: Partial<CommonValues>) {
     contractNo: values.contractNo?.trim() || undefined,
     goodsDescription: values.goodsDescription?.trim() || undefined,
     specialRequirements: values.specialRequirements?.trim() || undefined,
-    serviceTypeIds: values.serviceTypeIds,
     cargoCategoryIds: values.cargoCategoryIds,
     unNumber: values.unNumber?.trim() || undefined,
     hazardClass: values.hazardClass?.trim() || undefined,

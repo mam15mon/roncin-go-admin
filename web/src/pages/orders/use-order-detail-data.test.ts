@@ -5,11 +5,7 @@ import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
-import {
-  fetchOrderMasterData,
-  searchOrderLocations,
-  seaServiceTypes,
-} from './common';
+import { fetchOrderMasterData, searchOrderLocations } from './common';
 import { seaExportDefinition } from './order-kinds/sea-export/definition';
 import { useOrderDetailData } from './use-order-detail-data';
 
@@ -63,11 +59,6 @@ const mockSearchLocations = vi.mocked(searchOrderLocations);
 const config = seaExportDefinition;
 
 const detailMasterData = {
-  serviceTypeOptions: seaServiceTypes.map(({ code, name }) => ({
-    code,
-    label: name,
-    value: code,
-  })),
   cargoCategoryOptions: [],
   seaLocationOptions: [{ label: '上海港 (CNSHA)', value: 'port-sha' }],
   airLocationOptions: [{ label: '浦东机场 (PVG)', value: 'airport-pvg' }],
@@ -408,7 +399,6 @@ describe('useOrderDetailData', () => {
     // 在组织 B 响应前，必须立即进入 loading 态，且 order 与 options 必须隐藏，严防组织 A 数据闪现
     expect(result.current.loading).toBe(true);
     expect(result.current.order).toBeUndefined();
-    expect(result.current.serviceTypeOptions).toEqual([]);
 
     // 组织 B 响应后，正常展示组织 B 数据
     deferOrgB.resolve({

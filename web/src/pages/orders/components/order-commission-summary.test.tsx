@@ -79,7 +79,6 @@ vi.mock('../list-resources', () => ({
     customerMap: {},
     containerSpecOptions: [],
     containerSpecMap: {},
-    serviceTypeOptions: [],
     cargoCategoryOptions: [],
     locationOptions: [],
     searchLocations: vi.fn().mockResolvedValue([]),

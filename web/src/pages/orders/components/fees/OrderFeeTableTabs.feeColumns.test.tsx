@@ -63,7 +63,7 @@ const taxFee = {
   id: 'fee-tax-1',
   direction: RECEIVABLE,
   currency: 'USD',
-  expenseDate: '2026-09-20 14:30',
+  createdAt: '2026-09-20T14:30:00+08:00',
   version: '3',
   feeName: '海运费',
   taxRate: '6',
@@ -127,8 +127,6 @@ describe('OrderFeeTableTabs 列设置与只读金额列', () => {
     );
 
     await screen.findByText('海运费');
-    expect(screen.getByText('2026-09-20')).toBeInTheDocument();
-    expect(screen.queryByText('2026-09-20 14:30')).not.toBeInTheDocument();
     await waitFor(() => expect(tableHeaderCount('税率(%)')).toBe(2));
     expect(tableHeaderCount('税金')).toBe(2);
     expect(tableHeaderCount('不含税单价')).toBe(2);
@@ -182,7 +180,7 @@ describe('OrderFeeTableTabs 列设置与只读金额列', () => {
         '不含税总额',
         '汇率',
         '折本币金额',
-        '发生日期',
+        '录入日期',
         '备注',
         '操作',
       ]);

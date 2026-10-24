@@ -478,12 +478,6 @@ export default function OrderFeeTableTabs({
           setBulkActionContext({ direction, type: 'settlementParty' }),
       },
       {
-        key: 'expenseDate',
-        icon: <ClockCircleOutlined />,
-        label: '批量改费用日期',
-        onClick: () => setBulkActionContext({ direction, type: 'expenseDate' }),
-      },
-      {
         key: 'addTags',
         icon: <TagsOutlined />,
         label: '添加标签',
@@ -572,12 +566,11 @@ export default function OrderFeeTableTabs({
       (u) => u.code === 'PIAO' || u.name === '票' || u.name?.includes('票'),
     ) || billingUnits?.[0];
 
-  // 币种或发生日期变化时立即解析参考汇率，行内预览；保存后以后端落库值为准。
+  // 币种变化时立即按订单 ETD 解析参考汇率，行内预览；保存后以后端落库值为准。
   const resolveRowRatePreview = (
     rowKey: React.Key | undefined,
     direction: number,
     currency?: string,
-    expenseDate?: string | dayjs.Dayjs | null,
   ) => {
     const key = String(rowKey ?? '');
     const requestSequence = (rateRequestSeqRef.current[key] ?? 0) + 1;
@@ -600,7 +593,7 @@ export default function OrderFeeTableTabs({
         return { ...prev, [key]: next };
       });
     };
-    if (!currency || !expenseDate) {
+    if (!currency) {
       patchRate(undefined);
       return;
     }
@@ -610,7 +603,6 @@ export default function OrderFeeTableTabs({
         orderId,
         direction,
         currency,
-        expenseDate: dayjs(expenseDate).format('YYYY-MM-DD'),
       },
       { skipErrorHandler: true },
     )
@@ -718,11 +710,10 @@ export default function OrderFeeTableTabs({
         billingUnit: defaultBillingUnit?.name,
         settlementPartyId: defaultPartyId,
         settlementPartyName: defaultPartyName,
-        expenseDate: dayjs().format('YYYY-MM-DD'),
       },
       { position: 'top' },
     );
-    resolveRowRatePreview(newId, RECEIVABLE, 'CNY', dayjs());
+    resolveRowRatePreview(newId, RECEIVABLE, 'CNY');
   };
 
   const handleAddPayable = () => {
@@ -743,11 +734,10 @@ export default function OrderFeeTableTabs({
         billingUnit: defaultBillingUnit?.name,
         settlementPartyId: defaultPartyId,
         settlementPartyName: defaultPartyName,
-        expenseDate: dayjs().format('YYYY-MM-DD'),
       },
       { position: 'top' },
     );
-    resolveRowRatePreview(newId, PAYABLE, 'CNY', dayjs());
+    resolveRowRatePreview(newId, PAYABLE, 'CNY');
   };
 
   const handleSaveFee = async (
@@ -881,20 +871,6 @@ export default function OrderFeeTableTabs({
       });
       return false;
     }
-    if (!row.expenseDate) {
-      message.error('请选择发生日期');
-      scrollToFirstTableError({
-        rowKey: singleKey,
-        errorFields: [
-          {
-            name: [String(singleKey), 'expenseDate'],
-            errors: ['请选择发生日期'],
-          },
-        ],
-      });
-      return false;
-    }
-
     const body = {
       direction,
       feeSettingId: row.feeSettingId,
@@ -908,7 +884,6 @@ export default function OrderFeeTableTabs({
       ),
       unitPrice: normalizeDecimalInput(String(row.unitPrice)),
       currency: row.currency,
-      expenseDate: dayjs(row.expenseDate).format('YYYY-MM-DD'),
       note: row.note?.trim() || undefined,
       taxInclusive: true,
     };
@@ -1039,7 +1014,6 @@ export default function OrderFeeTableTabs({
                   rowKey,
                   direction,
                   option.defaultCurrency,
-                  form?.getFieldValue([rowKey, 'expenseDate']),
                 );
               }
               refreshAmountPreview(rowKey, form);
@@ -1173,12 +1147,7 @@ export default function OrderFeeTableTabs({
             name: c.name,
           })),
           onChange: (val: string) => {
-            resolveRowRatePreview(
-              rowKey,
-              direction,
-              val,
-              form?.getFieldValue([rowKey, 'expenseDate']),
-            );
+            resolveRowRatePreview(rowKey, direction, val);
             refreshAmountPreview(rowKey, form);
           },
         }),
@@ -1465,27 +1434,11 @@ export default function OrderFeeTableTabs({
         },
       },
       {
-        title: '发生日期',
-        dataIndex: 'expenseDate',
+        title: '录入日期',
+        dataIndex: 'createdAt',
         width: 150,
-        valueType: 'date',
-        formItemProps: {
-          rules: [{ required: true, message: '请选择发生日期' }],
-        },
         render: (_, record) =>
-          record.expenseDate ? formatDate(record.expenseDate, 'date') : '-',
-        fieldProps: (form, { rowKey }) => ({
-          style: { width: '100%' },
-          format: 'YYYY-MM-DD',
-          onChange: (date: dayjs.Dayjs | null) => {
-            resolveRowRatePreview(
-              rowKey,
-              direction,
-              form?.getFieldValue([rowKey, 'currency']),
-              date,
-            );
-          },
-        }),
+          record.createdAt ? formatDate(record.createdAt, 'minute') : '-',
       },
       {
         title: '备注',
@@ -1938,64 +1891,6 @@ export default function OrderFeeTableTabs({
             value: p.id ?? '',
             code: p.code,
           }))}
-        />
-      </GuardedModalForm>
-
-      {/* 批量修改费用日期 */}
-      <GuardedModalForm<{ expenseDate: string | Dayjs }>
-        open={bulkActionContext?.type === 'expenseDate'}
-        onOpenChange={(open) => !open && setBulkActionContext(undefined)}
-        title={`批量修改费用日期（已选 ${
-          (bulkActionContext?.direction === RECEIVABLE
-            ? selectedReceivableFeeIds
-            : selectedPayableFeeIds
-          ).length
-        } 笔${bulkActionContext?.direction === RECEIVABLE ? '应收' : '应付'}费用）`}
-        width={480}
-        modalProps={{ destroyOnHidden: true }}
-        submitter={{
-          searchConfig: { submitText: '确定修改', resetText: '取消' },
-        }}
-        onFinish={async (values) => {
-          if (!bulkActionContext) return false;
-          const { direction } = bulkActionContext;
-          const rows = getSelectedRows(direction);
-          if (rows.length === 0) {
-            message.warning('请先勾选要修改的费用');
-            return false;
-          }
-          if (rejectUnavailableRows(rows, '批量修改费用日期')) return false;
-          try {
-            const response = await orderFeeServiceBulkUpdateOrderFees(
-              { orderId },
-              {
-                orderId,
-                targets: buildBulkTargets(rows),
-                expenseDate: dayjs(values.expenseDate).format('YYYY-MM-DD'),
-              },
-            );
-            if (!isWriteResponse(response)) return false;
-            message.success(
-              `已修改 ${response.updatedCount ?? rows.length} 笔费用的费用日期`,
-            );
-            handleBulkDone(direction);
-            setBulkActionContext(undefined);
-            return true;
-          } catch (error) {
-            message.error(getErrorMessage(error, '批量修改费用日期失败'));
-            return false;
-          }
-        }}
-      >
-        <ProFormDatePicker
-          name="expenseDate"
-          label="费用发生日期"
-          rules={[{ required: true, message: '请选择费用发生日期' }]}
-          fieldProps={{
-            style: { width: '100%' },
-            placeholder: '请选择费用发生日期',
-            format: 'YYYY-MM-DD',
-          }}
         />
       </GuardedModalForm>
 

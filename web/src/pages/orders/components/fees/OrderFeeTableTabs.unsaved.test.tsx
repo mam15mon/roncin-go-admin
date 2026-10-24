@@ -82,7 +82,7 @@ beforeEach(() => {
       currency: 'CNY',
       quantity: '1',
       unitPrice: '100',
-      expenseDate: '2026-10-20',
+      createdAt: '2026-10-20',
     })),
   });
 });
@@ -127,7 +127,7 @@ it('行内真实输入同步保护；单纯进入编辑不脏，取消一侧不�
   await waitFor(() => expect(orderFeeServiceUpdateFee).toHaveBeenCalledOnce());
   expect(orderFeeServiceUpdateFee).toHaveBeenCalledWith(
     expect.anything(),
-    expect.objectContaining({ expenseDate: '2026-10-20' }),
+    expect.objectContaining({ id: 'fee-2', orderId: 'order-1' }),
   );
   expect(payableInput).toHaveValue('应付未保存');
   expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');

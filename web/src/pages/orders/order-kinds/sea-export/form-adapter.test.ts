@@ -37,7 +37,6 @@ describe('buildSeaExportCreateDefaults', () => {
   it('按传统货代口径生成默认运输、贸易条款与推荐服务', () => {
     const defaults = buildSeaExportCreateDefaults({
       creator,
-      serviceTypeOptions: traditionalForwardingServiceOptions,
       cargoCategoryOptions: [
         { label: '普通货物', value: 'cat-gen', code: 'GENERAL' },
       ],
@@ -49,13 +48,11 @@ describe('buildSeaExportCreateDefaults', () => {
     );
     expect(defaults.shipmentType).toBe(ShipmentType.SHIPMENT_TYPE_FCL);
     expect(defaults.tradeTerm).toBe(TradeTerm.TRADE_TERM_CIF);
-    expect(defaults.serviceTypeIds).toEqual(['st-BOOKING']);
   });
 
   it('优先按 GENERAL 业务码识别默认货类，再回退 label=普货，均无则 undefined', () => {
     const generalFirst = buildSeaExportCreateDefaults({
       creator,
-      serviceTypeOptions: [],
       cargoCategoryOptions: [
         { label: '普货', value: 'cat-pu-wrong', code: 'OTHER' },
         { label: '集装箱普通货', value: 'cat-gen-correct', code: 'GENERAL' },
@@ -65,7 +62,6 @@ describe('buildSeaExportCreateDefaults', () => {
 
     const labelFallback = buildSeaExportCreateDefaults({
       creator,
-      serviceTypeOptions: [],
       cargoCategoryOptions: [
         { label: '危险品', value: 'cat-dg', code: 'DG' },
         { label: '普货', value: 'cat-pu-fallback' },
@@ -75,7 +71,6 @@ describe('buildSeaExportCreateDefaults', () => {
 
     const none = buildSeaExportCreateDefaults({
       creator,
-      serviceTypeOptions: [],
       cargoCategoryOptions: [{ label: '危险品', value: 'cat-dg', code: 'DG' }],
     });
     expect(none.cargoCategoryIds).toBeUndefined();
@@ -84,13 +79,11 @@ describe('buildSeaExportCreateDefaults', () => {
   it('回填当前创建人；缺少创建人时保持 undefined', () => {
     const withCreator = buildSeaExportCreateDefaults({
       creator,
-      serviceTypeOptions: [],
       cargoCategoryOptions: [],
     });
     expect(withCreator.creatorUserId).toBe('user-1');
 
     const withoutCreator = buildSeaExportCreateDefaults({
-      serviceTypeOptions: [],
       cargoCategoryOptions: [],
     });
     expect(withoutCreator.creatorUserId).toBeUndefined();
@@ -504,7 +497,6 @@ describe('SE 适配器完整固定夹具等价', () => {
       shipmentType: 1,
       containerOwnership: 1,
       shipmentMode: 1,
-      serviceTypeIds: ['st-booking', 'st-trucking'],
       cargoCategoryIds: ['cat-gen'],
       originLocationId: 'loc-origin',
       destinationLocationId: 'loc-dest',
@@ -583,7 +575,6 @@ describe('SE 适配器完整固定夹具等价', () => {
       shipmentType: 1,
       containerOwnership: 1,
       shipmentMode: 1,
-      serviceTypeIds: ['st-booking', 'st-trucking'],
       cargoCategoryIds: ['cat-gen'],
       originLocationId: 'loc-origin',
       destinationLocationId: 'loc-dest',
@@ -693,7 +684,6 @@ describe('SE 适配器完整固定夹具等价', () => {
         shipmentType: 1,
         containerOwnership: 1,
         shipmentMode: 1,
-        serviceTypeIds: ['st-booking'],
         cargoCategoryIds: ['cat-gen'],
         originLocationId: 'loc-origin',
         destinationLocationId: 'loc-dest',
@@ -769,7 +759,6 @@ describe('SE 适配器完整固定夹具等价', () => {
       shipmentType: 1,
       containerOwnership: 1,
       shipmentMode: 1,
-      serviceTypeIds: ['st-booking'],
       cargoCategoryIds: ['cat-gen'],
       originLocationId: 'loc-origin',
       destinationLocationId: 'loc-dest',
@@ -915,7 +904,6 @@ describe('SE 适配器完整固定夹具等价', () => {
       shipmentType: 1,
       containerOwnership: 1,
       shipmentMode: 1,
-      serviceTypeIds: ['st-booking', 'st-trucking'],
       cargoCategoryIds: ['cat-gen'],
       originLocationId: 'loc-origin',
       destinationLocationId: 'loc-dest',
@@ -979,7 +967,6 @@ describe('SE 适配器完整固定夹具等价', () => {
       shipmentType: 1,
       containerOwnership: 1,
       shipmentMode: 1,
-      serviceTypeIds: ['st-booking', 'st-trucking'],
       cargoCategoryIds: ['cat-gen'],
       originLocationId: 'loc-origin',
       destinationLocationId: 'loc-dest',

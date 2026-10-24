@@ -22,7 +22,6 @@ export type OrderTransportMode = 'sea' | 'air' | 'land' | 'rail';
 /** 新建默认值上下文：默认值只读显式输入，不读取全局 initialState 或表单 ref。 */
 export interface OrderCreateDefaultsContext {
   creator?: TemplateProps['creator'];
-  serviceTypeOptions: SelectOption[];
   cargoCategoryOptions: SelectOption[];
 }
 

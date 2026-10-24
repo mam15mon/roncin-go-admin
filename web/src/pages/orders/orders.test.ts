@@ -7,8 +7,6 @@ import {
   isMasterDataKind,
   MASTER_DATA_KINDS,
   PARTNER_ROLES,
-  requireSeaServiceTypeOptions,
-  seaServiceTypes,
   shipmentModeOptions,
   shipmentTypeOptions,
   tradeDirectionOptions,
@@ -35,13 +33,6 @@ vi.mock('@/features/partners', () => ({
 }));
 
 const numericMasterData = [
-  ...seaServiceTypes.map(({ code, name }, index) => ({
-    id: `service-${index}`,
-    code,
-    name: code === 'BOOKING' ? '自定义订舱名称' : name,
-    kind: MasterDataKind.MASTER_DATA_KIND_CHARGE_CATEGORY,
-    enabled: true,
-  })),
   {
     id: 'cargo-1',
     code: 'GENERAL',
@@ -91,39 +82,12 @@ describe('orders common and config', () => {
       { label: '拼箱', value: 2 },
       { label: '散杂', value: 3 },
     ]);
-    expect(seaServiceTypes[0]).toEqual({ code: 'BOOKING', name: '订舱' });
-    expect(seaServiceTypes).toHaveLength(19);
-    expect(seaServiceTypes).toEqual(
-      expect.arrayContaining([
-        { code: 'PALLET_CHARTER', name: '包板' },
-        { code: 'DOCUMENT_EXCHANGE', name: '换单' },
-        { code: 'INSPECTION', name: '报检' },
-      ]),
-    );
-  });
-
-  it('按业务编码解析海运服务类型', () => {
-    const options = seaServiceTypes.map(({ code, name }, index) => ({
-      code,
-      label: code === 'BOOKING' ? '自定义订舱名称' : name,
-      value: `id-${index}`,
-    }));
-
-    expect(requireSeaServiceTypeOptions(options)[0]).toEqual({
-      code: 'BOOKING',
-      label: '自定义订舱名称',
-      value: 'id-0',
-    });
-    expect(() => requireSeaServiceTypeOptions(options.slice(1))).toThrow(
-      '缺少海运服务类型主数据：订舱（BOOKING）',
-    );
   });
 
   it('按 REST 数字枚举识别订单主数据类型', () => {
     expect(MASTER_DATA_KINDS).toEqual({
       REGION: MasterDataKind.MASTER_DATA_KIND_REGION,
       CONTAINER_SPEC: MasterDataKind.MASTER_DATA_KIND_CONTAINER_SPEC,
-      SERVICE_TYPE: MasterDataKind.MASTER_DATA_KIND_CHARGE_CATEGORY,
       CARGO_CATEGORY: MasterDataKind.MASTER_DATA_KIND_CARGO_CATEGORY,
     });
     expect(
@@ -140,33 +104,15 @@ describe('orders common and config', () => {
     ).toBe(true);
     expect(
       isMasterDataKind(
-        MasterDataKind.MASTER_DATA_KIND_CHARGE_CATEGORY,
-        MASTER_DATA_KINDS.SERVICE_TYPE,
-      ),
-    ).toBe(true);
-    expect(
-      isMasterDataKind(
         MasterDataKind.MASTER_DATA_KIND_CARGO_CATEGORY,
         MASTER_DATA_KINDS.CARGO_CATEGORY,
       ),
     ).toBe(true);
-    expect(
-      isMasterDataKind(
-        MasterDataKind.MASTER_DATA_KIND_CARGO_CATEGORY,
-        MASTER_DATA_KINDS.SERVICE_TYPE,
-      ),
-    ).toBe(false);
   });
 
   it('使用真实数字枚举构建完整订单主数据候选', async () => {
     const result = await fetchOrderMasterData('org-1', 'sea');
 
-    expect(result.serviceTypeOptions).toHaveLength(19);
-    expect(requireSeaServiceTypeOptions(result.serviceTypeOptions)[0]).toEqual({
-      code: 'BOOKING',
-      label: '自定义订舱名称',
-      value: 'service-0',
-    });
     expect(result.cargoCategoryOptions).toEqual([
       { code: 'GENERAL', label: '普货', value: 'cargo-1' },
     ]);
@@ -178,18 +124,6 @@ describe('orders common and config', () => {
         isMasterDataKind(item.kind, MASTER_DATA_KINDS.CONTAINER_SPEC),
       ),
     ).toEqual([expect.objectContaining({ id: 'container-1', code: '40HQ' })]);
-  });
-
-  it('真实数字响应缺少 BOOKING 时保留明确报错', async () => {
-    listOptions.mockResolvedValue({
-      data: numericMasterData.filter((item) => item.code !== 'BOOKING'),
-    });
-
-    const result = await fetchOrderMasterData('org-1', 'sea');
-
-    expect(() =>
-      requireSeaServiceTypeOptions(result.serviceTypeOptions),
-    ).toThrow('缺少海运服务类型主数据：订舱（BOOKING）');
   });
 
   it('按需加载：sea 模式仅请求港口，不请求机场', async () => {

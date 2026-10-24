@@ -119,7 +119,6 @@ export default function OrderDetailPage() {
     order,
     shippingDocs,
     personnel,
-    serviceTypeOptions,
     cargoCategoryOptions,
     locationOptions,
     searchLocations,
@@ -308,8 +307,7 @@ export default function OrderDetailPage() {
   const shippingLineSeeds = shippingLineOption ? [shippingLineOption] : [];
   const templateProps = useMemo(
     () => ({
-      serviceTypeOptions,
-      cargoCategoryOptions,
+        cargoCategoryOptions,
       locationOptions: seededLocationOptions,
       searchLocations: withSeededOptions(searchLocations, locationSeedOptions),
       currencyOptions,
@@ -347,8 +345,7 @@ export default function OrderDetailPage() {
       onOrderDataChanged: loadData,
     }),
     [
-      serviceTypeOptions,
-      cargoCategoryOptions,
+        cargoCategoryOptions,
       seededLocationOptions,
       locationSeedOptions,
       searchLocations,

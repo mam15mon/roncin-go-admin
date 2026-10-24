@@ -61,8 +61,8 @@ function feeEvidence(fee: API.OrderFee) {
         {fee.taxInclusive === true ? '含税单价' : '不含税单价'}
       </div>
       <div>
-        汇率 {trimDecimal(fee.exchangeRate)}；发生日期{' '}
-        {formatDate(fee.expenseDate, 'date')}
+        汇率 {trimDecimal(fee.exchangeRate)}；录入日期{' '}
+        {formatDate(fee.createdAt, 'date')}
       </div>
       {fee.note && <div>备注：{fee.note}</div>}
     </>

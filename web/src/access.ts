@@ -29,6 +29,8 @@ const permissions = {
   financeExchangeRateRead: 'system.finance.exchange_rate.read',
   financeExchangeRateCreate: 'system.finance.exchange_rate.create',
   financeExchangeRateUpdate: 'system.finance.exchange_rate.update',
+  financeOrderFeeExchangeRateOverride:
+    'system.finance.order_fee.exchange_rate.override',
   financeExchangeRateDisable: 'system.finance.exchange_rate.disable',
   financeFeeSettingRead: 'system.finance.fee_setting.read',
   financeFeeSettingCreate: 'system.finance.fee_setting.create',
@@ -217,7 +219,8 @@ export default function access(
     canDisableExchangeRates:
       canOperateBusiness && has(permissions.financeExchangeRateDisable),
     canOverrideFeeExchangeRate:
-      canOperateBusiness && has(permissions.financeExchangeRateUpdate),
+      canOperateBusiness &&
+      has(permissions.financeOrderFeeExchangeRateOverride),
     canReadFeeSettings: has(permissions.financeFeeSettingRead),
     canCreateFeeSettings: has(permissions.financeFeeSettingCreate),
     canUpdateFeeSettings: has(permissions.financeFeeSettingUpdate),

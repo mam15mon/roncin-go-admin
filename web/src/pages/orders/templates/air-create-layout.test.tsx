@@ -31,7 +31,6 @@ vi.mock('@/services/roncin/airExportService', async (importOriginal) => ({
 
 const search = async () => [];
 const props: TemplateProps = {
-  serviceTypeOptions: [],
   cargoCategoryOptions: [],
   locationOptions: [],
   searchLocations: search,

@@ -55,7 +55,7 @@ const taxFee = {
   id: 'fee-tax-1',
   direction: RECEIVABLE,
   currency: 'USD',
-  expenseDate: '2026-09-20 14:30',
+  createdAt: '2026-09-20 14:30',
   version: '3',
   feeName: '海运费',
   taxRate: '6',

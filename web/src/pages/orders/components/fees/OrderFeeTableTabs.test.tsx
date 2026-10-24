@@ -413,16 +413,13 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     await waitFor(() => {
       expect(screen.getAllByText('CNY').length).toBeGreaterThan(0);
       expect(screen.getByDisplayValue('1')).toBeInTheDocument();
-      expect(
-        screen.getByDisplayValue(/^\d{4}-\d{2}-\d{2}$/),
-      ).toBeInTheDocument();
       expect(screen.getAllByText('票').length).toBeGreaterThan(0);
       expect(screen.getAllByText('测试客户').length).toBeGreaterThan(0);
       expect(screen.getByText('保存')).toBeInTheDocument();
       expect(screen.getByText('取消')).toBeInTheDocument();
     });
 
-    // 新增行默认 CNY + 当天发生日期，应立即解析参考汇率
+    // 新增行默认 CNY，应立即解析参考汇率
     await waitFor(() =>
       expect(resolveRate).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -446,7 +443,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
           id: 'fee-unbilled-1',
           direction: RECEIVABLE,
           currency: 'CNY',
-          expenseDate: today,
+          createdAt: today,
           version: '3',
           feeSettingId: 'setting-of',
           settlementPartyId: 'customer-1',
@@ -483,7 +480,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
       </App>,
     );
 
-    await screen.findByText(today);
+    await screen.findByText(`${today} 00:00`);
     await act(async () => {
       screen.getByRole('button', { name: /编\s*辑/ }).click();
     });
@@ -505,7 +502,6 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
           orderId: 'order-1',
           direction: RECEIVABLE,
           currency: 'USD',
-          expenseDate: today,
         }),
         expect.anything(),
       ),
@@ -527,7 +523,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
           id: 'fee-unbilled-2',
           direction: RECEIVABLE,
           currency: 'CNY',
-          expenseDate: today,
+          createdAt: today,
           version: '2',
           feeSettingId: 'setting-of',
           settlementPartyId: 'customer-1',
@@ -557,7 +553,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
       </App>,
     );
 
-    await screen.findByText(today);
+    await screen.findByText(`${today} 00:00`);
     await act(async () => {
       screen.getByRole('button', { name: /编\s*辑/ }).click();
     });

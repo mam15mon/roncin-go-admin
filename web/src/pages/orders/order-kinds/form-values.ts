@@ -28,7 +28,6 @@ export type CreateOrderFormValues = {
   shipmentType?: number;
   containerOwnership?: number;
   shipmentMode?: number;
-  serviceTypeIds?: string[];
   cargoCategoryIds?: string[];
   originLocationId?: string;
   destinationLocationId?: string;

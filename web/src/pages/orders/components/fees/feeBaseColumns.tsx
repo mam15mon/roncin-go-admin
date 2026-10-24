@@ -119,10 +119,10 @@ export function feeBaseColumns(
     ),
   };
   const expenseDateColumn: ProColumns<API.OrderFee> = {
-    title: panel ? '费用日期' : '发生日期',
-    dataIndex: 'expenseDate',
+    title: '录入日期',
+    dataIndex: 'createdAt',
     width: panel ? 110 : 220,
-    render: (_, record) => formatDate(record.expenseDate, 'date'),
+    render: (_, record) => formatDate(record.createdAt, 'minute'),
   };
   const noteColumn: ProColumns<API.OrderFee> = {
     title: '备注',

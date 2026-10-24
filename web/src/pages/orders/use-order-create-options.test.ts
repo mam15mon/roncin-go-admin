@@ -70,27 +70,6 @@ function deferred<T>() {
 }
 
 const mockMasterDataSuccess = {
-  serviceTypeOptions: [
-    { code: 'BOOKING', label: '订舱', value: 'st-booking' },
-    { code: 'TRUCKING', label: '拖车', value: 'st-trucking' },
-    { code: 'STUFFING', label: '内装', value: 'st-stuffing' },
-    { code: 'CUSTOMS_EXPORT', label: '报关', value: 'st-customs' },
-    { code: 'CUSTOMS_IMPORT', label: '清关', value: 'st-clearance' },
-    { code: 'OVERSEA_SEGMENT', label: '海外段', value: 'st-oversea' },
-    { code: 'INSURANCE', label: '保险', value: 'st-insurance' },
-    { code: 'PALLET_CHARTER', label: '包板', value: 'st-pallet' },
-    { code: 'CONTAINER_LEASE', label: '租箱', value: 'st-container' },
-    { code: 'FUMIGATION', label: '熏蒸', value: 'st-fumigation' },
-    { code: 'DOC_BUY', label: '买单', value: 'st-doc-buy' },
-    { code: 'CERTIFICATE', label: '办证', value: 'st-certificate' },
-    { code: 'DOC_PREP', label: '制单', value: 'st-doc-prep' },
-    { code: 'DANGEROUS_SERVICE', label: '危险品', value: 'st-dangerous' },
-    { code: 'OVERWEIGHT_SERVICE', label: '超重', value: 'st-overweight' },
-    { code: 'DOCUMENT_EXCHANGE', label: '换单', value: 'st-doc-exchange' },
-    { code: 'WAREHOUSING', label: '仓储', value: 'st-warehousing' },
-    { code: 'INSPECTION', label: '报检', value: 'st-inspection' },
-    { code: 'CONTAINER_PURCHASE', label: '买箱', value: 'st-container-buy' },
-  ],
   cargoCategoryOptions: [
     { code: 'GENERAL', label: '普货', value: 'cargo-gen' },
   ],
@@ -149,7 +128,6 @@ describe('useOrderCreateOptions', () => {
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.error).toBeNull();
-    expect(result.current.serviceTypeOptions).toHaveLength(19);
     expect(result.current.cargoCategoryOptions).toEqual([
       { code: 'GENERAL', label: '普货', value: 'cargo-gen' },
     ]);
@@ -209,7 +187,6 @@ describe('useOrderCreateOptions', () => {
     expect(mockClearCache).toHaveBeenCalledWith('org-1');
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.error).toBeNull();
-    expect(result.current.serviceTypeOptions).toHaveLength(19);
   });
 
   it('组织切换竞态：组织 A 请求慢，组织 B 请求快，组织 A 的迟到响应不得覆盖组织 B 的状态', async () => {
@@ -297,7 +274,6 @@ describe('useOrderCreateOptions', () => {
     // 在组织 B 响应前，必须立即进入 loading 态，且选项必须为空，严防组织 A 数据闪现
     expect(result.current.loading).toBe(true);
     expect(result.current.cargoCategoryOptions).toEqual([]);
-    expect(result.current.serviceTypeOptions).toEqual([]);
 
     // 组织 B 响应后，正常展示组织 B 数据
     deferOrgB.resolve({

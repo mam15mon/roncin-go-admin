@@ -10,7 +10,6 @@ import {
   TradeTerm,
 } from '@/enums.generated';
 import {
-  recommendedServiceIDs,
   SEA_SHIPMENT_MODE,
 } from '../../sea-order-policy';
 import { getSeaTemplateSections } from '../../templates';
@@ -46,10 +45,6 @@ export function buildSeaExportCreateDefaults(
     shipmentMode: ShipmentMode.SHIPMENT_MODE_TRADITIONAL_FORWARDING,
     shipmentType: ShipmentType.SHIPMENT_TYPE_FCL,
     tradeTerm: TradeTerm.TRADE_TERM_CIF,
-    serviceTypeIds: recommendedServiceIDs(
-      context.serviceTypeOptions,
-      SEA_SHIPMENT_MODE.TRADITIONAL_FORWARDING,
-    ),
     cargoCategoryIds:
       typeof defaultCargoCategoryId === 'string'
         ? [defaultCargoCategoryId]
@@ -220,7 +215,6 @@ export function buildSeaExportCreatePayload(
       values.shipmentMode !== undefined && values.shipmentMode !== null
         ? Number(values.shipmentMode)
         : undefined,
-    serviceTypeIds: values.serviceTypeIds,
     cargoCategoryIds: values.cargoCategoryIds,
     originLocationId: values.originLocationId || undefined,
     destinationLocationId: values.destinationLocationId || undefined,
@@ -327,7 +321,6 @@ export function buildSeaExportDetailInitialValues(
       order.containerOwnership ?? ContainerOwnership.CONTAINER_OWNERSHIP_COC,
     shipmentMode:
       order.shipmentMode ?? ShipmentMode.SHIPMENT_MODE_TRADITIONAL_FORWARDING,
-    serviceTypeIds: order.serviceTypeIds ?? [],
     cargoCategoryIds: order.cargoCategoryIds ?? [],
     originLocationId: order.originLocationId,
     destinationLocationId: order.destinationLocationId,
@@ -451,7 +444,6 @@ export function buildSeaExportUpdatePayload(
       values.shipmentMode !== undefined
         ? Number(values.shipmentMode)
         : undefined,
-    serviceTypeIds: values.serviceTypeIds,
     cargoCategoryIds: values.cargoCategoryIds,
     originLocationId: values.originLocationId || undefined,
     destinationLocationId: values.destinationLocationId || undefined,

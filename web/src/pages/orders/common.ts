@@ -105,40 +105,6 @@ export const shipmentModeOptions = [
   { label: '跨境', value: ShipmentMode.SHIPMENT_MODE_CROSS_BORDER },
 ];
 
-export const seaServiceTypes = [
-  { code: 'BOOKING', name: '订舱' },
-  { code: 'TRUCKING', name: '拖车' },
-  { code: 'STUFFING', name: '内装' },
-  { code: 'CUSTOMS_EXPORT', name: '报关' },
-  { code: 'CUSTOMS_IMPORT', name: '清关' },
-  { code: 'OVERSEA_SEGMENT', name: '海外段' },
-  { code: 'INSURANCE', name: '保险' },
-  { code: 'PALLET_CHARTER', name: '包板' },
-  { code: 'CONTAINER_LEASE', name: '租箱' },
-  { code: 'FUMIGATION', name: '熏蒸' },
-  { code: 'DOC_BUY', name: '买单' },
-  { code: 'CERTIFICATE', name: '办证' },
-  { code: 'DOC_PREP', name: '制单' },
-  { code: 'DANGEROUS_SERVICE', name: '危险品' },
-  { code: 'OVERWEIGHT_SERVICE', name: '超重' },
-  { code: 'DOCUMENT_EXCHANGE', name: '换单' },
-  { code: 'WAREHOUSING', name: '仓储' },
-  { code: 'INSPECTION', name: '报检' },
-  { code: 'CONTAINER_PURCHASE', name: '买箱' },
-] as const;
-
-export function requireSeaServiceTypeOptions<
-  T extends { code?: string; label: string; value: string | number },
->(options: T[]): T[] {
-  return seaServiceTypes.map(({ code, name }) => {
-    const option = options.find((item) => item.code === code);
-    if (!option) {
-      throw new Error(`缺少海运服务类型主数据：${name}（${code}）`);
-    }
-    return option;
-  });
-}
-
 export const orderPersonnelRoleOptions = [
   {
     label: '创建人 (CREATOR)',
@@ -202,7 +168,6 @@ export const shippingDocumentStatusValueEnum: Record<
 export const MASTER_DATA_KINDS = {
   REGION: MasterDataKind.MASTER_DATA_KIND_REGION,
   CONTAINER_SPEC: MasterDataKind.MASTER_DATA_KIND_CONTAINER_SPEC,
-  SERVICE_TYPE: MasterDataKind.MASTER_DATA_KIND_CHARGE_CATEGORY,
   CARGO_CATEGORY: MasterDataKind.MASTER_DATA_KIND_CARGO_CATEGORY,
 } as const;
 
@@ -323,18 +288,6 @@ export async function fetchOrderMasterData(
       : Promise.resolve([]),
     getCurrencies(),
   ]);
-  const serviceTypeOptions = masterOptions
-    .filter(
-      (item) =>
-        isMasterDataKind(item.kind, MASTER_DATA_KINDS.SERVICE_TYPE) &&
-        item.enabled !== false,
-    )
-    .map((item) => ({
-      label: item.name ?? '',
-      value: item.id ?? '',
-      code: item.code,
-    }));
-
   const cargoCategoryOptions = masterOptions
     .filter(
       (item) =>
@@ -387,7 +340,6 @@ export async function fetchOrderMasterData(
     ports,
     airports,
     currencies,
-    serviceTypeOptions,
     cargoCategoryOptions,
     seaLocationOptions,
     airLocationOptions,

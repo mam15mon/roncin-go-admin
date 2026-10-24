@@ -37,7 +37,6 @@ export function FeeItemsPanel() {
     [],
   );
   const [currencies, setCurrencies] = useState<API.Currency[]>([]);
-  const [serviceTypes, setServiceTypes] = useState<API.MasterDataItem[]>([]);
   const [abnormalCases, setAbnormalCases] = useState<API.MasterDataItem[]>([]);
 
   // 表头汇总：序号、费用名称、费用名称(英文)、费用代码、归属、币种、计费单位、税率、货物或应税劳务名称、费用大类、对应异常情况、操作
@@ -135,13 +134,6 @@ export function FeeItemsPanel() {
           unwrapList(taxableResponse).filter((item) => item.enabled),
         );
         setCurrencies(currencyResponse.filter((item) => item.enabled));
-        setServiceTypes(
-          unwrapList(optionResponse).filter(
-            (item) =>
-              item.kind === MasterDataKind.MASTER_DATA_KIND_CHARGE_CATEGORY &&
-              item.enabled !== false,
-          ),
-        );
         setAbnormalCases(
           unwrapList(optionResponse).filter(
             (item) =>
@@ -157,7 +149,6 @@ export function FeeItemsPanel() {
           nameZh: values.nameZh.trim(),
           nameEn: values.nameEn?.trim() || undefined,
           aliasName: values.aliasName?.trim() || undefined,
-          chargeCategoryId: values.chargeCategoryId ?? '',
           defaultCurrency: values.defaultCurrency,
           billingUnitId: values.billingUnitId,
           abnormalCaseId: values.abnormalCaseId || undefined,
@@ -176,8 +167,7 @@ export function FeeItemsPanel() {
             nameZh: values.nameZh.trim(),
             nameEn: values.nameEn?.trim() || undefined,
             aliasName: values.aliasName?.trim() || undefined,
-            chargeCategoryId: values.chargeCategoryId ?? '',
-            defaultCurrency: values.defaultCurrency,
+              defaultCurrency: values.defaultCurrency,
             billingUnitId: values.billingUnitId,
             abnormalCaseId: values.abnormalCaseId || undefined,
             taxRate: values.taxRate,
@@ -194,7 +184,6 @@ export function FeeItemsPanel() {
               nameZh: editing.nameZh,
               nameEn: editing.nameEn,
               aliasName: editing.aliasName,
-              chargeCategoryId: editing.chargeCategoryId,
               defaultCurrency: editing.defaultCurrency,
               billingUnitId: editing.billingUnitId,
               abnormalCaseId: editing.abnormalCaseId,
@@ -211,7 +200,6 @@ export function FeeItemsPanel() {
           billingUnits={billingUnits}
           taxableServices={taxableServices}
           currencies={currencies}
-          serviceTypes={serviceTypes}
           abnormalCases={abnormalCases}
         />
       )}

@@ -42,7 +42,6 @@ describe('fees 台账导出字段', () => {
       financialProgress: 1,
       billNo: 'B001',
       orderNo: 'O001',
-      expenseDate: '2026-10-01 14:30',
       updatedAt: '2026-10-17T14:44:52Z',
     };
     const values = Object.fromEntries(
@@ -78,11 +77,10 @@ describe('fees 台账导出字段', () => {
       财务进度: '账单未建立',
       账单编号: 'B001',
       订单编号: 'O001',
-      费用日期: '2026-10-01',
       更新时间: '2026-10-17 22:44:52',
     });
     expect(new Set(feeExportColumns.map((column) => column.header)).size).toBe(
-      31,
+      30,
     );
     const csv = serializeCsv(
       [row, { ...row, currency: 'EUR', baseCurrency: 'HKD' }],

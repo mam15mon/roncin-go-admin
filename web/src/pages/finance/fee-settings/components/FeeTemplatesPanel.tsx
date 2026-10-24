@@ -104,12 +104,6 @@ export default function FeeTemplatesPanel() {
             editing={Boolean(row)}
             billingUnits={options?.billingUnits ?? []}
             currencies={options?.currencies ?? []}
-            serviceTypes={
-              options?.items.filter(
-                (item) =>
-                  item.kind === MasterDataKind.MASTER_DATA_KIND_CHARGE_CATEGORY,
-              ) ?? []
-            }
             abnormalCases={
               options?.items.filter(
                 (item) =>

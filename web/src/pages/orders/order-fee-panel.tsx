@@ -290,13 +290,11 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
 
     const handleModalSubmit = async (values: FeeFormValues) => {
       if (!order?.id || !ensureFeeWriteAllowed()) return false;
-      const expenseDate = dayjs(values.expenseDate).format('YYYY-MM-DD');
       const direction = values.direction ?? RECEIVABLE;
       const preservesManualSnapshot =
         editingFee?.exchangeRateSource === 'MANUAL' &&
         !manualExchangeRate &&
         values.currency === editingFee.currency &&
-        expenseDate === dayjs(editingFee.expenseDate).format('YYYY-MM-DD') &&
         direction === editingFee.direction;
       if (
         exchangeRateStatus === 'missing' &&
@@ -329,7 +327,6 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
               ),
               unitPrice: normalizeDecimalInput(String(values.unitPrice ?? '')),
               currency: values.currency,
-              expenseDate,
               note: values.note?.trim() || undefined,
               exchangeRateOverride,
             },
@@ -353,7 +350,6 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
               ),
               unitPrice: normalizeDecimalInput(String(values.unitPrice ?? '')),
               currency: values.currency,
-              expenseDate,
               note: values.note?.trim() || undefined,
               exchangeRateOverride,
             },
@@ -566,7 +562,6 @@ const OrderFeePanel = forwardRef<OrderFeePanelRef>(
                   ? feeDirectionCode(editingFee.direction)
                   : RECEIVABLE,
                 setting.defaultCurrency,
-                dayjs().format('YYYY-MM-DD'),
               );
             }
           }}

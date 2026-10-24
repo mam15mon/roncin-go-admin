@@ -53,7 +53,6 @@ vi.mock('@/services/roncin/orderReleasePodService', () => ({
 
 const search = async () => [];
 const props: TemplateProps = {
-  serviceTypeOptions: [],
   cargoCategoryOptions: [],
   locationOptions: [],
   currencyOptions: [],

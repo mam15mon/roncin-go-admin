@@ -113,45 +113,6 @@ export function SeaOrderReferenceField({
   );
 }
 
-const useServiceTypeStyles = createStyles(({ css }) => ({
-  container: css`
-    width: 100%;
-    container-type: inline-size;
-  `,
-  options: css`
-    display: grid;
-    grid-template-columns: repeat(10, minmax(0, 1fr));
-    gap: 8px;
-    width: 100%;
-    @container (max-width: 950px) {
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-    }
-    @container (max-width: 500px) {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-    @container (max-width: 320px) {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  `,
-}));
-
-export function SeaServiceTypeFields({ options }: { options: SelectOption[] }) {
-  const { styles } = useServiceTypeStyles();
-  return (
-    <div className={styles.container}>
-      <ProFormCheckbox.Group
-        name="serviceTypeIds"
-        label="服务类型"
-        fieldProps={{ className: styles.options }}
-        options={options.map((option) => ({
-          label: option.label,
-          value: option.value,
-        }))}
-      />
-    </div>
-  );
-}
-
 const useDangerousGoodsStyles = createStyles(({ css }) => ({
   reveal: css`
     display: grid;
@@ -504,7 +465,6 @@ export function SeaCustomerField({
 
 export function getSeaBaseInfoFields(props: TemplateProps) {
   const {
-    serviceTypeOptions,
     cargoCategoryOptions,
     currencyOptions,
     searchCustomers,
@@ -556,7 +516,6 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
         />
       </FormRow>
     ),
-    services: <SeaServiceTypeFields options={serviceTypeOptions} />,
     categories: (
       <div style={{ width: '100%' }}>
         <ProFormCheckbox.Group

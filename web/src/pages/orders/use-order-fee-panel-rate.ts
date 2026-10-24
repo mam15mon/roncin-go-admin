@@ -47,14 +47,13 @@ export function useOrderFeePanelExchangeRate(editingFee?: API.OrderFee) {
     orderId: string,
     direction: number,
     currency: string,
-    expenseDate: string,
   ) => {
     const currentRequestId = ++exchangeRateRequestRef.current;
     setExchangeRateStatus('loading');
     setExchangeRatePreview(undefined);
     setManualExchangeRate(false);
     orderFeeServiceResolveFeeExchangeRate(
-      { orderId, direction, currency, expenseDate },
+      { orderId, direction, currency },
       { skipErrorHandler: true },
     )
       .then((response) => {

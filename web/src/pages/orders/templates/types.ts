@@ -10,7 +10,6 @@ export interface SelectOption {
 export type TemplateSection = OrderFormTemplateSection;
 
 export interface TemplateProps {
-  serviceTypeOptions: SelectOption[];
   cargoCategoryOptions: SelectOption[];
   locationOptions: SelectOption[];
   searchLocations: (keyword?: string) => Promise<SelectOption[]>;

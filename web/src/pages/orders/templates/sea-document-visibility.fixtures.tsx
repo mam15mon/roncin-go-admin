@@ -38,7 +38,6 @@ export const HOUSE = SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE;
 export const DIRECT = SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT;
 const search = async () => [];
 const props: TemplateProps = {
-  serviceTypeOptions: [],
   cargoCategoryOptions: [],
   locationOptions: [],
   currencyOptions: [],

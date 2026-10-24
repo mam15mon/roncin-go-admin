@@ -84,30 +84,21 @@ export function PersonnelAssignmentFields({
 
 export function buildSeaPersonnelSection(props: TemplateProps) {
   const { personnelOptions, creator, isDetail } = props;
-  // 提成归属以订单人员为唯一真相：新建模式下操作/业务/客服三岗必填；
-  // 详情模式不施加规则，避免存量订单缺岗时阻塞其它字段保存。
-  const commissionStaffRules = (message: string): Rule[] =>
-    isDetail ? [] : [{ required: true, message }];
+  // 业务/客服由客户档案带入（选择客户时自动填充），界面只读不可手改；
+  // 客户未配置对应岗位时允许为空。操作人员仍必填手选。
   const fields: ReadonlyArray<{
     label: string;
     userField: string;
     rules?: Rule[];
+    locked?: boolean;
   }> = [
     {
       label: '操作人员',
       userField: 'operatorUserId',
-      rules: commissionStaffRules('请选择操作人员'),
+      rules: isDetail ? [] : [{ required: true, message: '请选择操作人员' }],
     },
-    {
-      label: '业务人员',
-      userField: 'salesUserId',
-      rules: commissionStaffRules('请选择业务人员'),
-    },
-    {
-      label: '客服人员',
-      userField: 'customerServiceUserId',
-      rules: commissionStaffRules('请选择客服人员'),
-    },
+    { label: '业务人员', userField: 'salesUserId', locked: true },
+    { label: '客服人员', userField: 'customerServiceUserId', locked: true },
     { label: '关联人员', userField: 'associateUserId' },
     { label: '单证人员', userField: 'documentUserId' },
     { label: '商务人员', userField: 'commercialUserId' },
@@ -130,13 +121,14 @@ export function buildSeaPersonnelSection(props: TemplateProps) {
           disabled
           nameOnly={!isDetail}
         />
-        {fields.map(({ label, userField, rules }) => (
+        {fields.map(({ label, userField, rules, locked }) => (
           <PersonnelAssignmentFields
             key={userField}
             label={label}
             userField={userField}
             options={personnelOptions}
             rules={rules}
+            disabled={locked}
             nameOnly={!isDetail}
           />
         ))}

@@ -98,11 +98,6 @@ export const feeExportColumns: CsvColumn<API.FeeLedgerItem>[] = [
   },
   { header: '账单编号', value: (row) => row.billNo },
   { header: '订单编号', value: (row) => row.orderNo },
-  {
-    header: '费用日期',
-    value: (row) =>
-      row.expenseDate ? formatDate(row.expenseDate, 'date') : '',
-  },
   { header: '备注', value: (row) => row.note },
   {
     header: '创建时间',

@@ -143,9 +143,6 @@ export default function MySupplementSourcePage() {
                 <Descriptions.Item label="本位币金额">
                   {`${decimalText(source.feeBaseCurrencyAmount)} ${source.feeBaseCurrency || ''}`}
                 </Descriptions.Item>
-                <Descriptions.Item label="费用发生日期">
-                  {source.feeExpenseDate || '-'}
-                </Descriptions.Item>
               </Descriptions>
             </SectionCard>
           )}

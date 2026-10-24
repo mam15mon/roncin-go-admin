@@ -24,36 +24,6 @@ export default function QuickAddFeeModal({
   billingUnits,
   taxableServices,
 }: QuickAddFeeModalProps) {
-  const [chargeCategories, setChargeCategories] = useState<
-    API.MasterDataItem[]
-  >([]);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    let cancelled = false;
-    masterDataServiceListItems({
-      kind: MASTER_DATA_KINDS.SERVICE_TYPE,
-      enabled: true,
-      page: 1,
-      pageSize: 200,
-    })
-      .then((res) => {
-        if (!cancelled) {
-          setChargeCategories(res.data ?? []);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setChargeCategories([]);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [open]);
-
   return (
     <QuickCreateModal<API.CreateFeeSettingRequest, API.FeeSetting>
       title="快捷新增费用科目"
@@ -90,23 +60,6 @@ export default function QuickAddFeeModal({
             ]}
           >
             <Input placeholder="例如：码头操作费、海运费" maxLength={100} />
-          </Form.Item>
-        </Col>
-        <Col span={12}>
-          <Form.Item
-            name="chargeCategoryId"
-            label="费用大类"
-            rules={[{ required: true, message: '请选择费用大类' }]}
-          >
-            <SearchableSelect
-              placeholder="请选择费用大类"
-              options={chargeCategories.map((item) => ({
-                label: item.code
-                  ? `${item.name} (${item.code})`
-                  : item.name || '',
-                value: item.id ?? '',
-              }))}
-            />
           </Form.Item>
         </Col>
         <Col span={12}>

@@ -105,7 +105,7 @@ describe('OrderFeeTableTabs 账单投影相关操作', () => {
           currency: 'CNY',
           quantity: '1',
           unitPrice: '100',
-          expenseDate: today,
+          createdAt: today,
           version: '2',
           feeSettingId: 'setting-of',
           settlementPartyId: 'agent-1',
@@ -127,7 +127,7 @@ describe('OrderFeeTableTabs 账单投影相关操作', () => {
       </App>,
     );
 
-    await screen.findByText(today);
+    await screen.findByText(`${today} 00:00`);
     await act(async () => {
       screen.getAllByRole('button', { name: /编\s*辑/ })[0].click();
     });
@@ -154,7 +154,7 @@ describe('OrderFeeTableTabs 账单投影相关操作', () => {
           canBill: true,
           id: 'fee-unbilled',
           direction: RECEIVABLE,
-          expenseDate: '2026-09-20',
+          createdAt: '2026-09-20',
           version: '2',
           feeName: '拖车费',
         },
@@ -165,7 +165,7 @@ describe('OrderFeeTableTabs 账单投影相关操作', () => {
           id: 'fee-billed',
           direction: RECEIVABLE,
           hasActiveBill: true,
-          expenseDate: '2026-09-20',
+          createdAt: '2026-09-20',
           version: '3',
           feeName: '海运费',
         },
@@ -208,7 +208,7 @@ describe('OrderFeeTableTabs 账单投影相关操作', () => {
           canBill: true,
           id: 'fee-unbilled',
           direction: RECEIVABLE,
-          expenseDate: '2026-09-20',
+          createdAt: '2026-09-20',
           version: '2',
           feeName: '拖车费',
         },
@@ -218,7 +218,7 @@ describe('OrderFeeTableTabs 账单投影相关操作', () => {
           id: 'fee-billed',
           direction: RECEIVABLE,
           hasActiveBill: true,
-          expenseDate: '2026-09-20',
+          createdAt: '2026-09-20',
           version: '3',
           feeName: '海运费',
         },

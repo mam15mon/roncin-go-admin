@@ -82,7 +82,6 @@ describe.skip('海运订单新增模板', () => {
 
   it('共享主单关联多票时回填当前船公司名称并同时禁止修改船公司和 MBL 主单号', async () => {
     const sections = getSeaTemplateSections({
-      serviceTypeOptions: [],
       cargoCategoryOptions: [],
       locationOptions: [],
       searchLocations: vi.fn().mockResolvedValue([]),
@@ -132,7 +131,6 @@ describe.skip('海运订单新增模板', () => {
 
   it('按配舱、货物、提单顺序生成海运业务区块', () => {
     const sections = getSeaTemplateSections({
-      serviceTypeOptions: [],
       cargoCategoryOptions: [],
       locationOptions: [],
       searchLocations: vi.fn().mockResolvedValue([]),
@@ -193,7 +191,6 @@ describe.skip('海运订单新增模板', () => {
 
   it('提单模式显式选择：HOUSE 只录入一张 HBL，DIRECT 不携带 HBL', async () => {
     const sections = getSeaTemplateSections({
-      serviceTypeOptions: [],
       cargoCategoryOptions: [],
       locationOptions: [],
       searchLocations: vi.fn().mockResolvedValue([]),
@@ -250,7 +247,6 @@ describe.skip('海运订单新增模板', () => {
 
   it('散杂托运隐藏箱型箱量并要求显式清理已有计划', () => {
     const sections = getSeaTemplateSections({
-      serviceTypeOptions: [],
       cargoCategoryOptions: [],
       locationOptions: [],
       searchLocations: vi.fn().mockResolvedValue([]),
@@ -291,7 +287,6 @@ describe.skip('海运订单新增模板', () => {
 
   it('渲染货值与保费的金额及币种选择框', () => {
     const sections = getSeaTemplateSections({
-      serviceTypeOptions: [],
       cargoCategoryOptions: [],
       locationOptions: [],
       searchLocations: vi.fn().mockResolvedValue([]),
@@ -325,7 +320,6 @@ describe.skip('海运订单新增模板', () => {
 
   it('基本信息中企业内部编号显示在订舱号之前', () => {
     const sections = getSeaTemplateSections({
-      serviceTypeOptions: [],
       cargoCategoryOptions: [],
       locationOptions: [],
       searchLocations: vi.fn().mockResolvedValue([]),

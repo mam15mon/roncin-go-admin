@@ -128,9 +128,6 @@ export default function FeeSupplementModal({
         currency,
         quantity: initialRequest.quantity,
         unitPrice: initialRequest.unitPrice,
-        expenseDate: initialRequest.expenseDate
-          ? dayjs(initialRequest.expenseDate)
-          : undefined,
         reason: initialRequest.reason,
         note: initialRequest.note,
         exchangeRateOverride: canReuseManualRate
@@ -187,7 +184,7 @@ export default function FeeSupplementModal({
           'direction' in changedValues ||
           'feeSettingId' in changedValues ||
           'currency' in changedValues ||
-          'expenseDate' in changedValues;
+          false;
         if (rateBasisChanged && manualExchangeRate) {
           setManualRateCleared(true);
         }
@@ -401,15 +398,6 @@ export default function FeeSupplementModal({
             }))}
           />
         </Col>
-        <Col span={12}>
-          <ProFormDatePicker
-            name="expenseDate"
-            label="发生日期"
-            rules={[{ required: true, message: '请选择发生日期' }]}
-            fieldProps={{ style: { width: '100%' } }}
-          />
-        </Col>
-
         <Col span={24}>
           <ExchangeRatePreviewCard
             amountPreview={totalPreview}

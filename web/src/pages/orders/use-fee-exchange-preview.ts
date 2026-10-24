@@ -51,7 +51,6 @@ export function useFeeExchangePreview(
     currentOrderId: string,
     direction: number,
     currency: string,
-    expenseDate: string,
   ) => {
     const requestSequence = ++exchangeRateRequestRef.current;
     setExchangeRateStatus('loading');
@@ -59,7 +58,7 @@ export function useFeeExchangePreview(
     setManualExchangeRate(false);
     formRef?.current?.setFieldValue('exchangeRateOverride', undefined);
     void orderFeeServiceResolveFeeExchangeRate(
-      { orderId: currentOrderId, direction, currency, expenseDate },
+      { orderId: currentOrderId, direction, currency },
       { skipErrorHandler: true },
     )
       .then((response) => {
@@ -75,6 +74,11 @@ export function useFeeExchangePreview(
       .catch((error: FeeRequestError) => {
         if (requestSequence !== exchangeRateRequestRef.current) return;
         const code = error.data?.reason || error.response?.data?.reason;
+        if (code === 'ORDER_ETD_MISSING') {
+          setExchangeRateStatus('missing');
+          message.error('请先填写订单 ETD 后再解析汇率');
+          return;
+        }
         if (code === 'FEE_EXCHANGE_RATE_MISSING') {
           setExchangeRateStatus('missing');
           message.error('请先维护汇率');
@@ -88,7 +92,7 @@ export function useFeeExchangePreview(
   const handleValuesChange = (options?: { amountOnly?: boolean }) => {
     const values = formRef?.current?.getFieldsValue();
     if (!values) return;
-    const { quantity, unitPrice, currency, expenseDate, direction } = values;
+    const { quantity, unitPrice, currency, direction } = values;
     if (
       quantity &&
       unitPrice &&
@@ -100,19 +104,8 @@ export function useFeeExchangePreview(
     } else {
       setTotalPreview(undefined);
     }
-    if (
-      !options?.amountOnly &&
-      orderId &&
-      direction &&
-      currency &&
-      expenseDate
-    ) {
-      resolveExchangeRate(
-        orderId,
-        Number(direction),
-        currency,
-        dayjs(expenseDate).format('YYYY-MM-DD'),
-      );
+    if (!options?.amountOnly && orderId && direction && currency) {
+      resolveExchangeRate(orderId, Number(direction), currency);
     }
   };
 

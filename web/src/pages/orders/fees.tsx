@@ -377,7 +377,6 @@ export default function OrderFeesPage() {
           quantitySource: fee.quantitySource,
           unitPrice: fee.unitPrice ? trimDecimal(fee.unitPrice) : '',
           currency: fee.currency ?? '',
-          expenseDate: fee.expenseDate ? dayjs(fee.expenseDate) : dayjs(),
           note: fee.note ?? '',
         });
       }, 0);
@@ -396,7 +395,6 @@ export default function OrderFeesPage() {
           settlementPartyId: defaultParty ?? '',
           currency: 'CNY',
           quantity: '1',
-          expenseDate: dayjs(),
         });
         handleValuesChange();
       }, 0);
@@ -405,12 +403,10 @@ export default function OrderFeesPage() {
 
   const handleModalSubmit = async (values: FeeFormValues) => {
     if (!orderId || !ensureFeeWriteAllowed(editingFee)) return false;
-    const expenseDate = dayjs(values.expenseDate).format('YYYY-MM-DD');
     const preservesManualSnapshot =
       editingFee?.exchangeRateSource === 'MANUAL' &&
       !manualExchangeRate &&
       values.currency === editingFee.currency &&
-      expenseDate === dayjs(editingFee.expenseDate).format('YYYY-MM-DD') &&
       (values.direction ?? modalDirection) === editingFee.direction;
     if (
       exchangeRateStatus === 'missing' &&
@@ -432,7 +428,6 @@ export default function OrderFeesPage() {
       ),
       unitPrice: normalizeDecimalInput(String(values.unitPrice ?? '')),
       currency: values.currency,
-      expenseDate,
       note: values.note,
       exchangeRateOverride: manualExchangeRate
         ? values.exchangeRateOverride

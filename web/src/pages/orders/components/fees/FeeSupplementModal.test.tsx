@@ -85,7 +85,6 @@ describe('FeeSupplementModal', () => {
       currency: 'CNY',
       quantity: '7',
       unitPrice: '88',
-      expenseDate: '2026-09-19',
       reason: '仓储费遗漏',
       note: '旧备注',
     });
@@ -106,7 +105,6 @@ describe('FeeSupplementModal', () => {
       currency: 'USD',
       quantity: '2',
       unitPrice: '20',
-      expenseDate: '2026-09-19',
       reason: '原原因',
     });
     expect(
@@ -127,7 +125,6 @@ describe('FeeSupplementModal', () => {
       currency: 'CNY',
       quantity: '2',
       unitPrice: '20',
-      expenseDate: '2026-09-19',
       reason: '原原因',
       exchangeRateSource: 'MANUAL',
       exchangeRate: '1.2',
@@ -153,7 +150,6 @@ describe('FeeSupplementModal', () => {
       currency: 'CNY',
       quantity: '2',
       unitPrice: '20',
-      expenseDate: '2026-09-19',
       reason: '原原因',
       exchangeRateSource: 'MANUAL',
       exchangeRate: '1.2',

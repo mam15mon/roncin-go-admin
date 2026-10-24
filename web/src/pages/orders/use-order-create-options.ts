@@ -10,7 +10,6 @@ import {
   fetchOrderMasterData,
   isMasterDataKind,
   MASTER_DATA_KINDS,
-  requireSeaServiceTypeOptions,
   resolveOrderLocationOptions,
   searchOrderLocations,
 } from './common';
@@ -19,7 +18,6 @@ import type { SelectOption } from './templates';
 
 /** 新建订单页候选聚合载荷：queryFn 内并行拉取主数据与人员选项并完成映射。 */
 interface OrderCreateOptionsBundle {
-  serviceTypeOptions: SelectOption[];
   cargoCategoryOptions: SelectOption[];
   locationOptions: SelectOption[];
   currencyOptions: SelectOption[];
@@ -64,10 +62,6 @@ export function useOrderCreateOptions(
         ]);
 
         return {
-          serviceTypeOptions:
-            definition.transportMode === 'sea'
-              ? requireSeaServiceTypeOptions(masterData.serviceTypeOptions)
-              : masterData.serviceTypeOptions,
           cargoCategoryOptions: masterData.cargoCategoryOptions,
           locationOptions: resolveOrderLocationOptions(
             definition.transportMode,
@@ -167,7 +161,6 @@ export function useOrderCreateOptions(
     loading,
     error: effectiveError,
     retry,
-    serviceTypeOptions: bundle?.serviceTypeOptions ?? [],
     cargoCategoryOptions: bundle?.cargoCategoryOptions ?? [],
     locationOptions: bundle?.locationOptions ?? [],
     searchLocations,

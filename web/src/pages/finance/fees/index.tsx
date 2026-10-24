@@ -522,11 +522,11 @@ export default function FinanceFeeLedgerPage() {
             organizationId,
             tagIds: tagFilterIds,
           } = queryState.snapshotRef.current.filters;
-          const expenseDateFrom = filterParams.expenseDateRange?.[0]
-            ? filterParams.expenseDateRange[0].format('YYYY-MM-DD')
+          const createdAtFrom = filterParams.createdAtRange?.[0]
+            ? filterParams.createdAtRange[0].format('YYYY-MM-DD')
             : undefined;
-          const expenseDateTo = filterParams.expenseDateRange?.[1]
-            ? filterParams.expenseDateRange[1].format('YYYY-MM-DD')
+          const createdAtTo = filterParams.createdAtRange?.[1]
+            ? filterParams.createdAtRange[1].format('YYYY-MM-DD')
             : undefined;
 
           const response = await settlementServiceListFeeLedger({
@@ -566,8 +566,8 @@ export default function FinanceFeeLedgerPage() {
             settlementPartyId: filterParams.settlementPartyId || undefined,
             currency: filterParams.currency || undefined,
 
-            expenseDateFrom,
-            expenseDateTo,
+            createdAtFrom,
+            createdAtTo,
             tagIds: tagFilterIds?.length ? tagFilterIds : undefined,
             organizationId,
           });

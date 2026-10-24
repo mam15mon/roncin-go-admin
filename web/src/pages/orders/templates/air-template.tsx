@@ -16,7 +16,6 @@ import {
   SeaCustomerField,
   SeaDangerousGoodsFields,
   SeaOrderReferenceField,
-  SeaServiceTypeFields,
 } from './components/sea/SeaBasicInfoSection';
 import { SeaCargoDescriptionFields } from './components/sea/SeaCargoSection';
 import { buildSeaPersonnelSection } from './components/sea/SeaPersonnelSection';
@@ -65,7 +64,6 @@ export function getAirTemplateSections(
             />
             <ProFormText name="customerCode" label="委托单位代码" disabled />
           </FormRow>
-          <SeaServiceTypeFields options={props.serviceTypeOptions} />
         </>
       ),
     },
