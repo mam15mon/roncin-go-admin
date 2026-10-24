@@ -180,3 +180,19 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+## 2026-10-24: 业务/客服两岗恢复必填（上任务修正）
+
+### Summary
+
+按用户反馈恢复业务/客服必填：前端两岗新建必填（提示先维护客户档案）且保持只读；服务端三岗校验恢复，创建与草稿换客户均在客户档案覆盖后校验两岗在册，缺岗返回 ORDER_CUSTOMER_STAFF_MISSING 整体回滚。验收脚本客户补配客服岗位。check:fast 全绿。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `HEAD` | feat: 业务/客服两岗恢复必填（只读由客户带入不变） |
+
+### Status
+
+[OK] **Completed**
