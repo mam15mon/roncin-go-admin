@@ -56,6 +56,10 @@ func NewOrderCommissionPersonnelMissing(missing []OrderPersonnelRole) error {
 		"订单缺少"+strings.Join(labels, "、")+"人员，请在内部信息区补全后再开单")
 }
 
+// ErrOrderCustomerStaffMissing 客户档案未配齐业务/客服岗位：两岗以客户档案为
+// 唯一真相且订单上必填，客户缺岗时创建与换客户均被拒绝。
+var ErrOrderCustomerStaffMissing = errors.BadRequest("ORDER_CUSTOMER_STAFF_MISSING", "客户档案未配置业务/客服人员，请先维护客户档案后再开单")
+
 var (
 	ErrOrderNotFound                  = errors.NotFound("ORDER_NOT_FOUND", "订单不存在")
 	ErrOrderInvalidArgument           = errors.BadRequest("ORDER_INVALID_ARGUMENT", "订单字段不合法")

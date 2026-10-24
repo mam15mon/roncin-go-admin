@@ -196,7 +196,8 @@ func overrideOrderPersonnelFromCustomer(ctx context.Context, tx *ent.Tx, organiz
 
 // resyncOrderCustomerPersonnel 换客户时按新客户档案重挂订单的销售/客服人员行：
 // 旧客户的两岗行先删除，再挂新客户档案上各岗位 sortOrder 最小的在册人员；
-// 新客户缺岗时该岗位留空。提成归属快照固化创建时归属，不随本操作重拍。
+// 新客户档案缺任一岗位时返回 ErrOrderCustomerStaffMissing。提成归属快照固化
+// 创建时归属，不随本操作重拍。
 func resyncOrderCustomerPersonnel(ctx context.Context, tx *ent.Tx, organizationID, orderID, customerID uuid.UUID) error {
 	rows, err := tx.PartnerAssignment.Query().
 		Where(
@@ -215,6 +216,13 @@ func resyncOrderCustomerPersonnel(ctx context.Context, tx *ent.Tx, organizationI
 		if _, exists := firstByRole[key]; !exists {
 			firstByRole[key] = row.UserID
 		}
+	}
+	// 两岗必填：换入客户缺任一岗位时拒绝换客户，不产生缺岗订单。
+	if _, ok := firstByRole[string(partnerassignmentent.RoleSALES)]; !ok {
+		return biz.ErrOrderCustomerStaffMissing
+	}
+	if _, ok := firstByRole[string(partnerassignmentent.RoleCUSTOMER_SERVICE)]; !ok {
+		return biz.ErrOrderCustomerStaffMissing
 	}
 	if _, err := tx.OrderPersonnel.Delete().Where(
 		orderpersonnelent.OrderIDEQ(orderID),

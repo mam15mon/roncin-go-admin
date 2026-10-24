@@ -197,7 +197,18 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 			Save(ctx); err != nil {
 			t.Fatalf("创建换入客户角色失败: %v", err)
 		}
-		// 换入客户故意不配置任何责任人：客户档案不再影响归属行。
+		// 换入客户配置与原三岗相同的责任岗位：业务/客服由客户档案带入后
+		// 人员不变，归属行仅同步客户冗余列。
+		for _, assignmentRole := range []partnerassignmentent.Role{partnerassignmentent.RoleSALES, partnerassignmentent.RoleCUSTOMER_SERVICE} {
+			if _, err = data.db.PartnerAssignment.Create().
+				SetPartnerID(replacement.ID).
+				SetUserID(fixture.actorID).
+				SetOrganizationID(fixture.organizationID).
+				SetRole(assignmentRole).
+				Save(ctx); err != nil {
+				t.Fatalf("创建换入客户岗位失败: %v", err)
+			}
+		}
 		beforeAttributions, err := data.db.OrderCommissionAttribution.Query().
 			Where(ordercommissionattributionent.OrderIDEQ(created.ID)).All(ctx)
 		if err != nil || len(beforeAttributions) != 3 {
@@ -238,11 +249,46 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		if err != nil {
 			t.Fatalf("查询换客户后订单人员失败: %v", err)
 		}
-		// 业务/客服以客户档案为唯一真相：换入客户未配两岗，订单上对应人员行被移除。
-		for _, item := range afterPersonnel {
-			if item.Role == orderpersonnelent.RoleSALES || item.Role == orderpersonnelent.RoleCUSTOMER_SERVICE {
-				t.Fatalf("换入客户未配岗位，业务/客服人员行应被移除: %#v", item)
-			}
+		// 换入客户两岗与原岗位同源（创建人兼任）：人员集合保持不变。
+		if len(afterPersonnel) != 4 {
+			t.Fatalf("换客户后订单人员数 = %d，期望 4（创建人 + 三岗），error=%v", len(afterPersonnel), err)
+		}
+	})
+
+	t.Run("草稿换客户缺岗位被拒绝", func(t *testing.T) {
+		fixture := newOrderPostgresFixture(t, data)
+		usecase := fixture.newUsecase()
+		ctx := context.Background()
+		created, err := usecase.Create(ctx, fixture.organizationID, fixture.actorID, fixture.validInput())
+		if err != nil {
+			t.Fatalf("创建草稿订单: %v", err)
+		}
+		bare, err := data.db.Partner.Create().
+			SetOrganizationID(fixture.organizationID).
+			SetCode("CUSTOMER-BARE-" + fixture.suffix).
+			SetLegalName("缺岗换入客户-" + fixture.suffix).
+			SetNormalizedName("缺岗换入客户-" + fixture.suffix).
+			Save(ctx)
+		if err != nil {
+			t.Fatalf("创建缺岗换入客户失败: %v", err)
+		}
+		if _, err = data.db.PartnerRole.Create().
+			SetPartnerID(bare.ID).
+			SetRoleType(partnerroleent.RoleTypeCustomer).
+			SetEnabled(true).
+			Save(ctx); err != nil {
+			t.Fatalf("创建缺岗换入客户角色失败: %v", err)
+		}
+
+		update := fixture.validUpdateInput()
+		update.CustomerID = bare.ID
+		_, err = usecase.UpdateDraft(ctx, fixture.organizationID, fixture.actorID, created.ID, created.Version, update)
+		if !errors.Is(err, biz.ErrOrderCustomerStaffMissing) {
+			t.Fatalf("换入客户缺两岗应被拒绝，实际 %v", err)
+		}
+		reloaded, getErr := usecase.Get(ctx, fixture.organizationID, created.ID)
+		if getErr != nil || reloaded.CustomerID != fixture.partnerID {
+			t.Fatalf("拒绝换客户后订单客户不得变更: customer=%v error=%v", reloaded.CustomerID, getErr)
 		}
 	})
 

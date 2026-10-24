@@ -295,7 +295,8 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 					return biz.ErrOrderCustomerChangeWithHouseBillBlocked
 				}
 			}
-			// 业务/客服以客户档案为唯一真相：换客户时按新客户档案重挂两岗人员行。
+			// 业务/客服以客户档案为唯一真相且订单上必填：换客户时按新客户档案
+			// 重挂两岗人员行，新客户缺岗直接拒绝。
 			if syncErr := resyncOrderCustomerPersonnel(ctx, tx, organizationID, id, input.CustomerID); syncErr != nil {
 				return syncErr
 			}

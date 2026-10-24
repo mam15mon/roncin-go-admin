@@ -85,7 +85,10 @@ export function PersonnelAssignmentFields({
 export function buildSeaPersonnelSection(props: TemplateProps) {
   const { personnelOptions, creator, isDetail } = props;
   // 业务/客服由客户档案带入（选择客户时自动填充），界面只读不可手改；
-  // 客户未配置对应岗位时允许为空。操作人员仍必填手选。
+  // 新建模式下两岗必填：客户未配置对应岗位时提交被阻断，需先维护客户档案。
+  // 详情模式不施加规则，避免存量订单缺岗时阻塞其它字段保存。
+  const customerStaffRules = (message: string): Rule[] =>
+    isDetail ? [] : [{ required: true, message }];
   const fields: ReadonlyArray<{
     label: string;
     userField: string;
@@ -97,8 +100,18 @@ export function buildSeaPersonnelSection(props: TemplateProps) {
       userField: 'operatorUserId',
       rules: isDetail ? [] : [{ required: true, message: '请选择操作人员' }],
     },
-    { label: '业务人员', userField: 'salesUserId', locked: true },
-    { label: '客服人员', userField: 'customerServiceUserId', locked: true },
+    {
+      label: '业务人员',
+      userField: 'salesUserId',
+      rules: customerStaffRules('请先在客户档案配置业务人员'),
+      locked: true,
+    },
+    {
+      label: '客服人员',
+      userField: 'customerServiceUserId',
+      rules: customerStaffRules('请先在客户档案配置客服人员'),
+      locked: true,
+    },
     { label: '关联人员', userField: 'associateUserId' },
     { label: '单证人员', userField: 'documentUserId' },
     { label: '商务人员', userField: 'commercialUserId' },

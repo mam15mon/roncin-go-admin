@@ -108,11 +108,13 @@ describe('订单人员选择', () => {
 });
 
 describe('buildSeaPersonnelSection 提成三岗必填', () => {
-  it('新建模式下仅操作人员必填，业务/客服与其余人员保持选填且只读', () => {
+  it('新建模式下操作/业务/客服必填且业务/客服只读，其余人员保持选填', () => {
     render(<SectionHost onFinish={vi.fn()} />);
 
-    expectLabelRequired('操作人员', true);
-    for (const label of ['业务人员', '客服人员', ...OPTIONAL_STAFF_LABELS]) {
+    for (const label of COMMISSION_STAFF_LABELS) {
+      expectLabelRequired(label, true);
+    }
+    for (const label of OPTIONAL_STAFF_LABELS) {
       expectLabelRequired(label, false);
     }
     // 业务/客服由客户带入，选择器恒只读。
@@ -133,15 +135,19 @@ describe('buildSeaPersonnelSection 提成三岗必填', () => {
     }
   });
 
-  it('新建模式缺操作人员提交被阻断；业务/客服允许为空', async () => {
+  it('新建模式空三岗提交被阻断并提示补齐客户档案', async () => {
     const onFinish = vi.fn();
     render(<SectionHost onFinish={onFinish} />);
 
     fireEvent.click(screen.getByRole('button', { name: '提交' }));
 
     expect(await screen.findByText('请选择操作人员')).toBeInTheDocument();
-    expect(screen.queryByText('请选择业务人员')).not.toBeInTheDocument();
-    expect(screen.queryByText('请选择客服人员')).not.toBeInTheDocument();
+    expect(
+      await screen.findByText('请先在客户档案配置业务人员'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('请先在客户档案配置客服人员'),
+    ).toBeInTheDocument();
     expect(onFinish).not.toHaveBeenCalled();
   });
 });

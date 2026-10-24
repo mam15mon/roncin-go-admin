@@ -166,6 +166,11 @@ const customerResponse = await request('/api/v1/partners', {
         userId: me.data.id,
         organizationId: me.data.currentOrganization.id,
       },
+      {
+        role: 4,
+        userId: me.data.id,
+        organizationId: me.data.currentOrganization.id,
+      },
     ],
   }),
 });

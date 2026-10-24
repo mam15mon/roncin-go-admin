@@ -875,15 +875,17 @@ func TestNormalizeOrderRequiresCommissionPersonnelOnCreate(t *testing.T) {
 
 	t.Run("创建缺全三岗按固定顺序列出", func(t *testing.T) {
 		_, err := normalizeOrder(buildInput(nil), true)
-		if errors.Reason(err) != "ORDER_COMMISSION_PERSONNEL_MISSING" || !strings.Contains(err.Error(), "订单缺少操作人员") {
-			t.Fatalf("创建缺岗错误 = %v", err)
+		if errors.Reason(err) != "ORDER_COMMISSION_PERSONNEL_MISSING" || !strings.Contains(err.Error(), "订单缺少销售、操作、客服人员，请在内部信息区补全后再开单") {
+			t.Fatalf("创建缺三岗错误 = %v", err)
 		}
 	})
-	t.Run("仅缺销售客服不阻断创建", func(t *testing.T) {
-		if _, err := normalizeOrder(buildInput([]*OrderPersonnel{
+	t.Run("创建缺单岗仅列出缺失岗位", func(t *testing.T) {
+		_, err := normalizeOrder(buildInput([]*OrderPersonnel{
+			{UserID: uuid.New(), OrganizationID: organizationID, Role: OrderPersonnelRoleSales},
 			{UserID: uuid.New(), OrganizationID: organizationID, Role: OrderPersonnelRoleOperator},
-		}), true); err != nil {
-			t.Fatalf("销售客服由客户带入，缺失不应拦截创建: %v", err)
+		}), true)
+		if errors.Reason(err) != "ORDER_COMMISSION_PERSONNEL_MISSING" || !strings.Contains(err.Error(), "订单缺少客服人员") || strings.Contains(err.Error(), "销售") {
+			t.Fatalf("创建缺客服错误 = %v", err)
 		}
 	})
 	t.Run("三岗齐全创建通过", func(t *testing.T) {
