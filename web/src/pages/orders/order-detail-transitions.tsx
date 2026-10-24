@@ -100,6 +100,9 @@ export function confirmOrderFlow(
         <div>
           当前状态：{currentStatusLabel} → 目标状态：{targetStatusLabel}
         </div>
+        {targetStatus > currentStatus + 1 && (
+          <div>跳转将自动补齐被跳过的中间节点，补齐时间记为本次操作时刻。</div>
+        )}
         <Input.TextArea
           aria-label="流转原因"
           placeholder="请输入流转原因（选填）"

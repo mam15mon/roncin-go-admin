@@ -175,6 +175,8 @@ func (f *feeSupplementPostgresFixture) createOrder(orderNo string) *ent.Order {
 		SetOrderNo(orderNo).
 		SetCustomerID(f.customerID).
 		SetBusinessType(orderent.BusinessTypeSI).
+		// 费用汇率按订单 ETD 所在周解析：测试订单统一带 ETD，避免 ORDER_ETD_MISSING。
+		SetEtd("2026-09-16T00:00:00Z").
 		SetTradeDirection(orderent.TradeDirectionExport).
 		SetTradeTerm(orderent.TradeTermFOB).
 		SetPaymentTerm(orderent.PaymentTermPREPAID).

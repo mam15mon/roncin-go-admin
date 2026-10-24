@@ -262,7 +262,7 @@ export default function FeeSupplementModal({
         <Alert
           type="warning"
           showIcon
-          title="费用项目、币种或发生日期已变化，原手动汇率已清除"
+          title="费用项目、方向或币种已变化，原手动汇率已清除"
           description="请重新指定手动汇率，或核对当前系统汇率后提交。"
           style={{ marginBottom: 16 }}
         />

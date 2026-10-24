@@ -1,4 +1,4 @@
-import { withAcceptanceSystemWorkspace, acceptanceChargeCategoryId, prepareAcceptanceCompany } from './acceptance-finance-fixtures.mjs';
+import { withAcceptanceSystemWorkspace, prepareAcceptanceCompany } from './acceptance-finance-fixtures.mjs';
 
 function requireEnvironment(name) {
   const value = process.env[name]?.trim();
@@ -191,11 +191,9 @@ const shippingLineResponse = await withAcceptanceSystemWorkspace(request, () => 
 }));
 const shippingLine = shippingLineResponse.data;
 assert(shippingLine?.id, '验收船公司创建失败');
-const chargeCategoryId = await acceptanceChargeCategoryId(request);
 const orderResponse = await request('/api/v1/orders', {
   method: 'POST',
   body: JSON.stringify({
-    serviceTypeIds: [chargeCategoryId],
     personnelAssignments: [2, 3, 4].map((role) => ({ userId: me.data.id, role })),
     customerId: customer.id,
     shippingLineId: shippingLine.id,
@@ -213,6 +211,8 @@ const orderResponse = await request('/api/v1/orders', {
     totalVolumeCbm: 1,
     customerReferenceNo: `ACC-FC-${stamp}`,
     orderDate: new Date().toISOString(),
+    // 费用汇率按订单 ETD 所在周解析；ETD 取当前时刻，确保命中本周创建的汇率行。
+    etd: new Date().toISOString(),
   }),
 });
 const order = orderResponse.data;
@@ -260,7 +260,6 @@ assert(taxableService?.id, '外币应税服务创建失败');
 const createdFeeSetting = await request('/api/v1/finance/fee-settings', {
   method: 'POST',
   body: JSON.stringify({
-    chargeCategoryId,
     feeCode: `FEE_FC_${stamp.slice(-6)}`,
     nameZh: '外币海运运费',
     defaultCurrency: 'EUR',
@@ -293,7 +292,6 @@ const feeResponse = await request(`/api/v1/orders/${order.id}/fees`, {
     quantity: '1',
     unitPrice: '100.00',
     currency: 'EUR',
-    expenseDate: today,
     feeSettingId: feeSetting.id,
     billingUnitId: billingUnit.id,
     idempotencyKey: `acc-fc-fee-${stamp}`,

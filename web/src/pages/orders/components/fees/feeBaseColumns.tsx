@@ -118,7 +118,7 @@ export function feeBaseColumns(
       </Space>
     ),
   };
-  const expenseDateColumn: ProColumns<API.OrderFee> = {
+  const entryDateColumn: ProColumns<API.OrderFee> = {
     title: '录入日期',
     dataIndex: 'createdAt',
     width: panel ? 110 : 220,
@@ -143,7 +143,7 @@ export function feeBaseColumns(
       unitPriceColumn,
       totalAmountColumn,
       exchangeRateColumn,
-      expenseDateColumn,
+      entryDateColumn,
       noteColumn,
     ];
   }
@@ -158,7 +158,7 @@ export function feeBaseColumns(
     billingUnitColumn,
     totalAmountColumn,
     exchangeRateColumn,
-    expenseDateColumn,
+    entryDateColumn,
     noteColumn,
   ];
 }

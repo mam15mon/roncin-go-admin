@@ -457,7 +457,7 @@ export default function OrderFeeTableTabs({
     onOpenBillWorkbench(rows.map((row) => String(row.id)));
   };
 
-  type BulkActionType = 'settlementParty' | 'expenseDate' | 'remove';
+  type BulkActionType = 'settlementParty' | 'remove';
   const [bulkActionContext, setBulkActionContext] = useState<
     { direction: number; type: BulkActionType } | undefined
   >(undefined);
@@ -516,7 +516,7 @@ export default function OrderFeeTableTabs({
   };
 
   // 行内编辑的实时预览：按行 key 记录汇率解析进度、总金额与费用代码，
-  // 币种/发生日期/单价/数量/费用项目变化即刷新，保存后以后端落库值为准。
+  // 币种/单价/数量/费用项目变化即刷新，保存后以后端落库值为准。
   const [rowPreviews, setRowPreviews] = useState<
     Record<string, RowEditPreview>
   >({});

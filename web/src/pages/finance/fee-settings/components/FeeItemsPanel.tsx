@@ -20,7 +20,6 @@ type FeeSettingFormValues = {
   nameZh: string;
   nameEn?: string;
   aliasName?: string;
-  chargeCategoryId?: string;
   defaultCurrency: string;
   billingUnitId: string;
   abnormalCaseId?: string;
@@ -39,7 +38,7 @@ export function FeeItemsPanel() {
   const [currencies, setCurrencies] = useState<API.Currency[]>([]);
   const [abnormalCases, setAbnormalCases] = useState<API.MasterDataItem[]>([]);
 
-  // 表头汇总：序号、费用名称、费用名称(英文)、费用代码、归属、币种、计费单位、税率、货物或应税劳务名称、费用大类、对应异常情况、操作
+  // 表头汇总：序号、费用名称、费用名称(英文)、费用代码、归属、币种、计费单位、税率、货物或应税劳务名称、对应异常情况、操作
   const columns: ProColumns<API.FeeSetting>[] = [
     {
       title: '序号',
@@ -85,12 +84,6 @@ export function FeeItemsPanel() {
       dataIndex: 'taxableServiceName',
       width: 180,
       ellipsis: true,
-    },
-    {
-      title: '费用大类',
-      dataIndex: 'chargeCategoryName',
-      width: 120,
-      renderText: (value) => value || '-',
     },
     {
       title: '对应异常情况',

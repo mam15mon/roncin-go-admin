@@ -1,4 +1,4 @@
-import { withAcceptanceSystemWorkspace, acceptanceChargeCategoryId, prepareAcceptanceCompany } from './acceptance-finance-fixtures.mjs';
+import { withAcceptanceSystemWorkspace, prepareAcceptanceCompany } from './acceptance-finance-fixtures.mjs';
 
 const baseURL = (
   process.env.RONCIN_ACCEPTANCE_BASE_URL || 'http://127.0.0.1:8000'
@@ -162,11 +162,9 @@ const shippingLineResponse = await withAcceptanceSystemWorkspace(request, () => 
 }));
 const shippingLine = shippingLineResponse.data;
 assert(shippingLine?.id, '验收船公司创建失败');
-const chargeCategoryId = await acceptanceChargeCategoryId(request);
 const orderResponse = await request('/api/v1/orders', {
   method: 'POST',
   body: JSON.stringify({
-    serviceTypeIds: [chargeCategoryId],
     personnelAssignments: [2, 3, 4].map((role) => ({ userId: me.data.id, role })),
     customerId: customer.id,
     shippingLineId: shippingLine.id,
@@ -184,6 +182,8 @@ const orderResponse = await request('/api/v1/orders', {
     totalVolumeCbm: 1,
     customerReferenceNo: `ACC-AP-${stamp}`,
     orderDate: new Date().toISOString(),
+    // 费用汇率按订单 ETD 解析，必须提供 ETD 才能添加费用。
+    etd: new Date().toISOString(),
   }),
 });
 const order = orderResponse.data;
@@ -216,7 +216,6 @@ if (apply) {
   const createdSetting = await request('/api/v1/finance/fee-settings', {
     method: 'POST',
     body: JSON.stringify({
-      chargeCategoryId,
       feeCode: `FEE_AP_${stamp.slice(-6)}`,
       nameZh: '海运应付运费',
       defaultCurrency: 'CNY',
@@ -261,7 +260,6 @@ const feeResponse = await request(`/api/v1/orders/${order.id}/fees`, {
     quantity: '1',
     unitPrice: '88.00',
     currency: options.baseCurrency,
-    expenseDate: today,
     feeSettingId: feeSetting.id,
     billingUnitId: feeSetting.defaultBillingUnitId,
     idempotencyKey: `acc-ap-fee-${stamp}`,

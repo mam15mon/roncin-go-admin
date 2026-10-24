@@ -132,6 +132,11 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
       contacts: [
         { name: '页面验收联系人', phone: '13800000000', isPrimary: true },
       ],
+      // 业务/客服岗位挂客户档案，订单创建时由服务端按此带入。
+      assignments: [
+        { role: 3, userId: employee.id },
+        { role: 4, userId: me.id },
+      ],
       profile: {
         nameEn: `UI Acceptance ${stamp}`,
         countryCode: 'CN',
@@ -202,15 +207,8 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
       eta: new Date(Date.now() + 172_800_000).toISOString(),
     };
   }
-  const chargeCategories = (await api('/api/v1/master-data/options')).data;
-  const chargeCategory = chargeCategories.find(
-    (item: { kind: number; enabled: boolean }) =>
-      item.kind === 8 && item.enabled,
-  );
-  expect(chargeCategory?.id).toBeTruthy();
   const order = (
     await api('/api/v1/orders', {
-      serviceTypeIds: [chargeCategory.id],
       customerId: customer.id,
       ...transportInput,
       businessType: isAirExport ? 3 : 1,
@@ -224,11 +222,8 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
       totalVolumeCbm: 1,
       customerReferenceNo: `ACC-UI-${stamp}`,
       orderDate: new Date().toISOString(),
-      personnelAssignments: [
-        { userId: employee.id, role: 3 },
-        { userId: me.id, role: 2 },
-        { userId: me.id, role: 4 },
-      ],
+      // 业务/客服由客户档案岗位带入（服务端覆盖），此处仅手选操作岗。
+      personnelAssignments: [{ userId: me.id, role: 2 }],
     })
   ).data;
   await api('/api/v1/finance/commission-rules', {
@@ -579,7 +574,6 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
     ).padStart(7, '0');
     const payableOrder = (
       await api('/api/v1/orders', {
-        serviceTypeIds: [chargeCategory.id],
         customerId: customer.id,
         businessType: 3,
         tradeDirection: 1,
@@ -590,11 +584,8 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
         totalPackages: 1,
         totalGrossWeightKg: 100,
         totalVolumeCbm: 1,
-        personnelAssignments: [
-          { userId: employee.id, role: 3 },
-          { userId: me.id, role: 2 },
-          { userId: me.id, role: 4 },
-        ],
+        // 业务/客服由客户档案岗位带入（服务端覆盖），此处仅手选操作岗。
+        personnelAssignments: [{ userId: me.id, role: 2 }],
         airExport: {
           master: {
             ...master.content,
@@ -612,7 +603,6 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
         quantity: '1',
         unitPrice: '25',
         currency: 'CNY',
-        expenseDate: today,
         feeSettingId: feeSetting.id,
         billingUnitId: feeSetting.defaultBillingUnitId,
         taxInclusive: true,

@@ -165,7 +165,7 @@ func TestFeeSupplementSchemaPostgres(t *testing.T) {
 			 "idempotency_key","request_fingerprint","direction","fee_code","fee_name",
 			 "settlement_party_id","billing_unit","quantity","unit_price","total_amount",
 			 "net_amount","tax_amount","currency","exchange_rate","exchange_rate_source",
-			 "exchange_rate_date","base_currency","base_currency_amount","expense_date",
+			 "exchange_rate_date","base_currency","base_currency_amount",
 			 "reason","requested_by","requested_at",
 			 "business_lock_generation","financial_lock_evidence_version",
 			 "financial_lock_evidence_hash","financial_lock_net_amount_snapshot")
@@ -173,7 +173,7 @@ func TestFeeSupplementSchemaPostgres(t *testing.T) {
 				$5,$6,'PAYABLE','TRUCK','集成测试拖车费',
 				$7,'CTR',1,120,120,
 				120,0,'CNY',1,'WEEKLY',
-				'2026-09-18','CNY',120,'2026-09-18',
+				'2026-09-18','CNY',120,
 				'漏录拖车成本',$8,CURRENT_TIMESTAMP,
 				$9,$10,$11,$12)`
 		invalidHash := strPtr("a1b2c3d4e5f6a7b8a1b2c3d4e5f6a7b8a1b2c3d4e5f6a7b8a1b2c3d4e5f6a7b8")
@@ -220,13 +220,13 @@ func TestFeeSupplementSchemaPostgres(t *testing.T) {
 				 "fee_code","fee_name","settlement_party_id","billing_unit","quantity",
 				 "unit_price","total_amount","net_amount","tax_amount","currency",
 				 "exchange_rate","exchange_rate_source","exchange_rate_date","base_currency",
-				 "base_currency_amount","expense_date","reason","requested_by","requested_at","status")
+				 "base_currency_amount","reason","requested_by","requested_at","status")
 				VALUES ($1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,$2,$3,'BUSINESS',
 					1,$4,$5,'PAYABLE',
 					'TRUCK','集成测试拖车费',$6,'CTR',1,
 					120,120,120,0,'CNY',
 					1,'WEEKLY','2026-09-18','CNY',
-					120,'2026-09-18','漏录拖车成本',$7,CURRENT_TIMESTAMP,'UNKNOWN')`
+					120,'漏录拖车成本',$7,CURRENT_TIMESTAMP,'UNKNOWN')`
 			_, err := data.sqlDB.ExecContext(ctx, invalidStatus,
 				uuid.New(), uuid.New(), uuid.New(),
 				"it-"+uuid.NewString(), "fp-v1:"+uuid.NewString(),

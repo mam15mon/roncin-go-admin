@@ -1,4 +1,4 @@
-import { withAcceptanceSystemWorkspace, acceptanceChargeCategoryId, prepareAcceptanceCompany, verifyDraftFeeBillLifecycle } from './acceptance-finance-fixtures.mjs';
+import { withAcceptanceSystemWorkspace, prepareAcceptanceCompany, verifyDraftFeeBillLifecycle } from './acceptance-finance-fixtures.mjs';
 
 const baseURL = (
   process.env.RONCIN_ACCEPTANCE_BASE_URL || 'http://127.0.0.1:8000'
@@ -192,9 +192,7 @@ const shippingLineResponse = await withAcceptanceSystemWorkspace(request, () => 
 }));
 const shippingLine = shippingLineResponse.data;
 assert(shippingLine?.id, '验收船公司创建失败');
-const chargeCategoryId = await acceptanceChargeCategoryId(request);
 const orderInput = {
-    serviceTypeIds: [chargeCategoryId],
     personnelAssignments: [2, 3, 4].map((role) => ({ userId: me.data.id, role })),
     customerId: customer.id,
     shippingLineId: shippingLine.id,
@@ -212,6 +210,8 @@ const orderInput = {
     totalVolumeCbm: 2,
     customerReferenceNo: `ACC-FIN-${stamp}`,
     orderDate: new Date().toISOString(),
+    // 费用汇率按订单 ETD 解析，必须提供 ETD 才能添加费用。
+    etd: new Date().toISOString(),
   };
 const orderResponse = await request('/api/v1/orders', { method: 'POST', body: JSON.stringify(orderInput) });
 const order = orderResponse.data;
@@ -258,7 +258,6 @@ if (apply) {
   await request('/api/v1/finance/fee-settings', {
     method: 'POST',
     body: JSON.stringify({
-      chargeCategoryId,
       feeCode: `FEE_AR_${stamp.slice(-6)}`,
       nameZh: '海运运费',
       defaultCurrency: 'CNY',
@@ -300,7 +299,6 @@ for (const [index, price] of ['100.00', '25.00'].entries()) {
       quantity: '1',
       unitPrice: price,
       currency: options.baseCurrency,
-      expenseDate: today,
       feeSettingId: feeSetting.id,
       billingUnitId: feeSetting.defaultBillingUnitId,
       idempotencyKey: `acc-fin-fee-${stamp}-${index}`,
@@ -316,7 +314,7 @@ for (const [index, price] of ['100.00', '25.00'].entries()) {
 const feeIds = createdFees.map((fee) => fee.id);
 const draftLifecycle = await verifyDraftFeeBillLifecycle(request, raw, {
   organizationId: me.data.currentOrganization.id, orderInput, settlementAccountId: settlementAccount.id, billDate: today, stamp,
-  feeInput: { direction: 1, settlementPartyId: settlementParty.id, quantity: '1', unitPrice: '7.25', currency: options.baseCurrency, expenseDate: today, feeSettingId: feeSetting.id, billingUnitId: feeSetting.defaultBillingUnitId, taxInclusive: true },
+  feeInput: { direction: 1, settlementPartyId: settlementParty.id, quantity: '1', unitPrice: '7.25', currency: options.baseCurrency, feeSettingId: feeSetting.id, billingUnitId: feeSetting.defaultBillingUnitId, taxInclusive: true },
 });
 
 const progressEnumMap = {
@@ -974,7 +972,6 @@ const draftFeeBeforeCloseResponse = await request(
       quantity: '1',
       unitPrice: '1.00',
       currency: options.baseCurrency,
-      expenseDate: today,
       feeSettingId: feeSetting.id,
       billingUnitId: feeSetting.defaultBillingUnitId,
       idempotencyKey: `acc-fin-fee-${stamp}-draft-before-close`,
@@ -1037,7 +1034,6 @@ const addFeeAfterClose = await raw(`/api/v1/orders/${order.id}/fees`, {
     quantity: '1',
     unitPrice: '1.00',
     currency: options.baseCurrency,
-    expenseDate: today,
     feeSettingId: feeSetting.id,
     billingUnitId: feeSetting.defaultBillingUnitId,
     idempotencyKey: `acc-fin-fee-${stamp}-after-close`,

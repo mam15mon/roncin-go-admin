@@ -66,13 +66,6 @@ export const renderExpandedFees = (record: API.FinanceCommissionLine) => {
       render: (val: string, fee: API.CommissionFeeDetail) =>
         `${decimalText(val)} ${fee.baseCurrency || ''}`,
     },
-    {
-      title: '费用发生日',
-      dataIndex: 'expenseDate',
-      key: 'expenseDate',
-      width: 110,
-      render: (val?: string) => val || '-',
-    },
   ];
 
   return (

@@ -208,17 +208,6 @@ export async function verifyDraftFeeBillLifecycle(
   };
 }
 
-export async function acceptanceChargeCategoryId(request) {
-  const options = await request('/api/v1/master-data/options');
-  const category = options.data?.find(
-    (item) =>
-      (item.kind === 8 || item.kind === 'MASTER_DATA_KIND_CHARGE_CATEGORY') &&
-      item.enabled !== false,
-  );
-  if (!category?.id) throw new Error('验收环境缺少启用费用大类');
-  return category.id;
-}
-
 // 全局船公司与计费单位按正式系统工作台权限写入，完成后恢复经营公司。
 export async function withAcceptanceSystemWorkspace(request, action) {
   const me = (await request('/api/v1/auth/me')).data;

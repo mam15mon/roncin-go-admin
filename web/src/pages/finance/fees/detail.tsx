@@ -13,7 +13,7 @@ import { useColumnSettings } from '@/components/ui/column-settings';
 import { FeeCorrectionSection } from '@/features/orders/fee-correction';
 import { history } from '@/router/history';
 import { settlementServiceGetFeeLedgerOrderDetail } from '@/services/roncin/settlementService';
-import { formatAmount } from '@/utils/format';
+import { formatAmount, formatDate } from '@/utils/format';
 
 export default function FinanceFeeDetailPage() {
   const { orderId = '' } = useParams<{ orderId: string }>();
@@ -57,7 +57,11 @@ export default function FinanceFeeDetailPage() {
       render: (_, row) =>
         `${formatAmount(row.baseCurrencyAmount)} ${row.baseCurrency || ''}`,
     },
-    { title: '发生日期', dataIndex: 'expenseDate' },
+    {
+      title: '录入日期',
+      dataIndex: 'createdAt',
+      render: (value?: string) => formatDate(value, 'minute'),
+    },
   ];
 
   const feeColumnSettings = useColumnSettings<

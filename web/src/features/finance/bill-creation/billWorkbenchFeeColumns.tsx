@@ -2,7 +2,7 @@ import { DeleteOutlined } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { Button, Popconfirm, Tag, Typography } from 'antd';
 import React from 'react';
-import { formatAmount } from '@/utils/format';
+import { formatAmount, formatDate } from '@/utils/format';
 
 const { Text } = Typography;
 
@@ -88,10 +88,11 @@ export const baseFeeColumns: ProColumns<API.FeeLedgerItem>[] = [
     ),
   },
   {
-    title: '费用日期',
-    dataIndex: 'expenseDate',
-    width: 110,
+    title: '录入日期',
+    dataIndex: 'createdAt',
+    width: 130,
     search: false,
+    render: (_, row) => formatDate(row.createdAt, 'minute'),
   },
 ];
 
