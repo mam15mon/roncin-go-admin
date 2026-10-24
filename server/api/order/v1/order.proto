@@ -337,9 +337,8 @@ message Order {
   optional ContainerOwnership container_ownership = 12;
   optional ShipmentMode shipment_mode = 13;
   OrderFlowStatus flow_status = 14;
-  reserved 15;
-  reserved "status_template_id";
-  repeated string service_type_ids = 16;
+  reserved 15, 16;
+  reserved "status_template_id", "service_type_ids";
   repeated string cargo_category_ids = 17;
   optional string origin_location_id = 18;
   optional string destination_location_id = 19;
@@ -617,7 +616,6 @@ message CreateOrderRequest {
   optional ShipmentType shipment_type = 9;
   optional ContainerOwnership container_ownership = 10;
   optional ShipmentMode shipment_mode = 11;
-  repeated string service_type_ids = 12;
   repeated string cargo_category_ids = 13;
   optional string origin_location_id = 14;
   optional string destination_location_id = 15;
@@ -687,7 +685,6 @@ message UpdateOrderRequest {
   optional ShipmentType shipment_type = 10;
   optional ContainerOwnership container_ownership = 11;
   optional ShipmentMode shipment_mode = 12;
-  repeated string service_type_ids = 13;
   repeated string cargo_category_ids = 14;
   optional string origin_location_id = 15;
   optional string destination_location_id = 16;

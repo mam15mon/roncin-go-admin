@@ -3561,11 +3561,11 @@ paths:
                   in: query
                   schema:
                     type: string
-                - name: expenseDateFrom
+                - name: createdAtFrom
                   in: query
                   schema:
                     type: string
-                - name: expenseDateTo
+                - name: createdAtTo
                   in: query
                   schema:
                     type: string
@@ -5998,10 +5998,6 @@ paths:
                     type: integer
                     format: enum
                 - name: currency
-                  in: query
-                  schema:
-                    type: string
-                - name: expenseDate
                   in: query
                   schema:
                     type: string
@@ -11237,8 +11233,6 @@ components:
                     type: string
                 baseCurrencyAmount:
                     type: string
-                expenseDate:
-                    type: string
         finance.v1.CommissionPaymentAdjustment:
             type: object
             properties:
@@ -11890,7 +11884,6 @@ components:
             required:
                 - feeCode
                 - nameZh
-                - chargeCategoryId
                 - defaultCurrency
                 - billingUnitId
                 - taxRate
@@ -11905,9 +11898,6 @@ components:
                     type: string
                 aliasName:
                     type: string
-                chargeCategoryId:
-                    type: string
-                    description: 费用大类必挂（原 service_type 就地更名）。
                 defaultCurrency:
                     type: string
                 billingUnitId:
@@ -12349,8 +12339,6 @@ components:
                     type: string
                 baseCurrencyAmount:
                     type: string
-                expenseDate:
-                    type: string
                 note:
                     type: string
                 version:
@@ -12427,8 +12415,6 @@ components:
                     items:
                         $ref: '#/components/schemas/finance.v1.FeeLedgerBaseCurrencyAmount'
         finance.v1.FeeSetting:
-            required:
-                - chargeCategoryId
             type: object
             properties:
                 id:
@@ -12443,11 +12429,6 @@ components:
                 nameEn:
                     type: string
                 aliasName:
-                    type: string
-                chargeCategoryId:
-                    type: string
-                    description: 费用大类必挂（原 service_type 就地更名）：合并报表底座。
-                chargeCategoryName:
                     type: string
                 defaultCurrency:
                     type: string
@@ -12495,8 +12476,6 @@ components:
                 nameEn:
                     type: string
                 aliasName:
-                    type: string
-                chargeCategoryId:
                     type: string
                 defaultCurrency:
                     type: string
@@ -14498,8 +14477,6 @@ components:
                     type: string
                 feeBaseCurrencyAmount:
                     type: string
-                feeExpenseDate:
-                    type: string
                 supplementReason:
                     type: string
                 sourceType:
@@ -15165,7 +15142,6 @@ components:
                 - id
                 - feeCode
                 - nameZh
-                - chargeCategoryId
                 - defaultCurrency
                 - billingUnitId
                 - taxRate
@@ -15182,9 +15158,6 @@ components:
                     type: string
                 aliasName:
                     type: string
-                chargeCategoryId:
-                    type: string
-                    description: 费用大类必挂（原 service_type 就地更名）。
                 defaultCurrency:
                     type: string
                 billingUnitId:
@@ -16442,7 +16415,6 @@ components:
                 - quantity
                 - unitPrice
                 - currency
-                - expenseDate
                 - feeSettingId
                 - billingUnitId
                 - idempotencyKey
@@ -16460,8 +16432,6 @@ components:
                 unitPrice:
                     type: string
                 currency:
-                    type: string
-                expenseDate:
                     type: string
                 note:
                     type: string
@@ -17039,12 +17009,7 @@ components:
                         $ref: '#/components/schemas/order.v1.BulkOrderFeeTarget'
                 settlementPartyId:
                     type: string
-                    description: |-
-                        目标值二选一：settlement_party_id（改为该结算单位）或 expense_date
-                        （改为该费用发生时间，YYYY-MM-DD 或 YYYY-MM-DD HH:mm 分钟精度），
-                         必须恰好提供一个。
-                expenseDate:
-                    type: string
+                    description: 统一改为该结算单位。
         order.v1.BulkUpdateOrderFeesResponse:
             type: object
             properties:
@@ -17232,10 +17197,6 @@ components:
                 shipmentMode:
                     type: integer
                     format: enum
-                serviceTypeIds:
-                    type: array
-                    items:
-                        type: string
                 cargoCategoryIds:
                     type: array
                     items:
@@ -18740,10 +18701,6 @@ components:
                 flowStatus:
                     type: integer
                     format: enum
-                serviceTypeIds:
-                    type: array
-                    items:
-                        type: string
                 cargoCategoryIds:
                     type: array
                     items:
@@ -19226,8 +19183,6 @@ components:
                     type: string
                 exchangeRate:
                     type: string
-                expenseDate:
-                    type: string
                 note:
                     type: string
                 createdAt:
@@ -19423,8 +19378,6 @@ components:
                 unitPrice:
                     type: string
                 currency:
-                    type: string
-                expenseDate:
                     type: string
                 note:
                     type: string
@@ -19684,8 +19637,6 @@ components:
                 baseCurrency:
                     type: string
                 baseCurrencyAmount:
-                    type: string
-                expenseDate:
                     type: string
                 note:
                     type: string
@@ -22571,7 +22522,6 @@ components:
                 - quantity
                 - unitPrice
                 - currency
-                - expenseDate
                 - feeSettingId
                 - billingUnitId
                 - expectedVersion
@@ -22591,8 +22541,6 @@ components:
                 unitPrice:
                     type: string
                 currency:
-                    type: string
-                expenseDate:
                     type: string
                 note:
                     type: string
@@ -22665,10 +22613,6 @@ components:
                 shipmentMode:
                     type: integer
                     format: enum
-                serviceTypeIds:
-                    type: array
-                    items:
-                        type: string
                 cargoCategoryIds:
                     type: array
                     items:

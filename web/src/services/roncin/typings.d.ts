@@ -43,7 +43,6 @@ declare namespace API {
     quantity: string;
     unitPrice: string;
     currency: string;
-    expenseDate: string;
     note?: string;
     exchangeRateOverride?: string;
     feeSettingId: string;
@@ -897,11 +896,8 @@ declare namespace API {
   type BulkUpdateOrderFeesRequest = {
     orderId: string;
     targets: BulkOrderFeeTarget[];
-    /** 目标值二选一：settlement_party_id（改为该结算单位）或 expense_date
-（改为该费用发生时间，YYYY-MM-DD 或 YYYY-MM-DD HH:mm 分钟精度），
- 必须恰好提供一个。 */
+    /** 统一改为该结算单位。 */
     settlementPartyId?: string;
-    expenseDate?: string;
   };
 
   type BulkUpdateOrderFeesResponse = {
@@ -1113,7 +1109,6 @@ declare namespace API {
     exchangeRate?: string;
     baseCurrency?: string;
     baseCurrencyAmount?: string;
-    expenseDate?: string;
   };
 
   type CommissionPaymentAdjustment = {
@@ -1570,8 +1565,6 @@ declare namespace API {
     nameZh: string;
     nameEn?: string;
     aliasName?: string;
-    /** 费用大类必挂（原 service_type 就地更名）。 */
-    chargeCategoryId: string;
     defaultCurrency: string;
     billingUnitId: string;
     abnormalCaseId?: string;
@@ -1696,7 +1689,6 @@ declare namespace API {
     shipmentType?: number;
     containerOwnership?: number;
     shipmentMode?: number;
-    serviceTypeIds?: string[];
     cargoCategoryIds?: string[];
     originLocationId?: string;
     destinationLocationId?: string;
@@ -2705,7 +2697,6 @@ declare namespace API {
     exchangeRate?: string;
     baseCurrency?: string;
     baseCurrencyAmount?: string;
-    expenseDate?: string;
     note?: string;
     version?: string;
     createdAt?: string;
@@ -2780,9 +2771,6 @@ declare namespace API {
     nameZh?: string;
     nameEn?: string;
     aliasName?: string;
-    /** 费用大类必挂（原 service_type 就地更名）：合并报表底座。 */
-    chargeCategoryId: string;
-    chargeCategoryName?: string;
     defaultCurrency?: string;
     billingUnitId?: string;
     billingUnitName?: string;
@@ -2809,7 +2797,6 @@ declare namespace API {
     nameZh?: string;
     nameEn?: string;
     aliasName?: string;
-    chargeCategoryId?: string;
     defaultCurrency?: string;
     billingUnitId?: string;
     abnormalCaseId?: string;
@@ -4908,7 +4895,6 @@ declare namespace API {
     feeTotalAmount?: string;
     feeBaseCurrency?: string;
     feeBaseCurrencyAmount?: string;
-    feeExpenseDate?: string;
     supplementReason?: string;
     sourceType?: string;
     direction?: string;
@@ -4979,7 +4965,6 @@ declare namespace API {
     containerOwnership?: number;
     shipmentMode?: number;
     flowStatus?: number;
-    serviceTypeIds?: string[];
     cargoCategoryIds?: string[];
     originLocationId?: string;
     destinationLocationId?: string;
@@ -5274,7 +5259,6 @@ declare namespace API {
     totalAmount?: string;
     currency?: string;
     exchangeRate?: string;
-    expenseDate?: string;
     note?: string;
     createdAt?: string;
     updatedAt?: string;
@@ -5373,7 +5357,6 @@ declare namespace API {
     quantity?: string;
     unitPrice?: string;
     currency?: string;
-    expenseDate?: string;
     note?: string;
     exchangeRateOverride?: string;
     taxInclusive?: boolean;
@@ -5553,7 +5536,6 @@ declare namespace API {
     orderId: string;
     direction?: number;
     currency?: string;
-    expenseDate?: string;
   };
 
   type OrderFeeServiceUpdateFeeParams = {
@@ -5623,7 +5605,6 @@ declare namespace API {
     exchangeRateSettingId?: string;
     baseCurrency?: string;
     baseCurrencyAmount?: string;
-    expenseDate?: string;
     note?: string;
     reason?: string;
     requestedBy?: string;
@@ -8346,8 +8327,8 @@ declare namespace API {
     direction?: string;
     settlementPartyId?: string;
     currency?: string;
-    expenseDateFrom?: string;
-    expenseDateTo?: string;
+    createdAtFrom?: string;
+    createdAtTo?: string;
     customerId?: string;
     financialProgress?: number;
     billNo?: string;
@@ -8900,7 +8881,6 @@ declare namespace API {
     quantity: string;
     unitPrice: string;
     currency: string;
-    expenseDate: string;
     note?: string;
     exchangeRateOverride?: string;
     feeSettingId: string;
@@ -8928,8 +8908,6 @@ declare namespace API {
     nameZh: string;
     nameEn?: string;
     aliasName?: string;
-    /** 费用大类必挂（原 service_type 就地更名）。 */
-    chargeCategoryId: string;
     defaultCurrency: string;
     billingUnitId: string;
     abnormalCaseId?: string;
@@ -9011,7 +8989,6 @@ declare namespace API {
     shipmentType?: number;
     containerOwnership?: number;
     shipmentMode?: number;
-    serviceTypeIds?: string[];
     cargoCategoryIds?: string[];
     originLocationId?: string;
     destinationLocationId?: string;

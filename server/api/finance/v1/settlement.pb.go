@@ -658,8 +658,8 @@ type ListFeeLedgerRequest struct {
 	Direction               *string                     `protobuf:"bytes,5,opt,name=direction,proto3,oneof" json:"direction,omitempty"`
 	SettlementPartyId       *string                     `protobuf:"bytes,7,opt,name=settlement_party_id,json=settlementPartyId,proto3,oneof" json:"settlement_party_id,omitempty"`
 	Currency                *string                     `protobuf:"bytes,8,opt,name=currency,proto3,oneof" json:"currency,omitempty"`
-	ExpenseDateFrom         *string                     `protobuf:"bytes,9,opt,name=expense_date_from,json=expenseDateFrom,proto3,oneof" json:"expense_date_from,omitempty"`
-	ExpenseDateTo           *string                     `protobuf:"bytes,10,opt,name=expense_date_to,json=expenseDateTo,proto3,oneof" json:"expense_date_to,omitempty"`
+	CreatedAtFrom           *string                     `protobuf:"bytes,26,opt,name=created_at_from,json=createdAtFrom,proto3,oneof" json:"created_at_from,omitempty"`
+	CreatedAtTo             *string                     `protobuf:"bytes,27,opt,name=created_at_to,json=createdAtTo,proto3,oneof" json:"created_at_to,omitempty"`
 	CustomerId              *string                     `protobuf:"bytes,11,opt,name=customer_id,json=customerId,proto3,oneof" json:"customer_id,omitempty"`
 	FinancialProgress       *FeeLedgerFinancialProgress `protobuf:"varint,12,opt,name=financial_progress,json=financialProgress,proto3,enum=finance.v1.FeeLedgerFinancialProgress,oneof" json:"financial_progress,omitempty"`
 	BillNo                  *string                     `protobuf:"bytes,13,opt,name=bill_no,json=billNo,proto3,oneof" json:"bill_no,omitempty"`
@@ -750,16 +750,16 @@ func (x *ListFeeLedgerRequest) GetCurrency() string {
 	return ""
 }
 
-func (x *ListFeeLedgerRequest) GetExpenseDateFrom() string {
-	if x != nil && x.ExpenseDateFrom != nil {
-		return *x.ExpenseDateFrom
+func (x *ListFeeLedgerRequest) GetCreatedAtFrom() string {
+	if x != nil && x.CreatedAtFrom != nil {
+		return *x.CreatedAtFrom
 	}
 	return ""
 }
 
-func (x *ListFeeLedgerRequest) GetExpenseDateTo() string {
-	if x != nil && x.ExpenseDateTo != nil {
-		return *x.ExpenseDateTo
+func (x *ListFeeLedgerRequest) GetCreatedAtTo() string {
+	if x != nil && x.CreatedAtTo != nil {
+		return *x.CreatedAtTo
 	}
 	return ""
 }
@@ -834,7 +834,6 @@ type FeeLedgerItem struct {
 	ExchangeRate            string                     `protobuf:"bytes,18,opt,name=exchange_rate,json=exchangeRate,proto3" json:"exchange_rate,omitempty"`
 	BaseCurrency            string                     `protobuf:"bytes,19,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
 	BaseCurrencyAmount      string                     `protobuf:"bytes,20,opt,name=base_currency_amount,json=baseCurrencyAmount,proto3" json:"base_currency_amount,omitempty"`
-	ExpenseDate             string                     `protobuf:"bytes,21,opt,name=expense_date,json=expenseDate,proto3" json:"expense_date,omitempty"`
 	Note                    *string                    `protobuf:"bytes,22,opt,name=note,proto3,oneof" json:"note,omitempty"`
 	Version                 uint64                     `protobuf:"varint,23,opt,name=version,proto3" json:"version,omitempty"`
 	CreatedAt               string                     `protobuf:"bytes,24,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
@@ -1017,13 +1016,6 @@ func (x *FeeLedgerItem) GetBaseCurrency() string {
 func (x *FeeLedgerItem) GetBaseCurrencyAmount() string {
 	if x != nil {
 		return x.BaseCurrencyAmount
-	}
-	return ""
-}
-
-func (x *FeeLedgerItem) GetExpenseDate() string {
-	if x != nil {
-		return x.ExpenseDate
 	}
 	return ""
 }
@@ -14631,7 +14623,6 @@ type MyFeeSupplementAdjustmentSource struct {
 	FeeTotalAmount        string                  `protobuf:"bytes,12,opt,name=fee_total_amount,json=feeTotalAmount,proto3" json:"fee_total_amount,omitempty"`
 	FeeBaseCurrency       string                  `protobuf:"bytes,13,opt,name=fee_base_currency,json=feeBaseCurrency,proto3" json:"fee_base_currency,omitempty"`
 	FeeBaseCurrencyAmount string                  `protobuf:"bytes,14,opt,name=fee_base_currency_amount,json=feeBaseCurrencyAmount,proto3" json:"fee_base_currency_amount,omitempty"`
-	FeeExpenseDate        string                  `protobuf:"bytes,15,opt,name=fee_expense_date,json=feeExpenseDate,proto3" json:"fee_expense_date,omitempty"`
 	SupplementReason      string                  `protobuf:"bytes,16,opt,name=supplement_reason,json=supplementReason,proto3" json:"supplement_reason,omitempty"`
 	SourceType            string                  `protobuf:"bytes,17,opt,name=source_type,json=sourceType,proto3" json:"source_type,omitempty"`
 	Direction             string                  `protobuf:"bytes,18,opt,name=direction,proto3" json:"direction,omitempty"`
@@ -14769,13 +14760,6 @@ func (x *MyFeeSupplementAdjustmentSource) GetFeeBaseCurrencyAmount() string {
 	return ""
 }
 
-func (x *MyFeeSupplementAdjustmentSource) GetFeeExpenseDate() string {
-	if x != nil {
-		return x.FeeExpenseDate
-	}
-	return ""
-}
-
 func (x *MyFeeSupplementAdjustmentSource) GetSupplementReason() string {
 	if x != nil {
 		return x.SupplementReason
@@ -14824,7 +14808,6 @@ type CommissionFeeDetail struct {
 	ExchangeRate        string                 `protobuf:"bytes,9,opt,name=exchange_rate,json=exchangeRate,proto3" json:"exchange_rate,omitempty"`
 	BaseCurrency        string                 `protobuf:"bytes,10,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
 	BaseCurrencyAmount  string                 `protobuf:"bytes,11,opt,name=base_currency_amount,json=baseCurrencyAmount,proto3" json:"base_currency_amount,omitempty"`
-	ExpenseDate         string                 `protobuf:"bytes,12,opt,name=expense_date,json=expenseDate,proto3" json:"expense_date,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -14932,13 +14915,6 @@ func (x *CommissionFeeDetail) GetBaseCurrency() string {
 func (x *CommissionFeeDetail) GetBaseCurrencyAmount() string {
 	if x != nil {
 		return x.BaseCurrencyAmount
-	}
-	return ""
-}
-
-func (x *CommissionFeeDetail) GetExpenseDate() string {
-	if x != nil {
-		return x.ExpenseDate
 	}
 	return ""
 }
@@ -20369,7 +20345,7 @@ var File_finance_v1_settlement_proto protoreflect.FileDescriptor
 const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\n" +
 	"\x1bfinance/v1/settlement.proto\x12\n" +
-	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\xe7\a\n" +
+	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\x8b\b\n" +
 	"\x14ListFeeLedgerRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
@@ -20377,10 +20353,9 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\rbusiness_type\x18\x04 \x01(\tH\x01R\fbusinessType\x88\x01\x01\x12!\n" +
 	"\tdirection\x18\x05 \x01(\tH\x02R\tdirection\x88\x01\x01\x123\n" +
 	"\x13settlement_party_id\x18\a \x01(\tH\x03R\x11settlementPartyId\x88\x01\x01\x12\x1f\n" +
-	"\bcurrency\x18\b \x01(\tH\x04R\bcurrency\x88\x01\x01\x12/\n" +
-	"\x11expense_date_from\x18\t \x01(\tH\x05R\x0fexpenseDateFrom\x88\x01\x01\x12+\n" +
-	"\x0fexpense_date_to\x18\n" +
-	" \x01(\tH\x06R\rexpenseDateTo\x88\x01\x01\x12$\n" +
+	"\bcurrency\x18\b \x01(\tH\x04R\bcurrency\x88\x01\x01\x12+\n" +
+	"\x0fcreated_at_from\x18\x1a \x01(\tH\x05R\rcreatedAtFrom\x88\x01\x01\x12'\n" +
+	"\rcreated_at_to\x18\x1b \x01(\tH\x06R\vcreatedAtTo\x88\x01\x01\x12$\n" +
 	"\vcustomer_id\x18\v \x01(\tH\aR\n" +
 	"customerId\x88\x01\x01\x12Z\n" +
 	"\x12financial_progress\x18\f \x01(\x0e2&.finance.v1.FeeLedgerFinancialProgressH\bR\x11financialProgress\x88\x01\x01\x12\x1c\n" +
@@ -20396,16 +20371,18 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\n" +
 	"_directionB\x16\n" +
 	"\x14_settlement_party_idB\v\n" +
-	"\t_currencyB\x14\n" +
-	"\x12_expense_date_fromB\x12\n" +
-	"\x10_expense_date_toB\x0e\n" +
+	"\t_currencyB\x12\n" +
+	"\x10_created_at_fromB\x10\n" +
+	"\x0e_created_at_toB\x0e\n" +
 	"\f_customer_idB\x15\n" +
 	"\x13_financial_progressB\n" +
 	"\n" +
 	"\b_bill_noB\x12\n" +
 	"\x10_organization_idB\x1d\n" +
 	"\x1b_has_pending_fee_supplementB\x0f\n" +
-	"\r_order_lockedJ\x04\b\x06\x10\aJ\x04\b\x0e\x10\x0fJ\x04\b\x11\x10\x12R\x06statusR\x0efinance_lockedR\x11fee_review_status\"\xc4\f\n" +
+	"\r_order_lockedJ\x04\b\x06\x10\aJ\x04\b\t\x10\n" +
+	"J\x04\b\n" +
+	"\x10\vJ\x04\b\x0e\x10\x0fJ\x04\b\x11\x10\x12R\x06statusR\x11expense_date_fromR\x0fexpense_date_toR\x0efinance_lockedR\x11fee_review_status\"\xa1\f\n" +
 	"\rFeeLedgerItem\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x19\n" +
@@ -20429,8 +20406,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\bcurrency\x18\x11 \x01(\tR\bcurrency\x12#\n" +
 	"\rexchange_rate\x18\x12 \x01(\tR\fexchangeRate\x12#\n" +
 	"\rbase_currency\x18\x13 \x01(\tR\fbaseCurrency\x120\n" +
-	"\x14base_currency_amount\x18\x14 \x01(\tR\x12baseCurrencyAmount\x12!\n" +
-	"\fexpense_date\x18\x15 \x01(\tR\vexpenseDate\x12\x17\n" +
+	"\x14base_currency_amount\x18\x14 \x01(\tR\x12baseCurrencyAmount\x12\x17\n" +
 	"\x04note\x18\x16 \x01(\tH\x00R\x04note\x88\x01\x01\x12\x18\n" +
 	"\aversion\x18\x17 \x01(\x04R\aversion\x12\x1d\n" +
 	"\n" +
@@ -21855,7 +21831,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\a_statusB\x0e\n" +
 	"\f_source_typeB\x0e\n" +
 	"\f_employee_idB\x12\n" +
-	"\x10_organization_id\"\xd2\x06\n" +
+	"\x10_organization_id\"\xa8\x06\n" +
 	"\x1fMyFeeSupplementAdjustmentSource\x12#\n" +
 	"\radjustment_id\x18\x01 \x01(\tR\fadjustmentId\x12#\n" +
 	"\radjustment_no\x18\x02 \x01(\tR\fadjustmentNo\x12\x19\n" +
@@ -21872,8 +21848,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\ffee_currency\x18\v \x01(\tR\vfeeCurrency\x12(\n" +
 	"\x10fee_total_amount\x18\f \x01(\tR\x0efeeTotalAmount\x12*\n" +
 	"\x11fee_base_currency\x18\r \x01(\tR\x0ffeeBaseCurrency\x127\n" +
-	"\x18fee_base_currency_amount\x18\x0e \x01(\tR\x15feeBaseCurrencyAmount\x12(\n" +
-	"\x10fee_expense_date\x18\x0f \x01(\tR\x0efeeExpenseDate\x12+\n" +
+	"\x18fee_base_currency_amount\x18\x0e \x01(\tR\x15feeBaseCurrencyAmount\x12+\n" +
 	"\x11supplement_reason\x18\x10 \x01(\tR\x10supplementReason\x12\x1f\n" +
 	"\vsource_type\x18\x11 \x01(\tR\n" +
 	"sourceType\x12\x1c\n" +
@@ -21882,7 +21857,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\tsource_no\x18\x14 \x01(\tH\x01R\bsourceNo\x88\x01\x01B\x16\n" +
 	"\x14_source_reference_idB\f\n" +
 	"\n" +
-	"_source_no\"\xd0\x03\n" +
+	"_source_no\"\xb3\x03\n" +
 	"\x13CommissionFeeDetail\x12\x15\n" +
 	"\x06fee_id\x18\x01 \x01(\tR\x05feeId\x12\x1c\n" +
 	"\tdirection\x18\x02 \x01(\tR\tdirection\x12\x19\n" +
@@ -21895,8 +21870,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\rexchange_rate\x18\t \x01(\tR\fexchangeRate\x12#\n" +
 	"\rbase_currency\x18\n" +
 	" \x01(\tR\fbaseCurrency\x120\n" +
-	"\x14base_currency_amount\x18\v \x01(\tR\x12baseCurrencyAmount\x12!\n" +
-	"\fexpense_date\x18\f \x01(\tR\vexpenseDateJ\x04\b\r\x10\x0eR\x06status\"\xa0\b\n" +
+	"\x14base_currency_amount\x18\v \x01(\tR\x12baseCurrencyAmountJ\x04\b\f\x10\rJ\x04\b\r\x10\x0eR\x06status\"\xa0\b\n" +
 	"\x15FinanceCommissionLine\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x19\n" +

@@ -142,7 +142,6 @@ type OrderFee struct {
 	TotalAmount           string                 `protobuf:"bytes,11,opt,name=total_amount,json=totalAmount,proto3" json:"total_amount,omitempty"`
 	Currency              string                 `protobuf:"bytes,12,opt,name=currency,proto3" json:"currency,omitempty"`
 	ExchangeRate          string                 `protobuf:"bytes,13,opt,name=exchange_rate,json=exchangeRate,proto3" json:"exchange_rate,omitempty"`
-	ExpenseDate           string                 `protobuf:"bytes,14,opt,name=expense_date,json=expenseDate,proto3" json:"expense_date,omitempty"`
 	Note                  *string                `protobuf:"bytes,15,opt,name=note,proto3,oneof" json:"note,omitempty"`
 	CreatedAt             string                 `protobuf:"bytes,16,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt             string                 `protobuf:"bytes,17,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
@@ -297,13 +296,6 @@ func (x *OrderFee) GetCurrency() string {
 func (x *OrderFee) GetExchangeRate() string {
 	if x != nil {
 		return x.ExchangeRate
-	}
-	return ""
-}
-
-func (x *OrderFee) GetExpenseDate() string {
-	if x != nil {
-		return x.ExpenseDate
 	}
 	return ""
 }
@@ -1057,7 +1049,6 @@ type AddFeeRequest struct {
 	Quantity             string                 `protobuf:"bytes,7,opt,name=quantity,proto3" json:"quantity,omitempty"`
 	UnitPrice            string                 `protobuf:"bytes,8,opt,name=unit_price,json=unitPrice,proto3" json:"unit_price,omitempty"`
 	Currency             string                 `protobuf:"bytes,9,opt,name=currency,proto3" json:"currency,omitempty"`
-	ExpenseDate          string                 `protobuf:"bytes,11,opt,name=expense_date,json=expenseDate,proto3" json:"expense_date,omitempty"`
 	Note                 *string                `protobuf:"bytes,12,opt,name=note,proto3,oneof" json:"note,omitempty"`
 	ExchangeRateOverride *string                `protobuf:"bytes,13,opt,name=exchange_rate_override,json=exchangeRateOverride,proto3,oneof" json:"exchange_rate_override,omitempty"`
 	FeeSettingId         string                 `protobuf:"bytes,14,opt,name=fee_setting_id,json=feeSettingId,proto3" json:"fee_setting_id,omitempty"`
@@ -1141,13 +1132,6 @@ func (x *AddFeeRequest) GetCurrency() string {
 	return ""
 }
 
-func (x *AddFeeRequest) GetExpenseDate() string {
-	if x != nil {
-		return x.ExpenseDate
-	}
-	return ""
-}
-
 func (x *AddFeeRequest) GetNote() string {
 	if x != nil && x.Note != nil {
 		return *x.Note
@@ -1206,7 +1190,6 @@ type UpdateFeeRequest struct {
 	Quantity             string                 `protobuf:"bytes,8,opt,name=quantity,proto3" json:"quantity,omitempty"`
 	UnitPrice            string                 `protobuf:"bytes,9,opt,name=unit_price,json=unitPrice,proto3" json:"unit_price,omitempty"`
 	Currency             string                 `protobuf:"bytes,10,opt,name=currency,proto3" json:"currency,omitempty"`
-	ExpenseDate          string                 `protobuf:"bytes,12,opt,name=expense_date,json=expenseDate,proto3" json:"expense_date,omitempty"`
 	Note                 *string                `protobuf:"bytes,13,opt,name=note,proto3,oneof" json:"note,omitempty"`
 	ExchangeRateOverride *string                `protobuf:"bytes,14,opt,name=exchange_rate_override,json=exchangeRateOverride,proto3,oneof" json:"exchange_rate_override,omitempty"`
 	FeeSettingId         string                 `protobuf:"bytes,15,opt,name=fee_setting_id,json=feeSettingId,proto3" json:"fee_setting_id,omitempty"`
@@ -1297,13 +1280,6 @@ func (x *UpdateFeeRequest) GetUnitPrice() string {
 func (x *UpdateFeeRequest) GetCurrency() string {
 	if x != nil {
 		return x.Currency
-	}
-	return ""
-}
-
-func (x *UpdateFeeRequest) GetExpenseDate() string {
-	if x != nil {
-		return x.ExpenseDate
 	}
 	return ""
 }
@@ -1445,7 +1421,6 @@ type ResolveFeeExchangeRateRequest struct {
 	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
 	Direction     OrderFeeDirection      `protobuf:"varint,2,opt,name=direction,proto3,enum=order.v1.OrderFeeDirection" json:"direction,omitempty"`
 	Currency      string                 `protobuf:"bytes,3,opt,name=currency,proto3" json:"currency,omitempty"`
-	ExpenseDate   string                 `protobuf:"bytes,4,opt,name=expense_date,json=expenseDate,proto3" json:"expense_date,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1497,13 +1472,6 @@ func (x *ResolveFeeExchangeRateRequest) GetDirection() OrderFeeDirection {
 func (x *ResolveFeeExchangeRateRequest) GetCurrency() string {
 	if x != nil {
 		return x.Currency
-	}
-	return ""
-}
-
-func (x *ResolveFeeExchangeRateRequest) GetExpenseDate() string {
-	if x != nil {
-		return x.ExpenseDate
 	}
 	return ""
 }
@@ -1961,11 +1929,8 @@ type BulkUpdateOrderFeesRequest struct {
 	state   protoimpl.MessageState `protogen:"open.v1"`
 	OrderId string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
 	Targets []*BulkOrderFeeTarget  `protobuf:"bytes,2,rep,name=targets,proto3" json:"targets,omitempty"`
-	// 目标值二选一：settlement_party_id（改为该结算单位）或 expense_date
-	// （改为该费用发生时间，YYYY-MM-DD 或 YYYY-MM-DD HH:mm 分钟精度），
-	// 必须恰好提供一个。
+	// 统一改为该结算单位。
 	SettlementPartyId *string `protobuf:"bytes,3,opt,name=settlement_party_id,json=settlementPartyId,proto3,oneof" json:"settlement_party_id,omitempty"`
-	ExpenseDate       *string `protobuf:"bytes,4,opt,name=expense_date,json=expenseDate,proto3,oneof" json:"expense_date,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -2017,13 +1982,6 @@ func (x *BulkUpdateOrderFeesRequest) GetTargets() []*BulkOrderFeeTarget {
 func (x *BulkUpdateOrderFeesRequest) GetSettlementPartyId() string {
 	if x != nil && x.SettlementPartyId != nil {
 		return *x.SettlementPartyId
-	}
-	return ""
-}
-
-func (x *BulkUpdateOrderFeesRequest) GetExpenseDate() string {
-	if x != nil && x.ExpenseDate != nil {
-		return *x.ExpenseDate
 	}
 	return ""
 }
@@ -2634,7 +2592,6 @@ type OrderFeeSupplementRequestData struct {
 	ExchangeRateSettingId *string           `protobuf:"bytes,31,opt,name=exchange_rate_setting_id,json=exchangeRateSettingId,proto3,oneof" json:"exchange_rate_setting_id,omitempty"`
 	BaseCurrency          string            `protobuf:"bytes,32,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
 	BaseCurrencyAmount    string            `protobuf:"bytes,33,opt,name=base_currency_amount,json=baseCurrencyAmount,proto3" json:"base_currency_amount,omitempty"`
-	ExpenseDate           string            `protobuf:"bytes,34,opt,name=expense_date,json=expenseDate,proto3" json:"expense_date,omitempty"`
 	Note                  *string           `protobuf:"bytes,35,opt,name=note,proto3,oneof" json:"note,omitempty"`
 	Reason                string            `protobuf:"bytes,36,opt,name=reason,proto3" json:"reason,omitempty"`
 	RequestedBy           string            `protobuf:"bytes,37,opt,name=requested_by,json=requestedBy,proto3" json:"requested_by,omitempty"`
@@ -2922,13 +2879,6 @@ func (x *OrderFeeSupplementRequestData) GetBaseCurrencyAmount() string {
 	return ""
 }
 
-func (x *OrderFeeSupplementRequestData) GetExpenseDate() string {
-	if x != nil {
-		return x.ExpenseDate
-	}
-	return ""
-}
-
 func (x *OrderFeeSupplementRequestData) GetNote() string {
 	if x != nil && x.Note != nil {
 		return *x.Note
@@ -3045,7 +2995,6 @@ type CreateOrderFeeSupplementRequest struct {
 	Quantity             string            `protobuf:"bytes,6,opt,name=quantity,proto3" json:"quantity,omitempty"`
 	UnitPrice            string            `protobuf:"bytes,7,opt,name=unit_price,json=unitPrice,proto3" json:"unit_price,omitempty"`
 	Currency             string            `protobuf:"bytes,8,opt,name=currency,proto3" json:"currency,omitempty"`
-	ExpenseDate          string            `protobuf:"bytes,9,opt,name=expense_date,json=expenseDate,proto3" json:"expense_date,omitempty"`
 	Note                 *string           `protobuf:"bytes,10,opt,name=note,proto3,oneof" json:"note,omitempty"`
 	ExchangeRateOverride *string           `protobuf:"bytes,11,opt,name=exchange_rate_override,json=exchangeRateOverride,proto3,oneof" json:"exchange_rate_override,omitempty"`
 	TaxInclusive         *bool             `protobuf:"varint,12,opt,name=tax_inclusive,json=taxInclusive,proto3,oneof" json:"tax_inclusive,omitempty"`
@@ -3138,13 +3087,6 @@ func (x *CreateOrderFeeSupplementRequest) GetUnitPrice() string {
 func (x *CreateOrderFeeSupplementRequest) GetCurrency() string {
 	if x != nil {
 		return x.Currency
-	}
-	return ""
-}
-
-func (x *CreateOrderFeeSupplementRequest) GetExpenseDate() string {
-	if x != nil {
-		return x.ExpenseDate
 	}
 	return ""
 }
@@ -6287,7 +6229,6 @@ type OrderFeeCorrectionTarget struct {
 	Quantity             string                 `protobuf:"bytes,5,opt,name=quantity,proto3" json:"quantity,omitempty"`
 	UnitPrice            string                 `protobuf:"bytes,6,opt,name=unit_price,json=unitPrice,proto3" json:"unit_price,omitempty"`
 	Currency             string                 `protobuf:"bytes,7,opt,name=currency,proto3" json:"currency,omitempty"`
-	ExpenseDate          string                 `protobuf:"bytes,8,opt,name=expense_date,json=expenseDate,proto3" json:"expense_date,omitempty"`
 	Note                 *string                `protobuf:"bytes,9,opt,name=note,proto3,oneof" json:"note,omitempty"`
 	ExchangeRateOverride *string                `protobuf:"bytes,10,opt,name=exchange_rate_override,json=exchangeRateOverride,proto3,oneof" json:"exchange_rate_override,omitempty"`
 	TaxInclusive         *bool                  `protobuf:"varint,11,opt,name=tax_inclusive,json=taxInclusive,proto3,oneof" json:"tax_inclusive,omitempty"`
@@ -6372,13 +6313,6 @@ func (x *OrderFeeCorrectionTarget) GetUnitPrice() string {
 func (x *OrderFeeCorrectionTarget) GetCurrency() string {
 	if x != nil {
 		return x.Currency
-	}
-	return ""
-}
-
-func (x *OrderFeeCorrectionTarget) GetExpenseDate() string {
-	if x != nil {
-		return x.ExpenseDate
 	}
 	return ""
 }
@@ -8369,7 +8303,7 @@ var File_order_v1_order_fee_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\n" +
-	"\x18order/v1/order_fee.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x14order/v1/order.proto\"\x93\x10\n" +
+	"\x18order/v1/order_fee.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x14order/v1/order.proto\"\x84\x10\n" +
 	"\bOrderFee\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x129\n" +
@@ -8385,8 +8319,7 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	" \x01(\tR\tunitPrice\x12!\n" +
 	"\ftotal_amount\x18\v \x01(\tR\vtotalAmount\x12\x1a\n" +
 	"\bcurrency\x18\f \x01(\tR\bcurrency\x12#\n" +
-	"\rexchange_rate\x18\r \x01(\tR\fexchangeRate\x12!\n" +
-	"\fexpense_date\x18\x0e \x01(\tR\vexpenseDate\x12\x17\n" +
+	"\rexchange_rate\x18\r \x01(\tR\fexchangeRate\x12\x17\n" +
 	"\x04note\x18\x0f \x01(\tH\x00R\x04note\x88\x01\x01\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\x10 \x01(\tR\tcreatedAt\x12\x1d\n" +
@@ -8433,7 +8366,7 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\x15_taxable_service_nameB\x10\n" +
 	"\x0e_source_fee_idB\x18\n" +
 	"\x16_correction_request_idB\x1b\n" +
-	"\x19_superseded_by_request_idJ\x04\b\x1a\x10\x1bJ\x04\b!\x10\"J\x04\b\"\x10#J\x04\b#\x10$R\x06statusR\fcancelled_atR\fcancelled_byR\x13cancellation_reason\"1\n" +
+	"\x19_superseded_by_request_idJ\x04\b\x0e\x10\x0fJ\x04\b\x1a\x10\x1bJ\x04\b!\x10\"J\x04\b\"\x10#J\x04\b#\x10$R\fexpense_dateR\x06statusR\fcancelled_atR\fcancelled_byR\x13cancellation_reason\"1\n" +
 	"\x0fListFeesRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\"7\n" +
 	"\x15ListFeeOptionsRequest\x12\x1e\n" +
@@ -8484,7 +8417,7 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\vcustomer_id\x18\r \x01(\tR\n" +
 	"customerId\x12#\n" +
 	"\rcustomer_name\x18\x0e \x01(\tR\fcustomerNameJ\x04\b\n" +
-	"\x10\vJ\x04\b\v\x10\fJ\x04\b\f\x10\rR\x0efinance_lockedR\x13finance_lock_reasonR\x1bfinance_lock_commission_nos\"\xef\x05\n" +
+	"\x10\vJ\x04\b\v\x10\fJ\x04\b\f\x10\rR\x0efinance_lockedR\x13finance_lock_reasonR\x1bfinance_lock_commission_nos\"\xcd\x05\n" +
 	"\rAddFeeRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12>\n" +
 	"\tdirection\x18\x02 \x01(\x0e2\x1b.order.v1.OrderFeeDirectionB\x03\xe0A\x02R\tdirection\x123\n" +
@@ -8492,8 +8425,7 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\bquantity\x18\a \x01(\tB\x03\xe0A\x02R\bquantity\x12\"\n" +
 	"\n" +
 	"unit_price\x18\b \x01(\tB\x03\xe0A\x02R\tunitPrice\x12\x1f\n" +
-	"\bcurrency\x18\t \x01(\tB\x03\xe0A\x02R\bcurrency\x12&\n" +
-	"\fexpense_date\x18\v \x01(\tB\x03\xe0A\x02R\vexpenseDate\x12\x17\n" +
+	"\bcurrency\x18\t \x01(\tB\x03\xe0A\x02R\bcurrency\x12\x17\n" +
 	"\x04note\x18\f \x01(\tH\x00R\x04note\x88\x01\x01\x129\n" +
 	"\x16exchange_rate_override\x18\r \x01(\tH\x01R\x14exchangeRateOverride\x88\x01\x01\x12)\n" +
 	"\x0efee_setting_id\x18\x0e \x01(\tB\x03\xe0A\x02R\ffeeSettingId\x12+\n" +
@@ -8504,7 +8436,7 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\x05_noteB\x19\n" +
 	"\x17_exchange_rate_overrideB\x10\n" +
 	"\x0e_tax_inclusiveJ\x04\b\x03\x10\x04J\x04\b\x04\x10\x05J\x04\b\x06\x10\aJ\x04\b\n" +
-	"\x10\vR\bfee_codeR\bfee_nameR\fbilling_unit\"\xd9\x06\n" +
+	"\x10\vJ\x04\b\v\x10\fR\bfee_codeR\bfee_nameR\fbilling_unit\"\xb7\x06\n" +
 	"\x10UpdateFeeRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12>\n" +
@@ -8514,8 +8446,7 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\n" +
 	"unit_price\x18\t \x01(\tB\x03\xe0A\x02R\tunitPrice\x12\x1f\n" +
 	"\bcurrency\x18\n" +
-	" \x01(\tB\x03\xe0A\x02R\bcurrency\x12&\n" +
-	"\fexpense_date\x18\f \x01(\tB\x03\xe0A\x02R\vexpenseDate\x12\x17\n" +
+	" \x01(\tB\x03\xe0A\x02R\bcurrency\x12\x17\n" +
 	"\x04note\x18\r \x01(\tH\x00R\x04note\x88\x01\x01\x129\n" +
 	"\x16exchange_rate_override\x18\x0e \x01(\tH\x01R\x14exchangeRateOverride\x88\x01\x01\x12)\n" +
 	"\x0efee_setting_id\x18\x0f \x01(\tB\x03\xe0A\x02R\ffeeSettingId\x12+\n" +
@@ -8529,18 +8460,17 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\x17_exchange_rate_overrideB\x10\n" +
 	"\x0e_tax_inclusiveB\v\n" +
 	"\t_tax_rateB\v\n" +
-	"\t_fee_nameJ\x04\b\x04\x10\x05J\x04\b\x05\x10\x06J\x04\b\a\x10\bJ\x04\b\v\x10\fR\bfee_codeR\fbilling_unit\"\x9f\x01\n" +
+	"\t_fee_nameJ\x04\b\x04\x10\x05J\x04\b\x05\x10\x06J\x04\b\a\x10\bJ\x04\b\v\x10\fJ\x04\b\f\x10\rR\bfee_codeR\fbilling_unit\"\x9f\x01\n" +
 	"\x10RemoveFeeRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
 	"\x10expected_version\x18\x03 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12\x1b\n" +
 	"\x06reason\x18\x04 \x01(\tH\x00R\x06reason\x88\x01\x01B\t\n" +
-	"\a_reason\"\xc8\x01\n" +
+	"\a_reason\"\xb4\x01\n" +
 	"\x1dResolveFeeExchangeRateRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12>\n" +
 	"\tdirection\x18\x02 \x01(\x0e2\x1b.order.v1.OrderFeeDirectionB\x03\xe0A\x02R\tdirection\x12\x1f\n" +
-	"\bcurrency\x18\x03 \x01(\tB\x03\xe0A\x02R\bcurrency\x12&\n" +
-	"\fexpense_date\x18\x04 \x01(\tB\x03\xe0A\x02R\vexpenseDate\"\xe3\x02\n" +
+	"\bcurrency\x18\x03 \x01(\tB\x03\xe0A\x02R\bcurrencyJ\x04\b\x04\x10\x05R\fexpense_date\"\xe3\x02\n" +
 	"\x1eResolveFeeExchangeRateResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -8576,14 +8506,12 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\btrace_id\x18\x04 \x01(\tR\atraceId\"`\n" +
 	"\x12BulkOrderFeeTarget\x12\x1a\n" +
 	"\x06fee_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x05feeId\x12.\n" +
-	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\"\xff\x01\n" +
+	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\"\xda\x01\n" +
 	"\x1aBulkUpdateOrderFeesRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12;\n" +
 	"\atargets\x18\x02 \x03(\v2\x1c.order.v1.BulkOrderFeeTargetB\x03\xe0A\x02R\atargets\x123\n" +
-	"\x13settlement_party_id\x18\x03 \x01(\tH\x00R\x11settlementPartyId\x88\x01\x01\x12&\n" +
-	"\fexpense_date\x18\x04 \x01(\tH\x01R\vexpenseDate\x88\x01\x01B\x16\n" +
-	"\x14_settlement_party_idB\x0f\n" +
-	"\r_expense_date\"\xa5\x01\n" +
+	"\x13settlement_party_id\x18\x03 \x01(\tH\x00R\x11settlementPartyId\x88\x01\x01B\x16\n" +
+	"\x14_settlement_party_idJ\x04\b\x04\x10\x05R\fexpense_date\"\xa5\x01\n" +
 	"\x1bBulkUpdateOrderFeesResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -8623,7 +8551,7 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\atag_ids\x18\x03 \x03(\tB\x03\xe0A\x02R\x06tagIds\"a\n" +
 	"\x1fBatchRemoveOrderFeeTagsResponse\x12#\n" +
 	"\rremoved_count\x18\x01 \x01(\x05R\fremovedCount\x12\x19\n" +
-	"\btrace_id\x18\x02 \x01(\tR\atraceId\"\xbf\x12\n" +
+	"\btrace_id\x18\x02 \x01(\tR\atraceId\"\x9c\x12\n" +
 	"\x1dOrderFeeSupplementRequestData\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x1d\n" +
@@ -8662,8 +8590,7 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\x12exchange_rate_date\x18\x1e \x01(\tR\x10exchangeRateDate\x12<\n" +
 	"\x18exchange_rate_setting_id\x18\x1f \x01(\tH\tR\x15exchangeRateSettingId\x88\x01\x01\x12#\n" +
 	"\rbase_currency\x18  \x01(\tR\fbaseCurrency\x120\n" +
-	"\x14base_currency_amount\x18! \x01(\tR\x12baseCurrencyAmount\x12!\n" +
-	"\fexpense_date\x18\" \x01(\tR\vexpenseDate\x12\x17\n" +
+	"\x14base_currency_amount\x18! \x01(\tR\x12baseCurrencyAmount\x12\x17\n" +
 	"\x04note\x18# \x01(\tH\n" +
 	"R\x04note\x88\x01\x01\x12\x16\n" +
 	"\x06reason\x18$ \x01(\tR\x06reason\x12!\n" +
@@ -8701,7 +8628,7 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\x16_cancel_blocked_reasonB\t\n" +
 	"\a_fee_idB\x12\n" +
 	"\x10_decided_by_nameJ\x04\b/\x100R\n" +
-	"fee_status\"\x9b\x05\n" +
+	"fee_status\"\xf3\x04\n" +
 	"\x1fCreateOrderFeeSupplementRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12>\n" +
 	"\tdirection\x18\x02 \x01(\x0e2\x1b.order.v1.OrderFeeDirectionB\x03\xe0A\x02R\tdirection\x12)\n" +
@@ -8711,8 +8638,7 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\bquantity\x18\x06 \x01(\tB\x03\xe0A\x02R\bquantity\x12\"\n" +
 	"\n" +
 	"unit_price\x18\a \x01(\tB\x03\xe0A\x02R\tunitPrice\x12\x1f\n" +
-	"\bcurrency\x18\b \x01(\tB\x03\xe0A\x02R\bcurrency\x12&\n" +
-	"\fexpense_date\x18\t \x01(\tB\x03\xe0A\x02R\vexpenseDate\x12\x17\n" +
+	"\bcurrency\x18\b \x01(\tB\x03\xe0A\x02R\bcurrency\x12\x17\n" +
 	"\x04note\x18\n" +
 	" \x01(\tH\x00R\x04note\x88\x01\x01\x129\n" +
 	"\x16exchange_rate_override\x18\v \x01(\tH\x01R\x14exchangeRateOverride\x88\x01\x01\x12(\n" +
@@ -8986,7 +8912,7 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\asuccess\x18\x02 \x01(\bR\asuccess\x12\x16\n" +
 	"\x06reason\x18\x03 \x01(\tR\x06reason\x12\x18\n" +
 	"\amessage\x18\x04 \x01(\tR\amessage\x120\n" +
-	"\x04data\x18\x05 \x01(\v2\x1c.order.v1.OrderFeeReviewDataR\x04data\"\x8f\x05\n" +
+	"\x04data\x18\x05 \x01(\v2\x1c.order.v1.OrderFeeReviewDataR\x04data\"\xec\x04\n" +
 	"\x18OrderFeeCorrectionTarget\x129\n" +
 	"\tdirection\x18\x01 \x01(\x0e2\x1b.order.v1.OrderFeeDirectionR\tdirection\x12$\n" +
 	"\x0efee_setting_id\x18\x02 \x01(\tR\ffeeSettingId\x12.\n" +
@@ -8995,8 +8921,7 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\bquantity\x18\x05 \x01(\tR\bquantity\x12\x1d\n" +
 	"\n" +
 	"unit_price\x18\x06 \x01(\tR\tunitPrice\x12\x1a\n" +
-	"\bcurrency\x18\a \x01(\tR\bcurrency\x12!\n" +
-	"\fexpense_date\x18\b \x01(\tR\vexpenseDate\x12\x17\n" +
+	"\bcurrency\x18\a \x01(\tR\bcurrency\x12\x17\n" +
 	"\x04note\x18\t \x01(\tH\x00R\x04note\x88\x01\x01\x129\n" +
 	"\x16exchange_rate_override\x18\n" +
 	" \x01(\tH\x01R\x14exchangeRateOverride\x88\x01\x01\x12(\n" +

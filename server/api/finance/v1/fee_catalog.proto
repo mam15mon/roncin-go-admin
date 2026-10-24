@@ -109,9 +109,8 @@ message FeeSetting {
   string name_zh = 4;
   optional string name_en = 5;
   optional string alias_name = 6;
-  // 费用大类必挂（原 service_type 就地更名）：合并报表底座。
-  string charge_category_id = 7 [(google.api.field_behavior) = REQUIRED];
-  string charge_category_name = 8;
+  reserved 7, 8;
+  reserved "charge_category_id", "charge_category_name";
   string default_currency = 9;
   string billing_unit_id = 10;
   string billing_unit_name = 11;
@@ -138,8 +137,8 @@ message CreateFeeSettingRequest {
   string name_zh = 2 [(google.api.field_behavior) = REQUIRED];
   optional string name_en = 3;
   optional string alias_name = 4;
-  // 费用大类必挂（原 service_type 就地更名）。
-  string charge_category_id = 5 [(google.api.field_behavior) = REQUIRED];
+  reserved 5;
+  reserved "charge_category_id";
   string default_currency = 6 [(google.api.field_behavior) = REQUIRED];
   string billing_unit_id = 7 [(google.api.field_behavior) = REQUIRED];
   optional string abnormal_case_id = 8;
@@ -154,8 +153,8 @@ message UpdateFeeSettingRequest {
   string name_zh = 3 [(google.api.field_behavior) = REQUIRED];
   optional string name_en = 4;
   optional string alias_name = 5;
-  // 费用大类必挂（原 service_type 就地更名）。
-  string charge_category_id = 6 [(google.api.field_behavior) = REQUIRED];
+  reserved 6;
+  reserved "charge_category_id";
   string default_currency = 7 [(google.api.field_behavior) = REQUIRED];
   string billing_unit_id = 8 [(google.api.field_behavior) = REQUIRED];
   optional string abnormal_case_id = 9;
@@ -218,7 +217,8 @@ message FeeSettingTemplateInput {
  string name_zh = 2;
  optional string name_en = 3;
  optional string alias_name = 4;
- string charge_category_id = 5;
+ reserved 5;
+ reserved "charge_category_id";
  string default_currency = 6;
  string billing_unit_id = 7;
  optional string abnormal_case_id = 8;

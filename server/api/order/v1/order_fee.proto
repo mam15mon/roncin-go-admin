@@ -185,7 +185,6 @@ message OrderFee {
   string total_amount = 11;
   string currency = 12;
   string exchange_rate = 13;
-  string expense_date = 14;
   optional string note = 15;
   string created_at = 16;
   string updated_at = 17;
@@ -197,7 +196,8 @@ message OrderFee {
   optional string fee_name_en = 23;
   optional string tax_rate = 24;
   optional string taxable_service_name = 25;
-  reserved 26, 33, 34, 35;
+  reserved 14, 26, 33, 34, 35;
+  reserved "expense_date";
   reserved "status", "cancelled_at", "cancelled_by", "cancellation_reason";
   bool tax_inclusive = 27;
   string net_amount = 28;
@@ -289,8 +289,7 @@ message AddFeeRequest {
   string quantity = 7 [(google.api.field_behavior) = REQUIRED];
   string unit_price = 8 [(google.api.field_behavior) = REQUIRED];
   string currency = 9 [(google.api.field_behavior) = REQUIRED];
-  reserved 10;
-  string expense_date = 11 [(google.api.field_behavior) = REQUIRED];
+  reserved 10, 11;
   optional string note = 12;
   optional string exchange_rate_override = 13;
   string fee_setting_id = 14 [(google.api.field_behavior) = REQUIRED];
@@ -310,8 +309,7 @@ message UpdateFeeRequest {
   string quantity = 8 [(google.api.field_behavior) = REQUIRED];
   string unit_price = 9 [(google.api.field_behavior) = REQUIRED];
   string currency = 10 [(google.api.field_behavior) = REQUIRED];
-  reserved 11;
-  string expense_date = 12 [(google.api.field_behavior) = REQUIRED];
+  reserved 11, 12;
   optional string note = 13;
   optional string exchange_rate_override = 14;
   string fee_setting_id = 15 [(google.api.field_behavior) = REQUIRED];
@@ -337,7 +335,8 @@ message ResolveFeeExchangeRateRequest {
   string order_id = 1 [(google.api.field_behavior) = REQUIRED];
   OrderFeeDirection direction = 2 [(google.api.field_behavior) = REQUIRED];
   string currency = 3 [(google.api.field_behavior) = REQUIRED];
-  string expense_date = 4 [(google.api.field_behavior) = REQUIRED];
+  reserved 4;
+  reserved "expense_date";
 }
 
 message ResolveFeeExchangeRateResponse {
@@ -391,11 +390,10 @@ message BulkOrderFeeTarget {
 message BulkUpdateOrderFeesRequest {
   string order_id = 1 [(google.api.field_behavior) = REQUIRED];
   repeated BulkOrderFeeTarget targets = 2 [(google.api.field_behavior) = REQUIRED];
-  // 目标值二选一：settlement_party_id（改为该结算单位）或 expense_date
-  //（改为该费用发生时间，YYYY-MM-DD 或 YYYY-MM-DD HH:mm 分钟精度），
-  // 必须恰好提供一个。
+  // 统一改为该结算单位。
   optional string settlement_party_id = 3;
-  optional string expense_date = 4;
+  reserved 4;
+  reserved "expense_date";
 }
 
 message BulkUpdateOrderFeesResponse {
@@ -500,7 +498,6 @@ message OrderFeeSupplementRequestData {
   optional string exchange_rate_setting_id = 31;
   string base_currency = 32;
   string base_currency_amount = 33;
-  string expense_date = 34;
   optional string note = 35;
   string reason = 36;
   string requested_by = 37;
@@ -537,7 +534,6 @@ message CreateOrderFeeSupplementRequest {
   string quantity = 6 [(google.api.field_behavior) = REQUIRED];
   string unit_price = 7 [(google.api.field_behavior) = REQUIRED];
   string currency = 8 [(google.api.field_behavior) = REQUIRED];
-  string expense_date = 9 [(google.api.field_behavior) = REQUIRED];
   optional string note = 10;
   optional string exchange_rate_override = 11;
   optional bool tax_inclusive = 12;
@@ -855,7 +851,6 @@ message OrderFeeCorrectionTarget {
  string quantity = 5;
  string unit_price = 6;
  string currency = 7;
- string expense_date = 8;
  optional string note = 9;
  optional string exchange_rate_override = 10;
  optional bool tax_inclusive = 11;

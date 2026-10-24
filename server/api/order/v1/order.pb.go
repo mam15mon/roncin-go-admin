@@ -1536,7 +1536,6 @@ type Order struct {
 	ContainerOwnership    *ContainerOwnership      `protobuf:"varint,12,opt,name=container_ownership,json=containerOwnership,proto3,enum=order.v1.ContainerOwnership,oneof" json:"container_ownership,omitempty"`
 	ShipmentMode          *ShipmentMode            `protobuf:"varint,13,opt,name=shipment_mode,json=shipmentMode,proto3,enum=order.v1.ShipmentMode,oneof" json:"shipment_mode,omitempty"`
 	FlowStatus            OrderFlowStatus          `protobuf:"varint,14,opt,name=flow_status,json=flowStatus,proto3,enum=order.v1.OrderFlowStatus" json:"flow_status,omitempty"`
-	ServiceTypeIds        []string                 `protobuf:"bytes,16,rep,name=service_type_ids,json=serviceTypeIds,proto3" json:"service_type_ids,omitempty"`
 	CargoCategoryIds      []string                 `protobuf:"bytes,17,rep,name=cargo_category_ids,json=cargoCategoryIds,proto3" json:"cargo_category_ids,omitempty"`
 	OriginLocationId      *string                  `protobuf:"bytes,18,opt,name=origin_location_id,json=originLocationId,proto3,oneof" json:"origin_location_id,omitempty"`
 	DestinationLocationId *string                  `protobuf:"bytes,19,opt,name=destination_location_id,json=destinationLocationId,proto3,oneof" json:"destination_location_id,omitempty"`
@@ -1759,13 +1758,6 @@ func (x *Order) GetFlowStatus() OrderFlowStatus {
 		return x.FlowStatus
 	}
 	return OrderFlowStatus_ORDER_FLOW_STATUS_UNSPECIFIED
-}
-
-func (x *Order) GetServiceTypeIds() []string {
-	if x != nil {
-		return x.ServiceTypeIds
-	}
-	return nil
 }
 
 func (x *Order) GetCargoCategoryIds() []string {
@@ -3777,7 +3769,6 @@ type CreateOrderRequest struct {
 	ShipmentType          *ShipmentType                    `protobuf:"varint,9,opt,name=shipment_type,json=shipmentType,proto3,enum=order.v1.ShipmentType,oneof" json:"shipment_type,omitempty"`
 	ContainerOwnership    *ContainerOwnership              `protobuf:"varint,10,opt,name=container_ownership,json=containerOwnership,proto3,enum=order.v1.ContainerOwnership,oneof" json:"container_ownership,omitempty"`
 	ShipmentMode          *ShipmentMode                    `protobuf:"varint,11,opt,name=shipment_mode,json=shipmentMode,proto3,enum=order.v1.ShipmentMode,oneof" json:"shipment_mode,omitempty"`
-	ServiceTypeIds        []string                         `protobuf:"bytes,12,rep,name=service_type_ids,json=serviceTypeIds,proto3" json:"service_type_ids,omitempty"`
 	CargoCategoryIds      []string                         `protobuf:"bytes,13,rep,name=cargo_category_ids,json=cargoCategoryIds,proto3" json:"cargo_category_ids,omitempty"`
 	OriginLocationId      *string                          `protobuf:"bytes,14,opt,name=origin_location_id,json=originLocationId,proto3,oneof" json:"origin_location_id,omitempty"`
 	DestinationLocationId *string                          `protobuf:"bytes,15,opt,name=destination_location_id,json=destinationLocationId,proto3,oneof" json:"destination_location_id,omitempty"`
@@ -3931,13 +3922,6 @@ func (x *CreateOrderRequest) GetShipmentMode() ShipmentMode {
 		return *x.ShipmentMode
 	}
 	return ShipmentMode_SHIPMENT_MODE_UNSPECIFIED
-}
-
-func (x *CreateOrderRequest) GetServiceTypeIds() []string {
-	if x != nil {
-		return x.ServiceTypeIds
-	}
-	return nil
 }
 
 func (x *CreateOrderRequest) GetCargoCategoryIds() []string {
@@ -4298,7 +4282,6 @@ type UpdateOrderRequest struct {
 	ShipmentType          *ShipmentType                 `protobuf:"varint,10,opt,name=shipment_type,json=shipmentType,proto3,enum=order.v1.ShipmentType,oneof" json:"shipment_type,omitempty"`
 	ContainerOwnership    *ContainerOwnership           `protobuf:"varint,11,opt,name=container_ownership,json=containerOwnership,proto3,enum=order.v1.ContainerOwnership,oneof" json:"container_ownership,omitempty"`
 	ShipmentMode          *ShipmentMode                 `protobuf:"varint,12,opt,name=shipment_mode,json=shipmentMode,proto3,enum=order.v1.ShipmentMode,oneof" json:"shipment_mode,omitempty"`
-	ServiceTypeIds        []string                      `protobuf:"bytes,13,rep,name=service_type_ids,json=serviceTypeIds,proto3" json:"service_type_ids,omitempty"`
 	CargoCategoryIds      []string                      `protobuf:"bytes,14,rep,name=cargo_category_ids,json=cargoCategoryIds,proto3" json:"cargo_category_ids,omitempty"`
 	OriginLocationId      *string                       `protobuf:"bytes,15,opt,name=origin_location_id,json=originLocationId,proto3,oneof" json:"origin_location_id,omitempty"`
 	DestinationLocationId *string                       `protobuf:"bytes,16,opt,name=destination_location_id,json=destinationLocationId,proto3,oneof" json:"destination_location_id,omitempty"`
@@ -4466,13 +4449,6 @@ func (x *UpdateOrderRequest) GetShipmentMode() ShipmentMode {
 		return *x.ShipmentMode
 	}
 	return ShipmentMode_SHIPMENT_MODE_UNSPECIFIED
-}
-
-func (x *UpdateOrderRequest) GetServiceTypeIds() []string {
-	if x != nil {
-		return x.ServiceTypeIds
-	}
-	return nil
 }
 
 func (x *UpdateOrderRequest) GetCargoCategoryIds() []string {
@@ -7041,7 +7017,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\roperator_name\x18\x03 \x01(\tR\foperatorName\x12\x1d\n" +
 	"\n" +
 	"changed_at\x18\x04 \x01(\tR\tchangedAt\x12\x16\n" +
-	"\x06reason\x18\x05 \x01(\tR\x06reason\"\xd84\n" +
+	"\x06reason\x18\x05 \x01(\tR\x06reason\"\xc64\n" +
 	"\x05Order\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x19\n" +
@@ -7060,8 +7036,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x13container_ownership\x18\f \x01(\x0e2\x1c.order.v1.ContainerOwnershipH\x04R\x12containerOwnership\x88\x01\x01\x12@\n" +
 	"\rshipment_mode\x18\r \x01(\x0e2\x16.order.v1.ShipmentModeH\x05R\fshipmentMode\x88\x01\x01\x12:\n" +
 	"\vflow_status\x18\x0e \x01(\x0e2\x19.order.v1.OrderFlowStatusR\n" +
-	"flowStatus\x12(\n" +
-	"\x10service_type_ids\x18\x10 \x03(\tR\x0eserviceTypeIds\x12,\n" +
+	"flowStatus\x12,\n" +
 	"\x12cargo_category_ids\x18\x11 \x03(\tR\x10cargoCategoryIds\x121\n" +
 	"\x12origin_location_id\x18\x12 \x01(\tH\x06R\x10originLocationId\x88\x01\x01\x12;\n" +
 	"\x17destination_location_id\x18\x13 \x01(\tH\aR\x15destinationLocationId\x88\x01\x01\x127\n" +
@@ -7242,7 +7217,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\v_sales_nameB\x0f\n" +
 	"\r_sales_branchB\x0f\n" +
 	"\r_creator_nameB\x15\n" +
-	"\x13_shipping_line_nameJ\x04\b\x0f\x10\x10J\x04\b2\x103R\x12status_template_idR\rloading_terms\"z\n" +
+	"\x13_shipping_line_nameJ\x04\b\x0f\x10\x10J\x04\b\x10\x10\x11J\x04\b2\x103R\x12status_template_idR\x10service_type_idsR\rloading_terms\"z\n" +
 	"\x15OrderCargoMeasurement\x12\x1a\n" +
 	"\bpackages\x18\x01 \x01(\x05R\bpackages\x12&\n" +
 	"\x0fgross_weight_kg\x18\x02 \x01(\x01R\rgrossWeightKg\x12\x1d\n" +
@@ -7392,7 +7367,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\border_id\x18\x02 \x01(\tH\x00R\aorderId\x88\x01\x01\x12\x1e\n" +
 	"\border_no\x18\x03 \x01(\tH\x01R\aorderNo\x88\x01\x01B\v\n" +
 	"\t_order_idB\v\n" +
-	"\t_order_no\"\xc1 \n" +
+	"\t_order_no\"\x97 \n" +
 	"\x12CreateOrderRequest\x12$\n" +
 	"\vcustomer_id\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
 	"customerId\x12@\n" +
@@ -7406,8 +7381,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\rshipment_type\x18\t \x01(\x0e2\x16.order.v1.ShipmentTypeH\x03R\fshipmentType\x88\x01\x01\x12R\n" +
 	"\x13container_ownership\x18\n" +
 	" \x01(\x0e2\x1c.order.v1.ContainerOwnershipH\x04R\x12containerOwnership\x88\x01\x01\x12@\n" +
-	"\rshipment_mode\x18\v \x01(\x0e2\x16.order.v1.ShipmentModeH\x05R\fshipmentMode\x88\x01\x01\x12(\n" +
-	"\x10service_type_ids\x18\f \x03(\tR\x0eserviceTypeIds\x12,\n" +
+	"\rshipment_mode\x18\v \x01(\x0e2\x16.order.v1.ShipmentModeH\x05R\fshipmentMode\x88\x01\x01\x12,\n" +
 	"\x12cargo_category_ids\x18\r \x03(\tR\x10cargoCategoryIds\x121\n" +
 	"\x12origin_location_id\x18\x0e \x01(\tH\x06R\x10originLocationId\x88\x01\x01\x12;\n" +
 	"\x17destination_location_id\x18\x0f \x01(\tH\aR\x15destinationLocationId\x88\x01\x01\x127\n" +
@@ -7518,7 +7492,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\r_sea_documentB\r\n" +
 	"\v_booking_noB\x12\n" +
 	"\x10_idempotency_keyB\r\n" +
-	"\v_air_exportJ\x04\b\x06\x10\aJ\x04\b,\x10-R\x12status_template_idR\rloading_terms\"\xd5 \n" +
+	"\v_air_exportJ\x04\b\x06\x10\aJ\x04\b,\x10-R\x12status_template_idR\rloading_terms\"\xab \n" +
 	"\x12UpdateOrderRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
 	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12$\n" +
@@ -7534,8 +7508,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\rshipment_type\x18\n" +
 	" \x01(\x0e2\x16.order.v1.ShipmentTypeH\aR\fshipmentType\x88\x01\x01\x12R\n" +
 	"\x13container_ownership\x18\v \x01(\x0e2\x1c.order.v1.ContainerOwnershipH\bR\x12containerOwnership\x88\x01\x01\x12@\n" +
-	"\rshipment_mode\x18\f \x01(\x0e2\x16.order.v1.ShipmentModeH\tR\fshipmentMode\x88\x01\x01\x12(\n" +
-	"\x10service_type_ids\x18\r \x03(\tR\x0eserviceTypeIds\x12,\n" +
+	"\rshipment_mode\x18\f \x01(\x0e2\x16.order.v1.ShipmentModeH\tR\fshipmentMode\x88\x01\x01\x12,\n" +
 	"\x12cargo_category_ids\x18\x0e \x03(\tR\x10cargoCategoryIds\x121\n" +
 	"\x12origin_location_id\x18\x0f \x01(\tH\n" +
 	"R\x10originLocationId\x88\x01\x01\x12;\n" +

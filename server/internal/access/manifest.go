@@ -39,6 +39,8 @@ const (
 	FinanceExchangeRateCreate  = "system.finance.exchange_rate.create"
 	FinanceExchangeRateUpdate  = "system.finance.exchange_rate.update"
 	FinanceExchangeRateDisable = "system.finance.exchange_rate.disable"
+	// 财务在业务单据中手工调整订单费用汇率的独立权限（限应收应付同币种订单）。
+	FinanceOrderFeeExchangeRateOverride = "system.finance.order_fee.exchange_rate.override"
 	FinanceFeeSettingRead      = "system.finance.fee_setting.read"
 	FinanceFeeSettingCreate    = "system.finance.fee_setting.create"
 	FinanceFeeSettingUpdate    = "system.finance.fee_setting.update"
@@ -214,7 +216,8 @@ var manifest = append([]Permission{
 	{Key: EnterpriseResourceDelete, Name: "删除资源备忘", Group: "业务资料 · 企业资源 · 资源备忘", Description: "删除资源及空标签组", Requires: []string{EnterpriseResourceRead}},
 	{Key: FinanceExchangeRateRead, Name: "查看汇率", Group: "费用管理 · 汇率", Description: "查看本公司业务汇率"},
 	{Key: FinanceExchangeRateCreate, Name: "新建汇率", Group: "费用管理 · 汇率", Description: "新建本公司业务汇率（含导入与一键同步）", Requires: []string{FinanceExchangeRateRead}},
-	{Key: FinanceExchangeRateUpdate, Name: "编辑汇率", Group: "费用管理 · 汇率", Description: "修改本公司业务汇率及在业务单据中手工输入汇率", Requires: []string{FinanceExchangeRateRead}},
+	{Key: FinanceExchangeRateUpdate, Name: "编辑汇率", Group: "费用管理 · 汇率", Description: "修改本公司业务汇率", Requires: []string{FinanceExchangeRateRead}},
+	{Key: FinanceOrderFeeExchangeRateOverride, Name: "调整订单费用汇率", Group: "费用管理 · 汇率", Description: "在应收应付同币种的订单费用中手工指定汇率", Requires: []string{FinanceExchangeRateRead}},
 	{Key: FinanceExchangeRateDisable, Name: "停用汇率", Group: "费用管理 · 汇率", Description: "停用本公司业务汇率", Requires: []string{FinanceExchangeRateRead}},
 	{Key: FinanceFeeSettingRead, Name: "查看费用设置", Group: "费用管理 · 费用设置", Description: "查看费用设置及关联基础资料"},
 	{Key: FinanceFeeSettingCreate, Name: "新建费用设置", Group: "费用管理 · 费用设置", Description: "新建费用设置及关联基础资料", Requires: []string{FinanceFeeSettingRead}},

@@ -5876,14 +5876,14 @@
             }
           },
           {
-            "name": "expenseDateFrom",
+            "name": "createdAtFrom",
             "in": "query",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "expenseDateTo",
+            "name": "createdAtTo",
             "in": "query",
             "schema": {
               "type": "string"
@@ -9932,13 +9932,6 @@
           },
           {
             "name": "currency",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "expenseDate",
             "in": "query",
             "schema": {
               "type": "string"
@@ -18053,9 +18046,6 @@
           },
           "baseCurrencyAmount": {
             "type": "string"
-          },
-          "expenseDate": {
-            "type": "string"
           }
         }
       },
@@ -19004,7 +18994,6 @@
         "required": [
           "feeCode",
           "nameZh",
-          "chargeCategoryId",
           "defaultCurrency",
           "billingUnitId",
           "taxRate",
@@ -19023,10 +19012,6 @@
           },
           "aliasName": {
             "type": "string"
-          },
-          "chargeCategoryId": {
-            "type": "string",
-            "description": "费用大类必挂（原 service_type 就地更名）。"
           },
           "defaultCurrency": {
             "type": "string"
@@ -19673,9 +19658,6 @@
           "baseCurrencyAmount": {
             "type": "string"
           },
-          "expenseDate": {
-            "type": "string"
-          },
           "note": {
             "type": "string"
           },
@@ -19792,9 +19774,6 @@
         }
       },
       "finance.v1.FeeSetting": {
-        "required": [
-          "chargeCategoryId"
-        ],
         "type": "object",
         "properties": {
           "id": {
@@ -19814,13 +19793,6 @@
             "type": "string"
           },
           "aliasName": {
-            "type": "string"
-          },
-          "chargeCategoryId": {
-            "type": "string",
-            "description": "费用大类必挂（原 service_type 就地更名）：合并报表底座。"
-          },
-          "chargeCategoryName": {
             "type": "string"
           },
           "defaultCurrency": {
@@ -19892,9 +19864,6 @@
             "type": "string"
           },
           "aliasName": {
-            "type": "string"
-          },
-          "chargeCategoryId": {
             "type": "string"
           },
           "defaultCurrency": {
@@ -22880,9 +22849,6 @@
           "feeBaseCurrencyAmount": {
             "type": "string"
           },
-          "feeExpenseDate": {
-            "type": "string"
-          },
           "supplementReason": {
             "type": "string"
           },
@@ -23855,7 +23821,6 @@
           "id",
           "feeCode",
           "nameZh",
-          "chargeCategoryId",
           "defaultCurrency",
           "billingUnitId",
           "taxRate",
@@ -23877,10 +23842,6 @@
           },
           "aliasName": {
             "type": "string"
-          },
-          "chargeCategoryId": {
-            "type": "string",
-            "description": "费用大类必挂（原 service_type 就地更名）。"
           },
           "defaultCurrency": {
             "type": "string"
@@ -25718,7 +25679,6 @@
           "quantity",
           "unitPrice",
           "currency",
-          "expenseDate",
           "feeSettingId",
           "billingUnitId",
           "idempotencyKey"
@@ -25742,9 +25702,6 @@
             "type": "string"
           },
           "currency": {
-            "type": "string"
-          },
-          "expenseDate": {
             "type": "string"
           },
           "note": {
@@ -26601,10 +26558,7 @@
           },
           "settlementPartyId": {
             "type": "string",
-            "description": "目标值二选一：settlement_party_id（改为该结算单位）或 expense_date\n（改为该费用发生时间，YYYY-MM-DD 或 YYYY-MM-DD HH:mm 分钟精度），\n 必须恰好提供一个。"
-          },
-          "expenseDate": {
-            "type": "string"
+            "description": "统一改为该结算单位。"
           }
         }
       },
@@ -26875,12 +26829,6 @@
           "shipmentMode": {
             "type": "integer",
             "format": "enum"
-          },
-          "serviceTypeIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           },
           "cargoCategoryIds": {
             "type": "array",
@@ -29094,12 +29042,6 @@
             "type": "integer",
             "format": "enum"
           },
-          "serviceTypeIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
           "cargoCategoryIds": {
             "type": "array",
             "items": {
@@ -29792,9 +29734,6 @@
           "exchangeRate": {
             "type": "string"
           },
-          "expenseDate": {
-            "type": "string"
-          },
           "note": {
             "type": "string"
           },
@@ -30081,9 +30020,6 @@
             "type": "string"
           },
           "currency": {
-            "type": "string"
-          },
-          "expenseDate": {
             "type": "string"
           },
           "note": {
@@ -30471,9 +30407,6 @@
             "type": "string"
           },
           "baseCurrencyAmount": {
-            "type": "string"
-          },
-          "expenseDate": {
             "type": "string"
           },
           "note": {
@@ -34723,7 +34656,6 @@
           "quantity",
           "unitPrice",
           "currency",
-          "expenseDate",
           "feeSettingId",
           "billingUnitId",
           "expectedVersion"
@@ -34750,9 +34682,6 @@
             "type": "string"
           },
           "currency": {
-            "type": "string"
-          },
-          "expenseDate": {
             "type": "string"
           },
           "note": {
@@ -34856,12 +34785,6 @@
           "shipmentMode": {
             "type": "integer",
             "format": "enum"
-          },
-          "serviceTypeIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           },
           "cargoCategoryIds": {
             "type": "array",
