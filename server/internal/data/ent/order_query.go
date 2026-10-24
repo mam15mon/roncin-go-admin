@@ -35,7 +35,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -65,7 +64,6 @@ type OrderQuery struct {
 	withCustomer                      *PartnerQuery
 	withShippingLine                  *ShippingLineQuery
 	withLifecycleEvents               *OrderLifecycleEventQuery
-	withServiceTypes                  *OrderServiceTypeQuery
 	withCargoCategories               *OrderCargoCategoryQuery
 	withMilestones                    *OrderMilestoneQuery
 	withAttachments                   *OrderAttachmentQuery
@@ -215,28 +213,6 @@ func (_q *OrderQuery) QueryLifecycleEvents() *OrderLifecycleEventQuery {
 			sqlgraph.From(order.Table, order.FieldID, selector),
 			sqlgraph.To(orderlifecycleevent.Table, orderlifecycleevent.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, order.LifecycleEventsTable, order.LifecycleEventsColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryServiceTypes chains the current query on the "service_types" edge.
-func (_q *OrderQuery) QueryServiceTypes() *OrderServiceTypeQuery {
-	query := (&OrderServiceTypeClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(order.Table, order.FieldID, selector),
-			sqlgraph.To(orderservicetype.Table, orderservicetype.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, order.ServiceTypesTable, order.ServiceTypesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -1122,7 +1098,6 @@ func (_q *OrderQuery) Clone() *OrderQuery {
 		withCustomer:                      _q.withCustomer.Clone(),
 		withShippingLine:                  _q.withShippingLine.Clone(),
 		withLifecycleEvents:               _q.withLifecycleEvents.Clone(),
-		withServiceTypes:                  _q.withServiceTypes.Clone(),
 		withCargoCategories:               _q.withCargoCategories.Clone(),
 		withMilestones:                    _q.withMilestones.Clone(),
 		withAttachments:                   _q.withAttachments.Clone(),
@@ -1201,17 +1176,6 @@ func (_q *OrderQuery) WithLifecycleEvents(opts ...func(*OrderLifecycleEventQuery
 		opt(query)
 	}
 	_q.withLifecycleEvents = query
-	return _q
-}
-
-// WithServiceTypes tells the query-builder to eager-load the nodes that are connected to
-// the "service_types" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *OrderQuery) WithServiceTypes(opts ...func(*OrderServiceTypeQuery)) *OrderQuery {
-	query := (&OrderServiceTypeClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withServiceTypes = query
 	return _q
 }
 
@@ -1634,12 +1598,11 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 	var (
 		nodes       = []*Order{}
 		_spec       = _q.querySpec()
-		loadedTypes = [36]bool{
+		loadedTypes = [35]bool{
 			_q.withOrganization != nil,
 			_q.withCustomer != nil,
 			_q.withShippingLine != nil,
 			_q.withLifecycleEvents != nil,
-			_q.withServiceTypes != nil,
 			_q.withCargoCategories != nil,
 			_q.withMilestones != nil,
 			_q.withAttachments != nil,
@@ -1716,13 +1679,6 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 		if err := _q.loadLifecycleEvents(ctx, query, nodes,
 			func(n *Order) { n.Edges.LifecycleEvents = []*OrderLifecycleEvent{} },
 			func(n *Order, e *OrderLifecycleEvent) { n.Edges.LifecycleEvents = append(n.Edges.LifecycleEvents, e) }); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withServiceTypes; query != nil {
-		if err := _q.loadServiceTypes(ctx, query, nodes,
-			func(n *Order) { n.Edges.ServiceTypes = []*OrderServiceType{} },
-			func(n *Order, e *OrderServiceType) { n.Edges.ServiceTypes = append(n.Edges.ServiceTypes, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -2082,36 +2038,6 @@ func (_q *OrderQuery) loadLifecycleEvents(ctx context.Context, query *OrderLifec
 	}
 	query.Where(predicate.OrderLifecycleEvent(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(order.LifecycleEventsColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.OrderID
-		node, ok := nodeids[fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "order_id" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
-func (_q *OrderQuery) loadServiceTypes(ctx context.Context, query *OrderServiceTypeQuery, nodes []*Order, init func(*Order), assign func(*Order, *OrderServiceType)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*Order)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(orderservicetype.FieldOrderID)
-	}
-	query.Where(predicate.OrderServiceType(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(order.ServiceTypesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

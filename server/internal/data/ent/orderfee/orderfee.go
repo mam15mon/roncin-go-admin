@@ -72,8 +72,6 @@ const (
 	FieldBaseCurrency = "base_currency"
 	// FieldBaseCurrencyAmount holds the string denoting the base_currency_amount field in the database.
 	FieldBaseCurrencyAmount = "base_currency_amount"
-	// FieldExpenseDate holds the string denoting the expense_date field in the database.
-	FieldExpenseDate = "expense_date"
 	// FieldNote holds the string denoting the note field in the database.
 	FieldNote = "note"
 	// FieldSupplementRequestID holds the string denoting the supplement_request_id field in the database.
@@ -236,7 +234,6 @@ var Columns = []string{
 	FieldExchangeRateSettingID,
 	FieldBaseCurrency,
 	FieldBaseCurrencyAmount,
-	FieldExpenseDate,
 	FieldNote,
 	FieldSupplementRequestID,
 	FieldEconomicEffect,
@@ -284,8 +281,6 @@ var (
 	ExchangeRateDateValidator func(string) error
 	// BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
 	BaseCurrencyValidator func(string) error
-	// ExpenseDateValidator is a validator for the "expense_date" field. It is called by the builders before save.
-	ExpenseDateValidator func(string) error
 	// NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	NoteValidator func(string) error
 	// DefaultAccountingRequired holds the default value on creation for the "accounting_required" field.
@@ -513,11 +508,6 @@ func ByBaseCurrency(opts ...sql.OrderTermOption) OrderOption {
 // ByBaseCurrencyAmount orders the results by the base_currency_amount field.
 func ByBaseCurrencyAmount(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBaseCurrencyAmount, opts...).ToFunc()
-}
-
-// ByExpenseDate orders the results by the expense_date field.
-func ByExpenseDate(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldExpenseDate, opts...).ToFunc()
 }
 
 // ByNote orders the results by the note field.

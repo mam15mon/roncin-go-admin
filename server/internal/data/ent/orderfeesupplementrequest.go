@@ -93,8 +93,6 @@ type OrderFeeSupplementRequest struct {
 	BaseCurrency string `json:"base_currency,omitempty"`
 	// BaseCurrencyAmount holds the value of the "base_currency_amount" field.
 	BaseCurrencyAmount string `json:"base_currency_amount,omitempty"`
-	// ExpenseDate holds the value of the "expense_date" field.
-	ExpenseDate string `json:"expense_date,omitempty"`
 	// Note holds the value of the "note" field.
 	Note string `json:"note,omitempty"`
 	// Reason holds the value of the "reason" field.
@@ -211,7 +209,7 @@ func (*OrderFeeSupplementRequest) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case orderfeesupplementrequest.FieldApprovedFeeContentVersion, orderfeesupplementrequest.FieldBusinessLockGeneration, orderfeesupplementrequest.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case orderfeesupplementrequest.FieldLockBasis, orderfeesupplementrequest.FieldFinancialLockEvidenceVersion, orderfeesupplementrequest.FieldFinancialLockEvidenceHash, orderfeesupplementrequest.FieldFinancialLockNetAmountSnapshot, orderfeesupplementrequest.FieldIdempotencyKey, orderfeesupplementrequest.FieldRequestFingerprint, orderfeesupplementrequest.FieldDirection, orderfeesupplementrequest.FieldFeeCode, orderfeesupplementrequest.FieldFeeName, orderfeesupplementrequest.FieldFeeNameEn, orderfeesupplementrequest.FieldBillingUnit, orderfeesupplementrequest.FieldTaxRate, orderfeesupplementrequest.FieldTaxableServiceName, orderfeesupplementrequest.FieldQuantity, orderfeesupplementrequest.FieldUnitPrice, orderfeesupplementrequest.FieldTotalAmount, orderfeesupplementrequest.FieldNetAmount, orderfeesupplementrequest.FieldTaxAmount, orderfeesupplementrequest.FieldCurrency, orderfeesupplementrequest.FieldExchangeRate, orderfeesupplementrequest.FieldExchangeRateSource, orderfeesupplementrequest.FieldExchangeRateDate, orderfeesupplementrequest.FieldBaseCurrency, orderfeesupplementrequest.FieldBaseCurrencyAmount, orderfeesupplementrequest.FieldExpenseDate, orderfeesupplementrequest.FieldNote, orderfeesupplementrequest.FieldReason, orderfeesupplementrequest.FieldStatus, orderfeesupplementrequest.FieldDecisionReason:
+		case orderfeesupplementrequest.FieldLockBasis, orderfeesupplementrequest.FieldFinancialLockEvidenceVersion, orderfeesupplementrequest.FieldFinancialLockEvidenceHash, orderfeesupplementrequest.FieldFinancialLockNetAmountSnapshot, orderfeesupplementrequest.FieldIdempotencyKey, orderfeesupplementrequest.FieldRequestFingerprint, orderfeesupplementrequest.FieldDirection, orderfeesupplementrequest.FieldFeeCode, orderfeesupplementrequest.FieldFeeName, orderfeesupplementrequest.FieldFeeNameEn, orderfeesupplementrequest.FieldBillingUnit, orderfeesupplementrequest.FieldTaxRate, orderfeesupplementrequest.FieldTaxableServiceName, orderfeesupplementrequest.FieldQuantity, orderfeesupplementrequest.FieldUnitPrice, orderfeesupplementrequest.FieldTotalAmount, orderfeesupplementrequest.FieldNetAmount, orderfeesupplementrequest.FieldTaxAmount, orderfeesupplementrequest.FieldCurrency, orderfeesupplementrequest.FieldExchangeRate, orderfeesupplementrequest.FieldExchangeRateSource, orderfeesupplementrequest.FieldExchangeRateDate, orderfeesupplementrequest.FieldBaseCurrency, orderfeesupplementrequest.FieldBaseCurrencyAmount, orderfeesupplementrequest.FieldNote, orderfeesupplementrequest.FieldReason, orderfeesupplementrequest.FieldStatus, orderfeesupplementrequest.FieldDecisionReason:
 			values[i] = new(sql.NullString)
 		case orderfeesupplementrequest.FieldCreatedAt, orderfeesupplementrequest.FieldUpdatedAt, orderfeesupplementrequest.FieldRequestedAt, orderfeesupplementrequest.FieldDecidedAt:
 			values[i] = new(sql.NullTime)
@@ -465,12 +463,6 @@ func (_m *OrderFeeSupplementRequest) assignValues(columns []string, values []any
 				return fmt.Errorf("unexpected type %T for field base_currency_amount", values[i])
 			} else if value.Valid {
 				_m.BaseCurrencyAmount = value.String
-			}
-		case orderfeesupplementrequest.FieldExpenseDate:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field expense_date", values[i])
-			} else if value.Valid {
-				_m.ExpenseDate = value.String
 			}
 		case orderfeesupplementrequest.FieldNote:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -726,9 +718,6 @@ func (_m *OrderFeeSupplementRequest) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("base_currency_amount=")
 	builder.WriteString(_m.BaseCurrencyAmount)
-	builder.WriteString(", ")
-	builder.WriteString("expense_date=")
-	builder.WriteString(_m.ExpenseDate)
 	builder.WriteString(", ")
 	builder.WriteString("note=")
 	builder.WriteString(_m.Note)

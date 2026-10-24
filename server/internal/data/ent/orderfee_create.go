@@ -273,12 +273,6 @@ func (_c *OrderFeeCreate) SetBaseCurrencyAmount(v string) *OrderFeeCreate {
 	return _c
 }
 
-// SetExpenseDate sets the "expense_date" field.
-func (_c *OrderFeeCreate) SetExpenseDate(v string) *OrderFeeCreate {
-	_c.mutation.SetExpenseDate(v)
-	return _c
-}
-
 // SetNote sets the "note" field.
 func (_c *OrderFeeCreate) SetNote(v string) *OrderFeeCreate {
 	_c.mutation.SetNote(v)
@@ -719,14 +713,6 @@ func (_c *OrderFeeCreate) check() error {
 	if _, ok := _c.mutation.BaseCurrencyAmount(); !ok {
 		return &ValidationError{Name: "base_currency_amount", err: errors.New(`ent: missing required field "OrderFee.base_currency_amount"`)}
 	}
-	if _, ok := _c.mutation.ExpenseDate(); !ok {
-		return &ValidationError{Name: "expense_date", err: errors.New(`ent: missing required field "OrderFee.expense_date"`)}
-	}
-	if v, ok := _c.mutation.ExpenseDate(); ok {
-		if err := orderfee.ExpenseDateValidator(v); err != nil {
-			return &ValidationError{Name: "expense_date", err: fmt.Errorf(`ent: validator failed for field "OrderFee.expense_date": %w`, err)}
-		}
-	}
 	if v, ok := _c.mutation.Note(); ok {
 		if err := orderfee.NoteValidator(v); err != nil {
 			return &ValidationError{Name: "note", err: fmt.Errorf(`ent: validator failed for field "OrderFee.note": %w`, err)}
@@ -883,10 +869,6 @@ func (_c *OrderFeeCreate) createSpec() (*OrderFee, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.BaseCurrencyAmount(); ok {
 		_spec.SetField(orderfee.FieldBaseCurrencyAmount, field.TypeString, value)
 		_node.BaseCurrencyAmount = value
-	}
-	if value, ok := _c.mutation.ExpenseDate(); ok {
-		_spec.SetField(orderfee.FieldExpenseDate, field.TypeString, value)
-		_node.ExpenseDate = value
 	}
 	if value, ok := _c.mutation.Note(); ok {
 		_spec.SetField(orderfee.FieldNote, field.TypeString, value)
@@ -1526,18 +1508,6 @@ func (u *OrderFeeUpsert) UpdateBaseCurrencyAmount() *OrderFeeUpsert {
 	return u
 }
 
-// SetExpenseDate sets the "expense_date" field.
-func (u *OrderFeeUpsert) SetExpenseDate(v string) *OrderFeeUpsert {
-	u.Set(orderfee.FieldExpenseDate, v)
-	return u
-}
-
-// UpdateExpenseDate sets the "expense_date" field to the value that was provided on create.
-func (u *OrderFeeUpsert) UpdateExpenseDate() *OrderFeeUpsert {
-	u.SetExcluded(orderfee.FieldExpenseDate)
-	return u
-}
-
 // SetNote sets the "note" field.
 func (u *OrderFeeUpsert) SetNote(v string) *OrderFeeUpsert {
 	u.Set(orderfee.FieldNote, v)
@@ -2080,20 +2050,6 @@ func (u *OrderFeeUpsertOne) SetBaseCurrencyAmount(v string) *OrderFeeUpsertOne {
 func (u *OrderFeeUpsertOne) UpdateBaseCurrencyAmount() *OrderFeeUpsertOne {
 	return u.Update(func(s *OrderFeeUpsert) {
 		s.UpdateBaseCurrencyAmount()
-	})
-}
-
-// SetExpenseDate sets the "expense_date" field.
-func (u *OrderFeeUpsertOne) SetExpenseDate(v string) *OrderFeeUpsertOne {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.SetExpenseDate(v)
-	})
-}
-
-// UpdateExpenseDate sets the "expense_date" field to the value that was provided on create.
-func (u *OrderFeeUpsertOne) UpdateExpenseDate() *OrderFeeUpsertOne {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.UpdateExpenseDate()
 	})
 }
 
@@ -2817,20 +2773,6 @@ func (u *OrderFeeUpsertBulk) SetBaseCurrencyAmount(v string) *OrderFeeUpsertBulk
 func (u *OrderFeeUpsertBulk) UpdateBaseCurrencyAmount() *OrderFeeUpsertBulk {
 	return u.Update(func(s *OrderFeeUpsert) {
 		s.UpdateBaseCurrencyAmount()
-	})
-}
-
-// SetExpenseDate sets the "expense_date" field.
-func (u *OrderFeeUpsertBulk) SetExpenseDate(v string) *OrderFeeUpsertBulk {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.SetExpenseDate(v)
-	})
-}
-
-// UpdateExpenseDate sets the "expense_date" field to the value that was provided on create.
-func (u *OrderFeeUpsertBulk) UpdateExpenseDate() *OrderFeeUpsertBulk {
-	return u.Update(func(s *OrderFeeUpsert) {
-		s.UpdateExpenseDate()
 	})
 }
 

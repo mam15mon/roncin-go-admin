@@ -85,11 +85,6 @@ func AliasName(v string) predicate.FeeSettingTemplate {
 	return predicate.FeeSettingTemplate(sql.FieldEQ(FieldAliasName, v))
 }
 
-// ChargeCategoryID applies equality check predicate on the "charge_category_id" field. It's identical to ChargeCategoryIDEQ.
-func ChargeCategoryID(v uuid.UUID) predicate.FeeSettingTemplate {
-	return predicate.FeeSettingTemplate(sql.FieldEQ(FieldChargeCategoryID, v))
-}
-
 // DefaultCurrency applies equality check predicate on the "default_currency" field. It's identical to DefaultCurrencyEQ.
 func DefaultCurrency(v string) predicate.FeeSettingTemplate {
 	return predicate.FeeSettingTemplate(sql.FieldEQ(FieldDefaultCurrency, v))
@@ -503,46 +498,6 @@ func AliasNameEqualFold(v string) predicate.FeeSettingTemplate {
 // AliasNameContainsFold applies the ContainsFold predicate on the "alias_name" field.
 func AliasNameContainsFold(v string) predicate.FeeSettingTemplate {
 	return predicate.FeeSettingTemplate(sql.FieldContainsFold(FieldAliasName, v))
-}
-
-// ChargeCategoryIDEQ applies the EQ predicate on the "charge_category_id" field.
-func ChargeCategoryIDEQ(v uuid.UUID) predicate.FeeSettingTemplate {
-	return predicate.FeeSettingTemplate(sql.FieldEQ(FieldChargeCategoryID, v))
-}
-
-// ChargeCategoryIDNEQ applies the NEQ predicate on the "charge_category_id" field.
-func ChargeCategoryIDNEQ(v uuid.UUID) predicate.FeeSettingTemplate {
-	return predicate.FeeSettingTemplate(sql.FieldNEQ(FieldChargeCategoryID, v))
-}
-
-// ChargeCategoryIDIn applies the In predicate on the "charge_category_id" field.
-func ChargeCategoryIDIn(vs ...uuid.UUID) predicate.FeeSettingTemplate {
-	return predicate.FeeSettingTemplate(sql.FieldIn(FieldChargeCategoryID, vs...))
-}
-
-// ChargeCategoryIDNotIn applies the NotIn predicate on the "charge_category_id" field.
-func ChargeCategoryIDNotIn(vs ...uuid.UUID) predicate.FeeSettingTemplate {
-	return predicate.FeeSettingTemplate(sql.FieldNotIn(FieldChargeCategoryID, vs...))
-}
-
-// ChargeCategoryIDGT applies the GT predicate on the "charge_category_id" field.
-func ChargeCategoryIDGT(v uuid.UUID) predicate.FeeSettingTemplate {
-	return predicate.FeeSettingTemplate(sql.FieldGT(FieldChargeCategoryID, v))
-}
-
-// ChargeCategoryIDGTE applies the GTE predicate on the "charge_category_id" field.
-func ChargeCategoryIDGTE(v uuid.UUID) predicate.FeeSettingTemplate {
-	return predicate.FeeSettingTemplate(sql.FieldGTE(FieldChargeCategoryID, v))
-}
-
-// ChargeCategoryIDLT applies the LT predicate on the "charge_category_id" field.
-func ChargeCategoryIDLT(v uuid.UUID) predicate.FeeSettingTemplate {
-	return predicate.FeeSettingTemplate(sql.FieldLT(FieldChargeCategoryID, v))
-}
-
-// ChargeCategoryIDLTE applies the LTE predicate on the "charge_category_id" field.
-func ChargeCategoryIDLTE(v uuid.UUID) predicate.FeeSettingTemplate {
-	return predicate.FeeSettingTemplate(sql.FieldLTE(FieldChargeCategoryID, v))
 }
 
 // DefaultCurrencyEQ applies the EQ predicate on the "default_currency" field.

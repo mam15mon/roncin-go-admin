@@ -30,8 +30,6 @@ type FeeSettingTemplate struct {
 	NameEn *string `json:"name_en,omitempty"`
 	// AliasName holds the value of the "alias_name" field.
 	AliasName *string `json:"alias_name,omitempty"`
-	// ChargeCategoryID holds the value of the "charge_category_id" field.
-	ChargeCategoryID uuid.UUID `json:"charge_category_id,omitempty"`
 	// DefaultCurrency holds the value of the "default_currency" field.
 	DefaultCurrency string `json:"default_currency,omitempty"`
 	// BillingUnitID holds the value of the "billing_unit_id" field.
@@ -72,7 +70,7 @@ func (*FeeSettingTemplate) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case feesettingtemplate.FieldCreatedAt, feesettingtemplate.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case feesettingtemplate.FieldID, feesettingtemplate.FieldChargeCategoryID, feesettingtemplate.FieldBillingUnitID:
+		case feesettingtemplate.FieldID, feesettingtemplate.FieldBillingUnitID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -132,12 +130,6 @@ func (_m *FeeSettingTemplate) assignValues(columns []string, values []any) error
 			} else if value.Valid {
 				_m.AliasName = new(string)
 				*_m.AliasName = value.String
-			}
-		case feesettingtemplate.FieldChargeCategoryID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field charge_category_id", values[i])
-			} else if value != nil {
-				_m.ChargeCategoryID = *value
 			}
 		case feesettingtemplate.FieldDefaultCurrency:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -265,9 +257,6 @@ func (_m *FeeSettingTemplate) String() string {
 		builder.WriteString("alias_name=")
 		builder.WriteString(*v)
 	}
-	builder.WriteString(", ")
-	builder.WriteString("charge_category_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.ChargeCategoryID))
 	builder.WriteString(", ")
 	builder.WriteString("default_currency=")
 	builder.WriteString(_m.DefaultCurrency)

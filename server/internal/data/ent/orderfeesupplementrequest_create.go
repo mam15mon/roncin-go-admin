@@ -365,12 +365,6 @@ func (_c *OrderFeeSupplementRequestCreate) SetBaseCurrencyAmount(v string) *Orde
 	return _c
 }
 
-// SetExpenseDate sets the "expense_date" field.
-func (_c *OrderFeeSupplementRequestCreate) SetExpenseDate(v string) *OrderFeeSupplementRequestCreate {
-	_c.mutation.SetExpenseDate(v)
-	return _c
-}
-
 // SetNote sets the "note" field.
 func (_c *OrderFeeSupplementRequestCreate) SetNote(v string) *OrderFeeSupplementRequestCreate {
 	_c.mutation.SetNote(v)
@@ -767,14 +761,6 @@ func (_c *OrderFeeSupplementRequestCreate) check() error {
 	if _, ok := _c.mutation.BaseCurrencyAmount(); !ok {
 		return &ValidationError{Name: "base_currency_amount", err: errors.New(`ent: missing required field "OrderFeeSupplementRequest.base_currency_amount"`)}
 	}
-	if _, ok := _c.mutation.ExpenseDate(); !ok {
-		return &ValidationError{Name: "expense_date", err: errors.New(`ent: missing required field "OrderFeeSupplementRequest.expense_date"`)}
-	}
-	if v, ok := _c.mutation.ExpenseDate(); ok {
-		if err := orderfeesupplementrequest.ExpenseDateValidator(v); err != nil {
-			return &ValidationError{Name: "expense_date", err: fmt.Errorf(`ent: validator failed for field "OrderFeeSupplementRequest.expense_date": %w`, err)}
-		}
-	}
 	if v, ok := _c.mutation.Note(); ok {
 		if err := orderfeesupplementrequest.NoteValidator(v); err != nil {
 			return &ValidationError{Name: "note", err: fmt.Errorf(`ent: validator failed for field "OrderFeeSupplementRequest.note": %w`, err)}
@@ -990,10 +976,6 @@ func (_c *OrderFeeSupplementRequestCreate) createSpec() (*OrderFeeSupplementRequ
 	if value, ok := _c.mutation.BaseCurrencyAmount(); ok {
 		_spec.SetField(orderfeesupplementrequest.FieldBaseCurrencyAmount, field.TypeString, value)
 		_node.BaseCurrencyAmount = value
-	}
-	if value, ok := _c.mutation.ExpenseDate(); ok {
-		_spec.SetField(orderfeesupplementrequest.FieldExpenseDate, field.TypeString, value)
-		_node.ExpenseDate = value
 	}
 	if value, ok := _c.mutation.Note(); ok {
 		_spec.SetField(orderfeesupplementrequest.FieldNote, field.TypeString, value)
@@ -1392,9 +1374,6 @@ func (u *OrderFeeSupplementRequestUpsertOne) UpdateNewValues() *OrderFeeSuppleme
 		}
 		if _, exists := u.create.mutation.BaseCurrencyAmount(); exists {
 			s.SetIgnore(orderfeesupplementrequest.FieldBaseCurrencyAmount)
-		}
-		if _, exists := u.create.mutation.ExpenseDate(); exists {
-			s.SetIgnore(orderfeesupplementrequest.FieldExpenseDate)
 		}
 		if _, exists := u.create.mutation.Note(); exists {
 			s.SetIgnore(orderfeesupplementrequest.FieldNote)
@@ -1838,9 +1817,6 @@ func (u *OrderFeeSupplementRequestUpsertBulk) UpdateNewValues() *OrderFeeSupplem
 			}
 			if _, exists := b.mutation.BaseCurrencyAmount(); exists {
 				s.SetIgnore(orderfeesupplementrequest.FieldBaseCurrencyAmount)
-			}
-			if _, exists := b.mutation.ExpenseDate(); exists {
-				s.SetIgnore(orderfeesupplementrequest.FieldExpenseDate)
 			}
 			if _, exists := b.mutation.Note(); exists {
 				s.SetIgnore(orderfeesupplementrequest.FieldNote)

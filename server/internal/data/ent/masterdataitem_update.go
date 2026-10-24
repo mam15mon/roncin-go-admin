@@ -194,21 +194,6 @@ func (_u *MasterDataItemUpdate) SetNillableSearchKeywords(v *string) *MasterData
 	return _u
 }
 
-// AddChargeCategoryFeeSettingIDs adds the "charge_category_fee_settings" edge to the FeeSetting entity by IDs.
-func (_u *MasterDataItemUpdate) AddChargeCategoryFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemUpdate {
-	_u.mutation.AddChargeCategoryFeeSettingIDs(ids...)
-	return _u
-}
-
-// AddChargeCategoryFeeSettings adds the "charge_category_fee_settings" edges to the FeeSetting entity.
-func (_u *MasterDataItemUpdate) AddChargeCategoryFeeSettings(v ...*FeeSetting) *MasterDataItemUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddChargeCategoryFeeSettingIDs(ids...)
-}
-
 // AddAbnormalCaseFeeSettingIDs adds the "abnormal_case_fee_settings" edge to the FeeSetting entity by IDs.
 func (_u *MasterDataItemUpdate) AddAbnormalCaseFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemUpdate {
 	_u.mutation.AddAbnormalCaseFeeSettingIDs(ids...)
@@ -227,27 +212,6 @@ func (_u *MasterDataItemUpdate) AddAbnormalCaseFeeSettings(v ...*FeeSetting) *Ma
 // Mutation returns the MasterDataItemMutation object of the builder.
 func (_u *MasterDataItemUpdate) Mutation() *MasterDataItemMutation {
 	return _u.mutation
-}
-
-// ClearChargeCategoryFeeSettings clears all "charge_category_fee_settings" edges to the FeeSetting entity.
-func (_u *MasterDataItemUpdate) ClearChargeCategoryFeeSettings() *MasterDataItemUpdate {
-	_u.mutation.ClearChargeCategoryFeeSettings()
-	return _u
-}
-
-// RemoveChargeCategoryFeeSettingIDs removes the "charge_category_fee_settings" edge to FeeSetting entities by IDs.
-func (_u *MasterDataItemUpdate) RemoveChargeCategoryFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemUpdate {
-	_u.mutation.RemoveChargeCategoryFeeSettingIDs(ids...)
-	return _u
-}
-
-// RemoveChargeCategoryFeeSettings removes "charge_category_fee_settings" edges to FeeSetting entities.
-func (_u *MasterDataItemUpdate) RemoveChargeCategoryFeeSettings(v ...*FeeSetting) *MasterDataItemUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveChargeCategoryFeeSettingIDs(ids...)
 }
 
 // ClearAbnormalCaseFeeSettings clears all "abnormal_case_fee_settings" edges to the FeeSetting entity.
@@ -404,51 +368,6 @@ func (_u *MasterDataItemUpdate) sqlSave(ctx context.Context) (_node int, err err
 	}
 	if value, ok := _u.mutation.SearchKeywords(); ok {
 		_spec.SetField(masterdataitem.FieldSearchKeywords, field.TypeString, value)
-	}
-	if _u.mutation.ChargeCategoryFeeSettingsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   masterdataitem.ChargeCategoryFeeSettingsTable,
-			Columns: []string{masterdataitem.ChargeCategoryFeeSettingsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedChargeCategoryFeeSettingsIDs(); len(nodes) > 0 && !_u.mutation.ChargeCategoryFeeSettingsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   masterdataitem.ChargeCategoryFeeSettingsTable,
-			Columns: []string{masterdataitem.ChargeCategoryFeeSettingsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.ChargeCategoryFeeSettingsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   masterdataitem.ChargeCategoryFeeSettingsTable,
-			Columns: []string{masterdataitem.ChargeCategoryFeeSettingsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.AbnormalCaseFeeSettingsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -678,21 +597,6 @@ func (_u *MasterDataItemUpdateOne) SetNillableSearchKeywords(v *string) *MasterD
 	return _u
 }
 
-// AddChargeCategoryFeeSettingIDs adds the "charge_category_fee_settings" edge to the FeeSetting entity by IDs.
-func (_u *MasterDataItemUpdateOne) AddChargeCategoryFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemUpdateOne {
-	_u.mutation.AddChargeCategoryFeeSettingIDs(ids...)
-	return _u
-}
-
-// AddChargeCategoryFeeSettings adds the "charge_category_fee_settings" edges to the FeeSetting entity.
-func (_u *MasterDataItemUpdateOne) AddChargeCategoryFeeSettings(v ...*FeeSetting) *MasterDataItemUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddChargeCategoryFeeSettingIDs(ids...)
-}
-
 // AddAbnormalCaseFeeSettingIDs adds the "abnormal_case_fee_settings" edge to the FeeSetting entity by IDs.
 func (_u *MasterDataItemUpdateOne) AddAbnormalCaseFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemUpdateOne {
 	_u.mutation.AddAbnormalCaseFeeSettingIDs(ids...)
@@ -711,27 +615,6 @@ func (_u *MasterDataItemUpdateOne) AddAbnormalCaseFeeSettings(v ...*FeeSetting) 
 // Mutation returns the MasterDataItemMutation object of the builder.
 func (_u *MasterDataItemUpdateOne) Mutation() *MasterDataItemMutation {
 	return _u.mutation
-}
-
-// ClearChargeCategoryFeeSettings clears all "charge_category_fee_settings" edges to the FeeSetting entity.
-func (_u *MasterDataItemUpdateOne) ClearChargeCategoryFeeSettings() *MasterDataItemUpdateOne {
-	_u.mutation.ClearChargeCategoryFeeSettings()
-	return _u
-}
-
-// RemoveChargeCategoryFeeSettingIDs removes the "charge_category_fee_settings" edge to FeeSetting entities by IDs.
-func (_u *MasterDataItemUpdateOne) RemoveChargeCategoryFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemUpdateOne {
-	_u.mutation.RemoveChargeCategoryFeeSettingIDs(ids...)
-	return _u
-}
-
-// RemoveChargeCategoryFeeSettings removes "charge_category_fee_settings" edges to FeeSetting entities.
-func (_u *MasterDataItemUpdateOne) RemoveChargeCategoryFeeSettings(v ...*FeeSetting) *MasterDataItemUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveChargeCategoryFeeSettingIDs(ids...)
 }
 
 // ClearAbnormalCaseFeeSettings clears all "abnormal_case_fee_settings" edges to the FeeSetting entity.
@@ -918,51 +801,6 @@ func (_u *MasterDataItemUpdateOne) sqlSave(ctx context.Context) (_node *MasterDa
 	}
 	if value, ok := _u.mutation.SearchKeywords(); ok {
 		_spec.SetField(masterdataitem.FieldSearchKeywords, field.TypeString, value)
-	}
-	if _u.mutation.ChargeCategoryFeeSettingsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   masterdataitem.ChargeCategoryFeeSettingsTable,
-			Columns: []string{masterdataitem.ChargeCategoryFeeSettingsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedChargeCategoryFeeSettingsIDs(); len(nodes) > 0 && !_u.mutation.ChargeCategoryFeeSettingsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   masterdataitem.ChargeCategoryFeeSettingsTable,
-			Columns: []string{masterdataitem.ChargeCategoryFeeSettingsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.ChargeCategoryFeeSettingsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   masterdataitem.ChargeCategoryFeeSettingsTable,
-			Columns: []string{masterdataitem.ChargeCategoryFeeSettingsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _u.mutation.AbnormalCaseFeeSettingsCleared() {
 		edge := &sqlgraph.EdgeSpec{

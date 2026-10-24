@@ -22,13 +22,12 @@ import (
 // MasterDataItemQuery is the builder for querying MasterDataItem entities.
 type MasterDataItemQuery struct {
 	config
-	ctx                           *QueryContext
-	order                         []masterdataitem.OrderOption
-	inters                        []Interceptor
-	predicates                    []predicate.MasterDataItem
-	withChargeCategoryFeeSettings *FeeSettingQuery
-	withAbnormalCaseFeeSettings   *FeeSettingQuery
-	modifiers                     []func(*sql.Selector)
+	ctx                         *QueryContext
+	order                       []masterdataitem.OrderOption
+	inters                      []Interceptor
+	predicates                  []predicate.MasterDataItem
+	withAbnormalCaseFeeSettings *FeeSettingQuery
+	modifiers                   []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -63,28 +62,6 @@ func (_q *MasterDataItemQuery) Unique(unique bool) *MasterDataItemQuery {
 func (_q *MasterDataItemQuery) Order(o ...masterdataitem.OrderOption) *MasterDataItemQuery {
 	_q.order = append(_q.order, o...)
 	return _q
-}
-
-// QueryChargeCategoryFeeSettings chains the current query on the "charge_category_fee_settings" edge.
-func (_q *MasterDataItemQuery) QueryChargeCategoryFeeSettings() *FeeSettingQuery {
-	query := (&FeeSettingClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(masterdataitem.Table, masterdataitem.FieldID, selector),
-			sqlgraph.To(feesetting.Table, feesetting.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, masterdataitem.ChargeCategoryFeeSettingsTable, masterdataitem.ChargeCategoryFeeSettingsColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // QueryAbnormalCaseFeeSettings chains the current query on the "abnormal_case_fee_settings" edge.
@@ -296,28 +273,16 @@ func (_q *MasterDataItemQuery) Clone() *MasterDataItemQuery {
 		return nil
 	}
 	return &MasterDataItemQuery{
-		config:                        _q.config,
-		ctx:                           _q.ctx.Clone(),
-		order:                         append([]masterdataitem.OrderOption{}, _q.order...),
-		inters:                        append([]Interceptor{}, _q.inters...),
-		predicates:                    append([]predicate.MasterDataItem{}, _q.predicates...),
-		withChargeCategoryFeeSettings: _q.withChargeCategoryFeeSettings.Clone(),
-		withAbnormalCaseFeeSettings:   _q.withAbnormalCaseFeeSettings.Clone(),
+		config:                      _q.config,
+		ctx:                         _q.ctx.Clone(),
+		order:                       append([]masterdataitem.OrderOption{}, _q.order...),
+		inters:                      append([]Interceptor{}, _q.inters...),
+		predicates:                  append([]predicate.MasterDataItem{}, _q.predicates...),
+		withAbnormalCaseFeeSettings: _q.withAbnormalCaseFeeSettings.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
-}
-
-// WithChargeCategoryFeeSettings tells the query-builder to eager-load the nodes that are connected to
-// the "charge_category_fee_settings" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *MasterDataItemQuery) WithChargeCategoryFeeSettings(opts ...func(*FeeSettingQuery)) *MasterDataItemQuery {
-	query := (&FeeSettingClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withChargeCategoryFeeSettings = query
-	return _q
 }
 
 // WithAbnormalCaseFeeSettings tells the query-builder to eager-load the nodes that are connected to
@@ -409,8 +374,7 @@ func (_q *MasterDataItemQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	var (
 		nodes       = []*MasterDataItem{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
-			_q.withChargeCategoryFeeSettings != nil,
+		loadedTypes = [1]bool{
 			_q.withAbnormalCaseFeeSettings != nil,
 		}
 	)
@@ -435,15 +399,6 @@ func (_q *MasterDataItemQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withChargeCategoryFeeSettings; query != nil {
-		if err := _q.loadChargeCategoryFeeSettings(ctx, query, nodes,
-			func(n *MasterDataItem) { n.Edges.ChargeCategoryFeeSettings = []*FeeSetting{} },
-			func(n *MasterDataItem, e *FeeSetting) {
-				n.Edges.ChargeCategoryFeeSettings = append(n.Edges.ChargeCategoryFeeSettings, e)
-			}); err != nil {
-			return nil, err
-		}
-	}
 	if query := _q.withAbnormalCaseFeeSettings; query != nil {
 		if err := _q.loadAbnormalCaseFeeSettings(ctx, query, nodes,
 			func(n *MasterDataItem) { n.Edges.AbnormalCaseFeeSettings = []*FeeSetting{} },
@@ -456,36 +411,6 @@ func (_q *MasterDataItemQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	return nodes, nil
 }
 
-func (_q *MasterDataItemQuery) loadChargeCategoryFeeSettings(ctx context.Context, query *FeeSettingQuery, nodes []*MasterDataItem, init func(*MasterDataItem), assign func(*MasterDataItem, *FeeSetting)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*MasterDataItem)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(feesetting.FieldChargeCategoryID)
-	}
-	query.Where(predicate.FeeSetting(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(masterdataitem.ChargeCategoryFeeSettingsColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.ChargeCategoryID
-		node, ok := nodeids[fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "charge_category_id" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
 func (_q *MasterDataItemQuery) loadAbnormalCaseFeeSettings(ctx context.Context, query *FeeSettingQuery, nodes []*MasterDataItem, init func(*MasterDataItem), assign func(*MasterDataItem, *FeeSetting)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*MasterDataItem)

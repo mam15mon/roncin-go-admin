@@ -54,28 +54,17 @@ type MasterDataItem struct {
 
 // MasterDataItemEdges holds the relations/edges for other nodes in the graph.
 type MasterDataItemEdges struct {
-	// ChargeCategoryFeeSettings holds the value of the charge_category_fee_settings edge.
-	ChargeCategoryFeeSettings []*FeeSetting `json:"charge_category_fee_settings,omitempty"`
 	// AbnormalCaseFeeSettings holds the value of the abnormal_case_fee_settings edge.
 	AbnormalCaseFeeSettings []*FeeSetting `json:"abnormal_case_fee_settings,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
-}
-
-// ChargeCategoryFeeSettingsOrErr returns the ChargeCategoryFeeSettings value or an error if the edge
-// was not loaded in eager-loading.
-func (e MasterDataItemEdges) ChargeCategoryFeeSettingsOrErr() ([]*FeeSetting, error) {
-	if e.loadedTypes[0] {
-		return e.ChargeCategoryFeeSettings, nil
-	}
-	return nil, &NotLoadedError{edge: "charge_category_fee_settings"}
+	loadedTypes [1]bool
 }
 
 // AbnormalCaseFeeSettingsOrErr returns the AbnormalCaseFeeSettings value or an error if the edge
 // was not loaded in eager-loading.
 func (e MasterDataItemEdges) AbnormalCaseFeeSettingsOrErr() ([]*FeeSetting, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[0] {
 		return e.AbnormalCaseFeeSettings, nil
 	}
 	return nil, &NotLoadedError{edge: "abnormal_case_fee_settings"}
@@ -213,11 +202,6 @@ func (_m *MasterDataItem) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *MasterDataItem) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
-}
-
-// QueryChargeCategoryFeeSettings queries the "charge_category_fee_settings" edge of the MasterDataItem entity.
-func (_m *MasterDataItem) QueryChargeCategoryFeeSettings() *FeeSettingQuery {
-	return NewMasterDataItemClient(_m.config).QueryChargeCategoryFeeSettings(_m)
 }
 
 // QueryAbnormalCaseFeeSettings queries the "abnormal_case_fee_settings" edge of the MasterDataItem entity.

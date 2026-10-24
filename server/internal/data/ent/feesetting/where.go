@@ -91,11 +91,6 @@ func AliasName(v string) predicate.FeeSetting {
 	return predicate.FeeSetting(sql.FieldEQ(FieldAliasName, v))
 }
 
-// ChargeCategoryID applies equality check predicate on the "charge_category_id" field. It's identical to ChargeCategoryIDEQ.
-func ChargeCategoryID(v uuid.UUID) predicate.FeeSetting {
-	return predicate.FeeSetting(sql.FieldEQ(FieldChargeCategoryID, v))
-}
-
 // DefaultCurrency applies equality check predicate on the "default_currency" field. It's identical to DefaultCurrencyEQ.
 func DefaultCurrency(v string) predicate.FeeSetting {
 	return predicate.FeeSetting(sql.FieldEQ(FieldDefaultCurrency, v))
@@ -516,26 +511,6 @@ func AliasNameContainsFold(v string) predicate.FeeSetting {
 	return predicate.FeeSetting(sql.FieldContainsFold(FieldAliasName, v))
 }
 
-// ChargeCategoryIDEQ applies the EQ predicate on the "charge_category_id" field.
-func ChargeCategoryIDEQ(v uuid.UUID) predicate.FeeSetting {
-	return predicate.FeeSetting(sql.FieldEQ(FieldChargeCategoryID, v))
-}
-
-// ChargeCategoryIDNEQ applies the NEQ predicate on the "charge_category_id" field.
-func ChargeCategoryIDNEQ(v uuid.UUID) predicate.FeeSetting {
-	return predicate.FeeSetting(sql.FieldNEQ(FieldChargeCategoryID, v))
-}
-
-// ChargeCategoryIDIn applies the In predicate on the "charge_category_id" field.
-func ChargeCategoryIDIn(vs ...uuid.UUID) predicate.FeeSetting {
-	return predicate.FeeSetting(sql.FieldIn(FieldChargeCategoryID, vs...))
-}
-
-// ChargeCategoryIDNotIn applies the NotIn predicate on the "charge_category_id" field.
-func ChargeCategoryIDNotIn(vs ...uuid.UUID) predicate.FeeSetting {
-	return predicate.FeeSetting(sql.FieldNotIn(FieldChargeCategoryID, vs...))
-}
-
 // DefaultCurrencyEQ applies the EQ predicate on the "default_currency" field.
 func DefaultCurrencyEQ(v string) predicate.FeeSetting {
 	return predicate.FeeSetting(sql.FieldEQ(FieldDefaultCurrency, v))
@@ -866,29 +841,6 @@ func HasOrganization() predicate.FeeSetting {
 func HasOrganizationWith(preds ...predicate.Organization) predicate.FeeSetting {
 	return predicate.FeeSetting(func(s *sql.Selector) {
 		step := newOrganizationStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasChargeCategory applies the HasEdge predicate on the "charge_category" edge.
-func HasChargeCategory() predicate.FeeSetting {
-	return predicate.FeeSetting(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ChargeCategoryTable, ChargeCategoryColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasChargeCategoryWith applies the HasEdge predicate on the "charge_category" edge with a given conditions (other predicates).
-func HasChargeCategoryWith(preds ...predicate.MasterDataItem) predicate.FeeSetting {
-	return predicate.FeeSetting(func(s *sql.Selector) {
-		step := newChargeCategoryStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

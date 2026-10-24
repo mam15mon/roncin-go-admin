@@ -746,29 +746,6 @@ func SearchKeywordsContainsFold(v string) predicate.MasterDataItem {
 	return predicate.MasterDataItem(sql.FieldContainsFold(FieldSearchKeywords, v))
 }
 
-// HasChargeCategoryFeeSettings applies the HasEdge predicate on the "charge_category_fee_settings" edge.
-func HasChargeCategoryFeeSettings() predicate.MasterDataItem {
-	return predicate.MasterDataItem(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ChargeCategoryFeeSettingsTable, ChargeCategoryFeeSettingsColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasChargeCategoryFeeSettingsWith applies the HasEdge predicate on the "charge_category_fee_settings" edge with a given conditions (other predicates).
-func HasChargeCategoryFeeSettingsWith(preds ...predicate.FeeSetting) predicate.MasterDataItem {
-	return predicate.MasterDataItem(func(s *sql.Selector) {
-		step := newChargeCategoryFeeSettingsStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
 // HasAbnormalCaseFeeSettings applies the HasEdge predicate on the "abnormal_case_fee_settings" edge.
 func HasAbnormalCaseFeeSettings() predicate.MasterDataItem {
 	return predicate.MasterDataItem(func(s *sql.Selector) {

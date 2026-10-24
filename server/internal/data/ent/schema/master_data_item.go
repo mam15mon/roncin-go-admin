@@ -23,7 +23,7 @@ func (MasterDataItem) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMi
 
 func (MasterDataItem) Fields() []ent.Field {
 	return []ent.Field{
-		field.Enum("kind").Values("currency", "country", "region", "container_spec", "charge_category", "cargo_category", "abnormal_case"),
+		field.Enum("kind").Values("currency", "country", "region", "container_spec", "cargo_category", "abnormal_case"),
 		field.String("code").NotEmpty().MaxLen(64).Immutable(),
 		field.String("name").NotEmpty().MaxLen(200),
 		field.String("name_en").MaxLen(200).Optional().Nillable(),
@@ -43,7 +43,6 @@ func (MasterDataItem) Hooks() []ent.Hook {
 
 func (MasterDataItem) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("charge_category_fee_settings", FeeSetting.Type),
 		edge.To("abnormal_case_fee_settings", FeeSetting.Type),
 	}
 }

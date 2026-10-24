@@ -4738,29 +4738,6 @@ func HasLifecycleEventsWith(preds ...predicate.OrderLifecycleEvent) predicate.Or
 	})
 }
 
-// HasServiceTypes applies the HasEdge predicate on the "service_types" edge.
-func HasServiceTypes() predicate.Order {
-	return predicate.Order(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ServiceTypesTable, ServiceTypesColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasServiceTypesWith applies the HasEdge predicate on the "service_types" edge with a given conditions (other predicates).
-func HasServiceTypesWith(preds ...predicate.OrderServiceType) predicate.Order {
-	return predicate.Order(func(s *sql.Selector) {
-		step := newServiceTypesStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
 // HasCargoCategories applies the HasEdge predicate on the "cargo_categories" edge.
 func HasCargoCategories() predicate.Order {
 	return predicate.Order(func(s *sql.Selector) {

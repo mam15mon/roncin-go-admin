@@ -33,7 +33,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -1588,21 +1587,6 @@ func (_u *OrderUpdate) AddLifecycleEvents(v ...*OrderLifecycleEvent) *OrderUpdat
 	return _u.AddLifecycleEventIDs(ids...)
 }
 
-// AddServiceTypeIDs adds the "service_types" edge to the OrderServiceType entity by IDs.
-func (_u *OrderUpdate) AddServiceTypeIDs(ids ...uuid.UUID) *OrderUpdate {
-	_u.mutation.AddServiceTypeIDs(ids...)
-	return _u
-}
-
-// AddServiceTypes adds the "service_types" edges to the OrderServiceType entity.
-func (_u *OrderUpdate) AddServiceTypes(v ...*OrderServiceType) *OrderUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddServiceTypeIDs(ids...)
-}
-
 // AddCargoCategoryIDs adds the "cargo_categories" edge to the OrderCargoCategory entity by IDs.
 func (_u *OrderUpdate) AddCargoCategoryIDs(ids ...uuid.UUID) *OrderUpdate {
 	_u.mutation.AddCargoCategoryIDs(ids...)
@@ -2114,27 +2098,6 @@ func (_u *OrderUpdate) RemoveLifecycleEvents(v ...*OrderLifecycleEvent) *OrderUp
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveLifecycleEventIDs(ids...)
-}
-
-// ClearServiceTypes clears all "service_types" edges to the OrderServiceType entity.
-func (_u *OrderUpdate) ClearServiceTypes() *OrderUpdate {
-	_u.mutation.ClearServiceTypes()
-	return _u
-}
-
-// RemoveServiceTypeIDs removes the "service_types" edge to OrderServiceType entities by IDs.
-func (_u *OrderUpdate) RemoveServiceTypeIDs(ids ...uuid.UUID) *OrderUpdate {
-	_u.mutation.RemoveServiceTypeIDs(ids...)
-	return _u
-}
-
-// RemoveServiceTypes removes "service_types" edges to OrderServiceType entities.
-func (_u *OrderUpdate) RemoveServiceTypes(v ...*OrderServiceType) *OrderUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveServiceTypeIDs(ids...)
 }
 
 // ClearCargoCategories clears all "cargo_categories" edges to the OrderCargoCategory entity.
@@ -3629,51 +3592,6 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderlifecycleevent.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.ServiceTypesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   order.ServiceTypesTable,
-			Columns: []string{order.ServiceTypesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderservicetype.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedServiceTypesIDs(); len(nodes) > 0 && !_u.mutation.ServiceTypesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   order.ServiceTypesTable,
-			Columns: []string{order.ServiceTypesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderservicetype.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.ServiceTypesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   order.ServiceTypesTable,
-			Columns: []string{order.ServiceTypesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderservicetype.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -6603,21 +6521,6 @@ func (_u *OrderUpdateOne) AddLifecycleEvents(v ...*OrderLifecycleEvent) *OrderUp
 	return _u.AddLifecycleEventIDs(ids...)
 }
 
-// AddServiceTypeIDs adds the "service_types" edge to the OrderServiceType entity by IDs.
-func (_u *OrderUpdateOne) AddServiceTypeIDs(ids ...uuid.UUID) *OrderUpdateOne {
-	_u.mutation.AddServiceTypeIDs(ids...)
-	return _u
-}
-
-// AddServiceTypes adds the "service_types" edges to the OrderServiceType entity.
-func (_u *OrderUpdateOne) AddServiceTypes(v ...*OrderServiceType) *OrderUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddServiceTypeIDs(ids...)
-}
-
 // AddCargoCategoryIDs adds the "cargo_categories" edge to the OrderCargoCategory entity by IDs.
 func (_u *OrderUpdateOne) AddCargoCategoryIDs(ids ...uuid.UUID) *OrderUpdateOne {
 	_u.mutation.AddCargoCategoryIDs(ids...)
@@ -7129,27 +7032,6 @@ func (_u *OrderUpdateOne) RemoveLifecycleEvents(v ...*OrderLifecycleEvent) *Orde
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveLifecycleEventIDs(ids...)
-}
-
-// ClearServiceTypes clears all "service_types" edges to the OrderServiceType entity.
-func (_u *OrderUpdateOne) ClearServiceTypes() *OrderUpdateOne {
-	_u.mutation.ClearServiceTypes()
-	return _u
-}
-
-// RemoveServiceTypeIDs removes the "service_types" edge to OrderServiceType entities by IDs.
-func (_u *OrderUpdateOne) RemoveServiceTypeIDs(ids ...uuid.UUID) *OrderUpdateOne {
-	_u.mutation.RemoveServiceTypeIDs(ids...)
-	return _u
-}
-
-// RemoveServiceTypes removes "service_types" edges to OrderServiceType entities.
-func (_u *OrderUpdateOne) RemoveServiceTypes(v ...*OrderServiceType) *OrderUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveServiceTypeIDs(ids...)
 }
 
 // ClearCargoCategories clears all "cargo_categories" edges to the OrderCargoCategory entity.
@@ -8674,51 +8556,6 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderlifecycleevent.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.ServiceTypesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   order.ServiceTypesTable,
-			Columns: []string{order.ServiceTypesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderservicetype.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedServiceTypesIDs(); len(nodes) > 0 && !_u.mutation.ServiceTypesCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   order.ServiceTypesTable,
-			Columns: []string{order.ServiceTypesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderservicetype.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.ServiceTypesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   order.ServiceTypesTable,
-			Columns: []string{order.ServiceTypesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderservicetype.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

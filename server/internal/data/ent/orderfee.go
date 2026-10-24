@@ -81,8 +81,6 @@ type OrderFee struct {
 	BaseCurrency string `json:"base_currency,omitempty"`
 	// BaseCurrencyAmount holds the value of the "base_currency_amount" field.
 	BaseCurrencyAmount string `json:"base_currency_amount,omitempty"`
-	// ExpenseDate holds the value of the "expense_date" field.
-	ExpenseDate string `json:"expense_date,omitempty"`
 	// Note holds the value of the "note" field.
 	Note string `json:"note,omitempty"`
 	// SupplementRequestID holds the value of the "supplement_request_id" field.
@@ -284,7 +282,7 @@ func (*OrderFee) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case orderfee.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case orderfee.FieldIdempotencyKey, orderfee.FieldDirection, orderfee.FieldFeeCode, orderfee.FieldFeeName, orderfee.FieldFeeNameEn, orderfee.FieldBillingUnit, orderfee.FieldTaxRate, orderfee.FieldTaxableServiceName, orderfee.FieldQuantity, orderfee.FieldUnitPrice, orderfee.FieldTotalAmount, orderfee.FieldNetAmount, orderfee.FieldTaxAmount, orderfee.FieldCurrency, orderfee.FieldExchangeRate, orderfee.FieldExchangeRateSource, orderfee.FieldExchangeRateDate, orderfee.FieldBaseCurrency, orderfee.FieldBaseCurrencyAmount, orderfee.FieldExpenseDate, orderfee.FieldNote, orderfee.FieldEconomicEffect:
+		case orderfee.FieldIdempotencyKey, orderfee.FieldDirection, orderfee.FieldFeeCode, orderfee.FieldFeeName, orderfee.FieldFeeNameEn, orderfee.FieldBillingUnit, orderfee.FieldTaxRate, orderfee.FieldTaxableServiceName, orderfee.FieldQuantity, orderfee.FieldUnitPrice, orderfee.FieldTotalAmount, orderfee.FieldNetAmount, orderfee.FieldTaxAmount, orderfee.FieldCurrency, orderfee.FieldExchangeRate, orderfee.FieldExchangeRateSource, orderfee.FieldExchangeRateDate, orderfee.FieldBaseCurrency, orderfee.FieldBaseCurrencyAmount, orderfee.FieldNote, orderfee.FieldEconomicEffect:
 			values[i] = new(sql.NullString)
 		case orderfee.FieldCreatedAt, orderfee.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -486,12 +484,6 @@ func (_m *OrderFee) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field base_currency_amount", values[i])
 			} else if value.Valid {
 				_m.BaseCurrencyAmount = value.String
-			}
-		case orderfee.FieldExpenseDate:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field expense_date", values[i])
-			} else if value.Valid {
-				_m.ExpenseDate = value.String
 			}
 		case orderfee.FieldNote:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -741,9 +733,6 @@ func (_m *OrderFee) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("base_currency_amount=")
 	builder.WriteString(_m.BaseCurrencyAmount)
-	builder.WriteString(", ")
-	builder.WriteString("expense_date=")
-	builder.WriteString(_m.ExpenseDate)
 	builder.WriteString(", ")
 	builder.WriteString("note=")
 	builder.WriteString(_m.Note)

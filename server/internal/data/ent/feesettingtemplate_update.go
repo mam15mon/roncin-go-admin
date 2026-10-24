@@ -103,20 +103,6 @@ func (_u *FeeSettingTemplateUpdate) ClearAliasName() *FeeSettingTemplateUpdate {
 	return _u
 }
 
-// SetChargeCategoryID sets the "charge_category_id" field.
-func (_u *FeeSettingTemplateUpdate) SetChargeCategoryID(v uuid.UUID) *FeeSettingTemplateUpdate {
-	_u.mutation.SetChargeCategoryID(v)
-	return _u
-}
-
-// SetNillableChargeCategoryID sets the "charge_category_id" field if the given value is not nil.
-func (_u *FeeSettingTemplateUpdate) SetNillableChargeCategoryID(v *uuid.UUID) *FeeSettingTemplateUpdate {
-	if v != nil {
-		_u.SetChargeCategoryID(*v)
-	}
-	return _u
-}
-
 // SetDefaultCurrency sets the "default_currency" field.
 func (_u *FeeSettingTemplateUpdate) SetDefaultCurrency(v string) *FeeSettingTemplateUpdate {
 	_u.mutation.SetDefaultCurrency(v)
@@ -421,9 +407,6 @@ func (_u *FeeSettingTemplateUpdate) sqlSave(ctx context.Context) (_node int, err
 	if _u.mutation.AliasNameCleared() {
 		_spec.ClearField(feesettingtemplate.FieldAliasName, field.TypeString)
 	}
-	if value, ok := _u.mutation.ChargeCategoryID(); ok {
-		_spec.SetField(feesettingtemplate.FieldChargeCategoryID, field.TypeUUID, value)
-	}
 	if value, ok := _u.mutation.DefaultCurrency(); ok {
 		_spec.SetField(feesettingtemplate.FieldDefaultCurrency, field.TypeString, value)
 	}
@@ -560,20 +543,6 @@ func (_u *FeeSettingTemplateUpdateOne) SetNillableAliasName(v *string) *FeeSetti
 // ClearAliasName clears the value of the "alias_name" field.
 func (_u *FeeSettingTemplateUpdateOne) ClearAliasName() *FeeSettingTemplateUpdateOne {
 	_u.mutation.ClearAliasName()
-	return _u
-}
-
-// SetChargeCategoryID sets the "charge_category_id" field.
-func (_u *FeeSettingTemplateUpdateOne) SetChargeCategoryID(v uuid.UUID) *FeeSettingTemplateUpdateOne {
-	_u.mutation.SetChargeCategoryID(v)
-	return _u
-}
-
-// SetNillableChargeCategoryID sets the "charge_category_id" field if the given value is not nil.
-func (_u *FeeSettingTemplateUpdateOne) SetNillableChargeCategoryID(v *uuid.UUID) *FeeSettingTemplateUpdateOne {
-	if v != nil {
-		_u.SetChargeCategoryID(*v)
-	}
 	return _u
 }
 
@@ -910,9 +879,6 @@ func (_u *FeeSettingTemplateUpdateOne) sqlSave(ctx context.Context) (_node *FeeS
 	}
 	if _u.mutation.AliasNameCleared() {
 		_spec.ClearField(feesettingtemplate.FieldAliasName, field.TypeString)
-	}
-	if value, ok := _u.mutation.ChargeCategoryID(); ok {
-		_spec.SetField(feesettingtemplate.FieldChargeCategoryID, field.TypeUUID, value)
 	}
 	if value, ok := _u.mutation.DefaultCurrency(); ok {
 		_spec.SetField(feesettingtemplate.FieldDefaultCurrency, field.TypeString, value)

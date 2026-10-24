@@ -427,20 +427,6 @@ func (_u *OrderFeeUpdate) SetNillableBaseCurrencyAmount(v *string) *OrderFeeUpda
 	return _u
 }
 
-// SetExpenseDate sets the "expense_date" field.
-func (_u *OrderFeeUpdate) SetExpenseDate(v string) *OrderFeeUpdate {
-	_u.mutation.SetExpenseDate(v)
-	return _u
-}
-
-// SetNillableExpenseDate sets the "expense_date" field if the given value is not nil.
-func (_u *OrderFeeUpdate) SetNillableExpenseDate(v *string) *OrderFeeUpdate {
-	if v != nil {
-		_u.SetExpenseDate(*v)
-	}
-	return _u
-}
-
 // SetNote sets the "note" field.
 func (_u *OrderFeeUpdate) SetNote(v string) *OrderFeeUpdate {
 	_u.mutation.SetNote(v)
@@ -858,11 +844,6 @@ func (_u *OrderFeeUpdate) check() error {
 			return &ValidationError{Name: "base_currency", err: fmt.Errorf(`ent: validator failed for field "OrderFee.base_currency": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.ExpenseDate(); ok {
-		if err := orderfee.ExpenseDateValidator(v); err != nil {
-			return &ValidationError{Name: "expense_date", err: fmt.Errorf(`ent: validator failed for field "OrderFee.expense_date": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Note(); ok {
 		if err := orderfee.NoteValidator(v); err != nil {
 			return &ValidationError{Name: "note", err: fmt.Errorf(`ent: validator failed for field "OrderFee.note": %w`, err)}
@@ -969,9 +950,6 @@ func (_u *OrderFeeUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.BaseCurrencyAmount(); ok {
 		_spec.SetField(orderfee.FieldBaseCurrencyAmount, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.ExpenseDate(); ok {
-		_spec.SetField(orderfee.FieldExpenseDate, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Note(); ok {
 		_spec.SetField(orderfee.FieldNote, field.TypeString, value)
@@ -1768,20 +1746,6 @@ func (_u *OrderFeeUpdateOne) SetNillableBaseCurrencyAmount(v *string) *OrderFeeU
 	return _u
 }
 
-// SetExpenseDate sets the "expense_date" field.
-func (_u *OrderFeeUpdateOne) SetExpenseDate(v string) *OrderFeeUpdateOne {
-	_u.mutation.SetExpenseDate(v)
-	return _u
-}
-
-// SetNillableExpenseDate sets the "expense_date" field if the given value is not nil.
-func (_u *OrderFeeUpdateOne) SetNillableExpenseDate(v *string) *OrderFeeUpdateOne {
-	if v != nil {
-		_u.SetExpenseDate(*v)
-	}
-	return _u
-}
-
 // SetNote sets the "note" field.
 func (_u *OrderFeeUpdateOne) SetNote(v string) *OrderFeeUpdateOne {
 	_u.mutation.SetNote(v)
@@ -2212,11 +2176,6 @@ func (_u *OrderFeeUpdateOne) check() error {
 			return &ValidationError{Name: "base_currency", err: fmt.Errorf(`ent: validator failed for field "OrderFee.base_currency": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.ExpenseDate(); ok {
-		if err := orderfee.ExpenseDateValidator(v); err != nil {
-			return &ValidationError{Name: "expense_date", err: fmt.Errorf(`ent: validator failed for field "OrderFee.expense_date": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Note(); ok {
 		if err := orderfee.NoteValidator(v); err != nil {
 			return &ValidationError{Name: "note", err: fmt.Errorf(`ent: validator failed for field "OrderFee.note": %w`, err)}
@@ -2340,9 +2299,6 @@ func (_u *OrderFeeUpdateOne) sqlSave(ctx context.Context) (_node *OrderFee, err 
 	}
 	if value, ok := _u.mutation.BaseCurrencyAmount(); ok {
 		_spec.SetField(orderfee.FieldBaseCurrencyAmount, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.ExpenseDate(); ok {
-		_spec.SetField(orderfee.FieldExpenseDate, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Note(); ok {
 		_spec.SetField(orderfee.FieldNote, field.TypeString, value)

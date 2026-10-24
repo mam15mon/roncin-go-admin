@@ -19,7 +19,6 @@ func (FeeSettingTemplate) Fields() []ent.Field {
 		field.String("name_zh").NotEmpty().MaxLen(64),
 		field.String("name_en").Optional().Nillable().MaxLen(128),
 		field.String("alias_name").Optional().Nillable().MaxLen(64),
-		field.UUID("charge_category_id", uuid.Nil),
 		field.String("default_currency").NotEmpty().MinLen(3).MaxLen(3),
 		field.UUID("billing_unit_id", uuid.Nil),
 		field.UUID("abnormal_case_id", uuid.Nil).Optional().Nillable(),

@@ -44,19 +44,10 @@ const (
 	FieldAttributes = "attributes"
 	// FieldSearchKeywords holds the string denoting the search_keywords field in the database.
 	FieldSearchKeywords = "search_keywords"
-	// EdgeChargeCategoryFeeSettings holds the string denoting the charge_category_fee_settings edge name in mutations.
-	EdgeChargeCategoryFeeSettings = "charge_category_fee_settings"
 	// EdgeAbnormalCaseFeeSettings holds the string denoting the abnormal_case_fee_settings edge name in mutations.
 	EdgeAbnormalCaseFeeSettings = "abnormal_case_fee_settings"
 	// Table holds the table name of the masterdataitem in the database.
 	Table = "master_data_items"
-	// ChargeCategoryFeeSettingsTable is the table that holds the charge_category_fee_settings relation/edge.
-	ChargeCategoryFeeSettingsTable = "fee_settings"
-	// ChargeCategoryFeeSettingsInverseTable is the table name for the FeeSetting entity.
-	// It exists in this package in order to avoid circular dependency with the "feesetting" package.
-	ChargeCategoryFeeSettingsInverseTable = "fee_settings"
-	// ChargeCategoryFeeSettingsColumn is the table column denoting the charge_category_fee_settings relation/edge.
-	ChargeCategoryFeeSettingsColumn = "charge_category_id"
 	// AbnormalCaseFeeSettingsTable is the table that holds the abnormal_case_fee_settings relation/edge.
 	AbnormalCaseFeeSettingsTable = "fee_settings"
 	// AbnormalCaseFeeSettingsInverseTable is the table name for the FeeSetting entity.
@@ -138,13 +129,12 @@ type Kind string
 
 // Kind values.
 const (
-	KindCurrency       Kind = "currency"
-	KindCountry        Kind = "country"
-	KindRegion         Kind = "region"
-	KindContainerSpec  Kind = "container_spec"
-	KindChargeCategory Kind = "charge_category"
-	KindCargoCategory  Kind = "cargo_category"
-	KindAbnormalCase   Kind = "abnormal_case"
+	KindCurrency      Kind = "currency"
+	KindCountry       Kind = "country"
+	KindRegion        Kind = "region"
+	KindContainerSpec Kind = "container_spec"
+	KindCargoCategory Kind = "cargo_category"
+	KindAbnormalCase  Kind = "abnormal_case"
 )
 
 func (k Kind) String() string {
@@ -154,7 +144,7 @@ func (k Kind) String() string {
 // KindValidator is a validator for the "kind" field enum values. It is called by the builders before save.
 func KindValidator(k Kind) error {
 	switch k {
-	case KindCurrency, KindCountry, KindRegion, KindContainerSpec, KindChargeCategory, KindCargoCategory, KindAbnormalCase:
+	case KindCurrency, KindCountry, KindRegion, KindContainerSpec, KindCargoCategory, KindAbnormalCase:
 		return nil
 	default:
 		return fmt.Errorf("masterdataitem: invalid enum value for kind field: %q", k)
@@ -229,20 +219,6 @@ func BySearchKeywords(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSearchKeywords, opts...).ToFunc()
 }
 
-// ByChargeCategoryFeeSettingsCount orders the results by charge_category_fee_settings count.
-func ByChargeCategoryFeeSettingsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newChargeCategoryFeeSettingsStep(), opts...)
-	}
-}
-
-// ByChargeCategoryFeeSettings orders the results by charge_category_fee_settings terms.
-func ByChargeCategoryFeeSettings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newChargeCategoryFeeSettingsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // ByAbnormalCaseFeeSettingsCount orders the results by abnormal_case_fee_settings count.
 func ByAbnormalCaseFeeSettingsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -255,13 +231,6 @@ func ByAbnormalCaseFeeSettings(term sql.OrderTerm, terms ...sql.OrderTerm) Order
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newAbnormalCaseFeeSettingsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
-}
-func newChargeCategoryFeeSettingsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ChargeCategoryFeeSettingsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, ChargeCategoryFeeSettingsTable, ChargeCategoryFeeSettingsColumn),
-	)
 }
 func newAbnormalCaseFeeSettingsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(

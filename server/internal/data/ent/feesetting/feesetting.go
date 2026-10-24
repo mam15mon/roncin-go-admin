@@ -30,8 +30,6 @@ const (
 	FieldNameEn = "name_en"
 	// FieldAliasName holds the string denoting the alias_name field in the database.
 	FieldAliasName = "alias_name"
-	// FieldChargeCategoryID holds the string denoting the charge_category_id field in the database.
-	FieldChargeCategoryID = "charge_category_id"
 	// FieldDefaultCurrency holds the string denoting the default_currency field in the database.
 	FieldDefaultCurrency = "default_currency"
 	// FieldBillingUnitID holds the string denoting the billing_unit_id field in the database.
@@ -50,8 +48,6 @@ const (
 	FieldSearchKeywords = "search_keywords"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
 	EdgeOrganization = "organization"
-	// EdgeChargeCategory holds the string denoting the charge_category edge name in mutations.
-	EdgeChargeCategory = "charge_category"
 	// EdgeBillingUnit holds the string denoting the billing_unit edge name in mutations.
 	EdgeBillingUnit = "billing_unit"
 	// EdgeAbnormalCase holds the string denoting the abnormal_case edge name in mutations.
@@ -69,13 +65,6 @@ const (
 	OrganizationInverseTable = "organizations"
 	// OrganizationColumn is the table column denoting the organization relation/edge.
 	OrganizationColumn = "organization_id"
-	// ChargeCategoryTable is the table that holds the charge_category relation/edge.
-	ChargeCategoryTable = "fee_settings"
-	// ChargeCategoryInverseTable is the table name for the MasterDataItem entity.
-	// It exists in this package in order to avoid circular dependency with the "masterdataitem" package.
-	ChargeCategoryInverseTable = "master_data_items"
-	// ChargeCategoryColumn is the table column denoting the charge_category relation/edge.
-	ChargeCategoryColumn = "charge_category_id"
 	// BillingUnitTable is the table that holds the billing_unit relation/edge.
 	BillingUnitTable = "fee_settings"
 	// BillingUnitInverseTable is the table name for the BillingUnit entity.
@@ -116,7 +105,6 @@ var Columns = []string{
 	FieldNameZh,
 	FieldNameEn,
 	FieldAliasName,
-	FieldChargeCategoryID,
 	FieldDefaultCurrency,
 	FieldBillingUnitID,
 	FieldAbnormalCaseID,
@@ -213,11 +201,6 @@ func ByAliasName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAliasName, opts...).ToFunc()
 }
 
-// ByChargeCategoryID orders the results by the charge_category_id field.
-func ByChargeCategoryID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldChargeCategoryID, opts...).ToFunc()
-}
-
 // ByDefaultCurrency orders the results by the default_currency field.
 func ByDefaultCurrency(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDefaultCurrency, opts...).ToFunc()
@@ -265,13 +248,6 @@ func ByOrganizationField(field string, opts ...sql.OrderTermOption) OrderOption 
 	}
 }
 
-// ByChargeCategoryField orders the results by charge_category field.
-func ByChargeCategoryField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newChargeCategoryStep(), sql.OrderByField(field, opts...))
-	}
-}
-
 // ByBillingUnitField orders the results by billing_unit field.
 func ByBillingUnitField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -311,13 +287,6 @@ func newOrganizationStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OrganizationInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, OrganizationTable, OrganizationColumn),
-	)
-}
-func newChargeCategoryStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ChargeCategoryInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, ChargeCategoryTable, ChargeCategoryColumn),
 	)
 }
 func newBillingUnitStep() *sqlgraph.Step {

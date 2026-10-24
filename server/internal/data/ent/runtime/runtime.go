@@ -86,7 +86,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockapprovercandidate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
@@ -2277,7 +2276,7 @@ func init() {
 	// feesetting.AliasNameValidator is a validator for the "alias_name" field. It is called by the builders before save.
 	feesetting.AliasNameValidator = feesettingDescAliasName.Validators[0].(func(string) error)
 	// feesettingDescDefaultCurrency is the schema descriptor for default_currency field.
-	feesettingDescDefaultCurrency := feesettingFields[6].Descriptor()
+	feesettingDescDefaultCurrency := feesettingFields[5].Descriptor()
 	// feesetting.DefaultCurrencyValidator is a validator for the "default_currency" field. It is called by the builders before save.
 	feesetting.DefaultCurrencyValidator = func() func(string) error {
 		validators := feesettingDescDefaultCurrency.Validators
@@ -2296,15 +2295,15 @@ func init() {
 		}
 	}()
 	// feesettingDescEnabled is the schema descriptor for enabled field.
-	feesettingDescEnabled := feesettingFields[11].Descriptor()
+	feesettingDescEnabled := feesettingFields[10].Descriptor()
 	// feesetting.DefaultEnabled holds the default value on creation for the enabled field.
 	feesetting.DefaultEnabled = feesettingDescEnabled.Default.(bool)
 	// feesettingDescSortOrder is the schema descriptor for sort_order field.
-	feesettingDescSortOrder := feesettingFields[12].Descriptor()
+	feesettingDescSortOrder := feesettingFields[11].Descriptor()
 	// feesetting.DefaultSortOrder holds the default value on creation for the sort_order field.
 	feesetting.DefaultSortOrder = feesettingDescSortOrder.Default.(int)
 	// feesettingDescSearchKeywords is the schema descriptor for search_keywords field.
-	feesettingDescSearchKeywords := feesettingFields[13].Descriptor()
+	feesettingDescSearchKeywords := feesettingFields[12].Descriptor()
 	// feesetting.DefaultSearchKeywords holds the default value on creation for the search_keywords field.
 	feesetting.DefaultSearchKeywords = feesettingDescSearchKeywords.Default.(string)
 	// feesettingDescID is the schema descriptor for id field.
@@ -2375,7 +2374,7 @@ func init() {
 	// feesettingtemplate.AliasNameValidator is a validator for the "alias_name" field. It is called by the builders before save.
 	feesettingtemplate.AliasNameValidator = feesettingtemplateDescAliasName.Validators[0].(func(string) error)
 	// feesettingtemplateDescDefaultCurrency is the schema descriptor for default_currency field.
-	feesettingtemplateDescDefaultCurrency := feesettingtemplateFields[5].Descriptor()
+	feesettingtemplateDescDefaultCurrency := feesettingtemplateFields[4].Descriptor()
 	// feesettingtemplate.DefaultCurrencyValidator is a validator for the "default_currency" field. It is called by the builders before save.
 	feesettingtemplate.DefaultCurrencyValidator = func() func(string) error {
 		validators := feesettingtemplateDescDefaultCurrency.Validators
@@ -2394,7 +2393,7 @@ func init() {
 		}
 	}()
 	// feesettingtemplateDescTaxableServiceName is the schema descriptor for taxable_service_name field.
-	feesettingtemplateDescTaxableServiceName := feesettingtemplateFields[9].Descriptor()
+	feesettingtemplateDescTaxableServiceName := feesettingtemplateFields[8].Descriptor()
 	// feesettingtemplate.TaxableServiceNameValidator is a validator for the "taxable_service_name" field. It is called by the builders before save.
 	feesettingtemplate.TaxableServiceNameValidator = func() func(string) error {
 		validators := feesettingtemplateDescTaxableServiceName.Validators
@@ -2412,23 +2411,23 @@ func init() {
 		}
 	}()
 	// feesettingtemplateDescTaxableServiceShortName is the schema descriptor for taxable_service_short_name field.
-	feesettingtemplateDescTaxableServiceShortName := feesettingtemplateFields[10].Descriptor()
+	feesettingtemplateDescTaxableServiceShortName := feesettingtemplateFields[9].Descriptor()
 	// feesettingtemplate.TaxableServiceShortNameValidator is a validator for the "taxable_service_short_name" field. It is called by the builders before save.
 	feesettingtemplate.TaxableServiceShortNameValidator = feesettingtemplateDescTaxableServiceShortName.Validators[0].(func(string) error)
 	// feesettingtemplateDescTaxableServiceGoodsCode is the schema descriptor for taxable_service_goods_code field.
-	feesettingtemplateDescTaxableServiceGoodsCode := feesettingtemplateFields[11].Descriptor()
+	feesettingtemplateDescTaxableServiceGoodsCode := feesettingtemplateFields[10].Descriptor()
 	// feesettingtemplate.TaxableServiceGoodsCodeValidator is a validator for the "taxable_service_goods_code" field. It is called by the builders before save.
 	feesettingtemplate.TaxableServiceGoodsCodeValidator = feesettingtemplateDescTaxableServiceGoodsCode.Validators[0].(func(string) error)
 	// feesettingtemplateDescEnabled is the schema descriptor for enabled field.
-	feesettingtemplateDescEnabled := feesettingtemplateFields[13].Descriptor()
+	feesettingtemplateDescEnabled := feesettingtemplateFields[12].Descriptor()
 	// feesettingtemplate.DefaultEnabled holds the default value on creation for the enabled field.
 	feesettingtemplate.DefaultEnabled = feesettingtemplateDescEnabled.Default.(bool)
 	// feesettingtemplateDescSortOrder is the schema descriptor for sort_order field.
-	feesettingtemplateDescSortOrder := feesettingtemplateFields[14].Descriptor()
+	feesettingtemplateDescSortOrder := feesettingtemplateFields[13].Descriptor()
 	// feesettingtemplate.DefaultSortOrder holds the default value on creation for the sort_order field.
 	feesettingtemplate.DefaultSortOrder = feesettingtemplateDescSortOrder.Default.(int)
 	// feesettingtemplateDescSearchKeywords is the schema descriptor for search_keywords field.
-	feesettingtemplateDescSearchKeywords := feesettingtemplateFields[15].Descriptor()
+	feesettingtemplateDescSearchKeywords := feesettingtemplateFields[14].Descriptor()
 	// feesettingtemplate.DefaultSearchKeywords holds the default value on creation for the search_keywords field.
 	feesettingtemplate.DefaultSearchKeywords = feesettingtemplateDescSearchKeywords.Default.(string)
 	// feesettingtemplateDescID is the schema descriptor for id field.
@@ -6076,35 +6075,16 @@ func init() {
 			return nil
 		}
 	}()
-	// orderfeeDescExpenseDate is the schema descriptor for expense_date field.
-	orderfeeDescExpenseDate := orderfeeFields[26].Descriptor()
-	// orderfee.ExpenseDateValidator is a validator for the "expense_date" field. It is called by the builders before save.
-	orderfee.ExpenseDateValidator = func() func(string) error {
-		validators := orderfeeDescExpenseDate.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-			validators[2].(func(string) error),
-		}
-		return func(expense_date string) error {
-			for _, fn := range fns {
-				if err := fn(expense_date); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
 	// orderfeeDescNote is the schema descriptor for note field.
-	orderfeeDescNote := orderfeeFields[27].Descriptor()
+	orderfeeDescNote := orderfeeFields[26].Descriptor()
 	// orderfee.NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	orderfee.NoteValidator = orderfeeDescNote.Validators[0].(func(string) error)
 	// orderfeeDescAccountingRequired is the schema descriptor for accounting_required field.
-	orderfeeDescAccountingRequired := orderfeeFields[30].Descriptor()
+	orderfeeDescAccountingRequired := orderfeeFields[29].Descriptor()
 	// orderfee.DefaultAccountingRequired holds the default value on creation for the accounting_required field.
 	orderfee.DefaultAccountingRequired = orderfeeDescAccountingRequired.Default.(bool)
 	// orderfeeDescVersion is the schema descriptor for version field.
-	orderfeeDescVersion := orderfeeFields[34].Descriptor()
+	orderfeeDescVersion := orderfeeFields[33].Descriptor()
 	// orderfee.DefaultVersion holds the default value on creation for the version field.
 	orderfee.DefaultVersion = orderfeeDescVersion.Default.(uint64)
 	// orderfeeDescID is the schema descriptor for id field.
@@ -6488,31 +6468,12 @@ func init() {
 			return nil
 		}
 	}()
-	// orderfeesupplementrequestDescExpenseDate is the schema descriptor for expense_date field.
-	orderfeesupplementrequestDescExpenseDate := orderfeesupplementrequestFields[34].Descriptor()
-	// orderfeesupplementrequest.ExpenseDateValidator is a validator for the "expense_date" field. It is called by the builders before save.
-	orderfeesupplementrequest.ExpenseDateValidator = func() func(string) error {
-		validators := orderfeesupplementrequestDescExpenseDate.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-			validators[2].(func(string) error),
-		}
-		return func(expense_date string) error {
-			for _, fn := range fns {
-				if err := fn(expense_date); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
 	// orderfeesupplementrequestDescNote is the schema descriptor for note field.
-	orderfeesupplementrequestDescNote := orderfeesupplementrequestFields[35].Descriptor()
+	orderfeesupplementrequestDescNote := orderfeesupplementrequestFields[34].Descriptor()
 	// orderfeesupplementrequest.NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	orderfeesupplementrequest.NoteValidator = orderfeesupplementrequestDescNote.Validators[0].(func(string) error)
 	// orderfeesupplementrequestDescReason is the schema descriptor for reason field.
-	orderfeesupplementrequestDescReason := orderfeesupplementrequestFields[36].Descriptor()
+	orderfeesupplementrequestDescReason := orderfeesupplementrequestFields[35].Descriptor()
 	// orderfeesupplementrequest.ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
 	orderfeesupplementrequest.ReasonValidator = func() func(string) error {
 		validators := orderfeesupplementrequestDescReason.Validators
@@ -6530,11 +6491,11 @@ func init() {
 		}
 	}()
 	// orderfeesupplementrequestDescVersion is the schema descriptor for version field.
-	orderfeesupplementrequestDescVersion := orderfeesupplementrequestFields[40].Descriptor()
+	orderfeesupplementrequestDescVersion := orderfeesupplementrequestFields[39].Descriptor()
 	// orderfeesupplementrequest.DefaultVersion holds the default value on creation for the version field.
 	orderfeesupplementrequest.DefaultVersion = orderfeesupplementrequestDescVersion.Default.(uint64)
 	// orderfeesupplementrequestDescDecisionReason is the schema descriptor for decision_reason field.
-	orderfeesupplementrequestDescDecisionReason := orderfeesupplementrequestFields[43].Descriptor()
+	orderfeesupplementrequestDescDecisionReason := orderfeesupplementrequestFields[42].Descriptor()
 	// orderfeesupplementrequest.DecisionReasonValidator is a validator for the "decision_reason" field. It is called by the builders before save.
 	orderfeesupplementrequest.DecisionReasonValidator = orderfeesupplementrequestDescDecisionReason.Validators[0].(func(string) error)
 	// orderfeesupplementrequestDescID is the schema descriptor for id field.
@@ -6821,27 +6782,6 @@ func init() {
 	orderreleasepodDescID := orderreleasepodMixinFields0[0].Descriptor()
 	// orderreleasepod.DefaultID holds the default value on creation for the id field.
 	orderreleasepod.DefaultID = orderreleasepodDescID.Default.(func() uuid.UUID)
-	orderservicetypeMixin := schema.OrderServiceType{}.Mixin()
-	orderservicetypeMixinFields0 := orderservicetypeMixin[0].Fields()
-	_ = orderservicetypeMixinFields0
-	orderservicetypeMixinFields1 := orderservicetypeMixin[1].Fields()
-	_ = orderservicetypeMixinFields1
-	orderservicetypeFields := schema.OrderServiceType{}.Fields()
-	_ = orderservicetypeFields
-	// orderservicetypeDescCreatedAt is the schema descriptor for created_at field.
-	orderservicetypeDescCreatedAt := orderservicetypeMixinFields1[0].Descriptor()
-	// orderservicetype.DefaultCreatedAt holds the default value on creation for the created_at field.
-	orderservicetype.DefaultCreatedAt = orderservicetypeDescCreatedAt.Default.(func() time.Time)
-	// orderservicetypeDescUpdatedAt is the schema descriptor for updated_at field.
-	orderservicetypeDescUpdatedAt := orderservicetypeMixinFields1[1].Descriptor()
-	// orderservicetype.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	orderservicetype.DefaultUpdatedAt = orderservicetypeDescUpdatedAt.Default.(func() time.Time)
-	// orderservicetype.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	orderservicetype.UpdateDefaultUpdatedAt = orderservicetypeDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// orderservicetypeDescID is the schema descriptor for id field.
-	orderservicetypeDescID := orderservicetypeMixinFields0[0].Descriptor()
-	// orderservicetype.DefaultID holds the default value on creation for the id field.
-	orderservicetype.DefaultID = orderservicetypeDescID.Default.(func() uuid.UUID)
 	ordershippingdocumentMixin := schema.OrderShippingDocument{}.Mixin()
 	ordershippingdocumentMixinFields0 := ordershippingdocumentMixin[0].Fields()
 	_ = ordershippingdocumentMixinFields0

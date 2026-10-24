@@ -190,21 +190,6 @@ func (_c *MasterDataItemCreate) SetNillableID(v *uuid.UUID) *MasterDataItemCreat
 	return _c
 }
 
-// AddChargeCategoryFeeSettingIDs adds the "charge_category_fee_settings" edge to the FeeSetting entity by IDs.
-func (_c *MasterDataItemCreate) AddChargeCategoryFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemCreate {
-	_c.mutation.AddChargeCategoryFeeSettingIDs(ids...)
-	return _c
-}
-
-// AddChargeCategoryFeeSettings adds the "charge_category_fee_settings" edges to the FeeSetting entity.
-func (_c *MasterDataItemCreate) AddChargeCategoryFeeSettings(v ...*FeeSetting) *MasterDataItemCreate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddChargeCategoryFeeSettingIDs(ids...)
-}
-
 // AddAbnormalCaseFeeSettingIDs adds the "abnormal_case_fee_settings" edge to the FeeSetting entity by IDs.
 func (_c *MasterDataItemCreate) AddAbnormalCaseFeeSettingIDs(ids ...uuid.UUID) *MasterDataItemCreate {
 	_c.mutation.AddAbnormalCaseFeeSettingIDs(ids...)
@@ -455,22 +440,6 @@ func (_c *MasterDataItemCreate) createSpec() (*MasterDataItem, *sqlgraph.CreateS
 	if value, ok := _c.mutation.SearchKeywords(); ok {
 		_spec.SetField(masterdataitem.FieldSearchKeywords, field.TypeString, value)
 		_node.SearchKeywords = value
-	}
-	if nodes := _c.mutation.ChargeCategoryFeeSettingsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   masterdataitem.ChargeCategoryFeeSettingsTable,
-			Columns: []string{masterdataitem.ChargeCategoryFeeSettingsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(feesetting.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.AbnormalCaseFeeSettingsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

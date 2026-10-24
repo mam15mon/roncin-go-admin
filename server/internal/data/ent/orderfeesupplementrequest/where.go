@@ -221,11 +221,6 @@ func BaseCurrencyAmount(v string) predicate.OrderFeeSupplementRequest {
 	return predicate.OrderFeeSupplementRequest(sql.FieldEQ(FieldBaseCurrencyAmount, v))
 }
 
-// ExpenseDate applies equality check predicate on the "expense_date" field. It's identical to ExpenseDateEQ.
-func ExpenseDate(v string) predicate.OrderFeeSupplementRequest {
-	return predicate.OrderFeeSupplementRequest(sql.FieldEQ(FieldExpenseDate, v))
-}
-
 // Note applies equality check predicate on the "note" field. It's identical to NoteEQ.
 func Note(v string) predicate.OrderFeeSupplementRequest {
 	return predicate.OrderFeeSupplementRequest(sql.FieldEQ(FieldNote, v))
@@ -2219,71 +2214,6 @@ func BaseCurrencyAmountEqualFold(v string) predicate.OrderFeeSupplementRequest {
 // BaseCurrencyAmountContainsFold applies the ContainsFold predicate on the "base_currency_amount" field.
 func BaseCurrencyAmountContainsFold(v string) predicate.OrderFeeSupplementRequest {
 	return predicate.OrderFeeSupplementRequest(sql.FieldContainsFold(FieldBaseCurrencyAmount, v))
-}
-
-// ExpenseDateEQ applies the EQ predicate on the "expense_date" field.
-func ExpenseDateEQ(v string) predicate.OrderFeeSupplementRequest {
-	return predicate.OrderFeeSupplementRequest(sql.FieldEQ(FieldExpenseDate, v))
-}
-
-// ExpenseDateNEQ applies the NEQ predicate on the "expense_date" field.
-func ExpenseDateNEQ(v string) predicate.OrderFeeSupplementRequest {
-	return predicate.OrderFeeSupplementRequest(sql.FieldNEQ(FieldExpenseDate, v))
-}
-
-// ExpenseDateIn applies the In predicate on the "expense_date" field.
-func ExpenseDateIn(vs ...string) predicate.OrderFeeSupplementRequest {
-	return predicate.OrderFeeSupplementRequest(sql.FieldIn(FieldExpenseDate, vs...))
-}
-
-// ExpenseDateNotIn applies the NotIn predicate on the "expense_date" field.
-func ExpenseDateNotIn(vs ...string) predicate.OrderFeeSupplementRequest {
-	return predicate.OrderFeeSupplementRequest(sql.FieldNotIn(FieldExpenseDate, vs...))
-}
-
-// ExpenseDateGT applies the GT predicate on the "expense_date" field.
-func ExpenseDateGT(v string) predicate.OrderFeeSupplementRequest {
-	return predicate.OrderFeeSupplementRequest(sql.FieldGT(FieldExpenseDate, v))
-}
-
-// ExpenseDateGTE applies the GTE predicate on the "expense_date" field.
-func ExpenseDateGTE(v string) predicate.OrderFeeSupplementRequest {
-	return predicate.OrderFeeSupplementRequest(sql.FieldGTE(FieldExpenseDate, v))
-}
-
-// ExpenseDateLT applies the LT predicate on the "expense_date" field.
-func ExpenseDateLT(v string) predicate.OrderFeeSupplementRequest {
-	return predicate.OrderFeeSupplementRequest(sql.FieldLT(FieldExpenseDate, v))
-}
-
-// ExpenseDateLTE applies the LTE predicate on the "expense_date" field.
-func ExpenseDateLTE(v string) predicate.OrderFeeSupplementRequest {
-	return predicate.OrderFeeSupplementRequest(sql.FieldLTE(FieldExpenseDate, v))
-}
-
-// ExpenseDateContains applies the Contains predicate on the "expense_date" field.
-func ExpenseDateContains(v string) predicate.OrderFeeSupplementRequest {
-	return predicate.OrderFeeSupplementRequest(sql.FieldContains(FieldExpenseDate, v))
-}
-
-// ExpenseDateHasPrefix applies the HasPrefix predicate on the "expense_date" field.
-func ExpenseDateHasPrefix(v string) predicate.OrderFeeSupplementRequest {
-	return predicate.OrderFeeSupplementRequest(sql.FieldHasPrefix(FieldExpenseDate, v))
-}
-
-// ExpenseDateHasSuffix applies the HasSuffix predicate on the "expense_date" field.
-func ExpenseDateHasSuffix(v string) predicate.OrderFeeSupplementRequest {
-	return predicate.OrderFeeSupplementRequest(sql.FieldHasSuffix(FieldExpenseDate, v))
-}
-
-// ExpenseDateEqualFold applies the EqualFold predicate on the "expense_date" field.
-func ExpenseDateEqualFold(v string) predicate.OrderFeeSupplementRequest {
-	return predicate.OrderFeeSupplementRequest(sql.FieldEqualFold(FieldExpenseDate, v))
-}
-
-// ExpenseDateContainsFold applies the ContainsFold predicate on the "expense_date" field.
-func ExpenseDateContainsFold(v string) predicate.OrderFeeSupplementRequest {
-	return predicate.OrderFeeSupplementRequest(sql.FieldContainsFold(FieldExpenseDate, v))
 }
 
 // NoteEQ applies the EQ predicate on the "note" field.

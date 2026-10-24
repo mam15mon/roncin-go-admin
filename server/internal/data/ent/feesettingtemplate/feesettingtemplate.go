@@ -27,8 +27,6 @@ const (
 	FieldNameEn = "name_en"
 	// FieldAliasName holds the string denoting the alias_name field in the database.
 	FieldAliasName = "alias_name"
-	// FieldChargeCategoryID holds the string denoting the charge_category_id field in the database.
-	FieldChargeCategoryID = "charge_category_id"
 	// FieldDefaultCurrency holds the string denoting the default_currency field in the database.
 	FieldDefaultCurrency = "default_currency"
 	// FieldBillingUnitID holds the string denoting the billing_unit_id field in the database.
@@ -64,7 +62,6 @@ var Columns = []string{
 	FieldNameZh,
 	FieldNameEn,
 	FieldAliasName,
-	FieldChargeCategoryID,
 	FieldDefaultCurrency,
 	FieldBillingUnitID,
 	FieldAbnormalCaseID,
@@ -163,11 +160,6 @@ func ByNameEn(opts ...sql.OrderTermOption) OrderOption {
 // ByAliasName orders the results by the alias_name field.
 func ByAliasName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAliasName, opts...).ToFunc()
-}
-
-// ByChargeCategoryID orders the results by the charge_category_id field.
-func ByChargeCategoryID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldChargeCategoryID, opts...).ToFunc()
 }
 
 // ByDefaultCurrency orders the results by the default_currency field.

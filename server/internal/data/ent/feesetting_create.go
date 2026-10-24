@@ -103,12 +103,6 @@ func (_c *FeeSettingCreate) SetNillableAliasName(v *string) *FeeSettingCreate {
 	return _c
 }
 
-// SetChargeCategoryID sets the "charge_category_id" field.
-func (_c *FeeSettingCreate) SetChargeCategoryID(v uuid.UUID) *FeeSettingCreate {
-	_c.mutation.SetChargeCategoryID(v)
-	return _c
-}
-
 // SetDefaultCurrency sets the "default_currency" field.
 func (_c *FeeSettingCreate) SetDefaultCurrency(v string) *FeeSettingCreate {
 	_c.mutation.SetDefaultCurrency(v)
@@ -206,11 +200,6 @@ func (_c *FeeSettingCreate) SetNillableID(v *uuid.UUID) *FeeSettingCreate {
 // SetOrganization sets the "organization" edge to the Organization entity.
 func (_c *FeeSettingCreate) SetOrganization(v *Organization) *FeeSettingCreate {
 	return _c.SetOrganizationID(v.ID)
-}
-
-// SetChargeCategory sets the "charge_category" edge to the MasterDataItem entity.
-func (_c *FeeSettingCreate) SetChargeCategory(v *MasterDataItem) *FeeSettingCreate {
-	return _c.SetChargeCategoryID(v.ID)
 }
 
 // SetBillingUnit sets the "billing_unit" edge to the BillingUnit entity.
@@ -353,9 +342,6 @@ func (_c *FeeSettingCreate) check() error {
 			return &ValidationError{Name: "alias_name", err: fmt.Errorf(`ent: validator failed for field "FeeSetting.alias_name": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.ChargeCategoryID(); !ok {
-		return &ValidationError{Name: "charge_category_id", err: errors.New(`ent: missing required field "FeeSetting.charge_category_id"`)}
-	}
 	if _, ok := _c.mutation.DefaultCurrency(); !ok {
 		return &ValidationError{Name: "default_currency", err: errors.New(`ent: missing required field "FeeSetting.default_currency"`)}
 	}
@@ -384,9 +370,6 @@ func (_c *FeeSettingCreate) check() error {
 	}
 	if len(_c.mutation.OrganizationIDs()) == 0 {
 		return &ValidationError{Name: "organization", err: errors.New(`ent: missing required edge "FeeSetting.organization"`)}
-	}
-	if len(_c.mutation.ChargeCategoryIDs()) == 0 {
-		return &ValidationError{Name: "charge_category", err: errors.New(`ent: missing required edge "FeeSetting.charge_category"`)}
 	}
 	if len(_c.mutation.BillingUnitIDs()) == 0 {
 		return &ValidationError{Name: "billing_unit", err: errors.New(`ent: missing required edge "FeeSetting.billing_unit"`)}
@@ -489,23 +472,6 @@ func (_c *FeeSettingCreate) createSpec() (*FeeSetting, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.OrganizationID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.ChargeCategoryIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   feesetting.ChargeCategoryTable,
-			Columns: []string{feesetting.ChargeCategoryColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(masterdataitem.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.ChargeCategoryID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.BillingUnitIDs(); len(nodes) > 0 {
@@ -708,18 +674,6 @@ func (u *FeeSettingUpsert) UpdateAliasName() *FeeSettingUpsert {
 // ClearAliasName clears the value of the "alias_name" field.
 func (u *FeeSettingUpsert) ClearAliasName() *FeeSettingUpsert {
 	u.SetNull(feesetting.FieldAliasName)
-	return u
-}
-
-// SetChargeCategoryID sets the "charge_category_id" field.
-func (u *FeeSettingUpsert) SetChargeCategoryID(v uuid.UUID) *FeeSettingUpsert {
-	u.Set(feesetting.FieldChargeCategoryID, v)
-	return u
-}
-
-// UpdateChargeCategoryID sets the "charge_category_id" field to the value that was provided on create.
-func (u *FeeSettingUpsert) UpdateChargeCategoryID() *FeeSettingUpsert {
-	u.SetExcluded(feesetting.FieldChargeCategoryID)
 	return u
 }
 
@@ -977,20 +931,6 @@ func (u *FeeSettingUpsertOne) UpdateAliasName() *FeeSettingUpsertOne {
 func (u *FeeSettingUpsertOne) ClearAliasName() *FeeSettingUpsertOne {
 	return u.Update(func(s *FeeSettingUpsert) {
 		s.ClearAliasName()
-	})
-}
-
-// SetChargeCategoryID sets the "charge_category_id" field.
-func (u *FeeSettingUpsertOne) SetChargeCategoryID(v uuid.UUID) *FeeSettingUpsertOne {
-	return u.Update(func(s *FeeSettingUpsert) {
-		s.SetChargeCategoryID(v)
-	})
-}
-
-// UpdateChargeCategoryID sets the "charge_category_id" field to the value that was provided on create.
-func (u *FeeSettingUpsertOne) UpdateChargeCategoryID() *FeeSettingUpsertOne {
-	return u.Update(func(s *FeeSettingUpsert) {
-		s.UpdateChargeCategoryID()
 	})
 }
 
@@ -1433,20 +1373,6 @@ func (u *FeeSettingUpsertBulk) UpdateAliasName() *FeeSettingUpsertBulk {
 func (u *FeeSettingUpsertBulk) ClearAliasName() *FeeSettingUpsertBulk {
 	return u.Update(func(s *FeeSettingUpsert) {
 		s.ClearAliasName()
-	})
-}
-
-// SetChargeCategoryID sets the "charge_category_id" field.
-func (u *FeeSettingUpsertBulk) SetChargeCategoryID(v uuid.UUID) *FeeSettingUpsertBulk {
-	return u.Update(func(s *FeeSettingUpsert) {
-		s.SetChargeCategoryID(v)
-	})
-}
-
-// UpdateChargeCategoryID sets the "charge_category_id" field to the value that was provided on create.
-func (u *FeeSettingUpsertBulk) UpdateChargeCategoryID() *FeeSettingUpsertBulk {
-	return u.Update(func(s *FeeSettingUpsert) {
-		s.UpdateChargeCategoryID()
 	})
 }
 

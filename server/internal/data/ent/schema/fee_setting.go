@@ -22,7 +22,6 @@ func (FeeSetting) Fields() []ent.Field {
 		field.String("name_zh").NotEmpty().MaxLen(64),
 		field.String("name_en").Optional().Nillable().MaxLen(128),
 		field.String("alias_name").Optional().Nillable().MaxLen(64),
-		field.UUID("charge_category_id", uuid.Nil),
 		field.String("default_currency").NotEmpty().MinLen(3).MaxLen(3),
 		field.UUID("billing_unit_id", uuid.Nil),
 		field.UUID("abnormal_case_id", uuid.Nil).Optional().Nillable(),
@@ -41,7 +40,6 @@ func (FeeSetting) Hooks() []ent.Hook {
 func (FeeSetting) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("organization", Organization.Type).Ref("fee_settings").Field("organization_id").Unique().Required(),
-		edge.From("charge_category", MasterDataItem.Type).Ref("charge_category_fee_settings").Field("charge_category_id").Unique().Required(),
 		edge.From("billing_unit", BillingUnit.Type).Ref("fee_settings").Field("billing_unit_id").Unique().Required(),
 		edge.From("abnormal_case", MasterDataItem.Type).Ref("abnormal_case_fee_settings").Field("abnormal_case_id").Unique(),
 		edge.From("taxable_service", TaxableService.Type).Ref("fee_settings").Field("taxable_service_id").Unique().Required(),
@@ -53,6 +51,5 @@ func (FeeSetting) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("organization_id", "fee_code").Unique().StorageKey("fee_settings_org_code_unique"),
 		index.Fields("organization_id", "enabled", "sort_order"),
-		index.Fields("organization_id", "charge_category_id", "abnormal_case_id"),
 	}
 }

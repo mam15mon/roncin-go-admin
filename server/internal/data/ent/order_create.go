@@ -34,7 +34,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -1166,21 +1165,6 @@ func (_c *OrderCreate) AddLifecycleEvents(v ...*OrderLifecycleEvent) *OrderCreat
 		ids[i] = v[i].ID
 	}
 	return _c.AddLifecycleEventIDs(ids...)
-}
-
-// AddServiceTypeIDs adds the "service_types" edge to the OrderServiceType entity by IDs.
-func (_c *OrderCreate) AddServiceTypeIDs(ids ...uuid.UUID) *OrderCreate {
-	_c.mutation.AddServiceTypeIDs(ids...)
-	return _c
-}
-
-// AddServiceTypes adds the "service_types" edges to the OrderServiceType entity.
-func (_c *OrderCreate) AddServiceTypes(v ...*OrderServiceType) *OrderCreate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddServiceTypeIDs(ids...)
 }
 
 // AddCargoCategoryIDs adds the "cargo_categories" edge to the OrderCargoCategory entity by IDs.
@@ -2473,22 +2457,6 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(orderlifecycleevent.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.ServiceTypesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   order.ServiceTypesTable,
-			Columns: []string{order.ServiceTypesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderservicetype.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

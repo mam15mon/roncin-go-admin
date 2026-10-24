@@ -969,18 +969,6 @@ func (f OrderReleasePodFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Va
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderReleasePodMutation", m)
 }
 
-// The OrderServiceTypeFunc type is an adapter to allow the use of ordinary
-// function as OrderServiceType mutator.
-type OrderServiceTypeFunc func(context.Context, *ent.OrderServiceTypeMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f OrderServiceTypeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.OrderServiceTypeMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderServiceTypeMutation", m)
-}
-
 // The OrderShippingDocumentFunc type is an adapter to allow the use of ordinary
 // function as OrderShippingDocument mutator.
 type OrderShippingDocumentFunc func(context.Context, *ent.OrderShippingDocumentMutation) (ent.Value, error)

@@ -93,7 +93,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderservicetype"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockapprovercandidate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
@@ -226,7 +225,6 @@ const (
 	TypeOrderMilestone                   = "OrderMilestone"
 	TypeOrderPersonnel                   = "OrderPersonnel"
 	TypeOrderReleasePod                  = "OrderReleasePod"
-	TypeOrderServiceType                 = "OrderServiceType"
 	TypeOrderShippingDocument            = "OrderShippingDocument"
 	TypeOrderUnlockApproverCandidate     = "OrderUnlockApproverCandidate"
 	TypeOrderUnlockRequest               = "OrderUnlockRequest"
@@ -32603,8 +32601,6 @@ type FeeSettingMutation struct {
 	clearedFields          map[string]struct{}
 	organization           *uuid.UUID
 	clearedorganization    bool
-	charge_category        *uuid.UUID
-	clearedcharge_category bool
 	billing_unit           *uuid.UUID
 	clearedbilling_unit    bool
 	abnormal_case          *uuid.UUID
@@ -33001,42 +32997,6 @@ func (m *FeeSettingMutation) ResetAliasName() {
 	delete(m.clearedFields, feesetting.FieldAliasName)
 }
 
-// SetChargeCategoryID sets the "charge_category_id" field.
-func (m *FeeSettingMutation) SetChargeCategoryID(u uuid.UUID) {
-	m.charge_category = &u
-}
-
-// ChargeCategoryID returns the value of the "charge_category_id" field in the mutation.
-func (m *FeeSettingMutation) ChargeCategoryID() (r uuid.UUID, exists bool) {
-	v := m.charge_category
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldChargeCategoryID returns the old "charge_category_id" field's value of the FeeSetting entity.
-// If the FeeSetting object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FeeSettingMutation) OldChargeCategoryID(ctx context.Context) (v uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldChargeCategoryID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldChargeCategoryID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldChargeCategoryID: %w", err)
-	}
-	return oldValue.ChargeCategoryID, nil
-}
-
-// ResetChargeCategoryID resets all changes to the "charge_category_id" field.
-func (m *FeeSettingMutation) ResetChargeCategoryID() {
-	m.charge_category = nil
-}
-
 // SetDefaultCurrency sets the "default_currency" field.
 func (m *FeeSettingMutation) SetDefaultCurrency(s string) {
 	m.default_currency = &s
@@ -33385,33 +33345,6 @@ func (m *FeeSettingMutation) ResetOrganization() {
 	m.clearedorganization = false
 }
 
-// ClearChargeCategory clears the "charge_category" edge to the MasterDataItem entity.
-func (m *FeeSettingMutation) ClearChargeCategory() {
-	m.clearedcharge_category = true
-	m.clearedFields[feesetting.FieldChargeCategoryID] = struct{}{}
-}
-
-// ChargeCategoryCleared reports if the "charge_category" edge to the MasterDataItem entity was cleared.
-func (m *FeeSettingMutation) ChargeCategoryCleared() bool {
-	return m.clearedcharge_category
-}
-
-// ChargeCategoryIDs returns the "charge_category" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// ChargeCategoryID instead. It exists only for internal usage by the builders.
-func (m *FeeSettingMutation) ChargeCategoryIDs() (ids []uuid.UUID) {
-	if id := m.charge_category; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetChargeCategory resets all changes to the "charge_category" edge.
-func (m *FeeSettingMutation) ResetChargeCategory() {
-	m.charge_category = nil
-	m.clearedcharge_category = false
-}
-
 // ClearBillingUnit clears the "billing_unit" edge to the BillingUnit entity.
 func (m *FeeSettingMutation) ClearBillingUnit() {
 	m.clearedbilling_unit = true
@@ -33581,7 +33514,7 @@ func (m *FeeSettingMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FeeSettingMutation) Fields() []string {
-	fields := make([]string, 0, 16)
+	fields := make([]string, 0, 15)
 	if m.created_at != nil {
 		fields = append(fields, feesetting.FieldCreatedAt)
 	}
@@ -33602,9 +33535,6 @@ func (m *FeeSettingMutation) Fields() []string {
 	}
 	if m.alias_name != nil {
 		fields = append(fields, feesetting.FieldAliasName)
-	}
-	if m.charge_category != nil {
-		fields = append(fields, feesetting.FieldChargeCategoryID)
 	}
 	if m.default_currency != nil {
 		fields = append(fields, feesetting.FieldDefaultCurrency)
@@ -33652,8 +33582,6 @@ func (m *FeeSettingMutation) Field(name string) (ent.Value, bool) {
 		return m.NameEn()
 	case feesetting.FieldAliasName:
 		return m.AliasName()
-	case feesetting.FieldChargeCategoryID:
-		return m.ChargeCategoryID()
 	case feesetting.FieldDefaultCurrency:
 		return m.DefaultCurrency()
 	case feesetting.FieldBillingUnitID:
@@ -33693,8 +33621,6 @@ func (m *FeeSettingMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldNameEn(ctx)
 	case feesetting.FieldAliasName:
 		return m.OldAliasName(ctx)
-	case feesetting.FieldChargeCategoryID:
-		return m.OldChargeCategoryID(ctx)
 	case feesetting.FieldDefaultCurrency:
 		return m.OldDefaultCurrency(ctx)
 	case feesetting.FieldBillingUnitID:
@@ -33768,13 +33694,6 @@ func (m *FeeSettingMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAliasName(v)
-		return nil
-	case feesetting.FieldChargeCategoryID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetChargeCategoryID(v)
 		return nil
 	case feesetting.FieldDefaultCurrency:
 		v, ok := value.(string)
@@ -33938,9 +33857,6 @@ func (m *FeeSettingMutation) ResetField(name string) error {
 	case feesetting.FieldAliasName:
 		m.ResetAliasName()
 		return nil
-	case feesetting.FieldChargeCategoryID:
-		m.ResetChargeCategoryID()
-		return nil
 	case feesetting.FieldDefaultCurrency:
 		m.ResetDefaultCurrency()
 		return nil
@@ -33971,12 +33887,9 @@ func (m *FeeSettingMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *FeeSettingMutation) AddedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 5)
 	if m.organization != nil {
 		edges = append(edges, feesetting.EdgeOrganization)
-	}
-	if m.charge_category != nil {
-		edges = append(edges, feesetting.EdgeChargeCategory)
 	}
 	if m.billing_unit != nil {
 		edges = append(edges, feesetting.EdgeBillingUnit)
@@ -33999,10 +33912,6 @@ func (m *FeeSettingMutation) AddedIDs(name string) []ent.Value {
 	switch name {
 	case feesetting.EdgeOrganization:
 		if id := m.organization; id != nil {
-			return []ent.Value{*id}
-		}
-	case feesetting.EdgeChargeCategory:
-		if id := m.charge_category; id != nil {
 			return []ent.Value{*id}
 		}
 	case feesetting.EdgeBillingUnit:
@@ -34029,7 +33938,7 @@ func (m *FeeSettingMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *FeeSettingMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 5)
 	if m.removedorder_fees != nil {
 		edges = append(edges, feesetting.EdgeOrderFees)
 	}
@@ -34052,12 +33961,9 @@ func (m *FeeSettingMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *FeeSettingMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 5)
 	if m.clearedorganization {
 		edges = append(edges, feesetting.EdgeOrganization)
-	}
-	if m.clearedcharge_category {
-		edges = append(edges, feesetting.EdgeChargeCategory)
 	}
 	if m.clearedbilling_unit {
 		edges = append(edges, feesetting.EdgeBillingUnit)
@@ -34080,8 +33986,6 @@ func (m *FeeSettingMutation) EdgeCleared(name string) bool {
 	switch name {
 	case feesetting.EdgeOrganization:
 		return m.clearedorganization
-	case feesetting.EdgeChargeCategory:
-		return m.clearedcharge_category
 	case feesetting.EdgeBillingUnit:
 		return m.clearedbilling_unit
 	case feesetting.EdgeAbnormalCase:
@@ -34100,9 +34004,6 @@ func (m *FeeSettingMutation) ClearEdge(name string) error {
 	switch name {
 	case feesetting.EdgeOrganization:
 		m.ClearOrganization()
-		return nil
-	case feesetting.EdgeChargeCategory:
-		m.ClearChargeCategory()
 		return nil
 	case feesetting.EdgeBillingUnit:
 		m.ClearBillingUnit()
@@ -34123,9 +34024,6 @@ func (m *FeeSettingMutation) ResetEdge(name string) error {
 	switch name {
 	case feesetting.EdgeOrganization:
 		m.ResetOrganization()
-		return nil
-	case feesetting.EdgeChargeCategory:
-		m.ResetChargeCategory()
 		return nil
 	case feesetting.EdgeBillingUnit:
 		m.ResetBillingUnit()
@@ -34155,7 +34053,6 @@ type FeeSettingTemplateMutation struct {
 	name_zh                          *string
 	name_en                          *string
 	alias_name                       *string
-	charge_category_id               *uuid.UUID
 	default_currency                 *string
 	billing_unit_id                  *uuid.UUID
 	abnormal_case_id                 *uuid.UUID
@@ -34518,42 +34415,6 @@ func (m *FeeSettingTemplateMutation) AliasNameCleared() bool {
 func (m *FeeSettingTemplateMutation) ResetAliasName() {
 	m.alias_name = nil
 	delete(m.clearedFields, feesettingtemplate.FieldAliasName)
-}
-
-// SetChargeCategoryID sets the "charge_category_id" field.
-func (m *FeeSettingTemplateMutation) SetChargeCategoryID(u uuid.UUID) {
-	m.charge_category_id = &u
-}
-
-// ChargeCategoryID returns the value of the "charge_category_id" field in the mutation.
-func (m *FeeSettingTemplateMutation) ChargeCategoryID() (r uuid.UUID, exists bool) {
-	v := m.charge_category_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldChargeCategoryID returns the old "charge_category_id" field's value of the FeeSettingTemplate entity.
-// If the FeeSettingTemplate object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FeeSettingTemplateMutation) OldChargeCategoryID(ctx context.Context) (v uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldChargeCategoryID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldChargeCategoryID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldChargeCategoryID: %w", err)
-	}
-	return oldValue.ChargeCategoryID, nil
-}
-
-// ResetChargeCategoryID resets all changes to the "charge_category_id" field.
-func (m *FeeSettingTemplateMutation) ResetChargeCategoryID() {
-	m.charge_category_id = nil
 }
 
 // SetDefaultCurrency sets the "default_currency" field.
@@ -35045,7 +34906,7 @@ func (m *FeeSettingTemplateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FeeSettingTemplateMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 17)
 	if m.created_at != nil {
 		fields = append(fields, feesettingtemplate.FieldCreatedAt)
 	}
@@ -35063,9 +34924,6 @@ func (m *FeeSettingTemplateMutation) Fields() []string {
 	}
 	if m.alias_name != nil {
 		fields = append(fields, feesettingtemplate.FieldAliasName)
-	}
-	if m.charge_category_id != nil {
-		fields = append(fields, feesettingtemplate.FieldChargeCategoryID)
 	}
 	if m.default_currency != nil {
 		fields = append(fields, feesettingtemplate.FieldDefaultCurrency)
@@ -35120,8 +34978,6 @@ func (m *FeeSettingTemplateMutation) Field(name string) (ent.Value, bool) {
 		return m.NameEn()
 	case feesettingtemplate.FieldAliasName:
 		return m.AliasName()
-	case feesettingtemplate.FieldChargeCategoryID:
-		return m.ChargeCategoryID()
 	case feesettingtemplate.FieldDefaultCurrency:
 		return m.DefaultCurrency()
 	case feesettingtemplate.FieldBillingUnitID:
@@ -35165,8 +35021,6 @@ func (m *FeeSettingTemplateMutation) OldField(ctx context.Context, name string) 
 		return m.OldNameEn(ctx)
 	case feesettingtemplate.FieldAliasName:
 		return m.OldAliasName(ctx)
-	case feesettingtemplate.FieldChargeCategoryID:
-		return m.OldChargeCategoryID(ctx)
 	case feesettingtemplate.FieldDefaultCurrency:
 		return m.OldDefaultCurrency(ctx)
 	case feesettingtemplate.FieldBillingUnitID:
@@ -35239,13 +35093,6 @@ func (m *FeeSettingTemplateMutation) SetField(name string, value ent.Value) erro
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAliasName(v)
-		return nil
-	case feesettingtemplate.FieldChargeCategoryID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetChargeCategoryID(v)
 		return nil
 	case feesettingtemplate.FieldDefaultCurrency:
 		v, ok := value.(string)
@@ -35438,9 +35285,6 @@ func (m *FeeSettingTemplateMutation) ResetField(name string) error {
 		return nil
 	case feesettingtemplate.FieldAliasName:
 		m.ResetAliasName()
-		return nil
-	case feesettingtemplate.FieldChargeCategoryID:
-		m.ResetChargeCategoryID()
 		return nil
 	case feesettingtemplate.FieldDefaultCurrency:
 		m.ResetDefaultCurrency()
@@ -74697,33 +74541,30 @@ func (m *LoginRateLimitBucketMutation) ResetEdge(name string) error {
 // MasterDataItemMutation represents an operation that mutates the MasterDataItem nodes in the graph.
 type MasterDataItemMutation struct {
 	config
-	op                                  Op
-	typ                                 string
-	id                                  *uuid.UUID
-	created_at                          *time.Time
-	updated_at                          *time.Time
-	kind                                *masterdataitem.Kind
-	code                                *string
-	name                                *string
-	name_en                             *string
-	parent_code                         *string
-	teu_factor                          *string
-	source                              *string
-	sort_order                          *int
-	addsort_order                       *int
-	enabled                             *bool
-	attributes                          **schema.MasterDataAttributes
-	search_keywords                     *string
-	clearedFields                       map[string]struct{}
-	charge_category_fee_settings        map[uuid.UUID]struct{}
-	removedcharge_category_fee_settings map[uuid.UUID]struct{}
-	clearedcharge_category_fee_settings bool
-	abnormal_case_fee_settings          map[uuid.UUID]struct{}
-	removedabnormal_case_fee_settings   map[uuid.UUID]struct{}
-	clearedabnormal_case_fee_settings   bool
-	done                                bool
-	oldValue                            func(context.Context) (*MasterDataItem, error)
-	predicates                          []predicate.MasterDataItem
+	op                                Op
+	typ                               string
+	id                                *uuid.UUID
+	created_at                        *time.Time
+	updated_at                        *time.Time
+	kind                              *masterdataitem.Kind
+	code                              *string
+	name                              *string
+	name_en                           *string
+	parent_code                       *string
+	teu_factor                        *string
+	source                            *string
+	sort_order                        *int
+	addsort_order                     *int
+	enabled                           *bool
+	attributes                        **schema.MasterDataAttributes
+	search_keywords                   *string
+	clearedFields                     map[string]struct{}
+	abnormal_case_fee_settings        map[uuid.UUID]struct{}
+	removedabnormal_case_fee_settings map[uuid.UUID]struct{}
+	clearedabnormal_case_fee_settings bool
+	done                              bool
+	oldValue                          func(context.Context) (*MasterDataItem, error)
+	predicates                        []predicate.MasterDataItem
 }
 
 var _ ent.Mutation = (*MasterDataItemMutation)(nil)
@@ -75357,60 +75198,6 @@ func (m *MasterDataItemMutation) ResetSearchKeywords() {
 	m.search_keywords = nil
 }
 
-// AddChargeCategoryFeeSettingIDs adds the "charge_category_fee_settings" edge to the FeeSetting entity by ids.
-func (m *MasterDataItemMutation) AddChargeCategoryFeeSettingIDs(ids ...uuid.UUID) {
-	if m.charge_category_fee_settings == nil {
-		m.charge_category_fee_settings = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		m.charge_category_fee_settings[ids[i]] = struct{}{}
-	}
-}
-
-// ClearChargeCategoryFeeSettings clears the "charge_category_fee_settings" edge to the FeeSetting entity.
-func (m *MasterDataItemMutation) ClearChargeCategoryFeeSettings() {
-	m.clearedcharge_category_fee_settings = true
-}
-
-// ChargeCategoryFeeSettingsCleared reports if the "charge_category_fee_settings" edge to the FeeSetting entity was cleared.
-func (m *MasterDataItemMutation) ChargeCategoryFeeSettingsCleared() bool {
-	return m.clearedcharge_category_fee_settings
-}
-
-// RemoveChargeCategoryFeeSettingIDs removes the "charge_category_fee_settings" edge to the FeeSetting entity by IDs.
-func (m *MasterDataItemMutation) RemoveChargeCategoryFeeSettingIDs(ids ...uuid.UUID) {
-	if m.removedcharge_category_fee_settings == nil {
-		m.removedcharge_category_fee_settings = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		delete(m.charge_category_fee_settings, ids[i])
-		m.removedcharge_category_fee_settings[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedChargeCategoryFeeSettings returns the removed IDs of the "charge_category_fee_settings" edge to the FeeSetting entity.
-func (m *MasterDataItemMutation) RemovedChargeCategoryFeeSettingsIDs() (ids []uuid.UUID) {
-	for id := range m.removedcharge_category_fee_settings {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ChargeCategoryFeeSettingsIDs returns the "charge_category_fee_settings" edge IDs in the mutation.
-func (m *MasterDataItemMutation) ChargeCategoryFeeSettingsIDs() (ids []uuid.UUID) {
-	for id := range m.charge_category_fee_settings {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetChargeCategoryFeeSettings resets all changes to the "charge_category_fee_settings" edge.
-func (m *MasterDataItemMutation) ResetChargeCategoryFeeSettings() {
-	m.charge_category_fee_settings = nil
-	m.clearedcharge_category_fee_settings = false
-	m.removedcharge_category_fee_settings = nil
-}
-
 // AddAbnormalCaseFeeSettingIDs adds the "abnormal_case_fee_settings" edge to the FeeSetting entity by ids.
 func (m *MasterDataItemMutation) AddAbnormalCaseFeeSettingIDs(ids ...uuid.UUID) {
 	if m.abnormal_case_fee_settings == nil {
@@ -75838,10 +75625,7 @@ func (m *MasterDataItemMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *MasterDataItemMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.charge_category_fee_settings != nil {
-		edges = append(edges, masterdataitem.EdgeChargeCategoryFeeSettings)
-	}
+	edges := make([]string, 0, 1)
 	if m.abnormal_case_fee_settings != nil {
 		edges = append(edges, masterdataitem.EdgeAbnormalCaseFeeSettings)
 	}
@@ -75852,12 +75636,6 @@ func (m *MasterDataItemMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *MasterDataItemMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case masterdataitem.EdgeChargeCategoryFeeSettings:
-		ids := make([]ent.Value, 0, len(m.charge_category_fee_settings))
-		for id := range m.charge_category_fee_settings {
-			ids = append(ids, id)
-		}
-		return ids
 	case masterdataitem.EdgeAbnormalCaseFeeSettings:
 		ids := make([]ent.Value, 0, len(m.abnormal_case_fee_settings))
 		for id := range m.abnormal_case_fee_settings {
@@ -75870,10 +75648,7 @@ func (m *MasterDataItemMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *MasterDataItemMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.removedcharge_category_fee_settings != nil {
-		edges = append(edges, masterdataitem.EdgeChargeCategoryFeeSettings)
-	}
+	edges := make([]string, 0, 1)
 	if m.removedabnormal_case_fee_settings != nil {
 		edges = append(edges, masterdataitem.EdgeAbnormalCaseFeeSettings)
 	}
@@ -75884,12 +75659,6 @@ func (m *MasterDataItemMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *MasterDataItemMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case masterdataitem.EdgeChargeCategoryFeeSettings:
-		ids := make([]ent.Value, 0, len(m.removedcharge_category_fee_settings))
-		for id := range m.removedcharge_category_fee_settings {
-			ids = append(ids, id)
-		}
-		return ids
 	case masterdataitem.EdgeAbnormalCaseFeeSettings:
 		ids := make([]ent.Value, 0, len(m.removedabnormal_case_fee_settings))
 		for id := range m.removedabnormal_case_fee_settings {
@@ -75902,10 +75671,7 @@ func (m *MasterDataItemMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *MasterDataItemMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.clearedcharge_category_fee_settings {
-		edges = append(edges, masterdataitem.EdgeChargeCategoryFeeSettings)
-	}
+	edges := make([]string, 0, 1)
 	if m.clearedabnormal_case_fee_settings {
 		edges = append(edges, masterdataitem.EdgeAbnormalCaseFeeSettings)
 	}
@@ -75916,8 +75682,6 @@ func (m *MasterDataItemMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *MasterDataItemMutation) EdgeCleared(name string) bool {
 	switch name {
-	case masterdataitem.EdgeChargeCategoryFeeSettings:
-		return m.clearedcharge_category_fee_settings
 	case masterdataitem.EdgeAbnormalCaseFeeSettings:
 		return m.clearedabnormal_case_fee_settings
 	}
@@ -75936,9 +75700,6 @@ func (m *MasterDataItemMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *MasterDataItemMutation) ResetEdge(name string) error {
 	switch name {
-	case masterdataitem.EdgeChargeCategoryFeeSettings:
-		m.ResetChargeCategoryFeeSettings()
-		return nil
 	case masterdataitem.EdgeAbnormalCaseFeeSettings:
 		m.ResetAbnormalCaseFeeSettings()
 		return nil
@@ -80018,9 +79779,6 @@ type OrderMutation struct {
 	lifecycle_events                        map[uuid.UUID]struct{}
 	removedlifecycle_events                 map[uuid.UUID]struct{}
 	clearedlifecycle_events                 bool
-	service_types                           map[uuid.UUID]struct{}
-	removedservice_types                    map[uuid.UUID]struct{}
-	clearedservice_types                    bool
 	cargo_categories                        map[uuid.UUID]struct{}
 	removedcargo_categories                 map[uuid.UUID]struct{}
 	clearedcargo_categories                 bool
@@ -84160,60 +83918,6 @@ func (m *OrderMutation) ResetLifecycleEvents() {
 	m.removedlifecycle_events = nil
 }
 
-// AddServiceTypeIDs adds the "service_types" edge to the OrderServiceType entity by ids.
-func (m *OrderMutation) AddServiceTypeIDs(ids ...uuid.UUID) {
-	if m.service_types == nil {
-		m.service_types = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		m.service_types[ids[i]] = struct{}{}
-	}
-}
-
-// ClearServiceTypes clears the "service_types" edge to the OrderServiceType entity.
-func (m *OrderMutation) ClearServiceTypes() {
-	m.clearedservice_types = true
-}
-
-// ServiceTypesCleared reports if the "service_types" edge to the OrderServiceType entity was cleared.
-func (m *OrderMutation) ServiceTypesCleared() bool {
-	return m.clearedservice_types
-}
-
-// RemoveServiceTypeIDs removes the "service_types" edge to the OrderServiceType entity by IDs.
-func (m *OrderMutation) RemoveServiceTypeIDs(ids ...uuid.UUID) {
-	if m.removedservice_types == nil {
-		m.removedservice_types = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		delete(m.service_types, ids[i])
-		m.removedservice_types[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedServiceTypes returns the removed IDs of the "service_types" edge to the OrderServiceType entity.
-func (m *OrderMutation) RemovedServiceTypesIDs() (ids []uuid.UUID) {
-	for id := range m.removedservice_types {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ServiceTypesIDs returns the "service_types" edge IDs in the mutation.
-func (m *OrderMutation) ServiceTypesIDs() (ids []uuid.UUID) {
-	for id := range m.service_types {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetServiceTypes resets all changes to the "service_types" edge.
-func (m *OrderMutation) ResetServiceTypes() {
-	m.service_types = nil
-	m.clearedservice_types = false
-	m.removedservice_types = nil
-}
-
 // AddCargoCategoryIDs adds the "cargo_categories" edge to the OrderCargoCategory entity by ids.
 func (m *OrderMutation) AddCargoCategoryIDs(ids ...uuid.UUID) {
 	if m.cargo_categories == nil {
@@ -87800,7 +87504,7 @@ func (m *OrderMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 36)
+	edges := make([]string, 0, 35)
 	if m.organization != nil {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -87812,9 +87516,6 @@ func (m *OrderMutation) AddedEdges() []string {
 	}
 	if m.lifecycle_events != nil {
 		edges = append(edges, order.EdgeLifecycleEvents)
-	}
-	if m.service_types != nil {
-		edges = append(edges, order.EdgeServiceTypes)
 	}
 	if m.cargo_categories != nil {
 		edges = append(edges, order.EdgeCargoCategories)
@@ -87931,12 +87632,6 @@ func (m *OrderMutation) AddedIDs(name string) []ent.Value {
 	case order.EdgeLifecycleEvents:
 		ids := make([]ent.Value, 0, len(m.lifecycle_events))
 		for id := range m.lifecycle_events {
-			ids = append(ids, id)
-		}
-		return ids
-	case order.EdgeServiceTypes:
-		ids := make([]ent.Value, 0, len(m.service_types))
-		for id := range m.service_types {
 			ids = append(ids, id)
 		}
 		return ids
@@ -88130,12 +87825,9 @@ func (m *OrderMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 36)
+	edges := make([]string, 0, 35)
 	if m.removedlifecycle_events != nil {
 		edges = append(edges, order.EdgeLifecycleEvents)
-	}
-	if m.removedservice_types != nil {
-		edges = append(edges, order.EdgeServiceTypes)
 	}
 	if m.removedcargo_categories != nil {
 		edges = append(edges, order.EdgeCargoCategories)
@@ -88237,12 +87929,6 @@ func (m *OrderMutation) RemovedIDs(name string) []ent.Value {
 	case order.EdgeLifecycleEvents:
 		ids := make([]ent.Value, 0, len(m.removedlifecycle_events))
 		for id := range m.removedlifecycle_events {
-			ids = append(ids, id)
-		}
-		return ids
-	case order.EdgeServiceTypes:
-		ids := make([]ent.Value, 0, len(m.removedservice_types))
-		for id := range m.removedservice_types {
 			ids = append(ids, id)
 		}
 		return ids
@@ -88432,7 +88118,7 @@ func (m *OrderMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 36)
+	edges := make([]string, 0, 35)
 	if m.clearedorganization {
 		edges = append(edges, order.EdgeOrganization)
 	}
@@ -88444,9 +88130,6 @@ func (m *OrderMutation) ClearedEdges() []string {
 	}
 	if m.clearedlifecycle_events {
 		edges = append(edges, order.EdgeLifecycleEvents)
-	}
-	if m.clearedservice_types {
-		edges = append(edges, order.EdgeServiceTypes)
 	}
 	if m.clearedcargo_categories {
 		edges = append(edges, order.EdgeCargoCategories)
@@ -88556,8 +88239,6 @@ func (m *OrderMutation) EdgeCleared(name string) bool {
 		return m.clearedshipping_line
 	case order.EdgeLifecycleEvents:
 		return m.clearedlifecycle_events
-	case order.EdgeServiceTypes:
-		return m.clearedservice_types
 	case order.EdgeCargoCategories:
 		return m.clearedcargo_categories
 	case order.EdgeMilestones:
@@ -88659,9 +88340,6 @@ func (m *OrderMutation) ResetEdge(name string) error {
 		return nil
 	case order.EdgeLifecycleEvents:
 		m.ResetLifecycleEvents()
-		return nil
-	case order.EdgeServiceTypes:
-		m.ResetServiceTypes()
 		return nil
 	case order.EdgeCargoCategories:
 		m.ResetCargoCategories()
@@ -97384,7 +97062,6 @@ type OrderFeeMutation struct {
 	exchange_rate_setting_id              *uuid.UUID
 	base_currency                         *string
 	base_currency_amount                  *string
-	expense_date                          *string
 	note                                  *string
 	economic_effect                       *orderfee.EconomicEffect
 	accounting_required                   *bool
@@ -98630,42 +98307,6 @@ func (m *OrderFeeMutation) ResetBaseCurrencyAmount() {
 	m.base_currency_amount = nil
 }
 
-// SetExpenseDate sets the "expense_date" field.
-func (m *OrderFeeMutation) SetExpenseDate(s string) {
-	m.expense_date = &s
-}
-
-// ExpenseDate returns the value of the "expense_date" field in the mutation.
-func (m *OrderFeeMutation) ExpenseDate() (r string, exists bool) {
-	v := m.expense_date
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldExpenseDate returns the old "expense_date" field's value of the OrderFee entity.
-// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderFeeMutation) OldExpenseDate(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldExpenseDate is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldExpenseDate requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldExpenseDate: %w", err)
-	}
-	return oldValue.ExpenseDate, nil
-}
-
-// ResetExpenseDate resets all changes to the "expense_date" field.
-func (m *OrderFeeMutation) ResetExpenseDate() {
-	m.expense_date = nil
-}
-
 // SetNote sets the "note" field.
 func (m *OrderFeeMutation) SetNote(s string) {
 	m.note = &s
@@ -99572,7 +99213,7 @@ func (m *OrderFeeMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderFeeMutation) Fields() []string {
-	fields := make([]string, 0, 37)
+	fields := make([]string, 0, 36)
 	if m.created_at != nil {
 		fields = append(fields, orderfee.FieldCreatedAt)
 	}
@@ -99656,9 +99297,6 @@ func (m *OrderFeeMutation) Fields() []string {
 	}
 	if m.base_currency_amount != nil {
 		fields = append(fields, orderfee.FieldBaseCurrencyAmount)
-	}
-	if m.expense_date != nil {
-		fields = append(fields, orderfee.FieldExpenseDate)
 	}
 	if m.note != nil {
 		fields = append(fields, orderfee.FieldNote)
@@ -99748,8 +99386,6 @@ func (m *OrderFeeMutation) Field(name string) (ent.Value, bool) {
 		return m.BaseCurrency()
 	case orderfee.FieldBaseCurrencyAmount:
 		return m.BaseCurrencyAmount()
-	case orderfee.FieldExpenseDate:
-		return m.ExpenseDate()
 	case orderfee.FieldNote:
 		return m.Note()
 	case orderfee.FieldSupplementRequestID:
@@ -99831,8 +99467,6 @@ func (m *OrderFeeMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldBaseCurrency(ctx)
 	case orderfee.FieldBaseCurrencyAmount:
 		return m.OldBaseCurrencyAmount(ctx)
-	case orderfee.FieldExpenseDate:
-		return m.OldExpenseDate(ctx)
 	case orderfee.FieldNote:
 		return m.OldNote(ctx)
 	case orderfee.FieldSupplementRequestID:
@@ -100053,13 +99687,6 @@ func (m *OrderFeeMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetBaseCurrencyAmount(v)
-		return nil
-	case orderfee.FieldExpenseDate:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetExpenseDate(v)
 		return nil
 	case orderfee.FieldNote:
 		v, ok := value.(string)
@@ -100339,9 +99966,6 @@ func (m *OrderFeeMutation) ResetField(name string) error {
 		return nil
 	case orderfee.FieldBaseCurrencyAmount:
 		m.ResetBaseCurrencyAmount()
-		return nil
-	case orderfee.FieldExpenseDate:
-		m.ResetExpenseDate()
 		return nil
 	case orderfee.FieldNote:
 		m.ResetNote()
@@ -105662,7 +105286,6 @@ type OrderFeeSupplementRequestMutation struct {
 	exchange_rate_setting_id           *uuid.UUID
 	base_currency                      *string
 	base_currency_amount               *string
-	expense_date                       *string
 	note                               *string
 	reason                             *string
 	requested_at                       *time.Time
@@ -107289,42 +106912,6 @@ func (m *OrderFeeSupplementRequestMutation) ResetBaseCurrencyAmount() {
 	m.base_currency_amount = nil
 }
 
-// SetExpenseDate sets the "expense_date" field.
-func (m *OrderFeeSupplementRequestMutation) SetExpenseDate(s string) {
-	m.expense_date = &s
-}
-
-// ExpenseDate returns the value of the "expense_date" field in the mutation.
-func (m *OrderFeeSupplementRequestMutation) ExpenseDate() (r string, exists bool) {
-	v := m.expense_date
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldExpenseDate returns the old "expense_date" field's value of the OrderFeeSupplementRequest entity.
-// If the OrderFeeSupplementRequest object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderFeeSupplementRequestMutation) OldExpenseDate(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldExpenseDate is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldExpenseDate requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldExpenseDate: %w", err)
-	}
-	return oldValue.ExpenseDate, nil
-}
-
-// ResetExpenseDate resets all changes to the "expense_date" field.
-func (m *OrderFeeSupplementRequestMutation) ResetExpenseDate() {
-	m.expense_date = nil
-}
-
 // SetNote sets the "note" field.
 func (m *OrderFeeSupplementRequestMutation) SetNote(s string) {
 	m.note = &s
@@ -107997,7 +107584,7 @@ func (m *OrderFeeSupplementRequestMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderFeeSupplementRequestMutation) Fields() []string {
-	fields := make([]string, 0, 46)
+	fields := make([]string, 0, 45)
 	if m.created_at != nil {
 		fields = append(fields, orderfeesupplementrequest.FieldCreatedAt)
 	}
@@ -108106,9 +107693,6 @@ func (m *OrderFeeSupplementRequestMutation) Fields() []string {
 	if m.base_currency_amount != nil {
 		fields = append(fields, orderfeesupplementrequest.FieldBaseCurrencyAmount)
 	}
-	if m.expense_date != nil {
-		fields = append(fields, orderfeesupplementrequest.FieldExpenseDate)
-	}
 	if m.note != nil {
 		fields = append(fields, orderfeesupplementrequest.FieldNote)
 	}
@@ -108216,8 +107800,6 @@ func (m *OrderFeeSupplementRequestMutation) Field(name string) (ent.Value, bool)
 		return m.BaseCurrency()
 	case orderfeesupplementrequest.FieldBaseCurrencyAmount:
 		return m.BaseCurrencyAmount()
-	case orderfeesupplementrequest.FieldExpenseDate:
-		return m.ExpenseDate()
 	case orderfeesupplementrequest.FieldNote:
 		return m.Note()
 	case orderfeesupplementrequest.FieldReason:
@@ -108317,8 +107899,6 @@ func (m *OrderFeeSupplementRequestMutation) OldField(ctx context.Context, name s
 		return m.OldBaseCurrency(ctx)
 	case orderfeesupplementrequest.FieldBaseCurrencyAmount:
 		return m.OldBaseCurrencyAmount(ctx)
-	case orderfeesupplementrequest.FieldExpenseDate:
-		return m.OldExpenseDate(ctx)
 	case orderfeesupplementrequest.FieldNote:
 		return m.OldNote(ctx)
 	case orderfeesupplementrequest.FieldReason:
@@ -108597,13 +108177,6 @@ func (m *OrderFeeSupplementRequestMutation) SetField(name string, value ent.Valu
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetBaseCurrencyAmount(v)
-		return nil
-	case orderfeesupplementrequest.FieldExpenseDate:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetExpenseDate(v)
 		return nil
 	case orderfeesupplementrequest.FieldNote:
 		v, ok := value.(string)
@@ -108962,9 +108535,6 @@ func (m *OrderFeeSupplementRequestMutation) ResetField(name string) error {
 		return nil
 	case orderfeesupplementrequest.FieldBaseCurrencyAmount:
 		m.ResetBaseCurrencyAmount()
-		return nil
-	case orderfeesupplementrequest.FieldExpenseDate:
-		m.ResetExpenseDate()
 		return nil
 	case orderfeesupplementrequest.FieldNote:
 		m.ResetNote()
@@ -117119,554 +116689,6 @@ func (m *OrderReleasePodMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown OrderReleasePod edge %s", name)
-}
-
-// OrderServiceTypeMutation represents an operation that mutates the OrderServiceType nodes in the graph.
-type OrderServiceTypeMutation struct {
-	config
-	op                  Op
-	typ                 string
-	id                  *uuid.UUID
-	created_at          *time.Time
-	updated_at          *time.Time
-	master_data_item_id *uuid.UUID
-	clearedFields       map[string]struct{}
-	_order              *uuid.UUID
-	cleared_order       bool
-	done                bool
-	oldValue            func(context.Context) (*OrderServiceType, error)
-	predicates          []predicate.OrderServiceType
-}
-
-var _ ent.Mutation = (*OrderServiceTypeMutation)(nil)
-
-// orderservicetypeOption allows management of the mutation configuration using functional options.
-type orderservicetypeOption func(*OrderServiceTypeMutation)
-
-// newOrderServiceTypeMutation creates new mutation for the OrderServiceType entity.
-func newOrderServiceTypeMutation(c config, op Op, opts ...orderservicetypeOption) *OrderServiceTypeMutation {
-	m := &OrderServiceTypeMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeOrderServiceType,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withOrderServiceTypeID sets the ID field of the mutation.
-func withOrderServiceTypeID(id uuid.UUID) orderservicetypeOption {
-	return func(m *OrderServiceTypeMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *OrderServiceType
-		)
-		m.oldValue = func(ctx context.Context) (*OrderServiceType, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().OrderServiceType.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withOrderServiceType sets the old OrderServiceType of the mutation.
-func withOrderServiceType(node *OrderServiceType) orderservicetypeOption {
-	return func(m *OrderServiceTypeMutation) {
-		m.oldValue = func(context.Context) (*OrderServiceType, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m OrderServiceTypeMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m OrderServiceTypeMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of OrderServiceType entities.
-func (m *OrderServiceTypeMutation) SetID(id uuid.UUID) {
-	m.id = &id
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *OrderServiceTypeMutation) ID() (id uuid.UUID, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *OrderServiceTypeMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []uuid.UUID{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().OrderServiceType.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (m *OrderServiceTypeMutation) SetCreatedAt(t time.Time) {
-	m.created_at = &t
-}
-
-// CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *OrderServiceTypeMutation) CreatedAt() (r time.Time, exists bool) {
-	v := m.created_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreatedAt returns the old "created_at" field's value of the OrderServiceType entity.
-// If the OrderServiceType object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderServiceTypeMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
-	}
-	return oldValue.CreatedAt, nil
-}
-
-// ResetCreatedAt resets all changes to the "created_at" field.
-func (m *OrderServiceTypeMutation) ResetCreatedAt() {
-	m.created_at = nil
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (m *OrderServiceTypeMutation) SetUpdatedAt(t time.Time) {
-	m.updated_at = &t
-}
-
-// UpdatedAt returns the value of the "updated_at" field in the mutation.
-func (m *OrderServiceTypeMutation) UpdatedAt() (r time.Time, exists bool) {
-	v := m.updated_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpdatedAt returns the old "updated_at" field's value of the OrderServiceType entity.
-// If the OrderServiceType object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderServiceTypeMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
-	}
-	return oldValue.UpdatedAt, nil
-}
-
-// ResetUpdatedAt resets all changes to the "updated_at" field.
-func (m *OrderServiceTypeMutation) ResetUpdatedAt() {
-	m.updated_at = nil
-}
-
-// SetOrderID sets the "order_id" field.
-func (m *OrderServiceTypeMutation) SetOrderID(u uuid.UUID) {
-	m._order = &u
-}
-
-// OrderID returns the value of the "order_id" field in the mutation.
-func (m *OrderServiceTypeMutation) OrderID() (r uuid.UUID, exists bool) {
-	v := m._order
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldOrderID returns the old "order_id" field's value of the OrderServiceType entity.
-// If the OrderServiceType object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderServiceTypeMutation) OldOrderID(ctx context.Context) (v uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldOrderID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
-	}
-	return oldValue.OrderID, nil
-}
-
-// ResetOrderID resets all changes to the "order_id" field.
-func (m *OrderServiceTypeMutation) ResetOrderID() {
-	m._order = nil
-}
-
-// SetMasterDataItemID sets the "master_data_item_id" field.
-func (m *OrderServiceTypeMutation) SetMasterDataItemID(u uuid.UUID) {
-	m.master_data_item_id = &u
-}
-
-// MasterDataItemID returns the value of the "master_data_item_id" field in the mutation.
-func (m *OrderServiceTypeMutation) MasterDataItemID() (r uuid.UUID, exists bool) {
-	v := m.master_data_item_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldMasterDataItemID returns the old "master_data_item_id" field's value of the OrderServiceType entity.
-// If the OrderServiceType object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OrderServiceTypeMutation) OldMasterDataItemID(ctx context.Context) (v uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldMasterDataItemID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldMasterDataItemID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldMasterDataItemID: %w", err)
-	}
-	return oldValue.MasterDataItemID, nil
-}
-
-// ResetMasterDataItemID resets all changes to the "master_data_item_id" field.
-func (m *OrderServiceTypeMutation) ResetMasterDataItemID() {
-	m.master_data_item_id = nil
-}
-
-// ClearOrder clears the "order" edge to the Order entity.
-func (m *OrderServiceTypeMutation) ClearOrder() {
-	m.cleared_order = true
-	m.clearedFields[orderservicetype.FieldOrderID] = struct{}{}
-}
-
-// OrderCleared reports if the "order" edge to the Order entity was cleared.
-func (m *OrderServiceTypeMutation) OrderCleared() bool {
-	return m.cleared_order
-}
-
-// OrderIDs returns the "order" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// OrderID instead. It exists only for internal usage by the builders.
-func (m *OrderServiceTypeMutation) OrderIDs() (ids []uuid.UUID) {
-	if id := m._order; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetOrder resets all changes to the "order" edge.
-func (m *OrderServiceTypeMutation) ResetOrder() {
-	m._order = nil
-	m.cleared_order = false
-}
-
-// Where appends a list predicates to the OrderServiceTypeMutation builder.
-func (m *OrderServiceTypeMutation) Where(ps ...predicate.OrderServiceType) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the OrderServiceTypeMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *OrderServiceTypeMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.OrderServiceType, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *OrderServiceTypeMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *OrderServiceTypeMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (OrderServiceType).
-func (m *OrderServiceTypeMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *OrderServiceTypeMutation) Fields() []string {
-	fields := make([]string, 0, 4)
-	if m.created_at != nil {
-		fields = append(fields, orderservicetype.FieldCreatedAt)
-	}
-	if m.updated_at != nil {
-		fields = append(fields, orderservicetype.FieldUpdatedAt)
-	}
-	if m._order != nil {
-		fields = append(fields, orderservicetype.FieldOrderID)
-	}
-	if m.master_data_item_id != nil {
-		fields = append(fields, orderservicetype.FieldMasterDataItemID)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *OrderServiceTypeMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case orderservicetype.FieldCreatedAt:
-		return m.CreatedAt()
-	case orderservicetype.FieldUpdatedAt:
-		return m.UpdatedAt()
-	case orderservicetype.FieldOrderID:
-		return m.OrderID()
-	case orderservicetype.FieldMasterDataItemID:
-		return m.MasterDataItemID()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *OrderServiceTypeMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case orderservicetype.FieldCreatedAt:
-		return m.OldCreatedAt(ctx)
-	case orderservicetype.FieldUpdatedAt:
-		return m.OldUpdatedAt(ctx)
-	case orderservicetype.FieldOrderID:
-		return m.OldOrderID(ctx)
-	case orderservicetype.FieldMasterDataItemID:
-		return m.OldMasterDataItemID(ctx)
-	}
-	return nil, fmt.Errorf("unknown OrderServiceType field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *OrderServiceTypeMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case orderservicetype.FieldCreatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreatedAt(v)
-		return nil
-	case orderservicetype.FieldUpdatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdatedAt(v)
-		return nil
-	case orderservicetype.FieldOrderID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetOrderID(v)
-		return nil
-	case orderservicetype.FieldMasterDataItemID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetMasterDataItemID(v)
-		return nil
-	}
-	return fmt.Errorf("unknown OrderServiceType field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *OrderServiceTypeMutation) AddedFields() []string {
-	return nil
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *OrderServiceTypeMutation) AddedField(name string) (ent.Value, bool) {
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *OrderServiceTypeMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown OrderServiceType numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *OrderServiceTypeMutation) ClearedFields() []string {
-	return nil
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *OrderServiceTypeMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *OrderServiceTypeMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown OrderServiceType nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *OrderServiceTypeMutation) ResetField(name string) error {
-	switch name {
-	case orderservicetype.FieldCreatedAt:
-		m.ResetCreatedAt()
-		return nil
-	case orderservicetype.FieldUpdatedAt:
-		m.ResetUpdatedAt()
-		return nil
-	case orderservicetype.FieldOrderID:
-		m.ResetOrderID()
-		return nil
-	case orderservicetype.FieldMasterDataItemID:
-		m.ResetMasterDataItemID()
-		return nil
-	}
-	return fmt.Errorf("unknown OrderServiceType field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *OrderServiceTypeMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m._order != nil {
-		edges = append(edges, orderservicetype.EdgeOrder)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *OrderServiceTypeMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case orderservicetype.EdgeOrder:
-		if id := m._order; id != nil {
-			return []ent.Value{*id}
-		}
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *OrderServiceTypeMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *OrderServiceTypeMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *OrderServiceTypeMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.cleared_order {
-		edges = append(edges, orderservicetype.EdgeOrder)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *OrderServiceTypeMutation) EdgeCleared(name string) bool {
-	switch name {
-	case orderservicetype.EdgeOrder:
-		return m.cleared_order
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *OrderServiceTypeMutation) ClearEdge(name string) error {
-	switch name {
-	case orderservicetype.EdgeOrder:
-		m.ClearOrder()
-		return nil
-	}
-	return fmt.Errorf("unknown OrderServiceType unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *OrderServiceTypeMutation) ResetEdge(name string) error {
-	switch name {
-	case orderservicetype.EdgeOrder:
-		m.ResetOrder()
-		return nil
-	}
-	return fmt.Errorf("unknown OrderServiceType edge %s", name)
 }
 
 // OrderShippingDocumentMutation represents an operation that mutates the OrderShippingDocument nodes in the graph.

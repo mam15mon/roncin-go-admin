@@ -36,8 +36,6 @@ type FeeSetting struct {
 	NameEn *string `json:"name_en,omitempty"`
 	// AliasName holds the value of the "alias_name" field.
 	AliasName *string `json:"alias_name,omitempty"`
-	// ChargeCategoryID holds the value of the "charge_category_id" field.
-	ChargeCategoryID uuid.UUID `json:"charge_category_id,omitempty"`
 	// DefaultCurrency holds the value of the "default_currency" field.
 	DefaultCurrency string `json:"default_currency,omitempty"`
 	// BillingUnitID holds the value of the "billing_unit_id" field.
@@ -64,8 +62,6 @@ type FeeSetting struct {
 type FeeSettingEdges struct {
 	// Organization holds the value of the organization edge.
 	Organization *Organization `json:"organization,omitempty"`
-	// ChargeCategory holds the value of the charge_category edge.
-	ChargeCategory *MasterDataItem `json:"charge_category,omitempty"`
 	// BillingUnit holds the value of the billing_unit edge.
 	BillingUnit *BillingUnit `json:"billing_unit,omitempty"`
 	// AbnormalCase holds the value of the abnormal_case edge.
@@ -76,7 +72,7 @@ type FeeSettingEdges struct {
 	OrderFees []*OrderFee `json:"order_fees,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [5]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -90,23 +86,12 @@ func (e FeeSettingEdges) OrganizationOrErr() (*Organization, error) {
 	return nil, &NotLoadedError{edge: "organization"}
 }
 
-// ChargeCategoryOrErr returns the ChargeCategory value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e FeeSettingEdges) ChargeCategoryOrErr() (*MasterDataItem, error) {
-	if e.ChargeCategory != nil {
-		return e.ChargeCategory, nil
-	} else if e.loadedTypes[1] {
-		return nil, &NotFoundError{label: masterdataitem.Label}
-	}
-	return nil, &NotLoadedError{edge: "charge_category"}
-}
-
 // BillingUnitOrErr returns the BillingUnit value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e FeeSettingEdges) BillingUnitOrErr() (*BillingUnit, error) {
 	if e.BillingUnit != nil {
 		return e.BillingUnit, nil
-	} else if e.loadedTypes[2] {
+	} else if e.loadedTypes[1] {
 		return nil, &NotFoundError{label: billingunit.Label}
 	}
 	return nil, &NotLoadedError{edge: "billing_unit"}
@@ -117,7 +102,7 @@ func (e FeeSettingEdges) BillingUnitOrErr() (*BillingUnit, error) {
 func (e FeeSettingEdges) AbnormalCaseOrErr() (*MasterDataItem, error) {
 	if e.AbnormalCase != nil {
 		return e.AbnormalCase, nil
-	} else if e.loadedTypes[3] {
+	} else if e.loadedTypes[2] {
 		return nil, &NotFoundError{label: masterdataitem.Label}
 	}
 	return nil, &NotLoadedError{edge: "abnormal_case"}
@@ -128,7 +113,7 @@ func (e FeeSettingEdges) AbnormalCaseOrErr() (*MasterDataItem, error) {
 func (e FeeSettingEdges) TaxableServiceOrErr() (*TaxableService, error) {
 	if e.TaxableService != nil {
 		return e.TaxableService, nil
-	} else if e.loadedTypes[4] {
+	} else if e.loadedTypes[3] {
 		return nil, &NotFoundError{label: taxableservice.Label}
 	}
 	return nil, &NotLoadedError{edge: "taxable_service"}
@@ -137,7 +122,7 @@ func (e FeeSettingEdges) TaxableServiceOrErr() (*TaxableService, error) {
 // OrderFeesOrErr returns the OrderFees value or an error if the edge
 // was not loaded in eager-loading.
 func (e FeeSettingEdges) OrderFeesOrErr() ([]*OrderFee, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[4] {
 		return e.OrderFees, nil
 	}
 	return nil, &NotLoadedError{edge: "order_fees"}
@@ -158,7 +143,7 @@ func (*FeeSetting) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case feesetting.FieldCreatedAt, feesetting.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
-		case feesetting.FieldID, feesetting.FieldOrganizationID, feesetting.FieldChargeCategoryID, feesetting.FieldBillingUnitID, feesetting.FieldTaxableServiceID:
+		case feesetting.FieldID, feesetting.FieldOrganizationID, feesetting.FieldBillingUnitID, feesetting.FieldTaxableServiceID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -225,12 +210,6 @@ func (_m *FeeSetting) assignValues(columns []string, values []any) error {
 				_m.AliasName = new(string)
 				*_m.AliasName = value.String
 			}
-		case feesetting.FieldChargeCategoryID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
-				return fmt.Errorf("unexpected type %T for field charge_category_id", values[i])
-			} else if value != nil {
-				_m.ChargeCategoryID = *value
-			}
 		case feesetting.FieldDefaultCurrency:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field default_currency", values[i])
@@ -296,11 +275,6 @@ func (_m *FeeSetting) Value(name string) (ent.Value, error) {
 // QueryOrganization queries the "organization" edge of the FeeSetting entity.
 func (_m *FeeSetting) QueryOrganization() *OrganizationQuery {
 	return NewFeeSettingClient(_m.config).QueryOrganization(_m)
-}
-
-// QueryChargeCategory queries the "charge_category" edge of the FeeSetting entity.
-func (_m *FeeSetting) QueryChargeCategory() *MasterDataItemQuery {
-	return NewFeeSettingClient(_m.config).QueryChargeCategory(_m)
 }
 
 // QueryBillingUnit queries the "billing_unit" edge of the FeeSetting entity.
@@ -370,9 +344,6 @@ func (_m *FeeSetting) String() string {
 		builder.WriteString("alias_name=")
 		builder.WriteString(*v)
 	}
-	builder.WriteString(", ")
-	builder.WriteString("charge_category_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.ChargeCategoryID))
 	builder.WriteString(", ")
 	builder.WriteString("default_currency=")
 	builder.WriteString(_m.DefaultCurrency)

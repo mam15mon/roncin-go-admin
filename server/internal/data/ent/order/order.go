@@ -184,8 +184,6 @@ const (
 	EdgeShippingLine = "shipping_line"
 	// EdgeLifecycleEvents holds the string denoting the lifecycle_events edge name in mutations.
 	EdgeLifecycleEvents = "lifecycle_events"
-	// EdgeServiceTypes holds the string denoting the service_types edge name in mutations.
-	EdgeServiceTypes = "service_types"
 	// EdgeCargoCategories holds the string denoting the cargo_categories edge name in mutations.
 	EdgeCargoCategories = "cargo_categories"
 	// EdgeMilestones holds the string denoting the milestones edge name in mutations.
@@ -278,13 +276,6 @@ const (
 	LifecycleEventsInverseTable = "order_lifecycle_events"
 	// LifecycleEventsColumn is the table column denoting the lifecycle_events relation/edge.
 	LifecycleEventsColumn = "order_id"
-	// ServiceTypesTable is the table that holds the service_types relation/edge.
-	ServiceTypesTable = "order_service_types"
-	// ServiceTypesInverseTable is the table name for the OrderServiceType entity.
-	// It exists in this package in order to avoid circular dependency with the "orderservicetype" package.
-	ServiceTypesInverseTable = "order_service_types"
-	// ServiceTypesColumn is the table column denoting the service_types relation/edge.
-	ServiceTypesColumn = "order_id"
 	// CargoCategoriesTable is the table that holds the cargo_categories relation/edge.
 	CargoCategoriesTable = "order_cargo_categories"
 	// CargoCategoriesInverseTable is the table name for the OrderCargoCategory entity.
@@ -1528,20 +1519,6 @@ func ByLifecycleEvents(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByServiceTypesCount orders the results by service_types count.
-func ByServiceTypesCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newServiceTypesStep(), opts...)
-	}
-}
-
-// ByServiceTypes orders the results by service_types terms.
-func ByServiceTypes(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newServiceTypesStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // ByCargoCategoriesCount orders the results by cargo_categories count.
 func ByCargoCategoriesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1994,13 +1971,6 @@ func newLifecycleEventsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(LifecycleEventsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, LifecycleEventsTable, LifecycleEventsColumn),
-	)
-}
-func newServiceTypesStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ServiceTypesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, ServiceTypesTable, ServiceTypesColumn),
 	)
 }
 func newCargoCategoriesStep() *sqlgraph.Step {

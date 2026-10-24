@@ -92,12 +92,6 @@ func (_c *FeeSettingTemplateCreate) SetNillableAliasName(v *string) *FeeSettingT
 	return _c
 }
 
-// SetChargeCategoryID sets the "charge_category_id" field.
-func (_c *FeeSettingTemplateCreate) SetChargeCategoryID(v uuid.UUID) *FeeSettingTemplateCreate {
-	_c.mutation.SetChargeCategoryID(v)
-	return _c
-}
-
 // SetDefaultCurrency sets the "default_currency" field.
 func (_c *FeeSettingTemplateCreate) SetDefaultCurrency(v string) *FeeSettingTemplateCreate {
 	_c.mutation.SetDefaultCurrency(v)
@@ -333,9 +327,6 @@ func (_c *FeeSettingTemplateCreate) check() error {
 			return &ValidationError{Name: "alias_name", err: fmt.Errorf(`ent: validator failed for field "FeeSettingTemplate.alias_name": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.ChargeCategoryID(); !ok {
-		return &ValidationError{Name: "charge_category_id", err: errors.New(`ent: missing required field "FeeSettingTemplate.charge_category_id"`)}
-	}
 	if _, ok := _c.mutation.DefaultCurrency(); !ok {
 		return &ValidationError{Name: "default_currency", err: errors.New(`ent: missing required field "FeeSettingTemplate.default_currency"`)}
 	}
@@ -439,10 +430,6 @@ func (_c *FeeSettingTemplateCreate) createSpec() (*FeeSettingTemplate, *sqlgraph
 	if value, ok := _c.mutation.AliasName(); ok {
 		_spec.SetField(feesettingtemplate.FieldAliasName, field.TypeString, value)
 		_node.AliasName = &value
-	}
-	if value, ok := _c.mutation.ChargeCategoryID(); ok {
-		_spec.SetField(feesettingtemplate.FieldChargeCategoryID, field.TypeUUID, value)
-		_node.ChargeCategoryID = value
 	}
 	if value, ok := _c.mutation.DefaultCurrency(); ok {
 		_spec.SetField(feesettingtemplate.FieldDefaultCurrency, field.TypeString, value)
@@ -609,18 +596,6 @@ func (u *FeeSettingTemplateUpsert) UpdateAliasName() *FeeSettingTemplateUpsert {
 // ClearAliasName clears the value of the "alias_name" field.
 func (u *FeeSettingTemplateUpsert) ClearAliasName() *FeeSettingTemplateUpsert {
 	u.SetNull(feesettingtemplate.FieldAliasName)
-	return u
-}
-
-// SetChargeCategoryID sets the "charge_category_id" field.
-func (u *FeeSettingTemplateUpsert) SetChargeCategoryID(v uuid.UUID) *FeeSettingTemplateUpsert {
-	u.Set(feesettingtemplate.FieldChargeCategoryID, v)
-	return u
-}
-
-// UpdateChargeCategoryID sets the "charge_category_id" field to the value that was provided on create.
-func (u *FeeSettingTemplateUpsert) UpdateChargeCategoryID() *FeeSettingTemplateUpsert {
-	u.SetExcluded(feesettingtemplate.FieldChargeCategoryID)
 	return u
 }
 
@@ -912,20 +887,6 @@ func (u *FeeSettingTemplateUpsertOne) UpdateAliasName() *FeeSettingTemplateUpser
 func (u *FeeSettingTemplateUpsertOne) ClearAliasName() *FeeSettingTemplateUpsertOne {
 	return u.Update(func(s *FeeSettingTemplateUpsert) {
 		s.ClearAliasName()
-	})
-}
-
-// SetChargeCategoryID sets the "charge_category_id" field.
-func (u *FeeSettingTemplateUpsertOne) SetChargeCategoryID(v uuid.UUID) *FeeSettingTemplateUpsertOne {
-	return u.Update(func(s *FeeSettingTemplateUpsert) {
-		s.SetChargeCategoryID(v)
-	})
-}
-
-// UpdateChargeCategoryID sets the "charge_category_id" field to the value that was provided on create.
-func (u *FeeSettingTemplateUpsertOne) UpdateChargeCategoryID() *FeeSettingTemplateUpsertOne {
-	return u.Update(func(s *FeeSettingTemplateUpsert) {
-		s.UpdateChargeCategoryID()
 	})
 }
 
@@ -1410,20 +1371,6 @@ func (u *FeeSettingTemplateUpsertBulk) UpdateAliasName() *FeeSettingTemplateUpse
 func (u *FeeSettingTemplateUpsertBulk) ClearAliasName() *FeeSettingTemplateUpsertBulk {
 	return u.Update(func(s *FeeSettingTemplateUpsert) {
 		s.ClearAliasName()
-	})
-}
-
-// SetChargeCategoryID sets the "charge_category_id" field.
-func (u *FeeSettingTemplateUpsertBulk) SetChargeCategoryID(v uuid.UUID) *FeeSettingTemplateUpsertBulk {
-	return u.Update(func(s *FeeSettingTemplateUpsert) {
-		s.SetChargeCategoryID(v)
-	})
-}
-
-// UpdateChargeCategoryID sets the "charge_category_id" field to the value that was provided on create.
-func (u *FeeSettingTemplateUpsertBulk) UpdateChargeCategoryID() *FeeSettingTemplateUpsertBulk {
-	return u.Update(func(s *FeeSettingTemplateUpsert) {
-		s.UpdateChargeCategoryID()
 	})
 }
 

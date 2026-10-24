@@ -246,9 +246,6 @@ type OrderPersonnel func(*sql.Selector)
 // OrderReleasePod is the predicate function for orderreleasepod builders.
 type OrderReleasePod func(*sql.Selector)
 
-// OrderServiceType is the predicate function for orderservicetype builders.
-type OrderServiceType func(*sql.Selector)
-
 // OrderShippingDocument is the predicate function for ordershippingdocument builders.
 type OrderShippingDocument func(*sql.Selector)
 
