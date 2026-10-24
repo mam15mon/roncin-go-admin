@@ -159,3 +159,24 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+## 2026-10-24: 订单详情与费用录入规则调整（10-24-order-detail-fee-refinements）
+
+### Summary
+
+内部人员业务/客服由客户档案带入且界面/服务端双路径只读（创建与草稿换客户均按新客户档案重挂）；订单主流程允许跳转任意后续节点并同事务补齐中间节点（一键完结同样补齐）；费用大类与订单服务类型全链路下线；费用发生日期退役为不可变录入日期（created_at 口径）；订单费用汇率统一按订单 ETD 所在自然周解析（ETD 缺失报 ORDER_ETD_MISSING）；新增独立权限码 system.finance.order_fee.exchange_rate.override 控制同币种订单的手工调汇率。含 proto/Ent/权限/OpenAPI 全部生成物同步与正式迁移 20261024100000。check:fast 全量门禁通过。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `8a1bd16d` | feat: 费用大类与发生日期数据层下线及正式迁移 |
+| `76f9b7dd` | feat: 费用与订单契约调整及独立汇率调整权限码 |
+| `a8aedc4a` | feat: 订单状态跳转补齐、人员客户带入、汇率按 ETD 解析与费用日期退役 |
+| `e9b9df89` | feat: 前端适配人员只读带入、状态跳转、大类下线与录入日期口径 |
+| `80c0614a` | feat: 草稿换客户时按新客户档案重挂业务/客服人员 |
+| `d1c550a4` | fix: review 修复死列死代码与集成测试适配新契约 |
+
+### Status
+
+[OK] **Completed**
