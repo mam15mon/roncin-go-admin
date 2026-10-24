@@ -295,7 +295,11 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 					return biz.ErrOrderCustomerChangeWithHouseBillBlocked
 				}
 			}
-			// 换客户不重拍归属：订单人员分工未变，归属行仅同步客户冗余列；
+			// 业务/客服以客户档案为唯一真相：换客户时按新客户档案重挂两岗人员行。
+			if syncErr := resyncOrderCustomerPersonnel(ctx, tx, organizationID, id, input.CustomerID); syncErr != nil {
+				return syncErr
+			}
+			// 换客户不重拍归属：归属快照固化创建时归属，归属行仅同步客户冗余列；
 			// 零行匹配（存量订单无归属行）视为无操作。
 			if _, updateErr := tx.OrderCommissionAttribution.Update().
 				Where(ordercommissionattributionent.OrderIDEQ(id)).

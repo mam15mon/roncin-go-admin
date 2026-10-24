@@ -194,6 +194,51 @@ func overrideOrderPersonnelFromCustomer(ctx context.Context, tx *ent.Tx, organiz
 	return filtered, nil
 }
 
+// resyncOrderCustomerPersonnel 换客户时按新客户档案重挂订单的销售/客服人员行：
+// 旧客户的两岗行先删除，再挂新客户档案上各岗位 sortOrder 最小的在册人员；
+// 新客户缺岗时该岗位留空。提成归属快照固化创建时归属，不随本操作重拍。
+func resyncOrderCustomerPersonnel(ctx context.Context, tx *ent.Tx, organizationID, orderID, customerID uuid.UUID) error {
+	rows, err := tx.PartnerAssignment.Query().
+		Where(
+			partnerassignmentent.PartnerIDEQ(customerID),
+			partnerassignmentent.OrganizationIDEQ(organizationID),
+			partnerassignmentent.RoleIn(partnerassignmentent.RoleSALES, partnerassignmentent.RoleCUSTOMER_SERVICE),
+		).
+		Order(partnerassignmentent.BySortOrder(), partnerassignmentent.ByID()).
+		All(ctx)
+	if err != nil {
+		return err
+	}
+	firstByRole := make(map[string]uuid.UUID, 2)
+	for _, row := range rows {
+		key := string(row.Role)
+		if _, exists := firstByRole[key]; !exists {
+			firstByRole[key] = row.UserID
+		}
+	}
+	if _, err := tx.OrderPersonnel.Delete().Where(
+		orderpersonnelent.OrderIDEQ(orderID),
+		orderpersonnelent.RoleIn(orderpersonnelent.RoleSALES, orderpersonnelent.RoleCUSTOMER_SERVICE),
+	).Exec(ctx); err != nil {
+		return err
+	}
+	for _, role := range []orderpersonnelent.Role{orderpersonnelent.RoleSALES, orderpersonnelent.RoleCUSTOMER_SERVICE} {
+		userID, exists := firstByRole[string(role)]
+		if !exists {
+			continue
+		}
+		if _, err := tx.OrderPersonnel.Create().
+			SetOrderID(orderID).
+			SetUserID(userID).
+			SetOrganizationID(organizationID).
+			SetRole(role).
+			Save(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // snapshotOrderCommissionAttributions 以同事务内已写入的订单人员（销售/操作/
 // 客服三岗）为唯一真相生成提成归属快照：source_assignment_id 记录订单人员行 ID，
 // customer_id 写入订单客户冗余列。操作岗由创建门禁保证必有；销售/客服由客户

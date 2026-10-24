@@ -203,11 +203,6 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		if err != nil || len(beforeAttributions) != 3 {
 			t.Fatalf("换客户前归属行数 = %d，期望 3，error=%v", len(beforeAttributions), err)
 		}
-		beforePersonnel, err := data.db.OrderPersonnel.Query().
-			Where(orderpersonnelent.OrderIDEQ(created.ID)).All(ctx)
-		if err != nil {
-			t.Fatalf("查询订单人员失败: %v", err)
-		}
 
 		update := fixture.validUpdateInput()
 		update.CustomerID = replacement.ID
@@ -240,8 +235,99 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		}
 		afterPersonnel, err := data.db.OrderPersonnel.Query().
 			Where(orderpersonnelent.OrderIDEQ(created.ID)).All(ctx)
-		if err != nil || len(afterPersonnel) != len(beforePersonnel) {
-			t.Fatalf("换客户后订单人员数 = %d，期望仍为 %d，error=%v", len(afterPersonnel), len(beforePersonnel), err)
+		if err != nil {
+			t.Fatalf("查询换客户后订单人员失败: %v", err)
+		}
+		// 业务/客服以客户档案为唯一真相：换入客户未配两岗，订单上对应人员行被移除。
+		for _, item := range afterPersonnel {
+			if item.Role == orderpersonnelent.RoleSALES || item.Role == orderpersonnelent.RoleCUSTOMER_SERVICE {
+				t.Fatalf("换入客户未配岗位，业务/客服人员行应被移除: %#v", item)
+			}
+		}
+	})
+
+
+
+	t.Run("草稿换客户按新客户档案重挂业务客服", func(t *testing.T) {
+		fixture := newOrderPostgresFixture(t, data)
+		usecase := fixture.newUsecase()
+		ctx := context.Background()
+		created, err := usecase.Create(ctx, fixture.organizationID, fixture.actorID, fixture.validInput())
+		if err != nil {
+			t.Fatalf("创建草稿订单: %v", err)
+		}
+		replacement, err := data.db.Partner.Create().
+			SetOrganizationID(fixture.organizationID).
+			SetCode("CUSTOMER-RESTAFF-" + fixture.suffix).
+			SetLegalName("换客户重挂客户-" + fixture.suffix).
+			SetNormalizedName("换客户重挂客户-" + fixture.suffix).
+			Save(ctx)
+		if err != nil {
+			t.Fatalf("创建换入客户失败: %v", err)
+		}
+		if _, err = data.db.PartnerRole.Create().
+			SetPartnerID(replacement.ID).
+			SetRoleType(partnerroleent.RoleTypeCustomer).
+			SetEnabled(true).
+			Save(ctx); err != nil {
+			t.Fatalf("创建换入客户角色失败: %v", err)
+		}
+		newSales, err := data.db.User.Create().SetDisplayName("重挂销售-" + fixture.suffix).SetEnabled(true).SetIsBootstrapAdmin(false).Save(ctx)
+		if err != nil {
+			t.Fatalf("创建重挂销售失败: %v", err)
+		}
+		newService, err := data.db.User.Create().SetDisplayName("重挂客服-" + fixture.suffix).SetEnabled(true).SetIsBootstrapAdmin(false).Save(ctx)
+		if err != nil {
+			t.Fatalf("创建重挂客服失败: %v", err)
+		}
+		for _, assignment := range []struct {
+			userID uuid.UUID
+			role   partnerassignmentent.Role
+		}{
+			{newSales.ID, partnerassignmentent.RoleSALES},
+			{newService.ID, partnerassignmentent.RoleCUSTOMER_SERVICE},
+		} {
+			if _, err = data.db.PartnerAssignment.Create().
+				SetPartnerID(replacement.ID).
+				SetUserID(assignment.userID).
+				SetOrganizationID(fixture.organizationID).
+				SetRole(assignment.role).
+				Save(ctx); err != nil {
+				t.Fatalf("创建换入客户岗位失败: %v", err)
+			}
+		}
+
+		update := fixture.validUpdateInput()
+		update.CustomerID = replacement.ID
+		if _, err := usecase.UpdateDraft(ctx, fixture.organizationID, fixture.actorID, created.ID, created.Version, update); err != nil {
+			t.Fatalf("草稿换客户失败: %v", err)
+		}
+
+		personnel, err := data.db.OrderPersonnel.Query().
+			Where(orderpersonnelent.OrderIDEQ(created.ID)).All(ctx)
+		if err != nil {
+			t.Fatalf("查询换客户后订单人员失败: %v", err)
+		}
+		roleUser := make(map[string]uuid.UUID, len(personnel))
+		for _, item := range personnel {
+			roleUser[string(item.Role)] = item.UserID
+		}
+		if roleUser["SALES"] != newSales.ID || roleUser["CUSTOMER_SERVICE"] != newService.ID {
+			t.Fatalf("换客户后业务/客服应重挂为新客户档案人员: %#v", roleUser)
+		}
+		// 归属快照固化创建时归属，不随换客户重拍。
+		attributions, err := data.db.OrderCommissionAttribution.Query().
+			Where(ordercommissionattributionent.OrderIDEQ(created.ID)).All(ctx)
+		if err != nil || len(attributions) != 3 {
+			t.Fatalf("换客户后归属行数 = %d，期望仍为 3，error=%v", len(attributions), err)
+		}
+		for _, item := range attributions {
+			if item.CustomerID != replacement.ID {
+				t.Fatalf("归属行客户列未同步: %#v", item)
+			}
+			if item.PersonnelRole == "SALES" && item.EmployeeID == newSales.ID {
+				t.Fatalf("归属快照不应随换客户重拍销售归属: %#v", item)
+			}
 		}
 	})
 
@@ -798,6 +884,18 @@ func newOrderPostgresFixture(t *testing.T, data *Data) *orderPostgresFixture {
 		SetEnabled(true).
 		Save(ctx); err != nil {
 		t.Fatalf("创建测试成员关系: %v", err)
+	}
+	// 业务/客服由客户档案带入：测试客户配置两岗在册人员（创建人兼任），
+	// 与 validInput 的三岗输入同源，人员计数与归属快照口径保持不变。
+	for _, assignmentRole := range []partnerassignmentent.Role{partnerassignmentent.RoleSALES, partnerassignmentent.RoleCUSTOMER_SERVICE} {
+		if _, err = data.db.PartnerAssignment.Create().
+			SetPartnerID(partner.ID).
+			SetUserID(actor.ID).
+			SetOrganizationID(organization.ID).
+			SetRole(assignmentRole).
+			Save(ctx); err != nil {
+			t.Fatalf("创建测试客户岗位失败: %v", err)
+		}
 	}
 	// 提成归属快照取自订单人员而非客户档案责任人，夹具不再预置客户责任人。
 
