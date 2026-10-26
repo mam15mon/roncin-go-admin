@@ -193,7 +193,8 @@ func orderAllowedActions(order *biz.Order) []biz.OrderAllowedAction {
 	} else if order.BusinessType != biz.OrderBusinessAE {
 		result = append(result, biz.OrderActionCancelTermination)
 	}
-	if !order.HasActiveException && (order.FlowStatus == biz.OrderFlowDocumentReleased || order.TerminationStatus == biz.OrderTerminationTerminated) {
+	// 完结可从任意主流程节点发起，未完成节点由结案事务统一补齐。
+	if !order.HasActiveException {
 		result = append(result, biz.OrderActionClose)
 	}
 	return result

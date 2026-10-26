@@ -243,7 +243,23 @@ describe('订单详情状态卡流转编排', () => {
     expect(mockConfirmClosure).toHaveBeenCalledOnce();
   });
 
-  it('草稿未开放完结动作时禁用按钮，工作台不符时无法流转', () => {
+  it('草稿收到完结动作即可直接打开完结确认，不要求先走主流程', () => {
+    testState.order = {
+      ...testState.order,
+      flowStatus: OrderFlowStatus.ORDER_FLOW_STATUS_DRAFT,
+      allowedActions: [OrderAllowedAction.ORDER_ALLOWED_ACTION_CLOSE],
+    };
+    render(
+      <App>
+        <OrderDetailPage />
+      </App>,
+    );
+    expect(screen.getByRole('button', { name: '完结订单' })).toBeEnabled();
+    fireEvent.click(screen.getByRole('button', { name: '完结订单' }));
+    expect(mockConfirmClosure).toHaveBeenCalledOnce();
+  });
+
+  it('工作台不符时无法完结或流转', () => {
     testState.canOperate = false;
     render(
       <App>

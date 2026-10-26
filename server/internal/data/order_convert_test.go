@@ -197,3 +197,29 @@ func TestOrderToBizPreservesVoyageScheduleInstants(t *testing.T) {
 		})
 	}
 }
+
+func TestOrderAllowedActionsCloseBeforeFlowCompleted(t *testing.T) {
+	lockedAt := time.Now().UTC()
+	for _, businessType := range []biz.OrderBusinessType{biz.OrderBusinessSE, biz.OrderBusinessAE} {
+		for _, flow := range []biz.OrderFlowStatus{biz.OrderFlowDraft, biz.OrderFlowBooked, biz.OrderFlowSpaceAllocated, biz.OrderFlowTruckingArranged, biz.OrderFlowDocumentCutoff, biz.OrderFlowCustomsDeclarationArranged, biz.OrderFlowDocumentReleased} {
+			for _, termination := range []biz.OrderTerminationStatus{biz.OrderTerminationActive, biz.OrderTerminationTerminating, biz.OrderTerminationTerminated} {
+				t.Run(string(businessType)+"/"+string(flow)+"/"+string(termination), func(t *testing.T) {
+					for _, lock := range []*time.Time{nil, &lockedAt} {
+						order := &biz.Order{BusinessType: businessType, FlowStatus: flow, TerminationStatus: termination, ClosureStatus: biz.OrderClosureOpen, LockedAt: lock}
+						if !slices.Contains(orderAllowedActions(order), biz.OrderActionClose) {
+							t.Fatal("未完结且无活动异常的订单应开放完结，不受主流程或业务锁限制")
+						}
+						order.HasActiveException = true
+						if slices.Contains(orderAllowedActions(order), biz.OrderActionClose) {
+							t.Fatal("活动异常仍应阻止完结")
+						}
+						order.ClosureStatus = biz.OrderClosureClosed
+						if actions := orderAllowedActions(order); !slices.Equal(actions, []biz.OrderAllowedAction{biz.OrderActionReopen}) {
+							t.Fatalf("已完结只开放反结案: %v", actions)
+						}
+					}
+				})
+			}
+		}
+	}
+}

@@ -455,7 +455,8 @@ URL 或新增平行请求封装。
 ### 5. Good / Base / Bad Cases
 
 - Good：`SPACE_ALLOCATED` 响应同时返回拖车和截单两个目标，状态卡同时开放两个节点。
-- Base：`DRAFT` 只开放“已订舱”；当前不满足结案条件时“未完结”按钮禁用。
+- Base：`DRAFT` 的主流程只开放“已订舱”；收到 `CLOSE` 时可直接完结，不要求先到已放单。
+  未返回完结动作或有待审费用变更时，按钮仍按服务端资格禁用。
 - Bad：前端写 `if (flowStatus === DRAFT) next = BOOKED`，或对所有生命周期动作统一套
   `businessWritesDisabled`。
 - Bad：状态成功后 `isFetching=true` 就返回整页骨架，导致含未保存内容的表单卸载。
