@@ -17,7 +17,11 @@ import { revealSeaFormErrors } from './sea-form-error-reveal';
 describe('提单页签校验失败定位链路', () => {
   it('提交校验命中 HBL 首个错误时自动切到 HBL 页签', async () => {
     const { formRef } = setup(HOUSE);
-    // 默认 MBL 页签在前台，HBL 输入不可见。
+    // 正式号码位于主单旁，此例以签发主体为第一个错误验证 HBL 页签揭示。
+    act(() =>
+      formRef.current?.setFieldValue(['seaHouseBill', 'houseNo'], 'HBL001'),
+    );
+    // 默认 MBL 页签在前台，HBL 签发主体字段不可见。
     expect(
       within(activeBillPane()).queryByPlaceholderText('请输入分单号'),
     ).toBeNull();
@@ -26,9 +30,7 @@ describe('提单页签校验失败定位链路', () => {
       formRef.current?.submit();
     });
     await waitFor(() =>
-      expect(
-        within(activeBillPane()).getByPlaceholderText('请输入分单号'),
-      ).toBeVisible(),
+      expect(within(activeBillPane()).getByText('分单签发主体')).toBeVisible(),
     );
   });
 
@@ -45,9 +47,7 @@ describe('提单页签校验失败定位链路', () => {
     setup(HOUSE);
     fireEvent.click(screen.getByRole('tab', { name: /分单 \(HBL\)/ }));
     await waitFor(() =>
-      expect(
-        within(activeBillPane()).getByPlaceholderText('请输入分单号'),
-      ).toBeVisible(),
+      expect(within(activeBillPane()).getByText('分单签发主体')).toBeVisible(),
     );
     act(() => {
       revealSeaFormErrors([

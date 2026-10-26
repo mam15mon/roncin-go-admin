@@ -16,7 +16,7 @@ export function normalizeSeaHouseNoForCompare(value: string): string {
 
 type HouseBillFormKey = 'seaHouseBill' | 'newHouseBill';
 
-export function HouseBillIdentityFields({
+export function HouseBillNumberField({
   fieldKey,
   disabled = false,
 }: {
@@ -40,41 +40,58 @@ export function HouseBillIdentityFields({
     }
   }, [batchHouseNos, fieldKey, form]);
   return (
+    <ProFormText
+      name={[fieldKey, 'houseNo']}
+      label="分单号 (HBL No.)"
+      placeholder="请输入分单号"
+      disabled={disabled}
+      layout="vertical"
+      rules={[
+        { required: true, whitespace: true, message: '分单号不能为空' },
+        ({ getFieldValue }) => ({
+          validator(_rule, value) {
+            const normalized = normalizeSeaHouseNoForCompare(
+              typeof value === 'string' ? value : '',
+            );
+            if (!normalized) return Promise.resolve();
+            // 命中共享主单批次时与批次内兄弟票分单号（含作废）即时比对。
+            const batchHouseNos = (getFieldValue(
+              'seaMasterBillBatchHouseNos',
+            ) ?? []) as string[];
+            if (batchHouseNos.includes(normalized)) {
+              return Promise.reject(
+                new Error(
+                  `分单号 ${normalized} 在该主单批次内已存在（含作废），请更换分单号`,
+                ),
+              );
+            }
+            return Promise.resolve();
+          },
+        }),
+      ]}
+      fieldProps={{ maxLength: 128 }}
+    />
+  );
+}
+
+export function HouseBillIdentityFields({
+  fieldKey,
+  disabled = false,
+  showHouseNo = true,
+}: {
+  fieldKey: HouseBillFormKey;
+  disabled?: boolean;
+  showHouseNo?: boolean;
+}) {
+  const form = Form.useFormInstance();
+  return (
     <Row gutter={[16, 0]}>
-      <Col xs={24} md={8}>
-        <ProFormText
-          name={[fieldKey, 'houseNo']}
-          label="分单号 (HBL No.)"
-          placeholder="请输入分单号"
-          disabled={disabled}
-          layout="vertical"
-          rules={[
-            { required: true, whitespace: true, message: '分单号不能为空' },
-            ({ getFieldValue }) => ({
-              validator(_rule, value) {
-                const normalized = normalizeSeaHouseNoForCompare(
-                  typeof value === 'string' ? value : '',
-                );
-                if (!normalized) return Promise.resolve();
-                // 命中共享主单批次时与批次内兄弟票分单号（含作废）即时比对。
-                const batchHouseNos = (getFieldValue(
-                  'seaMasterBillBatchHouseNos',
-                ) ?? []) as string[];
-                if (batchHouseNos.includes(normalized)) {
-                  return Promise.reject(
-                    new Error(
-                      `分单号 ${normalized} 在该主单批次内已存在（含作废），请更换分单号`,
-                    ),
-                  );
-                }
-                return Promise.resolve();
-              },
-            }),
-          ]}
-          fieldProps={{ maxLength: 128 }}
-        />
-      </Col>
-      <Col xs={24} md={16}>
+      {showHouseNo && (
+        <Col xs={24} md={8}>
+          <HouseBillNumberField fieldKey={fieldKey} disabled={disabled} />
+        </Col>
+      )}
+      <Col xs={24} md={showHouseNo ? 16 : 24}>
         <ProFormText
           name={[fieldKey, 'note']}
           label="分单备注"

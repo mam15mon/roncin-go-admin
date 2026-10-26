@@ -1,28 +1,58 @@
 import { SaveOutlined } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
+import { useQuery } from '@tanstack/react-query';
 import { App, Button, Card, Result, Space } from 'antd';
-import React, { useMemo, useRef, useState } from 'react';
-import { useParams } from 'react-router';
+import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useParams } from 'react-router';
 import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import { getFormDraftScope } from '@/components/layout/formDraft';
 import { resolveTabKey } from '@/components/layout/routeUtils';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
+import { SeaDocumentStructure } from '@/enums.generated';
 import { searchShippingLineOptions } from '@/features/master-data/shipping-lines';
 import { history } from '@/router/history';
-import { orderServiceCreateOrder } from '@/services/roncin/orderService';
+import {
+  orderServiceCreateOrder,
+  orderServiceGetOrder,
+} from '@/services/roncin/orderService';
 import { isWriteResponse } from '@/utils/api';
+import { getErrorMessage } from '@/utils/errorMessage';
 import { generateUUID } from '@/utils/uuid';
 import { PARTNER_ROLES, searchPartnersByRole } from './common';
 import OrderPageHeader from './components/OrderPageHeader';
 import type { CreateOrderFormValues } from './order-kinds/form-values';
 import { getOrderKindDefinition } from './order-kinds/registry';
+import {
+  getSeaHouseOrderCreateSource,
+  resolveSeaHouseOrderCreateRequest,
+} from './sea-house-order-context';
 import { revealSeaFormErrors } from './templates';
+import type { SeaHouseOrderCreateSource } from './templates/types';
 import { useOrderCreateOptions } from './use-order-create-options';
 
 export default function NewOrderPage() {
   const params = useParams<{ kind: string }>();
+  const { search } = useLocation();
+  const kind = params.kind ?? '';
+  const sourceRequest = resolveSeaHouseOrderCreateRequest(kind, search);
+  return (
+    <NewOrderContent
+      key={`${kind}:${sourceRequest.error ? 'invalid' : 'create'}:${sourceRequest.draftPathname}`}
+      kind={kind}
+      sourceRequest={sourceRequest}
+    />
+  );
+}
+
+function NewOrderContent({
+  kind,
+  sourceRequest,
+}: {
+  kind: string;
+  sourceRequest: ReturnType<typeof resolveSeaHouseOrderCreateRequest>;
+}) {
   const formRef = useRef<ProFormInstance | undefined>(undefined);
   const [submitting, setSubmitting] = useState(false);
   // 创建幂等键：每次提交意图一个键；失败重试沿用同键，成功后重新生成，
@@ -31,14 +61,72 @@ export default function NewOrderPage() {
   const { message } = App.useApp();
   const access = useAccess();
   const { initialState } = useInitialState();
+  const organizationId = initialState?.currentUser?.currentOrganization?.id;
   const draftScope = getFormDraftScope(
     initialState?.currentUser?.id,
     initialState?.currentUser?.currentOrganization?.id,
   );
 
-  const definition = getOrderKindDefinition(params.kind);
+  // 实例卸载即失效，覆盖 A→B→A 以及 StrictMode 的 setup/cleanup 往返。
+  const instanceGenerationRef = useRef(0);
+  useLayoutEffect(() => {
+    instanceGenerationRef.current += 1;
+    return () => {
+      instanceGenerationRef.current += 1;
+    };
+  }, []);
+
+  const definition = getOrderKindDefinition(kind);
   // create 权限同时门控候选项请求（无权限不发请求）与页面 403 兜底。
   const canCreate = access.canOrder(definition?.businessType ?? '', 'create');
+  const canReadSource = access.canOrder(definition?.businessType ?? '', 'read');
+  const { sourceOrderId } = sourceRequest;
+  const canUseSource = Boolean(
+    sourceOrderId &&
+      canCreate &&
+      canReadSource &&
+      organizationId &&
+      access.canOperateOrganization(organizationId),
+  );
+  const sourceQuery = useQuery({
+    queryKey: [
+      'orders',
+      'sea-house-create-source',
+      { organizationId, sourceOrderId },
+    ],
+    enabled: Boolean(sourceOrderId && !sourceRequest.error && canUseSource),
+    refetchOnMount: 'always',
+    queryFn: async () => {
+      if (!sourceOrderId || !organizationId) {
+        throw new Error('缺少来源订单或当前公司');
+      }
+      const response = await orderServiceGetOrder(
+        { id: sourceOrderId },
+        { skipErrorHandler: true },
+      );
+      if (response?.success === false)
+        throw new Error('来源订单读取失败，请重试。');
+      return getSeaHouseOrderCreateSource(
+        response?.data,
+        sourceOrderId,
+        organizationId,
+      );
+    },
+    // 错误由页面 Result 展示，避免与查询全局通知重复。
+    meta: { silent: true },
+  });
+  // 每个创建实例先完成本次来源读取，再固定初始化上下文；缓存旧值和后续
+  // 背景刷新均不能替换当前表单正在使用的来源身份或覆盖已恢复草稿。
+  const [source, setSource] = useState<SeaHouseOrderCreateSource>();
+  useLayoutEffect(() => {
+    if (sourceQuery.isFetchedAfterMount && sourceQuery.isSuccess) {
+      setSource((initialized) => initialized ?? sourceQuery.data);
+    }
+  }, [
+    sourceQuery.data,
+    sourceQuery.isFetchedAfterMount,
+    sourceQuery.isSuccess,
+  ]);
 
   const {
     loading,
@@ -50,11 +138,14 @@ export default function NewOrderPage() {
     currencyOptions,
     containerSpecOptions,
     personnelOptions,
-  } = useOrderCreateOptions(definition, canCreate);
+  } = useOrderCreateOptions(
+    definition,
+    canCreate && !sourceRequest.error && (!sourceOrderId || canUseSource),
+  );
 
   const templateProps = useMemo(
     () => ({
-        cargoCategoryOptions,
+      cargoCategoryOptions,
       locationOptions,
       searchLocations,
       currencyOptions,
@@ -71,6 +162,8 @@ export default function NewOrderPage() {
       setCustomerCode: (code?: string) =>
         formRef.current?.setFieldValue('customerCode', code ?? ''),
       personnelOptions,
+      organizationId,
+      seaHouseOrderCreateSource: source,
       creator: initialState?.currentUser?.id
         ? {
             userId: initialState.currentUser.id,
@@ -82,19 +175,44 @@ export default function NewOrderPage() {
         : undefined,
     }),
     [
-        cargoCategoryOptions,
+      cargoCategoryOptions,
       locationOptions,
       searchLocations,
       currencyOptions,
       containerSpecOptions,
       personnelOptions,
       initialState,
+      organizationId,
+      source,
     ],
   );
 
   const sections = useMemo(
     () => definition?.form.buildSections(templateProps) ?? [],
     [definition, templateProps],
+  );
+  const initialValues = useMemo(
+    () => ({
+      ...definition?.form.buildCreateDefaults({
+        creator: templateProps.creator,
+        cargoCategoryOptions,
+      }),
+      ...(source
+        ? {
+            shippingLineId: source.shippingLineId,
+            seaMasterBillMasterNo: source.masterNo,
+            seaDocumentStructure:
+              SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE,
+          }
+        : {}),
+    }),
+    [
+      definition,
+      cargoCategoryOptions,
+      templateProps.creator?.userId,
+      templateProps.creator?.displayName,
+      source,
+    ],
   );
 
   if (!definition) {
@@ -103,7 +221,7 @@ export default function NewOrderPage() {
         <Result
           status="404"
           title="无效的订单业务类型"
-          subTitle={`未知的业务类型路径 "${params.kind || ''}"，请选择有效业务入口。`}
+          subTitle={`未知的业务类型路径 "${kind}"，请选择有效业务入口。`}
           extra={
             <Button
               type="primary"
@@ -119,6 +237,47 @@ export default function NewOrderPage() {
 
   if (!canCreate) {
     return <Result status="403" title="无权新建此类订单" />;
+  }
+
+  if (sourceRequest.error || (sourceOrderId && !canUseSource)) {
+    return (
+      <PageContainer>
+        <Result
+          status={sourceRequest.error ? 'warning' : '403'}
+          title={
+            sourceRequest.error
+              ? '无法从此订单新增分单'
+              : '无权读取来源订单或新建分单'
+          }
+          subTitle={sourceRequest.error}
+        />
+      </PageContainer>
+    );
+  }
+
+  if (sourceOrderId && !source) {
+    return (
+      <PageContainer>
+        <Result
+          status={sourceQuery.isError ? 'warning' : 'info'}
+          title={
+            sourceQuery.isError ? '来源订单加载失败' : '正在读取来源主单...'
+          }
+          subTitle={
+            sourceQuery.isError
+              ? getErrorMessage(sourceQuery.error, '无法读取来源订单，请重试。')
+              : undefined
+          }
+          extra={
+            sourceQuery.isError ? (
+              <Button type="primary" onClick={() => void sourceQuery.refetch()}>
+                重新加载来源订单
+              </Button>
+            ) : undefined
+          }
+        />
+      </PageContainer>
+    );
   }
 
   if (error && !loading) {
@@ -167,13 +326,21 @@ export default function NewOrderPage() {
   }
 
   const handleFinish = async (values: CreateOrderFormValues) => {
+    const generation = instanceGenerationRef.current;
+    const isCurrentInstance = () =>
+      generation === instanceGenerationRef.current;
     setSubmitting(true);
     try {
-      const response = await orderServiceCreateOrder({
-        ...definition.form.buildCreatePayload(values),
-        idempotencyKey: createIdempotencyKeyRef.current,
-      });
-      if (!isWriteResponse(response, true)) return false;
+      const response = await orderServiceCreateOrder(
+        {
+          ...definition.form.buildCreatePayload(values),
+          idempotencyKey: createIdempotencyKeyRef.current,
+        },
+        // 当前实例统一反馈写入错误，失效实例的迟到失败不触发全局通知。
+        { skipErrorHandler: true },
+      );
+      if (!isCurrentInstance() || !isWriteResponse(response, true))
+        return false;
       // 创建结果必须以服务端返回的订单 ID 为准；空响应或缺失 ID 时
       // 不提示成功、不跳转、不轮换幂等键，保留表单供同键重试确认，
       // 避免响应丢失时重复建单。
@@ -189,18 +356,18 @@ export default function NewOrderPage() {
       history.push(`/orders/${definition.kind}/${createdId}`);
       return true;
     } catch (error: unknown) {
-      const err = error as Error;
-      message.error(err.message || '创建订单失败');
+      if (!isCurrentInstance()) return false;
+      message.error(getErrorMessage(error, '创建订单失败'));
       return false;
     } finally {
-      setSubmitting(false);
+      if (isCurrentInstance()) setSubmitting(false);
     }
   };
 
   return (
     <OrderFormTemplate<CreateOrderFormValues>
       tabKey={resolveTabKey(`/orders/${definition.kind}/new`)}
-      draftPathname={`/orders/${definition.kind}/new`}
+      draftPathname={sourceRequest.draftPathname}
       draftScope={draftScope}
       loading={loading}
       loadingTip="正在加载业务模板与主数据..."
@@ -234,10 +401,7 @@ export default function NewOrderPage() {
         />
       }
       sections={sections}
-      initialValues={definition.form.buildCreateDefaults({
-        creator: templateProps.creator,
-            cargoCategoryOptions,
-      })}
+      initialValues={initialValues}
       onFinish={handleFinish}
       onRevealError={({ errorFields }) => revealSeaFormErrors(errorFields)}
       submitter={false}

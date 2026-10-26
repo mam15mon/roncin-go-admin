@@ -315,13 +315,16 @@ export function SeaDocumentSectionComponent({
       onSeaFormErrorReveal((fields) => {
         const [firstField] = fields;
         if (!firstField) return;
-        if (firstField.name[0] === 'seaHouseBill') {
+        if (
+          firstField.name[0] === 'seaHouseBill' &&
+          (isDetail || firstField.name[1] !== 'houseNo')
+        ) {
           setActiveTabKey('hbl');
         } else if (firstField.name[0] === 'seaMasterBillContent') {
           setActiveTabKey('mbl');
         }
       }),
-    [],
+    [isDetail],
   );
 
   useEffect(() => {
@@ -687,8 +690,17 @@ export function SeaDocumentSectionComponent({
             </Col>
           </Row>
         ) : null}
+        {!isDetail && (
+          <Alert
+            type="info"
+            showIcon
+            title="分单号请在上方主单号旁填写；此处维护签发主体与分单内容。"
+            style={{ marginBottom: 16 }}
+          />
+        )}
         <HouseBillIdentityFields
           fieldKey="seaHouseBill"
+          showHouseNo={isDetail}
           disabled={disabled || isTerminalHouseBill(houseBill?.status)}
         />
         <div style={{ marginTop: 12 }}>

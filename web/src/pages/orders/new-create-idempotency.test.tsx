@@ -1,12 +1,8 @@
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
+import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { history } from '@/router/history';
 import { orderServiceCreateOrder } from '@/services/roncin/orderService';
@@ -96,6 +92,10 @@ vi.mock('@/components/ui/order-template/OrderFormTemplate', () => ({
 }));
 
 const mockCreateOrder = vi.mocked(orderServiceCreateOrder);
+
+function render(ui: React.ReactElement) {
+  return renderWithClient(<MemoryRouter>{ui}</MemoryRouter>);
+}
 
 describe('订单新建页创建幂等键', () => {
   beforeEach(() => {

@@ -6,6 +6,7 @@ import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTempl
 import type { OrderFormTemplateActions } from '@/components/ui/order-template/types';
 import { SeaDocumentStructure } from '@/enums.generated';
 import { SeaCreateDocumentModeField } from './components/sea/SeaCreateDocumentModeField';
+import { SeaAssociatedHouseBillsField } from './components/sea/SeaTransportSection';
 import { revealSeaFormErrors } from './sea-form-error-reveal';
 import { getSeaTemplateSections } from './sea-template';
 import type { TemplateProps } from './types';
@@ -94,6 +95,7 @@ export function setup(
                 <>
                   <ProFormText name="masterNo" />
                   <SeaCreateDocumentModeField />
+                  <SeaAssociatedHouseBillsField isDetail={false} />
                 </>
               ),
             },

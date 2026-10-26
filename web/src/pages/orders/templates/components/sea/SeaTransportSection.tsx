@@ -21,16 +21,20 @@ import {
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
 import React from 'react';
+import { useAccess } from '@/app/access';
 import { FormRow, ProFormSearchableSelect } from '@/components/ui';
-import { SeaDocumentStructure } from '@/enums.generated';
+import { OrderBusinessType, SeaDocumentStructure } from '@/enums.generated';
+import { history } from '@/router/history';
 import { formatDate } from '@/utils/format';
 import { containerOwnershipOptions } from '../../../common';
 import {
   OrderContainerRequestFields,
   type SelectOption,
 } from '../../../order-plan-fields';
+import { buildSeaHouseOrderCreatePath } from '../../../sea-house-order-context';
 import { resolveSeaOrderFormPolicy } from '../../../sea-order-policy';
 import type { TemplateProps } from '../../types';
+import { HouseBillNumberField } from './HouseBillIdentityFields';
 import {
   useSeaMasterBillCandidate,
   useSharedSeaVoyage,
@@ -44,14 +48,49 @@ export function SeaMasterBillFields({
   disabled = false,
   isDetail = false,
   locationOptions = [],
+  seaHouseOrderCreateSource,
+  seaHouseOrderSourceOrderId,
+  organizationId,
 }: {
   disabled?: boolean;
   isDetail?: boolean;
   locationOptions?: SelectOption[];
-}) {
+} & Pick<
+  TemplateProps,
+  'seaHouseOrderCreateSource' | 'seaHouseOrderSourceOrderId' | 'organizationId'
+>) {
   const { token } = theme.useToken();
-  const state = useSeaMasterBillCandidate(isDetail, locationOptions);
+  const state = useSeaMasterBillCandidate(
+    isDetail,
+    locationOptions,
+    seaHouseOrderCreateSource,
+  );
+  const form = Form.useFormInstance();
+  const structure = Form.useWatch('seaDocumentStructure', {
+    form,
+    preserve: true,
+  });
   const { candidate, selected, existing } = state;
+  const masterNo = Form.useWatch('seaMasterBillMasterNo', {
+    form,
+    preserve: true,
+  });
+  const shippingLineId = Form.useWatch('shippingLineId', {
+    form,
+    preserve: true,
+  });
+  const canCreateHouse = Boolean(
+    isDetail &&
+      seaHouseOrderSourceOrderId &&
+      structure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE &&
+      existing?.masterBillId &&
+      existing.status !== 'VOIDED' &&
+      existing.masterNo === masterNo &&
+      existing.shippingLineId === shippingLineId &&
+      existing.masterNo &&
+      existing.shippingLineId &&
+      existing.transportExecutionId,
+  );
   const isMultiMemberLocked = isDetail && (existing?.memberCount ?? 0) > 1;
   const memberLinks =
     candidate?.members?.filter((member) => member.orderId) ?? [];
@@ -137,7 +176,15 @@ export function SeaMasterBillFields({
           />
         </div>
       )}
-      <SeaAssociatedHouseBillsField />
+      <SeaAssociatedHouseBillsField isDetail={isDetail} />
+      {canCreateHouse && seaHouseOrderSourceOrderId && (
+        <div style={{ gridColumn: '1 / -1', marginBottom: 12 }}>
+          <SeaCreateHouseOrderButton
+            sourceOrderId={seaHouseOrderSourceOrderId}
+            organizationId={organizationId}
+          />
+        </div>
+      )}
       {isMultiMemberLocked && existing && (
         <div style={{ gridColumn: '1 / -1' }}>
           <Alert
@@ -182,7 +229,9 @@ export function SeaMasterBillFields({
                   title="共享主单仅支持有货代分单（HOUSE），请选择分单模式"
                 />
               )}
-              {(candidate.transportExecutions?.length ?? 0) > 1 && (
+              {((candidate.transportExecutions?.length ?? 0) > 1 ||
+                (state.sourceError &&
+                  (candidate.transportExecutions?.length ?? 0) > 0)) && (
                 <Form.Item label="本票共用航程" style={{ marginBottom: 0 }}>
                   <Select
                     aria-label="本票共用航程"
@@ -303,7 +352,9 @@ export function SeaMasterBillFields({
           <Alert
             type="error"
             showIcon
-            title="主单候选查询失败"
+            title={
+              state.sourceError ? '来源主单或航程不可用' : '主单候选查询失败'
+            }
             description={state.error}
             action={
               <Button htmlType="button" onClick={() => void state.retry()}>
@@ -317,14 +368,50 @@ export function SeaMasterBillFields({
   );
 }
 
-export function SeaAssociatedHouseBillsField() {
+function SeaCreateHouseOrderButton({
+  sourceOrderId,
+  organizationId,
+}: {
+  sourceOrderId: string;
+  organizationId?: string;
+}) {
+  const access = useAccess();
+  if (
+    !access.canOrder(OrderBusinessType.BUSINESS_TYPE_SE, 'create') ||
+    !access.canOperateOrganization(organizationId)
+  )
+    return null;
+  return (
+    <Button
+      htmlType="button"
+      disabled={false}
+      onClick={() => history.push(buildSeaHouseOrderCreatePath(sourceOrderId))}
+    >
+      从此主单新增分单
+    </Button>
+  );
+}
+
+export function SeaAssociatedHouseBillsField({
+  isDetail = true,
+}: {
+  isDetail?: boolean;
+}) {
   const form = Form.useFormInstance();
-  const watchedHouseBill = (Form.useWatch('seaHouseBill', form) ??
-    form?.getFieldValue('seaHouseBill')) as { houseNo?: string } | undefined;
-  const watchedStructure = (Form.useWatch('seaDocumentStructure', form) ??
-    form?.getFieldValue('seaDocumentStructure')) as number | undefined;
-  const watchedDocSummary = (Form.useWatch('seaDocumentSummary', form) ??
-    form?.getFieldValue('seaDocumentSummary')) as
+  const watchedHouseBill = (Form.useWatch('seaHouseBill', {
+    form,
+    preserve: true,
+  }) ?? form?.getFieldValue('seaHouseBill')) as
+    | { houseNo?: string }
+    | undefined;
+  const watchedStructure = (Form.useWatch('seaDocumentStructure', {
+    form,
+    preserve: true,
+  }) ?? form?.getFieldValue('seaDocumentStructure')) as number | undefined;
+  const watchedDocSummary = (Form.useWatch('seaDocumentSummary', {
+    form,
+    preserve: true,
+  }) ?? form?.getFieldValue('seaDocumentSummary')) as
     | API.SeaOrderDocumentSummary
     | undefined;
 
@@ -335,6 +422,12 @@ export function SeaAssociatedHouseBillsField() {
   const isDirect =
     structure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT;
 
+  if (
+    !isDetail &&
+    structure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
+  ) {
+    return <HouseBillNumberField fieldKey="seaHouseBill" />;
+  }
   return (
     <Form.Item label="关联分单号">
       <div
@@ -599,6 +692,9 @@ export function getSeaTransportFields(props: TemplateProps) {
     master: (
       <SeaMasterBillFields
         isDetail={isDetail}
+        seaHouseOrderCreateSource={props.seaHouseOrderCreateSource}
+        seaHouseOrderSourceOrderId={props.seaHouseOrderSourceOrderId}
+        organizationId={props.organizationId}
         locationOptions={locationOptions}
       />
     ),

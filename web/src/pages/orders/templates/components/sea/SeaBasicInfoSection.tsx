@@ -277,6 +277,7 @@ const dangerousPackingGroupOptions = [
 ];
 
 function SeaCarrierField({
+  seaHouseOrderCreateSource,
   isDetail,
   readonly,
   searchShippingLines,
@@ -284,7 +285,7 @@ function SeaCarrierField({
   isDetail?: boolean;
   readonly?: boolean;
   searchShippingLines: (keyword?: string) => Promise<SelectOption[]>;
-}) {
+} & Pick<TemplateProps, 'seaHouseOrderCreateSource'>) {
   const form = Form.useFormInstance();
   const existingMbl = Form.useWatch('seaMasterBill', {
     form,
@@ -297,11 +298,21 @@ function SeaCarrierField({
         label: existingMbl.shippingLineName || existingMbl.shippingLineId,
         value: existingMbl.shippingLineId,
       }
-    : undefined;
+    : seaHouseOrderCreateSource
+      ? {
+          value: seaHouseOrderCreateSource.shippingLineId,
+          label:
+            seaHouseOrderCreateSource.shippingLineName || '船公司名称读取失败',
+        }
+      : undefined;
 
   return (
     <ProFormSearchableSelect
       name="shippingLineId"
+      params={{
+        currentShippingLineId: currentShippingLineOption?.value,
+        currentShippingLineName: currentShippingLineOption?.label,
+      }}
       label="船公司"
       placeholder="请选择"
       options={
@@ -584,6 +595,7 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
     ),
     carrier: (
       <SeaCarrierField
+        seaHouseOrderCreateSource={props.seaHouseOrderCreateSource}
         isDetail={props.isDetail}
         readonly={props.readonly}
         searchShippingLines={searchShippingLines}

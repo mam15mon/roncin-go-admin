@@ -159,7 +159,7 @@ describe('SE 提单卡 MBL/HBL 页签', () => {
         exposeForm={(value) => {
           form = value;
         }}
-        sectionKeys={['seaDocument']}
+        sectionKeys={['bookingTransport', 'seaDocument']}
         initialValues={{ seaDocumentStructure: HOUSE }}
       />,
     );
@@ -180,18 +180,15 @@ describe('SE 提单卡 MBL/HBL 页签', () => {
     fireEvent.click(screen.getByRole('tab', { name: /分单 \(HBL\)/ }));
     await waitFor(() =>
       expect(
-        activeBillPane().querySelector('#seaHouseBill_houseNo'),
+        activeBillPane().querySelector('#seaHouseBill_note'),
       ).not.toBeNull(),
     );
     expect(
       activeBillPane().querySelector('#seaMasterBillContent_shipperText'),
     ).toBeNull();
-    fireEvent.change(
-      within(activeBillPane()).getByPlaceholderText('请输入分单号'),
-      {
-        target: { value: 'HBL001' },
-      },
-    );
+    fireEvent.change(screen.getByPlaceholderText('请输入分单号'), {
+      target: { value: 'HBL001' },
+    });
 
     // 切回 MBL：两侧草稿均保留。
     fireEvent.click(screen.getByRole('tab', { name: /主单 \(MBL\)/ }));
@@ -213,11 +210,17 @@ describe('SE 提单卡 MBL/HBL 页签', () => {
         exposeForm={(value) => {
           form = value;
         }}
-        sectionKeys={['seaDocument']}
+        sectionKeys={['bookingTransport', 'seaDocument']}
         initialValues={{ seaDocumentStructure: HOUSE }}
       />,
     );
-    expect(screen.queryByPlaceholderText('请输入分单号')).not.toBeVisible();
+    expect(screen.getByPlaceholderText('请输入分单号')).toBeVisible();
+    expect(screen.getAllByPlaceholderText('请输入分单号')).toHaveLength(1);
+    expect(
+      within(
+        screen.getByRole('region', { name: '提单信息' }),
+      ).queryByPlaceholderText('请输入分单号'),
+    ).toBeNull();
 
     await act(async () => {
       await expect(
@@ -248,7 +251,7 @@ describe('SE 提单卡 MBL/HBL 页签', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: /分单 \(HBL\)/ }));
     const houseNoInput = await waitFor(() =>
-      within(activeBillPane()).getByPlaceholderText('请输入分单号'),
+      screen.getByPlaceholderText('请输入分单号'),
     );
     fireEvent.change(houseNoInput, { target: { value: 'HBL-KEEP' } });
     fireEvent.click(
@@ -276,9 +279,7 @@ describe('SE 提单卡 MBL/HBL 页签', () => {
     fireEvent.click(screen.getByRole('radio', { name: '有货代分单（HOUSE）' }));
     fireEvent.click(await screen.findByRole('tab', { name: /分单 \(HBL\)/ }));
     await waitFor(() =>
-      expect(
-        within(activeBillPane()).getByPlaceholderText('请输入分单号'),
-      ).toBeVisible(),
+      expect(screen.getByPlaceholderText('请输入分单号')).toBeVisible(),
     );
     expect(form.getFieldValue(['seaHouseBill', 'houseNo'])).toBe('HBL-KEEP');
     const housePayload = buildSeaExportCreatePayload(form.getFieldsValue(true));
@@ -315,7 +316,9 @@ describe('SE 提单卡 MBL/HBL 页签', () => {
     );
     fireEvent.click(screen.getByRole('tab', { name: /分单 \(HBL\)/ }));
     await waitFor(() =>
-      expect(screen.getByPlaceholderText('请输入分单号')).toBeVisible(),
+      expect(
+        activeBillPane().querySelector('#seaHouseBill_note'),
+      ).not.toBeNull(),
     );
     const house = screen.getByRole('region', { name: '提单信息' });
     fireEvent.click(

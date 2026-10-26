@@ -1,0 +1,28 @@
+{
+  "id": "sea-continuous-house-order",
+  "name": "sea-continuous-house-order",
+  "title": "连续新增海运分单",
+  "description": "优化主单下多票分单的连续建单入口、上下文带入与分单号填写位置",
+  "status": "in_progress",
+  "dev_type": "frontend",
+  "scope": "web",
+  "package": null,
+  "priority": "P2",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-10-26",
+  "completedAt": null,
+  "branch": "codex/sea-continuous-house-order",
+  "base_branch": "codex/sea-master-voyage-inheritance",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {
+    "approved_plan": "用户在三点方案后明确回复好，开始改；本期按既有授权推进"
+  }
+}

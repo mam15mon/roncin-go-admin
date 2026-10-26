@@ -9,6 +9,17 @@ export interface SelectOption {
 /** 区块结构由订单表单模板统一定义，页面模板只负责组装字段内容。 */
 export type TemplateSection = OrderFormTemplateSection;
 
+/** 连续新增分单只携带来源共享身份，航程及版本由最新候选确认。 */
+export interface SeaHouseOrderCreateSource {
+  orderId: string;
+  orderNo?: string;
+  masterBillId: string;
+  masterNo: string;
+  shippingLineId: string;
+  shippingLineName?: string;
+  transportExecutionId: string;
+}
+
 export interface TemplateProps {
   cargoCategoryOptions: SelectOption[];
   locationOptions: SelectOption[];
@@ -32,6 +43,10 @@ export interface TemplateProps {
   isDetail?: boolean;
   /** 当前订单归属，供独立单证命令校验工作台能力。 */
   organizationId?: string;
+  /** 新建分单的主单及指定航程来源。 */
+  seaHouseOrderCreateSource?: SeaHouseOrderCreateSource;
+  /** 详情页独立新建分单入口的来源订单身份。 */
+  seaHouseOrderSourceOrderId?: string;
   /** 详情页业务写入口是否因锁单等状态关闭。 */
   readonly?: boolean;
   /** 单证命令成功后刷新订单聚合，确保 expectedOrderVersion 使用最新值。 */

@@ -2,6 +2,7 @@ import { renderWithClient } from '@root/tests/queryClientTestUtils';
 import { act, cleanup, fireEvent, screen } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
+import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getFormDraftKey,
@@ -62,6 +63,15 @@ vi.mock('./use-order-create-options', () => ({
   useOrderCreateOptions: vi.fn(),
 }));
 
+// 页面真实表单挂载即读取这些候选；测试只验证新建编排，不访问本地服务。
+vi.mock('@/services/roncin/masterDataService', () => ({
+  masterDataServiceListShippingLines: vi.fn().mockResolvedValue({ data: [] }),
+}));
+
+vi.mock('@/services/roncin/partnerService', () => ({
+  partnerServiceListPartners: vi.fn().mockResolvedValue({ data: [] }),
+}));
+
 let lastTemplateProps: any = null;
 
 vi.mock(
@@ -84,7 +94,11 @@ vi.mock(
 const mockUseOptions = vi.mocked(useOrderCreateOptions);
 
 function renderWithApp(ui: React.ReactElement) {
-  return renderWithClient(<App>{ui}</App>);
+  return renderWithClient(
+    <App>
+      <MemoryRouter>{ui}</MemoryRouter>
+    </App>,
+  );
 }
 
 // 挂载期 request 型下拉会发起异步选项查询；在 act 内冲刷微任务，

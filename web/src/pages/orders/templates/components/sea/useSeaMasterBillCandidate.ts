@@ -4,7 +4,7 @@ import dayjs from 'dayjs';
 import { useCallback, useEffect, useState } from 'react';
 import { SeaDocumentStructure } from '@/enums.generated';
 import { orderServiceMatchSeaMasterBillCandidate } from '@/services/roncin/orderService';
-import type { SelectOption } from '../../types';
+import type { SeaHouseOrderCreateSource, SelectOption } from '../../types';
 import {
   isEmptySeaVoyageValue,
   type SeaSharedVoyageSource,
@@ -49,6 +49,7 @@ export function useSharedSeaVoyage() {
 export function useSeaMasterBillCandidate(
   isDetail: boolean,
   locationOptions: SelectOption[],
+  createSource?: SeaHouseOrderCreateSource,
 ) {
   const form = Form.useFormInstance();
   const masterNo = Form.useWatch('seaMasterBillMasterNo', {
@@ -147,16 +148,40 @@ export function useSeaMasterBillCandidate(
     identity && !unchanged && (!enabled || query.isPending || query.isFetching),
   );
   const checked = enabled && query.isSuccess && !query.isFetching;
-  const error = enabled && query.isError ? query.error.message : undefined;
+  const queryError = enabled && query.isError ? query.error.message : undefined;
   const candidate =
     checked && query.data.matched ? query.data.candidate : undefined;
   const executions = candidate?.transportExecutions ?? [];
-  const selected =
-    executions.length === 1
-      ? executions[0]
-      : selection?.identity === identity
-        ? executions.find((item) => item.id === selection.id)
-        : undefined;
+  const sourceIdentity = createSource
+    ? seaMasterBillIdentity(createSource.masterNo, createSource.shippingLineId)
+    : undefined;
+  const sourceApplies =
+    !isDetail && Boolean(createSource && sourceIdentity === identity);
+  const explicitSelection =
+    selection?.identity === identity
+      ? executions.find((item) => item.id === selection.id)
+      : undefined;
+  const sourceMasterMatches =
+    !sourceApplies || candidate?.id === createSource?.masterBillId;
+  const selected = !sourceMasterMatches
+    ? undefined
+    : (explicitSelection ??
+      (sourceApplies
+        ? executions.find(
+            (item) => item.id === createSource?.transportExecutionId,
+          )
+        : executions.length === 1
+          ? executions[0]
+          : undefined));
+  const sourceError =
+    sourceApplies && checked
+      ? !sourceMasterMatches
+        ? '来源主单已失效或身份发生变化，请重新核实主单'
+        : !selected
+          ? '来源航程已失效，请核实后重新选择本票共用航程'
+          : undefined
+      : undefined;
+  const error = queryError || sourceError;
   const batchDirectBlocked = (candidate?.members ?? []).some(
     (member) =>
       member.documentStructure ===
@@ -175,6 +200,7 @@ export function useSeaMasterBillCandidate(
       candidate.version &&
       selected?.id &&
       selected.version &&
+      !error &&
       !batchDirectBlocked &&
       !requiresHouse &&
       differences.length === 0 &&
@@ -288,6 +314,7 @@ export function useSeaMasterBillCandidate(
   return {
     candidate,
     selected,
+    sourceError,
     matching,
     checked,
     error,

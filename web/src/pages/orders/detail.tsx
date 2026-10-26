@@ -346,6 +346,7 @@ export default function OrderDetailPage() {
       containerSpecOptions,
       isDetail: true,
       organizationId: order?.organizationId,
+      seaHouseOrderSourceOrderId: order?.id,
       searchCustomers: withSeededOptions(
         (keyword?: string) =>
           searchPartnersByRole(PARTNER_ROLES.CUSTOMER, keyword),
@@ -388,6 +389,7 @@ export default function OrderDetailPage() {
       canSearchPersonnel,
       effectiveReadonly,
       order?.organizationId,
+      order?.id,
       customerSeeds,
       bookingAgentSeeds,
       foreignAgentSeeds,
