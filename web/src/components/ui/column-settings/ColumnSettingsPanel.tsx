@@ -1,4 +1,9 @@
-import { HolderOutlined, SearchOutlined } from '@ant-design/icons';
+import {
+  CheckCircleOutlined,
+  HolderOutlined,
+  QuestionCircleOutlined,
+  SearchOutlined,
+} from '@ant-design/icons';
 import {
   Button,
   Checkbox,
@@ -164,7 +169,10 @@ export default function ColumnSettingsPanel({
           disabled={fields.every((field) => field.lockVisible)}
           onChange={toggleAll}
         >
-          列展示 ({visibleCount} / {fields.length})
+          列展示
+          <span className="roncin-column-settings-count">
+            {visibleCount} / {fields.length}
+          </span>
         </Checkbox>
         <Input
           allowClear
@@ -174,13 +182,17 @@ export default function ColumnSettingsPanel({
           value={keyword}
           onChange={(event) => setKeyword(event.target.value)}
         />
-        <Button size="small" onClick={onReset}>
+        <Button type="text" size="small" onClick={onReset}>
           恢复默认
         </Button>
       </div>
       <div className="roncin-column-settings-help">
-        从左到右、从上到下读取序号；拖动手柄调整位置，跨区域拖动会改变冻结。也可修改序号后按
-        Enter 精确移位。设置立即生效。
+        <span>勾选显示字段，拖动调整顺序</span>
+        <Tooltip title="字段按从左到右、从上到下排列。拖到左右冻结区可固定字段；修改序号后按 Enter 或移开焦点可精确移位。">
+          <Button type="text" size="small" icon={<QuestionCircleOutlined />}>
+            排序说明
+          </Button>
+        </Tooltip>
       </div>
       {searching && (
         <div className="roncin-column-settings-search-tip">
@@ -193,10 +205,11 @@ export default function ColumnSettingsPanel({
             .filter((key) => zoneOf(key) === zone.key)
             .map((key) => fieldMap.get(key) as ColumnSettingsField);
           const matched = items.filter(matches);
+          if (searching && !matched.length) return null;
           return (
             <section
               key={zone.key}
-              className={`roncin-column-settings-zone${dropTarget?.zone === zone.key && !dropTarget.key ? ' roncin-column-settings-zone-target' : ''}`}
+              className={`roncin-column-settings-zone${!items.length ? ' roncin-column-settings-zone-empty' : ''}${dropTarget?.zone === zone.key && !dropTarget.key ? ' roncin-column-settings-zone-target' : ''}`}
               data-freeze-zone={zone.key}
               aria-label={zone.title}
               onDragOver={(event) => {
@@ -212,7 +225,12 @@ export default function ColumnSettingsPanel({
             >
               <div className="roncin-column-settings-zone-heading">
                 {zone.title}
-                <span>{items.length} 列</span>
+                <span>
+                  {searching
+                    ? `${matched.length} / ${items.length}`
+                    : items.length}{' '}
+                  列
+                </span>
               </div>
               <div className="roncin-column-settings-grid">
                 {matched.map((item) => {
@@ -225,7 +243,7 @@ export default function ColumnSettingsPanel({
                       key={item.key}
                       data-column-key={item.key}
                       data-column-position={index + 1}
-                      className={`roncin-column-settings-row${draggingKey === item.key ? ' roncin-column-settings-dragging' : ''}${dropTarget?.key === item.key ? (dropTarget.after ? ' roncin-column-settings-drop-after' : ' roncin-column-settings-drop-before') : ''}`}
+                      className={`roncin-column-settings-row${!visible ? ' roncin-column-settings-row-hidden' : ''}${draggingKey === item.key ? ' roncin-column-settings-dragging' : ''}${dropTarget?.key === item.key ? (dropTarget.after ? ' roncin-column-settings-drop-after' : ' roncin-column-settings-drop-before') : ''}`}
                       onDragOver={(event) => {
                         if (!draggingKey || searching) return;
                         event.preventDefault();
@@ -268,6 +286,8 @@ export default function ColumnSettingsPanel({
                       <InputNumber
                         key={`${item.key}:${index}`}
                         size="small"
+                        variant="borderless"
+                        className="roncin-column-settings-position"
                         aria-label={`${item.title}目标序号`}
                         min={1}
                         max={ordered.length}
@@ -313,6 +333,8 @@ export default function ColumnSettingsPanel({
                       </Tooltip>
                       <Select
                         size="small"
+                        variant="borderless"
+                        className="roncin-column-settings-freeze"
                         aria-label={`${item.title}冻结位置`}
                         value={zone.key}
                         options={FREEZE_OPTIONS}
@@ -332,7 +354,9 @@ export default function ColumnSettingsPanel({
                       setDropTarget({ zone: zone.key });
                     }}
                   >
-                    拖到此处{zone.key === 'none' ? '取消冻结' : zone.title}
+                    {zone.key === 'none'
+                      ? '拖入字段，取消冻结'
+                      : `拖入字段，固定在表格${zone.key === 'left' ? '左侧' : '右侧'}`}
                   </div>
                 )}
               </div>
@@ -348,7 +372,7 @@ export default function ColumnSettingsPanel({
       )}
       {structuralFields.length > 0 && (
         <div className="roncin-column-settings-structural">
-          <span>结构列 · 保留原位置</span>
+          <span>辅助列 · 顺序固定</span>
           {structuralFields.map((field) => (
             <div
               key={field.key}
@@ -357,6 +381,7 @@ export default function ColumnSettingsPanel({
               {field.title}
               <Select
                 size="small"
+                variant="borderless"
                 aria-label={`${field.title}冻结位置`}
                 value={zoneOf(field.key)}
                 options={FREEZE_OPTIONS.filter(
@@ -371,8 +396,9 @@ export default function ColumnSettingsPanel({
         </div>
       )}
       <div className="roncin-column-settings-footer">
-        <span>
-          已显示 {visibleCount} / {fields.length}
+        <span className="roncin-column-settings-status">
+          <CheckCircleOutlined />
+          修改即时生效，无需保存
         </span>
         {onOpenAdvanced && (
           <Button type="link" size="small" onClick={onOpenAdvanced}>

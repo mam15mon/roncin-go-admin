@@ -138,10 +138,26 @@ describe('全量铺排列设置', () => {
       screen.getByRole('spinbutton', { name: '客户名称目标序号' }),
     ).toBeDisabled();
     expect(screen.queryByRole('checkbox', { name: '业务单号' })).toBeNull();
+    expect(
+      screen.getByRole('region', { name: '左侧冻结' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: '普通列' })).toBeNull();
+    expect(screen.queryByRole('region', { name: '右侧冻结' })).toBeNull();
     fireEvent.change(screen.getByPlaceholderText('搜索列名'), {
       target: { value: '不存在' },
     });
     expect(screen.getByText('未找到匹配的列')).toBeInTheDocument();
+    fireEvent.change(screen.getByPlaceholderText('搜索列名'), {
+      target: { value: '' },
+    });
+    expect(screen.getAllByRole('region')).toHaveLength(3);
+    expect(
+      screen.getByRole('spinbutton', { name: '客户名称目标序号' }),
+    ).toBeEnabled();
+    expect(
+      screen.getByRole('checkbox', { name: '客户名称' }),
+    ).not.toBeChecked();
+    expect(row('customer')).toHaveAttribute('data-column-position', '2');
   });
   it('恢复默认及高级设置仍由调用方管理', () => {
     const { onReset, onOpenAdvanced } = setup();
