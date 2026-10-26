@@ -11,13 +11,15 @@
 - `ListMyUnbilledFees`：GET `/api/v1/workbench/my-unbilled-fees`。
 - `ListMyOpenAbnormalCases`：GET `/api/v1/workbench/my-open-abnormal-cases`。
 
-请求只含 page/page_size，复用公共分页默认值和校验。费用记录携带 fee_id、订单最小摘要、方向、名称、结算方、币种、decimal 金额和 created_at；异常记录携带记录 id、订单最小摘要、异常类型 id/名称和 marked_at。时间传 RFC3339，金额保留现有精度，前端才格式化。
+请求只含 page/page_size，复用公共分页默认值和校验。费用记录携带 fee_id、订单最小摘要、方向、名称、结算方、币种、decimal 金额和 created_at；异常记录携带记录 id、订单最小摘要、异常类型 id/名称和 marked_at。两类记录均提供订单 locked/termination_status/closure_status；费用提供待审阻塞原因，异常提供业务只读原因。时间传 RFC3339，金额保留现有精度，前端才格式化。
 
 ## 查询范围与投影
 
-service 通过 Principal 生成 WorkbenchScope，保留本人协作、当前公司及订单 read 品类，补充按业务类型的费用/异常读取能力。费用范围对齐目标页有效门禁（业务 fee.read 或现有费用审核入口），异常要求 abnormal_case.read，无需新权限码。
+service 通过 Principal 生成 WorkbenchScope，保留本人协作、当前公司及订单 read 品类，补充按业务类型的费用/异常读取能力。费用明确要求业务 fee.read，不以 lock 审核入口权限代替逐笔读取；只有 lock 无 fee.read 者计数为零、明细为空且入口隐藏。异常要求 abnormal_case.read，无需新权限码。
 
-data 使用 `Data.client(ctx)` 和 `workbenchMyOrderIDs`，与各类读取能力取交集。摘要和明细共享基础查询：费用 `Not(HasFinanceBillLinesWith(effectiveBillLinePredicate()))`，异常 ACTIVE；无权限类别计数为零、列表空且不查内容。订单/客户、结算方、异常名称批量装配，避免 N+1。异常类型沿用 A 型共享主数据契约，不能错误按订单组织过滤；停用不影响历史名称。
+data 使用 `Data.client(ctx)` 和 `workbenchMyOrderIDs`，与各类读取能力取交集。摘要和明细共享基础查询：费用 `accountingOrderFeePredicate()` + `Not(HasFinanceBillLinesWith(effectiveBillLinePredicate()))`，异常 ACTIVE；无权限类别计数为零、列表空且不查内容。订单/客户、结算方、异常名称批量装配，避免 N+1。异常类型沿用 A 型共享主数据契约，不能错误按订单组织过滤；停用不影响历史名称。
+
+费用使用现有记账方向投影处理冲回。订单锁定/退关/结案不改变待办事实；批量装配待补审源费状态，复用现有门禁语义解释只读或阻塞：审核锁禁止普通修改但不禁止正常建账，待补审只阻源费用。异常按现行业务可编辑条件说明锁定/退关/结案只读原因。禁止为这次只读投影新增并行状态机。
 
 按 PRD 时间 + 主键稳定升序分页，复用现有 paginate。跨请求并发变化通过刷新收敛，不引入快照机制。
 
