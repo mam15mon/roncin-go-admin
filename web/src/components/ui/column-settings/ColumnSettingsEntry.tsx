@@ -1,8 +1,16 @@
 import { SettingOutlined } from '@ant-design/icons';
-import { Button, Modal, Tooltip } from 'antd';
+import { Button, ConfigProvider, Modal, Tooltip } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import ColumnSettingsPanel from './ColumnSettingsPanel';
 import type { ColumnSettingsField, ColumnSettingsValue } from './types';
+
+// 脱离 ProTable 的局部挂载点；全屏时浮层仍需位于浏览器全屏元素内。
+function getSettingsPopupContainer(): HTMLElement {
+  const fullscreenElement = document.fullscreenElement;
+  return fullscreenElement instanceof HTMLElement
+    ? fullscreenElement
+    : document.body;
+}
 
 export interface ColumnSettingsEntryProps {
   /** 全量可配置字段；无权限字段由调用方裁剪，不得传入。 */
@@ -89,57 +97,59 @@ export function ColumnSettingsEntry({
           }}
         />
       </Tooltip>
-      <Modal
-        title="列设置"
-        open={open && !disabled}
-        width="calc(100vw - 24px)"
-        style={{ top: 12, paddingBottom: 12 }}
-        styles={{ container: { padding: 16 } }}
-        footer={null}
-        onCancel={() => {
-          activeSessionRef.current = null;
-          setOpen(false);
-        }}
-        destroyOnHidden
-      >
-        <ColumnSettingsPanel
-          key={session}
-          fields={fields}
-          structuralFields={structuralFields}
-          value={value}
-          onChange={(next) => {
-            if (!disabledRef.current && activeSessionRef.current === session)
-              onChange(next);
+      <ConfigProvider getPopupContainer={getSettingsPopupContainer}>
+        <Modal
+          title="列设置"
+          open={open && !disabled}
+          width="calc(100vw - 24px)"
+          style={{ top: 12, paddingBottom: 12 }}
+          styles={{ container: { padding: 16 } }}
+          footer={null}
+          onCancel={() => {
+            activeSessionRef.current = null;
+            setOpen(false);
           }}
-          onReset={() => {
-            if (!disabledRef.current && activeSessionRef.current === session)
-              onReset();
-          }}
-          onOpenAdvanced={
-            advanced
-              ? () => {
-                  if (
-                    disabledRef.current ||
-                    activeSessionRef.current !== session
-                  )
-                    return;
-                  activeSessionRef.current = null;
-                  setOpen(false);
-                  setAdvancedOpen(true);
-                }
-              : undefined
-          }
-        />
-      </Modal>
-      <Modal
-        open={advancedOpen && !disabled}
-        title={advancedTitle ?? '高级设置'}
-        width={advancedWidth ?? 880}
-        footer={null}
-        onCancel={() => setAdvancedOpen(false)}
-      >
-        {advanced}
-      </Modal>
+          destroyOnHidden
+        >
+          <ColumnSettingsPanel
+            key={session}
+            fields={fields}
+            structuralFields={structuralFields}
+            value={value}
+            onChange={(next) => {
+              if (!disabledRef.current && activeSessionRef.current === session)
+                onChange(next);
+            }}
+            onReset={() => {
+              if (!disabledRef.current && activeSessionRef.current === session)
+                onReset();
+            }}
+            onOpenAdvanced={
+              advanced
+                ? () => {
+                    if (
+                      disabledRef.current ||
+                      activeSessionRef.current !== session
+                    )
+                      return;
+                    activeSessionRef.current = null;
+                    setOpen(false);
+                    setAdvancedOpen(true);
+                  }
+                : undefined
+            }
+          />
+        </Modal>
+        <Modal
+          open={advancedOpen && !disabled}
+          title={advancedTitle ?? '高级设置'}
+          width={advancedWidth ?? 880}
+          footer={null}
+          onCancel={() => setAdvancedOpen(false)}
+        >
+          {advanced}
+        </Modal>
+      </ConfigProvider>
     </>
   );
 }
