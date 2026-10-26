@@ -58,7 +58,7 @@ func cleanupLifecycleGateSubresources(t *testing.T, data *Data, fixture *orderPo
 // TestOrderLifecycleGatePostgres 在真实 PostgreSQL 隔离 Schema 中验证：
 //  1. 统一内容门禁对终止与业务锁状态（TERMINATING/TERMINATED/已业务锁定）在代表性
 //     子资源写入口上的稳定阻断，以及正常态放行；
-//  2. 生命周期命令不被内容门禁误杀：锁定后的放单订单可结案、可反结案；
+//  2. 生命周期命令不被内容门禁误杀：锁定后的放单订单可结案、反结案须先解锁；
 //  3. 退关完成原子结束活动 SE Link，取消退关保留 Link，恢复不复活历史 Link，
 //     旧版本请求稳定冲突且零部分提交；
 //  4. 自拼汇总只统计 Link ACTIVE 且 Order ACTIVE 的 LCL 成员，HBL 来自当前
@@ -251,7 +251,7 @@ func TestOrderLifecycleGatePostgres(t *testing.T) {
 		}
 	})
 
-	t.Run("锁定后的放单订单可结案且反结案不受历史业务锁阻断", func(t *testing.T) {
+	t.Run("锁定后的放单订单可结案但反结案须先解锁", func(t *testing.T) {
 		fixture := newOrderPostgresFixture(t, data)
 		cleanupLifecycleGateSubresources(t, data, fixture)
 		ctx := context.Background()
@@ -281,13 +281,17 @@ func TestOrderLifecycleGatePostgres(t *testing.T) {
 			t.Fatalf("空原因完结不得生成默认原因: %#v", stored.ClosureReason)
 		}
 
-		reopened, err := usecase.TransitionClosure(ctx, fixture.organizationID, fixture.actorID, created.ID, closed.Version, biz.OrderClosureOpen, "结案错误反结案")
-		if err != nil {
-			t.Fatalf("带历史业务锁的反结案应成功: %v", err)
+		eventsBefore := data.db.OrderLifecycleEvent.Query().Where(orderlifecycleeventent.OrderIDEQ(created.ID)).CountX(ctx)
+		auditsBefore := data.db.AuditLog.Query().Where(auditlogent.OrganizationIDEQ(fixture.organizationID)).CountX(ctx)
+		_, err = usecase.TransitionClosure(ctx, fixture.organizationID, fixture.actorID, created.ID, closed.Version, biz.OrderClosureOpen, "")
+		if errors.FromError(err).Reason != "ORDER_BUSINESS_LOCKED" {
+			t.Fatalf("已审核锁定订单反结案必须拒绝: %v", err)
 		}
-		if reopened.ClosureStatus != biz.OrderClosureOpen {
-			t.Fatalf("反结案后 closure_status = %s，期望 OPEN", reopened.ClosureStatus)
+		after := data.db.Order.GetX(ctx, created.ID)
+		if after.Version != closed.Version || after.ClosureStatus != orderent.ClosureStatusCLOSED || after.LockedAt == nil || data.db.OrderLifecycleEvent.Query().Where(orderlifecycleeventent.OrderIDEQ(created.ID)).CountX(ctx) != eventsBefore || data.db.AuditLog.Query().Where(auditlogent.OrganizationIDEQ(fixture.organizationID)).CountX(ctx) != auditsBefore {
+			t.Fatal("反结案拒绝不得改变订单、锁、版本、生命周期事件或审计")
 		}
+
 	})
 
 	t.Run("退关完成原子结束活动 Link 且恢复不复活", func(t *testing.T) {

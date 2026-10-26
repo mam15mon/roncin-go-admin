@@ -171,19 +171,32 @@ describe('订单详情状态确认函数', () => {
     expect(onCompleted).toHaveBeenCalledOnce();
   });
 
-  it('反结案仍必须填写原因', async () => {
+  it.each(['', '  '])('反结案允许空原因或纯空格原因：%j', async (reason) => {
     const { app, getConfig } = createApp();
+    const onCompleted = vi.fn();
+    transitionClosure.mockResolvedValueOnce({ data: { id: 'order-1' } });
     confirmOrderClosure(
       app,
-      { id: 'order-1', version: '9' } as API.Order,
+      { id: 'order-1', version: '9' },
       OrderClosureStatus.ORDER_CLOSURE_STATUS_OPEN,
-      vi.fn(),
+      onCompleted,
     );
-
-    await expect(getConfig().onOk()).rejects.toBeUndefined();
-
-    expect(app.message.error).toHaveBeenCalledWith('请输入反结案原因');
-    expect(transitionClosure).not.toHaveBeenCalled();
+    render(getConfig().content);
+    fireEvent.change(screen.getByPlaceholderText('请输入反结案原因（选填）'), {
+      target: { value: reason },
+    });
+    await getConfig().onOk();
+    expect(transitionClosure).toHaveBeenCalledWith(
+      { id: 'order-1' },
+      {
+        id: 'order-1',
+        expectedVersion: '9',
+        targetStatus: OrderClosureStatus.ORDER_CLOSURE_STATUS_OPEN,
+        reason: undefined,
+      },
+    );
+    expect(app.message.error).not.toHaveBeenCalled();
+    expect(onCompleted).toHaveBeenCalledOnce();
   });
 
   it.each(['empty', 'rejected'] as const)(

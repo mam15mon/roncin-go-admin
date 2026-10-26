@@ -217,7 +217,10 @@ func TestOrderAllowedActionsCloseBeforeFlowCompleted(t *testing.T) {
 							t.Fatal("活动异常仍应阻止完结")
 						}
 						order.ClosureStatus = biz.OrderClosureClosed
-						expected := []biz.OrderAllowedAction{biz.OrderActionReopen}
+						expected := []biz.OrderAllowedAction{}
+						if lock == nil {
+							expected = append(expected, biz.OrderActionReopen)
+						}
 						if termination == biz.OrderTerminationActive && lock == nil {
 							expected = append(expected, biz.OrderActionEdit)
 						}

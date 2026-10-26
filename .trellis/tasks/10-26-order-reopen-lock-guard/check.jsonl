@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/server/backend/order-lock-and-document-version.md", "reason": "生命周期与审核锁专属边界；本轮反结案需要改为未锁才可操作"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "复用事务和订单悲观锁、乐观锁保证并发一致性"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "状态确认框生命周期、动作资格与提交前复核"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "正式迁移隔离库验证和错误零部分写入"}

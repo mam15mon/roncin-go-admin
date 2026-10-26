@@ -66,7 +66,7 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 - 列表分页必须满足 `page >= 1`、`1 <= page_size <= 200`；缺省值由 service 统一补齐。
 - 统一内容写门禁（`internal/data/order_lock.go` 的 `ensureOrderBusinessContentEditable`）：所有订单业务资料及子资源写入口在 Order `FOR UPDATE` 后校验，订单必须满足 `termination_status = ACTIVE` 且未业务锁定；`closure_status` 不限制业务内容编辑；校验顺序为先生命周期后业务锁，禁止另写第二套重复门禁（如原 `ensureReleasePodOrderEditable` 已删除并复用统一实现）。单证变更（MBL/HBL 改单、作废、模式变更）与订单级变更（共享航程船期更新、改配）同样复用该门禁：对事务内已按主键序 `FOR UPDATE` 锁定的目标及全部成员订单逐单校验，任一不满足即整体 409 回滚。
 - **门禁的预读面同源**：预览与按钮接口与 Execute 同口径感知门禁，避免"预览通过、提交才被拒"——单证/船期/改配预览将门禁事实并入 Impacts（`ORDER_BUSINESS_LOCK` 阻断事实，Executable=false）；`PreviewSplit` 写入 `ValidationErrors`（Reason=ORDER_GATE，预览正常返回）；`GetChangeActions` 将 `CanSplit/CanReassign` 置 false 并追加含订单号的原因（`orderBusinessEditBlockReason` 统一文案提取）。预读不做锁、不改变 Execute 的 409 语义；改配的终止仍走既有 `SEA_ORDER_REASSIGNMENT_BLOCKED` 文案口径（`GateBlockedError` 仅透传业务锁 409），完结未锁不阻断改配。
-- 生命周期命令的专属校验：`TransitionStatus` 显式要求 ACTIVE + OPEN + 未业务锁定（主流程推进属业务写入，锁定后不得推进）；`TransitionTermination` 只要求结案维度保持 OPEN，其中 `ACTIVE → TERMINATING` 仍要求订单未业务锁定，`TERMINATING → ACTIVE/TERMINATED` 与 `TERMINATED → ACTIVE` 不因业务锁被阻断；`TransitionClosure` 不校验业务锁或主流程前置节点，未完结订单可直接发起结案，未完成节点由事务补齐；`orderAllowedActions` 同样不得要求已放单或已退关，避免按钮投影与执行逻辑分叉，反结案不受历史业务锁阻断，结案 readiness 在事务内重验，包含无待审补录；`OrderClosureReadiness.HasPendingFeeSupplement` 与锁内查询同源。待审返回 ORDER_CLOSURE_BLOCKED 及明确中文原因，不修改共享错误对象。锁后更正可覆盖结案订单；不能将 CLOSED 与 PENDING 设为静态互斥（见费用更正规范）。解锁前同样阻断待审更正，先撤回或补审。
+- 生命周期命令的专属校验：`TransitionStatus` 显式要求 ACTIVE + OPEN + 未业务锁定（主流程推进属业务写入，锁定后不得推进）；`TransitionTermination` 只要求结案维度保持 OPEN，其中 `ACTIVE → TERMINATING` 仍要求订单未业务锁定，`TERMINATING → ACTIVE/TERMINATED` 与 `TERMINATED → ACTIVE` 不因业务锁被阻断；`TransitionClosure` 的完结方向不校验业务锁或主流程前置节点，未完结订单可直接发起结案，未完成节点由事务补齐；`orderAllowedActions` 同样不得要求已放单或已退关，避免按钮投影与执行逻辑分叉。反结案原因选填（最多 500 字），只允许未审核锁定订单，动作投影不得为锁定订单返回 `REOPEN`，提交须在 Order `FOR UPDATE` 后独立检查业务锁并返回 `ORDER_BUSINESS_LOCKED`；不得套用内容门禁误拦终止状态。结案 readiness 在事务内重验，包含无待审补录；`OrderClosureReadiness.HasPendingFeeSupplement` 与锁内查询同源。待审返回 ORDER_CLOSURE_BLOCKED 及明确中文原因，不修改共享错误对象。锁后更正可覆盖结案订单；不能将 CLOSED 与 PENDING 设为静态互斥（见费用更正规范）。解锁前同样阻断待审更正，先撤回或补审。
 - SE 订单流转到 `TERMINATED` 时在同一事务结束活动 Link：按 Link ID 排序 `FOR UPDATE`，超过一条活动 Link 返回 `SEA_DOCUMENT_STRUCTURE_CONFLICT`（fail-closed，不静默修复）；更新为 `ENDED`、写入 UTC `ended_at`、固定中文 `ended_reason = "订单退关"` 并递增 Link 版本，不修改 MBL/TransportExecution 版本；Order、Link、生命周期事件、审计任一步失败全部回滚。`TERMINATED → ACTIVE` 只恢复订单状态，历史 Link 保持不可变。
 
 ## 4. Validation & Error Matrix
@@ -83,6 +83,7 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 | 审核时费用版本/指纹变化或亏损缺少意见 | 409 快照冲突或参数错误，不产生锁定及部分快照 |
 | 已完结、未审核且其他审核条件满足 | 开放审核并锁定；固化费用与单证快照，保持结案状态和财务事实 |
 | 锁定的 `DOCUMENT_RELEASED` 订单执行结案、`TERMINATING/TERMINATED` 执行完成/取消/恢复 | 生命周期命令放行，不得被内容门禁误杀 |
+| 已审核锁定订单反结案 | `ORDER_BUSINESS_LOCKED`，提示先解锁；结案状态、版本、事件和审计均不变 |
 | 锁定订单发起退关（`ACTIVE → TERMINATING`） | `ORDER_BUSINESS_LOCKED`，保持“锁定资料不可发起退关” |
 | 调用人（非 bootstrap）没有覆盖目标组织的有效 lock grant | `ORDER_LOCK_ROLE_REQUIRED` |
 | 钉钉回调审批人不在候选快照中，或快照后实时资格复核失败 | 分别稳定标记 `APPROVER_NOT_IN_SNAPSHOT` / `APPROVER_NOT_QUALIFIED`，订单保持锁定 |
@@ -106,7 +107,7 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 - Good：SE 订单完成退关的事务先锁 Order，再按 Link ID 锁定并结束唯一活动 Link，随后写生命周期事件与审计，任一步失败整体回滚。
 - Base：普通订单字段更新不携带 MBL 身份、权威航程或 `MasterBillContent` 写入时，只锁目标 Order 并执行统一内容写门禁（生命周期 + 业务锁）。
 - Base：已锁定的 `DOCUMENT_RELEASED` 订单直接结案；`TERMINATED → ACTIVE` 恢复订单但不复活历史 Link，后续显式建立新 Link 由活动 Link 唯一索引兜底。
-- Bad：在生命周期命令（终止/恢复/结案/反结案）里复用内容写门禁，导致合法流转被 `ORDER_BUSINESS_LOCKED`/`ORDER_TERMINATED` 误杀。
+- Bad：在生命周期命令（终止/恢复/结案/反结案）里统一复用内容写门禁，导致合法流转被 `ORDER_BUSINESS_LOCKED`/`ORDER_TERMINATED` 误杀。
 - Bad：先锁目标 Link 或 MBL，再查询并 `FOR UPDATE` 其他成员 Order；这会与拆票、改配、锁单路径形成反向锁序。
 - Bad：只检查 `SeaMasterBillInput`，遗漏 `SeaDocumentInput.MasterBillContent` 也会修改共享 MBL 的事实。
 - Bad：退关完成时发现多条活动 Link 后静默结束全部或仅结束其一；必须 fail-closed 返回结构冲突。
@@ -120,7 +121,7 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 - Data/PostgreSQL 锁资格矩阵：组织内 ORG 角色、上级组织 TREE 角色（按真实上级 membership/role 快照）、ALL 范围 `administrator` 角色、无锁权限的 `administrator` 角色、bootstrap（可锁、应急解锁、不进候选池）、ORG 范围越组织与 TREE 范围兄弟组织拒绝、撤权后旧候选回调 `APPROVER_NOT_QUALIFIED`。
 - Data 单元：内容门禁表驱动测试覆盖 TERMINATING/TERMINATED/已锁定阻断、终止原因优先于业务锁、ACTIVE+未锁定在 OPEN/CLOSED 下均放行。
 - Data/PostgreSQL：六类型锁定/解锁、跨类型权限隔离、每类订单资料与费用写阻断、非 SE 空快照、SE 版本快照、DIRECT 零 HBL、共享版本复用、审计失败回滚、普通写与锁定竞争、双锁/双直解竞争、活动请求唯一。
-- Data/PostgreSQL：代表性子资源（草稿、POD、货物、里程碑等）在终止中、已终止、已审核锁定时写阻断且零部分写入，完结但未锁时允许写入；锁定 `DOCUMENT_RELEASED` 订单结案与反结案；退关完成原子结束活动 Link（ENDED、ended_at、ended_reason、version+1、事件与审计），取消退关保留 Link，恢复不复活历史 Link，旧版本稳定冲突。
+- Data/PostgreSQL：代表性子资源（草稿、POD、货物、里程碑等）在终止中、已终止、已审核锁定时写阻断且零部分写入，完结但未锁时允许写入；锁定 `DOCUMENT_RELEASED` 订单可完结，但反结案须先解锁；空原因反结案放行、锁内拒绝及并发锁定竞态均须覆盖；退关完成原子结束活动 Link（ENDED、ended_at、ended_reason、version+1、事件与审计），取消退关保留 Link，恢复不复活历史 Link，旧版本稳定冲突。
 - 自拼汇总：Link ACTIVE 且 Order ACTIVE 的 LCL 成员才计入件重尺/成员数；house numbers 来自当前活动 MBL 的有效 `SeaHouseBill`，旧 `OrderShippingDocument` 与 VOIDED HBL 不返回。
 - 共享 MBL：至少分别覆盖身份/权威航程和 `MasterBillContent` 两个入口；断言成员锁定时 Order、MBL、TransportExecution 均未部分更新。
 - 不误拦截：共享字段无变化时，未锁成员的普通订单字段可更新，且 MBL/TransportExecution 版本不变。

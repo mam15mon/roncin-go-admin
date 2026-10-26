@@ -201,6 +201,17 @@ export default function OrderDetailPage() {
     order,
   });
   const businessWritesDisabled = lockWritePolicy.disabled;
+  // 反结案只检查审核锁，不套用终止维度的内容写入门禁。
+  const reopenBlockedReason =
+    lockStateLoading || synchronizingLockChange
+      ? '正在同步订单锁定状态，请稍候'
+      : lockStateError || !lockState
+        ? '订单锁定状态加载失败，请刷新后重试'
+        : lockState.isLocked
+          ? '订单已审核锁定，请先解锁后再反结案'
+          : undefined;
+  const reopenBlockedReasonRef = useRef(reopenBlockedReason);
+  reopenBlockedReasonRef.current = reopenBlockedReason;
 
   useOrderAbnormalEntry({
     order,
@@ -572,6 +583,13 @@ export default function OrderDetailPage() {
       message.warning('存在待审批费用变更，请先处理后再结案');
       return false;
     }
+    if (
+      action === OrderAllowedAction.ORDER_ALLOWED_ACTION_REOPEN &&
+      reopenBlockedReasonRef.current
+    ) {
+      message.warning(reopenBlockedReasonRef.current);
+      return false;
+    }
     if (currentOrder.allowedActions?.includes(action) !== true) {
       message.warning('订单状态已变化，请刷新后重试');
       return false;
@@ -755,10 +773,13 @@ export default function OrderDetailPage() {
           ? '存在待审批费用变更，请先处理后再结案'
           : '当前订单暂不可完结'
         : '请切换至订单所属分公司工作台办理',
+      reopenDisabledReason: reopenBlockedReason,
       reopen: canUseAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_REOPEN)
         ? {
             onClick: () =>
               confirmClosure(OrderClosureStatus.ORDER_CLOSURE_STATUS_OPEN),
+            disabled: Boolean(reopenBlockedReason),
+            disabledReason: reopenBlockedReason,
           }
         : undefined,
     }),

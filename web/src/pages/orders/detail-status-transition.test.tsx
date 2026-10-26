@@ -403,6 +403,56 @@ describe('订单详情状态卡流转编排', () => {
     expect(mockConfirmClosure.mock.calls[0][4]?.canSubmit?.()).toBe(true);
   });
 
+  it('已锁定订单不开放反结案，陈旧服务端动作也不能绕过', () => {
+    testState.lockState = { isLocked: true };
+    testState.order = {
+      ...testState.order,
+      closureStatus: OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED,
+      allowedActions: [OrderAllowedAction.ORDER_ALLOWED_ACTION_REOPEN],
+    };
+    render(
+      <App>
+        <OrderDetailPage />
+      </App>,
+    );
+    expect(screen.getByRole('button', { name: '反结案' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: '反结案' }));
+    expect(mockConfirmClosure).not.toHaveBeenCalled();
+  });
+
+  it.each([true, null])(
+    '反结案确认打开后审核锁改变或丢失会阻止提交：%s',
+    async (isLocked) => {
+      testState.order = {
+        ...testState.order,
+        closureStatus: OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED,
+        allowedActions: [OrderAllowedAction.ORDER_ALLOWED_ACTION_REOPEN],
+      };
+      const { rerender } = render(
+        <App>
+          <OrderDetailPage />
+        </App>,
+      );
+      fireEvent.click(screen.getByRole('button', { name: '反结案' }));
+      const options = mockConfirmClosure.mock.calls[0][4];
+      expect(options?.canSubmit?.()).toBe(true);
+      testState.lockState = isLocked === null ? null : { isLocked };
+      rerender(
+        <App>
+          <OrderDetailPage />
+        </App>,
+      );
+      await act(async () => expect(options?.canSubmit?.()).toBe(false));
+      expect(
+        await screen.findByText(
+          isLocked === null
+            ? '订单锁定状态加载失败，请刷新后重试'
+            : '订单已审核锁定，请先解锁后再反结案',
+        ),
+      ).toBeInTheDocument();
+    },
+  );
+
   it('未提供费用投影时提交结案，由服务端复核准入', () => {
     testState.order = {
       ...testState.order,

@@ -243,7 +243,7 @@ export function confirmOrderTermination(
   return true;
 }
 
-/** 结案原因选填，反结案原因必填。 */
+/** 结案与反结案原因均选填。 */
 export function confirmOrderClosure(
   app: TransitionApp,
   order: API.Order,
@@ -267,7 +267,7 @@ export function confirmOrderClosure(
       <Space vertical style={{ width: '100%', marginTop: 12 }}>
         <Input.TextArea
           placeholder={
-            isReopen ? '请输入反结案原因（必填）' : '请输入完结原因（选填）'
+            isReopen ? '请输入反结案原因（选填）' : '请输入完结原因（选填）'
           }
           maxLength={500}
           showCount
@@ -280,10 +280,6 @@ export function confirmOrderClosure(
     ),
     async onOk(): Promise<false | undefined> {
       if (options.canSubmit?.() === false) return Promise.reject();
-      if (isReopen && !reason.trim()) {
-        app.message.error('请输入反结案原因');
-        return Promise.reject();
-      }
       const response = await orderServiceTransitionOrderClosure(
         { id: orderID },
         {

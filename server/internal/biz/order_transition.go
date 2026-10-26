@@ -161,14 +161,14 @@ func (uc *OrderUsecase) TransitionTermination(ctx context.Context, organizationI
 
 // TransitionClosure 校验并执行订单结案或反结案。
 //
-// 结案与反结案是生命周期命令，不经过内容写门禁也不校验业务锁：已业务锁定的
-// DOCUMENT_RELEASED 订单允许结案；结案 readiness（无活动异常、无未开账费用、
+// 结案与反结案是生命周期命令，不经过内容写门禁；反结案须在仓储事务内校验未锁定。
+// 已业务锁定的 DOCUMENT_RELEASED 订单允许结案；结案 readiness（无活动异常、无未开账费用、
 // 无待审核补录）由仓储层在事务内重验。主流程未完成的订单直接结案时，仓储层
 // 在同一事务内自动补齐全部主流程节点（含已放单，时间均为操作时刻）。
-// 结案原因选填，反结案仍必须提供原因。
+// 结案与反结案原因均选填。
 func (uc *OrderUsecase) TransitionClosure(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, target OrderClosureStatus, reason string) (*Order, error) {
 	reason = strings.TrimSpace(reason)
-	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 || !target.Valid() || target == OrderClosureOpen && reason == "" || utf8.RuneCountInString(reason) > 500 {
+	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 || !target.Valid() || utf8.RuneCountInString(reason) > 500 {
 		return nil, ErrOrderClosureInvalid
 	}
 	readiness, err := uc.repo.ClosureReadiness(ctx, organizationID, id)

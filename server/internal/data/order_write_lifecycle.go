@@ -193,11 +193,13 @@ func (r *orderRepo) TransitionClosure(ctx context.Context, organizationID, id uu
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
 		}
-		// 结案与反结案是生命周期命令：不复用内容写门禁，也不校验业务锁，
-		// 允许已业务锁定的 DOCUMENT_RELEASED 订单结案；版本与来源状态仍在
-		// 事务内权威校验，结案 readiness 在下方重验。
+		// 结案与反结案不复用内容写门禁；锁定订单仍可结案，反结案必须先解锁。
+		// 版本、来源状态与审核锁均在同一订单行锁内复核。
 		if existing.Version != expectedVersion || string(existing.ClosureStatus) != event.FromStatus {
 			return biz.ErrOrderStatusConflict
+		}
+		if target == biz.OrderClosureOpen && existing.LockedAt != nil {
+			return ensureOrderNotBusinessLocked(ctx, tx.User, existing)
 		}
 		if target == biz.OrderClosureClosed {
 			hasPendingSupplement, readinessErr := hasPendingFeeSupplement(ctx, tx.Client(), id)

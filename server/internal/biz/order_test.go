@@ -576,7 +576,7 @@ func TestOrderClosureRequiresTerminalBusinessAndNoBlockers(t *testing.T) {
 	}
 }
 
-func TestOrderClosureReasonOptionalOnlyWhenClosing(t *testing.T) {
+func TestOrderClosureReasonOptional(t *testing.T) {
 	for _, tc := range []struct {
 		name    string
 		target  OrderClosureStatus
@@ -585,9 +585,10 @@ func TestOrderClosureReasonOptionalOnlyWhenClosing(t *testing.T) {
 	}{
 		{"完结可不填原因", OrderClosureClosed, "", false},
 		{"完结纯空格视为未填", OrderClosureClosed, "  ", false},
-		{"反结案必须填写原因", OrderClosureOpen, "", true},
-		{"反结案纯空格不合法", OrderClosureOpen, "  ", true},
+		{"反结案可不填原因", OrderClosureOpen, "", false},
+		{"反结案纯空格视为未填", OrderClosureOpen, "  ", false},
 		{"完结原因不得超过五百字", OrderClosureClosed, strings.Repeat("原", 501), true},
+		{"反结案原因不得超过五百字", OrderClosureOpen, strings.Repeat("原", 501), true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			current := OrderClosureOpen
@@ -602,7 +603,7 @@ func TestOrderClosureReasonOptionalOnlyWhenClosing(t *testing.T) {
 					t.Fatalf("原因不合法必须拒绝写入: err=%v event=%v", err, repo.closureEvent)
 				}
 			} else if err != nil || repo.closureEvent == nil || repo.closureReason != "" {
-				t.Fatalf("空原因完结应成功并记录事件: err=%v repo=%#v", err, repo)
+				t.Fatalf("空原因结案或反结案应成功并记录事件: err=%v repo=%#v", err, repo)
 			}
 		})
 	}

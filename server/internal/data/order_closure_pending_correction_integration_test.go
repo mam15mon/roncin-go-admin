@@ -161,8 +161,8 @@ func TestOrderClosurePendingCorrectionClosedWorkflowPostgres(t *testing.T) {
 		t.Fatal("结案后不得普通修改费用")
 	}
 	pending := submitClosureCorrection(t, f, uc, o, "closed-reopen")
-	if _, err := transitionClosureForTest(f.ctx, f, after, biz.OrderClosureOpen); err != nil {
-		t.Fatalf("有待补审时仍允许反结案: %v", err)
+	if _, err := transitionClosureForTest(f.ctx, f, after, biz.OrderClosureOpen); errors.FromError(err).Reason != "ORDER_BUSINESS_LOCKED" {
+		t.Fatalf("有待补审且锁定时反结案仍须拒绝: %v", err)
 	}
 	if _, err := uc.Decide(f.ctx, f.approverPrincipal(), f.organizationID, o.ID, pending.ID, pending.Version, "WITHDRAWN", "撤回申请"); err != nil {
 		t.Fatal(err)
@@ -171,6 +171,14 @@ func TestOrderClosurePendingCorrectionClosedWorkflowPostgres(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if _, err = NewOrderLockRepo(f.data, nil).RequestOrderUnlock(f.ctx, f.approverPrincipal(), o.ID, after.Version, uuid.NewString(), nil, nil); err != nil {
+		t.Fatalf("待审撤回后应可解锁: %v", err)
+	}
+	after = f.data.db.Order.GetX(f.ctx, o.ID)
+	if _, err = transitionClosureForTest(f.ctx, f, after, biz.OrderClosureOpen); err != nil {
+		t.Fatalf("解锁后应可反结案: %v", err)
+	}
+	after = f.data.db.Order.GetX(f.ctx, o.ID)
 	_, err = transitionClosureForTest(f.ctx, f, after, biz.OrderClosureClosed)
 	requireClosureBlocked(t, err, false)
 	billClosureTestFees(t, f, after)

@@ -66,6 +66,7 @@ export type OrderStatusSectionActions = {
   close?: StatusAction;
   closureDisabledReason?: string;
   reopen?: StatusAction;
+  reopenDisabledReason?: string;
 };
 
 type ActionBadgeProps = {
@@ -324,6 +325,7 @@ function buildClosureBadge(
         label="已完结"
         ariaLabel="反结案"
         action={actions.reopen}
+        disabledReason={actions.reopenDisabledReason}
         tone="success"
         record={record}
       />
