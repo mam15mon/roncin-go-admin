@@ -29,6 +29,7 @@ export const OrderPageHeader: React.FC<OrderPageHeaderProps> = ({
   subTitle,
   actions,
 }) => {
+  const inlineActions = page === 'create' || page === 'detail';
   const listPath = `/orders/${orderKind}`;
   const detailPath = orderId ? `/orders/${orderKind}/${orderId}` : listPath;
   const orderIdentifier = orderNo || orderId || '订单详情';
@@ -83,9 +84,9 @@ export const OrderPageHeader: React.FC<OrderPageHeaderProps> = ({
       backText={backText}
       breadcrumbs={breadcrumbs}
       tags={tags}
-      className={page === 'create' ? 'roncin-order-create-header' : undefined}
+      className={inlineActions ? `roncin-order-${page}-header` : undefined}
       extra={
-        page === 'create' ? (
+        inlineActions ? (
           <>
             {extra}
             {actions}
@@ -94,7 +95,7 @@ export const OrderPageHeader: React.FC<OrderPageHeaderProps> = ({
           extra
         )
       }
-      actions={page === 'create' ? undefined : actions}
+      actions={inlineActions ? undefined : actions}
     />
   );
 };

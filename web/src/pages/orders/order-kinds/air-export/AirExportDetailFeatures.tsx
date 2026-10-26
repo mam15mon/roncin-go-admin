@@ -1,4 +1,3 @@
-import { Button, Space } from 'antd';
 import { useRef } from 'react';
 import { ResponsiveProTable } from '@/components/ui';
 import { history } from '@/router/history';
@@ -20,24 +19,27 @@ export default function AirExportDetailFeatures({
   return (
     <>
       {children({
-        headerActions: (
-          <Space>
-            {context.canOrder('cargo_item.read') && (
-              <Button onClick={() => cargoRef.current?.open(context.order)}>
-                实际货物明细
-              </Button>
-            )}
-            {masterId && (
-              <Button
-                onClick={() =>
-                  history.push(`/orders/air-export/masters/${masterId}`)
-                }
-              >
-                共享主单与成员
-              </Button>
-            )}
-          </Space>
-        ),
+        actionMenuItems: [
+          ...(context.canOrder('cargo_item.read')
+            ? [
+                {
+                  key: 'cargo-items',
+                  label: '实际货物明细',
+                  onClick: () => cargoRef.current?.open(context.order),
+                },
+              ]
+            : []),
+          ...(masterId
+            ? [
+                {
+                  key: 'shared-master',
+                  label: '共享主单与成员',
+                  onClick: () =>
+                    history.push(`/orders/air-export/masters/${masterId}`),
+                },
+              ]
+            : []),
+        ],
         appendTabs: [
           {
             key: 'airWeight',

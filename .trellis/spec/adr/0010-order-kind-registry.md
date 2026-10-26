@@ -34,7 +34,7 @@ kind→文案映射、各页维护业务枚举→路由映射。任何新增类�
 - 通用组件（layout、`OrderListTemplate`）不反向依赖注册表：页签用中性
   占位标题，真实标题由订单页加载后经 `roncin:update-tab-title` 回填。
 - 类型详情扩展（`DetailFeatures`）是普通 React 组件，经 render-prop
-  贡献 `headerActions`/`moreMenuItems`/`appendSections` 等插槽；通用
+  贡献 `actionMenuItems`/`moreMenuItems`/`appendSections` 等插槽；通用
   Header 不认识具体业务动作。
 
 ## 理由

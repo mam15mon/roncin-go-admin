@@ -3,6 +3,7 @@ import {
   DollarOutlined,
   DownOutlined,
   FileDoneOutlined,
+  HistoryOutlined,
   SaveOutlined,
   UndoOutlined,
 } from '@ant-design/icons';
@@ -23,8 +24,8 @@ type OrderDetailHeaderProps = {
   canManageFee: boolean;
   canCreatePod: boolean;
   canReadAbnormal: boolean;
-  /** 类型专属头部动作插槽（如拆票、改配），由订单类型详情扩展提供。 */
-  businessActions?: ReactNode;
+  /** 类型专属业务菜单（如拆票、改配），由订单类型详情扩展提供。 */
+  businessMenuItems?: MenuProps['items'];
   moreMenuItems: MenuProps['items'];
   hasAction: (action: number) => boolean;
   onSave: () => void;
@@ -49,7 +50,7 @@ export default function OrderDetailHeader({
   canManageFee,
   canCreatePod,
   canReadAbnormal,
-  businessActions,
+  businessMenuItems,
   moreMenuItems,
   hasAction,
   onSave,
@@ -65,6 +66,109 @@ export default function OrderDetailHeader({
   onSynchronizeLockChange,
 }: OrderDetailHeaderProps) {
   const access = useAccess();
+  const canEdit = hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT);
+  const renderActions = (
+    lockActions?: ReactNode,
+    onOpenHistory?: () => void,
+  ) => {
+    const businessItems: MenuProps['items'] = [
+      ...(canCreatePod
+        ? [
+            {
+              key: 'release-pod',
+              icon: <FileDoneOutlined />,
+              label: (
+                <Tooltip title={businessWriteBlockedReason}>
+                  <span>导出单证 (POD)</span>
+                </Tooltip>
+              ),
+              disabled: businessWritesDisabled,
+              onClick: onOpenReleasePod,
+            },
+          ]
+        : []),
+      ...(canReadAbnormal
+        ? [
+            {
+              key: 'abnormal-case',
+              icon: <AlertOutlined />,
+              label: '异常情况',
+              onClick: onOpenAbnormalCase,
+            },
+          ]
+        : []),
+      ...(businessMenuItems ?? []),
+    ];
+    const recordItems: MenuProps['items'] = [
+      ...(onOpenHistory
+        ? [
+            {
+              key: 'unlock-history',
+              icon: <HistoryOutlined />,
+              label: '解锁记录',
+              onClick: onOpenHistory,
+            },
+          ]
+        : []),
+      ...(moreMenuItems ?? []),
+    ];
+    const resetItems: MenuProps['items'] =
+      canEdit && onReset
+        ? [
+            {
+              key: 'reset',
+              icon: <UndoOutlined />,
+              label: '重置修改',
+              danger: true,
+              disabled: businessWritesDisabled || saving,
+              onClick: onReset,
+            },
+          ]
+        : [];
+    const groups = [businessItems, recordItems, resetItems].filter(
+      (items) => items.length > 0,
+    );
+    const menuItems = groups.flatMap((items, index) => [
+      ...(index ? [{ type: 'divider' as const, key: `divider-${index}` }] : []),
+      ...items,
+    ]);
+    return (
+      <>
+        {canManageFee && (
+          <Button
+            icon={<DollarOutlined />}
+            onClick={() => history.push(`/orders/${kind}/${orderId}/fees`)}
+          >
+            费用录入
+          </Button>
+        )}
+        {lockActions}
+        {canEdit && (
+          <Tooltip title={businessWriteBlockedReason}>
+            <span>
+              <Button
+                type="primary"
+                icon={<SaveOutlined />}
+                loading={saving}
+                disabled={businessWritesDisabled}
+                onClick={onSave}
+              >
+                保存
+              </Button>
+            </span>
+          </Tooltip>
+        )}
+        {menuItems.length > 0 && (
+          <Dropdown menu={{ items: menuItems }} trigger={['click']}>
+            <Button>
+              更多操作 <DownOutlined />
+            </Button>
+          </Dropdown>
+        )}
+      </>
+    );
+  };
+
   return (
     <OrderPageHeader
       page="detail"
@@ -80,98 +184,20 @@ export default function OrderDetailHeader({
         />
       }
       actions={
-        <>
-          {access.canOperateOrganization(order.organizationId) && (
-            <OrderLockControl
-              orderId={orderId}
-              orderNo={order.orderNo}
-              state={lockState}
-              loading={lockStateLoading}
-              error={lockStateError}
-              onRetry={onRetryLockState}
-              onSynchronize={onSynchronizeLockChange}
-            />
-          )}
-
-          {/* 实心蓝底主保存按钮 */}
-          {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT) && (
-            <Tooltip title={businessWriteBlockedReason}>
-              <span>
-                <Button
-                  type="primary"
-                  icon={<SaveOutlined />}
-                  loading={saving}
-                  disabled={businessWritesDisabled}
-                  onClick={onSave}
-                  style={{ fontWeight: 500 }}
-                >
-                  保存
-                </Button>
-              </span>
-            </Tooltip>
-          )}
-
-          {/* 重置修改按钮 */}
-          {hasAction(OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT) &&
-            onReset && (
-              <Button
-                icon={<UndoOutlined />}
-                disabled={businessWritesDisabled || saving}
-                onClick={onReset}
-              >
-                重置修改
-              </Button>
-            )}
-
-          {/* 费用录入（直达独立全屏费用工作台页面） */}
-          {canManageFee && (
-            <Button
-              type="primary"
-              icon={<DollarOutlined />}
-              onClick={() => history.push(`/orders/${kind}/${orderId}/fees`)}
-              style={{ fontWeight: 500 }}
-            >
-              费用录入
-            </Button>
-          )}
-
-          {/* 导出单证 / 放货凭证 POD */}
-          {canCreatePod && (
-            <Tooltip title={businessWriteBlockedReason}>
-              <span>
-                <Button
-                  style={{ color: '#1677ff', borderColor: '#1677ff' }}
-                  icon={<FileDoneOutlined />}
-                  disabled={businessWritesDisabled}
-                  onClick={onOpenReleasePod}
-                >
-                  导出单证 (POD)
-                </Button>
-              </span>
-            </Tooltip>
-          )}
-
-          {/* 异常情况 */}
-          {canReadAbnormal && (
-            <Button
-              style={{ color: '#ff4d4f', borderColor: '#ff4d4f' }}
-              icon={<AlertOutlined />}
-              onClick={onOpenAbnormalCase}
-            >
-              异常情况
-            </Button>
-          )}
-
-          {/* 类型专属动作（由订单类型详情扩展贡献，如拆票、改配） */}
-          {businessActions}
-
-          {/* 更多操作 */}
-          <Dropdown menu={{ items: moreMenuItems }} trigger={['click']}>
-            <Button style={{ color: '#64748b', borderColor: '#d9d9d9' }}>
-              更多操作 <DownOutlined style={{ fontSize: 10 }} />
-            </Button>
-          </Dropdown>
-        </>
+        access.canOperateOrganization(order.organizationId) ? (
+          <OrderLockControl
+            orderId={orderId}
+            orderNo={order.orderNo}
+            state={lockState}
+            loading={lockStateLoading}
+            error={lockStateError}
+            onRetry={onRetryLockState}
+            onSynchronize={onSynchronizeLockChange}
+            renderActions={renderActions}
+          />
+        ) : (
+          renderActions()
+        )
       }
     />
   );

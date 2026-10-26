@@ -5,7 +5,7 @@ import {
   ShareAltOutlined,
   SwapOutlined,
 } from '@ant-design/icons';
-import { App, Badge, Button, type MenuProps, Tooltip } from 'antd';
+import { App, Badge, type MenuProps, Tooltip } from 'antd';
 import React, {
   useCallback,
   useEffect,
@@ -206,73 +206,49 @@ export default function SeaExportDetailFeatures({
     [businessWritesDisabled, canOrder, message, order, orderId],
   );
 
-  // —— 头部动作：拆票与改配（保持通用 Header 中的位置、样式与禁用语义）——
-  const canSplit = canOrder('split');
-  const canReassign = canOrder('reassign');
-  const splitDisabled = !changeActions?.canSplit;
-  const splitBlockedReasons = changeActions?.splitBlockedReasons;
-  const reassignDisabled = !changeActions?.canReassign;
-  const reassignBlockedReasons = changeActions?.reassignBlockedReasons;
-
-  const headerActionsNode = (
-    <>
-      {canSplit && (
-        <Tooltip
-          title={
-            businessWritesDisabled
-              ? businessWriteBlockedReason
-              : splitDisabled &&
-                  splitBlockedReasons &&
-                  splitBlockedReasons.length > 0
-                ? splitBlockedReasons.join('；')
-                : undefined
-          }
-        >
-          <span>
-            <Button
-              style={{ color: '#722ed1', borderColor: '#722ed1' }}
-              icon={<ScissorOutlined />}
-              disabled={splitDisabled || businessWritesDisabled}
-              onClick={() => {
-                if (ensureBusinessWriteAllowed()) {
-                  history.push(`/orders/${kind}/${orderId}/split`);
-                }
-              }}
-            >
-              拆票
-            </Button>
-          </span>
-        </Tooltip>
-      )}
-
-      {canReassign && (
-        <Tooltip
-          title={
-            businessWritesDisabled
-              ? businessWriteBlockedReason
-              : reassignDisabled &&
-                  reassignBlockedReasons &&
-                  reassignBlockedReasons.length > 0
-                ? reassignBlockedReasons.join('；')
-                : undefined
-          }
-        >
-          <span>
-            <Button
-              style={{ color: '#fa8c16', borderColor: '#fa8c16' }}
-              icon={<SwapOutlined />}
-              disabled={reassignDisabled || businessWritesDisabled}
-              onClick={() => {
-                setReassignModalOpen(true);
-              }}
-            >
-              改配
-            </Button>
-          </span>
-        </Tooltip>
-      )}
-    </>
-  );
+  // 类型专属动作以菜单项贡献，权限、阻断原因和写入口校验仍由本模块持有。
+  const splitReason = businessWritesDisabled
+    ? businessWriteBlockedReason
+    : changeActions?.splitBlockedReasons?.join('；');
+  const reassignReason = businessWritesDisabled
+    ? businessWriteBlockedReason
+    : changeActions?.reassignBlockedReasons?.join('；');
+  const actionMenuItems: MenuProps['items'] = [
+    ...(canOrder('split')
+      ? [
+          {
+            key: 'split',
+            icon: <ScissorOutlined />,
+            label: (
+              <Tooltip title={splitReason}>
+                <span>拆票</span>
+              </Tooltip>
+            ),
+            disabled: !changeActions?.canSplit || businessWritesDisabled,
+            onClick: () => {
+              if (ensureBusinessWriteAllowed()) {
+                history.push(`/orders/${kind}/${orderId}/split`);
+              }
+            },
+          },
+        ]
+      : []),
+    ...(canOrder('reassign')
+      ? [
+          {
+            key: 'reassign',
+            icon: <SwapOutlined />,
+            label: (
+              <Tooltip title={reassignReason}>
+                <span>改配</span>
+              </Tooltip>
+            ),
+            disabled: !changeActions?.canReassign || businessWritesDisabled,
+            onClick: () => setReassignModalOpen(true),
+          },
+        ]
+      : []),
+  ];
 
   // —— 后置记录页签：同批订单与拆票/改配记录，并入「关联与记录」卡片 ——
   // 角标数量只消费各数据所有者已取得的准确结果：未加载或失败时不显示数字，
@@ -312,7 +288,7 @@ export default function SeaExportDetailFeatures({
   );
 
   const contribution: OrderDetailFeatureContribution = {
-    headerActions: headerActionsNode,
+    actionMenuItems,
     moreMenuItems,
     appendTabs,
     refreshTypeState: loadChangeActions,

@@ -79,8 +79,8 @@ export interface OrderDetailFeaturesContext {
 
 /** 类型扩展向通用详情布局贡献的 UI 描述与刷新命令。 */
 export interface OrderDetailFeatureContribution {
-  /** 插入「异常情况」与「更多操作」之间的头部动作。 */
-  headerActions?: React.ReactNode;
+  /** 类型专属业务操作，统一并入详情页「更多操作」。 */
+  actionMenuItems?: MenuProps['items'];
   /** 置于通用更多菜单项之前的菜单项。 */
   moreMenuItems?: MenuProps['items'];
   /** 追加到「关联与记录」卡片操作记录之后的记录页签。 */

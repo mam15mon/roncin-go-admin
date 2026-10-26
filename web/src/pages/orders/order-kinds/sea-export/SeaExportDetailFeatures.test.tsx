@@ -5,7 +5,7 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
-import { App, type MenuProps } from 'antd';
+import { App, Menu, type MenuProps } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { seaOrderChangeServiceGetSeaOrderChangeActions } from '@/services/roncin/seaOrderChangeService';
@@ -143,7 +143,7 @@ function renderContribution(
     <SeaExportDetailFeatures key={mountKey} context={context}>
       {(features) => (
         <div>
-          {features.headerActions}
+          <Menu items={features.actionMenuItems} selectable={false} />
           {features.overlays}
           <button
             type="button"
@@ -213,11 +213,14 @@ describe('SeaExportDetailFeatures', () => {
     } as never);
     renderFeatures(buildContext());
 
-    const splitButton = await screen.findByRole('button', { name: /拆票/ });
-    expect(splitButton).toBeDisabled();
-    expect(screen.getByRole('button', { name: /改配/ })).toBeEnabled();
+    const splitButton = await screen.findByRole('menuitem', { name: /拆票/ });
+    expect(splitButton).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('menuitem', { name: /改配/ })).not.toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
 
-    fireEvent.mouseEnter(splitButton);
+    fireEvent.mouseEnter(screen.getByText('拆票', { exact: true }));
     expect(await screen.findByText('该订单已拆票')).toBeInTheDocument();
   });
 
@@ -225,10 +228,10 @@ describe('SeaExportDetailFeatures', () => {
     renderFeatures(buildContext({ canOrder: () => false }));
 
     expect(
-      screen.queryByRole('button', { name: /拆票/ }),
+      screen.queryByRole('menuitem', { name: /拆票/ }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: /改配/ }),
+      screen.queryByRole('menuitem', { name: /改配/ }),
     ).not.toBeInTheDocument();
     // 挂载期动作资格请求在 act 内落地，避免用例结束后迟到更新
     await act(async () => {
@@ -250,8 +253,8 @@ describe('SeaExportDetailFeatures', () => {
       }),
     );
 
-    const splitButton = await screen.findByRole('button', { name: /拆票/ });
-    expect(splitButton).toBeDisabled();
+    const splitButton = await screen.findByRole('menuitem', { name: /拆票/ });
+    expect(splitButton).toHaveAttribute('aria-disabled', 'true');
     fireEvent.click(splitButton);
     expect(mockPush).not.toHaveBeenCalledWith('/orders/sea-export/ord-1/split');
 
@@ -261,7 +264,7 @@ describe('SeaExportDetailFeatures', () => {
         businessWritesDisabled: false,
       }),
     );
-    const enabledButton = await screen.findByRole('button', { name: /拆票/ });
+    const enabledButton = await screen.findByRole('menuitem', { name: /拆票/ });
     fireEvent.click(enabledButton);
     await waitFor(() =>
       expect(mockPush).toHaveBeenCalledWith('/orders/sea-export/ord-1/split'),
@@ -272,10 +275,10 @@ describe('SeaExportDetailFeatures', () => {
     const refreshOrderAndLock = vi.fn().mockResolvedValue(undefined);
     renderFeatures(buildContext({ refreshOrderAndLock }));
 
-    await screen.findByRole('button', { name: /改配/ });
+    await screen.findByRole('menuitem', { name: /改配/ });
     expect(mockGetChangeActions).toHaveBeenCalledTimes(1);
 
-    fireEvent.click(screen.getByRole('button', { name: /改配/ }));
+    fireEvent.click(screen.getByRole('menuitem', { name: /改配/ }));
     await waitFor(() =>
       expect(screen.getByTestId('reassign-modal')).toHaveTextContent('true'),
     );
@@ -290,7 +293,7 @@ describe('SeaExportDetailFeatures', () => {
   it('业务写入关闭时自动关闭已打开的改配弹窗', async () => {
     const harness = renderFeatures(buildContext());
 
-    fireEvent.click(await screen.findByRole('button', { name: /改配/ }));
+    fireEvent.click(await screen.findByRole('menuitem', { name: /改配/ }));
     await waitFor(() =>
       expect(screen.getByTestId('reassign-modal')).toHaveTextContent('true'),
     );
@@ -306,12 +309,12 @@ describe('SeaExportDetailFeatures', () => {
       buildContext({ canOrder: (operation) => operation !== 'reassign' }),
     );
 
-    await screen.findByRole('button', { name: /拆票/ });
+    await screen.findByRole('menuitem', { name: /拆票/ });
     fireEvent.click(screen.getByRole('button', { name: '触发共享航次调整' }));
     expect(screen.getByTestId('voyage-modal')).toHaveTextContent('false');
 
     harness.rerenderWith(buildContext());
-    await screen.findByRole('button', { name: /改配/ });
+    await screen.findByRole('menuitem', { name: /改配/ });
     fireEvent.click(screen.getByRole('button', { name: '触发共享航次调整' }));
     expect(screen.getByTestId('voyage-modal')).toHaveTextContent('true');
   });
@@ -323,7 +326,7 @@ describe('SeaExportDetailFeatures', () => {
       }),
     );
 
-    await screen.findByRole('button', { name: /拆票/ });
+    await screen.findByRole('menuitem', { name: /拆票/ });
     fireEvent.click(screen.getByRole('button', { name: '触发共享箱工作台' }));
     expect(screen.getByTestId('shared-container-drawer')).toHaveTextContent(
       'false|ord-1|',
@@ -333,7 +336,7 @@ describe('SeaExportDetailFeatures', () => {
   it('共享箱以订单当前运输执行打开，订单身份变化重挂载后立即关闭', async () => {
     const harness = renderFeatures(buildContext());
 
-    await screen.findByRole('button', { name: /拆票/ });
+    await screen.findByRole('menuitem', { name: /拆票/ });
     fireEvent.click(screen.getByRole('button', { name: '触发共享箱工作台' }));
     expect(screen.getByTestId('shared-container-drawer')).toHaveTextContent(
       'true|ord-1|TE-1',

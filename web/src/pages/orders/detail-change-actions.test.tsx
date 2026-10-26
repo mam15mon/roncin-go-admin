@@ -1,10 +1,5 @@
 import { renderWithApp as render } from '@root/tests/renderWithApp';
-import {
-  act,
-  fireEvent,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App, Form, Input } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -157,7 +152,7 @@ vi.mock('./templates', () => ({
 
 vi.mock('./components/detail/OrderDetailHeader', () => ({
   default: (props: {
-    businessActions?: React.ReactNode;
+    businessMenuItems?: import('antd').MenuProps['items'];
     moreMenuItems?: Array<{
       key?: React.Key;
       onClick?: () => void;
@@ -165,7 +160,24 @@ vi.mock('./components/detail/OrderDetailHeader', () => ({
     onSynchronizeLockChange?: () => Promise<void>;
   }) => (
     <div>
-      {props.businessActions}
+      {props.businessMenuItems?.map((item) => {
+        const action = item as {
+          key: string;
+          label: React.ReactNode;
+          disabled?: boolean;
+          onClick?: () => void;
+        };
+        return (
+          <button
+            key={action.key}
+            type="button"
+            disabled={action.disabled}
+            onClick={action.onClick}
+          >
+            {action.label}
+          </button>
+        );
+      })}
       <button
         type="button"
         onClick={() =>
@@ -350,7 +362,7 @@ describe('订单详情页拆票与改配动作隔离', () => {
     expect(getReassignButton()).toBeEnabled();
 
     // 阻断原因进入按钮 Tooltip：B 的原因保持可见，A 的迟到结果不得覆盖。
-    fireEvent.mouseEnter(getSplitButton());
+    fireEvent.mouseEnter(screen.getByText('拆票', { exact: true }));
     expect(await screen.findByText('B 不允许拆票')).toBeInTheDocument();
   });
 

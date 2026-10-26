@@ -870,7 +870,7 @@ export default function OrderDetailPage() {
                     definition.businessType,
                     'abnormal_case.read',
                   )}
-                  businessActions={features.headerActions}
+                  businessMenuItems={features.actionMenuItems}
                   moreMenuItems={moreMenuItems}
                   hasAction={hasAction}
                   onSave={() => formRef.current?.submit()}

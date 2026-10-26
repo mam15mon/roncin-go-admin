@@ -5,7 +5,7 @@ import {
 } from '@ant-design/icons';
 import { ProFormTextArea } from '@ant-design/pro-components';
 import { Alert, App, Button, Form, Input, Modal, Tag, Tooltip } from 'antd';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { type ReactNode, useContext, useEffect, useState } from 'react';
 import { appInitialStateContext } from '@/app/initialStateContext';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { GuardedModalForm } from '@/components/ui';
@@ -35,6 +35,8 @@ type OrderLockControlProps = {
   error: Error | null;
   onRetry: () => Promise<API.OrderLockStateData | null>;
   onSynchronize: () => Promise<void>;
+  /** 详情页将低频记录并入菜单；其它入口保留完整动作。 */
+  renderActions?: (actions: ReactNode, onOpenHistory: () => void) => ReactNode;
 };
 
 type OrderLockStatusTagProps = Pick<
@@ -80,11 +82,7 @@ export function OrderLockStatusTag({
 
   const businessTypeLabel = getOrderBusinessTypeLabel(state.businessType);
   if (!state.isLocked) {
-    return (
-      <Tag color="success" icon={<UnlockOutlined />}>
-        {businessTypeLabel} · 未审核
-      </Tag>
-    );
+    return <Tag icon={<UnlockOutlined />}>{businessTypeLabel} · 未审核</Tag>;
   }
 
   const timeText = state.lockedAt ? formatDate(state.lockedAt, 'minute') : '';
@@ -112,7 +110,7 @@ export function OrderLockStatusTag({
         </div>
       }
     >
-      <Tag color="error" icon={<LockOutlined />}>
+      <Tag color="processing" icon={<LockOutlined />}>
         {businessTypeLabel} · 已审核锁定 · {sourceDisplay.actorText}
         {timeText ? ` · ${timeText}` : ''}
       </Tag>
@@ -128,6 +126,7 @@ export default function OrderLockControl({
   error,
   onRetry,
   onSynchronize,
+  renderActions,
 }: OrderLockControlProps) {
   const { message } = App.useApp();
   const workspaceId = useContext(appInitialStateContext)?.initialState
@@ -258,18 +257,11 @@ export default function OrderLockControl({
     ? '订单版本信息缺失，请刷新后重试'
     : state?.unlockBlockedReasons?.join('；');
 
-  return (
+  const primaryActions = (
     <>
       {!loading && (error || !state) && (
         <Button onClick={() => void onRetry()}>重试锁状态</Button>
       )}
-      <Button
-        icon={<HistoryOutlined />}
-        onClick={() => setUnlockHistoryVisible(true)}
-      >
-        解锁记录
-      </Button>
-
       {state && !state.isLocked && (
         <Tooltip
           title={
@@ -278,7 +270,6 @@ export default function OrderLockControl({
         >
           <span>
             <Button
-              style={{ color: '#d4380d', borderColor: '#ffbb96' }}
               icon={<LockOutlined />}
               disabled={!state.canLock || reviewSnapshotMissing || loading}
               onClick={handleLock}
@@ -291,8 +282,6 @@ export default function OrderLockControl({
 
       {state?.isLocked && state.canRoleDirectUnlock && (
         <Button
-          type="primary"
-          style={{ backgroundColor: '#fa8c16', borderColor: '#fa8c16' }}
           icon={<UnlockOutlined />}
           disabled={versionMissing || loading}
           onClick={() => openUnlockModal('ROLE_DIRECT')}
@@ -303,7 +292,6 @@ export default function OrderLockControl({
       {state?.isLocked && state.canAdminEmergencyUnlock && (
         <Button
           danger
-          type="primary"
           icon={<UnlockOutlined />}
           disabled={versionMissing || loading}
           onClick={() => openUnlockModal('ADMIN_EMERGENCY')}
@@ -315,7 +303,6 @@ export default function OrderLockControl({
         <Tooltip title={unlockBlockedTip}>
           <span>
             <Button
-              style={{ color: '#1677ff', borderColor: '#1677ff' }}
               icon={<UnlockOutlined />}
               disabled={versionMissing || loading}
               onClick={() => openUnlockModal('DINGTALK_APPROVAL')}
@@ -324,6 +311,22 @@ export default function OrderLockControl({
             </Button>
           </span>
         </Tooltip>
+      )}
+    </>
+  );
+
+  const openHistory = () => setUnlockHistoryVisible(true);
+  return (
+    <>
+      {renderActions ? (
+        renderActions(primaryActions, openHistory)
+      ) : (
+        <>
+          <Button icon={<HistoryOutlined />} onClick={openHistory}>
+            解锁记录
+          </Button>
+          {primaryActions}
+        </>
       )}
 
       {lockSnapshot && (

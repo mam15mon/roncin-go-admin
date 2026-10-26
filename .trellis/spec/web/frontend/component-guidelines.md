@@ -13,6 +13,18 @@
 | 主数据 / 通用 CRUD | `MasterDataTemplate` | 顶部指标统计卡、关键字+下拉筛选、标准分页表格、快捷模态表单 |
 | 表格列表页 | ProTable 高密度样式 | 搜索卡片与表格卡片细边框微圆角，操作列靠右 |
 
+## 订单详情页头操作层级
+
+- 订单详情的编号、状态与主要动作使用 `OrderPageHeader` 的同行布局，窄屏自然换行；
+  不改变费用页、拆票工作台等页面的独立操作行。
+- 常用动作按「费用录入 → 审核/解锁 → 保存 → 更多操作」排列，仅保存为蓝色主按钮。
+  更多菜单按业务操作、查询/工具、重置分隔；类型扩展通过 `actionMenuItems` 贡献动作，
+  调用方将它们交给 `businessMenuItems`，保留权限裁剪、服务端禁用原因及写入口校验。
+- 解锁记录由 `OrderLockControl.renderActions` 提供打开回调并入详情菜单；费用审核入口
+  仍可使用该组件默认完整动作。审核快照、版本校验、弹窗与请求仍归锁控件所有。
+- 未审核标签使用中性灰，已审核锁定使用蓝色信息态；加载、失败和未知保留各自反馈。
+  锁定时保存/导出/重置继续禁用，异常查看和记录查询按已有权限可用。
+
 ## 公共键盘交互
 
 - `HeaderDropdown` 的 `keyboardAccessible` 为显式 opt-in；企业资源、设置中心和组织切换启用，
@@ -269,10 +281,10 @@ if (
 
 - 扩展是正常 React 组件（如 `SeaExportDetailFeatures`），合法持有 Hook、请求序号与本地状态；禁止从注册字典动态调用 Hook，也禁止把全部 setter 塞进巨型 context。
 - 页面以 `key={orderFormIdentity}` 重挂载扩展；扩展内请求必须同时校验请求序号、目标身份与实例存活，旧实例的同步续体不得对旧订单再发起请求。
-- 扩展经 render-prop 贡献 `headerActions`（插在「异常情况」与「更多操作」之间）、`moreMenuItems`（置于通用菜单项之前）、`appendSections`（置于审计时间线之前）、`overlays` 与 `refreshTypeState`。
+- 扩展经 render-prop 贡献 `actionMenuItems`（类型专属业务操作，统一收进「更多操作」）、`moreMenuItems`（置于通用菜单项之前）、`appendSections`（置于审计时间线之前）、`overlays` 与 `refreshTypeState`。
 - `OrderDetailFeaturesContext` 只提供业务输入与命令（订单身份、写入口校验、`refreshOrderAndLock`、绑定业务类型的 `canOrder`、搜索函数与候选项）；不暴露草稿键、dirty setter、显式刷新令牌或模板 actions ref。
 - 扩展的普通刷新走 `refreshOrderAndLock`（不清草稿、不 `resetTo`）；显式刷新令牌完全由通用详情页持有（见 state-management.md）。
-- 通用详情组件（`detail.tsx`、`OrderDetailHeader`）不得直接 import Sea 覆盖层或品类服务；类型专属按钮经 `businessActions` 插槽注入，通用 Header 不认识具体业务动作。
+- 通用详情组件（`detail.tsx`、`OrderDetailHeader`）不得直接 import Sea 覆盖层或品类服务；类型专属菜单经 `businessMenuItems` 插槽注入，通用 Header 不认识具体业务动作。
 
 ## 往来单位选择器与快捷建档（散客契约）
 
