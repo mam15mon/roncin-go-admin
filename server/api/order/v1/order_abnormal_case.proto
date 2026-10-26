@@ -9,7 +9,7 @@ import "google/api/field_behavior.proto";
 option go_package = "github.com/roncin/roncin-go-admin/server/api/order/v1;v1";
 
 // OrderAbnormalCaseService 订单异常标记服务。
-// 异常类型必须引用组织级 abnormal_case 主数据；标记与解决人由会话主体记录。
+// 异常类型必须引用全局共享 abnormal_case 主数据；标记与解决人由会话主体记录。
 service OrderAbnormalCaseService {
   // ListAbnormalCases 获取指定订单的异常标记列表。
   rpc ListAbnormalCases(ListAbnormalCasesRequest) returns (ListAbnormalCasesResponse) {
@@ -61,6 +61,8 @@ message OrderAbnormalCase {
   optional string resolved_by = 8;
   string created_at = 9;
   string updated_at = 10;
+  // 已停用类型仍返回名称，读取历史记录不受候选启用状态影响。
+  string abnormal_case_name = 11;
 }
 
 // ListAbnormalCasesRequest 获取异常标记列表请求。

@@ -190,6 +190,7 @@ var operationAccessRules = map[string]accessRule{
 	"/masterdata.v1.MasterDataService/ListPorts":                                                {mode: accessModeAuthenticated},
 	"/masterdata.v1.MasterDataService/ListShippingLines":                                        {mode: accessModeAuthenticated},
 	"/masterdata.v1.MasterDataService/SearchCurrencies":                                         {mode: accessModeAuthenticated},
+	"/masterdata.v1.MasterDataService/SearchOptions":                                            {mode: accessModeAuthenticated},
 	"/masterdata.v1.MasterDataService/SetCurrencyEnabled":                                       {mode: accessModeAuthenticated},
 	"/masterdata.v1.MasterDataService/UpdateAirline":                                            {mode: accessModePermission, permission: "system.master_data.airline.update", scope: biz.DataScopeOrganization},
 	"/masterdata.v1.MasterDataService/UpdateAirport":                                            {mode: accessModePermission, permission: "system.master_data.airport.update", scope: biz.DataScopeOrganization},
@@ -346,8 +347,10 @@ var operationAccessRules = map[string]accessRule{
 	"/workbench.v1.WorkbenchService/ListMyApplicationCandidates":                                {mode: accessModeAuthenticated},
 	"/workbench.v1.WorkbenchService/ListMyCommissionApplications":                               {mode: accessModeAuthenticated},
 	"/workbench.v1.WorkbenchService/ListMyCommissions":                                          {mode: accessModeAuthenticated},
+	"/workbench.v1.WorkbenchService/ListMyOpenAbnormalCases":                                    {mode: accessModeAuthenticated},
 	"/workbench.v1.WorkbenchService/ListMyReceivables":                                          {mode: accessModeAuthenticated},
 	"/workbench.v1.WorkbenchService/ListMyRecentOrders":                                         {mode: accessModeAuthenticated},
+	"/workbench.v1.WorkbenchService/ListMyUnbilledFees":                                         {mode: accessModeAuthenticated},
 	"/workbench.v1.WorkbenchService/ResubmitMyCommissionApplication":                            {mode: accessModeAuthenticated},
 	"/workbench.v1.WorkbenchService/SubmitMyCommissionApplication":                              {mode: accessModeAuthenticated},
 }

@@ -43,6 +43,12 @@ service MasterDataService {
     option (google.api.http) = {get: "/api/v1/master-data/options"};
   }
 
+  // SearchOptions 为已登录员工提供启用主数据的分类分页搜索。
+  rpc SearchOptions(SearchOptionsRequest) returns (SearchOptionsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {get: "/api/v1/master-data/options/search"};
+  }
+
   rpc ListPorts(ListPortsRequest) returns (ListPortsResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
     option (google.api.http) = {get: "/api/v1/master-data/ports"};
@@ -275,6 +281,25 @@ message ImportItemsResponse {
 }
 
 message ListOptionsRequest {}
+
+// SearchOptionsRequest 固定只检索启用候选，kind 必填且不能为未指定。
+message SearchOptionsRequest {
+  MasterDataKind kind = 1 [(google.api.field_behavior) = REQUIRED];
+  string keyword = 2;
+  optional int32 page = 3;
+  optional int32 page_size = 4;
+}
+
+message SearchOptionsResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated MasterDataItem data = 4;
+  int32 total = 5;
+  int32 page = 6;
+  int32 page_size = 7;
+  string trace_id = 8;
+}
 
 message MasterDataItem {
   string id = 1;

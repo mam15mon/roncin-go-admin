@@ -23,6 +23,8 @@ const (
 	WorkbenchService_ListMyCommissions_FullMethodName               = "/workbench.v1.WorkbenchService/ListMyCommissions"
 	WorkbenchService_ListMyReceivables_FullMethodName               = "/workbench.v1.WorkbenchService/ListMyReceivables"
 	WorkbenchService_ListMyRecentOrders_FullMethodName              = "/workbench.v1.WorkbenchService/ListMyRecentOrders"
+	WorkbenchService_ListMyUnbilledFees_FullMethodName              = "/workbench.v1.WorkbenchService/ListMyUnbilledFees"
+	WorkbenchService_ListMyOpenAbnormalCases_FullMethodName         = "/workbench.v1.WorkbenchService/ListMyOpenAbnormalCases"
 	WorkbenchService_ListMyApplicationCandidates_FullMethodName     = "/workbench.v1.WorkbenchService/ListMyApplicationCandidates"
 	WorkbenchService_SubmitMyCommissionApplication_FullMethodName   = "/workbench.v1.WorkbenchService/SubmitMyCommissionApplication"
 	WorkbenchService_ResubmitMyCommissionApplication_FullMethodName = "/workbench.v1.WorkbenchService/ResubmitMyCommissionApplication"
@@ -48,6 +50,10 @@ type WorkbenchServiceClient interface {
 	ListMyReceivables(ctx context.Context, in *ListMyReceivablesRequest, opts ...grpc.CallOption) (*ListMyReceivablesResponse, error)
 	// ListMyRecentOrders 返回本人真实协作且具备对应业务读取权限的近期出口订单，服务端分页。
 	ListMyRecentOrders(ctx context.Context, in *ListMyRecentOrdersRequest, opts ...grpc.CallOption) (*ListMyRecentOrdersResponse, error)
+	// ListMyUnbilledFees 返回本人协作订单上仍需记账的未建账费用明细。
+	ListMyUnbilledFees(ctx context.Context, in *ListMyUnbilledFeesRequest, opts ...grpc.CallOption) (*ListMyUnbilledFeesResponse, error)
+	// ListMyOpenAbnormalCases 返回本人协作订单上的进行中异常明细。
+	ListMyOpenAbnormalCases(ctx context.Context, in *ListMyOpenAbnormalCasesRequest, opts ...grpc.CallOption) (*ListMyOpenAbnormalCasesResponse, error)
 	// ListMyApplicationCandidates 返回本人截至上一自然月末、尚未进入任何申请的
 	// 合格提成候选，按提成归属月过滤并服务端分页；候选由服务端按现有计提口径
 	// 全量解析，不信任客户端传入的员工/组织/金额。
@@ -111,6 +117,26 @@ func (c *workbenchServiceClient) ListMyRecentOrders(ctx context.Context, in *Lis
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListMyRecentOrdersResponse)
 	err := c.cc.Invoke(ctx, WorkbenchService_ListMyRecentOrders_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workbenchServiceClient) ListMyUnbilledFees(ctx context.Context, in *ListMyUnbilledFeesRequest, opts ...grpc.CallOption) (*ListMyUnbilledFeesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListMyUnbilledFeesResponse)
+	err := c.cc.Invoke(ctx, WorkbenchService_ListMyUnbilledFees_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workbenchServiceClient) ListMyOpenAbnormalCases(ctx context.Context, in *ListMyOpenAbnormalCasesRequest, opts ...grpc.CallOption) (*ListMyOpenAbnormalCasesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListMyOpenAbnormalCasesResponse)
+	err := c.cc.Invoke(ctx, WorkbenchService_ListMyOpenAbnormalCases_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -185,6 +211,10 @@ type WorkbenchServiceServer interface {
 	ListMyReceivables(context.Context, *ListMyReceivablesRequest) (*ListMyReceivablesResponse, error)
 	// ListMyRecentOrders 返回本人真实协作且具备对应业务读取权限的近期出口订单，服务端分页。
 	ListMyRecentOrders(context.Context, *ListMyRecentOrdersRequest) (*ListMyRecentOrdersResponse, error)
+	// ListMyUnbilledFees 返回本人协作订单上仍需记账的未建账费用明细。
+	ListMyUnbilledFees(context.Context, *ListMyUnbilledFeesRequest) (*ListMyUnbilledFeesResponse, error)
+	// ListMyOpenAbnormalCases 返回本人协作订单上的进行中异常明细。
+	ListMyOpenAbnormalCases(context.Context, *ListMyOpenAbnormalCasesRequest) (*ListMyOpenAbnormalCasesResponse, error)
 	// ListMyApplicationCandidates 返回本人截至上一自然月末、尚未进入任何申请的
 	// 合格提成候选，按提成归属月过滤并服务端分页；候选由服务端按现有计提口径
 	// 全量解析，不信任客户端传入的员工/组织/金额。
@@ -225,6 +255,12 @@ func (UnimplementedWorkbenchServiceServer) ListMyReceivables(context.Context, *L
 }
 func (UnimplementedWorkbenchServiceServer) ListMyRecentOrders(context.Context, *ListMyRecentOrdersRequest) (*ListMyRecentOrdersResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListMyRecentOrders not implemented")
+}
+func (UnimplementedWorkbenchServiceServer) ListMyUnbilledFees(context.Context, *ListMyUnbilledFeesRequest) (*ListMyUnbilledFeesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListMyUnbilledFees not implemented")
+}
+func (UnimplementedWorkbenchServiceServer) ListMyOpenAbnormalCases(context.Context, *ListMyOpenAbnormalCasesRequest) (*ListMyOpenAbnormalCasesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListMyOpenAbnormalCases not implemented")
 }
 func (UnimplementedWorkbenchServiceServer) ListMyApplicationCandidates(context.Context, *ListMyApplicationCandidatesRequest) (*ListMyApplicationCandidatesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListMyApplicationCandidates not implemented")
@@ -330,6 +366,42 @@ func _WorkbenchService_ListMyRecentOrders_Handler(srv interface{}, ctx context.C
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(WorkbenchServiceServer).ListMyRecentOrders(ctx, req.(*ListMyRecentOrdersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkbenchService_ListMyUnbilledFees_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMyUnbilledFeesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkbenchServiceServer).ListMyUnbilledFees(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorkbenchService_ListMyUnbilledFees_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkbenchServiceServer).ListMyUnbilledFees(ctx, req.(*ListMyUnbilledFeesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkbenchService_ListMyOpenAbnormalCases_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMyOpenAbnormalCasesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkbenchServiceServer).ListMyOpenAbnormalCases(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorkbenchService_ListMyOpenAbnormalCases_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkbenchServiceServer).ListMyOpenAbnormalCases(ctx, req.(*ListMyOpenAbnormalCasesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -446,6 +518,14 @@ var WorkbenchService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListMyRecentOrders",
 			Handler:    _WorkbenchService_ListMyRecentOrders_Handler,
+		},
+		{
+			MethodName: "ListMyUnbilledFees",
+			Handler:    _WorkbenchService_ListMyUnbilledFees_Handler,
+		},
+		{
+			MethodName: "ListMyOpenAbnormalCases",
+			Handler:    _WorkbenchService_ListMyOpenAbnormalCases_Handler,
 		},
 		{
 			MethodName: "ListMyApplicationCandidates",

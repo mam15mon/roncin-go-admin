@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useRef } from 'react';
 import { useInitialState } from '@/app/AppProvider';
+import { useAccess } from '@/app/access';
 import { getFormDraftScope } from '@/components/layout/formDraft';
 import { OrderBusinessType } from '@/enums.generated';
 import { getOrderPersonnelOptions } from '@/features/orders/options';
@@ -43,11 +44,14 @@ export function useOrderDetailData(
   definition?: OrderKindDefinition,
 ) {
   const { initialState } = useInitialState();
+  const access = useAccess();
   const organizationId = initialState?.currentUser?.currentOrganization?.id;
   const isUserLoaded = Boolean(initialState?.currentUser);
   const businessType =
     definition?.businessType ?? OrderBusinessType.BUSINESS_TYPE_UNSPECIFIED;
   const transportMode = definition?.transportMode;
+  const canReadPersonnel = access.canOrder(businessType, 'personnel.read');
+  const canSearchPersonnel = access.canOrder(businessType, 'create');
 
   // 订单、组织、业务身份全部就绪才允许发起请求；
   // 身份参数全部进入 queryKey，组织/订单/配置切换即自然重查且互不串数据。
@@ -63,7 +67,13 @@ export function useOrderDetailData(
     queryKey: [
       ORDER_DETAIL_QUERY_PREFIX,
       orderId,
-      { organizationId, transportMode, businessType },
+      {
+        organizationId,
+        transportMode,
+        businessType,
+        canReadPersonnel,
+        canSearchPersonnel,
+      },
     ],
     enabled: queryEnabled,
     queryFn: async (): Promise<OrderDetailBundle> => {
@@ -75,14 +85,17 @@ export function useOrderDetailData(
         const [masterData, personnelOptions, orderRes, docsRes, personnelRes] =
           await Promise.all([
             fetchOrderMasterData(organizationId, definition.transportMode),
-            transportMode === 'sea' || transportMode === 'air'
+            canSearchPersonnel &&
+            (transportMode === 'sea' || transportMode === 'air')
               ? getOrderPersonnelOptions(organizationId, businessType)
               : Promise.resolve([]),
             orderServiceGetOrder({ id: orderId }),
             usesLegacyShippingDocuments
               ? orderShippingDocumentServiceListShippingDocuments({ orderId })
               : Promise.resolve(null),
-            orderPersonnelServiceListPersonnel({ orderId }),
+            canReadPersonnel
+              ? orderPersonnelServiceListPersonnel({ orderId })
+              : Promise.resolve({ data: [] }),
           ]);
 
         // 请求层错误被全局处理器消费后会 resolve undefined：先转成明确

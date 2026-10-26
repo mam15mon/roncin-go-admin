@@ -24,6 +24,10 @@ import {
   orderTerminationStatusText,
   workbenchOrderPath,
 } from './display';
+import {
+  useWorkbenchTodoAccess,
+  type WorkbenchTodoKind,
+} from './useWorkbenchTodoAccess';
 
 const { Text, Paragraph } = Typography;
 
@@ -120,9 +124,18 @@ export function RecentOrdersCard({ orders }: { orders?: RecentOrder[] }) {
  * 可靠作业待办：只统计本人协作订单上可由现有事实准确判定的未建账费用与
  * 进行中异常；无任何待办时不渲染本卡，不虚构未建模的责任与时限。
  */
-export function TodosCard({ todos }: { todos?: Todos }) {
-  const unbilledFeeCount = todos?.unbilledFeeCount ?? 0;
-  const openAbnormalCount = todos?.openAbnormalCount ?? 0;
+export function TodosCard({
+  todos,
+  onOpen,
+}: {
+  todos?: Todos;
+  onOpen: (kind: WorkbenchTodoKind) => void;
+}) {
+  const access = useWorkbenchTodoAccess();
+  const unbilledFeeCount = access.fees ? (todos?.unbilledFeeCount ?? 0) : 0;
+  const openAbnormalCount = access.abnormal
+    ? (todos?.openAbnormalCount ?? 0)
+    : 0;
   if (unbilledFeeCount === 0 && openAbnormalCount === 0) {
     return null;
   }
@@ -144,12 +157,8 @@ export function TodosCard({ todos }: { todos?: Todos }) {
             <Text>协作订单上的未建账费用</Text>
             <Space size={8}>
               <Tag color="warning">{unbilledFeeCount} 笔</Tag>
-              <Button
-                type="link"
-                size="small"
-                onClick={() => history.push('/finance/fees')}
-              >
-                费用明细
+              <Button type="link" size="small" onClick={() => onOpen('fees')}>
+                查看明细
               </Button>
             </Space>
           </div>
@@ -159,9 +168,13 @@ export function TodosCard({ todos }: { todos?: Todos }) {
             <Text>协作订单上的进行中异常</Text>
             <Space size={8}>
               <Tag color="red">{openAbnormalCount} 件</Tag>
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                请进入相关订单详情处理
-              </Text>
+              <Button
+                type="link"
+                size="small"
+                onClick={() => onOpen('abnormal')}
+              >
+                查看明细
+              </Button>
             </Space>
           </div>
         ) : null}

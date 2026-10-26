@@ -127,7 +127,6 @@ func newWorkbenchIntegrationFixture(t *testing.T) *workbenchIntegrationFixture {
 		SetExchangeRateDate(workbenchIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("1000.00000000").
-
 		SetVersion(1).
 		Save(ctx)
 	if err != nil {
@@ -153,7 +152,6 @@ func newWorkbenchIntegrationFixture(t *testing.T) *workbenchIntegrationFixture {
 		SetExchangeRateDate(workbenchIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("400.00000000").
-
 		SetVersion(1).
 		Save(ctx); err != nil {
 		t.Fatalf("创建测试应付费用: %v", err)
@@ -547,11 +545,13 @@ func (f *workbenchIntegrationFixture) repo() biz.WorkbenchRepo { return NewWorkb
 func (f *workbenchIntegrationFixture) scope(userID uuid.UUID, mutate func(*biz.WorkbenchScope)) biz.WorkbenchScope {
 	now := time.Now()
 	scope := biz.WorkbenchScope{
-		OrganizationID:             f.organizationID,
-		ReadableOrderBusinessTypes: []biz.OrderBusinessType{biz.OrderBusinessSE, biz.OrderBusinessAE},
-		UserID:                     userID,
-		Today:                      biz.FinanceBusinessDate(now),
-		Now:                        now,
+		OrganizationID:                f.organizationID,
+		ReadableOrderBusinessTypes:    []biz.OrderBusinessType{biz.OrderBusinessSE, biz.OrderBusinessAE},
+		ReadableFeeBusinessTypes:      []biz.OrderBusinessType{biz.OrderBusinessSE, biz.OrderBusinessAE},
+		ReadableAbnormalBusinessTypes: []biz.OrderBusinessType{biz.OrderBusinessSE, biz.OrderBusinessAE},
+		UserID:                        userID,
+		Today:                         biz.FinanceBusinessDate(now),
+		Now:                           now,
 	}
 	if mutate != nil {
 		mutate(&scope)

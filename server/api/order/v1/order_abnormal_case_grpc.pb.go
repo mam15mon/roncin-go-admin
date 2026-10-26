@@ -30,7 +30,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
 // OrderAbnormalCaseService 订单异常标记服务。
-// 异常类型必须引用组织级 abnormal_case 主数据；标记与解决人由会话主体记录。
+// 异常类型必须引用全局共享 abnormal_case 主数据；标记与解决人由会话主体记录。
 type OrderAbnormalCaseServiceClient interface {
 	// ListAbnormalCases 获取指定订单的异常标记列表。
 	ListAbnormalCases(ctx context.Context, in *ListAbnormalCasesRequest, opts ...grpc.CallOption) (*ListAbnormalCasesResponse, error)
@@ -95,7 +95,7 @@ func (c *orderAbnormalCaseServiceClient) RemoveAbnormalCase(ctx context.Context,
 // for forward compatibility.
 //
 // OrderAbnormalCaseService 订单异常标记服务。
-// 异常类型必须引用组织级 abnormal_case 主数据；标记与解决人由会话主体记录。
+// 异常类型必须引用全局共享 abnormal_case 主数据；标记与解决人由会话主体记录。
 type OrderAbnormalCaseServiceServer interface {
 	// ListAbnormalCases 获取指定订单的异常标记列表。
 	ListAbnormalCases(context.Context, *ListAbnormalCasesRequest) (*ListAbnormalCasesResponse, error)

@@ -4550,6 +4550,39 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/masterdata.v1.ListOptionsResponse'
+    /api/v1/master-data/options/search:
+        get:
+            tags:
+                - MasterDataService
+            description: SearchOptions 为已登录员工提供启用主数据的分类分页搜索。
+            operationId: MasterDataService_SearchOptions
+            parameters:
+                - name: kind
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/masterdata.v1.SearchOptionsResponse'
     /api/v1/master-data/ports:
         get:
             tags:
@@ -8413,6 +8446,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/workbench.v1.ListMyCommissionsResponse'
+    /api/v1/workbench/my-open-abnormal-cases:
+        get:
+            tags:
+                - WorkbenchService
+            description: ListMyOpenAbnormalCases 返回本人协作订单上的进行中异常明细。
+            operationId: WorkbenchService_ListMyOpenAbnormalCases
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/workbench.v1.ListMyOpenAbnormalCasesResponse'
     /api/v1/workbench/my-receivables:
         get:
             tags:
@@ -8461,6 +8518,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/workbench.v1.ListMyRecentOrdersResponse'
+    /api/v1/workbench/my-unbilled-fees:
+        get:
+            tags:
+                - WorkbenchService
+            description: ListMyUnbilledFees 返回本人协作订单上仍需记账的未建账费用明细。
+            operationId: WorkbenchService_ListMyUnbilledFees
+            parameters:
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/workbench.v1.ListMyUnbilledFeesResponse'
     /api/v1/workbench/overview:
         get:
             tags:
@@ -16016,6 +16097,31 @@ components:
                 pageSize:
                     type: integer
                     format: int32
+        masterdata.v1.SearchOptionsResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/masterdata.v1.MasterDataItem'
+                total:
+                    type: integer
+                    format: int32
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+                traceId:
+                    type: string
         masterdata.v1.SetCurrencyEnabledRequest:
             required:
                 - code
@@ -18931,6 +19037,9 @@ components:
                     type: string
                 updatedAt:
                     type: string
+                abnormalCaseName:
+                    type: string
+                    description: 已停用类型仍返回名称，读取历史记录不受候选启用状态影响。
             description: OrderAbnormalCase 订单异常标记信息。
         order.v1.OrderAttachment:
             type: object
@@ -24556,6 +24665,30 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/workbench.v1.WorkbenchMyCommission'
+        workbench.v1.ListMyOpenAbnormalCasesResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                traceId:
+                    type: string
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/workbench.v1.WorkbenchOpenAbnormalCase'
         workbench.v1.ListMyReceivablesResponse:
             type: object
             properties:
@@ -24604,6 +24737,30 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/workbench.v1.WorkbenchRecentOrder'
+        workbench.v1.ListMyUnbilledFeesResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                traceId:
+                    type: string
+                total:
+                    type: string
+                page:
+                    type: integer
+                    format: int32
+                pageSize:
+                    type: integer
+                    format: int32
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/workbench.v1.WorkbenchUnbilledFee'
         workbench.v1.ResubmitMyCommissionApplicationRequest:
             required:
                 - applicationId
@@ -25009,6 +25166,34 @@ components:
             description: |-
                 WorkbenchMyReceivable 是单张已确认应收账单的未结投影：金额全部为账单原币，
                  不同币种不合计；未结余额口径与账单台账一致（总额 - 有效核销 - 有效对冲）。
+        workbench.v1.WorkbenchOpenAbnormalCase:
+            type: object
+            properties:
+                id:
+                    type: string
+                orderId:
+                    type: string
+                orderNo:
+                    type: string
+                businessType:
+                    type: string
+                customerName:
+                    type: string
+                orderLocked:
+                    type: boolean
+                terminationStatus:
+                    type: string
+                closureStatus:
+                    type: string
+                abnormalCaseId:
+                    type: string
+                abnormalCaseName:
+                    type: string
+                markedAt:
+                    type: string
+                businessWriteBlockedReason:
+                    type: string
+            description: WorkbenchOpenAbnormalCase 的名称包含停用类型，业务只读原因不改变待办事实。
         workbench.v1.WorkbenchRecentOrder:
             type: object
             properties:
@@ -25033,7 +25218,7 @@ components:
             properties:
                 unbilledFeeCount:
                     type: integer
-                    description: unbilled_fee_count 是本人协作订单上状态为 UNBILLED（未建账）的费用数量。
+                    description: unbilled_fee_count 是本人具备费用读取权限的协作订单上仍需记账、未被替代且无有效账单占用的费用数量。
                     format: int32
                 openAbnormalCount:
                     type: integer
@@ -25041,6 +25226,44 @@ components:
             description: |-
                 WorkbenchTodoSummary 只聚合能由现有事实准确判定的作业待办，不虚构未建模的
                  责任与时限。
+        workbench.v1.WorkbenchUnbilledFee:
+            type: object
+            properties:
+                feeId:
+                    type: string
+                orderId:
+                    type: string
+                orderNo:
+                    type: string
+                businessType:
+                    type: string
+                customerName:
+                    type: string
+                orderLocked:
+                    type: boolean
+                terminationStatus:
+                    type: string
+                closureStatus:
+                    type: string
+                direction:
+                    type: string
+                feeName:
+                    type: string
+                settlementPartyName:
+                    type: string
+                currency:
+                    type: string
+                totalAmount:
+                    type: string
+                createdAt:
+                    type: string
+                hasPendingChange:
+                    type: boolean
+                blockedReasons:
+                    type: array
+                    items:
+                        type: string
+            description: WorkbenchUnbilledFee 是单笔仍需记账费用；direction 按实际记账方向投影冲回。
 tags:
     - name: AdminService
     - name: AirExportService
@@ -25062,7 +25285,7 @@ tags:
     - name: OrderAbnormalCaseService
       description: |-
         OrderAbnormalCaseService 订单异常标记服务。
-         异常类型必须引用组织级 abnormal_case 主数据；标记与解决人由会话主体记录。
+         异常类型必须引用全局共享 abnormal_case 主数据；标记与解决人由会话主体记录。
     - name: OrderAttachmentService
       description: OrderAttachmentService 订单附件服务。
     - name: OrderCargoItemService

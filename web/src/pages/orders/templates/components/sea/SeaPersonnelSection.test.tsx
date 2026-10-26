@@ -108,6 +108,18 @@ describe('订单人员选择', () => {
 });
 
 describe('buildSeaPersonnelSection 提成三岗必填', () => {
+  it('详情无人员候选权限时，所有人员选择保持只读', () => {
+    const section = buildSeaPersonnelSection({
+      ...baseTemplateProps,
+      isDetail: true,
+      personnelReadonly: true,
+    });
+    render(<Form>{section.content}</Form>);
+    for (const select of screen.getAllByRole('combobox')) {
+      expect(select).toBeDisabled();
+    }
+  });
+
   it('新建模式下操作/业务/客服必填且业务/客服只读，其余人员保持选填', () => {
     render(<SectionHost onFinish={vi.fn()} />);
 
@@ -121,9 +133,7 @@ describe('buildSeaPersonnelSection 提成三岗必填', () => {
     for (const label of ['业务人员', '客服人员']) {
       const labelElement = screen.getByText(label).closest('label');
       const formItem = labelElement?.closest('.ant-form-item');
-      expect(
-        formItem?.querySelector('.ant-select-disabled'),
-      ).not.toBeNull();
+      expect(formItem?.querySelector('.ant-select-disabled')).not.toBeNull();
     }
   });
 
@@ -145,9 +155,7 @@ describe('buildSeaPersonnelSection 提成三岗必填', () => {
     expect(
       await screen.findByText('请先在客户档案配置业务人员'),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText('请先在客户档案配置客服人员'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('请先在客户档案配置客服人员')).toBeInTheDocument();
     expect(onFinish).not.toHaveBeenCalled();
   });
 });

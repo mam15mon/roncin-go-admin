@@ -54,7 +54,7 @@ func (s *OrderAbnormalCaseService) MarkAbnormalCase(ctx context.Context, request
 	if err != nil {
 		return nil, biz.ErrOrderAbnormalCaseInvalidArgument
 	}
-	marked, err := s.usecase.Mark(ctx, principal.Organization.ID, orderID, principal.UserID, abnormalCaseID)
+	marked, err := s.usecase.Mark(ctx, principal.Organization.ID, principal.UserID, orderID, abnormalCaseID)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (s *OrderAbnormalCaseService) ResolveAbnormalCase(ctx context.Context, requ
 	if err != nil {
 		return nil, biz.ErrOrderAbnormalCaseInvalidArgument
 	}
-	resolved, err := s.usecase.Resolve(ctx, principal.Organization.ID, orderID, principal.UserID, id)
+	resolved, err := s.usecase.Resolve(ctx, principal.Organization.ID, principal.UserID, orderID, id)
 	if err != nil {
 		return nil, err
 	}
@@ -102,14 +102,15 @@ func (s *OrderAbnormalCaseService) RemoveAbnormalCase(ctx context.Context, reque
 
 func orderAbnormalCaseToAPI(value *biz.OrderAbnormalCase) *v1.OrderAbnormalCase {
 	item := &v1.OrderAbnormalCase{
-		Id:             value.ID.String(),
-		OrderId:        value.OrderID.String(),
-		AbnormalCaseId: value.AbnormalCaseID.String(),
-		Status:         orderAbnormalCaseStatusToAPI(value.Status),
-		MarkedAt:       value.MarkedAt.UTC().Format(time.RFC3339),
-		MarkedBy:       value.MarkedBy.String(),
-		CreatedAt:      value.CreatedAt.UTC().Format(time.RFC3339),
-		UpdatedAt:      value.UpdatedAt.UTC().Format(time.RFC3339),
+		Id:               value.ID.String(),
+		OrderId:          value.OrderID.String(),
+		AbnormalCaseId:   value.AbnormalCaseID.String(),
+		AbnormalCaseName: value.AbnormalCaseName,
+		Status:           orderAbnormalCaseStatusToAPI(value.Status),
+		MarkedAt:         value.MarkedAt.UTC().Format(time.RFC3339),
+		MarkedBy:         value.MarkedBy.String(),
+		CreatedAt:        value.CreatedAt.UTC().Format(time.RFC3339),
+		UpdatedAt:        value.UpdatedAt.UTC().Format(time.RFC3339),
 	}
 	if value.ResolvedAt != nil {
 		resolvedAt := value.ResolvedAt.UTC().Format(time.RFC3339)

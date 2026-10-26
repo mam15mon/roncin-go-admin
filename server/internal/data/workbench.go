@@ -19,7 +19,6 @@ import (
 	verification "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	allocation "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
-	orderabnormalcaseent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	attribution "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	fee "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	correctionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
@@ -550,22 +549,20 @@ func (r *workbenchRepo) workbenchTodoSummary(ctx context.Context, client *ent.Cl
 	if len(myOrderIDs) == 0 {
 		return summary, nil
 	}
-	unbilledFeeCount, err := client.OrderFee.Query().Where(
-		fee.OrderIDIn(myOrderIDs...),
-		fee.Not(fee.HasFinanceBillLinesWith(effectiveBillLinePredicate())),
-	).Count(ctx)
-	if err != nil {
-		return nil, err
+	if len(scope.ReadableFeeBusinessTypes) > 0 {
+		count, err := workbenchUnbilledFeeQuery(client, scope, myOrderIDs).Count(ctx)
+		if err != nil {
+			return nil, err
+		}
+		summary.UnbilledFeeCount = count
 	}
-	summary.UnbilledFeeCount = unbilledFeeCount
-	openAbnormalCount, err := client.OrderAbnormalCase.Query().Where(
-		orderabnormalcaseent.StatusEQ(orderabnormalcaseent.StatusACTIVE),
-		orderabnormalcaseent.OrderIDIn(myOrderIDs...),
-	).Count(ctx)
-	if err != nil {
-		return nil, err
+	if len(scope.ReadableAbnormalBusinessTypes) > 0 {
+		count, err := workbenchOpenAbnormalQuery(client, scope, myOrderIDs).Count(ctx)
+		if err != nil {
+			return nil, err
+		}
+		summary.OpenAbnormalCount = count
 	}
-	summary.OpenAbnormalCount = openAbnormalCount
 	return summary, nil
 }
 

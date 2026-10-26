@@ -545,12 +545,16 @@ export function OrderListTemplate({
                         },
                       ]
                     : []),
-                  {
-                    key: 'abnormal',
-                    icon: <WarningOutlined />,
-                    label: '异常情况登记',
-                    onClick: () => onOpenAbnormal?.(record),
-                  },
+                  ...(onOpenAbnormal
+                    ? [
+                        {
+                          key: 'abnormal',
+                          icon: <WarningOutlined />,
+                          label: '异常情况',
+                          onClick: () => onOpenAbnormal(record),
+                        },
+                      ]
+                    : []),
                 ],
               }}
             >

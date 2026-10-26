@@ -933,7 +933,7 @@ func (x *WorkbenchRecentOrder) GetCreatedAt() string {
 // 责任与时限。
 type WorkbenchTodoSummary struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// unbilled_fee_count 是本人协作订单上状态为 UNBILLED（未建账）的费用数量。
+	// unbilled_fee_count 是本人具备费用读取权限的协作订单上仍需记账、未被替代且无有效账单占用的费用数量。
 	UnbilledFeeCount  int32 `protobuf:"varint,6,opt,name=unbilled_fee_count,json=unbilledFeeCount,proto3" json:"unbilled_fee_count,omitempty"`
 	OpenAbnormalCount int32 `protobuf:"varint,2,opt,name=open_abnormal_count,json=openAbnormalCount,proto3" json:"open_abnormal_count,omitempty"`
 	unknownFields     protoimpl.UnknownFields
@@ -3201,6 +3201,609 @@ func (x *WorkbenchMyApplicationLine) GetCreatedAt() string {
 	return ""
 }
 
+// 两类作业待办只接受分页，员工、公司与业务读取范围固定取自会话。
+type ListMyUnbilledFeesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMyUnbilledFeesRequest) Reset() {
+	*x = ListMyUnbilledFeesRequest{}
+	mi := &file_workbench_v1_workbench_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMyUnbilledFeesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMyUnbilledFeesRequest) ProtoMessage() {}
+
+func (x *ListMyUnbilledFeesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_workbench_v1_workbench_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMyUnbilledFeesRequest.ProtoReflect.Descriptor instead.
+func (*ListMyUnbilledFeesRequest) Descriptor() ([]byte, []int) {
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *ListMyUnbilledFeesRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListMyUnbilledFeesRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type ListMyUnbilledFeesResponse struct {
+	state         protoimpl.MessageState  `protogen:"open.v1"`
+	Success       bool                    `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                   `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                  `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	TraceId       string                  `protobuf:"bytes,4,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	Total         int64                   `protobuf:"varint,5,opt,name=total,proto3" json:"total,omitempty"`
+	Page          int32                   `protobuf:"varint,6,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                   `protobuf:"varint,7,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Data          []*WorkbenchUnbilledFee `protobuf:"bytes,8,rep,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMyUnbilledFeesResponse) Reset() {
+	*x = ListMyUnbilledFeesResponse{}
+	mi := &file_workbench_v1_workbench_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMyUnbilledFeesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMyUnbilledFeesResponse) ProtoMessage() {}
+
+func (x *ListMyUnbilledFeesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_workbench_v1_workbench_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMyUnbilledFeesResponse.ProtoReflect.Descriptor instead.
+func (*ListMyUnbilledFeesResponse) Descriptor() ([]byte, []int) {
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *ListMyUnbilledFeesResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ListMyUnbilledFeesResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *ListMyUnbilledFeesResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ListMyUnbilledFeesResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+func (x *ListMyUnbilledFeesResponse) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *ListMyUnbilledFeesResponse) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListMyUnbilledFeesResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListMyUnbilledFeesResponse) GetData() []*WorkbenchUnbilledFee {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+// WorkbenchUnbilledFee 是单笔仍需记账费用；direction 按实际记账方向投影冲回。
+type WorkbenchUnbilledFee struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	FeeId               string                 `protobuf:"bytes,1,opt,name=fee_id,json=feeId,proto3" json:"fee_id,omitempty"`
+	OrderId             string                 `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	OrderNo             string                 `protobuf:"bytes,3,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
+	BusinessType        string                 `protobuf:"bytes,4,opt,name=business_type,json=businessType,proto3" json:"business_type,omitempty"`
+	CustomerName        string                 `protobuf:"bytes,5,opt,name=customer_name,json=customerName,proto3" json:"customer_name,omitempty"`
+	OrderLocked         bool                   `protobuf:"varint,6,opt,name=order_locked,json=orderLocked,proto3" json:"order_locked,omitempty"`
+	TerminationStatus   string                 `protobuf:"bytes,7,opt,name=termination_status,json=terminationStatus,proto3" json:"termination_status,omitempty"`
+	ClosureStatus       string                 `protobuf:"bytes,8,opt,name=closure_status,json=closureStatus,proto3" json:"closure_status,omitempty"`
+	Direction           string                 `protobuf:"bytes,9,opt,name=direction,proto3" json:"direction,omitempty"`
+	FeeName             string                 `protobuf:"bytes,10,opt,name=fee_name,json=feeName,proto3" json:"fee_name,omitempty"`
+	SettlementPartyName string                 `protobuf:"bytes,11,opt,name=settlement_party_name,json=settlementPartyName,proto3" json:"settlement_party_name,omitempty"`
+	Currency            string                 `protobuf:"bytes,12,opt,name=currency,proto3" json:"currency,omitempty"`
+	TotalAmount         string                 `protobuf:"bytes,13,opt,name=total_amount,json=totalAmount,proto3" json:"total_amount,omitempty"`
+	CreatedAt           string                 `protobuf:"bytes,14,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	HasPendingChange    bool                   `protobuf:"varint,15,opt,name=has_pending_change,json=hasPendingChange,proto3" json:"has_pending_change,omitempty"`
+	BlockedReasons      []string               `protobuf:"bytes,16,rep,name=blocked_reasons,json=blockedReasons,proto3" json:"blocked_reasons,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *WorkbenchUnbilledFee) Reset() {
+	*x = WorkbenchUnbilledFee{}
+	mi := &file_workbench_v1_workbench_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkbenchUnbilledFee) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkbenchUnbilledFee) ProtoMessage() {}
+
+func (x *WorkbenchUnbilledFee) ProtoReflect() protoreflect.Message {
+	mi := &file_workbench_v1_workbench_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkbenchUnbilledFee.ProtoReflect.Descriptor instead.
+func (*WorkbenchUnbilledFee) Descriptor() ([]byte, []int) {
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *WorkbenchUnbilledFee) GetFeeId() string {
+	if x != nil {
+		return x.FeeId
+	}
+	return ""
+}
+
+func (x *WorkbenchUnbilledFee) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *WorkbenchUnbilledFee) GetOrderNo() string {
+	if x != nil {
+		return x.OrderNo
+	}
+	return ""
+}
+
+func (x *WorkbenchUnbilledFee) GetBusinessType() string {
+	if x != nil {
+		return x.BusinessType
+	}
+	return ""
+}
+
+func (x *WorkbenchUnbilledFee) GetCustomerName() string {
+	if x != nil {
+		return x.CustomerName
+	}
+	return ""
+}
+
+func (x *WorkbenchUnbilledFee) GetOrderLocked() bool {
+	if x != nil {
+		return x.OrderLocked
+	}
+	return false
+}
+
+func (x *WorkbenchUnbilledFee) GetTerminationStatus() string {
+	if x != nil {
+		return x.TerminationStatus
+	}
+	return ""
+}
+
+func (x *WorkbenchUnbilledFee) GetClosureStatus() string {
+	if x != nil {
+		return x.ClosureStatus
+	}
+	return ""
+}
+
+func (x *WorkbenchUnbilledFee) GetDirection() string {
+	if x != nil {
+		return x.Direction
+	}
+	return ""
+}
+
+func (x *WorkbenchUnbilledFee) GetFeeName() string {
+	if x != nil {
+		return x.FeeName
+	}
+	return ""
+}
+
+func (x *WorkbenchUnbilledFee) GetSettlementPartyName() string {
+	if x != nil {
+		return x.SettlementPartyName
+	}
+	return ""
+}
+
+func (x *WorkbenchUnbilledFee) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
+}
+
+func (x *WorkbenchUnbilledFee) GetTotalAmount() string {
+	if x != nil {
+		return x.TotalAmount
+	}
+	return ""
+}
+
+func (x *WorkbenchUnbilledFee) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *WorkbenchUnbilledFee) GetHasPendingChange() bool {
+	if x != nil {
+		return x.HasPendingChange
+	}
+	return false
+}
+
+func (x *WorkbenchUnbilledFee) GetBlockedReasons() []string {
+	if x != nil {
+		return x.BlockedReasons
+	}
+	return nil
+}
+
+type ListMyOpenAbnormalCasesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMyOpenAbnormalCasesRequest) Reset() {
+	*x = ListMyOpenAbnormalCasesRequest{}
+	mi := &file_workbench_v1_workbench_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMyOpenAbnormalCasesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMyOpenAbnormalCasesRequest) ProtoMessage() {}
+
+func (x *ListMyOpenAbnormalCasesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_workbench_v1_workbench_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMyOpenAbnormalCasesRequest.ProtoReflect.Descriptor instead.
+func (*ListMyOpenAbnormalCasesRequest) Descriptor() ([]byte, []int) {
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *ListMyOpenAbnormalCasesRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListMyOpenAbnormalCasesRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type ListMyOpenAbnormalCasesResponse struct {
+	state         protoimpl.MessageState       `protogen:"open.v1"`
+	Success       bool                         `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                        `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                       `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	TraceId       string                       `protobuf:"bytes,4,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	Total         int64                        `protobuf:"varint,5,opt,name=total,proto3" json:"total,omitempty"`
+	Page          int32                        `protobuf:"varint,6,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                        `protobuf:"varint,7,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Data          []*WorkbenchOpenAbnormalCase `protobuf:"bytes,8,rep,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListMyOpenAbnormalCasesResponse) Reset() {
+	*x = ListMyOpenAbnormalCasesResponse{}
+	mi := &file_workbench_v1_workbench_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListMyOpenAbnormalCasesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListMyOpenAbnormalCasesResponse) ProtoMessage() {}
+
+func (x *ListMyOpenAbnormalCasesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_workbench_v1_workbench_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListMyOpenAbnormalCasesResponse.ProtoReflect.Descriptor instead.
+func (*ListMyOpenAbnormalCasesResponse) Descriptor() ([]byte, []int) {
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *ListMyOpenAbnormalCasesResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *ListMyOpenAbnormalCasesResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *ListMyOpenAbnormalCasesResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *ListMyOpenAbnormalCasesResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+func (x *ListMyOpenAbnormalCasesResponse) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *ListMyOpenAbnormalCasesResponse) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListMyOpenAbnormalCasesResponse) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListMyOpenAbnormalCasesResponse) GetData() []*WorkbenchOpenAbnormalCase {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+// WorkbenchOpenAbnormalCase 的名称包含停用类型，业务只读原因不改变待办事实。
+type WorkbenchOpenAbnormalCase struct {
+	state                      protoimpl.MessageState `protogen:"open.v1"`
+	Id                         string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	OrderId                    string                 `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	OrderNo                    string                 `protobuf:"bytes,3,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
+	BusinessType               string                 `protobuf:"bytes,4,opt,name=business_type,json=businessType,proto3" json:"business_type,omitempty"`
+	CustomerName               string                 `protobuf:"bytes,5,opt,name=customer_name,json=customerName,proto3" json:"customer_name,omitempty"`
+	OrderLocked                bool                   `protobuf:"varint,6,opt,name=order_locked,json=orderLocked,proto3" json:"order_locked,omitempty"`
+	TerminationStatus          string                 `protobuf:"bytes,7,opt,name=termination_status,json=terminationStatus,proto3" json:"termination_status,omitempty"`
+	ClosureStatus              string                 `protobuf:"bytes,8,opt,name=closure_status,json=closureStatus,proto3" json:"closure_status,omitempty"`
+	AbnormalCaseId             string                 `protobuf:"bytes,9,opt,name=abnormal_case_id,json=abnormalCaseId,proto3" json:"abnormal_case_id,omitempty"`
+	AbnormalCaseName           string                 `protobuf:"bytes,10,opt,name=abnormal_case_name,json=abnormalCaseName,proto3" json:"abnormal_case_name,omitempty"`
+	MarkedAt                   string                 `protobuf:"bytes,11,opt,name=marked_at,json=markedAt,proto3" json:"marked_at,omitempty"`
+	BusinessWriteBlockedReason string                 `protobuf:"bytes,12,opt,name=business_write_blocked_reason,json=businessWriteBlockedReason,proto3" json:"business_write_blocked_reason,omitempty"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
+}
+
+func (x *WorkbenchOpenAbnormalCase) Reset() {
+	*x = WorkbenchOpenAbnormalCase{}
+	mi := &file_workbench_v1_workbench_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkbenchOpenAbnormalCase) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkbenchOpenAbnormalCase) ProtoMessage() {}
+
+func (x *WorkbenchOpenAbnormalCase) ProtoReflect() protoreflect.Message {
+	mi := &file_workbench_v1_workbench_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkbenchOpenAbnormalCase.ProtoReflect.Descriptor instead.
+func (*WorkbenchOpenAbnormalCase) Descriptor() ([]byte, []int) {
+	return file_workbench_v1_workbench_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *WorkbenchOpenAbnormalCase) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *WorkbenchOpenAbnormalCase) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *WorkbenchOpenAbnormalCase) GetOrderNo() string {
+	if x != nil {
+		return x.OrderNo
+	}
+	return ""
+}
+
+func (x *WorkbenchOpenAbnormalCase) GetBusinessType() string {
+	if x != nil {
+		return x.BusinessType
+	}
+	return ""
+}
+
+func (x *WorkbenchOpenAbnormalCase) GetCustomerName() string {
+	if x != nil {
+		return x.CustomerName
+	}
+	return ""
+}
+
+func (x *WorkbenchOpenAbnormalCase) GetOrderLocked() bool {
+	if x != nil {
+		return x.OrderLocked
+	}
+	return false
+}
+
+func (x *WorkbenchOpenAbnormalCase) GetTerminationStatus() string {
+	if x != nil {
+		return x.TerminationStatus
+	}
+	return ""
+}
+
+func (x *WorkbenchOpenAbnormalCase) GetClosureStatus() string {
+	if x != nil {
+		return x.ClosureStatus
+	}
+	return ""
+}
+
+func (x *WorkbenchOpenAbnormalCase) GetAbnormalCaseId() string {
+	if x != nil {
+		return x.AbnormalCaseId
+	}
+	return ""
+}
+
+func (x *WorkbenchOpenAbnormalCase) GetAbnormalCaseName() string {
+	if x != nil {
+		return x.AbnormalCaseName
+	}
+	return ""
+}
+
+func (x *WorkbenchOpenAbnormalCase) GetMarkedAt() string {
+	if x != nil {
+		return x.MarkedAt
+	}
+	return ""
+}
+
+func (x *WorkbenchOpenAbnormalCase) GetBusinessWriteBlockedReason() string {
+	if x != nil {
+		return x.BusinessWriteBlockedReason
+	}
+	return ""
+}
+
 var File_workbench_v1_workbench_proto protoreflect.FileDescriptor
 
 const file_workbench_v1_workbench_proto_rawDesc = "" +
@@ -3519,7 +4122,64 @@ const file_workbench_v1_workbench_proto_rawDesc = "" +
 	"\v_netting_noB\f\n" +
 	"\n" +
 	"_rule_nameB\x14\n" +
-	"\x12_calculation_basis*\xeb\x01\n" +
+	"\x12_calculation_basis\"L\n" +
+	"\x19ListMyUnbilledFeesRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\"\xfe\x01\n" +
+	"\x1aListMyUnbilledFeesResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
+	"\btrace_id\x18\x04 \x01(\tR\atraceId\x12\x14\n" +
+	"\x05total\x18\x05 \x01(\x03R\x05total\x12\x12\n" +
+	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\a \x01(\x05R\bpageSize\x126\n" +
+	"\x04data\x18\b \x03(\v2\".workbench.v1.WorkbenchUnbilledFeeR\x04data\"\xc8\x04\n" +
+	"\x14WorkbenchUnbilledFee\x12\x15\n" +
+	"\x06fee_id\x18\x01 \x01(\tR\x05feeId\x12\x19\n" +
+	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x19\n" +
+	"\border_no\x18\x03 \x01(\tR\aorderNo\x12#\n" +
+	"\rbusiness_type\x18\x04 \x01(\tR\fbusinessType\x12#\n" +
+	"\rcustomer_name\x18\x05 \x01(\tR\fcustomerName\x12!\n" +
+	"\forder_locked\x18\x06 \x01(\bR\vorderLocked\x12-\n" +
+	"\x12termination_status\x18\a \x01(\tR\x11terminationStatus\x12%\n" +
+	"\x0eclosure_status\x18\b \x01(\tR\rclosureStatus\x12\x1c\n" +
+	"\tdirection\x18\t \x01(\tR\tdirection\x12\x19\n" +
+	"\bfee_name\x18\n" +
+	" \x01(\tR\afeeName\x122\n" +
+	"\x15settlement_party_name\x18\v \x01(\tR\x13settlementPartyName\x12\x1a\n" +
+	"\bcurrency\x18\f \x01(\tR\bcurrency\x12!\n" +
+	"\ftotal_amount\x18\r \x01(\tR\vtotalAmount\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x0e \x01(\tR\tcreatedAt\x12,\n" +
+	"\x12has_pending_change\x18\x0f \x01(\bR\x10hasPendingChange\x12'\n" +
+	"\x0fblocked_reasons\x18\x10 \x03(\tR\x0eblockedReasons\"Q\n" +
+	"\x1eListMyOpenAbnormalCasesRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\"\x88\x02\n" +
+	"\x1fListMyOpenAbnormalCasesResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
+	"\btrace_id\x18\x04 \x01(\tR\atraceId\x12\x14\n" +
+	"\x05total\x18\x05 \x01(\x03R\x05total\x12\x12\n" +
+	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\a \x01(\x05R\bpageSize\x12;\n" +
+	"\x04data\x18\b \x03(\v2'.workbench.v1.WorkbenchOpenAbnormalCaseR\x04data\"\xdc\x03\n" +
+	"\x19WorkbenchOpenAbnormalCase\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
+	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x19\n" +
+	"\border_no\x18\x03 \x01(\tR\aorderNo\x12#\n" +
+	"\rbusiness_type\x18\x04 \x01(\tR\fbusinessType\x12#\n" +
+	"\rcustomer_name\x18\x05 \x01(\tR\fcustomerName\x12!\n" +
+	"\forder_locked\x18\x06 \x01(\bR\vorderLocked\x12-\n" +
+	"\x12termination_status\x18\a \x01(\tR\x11terminationStatus\x12%\n" +
+	"\x0eclosure_status\x18\b \x01(\tR\rclosureStatus\x12(\n" +
+	"\x10abnormal_case_id\x18\t \x01(\tR\x0eabnormalCaseId\x12,\n" +
+	"\x12abnormal_case_name\x18\n" +
+	" \x01(\tR\x10abnormalCaseName\x12\x1b\n" +
+	"\tmarked_at\x18\v \x01(\tR\bmarkedAt\x12A\n" +
+	"\x1dbusiness_write_blocked_reason\x18\f \x01(\tR\x1abusinessWriteBlockedReason*\xeb\x01\n" +
 	"\x19WorkbenchCommissionStatus\x12+\n" +
 	"'WORKBENCH_COMMISSION_STATUS_UNSPECIFIED\x10\x00\x12%\n" +
 	"!WORKBENCH_COMMISSION_STATUS_DRAFT\x10\x01\x12)\n" +
@@ -3530,12 +4190,14 @@ const file_workbench_v1_workbench_proto_rawDesc = "" +
 	"3WORKBENCH_COMMISSION_APPLICATION_STATUS_UNSPECIFIED\x10\x00\x12:\n" +
 	"6WORKBENCH_COMMISSION_APPLICATION_STATUS_PENDING_REVIEW\x10\x01\x124\n" +
 	"0WORKBENCH_COMMISSION_APPLICATION_STATUS_REJECTED\x10\x02\x124\n" +
-	"0WORKBENCH_COMMISSION_APPLICATION_STATUS_APPROVED\x10\x032\xd8\f\n" +
+	"0WORKBENCH_COMMISSION_APPLICATION_STATUS_APPROVED\x10\x032\xa5\x0f\n" +
 	"\x10WorkbenchService\x12\x97\x01\n" +
 	"\x14GetWorkbenchOverview\x12).workbench.v1.GetWorkbenchOverviewRequest\x1a*.workbench.v1.GetWorkbenchOverviewResponse\"(\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02\x1c\x12\x1a/api/v1/workbench/overview\x12\x94\x01\n" +
 	"\x11ListMyCommissions\x12&.workbench.v1.ListMyCommissionsRequest\x1a'.workbench.v1.ListMyCommissionsResponse\".\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02\"\x12 /api/v1/workbench/my-commissions\x12\x94\x01\n" +
 	"\x11ListMyReceivables\x12&.workbench.v1.ListMyReceivablesRequest\x1a'.workbench.v1.ListMyReceivablesResponse\".\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02\"\x12 /api/v1/workbench/my-receivables\x12\x99\x01\n" +
-	"\x12ListMyRecentOrders\x12'.workbench.v1.ListMyRecentOrdersRequest\x1a(.workbench.v1.ListMyRecentOrdersResponse\"0\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02$\x12\"/api/v1/workbench/my-recent-orders\x12\xba\x01\n" +
+	"\x12ListMyRecentOrders\x12'.workbench.v1.ListMyRecentOrdersRequest\x1a(.workbench.v1.ListMyRecentOrdersResponse\"0\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02$\x12\"/api/v1/workbench/my-recent-orders\x12\x99\x01\n" +
+	"\x12ListMyUnbilledFees\x12'.workbench.v1.ListMyUnbilledFeesRequest\x1a(.workbench.v1.ListMyUnbilledFeesResponse\"0\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02$\x12\"/api/v1/workbench/my-unbilled-fees\x12\xae\x01\n" +
+	"\x17ListMyOpenAbnormalCases\x12,.workbench.v1.ListMyOpenAbnormalCasesRequest\x1a-.workbench.v1.ListMyOpenAbnormalCasesResponse\"6\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02*\x12(/api/v1/workbench/my-open-abnormal-cases\x12\xba\x01\n" +
 	"\x1bListMyApplicationCandidates\x120.workbench.v1.ListMyApplicationCandidatesRequest\x1a1.workbench.v1.ListMyApplicationCandidatesResponse\"6\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x02*\x12(/api/v1/workbench/application-candidates\x12\xcb\x01\n" +
 	"\x1dSubmitMyCommissionApplication\x122.workbench.v1.SubmitMyCommissionApplicationRequest\x1a3.workbench.v1.SubmitMyCommissionApplicationResponse\"A\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x025:\x01*\"0/api/v1/workbench/commission-applications/submit\x12\xd3\x01\n" +
 	"\x1fResubmitMyCommissionApplication\x124.workbench.v1.ResubmitMyCommissionApplicationRequest\x1a5.workbench.v1.ResubmitMyCommissionApplicationResponse\"C\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x027:\x01*\"2/api/v1/workbench/commission-applications/resubmit\x12\xbe\x01\n" +
@@ -3555,7 +4217,7 @@ func file_workbench_v1_workbench_proto_rawDescGZIP() []byte {
 }
 
 var file_workbench_v1_workbench_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_workbench_v1_workbench_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
+var file_workbench_v1_workbench_proto_msgTypes = make([]protoimpl.MessageInfo, 41)
 var file_workbench_v1_workbench_proto_goTypes = []any{
 	(WorkbenchCommissionStatus)(0),                  // 0: workbench.v1.WorkbenchCommissionStatus
 	(WorkbenchCommissionApplicationStatus)(0),       // 1: workbench.v1.WorkbenchCommissionApplicationStatus
@@ -3594,6 +4256,12 @@ var file_workbench_v1_workbench_proto_goTypes = []any{
 	(*GetMyCommissionApplicationResponse)(nil),      // 34: workbench.v1.GetMyCommissionApplicationResponse
 	(*WorkbenchMyCommissionApplicationDetail)(nil),  // 35: workbench.v1.WorkbenchMyCommissionApplicationDetail
 	(*WorkbenchMyApplicationLine)(nil),              // 36: workbench.v1.WorkbenchMyApplicationLine
+	(*ListMyUnbilledFeesRequest)(nil),               // 37: workbench.v1.ListMyUnbilledFeesRequest
+	(*ListMyUnbilledFeesResponse)(nil),              // 38: workbench.v1.ListMyUnbilledFeesResponse
+	(*WorkbenchUnbilledFee)(nil),                    // 39: workbench.v1.WorkbenchUnbilledFee
+	(*ListMyOpenAbnormalCasesRequest)(nil),          // 40: workbench.v1.ListMyOpenAbnormalCasesRequest
+	(*ListMyOpenAbnormalCasesResponse)(nil),         // 41: workbench.v1.ListMyOpenAbnormalCasesResponse
+	(*WorkbenchOpenAbnormalCase)(nil),               // 42: workbench.v1.WorkbenchOpenAbnormalCase
 }
 var file_workbench_v1_workbench_proto_depIdxs = []int32{
 	4,  // 0: workbench.v1.GetWorkbenchOverviewResponse.data:type_name -> workbench.v1.GetWorkbenchOverviewData
@@ -3623,29 +4291,35 @@ var file_workbench_v1_workbench_proto_depIdxs = []int32{
 	35, // 24: workbench.v1.GetMyCommissionApplicationResponse.data:type_name -> workbench.v1.WorkbenchMyCommissionApplicationDetail
 	32, // 25: workbench.v1.WorkbenchMyCommissionApplicationDetail.application:type_name -> workbench.v1.WorkbenchMyCommissionApplication
 	36, // 26: workbench.v1.WorkbenchMyCommissionApplicationDetail.lines:type_name -> workbench.v1.WorkbenchMyApplicationLine
-	2,  // 27: workbench.v1.WorkbenchService.GetWorkbenchOverview:input_type -> workbench.v1.GetWorkbenchOverviewRequest
-	14, // 28: workbench.v1.WorkbenchService.ListMyCommissions:input_type -> workbench.v1.ListMyCommissionsRequest
-	18, // 29: workbench.v1.WorkbenchService.ListMyReceivables:input_type -> workbench.v1.ListMyReceivablesRequest
-	21, // 30: workbench.v1.WorkbenchService.ListMyRecentOrders:input_type -> workbench.v1.ListMyRecentOrdersRequest
-	23, // 31: workbench.v1.WorkbenchService.ListMyApplicationCandidates:input_type -> workbench.v1.ListMyApplicationCandidatesRequest
-	26, // 32: workbench.v1.WorkbenchService.SubmitMyCommissionApplication:input_type -> workbench.v1.SubmitMyCommissionApplicationRequest
-	28, // 33: workbench.v1.WorkbenchService.ResubmitMyCommissionApplication:input_type -> workbench.v1.ResubmitMyCommissionApplicationRequest
-	30, // 34: workbench.v1.WorkbenchService.ListMyCommissionApplications:input_type -> workbench.v1.ListMyCommissionApplicationsRequest
-	33, // 35: workbench.v1.WorkbenchService.GetMyCommissionApplication:input_type -> workbench.v1.GetMyCommissionApplicationRequest
-	3,  // 36: workbench.v1.WorkbenchService.GetWorkbenchOverview:output_type -> workbench.v1.GetWorkbenchOverviewResponse
-	15, // 37: workbench.v1.WorkbenchService.ListMyCommissions:output_type -> workbench.v1.ListMyCommissionsResponse
-	19, // 38: workbench.v1.WorkbenchService.ListMyReceivables:output_type -> workbench.v1.ListMyReceivablesResponse
-	22, // 39: workbench.v1.WorkbenchService.ListMyRecentOrders:output_type -> workbench.v1.ListMyRecentOrdersResponse
-	24, // 40: workbench.v1.WorkbenchService.ListMyApplicationCandidates:output_type -> workbench.v1.ListMyApplicationCandidatesResponse
-	27, // 41: workbench.v1.WorkbenchService.SubmitMyCommissionApplication:output_type -> workbench.v1.SubmitMyCommissionApplicationResponse
-	29, // 42: workbench.v1.WorkbenchService.ResubmitMyCommissionApplication:output_type -> workbench.v1.ResubmitMyCommissionApplicationResponse
-	31, // 43: workbench.v1.WorkbenchService.ListMyCommissionApplications:output_type -> workbench.v1.ListMyCommissionApplicationsResponse
-	34, // 44: workbench.v1.WorkbenchService.GetMyCommissionApplication:output_type -> workbench.v1.GetMyCommissionApplicationResponse
-	36, // [36:45] is the sub-list for method output_type
-	27, // [27:36] is the sub-list for method input_type
-	27, // [27:27] is the sub-list for extension type_name
-	27, // [27:27] is the sub-list for extension extendee
-	0,  // [0:27] is the sub-list for field type_name
+	39, // 27: workbench.v1.ListMyUnbilledFeesResponse.data:type_name -> workbench.v1.WorkbenchUnbilledFee
+	42, // 28: workbench.v1.ListMyOpenAbnormalCasesResponse.data:type_name -> workbench.v1.WorkbenchOpenAbnormalCase
+	2,  // 29: workbench.v1.WorkbenchService.GetWorkbenchOverview:input_type -> workbench.v1.GetWorkbenchOverviewRequest
+	14, // 30: workbench.v1.WorkbenchService.ListMyCommissions:input_type -> workbench.v1.ListMyCommissionsRequest
+	18, // 31: workbench.v1.WorkbenchService.ListMyReceivables:input_type -> workbench.v1.ListMyReceivablesRequest
+	21, // 32: workbench.v1.WorkbenchService.ListMyRecentOrders:input_type -> workbench.v1.ListMyRecentOrdersRequest
+	37, // 33: workbench.v1.WorkbenchService.ListMyUnbilledFees:input_type -> workbench.v1.ListMyUnbilledFeesRequest
+	40, // 34: workbench.v1.WorkbenchService.ListMyOpenAbnormalCases:input_type -> workbench.v1.ListMyOpenAbnormalCasesRequest
+	23, // 35: workbench.v1.WorkbenchService.ListMyApplicationCandidates:input_type -> workbench.v1.ListMyApplicationCandidatesRequest
+	26, // 36: workbench.v1.WorkbenchService.SubmitMyCommissionApplication:input_type -> workbench.v1.SubmitMyCommissionApplicationRequest
+	28, // 37: workbench.v1.WorkbenchService.ResubmitMyCommissionApplication:input_type -> workbench.v1.ResubmitMyCommissionApplicationRequest
+	30, // 38: workbench.v1.WorkbenchService.ListMyCommissionApplications:input_type -> workbench.v1.ListMyCommissionApplicationsRequest
+	33, // 39: workbench.v1.WorkbenchService.GetMyCommissionApplication:input_type -> workbench.v1.GetMyCommissionApplicationRequest
+	3,  // 40: workbench.v1.WorkbenchService.GetWorkbenchOverview:output_type -> workbench.v1.GetWorkbenchOverviewResponse
+	15, // 41: workbench.v1.WorkbenchService.ListMyCommissions:output_type -> workbench.v1.ListMyCommissionsResponse
+	19, // 42: workbench.v1.WorkbenchService.ListMyReceivables:output_type -> workbench.v1.ListMyReceivablesResponse
+	22, // 43: workbench.v1.WorkbenchService.ListMyRecentOrders:output_type -> workbench.v1.ListMyRecentOrdersResponse
+	38, // 44: workbench.v1.WorkbenchService.ListMyUnbilledFees:output_type -> workbench.v1.ListMyUnbilledFeesResponse
+	41, // 45: workbench.v1.WorkbenchService.ListMyOpenAbnormalCases:output_type -> workbench.v1.ListMyOpenAbnormalCasesResponse
+	24, // 46: workbench.v1.WorkbenchService.ListMyApplicationCandidates:output_type -> workbench.v1.ListMyApplicationCandidatesResponse
+	27, // 47: workbench.v1.WorkbenchService.SubmitMyCommissionApplication:output_type -> workbench.v1.SubmitMyCommissionApplicationResponse
+	29, // 48: workbench.v1.WorkbenchService.ResubmitMyCommissionApplication:output_type -> workbench.v1.ResubmitMyCommissionApplicationResponse
+	31, // 49: workbench.v1.WorkbenchService.ListMyCommissionApplications:output_type -> workbench.v1.ListMyCommissionApplicationsResponse
+	34, // 50: workbench.v1.WorkbenchService.GetMyCommissionApplication:output_type -> workbench.v1.GetMyCommissionApplicationResponse
+	40, // [40:51] is the sub-list for method output_type
+	29, // [29:40] is the sub-list for method input_type
+	29, // [29:29] is the sub-list for extension type_name
+	29, // [29:29] is the sub-list for extension extendee
+	0,  // [0:29] is the sub-list for field type_name
 }
 
 func init() { file_workbench_v1_workbench_proto_init() }
@@ -3669,7 +4343,7 @@ func file_workbench_v1_workbench_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_workbench_v1_workbench_proto_rawDesc), len(file_workbench_v1_workbench_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   35,
+			NumMessages:   41,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

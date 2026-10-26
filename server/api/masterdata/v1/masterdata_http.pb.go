@@ -34,6 +34,7 @@ const OperationMasterDataServiceListOptions = "/masterdata.v1.MasterDataService/
 const OperationMasterDataServiceListPorts = "/masterdata.v1.MasterDataService/ListPorts"
 const OperationMasterDataServiceListShippingLines = "/masterdata.v1.MasterDataService/ListShippingLines"
 const OperationMasterDataServiceSearchCurrencies = "/masterdata.v1.MasterDataService/SearchCurrencies"
+const OperationMasterDataServiceSearchOptions = "/masterdata.v1.MasterDataService/SearchOptions"
 const OperationMasterDataServiceSetCurrencyEnabled = "/masterdata.v1.MasterDataService/SetCurrencyEnabled"
 const OperationMasterDataServiceUpdateAirline = "/masterdata.v1.MasterDataService/UpdateAirline"
 const OperationMasterDataServiceUpdateAirport = "/masterdata.v1.MasterDataService/UpdateAirport"
@@ -60,6 +61,8 @@ type MasterDataServiceHTTPServer interface {
 	ListPorts(context.Context, *ListPortsRequest) (*ListPortsResponse, error)
 	ListShippingLines(context.Context, *ListShippingLinesRequest) (*ListShippingLinesResponse, error)
 	SearchCurrencies(context.Context, *SearchCurrenciesRequest) (*SearchCurrenciesResponse, error)
+	// SearchOptions SearchOptions 为已登录员工提供启用主数据的分类分页搜索。
+	SearchOptions(context.Context, *SearchOptionsRequest) (*SearchOptionsResponse, error)
 	SetCurrencyEnabled(context.Context, *SetCurrencyEnabledRequest) (*SetCurrencyEnabledResponse, error)
 	UpdateAirline(context.Context, *UpdateAirlineRequest) (*UpdateAirlineResponse, error)
 	UpdateAirport(context.Context, *UpdateAirportRequest) (*UpdateAirportResponse, error)
@@ -76,6 +79,7 @@ func RegisterMasterDataServiceHTTPServer(s *http.Server, srv MasterDataServiceHT
 	r.Handle("PUT", "/api/v1/master-data/items/{id}", _MasterDataService_UpdateItem0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/master-data/import", _MasterDataService_ImportItems0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/master-data/options", _MasterDataService_ListOptions0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/master-data/options/search", _MasterDataService_SearchOptions0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/master-data/ports", _MasterDataService_ListPorts0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/master-data/ports", _MasterDataService_CreatePort0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/master-data/ports/{id}", _MasterDataService_UpdatePort0_HTTP_Handler(srv))
@@ -191,6 +195,25 @@ func _MasterDataService_ListOptions0_HTTP_Handler(srv MasterDataServiceHTTPServe
 			return err
 		}
 		reply := out.(*ListOptionsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _MasterDataService_SearchOptions0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SearchOptionsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMasterDataServiceSearchOptions)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SearchOptions(ctx, req.(*SearchOptionsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SearchOptionsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -592,6 +615,8 @@ type MasterDataServiceHTTPClient interface {
 	ListPorts(ctx context.Context, req *ListPortsRequest, opts ...http.CallOption) (rsp *ListPortsResponse, err error)
 	ListShippingLines(ctx context.Context, req *ListShippingLinesRequest, opts ...http.CallOption) (rsp *ListShippingLinesResponse, err error)
 	SearchCurrencies(ctx context.Context, req *SearchCurrenciesRequest, opts ...http.CallOption) (rsp *SearchCurrenciesResponse, err error)
+	// SearchOptions SearchOptions 为已登录员工提供启用主数据的分类分页搜索。
+	SearchOptions(ctx context.Context, req *SearchOptionsRequest, opts ...http.CallOption) (rsp *SearchOptionsResponse, err error)
 	SetCurrencyEnabled(ctx context.Context, req *SetCurrencyEnabledRequest, opts ...http.CallOption) (rsp *SetCurrencyEnabledResponse, err error)
 	UpdateAirline(ctx context.Context, req *UpdateAirlineRequest, opts ...http.CallOption) (rsp *UpdateAirlineResponse, err error)
 	UpdateAirport(ctx context.Context, req *UpdateAirportRequest, opts ...http.CallOption) (rsp *UpdateAirportResponse, err error)
@@ -879,6 +904,23 @@ func (c *MasterDataServiceHTTPClientImpl) SearchCurrencies(ctx context.Context, 
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationMasterDataServiceSearchCurrencies),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SearchOptions SearchOptions 为已登录员工提供启用主数据的分类分页搜索。
+func (c *MasterDataServiceHTTPClientImpl) SearchOptions(ctx context.Context, in *SearchOptionsRequest, opts ...http.CallOption) (*SearchOptionsResponse, error) {
+	var out SearchOptionsResponse
+	pattern := "/api/v1/master-data/options/search"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationMasterDataServiceSearchOptions),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

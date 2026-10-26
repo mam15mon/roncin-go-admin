@@ -4249,6 +4249,17 @@ declare namespace API {
     data?: WorkbenchMyCommission[];
   };
 
+  type ListMyOpenAbnormalCasesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+    total?: string;
+    page?: number;
+    pageSize?: number;
+    data?: WorkbenchOpenAbnormalCase[];
+  };
+
   type ListMyReceivablesResponse = {
     success?: boolean;
     code?: number;
@@ -4269,6 +4280,17 @@ declare namespace API {
     page?: number;
     pageSize?: number;
     data?: WorkbenchRecentOrder[];
+  };
+
+  type ListMyUnbilledFeesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+    total?: string;
+    page?: number;
+    pageSize?: number;
+    data?: WorkbenchUnbilledFee[];
   };
 
   type ListNettingsResponse = {
@@ -4834,6 +4856,13 @@ declare namespace API {
     pageSize?: number;
   };
 
+  type MasterDataServiceSearchOptionsParams = {
+    kind?: number;
+    keyword?: string;
+    page?: number;
+    pageSize?: number;
+  };
+
   type MasterDataServiceSetCurrencyEnabledParams = {
     code: string;
   };
@@ -5070,6 +5099,8 @@ declare namespace API {
     resolvedBy?: string;
     createdAt?: string;
     updatedAt?: string;
+    /** 已停用类型仍返回名称，读取历史记录不受候选启用状态影响。 */
+    abnormalCaseName?: string;
   };
 
   type OrderAbnormalCaseServiceListAbnormalCasesParams = {
@@ -7822,6 +7853,17 @@ declare namespace API {
     pageSize?: number;
   };
 
+  type SearchOptionsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: MasterDataItem[];
+    total?: number;
+    page?: number;
+    pageSize?: number;
+    traceId?: string;
+  };
+
   type SearchPartnerAssignmentOptionsResponse = {
     success?: boolean;
     code?: number;
@@ -9585,6 +9627,21 @@ declare namespace API {
     confirmedAt?: string;
   };
 
+  type WorkbenchOpenAbnormalCase = {
+    id?: string;
+    orderId?: string;
+    orderNo?: string;
+    businessType?: string;
+    customerName?: string;
+    orderLocked?: boolean;
+    terminationStatus?: string;
+    closureStatus?: string;
+    abnormalCaseId?: string;
+    abnormalCaseName?: string;
+    markedAt?: string;
+    businessWriteBlockedReason?: string;
+  };
+
   type WorkbenchRecentOrder = {
     orderId?: string;
     orderNo?: string;
@@ -9621,6 +9678,11 @@ declare namespace API {
     commissionDateTo?: string;
   };
 
+  type WorkbenchServiceListMyOpenAbnormalCasesParams = {
+    page?: number;
+    pageSize?: number;
+  };
+
   type WorkbenchServiceListMyReceivablesParams = {
     page?: number;
     pageSize?: number;
@@ -9631,9 +9693,33 @@ declare namespace API {
     pageSize?: number;
   };
 
+  type WorkbenchServiceListMyUnbilledFeesParams = {
+    page?: number;
+    pageSize?: number;
+  };
+
   type WorkbenchTodoSummary = {
-    /** unbilled_fee_count 是本人协作订单上状态为 UNBILLED（未建账）的费用数量。 */
+    /** unbilled_fee_count 是本人具备费用读取权限的协作订单上仍需记账、未被替代且无有效账单占用的费用数量。 */
     unbilledFeeCount?: number;
     openAbnormalCount?: number;
+  };
+
+  type WorkbenchUnbilledFee = {
+    feeId?: string;
+    orderId?: string;
+    orderNo?: string;
+    businessType?: string;
+    customerName?: string;
+    orderLocked?: boolean;
+    terminationStatus?: string;
+    closureStatus?: string;
+    direction?: string;
+    feeName?: string;
+    settlementPartyName?: string;
+    currency?: string;
+    totalAmount?: string;
+    createdAt?: string;
+    hasPendingChange?: boolean;
+    blockedReasons?: string[];
   };
 }

@@ -22,6 +22,8 @@ export interface TemplateProps {
   searchShippingAgents: (keyword?: string) => Promise<SelectOption[]>;
   setCustomerCode: (code?: string) => void;
   personnelOptions: API.OrderPersonnelOption[];
+  /** 无人员候选读取能力时，详情中的人员字段保持只读。 */
+  personnelReadonly?: boolean;
   creator?: {
     userId: string;
     displayName: string;

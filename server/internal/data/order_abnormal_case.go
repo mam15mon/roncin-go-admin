@@ -68,9 +68,19 @@ func (r *orderAbnormalCaseRepo) List(ctx context.Context, organizationID, orderI
 	if err != nil {
 		return nil, err
 	}
+	ids := make([]uuid.UUID, 0, len(items))
+	for _, item := range items {
+		ids = append(ids, item.AbnormalCaseID)
+	}
+	names, err := abnormalCaseNames(ctx, client, ids)
+	if err != nil {
+		return nil, err
+	}
 	result := make([]*biz.OrderAbnormalCase, 0, len(items))
 	for _, item := range items {
-		result = append(result, orderAbnormalCaseToBiz(item))
+		row := orderAbnormalCaseToBiz(item)
+		row.AbnormalCaseName = names[item.AbnormalCaseID]
+		result = append(result, row)
 	}
 	return result, nil
 }
@@ -145,7 +155,7 @@ func (r *orderAbnormalCaseRepo) Mark(ctx context.Context, organizationID, orderI
 	if err != nil {
 		return nil, err
 	}
-	return orderAbnormalCaseToBiz(saved), nil
+	return r.namedAbnormalCase(ctx, saved)
 }
 
 func (r *orderAbnormalCaseRepo) Resolve(ctx context.Context, organizationID, orderID, actorID, id uuid.UUID, audit *biz.AuditEvent) (*biz.OrderAbnormalCase, error) {
@@ -193,7 +203,7 @@ func (r *orderAbnormalCaseRepo) Resolve(ctx context.Context, organizationID, ord
 	if err != nil {
 		return nil, err
 	}
-	return orderAbnormalCaseToBiz(updated), nil
+	return r.namedAbnormalCase(ctx, updated)
 }
 
 func (r *orderAbnormalCaseRepo) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *biz.AuditEvent) error {
@@ -247,3 +257,33 @@ func orderAbnormalCaseToBiz(item *ent.OrderAbnormalCase) *biz.OrderAbnormalCase 
 }
 
 var _ biz.OrderAbnormalCaseRepo = (*orderAbnormalCaseRepo)(nil)
+
+// abnormalCaseNames 批量读取 A 型共享主数据；停用只影响新增引用，不影响历史名称。
+func abnormalCaseNames(ctx context.Context, client *ent.Client, ids []uuid.UUID) (map[uuid.UUID]string, error) {
+	names := make(map[uuid.UUID]string, len(ids))
+	if len(ids) == 0 {
+		return names, nil
+	}
+	rows, err := client.MasterDataItem.Query().Where(masterdataitement.IDIn(ids...), masterdataitement.KindEQ(masterdataitement.KindAbnormalCase)).Select(masterdataitement.FieldID, masterdataitement.FieldName).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, row := range rows {
+		names[row.ID] = row.Name
+	}
+	return names, nil
+}
+
+func (r *orderAbnormalCaseRepo) namedAbnormalCase(ctx context.Context, row *ent.OrderAbnormalCase) (*biz.OrderAbnormalCase, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	names, err := abnormalCaseNames(ctx, client, []uuid.UUID{row.AbnormalCaseID})
+	if err != nil {
+		return nil, err
+	}
+	result := orderAbnormalCaseToBiz(row)
+	result.AbnormalCaseName = names[row.AbnormalCaseID]
+	return result, nil
+}

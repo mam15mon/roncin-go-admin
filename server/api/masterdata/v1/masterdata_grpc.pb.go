@@ -24,6 +24,7 @@ const (
 	MasterDataService_UpdateItem_FullMethodName                = "/masterdata.v1.MasterDataService/UpdateItem"
 	MasterDataService_ImportItems_FullMethodName               = "/masterdata.v1.MasterDataService/ImportItems"
 	MasterDataService_ListOptions_FullMethodName               = "/masterdata.v1.MasterDataService/ListOptions"
+	MasterDataService_SearchOptions_FullMethodName             = "/masterdata.v1.MasterDataService/SearchOptions"
 	MasterDataService_ListPorts_FullMethodName                 = "/masterdata.v1.MasterDataService/ListPorts"
 	MasterDataService_CreatePort_FullMethodName                = "/masterdata.v1.MasterDataService/CreatePort"
 	MasterDataService_UpdatePort_FullMethodName                = "/masterdata.v1.MasterDataService/UpdatePort"
@@ -54,6 +55,8 @@ type MasterDataServiceClient interface {
 	UpdateItem(ctx context.Context, in *UpdateItemRequest, opts ...grpc.CallOption) (*UpdateItemResponse, error)
 	ImportItems(ctx context.Context, in *ImportItemsRequest, opts ...grpc.CallOption) (*ImportItemsResponse, error)
 	ListOptions(ctx context.Context, in *ListOptionsRequest, opts ...grpc.CallOption) (*ListOptionsResponse, error)
+	// SearchOptions 为已登录员工提供启用主数据的分类分页搜索。
+	SearchOptions(ctx context.Context, in *SearchOptionsRequest, opts ...grpc.CallOption) (*SearchOptionsResponse, error)
 	ListPorts(ctx context.Context, in *ListPortsRequest, opts ...grpc.CallOption) (*ListPortsResponse, error)
 	CreatePort(ctx context.Context, in *CreatePortRequest, opts ...grpc.CallOption) (*CreatePortResponse, error)
 	UpdatePort(ctx context.Context, in *UpdatePortRequest, opts ...grpc.CallOption) (*UpdatePortResponse, error)
@@ -127,6 +130,16 @@ func (c *masterDataServiceClient) ListOptions(ctx context.Context, in *ListOptio
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListOptionsResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_ListOptions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterDataServiceClient) SearchOptions(ctx context.Context, in *SearchOptionsRequest, opts ...grpc.CallOption) (*SearchOptionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SearchOptionsResponse)
+	err := c.cc.Invoke(ctx, MasterDataService_SearchOptions_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -332,6 +345,8 @@ type MasterDataServiceServer interface {
 	UpdateItem(context.Context, *UpdateItemRequest) (*UpdateItemResponse, error)
 	ImportItems(context.Context, *ImportItemsRequest) (*ImportItemsResponse, error)
 	ListOptions(context.Context, *ListOptionsRequest) (*ListOptionsResponse, error)
+	// SearchOptions 为已登录员工提供启用主数据的分类分页搜索。
+	SearchOptions(context.Context, *SearchOptionsRequest) (*SearchOptionsResponse, error)
 	ListPorts(context.Context, *ListPortsRequest) (*ListPortsResponse, error)
 	CreatePort(context.Context, *CreatePortRequest) (*CreatePortResponse, error)
 	UpdatePort(context.Context, *UpdatePortRequest) (*UpdatePortResponse, error)
@@ -375,6 +390,9 @@ func (UnimplementedMasterDataServiceServer) ImportItems(context.Context, *Import
 }
 func (UnimplementedMasterDataServiceServer) ListOptions(context.Context, *ListOptionsRequest) (*ListOptionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListOptions not implemented")
+}
+func (UnimplementedMasterDataServiceServer) SearchOptions(context.Context, *SearchOptionsRequest) (*SearchOptionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SearchOptions not implemented")
 }
 func (UnimplementedMasterDataServiceServer) ListPorts(context.Context, *ListPortsRequest) (*ListPortsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPorts not implemented")
@@ -540,6 +558,24 @@ func _MasterDataService_ListOptions_Handler(srv interface{}, ctx context.Context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MasterDataServiceServer).ListOptions(ctx, req.(*ListOptionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterDataService_SearchOptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchOptionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterDataServiceServer).SearchOptions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterDataService_SearchOptions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterDataServiceServer).SearchOptions(ctx, req.(*SearchOptionsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -912,6 +948,10 @@ var MasterDataService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListOptions",
 			Handler:    _MasterDataService_ListOptions_Handler,
+		},
+		{
+			MethodName: "SearchOptions",
+			Handler:    _MasterDataService_SearchOptions_Handler,
 		},
 		{
 			MethodName: "ListPorts",

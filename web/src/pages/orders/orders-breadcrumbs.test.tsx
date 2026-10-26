@@ -1,7 +1,8 @@
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
 import { cleanup, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
-import React from 'react';
+import React, { type ReactElement } from 'react';
+import { MemoryRouter, Route, Routes } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { orderFeeServiceListFeeOptions } from '@/services/roncin/orderFeeService';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
@@ -47,19 +48,6 @@ vi.mock('@/utils/requestClient', () => ({
   request: vi.fn(),
 }));
 
-vi.mock('react-router', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('react-router')>();
-  return {
-    ...actual,
-    useParams: () => mockParams,
-    Link: ({ to, children, ...rest }: any) => (
-      <a href={to} {...rest}>
-        {children}
-      </a>
-    ),
-  };
-});
-
 vi.mock('@/services/roncin/orderService', () => ({
   orderServiceGetOrder: vi.fn(),
   orderServiceListPersonnelOptions: vi.fn().mockResolvedValue({ data: [] }),
@@ -78,17 +66,15 @@ vi.mock('@/services/roncin/orderFeeService', async (importOriginal) => ({
   orderFeeServiceApproveOrderFeeReview: vi.fn(),
   orderFeeServiceRejectOrderFeeReview: vi.fn(),
   orderFeeServiceRevokeOrderFeeReview: vi.fn(),
-  orderFeeServicePreviewOrderFeeReview: vi
-    .fn()
-    .mockResolvedValue({
-      data: {
-        status: 'UNSUBMITTED',
-        canEdit: true,
-        canSubmit: true,
-        fees: [],
-        history: [],
-      },
-    }),
+  orderFeeServicePreviewOrderFeeReview: vi.fn().mockResolvedValue({
+    data: {
+      status: 'UNSUBMITTED',
+      canEdit: true,
+      canSubmit: true,
+      fees: [],
+      history: [],
+    },
+  }),
   orderFeeServiceListFeeOptions: vi.fn(),
   orderFeeServiceAddFee: vi.fn(),
   orderFeeServiceRemoveFee: vi.fn(),
@@ -164,6 +150,18 @@ vi.mock('./use-fee-exchange-preview', () => ({
 const mockGetOrder = vi.mocked(orderServiceGetOrder);
 const mockListFeeOptions = vi.mocked(orderFeeServiceListFeeOptions);
 
+function renderOrderPage(page: ReactElement, suffix = '') {
+  return renderWithClient(
+    <MemoryRouter
+      initialEntries={[`/orders/${mockParams.kind}/${mockParams.id}${suffix}`]}
+    >
+      <Routes>
+        <Route path="/orders/:kind/:id/*" element={<App>{page}</App>} />
+      </Routes>
+    </MemoryRouter>,
+  );
+}
+
 describe('订单模块面包屑与异常路由校验', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -184,11 +182,7 @@ describe('订单模块面包屑与异常路由校验', () => {
   it('详情页遇到未知 kind 时显示 404 且不调用订单与锁状态接口', () => {
     mockParams = { kind: 'unknown-freight', id: 'ord-1' };
 
-    renderWithClient(
-      <App>
-        <OrderDetailPage />
-      </App>,
-    );
+    renderOrderPage(<OrderDetailPage />);
 
     expect(screen.getByText('业务类型不存在')).toBeInTheDocument();
     expect(
@@ -206,11 +200,7 @@ describe('订单模块面包屑与异常路由校验', () => {
   it('费用页遇到未知 kind 时显示 404 且不调用订单与费用接口', () => {
     mockParams = { kind: 'invalid-air', id: 'ord-1' };
 
-    renderWithClient(
-      <App>
-        <OrderFeesPage />
-      </App>,
-    );
+    renderOrderPage(<OrderFeesPage />, '/fees');
 
     expect(screen.getByText('业务类型不存在')).toBeInTheDocument();
     expect(
@@ -237,11 +227,7 @@ describe('订单模块面包屑与异常路由校验', () => {
 
     mockParams = { kind: 'sea-export', id: 'ord-loading' };
 
-    renderWithClient(
-      <App>
-        <OrderDetailPage />
-      </App>,
-    );
+    renderOrderPage(<OrderDetailPage />);
 
     // 1. 加载中状态：分节骨架占位，页头不暴露原始订单 ID
     expect(screen.getByText('业务基本信息')).toBeInTheDocument();
@@ -278,11 +264,7 @@ describe('订单模块面包屑与异常路由校验', () => {
 
     mockParams = { kind: 'sea-export', id: 'ord-fee-loading' };
 
-    renderWithClient(
-      <App>
-        <OrderFeesPage />
-      </App>,
-    );
+    renderOrderPage(<OrderFeesPage />, '/fees');
 
     // 1. 加载中状态
     expect(screen.getByText('正在加载费用工作台...')).toBeInTheDocument();
@@ -315,11 +297,7 @@ describe('订单模块面包屑与异常路由校验', () => {
       },
     } as any);
 
-    renderWithClient(
-      <App>
-        <OrderDetailPage />
-      </App>,
-    );
+    renderOrderPage(<OrderDetailPage />);
 
     await waitFor(() => {
       expect(screen.getAllByText('SE20260905001').length).toBeGreaterThan(0);

@@ -30,6 +30,10 @@ data 使用 `Data.client(ctx)` 和 `workbenchMyOrderIDs`，与各类读取能力
 - 费用链接使用 `workbenchOrderPath(..., true)`，不修改费用表列设置或审核/建账规则。现有财务账单跟踪查询有独立权限，仅在有权时加载，不作为所有费用待办前提。
 - 异常用 `?panel=abnormal` 表达入口意图。订单加载成功、身份匹配且可读后打开；消费后 replace 清理该参数，保留其他参数。验证首次进入、已有页签、关闭重开、StrictMode；普通数据重查不再打开，不生成重复订单页签。
 - AbnormalCasePanel 拆分 read/create/resolve/delete，头部入口按 read 展示，锁只禁写。补充异常可读名称投影到既有响应供原面板与待办消费，修改 Proto 后生成，不额外获取全量主数据，也不以 UUID 充当名称。
+- 异常登记使用登录可读的 `MasterDataService.SearchOptions`（`/api/v1/master-data/options/search`），
+  明确 kind、keyword 与分页，固定仅启用项；沿用原公共候选授权，不能误用要求主数据管理读取权限的 ListItems。
+- 只读异常直达不依赖人员列表或订单创建权限。详情聚合按 `personnel.read` 与 `create`
+  分别请求人员列表和候选，能力值进入 queryKey；无权区块隐藏、无候选字段只读，不吞掉实际请求错误。
 - 返回工作台/重开抽屉时按现有路由生命周期重取聚合和列表；协调 React Query、ProTable，不添加轮询或全局事件总线。处理页本身仍使用现有 actionRef 刷新。
 
 ## 交付与风险

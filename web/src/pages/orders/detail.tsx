@@ -66,6 +66,7 @@ import type {
 } from './order-kinds/types';
 import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
 import { revealSeaFormErrors } from './templates';
+import { useOrderAbnormalEntry } from './use-order-abnormal-entry';
 import { useOrderDetailData } from './use-order-detail-data';
 import {
   getOrderBusinessWritePolicy,
@@ -93,6 +94,12 @@ export default function OrderDetailPage() {
   const kind = params.kind;
   const orderId = params.id;
   const definition = getOrderKindDefinition(kind);
+  const canReadPersonnel = Boolean(
+    definition && access.canOrder(definition.businessType, 'personnel.read'),
+  );
+  const canSearchPersonnel = Boolean(
+    definition && access.canOrder(definition.businessType, 'create'),
+  );
 
   const canAccessPage = Boolean(
     definition && access.canOrder(definition.businessType, 'read'),
@@ -191,8 +198,22 @@ export default function OrderDetailPage() {
     loading: lockStateLoading || synchronizingLockChange,
     error: lockStateError,
     canOperate: access.canOperateOrganization(order?.organizationId),
+    order,
   });
   const businessWritesDisabled = lockWritePolicy.disabled;
+
+  useOrderAbnormalEntry({
+    order,
+    orderId,
+    kind: definition?.kind,
+    loading,
+    error: Boolean(error),
+    canRead: Boolean(
+      definition &&
+        access.canOrder(definition.businessType, 'abnormal_case.read'),
+    ),
+    panelRef: abnormalCasePanelRef,
+  });
 
   // 有效只读 = 无编辑动作权限或业务写入关闭；分节构建器与模板壳必须使用同一判定。
   const effectiveReadonly =
@@ -307,7 +328,7 @@ export default function OrderDetailPage() {
   const shippingLineSeeds = shippingLineOption ? [shippingLineOption] : [];
   const templateProps = useMemo(
     () => ({
-        cargoCategoryOptions,
+      cargoCategoryOptions,
       locationOptions: seededLocationOptions,
       searchLocations: withSeededOptions(searchLocations, locationSeedOptions),
       currencyOptions,
@@ -341,17 +362,19 @@ export default function OrderDetailPage() {
       setCustomerCode: (code?: string) =>
         formRef.current?.setFieldValue('customerCode', code ?? ''),
       personnelOptions,
+      personnelReadonly: !canSearchPersonnel,
       readonly: effectiveReadonly,
       onOrderDataChanged: loadData,
     }),
     [
-        cargoCategoryOptions,
+      cargoCategoryOptions,
       seededLocationOptions,
       locationSeedOptions,
       searchLocations,
       currencyOptions,
       containerSpecOptions,
       personnelOptions,
+      canSearchPersonnel,
       effectiveReadonly,
       order?.organizationId,
       customerSeeds,
@@ -364,8 +387,11 @@ export default function OrderDetailPage() {
   );
 
   const formSections = useMemo(
-    () => definition?.form.buildSections(templateProps) ?? [],
-    [definition, templateProps],
+    () =>
+      (definition?.form.buildSections(templateProps) ?? []).filter(
+        (section) => section.key !== 'internalPersonnel' || canReadPersonnel,
+      ),
+    [definition, templateProps, canReadPersonnel],
   );
 
   // 5. 保存修改提交处理：成功/失败只由订单更新接口决定，模板统一清草稿与脏状态。
@@ -840,9 +866,9 @@ export default function OrderDetailPage() {
                     definition.businessType,
                     'release_pod.create',
                   )}
-                  canCreateAbnormal={access.canOrder(
+                  canReadAbnormal={access.canOrder(
                     definition.businessType,
-                    'abnormal_case.create',
+                    'abnormal_case.read',
                   )}
                   businessActions={features.headerActions}
                   moreMenuItems={moreMenuItems}
@@ -857,9 +883,7 @@ export default function OrderDetailPage() {
                     }
                   }}
                   onOpenAbnormalCase={() => {
-                    if (ensureBusinessWriteAllowed()) {
-                      abnormalCasePanelRef.current?.open(order);
-                    }
+                    abnormalCasePanelRef.current?.open(order);
                   }}
                   lockState={lockState}
                   lockStateLoading={lockStateLoading || synchronizingLockChange}
@@ -893,11 +917,26 @@ export default function OrderDetailPage() {
             <OrderFeePanel ref={orderFeePanelRef} />
             <AbnormalCasePanel
               ref={abnormalCasePanelRef}
-              canManage={
-                !businessWritesDisabled &&
-                access.canOrder(definition.businessType, 'abnormal_case.create')
+              key={orderFormIdentity}
+              canRead={access.canOrder(
+                definition.businessType,
+                'abnormal_case.read',
+              )}
+              canCreate={access.canOrder(
+                definition.businessType,
+                'abnormal_case.create',
+              )}
+              canResolve={access.canOrder(
+                definition.businessType,
+                'abnormal_case.resolve',
+              )}
+              canDelete={access.canOrder(
+                definition.businessType,
+                'abnormal_case.delete',
+              )}
+              businessWriteBlockedReason={
+                businessWritesDisabled ? lockWritePolicy.reason : undefined
               }
-              masterOptions={[]}
             />
           </>
         );

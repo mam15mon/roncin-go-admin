@@ -118,6 +118,24 @@ export async function workbenchServiceListMyCommissions(
   );
 }
 
+/** ListMyOpenAbnormalCases 返回本人协作订单上的进行中异常明细。 GET /api/v1/workbench/my-open-abnormal-cases */
+export async function workbenchServiceListMyOpenAbnormalCases(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.WorkbenchServiceListMyOpenAbnormalCasesParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListMyOpenAbnormalCasesResponse>(
+    "/api/v1/workbench/my-open-abnormal-cases",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
 /** ListMyReceivables 返回与本人提成归属相关的已确认应收未结项，服务端分页。 GET /api/v1/workbench/my-receivables */
 export async function workbenchServiceListMyReceivables(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -144,6 +162,24 @@ export async function workbenchServiceListMyRecentOrders(
 ) {
   return request<API.ListMyRecentOrdersResponse>(
     "/api/v1/workbench/my-recent-orders",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
+/** ListMyUnbilledFees 返回本人协作订单上仍需记账的未建账费用明细。 GET /api/v1/workbench/my-unbilled-fees */
+export async function workbenchServiceListMyUnbilledFees(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.WorkbenchServiceListMyUnbilledFeesParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListMyUnbilledFeesResponse>(
+    "/api/v1/workbench/my-unbilled-fees",
     {
       method: "GET",
       params: {

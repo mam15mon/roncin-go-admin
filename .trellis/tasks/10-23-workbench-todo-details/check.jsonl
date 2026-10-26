@@ -8,6 +8,7 @@
 {"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端验证门禁与定向测试；UI/request/actionRef 规范以已列 AGENTS.md 为准"}
 {"file": ".trellis/spec/web/frontend/directory-structure.md", "reason": "禁止页面跨领域深引，复用公开入口"}
 {"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Proto 到页面投影及原订单办理闭环"}
-{"file": ".trellis/tasks/10-23-workbench-todo-details/prd.md", "reason": "最终需求、范围边界与 AC1-AC8"}
+{"file": ".trellis/tasks/10-23-workbench-todo-details/prd.md", "reason": "最终需求、范围边界与 AC1-AC9"}
 {"file": ".trellis/tasks/10-23-workbench-todo-details/design.md", "reason": "两类显式分页读接口、查询口径和异常直达"}
 {"file": ".trellis/tasks/10-23-workbench-todo-details/research/findings.md", "reason": "当前代码证据和已确认可复用能力"}
+{"file": ".trellis/spec/server/backend/workbench-todos.md", "reason": "最终待办、公共候选搜索与最小异常读取权限跨层契约"}

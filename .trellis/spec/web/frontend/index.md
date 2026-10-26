@@ -13,6 +13,7 @@
 | [Column Settings](./column-settings.md) | 全量铺排排序、逐列多列冻结、偏好隔离和Pro适配 | ✅ |
 | [Component Guidelines](./component-guidelines.md) | UI 模板规范、公共组件与金额/时间显示口径 | ✅ |
 | [State Management](./state-management.md) | 服务端状态与请求客户端 | ✅ |
+| [Workbench Todos](../../server/backend/workbench-todos.md) | 本人待办分页、权限、返回刷新与异常直达的一次性消费 | ✅ |
 | [Organization Switch](./organization-switch.md) | 组织切换落点、异步工作区转换与未保存输入保护 | ✅ |
 | [Hook Guidelines](./hook-guidelines.md) | 数据获取与自定义 Hook | ✅ |
 | [DingTalk Embedded Login](../../server/backend/dingtalk-embedded-login.md) | 钉钉内按需SDK免登、单次尝试/迟到隔离、三层预热分流及安全回跳 | ✅ |

@@ -22,8 +22,10 @@ const OperationWorkbenchServiceGetWorkbenchOverview = "/workbench.v1.WorkbenchSe
 const OperationWorkbenchServiceListMyApplicationCandidates = "/workbench.v1.WorkbenchService/ListMyApplicationCandidates"
 const OperationWorkbenchServiceListMyCommissionApplications = "/workbench.v1.WorkbenchService/ListMyCommissionApplications"
 const OperationWorkbenchServiceListMyCommissions = "/workbench.v1.WorkbenchService/ListMyCommissions"
+const OperationWorkbenchServiceListMyOpenAbnormalCases = "/workbench.v1.WorkbenchService/ListMyOpenAbnormalCases"
 const OperationWorkbenchServiceListMyReceivables = "/workbench.v1.WorkbenchService/ListMyReceivables"
 const OperationWorkbenchServiceListMyRecentOrders = "/workbench.v1.WorkbenchService/ListMyRecentOrders"
+const OperationWorkbenchServiceListMyUnbilledFees = "/workbench.v1.WorkbenchService/ListMyUnbilledFees"
 const OperationWorkbenchServiceResubmitMyCommissionApplication = "/workbench.v1.WorkbenchService/ResubmitMyCommissionApplication"
 const OperationWorkbenchServiceSubmitMyCommissionApplication = "/workbench.v1.WorkbenchService/SubmitMyCommissionApplication"
 
@@ -42,10 +44,14 @@ type WorkbenchServiceHTTPServer interface {
 	ListMyCommissionApplications(context.Context, *ListMyCommissionApplicationsRequest) (*ListMyCommissionApplicationsResponse, error)
 	// ListMyCommissions ListMyCommissions 返回本人提成单与调整明细，服务端分页并支持状态/归属日期过滤。
 	ListMyCommissions(context.Context, *ListMyCommissionsRequest) (*ListMyCommissionsResponse, error)
+	// ListMyOpenAbnormalCases ListMyOpenAbnormalCases 返回本人协作订单上的进行中异常明细。
+	ListMyOpenAbnormalCases(context.Context, *ListMyOpenAbnormalCasesRequest) (*ListMyOpenAbnormalCasesResponse, error)
 	// ListMyReceivables ListMyReceivables 返回与本人提成归属相关的已确认应收未结项，服务端分页。
 	ListMyReceivables(context.Context, *ListMyReceivablesRequest) (*ListMyReceivablesResponse, error)
 	// ListMyRecentOrders ListMyRecentOrders 返回本人真实协作且具备对应业务读取权限的近期出口订单，服务端分页。
 	ListMyRecentOrders(context.Context, *ListMyRecentOrdersRequest) (*ListMyRecentOrdersResponse, error)
+	// ListMyUnbilledFees ListMyUnbilledFees 返回本人协作订单上仍需记账的未建账费用明细。
+	ListMyUnbilledFees(context.Context, *ListMyUnbilledFeesRequest) (*ListMyUnbilledFeesResponse, error)
 	// ResubmitMyCommissionApplication ResubmitMyCommissionApplication 显式重提本人被驳回的月度申请：按申请 ID 与
 	// expected_version 定位原申请（会话固定本人与当前组织），服务端按上游当前
 	// 事实逐笔刷新明细快照金额/方案/指纹（来源失效或提成已被取消/冲销的明细
@@ -64,6 +70,8 @@ func RegisterWorkbenchServiceHTTPServer(s *http.Server, srv WorkbenchServiceHTTP
 	r.Handle("GET", "/api/v1/workbench/my-commissions", _WorkbenchService_ListMyCommissions0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/workbench/my-receivables", _WorkbenchService_ListMyReceivables0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/workbench/my-recent-orders", _WorkbenchService_ListMyRecentOrders0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/workbench/my-unbilled-fees", _WorkbenchService_ListMyUnbilledFees0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/workbench/my-open-abnormal-cases", _WorkbenchService_ListMyOpenAbnormalCases0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/workbench/application-candidates", _WorkbenchService_ListMyApplicationCandidates0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/workbench/commission-applications/submit", _WorkbenchService_SubmitMyCommissionApplication0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/workbench/commission-applications/resubmit", _WorkbenchService_ResubmitMyCommissionApplication0_HTTP_Handler(srv))
@@ -143,6 +151,44 @@ func _WorkbenchService_ListMyRecentOrders0_HTTP_Handler(srv WorkbenchServiceHTTP
 			return err
 		}
 		reply := out.(*ListMyRecentOrdersResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _WorkbenchService_ListMyUnbilledFees0_HTTP_Handler(srv WorkbenchServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListMyUnbilledFeesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationWorkbenchServiceListMyUnbilledFees)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListMyUnbilledFees(ctx, req.(*ListMyUnbilledFeesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListMyUnbilledFeesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _WorkbenchService_ListMyOpenAbnormalCases0_HTTP_Handler(srv WorkbenchServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListMyOpenAbnormalCasesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationWorkbenchServiceListMyOpenAbnormalCases)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListMyOpenAbnormalCases(ctx, req.(*ListMyOpenAbnormalCasesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListMyOpenAbnormalCasesResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -260,10 +306,14 @@ type WorkbenchServiceHTTPClient interface {
 	ListMyCommissionApplications(ctx context.Context, req *ListMyCommissionApplicationsRequest, opts ...http.CallOption) (rsp *ListMyCommissionApplicationsResponse, err error)
 	// ListMyCommissions ListMyCommissions 返回本人提成单与调整明细，服务端分页并支持状态/归属日期过滤。
 	ListMyCommissions(ctx context.Context, req *ListMyCommissionsRequest, opts ...http.CallOption) (rsp *ListMyCommissionsResponse, err error)
+	// ListMyOpenAbnormalCases ListMyOpenAbnormalCases 返回本人协作订单上的进行中异常明细。
+	ListMyOpenAbnormalCases(ctx context.Context, req *ListMyOpenAbnormalCasesRequest, opts ...http.CallOption) (rsp *ListMyOpenAbnormalCasesResponse, err error)
 	// ListMyReceivables ListMyReceivables 返回与本人提成归属相关的已确认应收未结项，服务端分页。
 	ListMyReceivables(ctx context.Context, req *ListMyReceivablesRequest, opts ...http.CallOption) (rsp *ListMyReceivablesResponse, err error)
 	// ListMyRecentOrders ListMyRecentOrders 返回本人真实协作且具备对应业务读取权限的近期出口订单，服务端分页。
 	ListMyRecentOrders(ctx context.Context, req *ListMyRecentOrdersRequest, opts ...http.CallOption) (rsp *ListMyRecentOrdersResponse, err error)
+	// ListMyUnbilledFees ListMyUnbilledFees 返回本人协作订单上仍需记账的未建账费用明细。
+	ListMyUnbilledFees(ctx context.Context, req *ListMyUnbilledFeesRequest, opts ...http.CallOption) (rsp *ListMyUnbilledFeesResponse, err error)
 	// ResubmitMyCommissionApplication ResubmitMyCommissionApplication 显式重提本人被驳回的月度申请：按申请 ID 与
 	// expected_version 定位原申请（会话固定本人与当前组织），服务端按上游当前
 	// 事实逐笔刷新明细快照金额/方案/指纹（来源失效或提成已被取消/冲销的明细
@@ -373,6 +423,23 @@ func (c *WorkbenchServiceHTTPClientImpl) ListMyCommissions(ctx context.Context, 
 	return &out, nil
 }
 
+// ListMyOpenAbnormalCases ListMyOpenAbnormalCases 返回本人协作订单上的进行中异常明细。
+func (c *WorkbenchServiceHTTPClientImpl) ListMyOpenAbnormalCases(ctx context.Context, in *ListMyOpenAbnormalCasesRequest, opts ...http.CallOption) (*ListMyOpenAbnormalCasesResponse, error) {
+	var out ListMyOpenAbnormalCasesResponse
+	pattern := "/api/v1/workbench/my-open-abnormal-cases"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationWorkbenchServiceListMyOpenAbnormalCases),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // ListMyReceivables ListMyReceivables 返回与本人提成归属相关的已确认应收未结项，服务端分页。
 func (c *WorkbenchServiceHTTPClientImpl) ListMyReceivables(ctx context.Context, in *ListMyReceivablesRequest, opts ...http.CallOption) (*ListMyReceivablesResponse, error) {
 	var out ListMyReceivablesResponse
@@ -398,6 +465,23 @@ func (c *WorkbenchServiceHTTPClientImpl) ListMyRecentOrders(ctx context.Context,
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationWorkbenchServiceListMyRecentOrders),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListMyUnbilledFees ListMyUnbilledFees 返回本人协作订单上仍需记账的未建账费用明细。
+func (c *WorkbenchServiceHTTPClientImpl) ListMyUnbilledFees(ctx context.Context, in *ListMyUnbilledFeesRequest, opts ...http.CallOption) (*ListMyUnbilledFeesResponse, error) {
+	var out ListMyUnbilledFeesResponse
+	pattern := "/api/v1/workbench/my-unbilled-fees"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationWorkbenchServiceListMyUnbilledFees),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

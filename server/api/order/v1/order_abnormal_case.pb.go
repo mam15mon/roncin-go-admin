@@ -86,8 +86,10 @@ type OrderAbnormalCase struct {
 	ResolvedBy     *string                 `protobuf:"bytes,8,opt,name=resolved_by,json=resolvedBy,proto3,oneof" json:"resolved_by,omitempty"`
 	CreatedAt      string                  `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt      string                  `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// 已停用类型仍返回名称，读取历史记录不受候选启用状态影响。
+	AbnormalCaseName string `protobuf:"bytes,11,opt,name=abnormal_case_name,json=abnormalCaseName,proto3" json:"abnormal_case_name,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *OrderAbnormalCase) Reset() {
@@ -186,6 +188,13 @@ func (x *OrderAbnormalCase) GetCreatedAt() string {
 func (x *OrderAbnormalCase) GetUpdatedAt() string {
 	if x != nil {
 		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *OrderAbnormalCase) GetAbnormalCaseName() string {
+	if x != nil {
+		return x.AbnormalCaseName
 	}
 	return ""
 }
@@ -697,7 +706,7 @@ var File_order_v1_order_abnormal_case_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_abnormal_case_proto_rawDesc = "" +
 	"\n" +
-	"\"order/v1/order_abnormal_case.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x87\x03\n" +
+	"\"order/v1/order_abnormal_case.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xb5\x03\n" +
 	"\x11OrderAbnormalCase\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12(\n" +
@@ -713,7 +722,8 @@ const file_order_v1_order_abnormal_case_proto_rawDesc = "" +
 	"created_at\x18\t \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
 	"updated_at\x18\n" +
-	" \x01(\tR\tupdatedAtB\x0e\n" +
+	" \x01(\tR\tupdatedAt\x12,\n" +
+	"\x12abnormal_case_name\x18\v \x01(\tR\x10abnormalCaseNameB\x0e\n" +
 	"\f_resolved_atB\x0e\n" +
 	"\f_resolved_by\":\n" +
 	"\x18ListAbnormalCasesRequest\x12\x1e\n" +

@@ -141,7 +141,7 @@ export function buildSeaPersonnelSection(props: TemplateProps) {
             userField={userField}
             options={personnelOptions}
             rules={rules}
-            disabled={locked}
+            disabled={locked || props.personnelReadonly}
             nameOnly={!isDetail}
           />
         ))}

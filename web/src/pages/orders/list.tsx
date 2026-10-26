@@ -55,6 +55,7 @@ import { useOrderListResources } from './list-resources';
 import OrderFeePanel, { type OrderFeePanelRef } from './order-fee-panel';
 import { getOrderKindDefinition } from './order-kinds/registry';
 import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
+import { getOrderBusinessWritePolicy } from './use-order-lock-state';
 
 /** 提成摘要下钻弹窗的行级上下文：只保存服务端已裁剪投影与单号。 */
 interface CommissionSummaryModalState {
@@ -174,7 +175,6 @@ export default function OrderListPage() {
     });
   }, [definition?.businessType]);
   const {
-    masterOptions,
     ports,
     airports,
     customerMap,
@@ -299,10 +299,15 @@ export default function OrderListPage() {
           item.rawRecord &&
             consolidationDrawerRef.current?.open(item.rawRecord);
         }}
-        onOpenAbnormal={(item) => {
-          setActiveOrder(item.rawRecord);
-          item.rawRecord && abnormalCasePanelRef.current?.open(item.rawRecord);
-        }}
+        onOpenAbnormal={
+          access.canOrder(definition.businessType, 'abnormal_case.read')
+            ? (item) => {
+                setActiveOrder(item.rawRecord);
+                item.rawRecord &&
+                  abnormalCasePanelRef.current?.open(item.rawRecord);
+              }
+            : undefined
+        }
       />
       <OrderFeeReviewDrawer
         key={reviewOrderId}
@@ -443,11 +448,31 @@ export default function OrderListPage() {
       />
       <AbnormalCasePanel
         ref={abnormalCasePanelRef}
-        canManage={
-          canOperateActiveOrder &&
-          access.canOrder(definition.businessType, 'abnormal_case.create')
+        canRead={access.canOrder(definition.businessType, 'abnormal_case.read')}
+        canCreate={access.canOrder(
+          definition.businessType,
+          'abnormal_case.create',
+        )}
+        canResolve={access.canOrder(
+          definition.businessType,
+          'abnormal_case.resolve',
+        )}
+        canDelete={access.canOrder(
+          definition.businessType,
+          'abnormal_case.delete',
+        )}
+        businessWriteBlockedReason={
+          getOrderBusinessWritePolicy({
+            state: {
+              isLocked: Boolean(activeOrder?.lockedAt),
+              businessType: activeOrder?.businessType,
+            },
+            loading: false,
+            error: null,
+            canOperate: canOperateActiveOrder,
+            order: activeOrder,
+          }).reason
         }
-        masterOptions={masterOptions}
       />
     </>
   );

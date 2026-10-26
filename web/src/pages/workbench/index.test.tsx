@@ -35,7 +35,8 @@ const umiState = vi.hoisted(() => ({
     canReadFinanceCommissions: false,
     canReadPartners: false,
     canReadMasterData: false,
-  } as Record<string, boolean>,
+    canOrder: () => true,
+  } as Record<string, unknown>,
   historyPush: vi.fn(),
 }));
 

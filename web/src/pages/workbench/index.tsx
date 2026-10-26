@@ -10,7 +10,12 @@ import FinanceSummaryCard from './FinanceSummaryCard';
 import MyApplicationCard from './MyApplicationCard';
 import MyCommissionDrawer from './MyCommissionDrawer';
 import MyReceivablesDrawer from './MyReceivablesDrawer';
+import MyTodosDrawer from './MyTodosDrawer';
 import { useWorkbenchOverview } from './useWorkbenchOverview';
+import {
+  useWorkbenchTodoAccess,
+  type WorkbenchTodoKind,
+} from './useWorkbenchTodoAccess';
 import {
   AccountBoundaryCard,
   QuickEntriesCard,
@@ -39,14 +44,16 @@ function CompanyWorkbench() {
 
   const [commissionDrawerOpen, setCommissionDrawerOpen] = useState(false);
   const [receivablesDrawerOpen, setReceivablesDrawerOpen] = useState(false);
+  const [todoKind, setTodoKind] = useState<WorkbenchTodoKind>();
+  const todoAccess = useWorkbenchTodoAccess();
 
   // 提成门禁：optional bool 的 false 可能被省略为 undefined，一律 !== true 判假；
   // 门禁为假时从首次渲染（含加载中）起就不出现提成模块 DOM。
   const showCommission = data?.hasCommissionEligibility === true;
   const finance = data?.finance;
   const hasTodos =
-    (data?.todos?.unbilledFeeCount ?? 0) > 0 ||
-    (data?.todos?.openAbnormalCount ?? 0) > 0;
+    (todoAccess.fees && (data?.todos?.unbilledFeeCount ?? 0) > 0) ||
+    (todoAccess.abnormal && (data?.todos?.openAbnormalCount ?? 0) > 0);
 
   return (
     <PageContainer
@@ -133,7 +140,13 @@ function CompanyWorkbench() {
             {(data.recentOrders?.length ?? 0) > 0 || hasTodos ? (
               <div style={GRID_STYLE}>
                 <RecentOrdersCard orders={data.recentOrders} />
-                <TodosCard todos={data.todos} />
+                <TodosCard
+                  todos={data.todos}
+                  onOpen={(kind) => {
+                    setTodoKind(kind);
+                    void reload();
+                  }}
+                />
               </div>
             ) : null}
           </>
@@ -158,13 +171,26 @@ function CompanyWorkbench() {
           onClose={() => setReceivablesDrawerOpen(false)}
         />
       ) : null}
+      {todoKind ? (
+        <MyTodosDrawer
+          initialKind={todoKind}
+          onClose={() => setTodoKind(undefined)}
+          onRefresh={() => void reload()}
+        />
+      ) : null}
     </PageContainer>
   );
 }
 
 export default function Workbench() {
   const access = useAccess();
-  if (!access.isSystemWorkspace) return <CompanyWorkbench />;
+  const { initialState } = useInitialState();
+  const user = initialState?.currentUser;
+  if (!access.isSystemWorkspace) {
+    return (
+      <CompanyWorkbench key={`${user?.id}:${user?.currentOrganization?.id}`} />
+    );
+  }
   return (
     <PageContainer title="系统管理工作台">
       <ProCard title="系统管理">

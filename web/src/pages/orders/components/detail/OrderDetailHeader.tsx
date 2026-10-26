@@ -22,7 +22,7 @@ type OrderDetailHeaderProps = {
   saving: boolean;
   canManageFee: boolean;
   canCreatePod: boolean;
-  canCreateAbnormal: boolean;
+  canReadAbnormal: boolean;
   /** 类型专属头部动作插槽（如拆票、改配），由订单类型详情扩展提供。 */
   businessActions?: ReactNode;
   moreMenuItems: MenuProps['items'];
@@ -48,7 +48,7 @@ export default function OrderDetailHeader({
   saving,
   canManageFee,
   canCreatePod,
-  canCreateAbnormal,
+  canReadAbnormal,
   businessActions,
   moreMenuItems,
   hasAction,
@@ -152,19 +152,14 @@ export default function OrderDetailHeader({
           )}
 
           {/* 异常情况 */}
-          {canCreateAbnormal && (
-            <Tooltip title={businessWriteBlockedReason}>
-              <span>
-                <Button
-                  style={{ color: '#ff4d4f', borderColor: '#ff4d4f' }}
-                  icon={<AlertOutlined />}
-                  disabled={businessWritesDisabled}
-                  onClick={onOpenAbnormalCase}
-                >
-                  异常情况
-                </Button>
-              </span>
-            </Tooltip>
+          {canReadAbnormal && (
+            <Button
+              style={{ color: '#ff4d4f', borderColor: '#ff4d4f' }}
+              icon={<AlertOutlined />}
+              onClick={onOpenAbnormalCase}
+            >
+              异常情况
+            </Button>
           )}
 
           {/* 类型专属动作（由订单类型详情扩展贡献，如拆票、改配） */}

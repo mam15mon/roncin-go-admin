@@ -236,6 +236,24 @@ export async function masterDataServiceListOptions(options?: {
   });
 }
 
+/** SearchOptions 为已登录员工提供启用主数据的分类分页搜索。 GET /api/v1/master-data/options/search */
+export async function masterDataServiceSearchOptions(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.MasterDataServiceSearchOptionsParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.SearchOptionsResponse>(
+    "/api/v1/master-data/options/search",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/master-data/ports */
 export async function masterDataServiceListPorts(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

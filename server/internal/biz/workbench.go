@@ -48,6 +48,9 @@ type WorkbenchScope struct {
 	IsBootstrapAdmin bool
 	// ReadableOrderBusinessTypes 是当前公司内具备读取权限的已开放订单品类。
 	ReadableOrderBusinessTypes []OrderBusinessType
+	// 两类逐笔待办读取能力与订单读取能力取交集，审核权限不能代替费用读取。
+	ReadableFeeBusinessTypes      []OrderBusinessType
+	ReadableAbnormalBusinessTypes []OrderBusinessType
 }
 
 func validWorkbenchScope(scope WorkbenchScope) bool {
@@ -180,7 +183,7 @@ type WorkbenchRecentOrder struct {
 
 // WorkbenchTodoSummary 只聚合现有事实可准确判定的作业待办。
 type WorkbenchTodoSummary struct {
-	// UnbilledFeeCount 是本人协作订单上状态为 UNBILLED（未建账）的费用数量。
+	// UnbilledFeeCount 是本人具备费用读取权限的协作订单上仍需记账、未被替代且无有效账单占用的费用数量。
 	UnbilledFeeCount int
 	// OpenAbnormalCount 是本人协作订单上未解决异常的数量。
 	OpenAbnormalCount int
@@ -282,6 +285,8 @@ type WorkbenchRepo interface {
 	GetOverview(context.Context, WorkbenchScope) (*WorkbenchOverview, error)
 	ListMyCommissions(context.Context, WorkbenchScope, WorkbenchCommissionFilter) (*PagedList[*WorkbenchMyCommission], error)
 	ListMyReceivables(context.Context, WorkbenchScope, WorkbenchReceivableFilter) (*PagedList[*WorkbenchMyReceivable], error)
+	ListMyUnbilledFees(context.Context, WorkbenchScope, WorkbenchTodoFilter) (*PagedList[*WorkbenchUnbilledFee], error)
+	ListMyOpenAbnormalCases(context.Context, WorkbenchScope, WorkbenchTodoFilter) (*PagedList[*WorkbenchOpenAbnormalCase], error)
 	ListMyRecentOrders(context.Context, WorkbenchScope, WorkbenchOrderFilter) (*PagedList[*WorkbenchRecentOrder], error)
 }
 
@@ -330,4 +335,50 @@ func (u *WorkbenchUsecase) ListMyRecentOrders(ctx context.Context, scope Workben
 		return nil, ErrWorkbenchInvalid
 	}
 	return u.repo.ListMyRecentOrders(ctx, scope, f)
+}
+
+// WorkbenchTodoFilter 是作业待办的统一分页参数。
+type WorkbenchTodoFilter struct{ Page, PageSize int }
+
+// WorkbenchTodoOrder 承载待办所属订单的最小摘要及当前业务状态。
+type WorkbenchTodoOrder struct {
+	OrderID                             uuid.UUID
+	OrderNo, BusinessType, CustomerName string
+	OrderLocked                         bool
+	TerminationStatus, ClosureStatus    string
+}
+
+// WorkbenchUnbilledFee 投影单笔仍需记账费用，金额保留原币精度。
+type WorkbenchUnbilledFee struct {
+	WorkbenchTodoOrder
+	FeeID                                  uuid.UUID
+	Direction                              OrderFeeDirection
+	FeeName, SettlementPartyName, Currency string
+	TotalAmount                            decimal.Decimal
+	CreatedAt                              time.Time
+	HasPendingChange                       bool
+	BlockedReasons                         []string
+}
+
+// WorkbenchOpenAbnormalCase 投影进行中异常，停用类型仍保留可读名称。
+type WorkbenchOpenAbnormalCase struct {
+	WorkbenchTodoOrder
+	ID, AbnormalCaseID         uuid.UUID
+	AbnormalCaseName           string
+	MarkedAt                   time.Time
+	BusinessWriteBlockedReason string
+}
+
+func (u *WorkbenchUsecase) ListMyUnbilledFees(ctx context.Context, scope WorkbenchScope, f WorkbenchTodoFilter) (*PagedList[*WorkbenchUnbilledFee], error) {
+	if !validWorkbenchScope(scope) || !ValidListPagination(f.Page, f.PageSize) {
+		return nil, ErrWorkbenchInvalid
+	}
+	return u.repo.ListMyUnbilledFees(ctx, scope, f)
+}
+
+func (u *WorkbenchUsecase) ListMyOpenAbnormalCases(ctx context.Context, scope WorkbenchScope, f WorkbenchTodoFilter) (*PagedList[*WorkbenchOpenAbnormalCase], error) {
+	if !validWorkbenchScope(scope) || !ValidListPagination(f.Page, f.PageSize) {
+		return nil, ErrWorkbenchInvalid
+	}
+	return u.repo.ListMyOpenAbnormalCases(ctx, scope, f)
 }

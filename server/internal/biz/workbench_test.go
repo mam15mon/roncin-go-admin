@@ -231,3 +231,39 @@ func TestWorkbenchSummaryBucketSemantics(t *testing.T) {
 		t.Fatalf("冲减草稿桶应独立计数")
 	}
 }
+
+func (s *stubWorkbenchRepo) ListMyUnbilledFees(context.Context, WorkbenchScope, WorkbenchTodoFilter) (*PagedList[*WorkbenchUnbilledFee], error) {
+	return &PagedList[*WorkbenchUnbilledFee]{}, nil
+}
+func (s *stubWorkbenchRepo) ListMyOpenAbnormalCases(context.Context, WorkbenchScope, WorkbenchTodoFilter) (*PagedList[*WorkbenchOpenAbnormalCase], error) {
+	return &PagedList[*WorkbenchOpenAbnormalCase]{}, nil
+}
+
+// 工作台待办两类列表都必须在领域边界拒绝非法主体和分页。
+func TestWorkbenchTodoPagination(t *testing.T) {
+	usecase := NewWorkbenchUsecase(&stubWorkbenchRepo{})
+	scope := workbenchTestScope()
+	for _, filter := range []WorkbenchTodoFilter{{0, 20}, {1, 0}, {1, 201}, {-1, 20}, {1, -1}} {
+		if _, err := usecase.ListMyUnbilledFees(t.Context(), scope, filter); !errors.Is(err, ErrWorkbenchInvalid) {
+			t.Fatalf("费用分页未拒绝 %+v: %v", filter, err)
+		}
+		if _, err := usecase.ListMyOpenAbnormalCases(t.Context(), scope, filter); !errors.Is(err, ErrWorkbenchInvalid) {
+			t.Fatalf("异常分页未拒绝 %+v: %v", filter, err)
+		}
+	}
+	for _, size := range []int{1, 20, 200} {
+		filter := WorkbenchTodoFilter{1, size}
+		if _, err := usecase.ListMyUnbilledFees(t.Context(), scope, filter); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := usecase.ListMyOpenAbnormalCases(t.Context(), scope, filter); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := usecase.ListMyUnbilledFees(t.Context(), WorkbenchScope{}, WorkbenchTodoFilter{1, 20}); !errors.Is(err, ErrWorkbenchInvalid) {
+		t.Fatal(err)
+	}
+	if _, err := usecase.ListMyOpenAbnormalCases(t.Context(), WorkbenchScope{}, WorkbenchTodoFilter{1, 20}); !errors.Is(err, ErrWorkbenchInvalid) {
+		t.Fatal(err)
+	}
+}

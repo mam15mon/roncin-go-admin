@@ -23,6 +23,8 @@ export function useWorkbenchOverview(organizationId?: string) {
       const response = await workbenchServiceGetWorkbenchOverview();
       return response.data;
     },
+    // 路由页签按 Outlet 卸载/重挂；返回工作台时始终同步最新业务事实。
+    refetchOnMount: 'always',
     // 历史空 catch 静默：失败仅置 error 态由页面展示重试，不重复弹全局 message。
     meta: { silent: true },
   });

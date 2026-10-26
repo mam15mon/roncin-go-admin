@@ -173,6 +173,34 @@ func (s *MasterDataService) ListOptions(ctx context.Context, _ *v1.ListOptionsRe
 	return okList(ctx, &v1.ListOptionsResponse{Data: masterDataItemsToAPI(items)}), nil
 }
 
+// SearchOptions 与全量候选共享登录边界，仅检索明确类型的启用项。
+func (s *MasterDataService) SearchOptions(ctx context.Context, request *v1.SearchOptionsRequest) (*v1.SearchOptionsResponse, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	kind := masterDataKindFromAPI(request.GetKind())
+	if !kind.Valid() {
+		return nil, biz.ErrMasterDataInvalidKind
+	}
+	page, pageSize := 1, defaultListPageSize
+	if request.Page != nil {
+		page = int(request.GetPage())
+	}
+	if request.PageSize != nil {
+		pageSize = int(request.GetPageSize())
+	}
+	if !biz.ValidListPagination(page, pageSize) {
+		return nil, biz.ErrMasterDataInvalidArgument
+	}
+	enabled := true
+	result, err := s.usecase.List(ctx, principal.Organization.ID, biz.MasterDataListOptions{Kind: kind, Keyword: request.GetKeyword(), Page: page, PageSize: pageSize, Enabled: &enabled})
+	if err != nil {
+		return nil, err
+	}
+	return okList(ctx, &v1.SearchOptionsResponse{Data: masterDataItemsToAPI(result.Items), Total: int32(result.Total), Page: int32(result.Page), PageSize: int32(result.PageSize)}), nil
+}
+
 func (s *MasterDataService) ListPorts(ctx context.Context, request *v1.ListPortsRequest) (*v1.ListPortsResponse, error) {
 	principal, err := requirePrincipal(ctx)
 	if err != nil {

@@ -27,23 +27,31 @@ func NewWorkbenchService(usecase *biz.WorkbenchUsecase, applications *biz.Financ
 // 处理而不是报错——个人工作台接口对无财务权限的员工仍然可用。
 func workbenchScopeFromPrincipal(p *biz.Principal) biz.WorkbenchScope {
 	now := time.Now()
-	var readableOrderTypes []biz.OrderBusinessType
+	var readableOrderTypes, readableFeeTypes, readableAbnormalTypes []biz.OrderBusinessType
 	for _, businessType := range []biz.OrderBusinessType{biz.OrderBusinessSE, biz.OrderBusinessAE} {
 		permission := access.OrderPermission(access.OrderBusinessType(businessType), access.OrderRead)
 		if p.CanAccessOrganizationForPermission(permission, p.Organization.ID, false) {
 			readableOrderTypes = append(readableOrderTypes, businessType)
+			if p.CanAccessOrganizationForPermission(access.OrderPermission(access.OrderBusinessType(businessType), access.OrderFeeRead), p.Organization.ID, false) {
+				readableFeeTypes = append(readableFeeTypes, businessType)
+			}
+			if p.CanAccessOrganizationForPermission(access.OrderPermission(access.OrderBusinessType(businessType), access.OrderAbnormalCaseRead), p.Organization.ID, false) {
+				readableAbnormalTypes = append(readableAbnormalTypes, businessType)
+			}
 		}
 	}
 	return biz.WorkbenchScope{
-		OrganizationID:             p.Organization.ID,
-		UserID:                     p.UserID,
-		Today:                      biz.FinanceBusinessDate(now),
-		Now:                        now,
-		CommissionReadable:         p.CanAccessOrganizationForPermission(access.FinanceCommissionRead, p.Organization.ID, false),
-		CommissionManageable:       p.CanAccessOrganizationForPermission(access.FinanceCommissionManage, p.Organization.ID, false),
-		IsBootstrapAdmin:           p.IsBootstrapAdmin && p.CanOperateBusiness(),
-		CanOperateBusiness:         p.CanOperateBusiness(),
-		ReadableOrderBusinessTypes: readableOrderTypes,
+		OrganizationID:                p.Organization.ID,
+		UserID:                        p.UserID,
+		Today:                         biz.FinanceBusinessDate(now),
+		Now:                           now,
+		CommissionReadable:            p.CanAccessOrganizationForPermission(access.FinanceCommissionRead, p.Organization.ID, false),
+		CommissionManageable:          p.CanAccessOrganizationForPermission(access.FinanceCommissionManage, p.Organization.ID, false),
+		IsBootstrapAdmin:              p.IsBootstrapAdmin && p.CanOperateBusiness(),
+		CanOperateBusiness:            p.CanOperateBusiness(),
+		ReadableOrderBusinessTypes:    readableOrderTypes,
+		ReadableFeeBusinessTypes:      readableFeeTypes,
+		ReadableAbnormalBusinessTypes: readableAbnormalTypes,
 	}
 }
 

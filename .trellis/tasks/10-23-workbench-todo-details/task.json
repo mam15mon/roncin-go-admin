@@ -3,9 +3,9 @@
   "name": "workbench-todo-details",
   "title": "作业待办明细与处理直达",
   "description": "将工作台本人作业待办从数量摘要扩展为具体订单明细，并直达已有异常或费用处理入口。",
-  "status": "planning",
-  "dev_type": null,
-  "scope": null,
+  "status": "in_progress",
+  "dev_type": "fullstack",
+  "scope": "server,web",
   "package": "web",
   "priority": "P2",
   "creator": "mam15mon",
@@ -28,8 +28,12 @@
     "server/api/order/v1/order_abnormal_case.proto",
     "web/src/pages/workbench/",
     "web/src/pages/orders/detail.tsx",
-    "web/src/pages/orders/abnormal-case-panel.tsx"
+    "web/src/pages/orders/abnormal-case-panel.tsx",
+    "server/api/masterdata/v1/masterdata.proto",
+    "server/internal/service/masterdata.go",
+    "web/src/pages/orders/use-order-detail-data.ts",
+    ".trellis/spec/server/backend/workbench-todos.md"
   ],
-  "notes": "已获创建任务并进入规划的授权；等待用户批准最终方案后实施。涉及 server 与 web，预期无 Schema 迁移。",
+  "notes": "用户于2026-10-26批准修订、实施、独立review、合并、安全清理已合并分支及推送；已完成实现和真实PostgreSQL定向验证，正在最终前端全量门禁。无Schema迁移。",
   "meta": {}
 }

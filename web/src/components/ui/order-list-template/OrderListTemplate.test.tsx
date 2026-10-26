@@ -121,6 +121,39 @@ describe('OrderListTemplate', () => {
     fireEvent.click(row.getByRole('button', { name: /更多/ }));
     expect(screen.queryByText('流转状态')).not.toBeInTheDocument();
   });
+
+  it('异常入口仅在提供查看回调时出现，并打开选中订单', async () => {
+    const order = {
+      id: 'order-readable',
+      orderNo: 'SE-READABLE',
+      stage: ['正常运作'],
+    } as OrderListItem;
+    const onOpenAbnormal = vi.fn();
+    const queryOrders = vi.fn().mockResolvedValue({
+      data: [order],
+      total: 1,
+      success: true,
+    });
+    const view = render(
+      <OrderListTemplate
+        queryOrders={queryOrders}
+        onOpenAbnormal={onOpenAbnormal}
+      />,
+    );
+    await screen.findByText('SE-READABLE');
+    fireEvent.mouseEnter(screen.getByRole('button', { name: /更多/ }));
+    fireEvent.click(await screen.findByText('异常情况'));
+    expect(onOpenAbnormal).toHaveBeenCalledWith(
+      expect.objectContaining({ id: order.id }),
+    );
+
+    view.unmount();
+    render(<OrderListTemplate queryOrders={queryOrders} />);
+    await screen.findByText('SE-READABLE');
+    fireEvent.mouseEnter(screen.getByRole('button', { name: /更多/ }));
+    await screen.findByText('费用核算');
+    expect(screen.queryByText('异常情况')).not.toBeInTheDocument();
+  });
 });
 
 describe('OrderListSearchFilter', () => {

@@ -4,7 +4,7 @@ import type {
   ProColumns,
   ProFormInstance,
 } from '@ant-design/pro-components';
-import { App, Button, Drawer, Space, Typography } from 'antd';
+import { Alert, App, Button, Drawer, Space, Typography } from 'antd';
 import {
   forwardRef,
   useEffect,
@@ -24,14 +24,20 @@ import {
   orderAbnormalCaseStatusMeta,
   statusTag,
 } from '@/constants/statusMeta';
-import { OrderAbnormalCaseStatus } from '@/enums.generated';
+import { MasterDataKind, OrderAbnormalCaseStatus } from '@/enums.generated';
+import { masterDataServiceSearchOptions } from '@/services/roncin/masterDataService';
 import {
   orderAbnormalCaseServiceListAbnormalCases,
   orderAbnormalCaseServiceMarkAbnormalCase,
   orderAbnormalCaseServiceRemoveAbnormalCase,
   orderAbnormalCaseServiceResolveAbnormalCase,
 } from '@/services/roncin/orderAbnormalCaseService';
-import { isWriteResponse, toTableRequest } from '@/utils/api';
+import {
+  ensureListResponse,
+  isWriteResponse,
+  toTableRequest,
+  unwrapList,
+} from '@/utils/api';
 import { formatDate } from '@/utils/format';
 
 const { Text } = Typography;
@@ -41,24 +47,24 @@ type AbnormalCaseFormValues = {
 };
 
 type AbnormalCasePanelProps = {
-  canManage: boolean;
-  masterOptions: API.MasterDataItem[];
+  canRead: boolean;
+  canCreate: boolean;
+  canResolve: boolean;
+  canDelete: boolean;
+  businessWriteBlockedReason?: string;
 };
 
 export type AbnormalCasePanelRef = {
   open: (order: API.Order) => void;
 };
 
-const isAbnormalCase = (kind?: number | string) =>
-  kind === 10 ||
-  kind === '10' ||
-  kind === 'MASTER_DATA_KIND_ABNORMAL_CASE' ||
-  kind === 'abnormal_case';
-
 const AbnormalCasePanel = forwardRef<
   AbnormalCasePanelRef,
   AbnormalCasePanelProps
->(function AbnormalCasePanel({ canManage, masterOptions }, ref) {
+>(function AbnormalCasePanel(
+  { canRead, canCreate, canResolve, canDelete, businessWriteBlockedReason },
+  ref,
+) {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const formRef = useRef<ProFormInstance | undefined>(undefined);
   const { message } = App.useApp();
@@ -67,36 +73,30 @@ const AbnormalCasePanel = forwardRef<
   const [order, setOrder] = useState<API.Order>();
 
   useEffect(() => {
-    if (!canManage) setModalOpen(false);
-  }, [canManage]);
+    if (!canCreate || businessWriteBlockedReason) setModalOpen(false);
+  }, [canCreate, businessWriteBlockedReason]);
 
-  const ensureCanManage = () => {
-    if (canManage) return true;
-    message.warning('订单当前不可编辑，请刷新锁定状态后重试');
+  useEffect(() => {
+    if (!canRead) {
+      setDrawerOpen(false);
+      setModalOpen(false);
+      setOrder(undefined);
+    }
+  }, [canRead]);
+
+  const ensureCanWrite = (permitted: boolean) => {
+    if (canRead && permitted && !businessWriteBlockedReason) return true;
+    message.warning(businessWriteBlockedReason || '没有该异常操作权限');
     return false;
   };
 
   useImperativeHandle(ref, () => ({
     open: (record) => {
+      if (!canRead) return;
       setOrder(record);
       setDrawerOpen(true);
     },
   }));
-
-  const options = masterOptions
-    .filter((item) => isAbnormalCase(item.kind) && item.enabled !== false)
-    .map((item) => ({
-      label: item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
-      value: item.id ?? '',
-    }));
-  const nameMap = Object.fromEntries(
-    masterOptions
-      .filter((item) => isAbnormalCase(item.kind) && item.id)
-      .map((item) => [
-        item.id as string,
-        item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
-      ]),
-  );
 
   const columns: ProColumns<API.OrderAbnormalCase>[] = [
     {
@@ -104,9 +104,7 @@ const AbnormalCasePanel = forwardRef<
       dataIndex: 'abnormalCaseId',
       ellipsis: true,
       render: (_, record) => {
-        const label =
-          (record.abnormalCaseId && nameMap[record.abnormalCaseId]) ||
-          record.abnormalCaseId;
+        const label = record.abnormalCaseName;
         return (
           <Space size={6}>
             <WarningOutlined style={{ color: '#ff4d4f' }} />
@@ -129,7 +127,7 @@ const AbnormalCasePanel = forwardRef<
       dataIndex: 'markedAt',
       valueType: 'dateTime',
       width: 170,
-      render: (_, record) => formatDate(record.markedAt),
+      render: (_, record) => formatDate(record.markedAt, 'datetime'),
     },
     {
       title: '标记人',
@@ -149,7 +147,7 @@ const AbnormalCasePanel = forwardRef<
       width: 170,
       render: (_, record) =>
         record.resolvedAt ? (
-          formatDate(record.resolvedAt)
+          formatDate(record.resolvedAt, 'datetime')
         ) : (
           <Text type="secondary">待解决</Text>
         ),
@@ -175,54 +173,68 @@ const AbnormalCasePanel = forwardRef<
       width: 130,
       fixed: 'right',
       render: (_, record) => {
-        if (!canManage) return null;
+        if (!canResolve && !canDelete) return null;
         return (
           <Space size={6}>
-            {record.status ===
-              OrderAbnormalCaseStatus.ORDER_ABNORMAL_CASE_STATUS_ACTIVE && (
+            {canResolve &&
+              record.status ===
+                OrderAbnormalCaseStatus.ORDER_ABNORMAL_CASE_STATUS_ACTIVE && (
+                <AsyncPopconfirm
+                  title="确定解决该异常？"
+                  onConfirm={async (): Promise<false | undefined> => {
+                    if (!ensureCanWrite(canResolve) || !order?.id || !record.id)
+                      return false;
+                    const writeResponse1 =
+                      await orderAbnormalCaseServiceResolveAbnormalCase(
+                        { orderId: order.id, id: record.id },
+                        { orderId: order.id, id: record.id },
+                      );
+                    if (!isWriteResponse(writeResponse1, true)) return false;
+                    message.success('解决异常成功');
+                    actionRef.current?.reload();
+
+                    return undefined;
+                  }}
+                >
+                  <Button
+                    type="link"
+                    size="small"
+                    disabled={Boolean(businessWriteBlockedReason)}
+                    style={{ padding: 0 }}
+                  >
+                    解决
+                  </Button>
+                </AsyncPopconfirm>
+              )}
+            {canDelete && (
               <AsyncPopconfirm
-                title="确定解决该异常？"
+                title="确定移除该异常？"
                 onConfirm={async (): Promise<false | undefined> => {
-                  if (!ensureCanManage() || !order?.id || !record.id)
+                  if (!ensureCanWrite(canDelete) || !order?.id || !record.id)
                     return false;
-                  const writeResponse1 =
-                    await orderAbnormalCaseServiceResolveAbnormalCase(
-                      { orderId: order.id, id: record.id },
-                      { orderId: order.id, id: record.id },
-                    );
-                  if (!isWriteResponse(writeResponse1, true)) return false;
-                  message.success('解决异常成功');
+                  const writeResponse2 =
+                    await orderAbnormalCaseServiceRemoveAbnormalCase({
+                      orderId: order.id,
+                      id: record.id,
+                    });
+                  if (!isWriteResponse(writeResponse2)) return false;
+                  message.success('移除异常成功');
                   actionRef.current?.reload();
 
                   return undefined;
                 }}
               >
-                <Button type="link" size="small" style={{ padding: 0 }}>
-                  解决
+                <Button
+                  type="link"
+                  danger
+                  size="small"
+                  disabled={Boolean(businessWriteBlockedReason)}
+                  style={{ padding: 0 }}
+                >
+                  移除
                 </Button>
               </AsyncPopconfirm>
             )}
-            <AsyncPopconfirm
-              title="确定移除该异常？"
-              onConfirm={async (): Promise<false | undefined> => {
-                if (!ensureCanManage() || !order?.id || !record.id)
-                  return false;
-                const writeResponse2 =
-                  await orderAbnormalCaseServiceRemoveAbnormalCase({
-                    orderId: order.id,
-                    id: record.id,
-                  });
-                if (!isWriteResponse(writeResponse2)) return false;
-                message.success('移除异常成功');
-                actionRef.current?.reload();
-
-                return undefined;
-              }}
-            >
-              <Button type="link" danger size="small" style={{ padding: 0 }}>
-                移除
-              </Button>
-            </AsyncPopconfirm>
           </Space>
         );
       },
@@ -243,12 +255,21 @@ const AbnormalCasePanel = forwardRef<
         open={drawerOpen}
         onClose={() => {
           setDrawerOpen(false);
+          setModalOpen(false);
           setOrder(undefined);
         }}
         size={920}
         destroyOnHidden
       >
-        {order?.id && (
+        {businessWriteBlockedReason && (
+          <Alert
+            type="info"
+            showIcon
+            title={businessWriteBlockedReason}
+            style={{ marginBottom: 12 }}
+          />
+        )}
+        {canRead && order?.id && (
           <ProTable<API.OrderAbnormalCase>
             headerTitle={
               <Space size={8}>
@@ -271,10 +292,11 @@ const AbnormalCasePanel = forwardRef<
             }}
             toolBarRender={() => [
               columnSettings.entry,
-              canManage && (
+              canCreate && (
                 <Button
                   key="create"
                   type="primary"
+                  disabled={Boolean(businessWriteBlockedReason)}
                   icon={<PlusOutlined />}
                   onClick={() => {
                     formRef.current?.resetFields();
@@ -300,7 +322,7 @@ const AbnormalCasePanel = forwardRef<
         }}
         onOpenChange={setModalOpen}
         onFinish={async (values) => {
-          if (!ensureCanManage() || !order?.id) return false;
+          if (!ensureCanWrite(canCreate) || !order?.id) return false;
           const writeResponse3 = await orderAbnormalCaseServiceMarkAbnormalCase(
             { orderId: order.id },
             { orderId: order.id, abnormalCaseId: values.abnormalCaseId },
@@ -316,7 +338,25 @@ const AbnormalCasePanel = forwardRef<
           name="abnormalCaseId"
           label="异常类别"
           rules={[{ required: true, message: '请选择异常类型' }]}
-          options={options}
+          fieldProps={{ filterOption: false }}
+          request={async ({ keyWords }: { keyWords?: string }) => {
+            if (!canCreate || !modalOpen || businessWriteBlockedReason)
+              return [];
+            const response = await masterDataServiceSearchOptions({
+              kind: MasterDataKind.MASTER_DATA_KIND_ABNORMAL_CASE,
+              keyword: keyWords,
+              page: 1,
+              pageSize: 50,
+            });
+            return unwrapList(
+              ensureListResponse(response, '异常类型加载失败'),
+            ).map((item) => ({
+              label: item.code
+                ? `${item.name} (${item.code})`
+                : item.name || '-',
+              value: item.id || '',
+            }));
+          }}
           placeholder="请选择异常类型"
         />
       </GuardedModalForm>

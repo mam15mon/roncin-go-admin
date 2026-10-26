@@ -33,16 +33,17 @@ func (s OrderAbnormalCaseStatus) Valid() bool {
 }
 
 type OrderAbnormalCase struct {
-	ID             uuid.UUID
-	OrderID        uuid.UUID
-	AbnormalCaseID uuid.UUID
-	Status         OrderAbnormalCaseStatus
-	MarkedAt       time.Time
-	MarkedBy       uuid.UUID
-	ResolvedAt     *time.Time
-	ResolvedBy     *uuid.UUID
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID               uuid.UUID
+	OrderID          uuid.UUID
+	AbnormalCaseID   uuid.UUID
+	AbnormalCaseName string
+	Status           OrderAbnormalCaseStatus
+	MarkedAt         time.Time
+	MarkedBy         uuid.UUID
+	ResolvedAt       *time.Time
+	ResolvedBy       *uuid.UUID
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
 }
 
 type OrderAbnormalCaseRepo interface {
