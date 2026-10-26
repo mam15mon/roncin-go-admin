@@ -288,3 +288,37 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 162: 海运共享主单航程继承与统一修改
+<!-- trellis-session: v=2 fp=79289660d7e67cf2 -->
+
+**Date**: 2026-10-26
+**Task**: 海运共享主单航程继承与统一修改
+**Branch**: `codex/sea-master-voyage-inheritance`
+
+### Summary
+
+完成一主多分共享航程自动带入、显式差异采纳与只读来源，统一修改按真实影响成员展示订单号。完整前端门禁及只读浏览器验收通过，任务已归档。
+
+### Main Changes
+
+- 候选查询由 React Query 管理，主单或船公司变化使旧确认失效，保留独立分单与货物资料。
+- 共享航程预览补读准确订单号，港口搜索隔离迟到结果，缺名称与资料缺失给出明确提示。
+- 将列表筛选口径及存量改配候选配对校验记为后续问题。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3660fa1f` | feat: 优化海运共享主单航程继承与统一修改 |
+
+### Testing
+
+- [OK] pnpm run check:web --maxWorkers=32：307文件、1677项通过，12项既有跳过。
+- [OK] 真实浏览器8项交互验收通过，未发出业务写请求，无页面异常。
+- [OK] git diff --check 与任务上下文校验通过。
+
+### Status
+
+[OK] **Completed**
