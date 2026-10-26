@@ -3,15 +3,11 @@ import {
   type ProFormInstance,
   ProFormText,
 } from '@ant-design/pro-components';
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import dayjs from 'dayjs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { SeaDocumentStructure } from '@/enums.generated';
 import * as orderService from '@/services/roncin/orderService';
 import {
   SeaMasterBillFields,
@@ -34,6 +30,7 @@ function setup(isDetail = false, existingMbl?: API.SeaMasterBillSummary) {
       submitter={false}
       initialValues={{
         shippingLineId: 'carrier-1',
+        seaDocumentStructure: SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE,
         [field]: 'MBL123',
         seaMasterBill: existingMbl,
       }}
@@ -81,6 +78,8 @@ describe('主单候选核对与字段校验同步', () => {
         submitter={false}
         initialValues={{
           shippingLineId: 'carrier-1',
+          seaDocumentStructure:
+            SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE,
           [field]: 'MBL123',
           etd: dayjs('2026-10-20T23:30:00'),
           eta: dayjs('2026-10-25T01:15:00'),
@@ -98,7 +97,7 @@ describe('主单候选核对与字段校验同步', () => {
           etd: dayjs('2026-10-20T00:00:00').toISOString(),
           eta: dayjs('2026-10-25T00:00:00').toISOString(),
         }),
-        { skipErrorHandler: true },
+        expect.objectContaining({ skipErrorHandler: true }),
       ),
     );
   });
@@ -148,6 +147,9 @@ describe('主单候选核对与字段校验同步', () => {
   it('命中航程冲突后保留真实阻断错误', async () => {
     const { resolve, form } = await setupPending();
     await act(async () =>
+      form.current?.setFieldValue('vesselVoyage', 'OTHER / 002W'),
+    );
+    await act(async () =>
       resolve({
         matched: true,
         candidate,
@@ -156,7 +158,7 @@ describe('主单候选核对与字段校验同步', () => {
     );
     await waitFor(() =>
       expect(form.current?.getFieldError(field)).toEqual([
-        '航程信息与已有主单冲突，不能确认关联',
+        '航程信息与已有主单冲突，请确认采用主单航程',
       ]),
     );
   });
@@ -169,23 +171,9 @@ describe('主单候选核对与字段校验同步', () => {
         'mbl-1',
       );
       expect(form.current?.getFieldError(field)).toEqual([]);
-      expect(screen.getByText('运输执行：')).toBeInTheDocument();
+      expect(screen.getByText('共用航程：')).toBeInTheDocument();
       expect(screen.getByLabelText('MBL 主单号核对通过')).toBeInTheDocument();
     });
-  });
-
-  it('待确认关联后写入候选 ID 会重新校验并解除阻断', async () => {
-    const { resolve, form } = await setupPending(true);
-    await act(async () => resolve({ matched: true, candidate }));
-    await waitFor(() =>
-      expect(form.current?.getFieldError(field)).toEqual([
-        '发现已有主单，请明确确认关联后再保存',
-      ]),
-    );
-    await act(async () => {
-      form.current?.setFieldValue('seaMasterBillCandidateId', candidate.id);
-    });
-    await waitFor(() => expect(form.current?.getFieldError(field)).toEqual([]));
   });
 
   it('核对期间改为非法主单号后仍保留格式错误', async () => {

@@ -1,0 +1,8 @@
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "前端目录与校验入口"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "共享字段与页面模板"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "React Query、字段异步校验及工作区隔离"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "生成类型与枚举"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "定向测试与门禁"}
+{"file": ".trellis/spec/server/backend/sea-export-document-contract.md", "reason": "主分单与共享航程真实业务契约"}
+{"file": ".trellis/tasks/10-26-sea-master-voyage-inheritance/research/backend-voyage.md", "reason": "候选保存、统一修改与真实影响范围"}
+{"file": ".trellis/spec/web/frontend/sea-master-voyage-inheritance.md", "reason": "本期共享航程继承与统一修改可执行契约"}

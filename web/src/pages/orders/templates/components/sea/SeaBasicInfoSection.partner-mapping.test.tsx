@@ -1,5 +1,6 @@
 import { ProForm } from '@ant-design/pro-components';
-import { act, render } from '@testing-library/react';
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { act } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -68,7 +69,12 @@ describe('海运五卡片 伙伴快捷新增映射', () => {
       sections.find((section) => section.key === 'businessCustomer'),
       sections.find((section) => section.key === 'bookingTransport'),
     ]
-      .map((section) => section?.content)
+      .map(
+        (section) =>
+          section && (
+            <React.Fragment key={section.key}>{section.content}</React.Fragment>
+          ),
+      )
       .filter(Boolean);
 
     render(

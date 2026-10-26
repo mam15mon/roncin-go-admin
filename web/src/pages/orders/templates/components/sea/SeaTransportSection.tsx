@@ -20,10 +20,9 @@ import {
 } from 'antd';
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
-import React, { useCallback, useEffect, useState } from 'react';
+import React from 'react';
 import { FormRow, ProFormSearchableSelect } from '@/components/ui';
 import { SeaDocumentStructure } from '@/enums.generated';
-import { orderServiceMatchSeaMasterBillCandidate } from '@/services/roncin/orderService';
 import { formatDate } from '@/utils/format';
 import { containerOwnershipOptions } from '../../../common';
 import {
@@ -32,288 +31,38 @@ import {
 } from '../../../order-plan-fields';
 import { resolveSeaOrderFormPolicy } from '../../../sea-order-policy';
 import type { TemplateProps } from '../../types';
+import {
+  useSeaMasterBillCandidate,
+  useSharedSeaVoyage,
+} from './useSeaMasterBillCandidate';
+
+export { splitSeaVesselVoyage } from './sea-shared-voyage';
 
 dayjs.extend(isoWeek);
-
-export function splitSeaVesselVoyage(value?: string) {
-  const normalized = value?.trim() || '';
-  if (!normalized) return { vesselName: undefined, voyageNo: undefined };
-  const slashIndex = normalized.indexOf('/');
-  if (slashIndex >= 0) {
-    return {
-      vesselName: normalized.slice(0, slashIndex).trim() || undefined,
-      voyageNo: normalized.slice(slashIndex + 1).trim() || undefined,
-    };
-  }
-  const lastSpaceIndex = normalized.lastIndexOf(' ');
-  if (lastSpaceIndex >= 0) {
-    return {
-      vesselName: normalized.slice(0, lastSpaceIndex).trim() || undefined,
-      voyageNo: normalized.slice(lastSpaceIndex + 1).trim() || undefined,
-    };
-  }
-  return { vesselName: normalized, voyageNo: undefined };
-}
 
 export function SeaMasterBillFields({
   disabled = false,
   isDetail = false,
+  locationOptions = [],
 }: {
   disabled?: boolean;
   isDetail?: boolean;
+  locationOptions?: SelectOption[];
 }) {
-  const form = Form.useFormInstance();
   const { token } = theme.useToken();
-  const masterNo = Form.useWatch('seaMasterBillMasterNo', form);
-  // 候选标识由匹配结果写入 store，没有对应 Form.Item，需监听未注册字段。
-  const candidateId = Form.useWatch('seaMasterBillCandidateId', {
-    form,
-    preserve: true,
-  });
-  const candidateTeId = Form.useWatch('seaMasterBillCandidateTeId', {
-    form,
-    preserve: true,
-  });
-  const existingMbl = Form.useWatch('seaMasterBill', {
-    form,
-    preserve: true,
-  }) as API.SeaMasterBillSummary | undefined;
-
-  const originLocationId = Form.useWatch('originLocationId', form);
-  const dischargeLocationId = Form.useWatch('dischargeLocationId', form);
-  const transitLocationId = Form.useWatch('transitLocationId', form);
-  const shippingLineId = Form.useWatch('shippingLineId', form);
-  const vesselVoyage = Form.useWatch('vesselVoyage', form);
-  const etd = Form.useWatch('etd', form);
-  const eta = Form.useWatch('eta', form);
-
-  const [candidate, setCandidate] = useState<API.SeaMasterBillCandidate | null>(
-    null,
-  );
-  const [conflicts, setConflicts] = useState<API.SeaVoyageConflict[]>([]);
-  const [candidateMatched, setCandidateMatched] = useState(false);
-  const [candidateMatching, setCandidateMatching] = useState(false);
-  const [candidateMatchError, setCandidateMatchError] = useState<string>();
-  const [candidateChecked, setCandidateChecked] = useState(false);
-  // 命中批次含直单成员：全员分单制下禁止加拼，横幅转红色阻断文案。
-  const [batchDirectBlocked, setBatchDirectBlocked] = useState(false);
-
-  // 多成员 MBL 检查（锁定修改）
-  const isMultiMemberLocked =
-    isDetail && !!existingMbl && (existingMbl.memberCount ?? 0) > 1;
-  const isSingleMemberCorrection =
-    isDetail &&
-    !!existingMbl &&
-    (existingMbl.memberCount ?? 0) <= 1 &&
-    ((masterNo && masterNo !== existingMbl.masterNo) ||
-      (shippingLineId && shippingLineId !== existingMbl.shippingLineId));
-
-  useEffect(() => {
-    setCandidateChecked(false);
-    const rawMasterNo = masterNo || '';
-    const selectedShippingLineId = shippingLineId;
-
-    if (
-      !rawMasterNo ||
-      !selectedShippingLineId ||
-      !/^[A-Za-z0-9]+$/.test(rawMasterNo)
-    ) {
-      setCandidate(null);
-      setConflicts([]);
-      setCandidateMatched(false);
-      setCandidateMatching(false);
-      setCandidateMatchError(undefined);
-      setBatchDirectBlocked(false);
-      form?.setFieldValue('seaMasterBillBatchHouseNos', undefined);
-      return;
-    }
-
-    // 若详情页未变更主单号与船公司，无需展示候选关联
-    if (
-      isDetail &&
-      existingMbl &&
-      existingMbl.masterNo === rawMasterNo &&
-      existingMbl.shippingLineId === selectedShippingLineId
-    ) {
-      setCandidate(null);
-      setConflicts([]);
-      setCandidateMatched(false);
-      setCandidateMatching(false);
-      setCandidateMatchError(undefined);
-      setBatchDirectBlocked(false);
-      form?.setFieldValue('seaMasterBillBatchHouseNos', undefined);
-      return;
-    }
-
-    const currentMblVersion = isDetail ? existingMbl?.version : undefined;
-    form?.setFieldValue('seaMasterBillCandidateId', undefined);
-    form?.setFieldValue('seaMasterBillCandidateTeId', undefined);
-    form?.setFieldValue('seaMasterBillExpectedCandidateTeVersion', undefined);
-    form?.setFieldValue('seaMasterBillBatchHouseNos', undefined);
-    form?.setFieldValue(
-      'seaMasterBillExpectedCandidateVersion',
-      currentMblVersion,
-    );
-    setCandidate(null);
-    setConflicts([]);
-    setCandidateMatched(false);
-    setBatchDirectBlocked(false);
-    setCandidateMatching(true);
-    setCandidateMatchError(undefined);
-
-    let isSubscribed = true;
-    const timer = setTimeout(async () => {
-      try {
-        const etdStr = etd
-          ? dayjs(etd).startOf('day').toISOString()
-          : undefined;
-        const etaStr = eta
-          ? dayjs(eta).startOf('day').toISOString()
-          : undefined;
-        const { vesselName, voyageNo } = splitSeaVesselVoyage(vesselVoyage);
-        const resp = await orderServiceMatchSeaMasterBillCandidate(
-          {
-            masterNo: rawMasterNo,
-            shippingLineId: selectedShippingLineId,
-            originLocationId: originLocationId || undefined,
-            dischargeLocationId: dischargeLocationId || undefined,
-            transitLocationId: transitLocationId || undefined,
-            vesselName,
-            voyageNo,
-            etd: etdStr,
-            eta: etaStr,
-          },
-          { skipErrorHandler: true },
-        );
-        if (!isSubscribed) return;
-        if (!resp) throw new Error('主单候选查询失败，请重试后再保存');
-        setCandidateChecked(true);
-        setCandidateMatching(false);
-        if (resp?.matched && resp.candidate) {
-          setCandidate(resp.candidate);
-          setConflicts(resp.conflicts || []);
-          setCandidateMatched(true);
-          // 批次内全部规范化分单号（含作废）写入表单，供分单号失焦即时排重提示；
-          // 服务端事务内预查为权威口径。
-          form?.setFieldValue(
-            'seaMasterBillBatchHouseNos',
-            resp.candidate.batchNormalizedHouseNos ?? [],
-          );
-          const hasDirectMember = (resp.candidate.members ?? []).some(
-            (member) =>
-              member.documentStructure ===
-              SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT,
-          );
-          setBatchDirectBlocked(hasDirectMember);
-          const availableExecutions = resp.candidate.transportExecutions ?? [];
-          if (availableExecutions.length === 1) {
-            form?.setFieldValue(
-              'seaMasterBillCandidateTeId',
-              availableExecutions[0].id,
-            );
-            form?.setFieldValue(
-              'seaMasterBillExpectedCandidateTeVersion',
-              availableExecutions[0].version,
-            );
-          }
-          // 全员分单制：新建页命中全 HOUSE 批次且无航程冲突时自动关联，
-          // 候选 ID + 版本自动带入保存请求；服务端事务内复验兜底。
-          if (
-            !isDetail &&
-            !hasDirectMember &&
-            (resp.conflicts ?? []).length === 0 &&
-            availableExecutions.length >= 1
-          ) {
-            form?.setFieldValue('seaMasterBillCandidateId', resp.candidate.id);
-            form?.setFieldValue(
-              'seaMasterBillExpectedCandidateVersion',
-              resp.candidate.version,
-            );
-          }
-        } else {
-          setCandidate(null);
-          setConflicts([]);
-          setCandidateMatched(false);
-          setBatchDirectBlocked(false);
-          form?.setFieldValue('seaMasterBillBatchHouseNos', undefined);
-          form?.setFieldValue('seaMasterBillCandidateId', undefined);
-          form?.setFieldValue(
-            'seaMasterBillExpectedCandidateVersion',
-            currentMblVersion,
-          );
-        }
-      } catch (error: unknown) {
-        if (!isSubscribed) return;
-        const requestError = error as Error;
-        setCandidate(null);
-        setConflicts([]);
-        setCandidateMatched(false);
-        setBatchDirectBlocked(false);
-        setCandidateMatching(false);
-        setCandidateMatchError(
-          requestError.message || '主单候选查询失败，请重试后再保存',
-        );
-      }
-    }, 300);
-
-    return () => {
-      isSubscribed = false;
-      clearTimeout(timer);
-    };
-  }, [
-    masterNo,
-    originLocationId,
-    dischargeLocationId,
-    transitLocationId,
-    shippingLineId,
-    vesselVoyage,
-    etd,
-    eta,
-    isDetail,
-    existingMbl,
-    form,
-  ]);
-
-  const validateMasterBillCandidate = useCallback(async () => {
-    if (candidateMatching) {
-      throw new Error('正在核对已有主单，请稍候');
-    }
-    if (candidateMatchError) {
-      throw new Error(candidateMatchError);
-    }
-    if (conflicts.length > 0) {
-      throw new Error('航程信息与已有主单冲突，不能确认关联');
-    }
-    if (batchDirectBlocked) {
-      throw new Error('该主单已被直单订单占用，如需拼单请先将其转为分单');
-    }
-    if (candidateMatched && isSingleMemberCorrection) {
-      throw new Error('新主单身份已存在，当前阶段不允许直接合并');
-    }
-    if (candidateMatched && !candidateId) {
-      throw new Error('发现已有主单，请明确确认关联后再保存');
-    }
-  }, [
-    candidateMatching,
-    candidateMatchError,
-    conflicts.length,
-    batchDirectBlocked,
-    candidateMatched,
-    isSingleMemberCorrection,
-    candidateId,
-  ]);
-
-  useEffect(() => {
-    // 候选核对状态不在表单 store 中，变化后需重验已交互字段，避免残留等待提示。
-    // 执行完整 rules，保留必填、格式与真实业务阻断错误。
-    void form
-      .validateFields(['seaMasterBillMasterNo'], { dirty: true })
-      .catch(() => undefined);
-  }, [form, validateMasterBillCandidate]);
-
-  const selectedCandidateTe = candidate?.transportExecutions?.find(
-    (item) => item.id === candidateTeId,
-  );
+  const state = useSeaMasterBillCandidate(isDetail, locationOptions);
+  const { candidate, selected, existing } = state;
+  const isMultiMemberLocked = isDetail && (existing?.memberCount ?? 0) > 1;
+  const memberLinks =
+    candidate?.members?.filter((member) => member.orderId) ?? [];
+  const incomplete =
+    selected &&
+    (!selected.vesselName ||
+      !selected.voyageNo ||
+      !selected.originLocationId ||
+      !selected.dischargeLocationId ||
+      !selected.etd ||
+      !selected.eta);
 
   return (
     <>
@@ -321,8 +70,14 @@ export function SeaMasterBillFields({
         <Form.Item
           name="seaMasterBillMasterNo"
           label="MBL 主单号"
-          help={candidateMatching ? false : undefined}
-          validateStatus={candidateMatching ? 'validating' : undefined}
+          help={
+            state.matching
+              ? false
+              : state.waitingForCarrier
+                ? '待选择船公司后核对主单占用情况'
+                : undefined
+          }
+          validateStatus={state.matching ? 'validating' : undefined}
           tooltip={
             isMultiMemberLocked
               ? '该主单已关联多票订单，禁止从单票页面修改主单号；如需变更请走共享主单改派流程'
@@ -334,9 +89,7 @@ export function SeaMasterBillFields({
               pattern: /^[A-Za-z0-9]+$/,
               message: '主单号仅允许包含英文字母和数字，禁止包含空格或特殊字符',
             },
-            {
-              validator: validateMasterBillCandidate,
-            },
+            { validator: state.validate },
           ]}
           normalize={(value) =>
             typeof value === 'string' ? value.toUpperCase() : value
@@ -344,20 +97,20 @@ export function SeaMasterBillFields({
         >
           <Input
             placeholder="请输入主单号"
-            disabled={disabled || isMultiMemberLocked}
+            disabled={disabled || isMultiMemberLocked || undefined}
             style={{ textTransform: 'uppercase' }}
             suffix={
-              candidateMatching ? (
+              state.matching ? (
                 <LoadingOutlined
                   aria-label="MBL 主单号核对中"
                   style={{ color: token.colorPrimary }}
                 />
-              ) : candidateChecked &&
-                !candidateMatchError &&
-                conflicts.length === 0 &&
-                !batchDirectBlocked &&
-                !isSingleMemberCorrection &&
-                (!candidateMatched || Boolean(candidateId)) ? (
+              ) : state.checked &&
+                !state.error &&
+                !state.batchDirectBlocked &&
+                !state.requiresHouse &&
+                !state.isSingleMemberCorrection &&
+                (!candidate || state.ready) ? (
                 <CheckCircleFilled
                   aria-label="MBL 主单号核对通过"
                   style={{ color: token.colorSuccess }}
@@ -369,8 +122,7 @@ export function SeaMasterBillFields({
           />
         </Form.Item>
       </div>
-
-      {isSingleMemberCorrection && (
+      {state.isSingleMemberCorrection && (
         <div style={{ gridColumn: 'span 2' }}>
           <ProFormText
             name="seaMasterBillCorrectionReason"
@@ -385,112 +137,179 @@ export function SeaMasterBillFields({
           />
         </div>
       )}
-
       <SeaAssociatedHouseBillsField />
-
-      {candidateMatched && candidate && (
+      {isMultiMemberLocked && existing && (
+        <div style={{ gridColumn: '1 / -1' }}>
+          <Alert
+            type="info"
+            showIcon
+            title={`共用主单 ${existing.masterNo}，共 ${existing.memberCount} 票`}
+            description="船名航次、起运港、卸货港、中转港和船期由共同航程维护。如需修改，请使用顶部「更多操作 → 修改共享航程」；可用操作取决于当前权限与订单状态。"
+          />
+        </div>
+      )}
+      {candidate && (
         <div style={{ gridColumn: '1 / -1', marginBottom: 16 }}>
-          <Card
-            size="small"
-            style={{
-              background: batchDirectBlocked ? '#fff2f0' : '#f6ffed',
-              borderColor: batchDirectBlocked ? '#ffccc7' : '#b7eb8f',
-            }}
-          >
+          <Card size="small">
             <Space orientation="vertical" style={{ width: '100%' }}>
-              {batchDirectBlocked ? (
+              {state.batchDirectBlocked ? (
                 <Alert
                   type="error"
                   showIcon
                   title="该主单已被直单订单占用，如需拼单请先将其转为分单"
-                  description={`共享批次：${candidate.masterNo} | 成员：${candidate.memberCount ?? 0} 票（含直单订单）`}
+                  description={`主单：${candidate.masterNo}，已有 ${candidate.memberCount ?? 0} 票订单（含直单订单）`}
                 />
               ) : (
                 <div>
-                  <span style={{ fontWeight: 600, color: '#389e0d' }}>
-                    {isDetail
-                      ? '🔍 匹配到已有共享 MBL'
-                      : '✅ 已自动关联共享主单批次'}
-                    （{candidate.memberCount ?? 0} 票）：{candidate.masterNo}
-                  </span>
-                  <div style={{ fontSize: 12, color: '#595959', marginTop: 4 }}>
-                    船公司: {candidate.shippingLineName || '-'} | 版本: v
-                    {candidate.version}
-                  </div>
+                  <Typography.Text
+                    strong
+                  >{`已找到主单 ${candidate.masterNo}，已有 ${candidate.memberCount ?? 0} 票订单`}</Typography.Text>
+                  {!isDetail && (
+                    <div>
+                      本票保存后将加入该主单，共{' '}
+                      {(candidate.memberCount ?? 0) + 1} 票。
+                    </div>
+                  )}
+                  <Typography.Text type="secondary">
+                    船公司：{candidate.shippingLineName || '未填写'}
+                  </Typography.Text>
                 </div>
               )}
-
-              <Form.Item name="seaMasterBillCandidateTeId" noStyle>
-                <Select
-                  placeholder="请选择本票关联的实际航次"
-                  disabled={batchDirectBlocked}
-                  options={(candidate.transportExecutions ?? []).map((te) => ({
-                    value: te.id,
-                    label: `${te.vesselName || '-'} / ${te.voyageNo || '-'} / ${formatDate(te.etd, 'date')}`,
-                  }))}
-                  onChange={(value) => {
-                    const te = candidate.transportExecutions?.find(
-                      (item) => item.id === value,
-                    );
-                    form?.setFieldValue(
-                      'seaMasterBillExpectedCandidateTeVersion',
-                      te?.version,
-                    );
-                  }}
-                />
-              </Form.Item>
-
-              {selectedCandidateTe && (
-                <div style={{ fontSize: 13, color: '#595959' }}>
-                  <span>运输执行：</span>
-                  <span>
-                    船名航次: {selectedCandidateTe.vesselName || '-'} /{' '}
-                    {selectedCandidateTe.voyageNo || '-'} |{' '}
-                  </span>
-                  <span>
-                    起运港: {selectedCandidateTe.originLocationName || '-'} |{' '}
-                  </span>
-                  <span>
-                    卸货港: {selectedCandidateTe.dischargeLocationName || '-'} |{' '}
-                  </span>
-                  <span>
-                    ETD: {formatDate(selectedCandidateTe.etd, 'date')} |{' '}
-                  </span>
-                  <span>
-                    ETA: {formatDate(selectedCandidateTe.eta, 'date')}
-                  </span>
-                </div>
-              )}
-
-              {conflicts.length > 0 && (
+              {state.requiresHouse && (
                 <Alert
                   type="warning"
                   showIcon
-                  title="检测到航程信息冲突，不能关联此主单"
-                  description={
-                    <ul style={{ margin: 0, paddingLeft: 16 }}>
-                      {conflicts.map((c) => (
-                        <li key={`${c.field}-${c.message}`}>
-                          {c.message} (主单值: {c.masterValue || '空'}, 当前值:{' '}
-                          {c.orderValue || '空'})
-                        </li>
-                      ))}
-                    </ul>
-                  }
+                  title="共享主单仅支持有货代分单（HOUSE），请选择分单模式"
+                />
+              )}
+              {(candidate.transportExecutions?.length ?? 0) > 1 && (
+                <Form.Item label="本票共用航程" style={{ marginBottom: 0 }}>
+                  <Select
+                    aria-label="本票共用航程"
+                    placeholder="该主单存在多个航程，请核实后选择"
+                    value={selected?.id}
+                    disabled={state.batchDirectBlocked || isDetail}
+                    options={candidate.transportExecutions?.map((voyage) => ({
+                      value: voyage.id,
+                      label: `${voyage.vesselName || '船名未填写'} / ${voyage.voyageNo || '航次未填写'} / ${voyage.etd ? formatDate(voyage.etd, 'date') : 'ETD未填写'}`,
+                    }))}
+                    onChange={state.select}
+                  />
+                </Form.Item>
+              )}
+              {selected && (
+                <div style={{ fontSize: 13 }}>
+                  <span>共用航程：</span>
+                  <span>
+                    船名航次：{selected.vesselName || '未填写'} /{' '}
+                    {selected.voyageNo || '未填写'}；
+                  </span>
+                  <span>
+                    起运港：
+                    {selected.originLocationName ||
+                      (selected.originLocationId ? '名称读取失败' : '未填写')}
+                    ；
+                  </span>
+                  <span>
+                    卸货港：
+                    {selected.dischargeLocationName ||
+                      (selected.dischargeLocationId
+                        ? '名称读取失败'
+                        : '未填写')}
+                    ；
+                  </span>
+                  <span>
+                    ETD：
+                    {selected.etd ? formatDate(selected.etd, 'date') : '未填写'}
+                    ；
+                  </span>
+                  <span>
+                    ETA：
+                    {selected.eta ? formatDate(selected.eta, 'date') : '未填写'}
+                  </span>
+                </div>
+              )}
+              {state.differences.length > 0 &&
+                !state.batchDirectBlocked &&
+                !isDetail && (
+                  <Alert
+                    type="warning"
+                    showIcon
+                    title="本票已填航程与主单不同，请确认后采用"
+                    description={
+                      <>
+                        <ul style={{ margin: '8px 0', paddingLeft: 20 }}>
+                          {state.differences.map((difference) => (
+                            <li key={difference.field}>
+                              {difference.label}：本票 {difference.currentValue}
+                              ；主单 {difference.sharedValue}
+                            </li>
+                          ))}
+                        </ul>
+                        <Button
+                          htmlType="button"
+                          disabled={state.requiresHouse}
+                          onClick={state.adopt}
+                        >
+                          采用主单航程
+                        </Button>
+                      </>
+                    }
+                  />
+                )}
+              {state.ready && (
+                <Typography.Text type="secondary">
+                  已带入主单共享航程，航程字段只读；客户、分单、货物、最终目的地与费用仍由本票独立维护。
+                </Typography.Text>
+              )}
+              {incomplete && !state.batchDirectBlocked && (
+                <Alert
+                  type="info"
+                  showIcon
+                  title="已有主单的航程资料尚未填全"
+                  description="如需补全，请在已有订单的「更多操作 → 修改共享航程」中统一维护；新票填写不会补写已有共享航程。"
+                />
+              )}
+              {!state.batchDirectBlocked && memberLinks.length > 0 && (
+                <Space wrap>
+                  <Typography.Text type="secondary">
+                    查看已有订单：
+                  </Typography.Text>
+                  {memberLinks.map((member) => (
+                    <Typography.Link
+                      key={member.orderId}
+                      href={`/orders/sea-export/${member.orderId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {member.orderNo || '查看订单'}
+                    </Typography.Link>
+                  ))}
+                </Space>
+              )}
+              {!selected && candidate.transportExecutions?.length === 0 && (
+                <Alert
+                  type="warning"
+                  showIcon
+                  title="该主单暂无可关联航程，请先在已有订单中核实"
                 />
               )}
             </Space>
           </Card>
         </div>
       )}
-
-      {candidateMatchError && (
+      {state.error && (
         <div style={{ gridColumn: '1 / -1', marginBottom: 16 }}>
           <Alert
             type="error"
             showIcon
             title="主单候选查询失败"
-            description={candidateMatchError}
+            description={state.error}
+            action={
+              <Button htmlType="button" onClick={() => void state.retry()}>
+                重新核对
+              </Button>
+            }
           />
         </div>
       )}
@@ -617,6 +436,7 @@ export function SeaContainerPlanFields({
 export function SeaScheduleDateFields() {
   const form = Form.useFormInstance();
   const etd = Form.useWatch('etd', form);
+  const { readonly } = useSharedSeaVoyage();
   const weekValue =
     etd && dayjs(etd).isValid() ? `W${dayjs(etd).isoWeek()}` : '';
 
@@ -625,6 +445,7 @@ export function SeaScheduleDateFields() {
       <ProFormDatePicker
         name="etd"
         label="ETD"
+        disabled={readonly || undefined}
         rules={[{ required: true, message: '请选择 ETD（预计离港时间）' }]}
         fieldProps={{
           style: { width: '100%' },
@@ -649,6 +470,7 @@ export function SeaScheduleDateFields() {
       <ProFormDatePicker
         name="eta"
         label="ETA"
+        disabled={readonly || undefined}
         dependencies={['etd']}
         rules={[
           { required: true, message: '请选择 ETA（预计到港时间）' },
@@ -668,12 +490,118 @@ export function SeaScheduleDateFields() {
   );
 }
 
+function SeaVesselVoyageField() {
+  const { readonly } = useSharedSeaVoyage();
+  return (
+    <div>
+      <ProFormText
+        name="vesselVoyage"
+        label="船名航次"
+        placeholder="请输入船名航次"
+        disabled={readonly || undefined}
+        fieldProps={{
+          suffix: (
+            <Tooltip title="船期与船舶实时动态追踪">
+              <a
+                href="https://www.shipxy.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                tabIndex={-1}
+                style={{ fontSize: 12, color: '#1677ff' }}
+                onClick={(event) => event.stopPropagation()}
+              >
+                船在哪儿
+              </a>
+            </Tooltip>
+          ),
+        }}
+      />
+    </div>
+  );
+}
+
+function SeaPortFields({
+  locationOptions,
+  searchLocations,
+}: Pick<TemplateProps, 'locationOptions' | 'searchLocations'>) {
+  const { readonly, voyage } = useSharedSeaVoyage();
+  const options = [...locationOptions];
+  for (const [value, label, fieldLabel] of [
+    [voyage?.originLocationId, voyage?.originLocationName, '起运港'],
+    [voyage?.dischargeLocationId, voyage?.dischargeLocationName, '卸货港'],
+    [voyage?.transitLocationId, voyage?.transitLocationName, '中转港'],
+  ]) {
+    if (value && !options.some((option) => option.value === value))
+      options.push({ value, label: label || `${fieldLabel}名称读取失败` });
+  }
+  return (
+    <FormRow cols={4}>
+      <div>
+        <ProFormSearchableSelect
+          name="originLocationId"
+          label="起运港"
+          options={options}
+          disabled={readonly || undefined}
+          request={
+            readonly
+              ? undefined
+              : async ({ keyWords }) => searchLocations(keyWords)
+          }
+          fieldProps={{ filterOption: false }}
+          placeholder="请选择起运港或地点"
+        />
+      </div>
+      <div>
+        <ProFormSearchableSelect
+          name="destinationLocationId"
+          label="目的港"
+          options={locationOptions}
+          request={async ({ keyWords }) => searchLocations(keyWords)}
+          fieldProps={{ filterOption: false }}
+          placeholder="请选择目的港或地点"
+        />
+      </div>
+      <ProFormSearchableSelect
+        name="dischargeLocationId"
+        label="卸货港"
+        options={options}
+        disabled={readonly || undefined}
+        request={
+          readonly
+            ? undefined
+            : async ({ keyWords }) => searchLocations(keyWords)
+        }
+        fieldProps={{ filterOption: false }}
+        placeholder="请选择卸货港或地点"
+      />
+      <ProFormSearchableSelect
+        name="transitLocationId"
+        label="中转港"
+        options={options}
+        disabled={readonly || undefined}
+        request={
+          readonly
+            ? undefined
+            : async ({ keyWords }) => searchLocations(keyWords)
+        }
+        fieldProps={{ filterOption: false }}
+        placeholder="请选择中转港或地点"
+      />
+    </FormRow>
+  );
+}
+
 export function getSeaTransportFields(props: TemplateProps) {
   const { locationOptions, searchLocations, containerSpecOptions, isDetail } =
     props;
   return {
     containers: <SeaContainerPlanFields options={containerSpecOptions} />,
-    master: <SeaMasterBillFields isDetail={isDetail} />,
+    master: (
+      <SeaMasterBillFields
+        isDetail={isDetail}
+        locationOptions={locationOptions}
+      />
+    ),
     ownership: (
       <ProFormSearchableSelect
         name="containerOwnership"
@@ -682,70 +610,12 @@ export function getSeaTransportFields(props: TemplateProps) {
         placeholder="请选择 COC / SOC"
       />
     ),
-    vessel: (
-      <div>
-        <ProFormText
-          name="vesselVoyage"
-          label="船名航次"
-          placeholder="请输入船名航次"
-          fieldProps={{
-            suffix: (
-              <Tooltip title="船期与船舶实时动态追踪">
-                <a
-                  href="https://www.shipxy.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  tabIndex={-1}
-                  style={{ fontSize: 12, color: '#1677ff' }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  船在哪儿
-                </a>
-              </Tooltip>
-            ),
-          }}
-        />
-      </div>
-    ),
+    vessel: <SeaVesselVoyageField />,
     ports: (
-      <FormRow cols={4}>
-        <div>
-          <ProFormSearchableSelect
-            name="originLocationId"
-            label="起运港"
-            options={locationOptions}
-            request={async ({ keyWords }) => searchLocations(keyWords)}
-            fieldProps={{ filterOption: false }}
-            placeholder="请选择起运港或地点"
-          />
-        </div>
-        <div>
-          <ProFormSearchableSelect
-            name="destinationLocationId"
-            label="目的港"
-            options={locationOptions}
-            request={async ({ keyWords }) => searchLocations(keyWords)}
-            fieldProps={{ filterOption: false }}
-            placeholder="请选择目的港或地点"
-          />
-        </div>
-        <ProFormSearchableSelect
-          name="dischargeLocationId"
-          label="卸货港"
-          options={locationOptions}
-          request={async ({ keyWords }) => searchLocations(keyWords)}
-          fieldProps={{ filterOption: false }}
-          placeholder="请选择卸货港或地点"
-        />
-        <ProFormSearchableSelect
-          name="transitLocationId"
-          label="中转港"
-          options={locationOptions}
-          request={async ({ keyWords }) => searchLocations(keyWords)}
-          fieldProps={{ filterOption: false }}
-          placeholder="请选择中转港或地点"
-        />
-      </FormRow>
+      <SeaPortFields
+        locationOptions={locationOptions}
+        searchLocations={searchLocations}
+      />
     ),
     schedule: <SeaScheduleDateFields />,
     cutoffs: (

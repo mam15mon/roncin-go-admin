@@ -144,6 +144,12 @@ function renderContribution(
       {(features) => (
         <div>
           <Menu items={features.actionMenuItems} selectable={false} />
+          <Menu
+            items={features.moreMenuItems?.filter(
+              (item) => item?.key === 'shared-voyage-update',
+            )}
+            selectable={false}
+          />
           {features.overlays}
           <button
             type="button"
@@ -304,7 +310,7 @@ describe('SeaExportDetailFeatures', () => {
     );
   });
 
-  it('共享航次调整菜单项按 reassign 权限出现', async () => {
+  it('修改共享航程按 reassign 权限出现，业务锁关闭已打开的弹窗', async () => {
     const harness = renderFeatures(
       buildContext({ canOrder: (operation) => operation !== 'reassign' }),
     );
@@ -312,11 +318,22 @@ describe('SeaExportDetailFeatures', () => {
     await screen.findByRole('menuitem', { name: /拆票/ });
     fireEvent.click(screen.getByRole('button', { name: '触发共享航次调整' }));
     expect(screen.getByTestId('voyage-modal')).toHaveTextContent('false');
+    expect(
+      screen.queryByRole('menuitem', { name: /修改共享航程/ }),
+    ).not.toBeInTheDocument();
 
     harness.rerenderWith(buildContext());
     await screen.findByRole('menuitem', { name: /改配/ });
-    fireEvent.click(screen.getByRole('button', { name: '触发共享航次调整' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: /修改共享航程/ }));
     expect(screen.getByTestId('voyage-modal')).toHaveTextContent('true');
+
+    harness.rerenderWith(buildContext({ businessWritesDisabled: true }));
+    await waitFor(() =>
+      expect(screen.getByTestId('voyage-modal')).toHaveTextContent('false'),
+    );
+    expect(
+      screen.queryByRole('menuitem', { name: /修改共享航程/ }),
+    ).not.toBeInTheDocument();
   });
 
   it('共享箱工作台缺少运输执行时仅提示，存在时以当前运输执行打开', async () => {

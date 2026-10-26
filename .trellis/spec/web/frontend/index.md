@@ -11,6 +11,7 @@
 | [Duplicate Report](./duplicate-report.md) | 前后端疑似重复函数扫描、证据与审查限制 | ✅ |
 | [Directory Structure](./directory-structure.md) | 页面组织、features 分层与依赖边界 | ✅ |
 | [Column Settings](./column-settings.md) | 全量铺排排序、逐列多列冻结、偏好隔离和Pro适配 | ✅ |
+| [海运共享航程](./sea-master-voyage-inheritance.md) | 已有主单航程继承、差异采纳、只读来源与统一修改影响范围 | ✅ |
 | [Component Guidelines](./component-guidelines.md) | UI 模板规范、公共组件与金额/时间显示口径 | ✅ |
 | [State Management](./state-management.md) | 服务端状态与请求客户端 | ✅ |
 | [Workbench Todos](../../server/backend/workbench-todos.md) | 本人待办分页、权限、返回刷新与异常直达的一次性消费 | ✅ |

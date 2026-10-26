@@ -164,6 +164,7 @@ export default function SeaExportDetailFeatures({
   useEffect(() => {
     if (businessWritesDisabled) {
       setReassignModalOpen(false);
+      setVoyageUpdateModalOpen(false);
     }
   }, [businessWritesDisabled]);
 
@@ -175,7 +176,7 @@ export default function SeaExportDetailFeatures({
             {
               key: 'shared-voyage-update',
               icon: <ReloadOutlined />,
-              label: '共享航次调整',
+              label: '修改共享航程',
               onClick: () => setVoyageUpdateModalOpen(true),
             },
           ]

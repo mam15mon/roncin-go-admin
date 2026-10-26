@@ -1,10 +1,5 @@
-import {
-  act,
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-} from '@testing-library/react';
+import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import { act, cleanup, fireEvent, screen } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -89,7 +84,7 @@ vi.mock(
 const mockUseOptions = vi.mocked(useOrderCreateOptions);
 
 function renderWithApp(ui: React.ReactElement) {
-  return render(<App>{ui}</App>);
+  return renderWithClient(<App>{ui}</App>);
 }
 
 // 挂载期 request 型下拉会发起异步选项查询；在 act 内冲刷微任务，
