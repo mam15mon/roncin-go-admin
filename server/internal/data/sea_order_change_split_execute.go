@@ -131,7 +131,7 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 		if sourceOrder.BusinessType != orderent.BusinessTypeSE {
 			return biz.ErrSeaOrderSplitBlocked
 		}
-		if sourceOrder.TerminationStatus != orderent.TerminationStatusACTIVE || sourceOrder.ClosureStatus != orderent.ClosureStatusOPEN {
+		if sourceOrder.TerminationStatus != orderent.TerminationStatusACTIVE {
 			return biz.ErrSeaOrderSplitBlocked
 		}
 

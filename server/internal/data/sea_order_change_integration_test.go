@@ -372,7 +372,6 @@ func createTestSplitFixture(t *testing.T, env *splitTestEnv, suffix string, opts
 		SetExchangeRateDate("2026-09-07").
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("10650.00000000").
-
 		SetVersion(1).
 		Save(ctx)
 	if err != nil {
@@ -1601,7 +1600,7 @@ func TestSeaOrderChangeBusinessLockGate_Postgres(t *testing.T) {
 		}
 	})
 
-	t.Run("已结案订单拒绝整票改配", func(t *testing.T) {
+	t.Run("完结未锁订单允许整票改配", func(t *testing.T) {
 		f := createTestSplitFixture(t, env, "903", splitFixtureOptions{})
 		env.data.db.Order.UpdateOneID(f.order.ID).
 			SetClosureStatus(orderent.ClosureStatusCLOSED).
@@ -1609,8 +1608,16 @@ func TestSeaOrderChangeBusinessLockGate_Postgres(t *testing.T) {
 			SetClosedAt(time.Now().UTC()).
 			SetClosedBy(env.userID).
 			SaveX(ctx)
-		if _, err := env.uc.ExecuteReassignment(ctx, env.orgID, env.userID, reassignmentInput(f.order, f.link)); kratoserrors.FromError(err).Reason != "SEA_ORDER_REASSIGNMENT_BLOCKED" {
-			t.Fatalf("已结案订单的改配应保持既有 SEA_ORDER_REASSIGNMENT_BLOCKED 阻断，实际: %v", err)
+		input := reassignmentInput(f.order, f.link)
+		preview, err := env.uc.PreviewReassignment(ctx, env.orgID, input)
+		if err != nil || !preview.IsValid {
+			t.Fatalf("完结未锁订单改配预览应通过: preview=%+v err=%v", preview, err)
+		}
+		if _, err = env.uc.ExecuteReassignment(ctx, env.orgID, env.userID, input); err != nil {
+			t.Fatalf("完结未锁订单改配应成功: %v", err)
+		}
+		if after := env.data.db.Order.GetX(ctx, f.order.ID); after.ClosureStatus != orderent.ClosureStatusCLOSED {
+			t.Fatal("改配不得自动反结案")
 		}
 	})
 
@@ -1673,7 +1680,7 @@ func TestSeaOrderChangeBusinessLockGate_Postgres(t *testing.T) {
 		}
 	})
 
-	t.Run("终止与结案订单拆票预览提前拦截", func(t *testing.T) {
+	t.Run("终止订单拆票阻断而完结未锁订单可拆票", func(t *testing.T) {
 		f := createTestSplitFixture(t, env, "906", splitFixtureOptions{})
 		env.data.db.Order.UpdateOneID(f.order.ID).
 			SetTerminationStatus(orderent.TerminationStatusTERMINATED).
@@ -1699,6 +1706,14 @@ func TestSeaOrderChangeBusinessLockGate_Postgres(t *testing.T) {
 		if closedPreviewErr != nil {
 			t.Fatalf("结案订单拆票预览不应报错，实际: %v", closedPreviewErr)
 		}
-		requireOrderGateError(t, closedPreview, closedFixture.order.OrderNo)
+		if !closedPreview.IsValid {
+			t.Fatalf("完结未锁订单拆票预览应通过: %+v", closedPreview.ValidationErrors)
+		}
+		if _, err := env.uc.ExecuteSplit(ctx, env.orgID, env.userID, closedFixture.standardSplitInput("split-gate-closed-907", "fp-gate-closed-907", splitFixtureOptions{})); err != nil {
+			t.Fatalf("完结未锁订单拆票应成功: %v", err)
+		}
+		if after := env.data.db.Order.GetX(ctx, closedFixture.order.ID); after.ClosureStatus != orderent.ClosureStatusCLOSED {
+			t.Fatal("拆票不得自动反结案")
+		}
 	})
 }

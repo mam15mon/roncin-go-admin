@@ -45,16 +45,18 @@ func TestOrderAllowedActionsEditFollowsBusinessContentGate(t *testing.T) {
 		biz.OrderFlowDocumentReleased,
 	}
 	for _, flowStatus := range allFlowStatuses {
-		t.Run(string(flowStatus)+" active open unlocked exposes edit", func(t *testing.T) {
-			actions := orderAllowedActions(&biz.Order{
-				FlowStatus:        flowStatus,
-				TerminationStatus: biz.OrderTerminationActive,
-				ClosureStatus:     biz.OrderClosureOpen,
+		for _, closureStatus := range []biz.OrderClosureStatus{biz.OrderClosureOpen, biz.OrderClosureClosed} {
+			t.Run(string(flowStatus)+"/"+string(closureStatus)+" 未终止且未锁定时开放编辑", func(t *testing.T) {
+				actions := orderAllowedActions(&biz.Order{
+					FlowStatus:        flowStatus,
+					TerminationStatus: biz.OrderTerminationActive,
+					ClosureStatus:     closureStatus,
+				})
+				if !slices.Contains(actions, biz.OrderActionEdit) {
+					t.Fatalf("flow_status=%s closure_status=%s 的可编辑订单未投影 EDIT: %v", flowStatus, closureStatus, actions)
+				}
 			})
-			if !slices.Contains(actions, biz.OrderActionEdit) {
-				t.Fatalf("flow_status=%s 的可编辑订单未投影 EDIT: %v", flowStatus, actions)
-			}
-		})
+		}
 	}
 
 	lockedAt := time.Now().UTC()
@@ -88,11 +90,12 @@ func TestOrderAllowedActionsEditFollowsBusinessContentGate(t *testing.T) {
 			},
 		},
 		{
-			name: "closed",
+			name: "完结并审核锁定",
 			order: &biz.Order{
 				FlowStatus:        biz.OrderFlowDocumentReleased,
 				TerminationStatus: biz.OrderTerminationActive,
 				ClosureStatus:     biz.OrderClosureClosed,
+				LockedAt:          &lockedAt,
 			},
 		},
 	} {
@@ -214,8 +217,12 @@ func TestOrderAllowedActionsCloseBeforeFlowCompleted(t *testing.T) {
 							t.Fatal("活动异常仍应阻止完结")
 						}
 						order.ClosureStatus = biz.OrderClosureClosed
-						if actions := orderAllowedActions(order); !slices.Equal(actions, []biz.OrderAllowedAction{biz.OrderActionReopen}) {
-							t.Fatalf("已完结只开放反结案: %v", actions)
+						expected := []biz.OrderAllowedAction{biz.OrderActionReopen}
+						if termination == biz.OrderTerminationActive && lock == nil {
+							expected = append(expected, biz.OrderActionEdit)
+						}
+						if actions := orderAllowedActions(order); !slices.Equal(actions, expected) {
+							t.Fatalf("已完结应保留反结案及未锁定的编辑资格: got=%v want=%v", actions, expected)
 						}
 					}
 				})

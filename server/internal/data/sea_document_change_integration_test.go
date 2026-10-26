@@ -844,7 +844,7 @@ func TestSeaDocumentChangeBusinessLockAndLifecycleGate(t *testing.T) {
 		}
 	})
 
-	t.Run("已结案订单拒绝作废", func(t *testing.T) {
+	t.Run("完结未锁订单允许作废", func(t *testing.T) {
 		f := newSeaDocumentChangeFixture(t)
 		uc := biz.NewSeaDocumentChangeUsecase(NewSeaDocumentChangeRepo(f.data))
 		f.data.db.Order.UpdateOneID(f.orderID).
@@ -864,21 +864,14 @@ func TestSeaDocumentChangeBusinessLockAndLifecycleGate(t *testing.T) {
 		if err != nil {
 			t.Fatalf("作废预览不应报错，实际: %v", err)
 		}
-		if preview.Executable {
-			t.Fatalf("已结案订单作废预览 Executable 应为 false")
+		if !preview.Executable {
+			t.Fatalf("完结未锁订单作废预览应允许执行: %+v", preview.Impacts)
 		}
-		foundLockImpact := false
-		for _, imp := range preview.Impacts {
-			if imp.FactType == "ORDER_BUSINESS_LOCK" && imp.BlocksExecution {
-				foundLockImpact = true
-				break
-			}
+		if _, err := uc.ExecuteVoid(ctx, f.orgID, f.actorID, cmd, f.audit()); err != nil {
+			t.Fatalf("完结未锁订单作废应成功: %v", err)
 		}
-		if !foundLockImpact {
-			t.Fatalf("已结案订单作废预览未包含 ORDER_BUSINESS_LOCK 阻断事实: %+v", preview.Impacts)
-		}
-		if _, err := uc.ExecuteVoid(ctx, f.orgID, f.actorID, cmd, f.audit()); kratoserrors.FromError(err).Reason != biz.ErrOrderClosed.Reason {
-			t.Fatalf("已结案订单作废应返回 ORDER_CLOSED，实际: %v", err)
+		if after := f.data.db.Order.GetX(ctx, f.orderID); after.ClosureStatus != orderent.ClosureStatusCLOSED {
+			t.Fatal("单证作废不得自动反结案")
 		}
 	})
 }

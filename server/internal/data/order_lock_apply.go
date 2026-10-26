@@ -29,13 +29,14 @@ type orderLockCoreSpec struct {
 
 // applyOrderLockCore 写入人工审核锁。调用方必须在当前事务内取得 Order 行锁，
 // 完成授权、费用审核内容及幂等校验。
-// 核心负责生命周期终态检查、SE 单证不可变版本快照、订单锁状态写入、锁定记录
+// 核心负责终止状态检查、SE 单证不可变版本快照、订单锁状态写入、锁定记录
 // 与 HBL 快照创建；任一步失败由调用方的事务整体回滚。
 func applyOrderLockCore(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, order *ent.Order, spec orderLockCoreSpec) (*ent.OrderLockRecord, *seaOrderLockSnapshot, error) {
 	if spec.reviewerID == uuid.Nil || len(spec.feeSnapshot) == 0 || len(spec.feeContentFingerprint) != 64 {
 		return nil, nil, biz.ErrFeeReviewInvalid
 	}
-	if order.TerminationStatus != orderent.TerminationStatusACTIVE || order.ClosureStatus != orderent.ClosureStatusOPEN {
+	// 完结与人工审核独立，已结案订单仍可固化资料和费用审核证据。
+	if order.TerminationStatus != orderent.TerminationStatusACTIVE {
 		return nil, nil, biz.ErrOrderStatusConflict
 	}
 	if order.LockedAt != nil {
@@ -174,7 +175,7 @@ func (r *orderLockRepo) LockOrder(ctx context.Context, caller *biz.Principal, or
 			return biz.ErrOrderStatusConflict
 		}
 		// 先生命周期与锁状态，后预期版本；内部核心再次复核状态不变量。
-		if order.TerminationStatus != orderent.TerminationStatusACTIVE || order.ClosureStatus != orderent.ClosureStatusOPEN {
+		if order.TerminationStatus != orderent.TerminationStatusACTIVE {
 			return biz.ErrOrderStatusConflict
 		}
 		if order.LockedAt != nil {

@@ -56,7 +56,7 @@ func cleanupLifecycleGateSubresources(t *testing.T, data *Data, fixture *orderPo
 }
 
 // TestOrderLifecycleGatePostgres 在真实 PostgreSQL 隔离 Schema 中验证：
-//  1. 统一内容门禁对四类状态（TERMINATING/TERMINATED/CLOSED/已业务锁定）在代表性
+//  1. 统一内容门禁对终止与业务锁状态（TERMINATING/TERMINATED/已业务锁定）在代表性
 //     子资源写入口上的稳定阻断，以及正常态放行；
 //  2. 生命周期命令不被内容门禁误杀：锁定后的放单订单可结案、可反结案；
 //  3. 退关完成原子结束活动 SE Link，取消退关保留 Link，恢复不复活历史 Link，
@@ -67,14 +67,13 @@ func TestOrderLifecycleGatePostgres(t *testing.T) {
 	data, cleanup := getIntegrationData(t)
 	defer cleanup()
 
-	t.Run("内容门禁四类状态阻断代表性子资源写入", func(t *testing.T) {
+	t.Run("内容门禁终止与业务锁阻断代表性子资源写入", func(t *testing.T) {
 		for _, tc := range []struct {
 			stateName  string
 			wantReason string
 		}{
 			{stateName: "TERMINATING", wantReason: "ORDER_TERMINATION_IN_PROGRESS"},
 			{stateName: "TERMINATED", wantReason: "ORDER_TERMINATED"},
-			{stateName: "CLOSED", wantReason: "ORDER_CLOSED"},
 			{stateName: "已业务锁定", wantReason: "ORDER_BUSINESS_LOCKED"},
 		} {
 			t.Run(tc.stateName, func(t *testing.T) {
@@ -92,11 +91,6 @@ func TestOrderLifecycleGatePostgres(t *testing.T) {
 					version = mustStartTermination(t, usecase, fixture, created)
 				case "TERMINATED":
 					version = mustCompleteTermination(t, usecase, fixture, created)
-				case "CLOSED":
-					// 经 DOCUMENT_RELEASED 正常结案，保持终止维度 ACTIVE，验证
-					// 门禁返回 ORDER_CLOSED 而不是终止类错误。
-					version = mustAdvanceFlowToReleased(t, usecase, fixture, created)
-					version = mustCloseOrder(t, usecase, fixture, created.ID, version)
 				case "已业务锁定":
 					version = mustLockOrderDirectly(t, data, fixture, created.ID)
 				}
@@ -139,7 +133,7 @@ func TestOrderLifecycleGatePostgres(t *testing.T) {
 		}
 	})
 
-	t.Run("正常 ACTIVE+OPEN+未锁定状态子资源写入成功", func(t *testing.T) {
+	t.Run("完结且未审核锁定时订单及子资源仍可编辑", func(t *testing.T) {
 		fixture := newOrderPostgresFixture(t, data)
 		cleanupLifecycleGateSubresources(t, data, fixture)
 		ctx := context.Background()
@@ -148,8 +142,16 @@ func TestOrderLifecycleGatePostgres(t *testing.T) {
 		if err != nil {
 			t.Fatalf("创建订单失败: %v", err)
 		}
-		if _, err := usecase.UpdateDraft(ctx, fixture.organizationID, fixture.actorID, created.ID, created.Version, fixture.validUpdateInput()); err != nil {
-			t.Fatalf("正常态订单草稿更新应成功: %v", err)
+		closed, err := usecase.TransitionClosure(ctx, fixture.organizationID, fixture.actorID, created.ID, created.Version, biz.OrderClosureClosed, "业务已完成等待审核")
+		if err != nil {
+			t.Fatalf("完结订单失败: %v", err)
+		}
+		updated, err := usecase.UpdateDraft(ctx, fixture.organizationID, fixture.actorID, created.ID, closed.Version, fixture.validUpdateInput())
+		if err != nil || updated.ClosureStatus != biz.OrderClosureClosed {
+			t.Fatalf("完结后修改应成功且保持完结: order=%+v err=%v", updated, err)
+		}
+		if _, err = usecase.UpdateDraft(ctx, fixture.organizationID, fixture.actorID, created.ID, closed.Version, fixture.validUpdateInput()); err == nil {
+			t.Fatal("完结后编辑仍应拒绝过期订单版本")
 		}
 		releaseNo := "POD-OK-" + fixture.suffix
 		if _, err := NewOrderReleasePodRepo(data).Add(ctx, fixture.organizationID, created.ID,

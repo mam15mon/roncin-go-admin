@@ -33,7 +33,7 @@
 
 | 术语 | 英文/代码 | 含义与要点 | 代码入口 |
 | --- | --- | --- | --- |
-| 费用 | `OrderFee` | 订单应收/应付费用；财务状态由活动账单行及未取消账单推导（含 DRAFT）。普通修改/删除要求订单未审核锁定、ACTIVE+OPEN、费用当前有效且未建账；已建账先按权限回退。行能力分别返回 can_edit/can_delete/can_bill/can_correct | `data/order_fee.go`、`data/fee_bill_association.go` |
+| 费用 | `OrderFee` | 订单应收/应付费用；财务状态由活动账单行及未取消账单推导（含 DRAFT）。普通修改/删除要求订单未审核锁定、ACTIVE（OPEN/CLOSED 均可）、费用当前有效且未建账；已建账先按权限回退。行能力分别返回 can_edit/can_delete/can_bill/can_correct | `data/order_fee.go`、`data/fee_bill_association.go` |
 | 费用审核 | `OrderLockRecord` / `OrderFeeReviewEvent` | 与订单资料合为一次人工审核锁，固化费用版本、指纹与利润快照；旧独立审核状态/写接口退役，历史事件只读；建账无需先审核 | `biz/order_lock.go`、`data/order_lock_apply.go` |
 | 费用补录补审 | `OrderFeeCorrectionRequest` | 锁后 ADD/REPLACE/VOID，覆盖新增、修改、调减、作废，批准才影响正式费用；有账单先回退；待审只占用源费建账，单票至多一份待审；具备同公司品类真实 lock grant 者补审 | `data/order_fee_correction*.go` |
 | 账单 | `FinanceBill` / `...Batch` / `...Line` | 费用汇成账单；支持单张与批量分组建账（分组策略/对冲模式）；状态机 含版本乐观锁 | `biz/finance_bill*.go` |

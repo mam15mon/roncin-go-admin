@@ -372,7 +372,7 @@ func (r *seaOrderChangeRepo) PreviewSplit(ctx context.Context, organizationID uu
 		ConservationPassed: true,
 		ValidationErrors:   []*biz.SeaOrderSplitValidationError{},
 	}
-	// 订单业务内容门禁：锁定/终止流程/终止/结案订单在预览阶段即写入 ORDER_GATE
+	// 订单业务内容门禁：锁定/终止流程/终止订单在预览阶段即写入 ORDER_GATE
 	// 原因（与 Execute 的 409 门禁同源）；预览照常返回，不升级为错误。
 	sourceOrder, gateQueryErr := client.Order.Query().
 		Where(orderent.IDEQ(input.OrderID), orderent.OrganizationIDEQ(organizationID)).

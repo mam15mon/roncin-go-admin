@@ -12,7 +12,7 @@ import (
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 )
 
-// TestEnsureOrderBusinessContentEditableGate 锁定统一内容写门禁的四类阻断、
+// TestEnsureOrderBusinessContentEditableGate 锁定统一内容写门禁的终止及业务锁阻断、
 // 校验顺序与正常放行。生命周期阻断场景不触碰锁定人查询，users 传 nil 即可。
 func TestEnsureOrderBusinessContentEditableGate(t *testing.T) {
 	lockedAt := time.Now().UTC()
@@ -55,11 +55,9 @@ func TestEnsureOrderBusinessContentEditableGate(t *testing.T) {
 			wantReason: "ORDER_TERMINATED",
 		},
 		{
-			name:       "CLOSED 返回已结案",
-			order:      &ent.Order{BusinessType: orderent.BusinessTypeSE, TerminationStatus: orderent.TerminationStatusACTIVE, ClosureStatus: orderent.ClosureStatusCLOSED},
-			wantErr:    true,
-			wantCode:   409,
-			wantReason: "ORDER_CLOSED",
+			name:    "ACTIVE+CLOSED+未锁定 放行",
+			order:   &ent.Order{BusinessType: orderent.BusinessTypeSE, TerminationStatus: orderent.TerminationStatusACTIVE, ClosureStatus: orderent.ClosureStatusCLOSED},
+			wantErr: false,
 		},
 		{
 			name:       "TERMINATED 优先于结案状态",
@@ -74,6 +72,13 @@ func TestEnsureOrderBusinessContentEditableGate(t *testing.T) {
 			wantErr:    true,
 			wantCode:   409,
 			wantReason: "ORDER_TERMINATED",
+		},
+		{
+			name:       "ACTIVE+CLOSED 已锁定返回业务锁错误",
+			order:      &ent.Order{ID: uuid.Must(uuid.NewV7()), OrderNo: "SE-CLOSED-LOCK-1", BusinessType: orderent.BusinessTypeSE, TerminationStatus: orderent.TerminationStatusACTIVE, ClosureStatus: orderent.ClosureStatusCLOSED, LockedAt: &lockedAt, LockGeneration: 2},
+			wantErr:    true,
+			wantCode:   409,
+			wantReason: "ORDER_BUSINESS_LOCKED",
 		},
 		{
 			name:       "ACTIVE+OPEN 已锁定返回业务锁错误",

@@ -52,7 +52,6 @@
 | ORDER_BUSINESS_UNSUPPORTED | 400 Bad Request | 当前仅支持海运出口订单 | order.go | — |
 | ORDER_CARGO_ITEM_INVALID_ARGUMENT | 400 Bad Request | 订单货物明细参数不合法 | order_cargo_item.go | — |
 | ORDER_CARGO_ITEM_NOT_FOUND | 404 Not Found | 订单货物明细不存在 | order_cargo_item.go | — |
-| ORDER_CLOSED | 409 Conflict | 订单已结案，不允许修改业务数据 | order.go | — |
 | ORDER_CLOSURE_BLOCKED | 409 Conflict | 订单尚未满足结案条件 | order.go | — |
 | ORDER_CLOSURE_INVALID | 400 Bad Request | 订单结案状态流转不合法 | order.go | — |
 | ORDER_COMMISSION_PERSONNEL_MISSING | 400 Bad Request | 订单缺少%s、%s人员，请在内部信息区补全后再开单 | order.go | — |

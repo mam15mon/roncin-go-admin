@@ -139,7 +139,7 @@ func (r *seaOrderChangeRepo) ExecuteTransportExecutionUpdate(ctx context.Context
 			return biz.ErrSeaOrderReassignmentVersionConflict
 		}
 		// 共享航程的船期更新属全部成员订单的业务内容写入：逐单执行统一内容门禁，
-		// 任一成员被业务锁定或处于终止/结案状态即整体回滚。
+		// 任一成员被业务锁定或处于终止状态即整体回滚。
 		for _, memberOrder := range orders {
 			if err := ensureOrderBusinessEditable(ctx, tx, memberOrder); err != nil {
 				return err

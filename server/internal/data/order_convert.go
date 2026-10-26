@@ -177,7 +177,11 @@ func orderToBiz(item *ent.Order) *biz.Order {
 
 func orderAllowedActions(order *biz.Order) []biz.OrderAllowedAction {
 	if order.ClosureStatus == biz.OrderClosureClosed {
-		return []biz.OrderAllowedAction{biz.OrderActionReopen}
+		actions := []biz.OrderAllowedAction{biz.OrderActionReopen}
+		if order.TerminationStatus == biz.OrderTerminationActive && order.LockedAt == nil {
+			actions = append(actions, biz.OrderActionEdit)
+		}
+		return actions
 	}
 	result := make([]biz.OrderAllowedAction, 0, 4)
 	if order.TerminationStatus == biz.OrderTerminationActive {

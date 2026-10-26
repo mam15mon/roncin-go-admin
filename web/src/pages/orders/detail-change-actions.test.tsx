@@ -3,7 +3,11 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App, Form, Input } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { OrderAllowedAction, OrderFlowStatus } from '@/enums.generated';
+import {
+  OrderAllowedAction,
+  OrderClosureStatus,
+  OrderFlowStatus,
+} from '@/enums.generated';
 import { seaOrderChangeServiceGetSeaOrderChangeActions } from '@/services/roncin/seaOrderChangeService';
 import OrderDetailPage from './detail';
 
@@ -21,6 +25,7 @@ const detailTestState = vi.hoisted(() => ({
   detailArgs: vi.fn(),
   canOperate: true,
   customerReferenceNo: '服务端初始值',
+  closureStatus: 1,
 }));
 
 vi.mock('react-router', async (importOriginal) => {
@@ -66,6 +71,7 @@ vi.mock('./use-order-detail-data', () => ({
             orderNo: `ORDER-${orderId}`,
             version: '1',
             flowStatus: OrderFlowStatus.ORDER_FLOW_STATUS_BOOKED,
+            closureStatus: detailTestState.closureStatus,
             customerReferenceNo: detailTestState.customerReferenceNo,
             allowedActions: detailTestState.allowedActions,
           }
@@ -229,6 +235,8 @@ describe('订单详情页拆票与改配动作隔离', () => {
     detailTestState.sectionReadonly = undefined;
     detailTestState.templateReadonly = undefined;
     detailTestState.customerReferenceNo = '服务端初始值';
+    detailTestState.closureStatus =
+      OrderClosureStatus.ORDER_CLOSURE_STATUS_OPEN;
   });
 
   it('无当前业务类型查看权限时拒绝页面且不启动详情或动作查询', () => {
@@ -287,24 +295,31 @@ describe('订单详情页拆票与改配动作隔离', () => {
     },
   );
 
-  it('已订舱订单有编辑动作且未锁单时模板与分节均可编辑', async () => {
-    mockGetChangeActions.mockResolvedValue({ data: {} } as never);
+  it.each([
+    OrderClosureStatus.ORDER_CLOSURE_STATUS_OPEN,
+    OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED,
+  ])(
+    '有编辑动作且未锁单时模板与分节均可编辑：完结状态=%s',
+    async (closureStatus) => {
+      detailTestState.closureStatus = closureStatus;
+      mockGetChangeActions.mockResolvedValue({ data: {} } as never);
 
-    render(
-      <App>
-        <OrderDetailPage />
-      </App>,
-    );
+      render(
+        <App>
+          <OrderDetailPage />
+        </App>,
+      );
 
-    expect(detailTestState.sectionReadonly).toBe(false);
-    expect(detailTestState.templateReadonly).toBe(false);
-    // 挂载期动作资格请求在 act 内落地，避免用例结束后迟到更新
-    await act(async () => {
-      await Promise.resolve();
-      await Promise.resolve();
-      await Promise.resolve();
-    });
-  });
+      expect(detailTestState.sectionReadonly).toBe(false);
+      expect(detailTestState.templateReadonly).toBe(false);
+      // 挂载期动作资格请求在 act 内落地，避免用例结束后迟到更新
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+    },
+  );
 
   it('A 与 B 响应逆序返回时，仅展示当前订单 B 的动作资格', async () => {
     const requestA = deferred<any>();

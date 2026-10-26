@@ -74,11 +74,10 @@ var (
 	ErrOrderConsolidationShipmentType = errors.BadRequest("ORDER_CONSOLIDATION_SHIPMENT_TYPE_INVALID", "仅拼箱订单可查看自拼汇总")
 	// 文案口径对齐建账幂等冲突（ErrFinanceBillIdempotencyConflict）。
 	ErrOrderIdempotencyConflict = errors.Conflict("ORDER_IDEMPOTENCY_CONFLICT", "订单请求幂等键已被其他请求使用")
-	// 内容写门禁专用：订单业务资料可编辑要求 termination_status=ACTIVE、
-	// closure_status=OPEN 且未业务锁定；生命周期命令不得复用这些错误。
+	// 内容写门禁专用：订单业务资料可编辑要求 termination_status=ACTIVE
+	// 且未业务锁定；完结本身不冻结内容，生命周期命令不得复用这些错误。
 	ErrOrderTerminationInProgress = errors.Conflict("ORDER_TERMINATION_IN_PROGRESS", "订单已进入终止流程，不允许修改业务数据")
 	ErrOrderTerminated            = errors.Conflict("ORDER_TERMINATED", "订单已终止，不允许修改业务数据")
-	ErrOrderClosed                = errors.Conflict("ORDER_CLOSED", "订单已结案，不允许修改业务数据")
 )
 
 // OrderUsecase 的领域错误与仓储接口集中在本文件；枚举与领域对象见

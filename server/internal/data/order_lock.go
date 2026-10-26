@@ -37,7 +37,7 @@ func orderAccessBusinessType(businessType orderent.BusinessType) (access.OrderBu
 }
 
 // ensureOrderBusinessContentEditable 是全部订单业务内容写入口的统一门禁：
-// 订单必须处于 termination_status=ACTIVE、closure_status=OPEN 且未业务锁定。
+// 订单必须处于 termination_status=ACTIVE 且未业务锁定；完结本身不冻结内容。
 // 校验顺序为先生命周期后业务锁，使不可逆程度更高的生命周期原因优先呈现，
 // 避免订单已终止但残留历史锁信息时误提示“先解锁即可编辑”。
 // 本门禁只用于业务字段及子资源写入；终止、恢复、结案、反结案等生命周期命令
@@ -58,9 +58,6 @@ func ensureOrderBusinessContentEditable(ctx context.Context, users *ent.UserClie
 		return biz.ErrOrderTerminated
 	default:
 		return biz.ErrOrderStatusConflict
-	}
-	if existing.ClosureStatus != orderent.ClosureStatusOPEN {
-		return biz.ErrOrderClosed
 	}
 	if existing.LockedAt == nil {
 		return nil
@@ -101,7 +98,7 @@ func orderBusinessEditBlockReason(err error) string {
 	return "不可编辑"
 }
 
-// orderBusinessEditImpact 为预览流程提供单订单业务内容门禁事实：当订单处于终止、结案或业务
+// orderBusinessEditImpact 为预览流程提供单订单业务内容门禁事实：当订单处于终止或业务
 // 锁定状态时返回 BlocksExecution=true 的下游影响对象，便于调用方统一阻断 Executable 并展示原因。
 func orderBusinessEditImpact(ctx context.Context, users *ent.UserClient, o *ent.Order) *biz.SeaDocumentDownstreamImpact {
 	if o == nil {
@@ -256,9 +253,6 @@ func (r *orderLockRepo) GetOrderLockState(ctx context.Context, organizationID, o
 	if !isLocked {
 		if order.TerminationStatus != orderent.TerminationStatusACTIVE {
 			state.LockBlockedReasons = append(state.LockBlockedReasons, "订单已进入终止流程")
-		}
-		if order.ClosureStatus != orderent.ClosureStatusOPEN {
-			state.LockBlockedReasons = append(state.LockBlockedReasons, "订单已结案")
 		}
 		if businessType == access.OrderBusinessSE && !hasActiveLink {
 			state.LockBlockedReasons = append(state.LockBlockedReasons, "订单未关联有效海运提单")

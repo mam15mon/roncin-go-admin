@@ -66,12 +66,12 @@ func (r *seaOrderChangeRepo) PreviewReassignment(ctx context.Context, organizati
 		CurrentLinkVersion: activeLink.Version,
 	}
 	// 改配 Execute 在事务内执行统一内容门禁；预览同口径提前拦截，避免预览通过、
-	// 提交才被拒的体验裂缝。错误分两档与 Execute 对齐：终止/结案走改配域既定
+	// 提交才被拒的体验裂缝。错误分两档与 Execute 对齐：终止走改配域既定
 	// SEA_ORDER_REASSIGNMENT_BLOCKED（不设 GateBlockedError，由 biz 包装）；
 	// 业务锁经 GateBlockedError 原样透传，保留 409 与锁定元数据。
-	if order.TerminationStatus != orderent.TerminationStatusACTIVE || order.ClosureStatus != orderent.ClosureStatusOPEN {
+	if order.TerminationStatus != orderent.TerminationStatusACTIVE {
 		preview.IsValid = false
-		preview.Errors = append(preview.Errors, "订单 "+order.OrderNo+" 已终止或已结案，不允许改配")
+		preview.Errors = append(preview.Errors, "订单 "+order.OrderNo+" 已终止，不允许改配")
 	} else if gateErr := ensureOrderBusinessContentEditable(ctx, client.User, order); gateErr != nil {
 		preview.IsValid = false
 		preview.GateBlockedError = gateErr
@@ -333,10 +333,10 @@ func (r *seaOrderChangeRepo) ExecuteReassignment(ctx context.Context, organizati
 		if order.BusinessType != orderent.BusinessTypeSE {
 			return biz.ErrSeaOrderReassignmentBlocked
 		}
-		if order.TerminationStatus != orderent.TerminationStatusACTIVE || order.ClosureStatus != orderent.ClosureStatusOPEN {
+		if order.TerminationStatus != orderent.TerminationStatusACTIVE {
 			return biz.ErrSeaOrderReassignmentBlocked
 		}
-		// 改配属订单业务内容写入：在既有终止/结案检查之上执行统一内容门禁，
+		// 改配属订单业务内容写入：在既有终止检查之上执行统一内容门禁，
 		// 业务锁定的订单不允许改配（ORDER_BUSINESS_LOCKED，409）。
 		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
 			return err

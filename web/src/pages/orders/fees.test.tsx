@@ -4,6 +4,7 @@ import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { OrderClosureStatus } from '@/enums.generated';
 import { feeCatalogServiceListTaxableServices } from '@/services/roncin/feeCatalogService';
 import { orderFeeServiceListOrderFeeCorrectionRequests } from '@/services/roncin/orderFeeService';
 import { settlementServiceGetFeeLedgerOrderDetail } from '@/services/roncin/settlementService';
@@ -21,7 +22,14 @@ const feeTestState = vi.hoisted(() => ({
   feeOptions: vi.fn(),
   canOperate: true,
   hasPendingSupplement: false,
+  closureStatus: 1,
+  feeCanEdit: true,
 }));
+
+beforeEach(() => {
+  feeTestState.closureStatus = OrderClosureStatus.ORDER_CLOSURE_STATUS_OPEN;
+  feeTestState.feeCanEdit = true;
+});
 
 // 本文件验证费用页已有编辑与跨订单状态；审核流程由独立组件用例验证。
 vi.mock('@/features/orders/fee-review', async (original) => ({
@@ -157,6 +165,7 @@ vi.mock('./use-order-fee-options', () => ({
             orderNo: orderId.replace('order-', 'ORDER-'),
             organizationId: `organization-${orderId}`,
             businessType: 1,
+            closureStatus: feeTestState.closureStatus,
           }
         : undefined,
       currencies: [],
@@ -258,7 +267,7 @@ vi.mock('./components/fees/OrderFeeTableTabs', () => ({
         onClick={() =>
           props.onOpenFeeModal(1, {
             id: `editing-${props.orderId}`,
-            canEdit: true,
+            canEdit: feeTestState.feeCanEdit,
           })
         }
       >
@@ -458,6 +467,44 @@ describe('订单费用页统一补录入口', () => {
     expect(
       screen.queryByTestId('finance-summary-board'),
     ).not.toBeInTheDocument();
+  });
+  it.each([true, false])(
+    '完结未锁订单仍按逐费能力开放直接修改：canEdit=%s',
+    async (canEdit) => {
+      feeTestState.closureStatus =
+        OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED;
+      feeTestState.feeCanEdit = canEdit;
+      renderFeesPage();
+      fireEvent.click(screen.getByRole('button', { name: '编辑当前订单费用' }));
+      expect(screen.getByTestId('fee-form-modal')).toHaveTextContent(
+        canEdit ? 'true|editing-order-A' : 'false|',
+      );
+      if (!canEdit) {
+        expect(
+          await screen.findByText('该费用当前不可编辑，请先完成账务回退'),
+        ).toBeInTheDocument();
+      }
+    },
+  );
+
+  it('完结后审核锁定会关闭已打开的直接修改入口', async () => {
+    feeTestState.closureStatus = OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED;
+    const { rerender, queryClient } = renderFeesPage();
+    fireEvent.click(screen.getByRole('button', { name: '编辑当前订单费用' }));
+    expect(screen.getByTestId('fee-form-modal')).toHaveTextContent(
+      'true|editing-order-A',
+    );
+
+    feeTestState.lockState = { isLocked: true };
+    rerenderFeesPage(rerender, queryClient);
+    await waitFor(() =>
+      expect(screen.getByTestId('fee-form-modal')).toHaveTextContent('false|'),
+    );
+    fireEvent.click(screen.getByRole('button', { name: '编辑当前订单费用' }));
+    expect(screen.getByTestId('fee-form-modal')).toHaveTextContent('false|');
+    expect(
+      await screen.findByText('订单已审核锁定，费用变更请申请补录并补审'),
+    ).toBeInTheDocument();
   });
   it('无费用读取和对应品类审核权限时拒绝进入', () => {
     feeTestState.canReadFee = false;

@@ -388,6 +388,10 @@ if (
 
 - 主流程文案继续复用 `getOrderFlowStatusText(flowStatus, businessType)`，保留海运/空运差异；
   不根据放单节点或收付款核销进度推断已完结。
+- 完结与审核锁定分别表达业务进度与内容冻结，真正最终状态为“完结 + 审核锁定”。
+  `getOrderBusinessWritePolicy` 不得因 `closureStatus=CLOSED` 禁用编辑；ACTIVE 且未锁定时，
+  完结后仍可改资料和未建账费用，已建账费用先按权限回退；人工锁定后禁止普通编辑，费用走补录补审。
+  审核入口独立消费服务端 `canLock`，不能套用普通内容写策略禁止完结后的审核。
 - 「已退关」筛选只约束 `terminationStatus=TERMINATED`，因此可包含已完结订单；
   不为匹配单标签展示而擅自添加 `closureStatus=OPEN`。
 - 组织隔离的订单列表中，「操作人员」列只展示 `operatorName`（未分配为 `-`），

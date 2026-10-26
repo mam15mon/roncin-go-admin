@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { businessTypeMeta } from '@/constants/statusMeta';
-import { OrderClosureStatus, OrderTerminationStatus } from '@/enums.generated';
+import { OrderTerminationStatus } from '@/enums.generated';
 import { orderLockServiceGetOrderLockState } from '@/services/roncin/orderLockService';
 
 type OrderLockSnapshot = {
@@ -25,6 +25,7 @@ export function getOrderBusinessTypeLabel(businessType?: number): string {
  * 订单业务写入口的统一失败关闭策略。
  *
  * 锁状态加载、失败、缺失及同步刷新期间都不能开放写入口；服务端仍是最终门禁。
+ * 完结只表示业务流程完成，内容冻结由人工审核锁决定；终止仍独立阻断写入。
  */
 export function getOrderBusinessWritePolicy({
   state,
@@ -47,12 +48,6 @@ export function getOrderBusinessWritePolicy({
   }
   if (!state) {
     return { disabled: true, reason: '订单锁定状态尚未加载，请重试' };
-  }
-  if (order?.closureStatus === OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED) {
-    return {
-      disabled: true,
-      reason: '订单已结案，不能直接修改；费用调整须通过补录补审办理',
-    };
   }
   if (
     order?.terminationStatus ===

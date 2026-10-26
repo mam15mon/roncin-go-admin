@@ -186,7 +186,6 @@ describe('getOrderBusinessWritePolicy', () => {
     ).toEqual({ disabled: false });
   });
   it.each([
-    { closureStatus: OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED },
     {
       terminationStatus:
         OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATING,
@@ -195,7 +194,7 @@ describe('getOrderBusinessWritePolicy', () => {
       terminationStatus:
         OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED,
     },
-  ])('未锁定也保持结案和终止的普通写保护：%j', (state) => {
+  ])('未锁定也保持终止的普通写保护：%j', (state) => {
     expect(
       getOrderBusinessWritePolicy({
         canOperate: true,
@@ -206,4 +205,23 @@ describe('getOrderBusinessWritePolicy', () => {
       }).disabled,
     ).toBe(true);
   });
+
+  it.each([false, true])(
+    '已完结订单仅在审核锁定后关闭业务写入：isLocked=%s',
+    (isLocked) => {
+      expect(
+        getOrderBusinessWritePolicy({
+          canOperate: true,
+          state: { isLocked },
+          order: {
+            closureStatus: OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED,
+            terminationStatus:
+              OrderTerminationStatus.ORDER_TERMINATION_STATUS_ACTIVE,
+          },
+          loading: false,
+          error: null,
+        }).disabled,
+      ).toBe(isLocked);
+    },
+  );
 });

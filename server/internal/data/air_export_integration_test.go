@@ -96,6 +96,14 @@ func TestAirExportSharedWaybillPostgres(t *testing.T) {
 	if e != nil || searched.Total != 1 {
 		t.Fatalf("合法连字符分单搜索失败 %#v %v", searched, e)
 	}
+	// 完结的未锁成员仍允许修改共享航班资料。
+	if _, e = uc.TransitionClosure(ctx, f.organizationID, f.actorID, a.ID, a.Version, biz.OrderClosureClosed, "等待审核"); e != nil {
+		t.Fatalf("完结空运订单失败: %v", e)
+	}
+	detail, e = air.Get(ctx, f.organizationID, id, biz.SelectorListOptions{Page: 1, PageSize: 20})
+	if e != nil || len(detail.BlockedReasons) != 0 {
+		t.Fatalf("完结未锁成员不得阻断共享资料: detail=%+v err=%v", detail, e)
+	}
 	next := detail.Master.Content
 	next.FlightNo = "MU588"
 	preview, e := air.Preview(ctx, f.organizationID, id, detail.Master.Version, &next)

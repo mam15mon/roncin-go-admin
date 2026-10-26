@@ -85,7 +85,7 @@ func lockAirMasterMembers(ctx context.Context, tx *ent.Tx, org, masterID uuid.UU
 }
 func ensureAirMembersEditable(c *airMasterLockContext) error {
 	for _, o := range c.members {
-		if o.BusinessType != orderent.BusinessTypeAE || o.OrganizationID != c.master.OrganizationID || o.LockedAt != nil || o.TerminationStatus != orderent.TerminationStatusACTIVE || o.ClosureStatus != orderent.ClosureStatusOPEN {
+		if o.BusinessType != orderent.BusinessTypeAE || o.OrganizationID != c.master.OrganizationID || o.LockedAt != nil || o.TerminationStatus != orderent.TerminationStatusACTIVE {
 			return biz.ErrAirWaybillBlocked
 		}
 	}
@@ -262,8 +262,8 @@ func loadAirMembers(ctx context.Context, c *ent.Client, org, id uuid.UUID) ([]*b
 func airBlocked(members []*biz.AirMasterMember) []string {
 	out := []string{}
 	for _, m := range members {
-		if m.Locked || m.TerminationStatus != "ACTIVE" || m.ClosureStatus != "OPEN" {
-			out = append(out, m.OrderNo+"：锁定、终止或结案，不能修改共享资料")
+		if m.Locked || m.TerminationStatus != "ACTIVE" {
+			out = append(out, m.OrderNo+"：锁定或终止，不能修改共享资料")
 		}
 	}
 	return out

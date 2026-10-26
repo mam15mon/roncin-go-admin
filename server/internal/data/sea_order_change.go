@@ -58,18 +58,11 @@ func (r *seaOrderChangeRepo) GetChangeActions(ctx context.Context, organizationI
 		return actions, nil
 	}
 
-	// 2. 流程与生命周期门禁：仅未终止 (ACTIVE) 且未关单 (OPEN)
+	// 2. 生命周期门禁：仅未终止 (ACTIVE)，完结本身不冻结内容。
 	if order.TerminationStatus != orderent.TerminationStatusACTIVE {
 		actions.CanSplit = false
 		actions.CanReassign = false
 		msg := "订单已终止，不允许拆票或改配"
-		actions.SplitBlockedReasons = append(actions.SplitBlockedReasons, msg)
-		actions.ReassignBlockedReasons = append(actions.ReassignBlockedReasons, msg)
-	}
-	if order.ClosureStatus != orderent.ClosureStatusOPEN {
-		actions.CanSplit = false
-		actions.CanReassign = false
-		msg := "订单已关单，不允许拆票或改配"
 		actions.SplitBlockedReasons = append(actions.SplitBlockedReasons, msg)
 		actions.ReassignBlockedReasons = append(actions.ReassignBlockedReasons, msg)
 	}

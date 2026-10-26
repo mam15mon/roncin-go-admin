@@ -200,7 +200,7 @@ func buildOrderFeeReview(ctx context.Context, client *ent.Client, p *biz.Princip
 	if err != nil {
 		return nil, err
 	}
-	result.CanEdit = canSubmit && o.LockedAt == nil && o.ClosureStatus != orderent.ClosureStatusCLOSED && o.TerminationStatus == orderent.TerminationStatusACTIVE
+	result.CanEdit = canSubmit && o.LockedAt == nil && o.TerminationStatus == orderent.TerminationStatusACTIVE
 	if o.LockedAt != nil {
 		result.BlockedReasons = append(result.BlockedReasons, "订单已审核锁定，费用变更需补审")
 	}
@@ -512,8 +512,8 @@ func attachFeeCapabilities(ctx context.Context, client *ent.Client, o *ent.Order
 	for _, f := range fees {
 		f.HasPendingChange = pending[f.ID]
 		f.CanCorrect = (editable || canDelete) && o.LockedAt != nil && o.TerminationStatus == orderent.TerminationStatusACTIVE && !f.HasActiveBill && !f.HasPendingChange && biz.IsCurrentFee(f)
-		f.CanDelete = canDelete && o.LockedAt == nil && o.ClosureStatus != orderent.ClosureStatusCLOSED && o.TerminationStatus == orderent.TerminationStatusACTIVE && !f.HasActiveBill && biz.IsCurrentFee(f)
-		f.CanEdit = editable && o.LockedAt == nil && o.ClosureStatus != orderent.ClosureStatusCLOSED && o.TerminationStatus == orderent.TerminationStatusACTIVE && !f.HasActiveBill && biz.IsCurrentFee(f)
+		f.CanDelete = canDelete && o.LockedAt == nil && o.TerminationStatus == orderent.TerminationStatusACTIVE && !f.HasActiveBill && biz.IsCurrentFee(f)
+		f.CanEdit = editable && o.LockedAt == nil && o.TerminationStatus == orderent.TerminationStatusACTIVE && !f.HasActiveBill && biz.IsCurrentFee(f)
 		f.CanBill = billable && biz.RequiresAccounting(f) && !f.HasActiveBill && !f.HasPendingChange
 		if o.LockedAt != nil {
 			f.BlockedReasons = append(f.BlockedReasons, "订单已审核锁定，费用变更需补审")
