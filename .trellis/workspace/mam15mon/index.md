@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 157
-- **Last Active**: 2026-10-23
+- **Total Sessions**: 158
+- **Last Active**: 2026-10-26
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~161 | Active |
+| `journal-3.md` | ~221 | Active |
 | `journal-2.md` | ~2003 | Archived |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 158 | 2026-10-26 | 订单详情与费用规则任务补齐记录并归档 | `b5595a2f`, `611d685e` | `main` |
 | 157 | 2026-10-23 | 统一订单审核锁与费用补审账务回退 | `2e56e7e0` | `codex/unified-order-review-lock` |
 | 156 | 2026-10-23 | 全局表格多列冻结与铺排排序完成 | `384e9d1c` | `codex/table-column-layout` |
 | 155 | 2026-10-23 | 订单进程双标签与操作人员展示优化 | `a0d73b89` | `codex/order-list-lifecycle-badges` |

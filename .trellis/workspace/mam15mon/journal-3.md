@@ -196,3 +196,26 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 158: 订单详情与费用规则任务补齐记录并归档
+<!-- trellis-session: v=2 fp=6d45a52567c666d1 -->
+
+**Date**: 2026-10-26
+**Task**: 订单详情与费用规则任务补齐记录并归档
+**Branch**: `main`
+
+### Summary
+
+核对原任务完成记录，修正客户缺岗规则与人员必填验收描述，补录创建缺岗防绕过修复及验证结果；任务已归档。临时 PostgreSQL 16 个订单事务场景和后端完整门禁通过；本轮全量前端有 1 项失败，该文件单独复跑 3 项通过。作业待办明细任务继续保持规划状态。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b5595a2f` | fix: 阻止客户缺岗时创建订单 |
+| `611d685e` | feat: 业务/客服两岗恢复必填（只读由客户带入不变） |
+
+### Status
+
+[OK] **Completed**
