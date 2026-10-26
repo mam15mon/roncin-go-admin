@@ -382,3 +382,40 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Next Steps
 
 - 代码已在codex/sea-continuous-house-order提交；原共享checkout切回main后，归档与会话记录在隔离worktree完成。
+
+
+## Session 165: 复审海运分单分支并安全合并主干
+<!-- trellis-session: v=2 fp=5832f3dc51780152 -->
+
+**Date**: 2026-10-26
+**Task**: 复审海运分单分支并安全合并主干
+**Branch**: `main`
+
+### Summary
+
+独立前后端复审未发现新增业务缺陷；修复确认框卸载测试的动画事件时序，完整前后端门禁通过后快进合并main并安全删除本次功能分支。
+
+### Main Changes
+
+- 复审连续分单、共享航程、已完结内容编辑与审核锁/反结案守卫的完整待合并范围。
+- 确认全部功能提交已被main保留后，使用git branch -d删除codex/sea-continuous-house-order，清理临时worktree；未推送远端。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `7086b28e` | test: 等待确认框退出动画就绪后验证卸载 |
+| `a58f0549` | docs: 记录海运分单复审与安全合并结果 |
+
+### Testing
+
+- [OK] 修复后check:web通过：317文件、1726项测试通过，1文件/12项既有跳过。
+- [OK] check:server通过：Go单元测试、vet、分层、Proto lint与漏洞扫描通过，无未处理可达漏洞。
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 当前检出main，代码与审查记录均已提交。

@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 164
+- **Total Sessions**: 165
 - **Last Active**: 2026-10-26
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~384 | Active |
+| `journal-3.md` | ~421 | Active |
 | `journal-2.md` | ~2003 | Archived |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 165 | 2026-10-26 | 复审海运分单分支并安全合并主干 | `7086b28e`, `a58f0549` | `main` |
 | 164 | 2026-10-26 | 连续新增海运分单入口与号码就近填写 | `b4d55ad7` | `codex/sea-continuous-house-order` |
 | 163 | 2026-10-26 | 反结案原因选填与审核锁校验 | `1e378866`, `5d30e402` | `codex/sea-master-voyage-inheritance` |
 | 162 | 2026-10-26 | 海运共享主单航程继承与统一修改 | `3660fa1f` | `codex/sea-master-voyage-inheritance` |
