@@ -219,3 +219,28 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 159: 作业待办明细与处理直达完成验收
+<!-- trellis-session: v=2 fp=39010504acddc5c8 -->
+
+**Date**: 2026-10-26
+**Task**: 作业待办明细与处理直达完成验收
+**Branch**: `codex/workbench-todo-details`
+
+### Summary
+
+完成本人协作订单未建账费用与进行中异常分页待办，摘要明细统一权限和记账事实，复用订单费用页及异常直达；独立审查修复候选误依赖主数据管理权限及详情误依赖人员读取/创建权限，补充真实路由与工作区隔离回归。前端完整门禁1651项通过、12项既有跳过，后端完整门禁及专用PostgreSQL回归通过，临时数据库已清理。任务已归档，按用户授权合并main、安全清理已合并分支并推送。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `1bec915e` | feat: 增加本人作业待办明细与订单处理直达 |
+| `8a452e88` | docs: 记录作业待办验收与审查结果 |
+| `67936c82` | test: 补齐核销工作台的主题上下文桩 |
+| `71fdbdfb` | docs: 明确作业待办的记账口径与读取权限 |
+
+### Status
+
+[OK] **Completed**
