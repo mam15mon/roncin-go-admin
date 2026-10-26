@@ -322,3 +322,26 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 163: 反结案原因选填与审核锁校验
+<!-- trellis-session: v=2 fp=20a67abba6e1db21 -->
+
+**Date**: 2026-10-26
+**Task**: 反结案原因选填与审核锁校验
+**Branch**: `codex/sea-master-voyage-inheritance`
+
+### Summary
+
+完成并归档10-26-order-reopen-lock-guard。反结案原因选填并保留500字限制；已审核锁定不投影REOPEN，前端入口及确认提交前检查最新锁状态，已完结只读提示先解锁；服务端订单FOR UPDATE后专属检查审核锁，不套终止内容门禁。真实PostgreSQL三组零SKIP验证审核/反结案并发、锁后拒绝零写入、正式解锁后空原因成功及相邻生命周期/补审路径；4个前端suite39项定向、tsc、Biome、Go单元/vet通过。后端check:server完整通过含漏洞扫描；check:fast两项无关高并发超时，降低maxWorkers至16完整复跑307文件1681项通过，未跳过或修改测试规则。工作区无其他未提交代码。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `1e378866` | fix: 反结案原因选填并禁止审核锁定订单反结案 |
+| `5d30e402` | docs: 记录反结案锁校验完整验收结果 |
+
+### Status
+
+[OK] **Completed**

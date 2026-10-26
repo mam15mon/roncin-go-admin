@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 162
+- **Total Sessions**: 163
 - **Last Active**: 2026-10-26
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~324 | Active |
+| `journal-3.md` | ~347 | Active |
 | `journal-2.md` | ~2003 | Archived |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 163 | 2026-10-26 | 反结案原因选填与审核锁校验 | `1e378866`, `5d30e402` | `codex/sea-master-voyage-inheritance` |
 | 162 | 2026-10-26 | 海运共享主单航程继承与统一修改 | `3660fa1f` | `codex/sea-master-voyage-inheritance` |
 | 161 | 2026-10-26 | 完结与人工审核锁分离 | `1eb9fa9b` | `codex/sea-master-voyage-inheritance` |
 | 160 | 2026-10-26 | 修复订单直接完结入口 | `aa86ae84` | `main` |
