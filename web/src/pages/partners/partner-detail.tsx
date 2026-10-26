@@ -828,7 +828,7 @@ export default function PartnerDetailPage() {
           layout="horizontal"
           style={{
             paddingRight: navCollapsed
-              ? 0
+              ? 'calc(var(--roncin-form-navigator-collapsed-width) + var(--roncin-form-navigator-content-gap))'
               : 'calc(var(--roncin-form-navigator-width) + var(--roncin-form-navigator-content-gap))',
             transition: 'padding-right 0.25s ease',
           }}

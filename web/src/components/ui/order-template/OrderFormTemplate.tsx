@@ -81,7 +81,7 @@ export function OrderFormTemplate<T>({
     {},
   );
   // 表单导航展开时内容区按导航宽度与间隙预留右侧空间，避免遮挡输入控件；
-  // 窄屏（<1500px）默认折叠，保证输入区完整可用。
+  // 窄屏（<1500px）默认折叠，仍预留迷你浮标空间，避免遮挡分节操作。
   const [navCollapsed, setNavCollapsed] = useState(
     () => typeof window !== 'undefined' && window.innerWidth < 1500,
   );
@@ -290,9 +290,10 @@ export function OrderFormTemplate<T>({
           grid
           layout="vertical"
           style={{
-            paddingRight:
-              navCollapsed || !anchorNavVisible
-                ? 0
+            paddingRight: !anchorNavVisible
+              ? 0
+              : navCollapsed
+                ? 'calc(var(--roncin-form-navigator-collapsed-width) + var(--roncin-form-navigator-content-gap))'
                 : 'calc(var(--roncin-form-navigator-width) + var(--roncin-form-navigator-content-gap))',
             transition: 'padding-right 0.25s ease',
           }}

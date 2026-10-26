@@ -14,6 +14,7 @@ export const layoutDimensions = {
   siderTriggerHeight: 40,
   siderMenuBottomGap: 10,
   formNavigatorWidth: 140,
+  formNavigatorCollapsedWidth: 32,
   formNavigatorRight: 16,
   formNavigatorContentGap: 24,
   formNavigatorBottomReserve: 64,

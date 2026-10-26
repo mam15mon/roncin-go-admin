@@ -176,9 +176,9 @@ jsdom 和 CSS 字符串断言不能证明列可达或滚动条可操作。
 
 - **唯一入口**：`web/config/layout.ts` 的 `layoutDimensions` 管理侧栏宽、header/页签高、内容留白、公共页面区块外间距、表单导航几何参数和吸底栏尺寸；`layoutLayers` 分别管理公共布局层级。组件的数值配置直接读取它们，禁止在 `defaultSettings`、`AppLayout` 或公共模板另写第二份默认值。
 - **CSS桥接**：`layoutCssVariables` 将尺寸/偏移导出为 `--roncin-<kebab-case-key>: <number>px`，层级为 `--roncin-layer-<key>: <number>`；`main.tsx` 在 React 首次渲染前安装到 `document.documentElement`，body portal 与页面继承同一份变量。样式用 `var(...)`，不在CSS重复默认值或加另一套fallback。
-- **派生关系**：`layoutOffsets.topStackHeight = headerHeight + tagsHeight`；页头与参数页业务Tabs的 `top` 用 `calc(var(--roncin-header-height) + var(--roncin-tags-height))`。`formNavigatorContentReserve = formNavigatorWidth + formNavigatorContentGap`；订单和客商正文的导航避让同源，折叠时仍为0。侧栏菜单底部留白等于触发区高度加独立间隙。
+- **派生关系**：`layoutOffsets.topStackHeight = headerHeight + tagsHeight`；页头与参数页业务Tabs的 `top` 用 `calc(var(--roncin-header-height) + var(--roncin-tags-height))`。`formNavigatorContentReserve = formNavigatorWidth + formNavigatorContentGap`；订单和客商正文的导航避让同源，折叠时保留 `formNavigatorCollapsedWidth + formNavigatorContentGap`，防止迷你浮标遮挡分节操作，仅无导航时不留空间。侧栏菜单底部留白等于触发区高度加独立间隙。
 - **语义边界**：同值不是同义。内容横向留白、区块外间距、滚动落点间隙、footer内边距分别配置；普通字体、列宽、Card内部间距和控件容量由既有 `theme.ts` / dialog-sizes 或所属组件管理。没有证据的页面局部视口高度不拆成顶部栈加补数。
-- **滚动定位**：需要数值运算时使用TS配置；经验默认 `formScrollOffset`、`formNavigatorTopOffset`、`tableErrorOffset` 独立管理，保留调用方完整offset覆盖。`measureStickyTopOffset`继续优先实测页头底边，再加 `formScrollGap`，不得把动态页头高度改成固定猜测值。默认参数显式标注 `number`，避免 `as const` 配置把入参收窄为数值字面量。
+- **滚动定位**：需要数值运算时使用TS配置；经验默认 `formScrollOffset`、`formNavigatorTopOffset`、`tableErrorOffset` 独立管理，保留调用方完整offset覆盖。`measureStickyTopOffset`继续优先实测页头底边，再加 `formScrollGap`，不得把动态页头高度改成固定猜测值；悬浮大纲在滚动、窗口缩放及页头尺寸变化时同步测量，避免盖住页头操作。默认参数显式标注 `number`，避免 `as const` 配置把入参收窄为数值字面量。
 - **响应式与验证**：CSS变量不能作为媒体查询条件，当前ProLayout移动断点仍固定 `<768px`；不要为参数去重添加编译机制。尺寸改动先跑受影响行为测试，然后用真实浏览器验证默认与一组替代配置的组件占位、CSS解析、吸顶偏移、导航避让及滚动落点；验证后恢复默认配置，禁止提交替代尺寸或临时产物。
 
 ```tsx

@@ -44,8 +44,16 @@ export const FormAnchorNav: React.FC<FormAnchorNavProps> = ({
         measureStickyTopOffset(layoutDimensions.formNavigatorTopOffset),
       );
     syncTopOffset();
+    const shell = document.querySelector('.roncin-page-header-shell');
+    const observer = new ResizeObserver(syncTopOffset);
+    if (shell) observer.observe(shell);
+    window.addEventListener('scroll', syncTopOffset, { passive: true });
     window.addEventListener('resize', syncTopOffset);
-    return () => window.removeEventListener('resize', syncTopOffset);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', syncTopOffset);
+      window.removeEventListener('resize', syncTopOffset);
+    };
   }, []);
   const [internalActiveKey, setInternalActiveKey] = useState<string>(
     items[0]?.key || '',
@@ -142,6 +150,9 @@ export const FormAnchorNav: React.FC<FormAnchorNavProps> = ({
               }
               onClick={() => updateCollapsed(false)}
               style={{
+                width: 'var(--roncin-form-navigator-collapsed-width)',
+                minWidth: 'var(--roncin-form-navigator-collapsed-width)',
+                height: 'var(--roncin-form-navigator-collapsed-width)',
                 boxShadow: '0 3px 12px rgba(0, 0, 0, 0.12)',
                 backgroundColor: '#ffffff',
                 borderColor: totalErrorCount > 0 ? '#ff4d4f' : '#d9d9d9',
