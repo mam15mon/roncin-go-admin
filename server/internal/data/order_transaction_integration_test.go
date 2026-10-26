@@ -135,6 +135,45 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 		fixture.requireRolledBackState()
 	})
 
+	for _, test := range []struct {
+		name         string
+		missingRoles []partnerassignmentent.Role
+	}{
+		{name: "客户缺业务岗", missingRoles: []partnerassignmentent.Role{partnerassignmentent.RoleSALES}},
+		{name: "客户缺客服岗", missingRoles: []partnerassignmentent.Role{partnerassignmentent.RoleCUSTOMER_SERVICE}},
+		{name: "客户缺两岗", missingRoles: []partnerassignmentent.Role{partnerassignmentent.RoleSALES, partnerassignmentent.RoleCUSTOMER_SERVICE}},
+	} {
+		t.Run(test.name+"时请求三岗齐全仍拒绝创建并回滚", func(t *testing.T) {
+			fixture := newOrderPostgresFixture(t, data)
+			ctx := context.Background()
+			if _, err := data.db.PartnerAssignment.Delete().Where(
+				partnerassignmentent.PartnerIDEQ(fixture.partnerID),
+				partnerassignmentent.RoleIn(test.missingRoles...),
+			).Exec(ctx); err != nil {
+				t.Fatalf("移除客户岗位失败: %v", err)
+			}
+
+			// 请求刻意携带三岗，验证必填门禁检查的是客户档案的最终人员来源。
+			_, err := fixture.newUsecase().Create(ctx, fixture.organizationID, fixture.actorID, fixture.validInput())
+			if !errors.Is(err, biz.ErrOrderCustomerStaffMissing) {
+				t.Fatalf("客户缺岗创建订单的错误 = %v，期望 ErrOrderCustomerStaffMissing", err)
+			}
+			fixture.requireRolledBackState()
+			personnelCount, err := data.db.OrderPersonnel.Query().Where(
+				orderpersonnelent.OrganizationIDEQ(fixture.organizationID),
+			).Count(ctx)
+			if err != nil || personnelCount != 0 {
+				t.Fatalf("回滚后订单人员数 = %d，期望 0，error=%v", personnelCount, err)
+			}
+			attributionCount, err := data.db.OrderCommissionAttribution.Query().Where(
+				ordercommissionattributionent.OrganizationIDEQ(fixture.organizationID),
+			).Count(ctx)
+			if err != nil || attributionCount != 0 {
+				t.Fatalf("回滚后提成归属数 = %d，期望 0，error=%v", attributionCount, err)
+			}
+		})
+	}
+
 	t.Run("并发修改草稿时版本冲突只有一个成功", func(t *testing.T) {
 		fixture := newOrderPostgresFixture(t, data)
 		usecase := fixture.newUsecase()
@@ -291,8 +330,6 @@ func TestOrderCreateTransactionPostgres(t *testing.T) {
 			t.Fatalf("拒绝换客户后订单客户不得变更: customer=%v error=%v", reloaded.CustomerID, getErr)
 		}
 	})
-
-
 
 	t.Run("草稿换客户按新客户档案重挂业务客服", func(t *testing.T) {
 		fixture := newOrderPostgresFixture(t, data)

@@ -158,7 +158,7 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 
 // overrideOrderPersonnelFromCustomer 以客户档案岗位配置为唯一真相覆盖订单人员
 // 中的销售/客服两岗：请求携带的手工值一律丢弃，改挂客户档案上该岗位 sortOrder
-// 最小的在册人员；客户未配置该岗位时订单上该岗位留空。
+// 最小的在册人员；客户缺任一岗位时拒绝创建，不能用请求值补齐。
 func overrideOrderPersonnelFromCustomer(ctx context.Context, tx *ent.Tx, organizationID, customerID uuid.UUID, assignments []*biz.OrderPersonnel) ([]*biz.OrderPersonnel, error) {
 	rows, err := tx.PartnerAssignment.Query().
 		Where(
@@ -177,6 +177,12 @@ func overrideOrderPersonnelFromCustomer(ctx context.Context, tx *ent.Tx, organiz
 		if _, exists := firstByRole[key]; !exists {
 			firstByRole[key] = row.UserID
 		}
+	}
+	if _, ok := firstByRole[string(partnerassignmentent.RoleSALES)]; !ok {
+		return nil, biz.ErrOrderCustomerStaffMissing
+	}
+	if _, ok := firstByRole[string(partnerassignmentent.RoleCUSTOMER_SERVICE)]; !ok {
+		return nil, biz.ErrOrderCustomerStaffMissing
 	}
 	filtered := make([]*biz.OrderPersonnel, 0, len(assignments)+2)
 	for _, item := range assignments {
@@ -250,7 +256,7 @@ func resyncOrderCustomerPersonnel(ctx context.Context, tx *ent.Tx, organizationI
 // snapshotOrderCommissionAttributions 以同事务内已写入的订单人员（销售/操作/
 // 客服三岗）为唯一真相生成提成归属快照：source_assignment_id 记录订单人员行 ID，
 // customer_id 写入订单客户冗余列。操作岗由创建门禁保证必有；销售/客服由客户
-// 档案带入，客户缺岗时不生成对应归属。同岗同人由 normalizeOrder 去重保证，
+// 档案带入并在覆盖时保证必有。同岗同人由 normalizeOrder 去重保证，
 // 此处仅保留 userID:role 防御性去重。
 func snapshotOrderCommissionAttributions(ctx context.Context, tx *ent.Tx, organizationID, orderID, customerID uuid.UUID, attributedAt time.Time) error {
 	personnel, err := tx.OrderPersonnel.Query().Where(
