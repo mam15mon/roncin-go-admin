@@ -15,7 +15,7 @@
   "branch": "codex/workbench-todo-details",
   "base_branch": "main",
   "worktree_path": null,
-  "commit": null,
+  "commit": "1bec915ef19c74bbbd76e72be1910b67e0639447",
   "pr_url": null,
   "subtasks": [],
   "children": [],
@@ -34,6 +34,6 @@
     "web/src/pages/orders/use-order-detail-data.ts",
     ".trellis/spec/server/backend/workbench-todos.md"
   ],
-  "notes": "用户于2026-10-26批准修订、实施、独立review、合并、安全清理已合并分支及推送；已完成实现和真实PostgreSQL定向验证，正在最终前端全量门禁。无Schema迁移。",
+  "notes": "2026-10-26 已完成实现、独立review与两处权限闭环修复；全部AC通过。完整前端1651项通过/12项既有跳过，后端完整门禁和专用PostgreSQL回归通过。用户已授权归档、合并、安全清理已合并分支及推送；无Schema迁移，临时PG已清理。",
   "meta": {}
 }
