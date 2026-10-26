@@ -78,7 +78,13 @@ describe('原因确认框归属与未保存保护', () => {
     await act(async () => view.rerender(<div>新工作区</div>));
     await waitFor(() => expect(getAnyDirtyTabKey()).toBeUndefined());
     const closingDialog = screen.queryByRole('dialog');
-    if (closingDialog) fireEvent.transitionEnd(closingDialog);
+    if (closingDialog) {
+      // rc-motion 在退出帧就绪后才监听结束事件，不能在守卫注销时提前触发。
+      await waitFor(() =>
+        expect(closingDialog).toHaveClass('ant-zoom-leave-active'),
+      );
+      await act(async () => fireEvent.transitionEnd(closingDialog));
+    }
     await waitFor(() =>
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
     );
