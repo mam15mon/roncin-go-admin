@@ -20,7 +20,7 @@
 
 ## 阶段 3：后端实现
 
-- [x] 3.1 人员带入防绕过：订单写入路径按客户档案覆盖 SALES/CUSTOMER_SERVICE 角色（`order_write.go` / `order_write_draft.go`）。
+- [x] 3.1 人员带入防绕过：订单写入路径按客户档案覆盖 SALES/CUSTOMER_SERVICE 角色（`order_write.go` / `order_write_draft.go`）；创建与换客户时校验客户档案两岗必有，请求人员不能绕过缺岗限制。
 - [x] 3.2 状态跳转：`biz/order_transition.go` 目标集合改为全部后续节点；`data/order_write_lifecycle.go` 一次事务补齐中间事件；`validateAirFlowData` 放宽为序比较、仅校验目标节点。
 - [x] 3.3 一键完结：`TransitionClosure` 未完成主流程时事务内补齐全部节点再结案。
 - [x] 3.4 费用科目：`fee_catalog` / `masterdata` 清理大类；种子与同步脚本清理。
@@ -32,7 +32,7 @@
 
 ## 阶段 4：前端实现
 
-- [x] 4.1 `SeaPersonnelSection.tsx` 业务/客服只读、去必填；`SeaBasicInfoSection` 带入逻辑保持；相关测试更新。
+- [x] 4.1 `SeaPersonnelSection.tsx` 业务/客服只读，新建模式恢复必填并提示维护客户档案；`SeaBasicInfoSection` 保留带入逻辑；相关测试更新。
 - [x] 4.2 `OrderStatusSection` / `order-detail-transitions` 跳转文案与测试更新。
 - [x] 4.3 费用设置页删大类；费用表单/列表/台账/导出/补录/更正的日期口径改录入日期。
 - [x] 4.4 `use-fee-exchange-preview.ts` 触发条件与错误处理更新；`access.ts` 权限改绑。
@@ -43,7 +43,16 @@
 
 - [x] 5.1 `pnpm run check:fast` 全量门禁。
 - [x] 5.2 分组提交（schema+迁移 / 契约+生成物 / 后端 / 前端）。
-- [x] 5.3 review（trellis-check）后合并、push、归档任务。
+- [x] 5.3 完成审查与修复，代码已在 `main` 本地提交，归档任务。
+
+## 2026-10-26 补充审查与收尾
+
+- 原任务各阶段已提交，2026-10-24 开发日志记录全量门禁通过；任务状态和归档遗漏在本次补齐。
+- `611d685e` 恢复业务/客服两岗必填；`b5595a2f` 补齐创建事务内客户档案缺岗校验，防止请求携带三岗绕过，并新增缺业务、缺客服、缺两岗三类回滚验证。
+- 临时 PostgreSQL 实例实际执行 `TestOrderCreateTransactionPostgres`，16 个子场景全部通过，包含创建、换客户、并发发号、人员和提成归属回滚；实例已清理，未修改开发库。
+- 后端完整门禁 `pnpm run check:server` 通过；人员表单及客户带入的前端定向测试 10 项通过。
+- 本轮 `pnpm run check:fast` 前端部分有 1 个未改动用例失败（`confirmWithReason.unsaved.test.tsx` 的弹窗卸载断言）；该文件单独复跑 3 项全部通过。本轮全量复跑不记为通过，不将此结果归因于本次后端修复。
+- 本任务直接在 `main` 实施，未使用 PR；归档采用脚本为此类任务提供的 `--skip-branch-validation`，保留真实分支元数据。
 
 ## 回滚点
 
