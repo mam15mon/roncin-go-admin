@@ -345,3 +345,40 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 164: 连续新增海运分单入口与号码就近填写
+<!-- trellis-session: v=2 fp=bac5d9db0d43d7c0 -->
+
+**Date**: 2026-10-26
+**Task**: 连续新增海运分单入口与号码就近填写
+**Branch**: `codex/sea-continuous-house-order`
+
+### Summary
+
+从已有HOUSE主单连续新增分单，只带入共享身份和明确航程；HBL在MBL旁唯一填写，本票资料及草稿保持独立。完整前端门禁和只读浏览器验收通过。
+
+### Main Changes
+
+- 新增同组织权限控制的主单建分单入口，作废主单隐藏入口，来源审核锁不影响新票。
+- 规范sourceOrderId资源身份，隔离普通新票与不同来源的草稿、表单、幂等键和迟到响应。
+- 保留HBL必填、批次重复、单证模式切换与错误揭示；拆分重型单证测试并同步规范。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b4d55ad7` | feat: 支持从共享主单连续新增海运分单 |
+
+### Testing
+
+- [OK] pnpm run check:web通过：317文件通过、1文件跳过；1726测试通过、12测试跳过。
+- [OK] 浏览器7项断言通过，无页面错误和业务写请求；定向、Biome、Ant Design lint、TypeScript及diff检查通过。
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 代码已在codex/sea-continuous-house-order提交；原共享checkout切回main后，归档与会话记录在隔离worktree完成。
