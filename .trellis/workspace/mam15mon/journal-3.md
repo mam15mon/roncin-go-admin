@@ -244,3 +244,25 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 160: 修复订单直接完结入口
+<!-- trellis-session: v=2 fp=4d14c6e3127ca3ec -->
+
+**Date**: 2026-10-26
+**Task**: 修复订单直接完结入口
+**Branch**: `main`
+
+### Summary
+
+修正服务端 orderAllowedActions 对完结动作遗留的已放单或已退关前置条件，与现有结案事务直接补齐主流程的行为对齐。补充海运及空运各节点、终止状态、业务锁和活动异常资格回归，以及详情页草稿直接打开完结确认验证；同步规范。定向后端测试、页面相关22项测试、Biome、git diff --check及check:fast全栈门禁通过（前端1654项通过）。保留海运共享主单航程继承规划任务，尚未实施。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `aa86ae84` | fix: 允许订单在主流程完成前直接发起完结 |
+
+### Status
+
+[OK] **Completed**

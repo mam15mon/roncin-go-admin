@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 159
+- **Total Sessions**: 160
 - **Last Active**: 2026-10-26
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~246 | Active |
+| `journal-3.md` | ~268 | Active |
 | `journal-2.md` | ~2003 | Archived |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 160 | 2026-10-26 | 修复订单直接完结入口 | `aa86ae84` | `main` |
 | 159 | 2026-10-26 | 作业待办明细与处理直达完成验收 | `1bec915e`, `8a452e88`, `67936c82`, `71fdbdfb` | `codex/workbench-todo-details` |
 | 158 | 2026-10-26 | 订单详情与费用规则任务补齐记录并归档 | `b5595a2f`, `611d685e` | `main` |
 | 157 | 2026-10-23 | 统一订单审核锁与费用补审账务回退 | `2e56e7e0` | `codex/unified-order-review-lock` |
