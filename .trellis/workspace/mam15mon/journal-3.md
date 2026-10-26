@@ -266,3 +266,25 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 161: 完结与人工审核锁分离
+<!-- trellis-session: v=2 fp=4cc80b08c3fa58e4 -->
+
+**Date**: 2026-10-26
+**Task**: 完结与人工审核锁分离
+**Branch**: `codex/sea-master-voyage-inheritance`
+
+### Summary
+
+按用户明确契约：最终状态=完结+审核锁定，完结未锁仍可修改资料及未建账费用，已建账先按权限逐步回退，锁后费用变更补录补审才生效。同步统一后端内容门禁、EDIT动作、费用能力、审核锁资格与执行、海空运共享资料及拆票改配预读执行；移除失效ORDER_CLOSED错误；同步前端写策略及规范。真实PostgreSQL覆盖闭单编辑、费用建账/回退/锁后拒改、海空运共享与单证、海运及非海运闭单审核快照/版本/幂等/审计，零SKIP。后端check:server完整通过；原工作区check:fast被另一窗口航程测试类型错误阻断，保留其改动；仅含本轮变更的临时副本check:web完整通过，1659项测试通过（一次无关验证码倒计时超时单独及完整复跑通过）。未创建或归档本轮任务，海运主单航程规划和修改保留给另一窗口。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `1eb9fa9b` | fix: 完结订单仅在审核锁定后冻结内容 |
+
+### Status
+
+[OK] **Completed**
