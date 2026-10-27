@@ -14,6 +14,12 @@ service MasterDataService {
     option (google.api.http) = {get: "/api/v1/master-data/items"};
   }
 
+  // ListAllItems 为小型主数据维护页返回完整目录，包含停用项。
+  rpc ListAllItems(ListAllItemsRequest) returns (ListAllItemsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.item.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/master-data/items/all"};
+  }
+
   rpc CreateItem(CreateItemRequest) returns (CreateItemResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.master_data.item.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
@@ -168,6 +174,7 @@ enum MasterDataKind {
   reserved "MASTER_DATA_KIND_CHARGE_CATEGORY";
   MASTER_DATA_KIND_CARGO_CATEGORY = 9;
   MASTER_DATA_KIND_ABNORMAL_CASE = 10;
+  MASTER_DATA_KIND_SHIPPING_AGENT = 11;
 }
 
 enum DocumentType {
@@ -218,6 +225,20 @@ message ListItemsRequest {
   MasterDataKind kind = 3;
   string keyword = 4;
   optional bool enabled = 5;
+}
+
+message ListAllItemsRequest {
+  MasterDataKind kind = 1 [(google.api.field_behavior) = REQUIRED];
+  optional bool enabled = 2;
+}
+
+message ListAllItemsResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated MasterDataItem data = 4;
+  int32 total = 5;
+  string trace_id = 6;
 }
 
 // MasterDataAttributes 只承载仍由通用主数据管理的少量专属属性。

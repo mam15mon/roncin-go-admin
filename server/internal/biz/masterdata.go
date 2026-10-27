@@ -29,11 +29,12 @@ const (
 	MasterDataKindContainerSpec MasterDataKind = "container_spec"
 	MasterDataKindCargoCategory MasterDataKind = "cargo_category"
 	MasterDataKindAbnormalCase  MasterDataKind = "abnormal_case"
+	MasterDataKindShippingAgent MasterDataKind = "shipping_agent"
 )
 
 func (kind MasterDataKind) Valid() bool {
 	switch kind {
-	case MasterDataKindCurrency, MasterDataKindCountry, MasterDataKindRegion, MasterDataKindContainerSpec, MasterDataKindCargoCategory, MasterDataKindAbnormalCase:
+	case MasterDataKindCurrency, MasterDataKindCountry, MasterDataKindRegion, MasterDataKindContainerSpec, MasterDataKindCargoCategory, MasterDataKindAbnormalCase, MasterDataKindShippingAgent:
 		return true
 	default:
 		return false
@@ -240,6 +241,7 @@ type MasterDataImportResult struct {
 }
 
 type MasterDataRepo interface {
+	ListAll(context.Context, MasterDataKind, *bool) ([]*MasterDataItem, error)
 	List(context.Context, uuid.UUID, MasterDataListOptions) (*MasterDataList, error)
 	ListEnabled(context.Context, uuid.UUID) ([]*MasterDataItem, error)
 	Create(context.Context, uuid.UUID, *MasterDataItem, *AuditEvent) (*MasterDataItem, error)
@@ -264,6 +266,17 @@ func (uc *MasterDataUsecase) List(ctx context.Context, organizationID uuid.UUID,
 	}
 	options.Keyword = strings.TrimSpace(options.Keyword)
 	return uc.repo.List(ctx, organizationID, options)
+}
+
+// ListAll 为小型主数据维护提供真正全量查询，不受常规分页上限限制。
+func (uc *MasterDataUsecase) ListAll(ctx context.Context, organizationID uuid.UUID, kind MasterDataKind, enabled *bool) ([]*MasterDataItem, error) {
+	if organizationID == uuid.Nil {
+		return nil, ErrMasterDataInvalidArgument
+	}
+	if !kind.Valid() {
+		return nil, ErrMasterDataInvalidKind
+	}
+	return uc.repo.ListAll(ctx, kind, enabled)
 }
 
 func (uc *MasterDataUsecase) ListOptions(ctx context.Context, organizationID uuid.UUID) ([]*MasterDataItem, error) {

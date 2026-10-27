@@ -2,6 +2,8 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -23,7 +25,7 @@ func (MasterDataItem) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMi
 
 func (MasterDataItem) Fields() []ent.Field {
 	return []ent.Field{
-		field.Enum("kind").Values("currency", "country", "region", "container_spec", "cargo_category", "abnormal_case"),
+		field.Enum("kind").Values("currency", "country", "region", "container_spec", "cargo_category", "abnormal_case", "shipping_agent"),
 		field.String("code").NotEmpty().MaxLen(64).Immutable(),
 		field.String("name").NotEmpty().MaxLen(200),
 		field.String("name_en").MaxLen(200).Optional().Nillable(),
@@ -53,4 +55,11 @@ func (MasterDataItem) Indexes() []ent.Index {
 		index.Fields("kind", "enabled", "sort_order"),
 		index.Fields("kind", "name"),
 	}
+}
+
+// Annotations 与正式迁移使用同名约束，数据库强制约束合法目录类型。
+func (MasterDataItem) Annotations() []schema.Annotation {
+	return []schema.Annotation{entsql.Checks(map[string]string{
+		"master_data_items_kind_check": "kind IN ('currency', 'country', 'region', 'container_spec', 'cargo_category', 'abnormal_case', 'shipping_agent')",
+	})}
 }

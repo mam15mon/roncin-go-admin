@@ -28,6 +28,9 @@ func validateOrderReferences(ctx context.Context, tx *ent.Tx, organizationID uui
 	if err := validateOrderPartnerReferences(ctx, tx, organizationID, input, existing); err != nil {
 		return err
 	}
+	if err := validateOrderShippingAgent(ctx, tx, input.ShippingAgentID, existing); err != nil {
+		return err
+	}
 	if input.ShippingLineID != nil {
 		predicates := []predicate.ShippingLine{
 			shippinglineent.IDEQ(*input.ShippingLineID),
@@ -77,6 +80,25 @@ func validateOrderReferences(ctx context.Context, tx *ent.Tx, organizationID uui
 		return validateAirportIDs(ctx, tx, organizationID, locationIDs)
 	}
 	return validateMasterDataIDs(ctx, tx, organizationID, locationIDs, masterdataent.KindRegion)
+}
+
+// validateOrderShippingAgent 将船代严格限制为公共目录；保留旧引用时允许停用。
+func validateOrderShippingAgent(ctx context.Context, tx *ent.Tx, id *uuid.UUID, existing *ent.Order) error {
+	if id == nil {
+		return nil
+	}
+	predicates := []predicate.MasterDataItem{masterdataent.IDEQ(*id), masterdataent.KindEQ(masterdataent.KindShippingAgent)}
+	if existing == nil || existing.ShippingAgentID == nil || *existing.ShippingAgentID != *id {
+		predicates = append(predicates, masterdataent.EnabledEQ(true))
+	}
+	exists, err := tx.MasterDataItem.Query().Where(predicates...).ForShare().Exist(ctx)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return biz.ErrOrderInvalidArgument
+	}
+	return nil
 }
 
 func validatePortIDs(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, ids []uuid.UUID) error {
@@ -130,15 +152,13 @@ func validateOrderPartnerReferences(ctx context.Context, tx *ent.Tx, organizatio
 			invalidErr:     biz.ErrOrderInvalidArgument,
 		})
 	}
-	var existingBookingAgentID, existingForeignAgentID, existingShippingAgentID *uuid.UUID
+	var existingBookingAgentID, existingForeignAgentID *uuid.UUID
 	if existing != nil {
 		existingBookingAgentID = existing.BookingAgentID
 		existingForeignAgentID = existing.ForeignAgentID
-		existingShippingAgentID = existing.ShippingAgentID
 	}
 	appendOptional(input.BookingAgentID, existingBookingAgentID, partnerroleent.RoleTypeSupplier)
 	appendOptional(input.ForeignAgentID, existingForeignAgentID, partnerroleent.RoleTypeForeignAgent)
-	appendOptional(input.ShippingAgentID, existingShippingAgentID, partnerroleent.RoleTypeSupplier)
 
 	partnerIDsByValue := make(map[uuid.UUID]struct{}, len(references))
 	for _, reference := range references {

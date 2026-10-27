@@ -3350,7 +3350,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "kind", Type: field.TypeEnum, Enums: []string{"currency", "country", "region", "container_spec", "cargo_category", "abnormal_case"}},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"currency", "country", "region", "container_spec", "cargo_category", "abnormal_case", "shipping_agent"}},
 		{Name: "code", Type: field.TypeString, Size: 64},
 		{Name: "name", Type: field.TypeString, Size: 200},
 		{Name: "name_en", Type: field.TypeString, Nullable: true, Size: 200},
@@ -7971,6 +7971,10 @@ func init() {
 	FinanceVerificationAllocationsTable.ForeignKeys[0].RefTable = FinanceBillsTable
 	FinanceVerificationAllocationsTable.ForeignKeys[1].RefTable = FinanceCashflowsTable
 	FinanceVerificationAllocationsTable.ForeignKeys[2].RefTable = FinanceVerificationsTable
+	MasterDataItemsTable.Annotation = &entsql.Annotation{}
+	MasterDataItemsTable.Annotation.Checks = map[string]string{
+		"master_data_items_kind_check": "kind IN ('currency', 'country', 'region', 'container_spec', 'cargo_category', 'abnormal_case', 'shipping_agent')",
+	}
 	MembershipsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	MembershipsTable.ForeignKeys[1].RefTable = UsersTable
 	NotificationDeliveriesTable.ForeignKeys[0].RefTable = BackgroundTasksTable

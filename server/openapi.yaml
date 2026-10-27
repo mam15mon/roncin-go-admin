@@ -4461,6 +4461,29 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/masterdata.v1.CreateItemResponse'
+    /api/v1/master-data/items/all:
+        get:
+            tags:
+                - MasterDataService
+            description: ListAllItems 为小型主数据维护页返回完整目录，包含停用项。
+            operationId: MasterDataService_ListAllItems
+            parameters:
+                - name: kind
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: enabled
+                  in: query
+                  schema:
+                    type: boolean
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/masterdata.v1.ListAllItemsResponse'
     /api/v1/master-data/items/{id}:
         put:
             tags:
@@ -15812,6 +15835,25 @@ components:
                     type: integer
                     format: int32
                 pageSize:
+                    type: integer
+                    format: int32
+                traceId:
+                    type: string
+        masterdata.v1.ListAllItemsResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/masterdata.v1.MasterDataItem'
+                total:
                     type: integer
                     format: int32
                 traceId:

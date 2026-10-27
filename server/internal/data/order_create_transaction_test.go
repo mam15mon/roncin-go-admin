@@ -216,13 +216,6 @@ func TestValidateOrderPartnerReferencesBlacklistMatrix(t *testing.T) {
 			targetRole: partnerrole.RoleTypeForeignAgent, targetLabel: "国外代理", wantErr: true,
 		},
 		{
-			name: "新建订单拒绝黑名单船务代理",
-			build: func(customerID, targetID uuid.UUID) (*biz.Order, *ent.Order) {
-				return &biz.Order{CustomerID: customerID, ShippingAgentID: &targetID}, nil
-			},
-			targetRole: partnerrole.RoleTypeSupplier, targetLabel: "供应商", wantErr: true,
-		},
-		{
 			name: "草稿换入黑名单订舱代理时拒绝",
 			build: func(customerID, targetID uuid.UUID) (*biz.Order, *ent.Order) {
 				originalID := uuid.New()
@@ -271,7 +264,7 @@ func TestValidateOrderPartnerReferencesBlacklistMatrix(t *testing.T) {
 			partnerRows := sqlmock.NewRows(partner.Columns)
 			seenPartners := map[uuid.UUID]bool{}
 			for _, partnerID := range []uuid.UUID{input.CustomerID, targetID} {
-				if partnerID == uuid.Nil || seenPartners[partnerID] || (input.BookingAgentID == nil && input.ForeignAgentID == nil && input.ShippingAgentID == nil && partnerID == targetID && input.CustomerID != targetID) {
+				if partnerID == uuid.Nil || seenPartners[partnerID] || (input.BookingAgentID == nil && input.ForeignAgentID == nil && partnerID == targetID && input.CustomerID != targetID) {
 					continue
 				}
 				seenPartners[partnerID] = true
@@ -281,7 +274,7 @@ func TestValidateOrderPartnerReferencesBlacklistMatrix(t *testing.T) {
 
 			roleRows := sqlmock.NewRows(partnerrole.Columns).
 				AddRow(uuid.New(), now, now, input.CustomerID, "customer", true, false, nil, nil, nil)
-			if input.BookingAgentID != nil || input.ForeignAgentID != nil || input.ShippingAgentID != nil {
+			if input.BookingAgentID != nil || input.ForeignAgentID != nil {
 				roleRows.AddRow(uuid.New(), now, now, targetID, string(testCase.targetRole), true, true, "严重违约", now, uuid.New())
 			} else if input.CustomerID == targetID && testCase.targetRole == partnerrole.RoleTypeCustomer {
 				roleRows = sqlmock.NewRows(partnerrole.Columns).

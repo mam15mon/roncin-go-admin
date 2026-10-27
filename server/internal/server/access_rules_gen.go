@@ -183,6 +183,7 @@ var operationAccessRules = map[string]accessRule{
 	"/masterdata.v1.MasterDataService/ListAdministrativeRegions":                                {mode: accessModeAuthenticated},
 	"/masterdata.v1.MasterDataService/ListAirlines":                                             {mode: accessModeAuthenticated},
 	"/masterdata.v1.MasterDataService/ListAirports":                                             {mode: accessModeAuthenticated},
+	"/masterdata.v1.MasterDataService/ListAllItems":                                             {mode: accessModePermission, permission: "system.master_data.item.read", scope: biz.DataScopeOrganization},
 	"/masterdata.v1.MasterDataService/ListCurrencies":                                           {mode: accessModeAuthenticated},
 	"/masterdata.v1.MasterDataService/ListItems":                                                {mode: accessModePermission, permission: "system.master_data.item.read", scope: biz.DataScopeOrganization},
 	"/masterdata.v1.MasterDataService/ListNumberRules":                                          {mode: accessModePermission, permission: "system.master_data.number_rule.read", scope: biz.DataScopeOrganization},

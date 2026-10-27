@@ -135,6 +135,7 @@ const (
 	KindContainerSpec Kind = "container_spec"
 	KindCargoCategory Kind = "cargo_category"
 	KindAbnormalCase  Kind = "abnormal_case"
+	KindShippingAgent Kind = "shipping_agent"
 )
 
 func (k Kind) String() string {
@@ -144,7 +145,7 @@ func (k Kind) String() string {
 // KindValidator is a validator for the "kind" field enum values. It is called by the builders before save.
 func KindValidator(k Kind) error {
 	switch k {
-	case KindCurrency, KindCountry, KindRegion, KindContainerSpec, KindCargoCategory, KindAbnormalCase:
+	case KindCurrency, KindCountry, KindRegion, KindContainerSpec, KindCargoCategory, KindAbnormalCase, KindShippingAgent:
 		return nil
 	default:
 		return fmt.Errorf("masterdataitem: invalid enum value for kind field: %q", k)

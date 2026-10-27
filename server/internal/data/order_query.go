@@ -11,6 +11,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	airportent "github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
+	masterdataent "github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderabnormalcaseent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
 	ordertaglinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
@@ -192,7 +193,7 @@ func (r *orderRepo) List(ctx context.Context, scopes []biz.OrderOrganizationScop
 	return result, nil
 }
 
-// attachOrderDisplayNames 为订单投影批量解析地点（港口/机场）与代理（客商）展示名，
+// attachOrderDisplayNames 为订单投影批量解析地点、经营代理与公共船代展示名，
 // 每类一次 IN 查询；详情与列表共用，保证用户可见位置不出现原始 ID。
 func attachOrderDisplayNames(ctx context.Context, client *ent.Client, orders []*biz.Order) error {
 	if err := attachAirOrders(ctx, client, orders); err != nil {
@@ -222,6 +223,7 @@ func attachOrderDisplayNames(ctx context.Context, client *ent.Client, orders []*
 		seenPartner[*id] = struct{}{}
 		partnerIDs = append(partnerIDs, *id)
 	}
+	shippingAgentIDs := make([]uuid.UUID, 0, len(orders))
 	for _, order := range orders {
 		appendID(order.OriginLocationID)
 		appendID(order.DestinationLocationID)
@@ -229,7 +231,9 @@ func attachOrderDisplayNames(ctx context.Context, client *ent.Client, orders []*
 		appendID(order.TransitLocationID)
 		appendPartnerID(order.BookingAgentID)
 		appendPartnerID(order.ForeignAgentID)
-		appendPartnerID(order.ShippingAgentID)
+		if order.ShippingAgentID != nil {
+			shippingAgentIDs = append(shippingAgentIDs, *order.ShippingAgentID)
+		}
 	}
 	locationNames := make(map[uuid.UUID]string)
 	if len(locationIDs) > 0 {
@@ -272,6 +276,16 @@ func attachOrderDisplayNames(ctx context.Context, client *ent.Client, orders []*
 			partnerNames[agent.ID] = agent.LegalName
 		}
 	}
+	shippingAgentNames := make(map[uuid.UUID]string)
+	if len(shippingAgentIDs) > 0 {
+		agents, err := client.MasterDataItem.Query().Where(masterdataent.IDIn(shippingAgentIDs...), masterdataent.KindEQ(masterdataent.KindShippingAgent)).All(ctx)
+		if err != nil {
+			return err
+		}
+		for _, agent := range agents {
+			shippingAgentNames[agent.ID] = agent.Name
+		}
+	}
 	for _, order := range orders {
 		if order.OriginLocationID != nil {
 			order.OriginLocationName = locationNames[*order.OriginLocationID]
@@ -292,7 +306,7 @@ func attachOrderDisplayNames(ctx context.Context, client *ent.Client, orders []*
 			order.ForeignAgentName = partnerNames[*order.ForeignAgentID]
 		}
 		if order.ShippingAgentID != nil {
-			order.ShippingAgentName = partnerNames[*order.ShippingAgentID]
+			order.ShippingAgentName = shippingAgentNames[*order.ShippingAgentID]
 		}
 	}
 	return nil

@@ -27,6 +27,7 @@ const OperationMasterDataServiceImportItems = "/masterdata.v1.MasterDataService/
 const OperationMasterDataServiceListAdministrativeRegions = "/masterdata.v1.MasterDataService/ListAdministrativeRegions"
 const OperationMasterDataServiceListAirlines = "/masterdata.v1.MasterDataService/ListAirlines"
 const OperationMasterDataServiceListAirports = "/masterdata.v1.MasterDataService/ListAirports"
+const OperationMasterDataServiceListAllItems = "/masterdata.v1.MasterDataService/ListAllItems"
 const OperationMasterDataServiceListCurrencies = "/masterdata.v1.MasterDataService/ListCurrencies"
 const OperationMasterDataServiceListItems = "/masterdata.v1.MasterDataService/ListItems"
 const OperationMasterDataServiceListNumberRules = "/masterdata.v1.MasterDataService/ListNumberRules"
@@ -54,6 +55,8 @@ type MasterDataServiceHTTPServer interface {
 	ListAdministrativeRegions(context.Context, *ListAdministrativeRegionsRequest) (*ListAdministrativeRegionsResponse, error)
 	ListAirlines(context.Context, *ListAirlinesRequest) (*ListAirlinesResponse, error)
 	ListAirports(context.Context, *ListAirportsRequest) (*ListAirportsResponse, error)
+	// ListAllItems ListAllItems 为小型主数据维护页返回完整目录，包含停用项。
+	ListAllItems(context.Context, *ListAllItemsRequest) (*ListAllItemsResponse, error)
 	ListCurrencies(context.Context, *ListCurrenciesRequest) (*ListCurrenciesResponse, error)
 	ListItems(context.Context, *ListItemsRequest) (*ListItemsResponse, error)
 	ListNumberRules(context.Context, *ListNumberRulesRequest) (*ListNumberRulesResponse, error)
@@ -75,6 +78,7 @@ type MasterDataServiceHTTPServer interface {
 func RegisterMasterDataServiceHTTPServer(s *http.Server, srv MasterDataServiceHTTPServer) {
 	r := s.Route("/")
 	r.Handle("GET", "/api/v1/master-data/items", _MasterDataService_ListItems0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/master-data/items/all", _MasterDataService_ListAllItems0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/master-data/items", _MasterDataService_CreateItem0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/master-data/items/{id}", _MasterDataService_UpdateItem0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/master-data/import", _MasterDataService_ImportItems0_HTTP_Handler(srv))
@@ -116,6 +120,25 @@ func _MasterDataService_ListItems0_HTTP_Handler(srv MasterDataServiceHTTPServer)
 			return err
 		}
 		reply := out.(*ListItemsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _MasterDataService_ListAllItems0_HTTP_Handler(srv MasterDataServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListAllItemsRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationMasterDataServiceListAllItems)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListAllItems(ctx, req.(*ListAllItemsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListAllItemsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -608,6 +631,8 @@ type MasterDataServiceHTTPClient interface {
 	ListAdministrativeRegions(ctx context.Context, req *ListAdministrativeRegionsRequest, opts ...http.CallOption) (rsp *ListAdministrativeRegionsResponse, err error)
 	ListAirlines(ctx context.Context, req *ListAirlinesRequest, opts ...http.CallOption) (rsp *ListAirlinesResponse, err error)
 	ListAirports(ctx context.Context, req *ListAirportsRequest, opts ...http.CallOption) (rsp *ListAirportsResponse, err error)
+	// ListAllItems ListAllItems 为小型主数据维护页返回完整目录，包含停用项。
+	ListAllItems(ctx context.Context, req *ListAllItemsRequest, opts ...http.CallOption) (rsp *ListAllItemsResponse, err error)
 	ListCurrencies(ctx context.Context, req *ListCurrenciesRequest, opts ...http.CallOption) (rsp *ListCurrenciesResponse, err error)
 	ListItems(ctx context.Context, req *ListItemsRequest, opts ...http.CallOption) (rsp *ListItemsResponse, err error)
 	ListNumberRules(ctx context.Context, req *ListNumberRulesRequest, opts ...http.CallOption) (rsp *ListNumberRulesResponse, err error)
@@ -792,6 +817,23 @@ func (c *MasterDataServiceHTTPClientImpl) ListAirports(ctx context.Context, in *
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationMasterDataServiceListAirports),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// ListAllItems ListAllItems 为小型主数据维护页返回完整目录，包含停用项。
+func (c *MasterDataServiceHTTPClientImpl) ListAllItems(ctx context.Context, in *ListAllItemsRequest, opts ...http.CallOption) (*ListAllItemsResponse, error) {
+	var out ListAllItemsResponse
+	pattern := "/api/v1/master-data/items/all"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationMasterDataServiceListAllItems),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

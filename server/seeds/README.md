@@ -13,6 +13,7 @@
 | **`ports.zh-CN.csv`** | 17,524 个海港的中文对照 | 已有中文地名与编制译名，逐行注明来源 | 配套 UN/LOCODE 2025-1 | [中文数据编制说明](ports.zh-CN.md) |
 | **`SMDG_Liner-codes-list-20260903.xlsx`** | 全球班轮船公司代码表 | 国际船舶规划系统用户协会 (SMDG) | 2026-09-03 | [SMDG Liner Code List](https://smdg.org/documents/smdg-liner-code-list/) |
 | **`SMDG-Terminal-Code-List-v20260609.xlsx`** | 全球集装箱码头与泊位代码表 | 国际船舶规划系统用户协会 (SMDG) | 2026-06-09 | [SMDG Terminal Code List](https://smdg.org/documents/smdg-terminal-code-list/) |
+| **`shipping-agents.hgj.20261027.json`** | 29 条船代候选字典 | 海管家订单候选快照（非完整行业名录） | 2026-10-27 | [来源与映射说明](shipping-agents.md) |
 | **`airlines.dat`** | 全球航空公司主数据 | OpenFlights 数据集 + 官方字典增强 | OpenFlights | [OpenFlights Airline Database](https://openflights.org/data.html) |
 
 ---
@@ -26,6 +27,9 @@
 在项目根目录下执行：
 
 ```bash
+# 补齐 29 条船代公共主数据（保留管理员改名、排序和停用状态）
+pnpm run sync:shipping-agents
+
 # 同步全球船公司主数据（自动导入 358+ 家船司、航运联盟分类、BIC 箱号前缀与中文对照）
 pnpm run sync:shipping-lines
 
@@ -125,3 +129,11 @@ go -C server run ./cmd/sync-airlines -source /path/to/airlines.dat -apply
    - 执行带 `-apply` 落库，系统将自动对比 SHA-256 并平滑增量更新。
    - 随同业务代码或单测提交 Git。
 
+
+## 船代公共目录
+
+新环境先执行正式迁移，再执行 `pnpm run sync:all`，其中已包含
+`pnpm run sync:shipping-agents`。船代种子只由该离线同步入口写入，SQL 迁移只维护
+类型、约束及旧引用检查。单独离线预览可运行
+`go -C server run ./cmd/sync-shipping-agents`，不要求数据库连接。
+重复执行按 `(kind,code)` 补缺，不覆盖管理员维护结果，不自动停用现有行。

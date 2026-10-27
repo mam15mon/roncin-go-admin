@@ -93,6 +93,22 @@ func (r *masterDataRepo) List(ctx context.Context, _ uuid.UUID, options biz.Mast
 	}, options.Page, options.PageSize, infalliblePageConverter(masterDataItemToBiz))
 }
 
+func (r *masterDataRepo) ListAll(ctx context.Context, kind biz.MasterDataKind, enabled *bool) ([]*biz.MasterDataItem, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	query := client.MasterDataItem.Query().Where(masterdataent.KindEQ(masterdataent.Kind(kind)))
+	if enabled != nil {
+		query.Where(masterdataent.EnabledEQ(*enabled))
+	}
+	items, err := query.Order(masterdataent.BySortOrder(), masterdataent.ByCode()).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return masterDataItemsToBiz(items), nil
+}
+
 func (r *masterDataRepo) ListEnabled(ctx context.Context, _ uuid.UUID) ([]*biz.MasterDataItem, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {

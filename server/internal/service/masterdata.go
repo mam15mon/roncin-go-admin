@@ -133,6 +133,18 @@ func (s *MasterDataService) ListItems(ctx context.Context, request *v1.ListItems
 	return okList(ctx, &v1.ListItemsResponse{Data: masterDataItemsToAPI(list.Items), Total: int32(list.Total), Page: int32(list.Page), PageSize: int32(list.PageSize)}), nil
 }
 
+func (s *MasterDataService) ListAllItems(ctx context.Context, request *v1.ListAllItemsRequest) (*v1.ListAllItemsResponse, error) {
+	principal, err := requirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	items, err := s.usecase.ListAll(ctx, principal.Organization.ID, masterDataKindFromAPI(request.GetKind()), request.Enabled)
+	if err != nil {
+		return nil, err
+	}
+	return okList(ctx, &v1.ListAllItemsResponse{Data: masterDataItemsToAPI(items), Total: int32(len(items))}), nil
+}
+
 func (s *MasterDataService) CreateItem(ctx context.Context, request *v1.CreateItemRequest) (*v1.CreateItemResponse, error) {
 	principal, err := requirePrincipal(ctx)
 	if err != nil {
@@ -453,6 +465,8 @@ func masterDataKindFromAPI(value v1.MasterDataKind) biz.MasterDataKind {
 		return biz.MasterDataKindContainerSpec
 	case v1.MasterDataKind_MASTER_DATA_KIND_CARGO_CATEGORY:
 		return biz.MasterDataKindCargoCategory
+	case v1.MasterDataKind_MASTER_DATA_KIND_SHIPPING_AGENT:
+		return biz.MasterDataKindShippingAgent
 	case v1.MasterDataKind_MASTER_DATA_KIND_ABNORMAL_CASE:
 		return biz.MasterDataKindAbnormalCase
 	default:
@@ -472,6 +486,8 @@ func masterDataKindToAPI(value biz.MasterDataKind) v1.MasterDataKind {
 		return v1.MasterDataKind_MASTER_DATA_KIND_CONTAINER_SPEC
 	case biz.MasterDataKindCargoCategory:
 		return v1.MasterDataKind_MASTER_DATA_KIND_CARGO_CATEGORY
+	case biz.MasterDataKindShippingAgent:
+		return v1.MasterDataKind_MASTER_DATA_KIND_SHIPPING_AGENT
 	case biz.MasterDataKindAbnormalCase:
 		return v1.MasterDataKind_MASTER_DATA_KIND_ABNORMAL_CASE
 	default:

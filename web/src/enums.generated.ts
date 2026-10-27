@@ -247,6 +247,7 @@ export const MasterDataKind = {
   MASTER_DATA_KIND_CONTAINER_SPEC: 7,
   MASTER_DATA_KIND_CARGO_CATEGORY: 9,
   MASTER_DATA_KIND_ABNORMAL_CASE: 10,
+  MASTER_DATA_KIND_SHIPPING_AGENT: 11,
 } as const;
 
 export type MasterDataKind = (typeof MasterDataKind)[keyof typeof MasterDataKind];

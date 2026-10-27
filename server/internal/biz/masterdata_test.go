@@ -27,6 +27,10 @@ func (s *masterDataRepoStub) List(_ context.Context, _ uuid.UUID, options Master
 	return &MasterDataList{Page: options.Page, PageSize: options.PageSize}, nil
 }
 
+func (s *masterDataRepoStub) ListAll(context.Context, MasterDataKind, *bool) ([]*MasterDataItem, error) {
+	return nil, nil
+}
+
 func (s *masterDataRepoStub) ListEnabled(context.Context, uuid.UUID) ([]*MasterDataItem, error) {
 	return nil, nil
 }
@@ -498,5 +502,27 @@ func TestMasterDataCreateRejectsBranchContext(t *testing.T) {
 	_, err := usecase.Create(ctx, uuid.New(), uuid.New(), &MasterDataItem{Kind: MasterDataKindCurrency, Code: "CNY", Name: "人民币"})
 	if err != ErrMasterDataSystemRequired {
 		t.Fatalf("分支上下文写 A 型主数据应返回 403 业务错误，实际 %v", err)
+	}
+}
+
+func TestMasterDataShippingAgentWorkspaceWrite(t *testing.T) {
+	organizationID, actorID := uuid.New(), uuid.New()
+	for _, company := range []bool{false, true} {
+		repo := &masterDataRepoStub{}
+		uc := NewMasterDataUsecase(repo)
+		ctx := headquartersMasterDataContext()
+		if company {
+			ctx = principalContext(companyPrincipal("system.master_data.item.create", "system.master_data.item.update"))
+		}
+		input := &MasterDataItem{Kind: MasterDataKindShippingAgent, Code: "CUSTOM-AGENT", Name: "手工船代", Enabled: true}
+		_, createErr := uc.Create(ctx, organizationID, actorID, input)
+		_, updateErr := uc.Update(ctx, organizationID, actorID, uuid.New(), input)
+		if company {
+			if createErr != ErrMasterDataSystemRequired || updateErr != ErrMasterDataSystemRequired || repo.created != nil || repo.updated != nil {
+				t.Fatalf("公司同名权限不能写公共船代: create=%v update=%v", createErr, updateErr)
+			}
+		} else if createErr != nil || updateErr != nil || repo.created == nil || repo.updated == nil {
+			t.Fatalf("系统工作台应可写船代: create=%v update=%v", createErr, updateErr)
+		}
 	}
 }

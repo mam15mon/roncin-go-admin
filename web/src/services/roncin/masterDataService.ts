@@ -173,6 +173,21 @@ export async function masterDataServiceUpdateItem(
   );
 }
 
+/** ListAllItems 为小型主数据维护页返回完整目录，包含停用项。 GET /api/v1/master-data/items/all */
+export async function masterDataServiceListAllItems(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.MasterDataServiceListAllItemsParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListAllItemsResponse>("/api/v1/master-data/items/all", {
+    method: "GET",
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
 /** 此处后端没有提供注释 GET /api/v1/master-data/number-rules */
 export async function masterDataServiceListNumberRules(options?: {
   [key: string]: any;

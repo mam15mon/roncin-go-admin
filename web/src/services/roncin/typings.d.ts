@@ -3842,6 +3842,15 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ListAllItemsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: MasterDataItem[];
+    total?: number;
+    traceId?: string;
+  };
+
   type ListAttachmentsResponse = {
     success?: boolean;
     code?: number;
@@ -4821,6 +4830,11 @@ declare namespace API {
     page?: number;
     pageSize?: number;
     keyword?: string;
+    enabled?: boolean;
+  };
+
+  type MasterDataServiceListAllItemsParams = {
+    kind?: number;
     enabled?: boolean;
   };
 

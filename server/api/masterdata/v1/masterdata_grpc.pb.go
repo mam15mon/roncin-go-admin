@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	MasterDataService_ListItems_FullMethodName                 = "/masterdata.v1.MasterDataService/ListItems"
+	MasterDataService_ListAllItems_FullMethodName              = "/masterdata.v1.MasterDataService/ListAllItems"
 	MasterDataService_CreateItem_FullMethodName                = "/masterdata.v1.MasterDataService/CreateItem"
 	MasterDataService_UpdateItem_FullMethodName                = "/masterdata.v1.MasterDataService/UpdateItem"
 	MasterDataService_ImportItems_FullMethodName               = "/masterdata.v1.MasterDataService/ImportItems"
@@ -51,6 +52,8 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MasterDataServiceClient interface {
 	ListItems(ctx context.Context, in *ListItemsRequest, opts ...grpc.CallOption) (*ListItemsResponse, error)
+	// ListAllItems 为小型主数据维护页返回完整目录，包含停用项。
+	ListAllItems(ctx context.Context, in *ListAllItemsRequest, opts ...grpc.CallOption) (*ListAllItemsResponse, error)
 	CreateItem(ctx context.Context, in *CreateItemRequest, opts ...grpc.CallOption) (*CreateItemResponse, error)
 	UpdateItem(ctx context.Context, in *UpdateItemRequest, opts ...grpc.CallOption) (*UpdateItemResponse, error)
 	ImportItems(ctx context.Context, in *ImportItemsRequest, opts ...grpc.CallOption) (*ImportItemsResponse, error)
@@ -90,6 +93,16 @@ func (c *masterDataServiceClient) ListItems(ctx context.Context, in *ListItemsRe
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListItemsResponse)
 	err := c.cc.Invoke(ctx, MasterDataService_ListItems_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *masterDataServiceClient) ListAllItems(ctx context.Context, in *ListAllItemsRequest, opts ...grpc.CallOption) (*ListAllItemsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAllItemsResponse)
+	err := c.cc.Invoke(ctx, MasterDataService_ListAllItems_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -341,6 +354,8 @@ func (c *masterDataServiceClient) UpdateNumberRule(ctx context.Context, in *Upda
 // for forward compatibility.
 type MasterDataServiceServer interface {
 	ListItems(context.Context, *ListItemsRequest) (*ListItemsResponse, error)
+	// ListAllItems 为小型主数据维护页返回完整目录，包含停用项。
+	ListAllItems(context.Context, *ListAllItemsRequest) (*ListAllItemsResponse, error)
 	CreateItem(context.Context, *CreateItemRequest) (*CreateItemResponse, error)
 	UpdateItem(context.Context, *UpdateItemRequest) (*UpdateItemResponse, error)
 	ImportItems(context.Context, *ImportItemsRequest) (*ImportItemsResponse, error)
@@ -378,6 +393,9 @@ type UnimplementedMasterDataServiceServer struct{}
 
 func (UnimplementedMasterDataServiceServer) ListItems(context.Context, *ListItemsRequest) (*ListItemsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListItems not implemented")
+}
+func (UnimplementedMasterDataServiceServer) ListAllItems(context.Context, *ListAllItemsRequest) (*ListAllItemsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListAllItems not implemented")
 }
 func (UnimplementedMasterDataServiceServer) CreateItem(context.Context, *CreateItemRequest) (*CreateItemResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateItem not implemented")
@@ -486,6 +504,24 @@ func _MasterDataService_ListItems_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MasterDataServiceServer).ListItems(ctx, req.(*ListItemsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MasterDataService_ListAllItems_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAllItemsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterDataServiceServer).ListAllItems(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterDataService_ListAllItems_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterDataServiceServer).ListAllItems(ctx, req.(*ListAllItemsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -932,6 +968,10 @@ var MasterDataService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListItems",
 			Handler:    _MasterDataService_ListItems_Handler,
+		},
+		{
+			MethodName: "ListAllItems",
+			Handler:    _MasterDataService_ListAllItems_Handler,
 		},
 		{
 			MethodName: "CreateItem",
