@@ -455,3 +455,27 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Next Steps
 
 - 用户需要初始化时运行pnpm run sync:all或sync:unlocode；本次未对业务库apply，长尾译名可按业务反馈修订。
+
+
+## Session 167: 船代公共主数据与订单选择交付
+<!-- trellis-session: v=2 fp=bd2cebb1f8f2413d -->
+
+**Date**: 2026-10-27
+**Task**: 船代公共主数据与订单选择交付
+**Branch**: `codex/shipping-agent-masterdata`
+
+### Summary
+
+船代29条离线同步接入sync:all；系统管理维护，订单引用公共字典；隔离PostgreSQL和check:fast通过，独立review完成。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `e68326f0` | feat: 接入船代公共主数据与订单引用 |
+| `1106f9bf` | feat: 增加船代维护页与海运订单选择 |
+| `66d47948` | docs: 记录船代同步与引用契约 |
+
+### Status
+
+[OK] **Completed**
