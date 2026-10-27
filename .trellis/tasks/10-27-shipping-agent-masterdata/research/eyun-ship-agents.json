@@ -1,0 +1,298 @@
+{
+  "success": true,
+  "code": 0,
+  "msg": null,
+  "data": [
+    {
+      "id": 1269566,
+      "key": "中联运通",
+      "value": "中联运通",
+      "enValue": "中联运通",
+      "aliasNames": null,
+      "order": 29,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 2942,
+      "key": "中港联船代",
+      "value": "中港联船代",
+      "enValue": "中港联船代",
+      "aliasNames": null,
+      "order": 28,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 2941,
+      "key": "中远船代",
+      "value": "中远船代",
+      "enValue": "中远船代",
+      "aliasNames": null,
+      "order": 27,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 2940,
+      "key": "联合船代",
+      "value": "联合船代",
+      "enValue": "联合船代",
+      "aliasNames": null,
+      "order": 26,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 2939,
+      "key": "中创船代",
+      "value": "中创船代",
+      "enValue": "中创船代",
+      "aliasNames": null,
+      "order": 25,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 2938,
+      "key": "青岛振华",
+      "value": "青岛振华",
+      "enValue": "青岛振华",
+      "aliasNames": null,
+      "order": 24,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 2937,
+      "key": "青岛外代",
+      "value": "青岛外代",
+      "enValue": "青岛外代",
+      "aliasNames": null,
+      "order": 23,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 2936,
+      "key": "青岛外运",
+      "value": "青岛外运",
+      "enValue": "青岛外运",
+      "aliasNames": null,
+      "order": 22,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 2935,
+      "key": "青港货运",
+      "value": "青港货运",
+      "enValue": "青港货运",
+      "aliasNames": null,
+      "order": 21,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 2586,
+      "key": "上海中联",
+      "value": "上海中联",
+      "enValue": "Shanghai zhonglian",
+      "aliasNames": null,
+      "order": 20,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 2280,
+      "key": "湖南远洋国际货运代理有限公司",
+      "value": "湖南远洋国际货运代理有限公司",
+      "enValue": "湖南远洋国际货运代理有限公司",
+      "aliasNames": null,
+      "order": 19,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 2279,
+      "key": "中国岳阳外轮代理有限公司",
+      "value": "中国岳阳外轮代理有限公司",
+      "enValue": "中国岳阳外轮代理有限公司",
+      "aliasNames": null,
+      "order": 18,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 2278,
+      "key": "岳阳华光源海国际船务代理有限公司",
+      "value": "岳阳华光源海国际船务代理有限公司",
+      "enValue": "岳阳华光源海国际船务代理有限公司",
+      "aliasNames": null,
+      "order": 17,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 2058,
+      "key": "上海鹏海",
+      "value": "上海鹏海",
+      "enValue": "Shanghai penghai",
+      "aliasNames": null,
+      "order": 16,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 1568,
+      "key": "中远海船代",
+      "value": "中远海船代",
+      "enValue": "中远海船代",
+      "aliasNames": null,
+      "order": 15,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 1567,
+      "key": "上海联东船代",
+      "value": "上海联东船代",
+      "enValue": "上海联东船代",
+      "aliasNames": null,
+      "order": 14,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 1566,
+      "key": "东方海外",
+      "value": "东方海外",
+      "enValue": "OOCL",
+      "aliasNames": null,
+      "order": 13,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 1565,
+      "key": "锦诚",
+      "value": "锦诚",
+      "enValue": "JinCheng",
+      "aliasNames": null,
+      "order": 12,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 1564,
+      "key": "新海",
+      "value": "新海",
+      "enValue": "XinHai",
+      "aliasNames": null,
+      "order": 11,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 1563,
+      "key": "上海振华",
+      "value": "上海振华",
+      "enValue": "Shanghai zhenhua",
+      "aliasNames": null,
+      "order": 10,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 1560,
+      "key": "上海鹏华",
+      "value": "上海鹏华",
+      "enValue": "Shanghai penghua",
+      "aliasNames": null,
+      "order": 7,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 1559,
+      "key": "上海民生",
+      "value": "上海民生",
+      "enValue": "Shanghai Minsheng",
+      "aliasNames": null,
+      "order": 6,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 1558,
+      "key": "上海航华",
+      "value": "上海航华",
+      "enValue": "Shanghai HanghaiHua",
+      "aliasNames": null,
+      "order": 5,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 1557,
+      "key": "上海顺德",
+      "value": "上海顺德",
+      "enValue": "Shanghai shunde",
+      "aliasNames": null,
+      "order": 4,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 1556,
+      "key": "上海华港",
+      "value": "上海华港",
+      "enValue": "Shanghai Huagang",
+      "aliasNames": null,
+      "order": 3,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 1555,
+      "key": "上港联合",
+      "value": "上港联合",
+      "enValue": "Shanghai Port United",
+      "aliasNames": null,
+      "order": 2,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 1554,
+      "key": "上海中外运",
+      "value": "上海中外运",
+      "enValue": "Shanghai Sinotrans",
+      "aliasNames": null,
+      "order": 1,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 1553,
+      "key": "上海外代",
+      "value": "上海外代",
+      "enValue": "Shanghai waidai",
+      "aliasNames": null,
+      "order": 0,
+      "type": 0,
+      "code": null
+    },
+    {
+      "id": 2331,
+      "key": "上海华洋国际物流有限公司",
+      "value": "上海华洋国际物流有限公司",
+      "enValue": "上海华洋国际物流有限公司",
+      "aliasNames": null,
+      "order": 0,
+      "type": 0,
+      "code": null
+    }
+  ],
+  "additional": null
+}

@@ -1,0 +1,14 @@
+{"file": ".trellis/spec/server/backend/index.md", "reason": "后端分层与生成边界"}
+{"file": ".trellis/spec/server/backend/organization-shared-masterdata.md", "reason": "系统管理统一维护和初始化契约"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "Ent/正式迁移/CHECK/事务锁"}
+{"file": ".trellis/spec/server/backend/partner-role-blacklist.md", "reason": "相邻代理公司角色与黑名单保持"}
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "前端模块边界与模板"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "React Query和写结果守卫"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "主数据模板及请求协议"}
+{"file": ".trellis/spec/adr/0006-pagination-limit-and-masterdata-strategy.md", "reason": "小数据全量与本地分页"}
+{"file": ".trellis/spec/adr/0007-pinyin-search-keys.md", "reason": "选择器拼音搜索"}
+{"file": ".trellis/tasks/10-27-shipping-agent-masterdata/research/backend.md", "reason": "后端具体入口与迁移前态"}
+{"file": ".trellis/tasks/10-27-shipping-agent-masterdata/research/frontend.md", "reason": "前端入口、seed与过滤注意点"}
+{"file": ".trellis/tasks/10-27-shipping-agent-masterdata/research/source.md", "reason": "来源快照与29条验证"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "真实数据库验证与迁移前态"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "定向测试与前端门禁"}
