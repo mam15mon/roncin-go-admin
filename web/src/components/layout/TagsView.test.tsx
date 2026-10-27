@@ -93,7 +93,7 @@ describe('routeUtils', () => {
       expect(resolveRouteTitle('/partners')).toBe('客户');
       expect(resolveRouteTitle('/orders/detail')).toBe('订单管理');
       expect(resolveRouteTitle('/orders/sea-export')).toBe('海运出口订单列表');
-      expect(resolveRouteTitle('/orders/sea-export/new')).toBe('新建订单');
+      expect(resolveRouteTitle('/orders/sea-export/new')).toBe('SE 新建订单');
       // 订单动态路由统一使用中性占位标题，具体订单页加载后回填真实标题
       expect(resolveRouteTitle('/orders/sea-export/SE2026082600004')).toBe(
         '订单详情',
@@ -107,8 +107,8 @@ describe('routeUtils', () => {
       // 未注册订单类型不再伪装成已知业务，回落到订单管理中性标题
       expect(resolveRouteTitle('/orders/sea-import')).toBe('订单管理');
       expect(resolveRouteTitle('/orders/sea-import/new')).toBe('订单管理');
-      expect(resolveRouteTitle('/orders/air-export')).toBe('订单管理');
-      expect(resolveRouteTitle('/orders/air-export/new')).toBe('订单管理');
+      expect(resolveRouteTitle('/orders/air-export')).toBe('空运出口订单列表');
+      expect(resolveRouteTitle('/orders/air-export/new')).toBe('AE 新建订单');
       expect(resolveRouteTitle('/orders/air-export/AE2026082600001')).toBe(
         '订单详情',
       );
@@ -335,12 +335,15 @@ describe('TagsView Component', () => {
     expect(screen.queryByLabelText('关闭 工作台')).not.toBeInTheDocument();
   });
 
-  it('直接打开海运出口新建订单时，只建立工作台和海运出口 1 个业务页签', () => {
-    mockPathname = '/orders/sea-export/new';
+  it.each([
+    ['/orders/sea-export/new', 'SE 新建订单'],
+    ['/orders/air-export/new', 'AE 新建订单'],
+  ])('直接打开 %s 时展示 %s，且只建立一个业务页签', (path, title) => {
+    mockPathname = path;
     render(<TagsView />);
 
     expect(screen.getByText('工作台')).toBeInTheDocument();
-    expect(screen.getByText('新建订单')).toBeInTheDocument();
+    expect(screen.getByText(title)).toBeInTheDocument();
     // 只有 2 个 tab
     const tabs = screen.getAllByRole('tab');
     expect(tabs.length).toBe(2);
@@ -357,7 +360,7 @@ describe('TagsView Component', () => {
     mockPathname = '/orders/sea-export/new';
     rerender(<TagsView />);
     expect(screen.getAllByRole('tab').length).toBe(2);
-    expect(screen.getByText('新建订单')).toBeInTheDocument();
+    expect(screen.getByText('SE 新建订单')).toBeInTheDocument();
     expect(screen.queryByText('海运出口订单列表')).not.toBeInTheDocument();
 
     // 跳转至订单详情
@@ -478,7 +481,7 @@ describe('TagsView Component', () => {
     // 用户跳转到新建页面
     mockPathname = '/orders/sea-export/new';
     rerender(<TagsView />);
-    expect(screen.getByText('新建订单')).toBeInTheDocument();
+    expect(screen.getByText('SE 新建订单')).toBeInTheDocument();
 
     // 之前 SE001 迟到的标题事件到达，应被门禁拦截，不能覆盖新建页面的标题
     act(() => {
@@ -492,7 +495,7 @@ describe('TagsView Component', () => {
       );
     });
 
-    expect(screen.getByText('新建订单')).toBeInTheDocument();
+    expect(screen.getByText('SE 新建订单')).toBeInTheDocument();
     expect(screen.queryByText('迟到的SE001标题')).not.toBeInTheDocument();
   });
 
@@ -800,7 +803,7 @@ describe('TagsView Component', () => {
 
     const modalSpy = spyOnConfirm();
 
-    const closeBtn = screen.getByLabelText('关闭 新建订单');
+    const closeBtn = screen.getByLabelText('关闭 SE 新建订单');
     act(() => {
       fireEvent.click(closeBtn);
     });
@@ -813,7 +816,7 @@ describe('TagsView Component', () => {
     expect(modalArgs.cancelText).toBe('取消');
 
     // 未执行 onOk，页签依然存在，未跳转
-    expect(screen.getByText('新建订单')).toBeInTheDocument();
+    expect(screen.getByText('SE 新建订单')).toBeInTheDocument();
     expect(mockPush).not.toHaveBeenCalled();
 
     modalSpy.mockRestore();
@@ -878,7 +881,7 @@ describe('TagsView Component', () => {
     );
 
     // 取消时，海运出口页签依然存在
-    expect(screen.getByText('新建订单')).toBeInTheDocument();
+    expect(screen.getByText('SE 新建订单')).toBeInTheDocument();
 
     // 确认后，其他标签页被关闭
     act(() => {
@@ -887,7 +890,7 @@ describe('TagsView Component', () => {
     // 右键菜单弹层的关闭动画需收敛，避免用例结束后更新迟到
     await settleDropdownPopup();
 
-    expect(screen.queryByText('新建订单')).not.toBeInTheDocument();
+    expect(screen.queryByText('SE 新建订单')).not.toBeInTheDocument();
     expect(screen.getByText('客户')).toBeInTheDocument();
 
     modalSpy.mockRestore();
