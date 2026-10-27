@@ -127,7 +127,7 @@ describe('OrderFeeTableTabs 账单投影相关操作', () => {
       </App>,
     );
 
-    await screen.findByText(`${today} 00:00`);
+    await screen.findByText(/^编\s*辑$/);
     await act(async () => {
       screen.getAllByRole('button', { name: /编\s*辑/ })[0].click();
     });

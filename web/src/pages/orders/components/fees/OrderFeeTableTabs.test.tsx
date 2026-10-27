@@ -480,7 +480,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
       </App>,
     );
 
-    await screen.findByText(`${today} 00:00`);
+    await screen.findByText(/^编\s*辑$/);
     await act(async () => {
       screen.getByRole('button', { name: /编\s*辑/ }).click();
     });
@@ -553,7 +553,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
       </App>,
     );
 
-    await screen.findByText(`${today} 00:00`);
+    await screen.findByText(/^编\s*辑$/);
     await act(async () => {
       screen.getByRole('button', { name: /编\s*辑/ }).click();
     });

@@ -123,7 +123,7 @@ describe('OrderFeeTableTabs 计算列实时预览', () => {
       </App>,
     );
 
-    await screen.findByText(`${today} 00:00`);
+    await screen.findByText(/^编\s*辑$/);
     await act(async () => {
       screen.getByRole('button', { name: /编\s*辑/ }).click();
     });
@@ -204,7 +204,7 @@ describe('OrderFeeTableTabs 计算列实时预览', () => {
       </App>,
     );
 
-    await screen.findByText(`${today} 00:00`);
+    await screen.findByText(/^编\s*辑$/);
     await act(async () => {
       screen.getByRole('button', { name: /编\s*辑/ }).click();
     });
