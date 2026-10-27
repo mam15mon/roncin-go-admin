@@ -167,7 +167,7 @@ describe('客商真实路由离开保护', () => {
     await act(async () => {
       await router.navigate(1);
     });
-    fireEvent.change(screen.getByLabelText('未保存内容'), {
+    fireEvent.change(await screen.findByLabelText('未保存内容'), {
       target: { value: '新修改' },
     });
     await act(async () => {
@@ -208,7 +208,7 @@ describe('客商真实路由离开保护', () => {
     await act(async () => {
       await router.navigate(-1);
     });
-    fireEvent.change(screen.getByLabelText('未保存内容'), {
+    fireEvent.change(await screen.findByLabelText('未保存内容'), {
       target: { value: '再修改' },
     });
     confirmIfTabsDirty(
