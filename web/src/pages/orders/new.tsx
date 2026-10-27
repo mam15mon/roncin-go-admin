@@ -20,7 +20,11 @@ import {
 import { isWriteResponse } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { generateUUID } from '@/utils/uuid';
-import { PARTNER_ROLES, searchPartnersByRole } from './common';
+import {
+  PARTNER_ROLES,
+  searchPartnersByRole,
+  searchShippingAgentOptions,
+} from './common';
 import OrderPageHeader from './components/OrderPageHeader';
 import type { CreateOrderFormValues } from './order-kinds/form-values';
 import { getOrderKindDefinition } from './order-kinds/registry';
@@ -157,8 +161,7 @@ function NewOrderContent({
         searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword),
       searchForeignAgents: (keyword?: string) =>
         searchPartnersByRole(PARTNER_ROLES.FOREIGN_AGENT, keyword),
-      searchShippingAgents: (keyword?: string) =>
-        searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword),
+      searchShippingAgents: searchShippingAgentOptions,
       setCustomerCode: (code?: string) =>
         formRef.current?.setFieldValue('customerCode', code ?? ''),
       personnelOptions,

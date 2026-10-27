@@ -79,7 +79,12 @@ describe('组织切换功能落点', () => {
       path: '/welcome',
       accessDenied: true,
     });
-    expect(destination('/orders/air-export/old', capabilities(['business.order.ae.read']))).toEqual({
+    expect(
+      destination(
+        '/orders/air-export/old',
+        capabilities(['business.order.ae.read']),
+      ),
+    ).toEqual({
       path: '/orders/air-export',
       accessDenied: false,
     });
@@ -168,6 +173,19 @@ describe('组织切换功能落点', () => {
     expect(destination('/master-data?tab=currencies', state)).toEqual({
       path: '/welcome',
       accessDenied: true,
+    });
+    expect(destination('/master-data?tab=shipping-agents', state)).toEqual({
+      path: '/welcome',
+      accessDenied: true,
+    });
+    expect(
+      destination(
+        '/master-data?tab=shipping-agents&page=2',
+        capabilities(['system.master_data.item.read']),
+      ),
+    ).toEqual({
+      path: '/master-data?tab=shipping-agents',
+      accessDenied: false,
     });
   });
 

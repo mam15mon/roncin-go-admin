@@ -4,12 +4,14 @@ import {
   MASTER_DATA_KINDS,
   searchOrderLocations,
   searchPartnersByRole,
+  searchShippingAgentOptions,
 } from './common';
 
 const listItems = vi.hoisted(() => vi.fn());
 const listPorts = vi.hoisted(() => vi.fn());
 const listAirports = vi.hoisted(() => vi.fn());
 const listPartners = vi.hoisted(() => vi.fn());
+const searchOptions = vi.hoisted(() => vi.fn());
 
 vi.mock('@/services/roncin/masterDataService', () => ({
   masterDataServiceListItems: listItems,
@@ -17,6 +19,7 @@ vi.mock('@/services/roncin/masterDataService', () => ({
   masterDataServiceListAirports: listAirports,
   masterDataServiceListCurrencies: vi.fn(),
   masterDataServiceListOptions: vi.fn(),
+  masterDataServiceSearchOptions: searchOptions,
 }));
 
 vi.mock('@/services/roncin/partnerService', () => ({
@@ -77,6 +80,32 @@ describe('订单远程候选项', () => {
       pageSize: 50,
     });
   });
+
+  it('船代按拼音关键词查询公共字典，不读取公司供应商', async () => {
+    searchOptions.mockResolvedValue({
+      data: [{ id: 'agent-1', name: '上海船代', code: 'HGJ-1' }],
+    });
+    expect(await searchShippingAgentOptions('shcd')).toEqual([
+      { label: '上海船代', value: 'agent-1', code: 'HGJ-1' },
+    ]);
+    expect(searchOptions).toHaveBeenCalledWith({
+      kind: 11,
+      keyword: 'shcd',
+      page: 1,
+      pageSize: 50,
+    });
+    expect(listPartners).not.toHaveBeenCalled();
+  });
+
+  it.each([undefined, { success: false }])(
+    '船代搜索返回失败 %s 时显式报错',
+    async (response) => {
+      searchOptions.mockResolvedValue(response);
+      await expect(searchShippingAgentOptions('shcd')).rejects.toThrow(
+        '船代搜索失败，请稍后重试',
+      );
+    },
+  );
 
   it.each(['land', 'rail'] as const)(
     '未开放的 %s 运输方式显式抛错，不落入机场分支',

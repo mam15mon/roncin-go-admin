@@ -18,6 +18,7 @@ import CitiesPanel from './components/CitiesPanel';
 import CountriesPanel from './components/CountriesPanel';
 import CurrenciesPanel from './components/CurrenciesPanel';
 import PortsPanel from './components/PortsPanel';
+import ShippingAgentsPanel from './components/ShippingAgentsPanel';
 import ShippingLinesPanel from './components/ShippingLinesPanel';
 
 export default function MasterDataPage() {
@@ -60,6 +61,14 @@ export default function MasterDataPage() {
       children: <ShippingLinesPanel />,
     },
     {
+      key: 'shipping-agents',
+      label: '船代',
+      icon: <GlobalOutlined />,
+      visible: isWorkspaceTabVisible('/master-data', 'shipping-agents', access),
+      tooltip: '维护各公司共享的船代名称、编码与启用状态',
+      children: <ShippingAgentsPanel />,
+    },
+    {
       key: 'countries',
       label: '国家与地区',
       icon: <GlobalOutlined />,
@@ -89,7 +98,7 @@ export default function MasterDataPage() {
   return (
     <MultiTabCenterTemplate
       title="货代主数据管理中心"
-      subTitle="统一维护全球港口五字码、机场三字码、航司二字码、船司 SCAC、国家城市及货币币种基础资料"
+      subTitle="统一维护全球港口五字码、机场三字码、航司二字码、船司 SCAC、船代、国家城市及货币币种基础资料"
       items={tabItems}
       defaultActiveKey="ports"
       syncUrlQuery

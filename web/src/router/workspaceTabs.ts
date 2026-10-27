@@ -46,6 +46,10 @@ export const workspaceTabs = {
       key: 'shipping-lines',
       visible: (access) => access.canReadMasterDataShippingLines,
     },
+    {
+      key: 'shipping-agents',
+      visible: (access) => access.canReadMasterDataItems,
+    },
     { key: 'countries', visible: (access) => access.canReadMasterDataItems },
     {
       key: 'cities',

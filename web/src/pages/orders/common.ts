@@ -27,6 +27,7 @@ import {
   masterDataServiceListAirports,
   masterDataServiceListItems,
   masterDataServiceListPorts,
+  masterDataServiceSearchOptions,
 } from '@/services/roncin/masterDataService';
 import { ensureListResponse, unwrapList } from '@/utils/api';
 import type { OrderTransportMode } from './order-kinds/types';
@@ -189,6 +190,26 @@ export async function searchPartnersByRole(
   keyword?: string,
 ): Promise<{ label: string; value: string; code?: string }[]> {
   return searchPartnerOptions(keyword, { role, enabled: true });
+}
+
+/** 船代使用公共字典，与公司经营档案中的订舱代理、国外代理分开查询。 */
+export async function searchShippingAgentOptions(keyword?: string) {
+  const response = await masterDataServiceSearchOptions({
+    kind: MasterDataKind.MASTER_DATA_KIND_SHIPPING_AGENT,
+    keyword,
+    page: 1,
+    pageSize: 50,
+  });
+  if (response?.success === false) throw new Error('船代搜索失败，请稍后重试');
+  return unwrapList(ensureListResponse(response, '船代搜索失败，请稍后重试'))
+    .filter((item): item is API.MasterDataItem & { id: string; name: string } =>
+      Boolean(item.id && item.name),
+    )
+    .map((item) => ({
+      label: item.name,
+      value: item.id,
+      code: item.code,
+    }));
 }
 
 /** 陆运/铁路的地点与站点主数据尚未开放；共享代码必须显式关闭，不得静默落入 sea/air 实现。 */

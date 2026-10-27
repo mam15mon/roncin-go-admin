@@ -46,6 +46,9 @@ vi.mock('./components/AirlinesPanel', () => ({
 vi.mock('./components/ShippingLinesPanel', () => ({
   default: () => <div data-testid="shipping-lines-panel">船公司面板</div>,
 }));
+vi.mock('./components/ShippingAgentsPanel', () => ({
+  default: () => <div data-testid="shipping-agents-panel">船代面板</div>,
+}));
 vi.mock('./components/CountriesPanel', () => ({
   default: () => <div data-testid="countries-panel">国家与地区面板</div>,
 }));
@@ -65,13 +68,13 @@ describe('MasterDataPage (主数据中心多Tab模板)', () => {
     cleanup();
   });
 
-  it('正确渲染主数据中心标题、副标题与7个业务Tab', () => {
+  it('正确渲染主数据中心标题、副标题与8个业务Tab', () => {
     render(<MasterDataPage />);
 
     expect(screen.getByText('货代主数据管理中心')).toBeInTheDocument();
     expect(
       screen.getByText(
-        '统一维护全球港口五字码、机场三字码、航司二字码、船司 SCAC、国家城市及货币币种基础资料',
+        '统一维护全球港口五字码、机场三字码、航司二字码、船司 SCAC、船代、国家城市及货币币种基础资料',
       ),
     ).toBeInTheDocument();
 
@@ -79,6 +82,7 @@ describe('MasterDataPage (主数据中心多Tab模板)', () => {
     expect(screen.getByText('空运机场')).toBeInTheDocument();
     expect(screen.getByText('航空公司')).toBeInTheDocument();
     expect(screen.getByText('船公司')).toBeInTheDocument();
+    expect(screen.getByText('船代')).toBeInTheDocument();
     expect(screen.getByText('国家与地区')).toBeInTheDocument();
     expect(screen.getByText('城市区划')).toBeInTheDocument();
     expect(screen.getByText('货币币种')).toBeInTheDocument();

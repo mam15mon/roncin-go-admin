@@ -47,7 +47,11 @@ import { generateUUID } from '@/utils/uuid';
 import AbnormalCasePanel, {
   type AbnormalCasePanelRef,
 } from './abnormal-case-panel';
-import { PARTNER_ROLES, searchPartnersByRole } from './common';
+import {
+  PARTNER_ROLES,
+  searchPartnersByRole,
+  searchShippingAgentOptions,
+} from './common';
 import { buildOrderRecordsSection } from './components/detail/OrderAuditTimelineSection';
 import OrderDetailHeader from './components/detail/OrderDetailHeader';
 import { buildOrderStatusSection } from './components/detail/OrderStatusSection';
@@ -367,8 +371,7 @@ export default function OrderDetailPage() {
         foreignAgentSeeds,
       ),
       searchShippingAgents: withSeededOptions(
-        (keyword?: string) =>
-          searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword),
+        searchShippingAgentOptions,
         shippingAgentSeeds,
       ),
       setCustomerCode: (code?: string) =>

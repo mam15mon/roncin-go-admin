@@ -66,6 +66,7 @@ vi.mock('./use-order-create-options', () => ({
 // 页面真实表单挂载即读取这些候选；测试只验证新建编排，不访问本地服务。
 vi.mock('@/services/roncin/masterDataService', () => ({
   masterDataServiceListShippingLines: vi.fn().mockResolvedValue({ data: [] }),
+  masterDataServiceSearchOptions: vi.fn().mockResolvedValue({ data: [] }),
 }));
 
 vi.mock('@/services/roncin/partnerService', () => ({

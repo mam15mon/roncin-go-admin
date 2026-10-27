@@ -606,6 +606,7 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
         name="shippingAgentId"
         label="船代"
         placeholder="请选择"
+        fieldProps={{ filterOption: false }}
         request={async ({ keyWords }: { keyWords?: string }) =>
           searchShippingAgents(keyWords)
         }
