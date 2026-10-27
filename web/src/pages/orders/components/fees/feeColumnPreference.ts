@@ -52,7 +52,7 @@ export interface FeeColumnDef {
   financeOnly?: boolean;
 }
 
-/** 默认列按费用对象、计价输入、原币税额、本币折算、日期备注排列；费用标签与关联账单列默认隐藏。 */
+/** 默认列按费用对象、计价输入、原币税额、本币折算、日期备注排列；录入日期、费用标签与关联账单列默认隐藏。 */
 export const DEFAULT_FEE_COLUMN_DEFS: FeeColumnDef[] = [
   {
     key: 'feeCode',
@@ -127,8 +127,8 @@ export const DEFAULT_FEE_COLUMN_DEFS: FeeColumnDef[] = [
   {
     key: 'createdAt',
     title: '录入日期',
-    lockVisible: true,
-    defaultVisible: true,
+    lockVisible: false,
+    defaultVisible: false,
   },
   { key: 'note', title: '备注', lockVisible: false, defaultVisible: true },
   {

@@ -148,7 +148,7 @@ describe('OrderFeeTableTabs 列设置与只读金额列', () => {
     expect(JSON.parse(stored as string).hidden).toContain('netUnitPrice');
   });
 
-  it('应收应付默认按计价、税额、折算、日期备注顺序展示', async () => {
+  it('应收应付默认按计价、税额、折算、备注顺序展示，隐藏录入日期', async () => {
     render(
       <App>
         <OrderFeeTableTabs {...makeProps('order-1')} />
@@ -180,11 +180,11 @@ describe('OrderFeeTableTabs 列设置与只读金额列', () => {
         '不含税总额',
         '汇率',
         '折本币金额',
-        '录入日期',
         '备注',
         '操作',
       ]);
     }
+    expect(tableHeaderCount('录入日期')).toBe(0);
   });
 
   it('正在编辑费用行时禁用列设置入口（A2）', async () => {

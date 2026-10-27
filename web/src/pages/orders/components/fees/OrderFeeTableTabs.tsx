@@ -1,5 +1,4 @@
 import {
-  ClockCircleOutlined,
   DeleteOutlined,
   DownOutlined,
   EditOutlined,
@@ -9,7 +8,7 @@ import {
   TagsOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { ProFormDatePicker, ProFormTextArea } from '@ant-design/pro-components';
+import { ProFormTextArea } from '@ant-design/pro-components';
 import {
   Alert,
   App,
@@ -20,8 +19,6 @@ import {
   Space,
   Tag,
 } from 'antd';
-import type { Dayjs } from 'dayjs';
-import dayjs from 'dayjs';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
@@ -1437,6 +1434,7 @@ export default function OrderFeeTableTabs({
         title: '录入日期',
         dataIndex: 'createdAt',
         width: 150,
+        editable: false,
         render: (_, record) =>
           record.createdAt ? formatDate(record.createdAt, 'minute') : '-',
       },

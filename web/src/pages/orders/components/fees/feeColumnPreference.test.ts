@@ -16,7 +16,7 @@ const lockedKeys = DEFAULT_FEE_COLUMN_DEFS.filter((def) => def.lockVisible).map(
 );
 
 describe('feeColumnPreference 列定义与默认值', () => {
-  it('录入必备列与操作列必显，税额四列默认可见，标签与关联账单列默认隐藏', () => {
+  it('录入必备列与操作列必显，税额四列默认可见，日期、标签与关联账单列默认隐藏', () => {
     const defaults = defaultFeeColumnPreference(false);
     expect(lockedKeys).toEqual(
       expect.arrayContaining([
@@ -26,14 +26,16 @@ describe('feeColumnPreference 列定义与默认值', () => {
         'unitPrice',
         'quantity',
         'billingUnitId',
-        'createdAt',
         'option',
       ]),
     );
     for (const key of lockedKeys) {
       expect(defaults.hidden).not.toContain(key);
     }
-    expect(defaults.hidden).toEqual(expect.arrayContaining(['tags']));
+    expect(lockedKeys).not.toContain('createdAt');
+    expect(defaults.hidden).toEqual(
+      expect.arrayContaining(['createdAt', 'tags']),
+    );
     for (const key of [
       'netUnitPrice',
       'taxRate',
