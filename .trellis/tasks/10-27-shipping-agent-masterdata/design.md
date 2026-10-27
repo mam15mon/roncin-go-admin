@@ -9,8 +9,8 @@
 - `biz.MasterDataKindShippingAgent = "shipping_agent"`；Proto 追加 `MASTER_DATA_KIND_SHIPPING_AGENT = 11`，保留既有值和 reserved。
 - 船代复用 MasterDataItem 的 UUID、code、name、name_en、source、sort_order、enabled、search_keywords 等字段，不设 organization_id，无公司覆盖。
 - 中文名取源 value，英文名忠实保留 enValue；源英文仍为中文时不造译名。code 使用 `HGJ-<源整数ID>`，明确为内部导入标识；本系统 UUID 独立生成。source 标明海管家船代字典快照，排序沿用来源 order 并以 code 稳定兜底。
-- 原始无凭据快照和简短来源说明归档 server/seeds/；正式 SQL 迁移按 `(kind,code)` 冲突跳过，保留管理员改名、排序与停用，重复初始化不新增、不覆盖。
-- SQL 种子 search_keywords 必须经现有 `searchtext.Build(name,name_en)` 预计算，真实库测试逐行核对。
+- 原始无凭据快照和简短来源说明归档 `server/seeds/`；新增 `pnpm run sync:shipping-agents` 并接入 `sync:all`，离线读取快照并按 `(kind,code)` 幂等补齐，保留管理员改名、排序与停用，不自动停用已有记录。正式 SQL 迁移只负责船代类型及约束，不写入 29 条资料。
+- 同步写入的 search_keywords 使用现有 Ent hook 的 `searchtext.Build(name,name_en)`，真实库测试逐行核对。
 - 同步 Ent enum、表级稳定名 kind CHECK 与正式迁移；CHECK 集合匹配现行合法种类，包含新船代、不恢复已退役 charge_category。实际开发库缺该稳定名 CHECK，迁移针对已知有/无前态均显式重建；完整正式迁移冷启动必须通过。
 - 不新增 version：该字典是低频单人维护主数据，沿用既有 CRUD 行为与唯一索引，避免引入独立并发协议。
 
@@ -37,7 +37,7 @@
 - 远程 keyword 搜索字段设置 `fieldProps.filterOption=false`，避免后端拼音命中后被前端纯文本过滤隐藏。保持原生 request 协议，无自建 data/loading 镜像或全局候选缓存。
 
 ## 验证与交付
-定向验证覆盖组织写权限、全量读取超过 200、检索五维、种子29条/幂等/检索键、订单正确kind/停用保留/非法引用拒绝/显示及相邻代理路径。真实 PostgreSQL 使用隔离测试数据库与正式迁移；核对 PASS/FAIL/SKIP，不能把跳过计为通过。
+定向验证覆盖组织写权限、全量读取超过 200、检索五维、同步命令 29 条/幂等/保留管理员修改/检索键、订单正确 kind/停用保留/非法引用拒绝/显示及相邻代理路径。真实 PostgreSQL 使用隔离测试数据库与正式迁移；核对 PASS/FAIL/SKIP，不能把跳过计为通过。
 契约和订单引用语义跨层，最终执行 check:fast；无需因普通UI固定执行 build。变更和必要生成物同组提交，后续更新公共主数据专项规范并归档任务。
 
 ## 风险与停止条件
