@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/xuri/excelize/v2"
@@ -100,12 +101,16 @@ func TestParseShippingLinesExcel(t *testing.T) {
 	f.SetCellValue(sheetName, "I11", "www.maersk.com")
 	f.SetCellValue(sheetName, "J11", "Copenhagen, Denmark")
 
-	// 第 12 行：非法代码（含数字，被跳过）
+	// 第 12 行：SMDG 官方船公司代码可含数字。
 	f.SetCellValue(sheetName, "A12", "G2O")
 	f.SetCellValue(sheetName, "B12", "G2 Ocean AS")
 
-	// 第 13 行：空行（被跳过）
-	f.SetCellValue(sheetName, "A13", "")
+	f.SetCellValue(sheetName, "A13", "TI2")
+	f.SetCellValue(sheetName, "B13", "Ti2 Container lines pte ltd")
+
+	// 真正非法的代码必须记录为源文件问题，禁止静默漏导。
+	f.SetCellValue(sheetName, "A14", "G@O")
+	f.SetCellValue(sheetName, "B14", "Invalid Line")
 
 	if err := f.SaveAs(xlsxPath); err != nil {
 		t.Fatalf("保存测试 xlsx 失败: %v", err)
@@ -120,21 +125,49 @@ func TestParseShippingLinesExcel(t *testing.T) {
 	if detectedRelease != "20260903" {
 		t.Fatalf("detectedRelease = %s, want 20260903", detectedRelease)
 	}
-	if summary.ValidLiners != 2 {
-		t.Fatalf("ValidLiners = %d, want 2", summary.ValidLiners)
+	if summary.ValidLiners != 4 {
+		t.Fatalf("ValidLiners = %d, want 4", summary.ValidLiners)
 	}
-	if summary.InvalidCodes != 1 {
-		t.Fatalf("InvalidCodes = %d, want 1", summary.InvalidCodes)
+	if summary.InvalidCodes != 1 || len(summary.FatalProblems) != 1 || !strings.Contains(summary.FatalProblems[0], "第 14 行") {
+		t.Fatalf("非法代码没有定位到源文件行: %+v", summary)
 	}
-	if len(rows) != 2 {
-		t.Fatalf("len(rows) = %d, want 2", len(rows))
+	if len(rows) != 4 {
+		t.Fatalf("len(rows) = %d, want 4", len(rows))
 	}
 
 	// 验证按代码排序
 	if rows[0].SCACCode != "COS" || rows[0].NameZH != "中远海运集运" || rows[0].CountryCode != "CN" {
 		t.Fatalf("rows[0] = %+v", rows[0])
 	}
-	if rows[1].SCACCode != "MSK" || rows[1].NameZH != "马士基航运" || rows[1].CountryCode != "DK" {
+	if rows[1].SCACCode != "G2O" || rows[1].NameEN != "G2 Ocean AS" {
 		t.Fatalf("rows[1] = %+v", rows[1])
+	}
+	if rows[2].SCACCode != "MSK" || rows[2].NameZH != "马士基航运" || rows[2].CountryCode != "DK" {
+		t.Fatalf("rows[2] = %+v", rows[2])
+	}
+	if rows[3].SCACCode != "TI2" || rows[3].NameEN != "Ti2 Container lines pte ltd" {
+		t.Fatalf("rows[3] = %+v", rows[3])
+	}
+}
+
+func TestParseShippingLinesArchivedSnapshot(t *testing.T) {
+	rows, release, summary, err := parseShippingLines(filepath.Join("..", "..", "seeds", "SMDG_Liner-codes-list-20260903.xlsx"), "test-hash")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if release != "20260903" || summary.RawRows != 369 || summary.ValidLiners != 360 || summary.SkippedEmpty != 0 || summary.InvalidCodes != 0 || len(summary.FatalProblems) != 0 || len(rows) != 360 {
+		t.Fatalf("归档船公司快照解析不完整: release=%s summary=%+v rows=%d", release, summary, len(rows))
+	}
+	for code, name := range map[string]string{"G2O": "G2 Ocean AS", "TI2": "Ti2 Container lines pte ltd"} {
+		found := false
+		for _, row := range rows {
+			if row.SCACCode == code && row.NameEN == name {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Fatalf("归档快照缺失船公司 %s / %s", code, name)
+		}
 	}
 }

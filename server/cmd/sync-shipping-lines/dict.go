@@ -7,10 +7,10 @@ import (
 )
 
 var (
-	scacPattern      = regexp.MustCompile(`^[A-Z]{2,4}$`)
-	countryPattern   = regexp.MustCompile(`^[A-Z]{2}$`)
-	prefixPattern    = regexp.MustCompile(`^[A-Z]{4}$`)
-	httpProtocolExpr = regexp.MustCompile(`^https?://`)
+	smdgLinerCodePattern = regexp.MustCompile(`^[A-Z0-9]{3}$`)
+	countryPattern       = regexp.MustCompile(`^[A-Z]{2}$`)
+	prefixPattern        = regexp.MustCompile(`^[A-Z]{4}$`)
+	httpProtocolExpr     = regexp.MustCompile(`^https?://`)
 )
 
 // topLinersZH 映射中国国际海运货代常用主流船公司的官方/行业通用中文名称。

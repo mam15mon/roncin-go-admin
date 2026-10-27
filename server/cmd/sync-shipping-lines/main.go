@@ -51,6 +51,10 @@ func run(ctx context.Context) error {
 	if options.Release == "" {
 		options.Release = "SMDG-LCL"
 	}
+	if len(summary.FatalProblems) > 0 {
+		printSummary(options.Source, options, summary, nil)
+		return fmt.Errorf("船公司源文件校验失败: %d 条问题", len(summary.FatalProblems))
+	}
 
 	store, cleanup, err := syncrunner.OpenStore()
 	if err != nil {
@@ -64,8 +68,8 @@ func run(ctx context.Context) error {
 	}
 
 	printSummary(options.Source, options, summary, conflicts)
-	if len(summary.FatalProblems) > 0 || len(conflicts) > 0 {
-		return fmt.Errorf("船公司数据存在冲突: 源文件冲突 %d 条，数据库冲突 %d 条", len(summary.FatalProblems), len(conflicts))
+	if len(conflicts) > 0 {
+		return fmt.Errorf("船公司数据存在 %d 条数据库冲突", len(conflicts))
 	}
 
 	if !options.Apply {
@@ -161,8 +165,9 @@ func parseShippingLines(filePath, sourceHash string) ([]data.ShippingLineSyncRec
 			summary.SkippedEmpty++
 			continue
 		}
-		if !scacPattern.MatchString(code) {
+		if !smdgLinerCodePattern.MatchString(code) {
 			summary.InvalidCodes++
+			summary.FatalProblems = append(summary.FatalProblems, fmt.Sprintf("第 %d 行船公司代码 %q 不是三位字母或数字", i+1, code))
 			continue
 		}
 		nameEN := strings.TrimSpace(cell(row, 1))
@@ -216,13 +221,13 @@ func cell(row []string, index int) string {
 func printSummary(sourcePath string, options syncrunner.Options, summary shippingLineParseSummary, conflicts []data.IndustryReferenceSyncConflict) {
 	fmt.Printf("船公司数据源：%s\n", sourcePath)
 	fmt.Printf("版本：%s，SHA-256：%s\n", options.Release, summary.SourceHash)
-	fmt.Printf("原始行 %d，有效船公司 %d，空行跳过 %d，非法代码跳过 %d\n", summary.RawRows, summary.ValidLiners, summary.SkippedEmpty, summary.InvalidCodes)
+	fmt.Printf("原始行 %d，有效船公司 %d，空行跳过 %d，非法代码 %d\n", summary.RawRows, summary.ValidLiners, summary.SkippedEmpty, summary.InvalidCodes)
 	for index, problem := range summary.FatalProblems {
 		if index == 10 {
-			fmt.Printf("其余源文件冲突 %d 条未展开\n", len(summary.FatalProblems)-index)
+			fmt.Printf("其余源文件问题 %d 条未展开\n", len(summary.FatalProblems)-index)
 			break
 		}
-		fmt.Printf("源文件冲突：%s\n", problem)
+		fmt.Printf("源文件问题：%s\n", problem)
 	}
 	for index, conflict := range conflicts {
 		if index == 10 {
