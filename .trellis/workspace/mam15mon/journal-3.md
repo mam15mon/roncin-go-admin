@@ -419,3 +419,39 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Next Steps
 
 - 当前检出main，代码与审查记录均已提交。
+
+
+## Session 166: 完成全球港口中文种子与离线同步
+<!-- trellis-session: v=2 fp=25b6961f5c1cf167 -->
+
+**Date**: 2026-10-27
+**Task**: 完成全球港口中文种子与离线同步
+**Branch**: `codex/port-chinese-seeds`
+
+### Summary
+
+全量17,524港口中文归档（已有7,357、编制10,167），严格配套校验、双源指纹及中文拼音同步；完整后端门禁和独立PG验证通过。
+
+### Main Changes
+
+- 新增完整港口中文CSV、来源与译名说明，核对中国日本汉字地名及世界长尾语义。
+- sync-unlocode离线预览、完整身份校验与联合指纹，已有港口补中文并刷新检索键。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `9e4af6df` | feat: 补齐全球港口中文种子并接入离线同步 |
+
+### Testing
+
+- [OK] 完整check:server通过；命令配套17524条硬验收、真实PG专项无Skip通过；独立库全量首次及重复导入、最终中英文与指纹逐项一致。
+- [OK] check:fast前端两轮分别有既有主单异步用例失败；对应文件定向8/8、6/6通过，未将全栈门禁记为绿色。
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 用户需要初始化时运行pnpm run sync:all或sync:unlocode；本次未对业务库apply，长尾译名可按业务反馈修订。
