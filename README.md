@@ -131,7 +131,7 @@ pnpm run bootstrap:admin
 默认分公司种子仅包含北京（`BJ`）和成都（`CD`），初始化不会补建上海或重庆公司；
 自建启用公司也在补齐范围。仅补默认公司可用 `pnpm run bootstrap:admin --seed-branches`。
 
-公共港口、机场、船公司等行业资料通过 `pnpm run sync:all` 导入。系统管理员在
+公共港口、机场、船公司、船代等行业资料在迁移完成后通过 `pnpm run sync:all` 导入。系统管理员在
 “系统管理”工作台维护公共资料及公司授权；初始管理员通过真实公司成员关系进入公司，使用该公司权限。
 
 开发演示数据在完成 `pnpm run bootstrap:admin` 后执行 `pnpm run sync:dev`，仅用于开发数据库。它写入北京公司的测试员工、
@@ -163,6 +163,9 @@ pnpm run dev:server
 `pnpm run sync:all` 一键同步，也可按需执行以下命令。港口默认读取仓库归档包，机场
 默认从 OurAirports 下载；具体来源与参数以对应 `server/cmd/sync-*` 入口为准。
 
+船代可单独执行 `pnpm run sync:shipping-agents`，离线读取 `server/seeds/` 中的 29 条快照，
+只补齐缺失记录；重复执行不覆盖系统管理员修改的名称、排序、启用状态，也不自动停用已有船代。
+
 ```bash
 # 1. 同步民政部全国 12 位五级行政区划 (省市区县街道)
 pnpm run sync:regions
@@ -172,6 +175,9 @@ pnpm run sync:airports
 
 # 3. 同步 UNECE UN/LOCODE 海港数据（默认读取 server/seeds/loc251csv.zip）
 pnpm run sync:unlocode
+
+# 4. 同步船代快照（只补缺失记录）
+pnpm run sync:shipping-agents
 
 # 使用其他发布包时，显式指定路径与版本
 pnpm run sync:unlocode -- -source /path/to/loc252csv.zip -release 2025-2
