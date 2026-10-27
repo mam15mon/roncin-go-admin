@@ -6,6 +6,24 @@
   background: #ffffff;
 }
 
+// 钉钉回调独立页：内容在视口内水平垂直居中，背景与登录表单区一致。
+.callbackStage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  padding: 32px 16px;
+  box-sizing: border-box;
+  background: #fafbfd;
+
+  @media (max-width: 600px) {
+    padding: 24px 16px;
+    background: #ffffff;
+  }
+}
+
 // 品牌视觉与登录主体等分，角色保留原有交互。
 .heroSection {
   position: relative;

@@ -1,4 +1,8 @@
-import { RightOutlined } from '@ant-design/icons';
+import {
+  ApartmentOutlined,
+  RightOutlined,
+  TeamOutlined,
+} from '@ant-design/icons';
 import { App, Spin } from 'antd';
 import React, { useLayoutEffect, useRef, useState } from 'react';
 import { authServiceSwitchOrganization } from '@/services/roncin/authService';
@@ -92,10 +96,15 @@ export function OrganizationPicker({
 
   return (
     <div className={styles.picker}>
-      <h1 className={styles.title}>选择进入的组织</h1>
-      <p className={styles.subtitle}>
-        你的账号属于多个组织，请选择本次进入的组织
-      </p>
+      <div className={styles.header}>
+        <div className={styles.headerIcon} aria-hidden="true">
+          <TeamOutlined />
+        </div>
+        <h1 className={styles.title}>选择进入的组织</h1>
+        <p className={styles.subtitle}>
+          你的账号属于多个组织，请选择本次进入的组织
+        </p>
+      </div>
       <div className={styles.grid}>
         {options.map((option) => {
           const switching = switchingOrgId === option.organizationId;
@@ -111,6 +120,9 @@ export function OrganizationPicker({
                 void handleSelect(option);
               }}
             >
+              <span className={styles.orgIcon} aria-hidden="true">
+                <ApartmentOutlined />
+              </span>
               <div className={styles.orgCardBody}>
                 <div className={styles.orgCardHeader}>
                   <span className={styles.orgName}>

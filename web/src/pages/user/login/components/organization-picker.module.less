@@ -1,27 +1,53 @@
+// 与登录表单卡（index.module.less 的 formCard/formHeader）保持同一设计语言。
 .picker {
   width: 100%;
-  max-width: 440px;
+  max-width: 456px;
+  padding: 28px 32px 24px;
+  box-sizing: border-box;
+  background: #ffffff;
+  border: 1px solid #e9edf2;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(28, 48, 77, 0.045);
+}
+
+.header {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.headerIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 14px;
+  border-radius: 14px;
+  background: #edf5ff;
+  color: #1677ff;
+  font-size: 26px;
 }
 
 .title {
-  font-size: 24px;
-  font-weight: 800;
-  color: #0f172a;
-  letter-spacing: -0.02em;
-  margin-bottom: 8px;
+  margin: 0 0 6px;
+  color: #18263a;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
 .subtitle {
+  margin: 0;
+  color: #7b8798;
   font-size: 13px;
-  color: #64748b;
-  margin-bottom: 24px;
+  line-height: 1.5;
 }
 
 .grid {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-height: 420px;
+  max-height: 400px;
   overflow-y: auto;
   padding-right: 2px;
 
@@ -44,8 +70,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 14px 18px;
+  gap: 14px;
+  padding: 12px 16px;
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
@@ -67,17 +93,37 @@
     }
   }
 
+  /* 键盘焦点用品牌色光环替代默认 outline，保证可见焦点指示。 */
+  &:focus-visible {
+    border-color: #1677ff;
+    box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.15);
+    outline: none;
+  }
+
   &:disabled {
     cursor: not-allowed;
     opacity: 0.7;
   }
 }
 
+.orgIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #edf5ff;
+  color: #1677ff;
+  font-size: 18px;
+}
+
 .orgCardBody {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
+  gap: 5px;
   min-width: 0;
   flex: 1;
 }
@@ -91,9 +137,9 @@
 }
 
 .orgName {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
-  color: #0f172a;
+  color: #18263a;
   line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -102,13 +148,16 @@
 }
 
 .orgCode {
-  font-size: 13px;
-  color: #64748b;
+  max-width: 100%;
+  padding: 0 8px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 12px;
+  line-height: 18px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 100%;
-  line-height: 1.3;
 }
 
 .orgCardAction {
@@ -119,11 +168,35 @@
 }
 
 .enterIcon {
-  font-size: 13px;
-  color: #94a3b8;
-  transition: all 0.2s ease;
+  font-size: 12px;
+  color: #64748b;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .cardSpin {
   margin: 0;
+}
+
+/* 尊重系统的减少动态偏好：关闭位移与过渡。 */
+@media (prefers-reduced-motion: reduce) {
+  .orgCard,
+  .enterIcon {
+    transition: none;
+  }
+
+  .orgCard:hover:not(:disabled) .enterIcon {
+    transform: none;
+  }
+}
+
+/* 小屏与登录页移动端口径一致：去掉卡片外框，直接平铺。 */
+@media (max-width: 600px) {
+  .picker {
+    padding: 20px 4px;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
 }

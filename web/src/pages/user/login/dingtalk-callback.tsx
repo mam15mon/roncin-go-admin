@@ -115,28 +115,19 @@ export default function DingTalkCallback() {
           ? '账号已停用'
           : '钉钉认证未完成';
   return (
-    <div className={styles.loginContainer} style={{ justifyContent: 'center' }}>
+    <div className={styles.callbackStage}>
       <Helmet>
         <title>钉钉认证 - {Settings.title}</title>
       </Helmet>
       {organizationSelection ? (
-        <div
-          style={{
-            width: '100%',
-            padding: '0 16px',
-            display: 'flex',
-            justifyContent: 'center',
+        <OrganizationPicker
+          options={organizationSelection.options}
+          currentOrganizationId={organizationSelection.currentOrganizationId}
+          onEnter={() => {
+            message.success('钉钉登录成功');
+            window.location.replace(pendingRedirectRef.current);
           }}
-        >
-          <OrganizationPicker
-            options={organizationSelection.options}
-            currentOrganizationId={organizationSelection.currentOrganizationId}
-            onEnter={() => {
-              message.success('钉钉登录成功');
-              window.location.replace(pendingRedirectRef.current);
-            }}
-          />
-        </div>
+        />
       ) : failure || blocked ? (
         <Result
           status={failure ? 'error' : 'info'}
