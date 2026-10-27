@@ -1,4 +1,11 @@
-import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
+import { ConfigProvider } from 'antd';
 import { beforeEach, expect, it } from 'vitest';
 import { formatDate } from '@/utils/format';
 import {
@@ -16,9 +23,18 @@ beforeEach(() => {
 
 it('录入日期默认隐藏，可勾选显示，编辑或新增费用时均不可填写', async () => {
   const fee = { ...unbilledFeeA, createdAt: '2026-09-20T14:30:00+08:00' };
-  listFees.mockResolvedValue({ data: [fee] });
-  await renderTabs(makeProps('order-1').props);
-  await screen.findByText('海运费');
+  const response =
+    Promise.withResolvers<Awaited<ReturnType<typeof listFees>>>();
+  listFees.mockReturnValue(response.promise);
+  await renderTabs(makeProps('order-1').props, {
+    wrapper: ({ children }) => (
+      <ConfigProvider theme={{ token: { motion: false } }}>
+        {children}
+      </ConfigProvider>
+    ),
+  });
+  await act(async () => response.resolve({ data: [fee] }));
+  expect(screen.getByText('海运费')).toBeInTheDocument();
   expect(screen.queryByRole('columnheader', { name: '录入日期' })).toBeNull();
 
   fireEvent.click(screen.getAllByRole('button', { name: '列设置' })[0]);
@@ -32,6 +48,8 @@ it('录入日期默认隐藏，可勾选显示，编辑或新增费用时均不�
       screen.getAllByRole('columnheader', { name: '录入日期' }),
     ).toHaveLength(2),
   );
+  fireEvent.click(within(dialog).getByRole('button', { name: /close|关闭/i }));
+  await waitFor(() => expect(dialog).not.toBeInTheDocument());
 
   fireEvent.click(screen.getByRole('button', { name: /编辑/ }));
   await screen.findByText('保存');

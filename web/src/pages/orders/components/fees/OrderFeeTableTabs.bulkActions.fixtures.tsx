@@ -2,6 +2,7 @@ import type { ActionType } from '@ant-design/pro-components';
 import {
   act,
   fireEvent,
+  type RenderOptions,
   render,
   screen,
   waitFor,
@@ -153,11 +154,15 @@ export function makeProps(orderId: string) {
   };
 }
 
-export async function renderTabs(props: ReturnType<typeof makeProps>['props']) {
+export async function renderTabs(
+  props: ReturnType<typeof makeProps>['props'],
+  options?: RenderOptions,
+) {
   render(
     <App>
       <OrderFeeTableTabs {...props} />
     </App>,
+    options,
   );
   await waitFor(() => expect(listFees).toHaveBeenCalled());
 }
