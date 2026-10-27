@@ -10,6 +10,15 @@
 |----------|------|------|
 | 整页分节表单 / 详情页 | `PageHeaderShell` + `SectionCard` + `StickyFooterBar` | 吸顶导航（返回列表、层级路径、编码 Tag、主操作组）；区块卡片带 `3px × 15px` 品牌蓝竖标（`#1677ff`）、白底细边框（`#f0f0f0`），支持 `collapsible`；底部吸底操作栏（左摘要、右取消+提交） |
 | 订单多品类表单 | `OrderFormTemplate` | 配置式分节结构，不另造表单骨架 |
+
+## 订单表单可读性与标题层级
+
+- 占位提示统一消费 `web/config/theme.ts` 的 `colorTextPlaceholder`（当前 `#64748b`），
+  白底对比度至少 4.5:1；不使用全局 `::placeholder !important` 覆盖主题，不改禁用态 token。
+- 海运“业务与客户”卡先展示委托单位、委托单位代码、集运/跨境和托运类型，再展示编号信息；
+  新建与详情共用相同顺序，字段校验与人员带入保持原契约。
+- 订单新建/详情页标题使用 18px；外层 `SectionCard` 保留品牌蓝竖标，内部
+  `TemplateFieldGroup` 与操作备注小节使用 13px、中等字重和留白，不重复蓝竖标。
 | 主数据 / 通用 CRUD | `MasterDataTemplate` | 顶部指标统计卡、关键字+下拉筛选、标准分页表格、快捷模态表单 |
 | 表格列表页 | ProTable 高密度样式 | 搜索卡片与表格卡片细边框微圆角，操作列靠右 |
 

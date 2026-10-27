@@ -59,10 +59,8 @@ export function SeaCollapsibleNotesField({
         <span
           style={{
             fontSize: 13,
-            fontWeight: sectionHeading ? 600 : 500,
-            borderInlineStart: sectionHeading ? '3px solid #1677ff' : undefined,
-            paddingInlineStart: sectionHeading ? 8 : undefined,
-            color: 'rgba(0, 0, 0, 0.88)',
+            fontWeight: 500,
+            color: sectionHeading ? '#475569' : 'rgba(0, 0, 0, 0.88)',
           }}
         >
           {label}

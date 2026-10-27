@@ -55,11 +55,11 @@ export function getSeaTemplateSections(
       title: '业务与客户',
       content: (
         <div style={{ display: 'grid', gap: 12, width: '100%' }}>
+          {basic.customer}
           <FormRow cols={4}>
             {basic.orderIdentity}
             {basic.references}
           </FormRow>
-          {basic.customer}
         </div>
       ),
     },

@@ -175,6 +175,8 @@ scripts/                  根目录开发与构建辅助脚本
   - 各业务数据区块统一使用 `SectionCard` 包装，保持标题左侧 `3px × 15px` 品牌蓝竖标（`#1677ff`）、纯白卡片背景与细边框（`#f0f0f0`），支持 `collapsible` 折叠与右上角操作插槽。
   - 大表单/详情页底部统一使用 `StickyFooterBar` 提供吸底操作栏（左侧展示当前档案摘要，右侧放置取消与主提交按钮），避免用户必须滚动到最底部才能保存。
   - 订单多品类表单统一复用 `OrderFormTemplate` 及其配置式分节结构。
+  - 表单占位提示统一由 `web/config/theme.ts` 的 `colorTextPlaceholder` 管理，
+    白底文字对比度至少 4.5:1；禁止用全局 CSS 硬编码浅色覆盖，禁用态仍保留独立语义。
 - **基础主数据与通用 CRUD 列表页 (Master Data / CRUD Pages)**：
   - 标准化配置类数据统一复用 `MasterDataTemplate`，内置顶部指标统计卡、关键字与下拉筛选栏、标准分页表格与快捷模态表单。
 - **表格列表页 (Table List Pages)**：
