@@ -265,6 +265,11 @@ export function confirmOrderClosure(
 
     content: (
       <Space vertical style={{ width: '100%', marginTop: 12 }}>
+        {!isReopen && (
+          <div>
+            完结前需处理全部订单异常、完成全部费用建账，并处理待审批费用变更。无需先完成收付款核销；尚未完成的主流程节点将自动补齐。
+          </div>
+        )}
         <Input.TextArea
           placeholder={
             isReopen ? '请输入反结案原因（选填）' : '请输入完结原因（选填）'

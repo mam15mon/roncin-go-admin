@@ -548,16 +548,20 @@ func TestOrderClosureRequiresTerminalBusinessAndNoBlockers(t *testing.T) {
 	blockedCases := []struct {
 		name      string
 		readiness *OrderClosureReadiness
+		message   string
 	}{
-		{name: "存在活动异常", readiness: &OrderClosureReadiness{FlowStatus: OrderFlowDocumentReleased, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, HasActiveException: true}},
-		{name: "存在未出账费用", readiness: &OrderClosureReadiness{FlowStatus: OrderFlowDocumentReleased, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, HasUnbilledOrderFees: true}},
+		{name: "存在活动异常", readiness: &OrderClosureReadiness{FlowStatus: OrderFlowDocumentReleased, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, HasActiveException: true}, message: "存在未处理的订单异常，请先处理异常后再结案"},
+		{name: "草稿存在未建账费用", readiness: &OrderClosureReadiness{FlowStatus: OrderFlowDraft, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, HasUnbilledOrderFees: true}, message: "存在未建账费用，请先在费用页完成建账后再结案"},
+		{name: "异常与未建账并存", readiness: &OrderClosureReadiness{FlowStatus: OrderFlowDocumentReleased, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, HasActiveException: true, HasUnbilledOrderFees: true}, message: "存在未处理的订单异常，请先处理异常后再结案；存在未建账费用，请先在费用页完成建账后再结案"},
 	}
 	for _, testCase := range blockedCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			usecase := NewOrderUsecase(&orderRepoStub{closureReadiness: testCase.readiness}, nil, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
+			repo := &orderRepoStub{closureReadiness: testCase.readiness}
+			usecase := NewOrderUsecase(repo, nil, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
 			_, err := usecase.TransitionClosure(context.Background(), organizationID, actorID, id, 8, OrderClosureClosed, "确认结案")
-			if err != ErrOrderClosureBlocked {
-				t.Fatalf("TransitionClosure() error = %v, want ErrOrderClosureBlocked", err)
+			detail := errors.FromError(err)
+			if detail.Code != 409 || detail.Reason != ErrOrderClosureBlocked.Reason || detail.Message != testCase.message || repo.closureEvent != nil {
+				t.Fatalf("结案应返回具体原因且不写入: err=%v event=%v", err, repo.closureEvent)
 			}
 		})
 	}

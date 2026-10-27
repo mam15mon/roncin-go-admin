@@ -85,6 +85,9 @@ func requireClosureBlocked(t *testing.T, err error, pending bool) {
 	if pending && detail.Message != "存在待审费用变更，请先处理后再结案" {
 		t.Fatalf("缺少待审具体原因: %v", err)
 	}
+	if !pending && detail.Message != "存在未建账费用，请先在费用页完成建账后再结案" {
+		t.Fatalf("缺少未建账费用的具体原因与处理指引: %v", err)
+	}
 }
 
 func TestOrderClosurePendingCorrectionReadinessPostgres(t *testing.T) {

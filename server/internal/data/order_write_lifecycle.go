@@ -217,8 +217,8 @@ func (r *orderRepo) TransitionClosure(ctx context.Context, organizationID, id uu
 			if readinessErr != nil {
 				return readinessErr
 			}
-			if hasActiveException || hasUnbilledFees {
-				return biz.ErrOrderClosureBlocked
+			if err := biz.OrderClosureBlockersError(hasActiveException, hasUnbilledFees); err != nil {
+				return err
 			}
 		}
 		update := existing.Update().SetClosureStatus(orderent.ClosureStatus(target)).SetVersion(existing.Version + 1)

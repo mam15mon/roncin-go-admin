@@ -46,6 +46,21 @@ func OrderClosurePendingSupplementError() *errors.Error {
 	return errors.Conflict(ErrOrderClosureBlocked.Reason, "存在待审费用变更，请先处理后再结案")
 }
 
+// OrderClosureBlockersError 为结案预检与事务内复核提供一致的具体原因。
+func OrderClosureBlockersError(hasActiveException, hasUnbilledFees bool) *errors.Error {
+	reasons := make([]string, 0, 2)
+	if hasActiveException {
+		reasons = append(reasons, "存在未处理的订单异常，请先处理异常后再结案")
+	}
+	if hasUnbilledFees {
+		reasons = append(reasons, "存在未建账费用，请先在费用页完成建账后再结案")
+	}
+	if len(reasons) == 0 {
+		return nil
+	}
+	return errors.Conflict(ErrOrderClosureBlocked.Reason, strings.Join(reasons, "；"))
+}
+
 // seFlowStatusOrder 主流程状态的严格推进顺序（下标即推进序）。
 var seFlowStatusOrder = []OrderFlowStatus{
 	OrderFlowDraft,
@@ -182,8 +197,8 @@ func (uc *OrderUsecase) TransitionClosure(ctx context.Context, organizationID, a
 		if readiness.HasPendingFeeSupplement {
 			return nil, OrderClosurePendingSupplementError()
 		}
-		if readiness.HasActiveException || readiness.HasUnbilledOrderFees {
-			return nil, ErrOrderClosureBlocked
+		if err := OrderClosureBlockersError(readiness.HasActiveException, readiness.HasUnbilledOrderFees); err != nil {
+			return nil, err
 		}
 	}
 	event := &OrderLifecycleChangedEvent{OrganizationID: organizationID, OrderID: id, ActorID: actorID, Dimension: "CLOSURE", FromStatus: string(readiness.ClosureStatus), ToStatus: string(target), OccurredAt: time.Now().UTC()}
