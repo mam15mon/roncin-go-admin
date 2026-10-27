@@ -77,7 +77,7 @@ describe('OrderStatusSection', () => {
     expect(screen.getAllByText('已完成')).toHaveLength(2);
   });
 
-  it('已完成节点悬停显示真实操作人、本地时间和多行备注', async () => {
+  it('已完成节点悬停保留操作人和本地时间，不显示备注', async () => {
     const changedAt = '2026-10-23T02:03:04Z';
     const transitionFlow = vi.fn();
     renderStatusSection(
@@ -101,13 +101,12 @@ describe('OrderStatusSection', () => {
     expect(
       screen.getByText(`操作时间：${formatDate(changedAt, 'datetime')}`),
     ).toBeInTheDocument();
-    expect(screen.getByText(/备注：舱位已确认/)).toHaveTextContent(
-      '客户已知悉',
-    );
+    expect(screen.queryByText(/备注：/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/舱位已确认/)).not.toBeInTheDocument();
     expect(transitionFlow).not.toHaveBeenCalled();
   });
 
-  it('悬停无备注的当前节点明确显示无备注，未操作节点不伪造人员', async () => {
+  it('当前状态不显示无备注占位，未操作节点不伪造人员', async () => {
     const { unmount } = renderStatusSection({
       flowStatus: OrderFlowStatus.ORDER_FLOW_STATUS_BOOKED,
       statusRecords: [
@@ -119,8 +118,9 @@ describe('OrderStatusSection', () => {
         },
       ],
     });
-    fireEvent.mouseOver(screen.getByText('已订舱'));
-    expect(await screen.findByText('备注：无备注')).toBeInTheDocument();
+    fireEvent.mouseOver(screen.getByText('当前：已订舱'));
+    expect(await screen.findByText('操作人：李操作')).toBeInTheDocument();
+    expect(screen.queryByText(/备注：/)).not.toBeInTheDocument();
     unmount();
 
     renderStatusSection({
@@ -131,7 +131,7 @@ describe('OrderStatusSection', () => {
     expect(screen.queryByText(/操作人：/)).not.toBeInTheDocument();
   });
 
-  it('退关与完结徽标也使用对应维度的实际记录', async () => {
+  it('退关徽标保留备注，完结徽标只展示实际操作记录', async () => {
     const { unmount } = renderStatusSection({
       terminationStatus:
         OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED,
@@ -140,12 +140,14 @@ describe('OrderStatusSection', () => {
           dimension: 'TERMINATION',
           status: 'TERMINATED',
           operatorName: '王操作',
-          reason: '客户取消出运',
+          reason: '客户取消出运\n已通知承运人',
         },
       ],
     });
     fireEvent.mouseOver(screen.getByText('已退关'));
-    expect(await screen.findByText('备注：客户取消出运')).toBeInTheDocument();
+    expect(await screen.findByText(/备注：客户取消出运/)).toHaveTextContent(
+      '已通知承运人',
+    );
     unmount();
 
     renderStatusSection({
@@ -161,7 +163,8 @@ describe('OrderStatusSection', () => {
     });
     fireEvent.mouseOver(screen.getByText('已完结'));
     expect(await screen.findByText('操作人：赵操作')).toBeInTheDocument();
-    expect(screen.getByText('备注：业务已完成')).toBeInTheDocument();
+    expect(screen.queryByText(/备注：/)).not.toBeInTheDocument();
+    expect(screen.queryByText('业务已完成')).not.toBeInTheDocument();
   });
 
   it('仅将服务端允许的草稿下一节点开放为按钮', () => {

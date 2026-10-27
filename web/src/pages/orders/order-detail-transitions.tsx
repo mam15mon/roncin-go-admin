@@ -90,9 +90,7 @@ export function confirmOrderFlow(
     targetStatus,
     order.businessType,
   );
-  let reason = '';
-
-  showTransitionConfirm(app, options, (markDirty) => ({
+  showTransitionConfirm(app, options, () => ({
     title: '流转订单状态',
 
     content: (
@@ -103,16 +101,6 @@ export function confirmOrderFlow(
         {targetStatus > currentStatus + 1 && (
           <div>跳转将自动补齐被跳过的中间节点，补齐时间记为本次操作时刻。</div>
         )}
-        <Input.TextArea
-          aria-label="流转原因"
-          placeholder="请输入流转原因（选填）"
-          maxLength={500}
-          showCount
-          onChange={(event) => {
-            markDirty();
-            reason = event.target.value;
-          }}
-        />
       </Space>
     ),
     async onOk(): Promise<false | undefined> {
@@ -123,7 +111,6 @@ export function confirmOrderFlow(
           id: orderID,
           expectedVersion,
           targetFlowStatus: targetStatus,
-          reason: reason.trim() || undefined,
         },
       );
       if (!isWriteResponse(response, true)) return Promise.reject();
@@ -243,7 +230,7 @@ export function confirmOrderTermination(
   return true;
 }
 
-/** 结案与反结案原因均选填。 */
+/** 结案与反结案仅确认操作，不收集备注。 */
 export function confirmOrderClosure(
   app: TransitionApp,
   order: API.Order,
@@ -257,31 +244,17 @@ export function confirmOrderClosure(
     app.message.error('订单数据不完整，请刷新后重试');
     return false;
   }
-  let reason = '';
   const isReopen =
     targetStatus === OrderClosureStatus.ORDER_CLOSURE_STATUS_OPEN;
-  showTransitionConfirm(app, options, (markDirty) => ({
+  showTransitionConfirm(app, options, () => ({
     title: isReopen ? '反结案/重新激活订单' : '完结订单',
 
     content: (
-      <Space vertical style={{ width: '100%', marginTop: 12 }}>
-        {!isReopen && (
-          <div>
-            请确认订单资料与费用已录入完成，完结后再审批锁单、建立账单。未处理的订单异常或待审批费用变更会阻止完结；尚未完成的主流程节点将自动补齐。
-          </div>
-        )}
-        <Input.TextArea
-          placeholder={
-            isReopen ? '请输入反结案原因（选填）' : '请输入完结原因（选填）'
-          }
-          maxLength={500}
-          showCount
-          onChange={(event) => {
-            markDirty();
-            reason = event.target.value;
-          }}
-        />
-      </Space>
+      <div style={{ marginTop: 12 }}>
+        {isReopen
+          ? '确认反结案并重新激活订单？'
+          : '请确认订单资料与费用已录入完成，完结后再审批锁单、建立账单。未处理的订单异常或待审批费用变更会阻止完结；尚未完成的主流程节点将自动补齐。'}
+      </div>
     ),
     async onOk(): Promise<false | undefined> {
       if (options.canSubmit?.() === false) return Promise.reject();
@@ -291,7 +264,6 @@ export function confirmOrderClosure(
           id: orderID,
           expectedVersion,
           targetStatus,
-          reason: reason.trim() || undefined,
         },
       );
       if (!isWriteResponse(response, true)) return Promise.reject();

@@ -375,9 +375,7 @@ test('空运页面建双票、共享主单修改与独立重量确认刷新重�
       name: '流转订单状态',
       exact: true,
     });
-    await flow
-      .getByLabel('流转原因', { exact: true })
-      .fill(`隔离浏览器验收：${label}`);
+    await expect(flow.getByRole('textbox')).toHaveCount(0);
     const transitionedResponse = page.waitForResponse(
       (response) =>
         response.url().endsWith(`/api/v1/orders/${first.id}/status`) &&

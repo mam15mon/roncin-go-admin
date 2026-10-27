@@ -100,9 +100,11 @@ function StatusPopover({
             <>
               <div>操作人：{record.operatorName || '未记录操作人'}</div>
               <div>操作时间：{formatDate(record.changedAt, 'datetime')}</div>
-              <div style={{ whiteSpace: 'pre-wrap' }}>
-                备注：{record.reason?.trim() || '无备注'}
-              </div>
+              {record.dimension === 'TERMINATION' && (
+                <div style={{ whiteSpace: 'pre-wrap' }}>
+                  备注：{record.reason?.trim() || '无备注'}
+                </div>
+              )}
             </>
           ) : (
             <div>暂无操作记录</div>
