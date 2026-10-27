@@ -37,7 +37,6 @@ type OrderClosureReadiness struct {
 	TerminationStatus       OrderTerminationStatus
 	ClosureStatus           OrderClosureStatus
 	HasActiveException      bool
-	HasUnbilledOrderFees    bool
 	HasPendingFeeSupplement bool
 }
 
@@ -46,19 +45,9 @@ func OrderClosurePendingSupplementError() *errors.Error {
 	return errors.Conflict(ErrOrderClosureBlocked.Reason, "存在待审费用变更，请先处理后再结案")
 }
 
-// OrderClosureBlockersError 为结案预检与事务内复核提供一致的具体原因。
-func OrderClosureBlockersError(hasActiveException, hasUnbilledFees bool) *errors.Error {
-	reasons := make([]string, 0, 2)
-	if hasActiveException {
-		reasons = append(reasons, "存在未处理的订单异常，请先处理异常后再结案")
-	}
-	if hasUnbilledFees {
-		reasons = append(reasons, "存在未建账费用，请先在费用页完成建账后再结案")
-	}
-	if len(reasons) == 0 {
-		return nil
-	}
-	return errors.Conflict(ErrOrderClosureBlocked.Reason, strings.Join(reasons, "；"))
+// OrderClosureActiveExceptionError 保持结案错误码，明确待处理异常的阻断原因。
+func OrderClosureActiveExceptionError() *errors.Error {
+	return errors.Conflict(ErrOrderClosureBlocked.Reason, "存在未处理的订单异常，请先处理异常后再结案")
 }
 
 // seFlowStatusOrder 主流程状态的严格推进顺序（下标即推进序）。
@@ -177,8 +166,9 @@ func (uc *OrderUsecase) TransitionTermination(ctx context.Context, organizationI
 // TransitionClosure 校验并执行订单结案或反结案。
 //
 // 结案与反结案是生命周期命令，不经过内容写门禁；反结案须在仓储事务内校验未锁定。
-// 已业务锁定的 DOCUMENT_RELEASED 订单允许结案；结案 readiness（无活动异常、无未开账费用、
-// 无待审核补录）由仓储层在事务内重验。主流程未完成的订单直接结案时，仓储层
+// 已业务锁定的 DOCUMENT_RELEASED 订单允许结案；结案 readiness（无活动异常、无待审核补录）
+// 由仓储层在事务内重验。完结先于审批锁单和建账，不检查费用建账、开票或核销进度。
+// 主流程未完成的订单直接结案时，仓储层
 // 在同一事务内自动补齐全部主流程节点（含已放单，时间均为操作时刻）。
 // 结案与反结案原因均选填。
 func (uc *OrderUsecase) TransitionClosure(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, target OrderClosureStatus, reason string) (*Order, error) {
@@ -197,8 +187,8 @@ func (uc *OrderUsecase) TransitionClosure(ctx context.Context, organizationID, a
 		if readiness.HasPendingFeeSupplement {
 			return nil, OrderClosurePendingSupplementError()
 		}
-		if err := OrderClosureBlockersError(readiness.HasActiveException, readiness.HasUnbilledOrderFees); err != nil {
-			return nil, err
+		if readiness.HasActiveException {
+			return nil, OrderClosureActiveExceptionError()
 		}
 	}
 	event := &OrderLifecycleChangedEvent{OrganizationID: organizationID, OrderID: id, ActorID: actorID, Dimension: "CLOSURE", FromStatus: string(readiness.ClosureStatus), ToStatus: string(target), OccurredAt: time.Now().UTC()}

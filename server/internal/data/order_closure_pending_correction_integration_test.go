@@ -11,43 +11,15 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	auditent "github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
-	billent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	feeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	eventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 )
 
-// 夹具只为结案验证建立账单关联；结案不以收付款完成为前提。
-func billClosureTestFees(t *testing.T, f *feeSupplementPostgresFixture, o *ent.Order) {
-	t.Helper()
-	fees, err := f.data.db.OrderFee.Query().Where(feeent.OrderIDEQ(o.ID), feeent.Not(feeent.HasFinanceBillLinesWith(effectiveBillLinePredicate()))).All(f.ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, fee := range fees {
-		key := uuid.NewString()
-		create := f.data.db.FinanceBill.Create().SetOrganizationID(f.organizationID).SetBillNo("CLOSE-" + key).SetIdempotencyKey(key).
-			SetDirection(billent.Direction(fee.Direction)).SetStatus(billent.StatusCONFIRMED).SetSettlementPartyID(f.customerID).SetSettlementPartyName("结案测试结算单位").
-			SetCurrency(fee.Currency).SetBaseCurrency(fee.BaseCurrency).SetExchangeRate(fee.ExchangeRate).SetExchangeRateSource(billent.ExchangeRateSourceSYSTEM).SetExchangeRateDate(fee.ExchangeRateDate).
-			SetTotalAmount(fee.TotalAmount).SetNetAmount(fee.NetAmount).SetTaxAmount(fee.TaxAmount).SetBaseCurrencyAmount(fee.BaseCurrencyAmount).SetFeeCount(1).SetBillDate(fee.ExchangeRateDate)
-		bill, err := withTestFinanceBillSettlementAccountSnapshot(create, uuid.New(), fee.Currency).Save(f.ctx)
-		if err != nil {
-			t.Fatal(err)
-		}
-		_, err = f.data.db.FinanceBillLine.Create().SetBillID(bill.ID).SetOrderFeeID(fee.ID).SetOrderID(o.ID).SetOrderNo(o.OrderNo).
-			SetFeeCode(fee.FeeCode).SetFeeName(fee.FeeName).SetQuantity(fee.Quantity).SetUnitPrice(fee.UnitPrice).SetTotalAmount(fee.TotalAmount).SetNetAmount(fee.NetAmount).SetTaxAmount(fee.TaxAmount).
-			SetCurrency(fee.Currency).SetExchangeRate(fee.ExchangeRate).SetBaseCurrency(fee.BaseCurrency).SetBaseCurrencyAmount(fee.BaseCurrencyAmount).Save(f.ctx)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-}
-
 func readyClosureTestOrder(t *testing.T, f *feeSupplementPostgresFixture) *ent.Order {
 	t.Helper()
 	o := f.createOrder("CLOSE-" + uuid.NewString())
 	f.approveInitialFees(o)
-	billClosureTestFees(t, f, o)
 	o, err := f.data.db.Order.UpdateOneID(o.ID).SetFlowStatus(orderent.FlowStatusDOCUMENT_RELEASED).Save(f.ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -73,7 +45,7 @@ func transitionClosureForTest(ctx context.Context, f *feeSupplementPostgresFixtu
 	return NewOrderRepo(f.data).TransitionClosure(ctx, f.organizationID, o.ID, o.Version, target, "核对业务完成", f.requesterID, event)
 }
 
-func requireClosureBlocked(t *testing.T, err error, pending bool) {
+func requireClosureBlocked(t *testing.T, err error) {
 	t.Helper()
 	if err == nil {
 		t.Fatal("结案必须被阻断")
@@ -82,11 +54,8 @@ func requireClosureBlocked(t *testing.T, err error, pending bool) {
 	if detail.Code != 409 || detail.Reason != "ORDER_CLOSURE_BLOCKED" {
 		t.Fatalf("结案错误不符: %v", err)
 	}
-	if pending && detail.Message != "存在待审费用变更，请先处理后再结案" {
+	if detail.Message != "存在待审费用变更，请先处理后再结案" {
 		t.Fatalf("缺少待审具体原因: %v", err)
-	}
-	if !pending && detail.Message != "存在未建账费用，请先在费用页完成建账后再结案" {
-		t.Fatalf("缺少未建账费用的具体原因与处理指引: %v", err)
 	}
 }
 
@@ -97,7 +66,7 @@ func TestOrderClosurePendingCorrectionReadinessPostgres(t *testing.T) {
 	r := submitClosureCorrection(t, f, uc, o, "pending-close")
 	repo := NewOrderRepo(f.data)
 	readiness, err := repo.ClosureReadiness(f.ctx, f.organizationID, o.ID)
-	if err != nil || !readiness.HasPendingFeeSupplement || readiness.HasUnbilledOrderFees {
+	if err != nil || !readiness.HasPendingFeeSupplement {
 		t.Fatalf("待补审应独立于正式费用: readiness=%+v err=%v", readiness, err)
 	}
 	projected, err := repo.Get(biz.WithPrincipal(f.ctx, f.requesterPrincipal()), f.organizationID, o.ID)
@@ -109,7 +78,7 @@ func TestOrderClosurePendingCorrectionReadinessPostgres(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = transitionClosureForTest(f.ctx, f, o, biz.OrderClosureClosed)
-	requireClosureBlocked(t, err, true)
+	requireClosureBlocked(t, err)
 	after, err := f.data.db.Order.Get(f.ctx, o.ID)
 	if err != nil || after.Version != o.Version || after.ClosureStatus != orderent.ClosureStatusOPEN || after.ClosedAt != nil {
 		t.Fatalf("拒绝应保留订单: %+v err=%v", after, err)
@@ -182,11 +151,8 @@ func TestOrderClosurePendingCorrectionClosedWorkflowPostgres(t *testing.T) {
 		t.Fatalf("解锁后应可反结案: %v", err)
 	}
 	after = f.data.db.Order.GetX(f.ctx, o.ID)
-	_, err = transitionClosureForTest(f.ctx, f, after, biz.OrderClosureClosed)
-	requireClosureBlocked(t, err, false)
-	billClosureTestFees(t, f, after)
 	if _, err := transitionClosureForTest(f.ctx, f, after, biz.OrderClosureClosed); err != nil {
-		t.Fatalf("补审费用建账后应可结案: %v", err)
+		t.Fatalf("补审费用尚未建账也应可结案: %v", err)
 	}
 }
 
@@ -268,12 +234,12 @@ func TestOrderClosurePendingCorrectionOrderedConcurrencyPostgres(t *testing.T) {
 			if firstErr != nil {
 				t.Fatalf("首操作应成功: %v", firstErr)
 			}
-			if sequence == "结案先" {
+			if sequence != "补审申请先" {
 				if secondErr != nil {
-					t.Fatalf("结案后仍允许补审申请: %v", secondErr)
+					t.Fatalf("结案后允许补审申请，补审批准后允许未建账结案: %v", secondErr)
 				}
 			} else {
-				requireClosureBlocked(t, secondErr, sequence == "补审申请先")
+				requireClosureBlocked(t, secondErr)
 			}
 		})
 	}

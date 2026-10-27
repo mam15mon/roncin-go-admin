@@ -152,9 +152,7 @@ describe('订单详情状态确认函数', () => {
       onCompleted,
     );
     render(getConfig().content);
-    expect(
-      screen.getByText(/完结前需处理全部订单异常、完成全部费用建账/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/完结后再审批锁单、建立账单/)).toBeInTheDocument();
     fireEvent.change(screen.getByPlaceholderText('请输入完结原因（选填）'), {
       target: { value: reason },
     });
@@ -186,7 +184,7 @@ describe('订单详情状态确认函数', () => {
     );
     render(getConfig().content);
     expect(
-      screen.queryByText(/完结前需处理全部订单异常/),
+      screen.queryByText(/完结后再审批锁单、建立账单/),
     ).not.toBeInTheDocument();
     fireEvent.change(screen.getByPlaceholderText('请输入反结案原因（选填）'), {
       target: { value: reason },

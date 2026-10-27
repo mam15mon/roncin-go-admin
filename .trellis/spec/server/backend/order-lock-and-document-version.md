@@ -67,6 +67,7 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 - 统一内容写门禁（`internal/data/order_lock.go` 的 `ensureOrderBusinessContentEditable`）：所有订单业务资料及子资源写入口在 Order `FOR UPDATE` 后校验，订单必须满足 `termination_status = ACTIVE` 且未业务锁定；`closure_status` 不限制业务内容编辑；校验顺序为先生命周期后业务锁，禁止另写第二套重复门禁（如原 `ensureReleasePodOrderEditable` 已删除并复用统一实现）。单证变更（MBL/HBL 改单、作废、模式变更）与订单级变更（共享航程船期更新、改配）同样复用该门禁：对事务内已按主键序 `FOR UPDATE` 锁定的目标及全部成员订单逐单校验，任一不满足即整体 409 回滚。
 - **门禁的预读面同源**：预览与按钮接口与 Execute 同口径感知门禁，避免"预览通过、提交才被拒"——单证/船期/改配预览将门禁事实并入 Impacts（`ORDER_BUSINESS_LOCK` 阻断事实，Executable=false）；`PreviewSplit` 写入 `ValidationErrors`（Reason=ORDER_GATE，预览正常返回）；`GetChangeActions` 将 `CanSplit/CanReassign` 置 false 并追加含订单号的原因（`orderBusinessEditBlockReason` 统一文案提取）。预读不做锁、不改变 Execute 的 409 语义；改配的终止仍走既有 `SEA_ORDER_REASSIGNMENT_BLOCKED` 文案口径（`GateBlockedError` 仅透传业务锁 409），完结未锁不阻断改配。
 - 生命周期命令的专属校验：`TransitionStatus` 显式要求 ACTIVE + OPEN + 未业务锁定（主流程推进属业务写入，锁定后不得推进）；`TransitionTermination` 只要求结案维度保持 OPEN，其中 `ACTIVE → TERMINATING` 仍要求订单未业务锁定，`TERMINATING → ACTIVE/TERMINATED` 与 `TERMINATED → ACTIVE` 不因业务锁被阻断；`TransitionClosure` 的完结方向不校验业务锁或主流程前置节点，未完结订单可直接发起结案，未完成节点由事务补齐；`orderAllowedActions` 同样不得要求已放单或已退关，避免按钮投影与执行逻辑分叉。反结案原因选填（最多 500 字），只允许未审核锁定订单，动作投影不得为锁定订单返回 `REOPEN`，提交须在 Order `FOR UPDATE` 后独立检查业务锁并返回 `ORDER_BUSINESS_LOCKED`；不得套用内容门禁误拦终止状态。结案 readiness 在事务内重验，包含无待审补录；`OrderClosureReadiness.HasPendingFeeSupplement` 与锁内查询同源。待审返回 ORDER_CLOSURE_BLOCKED 及明确中文原因，不修改共享错误对象。锁后更正可覆盖结案订单；不能将 CLOSED 与 PENDING 设为静态互斥（见费用更正规范）。解锁前同样阻断待审更正，先撤回或补审。
+- 标准业务顺序是「建单 → 录入费用 → 完结 → 审批锁单 → 建立账单」。完结只表示业务操作完成，不代表财务结清。`OrderClosureReadiness` 与 `TransitionClosure` 的锁内复核只检查活动异常及待审费用变更，不查询未建账费用、不要求费用已经建账/开票/核销，也不自动创建账单或审核锁。活动异常返回 `OrderClosureActiveExceptionError()`，待审费用返回 `OrderClosurePendingSupplementError()`，均保留 `ORDER_CLOSURE_BLOCKED`（409）及具体中文处理指引。
 - SE 订单流转到 `TERMINATED` 时在同一事务结束活动 Link：按 Link ID 排序 `FOR UPDATE`，超过一条活动 Link 返回 `SEA_DOCUMENT_STRUCTURE_CONFLICT`（fail-closed，不静默修复）；更新为 `ENDED`、写入 UTC `ended_at`、固定中文 `ended_reason = "订单退关"` 并递增 Link 版本，不修改 MBL/TransportExecution 版本；Order、Link、生命周期事件、审计任一步失败全部回滚。`TERMINATED → ACTIVE` 只恢复订单状态，历史 Link 保持不可变。
 
 ## 4. Validation & Error Matrix
@@ -78,6 +79,8 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 | 订单已完结、未审核锁定且 `termination_status=ACTIVE`，调用内容写入口 | 允许编辑；权限、版本、账单占用与下游事实仍须通过 |
 | 目标订单已业务锁定，调用普通写入口 | `ORDER_BUSINESS_LOCKED`，metadata 含订单、代次、时间和锁定人 |
 | 已终止订单残留历史锁信息 | 优先返回终止类错误，不得误提示“先解锁即可编辑” |
+| 已录入费用、尚未建账和审核锁单，且无活动异常/待审费用变更 | 允许完结；补齐主流程及事件，费用与账单关联不变，随后可审核锁单并建账 |
+| 执行结案时存在活动异常 | ORDER_CLOSURE_BLOCKED（409，“存在未处理的订单异常，请先处理异常后再结案”） |
 | 执行结案时存在 PENDING 补录 | ORDER_CLOSURE_BLOCKED（409，“存在待审核补录，请先处理后再结案”），无状态/事件部分写入 |
 | 合并账单部分/全部回款、建账或删除最后未建账费 | 不自动锁定，不追加人工审核事实 |
 | 审核时费用版本/指纹变化或亏损缺少意见 | 409 快照冲突或参数错误，不产生锁定及部分快照 |
@@ -108,6 +111,7 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 - Base：普通订单字段更新不携带 MBL 身份、权威航程或 `MasterBillContent` 写入时，只锁目标 Order 并执行统一内容写门禁（生命周期 + 业务锁）。
 - Base：已锁定的 `DOCUMENT_RELEASED` 订单直接结案；`TERMINATED → ACTIVE` 恢复订单但不复活历史 Link，后续显式建立新 Link 由活动 Link 唯一索引兜底。
 - Bad：在生命周期命令（终止/恢复/结案/反结案）里统一复用内容写门禁，导致合法流转被 `ORDER_BUSINESS_LOCKED`/`ORDER_TERMINATED` 误杀。
+- Good：录入费用后先完结，再审核锁单与建账。Bad：把“尚未建账”作为结案阻断条件，或仅把提示改成“先建账再结案”。
 - Bad：先锁目标 Link 或 MBL，再查询并 `FOR UPDATE` 其他成员 Order；这会与拆票、改配、锁单路径形成反向锁序。
 - Bad：只检查 `SeaMasterBillInput`，遗漏 `SeaDocumentInput.MasterBillContent` 也会修改共享 MBL 的事实。
 - Bad：退关完成时发现多条活动 Link 后静默结束全部或仅结束其一；必须 fail-closed 返回结构冲突。
@@ -116,6 +120,7 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 
 - 真实 PostgreSQL：建账、部分/全额核销、对冲、删除最后未建账费用均不自动锁定；人工审核绑定订单/费用版本与指纹、亏损意见、费用不可变快照、并发写入及审计失败零部分写入。正式迁移初始化，SKIP 不算通过。
 - 真实 PostgreSQL：SE 与非 SE 已完结订单均可审核锁定（含已建账费用），断言结案状态及账单不变、锁代次/版本递增、审核费用快照和审计完整；已完结未锁订单仍可改资料及未建账费用，锁后普通资料与费用修改均拒绝；已建账费用始终先回退。
+- `TestOrderClosureBeforeReviewAndBillingPostgres`：SE/SI 草稿订单录费后未建账、未审核即可完结，版本递增且只有一条完结事件，不改费用、不建账、不锁单；继续验证真实人工审核及锁后费用建账资格。补审批准与结案竞争时，批准生效的费用即使未建账也不得阻止结案，PENDING 申请仍须阻断。
 
 - Biz：锁定/三路解锁资格、bootstrap 优先、幂等同键同/异指纹、错误 metadata。
 - Data/PostgreSQL 锁资格矩阵：组织内 ORG 角色、上级组织 TREE 角色（按真实上级 membership/role 快照）、ALL 范围 `administrator` 角色、无锁权限的 `administrator` 角色、bootstrap（可锁、应急解锁、不进候选池）、ORG 范围越组织与 TREE 范围兄弟组织拒绝、撤权后旧候选回调 `APPROVER_NOT_QUALIFIED`。

@@ -11,7 +11,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderabnormalcaseent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
-	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	orderlifecycleeventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	seamasterbillorderlink "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 )
@@ -176,15 +175,11 @@ func (r *orderRepo) ClosureReadiness(ctx context.Context, organizationID, id uui
 	if err != nil {
 		return nil, err
 	}
-	hasUnbilledFees, err := client.OrderFee.Query().Where(orderfeeent.OrderIDEQ(id), accountingOrderFeePredicate(), orderfeeent.Not(orderfeeent.HasFinanceBillLinesWith(effectiveBillLinePredicate()))).Exist(ctx)
-	if err != nil {
-		return nil, err
-	}
 	hasPendingSupplement, err := hasPendingFeeSupplement(ctx, client, id)
 	if err != nil {
 		return nil, err
 	}
-	return &biz.OrderClosureReadiness{FlowStatus: biz.OrderFlowStatus(item.FlowStatus), TerminationStatus: biz.OrderTerminationStatus(item.TerminationStatus), ClosureStatus: biz.OrderClosureStatus(item.ClosureStatus), HasActiveException: hasActiveException, HasUnbilledOrderFees: hasUnbilledFees, HasPendingFeeSupplement: hasPendingSupplement}, nil
+	return &biz.OrderClosureReadiness{FlowStatus: biz.OrderFlowStatus(item.FlowStatus), TerminationStatus: biz.OrderTerminationStatus(item.TerminationStatus), ClosureStatus: biz.OrderClosureStatus(item.ClosureStatus), HasActiveException: hasActiveException, HasPendingFeeSupplement: hasPendingSupplement}, nil
 }
 
 func (r *orderRepo) TransitionClosure(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, target biz.OrderClosureStatus, reason string, actorID uuid.UUID, event *biz.OrderLifecycleChangedEvent) (*biz.Order, error) {
@@ -213,12 +208,8 @@ func (r *orderRepo) TransitionClosure(ctx context.Context, organizationID, id uu
 			if readinessErr != nil {
 				return readinessErr
 			}
-			hasUnbilledFees, readinessErr := tx.OrderFee.Query().Where(orderfeeent.OrderIDEQ(id), accountingOrderFeePredicate(), orderfeeent.Not(orderfeeent.HasFinanceBillLinesWith(effectiveBillLinePredicate()))).Exist(ctx)
-			if readinessErr != nil {
-				return readinessErr
-			}
-			if err := biz.OrderClosureBlockersError(hasActiveException, hasUnbilledFees); err != nil {
-				return err
+			if hasActiveException {
+				return biz.OrderClosureActiveExceptionError()
 			}
 		}
 		update := existing.Update().SetClosureStatus(orderent.ClosureStatus(target)).SetVersion(existing.Version + 1)

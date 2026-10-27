@@ -267,7 +267,7 @@ export function confirmOrderClosure(
       <Space vertical style={{ width: '100%', marginTop: 12 }}>
         {!isReopen && (
           <div>
-            完结前需处理全部订单异常、完成全部费用建账，并处理待审批费用变更。无需先完成收付款核销；尚未完成的主流程节点将自动补齐。
+            请确认订单资料与费用已录入完成，完结后再审批锁单、建立账单。未处理的订单异常或待审批费用变更会阻止完结；尚未完成的主流程节点将自动补齐。
           </div>
         )}
         <Input.TextArea

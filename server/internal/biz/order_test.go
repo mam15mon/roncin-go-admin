@@ -551,8 +551,7 @@ func TestOrderClosureRequiresTerminalBusinessAndNoBlockers(t *testing.T) {
 		message   string
 	}{
 		{name: "存在活动异常", readiness: &OrderClosureReadiness{FlowStatus: OrderFlowDocumentReleased, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, HasActiveException: true}, message: "存在未处理的订单异常，请先处理异常后再结案"},
-		{name: "草稿存在未建账费用", readiness: &OrderClosureReadiness{FlowStatus: OrderFlowDraft, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, HasUnbilledOrderFees: true}, message: "存在未建账费用，请先在费用页完成建账后再结案"},
-		{name: "异常与未建账并存", readiness: &OrderClosureReadiness{FlowStatus: OrderFlowDocumentReleased, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, HasActiveException: true, HasUnbilledOrderFees: true}, message: "存在未处理的订单异常，请先处理异常后再结案；存在未建账费用，请先在费用页完成建账后再结案"},
+		{name: "草稿存在活动异常", readiness: &OrderClosureReadiness{FlowStatus: OrderFlowDraft, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, HasActiveException: true}, message: "存在未处理的订单异常，请先处理异常后再结案"},
 	}
 	for _, testCase := range blockedCases {
 		t.Run(testCase.name, func(t *testing.T) {
@@ -632,9 +631,8 @@ func TestOrderClosurePendingSupplement(t *testing.T) {
 	}
 	readiness.ClosureStatus = OrderClosureClosed
 	readiness.HasPendingFeeSupplement = true
-	readiness.HasUnbilledOrderFees = true
 	if _, err := usecase.TransitionClosure(context.Background(), organizationID, actorID, id, 9, OrderClosureOpen, "重新办理业务"); err != nil {
-		t.Fatalf("反结案不检查待审与未建账: %v", err)
+		t.Fatalf("反结案不检查待审: %v", err)
 	}
 }
 
