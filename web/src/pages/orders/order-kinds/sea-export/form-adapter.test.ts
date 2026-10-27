@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import { describe, expect, it } from 'vitest';
 import {
+  ContainerOwnership,
   OrderBusinessType,
   OrderPersonnelRole,
   SeaDocumentStructure,
@@ -47,6 +48,9 @@ describe('buildSeaExportCreateDefaults', () => {
       ShipmentMode.SHIPMENT_MODE_TRADITIONAL_FORWARDING,
     );
     expect(defaults.shipmentType).toBe(ShipmentType.SHIPMENT_TYPE_FCL);
+    expect(defaults.containerOwnership).toBe(
+      ContainerOwnership.CONTAINER_OWNERSHIP_COC,
+    );
     expect(defaults.tradeTerm).toBe(TradeTerm.TRADE_TERM_CIF);
   });
 

@@ -10,7 +10,7 @@ import {
   saveFormDraft,
 } from '@/components/layout/formDraft';
 import { _clearAllTabCloseGuards } from '@/components/layout/tabCloseGuard';
-import { TradeTerm } from '@/enums.generated';
+import { ContainerOwnership, TradeTerm } from '@/enums.generated';
 import NewOrderPage from './new';
 import { useOrderCreateOptions } from './use-order-create-options';
 
@@ -277,11 +277,14 @@ describe('NewOrderPage', () => {
     await flushMountRequests();
   });
 
-  it('海运出口订单默认贸易条款为 CIF', async () => {
+  it('海运出口订单默认贸易条款为 CIF、货主箱标记为船东箱 COC', async () => {
     renderWithApp(<NewOrderPage />);
 
     expect(lastTemplateProps?.initialValues?.tradeTerm).toBe(
       TradeTerm.TRADE_TERM_CIF,
+    );
+    expect(lastTemplateProps?.initialValues?.containerOwnership).toBe(
+      ContainerOwnership.CONTAINER_OWNERSHIP_COC,
     );
     await flushMountRequests();
   });

@@ -9,9 +9,7 @@ import {
   TradeDirection,
   TradeTerm,
 } from '@/enums.generated';
-import {
-  SEA_SHIPMENT_MODE,
-} from '../../sea-order-policy';
+import { SEA_SHIPMENT_MODE } from '../../sea-order-policy';
 import { getSeaTemplateSections } from '../../templates';
 import type {
   OrderCreateDefaultsContext,
@@ -44,6 +42,7 @@ export function buildSeaExportCreateDefaults(
     orderDate: dayjs(),
     shipmentMode: ShipmentMode.SHIPMENT_MODE_TRADITIONAL_FORWARDING,
     shipmentType: ShipmentType.SHIPMENT_TYPE_FCL,
+    containerOwnership: ContainerOwnership.CONTAINER_OWNERSHIP_COC,
     tradeTerm: TradeTerm.TRADE_TERM_CIF,
     cargoCategoryIds:
       typeof defaultCargoCategoryId === 'string'
