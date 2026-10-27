@@ -287,7 +287,7 @@ var (
 	iataAirlinePattern     = regexp.MustCompile(`^[A-Z0-9]{2}$`)
 	icaoAirlinePattern     = regexp.MustCompile(`^[A-Z0-9]{3}$`)
 	awbPrefixCodePattern   = regexp.MustCompile(`^\d{3}$`)
-	scacCodePattern        = regexp.MustCompile(`^[A-Z]{2,4}$`)
+	scacCodePattern        = regexp.MustCompile(`^([A-Z]{2,4}|[A-Z0-9]{3})$`)
 	containerPrefixPattern = regexp.MustCompile(`^[A-Z]{3}[UJZ]$`)
 	countryCodePattern     = regexp.MustCompile(`^[A-Z]{2}$`)
 )

@@ -8245,6 +8245,10 @@ func init() {
 	SeaTransportExecutionVersionsTable.ForeignKeys[4].RefTable = UsersTable
 	SessionsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	SessionsTable.ForeignKeys[1].RefTable = UsersTable
+	ShippingLinesTable.Annotation = &entsql.Annotation{}
+	ShippingLinesTable.Annotation.Checks = map[string]string{
+		"shipping_lines_scac_code_check": "scac_code ~ '^([A-Z]{2,4}|[A-Z0-9]{3})$'",
+	}
 	ShippingLineContainerPrefixesTable.ForeignKeys[0].RefTable = ShippingLinesTable
 	TaxableServicesTable.ForeignKeys[0].RefTable = OrganizationsTable
 	UsersTable.ForeignKeys[0].RefTable = OrganizationsTable

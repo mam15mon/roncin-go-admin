@@ -124,9 +124,9 @@ export default function ShippingLinesPanel() {
   return (
     <MasterDataTemplate<ShippingLineItem>
       title="船公司管理"
-      subtitle="维护全球主要班轮船公司 SCAC 代码、联盟分类与官方货柜轨迹追踪入口"
+      subtitle="维护全球主要班轮船公司 SMDG / SCAC 代码、联盟分类与官方货柜轨迹追踪入口"
       icon={<GlobalOutlined />}
-      codeLabel="SCAC 标准代码"
+      codeLabel="SMDG / SCAC 代码"
       items={data}
       loading={loading}
       total={total}
@@ -135,7 +135,7 @@ export default function ShippingLinesPanel() {
       query={query}
       onQueryChange={setQuery}
       onRefresh={reload}
-      searchPlaceholder="搜索 SCAC（如 MAEU）/ BIC 箱主前缀（如 MSKU）/ 船司中英文名称..."
+      searchPlaceholder="搜索 SMDG / SCAC（如 G2O、MAEU）/ BIC 箱主前缀（如 MSKU）/ 船司中英文名称..."
       extraStats={[
         {
           label: '三大班轮联盟',
@@ -154,7 +154,7 @@ export default function ShippingLinesPanel() {
           color: '#52c41a',
         },
         {
-          label: '配备标准SCAC',
+          label: '配备标准代码',
           value: data.filter((s) => Boolean(s.scacCode)).length,
           color: '#722ed1',
         },
@@ -234,13 +234,16 @@ export default function ShippingLinesPanel() {
       formFields={[
         {
           name: 'code',
-          label: 'SCAC 标准代码',
-          placeholder: '例如：MAEU、COSU',
+          label: 'SMDG / SCAC 代码',
+          placeholder: '例如：COS、G2O、TI2、MAEU',
           required: true,
           disabledOnEdit: true,
           rules: [
-            { required: true, message: '请输入 SCAC 标准代码' },
-            { pattern: /^[A-Za-z]{2,4}$/, message: 'SCAC 应为2至4位字母' },
+            { required: true, message: '请输入 SMDG / SCAC 代码' },
+            {
+              pattern: /^([A-Za-z]{2,4}|[A-Za-z0-9]{3})$/,
+              message: 'SMDG 为3位字母或数字，SCAC 为2至4位字母',
+            },
           ],
         },
         {

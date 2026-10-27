@@ -3,16 +3,24 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 )
 
-// ShippingLine 定义班轮公司的 SCAC 标准标识。
+// ShippingLine 定义班轮公司的 SMDG / SCAC 主标识。
 // A 型全局主数据：SCAC 等客观编码全球唯一，无组织归属。
 type ShippingLine struct{ ent.Schema }
 
 func (ShippingLine) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
+
+// 船司主代码支持三位 SMDG 字母数字码及二至四位 SCAC 字母码。
+func (ShippingLine) Annotations() []schema.Annotation {
+	return []schema.Annotation{entsql.Checks(map[string]string{
+		"shipping_lines_scac_code_check": "scac_code ~ '^([A-Z]{2,4}|[A-Z0-9]{3})$'",
+	})}
+}
 
 func (ShippingLine) Fields() []ent.Field {
 	return []ent.Field{

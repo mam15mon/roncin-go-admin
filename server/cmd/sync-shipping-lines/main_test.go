@@ -12,17 +12,6 @@ import (
 func TestDictResolutions(t *testing.T) {
 	t.Parallel()
 
-	// 1. 中文名称映射测试
-	if zh := resolveChineseName("COS", "COSCO SHIPPING Lines"); zh != "中远海运集运" {
-		t.Fatalf("COS 中文名 = %s, want 中远海运集运", zh)
-	}
-	if zh := resolveChineseName("MSK", "Maersk"); zh != "马士基航运" {
-		t.Fatalf("MSK 中文名 = %s, want 马士基航运", zh)
-	}
-	if zh := resolveChineseName("XYZ", "XYZ Lines"); zh != "XYZ Lines" {
-		t.Fatalf("未知船司中文名保底 = %s, want XYZ Lines", zh)
-	}
-
 	// 2. 航运联盟映射测试
 	if alliance := resolveAlliance("COS"); alliance == nil || *alliance != "Ocean Alliance" {
 		t.Fatalf("COS 联盟 = %v, want Ocean Alliance", alliance)
@@ -136,13 +125,13 @@ func TestParseShippingLinesExcel(t *testing.T) {
 	}
 
 	// 验证按代码排序
-	if rows[0].SCACCode != "COS" || rows[0].NameZH != "中远海运集运" || rows[0].CountryCode != "CN" {
+	if rows[0].SCACCode != "COS" || rows[0].CountryCode != "CN" {
 		t.Fatalf("rows[0] = %+v", rows[0])
 	}
 	if rows[1].SCACCode != "G2O" || rows[1].NameEN != "G2 Ocean AS" {
 		t.Fatalf("rows[1] = %+v", rows[1])
 	}
-	if rows[2].SCACCode != "MSK" || rows[2].NameZH != "马士基航运" || rows[2].CountryCode != "DK" {
+	if rows[2].SCACCode != "MSK" || rows[2].CountryCode != "DK" {
 		t.Fatalf("rows[2] = %+v", rows[2])
 	}
 	if rows[3].SCACCode != "TI2" || rows[3].NameEN != "Ti2 Container lines pte ltd" {

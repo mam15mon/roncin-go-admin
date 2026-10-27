@@ -9,66 +9,9 @@ import (
 var (
 	smdgLinerCodePattern = regexp.MustCompile(`^[A-Z0-9]{3}$`)
 	countryPattern       = regexp.MustCompile(`^[A-Z]{2}$`)
-	prefixPattern        = regexp.MustCompile(`^[A-Z]{4}$`)
+	prefixPattern        = regexp.MustCompile(`^[A-Z]{3}[UJZ]$`)
 	httpProtocolExpr     = regexp.MustCompile(`^https?://`)
 )
-
-// topLinersZH 映射中国国际海运货代常用主流船公司的官方/行业通用中文名称。
-var topLinersZH = map[string]string{
-	"COS": "中远海运集运",
-	"MSK": "马士基航运",
-	"MSC": "地中海航运",
-	"CMA": "达飞轮船",
-	"HLC": "赫伯罗特",
-	"ONE": "海洋网联船务",
-	"EMC": "长荣海运",
-	"HMM": "韩新海运",
-	"YML": "阳明海运",
-	"ZIM": "以星综合航运",
-	"WHL": "万海航运",
-	"OOL": "东方海外货柜航运",
-	"SIT": "海丰集运",
-	"PIL": "太平洋船务",
-	"KMT": "高丽海运",
-	"TSL": "德翔海运",
-	"SNK": "长锦商船",
-	"CUL": "中联航运",
-	"RCL": "宏海箱运",
-	"ESL": "阿联酋航运",
-	"MAT": "美森轮船",
-	"ASL": "亚海航运",
-	"CNC": "正利航业",
-	"ANL": "澳国航运",
-	"APL": "美国总统轮船",
-	"HAS": "中谷海运",
-	"ANT": "安通控股",
-	"SML": "森罗商船",
-	"IAL": "运达航运",
-	"DJS": "锦江航运",
-	"HED": "海德航运",
-	"PAN": "泛洋海运",
-	"SIN": "中国外运集运",
-	"SJJ": "上港锦江",
-	"MAR": "玛鲁巴航运",
-	"ACL": "大西洋集装箱航运",
-	"UAS": "阿拉伯联合国家轮船",
-	"MCC": "马士基海陆(亚洲)",
-	"SGL": "马士基海陆(欧地)",
-	"SLD": "马士基海陆(美洲)",
-	"SJL": "萨哈克集装箱航运",
-	"EGH": "长荣海运(香港)",
-	"EMA": "长荣海运(亚洲)",
-	"EMS": "长荣海运(新加坡)",
-	"HTM": "初野海运",
-	"COE": "中远海运(欧洲)",
-	"CSE": "鑫金海航运",
-	"CSH": "达飞短海航运",
-	"CLN": "正利航业",
-	"CMN": "摩洛哥航运",
-	"CAV": "智利南美邮船",
-	"TRK": "土耳其图尔肯航运",
-	"UFE": "联羽航运",
-}
 
 // topAlliances 映射国际集装箱班轮主要航运联盟。
 var topAlliances = map[string]string{
@@ -114,21 +57,21 @@ var topContainerPrefixes = map[string][]string{
 	"MSC": {"MSCU", "MEDU"},
 	"CMA": {"CMAU"},
 	"HLC": {"HLCU", "TGHU"},
-	"ONE": {"ONEY"},
-	"EMC": {"EGLV", "EMCU"},
+	"ONE": {"ONEU"},
+	"EMC": {"EMCU"},
 	"OOL": {"OOLU"},
 	"ZIM": {"ZIMU"},
 	"WHL": {"WHLU"},
 	"SIT": {"SITU"},
 	"PIL": {"PCIU"},
-	"KMT": {"KMTC"},
+	"KMT": {"KMTU"},
 	"HMM": {"HDMU"},
 	"YML": {"YMLU"},
 	"TSL": {"TSLU"},
 	"SNK": {"SKLU"},
 	"CUL": {"CULU"},
 	"ESL": {"ESLU"},
-	"MAT": {"MATS"},
+	"MAT": {"MATU"},
 	"ASL": {"ASLU"},
 }
 
@@ -257,13 +200,6 @@ func resolveCountryCode(code, name, address, website string) string {
 	}
 	// 兜底国家代码：联合国国际组织标号
 	return "UN"
-}
-
-func resolveChineseName(code, nameEN string) string {
-	if zh, ok := topLinersZH[code]; ok && zh != "" {
-		return zh
-	}
-	return nameEN
 }
 
 func resolveAlliance(code string) *string {

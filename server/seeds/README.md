@@ -12,6 +12,7 @@
 | **`loc251csv.zip`** | 全球港口五字码 (UN/LOCODE) | 联合国欧洲经济委员会 (UNECE) | 2025-1 | [UNECE UN/LOCODE Code List](https://unece.org/trade/cefact/unlocode-code-list-country-and-territory) |
 | **`ports.zh-CN.csv`** | 17,524 个海港的中文对照 | 已有中文地名与编制译名，逐行注明来源 | 配套 UN/LOCODE 2025-1 | [中文数据编制说明](ports.zh-CN.md) |
 | **`SMDG_Liner-codes-list-20260903.xlsx`** | 全球班轮船公司代码表 | 国际船舶规划系统用户协会 (SMDG) | 2026-09-03 | [SMDG Liner Code List](https://smdg.org/documents/smdg-liner-code-list/) |
+| **`shipping-lines.zh-CN.csv`** | 360 家船公司完整中文对照 | 已有中文与编译名，逐行注明来源 | 配套 SMDG 2026-09-03 | [中文编制与 seed 说明](shipping-lines.zh-CN.md) |
 | **`SMDG-Terminal-Code-List-v20260609.xlsx`** | 全球集装箱码头与泊位代码表 | 国际船舶规划系统用户协会 (SMDG) | 2026-06-09 | [SMDG Terminal Code List](https://smdg.org/documents/smdg-terminal-code-list/) |
 | **`shipping-agents.hgj.20261027.json`** | 29 条船代候选字典 | 海管家订单候选快照（非完整行业名录） | 2026-10-27 | [来源与映射说明](shipping-agents.md) |
 | **`airlines.dat`** | 全球航空公司主数据 | OpenFlights 数据集 + 官方字典增强 | OpenFlights | [OpenFlights Airline Database](https://openflights.org/data.html) |
@@ -30,7 +31,7 @@
 # 补齐 29 条船代公共主数据（保留管理员改名、排序和停用状态）
 pnpm run sync:shipping-agents
 
-# 同步全球船公司主数据（自动导入 358+ 家船司、航运联盟分类、BIC 箱号前缀与中文对照）
+# 同步全球船公司主数据（360 家船司，中文覆盖 100%，已有同来源记录也会补中文）
 pnpm run sync:shipping-lines
 
 # 同步联合国港口数据及配套中文名（17,524 个海港）
@@ -76,8 +77,8 @@ go -C server run ./cmd/sync-airports
 如需同步外部特定路径的更新文件或切换组织：
 
 ```bash
-# 同步指定路径的船公司 Excel 并写入指定组织
-go -C server run ./cmd/sync-shipping-lines -source /path/to/custom_liner.xlsx -org-code HQ -apply
+# 同步指定路径的船公司 Excel 与配套完整中文表
+go -C server run ./cmd/sync-shipping-lines -source /path/to/custom_liner.xlsx -chinese-source /path/to/shipping-lines.zh-CN.csv -apply
 
 # 同步指定路径的 UN/LOCODE ZIP 与该版本的完整中文表
 go -C server run ./cmd/sync-unlocode -source /path/to/loc252csv.zip -chinese-source /path/to/ports.zh-CN.csv -release 2025-2 -apply
@@ -99,7 +100,7 @@ go -C server run ./cmd/sync-airlines -source /path/to/airlines.dat -apply
 
 ### 2. SMDG 船公司主数据 (`SMDG_Liner-codes-list-20260903.xlsx`)
 - **多标识对齐**：整合 SMDG Code（3位主代码）、SCAC（美国海关4字码）、BIC Code（箱主代码）。
-- **国内常用名补全**：内置国内 Top 50 核心船公司（如中远海控 COSCO、马士基 MAERSK、达飞 CMA CGM、长荣 EVERGREEN 等）的官方中文全称、简称与拼音首字母检索键。
+- **全量中文补全**：原 seed 命令自动读取配套 `shipping-lines.zh-CN.csv`，覆盖 360 家船司；已有中文与编译名分开标注来源，不宣称全部为官方译名。新建和已有同来源记录都写入中文并刷新全拼、首字母检索键；缺行、身份错配或纯英文中文名明确失败。见[编制与同步说明](shipping-lines.zh-CN.md)。
 - **航运联盟标签**：自动打标 Ocean Alliance（海洋联盟）、Gemini Cooperation（双子星）、Premier Alliance（卓越联盟）、MSC 等联盟属性。
 - **箱号前缀关联**：级联建立箱号前缀表（如 `MSKU`、`COSU`、`EGLV`），支持订单录入集装箱号时智能推导承运船司。
 

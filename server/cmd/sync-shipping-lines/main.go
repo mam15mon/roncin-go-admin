@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"flag"
 	"fmt"
@@ -20,26 +19,37 @@ import (
 const smdgSource = "SMDG_LCL"
 
 type shippingLineParseSummary struct {
-	RawRows       int
-	ValidLiners   int
-	SkippedEmpty  int
-	InvalidCodes  int
-	FatalProblems []string
-	SourceHash    string
+	RawRows         int
+	ValidLiners     int
+	SkippedEmpty    int
+	InvalidCodes    int
+	FatalProblems   []string
+	SourceHash      string
+	ChineseHash     string
+	ChineseNames    int
+	ExistingNames   int
+	TranslatedNames int
 }
 
 func main() {
 	syncrunner.Run(run)
 }
 
+type shippingLineOptions struct {
+	syncrunner.Options
+	ChineseSource string
+}
+
 func run(ctx context.Context) error {
-	options := parseOptions()
+	return runWithOptions(ctx, parseOptions())
+}
+
+func runWithOptions(ctx context.Context, options shippingLineOptions) error {
 	raw, err := os.ReadFile(options.Source)
 	if err != nil {
 		return fmt.Errorf("读取 SMDG 船公司数据文件失败: %w", err)
 	}
-	hash := sha256.Sum256(raw)
-	sourceHash := hex.EncodeToString(hash[:])
+	sourceHash := fmt.Sprintf("%x", sha256.Sum256(raw))
 
 	rows, detectedRelease, summary, err := parseShippingLines(options.Source, sourceHash)
 	if err != nil {
@@ -54,6 +64,20 @@ func run(ctx context.Context) error {
 	if len(summary.FatalProblems) > 0 {
 		printSummary(options.Source, options, summary, nil)
 		return fmt.Errorf("船公司源文件校验失败: %d 条问题", len(summary.FatalProblems))
+	}
+
+	chineseRaw, err := os.ReadFile(options.ChineseSource)
+	if err != nil {
+		return fmt.Errorf("读取船公司中文对照失败: %w", err)
+	}
+	rows, err = attachChineseNames(rows, chineseRaw, &summary)
+	if err != nil {
+		return fmt.Errorf("校验船公司中文对照失败: %w", err)
+	}
+	if !options.Apply && strings.TrimSpace(os.Getenv("DATABASE_SOURCE")) == "" {
+		printSummary(options.Source, options, summary, nil)
+		fmt.Println("当前为离线预览模式，未检查数据库冲突；配置 DATABASE_SOURCE 后可预检，使用 -apply 显式写入")
+		return nil
 	}
 
 	store, cleanup, err := syncrunner.OpenStore()
@@ -85,9 +109,10 @@ func run(ctx context.Context) error {
 	return nil
 }
 
-func parseOptions() syncrunner.Options {
+func parseOptions() shippingLineOptions {
 	apply := flag.Bool("apply", false, "将船公司数据写入数据库")
 	source := flag.String("source", "", "SMDG Liner codes list (.xlsx) 路径")
+	chineseSource := flag.String("chinese-source", "", "配套船公司中文 CSV 路径；默认读取 Excel 同目录 shipping-lines.zh-CN.csv")
 	release := flag.String("release", "", "数据版本；默认从 Sheet 名或文件名识别")
 	flag.Parse()
 
@@ -112,7 +137,11 @@ func parseOptions() syncrunner.Options {
 		fmt.Fprintln(os.Stderr, "source 不能为空，未找到默认的 SMDG Excel 文件")
 		os.Exit(2)
 	}
-	return syncrunner.Options{Apply: *apply, Source: filepath.Clean(path), Release: strings.TrimSpace(*release)}
+	chinesePath := resolveSourcePath(strings.TrimSpace(*chineseSource))
+	if chinesePath == "" {
+		chinesePath = filepath.Join(filepath.Dir(path), "shipping-lines.zh-CN.csv")
+	}
+	return shippingLineOptions{Options: syncrunner.Options{Apply: *apply, Source: filepath.Clean(path), Release: strings.TrimSpace(*release)}, ChineseSource: chinesePath}
 }
 
 func resolveSourcePath(source string) string {
@@ -179,9 +208,13 @@ func parseShippingLines(filePath, sourceHash string) ([]data.ShippingLineSyncRec
 		address := strings.TrimSpace(cell(row, 9))
 
 		country := resolveCountryCode(code, nameEN, address, website)
-		nameZH := resolveChineseName(code, nameEN)
 		alliance := resolveAlliance(code)
 		prefixes := resolveContainerPrefixes(code)
+		for _, prefix := range prefixes {
+			if !prefixPattern.MatchString(prefix) {
+				summary.FatalProblems = append(summary.FatalProblems, fmt.Sprintf("船公司 %s 箱号前缀 %q 不符合三位字母加 U/J/Z 的格式", code, prefix))
+			}
+		}
 		trackingURL := resolveTrackingURL(website)
 
 		if existing, exists := recordsByCode[code]; exists {
@@ -191,7 +224,6 @@ func parseShippingLines(filePath, sourceHash string) ([]data.ShippingLineSyncRec
 
 		recordsByCode[code] = data.ShippingLineSyncRecord{
 			SCACCode:          code,
-			NameZH:            nameZH,
 			NameEN:            nameEN,
 			CountryCode:       country,
 			TrackingURL:       trackingURL,
@@ -218,10 +250,12 @@ func cell(row []string, index int) string {
 	return row[index]
 }
 
-func printSummary(sourcePath string, options syncrunner.Options, summary shippingLineParseSummary, conflicts []data.IndustryReferenceSyncConflict) {
+func printSummary(sourcePath string, options shippingLineOptions, summary shippingLineParseSummary, conflicts []data.IndustryReferenceSyncConflict) {
 	fmt.Printf("船公司数据源：%s\n", sourcePath)
 	fmt.Printf("版本：%s，SHA-256：%s\n", options.Release, summary.SourceHash)
 	fmt.Printf("原始行 %d，有效船公司 %d，空行跳过 %d，非法代码 %d\n", summary.RawRows, summary.ValidLiners, summary.SkippedEmpty, summary.InvalidCodes)
+	fmt.Printf("中文对照：%s，SHA-256：%s\n", options.ChineseSource, summary.ChineseHash)
+	fmt.Printf("中文覆盖 %d/%d，已有名称 %d，编译名称 %d\n", summary.ChineseNames, summary.ValidLiners, summary.ExistingNames, summary.TranslatedNames)
 	for index, problem := range summary.FatalProblems {
 		if index == 10 {
 			fmt.Printf("其余源文件问题 %d 条未展开\n", len(summary.FatalProblems)-index)

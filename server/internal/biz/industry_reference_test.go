@@ -64,3 +64,17 @@ func TestNormalizeShippingLineRejectsUnsafeTrackingURL(t *testing.T) {
 		t.Fatalf("normalizeShippingLine() error = %v, want %v", err, ErrMasterDataInvalidArgument)
 	}
 }
+
+func TestNormalizeShippingLineAcceptsSMDGAndSCAC(t *testing.T) {
+	for _, code := range []string{"G2O", "TI2", "COS", "MAEU", "AB"} {
+		got, err := normalizeShippingLine(&ShippingLine{SCACCode: code, NameZH: "测试船司", NameEN: "Test Line", CountryCode: "CN"}, true)
+		if err != nil || got.SCACCode != code {
+			t.Fatalf("有效船司代码 %s 应可创建：%+v err=%v", code, got, err)
+		}
+	}
+	for _, code := range []string{"G@O", "A", "ABCDE", "TI22", "A2"} {
+		if _, err := normalizeShippingLine(&ShippingLine{SCACCode: code, NameZH: "测试船司", NameEN: "Test Line", CountryCode: "CN"}, true); err != ErrMasterDataInvalidArgument {
+			t.Fatalf("非法船司代码 %s 必须拒绝：%v", code, err)
+		}
+	}
+}
