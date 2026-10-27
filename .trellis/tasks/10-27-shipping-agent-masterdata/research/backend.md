@@ -1,5 +1,7 @@
 # Research: 船代公共主数据后端与订单引用
 
+> 本文记录规划初期的研究候选。其中 SQL 种子建议已由最终批准方案替换：正式迁移只处理类型与约束，29 条快照通过 `pnpm run sync:shipping-agents` 写入；实施口径以同任务 `design.md` 和 `implement.md` 为准。
+
 - Query: 是否能复用 MasterDataItem 扩展 shipping_agent，如何同步契约、初始化、权限、拼音、全量维护接口与订单引用。
 - Scope: internal（仓库源码、已导出来源、开发库最小只读统计）
 - Date: 2026-10-27

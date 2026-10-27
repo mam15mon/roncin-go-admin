@@ -6,7 +6,7 @@
 ## 归属矩阵
 | 类型 | 实体 | 维护与消费 |
 | --- | --- | --- |
-| 公共标准资料 | 国家、币种、行政区划、标准箱型、费用大类、货物分类、异常类型、计费单位、船公司、航空公司、港口、机场 | 系统管理身份及对应权限维护，各公司读取同一记录 |
+| 公共标准资料 | 国家、币种、行政区划、标准箱型、费用大类、货物分类、异常类型、计费单位、船公司、船代、航空公司、港口、机场 | 系统管理身份及对应权限维护，各公司读取同一记录 |
 | 系统初始目录 | FeeSettingTemplate | 系统管理维护；新建公司同事务复制为本公司的税务项目和费用科目 |
 | 公司独立配置 | FeeSetting、TaxableService、FinanceCustomSetting | 当前公司有权人员维护，不跨公司共享、不继承系统设置 |
 | 公司独立配置 | ExchangeRateSetting | 公司维护和消费当周业务汇率；旧 NULL 公共行仅保留历史事实，不参与新取值 |
@@ -35,6 +35,40 @@
 - 系统初始目录 122 条模板由正式迁移落库（`fee_catalog_seed.sql`）；迁移同时幂等补齐基础费用类别（与 `data.CreateDefaultOrderOptions` 同值）、异常情况与计费单位（含 `quantity_must_be_integer` 标志，故该迁移必须排在 20260923115000 之后），并向每个既有公司追加模板副本：同码跳过、应税劳务按（公司,名称）复用或按模板文本创建、同名但税率/简称/商品码不一致时显式拒绝，口径与 `initializeCompanyFeeSettings` 一致。
 - 全新库顺序为：迁移先行（此时无组织，公司追加空转）→ bootstrap 建 system 组织并按 kind+code 幂等补种其余 A 型主数据（国家/箱型/货物分类）→ `CreateDefaultBranchCompanies` 新建公司时同事务复制模板。bootstrap 与后台建组织不再以"存在任意主数据行"跳过默认种子。
 - SQL 种子行的 `search_keywords` 必须与 `internal/platform/searchtext.Build` 的输出逐字一致：迁移是纯 SQL，无法执行 Ent 钩子，检索键须经该函数预计算后写入（费用种子由一次性生成器产出后删除）。
+
+## 船代公共字典与订单引用
+
+### 1. 范围与触发
+海运订单的 `shipping_agent_id` 引用全局 `master_data_items.kind='shipping_agent'`。系统管理工作台统一维护，各公司共享读取；订舱代理和国外代理仍是公司经营档案。
+
+### 2. 命令、接口与存储签名
+- 先执行正式迁移，再运行 `pnpm run sync:shipping-agents`，或由 `pnpm run sync:all` 调用。命令读取 `server/seeds/shipping-agents.hgj.20261027.json`，使用环境变量 `DATABASE_SOURCE` 连接数据库。
+- `GET /api/v1/master-data/items/all`：必填 `kind=MASTER_DATA_KIND_SHIPPING_AGENT`，`enabled` 可选；返回完整目录，不接收分页参数，维护读取权限为 `system.master_data.item.read`。
+- `GET /api/v1/master-data/options/search`：以同一 kind 和 keyword 查询启用船代；`page >= 1` 且 `1 <= pageSize <= 200`。
+- 订单 API 沿用 `shipping_agent_id` UUID 与 `shipping_agent_name` 展示字段；正式迁移为 `master_data_items_kind_check` 增加 `shipping_agent`，Ent Schema 同步声明约束。
+
+### 3. 契约
+- 同步以 `(kind, code)` 唯一键和 `HGJ-<来源整数ID>` 导入码只补缺失行；保留已有 UUID、名称、英文、排序、来源和停用状态，不自动停用字典记录。导入码仅用于来源追溯，不代表行业标准编码。快照固定 29 条，运行时不访问第三方网站。
+- 新建订单、普通复制及主动更换船代必须引用存在且启用的船代；原单编辑与拆票继承可保留同一个已停用引用。清空仍为可选。订单校验在原事务内锁定目标行，按 ID 与 kind 双重核对。
+- 订单列表和详情通过同一批量名称投影显示船代，包含停用记录，不回退到 Partner；选择器 keyword 覆盖导入码、中文、英文、拼音全拼与首字母。
+
+### 4. 验证与错误矩阵
+| 条件 | 结果 |
+| --- | --- |
+| 缺少或停用的船代用于新选择 | 订单写入拒绝，事务不提交 |
+| 原订单引用同一停用船代 | 编辑其他字段及拆票继承允许，名称仍可显示 |
+| Partner ID 或其他 kind 的 UUID 用作船代 | 订单写入拒绝；迁移遇旧非空非法引用整批失败 |
+| 同步再次遇到相同 `(kind,code)` | 跳过该行，不覆盖管理员配置 |
+| 快照无效或数据库写入失败 | 命令报错，不产生部分写入 |
+
+### 5. 正常、基准与错误场景
+正常：迁移后同步 29 条，订单按拼音检索并选择启用船代。基准：停用已引用船代后，原单仍显示名称并能编辑其他字段。错误：普通复制把停用旧 ID 当作新选择保存，或重复同步把管理员改名恢复为快照名。
+
+### 6. 必需验证
+隔离 PostgreSQL 执行正式迁移、同步命令两次并核对新增数及稳定 UUID；人工修改名称、排序和启用状态后再次同步，断言不被覆盖。验证检索键、系统维护与公司拒写、正确 kind 与相邻代理路径、新选停用拒绝、旧引用保留、旧 Partner 引用迁移原子拒绝；检查生成契约和前端客户端一致。
+
+### 7. 错误与正确做法
+错误：把 29 条同时硬编码到迁移和同步脚本，或把 `shipping_agent_id` 继续按公司 supplier 校验。正确：正式迁移只负责类型与约束；同步命令从唯一归档快照补缺，订单按公共船代字典校验和显示。
 
 ## 港口全量中文种子契约
 

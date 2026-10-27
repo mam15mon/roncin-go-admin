@@ -27,7 +27,7 @@
 | 提成方案与分配 | `finance_commission_rules.go` | 方案区间、员工分配、资格门禁 | 实际区间允许重叠 |
 | 月度提成申请 | `finance_commission_application.go`、`finance_commission_lifecycle.go` | 申请、批准/驳回、Clawback 锁 | 绕过净额锁直接改提成 |
 | 汇率 | `exchange_rate.go`、`exchange_rate_import.go`、`exchange_rate_reminder.go` | 周汇率双轨、导入、到期提醒 | 自造第二套汇率容灾链 |
-| 主数据 | `masterdata.go`、`industry_reference.go`、`reference_data.go`、`fee_catalog.go` | 船公司/港口/机场/行政区划、费目目录 | 绕过 B 型统一读取谓词 |
+| 主数据 | `masterdata.go`、`industry_reference.go`、`reference_data.go`、`fee_catalog.go` | 公共船代全量维护与订单选择、船公司/港口/机场/行政区划、费目目录；船代补缺执行 `pnpm run sync:shipping-agents` | 绕过 B 型统一读取谓词 |
 | 往来单位档案 | `partner.go` | 档案、散客契约、角色黑名单 | 散客标识写多处 |
 | 往来单位财务配置 | `partner_account.go`、`partner_contract.go`、`partner_credit.go`、`partner_settlement_rule.go`、`partner_shipping_preset.go`、`partner_attachment.go` | 账户、合同、信用、结算规则、运输预设、附件 | 信用口径与账单不一致 |
 | 组织与权限 | `admin_organization.go`、`admin_role.go`、`admin_user.go`、`admin_user_membership.go`、`access/`（manifest） | 组织、角色库、用户、成员资格、权限清单 | 前端复制权限真相 |

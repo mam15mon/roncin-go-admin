@@ -112,6 +112,9 @@ pnpm run migrate:server
 
 # 2. 创建唯一初始管理员及独立公司，补齐系统管理与启用公司的管理员授权
 pnpm run bootstrap:admin
+
+# 3. 导入公共行业资料（含 29 条船代快照）
+pnpm run sync:all
 ```
 > **初始管理员账号**：`admin`  
 > **初始管理员密码**：由 `.env.local` 中的 `BOOTSTRAP_ADMIN_PASSWORD` 指定（必须至少 12 位，命令不会使用任何默认密码）。
@@ -157,7 +160,7 @@ pnpm run dev:server
 
 ---
 
-## 🌐 行业公共主数据同步 (可选)
+## 🌐 行业公共主数据同步
 
 系统初始化时已预置标准箱型、服务类型、货类与国家等基础字典。行业资料可用
 `pnpm run sync:all` 一键同步，也可按需执行以下命令。港口默认读取仓库归档包，机场
