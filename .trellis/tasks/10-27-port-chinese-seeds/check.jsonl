@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/server/backend/index.md", "reason": "后端分层和质量入口"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "统一事务、正式迁移和中文检索规范"}
+{"file": ".trellis/spec/server/backend/organization-shared-masterdata.md", "reason": "港口公共目录和隔离种子验证"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "生成物边界与验证规则"}
+{"file": ".trellis/tasks/10-27-port-chinese-seeds/research/port-name-findings.md", "reason": "既有代码、采集样本与来源限制"}

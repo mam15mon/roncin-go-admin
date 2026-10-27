@@ -35,3 +35,31 @@
 - 系统初始目录 122 条模板由正式迁移落库（`fee_catalog_seed.sql`）；迁移同时幂等补齐基础费用类别（与 `data.CreateDefaultOrderOptions` 同值）、异常情况与计费单位（含 `quantity_must_be_integer` 标志，故该迁移必须排在 20260923115000 之后），并向每个既有公司追加模板副本：同码跳过、应税劳务按（公司,名称）复用或按模板文本创建、同名但税率/简称/商品码不一致时显式拒绝，口径与 `initializeCompanyFeeSettings` 一致。
 - 全新库顺序为：迁移先行（此时无组织，公司追加空转）→ bootstrap 建 system 组织并按 kind+code 幂等补种其余 A 型主数据（国家/箱型/货物分类）→ `CreateDefaultBranchCompanies` 新建公司时同事务复制模板。bootstrap 与后台建组织不再以"存在任意主数据行"跳过默认种子。
 - SQL 种子行的 `search_keywords` 必须与 `internal/platform/searchtext.Build` 的输出逐字一致：迁移是纯 SQL，无法执行 Ent 钩子，检索键须经该函数预计算后写入（费用种子由一次性生成器产出后删除）。
+
+## 港口全量中文种子契约
+
+### 1. 范围与触发
+`sync-unlocode` 装配官方海港身份与仓库中文对照，升级 ZIP、修改中文名或调整同步逻辑时同时遵守本节。中文译名不是 UNECE 官方字段，不得更改五字码或合并港区来迁就中文来源。
+
+### 2. 命令与签名
+`go -C server run ./cmd/sync-unlocode [-source ZIP] [-release VERSION] [-chinese-source CSV] [-apply]`。
+`data.PortSyncRecord.NameZH` 随英文名经 `IndustryReferenceSyncStore.ApplyPorts` 的统一事务写入；更新既有记录保留 ID，新增与更新都调用 Ent 的中文检索 Hook。
+
+### 3. 输入、环境与输出
+中文表默认取 ZIP 同目录的 `ports.zh-CN.csv`，UTF-8 表头严格为 `un_locode,name_en,name_zh,name_kind,source_ref`。代码集合及 `name_en` 必须与当前解析海港逐字一致；`name_kind` 只能为 `existing` 或 `translated`，来源必填。中文必须包含汉字，非空、无首尾空格、最长 200 字且不是占位值。无通用名的编制译名显式标记为 `translated`。
+默认只预览；无 `DATABASE_SOURCE` 时可以完整离线验源，明确提示未检查数据库冲突；有连接时先做数据库冲突检查，`-apply` 必须提供连接。摘要打印中文覆盖、两类数量、ZIP 与中文表 SHA-256。持久化 `source_hash` 是 `SHA256("unlocode-zh-v1\n" + ZIP摘要 + "\n" + CSV摘要 + "\n")`，任一文件变化都改变指纹。
+
+### 4. 校验与错误矩阵
+缺行、多行、重复码、英文身份不符、非法类别、无效中文或来源为空均在打开数据库前失败；不得静默跳过或在线补译。其他来源占用同码时显式拒绝；写入失败整批回滚。基础英文和中文都应显式 Set，避免保留旧的非空检索键。
+
+### 5. 正常、基线与失败场景
+正常：同版 ZIP + 完整 CSV 离线预览覆盖 100%，显式 apply 补中文且二次导入不新增。
+基线：只修订一个中文名，身份与记录 ID 不变，中文检索和联合指纹改变。
+失败：新增或改名后的官方地点没有配套中文行，立即报错并修订 CSV，再重新预览。
+
+### 6. 必需验证
+`cmd/sync-unlocode` 测试包含真实配套文件全量覆盖、严格失败矩阵、双源指纹及无连接预览。`TestPortChineseSyncPostgres` 通过独立 PostgreSQL 与正式迁移验证首次新增、旧行补名、旧非空检索键刷新、代码/英文/中文/全拼/首字母查询、ID及订单引用稳定、幂等、来源冲突和中途失败回滚；不得把 SKIP 当作通过。
+
+### 7. 错误与正确做法
+错误：把英文复制到中文列、按旧行业码盲目套用名字，或在同步时调用翻译服务补缺行。
+正确：先按同国家、同代码及地点身份核对来源，无法核实通用名时编制有意义译名并记录依据；提交静态中文表，运行时严格读取和校验，不引入翻译依赖。

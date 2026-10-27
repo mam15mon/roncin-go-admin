@@ -1,7 +1,7 @@
 # 行业参考主数据（Industry Reference Seeds）
 
 本目录用于归档海运与国际物流核心领域的官方基准数据（行业字典与种子数据）。
-所有数据均来源于国际权威标准组织，用于在系统初始化或日常运维中一键落库，避免依赖外部不可靠接口或临时文件。
+标准代码以官方发布包为准；中文增强字段另行归档来源与编制说明，用于在系统初始化或日常运维中一键落库。
 
 ---
 
@@ -10,6 +10,7 @@
 | 文件名 | 数据领域 | 官方标准组织 | 数据版本 | 官方发布/下载页面 |
 |---|---|---|---|---|
 | **`loc251csv.zip`** | 全球港口五字码 (UN/LOCODE) | 联合国欧洲经济委员会 (UNECE) | 2025-1 | [UNECE UN/LOCODE Code List](https://unece.org/trade/cefact/unlocode-code-list-country-and-territory) |
+| **`ports.zh-CN.csv`** | 17,524 个海港的中文对照 | 已有中文地名与编制译名，逐行注明来源 | 配套 UN/LOCODE 2025-1 | [中文数据编制说明](ports.zh-CN.md) |
 | **`SMDG_Liner-codes-list-20260903.xlsx`** | 全球班轮船公司代码表 | 国际船舶规划系统用户协会 (SMDG) | 2026-09-03 | [SMDG Liner Code List](https://smdg.org/documents/smdg-liner-code-list/) |
 | **`SMDG-Terminal-Code-List-v20260609.xlsx`** | 全球集装箱码头与泊位代码表 | 国际船舶规划系统用户协会 (SMDG) | 2026-06-09 | [SMDG Terminal Code List](https://smdg.org/documents/smdg-terminal-code-list/) |
 | **`airlines.dat`** | 全球航空公司主数据 | OpenFlights 数据集 + 官方字典增强 | OpenFlights | [OpenFlights Airline Database](https://openflights.org/data.html) |
@@ -28,7 +29,7 @@
 # 同步全球船公司主数据（自动导入 358+ 家船司、航运联盟分类、BIC 箱号前缀与中文对照）
 pnpm run sync:shipping-lines
 
-# 同步联合国港口数据（自动导入 17,524 个全球有效海港）
+# 同步联合国港口数据及配套中文名（17,524 个海港）
 pnpm run sync:unlocode
 
 # 同步全球航空公司主数据（自动导入 988 家活跃航司，136+ 家主流客货运航司中文名与 AWB 前缀）
@@ -38,7 +39,7 @@ pnpm run sync:airlines
 pnpm run sync:airports
 ```
 
-> **提示**：同步过程基于数据库唯一索引（如组织 + 港口五字码、组织 + 船司主代码、组织 + IATA/ICAO），多次重复执行具有**幂等性**（会自动执行增量更新，不重复新增）。
+> **提示**：港口是全局公共主数据，五字码全局唯一。同步会更新同来源记录，保留 ID 和订单引用；其他来源同码冲突会报错，多次执行不重复新增。
 
 ### 2. 预览模式（安全预检，不写入数据库）
 
@@ -48,7 +49,7 @@ pnpm run sync:airports
 # 预览船公司解析统计
 go -C server run ./cmd/sync-shipping-lines
 
-# 预览海港数据解析统计
+# 预览海港与中文覆盖统计；无 DATABASE_SOURCE 也可离线验源
 go -C server run ./cmd/sync-unlocode
 
 # 预览航司数据解析统计
@@ -74,8 +75,8 @@ go -C server run ./cmd/sync-airports
 # 同步指定路径的船公司 Excel 并写入指定组织
 go -C server run ./cmd/sync-shipping-lines -source /path/to/custom_liner.xlsx -org-code HQ -apply
 
-# 同步指定路径的 UN/LOCODE ZIP 包并显式指定版本
-go -C server run ./cmd/sync-unlocode -source /path/to/loc252csv.zip -release 2025-2 -apply
+# 同步指定路径的 UN/LOCODE ZIP 与该版本的完整中文表
+go -C server run ./cmd/sync-unlocode -source /path/to/loc252csv.zip -chinese-source /path/to/ports.zh-CN.csv -release 2025-2 -apply
 
 # 同步指定路径的 OpenFlights 航司数据
 go -C server run ./cmd/sync-airlines -source /path/to/airlines.dat -apply
@@ -89,6 +90,8 @@ go -C server run ./cmd/sync-airlines -source /path/to/airlines.dat -apply
 - **筛选口径**：UN/LOCODE 原文件包含 11 万余行全球地点（涵盖内陆点、机场、邮局、铁路站等）。系统脚本仅严格提取具有**海港运输功能（`Function[0] == '1'`）**的有效记录（共 17,524 条），确保业务数据纯净。
 - **编码清洗**：兼容 UTF-8 与 Windows-1252 编码，清洗特殊重音符号。
 - **关联字段**：自动生成五字码、英文名、国家二字码、坐标经纬度、运输方式标签（`SEA`）及检索关键字（用于前端联想匹配）。
+- **中文对照**：同时读取 ZIP 同目录的 `ports.zh-CN.csv`（可用 `-chinese-source` 指定），严格校验完整代码集合和英文身份；已有名称标记 `existing`，编制翻译或音译标记 `translated`，均保留来源说明。中文不是 UNECE 官方译名。
+- **更新与追溯**：新增和已有同来源港口都写入中文并刷新全拼、首字母检索；摘要显示 100% 覆盖、类别统计、两个源文件摘要和联合指纹。缺行、错版、重复码或无效中文直接失败，不在运行时翻译。
 
 ### 2. SMDG 船公司主数据 (`SMDG_Liner-codes-list-20260903.xlsx`)
 - **多标识对齐**：整合 SMDG Code（3位主代码）、SCAC（美国海关4字码）、BIC Code（箱主代码）。
@@ -116,8 +119,9 @@ go -C server run ./cmd/sync-airlines -source /path/to/airlines.dat -apply
 2. **更新替换步骤**：
    - 从上方官方链接下载最新文件。
    - 替换本目录下的对应文件（如将 `loc251csv.zip` 升级为 `loc252csv.zip`）。
+   - 按新版本解析后的代码和英文名更新完整中文表；新增、撤销、英文更名必须一起核对，保持一码一行。
    - 先执行预览命令确认无结构变更与异常冲突：
-     `go -C server run ./cmd/sync-unlocode -source server/seeds/loc252csv.zip -release 2025-2`
+     `go -C server run ./cmd/sync-unlocode -source seeds/loc252csv.zip -chinese-source seeds/ports.zh-CN.csv -release 2025-2`
    - 执行带 `-apply` 落库，系统将自动对比 SHA-256 并平滑增量更新。
    - 随同业务代码或单测提交 Git。
 

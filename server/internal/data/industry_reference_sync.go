@@ -36,6 +36,7 @@ type AirportSyncRecord struct {
 
 type PortSyncRecord struct {
 	UNLocode       string
+	NameZH         string
 	NameEN         string
 	CountryCode    string
 	TransportModes []string
@@ -305,6 +306,7 @@ func (s *IndustryReferenceSyncStore) ApplyPorts(ctx context.Context, source, sou
 			if existing := existingByCode[row.UNLocode]; existing != nil {
 				if _, updateErr := tx.Port.UpdateOneID(existing.ID).
 					SetNameEn(row.NameEN).
+					SetNameZh(row.NameZH).
 					SetCountryCode(row.CountryCode).
 					SetTransportModes(row.TransportModes).
 					SetSourceVersion(sourceVersion).
@@ -320,6 +322,7 @@ func (s *IndustryReferenceSyncStore) ApplyPorts(ctx context.Context, source, sou
 			if _, createErr := tx.Port.Create().
 				SetUnLocode(row.UNLocode).
 				SetNameEn(row.NameEN).
+				SetNameZh(row.NameZH).
 				SetCountryCode(row.CountryCode).
 				SetTransportModes(row.TransportModes).
 				SetSource(source).

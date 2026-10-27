@@ -4,7 +4,6 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
-	"crypto/sha256"
 	"encoding/csv"
 	"errors"
 	"flag"
@@ -32,24 +31,37 @@ var (
 )
 
 type unlocodeParseSummary struct {
-	RawRows        int
-	ValidPorts     int
-	NonPorts       int
-	CountryHeaders int
-	Aliases        int
-	Superseded     int
-	InvalidRows    int
-	Withdrawn      int
-	SourceHash     string
-	FatalProblems  []string
+	RawRows         int
+	ValidPorts      int
+	NonPorts        int
+	CountryHeaders  int
+	Aliases         int
+	Superseded      int
+	InvalidRows     int
+	Withdrawn       int
+	SourceHash      string
+	ZIPHash         string
+	ChineseHash     string
+	ChineseNames    int
+	ExistingNames   int
+	TranslatedNames int
+	FatalProblems   []string
 }
 
 func main() {
 	syncrunner.Run(run)
 }
 
+type unlocodeOptions struct {
+	syncrunner.Options
+	ChineseSource string
+}
+
 func run(ctx context.Context) error {
-	options := parseOptions()
+	return runWithOptions(ctx, parseOptions())
+}
+
+func runWithOptions(ctx context.Context, options unlocodeOptions) error {
 	raw, err := os.ReadFile(options.Source)
 	if err != nil {
 		return fmt.Errorf("读取 UN/LOCODE 发布包失败: %w", err)
@@ -68,6 +80,24 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("解析 UN/LOCODE 数据失败: %w", err)
 	}
+	chineseRaw, err := os.ReadFile(options.ChineseSource)
+	if err != nil {
+		return fmt.Errorf("读取港口中文对照失败: %w", err)
+	}
+	rows, err = attachChineseNames(rows, chineseRaw, raw, &summary)
+	if err != nil {
+		return fmt.Errorf("校验港口中文对照失败: %w", err)
+	}
+	if len(summary.FatalProblems) > 0 {
+		printSummary(options, summary, nil)
+		return fmt.Errorf("港口源文件存在 %d 条致命冲突", len(summary.FatalProblems))
+	}
+	// 没有数据库配置时，预览只做完整的离线源文件验证。
+	if !options.Apply && strings.TrimSpace(os.Getenv("DATABASE_SOURCE")) == "" {
+		printSummary(options, summary, nil)
+		fmt.Println("当前为离线预览模式，未检查数据库冲突；配置 DATABASE_SOURCE 后可预检，使用 -apply 显式写入")
+		return nil
+	}
 	store, cleanup, err := syncrunner.OpenStore()
 	if err != nil {
 		return fmt.Errorf("初始化港口同步存储失败: %w", err)
@@ -78,8 +108,8 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("检查港口同步冲突失败: %w", err)
 	}
 	printSummary(options, summary, conflicts)
-	if len(summary.FatalProblems) > 0 || len(conflicts) > 0 {
-		return fmt.Errorf("港口数据存在致命冲突: 源文件冲突 %d 条，数据库冲突 %d 条", len(summary.FatalProblems), len(conflicts))
+	if len(conflicts) > 0 {
+		return fmt.Errorf("港口数据存在 %d 条数据库冲突", len(conflicts))
 	}
 	if !options.Apply {
 		fmt.Println("当前为预览模式；确认统计后使用 -apply 写入数据库")
@@ -93,9 +123,10 @@ func run(ctx context.Context) error {
 	return nil
 }
 
-func parseOptions() syncrunner.Options {
+func parseOptions() unlocodeOptions {
 	apply := flag.Bool("apply", false, "将港口数据写入数据库")
 	source := flag.String("source", "", "UNECE UN/LOCODE 官方 ZIP 路径")
+	chineseSource := flag.String("chinese-source", "", "配套港口中文 CSV 路径；默认读取 ZIP 同目录 ports.zh-CN.csv")
 	release := flag.String("release", "", "数据版本；文件名无版本前缀时必填")
 	flag.Parse()
 	path := resolveSourcePath(strings.TrimSpace(*source))
@@ -118,7 +149,11 @@ func parseOptions() syncrunner.Options {
 		fmt.Fprintln(os.Stderr, "source 不能为空，未找到默认的 UN/LOCODE ZIP 文件")
 		os.Exit(2)
 	}
-	return syncrunner.Options{Apply: *apply, Source: filepath.Clean(path), Release: strings.TrimSpace(*release)}
+	chinesePath := resolveSourcePath(strings.TrimSpace(*chineseSource))
+	if chinesePath == "" {
+		chinesePath = filepath.Join(filepath.Dir(path), "ports.zh-CN.csv")
+	}
+	return unlocodeOptions{Options: syncrunner.Options{Apply: *apply, Source: filepath.Clean(path), Release: strings.TrimSpace(*release)}, ChineseSource: chinesePath}
 }
 
 func resolveSourcePath(source string) string {
@@ -186,7 +221,7 @@ func readZipEntry(entry *zip.File) ([]byte, error) {
 }
 
 func parseUNLocode(files map[string][]byte, zipRaw []byte) ([]data.PortSyncRecord, unlocodeParseSummary, error) {
-	summary := unlocodeParseSummary{SourceHash: fmt.Sprintf("%x", sha256.Sum256(zipRaw))}
+	summary := unlocodeParseSummary{ZIPHash: sourceFingerprint(zipRaw)}
 	type locationRow struct {
 		fileName string
 		line     int
@@ -323,9 +358,12 @@ func decodeCSV(raw []byte) (string, error) {
 	return string(decoded), nil
 }
 
-func printSummary(options syncrunner.Options, summary unlocodeParseSummary, conflicts []data.IndustryReferenceSyncConflict) {
+func printSummary(options unlocodeOptions, summary unlocodeParseSummary, conflicts []data.IndustryReferenceSyncConflict) {
 	fmt.Printf("UN/LOCODE 数据源：%s\n", options.Source)
-	fmt.Printf("版本：%s，SHA-256：%s\n", options.Release, summary.SourceHash)
+	fmt.Printf("版本：%s，联合 SHA-256：%s\n", options.Release, summary.SourceHash)
+	fmt.Printf("ZIP SHA-256：%s\n", summary.ZIPHash)
+	fmt.Printf("中文对照：%s，SHA-256：%s\n", options.ChineseSource, summary.ChineseHash)
+	fmt.Printf("中文覆盖 %d/%d（%.2f%%），已有名称 existing %d，翻译音译 translated %d\n", summary.ChineseNames, summary.ValidPorts, 100*float64(summary.ChineseNames)/float64(summary.ValidPorts), summary.ExistingNames, summary.TranslatedNames)
 	fmt.Printf("原始行 %d，有效海港 %d，非海港 %d，国家标题 %d，别名 %d，变更覆盖 %d，无效行 %d，撤销港口 %d\n", summary.RawRows, summary.ValidPorts, summary.NonPorts, summary.CountryHeaders, summary.Aliases, summary.Superseded, summary.InvalidRows, summary.Withdrawn)
 	for index, problem := range summary.FatalProblems {
 		if index == 10 {
