@@ -870,7 +870,7 @@ func TestSeaDocument_UpdateOrderValidation(t *testing.T) {
 		t.Fatalf("expected error for missing expected_mbl_version in UpdateDraft, got nil")
 	}
 
-	// 3. UpdateDraft 携带 HouseBill 应被拒绝（必须走专用命令）
+	// 3. UpdateDraft 分单缺少身份/版本时拒绝
 	_, err = orderRepo.UpdateDraft(ctx, org.ID, order.ID, order.Version, &biz.Order{
 		CustomerID:     cust.ID,
 		BusinessType:   biz.OrderBusinessSE,

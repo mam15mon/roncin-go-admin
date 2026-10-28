@@ -17,10 +17,11 @@ import (
 // seaMasterBillUpdateLockContext 记录 UpdateDraft 在取得共享 MBL 写锁前预锁定的成员订单。
 // 后续锁定 MBL 后必须重验成员集合未变化，避免在既有锁序之后补锁新成员而形成死锁。
 type seaMasterBillUpdateLockContext struct {
-	activeLinkID   uuid.UUID
-	masterBillID   uuid.UUID
-	memberOrderIDs []uuid.UUID
-	memberOrders   []*ent.Order
+	originalMasterVersion uint64
+	activeLinkID          uuid.UUID
+	masterBillID          uuid.UUID
+	memberOrderIDs        []uuid.UUID
+	memberOrders          []*ent.Order
 }
 
 func orderUpdateNeedsSharedMasterBillMemberLocks(input *biz.Order) bool {
@@ -203,6 +204,22 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 			return validateErr
 		}
 
+		if existing.CustomerID != input.CustomerID {
+			if existing.BusinessType == orderent.BusinessTypeSE {
+				hasCustomerHBL, checkErr := tx.SeaHouseBill.Query().Where(
+					seahousebill.OrderIDEQ(id),
+					seahousebill.OrganizationIDEQ(organizationID),
+					seahousebill.IssuerSourceEQ(seahousebill.IssuerSourceCUSTOMER_PARTNER),
+				).Exist(ctx)
+				if checkErr != nil {
+					return checkErr
+				}
+				if hasCustomerHBL {
+					return biz.ErrOrderCustomerChangeWithHouseBillBlocked
+				}
+			}
+		}
+
 		// 共享 MBL 门禁必须在 Link/HBL/Order 等下游数据发生任何写入前完成，避免通过
 		// 同一请求改变下游事实后绕过校验。后续任一行失败仍由同一事务整体回滚。
 		if syncErr := syncOrderSeaMasterBillOnUpdate(ctx, tx, organizationID, existing, input, audit, mblLockContext); syncErr != nil {
@@ -282,19 +299,6 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 			return syncErr
 		}
 		if existing.CustomerID != input.CustomerID {
-			if existing.BusinessType == orderent.BusinessTypeSE {
-				hasCustomerHBL, checkErr := tx.SeaHouseBill.Query().Where(
-					seahousebill.OrderIDEQ(id),
-					seahousebill.OrganizationIDEQ(organizationID),
-					seahousebill.IssuerSourceEQ(seahousebill.IssuerSourceCUSTOMER_PARTNER),
-				).Exist(ctx)
-				if checkErr != nil {
-					return checkErr
-				}
-				if hasCustomerHBL {
-					return biz.ErrOrderCustomerChangeWithHouseBillBlocked
-				}
-			}
 			// 业务/客服以客户档案为唯一真相且订单上必填：换客户时按新客户档案
 			// 重挂两岗人员行，新客户缺岗直接拒绝。
 			if syncErr := resyncOrderCustomerPersonnel(ctx, tx, organizationID, id, input.CustomerID); syncErr != nil {

@@ -8,6 +8,7 @@ import { getOrderPersonnelOptions } from '@/features/orders/options';
 import { orderPersonnelServiceListPersonnel } from '@/services/roncin/orderPersonnelService';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
+import { seaDocumentServiceGetSeaOrderDocuments } from '@/services/roncin/seaDocumentService';
 import { ensureListResponse, unwrapList } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import {
@@ -26,6 +27,7 @@ import type { SelectOption } from './templates';
  */
 interface OrderDetailBundle {
   order: API.Order | undefined;
+  seaDocuments?: API.SeaOrderDocuments;
   shippingDocs: API.OrderShippingDocument[];
   personnel: API.OrderPersonnel[];
   cargoCategoryOptions: SelectOption[];
@@ -82,21 +84,30 @@ export function useOrderDetailData(
         throw new Error('缺少订单详情加载参数');
       }
       try {
-        const [masterData, personnelOptions, orderRes, docsRes, personnelRes] =
-          await Promise.all([
-            fetchOrderMasterData(organizationId, definition.transportMode),
-            canSearchPersonnel &&
-            (transportMode === 'sea' || transportMode === 'air')
-              ? getOrderPersonnelOptions(organizationId, businessType)
-              : Promise.resolve([]),
-            orderServiceGetOrder({ id: orderId }),
-            usesLegacyShippingDocuments
-              ? orderShippingDocumentServiceListShippingDocuments({ orderId })
-              : Promise.resolve(null),
-            canReadPersonnel
-              ? orderPersonnelServiceListPersonnel({ orderId })
-              : Promise.resolve({ data: [] }),
-          ]);
+        const [
+          masterData,
+          personnelOptions,
+          orderRes,
+          docsRes,
+          personnelRes,
+          seaDocumentsRes,
+        ] = await Promise.all([
+          fetchOrderMasterData(organizationId, definition.transportMode),
+          canSearchPersonnel &&
+          (transportMode === 'sea' || transportMode === 'air')
+            ? getOrderPersonnelOptions(organizationId, businessType)
+            : Promise.resolve([]),
+          orderServiceGetOrder({ id: orderId }),
+          usesLegacyShippingDocuments
+            ? orderShippingDocumentServiceListShippingDocuments({ orderId })
+            : Promise.resolve(null),
+          canReadPersonnel
+            ? orderPersonnelServiceListPersonnel({ orderId })
+            : Promise.resolve({ data: [] }),
+          businessType === OrderBusinessType.BUSINESS_TYPE_SE
+            ? seaDocumentServiceGetSeaOrderDocuments({ orderId })
+            : Promise.resolve(null),
+        ]);
 
         // 请求层错误被全局处理器消费后会 resolve undefined：先转成明确
         // 业务错误，避免下方取 .data 抛 TypeError 文案直达用户。
@@ -104,7 +115,13 @@ export function useOrderDetailData(
           throw new Error('订单详情加载失败，请稍后重试');
         }
 
+        if (
+          businessType === OrderBusinessType.BUSINESS_TYPE_SE &&
+          !seaDocumentsRes?.data
+        )
+          throw new Error('海运单证加载失败，请重试');
         return {
+          seaDocuments: seaDocumentsRes?.data,
           order: orderRes.data,
           shippingDocs:
             docsRes === null
@@ -201,7 +218,10 @@ export function useOrderDetailData(
     }
     // refetch 的 Promise 只以结果对象 resolve、从不 reject，
     // 与旧实现「吸收请求错误并正常 resolve」的语义一致。
-    return refetch().then(() => undefined);
+    return refetch().then((result) => {
+      if (result.error) throw result.error;
+      return result.data;
+    });
   }, [queryEnabled, refetch]);
 
   // 出错即隐藏全部数据并暴露错误（与旧实现的 errorState 清空语义一致）；
@@ -210,7 +230,12 @@ export function useOrderDetailData(
   const loading =
     Boolean(definition) && !missingOrgError && (isPending || isFetching);
 
-  const bundle = effectiveError ? undefined : data;
+  const bundle =
+    businessType === OrderBusinessType.BUSINESS_TYPE_SE
+      ? data
+      : effectiveError
+        ? undefined
+        : data;
 
   return {
     loading,
@@ -218,6 +243,7 @@ export function useOrderDetailData(
     order: bundle?.order,
     loadedOrderId: bundle ? orderId : undefined,
     loadedOrganizationId: bundle ? organizationId : undefined,
+    seaDocuments: bundle?.seaDocuments,
     shippingDocs: bundle?.shippingDocs ?? [],
     personnel: bundle?.personnel ?? [],
     cargoCategoryOptions: bundle?.cargoCategoryOptions ?? [],

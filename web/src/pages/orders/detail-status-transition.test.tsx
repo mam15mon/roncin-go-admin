@@ -72,6 +72,11 @@ vi.mock('./use-order-detail-data', () => ({
     loading: testState.loading,
     error: null,
     order: testState.order,
+    seaDocuments: {
+      documentStructure: 2,
+      linkVersion: '1',
+      masterBill: { id: 'mbl-1', version: '1', content: {} },
+    },
     shippingDocs: [],
     personnel: [],
     serviceTypeOptions: [],

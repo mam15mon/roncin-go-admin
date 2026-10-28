@@ -9,6 +9,7 @@ import {
 } from '@ant-design/pro-components';
 import { useQueryClient } from '@tanstack/react-query';
 import {
+  Alert,
   App,
   Button,
   Card,
@@ -27,9 +28,10 @@ import React, {
 } from 'react';
 import { useParams } from 'react-router';
 import { useAccess } from '@/app/access';
+import { getFormDraft, getFormDraftKey } from '@/components/layout/formDraft';
 import { resolveTabKey } from '@/components/layout/routeUtils';
 import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
-import { SectionCard } from '@/components/ui';
+import { SectionCard, StickyFooterBar } from '@/components/ui';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
 import type {
   OrderFormTemplateActions,
@@ -69,6 +71,11 @@ import type {
   OrderDetailFeaturesProps,
 } from './order-kinds/types';
 import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
+import {
+  buildSeaDocumentUpdate,
+  mergeSeaDocumentBaseline,
+  seaDocumentFormValues,
+} from './sea-document-form';
 import { revealSeaFormErrors } from './templates';
 import { useOrderAbnormalEntry } from './use-order-abnormal-entry';
 import { useOrderDetailData } from './use-order-detail-data';
@@ -76,6 +83,7 @@ import {
   getOrderBusinessWritePolicy,
   useOrderLockState,
 } from './use-order-lock-state';
+import { useSeaOrderSave } from './use-sea-order-save';
 
 /** 未提供类型扩展时，详情页只渲染通用布局。 */
 const EmptyDetailFeatures: React.ComponentType<OrderDetailFeaturesProps> = ({
@@ -129,6 +137,7 @@ export default function OrderDetailPage() {
     error,
     order,
     shippingDocs,
+    seaDocuments,
     personnel,
     cargoCategoryOptions,
     locationOptions,
@@ -139,6 +148,44 @@ export default function OrderDetailPage() {
     draftScope,
     loadData,
   } = useOrderDetailData(targetOrderId, definition);
+
+  const [documentBaseline, setDocumentBaseline] = useState<{
+    identity?: string;
+    documents?: API.SeaOrderDocuments;
+  }>();
+  const currentDocuments =
+    documentBaseline?.identity === orderFormIdentity
+      ? documentBaseline?.documents
+      : seaDocuments;
+  useEffect(() => {
+    if (seaDocuments && documentBaseline?.identity !== orderFormIdentity)
+      setDocumentBaseline({
+        identity: orderFormIdentity,
+        documents: seaDocuments,
+      });
+  }, [documentBaseline?.identity, orderFormIdentity, seaDocuments]);
+  const saveIdentityRef = useRef(orderFormIdentity);
+  saveIdentityRef.current = orderFormIdentity;
+  const seaSave = useSeaOrderSave(orderFormIdentity, async (isCurrent) => {
+    const identity = orderFormIdentity;
+    const bundle = await loadData();
+    if (!isCurrent() || saveIdentityRef.current !== identity)
+      throw new Error('订单已切换');
+    if (!bundle?.order || !bundle.seaDocuments || !definition)
+      throw new Error('订单已保存，但最新数据读取失败，请重试读取');
+    setDocumentBaseline({ identity, documents: bundle.seaDocuments });
+    templateActionsRef.current?.resetTo({
+      id: bundle.order.id,
+      version: bundle.order.version,
+      ...definition.form.buildDetailInitialValues(
+        bundle.order,
+        bundle.shippingDocs,
+        bundle.personnel,
+      ),
+      ...seaDocumentFormValues(bundle.seaDocuments),
+    });
+    void refreshLockState();
+  });
 
   // 订单身份提交变化时同步作废旧身份的全部在途刷新。
   // 在 layout effect 的 setup 与 cleanup 中均递增 token 并清空 pending：
@@ -186,16 +233,61 @@ export default function OrderDetailPage() {
     }
   }, [order?.orderNo, order?.id, orderId, definition?.kind, definition?.title]);
 
+  // 恢复草稿时版本必须与草稿一起恢复；缺失原版本不能被最新服务端值补齐。
+  const restoredDraft = useMemo(() => {
+    if (definition?.transportMode !== 'sea' || !orderId || !draftScope)
+      return undefined;
+    const pathname = `/orders/${definition.kind}/${orderId}`;
+    return getFormDraft<Partial<OrderDetailFormValues> & { version?: string }>(
+      getFormDraftKey(resolveTabKey(pathname), pathname, draftScope),
+    );
+  }, [definition?.kind, orderId, draftScope]);
   // 2. 构造表单初始值
   const initialValues = useMemo(
-    () =>
-      definition?.form.buildDetailInitialValues(
+    () => ({
+      ...(definition?.form.buildDetailInitialValues(
         order,
         shippingDocs,
         personnel,
-      ) ?? {},
-    [definition, order, shippingDocs, personnel],
+      ) ?? {}),
+      ...seaDocumentFormValues(currentDocuments),
+      id: order?.id,
+      version: restoredDraft ? restoredDraft.version : order?.version,
+      ...(restoredDraft?.seaMasterBillContent
+        ? {
+            seaMasterBillContentVersion:
+              restoredDraft.seaMasterBillContentVersion,
+          }
+        : {}),
+      ...(restoredDraft?.seaHouseBill
+        ? {
+            seaDocumentLinkVersion: restoredDraft.seaDocumentLinkVersion,
+            seaHouseBill: {
+              ...seaDocumentFormValues(currentDocuments).seaHouseBill,
+              ...restoredDraft.seaHouseBill,
+              id: restoredDraft.seaHouseBill.id,
+              expectedVersion: restoredDraft.seaHouseBill.expectedVersion,
+            },
+          }
+        : {}),
+    }),
+    [
+      definition,
+      order,
+      shippingDocs,
+      personnel,
+      currentDocuments,
+      restoredDraft,
+    ],
   );
+
+  const resetEditableForm = () =>
+    templateActionsRef.current?.resetTo({
+      ...initialValues,
+      id: order?.id,
+      version: order?.version,
+      ...seaDocumentFormValues(currentDocuments),
+    });
 
   const lockWritePolicy = getOrderBusinessWritePolicy({
     state: lockState,
@@ -255,8 +347,23 @@ export default function OrderDetailPage() {
     ) {
       return;
     }
-    templateActionsRef.current?.resetTo(initialValues);
-  }, [explicitFormRefreshVersion, initialValues, order, orderFormIdentity]);
+    setDocumentBaseline({
+      identity: orderFormIdentity,
+      documents: seaDocuments,
+    });
+    templateActionsRef.current?.resetTo({
+      ...initialValues,
+      id: order.id,
+      version: order.version,
+      ...seaDocumentFormValues(seaDocuments),
+    });
+  }, [
+    explicitFormRefreshVersion,
+    initialValues,
+    order,
+    orderFormIdentity,
+    seaDocuments,
+  ]);
 
   const refreshOrderDataAndResetForm = useCallback(async () => {
     const requestedIdentity = orderFormIdentity;
@@ -351,6 +458,7 @@ export default function OrderDetailPage() {
       isDetail: true,
       organizationId: order?.organizationId,
       seaHouseOrderSourceOrderId: order?.id,
+      seaDocuments: currentDocuments,
       searchCustomers: withSeededOptions(
         (keyword?: string) =>
           searchPartnersByRole(PARTNER_ROLES.CUSTOMER, keyword),
@@ -378,10 +486,58 @@ export default function OrderDetailPage() {
         formRef.current?.setFieldValue('customerCode', code ?? ''),
       personnelOptions,
       personnelReadonly: !canSearchPersonnel,
-      readonly: effectiveReadonly,
-      onOrderDataChanged: loadData,
+      readonly:
+        effectiveReadonly ||
+        (definition?.transportMode === 'sea' && seaSave.frozen),
+      onOrderDataChanged: async (document?: 'master' | 'house' | 'mode') => {
+        const identity = orderFormIdentity;
+        const token = explicitRefreshTokenRef.current;
+        const bundle = await loadData();
+        if (
+          token !== explicitRefreshTokenRef.current ||
+          saveIdentityRef.current !== identity ||
+          !bundle?.seaDocuments
+        )
+          return;
+        const latest = bundle.seaDocuments;
+        // 正式改单与模式变更均推进订单版本；只推进本次命令成功后的版本，不覆盖普通字段草稿。
+        formRef.current?.setFieldValue('version', bundle.order?.version);
+        setDocumentBaseline((previous) => ({
+          identity,
+          documents: mergeSeaDocumentBaseline(
+            previous?.identity === identity
+              ? previous?.documents
+              : currentDocuments,
+            latest,
+            document,
+          ),
+        }));
+        const fields = seaDocumentFormValues(latest);
+        if (document === 'master') {
+          formRef.current?.setFieldValue(
+            'seaMasterBillContentVersion',
+            fields.seaMasterBillContentVersion,
+          );
+          formRef.current?.setFieldValue(
+            'seaMasterBillContent',
+            fields.seaMasterBillContent,
+          );
+        } else if (document === 'house') {
+          formRef.current?.setFieldValue(
+            'seaDocumentLinkVersion',
+            fields.seaDocumentLinkVersion,
+          );
+          formRef.current?.setFieldValue('seaHouseBill', fields.seaHouseBill);
+        } else {
+          formRef.current?.setFieldsValue(fields);
+        }
+      },
     }),
     [
+      currentDocuments,
+      orderFormIdentity,
+      definition?.transportMode,
+      seaSave.frozen,
       cargoCategoryOptions,
       seededLocationOptions,
       locationSeedOptions,
@@ -413,6 +569,46 @@ export default function OrderDetailPage() {
   // 5. 保存修改提交处理：成功/失败只由订单更新接口决定，模板统一清草稿与脏状态。
   const handleSaveEdit = async (values: OrderDetailFormValues) => {
     if (!definition || !orderId || !ensureBusinessWriteAllowed()) return false;
+    if (definition.transportMode === 'sea') {
+      if (!currentDocuments) return false;
+      try {
+        if (!formRef.current?.getFieldValue('version'))
+          throw new Error('订单草稿缺少原版本，请保留输入并刷新核对后重试');
+        const payload = definition.form.buildUpdatePayload(
+          orderId,
+          formRef.current?.getFieldValue('version') || '0',
+          values,
+        );
+        const saved = await seaSave.submit({
+          ...payload,
+          // onFinish 仅含已注册字段，隐藏的件重尺/备注仍属于完整单证，不能误删。
+          seaDocument: buildSeaDocumentUpdate(
+            {
+              seaMasterBillContentVersion:
+                formRef.current?.getFieldValue('seaMasterBillContentVersion') ??
+                values.seaMasterBillContentVersion,
+              seaDocumentLinkVersion:
+                formRef.current?.getFieldValue('seaDocumentLinkVersion') ??
+                values.seaDocumentLinkVersion,
+              seaMasterBillContent:
+                formRef.current?.getFieldValue('seaMasterBillContent') ??
+                values.seaMasterBillContent,
+              seaHouseBill:
+                formRef.current?.getFieldValue('seaHouseBill') ??
+                values.seaHouseBill,
+            },
+            currentDocuments,
+          ),
+        });
+        if (saved) message.success('保存订单成功');
+        return saved;
+      } catch (error) {
+        message.error(
+          error instanceof Error ? error.message : '保存订单失败，输入已保留',
+        );
+        return false;
+      }
+    }
     setSaving(true);
     try {
       const payload = definition.form.buildUpdatePayload(
@@ -502,7 +698,7 @@ export default function OrderDetailPage() {
     );
   }
 
-  if (error && !loading) {
+  if (error && !loading && !order) {
     return (
       <div style={{ background: '#f5f7fa', minHeight: '100vh' }}>
         <OrderPageHeader
@@ -528,7 +724,13 @@ export default function OrderDetailPage() {
                 error.message || '无法获取订单详情数据，请检查网络或重试。'
               }
               extra={
-                <Button type="primary" onClick={() => void loadData()}>
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    // 查询错误由详情状态呈现，避免事件回调留下未处理的 rejection。
+                    void loadData().catch(() => undefined);
+                  }}
+                >
                   重新加载
                 </Button>
               }
@@ -858,6 +1060,35 @@ export default function OrderDetailPage() {
 
         return (
           <>
+            {definition.transportMode === 'sea' &&
+            (seaSave.status === 'unknown' || seaSave.status === 'refresh') ? (
+              <Alert
+                style={{ marginBottom: 12 }}
+                type="warning"
+                showIcon
+                title={
+                  seaSave.status === 'refresh'
+                    ? '订单已保存，最新数据读取失败'
+                    : '保存结果尚未确认，输入已保留'
+                }
+                action={
+                  <Button
+                    onClick={async () => {
+                      try {
+                        if (await seaSave.submit())
+                          message.success('订单数据已同步');
+                      } catch (error) {
+                        message.error(
+                          error instanceof Error ? error.message : '重试失败',
+                        );
+                      }
+                    }}
+                  >
+                    {seaSave.status === 'refresh' ? '重试读取' : '重试保存'}
+                  </Button>
+                }
+              />
+            ) : null}
             <OrderFormTemplate<OrderDetailFormValues>
               key={orderFormIdentity}
               tabKey={
@@ -873,17 +1104,41 @@ export default function OrderDetailPage() {
               draftScope={draftScope}
               loading={false}
               readonly={effectiveReadonly}
+              editingDisabled={
+                definition.transportMode === 'sea' && seaSave.frozen
+              }
               formRef={formRef}
               actionsRef={templateActionsRef}
               initialValues={initialValues}
               onFinish={handleSaveEdit}
+              submitter={definition.transportMode === 'sea' ? false : undefined}
+              footer={
+                definition.transportMode === 'sea' && !effectiveReadonly ? (
+                  <StickyFooterBar info={order.orderNo}>
+                    <Button
+                      disabled={seaSave.frozen}
+                      onClick={resetEditableForm}
+                    >
+                      重置
+                    </Button>
+                    <Button
+                      type="primary"
+                      loading={seaSave.status === 'saving'}
+                      disabled={seaSave.frozen}
+                      onClick={() => formRef.current?.submit()}
+                    >
+                      保存
+                    </Button>
+                  </StickyFooterBar>
+                ) : undefined
+              }
               header={
                 <OrderDetailHeader
                   kind={definition.kind}
                   navigationTitle={definition.navigationTitle}
                   orderId={orderId || ''}
                   order={order}
-                  saving={saving}
+                  saving={saving || seaSave.status === 'saving'}
                   canManageFee={access.canOrder(
                     definition.businessType,
                     'fee.read',
@@ -900,9 +1155,7 @@ export default function OrderDetailPage() {
                   moreMenuItems={moreMenuItems}
                   hasAction={hasAction}
                   onSave={() => formRef.current?.submit()}
-                  onReset={() =>
-                    templateActionsRef.current?.resetTo(initialValues)
-                  }
+                  onReset={resetEditableForm}
                   onOpenReleasePod={() => {
                     if (ensureBusinessWriteAllowed()) {
                       releasePodPanelRef.current?.open(order);
@@ -914,8 +1167,15 @@ export default function OrderDetailPage() {
                   lockState={lockState}
                   lockStateLoading={lockStateLoading || synchronizingLockChange}
                   lockStateError={lockStateError}
-                  businessWritesDisabled={businessWritesDisabled}
-                  businessWriteBlockedReason={lockWritePolicy.reason}
+                  businessWritesDisabled={
+                    businessWritesDisabled ||
+                    (definition.transportMode === 'sea' && seaSave.frozen)
+                  }
+                  businessWriteBlockedReason={
+                    definition.transportMode === 'sea' && seaSave.frozen
+                      ? '请先等待保存完成或重试同步结果'
+                      : lockWritePolicy.reason
+                  }
                   onRetryLockState={refreshLockState}
                   onSynchronizeLockChange={synchronizeLockChange}
                 />
@@ -943,7 +1203,7 @@ export default function OrderDetailPage() {
             <OrderFeePanel ref={orderFeePanelRef} />
             <AbnormalCasePanel
               ref={abnormalCasePanelRef}
-              key={orderFormIdentity}
+              key={`${orderFormIdentity}:abnormal`}
               canRead={access.canOrder(
                 definition.businessType,
                 'abnormal_case.read',

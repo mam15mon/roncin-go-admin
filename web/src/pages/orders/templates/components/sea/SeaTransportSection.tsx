@@ -448,9 +448,7 @@ export function SeaAssociatedHouseBillsField({
             (!documentReady || isTerminalHouseBill(watchedHouseBill?.status)))
         }
         extra={
-          isDetail
-            ? '修改后请到「提单信息 → 分单 (HBL)」点击「保存分单」。'
-            : undefined
+          isDetail ? '修改后点击页面「保存」，与订单资料一起提交。' : undefined
         }
       />
     );

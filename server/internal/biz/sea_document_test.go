@@ -186,7 +186,7 @@ func TestValidateSeaOrderDocumentInput(t *testing.T) {
 	strHouse := SeaDocumentStructureHouse
 	ver := uint64(1)
 
-	t.Run("UpdateOrder rejects non-nil HouseBill", func(t *testing.T) {
+	t.Run("整单更新拒绝缺少身份版本的分单", func(t *testing.T) {
 		input := &SeaOrderDocumentInput{
 			HouseBill: &SeaHouseBillInput{
 				HouseNo: "HBL1", IssuerSource: SeaHouseBillIssuerSourceSelfOrganization,
@@ -195,6 +195,14 @@ func TestValidateSeaOrderDocumentInput(t *testing.T) {
 		_, err := ValidateSeaOrderDocumentInput(input, false)
 		if err == nil {
 			t.Fatalf("expected error for HouseBill in UpdateOrder, got nil")
+		}
+	})
+
+	t.Run("整单更新已有分单携带完整身份和版本", func(t *testing.T) {
+		id := uuid.New()
+		_, err := ValidateSeaOrderDocumentInput(&SeaOrderDocumentInput{ExpectedLinkVersion: &ver, HouseBill: &SeaHouseBillInput{ID: &id, ExpectedVersion: &ver, HouseNo: "HBL1", IssuerSource: SeaHouseBillIssuerSourceSelfOrganization}}, false)
+		if err != nil {
+			t.Fatalf("完整分单更新不应被拒绝: %v", err)
 		}
 	})
 

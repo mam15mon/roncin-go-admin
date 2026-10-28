@@ -26,6 +26,12 @@ vi.mock('@/features/orders/options', () => ({
   getOrderPersonnelOptions: vi.fn().mockResolvedValue([]),
 }));
 
+vi.mock('@/services/roncin/seaDocumentService', () => ({
+  seaDocumentServiceGetSeaOrderDocuments: vi
+    .fn()
+    .mockResolvedValue({ data: { documentStructure: 2, linkVersion: '1' } }),
+}));
+
 vi.mock('@/services/roncin/orderService', () => ({
   orderServiceGetOrder: vi.fn(),
   orderServiceListPersonnelOptions: vi.fn().mockResolvedValue({ data: [] }),

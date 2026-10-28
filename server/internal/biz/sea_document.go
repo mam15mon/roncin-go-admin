@@ -218,7 +218,12 @@ func ValidateSeaOrderDocumentInput(input *SeaOrderDocumentInput, isCreate bool) 
 
 	if !isCreate {
 		if input.HouseBill != nil {
-			return nil, errors.BadRequest("SEA_DOCUMENT_INVALID_ARGUMENT", "订单整单更新禁止直接提交分单变更，请使用专用单证命令")
+			if input.HouseBill.ID == nil || *input.HouseBill.ID == uuid.Nil || input.HouseBill.ExpectedVersion == nil || *input.HouseBill.ExpectedVersion == 0 || input.ExpectedLinkVersion == nil || *input.ExpectedLinkVersion == 0 {
+				return nil, errors.BadRequest("SEA_DOCUMENT_INVALID_ARGUMENT", "更新分单必须提供分单标识、分单版本与关联版本")
+			}
+			if input.DocumentStructure != nil {
+				return nil, ErrSeaDocumentStructureInvalid
+			}
 		}
 		if input.DocumentStructure != nil && input.ExpectedLinkVersion == nil {
 			return nil, errors.BadRequest("SEA_DOCUMENT_INVALID_ARGUMENT", "修改单证结构必须提供 expected_link_version")
