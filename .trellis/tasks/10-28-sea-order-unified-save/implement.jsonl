@@ -1,0 +1,7 @@
+{"file": ".trellis/spec/server/backend/sea-export-document-contract.md", "reason": "海运实体、主分单更新与组织范围契约"}
+{"file": ".trellis/spec/server/backend/order-lock-and-document-version.md", "reason": "共享主单锁序、业务门禁和不可变历史"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "统一事务、版本和真实库测试"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "React Query、错误响应和写后刷新"}
+{"file": ".trellis/spec/web/frontend/sea-master-voyage-inheritance.md", "reason": "海运详情来源、主单共享与表单交互"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "定向测试与前端验证门禁"}
+{"file": ".trellis/tasks/10-28-sea-order-unified-save/research/findings.md", "reason": "本次聚合保存研究证据及已知版本陷阱"}
