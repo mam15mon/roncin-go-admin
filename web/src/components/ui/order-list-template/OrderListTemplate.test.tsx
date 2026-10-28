@@ -85,7 +85,8 @@ describe('OrderListTemplate', () => {
     expect(screen.queryByText('全部订单')).not.toBeInTheDocument();
     expect(screen.queryByText('待订舱')).not.toBeInTheDocument();
     expect(screen.getByText('新增海运出口订单')).toBeInTheDocument();
-    expect(screen.getByText('批量操作')).toBeInTheDocument();
+    expect(screen.queryByText('批量操作')).not.toBeInTheDocument();
+    expect(screen.queryByText('批量维护标签')).not.toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText('ORD202608260001')).toBeInTheDocument();
@@ -162,19 +163,22 @@ describe('订单列表批量操作', () => {
     cleanup();
   });
 
-  it('选中订单后仍可管理标签，但不显示批量删除入口', async () => {
+  it('选中订单后只提供可执行的标签批量操作', () => {
+    const selectedRows = [
+      { id: 'order-1', orderNo: 'SE-001' } as OrderListItem,
+    ];
+    const onManageTags = vi.fn();
     render(
       <OrderListToolbar
-        selectedRows={[{ id: 'order-1', orderNo: 'SE-001' } as OrderListItem]}
+        selectedRows={selectedRows}
         onRefresh={vi.fn()}
-        onBatchAction={vi.fn()}
+        onManageTags={onManageTags}
       />,
     );
 
-    expect(screen.queryByText('批量删除')).not.toBeInTheDocument();
-    fireEvent.mouseEnter(screen.getByRole('button', { name: /批量操作/ }));
-    expect(await screen.findByText('标签管理')).toBeInTheDocument();
-    expect(screen.queryByText('批量删除')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /批量维护标签/ }));
+    expect(onManageTags).toHaveBeenCalledWith(selectedRows);
+    expect(screen.queryByText('批量操作')).not.toBeInTheDocument();
   });
 });
 

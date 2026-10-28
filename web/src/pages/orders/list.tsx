@@ -223,22 +223,25 @@ export default function OrderListPage() {
           loadPersonnel: searchOrderPersonnel,
           tags: tagFilterOptions,
         }}
-        showManageTags={access.canOrder(definition.businessType, 'update')}
-        onBatchAction={(actionKey, rows) => {
-          if (actionKey === 'manage-tags') {
-            if (
-              rows.some(
-                (row) =>
-                  !access.canOperateOrganization(row.rawRecord?.organizationId),
-              )
-            ) {
-              message.warning('只能在订单所属分公司工作台维护标签');
-              return;
-            }
-            setTagRows(rows);
-            setTagModalOpen(true);
-          }
-        }}
+        onManageTags={
+          access.canOrder(definition.businessType, 'update')
+            ? (rows) => {
+                if (
+                  rows.some(
+                    (row) =>
+                      !access.canOperateOrganization(
+                        row.rawRecord?.organizationId,
+                      ),
+                  )
+                ) {
+                  message.warning('只能在订单所属分公司工作台维护标签');
+                  return;
+                }
+                setTagRows(rows);
+                setTagModalOpen(true);
+              }
+            : undefined
+        }
         queryOrders={(params) =>
           queryOrderList(params, definition, {
             ports,

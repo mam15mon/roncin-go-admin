@@ -138,29 +138,9 @@ export interface OrderListItem {
   [key: string]: unknown;
 }
 
-/** 批量操作菜单枚举/动作 */
-export type BatchActionKey =
-  | 'export-documents'
-  | 'batch-collab'
-  | 'cancel-collab'
-  | 'share-orders'
-  | 'finish-orders'
-  | 'cancel-finish'
-  | 'surrender'
-  | 'cancel-surrender'
-  | 'archive'
-  | 'modify-lock-time'
-  | 'lock-unlock'
-  | 'interest-to-receivable'
-  | 'batch-modify-fields'
-  | 'manage-tags'
-  | 'batch-import';
-
 /** OrderListTemplate 组件属性定义 */
 export interface OrderListTemplateProps {
   queryStateIdentity?: { tabKey: string; listId: string };
-  /** 是否显示标签管理入口 */
-  showManageTags?: boolean;
   /** 批量成功后仅取消成功行的选择。 */
   completedSelectionIds?: string[];
   /** 统一列设置表格标识（业务视图级）；缺省 `orders:list`。 */
@@ -194,11 +174,8 @@ export interface OrderListTemplateProps {
   onCopyOrder?: (selectedRows: OrderListItem[]) => void;
   /** 批量导出单证 */
   onExportDocuments?: (selectedRows: OrderListItem[]) => void;
-  /** 批量操作触发 */
-  onBatchAction?: (
-    actionKey: BatchActionKey,
-    selectedRows: OrderListItem[],
-  ) => void;
+  /** 批量维护选中订单的标签 */
+  onManageTags?: (selectedRows: OrderListItem[]) => void;
   /** 点击查看订单详情 */
   onViewDetail?: (record: OrderListItem) => void;
   /** 点击编辑订单 */

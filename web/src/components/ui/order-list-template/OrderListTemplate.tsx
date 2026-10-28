@@ -42,7 +42,7 @@ export function OrderListTemplate({
   onCreateOrder,
   onCopyOrder,
   onExportDocuments,
-  onBatchAction,
+  onManageTags,
   onViewDetail,
   onEditOrder,
   onOpenFees,
@@ -57,7 +57,6 @@ export function OrderListTemplate({
   onOpenAbnormal,
   options,
   readonly = false,
-  showManageTags = true,
   columnSettingsKey = 'orders:list',
 }: OrderListTemplateProps) {
   const internalActionRef = useRef<ActionType | undefined>(undefined);
@@ -647,13 +646,12 @@ export function OrderListTemplate({
           onCreateOrder={onCreateOrder}
           onCopyOrder={onCopyOrder}
           onExportDocuments={onExportDocuments}
-          onBatchAction={onBatchAction}
+          onManageTags={onManageTags}
           autoRefresh={autoRefresh}
           onAutoRefreshChange={setAutoRefresh}
           filterVisible={filterVisible}
           onToggleFilter={() => setFilterVisible((prev) => !prev)}
           readonly={readonly}
-          showManageTags={showManageTags}
         />
 
         <ResponsiveProTable<OrderListItem>

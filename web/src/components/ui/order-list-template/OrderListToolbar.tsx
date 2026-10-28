@@ -1,37 +1,26 @@
 import {
   CopyOutlined,
-  DownloadOutlined,
-  DownOutlined,
   ExportOutlined,
   FileDoneOutlined,
   FilterOutlined,
-  LockOutlined,
   PlusOutlined,
   ReloadOutlined,
-  ShareAltOutlined,
   TagOutlined,
-  TeamOutlined,
 } from '@ant-design/icons';
-import type { MenuProps } from 'antd';
-import { Button, Dropdown, Space, Switch, Tooltip, Typography } from 'antd';
+import { Button, Space, Switch, Tooltip, Typography } from 'antd';
 import React from 'react';
-import type { BatchActionKey, OrderListItem } from './types';
+import type { OrderListItem } from './types';
 
 const { Text } = Typography;
 
 export interface OrderListToolbarProps {
-  /** 是否显示标签管理入口（由订单业务类型 update 权限决定） */
-  showManageTags?: boolean;
   orderKindTitle?: string;
   selectedRows: OrderListItem[];
   onRefresh: () => void;
   onCreateOrder?: () => void;
   onCopyOrder?: (selectedRows: OrderListItem[]) => void;
   onExportDocuments?: (selectedRows: OrderListItem[]) => void;
-  onBatchAction?: (
-    actionKey: BatchActionKey,
-    selectedRows: OrderListItem[],
-  ) => void;
+  onManageTags?: (selectedRows: OrderListItem[]) => void;
   onExportTable?: () => void;
   filterVisible?: boolean;
   onToggleFilter?: () => void;
@@ -41,14 +30,13 @@ export interface OrderListToolbarProps {
 }
 
 export function OrderListToolbar({
-  showManageTags = true,
   orderKindTitle = '订单',
   selectedRows,
   onRefresh,
   onCreateOrder,
   onCopyOrder,
   onExportDocuments,
-  onBatchAction,
+  onManageTags,
   onExportTable,
   filterVisible = false,
   onToggleFilter,
@@ -57,91 +45,6 @@ export function OrderListToolbar({
   onAutoRefreshChange,
 }: OrderListToolbarProps) {
   const hasSelected = selectedRows.length > 0;
-
-  // 批量操作下拉菜单项定义
-  const batchMenuItems: MenuProps['items'] = [
-    {
-      key: 'export-documents',
-      icon: <FileDoneOutlined />,
-      label: '批量导出单证',
-      disabled: !hasSelected,
-    },
-    {
-      type: 'divider',
-    },
-    {
-      key: 'batch-collab',
-      icon: <TeamOutlined />,
-      label: '批量协同 / 取消协同',
-      disabled: !hasSelected,
-    },
-    {
-      key: 'share-orders',
-      icon: <ShareAltOutlined />,
-      label: '分享订单',
-      disabled: !hasSelected,
-    },
-    {
-      key: 'finish-orders',
-      label: '完结 / 取消完结',
-      disabled: !hasSelected,
-    },
-    {
-      key: 'surrender',
-      label: '退关 / 取消退关',
-      disabled: !hasSelected,
-    },
-    {
-      key: 'archive',
-      label: '订单归档',
-      disabled: !hasSelected,
-    },
-    {
-      type: 'divider',
-    },
-    {
-      key: 'lock-unlock',
-      icon: <LockOutlined />,
-      label: '锁定 / 解锁订单',
-      disabled: !hasSelected,
-    },
-    {
-      key: 'modify-lock-time',
-      label: '修改锁定时间',
-      disabled: !hasSelected,
-    },
-    {
-      key: 'interest-to-receivable',
-      label: '利息带入应收',
-      disabled: !hasSelected,
-    },
-    {
-      key: 'batch-modify-fields',
-      label: '批量修改字段',
-      disabled: !hasSelected,
-    },
-    ...(showManageTags
-      ? [
-          {
-            key: 'manage-tags',
-            icon: <TagOutlined />,
-            label: '标签管理',
-            disabled: !hasSelected,
-          },
-        ]
-      : []),
-    {
-      key: 'batch-import',
-      icon: <DownloadOutlined />,
-      label: '批量导入订单',
-    },
-  ];
-
-  const handleMenuClick: MenuProps['onClick'] = ({ key }) => {
-    if (onBatchAction) {
-      onBatchAction(key as BatchActionKey, selectedRows);
-    }
-  };
 
   return (
     <div
@@ -167,14 +70,15 @@ export function OrderListToolbar({
           </Button>
         )}
 
-        <Dropdown
-          menu={{ items: batchMenuItems, onClick: handleMenuClick }}
-          disabled={readonly}
-        >
-          <Button>
-            批量操作 <DownOutlined />
+        {!readonly && onManageTags && (
+          <Button
+            icon={<TagOutlined />}
+            disabled={!hasSelected}
+            onClick={() => onManageTags(selectedRows)}
+          >
+            批量维护标签
           </Button>
-        </Dropdown>
+        )}
 
         {!readonly && onCopyOrder && (
           <Button

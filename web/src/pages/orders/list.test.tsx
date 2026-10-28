@@ -28,14 +28,17 @@ vi.mock('react-router', async (importOriginal) => {
   };
 });
 
-const accessControl = vi.hoisted(() => ({ canCreate: true }));
+const accessControl = vi.hoisted(() => ({ canCreate: true, canUpdate: true }));
 
 vi.mock('@/app/access', () => ({
   useAccess: () => ({
     canOperateOrganization: () => true,
     canOperateBusiness: true,
-    canOrder: (_businessType: number | string, operation: string) =>
-      operation === 'create' ? accessControl.canCreate : true,
+    canOrder: (_businessType: number | string, operation: string) => {
+      if (operation === 'create') return accessControl.canCreate;
+      if (operation === 'update') return accessControl.canUpdate;
+      return true;
+    },
     canCreateEnterpriseResources: true,
   }),
 }));
@@ -119,6 +122,7 @@ describe('订单列表新建入口权限收口', () => {
     vi.clearAllMocks();
     locationState.pathname = '/orders/sea-export';
     accessControl.canCreate = true;
+    accessControl.canUpdate = true;
     mockListOrders.mockResolvedValue({ data: [], total: 0 });
   });
 
@@ -141,5 +145,16 @@ describe('订单列表新建入口权限收口', () => {
     );
 
     expect(screen.queryByText('新增海运出口订单')).not.toBeInTheDocument();
+  });
+
+  it('无 update 权限时不渲染批量维护标签按钮', () => {
+    accessControl.canUpdate = false;
+    renderWithClient(
+      <App>
+        <OrderListPage />
+      </App>,
+    );
+
+    expect(screen.queryByText('批量维护标签')).not.toBeInTheDocument();
   });
 });
