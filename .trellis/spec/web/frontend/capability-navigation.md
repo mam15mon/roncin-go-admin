@@ -29,7 +29,7 @@
 | 信用额度干预提示 | [`web/src/features/finance/credit-control/index.ts`](../../../../web/src/features/finance/credit-control/index.ts) | `useCreditLimitIntervention` 与 `disableCreditExceededOptions` 信用控制查询和候选禁用 | 业务查询 Hook 放全局 `hooks/` |
 | 异步竞态防护 | [`web/src/hooks/`](../../../../web/src/hooks/) | 通用 `useLatestAsync`/`useAsyncGuard` 竞态工具 | 任何业务查询 Hook（领域 Hook 进 features） |
 | 订单候选缓存 | [`features/orders/options`](../../../../web/src/features/orders/options/index.ts) | 字典、首批港口/机场、人员候选缓存；组织切换/退出调用清理入口 | 把缓存键隔离误认为页面迟到响应保护 |
-| 订单审核与费用摘要 | [`features/orders/fee-review`](../../../../web/src/features/orders/fee-review/index.ts) | `FeeReviewStatus`、`FeeReviewSummary`、`useOrderFeeReview` 与意见计数规则；只读摘要/历史，当前审核状态源自人工订单锁；费用台账按 order_locked 筛选，逐费消费服务端能力 | 审核资格／建账资格在前端自行推算；引用页面私有审批弹窗；将机器人消息当审批结果 |
+| 订单审核与费用摘要 | [`features/orders/fee-review`](../../../../web/src/features/orders/fee-review/index.ts) | `FeeReviewStatus`、`FeeReviewSummary`、`useOrderFeeReview` 与意见计数规则；只读摘要/全部当前有效费用/历史，当前审核状态源自人工订单锁；审核弹窗逐笔展示费用、不输入意见；费用台账按 order_locked 筛选，逐费消费服务端能力 | 审核资格／建账资格在前端自行推算；引用页面私有审批弹窗；将机器人消息当审批结果 |
 | 费用更正历史与审批 | [`features/orders/fee-correction`](../../../../web/src/features/orders/fee-correction/index.ts) | `FeeCorrectionSection`：订单与财务费用详情共用的申请历史、原/新费用、批准时利润及提成快照、动态财务进度、审批与撤回；审批资格消费服务端，预览绑定版本和指纹；锁后 ADD/REPLACE/VOID，源费占账先回退 | 费用录入表单留在订单页面；不在前端推算提成或金融结清，不导入页面私有表单 |
 | 币种候选 | [`features/master-data/currencies`](../../../../web/src/features/master-data/currencies/index.ts) | `getCurrencies` / `getCurrencyOptions`，启停后显式强制刷新 | 在每个页面重复维护币种请求缓存 |
 | 船公司候选 | [`features/master-data/shipping-lines`](../../../../web/src/features/master-data/shipping-lines/index.ts) | `searchShippingLineOptions` 服务端关键字搜索 | 循环翻页拼接全量 |

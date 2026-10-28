@@ -51,7 +51,7 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 ### 业务锁与生命周期
 
 
-- `LockOrderRequest` 必须包含合法 UUID `order_id`、大于零的 `expected_order_version` 、大于零的 `expected_fee_content_version`、非空 `fee_content_fingerprint` 和去除空白后非空的 `idempotency_key`；亏损时 `comment` 必填。订单与费用版本、指纹均在锁内重验。
+- `LockOrderRequest` 必须包含合法 UUID `order_id`、大于零的 `expected_order_version` 、大于零的 `expected_fee_content_version`、非空 `fee_content_fingerprint` 和去除空白后非空的 `idempotency_key`；`comment` 可选，亏损不改变这一规则。审核弹窗完整展示逐笔费用，不提供审核意见输入。订单与费用版本、指纹均在锁内重验。
 - `RequestOrderUnlockRequest` 使用相同并发与幂等字段；`reason` 可选，管理员紧急解锁不得伪造默认原因。
 - 锁定资格按「有效 lock grant」统一计算（`internal/data/order_lock.go` 的 `qualifiedBusinessLockGrantPredicate`，单用户判断与候选查询必须复用同一谓词）：用户 enabled、membership enabled、角色 enabled 且真实持有目标类型显式 `business.order.<type>.lock` 权限（不按角色代码排除 `administrator` 等任何角色），角色归属目标公司，membership 位于该公司启用子树（部门/团队可参与，到其他公司截止）；不再按已退役的角色范围配置判断，系统或其他公司角色不得进入候选；同一角色须持有同类型 read/update/fee.read/lock，不跨角色拼接资格，不得跨类型授权。
 - bootstrap admin 显式具备锁单资格（`GetOrderLockState`/`LockOrder` 直接视为可锁），但不得进入普通审批候选池，回调也不得绕过候选快照。
@@ -83,7 +83,8 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 | 执行结案时存在活动异常 | ORDER_CLOSURE_BLOCKED（409，“存在未处理的订单异常，请先处理异常后再结案”） |
 | 执行结案时存在 PENDING 补录 | ORDER_CLOSURE_BLOCKED（409，“存在待审核补录，请先处理后再结案”），无状态/事件部分写入 |
 | 合并账单部分/全部回款、建账或删除最后未建账费 | 不自动锁定，不追加人工审核事实 |
-| 审核时费用版本/指纹变化或亏损缺少意见 | 409 快照冲突或参数错误，不产生锁定及部分快照 |
+| 审核时费用版本/指纹变化 | 409 快照冲突，不产生锁定及部分快照 |
+| 亏损且未填写审核意见，其他条件满足 | 允许审核并固化完整费用与利润快照 |
 | 已完结、未审核且其他审核条件满足 | 开放审核并锁定；固化费用与单证快照，保持结案状态和财务事实 |
 | 锁定的 `DOCUMENT_RELEASED` 订单执行结案、`TERMINATING/TERMINATED` 执行完成/取消/恢复 | 生命周期命令放行，不得被内容门禁误杀 |
 | 已审核锁定订单反结案 | `ORDER_BUSINESS_LOCKED`，提示先解锁；结案状态、版本、事件和审计均不变 |
@@ -118,7 +119,7 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 
 ## 6. Tests Required
 
-- 真实 PostgreSQL：建账、部分/全额核销、对冲、删除最后未建账费用均不自动锁定；人工审核绑定订单/费用版本与指纹、亏损意见、费用不可变快照、并发写入及审计失败零部分写入。正式迁移初始化，SKIP 不算通过。
+- 真实 PostgreSQL：建账、部分/全额核销、对冲、删除最后未建账费用均不自动锁定；人工审核绑定订单/费用版本与指纹、亏损空意见成功、费用不可变快照、并发写入及审计失败零部分写入。正式迁移初始化，SKIP 不算通过。
 - 真实 PostgreSQL：SE 与非 SE 已完结订单均可审核锁定（含已建账费用），断言结案状态及账单不变、锁代次/版本递增、审核费用快照和审计完整；已完结未锁订单仍可改资料及未建账费用，锁后普通资料与费用修改均拒绝；已建账费用始终先回退。
 - `TestOrderClosureBeforeReviewAndBillingPostgres`：SE/SI 草稿订单录费后未建账、未审核即可完结，版本递增且只有一条完结事件，不改费用、不建账、不锁单；继续验证真实人工审核及锁后费用建账资格。补审批准与结案竞争时，批准生效的费用即使未建账也不得阻止结案，PENDING 申请仍须阻断。
 

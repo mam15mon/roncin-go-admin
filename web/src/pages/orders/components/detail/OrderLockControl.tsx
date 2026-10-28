@@ -3,8 +3,17 @@ import {
   LockOutlined,
   UnlockOutlined,
 } from '@ant-design/icons';
-import { ProFormTextArea } from '@ant-design/pro-components';
-import { Alert, App, Button, Form, Input, Modal, Tag, Tooltip } from 'antd';
+import {
+  Alert,
+  App,
+  Button,
+  Form,
+  Input,
+  Modal,
+  Spin,
+  Tag,
+  Tooltip,
+} from 'antd';
 import React, { type ReactNode, useContext, useEffect, useState } from 'react';
 import { appInitialStateContext } from '@/app/initialStateContext';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
@@ -12,8 +21,7 @@ import { GuardedModalForm } from '@/components/ui';
 import { OrderBusinessType } from '@/enums.generated';
 import {
   FeeReviewSummary,
-  feeReviewCommentFieldProps,
-  feeReviewCommentRule,
+  useOrderFeeReview,
 } from '@/features/orders/fee-review';
 import {
   orderLockServiceLockOrder,
@@ -23,6 +31,7 @@ import { isWriteResponse } from '@/utils/api';
 import { formatDate } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
 import { getOrderBusinessTypeLabel } from '../../use-order-lock-state';
+import OrderLockFeeDetails from './OrderLockFeeDetails';
 import UnlockRequestHistoryDrawer from './UnlockRequestHistoryDrawer';
 
 type UnlockRoute = 'ROLE_DIRECT' | 'ADMIN_EMERGENCY' | 'DINGTALK_APPROVAL';
@@ -133,6 +142,14 @@ export default function OrderLockControl({
     ?.currentUser?.currentOrganization?.id;
   const [lockSnapshot, setLockSnapshot] = useState<API.OrderLockStateData>();
   const [lockKey, setLockKey] = useState(generateIdempotencyKey);
+  const feeReview = useOrderFeeReview(orderId, Boolean(lockSnapshot));
+  const feeReviewMatchesSnapshot =
+    feeReview.data?.orderId === lockSnapshot?.orderId &&
+    feeReview.data?.contentVersion === lockSnapshot?.feeContentVersion &&
+    state?.orderVersion === lockSnapshot?.orderVersion &&
+    state?.feeContentFingerprint === lockSnapshot?.feeContentFingerprint;
+  const feeReviewReady =
+    feeReview.isSuccess && !feeReview.isFetching && feeReviewMatchesSnapshot;
   const [unlocking, setUnlocking] = useState(false);
   const [unlockModalVisible, setUnlockModalVisible] = useState(false);
   const { markDirty: markUnlockDirty } = useUnsavedChangesGuard({
@@ -330,17 +347,25 @@ export default function OrderLockControl({
       )}
 
       {lockSnapshot && (
-        <GuardedModalForm<{ comment?: string }>
+        <GuardedModalForm
           key={lockKey}
           title={`审核并锁定${getOrderBusinessTypeLabel(lockSnapshot.businessType)}订单`}
           open
-          width={900}
-          modalProps={{ destroyOnHidden: true }}
+          width={1280}
+          modalProps={{
+            destroyOnHidden: true,
+            styles: { body: { maxHeight: '70vh', overflowY: 'auto' } },
+          }}
+          submitter={{
+            searchConfig: { submitText: '确认审核' },
+            submitButtonProps: { disabled: !feeReviewReady },
+          }}
           onOpenChange={(open) => {
             if (!open) setLockSnapshot(undefined);
           }}
-          onFinish={async (values) => {
+          onFinish={async () => {
             if (
+              !feeReviewReady ||
               lockSnapshot.orderId !== orderId ||
               !lockSnapshot.orderVersion ||
               !lockSnapshot.feeContentVersion ||
@@ -356,7 +381,6 @@ export default function OrderLockControl({
                   expectedFeeContentVersion: lockSnapshot.feeContentVersion,
                   feeContentFingerprint: lockSnapshot.feeContentFingerprint,
                   idempotencyKey: lockKey,
-                  comment: values.comment?.trim(),
                 },
               );
               if (
@@ -377,32 +401,56 @@ export default function OrderLockControl({
           <p>
             {getOrderLockConfirmationDescription(lockSnapshot.businessType)}
           </p>
-          <FeeReviewSummary summary={lockSnapshot.feeSummary} />
           {Number(lockSnapshot.feeSummary?.profit) < 0 && (
             <Alert
               type="warning"
               showIcon
-              title="该订单亏损，请填写审核意见说明原因。"
+              title="该订单亏损，请核对每笔应收、应付费用后确认审核。"
               style={{ marginBlock: 12 }}
             />
           )}
-          <ProFormTextArea
-            name="comment"
-            label="审核意见"
-            rules={[
-              feeReviewCommentRule,
-              ...(Number(lockSnapshot.feeSummary?.profit) < 0
-                ? [
-                    {
-                      required: true,
-                      whitespace: true,
-                      message: '请填写亏损原因',
-                    },
-                  ]
-                : []),
-            ]}
-            fieldProps={feeReviewCommentFieldProps}
-          />
+          {feeReview.isFetching && (
+            <div role="status" style={{ padding: 24, textAlign: 'center' }}>
+              <Spin /> 正在加载全部费用明细
+            </div>
+          )}
+          {feeReview.isError && (
+            <Alert
+              type="error"
+              showIcon
+              title="费用明细加载失败，请重试后审核"
+              action={
+                <Button onClick={() => void feeReview.refetch()}>
+                  重试费用明细
+                </Button>
+              }
+            />
+          )}
+          {feeReview.isSuccess &&
+            !feeReview.isFetching &&
+            !feeReviewMatchesSnapshot && (
+              <Alert
+                type="warning"
+                showIcon
+                title="订单或费用已变化，请刷新后重新审核"
+                action={
+                  <Button
+                    onClick={async () => {
+                      setLockSnapshot(undefined);
+                      await onRetry();
+                    }}
+                  >
+                    刷新审核信息
+                  </Button>
+                }
+              />
+            )}
+          {feeReviewReady && (
+            <>
+              <FeeReviewSummary summary={lockSnapshot.feeSummary} />
+              <OrderLockFeeDetails fees={feeReview.data.fees || []} />
+            </>
+          )}
         </GuardedModalForm>
       )}
 

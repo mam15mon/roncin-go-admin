@@ -1,7 +1,9 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { renderWithApp } from '@root/tests/renderWithApp';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { OrderBusinessType } from '@/enums.generated';
+import { orderFeeServiceGetOrderFeeReview } from '@/services/roncin/orderFeeService';
 import {
   orderLockServiceLockOrder,
   orderLockServiceRequestOrderUnlock,
@@ -11,6 +13,10 @@ import OrderLockControl, {
   getOrderLockSourceDisplay,
   OrderLockStatusTag,
 } from './OrderLockControl';
+
+vi.mock('@/services/roncin/orderFeeService', () => ({
+  orderFeeServiceGetOrderFeeReview: vi.fn(),
+}));
 
 vi.mock('@/services/roncin/orderLockService', () => ({
   orderLockServiceLockOrder: vi.fn(),
@@ -28,6 +34,16 @@ const requestUnlock = vi.mocked(orderLockServiceRequestOrderUnlock);
 describe('OrderLockControl', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(orderFeeServiceGetOrderFeeReview).mockImplementation(
+      async ({ orderId }) => ({
+        success: true,
+        data: {
+          orderId,
+          contentVersion: orderId === 'loss-order' ? '9' : '8',
+          fees: [],
+        },
+      }),
+    );
   });
 
   it('按生成业务类型枚举区分 SE 与非 SE 锁定提示', () => {
@@ -40,7 +56,7 @@ describe('OrderLockControl', () => {
   });
 
   it('状态标签显示服务端返回的业务类型与锁状态', () => {
-    render(
+    renderWithApp(
       <OrderLockStatusTag
         state={{
           businessType: OrderBusinessType.BUSINESS_TYPE_AI,
@@ -65,7 +81,7 @@ describe('OrderLockControl', () => {
     } as Awaited<ReturnType<typeof lockOrder>>);
     const onSynchronize = vi.fn().mockResolvedValue(undefined);
 
-    render(
+    renderWithApp(
       <App>
         <OrderLockControl
           orderId="order-ai"
@@ -96,6 +112,9 @@ describe('OrderLockControl', () => {
     expect(screen.getByText(/订单业务资料和费用进入锁定/)).toBeInTheDocument();
     expect(screen.queryByText(/MBL\/HBL/)).toBeNull();
 
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /确.*认/ })).toBeEnabled(),
+    );
     fireEvent.click(screen.getByRole('button', { name: /确.*认/ }));
     await waitFor(() => expect(lockOrder).toHaveBeenCalledTimes(1));
     expect(lockOrder.mock.calls[0][1]).toMatchObject({
@@ -107,7 +126,7 @@ describe('OrderLockControl', () => {
   });
 
   it('只呈现服务端允许的审批解锁动作，版本缺失时禁用', () => {
-    render(
+    renderWithApp(
       <App>
         <OrderLockControl
           orderId="order-si"
@@ -139,12 +158,12 @@ describe('OrderLockControl', () => {
     expect(getOrderLockSourceDisplay({}).actorText).toBe('审核人待确认');
   });
 
-  it('亏损时意见必填，失败保留审核快照和意见供重试', async () => {
+  it('亏损时无需意见，失败保留审核快照及幂等键供重试', async () => {
     lockOrder.mockResolvedValueOnce(undefined as never).mockResolvedValueOnce({
       success: true,
       data: { state: { orderId: 'loss-order' } },
     });
-    render(
+    renderWithApp(
       <App>
         <OrderLockControl
           orderId="loss-order"
@@ -168,23 +187,23 @@ describe('OrderLockControl', () => {
       </App>,
     );
     fireEvent.click(screen.getByRole('button', { name: /审核并锁定/ }));
-    fireEvent.click(screen.getByRole('button', { name: /确.*认/ }));
-    expect(await screen.findByText('请填写亏损原因')).toBeInTheDocument();
-    expect(lockOrder).not.toHaveBeenCalled();
-    fireEvent.change(screen.getByRole('textbox', { name: '审核意见' }), {
-      target: { value: '已核实完整成本' },
-    });
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /确.*认/ })).toBeEnabled(),
+    );
+    expect(screen.queryByRole('textbox', { name: '审核意见' })).toBeNull();
+    expect(screen.getByText(/该订单亏损，请核对每笔/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /确.*认/ }));
     await waitFor(() => expect(lockOrder).toHaveBeenCalledOnce());
-    expect(screen.getByRole('textbox', { name: '审核意见' })).toHaveValue(
-      '已核实完整成本',
+    expect(lockOrder.mock.calls[0][1]).not.toHaveProperty('comment');
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /确.*认/ })).toBeEnabled(),
     );
     fireEvent.click(screen.getByRole('button', { name: /确.*认/ }));
     await waitFor(() => expect(lockOrder).toHaveBeenCalledTimes(2));
     expect(lockOrder.mock.calls[1][1]).toEqual(lockOrder.mock.calls[0][1]);
   });
   it('服务端未返回费用审核快照时禁止锁定', () => {
-    render(
+    renderWithApp(
       <App>
         <OrderLockControl
           orderId="missing-snapshot"

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -202,9 +201,6 @@ func (r *orderLockRepo) LockOrder(ctx context.Context, caller *biz.Principal, or
 		}
 		if contentFingerprint != review.FeeContentFingerprint {
 			return biz.ErrFeeReviewConflict
-		}
-		if snapshot.Summary.Profit.IsNegative() && strings.TrimSpace(review.Comment) == "" {
-			return biz.ErrFeeReviewInvalid
 		}
 		encodedSnapshot, encodeErr := json.Marshal(snapshot)
 		if encodeErr != nil {
