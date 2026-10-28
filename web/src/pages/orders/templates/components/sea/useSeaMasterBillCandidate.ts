@@ -16,6 +16,12 @@ import {
   splitSeaVesselVoyage,
 } from './sea-shared-voyage';
 
+/** 新建页共享同一次主单候选核对结果，供分单号展示当前主单内的可用性。 */
+export type SeaHouseNumberCheck = {
+  identity: string;
+  status: 'checking' | 'checked' | 'error';
+};
+
 export function useSharedSeaVoyage() {
   const form = Form.useFormInstance();
   const source = Form.useWatch('seaMasterBillSharedVoyage', {
@@ -149,6 +155,14 @@ export function useSeaMasterBillCandidate(
   );
   const checked = enabled && query.isSuccess && !query.isFetching;
   const queryError = enabled && query.isError ? query.error.message : undefined;
+  const houseNumberCheck: SeaHouseNumberCheck | undefined =
+    !isDetail && identity
+      ? {
+          identity,
+          status: matching ? 'checking' : queryError ? 'error' : 'checked',
+        }
+      : undefined;
+  const houseNumberCheckKey = JSON.stringify(houseNumberCheck);
   const candidate =
     checked && query.data.matched ? query.data.candidate : undefined;
   const executions = candidate?.transportExecutions ?? [];
@@ -214,6 +228,7 @@ export function useSeaMasterBillCandidate(
         form.setFieldValue(name, value);
     }
     setValue('seaMasterBillBatchHouseNos', candidate?.batchNormalizedHouseNos);
+    setValue('seaHouseNumberCheck', houseNumberCheck);
     setValue(
       'seaMasterBillCandidateId',
       candidateReady ? candidate?.id : undefined,
@@ -259,6 +274,7 @@ export function useSeaMasterBillCandidate(
     requiresHouse,
     isDetail,
     existing?.version,
+    houseNumberCheckKey,
   ]);
 
   const adopt = () => {

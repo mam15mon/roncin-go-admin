@@ -1,5 +1,6 @@
+import { CheckCircleFilled, LoadingOutlined } from '@ant-design/icons';
 import { ProFormText } from '@ant-design/pro-components';
-import { Col, Form, Radio, Row } from 'antd';
+import { Col, Form, Radio, Row, Typography, theme } from 'antd';
 import React, { useEffect } from 'react';
 import { ProFormSearchableSelect } from '@/components/ui';
 import {
@@ -7,11 +8,16 @@ import {
   SeaHouseBillStatus,
 } from '@/enums.generated';
 import { searchPartnerOptions } from '@/features/partners';
+import { seaMasterBillIdentity } from './sea-shared-voyage';
+import type { SeaHouseNumberCheck } from './useSeaMasterBillCandidate';
 
-/** 与服务端 NormalizeSeaHouseNo 同口径的展示层归一化：NFC + 去首尾空白 + 大写。
+/** 与服务端 NormalizeSeaHouseNo 同口径：NFC + 去首尾空白 + ASCII 字母大写。
  * 仅用于批次排重的即时提示（体验层），服务端事务内预查为权威。 */
 export function normalizeSeaHouseNoForCompare(value: string): string {
-  return value.normalize('NFC').trim().toUpperCase();
+  return value
+    .normalize('NFC')
+    .trim()
+    .replace(/[a-z]/g, (char) => char.toUpperCase());
 }
 
 type HouseBillFormKey = 'seaHouseBill' | 'newHouseBill';
@@ -20,12 +26,32 @@ export function HouseBillNumberField({
   fieldKey,
   disabled = false,
   extra,
+  showCheckFeedback = false,
 }: {
   fieldKey: HouseBillFormKey;
   disabled?: boolean;
   extra?: React.ReactNode;
+  showCheckFeedback?: boolean;
 }) {
   const form = Form.useFormInstance();
+  const { token } = theme.useToken();
+  const houseNo = Form.useWatch([fieldKey, 'houseNo'], {
+    form,
+    preserve: true,
+  });
+  const masterNo = Form.useWatch('seaMasterBillMasterNo', {
+    form,
+    preserve: true,
+  });
+  const shippingLineId = Form.useWatch('shippingLineId', {
+    form,
+    preserve: true,
+  });
+  const check = Form.useWatch('seaHouseNumberCheck', {
+    form,
+    preserve: true,
+  }) as SeaHouseNumberCheck | undefined;
+  const identity = seaMasterBillIdentity(masterNo, shippingLineId);
   // 批次分单号清单（候选响应）晚于分单号录入到达时补一次重复校验：
   // form.setFieldValue 写入不触发 antd dependencies 重校验，这里显式补检；
   // 分单号为空时不触发，避免提前抛出必填错误。
@@ -35,19 +61,61 @@ export function HouseBillNumberField({
     preserve: true,
   });
   useEffect(() => {
-    if (!batchHouseNos?.length) return;
     const value = form.getFieldValue([fieldKey, 'houseNo']);
     if (typeof value === 'string' && normalizeSeaHouseNoForCompare(value)) {
       void form.validateFields([[fieldKey, 'houseNo']]).catch(() => undefined);
     }
-  }, [batchHouseNos, fieldKey, form]);
+  }, [batchHouseNos, fieldKey, form, identity, check]);
+  const normalized = normalizeSeaHouseNoForCompare(
+    typeof houseNo === 'string' ? houseNo : '',
+  );
+  const showFeedback = showCheckFeedback && !disabled;
+  const checked = Boolean(
+    identity && check?.identity === identity && check.status === 'checked',
+  );
+  const duplicate = checked && (batchHouseNos ?? []).includes(normalized);
+  const failed =
+    identity && check?.identity === identity && check.status === 'error';
+  const checking = Boolean(identity && !checked && !failed);
+  const available = checked && Boolean(normalized) && !duplicate;
+  const feedback = !normalized
+    ? '请输入分单号后核对'
+    : !shippingLineId || !masterNo
+      ? '待选择船公司和填写主单号后核对分单号'
+      : !identity
+        ? '待填写有效主单号后核对分单号'
+        : failed
+          ? '分单号核对失败，请在主单号处点击「重新核对」'
+          : checking
+            ? '正在核对当前主单内分单号'
+            : undefined;
   return (
     <ProFormText
       name={[fieldKey, 'houseNo']}
       label="分单号 (HBL No.)"
       placeholder="请输入分单号"
       disabled={disabled}
-      extra={extra}
+      extra={
+        showFeedback ? (
+          <>
+            {feedback && (
+              <div role="status">
+                <Typography.Text type={failed ? 'danger' : 'secondary'}>
+                  {feedback}
+                </Typography.Text>
+              </div>
+            )}
+            {extra}
+          </>
+        ) : (
+          extra
+        )
+      }
+      tooltip={
+        showFeedback
+          ? '主单按船公司和主单号识别；分单号在当前主单内唯一（含作废），跨主单可重复。'
+          : undefined
+      }
       layout="vertical"
       rules={[
         { required: true, whitespace: true, message: '分单号不能为空' },
@@ -57,6 +125,21 @@ export function HouseBillNumberField({
               typeof value === 'string' ? value : '',
             );
             if (!normalized) return Promise.resolve();
+            if (showCheckFeedback) {
+              const currentIdentity = seaMasterBillIdentity(
+                getFieldValue('seaMasterBillMasterNo'),
+                getFieldValue('shippingLineId'),
+              );
+              const currentCheck = getFieldValue('seaHouseNumberCheck') as
+                | SeaHouseNumberCheck
+                | undefined;
+              if (
+                !currentIdentity ||
+                currentCheck?.identity !== currentIdentity ||
+                currentCheck.status !== 'checked'
+              )
+                return Promise.resolve();
+            }
             // 命中共享主单批次时与批次内兄弟票分单号（含作废）即时比对。
             const batchHouseNos = (getFieldValue(
               'seaMasterBillBatchHouseNos',
@@ -72,7 +155,20 @@ export function HouseBillNumberField({
           },
         }),
       ]}
-      fieldProps={{ maxLength: 128 }}
+      fieldProps={{
+        maxLength: 128,
+        suffix:
+          showFeedback && normalized ? (
+            checking ? (
+              <LoadingOutlined aria-label="HBL 分单号核对中" />
+            ) : available ? (
+              <CheckCircleFilled
+                aria-label="HBL 分单号核对通过"
+                style={{ color: token.colorSuccess }}
+              />
+            ) : undefined
+          ) : undefined,
+      }}
     />
   );
 }

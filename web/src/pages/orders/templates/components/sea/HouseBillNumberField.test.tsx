@@ -7,7 +7,10 @@ import {
 } from '@testing-library/react';
 import { ConfigProvider, Form, type FormInstance } from 'antd';
 import { describe, expect, it } from 'vitest';
-import { HouseBillNumberField } from './HouseBillIdentityFields';
+import {
+  HouseBillNumberField,
+  normalizeSeaHouseNoForCompare,
+} from './HouseBillIdentityFields';
 
 function Harness({ exposeForm }: { exposeForm: (form: FormInstance) => void }) {
   const [form] = Form.useForm();
@@ -22,6 +25,10 @@ function Harness({ exposeForm }: { exposeForm: (form: FormInstance) => void }) {
 }
 
 describe('正式分单号校验', () => {
+  it('排重归一化只转换 ASCII 字母，保留非 ASCII 字符', () => {
+    expect(normalizeSeaHouseNoForCompare(' hbl-éß ')).toBe('HBL-éß');
+    expect(normalizeSeaHouseNoForCompare(' hbl-e\u0301 ')).toBe('HBL-é');
+  });
   it('空白号码必填且候选批次晚到时重验已填号码', async () => {
     let form!: FormInstance;
     render(
@@ -47,6 +54,10 @@ describe('正式分单号校验', () => {
     expect(
       await screen.findByText(/分单号 HBL-USED 在该主单批次内已存在/),
     ).toBeVisible();
+    await act(async () => form.setFieldValue('seaMasterBillBatchHouseNos', []));
+    await waitFor(() =>
+      expect(form.getFieldError(['seaHouseBill', 'houseNo'])).toEqual([]),
+    );
     fireEvent.change(screen.getByPlaceholderText('请输入分单号'), {
       target: { value: 'HBL-NEW' },
     });

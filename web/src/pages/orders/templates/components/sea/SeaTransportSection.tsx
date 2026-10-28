@@ -441,6 +441,7 @@ export function SeaAssociatedHouseBillsField({
     return (
       <HouseBillNumberField
         fieldKey="seaHouseBill"
+        showCheckFeedback={!isDetail}
         disabled={
           disabled ||
           (isDetail &&
