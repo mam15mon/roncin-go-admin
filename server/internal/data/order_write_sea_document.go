@@ -152,8 +152,8 @@ func syncOrderSeaDocumentOnUpdate(
 		return nil
 	}
 	docInput := input.SeaDocumentInput
-	if docInput.HouseBill != nil {
-		return errors.BadRequest("SEA_DOCUMENT_INVALID_ARGUMENT", "订单整单更新禁止直接提交分单变更，请使用专用单证命令")
+	if docInput.HouseBill != nil && (docInput.HouseBill.ID == nil || *docInput.HouseBill.ID == uuid.Nil || docInput.HouseBill.ExpectedVersion == nil || docInput.ExpectedLinkVersion == nil || docInput.DocumentStructure != nil) {
+		return errors.BadRequest("SEA_DOCUMENT_INVALID_ARGUMENT", "更新分单必须提供分单标识、分单版本与关联版本，且不得切换提单模式")
 	}
 
 	// 1. Order 已在 UpdateDraft 中加锁 ForUpdate
@@ -196,6 +196,18 @@ func syncOrderSeaDocumentOnUpdate(
 		return biz.ErrSeaDocumentStructureConflict
 	}
 
+	if mbl.Status == seamasterbill.StatusVOIDED {
+		return biz.ErrSeaDocumentVoided
+	}
+	if docInput.HouseBill != nil {
+		if link.DocumentStructure != seamasterbillorderlink.DocumentStructureHOUSE || link.Version != *docInput.ExpectedLinkVersion {
+			return biz.ErrSeaDocumentStructureConflict
+		}
+		if err := updateLockedSeaHouseBill(ctx, tx, organizationID, order, link, input.CustomerID, *docInput.HouseBill.ID, *docInput.HouseBill.ExpectedVersion, docInput.HouseBill, audit); err != nil {
+			return err
+		}
+	}
+
 	// 5. 更新 MBL 内容（严格校验 expected_mbl_version）
 	if docInput.MasterBillContent != nil {
 		if _, err := revalidateSeaMasterBillUpdateMemberSet(
@@ -209,7 +221,11 @@ func syncOrderSeaDocumentOnUpdate(
 		if docInput.ExpectedMblVersion == nil {
 			return errors.BadRequest("SEA_DOCUMENT_INVALID_ARGUMENT", "修改主单内容必须提供 expected_mbl_version")
 		}
-		if mbl.Version != *docInput.ExpectedMblVersion {
+		originalVersion := mbl.Version
+		if lockContext != nil && lockContext.originalMasterVersion != 0 {
+			originalVersion = lockContext.originalMasterVersion
+		}
+		if originalVersion != *docInput.ExpectedMblVersion {
 			return biz.ErrSeaMasterBillConflict
 		}
 		if _, err := biz.ValidateSeaBillContent(docInput.MasterBillContent); err != nil {

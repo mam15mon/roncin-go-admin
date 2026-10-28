@@ -43,6 +43,7 @@ export interface TemplateProps {
   isDetail?: boolean;
   /** 当前订单归属，供独立单证命令校验工作台能力。 */
   organizationId?: string;
+  seaDocuments?: API.SeaOrderDocuments;
   /** 新建分单的主单及指定航程来源。 */
   seaHouseOrderCreateSource?: SeaHouseOrderCreateSource;
   /** 详情页独立新建分单入口的来源订单身份。 */
@@ -50,5 +51,7 @@ export interface TemplateProps {
   /** 详情页业务写入口是否因锁单等状态关闭。 */
   readonly?: boolean;
   /** 单证命令成功后刷新订单聚合，确保 expectedOrderVersion 使用最新值。 */
-  onOrderDataChanged?: () => Promise<void> | void;
+  onOrderDataChanged?: (
+    document?: 'master' | 'house' | 'mode',
+  ) => Promise<void> | void;
 }

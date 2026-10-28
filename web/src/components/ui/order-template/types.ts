@@ -24,6 +24,8 @@ export interface OrderFormTemplateProps<T> {
   loadingTip?: string;
   /** 是否为只读/详情查看模式 */
   readonly?: boolean;
+  /** 提交或等待结果时冻结编辑，不改变未保存输入的离开保护。 */
+  editingDisabled?: boolean;
   /** 顶部吸顶导航或自定义头部 */
   header?: ReactNode;
   /** 外部持有的表单实例引用，用于跨组件读写表单值。 */

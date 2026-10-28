@@ -76,6 +76,11 @@ vi.mock('./use-order-detail-data', () => ({
             allowedActions: detailTestState.allowedActions,
           }
         : undefined,
+      seaDocuments: {
+        documentStructure: 2,
+        linkVersion: '1',
+        masterBill: { id: 'mbl-1', version: '1', content: {} },
+      },
       shippingDocs: [],
       personnel: [],
       serviceTypeOptions: [],

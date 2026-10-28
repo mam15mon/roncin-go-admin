@@ -21392,7 +21392,10 @@ components:
                     $ref: '#/components/schemas/order.v1.SeaBillContent'
                 houseBill:
                     $ref: '#/components/schemas/order.v1.SeaHouseBillInput'
-            description: SeaOrderDocumentInput 订单创建/更新中的海运单证整包输入。
+            description: |-
+                SeaOrderDocumentInput 订单创建/更新中的海运单证整包输入。
+                 更新已有 HBL 时必须提供 house_bill.id、house_bill.expected_version 与 expected_link_version；
+                 与订单资料及主单内容在同一事务提交，不支持通过整单更新切换提单模式。
         order.v1.SeaOrderDocumentSummary:
             type: object
             properties:

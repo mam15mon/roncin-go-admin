@@ -25,8 +25,10 @@
   - `CreateOrderRequest.sea_master_bill: SeaMasterBillInput`。
   - `CreateOrderRequest.sea_document: SeaOrderDocumentInput`。
   - `UpdateOrderRequest.sea_master_bill: SeaMasterBillInput`。
-  - `UpdateOrderRequest.sea_document: SeaOrderDocumentInput`；普通整单更新不得
-    提交分单变更（分单只经单证命令维护）。
+  - `UpdateOrderRequest.sea_document: SeaOrderDocumentInput`：普通整单更新支持当前
+    本票既有 HBL 的号码、签发方和正文，与订单及改过的 MBL 正文共用同一事务。
+    `house_bill` 必须携带目标 `id`、`expected_version`，外层携带
+    `expected_link_version`；不得经此输入创建 HBL、替换目标或切换 HOUSE/DIRECT。
 - 单证命令：
   - `GET /api/v1/orders/{order_id}/sea-documents`（聚合读取返回单数 `house_bill`）。
   - `PUT /api/v1/orders/{order_id}/sea-documents/house-bills/{id}`（更新唯一
@@ -54,7 +56,10 @@
   - HBL 更新与模式切换携带 `expected_link_version`。
   - HBL 更新携带 `expected_version`；模式切换额外携带 `expected_order_version`、
     `expected_house_bill_version` 与 `expected_current_version_id`。
-  - MBL 内容修改携带 `expected_mbl_version`。
+  - MBL 内容修改携带 `expected_mbl_version`。整单只提交发生修改的单证部分，
+    未修改 MBL 不触发其写入及版本比较。
+  - 普通 HBL 更新会同时推进 HBL 和活动 Link 版本；写后必须同步完整基线，
+    不能只把 HBL 响应版本回填表单而继续复用旧 Link 版本。
 - 数据库唯一键：
   - `sea_master_bills(organization_id, shipping_line_id, normalized_master_no)`。
   - `sea_master_bill_order_links(order_id) WHERE status = 'ACTIVE'`。
@@ -460,3 +465,14 @@ return transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
 错误：只给前端加星号，接口仍能保存空日期；或缺少日期时自动填当前时间。
 
 正确：前端字段规则阻止提交，后端共用用例独立检查必填、格式和先后关系。
+
+## 整单统一保存验证
+
+- 良例：订单资料、MBL 正文与本票 HBL 同包更新，任一步失败均回滚；同包主单身份/航程
+  与正文修改以事务初始版本校验，不能拿本事务自己递增后的版本制造冲突。
+- 基准例：只改订单资料或 HBL 不写未改的 MBL；DIRECT 不提交 HBL。
+- 反例：前端串行调用多个写端点拼装“保存全部”、用整单输入切模式或越组织改 HBL、
+  客户变更与签发方同包修改绕过原客户限制。上述路径必须拒绝或整体回滚。
+- 必须验证：订单/MBL/Link/HBL 过期版本、同批重号、错误目标、终态、共享成员锁定、
+  连续保存与幂等重放；数据库断言同时覆盖业务行版本和审计，使用专用 PostgreSQL
+  集成库隔离 Schema 与正式迁移，不能将跳过的测试算作成功。

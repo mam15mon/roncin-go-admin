@@ -1,4 +1,4 @@
-import { SaveOutlined, SwapOutlined } from '@ant-design/icons';
+import { SwapOutlined } from '@ant-design/icons';
 import { ProFormTextArea } from '@ant-design/pro-components';
 import {
   Alert,
@@ -19,7 +19,6 @@ import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
-import { scrollToFirstFormError } from '@/components/ui';
 import {
   OrderBusinessType,
   OrderReleasePodStatus,
@@ -32,16 +31,11 @@ import {
   seaDocumentServiceExecuteChangeSeaDocumentMode,
   seaDocumentServiceGetSeaOrderDocuments,
   seaDocumentServicePreviewChangeSeaDocumentMode,
-  seaDocumentServiceUpdateSeaHouseBill,
-  seaDocumentServiceUpdateSeaMasterBillContent,
 } from '@/services/roncin/seaDocumentService';
 import { isWriteResponse } from '@/utils/api';
 import { generateUUID } from '@/utils/uuid';
 import { RELEASE_PODS_CHANGED_EVENT } from '../../../release-pod-events';
-import {
-  onSeaFormErrorReveal,
-  revealSeaFormErrors,
-} from '../../sea-form-error-reveal';
+import { onSeaFormErrorReveal } from '../../sea-form-error-reveal';
 import type { TemplateProps, TemplateSection } from '../../types';
 import SeaDocumentHistoryActions from './SeaDocumentHistoryActions';
 import SeaExternalConfirmationFields, {
@@ -99,12 +93,16 @@ export function SeaDocumentSectionComponent({
   disabled = false,
   isDetail = false,
   organizationId,
+  documents,
   onOrderDataChanged,
 }: {
   disabled?: boolean;
   isDetail?: boolean;
   organizationId?: string;
-  onOrderDataChanged?: () => Promise<void> | void;
+  documents?: API.SeaOrderDocuments;
+  onOrderDataChanged?: (
+    document?: 'master' | 'house' | 'mode',
+  ) => Promise<void> | void;
 }) {
   const { styles } = useDocumentTabsStyles();
   const form = Form.useFormInstance();
@@ -262,7 +260,7 @@ export function SeaDocumentSectionComponent({
   const loadOrderDocuments = useCallback(async () => {
     const requestedOrderId = orderId;
     const requestSequence = ++documentRequestSequenceRef.current;
-    if (!requestedOrderId || !isDetail) return;
+    if (!requestedOrderId || !isDetail || documents) return;
     try {
       const response = await seaDocumentServiceGetSeaOrderDocuments({
         orderId: requestedOrderId,
@@ -290,6 +288,11 @@ export function SeaDocumentSectionComponent({
       setLoadedStructure(structure);
       setLinkVersion(String(response.data.linkVersion ?? '0'));
       form.setFieldValue('seaDocumentStructure', structure);
+      form.setFieldValue(
+        'seaMasterBillContentVersion',
+        response.data.masterBill?.version,
+      );
+      form.setFieldValue('seaDocumentLinkVersion', response.data.linkVersion);
       applyMasterBill(response.data.masterBill ?? null);
       applyHouseBill(currentHouseBill);
     } catch (error: unknown) {
@@ -303,10 +306,26 @@ export function SeaDocumentSectionComponent({
       setFetchError(errorMessage);
       message.error(errorMessage);
     }
-  }, [applyHouseBill, applyMasterBill, form, isDetail, message, orderId]);
+  }, [
+    applyHouseBill,
+    applyMasterBill,
+    documents,
+    form,
+    isDetail,
+    message,
+    orderId,
+  ]);
 
   useEffect(() => {
     if (!isDetail) return;
+    if (documents) {
+      setLoadedStructure(documents.documentStructure as SeaDocumentStructure);
+      setLinkVersion(String(documents.linkVersion ?? '0'));
+      setMblDetail(documents.masterBill ?? null);
+      setHouseBill(documents.houseBill ?? null);
+      void loadReleasePods();
+      return;
+    }
     setFetchError(null);
     setReleasePodsError(null);
     setLoadedStructure(undefined);
@@ -318,7 +337,7 @@ export function SeaDocumentSectionComponent({
     setActiveTabKey('mbl');
     void loadOrderDocuments();
     void loadReleasePods();
-  }, [form, isDetail, loadOrderDocuments, loadReleasePods]);
+  }, [documents, form, isDetail, loadOrderDocuments, loadReleasePods]);
 
   useEffect(() => {
     if (docStructure !== SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE)
@@ -402,85 +421,6 @@ export function SeaDocumentSectionComponent({
         )}
       </Card>
     );
-  };
-
-  const handleSaveHouseBill = async (): Promise<false | undefined> => {
-    if (!orderId || !isDetail || !houseBill?.id) return;
-    const identityFields = [
-      ['seaHouseBill', 'houseNo'],
-      ['seaHouseBill', 'issuerSource'],
-      ['seaHouseBill', 'issuerPartnerId'],
-    ];
-    try {
-      await form.validateFields(identityFields);
-      const input = buildHouseBillInput(
-        form.getFieldValue('seaHouseBill') as
-          | Partial<API.SeaHouseBillInput>
-          | undefined,
-      );
-      if (!input) return;
-      const writeResponse1 = await seaDocumentServiceUpdateSeaHouseBill(
-        { orderId, id: houseBill.id },
-        {
-          orderId,
-          id: houseBill.id,
-          expectedVersion: String(houseBill.version ?? ''),
-          expectedLinkVersion: linkVersion,
-          houseBill: input,
-        },
-      );
-      if (!isWriteResponse(writeResponse1, true) || !writeResponse1?.data)
-        return false;
-      if (orderId !== activeOrderIdRef.current) return;
-      // 只接收本次保存的分单，保留主单草稿及其原版本号。
-      applyHouseBill(writeResponse1.data);
-      message.success('分单更新成功');
-    } catch (error: unknown) {
-      if (error && typeof error === 'object' && 'errorFields' in error) {
-        const errorFields = form
-          .getFieldsError(identityFields)
-          .filter((field) => field.errors.length > 0);
-        revealSeaFormErrors(errorFields);
-        await new Promise<void>((resolve) =>
-          requestAnimationFrame(() => resolve()),
-        );
-        scrollToFirstFormError({
-          errorFields,
-          notify: (text) => message.warning(text),
-        });
-      } else if (error instanceof Error)
-        message.error(error.message || '保存分单失败');
-    }
-
-    return undefined;
-  };
-
-  const handleSaveMblContent = async (): Promise<false | undefined> => {
-    if (!orderId || !isDetail || !mblDetail?.id) return;
-    try {
-      const content = (form.getFieldValue('seaMasterBillContent') ??
-        {}) as API.SeaBillContent;
-      const writeResponse2 = await seaDocumentServiceUpdateSeaMasterBillContent(
-        { orderId },
-        {
-          orderId,
-          expectedMblVersion: String(mblDetail.version ?? ''),
-          content,
-        },
-      );
-      if (!isWriteResponse(writeResponse2, true) || !writeResponse2?.data)
-        return false;
-      if (orderId !== activeOrderIdRef.current) return;
-      // 只接收本次保存的主单，保留分单草稿及其原版本号。
-      applyMasterBill(writeResponse2.data);
-      message.success('主单内容保存成功');
-    } catch (error: unknown) {
-      message.error(
-        error instanceof Error ? error.message : '保存主单内容失败',
-      );
-    }
-
-    return undefined;
   };
 
   const openModeChange = () => {
@@ -576,7 +516,7 @@ export function SeaDocumentSectionComponent({
       );
       setModeModalOpen(false);
       setModePreview(null);
-      await onOrderDataChanged?.();
+      await onOrderDataChanged?.('mode');
       await Promise.all([loadOrderDocuments(), loadReleasePods()]);
     } catch (error: unknown) {
       if (error instanceof Error)
@@ -633,7 +573,7 @@ export function SeaDocumentSectionComponent({
                 })}
                 disabled={disabled}
                 onSuccess={async () => {
-                  await onOrderDataChanged?.();
+                  await onOrderDataChanged?.('master');
                   await loadOrderDocuments();
                 }}
               />
@@ -652,17 +592,6 @@ export function SeaDocumentSectionComponent({
             mblDetail?.id,
           ),
         )}
-        {isDetail && mblDetail && mblDetail.status !== 'VOIDED' && !disabled ? (
-          <div style={{ textAlign: 'right', marginTop: 12 }}>
-            <Button
-              type="primary"
-              icon={<SaveOutlined />}
-              onClick={handleSaveMblContent}
-            >
-              保存主单内容
-            </Button>
-          </div>
-        ) : null}
       </div>
     ),
   };
@@ -718,7 +647,7 @@ export function SeaDocumentSectionComponent({
                   })}
                   disabled={disabled}
                   onSuccess={async () => {
-                    await onOrderDataChanged?.();
+                    await onOrderDataChanged?.('house');
                     await loadOrderDocuments();
                   }}
                 />
@@ -731,7 +660,7 @@ export function SeaDocumentSectionComponent({
           showIcon
           title={
             isDetail
-              ? '分单号请在上方主单号旁修改，并在此处点击「保存分单」，一并保存签发主体与分单内容。'
+              ? '分单号、签发主体与分单正文将随整页保存一起提交。'
               : '分单号请在上方主单号旁填写；此处维护签发主体与分单内容。'
           }
           style={{ marginBottom: 16 }}
@@ -757,20 +686,6 @@ export function SeaDocumentSectionComponent({
             houseBill?.id,
           ),
         )}
-        {isDetail &&
-        houseBill &&
-        !disabled &&
-        !isTerminalHouseBill(houseBill.status) ? (
-          <div style={{ textAlign: 'right', marginTop: 12 }}>
-            <Button
-              type="primary"
-              icon={<SaveOutlined />}
-              onClick={handleSaveHouseBill}
-            >
-              保存分单
-            </Button>
-          </div>
-        ) : null}
       </div>
     ),
   };
@@ -799,6 +714,28 @@ export function SeaDocumentSectionComponent({
 
   return (
     <Col span={24}>
+      {isDetail ? (
+        <>
+          <Form.Item hidden name="id">
+            <input />
+          </Form.Item>
+          <Form.Item hidden name="version">
+            <input />
+          </Form.Item>
+          <Form.Item hidden name="seaMasterBillContentVersion">
+            <input />
+          </Form.Item>
+          <Form.Item hidden name="seaDocumentLinkVersion">
+            <input />
+          </Form.Item>
+          <Form.Item hidden name={['seaHouseBill', 'id']}>
+            <input />
+          </Form.Item>
+          <Form.Item hidden name={['seaHouseBill', 'expectedVersion']}>
+            <input />
+          </Form.Item>
+        </>
+      ) : null}
       {fetchError ? (
         <Alert
           type="error"
@@ -972,6 +909,7 @@ export function buildSeaDocumentSection(props: TemplateProps): TemplateSection {
         disabled={props.readonly}
         isDetail={props.isDetail}
         organizationId={props.organizationId}
+        documents={props.seaDocuments}
         onOrderDataChanged={props.onOrderDataChanged}
       />
     ),

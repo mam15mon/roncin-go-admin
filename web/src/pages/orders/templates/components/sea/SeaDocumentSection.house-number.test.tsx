@@ -7,7 +7,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
-import { App, ConfigProvider, Form } from 'antd';
+import { App, ConfigProvider, Form, type FormInstance } from 'antd';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   SeaDocumentStructure,
@@ -94,11 +94,14 @@ function mockDocuments(documentStructure: number) {
 function TestForm({
   initialValues,
   isDetail = true,
+  exposeForm,
 }: {
   initialValues: Record<string, unknown>;
   isDetail?: boolean;
+  exposeForm?: (form: FormInstance) => void;
 }) {
   const [form] = Form.useForm();
+  exposeForm?.(form);
   return (
     <ConfigProvider theme={{ token: { motion: false } }}>
       <App>
@@ -112,12 +115,15 @@ function TestForm({
 }
 
 describe('详情分单号在主单旁编辑', () => {
-  it('配舱区唯一输入在主单旁，HBL 页签保存号码时带上原单证版本并回显', async () => {
+  it('配舱区唯一输入在主单旁，修改号码后引导整页保存并保留输入', async () => {
     mockDocuments(HOUSE);
+    let form!: FormInstance;
     renderWithClient(
       <SectionCards
         isDetail
-        exposeForm={() => {}}
+        exposeForm={(value) => {
+          form = value;
+        }}
         sectionKeys={['bookingTransport', 'seaDocument']}
         initialValues={{
           id: 'order-1',
@@ -144,34 +150,17 @@ describe('详情分单号在主单旁编辑', () => {
       .closest('.ant-form-item')?.parentElement;
     expect(masterItem?.nextElementSibling).toContainElement(houseInput);
     expect(
-      screen.getByText('修改后请到「提单信息 → 分单 (HBL)」点击「保存分单」。'),
+      screen.getByText('修改后点击页面「保存」，与订单资料一起提交。'),
     ).toBeVisible();
 
     fireEvent.change(houseInput, { target: { value: 'HBL-NEW' } });
     fireEvent.click(screen.getByRole('tab', { name: /分单 \(HBL\)/ }));
     expect(screen.getAllByPlaceholderText('请输入分单号')).toHaveLength(1);
     expect(houseInput.closest('[role="tabpanel"]')).toBeNull();
-    const documents = await getDocuments.mock.results[0].value;
-    updateHouseBill.mockResolvedValue({
-      data: {
-        ...documents.data?.houseBill,
-        houseNo: 'HBL-NEW',
-        version: '4',
-      },
-    });
-    fireEvent.click(await screen.findByRole('button', { name: /保存分单/ }));
-    await waitFor(() =>
-      expect(updateHouseBill).toHaveBeenCalledWith(
-        { orderId: 'order-1', id: 'hbl-id' },
-        expect.objectContaining({
-          expectedVersion: '3',
-          expectedLinkVersion: '5',
-          houseBill: expect.objectContaining({ houseNo: 'HBL-NEW' }),
-        }),
-      ),
-    );
-    await waitFor(() => expect(screen.getByText('v4')).toBeInTheDocument());
-    expect(houseInput).toHaveValue('HBL-NEW');
+    expect(form.getFieldValue(['seaHouseBill', 'houseNo'])).toBe('HBL-NEW');
+    expect(form.getFieldValue(['seaHouseBill', 'expectedVersion'])).toBe('3');
+    expect(screen.queryByRole('button', { name: /保存分单/ })).toBeNull();
+    expect(updateHouseBill).not.toHaveBeenCalled();
     expect(getDocuments).toHaveBeenCalledTimes(1);
   });
 
@@ -205,21 +194,30 @@ describe('详情分单号在主单旁编辑', () => {
     expect(screen.getByPlaceholderText('请输入分单号')).toHaveValue('HBL-001');
   });
 
-  it('在 HBL 页签保存空号码时阻止写入并聚焦上方必填错误', async () => {
+  it('分单空号码时整页校验仍命中上方必填字段', async () => {
     mockDocuments(HOUSE);
+    let form!: FormInstance;
     render(
       <TestForm
         isDetail
         initialValues={{ id: 'order-1', seaDocumentStructure: HOUSE }}
+        exposeForm={(value) => {
+          form = value;
+        }}
       />,
     );
     const houseInput = screen.getByPlaceholderText('请输入分单号');
     await waitFor(() => expect(houseInput).toBeEnabled());
     fireEvent.change(houseInput, { target: { value: '' } });
     fireEvent.click(screen.getByRole('tab', { name: /分单 \(HBL\)/ }));
-    fireEvent.click(await screen.findByRole('button', { name: /保存分单/ }));
+    await act(async () => {
+      await expect(form.validateFields()).rejects.toMatchObject({
+        errorFields: expect.arrayContaining([
+          expect.objectContaining({ name: ['seaHouseBill', 'houseNo'] }),
+        ]),
+      });
+    });
     expect(await screen.findByText('分单号不能为空')).toBeVisible();
-    await waitFor(() => expect(houseInput).toHaveFocus());
     expect(updateHouseBill).not.toHaveBeenCalled();
   });
 

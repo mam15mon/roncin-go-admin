@@ -72,7 +72,8 @@ export type CreateOrderFormValues = {
   creatorUserId?: string;
   seaDocumentStructure?: number;
   seaMasterBillContent?: API.SeaBillContent;
-  seaHouseBill?: API.SeaHouseBillInput;
+  seaMasterBillContentVersion?: string;
+  seaHouseBill?: API.SeaHouseBillInput & { status?: number };
   seaDocument?: API.SeaOrderDocumentInput;
   airMasterMode?: 'NEW' | 'EXISTING';
   airMasterId?: string;
@@ -95,6 +96,8 @@ export type OrderDetailFormValues = Omit<
   shippingDocuments?: Array<
     API.OrderShippingDocument | API.OrderShippingDocumentInput
   >;
+  id?: string;
+  version?: string;
   orderNo?: string;
   seaMasterBill?: API.SeaMasterBillInput | API.SeaMasterBillSummary;
   seaDocumentLinkVersion?: string;

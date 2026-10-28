@@ -97,21 +97,6 @@ function setup(disabled = false) {
   return () => form;
 }
 
-async function save(kind: 'master' | 'house') {
-  fireEvent.click(
-    screen.getByRole('tab', {
-      name: kind === 'master' ? /主单 \(MBL\)/ : /分单 \(HBL\)/,
-    }),
-  );
-  await act(async () => {
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: kind === 'master' ? /保存主单内容/ : /保存分单/,
-      }),
-    );
-  });
-}
-
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(seaDocumentServiceGetSeaOrderDocuments).mockResolvedValue({
@@ -122,104 +107,48 @@ beforeEach(() => {
       houseBill,
     },
   });
-  vi.mocked(seaDocumentServiceUpdateSeaMasterBillContent).mockImplementation(
-    async (_params, body) => ({
-      data: { ...masterBill, version: '8', content: body.content },
-    }),
-  );
-  vi.mocked(seaDocumentServiceUpdateSeaHouseBill).mockImplementation(
-    async (_params, body) => ({
-      data: { ...houseBill, ...body.houseBill, version: '5' },
-    }),
-  );
 });
 
-describe('海运单证独立保存', () => {
-  it.each(['master', 'house'] as const)(
-    '先保存 %s 时保留另一份草稿和原版本',
-    async (first) => {
-      const getForm = setup();
-      await screen.findByRole('button', { name: /保存主单内容/ });
-      act(() => {
-        getForm().setFieldValue(
-          ['seaMasterBillContent', 'shipperText'],
-          '主单未保存修改',
-        );
-        getForm().setFieldValue(
-          ['seaHouseBill', 'content', 'shipperText'],
-          '分单未保存修改',
-        );
-      });
-      await save(first);
-      expect(
-        getForm().getFieldValue(['seaMasterBillContent', 'shipperText']),
-      ).toBe('主单未保存修改');
-      expect(
-        getForm().getFieldValue(['seaHouseBill', 'content', 'shipperText']),
-      ).toBe('分单未保存修改');
-      expect(getForm().getFieldValue(['seaHouseBill', 'expectedVersion'])).toBe(
-        first === 'master' ? '4' : '5',
-      );
-      await save(first === 'master' ? 'house' : 'master');
-      expect(seaDocumentServiceUpdateSeaHouseBill).toHaveBeenCalledWith(
-        { orderId: 'order-1', id: 'hbl-1' },
-        expect.objectContaining({
-          expectedVersion: '4',
-          expectedLinkVersion: '2',
-          houseBill: expect.objectContaining({
-            content: expect.objectContaining({ shipperText: '分单未保存修改' }),
-          }),
-        }),
-      );
-      expect(seaDocumentServiceUpdateSeaMasterBillContent).toHaveBeenCalledWith(
-        { orderId: 'order-1' },
-        expect.objectContaining({
-          expectedMblVersion: '7',
-          content: expect.objectContaining({ shipperText: '主单未保存修改' }),
-        }),
-      );
-      expect(seaDocumentServiceGetSeaOrderDocuments).toHaveBeenCalledTimes(1);
-      // 再次保存使用各自刚返回的新版本。
-      await save('master');
-      await save('house');
-      expect(
-        vi.mocked(seaDocumentServiceUpdateSeaMasterBillContent).mock
-          .lastCall?.[1].expectedMblVersion,
-      ).toBe('8');
-      expect(
-        vi.mocked(seaDocumentServiceUpdateSeaHouseBill).mock.lastCall?.[1]
-          .expectedVersion,
-      ).toBe('5');
-    },
-  );
-
-  it('保存失败保留输入与版本，允许继续重试', async () => {
-    // 请求层消费错误后会返回 undefined。
-    vi.mocked(
-      seaDocumentServiceUpdateSeaMasterBillContent,
-    ).mockResolvedValueOnce(undefined as never);
+describe('海运单证统一保存呈现', () => {
+  it('主分单字段保留在同一表单，两个页签均不再提供局部保存', async () => {
     const getForm = setup();
-    await screen.findByRole('button', { name: /保存主单内容/ });
-    act(() =>
+    await waitFor(() => expect(screen.getByText('单证版本 v2')).toBeVisible());
+    act(() => {
       getForm().setFieldValue(
         ['seaMasterBillContent', 'shipperText'],
-        '待重试主单',
-      ),
-    );
-    await save('master');
+        '主单修改',
+      );
+      getForm().setFieldValue(
+        ['seaHouseBill', 'content', 'shipperText'],
+        '分单修改',
+      );
+    });
+    fireEvent.click(screen.getByRole('tab', { name: /分单 \(HBL\)/ }));
+    expect(
+      screen.getByText('分单号、签发主体与分单正文将随整页保存一起提交。'),
+    ).toBeVisible();
+    expect(screen.queryByRole('button', { name: /保存分单/ })).toBeNull();
+    fireEvent.click(screen.getByRole('tab', { name: /主单 \(MBL\)/ }));
+    expect(screen.queryByRole('button', { name: /保存主单内容/ })).toBeNull();
     expect(
       getForm().getFieldValue(['seaMasterBillContent', 'shipperText']),
-    ).toBe('待重试主单');
-    await save('master');
+    ).toBe('主单修改');
     expect(
-      vi.mocked(seaDocumentServiceUpdateSeaMasterBillContent).mock
-        .lastCall?.[1],
-    ).toEqual(
-      expect.objectContaining({
-        expectedMblVersion: '7',
-        content: expect.objectContaining({ shipperText: '待重试主单' }),
-      }),
-    );
+      getForm().getFieldValue(['seaHouseBill', 'content', 'shipperText']),
+    ).toBe('分单修改');
+    expect(seaDocumentServiceUpdateSeaHouseBill).not.toHaveBeenCalled();
+    expect(seaDocumentServiceUpdateSeaMasterBillContent).not.toHaveBeenCalled();
+  });
+
+  it('真实单证表单注册基线元数据，使草稿能够保存原始版本', async () => {
+    const getForm = setup();
+    await waitFor(() => expect(screen.getByText('单证版本 v2')).toBeVisible());
+    const registered = getForm().getFieldsValue();
+    expect(registered).toMatchObject({
+      seaMasterBillContentVersion: '7',
+      seaDocumentLinkVersion: '2',
+      seaHouseBill: { id: 'hbl-1', expectedVersion: '4' },
+    });
   });
 
   it('加载空响应显示中文错误', async () => {

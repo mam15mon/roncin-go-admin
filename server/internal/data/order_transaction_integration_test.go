@@ -1040,7 +1040,7 @@ func (f *orderPostgresFixture) validInput() *biz.Order {
 	}
 }
 
-// validUpdateInput 供 UpdateDraft 使用：HOUSE 结构不携带 HouseBill（HBL 修改必须走专用命令）
+// validUpdateInput 供不修改单证的 UpdateDraft 用例使用。
 func (f *orderPostgresFixture) validUpdateInput() *biz.Order {
 	// HOUSE 结构调整必须走专用模式切换命令；普通更新不携带单证输入
 	input := f.validInput()

@@ -1012,6 +1012,8 @@ func (x *SeaOrderDocumentSummary) GetHouseNo() string {
 }
 
 // SeaOrderDocumentInput 订单创建/更新中的海运单证整包输入。
+// 更新已有 HBL 时必须提供 house_bill.id、house_bill.expected_version 与 expected_link_version；
+// 与订单资料及主单内容在同一事务提交，不支持通过整单更新切换提单模式。
 type SeaOrderDocumentInput struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	DocumentStructure   *SeaDocumentStructure  `protobuf:"varint,1,opt,name=document_structure,json=documentStructure,proto3,enum=order.v1.SeaDocumentStructure,oneof" json:"document_structure,omitempty"`

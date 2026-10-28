@@ -301,6 +301,9 @@ func syncOrderSeaMasterBillOnUpdate(
 		return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
 	}
 
+	// 记录本次事务写入前的主单版本，供同包正文更新校验，避免身份/航程更正自身递增产生误冲突。
+	lockContext.originalMasterVersion = currentMBL.Version
+
 	link, err := tx.SeaMasterBillOrderLink.Query().
 		Where(
 			seamasterbillorderlink.IDEQ(activeLink.ID),

@@ -1,12 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { renderWithApp as render } from '@root/tests/renderWithApp';
-import {
-  act,
-  fireEvent,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App, Form, Input } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -107,6 +102,7 @@ vi.mock('./use-order-detail-data', () => ({
     error: detailTestState.orderAvailable
       ? null
       : new Error('模拟真实详情刷新失败'),
+    seaDocuments: { documentStructure: 2, linkVersion: '1' },
     shippingDocs: [],
     personnel: [],
     serviceTypeOptions: [],
@@ -117,7 +113,21 @@ vi.mock('./use-order-detail-data', () => ({
     containerSpecOptions: [],
     personnelOptions: [],
     draftScope: detailTestState.draftScope,
-    loadData: () => detailTestState.loadData(orderId),
+    loadData: async () => {
+      await detailTestState.loadData(orderId);
+      if (!detailTestState.orderAvailable)
+        throw new Error('模拟真实详情刷新失败');
+      return {
+        order: {
+          id: orderId,
+          version: '2',
+          customerReferenceNo: detailTestState.customerReferenceNo,
+        },
+        shippingDocs: [],
+        personnel: [],
+        seaDocuments: { documentStructure: 2, linkVersion: '1' },
+      };
+    },
   }),
 }));
 
@@ -394,7 +404,10 @@ describe('订单详情页草稿生命周期与记录身份', () => {
       '/orders/sea-export/ord-A',
       detailTestState.draftScope,
     );
-    saveFormDraft(draftKey, { customerReferenceNo: 'TEMP-MODIFIED' });
+    saveFormDraft(draftKey, {
+      version: '1',
+      customerReferenceNo: 'TEMP-MODIFIED',
+    });
     expect(hasTabDraft(tabKey, detailTestState.draftScope)).toBe(true);
 
     mockUpdateOrder.mockRejectedValueOnce(new Error('保存失败'));
@@ -426,14 +439,17 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     }
   });
 
-  it('更新接口成功后立即清草稿并复位 dirty，后台刷新失败不改判保存结果', async () => {
+  it('已保存但读取失败保留草稿，重试读取后清理dirty', async () => {
     const tabKey = resolveTabKey('/orders/sea-export/ord-A');
     const draftKey = getFormDraftKey(
       tabKey,
       '/orders/sea-export/ord-A',
       detailTestState.draftScope,
     );
-    saveFormDraft(draftKey, { customerReferenceNo: 'TEMP-MODIFIED' });
+    saveFormDraft(draftKey, {
+      version: '1',
+      customerReferenceNo: 'TEMP-MODIFIED',
+    });
     expect(hasTabDraft(tabKey, detailTestState.draftScope)).toBe(true);
 
     mockUpdateOrder.mockResolvedValueOnce({ data: { id: 'ord-A' } } as never);
@@ -460,8 +476,13 @@ describe('订单详情页草稿生命周期与记录身份', () => {
         : undefined;
     });
 
-    // loadData 后台刷新失败不影响已落库的保存成功结果
-    expect(saveResult).toBe(true);
+    expect(saveResult).toBe(false);
+    expect(hasTabDraft(tabKey, detailTestState.draftScope)).toBe(true);
+    expect(templateLifecycleState.internalDirty).toBe(true);
+    await act(async () =>
+      fireEvent.click(screen.getByRole('button', { name: '重试读取' })),
+    );
+    expect(mockUpdateOrder).toHaveBeenCalledTimes(1);
     expect(hasTabDraft(tabKey, detailTestState.draftScope)).toBe(false);
     expect(templateLifecycleState.internalDirty).toBe(false);
   });
@@ -511,12 +532,13 @@ describe('订单详情页草稿生命周期与记录身份', () => {
       '/orders/sea-export/ord-A',
       detailTestState.draftScope,
     );
-    saveFormDraft(draftKey, { customerReferenceNo: 'DIRTY-DRAFT' });
-
-    // 真实 useOrderDetailData 会吸收请求错误、清空当前 order 并正常 resolve。
-    detailTestState.loadData.mockImplementationOnce(async () => {
-      detailTestState.orderAvailable = false;
+    saveFormDraft(draftKey, {
+      version: '1',
+      customerReferenceNo: 'DIRTY-DRAFT',
     });
+
+    // 海运刷新失败保留现有表单和草稿，loadData向调用方明确拒绝。
+    detailTestState.loadData.mockRejectedValueOnce(new Error('刷新失败'));
 
     render(
       <App>
@@ -531,7 +553,8 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     });
 
     expect(hasTabDraft(tabKey, detailTestState.draftScope)).toBe(true);
-    expect(screen.getByText('加载订单详情失败')).toBeInTheDocument();
+    expect(screen.getByLabelText('客户参考号')).toBeInTheDocument();
+    expect(templateLifecycleState.resetToCalls).toBe(0);
   });
 
   it('显式刷新成功时通过模板 resetTo 清草稿并回填最新服务端值', async () => {
@@ -541,7 +564,10 @@ describe('订单详情页草稿生命周期与记录身份', () => {
       '/orders/sea-export/ord-A',
       detailTestState.draftScope,
     );
-    saveFormDraft(draftKey, { customerReferenceNo: 'DIRTY-DRAFT' });
+    saveFormDraft(draftKey, {
+      version: '1',
+      customerReferenceNo: 'DIRTY-DRAFT',
+    });
 
     detailTestState.loadData.mockResolvedValueOnce(undefined);
     detailTestState.customerReferenceNo = '刷新后的服务端值';
@@ -753,7 +779,10 @@ describe('订单详情页草稿生命周期与记录身份', () => {
       '/orders/sea-export/ord-A',
       detailTestState.draftScope,
     );
-    saveFormDraft(draftKey, { customerReferenceNo: 'USER-EDITED' });
+    saveFormDraft(draftKey, {
+      version: '1',
+      customerReferenceNo: 'USER-EDITED',
+    });
 
     render(
       <App>
@@ -789,12 +818,12 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     await flushMountFetches();
   });
 
-  it('页面源码不再包含草稿键计算、直接清草稿或受控 dirty 代码', () => {
+  it('页面不直接写入或清理草稿，生命周期仍由模板管理', () => {
     const source = fs.readFileSync(
       path.resolve(process.cwd(), 'src/pages/orders/detail.tsx'),
       'utf-8',
     );
-    expect(source).not.toContain('getFormDraftKey');
+    expect(source).not.toContain('saveFormDraft');
     expect(source).not.toContain('clearFormDraft');
     expect(source).not.toContain('formDirtyState');
     expect(source).not.toContain('activeOrderFormIdentityRef');

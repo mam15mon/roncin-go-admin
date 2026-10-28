@@ -53,6 +53,7 @@ export function OrderFormTemplate<T>({
   loading = false,
   loadingTip,
   readonly = false,
+  editingDisabled = false,
   header,
   formRef,
   prependSections = [],
@@ -287,6 +288,7 @@ export function OrderFormTemplate<T>({
           formRef={resolvedFormRef}
           autoComplete="off"
           readonly={readonly}
+          disabled={editingDisabled}
           grid
           layout="vertical"
           style={{

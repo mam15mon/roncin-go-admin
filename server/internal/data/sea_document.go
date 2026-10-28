@@ -226,16 +226,7 @@ func (r *seaDocumentRepo) UpdateSeaHouseBill(ctx context.Context, organizationID
 		return nil, biz.ErrSeaDocumentInvalidArgument
 	}
 
-	normalized, err := biz.NormalizeSeaHouseNo(input.HouseNo)
-	if err != nil {
-		return nil, err
-	}
-	normalizedContent, err := biz.ValidateSeaBillContent(input.Content)
-	if err != nil {
-		return nil, err
-	}
-
-	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		// 1. 固定锁顺序：Order
 		order, queryErr := tx.Order.Query().
 			Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).
@@ -292,75 +283,12 @@ func (r *seaDocumentRepo) UpdateSeaHouseBill(ctx context.Context, organizationID
 			return biz.ErrSeaDocumentStructureConflict
 		}
 
-		// 4. 固定锁顺序：SeaHouseBill
-		hb, queryErr := tx.SeaHouseBill.Query().
-			Where(
-				seahousebill.IDEQ(houseBillID),
-				seahousebill.OrderIDEQ(orderID),
-				seahousebill.MasterBillIDEQ(mbl.ID),
-				seahousebill.OrganizationIDEQ(organizationID),
-			).
-			ForUpdate().
-			Only(ctx)
-		if queryErr != nil {
-			return mapEntError(queryErr, biz.ErrSeaHouseBillNotFound, nil)
-		}
-
-		if hb.Version != expectedVersion {
-			return biz.ErrSeaHouseBillConflict
-		}
-		if hb.Status == seahousebill.StatusRELEASED {
-			return biz.ErrSeaHouseBillStatusConflict
-		}
-		if hb.Status == seahousebill.StatusVOIDED {
-			return biz.ErrSeaDocumentVoided
-		}
-
-		// 5. 校验签发主体
-		issuerOrgID, issuerPartnerID, err := validateSeaHouseBillIssuer(ctx, tx.Client(), organizationID, order.OrganizationID, order.CustomerID, input)
-		if err != nil {
-			return err
-		}
-
-		updater := hb.Update().
-			SetHouseNo(input.HouseNo).
-			SetNormalizedHouseNo(normalized).
-			SetIssuerSource(seahousebill.IssuerSource(input.IssuerSource)).
-			SetVersion(hb.Version + 1)
-
-		if issuerOrgID != nil {
-			updater.SetIssuerOrganizationID(*issuerOrgID).ClearIssuerPartnerID()
-		} else if issuerPartnerID != nil {
-			updater.SetIssuerPartnerID(*issuerPartnerID).ClearIssuerOrganizationID()
-		}
-
-		if input.Note != nil {
-			updater.SetNote(*input.Note)
-		} else {
-			updater.ClearNote()
-		}
-		setSeaHouseBillContentUpdate(updater, normalizedContent)
-
-		if _, err := updater.Save(ctx); err != nil {
-			if ent.IsConstraintError(err) {
-				return biz.ErrSeaHouseBillBatchNoDuplicate
-			}
-			return err
-		}
-
-		if _, err := link.Update().SetVersion(link.Version + 1).Save(ctx); err != nil {
+		if err := updateLockedSeaHouseBill(ctx, tx, organizationID, order, link, order.CustomerID, houseBillID, expectedVersion, input, audit); err != nil {
 			return err
 		}
 
 		audit.Action = "sea_house_bill.update"
-		if audit.Details == nil {
-			audit.Details = make(map[string]string)
-		}
-		audit.Details["order.id"] = orderID.String()
-		audit.Details["sea_house_bill.id"] = houseBillID.String()
-		audit.Details["sea_house_bill.old_version"] = fmt.Sprintf("%d", hb.Version)
-		audit.Details["sea_house_bill.new_version"] = fmt.Sprintf("%d", hb.Version+1)
-		audit.Details["link.new_version"] = fmt.Sprintf("%d", link.Version+1)
+
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
 
@@ -369,6 +297,87 @@ func (r *seaDocumentRepo) UpdateSeaHouseBill(ctx context.Context, organizationID
 	}
 
 	return r.getSeaHouseBillByID(ctx, organizationID, houseBillID)
+}
+
+// updateLockedSeaHouseBill 复用已有 Order→MBL→Link 写锁，只在其后锁定并更新本票 HBL。
+func updateLockedSeaHouseBill(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, order *ent.Order, link *ent.SeaMasterBillOrderLink, customerID, houseBillID uuid.UUID, expectedVersion uint64, input *biz.SeaHouseBillInput, audit *biz.AuditEvent) error {
+	normalized, err := biz.NormalizeSeaHouseNo(input.HouseNo)
+	if err != nil {
+		return err
+	}
+	normalizedContent, err := biz.ValidateSeaBillContent(input.Content)
+	if err != nil {
+		return err
+	}
+	// 4. 固定锁顺序：SeaHouseBill
+	hb, queryErr := tx.SeaHouseBill.Query().
+		Where(
+			seahousebill.IDEQ(houseBillID),
+			seahousebill.OrderIDEQ(order.ID),
+			seahousebill.MasterBillIDEQ(link.MasterBillID),
+			seahousebill.OrganizationIDEQ(organizationID),
+		).
+		ForUpdate().
+		Only(ctx)
+	if queryErr != nil {
+		return mapEntError(queryErr, biz.ErrSeaHouseBillNotFound, nil)
+	}
+
+	if hb.Version != expectedVersion {
+		return biz.ErrSeaHouseBillConflict
+	}
+	if hb.Status == seahousebill.StatusRELEASED {
+		return biz.ErrSeaHouseBillStatusConflict
+	}
+	if hb.Status == seahousebill.StatusVOIDED {
+		return biz.ErrSeaDocumentVoided
+	}
+
+	// 5. 校验签发主体
+	issuerOrgID, issuerPartnerID, err := validateSeaHouseBillIssuer(ctx, tx.Client(), organizationID, order.OrganizationID, customerID, input)
+	if err != nil {
+		return err
+	}
+
+	updater := hb.Update().
+		SetHouseNo(input.HouseNo).
+		SetNormalizedHouseNo(normalized).
+		SetIssuerSource(seahousebill.IssuerSource(input.IssuerSource)).
+		SetVersion(hb.Version + 1)
+
+	if issuerOrgID != nil {
+		updater.SetIssuerOrganizationID(*issuerOrgID).ClearIssuerPartnerID()
+	} else if issuerPartnerID != nil {
+		updater.SetIssuerPartnerID(*issuerPartnerID).ClearIssuerOrganizationID()
+	}
+
+	if input.Note != nil {
+		updater.SetNote(*input.Note)
+	} else {
+		updater.ClearNote()
+	}
+	setSeaHouseBillContentUpdate(updater, normalizedContent)
+
+	if _, err := updater.Save(ctx); err != nil {
+		if ent.IsConstraintError(err) {
+			return biz.ErrSeaHouseBillBatchNoDuplicate
+		}
+		return err
+	}
+
+	if _, err := link.Update().SetVersion(link.Version + 1).Save(ctx); err != nil {
+		return err
+	}
+
+	if audit.Details == nil {
+		audit.Details = make(map[string]string)
+	}
+	audit.Details["order.id"] = order.ID.String()
+	audit.Details["sea_house_bill.id"] = houseBillID.String()
+	audit.Details["sea_house_bill.old_version"] = fmt.Sprintf("%d", hb.Version)
+	audit.Details["sea_house_bill.new_version"] = fmt.Sprintf("%d", hb.Version+1)
+	audit.Details["link.new_version"] = fmt.Sprintf("%d", link.Version+1)
+	return nil
 }
 
 func (r *seaDocumentRepo) UpdateSeaMasterBillContent(ctx context.Context, organizationID, actorID, orderID uuid.UUID, expectedMblVersion uint64, content *biz.SeaBillContent, audit *biz.AuditEvent) (*biz.SeaMasterBillDetail, error) {
