@@ -10,6 +10,7 @@ import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { OrderListSearchFilter } from './OrderListSearchFilter';
 import { OrderListTemplate } from './OrderListTemplate';
+import { OrderListToolbar } from './OrderListToolbar';
 import type { OrderListItem } from './types';
 
 // Mock matchMedia
@@ -153,6 +154,27 @@ describe('OrderListTemplate', () => {
     fireEvent.mouseEnter(screen.getByRole('button', { name: /更多/ }));
     await screen.findByText('费用核算');
     expect(screen.queryByText('异常情况')).not.toBeInTheDocument();
+  });
+});
+
+describe('订单列表批量操作', () => {
+  afterEach(() => {
+    cleanup();
+  });
+
+  it('选中订单后仍可管理标签，但不显示批量删除入口', async () => {
+    render(
+      <OrderListToolbar
+        selectedRows={[{ id: 'order-1', orderNo: 'SE-001' } as OrderListItem]}
+        onRefresh={vi.fn()}
+        onBatchAction={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByText('批量删除')).not.toBeInTheDocument();
+    fireEvent.mouseEnter(screen.getByRole('button', { name: /批量操作/ }));
+    expect(await screen.findByText('标签管理')).toBeInTheDocument();
+    expect(screen.queryByText('批量删除')).not.toBeInTheDocument();
   });
 });
 

@@ -1,6 +1,5 @@
 import {
   CopyOutlined,
-  DeleteOutlined,
   DownloadOutlined,
   DownOutlined,
   ExportOutlined,
@@ -14,15 +13,7 @@ import {
   TeamOutlined,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
-import {
-  Button,
-  Dropdown,
-  Popconfirm,
-  Space,
-  Switch,
-  Tooltip,
-  Typography,
-} from 'antd';
+import { Button, Dropdown, Space, Switch, Tooltip, Typography } from 'antd';
 import React from 'react';
 import type { BatchActionKey, OrderListItem } from './types';
 
@@ -144,16 +135,6 @@ export function OrderListToolbar({
       icon: <DownloadOutlined />,
       label: '批量导入订单',
     },
-    {
-      type: 'divider',
-    },
-    {
-      key: 'batch-delete',
-      icon: <DeleteOutlined />,
-      label: '批量删除',
-      danger: true,
-      disabled: !hasSelected,
-    },
   ];
 
   const handleMenuClick: MenuProps['onClick'] = ({ key }) => {
@@ -263,17 +244,6 @@ export function OrderListToolbar({
           <Button icon={<ExportOutlined />} onClick={onExportTable}>
             导出表格
           </Button>
-        )}
-        {!readonly && (
-          <Popconfirm
-            title="确定批量删除选中的订单？"
-            disabled={!hasSelected}
-            onConfirm={() => onBatchAction?.('batch-delete', selectedRows)}
-          >
-            <Button danger icon={<DeleteOutlined />} disabled={!hasSelected}>
-              批量删除
-            </Button>
-          </Popconfirm>
         )}
       </Space>
     </div>

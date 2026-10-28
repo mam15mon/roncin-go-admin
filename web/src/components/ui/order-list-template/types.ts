@@ -154,8 +154,7 @@ export type BatchActionKey =
   | 'interest-to-receivable'
   | 'batch-modify-fields'
   | 'manage-tags'
-  | 'batch-import'
-  | 'batch-delete';
+  | 'batch-import';
 
 /** OrderListTemplate 组件属性定义 */
 export interface OrderListTemplateProps {
