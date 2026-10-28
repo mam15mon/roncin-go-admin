@@ -435,6 +435,16 @@ export function SeaCustomerField({
 
     const customerId = option?.value;
     latestCustomerIdRef.current = customerId;
+    // 客户岗位是本次选择的默认值；空配置和请求失败均不能沿用上一客户人员。
+    form.setFieldsValue({
+      operatorUserId: undefined,
+      salesUserId: undefined,
+      customerServiceUserId: undefined,
+      commercialUserId: undefined,
+      associateUserId: undefined,
+      associate2UserId: undefined,
+      documentUserId: undefined,
+    });
     if (!customerId) {
       return;
     }
@@ -444,7 +454,7 @@ export function SeaCustomerField({
       if (latestCustomerIdRef.current !== customerId) {
         return;
       }
-      const partner = res.data;
+      const partner = res?.data;
       if (!partner) return;
 
       const updates = extractPersonnelFromPartnerAssignments(
@@ -557,7 +567,11 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
     booking: (
       <Form.Item label="订舱号">
         <Form.Item noStyle name="bookingNo">
-          <TooltipInput placeholder="请输入" maxLength={100} />
+          <TooltipInput
+            placeholder="请输入"
+            maxLength={100}
+            disabled={props.readonly}
+          />
         </Form.Item>
       </Form.Item>
     ),
@@ -615,7 +629,11 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
     contract: (
       <Form.Item label="合约号">
         <Form.Item noStyle name="contractNo">
-          <TooltipInput placeholder="请输入" maxLength={100} />
+          <TooltipInput
+            placeholder="请输入"
+            maxLength={100}
+            disabled={props.readonly}
+          />
         </Form.Item>
       </Form.Item>
     ),
@@ -661,7 +679,11 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
         />
         <div style={{ gridColumn: 'span 2' }}>
           <Form.Item label="工厂" name="factoryName">
-            <TooltipInput placeholder="请输入工厂" maxLength={200} />
+            <TooltipInput
+              placeholder="请输入工厂"
+              maxLength={200}
+              disabled={props.readonly}
+            />
           </Form.Item>
         </div>
       </FormRow>

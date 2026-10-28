@@ -184,6 +184,7 @@ export function SeaDocumentSectionComponent({
       )
         return;
       setReleasePodsError(null);
+      if (!response) throw new Error('放货记录加载失败，请重试');
       setReleasePods(response.data ?? []);
     } catch (error: unknown) {
       if (
@@ -198,40 +199,10 @@ export function SeaDocumentSectionComponent({
     }
   }, [canReadReleasePods, isDetail, orderId]);
 
-  const loadOrderDocuments = useCallback(async () => {
-    const requestedOrderId = orderId;
-    const requestSequence = ++documentRequestSequenceRef.current;
-    if (!requestedOrderId || !isDetail) return;
-    try {
-      const response = await seaDocumentServiceGetSeaOrderDocuments({
-        orderId: requestedOrderId,
-      });
-      if (
-        requestedOrderId !== activeOrderIdRef.current ||
-        requestSequence !== documentRequestSequenceRef.current
-      )
-        return;
-      if (!response.data) throw new Error('接口未返回海运单证数据');
-      const structure = response.data.documentStructure;
-      if (!isDocumentStructure(structure))
-        throw new Error('海运订单缺少明确的 HOUSE/DIRECT 提单模式');
-      const currentHouseBill = response.data.houseBill ?? null;
-      if (
-        (structure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE &&
-          !currentHouseBill) ||
-        (structure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT &&
-          currentHouseBill)
-      ) {
-        throw new Error('海运提单模式与当前 HBL 不一致');
-      }
-
-      setFetchError(null);
-      setLoadedStructure(structure);
-      setLinkVersion(String(response.data.linkVersion ?? '0'));
-      setMblDetail(response.data.masterBill ?? null);
-      setHouseBill(currentHouseBill);
-      form.setFieldValue('seaDocumentStructure', structure);
-      const mblContent = response.data.masterBill?.content ?? {};
+  const applyMasterBill = useCallback(
+    (masterBill: API.SeaMasterBillDetail | null) => {
+      setMblDetail(masterBill);
+      const mblContent = masterBill?.content ?? {};
       const mblTransportTerms =
         mblContent.transportTerms && mblContent.transportTerms.trim() !== ''
           ? mblContent.transportTerms
@@ -245,6 +216,13 @@ export function SeaDocumentSectionComponent({
         transportTerms: mblTransportTerms,
         freightTerms: mblFreightTerms,
       });
+    },
+    [form],
+  );
+
+  const applyHouseBill = useCallback(
+    (currentHouseBill: API.SeaHouseBill | null) => {
+      setHouseBill(currentHouseBill);
       const hblContent = currentHouseBill?.content ?? {};
       const hblTransportTerms =
         hblContent.transportTerms && hblContent.transportTerms.trim() !== ''
@@ -277,6 +255,43 @@ export function SeaDocumentSectionComponent({
             }
           : undefined,
       );
+    },
+    [form],
+  );
+
+  const loadOrderDocuments = useCallback(async () => {
+    const requestedOrderId = orderId;
+    const requestSequence = ++documentRequestSequenceRef.current;
+    if (!requestedOrderId || !isDetail) return;
+    try {
+      const response = await seaDocumentServiceGetSeaOrderDocuments({
+        orderId: requestedOrderId,
+      });
+      if (
+        requestedOrderId !== activeOrderIdRef.current ||
+        requestSequence !== documentRequestSequenceRef.current
+      )
+        return;
+      if (!response?.data) throw new Error('海运单证加载失败，请重试');
+      const structure = response.data.documentStructure;
+      if (!isDocumentStructure(structure))
+        throw new Error('海运订单缺少明确的 HOUSE/DIRECT 提单模式');
+      const currentHouseBill = response.data.houseBill ?? null;
+      if (
+        (structure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE &&
+          !currentHouseBill) ||
+        (structure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT &&
+          currentHouseBill)
+      ) {
+        throw new Error('海运提单模式与当前 HBL 不一致');
+      }
+
+      setFetchError(null);
+      setLoadedStructure(structure);
+      setLinkVersion(String(response.data.linkVersion ?? '0'));
+      form.setFieldValue('seaDocumentStructure', structure);
+      applyMasterBill(response.data.masterBill ?? null);
+      applyHouseBill(currentHouseBill);
     } catch (error: unknown) {
       if (
         requestedOrderId !== activeOrderIdRef.current ||
@@ -285,24 +300,20 @@ export function SeaDocumentSectionComponent({
         return;
       const errorMessage =
         error instanceof Error ? error.message : '获取海运单证信息失败';
-      setLoadedStructure(undefined);
-      setLinkVersion('0');
-      setMblDetail(null);
-      setHouseBill(null);
-      form.setFieldValue('seaMasterBillContent', {});
-      form.setFieldValue('seaHouseBill', undefined);
       setFetchError(errorMessage);
       message.error(errorMessage);
     }
-  }, [form, isDetail, message, orderId]);
+  }, [applyHouseBill, applyMasterBill, form, isDetail, message, orderId]);
 
   useEffect(() => {
     if (!isDetail) return;
     setFetchError(null);
     setReleasePodsError(null);
     setLoadedStructure(undefined);
+    setLinkVersion('0');
     setMblDetail(null);
     setHouseBill(null);
+    form.setFieldValue('seaMasterBillContent', {});
     form.setFieldValue('seaHouseBill', undefined);
     setActiveTabKey('mbl');
     void loadOrderDocuments();
@@ -418,9 +429,12 @@ export function SeaDocumentSectionComponent({
           houseBill: input,
         },
       );
-      if (!isWriteResponse(writeResponse1, true)) return false;
+      if (!isWriteResponse(writeResponse1, true) || !writeResponse1?.data)
+        return false;
+      if (orderId !== activeOrderIdRef.current) return;
+      // 只接收本次保存的分单，保留主单草稿及其原版本号。
+      applyHouseBill(writeResponse1.data);
       message.success('分单更新成功');
-      await loadOrderDocuments();
     } catch (error: unknown) {
       if (error && typeof error === 'object' && 'errorFields' in error) {
         const errorFields = form
@@ -454,9 +468,12 @@ export function SeaDocumentSectionComponent({
           content,
         },
       );
-      if (!isWriteResponse(writeResponse2, true)) return false;
+      if (!isWriteResponse(writeResponse2, true) || !writeResponse2?.data)
+        return false;
+      if (orderId !== activeOrderIdRef.current) return;
+      // 只接收本次保存的主单，保留分单草稿及其原版本号。
+      applyMasterBill(writeResponse2.data);
       message.success('主单内容保存成功');
-      await loadOrderDocuments();
     } catch (error: unknown) {
       message.error(
         error instanceof Error ? error.message : '保存主单内容失败',
@@ -771,7 +788,7 @@ export function SeaDocumentSectionComponent({
     canChangeMode ? (
       <Button
         icon={<SwapOutlined />}
-        disabled={!modeChangeReady}
+        disabled={disabled || !modeChangeReady}
         onClick={openModeChange}
       >
         {docStructure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE

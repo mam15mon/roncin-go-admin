@@ -36,4 +36,24 @@ describe('来源船公司初始选项', () => {
       expect(screen.queryByText('carrier-uuid')).toBeNull();
     },
   );
+  it('锁定详情的订舱号、合约号和工厂均不可编辑', async () => {
+    const fields = getSeaBaseInfoFields({
+      ...props,
+      readonly: true,
+      isDetail: true,
+    });
+    render(
+      <ConfigProvider theme={{ token: { motion: false } }}>
+        <Form>
+          {fields.booking}
+          {fields.contract}
+          {fields.commercial}
+        </Form>
+      </ConfigProvider>,
+    );
+    expect(screen.getAllByPlaceholderText('请输入')).toHaveLength(2);
+    for (const input of screen.getAllByPlaceholderText('请输入'))
+      expect(input).toBeDisabled();
+    expect(screen.getByPlaceholderText('请输入工厂')).toBeDisabled();
+  });
 });

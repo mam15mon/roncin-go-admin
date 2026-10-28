@@ -1,5 +1,5 @@
 import { ProForm } from '@ant-design/pro-components';
-import { render, waitFor } from '@testing-library/react';
+import { act, render, waitFor } from '@testing-library/react';
 import { Form } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -301,4 +301,58 @@ describe('SeaCustomerField 联动带出内部信息', () => {
     await new Promise((r) => setTimeout(r, 20));
     expect(formInstance.getFieldValue('salesUserId')).toBe('sales-2');
   });
+  it.each(['empty', 'clear', 'failure'] as const)(
+    '切换客户 %s 时清理旧岗位人员',
+    async (scenario) => {
+      vi.mocked(partnerServiceGetPartner).mockResolvedValue(
+        scenario === 'failure'
+          ? (undefined as never)
+          : { data: { id: 'cust-2', assignments: [] } },
+      );
+      let formInstance!: ReturnType<typeof Form.useForm>[0];
+      const TestComponent = () => {
+        const [form] = Form.useForm();
+        formInstance = form;
+        return (
+          <ProForm
+            form={form}
+            submitter={false}
+            initialValues={{
+              salesUserId: 'old-sales',
+              customerServiceUserId: 'old-cs',
+              operatorUserId: 'old-op',
+              commercialUserId: 'old-commercial',
+              associateUserId: 'old-contact',
+              associate2UserId: 'old-contact-2',
+              documentUserId: 'old-doc',
+              creatorUserId: 'creator',
+            }}
+          >
+            <SeaCustomerField
+              searchCustomers={async () => []}
+              setCustomerCode={vi.fn()}
+            />
+          </ProForm>
+        );
+      };
+      render(<TestComponent />);
+      await act(async () => {
+        await capturedProps.onPartnerChange(
+          scenario === 'clear' ? undefined : { value: 'cust-2' },
+        );
+      });
+      for (const name of [
+        'salesUserId',
+        'customerServiceUserId',
+        'operatorUserId',
+        'commercialUserId',
+        'associateUserId',
+        'associate2UserId',
+        'documentUserId',
+      ]) {
+        expect(formInstance.getFieldValue(name)).toBeUndefined();
+      }
+      expect(formInstance.getFieldValue('creatorUserId')).toBe('creator');
+    },
+  );
 });

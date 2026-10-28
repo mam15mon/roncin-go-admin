@@ -151,16 +151,12 @@ describe('详情分单号在主单旁编辑', () => {
     fireEvent.click(screen.getByRole('tab', { name: /分单 \(HBL\)/ }));
     expect(screen.getAllByPlaceholderText('请输入分单号')).toHaveLength(1);
     expect(houseInput.closest('[role="tabpanel"]')).toBeNull();
-    updateHouseBill.mockResolvedValue({ data: { id: 'hbl-id' } });
     const documents = await getDocuments.mock.results[0].value;
-    getDocuments.mockResolvedValue({
+    updateHouseBill.mockResolvedValue({
       data: {
-        ...documents.data,
-        houseBill: {
-          ...documents.data?.houseBill,
-          houseNo: 'HBL-NEW',
-          version: '4',
-        },
+        ...documents.data?.houseBill,
+        houseNo: 'HBL-NEW',
+        version: '4',
       },
     });
     fireEvent.click(await screen.findByRole('button', { name: /保存分单/ }));
@@ -176,7 +172,7 @@ describe('详情分单号在主单旁编辑', () => {
     );
     await waitFor(() => expect(screen.getByText('v4')).toBeInTheDocument());
     expect(houseInput).toHaveValue('HBL-NEW');
-    expect(getDocuments).toHaveBeenCalledTimes(2);
+    expect(getDocuments).toHaveBeenCalledTimes(1);
   });
 
   it('正式单证加载完成前禁用输入，摘要不能开放编辑', async () => {

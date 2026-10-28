@@ -15,11 +15,7 @@ describe('SeaDocumentSectionComponent', () => {
   it('HOUSE→DIRECT 预览后携带外部确认和当前 HBL 版本执行', async () => {
     mockDocuments(SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE);
     render(
-      <TestForm
-        isDetail
-        disabled
-        initialValues={{ id: 'order-1', version: '11' }}
-      />,
+      <TestForm isDetail initialValues={{ id: 'order-1', version: '11' }} />,
     );
 
     const switchButton = await screen.findByRole('button', {
