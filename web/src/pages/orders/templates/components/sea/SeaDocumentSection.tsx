@@ -19,6 +19,7 @@ import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
+import { scrollToFirstFormError } from '@/components/ui';
 import {
   OrderBusinessType,
   OrderReleasePodStatus,
@@ -37,7 +38,10 @@ import {
 import { isWriteResponse } from '@/utils/api';
 import { generateUUID } from '@/utils/uuid';
 import { RELEASE_PODS_CHANGED_EVENT } from '../../../release-pod-events';
-import { onSeaFormErrorReveal } from '../../sea-form-error-reveal';
+import {
+  onSeaFormErrorReveal,
+  revealSeaFormErrors,
+} from '../../sea-form-error-reveal';
 import type { TemplateProps, TemplateSection } from '../../types';
 import SeaDocumentHistoryActions from './SeaDocumentHistoryActions';
 import SeaExternalConfirmationFields, {
@@ -256,6 +260,7 @@ export function SeaDocumentSectionComponent({
           ? {
               id: currentHouseBill.id,
               houseNo: currentHouseBill.houseNo,
+              status: currentHouseBill.status,
               issuerSource: currentHouseBill.issuerSource,
               issuerPartnerId:
                 currentHouseBill.issuerSource ===
@@ -298,10 +303,11 @@ export function SeaDocumentSectionComponent({
     setLoadedStructure(undefined);
     setMblDetail(null);
     setHouseBill(null);
+    form.setFieldValue('seaHouseBill', undefined);
     setActiveTabKey('mbl');
     void loadOrderDocuments();
     void loadReleasePods();
-  }, [isDetail, loadOrderDocuments, loadReleasePods]);
+  }, [form, isDetail, loadOrderDocuments, loadReleasePods]);
 
   useEffect(() => {
     if (docStructure !== SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE)
@@ -317,14 +323,14 @@ export function SeaDocumentSectionComponent({
         if (!firstField) return;
         if (
           firstField.name[0] === 'seaHouseBill' &&
-          (isDetail || firstField.name[1] !== 'houseNo')
+          firstField.name[1] !== 'houseNo'
         ) {
           setActiveTabKey('hbl');
         } else if (firstField.name[0] === 'seaMasterBillContent') {
           setActiveTabKey('mbl');
         }
       }),
-    [isDetail],
+    [],
   );
 
   useEffect(() => {
@@ -389,12 +395,13 @@ export function SeaDocumentSectionComponent({
 
   const handleSaveHouseBill = async (): Promise<false | undefined> => {
     if (!orderId || !isDetail || !houseBill?.id) return;
+    const identityFields = [
+      ['seaHouseBill', 'houseNo'],
+      ['seaHouseBill', 'issuerSource'],
+      ['seaHouseBill', 'issuerPartnerId'],
+    ];
     try {
-      await form.validateFields([
-        ['seaHouseBill', 'houseNo'],
-        ['seaHouseBill', 'issuerSource'],
-        ['seaHouseBill', 'issuerPartnerId'],
-      ]);
+      await form.validateFields(identityFields);
       const input = buildHouseBillInput(
         form.getFieldValue('seaHouseBill') as
           | Partial<API.SeaHouseBillInput>
@@ -415,7 +422,19 @@ export function SeaDocumentSectionComponent({
       message.success('分单更新成功');
       await loadOrderDocuments();
     } catch (error: unknown) {
-      if (error instanceof Error)
+      if (error && typeof error === 'object' && 'errorFields' in error) {
+        const errorFields = form
+          .getFieldsError(identityFields)
+          .filter((field) => field.errors.length > 0);
+        revealSeaFormErrors(errorFields);
+        await new Promise<void>((resolve) =>
+          requestAnimationFrame(() => resolve()),
+        );
+        scrollToFirstFormError({
+          errorFields,
+          notify: (text) => message.warning(text),
+        });
+      } else if (error instanceof Error)
         message.error(error.message || '保存分单失败');
     }
 
@@ -690,17 +709,19 @@ export function SeaDocumentSectionComponent({
             </Col>
           </Row>
         ) : null}
-        {!isDetail && (
-          <Alert
-            type="info"
-            showIcon
-            title="分单号请在上方主单号旁填写；此处维护签发主体与分单内容。"
-            style={{ marginBottom: 16 }}
-          />
-        )}
+        <Alert
+          type="info"
+          showIcon
+          title={
+            isDetail
+              ? '分单号请在上方主单号旁修改，并在此处点击「保存分单」，一并保存签发主体与分单内容。'
+              : '分单号请在上方主单号旁填写；此处维护签发主体与分单内容。'
+          }
+          style={{ marginBottom: 16 }}
+        />
         <HouseBillIdentityFields
           fieldKey="seaHouseBill"
-          showHouseNo={isDetail}
+          showHouseNo={false}
           disabled={disabled || isTerminalHouseBill(houseBill?.status)}
         />
         <div style={{ marginTop: 12 }}>

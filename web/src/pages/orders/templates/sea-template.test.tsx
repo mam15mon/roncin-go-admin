@@ -351,8 +351,8 @@ describe.skip('海运订单新增模板', () => {
     ).toBeTruthy();
   });
 
-  describe('配舱信息关联分单号只读展示', () => {
-    it('尚未建立分单时显示“暂未录入分单号”', () => {
+  describe('配舱信息分单号编辑', () => {
+    it('单证尚未加载时禁用分单号输入', () => {
       render(
         <ProForm
           submitter={false}
@@ -365,9 +365,7 @@ describe.skip('海运订单新增模板', () => {
         </ProForm>,
       );
 
-      const display = screen.getByTestId('associated-hbl-display');
-      expect(display.textContent).toContain('暂未录入分单号');
-      expect(screen.queryByRole('textbox')).toBeNull();
+      expect(screen.getByPlaceholderText('请输入分单号')).toBeDisabled();
     });
 
     it('直单模式下显示“直单，无HBL”', () => {
@@ -388,25 +386,32 @@ describe.skip('海运订单新增模板', () => {
       expect(screen.queryByRole('textbox')).toBeNull();
     });
 
-    it('录入当前订单的唯一分单时以标签形式展示且不可就地编辑', () => {
+    it('单证加载完成后就地编辑当前订单的唯一分单号', () => {
       render(
         <ProForm
           submitter={false}
           initialValues={{
             seaDocumentStructure:
               SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE,
-            seaHouseBill: { houseNo: 'HBL-001' },
+            seaHouseBill: {
+              id: 'hbl-1',
+              houseNo: 'HBL-001',
+              expectedVersion: '3',
+              status: 1,
+            },
           }}
         >
           <SeaAssociatedHouseBillsField />
         </ProForm>,
       );
 
-      expect(screen.getByText('HBL-001')).toBeTruthy();
-      expect(screen.queryByRole('textbox')).toBeNull();
+      expect(screen.getByPlaceholderText('请输入分单号')).toHaveValue(
+        'HBL-001',
+      );
+      expect(screen.getByPlaceholderText('请输入分单号')).toBeEnabled();
     });
 
-    it('回显已有订单的 seaDocumentSummary 分单号', () => {
+    it('仅有订单摘要时等待正式单证加载，不开放编辑', () => {
       render(
         <ProForm
           submitter={false}
@@ -422,8 +427,7 @@ describe.skip('海运订单新增模板', () => {
         </ProForm>,
       );
 
-      expect(screen.getByText('HBL-HIST-1')).toBeTruthy();
-      expect(screen.queryByRole('textbox')).toBeNull();
+      expect(screen.getByPlaceholderText('请输入分单号')).toBeDisabled();
     });
   });
 });

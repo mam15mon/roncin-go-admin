@@ -19,9 +19,11 @@ type HouseBillFormKey = 'seaHouseBill' | 'newHouseBill';
 export function HouseBillNumberField({
   fieldKey,
   disabled = false,
+  extra,
 }: {
   fieldKey: HouseBillFormKey;
   disabled?: boolean;
+  extra?: React.ReactNode;
 }) {
   const form = Form.useFormInstance();
   // 批次分单号清单（候选响应）晚于分单号录入到达时补一次重复校验：
@@ -45,6 +47,7 @@ export function HouseBillNumberField({
       label="分单号 (HBL No.)"
       placeholder="请输入分单号"
       disabled={disabled}
+      extra={extra}
       layout="vertical"
       rules={[
         { required: true, whitespace: true, message: '分单号不能为空' },

@@ -34,7 +34,10 @@ import {
 import { buildSeaHouseOrderCreatePath } from '../../../sea-house-order-context';
 import { resolveSeaOrderFormPolicy } from '../../../sea-order-policy';
 import type { TemplateProps } from '../../types';
-import { HouseBillNumberField } from './HouseBillIdentityFields';
+import {
+  HouseBillNumberField,
+  isTerminalHouseBill,
+} from './HouseBillIdentityFields';
 import {
   useSeaMasterBillCandidate,
   useSharedSeaVoyage,
@@ -176,7 +179,7 @@ export function SeaMasterBillFields({
           />
         </div>
       )}
-      <SeaAssociatedHouseBillsField isDetail={isDetail} />
+      <SeaAssociatedHouseBillsField isDetail={isDetail} disabled={disabled} />
       {canCreateHouse && seaHouseOrderSourceOrderId && (
         <div style={{ gridColumn: '1 / -1', marginBottom: 12 }}>
           <SeaCreateHouseOrderButton
@@ -394,15 +397,22 @@ function SeaCreateHouseOrderButton({
 
 export function SeaAssociatedHouseBillsField({
   isDetail = true,
+  disabled = false,
 }: {
   isDetail?: boolean;
+  disabled?: boolean;
 }) {
   const form = Form.useFormInstance();
   const watchedHouseBill = (Form.useWatch('seaHouseBill', {
     form,
     preserve: true,
   }) ?? form?.getFieldValue('seaHouseBill')) as
-    | { houseNo?: string }
+    | {
+        id?: string;
+        houseNo?: string;
+        expectedVersion?: string;
+        status?: number;
+      }
     | undefined;
   const watchedStructure = (Form.useWatch('seaDocumentStructure', {
     form,
@@ -422,11 +432,27 @@ export function SeaAssociatedHouseBillsField({
   const isDirect =
     structure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT;
 
-  if (
-    !isDetail &&
-    structure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
-  ) {
-    return <HouseBillNumberField fieldKey="seaHouseBill" />;
+  if (structure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE) {
+    const documentReady = Boolean(
+      watchedHouseBill?.id &&
+        watchedHouseBill.expectedVersion &&
+        watchedHouseBill.status !== undefined,
+    );
+    return (
+      <HouseBillNumberField
+        fieldKey="seaHouseBill"
+        disabled={
+          disabled ||
+          (isDetail &&
+            (!documentReady || isTerminalHouseBill(watchedHouseBill?.status)))
+        }
+        extra={
+          isDetail
+            ? '修改后请到「提单信息 → 分单 (HBL)」点击「保存分单」。'
+            : undefined
+        }
+      />
+    );
   }
   return (
     <Form.Item label="关联分单号">
@@ -692,6 +718,7 @@ export function getSeaTransportFields(props: TemplateProps) {
     master: (
       <SeaMasterBillFields
         isDetail={isDetail}
+        disabled={props.readonly}
         seaHouseOrderCreateSource={props.seaHouseOrderCreateSource}
         seaHouseOrderSourceOrderId={props.seaHouseOrderSourceOrderId}
         organizationId={props.organizationId}

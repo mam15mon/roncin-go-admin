@@ -63,12 +63,12 @@ describe('分单错误按实际位置揭示', () => {
       'true',
     );
   });
-  it('详情正式号码错误仍切到 HBL 页签', async () => {
+  it('详情号码错误保留当前提单页签并定位主单旁输入', async () => {
     render(
       <SectionCards
         exposeForm={() => {}}
         isDetail
-        sectionKeys={['seaDocument']}
+        sectionKeys={['bookingTransport', 'seaDocument']}
         initialValues={{ seaDocumentStructure: HOUSE }}
       />,
     );
@@ -77,7 +77,7 @@ describe('分单错误按实际位置揭示', () => {
         { name: ['seaHouseBill', 'houseNo'], errors: ['分单号不能为空'] },
       ]);
     });
-    expect(screen.getByRole('tab', { name: /分单 \(HBL\)/ })).toHaveAttribute(
+    expect(screen.getByRole('tab', { name: /主单 \(MBL\)/ })).toHaveAttribute(
       'aria-selected',
       'true',
     );

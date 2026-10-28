@@ -113,7 +113,10 @@ export function TestForm({
       <App>
         <Form form={form} initialValues={initialValues}>
           {includeModeField ? <SeaCreateDocumentModeField /> : null}
-          {!isDetail && <SeaAssociatedHouseBillsField isDetail={false} />}
+          <SeaAssociatedHouseBillsField
+            isDetail={isDetail}
+            disabled={disabled}
+          />
           <SeaDocumentSectionComponent
             isDetail={isDetail}
             disabled={disabled}

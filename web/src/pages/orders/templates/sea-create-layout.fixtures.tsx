@@ -35,17 +35,21 @@ export function SectionCards({
   initialValues,
   sectionKeys,
   isDetail = false,
+  readonly = false,
 }: {
   exposeForm: (form: FormInstance) => void;
   initialValues?: Record<string, unknown>;
   sectionKeys?: string[];
   isDetail?: boolean;
+  readonly?: boolean;
 }) {
   const [form] = Form.useForm();
   exposeForm(form);
-  const sections = getSeaTemplateSections({ ...props, isDetail }).filter(
-    (section) => !sectionKeys || sectionKeys.includes(section.key),
-  );
+  const sections = getSeaTemplateSections({
+    ...props,
+    isDetail,
+    readonly,
+  }).filter((section) => !sectionKeys || sectionKeys.includes(section.key));
   return (
     // CSS 零动画不会停止 rc-motion 帧队列；业务断言使用无动画上下文。
     <ConfigProvider theme={{ token: { motion: false } }}>
