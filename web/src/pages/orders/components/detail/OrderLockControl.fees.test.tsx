@@ -142,6 +142,7 @@ describe('订单审核费用明细', () => {
     expect(within(payable).getByText('完整供应商名称')).toBeInTheDocument();
     expect(within(payable).getByText('供应商应付明细')).toBeInTheDocument();
     expect(screen.queryByRole('textbox', { name: '审核意见' })).toBeNull();
+    expect(screen.queryByRole('button', { name: /列设置/ })).toBeNull();
     expect(getReview).toHaveBeenCalledExactlyOnceWith({
       orderId: 'review-order',
     });

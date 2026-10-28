@@ -1,7 +1,6 @@
 import type { TableColumnsType } from 'antd';
 import React from 'react';
 import { ResponsiveTable } from '@/components/ui';
-import { useColumnSettings } from '@/components/ui/column-settings';
 import { OrderFeeDirection } from '@/enums.generated';
 import { formatAmount, trimDecimal } from '@/utils/format';
 
@@ -107,21 +106,8 @@ export default function OrderLockFeeDetails({
 }: {
   fees: API.OrderFee[];
 }) {
-  const settings = useColumnSettings<TableColumnsType<API.OrderFee>[number]>({
-    tableKey: 'orders:lock-fee-review',
-    columns,
-    // 审核字段始终显示，保留公共列排序与冻结能力。
-    lockVisibleKeys: columns.map((column) =>
-      String(column.key ?? ('dataIndex' in column ? column.dataIndex : '')),
-    ),
-  });
   return (
     <>
-      <div
-        style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}
-      >
-        {settings.entry}
-      </div>
       {[
         {
           label: '应收费用',
@@ -142,7 +128,7 @@ export default function OrderLockFeeDetails({
               rowKey="id"
               size="small"
               pagination={false}
-              columns={settings.columns}
+              columns={columns}
               dataSource={rows}
               locale={{ emptyText: `暂无${label}` }}
             />
