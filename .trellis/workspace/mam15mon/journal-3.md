@@ -501,3 +501,26 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 169: 海运订单整页统一保存并完成审查合并
+<!-- trellis-session: v=2 fp=1f974c5669e41faa -->
+
+**Date**: 2026-10-28
+**Task**: 海运订单整页统一保存并完成审查合并
+**Branch**: `main`
+
+### Summary
+
+订单资料、修改过的MBL和本票HBL通过现有UpdateOrder同事务保存，移除局部保存入口并提供吸底保存。独立review已修复隐藏字段、草稿原版本、专用动作并发刷新、异步身份隔离、默认值与中文错误等问题，无剩余P1/P2。最终check:web 329文件1783项通过，check:server全部通过（含vet和漏洞扫描）；专用PostgreSQL事务/冲突/幂等/共享门禁回归实际通过，Chromium验证一次写入、连续版本、409保留输入与0页面异常。已合并main并用git branch -d安全删除任务分支；随后按用户授权推送并核对远端。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f02d73d9` | feat: 海运订单整页统一原子保存主分单 |
+| `1728ecd4` | merge: 合并海运订单整页统一保存 |
+
+### Status
+
+[OK] **Completed**

@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 168
+- **Total Sessions**: 169
 - **Last Active**: 2026-10-28
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~503 | Active |
+| `journal-3.md` | ~526 | Active |
 | `journal-2.md` | ~2003 | Archived |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 169 | 2026-10-28 | 海运订单整页统一保存并完成审查合并 | `f02d73d9`, `1728ecd4` | `main` |
 | 168 | 2026-10-28 | 修复海运主分单独立保存及只读状态 | `d642f11a` | `main` |
 | 167 | 2026-10-27 | 船代公共主数据与订单选择交付 | `e68326f0`, `1106f9bf`, `66d47948` | `codex/shipping-agent-masterdata` |
 | 166 | 2026-10-27 | 完成全球港口中文种子与离线同步 | `9e4af6df` | `codex/port-chinese-seeds` |
