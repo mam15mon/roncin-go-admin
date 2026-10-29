@@ -3,7 +3,7 @@
 ## 目标与授权
 
 让操作人员连续录单时，手动输入不被迟到响应覆盖，草稿可完整恢复，创建失败或结果不确定时有明确恢复路径。
-用户要求分析海运出口 UI 和逻辑，特别强调输入体验；在审查结论后明确要求创建 Trellis 任务。本次仅编写规划，状态为 planning；未授权开始实施。
+用户要求分析海运出口 UI 和逻辑，特别强调输入体验；在审查结论后明确要求创建 Trellis 任务。用户于 2026-10-29 审阅规划后要求实施、review、合并主分支、安全删除分支并推送，已授权完整交付。
 
 ## 范围与需求
 
@@ -15,7 +15,7 @@
 | R4 | P2 | 客户人员加载前清空，失败无就地恢复入口；业务/客服只读必填，将网络失败误呈现为未配置。`SeaBasicInfoSection.tsx:439`、`web/src/pages/orders/templates/components/sea/SeaPersonnelSection.tsx:85`（前者完整目录同 R1）。在客户区域区分加载中、失败、配置缺失，提供手动重试；配置缺失提供权限适配的档案入口或明确联系维护人的提示。 |
 | R5 | P1 | 新建仅按钮 loading，未传入 editingDisabled；成功时清草稿，提交后的新增输入有丢失风险，需真实表单复现确认。`web/src/pages/orders/new.tsx:370`、`OrderFormTemplate.tsx:174`（完整目录同 R2）。提交及结果待确认期间统一冻结输入和重复提交，已确认拒绝后恢复编辑且保留输入。 |
 | R6 | P2 | 新建补齐 StickyFooterBar，与详情保存入口一致；顶部与底部按钮共享提交状态与同一动作，不产生重复请求。 |
-| R7 | P2 | ETD 调到 ETA 之后会静默清空 ETA，见 `web/src/pages/orders/templates/components/sea/SeaTransportSection.tsx:570`。建议保留 ETA 并明确提示冲突，由用户修正；继续禁止 ETA 早于 ETD。属于拟议交互变更，实施审批时一并确认。 |
+| R7 | P2 | ETD 调到 ETA 之后会静默清空 ETA，见 `web/src/pages/orders/templates/components/sea/SeaTransportSection.tsx:570`。建议保留 ETA 并明确提示冲突，由用户修正；继续禁止 ETA 早于 ETD。随本次规划获准实施。 |
 | R8 | P2 | 浏览器验收连续录入：Tab 顺序、下拉键盘选择、中文输入法、错误定位焦点、窄屏与吸底遮挡。仅修复本任务发现的具体阻碍，不预建快捷键框架。 |
 
 ## 验收标准
