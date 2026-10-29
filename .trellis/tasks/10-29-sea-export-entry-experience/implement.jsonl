@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "请求状态、身份隔离与写入成功判定"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "定向回归、表单交互与前端门禁"}
+{"file": ".trellis/tasks/10-29-sea-export-entry-experience/prd.md", "reason": "缺陷证据、范围及验收标准"}
+{"file": ".trellis/tasks/10-29-sea-export-entry-experience/design.md", "reason": "默认回填、草稿和待确认提交的设计边界"}
