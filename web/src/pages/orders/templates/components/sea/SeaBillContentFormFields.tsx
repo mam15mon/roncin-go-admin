@@ -559,7 +559,7 @@ export function SeaBillContentFormFields({
             <ProFormTextArea
               name={[...namePathPrefix, 'shipperText']}
               placeholder="请输入发货人英文名称与详细地址"
-              disabled={disabled}
+              disabled={disabled || undefined}
               fieldProps={{ autoSize: { minRows: 5, maxRows: 10 } }}
               noStyle
             />
@@ -628,7 +628,7 @@ export function SeaBillContentFormFields({
             <ProFormTextArea
               name={[...namePathPrefix, 'consigneeText']}
               placeholder="请输入收货人名称与地址 (TO ORDER 或具体收货人)"
-              disabled={disabled}
+              disabled={disabled || undefined}
               fieldProps={{ autoSize: { minRows: 5, maxRows: 10 } }}
               noStyle
             />
@@ -712,7 +712,7 @@ export function SeaBillContentFormFields({
               <ProFormTextArea
                 name={[...namePathPrefix, 'notifyPartyText']}
                 placeholder="请输入通知人名称与详细地址 (例如：SAME AS CONSIGNEE)"
-                disabled={disabled}
+                disabled={disabled || undefined}
                 fieldProps={{ autoSize: { minRows: 5, maxRows: 10 } }}
                 noStyle
               />
@@ -720,7 +720,7 @@ export function SeaBillContentFormFields({
               <ProFormTextArea
                 name={[...namePathPrefix, 'secondNotifyPartyText']}
                 placeholder="请输入第二通知人名称与详细地址 (选填，多数提单无需填写)"
-                disabled={disabled}
+                disabled={disabled || undefined}
                 fieldProps={{ autoSize: { minRows: 5, maxRows: 10 } }}
                 noStyle
               />
@@ -772,7 +772,7 @@ export function SeaBillContentFormFields({
             <ProFormTextArea
               name={[...namePathPrefix, 'foreignAgentText']}
               placeholder="请输入目的港/国外代理名称、地址与联系方式"
-              disabled={disabled}
+              disabled={disabled || undefined}
               fieldProps={{ autoSize: { minRows: 5, maxRows: 10 } }}
               noStyle
             />
@@ -859,7 +859,7 @@ export function SeaBillContentFormFields({
             <ProFormTextArea
               name={[...namePathPrefix, 'marksText']}
               placeholder="请输入唛头信息 (例如：N/M)"
-              disabled={disabled}
+              disabled={disabled || undefined}
               fieldProps={{ autoSize: { minRows: 6, maxRows: 12 } }}
               noStyle
             />
@@ -889,7 +889,7 @@ export function SeaBillContentFormFields({
               <Space size={6} align="center">
                 <Checkbox
                   checked={hasClause}
-                  disabled={disabled}
+                  disabled={disabled || undefined}
                   onChange={(e) => handleToggleClause(e.target.checked)}
                   style={{ fontSize: 12, userSelect: 'none' }}
                 >
@@ -916,7 +916,7 @@ export function SeaBillContentFormFields({
             <ProFormTextArea
               name={[...namePathPrefix, 'goodsDescriptionText']}
               placeholder="请输入提单打印品名与货物描述"
-              disabled={disabled}
+              disabled={disabled || undefined}
               fieldProps={{ autoSize: { minRows: 6, maxRows: 12 } }}
               noStyle
             />
@@ -1018,7 +1018,7 @@ export function SeaBillContentFormFields({
                     unitPlaceholder="请选择单位"
                     unitWidth={104}
                     style={{ width: '100%' }}
-                    disabled={disabled}
+                    disabled={disabled || undefined}
                   />
                 </div>
               )}
@@ -1030,7 +1030,7 @@ export function SeaBillContentFormFields({
                   unitPlaceholder="请选择单位"
                   unitWidth={104}
                   style={{ width: '100%' }}
-                  disabled={disabled}
+                  disabled={disabled || undefined}
                 />
               </div>
             </div>
@@ -1047,7 +1047,7 @@ export function SeaBillContentFormFields({
                   <ProFormDigit
                     name="totalGrossWeightKg"
                     placeholder="0"
-                    disabled={disabled}
+                    disabled={disabled || undefined}
                     min={0}
                     noStyle
                     fieldProps={{ precision: 3, style: { width: '100%' } }}
@@ -1058,7 +1058,7 @@ export function SeaBillContentFormFields({
                 <ProFormDigit
                   name={[...namePathPrefix, 'grossWeightKg']}
                   placeholder="0"
-                  disabled={disabled}
+                  disabled={disabled || undefined}
                   min={0}
                   noStyle
                   fieldProps={{ precision: 3, style: { width: '100%' } }}
@@ -1078,7 +1078,7 @@ export function SeaBillContentFormFields({
                   <ProFormDigit
                     name="totalVolumeCbm"
                     placeholder="0"
-                    disabled={disabled}
+                    disabled={disabled || undefined}
                     min={0}
                     noStyle
                     fieldProps={{ precision: 3, style: { width: '100%' } }}
@@ -1089,7 +1089,7 @@ export function SeaBillContentFormFields({
                 <ProFormDigit
                   name={[...namePathPrefix, 'volumeCbm']}
                   placeholder="0"
-                  disabled={disabled}
+                  disabled={disabled || undefined}
                   min={0}
                   noStyle
                   fieldProps={{ precision: 3, style: { width: '100%' } }}
@@ -1175,7 +1175,7 @@ export function SeaBillContentFormFields({
                       countPlaceholder="0"
                       unitPlaceholder="请选择单位"
                       unitWidth={104}
-                      disabled={disabled}
+                      disabled={disabled || undefined}
                     />
                   </fieldset>
                 </div>
@@ -1198,7 +1198,7 @@ export function SeaBillContentFormFields({
                     <ProFormDigit
                       name={[...namePathPrefix, 'grossWeightKg']}
                       placeholder="0"
-                      disabled={disabled}
+                      disabled={disabled || undefined}
                       min={0}
                       fieldProps={{
                         'aria-label': '实际毛重（KGS）',
@@ -1233,7 +1233,7 @@ export function SeaBillContentFormFields({
                     <ProFormDigit
                       name={[...namePathPrefix, 'volumeCbm']}
                       placeholder="0"
-                      disabled={disabled}
+                      disabled={disabled || undefined}
                       min={0}
                       fieldProps={{
                         'aria-label': '实际体积（CBM）',
@@ -1277,7 +1277,7 @@ export function SeaBillContentFormFields({
                 name={[...namePathPrefix, 'freightTerms']}
                 placeholder="请选择付款方式"
                 initialValue={DEFAULT_FREIGHT_TERMS}
-                disabled={disabled}
+                disabled={disabled || undefined}
                 options={SEA_FREIGHT_TERM_OPTIONS}
                 noStyle
                 fieldProps={{
@@ -1330,7 +1330,7 @@ export function SeaBillContentFormFields({
                 name={[...namePathPrefix, 'transportTerms']}
                 placeholder="请选择运输条款"
                 initialValue={DEFAULT_TRANSPORT_TERMS}
-                disabled={disabled}
+                disabled={disabled || undefined}
                 options={SEA_TRANSPORT_TERM_OPTIONS}
                 noStyle
                 fieldProps={{
@@ -1379,7 +1379,7 @@ export function SeaBillContentFormFields({
                 name={[...namePathPrefix, 'billForm']}
                 placeholder="请选择提单形式"
                 initialValue={DEFAULT_BILL_FORM}
-                disabled={disabled}
+                disabled={disabled || undefined}
                 options={SEA_BILL_FORM_OPTIONS}
                 noStyle
                 fieldProps={{
@@ -1413,7 +1413,7 @@ export function SeaBillContentFormFields({
                 name={[...namePathPrefix, 'releaseType']}
                 placeholder="请选择放单方式"
                 initialValue={DEFAULT_RELEASE_TYPE}
-                disabled={disabled}
+                disabled={disabled || undefined}
                 options={SEA_RELEASE_TYPE_OPTIONS}
                 noStyle
                 fieldProps={{
@@ -1434,7 +1434,7 @@ export function SeaBillContentFormFields({
             name={[...namePathPrefix, 'clauses']}
             label="提单特别条款 (Clauses)"
             placeholder="选填，请输入提单特别条款"
-            disabled={disabled}
+            disabled={disabled || undefined}
             fieldProps={{
               maxLength: 1000,
               showCount: true,

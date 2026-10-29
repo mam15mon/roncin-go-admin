@@ -87,7 +87,7 @@ describe('海运订单草稿船期必填', () => {
     expect(onFinish).not.toHaveBeenCalled();
   });
 
-  it('把 ETD 改到已有 ETA 之后，清空 ETA 后必须重新填写才能保存', async () => {
+  it('把 ETD 改到已有 ETA 之后保留 ETA 并提示冲突', async () => {
     const onFinish = setup({ etd, eta });
     const departureInput = screen.getByLabelText('ETD');
     fireEvent.change(departureInput, {
@@ -95,9 +95,13 @@ describe('海运订单草稿船期必填', () => {
     });
     fireEvent.keyDown(departureInput, { key: 'Enter' });
 
-    await waitFor(() => expect(screen.getByLabelText('ETA')).toHaveValue(''));
+    await waitFor(() =>
+      expect(screen.getByLabelText('ETA')).toHaveValue('2026-10-25'),
+    );
     fireEvent.click(screen.getByRole('button', { name: '保存草稿' }));
-    await waitFor(() => expect(screen.getByText(etaRequired)).toBeVisible());
+    await waitFor(() =>
+      expect(screen.getByText('ETA 不能早于 ETD')).toBeVisible(),
+    );
     expect(onFinish).not.toHaveBeenCalled();
   });
 

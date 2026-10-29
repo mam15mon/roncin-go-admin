@@ -129,7 +129,12 @@ describe('共享主单航程继承', () => {
       transitLocationId: 'transit',
       eta: dayjs('2026-10-25'),
     });
-    await screen.findByRole('button', { name: '采用主单航程' });
+    await screen.findByRole(
+      'button',
+      { name: '采用主单航程' },
+      // 与上一场景一致，等待真实防抖查询在全量并发下完成。
+      { timeout: 5000 },
+    );
     expect(
       screen.getByText(/中转港：本票 当前已选地点；主单 未填写/),
     ).toBeInTheDocument();

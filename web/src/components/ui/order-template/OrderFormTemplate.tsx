@@ -13,6 +13,7 @@ import {
   Typography,
 } from 'antd';
 import React, {
+  useEffect,
   useImperativeHandle,
   useLayoutEffect,
   useRef,
@@ -35,6 +36,23 @@ import { SectionCard } from '../page-shell/SectionCard';
 import type { OrderFormTemplateProps, OrderFormTemplateSection } from './types';
 
 const { Text } = Typography;
+
+/** 只订阅值快照，程序回填也能落草稿；不使整张业务表单随键入重渲染。 */
+function DraftSnapshotObserver({
+  onSnapshot,
+}: {
+  onSnapshot: (values: Record<string, unknown>) => void;
+}) {
+  const form = Form.useFormInstance();
+  const snapshot = Form.useWatch((values) => JSON.stringify(values), {
+    form,
+    preserve: true,
+  });
+  useEffect(() => {
+    if (snapshot !== undefined) onSnapshot(form.getFieldsValue(true));
+  }, [snapshot, form, onSnapshot]);
+  return null;
+}
 
 /**
  * OrderFormTemplate 订单通用业务模板。
@@ -129,6 +147,7 @@ export function OrderFormTemplate<T>({
       : undefined;
 
   const [internalDirty, setInternalDirty] = useState(false);
+  const dirtyRef = useRef(false);
 
   useTabCloseGuard({
     tabKey,
@@ -148,6 +167,7 @@ export function OrderFormTemplate<T>({
     const draft = getFormDraft<Partial<T>>(draftKey);
     if (draft && typeof draft === 'object' && Object.keys(draft).length > 0) {
       resolvedFormRef.current?.setFieldsValue(draft);
+      dirtyRef.current = true;
       setInternalDirty(true);
     }
   }, [draftKey, loading, readonly]);
@@ -164,6 +184,7 @@ export function OrderFormTemplate<T>({
         if (values) {
           resolvedFormRef.current?.setFieldsValue(values);
         }
+        dirtyRef.current = false;
         setInternalDirty(false);
         setSectionErrors({});
       },
@@ -180,6 +201,7 @@ export function OrderFormTemplate<T>({
         if (draftKey) {
           clearFormDraft(draftKey);
         }
+        dirtyRef.current = false;
         setInternalDirty(false);
         setSectionErrors({});
       }
@@ -302,10 +324,11 @@ export function OrderFormTemplate<T>({
           initialValues={initialValues}
           onValuesChange={(changedValues, allValues) => {
             if (!internalDirty) {
+              dirtyRef.current = true;
               setInternalDirty(true);
             }
             if (!readonly && draftKey) {
-              saveFormDraft(draftKey, allValues);
+              saveFormDraft(draftKey, form.getFieldsValue(true));
             }
             if (Object.keys(sectionErrors).length > 0) {
               window.setTimeout(() => {
@@ -318,6 +341,7 @@ export function OrderFormTemplate<T>({
             if (draftKey) {
               clearFormDraft(draftKey);
             }
+            dirtyRef.current = false;
             setInternalDirty(false);
             setSectionErrors({});
             onReset?.();
@@ -355,6 +379,12 @@ export function OrderFormTemplate<T>({
                 }
           }
         >
+          <DraftSnapshotObserver
+            onSnapshot={(values) => {
+              if (!readonly && draftKey && dirtyRef.current)
+                saveFormDraft(draftKey, values);
+            }}
+          />
           {visibleSections.map(renderSection)}
 
           {/* 4. 额外底部插槽 */}

@@ -72,7 +72,7 @@ export function PersonnelAssignmentFields({
     >
       <SearchableSelect
         components={personnelSelectComponents}
-        disabled={disabled}
+        disabled={disabled || undefined}
         options={userOptions}
         placeholder="选择人员"
         popupMatchSelectWidth={false}

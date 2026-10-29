@@ -275,6 +275,22 @@ describe('CurrencyAmountInput', () => {
       </Form>,
     );
 
-    expect(container.querySelector('.ant-select-allow-clear')).toBeInTheDocument();
+    expect(
+      container.querySelector('.ant-select-allow-clear'),
+    ).toBeInTheDocument();
   });
+});
+
+it('父表单冻结时币种与金额继承禁用', () => {
+  render(
+    <Form disabled>
+      <CurrencyAmountInput
+        currencyName="currency"
+        amountName="amount"
+        currencyOptions={mockCurrencies}
+      />
+    </Form>,
+  );
+  expect(screen.getByPlaceholderText('0.00')).toBeDisabled();
+  expect(screen.getByRole('combobox')).toBeDisabled();
 });

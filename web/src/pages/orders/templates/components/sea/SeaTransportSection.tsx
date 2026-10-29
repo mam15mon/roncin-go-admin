@@ -240,7 +240,7 @@ export function SeaMasterBillFields({
                     aria-label="本票共用航程"
                     placeholder="该主单存在多个航程，请核实后选择"
                     value={selected?.id}
-                    disabled={state.batchDirectBlocked || isDetail}
+                    disabled={state.batchDirectBlocked || isDetail || undefined}
                     options={candidate.transportExecutions?.map((voyage) => ({
                       value: voyage.id,
                       label: `${voyage.vesselName || '船名未填写'} / ${voyage.voyageNo || '航次未填写'} / ${voyage.etd ? formatDate(voyage.etd, 'date') : 'ETD未填写'}`,
@@ -300,7 +300,7 @@ export function SeaMasterBillFields({
                         </ul>
                         <Button
                           htmlType="button"
-                          disabled={state.requiresHouse}
+                          disabled={state.requiresHouse || undefined}
                           onClick={state.adopt}
                         >
                           采用主单航程
@@ -387,6 +387,7 @@ function SeaCreateHouseOrderButton({
   return (
     <Button
       htmlType="button"
+      // 此入口仅在已有订单详情展示，创建另一票不修改当前锁定订单。
       disabled={false}
       onClick={() => history.push(buildSeaHouseOrderCreatePath(sourceOrderId))}
     >
@@ -567,14 +568,6 @@ export function SeaScheduleDateFields() {
         rules={[{ required: true, message: '请选择 ETD（预计离港时间）' }]}
         fieldProps={{
           style: { width: '100%' },
-          onChange: (date: dayjs.Dayjs | null) => {
-            if (date) {
-              const currentEta = form?.getFieldValue('eta');
-              if (currentEta?.isBefore(date, 'day')) {
-                form?.setFieldValue('eta', undefined);
-              }
-            }
-          },
         }}
       />
       <Form.Item label="WEEK">
