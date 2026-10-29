@@ -5,6 +5,7 @@ import {
   OrderBusinessType,
   OrderPersonnelRole,
   SeaDocumentStructure,
+  SeaHouseBillIssuerSource,
   ShipmentMode,
   ShipmentType,
   TradeDirection,
@@ -52,6 +53,9 @@ describe('buildSeaExportCreateDefaults', () => {
       ContainerOwnership.CONTAINER_OWNERSHIP_COC,
     );
     expect(defaults.tradeTerm).toBe(TradeTerm.TRADE_TERM_CIF);
+    expect(defaults.seaHouseBill?.issuerSource).toBe(
+      SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_SELF_ORGANIZATION,
+    );
   });
 
   it('优先按 GENERAL 业务码识别默认货类，再回退 label=普货，均无则 undefined', () => {

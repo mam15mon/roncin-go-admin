@@ -4,6 +4,7 @@ import {
   OrderBusinessType,
   OrderPersonnelRole,
   SeaDocumentStructure,
+  SeaHouseBillIssuerSource,
   ShipmentMode,
   ShipmentType,
   TradeDirection,
@@ -44,6 +45,11 @@ export function buildSeaExportCreateDefaults(
     shipmentType: ShipmentType.SHIPMENT_TYPE_FCL,
     containerOwnership: ContainerOwnership.CONTAINER_OWNERSHIP_COC,
     tradeTerm: TradeTerm.TRADE_TERM_CIF,
+    seaHouseBill: {
+      houseNo: '',
+      issuerSource:
+        SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_SELF_ORGANIZATION,
+    },
     cargoCategoryIds:
       typeof defaultCargoCategoryId === 'string'
         ? [defaultCargoCategoryId]
