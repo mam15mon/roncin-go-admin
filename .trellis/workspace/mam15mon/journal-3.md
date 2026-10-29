@@ -524,3 +524,40 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 170: 海运出口录单可靠性修复与验收
+<!-- trellis-session: v=2 fp=d14a533b2f1f87bf -->
+
+**Date**: 2026-10-29
+**Task**: 海运出口录单可靠性修复与验收
+**Branch**: `fix/sea-export-entry-experience`
+
+### Summary
+
+修复客户人员异步覆盖与草稿遗漏，完善新建提交冻结和未知结果刷新确认，增加吸底创建栏与ETA冲突保留；独立review闭环，最终前端1803项与浏览器5项通过。
+
+### Main Changes
+
+- 记录复合控件禁用继承及锁定来源跨记录新建的例外契约。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `8248f20b` | fix: 保留海运录单手动输入并完整恢复人员草稿 |
+| `0a979ace` | fix: 海运新建冻结提交并恢复待确认创建结果 |
+| `79a0ef48` | test: 验收海运录单恢复流程并记录审查契约 |
+
+### Testing
+
+- [OK] pnpm run check:web：333文件通过、1跳过；1803项通过、12项跳过。
+- [OK] Playwright海运录入体验5项整轮通过；API均stub，无真实业务写入。
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 按用户授权合并main、安全删除本地工作分支并push；真实操作系统中文输入法仍保留人工验收限制。
