@@ -2,14 +2,21 @@ import { SaveOutlined } from '@ant-design/icons';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
 import { useQuery } from '@tanstack/react-query';
-import { App, Button, Card, Result, Space } from 'antd';
+import { Alert, App, Button, Card, Result, Space } from 'antd';
 import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { useLocation, useParams } from 'react-router';
 import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
-import { getFormDraftScope } from '@/components/layout/formDraft';
+import {
+  clearFormDraft,
+  getFormDraftKey,
+  getFormDraftScope,
+} from '@/components/layout/formDraft';
 import { resolveTabKey } from '@/components/layout/routeUtils';
+import { StickyFooterBar } from '@/components/ui';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
+import type { OrderFormTemplateActions } from '@/components/ui/order-template/types';
 import { SeaDocumentStructure } from '@/enums.generated';
 import { searchShippingLineOptions } from '@/features/master-data/shipping-lines';
 import { history } from '@/router/history';
@@ -35,6 +42,7 @@ import {
 import { revealSeaFormErrors } from './templates';
 import type { SeaHouseOrderCreateSource } from './templates/types';
 import { useOrderCreateOptions } from './use-order-create-options';
+import { useSeaOrderCreate } from './use-sea-order-create';
 
 export default function NewOrderPage() {
   const params = useParams<{ kind: string }>();
@@ -58,6 +66,10 @@ function NewOrderContent({
   sourceRequest: ReturnType<typeof resolveSeaHouseOrderCreateRequest>;
 }) {
   const formRef = useRef<ProFormInstance | undefined>(undefined);
+  const actionsRef = useRef<
+    OrderFormTemplateActions<CreateOrderFormValues> | undefined
+  >(undefined);
+  const navigatedRef = useRef(false);
   const [submitting, setSubmitting] = useState(false);
   // 创建幂等键：每次提交意图一个键；失败重试沿用同键，成功后重新生成，
   // 配合后端同键同意图重放返回原单，避免超时重试造成重复订单。
@@ -81,6 +93,16 @@ function NewOrderContent({
   }, []);
 
   const definition = getOrderKindDefinition(kind);
+  const isSea = definition?.transportMode === 'sea';
+  const seaCreate = useSeaOrderCreate(
+    isSea
+      ? getFormDraftKey(
+          resolveTabKey(`/orders/${kind}/new`),
+          sourceRequest.draftPathname,
+          draftScope,
+        )
+      : undefined,
+  );
   // create 权限同时门控候选项请求（无权限不发请求）与页面 403 兜底。
   const canCreate = access.canOrder(definition?.businessType ?? '', 'create');
   const canReadSource = access.canOrder(definition?.businessType ?? '', 'read');
@@ -218,6 +240,53 @@ function NewOrderContent({
     ],
   );
 
+  const completeSeaCreate = (createdId: string) => {
+    if (navigatedRef.current) return;
+    // 先清守卫与草稿再导航，避免成功写入仍触发放弃编辑提示。
+    flushSync(() => actionsRef.current?.resetTo());
+    clearFormDraft(
+      getFormDraftKey(
+        resolveTabKey(`/orders/${kind}/new`),
+        sourceRequest.draftPathname,
+        draftScope,
+      ),
+    );
+    navigatedRef.current = true;
+    message.success('创建订单成功');
+    history.push(`/orders/${kind}/${createdId}`);
+    try {
+      seaCreate.clear();
+    } catch {
+      /* 已确认 ID 留存，下次恢复直接进入原订单。 */
+    }
+  };
+  const confirmCreate = async () => {
+    const generation = instanceGenerationRef.current;
+    try {
+      const id = await seaCreate.submit();
+      if (id && generation === instanceGenerationRef.current)
+        completeSeaCreate(id);
+    } catch (error) {
+      if (generation === instanceGenerationRef.current)
+        message.error(getErrorMessage(error, '确认创建结果失败'));
+    }
+  };
+  const submitCreate = () => {
+    if (
+      isSea &&
+      (seaCreate.status === 'unknown' || seaCreate.status === 'success')
+    )
+      void confirmCreate();
+    else formRef.current?.submit();
+  };
+  const createBusy = isSea ? seaCreate.status === 'sending' : submitting;
+  const createLabel =
+    isSea && seaCreate.status === 'unknown'
+      ? '确认创建结果'
+      : isSea && seaCreate.status === 'success'
+        ? '进入已创建订单'
+        : '创建订单';
+
   if (!definition) {
     return (
       <PageContainer>
@@ -240,6 +309,35 @@ function NewOrderContent({
 
   if (!canCreate) {
     return <Result status="403" title="无权新建此类订单" />;
+  }
+
+  if (
+    isSea &&
+    seaCreate.frozen &&
+    (loading || error || (sourceOrderId && !source))
+  ) {
+    return (
+      <PageContainer>
+        <Result
+          status="warning"
+          title="本次创建结果待确认"
+          subTitle={
+            seaCreate.error ||
+            '原提交内容已保留；确认结果不需要重新加载来源资料或候选项。'
+          }
+          extra={
+            <Button
+              type="primary"
+              loading={createBusy}
+              disabled={seaCreate.status === 'blocked'}
+              onClick={submitCreate}
+            >
+              {createLabel}
+            </Button>
+          }
+        />
+      </PageContainer>
+    );
   }
 
   if (sourceRequest.error || (sourceOrderId && !canUseSource)) {
@@ -332,6 +430,20 @@ function NewOrderContent({
     const generation = instanceGenerationRef.current;
     const isCurrentInstance = () =>
       generation === instanceGenerationRef.current;
+    if (isSea) {
+      try {
+        const createdId = await seaCreate.submit(
+          definition.form.buildCreatePayload(values),
+        );
+        if (!createdId || !isCurrentInstance()) return false;
+        completeSeaCreate(createdId);
+        return true;
+      } catch (error) {
+        if (isCurrentInstance())
+          message.error(getErrorMessage(error, '创建订单失败'));
+        return false;
+      }
+    }
     setSubmitting(true);
     try {
       const response = await orderServiceCreateOrder(
@@ -375,6 +487,48 @@ function NewOrderContent({
       loading={loading}
       loadingTip="正在加载业务模板与主数据..."
       formRef={formRef}
+      actionsRef={actionsRef}
+      editingDisabled={isSea && seaCreate.frozen}
+      prependSections={
+        isSea &&
+        (seaCreate.status === 'unknown' ||
+          seaCreate.status === 'success' ||
+          seaCreate.status === 'blocked')
+          ? [
+              {
+                key: 'create-result',
+                title: '创建结果',
+                content: (
+                  <Alert
+                    showIcon
+                    type="warning"
+                    title={
+                      seaCreate.error ||
+                      (seaCreate.status === 'success'
+                        ? '订单已创建，请进入订单详情'
+                        : '创建结果待确认，输入已冻结')
+                    }
+                    description="请使用下方确认按钮读取本次创建结果，确认期间不会重新创建另一张订单。"
+                  />
+                ),
+              },
+            ]
+          : []
+      }
+      footer={
+        isSea ? (
+          <StickyFooterBar info="海运出口录单">
+            <Button
+              disabled={createBusy || seaCreate.status === 'blocked'}
+              onClick={submitCreate}
+              type="primary"
+              loading={createBusy}
+            >
+              {createLabel}
+            </Button>
+          </StickyFooterBar>
+        ) : undefined
+      }
       header={
         <OrderPageHeader
           page="create"
@@ -387,13 +541,14 @@ function NewOrderContent({
                 <Button
                   type="primary"
                   icon={<SaveOutlined />}
-                  loading={submitting}
-                  onClick={() => formRef.current?.submit()}
+                  loading={createBusy}
+                  disabled={isSea && seaCreate.status === 'blocked'}
+                  onClick={submitCreate}
                 >
-                  创建订单
+                  {createLabel}
                 </Button>
                 <Button
-                  disabled={submitting}
+                  disabled={createBusy || (isSea && seaCreate.frozen)}
                   onClick={() => history.push(`/orders/${definition.kind}`)}
                 >
                   取消
