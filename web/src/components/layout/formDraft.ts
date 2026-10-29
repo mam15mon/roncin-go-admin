@@ -79,7 +79,13 @@ export function getFormDraftKey(
 export function saveFormDraft(draftKey: string, values: unknown): void {
   try {
     if (typeof sessionStorage === 'undefined' || !draftKey || !values) return;
-    sessionStorage.setItem(draftKey, JSON.stringify(values));
+    // 保留显式清空：省略 undefined 会在恢复合并 initialValues 时复活旧值。
+    sessionStorage.setItem(
+      draftKey,
+      JSON.stringify(values, (_key, value) =>
+        value === undefined ? null : value,
+      ),
+    );
   } catch {
     // 忽略存储超限或受限环境错误
   }

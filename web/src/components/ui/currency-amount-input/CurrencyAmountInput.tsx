@@ -39,7 +39,7 @@ function TooltipNumericInput({
       onChange={handleChange}
       placeholder={placeholder}
       maxLength={maxLength}
-      disabled={disabled}
+      disabled={disabled || undefined}
       style={{
         textAlign: 'right',
         fontVariantNumeric: 'tabular-nums',
@@ -157,7 +157,7 @@ export const CurrencyAmountInput: React.FC<CurrencyAmountInputProps> = ({
           placeholder={currencyPlaceholder}
           options={currencyOptions}
           popupMatchSelectWidth={false}
-          disabled={disabled}
+          disabled={disabled || undefined}
           allowClear={allowClear}
           labelRender={(optionProps) =>
             formatSelectedCurrency(optionProps, renderSelectedCurrency)
@@ -191,7 +191,7 @@ export const CurrencyAmountInput: React.FC<CurrencyAmountInputProps> = ({
         <TooltipNumericInput
           placeholder={amountPlaceholder}
           maxLength={maxLength}
-          disabled={disabled}
+          disabled={disabled || undefined}
           style={{ width: `calc(100% - ${currencyWidth}px)` }}
           showTooltip={showTooltip}
         />

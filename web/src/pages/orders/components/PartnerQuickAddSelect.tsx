@@ -280,7 +280,7 @@ export default function PartnerQuickAddSelect({
       <ProFormSearchableSelect
         name={name}
         label={displayName}
-        disabled={disabled}
+        disabled={disabled || undefined}
         rules={
           required ? [{ required: true, message: `请选择${displayName}` }] : []
         }

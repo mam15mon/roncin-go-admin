@@ -1,6 +1,7 @@
 import { ProForm } from '@ant-design/pro-components';
-import { act, render, waitFor } from '@testing-library/react';
-import { Form } from 'antd';
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { act, fireEvent, waitFor } from '@testing-library/react';
+import { Form, Input } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PartnerAssignmentRole } from '@/enums.generated';
@@ -197,7 +198,10 @@ describe('SeaCustomerField 联动带出内部信息', () => {
     expect(setCustomerCode).toHaveBeenCalledWith('CUST001');
 
     await waitFor(() => {
-      expect(partnerServiceGetPartner).toHaveBeenCalledWith({ id: 'cust-1' });
+      expect(partnerServiceGetPartner).toHaveBeenCalledWith(
+        { id: 'cust-1' },
+        { skipErrorHandler: true },
+      );
     });
 
     await waitFor(() => {
@@ -274,9 +278,13 @@ describe('SeaCustomerField 联动带出内部信息', () => {
     render(<TestComponent />);
 
     // 触发第一个客户选择
-    capturedProps.onPartnerChange({ value: 'cust-1', code: 'C1' });
+    await act(async () => {
+      capturedProps.onPartnerChange({ value: 'cust-1', code: 'C1' });
+    });
     // 快速切换到第二个客户
-    capturedProps.onPartnerChange({ value: 'cust-2', code: 'C2' });
+    await act(async () => {
+      capturedProps.onPartnerChange({ value: 'cust-2', code: 'C2' });
+    });
 
     // 等待第二个客户处理完毕
     await waitFor(() => {
@@ -284,21 +292,22 @@ describe('SeaCustomerField 联动带出内部信息', () => {
     });
 
     // 随后第一个请求才返回迟到的旧数据
-    resolveFirst({
-      data: {
-        id: 'cust-1',
-        assignments: [
-          {
-            role: PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_SALES,
-            userId: 'sales-1-stale',
-            organizationId: 'org-sales-1',
-          },
-        ],
-      },
+    await act(async () => {
+      resolveFirst({
+        data: {
+          id: 'cust-1',
+          assignments: [
+            {
+              role: PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_SALES,
+              userId: 'sales-1-stale',
+              organizationId: 'org-sales-1',
+            },
+          ],
+        },
+      });
     });
 
     // 验证旧数据已被丢弃，依然保持销售人员 2
-    await new Promise((r) => setTimeout(r, 20));
     expect(formInstance.getFieldValue('salesUserId')).toBe('sales-2');
   });
   it.each(['empty', 'clear', 'failure'] as const)(
@@ -355,4 +364,66 @@ describe('SeaCustomerField 联动带出内部信息', () => {
       expect(formInstance.getFieldValue('creatorUserId')).toBe('creator');
     },
   );
+});
+
+describe('客户默认值尊重手动输入', () => {
+  it('客户资料迟到不覆盖手动操作员与主动清空的单证员', async () => {
+    let finish!: (value: unknown) => void;
+    vi.mocked(partnerServiceGetPartner).mockReturnValue(
+      new Promise((resolve) => {
+        finish = resolve;
+      }) as never,
+    );
+    let instance: ReturnType<typeof Form.useForm>[0] | undefined;
+    function Harness() {
+      const [form] = Form.useForm();
+      instance = form;
+      return (
+        <ProForm form={form} submitter={false}>
+          <SeaCustomerField
+            searchCustomers={async () => []}
+            setCustomerCode={() => {}}
+          />
+          <Form.Item name="operatorUserId">
+            <Input aria-label="操作员" />
+          </Form.Item>
+          <Form.Item name="documentUserId">
+            <Input aria-label="单证员" />
+          </Form.Item>
+        </ProForm>
+      );
+    }
+    const view = render(<Harness />);
+    await act(async () => {
+      view.getByTestId('trigger-change').click();
+    });
+    fireEvent.change(view.getByLabelText('操作员'), {
+      target: { value: 'manual' },
+    });
+    fireEvent.change(view.getByLabelText('单证员'), {
+      target: { value: 'temporary' },
+    });
+    fireEvent.change(view.getByLabelText('单证员'), { target: { value: '' } });
+    await act(async () => {
+      finish({
+        data: {
+          assignments: [
+            {
+              role: PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_OPERATOR,
+              userId: 'default',
+            },
+            {
+              role: PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_DOCUMENT,
+              userId: 'default-doc',
+            },
+          ],
+        },
+      });
+    });
+    await waitFor(() =>
+      expect(view.queryByRole('status')).not.toBeInTheDocument(),
+    );
+    expect(instance?.getFieldValue('operatorUserId')).toBe('manual');
+    expect(instance?.getFieldValue('documentUserId')).toBe('');
+  });
 });

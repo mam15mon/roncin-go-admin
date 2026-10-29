@@ -94,7 +94,7 @@ export function HouseBillNumberField({
       name={[fieldKey, 'houseNo']}
       label="分单号 (HBL No.)"
       placeholder="请输入分单号"
-      disabled={disabled}
+      disabled={disabled || undefined}
       extra={
         showFeedback ? (
           <>
@@ -187,7 +187,10 @@ export function HouseBillIdentityFields({
     <Row gutter={[16, 0]}>
       {showHouseNo && (
         <Col xs={24} md={8}>
-          <HouseBillNumberField fieldKey={fieldKey} disabled={disabled} />
+          <HouseBillNumberField
+            fieldKey={fieldKey}
+            disabled={disabled || undefined}
+          />
         </Col>
       )}
       <Col xs={24} md={showHouseNo ? 16 : 24}>
@@ -195,7 +198,7 @@ export function HouseBillIdentityFields({
           name={[fieldKey, 'note']}
           label="分单备注"
           placeholder="请输入分单备注"
-          disabled={disabled}
+          disabled={disabled || undefined}
           layout="vertical"
           fieldProps={{ maxLength: 500 }}
         />
@@ -210,7 +213,7 @@ export function HouseBillIdentityFields({
           style={{ marginBottom: 16 }}
         >
           <Radio.Group
-            disabled={disabled}
+            disabled={disabled || undefined}
             onChange={() =>
               form.setFieldValue([fieldKey, 'issuerPartnerId'], undefined)
             }
@@ -260,7 +263,7 @@ export function HouseBillIdentityFields({
                 name={[fieldKey, 'issuerPartnerId']}
                 label="签发合作方"
                 placeholder="请选择签发主体合作伙伴"
-                disabled={disabled}
+                disabled={disabled || undefined}
                 rules={[{ required: true, message: '请选择签发主体合作伙伴' }]}
                 request={async ({ keyWords }) => searchPartnerOptions(keyWords)}
                 fieldProps={{ filterOption: false }}

@@ -6,7 +6,8 @@ import {
   ProFormSelect,
   ProFormText,
 } from '@ant-design/pro-components';
-import { Form, Input, Tooltip } from 'antd';
+import { useQuery } from '@tanstack/react-query';
+import { Alert, Button, Form, Input, Tooltip } from 'antd';
 import { createStyles } from 'antd-style';
 import React from 'react';
 import {
@@ -225,7 +226,7 @@ export function SeaDangerousGoodsFields({
                 <TooltipInput
                   placeholder="4位数字"
                   maxLength={4}
-                  disabled={disabled || !isDangerousGoodsSelected}
+                  disabled={disabled || !isDangerousGoodsSelected || undefined}
                 />
               </Form.Item>
             </div>
@@ -234,7 +235,7 @@ export function SeaDangerousGoodsFields({
                 <TooltipInput
                   placeholder="类别"
                   maxLength={16}
-                  disabled={disabled || !isDangerousGoodsSelected}
+                  disabled={disabled || !isDangerousGoodsSelected || undefined}
                 />
               </Form.Item>
             </div>
@@ -244,7 +245,7 @@ export function SeaDangerousGoodsFields({
                 label="截申报时间"
                 tooltip="主要监管或舱单申报截止时间；VGM、SI、截关仍使用各自独立节点"
                 readonly={disabled}
-                disabled={!isDangerousGoodsSelected}
+                disabled={disabled || !isDangerousGoodsSelected || undefined}
                 fieldProps={{ style: { width: '100%' } }}
               />
             </div>
@@ -255,7 +256,7 @@ export function SeaDangerousGoodsFields({
                   label="包装类别"
                   tooltip="IATA DGR 包装类别：Ⅰ类危险性最大、Ⅲ类最小；Class 1/2/7 无包装类别，可留空"
                   options={dangerousPackingGroupOptions}
-                  disabled={disabled || !isDangerousGoodsSelected}
+                  disabled={disabled || !isDangerousGoodsSelected || undefined}
                   fieldProps={{
                     style: { width: '100%' },
                     allowClear: true,
@@ -318,7 +319,7 @@ function SeaCarrierField({
       options={
         currentShippingLineOption ? [currentShippingLineOption] : undefined
       }
-      disabled={readonly || isMultiMemberLocked}
+      disabled={readonly || isMultiMemberLocked || undefined}
       tooltip={
         isMultiMemberLocked
           ? '该主单已关联多票订单，禁止从单票页面修改船公司'
@@ -425,62 +426,169 @@ export function SeaCustomerField({
   onCustomerChange?: (option?: PartnerSelectOption) => void;
 }) {
   const form = Form.useFormInstance();
-  const latestCustomerIdRef = React.useRef<string | number | undefined>(
-    undefined,
-  );
+  const [selection, setSelection] = React.useState<{
+    id?: string;
+    revision: number;
+    preserveExisting?: boolean;
+  }>({ revision: 0 });
+  const restoredCustomerId = Form.useWatch('customerId', {
+    form,
+    preserve: true,
+  });
+  const restoredSalesId = Form.useWatch('salesUserId', {
+    form,
+    preserve: true,
+  });
+  const restoredServiceId = Form.useWatch('customerServiceUserId', {
+    form,
+    preserve: true,
+  });
+  const instanceId = React.useId();
+  const appliedRevision = React.useRef<number | undefined>(undefined);
+  const personnelFields = [
+    'operatorUserId',
+    'salesUserId',
+    'customerServiceUserId',
+    'commercialUserId',
+    'associateUserId',
+    'associate2UserId',
+    'documentUserId',
+  ];
+  const customerQuery = useQuery({
+    queryKey: ['orders', 'customer-personnel', { instanceId, ...selection }],
+    enabled: Boolean(selection.id && !readonly),
+    queryFn: async () => {
+      if (!selection.id) throw new Error('请选择客户');
+      const response = await partnerServiceGetPartner(
+        { id: selection.id },
+        { skipErrorHandler: true },
+      );
+      if (!response?.data || response.success === false)
+        throw new Error('客户人员资料加载失败');
+      return response.data;
+    },
+    meta: { silent: true },
+  });
+  React.useEffect(() => {
+    if (
+      readonly ||
+      !customerQuery.isSuccess ||
+      customerQuery.isFetching ||
+      appliedRevision.current === selection.revision
+    )
+      return;
+    appliedRevision.current = selection.revision;
+    const updates = extractPersonnelFromPartnerAssignments(
+      customerQuery.data.assignments,
+      personnelOptions,
+    );
+    form.setFields(
+      Object.entries(updates)
+        .filter(
+          ([name]) =>
+            !form.isFieldTouched(name) &&
+            (!selection.preserveExisting || !form.getFieldValue(name)),
+        )
+        .map(([name, value]) => ({ name, value, touched: false })),
+    );
+  }, [
+    customerQuery.data,
+    customerQuery.isSuccess,
+    customerQuery.isFetching,
+    selection.revision,
+    selection.preserveExisting,
+    readonly,
+    form,
+    personnelOptions,
+  ]);
 
-  const handlePartnerChange = async (option?: PartnerSelectOption) => {
+  const handlePartnerChange = (option?: PartnerSelectOption) => {
     setCustomerCode(option?.code);
     onCustomerChange?.(option);
-
-    const customerId = option?.value;
-    latestCustomerIdRef.current = customerId;
-    // 客户岗位是本次选择的默认值；空配置和请求失败均不能沿用上一客户人员。
-    form.setFieldsValue({
-      operatorUserId: undefined,
-      salesUserId: undefined,
-      customerServiceUserId: undefined,
-      commercialUserId: undefined,
-      associateUserId: undefined,
-      associate2UserId: undefined,
-      documentUserId: undefined,
-    });
-    if (!customerId) {
-      return;
-    }
-
-    try {
-      const res = await partnerServiceGetPartner({ id: String(customerId) });
-      if (latestCustomerIdRef.current !== customerId) {
-        return;
-      }
-      const partner = res?.data;
-      if (!partner) return;
-
-      const updates = extractPersonnelFromPartnerAssignments(
-        partner.assignments,
-        personnelOptions,
-      );
-      if (Object.keys(updates).length > 0 && form) {
-        form.setFieldsValue(updates);
-      }
-    } catch {
-      // 容错处理：获取客商内部信息失败时不阻断主表单操作
-    }
+    // 新客户意图清理旧默认值，同时重新开始追踪用户实际修改（包括主动清空）。
+    form.setFields(
+      personnelFields.map((name) => ({
+        name,
+        value: undefined,
+        touched: false,
+      })),
+    );
+    setSelection((previous) => ({
+      id: option?.value ? String(option.value) : undefined,
+      revision: previous.revision + 1,
+    }));
   };
-
+  const missingStaff =
+    customerQuery.isSuccess &&
+    !customerQuery.isFetching &&
+    (!customerQuery.data.assignments?.some(
+      (item) =>
+        item.role === PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_SALES &&
+        item.userId,
+    ) ||
+      !customerQuery.data.assignments?.some(
+        (item) =>
+          item.role ===
+            PartnerAssignmentRole.PARTNER_ASSIGNMENT_ROLE_CUSTOMER_SERVICE &&
+          item.userId,
+      ));
   return (
-    <PartnerQuickAddSelect
-      name="customerId"
-      displayName="委托单位"
-      role={PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER}
-      createRoute="/partners/customers/create"
-      searchPartners={searchCustomers}
-      staffOptions={personnelOptions}
-      required
-      disabled={readonly}
-      onPartnerChange={handlePartnerChange}
-    />
+    <div>
+      <PartnerQuickAddSelect
+        name="customerId"
+        displayName="委托单位"
+        role={PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER}
+        createRoute="/partners/customers/create"
+        searchPartners={searchCustomers}
+        staffOptions={personnelOptions}
+        required
+        disabled={readonly}
+        onPartnerChange={handlePartnerChange}
+      />
+      {!selection.id &&
+        restoredCustomerId &&
+        !readonly &&
+        (!restoredSalesId || !restoredServiceId) && (
+          <Alert
+            type="warning"
+            title="客户业务或客服人员尚未带入，可重新加载客户人员。"
+            action={
+              <Button
+                size="small"
+                onClick={() =>
+                  setSelection((previous) => ({
+                    id: String(restoredCustomerId),
+                    revision: previous.revision + 1,
+                    preserveExisting: true,
+                  }))
+                }
+              >
+                重新加载客户人员
+              </Button>
+            }
+          />
+        )}
+      {selection.id && !readonly && customerQuery.isFetching && (
+        <div role="status">正在加载客户默认人员…</div>
+      )}
+      {selection.id && !readonly && customerQuery.isError && (
+        <Alert
+          type="error"
+          title="客户人员加载失败，请重试"
+          action={
+            <Button size="small" onClick={() => void customerQuery.refetch()}>
+              重试人员加载
+            </Button>
+          }
+        />
+      )}
+      {selection.id && !readonly && missingStaff && (
+        <Alert
+          type="warning"
+          title="客户尚未配置业务或客服人员，请联系客户档案维护人员补齐后重新选择客户。"
+        />
+      )}
+    </div>
   );
 }
 

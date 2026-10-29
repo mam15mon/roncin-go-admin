@@ -83,7 +83,7 @@ export const PackageCountInput: React.FC<PackageCountInputProps> = ({
           min={min}
           precision={0}
           placeholder={countPlaceholder}
-          disabled={disabled}
+          disabled={disabled || undefined}
           style={{
             width: `calc(100% - ${unitWidth}px)`,
             textAlign: 'left',
@@ -97,7 +97,7 @@ export const PackageCountInput: React.FC<PackageCountInputProps> = ({
           showSearch={{ filterOption, onSearch: setSearchValue }}
           allowClear
           placeholder={unitPlaceholder}
-          disabled={disabled}
+          disabled={disabled || undefined}
           options={mergedOptions}
           onSelect={() => setSearchValue('')}
           onBlur={() => setSearchValue('')}

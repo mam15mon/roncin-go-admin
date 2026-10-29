@@ -68,3 +68,13 @@ describe('PackageCountInput', () => {
     expect(select).toBeDisabled();
   });
 });
+
+it('父表单冻结时件数与单位继承禁用', () => {
+  render(
+    <Form disabled>
+      <PackageCountInput countName="packages" unitName="unit" />
+    </Form>,
+  );
+  expect(screen.getByRole('spinbutton')).toBeDisabled();
+  expect(screen.getByRole('combobox')).toBeDisabled();
+});

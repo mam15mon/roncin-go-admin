@@ -200,7 +200,7 @@ describe('NewOrderPage', () => {
   it('优先按 GENERAL 业务码识别默认货物类别，无论名称是否为普货', async () => {
     const { container } = renderWithApp(<NewOrderPage />);
 
-    expect(screen.getByText('创建订单')).toBeInTheDocument();
+    expect(screen.getAllByText('创建订单')).toHaveLength(2);
     expect(container.querySelector('form')).toBeInTheDocument();
     expect(lastTemplateProps?.initialValues?.cargoCategoryIds).toEqual([
       'cat-gen-id',

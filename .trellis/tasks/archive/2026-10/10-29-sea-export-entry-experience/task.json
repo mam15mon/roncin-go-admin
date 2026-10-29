@@ -3,7 +3,7 @@
   "name": "sea-export-entry-experience",
   "title": "海运出口录入可靠性修复与操作体验优化",
   "description": "修复客户人员异步覆盖、草稿遗漏及新建结果不确定时的恢复问题，优化录单反馈与操作入口",
-  "status": "planning",
+  "status": "completed",
   "dev_type": "frontend",
   "scope": "orders",
   "package": "web",
@@ -11,8 +11,8 @@
   "creator": "mam15mon",
   "assignee": "mam15mon",
   "createdAt": "2026-10-29",
-  "completedAt": null,
-  "branch": null,
+  "completedAt": "2026-10-29",
+  "branch": "fix/sea-export-entry-experience",
   "base_branch": "main",
   "worktree_path": null,
   "commit": null,
@@ -21,6 +21,6 @@
   "children": [],
   "parent": null,
   "relatedFiles": [],
-  "notes": "仅规划；用户要求创建任务，尚未授权实施。",
+  "notes": "2026-10-29 用户批准实施、review、合并 main、安全删除分支并 push。",
   "meta": {}
 }
