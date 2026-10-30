@@ -81,9 +81,14 @@ describe('密码找回服务端冷却与消息结果', () => {
     const { onSuccess } = renderModal();
     await readyChallenge();
     monotonic += 60000;
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: '发送验证码' })).toBeEnabled(),
-    );
+    // 精确定位恢复后的按钮，避免角色轮询的样式计算阻塞冷却计时。
+    const resendButton = await screen.findByLabelText('发送验证码', {
+      selector: 'button',
+    });
+    await waitFor(() => {
+      expect(resendButton).toBeVisible();
+      expect(resendButton).toBeEnabled();
+    });
     requestCode.mockRejectedValueOnce(new Error('Network Error'));
     await sendCode();
     expect(
