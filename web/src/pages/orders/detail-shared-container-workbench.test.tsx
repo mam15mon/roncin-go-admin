@@ -145,6 +145,7 @@ describe('订单详情共享箱工作台路由复用隔离', () => {
         orderId: 'ord-A',
         transportExecutionId: 'TE-A',
       }),
+      { skipErrorHandler: true },
     );
     expect(listContainersSpy.mock.calls.length).toBeGreaterThan(0);
 

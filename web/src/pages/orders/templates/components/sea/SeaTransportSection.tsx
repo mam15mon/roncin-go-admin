@@ -710,7 +710,28 @@ export function getSeaTransportFields(props: TemplateProps) {
   const { locationOptions, searchLocations, containerSpecOptions, isDetail } =
     props;
   return {
-    containers: <SeaContainerPlanFields options={containerSpecOptions} />,
+    containers: (
+      <FormRow cols={2}>
+        <div>
+          <Typography.Text strong>计划箱型箱量</Typography.Text>
+          <SeaContainerPlanFields options={containerSpecOptions} />
+        </div>
+        <div>
+          <Typography.Text strong>实际装箱</Typography.Text>
+          {props.isDetail ? (
+            (props.actualContainers ?? (
+              <Typography.Paragraph type="secondary">
+                实际箱资料暂不可用
+              </Typography.Paragraph>
+            ))
+          ) : (
+            <Typography.Paragraph type="secondary">
+              保存订单后，可在此维护实际箱型、箱号、封号及件重尺。计划箱量与实际装箱分别维护。
+            </Typography.Paragraph>
+          )}
+        </div>
+      </FormRow>
+    ),
     master: (
       <SeaMasterBillFields
         isDetail={isDetail}

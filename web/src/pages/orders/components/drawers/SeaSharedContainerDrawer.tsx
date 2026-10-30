@@ -1,14 +1,17 @@
 import { PlusOutlined } from '@ant-design/icons';
+import { useQuery } from '@tanstack/react-query';
 import { Alert, App, Button, Drawer, Form, Space, Spin } from 'antd';
 import React, {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { DRAWER_SIZE } from '@/components/ui';
+import { getRequestErrorStatus } from '@/requestErrorConfig';
 import {
   seaSharedContainerServiceConfirmSeaSharedContainer,
   seaSharedContainerServiceCreateSeaSharedContainer,
@@ -48,7 +51,18 @@ export type SeaSharedContainerDrawerProps = {
   containerSpecOptions?: { label: string; value: string | number }[];
 };
 
-export default function SeaSharedContainerDrawer({
+export default function SeaSharedContainerDrawer(
+  props: SeaSharedContainerDrawerProps,
+) {
+  return (
+    <SeaSharedContainerDrawerContent
+      key={`${props.orderId}:${props.transportExecutionId}:${props.open}`}
+      {...props}
+    />
+  );
+}
+
+function SeaSharedContainerDrawerContent({
   open,
   onClose,
   transportExecutionId,
@@ -61,15 +75,13 @@ export default function SeaSharedContainerDrawer({
 }: SeaSharedContainerDrawerProps) {
   const { message } = App.useApp();
 
-  // 业务上下文键：订单 + 运输执行。父组件以该键重新挂载，抽屉内部再以请求序号防迟到覆盖
+  // 业务上下文键：订单 + 运输执行；外层按上下文和开关状态重新挂载。
   const contextKey =
     orderId && transportExecutionId
       ? `${orderId}:${transportExecutionId}`
       : null;
 
-  const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [containers, setContainers] = useState<API.SeaSharedContainer[]>([]);
   const [selectedContainerId, setSelectedContainerId] = useState<string | null>(
     null,
   );
@@ -77,163 +89,133 @@ export default function SeaSharedContainerDrawer({
     enabled: open && Boolean(contextKey),
     identity: `${contextKey}:${selectedContainerId}`,
   });
-  const [candidates, setCandidates] = useState<
-    API.SeaSharedContainerCandidateOrder[]
-  >([]);
   const [candidateKeyword, setCandidateKeyword] = useState('');
   const [candidateSearching, setCandidateSearching] = useState('');
   const [candidatePage, setCandidatePage] = useState(1);
-  const [candidateTotal, setCandidateTotal] = useState(0);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [createForm] = Form.useForm();
 
   // 本地草稿：key = `${orderId}:${cargoItemId}`，仅属于当前业务上下文
-  const [drafts, setDrafts] = useState<Record<string, DraftAllocation>>({});
-
-  // 迟到响应防护：单调递增请求序号 + 当前上下文键，仅最新上下文的最新请求可写入状态
-  const containersSeqRef = useRef(0);
-  const candidatesSeqRef = useRef(0);
-  const activeContextRef = useRef<string | null>(null);
-  const loadedContextRef = useRef<string | null>(null);
-  const lastCandidateQueryRef = useRef<string | null>(null);
-
-  const resetContextState = useCallback(() => {
-    setContainers([]);
-    setCandidates([]);
-    setCandidateTotal(0);
-    setSelectedContainerId(null);
-    setDrafts({});
-  }, []);
-
-  const loadContainers = useCallback(
-    async (context: string) => {
-      if (!orderId || !transportExecutionId) return;
-      const seq = ++containersSeqRef.current;
-      setLoading(true);
-      try {
-        const resp = await seaSharedContainerServiceListSeaSharedContainers({
-          orderId,
-          transportExecutionId,
-          pageSize: CONTAINER_PAGE_SIZE,
-        });
-        if (
-          seq !== containersSeqRef.current ||
-          activeContextRef.current !== context
-        ) {
-          return;
-        }
-        const containerList = resp?.data || [];
-        setContainers(containerList);
-        setSelectedContainerId((prev) => {
-          if (prev && containerList.some((c) => c.id === prev)) {
-            return prev;
-          }
-          return containerList[0]?.id || null;
-        });
-      } catch (err: unknown) {
-        if (
-          seq === containersSeqRef.current &&
-          activeContextRef.current === context
-        ) {
-          message.error(
-            err instanceof Error ? err.message : '加载共享箱数据失败',
-          );
-        }
-      } finally {
-        if (seq === containersSeqRef.current) {
-          setLoading(false);
-        }
-      }
+  const [drafts, setDraftState] = useState<Record<string, DraftAllocation>>({});
+  // 事件间同步推进提交快照；连续“填入→保存”不能读取上次渲染的闭包。
+  const draftsRef = useRef(drafts);
+  const setDrafts = useCallback(
+    (next: React.SetStateAction<Record<string, DraftAllocation>>) => {
+      const values =
+        typeof next === 'function' ? next(draftsRef.current) : next;
+      draftsRef.current = values;
+      setDraftState(values);
     },
-    [orderId, transportExecutionId, message],
+    [],
   );
 
-  const loadCandidates = useCallback(
-    async (context: string, keyword: string, page: number) => {
-      if (!orderId || !transportExecutionId) return;
-      const seq = ++candidatesSeqRef.current;
-      try {
-        const resp =
-          await seaSharedContainerServiceListSeaSharedContainerCandidates({
+  // 每次打开使用独立实例身份；关闭/切换订单即卸载，旧查询不会回写新工作台。
+  const instanceId = React.useId();
+  const activeContextRef = useRef<string | null>(contextKey);
+  useEffect(() => {
+    activeContextRef.current = contextKey;
+    return () => {
+      activeContextRef.current = null;
+    };
+  }, [contextKey]);
+  const isCurrentContext = () =>
+    open && Boolean(contextKey) && activeContextRef.current === contextKey;
+  const enabled = open && Boolean(contextKey);
+  const containersQuery = useQuery({
+    queryKey: [
+      'orders',
+      'shared-containers',
+      { orderId, transportExecutionId, instanceId },
+    ],
+    enabled,
+    queryFn: async () => {
+      const response = await seaSharedContainerServiceListSeaSharedContainers(
+        { orderId, transportExecutionId, pageSize: CONTAINER_PAGE_SIZE },
+        { skipErrorHandler: true },
+      );
+      if (
+        !response ||
+        response.success === false ||
+        (!Array.isArray(response.data) &&
+          !(response.success === true && response.data === undefined))
+      )
+        throw new Error('共享箱数据加载失败，请重试');
+      // ProtoJSON 会省略空 repeated 字段；明确成功时缺省 data 即空列表。
+      return response.data ?? [];
+    },
+    meta: { silent: true },
+  });
+  const candidatesQuery = useQuery({
+    queryKey: [
+      'orders',
+      'shared-container-candidates',
+      {
+        orderId,
+        transportExecutionId,
+        instanceId,
+        candidateKeyword,
+        candidatePage,
+      },
+    ],
+    enabled,
+    queryFn: async () => {
+      const response =
+        await seaSharedContainerServiceListSeaSharedContainerCandidates(
+          {
             orderId,
             transportExecutionId,
-            page,
+            page: candidatePage,
             pageSize: CANDIDATE_PAGE_SIZE,
-            keyword: keyword || undefined,
-          });
-        if (
-          seq !== candidatesSeqRef.current ||
-          activeContextRef.current !== context
-        ) {
-          return;
-        }
-        setCandidates(resp?.data || []);
-        setCandidateTotal(Number(resp?.total || 0));
-      } catch (err: unknown) {
-        if (
-          seq === candidatesSeqRef.current &&
-          activeContextRef.current === context
-        ) {
-          message.error(
-            err instanceof Error ? err.message : '加载候选订单失败',
-          );
-        }
-      }
+            keyword: candidateKeyword || undefined,
+          },
+          { skipErrorHandler: true },
+        );
+      if (
+        !response ||
+        response.success === false ||
+        (!Array.isArray(response.data) &&
+          !(response.success === true && response.data === undefined))
+      )
+        throw new Error('候选订单加载失败，请重试');
+      return { data: response.data ?? [], total: Number(response.total ?? 0) };
     },
-    [orderId, transportExecutionId, message],
-  );
-
-  // 打开或上下文/查询条件变化：新上下文立即清空旧状态并重置查询；
-  // 同一上下文内仅关键字或页码变化时按需重新查询候选订单
+    meta: { silent: true },
+  });
+  const containers = containersQuery.data ?? [];
+  const candidates = candidatesQuery.data?.data ?? [];
+  const candidateTotal = candidatesQuery.data?.total ?? 0;
   useEffect(() => {
-    if (!open || !contextKey) {
-      activeContextRef.current = null;
-      loadedContextRef.current = null;
-      lastCandidateQueryRef.current = null;
-      containersSeqRef.current += 1;
-      candidatesSeqRef.current += 1;
-      resetContextState();
-      return;
-    }
-    activeContextRef.current = contextKey;
-    if (loadedContextRef.current !== contextKey) {
-      loadedContextRef.current = contextKey;
-      lastCandidateQueryRef.current = `${contextKey}||:1`;
-      setCandidateKeyword('');
-      setCandidateSearching('');
-      setCandidatePage(1);
-      containersSeqRef.current += 1;
-      candidatesSeqRef.current += 1;
-      resetContextState();
-      void loadContainers(contextKey);
-      void loadCandidates(contextKey, '', 1);
-      return;
-    }
-    const queryKey = `${contextKey}||${candidateKeyword}:${candidatePage}`;
-    if (lastCandidateQueryRef.current === queryKey) return;
-    lastCandidateQueryRef.current = queryKey;
-    void loadCandidates(contextKey, candidateKeyword, candidatePage);
-  }, [
-    open,
-    contextKey,
-    candidateKeyword,
-    candidatePage,
-    loadContainers,
-    loadCandidates,
-    resetContextState,
-  ]);
+    if (!containersQuery.isSuccess) return;
+    setSelectedContainerId((previous) =>
+      previous && containers.some((item) => item.id === previous)
+        ? previous
+        : (containers[0]?.id ?? null),
+    );
+  }, [containersQuery.data, containersQuery.isSuccess]);
+  const loadContainers = () => containersQuery.refetch();
+  const draftEdited = useRef(false);
+  const initializedContainer = useRef<string | null>(null);
 
   // 当前选中的共享箱
   const selectedContainer = useMemo(() => {
     return containers.find((c) => c.id === selectedContainerId) || null;
   }, [containers, selectedContainerId]);
 
-  // 选定共享箱变化时，以其既有分配初始化本地草稿
-  useEffect(() => {
+  // 在浏览器允许交互前初始化当前箱草稿，避免首个点击被迟到的 effect 回填覆盖。
+  useLayoutEffect(() => {
     if (!selectedContainer) {
       setDrafts({});
       return;
     }
+    const identity = `${selectedContainer.id}:${selectedContainer.version}`;
+    if (
+      initializedContainer.current === identity ||
+      (draftEdited.current &&
+        initializedContainer.current?.split(':')[0] === selectedContainer.id)
+    )
+      return;
+    initializedContainer.current = identity;
+    draftEdited.current = false;
     const map: Record<string, DraftAllocation> = {};
     for (const alloc of selectedContainer.allocations ?? []) {
       if (!alloc.orderId || !alloc.cargoItemId || !alloc.houseBillId) continue;
@@ -272,6 +254,7 @@ export default function SeaSharedContainerDrawer({
       field: 'packageCount' | 'grossWeightKg' | 'volumeCbm',
       value: number | string | null,
     ) => {
+      draftEdited.current = true;
       markDirty();
       const key = `${identity.orderId}:${identity.cargoItemId}`;
       setDrafts((prev) => {
@@ -293,19 +276,23 @@ export default function SeaSharedContainerDrawer({
 
   // 快捷填入该货物的全部总件重尺；首次操作（无既有草稿）时以行身份+版本兜底，
   // 避免产出缺少 ID 与期望版本的孤儿数量项
-  const handleFillAllCargo = useCallback((record: CargoAllocationItem) => {
-    markDirty();
-    const key = `${record.draft.orderId}:${record.draft.cargoItemId}`;
-    setDrafts((prev) => ({
-      ...prev,
-      [key]: {
-        ...(prev[key] ?? record.draft),
-        packageCount: record.totalPackageCount,
-        grossWeightKg: record.totalGrossWeightKg,
-        volumeCbm: record.totalVolumeCbm,
-      },
-    }));
-  }, [markDirty]);
+  const handleFillAllCargo = useCallback(
+    (record: CargoAllocationItem) => {
+      draftEdited.current = true;
+      markDirty();
+      const key = `${record.draft.orderId}:${record.draft.cargoItemId}`;
+      setDrafts((prev) => ({
+        ...prev,
+        [key]: {
+          ...(prev[key] ?? record.draft),
+          packageCount: record.totalPackageCount,
+          grossWeightKg: record.totalGrossWeightKg,
+          volumeCbm: record.totalVolumeCbm,
+        },
+      }));
+    },
+    [markDirty],
+  );
 
   // 提交前校验选中共享箱仍属于当前上下文，通过时返回该共享箱与收窄后的 ID
   const ensureSubmitContext = (): {
@@ -331,17 +318,10 @@ export default function SeaSharedContainerDrawer({
     return { container: selectedContainer, containerId };
   };
 
-  const reloadCurrentContext = useCallback(() => {
-    if (!contextKey) return;
-    void loadContainers(contextKey);
-    void loadCandidates(contextKey, candidateKeyword, candidatePage);
-  }, [
-    contextKey,
-    loadContainers,
-    loadCandidates,
-    candidateKeyword,
-    candidatePage,
-  ]);
+  const reloadCurrentContext = () => {
+    void containersQuery.refetch();
+    void candidatesQuery.refetch();
+  };
 
   // 保存草稿
   const handleSaveDraft = async (): Promise<false | undefined> => {
@@ -358,17 +338,21 @@ export default function SeaSharedContainerDrawer({
             id: containerId,
             orderId: anchorOrderId,
             expectedVersion: String(container.version || 1),
-            allocations: buildAllocationInputs(drafts),
+            allocations: buildAllocationInputs(draftsRef.current),
           },
         );
+      if (!isCurrentContext()) return false;
       if (!isWriteResponse(writeResponse1, true)) return false;
+      draftEdited.current = false;
+      initializedContainer.current = null;
       resetDirty();
       message.success('共享箱分配草稿已保存');
       reloadCurrentContext();
     } catch (err: unknown) {
+      if (!isCurrentContext()) return false;
       message.error(err instanceof Error ? err.message : '保存草稿失败');
     } finally {
-      setSubmitting(false);
+      if (isCurrentContext()) setSubmitting(false);
     }
 
     return undefined;
@@ -380,7 +364,9 @@ export default function SeaSharedContainerDrawer({
     if (!target) return;
     const { container, containerId } = target;
     const anchorOrderId = orderId ?? '';
-    if (!summary.isBalanced) {
+    if (
+      !buildAllocationSummary(selectedContainer, draftsRef.current).isBalanced
+    ) {
       message.warning('箱件重尺尚未平衡守恒，无法确认分配');
       return;
     }
@@ -393,17 +379,21 @@ export default function SeaSharedContainerDrawer({
             id: containerId,
             orderId: anchorOrderId,
             expectedVersion: String(container.version || 1),
-            allocations: buildAllocationInputs(drafts),
+            allocations: buildAllocationInputs(draftsRef.current),
           },
         );
+      if (!isCurrentContext()) return false;
       if (!isWriteResponse(writeResponse2, true)) return false;
+      draftEdited.current = false;
+      initializedContainer.current = null;
       resetDirty();
       message.success('共享箱分配已确认生效');
       reloadCurrentContext();
     } catch (err: unknown) {
+      if (!isCurrentContext()) return false;
       message.error(err instanceof Error ? err.message : '确认分配失败');
     } finally {
-      setSubmitting(false);
+      if (isCurrentContext()) setSubmitting(false);
     }
 
     return undefined;
@@ -426,14 +416,16 @@ export default function SeaSharedContainerDrawer({
             expectedVersion: String(container.version || 1),
           },
         );
+      if (!isCurrentContext()) return false;
       if (!isWriteResponse(writeResponse3, true)) return false;
       message.success('已撤回至草稿状态');
       reloadCurrentContext();
     } catch (err: unknown) {
+      if (!isCurrentContext()) return false;
       message.error(err instanceof Error ? err.message : '撤回失败');
       reloadCurrentContext();
     } finally {
-      setSubmitting(false);
+      if (isCurrentContext()) setSubmitting(false);
     }
 
     return undefined;
@@ -453,20 +445,22 @@ export default function SeaSharedContainerDrawer({
           orderId: anchorOrderId,
           expectedVersion: String(container.version || 1),
         });
+      if (!isCurrentContext()) return false;
       if (!isWriteResponse(writeResponse4)) return false;
       message.success('共享物理箱已删除');
       setSelectedContainerId(null);
       if (contextKey) {
-        void loadContainers(contextKey);
+        void loadContainers();
       }
     } catch (err: unknown) {
+      if (!isCurrentContext()) return false;
       message.error(err instanceof Error ? err.message : '删除共享箱失败');
       if (contextKey) {
-        void loadContainers(contextKey);
+        void loadContainers();
       }
       return false;
     } finally {
-      setSubmitting(false);
+      if (isCurrentContext()) setSubmitting(false);
     }
 
     return undefined;
@@ -493,17 +487,19 @@ export default function SeaSharedContainerDrawer({
           },
           orderId,
         });
+      if (!isCurrentContext()) return false;
       if (!isWriteResponse(writeResponse5, true)) return false;
       message.success('共享物理箱已创建');
       setCreateModalOpen(false);
       createForm.resetFields();
       if (contextKey) {
-        void loadContainers(contextKey);
+        void loadContainers();
       }
     } catch (err: unknown) {
+      if (!isCurrentContext()) return false;
       message.error(err instanceof Error ? err.message : '创建共享箱失败');
     } finally {
-      setSubmitting(false);
+      if (isCurrentContext()) setSubmitting(false);
     }
 
     return undefined;
@@ -520,7 +516,7 @@ export default function SeaSharedContainerDrawer({
       destroyOnHidden
       extra={
         <Space>
-          {canCreate && (
+          {canCreate && containersQuery.isSuccess && (
             <Button
               type="primary"
               icon={<PlusOutlined />}
@@ -540,7 +536,7 @@ export default function SeaSharedContainerDrawer({
           description="共享集装箱以同一实际航次（TransportExecution）为协同边界。请先为订单指定运输执行与船名航次后，再开展客户拼货与跨订单分配。"
         />
       ) : (
-        <Spin spinning={loading || submitting}>
+        <Spin spinning={submitting}>
           <div style={{ marginBottom: 16 }}>
             <Alert
               type="info"
@@ -550,17 +546,42 @@ export default function SeaSharedContainerDrawer({
             />
           </div>
 
-          {/* 共享箱卡片选择栏 */}
-          <SeaSharedContainerCardList
-            containers={containers}
-            selectedContainerId={selectedContainerId}
-            canCreate={canCreate}
-            onSelect={setSelectedContainerId}
-            onCreate={() => setCreateModalOpen(true)}
-          />
+          {containersQuery.isPending && (
+            <div role="status">
+              <Spin size="small" /> 正在加载共享箱…
+            </div>
+          )}
+          {containersQuery.isError && (
+            <SharedQueryError
+              resource="共享箱"
+              error={containersQuery.error}
+              retry={() => void containersQuery.refetch()}
+            />
+          )}
+          {candidatesQuery.isPending && (
+            <div role="status">
+              <Spin size="small" /> 正在加载候选订单…
+            </div>
+          )}
+          {candidatesQuery.isError && (
+            <SharedQueryError
+              resource="候选订单"
+              error={candidatesQuery.error}
+              retry={() => void candidatesQuery.refetch()}
+            />
+          )}
+          {containersQuery.isSuccess && (
+            <SeaSharedContainerCardList
+              containers={containers}
+              selectedContainerId={selectedContainerId}
+              canCreate={canCreate}
+              onSelect={setSelectedContainerId}
+              onCreate={() => setCreateModalOpen(true)}
+            />
+          )}
 
           {/* 选定共享箱详情与守恒监控 */}
-          {selectedContainer && (
+          {selectedContainer && containersQuery.isSuccess && (
             <>
               <SeaSharedContainerDetailCard
                 container={selectedContainer}
@@ -574,23 +595,25 @@ export default function SeaSharedContainerDrawer({
                 onWithdraw={handleWithdraw}
                 onDelete={handleDelete}
               />
-              <SeaSharedContainerAllocationTable
-                candidates={candidates}
-                flatCargoList={flatCargoList}
-                candidatePage={candidatePage}
-                candidateTotal={candidateTotal}
-                candidateSearching={candidateSearching}
-                isConfirmed={isConfirmed}
-                canUpdate={canUpdate}
-                onSearchingChange={setCandidateSearching}
-                onSearch={(value) => {
-                  setCandidateKeyword(value.trim());
-                  setCandidatePage(1);
-                }}
-                onPageChange={setCandidatePage}
-                onUpdateDraft={handleUpdateDraft}
-                onFillAllCargo={handleFillAllCargo}
-              />
+              {candidatesQuery.isSuccess && (
+                <SeaSharedContainerAllocationTable
+                  candidates={candidates}
+                  flatCargoList={flatCargoList}
+                  candidatePage={candidatePage}
+                  candidateTotal={candidateTotal}
+                  candidateSearching={candidateSearching}
+                  isConfirmed={isConfirmed}
+                  canUpdate={canUpdate}
+                  onSearchingChange={setCandidateSearching}
+                  onSearch={(value) => {
+                    setCandidateKeyword(value.trim());
+                    setCandidatePage(1);
+                  }}
+                  onPageChange={setCandidatePage}
+                  onUpdateDraft={handleUpdateDraft}
+                  onFillAllCargo={handleFillAllCargo}
+                />
+              )}
             </>
           )}
         </Spin>
@@ -606,5 +629,34 @@ export default function SeaSharedContainerDrawer({
         onFinish={handleCreateSubmit}
       />
     </Drawer>
+  );
+}
+
+function SharedQueryError({
+  resource,
+  error,
+  retry,
+}: {
+  resource: string;
+  error: Error;
+  retry: () => void;
+}) {
+  const forbidden = getRequestErrorStatus(error) === 403;
+  return (
+    <Alert
+      showIcon
+      type="error"
+      style={{ marginBottom: 16 }}
+      title={
+        forbidden
+          ? `无权读取${resource}，请联系管理员核对权限`
+          : `${resource}加载失败，请重试`
+      }
+      action={
+        <Button size="small" onClick={retry}>
+          重试{resource}
+        </Button>
+      }
+    />
   );
 }

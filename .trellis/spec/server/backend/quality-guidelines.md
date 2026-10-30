@@ -23,8 +23,8 @@
 
 ### 1. 适用范围 / 触发条件
 
-- 同一 Proto service 中存在相同 HTTP 方法、相同路径前缀的静态路径与参数路径时
-  适用，例如 `/commissions/employees` 与 `/commissions/{id}`。
+- 相同 HTTP 方法、相同路径前缀的静态路径与参数路径均适用，包括不同 Proto service
+  之间的冲突，例如共享箱 `/orders/sea-shared-containers` 与订单 `/orders/{id}`。
 - Kratos v3 的 HTTP Router 按注册顺序匹配；动态参数路由先注册会把静态片段当作
   参数，导致请求进入错误处理器。
 
@@ -43,8 +43,9 @@ rpc GetCommission(GetCommissionRequest) returns (GetCommissionResponse) {
 ### 3. 契约
 
 - 同 HTTP 方法、同前缀下，所有静态路径 RPC 必须在参数路径 RPC 之前声明。
-- 调整顺序必须修改 `.proto` 真相源，再运行 `make -C server api`；禁止手改
-  `*_http.pb.go`。
+- 同一 service 内调整 RPC 顺序必须修改 `.proto` 真相源，再运行 `make -C server api`；
+  禁止手改 `*_http.pb.go`。跨 service 冲突则在 `internal/server/http.go` 先注册静态路径
+  service；生产与路由回归测试共用注册函数，避免测试顺序与运行顺序分离。
 - 路径、请求/响应类型、operation 和权限注解保持原契约，除非任务另有要求。
 
 ### 4. 校验与错误矩阵
@@ -69,7 +70,8 @@ rpc GetCommission(GetCommissionRequest) returns (GetCommissionResponse) {
 - 同时断言 transport operation、实际调用的 Service 方法和路径参数；禁止仅检查
   生成文件文本或路由列表顺序。
 - 测试至少覆盖全部相邻静态路径和一个合法参数路径，并验证把动态路由移到前面时
-  静态用例会失败。
+  静态用例会失败。共享箱回归见 `server/internal/server/shared_container_route_test.go`：
+  旧顺序会进入 GetOrder 并误报 403；修复后保留真实权限与公司范围拒绝。
 
 ### 7. 错误与正确示例
 
