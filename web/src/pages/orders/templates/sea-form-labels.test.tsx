@@ -61,13 +61,9 @@ it.each([false, true])(
       .filter((label) => !label.control)
       .map((label) => ({ label: label.textContent, target: label.htmlFor }));
     expect(invalidLabels).toEqual([]);
-    // ProForm 自带的 display:none 防隐式提交占位框不参与浏览器自动填充。
     const unnamedFields = Array.from(
       container.querySelectorAll<HTMLInputElement>('input,select,textarea'),
     )
-      .filter(
-        (field) => field.type !== 'hidden' && field.style.display !== 'none',
-      )
       .filter((field) => !field.id && !field.name)
       .map((field) => field.outerHTML);
     expect(unnamedFields).toEqual([]);

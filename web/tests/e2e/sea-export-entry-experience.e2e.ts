@@ -160,6 +160,39 @@ async function choose(page: Page, label: string, text: string) {
   await input.press('Enter');
   await input.press('Tab');
 }
+
+test('海运表单所有输入包含自动填充标识，隐藏占位框也纳入检查', async ({
+  page,
+}) => {
+  const state = await fixture(page);
+  const session = await page.context().newCDPSession(page);
+  const autofillIssues: string[] = [];
+  session.on('Audits.issueAdded', ({ issue }) => {
+    const details = JSON.stringify(issue.details);
+    if (details.includes('FormEmptyIdAndNameAttributesForInputError')) {
+      autofillIssues.push(details);
+    }
+  });
+  await session.send('Audits.enable');
+  await page.goto('/orders/sea-export/new');
+  await expect(page.locator('#customerId')).toBeVisible();
+  await expect(page.getByText('内部人员', { exact: true })).toBeVisible();
+  await expect(
+    page.locator('input[name="__pro_form_implicit_submit_guard"]').first(),
+  ).toBeAttached();
+  const unnamedFields = await page
+    .locator('input,select,textarea')
+    .evaluateAll((fields) =>
+      fields
+        .filter((field) => !field.id && !field.getAttribute('name'))
+        .map((field) => field.outerHTML),
+    );
+  expect(unnamedFields).toEqual([]);
+  expect(autofillIssues).toEqual([]);
+  expect(state.writes).toEqual([]);
+  expect(state.errors).toEqual([]);
+});
+
 for (const viewport of [
   { width: 1366, height: 768 },
   { width: 1920, height: 1080 },

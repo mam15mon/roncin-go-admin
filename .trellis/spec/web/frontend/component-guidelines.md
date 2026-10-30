@@ -45,7 +45,10 @@
   `TemplateControlGroup`，不把 `label` 指向组容器，也不只删除 `htmlFor` 留下孤立标签。
   每个实际输入须具有 `id` 或 `name`；纯展示字段可使用关联的 `output`。
 - 回归检查覆盖所有 `label.control`（包括不带 `for` 的标签）及实际输入的 `id/name`，
-  不能只扫描 `label[for]`。第三方表单内部 display:none 的占位输入不参与自动填充检查。
+  不能只扫描 `label[for]`，也不能因 `display:none` 排除第三方占位输入：浏览器仍会报告其缺失标识。
+- ProForm 防隐式提交占位框通过 `patches/@ant-design__pro-components@3.1.14-6.patch`
+  补齐内部 `name`，ESM/CommonJS 两个入口同步；保持 `type="text"` 与原有表单提交行为，
+  内部名字不得进入业务载荷。升级该依赖时重新核对上游占位框与补丁适用性。
 
 ## 公共键盘交互
 

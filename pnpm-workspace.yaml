@@ -1,3 +1,4 @@
 packages:
   - web
-
+patchedDependencies:
+  '@ant-design/pro-components@3.1.14-6': patches/@ant-design__pro-components@3.1.14-6.patch

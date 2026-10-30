@@ -1,0 +1,24 @@
+diff --git a/es/form/BaseForm/BaseForm.js b/es/form/BaseForm/BaseForm.js
+index 7ebbd014313351800cc826f6cf96ac8b80bf30a6..4a8a282195cf0249bacbb1b975869aa37cf3f3e2 100644
+--- a/es/form/BaseForm/BaseForm.js
++++ b/es/form/BaseForm/BaseForm.js
+@@ -205,6 +205,7 @@ function BaseFormComponents(props) {
+         },
+         children: [rest.component !== false && /*#__PURE__*/_jsx("input", {
+           type: "text",
++          name: "__pro_form_implicit_submit_guard",
+           style: {
+             display: 'none'
+           }
+diff --git a/lib/form/BaseForm/BaseForm.js b/lib/form/BaseForm/BaseForm.js
+index 5b326299f1666a79c6e836c2b12ad4fb3332fcdd..0e92fc3011e8b525875b920a3da570f7ec5cb4ec 100644
+--- a/lib/form/BaseForm/BaseForm.js
++++ b/lib/form/BaseForm/BaseForm.js
+@@ -212,6 +212,7 @@ function BaseFormComponents(props) {
+         },
+         children: [rest.component !== false && /*#__PURE__*/(0, _jsxRuntime.jsx)("input", {
+           type: "text",
++          name: "__pro_form_implicit_submit_guard",
+           style: {
+             display: 'none'
+           }
