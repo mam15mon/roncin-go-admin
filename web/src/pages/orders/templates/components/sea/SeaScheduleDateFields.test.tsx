@@ -7,7 +7,7 @@ import { SeaScheduleDateFields } from './SeaTransportSection';
 const etd = dayjs('2026-10-20T12:00:00');
 const eta = dayjs('2026-10-25T12:00:00');
 const etdRequired = '请选择 ETD（预计离港时间）';
-const etaRequired = '请选择 ETA（预计到港时间）';
+const etaRequired = '请选择 ETA（预计到达卸货港时间）';
 
 function setup(initialValues: { etd?: dayjs.Dayjs; eta?: dayjs.Dayjs }) {
   const onFinish = vi.fn().mockResolvedValue(true);

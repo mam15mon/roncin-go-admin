@@ -1,5 +1,5 @@
 import { ProForm, ProFormText } from '@ant-design/pro-components';
-import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import { renderWithApp } from '@root/tests/renderWithApp';
 import { ConfigProvider, Form, type FormInstance } from 'antd';
 import { SeaDocumentStructure } from '@/enums.generated';
 import type { TemplateProps } from '../../types';
@@ -65,13 +65,28 @@ const templateProps: TemplateProps = {
 
 export function renderVoyageForm(
   initialValues: Record<string, unknown> = {},
-  { isDetail = false, disabled = false } = {},
+  {
+    isDetail = false,
+    disabled = false,
+    user,
+    source,
+  }: {
+    isDetail?: boolean;
+    disabled?: boolean;
+    user?: API.CurrentUser;
+    source?: TemplateProps['seaHouseOrderCreateSource'];
+  } = {},
 ) {
   let form!: FormInstance;
   function Harness() {
     const [instance] = Form.useForm();
     form = instance;
-    const fields = getSeaTransportFields({ ...templateProps, isDetail });
+    const fields = getSeaTransportFields({
+      ...templateProps,
+      isDetail,
+      organizationId: 'org-1',
+      seaHouseOrderCreateSource: source,
+    });
     return (
       <ProForm
         form={instance}
@@ -93,14 +108,16 @@ export function renderVoyageForm(
         {fields.master}
         {fields.vessel}
         {fields.ports}
+        {fields.destination}
         {fields.schedule}
       </ProForm>
     );
   }
-  const result = renderWithClient(
+  const result = renderWithApp(
     <ConfigProvider theme={{ token: { motion: false } }}>
       <Harness />
     </ConfigProvider>,
+    { user },
   );
   return {
     ...result,

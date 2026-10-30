@@ -18,6 +18,27 @@ export type SeaSharedVoyageSource = {
   voyage: API.SeaTransportExecution;
 };
 
+export function seaVoyageMissingFields(
+  voyage: Pick<
+    API.SeaTransportExecution,
+    | 'vesselName'
+    | 'voyageNo'
+    | 'originLocationId'
+    | 'dischargeLocationId'
+    | 'etd'
+    | 'eta'
+  >,
+) {
+  return [
+    !voyage.vesselName && '船名',
+    !voyage.voyageNo && '航次',
+    !voyage.originLocationId && '起运港',
+    !voyage.dischargeLocationId && '卸货港',
+    !voyage.etd && 'ETD',
+    !voyage.eta && 'ETA',
+  ].filter((item): item is string => Boolean(item));
+}
+
 export function seaMasterBillIdentity(
   masterNo?: string,
   shippingLineId?: string,

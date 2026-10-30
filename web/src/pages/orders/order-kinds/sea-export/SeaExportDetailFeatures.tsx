@@ -5,7 +5,7 @@ import {
   ShareAltOutlined,
   SwapOutlined,
 } from '@ant-design/icons';
-import { App, Badge, type MenuProps, Tooltip } from 'antd';
+import { App, Badge, Button, type MenuProps, Tooltip, Typography } from 'antd';
 import React, {
   useCallback,
   useEffect,
@@ -24,6 +24,7 @@ import SeaOrderReassignmentModal from '../../components/drawers/SeaOrderReassign
 import SeaSharedContainerDrawer from '../../components/drawers/SeaSharedContainerDrawer';
 import SeaTransportExecutionUpdateModal from '../../components/drawers/SeaTransportExecutionUpdateModal';
 import { SeaActualContainers } from '../../templates/components/sea/SeaActualContainers';
+import { seaVoyageMissingFields } from '../../templates/components/sea/sea-shared-voyage';
 import type {
   OrderDetailFeatureContribution,
   OrderDetailFeaturesProps,
@@ -290,6 +291,55 @@ export default function SeaExportDetailFeatures({
   );
 
   const contribution: OrderDetailFeatureContribution = {
+    sharedVoyageMaintenance: (
+      <div>
+        {order.seaMasterBill &&
+        seaVoyageMissingFields(order.seaMasterBill).length > 0 ? (
+          <Typography.Paragraph type="secondary" style={{ marginBottom: 4 }}>
+            共同航程尚缺：
+            {seaVoyageMissingFields(order.seaMasterBill).join('、')}。
+            {!order.seaMasterBill.etd || !order.seaMasterBill.eta
+              ? 'ETD、ETA 为开单必填，请先补齐；其余缺项仅作资料提示。'
+              : '以上仅作资料提示，不单独阻止保存。'}
+          </Typography.Paragraph>
+        ) : null}
+        <Tooltip
+          title={
+            businessWritesDisabled
+              ? businessWriteBlockedReason
+              : !canOrder('reassign')
+                ? '当前账号无共同航程修改权限'
+                : !order.seaMasterBill?.transportExecutionId
+                  ? '当前订单未关联共同航程'
+                  : undefined
+          }
+        >
+          <span>
+            <Button
+              htmlType="button"
+              size="small"
+              disabled={
+                businessWritesDisabled ||
+                !canOrder('reassign') ||
+                !order.seaMasterBill?.transportExecutionId
+              }
+              onClick={() => {
+                if (ensureBusinessWriteAllowed())
+                  setVoyageUpdateModalOpen(true);
+              }}
+            >
+              维护共同航程
+            </Button>
+          </span>
+        </Tooltip>
+        {businessWritesDisabled || !canOrder('reassign') ? (
+          <Typography.Text type="secondary" style={{ marginLeft: 8 }}>
+            {businessWriteBlockedReason ||
+              '当前账号无共同航程修改权限，请联系有权限的人员补齐。'}
+          </Typography.Text>
+        ) : null}
+      </div>
+    ),
     actualContainers: (
       <SeaActualContainers
         context={context}

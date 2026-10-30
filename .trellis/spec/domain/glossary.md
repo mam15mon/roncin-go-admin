@@ -10,6 +10,8 @@
 | 母单 | MBL, `SeaMasterBill` | 海运主提单，多张订单可共享同一 MBL | `data/ent/schema/sea_master_bill.go` |
 | 分单 | HBL, `SeaHouseBill` | 货代出具的房单；订单单证结构为 `HOUSE` 时存在，`DIRECT`（直单）时无 HBL | `sea_house_bill.go` |
 | 运输执行 | `SeaTransportExecution` | MBL 下的实际航次（船名/航次/泊位/ETD/ETA），独立版本化，一个 MBL 多航次需改配明确选择 | `sea_transport_execution.go` |
+| 共同段卸货港 | `SeaTransportExecution.discharge_location_id` | 本组操作票共同运输段的卸货港，共同 ETA 到此港；不是每票后续全程的最终目的港 | `sea_transport_execution.go` |
+| 本票最终目的港 | `Order.destination_location_id` | 每票独立保存；新票默认同共同段卸货港，人工不同去向不随共同段批量覆盖；当前仅港口目录，不代表任意交付地址 | `order.go`、`data/order_convert.go` |
 | 母单-订单关联 | `SeaMasterBillOrderLink` | 订单挂到 MBL 的活动链接；订单状态流转/退关会结束链接 | `sea_master_bill_order_link.go` |
 | 单证版本 | `SeaMasterBillVersion` 等 | 每次修订生成不可变版本快照（换单历史），含外部确认信息 | `sea_*_version.go` |
 | 共享箱 | `SeaSharedContainer` / `...Allocation` | 跨订单共用的集装箱；箱货分配必须件重尺守恒 | `sea_shared_container*.go` |

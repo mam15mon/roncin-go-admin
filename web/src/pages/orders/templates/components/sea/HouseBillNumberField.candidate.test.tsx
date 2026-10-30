@@ -1,5 +1,5 @@
 import { ProForm, ProFormText } from '@ant-design/pro-components';
-import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import { renderWithApp } from '@root/tests/renderWithApp';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { ConfigProvider, Form, type FormInstance } from 'antd';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -38,7 +38,7 @@ function setup(initialValues: Record<string, unknown> = {}, isDetail = false) {
       </ProForm>
     );
   }
-  const result = renderWithClient(
+  const result = renderWithApp(
     <ConfigProvider theme={{ token: { motion: false } }}>
       <Harness />
     </ConfigProvider>,

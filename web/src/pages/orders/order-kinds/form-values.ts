@@ -31,6 +31,14 @@ export type CreateOrderFormValues = {
   cargoCategoryIds?: string[];
   originLocationId?: string;
   destinationLocationId?: string;
+  /** 仅新建海运使用；随草稿保存默认跟随/人工意图，不进入后端载荷。 */
+  seaDestinationDefault?: {
+    mode: 'discharge' | 'manual';
+    value?: string | null;
+    label?: string;
+  };
+  /** 卸货港远程候选展示名，供默认最终港摘要及草稿恢复使用。 */
+  seaDischargePortOption?: { value: string; label: string };
   dischargeLocationId?: string;
   transitLocationId?: string;
   vesselVoyage?: string;

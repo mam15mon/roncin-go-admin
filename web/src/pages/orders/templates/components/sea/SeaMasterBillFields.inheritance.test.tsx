@@ -51,7 +51,7 @@ describe('共享主单航程继承', () => {
       'ETA',
     ])
       expect(screen.getByLabelText(label)).toBeDisabled();
-    expect(screen.getByLabelText('目的港')).not.toBeDisabled();
+    expect(screen.getByLabelText('最终目的港')).not.toBeDisabled();
     expect(screen.getByLabelText('船公司')).not.toBeDisabled();
     expect(
       screen.queryByRole('combobox', { name: '本票共用航程' }),
@@ -138,11 +138,8 @@ describe('共享主单航程继承', () => {
     expect(
       screen.getByText(/中转港：本票 当前已选地点；主单 未填写/),
     ).toBeInTheDocument();
-    expect(screen.getByText('已有主单的航程资料尚未填全')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'SE-A' })).toHaveAttribute(
-      'target',
-      '_blank',
-    );
+    expect(screen.getByText('共同航程尚缺：ETA')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'SE-A' })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: '采用主单航程' }));
     await waitFor(() =>
       expect(form.getFieldValue('seaMasterBillCandidateId')).toBe('mbl-1'),
@@ -152,7 +149,9 @@ describe('共享主单航程继承', () => {
     await act(async () => {
       await expect(form.validateFields(['eta'])).rejects.toMatchObject({
         errorFields: [
-          expect.objectContaining({ errors: ['请选择 ETA（预计到港时间）'] }),
+          expect.objectContaining({
+            errors: ['请选择 ETA（预计到达卸货港时间）'],
+          }),
         ],
       });
     });
@@ -174,7 +173,7 @@ describe('共享主单航程继承', () => {
       expect(screen.getByLabelText('船名航次')).toBeDisabled(),
     );
     expect(screen.getByText('共用主单 MBL123，共 2 票')).toBeInTheDocument();
-    expect(screen.getByText(/更多操作 → 修改共享航程/)).toBeInTheDocument();
+    expect(screen.getByText(/最终目的港由本票独立维护/)).toBeInTheDocument();
     shared.unmount();
     renderVoyageForm(
       {

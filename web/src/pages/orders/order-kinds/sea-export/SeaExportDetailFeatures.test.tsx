@@ -143,6 +143,7 @@ function renderContribution(
     <SeaExportDetailFeatures key={mountKey} context={context}>
       {(features) => (
         <div>
+          {features.sharedVoyageMaintenance}
           <Menu items={features.actionMenuItems} selectable={false} />
           <Menu
             items={features.moreMenuItems?.filter(
@@ -321,19 +322,40 @@ describe('SeaExportDetailFeatures', () => {
     expect(
       screen.queryByRole('menuitem', { name: /修改共享航程/ }),
     ).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '维护共同航程' })).toBeDisabled();
+    expect(
+      screen.getByText('当前账号无共同航程修改权限，请联系有权限的人员补齐。'),
+    ).toBeVisible();
 
-    harness.rerenderWith(buildContext());
+    const ensureAllowed = vi.fn(() => true);
+    harness.rerenderWith(
+      buildContext({ ensureBusinessWriteAllowed: ensureAllowed }),
+    );
     await screen.findByRole('menuitem', { name: /改配/ });
-    fireEvent.click(screen.getByRole('menuitem', { name: /修改共享航程/ }));
+    fireEvent.click(screen.getByRole('button', { name: '维护共同航程' }));
+    expect(ensureAllowed).toHaveBeenCalledOnce();
     expect(screen.getByTestId('voyage-modal')).toHaveTextContent('true');
 
-    harness.rerenderWith(buildContext({ businessWritesDisabled: true }));
+    harness.rerenderWith(
+      buildContext({
+        businessWritesDisabled: true,
+        businessWriteBlockedReason: '订单已锁定',
+      }),
+    );
     await waitFor(() =>
       expect(screen.getByTestId('voyage-modal')).toHaveTextContent('false'),
     );
     expect(
       screen.queryByRole('menuitem', { name: /修改共享航程/ }),
     ).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '维护共同航程' })).toBeDisabled();
+    expect(screen.getByText('订单已锁定')).toBeVisible();
+
+    harness.rerenderWith(
+      buildContext({ ensureBusinessWriteAllowed: () => false }),
+    );
+    fireEvent.click(screen.getByRole('button', { name: '维护共同航程' }));
+    expect(screen.getByTestId('voyage-modal')).toHaveTextContent('false');
   });
 
   it('共享箱工作台缺少运输执行时仅提示，存在时以当前运输执行打开', async () => {

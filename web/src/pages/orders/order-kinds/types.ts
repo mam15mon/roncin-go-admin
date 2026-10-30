@@ -81,6 +81,8 @@ export interface OrderDetailFeaturesContext {
 export interface OrderDetailFeatureContribution {
   /** 品类实际装箱区域，由业务扩展持有查询与抽屉。 */
   actualContainers?: React.ReactNode;
+  /** 运输分节内复用现有共享航程预览与更新动作的入口。 */
+  sharedVoyageMaintenance?: React.ReactNode;
   /** 类型专属业务操作，统一并入详情页「更多操作」。 */
   actionMenuItems?: MenuProps['items'];
   /** 置于通用更多菜单项之前的菜单项。 */

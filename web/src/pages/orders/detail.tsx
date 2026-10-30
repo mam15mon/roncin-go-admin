@@ -1368,11 +1368,13 @@ export default function OrderDetailPage() {
               }
               prependSections={prependSections}
               sections={
-                features.actualContainers
+                features.actualContainers || features.sharedVoyageMaintenance
                   ? definition.form
                       .buildSections({
                         ...templateProps,
                         actualContainers: features.actualContainers,
+                        sharedVoyageMaintenance:
+                          features.sharedVoyageMaintenance,
                       })
                       .filter(
                         (section) =>

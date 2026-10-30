@@ -92,12 +92,16 @@ export function getSeaTemplateSections(
               disabled={props.readonly}
             />
           </TemplateFieldGroup>
-          <TemplateFieldGroup title="航线与船期">
+          <TemplateFieldGroup title="共同航程">
+            {props.sharedVoyageMaintenance}
             <FormRow cols={4}>
               {transport.vessel}
               {transport.schedule}
             </FormRow>
             {transport.ports}
+          </TemplateFieldGroup>
+          <TemplateFieldGroup title="本票目的地">
+            <FormRow cols={2}>{transport.destination}</FormRow>
           </TemplateFieldGroup>
           <TemplateFieldGroup title="箱量与截关">
             {transport.containers}

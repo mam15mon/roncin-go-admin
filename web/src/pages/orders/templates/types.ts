@@ -47,6 +47,8 @@ export interface TemplateProps {
   seaDocuments?: API.SeaOrderDocuments;
   /** 详情扩展贡献的实际装箱，独立于计划及整页保存。 */
   actualContainers?: ReactNode;
+  /** 复用详情现有共享航程命令提供就近维护入口，不另建写路径。 */
+  sharedVoyageMaintenance?: ReactNode;
   /** 新建分单的主单及指定航程来源。 */
   seaHouseOrderCreateSource?: SeaHouseOrderCreateSource;
   /** 详情页独立新建分单入口的来源订单身份。 */

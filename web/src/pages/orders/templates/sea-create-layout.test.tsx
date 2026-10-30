@@ -83,7 +83,7 @@ describe('SE 新建与详情五卡片合同', () => {
       name: '订舱与运输',
     });
     expect(bookingSection).toHaveTextContent('订舱与主单');
-    expect(bookingSection).toHaveTextContent('航线与船期');
+    expect(bookingSection).toHaveTextContent('共同航程');
     expect(bookingSection).toHaveTextContent('箱量与截关');
     expect(bookingSection).not.toHaveTextContent('操作补充');
     expect(within(bookingSection).getAllByText('操作备注')).toHaveLength(1);

@@ -38,6 +38,8 @@ import {
   HouseBillNumberField,
   isTerminalHouseBill,
 } from './HouseBillIdentityFields';
+import { SeaFinalDestinationField } from './SeaFinalDestinationField';
+import { seaVoyageMissingFields } from './sea-shared-voyage';
 import {
   useSeaMasterBillCandidate,
   useSharedSeaVoyage,
@@ -97,14 +99,18 @@ export function SeaMasterBillFields({
   const isMultiMemberLocked = isDetail && (existing?.memberCount ?? 0) > 1;
   const memberLinks =
     candidate?.members?.filter((member) => member.orderId) ?? [];
-  const incomplete =
-    selected &&
-    (!selected.vesselName ||
-      !selected.voyageNo ||
-      !selected.originLocationId ||
-      !selected.dischargeLocationId ||
-      !selected.etd ||
-      !selected.eta);
+  const access = useAccess();
+  const missing = selected ? seaVoyageMissingFields(selected).join('、') : '';
+  const missingRequiredDates = Boolean(
+    selected && (!selected.etd || !selected.eta),
+  );
+  const canMaintain =
+    access.canOrder(OrderBusinessType.BUSINESS_TYPE_SE, 'reassign') &&
+    access.canOperateOrganization(organizationId);
+  const canReadMembers = access.canOrder(
+    OrderBusinessType.BUSINESS_TYPE_SE,
+    'read',
+  );
 
   return (
     <>
@@ -194,7 +200,13 @@ export function SeaMasterBillFields({
             type="info"
             showIcon
             title={`共用主单 ${existing.masterNo}，共 ${existing.memberCount} 票`}
-            description="船名航次、起运港、卸货港、中转港和船期由共同航程维护。如需修改，请使用顶部「更多操作 → 修改共享航程」；可用操作取决于当前权限与订单状态。"
+            description={
+              <Space orientation="vertical" size={4}>
+                <span>
+                  船名航次、起运港、卸货港、中转港和船期由这些订单共同使用；最终目的港由本票独立维护。
+                </span>
+              </Space>
+            }
           />
         </div>
       )}
@@ -314,31 +326,61 @@ export function SeaMasterBillFields({
                   已带入主单共享航程，航程字段只读；客户、分单、货物、最终目的地与费用仍由本票独立维护。
                 </Typography.Text>
               )}
-              {incomplete && !state.batchDirectBlocked && (
+              {missing && !state.batchDirectBlocked && (
                 <Alert
-                  type="info"
+                  type={missingRequiredDates ? 'warning' : 'info'}
                   showIcon
-                  title="已有主单的航程资料尚未填全"
-                  description="如需补全，请在已有订单的「更多操作 → 修改共享航程」中统一维护；新票填写不会补写已有共享航程。"
+                  title={`共同航程尚缺：${missing}`}
+                  description={
+                    <Space orientation="vertical" size={4}>
+                      <span>
+                        {missingRequiredDates
+                          ? 'ETD、ETA 为开单必填，须先补齐共同航程后才能保存新票。'
+                          : '以上为资料提示，不单独阻止保存；ETD、ETA 仍为必填。'}
+                      </span>
+                      <span>新票不会修改已有共同航程。</span>
+                      {canMaintain &&
+                      canReadMembers &&
+                      memberLinks.length > 0 ? (
+                        <Typography.Link
+                          href={`/orders/sea-export/${memberLinks[0].orderId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          前往已有订单维护共同航程
+                        </Typography.Link>
+                      ) : (
+                        <Typography.Text type="secondary">
+                          {!canMaintain
+                            ? '当前账号无共同航程维护权限，请联系有权限的人员补齐。'
+                            : !canReadMembers
+                              ? '当前账号无已有订单查看权限，请联系有权限的人员补齐。'
+                              : '暂无可查看的已有订单，请联系负责该主单的人员补齐。'}
+                        </Typography.Text>
+                      )}
+                    </Space>
+                  }
                 />
               )}
-              {!state.batchDirectBlocked && memberLinks.length > 0 && (
-                <Space wrap>
-                  <Typography.Text type="secondary">
-                    查看已有订单：
-                  </Typography.Text>
-                  {memberLinks.map((member) => (
-                    <Typography.Link
-                      key={member.orderId}
-                      href={`/orders/sea-export/${member.orderId}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {member.orderNo || '查看订单'}
-                    </Typography.Link>
-                  ))}
-                </Space>
-              )}
+              {!state.batchDirectBlocked &&
+                canReadMembers &&
+                memberLinks.length > 0 && (
+                  <Space wrap>
+                    <Typography.Text type="secondary">
+                      查看已有订单：
+                    </Typography.Text>
+                    {memberLinks.map((member) => (
+                      <Typography.Link
+                        key={member.orderId}
+                        href={`/orders/sea-export/${member.orderId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {member.orderNo || '查看订单'}
+                      </Typography.Link>
+                    ))}
+                  </Space>
+                )}
               {!selected && candidate.transportExecutions?.length === 0 && (
                 <Alert
                   type="warning"
@@ -585,10 +627,11 @@ export function SeaScheduleDateFields() {
       <ProFormDatePicker
         name="eta"
         label="ETA"
+        tooltip="预计到达共同航程卸货港的时间，不代表本票最终目的港的到达时间"
         disabled={readonly || undefined}
         dependencies={['etd']}
         rules={[
-          { required: true, message: '请选择 ETA（预计到港时间）' },
+          { required: true, message: '请选择 ETA（预计到达卸货港时间）' },
           ({ getFieldValue }: FormInstance) => ({
             validator(_: unknown, value?: dayjs.Dayjs) {
               const etdVal = getFieldValue('etd');
@@ -640,6 +683,7 @@ function SeaPortFields({
   searchLocations,
 }: Pick<TemplateProps, 'locationOptions' | 'searchLocations'>) {
   const { readonly, voyage } = useSharedSeaVoyage();
+  const form = Form.useFormInstance();
   const options = [...locationOptions];
   for (const [value, label, fieldLabel] of [
     [voyage?.originLocationId, voyage?.originLocationName, '起运港'],
@@ -650,7 +694,7 @@ function SeaPortFields({
       options.push({ value, label: label || `${fieldLabel}名称读取失败` });
   }
   return (
-    <FormRow cols={4}>
+    <FormRow cols={3}>
       <div>
         <ProFormSearchableSelect
           name="originLocationId"
@@ -666,16 +710,6 @@ function SeaPortFields({
           placeholder="请选择起运港或地点"
         />
       </div>
-      <div>
-        <ProFormSearchableSelect
-          name="destinationLocationId"
-          label="目的港"
-          options={locationOptions}
-          request={async ({ keyWords }) => searchLocations(keyWords)}
-          fieldProps={{ filterOption: false }}
-          placeholder="请选择目的港或地点"
-        />
-      </div>
       <ProFormSearchableSelect
         name="dischargeLocationId"
         label="卸货港"
@@ -686,7 +720,18 @@ function SeaPortFields({
             ? undefined
             : async ({ keyWords }) => searchLocations(keyWords)
         }
-        fieldProps={{ filterOption: false }}
+        fieldProps={{
+          filterOption: false,
+          onChange: (value, option) => {
+            const selected = Array.isArray(option) ? option[0] : option;
+            form.setFieldValue(
+              'seaDischargePortOption',
+              value && selected?.label
+                ? { value, label: String(selected.label) }
+                : undefined,
+            );
+          },
+        }}
         placeholder="请选择卸货港或地点"
       />
       <ProFormSearchableSelect
@@ -755,6 +800,14 @@ export function getSeaTransportFields(props: TemplateProps) {
       <SeaPortFields
         locationOptions={locationOptions}
         searchLocations={searchLocations}
+      />
+    ),
+    destination: (
+      <SeaFinalDestinationField
+        locationOptions={locationOptions}
+        searchLocations={searchLocations}
+        isDetail={isDetail}
+        readonly={props.readonly}
       />
     ),
     schedule: <SeaScheduleDateFields />,

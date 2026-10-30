@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/web/frontend/sea-master-voyage-inheritance.md", "reason": "继承、独立字段、草稿和共享维护边界"}
+{"file": ".trellis/spec/web/frontend/hook-guidelines.md", "reason": "局部表单动作稳定性与候选身份隔离"}
+{"file": ".trellis/tasks/10-30-sea-shared-leg-house-destination/research/frontend-experience.md", "reason": "已核实的默认缺口与所有前端入口"}
+{"file": ".trellis/tasks/10-30-sea-shared-leg-house-destination/research/backend-boundaries.md", "reason": "现有共享段与独立目的地契约"}

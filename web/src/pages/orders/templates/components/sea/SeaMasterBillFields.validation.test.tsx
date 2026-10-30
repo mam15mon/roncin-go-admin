@@ -3,7 +3,7 @@ import {
   type ProFormInstance,
   ProFormText,
 } from '@ant-design/pro-components';
-import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { renderWithApp as render } from '@root/tests/renderWithApp';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import dayjs from 'dayjs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
