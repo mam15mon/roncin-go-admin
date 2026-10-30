@@ -672,3 +672,34 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Next Steps
 
 - 合并main并推送，安全清理已合并功能分支
+
+
+## Session 174: 精简订单操作并开放审核列设置
+<!-- trellis-session: v=2 fp=4ed8746369a7e725 -->
+
+**Date**: 2026-10-30
+**Task**: 精简订单操作并开放审核列设置
+**Branch**: `codex/order-list-review-entry`
+
+### Summary
+
+操作列删除详情且不新增审核；编号详情与状态审核入口保留，审核列改普通可配置列。相关测试与静态检查通过，全量存在既有分单号等待失败，单跑3/3通过。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3fc971cd` | fix: 精简订单操作入口并开放审核列设置 |
+| `34f4404d` | test: 精确等待密码找回冷却恢复并隔离并行文档修改 |
+
+### Testing
+
+- [OK] 相关15用例、tsc、Biome、架构等通过；全量340文件通过/1失败/1跳，失败文件单跑3/3通过
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 推送前复核全量时序失败；保留其他会话默认列改动
