@@ -3,7 +3,7 @@
   "name": "order-list-default-columns",
   "title": "精简订单列表默认列",
   "description": "默认隐藏低频订单列并保留用户自定义显示、冻结和恢复默认能力",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": null,
   "scope": null,
   "package": "web",
@@ -11,16 +11,21 @@
   "creator": "mam15mon",
   "assignee": "mam15mon",
   "createdAt": "2026-10-30",
-  "completedAt": null,
+  "completedAt": "2026-10-30",
   "branch": "codex/order-list-review-entry",
   "base_branch": "main",
   "worktree_path": null,
-  "commit": null,
+  "commit": "063fecf9bd820b83cb6cac6eba7243028e333466",
   "pr_url": null,
   "subtasks": [],
   "children": [],
   "parent": null,
-  "relatedFiles": [],
+  "relatedFiles": [
+    "web/src/components/ui/order-list-template/OrderListTemplate.tsx",
+    "web/src/components/ui/order-list-template/OrderListTemplate.default-columns.test.tsx",
+    "web/src/pages/orders/components/order-commission-summary.test.tsx",
+    ".trellis/spec/web/frontend/column-settings.md"
+  ],
   "notes": "",
   "meta": {}
 }
