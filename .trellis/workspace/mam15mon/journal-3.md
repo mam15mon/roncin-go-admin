@@ -768,3 +768,38 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 177: 清理订单重复入口并验收合并
+<!-- trellis-session: v=2 fp=254bef7926c00383 -->
+
+**Date**: 2026-10-30
+**Task**: 清理订单重复入口并验收合并
+**Branch**: `codex/remove-order-detail-footer`
+
+### Summary
+
+移除协作团队独立维护全链路、限制自拼汇总为海运拼箱并删除详情底部操作栏，复核完成并准备统一合并main
+
+### Main Changes
+
+- 删除协作团队抽屉、独立增删接口与12个权限，保留创建分工和只读回填；同步契约与生成物
+- 仅海运拼箱展示自拼汇总入口；删除海运详情吸底操作栏，保留页头保存与重置修改
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `9e67c47a` | refactor: 移除订单协作团队独立维护入口 |
+| `08ea909b` | fix: 仅为海运拼箱显示自拼汇总入口 |
+| `fcb89b43` | style: 移除海运订单详情底部操作栏 |
+
+### Testing
+
+- [OK] 协作团队退役完整前后端门禁通过，真实隔离PostgreSQL回归及生成幂等通过；后续两组UI修改未再涉及后端
+- [OK] 最终check:web通过：343文件1846用例通过，1文件12用例按既有配置跳过；费用入口单独复核8用例通过，git diff --check通过
+- [OK] 884px与1440px浏览器验证底栏消失，页头保存与重置入口保留，无页面异常及业务写入
+
+### Status
+
+[OK] **Completed**

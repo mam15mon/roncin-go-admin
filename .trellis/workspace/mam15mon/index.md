@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 176
+- **Total Sessions**: 177
 - **Last Active**: 2026-10-30
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~770 | Active |
+| `journal-3.md` | ~805 | Active |
 | `journal-2.md` | ~2003 | Archived |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 177 | 2026-10-30 | 清理订单重复入口并验收合并 | `9e67c47a`, `08ea909b`, `fcb89b43` | `codex/remove-order-detail-footer` |
 | 176 | 2026-10-30 | 彻底移除订单履约里程碑并完成验收 | `d95f53df`, `239039e2` | `codex/remove-order-milestones` |
 | 175 | 2026-10-30 | 精简订单列表默认列 | `063fecf9`, `51d577e1` | `codex/order-list-review-entry` |
 | 174 | 2026-10-30 | 精简订单操作并开放审核列设置 | `3fc971cd`, `34f4404d` | `codex/order-list-review-entry` |
