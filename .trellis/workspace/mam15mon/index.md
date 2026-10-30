@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 180
+- **Total Sessions**: 181
 - **Last Active**: 2026-10-30
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~912 | Active |
+| `journal-3.md` | ~942 | Active |
 | `journal-2.md` | ~2003 | Archived |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 181 | 2026-10-30 | 改善海运详情提单模式可读性 | `8256b5a3` | `codex/sea-shared-leg-destination` |
 | 180 | 2026-10-30 | 海运最终目的港默认同卸货港并简化共享航程操作 | `2da755a6` | `codex/sea-shared-leg-destination` |
 | 179 | 2026-10-30 | 修复订单无修改保存的重复地点误校验 | `c62e5670` | `codex/fix-order-location-validation` |
 | 178 | 2026-10-30 | 修复海运订单保存冲突并提前提示资料变动 | `63918953`, `6a4a8e74` | `codex/fix-sea-order-port-save-version` |

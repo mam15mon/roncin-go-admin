@@ -910,3 +910,33 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Next Steps
 
 - 当前工作分支codex/sea-shared-leg-destination，工作区提交完成；按后续授权进行合并推送。
+
+
+## Session 181: 改善海运详情提单模式可读性
+<!-- trellis-session: v=2 fp=b6656b1278618a86 -->
+
+**Date**: 2026-10-30
+**Task**: 改善海运详情提单模式可读性
+**Branch**: `codex/sea-shared-leg-destination`
+
+### Summary
+
+详情以蓝色标签显示当前HOUSE或DIRECT，去除浅灰禁用选项；新建选择与详情原有模式变更流程保持。
+
+### Main Changes
+
+- 更新只读提单模式展示规范；本次小修复未另建任务。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `8256b5a3` | fix: 提高海运详情提单模式的可读性 |
+
+### Testing
+
+- [OK] 定向2个Suite共11例通过；tsc、修改文件Biome、antd lint、git diff --check通过。
+
+### Status
+
+[OK] **Completed**
