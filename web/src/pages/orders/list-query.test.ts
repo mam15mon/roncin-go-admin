@@ -9,6 +9,11 @@ import { airExportDefinition } from './order-kinds/air-export/definition';
 import { seaExportDefinition } from './order-kinds/sea-export/definition';
 
 const listOrdersMock = vi.hoisted(() => vi.fn());
+const masterOptionsMock = vi.hoisted(() => vi.fn());
+
+vi.mock('@/features/orders/options', () => ({
+  getMasterDataOptions: masterOptionsMock,
+}));
 
 vi.mock('@/services/roncin/orderService', () => ({
   orderServiceListOrders: listOrdersMock,
@@ -17,6 +22,7 @@ vi.mock('@/services/roncin/orderService', () => ({
 describe('queryOrderList', () => {
   beforeEach(() => {
     listOrdersMock.mockReset();
+    masterOptionsMock.mockReset().mockResolvedValue([]);
   });
 
   it.each([
@@ -28,7 +34,7 @@ describe('queryOrderList', () => {
     await queryOrderList(
       { numberType, numberKeyword: 'REF-001' },
       seaExportDefinition,
-      { ports: [], airports: [], customerMap: {}, containerSpecMap: {} },
+      { ports: [], airports: [], customerMap: {}, organizationId: 'org-1' },
     );
 
     expect(listOrdersMock).toHaveBeenCalledWith(
@@ -54,7 +60,7 @@ describe('queryOrderList', () => {
         tagIds: ['tag-1'],
       },
       seaExportDefinition,
-      { ports: [], airports: [], customerMap: {}, containerSpecMap: {} },
+      { ports: [], airports: [], customerMap: {}, organizationId: 'org-1' },
     );
 
     expect(listOrdersMock).toHaveBeenCalledWith(
@@ -127,7 +133,7 @@ describe('queryOrderList', () => {
         ports: [],
         airports: [],
         customerMap: {},
-        containerSpecMap: {},
+        organizationId: 'org-1',
       });
 
       expect(
@@ -168,7 +174,7 @@ describe('queryOrderList', () => {
         ports: [],
         airports: [],
         customerMap: {},
-        containerSpecMap: {},
+        organizationId: 'org-1',
       });
 
       expect(result.data[0]).toEqual(
@@ -181,6 +187,9 @@ describe('queryOrderList', () => {
   );
 
   it('使用港口、机场、客户和箱型主数据构造列表行', async () => {
+    masterOptionsMock.mockResolvedValue([
+      { id: 'container-spec-1', kind: 7, code: '40HQ', name: '40尺高柜' },
+    ]);
     listOrdersMock.mockResolvedValue({
       data: [
         {
@@ -222,7 +231,7 @@ describe('queryOrderList', () => {
           },
         ],
         customerMap: { 'customer-1': '示例客户 (CUS001)' },
-        containerSpecMap: { 'container-spec-1': '40HQ' },
+        organizationId: 'org-1',
       },
     );
 
@@ -281,7 +290,7 @@ describe('queryOrderList', () => {
         ports: [{ id: 'port-2', nameZh: '青岛港', unLocode: 'CNTAO' }],
         airports: [],
         customerMap: { 'customer-2': '本地缓存客户' },
-        containerSpecMap: {},
+        organizationId: 'org-1',
       },
     );
 
@@ -301,6 +310,121 @@ describe('queryOrderList', () => {
           row.destinationPortName === 'port-2',
       ),
     ).toBe(false);
+  });
+
+  it('订单先返回时等待同组织箱型字典，冷启动不把 UUID 固化为列表文字', async () => {
+    const masterData = Promise.withResolvers<API.MasterDataItem[]>();
+    masterOptionsMock.mockReturnValue(masterData.promise);
+    listOrdersMock.mockResolvedValue({
+      data: [
+        {
+          id: 'order-cold-start',
+          containerRequests: [
+            {
+              quantity: 1,
+              containerSpecId: '31c5d297-1456-454b-8e26-e489a83afce9',
+            },
+            { quantity: 2, containerSpecId: 'container-spec-40hq' },
+          ],
+        },
+      ],
+      total: 1,
+    });
+    let resolved = false;
+    const result = queryOrderList({}, seaExportDefinition, {
+      organizationId: 'org-cold-start',
+      ports: [],
+      airports: [],
+      customerMap: {},
+    }).then((value) => {
+      resolved = true;
+      return value;
+    });
+    await vi.waitFor(() =>
+      expect(masterOptionsMock).toHaveBeenCalledWith('org-cold-start'),
+    );
+    expect(resolved).toBe(false);
+    masterData.resolve([
+      {
+        id: '31c5d297-1456-454b-8e26-e489a83afce9',
+        kind: 7,
+        code: '20GP',
+        name: '20尺普柜',
+      },
+      {
+        id: 'container-spec-40hq',
+        kind: 7,
+        code: '40HQ',
+        name: '40尺高柜',
+        enabled: false,
+      },
+    ]);
+    expect((await result).data[0].containerSummary).toBe('1×20GP, 2×40HQ');
+  });
+
+  it('无代码时使用箱型名称，缺少箱型时保留数量并明确标记，不显示 ID', async () => {
+    masterOptionsMock.mockResolvedValue([
+      { id: 'named-spec', kind: 7, name: '特种箱' },
+      { id: 'wrong-kind', kind: 9, code: '非箱型字典' },
+    ]);
+    listOrdersMock.mockResolvedValue({
+      data: [
+        {
+          id: 'order-1',
+          containerRequests: [
+            { quantity: 1, containerSpecId: 'named-spec' },
+            { quantity: 3, containerSpecId: 'missing-spec' },
+            { quantity: 2, containerSpecId: 'wrong-kind' },
+          ],
+        },
+      ],
+      total: 1,
+    });
+    const result = await queryOrderList({}, seaExportDefinition, {
+      organizationId: 'org-1',
+      ports: [],
+      airports: [],
+      customerMap: {},
+    });
+    expect(result.data[0].containerSummary).toBe(
+      '1×特种箱, 3×箱型缺失, 2×箱型缺失',
+    );
+  });
+
+  it.each([seaExportDefinition, airExportDefinition])(
+    '$kind 无箱计划时不为摘要加载字典',
+    async (definition) => {
+      listOrdersMock.mockResolvedValue({ data: [{ id: 'order-1' }], total: 1 });
+      const result = await queryOrderList({}, definition, {
+        organizationId: 'org-1',
+        ports: [],
+        airports: [],
+        customerMap: {},
+      });
+      expect(result.data[0].containerSummary).toBeUndefined();
+      expect(masterOptionsMock).not.toHaveBeenCalled();
+    },
+  );
+
+  it('箱型字典加载失败时外传错误，不返回带原始 ID 的列表行', async () => {
+    masterOptionsMock.mockRejectedValue(new Error('主数据选项加载失败'));
+    listOrdersMock.mockResolvedValue({
+      data: [
+        {
+          id: 'order-1',
+          containerRequests: [{ quantity: 1, containerSpecId: 'missing-spec' }],
+        },
+      ],
+      total: 1,
+    });
+    await expect(
+      queryOrderList({}, seaExportDefinition, {
+        organizationId: 'org-1',
+        ports: [],
+        airports: [],
+        customerMap: {},
+      }),
+    ).rejects.toThrow('主数据选项加载失败');
   });
 
   it('人员三列映射服务端投影名称，未分配时为空由模板渲染占位', async () => {
@@ -324,7 +448,7 @@ describe('queryOrderList', () => {
     const result = await queryOrderList(
       { page: 1, pageSize: 20 },
       seaExportDefinition,
-      { ports: [], airports: [], customerMap: {}, containerSpecMap: {} },
+      { ports: [], airports: [], customerMap: {}, organizationId: 'org-1' },
     );
 
     const [assigned, unassigned] = result.data;
@@ -343,7 +467,7 @@ describe('queryOrderList', () => {
     const result = await queryOrderList(
       { page: 1, pageSize: 20 },
       seaExportDefinition,
-      { ports: [], airports: [], customerMap: {}, containerSpecMap: {} },
+      { ports: [], airports: [], customerMap: {}, organizationId: 'org-1' },
     );
 
     expect(result.data).toEqual([]);

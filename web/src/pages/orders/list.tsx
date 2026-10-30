@@ -251,10 +251,10 @@ export default function OrderListPage() {
         }
         queryOrders={(params) =>
           queryOrderList(params, definition, {
+            organizationId: workspaceId,
             ports,
             airports,
             customerMap,
-            containerSpecMap,
           })
         }
         onCreateOrder={

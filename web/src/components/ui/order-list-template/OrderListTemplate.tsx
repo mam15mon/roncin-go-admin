@@ -284,7 +284,17 @@ export function OrderListTemplate({
         ellipsis: true,
         render: (_, record) =>
           record.containerSummary ? (
-            <Tag color="blue">{record.containerSummary}</Tag>
+            <Tag
+              color="blue"
+              style={{
+                maxWidth: '100%',
+                marginInlineEnd: 0,
+                whiteSpace: 'normal',
+                overflowWrap: 'anywhere',
+              }}
+            >
+              {record.containerSummary}
+            </Tag>
           ) : (
             '-'
           ),

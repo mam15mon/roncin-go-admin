@@ -5,17 +5,23 @@ import {
   OrderNumberFilterType,
   OrderTerminationStatus,
 } from '@/enums.generated';
+import { getMasterDataOptions } from '@/features/orders/options';
 import { orderServiceListOrders } from '@/services/roncin/orderService';
 import { toTableRequest, unwrapPage } from '@/utils/api';
-import { paymentTermOptions, tradeTermOptions } from './common';
+import {
+  isMasterDataKind,
+  MASTER_DATA_KINDS,
+  paymentTermOptions,
+  tradeTermOptions,
+} from './common';
 import { lifecycleFiltersByStage } from './list-constants';
 import type { OrderKindDefinition } from './order-kinds/types';
 
 interface OrderListQueryContext {
+  organizationId: string | undefined;
   ports: API.Port[];
   airports: API.Airport[];
   customerMap: Record<string, string>;
-  containerSpecMap: Record<string, string>;
 }
 
 /** 将模板筛选参数映射为订单列表查询请求，并把响应整理为模板行数据。 */
@@ -79,6 +85,29 @@ export async function queryOrderList(
   });
 
   const page = unwrapPage(response);
+  let containerSpecMap: Record<string, string | undefined> = {};
+  if (
+    definition.transportMode === 'sea' &&
+    page.data.some((order) => order.containerRequests?.length)
+  ) {
+    if (!ctx.organizationId) {
+      throw new Error('缺少当前组织，无法加载订单箱型');
+    }
+    // 列表行必须等待同组织字典解析；首次渲染的资源映射可能尚未加载完成。
+    const masterOptions = await getMasterDataOptions(ctx.organizationId);
+    containerSpecMap = Object.fromEntries(
+      masterOptions
+        .filter(
+          (item) =>
+            item.id &&
+            isMasterDataKind(item.kind, MASTER_DATA_KINDS.CONTAINER_SPEC),
+        )
+        .map((item) => [
+          item.id as string,
+          item.code?.trim() || item.name?.trim(),
+        ]),
+    );
+  }
   const items: OrderListItem[] = page.data.map((order) => {
     const originPort = ctx.ports.find((p) => p.id === order.originLocationId);
     const destPort = ctx.ports.find(
@@ -114,7 +143,7 @@ export async function queryOrderList(
     const containerSummary = (order.containerRequests ?? [])
       .map(
         (req) =>
-          `${req.quantity}×${ctx.containerSpecMap[req.containerSpecId ?? ''] || req.containerSpecId}`,
+          `${req.quantity}×${containerSpecMap[req.containerSpecId ?? ''] || '箱型缺失'}`,
       )
       .join(', ');
 
