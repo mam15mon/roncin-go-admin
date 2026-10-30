@@ -102,6 +102,8 @@ func validateOrderShippingAgent(ctx context.Context, tx *ent.Tx, id *uuid.UUID, 
 }
 
 func validatePortIDs(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, ids []uuid.UUID) error {
+	// 多个地点字段允许引用同一港口，IN 查询的记录数应与唯一引用数比较。
+	ids = uniqueUUIDs(ids)
 	if len(ids) == 0 {
 		return nil
 	}
@@ -110,12 +112,13 @@ func validatePortIDs(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, 
 		return err
 	}
 	if count != len(ids) {
-		return biz.ErrOrderInvalidArgument
+		return biz.ErrOrderPortInvalid
 	}
 	return nil
 }
 
 func validateAirportIDs(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, ids []uuid.UUID) error {
+	ids = uniqueUUIDs(ids)
 	if len(ids) == 0 {
 		return nil
 	}
@@ -124,7 +127,7 @@ func validateAirportIDs(ctx context.Context, tx *ent.Tx, organizationID uuid.UUI
 		return err
 	}
 	if count != len(ids) {
-		return biz.ErrOrderInvalidArgument
+		return biz.ErrOrderAirportInvalid
 	}
 	return nil
 }

@@ -63,6 +63,8 @@ var ErrOrderCustomerStaffMissing = errors.BadRequest("ORDER_CUSTOMER_STAFF_MISSI
 var (
 	ErrOrderNotFound                  = errors.NotFound("ORDER_NOT_FOUND", "订单不存在")
 	ErrOrderInvalidArgument           = errors.BadRequest("ORDER_INVALID_ARGUMENT", "订单字段不合法")
+	ErrOrderPortInvalid               = errors.BadRequest("ORDER_INVALID_ARGUMENT", "港口不存在或已停用，请刷新后重新选择")
+	ErrOrderAirportInvalid            = errors.BadRequest("ORDER_INVALID_ARGUMENT", "机场不存在或已停用，请刷新后重新选择")
 	ErrOrderNumberExists              = errors.Conflict("ORDER_NUMBER_EXISTS", "订单编号已存在")
 	ErrOrderCustomerInvalid           = errors.BadRequest("ORDER_CUSTOMER_INVALID", "订单客户必须是启用的客户角色")
 	ErrOrderStatusInvalid             = errors.BadRequest("ORDER_STATUS_INVALID", "订单状态不合法")
