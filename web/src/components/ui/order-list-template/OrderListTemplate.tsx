@@ -113,11 +113,11 @@ export function OrderListTemplate({
       {
         title: '进程',
         dataIndex: 'stage',
-        width: 160,
+        width: 112,
         sorter: true,
         render: (_, record) =>
           record.stage?.length ? (
-            <Space size={4}>
+            <Space size={4} wrap>
               {record.stage.map((stage) => (
                 <Tag
                   key={stage}
@@ -167,7 +167,7 @@ export function OrderListTemplate({
       {
         title: '业务类型',
         dataIndex: 'businessType',
-        width: 100,
+        width: 88,
         sorter: true,
         renderText: (val) => val || '-',
       },
@@ -175,7 +175,7 @@ export function OrderListTemplate({
       {
         title: '委托单位',
         dataIndex: 'customerName',
-        width: 180,
+        width: 160,
         ellipsis: true,
         sorter: true,
       },
@@ -183,7 +183,7 @@ export function OrderListTemplate({
       {
         title: '客户业务编号',
         dataIndex: 'customerReferenceNo',
-        width: 130,
+        width: 120,
         ellipsis: true,
         sorter: true,
         renderText: (val) => val || '-',
@@ -192,7 +192,7 @@ export function OrderListTemplate({
       {
         title: '标签',
         dataIndex: 'tags',
-        width: 150,
+        width: 112,
         render: (_, record) =>
           record.tags?.length ? (
             <Space size={4} wrap>
@@ -227,7 +227,7 @@ export function OrderListTemplate({
       {
         title: '订舱代理',
         dataIndex: 'bookingAgentName',
-        width: 130,
+        width: 112,
         ellipsis: true,
         renderText: (val) => val || '-',
       },
@@ -241,14 +241,14 @@ export function OrderListTemplate({
       {
         title: options?.transportMode === 'air' ? '航班号' : '船名航次',
         dataIndex: 'vesselVoyage',
-        width: 140,
+        width: 128,
         ellipsis: true,
         renderText: (val) => val || '-',
       },
       {
         title: options?.transportMode === 'air' ? '起运机场' : '起运港',
         dataIndex: 'originPortName',
-        width: 130,
+        width: 112,
         ellipsis: true,
         render: (_, record) =>
           record.originPortName
@@ -260,7 +260,7 @@ export function OrderListTemplate({
       {
         title: options?.transportMode === 'air' ? '目的机场' : '目的港',
         dataIndex: 'destinationPortName',
-        width: 130,
+        width: 112,
         ellipsis: true,
         render: (_, record) =>
           record.destinationPortName
@@ -272,7 +272,7 @@ export function OrderListTemplate({
       {
         title: '目的地',
         dataIndex: 'finalDestination',
-        width: 120,
+        width: 104,
         ellipsis: true,
         renderText: (val) => val || '-',
       },
@@ -280,7 +280,7 @@ export function OrderListTemplate({
         title: '箱型箱量',
         hideInTable: options?.transportMode === 'air',
         dataIndex: 'containerSummary',
-        width: 130,
+        width: 112,
         ellipsis: true,
         render: (_, record) =>
           record.containerSummary ? (
@@ -293,7 +293,7 @@ export function OrderListTemplate({
         title: '箱号',
         hideInTable: options?.transportMode === 'air',
         dataIndex: 'containerNos',
-        width: 140,
+        width: 128,
         ellipsis: true,
         render: (_, record) =>
           record.containerNos?.length ? record.containerNos.join(', ') : '-',
@@ -306,13 +306,15 @@ export function OrderListTemplate({
       {
         title: '操作人员',
         dataIndex: 'operatorName',
-        width: 130,
+        width: 88,
+        ellipsis: true,
         renderText: (val) => val || '-',
       },
       {
         title: '业务人员',
         dataIndex: 'salesName',
-        width: 130,
+        width: 112,
+        ellipsis: true,
         render: (_, record) =>
           record.salesName
             ? `${record.salesName}${record.salesBranch ? ` (${record.salesBranch})` : ''}`
@@ -321,7 +323,8 @@ export function OrderListTemplate({
       {
         title: '创建人',
         dataIndex: 'creatorName',
-        width: 120,
+        width: 88,
+        ellipsis: true,
         renderText: (val) => val || '-',
       },
 
@@ -329,7 +332,7 @@ export function OrderListTemplate({
       {
         title: '委托总件数',
         dataIndex: 'totalPackages',
-        width: 110,
+        width: 96,
         align: 'right',
         render: (_, record) =>
           record.totalPackages !== undefined
@@ -339,14 +342,14 @@ export function OrderListTemplate({
       {
         title: '委托总毛重(KGS)',
         dataIndex: 'grossWeightKg',
-        width: 130,
+        width: 120,
         align: 'right',
         renderText: (val) => (val !== undefined ? `${val} KGS` : '-'),
       },
       {
         title: '委托总体积(CBM)',
         dataIndex: 'volumeCbm',
-        width: 130,
+        width: 120,
         align: 'right',
         renderText: (val) => (val !== undefined ? `${val} CBM` : '-'),
       },
@@ -355,32 +358,35 @@ export function OrderListTemplate({
       {
         title: '付款方式',
         dataIndex: 'paymentTerm',
-        width: 130,
+        width: 88,
+        ellipsis: true,
         renderText: (val) => val || '-',
       },
       {
         title: '贸易条款',
         dataIndex: 'tradeTerm',
-        width: 100,
+        width: 88,
+        ellipsis: true,
         renderText: (val) => val || '-',
       },
       {
         title: '合约号',
         dataIndex: 'contractNo',
-        width: 120,
+        width: 112,
+        ellipsis: true,
         renderText: (val) => val || '-',
       },
       {
         title: '收货人简称',
         dataIndex: 'consigneeName',
-        width: 130,
+        width: 112,
         ellipsis: true,
         renderText: (val) => val || '-',
       },
       {
         title: '发货人简称',
         dataIndex: 'shipperName',
-        width: 130,
+        width: 112,
         ellipsis: true,
         renderText: (val) => val || '-',
       },
@@ -389,28 +395,28 @@ export function OrderListTemplate({
       {
         title: '配舱备注',
         dataIndex: 'spaceNotes',
-        width: 130,
+        width: 112,
         ellipsis: true,
         renderText: (val) => val || '-',
       },
       {
         title: '订舱备注',
         dataIndex: 'bookingNotes',
-        width: 130,
+        width: 112,
         ellipsis: true,
         renderText: (val) => val || '-',
       },
       {
         title: '操作备注',
         dataIndex: 'operationNotes',
-        width: 130,
+        width: 112,
         ellipsis: true,
         renderText: (val) => val || '-',
       },
       {
         title: '附件',
         dataIndex: 'attachmentCount',
-        width: 70,
+        width: 56,
         align: 'center',
         render: (_, record) => (
           <Space size={2}>
@@ -463,7 +469,7 @@ export function OrderListTemplate({
         title: '操作',
         key: 'option',
         valueType: 'option',
-        width: 180,
+        width: 144,
         fixed: 'right',
         render: (_, record) => (
           <Space size="small">

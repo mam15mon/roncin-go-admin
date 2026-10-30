@@ -96,7 +96,7 @@ export default function OrderListPage() {
     {
       title: '订单审核',
       key: 'feeReview',
-      width: 180,
+      width: 128,
       render: (_, row) => (
         <Popover
           trigger={['hover', 'focus']}
@@ -110,6 +110,15 @@ export default function OrderListPage() {
           <Button
             type="text"
             size="small"
+            style={{
+              height: 'auto',
+              maxWidth: '100%',
+              paddingInline: 0,
+              flexWrap: 'wrap',
+              justifyContent: 'flex-start',
+              gap: 2,
+              whiteSpace: 'normal',
+            }}
             disabled={
               !access.canReadFinanceFees &&
               !access.canOrder(row.rawRecord?.businessType ?? '', 'lock') &&
@@ -140,7 +149,7 @@ export default function OrderListPage() {
       {
         title: '提成',
         dataIndex: 'commissionSummary',
-        width: 220,
+        width: 176,
         render: (_, record) => (
           <OrderCommissionSummaryCell
             summary={record.rawRecord?.commissionSummary}
