@@ -1,4 +1,4 @@
-import { Form, Radio } from 'antd';
+import { Form, Tag } from 'antd';
 import { FormRow } from '@/components/ui';
 import { SeaDocumentStructure } from '@/enums.generated';
 import {
@@ -158,23 +158,31 @@ function SeaDocumentModeDisplayField({ props }: { props: TemplateProps }) {
     return (
       <TemplateControlGroup title="提单模式">
         <Form.Item name="seaDocumentStructure" style={{ marginBottom: 0 }}>
-          <Radio.Group aria-label="提单模式" disabled>
-            <Radio.Button
-              value={SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE}
-            >
-              有货代分单（HOUSE）
-            </Radio.Button>
-            <Radio.Button
-              value={SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT}
-            >
-              仅船公司主单（DIRECT）
-            </Radio.Button>
-          </Radio.Group>
+          <SeaDocumentModeValue />
         </Form.Item>
       </TemplateControlGroup>
     );
   }
   return <SeaCreateDocumentModeField disabled={props.readonly} />;
+}
+
+function SeaDocumentModeValue({ value }: { value?: SeaDocumentStructure }) {
+  const label =
+    value === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
+      ? '有货代分单（HOUSE）'
+      : value === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT
+        ? '仅船公司主单（DIRECT）'
+        : '未设置';
+  return (
+    <output aria-label="当前提单模式">
+      <Tag
+        color="blue"
+        style={{ marginInlineEnd: 0, paddingInline: 12, lineHeight: '28px' }}
+      >
+        {label}
+      </Tag>
+    </output>
+  );
 }
 
 export { HouseBillIdentityFields, SeaBillContentFormFields };

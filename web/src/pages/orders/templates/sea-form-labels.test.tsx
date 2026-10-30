@@ -1,7 +1,13 @@
 import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
 import { act, screen } from '@testing-library/react';
+import type { FormInstance } from 'antd';
 import { expect, it, vi } from 'vitest';
-import { HOUSE, props, SectionCards } from './sea-create-layout.fixtures';
+import {
+  DIRECT,
+  HOUSE,
+  props,
+  SectionCards,
+} from './sea-create-layout.fixtures';
 
 vi.mock('@/app/access', () => ({
   useAccess: () => ({
@@ -67,9 +73,21 @@ it.each([false, true])(
       .filter((field) => !field.id && !field.name)
       .map((field) => field.outerHTML);
     expect(unnamedFields).toEqual([]);
-    for (const name of ['集运/跨境', '托运类型', '提单模式', '分单签发主体']) {
+    for (const name of ['集运/跨境', '托运类型', '分单签发主体']) {
       expect(
         screen.getByRole('radiogroup', { name, hidden: true }),
+      ).toBeInTheDocument();
+    }
+    if (isDetail) {
+      expect(screen.getByLabelText('当前提单模式')).toHaveTextContent(
+        '有货代分单（HOUSE）',
+      );
+      expect(
+        screen.queryByRole('radiogroup', { name: '提单模式', hidden: true }),
+      ).not.toBeInTheDocument();
+    } else {
+      expect(
+        screen.getByRole('radiogroup', { name: '提单模式', hidden: true }),
       ).toBeInTheDocument();
     }
     for (const name of ['箱型箱量', '货物品类']) {
@@ -79,3 +97,27 @@ it.each([false, true])(
     }
   },
 );
+
+it('详情当前模式随表单数据更新，保留提交值且使用可读标签展示', async () => {
+  let form!: FormInstance;
+  render(
+    <SectionCards
+      isDetail
+      sectionKeys={['bookingTransport']}
+      exposeForm={(instance) => {
+        form = instance;
+      }}
+      initialValues={{ seaDocumentStructure: DIRECT }}
+    />,
+  );
+  const mode = screen.getByLabelText('当前提单模式');
+  expect(mode).toHaveTextContent('仅船公司主单（DIRECT）');
+  expect(mode.querySelector('.ant-tag')).not.toHaveClass('ant-tag-disabled');
+  expect(
+    (await form.validateFields(['seaDocumentStructure'])).seaDocumentStructure,
+  ).toBe(DIRECT);
+  await act(async () => {
+    form.setFieldValue('seaDocumentStructure', HOUSE);
+  });
+  expect(mode).toHaveTextContent('有货代分单（HOUSE）');
+});
