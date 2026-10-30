@@ -16,7 +16,6 @@ import (
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	ordercontainerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
-	ordermilestoneent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	orderreleasepodent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	ordershippingdocumentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -621,7 +620,6 @@ func ensureSeaMasterBillHasNoDownstreamFacts(ctx context.Context, tx *ent.Tx, or
 			orderent.HasShippingDocumentsWith(ordershippingdocumentent.StatusNEQ(ordershippingdocumentent.StatusDRAFT)),
 			orderent.HasReleasePodsWith(orderreleasepodent.OrderIDEQ(order.ID)),
 			orderent.HasContainersWith(ordercontainerent.OrderIDEQ(order.ID)),
-			orderent.HasMilestonesWith(ordermilestoneent.OccurredAtNotNil()),
 			orderent.HasFeesWith(orderfeeent.HasFinanceBillLinesWith(effectiveBillLinePredicate())),
 			orderent.HasFinanceBillLinesWith(financebilllineent.OrderIDEQ(order.ID)),
 			orderent.HasFinanceCommissionLinesWith(financecommissionlineent.OrderIDEQ(order.ID)),

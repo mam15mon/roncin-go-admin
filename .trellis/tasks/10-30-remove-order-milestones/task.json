@@ -3,7 +3,7 @@
   "name": "remove-order-milestones",
   "title": "彻底移除订单履约里程碑",
   "description": "删除独立订单里程碑前后端、权限、生成物、Ent模型及开发数据，并提供正式清理迁移，保留订单操作进度",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": "web",
@@ -12,7 +12,7 @@
   "assignee": "mam15mon",
   "createdAt": "2026-10-30",
   "completedAt": null,
-  "branch": null,
+  "branch": "codex/remove-order-milestones",
   "base_branch": "main",
   "worktree_path": null,
   "commit": null,
@@ -20,7 +20,17 @@
   "subtasks": [],
   "children": [],
   "parent": null,
-  "relatedFiles": [],
-  "notes": "",
+  "relatedFiles": [
+    "server/api/order/v1/milestone.proto",
+    "server/internal/access/manifest.go",
+    "server/internal/data/ent/schema/order_milestone.go",
+    "server/internal/data/order_write_sea_master_bill.go",
+    "server/migrations/20261030140000_remove_order_milestones.sql",
+    "server/internal/data/order_milestone_retirement_integration_test.go",
+    "server/internal/data/order_master_bill_downstream_integration_test.go",
+    "web/src/pages/orders/list.tsx",
+    "web/src/components/ui/order-list-template/OrderListTemplate.tsx"
+  ],
+  "notes": "用户已批准方案并要求完成后review、合并main、push及安全清理全部已合并分支；不在实际开发库执行删表迁移。",
   "meta": {}
 }

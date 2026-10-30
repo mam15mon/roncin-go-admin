@@ -34,9 +34,6 @@ import ConsolidationDrawer, {
 import ContainerDrawer, {
   type ContainerDrawerRef,
 } from './components/drawers/ContainerDrawer';
-import MilestoneDrawer, {
-  type MilestoneDrawerRef,
-} from './components/drawers/MilestoneDrawer';
 import PersonnelDrawer, {
   type PersonnelDrawerRef,
 } from './components/drawers/PersonnelDrawer';
@@ -67,7 +64,6 @@ export default function OrderListPage() {
   const definition = getOrderKindDefinition(location.pathname);
 
   const actionRef = useRef<ActionType | undefined>(undefined);
-  const milestoneDrawerRef = useRef<MilestoneDrawerRef | null>(null);
   const attachmentDrawerRef = useRef<AttachmentDrawerRef | null>(null);
   const personnelDrawerRef = useRef<PersonnelDrawerRef | null>(null);
   const containerDrawerRef = useRef<ContainerDrawerRef | null>(null);
@@ -272,10 +268,6 @@ export default function OrderListPage() {
             `/orders/${item.orderKind || definition.kind}/${item.id}/fees`,
           )
         }
-        onOpenMilestones={(item) => {
-          setActiveOrder(item.rawRecord);
-          item.rawRecord && milestoneDrawerRef.current?.open(item.rawRecord);
-        }}
         documentsActionLabel={getDocumentsActionLabel(definition.businessType)}
         onOpenDocuments={(item) =>
           openOrderDocuments(
@@ -371,13 +363,6 @@ export default function OrderListPage() {
           return undefined;
         }}
         onCancel={() => setTagModalOpen(false)}
-      />
-      <MilestoneDrawer
-        ref={milestoneDrawerRef}
-        canSet={
-          canOperateActiveOrder &&
-          access.canOrder(definition.businessType, 'milestone.set')
-        }
       />
       <AttachmentDrawer
         ref={attachmentDrawerRef}

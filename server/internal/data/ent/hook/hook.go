@@ -933,18 +933,6 @@ func (f OrderLockRecordFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Va
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderLockRecordMutation", m)
 }
 
-// The OrderMilestoneFunc type is an adapter to allow the use of ordinary
-// function as OrderMilestone mutator.
-type OrderMilestoneFunc func(context.Context, *ent.OrderMilestoneMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f OrderMilestoneFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.OrderMilestoneMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderMilestoneMutation", m)
-}
-
 // The OrderPersonnelFunc type is an adapter to allow the use of ordinary
 // function as OrderPersonnel mutator.
 type OrderPersonnelFunc func(context.Context, *ent.OrderPersonnelMutation) (ent.Value, error)

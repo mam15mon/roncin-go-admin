@@ -4217,14 +4217,6 @@ declare namespace API {
     traceId?: string;
   };
 
-  type ListMilestonesResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderMilestone[];
-    traceId?: string;
-  };
-
   type ListMyApplicationCandidatesResponse = {
     success?: boolean;
     code?: number;
@@ -5767,28 +5759,6 @@ declare namespace API {
     feeContentVersion?: string;
     feeContentFingerprint?: string;
     feeSummary?: OrderFeeReviewSummary;
-  };
-
-  type OrderMilestone = {
-    id?: string;
-    orderId?: string;
-    type?: string;
-    templateNodeCode?: string;
-    templateNodeLabel?: string;
-    occurredAt?: string;
-    note?: string;
-    updatedBy?: string;
-    createdAt?: string;
-    updatedAt?: string;
-  };
-
-  type OrderMilestoneServiceListMilestonesParams = {
-    orderId: string;
-  };
-
-  type OrderMilestoneServiceSetMilestoneParams = {
-    orderId: string;
-    type: string;
   };
 
   type OrderPersonnel = {
@@ -8112,23 +8082,6 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: Currency;
-    traceId?: string;
-  };
-
-  type SetMilestoneRequest = {
-    orderId: string;
-    type: string;
-    expectedOrderVersion: string;
-    occurredAt?: string;
-    note?: string;
-    clearOccurredAt?: boolean;
-  };
-
-  type SetMilestoneResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderMilestone;
     traceId?: string;
   };
 

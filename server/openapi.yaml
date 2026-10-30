@@ -6481,55 +6481,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.GetOrderLockStateResponse'
-    /api/v1/orders/{orderId}/milestones:
-        get:
-            tags:
-                - OrderMilestoneService
-            description: ListMilestones 获取指定订单的里程碑列表。
-            operationId: OrderMilestoneService_ListMilestones
-            parameters:
-                - name: orderId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/order.v1.ListMilestonesResponse'
-    /api/v1/orders/{orderId}/milestones/{type}:
-        put:
-            tags:
-                - OrderMilestoneService
-            description: SetMilestone 设置指定订单的单个里程碑。
-            operationId: OrderMilestoneService_SetMilestone
-            parameters:
-                - name: orderId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: type
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/order.v1.SetMilestoneRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/order.v1.SetMilestoneResponse'
     /api/v1/orders/{orderId}/personnel:
         get:
             tags:
@@ -18344,23 +18295,6 @@ components:
                         $ref: '#/components/schemas/order.v1.OrderFee'
                 traceId:
                     type: string
-        order.v1.ListMilestonesResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/order.v1.OrderMilestone'
-                traceId:
-                    type: string
-            description: ListMilestonesResponse 订单里程碑列表响应。
         order.v1.ListOrderConsolidationsResponse:
             type: object
             properties:
@@ -19968,30 +19902,6 @@ components:
                     type: string
                 feeSummary:
                     $ref: '#/components/schemas/order.v1.OrderFeeReviewSummary'
-        order.v1.OrderMilestone:
-            type: object
-            properties:
-                id:
-                    type: string
-                orderId:
-                    type: string
-                type:
-                    type: string
-                templateNodeCode:
-                    type: string
-                templateNodeLabel:
-                    type: string
-                occurredAt:
-                    type: string
-                note:
-                    type: string
-                updatedBy:
-                    type: string
-                createdAt:
-                    type: string
-                updatedAt:
-                    type: string
-            description: OrderMilestone 订单里程碑信息。
         order.v1.OrderPersonnel:
             type: object
             properties:
@@ -22328,41 +22238,6 @@ components:
                 message:
                     type: string
             description: SeaVoyageConflict 航程冲突详情。
-        order.v1.SetMilestoneRequest:
-            required:
-                - orderId
-                - type
-                - expectedOrderVersion
-            type: object
-            properties:
-                orderId:
-                    type: string
-                type:
-                    type: string
-                expectedOrderVersion:
-                    type: string
-                occurredAt:
-                    type: string
-                note:
-                    type: string
-                clearOccurredAt:
-                    type: boolean
-            description: SetMilestoneRequest 设置订单里程碑请求。
-        order.v1.SetMilestoneResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/order.v1.OrderMilestone'
-                traceId:
-                    type: string
-            description: SetMilestoneResponse 单条订单里程碑响应。
         order.v1.TransitionOrderClosureRequest:
             required:
                 - id
@@ -25347,8 +25222,6 @@ tags:
          订单未锁定且费用未建账时直接维护；锁定后统一通过费用变更补审。
     - name: OrderLockService
       description: OrderLockService 订单业务锁与不可变单证版本服务。
-    - name: OrderMilestoneService
-      description: OrderMilestoneService 订单里程碑服务。
     - name: OrderPersonnelService
       description: OrderPersonnelService 订单协作人员服务。
     - name: OrderReleasePodService

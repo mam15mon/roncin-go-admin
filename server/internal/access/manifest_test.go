@@ -208,8 +208,6 @@ func TestOrderPermissionRequires(t *testing.T) {
 		{operation: OrderRead, required: nil},
 		{operation: OrderCreate, required: []string{OrderPermission(OrderBusinessSE, OrderRead)}},
 		{operation: OrderTransition, required: []string{OrderPermission(OrderBusinessSE, OrderRead)}},
-		{operation: OrderMilestoneRead, required: []string{OrderPermission(OrderBusinessSE, OrderRead)}},
-		{operation: OrderMilestoneSet, required: []string{OrderPermission(OrderBusinessSE, OrderMilestoneRead), OrderPermission(OrderBusinessSE, OrderRead)}},
 		{operation: OrderCargoItemCreate, required: []string{OrderPermission(OrderBusinessSE, OrderCargoItemRead), OrderPermission(OrderBusinessSE, OrderRead)}},
 		{operation: OrderFeeDelete, required: []string{OrderPermission(OrderBusinessSE, OrderFeeRead), OrderPermission(OrderBusinessSE, OrderRead)}},
 	}

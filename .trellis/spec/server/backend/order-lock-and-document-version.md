@@ -127,7 +127,7 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 - Data/PostgreSQL 锁资格矩阵：组织内 ORG 角色、上级组织 TREE 角色（按真实上级 membership/role 快照）、ALL 范围 `administrator` 角色、无锁权限的 `administrator` 角色、bootstrap（可锁、应急解锁、不进候选池）、ORG 范围越组织与 TREE 范围兄弟组织拒绝、撤权后旧候选回调 `APPROVER_NOT_QUALIFIED`。
 - Data 单元：内容门禁表驱动测试覆盖 TERMINATING/TERMINATED/已锁定阻断、终止原因优先于业务锁、ACTIVE+未锁定在 OPEN/CLOSED 下均放行。
 - Data/PostgreSQL：六类型锁定/解锁、跨类型权限隔离、每类订单资料与费用写阻断、非 SE 空快照、SE 版本快照、DIRECT 零 HBL、共享版本复用、审计失败回滚、普通写与锁定竞争、双锁/双直解竞争、活动请求唯一。
-- Data/PostgreSQL：代表性子资源（草稿、POD、货物、里程碑等）在终止中、已终止、已审核锁定时写阻断且零部分写入，完结但未锁时允许写入；锁定 `DOCUMENT_RELEASED` 订单可完结，但反结案须先解锁；空原因反结案放行、锁内拒绝及并发锁定竞态均须覆盖；退关完成原子结束活动 Link（ENDED、ended_at、ended_reason、version+1、事件与审计），取消退关保留 Link，恢复不复活历史 Link，旧版本稳定冲突。
+- Data/PostgreSQL：代表性子资源（草稿、POD、货物等）在终止中、已终止、已审核锁定时写阻断且零部分写入，完结但未锁时允许写入；锁定 `DOCUMENT_RELEASED` 订单可完结，但反结案须先解锁；空原因反结案放行、锁内拒绝及并发锁定竞态均须覆盖；退关完成原子结束活动 Link（ENDED、ended_at、ended_reason、version+1、事件与审计），取消退关保留 Link，恢复不复活历史 Link，旧版本稳定冲突。
 - 自拼汇总：Link ACTIVE 且 Order ACTIVE 的 LCL 成员才计入件重尺/成员数；house numbers 来自当前活动 MBL 的有效 `SeaHouseBill`，旧 `OrderShippingDocument` 与 VOIDED HBL 不返回。
 - 共享 MBL：至少分别覆盖身份/权威航程和 `MasterBillContent` 两个入口；断言成员锁定时 Order、MBL、TransportExecution 均未部分更新。
 - 不误拦截：共享字段无变化时，未锁成员的普通订单字段可更新，且 MBL/TransportExecution 版本不变。

@@ -166,8 +166,6 @@ type Tx struct {
 	OrderLockHouseBillSnapshot *OrderLockHouseBillSnapshotClient
 	// OrderLockRecord is the client for interacting with the OrderLockRecord builders.
 	OrderLockRecord *OrderLockRecordClient
-	// OrderMilestone is the client for interacting with the OrderMilestone builders.
-	OrderMilestone *OrderMilestoneClient
 	// OrderPersonnel is the client for interacting with the OrderPersonnel builders.
 	OrderPersonnel *OrderPersonnelClient
 	// OrderReleasePod is the client for interacting with the OrderReleasePod builders.
@@ -458,7 +456,6 @@ func (tx *Tx) init() {
 	tx.OrderLifecycleEvent = NewOrderLifecycleEventClient(tx.config)
 	tx.OrderLockHouseBillSnapshot = NewOrderLockHouseBillSnapshotClient(tx.config)
 	tx.OrderLockRecord = NewOrderLockRecordClient(tx.config)
-	tx.OrderMilestone = NewOrderMilestoneClient(tx.config)
 	tx.OrderPersonnel = NewOrderPersonnelClient(tx.config)
 	tx.OrderReleasePod = NewOrderReleasePodClient(tx.config)
 	tx.OrderShippingDocument = NewOrderShippingDocumentClient(tx.config)

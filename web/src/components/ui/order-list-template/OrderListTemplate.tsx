@@ -57,7 +57,6 @@ export function OrderListTemplate({
   onViewDetail,
   onEditOrder,
   onOpenFees,
-  onOpenMilestones,
   onOpenDocuments,
   documentsActionLabel = '主分单据管理',
   onOpenContainers,
@@ -503,12 +502,6 @@ export function OrderListTemplate({
                     onClick: () => onOpenFees?.(record),
                   },
                   {
-                    key: 'milestones',
-                    icon: <NodeIndexOutlined />,
-                    label: '履约里程碑',
-                    onClick: () => onOpenMilestones?.(record),
-                  },
-                  {
                     key: 'documents',
                     icon: <FileDoneOutlined />,
                     label: documentsActionLabel,
@@ -593,7 +586,6 @@ export function OrderListTemplate({
       onViewDetail,
       onEditOrder,
       onOpenFees,
-      onOpenMilestones,
       onOpenDocuments,
       documentsActionLabel,
       onOpenContainers,

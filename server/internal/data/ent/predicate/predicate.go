@@ -237,9 +237,6 @@ type OrderLockHouseBillSnapshot func(*sql.Selector)
 // OrderLockRecord is the predicate function for orderlockrecord builders.
 type OrderLockRecord func(*sql.Selector)
 
-// OrderMilestone is the predicate function for ordermilestone builders.
-type OrderMilestone func(*sql.Selector)
-
 // OrderPersonnel is the predicate function for orderpersonnel builders.
 type OrderPersonnel func(*sql.Selector)
 

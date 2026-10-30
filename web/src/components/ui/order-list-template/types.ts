@@ -182,8 +182,6 @@ export interface OrderListTemplateProps {
   onEditOrder?: (record: OrderListItem) => void;
   /** 进入订单费用维护页面 */
   onOpenFees?: (record: OrderListItem) => void;
-  /** 打开里程碑履约面板 */
-  onOpenMilestones?: (record: OrderListItem) => void;
   /** 打开单据/提单维护面板 */
   onOpenDocuments?: (record: OrderListItem) => void;
   /** 单证动作文案，未指定时保持旧入口语义 */

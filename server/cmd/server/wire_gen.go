@@ -104,9 +104,6 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	orderLockRepo := data.NewOrderLockRepo(dataData, security)
 	orderLockUsecase := biz.NewOrderLockUsecase(orderLockRepo)
 	orderLockService := service.NewOrderLockService(orderLockUsecase)
-	orderMilestoneRepo := data.NewOrderMilestoneRepo(dataData)
-	orderMilestoneUsecase := biz.NewOrderMilestoneUsecase(orderMilestoneRepo)
-	orderMilestoneService := service.NewOrderMilestoneService(orderMilestoneUsecase)
 	orderAttachmentRepo := data.NewOrderAttachmentRepo(dataData)
 	orderAttachmentUsecase := biz.NewOrderAttachmentUsecase(orderAttachmentRepo)
 	orderAttachmentService := service.NewOrderAttachmentService(orderAttachmentUsecase)
@@ -175,7 +172,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	workbenchUsecase := biz.NewWorkbenchUsecase(workbenchRepo)
 	workbenchService := service.NewWorkbenchService(workbenchUsecase, financeCommissionApplicationUsecase)
 	orderTagService := service.NewOrderTagService(businessTagUsecase)
-	grpcServer := server.NewGRPCServer(confServer, enterpriseResourceService, authService, partnerService, adminService, masterDataService, airExportService, airWeightService, orderService, orderLockService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, seaDocumentService, seaSharedContainerService, seaOrderChangeService, orderAbnormalCaseService, orderReleasePodService, exchangeRateService, feeCatalogService, orderFeeService, settlementService, workbenchService, authUsecase, orderUsecase, partnerUsecase, sessionPolicy, logger, orderTagService)
+	grpcServer := server.NewGRPCServer(confServer, enterpriseResourceService, authService, partnerService, adminService, masterDataService, airExportService, airWeightService, orderService, orderLockService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, seaDocumentService, seaSharedContainerService, seaOrderChangeService, orderAbnormalCaseService, orderReleasePodService, exchangeRateService, feeCatalogService, orderFeeService, settlementService, workbenchService, authUsecase, orderUsecase, partnerUsecase, sessionPolicy, logger, orderTagService)
 	dingTalkApprovalRepo := data.NewDingTalkApprovalRepo(dataData)
 	dingTalkApprovalGateway := data.NewDingTalkApprovalGateway(dingTalkIdentityProvider)
 	dingTalkApprovalCallbackCodec, err := data.NewDingTalkApprovalCallbackCodec(security)
@@ -184,7 +181,7 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 		return nil, nil, err
 	}
 	dingTalkApprovalUsecase := biz.NewDingTalkApprovalUsecase(backgroundTaskUsecase, dingTalkApprovalRepo, dingTalkApprovalGateway, dingTalkApprovalCallbackCodec)
-	httpServer := server.NewHTTPServer(confServer, enterpriseResourceService, authService, partnerService, adminService, masterDataService, airExportService, airWeightService, orderService, orderLockService, orderTagService, orderMilestoneService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, seaDocumentService, seaSharedContainerService, seaOrderChangeService, orderAbnormalCaseService, orderReleasePodService, exchangeRateService, feeCatalogService, orderFeeService, settlementService, workbenchService, authUsecase, orderUsecase, partnerUsecase, dingTalkApprovalUsecase, sessionPolicy, dataData, logger)
+	httpServer := server.NewHTTPServer(confServer, enterpriseResourceService, authService, partnerService, adminService, masterDataService, airExportService, airWeightService, orderService, orderLockService, orderTagService, orderAttachmentService, orderPersonnelService, backgroundTaskService, orderContainerService, orderCargoItemService, orderShippingDocumentService, seaDocumentService, seaSharedContainerService, seaOrderChangeService, orderAbnormalCaseService, orderReleasePodService, exchangeRateService, feeCatalogService, orderFeeService, settlementService, workbenchService, authUsecase, orderUsecase, partnerUsecase, dingTalkApprovalUsecase, sessionPolicy, dataData, logger)
 	notificationRepo := data.NewNotificationRepo(dataData)
 	notificationUsecase := biz.NewNotificationUsecase(backgroundTaskUsecase, notificationRepo, dingTalkIdentityProvider)
 	backgroundTaskScheduler := data.NewBackgroundTaskScheduler(dataData, logger)

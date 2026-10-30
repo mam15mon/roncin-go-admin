@@ -401,8 +401,6 @@ func TestOrderOperationWritesClassifiesEveryDeclaredOperation(t *testing.T) {
 		access.OrderCreate:               true,
 		access.OrderUpdate:               true,
 		access.OrderTransition:           true,
-		access.OrderMilestoneRead:        false,
-		access.OrderMilestoneSet:         true,
 		access.OrderAttachmentRead:       false,
 		access.OrderAttachmentRegister:   true,
 		access.OrderPersonnelRead:        false,
@@ -648,7 +646,7 @@ func TestSharedContainerRequestsDeniedWithoutMatchingPermission(t *testing.T) {
 			t.Fatalf("SI %s 权限不应授权 SE 共享箱 %s", tc.operation, tc.name)
 		}
 		// 完全没有对应权限时拒绝
-		none := principalWithOrderPermission(access.OrderBusinessSE, access.OrderMilestoneRead)
+		none := principalWithOrderPermission(access.OrderBusinessSE, access.OrderCargoItemRead)
 		order, direct = requestOrder(t.Context(), tc.request, orderUsecase, orderOrganizationScopes(none, tc.operation, orderOperationWrites(tc.operation)))
 		if !direct || order != nil {
 			t.Fatalf("无 SE %s 权限时 %s 应拒绝", tc.operation, tc.name)

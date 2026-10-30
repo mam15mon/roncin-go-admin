@@ -1,9 +1,9 @@
 # 实施计划
 
 ## 启动前门禁
-- [ ] 用户审批最终删除范围与数据迁移说明。
-- [ ] 研究报告与PRD/design收敛，implement/check上下文清单均非空。
-- [ ] `task.py start`切换到in_progress，创建独立codex分支，确认工作树状态。
+- [x] 用户审批最终删除范围与数据迁移说明，并要求review、合并、清理分支及push。
+- [x] 研究报告与PRD/design收敛，implement/check上下文清单均非空。
+- [x] 已在codex/remove-order-milestones启动任务，产品修改前工作树干净。
 
 ## 分工与顺序
 1. 后端源实现：删除里程碑proto/服务/biz/data、注册与注入；删除Manifest操作与依赖测试，改主单门禁与相邻后端用例，清理sync-dev种子。

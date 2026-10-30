@@ -31,7 +31,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
@@ -1180,21 +1179,6 @@ func (_c *OrderCreate) AddCargoCategories(v ...*OrderCargoCategory) *OrderCreate
 		ids[i] = v[i].ID
 	}
 	return _c.AddCargoCategoryIDs(ids...)
-}
-
-// AddMilestoneIDs adds the "milestones" edge to the OrderMilestone entity by IDs.
-func (_c *OrderCreate) AddMilestoneIDs(ids ...uuid.UUID) *OrderCreate {
-	_c.mutation.AddMilestoneIDs(ids...)
-	return _c
-}
-
-// AddMilestones adds the "milestones" edges to the OrderMilestone entity.
-func (_c *OrderCreate) AddMilestones(v ...*OrderMilestone) *OrderCreate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddMilestoneIDs(ids...)
 }
 
 // AddAttachmentIDs adds the "attachments" edge to the OrderAttachment entity by IDs.
@@ -2473,22 +2457,6 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(ordercargocategory.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.MilestonesIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   order.MilestonesTable,
-			Columns: []string{order.MilestonesColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(ordermilestone.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

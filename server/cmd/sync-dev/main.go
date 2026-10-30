@@ -46,7 +46,6 @@ import (
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	correctionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	orderlockrecordent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
-	ordermilestoneent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	orderreleasepodent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	orderunlockrequestent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
@@ -187,7 +186,7 @@ func runSeed(ctx context.Context, client *ent.Client) (*seedContext, error) {
 			return fmt.Errorf("海运单证操作（拆票/改配/共享箱/改单作废）同步失败: %w", err)
 		}
 		if err := seedOrderOperations(ctx, sc); err != nil {
-			return fmt.Errorf("订单运营数据（里程碑/POD/附件/异常）同步失败: %w", err)
+			return fmt.Errorf("订单运营数据（POD/附件/异常）同步失败: %w", err)
 		}
 		if err := seedAirExportOrders(ctx, sc); err != nil {
 			return fmt.Errorf("空运共享主单与双票样例同步失败: %w", err)
@@ -217,7 +216,7 @@ func printSeedSummary(sc *seedContext) {
 	fmt.Printf("✔ 订单锁治理: 核销自动锁+钉钉解锁审批(审批中)、人工锁定含单证版本快照、已批准费用的受控成本补录(待审+已批准)\n")
 	fmt.Printf("✔ 提成链路: 经营归属+核销计提台账(销售10%%/操作3%%)+月度申请(待审批/已审批)\n")
 	fmt.Printf("✔ 单证操作: 拆票+整体改配(含ENDED关系)、共享箱守恒、HBL改单/作废重出、直单转主分单\n")
-	fmt.Printf("✔ 运营数据: 异常标记(未解决/已解决)、里程碑、放单POD(待签/已签)、附件登记\n")
+	fmt.Printf("✔ 运营数据: 异常标记(未解决/已解决)、放单POD(待签/已签)、附件登记\n")
 	fmt.Println("==================================================")
 }
 
@@ -2946,7 +2945,7 @@ func seedSeaDocumentOperations(ctx context.Context, sc *seedContext) error {
 	return nil
 }
 
-// 11. 订单运营数据：异常标记、里程碑、放单 POD 与附件登记
+// 11. 订单运营数据：异常标记、放单 POD 与附件登记
 func seedOrderOperations(ctx context.Context, sc *seedContext) error {
 	tx := sc.tx
 	co := sc.company
@@ -3017,37 +3016,6 @@ func seedOrderOperations(ctx context.Context, sc *seedContext) error {
 					Save(ctx); err != nil {
 					return fmt.Errorf("标记订单异常 SE26090004: %w", err)
 				}
-			}
-		}
-	}
-
-	// 里程碑：SE26090001 订舱确认 + 装船离港
-	ord01 := sc.orders["SE26090001"]
-	milestones := []struct {
-		typ, label string
-		occurred   *time.Time
-		note       string
-	}{
-		{"BOOKING_CONFIRMED", "订舱确认", ptrTime(time.Now().Add(-72 * time.Hour)), "中远海运舱位确认，S/O 已回传"},
-		{"VESSEL_DEPARTED", "装船离港", nil, "待船舶实际开航后补录"},
-	}
-	for _, m := range milestones {
-		mExists, _ := tx.OrderMilestone.Query().Where(
-			ordermilestoneent.OrderIDEQ(ord01.ID),
-			ordermilestoneent.TypeEQ(m.typ),
-		).Exist(ctx)
-		if !mExists {
-			create := tx.OrderMilestone.Create().
-				SetOrderID(ord01.ID).
-				SetType(m.typ).
-				SetTemplateNodeLabel(m.label).
-				SetNote(m.note).
-				SetUpdatedBy(sc.adminUser.ID)
-			if m.occurred != nil {
-				create = create.SetOccurredAt(*m.occurred)
-			}
-			if _, err := create.Save(ctx); err != nil {
-				return fmt.Errorf("创建订单里程碑 %s: %w", m.typ, err)
 			}
 		}
 	}

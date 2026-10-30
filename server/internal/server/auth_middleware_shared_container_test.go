@@ -145,7 +145,7 @@ func TestAuthorizationMiddlewareSharedContainerRequests(t *testing.T) {
 		for _, tc := range sharedContainerAuthRequests(anchorOrder.ID) {
 			operation := "/order.v1.SeaSharedContainerService/" + operationNameFromRequest(tc.request)
 
-			noPermission := principalWith(access.OrderMilestoneRead)
+			noPermission := principalWith(access.OrderCargoItemRead)
 			if state := runSharedContainerMiddleware(t, operation, "sid=valid-token", noPermission, anchorOrder, tc.request); state.called {
 				t.Fatalf("%s 无权限时不应进入 handler", operation)
 			}

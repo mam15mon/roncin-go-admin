@@ -4761,29 +4761,6 @@ func HasCargoCategoriesWith(preds ...predicate.OrderCargoCategory) predicate.Ord
 	})
 }
 
-// HasMilestones applies the HasEdge predicate on the "milestones" edge.
-func HasMilestones() predicate.Order {
-	return predicate.Order(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, MilestonesTable, MilestonesColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasMilestonesWith applies the HasEdge predicate on the "milestones" edge with a given conditions (other predicates).
-func HasMilestonesWith(preds ...predicate.OrderMilestone) predicate.Order {
-	return predicate.Order(func(s *sql.Selector) {
-		step := newMilestonesStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
 // HasAttachments applies the HasEdge predicate on the "attachments" edge.
 func HasAttachments() predicate.Order {
 	return predicate.Order(func(s *sql.Selector) {

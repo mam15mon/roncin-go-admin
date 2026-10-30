@@ -188,12 +188,6 @@ const actionPresentations: Record<string, AuditActionPresentation> = {
     color: 'cyan',
     objectType: '船公司',
   },
-  'milestone.set': {
-    title: '设置里程碑',
-    category: '基础资料',
-    color: 'cyan',
-    objectType: '里程碑',
-  },
 
   'order.create': {
     title: '创建订单',
@@ -233,12 +227,6 @@ const actionPresentations: Record<string, AuditActionPresentation> = {
   },
   'order.personnel.remove': {
     title: '移除订单人员',
-    category: '订单管理',
-    color: 'blue',
-    objectType: '订单',
-  },
-  'order.milestone.set': {
-    title: '更新订单节点',
     category: '订单管理',
     color: 'blue',
     objectType: '订单',

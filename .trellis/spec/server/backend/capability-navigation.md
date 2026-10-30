@@ -37,7 +37,7 @@
 | 钉钉集成 | `dingtalk_directory.go`、`admin_user.go`、`dingtalk_approval.go` | 通讯录同步、组织角色开通、业务审批 | 手机号/令牌入日志 |
 | 后台任务/通知 | `background_task.go`、`background_task_scheduler.go`、`notification.go`、`workbench.go` | 任务领取、通知唤醒与到期检查（见 `background-task-notify.md`）、紧凑Markdown/ActionCard消息（见 `dingtalk-notification-markdown.md`）、工作台聚合 | 工作台直查多仓储；空闲高频轮询；把通知当作任务真相；验证码进入通知持久化 |
 | 本人作业待办 | `workbench.go` | 本人协作订单费用/异常分页投影及摘要（见 `workbench-todos.md`） | lock 替代 fee.read；仅以无账单关联判断未建账；隐藏仍未处理的锁定订单待办 |
-| 订单辅助实体 | `order_cargo_item.go`、`order_container.go`、`order_milestone.go`、`order_personnel.go`、`order_attachment.go`、`order_abnormal_case.go`、`order_release_pod.go`、`orderconfig.go` | 货物、箱型、里程碑、人员、附件、异常、放货 | 辅助实体越权写他单 |
+| 订单辅助实体 | `order_cargo_item.go`、`order_container.go`、`order_personnel.go`、`order_attachment.go`、`order_abnormal_case.go`、`order_release_pod.go`、`orderconfig.go` | 货物、箱型、人员、附件、异常、放货 | 辅助实体越权写他单 |
 | 公司人员候选与资格 | data `company_personnel.go`，biz `PartnerRepo.ListAssignmentOptions` / `OrderRepo.ListPersonnelOptions` | 当前公司及部门/团队、同用户聚合、部门展示、岗位写入成员范围 | 穿透下属公司、候选与保存范围不一致 |
 | 数据清理 | `object_deletion.go` | 受控删除 | 物理删除不走用例 |
 

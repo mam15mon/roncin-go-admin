@@ -1,5 +1,7 @@
 # Roncin 重构迁移矩阵与设计决策
 
+> 2026-10-30 更新：独立订单履约里程碑与旧里程碑模板均已退役；旧模型清单和早期阶段记录仅保留历史含义，当前系统不再提供该能力。删除契约见 `.trellis/spec/server/backend/order-milestone-retirement.md`。
+
 本文是 P0 阶段的第一份实施产物，记录旧 `roncin` 到 `roncin-go-admin` 的领域范围、目标阶段、当前状态和必须先解决的设计问题。
 
 ## 使用规则
@@ -17,9 +19,9 @@
 | 旧系统技术栈 | Next.js App Router、React、Prisma、PostgreSQL |
 | 旧 Prisma 结构 | `prisma/models/` 下 12 个领域文件、143 个 `model`、81 个 `enum` |
 | 新系统技术栈 | Kratos v3、Go、Ent、PostgreSQL、Ant Design Pro |
-| 新 Ent Schema | 已包含 admin、masterdata、partner、order、milestone 等领域，共 29 个 schema 文件（含 mixin） |
-| 新 API | 已包含 AuthService、AdminService、MasterDataService、PartnerService、OrderService、OrderMilestoneService 等 Proto 定义与 RPC |
-| 新前端 | 登录、工作台、管理后台（组织/用户/角色/权限/审计）、主数据管理、往来单位管理（含抽屉与次级页）、订单管理（含列表/创建/草稿编辑/状态流转/里程碑抽屉）及通用错误页 |
+| 新 Ent Schema | 已包含 admin、masterdata、partner、order 等领域；当前 Schema 清单以 `server/internal/data/ent/schema/` 为准 |
+| 新 API | 已包含 AuthService、AdminService、MasterDataService、PartnerService、OrderService 等 Proto 定义与 RPC |
+| 新前端 | 登录、工作台、管理后台（组织/用户/角色/权限/审计）、主数据管理、往来单位管理（含抽屉与次级页）、订单管理（含列表/创建/草稿编辑/状态流转）及通用错误页 |
 | 当前迁移方式 | 没有旧数据迁移工具，也没有长期双写方案 |
 
 ## 领域迁移矩阵

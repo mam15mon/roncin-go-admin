@@ -4944,50 +4944,6 @@ var (
 			},
 		},
 	}
-	// OrderMilestonesColumns holds the columns for the "order_milestones" table.
-	OrderMilestonesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "type", Type: field.TypeString, Size: 64},
-		{Name: "template_node_code", Type: field.TypeString, Nullable: true, Size: 64},
-		{Name: "template_node_label", Type: field.TypeString, Nullable: true, Size: 100},
-		{Name: "occurred_at", Type: field.TypeTime, Nullable: true},
-		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
-		{Name: "updated_by", Type: field.TypeUUID, Nullable: true},
-		{Name: "order_id", Type: field.TypeUUID},
-	}
-	// OrderMilestonesTable holds the schema information for the "order_milestones" table.
-	OrderMilestonesTable = &schema.Table{
-		Name:       "order_milestones",
-		Columns:    OrderMilestonesColumns,
-		PrimaryKey: []*schema.Column{OrderMilestonesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "order_milestones_orders_milestones",
-				Columns:    []*schema.Column{OrderMilestonesColumns[9]},
-				RefColumns: []*schema.Column{OrdersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "ordermilestone_updated_at",
-				Unique:  false,
-				Columns: []*schema.Column{OrderMilestonesColumns[2]},
-			},
-			{
-				Name:    "ordermilestone_order_id_type",
-				Unique:  true,
-				Columns: []*schema.Column{OrderMilestonesColumns[9], OrderMilestonesColumns[3]},
-			},
-			{
-				Name:    "ordermilestone_order_id_occurred_at",
-				Unique:  false,
-				Columns: []*schema.Column{OrderMilestonesColumns[9], OrderMilestonesColumns[6]},
-			},
-		},
-	}
 	// OrderPersonnelsColumns holds the columns for the "order_personnels" table.
 	OrderPersonnelsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -7726,7 +7682,6 @@ var (
 		OrderLifecycleEventsTable,
 		OrderLockHouseBillSnapshotsTable,
 		OrderLockRecordsTable,
-		OrderMilestonesTable,
 		OrderPersonnelsTable,
 		OrderReleasePodsTable,
 		OrderShippingDocumentsTable,
@@ -8085,7 +8040,6 @@ func init() {
 		"order_lock_records_fee_review_snapshot_check":         "(fee_snapshot IS NULL AND fee_content_version IS NULL AND fee_content_fingerprint IS NULL AND review_comment IS NULL) OR (fee_snapshot IS NOT NULL AND fee_content_version IS NOT NULL AND fee_content_fingerprint IS NOT NULL AND length(fee_content_fingerprint) = 64 AND review_comment IS NOT NULL)",
 		"order_lock_records_lock_source_check":                 "(lock_source = 'MANUAL' AND locked_by IS NOT NULL AND trigger_type IS NULL AND trigger_resource_id IS NULL AND triggered_by IS NULL) OR (lock_source = 'AUTO_SETTLEMENT' AND locked_by IS NULL AND trigger_type IS NOT NULL AND trigger_resource_id IS NOT NULL AND triggered_by IS NOT NULL)",
 	}
-	OrderMilestonesTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderPersonnelsTable.ForeignKeys[0].RefTable = OrdersTable
 	OrderPersonnelsTable.ForeignKeys[1].RefTable = OrganizationsTable
 	OrderPersonnelsTable.ForeignKeys[2].RefTable = UsersTable

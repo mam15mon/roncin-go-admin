@@ -152,8 +152,6 @@ const (
 	OrderCreate               OrderOperation = "create"
 	OrderUpdate               OrderOperation = "update"
 	OrderTransition           OrderOperation = "transition"
-	OrderMilestoneRead        OrderOperation = "milestone.read"
-	OrderMilestoneSet         OrderOperation = "milestone.set"
 	OrderAttachmentRead       OrderOperation = "attachment.read"
 	OrderAttachmentRegister   OrderOperation = "attachment.register"
 	OrderPersonnelRead        OrderOperation = "personnel.read"
@@ -306,7 +304,6 @@ var orderPermissionDefinitions = []orderPermissionDefinition{
 	{operation: OrderCreate, name: "新建订单", resource: "订单", description: "新建订单并检查业务编号"},
 	{operation: OrderUpdate, name: "编辑订单", resource: "订单", description: "修改订单基础与业务资料"},
 	{operation: OrderTransition, name: "流转订单状态", resource: "订单", description: "执行订单状态流转"},
-	{operation: OrderMilestoneRead, name: "查看里程碑", resource: "里程碑", description: "查看订单里程碑"}, {operation: OrderMilestoneSet, name: "设置里程碑", resource: "里程碑", description: "完成、跳过或重置订单里程碑"},
 	{operation: OrderAttachmentRead, name: "查看附件", resource: "附件", description: "查看订单附件"}, {operation: OrderAttachmentRegister, name: "管理附件", resource: "附件", description: "登记订单附件元数据与解除引用"},
 	{operation: OrderPersonnelRead, name: "查看协作人员", resource: "协作人员", description: "查看订单协作人员"}, {operation: OrderPersonnelAssign, name: "指派协作人员", resource: "协作人员", description: "指派订单协作人员"}, {operation: OrderPersonnelRemove, name: "移除协作人员", resource: "协作人员", description: "移除订单协作人员"},
 	{operation: OrderContainerRead, name: "查看集装箱", resource: "集装箱", description: "查看订单集装箱"}, {operation: OrderContainerCreate, name: "新增集装箱", resource: "集装箱", description: "新增订单集装箱"}, {operation: OrderContainerUpdate, name: "编辑集装箱", resource: "集装箱", description: "修改订单集装箱"}, {operation: OrderContainerDelete, name: "删除集装箱", resource: "集装箱", description: "删除订单集装箱"},
@@ -411,7 +408,7 @@ func orderManifest() []Permission {
 }
 
 // orderPermissionRequires 推导订单权限依赖：操作权限依赖同资源读权限，子资源
-// 权限（里程碑、集装箱、费用等）还依赖该业务线的订单读权限。
+// 权限（集装箱、费用等）还依赖该业务线的订单读权限。
 func orderPermissionRequires(businessType OrderBusinessType, operation OrderOperation) []string {
 	orderRead := OrderPermission(businessType, OrderRead)
 	if operation == OrderLock {

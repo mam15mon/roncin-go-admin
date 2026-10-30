@@ -122,7 +122,6 @@ func (Order) Edges() []ent.Edge {
 		edge.From("shipping_line", ShippingLine.Type).Ref("orders").Field("shipping_line_id").Unique(),
 		edge.To("lifecycle_events", OrderLifecycleEvent.Type),
 		edge.To("cargo_categories", OrderCargoCategory.Type),
-		edge.To("milestones", OrderMilestone.Type),
 		edge.To("attachments", OrderAttachment.Type),
 		edge.To("personnel", OrderPersonnel.Type),
 		edge.To("containers", OrderContainer.Type),

@@ -6,6 +6,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
+import { ConfigProvider } from 'antd';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { OrderListSearchFilter } from './OrderListSearchFilter';
@@ -71,12 +72,14 @@ describe('OrderListTemplate', () => {
     });
 
     const { container } = render(
-      <OrderListTemplate
-        title="海运出口订单"
-        subTitle="海运整箱与拼箱出口业务调度"
-        queryOrders={mockQuery}
-        onCreateOrder={vi.fn()}
-      />,
+      <ConfigProvider theme={{ token: { motion: false } }}>
+        <OrderListTemplate
+          title="海运出口订单"
+          subTitle="海运整箱与拼箱出口业务调度"
+          queryOrders={mockQuery}
+          onCreateOrder={vi.fn()}
+        />
+      </ConfigProvider>,
     );
 
     expect(screen.getByText('海运出口订单')).toBeInTheDocument();
@@ -120,7 +123,10 @@ describe('OrderListTemplate', () => {
     expect(row.getByText('异常')).toBeVisible();
     expect(row.queryByText('异常挂起')).not.toBeInTheDocument();
 
-    fireEvent.click(row.getByRole('button', { name: /更多/ }));
+    fireEvent.mouseEnter(row.getByRole('button', { name: /更多/ }));
+    const feesAction = await screen.findByText('费用核算');
+    await waitFor(() => expect(feesAction).toBeVisible());
+    expect(screen.queryByText('履约里程碑')).not.toBeInTheDocument();
     expect(screen.queryByText('流转状态')).not.toBeInTheDocument();
   });
 

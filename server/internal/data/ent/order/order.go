@@ -186,8 +186,6 @@ const (
 	EdgeLifecycleEvents = "lifecycle_events"
 	// EdgeCargoCategories holds the string denoting the cargo_categories edge name in mutations.
 	EdgeCargoCategories = "cargo_categories"
-	// EdgeMilestones holds the string denoting the milestones edge name in mutations.
-	EdgeMilestones = "milestones"
 	// EdgeAttachments holds the string denoting the attachments edge name in mutations.
 	EdgeAttachments = "attachments"
 	// EdgePersonnel holds the string denoting the personnel edge name in mutations.
@@ -283,13 +281,6 @@ const (
 	CargoCategoriesInverseTable = "order_cargo_categories"
 	// CargoCategoriesColumn is the table column denoting the cargo_categories relation/edge.
 	CargoCategoriesColumn = "order_id"
-	// MilestonesTable is the table that holds the milestones relation/edge.
-	MilestonesTable = "order_milestones"
-	// MilestonesInverseTable is the table name for the OrderMilestone entity.
-	// It exists in this package in order to avoid circular dependency with the "ordermilestone" package.
-	MilestonesInverseTable = "order_milestones"
-	// MilestonesColumn is the table column denoting the milestones relation/edge.
-	MilestonesColumn = "order_id"
 	// AttachmentsTable is the table that holds the attachments relation/edge.
 	AttachmentsTable = "order_attachments"
 	// AttachmentsInverseTable is the table name for the OrderAttachment entity.
@@ -1533,20 +1524,6 @@ func ByCargoCategories(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByMilestonesCount orders the results by milestones count.
-func ByMilestonesCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newMilestonesStep(), opts...)
-	}
-}
-
-// ByMilestones orders the results by milestones terms.
-func ByMilestones(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newMilestonesStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // ByAttachmentsCount orders the results by attachments count.
 func ByAttachmentsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1978,13 +1955,6 @@ func newCargoCategoriesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CargoCategoriesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, CargoCategoriesTable, CargoCategoriesColumn),
-	)
-}
-func newMilestonesStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(MilestonesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, MilestonesTable, MilestonesColumn),
 	)
 }
 func newAttachmentsStep() *sqlgraph.Step {

@@ -14,7 +14,6 @@ import (
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	ordercargoitement "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
 	orderlifecycleeventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
-	ordermilestoneent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	orderreleasepodent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	ordershippingdocumentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
 	seahousebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
@@ -22,7 +21,7 @@ import (
 )
 
 // cleanupLifecycleGateSubresources 在共享夹具按组织清理订单前，先删除本测试
-// 新增的子资源行（货物、POD、里程碑），避免共享清理删除订单时触发外键约束。
+// 新增的子资源行（货物、POD），避免共享清理删除订单时触发外键约束。
 // 共享夹具（orderPostgresFixture）自身只覆盖既有测试用到的表，禁止修改。
 func cleanupLifecycleGateSubresources(t *testing.T, data *Data, fixture *orderPostgresFixture) {
 	t.Helper()
@@ -39,10 +38,6 @@ func cleanupLifecycleGateSubresources(t *testing.T, data *Data, fixture *orderPo
 			}},
 			{name: "放货 POD", run: func() error {
 				_, err := data.db.OrderReleasePod.Delete().Where(orderreleasepodent.HasOrderWith(orderent.OrganizationIDEQ(fixture.organizationID))).Exec(ctx)
-				return err
-			}},
-			{name: "里程碑", run: func() error {
-				_, err := data.db.OrderMilestone.Delete().Where(ordermilestoneent.HasOrderWith(orderent.OrganizationIDEQ(fixture.organizationID))).Exec(ctx)
 				return err
 			}},
 		}
@@ -96,7 +91,7 @@ func TestOrderLifecycleGatePostgres(t *testing.T) {
 				}
 
 				// 代表性子资源写入：订单草稿、放货 POD（原重复门禁改造点）、
-				// 货物明细、里程碑。
+				// 货物明细。
 				_, updateErr := usecase.UpdateDraft(ctx, fixture.organizationID, fixture.actorID, created.ID, version, fixture.validUpdateInput())
 				requireOrderGateReason(t, "订单草稿更新", updateErr, tc.wantReason)
 
@@ -110,12 +105,6 @@ func TestOrderLifecycleGatePostgres(t *testing.T) {
 					&biz.OrderCargoItem{CargoName: "测试货物", PackageCount: 10, GrossWeightKg: 100, VolumeCbm: 1, Version: 1},
 					testGateAuditEvent(fixture, "order.cargo_item.add"))
 				requireOrderGateReason(t, "货物明细新增", cargoErr, tc.wantReason)
-
-				occurredAt := time.Now().UTC()
-				_, milestoneErr := NewOrderMilestoneRepo(data).Set(ctx, fixture.organizationID, created.ID,
-					"ATD", version, &occurredAt, nil, false, fixture.actorID,
-					testGateAuditEvent(fixture, "order.milestone.set"))
-				requireOrderGateReason(t, "里程碑设置", milestoneErr, tc.wantReason)
 
 				// 阻断后零写入。
 				afterBlock, err := data.db.Order.Query().

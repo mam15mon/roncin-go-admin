@@ -32,7 +32,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordermilestone"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordershippingdocument"
@@ -65,7 +64,6 @@ type OrderQuery struct {
 	withShippingLine                  *ShippingLineQuery
 	withLifecycleEvents               *OrderLifecycleEventQuery
 	withCargoCategories               *OrderCargoCategoryQuery
-	withMilestones                    *OrderMilestoneQuery
 	withAttachments                   *OrderAttachmentQuery
 	withPersonnel                     *OrderPersonnelQuery
 	withContainers                    *OrderContainerQuery
@@ -235,28 +233,6 @@ func (_q *OrderQuery) QueryCargoCategories() *OrderCargoCategoryQuery {
 			sqlgraph.From(order.Table, order.FieldID, selector),
 			sqlgraph.To(ordercargocategory.Table, ordercargocategory.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, order.CargoCategoriesTable, order.CargoCategoriesColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryMilestones chains the current query on the "milestones" edge.
-func (_q *OrderQuery) QueryMilestones() *OrderMilestoneQuery {
-	query := (&OrderMilestoneClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(order.Table, order.FieldID, selector),
-			sqlgraph.To(ordermilestone.Table, ordermilestone.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, order.MilestonesTable, order.MilestonesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -1099,7 +1075,6 @@ func (_q *OrderQuery) Clone() *OrderQuery {
 		withShippingLine:                  _q.withShippingLine.Clone(),
 		withLifecycleEvents:               _q.withLifecycleEvents.Clone(),
 		withCargoCategories:               _q.withCargoCategories.Clone(),
-		withMilestones:                    _q.withMilestones.Clone(),
 		withAttachments:                   _q.withAttachments.Clone(),
 		withPersonnel:                     _q.withPersonnel.Clone(),
 		withContainers:                    _q.withContainers.Clone(),
@@ -1187,17 +1162,6 @@ func (_q *OrderQuery) WithCargoCategories(opts ...func(*OrderCargoCategoryQuery)
 		opt(query)
 	}
 	_q.withCargoCategories = query
-	return _q
-}
-
-// WithMilestones tells the query-builder to eager-load the nodes that are connected to
-// the "milestones" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *OrderQuery) WithMilestones(opts ...func(*OrderMilestoneQuery)) *OrderQuery {
-	query := (&OrderMilestoneClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withMilestones = query
 	return _q
 }
 
@@ -1598,13 +1562,12 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 	var (
 		nodes       = []*Order{}
 		_spec       = _q.querySpec()
-		loadedTypes = [35]bool{
+		loadedTypes = [34]bool{
 			_q.withOrganization != nil,
 			_q.withCustomer != nil,
 			_q.withShippingLine != nil,
 			_q.withLifecycleEvents != nil,
 			_q.withCargoCategories != nil,
-			_q.withMilestones != nil,
 			_q.withAttachments != nil,
 			_q.withPersonnel != nil,
 			_q.withContainers != nil,
@@ -1686,13 +1649,6 @@ func (_q *OrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Order,
 		if err := _q.loadCargoCategories(ctx, query, nodes,
 			func(n *Order) { n.Edges.CargoCategories = []*OrderCargoCategory{} },
 			func(n *Order, e *OrderCargoCategory) { n.Edges.CargoCategories = append(n.Edges.CargoCategories, e) }); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withMilestones; query != nil {
-		if err := _q.loadMilestones(ctx, query, nodes,
-			func(n *Order) { n.Edges.Milestones = []*OrderMilestone{} },
-			func(n *Order, e *OrderMilestone) { n.Edges.Milestones = append(n.Edges.Milestones, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -2068,36 +2024,6 @@ func (_q *OrderQuery) loadCargoCategories(ctx context.Context, query *OrderCargo
 	}
 	query.Where(predicate.OrderCargoCategory(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(order.CargoCategoriesColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.OrderID
-		node, ok := nodeids[fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "order_id" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
-func (_q *OrderQuery) loadMilestones(ctx context.Context, query *OrderMilestoneQuery, nodes []*Order, init func(*Order), assign func(*Order, *OrderMilestone)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*Order)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(ordermilestone.FieldOrderID)
-	}
-	query.Where(predicate.OrderMilestone(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(order.MilestonesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
