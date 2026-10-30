@@ -41,13 +41,13 @@ export function getOrderBusinessWritePolicy({
     return { disabled: true, reason: '请切换至订单所属分公司工作台办理' };
   }
   if (loading) {
-    return { disabled: true, reason: '正在同步订单锁定状态，请稍候' };
+    return { disabled: true, reason: '正在同步订单审核状态，请稍候' };
   }
   if (error) {
-    return { disabled: true, reason: '订单锁定状态加载失败，请重试' };
+    return { disabled: true, reason: '订单审核状态加载失败，请重试' };
   }
   if (!state) {
-    return { disabled: true, reason: '订单锁定状态尚未加载，请重试' };
+    return { disabled: true, reason: '订单审核状态尚未加载，请重试' };
   }
   if (
     order?.terminationStatus ===
@@ -60,7 +60,7 @@ export function getOrderBusinessWritePolicy({
   if (state.isLocked) {
     return {
       disabled: true,
-      reason: `${getOrderBusinessTypeLabel(state.businessType)}订单已锁定，如需修改请先解锁`,
+      reason: `${getOrderBusinessTypeLabel(state.businessType)}订单已审核，如需修改请先撤销审核`,
     };
   }
   return { disabled: false };

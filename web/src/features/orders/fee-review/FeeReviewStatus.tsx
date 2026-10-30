@@ -3,7 +3,7 @@ import React from 'react';
 
 export const feeReviewStatusOptions = [
   { label: '未审核', value: 'UNSUBMITTED' },
-  { label: '已审核锁定', value: 'APPROVED' },
+  { label: '已审核', value: 'APPROVED' },
 ];
 
 const colors: Record<string, string> = { APPROVED: 'success' };

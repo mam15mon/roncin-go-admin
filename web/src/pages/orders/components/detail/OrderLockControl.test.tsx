@@ -70,7 +70,7 @@ describe('OrderLockControl', () => {
     );
 
     expect(
-      screen.getByText(/空运进口 · 已审核锁定 · 测试用户/),
+      screen.getByText(/空运进口 · 已审核 · 测试用户/),
     ).toBeInTheDocument();
   });
 
@@ -104,12 +104,12 @@ describe('OrderLockControl', () => {
       </App>,
     );
 
-    expect(screen.queryByRole('button', { name: '直接解锁' })).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: /审核并锁定/ }));
+    expect(screen.queryByRole('button', { name: '撤销审核' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /审核订单/ }));
     expect(
-      (await screen.findAllByText('审核并锁定空运进口订单')).length,
+      (await screen.findAllByText('审核空运进口订单')).length,
     ).toBeGreaterThan(0);
-    expect(screen.getByText(/订单业务资料和费用进入锁定/)).toBeInTheDocument();
+    expect(screen.getByText(/自动锁定订单业务资料和费用/)).toBeInTheDocument();
     expect(screen.queryByText(/MBL\/HBL/)).toBeNull();
 
     await waitFor(() =>
@@ -145,9 +145,9 @@ describe('OrderLockControl', () => {
       </App>,
     );
 
-    expect(screen.queryByRole('button', { name: '直接解锁' })).toBeNull();
-    expect(screen.queryByRole('button', { name: '紧急解锁' })).toBeNull();
-    expect(screen.getByRole('button', { name: /申请解锁/ })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: '撤销审核' })).toBeNull();
+    expect(screen.queryByRole('button', { name: '紧急撤销审核' })).toBeNull();
+    expect(screen.getByRole('button', { name: /申请撤销审核/ })).toBeDisabled();
     expect(requestUnlock).not.toHaveBeenCalled();
   });
 
@@ -186,7 +186,7 @@ describe('OrderLockControl', () => {
         />
       </App>,
     );
-    fireEvent.click(screen.getByRole('button', { name: /审核并锁定/ }));
+    fireEvent.click(screen.getByRole('button', { name: /审核订单/ }));
     await waitFor(() =>
       expect(screen.getByRole('button', { name: /确.*认/ })).toBeEnabled(),
     );
@@ -215,7 +215,7 @@ describe('OrderLockControl', () => {
         />
       </App>,
     );
-    expect(screen.getByRole('button', { name: /审核并锁定/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /审核订单/ })).toBeDisabled();
     expect(lockOrder).not.toHaveBeenCalled();
   });
 });

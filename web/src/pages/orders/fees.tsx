@@ -288,7 +288,7 @@ export default function OrderFeesPage() {
     if (feeWritePolicyRef.current.disabled) {
       message.warning(
         lockState?.isLocked
-          ? '订单已审核锁定，费用变更请申请补录并补审'
+          ? '订单已审核，费用变更请申请补录并补审'
           : feeWritePolicyRef.current.reason || '订单费用当前不可编辑',
       );
       return false;
@@ -549,7 +549,7 @@ export default function OrderFeesPage() {
           navigationTitle={definition.navigationTitle}
           orderId={orderId}
         />
-        <SectionCard title="订单审核与锁定">
+        <SectionCard title="订单审核">
           <OrderFeeReviewSection
             orderId={targetOrderId}
             onChanged={() => void feeReview.refetch()}
@@ -656,7 +656,7 @@ export default function OrderFeesPage() {
         }
       />
 
-      <SectionCard title="订单审核与锁定">
+      <SectionCard title="订单审核">
         <OrderFeeReviewSection
           key={targetOrderId}
           orderId={orderId || ''}

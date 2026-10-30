@@ -10,8 +10,8 @@ vi.mock('@/app/access', () => ({
 vi.mock('./UnlockRequestHistoryDrawer', () => ({
   default: ({ open }: { open: boolean }) =>
     open ? (
-      <div role="dialog" aria-label="解锁记录">
-        审核与解锁历史
+      <div role="dialog" aria-label="撤销审核记录">
+        撤销审核历史
       </div>
     ) : null,
 }));
@@ -98,7 +98,7 @@ describe('订单详情页头操作层级', () => {
       within(area)
         .getAllByRole('button')
         .map((button) => button.textContent?.trim()),
-    ).toEqual(['费用录入', '审核并锁定', '保存', '更多操作']);
+    ).toEqual(['费用录入', '审核订单', '保存', '更多操作']);
     expect(area.querySelectorAll('.ant-btn-primary')).toHaveLength(1);
     expect(
       document.querySelector('.roncin-page-header-actions-row'),
@@ -123,7 +123,7 @@ describe('订单详情页头操作层级', () => {
     expect(onReset).toHaveBeenCalledOnce();
   });
 
-  it('锁定时保存、导出和重置保持禁用，异常查看及解锁记录可用', () => {
+  it('锁定时保存、导出和重置保持禁用，异常查看及撤销审核记录可用', () => {
     renderHeader(true, {
       hasAction: () => true,
       canCreatePod: true,
@@ -139,9 +139,9 @@ describe('订单详情页头操作层级', () => {
       'aria-disabled',
       'true',
     );
-    fireEvent.click(screen.getByRole('menuitem', { name: /解锁记录/ }));
+    fireEvent.click(screen.getByRole('menuitem', { name: /撤销审核记录/ }));
     expect(
-      screen.getByRole('dialog', { name: '解锁记录' }),
+      screen.getByRole('dialog', { name: '撤销审核记录' }),
     ).toBeInTheDocument();
   });
 });

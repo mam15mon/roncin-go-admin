@@ -503,7 +503,7 @@ describe('订单费用页统一补录入口', () => {
     fireEvent.click(screen.getByRole('button', { name: '编辑当前订单费用' }));
     expect(screen.getByTestId('fee-form-modal')).toHaveTextContent('false|');
     expect(
-      await screen.findByText('订单已审核锁定，费用变更请申请补录并补审'),
+      await screen.findByText('订单已审核，费用变更请申请补录并补审'),
     ).toBeInTheDocument();
   });
   it('无费用读取和对应品类审核权限时拒绝进入', () => {

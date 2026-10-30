@@ -132,7 +132,7 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
       placeholder: '全部审核状态',
       options: [
         { label: '未审核', value: 'UNLOCKED' },
-        { label: '已审核锁定', value: 'LOCKED' },
+        { label: '已审核', value: 'LOCKED' },
       ],
     },
     {

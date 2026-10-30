@@ -61,9 +61,9 @@ export function getOrderLockConfirmationDescription(
   businessType?: number,
 ): string {
   if (businessType === OrderBusinessType.BUSINESS_TYPE_SE) {
-    return '锁定后将固定 MBL/HBL 提单不可变版本，订单业务资料和费用进入审核锁定。锁后费用变更须申请补录并补审，已建账费用须先完成账务回退。';
+    return '确认审核后将固定 MBL/HBL 提单不可变版本，并自动锁定订单业务资料和费用。后续费用变更须申请补录并补审，已建账费用须先完成账务回退。';
   }
-  return '审核后订单业务资料和费用进入锁定。锁后费用变更须申请补录并补审，已建账费用须先完成账务回退。';
+  return '确认审核后将自动锁定订单业务资料和费用。后续费用变更须申请补录并补审，已建账费用须先完成账务回退。';
 }
 
 /** 审核锁仅展示服务端记录的人工审核人。 */
@@ -75,9 +75,9 @@ export function getOrderLockSourceDisplay(
 
 function getUnlockTitle(route: UnlockRoute, businessType?: number): string {
   const businessTypeLabel = getOrderBusinessTypeLabel(businessType);
-  if (route === 'ROLE_DIRECT') return `直接解锁${businessTypeLabel}订单`;
-  if (route === 'ADMIN_EMERGENCY') return '系统管理员紧急解锁';
-  return `申请解锁${businessTypeLabel}订单`;
+  if (route === 'ROLE_DIRECT') return `撤销${businessTypeLabel}订单审核`;
+  if (route === 'ADMIN_EMERGENCY') return '系统管理员紧急撤销审核';
+  return `申请撤销${businessTypeLabel}订单审核`;
 }
 
 export function OrderLockStatusTag({
@@ -85,9 +85,9 @@ export function OrderLockStatusTag({
   loading,
   error,
 }: OrderLockStatusTagProps) {
-  if (loading) return <Tag color="processing">锁状态同步中</Tag>;
-  if (error) return <Tag color="error">锁状态加载失败</Tag>;
-  if (!state) return <Tag color="warning">锁状态未知</Tag>;
+  if (loading) return <Tag color="processing">审核状态同步中</Tag>;
+  if (error) return <Tag color="error">审核状态加载失败</Tag>;
+  if (!state) return <Tag color="warning">审核状态未知</Tag>;
 
   const businessTypeLabel = getOrderBusinessTypeLabel(state.businessType);
   if (!state.isLocked) {
@@ -101,7 +101,7 @@ export function OrderLockStatusTag({
       title={
         <div style={{ fontSize: 12 }}>
           <div>业务类型：{businessTypeLabel}</div>
-          <div>锁定轮次：第 {state.lockGeneration} 代</div>
+          <div>审核轮次：第 {state.lockGeneration} 轮</div>
           <div>审核人：{sourceDisplay.actorText}</div>
           {timeText && <div>审核时间：{timeText}</div>}
           {state.currentLockRecord?.reviewComment && (
@@ -112,7 +112,7 @@ export function OrderLockStatusTag({
           )}
           {state.activeUnlockRequest && (
             <div style={{ marginTop: 4, color: '#faad14' }}>
-              当前解锁申请：{state.activeUnlockRequest.status}（
+              当前撤销审核申请：{state.activeUnlockRequest.status}（
               {state.activeUnlockRequest.route}）
             </div>
           )}
@@ -120,7 +120,7 @@ export function OrderLockStatusTag({
       }
     >
       <Tag color="processing" icon={<LockOutlined />}>
-        {businessTypeLabel} · 已审核锁定 · {sourceDisplay.actorText}
+        {businessTypeLabel} · 已审核 · {sourceDisplay.actorText}
         {timeText ? ` · ${timeText}` : ''}
       </Tag>
     </Tooltip>
@@ -197,7 +197,7 @@ export default function OrderLockControl({
 
   const openUnlockModal = (route: UnlockRoute) => {
     if (!state?.isLocked || !expectedOrderVersion) {
-      message.warning('订单锁状态或版本已变化，请刷新后重试');
+      message.warning('订单审核状态或版本已变化，请刷新后重试');
       return;
     }
     setUnlockRoute(route);
@@ -209,7 +209,7 @@ export default function OrderLockControl({
     reason?: string;
   }): Promise<false | undefined> => {
     if (!state?.isLocked || !state.orderVersion) {
-      message.warning('订单锁状态或版本已变化，请刷新后重试');
+      message.warning('订单审核状态或版本已变化，请刷新后重试');
       setUnlockModalVisible(false);
       return;
     }
@@ -236,18 +236,18 @@ export default function OrderLockControl({
         ) {
           message.error(
             response.data?.request?.failureMessage ||
-              '解锁审批暂时无法发起，请联系管理员',
+              '撤销审核审批暂时无法发起，请联系管理员',
           );
         } else if (
           actualRoute === 'DINGTALK_APPROVAL' &&
           (actualStatus === 'PENDING_DISPATCH' ||
             actualStatus === 'PENDING_APPROVAL')
         ) {
-          message.success('解锁申请已提交，等待业务角色成员审批');
+          message.success('撤销审核申请已提交，等待业务角色成员审批');
         } else if (actualStatus === 'APPROVED') {
-          message.success('订单已成功解锁');
+          message.success('订单审核已撤销，业务资料和费用已解除锁定');
         } else {
-          message.success('解锁请求已处理');
+          message.success('撤销审核请求已处理');
         }
         setUnlockModalVisible(false);
         unlockForm.resetFields();
@@ -258,7 +258,7 @@ export default function OrderLockControl({
       }
     } catch (requestError: unknown) {
       message.error(
-        requestError instanceof Error ? requestError.message : '处理解锁失败',
+        requestError instanceof Error ? requestError.message : '撤销审核失败',
       );
     } finally {
       setUnlocking(false);
@@ -277,7 +277,7 @@ export default function OrderLockControl({
   const primaryActions = (
     <>
       {!loading && (error || !state) && (
-        <Button onClick={() => void onRetry()}>重试锁状态</Button>
+        <Button onClick={() => void onRetry()}>重试审核状态</Button>
       )}
       {state && !state.isLocked && (
         <Tooltip
@@ -291,7 +291,7 @@ export default function OrderLockControl({
               disabled={!state.canLock || reviewSnapshotMissing || loading}
               onClick={handleLock}
             >
-              审核并锁定
+              审核订单
             </Button>
           </span>
         </Tooltip>
@@ -303,7 +303,7 @@ export default function OrderLockControl({
           disabled={versionMissing || loading}
           onClick={() => openUnlockModal('ROLE_DIRECT')}
         >
-          直接解锁
+          撤销审核
         </Button>
       )}
       {state?.isLocked && state.canAdminEmergencyUnlock && (
@@ -313,7 +313,7 @@ export default function OrderLockControl({
           disabled={versionMissing || loading}
           onClick={() => openUnlockModal('ADMIN_EMERGENCY')}
         >
-          紧急解锁
+          紧急撤销审核
         </Button>
       )}
       {state?.isLocked && state.canRequestUnlock && (
@@ -324,7 +324,7 @@ export default function OrderLockControl({
               disabled={versionMissing || loading}
               onClick={() => openUnlockModal('DINGTALK_APPROVAL')}
             >
-              申请解锁
+              申请撤销审核
             </Button>
           </span>
         </Tooltip>
@@ -340,7 +340,7 @@ export default function OrderLockControl({
       ) : (
         <>
           <Button icon={<HistoryOutlined />} onClick={openHistory}>
-            解锁记录
+            撤销审核记录
           </Button>
           {primaryActions}
         </>
@@ -349,7 +349,7 @@ export default function OrderLockControl({
       {lockSnapshot && (
         <GuardedModalForm
           key={lockKey}
-          title={`审核并锁定${getOrderBusinessTypeLabel(lockSnapshot.businessType)}订单`}
+          title={`审核${getOrderBusinessTypeLabel(lockSnapshot.businessType)}订单`}
           open
           width={1280}
           modalProps={{
@@ -388,7 +388,7 @@ export default function OrderLockControl({
                 response.data?.state?.orderId !== orderId
               )
                 return false;
-              message.success('订单已审核并锁定');
+              message.success('订单已审核，业务资料和费用已锁定');
               await onSynchronize();
               setLockSnapshot(undefined);
               return true;
@@ -463,16 +463,18 @@ export default function OrderLockControl({
         }}
         onOk={() => unlockForm.submit()}
         confirmLoading={unlocking}
-        okText={unlockRoute === 'DINGTALK_APPROVAL' ? '提交申请' : '确认解锁'}
+        okText={
+          unlockRoute === 'DINGTALK_APPROVAL' ? '提交申请' : '确认撤销审核'
+        }
         okButtonProps={{ danger: unlockRoute === 'ADMIN_EMERGENCY' }}
       >
         <div style={{ marginBottom: 16, color: '#64748b' }}>
           {unlockRoute === 'ROLE_DIRECT' &&
-            `您具备${businessTypeLabel}订单锁定业务角色权限，可以直接解除业务锁。解锁后订单将恢复可编辑。`}
+            `您具备${businessTypeLabel}订单审核业务角色权限，可以直接撤销审核。撤销后将解除锁定，订单恢复可编辑。`}
           {unlockRoute === 'ADMIN_EMERGENCY' &&
-            '您正在以系统管理员身份执行紧急解锁。该操作将直接解除业务锁并记录安全审计追踪。'}
+            '您正在以系统管理员身份紧急撤销审核。该操作将解除锁定，并记录安全审计追踪。'}
           {unlockRoute === 'DINGTALK_APPROVAL' &&
-            '提交后将通过统一订单解锁审批流程，指派给具备对应业务类型锁定权限的角色成员。'}
+            '提交后将发起撤销审核审批，指派给具备对应业务类型审核权限的角色成员；审批通过后解除锁定。'}
         </div>
         <Form
           form={unlockForm}
@@ -482,10 +484,13 @@ export default function OrderLockControl({
         >
           <Form.Item
             name="reason"
-            label="解锁原因"
-            rules={[{ max: 500, message: '解锁原因不能超过 500 个字符' }]}
+            label="撤销审核原因"
+            rules={[{ max: 500, message: '撤销审核原因不能超过 500 个字符' }]}
           >
-            <Input.TextArea rows={3} placeholder="请输入解锁原因（选填）..." />
+            <Input.TextArea
+              rows={3}
+              placeholder="请输入撤销审核原因（选填）..."
+            />
           </Form.Item>
         </Form>
       </Modal>

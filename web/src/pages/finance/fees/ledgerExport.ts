@@ -74,7 +74,7 @@ export const feeExportColumns: CsvColumn<API.FeeLedgerItem>[] = [
   },
   {
     header: '订单审核',
-    value: (row) => (row.orderLocked ? '已审核锁定' : '未审核'),
+    value: (row) => (row.orderLocked ? '已审核' : '未审核'),
   },
   {
     header: '待审补录',

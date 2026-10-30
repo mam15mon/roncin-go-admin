@@ -449,7 +449,7 @@ describe('订单详情状态卡流转编排', () => {
         await screen.findByText(
           isLocked === null
             ? '订单锁定状态加载失败，请刷新后重试'
-            : '订单已审核锁定，请先解锁后再反结案',
+            : '订单已审核，请先撤销审核后再反结案',
         ),
       ).toBeInTheDocument();
     },

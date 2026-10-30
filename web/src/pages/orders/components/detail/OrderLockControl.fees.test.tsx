@@ -101,7 +101,7 @@ describe('订单审核费用明细', () => {
       }),
     );
     renderControl();
-    fireEvent.click(screen.getByRole('button', { name: /审核并锁定/ }));
+    fireEvent.click(screen.getByRole('button', { name: /审核订单/ }));
 
     const receivable = await screen.findByRole('region', { name: '应收费用' });
     const payable = screen.getByRole('region', { name: '应付费用' });
@@ -157,7 +157,7 @@ describe('订单审核费用明细', () => {
         }),
     );
     renderControl();
-    fireEvent.click(screen.getByRole('button', { name: /审核并锁定/ }));
+    fireEvent.click(screen.getByRole('button', { name: /审核订单/ }));
     expect(await screen.findByText('正在加载全部费用明细')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /确.*认/ })).toBeDisabled();
     rejectReview(new Error('网络失败'));
@@ -181,7 +181,7 @@ describe('订单审核费用明细', () => {
     getReview.mockResolvedValue(reviewResponse({ contentVersion: '9' }));
     const onRetry = vi.fn().mockResolvedValue(snapshot);
     renderControl(onRetry);
-    fireEvent.click(screen.getByRole('button', { name: /审核并锁定/ }));
+    fireEvent.click(screen.getByRole('button', { name: /审核订单/ }));
     expect(
       await screen.findByText('订单或费用已变化，请刷新后重新审核'),
     ).toBeInTheDocument();
@@ -193,7 +193,7 @@ describe('订单审核费用明细', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
 
     getReview.mockResolvedValue(reviewResponse());
-    fireEvent.click(screen.getByRole('button', { name: /审核并锁定/ }));
+    fireEvent.click(screen.getByRole('button', { name: /审核订单/ }));
     await waitFor(() =>
       expect(screen.getByRole('button', { name: /确.*认/ })).toBeEnabled(),
     );
@@ -214,7 +214,7 @@ describe('订单审核费用明细', () => {
       ['order-fee-review', undefined, 'review-order'],
       reviewResponse().data,
     );
-    fireEvent.click(screen.getByRole('button', { name: /审核并锁定/ }));
+    fireEvent.click(screen.getByRole('button', { name: /审核订单/ }));
     expect(await screen.findByText('正在加载全部费用明细')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '确认审核' })).toBeDisabled();
     expect(screen.queryByRole('region', { name: '应收费用' })).toBeNull();

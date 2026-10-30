@@ -363,7 +363,7 @@ describe('SeaOrderSplitPage', () => {
     );
 
     expect(
-      await screen.findByText('海运出口订单已锁定，如需修改请先解锁'),
+      await screen.findByText('海运出口订单已审核，如需修改请先撤销审核'),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '确认执行拆票' })).toBeDisabled();
     expect(preview).not.toHaveBeenCalled();

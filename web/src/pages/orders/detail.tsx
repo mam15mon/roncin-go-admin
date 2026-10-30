@@ -298,7 +298,7 @@ export default function OrderDetailPage() {
       : lockStateError || !lockState
         ? '订单锁定状态加载失败，请刷新后重试'
         : lockState.isLocked
-          ? '订单已审核锁定，请先解锁后再反结案'
+          ? '订单已审核，请先撤销审核后再反结案'
           : undefined;
   const reopenBlockedReasonRef = useRef(reopenBlockedReason);
   reopenBlockedReasonRef.current = reopenBlockedReason;

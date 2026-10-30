@@ -1,10 +1,14 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Alert, Button, Drawer, Space, Spin } from 'antd';
-import { FeeReviewSummary } from '@/features/orders/fee-review';
+import {
+  FeeReviewSummary,
+  useOrderFeeReview,
+} from '@/features/orders/fee-review';
 import { useOrderLockState } from '../../../use-order-lock-state';
 import OrderLockControl, {
   OrderLockStatusTag,
 } from '../../detail/OrderLockControl';
+import OrderLockFeeDetails from '../../detail/OrderLockFeeDetails';
 
 /** 费用工作台与订单列表共用同一人工审核锁。 */
 export function OrderFeeReviewSection({
@@ -57,6 +61,31 @@ export function OrderFeeReviewSection({
   );
 }
 
+/** 抽屉直接展示全量只读明细；费用工作台继续使用自身的可编辑表格。 */
+function OrderFeeReviewDetails({ orderId }: { orderId: string }) {
+  const review = useOrderFeeReview(orderId);
+  if (review.isFetching) {
+    return (
+      <div role="status" style={{ padding: 24, textAlign: 'center' }}>
+        <Spin /> 正在加载全部费用明细
+      </div>
+    );
+  }
+  if (review.isError) {
+    return (
+      <Alert
+        type="error"
+        showIcon
+        title="费用明细加载失败，请重试"
+        action={
+          <Button onClick={() => void review.refetch()}>重试费用明细</Button>
+        }
+      />
+    );
+  }
+  return <OrderLockFeeDetails fees={review.data?.fees || []} />;
+}
+
 export function OrderFeeReviewDrawer({
   orderId,
   onClose,
@@ -69,17 +98,16 @@ export function OrderFeeReviewDrawer({
   return (
     <Drawer
       open={Boolean(orderId)}
-      title="订单审核与锁定"
-      size="large"
+      title="订单审核"
+      size="min(1280px, 100vw)"
       destroyOnHidden
       onClose={onClose}
     >
       {orderId && (
-        <OrderFeeReviewSection
-          key={orderId}
-          orderId={orderId}
-          onChanged={onChanged}
-        />
+        <div key={orderId}>
+          <OrderFeeReviewSection orderId={orderId} onChanged={onChanged} />
+          <OrderFeeReviewDetails orderId={orderId} />
+        </div>
       )}
     </Drawer>
   );

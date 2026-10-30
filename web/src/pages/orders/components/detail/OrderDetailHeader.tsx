@@ -105,7 +105,7 @@ export default function OrderDetailHeader({
             {
               key: 'unlock-history',
               icon: <HistoryOutlined />,
-              label: '解锁记录',
+              label: '撤销审核记录',
               onClick: onOpenHistory,
             },
           ]

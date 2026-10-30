@@ -36,17 +36,17 @@ const STATUS_META: Record<
   APPROVED_PENDING_APPLY: {
     color: 'gold',
     label: '已同意待本地生效',
-    description: '钉钉已同意，系统正在复验资格并解除订单锁。',
+    description: '钉钉已同意，系统正在复验资格并撤销订单审核。',
   },
   APPROVED: {
     color: 'success',
-    label: '已解锁',
-    description: '审批已通过并在本地成功解除订单锁。',
+    label: '已撤销审核',
+    description: '审批已通过，订单审核已撤销并解除锁定。',
   },
   REJECTED: {
     color: 'error',
     label: '已拒绝',
-    description: '钉钉审批已拒绝，订单继续保持锁定。',
+    description: '钉钉审批已拒绝，订单继续保持已审核状态。',
   },
   CONFIGURATION_FAILED: {
     color: 'error',
@@ -66,7 +66,7 @@ const STATUS_META: Record<
   STALE: {
     color: 'default',
     label: '已过期',
-    description: '锁定代次、订单版本或解锁路径已变化，本申请不会再生效。',
+    description: '审核轮次、订单版本或撤销路径已变化，本申请不会再生效。',
   },
 };
 
@@ -112,7 +112,7 @@ export default function UnlockRequestHistoryDrawer({
       setError(undefined);
     } catch (caught: unknown) {
       setError(
-        caught instanceof Error ? caught.message : '加载解锁审批记录失败',
+        caught instanceof Error ? caught.message : '加载撤销审核审批记录失败',
       );
     } finally {
       setLoading(false);
@@ -132,7 +132,7 @@ export default function UnlockRequestHistoryDrawer({
 
   return (
     <Drawer
-      title="解锁审批记录"
+      title="撤销审核审批记录"
       size={600}
       open={open}
       onClose={onClose}
@@ -151,7 +151,7 @@ export default function UnlockRequestHistoryDrawer({
       )}
       <Spin spinning={loading && items.length === 0}>
         {items.length === 0 && !loading ? (
-          <Empty description="暂无解锁申请" />
+          <Empty description="暂无撤销审核申请" />
         ) : (
           <Listy
             items={items}
@@ -167,7 +167,7 @@ export default function UnlockRequestHistoryDrawer({
                   <Space wrap>
                     <Tag color={meta.color}>{meta.label}</Tag>
                     <Typography.Text strong>
-                      第 {item.lockGeneration || '-'} 代锁定
+                      第 {item.lockGeneration || '-'} 轮审核
                     </Typography.Text>
                     <Typography.Text type="secondary">
                       {item.requestedAt
@@ -219,7 +219,7 @@ export default function UnlockRequestHistoryDrawer({
                       </Descriptions.Item>
                     )}
                     {item.unlockedAt && (
-                      <Descriptions.Item label="解锁时间">
+                      <Descriptions.Item label="撤销审核时间">
                         {dayjs(item.unlockedAt).format('YYYY-MM-DD HH:mm:ss')}
                       </Descriptions.Item>
                     )}

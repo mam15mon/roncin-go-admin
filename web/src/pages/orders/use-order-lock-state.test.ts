@@ -171,7 +171,7 @@ describe('getOrderBusinessWritePolicy', () => {
       }),
     ).toEqual({
       disabled: true,
-      reason: '空运进口订单已锁定，如需修改请先解锁',
+      reason: '空运进口订单已审核，如需修改请先撤销审核',
     });
   });
 
