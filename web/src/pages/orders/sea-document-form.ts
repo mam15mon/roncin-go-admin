@@ -97,14 +97,14 @@ export function buildSeaDocumentUpdate(
     canonical(editableHouse(baseline.seaHouseBill));
   if (!masterChanged && !houseChanged) return undefined;
   if (masterChanged && !values.seaMasterBillContentVersion)
-    throw new Error('主单草稿缺少原版本，请保留输入并刷新核对后重试');
+    throw new Error('订单草稿信息不完整，输入已保留，请刷新后重试。');
   if (
     houseChanged &&
     (!values.seaDocumentLinkVersion ||
       !values.seaHouseBill?.expectedVersion ||
       values.seaHouseBill.id !== documents.houseBill?.id)
   )
-    throw new Error('分单草稿的身份或原版本不完整，请保留输入并刷新核对后重试');
+    throw new Error('订单草稿信息不完整，输入已保留，请刷新后重试。');
   return {
     expectedMblVersion: masterChanged
       ? values.seaMasterBillContentVersion

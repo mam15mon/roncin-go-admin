@@ -129,4 +129,32 @@ describe('海运详情主单正式动作与港口草稿版本', () => {
       seaMasterBill: { expectedCandidateVersion: '9007199254740994' },
     });
   });
+
+  it('主单动作不借用并发更新的航程标识，提前提醒保留旧港口草稿', async () => {
+    state.order = {
+      ...state.order,
+      seaMasterBill: {
+        ...state.order.seaMasterBill,
+        transportExecutionId: 'te-1',
+        transportExecutionVersion: '3',
+      },
+    };
+    renderDetail();
+    fireEvent.change(screen.getByLabelText('起运港'), {
+      target: { value: 'unsaved-port' },
+    });
+    advanceVersion('5');
+    state.order = {
+      ...state.order,
+      seaMasterBill: {
+        ...state.order.seaMasterBill,
+        transportExecutionVersion: '4',
+      },
+    };
+    await act(async () => state.onOrderDataChanged?.('master'));
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      '这个订单已经发生变动，请重新刷新。',
+    );
+    expect(screen.getByLabelText('起运港')).toHaveValue('unsaved-port');
+  });
 });

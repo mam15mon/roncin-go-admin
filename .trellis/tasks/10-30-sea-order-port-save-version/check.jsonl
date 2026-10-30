@@ -1,3 +1,5 @@
 {"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "定向测试和最终前端验收门禁"}
 {"file": ".trellis/spec/web/frontend/sea-master-voyage-inheritance.md", "reason": "审查版本、草稿、共享航程和提交基线"}
 {"file": ".trellis/tasks/10-30-sea-order-port-save-version/research/save-boundary.md", "reason": "验证修复覆盖真实 Form 提交边界"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "审查15秒检查、输入保留与身份隔离"}
+{"file": ".trellis/tasks/10-30-sea-order-port-save-version/research/live-change-check.md", "reason": "审查轻量探测与刷新确认"}

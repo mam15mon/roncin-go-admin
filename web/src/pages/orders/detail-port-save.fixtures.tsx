@@ -1,12 +1,15 @@
 import { renderWithApp } from '@root/tests/renderWithApp';
 import { act, fireEvent, screen } from '@testing-library/react';
-import { ConfigProvider, Form, Input } from 'antd';
+import { App, ConfigProvider, Form, Input } from 'antd';
 import React from 'react';
 import { vi } from 'vitest';
 import { getFormDraftKey } from '@/components/layout/formDraft';
 import { resolveTabKey } from '@/components/layout/routeUtils';
 import { OrderAllowedAction, SeaDocumentStructure } from '@/enums.generated';
-import { orderServiceUpdateOrder } from '@/services/roncin/orderService';
+import {
+  orderServiceGetOrder,
+  orderServiceUpdateOrder,
+} from '@/services/roncin/orderService';
 import OrderDetailPage from './detail';
 import type { OrderDetailFeaturesProps } from './order-kinds/types';
 import { useSeaMasterBillCandidate } from './templates/components/sea/useSeaMasterBillCandidate';
@@ -17,6 +20,8 @@ const state = vi.hoisted(() => ({
   documents: {} as API.SeaOrderDocuments,
   loadData: vi.fn(),
   onOrderDataChanged: undefined as TemplateProps['onOrderDataChanged'],
+  routeKind: 'sea-export',
+  routeId: 'order-1',
 }));
 const pathname = '/orders/sea-export/order-1';
 const draftScope = 'user-1:org-1';
@@ -33,7 +38,7 @@ export const ports = [
 
 vi.mock('react-router', async (importOriginal) => ({
   ...(await importOriginal<typeof import('react-router')>()),
-  useParams: () => ({ kind: 'sea-export', id: 'order-1' }),
+  useParams: () => ({ kind: state.routeKind, id: state.routeId }),
 }));
 vi.mock('@/app/access', () => ({
   useAccess: () => ({
@@ -44,6 +49,7 @@ vi.mock('@/app/access', () => ({
 vi.mock('@/services/roncin/orderService', () => ({
   orderServiceUpdateOrder: vi.fn(),
   orderServiceMatchSeaMasterBillCandidate: vi.fn(),
+  orderServiceGetOrder: vi.fn(),
 }));
 vi.mock('./use-order-detail-data', () => ({
   useOrderDetailData: () => ({
@@ -137,7 +143,9 @@ function TransportFields() {
 export function renderDetail() {
   return renderWithApp(
     <ConfigProvider theme={{ token: { motion: false } }}>
-      <OrderDetailPage />
+      <App>
+        <OrderDetailPage />
+      </App>
     </ConfigProvider>,
     { routerProps: { initialEntries: [pathname] } },
   );
@@ -178,16 +186,22 @@ export function resetPortSaveState() {
   vi.clearAllMocks();
   sessionStorage.clear();
   state.onOrderDataChanged = undefined;
+  state.routeKind = 'sea-export';
+  state.routeId = 'order-1';
   state.order = {
     id: 'order-1',
     orderNo: 'SE0001',
     organizationId: 'org-1',
     version: '4',
+    createdAt: '2026-10-01T00:00:00Z',
+    orderDate: '2026-10-01',
     customerId: 'customer-1',
     shippingLineId: 'carrier-1',
     originLocationId: 'origin-old',
     dischargeLocationId: 'discharge-old',
     transitLocationId: 'transit-old',
+    seaDocumentLinkVersion: '1',
+    seaDocumentStructure: SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT,
     allowedActions: [OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT],
     seaMasterBill: {
       masterBillId: 'mbl-1',
@@ -207,8 +221,15 @@ export function resetPortSaveState() {
     success: true,
     data: { id: 'order-1' },
   });
+  vi.mocked(orderServiceGetOrder).mockImplementation(async () => ({
+    data: state.order,
+  }));
 }
 
 export function getOrderUpdateMock() {
   return vi.mocked(orderServiceUpdateOrder);
+}
+
+export function getOrderReadMock() {
+  return vi.mocked(orderServiceGetOrder);
 }

@@ -1,4 +1,10 @@
-import { act, fireEvent, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   getFormDraft,
@@ -99,8 +105,8 @@ describe('海运详情修改港口的版本与草稿', () => {
     );
     await save();
     expect(
-      await screen.findByText('这个订单已经发生变动，请重新刷新。'),
-    ).toBeInTheDocument();
+      await screen.findAllByText('这个订单已经发生变动，请重新刷新。'),
+    ).not.toHaveLength(0);
     expect(
       getOrderUpdateMock().mock.calls[0][1].seaMasterBill
         ?.expectedCandidateVersion,
@@ -149,6 +155,10 @@ describe('海运详情修改港口的版本与草稿', () => {
     advanceVersion('5');
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: '刷新数据' }));
+    });
+    const dialog = await screen.findByRole('dialog');
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: '确定刷新' }));
     });
     expect(screen.getByLabelText('起运港')).toHaveValue('origin-old');
     expect(hasFormDraft(draftKey)).toBe(false);

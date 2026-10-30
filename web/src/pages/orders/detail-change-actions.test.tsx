@@ -67,6 +67,8 @@ vi.mock('./use-order-detail-data', () => ({
             id: orderId,
             orderNo: `ORDER-${orderId}`,
             version: '1',
+            seaDocumentLinkVersion: '1',
+            seaDocumentStructure: 2,
             flowStatus: OrderFlowStatus.ORDER_FLOW_STATUS_BOOKED,
             closureStatus: detailTestState.closureStatus,
             customerReferenceNo: detailTestState.customerReferenceNo,
@@ -88,7 +90,15 @@ vi.mock('./use-order-detail-data', () => ({
       containerSpecOptions: [],
       personnelOptions: [],
       draftScope: 'user-1:org-1',
-      loadData: () => detailTestState.loadData(orderId),
+      loadData: async () => {
+        await detailTestState.loadData(orderId);
+        return {
+          order: { id: orderId, version: '1' },
+          seaDocuments: { documentStructure: 2, linkVersion: '1' },
+          shippingDocs: [],
+          personnel: [],
+        };
+      },
     };
   },
 }));

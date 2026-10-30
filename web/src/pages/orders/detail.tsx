@@ -26,11 +26,13 @@ import { useParams } from 'react-router';
 import { useAccess } from '@/app/access';
 import { getFormDraft, getFormDraftKey } from '@/components/layout/formDraft';
 import { resolveTabKey } from '@/components/layout/routeUtils';
+import { isTabDirty } from '@/components/layout/tabCloseGuard';
 import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
 import { SectionCard } from '@/components/ui';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
 import type {
   OrderFormTemplateActions,
+  OrderFormTemplateProps,
   OrderFormTemplateSection,
 } from '@/components/ui/order-template/types';
 import {
@@ -73,6 +75,7 @@ import {
 } from './sea-document-form';
 import { revealSeaFormErrors } from './templates';
 import { useOrderAbnormalEntry } from './use-order-abnormal-entry';
+import { useOrderChangeNotice } from './use-order-change-notice';
 import { useOrderDetailData } from './use-order-detail-data';
 import {
   getOrderBusinessWritePolicy,
@@ -84,6 +87,19 @@ import { useSeaOrderSave } from './use-sea-order-save';
 const EmptyDetailFeatures: React.ComponentType<OrderDetailFeaturesProps> = ({
   children,
 }) => <>{children({})}</>;
+
+/** 首次初值只在当前单据挂载时生效，后续服务端快照统一由显式 resetTo 回填。 */
+function OrderDetailFormTemplate(
+  props: OrderFormTemplateProps<OrderDetailFormValues>,
+) {
+  const [initialValues] = useState(props.initialValues);
+  return (
+    <OrderFormTemplate<OrderDetailFormValues>
+      {...props}
+      initialValues={initialValues}
+    />
+  );
+}
 
 export default function OrderDetailPage() {
   const params = useParams<{ kind: string; id: string }>();
@@ -116,6 +132,10 @@ export default function OrderDetailPage() {
     definition && orderId ? `${definition.kind}:${orderId}` : undefined;
 
   const [saving, setSaving] = useState(false);
+  const [refreshingIdentity, setRefreshingIdentity] = useState<string>();
+  const refreshing = Boolean(
+    orderFormIdentity && refreshingIdentity === orderFormIdentity,
+  );
   // 显式刷新标记携带发起时的订单身份与令牌；A 的迟到刷新不得操作 B 的模板。
   const pendingExplicitFormRefreshRef = useRef<{
     identity: string;
@@ -179,8 +199,50 @@ export default function OrderDetailPage() {
       ),
       ...seaDocumentFormValues(bundle.seaDocuments),
     });
+    changeNotice.acceptSnapshot(bundle.order);
     void refreshLockState();
   });
+  const changeNotice = useOrderChangeNotice({
+    identity: orderFormIdentity,
+    scope: draftScope,
+    orderId,
+    initialOrder: order,
+    enabled:
+      definition?.transportMode === 'sea' &&
+      canAccessPage &&
+      Boolean(order && currentDocuments) &&
+      !error,
+    paused: seaSave.frozen || loading || refreshing,
+    readEditingOrder: () => {
+      const values = formRef.current?.getFieldsValue(true) as
+        | OrderDetailFormValues
+        | undefined;
+      if (!values) return undefined;
+      const master = values.seaMasterBill as
+        | API.SeaMasterBillSummary
+        | undefined;
+      return {
+        masterContentVersion: values.seaMasterBillContentVersion,
+        order: {
+          id: values.id,
+          version: values.version,
+          seaMasterBill: master
+            ? {
+                ...master,
+                version:
+                  values.seaMasterBillExpectedCandidateVersion == null
+                    ? undefined
+                    : String(values.seaMasterBillExpectedCandidateVersion),
+              }
+            : undefined,
+          seaDocumentLinkVersion: values.seaDocumentLinkVersion,
+          seaDocumentStructure: values.seaDocumentStructure,
+        },
+      };
+    },
+  });
+  const refreshBusyRef = useRef(false);
+  refreshBusyRef.current = seaSave.frozen || refreshing;
 
   // 订单身份提交变化时同步作废旧身份的全部在途刷新。
   // 在 layout effect 的 setup 与 cleanup 中均递增 token 并清空 pending：
@@ -189,16 +251,25 @@ export default function OrderDetailPage() {
   useLayoutEffect(() => {
     explicitRefreshTokenRef.current += 1;
     pendingExplicitFormRefreshRef.current = null;
+    setRefreshingIdentity(undefined);
     return () => {
       explicitRefreshTokenRef.current += 1;
       pendingExplicitFormRefreshRef.current = null;
     };
-  }, [orderFormIdentity]);
+  }, [orderFormIdentity, draftScope]);
 
   const releasePodPanelRef = useRef<ReleasePodPanelRef | null>(null);
   const abnormalCasePanelRef = useRef<AbnormalCasePanelRef | null>(null);
   const getModalOwnerSignal = useModalOwnerSignal();
   const statusTransitionConfirmOpenRef = useRef(false);
+  const refreshConfirmOpenRef = useRef(false);
+  const destroyRefreshConfirmationRef = useRef<(() => void) | undefined>(
+    undefined,
+  );
+  useEffect(
+    () => () => destroyRefreshConfirmationRef.current?.(),
+    [orderFormIdentity, draftScope],
+  );
 
   const {
     state: lockState,
@@ -343,6 +414,8 @@ export default function OrderDetailPage() {
       pending.identity !== orderFormIdentity ||
       !order
     ) {
+      if (pending.identity === orderFormIdentity)
+        setRefreshingIdentity(undefined);
       return;
     }
     setDocumentBaseline({
@@ -356,32 +429,117 @@ export default function OrderDetailPage() {
       seaMasterBillExpectedCandidateVersion: order.seaMasterBill?.version,
       ...seaDocumentFormValues(seaDocuments),
     });
+    changeNotice.acceptSnapshot(order);
+    setRefreshingIdentity(undefined);
   }, [
     explicitFormRefreshVersion,
     initialValues,
     order,
     orderFormIdentity,
     seaDocuments,
+    changeNotice.acceptSnapshot,
   ]);
 
   const refreshOrderDataAndResetForm = useCallback(async () => {
     const requestedIdentity = orderFormIdentity;
-    if (!requestedIdentity) return;
+    if (!requestedIdentity || refreshBusyRef.current) return false;
     const token = ++explicitRefreshTokenRef.current;
+    refreshBusyRef.current = true;
+    setRefreshingIdentity(requestedIdentity);
     try {
-      await loadData();
+      const bundle = await loadData();
       // 后续刷新发起或订单身份切换都会使当前令牌失效。
-      if (token !== explicitRefreshTokenRef.current) return;
+      if (token !== explicitRefreshTokenRef.current) return false;
+      if (
+        !bundle?.order ||
+        bundle.order.id !== orderId ||
+        (definition?.transportMode === 'sea' && !bundle.seaDocuments)
+      )
+        throw new Error('订单最新资料读取失败');
       // loadData 完成后再触发本次显式刷新重置，让 React 先用最新服务端响应重算 initialValues。
       pendingExplicitFormRefreshRef.current = {
         identity: requestedIdentity,
         token,
       };
       setExplicitFormRefreshVersion((version) => version + 1);
+      return true;
     } catch {
       // 刷新失败保留草稿与当前表单，不触发显式重置
+      if (token === explicitRefreshTokenRef.current) {
+        setRefreshingIdentity(undefined);
+        message.error('刷新失败，输入已保留，请稍后重试。');
+      }
+      return false;
     }
-  }, [loadData, orderFormIdentity]);
+  }, [
+    definition?.transportMode,
+    loadData,
+    message,
+    orderFormIdentity,
+    orderId,
+  ]);
+
+  const requestOrderRefresh = (
+    refreshTypeState?: () => Promise<void> | void,
+  ) => {
+    if (
+      !orderFormIdentity ||
+      refreshBusyRef.current ||
+      refreshConfirmOpenRef.current
+    )
+      return;
+    const identity = orderFormIdentity;
+    const token = explicitRefreshTokenRef.current;
+    const editingVersion = formRef.current?.getFieldValue('version');
+    const signal = getModalOwnerSignal();
+    const proceed = async () => {
+      if (
+        signal.aborted ||
+        saveIdentityRef.current !== identity ||
+        token !== explicitRefreshTokenRef.current ||
+        refreshBusyRef.current ||
+        formRef.current?.getFieldValue('version') !== editingVersion
+      )
+        return;
+      await Promise.allSettled([
+        refreshOrderDataAndResetForm(),
+        refreshLockState(),
+        refreshTypeState?.(),
+      ]);
+    };
+    const pathname = `/orders/${definition?.kind}/${orderId}`;
+    if (!isTabDirty(resolveTabKey(pathname), draftScope)) {
+      void proceed();
+      return;
+    }
+    refreshConfirmOpenRef.current = true;
+    const confirmation = modal.confirm({
+      title: '刷新订单资料',
+      content: '当前修改尚未保存，刷新将覆盖这些内容。确定刷新吗？',
+      okText: '确定刷新',
+      cancelText: '取消',
+      centered: true,
+      onOk: proceed,
+      afterClose: () => {
+        signal.removeEventListener('abort', destroy);
+        if (destroyRefreshConfirmationRef.current === destroy) {
+          refreshConfirmOpenRef.current = false;
+          destroyRefreshConfirmationRef.current = undefined;
+        }
+      },
+    });
+    function destroy() {
+      signal.removeEventListener('abort', destroy);
+      if (destroyRefreshConfirmationRef.current === destroy) {
+        refreshConfirmOpenRef.current = false;
+        destroyRefreshConfirmationRef.current = undefined;
+      }
+      confirmation.destroy();
+    }
+    destroyRefreshConfirmationRef.current = destroy;
+    signal.addEventListener('abort', destroy, { once: true });
+    if (signal.aborted) destroy();
+  };
 
   const businessWritePolicyRef = useRef(lockWritePolicy);
   businessWritePolicyRef.current = lockWritePolicy;
@@ -487,6 +645,7 @@ export default function OrderDetailPage() {
       personnelReadonly: !canSearchPersonnel,
       readonly:
         effectiveReadonly ||
+        refreshing ||
         (definition?.transportMode === 'sea' && seaSave.frozen),
       onOrderDataChanged: async (document?: 'master' | 'house' | 'mode') => {
         const identity = orderFormIdentity;
@@ -527,7 +686,15 @@ export default function OrderDetailPage() {
           BigInt(latestMasterBill.version) ===
             BigInt(previousMasterVersion) + 1n
         ) {
-          formRef.current?.setFieldValue('seaMasterBill', latestMasterBill);
+          const editingMaster = formRef.current?.getFieldValue(
+            'seaMasterBill',
+          ) as API.SeaMasterBillSummary;
+          // 主单动作只证明 MBL 自身推进，不能顺带采纳他人更新的独立航程。
+          formRef.current?.setFieldValue('seaMasterBill', {
+            ...editingMaster,
+            version: latestMasterBill.version,
+            status: latestMasterBill.status,
+          });
           formRef.current?.setFieldValue(
             'seaMasterBillExpectedCandidateVersion',
             latestMasterBill.version,
@@ -562,6 +729,7 @@ export default function OrderDetailPage() {
         } else {
           formRef.current?.setFieldsValue(fields);
         }
+        if (bundle.order) changeNotice.acceptSnapshot(bundle.order);
       },
     }),
     [
@@ -569,6 +737,8 @@ export default function OrderDetailPage() {
       orderFormIdentity,
       definition?.transportMode,
       seaSave.frozen,
+      refreshing,
+      changeNotice.acceptSnapshot,
       cargoCategoryOptions,
       seededLocationOptions,
       locationSeedOptions,
@@ -599,7 +769,8 @@ export default function OrderDetailPage() {
 
   // 5. 保存修改提交处理：成功/失败只由订单更新接口决定，模板统一清草稿与脏状态。
   const handleSaveEdit = async (values: OrderDetailFormValues) => {
-    if (!definition || !orderId || !ensureBusinessWriteAllowed()) return false;
+    if (!definition || !orderId || refreshing || !ensureBusinessWriteAllowed())
+      return false;
     if (definition.transportMode === 'sea') {
       if (!currentDocuments) return false;
       try {
@@ -1067,15 +1238,32 @@ export default function OrderDetailPage() {
             icon: <ReloadOutlined />,
             label: '刷新数据',
             onClick: () => {
-              void refreshOrderDataAndResetForm();
-              void refreshLockState();
-              void features.refreshTypeState?.();
+              requestOrderRefresh(features.refreshTypeState);
             },
           },
         ];
 
         return (
           <>
+            {definition.transportMode === 'sea' && changeNotice.changed ? (
+              <Alert
+                style={{ marginBottom: 12 }}
+                type="warning"
+                showIcon
+                title="这个订单已经发生变动，请重新刷新。"
+                action={
+                  <Button
+                    disabled={seaSave.frozen || refreshing}
+                    loading={refreshing}
+                    onClick={() =>
+                      requestOrderRefresh(features.refreshTypeState)
+                    }
+                  >
+                    刷新
+                  </Button>
+                }
+              />
+            ) : null}
             {definition.transportMode === 'sea' &&
             (seaSave.status === 'unknown' || seaSave.status === 'refresh') ? (
               <Alert
@@ -1105,8 +1293,8 @@ export default function OrderDetailPage() {
                 }
               />
             ) : null}
-            <OrderFormTemplate<OrderDetailFormValues>
-              key={orderFormIdentity}
+            <OrderDetailFormTemplate
+              key={`${orderFormIdentity}:${draftScope}`}
               tabKey={
                 definition && orderId
                   ? resolveTabKey(`/orders/${definition.kind}/${orderId}`)
@@ -1121,7 +1309,8 @@ export default function OrderDetailPage() {
               loading={false}
               readonly={effectiveReadonly}
               editingDisabled={
-                definition.transportMode === 'sea' && seaSave.frozen
+                refreshing ||
+                (definition.transportMode === 'sea' && seaSave.frozen)
               }
               formRef={formRef}
               actionsRef={templateActionsRef}
@@ -1134,7 +1323,7 @@ export default function OrderDetailPage() {
                   navigationTitle={definition.navigationTitle}
                   orderId={orderId || ''}
                   order={order}
-                  saving={saving || seaSave.status === 'saving'}
+                  saving={saving || seaSave.status === 'saving' || refreshing}
                   canManageFee={access.canOrder(
                     definition.businessType,
                     'fee.read',
@@ -1165,6 +1354,7 @@ export default function OrderDetailPage() {
                   lockStateError={lockStateError}
                   businessWritesDisabled={
                     businessWritesDisabled ||
+                    refreshing ||
                     (definition.transportMode === 'sea' && seaSave.frozen)
                   }
                   businessWriteBlockedReason={

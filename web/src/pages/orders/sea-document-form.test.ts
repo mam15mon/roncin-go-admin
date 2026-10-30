@@ -109,7 +109,9 @@ describe('海运统一保存载荷', () => {
       if (part === 'house' && draft.seaHouseBill)
         delete draft.seaHouseBill.expectedVersion;
       if (part === 'link') delete draft.seaDocumentLinkVersion;
-      expect(() => buildSeaDocumentUpdate(draft, documents)).toThrow();
+      expect(() => buildSeaDocumentUpdate(draft, documents)).toThrow(
+        '订单草稿信息不完整，输入已保留，请刷新后重试。',
+      );
     },
   );
 
@@ -120,7 +122,9 @@ describe('海运统一保存载荷', () => {
       ...documents,
       houseBill: { ...documents.houseBill, id: 'new-house', version: '1' },
     };
-    expect(() => buildSeaDocumentUpdate(draft, newTarget)).toThrow();
+    expect(() => buildSeaDocumentUpdate(draft, newTarget)).toThrow(
+      '订单草稿信息不完整，输入已保留，请刷新后重试。',
+    );
   });
 
   it.each(['master-first', 'house-first'] as const)(

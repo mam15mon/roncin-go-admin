@@ -1,7 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { renderWithApp as render } from '@root/tests/renderWithApp';
-import { act, fireEvent, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { App, Form, Input } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -89,6 +95,8 @@ vi.mock('./use-order-detail-data', () => ({
             id: orderId,
             orderNo: `ORDER-${orderId}`,
             version: '1',
+            seaDocumentLinkVersion: '1',
+            seaDocumentStructure: 2,
             customerReferenceNo:
               orderId === 'ord-B'
                 ? 'B-服务端初始值'
@@ -118,6 +126,8 @@ vi.mock('./use-order-detail-data', () => ({
         order: {
           id: orderId,
           version: '2',
+          seaDocumentLinkVersion: '1',
+          seaDocumentStructure: 2,
           customerReferenceNo: detailTestState.customerReferenceNo,
         },
         shippingDocs: [],
@@ -302,6 +312,14 @@ async function flushMountFetches() {
   });
 }
 
+async function confirmRefreshIfOpen() {
+  const dialog = screen.queryByRole('dialog');
+  if (!dialog) return;
+  await act(async () => {
+    fireEvent.click(within(dialog).getByRole('button', { name: '确定刷新' }));
+  });
+}
+
 describe('订单详情页草稿生命周期与记录身份', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -316,7 +334,7 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     templateLifecycleState.resetToCalls = 0;
     templateLifecycleState.restoreDraft = false;
 
-    detailTestState.loadData.mockResolvedValue(undefined);
+    detailTestState.loadData.mockReset().mockResolvedValue(undefined);
     detailTestState.refreshLockState.mockResolvedValue(null);
     detailTestState.allowedActions = [
       OrderAllowedAction.ORDER_ALLOWED_ACTION_EDIT,
@@ -548,6 +566,7 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     await act(async () => {
       fireEvent.click(refreshBtn);
     });
+    await confirmRefreshIfOpen();
 
     expect(hasTabDraft(tabKey, detailTestState.draftScope)).toBe(true);
     expect(screen.getByLabelText('客户参考号')).toBeInTheDocument();
@@ -578,6 +597,7 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     await act(async () => {
       fireEvent.click(screen.getByText('刷新数据'));
     });
+    await confirmRefreshIfOpen();
 
     await waitFor(() => {
       expect(hasTabDraft(tabKey, detailTestState.draftScope)).toBe(false);
@@ -589,19 +609,14 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     });
   });
 
-  it('同一订单连点两次刷新：最新刷新完成后，旧刷新迟到不得再次重置新输入', async () => {
+  it('刷新进行中拒绝重复发起，完成后不覆盖后续的新输入', async () => {
     const firstLoad = deferred<void>();
-    const secondLoad = deferred<void>();
-    detailTestState.loadData
-      .mockImplementationOnce(() => firstLoad.promise)
-      .mockImplementationOnce(() => secondLoad.promise);
-
+    detailTestState.loadData.mockImplementationOnce(() => firstLoad.promise);
     render(
       <App>
         <OrderDetailPage />
       </App>,
     );
-
     const refreshBtn = screen.getByText('刷新数据');
     await act(async () => {
       fireEvent.click(refreshBtn);
@@ -609,27 +624,15 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     await act(async () => {
       fireEvent.click(refreshBtn);
     });
-
-    // 最新刷新（第二次）先完成并按显式刷新语义重置一次
-    await act(async () => {
-      secondLoad.resolve();
-    });
-    await waitFor(() => {
-      expect(templateLifecycleState.resetToCalls).toBe(1);
-      expect(templateLifecycleState.internalDirty).toBe(false);
-    });
-
-    // 用户在重置之后开始新的输入
-    fireEvent.change(screen.getByLabelText('客户参考号'), {
-      target: { value: '重置后新输入的修改' },
-    });
-    expect(templateLifecycleState.internalDirty).toBe(true);
-
-    // 旧刷新（第一次）最后迟到完成：不得再次 resetTo 抹掉新输入
+    expect(detailTestState.loadData).toHaveBeenCalledOnce();
     await act(async () => {
       firstLoad.resolve();
     });
-
+    await waitFor(() => expect(templateLifecycleState.resetToCalls).toBe(1));
+    fireEvent.change(screen.getByLabelText('客户参考号'), {
+      target: { value: '重置后新输入的修改' },
+    });
+    await flushMountFetches();
     expect(screen.getByLabelText('客户参考号')).toHaveValue(
       '重置后新输入的修改',
     );
@@ -653,6 +656,7 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     await act(async () => {
       fireEvent.click(screen.getByText('刷新数据'));
     });
+    await confirmRefreshIfOpen();
 
     routeState.params = { kind: 'sea-export', id: 'ord-B' };
     rerender(
@@ -668,6 +672,7 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     await act(async () => {
       fireEvent.click(screen.getByText('刷新数据'));
     });
+    await confirmRefreshIfOpen();
     await act(async () => {
       loadB.resolve();
     });
@@ -698,6 +703,7 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     await act(async () => {
       fireEvent.click(screen.getByText('刷新数据'));
     });
+    await confirmRefreshIfOpen();
 
     // A → B → 回 A：期间未再点刷新，字符串身份与刷新序号均未变化
     routeState.params = { kind: 'sea-export', id: 'ord-B' };
@@ -745,6 +751,7 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     await act(async () => {
       fireEvent.click(screen.getByText('刷新数据'));
     });
+    await confirmRefreshIfOpen();
 
     routeState.params = { kind: 'sea-export', id: 'ord-B' };
     rerender(
