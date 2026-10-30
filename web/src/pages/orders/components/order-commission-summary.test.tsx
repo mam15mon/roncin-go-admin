@@ -9,6 +9,7 @@ import {
 import { App } from 'antd';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { saveColumnSettingsPreference } from '@/components/ui/column-settings';
 import { OrderCommissionVisibilityMode } from '@/enums.generated';
 import type { useOrderListResources } from '../list-resources';
 import OrderCommissionSummaryCell from './OrderCommissionSummaryCell';
@@ -323,6 +324,15 @@ describe('海运出口订单列表提成摘要接线', () => {
     accessState.canReadFinanceCommissions = false;
     localStorage.clear();
     sessionStorage.clear();
+    // 提成默认隐藏；接线用例显式模拟用户已开启该列，继续验证摘要与下钻。
+    saveColumnSettingsPreference(
+      'orders:list',
+      {},
+      {
+        order: ['commissionSummary'],
+        hidden: [],
+      },
+    );
   });
 
   afterEach(() => {

@@ -28,6 +28,18 @@ import type {
 } from './types';
 import { useOrderAutoRefresh } from './useOrderAutoRefresh';
 
+/** 低频辅助信息默认收起，仍可通过列设置按需开启。 */
+const DEFAULT_HIDDEN_COLUMN_KEYS = [
+  'rowNumber',
+  'businessType',
+  'creatorName',
+  'lockedAt',
+  'spaceNotes',
+  'bookingNotes',
+  'operationNotes',
+  'commissionSummary',
+];
+
 export function OrderListTemplate({
   queryStateIdentity,
   actionRef: externalActionRef,
@@ -92,9 +104,10 @@ export function OrderListTemplate({
       // 1. 序号
       {
         title: '序号',
-        valueType: 'index',
+        key: 'rowNumber',
         width: 50,
         fixed: 'left',
+        render: (_, _record, index) => index + 1,
       },
       // 2. 进程
       {
@@ -584,6 +597,7 @@ export function OrderListTemplate({
     tableKey: columnSettingsKey,
     columns,
     structuralKeys: ['option'],
+    defaultHiddenKeys: DEFAULT_HIDDEN_COLUMN_KEYS,
   });
 
   return (
