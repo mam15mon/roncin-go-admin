@@ -19,6 +19,7 @@ import {
   orderContainerServiceRemoveContainer,
   orderContainerServiceUpdateContainer,
 } from '@/services/roncin/orderContainerService';
+import { isWriteResponse } from '@/utils/api';
 import SeaSharedContainerDrawer from './SeaSharedContainerDrawer';
 
 const { Text } = Typography;
@@ -26,6 +27,9 @@ const { Text } = Typography;
 export type ContainerDrawerRef = SubEntityDrawerRef<API.Order>;
 
 type ContainerDrawerProps = {
+  /** 独占箱写入成功后刷新实际箱摘要，不刷新整票草稿。 */
+  onChanged?: () => void;
+  hideSharedEntry?: boolean;
   canCreate: boolean;
   canUpdate: boolean;
   canRemove: boolean;
@@ -45,7 +49,15 @@ type ContainerFormValues = {
 
 const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
   function ContainerDrawer(
-    { canCreate, canUpdate, canRemove, containerSpecOptions, containerSpecMap },
+    {
+      canCreate,
+      canUpdate,
+      canRemove,
+      containerSpecOptions,
+      containerSpecMap,
+      onChanged,
+      hideSharedEntry,
+    },
     ref,
   ) {
     const [sharedDrawerOpen, setSharedDrawerOpen] = useState(false);
@@ -54,6 +66,12 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
       undefined,
     );
     const { message } = App.useApp();
+
+    const notifyChanged = async (write: Promise<unknown>) => {
+      const response = await write;
+      if (isWriteResponse(response)) onChanged?.();
+      return response;
+    };
 
     const columns: ProColumns<API.OrderContainer>[] = [
       {
@@ -133,38 +151,42 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
             })
           }
           createItem={(values, order) =>
-            orderContainerServiceAddContainer(
-              { orderId: order.id as string },
-              {
-                orderId: order.id as string,
-                containerNo: values.containerNo.trim(),
-                containerSpecId: values.containerSpecId,
-                sealNo: values.sealNo?.trim() || undefined,
-                packageCount: Number(values.packageCount),
-                grossWeightKg: Number(values.grossWeightKg),
-                volumeCbm: Number(values.volumeCbm),
-                note: values.note?.trim() || undefined,
-              },
+            notifyChanged(
+              orderContainerServiceAddContainer(
+                { orderId: order.id as string },
+                {
+                  orderId: order.id as string,
+                  containerNo: values.containerNo.trim(),
+                  containerSpecId: values.containerSpecId,
+                  sealNo: values.sealNo?.trim() || undefined,
+                  packageCount: Number(values.packageCount),
+                  grossWeightKg: Number(values.grossWeightKg),
+                  volumeCbm: Number(values.volumeCbm),
+                  note: values.note?.trim() || undefined,
+                },
+              ),
             )
           }
           updateItem={(record, values, order) =>
-            orderContainerServiceUpdateContainer(
-              {
-                orderId: order.id as string,
-                id: record.id as string,
-              },
-              {
-                id: record.id as string,
-                orderId: order.id as string,
-                containerNo: values.containerNo.trim(),
-                containerSpecId: values.containerSpecId,
-                sealNo: values.sealNo?.trim() || undefined,
-                packageCount: Number(values.packageCount),
-                grossWeightKg: Number(values.grossWeightKg),
-                volumeCbm: Number(values.volumeCbm),
-                note: values.note?.trim() || undefined,
-                expectedVersion: String(record.version ?? '1'),
-              },
+            notifyChanged(
+              orderContainerServiceUpdateContainer(
+                {
+                  orderId: order.id as string,
+                  id: record.id as string,
+                },
+                {
+                  id: record.id as string,
+                  orderId: order.id as string,
+                  containerNo: values.containerNo.trim(),
+                  containerSpecId: values.containerSpecId,
+                  sealNo: values.sealNo?.trim() || undefined,
+                  packageCount: Number(values.packageCount),
+                  grossWeightKg: Number(values.grossWeightKg),
+                  volumeCbm: Number(values.volumeCbm),
+                  note: values.note?.trim() || undefined,
+                  expectedVersion: String(record.version ?? '1'),
+                },
+              ),
             )
           }
           removeItem={(record, order) => {
@@ -174,11 +196,13 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
               message.error(error.message);
               return Promise.resolve(false);
             }
-            return orderContainerServiceRemoveContainer({
-              orderId: order.id as string,
-              id: record.id as string,
-              expectedVersion: String(record.version),
-            });
+            return notifyChanged(
+              orderContainerServiceRemoveContainer({
+                orderId: order.id as string,
+                id: record.id as string,
+                expectedVersion: String(record.version),
+              }),
+            );
           }}
           initialValues={(editing) =>
             editing
@@ -250,7 +274,10 @@ const ContainerDrawer = forwardRef<ContainerDrawerRef, ContainerDrawerProps>(
             </>
           )}
           extraToolbar={(order) => {
-            if (order?.businessType !== OrderBusinessType.BUSINESS_TYPE_SE) {
+            if (
+              hideSharedEntry ||
+              order?.businessType !== OrderBusinessType.BUSINESS_TYPE_SE
+            ) {
               return [];
             }
             return [

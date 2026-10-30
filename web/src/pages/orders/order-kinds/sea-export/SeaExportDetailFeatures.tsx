@@ -23,6 +23,7 @@ import SeaOrderChangeHistoryDrawer, {
 import SeaOrderReassignmentModal from '../../components/drawers/SeaOrderReassignmentModal';
 import SeaSharedContainerDrawer from '../../components/drawers/SeaSharedContainerDrawer';
 import SeaTransportExecutionUpdateModal from '../../components/drawers/SeaTransportExecutionUpdateModal';
+import { SeaActualContainers } from '../../templates/components/sea/SeaActualContainers';
 import type {
   OrderDetailFeatureContribution,
   OrderDetailFeaturesProps,
@@ -289,6 +290,18 @@ export default function SeaExportDetailFeatures({
   );
 
   const contribution: OrderDetailFeatureContribution = {
+    actualContainers: (
+      <SeaActualContainers
+        context={context}
+        onOpenShared={() => {
+          const teId = order.seaMasterBill?.transportExecutionId;
+          if (!canOrder('container.read') || !teId) return;
+          setSharedContainerTEId(teId);
+          setSharedContainerOrderId(orderId);
+          setSharedContainerDrawerOpen(true);
+        }}
+      />
+    ),
     actionMenuItems,
     moreMenuItems,
     appendTabs,

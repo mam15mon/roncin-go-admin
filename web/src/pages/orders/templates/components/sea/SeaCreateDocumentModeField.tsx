@@ -214,10 +214,12 @@ export function SeaCreateDocumentModeField({
     <Form.Item
       name="seaDocumentStructure"
       label="提单模式"
+      htmlFor={undefined}
       rules={[{ required: true, message: '请选择 HOUSE 或 DIRECT' }]}
       style={{ marginBottom: 0 }}
     >
       <Radio.Group
+        aria-label="提单模式"
         disabled={disabled}
         onChange={(event) =>
           changeCreateMode(event.target.value as SeaDocumentStructure)

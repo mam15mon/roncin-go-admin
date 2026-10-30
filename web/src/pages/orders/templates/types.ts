@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { OrderFormTemplateSection } from '@/components/ui/order-template/types';
 
 export interface SelectOption {
@@ -44,6 +45,8 @@ export interface TemplateProps {
   /** 当前订单归属，供独立单证命令校验工作台能力。 */
   organizationId?: string;
   seaDocuments?: API.SeaOrderDocuments;
+  /** 详情扩展贡献的实际装箱，独立于计划及整页保存。 */
+  actualContainers?: ReactNode;
   /** 新建分单的主单及指定航程来源。 */
   seaHouseOrderCreateSource?: SeaHouseOrderCreateSource;
   /** 详情页独立新建分单入口的来源订单身份。 */

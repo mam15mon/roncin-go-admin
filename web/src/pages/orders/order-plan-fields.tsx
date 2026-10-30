@@ -237,6 +237,7 @@ export function OrderContainerRequestFields({
       <Form.Item
         name="containerRequests"
         label="箱型箱量"
+        htmlFor={undefined}
         tooltip="这里只维护订单级配箱计划；实际箱号、封号与箱货分配在箱货信息中维护"
         style={{ marginBottom: 12 }}
       >
@@ -286,8 +287,13 @@ function ContainerRequestsControl({
   return (
     <>
       <span style={{ display: 'none' }}>计划箱型箱量</span>
-      <div
+      <fieldset
+        aria-label="箱型箱量"
         style={{
+          border: 0,
+          padding: 0,
+          margin: 0,
+          minWidth: 0,
           display: 'flex',
           alignItems: 'center',
           gap: 12,
@@ -377,7 +383,7 @@ function ContainerRequestsControl({
             </Button>
           </>
         )}
-      </div>
+      </fieldset>
     </>
   );
 }

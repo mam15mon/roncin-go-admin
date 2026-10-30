@@ -52,7 +52,7 @@ func NewHTTPServer(c *conf.Server, enterpriseResource *service.EnterpriseResourc
 	partnerv1.RegisterPartnerServiceHTTPServer(srv, partner)
 	adminv1.RegisterAdminServiceHTTPServer(srv, admin)
 	masterdatav1.RegisterMasterDataServiceHTTPServer(srv, masterData)
-	orderv1.RegisterOrderServiceHTTPServer(srv, order)
+	registerOrderAndSharedContainerHTTPServices(srv, order, seaSharedContainer)
 	orderv1.RegisterAirExportServiceHTTPServer(srv, airExport)
 	orderv1.RegisterAirWeightServiceHTTPServer(srv, airWeight)
 	orderv1.RegisterOrderLockServiceHTTPServer(srv, orderLock)
@@ -65,7 +65,6 @@ func NewHTTPServer(c *conf.Server, enterpriseResource *service.EnterpriseResourc
 	orderv1.RegisterOrderCargoItemServiceHTTPServer(srv, orderCargoItem)
 	orderv1.RegisterOrderShippingDocumentServiceHTTPServer(srv, shippingDocument)
 	orderv1.RegisterSeaDocumentServiceHTTPServer(srv, seaDocument)
-	orderv1.RegisterSeaSharedContainerServiceHTTPServer(srv, seaSharedContainer)
 	orderv1.RegisterSeaOrderChangeServiceHTTPServer(srv, seaOrderChange)
 	orderv1.RegisterOrderAbnormalCaseServiceHTTPServer(srv, abnormalCase)
 	orderv1.RegisterOrderReleasePodServiceHTTPServer(srv, releasePod)
@@ -79,4 +78,11 @@ func NewHTTPServer(c *conf.Server, enterpriseResource *service.EnterpriseResourc
 	srv.Handle("/metrics", promhttp.Handler())
 	srv.HandlePrefix("/", webassets.Handler(auth.DingTalkLoginBootstrap))
 	return srv
+}
+
+// 共享箱集合使用 /orders 下的静态路径，必须先于订单详情 /orders/{id} 注册。
+// Kratos 按注册顺序匹配；否则静态片段会被当作订单 ID 并在鉴权时误报无权限。
+func registerOrderAndSharedContainerHTTPServices(srv *http.Server, order orderv1.OrderServiceHTTPServer, shared orderv1.SeaSharedContainerServiceHTTPServer) {
+	orderv1.RegisterSeaSharedContainerServiceHTTPServer(srv, shared)
+	orderv1.RegisterOrderServiceHTTPServer(srv, order)
 }

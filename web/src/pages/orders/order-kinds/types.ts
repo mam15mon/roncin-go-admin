@@ -79,6 +79,8 @@ export interface OrderDetailFeaturesContext {
 
 /** 类型扩展向通用详情布局贡献的 UI 描述与刷新命令。 */
 export interface OrderDetailFeatureContribution {
+  /** 品类实际装箱区域，由业务扩展持有查询与抽屉。 */
+  actualContainers?: React.ReactNode;
   /** 类型专属业务操作，统一并入详情页「更多操作」。 */
   actionMenuItems?: MenuProps['items'];
   /** 置于通用更多菜单项之前的菜单项。 */
