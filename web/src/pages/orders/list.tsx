@@ -52,7 +52,6 @@ import {
 } from './list-documents-action';
 import { queryOrderList } from './list-query';
 import { useOrderListResources } from './list-resources';
-import OrderFeePanel, { type OrderFeePanelRef } from './order-fee-panel';
 import { getOrderKindDefinition } from './order-kinds/registry';
 import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
 import { getOrderBusinessWritePolicy } from './use-order-lock-state';
@@ -79,7 +78,6 @@ export default function OrderListPage() {
   );
   const releasePodPanelRef = useRef<ReleasePodPanelRef | null>(null);
   const abnormalCasePanelRef = useRef<AbnormalCasePanelRef | null>(null);
-  const orderFeePanelRef = useRef<OrderFeePanelRef | null>(null);
 
   const access = useAccess();
   const { initialState } = useInitialState();
@@ -260,10 +258,11 @@ export default function OrderListPage() {
             `/orders/${item.orderKind || definition.kind}/${item.id}`,
           )
         }
-        onOpenFees={(item) => {
-          setActiveOrder(item.rawRecord);
-          item.rawRecord && orderFeePanelRef.current?.open(item.rawRecord);
-        }}
+        onOpenFees={(item) =>
+          history.push(
+            `/orders/${item.orderKind || definition.kind}/${item.id}/fees`,
+          )
+        }
         onOpenMilestones={(item) => {
           setActiveOrder(item.rawRecord);
           item.rawRecord && milestoneDrawerRef.current?.open(item.rawRecord);
@@ -437,7 +436,6 @@ export default function OrderListPage() {
           access.canOrder(definition.businessType, 'release_pod.create')
         }
       />
-      <OrderFeePanel ref={orderFeePanelRef} />
       <OrderCommissionSummaryModal
         open={commissionModalState !== null}
         orderNo={commissionModalState?.orderNo}

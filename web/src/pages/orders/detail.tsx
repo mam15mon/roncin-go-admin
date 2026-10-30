@@ -1,8 +1,4 @@
-import {
-  CopyOutlined,
-  DollarOutlined,
-  ReloadOutlined,
-} from '@ant-design/icons';
+import { CopyOutlined, ReloadOutlined } from '@ant-design/icons';
 import {
   PageContainer,
   type ProFormInstance,
@@ -63,7 +59,6 @@ import {
   confirmOrderFlow,
   confirmOrderTermination,
 } from './order-detail-transitions';
-import OrderFeePanel, { type OrderFeePanelRef } from './order-fee-panel';
 import type { OrderDetailFormValues } from './order-kinds/form-values';
 import { getOrderKindDefinition } from './order-kinds/registry';
 import type {
@@ -202,7 +197,6 @@ export default function OrderDetailPage() {
 
   const releasePodPanelRef = useRef<ReleasePodPanelRef | null>(null);
   const abnormalCasePanelRef = useRef<AbnormalCasePanelRef | null>(null);
-  const orderFeePanelRef = useRef<OrderFeePanelRef | null>(null);
   const getModalOwnerSignal = useModalOwnerSignal();
   const statusTransitionConfirmOpenRef = useRef(false);
 
@@ -1029,13 +1023,6 @@ export default function OrderDetailPage() {
         const moreMenuItems: MenuProps['items'] = [
           ...(features.moreMenuItems ?? []),
           {
-            key: 'fees-drawer',
-            icon: <DollarOutlined />,
-            label: '快速费用抽屉',
-            disabled: !access.canOrder(definition.businessType, 'fee.read'),
-            onClick: () => orderFeePanelRef.current?.open(order),
-          },
-          {
             key: 'copy-orderno',
             icon: <CopyOutlined />,
             label: '复制订单号',
@@ -1200,7 +1187,6 @@ export default function OrderDetailPage() {
                 access.canOrder(definition.businessType, 'release_pod.create')
               }
             />
-            <OrderFeePanel ref={orderFeePanelRef} />
             <AbnormalCasePanel
               ref={abnormalCasePanelRef}
               key={`${orderFormIdentity}:abnormal`}

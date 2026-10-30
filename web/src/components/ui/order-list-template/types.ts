@@ -180,7 +180,7 @@ export interface OrderListTemplateProps {
   onViewDetail?: (record: OrderListItem) => void;
   /** 点击编辑订单 */
   onEditOrder?: (record: OrderListItem) => void;
-  /** 打开费用结算面板 */
+  /** 进入订单费用维护页面 */
   onOpenFees?: (record: OrderListItem) => void;
   /** 打开里程碑履约面板 */
   onOpenMilestones?: (record: OrderListItem) => void;

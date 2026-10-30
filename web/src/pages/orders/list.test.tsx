@@ -1,5 +1,5 @@
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
-import { screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -9,6 +9,7 @@ import {
   getMasterDataOptions,
 } from '@/features/orders/options';
 import { searchPartnerOptions } from '@/features/partners';
+import { history } from '@/router/history';
 import {
   orderServiceListOrders,
   orderServiceListPersonnelOptions,
@@ -75,6 +76,15 @@ vi.mock('@/features/partners', () => ({
 
 vi.mock('@/features/master-data/shipping-lines', () => ({
   searchShippingLineOptions: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock('@/services/roncin/masterDataService', () => ({
+  masterDataServiceListPorts: vi.fn().mockResolvedValue({ data: [], total: 0 }),
+  masterDataServiceListAirports: vi
+    .fn()
+    .mockResolvedValue({ data: [], total: 0 }),
+  masterDataServiceListItems: vi.fn().mockResolvedValue({ data: [], total: 0 }),
+  masterDataServiceSearchOptions: vi.fn().mockResolvedValue({ data: [] }),
 }));
 
 vi.mock('@/services/roncin/orderService', () => ({
@@ -157,4 +167,37 @@ describe('订单列表新建入口权限收口', () => {
 
     expect(screen.queryByText('批量维护标签')).not.toBeInTheDocument();
   });
+});
+
+describe('订单列表费用入口', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    accessControl.canCreate = true;
+    accessControl.canUpdate = true;
+  });
+
+  it.each(['sea-export', 'air-export'])(
+    '%s 费用核算进入对应订单费用页面',
+    async (kind) => {
+      locationState.pathname = `/orders/${kind}`;
+      mockListOrders.mockResolvedValue({
+        data: [{ id: 'order-fees-1', orderNo: 'ORDER-FEES-1' }],
+        total: 1,
+      });
+      renderWithClient(
+        <App>
+          <OrderListPage />
+        </App>,
+      );
+
+      await screen.findByText('ORDER-FEES-1');
+      fireEvent.mouseEnter(screen.getByRole('button', { name: /更多/ }));
+      fireEvent.click(await screen.findByText('费用核算'));
+
+      expect(history.push).toHaveBeenCalledWith(
+        `/orders/${kind}/order-fees-1/fees`,
+      );
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    },
+  );
 });
