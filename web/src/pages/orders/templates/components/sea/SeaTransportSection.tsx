@@ -650,6 +650,14 @@ export function SeaScheduleDateFields() {
 
 function SeaVesselVoyageField() {
   const { readonly } = useSharedSeaVoyage();
+  const form = Form.useFormInstance();
+  const vesselVoyage = Form.useWatch('vesselVoyage', {
+    form,
+    preserve: true,
+  }) as string | undefined;
+  const { token } = theme.useToken();
+  // 仅按明确分隔符去掉航次，保留没有分隔符的多词船名。
+  const vesselName = vesselVoyage?.split('/')[0].trim();
   return (
     <div>
       <ProFormText
@@ -659,13 +667,22 @@ function SeaVesselVoyageField() {
         disabled={readonly || undefined}
         fieldProps={{
           suffix: (
-            <Tooltip title="船期与船舶实时动态追踪">
+            <Tooltip
+              title={
+                vesselName
+                  ? '在船讯网查询当前船名；含航次请用“船名 / 航次”分隔'
+                  : '打开船讯网首页，手动查询船舶'
+              }
+            >
               <a
-                href="https://www.shipxy.com/"
+                href={
+                  vesselName
+                    ? `https://www.shipxy.com/?kw=${encodeURIComponent(vesselName)}`
+                    : 'https://www.shipxy.com/'
+                }
                 target="_blank"
                 rel="noopener noreferrer"
-                tabIndex={-1}
-                style={{ fontSize: 12, color: '#1677ff' }}
+                style={{ fontSize: 12, color: token.colorLink }}
                 onClick={(event) => event.stopPropagation()}
               >
                 船在哪儿
