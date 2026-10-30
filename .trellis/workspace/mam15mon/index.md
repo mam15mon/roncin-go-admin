@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 174
+- **Total Sessions**: 175
 - **Last Active**: 2026-10-30
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~705 | Active |
+| `journal-3.md` | ~738 | Active |
 | `journal-2.md` | ~2003 | Archived |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 175 | 2026-10-30 | 精简订单列表默认列 | `063fecf9`, `51d577e1` | `codex/order-list-review-entry` |
 | 174 | 2026-10-30 | 精简订单操作并开放审核列设置 | `3fc971cd`, `34f4404d` | `codex/order-list-review-entry` |
 | 173 | 2026-10-30 | 删除快速费用抽屉并排查动画测试时序 | `5834fb94`, `281eb866`, `dc0ddd62` | `codex/remove-quick-fee-drawer` |
 | 172 | 2026-10-30 | 海运实际箱入口与共享箱权限修复完成 | `35f3d678`, `6246344c`, `2799983c` | `main` |

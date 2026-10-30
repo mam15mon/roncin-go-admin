@@ -703,3 +703,36 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Next Steps
 
 - 推送前复核全量时序失败；保留其他会话默认列改动
+
+
+## Session 175: 精简订单列表默认列
+<!-- trellis-session: v=2 fp=07cd1b1f3df1ead3 -->
+
+**Date**: 2026-10-30
+**Task**: 精简订单列表默认列
+**Branch**: `codex/order-list-review-entry`
+
+### Summary
+
+默认隐藏8个低频订单列，保留用户显隐顺序冻结偏好和恢复默认，完整前端门禁通过
+
+### Main Changes
+
+- 默认隐藏序号、业务类型、创建人、订单锁定时间、三类备注和提成；全部仍可在列设置开启
+- 序号改为普通可选列；已存偏好保持；同步提成接线测试与列设置规范
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `063fecf9` | docs: 记录订单入口精简验证与全量检查限制 |
+| `51d577e1` | refactor: 精简订单列表默认展示列 |
+
+### Testing
+
+- [OK] 独立审查通过；定向2文件14用例、Biome、TypeScript与git diff --check通过
+- [OK] pnpm run check:web通过：341文件/1833用例通过，1文件/12用例跳过
+
+### Status
+
+[OK] **Completed**
