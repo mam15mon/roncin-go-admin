@@ -168,7 +168,13 @@ describe('主单候选身份与异常路径', () => {
       expect(form.getFieldValue('seaMasterBillCandidateId')).toBe('mbl-1'),
     );
     await act(async () => form.setFieldValue(masterField, 'NEW456'));
-    await screen.findByRole('button', { name: '重新核对' });
+    // 先按文本定位，避免全局角色查询的样式计算阻塞身份防抖回调。
+    const retryButton = (await screen.findByText('重新核对')).closest('button');
+    await waitFor(() => {
+      expect(retryButton).toBeVisible();
+      expect(retryButton).toBeEnabled();
+    });
+    expect(retryButton).toHaveAccessibleName('重新核对');
     for (const field of confirmationFields)
       expect(form.getFieldValue(field)).toBeUndefined();
     await act(async () => {

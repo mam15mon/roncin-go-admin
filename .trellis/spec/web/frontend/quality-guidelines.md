@@ -45,6 +45,7 @@ pnpm --dir web exec vitest run src/pages/foo/bar.test.tsx
 - **测试文件长尾约束**：Vitest 采用文件级并发（`fileParallelism: true`）。严禁在单个测试文件中堆砌超过 10 个重型业务组件/深层级树渲染用例（如批量建账、多分节大表单）。
 - **拆分规约**：单测试文件耗时超过 20 秒时，必须按功能拆分为多文件（如常规流程为 `*.test.tsx`，超大批量或压测为 `*.scale.test.tsx`），以便让多核 CPU 调度器能分发到不同核心并发跑，杜绝「一核有难、几十核围观」。
 - **动画禁用**：`setupTests.ts` 的全局零动画样式只关闭 CSS 动画，不会停止 rc-motion 的 JavaScript 帧队列。页签等组件的业务测试在渲染包装中使用 `<ConfigProvider theme={{ token: { motion: false } }}>` 关闭动画，保留可见性与业务断言（范本：`sea-create-layout.test.tsx`、`sea-document-visibility.fixtures.tsx`）；动画行为本身使用显式控制帧队列的专项测试验证。禁止通过无意义的 `sleep`、放宽超时或降低并发掩盖动画调度依赖。
+- **复杂表单的异步按钮等待**：happy-dom 的样式属性惰性计算成本较高，整页 `findByRole('button', { name })` 轮询可能反复扫描 CSS 并阻塞防抖/Query 通知。测量确认此热点后，先按唯一可见文案定位按钮，再对该按钮显式等待可见并验证启用状态；模态内容优先缩小到目标 dialog。不可用 `hidden: true`、删除可见性断言或增加超时规避。`motion: false` 下 Modal 仍有 prepare 帧队列，文本进入 DOM 不等于按钮已经可见。范本：`SeaDocumentSection.house-to-direct.test.tsx`、`SeaMasterBillFields.identity.test.tsx`。
 - **极速全量门禁**：全量验收推荐优先执行 `pnpm run check:fast`，自动并行执行前后端门禁，并挂载系统 `/dev/shm` tmpfs 内存虚拟盘消除磁盘 I/O 瓶颈。
 
 ### 2. 普通本地提交

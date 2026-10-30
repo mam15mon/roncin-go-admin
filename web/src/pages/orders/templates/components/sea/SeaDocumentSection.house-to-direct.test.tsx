@@ -18,10 +18,14 @@ describe('SeaDocumentSectionComponent', () => {
       <TestForm isDetail initialValues={{ id: 'order-1', version: '11' }} />,
     );
 
-    const switchButton = await screen.findByRole('button', {
-      name: /切换为仅船公司主单（DIRECT）/,
+    const switchButton = (
+      await screen.findByText('切换为仅船公司主单（DIRECT）')
+    ).closest('button') as HTMLButtonElement;
+    await waitFor(() => {
+      expect(switchButton).toBeVisible();
+      expect(switchButton).toBeEnabled();
     });
-    expect(switchButton).toBeEnabled();
+    expect(switchButton).toHaveAccessibleName(/切换为仅船公司主单（DIRECT）/);
     expect(screen.getAllByText('关联放货记录').length).toBeGreaterThan(0);
     expect(screen.getAllByText('暂无关联放货记录').length).toBeGreaterThan(0);
     fireEvent.click(switchButton);
@@ -32,7 +36,16 @@ describe('SeaDocumentSectionComponent', () => {
       },
     );
     fillExternalConfirmation();
-    fireEvent.click(screen.getByRole('button', { name: '预览切换影响' }));
+    // Modal 的 prepare 阶段可能已挂载内容；只等待目标按钮的实际可见性。
+    const previewButton = (await screen.findByText('预览切换影响')).closest(
+      'button',
+    ) as HTMLButtonElement;
+    await waitFor(() => {
+      expect(previewButton).toBeVisible();
+      expect(previewButton).toBeEnabled();
+    });
+    expect(previewButton).toHaveAccessibleName('预览切换影响');
+    fireEvent.click(previewButton);
 
     await waitFor(() => {
       expect(previewMode).toHaveBeenCalledWith(
@@ -45,7 +58,15 @@ describe('SeaDocumentSectionComponent', () => {
         }),
       );
     });
-    fireEvent.click(await screen.findByRole('button', { name: '确认执行' }));
+    const executeButton = (await screen.findByText('确认执行')).closest(
+      'button',
+    ) as HTMLButtonElement;
+    await waitFor(() => {
+      expect(executeButton).toBeVisible();
+      expect(executeButton).toBeEnabled();
+    });
+    expect(executeButton).toHaveAccessibleName('确认执行');
+    fireEvent.click(executeButton);
     await waitFor(() => {
       expect(executeMode).toHaveBeenCalledWith(
         { orderId: 'order-1' },
