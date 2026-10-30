@@ -45,6 +45,13 @@
 
 ## 请求客户端
 
+- 需要就地展示错误和手动重试的查询，同时使用请求选项 `skipErrorHandler: true` 与
+  Query `meta: { silent: true }`，分别避免请求层和 QueryCache 重复通知。共享箱与候选
+  分别使用查询状态；候选刷新不得无条件重置人工分配草稿。
+- 本仓库 ProtoJSON 会省略空 repeated 字段：明确 `success: true` 且缺省 `data` 是
+  合法空列表，不能与请求层消费错误后返回的 `undefined` 混同；响应缺失、失败标识或
+  非法数据类型仍显示失败，不显示零空态。参考共享箱与实际箱查询回归。
+
 - 所有后端请求经过统一请求配置或 OpenAPI 生成客户端
   （`src/services/roncin/`）；禁止页面自行拼接后端主机地址。
 - **错误被全局处理器消费后 `request()` 会 resolve `undefined`**（复刻

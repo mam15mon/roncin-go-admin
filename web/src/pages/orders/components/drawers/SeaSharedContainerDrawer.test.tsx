@@ -1,16 +1,27 @@
-import { getAnyDirtyTabKey } from '@/components/layout/tabCloseGuard';
+import { createTestQueryClient } from '@root/tests/queryClientTestUtils';
+import { QueryClientProvider } from '@tanstack/react-query';
 import {
   act,
   fireEvent,
-  render,
+  render as nativeRender,
   screen,
   waitFor,
 } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { getAnyDirtyTabKey } from '@/components/layout/tabCloseGuard';
 import * as service from '@/services/roncin/seaSharedContainerService';
 import SeaSharedContainerDrawer from './SeaSharedContainerDrawer';
+
+function render(ui: React.ReactElement) {
+  const client = createTestQueryClient();
+  return nativeRender(ui, {
+    wrapper: ({ children }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    ),
+  });
+}
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
@@ -193,12 +204,14 @@ describe('SeaSharedContainerDrawer', () => {
         page: 1,
         pageSize: 20,
       }),
+      { skipErrorHandler: true },
     );
     expect(listContainersSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         orderId: 'order-1',
         transportExecutionId: 'te-123',
       }),
+      { skipErrorHandler: true },
     );
   });
 
@@ -263,6 +276,7 @@ describe('SeaSharedContainerDrawer', () => {
     expect(screen.queryByText('机械零件')).not.toBeInTheDocument();
     expect(candidatesSpy).toHaveBeenLastCalledWith(
       expect.objectContaining({ page: 2 }),
+      { skipErrorHandler: true },
     );
   });
 

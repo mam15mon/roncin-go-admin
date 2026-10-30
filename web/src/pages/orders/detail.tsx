@@ -1181,7 +1181,20 @@ export default function OrderDetailPage() {
                 />
               }
               prependSections={prependSections}
-              sections={formSections}
+              sections={
+                features.actualContainers
+                  ? definition.form
+                      .buildSections({
+                        ...templateProps,
+                        actualContainers: features.actualContainers,
+                      })
+                      .filter(
+                        (section) =>
+                          section.key !== 'internalPersonnel' ||
+                          canReadPersonnel,
+                      )
+                  : formSections
+              }
               onRevealError={({ errorFields }) =>
                 revealSeaFormErrors(errorFields)
               }
