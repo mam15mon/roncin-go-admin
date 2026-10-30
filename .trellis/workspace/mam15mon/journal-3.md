@@ -635,3 +635,40 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Next Steps
 
 - 按本次授权已合并main并安全删除任务分支；未推送，其他任务工作树保留
+
+
+## Session 173: 删除快速费用抽屉并排查动画测试时序
+<!-- trellis-session: v=2 fp=a6b2fe7cd177a857 -->
+
+**Date**: 2026-10-30
+**Task**: 删除快速费用抽屉并排查动画测试时序
+**Branch**: `codex/remove-quick-fee-drawer`
+
+### Summary
+
+删除快速费用抽屉，统一进入费用页面；CPU采样定位昂贵角色查询与Modal prepare可见时序，修复等待并完成独立review。
+
+### Main Changes
+
+- 移除抽屉及专属代码，列表费用核算跳转现有费用页
+- 修复海运与密码找回测试的单节点可见等待，保留全部业务断言
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `5834fb94` | refactor: 删除快速费用抽屉并统一费用页面入口 |
+| `281eb866` | test: 修正海运异步按钮等待并记录性能排查结论 |
+| `dc0ddd62` | test: 等待密码找回弹窗冷却提示实际可见 |
+
+### Testing
+
+- [OK] 原默认并发check:web通过：338文件、1827用例通过，1文件/12用例跳过
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 合并main并推送，安全清理已合并功能分支

@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 172
+- **Total Sessions**: 173
 - **Last Active**: 2026-10-30
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~637 | Active |
+| `journal-3.md` | ~674 | Active |
 | `journal-2.md` | ~2003 | Archived |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 173 | 2026-10-30 | 删除快速费用抽屉并排查动画测试时序 | `5834fb94`, `281eb866`, `dc0ddd62` | `codex/remove-quick-fee-drawer` |
 | 172 | 2026-10-30 | 海运实际箱入口与共享箱权限修复完成 | `35f3d678`, `6246344c`, `2799983c` | `main` |
 | 171 | 2026-10-30 | 修复路由与海运表单控制台告警 | `140fb303` | `codex/console-warnings` |
 | 170 | 2026-10-29 | 海运出口录单可靠性修复与验收 | `8248f20b`, `0a979ace`, `79a0ef48` | `fix/sea-export-entry-experience` |
