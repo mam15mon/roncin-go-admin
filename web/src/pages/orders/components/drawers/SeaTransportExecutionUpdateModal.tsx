@@ -2,10 +2,12 @@ import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   App,
   Button,
+  Col,
   DatePicker,
   Form,
   Input,
   Modal,
+  Row,
   Select,
   Space,
   Tag,
@@ -16,7 +18,7 @@ import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
-import { ResponsiveTable as Table } from '@/components/ui';
+import { SectionCard, ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import {
@@ -26,15 +28,12 @@ import {
 import { isWriteResponse } from '@/utils/api';
 import { formatDate } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
-import SeaExternalConfirmationFields, {
-  buildSeaExternalConfirmation,
-  type SeaExternalConfirmationFormValues,
-} from '../../templates/components/sea/SeaExternalConfirmationFields';
+import './SeaTransportExecutionUpdateModal.less';
 
 const { Text } = Typography;
 const locationQueryKey = ['orders', 'shared-voyage-location'] as const;
 
-type VoyageUpdateFormValues = SeaExternalConfirmationFormValues & {
+type VoyageUpdateFormValues = {
   originLocationId?: string;
   dischargeLocationId?: string;
   transitLocationId?: string;
@@ -159,7 +158,6 @@ export default function SeaTransportExecutionUpdateModal({
       etd: transportExecution?.etd ? dayjs(transportExecution.etd) : undefined,
       eta: transportExecution?.eta ? dayjs(transportExecution.eta) : undefined,
       reason: '',
-      confirmedAt: dayjs(),
     }),
     [transportExecution],
   );
@@ -232,7 +230,6 @@ export default function SeaTransportExecutionUpdateModal({
             expectedTransportExecutionVersion: expectedVersion,
             input: previewInput,
             reason: values.reason.trim(),
-            confirmation: buildSeaExternalConfirmation(values),
             idempotencyKey,
           },
         );
@@ -264,6 +261,8 @@ export default function SeaTransportExecutionUpdateModal({
     <Form.Item name={name} label={label}>
       <Select
         allowClear
+        style={{ width: '100%' }}
+        placeholder={`请选择${label}`}
         showSearch={{
           filterOption: false,
           onSearch: (keyword) => setLocationKeyword(keyword.trim()),
@@ -323,8 +322,23 @@ export default function SeaTransportExecutionUpdateModal({
 
   return (
     <Modal
-      width={920}
-      title={`修改共享航程 · ${order.orderNo || ''}`}
+      className="sea-transport-update-modal"
+      width={860}
+      centered
+      styles={{
+        body: { maxHeight: 'calc(100dvh - 200px)', overflowY: 'auto' },
+      }}
+      title={
+        <div className="sea-transport-update-modal__heading">
+          <Space wrap size={8}>
+            <span>修改共享航程</span>
+            {order.orderNo ? <Tag>{order.orderNo}</Tag> : null}
+          </Space>
+          <Text type="secondary">
+            修改将同步至共享此航程的关联订单，请先预览影响再确认。
+          </Text>
+        </div>
+      }
       open={open}
       onCancel={onClose}
       destroyOnHidden
@@ -365,86 +379,109 @@ export default function SeaTransportExecutionUpdateModal({
           setPreviewInput(undefined);
         }}
       >
-        <Space align="start" size={16} style={{ width: '100%' }}>
-          <Form.Item name="vesselName" label="船名">
-            <Input maxLength={128} />
+        <SectionCard title="航程信息">
+          <Row gutter={16}>
+            <Col xs={24} sm={12} md={8}>
+              <Form.Item name="vesselName" label="船名">
+                <Input maxLength={128} placeholder="请输入船名" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={4}>
+              <Form.Item name="voyageNo" label="航次">
+                <Input maxLength={128} placeholder="请输入航次" />
+              </Form.Item>
+            </Col>
+            <Col xs={12} sm={12} md={6}>
+              <Form.Item name="etd" label="ETD · 预计开船">
+                <DatePicker style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+            <Col xs={12} sm={12} md={6}>
+              <Form.Item name="eta" label="ETA · 预计到港">
+                <DatePicker style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={8}>
+              {locationSelect('originLocationId', '起运港')}
+            </Col>
+            <Col xs={24} sm={8}>
+              {locationSelect('dischargeLocationId', '卸货港')}
+            </Col>
+            <Col xs={24} sm={8}>
+              {locationSelect('transitLocationId', '中转港')}
+            </Col>
+          </Row>
+          <Form.Item
+            name="reason"
+            label="调整原因"
+            rules={[
+              { required: true, whitespace: true, message: '请输入调整原因' },
+            ]}
+          >
+            <Input.TextArea
+              autoSize={{ minRows: 2, maxRows: 4 }}
+              maxLength={500}
+              showCount
+              placeholder="请说明本次船名、航次或港口调整的原因"
+            />
           </Form.Item>
-          <Form.Item name="voyageNo" label="航次">
-            <Input maxLength={128} />
-          </Form.Item>
-          <Form.Item name="etd" label="ETD">
-            <DatePicker />
-          </Form.Item>
-          <Form.Item name="eta" label="ETA">
-            <DatePicker />
-          </Form.Item>
-        </Space>
-        <Space align="start" size={16} style={{ width: '100%' }}>
-          {locationSelect('originLocationId', '起运港')}
-          {locationSelect('dischargeLocationId', '卸货港')}
-          {locationSelect('transitLocationId', '中转港')}
-        </Space>
-        <Form.Item
-          name="reason"
-          label="调整原因"
-          rules={[
-            { required: true, whitespace: true, message: '请输入调整原因' },
-          ]}
-        >
-          <Input.TextArea rows={2} maxLength={500} showCount />
-        </Form.Item>
-        <SeaExternalConfirmationFields orderId={order.id || ''} />
+        </SectionCard>
       </Form>
 
       {preview ? (
-        <Space orientation="vertical" size={12} style={{ width: '100%' }}>
-          <Text strong>
-            本次将影响 {preview.memberOrderIds?.length ?? 0} 张关联订单
-          </Text>
-          <Space wrap>
-            {memberOrderIds.map((id, index) => {
-              const result = memberOrders[index];
-              return result?.data?.orderNo ? (
-                <Typography.Link
-                  key={id}
-                  href={`/orders/sea-export/${id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {result.data.orderNo}
-                </Typography.Link>
-              ) : (
-                <Text key={id} type={result?.isError ? 'danger' : 'secondary'}>
-                  {result?.isError ? '订单读取失败' : '订单读取中'}（{id}）
-                </Text>
-              );
-            })}
-          </Space>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              marginBottom: 8,
-            }}
-          >
-            {columnSettings.entry}
-          </div>
-          <Table<API.VoyageDifferenceItem>
-            size="small"
-            pagination={false}
-            rowKey={(row) => row.fieldName || row.label || ''}
-            dataSource={preview.differences ?? []}
-            columns={columnSettings.columns}
-          />
-          {(preview.impacts ?? []).map((impact) => (
-            <Tag
-              key={`${impact.factType}-${impact.referenceId}`}
-              color="orange"
+        <SectionCard title="影响预览">
+          <Space orientation="vertical" size={12} style={{ width: '100%' }}>
+            <Text strong>
+              本次将影响 {preview.memberOrderIds?.length ?? 0} 张关联订单
+            </Text>
+            <Space wrap>
+              {memberOrderIds.map((id, index) => {
+                const result = memberOrders[index];
+                return result?.data?.orderNo ? (
+                  <Typography.Link
+                    key={id}
+                    href={`/orders/sea-export/${id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {result.data.orderNo}
+                  </Typography.Link>
+                ) : (
+                  <Text
+                    key={id}
+                    type={result?.isError ? 'danger' : 'secondary'}
+                  >
+                    {result?.isError ? '订单读取失败' : '订单读取中'}（{id}）
+                  </Text>
+                );
+              })}
+            </Space>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                marginBottom: 8,
+              }}
             >
-              {impact.message}
-            </Tag>
-          ))}
-        </Space>
+              {columnSettings.entry}
+            </div>
+            <Table<API.VoyageDifferenceItem>
+              size="small"
+              pagination={false}
+              rowKey={(row) => row.fieldName || row.label || ''}
+              dataSource={preview.differences ?? []}
+              columns={columnSettings.columns}
+            />
+            {(preview.impacts ?? []).map((impact) => (
+              <Tag
+                key={`${impact.factType}-${impact.referenceId}`}
+                color="orange"
+              >
+                {impact.message}
+              </Tag>
+            ))}
+          </Space>
+        </SectionCard>
       ) : null}
     </Modal>
   );

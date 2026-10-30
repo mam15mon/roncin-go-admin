@@ -134,7 +134,7 @@ func TestSeaSharedTransportPreservesIndependentDestinationsPostgres(t *testing.T
 		t.Fatal("修改本票目的港不应改写共同航程或推进其版本")
 	}
 
-	// 走现有预览、外部确认及版本校验，调整共同卸货港和船期。
+	// 走预览与版本校验调整共同卸货港和船期，无需外部确认。
 	newETD := time.Date(2026, time.September, 12, 0, 0, 0, 0, time.UTC)
 	newETA := time.Date(2026, time.September, 27, 0, 0, 0, 0, time.UTC)
 	command := &biz.SeaTransportExecutionUpdateCommand{
@@ -143,10 +143,7 @@ func TestSeaSharedTransportPreservesIndependentDestinationsPostgres(t *testing.T
 			OriginLocationID: &origin.ID, DischargeLocationID: &portKlang.ID,
 			VesselName: "UPDATED SHARED VESSEL", VoyageNo: "002W", ETD: &newETD, ETA: &newETA,
 		},
-		Reason: "共同段改靠巴生港，各票最终目的港保持独立",
-		Confirmation: &biz.SeaExternalConfirmation{
-			ConfirmedByParty: "测试船代", ConfirmedAt: time.Now().UTC(), ConfirmationNote: "已确认共同航程调整",
-		},
+		Reason:         "共同段改靠巴生港，各票最终目的港保持独立",
 		IdempotencyKey: "shared-destination-" + fixture.suffix,
 	}
 	changeUsecase := biz.NewSeaOrderChangeUsecase(NewSeaOrderChangeRepo(data), data)
@@ -165,6 +162,13 @@ func TestSeaSharedTransportPreservesIndependentDestinationsPostgres(t *testing.T
 	if result.TransportExecution == nil || result.TransportExecution.ID != teBefore.ID ||
 		result.TransportExecution.Version != teBefore.Version+1 || result.VersionID == uuid.Nil {
 		t.Fatalf("共同航程更新未返回新版本及不可变快照: %+v", result)
+	}
+	version, err := client.SeaTransportExecutionVersion.Get(ctx, result.VersionID)
+	if err != nil {
+		t.Fatalf("读取共同航程快照失败: %v", err)
+	}
+	if version.ConfirmedByParty != nil || version.ConfirmedAt != nil || version.ConfirmationNote != nil || version.ConfirmationAttachmentID != nil {
+		t.Fatalf("共同航程调整不应写入外部确认信息: %+v", version)
 	}
 	assertDestinations(surabaya.ID, bangkok.ID)
 	for _, orderID := range []uuid.UUID{first.ID, second.ID} {

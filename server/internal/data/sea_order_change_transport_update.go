@@ -145,9 +145,6 @@ func (r *seaOrderChangeRepo) ExecuteTransportExecutionUpdate(ctx context.Context
 				return err
 			}
 		}
-		if err := validateConfirmationAttachment(ctx, tx.Client(), organizationID, input.OrderID, input.Confirmation); err != nil {
-			return err
-		}
 		if _, err = tx.SeaMasterBill.Query().Where(seamasterbillent.OrganizationIDEQ(organizationID), seamasterbillent.IDIn(masterBillIDs...)).Order(seamasterbillent.ByID()).ForUpdate().All(ctx); err != nil {
 			return err
 		}
@@ -223,7 +220,7 @@ func (r *seaOrderChangeRepo) ExecuteTransportExecutionUpdate(ctx context.Context
 		version, err := ensureSeaTransportExecutionVersion(
 			ctx, tx, organizationID, updated, &actorID,
 			seatransportexecutionversionent.SourceSHARED_UPDATE,
-			&input.Reason, &input.IdempotencyKey, &fingerprint, input.Confirmation,
+			&input.Reason, &input.IdempotencyKey, &fingerprint, nil,
 		)
 		if err != nil {
 			return err

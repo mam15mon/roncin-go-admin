@@ -558,11 +558,13 @@ message PreviewSeaTransportExecutionUpdateResponse {
 }
 
 message ExecuteSeaTransportExecutionUpdateRequest {
+  reserved 5;
+  reserved "confirmation";
+
   string order_id = 1 [(google.api.field_behavior) = REQUIRED];
   uint64 expected_transport_execution_version = 2 [(google.api.field_behavior) = REQUIRED];
   SeaTransportExecutionUpdateInput input = 3 [(google.api.field_behavior) = REQUIRED];
   string reason = 4 [(google.api.field_behavior) = REQUIRED];
-  SeaExternalConfirmationInput confirmation = 5 [(google.api.field_behavior) = REQUIRED];
   string idempotency_key = 6 [(google.api.field_behavior) = REQUIRED];
 }
 

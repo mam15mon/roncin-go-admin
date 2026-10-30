@@ -417,7 +417,6 @@ type SeaTransportExecutionUpdateCommand struct {
 	ExpectedTransportExecutionVersion uint64
 	Input                             *SeaTransportExecutionUpdateInput
 	Reason                            string
-	Confirmation                      *SeaExternalConfirmation
 	IdempotencyKey                    string
 }
 
@@ -530,10 +529,6 @@ func validateTransportExecutionUpdateCommand(input *SeaTransportExecutionUpdateC
 	}
 	if execute {
 		out.IdempotencyKey, err = normalizeRequiredChangeText(input.IdempotencyKey, 128)
-		if err != nil {
-			return nil, ErrSeaOrderReassignmentInvalidArgument
-		}
-		out.Confirmation, err = ValidateSeaExternalConfirmation(input.Confirmation)
 		if err != nil {
 			return nil, ErrSeaOrderReassignmentInvalidArgument
 		}

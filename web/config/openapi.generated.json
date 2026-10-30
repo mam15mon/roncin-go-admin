@@ -27506,7 +27506,6 @@
           "expectedTransportExecutionVersion",
           "input",
           "reason",
-          "confirmation",
           "idempotencyKey"
         ],
         "type": "object",
@@ -27522,9 +27521,6 @@
           },
           "reason": {
             "type": "string"
-          },
-          "confirmation": {
-            "$ref": "#/components/schemas/order.v1.SeaExternalConfirmationInput"
           },
           "idempotencyKey": {
             "type": "string"

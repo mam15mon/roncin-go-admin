@@ -1481,7 +1481,6 @@ func TestSeaOrderChangeBusinessLockGate_Postgres(t *testing.T) {
 			ExpectedTransportExecutionVersion: v,
 			Input:                             &biz.SeaTransportExecutionUpdateInput{VesselName: "GATED VESSEL", VoyageNo: "999W", ETD: &newETD},
 			Reason:                            "门禁阻断验证",
-			Confirmation:                      &biz.SeaExternalConfirmation{ConfirmedByParty: "船代窗口", ConfirmedAt: time.Now().UTC(), ConfirmationNote: "确认改船期"},
 			IdempotencyKey:                    "te-gate-" + uuid.NewString(),
 		}
 	}

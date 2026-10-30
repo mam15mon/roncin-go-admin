@@ -1,0 +1,41 @@
+.sea-transport-update-modal {
+  --roncin-page-section-gap: 12px;
+
+  .sea-transport-update-modal__heading {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-right: 24px;
+
+    > .ant-typography {
+      font-size: 12px;
+      font-weight: 400;
+    }
+  }
+
+  .ant-form-item {
+    margin-bottom: 12px;
+  }
+
+  .ant-form-item-label {
+    padding-bottom: 4px;
+  }
+
+  // 为框内字数计数保留空间，输入较长时由 autoSize 控制高度。
+  textarea.ant-input {
+    padding-bottom: 22px;
+  }
+
+  .ant-modal-footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid #f0f0f0;
+
+    > .ant-btn + .ant-btn {
+      margin-inline-start: 0;
+    }
+  }
+}

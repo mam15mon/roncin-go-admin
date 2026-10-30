@@ -505,11 +505,7 @@ func (s *SeaOrderChangeService) ExecuteSeaTransportExecutionUpdate(ctx context.C
 	if err != nil {
 		return nil, err
 	}
-	confirmation, err := seaExternalConfirmationFromAPI(request.GetConfirmation())
-	if err != nil {
-		return nil, biz.ErrSeaOrderReassignmentInvalidArgument
-	}
-	result, err := s.usecase.ExecuteTransportExecutionUpdate(ctx, principal.Organization.ID, principal.UserID, &biz.SeaTransportExecutionUpdateCommand{OrderID: orderID, ExpectedTransportExecutionVersion: request.GetExpectedTransportExecutionVersion(), Input: input, Reason: request.GetReason(), Confirmation: confirmation, IdempotencyKey: request.GetIdempotencyKey()})
+	result, err := s.usecase.ExecuteTransportExecutionUpdate(ctx, principal.Organization.ID, principal.UserID, &biz.SeaTransportExecutionUpdateCommand{OrderID: orderID, ExpectedTransportExecutionVersion: request.GetExpectedTransportExecutionVersion(), Input: input, Reason: request.GetReason(), IdempotencyKey: request.GetIdempotencyKey()})
 	if err != nil {
 		return nil, err
 	}

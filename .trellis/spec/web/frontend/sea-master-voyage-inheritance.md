@@ -10,7 +10,7 @@
 
 - `orderServiceMatchSeaMasterBillCandidate({ shippingLineId, masterNo, ...voyage })` 返回候选 MBL、实际航次、活动成员和批次分单号。
 - 创建关联携带 `seaMasterBill.candidateId/expectedCandidateVersion/candidateTeId/expectedCandidateTeVersion`，服务端事务内验证身份、版本、分单模式与航程冲突。
-- `seaOrderChangeServicePreviewSeaTransportExecutionUpdate` 返回精确影响集合 `memberOrderIds`；执行继续经已有更新命令，保留 reassign 权限、业务锁、版本、外部确认和幂等约束。
+- `seaOrderChangeServicePreviewSeaTransportExecutionUpdate` 返回精确影响集合 `memberOrderIds`；执行继续经已有更新命令，保留 reassign 权限、业务锁、版本和幂等约束；共享航程修改不再采集或提交外部确认方、确认时间、说明和附件。
 - 船公司是主单身份，不能经共享航程更新命令修改；该命令只处理船名、航次、起运港、卸货港、中转港、ETD、ETA。
 
 ## 表单契约

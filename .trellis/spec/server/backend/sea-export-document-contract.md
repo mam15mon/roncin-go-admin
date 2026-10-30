@@ -133,6 +133,7 @@
   [海运共享航程前端契约](../../web/frontend/sea-master-voyage-inheritance.md)。
   共享更新影响范围以实际航次预览的 `memberOrderIds` 为准，不能以同 MBL
   或“同批订单”关系替代；船公司仍属于主单身份，不能经共享航程命令修改。
+  共享航程更新只要求调整原因、预期版本和幂等键，不再要求或写入外部确认信息。
 - 单证写命令固定加锁顺序为 `Order -> SeaMasterBill -> Active Link -> HBL/后续
   验证对象`。用无锁查询定位 ID 后，取得写锁必须重新校验组织、订单、活动状态
   和 MBL 关系；禁止先锁 Link 再升级 MBL。

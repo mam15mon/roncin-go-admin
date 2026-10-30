@@ -19,12 +19,6 @@ vi.mock('@/services/roncin/orderService', () => ({
   orderServiceGetOrder: vi.fn(),
 }));
 
-vi.mock('@/services/roncin/orderAttachmentService', () => ({
-  orderAttachmentServiceListAttachments: vi
-    .fn()
-    .mockResolvedValue({ data: [] }),
-}));
-
 function renderModal(
   searchLocations?: (
     keyword?: string,
@@ -57,12 +51,6 @@ function renderModal(
   fireEvent.change(screen.getByLabelText('调整原因'), {
     target: { value: '船代通知' },
   });
-  fireEvent.change(screen.getByLabelText('外部确认方'), {
-    target: { value: 'XX 船代' },
-  });
-  fireEvent.change(screen.getByLabelText('确认说明'), {
-    target: { value: '邮件确认' },
-  });
   return { ...view, onClose, onSuccess };
 }
 
@@ -73,7 +61,7 @@ describe('SeaTransportExecutionUpdateModal', () => {
       data: { id, orderNo: id === 'order-1' ? 'SE-001' : 'SE-002' },
     }));
   });
-  it('预览共享影响后携带外部确认执行统一航次调整', async () => {
+  it('无需调整确认即可预览共享影响并执行统一航次调整', async () => {
     vi.mocked(
       seaOrderChangeServicePreviewSeaTransportExecutionUpdate,
     ).mockResolvedValue({
@@ -121,17 +109,17 @@ describe('SeaTransportExecutionUpdateModal', () => {
       </App>,
     );
 
+    expect(screen.queryByText('调整确认')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('外部确认方')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('确认时间')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('确认说明')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('确认附件（可选）')).not.toBeInTheDocument();
+
     fireEvent.change(screen.getByLabelText('航次'), {
       target: { value: 'V002' },
     });
     fireEvent.change(screen.getByLabelText('调整原因'), {
       target: { value: '船代通知换航次' },
-    });
-    fireEvent.change(screen.getByLabelText('外部确认方'), {
-      target: { value: 'XX 船代' },
-    });
-    fireEvent.change(screen.getByLabelText('确认说明'), {
-      target: { value: '邮件确认可调整' },
     });
     fireEvent.click(screen.getByRole('button', { name: '预览影响' }));
 
@@ -165,12 +153,12 @@ describe('SeaTransportExecutionUpdateModal', () => {
         { orderId: 'order-1' },
         expect.objectContaining({
           expectedTransportExecutionVersion: '3',
-          confirmation: expect.objectContaining({
-            confirmedByParty: 'XX 船代',
-            confirmationNote: '邮件确认可调整',
-          }),
         }),
       );
+      expect(
+        vi.mocked(seaOrderChangeServiceExecuteSeaTransportExecutionUpdate).mock
+          .calls[0]?.[1],
+      ).not.toHaveProperty('confirmation');
       expect(onSuccess).toHaveBeenCalledTimes(1);
     });
   });

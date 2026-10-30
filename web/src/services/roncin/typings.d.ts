@@ -2574,7 +2574,6 @@ declare namespace API {
     expectedTransportExecutionVersion: string;
     input: SeaTransportExecutionUpdateInput;
     reason: string;
-    confirmation: SeaExternalConfirmationInput;
     idempotencyKey: string;
   };
 

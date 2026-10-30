@@ -17660,7 +17660,6 @@ components:
                 - expectedTransportExecutionVersion
                 - input
                 - reason
-                - confirmation
                 - idempotencyKey
             type: object
             properties:
@@ -17672,8 +17671,6 @@ components:
                     $ref: '#/components/schemas/order.v1.SeaTransportExecutionUpdateInput'
                 reason:
                     type: string
-                confirmation:
-                    $ref: '#/components/schemas/order.v1.SeaExternalConfirmationInput'
                 idempotencyKey:
                     type: string
         order.v1.ExecuteSeaTransportExecutionUpdateResponse:
