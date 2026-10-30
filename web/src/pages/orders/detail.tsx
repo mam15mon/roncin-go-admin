@@ -27,7 +27,7 @@ import { useAccess } from '@/app/access';
 import { getFormDraft, getFormDraftKey } from '@/components/layout/formDraft';
 import { resolveTabKey } from '@/components/layout/routeUtils';
 import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
-import { SectionCard, StickyFooterBar } from '@/components/ui';
+import { SectionCard } from '@/components/ui';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
 import type {
   OrderFormTemplateActions,
@@ -1099,26 +1099,6 @@ export default function OrderDetailPage() {
               initialValues={initialValues}
               onFinish={handleSaveEdit}
               submitter={definition.transportMode === 'sea' ? false : undefined}
-              footer={
-                definition.transportMode === 'sea' && !effectiveReadonly ? (
-                  <StickyFooterBar info={order.orderNo}>
-                    <Button
-                      disabled={seaSave.frozen}
-                      onClick={resetEditableForm}
-                    >
-                      重置
-                    </Button>
-                    <Button
-                      type="primary"
-                      loading={seaSave.status === 'saving'}
-                      disabled={seaSave.frozen}
-                      onClick={() => formRef.current?.submit()}
-                    >
-                      保存
-                    </Button>
-                  </StickyFooterBar>
-                ) : undefined
-              }
               header={
                 <OrderDetailHeader
                   kind={definition.kind}

@@ -769,7 +769,7 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     expect(templateLifecycleState.resetToCalls).toBe(0);
   });
 
-  it('底部重置修改按钮：通过模板 resetTo 清草稿并回填 initialValues', async () => {
+  it('移除底部操作栏后，页头重置修改仍通过模板 resetTo 清草稿并回填 initialValues', async () => {
     const tabKey = resolveTabKey('/orders/sea-export/ord-A');
     const draftKey = getFormDraftKey(
       tabKey,
@@ -788,6 +788,8 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     );
 
     const undoBtn = screen.getByText('重置修改');
+    expect(document.querySelector('.roncin-sticky-footer-bar')).toBeNull();
+    expect(screen.queryByRole('button', { name: '重置' })).toBeNull();
     act(() => {
       fireEvent.click(undoBtn);
     });
