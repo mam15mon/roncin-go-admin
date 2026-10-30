@@ -53,6 +53,15 @@ describe('buildSeaExportCreateDefaults', () => {
       ContainerOwnership.CONTAINER_OWNERSHIP_COC,
     );
     expect(defaults.tradeTerm).toBe(TradeTerm.TRADE_TERM_CIF);
+    expect(defaults.paymentTerm).toBe(1);
+    const terms = {
+      freightTerms: 'FREIGHT PREPAID',
+      transportTerms: 'CY - CY',
+      billForm: 'ORIGINAL',
+      releaseType: '电放',
+    };
+    expect(defaults.seaMasterBillContent).toEqual(terms);
+    expect(defaults.seaHouseBill?.content).toEqual(terms);
     expect(defaults.seaHouseBill?.issuerSource).toBe(
       SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_SELF_ORGANIZATION,
     );

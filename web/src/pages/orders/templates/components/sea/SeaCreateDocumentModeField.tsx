@@ -8,12 +8,8 @@ import {
   SeaDocumentStructure,
   SeaHouseBillIssuerSource,
 } from '@/enums.generated';
+import { seaBillContentFormValues } from '../../../sea-document-form';
 import type { SeaExternalConfirmationFormValues } from './SeaExternalConfirmationFields';
-
-import {
-  DEFAULT_FREIGHT_TERMS,
-  DEFAULT_TRANSPORT_TERMS,
-} from './seaDocumentSectionConstants';
 
 export type ModeChangeFormValues = SeaExternalConfirmationFormValues & {
   reason?: string;
@@ -167,8 +163,7 @@ export function SeaCreateDocumentModeField({
     const currentMbl = (form.getFieldValue('seaMasterBillContent') ??
       {}) as Record<string, unknown>;
     form.setFieldValue('seaMasterBillContent', {
-      transportTerms: DEFAULT_TRANSPORT_TERMS,
-      freightTerms: DEFAULT_FREIGHT_TERMS,
+      ...seaBillContentFormValues(),
       ...cargoDefaults,
       ...currentMbl,
     });
@@ -178,8 +173,7 @@ export function SeaCreateDocumentModeField({
       if (!form.getFieldValue('seaHouseBill')) {
         form.setFieldValue('seaHouseBill', {
           content: {
-            transportTerms: DEFAULT_TRANSPORT_TERMS,
-            freightTerms: DEFAULT_FREIGHT_TERMS,
+            ...seaBillContentFormValues(),
             ...cargoDefaults,
           },
         });

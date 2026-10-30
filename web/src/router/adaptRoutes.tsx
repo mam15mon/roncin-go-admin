@@ -12,6 +12,7 @@ import type { MenuDataItem } from '@ant-design/pro-components';
 import type { ComponentType, ReactNode } from 'react';
 import type { RouteObject } from 'react-router';
 import { Navigate, Outlet } from 'react-router';
+import { QuarterRing } from '@/components/ui';
 import umiRoutes from '../../config/routes';
 import { AccessGuard } from './guard';
 import { RouteErrorPage } from './RouteErrorPage';
@@ -100,10 +101,11 @@ export function buildRouterConfig(): RouteObject[] {
     (route.layout === false ? bare : shelled).push(toRoute(route));
   }
   return [
-    ...bare,
+    ...bare.map((route) => ({ ...route, HydrateFallback: RouteLoading })),
     {
       // 布局壳懒加载，同时切断 router → AppLayout → history → router 的模块环
       errorElement: <RouteErrorPage />,
+      HydrateFallback: RouteLoading,
       lazy: async () => {
         const { AppLayout } = await import('../app/AppLayout');
         return { Component: AppLayout };
@@ -111,6 +113,14 @@ export function buildRouterConfig(): RouteObject[] {
       children: shelled,
     },
   ];
+}
+
+function RouteLoading() {
+  return (
+    <div style={{ padding: 48, textAlign: 'center' }}>
+      <QuarterRing size={32} aria-label="正在加载页面" />
+    </div>
+  );
 }
 
 // 菜单数据：同一份 routes.ts 产出 ProLayout route 树，按 access 过滤 +

@@ -35,6 +35,7 @@ import {
 import { isWriteResponse } from '@/utils/api';
 import { generateUUID } from '@/utils/uuid';
 import { RELEASE_PODS_CHANGED_EVENT } from '../../../release-pod-events';
+import { seaBillContentFormValues } from '../../../sea-document-form';
 import { onSeaFormErrorReveal } from '../../sea-form-error-reveal';
 import type { TemplateProps, TemplateSection } from '../../types';
 import SeaDocumentHistoryActions from './SeaDocumentHistoryActions';
@@ -56,10 +57,6 @@ import {
   type ModeChangeFormValues,
   ModeChangePreviewResult,
 } from './SeaCreateDocumentModeField';
-import {
-  DEFAULT_FREIGHT_TERMS,
-  DEFAULT_TRANSPORT_TERMS,
-} from './seaDocumentSectionConstants';
 
 export {
   HouseBillIdentityFields,
@@ -200,20 +197,10 @@ export function SeaDocumentSectionComponent({
   const applyMasterBill = useCallback(
     (masterBill: API.SeaMasterBillDetail | null) => {
       setMblDetail(masterBill);
-      const mblContent = masterBill?.content ?? {};
-      const mblTransportTerms =
-        mblContent.transportTerms && mblContent.transportTerms.trim() !== ''
-          ? mblContent.transportTerms
-          : DEFAULT_TRANSPORT_TERMS;
-      const mblFreightTerms =
-        mblContent.freightTerms && mblContent.freightTerms.trim() !== ''
-          ? mblContent.freightTerms
-          : DEFAULT_FREIGHT_TERMS;
-      form.setFieldValue('seaMasterBillContent', {
-        ...mblContent,
-        transportTerms: mblTransportTerms,
-        freightTerms: mblFreightTerms,
-      });
+      form.setFieldValue(
+        'seaMasterBillContent',
+        seaBillContentFormValues(masterBill?.content),
+      );
     },
     [form],
   );
@@ -221,15 +208,6 @@ export function SeaDocumentSectionComponent({
   const applyHouseBill = useCallback(
     (currentHouseBill: API.SeaHouseBill | null) => {
       setHouseBill(currentHouseBill);
-      const hblContent = currentHouseBill?.content ?? {};
-      const hblTransportTerms =
-        hblContent.transportTerms && hblContent.transportTerms.trim() !== ''
-          ? hblContent.transportTerms
-          : DEFAULT_TRANSPORT_TERMS;
-      const hblFreightTerms =
-        hblContent.freightTerms && hblContent.freightTerms.trim() !== ''
-          ? hblContent.freightTerms
-          : DEFAULT_FREIGHT_TERMS;
       form.setFieldValue(
         'seaHouseBill',
         currentHouseBill
@@ -244,11 +222,7 @@ export function SeaDocumentSectionComponent({
                   ? currentHouseBill.issuerPartnerId
                   : undefined,
               note: currentHouseBill.note,
-              content: {
-                ...hblContent,
-                transportTerms: hblTransportTerms,
-                freightTerms: hblFreightTerms,
-              },
+              content: seaBillContentFormValues(currentHouseBill.content),
               expectedVersion: currentHouseBill.version,
             }
           : undefined,

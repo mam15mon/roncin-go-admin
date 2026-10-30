@@ -465,6 +465,7 @@ escapeCsvCell(protectFormula(value));
 
 ### 行为契约
 
+- 海运付款方式和主分单条款默认值由表单初始化入口提供；同一个字段不得同时声明整表 `initialValues` 与 `Form.Item/ProForm` 的 `initialValue`，否则会触发覆盖告警。移除字段默认值前必须核查新建、详情和主分单切换的全部入口，先补齐初始化；编辑、草稿恢复及用户显式清空不得被重复默认值覆盖。回归需检查实际 Form store 和控制台告警，不能仅断言常量。
 - 客户默认值仅应用到本次选择后尚未手动修改的字段，包括主动清空也算修改；客户切换、A→B→A、组件重挂和请求迟到均隔离，后台重查不得覆盖表单。
 - `setFieldsValue/setFieldValue/setFields` 不触发 `onValuesChange`。用户已开始编辑后，程序回填/清空也必须保存完整快照；只初始化、候选加载、resetTo 和保存成功不生成脏草稿。
 - 草稿显式清空字段序列化为 `null`；不能省略 `undefined` 后让恢复时的 `initialValues` 重新带入旧值。日期继续通过 `reviveFormDraft` 恢复。

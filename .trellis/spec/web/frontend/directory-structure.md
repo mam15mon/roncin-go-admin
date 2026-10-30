@@ -44,3 +44,7 @@ web/tests/              前端测试基础设施
      其他非页面业务代码禁止直接导入 pages（路由装配走精确授权清单）；
   5. features 公开能力之间出现有向环报错。
   设计取舍见 [ADR 0016](../../adr/0016-frontend-module-boundaries.md)。
+
+## 路由首次加载
+
+`router/adaptRoutes.tsx` 的 `buildRouterConfig()` 同时为无布局根路由和业务布局根路由声明同步 `HydrateFallback`，占位复用 `QuarterRing`。`lazy` 模块尚未加载时不能依赖模块内部返回占位，否则首次进入登录页或业务直达链接会出现缺少 HydrateFallback 告警。回归需延迟真实 lazy Promise，分别验证占位、加载完成内容和告警。

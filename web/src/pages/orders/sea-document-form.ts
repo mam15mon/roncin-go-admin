@@ -7,7 +7,9 @@ import {
   DEFAULT_TRANSPORT_TERMS,
 } from './templates/components/sea/seaDocumentSectionConstants';
 
-function contentValues(content?: API.SeaBillContent): API.SeaBillContent {
+export function seaBillContentFormValues(
+  content?: API.SeaBillContent,
+): API.SeaBillContent {
   return {
     ...content,
     transportTerms: content?.transportTerms?.trim() || DEFAULT_TRANSPORT_TERMS,
@@ -26,7 +28,9 @@ export function seaDocumentFormValues(
     seaDocumentStructure: documents.documentStructure,
     seaDocumentLinkVersion: documents.linkVersion,
     seaMasterBillContentVersion: documents.masterBill?.version,
-    seaMasterBillContent: contentValues(documents.masterBill?.content),
+    seaMasterBillContent: seaBillContentFormValues(
+      documents.masterBill?.content,
+    ),
     seaHouseBill: house
       ? {
           id: house.id,
@@ -38,7 +42,7 @@ export function seaDocumentFormValues(
               ? house.issuerPartnerId
               : undefined,
           note: house.note,
-          content: contentValues(house.content),
+          content: seaBillContentFormValues(house.content),
           expectedVersion: house.version,
           status: house.status,
         }

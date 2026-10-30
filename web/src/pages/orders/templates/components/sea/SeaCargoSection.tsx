@@ -31,7 +31,7 @@ export function SeaCargoMeasurementFields() {
 export function SeaCargoDescriptionFields() {
   return (
     <>
-      <Form.Item name="paymentTerm" hidden initialValue={1}>
+      <Form.Item name="paymentTerm" hidden>
         <Input />
       </Form.Item>
       {/* 品名与特殊要求（FormRow row-2 对半，与后续行共享列边界） */}

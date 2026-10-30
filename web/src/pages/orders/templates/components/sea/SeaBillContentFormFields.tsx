@@ -154,10 +154,6 @@ import { partnerServiceGetPartner } from '@/services/roncin/partnerService';
 import { trimDecimal } from '@/utils/format';
 
 import {
-  DEFAULT_BILL_FORM,
-  DEFAULT_FREIGHT_TERMS,
-  DEFAULT_RELEASE_TYPE,
-  DEFAULT_TRANSPORT_TERMS,
   SEA_BILL_FORM_OPTIONS,
   SEA_FREIGHT_TERM_OPTIONS,
   SEA_RELEASE_TYPE_OPTIONS,
@@ -1276,7 +1272,6 @@ export function SeaBillContentFormFields({
               <ProFormSelect
                 name={[...namePathPrefix, 'freightTerms']}
                 placeholder="请选择付款方式"
-                initialValue={DEFAULT_FREIGHT_TERMS}
                 disabled={disabled || undefined}
                 options={SEA_FREIGHT_TERM_OPTIONS}
                 noStyle
@@ -1329,7 +1324,6 @@ export function SeaBillContentFormFields({
               <ProFormSelect
                 name={[...namePathPrefix, 'transportTerms']}
                 placeholder="请选择运输条款"
-                initialValue={DEFAULT_TRANSPORT_TERMS}
                 disabled={disabled || undefined}
                 options={SEA_TRANSPORT_TERM_OPTIONS}
                 noStyle
@@ -1378,7 +1372,6 @@ export function SeaBillContentFormFields({
               <ProFormSelect
                 name={[...namePathPrefix, 'billForm']}
                 placeholder="请选择提单形式"
-                initialValue={DEFAULT_BILL_FORM}
                 disabled={disabled || undefined}
                 options={SEA_BILL_FORM_OPTIONS}
                 noStyle
@@ -1412,7 +1405,6 @@ export function SeaBillContentFormFields({
               <ProFormSelect
                 name={[...namePathPrefix, 'releaseType']}
                 placeholder="请选择放单方式"
-                initialValue={DEFAULT_RELEASE_TYPE}
                 disabled={disabled || undefined}
                 options={SEA_RELEASE_TYPE_OPTIONS}
                 noStyle

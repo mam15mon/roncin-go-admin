@@ -8,6 +8,7 @@ import {
   seaDocumentServiceExecuteChangeSeaDocumentMode,
   seaDocumentServicePreviewChangeSeaDocumentMode,
 } from '@/services/roncin/seaDocumentService';
+import { buildSeaExportCreateDefaults } from '../../../order-kinds/sea-export/form-adapter';
 import {
   DEFAULT_BILL_FORM,
   DEFAULT_FREIGHT_TERMS,
@@ -108,7 +109,15 @@ function TestForm({
   exposeForm?.(form);
   return (
     <App>
-      <Form form={form} initialValues={initialValues}>
+      <Form
+        form={form}
+        initialValues={{
+          ...(!isDetail
+            ? buildSeaExportCreateDefaults({ cargoCategoryOptions: [] })
+            : {}),
+          ...initialValues,
+        }}
+      >
         <SeaDocumentSectionComponent isDetail={isDetail} disabled={disabled} />
       </Form>
     </App>

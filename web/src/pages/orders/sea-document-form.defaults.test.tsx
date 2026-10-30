@@ -1,6 +1,6 @@
 import { ProForm } from '@ant-design/pro-components';
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
-import { act, waitFor } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App, ConfigProvider, Form, type FormInstance } from 'antd';
 import { expect, it, vi } from 'vitest';
 import { SeaDocumentStructure } from '@/enums.generated';
@@ -8,6 +8,7 @@ import {
   buildSeaDocumentUpdate,
   seaDocumentFormValues,
 } from './sea-document-form';
+import { SeaCargoDescriptionFields } from './templates/components/sea/SeaCargoSection';
 import { SeaDocumentSectionComponent } from './templates/components/sea/SeaDocumentSection';
 
 vi.mock('@/app/access', () => ({
@@ -28,6 +29,8 @@ vi.mock('./templates/components/sea/SeaDocumentHistoryActions', () => ({
 it.each([undefined, { billForm: 'SEAWAY BILL', releaseType: '正本' }])(
   '真实单证表单默认值%s不会把未改MBL/HBL判为变更',
   async (terms) => {
+    const consoleError = vi.spyOn(console, 'error');
+    const consoleWarn = vi.spyOn(console, 'warn');
     const documents: API.SeaOrderDocuments = {
       documentStructure: SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE,
       linkVersion: '3',
@@ -57,9 +60,11 @@ it.each([undefined, { billForm: 'SEAWAY BILL', releaseType: '正本' }])(
               initialValues={{
                 id: 'order',
                 version: '1',
+                paymentTerm: 2,
                 ...seaDocumentFormValues(documents),
               }}
             >
+              <SeaCargoDescriptionFields />
               <SeaDocumentSectionComponent isDetail documents={documents} />
             </ProForm>
           </App>
@@ -76,6 +81,30 @@ it.each([undefined, { billForm: 'SEAWAY BILL', releaseType: '正本' }])(
     expect(
       buildSeaDocumentUpdate(form.getFieldsValue(true), documents),
     ).toBeUndefined();
+    fireEvent.click(screen.getByRole('tab', { name: /分单 \(HBL\)/ }));
+    await waitFor(() => {
+      expect(
+        document.querySelector('#seaHouseBill_content_billForm'),
+      ).not.toBeNull();
+    });
+    expect(form.getFieldValue('paymentTerm')).toBe(2);
+    for (const prefix of [
+      ['seaMasterBillContent'],
+      ['seaHouseBill', 'content'],
+    ]) {
+      expect(form.getFieldValue([...prefix, 'billForm'])).toBe(
+        terms?.billForm ?? 'ORIGINAL',
+      );
+      expect(form.getFieldValue([...prefix, 'releaseType'])).toBe(
+        terms?.releaseType ?? '电放',
+      );
+    }
+    const warnings = [...consoleError.mock.calls, ...consoleWarn.mock.calls]
+      .flat()
+      .join('\n');
+    expect(warnings).not.toContain("Form already set 'initialValues'");
+    consoleError.mockRestore();
+    consoleWarn.mockRestore();
     act(() =>
       form.setFieldValue(['seaHouseBill', 'content', 'shipperText'], '修改HBL'),
     );

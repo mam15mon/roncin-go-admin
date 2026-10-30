@@ -10,7 +10,7 @@ import {
   TradeDirection,
   TradeTerm,
 } from '@/enums.generated';
-import { SEA_SHIPMENT_MODE } from '../../sea-order-policy';
+import { seaBillContentFormValues } from '../../sea-document-form';
 import { getSeaTemplateSections } from '../../templates';
 import type {
   OrderCreateDefaultsContext,
@@ -41,14 +41,17 @@ export function buildSeaExportCreateDefaults(
     context.cargoCategoryOptions.find((item) => item.label === '普货')?.value;
   return {
     orderDate: dayjs(),
+    paymentTerm: 1,
     shipmentMode: ShipmentMode.SHIPMENT_MODE_TRADITIONAL_FORWARDING,
     shipmentType: ShipmentType.SHIPMENT_TYPE_FCL,
     containerOwnership: ContainerOwnership.CONTAINER_OWNERSHIP_COC,
     tradeTerm: TradeTerm.TRADE_TERM_CIF,
+    seaMasterBillContent: seaBillContentFormValues(),
     seaHouseBill: {
       houseNo: '',
       issuerSource:
         SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_SELF_ORGANIZATION,
+      content: seaBillContentFormValues(),
     },
     cargoCategoryIds:
       typeof defaultCargoCategoryId === 'string'
