@@ -174,23 +174,36 @@ func TestCompanyPersonnelWorkspacePostgres(t *testing.T) {
 		}
 		fixture.requireRolledBackState()
 	})
-	t.Run("订单分配接受本公司部门而拒绝下属公司", func(t *testing.T) {
-		created, err := fixture.newUsecase().Create(ctx, companyID, fixture.actorID, fixture.validInput())
+	t.Run("订单表单接受本公司部门而拒绝下属公司", func(t *testing.T) {
+		input := fixture.validInput()
+		input.PersonnelAssignments = append(input.PersonnelAssignments, &biz.OrderPersonnel{
+			UserID: outsider.ID, OrganizationID: companyID, Role: biz.OrderPersonnelRoleDocument,
+		})
+		if _, err := fixture.newUsecase().Create(ctx, companyID, fixture.actorID, input); !errors.Is(err, biz.ErrOrderPersonnelUserInvalid) {
+			t.Fatalf("应拒绝下属公司单证员: %v", err)
+		}
+		fixture.requireRolledBackState()
+
+		input = fixture.validInput()
+		input.PersonnelAssignments = append(input.PersonnelAssignments, &biz.OrderPersonnel{
+			UserID: multiDepartment.ID, OrganizationID: companyID, Role: biz.OrderPersonnelRoleDocument,
+		})
+		created, err := fixture.newUsecase().Create(ctx, companyID, fixture.actorID, input)
 		if err != nil {
 			t.Fatal(err)
 		}
-		personnelUsecase := biz.NewOrderPersonnelUsecase(NewOrderPersonnelRepo(data))
-		if _, err := personnelUsecase.Assign(ctx, companyID, fixture.actorID, created.ID, outsider.ID, biz.OrderPersonnelRoleOperator); !errors.Is(err, biz.ErrOrderPersonnelUserInvalid) {
-			t.Fatalf("应拒绝下属公司操作员: %v", err)
-		}
-		// OPERATOR 已由创建输入占用（order_id+role 唯一索引），用空闲岗位验证
-		// 本公司部门成员可正常分配。
-		assigned, err := personnelUsecase.Assign(ctx, companyID, fixture.actorID, created.ID, multiDepartment.ID, biz.OrderPersonnelRoleDocument)
+		personnel, err := NewOrderPersonnelRepo(data).List(ctx, companyID, created.ID)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if assigned.OrganizationID != companyID {
-			t.Fatal("经营归属应固定公司")
+		var document *biz.OrderPersonnel
+		for _, assigned := range personnel {
+			if assigned.Role == biz.OrderPersonnelRoleDocument {
+				document = assigned
+			}
+		}
+		if document == nil || document.UserID != multiDepartment.ID || document.OrganizationID != companyID {
+			t.Fatalf("表单应将本公司部门单证员写入本公司经营归属: %#v", document)
 		}
 	})
 }

@@ -219,18 +219,6 @@ const actionPresentations: Record<string, AuditActionPresentation> = {
     color: 'orange',
     objectType: '订单',
   },
-  'order.personnel.assign': {
-    title: '分配订单人员',
-    category: '订单管理',
-    color: 'blue',
-    objectType: '订单',
-  },
-  'order.personnel.remove': {
-    title: '移除订单人员',
-    category: '订单管理',
-    color: 'blue',
-    objectType: '订单',
-  },
   'order.fee.add': {
     title: '新增订单费用',
     category: '订单费用',

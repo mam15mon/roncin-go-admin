@@ -78,6 +78,7 @@ describe('OrderListTemplate', () => {
           subTitle="海运整箱与拼箱出口业务调度"
           queryOrders={mockQuery}
           onCreateOrder={vi.fn()}
+          onOpenConsolidations={vi.fn()}
         />
       </ConfigProvider>,
     );
@@ -126,6 +127,8 @@ describe('OrderListTemplate', () => {
     fireEvent.mouseEnter(row.getByRole('button', { name: /更多/ }));
     const feesAction = await screen.findByText('费用核算');
     await waitFor(() => expect(feesAction).toBeVisible());
+    expect(screen.getByText('自拼汇总')).toBeVisible();
+    expect(screen.queryByText('协作人员')).not.toBeInTheDocument();
     expect(screen.queryByText('履约里程碑')).not.toBeInTheDocument();
     expect(screen.queryByText('流转状态')).not.toBeInTheDocument();
   });

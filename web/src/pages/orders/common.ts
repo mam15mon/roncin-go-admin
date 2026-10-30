@@ -7,7 +7,6 @@ import {
   ContainerOwnership,
   MasterDataKind,
   OrderBusinessType,
-  OrderPersonnelRole,
   OrderShippingDocumentStatus,
   PartnerRoleType,
   PaymentTerm,
@@ -105,48 +104,6 @@ export const shipmentModeOptions = [
   },
   { label: '跨境', value: ShipmentMode.SHIPMENT_MODE_CROSS_BORDER },
 ];
-
-export const orderPersonnelRoleOptions = [
-  {
-    label: '创建人 (CREATOR)',
-    value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CREATOR,
-  },
-  {
-    label: '操作专员 (OPERATOR)',
-    value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_OPERATOR,
-  },
-  {
-    label: '业务销售 (SALES)',
-    value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_SALES,
-  },
-  {
-    label: '客服专员 (CUSTOMER_SERVICE)',
-    value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CUSTOMER_SERVICE,
-  },
-  {
-    label: '单证专员 (DOCUMENT)',
-    value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_DOCUMENT,
-  },
-  {
-    label: '商务采购 (COMMERCIAL)',
-    value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_COMMERCIAL,
-  },
-  {
-    label: '协同助理 (ASSOCIATE)',
-    value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE,
-  },
-  {
-    label: '副协同 (ASSOCIATE2)',
-    value: OrderPersonnelRole.ORDER_PERSONNEL_ROLE_ASSOCIATE2,
-  },
-];
-
-export const orderPersonnelRoleValueEnum: Record<
-  number | string,
-  { text: string }
-> = Object.fromEntries(
-  orderPersonnelRoleOptions.map((opt) => [opt.value, { text: opt.label }]),
-);
 
 export const shippingDocumentStatusValueEnum: Record<
   number,

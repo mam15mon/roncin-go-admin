@@ -10,7 +10,6 @@ import (
 
 var (
 	ErrOrderPersonnelNotFound        = errors.NotFound("ORDER_PERSONNEL_NOT_FOUND", "订单协作人员不存在")
-	ErrOrderPersonnelExists          = errors.Conflict("ORDER_PERSONNEL_EXISTS", "订单协作人员已存在")
 	ErrOrderPersonnelInvalidArgument = errors.BadRequest("ORDER_PERSONNEL_INVALID_ARGUMENT", "订单协作人员字段不合法")
 	ErrOrderPersonnelUserInvalid     = errors.BadRequest("ORDER_PERSONNEL_USER_INVALID", "协作人员必须是订单组织范围内启用的组织成员")
 )
@@ -58,8 +57,6 @@ type OrderPersonnel struct {
 
 type OrderPersonnelRepo interface {
 	List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderPersonnel, error)
-	Assign(ctx context.Context, organizationID, orderID, userID uuid.UUID, role OrderPersonnelRole, notification *NotificationIntent, audit *AuditEvent) (*OrderPersonnel, error)
-	Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *AuditEvent) error
 }
 
 type OrderPersonnelUsecase struct {
@@ -75,54 +72,4 @@ func (uc *OrderPersonnelUsecase) List(ctx context.Context, organizationID, order
 		return nil, ErrOrderPersonnelInvalidArgument
 	}
 	return uc.repo.List(ctx, organizationID, orderID)
-}
-
-func (uc *OrderPersonnelUsecase) Assign(ctx context.Context, organizationID, actorID, orderID, userID uuid.UUID, role OrderPersonnelRole) (*OrderPersonnel, error) {
-	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || userID == uuid.Nil {
-		return nil, ErrOrderPersonnelInvalidArgument
-	}
-	if !role.Valid() {
-		return nil, ErrOrderPersonnelInvalidArgument
-	}
-	var notification *NotificationIntent
-	if role != OrderPersonnelRoleCreator {
-		notification = NewOrderPersonnelNotification(userID)
-	}
-	audit := &AuditEvent{
-		OrganizationID: &organizationID,
-		UserID:         &actorID,
-		Action:         "order.personnel.assign",
-		Result:         "success",
-		Details: map[string]string{
-			"order.id":        orderID.String(),
-			"user.id":         userID.String(),
-			"organization.id": organizationID.String(),
-			"role":            string(role),
-		},
-	}
-	created, err := uc.repo.Assign(ctx, organizationID, orderID, userID, role, notification, audit)
-	if err != nil {
-		return nil, err
-	}
-	return created, nil
-}
-
-func (uc *OrderPersonnelUsecase) Remove(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID) error {
-	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil {
-		return ErrOrderPersonnelInvalidArgument
-	}
-	audit := &AuditEvent{
-		OrganizationID: &organizationID,
-		UserID:         &actorID,
-		Action:         "order.personnel.remove",
-		Result:         "success",
-		Details: map[string]string{
-			"personnel.id": id.String(),
-			"order.id":     orderID.String(),
-		},
-	}
-	if err := uc.repo.Remove(ctx, organizationID, orderID, id, audit); err != nil {
-		return err
-	}
-	return nil
 }

@@ -16,20 +16,6 @@ service OrderPersonnelService {
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/personnel"};
   }
 
-  // AssignPersonnel 分配订单协作人员。
-  rpc AssignPersonnel(AssignPersonnelRequest) returns (AssignPersonnelResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "personnel.assign" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {
-      post: "/api/v1/orders/{order_id}/personnel"
-      body: "*"
-    };
-  }
-
-  // RemovePersonnel 移除订单协作人员。
-  rpc RemovePersonnel(RemovePersonnelRequest) returns (RemovePersonnelResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "personnel.remove" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {delete: "/api/v1/orders/{order_id}/personnel/{id}"};
-  }
 }
 
 // OrderPersonnelRole 订单协作人员角色枚举。
@@ -62,28 +48,6 @@ message ListPersonnelRequest {
   string order_id = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
-// AssignPersonnelRequest 分配订单协作人员请求。
-message AssignPersonnelRequest {
-  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
-  string user_id = 2 [(google.api.field_behavior) = REQUIRED];
-  OrderPersonnelRole role = 3 [(google.api.field_behavior) = REQUIRED];
-}
-
-// RemovePersonnelRequest 移除订单协作人员请求。
-message RemovePersonnelRequest {
-  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
-  string id = 2 [(google.api.field_behavior) = REQUIRED];
-}
-
-// AssignPersonnelResponse 单条订单协作人员响应。
-message AssignPersonnelResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  OrderPersonnel data = 4;
-  string trace_id = 5;
-}
-
 // ListPersonnelResponse 订单协作人员列表响应。
 message ListPersonnelResponse {
   bool success = 1;
@@ -91,12 +55,4 @@ message ListPersonnelResponse {
   string message = 3;
   repeated OrderPersonnel data = 4;
   string trace_id = 5;
-}
-
-// RemovePersonnelResponse 订单协作人员操作响应。
-message RemovePersonnelResponse {
-  bool success = 1;
-  int32 code = 2;
-  string message = 3;
-  string trace_id = 4;
 }

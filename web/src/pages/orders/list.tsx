@@ -34,9 +34,6 @@ import ConsolidationDrawer, {
 import ContainerDrawer, {
   type ContainerDrawerRef,
 } from './components/drawers/ContainerDrawer';
-import PersonnelDrawer, {
-  type PersonnelDrawerRef,
-} from './components/drawers/PersonnelDrawer';
 import ShippingDocumentDrawer, {
   type ShippingDocumentDrawerRef,
 } from './components/drawers/ShippingDocumentDrawer';
@@ -65,7 +62,6 @@ export default function OrderListPage() {
 
   const actionRef = useRef<ActionType | undefined>(undefined);
   const attachmentDrawerRef = useRef<AttachmentDrawerRef | null>(null);
-  const personnelDrawerRef = useRef<PersonnelDrawerRef | null>(null);
   const containerDrawerRef = useRef<ContainerDrawerRef | null>(null);
   const consolidationDrawerRef = useRef<ConsolidationDrawerRef | null>(null);
   const cargoItemDrawerRef = useRef<CargoItemDrawerRef | null>(null);
@@ -293,10 +289,6 @@ export default function OrderListPage() {
           setActiveOrder(item.rawRecord);
           item.rawRecord && attachmentDrawerRef.current?.open(item.rawRecord);
         }}
-        onOpenPersonnel={(item) => {
-          setActiveOrder(item.rawRecord);
-          item.rawRecord && personnelDrawerRef.current?.open(item.rawRecord);
-        }}
         onOpenConsolidations={(item) => {
           setActiveOrder(item.rawRecord);
           item.rawRecord &&
@@ -369,17 +361,6 @@ export default function OrderListPage() {
         canRegister={
           canOperateActiveOrder &&
           access.canOrder(definition.businessType, 'attachment.register')
-        }
-      />
-      <PersonnelDrawer
-        ref={personnelDrawerRef}
-        canAssign={
-          canOperateActiveOrder &&
-          access.canOrder(definition.businessType, 'personnel.assign')
-        }
-        canRemove={
-          canOperateActiveOrder &&
-          access.canOrder(definition.businessType, 'personnel.remove')
         }
       />
       <ContainerDrawer

@@ -6500,54 +6500,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.ListPersonnelResponse'
-        post:
-            tags:
-                - OrderPersonnelService
-            description: AssignPersonnel 分配订单协作人员。
-            operationId: OrderPersonnelService_AssignPersonnel
-            parameters:
-                - name: orderId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/order.v1.AssignPersonnelRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/order.v1.AssignPersonnelResponse'
-    /api/v1/orders/{orderId}/personnel/{id}:
-        delete:
-            tags:
-                - OrderPersonnelService
-            description: RemovePersonnel 移除订单协作人员。
-            operationId: OrderPersonnelService_RemovePersonnel
-            parameters:
-                - name: orderId
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/order.v1.RemovePersonnelResponse'
     /api/v1/orders/{orderId}/release-pods:
         get:
             tags:
@@ -16921,36 +16873,6 @@ components:
                     $ref: '#/components/schemas/order.v1.OrderFeeCorrectionRequestData'
                 traceId:
                     type: string
-        order.v1.AssignPersonnelRequest:
-            required:
-                - orderId
-                - userId
-                - role
-            type: object
-            properties:
-                orderId:
-                    type: string
-                userId:
-                    type: string
-                role:
-                    type: integer
-                    format: enum
-            description: AssignPersonnelRequest 分配订单协作人员请求。
-        order.v1.AssignPersonnelResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/order.v1.OrderPersonnel'
-                traceId:
-                    type: string
-            description: AssignPersonnelResponse 单条订单协作人员响应。
         order.v1.BatchAssignOrderFeeTagsRequest:
             required:
                 - orderId
@@ -20610,19 +20532,6 @@ components:
                     type: string
                 traceId:
                     type: string
-        order.v1.RemovePersonnelResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                traceId:
-                    type: string
-            description: RemovePersonnelResponse 订单协作人员操作响应。
         order.v1.RemoveReleasePodResponse:
             type: object
             properties:

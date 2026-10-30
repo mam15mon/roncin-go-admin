@@ -8,13 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type orderPersonnelRepoStub struct {
-	assigned      *OrderPersonnel
-	notification  *NotificationIntent
-	assignedAudit *AuditEvent
-	removedAudit  *AuditEvent
-	removed       bool
-}
+type orderPersonnelRepoStub struct{}
 
 func (s *orderPersonnelRepoStub) List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderPersonnel, error) {
 	return []*OrderPersonnel{
@@ -26,26 +20,6 @@ func (s *orderPersonnelRepoStub) List(ctx context.Context, organizationID, order
 			AssignedAt: time.Now(),
 		},
 	}, nil
-}
-
-func (s *orderPersonnelRepoStub) Assign(ctx context.Context, organizationID, orderID, userID uuid.UUID, role OrderPersonnelRole, notification *NotificationIntent, audit *AuditEvent) (*OrderPersonnel, error) {
-	s.notification = notification
-	s.assignedAudit = audit
-	s.assigned = &OrderPersonnel{
-		ID:             uuid.New(),
-		OrderID:        orderID,
-		UserID:         userID,
-		OrganizationID: organizationID,
-		Role:           role,
-		AssignedAt:     time.Now(),
-	}
-	return s.assigned, nil
-}
-
-func (s *orderPersonnelRepoStub) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *AuditEvent) error {
-	s.removed = true
-	s.removedAudit = audit
-	return nil
 }
 
 func TestOrderPersonnelRoleValid(t *testing.T) {
@@ -73,76 +47,6 @@ func TestOrderPersonnelRoleValid(t *testing.T) {
 		if r.Valid() {
 			t.Fatalf("expected role %s to be invalid", r)
 		}
-	}
-}
-
-func TestOrderPersonnelAssignValidatesAndAudits(t *testing.T) {
-	repo := &orderPersonnelRepoStub{}
-	usecase := NewOrderPersonnelUsecase(repo)
-	organizationID, actorID, orderID, userID := uuid.New(), uuid.New(), uuid.New(), uuid.New()
-
-	// Empty IDs
-	if _, err := usecase.Assign(context.Background(), uuid.Nil, actorID, orderID, userID, OrderPersonnelRoleSales); err != ErrOrderPersonnelInvalidArgument {
-		t.Fatalf("expected ErrOrderPersonnelInvalidArgument for nil orgID, got %v", err)
-	}
-	if _, err := usecase.Assign(context.Background(), organizationID, uuid.Nil, orderID, userID, OrderPersonnelRoleSales); err != ErrOrderPersonnelInvalidArgument {
-		t.Fatalf("expected ErrOrderPersonnelInvalidArgument for nil actorID, got %v", err)
-	}
-	if _, err := usecase.Assign(context.Background(), organizationID, actorID, uuid.Nil, userID, OrderPersonnelRoleSales); err != ErrOrderPersonnelInvalidArgument {
-		t.Fatalf("expected ErrOrderPersonnelInvalidArgument for nil orderID, got %v", err)
-	}
-	if _, err := usecase.Assign(context.Background(), organizationID, actorID, orderID, uuid.Nil, OrderPersonnelRoleSales); err != ErrOrderPersonnelInvalidArgument {
-		t.Fatalf("expected ErrOrderPersonnelInvalidArgument for nil userID, got %v", err)
-	}
-	// Invalid role
-	if _, err := usecase.Assign(context.Background(), organizationID, actorID, orderID, userID, OrderPersonnelRole("UNKNOWN")); err != ErrOrderPersonnelInvalidArgument {
-		t.Fatalf("expected ErrOrderPersonnelInvalidArgument for invalid role, got %v", err)
-	}
-
-	// Success
-	created, err := usecase.Assign(context.Background(), organizationID, actorID, orderID, userID, OrderPersonnelRoleSales)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if created == nil || created.Role != OrderPersonnelRoleSales || created.OrderID != orderID || created.UserID != userID || created.OrganizationID != organizationID {
-		t.Fatalf("unexpected created personnel: %#v", created)
-	}
-	if repo.notification == nil || repo.notification.ID == uuid.Nil || repo.notification.RecipientUserID != userID || repo.notification.Channel != NotificationChannelDingTalk || repo.notification.Template != NotificationTemplateOrderPersonnelAssign {
-		t.Fatalf("unexpected notification intent: %#v", repo.notification)
-	}
-	if repo.assignedAudit == nil || repo.assignedAudit.Action != "order.personnel.assign" {
-		t.Fatalf("unexpected audit event: %#v", repo.assignedAudit)
-	}
-}
-
-func TestOrderPersonnelRemoveValidatesAndAudits(t *testing.T) {
-	repo := &orderPersonnelRepoStub{}
-	usecase := NewOrderPersonnelUsecase(repo)
-	organizationID, actorID, orderID, id := uuid.New(), uuid.New(), uuid.New(), uuid.New()
-
-	// Empty IDs
-	if err := usecase.Remove(context.Background(), uuid.Nil, actorID, orderID, id); err != ErrOrderPersonnelInvalidArgument {
-		t.Fatalf("expected ErrOrderPersonnelInvalidArgument, got %v", err)
-	}
-	if err := usecase.Remove(context.Background(), organizationID, uuid.Nil, orderID, id); err != ErrOrderPersonnelInvalidArgument {
-		t.Fatalf("expected ErrOrderPersonnelInvalidArgument, got %v", err)
-	}
-	if err := usecase.Remove(context.Background(), organizationID, actorID, uuid.Nil, id); err != ErrOrderPersonnelInvalidArgument {
-		t.Fatalf("expected ErrOrderPersonnelInvalidArgument, got %v", err)
-	}
-	if err := usecase.Remove(context.Background(), organizationID, actorID, orderID, uuid.Nil); err != ErrOrderPersonnelInvalidArgument {
-		t.Fatalf("expected ErrOrderPersonnelInvalidArgument, got %v", err)
-	}
-
-	// Success
-	if err := usecase.Remove(context.Background(), organizationID, actorID, orderID, id); err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if !repo.removed {
-		t.Fatalf("expected repo.Remove to have been called")
-	}
-	if repo.removedAudit == nil || repo.removedAudit.Action != "order.personnel.remove" {
-		t.Fatalf("unexpected audit event: %#v", repo.removedAudit)
 	}
 }
 

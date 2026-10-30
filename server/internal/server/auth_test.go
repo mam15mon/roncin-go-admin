@@ -404,8 +404,6 @@ func TestOrderOperationWritesClassifiesEveryDeclaredOperation(t *testing.T) {
 		access.OrderAttachmentRead:       false,
 		access.OrderAttachmentRegister:   true,
 		access.OrderPersonnelRead:        false,
-		access.OrderPersonnelAssign:      true,
-		access.OrderPersonnelRemove:      true,
 		access.OrderContainerRead:        false,
 		access.OrderContainerCreate:      true,
 		access.OrderContainerUpdate:      true,

@@ -6,10 +6,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
-	membershipent "github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
-	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
 
 type orderPersonnelRepo struct {
@@ -51,80 +49,6 @@ func (r *orderPersonnelRepo) List(ctx context.Context, organizationID, orderID u
 		result = append(result, orderPersonnelToBiz(item))
 	}
 	return result, nil
-}
-
-func (r *orderPersonnelRepo) Assign(ctx context.Context, organizationID, orderID, userID uuid.UUID, role biz.OrderPersonnelRole, notification *biz.NotificationIntent, audit *biz.AuditEvent) (*biz.OrderPersonnel, error) {
-	var created *ent.OrderPersonnel
-	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		orderRecord, queryErr := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
-		if queryErr != nil {
-			return mapEntError(queryErr, biz.ErrOrderPersonnelNotFound, nil)
-		}
-		if err := ensureOrderBusinessEditable(ctx, tx, orderRecord); err != nil {
-			return err
-		}
-		subtreeOrganizationIDs, queryErr := companyPersonnelOrganizationIDs(ctx, tx.Client(), organizationID)
-		if queryErr != nil {
-			return queryErr
-		}
-		user, queryErr := tx.User.Query().
-			Where(
-				userent.IDEQ(userID),
-				userent.EnabledEQ(true),
-				userent.HasMembershipsWith(
-					membershipent.OrganizationIDIn(subtreeOrganizationIDs...),
-					membershipent.EnabledEQ(true),
-				),
-			).
-			Only(ctx)
-		if queryErr != nil {
-			return mapEntError(queryErr, biz.ErrOrderPersonnelUserInvalid, nil)
-		}
-		var saveErr error
-		created, saveErr = tx.OrderPersonnel.Create().
-			SetOrderID(orderID).
-			SetUserID(userID).
-			SetOrganizationID(organizationID).
-			SetRole(orderpersonnelent.Role(role)).
-			Save(ctx)
-		if saveErr != nil {
-			return mapEntConstraint(saveErr, "order_personnel_order_id_role", biz.ErrOrderPersonnelExists)
-		}
-		if notificationErr := enqueueOrderPersonnelNotification(ctx, tx, organizationID, orderID, orderRecord.OrderNo, role, user, notification); notificationErr != nil {
-			return notificationErr
-		}
-		audit.Details["personnel.id"] = created.ID.String()
-		return writeAudit(ctx, tx.AuditLog, audit)
-	})
-	if err != nil {
-		return nil, err
-	}
-	return orderPersonnelToBiz(created), nil
-}
-
-func (r *orderPersonnelRepo) Remove(ctx context.Context, organizationID, orderID, id uuid.UUID, audit *biz.AuditEvent) error {
-	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		orderRecord, queryErr := tx.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).ForUpdate().Only(ctx)
-		if queryErr != nil {
-			return mapEntError(queryErr, biz.ErrOrderPersonnelNotFound, nil)
-		}
-		if err := ensureOrderBusinessEditable(ctx, tx, orderRecord); err != nil {
-			return err
-		}
-		n, deleteErr := tx.OrderPersonnel.Delete().
-			Where(
-				orderpersonnelent.IDEQ(id),
-				orderpersonnelent.OrderIDEQ(orderID),
-			).
-			Exec(ctx)
-		if deleteErr != nil {
-			return deleteErr
-		}
-		if n == 0 {
-			return biz.ErrOrderPersonnelNotFound
-		}
-		return writeAudit(ctx, tx.AuditLog, audit)
-	})
 }
 
 func orderPersonnelToBiz(item *ent.OrderPersonnel) *biz.OrderPersonnel {

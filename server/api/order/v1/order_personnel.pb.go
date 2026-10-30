@@ -237,197 +237,6 @@ func (x *ListPersonnelRequest) GetOrderId() string {
 	return ""
 }
 
-// AssignPersonnelRequest 分配订单协作人员请求。
-type AssignPersonnelRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Role          OrderPersonnelRole     `protobuf:"varint,3,opt,name=role,proto3,enum=order.v1.OrderPersonnelRole" json:"role,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *AssignPersonnelRequest) Reset() {
-	*x = AssignPersonnelRequest{}
-	mi := &file_order_v1_order_personnel_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *AssignPersonnelRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*AssignPersonnelRequest) ProtoMessage() {}
-
-func (x *AssignPersonnelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_personnel_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use AssignPersonnelRequest.ProtoReflect.Descriptor instead.
-func (*AssignPersonnelRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_personnel_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *AssignPersonnelRequest) GetOrderId() string {
-	if x != nil {
-		return x.OrderId
-	}
-	return ""
-}
-
-func (x *AssignPersonnelRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
-}
-
-func (x *AssignPersonnelRequest) GetRole() OrderPersonnelRole {
-	if x != nil {
-		return x.Role
-	}
-	return OrderPersonnelRole_ORDER_PERSONNEL_ROLE_UNSPECIFIED
-}
-
-// RemovePersonnelRequest 移除订单协作人员请求。
-type RemovePersonnelRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	Id            string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RemovePersonnelRequest) Reset() {
-	*x = RemovePersonnelRequest{}
-	mi := &file_order_v1_order_personnel_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RemovePersonnelRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RemovePersonnelRequest) ProtoMessage() {}
-
-func (x *RemovePersonnelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_personnel_proto_msgTypes[3]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RemovePersonnelRequest.ProtoReflect.Descriptor instead.
-func (*RemovePersonnelRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_personnel_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *RemovePersonnelRequest) GetOrderId() string {
-	if x != nil {
-		return x.OrderId
-	}
-	return ""
-}
-
-func (x *RemovePersonnelRequest) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-// AssignPersonnelResponse 单条订单协作人员响应。
-type AssignPersonnelResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	Data          *OrderPersonnel        `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
-	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *AssignPersonnelResponse) Reset() {
-	*x = AssignPersonnelResponse{}
-	mi := &file_order_v1_order_personnel_proto_msgTypes[4]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *AssignPersonnelResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*AssignPersonnelResponse) ProtoMessage() {}
-
-func (x *AssignPersonnelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_personnel_proto_msgTypes[4]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use AssignPersonnelResponse.ProtoReflect.Descriptor instead.
-func (*AssignPersonnelResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_personnel_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *AssignPersonnelResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-func (x *AssignPersonnelResponse) GetCode() int32 {
-	if x != nil {
-		return x.Code
-	}
-	return 0
-}
-
-func (x *AssignPersonnelResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
-func (x *AssignPersonnelResponse) GetData() *OrderPersonnel {
-	if x != nil {
-		return x.Data
-	}
-	return nil
-}
-
-func (x *AssignPersonnelResponse) GetTraceId() string {
-	if x != nil {
-		return x.TraceId
-	}
-	return ""
-}
-
 // ListPersonnelResponse 订单协作人员列表响应。
 type ListPersonnelResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -442,7 +251,7 @@ type ListPersonnelResponse struct {
 
 func (x *ListPersonnelResponse) Reset() {
 	*x = ListPersonnelResponse{}
-	mi := &file_order_v1_order_personnel_proto_msgTypes[5]
+	mi := &file_order_v1_order_personnel_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -454,7 +263,7 @@ func (x *ListPersonnelResponse) String() string {
 func (*ListPersonnelResponse) ProtoMessage() {}
 
 func (x *ListPersonnelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_personnel_proto_msgTypes[5]
+	mi := &file_order_v1_order_personnel_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -467,7 +276,7 @@ func (x *ListPersonnelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPersonnelResponse.ProtoReflect.Descriptor instead.
 func (*ListPersonnelResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_personnel_proto_rawDescGZIP(), []int{5}
+	return file_order_v1_order_personnel_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ListPersonnelResponse) GetSuccess() bool {
@@ -505,75 +314,6 @@ func (x *ListPersonnelResponse) GetTraceId() string {
 	return ""
 }
 
-// RemovePersonnelResponse 订单协作人员操作响应。
-type RemovePersonnelResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	TraceId       string                 `protobuf:"bytes,4,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RemovePersonnelResponse) Reset() {
-	*x = RemovePersonnelResponse{}
-	mi := &file_order_v1_order_personnel_proto_msgTypes[6]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RemovePersonnelResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RemovePersonnelResponse) ProtoMessage() {}
-
-func (x *RemovePersonnelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_personnel_proto_msgTypes[6]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RemovePersonnelResponse.ProtoReflect.Descriptor instead.
-func (*RemovePersonnelResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_personnel_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *RemovePersonnelResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-func (x *RemovePersonnelResponse) GetCode() int32 {
-	if x != nil {
-		return x.Code
-	}
-	return 0
-}
-
-func (x *RemovePersonnelResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
-func (x *RemovePersonnelResponse) GetTraceId() string {
-	if x != nil {
-		return x.TraceId
-	}
-	return ""
-}
-
 var File_order_v1_order_personnel_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_personnel_proto_rawDesc = "" +
@@ -592,31 +332,13 @@ const file_order_v1_order_personnel_proto_rawDesc = "" +
 	"updated_at\x18\a \x01(\tR\tupdatedAt\x12'\n" +
 	"\x0forganization_id\x18\b \x01(\tR\x0eorganizationId\"6\n" +
 	"\x14ListPersonnelRequest\x12\x1e\n" +
-	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\"\x8d\x01\n" +
-	"\x16AssignPersonnelRequest\x12\x1e\n" +
-	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x1c\n" +
-	"\auser_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x06userId\x125\n" +
-	"\x04role\x18\x03 \x01(\x0e2\x1c.order.v1.OrderPersonnelRoleB\x03\xe0A\x02R\x04role\"M\n" +
-	"\x16RemovePersonnelRequest\x12\x1e\n" +
-	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
-	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\"\xaa\x01\n" +
-	"\x17AssignPersonnelResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
-	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\x12,\n" +
-	"\x04data\x18\x04 \x01(\v2\x18.order.v1.OrderPersonnelR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xa8\x01\n" +
+	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\"\xa8\x01\n" +
 	"\x15ListPersonnelResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12,\n" +
 	"\x04data\x18\x04 \x03(\v2\x18.order.v1.OrderPersonnelR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"|\n" +
-	"\x17RemovePersonnelResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
-	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
-	"\btrace_id\x18\x04 \x01(\tR\atraceId*\xdb\x02\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId*\xdb\x02\n" +
 	"\x12OrderPersonnelRole\x12$\n" +
 	" ORDER_PERSONNEL_ROLE_UNSPECIFIED\x10\x00\x12 \n" +
 	"\x1cORDER_PERSONNEL_ROLE_CREATOR\x10\x01\x12!\n" +
@@ -626,11 +348,9 @@ const file_order_v1_order_personnel_proto_rawDesc = "" +
 	"\x1dORDER_PERSONNEL_ROLE_DOCUMENT\x10\x05\x12#\n" +
 	"\x1fORDER_PERSONNEL_ROLE_COMMERCIAL\x10\x06\x12\"\n" +
 	"\x1eORDER_PERSONNEL_ROLE_ASSOCIATE\x10\a\x12#\n" +
-	"\x1fORDER_PERSONNEL_ROLE_ASSOCIATE2\x10\b2\xf7\x03\n" +
+	"\x1fORDER_PERSONNEL_ROLE_ASSOCIATE2\x10\b2\xaf\x01\n" +
 	"\x15OrderPersonnelService\x12\x95\x01\n" +
-	"\rListPersonnel\x12\x1e.order.v1.ListPersonnelRequest\x1a\x1f.order.v1.ListPersonnelResponse\"C\x82\xb5\x18\x14\b\x04\x1a\x0epersonnel.read \x02\x82\xd3\xe4\x93\x02%\x12#/api/v1/orders/{order_id}/personnel\x12\xa0\x01\n" +
-	"\x0fAssignPersonnel\x12 .order.v1.AssignPersonnelRequest\x1a!.order.v1.AssignPersonnelResponse\"H\x82\xb5\x18\x16\b\x04\x1a\x10personnel.assign \x02\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1/orders/{order_id}/personnel\x12\xa2\x01\n" +
-	"\x0fRemovePersonnel\x12 .order.v1.RemovePersonnelRequest\x1a!.order.v1.RemovePersonnelResponse\"J\x82\xb5\x18\x16\b\x04\x1a\x10personnel.remove \x02\x82\xd3\xe4\x93\x02**(/api/v1/orders/{order_id}/personnel/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
+	"\rListPersonnel\x12\x1e.order.v1.ListPersonnelRequest\x1a\x1f.order.v1.ListPersonnelResponse\"C\x82\xb5\x18\x14\b\x04\x1a\x0epersonnel.read \x02\x82\xd3\xe4\x93\x02%\x12#/api/v1/orders/{order_id}/personnelB:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
 var (
 	file_order_v1_order_personnel_proto_rawDescOnce sync.Once
@@ -645,33 +365,23 @@ func file_order_v1_order_personnel_proto_rawDescGZIP() []byte {
 }
 
 var file_order_v1_order_personnel_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_order_v1_order_personnel_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_order_v1_order_personnel_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_order_v1_order_personnel_proto_goTypes = []any{
-	(OrderPersonnelRole)(0),         // 0: order.v1.OrderPersonnelRole
-	(*OrderPersonnel)(nil),          // 1: order.v1.OrderPersonnel
-	(*ListPersonnelRequest)(nil),    // 2: order.v1.ListPersonnelRequest
-	(*AssignPersonnelRequest)(nil),  // 3: order.v1.AssignPersonnelRequest
-	(*RemovePersonnelRequest)(nil),  // 4: order.v1.RemovePersonnelRequest
-	(*AssignPersonnelResponse)(nil), // 5: order.v1.AssignPersonnelResponse
-	(*ListPersonnelResponse)(nil),   // 6: order.v1.ListPersonnelResponse
-	(*RemovePersonnelResponse)(nil), // 7: order.v1.RemovePersonnelResponse
+	(OrderPersonnelRole)(0),       // 0: order.v1.OrderPersonnelRole
+	(*OrderPersonnel)(nil),        // 1: order.v1.OrderPersonnel
+	(*ListPersonnelRequest)(nil),  // 2: order.v1.ListPersonnelRequest
+	(*ListPersonnelResponse)(nil), // 3: order.v1.ListPersonnelResponse
 }
 var file_order_v1_order_personnel_proto_depIdxs = []int32{
 	0, // 0: order.v1.OrderPersonnel.role:type_name -> order.v1.OrderPersonnelRole
-	0, // 1: order.v1.AssignPersonnelRequest.role:type_name -> order.v1.OrderPersonnelRole
-	1, // 2: order.v1.AssignPersonnelResponse.data:type_name -> order.v1.OrderPersonnel
-	1, // 3: order.v1.ListPersonnelResponse.data:type_name -> order.v1.OrderPersonnel
-	2, // 4: order.v1.OrderPersonnelService.ListPersonnel:input_type -> order.v1.ListPersonnelRequest
-	3, // 5: order.v1.OrderPersonnelService.AssignPersonnel:input_type -> order.v1.AssignPersonnelRequest
-	4, // 6: order.v1.OrderPersonnelService.RemovePersonnel:input_type -> order.v1.RemovePersonnelRequest
-	6, // 7: order.v1.OrderPersonnelService.ListPersonnel:output_type -> order.v1.ListPersonnelResponse
-	5, // 8: order.v1.OrderPersonnelService.AssignPersonnel:output_type -> order.v1.AssignPersonnelResponse
-	7, // 9: order.v1.OrderPersonnelService.RemovePersonnel:output_type -> order.v1.RemovePersonnelResponse
-	7, // [7:10] is the sub-list for method output_type
-	4, // [4:7] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	1, // 1: order.v1.ListPersonnelResponse.data:type_name -> order.v1.OrderPersonnel
+	2, // 2: order.v1.OrderPersonnelService.ListPersonnel:input_type -> order.v1.ListPersonnelRequest
+	3, // 3: order.v1.OrderPersonnelService.ListPersonnel:output_type -> order.v1.ListPersonnelResponse
+	3, // [3:4] is the sub-list for method output_type
+	2, // [2:3] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_order_personnel_proto_init() }
@@ -685,7 +395,7 @@ func file_order_v1_order_personnel_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_order_v1_order_personnel_proto_rawDesc), len(file_order_v1_order_personnel_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   7,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

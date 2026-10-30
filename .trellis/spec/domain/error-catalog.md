@@ -81,7 +81,6 @@
 | ORDER_NOT_LOCKED | 409 Conflict | 订单当前未锁定 | order_lock.go | — |
 | ORDER_NUMBER_EXISTS | 409 Conflict | 订单编号已存在 | order.go | — |
 | ORDER_PARTNER_ROLE_BLACKLISTED | 400 Bad Request | 所选%s已列入黑名单，不能新增业务关联 | order.go | — |
-| ORDER_PERSONNEL_EXISTS | 409 Conflict | 订单协作人员已存在 | order_personnel.go | — |
 | ORDER_PERSONNEL_INVALID_ARGUMENT | 400 Bad Request | 订单协作人员字段不合法 | order_personnel.go | — |
 | ORDER_PERSONNEL_NOT_FOUND | 404 Not Found | 订单协作人员不存在 | order_personnel.go | — |
 | ORDER_PERSONNEL_USER_INVALID | 400 Bad Request | 协作人员必须是订单组织范围内启用的组织成员 | order_personnel.go | — |

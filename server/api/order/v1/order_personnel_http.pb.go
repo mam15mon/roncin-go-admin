@@ -17,24 +17,16 @@ var _ = new(context.Context)
 
 const _ = http.SupportPackageIsVersion3
 
-const OperationOrderPersonnelServiceAssignPersonnel = "/order.v1.OrderPersonnelService/AssignPersonnel"
 const OperationOrderPersonnelServiceListPersonnel = "/order.v1.OrderPersonnelService/ListPersonnel"
-const OperationOrderPersonnelServiceRemovePersonnel = "/order.v1.OrderPersonnelService/RemovePersonnel"
 
 type OrderPersonnelServiceHTTPServer interface {
-	// AssignPersonnel AssignPersonnel 分配订单协作人员。
-	AssignPersonnel(context.Context, *AssignPersonnelRequest) (*AssignPersonnelResponse, error)
 	// ListPersonnel ListPersonnel 获取指定订单的协作人员列表。
 	ListPersonnel(context.Context, *ListPersonnelRequest) (*ListPersonnelResponse, error)
-	// RemovePersonnel RemovePersonnel 移除订单协作人员。
-	RemovePersonnel(context.Context, *RemovePersonnelRequest) (*RemovePersonnelResponse, error)
 }
 
 func RegisterOrderPersonnelServiceHTTPServer(s *http.Server, srv OrderPersonnelServiceHTTPServer) {
 	r := s.Route("/")
 	r.Handle("GET", "/api/v1/orders/{order_id}/personnel", _OrderPersonnelService_ListPersonnel0_HTTP_Handler(srv))
-	r.Handle("POST", "/api/v1/orders/{order_id}/personnel", _OrderPersonnelService_AssignPersonnel0_HTTP_Handler(srv))
-	r.Handle("DELETE", "/api/v1/orders/{order_id}/personnel/{id}", _OrderPersonnelService_RemovePersonnel0_HTTP_Handler(srv))
 }
 
 func _OrderPersonnelService_ListPersonnel0_HTTP_Handler(srv OrderPersonnelServiceHTTPServer) func(ctx http.Context) error {
@@ -59,57 +51,9 @@ func _OrderPersonnelService_ListPersonnel0_HTTP_Handler(srv OrderPersonnelServic
 	}
 }
 
-func _OrderPersonnelService_AssignPersonnel0_HTTP_Handler(srv OrderPersonnelServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in AssignPersonnelRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationOrderPersonnelServiceAssignPersonnel)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.AssignPersonnel(ctx, req.(*AssignPersonnelRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*AssignPersonnelResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _OrderPersonnelService_RemovePersonnel0_HTTP_Handler(srv OrderPersonnelServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in RemovePersonnelRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationOrderPersonnelServiceRemovePersonnel)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.RemovePersonnel(ctx, req.(*RemovePersonnelRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*RemovePersonnelResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
 type OrderPersonnelServiceHTTPClient interface {
-	// AssignPersonnel AssignPersonnel 分配订单协作人员。
-	AssignPersonnel(ctx context.Context, req *AssignPersonnelRequest, opts ...http.CallOption) (rsp *AssignPersonnelResponse, err error)
 	// ListPersonnel ListPersonnel 获取指定订单的协作人员列表。
 	ListPersonnel(ctx context.Context, req *ListPersonnelRequest, opts ...http.CallOption) (rsp *ListPersonnelResponse, err error)
-	// RemovePersonnel RemovePersonnel 移除订单协作人员。
-	RemovePersonnel(ctx context.Context, req *RemovePersonnelRequest, opts ...http.CallOption) (rsp *RemovePersonnelResponse, err error)
 }
 
 type OrderPersonnelServiceHTTPClientImpl struct {
@@ -118,24 +62,6 @@ type OrderPersonnelServiceHTTPClientImpl struct {
 
 func NewOrderPersonnelServiceHTTPClient(client *http.Client) OrderPersonnelServiceHTTPClient {
 	return &OrderPersonnelServiceHTTPClientImpl{client}
-}
-
-// AssignPersonnel AssignPersonnel 分配订单协作人员。
-func (c *OrderPersonnelServiceHTTPClientImpl) AssignPersonnel(ctx context.Context, in *AssignPersonnelRequest, opts ...http.CallOption) (*AssignPersonnelResponse, error) {
-	var out AssignPersonnelResponse
-	pattern := "/api/v1/orders/{order_id}/personnel"
-	path := http.BuildPath(pattern, in)
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.ContentType("application/protojson"),
-		http.Operation(OperationOrderPersonnelServiceAssignPersonnel),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
 }
 
 // ListPersonnel ListPersonnel 获取指定订单的协作人员列表。
@@ -149,23 +75,6 @@ func (c *OrderPersonnelServiceHTTPClientImpl) ListPersonnel(ctx context.Context,
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-// RemovePersonnel RemovePersonnel 移除订单协作人员。
-func (c *OrderPersonnelServiceHTTPClientImpl) RemovePersonnel(ctx context.Context, in *RemovePersonnelRequest, opts ...http.CallOption) (*RemovePersonnelResponse, error) {
-	var out RemovePersonnelResponse
-	pattern := "/api/v1/orders/{order_id}/personnel/{id}"
-	path := http.BuildPath(pattern, in, http.WithQueryParams())
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.Operation(OperationOrderPersonnelServiceRemovePersonnel),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

@@ -19,9 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	OrderPersonnelService_ListPersonnel_FullMethodName   = "/order.v1.OrderPersonnelService/ListPersonnel"
-	OrderPersonnelService_AssignPersonnel_FullMethodName = "/order.v1.OrderPersonnelService/AssignPersonnel"
-	OrderPersonnelService_RemovePersonnel_FullMethodName = "/order.v1.OrderPersonnelService/RemovePersonnel"
+	OrderPersonnelService_ListPersonnel_FullMethodName = "/order.v1.OrderPersonnelService/ListPersonnel"
 )
 
 // OrderPersonnelServiceClient is the client API for OrderPersonnelService service.
@@ -32,10 +30,6 @@ const (
 type OrderPersonnelServiceClient interface {
 	// ListPersonnel 获取指定订单的协作人员列表。
 	ListPersonnel(ctx context.Context, in *ListPersonnelRequest, opts ...grpc.CallOption) (*ListPersonnelResponse, error)
-	// AssignPersonnel 分配订单协作人员。
-	AssignPersonnel(ctx context.Context, in *AssignPersonnelRequest, opts ...grpc.CallOption) (*AssignPersonnelResponse, error)
-	// RemovePersonnel 移除订单协作人员。
-	RemovePersonnel(ctx context.Context, in *RemovePersonnelRequest, opts ...grpc.CallOption) (*RemovePersonnelResponse, error)
 }
 
 type orderPersonnelServiceClient struct {
@@ -56,26 +50,6 @@ func (c *orderPersonnelServiceClient) ListPersonnel(ctx context.Context, in *Lis
 	return out, nil
 }
 
-func (c *orderPersonnelServiceClient) AssignPersonnel(ctx context.Context, in *AssignPersonnelRequest, opts ...grpc.CallOption) (*AssignPersonnelResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AssignPersonnelResponse)
-	err := c.cc.Invoke(ctx, OrderPersonnelService_AssignPersonnel_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *orderPersonnelServiceClient) RemovePersonnel(ctx context.Context, in *RemovePersonnelRequest, opts ...grpc.CallOption) (*RemovePersonnelResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(RemovePersonnelResponse)
-	err := c.cc.Invoke(ctx, OrderPersonnelService_RemovePersonnel_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // OrderPersonnelServiceServer is the server API for OrderPersonnelService service.
 // All implementations must embed UnimplementedOrderPersonnelServiceServer
 // for forward compatibility.
@@ -84,10 +58,6 @@ func (c *orderPersonnelServiceClient) RemovePersonnel(ctx context.Context, in *R
 type OrderPersonnelServiceServer interface {
 	// ListPersonnel 获取指定订单的协作人员列表。
 	ListPersonnel(context.Context, *ListPersonnelRequest) (*ListPersonnelResponse, error)
-	// AssignPersonnel 分配订单协作人员。
-	AssignPersonnel(context.Context, *AssignPersonnelRequest) (*AssignPersonnelResponse, error)
-	// RemovePersonnel 移除订单协作人员。
-	RemovePersonnel(context.Context, *RemovePersonnelRequest) (*RemovePersonnelResponse, error)
 	mustEmbedUnimplementedOrderPersonnelServiceServer()
 }
 
@@ -100,12 +70,6 @@ type UnimplementedOrderPersonnelServiceServer struct{}
 
 func (UnimplementedOrderPersonnelServiceServer) ListPersonnel(context.Context, *ListPersonnelRequest) (*ListPersonnelResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPersonnel not implemented")
-}
-func (UnimplementedOrderPersonnelServiceServer) AssignPersonnel(context.Context, *AssignPersonnelRequest) (*AssignPersonnelResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method AssignPersonnel not implemented")
-}
-func (UnimplementedOrderPersonnelServiceServer) RemovePersonnel(context.Context, *RemovePersonnelRequest) (*RemovePersonnelResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method RemovePersonnel not implemented")
 }
 func (UnimplementedOrderPersonnelServiceServer) mustEmbedUnimplementedOrderPersonnelServiceServer() {}
 func (UnimplementedOrderPersonnelServiceServer) testEmbeddedByValue()                               {}
@@ -146,42 +110,6 @@ func _OrderPersonnelService_ListPersonnel_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
-func _OrderPersonnelService_AssignPersonnel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AssignPersonnelRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OrderPersonnelServiceServer).AssignPersonnel(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: OrderPersonnelService_AssignPersonnel_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrderPersonnelServiceServer).AssignPersonnel(ctx, req.(*AssignPersonnelRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _OrderPersonnelService_RemovePersonnel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RemovePersonnelRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OrderPersonnelServiceServer).RemovePersonnel(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: OrderPersonnelService_RemovePersonnel_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OrderPersonnelServiceServer).RemovePersonnel(ctx, req.(*RemovePersonnelRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // OrderPersonnelService_ServiceDesc is the grpc.ServiceDesc for OrderPersonnelService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -192,14 +120,6 @@ var OrderPersonnelService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListPersonnel",
 			Handler:    _OrderPersonnelService_ListPersonnel_Handler,
-		},
-		{
-			MethodName: "AssignPersonnel",
-			Handler:    _OrderPersonnelService_AssignPersonnel_Handler,
-		},
-		{
-			MethodName: "RemovePersonnel",
-			Handler:    _OrderPersonnelService_RemovePersonnel_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

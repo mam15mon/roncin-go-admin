@@ -553,20 +553,6 @@ declare namespace API {
     traceId?: string;
   };
 
-  type AssignPersonnelRequest = {
-    orderId: string;
-    userId: string;
-    role: number;
-  };
-
-  type AssignPersonnelResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: OrderPersonnel;
-    traceId?: string;
-  };
-
   type AuthorizeDingTalkUserRequest = {
     id: string;
     items: UserMembershipCreation[];
@@ -5784,17 +5770,8 @@ declare namespace API {
     departmentNames?: string[];
   };
 
-  type OrderPersonnelServiceAssignPersonnelParams = {
-    orderId: string;
-  };
-
   type OrderPersonnelServiceListPersonnelParams = {
     orderId: string;
-  };
-
-  type OrderPersonnelServiceRemovePersonnelParams = {
-    orderId: string;
-    id: string;
   };
 
   type OrderReferenceCheck = {
@@ -6918,13 +6895,6 @@ declare namespace API {
   };
 
   type RemoveFeeResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    traceId?: string;
-  };
-
-  type RemovePersonnelResponse = {
     success?: boolean;
     code?: number;
     message?: string;

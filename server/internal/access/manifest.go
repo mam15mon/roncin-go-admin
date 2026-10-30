@@ -155,8 +155,6 @@ const (
 	OrderAttachmentRead       OrderOperation = "attachment.read"
 	OrderAttachmentRegister   OrderOperation = "attachment.register"
 	OrderPersonnelRead        OrderOperation = "personnel.read"
-	OrderPersonnelAssign      OrderOperation = "personnel.assign"
-	OrderPersonnelRemove      OrderOperation = "personnel.remove"
 	OrderContainerRead        OrderOperation = "container.read"
 	OrderContainerCreate      OrderOperation = "container.create"
 	OrderContainerUpdate      OrderOperation = "container.update"
@@ -305,7 +303,7 @@ var orderPermissionDefinitions = []orderPermissionDefinition{
 	{operation: OrderUpdate, name: "编辑订单", resource: "订单", description: "修改订单基础与业务资料"},
 	{operation: OrderTransition, name: "流转订单状态", resource: "订单", description: "执行订单状态流转"},
 	{operation: OrderAttachmentRead, name: "查看附件", resource: "附件", description: "查看订单附件"}, {operation: OrderAttachmentRegister, name: "管理附件", resource: "附件", description: "登记订单附件元数据与解除引用"},
-	{operation: OrderPersonnelRead, name: "查看协作人员", resource: "协作人员", description: "查看订单协作人员"}, {operation: OrderPersonnelAssign, name: "指派协作人员", resource: "协作人员", description: "指派订单协作人员"}, {operation: OrderPersonnelRemove, name: "移除协作人员", resource: "协作人员", description: "移除订单协作人员"},
+	{operation: OrderPersonnelRead, name: "查看协作人员", resource: "协作人员", description: "查看订单协作人员"},
 	{operation: OrderContainerRead, name: "查看集装箱", resource: "集装箱", description: "查看订单集装箱"}, {operation: OrderContainerCreate, name: "新增集装箱", resource: "集装箱", description: "新增订单集装箱"}, {operation: OrderContainerUpdate, name: "编辑集装箱", resource: "集装箱", description: "修改订单集装箱"}, {operation: OrderContainerDelete, name: "删除集装箱", resource: "集装箱", description: "删除订单集装箱"},
 	{operation: OrderCargoItemRead, name: "查看货物明细", resource: "货物", description: "查看订单货物明细"}, {operation: OrderCargoItemCreate, name: "新增货物明细", resource: "货物", description: "新增订单货物明细"}, {operation: OrderCargoItemUpdate, name: "编辑货物明细", resource: "货物", description: "修改订单货物明细"}, {operation: OrderCargoItemDelete, name: "删除货物明细", resource: "货物", description: "删除订单货物明细"},
 	{operation: OrderAbnormalCaseRead, name: "查看异常事件", resource: "异常", description: "查看订单异常事件"}, {operation: OrderAbnormalCaseCreate, name: "登记异常事件", resource: "异常", description: "登记订单异常事件"}, {operation: OrderAbnormalCaseResolve, name: "处理异常事件", resource: "异常", description: "解决或重新打开订单异常事件"}, {operation: OrderAbnormalCaseDelete, name: "删除异常事件", resource: "异常", description: "删除订单异常事件"},

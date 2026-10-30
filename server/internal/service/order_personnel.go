@@ -40,56 +40,6 @@ func (s *OrderPersonnelService) ListPersonnel(ctx context.Context, request *v1.L
 	}), nil
 }
 
-func (s *OrderPersonnelService) AssignPersonnel(ctx context.Context, request *v1.AssignPersonnelRequest) (*v1.AssignPersonnelResponse, error) {
-	principal, principalErr := biz.RequirePrincipal(ctx)
-	if principalErr != nil {
-		return nil, principalErr
-	}
-	orderID, err := uuid.Parse(request.GetOrderId())
-	if err != nil {
-		return nil, biz.ErrOrderPersonnelInvalidArgument
-	}
-	userID, err := uuid.Parse(request.GetUserId())
-	if err != nil {
-		return nil, biz.ErrOrderPersonnelInvalidArgument
-	}
-	role, err := protoRoleToBiz(request.GetRole())
-	if err != nil {
-		return nil, err
-	}
-	created, err := s.usecase.Assign(ctx, principal.Organization.ID, principal.UserID, orderID, userID, role)
-	if err != nil {
-		return nil, err
-	}
-	return orderPersonnelResponse(ctx, created), nil
-}
-
-func (s *OrderPersonnelService) RemovePersonnel(ctx context.Context, request *v1.RemovePersonnelRequest) (*v1.RemovePersonnelResponse, error) {
-	principal, principalErr := biz.RequirePrincipal(ctx)
-	if principalErr != nil {
-		return nil, principalErr
-	}
-	orderID, err := uuid.Parse(request.GetOrderId())
-	if err != nil {
-		return nil, biz.ErrOrderPersonnelInvalidArgument
-	}
-	id, err := uuid.Parse(request.GetId())
-	if err != nil {
-		return nil, biz.ErrOrderPersonnelInvalidArgument
-	}
-	if err := s.usecase.Remove(ctx, principal.Organization.ID, principal.UserID, orderID, id); err != nil {
-		return nil, err
-	}
-	return ok(ctx, &v1.RemovePersonnelResponse{}), nil
-}
-
-func orderPersonnelResponse(ctx context.Context, value *biz.OrderPersonnel) *v1.AssignPersonnelResponse {
-	return ok(ctx, &v1.AssignPersonnelResponse{
-		Data: orderPersonnelToAPI(value),
-	})
-
-}
-
 func orderPersonnelToAPI(value *biz.OrderPersonnel) *v1.OrderPersonnel {
 	return &v1.OrderPersonnel{
 		Id:             value.ID.String(),

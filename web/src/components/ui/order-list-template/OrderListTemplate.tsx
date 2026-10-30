@@ -62,7 +62,6 @@ export function OrderListTemplate({
   onOpenContainers,
   onOpenCargo,
   onOpenAttachments,
-  onOpenPersonnel,
   onOpenConsolidations,
   onOpenAbnormal,
   options,
@@ -537,16 +536,6 @@ export function OrderListTemplate({
                         },
                       ]
                     : []),
-                  ...(onOpenPersonnel
-                    ? [
-                        {
-                          key: 'personnel',
-                          icon: <NodeIndexOutlined />,
-                          label: '协作人员',
-                          onClick: () => onOpenPersonnel(record),
-                        },
-                      ]
-                    : []),
                   ...(onOpenConsolidations && options?.transportMode !== 'air'
                     ? [
                         {
@@ -591,7 +580,6 @@ export function OrderListTemplate({
       onOpenContainers,
       onOpenCargo,
       onOpenAttachments,
-      onOpenPersonnel,
       onOpenConsolidations,
       onOpenAbnormal,
       readonly,
