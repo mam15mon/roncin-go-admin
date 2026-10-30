@@ -736,3 +736,35 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 176: 彻底移除订单履约里程碑并完成验收
+<!-- trellis-session: v=2 fp=07a5aaa02adeb090 -->
+
+**Date**: 2026-10-30
+**Task**: 彻底移除订单履约里程碑并完成验收
+**Branch**: `codex/remove-order-milestones`
+
+### Summary
+
+删除独立里程碑全链路及专属表，独立复核与完整门禁通过，待按用户授权合并main推送及清理分支
+
+### Main Changes
+
+- 移除前端入口、Proto与三层实现、12权限、Ent模型、开发种子和废生成物，保留订单操作进度与相邻门禁
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d95f53df` | refactor: 彻底移除订单履约里程碑 |
+| `239039e2` | docs: 记录里程碑退役复核及完整验收 |
+
+### Testing
+
+- [OK] 6个相关真实PostgreSQL顶层用例与正式冷启动均PASS无SKIP，生成幂等与浏览器验证通过
+- [OK] 最终check:fast通过：前端342文件1842用例通过，后端单测vet漏洞门禁通过；独立review无阻断问题
+
+### Status
+
+[OK] **Completed**
