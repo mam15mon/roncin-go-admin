@@ -561,3 +561,37 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Next Steps
 
 - 按用户授权合并main、安全删除本地工作分支并push；真实操作系统中文输入法仍保留人工验收限制。
+
+
+## Session 171: 修复路由与海运表单控制台告警
+<!-- trellis-session: v=2 fp=8ff6a7dbd51c3579 -->
+
+**Date**: 2026-10-30
+**Task**: 修复路由与海运表单控制台告警
+**Branch**: `codex/console-warnings`
+
+### Summary
+
+统一海运新建、详情与模式切换默认值，移除字段重复初始化；补齐懒加载路由占位；Permissions-Policy 本地未复现并记录证据。
+
+### Main Changes
+
+- 同步默认值与路由占位规范，任务已归档。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `140fb303` | fix: 消除路由加载与海运表单默认值冲突告警 |
+
+### Testing
+
+- [OK] 定向12文件68用例、tsc、Biome通过；check:web通过335文件1806用例；真实Chromium登录路由复测无HydrateFallback告警。
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 若浏览器仍出现Permissions-Policy告警，需从网络面板定位对应响应；本地直连响应未发现该头。
