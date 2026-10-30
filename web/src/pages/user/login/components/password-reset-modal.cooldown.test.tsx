@@ -65,9 +65,11 @@ describe('密码找回服务端冷却与消息结果', () => {
     expect(
       await screen.findByRole('button', { name: '35 秒后重发' }),
     ).toBeDisabled();
-    expect(
-      screen.getByText('验证码发送过于频繁，请等待倒计时结束'),
-    ).toBeVisible();
+    const cooldownFeedback = screen.getByText(
+      '验证码发送过于频繁，请等待倒计时结束',
+    );
+    // 冷却状态更新可早于 Modal prepare 完成，反馈需等待实际可见。
+    await waitFor(() => expect(cooldownFeedback).toBeVisible());
     expect(
       screen.getByRole('button', { name: '设置密码并返回登录' }),
     ).toBeDisabled();
