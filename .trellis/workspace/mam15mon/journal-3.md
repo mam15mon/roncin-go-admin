@@ -840,3 +840,38 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Next Steps
 
 - 按授权合并main并push，核实远端包含全部提交后安全删除本地修复分支。
+
+
+## Session 179: 修复订单无修改保存的重复地点误校验
+<!-- trellis-session: v=2 fp=e50ecfc4e8a39eb3 -->
+
+**Date**: 2026-10-30
+**Task**: 修复订单无修改保存的重复地点误校验
+**Branch**: `codex/fix-order-location-validation`
+
+### Summary
+
+修复SQL IN唯一记录数与重复地点字段引用数比较导致的ORDER_INVALID_ARGUMENT；同步机场路径和具体失效提示，保持空运起降与货物分类业务规则。
+
+### Main Changes
+
+- 港口/机场校验入口复用唯一ID集合，不改订单字段；biz定义明确错误消息并沿用原reason。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `c62e5670` | fix: 按唯一地点引用校验订单并明确失效提示 |
+
+### Testing
+
+- [OK] 14个单元场景、3个PostgreSQL根用例与6组完整创建读取无修改更新通过，无SKIP；16个相邻订单事务场景通过。
+- [OK] 独立review和完整check:server通过，临时专用数据库与角色已清理，开发数据未改。
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 合并main、push并验证远端tip后安全删除修复分支。
