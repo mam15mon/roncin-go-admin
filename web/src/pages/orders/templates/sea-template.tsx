@@ -1,7 +1,10 @@
 import { Form, Radio } from 'antd';
 import { FormRow } from '@/components/ui';
 import { SeaDocumentStructure } from '@/enums.generated';
-import { TemplateFieldGroup } from './components/FieldGroup';
+import {
+  TemplateControlGroup,
+  TemplateFieldGroup,
+} from './components/FieldGroup';
 import {
   extractPersonnelFromPartnerAssignments,
   getSeaBaseInfoFields,
@@ -149,25 +152,22 @@ export function getSeaTemplateSections(
 function SeaDocumentModeDisplayField({ props }: { props: TemplateProps }) {
   if (props.isDetail) {
     return (
-      <Form.Item
-        name="seaDocumentStructure"
-        label="提单模式"
-        htmlFor={undefined}
-        style={{ marginBottom: 0 }}
-      >
-        <Radio.Group aria-label="提单模式" disabled>
-          <Radio.Button
-            value={SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE}
-          >
-            有货代分单（HOUSE）
-          </Radio.Button>
-          <Radio.Button
-            value={SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT}
-          >
-            仅船公司主单（DIRECT）
-          </Radio.Button>
-        </Radio.Group>
-      </Form.Item>
+      <TemplateControlGroup title="提单模式">
+        <Form.Item name="seaDocumentStructure" style={{ marginBottom: 0 }}>
+          <Radio.Group aria-label="提单模式" disabled>
+            <Radio.Button
+              value={SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE}
+            >
+              有货代分单（HOUSE）
+            </Radio.Button>
+            <Radio.Button
+              value={SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT}
+            >
+              仅船公司主单（DIRECT）
+            </Radio.Button>
+          </Radio.Group>
+        </Form.Item>
+      </TemplateControlGroup>
     );
   }
   return <SeaCreateDocumentModeField disabled={props.readonly} />;

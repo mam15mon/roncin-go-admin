@@ -1,5 +1,5 @@
 import { DeleteOutlined, PlusCircleFilled } from '@ant-design/icons';
-import { Button, Col, Form, Input, InputNumber, Select } from 'antd';
+import { Button, Col, Form, Input, InputNumber, Select, Tooltip } from 'antd';
 import React from 'react';
 import { OrderShippingDocumentStatus } from '@/enums.generated';
 import {
@@ -14,6 +14,7 @@ import {
   rawDocsToHouses,
   type ShippingDocumentFormValue,
 } from './order-shipping-doc-helpers';
+import { TemplateControlGroup } from './templates/components/FieldGroup';
 
 export * from './order-plan-constants';
 export * from './order-shipping-doc-helpers';
@@ -234,15 +235,17 @@ export function OrderContainerRequestFields({
 }) {
   return (
     <Col span={24}>
-      <Form.Item
-        name="containerRequests"
-        label="箱型箱量"
-        htmlFor={undefined}
-        tooltip="这里只维护订单级配箱计划；实际箱号、封号与箱货分配在箱货信息中维护"
-        style={{ marginBottom: 12 }}
+      <TemplateControlGroup
+        title={
+          <Tooltip title="这里只维护订单级配箱计划；实际箱号、封号与箱货分配在箱货信息中维护">
+            <span>箱型箱量</span>
+          </Tooltip>
+        }
       >
-        <ContainerRequestsControl options={options} />
-      </Form.Item>
+        <Form.Item name="containerRequests" style={{ marginBottom: 12 }}>
+          <ContainerRequestsControl options={options} />
+        </Form.Item>
+      </TemplateControlGroup>
     </Col>
   );
 }
@@ -257,6 +260,7 @@ function ContainerRequestsControl({
   value?: API.OrderContainerRequestInput[];
   onChange?: (value: API.OrderContainerRequestInput[]) => void;
 }) {
+  const inputId = React.useId();
   const handleAdd = () => {
     const next = [
       ...containerRequests,
@@ -287,8 +291,7 @@ function ContainerRequestsControl({
   return (
     <>
       <span style={{ display: 'none' }}>计划箱型箱量</span>
-      <fieldset
-        aria-label="箱型箱量"
+      <div
         style={{
           border: 0,
           padding: 0,
@@ -315,6 +318,7 @@ function ContainerRequestsControl({
               }}
             />
             <InputNumber
+              id={`${inputId}-quantity`}
               min={1}
               max={999}
               defaultValue={1}
@@ -356,6 +360,7 @@ function ContainerRequestsControl({
                   onChange={(val) => handleChange(idx, 'containerSpecId', val)}
                 />
                 <InputNumber
+                  id={`${inputId}-quantity-${idx}`}
                   value={req.quantity || 1}
                   min={1}
                   max={999}
@@ -383,7 +388,7 @@ function ContainerRequestsControl({
             </Button>
           </>
         )}
-      </fieldset>
+      </div>
     </>
   );
 }

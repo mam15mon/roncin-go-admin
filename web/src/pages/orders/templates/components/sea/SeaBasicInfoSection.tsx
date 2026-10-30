@@ -32,6 +32,7 @@ import PartnerQuickAddSelect, {
   type PartnerSelectOption,
 } from '../../../components/PartnerQuickAddSelect';
 import type { SelectOption, TemplateProps } from '../../types';
+import { TemplateControlGroup } from '../FieldGroup';
 
 export function TooltipInput(props: React.ComponentProps<typeof Input>) {
   const [value, setValue] = React.useState(props.value || '');
@@ -633,31 +634,31 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
         <Form.Item label="委托单位代码" name="customerCode">
           <TooltipInput disabled placeholder="选择委托单位后自动带出" />
         </Form.Item>
-        <ProFormRadio.Group
-          name="shipmentMode"
-          label="集运/跨境"
-          formItemProps={{ htmlFor: undefined }}
-          fieldProps={{ 'aria-label': '集运/跨境' }}
-          options={shipmentModeOptions}
-        />
-        <ProFormRadio.Group
-          name="shipmentType"
-          label="托运类型"
-          formItemProps={{ htmlFor: undefined }}
-          fieldProps={{ 'aria-label': '托运类型' }}
-          options={shipmentTypeOptions}
-        />
+        <TemplateControlGroup title="集运/跨境">
+          <ProFormRadio.Group
+            name="shipmentMode"
+            fieldProps={{ 'aria-label': '集运/跨境' }}
+            options={shipmentModeOptions}
+          />
+        </TemplateControlGroup>
+        <TemplateControlGroup title="托运类型">
+          <ProFormRadio.Group
+            name="shipmentType"
+            fieldProps={{ 'aria-label': '托运类型' }}
+            options={shipmentTypeOptions}
+          />
+        </TemplateControlGroup>
       </FormRow>
     ),
     categories: (
       <div style={{ width: '100%' }}>
-        <ProFormCheckbox.Group
-          name="cargoCategoryIds"
-          label="货物品类"
-          formItemProps={{ htmlFor: undefined }}
-          fieldProps={{ 'aria-label': '货物品类' }}
-          options={cargoCategoryOptions}
-        />
+        <TemplateControlGroup title="货物品类">
+          <ProFormCheckbox.Group
+            name="cargoCategoryIds"
+            fieldProps={{ 'aria-label': '货物品类', name: 'cargoCategoryIds' }}
+            options={cargoCategoryOptions}
+          />
+        </TemplateControlGroup>
       </div>
     ),
     dangerous: (
@@ -679,7 +680,7 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
       </>
     ),
     booking: (
-      <Form.Item label="订舱号">
+      <Form.Item label="订舱号" htmlFor="bookingNo">
         <Form.Item noStyle name="bookingNo">
           <TooltipInput
             placeholder="请输入"
@@ -741,7 +742,7 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
       />
     ),
     contract: (
-      <Form.Item label="合约号">
+      <Form.Item label="合约号" htmlFor="contractNo">
         <Form.Item noStyle name="contractNo">
           <TooltipInput
             placeholder="请输入"
@@ -752,7 +753,7 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
       </Form.Item>
     ),
     cargoValue: (
-      <Form.Item label="货值">
+      <Form.Item label="货值" htmlFor="cargoValue">
         <CurrencyAmountInput
           currencyName="cargoCurrency"
           amountName="cargoValue"
@@ -766,7 +767,7 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
       </Form.Item>
     ),
     insurance: (
-      <Form.Item label="保费">
+      <Form.Item label="保费" htmlFor="insurancePremium">
         <CurrencyAmountInput
           currencyName="insuranceCurrency"
           amountName="insurancePremium"

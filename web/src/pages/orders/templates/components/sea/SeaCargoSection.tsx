@@ -70,7 +70,11 @@ export function SeaConsignedMeasurementFields({
   return (
     <>
       <FormRow cols={3}>
-        <Form.Item label="委托件数" style={{ marginBottom: 0 }}>
+        <Form.Item
+          label="委托件数"
+          htmlFor="totalPackages"
+          style={{ marginBottom: 0 }}
+        >
           <PackageCountInput
             countName="totalPackages"
             unitName="totalPackageUnit"

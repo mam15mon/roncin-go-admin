@@ -8,6 +8,7 @@ import {
   SeaHouseBillStatus,
 } from '@/enums.generated';
 import { searchPartnerOptions } from '@/features/partners';
+import { TemplateControlGroup } from '../FieldGroup';
 import { seaMasterBillIdentity } from './sea-shared-voyage';
 import type { SeaHouseNumberCheck } from './useSeaMasterBillCandidate';
 
@@ -204,45 +205,45 @@ export function HouseBillIdentityFields({
         />
       </Col>
       <Col xs={24}>
-        <Form.Item
-          name={[fieldKey, 'issuerSource']}
-          label="分单签发主体"
-          htmlFor={undefined}
-          required
-          rules={[{ required: true, message: '请选择分单签发主体' }]}
-          layout="vertical"
-          style={{ marginBottom: 16 }}
-        >
-          <Radio.Group
-            aria-label="分单签发主体"
-            disabled={disabled || undefined}
-            onChange={() =>
-              form.setFieldValue([fieldKey, 'issuerPartnerId'], undefined)
-            }
+        <TemplateControlGroup title="分单签发主体" required>
+          <Form.Item
+            name={[fieldKey, 'issuerSource']}
+            required
+            rules={[{ required: true, message: '请选择分单签发主体' }]}
+            layout="vertical"
+            style={{ marginBottom: 16 }}
           >
-            <Radio
-              value={
-                SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_SELF_ORGANIZATION
+            <Radio.Group
+              aria-label="分单签发主体"
+              disabled={disabled || undefined}
+              onChange={() =>
+                form.setFieldValue([fieldKey, 'issuerPartnerId'], undefined)
               }
             >
-              本公司
-            </Radio>
-            <Radio
-              value={
-                SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_CUSTOMER_PARTNER
-              }
-            >
-              委托单位
-            </Radio>
-            <Radio
-              value={
-                SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER
-              }
-            >
-              指定合作方
-            </Radio>
-          </Radio.Group>
-        </Form.Item>
+              <Radio
+                value={
+                  SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_SELF_ORGANIZATION
+                }
+              >
+                本公司
+              </Radio>
+              <Radio
+                value={
+                  SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_CUSTOMER_PARTNER
+                }
+              >
+                委托单位
+              </Radio>
+              <Radio
+                value={
+                  SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_OTHER_PARTNER
+                }
+              >
+                指定合作方
+              </Radio>
+            </Radio.Group>
+          </Form.Item>
+        </TemplateControlGroup>
       </Col>
       <Form.Item
         noStyle

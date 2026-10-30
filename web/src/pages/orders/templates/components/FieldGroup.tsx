@@ -27,3 +27,38 @@ export function TemplateFieldGroup({
     </div>
   );
 }
+
+/** 多控件字段使用原生分组标题，避免生成无法关联单个输入框的 label。 */
+export function TemplateControlGroup({
+  title,
+  required = false,
+  children,
+}: {
+  title: React.ReactNode;
+  required?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <fieldset style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
+      <legend
+        style={{
+          padding: 0,
+          border: 0,
+          width: 'auto',
+          marginBottom: 4,
+          fontSize: 13,
+          lineHeight: '22px',
+          color: 'rgba(0, 0, 0, 0.88)',
+        }}
+      >
+        {required && (
+          <span aria-hidden="true" style={{ color: '#ff4d4f', marginRight: 4 }}>
+            *
+          </span>
+        )}
+        {title}
+      </legend>
+      {children}
+    </fieldset>
+  );
+}

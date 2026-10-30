@@ -2,13 +2,13 @@ import { Alert, Form, Radio, Space, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useEffect, useRef } from 'react';
 import { ResponsiveTable as Table } from '@/components/ui';
-
 import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   SeaDocumentStructure,
   SeaHouseBillIssuerSource,
 } from '@/enums.generated';
 import { seaBillContentFormValues } from '../../../sea-document-form';
+import { TemplateControlGroup } from '../FieldGroup';
 import type { SeaExternalConfirmationFormValues } from './SeaExternalConfirmationFields';
 
 export type ModeChangeFormValues = SeaExternalConfirmationFormValues & {
@@ -211,29 +211,31 @@ export function SeaCreateDocumentModeField({
   }, []);
 
   return (
-    <Form.Item
-      name="seaDocumentStructure"
-      label="提单模式"
-      htmlFor={undefined}
-      rules={[{ required: true, message: '请选择 HOUSE 或 DIRECT' }]}
-      style={{ marginBottom: 0 }}
-    >
-      <Radio.Group
-        aria-label="提单模式"
-        disabled={disabled}
-        onChange={(event) =>
-          changeCreateMode(event.target.value as SeaDocumentStructure)
-        }
+    <TemplateControlGroup title="提单模式" required>
+      <Form.Item
+        name="seaDocumentStructure"
+        rules={[{ required: true, message: '请选择 HOUSE 或 DIRECT' }]}
+        style={{ marginBottom: 0 }}
       >
-        <Radio.Button value={SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE}>
-          有货代分单（HOUSE）
-        </Radio.Button>
-        <Radio.Button
-          value={SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT}
+        <Radio.Group
+          aria-label="提单模式"
+          disabled={disabled}
+          onChange={(event) =>
+            changeCreateMode(event.target.value as SeaDocumentStructure)
+          }
         >
-          仅船公司主单（DIRECT）
-        </Radio.Button>
-      </Radio.Group>
-    </Form.Item>
+          <Radio.Button
+            value={SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE}
+          >
+            有货代分单（HOUSE）
+          </Radio.Button>
+          <Radio.Button
+            value={SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT}
+          >
+            仅船公司主单（DIRECT）
+          </Radio.Button>
+        </Radio.Group>
+      </Form.Item>
+    </TemplateControlGroup>
   );
 }

@@ -884,6 +884,7 @@ export function SeaBillContentFormFields({
               </span>
               <Space size={6} align="center">
                 <Checkbox
+                  name={`${namePathPrefix.join('_')}_exemptionClause`}
                   checked={hasClause}
                   disabled={disabled || undefined}
                   onChange={(e) => handleToggleClause(e.target.checked)}

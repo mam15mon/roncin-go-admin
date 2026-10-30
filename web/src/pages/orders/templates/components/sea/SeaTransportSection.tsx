@@ -403,6 +403,7 @@ export function SeaAssociatedHouseBillsField({
   isDetail?: boolean;
   disabled?: boolean;
 }) {
+  const displayId = React.useId();
   const form = Form.useFormInstance();
   const watchedHouseBill = (Form.useWatch('seaHouseBill', {
     form,
@@ -455,8 +456,9 @@ export function SeaAssociatedHouseBillsField({
     );
   }
   return (
-    <Form.Item label="关联分单号">
-      <div
+    <Form.Item label="关联分单号" htmlFor={displayId}>
+      <output
+        id={displayId}
         data-testid="associated-hbl-display"
         style={{
           minHeight: 32,
@@ -485,7 +487,7 @@ export function SeaAssociatedHouseBillsField({
             暂未录入分单号
           </Typography.Text>
         )}
-      </div>
+      </output>
     </Form.Item>
   );
 }
@@ -553,6 +555,7 @@ export function SeaContainerPlanFields({
 }
 
 export function SeaScheduleDateFields() {
+  const weekId = React.useId();
   const form = Form.useFormInstance();
   const etd = Form.useWatch('etd', form);
   const { readonly } = useSharedSeaVoyage();
@@ -570,8 +573,9 @@ export function SeaScheduleDateFields() {
           style: { width: '100%' },
         }}
       />
-      <Form.Item label="WEEK">
+      <Form.Item label="WEEK" htmlFor={weekId}>
         <Input
+          id={weekId}
           value={weekValue}
           placeholder="依据 ETD 自动生成"
           disabled

@@ -3,13 +3,9 @@ import React, { useEffect, useState } from 'react';
 import { defaultSelectFilterOption } from '../searchable-select/utils';
 import type { CurrencyAmountInputProps } from './types';
 
-interface TooltipNumericInputProps {
+interface TooltipNumericInputProps
+  extends Omit<React.ComponentProps<typeof Input>, 'value'> {
   value?: string;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  placeholder?: string;
-  maxLength?: number;
-  disabled?: boolean;
-  style?: React.CSSProperties;
   showTooltip?: boolean;
 }
 
@@ -21,6 +17,7 @@ function TooltipNumericInput({
   disabled = false,
   style,
   showTooltip = true,
+  ...inputProps
 }: TooltipNumericInputProps) {
   const [internalVal, setInternalVal] = useState(value);
 
@@ -35,6 +32,7 @@ function TooltipNumericInput({
 
   const inputNode = (
     <Input
+      {...inputProps}
       value={internalVal}
       onChange={handleChange}
       placeholder={placeholder}
