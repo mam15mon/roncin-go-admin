@@ -31,6 +31,37 @@ export type {
   OrderDetailFormValues,
 } from '../form-values';
 
+/** 请求边界保留分隔符，避免单独填写的多词船名被服务端当作船名和航次拆分。 */
+function serializeSeaVesselVoyage(
+  values: Pick<CreateOrderFormValues, 'vesselName' | 'voyageNo'>,
+) {
+  const vesselName = values.vesselName?.trim() || '';
+  const voyageNo = values.voyageNo?.trim() || '';
+  return vesselName || voyageNo ? `${vesselName} / ${voyageNo}`.trim() : '';
+}
+
+/** 活动主单提供结构化值；无活动摘要时按现行订单 DTO 的组合字段契约解码。 */
+function seaVesselFormValues(
+  order: API.Order,
+): Pick<OrderDetailFormValues, 'vesselName' | 'voyageNo'> {
+  if (order.seaMasterBill) {
+    return {
+      vesselName: order.seaMasterBill.vesselName,
+      voyageNo: order.seaMasterBill.voyageNo,
+    };
+  }
+  const value = order.vesselVoyage?.trim() || '';
+  const slashIndex = value.indexOf('/');
+  const separatorIndex = slashIndex >= 0 ? slashIndex : value.lastIndexOf(' ');
+  if (separatorIndex < 0) {
+    return { vesselName: value || undefined, voyageNo: undefined };
+  }
+  return {
+    vesselName: value.slice(0, separatorIndex).trim() || undefined,
+    voyageNo: value.slice(separatorIndex + 1).trim() || undefined,
+  };
+}
+
 /** 计算海运出口新建默认值：只依赖显式传入的创建人与主数据候选项。 */
 export function buildSeaExportCreateDefaults(
   context: OrderCreateDefaultsContext,
@@ -228,7 +259,7 @@ export function buildSeaExportCreatePayload(
     destinationLocationId: values.destinationLocationId || undefined,
     dischargeLocationId: values.dischargeLocationId || undefined,
     transitLocationId: values.transitLocationId || undefined,
-    vesselVoyage: values.vesselVoyage?.trim() || undefined,
+    vesselVoyage: serializeSeaVesselVoyage(values) || undefined,
     etd: values.etd
       ? dayjs(values.etd).startOf('day').toISOString()
       : undefined,
@@ -334,7 +365,7 @@ export function buildSeaExportDetailInitialValues(
     destinationLocationId: order.destinationLocationId,
     dischargeLocationId: order.dischargeLocationId,
     transitLocationId: order.transitLocationId,
-    vesselVoyage: order.vesselVoyage,
+    ...seaVesselFormValues(order),
     etd: order.etd ? dayjs(order.etd) : undefined,
     eta: order.eta ? dayjs(order.eta) : undefined,
     siCutoff: order.siCutoff ? dayjs(order.siCutoff) : undefined,
@@ -457,7 +488,7 @@ export function buildSeaExportUpdatePayload(
     destinationLocationId: values.destinationLocationId || undefined,
     dischargeLocationId: values.dischargeLocationId || undefined,
     transitLocationId: values.transitLocationId || undefined,
-    vesselVoyage: values.vesselVoyage?.trim() || undefined,
+    vesselVoyage: serializeSeaVesselVoyage(values),
     etd: values.etd
       ? dayjs(values.etd).startOf('day').toISOString()
       : undefined,

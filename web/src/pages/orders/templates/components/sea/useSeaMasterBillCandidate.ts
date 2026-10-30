@@ -13,7 +13,6 @@ import {
   seaVoyageDifferences,
   seaVoyageFields,
   seaVoyageFormValues,
-  splitSeaVesselVoyage,
 } from './sea-shared-voyage';
 
 /** 新建页共享同一次主单候选核对结果，供分单号展示当前主单内的可用性。 */
@@ -78,7 +77,8 @@ export function useSeaMasterBillCandidate(
       originLocationId: store.originLocationId,
       dischargeLocationId: store.dischargeLocationId,
       transitLocationId: store.transitLocationId,
-      vesselVoyage: store.vesselVoyage,
+      vesselName: store.vesselName,
+      voyageNo: store.voyageNo,
       etd: store.etd,
       eta: store.eta,
     }),
@@ -123,9 +123,6 @@ export function useSeaMasterBillCandidate(
       const queryMasterNo = queryIdentity.slice(separator + 1);
       // 候选身份只有船公司和主单号。回填航程不重新查询，差异在当前选定航次上即时展示。
       const current = form.getFieldsValue(true) as SeaVoyageValues;
-      const { vesselName, voyageNo } = splitSeaVesselVoyage(
-        current.vesselVoyage,
-      );
       const response = await orderServiceMatchSeaMasterBillCandidate(
         {
           masterNo: queryMasterNo,
@@ -133,8 +130,8 @@ export function useSeaMasterBillCandidate(
           originLocationId: current.originLocationId || undefined,
           dischargeLocationId: current.dischargeLocationId || undefined,
           transitLocationId: current.transitLocationId || undefined,
-          vesselName,
-          voyageNo,
+          vesselName: current.vesselName?.trim() || undefined,
+          voyageNo: current.voyageNo?.trim() || undefined,
           etd: current.etd
             ? dayjs(current.etd).startOf('day').toISOString()
             : undefined,

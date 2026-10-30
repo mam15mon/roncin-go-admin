@@ -29,10 +29,10 @@ describe('船在哪儿直接查询', () => {
   it.each([
     ['UNI-PROSPER', 'UNI-PROSPER'],
     ['EVER GIVEN', 'EVER GIVEN'],
-    ['  EVER GIVEN / 001W  ', 'EVER GIVEN'],
-    ['远洋 + 和平 / 001W', '远洋 + 和平'],
-  ])('按当前输入 %s 查询船名 %s', (vesselVoyage, vesselName) => {
-    setup({ vesselVoyage });
+    ['  EVER GIVEN  ', 'EVER GIVEN'],
+    ['远洋 + 和平', '远洋 + 和平'],
+  ])('按当前输入 %s 查询船名 %s', (inputName, vesselName) => {
+    setup({ vesselName: inputName, voyageNo: '001W' });
     const link = screen.getByRole('link', { name: '船在哪儿' });
     expect(link).toHaveAttribute(
       'href',
@@ -44,14 +44,23 @@ describe('船在哪儿直接查询', () => {
   });
 
   it('修改后查询新输入，只有空格时打开首页手动查询', async () => {
-    setup({ vesselVoyage: 'UNI-PROSPER' });
-    const input = screen.getByLabelText('船名航次');
-    fireEvent.change(input, { target: { value: 'EVER GIVEN / 001W' } });
+    const { form } = setup({ vesselName: 'UNI-PROSPER', voyageNo: '001W' });
+    const input = screen.getByLabelText('船名');
+    fireEvent.change(input, { target: { value: 'EVER GIVEN' } });
     await waitFor(() =>
       expect(screen.getByRole('link', { name: '船在哪儿' })).toHaveAttribute(
         'href',
         'https://www.shipxy.com/?kw=EVER%20GIVEN',
       ),
+    );
+    expect(screen.getByLabelText('航次')).toHaveValue('001W');
+    fireEvent.change(screen.getByLabelText('航次'), {
+      target: { value: '002E' },
+    });
+    expect(form.getFieldValue('vesselName')).toBe('EVER GIVEN');
+    expect(screen.getByRole('link', { name: '船在哪儿' })).toHaveAttribute(
+      'href',
+      'https://www.shipxy.com/?kw=EVER%20GIVEN',
     );
     fireEvent.change(input, { target: { value: '   ' } });
     await waitFor(() =>
@@ -60,6 +69,7 @@ describe('船在哪儿直接查询', () => {
         'https://www.shipxy.com/',
       ),
     );
+    expect(form.getFieldValue('voyageNo')).toBe('002E');
   });
 
   it('尚未填写船名时仍可打开首页手动查询', () => {
@@ -72,7 +82,8 @@ describe('船在哪儿直接查询', () => {
 
   it('共享航程船名只读时仍可查询，表单回填后更新链接', async () => {
     const { form } = setup({
-      vesselVoyage: 'UNI-PROSPER / 001W',
+      vesselName: 'UNI-PROSPER',
+      voyageNo: '001W',
       shippingLineId: 'line-1',
       seaMasterBillMasterNo: 'MBL123',
       seaMasterBillSharedVoyage: {
@@ -80,18 +91,20 @@ describe('船在哪儿直接查询', () => {
         voyage: { vesselName: 'UNI-PROSPER', voyageNo: '001W' },
       },
     });
-    expect(screen.getByLabelText('船名航次')).toBeDisabled();
+    expect(screen.getByLabelText('船名')).toBeDisabled();
+    expect(screen.getByLabelText('航次')).toBeDisabled();
     expect(screen.getByRole('link', { name: '船在哪儿' })).toHaveAttribute(
       'href',
       'https://www.shipxy.com/?kw=UNI-PROSPER',
     );
     await act(async () => {
-      form.setFieldValue('vesselVoyage', 'EVER GIVEN / 002E');
+      form.setFieldsValue({ vesselName: 'EVER GIVEN', voyageNo: '002E' });
     });
     expect(screen.getByRole('link', { name: '船在哪儿' })).toHaveAttribute(
       'href',
       'https://www.shipxy.com/?kw=EVER%20GIVEN',
     );
-    expect(form.getFieldValue('vesselVoyage')).toBe('EVER GIVEN / 002E');
+    expect(form.getFieldValue('vesselName')).toBe('EVER GIVEN');
+    expect(form.getFieldValue('voyageNo')).toBe('002E');
   });
 });

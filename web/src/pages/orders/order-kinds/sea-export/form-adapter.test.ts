@@ -519,7 +519,8 @@ describe('SE 适配器完整固定夹具等价', () => {
       destinationLocationId: 'loc-dest',
       dischargeLocationId: 'loc-discharge',
       transitLocationId: 'loc-transit',
-      vesselVoyage: '  COSCO STAR / 024W  ',
+      vesselName: '  COSCO STAR  ',
+      voyageNo: ' 024W ',
       etd: dayjs('2026-09-01T00:00:00.000Z'),
       eta: '2026-09-15T00:00:00.000Z',
       siCutoff: dayjs('2026-08-28T04:00:00.000Z'),
@@ -732,6 +733,8 @@ describe('SE 适配器完整固定夹具等价', () => {
           masterNo: 'COSCO999901',
           version: '7',
           shippingLineName: '中远海运',
+          vesselName: 'COSCO STAR',
+          voyageNo: '024W',
         } as API.SeaMasterBillSummary,
         seaDocumentStructure: 3,
         seaDocumentLinkVersion: '11',
@@ -781,7 +784,8 @@ describe('SE 适配器完整固定夹具等价', () => {
       destinationLocationId: 'loc-dest',
       dischargeLocationId: 'loc-discharge',
       transitLocationId: 'loc-transit',
-      vesselVoyage: 'COSCO STAR / 024W',
+      vesselName: 'COSCO STAR',
+      voyageNo: '024W',
       etd: dayjs('2026-09-01T00:00:00.000Z'),
       eta: dayjs('2026-09-15T00:00:00.000Z'),
       siCutoff: dayjs('2026-08-28T04:00:00.000Z'),
@@ -819,6 +823,8 @@ describe('SE 适配器完整固定夹具等价', () => {
         masterNo: 'COSCO999901',
         version: '7',
         shippingLineName: '中远海运',
+        vesselName: 'COSCO STAR',
+        voyageNo: '024W',
       },
       seaDocumentStructure: 3,
       seaDocumentLinkVersion: '11',
@@ -926,7 +932,8 @@ describe('SE 适配器完整固定夹具等价', () => {
       destinationLocationId: 'loc-dest',
       dischargeLocationId: 'loc-discharge',
       transitLocationId: 'loc-transit',
-      vesselVoyage: '  COSCO STAR / 024W  ',
+      vesselName: '  COSCO STAR  ',
+      voyageNo: ' 024W ',
       etd: dayjs('2026-09-01T00:00:00.000Z'),
       eta: '2026-09-15T00:00:00.000Z',
       siCutoff: dayjs('2026-08-28T04:00:00.000Z'),
@@ -1022,6 +1029,82 @@ describe('SE 适配器完整固定夹具等价', () => {
       },
     });
   });
+});
+
+describe('SE 船名与航次独立提交', () => {
+  it.each([
+    {
+      name: '多词船名与航次分别去除首尾空白',
+      vesselName: ' EVER GIVEN ',
+      voyageNo: ' 001W ',
+      serialized: 'EVER GIVEN / 001W',
+    },
+    {
+      name: '仅填写多词船名时保留空航次的明确分隔',
+      vesselName: 'EVER GIVEN',
+      voyageNo: undefined,
+      serialized: 'EVER GIVEN /',
+    },
+    {
+      name: '仅填写航次时保留空船名的明确分隔',
+      vesselName: undefined,
+      voyageNo: '001W',
+      serialized: '/ 001W',
+    },
+  ])('$name', ({ vesselName, voyageNo, serialized }) => {
+    const values = {
+      customerId: 'customer-1',
+      paymentTerm: 1,
+      vesselName,
+      voyageNo,
+    };
+    expect(buildSeaExportCreatePayload(values).vesselVoyage).toBe(serialized);
+    expect(
+      buildSeaExportUpdatePayload('order-1', '2', values).vesselVoyage,
+    ).toBe(serialized);
+    expect(values).toMatchObject({ vesselName, voyageNo });
+  });
+
+  it.each([
+    { vesselName: undefined, voyageNo: undefined },
+    { vesselName: '', voyageNo: '' },
+    { vesselName: '  ', voyageNo: '  ' },
+  ])('两项均空时新建省略，更新显式清空已有值：%j', (fields) => {
+    const values = { customerId: 'customer-1', paymentTerm: 1, ...fields };
+    expect(buildSeaExportCreatePayload(values).vesselVoyage).toBeUndefined();
+    expect(
+      buildSeaExportUpdatePayload('order-1', '2', values).vesselVoyage,
+    ).toBe('');
+  });
+});
+
+describe('SE 船名与航次独立回显', () => {
+  it('活动主单只填写多词船名时保持航次为空，不读取订单组合字段', () => {
+    const result = buildSeaExportDetailInitialValues({
+      vesselVoyage: 'OTHER / 099W',
+      seaMasterBill: { vesselName: 'EVER GIVEN' },
+    });
+    expect(result.vesselName).toBe('EVER GIVEN');
+    expect(result.voyageNo).toBeUndefined();
+    expect(result).not.toHaveProperty('vesselVoyage');
+  });
+
+  it.each([
+    ['EVER GIVEN / 001W', 'EVER GIVEN', '001W'],
+    ['EVER GIVEN /', 'EVER GIVEN', undefined],
+    ['/ 001W', undefined, '001W'],
+    ['EVER GIVEN 001W', 'EVER GIVEN', '001W'],
+    ['UNI-PROSPER', 'UNI-PROSPER', undefined],
+    ['', undefined, undefined],
+  ])(
+    '无活动摘要时按现行订单 DTO 契约解码 %s',
+    (vesselVoyage, vesselName, voyageNo) => {
+      const result = buildSeaExportDetailInitialValues({ vesselVoyage });
+      expect(result.vesselName).toBe(vesselName);
+      expect(result.voyageNo).toBe(voyageNo);
+      expect(result).not.toHaveProperty('vesselVoyage');
+    },
+  );
 });
 
 describe('seaExportFormAdapter', () => {

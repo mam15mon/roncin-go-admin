@@ -39,11 +39,14 @@ describe('共享主单航程继承', () => {
     expect(form.getFieldValue('originLocationId')).toBe('origin');
     expect(form.getFieldValue('dischargeLocationId')).toBe('discharge');
     expect(form.getFieldValue('transitLocationId')).toBe('transit');
+    expect(form.getFieldValue('vesselName')).toBe('EVER TEST');
+    expect(form.getFieldValue('voyageNo')).toBe('001W');
     expect(form.getFieldValue('etd').valueOf()).toBe(
       dayjs(voyage.etd).valueOf(),
     );
     for (const label of [
-      '船名航次',
+      '船名',
+      '航次',
       '起运港',
       '卸货港',
       '中转港',
@@ -71,7 +74,8 @@ describe('共享主单航程继承', () => {
       'orderServiceMatchSeaMasterBillCandidate',
     ).mockResolvedValue(candidateResponse());
     const { form } = renderVoyageForm({
-      vesselVoyage: 'OTHER / 002W',
+      vesselName: 'OTHER',
+      voyageNo: '002W',
       originLocationId: 'other-origin',
       etd: dayjs('2026-11-01'),
     });
@@ -81,9 +85,12 @@ describe('共享主单航程继承', () => {
       // 等待真实候选防抖查询，不依赖满载时默认 1s 的完成窗口。
       { timeout: 5000 },
     );
-    expect(form.getFieldValue('vesselVoyage')).toBe('OTHER / 002W');
+    expect(form.getFieldValue('vesselName')).toBe('OTHER');
+    expect(form.getFieldValue('voyageNo')).toBe('002W');
     expect(form.getFieldValue('originLocationId')).toBe('other-origin');
     expect(form.getFieldValue('seaMasterBillCandidateId')).toBeUndefined();
+    expect(screen.getByText('船名：本票 OTHER；主单 EVER TEST')).toBeVisible();
+    expect(screen.getByText('航次：本票 002W；主单 001W')).toBeVisible();
     expect(
       screen.getByText(/起运港：本票 宁波；主单 上海/),
     ).toBeInTheDocument();
@@ -100,7 +107,8 @@ describe('共享主单航程继承', () => {
     await waitFor(() =>
       expect(form.getFieldValue('seaMasterBillCandidateId')).toBe('mbl-1'),
     );
-    expect(form.getFieldValue('vesselVoyage')).toBe('EVER TEST / 001W');
+    expect(form.getFieldValue('vesselName')).toBe('EVER TEST');
+    expect(form.getFieldValue('voyageNo')).toBe('001W');
     expect(form.getFieldValue('originLocationId')).toBe('origin');
     await act(async () => {
       await expect(form.validateFields([masterField])).resolves.toEqual({
@@ -169,9 +177,8 @@ describe('共享主单航程继承', () => {
       },
       { isDetail: true },
     );
-    await waitFor(() =>
-      expect(screen.getByLabelText('船名航次')).toBeDisabled(),
-    );
+    await waitFor(() => expect(screen.getByLabelText('船名')).toBeDisabled());
+    expect(screen.getByLabelText('航次')).toBeDisabled();
     expect(screen.getByText('共用主单 MBL123，共 2 票')).toBeInTheDocument();
     expect(screen.getByText(/最终目的港由本票独立维护/)).toBeInTheDocument();
     shared.unmount();
@@ -185,7 +192,8 @@ describe('共享主单航程继承', () => {
       },
       { isDetail: true },
     );
-    expect(screen.getByLabelText('船名航次')).not.toBeDisabled();
+    expect(screen.getByLabelText('船名')).not.toBeDisabled();
+    expect(screen.getByLabelText('航次')).not.toBeDisabled();
     expect(screen.getByLabelText('ETD')).not.toBeDisabled();
     await act(async () => {});
   });
@@ -193,7 +201,8 @@ describe('共享主单航程继承', () => {
   it('父表单业务禁用状态不会被共享字段的可编辑默认值覆盖', async () => {
     renderVoyageForm({ shippingLineId: undefined }, { disabled: true });
     for (const label of [
-      '船名航次',
+      '船名',
+      '航次',
       '起运港',
       '卸货港',
       '中转港',

@@ -45,8 +45,6 @@ import {
   useSharedSeaVoyage,
 } from './useSeaMasterBillCandidate';
 
-export { splitSeaVesselVoyage } from './sea-shared-voyage';
-
 dayjs.extend(isoWeek);
 
 export function SeaMasterBillFields({
@@ -203,7 +201,7 @@ export function SeaMasterBillFields({
             description={
               <Space orientation="vertical" size={4}>
                 <span>
-                  船名航次、起运港、卸货港、中转港和船期由这些订单共同使用；最终目的港由本票独立维护。
+                  船名、航次、起运港、卸货港、中转港和船期由这些订单共同使用；最终目的港由本票独立维护。
                 </span>
               </Space>
             }
@@ -265,7 +263,7 @@ export function SeaMasterBillFields({
                 <div style={{ fontSize: 13 }}>
                   <span>共用航程：</span>
                   <span>
-                    船名航次：{selected.vesselName || '未填写'} /{' '}
+                    船名：{selected.vesselName || '未填写'}；航次：
                     {selected.voyageNo || '未填写'}；
                   </span>
                   <span>
@@ -648,29 +646,28 @@ export function SeaScheduleDateFields() {
   );
 }
 
-function SeaVesselVoyageField() {
+function SeaVesselFields() {
   const { readonly } = useSharedSeaVoyage();
   const form = Form.useFormInstance();
-  const vesselVoyage = Form.useWatch('vesselVoyage', {
+  const vesselValue = Form.useWatch('vesselName', {
     form,
     preserve: true,
   }) as string | undefined;
   const { token } = theme.useToken();
-  // 仅按明确分隔符去掉航次，保留没有分隔符的多词船名。
-  const vesselName = vesselVoyage?.split('/')[0].trim();
+  const vesselName = vesselValue?.trim();
   return (
-    <div>
+    <>
       <ProFormText
-        name="vesselVoyage"
-        label="船名航次"
-        placeholder="请输入船名航次"
+        name="vesselName"
+        label="船名"
+        placeholder="请输入船名"
         disabled={readonly || undefined}
         fieldProps={{
           suffix: (
             <Tooltip
               title={
                 vesselName
-                  ? '在船讯网查询当前船名；含航次请用“船名 / 航次”分隔'
+                  ? '在船讯网查询当前船名'
                   : '打开船讯网首页，手动查询船舶'
               }
             >
@@ -691,7 +688,13 @@ function SeaVesselVoyageField() {
           ),
         }}
       />
-    </div>
+      <ProFormText
+        name="voyageNo"
+        label="航次"
+        placeholder="请输入航次"
+        disabled={readonly || undefined}
+      />
+    </>
   );
 }
 
@@ -812,7 +815,7 @@ export function getSeaTransportFields(props: TemplateProps) {
         placeholder="请选择 COC / SOC"
       />
     ),
-    vessel: <SeaVesselVoyageField />,
+    vessel: <SeaVesselFields />,
     ports: (
       <SeaPortFields
         locationOptions={locationOptions}

@@ -7,7 +7,6 @@ import * as orderService from '@/services/roncin/orderService';
 import {
   SeaAssociatedHouseBillsField,
   SeaMasterBillFields,
-  splitSeaVesselVoyage,
 } from './components/sea/SeaTransportSection';
 import { getSeaTemplateSections } from './sea-template';
 
@@ -33,21 +32,6 @@ vi.mock('@/app/AppProvider', () => ({
 // 海运模板功能仍在快速迭代（分节合并/委托实际分离未定型），
 // 重型表单测试暂时跳过；功能稳定后移除 skip 恢复。
 describe.skip('海运订单新增模板', () => {
-  it('候选查询按后端相同规则拆分船名航次', () => {
-    expect(splitSeaVesselVoyage('EVER GIVEN / 001W')).toEqual({
-      vesselName: 'EVER GIVEN',
-      voyageNo: '001W',
-    });
-    expect(splitSeaVesselVoyage('EVER GIVEN 001W')).toEqual({
-      vesselName: 'EVER GIVEN',
-      voyageNo: '001W',
-    });
-    expect(splitSeaVesselVoyage('EVERGIVEN')).toEqual({
-      vesselName: 'EVERGIVEN',
-      voyageNo: undefined,
-    });
-  });
-
   it('候选匹配使用 ShippingLine 作为唯一船公司身份', async () => {
     const matchCandidate = vi
       .spyOn(orderService, 'orderServiceMatchSeaMasterBillCandidate')

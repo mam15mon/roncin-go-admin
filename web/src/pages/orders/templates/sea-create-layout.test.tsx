@@ -92,6 +92,13 @@ describe('SE 新建与详情五卡片合同', () => {
     expect(bookingSection).toHaveTextContent('船公司');
     expect(bookingSection).toHaveTextContent('MBL 主单号');
     expect(bookingSection).toHaveTextContent('提单模式');
+    const vessel = within(bookingSection).getByLabelText('船名');
+    const voyage = within(bookingSection).getByLabelText('航次');
+    expect(vessel).not.toBe(voyage);
+    expect(vessel.closest('.ant-form-item')?.parentElement).toBe(
+      voyage.closest('.ant-form-item')?.parentElement,
+    );
+    expect(within(bookingSection).queryByLabelText('船名航次')).toBeNull();
     await act(async () => {});
   });
 

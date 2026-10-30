@@ -23,6 +23,23 @@ const confirmationFields = [
 afterEach(() => vi.restoreAllMocks());
 
 describe('主单候选身份与异常路径', () => {
+  it('候选查询分别提交完整多词船名和航次，不从船名推断航次', async () => {
+    const match = vi
+      .spyOn(orderService, 'orderServiceMatchSeaMasterBillCandidate')
+      .mockResolvedValue({ matched: false });
+    const { form } = renderVoyageForm({
+      vesselName: '  EVER GIVEN  ',
+      voyageNo: '  001W  ',
+    });
+    await waitFor(() => expect(match).toHaveBeenCalledOnce());
+    expect(match.mock.calls[0][0]).toMatchObject({
+      vesselName: 'EVER GIVEN',
+      voyageNo: '001W',
+    });
+    expect(form.getFieldValue('vesselName')).toBe('  EVER GIVEN  ');
+    expect(form.getFieldValue('voyageNo')).toBe('  001W  ');
+  });
+
   it('缺船公司提示待核对，保存同时收集独立字段错误', async () => {
     const match = vi.spyOn(
       orderService,
@@ -72,7 +89,8 @@ describe('主单候选身份与异常路径', () => {
     });
     for (const field of confirmationFields)
       expect(form.getFieldValue(field)).toBeUndefined();
-    expect(form.getFieldValue('vesselVoyage')).toBe('EVER TEST / 001W');
+    expect(form.getFieldValue('vesselName')).toBe('EVER TEST');
+    expect(form.getFieldValue('voyageNo')).toBe('001W');
     expect(form.getFieldValue('destinationLocationId')).toBe('destination');
     expect(form.getFieldValue(['seaHouseBill', 'houseNo'])).toBe('HBL-NEW');
   });
@@ -123,7 +141,8 @@ describe('主单候选身份与异常路径', () => {
     await act(async () => old.resolve(candidateResponse()));
     expect(form.getFieldValue(masterField)).toBe('NEW456');
     expect(form.getFieldValue('seaMasterBillCandidateId')).toBeUndefined();
-    expect(form.getFieldValue('vesselVoyage')).toBeUndefined();
+    expect(form.getFieldValue('vesselName')).toBeUndefined();
+    expect(form.getFieldValue('voyageNo')).toBeUndefined();
     expect(screen.queryByText(/已找到主单 MBL123/)).not.toBeInTheDocument();
   });
 
@@ -146,7 +165,8 @@ describe('主单候选身份与异常路径', () => {
     expect(
       first.form.getFieldValue('seaMasterBillCandidateId'),
     ).toBeUndefined();
-    expect(first.form.getFieldValue('vesselVoyage')).toBeUndefined();
+    expect(first.form.getFieldValue('vesselName')).toBeUndefined();
+    expect(first.form.getFieldValue('voyageNo')).toBeUndefined();
     first.unmount();
     match.mockResolvedValue(candidateResponse());
     const second = renderVoyageForm({ seaDocumentStructure: undefined });
@@ -156,7 +176,8 @@ describe('主单候选身份与异常路径', () => {
     expect(
       second.form.getFieldValue('seaMasterBillCandidateId'),
     ).toBeUndefined();
-    expect(second.form.getFieldValue('vesselVoyage')).toBeUndefined();
+    expect(second.form.getFieldValue('vesselName')).toBeUndefined();
+    expect(second.form.getFieldValue('voyageNo')).toBeUndefined();
   });
 
   it('已确认候选切换后查询失败不保留旧确认，并显示可重试错误', async () => {
@@ -229,13 +250,15 @@ describe('主单候选身份与异常路径', () => {
       { timeout: 5000 },
     );
     expect(form.getFieldValue('seaMasterBillCandidateTeId')).toBeUndefined();
-    expect(form.getFieldValue('vesselVoyage')).toBeUndefined();
+    expect(form.getFieldValue('vesselName')).toBeUndefined();
+    expect(form.getFieldValue('voyageNo')).toBeUndefined();
     fireEvent.mouseDown(selector);
     fireEvent.click(await screen.findByText(/SECOND \/ 002W/));
     await waitFor(() =>
       expect(form.getFieldValue('seaMasterBillCandidateTeId')).toBe('te-2'),
     );
-    expect(form.getFieldValue('vesselVoyage')).toBe('SECOND / 002W');
+    expect(form.getFieldValue('vesselName')).toBe('SECOND');
+    expect(form.getFieldValue('voyageNo')).toBe('002W');
     await act(async () => form.setFieldValue(masterField, 'OTHER456'));
     await screen.findByRole('combobox', { name: '本票共用航程' });
     expect(form.getFieldValue('seaMasterBillCandidateTeId')).toBeUndefined();

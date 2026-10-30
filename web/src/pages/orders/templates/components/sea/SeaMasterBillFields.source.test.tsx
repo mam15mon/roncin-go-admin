@@ -92,7 +92,8 @@ describe('来源主单最新航程确认', () => {
         'te-source',
       ),
     );
-    expect(form.getFieldValue('vesselVoyage')).toBe('LATEST / 009W');
+    expect(form.getFieldValue('vesselName')).toBe('LATEST');
+    expect(form.getFieldValue('voyageNo')).toBe('009W');
     expect(form.getFieldValue('seaMasterBillExpectedCandidateTeVersion')).toBe(
       '9',
     );
@@ -118,7 +119,8 @@ describe('来源主单最新航程确认', () => {
     );
     await screen.findByText('来源主单或航程不可用');
     expect(form.getFieldValue('seaMasterBillCandidateTeId')).toBeUndefined();
-    expect(form.getFieldValue('vesselVoyage')).toBeUndefined();
+    expect(form.getFieldValue('vesselName')).toBeUndefined();
+    expect(form.getFieldValue('voyageNo')).toBeUndefined();
     await act(async () => {
       await expect(
         form.validateFields(['seaMasterBillMasterNo']),

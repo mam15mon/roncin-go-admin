@@ -94,7 +94,7 @@ export function getSeaTemplateSections(
           </TemplateFieldGroup>
           <TemplateFieldGroup title="共同航程">
             {props.sharedVoyageMaintenance}
-            <FormRow cols={4}>
+            <FormRow cols={5}>
               {transport.vessel}
               {transport.schedule}
             </FormRow>

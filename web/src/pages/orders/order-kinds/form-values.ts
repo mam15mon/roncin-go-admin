@@ -41,7 +41,8 @@ export type CreateOrderFormValues = {
   seaDischargePortOption?: { value: string; label: string };
   dischargeLocationId?: string;
   transitLocationId?: string;
-  vesselVoyage?: string;
+  vesselName?: string;
+  voyageNo?: string;
   etd?: string | dayjs.Dayjs;
   eta?: string | dayjs.Dayjs;
   siCutoff?: string | dayjs.Dayjs;

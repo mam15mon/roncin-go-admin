@@ -8,7 +8,8 @@ export type SeaVoyageValues = Pick<
   | 'originLocationId'
   | 'dischargeLocationId'
   | 'transitLocationId'
-  | 'vesselVoyage'
+  | 'vesselName'
+  | 'voyageNo'
   | 'etd'
   | 'eta'
 >;
@@ -48,26 +49,6 @@ export function seaMasterBillIdentity(
     : '';
 }
 
-export function splitSeaVesselVoyage(value?: string) {
-  const normalized = value?.trim() || '';
-  if (!normalized) return { vesselName: undefined, voyageNo: undefined };
-  const slashIndex = normalized.indexOf('/');
-  if (slashIndex >= 0) {
-    return {
-      vesselName: normalized.slice(0, slashIndex).trim() || undefined,
-      voyageNo: normalized.slice(slashIndex + 1).trim() || undefined,
-    };
-  }
-  const lastSpaceIndex = normalized.lastIndexOf(' ');
-  if (lastSpaceIndex >= 0) {
-    return {
-      vesselName: normalized.slice(0, lastSpaceIndex).trim() || undefined,
-      voyageNo: normalized.slice(lastSpaceIndex + 1).trim() || undefined,
-    };
-  }
-  return { vesselName: normalized, voyageNo: undefined };
-}
-
 export function seaVoyageFormValues(
   voyage: API.SeaTransportExecution,
 ): SeaVoyageValues {
@@ -75,10 +56,8 @@ export function seaVoyageFormValues(
     originLocationId: voyage.originLocationId,
     dischargeLocationId: voyage.dischargeLocationId,
     transitLocationId: voyage.transitLocationId,
-    vesselVoyage:
-      voyage.vesselName || voyage.voyageNo
-        ? `${voyage.vesselName || ''} / ${voyage.voyageNo || ''}`
-        : undefined,
+    vesselName: voyage.vesselName || undefined,
+    voyageNo: voyage.voyageNo || undefined,
     etd: voyage.etd ? dayjs(voyage.etd) : undefined,
     eta: voyage.eta ? dayjs(voyage.eta) : undefined,
   };
@@ -88,7 +67,8 @@ export const seaVoyageFields = [
   'originLocationId',
   'dischargeLocationId',
   'transitLocationId',
-  'vesselVoyage',
+  'vesselName',
+  'voyageNo',
   'etd',
   'eta',
 ] as const;
@@ -107,10 +87,8 @@ function comparableVoyageValue(
       ? dayjs(value).startOf('day').toISOString()
       : 'invalid';
   }
-  if (field === 'vesselVoyage') {
-    const split = splitSeaVesselVoyage(String(value));
-    return `${split.vesselName?.toUpperCase() || ''}/${split.voyageNo?.toUpperCase() || ''}`;
-  }
+  if (field === 'vesselName' || field === 'voyageNo')
+    return String(value).trim().toUpperCase();
   return String(value);
 }
 
@@ -124,7 +102,8 @@ export function seaVoyageDifferences(
     originLocationId: '起运港',
     dischargeLocationId: '卸货港',
     transitLocationId: '中转港',
-    vesselVoyage: '船名航次',
+    vesselName: '船名',
+    voyageNo: '航次',
     etd: 'ETD',
     eta: 'ETA',
   };
@@ -141,7 +120,7 @@ export function seaVoyageDifferences(
     if (isEmptySeaVoyageValue(value)) return '未填写';
     if (field === 'etd' || field === 'eta')
       return formatDate(dayjs(value).toDate(), 'date');
-    if (field === 'vesselVoyage') return String(value);
+    if (field === 'vesselName' || field === 'voyageNo') return String(value);
     return (
       (shared ? locationNames[field] : undefined) ||
       locationOptions.find((option) => option.value === value)?.label ||

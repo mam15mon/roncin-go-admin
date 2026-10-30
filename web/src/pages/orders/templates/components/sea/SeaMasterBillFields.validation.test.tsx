@@ -147,7 +147,7 @@ describe('主单候选核对与字段校验同步', () => {
   it('命中航程冲突后保留真实阻断错误', async () => {
     const { resolve, form } = await setupPending();
     await act(async () =>
-      form.current?.setFieldValue('vesselVoyage', 'OTHER / 002W'),
+      form.current?.setFieldsValue({ vesselName: 'OTHER', voyageNo: '002W' }),
     );
     await act(async () =>
       resolve({
