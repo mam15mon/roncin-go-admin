@@ -9,6 +9,7 @@ import {
 } from '@testing-library/react';
 import { useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { orderErrorReasons } from '@/errorReasons.generated';
 import { orderServiceUpdateOrder } from '@/services/roncin/orderService';
 import { useSeaOrderSave } from './use-sea-order-save';
 
@@ -19,6 +20,7 @@ const update = vi.mocked(orderServiceUpdateOrder);
 function Harness({ reload }: { reload: () => Promise<void> }) {
   const save = useSeaOrderSave('sea:order-1', reload);
   const [result, setResult] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   return (
     <>
       <ProForm
@@ -33,7 +35,10 @@ function Harness({ reload }: { reload: () => Promise<void> }) {
             });
             setResult(ok);
             return ok;
-          } catch {
+          } catch (error) {
+            setErrorMessage(
+              error instanceof Error ? error.message : '保存失败',
+            );
             return false;
           }
         }}
@@ -42,6 +47,7 @@ function Harness({ reload }: { reload: () => Promise<void> }) {
       </ProForm>
       <output>{save.status}</output>
       <output>{result ? '完成' : '未完成'}</output>
+      <output>{errorMessage}</output>
       <button
         type="button"
         onClick={async () => {
@@ -58,13 +64,24 @@ function Harness({ reload }: { reload: () => Promise<void> }) {
 beforeEach(() => vi.clearAllMocks());
 describe('整页保存提交生命周期', () => {
   it('真实表单onFinish一次写入后刷新，失败保留输入', async () => {
-    update.mockRejectedValueOnce({ response: { status: 409 } });
+    update.mockRejectedValueOnce({
+      response: {
+        status: 409,
+        data: {
+          reason: orderErrorReasons.ORDER_STATUS_CONFLICT,
+          message: '订单状态已被其他操作修改',
+        },
+      },
+    });
     const reload = vi.fn().mockResolvedValue(undefined);
     render(<Harness reload={reload} />);
     await act(async () =>
       fireEvent.click(screen.getByRole('button', { name: /保\s*存/ })),
     );
     await waitFor(() => expect(update).toHaveBeenCalledTimes(1));
+    expect(
+      await screen.findByText('这个订单已经发生变动，请重新刷新。'),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText('备注')).toHaveValue('草稿');
     expect(reload).not.toHaveBeenCalled();
     update.mockResolvedValue({ data: { id: 'order-1' } });
@@ -127,12 +144,22 @@ describe('整页保存提交生命周期', () => {
     expect(result.current.status).toBe('idle');
     expect(result.current.frozen).toBe(false);
   });
-  it('服务端拒绝保存时保留中文业务原因', async () => {
+  it.each([
+    [orderErrorReasons.SEA_HOUSE_BILL_EXISTS, '海运分单号已存在'],
+    [
+      orderErrorReasons.SEA_MASTER_BILL_CORRECTION_BLOCKED,
+      '主单存在下游事实，不能更正',
+    ],
+    [
+      orderErrorReasons.SEA_MASTER_BILL_VOYAGE_CONFLICT,
+      '航程信息与已有主单冲突',
+    ],
+  ])('非并发拒绝 %s 保留中文业务原因', async (reason, message) => {
     update.mockRejectedValueOnce(
       Object.assign(new Error('Request failed with status code 409'), {
         response: {
           status: 409,
-          data: { message: '分单已被更新，请刷新后重试' },
+          data: { reason, message },
         },
       }),
     );
@@ -140,8 +167,43 @@ describe('整页保存提交生命周期', () => {
     await act(async () => {
       await expect(
         result.current.submit({ id: 'order-A', expectedVersion: '3' }),
-      ).rejects.toThrow('分单已被更新，请刷新后重试');
+      ).rejects.toThrow(message);
     });
     expect(result.current.frozen).toBe(false);
+  });
+
+  describe.each(['response', 'data'] as const)('%s 错误信封', (envelope) => {
+    it.each([
+      orderErrorReasons.ORDER_STATUS_CONFLICT,
+      orderErrorReasons.SEA_MASTER_BILL_STATUS_CONFLICT,
+      orderErrorReasons.SEA_HOUSE_BILL_STATUS_CONFLICT,
+      orderErrorReasons.SEA_DOCUMENT_STRUCTURE_CONFLICT,
+      orderErrorReasons.SEA_DOCUMENT_VERSION_CONFLICT,
+      orderErrorReasons.SEA_MASTER_BILL_CONFLICT,
+      orderErrorReasons.SEA_HOUSE_BILL_CONFLICT,
+    ])('%s 统一展示刷新提示且不刷新或重试', async (reason) => {
+      const data = { code: 409, reason, message: '服务端内部并发提示' };
+      update.mockRejectedValueOnce(
+        envelope === 'response'
+          ? { response: { status: 409, data } }
+          : { data },
+      );
+      const reload = vi.fn();
+      const { result } = renderHook(() => useSeaOrderSave('A', reload));
+      const payload = {
+        id: 'order-A',
+        expectedVersion: '3',
+        notes: '未保存输入',
+      };
+      await act(async () => {
+        await expect(result.current.submit(payload)).rejects.toThrow(
+          '这个订单已经发生变动，请重新刷新。',
+        );
+      });
+      expect(result.current.status).toBe('idle');
+      expect(result.current.frozen).toBe(false);
+      expect(update).toHaveBeenCalledOnce();
+      expect(reload).not.toHaveBeenCalled();
+    });
   });
 });

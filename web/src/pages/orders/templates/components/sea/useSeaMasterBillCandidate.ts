@@ -233,14 +233,12 @@ export function useSeaMasterBillCandidate(
       'seaMasterBillCandidateId',
       candidateReady ? candidate?.id : undefined,
     );
-    setValue(
-      'seaMasterBillExpectedCandidateVersion',
-      candidateReady
-        ? candidate?.version
-        : isDetail
-          ? existing?.version
-          : undefined,
-    );
+    // 详情版本与当前编辑快照绑定，候选查询不得重写恢复的草稿版本。
+    if (!isDetail)
+      setValue(
+        'seaMasterBillExpectedCandidateVersion',
+        candidateReady ? candidate?.version : undefined,
+      );
     setValue(
       'seaMasterBillCandidateTeId',
       candidateReady ? selected?.id : undefined,
@@ -273,7 +271,6 @@ export function useSeaMasterBillCandidate(
     batchDirectBlocked,
     requiresHouse,
     isDetail,
-    existing?.version,
     houseNumberCheckKey,
   ]);
 

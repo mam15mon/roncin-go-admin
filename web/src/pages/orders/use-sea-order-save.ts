@@ -1,9 +1,24 @@
 import { useLayoutEffect, useRef, useState } from 'react';
-import { getRequestErrorMessage } from '@/requestErrorConfig';
+import { orderErrorReasons } from '@/errorReasons.generated';
+import {
+  getRequestErrorMessage,
+  getRequestErrorStatus,
+  type RequestError,
+} from '@/requestErrorConfig';
 import { orderServiceUpdateOrder } from '@/services/roncin/orderService';
 import { generateUUID } from '@/utils/uuid';
 
 type SaveStatus = 'idle' | 'saving' | 'unknown' | 'refresh';
+// 只收敛真正的并发冲突，号码占用和业务限制仍展示服务端具体原因。
+const concurrentChangeReasons = new Set<string>([
+  orderErrorReasons.ORDER_STATUS_CONFLICT,
+  orderErrorReasons.SEA_MASTER_BILL_STATUS_CONFLICT,
+  orderErrorReasons.SEA_HOUSE_BILL_STATUS_CONFLICT,
+  orderErrorReasons.SEA_DOCUMENT_STRUCTURE_CONFLICT,
+  orderErrorReasons.SEA_DOCUMENT_VERSION_CONFLICT,
+  orderErrorReasons.SEA_MASTER_BILL_CONFLICT,
+  orderErrorReasons.SEA_HOUSE_BILL_CONFLICT,
+]);
 /** 一个提交意图冻结同一载荷；已确认写入后只允许重读，不重复写入。 */
 export function useSeaOrderSave(
   identity: string | undefined,
@@ -65,30 +80,31 @@ export function useSeaOrderSave(
             throw new Error('未能确认保存结果，请重试同一次提交');
           request.committed = true;
         } catch (error) {
+          const requestError =
+            error && typeof error === 'object'
+              ? (error as RequestError)
+              : undefined;
+          const status = requestError
+            ? getRequestErrorStatus(requestError)
+            : undefined;
           const knownRejected =
-            error &&
-            typeof error === 'object' &&
-            'response' in error &&
-            Boolean(
-              error.response &&
-                typeof error.response === 'object' &&
-                'status' in error.response &&
-                typeof error.response.status === 'number' &&
-                error.response.status >= 400 &&
-                error.response.status < 500,
-            );
+            status !== undefined && status >= 400 && status < 500;
+          const reason =
+            requestError?.data?.reason ?? requestError?.response?.data?.reason;
           if (knownRejected && isCurrent()) pending.current = undefined;
           if (isCurrent())
             setState({ identity, status: knownRejected ? 'idle' : 'unknown' });
           throw new Error(
-            error && typeof error === 'object'
-              ? getRequestErrorMessage(
-                  error,
-                  knownRejected
-                    ? '保存失败，输入已保留'
-                    : '未能确认保存结果，请重试同一次提交',
-                )
-              : '保存失败，输入已保留',
+            status === 409 && concurrentChangeReasons.has(reason ?? '')
+              ? '这个订单已经发生变动，请重新刷新。'
+              : requestError
+                ? getRequestErrorMessage(
+                    requestError,
+                    knownRejected
+                      ? '保存失败，输入已保留'
+                      : '未能确认保存结果，请重试同一次提交',
+                  )
+                : '保存失败，输入已保留',
           );
         }
       }

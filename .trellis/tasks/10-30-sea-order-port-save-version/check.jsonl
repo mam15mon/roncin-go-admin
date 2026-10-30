@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "定向测试和最终前端验收门禁"}
+{"file": ".trellis/spec/web/frontend/sea-master-voyage-inheritance.md", "reason": "审查版本、草稿、共享航程和提交基线"}
+{"file": ".trellis/tasks/10-30-sea-order-port-save-version/research/save-boundary.md", "reason": "验证修复覆盖真实 Form 提交边界"}

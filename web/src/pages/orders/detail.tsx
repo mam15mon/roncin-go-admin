@@ -247,6 +247,9 @@ export default function OrderDetailPage() {
       ...seaDocumentFormValues(currentDocuments),
       id: order?.id,
       version: restoredDraft ? restoredDraft.version : order?.version,
+      seaMasterBillExpectedCandidateVersion: restoredDraft
+        ? restoredDraft.seaMasterBillExpectedCandidateVersion
+        : order?.seaMasterBill?.version,
       ...(restoredDraft?.seaMasterBillContent
         ? {
             seaMasterBillContentVersion:
@@ -280,6 +283,7 @@ export default function OrderDetailPage() {
       ...initialValues,
       id: order?.id,
       version: order?.version,
+      seaMasterBillExpectedCandidateVersion: order?.seaMasterBill?.version,
       ...seaDocumentFormValues(currentDocuments),
     });
 
@@ -349,6 +353,7 @@ export default function OrderDetailPage() {
       ...initialValues,
       id: order.id,
       version: order.version,
+      seaMasterBillExpectedCandidateVersion: order.seaMasterBill?.version,
       ...seaDocumentFormValues(seaDocuments),
     });
   }, [
@@ -486,6 +491,16 @@ export default function OrderDetailPage() {
       onOrderDataChanged: async (document?: 'master' | 'house' | 'mode') => {
         const identity = orderFormIdentity;
         const token = explicitRefreshTokenRef.current;
+        const previousOrderVersion = formRef.current?.getFieldValue(
+          'version',
+        ) as string | undefined;
+        const previousMasterBillId = formRef.current?.getFieldValue([
+          'seaMasterBill',
+          'masterBillId',
+        ]) as string | undefined;
+        const previousMasterVersion = formRef.current?.getFieldValue(
+          'seaMasterBillExpectedCandidateVersion',
+        ) as OrderDetailFormValues['seaMasterBillExpectedCandidateVersion'];
         const bundle = await loadData();
         if (
           token !== explicitRefreshTokenRef.current ||
@@ -494,8 +509,30 @@ export default function OrderDetailPage() {
         )
           return;
         const latest = bundle.seaDocuments;
-        // 正式改单与模式变更均推进订单版本；只推进本次命令成功后的版本，不覆盖普通字段草稿。
-        formRef.current?.setFieldValue('version', bundle.order?.version);
+        // 正式动作只推进一次订单版本；重读包含其他更新时，不能给旧普通字段草稿套用新版本。
+        if (
+          previousOrderVersion &&
+          bundle.order?.version &&
+          BigInt(bundle.order.version) === BigInt(previousOrderVersion) + 1n
+        )
+          formRef.current?.setFieldValue('version', bundle.order.version);
+        const latestMasterBill = bundle.order?.seaMasterBill;
+        // 只采纳本次主单动作的递增版本；重读包含其他写入时保留旧草稿版本，由保存时的冲突校验保护。
+        if (
+          document === 'master' &&
+          previousMasterBillId &&
+          previousMasterVersion &&
+          previousMasterBillId === latestMasterBill?.masterBillId &&
+          latestMasterBill?.version &&
+          BigInt(latestMasterBill.version) ===
+            BigInt(previousMasterVersion) + 1n
+        ) {
+          formRef.current?.setFieldValue('seaMasterBill', latestMasterBill);
+          formRef.current?.setFieldValue(
+            'seaMasterBillExpectedCandidateVersion',
+            latestMasterBill.version,
+          );
+        }
         setDocumentBaseline((previous) => ({
           identity,
           documents: mergeSeaDocumentBaseline(
@@ -566,33 +603,25 @@ export default function OrderDetailPage() {
     if (definition.transportMode === 'sea') {
       if (!currentDocuments) return false;
       try {
-        if (!formRef.current?.getFieldValue('version'))
-          throw new Error('订单草稿缺少原版本，请保留输入并刷新核对后重试');
+        const draftValues = formRef.current?.getFieldsValue(true) as
+          | OrderDetailFormValues
+          | undefined;
+        if (!draftValues?.version)
+          throw new Error('订单草稿信息不完整，输入已保留，请刷新后重试。');
         const payload = definition.form.buildUpdatePayload(
           orderId,
-          formRef.current?.getFieldValue('version') || '0',
-          values,
+          draftValues.version,
+          // onFinish 仅包含已注册字段；主单版本等元数据必须来自同一份完整编辑快照。
+          { ...draftValues, ...values },
         );
+        if (
+          payload.seaMasterBill &&
+          !payload.seaMasterBill.expectedCandidateVersion
+        )
+          throw new Error('订单草稿信息不完整，输入已保留，请刷新后重试。');
         const saved = await seaSave.submit({
           ...payload,
-          // onFinish 仅含已注册字段，隐藏的件重尺/备注仍属于完整单证，不能误删。
-          seaDocument: buildSeaDocumentUpdate(
-            {
-              seaMasterBillContentVersion:
-                formRef.current?.getFieldValue('seaMasterBillContentVersion') ??
-                values.seaMasterBillContentVersion,
-              seaDocumentLinkVersion:
-                formRef.current?.getFieldValue('seaDocumentLinkVersion') ??
-                values.seaDocumentLinkVersion,
-              seaMasterBillContent:
-                formRef.current?.getFieldValue('seaMasterBillContent') ??
-                values.seaMasterBillContent,
-              seaHouseBill:
-                formRef.current?.getFieldValue('seaHouseBill') ??
-                values.seaHouseBill,
-            },
-            currentDocuments,
-          ),
+          seaDocument: buildSeaDocumentUpdate(draftValues, currentDocuments),
         });
         if (saved) message.success('保存订单成功');
         return saved;

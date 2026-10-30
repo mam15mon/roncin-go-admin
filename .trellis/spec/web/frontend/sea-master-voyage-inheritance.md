@@ -109,6 +109,12 @@ const affectedOrderIds = preview.memberOrderIds ?? [];
 - 单证组包从完整 Form store 读取，不能只用 `onFinish` 返回的已注册字段；否则未展示的
   件重尺或备注会被误清空。草稿持久化必须包含与编辑内容匹配的订单/MBL/HBL/Link
   基线版本，恢复时不得用最新查询版本替换旧草稿版本后提交。
+- 主单身份与航程更新同样从完整 Form store 组包：
+  `seaMasterBillExpectedCandidateVersion` 是未注册的编辑基线，必须映射到
+  `seaMasterBill.expectedCandidateVersion`，不能只读取 `onFinish(values)`。
+  单票草稿修改起运港、卸货港、中转港或船期时，缺失该版本会被后端判为主单冲突；
+  候选同步与后台刷新不得替换已恢复草稿的原版本。回归必须通过真实 Form 提交，
+  验证请求版本、连续保存后的版本推进、过期版本拒绝及输入保留，禁止为测试额外注册该字段。
 - 保存期间通过 `editingDisabled` 冻结编辑与重复提交，不能以业务 `readonly` 关闭
   脏页签离开保护；失败保留字段、草稿和未保存标记。成功后同步完整
   订单/单证快照，再清草稿；不能只更新版本但仍显示另一来源的旧正文。
@@ -120,3 +126,10 @@ const affectedOrderIds = preview.memberOrderIds ?? [];
 - 单证专用动作成功后按 master/house/mode 范围刷新基线与对应字段，保留另一份
   草稿及版本；并发完成必须以最新 state 合并，不能合并闭包旧基线。异步结果除订单
   身份外还须检查发起代次，覆盖 A→B→A 的迟到结果。
+  订单编辑版本只在重读结果恰为原版本加一时推进；若包含其他人的后续订单写入，
+  保留旧版本让整页保存返回冲突，不能以动作成功为由采纳任意更晚的查询版本。
+- 仅校验并推进 MBL 版本的 master 动作成功后，可同步主单摘要与
+  `seaMasterBillExpectedCandidateVersion`；mode/house 不推进 MBL，必须保留原主单
+  编辑版本，不能借动作后的最新查询版本放行旧港口草稿覆盖并发修改。
+  master 动作后的重读也须确认版本只推进了本次动作的一次增量；读到更晚版本时
+  保留原主单编辑版本，让后续保存返回冲突，不能用最新查询结果替换旧航程的基线。
