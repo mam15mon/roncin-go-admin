@@ -636,11 +636,15 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
         <ProFormRadio.Group
           name="shipmentMode"
           label="集运/跨境"
+          formItemProps={{ htmlFor: undefined }}
+          fieldProps={{ 'aria-label': '集运/跨境' }}
           options={shipmentModeOptions}
         />
         <ProFormRadio.Group
           name="shipmentType"
           label="托运类型"
+          formItemProps={{ htmlFor: undefined }}
+          fieldProps={{ 'aria-label': '托运类型' }}
           options={shipmentTypeOptions}
         />
       </FormRow>
@@ -650,6 +654,8 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
         <ProFormCheckbox.Group
           name="cargoCategoryIds"
           label="货物品类"
+          formItemProps={{ htmlFor: undefined }}
+          fieldProps={{ 'aria-label': '货物品类' }}
           options={cargoCategoryOptions}
         />
       </div>

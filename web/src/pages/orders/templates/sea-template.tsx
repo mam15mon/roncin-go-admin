@@ -152,9 +152,10 @@ function SeaDocumentModeDisplayField({ props }: { props: TemplateProps }) {
       <Form.Item
         name="seaDocumentStructure"
         label="提单模式"
+        htmlFor={undefined}
         style={{ marginBottom: 0 }}
       >
-        <Radio.Group disabled>
+        <Radio.Group aria-label="提单模式" disabled>
           <Radio.Button
             value={SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE}
           >

@@ -207,12 +207,14 @@ export function HouseBillIdentityFields({
         <Form.Item
           name={[fieldKey, 'issuerSource']}
           label="分单签发主体"
+          htmlFor={undefined}
           required
           rules={[{ required: true, message: '请选择分单签发主体' }]}
           layout="vertical"
           style={{ marginBottom: 16 }}
         >
           <Radio.Group
+            aria-label="分单签发主体"
             disabled={disabled || undefined}
             onChange={() =>
               form.setFieldValue([fieldKey, 'issuerPartnerId'], undefined)
