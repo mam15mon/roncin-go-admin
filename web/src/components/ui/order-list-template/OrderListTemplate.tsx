@@ -14,6 +14,7 @@ import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
 import { Button, Card, Dropdown, Space, Tag, Tooltip } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ShipmentType } from '@/enums.generated';
 import { toTableRequest } from '@/utils/api';
 import { formatDate } from '@/utils/format';
 import { useColumnSettings } from '../column-settings';
@@ -536,7 +537,10 @@ export function OrderListTemplate({
                         },
                       ]
                     : []),
-                  ...(onOpenConsolidations && options?.transportMode !== 'air'
+                  ...(onOpenConsolidations &&
+                  options?.transportMode === 'sea' &&
+                  record.rawRecord?.shipmentType ===
+                    ShipmentType.SHIPMENT_TYPE_LCL
                     ? [
                         {
                           key: 'consolidations',

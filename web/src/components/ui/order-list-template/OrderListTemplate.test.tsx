@@ -9,6 +9,7 @@ import {
 import { ConfigProvider } from 'antd';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ShipmentType } from '@/enums.generated';
 import { OrderListSearchFilter } from './OrderListSearchFilter';
 import { OrderListTemplate } from './OrderListTemplate';
 import { OrderListToolbar } from './OrderListToolbar';
@@ -60,6 +61,7 @@ describe('OrderListTemplate', () => {
           stage: ['已退关', '已完结'],
           statusName: '已配舱',
           abnormalLevel: 'high',
+          rawRecord: { shipmentType: ShipmentType.SHIPMENT_TYPE_LCL },
         } as OrderListItem,
         {
           id: 'order-2',
@@ -79,6 +81,7 @@ describe('OrderListTemplate', () => {
           queryOrders={mockQuery}
           onCreateOrder={vi.fn()}
           onOpenConsolidations={vi.fn()}
+          options={{ transportMode: 'sea' }}
         />
       </ConfigProvider>,
     );
