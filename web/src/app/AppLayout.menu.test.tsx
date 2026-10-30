@@ -1,4 +1,5 @@
 import type { ProLayoutProps } from '@ant-design/pro-components';
+import layoutSettings from '@root/config/defaultSettings';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter, useLocation } from 'react-router';
@@ -28,6 +29,7 @@ vi.mock('./AppProvider', () => ({
   PUBLIC_AUTH_PATHS: new Set(['/user/login']),
   useInitialState: () => ({
     initialState: {
+      settings: layoutSettings,
       currentUser: state.loggedIn
         ? { id: 'user', currentOrganization: { id: 'org' } }
         : undefined,
@@ -71,6 +73,21 @@ vi.mock('@ant-design/pro-components', () => ({
       ]) ?? [];
     return (
       <div>
+        {typeof props.menuHeaderRender === 'function'
+          ? props.menuHeaderRender(
+              state.md ? (
+                <img src="/logo.svg" alt="logo" />
+              ) : (
+                <span>
+                  <a>
+                    <img src="/logo.svg" alt="logo" />
+                  </a>
+                </span>
+              ),
+              state.md ? <h1>Roncin 货代后台</h1> : null,
+              props,
+            )
+          : null}
         {groups.map((group) => (
           <div key={group.key}>
             {group.name}
@@ -187,3 +204,33 @@ it('未登录补充守卫保留业务路径、查询和锚点', () => {
     '/user/login?redirect=%2Forders%2Fsea-export%2F123%3Ftab%3Dfees%23cost',
   );
 });
+
+it.each([true, false])(
+  'Logo在桌面状态%s时仅包含单层链接并返回首页',
+  async (md) => {
+    state.md = md;
+    const errors = vi.spyOn(console, 'error');
+    try {
+      const { container } = render(
+        <MemoryRouter initialEntries={['/orders/sea-export']}>
+          <AppLayout />
+          <CurrentLocation />
+        </MemoryRouter>,
+      );
+      const logo = screen.getByRole('img', { name: 'logo' });
+      const link = logo.closest('a');
+      expect(link).toHaveAttribute('href', '/welcome');
+      expect(container.querySelector('a a')).toBeNull();
+      fireEvent.click(logo);
+      expect(await screen.findByText('/welcome')).toBeInTheDocument();
+      expect(errors.mock.calls.flat().join(' ')).not.toContain(
+        'cannot be a descendant',
+      );
+      expect(errors.mock.calls.flat().join(' ')).not.toContain(
+        'cannot contain a nested',
+      );
+    } finally {
+      errors.mockRestore();
+    }
+  },
+);

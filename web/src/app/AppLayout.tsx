@@ -168,12 +168,23 @@ export function AppLayout() {
         locale: false,
         collapsedWidth: layoutDimensions.collapsedSiderWidth,
       }}
-      menuHeaderRender={(logo, title) => (
+      menuHeaderRender={(_logo, title) => (
         <Link
           to="/welcome"
           style={{ display: 'flex', alignItems: 'center', gap: 10 }}
         >
-          {logo}
+          {typeof layoutSettings?.logo === 'string' ? (
+            <img
+              src={layoutSettings.logo}
+              width="auto"
+              height={22}
+              alt="logo"
+            />
+          ) : typeof layoutSettings?.logo === 'function' ? (
+            layoutSettings.logo()
+          ) : (
+            layoutSettings?.logo
+          )}
           {title}
         </Link>
       )}
