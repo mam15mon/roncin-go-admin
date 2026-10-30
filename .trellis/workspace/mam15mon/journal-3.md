@@ -803,3 +803,40 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 178: 修复海运订单保存冲突并提前提示资料变动
+<!-- trellis-session: v=2 fp=8a1d907f5ae02e9b -->
+
+**Date**: 2026-10-30
+**Task**: 修复海运订单保存冲突并提前提示资料变动
+**Branch**: `codex/fix-sea-order-port-save-version`
+
+### Summary
+
+修复主单版本漏传与草稿并发保护；新增15秒前台变动检查、持续提醒和刷新确认，业务人员不感知并发版本号；独立review与最终前端门禁通过。
+
+### Main Changes
+
+- 海运详情完整编辑快照保存，旧草稿不借用最新版本，正式动作精确推进并保留独立航程基线。
+- 当前前台每15秒轻量检查，切回立即检查；输入保留、刷新确认与在途冻结，统一规则同步。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `63918953` | fix: 修复海运订单保存时主单版本遗漏并保留并发保护 |
+| `6a4a8e74` | feat: 海运订单提前提示资料变动并保护刷新前的输入 |
+
+### Testing
+
+- [OK] 最终check:web通过：350文件1902例通过，1文件12例跳过；既有lint/localhost测试噪声未扩scope。
+- [OK] 新增真实Query/Form/Modal7例无stderr；Hook18例及相关草稿/保存回归通过；tsc、Biome、antd lint、diff检查通过。
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 按授权合并main并push，核实远端包含全部提交后安全删除本地修复分支。
