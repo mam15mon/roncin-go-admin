@@ -3,7 +3,6 @@ import {
   DollarOutlined,
   DownOutlined,
   EditOutlined,
-  EyeOutlined,
   FileDoneOutlined,
   InboxOutlined,
   LockOutlined,
@@ -455,14 +454,6 @@ export function OrderListTemplate({
         fixed: 'right',
         render: (_, record) => (
           <Space size="small">
-            <Button
-              type="link"
-              size="small"
-              icon={<EyeOutlined />}
-              onClick={() => onViewDetail?.(record)}
-            >
-              详情
-            </Button>
             {!readonly && onEditOrder && (
               <Button
                 type="link"
@@ -592,12 +583,7 @@ export function OrderListTemplate({
   const columnSettings = useColumnSettings<ProColumns<OrderListItem>>({
     tableKey: columnSettingsKey,
     columns,
-    structuralKeys: [
-      'option',
-      ...trailingColumns.map((column) =>
-        String(column.key ?? column.dataIndex),
-      ),
-    ],
+    structuralKeys: ['option'],
   });
 
   return (

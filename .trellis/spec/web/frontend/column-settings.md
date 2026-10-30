@@ -62,6 +62,8 @@ interface ColumnSettingsValue extends ColumnSettingsPreference {
   `valueType: 'option'` 或显式 structuralKeys，序号识别 index/indexBorder；
   选择和展开使用官方 sentinel。禁止按中文标题猜身份。ReactNode 列名经
   titleOverrides 提供纯文本名称，不读取 render 结果。
+- 追加位置不代表结构身份：订单模板的 `trailingColumns` 是普通业务末列，不整体加入 `structuralKeys`。例如“订单审核”状态列应参与显隐、调序与冻结；真正的 `option` 操作列仍是辅助结构列。审核入口保留在既有审核状态列，操作列不重复提供审核动作或可由订单编号进入的详情按钮。
+- 订单列表默认隐藏序号、业务类型、创建人、订单锁定时间、配舱备注、订舱备注、操作备注和提成；全部仍可在列设置中开启。序号使用稳定 `rowNumber` key 作为普通可选列，不再声明为强制展示的 `index` 结构列。复用 `defaultHiddenKeys`，不改存储标识或覆盖已有个人偏好；“恢复默认”应用上述精简布局。
 - 本地 key 为 `roncin:column-settings:v1:<表格标识>:<用户>:<组织>`，tableKey 不含
   实体 ID。缺省 scope 消费真实认证上下文，显式 scope 优先；账号/组织变化当次
   渲染重新读取对应偏好，不等待 effect 清理旧身份数据。费用继续使用专有存储键。

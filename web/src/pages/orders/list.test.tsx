@@ -1,5 +1,5 @@
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -29,7 +29,12 @@ vi.mock('react-router', async (importOriginal) => {
   };
 });
 
-const accessControl = vi.hoisted(() => ({ canCreate: true, canUpdate: true }));
+const accessControl = vi.hoisted(() => ({
+  canCreate: true,
+  canUpdate: true,
+  canLock: true,
+  canReadFees: true,
+}));
 
 vi.mock('@/app/access', () => ({
   useAccess: () => ({
@@ -38,6 +43,8 @@ vi.mock('@/app/access', () => ({
     canOrder: (_businessType: number | string, operation: string) => {
       if (operation === 'create') return accessControl.canCreate;
       if (operation === 'update') return accessControl.canUpdate;
+      if (operation === 'lock') return accessControl.canLock;
+      if (operation === 'fee.read') return accessControl.canReadFees;
       return true;
     },
     canCreateEnterpriseResources: true,
@@ -94,6 +101,11 @@ vi.mock('@/services/roncin/orderService', () => ({
 
 vi.mock('@/services/roncin/orderTagService', () => ({
   orderTagServiceListOrderTagOptions: vi.fn().mockResolvedValue({ tags: [] }),
+}));
+
+vi.mock('./components/fees/fee-review/OrderFeeReview', () => ({
+  OrderFeeReviewDrawer: ({ orderId }: { orderId?: string }) =>
+    orderId ? <div>审核订单：{orderId}</div> : null,
 }));
 
 const mockGetMasterDataOptions = vi.mocked(getMasterDataOptions);
@@ -200,4 +212,57 @@ describe('订单列表费用入口', () => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     },
   );
+});
+
+describe('订单列表审核入口', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    locationState.pathname = '/orders/sea-export';
+    accessControl.canLock = true;
+    accessControl.canReadFees = true;
+    mockListOrders.mockResolvedValue({
+      data: [{ id: 'review-order', orderNo: 'SE-REVIEW', businessType: 1 }],
+      total: 1,
+    });
+  });
+
+  it('操作列不重复提供详情或审核，单号进入详情且审核状态打开审核界面', async () => {
+    renderWithClient(
+      <App>
+        <OrderListPage />
+      </App>,
+    );
+    const orderNumber = await screen.findByText('SE-REVIEW');
+    const row = within(orderNumber.closest('tr') as HTMLTableRowElement);
+    expect(row.queryByText('详情')).not.toBeInTheDocument();
+    fireEvent.click(orderNumber);
+    expect(history.push).toHaveBeenCalledWith(
+      '/orders/sea-export/review-order',
+    );
+    expect(row.queryByText('审核')).not.toBeInTheDocument();
+    const review = row.getByText('未审核').closest('button');
+    await waitFor(() => expect(review).toBeVisible());
+    expect(review).toBeEnabled();
+    fireEvent.click(review as HTMLButtonElement);
+    expect(await screen.findByText('审核订单：review-order')).toBeVisible();
+  });
+
+  it('无审核及费用读取权限时，审核状态入口不可打开审核', async () => {
+    accessControl.canLock = false;
+    accessControl.canReadFees = false;
+    renderWithClient(
+      <App>
+        <OrderListPage />
+      </App>,
+    );
+    const orderNumber = await screen.findByText('SE-REVIEW');
+    const row = within(orderNumber.closest('tr') as HTMLTableRowElement);
+    expect(row.queryByText('审核')).not.toBeInTheDocument();
+    const button = row.getByText('未审核').closest('button');
+    expect(button).toBeDisabled();
+    fireEvent.click(button as HTMLButtonElement);
+    expect(
+      screen.queryByText('审核订单：review-order'),
+    ).not.toBeInTheDocument();
+  });
 });
