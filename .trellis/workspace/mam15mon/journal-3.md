@@ -875,3 +875,38 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Next Steps
 
 - 合并main、push并验证远端tip后安全删除修复分支。
+
+
+## Session 180: 海运最终目的港默认同卸货港并简化共享航程操作
+<!-- trellis-session: v=2 fp=f59dd7056d484efb -->
+
+**Date**: 2026-10-30
+**Task**: 海运最终目的港默认同卸货港并简化共享航程操作
+**Branch**: `codex/sea-shared-leg-destination`
+
+### Summary
+
+新票最终目的港默认共同段卸货港，人工修改和清空及草稿优先；共同航程与本票目的地分组，缺项清楚且维护入口就近复用原权限。
+
+### Main Changes
+
+- 复用现有Order独立目的地和共享TE，不扩Schema/API/后续航次；前端默认元数据只随草稿，不进API。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `2da755a6` | feat: 海运最终目的港默认同卸货港并简化共享航程操作 |
+
+### Testing
+
+- [OK] 最终check:web通过：354个Suite1924例通过，1个既有Suite12例跳过；tsc/Biome/架构/常量/重复检查通过。
+- [OK] 独立review通过；真实PostgreSQL共享更新不改两票独立目的港测试通过，data vet通过；专用临时库角色已清理。
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 当前工作分支codex/sea-shared-leg-destination，工作区提交完成；按后续授权进行合并推送。
