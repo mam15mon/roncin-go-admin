@@ -275,6 +275,7 @@ function DingTalkFrame({
     <div className={styles.qrFrameContent}>
       {status === 'slow' && (
         <Alert
+          className={styles.qrSlowNotice}
           type="warning"
           showIcon
           title="钉钉二维码加载较慢，请检查网络或刷新二维码"
