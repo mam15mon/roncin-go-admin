@@ -231,6 +231,19 @@ pnpm run check:server
 
 ## 📦 生产构建与独立部署
 
+### 正式登录域名
+
+正式登录域名确定为 **`ops.roncin.com.cn`**，访问地址为 `https://ops.roncin.com.cn`。
+这是已选定的部署地址，目前不代表 DNS、HTTPS 证书和上线配置已经完成。
+
+启用时同步配置：
+
+- DNS 解析与 HTTPS 证书。
+- 钉钉开放平台及后端回调地址：`https://ops.roncin.com.cn/user/login/dingtalk/callback`。
+- 通行密钥：`PASSKEY_RP_ID=roncin.com.cn`、`PASSKEY_ORIGIN=https://ops.roncin.com.cn`；
+  完成正式迁移和 HTTPS 配置后再开启 `PASSKEY_ENABLED`。
+
+
 项目支持编译为**单二进制独立部署**模式：前端生产构建产物会自动注入 Go 二进制的内嵌资源系统 (`server/internal/webassets`)。
 
 ```bash
