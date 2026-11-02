@@ -325,3 +325,7 @@ func TestSystemMiddlewareRejectsCompanyOrderReadsAndWrites(t *testing.T) {
 		}
 	}
 }
+
+func (*middlewareAuthRepoStub) RenewSession(context.Context, string, time.Time, time.Time) error {
+	return nil
+}

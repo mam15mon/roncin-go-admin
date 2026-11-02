@@ -63,3 +63,7 @@ func (s *authRepoStub) RevokeSession(_ context.Context, _ string, _ time.Time, a
 }
 
 var _ AuthRepo = (*authRepoStub)(nil)
+
+func (*authRepoStub) RenewSession(context.Context, string, time.Time, time.Time) error {
+	return nil
+}

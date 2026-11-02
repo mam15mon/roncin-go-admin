@@ -515,11 +515,36 @@ func (r *authRepo) FindSession(ctx context.Context, tokenHash string, now time.T
 	if err != nil {
 		return nil, err
 	}
-	stored, err := client.Session.Query().Where(sessionent.TokenHashEQ(tokenHash), sessionent.RevokedAtIsNil(), sessionent.ExpiresAtGT(now), sessionent.HasUserWith(user.EnabledEQ(true)), sessionent.HasOrganizationWith(organization.EnabledEQ(true))).Only(ctx)
+	stored, err := client.Session.Query().Where(sessionent.TokenHashEQ(tokenHash), sessionent.RevokedAtIsNil(), sessionent.ExpiresAtGT(now), sessionent.HasUserWith(user.EnabledEQ(true), user.PendingAssignmentEQ(false)), sessionent.HasOrganizationWith(organization.EnabledEQ(true))).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrSessionExpired, nil)
 	}
 	return &biz.Session{TokenHash: stored.TokenHash, UserID: stored.UserID, OrganizationID: stored.OrganizationID, ExpiresAt: stored.ExpiresAt, UserAgent: stored.UserAgent}, nil
+}
+
+// RenewSession 原子延长仍有效的会话；只更新到期时间，不恢复撤销状态或改变工作台。
+// 到期时间条件防止并发请求乱序缩短有效期；零行更新时重新检查，区分较晚续期与会话失效。
+func (r *authRepo) RenewSession(ctx context.Context, tokenHash string, now, expiresAt time.Time) error {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return err
+	}
+	updated, err := client.Session.Update().Where(
+		sessionent.TokenHashEQ(tokenHash),
+		sessionent.RevokedAtIsNil(),
+		sessionent.ExpiresAtGT(now),
+		sessionent.ExpiresAtLTE(expiresAt),
+		sessionent.HasUserWith(user.EnabledEQ(true), user.PendingAssignmentEQ(false)),
+		sessionent.HasOrganizationWith(organization.EnabledEQ(true)),
+	).SetExpiresAt(expiresAt).Save(ctx)
+	if err != nil {
+		return err
+	}
+	if updated == 1 {
+		return nil
+	}
+	_, err = r.FindSession(ctx, tokenHash, now)
+	return err
 }
 
 // RotateSession 在同一事务内完成会话令牌轮转：锁定账号（ForShare）→ 校验目标准入（ForShare）→ 锁定当前

@@ -202,7 +202,15 @@ func (s *AuthService) SwitchOrganization(ctx context.Context, request *v1.Switch
 	return ok(ctx, &v1.SwitchOrganizationResponse{Data: principalToAPI(result.Principal), OrganizationChoices: organizationChoicesToAPI(result.OrganizationChoices)}), nil
 }
 
+// 会话 Cookie 仅保留凭证载体，实际失效由数据库滑动到期时间判定。
+// 普通请求不重写 Cookie，避免迟到响应覆盖退出清除或切换工作台的新令牌。
+const sessionCookieRetention = 400 * 24 * time.Hour
+
 func (s *AuthService) setCookie(ctx context.Context, value string, expires time.Time, maxAge int) {
+	if value != "" {
+		expires = time.Now().UTC().Add(sessionCookieRetention)
+		maxAge = int(sessionCookieRetention / time.Second)
+	}
 	s.setCookieNamed(ctx, s.policy.CookieName, value, expires, maxAge)
 }
 

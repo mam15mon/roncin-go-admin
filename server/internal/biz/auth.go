@@ -461,6 +461,7 @@ type AuthRepo interface {
 	ResolvePrincipal(context.Context, uuid.UUID, uuid.UUID) (*Principal, error)
 	CreateSession(context.Context, *Session, string, *AuditEvent) error
 	FindSession(context.Context, string, time.Time) (*Session, error)
+	RenewSession(context.Context, string, time.Time, time.Time) error
 	RotateSession(context.Context, string, *Session, time.Time, *AuditEvent) error
 	RevokeSession(context.Context, string, time.Time, *AuditEvent) error
 }
@@ -711,6 +712,10 @@ func (uc *AuthUsecase) AuthenticateSession(ctx context.Context, rawToken string)
 	}
 	principal, err := uc.repo.ResolvePrincipal(ctx, storedSession.UserID, storedSession.OrganizationID)
 	if err != nil {
+		return nil, err
+	}
+	now := time.Now().UTC()
+	if err := uc.repo.RenewSession(ctx, tokenHash, now, now.Add(uc.policy.TTL)); err != nil {
 		return nil, err
 	}
 	principal.SessionTokenHash = tokenHash

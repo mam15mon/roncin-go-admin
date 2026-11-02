@@ -28,7 +28,8 @@ data:
 security:
   session:
     cookie_name: roncin_session
-    ttl: 43200s
+    # 连续 30 天无有效会话请求后过期，使用期间自动续期。
+    ttl: 2592000s
     secure: false
     same_site: lax
   dingtalk:

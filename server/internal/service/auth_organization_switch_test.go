@@ -214,3 +214,7 @@ func requestWithOrganization(username, plainPassword, organizationID string) *v1
 func switchRequest(organizationID string) *v1.SwitchOrganizationRequest {
 	return &v1.SwitchOrganizationRequest{OrganizationId: organizationID}
 }
+
+func (*authServiceRepoStub) RenewSession(context.Context, string, time.Time, time.Time) error {
+	return nil
+}
