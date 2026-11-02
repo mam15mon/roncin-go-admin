@@ -25,6 +25,7 @@ const OperationAuthServiceGetDingTalkLoginConfig = "/auth.v1.AuthService/GetDing
 const OperationAuthServiceLogin = "/auth.v1.AuthService/Login"
 const OperationAuthServiceLogout = "/auth.v1.AuthService/Logout"
 const OperationAuthServiceMe = "/auth.v1.AuthService/Me"
+const OperationAuthServicePollDingTalkQRCode = "/auth.v1.AuthService/PollDingTalkQRCode"
 const OperationAuthServiceRequestPasswordResetCode = "/auth.v1.AuthService/RequestPasswordResetCode"
 const OperationAuthServiceSwitchOrganization = "/auth.v1.AuthService/SwitchOrganization"
 
@@ -37,6 +38,7 @@ type AuthServiceHTTPServer interface {
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
 	Me(context.Context, *MeRequest) (*MeResponse, error)
+	PollDingTalkQRCode(context.Context, *PollDingTalkQRCodeRequest) (*PollDingTalkQRCodeResponse, error)
 	RequestPasswordResetCode(context.Context, *RequestPasswordResetCodeRequest) (*RequestPasswordResetCodeResponse, error)
 	SwitchOrganization(context.Context, *SwitchOrganizationRequest) (*SwitchOrganizationResponse, error)
 }
@@ -47,6 +49,7 @@ func RegisterAuthServiceHTTPServer(s *http.Server, srv AuthServiceHTTPServer) {
 	r.Handle("POST", "/api/v1/auth/password-reset/code", _AuthService_RequestPasswordResetCode0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/auth/password-reset/confirm", _AuthService_ConfirmPasswordReset0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/auth/dingtalk/login-config", _AuthService_GetDingTalkLoginConfig0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/auth/dingtalk/qr/poll", _AuthService_PollDingTalkQRCode0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/auth/dingtalk/login", _AuthService_DingTalkLogin0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/auth/dingtalk/embedded-config", _AuthService_GetDingTalkEmbeddedConfig0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/auth/dingtalk/embedded-login", _AuthService_DingTalkEmbeddedLogin0_HTTP_Handler(srv))
@@ -127,6 +130,25 @@ func _AuthService_GetDingTalkLoginConfig0_HTTP_Handler(srv AuthServiceHTTPServer
 			return err
 		}
 		reply := out.(*GetDingTalkLoginConfigResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _AuthService_PollDingTalkQRCode0_HTTP_Handler(srv AuthServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in PollDingTalkQRCodeRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationAuthServicePollDingTalkQRCode)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.PollDingTalkQRCode(ctx, req.(*PollDingTalkQRCodeRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PollDingTalkQRCodeResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -254,6 +276,7 @@ type AuthServiceHTTPClient interface {
 	Login(ctx context.Context, req *LoginRequest, opts ...http.CallOption) (rsp *LoginResponse, err error)
 	Logout(ctx context.Context, req *LogoutRequest, opts ...http.CallOption) (rsp *LogoutResponse, err error)
 	Me(ctx context.Context, req *MeRequest, opts ...http.CallOption) (rsp *MeResponse, err error)
+	PollDingTalkQRCode(ctx context.Context, req *PollDingTalkQRCodeRequest, opts ...http.CallOption) (rsp *PollDingTalkQRCodeResponse, err error)
 	RequestPasswordResetCode(ctx context.Context, req *RequestPasswordResetCodeRequest, opts ...http.CallOption) (rsp *RequestPasswordResetCodeResponse, err error)
 	SwitchOrganization(ctx context.Context, req *SwitchOrganizationRequest, opts ...http.CallOption) (rsp *SwitchOrganizationResponse, err error)
 }
@@ -393,6 +416,23 @@ func (c *AuthServiceHTTPClientImpl) Me(ctx context.Context, in *MeRequest, opts 
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *AuthServiceHTTPClientImpl) PollDingTalkQRCode(ctx context.Context, in *PollDingTalkQRCodeRequest, opts ...http.CallOption) (*PollDingTalkQRCodeResponse, error) {
+	var out PollDingTalkQRCodeResponse
+	pattern := "/api/v1/auth/dingtalk/qr/poll"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationAuthServicePollDingTalkQRCode),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

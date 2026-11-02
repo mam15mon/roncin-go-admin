@@ -27,6 +27,13 @@ func (s *dingTalkProviderStub) AuthorizeURL(state string) (string, error) {
 	return "https://example.com/login?state=" + state, nil
 }
 
+func (s *dingTalkProviderStub) CreateQRCode(context.Context, string, time.Time) (*DingTalkQRCode, error) {
+	return &DingTalkQRCode{URL: "https://login.dingtalk.com/oauth2/qr_confirm.htm?code=test"}, nil
+}
+func (s *dingTalkProviderStub) PollQRCode(context.Context, string) (*DingTalkQRCodePollResult, error) {
+	return &DingTalkQRCodePollResult{Status: DingTalkQRCodeWaiting}, nil
+}
+
 func (s *dingTalkProviderStub) ResolveIdentity(context.Context, string) (*DingTalkIdentity, error) {
 	s.oauthCalls++
 	return s.identity, nil
@@ -34,7 +41,7 @@ func (s *dingTalkProviderStub) ResolveIdentity(context.Context, string) (*DingTa
 
 func TestAuthUsecaseStartDingTalkLogin(t *testing.T) {
 	usecase := NewAuthUsecase(&authRepoStub{}, &SessionPolicy{TTL: time.Hour}, &dingTalkProviderStub{enabled: true}, nil)
-	enabled, authorizeURL, state, expiresAt, err := usecase.StartDingTalkLogin()
+	enabled, authorizeURL, state, expiresAt, err := usecase.StartDingTalkLogin(context.Background())
 	if err != nil {
 		t.Fatalf("StartDingTalkLogin() error = %v", err)
 	}

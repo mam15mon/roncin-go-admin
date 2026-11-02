@@ -43,6 +43,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderunlockrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerassignment"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/passkeycredential"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
@@ -418,6 +419,21 @@ func (_u *UserUpdate) AddSessions(v ...*Session) *UserUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.AddSessionIDs(ids...)
+}
+
+// AddPasskeyCredentialIDs adds the "passkey_credentials" edge to the PasskeyCredential entity by IDs.
+func (_u *UserUpdate) AddPasskeyCredentialIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddPasskeyCredentialIDs(ids...)
+	return _u
+}
+
+// AddPasskeyCredentials adds the "passkey_credentials" edges to the PasskeyCredential entity.
+func (_u *UserUpdate) AddPasskeyCredentials(v ...*PasskeyCredential) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPasskeyCredentialIDs(ids...)
 }
 
 // AddOrderPersonnelIDs adds the "order_personnel" edge to the OrderPersonnel entity by IDs.
@@ -1370,6 +1386,27 @@ func (_u *UserUpdate) RemoveSessions(v ...*Session) *UserUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveSessionIDs(ids...)
+}
+
+// ClearPasskeyCredentials clears all "passkey_credentials" edges to the PasskeyCredential entity.
+func (_u *UserUpdate) ClearPasskeyCredentials() *UserUpdate {
+	_u.mutation.ClearPasskeyCredentials()
+	return _u
+}
+
+// RemovePasskeyCredentialIDs removes the "passkey_credentials" edge to PasskeyCredential entities by IDs.
+func (_u *UserUpdate) RemovePasskeyCredentialIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemovePasskeyCredentialIDs(ids...)
+	return _u
+}
+
+// RemovePasskeyCredentials removes "passkey_credentials" edges to PasskeyCredential entities.
+func (_u *UserUpdate) RemovePasskeyCredentials(v ...*PasskeyCredential) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePasskeyCredentialIDs(ids...)
 }
 
 // ClearOrderPersonnel clears all "order_personnel" edges to the OrderPersonnel entity.
@@ -2922,6 +2959,51 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PasskeyCredentialsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PasskeyCredentialsTable,
+			Columns: []string{user.PasskeyCredentialsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(passkeycredential.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPasskeyCredentialsIDs(); len(nodes) > 0 && !_u.mutation.PasskeyCredentialsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PasskeyCredentialsTable,
+			Columns: []string{user.PasskeyCredentialsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(passkeycredential.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PasskeyCredentialsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PasskeyCredentialsTable,
+			Columns: []string{user.PasskeyCredentialsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(passkeycredential.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -6028,6 +6110,21 @@ func (_u *UserUpdateOne) AddSessions(v ...*Session) *UserUpdateOne {
 	return _u.AddSessionIDs(ids...)
 }
 
+// AddPasskeyCredentialIDs adds the "passkey_credentials" edge to the PasskeyCredential entity by IDs.
+func (_u *UserUpdateOne) AddPasskeyCredentialIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddPasskeyCredentialIDs(ids...)
+	return _u
+}
+
+// AddPasskeyCredentials adds the "passkey_credentials" edges to the PasskeyCredential entity.
+func (_u *UserUpdateOne) AddPasskeyCredentials(v ...*PasskeyCredential) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPasskeyCredentialIDs(ids...)
+}
+
 // AddOrderPersonnelIDs adds the "order_personnel" edge to the OrderPersonnel entity by IDs.
 func (_u *UserUpdateOne) AddOrderPersonnelIDs(ids ...uuid.UUID) *UserUpdateOne {
 	_u.mutation.AddOrderPersonnelIDs(ids...)
@@ -6978,6 +7075,27 @@ func (_u *UserUpdateOne) RemoveSessions(v ...*Session) *UserUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveSessionIDs(ids...)
+}
+
+// ClearPasskeyCredentials clears all "passkey_credentials" edges to the PasskeyCredential entity.
+func (_u *UserUpdateOne) ClearPasskeyCredentials() *UserUpdateOne {
+	_u.mutation.ClearPasskeyCredentials()
+	return _u
+}
+
+// RemovePasskeyCredentialIDs removes the "passkey_credentials" edge to PasskeyCredential entities by IDs.
+func (_u *UserUpdateOne) RemovePasskeyCredentialIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemovePasskeyCredentialIDs(ids...)
+	return _u
+}
+
+// RemovePasskeyCredentials removes "passkey_credentials" edges to PasskeyCredential entities.
+func (_u *UserUpdateOne) RemovePasskeyCredentials(v ...*PasskeyCredential) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePasskeyCredentialIDs(ids...)
 }
 
 // ClearOrderPersonnel clears all "order_personnel" edges to the OrderPersonnel entity.
@@ -8560,6 +8678,51 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(session.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PasskeyCredentialsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PasskeyCredentialsTable,
+			Columns: []string{user.PasskeyCredentialsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(passkeycredential.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPasskeyCredentialsIDs(); len(nodes) > 0 && !_u.mutation.PasskeyCredentialsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PasskeyCredentialsTable,
+			Columns: []string{user.PasskeyCredentialsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(passkeycredential.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PasskeyCredentialsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.PasskeyCredentialsTable,
+			Columns: []string{user.PasskeyCredentialsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(passkeycredential.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

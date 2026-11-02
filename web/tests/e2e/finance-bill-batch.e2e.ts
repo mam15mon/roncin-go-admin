@@ -63,6 +63,8 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
   await page
     .getByPlaceholder('钉钉手机号 / 本地账号')
     .fill(requiredEnvironment('BOOTSTRAP_ADMIN_USERNAME'));
+  await page.getByRole('button', { name: '下一步', exact: true }).click();
+  await expect(page.getByPlaceholder('请输入密码')).toBeVisible();
   await page
     .getByPlaceholder('请输入密码')
     .fill(requiredEnvironment('BOOTSTRAP_ADMIN_PASSWORD'));

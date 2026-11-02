@@ -323,6 +323,7 @@ type Security struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Session       *Security_Session      `protobuf:"bytes,1,opt,name=session,proto3" json:"session,omitempty"`
 	Dingtalk      *Security_DingTalk     `protobuf:"bytes,3,opt,name=dingtalk,proto3" json:"dingtalk,omitempty"`
+	Passkey       *Security_Passkey      `protobuf:"bytes,4,opt,name=passkey,proto3" json:"passkey,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -367,6 +368,13 @@ func (x *Security) GetSession() *Security_Session {
 func (x *Security) GetDingtalk() *Security_DingTalk {
 	if x != nil {
 		return x.Dingtalk
+	}
+	return nil
+}
+
+func (x *Security) GetPasskey() *Security_Passkey {
+	if x != nil {
+		return x.Passkey
 	}
 	return nil
 }
@@ -848,6 +856,74 @@ func (x *Security_DingTalk) GetEventAesKey() string {
 	return ""
 }
 
+type Security_Passkey struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Enabled       bool                   `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	RpId          string                 `protobuf:"bytes,2,opt,name=rp_id,json=rpId,proto3" json:"rp_id,omitempty"`
+	RpName        string                 `protobuf:"bytes,3,opt,name=rp_name,json=rpName,proto3" json:"rp_name,omitempty"`
+	Origins       []string               `protobuf:"bytes,4,rep,name=origins,proto3" json:"origins,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Security_Passkey) Reset() {
+	*x = Security_Passkey{}
+	mi := &file_conf_v1_conf_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Security_Passkey) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Security_Passkey) ProtoMessage() {}
+
+func (x *Security_Passkey) ProtoReflect() protoreflect.Message {
+	mi := &file_conf_v1_conf_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Security_Passkey.ProtoReflect.Descriptor instead.
+func (*Security_Passkey) Descriptor() ([]byte, []int) {
+	return file_conf_v1_conf_proto_rawDescGZIP(), []int{5, 2}
+}
+
+func (x *Security_Passkey) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *Security_Passkey) GetRpId() string {
+	if x != nil {
+		return x.RpId
+	}
+	return ""
+}
+
+func (x *Security_Passkey) GetRpName() string {
+	if x != nil {
+		return x.RpName
+	}
+	return ""
+}
+
+func (x *Security_Passkey) GetOrigins() []string {
+	if x != nil {
+		return x.Origins
+	}
+	return nil
+}
+
 var File_conf_v1_conf_proto protoreflect.FileDescriptor
 
 const file_conf_v1_conf_proto_rawDesc = "" +
@@ -898,10 +974,11 @@ const file_conf_v1_conf_proto_rawDesc = "" +
 	"\n" +
 	"secret_key\x18\x06 \x01(\tR\tsecretKey\x12\x1d\n" +
 	"\n" +
-	"path_style\x18\a \x01(\bR\tpathStyleJ\x04\b\x02\x10\x03R\x05redis\"\xb7\x04\n" +
+	"path_style\x18\a \x01(\bR\tpathStyleJ\x04\b\x02\x10\x03R\x05redis\"\xd9\x05\n" +
 	"\bSecurity\x123\n" +
 	"\asession\x18\x01 \x01(\v2\x19.conf.v1.Security.SessionR\asession\x126\n" +
-	"\bdingtalk\x18\x03 \x01(\v2\x1a.conf.v1.Security.DingTalkR\bdingtalk\x1a\x8c\x01\n" +
+	"\bdingtalk\x18\x03 \x01(\v2\x1a.conf.v1.Security.DingTalkR\bdingtalk\x123\n" +
+	"\apasskey\x18\x04 \x01(\v2\x19.conf.v1.Security.PasskeyR\apasskey\x1a\x8c\x01\n" +
 	"\aSession\x12\x1f\n" +
 	"\vcookie_name\x18\x01 \x01(\tR\n" +
 	"cookieName\x12+\n" +
@@ -917,7 +994,12 @@ const file_conf_v1_conf_proto_rawDesc = "" +
 	"\x15approval_process_code\x18\a \x01(\tR\x13approvalProcessCode\x12\x1f\n" +
 	"\vevent_token\x18\b \x01(\tR\n" +
 	"eventToken\x12\"\n" +
-	"\revent_aes_key\x18\t \x01(\tR\veventAesKeyJ\x04\b\x06\x10\aJ\x04\b\x02\x10\x03R\x05wecomB=Z;github.com/roncin/roncin-go-admin/server/internal/conf;confb\x06proto3"
+	"\revent_aes_key\x18\t \x01(\tR\veventAesKeyJ\x04\b\x06\x10\a\x1ak\n" +
+	"\aPasskey\x12\x18\n" +
+	"\aenabled\x18\x01 \x01(\bR\aenabled\x12\x13\n" +
+	"\x05rp_id\x18\x02 \x01(\tR\x04rpId\x12\x17\n" +
+	"\arp_name\x18\x03 \x01(\tR\x06rpName\x12\x18\n" +
+	"\aorigins\x18\x04 \x03(\tR\aoriginsJ\x04\b\x02\x10\x03R\x05wecomB=Z;github.com/roncin/roncin-go-admin/server/internal/conf;confb\x06proto3"
 
 var (
 	file_conf_v1_conf_proto_rawDescOnce sync.Once
@@ -931,7 +1013,7 @@ func file_conf_v1_conf_proto_rawDescGZIP() []byte {
 	return file_conf_v1_conf_proto_rawDescData
 }
 
-var file_conf_v1_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_conf_v1_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_conf_v1_conf_proto_goTypes = []any{
 	(*Bootstrap)(nil),           // 0: conf.v1.Bootstrap
 	(*Logging)(nil),             // 1: conf.v1.Logging
@@ -945,7 +1027,8 @@ var file_conf_v1_conf_proto_goTypes = []any{
 	(*Data_ObjectStorage)(nil),  // 9: conf.v1.Data.ObjectStorage
 	(*Security_Session)(nil),    // 10: conf.v1.Security.Session
 	(*Security_DingTalk)(nil),   // 11: conf.v1.Security.DingTalk
-	(*durationpb.Duration)(nil), // 12: google.protobuf.Duration
+	(*Security_Passkey)(nil),    // 12: conf.v1.Security.Passkey
+	(*durationpb.Duration)(nil), // 13: google.protobuf.Duration
 }
 var file_conf_v1_conf_proto_depIdxs = []int32{
 	3,  // 0: conf.v1.Bootstrap.server:type_name -> conf.v1.Server
@@ -959,15 +1042,16 @@ var file_conf_v1_conf_proto_depIdxs = []int32{
 	9,  // 8: conf.v1.Data.object_storage:type_name -> conf.v1.Data.ObjectStorage
 	10, // 9: conf.v1.Security.session:type_name -> conf.v1.Security.Session
 	11, // 10: conf.v1.Security.dingtalk:type_name -> conf.v1.Security.DingTalk
-	12, // 11: conf.v1.Server.HTTP.timeout:type_name -> google.protobuf.Duration
-	12, // 12: conf.v1.Server.GRPC.timeout:type_name -> google.protobuf.Duration
-	12, // 13: conf.v1.Data.Database.connection_max_lifetime:type_name -> google.protobuf.Duration
-	12, // 14: conf.v1.Security.Session.ttl:type_name -> google.protobuf.Duration
-	15, // [15:15] is the sub-list for method output_type
-	15, // [15:15] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	12, // 11: conf.v1.Security.passkey:type_name -> conf.v1.Security.Passkey
+	13, // 12: conf.v1.Server.HTTP.timeout:type_name -> google.protobuf.Duration
+	13, // 13: conf.v1.Server.GRPC.timeout:type_name -> google.protobuf.Duration
+	13, // 14: conf.v1.Data.Database.connection_max_lifetime:type_name -> google.protobuf.Duration
+	13, // 15: conf.v1.Security.Session.ttl:type_name -> google.protobuf.Duration
+	16, // [16:16] is the sub-list for method output_type
+	16, // [16:16] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_conf_v1_conf_proto_init() }
@@ -981,7 +1065,7 @@ func file_conf_v1_conf_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_conf_v1_conf_proto_rawDesc), len(file_conf_v1_conf_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

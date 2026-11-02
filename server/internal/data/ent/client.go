@@ -110,6 +110,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/passkeycredential"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/passwordresetchallenge"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
@@ -329,6 +330,8 @@ type Client struct {
 	PartnerRole *PartnerRoleClient
 	// PartnerSettlementRule is the client for interacting with the PartnerSettlementRule builders.
 	PartnerSettlementRule *PartnerSettlementRuleClient
+	// PasskeyCredential is the client for interacting with the PasskeyCredential builders.
+	PasskeyCredential *PasskeyCredentialClient
 	// PasswordResetChallenge is the client for interacting with the PasswordResetChallenge builders.
 	PasswordResetChallenge *PasswordResetChallengeClient
 	// Permission is the client for interacting with the Permission builders.
@@ -482,6 +485,7 @@ func (c *Client) init() {
 	c.PartnerProfile = NewPartnerProfileClient(c.config)
 	c.PartnerRole = NewPartnerRoleClient(c.config)
 	c.PartnerSettlementRule = NewPartnerSettlementRuleClient(c.config)
+	c.PasskeyCredential = NewPasskeyCredentialClient(c.config)
 	c.PasswordResetChallenge = NewPasswordResetChallengeClient(c.config)
 	c.Permission = NewPermissionClient(c.config)
 	c.Port = NewPortClient(c.config)
@@ -692,6 +696,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		PartnerProfile:                   NewPartnerProfileClient(cfg),
 		PartnerRole:                      NewPartnerRoleClient(cfg),
 		PartnerSettlementRule:            NewPartnerSettlementRuleClient(cfg),
+		PasskeyCredential:                NewPasskeyCredentialClient(cfg),
 		PasswordResetChallenge:           NewPasswordResetChallengeClient(cfg),
 		Permission:                       NewPermissionClient(cfg),
 		Port:                             NewPortClient(cfg),
@@ -829,6 +834,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		PartnerProfile:                   NewPartnerProfileClient(cfg),
 		PartnerRole:                      NewPartnerRoleClient(cfg),
 		PartnerSettlementRule:            NewPartnerSettlementRuleClient(cfg),
+		PasskeyCredential:                NewPasskeyCredentialClient(cfg),
 		PasswordResetChallenge:           NewPasswordResetChallengeClient(cfg),
 		Permission:                       NewPermissionClient(cfg),
 		Port:                             NewPortClient(cfg),
@@ -914,9 +920,9 @@ func (c *Client) Use(hooks ...Hook) {
 		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment,
 		c.PartnerAttachment, c.PartnerContact, c.PartnerContract,
 		c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
-		c.PartnerSettlementRule, c.PasswordResetChallenge, c.Permission, c.Port,
-		c.Role, c.RoleAssignment, c.SeaDocumentModeChangeEvent, c.SeaDocumentVoidEvent,
-		c.SeaHouseBill, c.SeaHouseBillVersion, c.SeaMasterBill,
+		c.PartnerSettlementRule, c.PasskeyCredential, c.PasswordResetChallenge,
+		c.Permission, c.Port, c.Role, c.RoleAssignment, c.SeaDocumentModeChangeEvent,
+		c.SeaDocumentVoidEvent, c.SeaHouseBill, c.SeaHouseBillVersion, c.SeaMasterBill,
 		c.SeaMasterBillOrderLink, c.SeaMasterBillVersion, c.SeaOrderReassignmentEvent,
 		c.SeaOrderSplitEvent, c.SeaOrderSplitResult, c.SeaSharedContainer,
 		c.SeaSharedContainerAllocation, c.SeaTransportExecution,
@@ -963,9 +969,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.Partner, c.PartnerAccount, c.PartnerAlias, c.PartnerAssignment,
 		c.PartnerAttachment, c.PartnerContact, c.PartnerContract,
 		c.PartnerInvoiceProfile, c.PartnerProfile, c.PartnerRole,
-		c.PartnerSettlementRule, c.PasswordResetChallenge, c.Permission, c.Port,
-		c.Role, c.RoleAssignment, c.SeaDocumentModeChangeEvent, c.SeaDocumentVoidEvent,
-		c.SeaHouseBill, c.SeaHouseBillVersion, c.SeaMasterBill,
+		c.PartnerSettlementRule, c.PasskeyCredential, c.PasswordResetChallenge,
+		c.Permission, c.Port, c.Role, c.RoleAssignment, c.SeaDocumentModeChangeEvent,
+		c.SeaDocumentVoidEvent, c.SeaHouseBill, c.SeaHouseBillVersion, c.SeaMasterBill,
 		c.SeaMasterBillOrderLink, c.SeaMasterBillVersion, c.SeaOrderReassignmentEvent,
 		c.SeaOrderSplitEvent, c.SeaOrderSplitResult, c.SeaSharedContainer,
 		c.SeaSharedContainerAllocation, c.SeaTransportExecution,
@@ -1167,6 +1173,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.PartnerRole.mutate(ctx, m)
 	case *PartnerSettlementRuleMutation:
 		return c.PartnerSettlementRule.mutate(ctx, m)
+	case *PasskeyCredentialMutation:
+		return c.PasskeyCredential.mutate(ctx, m)
 	case *PasswordResetChallengeMutation:
 		return c.PasswordResetChallenge.mutate(ctx, m)
 	case *PermissionMutation:
@@ -20295,6 +20303,155 @@ func (c *PartnerSettlementRuleClient) mutate(ctx context.Context, m *PartnerSett
 	}
 }
 
+// PasskeyCredentialClient is a client for the PasskeyCredential schema.
+type PasskeyCredentialClient struct {
+	config
+}
+
+// NewPasskeyCredentialClient returns a client for the PasskeyCredential from the given config.
+func NewPasskeyCredentialClient(c config) *PasskeyCredentialClient {
+	return &PasskeyCredentialClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `passkeycredential.Hooks(f(g(h())))`.
+func (c *PasskeyCredentialClient) Use(hooks ...Hook) {
+	c.hooks.PasskeyCredential = append(c.hooks.PasskeyCredential, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `passkeycredential.Intercept(f(g(h())))`.
+func (c *PasskeyCredentialClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PasskeyCredential = append(c.inters.PasskeyCredential, interceptors...)
+}
+
+// Create returns a builder for creating a PasskeyCredential entity.
+func (c *PasskeyCredentialClient) Create() *PasskeyCredentialCreate {
+	mutation := newPasskeyCredentialMutation(c.config, OpCreate)
+	return &PasskeyCredentialCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PasskeyCredential entities.
+func (c *PasskeyCredentialClient) CreateBulk(builders ...*PasskeyCredentialCreate) *PasskeyCredentialCreateBulk {
+	return &PasskeyCredentialCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PasskeyCredentialClient) MapCreateBulk(slice any, setFunc func(*PasskeyCredentialCreate, int)) *PasskeyCredentialCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PasskeyCredentialCreateBulk{err: fmt.Errorf("calling to PasskeyCredentialClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PasskeyCredentialCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PasskeyCredentialCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PasskeyCredential.
+func (c *PasskeyCredentialClient) Update() *PasskeyCredentialUpdate {
+	mutation := newPasskeyCredentialMutation(c.config, OpUpdate)
+	return &PasskeyCredentialUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PasskeyCredentialClient) UpdateOne(_m *PasskeyCredential) *PasskeyCredentialUpdateOne {
+	mutation := newPasskeyCredentialMutation(c.config, OpUpdateOne, withPasskeyCredential(_m))
+	return &PasskeyCredentialUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PasskeyCredentialClient) UpdateOneID(id uuid.UUID) *PasskeyCredentialUpdateOne {
+	mutation := newPasskeyCredentialMutation(c.config, OpUpdateOne, withPasskeyCredentialID(id))
+	return &PasskeyCredentialUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PasskeyCredential.
+func (c *PasskeyCredentialClient) Delete() *PasskeyCredentialDelete {
+	mutation := newPasskeyCredentialMutation(c.config, OpDelete)
+	return &PasskeyCredentialDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PasskeyCredentialClient) DeleteOne(_m *PasskeyCredential) *PasskeyCredentialDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PasskeyCredentialClient) DeleteOneID(id uuid.UUID) *PasskeyCredentialDeleteOne {
+	builder := c.Delete().Where(passkeycredential.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PasskeyCredentialDeleteOne{builder}
+}
+
+// Query returns a query builder for PasskeyCredential.
+func (c *PasskeyCredentialClient) Query() *PasskeyCredentialQuery {
+	return &PasskeyCredentialQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePasskeyCredential},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PasskeyCredential entity by its id.
+func (c *PasskeyCredentialClient) Get(ctx context.Context, id uuid.UUID) (*PasskeyCredential, error) {
+	return c.Query().Where(passkeycredential.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PasskeyCredentialClient) GetX(ctx context.Context, id uuid.UUID) *PasskeyCredential {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a PasskeyCredential.
+func (c *PasskeyCredentialClient) QueryUser(_m *PasskeyCredential) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(passkeycredential.Table, passkeycredential.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, passkeycredential.UserTable, passkeycredential.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PasskeyCredentialClient) Hooks() []Hook {
+	return c.hooks.PasskeyCredential
+}
+
+// Interceptors returns the client interceptors.
+func (c *PasskeyCredentialClient) Interceptors() []Interceptor {
+	return c.inters.PasskeyCredential
+}
+
+func (c *PasskeyCredentialClient) mutate(ctx context.Context, m *PasskeyCredentialMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PasskeyCredentialCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PasskeyCredentialUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PasskeyCredentialUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PasskeyCredentialDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown PasskeyCredential mutation op: %q", m.Op())
+	}
+}
+
 // PasswordResetChallengeClient is a client for the PasswordResetChallenge schema.
 type PasswordResetChallengeClient struct {
 	config
@@ -25593,6 +25750,22 @@ func (c *UserClient) QuerySessions(_m *User) *SessionQuery {
 	return query
 }
 
+// QueryPasskeyCredentials queries the passkey_credentials edge of a User.
+func (c *UserClient) QueryPasskeyCredentials(_m *User) *PasskeyCredentialQuery {
+	query := (&PasskeyCredentialClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(passkeycredential.Table, passkeycredential.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.PasskeyCredentialsTable, user.PasskeyCredentialsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryOrderPersonnel queries the order_personnel edge of a User.
 func (c *UserClient) QueryOrderPersonnel(_m *User) *OrderPersonnelQuery {
 	query := (&OrderPersonnelClient{config: c.config}).Query()
@@ -26624,13 +26797,13 @@ type (
 		OrderShippingDocument, OrderUnlockApproverCandidate, OrderUnlockRequest,
 		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
 		PartnerAttachment, PartnerContact, PartnerContract, PartnerInvoiceProfile,
-		PartnerProfile, PartnerRole, PartnerSettlementRule, PasswordResetChallenge,
-		Permission, Port, Role, RoleAssignment, SeaDocumentModeChangeEvent,
-		SeaDocumentVoidEvent, SeaHouseBill, SeaHouseBillVersion, SeaMasterBill,
-		SeaMasterBillOrderLink, SeaMasterBillVersion, SeaOrderReassignmentEvent,
-		SeaOrderSplitEvent, SeaOrderSplitResult, SeaSharedContainer,
-		SeaSharedContainerAllocation, SeaTransportExecution,
-		SeaTransportExecutionVersion, Session, ShippingLine,
+		PartnerProfile, PartnerRole, PartnerSettlementRule, PasskeyCredential,
+		PasswordResetChallenge, Permission, Port, Role, RoleAssignment,
+		SeaDocumentModeChangeEvent, SeaDocumentVoidEvent, SeaHouseBill,
+		SeaHouseBillVersion, SeaMasterBill, SeaMasterBillOrderLink,
+		SeaMasterBillVersion, SeaOrderReassignmentEvent, SeaOrderSplitEvent,
+		SeaOrderSplitResult, SeaSharedContainer, SeaSharedContainerAllocation,
+		SeaTransportExecution, SeaTransportExecutionVersion, Session, ShippingLine,
 		ShippingLineContainerPrefix, TaxableService, User []ent.Hook
 	}
 	inters struct {
@@ -26660,13 +26833,13 @@ type (
 		OrderShippingDocument, OrderUnlockApproverCandidate, OrderUnlockRequest,
 		Organization, Partner, PartnerAccount, PartnerAlias, PartnerAssignment,
 		PartnerAttachment, PartnerContact, PartnerContract, PartnerInvoiceProfile,
-		PartnerProfile, PartnerRole, PartnerSettlementRule, PasswordResetChallenge,
-		Permission, Port, Role, RoleAssignment, SeaDocumentModeChangeEvent,
-		SeaDocumentVoidEvent, SeaHouseBill, SeaHouseBillVersion, SeaMasterBill,
-		SeaMasterBillOrderLink, SeaMasterBillVersion, SeaOrderReassignmentEvent,
-		SeaOrderSplitEvent, SeaOrderSplitResult, SeaSharedContainer,
-		SeaSharedContainerAllocation, SeaTransportExecution,
-		SeaTransportExecutionVersion, Session, ShippingLine,
+		PartnerProfile, PartnerRole, PartnerSettlementRule, PasskeyCredential,
+		PasswordResetChallenge, Permission, Port, Role, RoleAssignment,
+		SeaDocumentModeChangeEvent, SeaDocumentVoidEvent, SeaHouseBill,
+		SeaHouseBillVersion, SeaMasterBill, SeaMasterBillOrderLink,
+		SeaMasterBillVersion, SeaOrderReassignmentEvent, SeaOrderSplitEvent,
+		SeaOrderSplitResult, SeaSharedContainer, SeaSharedContainerAllocation,
+		SeaTransportExecution, SeaTransportExecutionVersion, Session, ShippingLine,
 		ShippingLineContainerPrefix, TaxableService, User []ent.Interceptor
 	}
 )

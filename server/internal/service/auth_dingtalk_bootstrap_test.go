@@ -6,7 +6,6 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -34,6 +33,15 @@ func (p *bootstrapDingTalkProvider) AuthorizeURL(state string) (string, error) {
 	}
 	return "https://login.dingtalk.com/oauth2/auth?client_id=public-app&state=" + state, nil
 }
+func (p *bootstrapDingTalkProvider) CreateQRCode(context.Context, string, time.Time) (*biz.DingTalkQRCode, error) {
+	if p.failure != nil {
+		return nil, p.failure
+	}
+	return &biz.DingTalkQRCode{URL: "https://login.dingtalk.com/oauth2/qr_confirm.htm?code=test"}, nil
+}
+func (*bootstrapDingTalkProvider) PollQRCode(context.Context, string) (*biz.DingTalkQRCodePollResult, error) {
+	return &biz.DingTalkQRCodePollResult{Status: biz.DingTalkQRCodeWaiting}, nil
+}
 func (*bootstrapDingTalkProvider) ResolveIdentity(context.Context, string) (*biz.DingTalkIdentity, error) {
 	return nil, errors.New("本测试不调用身份解析")
 }
@@ -52,11 +60,7 @@ func assertBootstrapStateCookie(t *testing.T, payload []byte, cookie *http.Cooki
 	if !reply.Success || !reply.GetData().GetEnabled() {
 		t.Fatalf("错误的配置信封: %s", payload)
 	}
-	authorizeURL, err := url.Parse(reply.Data.GetAuthorizeUrl())
-	if err != nil {
-		t.Fatal(err)
-	}
-	if cookie == nil || cookie.Value == "" || authorizeURL.Query().Get("state") != cookie.Value {
+	if cookie == nil || cookie.Value == "" || reply.Data.GetState() != cookie.Value {
 		t.Fatalf("授权 state 与 Cookie 不一致: %s %+v", payload, cookie)
 	}
 	if cookie.Name != "roncin_session_dingtalk_state" || cookie.Path != "/" || !cookie.HttpOnly || !cookie.Secure || cookie.SameSite != sameSite || cookie.MaxAge != 300 {
@@ -82,7 +86,7 @@ func TestDingTalkLoginBootstrapAndAPIUseSameConfigAndCookieContract(t *testing.T
 				if err != nil {
 					t.Fatal(err)
 				}
-				if !strings.Contains(string(payload), `"authorizeUrl"`) || !strings.Contains(string(payload), `"expiresAt"`) || strings.Contains(string(payload), `"authorize_url"`) {
+				if !strings.Contains(string(payload), `"qrCodeUrl"`) || !strings.Contains(string(payload), `"expiresAt"`) || strings.Contains(string(payload), `"qr_code_url"`) {
 					t.Fatalf("HTML 配置字段未沿用 API 的 camelCase JSON: %s", payload)
 				}
 				state := assertBootstrapStateCookie(t, payload, cookie, policy.mode)
@@ -124,7 +128,7 @@ func TestDingTalkLoginBootstrapDisabledAndFailureAreExplicit(t *testing.T) {
 			if err := protojson.Unmarshal(payload, &reply); err != nil {
 				t.Fatal(err)
 			}
-			if reply.Success != item.success || int(reply.Code) != item.code || reply.GetData().GetEnabled() || reply.GetData().GetAuthorizeUrl() != "" || strings.Contains(string(payload), "敏感错误") {
+			if reply.Success != item.success || int(reply.Code) != item.code || reply.GetData().GetEnabled() || reply.GetData().GetQrCodeUrl() != "" || strings.Contains(string(payload), "敏感错误") {
 				t.Fatalf("错误的禁用/失败信封: %s", payload)
 			}
 			if !item.success {

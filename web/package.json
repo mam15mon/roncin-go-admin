@@ -35,6 +35,7 @@
     "@ant-design/icons": "^6.3.2",
     "@ant-design/pro-components": "^3.1.14-2",
     "@sentry/react": "^10.74.0",
+    "@simplewebauthn/browser": "14.0.0",
     "@tanstack/react-query": "^5.103.1",
     "antd": "^6.6.0",
     "antd-style": "^4.1.0",

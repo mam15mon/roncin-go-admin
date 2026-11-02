@@ -200,6 +200,8 @@ type Tx struct {
 	PartnerRole *PartnerRoleClient
 	// PartnerSettlementRule is the client for interacting with the PartnerSettlementRule builders.
 	PartnerSettlementRule *PartnerSettlementRuleClient
+	// PasskeyCredential is the client for interacting with the PasskeyCredential builders.
+	PasskeyCredential *PasskeyCredentialClient
 	// PasswordResetChallenge is the client for interacting with the PasswordResetChallenge builders.
 	PasswordResetChallenge *PasswordResetChallengeClient
 	// Permission is the client for interacting with the Permission builders.
@@ -473,6 +475,7 @@ func (tx *Tx) init() {
 	tx.PartnerProfile = NewPartnerProfileClient(tx.config)
 	tx.PartnerRole = NewPartnerRoleClient(tx.config)
 	tx.PartnerSettlementRule = NewPartnerSettlementRuleClient(tx.config)
+	tx.PasskeyCredential = NewPasskeyCredentialClient(tx.config)
 	tx.PasswordResetChallenge = NewPasswordResetChallengeClient(tx.config)
 	tx.Permission = NewPermissionClient(tx.config)
 	tx.Port = NewPortClient(tx.config)

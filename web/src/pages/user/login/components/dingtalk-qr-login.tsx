@@ -1,25 +1,24 @@
 import { ReloadOutlined } from '@ant-design/icons';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Button, Spin } from 'antd';
+import { QRCode, Spin } from 'antd';
 import {
+  type ReactNode,
   useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
+  useSyncExternalStore,
 } from 'react';
 import {
   CALLBACK_PATH,
-  DINGTALK_ORIGIN,
   dingTalkLoginConfigOptions,
-  type FrameConfig,
+  type QRConfig,
 } from '@/app/dingtalkLoginConfig';
-import {
-  alignPreloadedDingTalkFrame,
-  claimPreloadedDingTalkFrame,
-  discardPreloadedDingTalkFrame,
-} from '@/app/dingtalkPreloadedFrame';
+import { isRecord } from '@/app/dingtalkLoginProtocol';
+import { DingTalkQRCodeStatus } from '@/enums.generated';
 import { getRequestErrorMessage } from '@/requestErrorConfig';
+import { authServicePollDingTalkQrCode } from '@/services/roncin/authService';
 import styles from '../index.module.less';
 
 type Props = {
@@ -27,316 +26,325 @@ type Props = {
   onAuthenticated: (callbackPath: string) => void;
 };
 
-function DingTalkFrame({
-  config,
-  active = true,
-  onAuthenticated,
-  onExpired,
-  onUnavailable,
-  retireFrame,
-}: Props & {
-  config: FrameConfig;
-  onExpired: () => void;
-  onUnavailable: (state: string) => void;
-  retireFrame: React.RefObject<(() => void) | null>;
+const {
+  DING_TALK_QR_CODE_STATUS_WAITING: WAITING,
+  DING_TALK_QR_CODE_STATUS_SCANNED: SCANNED,
+  DING_TALK_QR_CODE_STATUS_CONFIRMED: CONFIRMED,
+  DING_TALK_QR_CODE_STATUS_EXPIRED: EXPIRED,
+} = DingTalkQRCodeStatus;
+
+type PollResult =
+  | { status: typeof WAITING | typeof SCANNED | typeof EXPIRED }
+  | { status: typeof CONFIRMED; authCode: string };
+
+function parsePollResponse(response: unknown): PollResult {
+  if (
+    !isRecord(response) ||
+    response.success === false ||
+    !isRecord(response.data)
+  ) {
+    throw new Error('钉钉扫码状态获取失败，请刷新重试');
+  }
+  const data = response.data;
+  if (
+    data.status === WAITING ||
+    data.status === SCANNED ||
+    data.status === EXPIRED
+  ) {
+    return { status: data.status };
+  }
+  if (
+    data.status === CONFIRMED &&
+    typeof data.authCode === 'string' &&
+    data.authCode.trim()
+  ) {
+    return { status: CONFIRMED, authCode: data.authCode };
+  }
+  throw new Error('钉钉扫码状态不正确，请刷新重试');
+}
+
+function QrRefreshCard({
+  children,
+  onRefresh,
+  disabled = false,
+  title,
+}: {
+  children: ReactNode;
+  onRefresh: () => void;
+  disabled?: boolean;
+  title?: string;
 }) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const slotRef = useRef<HTMLDivElement>(null);
-  const lifecycle = useRef(0);
+  return (
+    <button
+      type="button"
+      className={styles.qrCard}
+      aria-label="刷新二维码"
+      onClick={onRefresh}
+      disabled={disabled}
+      title={title}
+    >
+      {children}
+    </button>
+  );
+}
+
+function QrRefreshNotice({ title }: { title: string }) {
+  return (
+    <div className={styles.qrStatus}>
+      <ReloadOutlined className={styles.qrStatusIcon} />
+      <span>{title}</span>
+      <span className={styles.qrRetry}>点击刷新</span>
+    </div>
+  );
+}
+
+function subscribeVisibility(listener: () => void) {
+  document.addEventListener('visibilitychange', listener);
+  return () => document.removeEventListener('visibilitychange', listener);
+}
+
+function DingTalkCode({
+  config,
+  active,
+  onAuthenticated,
+  onRefresh,
+  onUnavailable,
+  retireCode,
+}: Props & {
+  config: QRConfig;
+  onRefresh: () => void;
+  onUnavailable: (state: string) => void;
+  retireCode: React.RefObject<(() => void) | null>;
+}) {
+  const queryClient = useQueryClient();
   const activeRef = useRef(active);
   activeRef.current = active;
-  const updateVisibility = useRef<() => void>(() => {});
-  const onUnavailableRef = useRef(onUnavailable);
-  onUnavailableRef.current = onUnavailable;
   const retired = useRef(false);
   const handled = useRef(false);
-  const onAuthenticatedRef = useRef(onAuthenticated);
-  onAuthenticatedRef.current = onAuthenticated;
-  // 经 ref 消费回调，父组件重渲染不会重置到期定时器与消息监听。
-  const onExpiredRef = useRef(onExpired);
-  onExpiredRef.current = onExpired;
+  const unavailableRef = useRef(onUnavailable);
+  unavailableRef.current = onUnavailable;
+  const authenticatedRef = useRef(onAuthenticated);
+  authenticatedRef.current = onAuthenticated;
   const [status, setStatus] = useState<
-    | 'navigating'
-    | 'displayed'
-    | 'slow'
-    | 'expired'
-    | 'failed'
-    | 'authenticating'
-  >('navigating');
-  const [failure, setFailure] = useState('钉钉二维码加载失败，请刷新重试');
-
-  useLayoutEffect(() => {
-    const slot = slotRef.current;
-    if (!slot) return;
-    const generation = ++lifecycle.current;
-    let mounted = true;
-    let stopAlign = () => {};
-    const destroy = () => {
-      stopAlign();
-      iframeRef.current?.remove();
-      iframeRef.current = null;
-    };
-    retireFrame.current = () => {
-      retired.current = true;
-      destroy();
-    };
-    updateVisibility.current = () => {
-      stopAlign();
-      const frame = iframeRef.current;
-      if (!frame || retired.current) return;
-      if (Date.now() >= config.expiresAt) {
-        expire();
-        return;
-      }
-      const visible = activeRef.current;
-      frame.hidden = !visible;
-      frame.tabIndex = visible ? 0 : -1;
-      frame.setAttribute('aria-hidden', String(!visible));
-      if (!visible) frame.style.visibility = 'hidden';
-      else if (frame.parentElement === slot) frame.style.visibility = 'visible';
-      else stopAlign = alignPreloadedDingTalkFrame(frame, slot);
-    };
-    const onLoad = () => {
-      if (!mounted || retired.current) return;
-      if (Date.now() >= config.expiresAt) {
-        expire();
-      } else {
-        // load 只结束导航提示，不代表跨源二维码已就绪。
-        setStatus('displayed');
-      }
-    };
-    const onError = () => {
-      if (!mounted || retired.current) return;
-      retired.current = true;
-      destroy();
-      setStatus('failed');
-      onUnavailableRef.current(config.state);
-    };
-    const expire = () => {
+    'ready' | 'expired' | 'authenticating' | 'failed'
+  >('ready');
+  const queryKey = ['auth', 'dingtalk-qr-poll', config.state] as const;
+  const poll = useQuery({
+    queryKey,
+    queryFn: async ({ signal }) => {
+      const result = parsePollResponse(
+        await authServicePollDingTalkQrCode(
+          { state: config.state },
+          { signal, skipErrorHandler: true },
+        ),
+      );
+      // 已切换登录方式或隐藏时到达的授权码不得在返回后补做认证。
       if (
-        mounted &&
-        !retired.current &&
-        !handled.current &&
-        Date.now() >= config.expiresAt
+        result.status === CONFIRMED &&
+        (!activeRef.current || signal.aborted || retired.current)
       ) {
         retired.current = true;
-        destroy();
         setStatus('expired');
-        onUnavailableRef.current(config.state);
-        onExpiredRef.current();
+        unavailableRef.current(config.state);
+        void queryClient.cancelQueries({
+          queryKey: ['auth', 'dingtalk-qr-poll', config.state],
+          exact: true,
+        });
       }
+      return result;
+    },
+    enabled:
+      active &&
+      status === 'ready' &&
+      !retired.current &&
+      config.expiresAt > Date.now(),
+    refetchInterval: (query) =>
+      query.state.status === 'error' ||
+      query.state.data?.status === CONFIRMED ||
+      query.state.data?.status === EXPIRED
+        ? false
+        : 1000,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retryOnMount: false,
+    staleTime: 0,
+    gcTime: 0,
+    meta: { silent: true },
+  });
+
+  useLayoutEffect(() => {
+    const retire = () => {
+      retired.current = true;
+      void queryClient.cancelQueries({
+        queryKey: ['auth', 'dingtalk-qr-poll', config.state],
+        exact: true,
+      });
+    };
+    retireCode.current = retire;
+    return () => {
+      retireCode.current = null;
+    };
+  }, [config.state, queryClient, retireCode]);
+
+  useLayoutEffect(() => {
+    if (!active) {
+      void queryClient.cancelQueries({
+        queryKey: ['auth', 'dingtalk-qr-poll', config.state],
+        exact: true,
+      });
+    }
+  }, [active, config.state, queryClient]);
+
+  useEffect(() => {
+    const expire = () => {
+      if (retired.current || handled.current || Date.now() < config.expiresAt)
+        return;
+      retired.current = true;
+      setStatus('expired');
+      unavailableRef.current(config.state);
     };
     const timeout = window.setTimeout(
       expire,
       Math.max(0, config.expiresAt - Date.now()),
     );
-    const onVisibility = () => {
-      if (document.visibilityState === 'visible') expire();
-    };
-    const onMessage = (event: MessageEvent<unknown>) => {
-      const source = iframeRef.current?.contentWindow;
-      if (
-        !mounted ||
-        !activeRef.current ||
-        retired.current ||
-        handled.current ||
-        Date.now() >= config.expiresAt ||
-        event.origin !== DINGTALK_ORIGIN ||
-        !source ||
-        event.source !== source ||
-        typeof event.data !== 'object' ||
-        event.data === null ||
-        Array.isArray(event.data)
-      )
-        return;
-      const data = event.data as Record<string, unknown>;
-      if (data.success === false) {
-        retired.current = true;
-        destroy();
-        setFailure('钉钉扫码未完成，请刷新二维码后重试');
-        setStatus('failed');
-        onUnavailableRef.current(config.state);
-        return;
-      }
-      if (data.success !== true || typeof data.redirectUrl !== 'string') return;
-      let redirect: URL;
-      try {
-        redirect = new URL(data.redirectUrl);
-      } catch {
-        return;
-      }
-      const authCode = redirect.searchParams.get('authCode');
-      if (
-        redirect.origin !== config.callback.origin ||
-        redirect.pathname !== config.callback.pathname ||
-        redirect.username ||
-        redirect.password ||
-        redirect.searchParams.getAll('state').length !== 1 ||
-        redirect.searchParams.get('state') !== config.state ||
-        redirect.searchParams.getAll('authCode').length !== 1 ||
-        !authCode?.trim()
-      )
-        return;
-      onUnavailableRef.current(config.state);
-      handled.current = true;
-      retired.current = true;
-      destroy();
-      setStatus('authenticating');
-      // 只导航到本站固定回调，绝不直接打开 message 提供的 redirectUrl。
-      const callback = new URL(CALLBACK_PATH, window.location.origin);
-      callback.searchParams.set('authCode', authCode);
-      callback.searchParams.set('state', config.state);
-      try {
-        onAuthenticatedRef.current(`${callback.pathname}${callback.search}`);
-      } catch {
-        setFailure('无法继续钉钉登录，请刷新页面后重试');
-        setStatus('failed');
-      }
-    };
-    window.addEventListener('message', onMessage);
     window.addEventListener('focus', expire);
-    document.addEventListener('visibilitychange', onVisibility);
-    let frame = iframeRef.current;
-    if (!retired.current && Date.now() < config.expiresAt) {
-      frame ??= claimPreloadedDingTalkFrame(config) ?? null;
-      if (!frame) {
-        frame = document.createElement('iframe');
-        frame.title = '钉钉扫码登录二维码';
-        frame.src = config.src;
-        frame.referrerPolicy = 'no-referrer';
-        frame.className = styles.qrFrame;
-        slot.appendChild(frame);
-      }
-      iframeRef.current = frame;
-      frame.addEventListener('load', onLoad);
-      frame.addEventListener('error', onError);
-      // 固定 HTML 事件只记录导航结果；接管后改用可清理的原生监听。
-      frame.removeAttribute('onload');
-      frame.removeAttribute('onerror');
-      if (frame.dataset.navigation === 'failed') onError();
-      else {
-        updateVisibility.current();
-        if (frame.dataset.navigation === 'loaded') onLoad();
-      }
-    }
+    document.addEventListener('visibilitychange', expire);
     expire();
     return () => {
-      mounted = false;
-      retireFrame.current = null;
-      updateVisibility.current = () => {};
-      stopAlign();
-      if (frame) {
-        frame.style.visibility = 'hidden';
-        frame.removeEventListener('load', onLoad);
-        frame.removeEventListener('error', onError);
-      }
-      // StrictMode 会立即重演 setup；保留同一浏览上下文，真实卸载则在微任务销毁。
-      queueMicrotask(() => {
-        if (lifecycle.current === generation) destroy();
-      });
       window.clearTimeout(timeout);
-      window.removeEventListener('message', onMessage);
       window.removeEventListener('focus', expire);
-      document.removeEventListener('visibilitychange', onVisibility);
+      document.removeEventListener('visibilitychange', expire);
     };
-  }, [config, retireFrame]);
-
-  useLayoutEffect(() => {
-    updateVisibility.current();
-  }, [active]);
+  }, [config]);
 
   useEffect(() => {
-    if (status !== 'navigating') return;
-    const timeout = window.setTimeout(() => {
-      // 没有二维码就绪事件：慢导航只提示重试，不停用可能仍可扫码的实例。
-      setStatus('slow');
-    }, 15000);
-    return () => window.clearTimeout(timeout);
-  }, [status]);
+    if (retired.current || handled.current) return;
+    if (poll.isError) {
+      retired.current = true;
+      setStatus('failed');
+      unavailableRef.current(config.state);
+      return;
+    }
+    const result = poll.data;
+    if (result?.status === EXPIRED) {
+      retired.current = true;
+      setStatus('expired');
+      unavailableRef.current(config.state);
+    } else if (
+      result?.status === CONFIRMED &&
+      activeRef.current &&
+      Date.now() < config.expiresAt
+    ) {
+      handled.current = true;
+      retired.current = true;
+      unavailableRef.current(config.state);
+      setStatus('authenticating');
+      const callback = new URL(CALLBACK_PATH, window.location.origin);
+      callback.searchParams.set('authCode', result.authCode);
+      callback.searchParams.set('state', config.state);
+      try {
+        authenticatedRef.current(`${callback.pathname}${callback.search}`);
+      } catch {
+        setStatus('failed');
+      }
+    }
+  }, [poll.data, poll.isError, config]);
 
-  if (status === 'expired' || status === 'failed') {
-    return (
-      <Alert
-        type={status === 'expired' ? 'warning' : 'error'}
-        showIcon
-        title={status === 'expired' ? '二维码已过期，请刷新' : failure}
-      />
-    );
-  }
   if (status === 'authenticating') {
     return (
-      <div className={styles.qrPlaceholder}>
-        <Spin />
-        <span>扫码成功，正在认证</span>
-      </div>
+      <QrRefreshCard onRefresh={onRefresh} disabled>
+        <div className={styles.qrStatus}>
+          <Spin />
+          <span>扫码成功，正在认证</span>
+        </div>
+      </QrRefreshCard>
+    );
+  }
+  if (status === 'failed') {
+    return (
+      <QrRefreshCard onRefresh={onRefresh}>
+        <QrRefreshNotice title="二维码加载失败" />
+      </QrRefreshCard>
+    );
+  }
+  if (status === 'expired' || config.expiresAt <= Date.now()) {
+    return (
+      <QrRefreshCard onRefresh={onRefresh}>
+        <QrRefreshNotice title="二维码已失效" />
+      </QrRefreshCard>
     );
   }
   return (
-    <div className={styles.qrFrameContent}>
-      {status === 'slow' && (
-        <Alert
-          className={styles.qrSlowNotice}
-          type="warning"
-          showIcon
-          title="钉钉二维码加载较慢，请检查网络或刷新二维码"
+    <QrRefreshCard onRefresh={onRefresh}>
+      <div
+        className={styles.qrDisplay}
+        role="img"
+        aria-label="钉钉扫码登录二维码"
+      >
+        <QRCode
+          type="svg"
+          value={config.qrCodeUrl}
+          size={180}
+          bordered={false}
+          bgColor="#ffffff"
+          color="#181c1f"
         />
-      )}
-      {status === 'navigating' && (
-        <div className={styles.qrLoading}>
-          <Spin size="small" />
-          <span>正在加载钉钉二维码</span>
+      </div>
+      {poll.data?.status === SCANNED && (
+        <div className={styles.qrScanned}>
+          <Spin />
+          <span>已扫码，请在手机钉钉上确认</span>
         </div>
       )}
-      <div ref={slotRef} className={styles.qrFrameWrapper} />
-    </div>
+    </QrRefreshCard>
   );
 }
 
 export function DingTalkQrLogin({ active = true, onAuthenticated }: Props) {
+  const visible = useSyncExternalStore(
+    subscribeVisibility,
+    () => document.visibilityState !== 'hidden',
+    () => true,
+  );
+  const foreground = active && visible;
   const [retiredState, setRetiredState] = useState<string>();
-  const lastAutoRefreshAt = useRef(0);
   const queryClient = useQueryClient();
-  const query = useQuery({ ...dingTalkLoginConfigOptions, enabled: active });
-  const activeRef = useRef(active);
-  activeRef.current = active;
-  const wasActive = useRef(active);
+  const query = useQuery({
+    ...dingTalkLoginConfigOptions,
+    enabled: foreground,
+  });
+  const wasActive = useRef(foreground);
   const unavailableState = useRef<string | undefined>(undefined);
-  const retireFrame = useRef<(() => void) | null>(null);
+  const currentState = useRef<string | undefined>(undefined);
+  currentState.current = query.data?.enabled ? query.data.qr.state : undefined;
+  const retireCode = useRef<(() => void) | null>(null);
 
   const refresh = useCallback(() => {
     if (query.isFetching) return;
-    retireFrame.current?.();
-    discardPreloadedDingTalkFrame();
-    // 先同步退役实例，再发出会覆盖 state Cookie 的配置请求。
-    setRetiredState(query.data?.enabled ? query.data.frame.state : undefined);
+    retireCode.current?.();
+    // 新配置会写 state Cookie；先退役旧轮询，再串行获取新尝试。
+    setRetiredState(query.data?.enabled ? query.data.qr.state : undefined);
     unavailableState.current = undefined;
     void query.refetch({ cancelRefetch: false });
   }, [query]);
 
-  const refreshOnExpired = useCallback(() => {
-    if (!activeRef.current) return;
-    // 客户端时钟快于服务端时新配置会一到手就过期，限流防止自动刷新演变成请求风暴。
-    if (Date.now() - lastAutoRefreshAt.current < 1000) return;
-    lastAutoRefreshAt.current = Date.now();
-    refresh();
-  }, [refresh]);
-
   useLayoutEffect(() => {
-    const returning = active && !wasActive.current;
-    wasActive.current = active;
+    const returning = foreground && !wasActive.current;
+    wasActive.current = foreground;
     const state = queryClient.getQueryState(
       dingTalkLoginConfigOptions.queryKey,
     );
     if (
       returning &&
       ((state?.data?.enabled &&
-        unavailableState.current === state.data.frame.state) ||
+        unavailableState.current === state.data.qr.state) ||
         state?.status === 'error' ||
         state?.isInvalidated ||
-        (state?.data?.enabled && state.data.frame.expiresAt <= Date.now()))
+        (state?.data?.enabled && state.data.qr.expiresAt <= Date.now()))
     )
       refresh();
-  }, [active, queryClient, refresh]);
+  }, [foreground, queryClient, refresh]);
 
   return (
     <div className={styles.qrLogin} hidden={!active}>
@@ -345,54 +353,43 @@ export function DingTalkQrLogin({ active = true, onAuthenticated }: Props) {
         query.isPending ||
         (!query.isError &&
           query.data?.enabled &&
-          query.data.frame.state === retiredState) ? (
-          <div className={styles.qrPlaceholder}>
-            <Spin />
-            <span>正在获取钉钉登录配置</span>
-          </div>
+          query.data.qr.state === retiredState) ? (
+          <QrRefreshCard onRefresh={refresh} disabled>
+            <div className={styles.qrStatus}>
+              <Spin />
+              <span>正在加载钉钉二维码</span>
+            </div>
+          </QrRefreshCard>
         ) : query.isError ? (
-          <Alert
-            type="error"
-            showIcon
+          <QrRefreshCard
+            onRefresh={refresh}
             title={getRequestErrorMessage(
               query.error,
               '获取钉钉登录配置失败，请重试',
             )}
-          />
+          >
+            <QrRefreshNotice title="二维码加载失败" />
+          </QrRefreshCard>
         ) : query.data.enabled ? (
-          <DingTalkFrame
-            key={query.data.frame.state}
-            config={query.data.frame}
-            active={active}
-            retireFrame={retireFrame}
+          <DingTalkCode
+            key={query.data.qr.state}
+            config={query.data.qr}
+            active={foreground}
+            retireCode={retireCode}
             onUnavailable={(state) => {
-              unavailableState.current = state;
+              if (currentState.current === state)
+                unavailableState.current = state;
             }}
             onAuthenticated={onAuthenticated}
-            onExpired={refreshOnExpired}
+            onRefresh={refresh}
           />
         ) : (
-          <Alert type="info" showIcon title="钉钉登录暂未启用，请联系管理员" />
+          <QrRefreshCard onRefresh={refresh} disabled>
+            <div className={styles.qrStatus}>
+              <span>钉钉登录暂未启用，请联系管理员</span>
+            </div>
+          </QrRefreshCard>
         )}
-      </div>
-
-      <div className={styles.qrFooter}>
-        <Button
-          type="link"
-          size="small"
-          icon={<ReloadOutlined />}
-          loading={query.isFetching}
-          disabled={query.isFetching}
-          className={styles.qrRefreshBtn}
-          onClick={refresh}
-        >
-          刷新二维码
-        </Button>
-        <div className={styles.qrHintGroup}>
-          <p className={styles.qrHint}>
-            使用前请联系管理员同步人员并分配组织和角色
-          </p>
-        </div>
       </div>
     </div>
   );

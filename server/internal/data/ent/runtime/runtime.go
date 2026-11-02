@@ -100,6 +100,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/passkeycredential"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/passwordresetchallenge"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
@@ -7817,6 +7818,81 @@ func init() {
 	partnersettlementruleDescID := partnersettlementruleMixinFields0[0].Descriptor()
 	// partnersettlementrule.DefaultID holds the default value on creation for the id field.
 	partnersettlementrule.DefaultID = partnersettlementruleDescID.Default.(func() uuid.UUID)
+	passkeycredentialMixin := schema.PasskeyCredential{}.Mixin()
+	passkeycredentialMixinFields0 := passkeycredentialMixin[0].Fields()
+	_ = passkeycredentialMixinFields0
+	passkeycredentialMixinFields1 := passkeycredentialMixin[1].Fields()
+	_ = passkeycredentialMixinFields1
+	passkeycredentialFields := schema.PasskeyCredential{}.Fields()
+	_ = passkeycredentialFields
+	// passkeycredentialDescCreatedAt is the schema descriptor for created_at field.
+	passkeycredentialDescCreatedAt := passkeycredentialMixinFields1[0].Descriptor()
+	// passkeycredential.DefaultCreatedAt holds the default value on creation for the created_at field.
+	passkeycredential.DefaultCreatedAt = passkeycredentialDescCreatedAt.Default.(func() time.Time)
+	// passkeycredentialDescUpdatedAt is the schema descriptor for updated_at field.
+	passkeycredentialDescUpdatedAt := passkeycredentialMixinFields1[1].Descriptor()
+	// passkeycredential.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	passkeycredential.DefaultUpdatedAt = passkeycredentialDescUpdatedAt.Default.(func() time.Time)
+	// passkeycredential.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	passkeycredential.UpdateDefaultUpdatedAt = passkeycredentialDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// passkeycredentialDescRpID is the schema descriptor for rp_id field.
+	passkeycredentialDescRpID := passkeycredentialFields[1].Descriptor()
+	// passkeycredential.RpIDValidator is a validator for the "rp_id" field. It is called by the builders before save.
+	passkeycredential.RpIDValidator = func() func(string) error {
+		validators := passkeycredentialDescRpID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(rp_id string) error {
+			for _, fn := range fns {
+				if err := fn(rp_id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// passkeycredentialDescCredentialID is the schema descriptor for credential_id field.
+	passkeycredentialDescCredentialID := passkeycredentialFields[2].Descriptor()
+	// passkeycredential.CredentialIDValidator is a validator for the "credential_id" field. It is called by the builders before save.
+	passkeycredential.CredentialIDValidator = func() func(string) error {
+		validators := passkeycredentialDescCredentialID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(credential_id string) error {
+			for _, fn := range fns {
+				if err := fn(credential_id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// passkeycredentialDescName is the schema descriptor for name field.
+	passkeycredentialDescName := passkeycredentialFields[4].Descriptor()
+	// passkeycredential.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	passkeycredential.NameValidator = func() func(string) error {
+		validators := passkeycredentialDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// passkeycredentialDescID is the schema descriptor for id field.
+	passkeycredentialDescID := passkeycredentialMixinFields0[0].Descriptor()
+	// passkeycredential.DefaultID holds the default value on creation for the id field.
+	passkeycredential.DefaultID = passkeycredentialDescID.Default.(func() uuid.UUID)
 	passwordresetchallengeMixin := schema.PasswordResetChallenge{}.Mixin()
 	passwordresetchallengeMixinFields0 := passwordresetchallengeMixin[0].Fields()
 	_ = passwordresetchallengeMixinFields0

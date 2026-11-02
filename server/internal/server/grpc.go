@@ -22,7 +22,7 @@ import (
 )
 
 // NewGRPCServer new a gRPC server.
-func NewGRPCServer(c *conf.Server, enterpriseResource *service.EnterpriseResourceService, auth *service.AuthService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, airExport *service.AirExportService, airWeight *service.AirWeightService, order *service.OrderService, orderLock *service.OrderLockService, orderAttachment *service.OrderAttachmentService, orderPersonnel *service.OrderPersonnelService, backgroundTask *service.BackgroundTaskService, orderContainer *service.OrderContainerService, orderCargoItem *service.OrderCargoItemService, shippingDocument *service.OrderShippingDocumentService, seaDocument *service.SeaDocumentService, seaSharedContainer *service.SeaSharedContainerService, seaOrderChange *service.SeaOrderChangeService, abnormalCase *service.OrderAbnormalCaseService, releasePod *service.OrderReleasePodService, exchangeRate *service.ExchangeRateService, feeCatalog *service.FeeCatalogService, orderFee *service.OrderFeeService, settlement *service.SettlementService, workbench *service.WorkbenchService, authUsecase *biz.AuthUsecase, orderUsecase *biz.OrderUsecase, partnerUsecase *biz.PartnerUsecase, policy *biz.SessionPolicy, logger *slog.Logger, orderTag *service.OrderTagService) *grpc.Server {
+func NewGRPCServer(c *conf.Server, enterpriseResource *service.EnterpriseResourceService, auth *service.AuthService, passkey *service.PasskeyService, partner *service.PartnerService, admin *service.AdminService, masterData *service.MasterDataService, airExport *service.AirExportService, airWeight *service.AirWeightService, order *service.OrderService, orderLock *service.OrderLockService, orderAttachment *service.OrderAttachmentService, orderPersonnel *service.OrderPersonnelService, backgroundTask *service.BackgroundTaskService, orderContainer *service.OrderContainerService, orderCargoItem *service.OrderCargoItemService, shippingDocument *service.OrderShippingDocumentService, seaDocument *service.SeaDocumentService, seaSharedContainer *service.SeaSharedContainerService, seaOrderChange *service.SeaOrderChangeService, abnormalCase *service.OrderAbnormalCaseService, releasePod *service.OrderReleasePodService, exchangeRate *service.ExchangeRateService, feeCatalog *service.FeeCatalogService, orderFee *service.OrderFeeService, settlement *service.SettlementService, workbench *service.WorkbenchService, authUsecase *biz.AuthUsecase, orderUsecase *biz.OrderUsecase, partnerUsecase *biz.PartnerUsecase, policy *biz.SessionPolicy, logger *slog.Logger, orderTag *service.OrderTagService) *grpc.Server {
 	var opts = []grpc.ServerOption{
 		grpc.Middleware(
 			Recovery(logger),
@@ -46,6 +46,7 @@ func NewGRPCServer(c *conf.Server, enterpriseResource *service.EnterpriseResourc
 	srv := grpc.NewServer(opts...)
 	enterpriseresourcev1.RegisterEnterpriseResourceServiceServer(srv, enterpriseResource)
 	authv1.RegisterAuthServiceServer(srv, auth)
+	authv1.RegisterPasskeyServiceServer(srv, passkey)
 	partnerv1.RegisterPartnerServiceServer(srv, partner)
 	adminv1.RegisterAdminServiceServer(srv, admin)
 	masterdatav1.RegisterMasterDataServiceServer(srv, masterData)

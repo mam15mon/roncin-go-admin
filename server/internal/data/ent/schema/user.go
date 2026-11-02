@@ -61,6 +61,7 @@ func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("memberships", Membership.Type),
 		edge.To("sessions", Session.Type),
+		edge.To("passkey_credentials", PasskeyCredential.Type),
 		edge.To("order_personnel", OrderPersonnel.Type),
 		edge.To("notification_deliveries", NotificationDelivery.Type),
 		edge.To("partner_assignments", PartnerAssignment.Type),

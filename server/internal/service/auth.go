@@ -41,7 +41,7 @@ func (s *AuthService) Login(ctx context.Context, request *v1.LoginRequest) (*v1.
 	if err != nil {
 		return nil, err
 	}
-	s.setCookie(ctx, result.Token, result.ExpiresAt, 0)
+	s.setSessionCookies(ctx, result.Token, rememberLogin(request.RememberMe))
 	return ok(ctx, &v1.LoginResponse{Data: principalToAPI(result.Principal), OrganizationChoices: organizationChoicesToAPI(result.OrganizationChoices)}), nil
 }
 
@@ -76,14 +76,15 @@ func (s *AuthService) DingTalkLoginBootstrap(ctx context.Context) (json.RawMessa
 }
 
 func (s *AuthService) prepareDingTalkLoginConfig(ctx context.Context) (*v1.GetDingTalkLoginConfigResponse, *nethttp.Cookie, error) {
-	enabled, authorizeURL, state, expiresAt, err := s.usecase.StartDingTalkLogin()
+	enabled, qrCodeURL, state, expiresAt, err := s.usecase.StartDingTalkLogin(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
 	config := &v1.DingTalkLoginConfig{Enabled: enabled}
 	var cookie *nethttp.Cookie
 	if enabled {
-		config.AuthorizeUrl = &authorizeURL
+		config.QrCodeUrl = &qrCodeURL
+		config.State = &state
 		expires := expiresAt.Format(time.RFC3339)
 		config.ExpiresAt = &expires
 		cookie = s.newCookie(s.dingTalkStateCookieName(), state, expiresAt, 300)
@@ -120,7 +121,7 @@ func (s *AuthService) DingTalkEmbeddedLogin(ctx context.Context, request *v1.Din
 	if err != nil {
 		return nil, err
 	}
-	data, err := s.dingTalkLoginData(ctx, result)
+	data, err := s.dingTalkLoginData(ctx, result, true)
 	if err != nil {
 		return nil, err
 	}
@@ -139,20 +140,20 @@ func (s *AuthService) DingTalkLogin(ctx context.Context, request *v1.DingTalkLog
 	if err != nil {
 		return nil, err
 	}
-	data, err := s.dingTalkLoginData(ctx, result)
+	data, err := s.dingTalkLoginData(ctx, result, rememberLogin(request.RememberMe))
 	if err != nil {
 		return nil, err
 	}
 	return ok(ctx, &v1.DingTalkLoginResponse{Data: data}), nil
 }
 
-func (s *AuthService) dingTalkLoginData(ctx context.Context, result *biz.DingTalkLoginResult) (*v1.DingTalkLoginResult, error) {
+func (s *AuthService) dingTalkLoginData(ctx context.Context, result *biz.DingTalkLoginResult, remember bool) (*v1.DingTalkLoginResult, error) {
 	data := &v1.DingTalkLoginResult{Message: result.Message, DisplayName: optionalString(result.DisplayName, result.DisplayName != "")}
 	switch result.Status {
 	case biz.DingTalkLoginStatusAuthenticated:
 		data.Status = v1.DingTalkLoginStatus_DING_TALK_LOGIN_STATUS_AUTHENTICATED
 		data.CurrentUser = principalToAPI(result.Principal)
-		s.setCookie(ctx, result.SessionToken, result.SessionExpiresAt, 0)
+		s.setSessionCookies(ctx, result.SessionToken, remember)
 	case biz.DingTalkLoginStatusNotSynced:
 		data.Status = v1.DingTalkLoginStatus_DING_TALK_LOGIN_STATUS_NOT_SYNCED
 	case biz.DingTalkLoginStatusPendingAssignment:
@@ -173,7 +174,7 @@ func (s *AuthService) Logout(ctx context.Context, _ *v1.LogoutRequest) (*v1.Logo
 	if err := s.usecase.Logout(ctx, principal); err != nil {
 		return nil, err
 	}
-	s.setCookie(ctx, "", time.Unix(1, 0), -1)
+	s.clearSessionCookies(ctx)
 	return ok(ctx, &v1.LogoutResponse{}), nil
 }
 
@@ -198,7 +199,7 @@ func (s *AuthService) SwitchOrganization(ctx context.Context, request *v1.Switch
 	if err != nil {
 		return nil, err
 	}
-	s.setCookie(ctx, result.Token, result.ExpiresAt, 0)
+	s.setSessionCookies(ctx, result.Token, s.rememberSessionFromRequest(ctx))
 	return ok(ctx, &v1.SwitchOrganizationResponse{Data: principalToAPI(result.Principal), OrganizationChoices: organizationChoicesToAPI(result.OrganizationChoices)}), nil
 }
 
@@ -206,12 +207,41 @@ func (s *AuthService) SwitchOrganization(ctx context.Context, request *v1.Switch
 // 普通请求不重写 Cookie，避免迟到响应覆盖退出清除或切换工作台的新令牌。
 const sessionCookieRetention = 400 * 24 * time.Hour
 
-func (s *AuthService) setCookie(ctx context.Context, value string, expires time.Time, maxAge int) {
-	if value != "" {
+func rememberLogin(value *bool) bool { return value == nil || *value }
+
+func (s *AuthService) setSessionCookies(ctx context.Context, token string, remember bool) {
+	var expires time.Time
+	maxAge, preference := 0, "false"
+	if remember {
 		expires = time.Now().UTC().Add(sessionCookieRetention)
-		maxAge = int(sessionCookieRetention / time.Second)
+		maxAge, preference = int(sessionCookieRetention/time.Second), "true"
 	}
-	s.setCookieNamed(ctx, s.policy.CookieName, value, expires, maxAge)
+	s.setCookieNamed(ctx, s.policy.CookieName, token, expires, maxAge)
+	s.setCookieNamed(ctx, s.policy.CookieName+"_remember", preference, expires, maxAge)
+}
+
+func (s *AuthService) clearSessionCookies(ctx context.Context) {
+	for _, name := range []string{s.policy.CookieName, s.policy.CookieName + "_remember"} {
+		s.setCookieNamed(ctx, name, "", time.Unix(1, 0), -1)
+	}
+}
+
+// 偏好只决定浏览器存储期限，不参与权限或服务端会话校验。
+// 缺失、非法或重复偏好保守采用会话 Cookie，切换成功后重写规范的 false。
+func (s *AuthService) rememberSessionFromRequest(ctx context.Context) bool {
+	tr, ok := transport.FromServerContext(ctx)
+	if !ok {
+		return false
+	}
+	request := &nethttp.Request{Header: nethttp.Header{"Cookie": []string{tr.RequestHeader().Get("Cookie")}}}
+	count, remember := 0, false
+	for _, cookie := range request.Cookies() {
+		if cookie.Name == s.policy.CookieName+"_remember" {
+			count++
+			remember = cookie.Value == "true"
+		}
+	}
+	return count == 1 && remember
 }
 
 func (s *AuthService) setCookieNamed(ctx context.Context, name, value string, expires time.Time, maxAge int) {
@@ -328,6 +358,6 @@ func (s *AuthService) ConfirmPasswordReset(ctx context.Context, request *v1.Conf
 	if err := s.passwordReset.Confirm(ctx, request.GetChallengeToken(), request.GetCode(), request.GetNewPassword()); err != nil {
 		return nil, err
 	}
-	s.setCookie(ctx, "", time.Unix(1, 0), -1)
+	s.clearSessionCookies(ctx)
 	return ok(ctx, &v1.ConfirmPasswordResetResponse{}), nil
 }

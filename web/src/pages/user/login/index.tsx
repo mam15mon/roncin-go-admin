@@ -1,18 +1,19 @@
 import {
-  ArrowRightOutlined,
   DingdingOutlined,
   EyeInvisibleOutlined,
   EyeOutlined,
-  LockOutlined,
-  UserOutlined,
 } from '@ant-design/icons';
 import { useQueryClient } from '@tanstack/react-query';
-import { App, Button, Checkbox, Form, Input, Segmented } from 'antd';
+import { App, Button, Checkbox, Form, Input, Segmented, Tooltip } from 'antd';
 import React, { startTransition, useCallback, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useInitialState } from '@/app/AppProvider';
 import { isDingTalkClient } from '@/app/dingtalkEnvironment';
-import { QuarterRing } from '@/components/ui';
+import {
+  formatPasskeyError,
+  usePasskeyEnrollment,
+  usePasskeyLogin,
+} from '@/features/auth/passkeys';
 import { clearOrderMasterDataCache } from '@/features/orders/options';
 import { getRequestErrorMessage } from '@/requestErrorConfig';
 import { history } from '@/router/history';
@@ -28,17 +29,23 @@ import {
 } from './components/organization-picker';
 import { PasswordResetModal } from './components/password-reset-modal';
 import styles from './index.module.less';
+import { useRememberLogin } from './loginPreferences';
 import { safeLoginRedirect } from './redirect';
 
 export default function Login() {
   const { setInitialState } = useInitialState();
   const embedded = isDingTalkClient(navigator.userAgent);
   const { message } = App.useApp();
+  const { rememberLogin, setRememberLogin } = useRememberLogin();
+  const passkeys = usePasskeyLogin(rememberLogin);
+  const { completeLogin, enrollmentPrompt, isEnrollmentOpen } =
+    usePasskeyEnrollment();
   const queryClient = useQueryClient();
   const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
   const [form] = Form.useForm<API.LoginRequest>();
 
   const [loading, setLoading] = useState(false);
+  const busy = loading || passkeys.isPending || isEnrollmentOpen;
   const [embeddedSwitchLocked, setEmbeddedSwitchLocked] = useState(false);
   const embeddedSwitchLockedRef = useRef(false);
   const handleEmbeddedSwitchLock = useCallback((locked: boolean) => {
@@ -51,6 +58,13 @@ export default function Login() {
   const [loginMode, setLoginMode] = useState<'dingtalk' | 'password'>(
     'dingtalk',
   );
+  const qrMode = loginMode === 'dingtalk' && !embedded;
+  const [accountStep, setAccountStep] = useState<'account' | 'password'>(
+    'account',
+  );
+  const previousAccount = useRef('');
+  const usernameValue = Form.useWatch('username', form);
+  const passwordInput = Form.useWatch('password', form);
   const [organizationSelection, setOrganizationSelection] = useState<{
     options: LoginOrganizationOption[];
     currentOrganizationId?: string;
@@ -62,40 +76,75 @@ export default function Login() {
     window.location.assign(redirect);
   };
 
-  const handleSubmit = async (values: API.LoginRequest) => {
-    setLoading(true);
-    try {
-      const response = await authServiceLogin(values, {
-        skipErrorHandler: true,
-      });
-      if (!response.data) return;
-      const options = resolveLoginOrganizationOptions(
-        response.organizationChoices,
-        response.data,
-      );
-      const redirect = safeLoginRedirect(
-        new URL(window.location.href).searchParams.get('redirect'),
-      );
+  const acceptAuthenticatedLogin = (
+    response: API.LoginResponse | API.FinishPasskeyLoginResponse,
+  ) => {
+    const user = response.data;
+    if (!user?.id) throw new Error('登录未返回有效用户，请重试');
+    const options = resolveLoginOrganizationOptions(
+      response.organizationChoices,
+      user,
+    );
+    const redirect = safeLoginRedirect(
+      new URL(window.location.href).searchParams.get('redirect'),
+    );
+    completeLogin(() => {
       startTransition(() => {
-        setInitialState((state) => ({ ...state, currentUser: response.data }));
+        setInitialState((state) => ({ ...state, currentUser: user }));
       });
-      // 多组织用户先选择进入组织：会话已按候选顺序建立，
-      // 选其他组织时由选择视图经 switch-organization 换发会话后进入。
       if (options.length > 1) {
         setPendingRedirect(redirect);
         setOrganizationSelection({
           options,
-          currentOrganizationId: response.data.currentOrganization?.id,
+          currentOrganizationId: user.currentOrganization?.id,
         });
         return;
       }
       finishLogin(redirect);
+    }, user.id);
+  };
+
+  const handleSubmit = async (values: API.LoginRequest) => {
+    setLoading(true);
+    try {
+      const response = await authServiceLogin(
+        { ...values, rememberMe: rememberLogin },
+        { skipErrorHandler: true },
+      );
+      acceptAuthenticatedLogin(response);
     } catch (error) {
-      // 登录失败已跳过全局 401 跳转，这里展示服务端业务提示（如「用户名或密码错误」）。
       message.error(getRequestErrorMessage(error, '登录失败，请稍后重试'));
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePasskeyLogin = () => {
+    if (busy) return;
+    setLoading(true);
+    // 原生密钥请求由 login 在本次点击栈同步启动，后续仅等待验证结果。
+    const pending = passkeys.login();
+    void pending
+      .then(acceptAuthenticatedLogin)
+      .catch((error: unknown) => {
+        message.error(formatPasskeyError(error, '通行密钥登录失败，请重试'));
+      })
+      .finally(() => setLoading(false));
+  };
+
+  const handleAccountStep = (values: API.LoginRequest) => {
+    if (accountStep === 'password') {
+      void handleSubmit(values);
+      return;
+    }
+    if (previousAccount.current !== values.username) {
+      form.setFieldValue('password', '');
+      setPasswordValue('');
+      setShowPassword(false);
+    }
+    previousAccount.current = values.username;
+    setIsTyping(false);
+    setAccountStep('password');
   };
 
   const handleDingTalkAuthenticated = useCallback((callbackPath: string) => {
@@ -109,6 +158,7 @@ export default function Login() {
 
   return (
     <div className={styles.loginContainer}>
+      {enrollmentPrompt}
       <Helmet>
         <title>登录 - {Settings.title}</title>
       </Helmet>
@@ -152,6 +202,8 @@ export default function Login() {
             setShowPassword(false);
             setIsTyping(false);
             setLoginMode('password');
+            setAccountStep('password');
+            previousAccount.current = mobile;
             setResetPasswordOpen(false);
             message.success('密码设置成功，所有设备已退出，请重新登录');
           }}
@@ -160,10 +212,6 @@ export default function Login() {
 
       {/* 认证主体与独立页脚 */}
       <div className={styles.formSection}>
-        <div className={styles.mobileLogo}>
-          <img src="/images/logo-mark.png" alt="" />
-          <span>RONCIN</span>
-        </div>
         <main className={styles.formMain}>
           {organizationSelection && organizationSelection.options.length > 1 ? (
             <OrganizationPicker
@@ -178,20 +226,24 @@ export default function Login() {
           ) : (
             <section className={styles.formCard} aria-label="登录">
               <Segmented<'dingtalk' | 'password'>
-                block
                 name="login-mode"
                 aria-label="登录方式"
                 className={styles.loginModeSwitch}
-                size="large"
+                classNames={{
+                  label: styles.switchLabel,
+                  item: styles.switchItem,
+                }}
+                size="middle"
+                shape="round"
                 value={loginMode}
                 options={[
+                  { label: '账号登录', value: 'password' },
                   {
-                    label: embedded ? '钉钉免登' : '钉钉扫码',
+                    label: embedded ? '钉钉免登' : '扫码登录',
                     value: 'dingtalk',
                   },
-                  { label: '账号登录', value: 'password' },
                 ]}
-                disabled={loading || embeddedSwitchLocked}
+                disabled={busy || embeddedSwitchLocked}
                 onChange={(mode) => {
                   if (embeddedSwitchLockedRef.current) return;
                   setIsTyping(false);
@@ -199,32 +251,54 @@ export default function Login() {
                   setLoginMode(mode);
                 }}
               />
+              <span className={styles.languageLabel}>简体中文</span>
 
               <div className={styles.formHeader}>
                 <div className={styles.authIcon} aria-hidden="true">
-                  {loginMode === 'dingtalk' ? (
-                    <DingdingOutlined />
-                  ) : (
-                    <UserOutlined />
-                  )}
+                  <DingdingOutlined />
                 </div>
                 <h1 className={styles.headerTitle}>
                   {loginMode === 'dingtalk'
                     ? embedded
                       ? '钉钉客户端登录'
-                      : '钉钉扫码登录'
-                    : '账号登录'}
+                      : '使用钉钉扫码'
+                    : '登录 Roncin'}
                 </h1>
-                <p className={styles.headerSubtitle}>
-                  {loginMode === 'dingtalk'
-                    ? embedded
-                      ? '使用当前钉钉身份进入工作台'
-                      : '打开手机钉钉「扫一扫」快速登录'
-                    : '使用钉钉手机号或本地账号与密码登录'}
-                </p>
+                <div className={styles.headerSubtitle}>
+                  {loginMode === 'password' && accountStep === 'password' ? (
+                    <>
+                      <span
+                        className={styles.accountIdentity}
+                        title={usernameValue}
+                      >
+                        {usernameValue}
+                      </span>
+                      <button
+                        type="button"
+                        className={styles.changeAccount}
+                        disabled={busy}
+                        onClick={() => {
+                          setAccountStep('account');
+                          setShowPassword(false);
+                        }}
+                      >
+                        修改账号
+                      </button>
+                    </>
+                  ) : loginMode === 'dingtalk' && embedded ? (
+                    '使用当前钉钉身份进入工作台'
+                  ) : (
+                    '继续使用 Roncin 管理后台'
+                  )}
+                </div>
               </div>
 
-              <div className={styles.authContent}>
+              <div
+                className={[
+                  styles.authContent,
+                  qrMode ? styles.qrAuthContent : styles.accountAuthContent,
+                ].join(' ')}
+              >
                 {embedded ? (
                   loginMode === 'dingtalk' && (
                     <DingTalkEmbeddedLogin
@@ -238,7 +312,7 @@ export default function Login() {
                 ) : (
                   <DingTalkQrLogin
                     active={
-                      loginMode === 'dingtalk' && !loading && !resetPasswordOpen
+                      loginMode === 'dingtalk' && !busy && !resetPasswordOpen
                     }
                     onAuthenticated={handleDingTalkAuthenticated}
                   />
@@ -248,147 +322,182 @@ export default function Login() {
                     form={form}
                     layout="vertical"
                     requiredMark={false}
-                    onFinish={handleSubmit}
+                    onFinish={handleAccountStep}
                     initialValues={{ username: '', password: '' }}
                   >
-                    {/* 用户名 */}
-                    <Form.Item style={{ marginBottom: 18 }}>
-                      <div>
-                        <label
-                          className={styles.inputLabel}
-                          htmlFor="login_username"
-                        >
-                          账号
-                        </label>
-                        <Form.Item
-                          name="username"
-                          noStyle
-                          rules={[{ required: true, message: '请输入账号' }]}
-                        >
-                          <Input
-                            id="login_username"
-                            size="large"
-                            placeholder="钉钉手机号 / 本地账号"
-                            autoComplete="username"
-                            prefix={
-                              <UserOutlined
-                                style={{
-                                  color: '#94a3b8',
-                                  fontSize: 16,
-                                  marginRight: 6,
-                                }}
-                              />
-                            }
-                            className={styles.cleanInput}
-                            disabled={loading}
-                            onFocus={() => setIsTyping(true)}
-                            onBlur={() => setIsTyping(false)}
-                          />
-                        </Form.Item>
-                      </div>
-                    </Form.Item>
-
-                    {/* 密码 */}
-                    <Form.Item style={{ marginBottom: 18 }}>
-                      <div>
-                        <label
-                          className={styles.inputLabel}
-                          htmlFor="login_password"
-                        >
-                          密码
-                        </label>
-                        <Form.Item
-                          name="password"
-                          noStyle
-                          rules={[{ required: true, message: '请输入密码' }]}
-                        >
-                          <Input.Password
-                            id="login_password"
-                            size="large"
-                            placeholder="请输入密码"
-                            autoComplete="current-password"
-                            prefix={
-                              <LockOutlined
-                                style={{
-                                  color: '#94a3b8',
-                                  fontSize: 16,
-                                  marginRight: 6,
-                                }}
-                              />
-                            }
-                            className={styles.cleanInput}
-                            disabled={loading}
-                            iconRender={(visible) =>
-                              visible ? (
-                                <EyeOutlined style={{ color: '#64748b' }} />
-                              ) : (
-                                <EyeInvisibleOutlined
-                                  style={{ color: '#94a3b8' }}
-                                />
-                              )
-                            }
-                            visibilityToggle={{
-                              visible: showPassword,
-                              onVisibleChange: (visible) =>
-                                setShowPassword(visible),
-                            }}
-                            onChange={(e) => setPasswordValue(e.target.value)}
-                            onFocus={() => setIsTyping(true)}
-                            onBlur={() => setIsTyping(false)}
-                          />
-                        </Form.Item>
-                      </div>
-                    </Form.Item>
-
-                    {/* 辅助操作栏 */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: 20,
-                      }}
+                    <Form.Item
+                      name="username"
+                      hidden={accountStep !== 'account'}
+                      rules={[{ required: true, message: '请输入账号' }]}
+                      className={styles.accountField}
                     >
-                      <Checkbox
-                        defaultChecked
-                        disabled={loading}
-                        style={{ fontSize: 13, color: '#475569' }}
-                      >
-                        保持登录状态
-                      </Checkbox>
-                      <Button
-                        type="link"
-                        disabled={loading}
-                        onClick={() => setResetPasswordOpen(true)}
-                        style={{ paddingInline: 0 }}
-                      >
-                        设置 / 忘记密码
-                      </Button>
-                    </div>
-
-                    {/* 登录操作按钮 */}
+                      <Input
+                        id="login_username"
+                        aria-label="账号"
+                        placeholder="钉钉手机号 / 本地账号"
+                        autoComplete="username"
+                        className={styles.cleanInput}
+                        disabled={busy}
+                        onFocus={() => setIsTyping(true)}
+                        onBlur={() => setIsTyping(false)}
+                      />
+                    </Form.Item>
+                    <Form.Item
+                      name="password"
+                      hidden={accountStep !== 'password'}
+                      rules={[
+                        {
+                          required: accountStep === 'password',
+                          message: '请输入密码',
+                        },
+                      ]}
+                      className={styles.accountField}
+                    >
+                      <Input.Password
+                        id="login_password"
+                        aria-label="密码"
+                        placeholder="请输入密码"
+                        autoComplete="current-password"
+                        className={styles.cleanInput}
+                        disabled={busy}
+                        iconRender={(visible) =>
+                          visible ? <EyeOutlined /> : <EyeInvisibleOutlined />
+                        }
+                        visibilityToggle={{
+                          visible: showPassword,
+                          onVisibleChange: setShowPassword,
+                        }}
+                        onChange={(event) =>
+                          setPasswordValue(event.target.value)
+                        }
+                        onFocus={() => setIsTyping(true)}
+                        onBlur={() => setIsTyping(false)}
+                      />
+                    </Form.Item>
                     <Form.Item style={{ marginBottom: 0 }}>
                       <Button
                         type="primary"
                         htmlType="submit"
-                        aria-label={loading ? '登录中...' : '登录'}
-                        loading={loading}
-                        disabled={loading}
-                        className={styles.submitButton}
-                        icon={
-                          loading ? (
-                            <QuarterRing size={16} strokeWidth="2px" />
-                          ) : (
-                            <ArrowRightOutlined />
-                          )
+                        aria-label={
+                          loading
+                            ? '登录中...'
+                            : accountStep === 'account'
+                              ? '下一步'
+                              : '登录'
                         }
-                        iconPlacement="end"
+                        loading={loading}
+                        disabled={
+                          busy ||
+                          !(
+                            accountStep === 'account'
+                              ? usernameValue
+                              : passwordInput
+                          )?.trim()
+                        }
+                        className={styles.submitButton}
                       >
-                        {loading ? '登录中...' : '登录'}
+                        {loading
+                          ? '登录中...'
+                          : accountStep === 'account'
+                            ? '下一步'
+                            : '登录'}
                       </Button>
                     </Form.Item>
                   </Form>
                 )}
+              </div>
+
+              {(!embedded || loginMode === 'password') && (
+                <div
+                  className={[
+                    styles.loginOptions,
+                    styles.passkeyOptions,
+                    loginMode === 'password' ? styles.accountOptions : '',
+                  ].join(' ')}
+                >
+                  <Checkbox
+                    checked={rememberLogin}
+                    onChange={(event) => setRememberLogin(event.target.checked)}
+                    disabled={busy || embeddedSwitchLocked}
+                    className={styles.rememberControl}
+                    classNames={{
+                      icon: styles.rememberIcon,
+                      label: styles.rememberLabel,
+                    }}
+                  >
+                    自动登录
+                  </Checkbox>
+                  <Tooltip
+                    title={
+                      passkeys.reason || '登录成功后，为当前设备添加通行密钥'
+                    }
+                  >
+                    <span className={styles.passkeyOptionRow}>
+                      <Checkbox
+                        checked={passkeys.canUse && passkeys.enrollAfterLogin}
+                        disabled={
+                          busy || embeddedSwitchLocked || !passkeys.canUse
+                        }
+                        onChange={(event) =>
+                          passkeys.setEnrollAfterLogin(event.target.checked)
+                        }
+                        className={styles.rememberControl}
+                        classNames={{
+                          icon: styles.rememberIcon,
+                          label: styles.rememberLabel,
+                        }}
+                      >
+                        开启免密登录(通行密钥)
+                      </Checkbox>
+                    </span>
+                  </Tooltip>
+                </div>
+              )}
+              {!embedded && passkeys.error && (
+                <div className={styles.passkeyError} role="status">
+                  <span>{passkeys.error}</span>
+                  <Button
+                    type="link"
+                    size="small"
+                    disabled={busy || passkeys.isPreparing}
+                    onClick={() => {
+                      void passkeys.prepareAgain().catch((error: unknown) => {
+                        message.error(
+                          formatPasskeyError(error, '通行密钥准备失败，请重试'),
+                        );
+                      });
+                    }}
+                  >
+                    重新准备
+                  </Button>
+                </div>
+              )}
+              <div className={styles.cardActions}>
+                {!embedded && (
+                  <Tooltip
+                    title={passkeys.reason || '使用已保存的通行密钥登录'}
+                  >
+                    <Button
+                      type="link"
+                      disabled={
+                        busy || !passkeys.canUse || passkeys.isPreparing
+                      }
+                      loading={passkeys.isPending}
+                      onClick={handlePasskeyLogin}
+                      className={styles.cardAction}
+                    >
+                      免密登录
+                    </Button>
+                  </Tooltip>
+                )}
+                <Button
+                  type="link"
+                  disabled={busy || embeddedSwitchLocked}
+                  onClick={() => setResetPasswordOpen(true)}
+                  className={styles.cardAction}
+                >
+                  设置 / 忘记密码
+                </Button>
               </div>
             </section>
           )}

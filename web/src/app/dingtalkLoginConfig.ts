@@ -5,12 +5,11 @@ import {
   type LoginConfig,
   parseDingTalkLoginResponse,
 } from './dingtalkLoginProtocol';
-import { discardPreloadedDingTalkFrame } from './dingtalkPreloadedFrame';
 
 export {
   CALLBACK_PATH,
   DINGTALK_ORIGIN,
-  type FrameConfig,
+  type QRConfig,
 } from './dingtalkLoginProtocol';
 
 const CONFIG_QUERY_KEY = ['auth', 'dingtalk-login-config'] as const;
@@ -35,18 +34,14 @@ async function loadConfig(): Promise<LoginConfig> {
         skipErrorHandler: true,
       });
     }
-    const config = parseDingTalkLoginResponse(response, window.location.origin);
-    if (!config.enabled || config.frame.expiresAt <= Date.now()) {
-      discardPreloadedDingTalkFrame();
-    }
+    const config = parseDingTalkLoginResponse(response);
     return config;
   } catch (error) {
-    discardPreloadedDingTalkFrame();
     if (error instanceof SyntaxError) {
       throw new Error('钉钉登录配置格式不正确，请刷新页面');
     }
     if (error instanceof TypeError) {
-      throw new Error('钉钉登录配置或回调地址不正确，请联系管理员');
+      throw new Error('钉钉二维码配置不正确，请联系管理员');
     }
     throw error;
   }
@@ -61,8 +56,7 @@ export const dingTalkLoginConfigOptions = queryOptions({
   retryOnMount: false,
   refetchOnMount: (query) =>
     query.state.isInvalidated ||
-    (query.state.data?.enabled &&
-      query.state.data.frame.expiresAt <= Date.now())
+    (query.state.data?.enabled && query.state.data.qr.expiresAt <= Date.now())
       ? 'always'
       : false,
   refetchOnWindowFocus: false,
@@ -82,7 +76,6 @@ export function preloadDingTalkLoginConfig(
 }
 
 export function refreshDingTalkLoginConfig(queryClient: QueryClient): void {
-  discardPreloadedDingTalkFrame();
   // fetchQuery 复用同 key 在途请求，不取消仍可能写 Cookie 的响应。
   // 失败留在查询中由扫码区展示；显式返回扫码允许重新获取配置。
   void queryClient

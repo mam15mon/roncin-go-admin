@@ -60,6 +60,8 @@ const (
 	EdgeMemberships = "memberships"
 	// EdgeSessions holds the string denoting the sessions edge name in mutations.
 	EdgeSessions = "sessions"
+	// EdgePasskeyCredentials holds the string denoting the passkey_credentials edge name in mutations.
+	EdgePasskeyCredentials = "passkey_credentials"
 	// EdgeOrderPersonnel holds the string denoting the order_personnel edge name in mutations.
 	EdgeOrderPersonnel = "order_personnel"
 	// EdgeNotificationDeliveries holds the string denoting the notification_deliveries edge name in mutations.
@@ -198,6 +200,13 @@ const (
 	SessionsInverseTable = "sessions"
 	// SessionsColumn is the table column denoting the sessions relation/edge.
 	SessionsColumn = "user_id"
+	// PasskeyCredentialsTable is the table that holds the passkey_credentials relation/edge.
+	PasskeyCredentialsTable = "passkey_credentials"
+	// PasskeyCredentialsInverseTable is the table name for the PasskeyCredential entity.
+	// It exists in this package in order to avoid circular dependency with the "passkeycredential" package.
+	PasskeyCredentialsInverseTable = "passkey_credentials"
+	// PasskeyCredentialsColumn is the table column denoting the passkey_credentials relation/edge.
+	PasskeyCredentialsColumn = "user_id"
 	// OrderPersonnelTable is the table that holds the order_personnel relation/edge.
 	OrderPersonnelTable = "order_personnels"
 	// OrderPersonnelInverseTable is the table name for the OrderPersonnel entity.
@@ -835,6 +844,20 @@ func BySessionsCount(opts ...sql.OrderTermOption) OrderOption {
 func BySessions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newSessionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByPasskeyCredentialsCount orders the results by passkey_credentials count.
+func ByPasskeyCredentialsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPasskeyCredentialsStep(), opts...)
+	}
+}
+
+// ByPasskeyCredentials orders the results by passkey_credentials terms.
+func ByPasskeyCredentials(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPasskeyCredentialsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -1696,6 +1719,13 @@ func newSessionsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(SessionsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, SessionsTable, SessionsColumn),
+	)
+}
+func newPasskeyCredentialsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PasskeyCredentialsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PasskeyCredentialsTable, PasskeyCredentialsColumn),
 	)
 }
 func newOrderPersonnelStep() *sqlgraph.Step {

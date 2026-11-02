@@ -776,6 +776,26 @@ declare namespace API {
     traceId?: string;
   };
 
+  type BeginPasskeyLoginRequest = {};
+
+  type BeginPasskeyLoginResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PasskeyCeremony;
+    traceId?: string;
+  };
+
+  type BeginPasskeyRegistrationRequest = {};
+
+  type BeginPasskeyRegistrationResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PasskeyCeremony;
+    traceId?: string;
+  };
+
   type BillBatchNettingPair = {
     settlementPartyId?: string;
     settlementPartyName?: string;
@@ -2033,6 +2053,13 @@ declare namespace API {
     traceId?: string;
   };
 
+  type DeletePasskeyResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    traceId?: string;
+  };
+
   type DeleteRoleResponse = {
     success?: boolean;
     code?: number;
@@ -2118,14 +2145,18 @@ declare namespace API {
 
   type DingTalkLoginConfig = {
     enabled?: boolean;
-    authorizeUrl?: string;
+    /** 钉钉返回的真实扫码确认链接，由本站绘制二维码。 */
+    qrCodeUrl?: string;
     /** 与本次授权 state Cookie 相同的到期时间（RFC 3339）。 */
     expiresAt?: string;
+    state?: string;
   };
 
   type DingTalkLoginRequest = {
     authCode: string;
     state: string;
+    /** 缺省为 true；不改变服务端会话有效期或权限。 */
+    rememberMe?: boolean;
   };
 
   type DingTalkLoginResponse = {
@@ -2141,6 +2172,11 @@ declare namespace API {
     currentUser?: CurrentUser;
     displayName?: string;
     message?: string;
+  };
+
+  type DingTalkQRCodePollResult = {
+    status?: number;
+    authCode?: string;
   };
 
   type DisableExchangeRateSettingRequest = {
@@ -3388,6 +3424,34 @@ declare namespace API {
     amountsByBaseCurrency?: FinanceBaseCurrencyAmount[];
   };
 
+  type FinishPasskeyLoginRequest = {
+    credentialJson: string;
+    /** 缺省为 true，仅控制浏览器凭证保留方式。 */
+    rememberMe?: boolean;
+  };
+
+  type FinishPasskeyLoginResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: CurrentUser;
+    traceId?: string;
+    organizationChoices?: OrganizationChoice[];
+  };
+
+  type FinishPasskeyRegistrationRequest = {
+    credentialJson: string;
+    name: string;
+  };
+
+  type FinishPasskeyRegistrationResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PasskeyCredential;
+    traceId?: string;
+  };
+
   type GetAirMasterWaybillResponse = {
     success?: boolean;
     message?: string;
@@ -3606,6 +3670,14 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: Partner;
+    traceId?: string;
+  };
+
+  type GetPasskeyConfigResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PasskeyConfig;
     traceId?: string;
   };
 
@@ -4482,6 +4554,14 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ListPasskeysResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: PasskeyCredentialList;
+    traceId?: string;
+  };
+
   type ListPermissionsResponse = {
     success?: boolean;
     code?: number;
@@ -4692,6 +4772,8 @@ declare namespace API {
     password: string;
     /** 可选：显式指定本次登录进入的成员资格组织；缺省使用默认组织。 */
     organizationId?: string;
+    /** 缺省为 true；false 仅在当前浏览器会话中保留登录凭证。 */
+    rememberMe?: boolean;
   };
 
   type LoginResponse = {
@@ -6447,6 +6529,34 @@ declare namespace API {
     code?: string;
   };
 
+  type PasskeyCeremony = {
+    /** WebAuthn publicKey 内部标准选项对象，供浏览器 SDK 的 optionsJSON 使用。 */
+    optionsJson?: string;
+    expiresAt?: string;
+  };
+
+  type PasskeyConfig = {
+    enabled?: boolean;
+    rpId?: string;
+    rpName?: string;
+    origins?: string[];
+  };
+
+  type PasskeyCredential = {
+    id?: string;
+    name?: string;
+    createdAt?: string;
+    lastUsedAt?: string;
+  };
+
+  type PasskeyCredentialList = {
+    items?: PasskeyCredential[];
+  };
+
+  type PasskeyServiceDeletePasskeyParams = {
+    id: string;
+  };
+
   type PasswordResetChallenge = {
     challengeToken?: string;
     expiresAt?: string;
@@ -6457,6 +6567,18 @@ declare namespace API {
   type PermissionCapability = {
     key?: string;
     dataScope?: string;
+  };
+
+  type PollDingTalkQRCodeRequest = {
+    state: string;
+  };
+
+  type PollDingTalkQRCodeResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: DingTalkQRCodePollResult;
+    traceId?: string;
   };
 
   type Port = {

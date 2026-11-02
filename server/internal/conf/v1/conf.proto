@@ -93,8 +93,15 @@ message Security {
     string event_token = 8;
     string event_aes_key = 9;
   }
+  message Passkey {
+    bool enabled = 1;
+    string rp_id = 2;
+    string rp_name = 3;
+    repeated string origins = 4;
+  }
   Session session = 1;
   reserved 2;
   reserved "wecom";
   DingTalk dingtalk = 3;
+  Passkey passkey = 4;
 }

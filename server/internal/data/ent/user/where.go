@@ -1277,6 +1277,29 @@ func HasSessionsWith(preds ...predicate.Session) predicate.User {
 	})
 }
 
+// HasPasskeyCredentials applies the HasEdge predicate on the "passkey_credentials" edge.
+func HasPasskeyCredentials() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PasskeyCredentialsTable, PasskeyCredentialsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPasskeyCredentialsWith applies the HasEdge predicate on the "passkey_credentials" edge with a given conditions (other predicates).
+func HasPasskeyCredentialsWith(preds ...predicate.PasskeyCredential) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newPasskeyCredentialsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasOrderPersonnel applies the HasEdge predicate on the "order_personnel" edge.
 func HasOrderPersonnel() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

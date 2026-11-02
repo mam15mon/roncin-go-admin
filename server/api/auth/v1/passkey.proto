@@ -1,0 +1,136 @@
+syntax = "proto3";
+
+package auth.v1;
+
+import "access/v1/access.proto";
+import "auth/v1/auth.proto";
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+
+option go_package = "github.com/roncin/roncin-go-admin/server/api/auth/v1;v1";
+
+// PasskeyService 提供本站通行密钥注册、本人维护与发现式认证。
+service PasskeyService {
+  rpc GetPasskeyConfig(GetPasskeyConfigRequest) returns (GetPasskeyConfigResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PUBLIC};
+    option (google.api.http) = {get: "/api/v1/auth/passkey/config"};
+  }
+  rpc BeginPasskeyLogin(BeginPasskeyLoginRequest) returns (BeginPasskeyLoginResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PUBLIC};
+    option (google.api.http) = {post: "/api/v1/auth/passkey/login/begin" body: "*"};
+  }
+  rpc FinishPasskeyLogin(FinishPasskeyLoginRequest) returns (FinishPasskeyLoginResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PUBLIC};
+    option (google.api.http) = {post: "/api/v1/auth/passkey/login/finish" body: "*"};
+  }
+  rpc BeginPasskeyRegistration(BeginPasskeyRegistrationRequest) returns (BeginPasskeyRegistrationResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {post: "/api/v1/auth/passkey/registration/begin" body: "*"};
+  }
+  rpc FinishPasskeyRegistration(FinishPasskeyRegistrationRequest) returns (FinishPasskeyRegistrationResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {post: "/api/v1/auth/passkey/registration/finish" body: "*"};
+  }
+  rpc ListPasskeys(ListPasskeysRequest) returns (ListPasskeysResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {get: "/api/v1/auth/passkeys"};
+  }
+  rpc DeletePasskey(DeletePasskeyRequest) returns (DeletePasskeyResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
+    option (google.api.http) = {delete: "/api/v1/auth/passkeys/{id}"};
+  }
+}
+
+message GetPasskeyConfigRequest {}
+message BeginPasskeyLoginRequest {}
+message BeginPasskeyRegistrationRequest {}
+message ListPasskeysRequest {}
+
+message PasskeyConfig {
+  bool enabled = 1;
+  string rp_id = 2;
+  string rp_name = 3;
+  repeated string origins = 4;
+}
+
+message PasskeyCeremony {
+  // WebAuthn publicKey 内部标准选项对象，供浏览器 SDK 的 optionsJSON 使用。
+  string options_json = 1;
+  string expires_at = 2;
+}
+
+message PasskeyCredential {
+  string id = 1;
+  string name = 2;
+  string created_at = 3;
+  optional string last_used_at = 4;
+}
+
+message PasskeyCredentialList {
+  repeated PasskeyCredential items = 1;
+}
+
+message FinishPasskeyLoginRequest {
+  string credential_json = 1 [(google.api.field_behavior) = REQUIRED];
+  // 缺省为 true，仅控制浏览器凭证保留方式。
+  optional bool remember_me = 2;
+}
+
+message FinishPasskeyRegistrationRequest {
+  string credential_json = 1 [(google.api.field_behavior) = REQUIRED];
+  string name = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message DeletePasskeyRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message GetPasskeyConfigResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  PasskeyConfig data = 4;
+  string trace_id = 5;
+}
+message BeginPasskeyLoginResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  PasskeyCeremony data = 4;
+  string trace_id = 5;
+}
+message FinishPasskeyLoginResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  CurrentUser data = 4;
+  string trace_id = 5;
+  repeated OrganizationChoice organization_choices = 6;
+}
+message BeginPasskeyRegistrationResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  PasskeyCeremony data = 4;
+  string trace_id = 5;
+}
+message FinishPasskeyRegistrationResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  PasskeyCredential data = 4;
+  string trace_id = 5;
+}
+message ListPasskeysResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  PasskeyCredentialList data = 4;
+  string trace_id = 5;
+}
+message DeletePasskeyResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  string trace_id = 5;
+}

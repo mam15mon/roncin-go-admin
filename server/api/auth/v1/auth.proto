@@ -33,6 +33,11 @@ service AuthService {
     option (google.api.http) = {get: "/api/v1/auth/dingtalk/login-config"};
   }
 
+  rpc PollDingTalkQRCode(PollDingTalkQRCodeRequest) returns (PollDingTalkQRCodeResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PUBLIC};
+    option (google.api.http) = {post: "/api/v1/auth/dingtalk/qr/poll" body: "*"};
+  }
+
   rpc DingTalkLogin(DingTalkLoginRequest) returns (DingTalkLoginResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PUBLIC};
     option (google.api.http) = {
@@ -79,11 +84,15 @@ message LoginRequest {
   string password = 2 [(google.api.field_behavior) = REQUIRED];
   // 可选：显式指定本次登录进入的成员资格组织；缺省使用默认组织。
   optional string organization_id = 3;
+  // 缺省为 true；false 仅在当前浏览器会话中保留登录凭证。
+  optional bool remember_me = 4;
 }
 
 message DingTalkLoginRequest {
   string auth_code = 1 [(google.api.field_behavior) = REQUIRED];
   string state = 2 [(google.api.field_behavior) = REQUIRED];
+  // 缺省为 true；不改变服务端会话有效期或权限。
+  optional bool remember_me = 3;
 }
 
 message GetDingTalkEmbeddedConfigRequest {}
@@ -127,9 +136,36 @@ message GetDingTalkLoginConfigResponse {
 
 message DingTalkLoginConfig {
   bool enabled = 1;
-  optional string authorize_url = 2;
+  // 钉钉返回的真实扫码确认链接，由本站绘制二维码。
+  optional string qr_code_url = 2;
   // 与本次授权 state Cookie 相同的到期时间（RFC 3339）。
   optional string expires_at = 3;
+  optional string state = 4;
+}
+
+message PollDingTalkQRCodeRequest {
+  string state = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message PollDingTalkQRCodeResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  DingTalkQRCodePollResult data = 4;
+  string trace_id = 5;
+}
+
+enum DingTalkQRCodeStatus {
+  DING_TALK_QR_CODE_STATUS_UNSPECIFIED = 0;
+  DING_TALK_QR_CODE_STATUS_WAITING = 1;
+  DING_TALK_QR_CODE_STATUS_SCANNED = 2;
+  DING_TALK_QR_CODE_STATUS_CONFIRMED = 3;
+  DING_TALK_QR_CODE_STATUS_EXPIRED = 4;
+}
+
+message DingTalkQRCodePollResult {
+  DingTalkQRCodeStatus status = 1;
+  optional string auth_code = 2;
 }
 
 message SwitchOrganizationRequest {

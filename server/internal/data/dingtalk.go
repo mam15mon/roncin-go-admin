@@ -71,6 +71,8 @@ type dingTalkIdentityProvider struct {
 	tokenMu      sync.Mutex
 	appToken     string
 	appTokenTill time.Time
+	qrMu         sync.Mutex
+	qrAttempts   map[string]*dingTalkQRAttempt
 }
 
 func NewDingTalkIdentityProvider(security *conf.Security) (*dingTalkIdentityProvider, error) {

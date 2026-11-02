@@ -11,10 +11,12 @@ test('新建订单主数据加载按需过滤机场，且同一组织二次进�
 }) => {
   // 1. 登录
   await page.goto('/user/login');
-  await page.getByRole('radio', { name: '账号登录' }).click();
+  await page.getByText('账号登录', { exact: true }).click();
   await page
     .getByPlaceholder('钉钉手机号 / 本地账号')
     .fill(requiredEnvironment('BOOTSTRAP_ADMIN_USERNAME'));
+  await page.getByRole('button', { name: '下一步', exact: true }).click();
+  await expect(page.getByPlaceholder('请输入密码')).toBeVisible();
   await page
     .getByPlaceholder('请输入密码')
     .fill(requiredEnvironment('BOOTSTRAP_ADMIN_PASSWORD'));

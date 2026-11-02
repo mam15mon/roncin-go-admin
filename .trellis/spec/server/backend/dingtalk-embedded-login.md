@@ -45,8 +45,8 @@ JSON: {"code":"<客户端临时免登码>"}
   单纯忽略迟到 UI 或取消请求不能阻止浏览器处理 Cookie；真实卸载仍需要结果隔离。
 - 授权码/state 仅在当前尝试内存中使用，不写 URL、storage、日志或持久化。
   app token/clientSecret 仅服务端，不返回原始敏感上游错误正文。
-- Go 生产 HTML、Vite 开发 HTML 及前端渲染前预热在钉钉 UA 下全部跳过扫码配置与 iframe，
-  登录 HTML 仍 no-store。普通浏览器保留原扫码预热，不能只在 React 中隐藏 iframe。
+- Go 生产 HTML、Vite 开发 HTML 及前端渲染前预热在钉钉 UA 下全部跳过扫码配置生成，
+  登录 HTML 仍 no-store。普通浏览器预热本站二维码数据，不能只在 React 中隐藏扫码组件。
 - Proto 以独立 `DingTalkEmbeddedLoginResponse` 满足 buf 的响应唯一性和标准命名；信封与扫码同构，data 共用 `DingTalkLoginResult`。
 - 本期无 Schema、权限码和配置字段变更；原生成流程同步 Proto、Go、OpenAPI、前端客户端。
 
@@ -70,7 +70,7 @@ JSON: {"code":"<客户端临时免登码>"}
 - 正常：钉钉订单费用通知 → 原费用路径401 → 客户端免登 → 多工作台选择 → 原 query/hash。
 - 基准：已有有效会话直接读订单；Chrome 无会话使用既有扫码/账号入口，不加载客户端 SDK。
 - 错误：把 UA 当身份；用 OAuth 接口消费微应用 code；读取 URL organizationId 自动切组织；
-  隐藏扫码 UI 却仍在 HTML 导航 iframe；失败后自动循环申请临时码。
+  隐藏扫码 UI 却仍在 HTML 创建扫码尝试；失败后自动循环申请临时码。
 
 ## 6. 必要测试与断言
 

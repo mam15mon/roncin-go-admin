@@ -223,24 +223,23 @@ describe('开发登录页 HTML 引导', () => {
   );
 });
 
-describe('开发 HTML 提前加载扫码实例', () => {
-  function payload() {
-    return {
+describe('开发 HTML 本地二维码引导', () => {
+  it('仅注入本次二维码配置与 Cookie，不创建外部 iframe', async () => {
+    const payload = {
       success: true,
       data: {
         enabled: true,
-        authorizeUrl: `https://login.dingtalk.com/oauth2/auth?state=sample%3C%26%22state&client_id=app&scope=openid&response_type=code&redirect_uri=${encodeURIComponent('http://localhost:8001/user/login/dingtalk/callback')}`,
+        qrCodeUrl:
+          'https://login.dingtalk.com/oauth2/qr_confirm.htm?code=sample',
+        state: 'same-response',
         expiresAt: '2037-01-01T00:00:00Z',
       },
     };
-  }
-
-  async function html(value: unknown) {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
         ok: true,
-        json: async () => value,
+        json: async () => payload,
         headers: {
           getSetCookie: () => ['state=same-response; HttpOnly; Path=/'],
         },
@@ -250,50 +249,11 @@ describe('开发 HTML 提前加载扫码实例', () => {
       accept: 'text/html',
       host: 'localhost:8001',
     });
-    return { body: response.end.mock.calls[0][0] as string, response };
-  }
-
-  it('iframe 位于 root 外并隐藏，URL 属性安全转义且保留导航事件记录', async () => {
-    const { body, response } = await html(payload());
-    const frame = body.slice(body.indexOf('<iframe'));
-    expect(body.indexOf('<iframe')).toBeGreaterThan(
-      body.indexOf('<div id="root"></div>'),
-    );
-    expect(frame).toContain('id="roncin-dingtalk-login-frame"');
-    expect(frame).toContain('visibility:hidden');
-    expect(frame).toContain('iframe=true');
-    expect(frame).toContain('&amp;');
-    expect(frame).toContain('data-expires-at="2114380800000"');
-    expect(frame).toContain('onload="this.dataset.navigation=\'loaded\'"');
-    expect(frame).not.toContain('sample<&"state');
+    const body = response.end.mock.calls[0][0] as string;
+    expect(body).not.toContain('<iframe');
+    expect(body).toContain(JSON.stringify(payload));
     expect(response.setHeader).toHaveBeenCalledWith('Set-Cookie', [
       'state=same-response; HttpOnly; Path=/',
     ]);
-  });
-
-  it.each([
-    'disabled',
-    'failure',
-    'expired',
-    'origin',
-    'callback',
-    'missing-client',
-    'invalid-date',
-  ])('%s 配置不提前发授权请求', async (kind) => {
-    const value = payload();
-    const authorize = new URL(value.data.authorizeUrl);
-    if (kind === 'disabled') value.data.enabled = false;
-    if (kind === 'failure') value.success = false;
-    if (kind === 'expired') value.data.expiresAt = '2000-01-01T00:00:00Z';
-    if (kind === 'invalid-date') value.data.expiresAt = 'invalid';
-    if (kind === 'origin') authorize.hostname = 'example.net';
-    if (kind === 'callback')
-      authorize.searchParams.set(
-        'redirect_uri',
-        'http://evil.example/user/login/dingtalk/callback',
-      );
-    if (kind === 'missing-client') authorize.searchParams.delete('client_id');
-    value.data.authorizeUrl = authorize.href;
-    expect((await html(value)).body).not.toContain('<iframe');
   });
 });

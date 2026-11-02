@@ -1,203 +1,174 @@
+import { deferred, qrConfig, settleQR } from '@root/tests/dingtalk-qr-support';
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
 import { act, cleanup, fireEvent, screen } from '@testing-library/react';
-import { DetachedBrowserFrame } from 'happy-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DingTalkQrLogin } from './dingtalk-qr-login';
 
-const { getConfig } = vi.hoisted(() => ({ getConfig: vi.fn() }));
-
+const { getConfig, poll } = vi.hoisted(() => ({
+  getConfig: vi.fn(),
+  poll: vi.fn(),
+}));
 vi.mock('@/services/roncin/authService', () => ({
   authServiceGetDingTalkLoginConfig: getConfig,
+  authServicePollDingTalkQrCode: poll,
 }));
-
-const origin = 'https://login.dingtalk.com';
-const callback = () => `${window.location.origin}/user/login/dingtalk/callback`;
-
-function config(state = 'state-1') {
-  return {
-    data: {
-      enabled: true,
-      authorizeUrl: `${origin}/oauth2/auth?client_id=app&scope=openid&response_type=code&state=${state}&redirect_uri=${encodeURIComponent(callback())}`,
-      expiresAt: new Date(Date.now() + 300000).toISOString(),
-    },
-  };
-}
 
 async function mount() {
   const onAuthenticated = vi.fn();
   const view = renderWithClient(
     <DingTalkQrLogin onAuthenticated={onAuthenticated} />,
   );
-  await act(async () => vi.advanceTimersByTimeAsync(1));
-  const iframe = screen.getByTitle('钉钉扫码登录二维码') as HTMLIFrameElement;
-  return { ...view, iframe, onAuthenticated };
+  await settleQR();
+  return { ...view, onAuthenticated };
 }
 
-function send(
-  source: Window | null,
-  data: unknown = {
-    success: true,
-    redirectUrl: `${callback()}?authCode=code&state=state-1`,
-  },
-  messageOrigin = origin,
-) {
-  fireEvent(
-    window,
-    new MessageEvent('message', { origin: messageOrigin, source, data }),
-  );
-}
+beforeEach(() => {
+  vi.useFakeTimers();
+  getConfig.mockReset().mockResolvedValue(qrConfig());
+  poll.mockReset().mockImplementation(() => new Promise(() => {}));
+});
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+  vi.useRealTimers();
+});
 
-describe('钉钉二维码生命周期', () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-    // 保留真实 iframe/window，导航事件由用例驱动，禁止单测访问钉钉网络。
-    vi.spyOn(DetachedBrowserFrame.prototype, 'goto').mockImplementation(
-      () => new Promise(() => {}),
-    );
-    getConfig.mockReset().mockResolvedValue(config());
-  });
-
-  afterEach(() => {
-    cleanup();
-    vi.restoreAllMocks();
-    vi.useRealTimers();
-  });
-
-  it('网络失败也触发 load 时保留刷新入口', async () => {
-    const { iframe, onAuthenticated } = await mount();
-    expect(iframe).toBeVisible();
-    expect(screen.getByText('正在加载钉钉二维码')).toBeVisible();
-    fireEvent.load(iframe);
-    await act(async () => vi.advanceTimersByTimeAsync(16000));
-
-    expect(screen.getByRole('button', { name: /刷新二维码/ })).toBeEnabled();
+describe('本站二维码与扫码状态', () => {
+  it('真实确认链接在本地绘制SVG，不创建外部iframe或灰色骨架', async () => {
+    await mount();
+    expect(
+      screen
+        .getByRole('img', { name: '钉钉扫码登录二维码' })
+        .querySelector('svg'),
+    ).not.toBeNull();
+    expect(document.querySelector('iframe')).toBeNull();
     expect(screen.queryByText('正在加载钉钉二维码')).not.toBeInTheDocument();
-    expect(onAuthenticated).not.toHaveBeenCalled();
-  });
-
-  it('导航超过15秒显示慢加载提示，并允许尚未过期的扫码成功', async () => {
-    const { iframe, onAuthenticated } = await mount();
-    await act(async () => vi.advanceTimersByTimeAsync(15000));
-
-    expect(
-      screen.getByText('钉钉二维码加载较慢，请检查网络或刷新二维码'),
-    ).toBeVisible();
-    expect(iframe).toBeVisible();
-    send(iframe.contentWindow);
-    expect(onAuthenticated).toHaveBeenCalledWith(
-      '/user/login/dingtalk/callback?authCode=code&state=state-1',
+    expect(poll).toHaveBeenCalledWith(
+      { state: 'state-1' },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
   });
 
-  it('明确失败立即退役，迟到的成功消息不可继续认证', async () => {
-    const { iframe, onAuthenticated } = await mount();
-    const source = iframe.contentWindow;
-    send(source, { success: false });
-    expect(
-      screen.getByText('钉钉扫码未完成，请刷新二维码后重试'),
-    ).toBeVisible();
-    send(source);
-    expect(onAuthenticated).not.toHaveBeenCalled();
-  });
-
-  it('过期后自动获取新配置并装载新二维码，旧实例消息被忽略', async () => {
-    const { iframe, onAuthenticated } = await mount();
-    const oldSource = iframe.contentWindow;
-    getConfig.mockImplementation(async () => config('state-2'));
-    await act(async () => vi.advanceTimersByTimeAsync(300000));
-    await act(async () => vi.advanceTimersByTimeAsync(1));
-
-    expect(getConfig).toHaveBeenCalledTimes(2);
-    send(oldSource);
-    expect(onAuthenticated).not.toHaveBeenCalled();
-    const next = screen.getByTitle('钉钉扫码登录二维码') as HTMLIFrameElement;
-    expect(next.src).toContain('state=state-2');
-    send(next.contentWindow);
-    expect(onAuthenticated).not.toHaveBeenCalled();
-    send(next.contentWindow, {
-      success: true,
-      redirectUrl: `${callback()}?authCode=new-code&state=state-2`,
-    });
-    expect(onAuthenticated).toHaveBeenCalledWith(
-      '/user/login/dingtalk/callback?authCode=new-code&state=state-2',
-    );
-  });
-
-  it('新配置一返回就过期时限流自动刷新，退回手动刷新提示', async () => {
-    const { onAuthenticated } = await mount();
-    const expiredConfig = {
-      data: {
-        enabled: true,
-        authorizeUrl: `${origin}/oauth2/auth?client_id=app&scope=openid&response_type=code&state=state-2&redirect_uri=${encodeURIComponent(callback())}`,
-        expiresAt: new Date(Date.now() - 60000).toISOString(),
-      },
-    };
-    getConfig.mockImplementation(async () => expiredConfig);
-    await act(async () => vi.advanceTimersByTimeAsync(300000));
-    await act(async () => vi.advanceTimersByTimeAsync(1));
-
-    expect(getConfig).toHaveBeenCalledTimes(2);
-    expect(screen.getByText('二维码已过期，请刷新')).toBeVisible();
-    expect(screen.queryByTitle('钉钉扫码登录二维码')).not.toBeInTheDocument();
-    expect(onAuthenticated).not.toHaveBeenCalled();
-  });
-
-  it('刷新等待新配置时卸载旧实例，新实例只接收自己的来源和state', async () => {
-    const { iframe, onAuthenticated } = await mount();
-    const oldSource = iframe.contentWindow;
-    let resolveConfig: (value: ReturnType<typeof config>) => void = () => {};
-    getConfig.mockReturnValueOnce(
-      new Promise<ReturnType<typeof config>>((resolve) => {
-        resolveConfig = resolve;
-      }),
-    );
+  it('生成完成前只在固定区域显示加载提示，手动刷新串行生成新码', async () => {
+    const first = deferred<ReturnType<typeof qrConfig>>();
+    getConfig.mockReturnValueOnce(first.promise);
+    const onAuthenticated = vi.fn();
+    renderWithClient(<DingTalkQrLogin onAuthenticated={onAuthenticated} />);
+    expect(screen.getByText('正在加载钉钉二维码')).toBeVisible();
     fireEvent.click(screen.getByRole('button', { name: /刷新二维码/ }));
-    expect(screen.queryByTitle('钉钉扫码登录二维码')).not.toBeInTheDocument();
-    send(oldSource);
-    expect(onAuthenticated).not.toHaveBeenCalled();
-    await act(async () => {
-      resolveConfig(config('state-2'));
-      await vi.advanceTimersByTimeAsync(1);
+    expect(getConfig).toHaveBeenCalledOnce();
+    await act(async () => first.resolve(qrConfig()));
+    await settleQR();
+    const next = deferred<ReturnType<typeof qrConfig>>();
+    getConfig.mockReturnValueOnce(next.promise);
+    fireEvent.click(screen.getByRole('button', { name: /刷新二维码/ }));
+    fireEvent.click(screen.getByRole('button', { name: /刷新二维码/ }));
+    expect(
+      screen.queryByRole('img', { name: '钉钉扫码登录二维码' }),
+    ).not.toBeInTheDocument();
+    expect(getConfig).toHaveBeenCalledTimes(2);
+    await act(async () => next.resolve(qrConfig('state-2')));
+    await settleQR();
+    expect(poll).toHaveBeenLastCalledWith(
+      { state: 'state-2' },
+      expect.anything(),
+    );
+  });
+
+  it('已扫码状态等待手机确认，实际确认后只导航本站回调一次', async () => {
+    poll.mockResolvedValueOnce({ data: { status: 2 } }).mockResolvedValueOnce({
+      data: { status: 3, authCode: 'confirmed-code' },
     });
-    const next = screen.getByTitle('钉钉扫码登录二维码') as HTMLIFrameElement;
-    send(oldSource);
-    send(next.contentWindow);
+    const { onAuthenticated } = await mount();
+    expect(screen.getByText('已扫码，请在手机钉钉上确认')).toBeVisible();
     expect(onAuthenticated).not.toHaveBeenCalled();
-    send(next.contentWindow, {
-      success: true,
-      redirectUrl: `${callback()}?authCode=new-code&state=state-2`,
-    });
+    await settleQR(1001);
+    expect(onAuthenticated).toHaveBeenCalledExactlyOnceWith(
+      '/user/login/dingtalk/callback?authCode=confirmed-code&state=state-1',
+    );
+    await settleQR(3000);
+    expect(onAuthenticated).toHaveBeenCalledOnce();
+  });
+
+  it('轮询失败不静默重试，刷新入口仍可用', async () => {
+    poll.mockRejectedValueOnce(new Error('网络失败'));
+    await mount();
+    expect(screen.getByText('二维码加载失败')).toBeVisible();
+    const calls = poll.mock.calls.length;
+    await settleQR(5000);
+    expect(poll).toHaveBeenCalledTimes(calls);
+    expect(screen.getByRole('button', { name: /刷新二维码/ })).toBeEnabled();
+    getConfig.mockResolvedValueOnce(qrConfig('retry-state'));
+    fireEvent.click(screen.getByText('点击刷新'));
+    await settleQR();
+    expect(poll).toHaveBeenLastCalledWith(
+      { state: 'retry-state' },
+      expect.anything(),
+    );
+  });
+
+  it('刷新后旧轮询的迟到确认不能认证，新尝试可以继续确认', async () => {
+    const old = deferred<{ data: { status: number; authCode: string } }>();
+    const next = deferred<{ data: { status: number; authCode: string } }>();
+    poll.mockReturnValueOnce(old.promise).mockReturnValueOnce(next.promise);
+    const { onAuthenticated } = await mount();
+    getConfig.mockResolvedValue(qrConfig('state-2'));
+    fireEvent.click(screen.getByRole('button', { name: /刷新二维码/ }));
+    await settleQR();
+    await act(async () =>
+      old.resolve({ data: { status: 3, authCode: 'old-code' } }),
+    );
+    await settleQR();
+    expect(onAuthenticated).not.toHaveBeenCalled();
+    await act(async () =>
+      next.resolve({ data: { status: 3, authCode: 'new-code' } }),
+    );
+    await settleQR();
     expect(onAuthenticated).toHaveBeenCalledExactlyOnceWith(
       '/user/login/dingtalk/callback?authCode=new-code&state=state-2',
     );
+  });
+
+  it('确认结构缺少授权码或状态未知时拒绝认证', async () => {
+    poll.mockResolvedValueOnce({ data: { status: 3 } });
+    const { onAuthenticated } = await mount();
+    expect(onAuthenticated).not.toHaveBeenCalled();
+    expect(screen.getByText('二维码加载失败')).toBeVisible();
+  });
+  it('点击健康二维码生成不同state的新码，不需要底部刷新按钮', async () => {
+    await mount();
+    const old = screen.getByRole('img', { name: '钉钉扫码登录二维码' });
+    getConfig.mockResolvedValueOnce(qrConfig('clicked-state'));
+    fireEvent.click(old);
+    await settleQR();
     expect(getConfig).toHaveBeenCalledTimes(2);
+    expect(poll).toHaveBeenLastCalledWith(
+      { state: 'clicked-state' },
+      expect.anything(),
+    );
+    expect(screen.getByRole('img', { name: '钉钉扫码登录二维码' })).not.toBe(
+      old,
+    );
+    expect(
+      screen.queryByText('使用前请联系管理员同步人员并分配组织和角色'),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('刷新二维码')).not.toBeInTheDocument();
   });
 
-  it('来源、state、回调或重复字段不合法时忽略，仅处理一次有效成功', async () => {
-    const { iframe, onAuthenticated } = await mount();
-    const source = iframe.contentWindow;
-    send(source, undefined, 'https://example.com');
-    send(window);
-    for (const redirectUrl of [
-      `${callback()}?authCode=code&state=wrong`,
-      `${callback()}?authCode=code&state=state-1&state=state-1`,
-      `${callback()}?authCode=code&authCode=other&state=state-1`,
-      'https://example.com/user/login/dingtalk/callback?authCode=code&state=state-1',
-      `${window.location.origin}/other?authCode=code&state=state-1`,
-    ]) {
-      send(source, { success: true, redirectUrl });
-    }
-    expect(onAuthenticated).not.toHaveBeenCalled();
-    send(source);
-    send(source);
-    expect(onAuthenticated).toHaveBeenCalledTimes(1);
-  });
-
-  it('组件卸载后旧消息不能触发认证', async () => {
-    const { iframe, onAuthenticated, unmount } = await mount();
-    const source = iframe.contentWindow;
-    unmount();
-    send(source);
-    expect(onAuthenticated).not.toHaveBeenCalled();
+  it('过期保持卡内失效状态，点击刷新后才获取新码', async () => {
+    getConfig.mockResolvedValueOnce(qrConfig('expiring-state', 1000));
+    await mount();
+    await settleQR(1001);
+    expect(screen.getByText('二维码已失效')).toBeVisible();
+    expect(screen.getByText('点击刷新')).toBeVisible();
+    expect(getConfig).toHaveBeenCalledOnce();
+    getConfig.mockResolvedValueOnce(qrConfig('renewed-state'));
+    fireEvent.click(screen.getByText('点击刷新'));
+    await settleQR();
+    expect(getConfig).toHaveBeenCalledTimes(2);
+    expect(poll).toHaveBeenLastCalledWith(
+      { state: 'renewed-state' },
+      expect.anything(),
+    );
   });
 });

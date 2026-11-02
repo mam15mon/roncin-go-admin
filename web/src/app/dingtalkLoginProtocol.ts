@@ -1,27 +1,20 @@
 export const DINGTALK_ORIGIN = 'https://login.dingtalk.com';
 export const CALLBACK_PATH = '/user/login/dingtalk/callback';
-export const PRELOADED_FRAME_ID = 'roncin-dingtalk-login-frame';
 
-export type FrameConfig = {
-  src: string;
+export type QRConfig = {
+  qrCodeUrl: string;
   state: string;
   expiresAt: number;
-  callback: URL;
 };
 
-export type LoginConfig =
-  | { enabled: false }
-  | { enabled: true; frame: FrameConfig };
+export type LoginConfig = { enabled: false } | { enabled: true; qr: QRConfig };
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-// HTML 开发入口与浏览器共用同一配置校验，不让预载绕过扫码组件的安全边界。
-export function parseDingTalkLoginResponse(
-  response: unknown,
-  pageOrigin: string,
-): LoginConfig {
+// 仅绘制后端本次扫码尝试生成的钉钉确认链接，不把普通 OAuth 授权地址当二维码。
+export function parseDingTalkLoginResponse(response: unknown): LoginConfig {
   if (!isRecord(response) || !response.data || response.success === false) {
     throw new Error('获取钉钉登录配置失败，请重试');
   }
@@ -34,37 +27,29 @@ export function parseDingTalkLoginResponse(
   }
   if (!config.enabled) return { enabled: false };
   if (
-    typeof config.authorizeUrl !== 'string' ||
-    !config.authorizeUrl ||
-    typeof config.expiresAt !== 'string' ||
-    !config.expiresAt
+    typeof config.qrCodeUrl !== 'string' ||
+    typeof config.state !== 'string' ||
+    !config.state.trim() ||
+    typeof config.expiresAt !== 'string'
   ) {
     throw new Error('钉钉登录配置不完整，请联系管理员');
   }
-  const authorize = new URL(config.authorizeUrl);
-  const callback = new URL(authorize.searchParams.get('redirect_uri') ?? '');
-  const state = authorize.searchParams.get('state');
+  const qrCode = new URL(config.qrCodeUrl);
   const expiresAt = Date.parse(config.expiresAt);
   if (
-    authorize.origin !== DINGTALK_ORIGIN ||
-    authorize.username ||
-    authorize.password ||
-    authorize.pathname !== '/oauth2/auth' ||
-    callback.origin !== pageOrigin ||
-    callback.pathname !== CALLBACK_PATH ||
-    callback.username ||
-    callback.password ||
-    !state ||
-    !authorize.searchParams.get('client_id') ||
-    authorize.searchParams.get('response_type') !== 'code' ||
-    !authorize.searchParams.get('scope') ||
+    qrCode.origin !== DINGTALK_ORIGIN ||
+    qrCode.username ||
+    qrCode.password ||
+    qrCode.hash ||
+    qrCode.pathname !== '/oauth2/qr_confirm.htm' ||
+    qrCode.searchParams.getAll('code').length !== 1 ||
+    !qrCode.searchParams.get('code')?.trim() ||
     !Number.isFinite(expiresAt)
   ) {
-    throw new Error('钉钉登录配置或回调地址不正确，请联系管理员');
+    throw new Error('钉钉二维码配置不正确，请联系管理员');
   }
-  authorize.searchParams.set('iframe', 'true');
   return {
     enabled: true,
-    frame: { src: authorize.href, state, expiresAt, callback },
+    qr: { qrCodeUrl: qrCode.href, state: config.state, expiresAt },
   };
 }

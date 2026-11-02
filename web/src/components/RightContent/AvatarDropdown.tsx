@@ -1,7 +1,12 @@
-import { LogoutOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
+import {
+  KeyOutlined,
+  LogoutOutlined,
+  SafetyCertificateOutlined,
+} from '@ant-design/icons';
 import { Avatar, Button, Divider, Spin, Tag } from 'antd';
-import React, { startTransition } from 'react';
+import React, { startTransition, useEffect, useState } from 'react';
 import { useInitialState } from '@/app/AppProvider';
+import { PasskeyManagerModal } from '@/features/auth/passkeys';
 import { clearOrderMasterDataCache } from '@/features/orders/options';
 import { history } from '@/router/history';
 import { authServiceLogout } from '@/services/roncin/authService';
@@ -22,6 +27,11 @@ type AvatarDropdownProps = { children?: React.ReactNode };
 
 export const AvatarDropdown: React.FC<AvatarDropdownProps> = () => {
   const { initialState, setInitialState } = useInitialState();
+  const [passkeyManagerOpen, setPasskeyManagerOpen] = useState(false);
+  const currentUserId = initialState?.currentUser?.id;
+  useEffect(() => {
+    setPasskeyManagerOpen(false);
+  }, [currentUserId]);
 
   if (!initialState?.currentUser) return <Spin size="small" />;
 
@@ -136,6 +146,24 @@ export const AvatarDropdown: React.FC<AvatarDropdownProps> = () => {
 
       <Divider style={{ margin: '8px 0' }} />
 
+      {initialState.currentUser.id && (
+        <Button
+          type="text"
+          block
+          icon={<KeyOutlined />}
+          aria-label="通行密钥"
+          onClick={() => setPasskeyManagerOpen(true)}
+          style={{
+            justifyContent: 'flex-start',
+            height: 32,
+            padding: '0 8px',
+            fontSize: 13,
+          }}
+        >
+          通行密钥
+        </Button>
+      )}
+
       {/* 退出登录按钮 */}
       <Button
         type="text"
@@ -158,43 +186,56 @@ export const AvatarDropdown: React.FC<AvatarDropdownProps> = () => {
   );
 
   return (
-    <HeaderDropdown placement="bottomRight" popupRender={() => dropdownContent}>
-      <div
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 8,
-          padding: '4px 8px',
-          borderRadius: 6,
-          cursor: 'pointer',
-          transition: 'all 0.2s',
-          height: 32,
-        }}
-        className="roncin-avatar-trigger"
+    <>
+      <HeaderDropdown
+        placement="bottomRight"
+        popupRender={() => dropdownContent}
       >
-        <Avatar
-          size={24}
-          src={avatarUrl}
+        <div
           style={{
-            backgroundColor: '#1677ff',
-            color: '#ffffff',
-            fontSize: 12,
-            fontWeight: 600,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '4px 8px',
+            borderRadius: 6,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            height: 32,
           }}
+          className="roncin-avatar-trigger"
         >
-          {avatarLetter}
-        </Avatar>
-        <span
-          className="roncin-avatar-name"
-          style={{
-            fontSize: 13,
-            fontWeight: 500,
-            color: 'rgba(0, 0, 0, 0.85)',
-          }}
-        >
-          {displayName}
-        </span>
-      </div>
-    </HeaderDropdown>
+          <Avatar
+            size={24}
+            src={avatarUrl}
+            style={{
+              backgroundColor: '#1677ff',
+              color: '#ffffff',
+              fontSize: 12,
+              fontWeight: 600,
+            }}
+          >
+            {avatarLetter}
+          </Avatar>
+          <span
+            className="roncin-avatar-name"
+            style={{
+              fontSize: 13,
+              fontWeight: 500,
+              color: 'rgba(0, 0, 0, 0.85)',
+            }}
+          >
+            {displayName}
+          </span>
+        </div>
+      </HeaderDropdown>
+      {passkeyManagerOpen && initialState.currentUser.id && (
+        <PasskeyManagerModal
+          key={initialState.currentUser.id}
+          open
+          userId={initialState.currentUser.id}
+          onClose={() => setPasskeyManagerOpen(false)}
+        />
+      )}
+    </>
   );
 };

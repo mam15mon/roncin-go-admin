@@ -23,6 +23,61 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type DingTalkQRCodeStatus int32
+
+const (
+	DingTalkQRCodeStatus_DING_TALK_QR_CODE_STATUS_UNSPECIFIED DingTalkQRCodeStatus = 0
+	DingTalkQRCodeStatus_DING_TALK_QR_CODE_STATUS_WAITING     DingTalkQRCodeStatus = 1
+	DingTalkQRCodeStatus_DING_TALK_QR_CODE_STATUS_SCANNED     DingTalkQRCodeStatus = 2
+	DingTalkQRCodeStatus_DING_TALK_QR_CODE_STATUS_CONFIRMED   DingTalkQRCodeStatus = 3
+	DingTalkQRCodeStatus_DING_TALK_QR_CODE_STATUS_EXPIRED     DingTalkQRCodeStatus = 4
+)
+
+// Enum value maps for DingTalkQRCodeStatus.
+var (
+	DingTalkQRCodeStatus_name = map[int32]string{
+		0: "DING_TALK_QR_CODE_STATUS_UNSPECIFIED",
+		1: "DING_TALK_QR_CODE_STATUS_WAITING",
+		2: "DING_TALK_QR_CODE_STATUS_SCANNED",
+		3: "DING_TALK_QR_CODE_STATUS_CONFIRMED",
+		4: "DING_TALK_QR_CODE_STATUS_EXPIRED",
+	}
+	DingTalkQRCodeStatus_value = map[string]int32{
+		"DING_TALK_QR_CODE_STATUS_UNSPECIFIED": 0,
+		"DING_TALK_QR_CODE_STATUS_WAITING":     1,
+		"DING_TALK_QR_CODE_STATUS_SCANNED":     2,
+		"DING_TALK_QR_CODE_STATUS_CONFIRMED":   3,
+		"DING_TALK_QR_CODE_STATUS_EXPIRED":     4,
+	}
+)
+
+func (x DingTalkQRCodeStatus) Enum() *DingTalkQRCodeStatus {
+	p := new(DingTalkQRCodeStatus)
+	*p = x
+	return p
+}
+
+func (x DingTalkQRCodeStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (DingTalkQRCodeStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_auth_v1_auth_proto_enumTypes[0].Descriptor()
+}
+
+func (DingTalkQRCodeStatus) Type() protoreflect.EnumType {
+	return &file_auth_v1_auth_proto_enumTypes[0]
+}
+
+func (x DingTalkQRCodeStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use DingTalkQRCodeStatus.Descriptor instead.
+func (DingTalkQRCodeStatus) EnumDescriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{0}
+}
+
 type DingTalkLoginStatus int32
 
 const (
@@ -62,11 +117,11 @@ func (x DingTalkLoginStatus) String() string {
 }
 
 func (DingTalkLoginStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_auth_v1_auth_proto_enumTypes[0].Descriptor()
+	return file_auth_v1_auth_proto_enumTypes[1].Descriptor()
 }
 
 func (DingTalkLoginStatus) Type() protoreflect.EnumType {
-	return &file_auth_v1_auth_proto_enumTypes[0]
+	return &file_auth_v1_auth_proto_enumTypes[1]
 }
 
 func (x DingTalkLoginStatus) Number() protoreflect.EnumNumber {
@@ -75,7 +130,7 @@ func (x DingTalkLoginStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use DingTalkLoginStatus.Descriptor instead.
 func (DingTalkLoginStatus) EnumDescriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{0}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{1}
 }
 
 // OrganizationKind 组织节点类型，映射存储层 organizations.kind 四值；
@@ -119,11 +174,11 @@ func (x OrganizationKind) String() string {
 }
 
 func (OrganizationKind) Descriptor() protoreflect.EnumDescriptor {
-	return file_auth_v1_auth_proto_enumTypes[1].Descriptor()
+	return file_auth_v1_auth_proto_enumTypes[2].Descriptor()
 }
 
 func (OrganizationKind) Type() protoreflect.EnumType {
-	return &file_auth_v1_auth_proto_enumTypes[1]
+	return &file_auth_v1_auth_proto_enumTypes[2]
 }
 
 func (x OrganizationKind) Number() protoreflect.EnumNumber {
@@ -132,7 +187,7 @@ func (x OrganizationKind) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use OrganizationKind.Descriptor instead.
 func (OrganizationKind) EnumDescriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{1}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{2}
 }
 
 type LoginRequest struct {
@@ -142,8 +197,10 @@ type LoginRequest struct {
 	Password string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
 	// 可选：显式指定本次登录进入的成员资格组织；缺省使用默认组织。
 	OrganizationId *string `protobuf:"bytes,3,opt,name=organization_id,json=organizationId,proto3,oneof" json:"organization_id,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// 缺省为 true；false 仅在当前浏览器会话中保留登录凭证。
+	RememberMe    *bool `protobuf:"varint,4,opt,name=remember_me,json=rememberMe,proto3,oneof" json:"remember_me,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *LoginRequest) Reset() {
@@ -197,10 +254,19 @@ func (x *LoginRequest) GetOrganizationId() string {
 	return ""
 }
 
+func (x *LoginRequest) GetRememberMe() bool {
+	if x != nil && x.RememberMe != nil {
+		return *x.RememberMe
+	}
+	return false
+}
+
 type DingTalkLoginRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	AuthCode      string                 `protobuf:"bytes,1,opt,name=auth_code,json=authCode,proto3" json:"auth_code,omitempty"`
-	State         string                 `protobuf:"bytes,2,opt,name=state,proto3" json:"state,omitempty"`
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	AuthCode string                 `protobuf:"bytes,1,opt,name=auth_code,json=authCode,proto3" json:"auth_code,omitempty"`
+	State    string                 `protobuf:"bytes,2,opt,name=state,proto3" json:"state,omitempty"`
+	// 缺省为 true；不改变服务端会话有效期或权限。
+	RememberMe    *bool `protobuf:"varint,3,opt,name=remember_me,json=rememberMe,proto3,oneof" json:"remember_me,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -247,6 +313,13 @@ func (x *DingTalkLoginRequest) GetState() string {
 		return x.State
 	}
 	return ""
+}
+
+func (x *DingTalkLoginRequest) GetRememberMe() bool {
+	if x != nil && x.RememberMe != nil {
+		return *x.RememberMe
+	}
+	return false
 }
 
 type GetDingTalkEmbeddedConfigRequest struct {
@@ -635,11 +708,13 @@ func (x *GetDingTalkLoginConfigResponse) GetTraceId() string {
 }
 
 type DingTalkLoginConfig struct {
-	state        protoimpl.MessageState `protogen:"open.v1"`
-	Enabled      bool                   `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	AuthorizeUrl *string                `protobuf:"bytes,2,opt,name=authorize_url,json=authorizeUrl,proto3,oneof" json:"authorize_url,omitempty"`
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Enabled bool                   `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	// 钉钉返回的真实扫码确认链接，由本站绘制二维码。
+	QrCodeUrl *string `protobuf:"bytes,2,opt,name=qr_code_url,json=qrCodeUrl,proto3,oneof" json:"qr_code_url,omitempty"`
 	// 与本次授权 state Cookie 相同的到期时间（RFC 3339）。
 	ExpiresAt     *string `protobuf:"bytes,3,opt,name=expires_at,json=expiresAt,proto3,oneof" json:"expires_at,omitempty"`
+	State         *string `protobuf:"bytes,4,opt,name=state,proto3,oneof" json:"state,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -681,9 +756,9 @@ func (x *DingTalkLoginConfig) GetEnabled() bool {
 	return false
 }
 
-func (x *DingTalkLoginConfig) GetAuthorizeUrl() string {
-	if x != nil && x.AuthorizeUrl != nil {
-		return *x.AuthorizeUrl
+func (x *DingTalkLoginConfig) GetQrCodeUrl() string {
+	if x != nil && x.QrCodeUrl != nil {
+		return *x.QrCodeUrl
 	}
 	return ""
 }
@@ -691,6 +766,185 @@ func (x *DingTalkLoginConfig) GetAuthorizeUrl() string {
 func (x *DingTalkLoginConfig) GetExpiresAt() string {
 	if x != nil && x.ExpiresAt != nil {
 		return *x.ExpiresAt
+	}
+	return ""
+}
+
+func (x *DingTalkLoginConfig) GetState() string {
+	if x != nil && x.State != nil {
+		return *x.State
+	}
+	return ""
+}
+
+type PollDingTalkQRCodeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	State         string                 `protobuf:"bytes,1,opt,name=state,proto3" json:"state,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PollDingTalkQRCodeRequest) Reset() {
+	*x = PollDingTalkQRCodeRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PollDingTalkQRCodeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PollDingTalkQRCodeRequest) ProtoMessage() {}
+
+func (x *PollDingTalkQRCodeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PollDingTalkQRCodeRequest.ProtoReflect.Descriptor instead.
+func (*PollDingTalkQRCodeRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *PollDingTalkQRCodeRequest) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+type PollDingTalkQRCodeResponse struct {
+	state         protoimpl.MessageState    `protogen:"open.v1"`
+	Success       bool                      `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                     `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                    `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *DingTalkQRCodePollResult `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                    `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PollDingTalkQRCodeResponse) Reset() {
+	*x = PollDingTalkQRCodeResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PollDingTalkQRCodeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PollDingTalkQRCodeResponse) ProtoMessage() {}
+
+func (x *PollDingTalkQRCodeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PollDingTalkQRCodeResponse.ProtoReflect.Descriptor instead.
+func (*PollDingTalkQRCodeResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *PollDingTalkQRCodeResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *PollDingTalkQRCodeResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *PollDingTalkQRCodeResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *PollDingTalkQRCodeResponse) GetData() *DingTalkQRCodePollResult {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *PollDingTalkQRCodeResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type DingTalkQRCodePollResult struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Status        DingTalkQRCodeStatus   `protobuf:"varint,1,opt,name=status,proto3,enum=auth.v1.DingTalkQRCodeStatus" json:"status,omitempty"`
+	AuthCode      *string                `protobuf:"bytes,2,opt,name=auth_code,json=authCode,proto3,oneof" json:"auth_code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DingTalkQRCodePollResult) Reset() {
+	*x = DingTalkQRCodePollResult{}
+	mi := &file_auth_v1_auth_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DingTalkQRCodePollResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DingTalkQRCodePollResult) ProtoMessage() {}
+
+func (x *DingTalkQRCodePollResult) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DingTalkQRCodePollResult.ProtoReflect.Descriptor instead.
+func (*DingTalkQRCodePollResult) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *DingTalkQRCodePollResult) GetStatus() DingTalkQRCodeStatus {
+	if x != nil {
+		return x.Status
+	}
+	return DingTalkQRCodeStatus_DING_TALK_QR_CODE_STATUS_UNSPECIFIED
+}
+
+func (x *DingTalkQRCodePollResult) GetAuthCode() string {
+	if x != nil && x.AuthCode != nil {
+		return *x.AuthCode
 	}
 	return ""
 }
@@ -704,7 +958,7 @@ type SwitchOrganizationRequest struct {
 
 func (x *SwitchOrganizationRequest) Reset() {
 	*x = SwitchOrganizationRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[9]
+	mi := &file_auth_v1_auth_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -716,7 +970,7 @@ func (x *SwitchOrganizationRequest) String() string {
 func (*SwitchOrganizationRequest) ProtoMessage() {}
 
 func (x *SwitchOrganizationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[9]
+	mi := &file_auth_v1_auth_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -729,7 +983,7 @@ func (x *SwitchOrganizationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SwitchOrganizationRequest.ProtoReflect.Descriptor instead.
 func (*SwitchOrganizationRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{9}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *SwitchOrganizationRequest) GetOrganizationId() string {
@@ -754,7 +1008,7 @@ type LoginResponse struct {
 
 func (x *LoginResponse) Reset() {
 	*x = LoginResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[10]
+	mi := &file_auth_v1_auth_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -766,7 +1020,7 @@ func (x *LoginResponse) String() string {
 func (*LoginResponse) ProtoMessage() {}
 
 func (x *LoginResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[10]
+	mi := &file_auth_v1_auth_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -779,7 +1033,7 @@ func (x *LoginResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginResponse.ProtoReflect.Descriptor instead.
 func (*LoginResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{10}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *LoginResponse) GetSuccess() bool {
@@ -837,7 +1091,7 @@ type DingTalkLoginResponse struct {
 
 func (x *DingTalkLoginResponse) Reset() {
 	*x = DingTalkLoginResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[11]
+	mi := &file_auth_v1_auth_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -849,7 +1103,7 @@ func (x *DingTalkLoginResponse) String() string {
 func (*DingTalkLoginResponse) ProtoMessage() {}
 
 func (x *DingTalkLoginResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[11]
+	mi := &file_auth_v1_auth_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -862,7 +1116,7 @@ func (x *DingTalkLoginResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DingTalkLoginResponse.ProtoReflect.Descriptor instead.
 func (*DingTalkLoginResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{11}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *DingTalkLoginResponse) GetSuccess() bool {
@@ -912,7 +1166,7 @@ type DingTalkLoginResult struct {
 
 func (x *DingTalkLoginResult) Reset() {
 	*x = DingTalkLoginResult{}
-	mi := &file_auth_v1_auth_proto_msgTypes[12]
+	mi := &file_auth_v1_auth_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -924,7 +1178,7 @@ func (x *DingTalkLoginResult) String() string {
 func (*DingTalkLoginResult) ProtoMessage() {}
 
 func (x *DingTalkLoginResult) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[12]
+	mi := &file_auth_v1_auth_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -937,7 +1191,7 @@ func (x *DingTalkLoginResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DingTalkLoginResult.ProtoReflect.Descriptor instead.
 func (*DingTalkLoginResult) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{12}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *DingTalkLoginResult) GetStatus() DingTalkLoginStatus {
@@ -981,7 +1235,7 @@ type MeResponse struct {
 
 func (x *MeResponse) Reset() {
 	*x = MeResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[13]
+	mi := &file_auth_v1_auth_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -993,7 +1247,7 @@ func (x *MeResponse) String() string {
 func (*MeResponse) ProtoMessage() {}
 
 func (x *MeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[13]
+	mi := &file_auth_v1_auth_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1006,7 +1260,7 @@ func (x *MeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MeResponse.ProtoReflect.Descriptor instead.
 func (*MeResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{13}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *MeResponse) GetSuccess() bool {
@@ -1059,7 +1313,7 @@ type SwitchOrganizationResponse struct {
 
 func (x *SwitchOrganizationResponse) Reset() {
 	*x = SwitchOrganizationResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[14]
+	mi := &file_auth_v1_auth_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1071,7 +1325,7 @@ func (x *SwitchOrganizationResponse) String() string {
 func (*SwitchOrganizationResponse) ProtoMessage() {}
 
 func (x *SwitchOrganizationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[14]
+	mi := &file_auth_v1_auth_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1084,7 +1338,7 @@ func (x *SwitchOrganizationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SwitchOrganizationResponse.ProtoReflect.Descriptor instead.
 func (*SwitchOrganizationResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{14}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *SwitchOrganizationResponse) GetSuccess() bool {
@@ -1143,7 +1397,7 @@ type OrganizationChoice struct {
 
 func (x *OrganizationChoice) Reset() {
 	*x = OrganizationChoice{}
-	mi := &file_auth_v1_auth_proto_msgTypes[15]
+	mi := &file_auth_v1_auth_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1155,7 +1409,7 @@ func (x *OrganizationChoice) String() string {
 func (*OrganizationChoice) ProtoMessage() {}
 
 func (x *OrganizationChoice) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[15]
+	mi := &file_auth_v1_auth_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1168,7 +1422,7 @@ func (x *OrganizationChoice) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrganizationChoice.ProtoReflect.Descriptor instead.
 func (*OrganizationChoice) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{15}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *OrganizationChoice) GetOrganizationId() string {
@@ -1211,7 +1465,7 @@ type LogoutResponse struct {
 
 func (x *LogoutResponse) Reset() {
 	*x = LogoutResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[16]
+	mi := &file_auth_v1_auth_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1223,7 +1477,7 @@ func (x *LogoutResponse) String() string {
 func (*LogoutResponse) ProtoMessage() {}
 
 func (x *LogoutResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[16]
+	mi := &file_auth_v1_auth_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1236,7 +1490,7 @@ func (x *LogoutResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogoutResponse.ProtoReflect.Descriptor instead.
 func (*LogoutResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{16}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *LogoutResponse) GetSuccess() bool {
@@ -1286,7 +1540,7 @@ type CurrentUser struct {
 
 func (x *CurrentUser) Reset() {
 	*x = CurrentUser{}
-	mi := &file_auth_v1_auth_proto_msgTypes[17]
+	mi := &file_auth_v1_auth_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1298,7 +1552,7 @@ func (x *CurrentUser) String() string {
 func (*CurrentUser) ProtoMessage() {}
 
 func (x *CurrentUser) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[17]
+	mi := &file_auth_v1_auth_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1311,7 +1565,7 @@ func (x *CurrentUser) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CurrentUser.ProtoReflect.Descriptor instead.
 func (*CurrentUser) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{17}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *CurrentUser) GetId() string {
@@ -1398,7 +1652,7 @@ type Organization struct {
 
 func (x *Organization) Reset() {
 	*x = Organization{}
-	mi := &file_auth_v1_auth_proto_msgTypes[18]
+	mi := &file_auth_v1_auth_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1410,7 +1664,7 @@ func (x *Organization) String() string {
 func (*Organization) ProtoMessage() {}
 
 func (x *Organization) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[18]
+	mi := &file_auth_v1_auth_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1423,7 +1677,7 @@ func (x *Organization) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Organization.ProtoReflect.Descriptor instead.
 func (*Organization) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{18}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *Organization) GetId() string {
@@ -1471,7 +1725,7 @@ type PermissionCapability struct {
 
 func (x *PermissionCapability) Reset() {
 	*x = PermissionCapability{}
-	mi := &file_auth_v1_auth_proto_msgTypes[19]
+	mi := &file_auth_v1_auth_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1483,7 +1737,7 @@ func (x *PermissionCapability) String() string {
 func (*PermissionCapability) ProtoMessage() {}
 
 func (x *PermissionCapability) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[19]
+	mi := &file_auth_v1_auth_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1496,7 +1750,7 @@ func (x *PermissionCapability) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PermissionCapability.ProtoReflect.Descriptor instead.
 func (*PermissionCapability) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{19}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *PermissionCapability) GetKey() string {
@@ -1524,7 +1778,7 @@ type RoleScope struct {
 
 func (x *RoleScope) Reset() {
 	*x = RoleScope{}
-	mi := &file_auth_v1_auth_proto_msgTypes[20]
+	mi := &file_auth_v1_auth_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1536,7 +1790,7 @@ func (x *RoleScope) String() string {
 func (*RoleScope) ProtoMessage() {}
 
 func (x *RoleScope) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[20]
+	mi := &file_auth_v1_auth_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1549,7 +1803,7 @@ func (x *RoleScope) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RoleScope.ProtoReflect.Descriptor instead.
 func (*RoleScope) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{20}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *RoleScope) GetRoleCode() string {
@@ -1574,7 +1828,7 @@ type GetDingTalkLoginConfigRequest struct {
 
 func (x *GetDingTalkLoginConfigRequest) Reset() {
 	*x = GetDingTalkLoginConfigRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[21]
+	mi := &file_auth_v1_auth_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1586,7 +1840,7 @@ func (x *GetDingTalkLoginConfigRequest) String() string {
 func (*GetDingTalkLoginConfigRequest) ProtoMessage() {}
 
 func (x *GetDingTalkLoginConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[21]
+	mi := &file_auth_v1_auth_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1599,7 +1853,7 @@ func (x *GetDingTalkLoginConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDingTalkLoginConfigRequest.ProtoReflect.Descriptor instead.
 func (*GetDingTalkLoginConfigRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{21}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{24}
 }
 
 type LogoutRequest struct {
@@ -1610,7 +1864,7 @@ type LogoutRequest struct {
 
 func (x *LogoutRequest) Reset() {
 	*x = LogoutRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[22]
+	mi := &file_auth_v1_auth_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1622,7 +1876,7 @@ func (x *LogoutRequest) String() string {
 func (*LogoutRequest) ProtoMessage() {}
 
 func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[22]
+	mi := &file_auth_v1_auth_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1635,7 +1889,7 @@ func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogoutRequest.ProtoReflect.Descriptor instead.
 func (*LogoutRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{22}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{25}
 }
 
 type MeRequest struct {
@@ -1646,7 +1900,7 @@ type MeRequest struct {
 
 func (x *MeRequest) Reset() {
 	*x = MeRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[23]
+	mi := &file_auth_v1_auth_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1658,7 +1912,7 @@ func (x *MeRequest) String() string {
 func (*MeRequest) ProtoMessage() {}
 
 func (x *MeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[23]
+	mi := &file_auth_v1_auth_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1671,7 +1925,7 @@ func (x *MeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MeRequest.ProtoReflect.Descriptor instead.
 func (*MeRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{23}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{26}
 }
 
 type RequestPasswordResetCodeRequest struct {
@@ -1683,7 +1937,7 @@ type RequestPasswordResetCodeRequest struct {
 
 func (x *RequestPasswordResetCodeRequest) Reset() {
 	*x = RequestPasswordResetCodeRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[24]
+	mi := &file_auth_v1_auth_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1695,7 +1949,7 @@ func (x *RequestPasswordResetCodeRequest) String() string {
 func (*RequestPasswordResetCodeRequest) ProtoMessage() {}
 
 func (x *RequestPasswordResetCodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[24]
+	mi := &file_auth_v1_auth_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1708,7 +1962,7 @@ func (x *RequestPasswordResetCodeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestPasswordResetCodeRequest.ProtoReflect.Descriptor instead.
 func (*RequestPasswordResetCodeRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{24}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *RequestPasswordResetCodeRequest) GetMobile() string {
@@ -1731,7 +1985,7 @@ type RequestPasswordResetCodeResponse struct {
 
 func (x *RequestPasswordResetCodeResponse) Reset() {
 	*x = RequestPasswordResetCodeResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[25]
+	mi := &file_auth_v1_auth_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1743,7 +1997,7 @@ func (x *RequestPasswordResetCodeResponse) String() string {
 func (*RequestPasswordResetCodeResponse) ProtoMessage() {}
 
 func (x *RequestPasswordResetCodeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[25]
+	mi := &file_auth_v1_auth_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1756,7 +2010,7 @@ func (x *RequestPasswordResetCodeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestPasswordResetCodeResponse.ProtoReflect.Descriptor instead.
 func (*RequestPasswordResetCodeResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{25}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *RequestPasswordResetCodeResponse) GetSuccess() bool {
@@ -1806,7 +2060,7 @@ type PasswordResetChallenge struct {
 
 func (x *PasswordResetChallenge) Reset() {
 	*x = PasswordResetChallenge{}
-	mi := &file_auth_v1_auth_proto_msgTypes[26]
+	mi := &file_auth_v1_auth_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1818,7 +2072,7 @@ func (x *PasswordResetChallenge) String() string {
 func (*PasswordResetChallenge) ProtoMessage() {}
 
 func (x *PasswordResetChallenge) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[26]
+	mi := &file_auth_v1_auth_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1831,7 +2085,7 @@ func (x *PasswordResetChallenge) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PasswordResetChallenge.ProtoReflect.Descriptor instead.
 func (*PasswordResetChallenge) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{26}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *PasswordResetChallenge) GetChallengeToken() string {
@@ -1873,7 +2127,7 @@ type ConfirmPasswordResetRequest struct {
 
 func (x *ConfirmPasswordResetRequest) Reset() {
 	*x = ConfirmPasswordResetRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[27]
+	mi := &file_auth_v1_auth_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1885,7 +2139,7 @@ func (x *ConfirmPasswordResetRequest) String() string {
 func (*ConfirmPasswordResetRequest) ProtoMessage() {}
 
 func (x *ConfirmPasswordResetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[27]
+	mi := &file_auth_v1_auth_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1898,7 +2152,7 @@ func (x *ConfirmPasswordResetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfirmPasswordResetRequest.ProtoReflect.Descriptor instead.
 func (*ConfirmPasswordResetRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{27}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *ConfirmPasswordResetRequest) GetChallengeToken() string {
@@ -1934,7 +2188,7 @@ type ConfirmPasswordResetResponse struct {
 
 func (x *ConfirmPasswordResetResponse) Reset() {
 	*x = ConfirmPasswordResetResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[28]
+	mi := &file_auth_v1_auth_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1946,7 +2200,7 @@ func (x *ConfirmPasswordResetResponse) String() string {
 func (*ConfirmPasswordResetResponse) ProtoMessage() {}
 
 func (x *ConfirmPasswordResetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[28]
+	mi := &file_auth_v1_auth_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1959,7 +2213,7 @@ func (x *ConfirmPasswordResetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfirmPasswordResetResponse.ProtoReflect.Descriptor instead.
 func (*ConfirmPasswordResetResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{28}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ConfirmPasswordResetResponse) GetSuccess() bool {
@@ -1994,15 +2248,21 @@ var File_auth_v1_auth_proto protoreflect.FileDescriptor
 
 const file_auth_v1_auth_proto_rawDesc = "" +
 	"\n" +
-	"\x12auth/v1/auth.proto\x12\aauth.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x92\x01\n" +
+	"\x12auth/v1/auth.proto\x12\aauth.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xc8\x01\n" +
 	"\fLoginRequest\x12\x1f\n" +
 	"\busername\x18\x01 \x01(\tB\x03\xe0A\x02R\busername\x12\x1f\n" +
 	"\bpassword\x18\x02 \x01(\tB\x03\xe0A\x02R\bpassword\x12,\n" +
-	"\x0forganization_id\x18\x03 \x01(\tH\x00R\x0eorganizationId\x88\x01\x01B\x12\n" +
-	"\x10_organization_id\"S\n" +
+	"\x0forganization_id\x18\x03 \x01(\tH\x00R\x0eorganizationId\x88\x01\x01\x12$\n" +
+	"\vremember_me\x18\x04 \x01(\bH\x01R\n" +
+	"rememberMe\x88\x01\x01B\x12\n" +
+	"\x10_organization_idB\x0e\n" +
+	"\f_remember_me\"\x89\x01\n" +
 	"\x14DingTalkLoginRequest\x12 \n" +
 	"\tauth_code\x18\x01 \x01(\tB\x03\xe0A\x02R\bauthCode\x12\x19\n" +
-	"\x05state\x18\x02 \x01(\tB\x03\xe0A\x02R\x05state\"\"\n" +
+	"\x05state\x18\x02 \x01(\tB\x03\xe0A\x02R\x05state\x12$\n" +
+	"\vremember_me\x18\x03 \x01(\bH\x00R\n" +
+	"rememberMe\x88\x01\x01B\x0e\n" +
+	"\f_remember_me\"\"\n" +
 	" GetDingTalkEmbeddedConfigRequest\"\xbb\x01\n" +
 	"!GetDingTalkEmbeddedConfigResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
@@ -2034,14 +2294,29 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
 	"\x04data\x18\x04 \x01(\v2\x1c.auth.v1.DingTalkLoginConfigR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x9e\x01\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xbc\x01\n" +
 	"\x13DingTalkLoginConfig\x12\x18\n" +
-	"\aenabled\x18\x01 \x01(\bR\aenabled\x12(\n" +
-	"\rauthorize_url\x18\x02 \x01(\tH\x00R\fauthorizeUrl\x88\x01\x01\x12\"\n" +
+	"\aenabled\x18\x01 \x01(\bR\aenabled\x12#\n" +
+	"\vqr_code_url\x18\x02 \x01(\tH\x00R\tqrCodeUrl\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"expires_at\x18\x03 \x01(\tH\x01R\texpiresAt\x88\x01\x01B\x10\n" +
-	"\x0e_authorize_urlB\r\n" +
-	"\v_expires_at\"I\n" +
+	"expires_at\x18\x03 \x01(\tH\x01R\texpiresAt\x88\x01\x01\x12\x19\n" +
+	"\x05state\x18\x04 \x01(\tH\x02R\x05state\x88\x01\x01B\x0e\n" +
+	"\f_qr_code_urlB\r\n" +
+	"\v_expires_atB\b\n" +
+	"\x06_state\"6\n" +
+	"\x19PollDingTalkQRCodeRequest\x12\x19\n" +
+	"\x05state\x18\x01 \x01(\tB\x03\xe0A\x02R\x05state\"\xb6\x01\n" +
+	"\x1aPollDingTalkQRCodeResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x125\n" +
+	"\x04data\x18\x04 \x01(\v2!.auth.v1.DingTalkQRCodePollResultR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x81\x01\n" +
+	"\x18DingTalkQRCodePollResult\x125\n" +
+	"\x06status\x18\x01 \x01(\x0e2\x1d.auth.v1.DingTalkQRCodeStatusR\x06status\x12 \n" +
+	"\tauth_code\x18\x02 \x01(\tH\x00R\bauthCode\x88\x01\x01B\f\n" +
+	"\n" +
+	"_auth_code\"I\n" +
 	"\x19SwitchOrganizationRequest\x12,\n" +
 	"\x0forganization_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\"\xec\x01\n" +
 	"\rLoginResponse\x12\x18\n" +
@@ -2145,7 +2420,13 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
-	"\btrace_id\x18\x04 \x01(\tR\atraceId*\xe2\x01\n" +
+	"\btrace_id\x18\x04 \x01(\tR\atraceId*\xda\x01\n" +
+	"\x14DingTalkQRCodeStatus\x12(\n" +
+	"$DING_TALK_QR_CODE_STATUS_UNSPECIFIED\x10\x00\x12$\n" +
+	" DING_TALK_QR_CODE_STATUS_WAITING\x10\x01\x12$\n" +
+	" DING_TALK_QR_CODE_STATUS_SCANNED\x10\x02\x12&\n" +
+	"\"DING_TALK_QR_CODE_STATUS_CONFIRMED\x10\x03\x12$\n" +
+	" DING_TALK_QR_CODE_STATUS_EXPIRED\x10\x04*\xe2\x01\n" +
 	"\x13DingTalkLoginStatus\x12&\n" +
 	"\"DING_TALK_LOGIN_STATUS_UNSPECIFIED\x10\x00\x12(\n" +
 	"$DING_TALK_LOGIN_STATUS_AUTHENTICATED\x10\x01\x12%\n" +
@@ -2157,13 +2438,13 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x18ORGANIZATION_KIND_SYSTEM\x10\x01\x12\x1d\n" +
 	"\x19ORGANIZATION_KIND_COMPANY\x10\x02\x12 \n" +
 	"\x1cORGANIZATION_KIND_DEPARTMENT\x10\x03\x12\x1a\n" +
-	"\x16ORGANIZATION_KIND_TEAM\x10\x042\xd3\n" +
-	"\n" +
+	"\x16ORGANIZATION_KIND_TEAM\x10\x042\xe3\v\n" +
 	"\vAuthService\x12[\n" +
 	"\x05Login\x12\x15.auth.v1.LoginRequest\x1a\x16.auth.v1.LoginResponse\"#\x82\xb5\x18\x02\b\x01\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/api/v1/auth/login\x12\xa2\x01\n" +
 	"\x18RequestPasswordResetCode\x12(.auth.v1.RequestPasswordResetCodeRequest\x1a).auth.v1.RequestPasswordResetCodeResponse\"1\x82\xb5\x18\x02\b\x01\x82\xd3\xe4\x93\x02%:\x01*\" /api/v1/auth/password-reset/code\x12\x99\x01\n" +
 	"\x14ConfirmPasswordReset\x12$.auth.v1.ConfirmPasswordResetRequest\x1a%.auth.v1.ConfirmPasswordResetResponse\"4\x82\xb5\x18\x02\b\x01\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1/auth/password-reset/confirm\x12\x9b\x01\n" +
-	"\x16GetDingTalkLoginConfig\x12&.auth.v1.GetDingTalkLoginConfigRequest\x1a'.auth.v1.GetDingTalkLoginConfigResponse\"0\x82\xb5\x18\x02\b\x01\x82\xd3\xe4\x93\x02$\x12\"/api/v1/auth/dingtalk/login-config\x12|\n" +
+	"\x16GetDingTalkLoginConfig\x12&.auth.v1.GetDingTalkLoginConfigRequest\x1a'.auth.v1.GetDingTalkLoginConfigResponse\"0\x82\xb5\x18\x02\b\x01\x82\xd3\xe4\x93\x02$\x12\"/api/v1/auth/dingtalk/login-config\x12\x8d\x01\n" +
+	"\x12PollDingTalkQRCode\x12\".auth.v1.PollDingTalkQRCodeRequest\x1a#.auth.v1.PollDingTalkQRCodeResponse\".\x82\xb5\x18\x02\b\x01\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/v1/auth/dingtalk/qr/poll\x12|\n" +
 	"\rDingTalkLogin\x12\x1d.auth.v1.DingTalkLoginRequest\x1a\x1e.auth.v1.DingTalkLoginResponse\",\x82\xb5\x18\x02\b\x01\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/auth/dingtalk/login\x12\xa7\x01\n" +
 	"\x19GetDingTalkEmbeddedConfig\x12).auth.v1.GetDingTalkEmbeddedConfigRequest\x1a*.auth.v1.GetDingTalkEmbeddedConfigResponse\"3\x82\xb5\x18\x02\b\x01\x82\xd3\xe4\x93\x02'\x12%/api/v1/auth/dingtalk/embedded-config\x12\x9d\x01\n" +
 	"\x15DingTalkEmbeddedLogin\x12%.auth.v1.DingTalkEmbeddedLoginRequest\x1a&.auth.v1.DingTalkEmbeddedLoginResponse\"5\x82\xb5\x18\x02\b\x01\x82\xd3\xe4\x93\x02):\x01*\"$/api/v1/auth/dingtalk/embedded-login\x12_\n" +
@@ -2183,85 +2464,93 @@ func file_auth_v1_auth_proto_rawDescGZIP() []byte {
 	return file_auth_v1_auth_proto_rawDescData
 }
 
-var file_auth_v1_auth_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
+var file_auth_v1_auth_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 32)
 var file_auth_v1_auth_proto_goTypes = []any{
-	(DingTalkLoginStatus)(0),                  // 0: auth.v1.DingTalkLoginStatus
-	(OrganizationKind)(0),                     // 1: auth.v1.OrganizationKind
-	(*LoginRequest)(nil),                      // 2: auth.v1.LoginRequest
-	(*DingTalkLoginRequest)(nil),              // 3: auth.v1.DingTalkLoginRequest
-	(*GetDingTalkEmbeddedConfigRequest)(nil),  // 4: auth.v1.GetDingTalkEmbeddedConfigRequest
-	(*GetDingTalkEmbeddedConfigResponse)(nil), // 5: auth.v1.GetDingTalkEmbeddedConfigResponse
-	(*DingTalkEmbeddedLoginResponse)(nil),     // 6: auth.v1.DingTalkEmbeddedLoginResponse
-	(*DingTalkEmbeddedConfig)(nil),            // 7: auth.v1.DingTalkEmbeddedConfig
-	(*DingTalkEmbeddedLoginRequest)(nil),      // 8: auth.v1.DingTalkEmbeddedLoginRequest
-	(*GetDingTalkLoginConfigResponse)(nil),    // 9: auth.v1.GetDingTalkLoginConfigResponse
-	(*DingTalkLoginConfig)(nil),               // 10: auth.v1.DingTalkLoginConfig
-	(*SwitchOrganizationRequest)(nil),         // 11: auth.v1.SwitchOrganizationRequest
-	(*LoginResponse)(nil),                     // 12: auth.v1.LoginResponse
-	(*DingTalkLoginResponse)(nil),             // 13: auth.v1.DingTalkLoginResponse
-	(*DingTalkLoginResult)(nil),               // 14: auth.v1.DingTalkLoginResult
-	(*MeResponse)(nil),                        // 15: auth.v1.MeResponse
-	(*SwitchOrganizationResponse)(nil),        // 16: auth.v1.SwitchOrganizationResponse
-	(*OrganizationChoice)(nil),                // 17: auth.v1.OrganizationChoice
-	(*LogoutResponse)(nil),                    // 18: auth.v1.LogoutResponse
-	(*CurrentUser)(nil),                       // 19: auth.v1.CurrentUser
-	(*Organization)(nil),                      // 20: auth.v1.Organization
-	(*PermissionCapability)(nil),              // 21: auth.v1.PermissionCapability
-	(*RoleScope)(nil),                         // 22: auth.v1.RoleScope
-	(*GetDingTalkLoginConfigRequest)(nil),     // 23: auth.v1.GetDingTalkLoginConfigRequest
-	(*LogoutRequest)(nil),                     // 24: auth.v1.LogoutRequest
-	(*MeRequest)(nil),                         // 25: auth.v1.MeRequest
-	(*RequestPasswordResetCodeRequest)(nil),   // 26: auth.v1.RequestPasswordResetCodeRequest
-	(*RequestPasswordResetCodeResponse)(nil),  // 27: auth.v1.RequestPasswordResetCodeResponse
-	(*PasswordResetChallenge)(nil),            // 28: auth.v1.PasswordResetChallenge
-	(*ConfirmPasswordResetRequest)(nil),       // 29: auth.v1.ConfirmPasswordResetRequest
-	(*ConfirmPasswordResetResponse)(nil),      // 30: auth.v1.ConfirmPasswordResetResponse
+	(DingTalkQRCodeStatus)(0),                 // 0: auth.v1.DingTalkQRCodeStatus
+	(DingTalkLoginStatus)(0),                  // 1: auth.v1.DingTalkLoginStatus
+	(OrganizationKind)(0),                     // 2: auth.v1.OrganizationKind
+	(*LoginRequest)(nil),                      // 3: auth.v1.LoginRequest
+	(*DingTalkLoginRequest)(nil),              // 4: auth.v1.DingTalkLoginRequest
+	(*GetDingTalkEmbeddedConfigRequest)(nil),  // 5: auth.v1.GetDingTalkEmbeddedConfigRequest
+	(*GetDingTalkEmbeddedConfigResponse)(nil), // 6: auth.v1.GetDingTalkEmbeddedConfigResponse
+	(*DingTalkEmbeddedLoginResponse)(nil),     // 7: auth.v1.DingTalkEmbeddedLoginResponse
+	(*DingTalkEmbeddedConfig)(nil),            // 8: auth.v1.DingTalkEmbeddedConfig
+	(*DingTalkEmbeddedLoginRequest)(nil),      // 9: auth.v1.DingTalkEmbeddedLoginRequest
+	(*GetDingTalkLoginConfigResponse)(nil),    // 10: auth.v1.GetDingTalkLoginConfigResponse
+	(*DingTalkLoginConfig)(nil),               // 11: auth.v1.DingTalkLoginConfig
+	(*PollDingTalkQRCodeRequest)(nil),         // 12: auth.v1.PollDingTalkQRCodeRequest
+	(*PollDingTalkQRCodeResponse)(nil),        // 13: auth.v1.PollDingTalkQRCodeResponse
+	(*DingTalkQRCodePollResult)(nil),          // 14: auth.v1.DingTalkQRCodePollResult
+	(*SwitchOrganizationRequest)(nil),         // 15: auth.v1.SwitchOrganizationRequest
+	(*LoginResponse)(nil),                     // 16: auth.v1.LoginResponse
+	(*DingTalkLoginResponse)(nil),             // 17: auth.v1.DingTalkLoginResponse
+	(*DingTalkLoginResult)(nil),               // 18: auth.v1.DingTalkLoginResult
+	(*MeResponse)(nil),                        // 19: auth.v1.MeResponse
+	(*SwitchOrganizationResponse)(nil),        // 20: auth.v1.SwitchOrganizationResponse
+	(*OrganizationChoice)(nil),                // 21: auth.v1.OrganizationChoice
+	(*LogoutResponse)(nil),                    // 22: auth.v1.LogoutResponse
+	(*CurrentUser)(nil),                       // 23: auth.v1.CurrentUser
+	(*Organization)(nil),                      // 24: auth.v1.Organization
+	(*PermissionCapability)(nil),              // 25: auth.v1.PermissionCapability
+	(*RoleScope)(nil),                         // 26: auth.v1.RoleScope
+	(*GetDingTalkLoginConfigRequest)(nil),     // 27: auth.v1.GetDingTalkLoginConfigRequest
+	(*LogoutRequest)(nil),                     // 28: auth.v1.LogoutRequest
+	(*MeRequest)(nil),                         // 29: auth.v1.MeRequest
+	(*RequestPasswordResetCodeRequest)(nil),   // 30: auth.v1.RequestPasswordResetCodeRequest
+	(*RequestPasswordResetCodeResponse)(nil),  // 31: auth.v1.RequestPasswordResetCodeResponse
+	(*PasswordResetChallenge)(nil),            // 32: auth.v1.PasswordResetChallenge
+	(*ConfirmPasswordResetRequest)(nil),       // 33: auth.v1.ConfirmPasswordResetRequest
+	(*ConfirmPasswordResetResponse)(nil),      // 34: auth.v1.ConfirmPasswordResetResponse
 }
 var file_auth_v1_auth_proto_depIdxs = []int32{
-	7,  // 0: auth.v1.GetDingTalkEmbeddedConfigResponse.data:type_name -> auth.v1.DingTalkEmbeddedConfig
-	14, // 1: auth.v1.DingTalkEmbeddedLoginResponse.data:type_name -> auth.v1.DingTalkLoginResult
-	10, // 2: auth.v1.GetDingTalkLoginConfigResponse.data:type_name -> auth.v1.DingTalkLoginConfig
-	19, // 3: auth.v1.LoginResponse.data:type_name -> auth.v1.CurrentUser
-	17, // 4: auth.v1.LoginResponse.organization_choices:type_name -> auth.v1.OrganizationChoice
-	14, // 5: auth.v1.DingTalkLoginResponse.data:type_name -> auth.v1.DingTalkLoginResult
-	0,  // 6: auth.v1.DingTalkLoginResult.status:type_name -> auth.v1.DingTalkLoginStatus
-	19, // 7: auth.v1.DingTalkLoginResult.current_user:type_name -> auth.v1.CurrentUser
-	19, // 8: auth.v1.MeResponse.data:type_name -> auth.v1.CurrentUser
-	19, // 9: auth.v1.SwitchOrganizationResponse.data:type_name -> auth.v1.CurrentUser
-	17, // 10: auth.v1.SwitchOrganizationResponse.organization_choices:type_name -> auth.v1.OrganizationChoice
-	1,  // 11: auth.v1.OrganizationChoice.kind:type_name -> auth.v1.OrganizationKind
-	20, // 12: auth.v1.CurrentUser.current_organization:type_name -> auth.v1.Organization
-	20, // 13: auth.v1.CurrentUser.organizations:type_name -> auth.v1.Organization
-	22, // 14: auth.v1.CurrentUser.role_scopes:type_name -> auth.v1.RoleScope
-	21, // 15: auth.v1.CurrentUser.permission_capabilities:type_name -> auth.v1.PermissionCapability
-	1,  // 16: auth.v1.Organization.kind:type_name -> auth.v1.OrganizationKind
-	28, // 17: auth.v1.RequestPasswordResetCodeResponse.data:type_name -> auth.v1.PasswordResetChallenge
-	2,  // 18: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest
-	26, // 19: auth.v1.AuthService.RequestPasswordResetCode:input_type -> auth.v1.RequestPasswordResetCodeRequest
-	29, // 20: auth.v1.AuthService.ConfirmPasswordReset:input_type -> auth.v1.ConfirmPasswordResetRequest
-	23, // 21: auth.v1.AuthService.GetDingTalkLoginConfig:input_type -> auth.v1.GetDingTalkLoginConfigRequest
-	3,  // 22: auth.v1.AuthService.DingTalkLogin:input_type -> auth.v1.DingTalkLoginRequest
-	4,  // 23: auth.v1.AuthService.GetDingTalkEmbeddedConfig:input_type -> auth.v1.GetDingTalkEmbeddedConfigRequest
-	8,  // 24: auth.v1.AuthService.DingTalkEmbeddedLogin:input_type -> auth.v1.DingTalkEmbeddedLoginRequest
-	24, // 25: auth.v1.AuthService.Logout:input_type -> auth.v1.LogoutRequest
-	25, // 26: auth.v1.AuthService.Me:input_type -> auth.v1.MeRequest
-	11, // 27: auth.v1.AuthService.SwitchOrganization:input_type -> auth.v1.SwitchOrganizationRequest
-	12, // 28: auth.v1.AuthService.Login:output_type -> auth.v1.LoginResponse
-	27, // 29: auth.v1.AuthService.RequestPasswordResetCode:output_type -> auth.v1.RequestPasswordResetCodeResponse
-	30, // 30: auth.v1.AuthService.ConfirmPasswordReset:output_type -> auth.v1.ConfirmPasswordResetResponse
-	9,  // 31: auth.v1.AuthService.GetDingTalkLoginConfig:output_type -> auth.v1.GetDingTalkLoginConfigResponse
-	13, // 32: auth.v1.AuthService.DingTalkLogin:output_type -> auth.v1.DingTalkLoginResponse
-	5,  // 33: auth.v1.AuthService.GetDingTalkEmbeddedConfig:output_type -> auth.v1.GetDingTalkEmbeddedConfigResponse
-	6,  // 34: auth.v1.AuthService.DingTalkEmbeddedLogin:output_type -> auth.v1.DingTalkEmbeddedLoginResponse
-	18, // 35: auth.v1.AuthService.Logout:output_type -> auth.v1.LogoutResponse
-	15, // 36: auth.v1.AuthService.Me:output_type -> auth.v1.MeResponse
-	16, // 37: auth.v1.AuthService.SwitchOrganization:output_type -> auth.v1.SwitchOrganizationResponse
-	28, // [28:38] is the sub-list for method output_type
-	18, // [18:28] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	8,  // 0: auth.v1.GetDingTalkEmbeddedConfigResponse.data:type_name -> auth.v1.DingTalkEmbeddedConfig
+	18, // 1: auth.v1.DingTalkEmbeddedLoginResponse.data:type_name -> auth.v1.DingTalkLoginResult
+	11, // 2: auth.v1.GetDingTalkLoginConfigResponse.data:type_name -> auth.v1.DingTalkLoginConfig
+	14, // 3: auth.v1.PollDingTalkQRCodeResponse.data:type_name -> auth.v1.DingTalkQRCodePollResult
+	0,  // 4: auth.v1.DingTalkQRCodePollResult.status:type_name -> auth.v1.DingTalkQRCodeStatus
+	23, // 5: auth.v1.LoginResponse.data:type_name -> auth.v1.CurrentUser
+	21, // 6: auth.v1.LoginResponse.organization_choices:type_name -> auth.v1.OrganizationChoice
+	18, // 7: auth.v1.DingTalkLoginResponse.data:type_name -> auth.v1.DingTalkLoginResult
+	1,  // 8: auth.v1.DingTalkLoginResult.status:type_name -> auth.v1.DingTalkLoginStatus
+	23, // 9: auth.v1.DingTalkLoginResult.current_user:type_name -> auth.v1.CurrentUser
+	23, // 10: auth.v1.MeResponse.data:type_name -> auth.v1.CurrentUser
+	23, // 11: auth.v1.SwitchOrganizationResponse.data:type_name -> auth.v1.CurrentUser
+	21, // 12: auth.v1.SwitchOrganizationResponse.organization_choices:type_name -> auth.v1.OrganizationChoice
+	2,  // 13: auth.v1.OrganizationChoice.kind:type_name -> auth.v1.OrganizationKind
+	24, // 14: auth.v1.CurrentUser.current_organization:type_name -> auth.v1.Organization
+	24, // 15: auth.v1.CurrentUser.organizations:type_name -> auth.v1.Organization
+	26, // 16: auth.v1.CurrentUser.role_scopes:type_name -> auth.v1.RoleScope
+	25, // 17: auth.v1.CurrentUser.permission_capabilities:type_name -> auth.v1.PermissionCapability
+	2,  // 18: auth.v1.Organization.kind:type_name -> auth.v1.OrganizationKind
+	32, // 19: auth.v1.RequestPasswordResetCodeResponse.data:type_name -> auth.v1.PasswordResetChallenge
+	3,  // 20: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest
+	30, // 21: auth.v1.AuthService.RequestPasswordResetCode:input_type -> auth.v1.RequestPasswordResetCodeRequest
+	33, // 22: auth.v1.AuthService.ConfirmPasswordReset:input_type -> auth.v1.ConfirmPasswordResetRequest
+	27, // 23: auth.v1.AuthService.GetDingTalkLoginConfig:input_type -> auth.v1.GetDingTalkLoginConfigRequest
+	12, // 24: auth.v1.AuthService.PollDingTalkQRCode:input_type -> auth.v1.PollDingTalkQRCodeRequest
+	4,  // 25: auth.v1.AuthService.DingTalkLogin:input_type -> auth.v1.DingTalkLoginRequest
+	5,  // 26: auth.v1.AuthService.GetDingTalkEmbeddedConfig:input_type -> auth.v1.GetDingTalkEmbeddedConfigRequest
+	9,  // 27: auth.v1.AuthService.DingTalkEmbeddedLogin:input_type -> auth.v1.DingTalkEmbeddedLoginRequest
+	28, // 28: auth.v1.AuthService.Logout:input_type -> auth.v1.LogoutRequest
+	29, // 29: auth.v1.AuthService.Me:input_type -> auth.v1.MeRequest
+	15, // 30: auth.v1.AuthService.SwitchOrganization:input_type -> auth.v1.SwitchOrganizationRequest
+	16, // 31: auth.v1.AuthService.Login:output_type -> auth.v1.LoginResponse
+	31, // 32: auth.v1.AuthService.RequestPasswordResetCode:output_type -> auth.v1.RequestPasswordResetCodeResponse
+	34, // 33: auth.v1.AuthService.ConfirmPasswordReset:output_type -> auth.v1.ConfirmPasswordResetResponse
+	10, // 34: auth.v1.AuthService.GetDingTalkLoginConfig:output_type -> auth.v1.GetDingTalkLoginConfigResponse
+	13, // 35: auth.v1.AuthService.PollDingTalkQRCode:output_type -> auth.v1.PollDingTalkQRCodeResponse
+	17, // 36: auth.v1.AuthService.DingTalkLogin:output_type -> auth.v1.DingTalkLoginResponse
+	6,  // 37: auth.v1.AuthService.GetDingTalkEmbeddedConfig:output_type -> auth.v1.GetDingTalkEmbeddedConfigResponse
+	7,  // 38: auth.v1.AuthService.DingTalkEmbeddedLogin:output_type -> auth.v1.DingTalkEmbeddedLoginResponse
+	22, // 39: auth.v1.AuthService.Logout:output_type -> auth.v1.LogoutResponse
+	19, // 40: auth.v1.AuthService.Me:output_type -> auth.v1.MeResponse
+	20, // 41: auth.v1.AuthService.SwitchOrganization:output_type -> auth.v1.SwitchOrganizationResponse
+	31, // [31:42] is the sub-list for method output_type
+	20, // [20:31] is the sub-list for method input_type
+	20, // [20:20] is the sub-list for extension type_name
+	20, // [20:20] is the sub-list for extension extendee
+	0,  // [0:20] is the sub-list for field type_name
 }
 
 func init() { file_auth_v1_auth_proto_init() }
@@ -2270,17 +2559,19 @@ func file_auth_v1_auth_proto_init() {
 		return
 	}
 	file_auth_v1_auth_proto_msgTypes[0].OneofWrappers = []any{}
+	file_auth_v1_auth_proto_msgTypes[1].OneofWrappers = []any{}
 	file_auth_v1_auth_proto_msgTypes[5].OneofWrappers = []any{}
 	file_auth_v1_auth_proto_msgTypes[8].OneofWrappers = []any{}
-	file_auth_v1_auth_proto_msgTypes[12].OneofWrappers = []any{}
-	file_auth_v1_auth_proto_msgTypes[17].OneofWrappers = []any{}
+	file_auth_v1_auth_proto_msgTypes[11].OneofWrappers = []any{}
+	file_auth_v1_auth_proto_msgTypes[15].OneofWrappers = []any{}
+	file_auth_v1_auth_proto_msgTypes[20].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_auth_v1_auth_proto_rawDesc), len(file_auth_v1_auth_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   29,
+			NumEnums:      3,
+			NumMessages:   32,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

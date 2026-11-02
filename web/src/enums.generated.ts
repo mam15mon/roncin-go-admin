@@ -42,6 +42,16 @@ export const AdminUserStatus = {
 
 export type AdminUserStatus = (typeof AdminUserStatus)[keyof typeof AdminUserStatus];
 
+export const DingTalkQRCodeStatus = {
+  DING_TALK_QR_CODE_STATUS_UNSPECIFIED: 0,
+  DING_TALK_QR_CODE_STATUS_WAITING: 1,
+  DING_TALK_QR_CODE_STATUS_SCANNED: 2,
+  DING_TALK_QR_CODE_STATUS_CONFIRMED: 3,
+  DING_TALK_QR_CODE_STATUS_EXPIRED: 4,
+} as const;
+
+export type DingTalkQRCodeStatus = (typeof DingTalkQRCodeStatus)[keyof typeof DingTalkQRCodeStatus];
+
 export const DingTalkLoginStatus = {
   DING_TALK_LOGIN_STATUS_UNSPECIFIED: 0,
   DING_TALK_LOGIN_STATUS_AUTHENTICATED: 1,

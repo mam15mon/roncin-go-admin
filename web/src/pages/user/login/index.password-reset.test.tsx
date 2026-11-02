@@ -1,3 +1,4 @@
+import '@root/tests/passkey-login-disabled';
 import { renderWithApp } from '@root/tests/renderWithApp';
 import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -34,6 +35,7 @@ function StateProbe() {
 
 beforeEach(() => {
   vi.resetAllMocks();
+  localStorage.clear();
   window.history.replaceState({}, '', '/user/login');
 });
 afterEach(() => {
@@ -65,11 +67,18 @@ describe('登录页账号与自助设置衔接', () => {
       privateData: 'old-data',
     });
     sessionStorage.setItem('dingtalk_login_redirect', '/orders');
-    expect(screen.getByRole('radio', { name: '钉钉扫码' })).toBeChecked();
+    expect(screen.getByRole('radio', { name: '扫码登录' })).toBeChecked();
     fireEvent.click(screen.getByRole('radio', { name: '账号登录' }));
     fireEvent.change(screen.getByPlaceholderText('钉钉手机号 / 本地账号'), {
       target: { value: '13800138000' },
     });
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: '下一步' })).toBeEnabled(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: '下一步' }));
+    await waitFor(() =>
+      expect(screen.getByPlaceholderText('请输入密码')).toBeVisible(),
+    );
     fireEvent.change(screen.getByPlaceholderText('请输入密码'), {
       target: { value: 'old-password' },
     });
@@ -113,16 +122,28 @@ describe('登录页账号与自助设置衔接', () => {
     renderWithApp(<Login />);
     fireEvent.click(screen.getByRole('radio', { name: '账号登录' }));
     for (const username of ['13800138000', 'admin']) {
+      const changeAccount = screen.queryByRole('button', { name: '修改账号' });
+      if (changeAccount) fireEvent.click(changeAccount);
       fireEvent.change(screen.getByPlaceholderText('钉钉手机号 / 本地账号'), {
         target: { value: username },
       });
+      await waitFor(() =>
+        expect(screen.getByRole('button', { name: '下一步' })).toBeEnabled(),
+      );
+      fireEvent.click(screen.getByRole('button', { name: '下一步' }));
+      await waitFor(() =>
+        expect(screen.getByPlaceholderText('请输入密码')).toBeVisible(),
+      );
       fireEvent.change(screen.getByPlaceholderText('请输入密码'), {
         target: { value: 'password-1234' },
       });
+      await waitFor(() =>
+        expect(screen.getByRole('button', { name: '登录' })).toBeEnabled(),
+      );
       fireEvent.click(screen.getByRole('button', { name: '登录' }));
       await waitFor(() =>
         expect(login).toHaveBeenLastCalledWith(
-          { username, password: 'password-1234' },
+          { username, password: 'password-1234', rememberMe: true },
           { skipErrorHandler: true },
         ),
       );

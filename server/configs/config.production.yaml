@@ -31,6 +31,12 @@ security:
     ttl: 2592000s
     secure: true
     same_site: lax
+  passkey:
+    enabled: ${PASSKEY_ENABLED:false}
+    rp_id: ${PASSKEY_RP_ID:roncin.com.cn}
+    rp_name: ${PASSKEY_RP_NAME:Roncin 后台}
+    origins:
+      - ${PASSKEY_ORIGIN:https://ops.roncin.com.cn}
   dingtalk:
     enabled: ${DINGTALK_ENABLED:false}
     client_id: ${DINGTALK_CLIENT_ID:}

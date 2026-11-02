@@ -1493,6 +1493,36 @@
         }
       }
     },
+    "/api/v1/auth/dingtalk/qr/poll": {
+      "post": {
+        "tags": [
+          "AuthService"
+        ],
+        "operationId": "AuthService_PollDingTalkQRCode",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/auth.v1.PollDingTalkQRCodeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth.v1.PollDingTalkQRCodeResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/login": {
       "post": {
         "tags": [
@@ -1566,6 +1596,196 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/auth.v1.MeResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/passkey/config": {
+      "get": {
+        "tags": [
+          "PasskeyService"
+        ],
+        "operationId": "PasskeyService_GetPasskeyConfig",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth.v1.GetPasskeyConfigResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/passkey/login/begin": {
+      "post": {
+        "tags": [
+          "PasskeyService"
+        ],
+        "operationId": "PasskeyService_BeginPasskeyLogin",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/auth.v1.BeginPasskeyLoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth.v1.BeginPasskeyLoginResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/passkey/login/finish": {
+      "post": {
+        "tags": [
+          "PasskeyService"
+        ],
+        "operationId": "PasskeyService_FinishPasskeyLogin",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/auth.v1.FinishPasskeyLoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth.v1.FinishPasskeyLoginResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/passkey/registration/begin": {
+      "post": {
+        "tags": [
+          "PasskeyService"
+        ],
+        "operationId": "PasskeyService_BeginPasskeyRegistration",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/auth.v1.BeginPasskeyRegistrationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth.v1.BeginPasskeyRegistrationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/passkey/registration/finish": {
+      "post": {
+        "tags": [
+          "PasskeyService"
+        ],
+        "operationId": "PasskeyService_FinishPasskeyRegistration",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/auth.v1.FinishPasskeyRegistrationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth.v1.FinishPasskeyRegistrationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/passkeys": {
+      "get": {
+        "tags": [
+          "PasskeyService"
+        ],
+        "operationId": "PasskeyService_ListPasskeys",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth.v1.ListPasskeysResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/passkeys/{id}": {
+      "delete": {
+        "tags": [
+          "PasskeyService"
+        ],
+        "operationId": "PasskeyService_DeletePasskey",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth.v1.DeletePasskeyResponse"
                 }
               }
             }
@@ -15347,6 +15567,56 @@
           }
         }
       },
+      "auth.v1.BeginPasskeyLoginRequest": {
+        "type": "object",
+        "properties": {}
+      },
+      "auth.v1.BeginPasskeyLoginResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/auth.v1.PasskeyCeremony"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "auth.v1.BeginPasskeyRegistrationRequest": {
+        "type": "object",
+        "properties": {}
+      },
+      "auth.v1.BeginPasskeyRegistrationResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/auth.v1.PasskeyCeremony"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "auth.v1.ConfirmPasswordResetRequest": {
         "required": [
           "challengeToken",
@@ -15432,6 +15702,24 @@
           }
         }
       },
+      "auth.v1.DeletePasskeyResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "auth.v1.DingTalkEmbeddedConfig": {
         "type": "object",
         "properties": {
@@ -15492,12 +15780,16 @@
           "enabled": {
             "type": "boolean"
           },
-          "authorizeUrl": {
-            "type": "string"
+          "qrCodeUrl": {
+            "type": "string",
+            "description": "钉钉返回的真实扫码确认链接，由本站绘制二维码。"
           },
           "expiresAt": {
             "type": "string",
             "description": "与本次授权 state Cookie 相同的到期时间（RFC 3339）。"
+          },
+          "state": {
+            "type": "string"
           }
         }
       },
@@ -15513,6 +15805,10 @@
           },
           "state": {
             "type": "string"
+          },
+          "rememberMe": {
+            "type": "boolean",
+            "description": "缺省为 true；不改变服务端会话有效期或权限。"
           }
         }
       },
@@ -15551,6 +15847,96 @@
             "type": "string"
           },
           "message": {
+            "type": "string"
+          }
+        }
+      },
+      "auth.v1.DingTalkQRCodePollResult": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "authCode": {
+            "type": "string"
+          }
+        }
+      },
+      "auth.v1.FinishPasskeyLoginRequest": {
+        "required": [
+          "credentialJson"
+        ],
+        "type": "object",
+        "properties": {
+          "credentialJson": {
+            "type": "string"
+          },
+          "rememberMe": {
+            "type": "boolean",
+            "description": "缺省为 true，仅控制浏览器凭证保留方式。"
+          }
+        }
+      },
+      "auth.v1.FinishPasskeyLoginResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/auth.v1.CurrentUser"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "organizationChoices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/auth.v1.OrganizationChoice"
+            }
+          }
+        }
+      },
+      "auth.v1.FinishPasskeyRegistrationRequest": {
+        "required": [
+          "credentialJson",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "credentialJson": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "auth.v1.FinishPasskeyRegistrationResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/auth.v1.PasskeyCredential"
+          },
+          "traceId": {
             "type": "string"
           }
         }
@@ -15597,6 +15983,48 @@
           }
         }
       },
+      "auth.v1.GetPasskeyConfigResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/auth.v1.PasskeyConfig"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "auth.v1.ListPasskeysResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/auth.v1.PasskeyCredentialList"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "auth.v1.LoginRequest": {
         "required": [
           "username",
@@ -15614,6 +16042,10 @@
           "organizationId": {
             "type": "string",
             "description": "可选：显式指定本次登录进入的成员资格组织；缺省使用默认组织。"
+          },
+          "rememberMe": {
+            "type": "boolean",
+            "description": "缺省为 true；false 仅在当前浏览器会话中保留登录凭证。"
           }
         }
       },
@@ -15735,6 +16167,66 @@
         },
         "description": "OrganizationChoice 是登录组织选择与切换器共用的候选组织视图。"
       },
+      "auth.v1.PasskeyCeremony": {
+        "type": "object",
+        "properties": {
+          "optionsJson": {
+            "type": "string",
+            "description": "WebAuthn publicKey 内部标准选项对象，供浏览器 SDK 的 optionsJSON 使用。"
+          },
+          "expiresAt": {
+            "type": "string"
+          }
+        }
+      },
+      "auth.v1.PasskeyConfig": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "rpId": {
+            "type": "string"
+          },
+          "rpName": {
+            "type": "string"
+          },
+          "origins": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "auth.v1.PasskeyCredential": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "lastUsedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "auth.v1.PasskeyCredentialList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/auth.v1.PasskeyCredential"
+            }
+          }
+        }
+      },
       "auth.v1.PasswordResetChallenge": {
         "type": "object",
         "properties": {
@@ -15759,6 +16251,38 @@
             "type": "string"
           },
           "dataScope": {
+            "type": "string"
+          }
+        }
+      },
+      "auth.v1.PollDingTalkQRCodeRequest": {
+        "required": [
+          "state"
+        ],
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string"
+          }
+        }
+      },
+      "auth.v1.PollDingTalkQRCodeResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/auth.v1.DingTalkQRCodePollResult"
+          },
+          "traceId": {
             "type": "string"
           }
         }
@@ -38457,6 +38981,10 @@
     },
     {
       "name": "PartnerService"
+    },
+    {
+      "name": "PasskeyService",
+      "description": "PasskeyService 提供本站通行密钥注册、本人维护与发现式认证。"
     },
     {
       "name": "SeaDocumentService",

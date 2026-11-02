@@ -23,6 +23,7 @@ const (
 	AuthService_RequestPasswordResetCode_FullMethodName  = "/auth.v1.AuthService/RequestPasswordResetCode"
 	AuthService_ConfirmPasswordReset_FullMethodName      = "/auth.v1.AuthService/ConfirmPasswordReset"
 	AuthService_GetDingTalkLoginConfig_FullMethodName    = "/auth.v1.AuthService/GetDingTalkLoginConfig"
+	AuthService_PollDingTalkQRCode_FullMethodName        = "/auth.v1.AuthService/PollDingTalkQRCode"
 	AuthService_DingTalkLogin_FullMethodName             = "/auth.v1.AuthService/DingTalkLogin"
 	AuthService_GetDingTalkEmbeddedConfig_FullMethodName = "/auth.v1.AuthService/GetDingTalkEmbeddedConfig"
 	AuthService_DingTalkEmbeddedLogin_FullMethodName     = "/auth.v1.AuthService/DingTalkEmbeddedLogin"
@@ -41,6 +42,7 @@ type AuthServiceClient interface {
 	RequestPasswordResetCode(ctx context.Context, in *RequestPasswordResetCodeRequest, opts ...grpc.CallOption) (*RequestPasswordResetCodeResponse, error)
 	ConfirmPasswordReset(ctx context.Context, in *ConfirmPasswordResetRequest, opts ...grpc.CallOption) (*ConfirmPasswordResetResponse, error)
 	GetDingTalkLoginConfig(ctx context.Context, in *GetDingTalkLoginConfigRequest, opts ...grpc.CallOption) (*GetDingTalkLoginConfigResponse, error)
+	PollDingTalkQRCode(ctx context.Context, in *PollDingTalkQRCodeRequest, opts ...grpc.CallOption) (*PollDingTalkQRCodeResponse, error)
 	DingTalkLogin(ctx context.Context, in *DingTalkLoginRequest, opts ...grpc.CallOption) (*DingTalkLoginResponse, error)
 	GetDingTalkEmbeddedConfig(ctx context.Context, in *GetDingTalkEmbeddedConfigRequest, opts ...grpc.CallOption) (*GetDingTalkEmbeddedConfigResponse, error)
 	DingTalkEmbeddedLogin(ctx context.Context, in *DingTalkEmbeddedLoginRequest, opts ...grpc.CallOption) (*DingTalkEmbeddedLoginResponse, error)
@@ -91,6 +93,16 @@ func (c *authServiceClient) GetDingTalkLoginConfig(ctx context.Context, in *GetD
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetDingTalkLoginConfigResponse)
 	err := c.cc.Invoke(ctx, AuthService_GetDingTalkLoginConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) PollDingTalkQRCode(ctx context.Context, in *PollDingTalkQRCodeRequest, opts ...grpc.CallOption) (*PollDingTalkQRCodeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PollDingTalkQRCodeResponse)
+	err := c.cc.Invoke(ctx, AuthService_PollDingTalkQRCode_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -167,6 +179,7 @@ type AuthServiceServer interface {
 	RequestPasswordResetCode(context.Context, *RequestPasswordResetCodeRequest) (*RequestPasswordResetCodeResponse, error)
 	ConfirmPasswordReset(context.Context, *ConfirmPasswordResetRequest) (*ConfirmPasswordResetResponse, error)
 	GetDingTalkLoginConfig(context.Context, *GetDingTalkLoginConfigRequest) (*GetDingTalkLoginConfigResponse, error)
+	PollDingTalkQRCode(context.Context, *PollDingTalkQRCodeRequest) (*PollDingTalkQRCodeResponse, error)
 	DingTalkLogin(context.Context, *DingTalkLoginRequest) (*DingTalkLoginResponse, error)
 	GetDingTalkEmbeddedConfig(context.Context, *GetDingTalkEmbeddedConfigRequest) (*GetDingTalkEmbeddedConfigResponse, error)
 	DingTalkEmbeddedLogin(context.Context, *DingTalkEmbeddedLoginRequest) (*DingTalkEmbeddedLoginResponse, error)
@@ -194,6 +207,9 @@ func (UnimplementedAuthServiceServer) ConfirmPasswordReset(context.Context, *Con
 }
 func (UnimplementedAuthServiceServer) GetDingTalkLoginConfig(context.Context, *GetDingTalkLoginConfigRequest) (*GetDingTalkLoginConfigResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetDingTalkLoginConfig not implemented")
+}
+func (UnimplementedAuthServiceServer) PollDingTalkQRCode(context.Context, *PollDingTalkQRCodeRequest) (*PollDingTalkQRCodeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PollDingTalkQRCode not implemented")
 }
 func (UnimplementedAuthServiceServer) DingTalkLogin(context.Context, *DingTalkLoginRequest) (*DingTalkLoginResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DingTalkLogin not implemented")
@@ -302,6 +318,24 @@ func _AuthService_GetDingTalkLoginConfig_Handler(srv interface{}, ctx context.Co
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServiceServer).GetDingTalkLoginConfig(ctx, req.(*GetDingTalkLoginConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_PollDingTalkQRCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PollDingTalkQRCodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).PollDingTalkQRCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_PollDingTalkQRCode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).PollDingTalkQRCode(ctx, req.(*PollDingTalkQRCodeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -436,6 +470,10 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetDingTalkLoginConfig",
 			Handler:    _AuthService_GetDingTalkLoginConfig_Handler,
+		},
+		{
+			MethodName: "PollDingTalkQRCode",
+			Handler:    _AuthService_PollDingTalkQRCode_Handler,
 		},
 		{
 			MethodName: "DingTalkLogin",

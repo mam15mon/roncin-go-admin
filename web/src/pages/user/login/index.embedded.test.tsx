@@ -1,3 +1,4 @@
+import '@root/tests/passkey-login-disabled';
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
 import {
   act,

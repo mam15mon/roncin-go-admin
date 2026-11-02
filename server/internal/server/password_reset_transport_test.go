@@ -66,8 +66,16 @@ func TestPasswordResetServiceNoStoreAndClearsCookie(t *testing.T) {
 		t.Fatalf("确认边界 %d %s", confirmed.Code, confirmed.Body.String())
 	}
 	cookies := confirmed.Result().Cookies()
-	if len(cookies) != 1 || cookies[0].Name != policy.CookieName || cookies[0].Value != "" || cookies[0].MaxAge != -1 || !cookies[0].HttpOnly || !cookies[0].Secure {
-		t.Fatal("未正确清除 Cookie")
+	if len(cookies) != 2 {
+		t.Fatal("未同时清除会话及偏好 Cookie")
+	}
+	names := map[string]bool{policy.CookieName: false, policy.CookieName + "_remember": false}
+	for _, cookie := range cookies {
+		seen, known := names[cookie.Name]
+		if !known || seen || cookie.Value != "" || cookie.MaxAge != -1 || !cookie.HttpOnly || !cookie.Secure || cookie.Path != "/" || cookie.SameSite != http.SameSiteLaxMode || cookie.Expires.IsZero() || !cookie.Expires.Before(time.Now()) {
+			t.Fatal("未正确清除会话或偏好 Cookie")
+		}
+		names[cookie.Name] = true
 	}
 }
 func TestPasswordResetCooldownOnlyExposesRetryTimes(t *testing.T) {

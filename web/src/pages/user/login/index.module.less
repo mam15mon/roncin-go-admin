@@ -4,9 +4,13 @@
   min-height: 100dvh;
   width: 100%;
   background: #ffffff;
+  color: #181c1f;
+  font-size: 14px;
+  line-height: 22px;
+  font-family: "PingFang SC", "Microsoft Yahei", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-// 钉钉回调独立页：内容在视口内水平垂直居中，背景与登录表单区一致。
 .callbackStage {
   display: flex;
   align-items: center;
@@ -16,15 +20,10 @@
   width: 100%;
   padding: 32px 16px;
   box-sizing: border-box;
-  background: #fafbfd;
-
-  @media (max-width: 600px) {
-    padding: 24px 16px;
-    background: #ffffff;
-  }
+  background: #ffffff;
 }
 
-// 品牌视觉与登录主体等分，角色保留原有交互。
+// 宽屏沿用 Roncin 品牌插画，中等窗口使用独立白卡，窄屏取消外框。
 .heroSection {
   position: relative;
   flex: 0 0 50%;
@@ -32,12 +31,8 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: linear-gradient(145deg, #f0f5fc 0%, #e8eff9 100%);
+  background: #f2f2f6;
   user-select: none;
-
-  @media (max-width: 1024px) {
-    display: none;
-  }
 }
 
 .brandLogoWrapper {
@@ -64,60 +59,84 @@
 }
 
 .formSection {
+  position: relative;
   flex: 1;
   min-width: 0;
   min-height: 100vh;
   min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: #fafbfd;
+  background: #ffffff;
 }
 
 .formMain {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-width: 0;
-  padding: 40px 28px 24px;
-  box-sizing: border-box;
+  position: absolute;
+  inset: 0;
 }
 
 .formCard {
-  width: 456px;
-  max-width: 100%;
-  padding: 28px 32px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 480px;
+  height: 600px;
+  margin-top: -320px;
+  margin-left: -240px;
   box-sizing: border-box;
+  border: 1px solid rgba(24, 28, 31, 0.102);
+  border-radius: 24px;
   background: #ffffff;
-  border: 1px solid #e9edf2;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(28, 48, 77, 0.045);
-}
-
-.mobileLogo {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  color: #0f172a;
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-
-  img {
-    width: 32px;
-    height: 32px;
-  }
+  box-shadow: 0 4px 14px rgba(24, 28, 31, 0.102);
 }
 
 .loginModeSwitch {
-  margin-bottom: 24px;
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  width: 184px;
+  height: 30px;
+  padding: 2px;
+  transform: translateX(-50%);
+  background: rgba(132, 139, 153, 0.1);
+  font-size: 14px;
+}
+
+.formCard .switchLabel {
+  min-height: 26px;
+  padding-inline: 16px;
+  line-height: 26px;
+}
+
+.formCard .switchItem {
+  width: 88px;
+  height: 26px;
+  color: rgba(24, 28, 31, 0.6);
+  font-size: 14px;
+  font-weight: 400;
+
+  &:has(input:checked) {
+    color: #181c1f;
+    font-weight: 500;
+  }
+}
+
+.formCard .switchItem + .switchItem {
+  margin-inline-start: 4px;
+}
+
+.languageLabel {
+  position: absolute;
+  top: 16px;
+  right: 22px;
+  color: rgba(24, 28, 31, 0.4);
+  font-size: 13px;
+  line-height: 20px;
 }
 
 .formHeader {
-  margin-bottom: 20px;
+  position: absolute;
+  top: 100px;
+  left: 50%;
+  width: 318px;
+  transform: translateX(-50%);
   text-align: center;
 }
 
@@ -127,73 +146,232 @@
   justify-content: center;
   width: 48px;
   height: 48px;
-  margin: 0 auto 14px;
-  border-radius: 14px;
-  background: #edf5ff;
-  color: #1677ff;
-  font-size: 28px;
+  margin: 0 auto;
+  border-radius: 12px;
+  background: #0066ff;
+  color: #ffffff;
+  font-size: 42px;
 }
 
 .headerTitle {
-  margin: 0 0 6px;
-  color: #18263a;
-  font-size: 22px;
-  font-weight: 600;
-  line-height: 1.4;
+  margin: 10px 0 0;
+  color: #181c1f;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 30px;
 }
 
 .headerSubtitle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   margin: 0;
-  color: #7b8798;
-  font-size: 13px;
-  line-height: 1.5;
+  color: #181c1f;
+  font-size: 16px;
+  line-height: 30px;
 }
 
-// 两种方式共用内容占位，切换时保持卡片与顶部切换的位置。
+.accountIdentity {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.changeAccount {
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #005fff;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
 .authContent {
-  min-height: 368px;
+  position: absolute;
+  left: 50%;
+  width: 318px;
+  transform: translateX(-50%);
 }
 
-.inputLabel {
-  display: block;
-  margin-bottom: 6px;
-  color: #334155;
-  font-size: 13px;
-  font-weight: 600;
+.qrAuthContent {
+  top: 255px;
 }
 
-.cleanInput {
-  height: 44px;
-  padding-inline: 14px;
-  border-color: #dce2e9;
-  border-radius: 8px;
-  font-size: 14px;
+.accountAuthContent {
+  top: 264px;
+}
+
+.accountField {
+  margin-bottom: 12px;
+}
+
+.formCard .cleanInput {
+  height: 56px;
+  padding-inline: 20px;
+  // 登录卡遵循独立参考样式，隔离全局输入框的重要性装饰规则。
+  border-color: rgba(24, 28, 31, 0.2) !important;
+  box-shadow: none !important;
+  border-radius: 20px;
+  font-size: 17px;
+  line-height: 24px;
 
   &:hover {
-    border-color: #94a3b8;
+    border-color: rgba(24, 28, 31, 0.4) !important;
   }
 
   &:focus,
   &:focus-within {
-    border-color: #1677ff;
-    box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.12);
+    border-color: #005fff !important;
+    box-shadow: none !important;
   }
 }
 
-.submitButton {
+.formCard .cleanInput input {
+  box-shadow: none !important;
+}
+
+.loginContainer .formCard .submitButton {
   width: 100%;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: 1000px;
+  background: #005fff;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 46px;
+  box-shadow: none;
+
+  &:not(:disabled) {
+    border-color: #005fff !important;
+    background: #005fff !important;
+    box-shadow: none !important;
+  }
+
+  &:not(:disabled):hover {
+    border-color: #1f70ff !important;
+    background: #1f70ff !important;
+    box-shadow: none !important;
+  }
+
+  &:not(:disabled):active {
+    border-color: #0054e6 !important;
+    background: #0054e6 !important;
+    box-shadow: none !important;
+    transform: none;
+  }
+
+  &:disabled {
+    border-color: #639efe;
+    background: #639efe;
+    color: rgba(255, 255, 255, 0.4);
+  }
+}
+
+.loginOptions {
+  position: absolute;
+  top: 475px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 220px;
+  height: 14px;
+  transform: translateX(-50%);
+}
+
+.passkeyOptions {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
   height: 44px;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
+  gap: 16px;
+}
+
+.passkeyOptionRow {
+  display: inline-flex;
+  height: 14px;
+}
+
+.accountOptions {
+  top: 396px;
+  width: 318px;
+  justify-content: flex-start;
+}
+
+.loginOptions .rememberControl {
+  align-items: center;
+  height: 14px;
+  color: rgba(24, 28, 31, 0.6);
+  font-size: 14px;
+  line-height: 14px;
+}
+
+.loginOptions .rememberControl .rememberIcon {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+}
+
+.loginOptions .rememberControl .rememberLabel {
+  padding-inline: 6px 0;
+}
+
+.passkeyError {
+  position: absolute;
+  bottom: 62px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 318px;
+  transform: translateX(-50%);
+  color: #b42318;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+}
+
+.cardActions {
+  position: absolute;
+  right: 0;
+  bottom: 30px;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  height: 20px;
+  line-height: 20px;
+}
+
+.cardActions .cardAction {
+  font-weight: 400;
+  height: 20px;
+  padding: 0;
+  color: rgba(24, 28, 31, 0.6);
+  font-size: 14px;
+  line-height: 20px;
 }
 
 .formFooter {
-  flex-shrink: 0;
-  padding: 0 16px 24px;
-  color: #8b96a6;
-  font-size: 11px;
-  line-height: 1.6;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 480px;
+  height: 60px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  transform: translateX(-50%);
+  color: rgba(24, 28, 31, 0.6);
+  font-size: 12px;
+  line-height: 60px;
   text-align: center;
 }
 
@@ -212,132 +390,110 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 280px;
+  height: 200px;
 }
 
-.qrFrameContent {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-}
-
-.qrFrameWrapper {
+.qrCard {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 280px;
-  height: 280px;
-}
-
-.qrFrame {
-  width: 100%;
-  height: 100%;
-  border: 0;
-}
-
-.qrPlaceholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  color: #64748b;
-  font-size: 13px;
-}
-
-.qrLoading {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  flex: 0 0 200px;
+  width: 200px;
+  height: 200px;
+  padding: 9px;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 1px solid rgba(126, 134, 142, 0.24);
+  border-radius: 20px;
   background: #ffffff;
-  color: #64748b;
-  font-size: 13px;
-  line-height: 20px;
-  pointer-events: none;
-}
+  color: #18263a;
+  font: inherit;
+  cursor: pointer;
 
-// 状态提示复用标题下方留白，不占用或遮挡二维码区域。
-.qrSlowNotice {
-  position: absolute;
-  bottom: 100%;
-  width: 100%;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  font-size: 12px;
-  line-height: 20px;
+  &:focus-visible {
+    outline: 2px solid #1677ff;
+    outline-offset: 4px;
+  }
 
-  :global(.ant-alert-title) {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  &:disabled {
+    cursor: default;
   }
 }
 
-.qrFooter {
+.qrDisplay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 180px;
+  height: 180px;
+}
+
+.qrStatus,
+.qrScanned {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  gap: 10px;
   width: 100%;
-  margin-top: 8px;
-  gap: 8px;
-}
-
-.qrRefreshBtn {
-  height: 24px;
-  padding: 0 6px;
   color: #64748b;
-  font-size: 12px;
-
-  &:hover:not(:disabled) {
-    color: #1677ff;
-  }
-}
-
-.qrHintGroup {
-  width: 100%;
-}
-
-.qrHint {
-  margin: 0;
-  color: #8b96a6;
-  font-size: 11px;
-  line-height: 1.5;
+  font-size: 13px;
+  line-height: 20px;
   text-align: center;
 }
 
-@media (max-width: 1024px) {
-  .mobileLogo {
-    display: flex;
-    padding-top: 32px;
+.qrScanned {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.qrStatusIcon {
+  color: #64748b;
+  font-size: 28px;
+}
+
+.qrRetry {
+  color: #1677ff;
+}
+
+
+@media (max-width: 1039px), (max-height: 710px) {
+  .heroSection {
+    display: none;
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 710px), (max-height: 710px) {
+  .loginContainer,
   .formSection {
-    background: #ffffff;
-  }
-
-  .formMain {
-    align-items: flex-start;
-    padding: 28px 20px 16px;
+    min-height: 600px;
+    min-height: max(600px, 100dvh);
   }
 
   .formCard {
-    padding: 0;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
     border: 0;
     border-radius: 0;
     box-shadow: none;
   }
 
+  .formHeader,
+  .authContent,
+  .accountOptions {
+    width: calc(100% - 64px);
+    max-width: 318px;
+  }
+
+  .cardActions {
+    bottom: 50px;
+  }
+
   .formFooter {
-    padding-bottom: 20px;
+    display: none;
   }
 }

@@ -37,6 +37,7 @@
 | 通用候选类型 | [`types/select-option.ts`](../../../../web/src/types/select-option.ts) | `SelectOption` 基础字段，业务类型按领域组合 | 散客、信用超额等业务字段 |
 | 权限判定 | [`web/src/app/access.tsx`](../../../../web/src/app/access.tsx)、[`web/src/access.ts`](../../../../web/src/access.ts) | 按钮与路由使用 `useAccess`；角色候选复用 `createPermissionCapabilityChecker` 消费 auth/me 有效能力（键名来自生成物） | 页面硬编码第二套权限规则、将全量字典当作可授予候选 |
 | CSV 序列化与下载 | [`web/src/utils/csv.ts`](../../../../web/src/utils/csv.ts) | `CsvColumn`/`serializeCsv`/`downloadCsv`：BOM、CRLF、文本公式防护、数值精度与下载清理；财务字段映射留各页 `ledgerExport.ts` | 从界面 `dataIndex` 推断业务导出、循环翻页获取全量、重新计算业务金额 |
+| 通行密钥认证与本人维护 | [`features/auth/passkeys`](../../../../web/src/features/auth/passkeys/index.ts) | 登录页与 OAuth 回调共用 WebAuthn 登录/可选注册，头像菜单维护本人通行密钥；原生浏览器仪式、挑战生命周期与来源能力提示 | 自行验签、存储私钥、绕过 HTTPS/RP 来源校验、导入登录页面内部实现 |
 | 认证业务查询缓存 | [`web/src/components/layout/OrganizationWorkspace.tsx`](../../../../web/src/components/layout/OrganizationWorkspace.tsx) | 用户+工作台独立 QueryClient Provider，身份缺失不挂业务，卸载清理缓存与迟到反馈；组件通过 `useQueryClient` 消费 | 业务直接导入公开登录预热单例、只在普通 effect 清缓存 |
 | 后端请求 | [`web/src/services/roncin/`](../../../../web/src/services/roncin/) | OpenAPI 生成客户端（禁手改） | 页面自拼后端主机地址 |
 

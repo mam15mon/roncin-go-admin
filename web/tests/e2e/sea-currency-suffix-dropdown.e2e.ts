@@ -8,10 +8,12 @@ function requiredEnvironment(name: string) {
 
 async function login(page: import('@playwright/test').Page) {
   await page.goto('/user/login');
-  await page.getByRole('radio', { name: '账号登录' }).click();
+  await page.getByText('账号登录', { exact: true }).click();
   await page
     .getByPlaceholder('钉钉手机号 / 本地账号')
     .fill(requiredEnvironment('BOOTSTRAP_ADMIN_USERNAME'));
+  await page.getByRole('button', { name: '下一步', exact: true }).click();
+  await expect(page.getByPlaceholder('请输入密码')).toBeVisible();
   await page
     .getByPlaceholder('请输入密码')
     .fill(requiredEnvironment('BOOTSTRAP_ADMIN_PASSWORD'));

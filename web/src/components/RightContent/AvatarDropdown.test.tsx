@@ -5,6 +5,7 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
+import { ConfigProvider } from 'antd';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { clearOrderMasterDataCache } from '@/features/orders/options';
@@ -30,6 +31,23 @@ vi.mock('@/app/AppProvider', () => ({
 
 vi.mock('@/services/roncin/authService', () => ({
   authServiceLogout: vi.fn().mockResolvedValue({ success: true }),
+}));
+
+vi.mock('@/features/auth/passkeys', () => ({
+  PasskeyManagerModal: ({
+    userId,
+    onClose,
+  }: {
+    userId: string;
+    onClose: () => void;
+  }) => (
+    <div role="dialog" aria-label="本人通行密钥">
+      {userId}
+      <button type="button" onClick={onClose}>
+        关闭密钥管理
+      </button>
+    </div>
+  ),
 }));
 
 vi.mock('@/features/orders/options', () => ({
@@ -165,5 +183,54 @@ describe('AvatarDropdown Component', () => {
     // 失败时不清理缓存，不跳转登录页，不重置 currentUser
     expect(mockClearCache).not.toHaveBeenCalled();
     expect(history.replace).not.toHaveBeenCalled();
+  });
+  it('已登录用户可从头像菜单打开本人通行密钥管理', async () => {
+    mockCurrentUser = {
+      id: 'user-passkey',
+      username: 'account',
+      displayName: '员工',
+    };
+    const { container } = render(
+      <ConfigProvider theme={{ token: { motion: false } }}>
+        <AvatarDropdown />
+      </ConfigProvider>,
+    );
+    const trigger = container.querySelector('.roncin-avatar-trigger');
+    if (!trigger) throw new Error('缺少头像入口');
+    fireEvent.mouseEnter(trigger);
+    fireEvent.click(await screen.findByRole('button', { name: '通行密钥' }));
+    expect(
+      screen.getByRole('dialog', { name: '本人通行密钥' }),
+    ).toHaveTextContent('user-passkey');
+    fireEvent.click(screen.getByRole('button', { name: '关闭密钥管理' }));
+    expect(
+      screen.queryByRole('dialog', { name: '本人通行密钥' }),
+    ).not.toBeInTheDocument();
+  });
+  it('切换账号时关闭旧用户的通行密钥管理', async () => {
+    mockCurrentUser = { id: 'first-user', displayName: '甲' };
+    const view = render(
+      <ConfigProvider theme={{ token: { motion: false } }}>
+        <AvatarDropdown />
+      </ConfigProvider>,
+    );
+    const trigger = view.container.querySelector('.roncin-avatar-trigger');
+    if (!trigger) throw new Error('缺少头像入口');
+    fireEvent.mouseEnter(trigger);
+    fireEvent.click(await screen.findByRole('button', { name: '通行密钥' }));
+    expect(
+      screen.getByRole('dialog', { name: '本人通行密钥' }),
+    ).toHaveTextContent('first-user');
+    mockCurrentUser = { id: 'second-user', displayName: '乙' };
+    view.rerender(
+      <ConfigProvider theme={{ token: { motion: false } }}>
+        <AvatarDropdown />
+      </ConfigProvider>,
+    );
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('dialog', { name: '本人通行密钥' }),
+      ).not.toBeInTheDocument(),
+    );
   });
 });

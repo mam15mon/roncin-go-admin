@@ -27,6 +27,12 @@ func (*embeddedProvider) EnterpriseID() string { return "fixed-corp" }
 func (*embeddedProvider) AuthorizeURL(string) (string, error) {
 	panic("免登不应申请扫码配置")
 }
+func (*embeddedProvider) CreateQRCode(context.Context, string, time.Time) (*biz.DingTalkQRCode, error) {
+	panic("免登不应创建扫码二维码")
+}
+func (*embeddedProvider) PollQRCode(context.Context, string) (*biz.DingTalkQRCodePollResult, error) {
+	panic("免登不应轮询二维码")
+}
 func (*embeddedProvider) ResolveIdentity(context.Context, string) (*biz.DingTalkIdentity, error) {
 	panic("免登不应解析 OAuth code")
 }
@@ -158,7 +164,7 @@ func TestDingTalkEmbeddedHTTPConfigAndLoginBoundary(t *testing.T) {
 			cookies := response.Result().Cookies()
 			wantCookies := 1
 			if item.session {
-				wantCookies++
+				wantCookies += 2
 			}
 			if len(cookies) != wantCookies {
 				t.Fatalf("state 清理或会话 Cookie 缺失: %+v", cookies)
@@ -172,6 +178,13 @@ func TestDingTalkEmbeddedHTTPConfigAndLoginBoundary(t *testing.T) {
 					}
 				case "roncin_session":
 					session = c.Value != ""
+					if !c.HttpOnly || !c.Secure || c.Path != "/" || c.SameSite != http.SameSiteLaxMode || c.MaxAge != 400*24*60*60 || time.Until(c.Expires) < 399*24*time.Hour {
+						t.Fatal("免登会话Cookie属性错误")
+					}
+				case "roncin_session_remember":
+					if c.Value != "true" || !c.HttpOnly || !c.Secure || c.Path != "/" || c.SameSite != http.SameSiteLaxMode || c.MaxAge != 400*24*60*60 || time.Until(c.Expires) < 399*24*time.Hour {
+						t.Fatal("免登默认自动登录偏好错误")
+					}
 				default:
 					t.Fatal("修改了扫码 Cookie")
 				}

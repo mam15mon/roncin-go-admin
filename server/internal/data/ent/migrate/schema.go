@@ -5905,6 +5905,49 @@ var (
 			},
 		},
 	}
+	// PasskeyCredentialsColumns holds the columns for the "passkey_credentials" table.
+	PasskeyCredentialsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "rp_id", Type: field.TypeString, Size: 253},
+		{Name: "credential_id", Type: field.TypeString, Size: 2048},
+		{Name: "credential_json", Type: field.TypeJSON},
+		{Name: "name", Type: field.TypeString, Size: 100},
+		{Name: "last_used_at", Type: field.TypeTime, Nullable: true},
+		{Name: "user_id", Type: field.TypeUUID},
+	}
+	// PasskeyCredentialsTable holds the schema information for the "passkey_credentials" table.
+	PasskeyCredentialsTable = &schema.Table{
+		Name:       "passkey_credentials",
+		Columns:    PasskeyCredentialsColumns,
+		PrimaryKey: []*schema.Column{PasskeyCredentialsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "passkey_credentials_users_passkey_credentials",
+				Columns:    []*schema.Column{PasskeyCredentialsColumns[8]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "passkeycredential_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{PasskeyCredentialsColumns[2]},
+			},
+			{
+				Name:    "passkey_credentials_rp_credential_key",
+				Unique:  true,
+				Columns: []*schema.Column{PasskeyCredentialsColumns[3], PasskeyCredentialsColumns[4]},
+			},
+			{
+				Name:    "passkey_credentials_user_rp",
+				Unique:  false,
+				Columns: []*schema.Column{PasskeyCredentialsColumns[8], PasskeyCredentialsColumns[3]},
+			},
+		},
+	}
 	// PasswordResetChallengesColumns holds the columns for the "password_reset_challenges" table.
 	PasswordResetChallengesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -7699,6 +7742,7 @@ var (
 		PartnerProfilesTable,
 		PartnerRolesTable,
 		PartnerSettlementRulesTable,
+		PasskeyCredentialsTable,
 		PasswordResetChallengesTable,
 		PermissionsTable,
 		PortsTable,
@@ -8091,6 +8135,7 @@ func init() {
 		"partner_roles_role_type_check": "role_type IN ('customer', 'supplier', 'foreign_agent')",
 	}
 	PartnerSettlementRulesTable.ForeignKeys[0].RefTable = PartnerRolesTable
+	PasskeyCredentialsTable.ForeignKeys[0].RefTable = UsersTable
 	PasswordResetChallengesTable.Annotation = &entsql.Annotation{}
 	PasswordResetChallengesTable.Annotation.Checks = map[string]string{
 		"password_reset_challenges_failed_attempts_check": "failed_attempts BETWEEN 0 AND 5",

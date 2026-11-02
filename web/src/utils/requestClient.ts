@@ -81,12 +81,18 @@ export async function request<T>(
   url: string,
   options: RequestOptions = {},
 ): Promise<T> {
-  // 登录配置/换码属于公开会话协议，不参与业务工作区清理。
+  // 登录配置、换码和通行密钥仪式不参与业务工作区清理；受保护接口仍由服务端鉴权。
   const requestScope =
     url === '/api/v1/auth/dingtalk/embedded-config' ||
     url === '/api/v1/auth/dingtalk/embedded-login' ||
     url === '/api/v1/auth/dingtalk/login-config' ||
+    url === '/api/v1/auth/dingtalk/qr/poll' ||
     url === '/api/v1/auth/dingtalk/login' ||
+    url === '/api/v1/auth/passkey/config' ||
+    url === '/api/v1/auth/passkey/login/begin' ||
+    url === '/api/v1/auth/passkey/login/finish' ||
+    url === '/api/v1/auth/passkey/registration/begin' ||
+    url === '/api/v1/auth/passkey/registration/finish' ||
     url === '/api/v1/auth/login' ||
     url === '/api/v1/auth/password-reset/code' ||
     url === '/api/v1/auth/password-reset/confirm'

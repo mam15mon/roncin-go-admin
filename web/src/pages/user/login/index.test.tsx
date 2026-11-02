@@ -1,3 +1,5 @@
+import '@root/tests/passkey-login-disabled';
+import { deferred, qrConfig } from '@root/tests/dingtalk-qr-support';
 import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
 import {
   act,
@@ -7,7 +9,6 @@ import {
   waitFor,
 } from '@testing-library/react';
 import { App } from 'antd';
-import { DetachedBrowserFrame } from 'happy-dom';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import Login from './index';
@@ -16,6 +17,7 @@ const {
   authServiceLoginMock,
   authServiceSwitchOrganizationMock,
   authServiceGetDingTalkLoginConfigMock,
+  authServicePollDingTalkQRCodeMock,
   messageSuccessMock,
   messageErrorMock,
   setInitialStateMock,
@@ -24,6 +26,7 @@ const {
   authServiceLoginMock: vi.fn(),
   authServiceSwitchOrganizationMock: vi.fn(),
   authServiceGetDingTalkLoginConfigMock: vi.fn(),
+  authServicePollDingTalkQRCodeMock: vi.fn(),
   messageSuccessMock: vi.fn(),
   messageErrorMock: vi.fn(),
   setInitialStateMock: vi.fn(),
@@ -60,6 +63,7 @@ vi.mock('@/services/roncin/authService', () => ({
   authServiceLogin: authServiceLoginMock,
   authServiceSwitchOrganization: authServiceSwitchOrganizationMock,
   authServiceGetDingTalkLoginConfig: authServiceGetDingTalkLoginConfigMock,
+  authServicePollDingTalkQrCode: authServicePollDingTalkQRCodeMock,
 }));
 
 const singleOrgChoices: API.OrganizationChoice[] = [
@@ -105,20 +109,30 @@ function mockLoginResponse(
   });
 }
 
-async function submitLogin(): Promise<void> {
+async function submitLogin(rememberMe = true): Promise<void> {
   fireEvent.click(screen.getByRole('radio', { name: '账号登录' }));
   fireEvent.change(screen.getByPlaceholderText('钉钉手机号 / 本地账号'), {
     target: { value: 'operator' },
   });
+  await waitFor(() =>
+    expect(screen.getByRole('button', { name: '下一步' })).toBeEnabled(),
+  );
+  fireEvent.click(screen.getByRole('button', { name: '下一步' }));
+  await waitFor(() =>
+    expect(screen.getByPlaceholderText('请输入密码')).toBeVisible(),
+  );
   fireEvent.change(screen.getByPlaceholderText('请输入密码'), {
     target: { value: 'secret' },
   });
+  await waitFor(() =>
+    expect(screen.getByRole('button', { name: /^登录$/ })).toBeEnabled(),
+  );
   fireEvent.click(screen.getByRole('button', { name: /^登录$/ }));
   await waitFor(() => {
     expect(authServiceLoginMock).toHaveBeenCalledTimes(1);
   });
   expect(authServiceLoginMock).toHaveBeenCalledWith(
-    { username: 'operator', password: 'secret' },
+    { username: 'operator', password: 'secret', rememberMe },
     { skipErrorHandler: true },
   );
 }
@@ -128,10 +142,10 @@ describe('Login', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // 扫码用例使用假配置与消息，保留 iframe/window 并阻止真实网络导航。
-    vi.spyOn(DetachedBrowserFrame.prototype, 'goto').mockImplementation(
-      () => new Promise(() => {}),
-    );
+    localStorage.clear();
+    authServicePollDingTalkQRCodeMock
+      .mockReset()
+      .mockImplementation(() => new Promise(() => {}));
     assignMock = vi.fn<(url: string | URL) => void>();
     vi.spyOn(window.location, 'assign').mockImplementation(assignMock);
     authServiceGetDingTalkLoginConfigMock.mockResolvedValue({
@@ -181,14 +195,12 @@ describe('Login', () => {
     });
   });
 
-  it('密码认证期间与多组织选择视图均忽略隐藏二维码消息', async () => {
-    authServiceGetDingTalkLoginConfigMock.mockResolvedValue({
-      data: {
-        enabled: true,
-        authorizeUrl: `https://login.dingtalk.com/oauth2/auth?client_id=app&scope=openid&response_type=code&state=sample-state&redirect_uri=${encodeURIComponent(`${window.location.origin}/user/login/dingtalk/callback`)}`,
-        expiresAt: new Date(Date.now() + 300000).toISOString(),
-      },
-    });
+  it('密码认证期间与多组织选择视图均忽略隐藏二维码确认', async () => {
+    const pending = deferred<{ data: { status: number; authCode: string } }>();
+    authServicePollDingTalkQRCodeMock.mockReturnValue(pending.promise);
+    authServiceGetDingTalkLoginConfigMock.mockResolvedValue(
+      qrConfig('sample-state'),
+    );
     let completeLogin: (response: {
       data: API.CurrentUser;
       organizationChoices: API.OrganizationChoice[];
@@ -204,29 +216,17 @@ describe('Login', () => {
         <Login />
       </App>,
     );
-    const frame = (await screen.findByTitle(
-      '钉钉扫码登录二维码',
-    )) as HTMLIFrameElement;
-    const source = frame.contentWindow;
-    const sendHiddenMessage = (success: boolean) =>
-      fireEvent(
-        window,
-        new MessageEvent('message', {
-          origin: 'https://login.dingtalk.com',
-          source,
-          data: {
-            success,
-            redirectUrl: `${window.location.origin}/user/login/dingtalk/callback?authCode=code&state=sample-state`,
-          },
-        }),
-      );
+    const frame = await screen.findByRole('img', {
+      name: '钉钉扫码登录二维码',
+    });
     await submitLogin();
     expect(frame).not.toBeVisible();
-    expect(screen.getByRole('radio', { name: '钉钉扫码' })).toBeDisabled();
+    expect(screen.getByRole('radio', { name: '扫码登录' })).toBeDisabled();
     expect(screen.getByRole('radio', { name: '账号登录' })).toBeDisabled();
     expect(screen.getByRole('radio', { name: '账号登录' })).toBeChecked();
-    sendHiddenMessage(false);
-    sendHiddenMessage(true);
+    await act(async () =>
+      pending.resolve({ data: { status: 3, authCode: 'hidden-code' } }),
+    );
     expect(historyReplaceMock).not.toHaveBeenCalled();
     await act(async () =>
       completeLogin({
@@ -235,7 +235,7 @@ describe('Login', () => {
       }),
     );
     expect(await screen.findByText('选择进入的组织')).toBeInTheDocument();
-    sendHiddenMessage(true);
+
     expect(historyReplaceMock).not.toHaveBeenCalled();
     expect(frame).not.toBeInTheDocument();
     expect(
@@ -332,14 +332,10 @@ describe('Login', () => {
     expect(messageSuccessMock).toHaveBeenCalledWith('登录成功');
   });
 
-  it('钉钉启用时提示管理员开通，不展示注册链接', async () => {
-    authServiceGetDingTalkLoginConfigMock.mockResolvedValue({
-      data: {
-        enabled: true,
-        authorizeUrl: `https://login.dingtalk.com/oauth2/auth?client_id=app&scope=openid&response_type=code&state=sample-state&redirect_uri=${encodeURIComponent(`${window.location.origin}/user/login/dingtalk/callback`)}`,
-        expiresAt: new Date(Date.now() + 300000).toISOString(),
-      },
-    });
+  it('默认扫码并保留账号方式切换，不展示额外底部说明', async () => {
+    authServiceGetDingTalkLoginConfigMock.mockResolvedValue(
+      qrConfig('sample-state'),
+    );
     window.history.replaceState({}, '', '/user/login');
 
     render(
@@ -348,54 +344,58 @@ describe('Login', () => {
       </App>,
     );
 
-    expect(await screen.findByTitle('钉钉扫码登录二维码')).toBeInTheDocument();
+    expect(
+      await screen.findByRole('img', { name: '钉钉扫码登录二维码' }),
+    ).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: '账号登录' })).not.toBeChecked();
-    expect(screen.getByRole('radio', { name: '钉钉扫码' })).toBeChecked();
+    expect(screen.getByRole('radio', { name: '扫码登录' })).toBeChecked();
     expect(screen.queryByPlaceholderText('请输入密码')).not.toBeInTheDocument();
     expect(
-      screen.getByText('使用前请联系管理员同步人员并分配组织和角色'),
-    ).toBeInTheDocument();
+      screen.queryByText('使用前请联系管理员同步人员并分配组织和角色'),
+    ).not.toBeInTheDocument();
     expect(screen.queryByText('使用钉钉扫码注册')).not.toBeInTheDocument();
-    const iframe = screen.getByTitle('钉钉扫码登录二维码') as HTMLIFrameElement;
-    const source = iframe.contentWindow;
-    fireEvent.load(iframe);
+    const iframe = screen.getByRole('img', { name: '钉钉扫码登录二维码' });
     for (let count = 0; count < 3; count++) {
       fireEvent.click(screen.getByRole('radio', { name: '账号登录' }));
       expect(screen.getByRole('radio', { name: '账号登录' })).toBeChecked();
-      expect(screen.getByPlaceholderText('请输入密码')).toBeVisible();
+      expect(
+        screen.getByPlaceholderText('钉钉手机号 / 本地账号'),
+      ).toBeVisible();
       expect(iframe).not.toBeVisible();
-      expect(screen.getByText('刷新二维码')).not.toBeVisible();
-      fireEvent.click(screen.getByRole('radio', { name: '钉钉扫码' }));
-      expect(screen.getByRole('radio', { name: '钉钉扫码' })).toBeChecked();
-      expect(screen.getByTitle('钉钉扫码登录二维码')).toBe(iframe);
-      expect(iframe.contentWindow).toBe(source);
+      expect(iframe.closest('button')).not.toBeVisible();
+      fireEvent.click(screen.getByRole('radio', { name: '扫码登录' }));
+      expect(screen.getByRole('radio', { name: '扫码登录' })).toBeChecked();
+      expect(screen.getByRole('img', { name: '钉钉扫码登录二维码' })).toBe(
+        iframe,
+      );
       expect(iframe).toBeVisible();
       expect(screen.queryByText('正在加载钉钉二维码')).not.toBeInTheDocument();
       expect(
         screen.queryByText('正在获取钉钉登录配置'),
       ).not.toBeInTheDocument();
     }
-    fireEvent.keyDown(screen.getByRole('radio', { name: '钉钉扫码' }), {
+    fireEvent.keyDown(screen.getByRole('radio', { name: '扫码登录' }), {
       key: 'ArrowRight',
     });
     expect(screen.getByRole('radio', { name: '账号登录' })).toBeChecked();
-    expect(screen.getByPlaceholderText('请输入密码')).toBeVisible();
+    expect(screen.getByPlaceholderText('钉钉手机号 / 本地账号')).toBeVisible();
     fireEvent.keyDown(screen.getByRole('radio', { name: '账号登录' }), {
       key: 'ArrowLeft',
     });
-    expect(screen.getByRole('radio', { name: '钉钉扫码' })).toBeChecked();
-    expect(screen.getByTitle('钉钉扫码登录二维码')).toBe(iframe);
+    expect(screen.getByRole('radio', { name: '扫码登录' })).toBeChecked();
+    expect(screen.getByRole('img', { name: '钉钉扫码登录二维码' })).toBe(
+      iframe,
+    );
     expect(authServiceGetDingTalkLoginConfigMock).toHaveBeenCalledOnce();
   });
 
   it('钉钉扫码保留安全回跳地址并进入本站认证回调', async () => {
-    authServiceGetDingTalkLoginConfigMock.mockResolvedValue({
-      data: {
-        enabled: true,
-        authorizeUrl: `https://login.dingtalk.com/oauth2/auth?client_id=app&scope=openid&response_type=code&state=sample-state&redirect_uri=${encodeURIComponent(`${window.location.origin}/user/login/dingtalk/callback`)}`,
-        expiresAt: new Date(Date.now() + 300000).toISOString(),
-      },
+    authServicePollDingTalkQRCodeMock.mockResolvedValueOnce({
+      data: { status: 3, authCode: 'sample-code' },
     });
+    authServiceGetDingTalkLoginConfigMock.mockResolvedValue(
+      qrConfig('sample-state'),
+    );
     window.history.replaceState({}, '', '/user/login?redirect=%2Fwelcome');
 
     render(
@@ -404,20 +404,6 @@ describe('Login', () => {
       </App>,
     );
 
-    const iframe = (await screen.findByTitle(
-      '钉钉扫码登录二维码',
-    )) as HTMLIFrameElement;
-    fireEvent(
-      window,
-      new MessageEvent('message', {
-        origin: 'https://login.dingtalk.com',
-        source: iframe.contentWindow,
-        data: {
-          success: true,
-          redirectUrl: `${window.location.origin}/user/login/dingtalk/callback?authCode=sample-code&state=sample-state`,
-        },
-      }),
-    );
     await waitFor(() => {
       expect(historyReplaceMock).toHaveBeenCalledWith(
         '/user/login/dingtalk/callback?authCode=sample-code&state=sample-state',
@@ -436,20 +422,53 @@ describe('Login', () => {
         <Login />
       </App>,
     );
-    expect(
-      await screen.findByText('获取钉钉登录配置失败，请重试'),
-    ).toBeVisible();
+    expect(await screen.findByText('二维码加载失败')).toBeVisible();
     fireEvent.click(screen.getByRole('radio', { name: '账号登录' }));
-    expect(screen.getByRole('button', { name: '登录' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: '下一步' })).toHaveAttribute(
       'type',
       'submit',
     );
-    expect(screen.getByPlaceholderText('请输入密码')).toBeVisible();
-    fireEvent.click(screen.getByRole('radio', { name: '钉钉扫码' }));
+    expect(screen.getByPlaceholderText('钉钉手机号 / 本地账号')).toBeVisible();
+    fireEvent.click(screen.getByRole('radio', { name: '扫码登录' }));
     expect(
       await screen.findByText('钉钉登录暂未启用，请联系管理员'),
     ).toBeVisible();
     expect(screen.queryByPlaceholderText('请输入密码')).not.toBeInTheDocument();
     expect(authServiceGetDingTalkLoginConfigMock).toHaveBeenCalledTimes(2);
+  });
+  it('账号首步只切换密码视图，不提前请求账号或执行登录', async () => {
+    render(
+      <App>
+        <Login />
+      </App>,
+    );
+    fireEvent.click(screen.getByRole('radio', { name: '账号登录' }));
+    fireEvent.change(screen.getByPlaceholderText('钉钉手机号 / 本地账号'), {
+      target: { value: 'operator' },
+    });
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: '下一步' })).toBeEnabled(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: '下一步' }));
+    await waitFor(() =>
+      expect(screen.getByPlaceholderText('请输入密码')).toBeVisible(),
+    );
+    expect(authServiceLoginMock).not.toHaveBeenCalled();
+    expect(screen.getByText('operator')).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: '修改账号' }));
+    expect(screen.getByPlaceholderText('钉钉手机号 / 本地账号')).toHaveValue(
+      'operator',
+    );
+  });
+
+  it('取消自动登录后密码请求携带rememberMe false', async () => {
+    mockLoginResponse(singleOrgChoices);
+    render(
+      <App>
+        <Login />
+      </App>,
+    );
+    fireEvent.click(screen.getByRole('checkbox', { name: '自动登录' }));
+    await submitLogin(false);
   });
 });

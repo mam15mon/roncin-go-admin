@@ -6,6 +6,7 @@ import { Helmet } from 'react-helmet-async';
 import { useInitialState } from '@/app/AppProvider';
 import { dingTalkLoginConfigOptions } from '@/app/dingtalkLoginConfig';
 import { DingTalkLoginStatus } from '@/enums.generated';
+import { usePasskeyEnrollment } from '@/features/auth/passkeys';
 import { getRequestErrorMessage } from '@/requestErrorConfig';
 import { history } from '@/router/history';
 import { authServiceDingTalkLogin } from '@/services/roncin/authService';
@@ -16,6 +17,7 @@ import {
   resolveLoginOrganizationOptions,
 } from './components/organization-picker';
 import styles from './index.module.less';
+import { getRememberLogin } from './loginPreferences';
 import { safeLoginRedirect } from './redirect';
 
 function storedRedirect(): string {
@@ -28,6 +30,7 @@ export default function DingTalkCallback() {
   const { setInitialState } = useInitialState();
   const queryClient = useQueryClient();
   const { message } = App.useApp();
+  const { completeLogin, enrollmentPrompt } = usePasskeyEnrollment();
   const [failure, setFailure] = useState<string>();
   const [organizationSelection, setOrganizationSelection] = useState<{
     options: LoginOrganizationOption[];
@@ -64,26 +67,28 @@ export default function DingTalkCallback() {
         !data.currentUser
       )
         return;
-      startTransition(() =>
-        setInitialState((current) => ({
-          ...current,
-          currentUser: data.currentUser,
-        })),
-      );
-      const options = resolveLoginOrganizationOptions(
-        undefined,
-        data.currentUser,
-      );
-      if (options.length > 1) {
-        pendingRedirectRef.current = storedRedirect();
-        setOrganizationSelection({
-          options,
-          currentOrganizationId: data.currentUser.currentOrganization?.id,
-        });
+      const user = data.currentUser;
+      if (!user.id) {
+        setFailure('钉钉认证未返回有效用户');
         return;
       }
-      message.success('钉钉登录成功');
-      window.location.replace(storedRedirect());
+      const redirect = storedRedirect();
+      completeLogin(() => {
+        startTransition(() =>
+          setInitialState((current) => ({ ...current, currentUser: user })),
+        );
+        const options = resolveLoginOrganizationOptions(undefined, user);
+        if (options.length > 1) {
+          pendingRedirectRef.current = redirect;
+          setOrganizationSelection({
+            options,
+            currentOrganizationId: user.currentOrganization?.id,
+          });
+          return;
+        }
+        message.success('钉钉登录成功');
+        window.location.replace(redirect);
+      }, user.id);
     },
     onError: (error) =>
       setFailure(getRequestErrorMessage(error, '钉钉登录失败')),
@@ -99,7 +104,7 @@ export default function DingTalkCallback() {
       setFailure('钉钉未返回有效的登录凭证，请重新扫码');
       return;
     }
-    mutate({ authCode, state });
+    mutate({ authCode, state, rememberMe: getRememberLogin() });
   }, [mutate]);
 
   const status = login.data?.status;
@@ -116,6 +121,7 @@ export default function DingTalkCallback() {
           : '钉钉认证未完成';
   return (
     <div className={styles.callbackStage}>
+      {enrollmentPrompt}
       <Helmet>
         <title>钉钉认证 - {Settings.title}</title>
       </Helmet>

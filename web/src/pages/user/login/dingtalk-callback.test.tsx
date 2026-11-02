@@ -1,3 +1,5 @@
+import '@root/tests/passkey-login-disabled';
+import { qrConfig } from '@root/tests/dingtalk-qr-support';
 import {
   createTestQueryClient,
   renderWithClient,
@@ -11,7 +13,6 @@ import {
   waitFor,
 } from '@testing-library/react';
 import { App } from 'antd';
-import { DetachedBrowserFrame } from 'happy-dom';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -65,6 +66,7 @@ vi.mock('@/services/roncin/authService', () => ({
   authServiceSwitchOrganization: switchOrganization,
   authServiceGetDingTalkInvitationInfo: getInvitationInfo,
   authServiceGetDingTalkLoginConfig: getConfig,
+  authServicePollDingTalkQrCode: vi.fn(() => new Promise(() => {})),
 }));
 
 function authenticatedUser(
@@ -89,6 +91,7 @@ describe('DingTalkCallback', () => {
 
   beforeEach(() => {
     sessionStorage.clear();
+    localStorage.clear();
     window.history.replaceState(
       {},
       '',
@@ -121,6 +124,28 @@ describe('DingTalkCallback', () => {
     expect(screen.getByText('返回登录')).toBeInTheDocument();
     expect(registerDingTalkUser).not.toHaveBeenCalled();
     expect(replaceMock).not.toHaveBeenCalled();
+  });
+
+  it('扫码换码沿用本次自动登录偏好，不把取消勾选恢复为持久登录', async () => {
+    localStorage.setItem('roncin.login.remember', 'false');
+    dingTalkLogin.mockResolvedValueOnce({
+      data: authenticatedUser(
+        [{ id: 'org-1', code: 'TJ', name: '天津公司' }],
+        'org-1',
+      ),
+    });
+    renderWithClient(
+      <App>
+        <DingTalkCallback />
+      </App>,
+    );
+    await waitFor(() =>
+      expect(dingTalkLogin).toHaveBeenCalledWith(
+        { authCode: 'code', state: 'state', rememberMe: false },
+        { skipErrorHandler: true },
+      ),
+    );
+    await waitFor(() => expect(replaceMock).toHaveBeenCalledOnce());
   });
 
   it('单组织用户认证后直接进入应用', async () => {
@@ -165,27 +190,8 @@ describe('DingTalkCallback', () => {
   it.each(['认证请求失败', '人员尚未同步'])(
     '%s后返回扫码重新获取配置，回调期间不覆盖state Cookie',
     async (scenario) => {
-      vi.spyOn(DetachedBrowserFrame.prototype, 'goto').mockImplementation(
-        () => new Promise(() => {}),
-      );
       const client = createTestQueryClient();
-      const configResponse = (state: string) => {
-        const authorize = new URL('https://login.dingtalk.com/oauth2/auth');
-        authorize.search = new URLSearchParams({
-          client_id: 'app',
-          scope: 'openid',
-          response_type: 'code',
-          state,
-          redirect_uri: `${window.location.origin}/user/login/dingtalk/callback`,
-        }).toString();
-        return {
-          data: {
-            enabled: true,
-            authorizeUrl: authorize.href,
-            expiresAt: new Date(Date.now() + 300000).toISOString(),
-          },
-        };
-      };
+      const configResponse = qrConfig;
       getConfig
         .mockResolvedValueOnce(configResponse('state'))
         .mockResolvedValueOnce(configResponse('new-state'));
@@ -220,12 +226,13 @@ describe('DingTalkCallback', () => {
           </QueryClientProvider>
         </React.StrictMode>,
       );
-      expect(screen.queryByTitle('钉钉扫码登录二维码')).not.toBeInTheDocument();
-      const iframe = await screen.findByTitle('钉钉扫码登录二维码');
-      expect(iframe).toHaveAttribute(
-        'src',
-        expect.stringContaining('state=new-state'),
-      );
+      expect(
+        screen.queryByRole('img', { name: '钉钉扫码登录二维码' }),
+      ).not.toBeInTheDocument();
+      await screen.findByRole('img', { name: '钉钉扫码登录二维码' });
+      expect(
+        client.getQueryData(dingTalkLoginConfigOptions.queryKey),
+      ).toMatchObject({ enabled: true, qr: { state: 'new-state' } });
       expect(getConfig).toHaveBeenCalledTimes(2);
       expect(
         client.getQueryState(dingTalkLoginConfigOptions.queryKey)

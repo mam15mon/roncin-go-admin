@@ -6,6 +6,7 @@ import * as adminService from "./adminService";
 import * as airExportService from "./airExportService";
 import * as airWeightService from "./airWeightService";
 import * as authService from "./authService";
+import * as passkeyService from "./passkeyService";
 import * as backgroundTaskService from "./backgroundTaskService";
 import * as enterpriseResourceService from "./enterpriseResourceService";
 import * as settlementService from "./settlementService";
@@ -33,6 +34,7 @@ export default {
   airExportService,
   airWeightService,
   authService,
+  passkeyService,
   backgroundTaskService,
   enterpriseResourceService,
   settlementService,

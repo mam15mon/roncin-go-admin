@@ -125,6 +125,8 @@ type DingTalkIdentityProvider interface {
 	EnterpriseID() string
 	ResolveEmbeddedIdentity(context.Context, string) (*DingTalkIdentity, error)
 	AuthorizeURL(string) (string, error)
+	CreateQRCode(context.Context, string, time.Time) (*DingTalkQRCode, error)
+	PollQRCode(context.Context, string) (*DingTalkQRCodePollResult, error)
 	ResolveIdentity(context.Context, string) (*DingTalkIdentity, error)
 }
 
@@ -588,7 +590,7 @@ func hashLoginRateLimitKey(kind, value string) string {
 	return hex.EncodeToString(digest[:])
 }
 
-func (uc *AuthUsecase) StartDingTalkLogin() (bool, string, string, time.Time, error) {
+func (uc *AuthUsecase) StartDingTalkLogin(ctx context.Context) (bool, string, string, time.Time, error) {
 	if !uc.dingtalk.Enabled() {
 		return false, "", "", time.Time{}, nil
 	}
@@ -596,11 +598,12 @@ func (uc *AuthUsecase) StartDingTalkLogin() (bool, string, string, time.Time, er
 	if err != nil {
 		return false, "", "", time.Time{}, err
 	}
-	authorizeURL, err := uc.dingtalk.AuthorizeURL(state)
+	expiresAt := time.Now().UTC().Add(5 * time.Minute)
+	qr, err := uc.dingtalk.CreateQRCode(ctx, state, expiresAt)
 	if err != nil {
 		return false, "", "", time.Time{}, err
 	}
-	return true, authorizeURL, state, time.Now().UTC().Add(5 * time.Minute), nil
+	return true, qr.URL, state, expiresAt, nil
 }
 
 // StartDingTalkEmbeddedLogin 只公开客户端取码需要的企业标识与浏览器校验状态。

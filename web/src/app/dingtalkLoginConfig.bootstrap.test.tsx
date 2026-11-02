@@ -1,3 +1,4 @@
+import { qrConfig as config } from '@root/tests/dingtalk-qr-support';
 import { createTestQueryClient } from '@root/tests/queryClientTestUtils';
 import { QueryClientProvider } from '@tanstack/react-query';
 import {
@@ -7,7 +8,6 @@ import {
   render,
   screen,
 } from '@testing-library/react';
-import { DetachedBrowserFrame } from 'happy-dom';
 import { StrictMode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DingTalkQrLogin } from '@/pages/user/login/components/dingtalk-qr-login';
@@ -17,29 +17,14 @@ import {
   refreshDingTalkLoginConfig,
 } from './dingtalkLoginConfig';
 
-const { getConfig } = vi.hoisted(() => ({ getConfig: vi.fn() }));
+const { getConfig, poll } = vi.hoisted(() => ({
+  getConfig: vi.fn(),
+  poll: vi.fn(),
+}));
 vi.mock('@/services/roncin/authService', () => ({
   authServiceGetDingTalkLoginConfig: getConfig,
+  authServicePollDingTalkQrCode: poll,
 }));
-
-function config(state = 'html-state') {
-  const authorize = new URL('https://login.dingtalk.com/oauth2/auth');
-  authorize.search = new URLSearchParams({
-    client_id: 'app',
-    scope: 'openid',
-    response_type: 'code',
-    state,
-    redirect_uri: `${window.location.origin}/user/login/dingtalk/callback`,
-  }).toString();
-  return {
-    success: true,
-    data: {
-      enabled: true,
-      authorizeUrl: authorize.href,
-      expiresAt: new Date(Date.now() + 300000).toISOString(),
-    },
-  };
-}
 
 function inline(payload: unknown, raw = false) {
   const script = document.createElement('script');
@@ -68,9 +53,7 @@ describe('钉钉登录 HTML 内嵌配置', () => {
   let client: ReturnType<typeof createTestQueryClient>;
   beforeEach(() => {
     vi.useFakeTimers();
-    vi.spyOn(DetachedBrowserFrame.prototype, 'goto').mockImplementation(
-      () => new Promise(() => {}),
-    );
+    poll.mockReset().mockImplementation(() => new Promise(() => {}));
     client = createTestQueryClient();
     getConfig.mockReset().mockResolvedValue(config('new-state'));
   });
@@ -90,10 +73,9 @@ describe('钉钉登录 HTML 内嵌配置', () => {
     mount(client);
     await preloadDingTalkLoginConfig(client, '/user/login');
     await settle();
-    expect(screen.getByTitle('钉钉扫码登录二维码')).toHaveAttribute(
-      'src',
-      expect.stringContaining('state=html-state'),
-    );
+    expect(
+      client.getQueryData(dingTalkLoginConfigOptions.queryKey),
+    ).toMatchObject({ enabled: true, qr: { state: 'state-1' } });
     expect(getConfig).not.toHaveBeenCalled();
   });
 
@@ -133,20 +115,15 @@ describe('钉钉登录 HTML 内嵌配置', () => {
     expect(getConfig).not.toHaveBeenCalled();
   });
 
-  it.each(['origin', 'callback', 'invalid-url'])(
-    '内嵌授权地址%s不合法不能绕过同一校验',
+  it.each(['origin', 'path', 'invalid-url', 'duplicate-code'])(
+    '内嵌二维码地址%s不合法不能绕过同一校验',
     async (kind) => {
       const payload = config();
-      const authorize = new URL(payload.data.authorizeUrl);
-      if (kind === 'origin') authorize.hostname = 'evil.example.com';
-      if (kind === 'callback') {
-        authorize.searchParams.set(
-          'redirect_uri',
-          'https://evil.example.com/user/login/dingtalk/callback',
-        );
-      }
-      payload.data.authorizeUrl =
-        kind === 'invalid-url' ? 'invalid' : authorize.href;
+      const qr = new URL(payload.data.qrCodeUrl);
+      if (kind === 'origin') qr.hostname = 'evil.example.com';
+      if (kind === 'path') qr.pathname = '/oauth2/auth';
+      if (kind === 'duplicate-code') qr.searchParams.append('code', 'second');
+      payload.data.qrCodeUrl = kind === 'invalid-url' ? 'invalid' : qr.href;
       inline(payload);
       await preloadDingTalkLoginConfig(client, '/user/login');
       expect(
@@ -161,16 +138,15 @@ describe('钉钉登录 HTML 内嵌配置', () => {
     await preloadDingTalkLoginConfig(client, '/user/login');
     mount(client);
     await settle();
-    expect(screen.getByText('获取钉钉登录配置失败，请重试')).toBeVisible();
+    expect(screen.getByText('二维码加载失败')).toBeVisible();
     await act(async () => window.dispatchEvent(new Event('focus')));
     expect(getConfig).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: /刷新二维码/ }));
     await settle();
     expect(getConfig).toHaveBeenCalledOnce();
-    expect(screen.getByTitle('钉钉扫码登录二维码')).toHaveAttribute(
-      'src',
-      expect.stringContaining('state=new-state'),
-    );
+    expect(
+      client.getQueryData(dingTalkLoginConfigOptions.queryKey),
+    ).toMatchObject({ enabled: true, qr: { state: 'new-state' } });
   });
 
   it('回调和业务页不读取节点，返回扫码显式刷新只获取一次新配置', async () => {
@@ -184,13 +160,12 @@ describe('钉钉登录 HTML 内嵌配置', () => {
     mount(client);
     await settle();
     expect(getConfig).toHaveBeenCalledOnce();
-    expect(screen.getByTitle('钉钉扫码登录二维码')).toHaveAttribute(
-      'src',
-      expect.stringContaining('state=new-state'),
-    );
+    expect(
+      client.getQueryData(dingTalkLoginConfigOptions.queryKey),
+    ).toMatchObject({ enabled: true, qr: { state: 'new-state' } });
   });
 
-  it('内嵌配置到期后自动刷新通过GET获取新state', async () => {
+  it('内嵌配置到期显示失效，点击二维码通过GET获取新state', async () => {
     const payload = config();
     payload.data.expiresAt = new Date(Date.now() + 1000).toISOString();
     inline(payload);
@@ -199,10 +174,13 @@ describe('钉钉登录 HTML 内嵌配置', () => {
     await settle();
     await act(async () => vi.advanceTimersByTimeAsync(1001));
     await settle();
+    expect(getConfig).not.toHaveBeenCalled();
+    expect(screen.getByText('二维码已失效')).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: '刷新二维码' }));
+    await settle();
     expect(getConfig).toHaveBeenCalledOnce();
-    expect(screen.getByTitle('钉钉扫码登录二维码')).toHaveAttribute(
-      'src',
-      expect.stringContaining('state=new-state'),
-    );
+    expect(
+      client.getQueryData(dingTalkLoginConfigOptions.queryKey),
+    ).toMatchObject({ enabled: true, qr: { state: 'new-state' } });
   });
 });
