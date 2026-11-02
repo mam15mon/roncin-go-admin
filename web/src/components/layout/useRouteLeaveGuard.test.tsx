@@ -45,6 +45,7 @@ function Editor() {
       />
       <span>{location.pathname}</span>
       <Link to="/partners/customers/B">另一个客商</Link>
+      <Link to="?mode=edit">切换查询参数</Link>
       <Link to="/welcome">工作台</Link>
     </>
   );
@@ -84,6 +85,39 @@ afterEach(() => {
 });
 
 describe('客商真实路由离开保护', () => {
+  it('离开已提交但旧守卫尚未清理时，立即前进不被旧表单拦截', async () => {
+    const router = mount();
+    fireEvent.change(screen.getByLabelText('未保存内容'), {
+      target: { value: '旧表单修改' },
+    });
+    let staleGuardCount = 0;
+    let returned = false;
+    const unsubscribe = router.subscribe((state) => {
+      if (state.location.pathname !== '/welcome' || returned) return;
+      returned = true;
+      staleGuardCount = state.blockers.size;
+      // 订阅在路由提交时同步通知，早于旧 Editor 的 effect 清理。
+      void router.navigate(1);
+    });
+    try {
+      await act(async () => {
+        await router.navigate(-1);
+      });
+      fireEvent.click(await screen.findByText('确定离开'));
+      await waitFor(() => {
+        expect(returned).toBe(true);
+        expect(router.state.location.pathname).toBe('/partners/customers/A');
+      });
+      expect(staleGuardCount).toBe(1);
+      expect(screen.getByLabelText('未保存内容')).toBeInTheDocument();
+      await waitFor(() =>
+        expect(screen.queryByText('确定离开')).not.toBeInTheDocument(),
+      );
+    } finally {
+      unsubscribe();
+    }
+  });
+
   it('批量关闭首个为后台草稿时，当前客商复用同一次确认', async () => {
     const router = mount();
     const draftScope = getFormDraftScope('user', 'org');
@@ -136,6 +170,31 @@ describe('客商真实路由离开保护', () => {
     await waitFor(() =>
       expect(router.state.location.pathname).toBe('/partners/customers/B'),
     );
+  });
+
+  it('仅查询参数变化仍确认，提交后新的路由实例继续保护输入', async () => {
+    const router = mount();
+    fireEvent.change(screen.getByLabelText('未保存内容'), {
+      target: { value: '编辑值' },
+    });
+    fireEvent.click(screen.getByText('切换查询参数'));
+    fireEvent.click(await screen.findByRole('button', { name: /取\s*消/ }));
+    await waitFor(() =>
+      expect(screen.queryByText('确定离开')).not.toBeInTheDocument(),
+    );
+    expect(router.state.location.search).toBe('');
+    expect(screen.getByLabelText('未保存内容')).toHaveValue('编辑值');
+    fireEvent.click(screen.getByText('切换查询参数'));
+    fireEvent.click(await screen.findByText('确定离开'));
+    await waitFor(() =>
+      expect(router.state.location.search).toBe('?mode=edit'),
+    );
+    await waitFor(() =>
+      expect(screen.queryByText('确定离开')).not.toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByText('工作台'));
+    expect(await screen.findByText('确定离开')).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/partners/customers/A');
   });
 
   it('浏览器后退及前进均阻断，取消后仍留在编辑页', async () => {
