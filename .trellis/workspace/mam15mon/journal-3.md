@@ -940,3 +940,26 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 182: 订单附件接入阿里云 OSS 并配置专用私有 Bucket
+<!-- trellis-session: v=2 fp=682a612eb43506ec -->
+
+**Date**: 2026-11-03
+**Task**: 订单附件接入阿里云 OSS 并配置专用私有 Bucket
+**Branch**: `codex/order-attachments-aliyun-oss`
+
+### Summary
+
+完成订单附件签名直传、实际内容核验、私有访问及共享引用删除；新建北京地域专用私有 Bucket 并配置本地私密环境。真实云读写删除、专用 PostgreSQL 并发回归、后端完整检查与生产构建通过，前端全量执行时序及拆分中间态问题经定向复测通过，详见任务验证记录。pnpm dev 被既有船公司迁移异常阻断，使用 dev:server/dev:web 恢复服务，未修改无关迁移或原有排版任务。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `043a0d08` | docs: 规划订单附件接入阿里云 OSS |
+| `aa83e544` | feat: 接通订单附件阿里云 OSS 上传与私有访问 |
+
+### Status
+
+[OK] **Completed**
