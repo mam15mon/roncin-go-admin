@@ -55,6 +55,9 @@ import {
 import { buildOrderRecordsSection } from './components/detail/OrderAuditTimelineSection';
 import OrderDetailHeader from './components/detail/OrderDetailHeader';
 import { buildOrderStatusSection } from './components/detail/OrderStatusSection';
+import AttachmentDrawer, {
+  type AttachmentDrawerRef,
+} from './components/drawers/AttachmentDrawer';
 import OrderPageHeader from './components/OrderPageHeader';
 import {
   confirmOrderClosure,
@@ -260,6 +263,7 @@ export default function OrderDetailPage() {
 
   const releasePodPanelRef = useRef<ReleasePodPanelRef | null>(null);
   const abnormalCasePanelRef = useRef<AbnormalCasePanelRef | null>(null);
+  const attachmentDrawerRef = useRef<AttachmentDrawerRef | null>(null);
   const getModalOwnerSignal = useModalOwnerSignal();
   const statusTransitionConfirmOpenRef = useRef(false);
   const refreshConfirmOpenRef = useRef(false);
@@ -1328,6 +1332,10 @@ export default function OrderDetailPage() {
                     definition.businessType,
                     'fee.read',
                   )}
+                  canReadAttachments={access.canOrder(
+                    definition.businessType,
+                    'attachment.read',
+                  )}
                   canCreatePod={access.canOrder(
                     definition.businessType,
                     'release_pod.create',
@@ -1348,6 +1356,9 @@ export default function OrderDetailPage() {
                   }}
                   onOpenAbnormalCase={() => {
                     abnormalCasePanelRef.current?.open(order);
+                  }}
+                  onOpenAttachments={() => {
+                    attachmentDrawerRef.current?.open(order);
                   }}
                   lockState={lockState}
                   lockStateLoading={lockStateLoading || synchronizingLockChange}
@@ -1394,6 +1405,20 @@ export default function OrderDetailPage() {
             {features.overlays}
 
             {/* 挂载通用功能弹窗 */}
+            {access.canOrder(definition.businessType, 'attachment.read') && (
+              <AttachmentDrawer
+                key={`${orderFormIdentity}:${draftScope}:attachments`}
+                ref={attachmentDrawerRef}
+                canRegister={
+                  canOperateOrderWorkspace &&
+                  !businessWritesDisabled &&
+                  access.canOrder(
+                    definition.businessType,
+                    'attachment.register',
+                  )
+                }
+              />
+            )}
             <ReleasePodPanel
               ref={releasePodPanelRef}
               canManage={

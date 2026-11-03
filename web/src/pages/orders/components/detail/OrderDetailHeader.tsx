@@ -4,6 +4,7 @@ import {
   DownOutlined,
   FileDoneOutlined,
   HistoryOutlined,
+  PaperClipOutlined,
   SaveOutlined,
   UndoOutlined,
 } from '@ant-design/icons';
@@ -22,6 +23,7 @@ type OrderDetailHeaderProps = {
   order: API.Order;
   saving: boolean;
   canManageFee: boolean;
+  canReadAttachments: boolean;
   canCreatePod: boolean;
   canReadAbnormal: boolean;
   /** 类型专属业务菜单（如拆票、改配），由订单类型详情扩展提供。 */
@@ -31,6 +33,7 @@ type OrderDetailHeaderProps = {
   onSave: () => void;
   onReset?: () => void;
   onOpenReleasePod: () => void;
+  onOpenAttachments: () => void;
   onOpenAbnormalCase: () => void;
   lockState: API.OrderLockStateData | null;
   lockStateLoading: boolean;
@@ -48,6 +51,7 @@ export default function OrderDetailHeader({
   order,
   saving,
   canManageFee,
+  canReadAttachments,
   canCreatePod,
   canReadAbnormal,
   businessMenuItems,
@@ -56,6 +60,7 @@ export default function OrderDetailHeader({
   onSave,
   onReset,
   onOpenReleasePod,
+  onOpenAttachments,
   onOpenAbnormalCase,
   lockState,
   lockStateLoading,
@@ -140,6 +145,11 @@ export default function OrderDetailHeader({
             onClick={() => history.push(`/orders/${kind}/${orderId}/fees`)}
           >
             费用录入
+          </Button>
+        )}
+        {canReadAttachments && (
+          <Button icon={<PaperClipOutlined />} onClick={onOpenAttachments}>
+            附件
           </Button>
         )}
         {lockActions}

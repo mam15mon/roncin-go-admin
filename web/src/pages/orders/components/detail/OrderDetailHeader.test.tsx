@@ -29,12 +29,14 @@ function renderHeader(
       order={{ id: 'order-1', orderNo: 'SE001', organizationId: 'org-1' }}
       saving={false}
       canManageFee={false}
+      canReadAttachments={false}
       canCreatePod={false}
       canReadAbnormal={canReadAbnormal}
       moreMenuItems={[]}
       hasAction={() => false}
       onSave={vi.fn()}
       onOpenReleasePod={vi.fn()}
+      onOpenAttachments={vi.fn()}
       onOpenAbnormalCase={onOpenAbnormalCase}
       lockState={{ isLocked: true }}
       lockStateLoading={false}
@@ -73,8 +75,10 @@ describe('订单详情页头操作层级', () => {
     const onSave = vi.fn();
     const onReset = vi.fn();
     const openPod = vi.fn();
+    const openAttachments = vi.fn();
     renderHeader(true, {
       canManageFee: true,
+      canReadAttachments: true,
       canCreatePod: true,
       hasAction: () => true,
       lockState: {
@@ -89,6 +93,7 @@ describe('订单详情页头操作层级', () => {
       onSave,
       onReset,
       onOpenReleasePod: openPod,
+      onOpenAttachments: openAttachments,
       businessMenuItems: [{ key: 'split', label: '拆票', disabled: true }],
     });
     const area = document.querySelector(
@@ -98,7 +103,7 @@ describe('订单详情页头操作层级', () => {
       within(area)
         .getAllByRole('button')
         .map((button) => button.textContent?.trim()),
-    ).toEqual(['费用录入', '审核订单', '保存', '更多操作']);
+    ).toEqual(['费用录入', '附件', '审核订单', '保存', '更多操作']);
     expect(area.querySelectorAll('.ant-btn-primary')).toHaveLength(1);
     expect(
       document.querySelector('.roncin-page-header-actions-row'),
@@ -108,6 +113,8 @@ describe('订单详情页头操作层级', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: /保存/ }));
     expect(onSave).toHaveBeenCalledOnce();
+    fireEvent.click(screen.getByRole('button', { name: /附件/ }));
+    expect(openAttachments).toHaveBeenCalledOnce();
     fireEvent.click(screen.getByRole('button', { name: /更多操作/ }));
     expect(screen.getByRole('menuitem', { name: '拆票' })).toHaveAttribute(
       'aria-disabled',
@@ -124,12 +131,18 @@ describe('订单详情页头操作层级', () => {
   });
 
   it('锁定时保存、导出和重置保持禁用，异常查看及撤销审核记录可用', () => {
+    const openAttachments = vi.fn();
     renderHeader(true, {
       hasAction: () => true,
       canCreatePod: true,
+      canReadAttachments: true,
+      onOpenAttachments: openAttachments,
       onReset: vi.fn(),
     });
     expect(screen.getByRole('button', { name: /保存/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /附件/ })).toBeEnabled();
+    fireEvent.click(screen.getByRole('button', { name: /附件/ }));
+    expect(openAttachments).toHaveBeenCalledOnce();
     fireEvent.click(screen.getByRole('button', { name: /更多操作/ }));
     expect(screen.getByRole('menuitem', { name: /导出单证/ })).toHaveAttribute(
       'aria-disabled',
@@ -143,5 +156,12 @@ describe('订单详情页头操作层级', () => {
     expect(
       screen.getByRole('dialog', { name: '撤销审核记录' }),
     ).toBeInTheDocument();
+  });
+
+  it('没有附件读取权限时隐藏附件入口', () => {
+    renderHeader(false);
+    expect(
+      screen.queryByRole('button', { name: /附件/ }),
+    ).not.toBeInTheDocument();
   });
 });
