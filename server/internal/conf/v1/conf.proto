@@ -69,6 +69,16 @@ message Data {
     string secret_key = 6;
     bool path_style = 7;
   }
+  // OrderAttachmentOSS 仅用于订单附件的阿里云 OSS 配置。
+  message OrderAttachmentOSS {
+    bool enabled = 1;
+    string endpoint = 2;
+    string region = 3;
+    string bucket = 4;
+    string access_key = 5;
+    string secret_key = 6;
+  }
+  OrderAttachmentOSS order_attachment_oss = 4;
   Database database = 1;
   reserved 2;
   reserved "redis";

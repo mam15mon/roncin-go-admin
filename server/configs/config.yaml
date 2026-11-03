@@ -25,6 +25,14 @@ data:
     access_key: ${OBJECT_STORAGE_ACCESS_KEY:}
     secret_key: ${OBJECT_STORAGE_SECRET_KEY:}
     path_style: ${OBJECT_STORAGE_PATH_STYLE:true}
+  order_attachment_oss:
+    enabled: ${ORDER_ATTACHMENT_OSS_ENABLED:false}
+    endpoint: ${ORDER_ATTACHMENT_OSS_ENDPOINT:}
+    region: ${ORDER_ATTACHMENT_OSS_REGION:}
+    bucket: ${ORDER_ATTACHMENT_OSS_BUCKET:}
+    access_key: ${ORDER_ATTACHMENT_OSS_ACCESS_KEY:}
+    secret_key: ${ORDER_ATTACHMENT_OSS_SECRET_KEY:}
+
 security:
   session:
     cookie_name: roncin_session

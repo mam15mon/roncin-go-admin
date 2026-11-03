@@ -553,6 +553,18 @@ declare namespace API {
     traceId?: string;
   };
 
+  type AttachmentAccess = {
+    url?: string;
+    expiresAt?: string;
+  };
+
+  type AttachmentUpload = {
+    uploadUrl?: string;
+    uploadToken?: string;
+    headers?: Record<string, any>;
+    expiresAt?: string;
+  };
+
   type AuthorizeDingTalkUserRequest = {
     id: string;
     items: UserMembershipCreation[];
@@ -3465,6 +3477,14 @@ declare namespace API {
     historyTotal?: number;
   };
 
+  type GetAttachmentAccessResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AttachmentAccess;
+    traceId?: string;
+  };
+
   type GetBackgroundTaskResponse = {
     success?: boolean;
     code?: number;
@@ -5210,7 +5230,17 @@ declare namespace API {
     assetId?: string;
   };
 
+  type OrderAttachmentServiceGetAttachmentAccessParams = {
+    orderId: string;
+    id: string;
+    download?: boolean;
+  };
+
   type OrderAttachmentServiceListAttachmentsParams = {
+    orderId: string;
+  };
+
+  type OrderAttachmentServicePrepareAttachmentUploadParams = {
     orderId: string;
   };
 
@@ -6597,6 +6627,23 @@ declare namespace API {
     sourceHash?: string;
   };
 
+  type PrepareAttachmentUploadRequest = {
+    orderId: string;
+    docType: string;
+    fileName: string;
+    mimeType: string;
+    fileSize: string;
+    checksum: string;
+  };
+
+  type PrepareAttachmentUploadResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AttachmentUpload;
+    traceId?: string;
+  };
+
   type PrepareEnterpriseResourceImageUploadRequest = {
     fileName: string;
     mimeType: string;
@@ -6910,13 +6957,7 @@ declare namespace API {
 
   type RegisterAttachmentRequest = {
     orderId: string;
-    docType: string;
-    idempotencyKey: string;
-    fileName: string;
-    mimeType: string;
-    fileSize: string;
-    objectKey: string;
-    checksum?: string;
+    uploadToken: string;
   };
 
   type RegisterAttachmentResponse = {

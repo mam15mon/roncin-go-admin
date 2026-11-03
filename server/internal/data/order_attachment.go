@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	objectdeletionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/objectstoragedeletion"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderattachmentent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachment"
 	orderattachmentassetent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderattachmentasset"
@@ -24,6 +25,34 @@ func (r *orderAttachmentRepo) order(ctx context.Context, client *ent.Client, org
 		return mapEntError(err, biz.ErrOrderAttachmentNotFound, nil)
 	}
 	return nil
+}
+
+// CheckEditable 预读沿用提交时的同一业务门禁，最终写入仍在订单锁内重验。
+func (r *orderAttachmentRepo) CheckEditable(ctx context.Context, organizationID, orderID uuid.UUID) error {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return err
+	}
+	order, err := client.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx)
+	if err != nil {
+		return mapEntError(err, biz.ErrOrderAttachmentNotFound, nil)
+	}
+	return ensureOrderBusinessContentEditable(ctx, client.User, order)
+}
+
+func (r *orderAttachmentRepo) Get(ctx context.Context, organizationID, orderID, attachmentID uuid.UUID) (*biz.OrderAttachment, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.order(ctx, client, organizationID, orderID); err != nil {
+		return nil, err
+	}
+	item, err := client.OrderAttachment.Query().Where(orderattachmentent.IDEQ(attachmentID), orderattachmentent.OrderIDEQ(orderID)).WithAsset().Only(ctx)
+	if err != nil {
+		return nil, mapEntError(err, biz.ErrOrderAttachmentNotFound, nil)
+	}
+	return orderAttachmentToBiz(item), nil
 }
 
 func (r *orderAttachmentRepo) List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*biz.OrderAttachment, error) {
@@ -59,6 +88,19 @@ func (r *orderAttachmentRepo) Create(ctx context.Context, organizationID, actorI
 		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
 			return err
 		}
+		// 同一授权重试只返回完全一致的既有引用，不创建重复附件。
+		previous, queryErr := tx.OrderAttachment.Query().Where(orderattachmentent.OrderIDEQ(orderID), orderattachmentent.IdempotencyKeyEQ(input.IdempotencyKey)).WithAsset().Only(ctx)
+		if queryErr == nil {
+			current := orderAttachmentToBiz(previous)
+			if current.ObjectKey != input.ObjectKey || current.DocType != input.DocType || current.FileName != input.FileName || current.MIMEType != input.MIMEType || current.FileSize != input.FileSize || current.Checksum != input.Checksum || current.UploadedBy == nil || *current.UploadedBy != actorID {
+				return biz.ErrOrderAttachmentExists
+			}
+			created = previous
+			return nil
+		}
+		if !ent.IsNotFound(queryErr) {
+			return queryErr
+		}
 		// 1. 查找或创建资产
 		asset, queryErr := tx.OrderAttachmentAsset.Query().
 			Where(
@@ -69,6 +111,15 @@ func (r *orderAttachmentRepo) Create(ctx context.Context, organizationID, actorI
 			Only(ctx)
 		if queryErr != nil {
 			if ent.IsNotFound(queryErr) {
+				// 必须在资产锁查询之后检查：跨票解除最后引用时，该查询可能等待
+				// 删除事务提交后才返回不存在，旧上传授权不能让待删除对象复活。
+				deleting, err := tx.ObjectStorageDeletion.Query().Where(objectdeletionent.ObjectKeyEQ(input.ObjectKey)).Exist(ctx)
+				if err != nil {
+					return err
+				}
+				if deleting {
+					return biz.ErrOrderAttachmentUploadInvalid
+				}
 				createAsset := tx.OrderAttachmentAsset.Create().
 					SetOrganizationID(organizationID).
 					SetObjectKey(input.ObjectKey).

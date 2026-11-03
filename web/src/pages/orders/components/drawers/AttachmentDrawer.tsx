@@ -1,218 +1,489 @@
-import { AsyncPopconfirm } from '@/components/ui';
-import type { ProColumns } from '@ant-design/pro-components';
-import { ProFormDigit, ProFormText } from '@ant-design/pro-components';
-import { Alert, Button, Tag, Typography } from 'antd';
-import React, { forwardRef } from 'react';
+import { UploadOutlined } from '@ant-design/icons';
+import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import { ProFormText } from '@ant-design/pro-components';
+import type { UploadFile } from 'antd';
 import {
-  type SubEntityDrawerRef,
-  SubEntityDrawerTemplate,
-} from '@/components/ui/sub-entity-drawer';
+  Alert,
+  App,
+  Button,
+  Drawer,
+  Form,
+  Modal,
+  Progress,
+  Space,
+  Tag,
+  Upload,
+} from 'antd';
 import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
+import { useInitialState } from '@/app/AppProvider';
+import {
+  AsyncPopconfirm,
+  GuardedModalForm,
+  ResponsiveProTable,
+  useColumnSettings,
+} from '@/components/ui';
+import type { SubEntityDrawerRef } from '@/components/ui/sub-entity-drawer';
+import {
+  orderAttachmentServiceGetAttachmentAccess,
   orderAttachmentServiceListAttachments,
+  orderAttachmentServicePrepareAttachmentUpload,
   orderAttachmentServiceRegisterAttachment,
   orderAttachmentServiceRemoveAttachmentReference,
 } from '@/services/roncin/orderAttachmentService';
-import { isWriteResponse } from '@/utils/api';
-
-const { Text } = Typography;
+import { isWriteResponse, toTableRequest } from '@/utils/api';
+import { formatDate } from '@/utils/format';
+import {
+  attachmentChecksum,
+  attachmentPreviewType,
+  attachmentSize,
+  MAX_ATTACHMENT_SIZE,
+} from './attachmentFiles';
 
 export type AttachmentDrawerRef = SubEntityDrawerRef<API.Order>;
-
-type AttachmentDrawerProps = {
-  canRegister: boolean;
-};
-
-type AttachmentFormValues = {
-  docType: string;
-  idempotencyKey: string;
-  fileName: string;
-  mimeType: string;
-  fileSize: number;
-  objectKey: string;
-  checksum?: string;
-};
-
-const columns: ProColumns<API.OrderAttachment>[] = [
-  {
-    title: '文档类型',
-    dataIndex: 'docType',
-    width: 140,
-    render: (type) => (
-      <Tag color="geekblue" variant="filled">
-        {type}
-      </Tag>
-    ),
-  },
-  {
-    title: '文件名',
-    dataIndex: 'fileName',
-    ellipsis: true,
-    render: (name) => <Text strong>{name}</Text>,
-  },
-  {
-    title: 'MIME 类型',
-    dataIndex: 'mimeType',
-    width: 140,
-    ellipsis: true,
-  },
-  {
-    title: '文件大小',
-    dataIndex: 'fileSize',
-    width: 120,
-    render: (size) => `${size} 字节`,
-  },
-  {
-    title: '对象键',
-    dataIndex: 'objectKey',
-    copyable: true,
-    ellipsis: true,
-    render: (key) => (
-      <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>{key}</Text>
-    ),
-  },
-  {
-    title: '校验和',
-    dataIndex: 'checksum',
-    copyable: true,
-    ellipsis: true,
-  },
-  {
-    title: '登记时间',
-    dataIndex: 'createdAt',
-    valueType: 'dateTime',
-    width: 180,
-  },
-];
-
-const buildColumns = (
-  canRegister: boolean,
-): ProColumns<API.OrderAttachment>[] => [
-  ...columns,
-  {
-    title: '操作',
-    valueType: 'option',
-    width: 110,
-    fixed: 'right',
-    render: (_, record, __, action) =>
-      canRegister ? (
-        <AsyncPopconfirm
-          title="解除附件引用"
-          description="仅解除当前订单关联，不删除物理文件。确定继续？"
-          okText="确定解除"
-          cancelText="取消"
-          onConfirm={async (): Promise<false | undefined> => {
-            const writeResponse1 =
-              await orderAttachmentServiceRemoveAttachmentReference({
-                orderId: record.orderId as string,
-                id: record.id as string,
-              });
-            if (!isWriteResponse(writeResponse1)) return false;
-            action?.reload();
-
-            return undefined;
-          }}
-        >
-          <Button type="link" danger size="small">
-            解除引用
-          </Button>
-        </AsyncPopconfirm>
-      ) : null,
-  },
-];
+type AttachmentDrawerProps = { canRegister: boolean };
+type UploadValues = { docType: string; files: UploadFile[] };
+type Preview = { url: string; name: string; type: 'image' | 'pdf' };
 
 const AttachmentDrawer = forwardRef<AttachmentDrawerRef, AttachmentDrawerProps>(
   function AttachmentDrawer({ canRegister }, ref) {
-    return (
-      <SubEntityDrawerTemplate<
-        API.OrderAttachment,
-        API.Order,
-        AttachmentFormValues
-      >
-        ref={ref}
-        entityName="附件"
-        drawerTitle={(order) =>
-          order ? `订单附件档案 - ${order.orderNo || order.id}` : '订单附件档案'
-        }
-        canCreate={canRegister}
-        canUpdate={false}
-        canRemove={false}
-        columns={buildColumns(canRegister)}
-        fetchList={(order) =>
-          orderAttachmentServiceListAttachments({
-            orderId: order.id as string,
-          })
-        }
-        createItem={(values, order) =>
-          orderAttachmentServiceRegisterAttachment(
-            { orderId: order.id as string },
-            {
-              orderId: order.id as string,
-              docType: values.docType.trim(),
-              idempotencyKey: values.idempotencyKey.trim(),
-              fileName: values.fileName.trim(),
-              mimeType: values.mimeType.trim(),
-              fileSize: String(values.fileSize),
-              objectKey: values.objectKey.trim(),
-              checksum: values.checksum?.trim() || undefined,
-            },
-          )
-        }
-        renderFormItems={() => (
-          <>
-            <Alert
-              type="info"
-              showIcon
-              title="此处登记外部对象存储引用与元数据，不直接进行二进制文件上传。"
-              style={{ marginBottom: 16 }}
-            />
-            <ProFormText
-              name="docType"
-              label="文档类型"
-              placeholder="请输入文档类型 (如 BL, INVOICE, PACKING_LIST)"
-              rules={[{ required: true, message: '请输入文档类型' }]}
-            />
-            <ProFormText
-              name="idempotencyKey"
-              label="幂等键"
-              placeholder="请输入幂等键"
-              rules={[{ required: true, message: '请输入幂等键' }]}
-            />
-            <ProFormText
-              name="fileName"
-              label="文件名"
-              placeholder="请输入文件名"
-              rules={[{ required: true, message: '请输入文件名' }]}
-            />
-            <ProFormText
-              name="mimeType"
-              label="MIME 类型"
-              placeholder="请输入 MIME 类型 (如 application/pdf)"
-              rules={[{ required: true, message: '请输入 MIME 类型' }]}
-            />
-            <ProFormDigit
-              name="fileSize"
-              label="文件大小 (字节)"
-              min={1}
-              fieldProps={{ precision: 0 }}
-              placeholder="请输入文件大小"
-              rules={[{ required: true, message: '请输入文件大小' }]}
-            />
-            <ProFormText
-              name="objectKey"
-              label="对象存储键 (Object Key)"
-              placeholder="请输入对象存储键"
-              rules={[{ required: true, message: '请输入对象键' }]}
-            />
-            <ProFormText
-              name="checksum"
-              label="校验和 (Checksum)"
-              placeholder="请输入校验和 (可选)"
-            />
-          </>
-        )}
-      />
+    const { initialState } = useInitialState();
+    const workspace = `${initialState?.currentUser?.id}:${initialState?.currentUser?.currentOrganization?.id}`;
+    const [selection, setSelection] = useState<{
+      order: API.Order;
+      workspace: string;
+      generation: number;
+    }>();
+    const generation = useRef(0);
+    const actionRef = useRef<ActionType | undefined>(undefined);
+    useImperativeHandle(
+      ref,
+      () => ({
+        open: (order) =>
+          setSelection({ order, workspace, generation: ++generation.current }),
+        close: () => setSelection(undefined),
+        reload: () => {
+          actionRef.current?.reload();
+        },
+      }),
+      [workspace],
     );
+    return selection?.workspace === workspace ? (
+      <AttachmentDrawerContent
+        key={`${workspace}:${selection.generation}`}
+        order={selection.order}
+        canRegister={canRegister}
+        actionRef={actionRef}
+        onClose={() => setSelection(undefined)}
+      />
+    ) : null;
   },
 );
+
+function AttachmentDrawerContent({
+  order,
+  canRegister,
+  actionRef,
+  onClose,
+}: AttachmentDrawerProps & {
+  order: API.Order;
+  actionRef: React.RefObject<ActionType | undefined>;
+  onClose: () => void;
+}) {
+  const { message } = App.useApp();
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [uploadStage, setUploadStage] = useState('');
+  const [uploadError, setUploadError] = useState('');
+  const [preview, setPreview] = useState<Preview>();
+  const [accessing, setAccessing] = useState<string>();
+  const alive = useRef(true);
+  const requests = useRef(new Set<AbortController>());
+  const previewURL = useRef<string | undefined>(undefined);
+  const uploaded = useRef<
+    | {
+        file: File;
+        docType: string;
+        uploadToken: string;
+        expiresAt: number;
+      }
+    | undefined
+  >(undefined);
+
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+      for (const controller of requests.current) controller.abort();
+      requests.current.clear();
+      if (previewURL.current) URL.revokeObjectURL(previewURL.current);
+    };
+  }, []);
+
+  const closePreview = () => {
+    if (previewURL.current) URL.revokeObjectURL(previewURL.current);
+    previewURL.current = undefined;
+    setPreview(undefined);
+  };
+
+  const accessFile = async (record: API.OrderAttachment, download: boolean) => {
+    if (!record.id || !order.id) return;
+    const controller = new AbortController();
+    requests.current.add(controller);
+    setAccessing(`${record.id}:${download}`);
+    try {
+      const response = await orderAttachmentServiceGetAttachmentAccess(
+        { orderId: order.id, id: record.id, download },
+        { signal: controller.signal },
+      );
+      if (!alive.current || !response?.data?.url) return;
+      if (download) {
+        const link = document.createElement('a');
+        link.href = response.data.url;
+        link.download = record.fileName ?? '附件';
+        link.rel = 'noopener noreferrer';
+        link.referrerPolicy = 'no-referrer';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } else {
+        const type = attachmentPreviewType(record.mimeType);
+        if (!type) return;
+        const file = await fetch(response.data.url, {
+          credentials: 'omit',
+          signal: controller.signal,
+          referrerPolicy: 'no-referrer',
+        });
+        if (!file.ok) throw new Error('附件读取失败');
+        const bytes = await file.arrayBuffer();
+        if (!alive.current) return;
+        closePreview();
+        // 使用已登记的受控 MIME，不能信任下载响应提供的任意活动内容类型。
+        const url = URL.createObjectURL(
+          new Blob([bytes], { type: record.mimeType }),
+        );
+        previewURL.current = url;
+        setPreview({ url, name: record.fileName ?? '附件预览', type });
+      }
+    } catch {
+      if (alive.current && !controller.signal.aborted)
+        message.error('附件读取失败，请重试。');
+    } finally {
+      requests.current.delete(controller);
+      if (alive.current) setAccessing(undefined);
+    }
+  };
+
+  const columns: ProColumns<API.OrderAttachment>[] = [
+    {
+      title: '文档类型',
+      dataIndex: 'docType',
+      width: 130,
+      render: (type) => <Tag color="geekblue">{type}</Tag>,
+    },
+    { title: '文件名', dataIndex: 'fileName', ellipsis: true },
+    {
+      title: '文件大小',
+      dataIndex: 'fileSize',
+      width: 110,
+      render: (_, record) => attachmentSize(record.fileSize),
+    },
+    {
+      title: '上传时间',
+      dataIndex: 'createdAt',
+      width: 165,
+      render: (_, record) => formatDate(record.createdAt, 'minute'),
+    },
+    {
+      title: '操作',
+      key: 'action',
+      valueType: 'option',
+      width: canRegister ? 220 : 140,
+      fixed: 'right',
+      align: 'right',
+      render: (_, record) => (
+        <Space size={0}>
+          {attachmentPreviewType(record.mimeType) && (
+            <Button
+              type="link"
+              size="small"
+              disabled={Boolean(accessing)}
+              loading={accessing === `${record.id}:false`}
+              onClick={() => void accessFile(record, false)}
+            >
+              预览
+            </Button>
+          )}
+          <Button
+            type="link"
+            size="small"
+            disabled={Boolean(accessing)}
+            loading={accessing === `${record.id}:true`}
+            onClick={() => void accessFile(record, true)}
+          >
+            下载
+          </Button>
+          {canRegister && (
+            <AsyncPopconfirm
+              title="解除附件引用"
+              description="其他订单仍引用时文件会保留；最后一条引用解除后文件会删除。确定继续？"
+              okText="确定解除"
+              cancelText="取消"
+              onConfirm={async () => {
+                if (!order.id || !record.id) return false;
+                const response =
+                  await orderAttachmentServiceRemoveAttachmentReference({
+                    orderId: order.id,
+                    id: record.id,
+                  });
+                if (!isWriteResponse(response)) return false;
+                if (alive.current) {
+                  message.success('已解除附件引用');
+                  actionRef.current?.reload();
+                }
+                return true;
+              }}
+            >
+              <Button type="link" danger size="small">
+                解除引用
+              </Button>
+            </AsyncPopconfirm>
+          )}
+        </Space>
+      ),
+    },
+  ];
+  const columnSettings = useColumnSettings({
+    tableKey: 'orders:sub-entity:附件',
+    columns,
+    structuralKeys: ['action'],
+  });
+
+  const submitUpload = async (values: UploadValues): Promise<boolean> => {
+    const selected = values.files?.[0];
+    const file =
+      selected?.originFileObj ??
+      (selected instanceof File ? selected : undefined);
+    if (!file || !order.id || !canRegister) return false;
+    const controller = new AbortController();
+    requests.current.add(controller);
+    const docType = values.docType.trim();
+    setUploadError('');
+    try {
+      let prepared = uploaded.current;
+      if (
+        !prepared ||
+        prepared.file !== file ||
+        prepared.docType !== docType ||
+        prepared.expiresAt <= Date.now()
+      ) {
+        setUploadStage('正在校验文件');
+        const checksum = await attachmentChecksum(file);
+        if (!alive.current || controller.signal.aborted) return false;
+        const response = await orderAttachmentServicePrepareAttachmentUpload(
+          { orderId: order.id },
+          {
+            orderId: order.id,
+            docType,
+            fileName: file.name,
+            mimeType: file.type || 'application/octet-stream',
+            fileSize: String(file.size),
+            checksum,
+          },
+          { signal: controller.signal },
+        );
+        if (!alive.current) return false;
+        if (!response?.data?.uploadUrl || !response.data.uploadToken) {
+          setUploadError('无法准备上传，文件和填写内容已保留，请重试。');
+          return false;
+        }
+        setUploadStage('正在上传文件');
+        const result = await fetch(response.data.uploadUrl, {
+          method: 'PUT',
+          body: file,
+          headers: response.data.headers,
+          credentials: 'omit',
+          signal: controller.signal,
+          referrerPolicy: 'no-referrer',
+        });
+        if (!result.ok) throw new Error('文件上传失败');
+        if (!alive.current) return false;
+        prepared = {
+          file,
+          docType,
+          uploadToken: response.data.uploadToken,
+          expiresAt: Date.parse(response.data.expiresAt ?? ''),
+        };
+        uploaded.current = prepared;
+      }
+      setUploadStage('正在保存附件');
+      const response = await orderAttachmentServiceRegisterAttachment(
+        { orderId: order.id },
+        { orderId: order.id, uploadToken: prepared.uploadToken },
+        { signal: controller.signal },
+      );
+      if (!alive.current) return false;
+      if (!isWriteResponse(response, true)) {
+        setUploadError('保存附件失败，文件和填写内容已保留，请重试。');
+        return false;
+      }
+      uploaded.current = undefined;
+      message.success('附件上传成功');
+      actionRef.current?.reload();
+      return true;
+    } catch {
+      if (alive.current && !controller.signal.aborted)
+        setUploadError('上传失败，文件和填写内容已保留，请重试。');
+      return false;
+    } finally {
+      requests.current.delete(controller);
+      if (alive.current) setUploadStage('');
+    }
+  };
+
+  return (
+    <>
+      <Drawer
+        title={`订单附件 - ${order.orderNo || order.id}`}
+        open
+        onClose={onClose}
+        size={1000}
+        destroyOnHidden
+      >
+        <ResponsiveProTable<API.OrderAttachment>
+          actionRef={actionRef}
+          rowKey="id"
+          columns={columnSettings.columns}
+          bordered
+          search={false}
+          pagination={false}
+          options={{ reload: true, density: true, setting: false }}
+          request={async () => {
+            const response = await orderAttachmentServiceListAttachments({
+              orderId: order.id as string,
+            });
+            return response
+              ? toTableRequest(response)
+              : { data: [], success: false };
+          }}
+          toolBarRender={() => [
+            columnSettings.entry,
+            canRegister && (
+              <Button
+                key="upload"
+                type="primary"
+                icon={<UploadOutlined />}
+                onClick={() => {
+                  uploaded.current = undefined;
+                  setUploadError('');
+                  setUploadOpen(true);
+                }}
+              >
+                上传附件
+              </Button>
+            ),
+          ]}
+        />
+      </Drawer>
+      <GuardedModalForm<UploadValues>
+        guardIdentity={order.id}
+        title="上传订单附件"
+        open={uploadOpen}
+        onOpenChange={setUploadOpen}
+        modalProps={{
+          destroyOnHidden: true,
+          mask: { closable: false },
+          closable: !uploadStage,
+          keyboard: !uploadStage,
+        }}
+        submitter={{
+          searchConfig: { submitText: '上传' },
+          resetButtonProps: { disabled: Boolean(uploadStage) },
+        }}
+        onFinish={submitUpload}
+      >
+        <ProFormText
+          name="docType"
+          label="文档类型"
+          placeholder="如提单、发票、装箱单"
+          rules={[
+            { required: true, whitespace: true, message: '请输入文档类型' },
+            { max: 64, message: '文档类型最多64个字符' },
+          ]}
+          disabled={Boolean(uploadStage)}
+        />
+        <Form.Item
+          name="files"
+          label="附件文件"
+          valuePropName="fileList"
+          getValueFromEvent={(event) => event.fileList}
+          rules={[{ required: true, message: '请选择附件文件' }]}
+        >
+          <Upload.Dragger
+            name="attachment"
+            maxCount={1}
+            multiple={false}
+            disabled={Boolean(uploadStage)}
+            beforeUpload={(file) => {
+              if (file.size <= 0 || file.size > MAX_ATTACHMENT_SIZE) {
+                message.error(
+                  file.size <= 0 ? '不能上传空文件' : '单个附件不能超过100 MB',
+                );
+                return Upload.LIST_IGNORE;
+              }
+              return false;
+            }}
+          >
+            <p>
+              <UploadOutlined />
+            </p>
+            <p>点击或拖拽文件到此处</p>
+            <p>单个附件最大100 MB</p>
+          </Upload.Dragger>
+        </Form.Item>
+        {uploadStage && (
+          <>
+            <Progress percent={undefined} status="active" showInfo={false} />
+            <p role="status">{uploadStage}</p>
+          </>
+        )}
+        {uploadError && <Alert type="error" showIcon title={uploadError} />}
+      </GuardedModalForm>
+      <Modal
+        open={Boolean(preview)}
+        title={preview?.name}
+        onCancel={closePreview}
+        footer={null}
+        width="85vw"
+        destroyOnHidden
+      >
+        {preview?.type === 'image' && (
+          <img
+            src={preview.url}
+            alt={preview.name}
+            style={{
+              display: 'block',
+              maxWidth: '100%',
+              maxHeight: '75vh',
+              margin: '0 auto',
+            }}
+          />
+        )}
+        {preview?.type === 'pdf' && (
+          <iframe
+            src={preview.url}
+            title={preview.name}
+            sandbox=""
+            style={{ width: '100%', height: '75vh', border: 0 }}
+          />
+        )}
+      </Modal>
+    </>
+  );
+}
 
 export default AttachmentDrawer;

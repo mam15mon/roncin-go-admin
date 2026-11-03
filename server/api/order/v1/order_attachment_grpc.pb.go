@@ -20,6 +20,8 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	OrderAttachmentService_ListAttachments_FullMethodName           = "/order.v1.OrderAttachmentService/ListAttachments"
+	OrderAttachmentService_PrepareAttachmentUpload_FullMethodName   = "/order.v1.OrderAttachmentService/PrepareAttachmentUpload"
+	OrderAttachmentService_GetAttachmentAccess_FullMethodName       = "/order.v1.OrderAttachmentService/GetAttachmentAccess"
 	OrderAttachmentService_RegisterAttachment_FullMethodName        = "/order.v1.OrderAttachmentService/RegisterAttachment"
 	OrderAttachmentService_RemoveAttachmentReference_FullMethodName = "/order.v1.OrderAttachmentService/RemoveAttachmentReference"
 )
@@ -32,6 +34,10 @@ const (
 type OrderAttachmentServiceClient interface {
 	// ListAttachments 获取指定订单的附件列表。
 	ListAttachments(ctx context.Context, in *ListAttachmentsRequest, opts ...grpc.CallOption) (*ListAttachmentsResponse, error)
+	// PrepareAttachmentUpload 为当前订单准备附件上传。
+	PrepareAttachmentUpload(ctx context.Context, in *PrepareAttachmentUploadRequest, opts ...grpc.CallOption) (*PrepareAttachmentUploadResponse, error)
+	// GetAttachmentAccess 获取短期附件访问链接。
+	GetAttachmentAccess(ctx context.Context, in *GetAttachmentAccessRequest, opts ...grpc.CallOption) (*GetAttachmentAccessResponse, error)
 	// RegisterAttachment 注册订单附件。
 	RegisterAttachment(ctx context.Context, in *RegisterAttachmentRequest, opts ...grpc.CallOption) (*RegisterAttachmentResponse, error)
 	// RemoveAttachmentReference 解除订单附件引用。
@@ -50,6 +56,26 @@ func (c *orderAttachmentServiceClient) ListAttachments(ctx context.Context, in *
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListAttachmentsResponse)
 	err := c.cc.Invoke(ctx, OrderAttachmentService_ListAttachments_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderAttachmentServiceClient) PrepareAttachmentUpload(ctx context.Context, in *PrepareAttachmentUploadRequest, opts ...grpc.CallOption) (*PrepareAttachmentUploadResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PrepareAttachmentUploadResponse)
+	err := c.cc.Invoke(ctx, OrderAttachmentService_PrepareAttachmentUpload_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *orderAttachmentServiceClient) GetAttachmentAccess(ctx context.Context, in *GetAttachmentAccessRequest, opts ...grpc.CallOption) (*GetAttachmentAccessResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAttachmentAccessResponse)
+	err := c.cc.Invoke(ctx, OrderAttachmentService_GetAttachmentAccess_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -84,6 +110,10 @@ func (c *orderAttachmentServiceClient) RemoveAttachmentReference(ctx context.Con
 type OrderAttachmentServiceServer interface {
 	// ListAttachments 获取指定订单的附件列表。
 	ListAttachments(context.Context, *ListAttachmentsRequest) (*ListAttachmentsResponse, error)
+	// PrepareAttachmentUpload 为当前订单准备附件上传。
+	PrepareAttachmentUpload(context.Context, *PrepareAttachmentUploadRequest) (*PrepareAttachmentUploadResponse, error)
+	// GetAttachmentAccess 获取短期附件访问链接。
+	GetAttachmentAccess(context.Context, *GetAttachmentAccessRequest) (*GetAttachmentAccessResponse, error)
 	// RegisterAttachment 注册订单附件。
 	RegisterAttachment(context.Context, *RegisterAttachmentRequest) (*RegisterAttachmentResponse, error)
 	// RemoveAttachmentReference 解除订单附件引用。
@@ -100,6 +130,12 @@ type UnimplementedOrderAttachmentServiceServer struct{}
 
 func (UnimplementedOrderAttachmentServiceServer) ListAttachments(context.Context, *ListAttachmentsRequest) (*ListAttachmentsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListAttachments not implemented")
+}
+func (UnimplementedOrderAttachmentServiceServer) PrepareAttachmentUpload(context.Context, *PrepareAttachmentUploadRequest) (*PrepareAttachmentUploadResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PrepareAttachmentUpload not implemented")
+}
+func (UnimplementedOrderAttachmentServiceServer) GetAttachmentAccess(context.Context, *GetAttachmentAccessRequest) (*GetAttachmentAccessResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAttachmentAccess not implemented")
 }
 func (UnimplementedOrderAttachmentServiceServer) RegisterAttachment(context.Context, *RegisterAttachmentRequest) (*RegisterAttachmentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RegisterAttachment not implemented")
@@ -143,6 +179,42 @@ func _OrderAttachmentService_ListAttachments_Handler(srv interface{}, ctx contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(OrderAttachmentServiceServer).ListAttachments(ctx, req.(*ListAttachmentsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderAttachmentService_PrepareAttachmentUpload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PrepareAttachmentUploadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderAttachmentServiceServer).PrepareAttachmentUpload(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderAttachmentService_PrepareAttachmentUpload_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderAttachmentServiceServer).PrepareAttachmentUpload(ctx, req.(*PrepareAttachmentUploadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OrderAttachmentService_GetAttachmentAccess_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAttachmentAccessRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderAttachmentServiceServer).GetAttachmentAccess(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderAttachmentService_GetAttachmentAccess_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderAttachmentServiceServer).GetAttachmentAccess(ctx, req.(*GetAttachmentAccessRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -193,6 +265,14 @@ var OrderAttachmentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListAttachments",
 			Handler:    _OrderAttachmentService_ListAttachments_Handler,
+		},
+		{
+			MethodName: "PrepareAttachmentUpload",
+			Handler:    _OrderAttachmentService_PrepareAttachmentUpload_Handler,
+		},
+		{
+			MethodName: "GetAttachmentAccess",
+			Handler:    _OrderAttachmentService_GetAttachmentAccess_Handler,
 		},
 		{
 			MethodName: "RegisterAttachment",

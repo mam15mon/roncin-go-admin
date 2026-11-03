@@ -44,6 +44,7 @@
 | [Role Workspace Ownership](./role-workspace-ownership.md) | 角色库只归属系统管理/公司工作台、部门共享所属公司；写路径显式拒绝锚点、读路径显式失败、存量归一 | ✅ |
 | [Operating Company Commission Attribution](./operating-company-commission-attribution.md) | 系统管理仅管理公共资料与授权、公司持有经营数据；责任人公司归属、部门 Membership 与提成快照严格等值契约 | ✅ |
 | [DingTalk Directory Provisioning](./dingtalk-registration-approval.md) | 钉钉通讯录同步、待分配、逐人事务开通、租约与资料只读 | ✅ |
+| [Order Attachment OSS](./order-attachment-oss.md) | 订单附件上传授权、私有访问、共享引用与存储删除路由 | ✅ |
 | [Error Handling](./error-handling.md) | 领域错误与驱动错误映射 | ✅ |
 | [Quality Guidelines](./quality-guidelines.md) | 分层禁令、生成物、路由与权限范围、真实库验证及迁移测试时点 | ✅ |
 | [Logging Guidelines](./logging-guidelines.md) | 结构化日志与审计 | ✅ |

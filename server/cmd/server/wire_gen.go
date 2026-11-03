@@ -112,7 +112,12 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	orderLockUsecase := biz.NewOrderLockUsecase(orderLockRepo)
 	orderLockService := service.NewOrderLockService(orderLockUsecase)
 	orderAttachmentRepo := data.NewOrderAttachmentRepo(dataData)
-	orderAttachmentUsecase := biz.NewOrderAttachmentUsecase(orderAttachmentRepo)
+	orderAttachmentStorage, err := data.NewOrderAttachmentStorage(confData)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	orderAttachmentUsecase := biz.NewOrderAttachmentUsecase(orderAttachmentRepo, orderAttachmentStorage)
 	orderAttachmentService := service.NewOrderAttachmentService(orderAttachmentUsecase)
 	orderPersonnelRepo := data.NewOrderPersonnelRepo(dataData)
 	orderPersonnelUsecase := biz.NewOrderPersonnelUsecase(orderPersonnelRepo)
@@ -195,7 +200,8 @@ func wireApp(confServer *conf.Server, confData *conf.Data, security *conf.Securi
 	notificationWorker := server.NewNotificationWorker(notificationUsecase, logger, backgroundTaskScheduler)
 	dingTalkApprovalWorker := server.NewDingTalkApprovalWorker(dingTalkApprovalUsecase, logger, backgroundTaskScheduler)
 	objectDeletionRepo := data.NewObjectDeletionRepo(dataData)
-	objectDeletionUsecase := biz.NewObjectDeletionUsecase(backgroundTaskUsecase, objectDeletionRepo, enterpriseImageStorage)
+	objectStorageDeleter := data.NewObjectStorageDeleter(enterpriseImageStorage, orderAttachmentStorage)
+	objectDeletionUsecase := biz.NewObjectDeletionUsecase(backgroundTaskUsecase, objectDeletionRepo, objectStorageDeleter)
 	objectDeletionWorker := server.NewObjectDeletionWorker(objectDeletionUsecase, logger, backgroundTaskScheduler)
 	exchangeRateReminderRepo := data.NewExchangeRateReminderRepo(dataData)
 	exchangeRateReminderUsecase := biz.NewExchangeRateReminderUsecase(exchangeRateReminderRepo)

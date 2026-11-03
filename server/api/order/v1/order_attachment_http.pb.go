@@ -17,13 +17,19 @@ var _ = new(context.Context)
 
 const _ = http.SupportPackageIsVersion3
 
+const OperationOrderAttachmentServiceGetAttachmentAccess = "/order.v1.OrderAttachmentService/GetAttachmentAccess"
 const OperationOrderAttachmentServiceListAttachments = "/order.v1.OrderAttachmentService/ListAttachments"
+const OperationOrderAttachmentServicePrepareAttachmentUpload = "/order.v1.OrderAttachmentService/PrepareAttachmentUpload"
 const OperationOrderAttachmentServiceRegisterAttachment = "/order.v1.OrderAttachmentService/RegisterAttachment"
 const OperationOrderAttachmentServiceRemoveAttachmentReference = "/order.v1.OrderAttachmentService/RemoveAttachmentReference"
 
 type OrderAttachmentServiceHTTPServer interface {
+	// GetAttachmentAccess GetAttachmentAccess 获取短期附件访问链接。
+	GetAttachmentAccess(context.Context, *GetAttachmentAccessRequest) (*GetAttachmentAccessResponse, error)
 	// ListAttachments ListAttachments 获取指定订单的附件列表。
 	ListAttachments(context.Context, *ListAttachmentsRequest) (*ListAttachmentsResponse, error)
+	// PrepareAttachmentUpload PrepareAttachmentUpload 为当前订单准备附件上传。
+	PrepareAttachmentUpload(context.Context, *PrepareAttachmentUploadRequest) (*PrepareAttachmentUploadResponse, error)
 	// RegisterAttachment RegisterAttachment 注册订单附件。
 	RegisterAttachment(context.Context, *RegisterAttachmentRequest) (*RegisterAttachmentResponse, error)
 	// RemoveAttachmentReference RemoveAttachmentReference 解除订单附件引用。
@@ -33,6 +39,8 @@ type OrderAttachmentServiceHTTPServer interface {
 func RegisterOrderAttachmentServiceHTTPServer(s *http.Server, srv OrderAttachmentServiceHTTPServer) {
 	r := s.Route("/")
 	r.Handle("GET", "/api/v1/orders/{order_id}/attachments", _OrderAttachmentService_ListAttachments0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/orders/{order_id}/attachments/upload", _OrderAttachmentService_PrepareAttachmentUpload0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/orders/{order_id}/attachments/{id}/access", _OrderAttachmentService_GetAttachmentAccess0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders/{order_id}/attachments", _OrderAttachmentService_RegisterAttachment0_HTTP_Handler(srv))
 	r.Handle("DELETE", "/api/v1/orders/{order_id}/attachments/{id}", _OrderAttachmentService_RemoveAttachmentReference0_HTTP_Handler(srv))
 }
@@ -55,6 +63,50 @@ func _OrderAttachmentService_ListAttachments0_HTTP_Handler(srv OrderAttachmentSe
 			return err
 		}
 		reply := out.(*ListAttachmentsResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _OrderAttachmentService_PrepareAttachmentUpload0_HTTP_Handler(srv OrderAttachmentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in PrepareAttachmentUploadRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOrderAttachmentServicePrepareAttachmentUpload)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.PrepareAttachmentUpload(ctx, req.(*PrepareAttachmentUploadRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*PrepareAttachmentUploadResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _OrderAttachmentService_GetAttachmentAccess0_HTTP_Handler(srv OrderAttachmentServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetAttachmentAccessRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOrderAttachmentServiceGetAttachmentAccess)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetAttachmentAccess(ctx, req.(*GetAttachmentAccessRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetAttachmentAccessResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -104,8 +156,12 @@ func _OrderAttachmentService_RemoveAttachmentReference0_HTTP_Handler(srv OrderAt
 }
 
 type OrderAttachmentServiceHTTPClient interface {
+	// GetAttachmentAccess GetAttachmentAccess 获取短期附件访问链接。
+	GetAttachmentAccess(ctx context.Context, req *GetAttachmentAccessRequest, opts ...http.CallOption) (rsp *GetAttachmentAccessResponse, err error)
 	// ListAttachments ListAttachments 获取指定订单的附件列表。
 	ListAttachments(ctx context.Context, req *ListAttachmentsRequest, opts ...http.CallOption) (rsp *ListAttachmentsResponse, err error)
+	// PrepareAttachmentUpload PrepareAttachmentUpload 为当前订单准备附件上传。
+	PrepareAttachmentUpload(ctx context.Context, req *PrepareAttachmentUploadRequest, opts ...http.CallOption) (rsp *PrepareAttachmentUploadResponse, err error)
 	// RegisterAttachment RegisterAttachment 注册订单附件。
 	RegisterAttachment(ctx context.Context, req *RegisterAttachmentRequest, opts ...http.CallOption) (rsp *RegisterAttachmentResponse, err error)
 	// RemoveAttachmentReference RemoveAttachmentReference 解除订单附件引用。
@@ -120,6 +176,23 @@ func NewOrderAttachmentServiceHTTPClient(client *http.Client) OrderAttachmentSer
 	return &OrderAttachmentServiceHTTPClientImpl{client}
 }
 
+// GetAttachmentAccess GetAttachmentAccess 获取短期附件访问链接。
+func (c *OrderAttachmentServiceHTTPClientImpl) GetAttachmentAccess(ctx context.Context, in *GetAttachmentAccessRequest, opts ...http.CallOption) (*GetAttachmentAccessResponse, error) {
+	var out GetAttachmentAccessResponse
+	pattern := "/api/v1/orders/{order_id}/attachments/{id}/access"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationOrderAttachmentServiceGetAttachmentAccess),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 // ListAttachments ListAttachments 获取指定订单的附件列表。
 func (c *OrderAttachmentServiceHTTPClientImpl) ListAttachments(ctx context.Context, in *ListAttachmentsRequest, opts ...http.CallOption) (*ListAttachmentsResponse, error) {
 	var out ListAttachmentsResponse
@@ -131,6 +204,24 @@ func (c *OrderAttachmentServiceHTTPClientImpl) ListAttachments(ctx context.Conte
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// PrepareAttachmentUpload PrepareAttachmentUpload 为当前订单准备附件上传。
+func (c *OrderAttachmentServiceHTTPClientImpl) PrepareAttachmentUpload(ctx context.Context, in *PrepareAttachmentUploadRequest, opts ...http.CallOption) (*PrepareAttachmentUploadResponse, error) {
+	var out PrepareAttachmentUploadResponse
+	pattern := "/api/v1/orders/{order_id}/attachments/upload"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationOrderAttachmentServicePrepareAttachmentUpload),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

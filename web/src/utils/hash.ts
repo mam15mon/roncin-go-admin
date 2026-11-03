@@ -27,12 +27,17 @@ function rightRotate(value: number, amount: number): number {
 
 export function sha256(str: string): string {
   const ascii = unescape(encodeURIComponent(str));
+  return sha256Bytes(
+    Uint8Array.from(ascii, (character) => character.charCodeAt(0)),
+  );
+}
 
+/** 对原始字节计算 SHA-256，支持没有 Web Crypto 的局域网 HTTP 页面。 */
+export function sha256Bytes(bytes: Uint8Array): string {
   const mathPow = Math.pow;
   const maxWord = mathPow(2, 32);
   let result = '';
-  const words: number[] = [];
-  const asciiBitLength = ascii.length * 8;
+  const asciiBitLength = bytes.length * 8;
   const hash: number[] = [];
   const k: number[] = [];
   let primeCounter = 0;
@@ -48,18 +53,24 @@ export function sha256(str: string): string {
     }
   }
 
-  let paddedAscii = `${ascii}\x80`;
-  while ((paddedAscii.length % 64) - 56) paddedAscii += '\x00';
-
-  for (let i = 0; i < paddedAscii.length; i++) {
-    const code = paddedAscii.charCodeAt(i);
-    words[i >> 2] |= code << ((3 - (i % 4)) * 8);
-  }
-  words[words.length] = (asciiBitLength / maxWord) | 0;
-  words[words.length] = asciiBitLength;
-
-  for (let j = 0; j < words.length; j += 16) {
-    const w = words.slice(j, j + 16);
+  // 分块构造消息，避免把大附件再复制成整份填充字节和 number[]。
+  const blockCount = Math.ceil((bytes.length + 9) / 64);
+  for (let block = 0; block < blockCount; block++) {
+    const w: number[] = new Array(16).fill(0);
+    for (let offset = 0; offset < 64; offset++) {
+      const position = block * 64 + offset;
+      const byte =
+        position < bytes.length
+          ? bytes[position]
+          : position === bytes.length
+            ? 0x80
+            : 0;
+      w[offset >> 2] |= byte << ((3 - (offset % 4)) * 8);
+    }
+    if (block === blockCount - 1) {
+      w[14] = (asciiBitLength / maxWord) | 0;
+      w[15] = asciiBitLength;
+    }
     const workingHash = hash.slice(0, 8);
 
     for (let i = 0; i < 64; i++) {

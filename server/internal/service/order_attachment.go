@@ -49,16 +49,7 @@ func (s *OrderAttachmentService) RegisterAttachment(ctx context.Context, request
 	if err != nil {
 		return nil, biz.ErrOrderAttachmentInvalidArgument
 	}
-	input := &biz.OrderAttachment{
-		DocType:        request.GetDocType(),
-		IdempotencyKey: request.GetIdempotencyKey(),
-		FileName:       request.GetFileName(),
-		MIMEType:       request.GetMimeType(),
-		FileSize:       request.GetFileSize(),
-		ObjectKey:      request.GetObjectKey(),
-		Checksum:       request.GetChecksum(),
-	}
-	created, err := s.usecase.Register(ctx, principal.Organization.ID, principal.UserID, orderID, input)
+	created, err := s.usecase.Register(ctx, principal.Organization.ID, principal.UserID, orderID, request.GetUploadToken())
 	if err != nil {
 		return nil, err
 	}
@@ -120,3 +111,41 @@ func orderAttachmentToAPI(value *biz.OrderAttachment) *v1.OrderAttachment {
 }
 
 var _ v1.OrderAttachmentServiceServer = (*OrderAttachmentService)(nil)
+
+func (s *OrderAttachmentService) PrepareAttachmentUpload(ctx context.Context, request *v1.PrepareAttachmentUploadRequest) (*v1.PrepareAttachmentUploadResponse, error) {
+	principal, err := biz.RequirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	orderID, err := uuid.Parse(request.GetOrderId())
+	if err != nil {
+		return nil, biz.ErrOrderAttachmentInvalidArgument
+	}
+	upload, err := s.usecase.PrepareUpload(ctx, principal.Organization.ID, principal.UserID, orderID, &biz.OrderAttachment{
+		DocType: request.GetDocType(), FileName: request.GetFileName(), MIMEType: request.GetMimeType(), FileSize: request.GetFileSize(), Checksum: request.GetChecksum(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.PrepareAttachmentUploadResponse{Data: &v1.AttachmentUpload{UploadUrl: upload.UploadURL, UploadToken: upload.UploadToken, Headers: upload.Headers, ExpiresAt: upload.ExpiresAt.UTC().Format(time.RFC3339)}}), nil
+}
+
+func (s *OrderAttachmentService) GetAttachmentAccess(ctx context.Context, request *v1.GetAttachmentAccessRequest) (*v1.GetAttachmentAccessResponse, error) {
+	principal, err := biz.RequirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	orderID, err := uuid.Parse(request.GetOrderId())
+	if err != nil {
+		return nil, biz.ErrOrderAttachmentInvalidArgument
+	}
+	attachmentID, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, biz.ErrOrderAttachmentInvalidArgument
+	}
+	access, err := s.usecase.GetAccess(ctx, principal.Organization.ID, orderID, attachmentID, request.GetDownload())
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.GetAttachmentAccessResponse{Data: &v1.AttachmentAccess{Url: access.URL, ExpiresAt: access.ExpiresAt.UTC().Format(time.RFC3339)}}), nil
+}

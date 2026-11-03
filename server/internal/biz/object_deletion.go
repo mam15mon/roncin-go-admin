@@ -20,14 +20,20 @@ type ObjectDeletionRepo interface {
 	FindByTaskID(context.Context, uuid.UUID) (*ObjectDeletion, error)
 }
 
+// ObjectStorageDeleter 是删除消费者依赖的最小存储接口。
+type ObjectStorageDeleter interface {
+	Enabled() bool
+	Delete(context.Context, uuid.UUID, string) error
+}
+
 type ObjectDeletionUsecase struct {
 	tasks   *BackgroundTaskUsecase
 	repo    ObjectDeletionRepo
-	storage EnterpriseImageStorage
+	storage ObjectStorageDeleter
 	now     func() time.Time
 }
 
-func NewObjectDeletionUsecase(tasks *BackgroundTaskUsecase, repo ObjectDeletionRepo, storage EnterpriseImageStorage) *ObjectDeletionUsecase {
+func NewObjectDeletionUsecase(tasks *BackgroundTaskUsecase, repo ObjectDeletionRepo, storage ObjectStorageDeleter) *ObjectDeletionUsecase {
 	return &ObjectDeletionUsecase{tasks: tasks, repo: repo, storage: storage, now: time.Now}
 }
 

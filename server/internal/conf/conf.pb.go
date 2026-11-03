@@ -268,11 +268,12 @@ func (x *Server) GetGrpc() *Server_GRPC {
 }
 
 type Data struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Database      *Data_Database         `protobuf:"bytes,1,opt,name=database,proto3" json:"database,omitempty"`
-	ObjectStorage *Data_ObjectStorage    `protobuf:"bytes,3,opt,name=object_storage,json=objectStorage,proto3" json:"object_storage,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState   `protogen:"open.v1"`
+	OrderAttachmentOss *Data_OrderAttachmentOSS `protobuf:"bytes,4,opt,name=order_attachment_oss,json=orderAttachmentOss,proto3" json:"order_attachment_oss,omitempty"`
+	Database           *Data_Database           `protobuf:"bytes,1,opt,name=database,proto3" json:"database,omitempty"`
+	ObjectStorage      *Data_ObjectStorage      `protobuf:"bytes,3,opt,name=object_storage,json=objectStorage,proto3" json:"object_storage,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *Data) Reset() {
@@ -303,6 +304,13 @@ func (x *Data) ProtoReflect() protoreflect.Message {
 // Deprecated: Use Data.ProtoReflect.Descriptor instead.
 func (*Data) Descriptor() ([]byte, []int) {
 	return file_conf_v1_conf_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *Data) GetOrderAttachmentOss() *Data_OrderAttachmentOSS {
+	if x != nil {
+		return x.OrderAttachmentOss
+	}
+	return nil
 }
 
 func (x *Data) GetDatabase() *Data_Database {
@@ -688,6 +696,91 @@ func (x *Data_ObjectStorage) GetPathStyle() bool {
 	return false
 }
 
+// OrderAttachmentOSS 仅用于订单附件的阿里云 OSS 配置。
+type Data_OrderAttachmentOSS struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Enabled       bool                   `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Endpoint      string                 `protobuf:"bytes,2,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
+	Region        string                 `protobuf:"bytes,3,opt,name=region,proto3" json:"region,omitempty"`
+	Bucket        string                 `protobuf:"bytes,4,opt,name=bucket,proto3" json:"bucket,omitempty"`
+	AccessKey     string                 `protobuf:"bytes,5,opt,name=access_key,json=accessKey,proto3" json:"access_key,omitempty"`
+	SecretKey     string                 `protobuf:"bytes,6,opt,name=secret_key,json=secretKey,proto3" json:"secret_key,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Data_OrderAttachmentOSS) Reset() {
+	*x = Data_OrderAttachmentOSS{}
+	mi := &file_conf_v1_conf_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Data_OrderAttachmentOSS) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Data_OrderAttachmentOSS) ProtoMessage() {}
+
+func (x *Data_OrderAttachmentOSS) ProtoReflect() protoreflect.Message {
+	mi := &file_conf_v1_conf_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Data_OrderAttachmentOSS.ProtoReflect.Descriptor instead.
+func (*Data_OrderAttachmentOSS) Descriptor() ([]byte, []int) {
+	return file_conf_v1_conf_proto_rawDescGZIP(), []int{4, 2}
+}
+
+func (x *Data_OrderAttachmentOSS) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *Data_OrderAttachmentOSS) GetEndpoint() string {
+	if x != nil {
+		return x.Endpoint
+	}
+	return ""
+}
+
+func (x *Data_OrderAttachmentOSS) GetRegion() string {
+	if x != nil {
+		return x.Region
+	}
+	return ""
+}
+
+func (x *Data_OrderAttachmentOSS) GetBucket() string {
+	if x != nil {
+		return x.Bucket
+	}
+	return ""
+}
+
+func (x *Data_OrderAttachmentOSS) GetAccessKey() string {
+	if x != nil {
+		return x.AccessKey
+	}
+	return ""
+}
+
+func (x *Data_OrderAttachmentOSS) GetSecretKey() string {
+	if x != nil {
+		return x.SecretKey
+	}
+	return ""
+}
+
 type Security_Session struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	CookieName    string                 `protobuf:"bytes,1,opt,name=cookie_name,json=cookieName,proto3" json:"cookie_name,omitempty"`
@@ -700,7 +793,7 @@ type Security_Session struct {
 
 func (x *Security_Session) Reset() {
 	*x = Security_Session{}
-	mi := &file_conf_v1_conf_proto_msgTypes[10]
+	mi := &file_conf_v1_conf_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -712,7 +805,7 @@ func (x *Security_Session) String() string {
 func (*Security_Session) ProtoMessage() {}
 
 func (x *Security_Session) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_v1_conf_proto_msgTypes[10]
+	mi := &file_conf_v1_conf_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -772,7 +865,7 @@ type Security_DingTalk struct {
 
 func (x *Security_DingTalk) Reset() {
 	*x = Security_DingTalk{}
-	mi := &file_conf_v1_conf_proto_msgTypes[11]
+	mi := &file_conf_v1_conf_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -784,7 +877,7 @@ func (x *Security_DingTalk) String() string {
 func (*Security_DingTalk) ProtoMessage() {}
 
 func (x *Security_DingTalk) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_v1_conf_proto_msgTypes[11]
+	mi := &file_conf_v1_conf_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -868,7 +961,7 @@ type Security_Passkey struct {
 
 func (x *Security_Passkey) Reset() {
 	*x = Security_Passkey{}
-	mi := &file_conf_v1_conf_proto_msgTypes[12]
+	mi := &file_conf_v1_conf_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -880,7 +973,7 @@ func (x *Security_Passkey) String() string {
 func (*Security_Passkey) ProtoMessage() {}
 
 func (x *Security_Passkey) ProtoReflect() protoreflect.Message {
-	mi := &file_conf_v1_conf_proto_msgTypes[12]
+	mi := &file_conf_v1_conf_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -952,8 +1045,9 @@ const file_conf_v1_conf_proto_rawDesc = "" +
 	"\x04GRPC\x12\x18\n" +
 	"\anetwork\x18\x01 \x01(\tR\anetwork\x12\x12\n" +
 	"\x04addr\x18\x02 \x01(\tR\x04addr\x123\n" +
-	"\atimeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\atimeout\"\x8d\x05\n" +
-	"\x04Data\x122\n" +
+	"\atimeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\atimeout\"\x9c\a\n" +
+	"\x04Data\x12R\n" +
+	"\x14order_attachment_oss\x18\x04 \x01(\v2 .conf.v1.Data.OrderAttachmentOSSR\x12orderAttachmentOss\x122\n" +
 	"\bdatabase\x18\x01 \x01(\v2\x16.conf.v1.Data.DatabaseR\bdatabase\x12B\n" +
 	"\x0eobject_storage\x18\x03 \x01(\v2\x1b.conf.v1.Data.ObjectStorageR\robjectStorage\x1a\xaa\x02\n" +
 	"\bDatabase\x12\x16\n" +
@@ -974,7 +1068,16 @@ const file_conf_v1_conf_proto_rawDesc = "" +
 	"\n" +
 	"secret_key\x18\x06 \x01(\tR\tsecretKey\x12\x1d\n" +
 	"\n" +
-	"path_style\x18\a \x01(\bR\tpathStyleJ\x04\b\x02\x10\x03R\x05redis\"\xd9\x05\n" +
+	"path_style\x18\a \x01(\bR\tpathStyle\x1a\xb8\x01\n" +
+	"\x12OrderAttachmentOSS\x12\x18\n" +
+	"\aenabled\x18\x01 \x01(\bR\aenabled\x12\x1a\n" +
+	"\bendpoint\x18\x02 \x01(\tR\bendpoint\x12\x16\n" +
+	"\x06region\x18\x03 \x01(\tR\x06region\x12\x16\n" +
+	"\x06bucket\x18\x04 \x01(\tR\x06bucket\x12\x1d\n" +
+	"\n" +
+	"access_key\x18\x05 \x01(\tR\taccessKey\x12\x1d\n" +
+	"\n" +
+	"secret_key\x18\x06 \x01(\tR\tsecretKeyJ\x04\b\x02\x10\x03R\x05redis\"\xd9\x05\n" +
 	"\bSecurity\x123\n" +
 	"\asession\x18\x01 \x01(\v2\x19.conf.v1.Security.SessionR\asession\x126\n" +
 	"\bdingtalk\x18\x03 \x01(\v2\x1a.conf.v1.Security.DingTalkR\bdingtalk\x123\n" +
@@ -1013,22 +1116,23 @@ func file_conf_v1_conf_proto_rawDescGZIP() []byte {
 	return file_conf_v1_conf_proto_rawDescData
 }
 
-var file_conf_v1_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_conf_v1_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_conf_v1_conf_proto_goTypes = []any{
-	(*Bootstrap)(nil),           // 0: conf.v1.Bootstrap
-	(*Logging)(nil),             // 1: conf.v1.Logging
-	(*Telemetry)(nil),           // 2: conf.v1.Telemetry
-	(*Server)(nil),              // 3: conf.v1.Server
-	(*Data)(nil),                // 4: conf.v1.Data
-	(*Security)(nil),            // 5: conf.v1.Security
-	(*Server_HTTP)(nil),         // 6: conf.v1.Server.HTTP
-	(*Server_GRPC)(nil),         // 7: conf.v1.Server.GRPC
-	(*Data_Database)(nil),       // 8: conf.v1.Data.Database
-	(*Data_ObjectStorage)(nil),  // 9: conf.v1.Data.ObjectStorage
-	(*Security_Session)(nil),    // 10: conf.v1.Security.Session
-	(*Security_DingTalk)(nil),   // 11: conf.v1.Security.DingTalk
-	(*Security_Passkey)(nil),    // 12: conf.v1.Security.Passkey
-	(*durationpb.Duration)(nil), // 13: google.protobuf.Duration
+	(*Bootstrap)(nil),               // 0: conf.v1.Bootstrap
+	(*Logging)(nil),                 // 1: conf.v1.Logging
+	(*Telemetry)(nil),               // 2: conf.v1.Telemetry
+	(*Server)(nil),                  // 3: conf.v1.Server
+	(*Data)(nil),                    // 4: conf.v1.Data
+	(*Security)(nil),                // 5: conf.v1.Security
+	(*Server_HTTP)(nil),             // 6: conf.v1.Server.HTTP
+	(*Server_GRPC)(nil),             // 7: conf.v1.Server.GRPC
+	(*Data_Database)(nil),           // 8: conf.v1.Data.Database
+	(*Data_ObjectStorage)(nil),      // 9: conf.v1.Data.ObjectStorage
+	(*Data_OrderAttachmentOSS)(nil), // 10: conf.v1.Data.OrderAttachmentOSS
+	(*Security_Session)(nil),        // 11: conf.v1.Security.Session
+	(*Security_DingTalk)(nil),       // 12: conf.v1.Security.DingTalk
+	(*Security_Passkey)(nil),        // 13: conf.v1.Security.Passkey
+	(*durationpb.Duration)(nil),     // 14: google.protobuf.Duration
 }
 var file_conf_v1_conf_proto_depIdxs = []int32{
 	3,  // 0: conf.v1.Bootstrap.server:type_name -> conf.v1.Server
@@ -1038,20 +1142,21 @@ var file_conf_v1_conf_proto_depIdxs = []int32{
 	1,  // 4: conf.v1.Bootstrap.logging:type_name -> conf.v1.Logging
 	6,  // 5: conf.v1.Server.http:type_name -> conf.v1.Server.HTTP
 	7,  // 6: conf.v1.Server.grpc:type_name -> conf.v1.Server.GRPC
-	8,  // 7: conf.v1.Data.database:type_name -> conf.v1.Data.Database
-	9,  // 8: conf.v1.Data.object_storage:type_name -> conf.v1.Data.ObjectStorage
-	10, // 9: conf.v1.Security.session:type_name -> conf.v1.Security.Session
-	11, // 10: conf.v1.Security.dingtalk:type_name -> conf.v1.Security.DingTalk
-	12, // 11: conf.v1.Security.passkey:type_name -> conf.v1.Security.Passkey
-	13, // 12: conf.v1.Server.HTTP.timeout:type_name -> google.protobuf.Duration
-	13, // 13: conf.v1.Server.GRPC.timeout:type_name -> google.protobuf.Duration
-	13, // 14: conf.v1.Data.Database.connection_max_lifetime:type_name -> google.protobuf.Duration
-	13, // 15: conf.v1.Security.Session.ttl:type_name -> google.protobuf.Duration
-	16, // [16:16] is the sub-list for method output_type
-	16, // [16:16] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	10, // 7: conf.v1.Data.order_attachment_oss:type_name -> conf.v1.Data.OrderAttachmentOSS
+	8,  // 8: conf.v1.Data.database:type_name -> conf.v1.Data.Database
+	9,  // 9: conf.v1.Data.object_storage:type_name -> conf.v1.Data.ObjectStorage
+	11, // 10: conf.v1.Security.session:type_name -> conf.v1.Security.Session
+	12, // 11: conf.v1.Security.dingtalk:type_name -> conf.v1.Security.DingTalk
+	13, // 12: conf.v1.Security.passkey:type_name -> conf.v1.Security.Passkey
+	14, // 13: conf.v1.Server.HTTP.timeout:type_name -> google.protobuf.Duration
+	14, // 14: conf.v1.Server.GRPC.timeout:type_name -> google.protobuf.Duration
+	14, // 15: conf.v1.Data.Database.connection_max_lifetime:type_name -> google.protobuf.Duration
+	14, // 16: conf.v1.Security.Session.ttl:type_name -> google.protobuf.Duration
+	17, // [17:17] is the sub-list for method output_type
+	17, // [17:17] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_conf_v1_conf_proto_init() }
@@ -1065,7 +1170,7 @@ func file_conf_v1_conf_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_conf_v1_conf_proto_rawDesc), len(file_conf_v1_conf_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

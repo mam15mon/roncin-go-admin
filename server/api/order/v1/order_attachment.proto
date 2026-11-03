@@ -16,6 +16,18 @@ service OrderAttachmentService {
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/attachments"};
   }
 
+  // PrepareAttachmentUpload 为当前订单准备附件上传。
+  rpc PrepareAttachmentUpload(PrepareAttachmentUploadRequest) returns (PrepareAttachmentUploadResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "attachment.register" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/orders/{order_id}/attachments/upload" body: "*"};
+  }
+
+  // GetAttachmentAccess 获取短期附件访问链接。
+  rpc GetAttachmentAccess(GetAttachmentAccessRequest) returns (GetAttachmentAccessResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "attachment.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/orders/{order_id}/attachments/{id}/access"};
+  }
+
   // RegisterAttachment 注册订单附件。
   rpc RegisterAttachment(RegisterAttachmentRequest) returns (RegisterAttachmentResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "attachment.register" scope: DATA_SCOPE_ORGANIZATION};
@@ -59,13 +71,9 @@ message ListAttachmentsRequest {
 // RegisterAttachmentRequest 注册订单附件请求。
 message RegisterAttachmentRequest {
   string order_id = 1 [(google.api.field_behavior) = REQUIRED];
-  string doc_type = 2 [(google.api.field_behavior) = REQUIRED];
-  string idempotency_key = 3 [(google.api.field_behavior) = REQUIRED];
-  string file_name = 4 [(google.api.field_behavior) = REQUIRED];
-  string mime_type = 5 [(google.api.field_behavior) = REQUIRED];
-  int64 file_size = 6 [(google.api.field_behavior) = REQUIRED];
-  string object_key = 7 [(google.api.field_behavior) = REQUIRED];
-  optional string checksum = 8;
+  reserved 2 to 8;
+  reserved "doc_type", "idempotency_key", "file_name", "mime_type", "file_size", "object_key", "checksum";
+  string upload_token = 9 [(google.api.field_behavior) = REQUIRED];
 }
 
 // RegisterAttachmentResponse 单条订单附件响应。
@@ -98,4 +106,50 @@ message RemoveAttachmentReferenceResponse {
   int32 code = 2;
   string message = 3;
   string trace_id = 4;
+}
+
+// PrepareAttachmentUploadRequest 描述即将上传的单个文件。
+message PrepareAttachmentUploadRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string doc_type = 2 [(google.api.field_behavior) = REQUIRED];
+  string file_name = 3 [(google.api.field_behavior) = REQUIRED];
+  string mime_type = 4 [(google.api.field_behavior) = REQUIRED];
+  int64 file_size = 5 [(google.api.field_behavior) = REQUIRED];
+  string checksum = 6 [(google.api.field_behavior) = REQUIRED];
+}
+
+// AttachmentUpload 包含直传地址与服务端登记凭证。
+message AttachmentUpload {
+  string upload_url = 1;
+  string upload_token = 2;
+  map<string, string> headers = 3;
+  string expires_at = 4;
+}
+
+message PrepareAttachmentUploadResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  AttachmentUpload data = 4;
+  string trace_id = 5;
+}
+
+message GetAttachmentAccessRequest {
+  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+  bool download = 3;
+}
+
+// AttachmentAccess 是短期有效的私有对象访问地址。
+message AttachmentAccess {
+  string url = 1;
+  string expires_at = 2;
+}
+
+message GetAttachmentAccessResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  AttachmentAccess data = 4;
+  string trace_id = 5;
 }

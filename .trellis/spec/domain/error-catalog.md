@@ -10,32 +10,44 @@
 - 「中文消息」列为定义处的静态消息；同一错误码多处定义时逐行列出全部消息。含 `%s` 的为动态模板（`fmt.Sprintf` 或字符串拼接），完全动态（变量传参）时记为「（动态消息）」。
 - 「关联 proto ErrorReason」列仅在错误码经 `reasonFromProto(...)` 关联 `server/api/**/error_reason.proto` 枚举时填写。
 - 分组按定义文件所属业务域（同一错误码出现在多个业务域时在各域分别列出），组内按错误码排序；「定义位置」为 `server/internal/biz/` 下的文件名。
-- 当前共 354 个唯一错误码，356 条目录记录。
+- 当前共 404 个唯一错误码，406 条目录记录。
 
 ## 汇总
 
 | 业务域 | 错误码数 |
 | --- | --- |
-| 订单 | 103 |
+| 订单 | 119 |
 | 单证 | 29 |
-| 财务 | 83 |
-| 提成 | 37 |
+| 财务 | 85 |
+| 提成 | 40 |
 | 往来单位 | 34 |
-| 权限 | 44 |
-| 平台 | 26 |
+| 权限 | 48 |
+| 平台 | 51 |
 
 ## 订单
 
 | 错误码 | 语义（HTTP 类别） | 中文消息 | 定义位置 | 关联 proto ErrorReason |
 | --- | --- | --- | --- | --- |
-| FEE_SUPPLEMENT_APPROVER_UNAVAILABLE | 409 Conflict | 当前没有具备订单直接解锁资格的审批人，请先配置审批资格 | order_fee_supplement.go | — |
+| FEE_CORRECTION_CONFLICT | 409 Conflict | 费用更正已被更新或预览已过期，请刷新后重试 | order_fee_correction.go | — |
+| FEE_CORRECTION_INVALID | 400 Bad Request | 费用更正参数不合法 | order_fee_correction.go | — |
+| FEE_CORRECTION_NOT_FOUND | 404 Not Found | 费用更正申请不存在 | order_fee_correction.go | — |
+| FEE_CORRECTION_PENDING | 409 Conflict | 存在待审核补录或费用更正，请先处理 | order_fee_correction.go | — |
+| FEE_CORRECTION_PROTECTED | 409 Conflict | 更正费用及其来源必须保留，请通过费用更正处理 | order_fee_correction.go | — |
+| FEE_CORRECTION_SOURCE_INVALID | 409 Conflict | 原费用已被更正，请选择当前有效费用 | order_fee_correction.go | — |
+| FEE_REVIEW_CONFLICT | 409 Conflict | 费用或审核已被更新，请刷新后重试 | order_fee_review.go | — |
+| FEE_REVIEW_FORBIDDEN | 403 Forbidden | 没有覆盖该订单组织的费用审核权限 | order_fee_review.go | — |
+| FEE_REVIEW_FROZEN | 409 Conflict | 费用审核中或已批准，不能直接修改；请撤回或按流程申请补录 | order_fee_review.go | — |
+| FEE_REVIEW_INVALID_ARGUMENT | 400 Bad Request | 费用审核参数不合法 | order_fee_review.go | — |
+| FEE_REVIEW_NOT_APPROVED | 409 Conflict | 整票费用尚未有效批准，不能建账或处理提成 | order_fee_review.go | — |
+| FEE_REVIEW_NO_APPROVER | 409 Conflict | 没有具备该订单费用审核资格的成员，请先配置角色权限 | order_fee_review.go | — |
+| FEE_REVIEW_PENDING_SUPPLEMENT | 409 Conflict | 存在待审核的费用补录，请先处理补录申请 | order_fee_review.go | — |
+| FEE_SUPPLEMENT_APPROVER_UNAVAILABLE | 409 Conflict | 当前没有具备费用审核权限且组织范围匹配的审批人，请先配置审批资格 | order_fee_supplement.go | — |
 | FEE_SUPPLEMENT_CANCEL_BLOCKED | 409 Conflict | 当前补录费用不满足专用撤销条件 | order_fee_supplement.go | — |
 | FEE_SUPPLEMENT_IDEMPOTENCY_CONFLICT | 409 Conflict | 同一幂等键的补录申请内容已变化，请刷新后重新发起 | order_fee_supplement.go | — |
-| FEE_SUPPLEMENT_NOT_APPLICABLE | 409 Conflict | 订单当前没有业务锁或财务锁，请使用普通费用新增入口 | order_fee_supplement.go | — |
+| FEE_SUPPLEMENT_NOT_APPLICABLE | 409 Conflict | 订单需先审核锁定，费用变更统一通过补审处理 | order_fee_supplement.go | — |
 | FEE_SUPPLEMENT_REQUEST_INVALID | 400 Bad Request | 补录费用申请参数不合法 | order_fee_supplement.go | — |
 | FEE_SUPPLEMENT_REQUEST_NOT_FOUND | 404 Not Found | 补录费用申请不存在 | order_fee_supplement.go | — |
 | FEE_SUPPLEMENT_TRANSITION | 409 Conflict | 当前补录申请状态不允许该操作 | order_fee_supplement.go | — |
-| LOCK_BASIS_CHANGED | 409 Conflict | （动态消息） | order_fee_supplement.go | — |
 | NUMBER_RULE_EXISTS | 409 Conflict | 单据类型的编号规则已存在 | orderconfig.go | — |
 | NUMBER_RULE_NOT_FOUND | 404 Not Found | 编号规则不存在 | orderconfig.go | — |
 | NUMBER_SEQUENCE_EXHAUSTED | 409 Conflict | 当前编号周期的序列已耗尽 | orderconfig.go | — |
@@ -45,11 +57,14 @@
 | ORDER_ABNORMAL_CASE_NOT_FOUND | 404 Not Found | 订单异常标记不存在 | order_abnormal_case.go | — |
 | ORDER_ABNORMAL_CASE_STATUS_CONFLICT | 409 Conflict | 异常状态已被并发修改 | order_abnormal_case.go | — |
 | ORDER_ALREADY_LOCKED | 409 Conflict | 订单已被锁定 | order_lock.go | — |
+| ORDER_ATTACHMENT_BUCKET_VERSIONING | 409 Conflict | 附件 Bucket 必须保持未开启版本控制，请检查 OSS 配置 | order_attachment.go | — |
 | ORDER_ATTACHMENT_EXISTS | 409 Conflict | 订单附件幂等键已存在 | order_attachment.go | — |
 | ORDER_ATTACHMENT_INVALID_ARGUMENT | 400 Bad Request | 订单附件字段不合法 | order_attachment.go | — |
 | ORDER_ATTACHMENT_NOT_FOUND | 404 Not Found | 订单附件不存在 | order_attachment.go | — |
+| ORDER_ATTACHMENT_STORAGE_UNAVAILABLE | 503 Service Unavailable | 订单附件 OSS 未配置或暂不可用 | order_attachment.go | — |
+| ORDER_ATTACHMENT_UPLOAD_INVALID | 400 Bad Request | 附件上传授权已失效或文件校验未通过，请重新上传 | order_attachment.go | — |
 | ORDER_BUSINESS_LOCKED | 409 Conflict | 订单已锁定，如需修改请先申请解锁 | order_lock.go | — |
-| ORDER_BUSINESS_UNSUPPORTED | 400 Bad Request | 当前仅支持海运出口订单 | order.go | — |
+| ORDER_BUSINESS_UNSUPPORTED | 400 Bad Request | 当前仅支持海运出口和空运出口订单 | order.go | — |
 | ORDER_CARGO_ITEM_INVALID_ARGUMENT | 400 Bad Request | 订单货物明细参数不合法 | order_cargo_item.go | — |
 | ORDER_CARGO_ITEM_NOT_FOUND | 404 Not Found | 订单货物明细不存在 | order_cargo_item.go | — |
 | ORDER_CLOSURE_BLOCKED | 409 Conflict | 订单尚未满足结案条件 | order.go | — |
@@ -61,10 +76,13 @@
 | ORDER_CONTAINER_NOT_FOUND | 404 Not Found | 订单集装箱不存在 | order_container.go | — |
 | ORDER_CONTAINER_SPEC_INVALID | 400 Bad Request | 集装箱规格不存在或已被禁用 | order_container.go | — |
 | ORDER_CUSTOMER_INVALID | 400 Bad Request | 订单客户必须是启用的客户角色 | order.go | — |
+| ORDER_CUSTOMER_STAFF_MISSING | 400 Bad Request | 客户档案未配置业务/客服人员，请先维护客户档案后再开单 | order.go | — |
+| ORDER_ETD_MISSING | 400 Bad Request | 请先填写订单 ETD 后再解析汇率 | order_fee.go | — |
 | ORDER_FEE_BILLING_UNIT_INVALID | 400 Bad Request | 计费单位不存在、已停用或不属于当前组织 | order_fee.go | — |
-| ORDER_FEE_BILL_OCCUPIED | 409 Conflict | 费用已进入未取消的账单，请先取消对应账单后再删除 | order_fee.go | — |
+| ORDER_FEE_BILL_OCCUPIED | 409 Conflict | 费用已建立账单，请先逐步回退至账单未建立后再修改或删除 | order_fee.go | — |
 | ORDER_FEE_CURRENCY_INVALID | 400 Bad Request | 币种必须是启用的 ISO 币种 | order_fee.go | — |
 | ORDER_FEE_EXCHANGE_RATE_OVERRIDE_FORBIDDEN | 403 Forbidden | 无权手工覆盖费用汇率 | order_fee.go | — |
+| ORDER_FEE_EXCHANGE_RATE_OVERRIDE_MISMATCH | 403 Forbidden | 订单应收与应付费用币种不一致或尚不完整，不能手工调整汇率 | order_fee.go | — |
 | ORDER_FEE_FINANCE_LOCKED | 409 Conflict | 订单已因确认或发放提成进入财务锁定，请通过提成调整记录处理后续差异 | order_fee.go | — |
 | ORDER_FEE_IDEMPOTENCY_CONFLICT | 409 Conflict | 费用请求幂等键已被使用 | order_fee.go | — |
 | ORDER_FEE_INVALID_ARGUMENT | 400 Bad Request | 订单费用字段不合法 | order_fee.go | — |
@@ -75,7 +93,7 @@
 | ORDER_FEE_SUPPLEMENT_DELETE_FORBIDDEN | 409 Conflict | 补录生成的费用不能普通删除，请前往补录申请专用撤销 | order_fee.go | — |
 | ORDER_FEE_VERSION_CONFLICT | 409 Conflict | 订单费用已被其他操作人修改，请刷新后重试 | order_fee.go | — |
 | ORDER_IDEMPOTENCY_CONFLICT | 409 Conflict | 订单请求幂等键已被其他请求使用 | order.go | — |
-| ORDER_INVALID_ARGUMENT | 400 Bad Request | 订单字段不合法 | order.go | — |
+| ORDER_INVALID_ARGUMENT | 400 Bad Request | 订单字段不合法<br>港口不存在或已停用，请刷新后重新选择<br>机场不存在或已停用，请刷新后重新选择<br>请填写 ETD（预计离港时间）<br>请填写 ETA（预计到港时间）<br>ETD（预计离港时间）格式不合法<br>ETA（预计到港时间）格式不合法<br>ETA（预计到港时间）不能早于 ETD（预计离港时间） | order.go、order_usecase.go | — |
 | ORDER_LOCK_ROLE_REQUIRED | 403 Forbidden | 当前用户未分配对应业务类型的订单锁定角色或数据范围不满足要求 | order_lock.go | — |
 | ORDER_NOT_FOUND | 404 Not Found | 订单不存在<br>解锁请求记录不存在 | order.go、order_lock.go | — |
 | ORDER_NOT_LOCKED | 409 Conflict | 订单当前未锁定 | order_lock.go | — |
@@ -140,7 +158,7 @@
 | SEA_DOCUMENT_AMENDMENT_EMPTY | 400 Bad Request | 改单内容与当前不可变版本没有差异 | sea_document_change.go | — |
 | SEA_DOCUMENT_BATCH_MEMBER_EXIT_BLOCKED | 409 Conflict | 共享主单批次存在其他成员订单，不能转为直单 | sea_master_bill.go | — |
 | SEA_DOCUMENT_CHANGE_BLOCKED | 409 Conflict | 单证存在不可自动调整的下游事实，当前操作已阻断 | sea_document_change.go | — |
-| SEA_DOCUMENT_INVALID_ARGUMENT | 400 Bad Request | 海运单证参数不合法<br>订单整单更新禁止直接提交分单变更，请使用专用单证命令<br>修改单证结构必须提供 expected_link_version<br>修改主单内容必须提供 expected_mbl_version | sea_document.go | — |
+| SEA_DOCUMENT_INVALID_ARGUMENT | 400 Bad Request | 海运单证参数不合法<br>更新分单必须提供分单标识、分单版本与关联版本<br>修改单证结构必须提供 expected_link_version<br>修改主单内容必须提供 expected_mbl_version | sea_document.go | — |
 | SEA_DOCUMENT_MODE_CHANGE_CONFLICT | 409 Conflict | 单证模式或版本已变化，请刷新后重试 | sea_document_change.go | — |
 | SEA_DOCUMENT_NO_ACTIVE_LINK | 400 Bad Request | 海运订单未关联活动主单 | sea_document.go | — |
 | SEA_DOCUMENT_STRUCTURE_CONFLICT | 409 Conflict | 单证结构状态或版本已被修改，请刷新后重试 | sea_document.go | — |
@@ -218,6 +236,7 @@
 | FINANCE_CASHFLOW_NOT_FOUND | 404 Not Found | 收付流水不存在 | finance_cashflow.go | — |
 | FINANCE_CASHFLOW_RATE_OVERRIDE_FORBIDDEN | 403 Forbidden | 无权手工覆盖资金流水汇率 | finance_cashflow.go | — |
 | FINANCE_CASHFLOW_VERSION_CONFLICT | 409 Conflict | 收付流水已被其他操作人修改 | finance_cashflow.go | — |
+| FINANCE_CORRECTION_SETTLEMENT_REQUIRED | 409 Conflict | 已更正费用仍有原账余额，请先完成更正内部对冲 | finance_settlement_projection.go | — |
 | FINANCE_CUSTOM_SETTING_CONFLICT | 409 Conflict | 财务自定义设置已被更新，请刷新后重试 | finance_custom_setting.go | — |
 | FINANCE_CUSTOM_SETTING_INVALID_ARGUMENT | 400 Bad Request | 财务自定义设置字段不合法 | finance_custom_setting.go | — |
 | FINANCE_INVOICE_BILL_INVALID | 409 Conflict | 所选账单必须已确认且未进入其他有效开票记录 | finance_invoice.go | — |
@@ -243,6 +262,7 @@
 | FINANCE_NETTING_TOO_MANY_BILLS | 400 Bad Request | 同一结算单位与账单币种下的候选账单数量超过上限，请缩小范围后重试 | finance_netting.go | — |
 | FINANCE_NETTING_TRANSITION | 409 Conflict | 当前对冲状态不允许执行该操作 | finance_netting.go | — |
 | FINANCE_NETTING_VERSION_CONFLICT | 409 Conflict | 对冲单已被其他操作人修改，请刷新后重试 | finance_netting.go | — |
+| FINANCE_SETTLEMENT_PROJECTION_INVALID | 409 Conflict | 结算分摊与账单行余额不一致，请先处理关联结算 | finance_settlement_projection.go | — |
 | FINANCE_VERIFICATION_BALANCE | 409 Conflict | 核销金额超过资金或账单未核销余额 | finance_verification.go | — |
 | FINANCE_VERIFICATION_IDEMPOTENCY | 409 Conflict | 幂等键已用于不同的核销请求 | finance_verification.go | — |
 | FINANCE_VERIFICATION_INVALID | 400 Bad Request | 核销参数不合法 | finance_verification.go | — |
@@ -258,6 +278,9 @@
 | --- | --- | --- | --- | --- |
 | COMMISSION_BASE_CURRENCY_MISMATCH | 409 Conflict | 补录费用本位币与历史提成快照本位币不一致，不支持跨本位币换算 | finance_commission.go | — |
 | COMMISSION_CALCULATION_VERSION_UNSUPPORTED | 409 Conflict | 提成计算版本不受支持，无法判定应付成本影响 | finance_commission.go | — |
+| COMMISSION_PAYMENT_EVIDENCE_REQUIRED | 409 Conflict | 缺少实际发放证据或存在旧独立执行记录，请先核对提成付款 | finance_commission.go | — |
+| COMMISSION_PENDING_FEE_SUPPLEMENT | 409 Conflict | 关联订单存在待审核补录，请处理后再确认或发放提成 | finance_commission.go | — |
+| COMMISSION_PENDING_INCREASE | 409 Conflict | 存在未执行的已确认增提，请先处理增提再反核销或反对冲 | finance_commission.go | — |
 | COMMISSION_SNAPSHOT_UNAVAILABLE | 409 Conflict | 历史提成复算快照不可用，无法处理锁后费用补录 | finance_commission.go | — |
 | FINANCE_COMMISSION_ADJUSTMENT_CANCEL_NOT_ALLOWED | 409 Conflict | 系统冲减建议确认或扣回后不允许取消 | finance_commission.go | ERROR_REASON_FINANCE_COMMISSION_ADJUSTMENT_CANCEL_NOT_ALLOWED |
 | FINANCE_COMMISSION_ADJUSTMENT_EXCEEDS | 409 Conflict | 冲减后的有效提成金额不能小于零 | finance_commission.go | ERROR_REASON_FINANCE_COMMISSION_ADJUSTMENT_EXCEEDS |
@@ -337,6 +360,10 @@
 
 | 错误码 | 语义（HTTP 类别） | 中文消息 | 定义位置 | 关联 proto ErrorReason |
 | --- | --- | --- | --- | --- |
+| ADMIN_BOOTSTRAP_IDENTITY_INVALID | 409 Conflict | 必须存在唯一初始管理员，请先核对管理员初始化状态 | admin_organization.go | — |
+| ADMIN_BOOTSTRAP_INACTIVE | 409 Conflict | 初始管理员账号已停用或待分配，请人工恢复后重跑 | admin_organization.go | — |
+| ADMIN_BOOTSTRAP_SYSTEM_INACTIVE | 409 Conflict | 系统工作台或其管理员资格不可用，请人工恢复或核对系统工作台配置 | admin_organization.go | — |
+| ADMIN_BOOTSTRAP_SYSTEM_REQUIRED | 409 Conflict | 初始管理员系统资格缺失，请先运行 bootstrap:admin 补齐后再创建公司 | admin_organization.go | — |
 | ADMIN_INVALID_ARGUMENT | 400 Bad Request | 管理参数不合法 | admin.go | — |
 | ADMIN_ORGANIZATION_BASE_CURRENCY_IMMUTABLE | 400 Bad Request | 组织本币一旦设定不可变更 | admin_organization.go | — |
 | ADMIN_ORGANIZATION_CODE_EXISTS | 409 Conflict | 组织编码已存在 | admin_organization.go | — |
@@ -354,21 +381,22 @@
 | ADMIN_ROLE_PROTECTED | 403 Forbidden | 系统管理员角色不允许删除 | admin_role.go | — |
 | ADMIN_USERNAME_EXISTS | 409 Conflict | 用户名已存在 | admin_user.go | — |
 | ADMIN_USER_AUTHORIZATION_REQUIRED | 400 Bad Request | 外部身份账号必须通过身份授权流程启用 | admin_user.go | — |
+| ADMIN_USER_INACTIVE | 409 Conflict | 用户账号已停用，请先通过开通流程恢复 | admin_user_membership.go | — |
 | ADMIN_USER_LAST_MEMBERSHIP | 400 Bad Request | 在职用户必须保留至少一个有效组织；请先加入新组织或办理离职 | admin_user.go | — |
-| ADMIN_USER_MEMBERSHIP_EXISTS | 409 Conflict | 用户已属于该组织 | admin_user_membership.go | — |
+| ADMIN_USER_MEMBERSHIP_EXISTS | 409 Conflict | 成员关系已存在（含停用记录），请通过已有成员关系编辑角色或恢复状态 | admin_user_membership.go | — |
 | ADMIN_USER_MEMBERSHIP_NOT_FOUND | 404 Not Found | 用户组织成员关系不存在 | admin_user_membership.go | — |
 | ADMIN_USER_NOT_FOUND | 404 Not Found | 用户不存在或不在当前工作台范围 | admin_user.go | — |
 | ADMIN_USER_SELF_DELETE | 400 Bad Request | 不能移除当前登录账号或为其办理离职 | admin_user.go | — |
 | ADMIN_USER_TERMINATION_REQUIRED | 400 Bad Request | 停用员工请使用办理离职 | admin_user.go | — |
 | AUTH_DINGTALK_AUTHORIZATION_PENDING | 403 Forbidden | 账号已登记，请联系管理员分配角色并启用账号 | auth.go | — |
-| AUTH_DINGTALK_CODE_INVALID | 401 Unauthorized | 钉钉登录凭证已失效，请重新扫码 | auth.go | — |
+| AUTH_DINGTALK_CODE_INVALID | 401 Unauthorized | 钉钉登录凭证已失效，请重新登录 | auth.go | — |
 | AUTH_DINGTALK_DISABLED | 503 Service Unavailable | 钉钉认证未启用 | auth.go | — |
 | AUTH_DINGTALK_LOGIN_FAILED | 401 Unauthorized | 钉钉登录失败 | auth.go | — |
 | AUTH_DINGTALK_NOT_REGISTERED | 401 Unauthorized | 当前人员尚未登记 | auth.go | — |
 | AUTH_DINGTALK_ORGANIZATION_MISMATCH | 403 Forbidden | 当前钉钉账号不属于本企业，无法登录 | auth.go | — |
 | AUTH_DINGTALK_PERMISSION_DENIED | 401 Unauthorized | 钉钉应用无权读取成员信息，请检查应用权限 | auth.go | — |
-| AUTH_DINGTALK_STATE_INVALID | 401 Unauthorized | 钉钉验证状态已失效，请重新扫码 | auth.go | — |
-| AUTH_INVALID_CREDENTIALS | 401 Unauthorized | 用户名或密码错误 | auth.go | — |
+| AUTH_DINGTALK_STATE_INVALID | 401 Unauthorized | 钉钉验证状态已失效，请重新登录 | auth.go | — |
+| AUTH_INVALID_CREDENTIALS | 401 Unauthorized | 账号或密码错误 | auth.go | — |
 | AUTH_ORGANIZATION_FORBIDDEN | 403 Forbidden | 无权访问该组织<br>无该组织的成员资格或已停用 | auth.go | — |
 | AUTH_ORGANIZATION_INVALID | 400 Bad Request | 所选组织无效或不可用 | auth.go | — |
 | AUTH_PERMISSION_DENIED | 403 Forbidden | 无权执行此操作 | auth.go | — |
@@ -385,6 +413,28 @@
 
 | 错误码 | 语义（HTTP 类别） | 中文消息 | 定义位置 | 关联 proto ErrorReason |
 | --- | --- | --- | --- | --- |
+| AIR_FLOW_DATA_MISSING | 400 Bad Request | （动态消息） | air_export.go | — |
+| AIR_WAYBILL_BLOCKED | 409 Conflict | 主单成员存在无权、锁定、终止或结案订单，不能修改共享资料 | air_export.go | — |
+| AIR_WAYBILL_CONFLICT | 409 Conflict | 已被更新，请刷新后重试 | air_export.go | — |
+| AIR_WAYBILL_EXISTS | 409 Conflict | 主单号已存在，请明确选择已有主单；分单号同主单内不可重复 | air_export.go | — |
+| AIR_WAYBILL_INVALID | 400 Bad Request | 空运主分单资料不合法<br>主运单号必须为 3 位航司前缀加 8 位号码<br>主运单号校验位不正确<br>请填写有效分运单号（最多 64 位）<br>请选择航司、不同的起运机场和目的机场<br>空运时间须包含时区<br>请填写预计起飞和到达时间<br>空运建票必须填写主单号及分单号<br>普通保存不能更换共享主单<br>共享运输资料请在主单页面预览后修改 | air_export.go | — |
+| AIR_WAYBILL_NOT_FOUND | 404 Not Found | 空运主单不存在 | air_export.go | — |
+| AIR_WEIGHT_CONFLICT | 409 Conflict | 重量依据已被更新，请刷新后重试 | air_weight.go | — |
+| AIR_WEIGHT_INVALID | 400 Bad Request | 空运重量参数不合法 | air_weight.go | — |
+| AIR_WEIGHT_NOT_FOUND | 404 Not Found | 空运重量对象不存在 | air_weight.go | — |
+| AIR_WEIGHT_REASON_REQUIRED | 400 Bad Request | 人工调整或缺少参考时必须填写确认依据 | air_weight.go | — |
+| AUTH_ACCOUNT_CONFLICT | 409 Conflict | 账号信息存在冲突，请使用钉钉扫码或联系管理员 | password_reset.go | — |
+| AUTH_PASSKEY_BUSY | 503 Service Unavailable | 通行密钥请求较多，请稍后重试 | passkey.go | — |
+| AUTH_PASSKEY_DISABLED | 503 Service Unavailable | 通行密钥尚未启用 | passkey.go | — |
+| AUTH_PASSKEY_EXISTS | 409 Conflict | 此通行密钥已经注册 | passkey.go | — |
+| AUTH_PASSKEY_INPUT_INVALID | 400 Bad Request | 通行密钥名称或验证内容不正确 | passkey.go | — |
+| AUTH_PASSKEY_INVALID | 401 Unauthorized | 通行密钥验证失败，请重新尝试 | passkey.go | — |
+| AUTH_PASSKEY_NOT_FOUND | 404 Not Found | 通行密钥不存在 | passkey.go | — |
+| AUTH_PASSKEY_ORIGIN_FORBIDDEN | 403 Forbidden | 当前访问地址不支持通行密钥，请使用已配置的安全站点 | passkey.go | — |
+| AUTH_PASSWORD_RESET_INVALID | 400 Bad Request | 验证码无效或已过期，请重新获取 | password_reset.go | — |
+| AUTH_PASSWORD_RESET_MOBILE | 400 Bad Request | 请输入有效的钉钉手机号 | password_reset.go | — |
+| AUTH_PASSWORD_RESET_PASSWORD | 400 Bad Request | 密码去除首尾空白后至少需要 12 位 | password_reset.go | — |
+| AUTH_PASSWORD_RESET_SEND_FAILED | 503 Service Unavailable | 暂时无法发送验证码，请稍后重试或使用钉钉扫码 | password_reset.go | — |
 | BACKGROUND_TASK_EXISTS | 409 Conflict | 后台任务已存在 | background_task.go | — |
 | BACKGROUND_TASK_INVALID_ARGUMENT | 400 Bad Request | 后台任务参数不合法 | background_task.go | — |
 | BACKGROUND_TASK_INVALID_STATUS | 400 Bad Request | 后台任务状态不合法 | background_task.go | — |
@@ -395,6 +445,7 @@
 | BUSINESS_TAG_INVALID_ARGUMENT | 400 Bad Request | 业务标签参数不合法 | business_tag.go | — |
 | CURRENCY_BASE_CANNOT_BE_DISABLED | 400 Bad Request | 本位币不可禁用 | reference_data.go | — |
 | CURRENCY_NOT_FOUND | 404 Not Found | 货币币种不存在 | reference_data.go | — |
+| DINGTALK_NOTIFICATION_SITE_INVALID | 400 Bad Request | 钉钉通知站点配置不合法，请检查回调地址配置 | notification.go | — |
 | ENTERPRISE_IMAGE_STORAGE_UNAVAILABLE | 503 Service Unavailable | 图片对象存储未配置 | enterprise_resource.go | — |
 | ENTERPRISE_RESOURCE_IMPORT_AMBIGUOUS | 409 Conflict | 导入行匹配到多个现有资源，请先修正企业名称或业务代码 | enterprise_resource.go | — |
 | ENTERPRISE_RESOURCE_INVALID_ARGUMENT | 400 Bad Request | 企业资源字段不合法 | enterprise_resource.go | — |
@@ -409,6 +460,8 @@
 | MASTER_DATA_NOT_FOUND | 404 Not Found | 主数据不存在 | masterdata.go | — |
 | MASTER_DATA_SYSTEM_REQUIRED | 403 Forbidden | 公共主数据只能在系统管理工作台维护 | masterdata.go | — |
 | NOTIFICATION_NOT_FOUND | 404 Not Found | 通知明细不存在 | notification.go | — |
+| NOTIFICATION_TEST_RECIPIENT_UNBOUND | 400 Bad Request | 当前账号未绑定钉钉 | notification_test_usecase.go | — |
+| NOTIFICATION_TEST_TYPE_INVALID | 400 Bad Request | 通知测试类型不受支持 | notification_test_usecase.go | — |
 | REFERENCE_DATA_INVALID_ARGUMENT | 400 Bad Request | 基础字典查询参数不合法 | reference_data.go | — |
 | WORKBENCH_INVALID_ARGUMENT | 400 Bad Request | 工作台查询参数不合法 | workbench.go | — |
 

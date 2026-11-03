@@ -39,7 +39,8 @@
 | 本人作业待办 | `workbench.go` | 本人协作订单费用/异常分页投影及摘要（见 `workbench-todos.md`） | lock 替代 fee.read；仅以无账单关联判断未建账；隐藏仍未处理的锁定订单待办 |
 | 订单辅助实体 | `order_cargo_item.go`、`order_container.go`、`order_personnel.go`、`order_attachment.go`、`order_abnormal_case.go`、`order_release_pod.go`、`orderconfig.go` | 货物、箱型、人员只读回填、附件、异常、放货；人员分工由订单核心创建/更新维护 | 辅助实体越权写他单；重新开放独立人员增删 |
 | 公司人员候选与资格 | data `company_personnel.go`，biz `PartnerRepo.ListAssignmentOptions` / `OrderRepo.ListPersonnelOptions` | 当前公司及部门/团队、同用户聚合、部门展示、岗位写入成员范围 | 穿透下属公司、候选与保存范围不一致 |
-| 数据清理 | `object_deletion.go` | 受控删除 | 物理删除不走用例 |
+| 订单附件文件 | `order_attachment.go`（见 `order-attachment-oss.md`） | OSS 上传授权、核验登记、短时访问与共享引用解除 | 任意外部对象登记；跨订单冒用；共享文件误删 |
+| 数据清理 | `object_deletion.go` | 按对象前缀选择存储、受控删除与失败重试 | 物理删除不走用例；未知前缀自动回退 |
 
 ## 维护约定
 

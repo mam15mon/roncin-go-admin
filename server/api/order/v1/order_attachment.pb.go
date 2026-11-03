@@ -211,17 +211,11 @@ func (x *ListAttachmentsRequest) GetOrderId() string {
 
 // RegisterAttachmentRequest 注册订单附件请求。
 type RegisterAttachmentRequest struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	OrderId        string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	DocType        string                 `protobuf:"bytes,2,opt,name=doc_type,json=docType,proto3" json:"doc_type,omitempty"`
-	IdempotencyKey string                 `protobuf:"bytes,3,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
-	FileName       string                 `protobuf:"bytes,4,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`
-	MimeType       string                 `protobuf:"bytes,5,opt,name=mime_type,json=mimeType,proto3" json:"mime_type,omitempty"`
-	FileSize       int64                  `protobuf:"varint,6,opt,name=file_size,json=fileSize,proto3" json:"file_size,omitempty"`
-	ObjectKey      string                 `protobuf:"bytes,7,opt,name=object_key,json=objectKey,proto3" json:"object_key,omitempty"`
-	Checksum       *string                `protobuf:"bytes,8,opt,name=checksum,proto3,oneof" json:"checksum,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	UploadToken   string                 `protobuf:"bytes,9,opt,name=upload_token,json=uploadToken,proto3" json:"upload_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *RegisterAttachmentRequest) Reset() {
@@ -261,51 +255,9 @@ func (x *RegisterAttachmentRequest) GetOrderId() string {
 	return ""
 }
 
-func (x *RegisterAttachmentRequest) GetDocType() string {
+func (x *RegisterAttachmentRequest) GetUploadToken() string {
 	if x != nil {
-		return x.DocType
-	}
-	return ""
-}
-
-func (x *RegisterAttachmentRequest) GetIdempotencyKey() string {
-	if x != nil {
-		return x.IdempotencyKey
-	}
-	return ""
-}
-
-func (x *RegisterAttachmentRequest) GetFileName() string {
-	if x != nil {
-		return x.FileName
-	}
-	return ""
-}
-
-func (x *RegisterAttachmentRequest) GetMimeType() string {
-	if x != nil {
-		return x.MimeType
-	}
-	return ""
-}
-
-func (x *RegisterAttachmentRequest) GetFileSize() int64 {
-	if x != nil {
-		return x.FileSize
-	}
-	return 0
-}
-
-func (x *RegisterAttachmentRequest) GetObjectKey() string {
-	if x != nil {
-		return x.ObjectKey
-	}
-	return ""
-}
-
-func (x *RegisterAttachmentRequest) GetChecksum() string {
-	if x != nil && x.Checksum != nil {
-		return *x.Checksum
+		return x.UploadToken
 	}
 	return ""
 }
@@ -586,6 +538,425 @@ func (x *RemoveAttachmentReferenceResponse) GetTraceId() string {
 	return ""
 }
 
+// PrepareAttachmentUploadRequest 描述即将上传的单个文件。
+type PrepareAttachmentUploadRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	DocType       string                 `protobuf:"bytes,2,opt,name=doc_type,json=docType,proto3" json:"doc_type,omitempty"`
+	FileName      string                 `protobuf:"bytes,3,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`
+	MimeType      string                 `protobuf:"bytes,4,opt,name=mime_type,json=mimeType,proto3" json:"mime_type,omitempty"`
+	FileSize      int64                  `protobuf:"varint,5,opt,name=file_size,json=fileSize,proto3" json:"file_size,omitempty"`
+	Checksum      string                 `protobuf:"bytes,6,opt,name=checksum,proto3" json:"checksum,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PrepareAttachmentUploadRequest) Reset() {
+	*x = PrepareAttachmentUploadRequest{}
+	mi := &file_order_v1_order_attachment_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PrepareAttachmentUploadRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PrepareAttachmentUploadRequest) ProtoMessage() {}
+
+func (x *PrepareAttachmentUploadRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_attachment_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PrepareAttachmentUploadRequest.ProtoReflect.Descriptor instead.
+func (*PrepareAttachmentUploadRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_attachment_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *PrepareAttachmentUploadRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *PrepareAttachmentUploadRequest) GetDocType() string {
+	if x != nil {
+		return x.DocType
+	}
+	return ""
+}
+
+func (x *PrepareAttachmentUploadRequest) GetFileName() string {
+	if x != nil {
+		return x.FileName
+	}
+	return ""
+}
+
+func (x *PrepareAttachmentUploadRequest) GetMimeType() string {
+	if x != nil {
+		return x.MimeType
+	}
+	return ""
+}
+
+func (x *PrepareAttachmentUploadRequest) GetFileSize() int64 {
+	if x != nil {
+		return x.FileSize
+	}
+	return 0
+}
+
+func (x *PrepareAttachmentUploadRequest) GetChecksum() string {
+	if x != nil {
+		return x.Checksum
+	}
+	return ""
+}
+
+// AttachmentUpload 包含直传地址与服务端登记凭证。
+type AttachmentUpload struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UploadUrl     string                 `protobuf:"bytes,1,opt,name=upload_url,json=uploadUrl,proto3" json:"upload_url,omitempty"`
+	UploadToken   string                 `protobuf:"bytes,2,opt,name=upload_token,json=uploadToken,proto3" json:"upload_token,omitempty"`
+	Headers       map[string]string      `protobuf:"bytes,3,rep,name=headers,proto3" json:"headers,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	ExpiresAt     string                 `protobuf:"bytes,4,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AttachmentUpload) Reset() {
+	*x = AttachmentUpload{}
+	mi := &file_order_v1_order_attachment_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AttachmentUpload) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AttachmentUpload) ProtoMessage() {}
+
+func (x *AttachmentUpload) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_attachment_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AttachmentUpload.ProtoReflect.Descriptor instead.
+func (*AttachmentUpload) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_attachment_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *AttachmentUpload) GetUploadUrl() string {
+	if x != nil {
+		return x.UploadUrl
+	}
+	return ""
+}
+
+func (x *AttachmentUpload) GetUploadToken() string {
+	if x != nil {
+		return x.UploadToken
+	}
+	return ""
+}
+
+func (x *AttachmentUpload) GetHeaders() map[string]string {
+	if x != nil {
+		return x.Headers
+	}
+	return nil
+}
+
+func (x *AttachmentUpload) GetExpiresAt() string {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return ""
+}
+
+type PrepareAttachmentUploadResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *AttachmentUpload      `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PrepareAttachmentUploadResponse) Reset() {
+	*x = PrepareAttachmentUploadResponse{}
+	mi := &file_order_v1_order_attachment_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PrepareAttachmentUploadResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PrepareAttachmentUploadResponse) ProtoMessage() {}
+
+func (x *PrepareAttachmentUploadResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_attachment_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PrepareAttachmentUploadResponse.ProtoReflect.Descriptor instead.
+func (*PrepareAttachmentUploadResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_attachment_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *PrepareAttachmentUploadResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *PrepareAttachmentUploadResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *PrepareAttachmentUploadResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *PrepareAttachmentUploadResponse) GetData() *AttachmentUpload {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *PrepareAttachmentUploadResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type GetAttachmentAccessRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OrderId       string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	Id            string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	Download      bool                   `protobuf:"varint,3,opt,name=download,proto3" json:"download,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAttachmentAccessRequest) Reset() {
+	*x = GetAttachmentAccessRequest{}
+	mi := &file_order_v1_order_attachment_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAttachmentAccessRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAttachmentAccessRequest) ProtoMessage() {}
+
+func (x *GetAttachmentAccessRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_attachment_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAttachmentAccessRequest.ProtoReflect.Descriptor instead.
+func (*GetAttachmentAccessRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_attachment_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetAttachmentAccessRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *GetAttachmentAccessRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *GetAttachmentAccessRequest) GetDownload() bool {
+	if x != nil {
+		return x.Download
+	}
+	return false
+}
+
+// AttachmentAccess 是短期有效的私有对象访问地址。
+type AttachmentAccess struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Url           string                 `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
+	ExpiresAt     string                 `protobuf:"bytes,2,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AttachmentAccess) Reset() {
+	*x = AttachmentAccess{}
+	mi := &file_order_v1_order_attachment_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AttachmentAccess) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AttachmentAccess) ProtoMessage() {}
+
+func (x *AttachmentAccess) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_attachment_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AttachmentAccess.ProtoReflect.Descriptor instead.
+func (*AttachmentAccess) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_attachment_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *AttachmentAccess) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
+func (x *AttachmentAccess) GetExpiresAt() string {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return ""
+}
+
+type GetAttachmentAccessResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *AttachmentAccess      `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAttachmentAccessResponse) Reset() {
+	*x = GetAttachmentAccessResponse{}
+	mi := &file_order_v1_order_attachment_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAttachmentAccessResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAttachmentAccessResponse) ProtoMessage() {}
+
+func (x *GetAttachmentAccessResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_attachment_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAttachmentAccessResponse.ProtoReflect.Descriptor instead.
+func (*GetAttachmentAccessResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_attachment_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *GetAttachmentAccessResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *GetAttachmentAccessResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *GetAttachmentAccessResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *GetAttachmentAccessResponse) GetData() *AttachmentAccess {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *GetAttachmentAccessResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
 var File_order_v1_order_attachment_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_attachment_proto_rawDesc = "" +
@@ -614,18 +985,11 @@ const file_order_v1_order_attachment_proto_rawDesc = "" +
 	"\f_uploaded_byB\v\n" +
 	"\t_asset_id\"8\n" +
 	"\x16ListAttachmentsRequest\x12\x1e\n" +
-	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\"\xc1\x02\n" +
+	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\"\xbb\x01\n" +
 	"\x19RegisterAttachmentRequest\x12\x1e\n" +
-	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x1e\n" +
-	"\bdoc_type\x18\x02 \x01(\tB\x03\xe0A\x02R\adocType\x12,\n" +
-	"\x0fidempotency_key\x18\x03 \x01(\tB\x03\xe0A\x02R\x0eidempotencyKey\x12 \n" +
-	"\tfile_name\x18\x04 \x01(\tB\x03\xe0A\x02R\bfileName\x12 \n" +
-	"\tmime_type\x18\x05 \x01(\tB\x03\xe0A\x02R\bmimeType\x12 \n" +
-	"\tfile_size\x18\x06 \x01(\x03B\x03\xe0A\x02R\bfileSize\x12\"\n" +
-	"\n" +
-	"object_key\x18\a \x01(\tB\x03\xe0A\x02R\tobjectKey\x12\x1f\n" +
-	"\bchecksum\x18\b \x01(\tH\x00R\bchecksum\x88\x01\x01B\v\n" +
-	"\t_checksum\"\xae\x01\n" +
+	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12&\n" +
+	"\fupload_token\x18\t \x01(\tB\x03\xe0A\x02R\vuploadTokenJ\x04\b\x02\x10\tR\bdoc_typeR\x0fidempotency_keyR\tfile_nameR\tmime_typeR\tfile_sizeR\n" +
+	"object_keyR\bchecksum\"\xae\x01\n" +
 	"\x1aRegisterAttachmentResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -645,9 +1009,48 @@ const file_order_v1_order_attachment_proto_rawDesc = "" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12\x19\n" +
-	"\btrace_id\x18\x04 \x01(\tR\atraceId2\xb2\x04\n" +
+	"\btrace_id\x18\x04 \x01(\tR\atraceId\"\xe7\x01\n" +
+	"\x1ePrepareAttachmentUploadRequest\x12\x1e\n" +
+	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x1e\n" +
+	"\bdoc_type\x18\x02 \x01(\tB\x03\xe0A\x02R\adocType\x12 \n" +
+	"\tfile_name\x18\x03 \x01(\tB\x03\xe0A\x02R\bfileName\x12 \n" +
+	"\tmime_type\x18\x04 \x01(\tB\x03\xe0A\x02R\bmimeType\x12 \n" +
+	"\tfile_size\x18\x05 \x01(\x03B\x03\xe0A\x02R\bfileSize\x12\x1f\n" +
+	"\bchecksum\x18\x06 \x01(\tB\x03\xe0A\x02R\bchecksum\"\xf2\x01\n" +
+	"\x10AttachmentUpload\x12\x1d\n" +
+	"\n" +
+	"upload_url\x18\x01 \x01(\tR\tuploadUrl\x12!\n" +
+	"\fupload_token\x18\x02 \x01(\tR\vuploadToken\x12A\n" +
+	"\aheaders\x18\x03 \x03(\v2'.order.v1.AttachmentUpload.HeadersEntryR\aheaders\x12\x1d\n" +
+	"\n" +
+	"expires_at\x18\x04 \x01(\tR\texpiresAt\x1a:\n" +
+	"\fHeadersEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xb4\x01\n" +
+	"\x1fPrepareAttachmentUploadResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12.\n" +
+	"\x04data\x18\x04 \x01(\v2\x1a.order.v1.AttachmentUploadR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"m\n" +
+	"\x1aGetAttachmentAccessRequest\x12\x1e\n" +
+	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
+	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12\x1a\n" +
+	"\bdownload\x18\x03 \x01(\bR\bdownload\"C\n" +
+	"\x10AttachmentAccess\x12\x10\n" +
+	"\x03url\x18\x01 \x01(\tR\x03url\x12\x1d\n" +
+	"\n" +
+	"expires_at\x18\x02 \x01(\tR\texpiresAt\"\xb0\x01\n" +
+	"\x1bGetAttachmentAccessResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12.\n" +
+	"\x04data\x18\x04 \x01(\v2\x1a.order.v1.AttachmentAccessR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId2\xb2\a\n" +
 	"\x16OrderAttachmentService\x12\x9e\x01\n" +
-	"\x0fListAttachments\x12 .order.v1.ListAttachmentsRequest\x1a!.order.v1.ListAttachmentsResponse\"F\x82\xb5\x18\x15\b\x04\x1a\x0fattachment.read \x02\x82\xd3\xe4\x93\x02'\x12%/api/v1/orders/{order_id}/attachments\x12\xae\x01\n" +
+	"\x0fListAttachments\x12 .order.v1.ListAttachmentsRequest\x1a!.order.v1.ListAttachmentsResponse\"F\x82\xb5\x18\x15\b\x04\x1a\x0fattachment.read \x02\x82\xd3\xe4\x93\x02'\x12%/api/v1/orders/{order_id}/attachments\x12\xc4\x01\n" +
+	"\x17PrepareAttachmentUpload\x12(.order.v1.PrepareAttachmentUploadRequest\x1a).order.v1.PrepareAttachmentUploadResponse\"T\x82\xb5\x18\x19\b\x04\x1a\x13attachment.register \x02\x82\xd3\xe4\x93\x021:\x01*\",/api/v1/orders/{order_id}/attachments/upload\x12\xb6\x01\n" +
+	"\x13GetAttachmentAccess\x12$.order.v1.GetAttachmentAccessRequest\x1a%.order.v1.GetAttachmentAccessResponse\"R\x82\xb5\x18\x15\b\x04\x1a\x0fattachment.read \x02\x82\xd3\xe4\x93\x023\x121/api/v1/orders/{order_id}/attachments/{id}/access\x12\xae\x01\n" +
 	"\x12RegisterAttachment\x12#.order.v1.RegisterAttachmentRequest\x1a$.order.v1.RegisterAttachmentResponse\"M\x82\xb5\x18\x19\b\x04\x1a\x13attachment.register \x02\x82\xd3\xe4\x93\x02*:\x01*\"%/api/v1/orders/{order_id}/attachments\x12\xc5\x01\n" +
 	"\x19RemoveAttachmentReference\x12*.order.v1.RemoveAttachmentReferenceRequest\x1a+.order.v1.RemoveAttachmentReferenceResponse\"O\x82\xb5\x18\x19\b\x04\x1a\x13attachment.register \x02\x82\xd3\xe4\x93\x02,**/api/v1/orders/{order_id}/attachments/{id}B:Z8github.com/roncin/roncin-go-admin/server/api/order/v1;v1b\x06proto3"
 
@@ -663,7 +1066,7 @@ func file_order_v1_order_attachment_proto_rawDescGZIP() []byte {
 	return file_order_v1_order_attachment_proto_rawDescData
 }
 
-var file_order_v1_order_attachment_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_order_v1_order_attachment_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_order_v1_order_attachment_proto_goTypes = []any{
 	(*OrderAttachment)(nil),                   // 0: order.v1.OrderAttachment
 	(*ListAttachmentsRequest)(nil),            // 1: order.v1.ListAttachmentsRequest
@@ -672,21 +1075,35 @@ var file_order_v1_order_attachment_proto_goTypes = []any{
 	(*ListAttachmentsResponse)(nil),           // 4: order.v1.ListAttachmentsResponse
 	(*RemoveAttachmentReferenceRequest)(nil),  // 5: order.v1.RemoveAttachmentReferenceRequest
 	(*RemoveAttachmentReferenceResponse)(nil), // 6: order.v1.RemoveAttachmentReferenceResponse
+	(*PrepareAttachmentUploadRequest)(nil),    // 7: order.v1.PrepareAttachmentUploadRequest
+	(*AttachmentUpload)(nil),                  // 8: order.v1.AttachmentUpload
+	(*PrepareAttachmentUploadResponse)(nil),   // 9: order.v1.PrepareAttachmentUploadResponse
+	(*GetAttachmentAccessRequest)(nil),        // 10: order.v1.GetAttachmentAccessRequest
+	(*AttachmentAccess)(nil),                  // 11: order.v1.AttachmentAccess
+	(*GetAttachmentAccessResponse)(nil),       // 12: order.v1.GetAttachmentAccessResponse
+	nil,                                       // 13: order.v1.AttachmentUpload.HeadersEntry
 }
 var file_order_v1_order_attachment_proto_depIdxs = []int32{
-	0, // 0: order.v1.RegisterAttachmentResponse.data:type_name -> order.v1.OrderAttachment
-	0, // 1: order.v1.ListAttachmentsResponse.data:type_name -> order.v1.OrderAttachment
-	1, // 2: order.v1.OrderAttachmentService.ListAttachments:input_type -> order.v1.ListAttachmentsRequest
-	2, // 3: order.v1.OrderAttachmentService.RegisterAttachment:input_type -> order.v1.RegisterAttachmentRequest
-	5, // 4: order.v1.OrderAttachmentService.RemoveAttachmentReference:input_type -> order.v1.RemoveAttachmentReferenceRequest
-	4, // 5: order.v1.OrderAttachmentService.ListAttachments:output_type -> order.v1.ListAttachmentsResponse
-	3, // 6: order.v1.OrderAttachmentService.RegisterAttachment:output_type -> order.v1.RegisterAttachmentResponse
-	6, // 7: order.v1.OrderAttachmentService.RemoveAttachmentReference:output_type -> order.v1.RemoveAttachmentReferenceResponse
-	5, // [5:8] is the sub-list for method output_type
-	2, // [2:5] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	0,  // 0: order.v1.RegisterAttachmentResponse.data:type_name -> order.v1.OrderAttachment
+	0,  // 1: order.v1.ListAttachmentsResponse.data:type_name -> order.v1.OrderAttachment
+	13, // 2: order.v1.AttachmentUpload.headers:type_name -> order.v1.AttachmentUpload.HeadersEntry
+	8,  // 3: order.v1.PrepareAttachmentUploadResponse.data:type_name -> order.v1.AttachmentUpload
+	11, // 4: order.v1.GetAttachmentAccessResponse.data:type_name -> order.v1.AttachmentAccess
+	1,  // 5: order.v1.OrderAttachmentService.ListAttachments:input_type -> order.v1.ListAttachmentsRequest
+	7,  // 6: order.v1.OrderAttachmentService.PrepareAttachmentUpload:input_type -> order.v1.PrepareAttachmentUploadRequest
+	10, // 7: order.v1.OrderAttachmentService.GetAttachmentAccess:input_type -> order.v1.GetAttachmentAccessRequest
+	2,  // 8: order.v1.OrderAttachmentService.RegisterAttachment:input_type -> order.v1.RegisterAttachmentRequest
+	5,  // 9: order.v1.OrderAttachmentService.RemoveAttachmentReference:input_type -> order.v1.RemoveAttachmentReferenceRequest
+	4,  // 10: order.v1.OrderAttachmentService.ListAttachments:output_type -> order.v1.ListAttachmentsResponse
+	9,  // 11: order.v1.OrderAttachmentService.PrepareAttachmentUpload:output_type -> order.v1.PrepareAttachmentUploadResponse
+	12, // 12: order.v1.OrderAttachmentService.GetAttachmentAccess:output_type -> order.v1.GetAttachmentAccessResponse
+	3,  // 13: order.v1.OrderAttachmentService.RegisterAttachment:output_type -> order.v1.RegisterAttachmentResponse
+	6,  // 14: order.v1.OrderAttachmentService.RemoveAttachmentReference:output_type -> order.v1.RemoveAttachmentReferenceResponse
+	10, // [10:15] is the sub-list for method output_type
+	5,  // [5:10] is the sub-list for method input_type
+	5,  // [5:5] is the sub-list for extension type_name
+	5,  // [5:5] is the sub-list for extension extendee
+	0,  // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_order_attachment_proto_init() }
@@ -695,14 +1112,13 @@ func file_order_v1_order_attachment_proto_init() {
 		return
 	}
 	file_order_v1_order_attachment_proto_msgTypes[0].OneofWrappers = []any{}
-	file_order_v1_order_attachment_proto_msgTypes[2].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_order_v1_order_attachment_proto_rawDesc), len(file_order_v1_order_attachment_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

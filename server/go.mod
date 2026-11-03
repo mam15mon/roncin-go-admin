@@ -4,6 +4,7 @@ go 1.26.10
 
 require (
 	entgo.io/ent v0.14.6
+	github.com/aliyun/alibabacloud-oss-go-sdk-v2 v1.6.1
 	github.com/aws/aws-sdk-go-v2 v1.45.1
 	github.com/aws/aws-sdk-go-v2/config v1.33.1
 	github.com/aws/aws-sdk-go-v2/credentials v1.20.1
@@ -81,6 +82,7 @@ require (
 	go.opentelemetry.io/proto/otlp v1.11.0 // indirect
 	golang.org/x/mod v0.41.0 // indirect
 	golang.org/x/telemetry v0.0.0-20260811182544-a038080d80e5 // indirect
+	golang.org/x/time v0.4.0 // indirect
 	golang.org/x/tools v0.49.0 // indirect
 	golang.org/x/tools/go/packages/packagestest v0.1.1-deprecated // indirect
 	golang.org/x/vuln v1.1.2 // indirect

@@ -5754,6 +5754,31 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.RegisterAttachmentResponse'
+    /api/v1/orders/{orderId}/attachments/upload:
+        post:
+            tags:
+                - OrderAttachmentService
+            description: PrepareAttachmentUpload 为当前订单准备附件上传。
+            operationId: OrderAttachmentService_PrepareAttachmentUpload
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/order.v1.PrepareAttachmentUploadRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.PrepareAttachmentUploadResponse'
     /api/v1/orders/{orderId}/attachments/{id}:
         delete:
             tags:
@@ -5778,6 +5803,34 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/order.v1.RemoveAttachmentReferenceResponse'
+    /api/v1/orders/{orderId}/attachments/{id}/access:
+        get:
+            tags:
+                - OrderAttachmentService
+            description: GetAttachmentAccess 获取短期附件访问链接。
+            operationId: OrderAttachmentService_GetAttachmentAccess
+            parameters:
+                - name: orderId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: download
+                  in: query
+                  schema:
+                    type: boolean
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/order.v1.GetAttachmentAccessResponse'
     /api/v1/orders/{orderId}/cargo-items:
         get:
             tags:
@@ -17208,6 +17261,28 @@ components:
                     $ref: '#/components/schemas/order.v1.OrderFeeCorrectionRequestData'
                 traceId:
                     type: string
+        order.v1.AttachmentAccess:
+            type: object
+            properties:
+                url:
+                    type: string
+                expiresAt:
+                    type: string
+            description: AttachmentAccess 是短期有效的私有对象访问地址。
+        order.v1.AttachmentUpload:
+            type: object
+            properties:
+                uploadUrl:
+                    type: string
+                uploadToken:
+                    type: string
+                headers:
+                    type: object
+                    additionalProperties:
+                        type: string
+                expiresAt:
+                    type: string
+            description: AttachmentUpload 包含直传地址与服务端登记凭证。
         order.v1.BatchAssignOrderFeeTagsRequest:
             required:
                 - orderId
@@ -18156,6 +18231,20 @@ components:
                 historyTotal:
                     type: integer
                     format: int32
+        order.v1.GetAttachmentAccessResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/order.v1.AttachmentAccess'
+                traceId:
+                    type: string
         order.v1.GetOrderFeeCorrectionRequestResponse:
             type: object
             properties:
@@ -20384,6 +20473,43 @@ components:
                     $ref: '#/components/schemas/order.v1.OrderLockStateData'
                 request:
                     $ref: '#/components/schemas/order.v1.OrderUnlockRequestData'
+        order.v1.PrepareAttachmentUploadRequest:
+            required:
+                - orderId
+                - docType
+                - fileName
+                - mimeType
+                - fileSize
+                - checksum
+            type: object
+            properties:
+                orderId:
+                    type: string
+                docType:
+                    type: string
+                fileName:
+                    type: string
+                mimeType:
+                    type: string
+                fileSize:
+                    type: string
+                checksum:
+                    type: string
+            description: PrepareAttachmentUploadRequest 描述即将上传的单个文件。
+        order.v1.PrepareAttachmentUploadResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/order.v1.AttachmentUpload'
+                traceId:
+                    type: string
         order.v1.PreviewAirMasterWaybillUpdateRequest:
             type: object
             properties:
@@ -20735,29 +20861,12 @@ components:
         order.v1.RegisterAttachmentRequest:
             required:
                 - orderId
-                - docType
-                - idempotencyKey
-                - fileName
-                - mimeType
-                - fileSize
-                - objectKey
+                - uploadToken
             type: object
             properties:
                 orderId:
                     type: string
-                docType:
-                    type: string
-                idempotencyKey:
-                    type: string
-                fileName:
-                    type: string
-                mimeType:
-                    type: string
-                fileSize:
-                    type: string
-                objectKey:
-                    type: string
-                checksum:
+                uploadToken:
                     type: string
             description: RegisterAttachmentRequest 注册订单附件请求。
         order.v1.RegisterAttachmentResponse:
