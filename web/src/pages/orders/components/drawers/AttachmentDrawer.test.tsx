@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import {
   api,
@@ -9,7 +9,7 @@ import {
 } from './AttachmentDrawer.fixtures';
 
 describe('订单附件上传', () => {
-  it('直接选文件上传，不要求手填技术字段，成功后刷新', async () => {
+  it('类型默认其他，直接选文件即可上传，成功后刷新', async () => {
     const { container } = await openDrawer();
     const file = await selectFile(container);
     expect(
@@ -18,7 +18,7 @@ describe('订单附件上传', () => {
     await submit();
     await waitFor(() => expect(api.register).toHaveBeenCalled());
     expect(api.prepare.mock.calls[0][1]).toMatchObject({
-      docType: '提单',
+      docType: '其他',
       fileName: '提单.pdf',
       fileSize: '3',
       checksum:
@@ -39,15 +39,29 @@ describe('订单附件上传', () => {
     await waitFor(() => expect(api.list.mock.calls.length).toBeGreaterThan(1));
   });
 
-  it('上传失败保留文件与表单，重试可成功', async () => {
+  it('从下拉选择类型，上传失败保留选择与文件，重试可成功', async () => {
     const { container } = await openDrawer();
     fetchMock.mockRejectedValueOnce(new Error('不可显示的签名 URL'));
     await selectFile(container);
+    fireEvent.mouseDown(screen.getByLabelText('文档类型'));
+    fireEvent.click(
+      await screen.findByText('发票', {
+        selector: '.ant-select-item-option-content',
+      }),
+    );
     await submit();
     expect(
       await screen.findByText('上传失败，文件和填写内容已保留，请重试。'),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText('文档类型')).toHaveValue('提单');
+    await waitFor(() =>
+      expect(
+        screen.getByLabelText('文档类型').closest('.ant-form-item'),
+      ).toBeVisible(),
+    );
+    expect(
+      screen.getByLabelText('文档类型').closest('.ant-form-item'),
+    ).toHaveTextContent('发票');
+    expect(api.prepare.mock.calls[0][1]).toMatchObject({ docType: '发票' });
     expect(api.register).not.toHaveBeenCalled();
     await submit();
     await waitFor(() => expect(api.register).toHaveBeenCalledTimes(1));

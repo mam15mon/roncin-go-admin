@@ -1,5 +1,6 @@
 import { renderWithApp } from '@root/tests/renderWithApp';
 import { act, fireEvent, screen } from '@testing-library/react';
+import { ConfigProvider } from 'antd';
 import { createRef } from 'react';
 import { afterEach, beforeEach, vi } from 'vitest';
 import AttachmentDrawer, { type AttachmentDrawerRef } from './AttachmentDrawer';
@@ -77,7 +78,9 @@ export async function openDrawer(
 ) {
   const ref = createRef<AttachmentDrawerRef>();
   const view = renderWithApp(
-    <AttachmentDrawer ref={ref} canRegister={canRegister} />,
+    <ConfigProvider theme={{ token: { motion: false } }}>
+      <AttachmentDrawer ref={ref} canRegister={canRegister} />
+    </ConfigProvider>,
   );
   await act(async () => ref.current?.open({ id: 'order-1', orderNo: 'SE001' }));
   await screen.findByText(expectedFileName, {}, { timeout: 5000 });
@@ -89,8 +92,7 @@ export async function selectFile(
   file = new File(['abc'], '提单.pdf', { type: 'application/pdf' }),
 ) {
   fireEvent.click(screen.getByRole('button', { name: /上传附件/ }));
-  const name = await screen.findByLabelText('文档类型', {}, { timeout: 5000 });
-  fireEvent.change(name, { target: { value: '提单' } });
+  await screen.findByLabelText('文档类型', {}, { timeout: 5000 });
   const input =
     document.querySelector('input[type="file"]') ??
     container.querySelector('input[type="file"]');

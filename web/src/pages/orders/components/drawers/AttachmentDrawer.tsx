@@ -1,6 +1,6 @@
 import { UploadOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { ProFormText } from '@ant-design/pro-components';
+import { ProFormSelect } from '@ant-design/pro-components';
 import type { UploadFile } from 'antd';
 import {
   Alert,
@@ -392,6 +392,7 @@ function AttachmentDrawerContent({
       <GuardedModalForm<UploadValues>
         guardIdentity={order.id}
         title="上传订单附件"
+        initialValues={{ docType: '其他' }}
         open={uploadOpen}
         onOpenChange={setUploadOpen}
         modalProps={{
@@ -406,14 +407,21 @@ function AttachmentDrawerContent({
         }}
         onFinish={submitUpload}
       >
-        <ProFormText
+        <ProFormSelect
           name="docType"
           label="文档类型"
-          placeholder="如提单、发票、装箱单"
-          rules={[
-            { required: true, whitespace: true, message: '请输入文档类型' },
-            { max: 64, message: '文档类型最多64个字符' },
-          ]}
+          allowClear={false}
+          options={[
+            '提单',
+            '运单',
+            '订舱确认',
+            '发票',
+            '装箱单',
+            '报关单',
+            '费用凭证',
+            '其他',
+          ].map((type) => ({ label: type, value: type }))}
+          rules={[{ required: true, message: '请选择文档类型' }]}
           disabled={Boolean(uploadStage)}
         />
         <Form.Item
