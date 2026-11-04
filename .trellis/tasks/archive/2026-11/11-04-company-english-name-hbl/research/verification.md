@@ -24,4 +24,4 @@
 - [x] 用户城市拼音规则补齐成都后再次只读核对：数据库仅 BJ/CD 两家公司，名称准确为 BEIJING/CHENGDU 对应结构。此前公司编辑回显和真实 HBL 下载已通过，零业务写请求、零页面脚本异常，PDF 作者与正文一致。
 - [x] `VITEST_MAX_WORKERS=16 pnpm run check:fast` 全部门禁通过（160.1 秒）：Web 375 个 Suite / 2,033 项通过，保留既有 1 个 Suite / 11 项跳过；后端全量测试、vet、分层、Protobuf 及漏洞扫描通过。专用 PostgreSQL 验证另行完成，零 Skip。
 - [x] `pnpm run build` 通过；真实 Go `webassets.Handler` 提供构建产物，5 项浏览器验收通过（27.5 秒）。下载的六份 PDF 逐份验证真实签发名称、作者、Logo，四版本和锁定/补名输出均正确，无固定北京名称残留。
-- [ ] 提交、合并、归档与会话记录。
+- [x] 功能提交 `3cc22ce7` 已合并至本地 `main`，随后归档并记录会话；未推送远端。用户要求英文名进入种子，已核对 BJ/CD 默认种子均包含完整英文名，实际 PostgreSQL 种子幂等回归已通过。
