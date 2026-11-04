@@ -27,6 +27,8 @@ type Organization struct {
 	Code string `json:"code,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// NameEn holds the value of the "name_en" field.
+	NameEn *string `json:"name_en,omitempty"`
 	// Kind holds the value of the "kind" field.
 	Kind organization.Kind `json:"kind,omitempty"`
 	// ParentID holds the value of the "parent_id" field.
@@ -736,7 +738,7 @@ func (*Organization) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case organization.FieldEnabled:
 			values[i] = new(sql.NullBool)
-		case organization.FieldCode, organization.FieldName, organization.FieldKind, organization.FieldBaseCurrency, organization.FieldSearchKeywords:
+		case organization.FieldCode, organization.FieldName, organization.FieldNameEn, organization.FieldKind, organization.FieldBaseCurrency, organization.FieldSearchKeywords:
 			values[i] = new(sql.NullString)
 		case organization.FieldCreatedAt, organization.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -786,6 +788,13 @@ func (_m *Organization) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				_m.Name = value.String
+			}
+		case organization.FieldNameEn:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field name_en", values[i])
+			} else if value.Valid {
+				_m.NameEn = new(string)
+				*_m.NameEn = value.String
 			}
 		case organization.FieldKind:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -1179,6 +1188,11 @@ func (_m *Organization) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(_m.Name)
+	builder.WriteString(", ")
+	if v := _m.NameEn; v != nil {
+		builder.WriteString("name_en=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("kind=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Kind))

@@ -119866,6 +119866,7 @@ type OrganizationMutation struct {
 	updated_at                                  *time.Time
 	code                                        *string
 	name                                        *string
+	name_en                                     *string
 	kind                                        *organization.Kind
 	enabled                                     *bool
 	base_currency                               *string
@@ -120306,6 +120307,55 @@ func (m *OrganizationMutation) OldName(ctx context.Context) (v string, err error
 // ResetName resets all changes to the "name" field.
 func (m *OrganizationMutation) ResetName() {
 	m.name = nil
+}
+
+// SetNameEn sets the "name_en" field.
+func (m *OrganizationMutation) SetNameEn(s string) {
+	m.name_en = &s
+}
+
+// NameEn returns the value of the "name_en" field in the mutation.
+func (m *OrganizationMutation) NameEn() (r string, exists bool) {
+	v := m.name_en
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNameEn returns the old "name_en" field's value of the Organization entity.
+// If the Organization object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrganizationMutation) OldNameEn(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNameEn is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNameEn requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNameEn: %w", err)
+	}
+	return oldValue.NameEn, nil
+}
+
+// ClearNameEn clears the value of the "name_en" field.
+func (m *OrganizationMutation) ClearNameEn() {
+	m.name_en = nil
+	m.clearedFields[organization.FieldNameEn] = struct{}{}
+}
+
+// NameEnCleared returns if the "name_en" field was cleared in this mutation.
+func (m *OrganizationMutation) NameEnCleared() bool {
+	_, ok := m.clearedFields[organization.FieldNameEn]
+	return ok
+}
+
+// ResetNameEn resets all changes to the "name_en" field.
+func (m *OrganizationMutation) ResetNameEn() {
+	m.name_en = nil
+	delete(m.clearedFields, organization.FieldNameEn)
 }
 
 // SetKind sets the "kind" field.
@@ -123880,7 +123930,7 @@ func (m *OrganizationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrganizationMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.created_at != nil {
 		fields = append(fields, organization.FieldCreatedAt)
 	}
@@ -123892,6 +123942,9 @@ func (m *OrganizationMutation) Fields() []string {
 	}
 	if m.name != nil {
 		fields = append(fields, organization.FieldName)
+	}
+	if m.name_en != nil {
+		fields = append(fields, organization.FieldNameEn)
 	}
 	if m.kind != nil {
 		fields = append(fields, organization.FieldKind)
@@ -123927,6 +123980,8 @@ func (m *OrganizationMutation) Field(name string) (ent.Value, bool) {
 		return m.Code()
 	case organization.FieldName:
 		return m.Name()
+	case organization.FieldNameEn:
+		return m.NameEn()
 	case organization.FieldKind:
 		return m.Kind()
 	case organization.FieldParentID:
@@ -123956,6 +124011,8 @@ func (m *OrganizationMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldCode(ctx)
 	case organization.FieldName:
 		return m.OldName(ctx)
+	case organization.FieldNameEn:
+		return m.OldNameEn(ctx)
 	case organization.FieldKind:
 		return m.OldKind(ctx)
 	case organization.FieldParentID:
@@ -124004,6 +124061,13 @@ func (m *OrganizationMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case organization.FieldNameEn:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNameEn(v)
 		return nil
 	case organization.FieldKind:
 		v, ok := value.(organization.Kind)
@@ -124077,6 +124141,9 @@ func (m *OrganizationMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *OrganizationMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(organization.FieldNameEn) {
+		fields = append(fields, organization.FieldNameEn)
+	}
 	if m.FieldCleared(organization.FieldParentID) {
 		fields = append(fields, organization.FieldParentID)
 	}
@@ -124100,6 +124167,9 @@ func (m *OrganizationMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *OrganizationMutation) ClearField(name string) error {
 	switch name {
+	case organization.FieldNameEn:
+		m.ClearNameEn()
+		return nil
 	case organization.FieldParentID:
 		m.ClearParentID()
 		return nil
@@ -124128,6 +124198,9 @@ func (m *OrganizationMutation) ResetField(name string) error {
 		return nil
 	case organization.FieldName:
 		m.ResetName()
+		return nil
+	case organization.FieldNameEn:
+		m.ResetNameEn()
 		return nil
 	case organization.FieldKind:
 		m.ResetKind()

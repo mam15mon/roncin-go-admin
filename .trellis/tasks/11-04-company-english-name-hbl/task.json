@@ -3,7 +3,7 @@
   "name": "company-english-name-hbl",
   "title": "公司英文名称与 HBL 多公司支持",
   "description": "维护公司正式英文名称，让各公司自签 HBL 使用真实签发主体抬头并移除北京限定",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": "web",

@@ -350,27 +350,28 @@ type SeaBillContent struct {
 
 // SeaHouseBill 海运分单（HBL）信息。
 type SeaHouseBill struct {
-	ID                     uuid.UUID
-	OrganizationID         uuid.UUID
-	OrderID                uuid.UUID
-	MasterBillID           uuid.UUID
-	HouseNo                string
-	NormalizedHouseNo      string
-	IssuerSource           SeaHouseBillIssuerSource
-	IssuerOrganizationID   *uuid.UUID
-	IssuerOrganizationName string
-	IssuerPartnerID        *uuid.UUID
-	IssuerPartnerName      string
-	Status                 SeaHouseBillStatus
-	Version                uint64
-	CurrentVersionID       *uuid.UUID
-	ImmutableVersionCount  int
-	Note                   *string
-	Content                *SeaBillContent
-	PrintDetails           *SeaHouseBillPrintDetails
-	PrintTemplate          string
-	CreatedAt              time.Time
-	UpdatedAt              time.Time
+	ID                       uuid.UUID
+	OrganizationID           uuid.UUID
+	OrderID                  uuid.UUID
+	MasterBillID             uuid.UUID
+	HouseNo                  string
+	NormalizedHouseNo        string
+	IssuerSource             SeaHouseBillIssuerSource
+	IssuerOrganizationID     *uuid.UUID
+	IssuerOrganizationName   string
+	IssuerOrganizationNameEn string
+	IssuerPartnerID          *uuid.UUID
+	IssuerPartnerName        string
+	Status                   SeaHouseBillStatus
+	Version                  uint64
+	CurrentVersionID         *uuid.UUID
+	ImmutableVersionCount    int
+	Note                     *string
+	Content                  *SeaBillContent
+	PrintDetails             *SeaHouseBillPrintDetails
+	PrintTemplate            string
+	CreatedAt                time.Time
+	UpdatedAt                time.Time
 }
 
 // SeaHouseBillInput 表单中的海运分单输入。

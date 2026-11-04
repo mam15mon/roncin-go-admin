@@ -204,7 +204,9 @@ export default function OrganizationsPanel() {
     const kindMeta = getOrganizationKindMeta(node.kind);
     const isMatched =
       kw &&
-      (title.toLowerCase().includes(kw) || code.toLowerCase().includes(kw));
+      (title.toLowerCase().includes(kw) ||
+        code.toLowerCase().includes(kw) ||
+        Boolean(node.raw.nameEn?.toLowerCase().includes(kw)));
 
     return (
       <span
@@ -404,7 +406,7 @@ export default function OrganizationsPanel() {
           >
             <div style={{ marginBottom: 12 }}>
               <Input
-                placeholder="搜索组织名称或编码..."
+                placeholder="搜索组织名称、英文名称或编码..."
                 prefix={
                   <SearchOutlined style={{ color: 'rgba(0, 0, 0, 0.45)' }} />
                 }

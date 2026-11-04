@@ -25,6 +25,8 @@ const (
 	FieldCode = "code"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// FieldNameEn holds the string denoting the name_en field in the database.
+	FieldNameEn = "name_en"
 	// FieldKind holds the string denoting the kind field in the database.
 	FieldKind = "kind"
 	// FieldParentID holds the string denoting the parent_id field in the database.
@@ -591,6 +593,7 @@ var Columns = []string{
 	FieldUpdatedAt,
 	FieldCode,
 	FieldName,
+	FieldNameEn,
 	FieldKind,
 	FieldParentID,
 	FieldEnabled,
@@ -626,6 +629,8 @@ var (
 	CodeValidator func(string) error
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
+	// NameEnValidator is a validator for the "name_en" field. It is called by the builders before save.
+	NameEnValidator func(string) error
 	// DefaultEnabled holds the default value on creation for the "enabled" field.
 	DefaultEnabled bool
 	// BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
@@ -687,6 +692,11 @@ func ByCode(opts ...sql.OrderTermOption) OrderOption {
 // ByName orders the results by the name field.
 func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByNameEn orders the results by the name_en field.
+func ByNameEn(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNameEn, opts...).ToFunc()
 }
 
 // ByKind orders the results by the kind field.

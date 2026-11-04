@@ -206,6 +206,7 @@ message CreateOrganizationRequest {
   optional string parent_id = 3;
   OrganizationKind kind = 4 [(google.api.field_behavior) = REQUIRED];
   optional string base_currency = 5;
+  optional string name_en = 6;
 }
 
 message UpdateOrganizationRequest {
@@ -213,6 +214,7 @@ message UpdateOrganizationRequest {
   string name = 2 [(google.api.field_behavior) = REQUIRED];
   bool enabled = 3;
   optional string base_currency = 4;
+  optional string name_en = 5;
 }
 
 message AdminOrganization {
@@ -223,6 +225,7 @@ message AdminOrganization {
   bool enabled = 5;
   OrganizationKind kind = 6;
   string base_currency = 7;
+  optional string name_en = 8;
 }
 
 message ListOrganizationsResponse {

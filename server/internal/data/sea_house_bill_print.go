@@ -63,11 +63,11 @@ func seaHouseBillPrintDetailsToBiz(input *schema.SeaHouseBillPrintDetails) *biz.
 }
 
 // seaHouseBillPrintTemplate 只依据真实签发主体，不依据订单显示名称猜测品牌。
-func seaHouseBillPrintTemplate(item *ent.SeaHouseBill, issuerCode string) string {
+func seaHouseBillPrintTemplate(item *ent.SeaHouseBill, issuerKind biz.OrganizationKind) string {
 	if item.IssuerOrganizationID == nil {
 		return ""
 	}
-	return biz.ResolveSeaHouseBillPrintTemplate(biz.SeaHouseBillIssuerSource(item.IssuerSource), issuerCode)
+	return biz.ResolveSeaHouseBillPrintTemplate(biz.SeaHouseBillIssuerSource(item.IssuerSource), issuerKind)
 }
 
 func setSeaHouseBillPrintDetailsUpdate(builder *ent.SeaHouseBillUpdateOne, details *biz.SeaHouseBillPrintDetails) {

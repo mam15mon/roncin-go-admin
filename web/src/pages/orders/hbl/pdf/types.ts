@@ -2,6 +2,7 @@ export type HblPdfVariant = 'draft' | 'original' | 'surrendered' | 'copy';
 
 export type HblPdfModel = {
   houseNo: string;
+  issuerNameEn: string;
   content?: API.SeaBillContent;
   printDetails?: API.SeaHouseBillPrintDetails;
 };

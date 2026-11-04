@@ -121,6 +121,20 @@ func (_c *OrganizationCreate) SetName(v string) *OrganizationCreate {
 	return _c
 }
 
+// SetNameEn sets the "name_en" field.
+func (_c *OrganizationCreate) SetNameEn(v string) *OrganizationCreate {
+	_c.mutation.SetNameEn(v)
+	return _c
+}
+
+// SetNillableNameEn sets the "name_en" field if the given value is not nil.
+func (_c *OrganizationCreate) SetNillableNameEn(v *string) *OrganizationCreate {
+	if v != nil {
+		_c.SetNameEn(*v)
+	}
+	return _c
+}
+
 // SetKind sets the "kind" field.
 func (_c *OrganizationCreate) SetKind(v organization.Kind) *OrganizationCreate {
 	_c.mutation.SetKind(v)
@@ -1201,6 +1215,11 @@ func (_c *OrganizationCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Organization.name": %w`, err)}
 		}
 	}
+	if v, ok := _c.mutation.NameEn(); ok {
+		if err := organization.NameEnValidator(v); err != nil {
+			return &ValidationError{Name: "name_en", err: fmt.Errorf(`ent: validator failed for field "Organization.name_en": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.Kind(); !ok {
 		return &ValidationError{Name: "kind", err: errors.New(`ent: missing required field "Organization.kind"`)}
 	}
@@ -1271,6 +1290,10 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(organization.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if value, ok := _c.mutation.NameEn(); ok {
+		_spec.SetField(organization.FieldNameEn, field.TypeString, value)
+		_node.NameEn = &value
 	}
 	if value, ok := _c.mutation.Kind(); ok {
 		_spec.SetField(organization.FieldKind, field.TypeEnum, value)
@@ -2345,6 +2368,24 @@ func (u *OrganizationUpsert) UpdateName() *OrganizationUpsert {
 	return u
 }
 
+// SetNameEn sets the "name_en" field.
+func (u *OrganizationUpsert) SetNameEn(v string) *OrganizationUpsert {
+	u.Set(organization.FieldNameEn, v)
+	return u
+}
+
+// UpdateNameEn sets the "name_en" field to the value that was provided on create.
+func (u *OrganizationUpsert) UpdateNameEn() *OrganizationUpsert {
+	u.SetExcluded(organization.FieldNameEn)
+	return u
+}
+
+// ClearNameEn clears the value of the "name_en" field.
+func (u *OrganizationUpsert) ClearNameEn() *OrganizationUpsert {
+	u.SetNull(organization.FieldNameEn)
+	return u
+}
+
 // SetParentID sets the "parent_id" field.
 func (u *OrganizationUpsert) SetParentID(v uuid.UUID) *OrganizationUpsert {
 	u.Set(organization.FieldParentID, v)
@@ -2505,6 +2546,27 @@ func (u *OrganizationUpsertOne) SetName(v string) *OrganizationUpsertOne {
 func (u *OrganizationUpsertOne) UpdateName() *OrganizationUpsertOne {
 	return u.Update(func(s *OrganizationUpsert) {
 		s.UpdateName()
+	})
+}
+
+// SetNameEn sets the "name_en" field.
+func (u *OrganizationUpsertOne) SetNameEn(v string) *OrganizationUpsertOne {
+	return u.Update(func(s *OrganizationUpsert) {
+		s.SetNameEn(v)
+	})
+}
+
+// UpdateNameEn sets the "name_en" field to the value that was provided on create.
+func (u *OrganizationUpsertOne) UpdateNameEn() *OrganizationUpsertOne {
+	return u.Update(func(s *OrganizationUpsert) {
+		s.UpdateNameEn()
+	})
+}
+
+// ClearNameEn clears the value of the "name_en" field.
+func (u *OrganizationUpsertOne) ClearNameEn() *OrganizationUpsertOne {
+	return u.Update(func(s *OrganizationUpsert) {
+		s.ClearNameEn()
 	})
 }
 
@@ -2848,6 +2910,27 @@ func (u *OrganizationUpsertBulk) SetName(v string) *OrganizationUpsertBulk {
 func (u *OrganizationUpsertBulk) UpdateName() *OrganizationUpsertBulk {
 	return u.Update(func(s *OrganizationUpsert) {
 		s.UpdateName()
+	})
+}
+
+// SetNameEn sets the "name_en" field.
+func (u *OrganizationUpsertBulk) SetNameEn(v string) *OrganizationUpsertBulk {
+	return u.Update(func(s *OrganizationUpsert) {
+		s.SetNameEn(v)
+	})
+}
+
+// UpdateNameEn sets the "name_en" field to the value that was provided on create.
+func (u *OrganizationUpsertBulk) UpdateNameEn() *OrganizationUpsertBulk {
+	return u.Update(func(s *OrganizationUpsert) {
+		s.UpdateNameEn()
+	})
+}
+
+// ClearNameEn clears the value of the "name_en" field.
+func (u *OrganizationUpsertBulk) ClearNameEn() *OrganizationUpsertBulk {
+	return u.Update(func(s *OrganizationUpsert) {
+		s.ClearNameEn()
 	})
 }
 

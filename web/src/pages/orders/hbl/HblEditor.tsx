@@ -53,6 +53,7 @@ import {
   type HblBundle,
   type HblFormValues,
   hblFormPayload,
+  hblOutputBlockedReason,
   hblUnavailableReason,
   hblValuesFingerprint,
 } from './model';
@@ -127,6 +128,9 @@ export default function HblEditor({
   });
   const busy = saveMutation.isPending || refreshing || checkingPreview;
   const notice = useHblChangeNotice(baseline, scope, busy);
+  useEffect(() => {
+    if (notice.changed) setPreview(undefined);
+  }, [notice.changed]);
   const disabled =
     !canUpdate ||
     policy.disabled ||
@@ -371,6 +375,11 @@ export default function HblEditor({
   };
 
   const requestPreview = async () => {
+    const blocked = hblOutputBlockedReason(baseline);
+    if (blocked) {
+      message.warning(blocked);
+      return;
+    }
     if (hasChanges()) {
       message.warning('请先保存制作修改，再预览、打印或下载。');
       return;
@@ -380,6 +389,7 @@ export default function HblEditor({
       if (!(await notice.verifyCurrent()) || !alive.current) return;
       setPreview({
         houseNo: house?.houseNo ?? '',
+        issuerNameEn: house?.issuerOrganizationNameEn ?? '',
         ...hblFormPayload(baselineValues),
       });
     } catch (error) {
@@ -393,6 +403,7 @@ export default function HblEditor({
   };
 
   const unavailable = hblUnavailableReason(baseline);
+  const outputBlocked = hblOutputBlockedReason(baseline);
   useEffect(() => {
     window.dispatchEvent(
       new CustomEvent('roncin:update-tab-title', {
@@ -405,7 +416,7 @@ export default function HblEditor({
     <Button
       icon={<EyeOutlined />}
       loading={checkingPreview}
-      disabled={busy || Boolean(unavailable)}
+      disabled={busy || Boolean(outputBlocked)}
       onClick={() => void requestPreview()}
     >
       预览／打印／下载
@@ -512,12 +523,17 @@ export default function HblEditor({
                 {unavailable && (
                   <Alert type="error" showIcon title={unavailable} />
                 )}
+                {!unavailable && outputBlocked && (
+                  <Alert type="warning" showIcon title={outputBlocked} />
+                )}
                 {(policy.disabled || !canUpdate) && (
                   <Alert
                     type="info"
                     showIcon
                     title={policy.reason ?? '当前 HBL 仅可查看，不能直接修改。'}
-                    description="仍可选择四种版本进行预览、打印和下载。"
+                    description={
+                      outputBlocked ?? '仍可选择四种版本进行预览、打印和下载。'
+                    }
                     action={
                       lock.error ? (
                         <Button onClick={() => void lock.refresh()}>

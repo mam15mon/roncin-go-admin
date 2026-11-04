@@ -3,6 +3,8 @@ package biz
 import (
 	"context"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
@@ -38,6 +40,7 @@ type AdminOrganization struct {
 	ID           uuid.UUID
 	Code         string
 	Name         string
+	NameEn       string
 	Kind         OrganizationKind
 	ParentID     *uuid.UUID
 	Enabled      bool
@@ -94,12 +97,16 @@ func (uc *AdminUsecase) CreateOrganization(ctx context.Context, userID uuid.UUID
 	return uc.repo.CreateOrganization(ctx, normalized, adminAuditEvent(ctx, userID, nil, "admin.organization.create", ""))
 }
 
-func (uc *AdminUsecase) UpdateOrganization(ctx context.Context, userID, organizationID, id uuid.UUID, name string, enabled bool, baseCurrency string) (*AdminOrganization, error) {
+func (uc *AdminUsecase) UpdateOrganization(ctx context.Context, userID, organizationID, id uuid.UUID, name string, enabled bool, baseCurrency, nameEn string) (*AdminOrganization, error) {
 	name = strings.TrimSpace(name)
 	if organizationID == uuid.Nil || id == uuid.Nil || name == "" {
 		return nil, ErrAdminInvalidArgument
 	}
 	current, err := uc.repo.GetOrganization(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	nameEn, err = normalizeCompanyNameEn(current.Kind, nameEn)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +121,7 @@ func (uc *AdminUsecase) UpdateOrganization(ctx context.Context, userID, organiza
 	} else if baseCurrency != "" {
 		return nil, ErrAdminOrganizationCurrency
 	}
-	return uc.repo.UpdateOrganization(ctx, organizationID, &AdminOrganization{ID: id, Name: name, Enabled: enabled, Kind: current.Kind, BaseCurrency: baseCurrency}, adminAuditEvent(ctx, userID, &id, "admin.organization.update", current.Code))
+	return uc.repo.UpdateOrganization(ctx, organizationID, &AdminOrganization{ID: id, Name: name, NameEn: nameEn, Enabled: enabled, Kind: current.Kind, BaseCurrency: baseCurrency}, adminAuditEvent(ctx, userID, &id, "admin.organization.update", current.Code))
 }
 func normalizeOrganization(input *AdminOrganization) (*AdminOrganization, error) {
 	if input == nil {
@@ -127,7 +134,26 @@ func normalizeOrganization(input *AdminOrganization) (*AdminOrganization, error)
 	if output.Code == "" || output.Name == "" || !output.Kind.Valid() || output.Kind == OrganizationKindSystem {
 		return nil, ErrAdminInvalidArgument
 	}
+	var err error
+	output.NameEn, err = normalizeCompanyNameEn(output.Kind, output.NameEn)
+	if err != nil {
+		return nil, err
+	}
 	return &output, nil
+}
+
+// normalizeCompanyNameEn 只规范首尾空白，不猜译或改写正式名称。
+func normalizeCompanyNameEn(kind OrganizationKind, value string) (string, error) {
+	value = strings.TrimSpace(value)
+	if kind != OrganizationKindCompany && value != "" {
+		return "", errors.BadRequest("ADMIN_ORGANIZATION_NAME_EN_INVALID", "仅公司可维护英文名称")
+	}
+	if utf8.RuneCountInString(value) > 200 || strings.ContainsFunc(value, func(r rune) bool {
+		return unicode.IsControl(r) || unicode.Is(unicode.Zl, r) || unicode.Is(unicode.Zp, r)
+	}) {
+		return "", errors.BadRequest("ADMIN_ORGANIZATION_NAME_EN_INVALID", "公司英文名称不能超过200个字符，且不能包含换行或控制字符")
+	}
+	return value, nil
 }
 func validOrganizationCurrency(value string) bool {
 	return currencyPattern.MatchString(value)

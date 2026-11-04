@@ -879,13 +879,13 @@ func TestAdminUsecaseUpdateOrganizationBaseCurrencyImmutable(t *testing.T) {
 	usecase := NewAdminUsecase(repo, inlineTransactor{})
 
 	// 1. 尝试修改为不同的本币 -> 必须被拦截并返回 ErrAdminOrganizationBaseCurrencyImmutable
-	_, err := usecase.UpdateOrganization(context.Background(), userID, orgID, orgID, "更新名称", true, "USD")
+	_, err := usecase.UpdateOrganization(context.Background(), userID, orgID, orgID, "更新名称", true, "USD", "")
 	if err != ErrAdminOrganizationBaseCurrencyImmutable {
 		t.Fatalf("UpdateOrganization() error = %v, want %v", err, ErrAdminOrganizationBaseCurrencyImmutable)
 	}
 
 	// 2. 保持原有本币更新 -> 成功
-	updated, err := usecase.UpdateOrganization(context.Background(), userID, orgID, orgID, "更新名称", true, "CNY")
+	updated, err := usecase.UpdateOrganization(context.Background(), userID, orgID, orgID, "更新名称", true, "CNY", "")
 	if err != nil {
 		t.Fatalf("UpdateOrganization() with same currency error = %v", err)
 	}
@@ -903,7 +903,7 @@ func TestAdminUsecaseUpdateOrganizationBaseCurrencyImmutable(t *testing.T) {
 		Enabled:      true,
 		BaseCurrency: "",
 	}
-	updated, err = usecase.UpdateOrganization(context.Background(), userID, uninitOrgID, uninitOrgID, "未设定本币组织", true, "USD")
+	updated, err = usecase.UpdateOrganization(context.Background(), userID, uninitOrgID, uninitOrgID, "未设定本币组织", true, "USD", "")
 	if err != nil {
 		t.Fatalf("UpdateOrganization() setting initial currency error = %v", err)
 	}

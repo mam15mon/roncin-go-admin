@@ -132,6 +132,7 @@ declare namespace API {
     enabled?: boolean;
     kind?: number;
     baseCurrency?: string;
+    nameEn?: string;
   };
 
   type AdminPermission = {
@@ -1774,6 +1775,7 @@ declare namespace API {
     parentId?: string;
     kind: number;
     baseCurrency?: string;
+    nameEn?: string;
   };
 
   type CreateOrganizationResponse = {
@@ -7439,6 +7441,7 @@ declare namespace API {
     immutableVersionCount?: string;
     printDetails?: SeaHouseBillPrintDetails;
     printTemplate?: string;
+    issuerOrganizationNameEn?: string;
   };
 
   type SeaHouseBillInput = {
@@ -9222,6 +9225,7 @@ declare namespace API {
     name: string;
     enabled?: boolean;
     baseCurrency?: string;
+    nameEn?: string;
   };
 
   type UpdateOrganizationResponse = {

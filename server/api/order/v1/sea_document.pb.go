@@ -750,29 +750,30 @@ func (x *SeaHouseBillPrintDetails) GetDeliveryContactText() string {
 
 // SeaHouseBill 海运分单（HBL）信息。
 type SeaHouseBill struct {
-	state                  protoimpl.MessageState    `protogen:"open.v1"`
-	Id                     string                    `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OrganizationId         string                    `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	OrderId                string                    `protobuf:"bytes,3,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	MasterBillId           string                    `protobuf:"bytes,4,opt,name=master_bill_id,json=masterBillId,proto3" json:"master_bill_id,omitempty"`
-	HouseNo                string                    `protobuf:"bytes,5,opt,name=house_no,json=houseNo,proto3" json:"house_no,omitempty"`
-	IssuerSource           SeaHouseBillIssuerSource  `protobuf:"varint,6,opt,name=issuer_source,json=issuerSource,proto3,enum=order.v1.SeaHouseBillIssuerSource" json:"issuer_source,omitempty"`
-	IssuerOrganizationId   *string                   `protobuf:"bytes,7,opt,name=issuer_organization_id,json=issuerOrganizationId,proto3,oneof" json:"issuer_organization_id,omitempty"`
-	IssuerOrganizationName *string                   `protobuf:"bytes,8,opt,name=issuer_organization_name,json=issuerOrganizationName,proto3,oneof" json:"issuer_organization_name,omitempty"`
-	IssuerPartnerId        *string                   `protobuf:"bytes,9,opt,name=issuer_partner_id,json=issuerPartnerId,proto3,oneof" json:"issuer_partner_id,omitempty"`
-	IssuerPartnerName      *string                   `protobuf:"bytes,10,opt,name=issuer_partner_name,json=issuerPartnerName,proto3,oneof" json:"issuer_partner_name,omitempty"`
-	Status                 SeaHouseBillStatus        `protobuf:"varint,11,opt,name=status,proto3,enum=order.v1.SeaHouseBillStatus" json:"status,omitempty"`
-	Version                uint64                    `protobuf:"varint,12,opt,name=version,proto3" json:"version,omitempty"`
-	Note                   *string                   `protobuf:"bytes,13,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	Content                *SeaBillContent           `protobuf:"bytes,14,opt,name=content,proto3" json:"content,omitempty"`
-	CreatedAt              string                    `protobuf:"bytes,15,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt              string                    `protobuf:"bytes,16,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	CurrentVersionId       *string                   `protobuf:"bytes,17,opt,name=current_version_id,json=currentVersionId,proto3,oneof" json:"current_version_id,omitempty"`
-	ImmutableVersionCount  uint64                    `protobuf:"varint,18,opt,name=immutable_version_count,json=immutableVersionCount,proto3" json:"immutable_version_count,omitempty"`
-	PrintDetails           *SeaHouseBillPrintDetails `protobuf:"bytes,19,opt,name=print_details,json=printDetails,proto3,oneof" json:"print_details,omitempty"`
-	PrintTemplate          *string                   `protobuf:"bytes,20,opt,name=print_template,json=printTemplate,proto3,oneof" json:"print_template,omitempty"`
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	state                    protoimpl.MessageState    `protogen:"open.v1"`
+	Id                       string                    `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	OrganizationId           string                    `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	OrderId                  string                    `protobuf:"bytes,3,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	MasterBillId             string                    `protobuf:"bytes,4,opt,name=master_bill_id,json=masterBillId,proto3" json:"master_bill_id,omitempty"`
+	HouseNo                  string                    `protobuf:"bytes,5,opt,name=house_no,json=houseNo,proto3" json:"house_no,omitempty"`
+	IssuerSource             SeaHouseBillIssuerSource  `protobuf:"varint,6,opt,name=issuer_source,json=issuerSource,proto3,enum=order.v1.SeaHouseBillIssuerSource" json:"issuer_source,omitempty"`
+	IssuerOrganizationId     *string                   `protobuf:"bytes,7,opt,name=issuer_organization_id,json=issuerOrganizationId,proto3,oneof" json:"issuer_organization_id,omitempty"`
+	IssuerOrganizationName   *string                   `protobuf:"bytes,8,opt,name=issuer_organization_name,json=issuerOrganizationName,proto3,oneof" json:"issuer_organization_name,omitempty"`
+	IssuerPartnerId          *string                   `protobuf:"bytes,9,opt,name=issuer_partner_id,json=issuerPartnerId,proto3,oneof" json:"issuer_partner_id,omitempty"`
+	IssuerPartnerName        *string                   `protobuf:"bytes,10,opt,name=issuer_partner_name,json=issuerPartnerName,proto3,oneof" json:"issuer_partner_name,omitempty"`
+	Status                   SeaHouseBillStatus        `protobuf:"varint,11,opt,name=status,proto3,enum=order.v1.SeaHouseBillStatus" json:"status,omitempty"`
+	Version                  uint64                    `protobuf:"varint,12,opt,name=version,proto3" json:"version,omitempty"`
+	Note                     *string                   `protobuf:"bytes,13,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	Content                  *SeaBillContent           `protobuf:"bytes,14,opt,name=content,proto3" json:"content,omitempty"`
+	CreatedAt                string                    `protobuf:"bytes,15,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt                string                    `protobuf:"bytes,16,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	CurrentVersionId         *string                   `protobuf:"bytes,17,opt,name=current_version_id,json=currentVersionId,proto3,oneof" json:"current_version_id,omitempty"`
+	ImmutableVersionCount    uint64                    `protobuf:"varint,18,opt,name=immutable_version_count,json=immutableVersionCount,proto3" json:"immutable_version_count,omitempty"`
+	PrintDetails             *SeaHouseBillPrintDetails `protobuf:"bytes,19,opt,name=print_details,json=printDetails,proto3,oneof" json:"print_details,omitempty"`
+	PrintTemplate            *string                   `protobuf:"bytes,20,opt,name=print_template,json=printTemplate,proto3,oneof" json:"print_template,omitempty"`
+	IssuerOrganizationNameEn *string                   `protobuf:"bytes,21,opt,name=issuer_organization_name_en,json=issuerOrganizationNameEn,proto3,oneof" json:"issuer_organization_name_en,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *SeaHouseBill) Reset() {
@@ -941,6 +942,13 @@ func (x *SeaHouseBill) GetPrintDetails() *SeaHouseBillPrintDetails {
 func (x *SeaHouseBill) GetPrintTemplate() string {
 	if x != nil && x.PrintTemplate != nil {
 		return *x.PrintTemplate
+	}
+	return ""
+}
+
+func (x *SeaHouseBill) GetIssuerOrganizationNameEn() string {
+	if x != nil && x.IssuerOrganizationNameEn != nil {
+		return *x.IssuerOrganizationNameEn
 	}
 	return ""
 }
@@ -4487,7 +4495,7 @@ const file_order_v1_sea_document_proto_rawDesc = "" +
 	"\x16_shipped_on_board_dateB\x13\n" +
 	"\x11_issue_place_textB\r\n" +
 	"\v_issue_dateB\x18\n" +
-	"\x16_delivery_contact_text\"\xbc\b\n" +
+	"\x16_delivery_contact_text\"\xa5\t\n" +
 	"\fSeaHouseBill\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x19\n" +
@@ -4511,7 +4519,8 @@ const file_order_v1_sea_document_proto_rawDesc = "" +
 	"\x12current_version_id\x18\x11 \x01(\tH\x05R\x10currentVersionId\x88\x01\x01\x126\n" +
 	"\x17immutable_version_count\x18\x12 \x01(\x04R\x15immutableVersionCount\x12L\n" +
 	"\rprint_details\x18\x13 \x01(\v2\".order.v1.SeaHouseBillPrintDetailsH\x06R\fprintDetails\x88\x01\x01\x12/\n" +
-	"\x0eprint_template\x18\x14 \x01(\tB\x03\xe0A\x03H\aR\rprintTemplate\x88\x01\x01B\x19\n" +
+	"\x0eprint_template\x18\x14 \x01(\tB\x03\xe0A\x03H\aR\rprintTemplate\x88\x01\x01\x12G\n" +
+	"\x1bissuer_organization_name_en\x18\x15 \x01(\tB\x03\xe0A\x03H\bR\x18issuerOrganizationNameEn\x88\x01\x01B\x19\n" +
 	"\x17_issuer_organization_idB\x1b\n" +
 	"\x19_issuer_organization_nameB\x14\n" +
 	"\x12_issuer_partner_idB\x16\n" +
@@ -4519,7 +4528,8 @@ const file_order_v1_sea_document_proto_rawDesc = "" +
 	"\x05_noteB\x15\n" +
 	"\x13_current_version_idB\x10\n" +
 	"\x0e_print_detailsB\x11\n" +
-	"\x0f_print_template\"\xf0\x03\n" +
+	"\x0f_print_templateB\x1e\n" +
+	"\x1c_issuer_organization_name_en\"\xf0\x03\n" +
 	"\x11SeaHouseBillInput\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tH\x00R\x02id\x88\x01\x01\x12\x1e\n" +
 	"\bhouse_no\x18\x02 \x01(\tB\x03\xe0A\x02R\ahouseNo\x12L\n" +

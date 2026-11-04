@@ -27,7 +27,9 @@ const bundle: HblBundle = {
       houseNo: 'HBL-001',
       version: '3',
       issuerSource: 1,
-      printTemplate: 'RONCIN_BEIJING',
+      issuerOrganizationId: 'issuer-company-1',
+      issuerOrganizationNameEn: 'CONFIRMED ISSUER COMPANY LIMITED',
+      printTemplate: 'RONCIN_SELF',
       content: { shipperText: '发货人', grossWeightKg: 33.125 },
     },
   },
@@ -102,7 +104,7 @@ describe('HBL 制作资料模型', () => {
       })?.printDetails,
     ).toEqual(details);
   });
-  it('只有北京自有真实 HBL 可制作，审核未参与模板判断', () => {
+  it('各公司自签真实 HBL 可制作，审核未参与模板判断', () => {
     expect(hblUnavailableReason(bundle)).toBeUndefined();
     expect(
       hblUnavailableReason({

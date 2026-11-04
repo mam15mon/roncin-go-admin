@@ -244,6 +244,7 @@ message SeaHouseBill {
   uint64 immutable_version_count = 18;
   optional SeaHouseBillPrintDetails print_details = 19;
   optional string print_template = 20 [(google.api.field_behavior) = OUTPUT_ONLY];
+  optional string issuer_organization_name_en = 21 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
 // SeaHouseBillInput 表单中的海运分单输入。

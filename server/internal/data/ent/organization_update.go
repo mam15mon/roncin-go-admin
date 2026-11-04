@@ -107,6 +107,26 @@ func (_u *OrganizationUpdate) SetNillableName(v *string) *OrganizationUpdate {
 	return _u
 }
 
+// SetNameEn sets the "name_en" field.
+func (_u *OrganizationUpdate) SetNameEn(v string) *OrganizationUpdate {
+	_u.mutation.SetNameEn(v)
+	return _u
+}
+
+// SetNillableNameEn sets the "name_en" field if the given value is not nil.
+func (_u *OrganizationUpdate) SetNillableNameEn(v *string) *OrganizationUpdate {
+	if v != nil {
+		_u.SetNameEn(*v)
+	}
+	return _u
+}
+
+// ClearNameEn clears the value of the "name_en" field.
+func (_u *OrganizationUpdate) ClearNameEn() *OrganizationUpdate {
+	_u.mutation.ClearNameEn()
+	return _u
+}
+
 // SetParentID sets the "parent_id" field.
 func (_u *OrganizationUpdate) SetParentID(v uuid.UUID) *OrganizationUpdate {
 	_u.mutation.SetParentID(v)
@@ -2418,6 +2438,11 @@ func (_u *OrganizationUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Organization.name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.NameEn(); ok {
+		if err := organization.NameEnValidator(v); err != nil {
+			return &ValidationError{Name: "name_en", err: fmt.Errorf(`ent: validator failed for field "Organization.name_en": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.BaseCurrency(); ok {
 		if err := organization.BaseCurrencyValidator(v); err != nil {
 			return &ValidationError{Name: "base_currency", err: fmt.Errorf(`ent: validator failed for field "Organization.base_currency": %w`, err)}
@@ -2443,6 +2468,12 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(organization.FieldName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.NameEn(); ok {
+		_spec.SetField(organization.FieldNameEn, field.TypeString, value)
+	}
+	if _u.mutation.NameEnCleared() {
+		_spec.ClearField(organization.FieldNameEn, field.TypeString)
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(organization.FieldEnabled, field.TypeBool, value)
@@ -5236,6 +5267,26 @@ func (_u *OrganizationUpdateOne) SetNillableName(v *string) *OrganizationUpdateO
 	return _u
 }
 
+// SetNameEn sets the "name_en" field.
+func (_u *OrganizationUpdateOne) SetNameEn(v string) *OrganizationUpdateOne {
+	_u.mutation.SetNameEn(v)
+	return _u
+}
+
+// SetNillableNameEn sets the "name_en" field if the given value is not nil.
+func (_u *OrganizationUpdateOne) SetNillableNameEn(v *string) *OrganizationUpdateOne {
+	if v != nil {
+		_u.SetNameEn(*v)
+	}
+	return _u
+}
+
+// ClearNameEn clears the value of the "name_en" field.
+func (_u *OrganizationUpdateOne) ClearNameEn() *OrganizationUpdateOne {
+	_u.mutation.ClearNameEn()
+	return _u
+}
+
 // SetParentID sets the "parent_id" field.
 func (_u *OrganizationUpdateOne) SetParentID(v uuid.UUID) *OrganizationUpdateOne {
 	_u.mutation.SetParentID(v)
@@ -7560,6 +7611,11 @@ func (_u *OrganizationUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Organization.name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.NameEn(); ok {
+		if err := organization.NameEnValidator(v); err != nil {
+			return &ValidationError{Name: "name_en", err: fmt.Errorf(`ent: validator failed for field "Organization.name_en": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.BaseCurrency(); ok {
 		if err := organization.BaseCurrencyValidator(v); err != nil {
 			return &ValidationError{Name: "base_currency", err: fmt.Errorf(`ent: validator failed for field "Organization.base_currency": %w`, err)}
@@ -7602,6 +7658,12 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(organization.FieldName, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.NameEn(); ok {
+		_spec.SetField(organization.FieldNameEn, field.TypeString, value)
+	}
+	if _u.mutation.NameEnCleared() {
+		_spec.ClearField(organization.FieldNameEn, field.TypeString)
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(organization.FieldEnabled, field.TypeBool, value)

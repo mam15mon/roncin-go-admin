@@ -37,11 +37,13 @@ export function getChildOrganizationKind(kind?: number): 2 | 3 | 4 | undefined {
 export type CreateFormValues = {
   code?: string;
   name?: string;
+  nameEn?: string;
   baseCurrency?: string;
 };
 
 export type EditFormValues = {
   name?: string;
+  nameEn?: string;
   enabled?: boolean;
   baseCurrency?: string;
 };

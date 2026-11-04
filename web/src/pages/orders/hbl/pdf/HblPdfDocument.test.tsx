@@ -10,6 +10,7 @@ import type { HblPdfModel } from './types';
 const publicRoot = path.resolve(import.meta.dirname, '../../../../../public');
 const model: HblPdfModel = {
   houseNo: 'HBL-TEST-001',
+  issuerNameEn: 'SAMPLE EAST LOGISTICS CO., LTD',
   content: {
     shipperText: '测试发货企业 SAMPLE EXPORTER\nSHANGHAI, CHINA',
     consigneeText: 'TO ORDER',

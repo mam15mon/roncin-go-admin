@@ -84,6 +84,9 @@ func TestCreateDefaultBranchCompaniesSeedsAndIsIdempotent(t *testing.T) {
 		if company.Name != seed.Name {
 			t.Fatalf("分公司 %s 名称 = %s, 期望 %s", company.Code, company.Name, seed.Name)
 		}
+		if company.NameEn == nil || *company.NameEn != seed.NameEn {
+			t.Fatalf("分公司 %s 英文名称 = %v, 期望 %s", company.Code, company.NameEn, seed.NameEn)
+		}
 		if company.ParentID != nil {
 			t.Fatalf("分公司 %s 应为独立根节点: %v", company.Code, company.ParentID)
 		}

@@ -14,21 +14,24 @@ import (
 func TestSeaHouseBillPrintTemplateUsesRealIssuer(t *testing.T) {
 	id := uuid.New()
 	cases := []struct {
-		name, code string
-		source     seahousebillent.IssuerSource
-		issuer     *uuid.UUID
-		expected   string
+		name     string
+		kind     biz.OrganizationKind
+		source   seahousebillent.IssuerSource
+		issuer   *uuid.UUID
+		expected string
 	}{
-		{"北京自签", "BJ", seahousebillent.IssuerSourceSELF_ORGANIZATION, &id, biz.SeaHouseBillPrintTemplateRoncinBeijing},
-		{"成都自签", "CD", seahousebillent.IssuerSourceSELF_ORGANIZATION, &id, ""},
-		{"客户签发", "BJ", seahousebillent.IssuerSourceCUSTOMER_PARTNER, &id, ""},
-		{"代理签发", "BJ", seahousebillent.IssuerSourceOTHER_PARTNER, &id, ""},
-		{"无真实主体", "BJ", seahousebillent.IssuerSourceSELF_ORGANIZATION, nil, ""},
+		{"北京自签", biz.OrganizationKindCompany, seahousebillent.IssuerSourceSELF_ORGANIZATION, &id, biz.SeaHouseBillPrintTemplateRoncinSelf},
+		{"成都自签", biz.OrganizationKindCompany, seahousebillent.IssuerSourceSELF_ORGANIZATION, &id, biz.SeaHouseBillPrintTemplateRoncinSelf},
+		{"客户签发", biz.OrganizationKindCompany, seahousebillent.IssuerSourceCUSTOMER_PARTNER, &id, ""},
+		{"代理签发", biz.OrganizationKindCompany, seahousebillent.IssuerSourceOTHER_PARTNER, &id, ""},
+		{"无真实主体", biz.OrganizationKindCompany, seahousebillent.IssuerSourceSELF_ORGANIZATION, nil, ""},
+		{"部门不是签发公司", biz.OrganizationKindDepartment, seahousebillent.IssuerSourceSELF_ORGANIZATION, &id, ""},
+		{"系统不是签发公司", biz.OrganizationKindSystem, seahousebillent.IssuerSourceSELF_ORGANIZATION, &id, ""},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			item := &ent.SeaHouseBill{IssuerSource: tc.source, IssuerOrganizationID: tc.issuer}
-			if got := seaHouseBillPrintTemplate(item, tc.code); got != tc.expected {
+			if got := seaHouseBillPrintTemplate(item, tc.kind); got != tc.expected {
 				t.Fatalf("模板=%s，期望%s", got, tc.expected)
 			}
 		})

@@ -166,4 +166,31 @@ describe('HBL 前台变动检查', () => {
     getDocuments.mockResolvedValueOnce({ success: false });
     await expect(fetchHblBundle('order-1')).rejects.toThrow('读取失败');
   });
+
+  it('公司英文名更新不改变HBL版本时，15秒检查仍发现变化且保留基线', async () => {
+    const initial = bundle();
+    initial.documents.houseBill = {
+      ...initial.documents.houseBill,
+      issuerOrganizationId: 'issuer-1',
+      issuerOrganizationNameEn: 'Original Confirmed Company Co., Ltd',
+      printTemplate: 'RONCIN_SELF',
+    };
+    const { result } = mount(initial);
+    getDocuments.mockResolvedValue({
+      success: true,
+      data: {
+        ...initial.documents,
+        houseBill: {
+          ...initial.documents.houseBill,
+          issuerOrganizationNameEn: 'Updated Confirmed Company Co., Ltd',
+        },
+      },
+    });
+    await advance(15_000);
+    expect(result.current.changed).toBe(true);
+    expect(initial.documents.houseBill.issuerOrganizationNameEn).toBe(
+      'Original Confirmed Company Co., Ltd',
+    );
+    expect(initial.documents.houseBill.version).toBe('4');
+  });
 });

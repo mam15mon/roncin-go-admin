@@ -20,6 +20,7 @@ describe('organization-tree utils', () => {
       id: '2',
       code: 'SH',
       name: '上海分公司',
+      nameEn: 'Shanghai Test Logistics Co., Ltd',
       kind: 2,
       parentId: '1',
       enabled: true,
@@ -112,5 +113,15 @@ describe('organization-tree utils', () => {
     const emptySearch = filterOrgTree(treeData, '');
     expect(emptySearch.filteredTree).toEqual(treeData);
     expect(emptySearch.matchedKeys).toEqual([]);
+  });
+
+  it('英文名称匹配不区分大小写，保留命中公司的祖先链', () => {
+    const { treeData } = buildOrgTree(mockOrgs);
+    const result = filterOrgTree(treeData, 'TEST LOGISTICS');
+    expect(result.filteredTree.map((node) => node.key)).toEqual(['1']);
+    expect(result.filteredTree[0].children?.map((node) => node.key)).toEqual([
+      '2',
+    ]);
+    expect(result.matchedKeys).toEqual(['2', '1']);
   });
 });

@@ -29,7 +29,11 @@ vi.mock('./HblPdfDocument', () => ({ HblPdfDocument: () => null }));
 const initial: HblPdfPreviewProps = {
   open: true,
   onClose: vi.fn(),
-  model: { houseNo: 'HBL-TEST-001', content: { shipperText: '测试发货人' } },
+  model: {
+    houseNo: 'HBL-TEST-001',
+    issuerNameEn: 'SAMPLE EAST LOGISTICS CO., LTD',
+    content: { shipperText: '测试发货人' },
+  },
   variant: 'draft',
 };
 
@@ -98,6 +102,7 @@ describe('HBL PDF 预览生命周期', () => {
         ...initial,
         model: {
           houseNo: 'HBL-TEST-001',
+          issuerNameEn: initial.model.issuerNameEn,
           content: { shipperText: '联系人😀' },
         },
       }),
@@ -110,6 +115,28 @@ describe('HBL PDF 预览生命周期', () => {
     expect(state.generated).not.toHaveBeenCalled();
     expect(
       screen.queryByRole('link', { name: /下载 PDF/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('公司名被清空后卸载旧结果，提示补齐并阻止空抬头文件', async () => {
+    const view = renderWithApp(tree(initial));
+    await screen.findByTitle('HBL HBL-TEST-001 PDF 预览');
+    state.generated.mockClear();
+    view.rerender(
+      tree({ ...initial, model: { ...initial.model, issuerNameEn: '' } }),
+    );
+    expect(
+      await screen.findByText(
+        '签发公司尚未维护英文名称，请在公司档案中补齐后输出。',
+      ),
+    ).toBeVisible();
+    expect(state.generated).not.toHaveBeenCalled();
+    expect(state.cleanup).toHaveBeenCalledOnce();
+    expect(
+      screen.queryByRole('link', { name: /下载 PDF/ }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTitle('HBL HBL-TEST-001 PDF 预览'),
     ).not.toBeInTheDocument();
   });
 });

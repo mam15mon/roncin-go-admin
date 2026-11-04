@@ -6,7 +6,12 @@ import {
   Text,
   View,
 } from '@react-pdf/renderer';
-import { pdfDate, pdfQuantity, pdfText } from './content';
+import {
+  pdfDate,
+  pdfQuantity,
+  pdfText,
+  validateHblPdfCharacters,
+} from './content';
 import { HBL_PDF_FONT_FAMILY } from './font';
 import {
   HBL_PDF_VARIANT_MARKS,
@@ -14,10 +19,12 @@ import {
   type HblPdfVariant,
 } from './types';
 
-const COMPANY = 'RONCIN (BEIJING) SUPPLY CHAIN MANAGEMENT CO., LTD';
 const BODY_WIDTH = 559.28;
 const BODY_FONT_SIZE = 8.1;
 const BODY_LINE_HEIGHT = 11;
+const COMPANY_FONT_SIZE = 14.1;
+const COMPANY_LINE_HEIGHT = 17;
+const COMPANY_TEXT_WIDTH = BODY_WIDTH - 80;
 
 const styles = StyleSheet.create({
   page: {
@@ -30,17 +37,17 @@ const styles = StyleSheet.create({
   },
   header: { position: 'absolute', top: 15, left: 18, right: 18, height: 76 },
   company: {
-    fontFamily: 'Helvetica-Bold',
-    fontSize: 14.1,
+    fontFamily: HBL_PDF_FONT_FAMILY,
+    fontSize: COMPANY_FONT_SIZE,
+    height: COMPANY_LINE_HEIGHT,
     color: '#3d409c',
-    letterSpacing: -0.2,
   },
   subtitle: {
     fontFamily: 'Helvetica',
     fontSize: 9,
     textAlign: 'center',
     marginTop: 4,
-    marginRight: 65,
+    marginRight: 80,
   },
   logo: { position: 'absolute', width: 70, height: 47.2, right: 0, top: 12 },
   headerLine: {
@@ -201,8 +208,20 @@ export function HblPdfDocument({
   variant,
   logoSrc = '/images/roncin-hbl-logo.png',
 }: HblPdfDocumentProps) {
+  const error = validateHblPdfCharacters(model);
+  if (error) throw new Error(error);
   const content = model.content ?? {};
   const details = model.printDetails ?? {};
+  const company = model.issuerNameEn;
+  const companyLines = pdfText(company, COMPANY_TEXT_WIDTH / COMPANY_FONT_SIZE)
+    .split('\n')
+    .map((line, index) => ({ value: line, id: `company-${index}` }));
+  // 公司名保持可读字号，按实际行数给各页预留抬头空间，不截断或覆盖 Logo/正文。
+  const headerHeight = Math.max(
+    76,
+    companyLines.length * COMPANY_LINE_HEIGHT + 30,
+  );
+  const paddingTop = 15 + headerHeight + 7;
   const variantMark = HBL_PDF_VARIANT_MARKS[variant];
   // 页脚号码摘要折叠空白，避免内部换行把固定区域撑满整页；正文仍保留原文。
   const footerHouseNo = pdfText(model.houseNo.replace(/\s+/gu, ' '), 75);
@@ -224,12 +243,18 @@ export function HblPdfDocument({
   return (
     <Document
       title={`HBL ${model.houseNo} - ${variantMark}`}
-      author={COMPANY}
+      author={company}
       language="zh-CN"
     >
-      <Page size="A4" style={[styles.page, { paddingBottom }]} wrap>
-        <View style={styles.header} fixed>
-          <Text style={styles.company}>{COMPANY}</Text>
+      <Page size="A4" style={[styles.page, { paddingTop, paddingBottom }]} wrap>
+        <View style={[styles.header, { height: headerHeight }]} fixed>
+          <View style={{ width: COMPANY_TEXT_WIDTH }}>
+            {companyLines.map((line) => (
+              <Text key={line.id} style={styles.company}>
+                {line.value}
+              </Text>
+            ))}
+          </View>
           <Text style={styles.subtitle}>COMBINED TRANSPORT BILL OF LADING</Text>
           <Image style={styles.logo} src={logoSrc} />
           <View style={styles.headerLine}>
@@ -406,14 +431,15 @@ export function HblPdfDocument({
           provided by law or unless permission is endorsed on this original bill
           of lading or given in writing by the shipper.
         </Text>
-        <Text style={styles.clause}>
-          IN WITNESS WHEREOF, THE UNDERSIGNED, SIGNING ON BEHALF OF {COMPANY},
-          HAS SIGNED{' '}
-          {details.originalCount == null
-            ? 'THE NUMBER OF ORIGINAL BILLS OF LADING STATED ABOVE'
-            : `${details.originalCount} ORIGINAL BILL(S) OF LADING`}
-          , ALL OF THE SAME TENOR AND DATE, ONE OF WHICH BEING ACCOMPLISHED, THE
-          OTHERS TO STAND VOID.
+        <Text style={[styles.clause, { fontFamily: HBL_PDF_FONT_FAMILY }]}>
+          {pdfText(
+            `IN WITNESS WHEREOF, THE UNDERSIGNED, SIGNING ON BEHALF OF ${company}, HAS SIGNED ${
+              details.originalCount == null
+                ? 'THE NUMBER OF ORIGINAL BILLS OF LADING STATED ABOVE'
+                : `${details.originalCount} ORIGINAL BILL(S) OF LADING`
+            }, ALL OF THE SAME TENOR AND DATE, ONE OF WHICH BEING ACCOMPLISHED, THE OTHERS TO STAND VOID.`,
+            (BODY_WIDTH - 10) / 6.1,
+          )}
         </Text>
         <Text style={{ marginTop: 8, fontSize: 7.5 }}>
           Place and date of issue:
@@ -426,9 +452,13 @@ export function HblPdfDocument({
           For and on behalf of
         </Text>
         <Text
-          style={{ fontFamily: 'Helvetica-Bold', fontSize: 8, marginTop: 3 }}
+          style={{
+            fontFamily: HBL_PDF_FONT_FAMILY,
+            fontSize: 8,
+            marginTop: 3,
+          }}
         >
-          {COMPANY}
+          {pdfText(company, BODY_WIDTH / 8)}
         </Text>
         <Text style={[styles.clause, { marginTop: 8, marginBottom: 5 }]}>
           ATTENTION OF SHIPPER: The terms and conditions of the order bill of

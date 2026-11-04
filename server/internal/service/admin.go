@@ -54,7 +54,7 @@ func (s *AdminService) CreateOrganization(ctx context.Context, request *v1.Creat
 		parentID = &parsed
 	}
 
-	created, err := s.usecase.CreateOrganization(ctx, principal.UserID, &biz.AdminOrganization{Code: request.GetCode(), Name: request.GetName(), Kind: organizationKindFromAPI(request.GetKind()), ParentID: parentID, Enabled: true, BaseCurrency: request.GetBaseCurrency()})
+	created, err := s.usecase.CreateOrganization(ctx, principal.UserID, &biz.AdminOrganization{Code: request.GetCode(), Name: request.GetName(), NameEn: request.GetNameEn(), Kind: organizationKindFromAPI(request.GetKind()), ParentID: parentID, Enabled: true, BaseCurrency: request.GetBaseCurrency()})
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (s *AdminService) UpdateOrganization(ctx context.Context, request *v1.Updat
 	if err != nil {
 		return nil, biz.ErrAdminInvalidArgument
 	}
-	updated, err := s.usecase.UpdateOrganization(ctx, principal.UserID, principal.Organization.ID, organizationID, request.GetName(), request.GetEnabled(), request.GetBaseCurrency())
+	updated, err := s.usecase.UpdateOrganization(ctx, principal.UserID, principal.Organization.ID, organizationID, request.GetName(), request.GetEnabled(), request.GetBaseCurrency(), request.GetNameEn())
 	if err != nil {
 		return nil, err
 	}
@@ -435,7 +435,7 @@ func parseAuditTime(value string) (*time.Time, error) {
 }
 
 func organizationToAPI(value *biz.AdminOrganization) *v1.AdminOrganization {
-	return &v1.AdminOrganization{Id: value.ID.String(), Code: value.Code, Name: value.Name, Kind: organizationKindToAPI(value.Kind), ParentId: uuidStringPtr(value.ParentID), Enabled: value.Enabled, BaseCurrency: value.BaseCurrency}
+	return &v1.AdminOrganization{Id: value.ID.String(), Code: value.Code, Name: value.Name, NameEn: optionalString(value.NameEn, value.NameEn != ""), Kind: organizationKindToAPI(value.Kind), ParentId: uuidStringPtr(value.ParentID), Enabled: value.Enabled, BaseCurrency: value.BaseCurrency}
 }
 
 func organizationKindFromAPI(value v1.OrganizationKind) biz.OrganizationKind {

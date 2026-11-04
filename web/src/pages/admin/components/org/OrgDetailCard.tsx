@@ -205,6 +205,11 @@ export default function OrgDetailCard({
             <Descriptions.Item label="组织名称">
               <Text strong>{selectedOrg.name}</Text>
             </Descriptions.Item>
+            {selectedOrg.kind === 2 && (
+              <Descriptions.Item label="公司英文名称">
+                {selectedOrg.nameEn || '-'}
+              </Descriptions.Item>
+            )}
             <Descriptions.Item label="本币">
               <Tag color="blue">{selectedOrg.baseCurrency}</Tag>
               {selectedOrg.kind === 3 || selectedOrg.kind === 4 ? (

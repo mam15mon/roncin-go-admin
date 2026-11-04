@@ -7,13 +7,18 @@ const path = `/orders/sea-export/${orderId}/hbl`;
 /** 业务 API 用独立夹具，浏览器、字体和 PDF 渲染器使用真实生产实现。 */
 async function installFixture(
   page: Page,
-  options: { locked?: boolean; initialPrintDetails?: boolean } = {},
+  options: {
+    locked?: boolean;
+    initialPrintDetails?: boolean;
+    issuerNameEn?: string;
+  } = {},
 ) {
   const writes: Record<string, unknown>[] = [];
   const pageErrors: string[] = [];
   const unexpected: string[] = [];
   let houseVersion = 1;
   let linkVersion = 1;
+  let issuerNameEn = options.issuerNameEn ?? 'HBL TEST ISSUER COMPANY LTD';
   let content: API.SeaBillContent = {
     shipperText: '制单验收发货人 / HBL TEST SHIPPER',
     consigneeText: 'TO ORDER',
@@ -38,7 +43,7 @@ async function installFixture(
           placeOfDeliveryText: 'SINGAPORE',
           originalCount: 3,
           shippedOnBoardDate: '2026-11-04',
-          issuePlaceText: 'BEIJING',
+          issuePlaceText: 'TEST ISSUE PLACE',
           issueDate: '2026-11-04',
           containersText: 'ABCD1234567 / SEAL TEST001 / 20GP',
         };
@@ -48,11 +53,12 @@ async function installFixture(
     organizationId: 'hbl-browser-org',
     houseNo: 'HBL-BROWSER-20261104',
     issuerSource: 1,
-    issuerOrganizationId: 'hbl-browser-org',
-    issuerOrganizationName: '融迅北京制单验收',
+    issuerOrganizationId: 'hbl-browser-issuer',
+    issuerOrganizationName: '制单验收签发公司',
+    issuerOrganizationNameEn: issuerNameEn,
     status: 1,
     version: String(houseVersion),
-    printTemplate: 'RONCIN_BEIJING',
+    printTemplate: 'RONCIN_SELF',
     content,
     printDetails,
   });
@@ -72,8 +78,8 @@ async function installFixture(
         displayName: 'HBL 制单验收',
         currentOrganization: {
           id: 'hbl-browser-org',
-          code: 'BJ',
-          name: '融迅北京制单验收',
+          code: 'CD',
+          name: '制单验收工作台公司',
           kind: 2,
         },
         permissions,
@@ -87,7 +93,7 @@ async function installFixture(
       return send({
         id: orderId,
         organizationId: 'hbl-browser-org',
-        organizationName: '融迅北京制单验收',
+        organizationName: '制单验收订单归属公司',
         orderNo: 'SE-HBL-BROWSER',
         businessType: 1,
         version: '1',
@@ -135,7 +141,14 @@ async function installFixture(
       json: { success: false, message: '验收未声明的请求' },
     });
   });
-  return { writes, pageErrors, unexpected };
+  return {
+    writes,
+    pageErrors,
+    unexpected,
+    setIssuerNameEn(value: string) {
+      issuerNameEn = value;
+    },
+  };
 }
 
 async function openPreview(page: Page) {
@@ -246,6 +259,67 @@ test('锁定且首次制单的 HBL 不必保存即可输出正本，编辑仍受
   await download.click();
   const file = await pending;
   await file.saveAs(testInfo.outputPath('锁定首次正本.pdf'));
+  expect(state.writes).toHaveLength(0);
+  expect(state.pageErrors).toEqual([]);
+  expect(state.unexpected).toEqual([]);
+});
+
+test('签发公司缺英文名仍可保存 HBL，补齐后刷新恢复输出', async ({
+  page,
+}, testInfo) => {
+  const state = await installFixture(page, { issuerNameEn: '' });
+  await page.goto(path);
+  const missingName = page.getByRole('alert').filter({
+    hasText: /^签发公司尚未维护英文名称，请在公司档案中补齐后输出。$/,
+  });
+  await expect(missingName).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: /预览／打印／下载/ }).first(),
+  ).toBeDisabled();
+  await page
+    .getByLabel('货物描述 (Description of Goods)', { exact: true })
+    .fill('缺英文名时保存的货描 / MISSING-NAME-SAVED');
+  await page
+    .getByRole('button', { name: /保存制作资料/ })
+    .first()
+    .click();
+  await expect(page.getByText('HBL 制作资料已保存')).toBeVisible();
+  expect(state.writes).toHaveLength(1);
+  state.setIssuerNameEn('HBL UPDATED ISSUER COMPANY LTD');
+  await page.getByRole('button', { name: /刷新资料/ }).click();
+  await expect(missingName).toHaveCount(0);
+  const { download } = await openPreview(page);
+  const pending = page.waitForEvent('download');
+  await download.click();
+  await (await pending).saveAs(testInfo.outputPath('补齐公司英文名.pdf'));
+  expect(state.pageErrors).toEqual([]);
+  expect(state.unexpected).toEqual([]);
+});
+
+test('签发公司英文名变化关闭旧预览并提醒刷新，保留未保存输入', async ({
+  page,
+}) => {
+  const state = await installFixture(page);
+  await page.goto(path);
+  const { dialog } = await openPreview(page);
+  state.setIssuerNameEn('HBL CHANGED ISSUER COMPANY LTD');
+  await page.evaluate(() => {
+    window.dispatchEvent(new Event('blur'));
+    window.dispatchEvent(new Event('focus'));
+  });
+  await expect(dialog).not.toBeVisible();
+  await expect(
+    page.getByText('这个订单已经发生变动，请重新刷新。', { exact: true }),
+  ).toBeVisible();
+  const description = page.getByLabel('货物描述 (Description of Goods)', {
+    exact: true,
+  });
+  await description.fill('保留当前输入 / PRESERVED-INPUT');
+  await page.getByRole('button', { name: /刷新资料/ }).click();
+  const confirmation = page.getByRole('dialog', { name: '确认替换当前内容？' });
+  await expect(confirmation).toBeVisible();
+  await confirmation.getByRole('button', { name: '保留当前内容' }).click();
+  await expect(description).toHaveValue('保留当前输入 / PRESERVED-INPUT');
   expect(state.writes).toHaveLength(0);
   expect(state.pageErrors).toEqual([]);
   expect(state.unexpected).toEqual([]);

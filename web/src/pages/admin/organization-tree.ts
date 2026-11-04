@@ -126,7 +126,8 @@ export function filterOrgTree(
   const filterNode = (node: OrgTreeNode): OrgTreeNode | null => {
     const titleMatch = node.title.toLowerCase().includes(kw);
     const codeMatch = node.code.toLowerCase().includes(kw);
-    const isSelfMatch = titleMatch || codeMatch;
+    const nameEnMatch = node.raw.nameEn?.toLowerCase().includes(kw) ?? false;
+    const isSelfMatch = titleMatch || codeMatch || nameEnMatch;
 
     const filteredChildren = node.children
       ?.map(filterNode)

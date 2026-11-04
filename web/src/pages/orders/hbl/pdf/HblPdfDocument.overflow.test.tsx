@@ -25,6 +25,7 @@ it('长度上限的连续中文按短行跨页，正文全部保留且行框不�
   const document = HblPdfDocument({
     model: {
       houseNo: '⸻'.repeat(128),
+      issuerNameEn: 'SAMPLE EAST LOGISTICS CO., LTD',
       content: {
         shipperText: '无空白地址'.repeat(1000),
         goodsDescriptionText: '连续货描'.repeat(2500),

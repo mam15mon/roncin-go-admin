@@ -76,6 +76,11 @@ func Name(v string) predicate.Organization {
 	return predicate.Organization(sql.FieldEQ(FieldName, v))
 }
 
+// NameEn applies equality check predicate on the "name_en" field. It's identical to NameEnEQ.
+func NameEn(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldEQ(FieldNameEn, v))
+}
+
 // ParentID applies equality check predicate on the "parent_id" field. It's identical to ParentIDEQ.
 func ParentID(v uuid.UUID) predicate.Organization {
 	return predicate.Organization(sql.FieldEQ(FieldParentID, v))
@@ -304,6 +309,81 @@ func NameEqualFold(v string) predicate.Organization {
 // NameContainsFold applies the ContainsFold predicate on the "name" field.
 func NameContainsFold(v string) predicate.Organization {
 	return predicate.Organization(sql.FieldContainsFold(FieldName, v))
+}
+
+// NameEnEQ applies the EQ predicate on the "name_en" field.
+func NameEnEQ(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldEQ(FieldNameEn, v))
+}
+
+// NameEnNEQ applies the NEQ predicate on the "name_en" field.
+func NameEnNEQ(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldNEQ(FieldNameEn, v))
+}
+
+// NameEnIn applies the In predicate on the "name_en" field.
+func NameEnIn(vs ...string) predicate.Organization {
+	return predicate.Organization(sql.FieldIn(FieldNameEn, vs...))
+}
+
+// NameEnNotIn applies the NotIn predicate on the "name_en" field.
+func NameEnNotIn(vs ...string) predicate.Organization {
+	return predicate.Organization(sql.FieldNotIn(FieldNameEn, vs...))
+}
+
+// NameEnGT applies the GT predicate on the "name_en" field.
+func NameEnGT(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldGT(FieldNameEn, v))
+}
+
+// NameEnGTE applies the GTE predicate on the "name_en" field.
+func NameEnGTE(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldGTE(FieldNameEn, v))
+}
+
+// NameEnLT applies the LT predicate on the "name_en" field.
+func NameEnLT(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldLT(FieldNameEn, v))
+}
+
+// NameEnLTE applies the LTE predicate on the "name_en" field.
+func NameEnLTE(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldLTE(FieldNameEn, v))
+}
+
+// NameEnContains applies the Contains predicate on the "name_en" field.
+func NameEnContains(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldContains(FieldNameEn, v))
+}
+
+// NameEnHasPrefix applies the HasPrefix predicate on the "name_en" field.
+func NameEnHasPrefix(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldHasPrefix(FieldNameEn, v))
+}
+
+// NameEnHasSuffix applies the HasSuffix predicate on the "name_en" field.
+func NameEnHasSuffix(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldHasSuffix(FieldNameEn, v))
+}
+
+// NameEnIsNil applies the IsNil predicate on the "name_en" field.
+func NameEnIsNil() predicate.Organization {
+	return predicate.Organization(sql.FieldIsNull(FieldNameEn))
+}
+
+// NameEnNotNil applies the NotNil predicate on the "name_en" field.
+func NameEnNotNil() predicate.Organization {
+	return predicate.Organization(sql.FieldNotNull(FieldNameEn))
+}
+
+// NameEnEqualFold applies the EqualFold predicate on the "name_en" field.
+func NameEnEqualFold(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldEqualFold(FieldNameEn, v))
+}
+
+// NameEnContainsFold applies the ContainsFold predicate on the "name_en" field.
+func NameEnContainsFold(v string) predicate.Organization {
+	return predicate.Organization(sql.FieldContainsFold(FieldNameEn, v))
 }
 
 // KindEQ applies the EQ predicate on the "kind" field.

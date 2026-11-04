@@ -107,15 +107,21 @@ describe('OrganizationsPanel', () => {
     expect(within(tree).queryByText('系统管理')).not.toBeInTheDocument();
     expect(screen.getByTestId('org-detail')).toHaveTextContent('上海公司');
 
-    fireEvent.change(screen.getByPlaceholderText('搜索组织名称或编码...'), {
-      target: { value: 'SYS' },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText('搜索组织名称、英文名称或编码...'),
+      {
+        target: { value: 'SYS' },
+      },
+    );
     expect(screen.getByText('未找到匹配的组织机构')).toBeInTheDocument();
     expect(screen.getByTestId('org-detail')).toHaveTextContent('上海公司');
 
-    fireEvent.change(screen.getByPlaceholderText('搜索组织名称或编码...'), {
-      target: { value: '系统管理' },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText('搜索组织名称、英文名称或编码...'),
+      {
+        target: { value: '系统管理' },
+      },
+    );
     expect(screen.getByText('未找到匹配的组织机构')).toBeInTheDocument();
 
     listOrganizations.mockResolvedValue({ data: organizations.slice(0, 1) });

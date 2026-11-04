@@ -19,6 +19,7 @@ func (Organization) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("code").NotEmpty().MaxLen(64).Immutable(),
 		field.String("name").NotEmpty().MaxLen(200),
+		field.String("name_en").Optional().Nillable().MaxRuneLen(200),
 		field.Enum("kind").Values("system", "company", "department", "team").Immutable(),
 		field.UUID("parent_id", uuid.Nil).Optional().Nillable(),
 		field.Bool("enabled").Default(true),
@@ -28,7 +29,7 @@ func (Organization) Fields() []ent.Field {
 	}
 }
 
-func (Organization) Hooks() []ent.Hook { return []ent.Hook{searchKeywordsHook("name")} }
+func (Organization) Hooks() []ent.Hook { return []ent.Hook{searchKeywordsHook("code", "name", "name_en")} }
 
 func (Organization) Edges() []ent.Edge {
 	return []ent.Edge{

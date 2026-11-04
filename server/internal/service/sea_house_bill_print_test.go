@@ -16,8 +16,8 @@ func TestSeaHouseBillPrintDetailsBoundaryRoundTrip(t *testing.T) {
 	if output := seaHouseBillPrintDetailsToAPI(domain); !reflect.DeepEqual(input, output) {
 		t.Fatalf("印字跨层转换丢失字段: %#v", output)
 	}
-	house := seaHouseBillToAPI(&biz.SeaHouseBill{PrintDetails: domain, PrintTemplate: biz.SeaHouseBillPrintTemplateRoncinBeijing})
-	if house.GetPrintTemplate() != "RONCIN_BEIJING" || !reflect.DeepEqual(house.PrintDetails, input) {
+	house := seaHouseBillToAPI(&biz.SeaHouseBill{PrintDetails: domain, PrintTemplate: biz.SeaHouseBillPrintTemplateRoncinSelf})
+	if house.GetPrintTemplate() != "RONCIN_SELF" || !reflect.DeepEqual(house.PrintDetails, input) {
 		t.Fatal("当前 HBL 未返回印字及模板")
 	}
 	version := seaDocumentVersionToAPI(&biz.SeaDocumentVersion{PrintDetails: domain})

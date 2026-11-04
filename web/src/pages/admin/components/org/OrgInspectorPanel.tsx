@@ -285,6 +285,11 @@ export default function OrgInspectorPanel({
                   {selectedOrg.code}
                 </Text>
               </Descriptions.Item>
+              {selectedOrg.kind === 2 && (
+                <Descriptions.Item label="公司英文名称">
+                  {selectedOrg.nameEn || '-'}
+                </Descriptions.Item>
+              )}
               <Descriptions.Item label="本位币种">
                 <Tag color="blue">{selectedOrg.baseCurrency || '-'}</Tag>
                 {(selectedOrg.kind === 3 || selectedOrg.kind === 4) && (

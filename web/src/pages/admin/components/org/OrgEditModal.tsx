@@ -10,6 +10,7 @@ import { GuardedModalForm } from '@/components/ui';
 import { getCurrencyOptions } from '@/features/master-data/currencies';
 import { adminServiceUpdateOrganization } from '@/services/roncin/adminService';
 import { isWriteResponse } from '@/utils/api';
+import CompanyEnglishNameField from './CompanyEnglishNameField';
 import type { EditFormValues } from './types';
 
 const { Text } = Typography;
@@ -38,6 +39,7 @@ export default function OrgEditModal({
       formRef={formRef}
       initialValues={{
         name: editingOrg?.name,
+        nameEn: editingOrg?.nameEn,
         enabled: editingOrg?.enabled ?? true,
         baseCurrency: editingOrg?.baseCurrency,
       }}
@@ -55,6 +57,10 @@ export default function OrgEditModal({
             {
               id: editingOrg.id,
               name: values.name?.trim() ?? '',
+              nameEn:
+                editingOrg.kind === 2
+                  ? (values.nameEn?.trim() ?? '')
+                  : undefined,
               enabled: values.enabled ?? true,
               baseCurrency:
                 editingOrg.kind === 1 || editingOrg.kind === 2
@@ -89,6 +95,7 @@ export default function OrgEditModal({
         label="组织名称"
         rules={[{ required: true, message: '请输入组织名称' }]}
       />
+      {editingOrg?.kind === 2 && <CompanyEnglishNameField />}
       <ProFormSwitch
         name="enabled"
         label="启用状态"

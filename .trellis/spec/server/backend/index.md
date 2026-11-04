@@ -15,7 +15,7 @@
 | [DingTalk Notification Messages](./dingtalk-notification-markdown.md) | 机器人Markdown/单按钮ActionCard、紧凑模板与验证码敏感边界 | ✅ |
 | [DingTalk Notification Test](./dingtalk-notification-test.md) | 独立Admin预览、本人测试发送、无效验证码与受控费用链接 | ✅ |
 | [Sea Export Document Contract](./sea-export-document-contract.md) | 海运操作票、共享 MBL、运输执行与 HBL 跨层契约 | ✅ |
-| [HBL 制作与 PDF 输出](./sea-hbl-production.md) | 同一 HBL 印字、北京自签模板、四版本独立于利润审核和完整分页输出 | ✅ |
+| [HBL 制作与 PDF 输出](./sea-hbl-production.md) | 同一 HBL 印字、自签公司动态抬头、四版本独立于利润审核和完整分页输出 | ✅ |
 | [Air Export Contract](./air-export-contract.md) | 空运共享 MAWB/HAWB、成员与单证历史、流程、重量确认和费用来源 | ✅ |
 | [Order Shared Enum Field](./order-shared-enum-field.md) | 订单共享契约新增可选枚举字段的五层配方、迁移列形与更新语义 | ✅ |
 | [Order Personnel Editor Retirement](./order-personnel-editor-retirement.md) | 订单协作团队独立维护退役，保留表单读取、底层人员与通知/提成依赖 | ✅ |
@@ -39,6 +39,7 @@
 | [DingTalk Embedded Login](./dingtalk-embedded-login.md) | 钉钉内通知免登、临时码协议、独立state与会话复用 | ✅ |
 | [Mobile Login Password Reset](./mobile-login-password-reset.md) | 手机号/本地账号统一登录、钉钉验证码、持久冷却、一次消费与全会话撤销 | ✅ |
 | [User Membership Batch](./user-membership-batch.md) | 单用户多组织加入、逐组织选填角色、锁内授权与整批事务 | ✅ |
+| [公司英文名称](./company-english-name.md) | 公司英文名维护、真实签发抬头、空值和初始化规则 | ✅ |
 | [Company Admin Provisioning](./company-admin-provisioning.md) | 新公司初始管理员加入、bootstrap 幂等补齐及停用保留 | ✅ |
 | [WeCom Retirement](./wecom-retirement.md) | 企业微信下线：已删除端点、用户字段、环境配置、正式迁移和相邻认证验证 | ✅ |
 | [Role Data Scope Retirement](./retire-role-data-scope.md) | 角色范围配置/字段退役、工作台推导、迁移停用与候选隔离 | ✅ |

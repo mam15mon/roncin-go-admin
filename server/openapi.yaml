@@ -8721,6 +8721,8 @@ components:
                     format: enum
                 baseCurrency:
                     type: string
+                nameEn:
+                    type: string
         admin.v1.AdminPermission:
             type: object
             properties:
@@ -8938,6 +8940,8 @@ components:
                     type: integer
                     format: enum
                 baseCurrency:
+                    type: string
+                nameEn:
                     type: string
         admin.v1.CreateOrganizationResponse:
             type: object
@@ -9481,6 +9485,8 @@ components:
                 enabled:
                     type: boolean
                 baseCurrency:
+                    type: string
+                nameEn:
                     type: string
         admin.v1.UpdateOrganizationResponse:
             type: object
@@ -21433,6 +21439,9 @@ components:
                 printDetails:
                     $ref: '#/components/schemas/order.v1.SeaHouseBillPrintDetails'
                 printTemplate:
+                    readOnly: true
+                    type: string
+                issuerOrganizationNameEn:
                     readOnly: true
                     type: string
             description: SeaHouseBill 海运分单（HBL）信息。

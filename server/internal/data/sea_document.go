@@ -99,9 +99,10 @@ func (r *seaDocumentRepo) GetSeaOrderDocuments(ctx context.Context, organization
 	var currentHB *biz.SeaHouseBill
 	if len(hbs) > 0 {
 		hb := hbs[0]
-		var orgName, orgCode, partnerName string
+		var orgName, orgNameEn, partnerName string
+		var issuerKind biz.OrganizationKind
 		if hb.IssuerOrganizationID != nil {
-			orgName, orgCode, err = r.getOrganizationName(ctx, client, *hb.IssuerOrganizationID)
+			orgName, orgNameEn, issuerKind, err = r.getOrganizationName(ctx, client, *hb.IssuerOrganizationID)
 			if err != nil {
 				return nil, err
 			}
@@ -119,7 +120,8 @@ func (r *seaDocumentRepo) GetSeaOrderDocuments(ctx context.Context, organization
 			return nil, err
 		}
 		currentHB = seaHouseBillToBiz(hb, orgName, partnerName, versionCount)
-		currentHB.PrintTemplate = seaHouseBillPrintTemplate(hb, orgCode)
+		currentHB.IssuerOrganizationNameEn = orgNameEn
+		currentHB.PrintTemplate = seaHouseBillPrintTemplate(hb, issuerKind)
 	}
 
 	structure := biz.SeaDocumentStructure(link.DocumentStructure)
@@ -544,9 +546,10 @@ func (r *seaDocumentRepo) getSeaHouseBillByID(ctx context.Context, organizationI
 		return nil, mapEntError(err, biz.ErrSeaHouseBillNotFound, nil)
 	}
 
-	var orgName, orgCode, partnerName string
+	var orgName, orgNameEn, partnerName string
+	var issuerKind biz.OrganizationKind
 	if hb.IssuerOrganizationID != nil {
-		orgName, orgCode, err = r.getOrganizationName(ctx, client, *hb.IssuerOrganizationID)
+		orgName, orgNameEn, issuerKind, err = r.getOrganizationName(ctx, client, *hb.IssuerOrganizationID)
 		if err != nil {
 			return nil, err
 		}
@@ -559,7 +562,8 @@ func (r *seaDocumentRepo) getSeaHouseBillByID(ctx context.Context, organizationI
 	}
 
 	result := seaHouseBillToBiz(hb, orgName, partnerName)
-	result.PrintTemplate = seaHouseBillPrintTemplate(hb, orgCode)
+	result.IssuerOrganizationNameEn = orgNameEn
+	result.PrintTemplate = seaHouseBillPrintTemplate(hb, issuerKind)
 	return result, nil
 }
 
@@ -587,15 +591,19 @@ func (r *seaDocumentRepo) getShippingLineName(ctx context.Context, client *ent.C
 	return formatShippingLineName(line.NameZh, line.NameEn, line.ScacCode), nil
 }
 
-func (r *seaDocumentRepo) getOrganizationName(ctx context.Context, client *ent.Client, orgID uuid.UUID) (string, string, error) {
+func (r *seaDocumentRepo) getOrganizationName(ctx context.Context, client *ent.Client, orgID uuid.UUID) (string, string, biz.OrganizationKind, error) {
 	if orgID == uuid.Nil {
-		return "", "", nil
+		return "", "", "", nil
 	}
 	org, err := client.Organization.Query().Where(organizationent.IDEQ(orgID)).Only(ctx)
 	if err != nil {
-		return "", "", err
+		return "", "", "", err
 	}
-	return org.Name, org.Code, nil
+	var nameEn string
+	if org.NameEn != nil {
+		nameEn = *org.NameEn
+	}
+	return org.Name, nameEn, biz.OrganizationKind(org.Kind), nil
 }
 
 func resolveIssuerOrganization(ctx context.Context, client *ent.Client, rootOrgID, orderOrgID uuid.UUID) (uuid.UUID, error) {

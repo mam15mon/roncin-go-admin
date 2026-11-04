@@ -6973,12 +6973,16 @@ func init() {
 			return nil
 		}
 	}()
+	// organizationDescNameEn is the schema descriptor for name_en field.
+	organizationDescNameEn := organizationFields[2].Descriptor()
+	// organization.NameEnValidator is a validator for the "name_en" field. It is called by the builders before save.
+	organization.NameEnValidator = organizationDescNameEn.Validators[0].(func(string) error)
 	// organizationDescEnabled is the schema descriptor for enabled field.
-	organizationDescEnabled := organizationFields[4].Descriptor()
+	organizationDescEnabled := organizationFields[5].Descriptor()
 	// organization.DefaultEnabled holds the default value on creation for the enabled field.
 	organization.DefaultEnabled = organizationDescEnabled.Default.(bool)
 	// organizationDescBaseCurrency is the schema descriptor for base_currency field.
-	organizationDescBaseCurrency := organizationFields[5].Descriptor()
+	organizationDescBaseCurrency := organizationFields[6].Descriptor()
 	// organization.BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
 	organization.BaseCurrencyValidator = func() func(string) error {
 		validators := organizationDescBaseCurrency.Validators
@@ -6996,7 +7000,7 @@ func init() {
 		}
 	}()
 	// organizationDescSearchKeywords is the schema descriptor for search_keywords field.
-	organizationDescSearchKeywords := organizationFields[7].Descriptor()
+	organizationDescSearchKeywords := organizationFields[8].Descriptor()
 	// organization.DefaultSearchKeywords holds the default value on creation for the search_keywords field.
 	organization.DefaultSearchKeywords = organizationDescSearchKeywords.Default.(string)
 	// organizationDescID is the schema descriptor for id field.

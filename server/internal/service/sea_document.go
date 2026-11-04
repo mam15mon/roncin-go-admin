@@ -245,9 +245,12 @@ func seaHouseBillToAPI(hb *biz.SeaHouseBill) *v1.SeaHouseBill {
 		s := hb.IssuerPartnerID.String()
 		partnerID = &s
 	}
-	var orgName, partnerName *string
+	var orgName, orgNameEn, partnerName *string
 	if hb.IssuerOrganizationName != "" {
 		orgName = &hb.IssuerOrganizationName
+	}
+	if hb.IssuerOrganizationNameEn != "" {
+		orgNameEn = &hb.IssuerOrganizationNameEn
 	}
 	if hb.IssuerPartnerName != "" {
 		partnerName = &hb.IssuerPartnerName
@@ -258,26 +261,27 @@ func seaHouseBillToAPI(hb *biz.SeaHouseBill) *v1.SeaHouseBill {
 		printTemplate = &hb.PrintTemplate
 	}
 	return &v1.SeaHouseBill{
-		Id:                     hb.ID.String(),
-		OrganizationId:         hb.OrganizationID.String(),
-		OrderId:                hb.OrderID.String(),
-		MasterBillId:           hb.MasterBillID.String(),
-		HouseNo:                hb.HouseNo,
-		IssuerSource:           seaHouseBillIssuerSourceToAPI(hb.IssuerSource),
-		IssuerOrganizationId:   orgID,
-		IssuerOrganizationName: orgName,
-		IssuerPartnerId:        partnerID,
-		IssuerPartnerName:      partnerName,
-		Status:                 seaHouseBillStatusToAPI(hb.Status),
-		Version:                hb.Version,
-		CurrentVersionId:       currentVersionID,
-		ImmutableVersionCount:  uint64(hb.ImmutableVersionCount),
-		Note:                   hb.Note,
-		Content:                seaBillContentToAPI(hb.Content),
-		PrintDetails:           seaHouseBillPrintDetailsToAPI(hb.PrintDetails),
-		PrintTemplate:          printTemplate,
-		CreatedAt:              hb.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:              hb.UpdatedAt.Format(time.RFC3339),
+		Id:                       hb.ID.String(),
+		OrganizationId:           hb.OrganizationID.String(),
+		OrderId:                  hb.OrderID.String(),
+		MasterBillId:             hb.MasterBillID.String(),
+		HouseNo:                  hb.HouseNo,
+		IssuerSource:             seaHouseBillIssuerSourceToAPI(hb.IssuerSource),
+		IssuerOrganizationId:     orgID,
+		IssuerOrganizationName:   orgName,
+		IssuerOrganizationNameEn: orgNameEn,
+		IssuerPartnerId:          partnerID,
+		IssuerPartnerName:        partnerName,
+		Status:                   seaHouseBillStatusToAPI(hb.Status),
+		Version:                  hb.Version,
+		CurrentVersionId:         currentVersionID,
+		ImmutableVersionCount:    uint64(hb.ImmutableVersionCount),
+		Note:                     hb.Note,
+		Content:                  seaBillContentToAPI(hb.Content),
+		PrintDetails:             seaHouseBillPrintDetailsToAPI(hb.PrintDetails),
+		PrintTemplate:            printTemplate,
+		CreatedAt:                hb.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:                hb.UpdatedAt.Format(time.RFC3339),
 	}
 }
 

@@ -5288,6 +5288,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "code", Type: field.TypeString, Size: 64},
 		{Name: "name", Type: field.TypeString, Size: 200},
+		{Name: "name_en", Type: field.TypeString, Nullable: true, Size: 200},
 		{Name: "kind", Type: field.TypeEnum, Enums: []string{"system", "company", "department", "team"}},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
 		{Name: "base_currency", Type: field.TypeString, Nullable: true, Size: 3},
@@ -5303,7 +5304,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "organizations_organizations_children",
-				Columns:    []*schema.Column{OrganizationsColumns[10]},
+				Columns:    []*schema.Column{OrganizationsColumns[11]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -5322,7 +5323,7 @@ var (
 			{
 				Name:    "organization_parent_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrganizationsColumns[10]},
+				Columns: []*schema.Column{OrganizationsColumns[11]},
 			},
 		},
 	}

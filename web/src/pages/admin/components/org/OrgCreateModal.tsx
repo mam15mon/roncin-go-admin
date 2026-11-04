@@ -6,6 +6,7 @@ import { GuardedModalForm } from '@/components/ui';
 import { getCurrencyOptions } from '@/features/master-data/currencies';
 import { adminServiceCreateOrganization } from '@/services/roncin/adminService';
 import { isWriteResponse } from '@/utils/api';
+import CompanyEnglishNameField from './CompanyEnglishNameField';
 import {
   type CreateFormValues,
   getChildOrganizationKind,
@@ -52,6 +53,7 @@ export default function OrgCreateModal({
           const response = await adminServiceCreateOrganization({
             code: values.code?.trim() ?? '',
             name: values.name?.trim() ?? '',
+            nameEn: childKind === 2 ? (values.nameEn?.trim() ?? '') : undefined,
             parentId: parentOrg?.id,
             kind: childKind,
             baseCurrency:
@@ -97,15 +99,18 @@ export default function OrgCreateModal({
         rules={[{ required: true, message: '请输入组织名称' }]}
       />
       {childKind === 2 && (
-        <ProFormSelect
-          name="baseCurrency"
-          label="本币"
-          placeholder="请选择公司本币"
-          initialValue="CNY"
-          showSearch
-          request={getCurrencyOptions}
-          rules={[{ required: true, message: '请选择公司本币' }]}
-        />
+        <>
+          <CompanyEnglishNameField />
+          <ProFormSelect
+            name="baseCurrency"
+            label="本币"
+            placeholder="请选择公司本币"
+            initialValue="CNY"
+            showSearch
+            request={getCurrencyOptions}
+            rules={[{ required: true, message: '请选择公司本币' }]}
+          />
+        </>
       )}
     </GuardedModalForm>
   );

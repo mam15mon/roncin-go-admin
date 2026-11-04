@@ -10,12 +10,12 @@ import (
 	"github.com/go-kratos/kratos/v3/errors"
 )
 
-const SeaHouseBillPrintTemplateRoncinBeijing = "RONCIN_BEIJING"
+const SeaHouseBillPrintTemplateRoncinSelf = "RONCIN_SELF"
 
-// ResolveSeaHouseBillPrintTemplate 根据真实签发公司代码确定本期适用模板。
-func ResolveSeaHouseBillPrintTemplate(source SeaHouseBillIssuerSource, issuerCode string) string {
-	if source == SeaHouseBillIssuerSourceSelfOrganization && issuerCode == "BJ" {
-		return SeaHouseBillPrintTemplateRoncinBeijing
+// ResolveSeaHouseBillPrintTemplate 按真实公司自签主体确定模板，与城市代码无关。
+func ResolveSeaHouseBillPrintTemplate(source SeaHouseBillIssuerSource, issuerKind OrganizationKind) string {
+	if source == SeaHouseBillIssuerSourceSelfOrganization && issuerKind == OrganizationKindCompany {
+		return SeaHouseBillPrintTemplateRoncinSelf
 	}
 	return ""
 }

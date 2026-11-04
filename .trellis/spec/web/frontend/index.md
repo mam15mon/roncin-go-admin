@@ -12,6 +12,7 @@
 | [Directory Structure](./directory-structure.md) | 页面组织、features 分层与依赖边界 | ✅ |
 | [Column Settings](./column-settings.md) | 全量铺排排序、逐列多列冻结、偏好隔离和Pro适配 | ✅ |
 | [海运共享航程](./sea-master-voyage-inheritance.md) | 已有主单航程继承、差异采纳、只读来源与统一修改影响范围 | ✅ |
+| [公司英文名称](../../server/backend/company-english-name.md) | 公司表单与详情、英文搜索、HBL 实际签发抬头及缺名输出提示 | ✅ |
 | [HBL 制作与 PDF 输出](../../server/backend/sea-hbl-production.md) | 同一 HBL 保存、四版本独立于利润审核、字体与完整分页输出 | ✅ |
 | [Component Guidelines](./component-guidelines.md) | UI 模板规范、公共组件与金额/时间显示口径 | ✅ |
 | [State Management](./state-management.md) | 服务端状态与请求客户端 | ✅ |

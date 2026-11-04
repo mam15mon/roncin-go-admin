@@ -74,6 +74,9 @@ func (r *adminRepo) CreateOrganization(ctx context.Context, input *biz.AdminOrga
 		}
 		if input.Kind == biz.OrganizationKindCompany {
 			create.SetEnabledCurrencies(defaultCompanyEnabledCurrencies(input.BaseCurrency))
+			if input.NameEn != "" {
+				create.SetNameEn(input.NameEn)
+			}
 		}
 		if input.ParentID != nil {
 			create.SetParentID(*input.ParentID)
@@ -102,6 +105,7 @@ func (r *adminRepo) CreateOrganization(ctx context.Context, input *biz.AdminOrga
 			return defaultErr
 		}
 		audit.Details["value"] = created.ID.String()
+		audit.Details["organization.name_en"] = input.NameEn
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
 	if err != nil {
@@ -122,6 +126,13 @@ func (r *adminRepo) UpdateOrganization(ctx context.Context, organizationID uuid.
 			return scopeErr
 		}
 		update := tx.Organization.UpdateOneID(input.ID).Where(organization.IDIn(scope...)).SetName(input.Name).SetEnabled(input.Enabled)
+		if input.Kind == biz.OrganizationKindCompany {
+			if input.NameEn == "" {
+				update.ClearNameEn()
+			} else {
+				update.SetNameEn(input.NameEn)
+			}
+		}
 		if input.Kind == biz.OrganizationKindSystem || input.Kind == biz.OrganizationKindCompany {
 			if currencyErr := validateOrganizationCurrency(ctx, tx.Currency, input.BaseCurrency); currencyErr != nil {
 				return currencyErr
@@ -151,6 +162,7 @@ func (r *adminRepo) UpdateOrganization(ctx context.Context, organizationID uuid.
 		if saveErr != nil {
 			return mapEntError(saveErr, biz.ErrAdminOrganizationNotFound, nil)
 		}
+		audit.Details["organization.name_en"] = input.NameEn
 		return writeAudit(ctx, tx.AuditLog, audit)
 	})
 	if err != nil {
@@ -160,6 +172,9 @@ func (r *adminRepo) UpdateOrganization(ctx context.Context, organizationID uuid.
 }
 func organizationToBiz(item *ent.Organization) *biz.AdminOrganization {
 	result := &biz.AdminOrganization{ID: item.ID, Code: item.Code, Name: item.Name, Kind: biz.OrganizationKind(item.Kind), ParentID: item.ParentID, Enabled: item.Enabled}
+	if item.NameEn != nil {
+		result.NameEn = *item.NameEn
+	}
 	if item.BaseCurrency != nil {
 		result.BaseCurrency = *item.BaseCurrency
 	}

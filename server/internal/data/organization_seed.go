@@ -12,13 +12,15 @@ import (
 
 // defaultBranchCompanySeeds 是建库种子中的默认分公司清单，各公司为独立根节点。
 type branchCompanySeed struct {
-	Code string
-	Name string
+	Code   string
+	Name   string
+	NameEn string
 }
 
 var defaultBranchCompanySeeds = []branchCompanySeed{
-	{Code: "BJ", Name: "融迅（北京）供应链管理有限公司"},
-	{Code: "CD", Name: "融迅（成都）供应链管理有限公司"},
+	// 北京抬头来自用户参考 PDF；成都按用户确认的同一英文结构替换城市拼音。
+	{Code: "BJ", Name: "融迅（北京）供应链管理有限公司", NameEn: "RONCIN (BEIJING) SUPPLY CHAIN MANAGEMENT CO., LTD"},
+	{Code: "CD", Name: "融迅（成都）供应链管理有限公司", NameEn: "RONCIN (CHENGDU) SUPPLY CHAIN MANAGEMENT CO., LTD"},
 }
 
 // CreateDefaultBranchCompanies 与 bootstrap 共用锁序及停用规则，并补齐实际存在的公司。
@@ -74,7 +76,11 @@ func createDefaultBranchCompanyRecords(ctx context.Context, tx *ent.Tx) ([]*ent.
 		if !ent.IsNotFound(err) {
 			return nil, fmt.Errorf("检查分公司种子 %s: %w", seed.Code, err)
 		}
-		item, err := tx.Organization.Create().SetCode(seed.Code).SetName(seed.Name).SetKind(organizationent.KindCompany).SetBaseCurrency("CNY").SetEnabledCurrencies(defaultCompanyEnabledCurrencies("CNY")).Save(ctx)
+		create := tx.Organization.Create().SetCode(seed.Code).SetName(seed.Name).SetKind(organizationent.KindCompany).SetBaseCurrency("CNY").SetEnabledCurrencies(defaultCompanyEnabledCurrencies("CNY"))
+		if seed.NameEn != "" {
+			create.SetNameEn(seed.NameEn)
+		}
+		item, err := create.Save(ctx)
 		if err != nil {
 			return nil, mapEntError(err, nil, biz.ErrAdminOrganizationCodeExists)
 		}

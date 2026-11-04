@@ -102,6 +102,9 @@ export function hblBundleFingerprint(bundle: HblBundle): string {
     bundle.documents.masterBill?.version,
     bundle.documents.houseBill?.id,
     bundle.documents.houseBill?.version,
+    bundle.documents.houseBill?.issuerOrganizationId,
+    bundle.documents.houseBill?.issuerOrganizationNameEn,
+    bundle.documents.houseBill?.printTemplate,
   ]);
 }
 
@@ -113,9 +116,18 @@ export function hblUnavailableReason(bundle: HblBundle): string | undefined {
   if (
     house.issuerSource !==
       SeaHouseBillIssuerSource.SEA_HOUSE_BILL_ISSUER_SOURCE_SELF_ORGANIZATION ||
-    house.printTemplate !== 'RONCIN_BEIJING'
+    house.printTemplate !== 'RONCIN_SELF'
   )
-    return '当前 HBL 暂无适用模板，本期仅支持融迅北京公司自签 HBL。';
+    return '当前 HBL 暂无适用模板，仅支持本公司签发的 HBL。';
+  return undefined;
+}
+
+/** 公司英文名缺失只限制文件输出，不限制同一 HBL 的正文维护。 */
+export function hblOutputBlockedReason(bundle: HblBundle): string | undefined {
+  const unavailable = hblUnavailableReason(bundle);
+  if (unavailable) return unavailable;
+  if (!bundle.documents.houseBill?.issuerOrganizationNameEn?.trim())
+    return '签发公司尚未维护英文名称，请在公司档案中补齐后输出。';
   return undefined;
 }
 

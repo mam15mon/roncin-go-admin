@@ -12,6 +12,7 @@ describe('HBL PDF 显示边界', () => {
     expect(
       validateHblPdfCharacters({
         houseNo: 'HBL-2026-001',
+        issuerNameEn: 'SAMPLE EAST LOGISTICS CO., LTD',
         content: { shipperText: '上海测试企业\nSAMPLE EXPORTER' },
         printDetails: { containersText: 'ABCD1234567 / 20GP' },
       }),
@@ -19,9 +20,22 @@ describe('HBL PDF 显示边界', () => {
     expect(
       validateHblPdfCharacters({
         houseNo: 'HBL-001',
+        issuerNameEn: 'SAMPLE EAST LOGISTICS CO., LTD',
         printDetails: { deliveryContactText: '联系人😀' },
       }),
     ).toBe('交货联系信息含暂不支持打印的字符「😀」，请调整后重试。');
+  });
+
+  it('缺少签发英文名或公司名含缺字时明确阻止输出', () => {
+    expect(
+      validateHblPdfCharacters({ houseNo: 'HBL-001', issuerNameEn: '   ' }),
+    ).toBe('签发公司尚未维护英文名称，请在公司档案中补齐后输出。');
+    expect(
+      validateHblPdfCharacters({
+        houseNo: 'HBL-001',
+        issuerNameEn: 'SAMPLE COMPANY 😀',
+      }),
+    ).toBe('签发公司英文名称含暂不支持打印的字符「😀」，请调整后重试。');
   });
 
   it('数量保留有效精度，日期按纯日期显示，空值不伪造零或当前日期', () => {

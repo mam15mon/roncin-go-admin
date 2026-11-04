@@ -14347,6 +14347,9 @@
           },
           "baseCurrency": {
             "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
           }
         }
       },
@@ -14671,6 +14674,9 @@
             "format": "enum"
           },
           "baseCurrency": {
+            "type": "string"
+          },
+          "nameEn": {
             "type": "string"
           }
         }
@@ -15481,6 +15487,9 @@
             "type": "boolean"
           },
           "baseCurrency": {
+            "type": "string"
+          },
+          "nameEn": {
             "type": "string"
           }
         }
@@ -33086,6 +33095,10 @@
             "$ref": "#/components/schemas/order.v1.SeaHouseBillPrintDetails"
           },
           "printTemplate": {
+            "readOnly": true,
+            "type": "string"
+          },
+          "issuerOrganizationNameEn": {
             "readOnly": true,
             "type": "string"
           }

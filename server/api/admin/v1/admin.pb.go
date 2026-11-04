@@ -182,6 +182,7 @@ type CreateOrganizationRequest struct {
 	ParentId      *string                `protobuf:"bytes,3,opt,name=parent_id,json=parentId,proto3,oneof" json:"parent_id,omitempty"`
 	Kind          OrganizationKind       `protobuf:"varint,4,opt,name=kind,proto3,enum=admin.v1.OrganizationKind" json:"kind,omitempty"`
 	BaseCurrency  *string                `protobuf:"bytes,5,opt,name=base_currency,json=baseCurrency,proto3,oneof" json:"base_currency,omitempty"`
+	NameEn        *string                `protobuf:"bytes,6,opt,name=name_en,json=nameEn,proto3,oneof" json:"name_en,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -251,12 +252,20 @@ func (x *CreateOrganizationRequest) GetBaseCurrency() string {
 	return ""
 }
 
+func (x *CreateOrganizationRequest) GetNameEn() string {
+	if x != nil && x.NameEn != nil {
+		return *x.NameEn
+	}
+	return ""
+}
+
 type UpdateOrganizationRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Enabled       bool                   `protobuf:"varint,3,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	BaseCurrency  *string                `protobuf:"bytes,4,opt,name=base_currency,json=baseCurrency,proto3,oneof" json:"base_currency,omitempty"`
+	NameEn        *string                `protobuf:"bytes,5,opt,name=name_en,json=nameEn,proto3,oneof" json:"name_en,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -319,6 +328,13 @@ func (x *UpdateOrganizationRequest) GetBaseCurrency() string {
 	return ""
 }
 
+func (x *UpdateOrganizationRequest) GetNameEn() string {
+	if x != nil && x.NameEn != nil {
+		return *x.NameEn
+	}
+	return ""
+}
+
 type AdminOrganization struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -328,6 +344,7 @@ type AdminOrganization struct {
 	Enabled       bool                   `protobuf:"varint,5,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	Kind          OrganizationKind       `protobuf:"varint,6,opt,name=kind,proto3,enum=admin.v1.OrganizationKind" json:"kind,omitempty"`
 	BaseCurrency  string                 `protobuf:"bytes,7,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
+	NameEn        *string                `protobuf:"bytes,8,opt,name=name_en,json=nameEn,proto3,oneof" json:"name_en,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -407,6 +424,13 @@ func (x *AdminOrganization) GetKind() OrganizationKind {
 func (x *AdminOrganization) GetBaseCurrency() string {
 	if x != nil {
 		return x.BaseCurrency
+	}
+	return ""
+}
+
+func (x *AdminOrganization) GetNameEn() string {
+	if x != nil && x.NameEn != nil {
+		return *x.NameEn
 	}
 	return ""
 }
@@ -5258,22 +5282,28 @@ var File_admin_v1_admin_proto protoreflect.FileDescriptor
 const file_admin_v1_admin_proto_rawDesc = "" +
 	"\n" +
 	"\x14admin/v1/admin.proto\x12\badmin.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\x1a\n" +
-	"\x18ListOrganizationsRequest\"\xee\x01\n" +
+	"\x18ListOrganizationsRequest\"\x98\x02\n" +
 	"\x19CreateOrganizationRequest\x12\x17\n" +
 	"\x04code\x18\x01 \x01(\tB\x03\xe0A\x02R\x04code\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tB\x03\xe0A\x02R\x04name\x12 \n" +
 	"\tparent_id\x18\x03 \x01(\tH\x00R\bparentId\x88\x01\x01\x123\n" +
 	"\x04kind\x18\x04 \x01(\x0e2\x1a.admin.v1.OrganizationKindB\x03\xe0A\x02R\x04kind\x12(\n" +
-	"\rbase_currency\x18\x05 \x01(\tH\x01R\fbaseCurrency\x88\x01\x01B\f\n" +
+	"\rbase_currency\x18\x05 \x01(\tH\x01R\fbaseCurrency\x88\x01\x01\x12\x1c\n" +
+	"\aname_en\x18\x06 \x01(\tH\x02R\x06nameEn\x88\x01\x01B\f\n" +
 	"\n" +
 	"_parent_idB\x10\n" +
-	"\x0e_base_currency\"\x9f\x01\n" +
+	"\x0e_base_currencyB\n" +
+	"\n" +
+	"\b_name_en\"\xc9\x01\n" +
 	"\x19UpdateOrganizationRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tB\x03\xe0A\x02R\x04name\x12\x18\n" +
 	"\aenabled\x18\x03 \x01(\bR\aenabled\x12(\n" +
-	"\rbase_currency\x18\x04 \x01(\tH\x00R\fbaseCurrency\x88\x01\x01B\x10\n" +
-	"\x0e_base_currency\"\xea\x01\n" +
+	"\rbase_currency\x18\x04 \x01(\tH\x00R\fbaseCurrency\x88\x01\x01\x12\x1c\n" +
+	"\aname_en\x18\x05 \x01(\tH\x01R\x06nameEn\x88\x01\x01B\x10\n" +
+	"\x0e_base_currencyB\n" +
+	"\n" +
+	"\b_name_en\"\x94\x02\n" +
 	"\x11AdminOrganization\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\tR\x04code\x12\x12\n" +
@@ -5281,9 +5311,12 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\tparent_id\x18\x04 \x01(\tH\x00R\bparentId\x88\x01\x01\x12\x18\n" +
 	"\aenabled\x18\x05 \x01(\bR\aenabled\x12.\n" +
 	"\x04kind\x18\x06 \x01(\x0e2\x1a.admin.v1.OrganizationKindR\x04kind\x12#\n" +
-	"\rbase_currency\x18\a \x01(\tR\fbaseCurrencyB\f\n" +
+	"\rbase_currency\x18\a \x01(\tR\fbaseCurrency\x12\x1c\n" +
+	"\aname_en\x18\b \x01(\tH\x01R\x06nameEn\x88\x01\x01B\f\n" +
 	"\n" +
-	"_parent_id\"\xaf\x01\n" +
+	"_parent_idB\n" +
+	"\n" +
+	"\b_name_en\"\xaf\x01\n" +
 	"\x19ListOrganizationsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +

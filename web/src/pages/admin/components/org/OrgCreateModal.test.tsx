@@ -61,6 +61,9 @@ describe('OrgCreateModal', () => {
     fireEvent.change(screen.getByLabelText('组织名称'), {
       target: { value: '测试公司' },
     });
+    fireEvent.change(screen.getByLabelText('公司英文名称'), {
+      target: { value: '  Test Company Co., Ltd  ' },
+    });
     // 本币应为选择器（combobox），具备下拉选择属性
     const baseCurrencySelect = screen.getByRole('combobox', { name: '本币' });
     expect(baseCurrencySelect).toBeInTheDocument();
@@ -73,6 +76,7 @@ describe('OrgCreateModal', () => {
       expect(adminServiceCreateOrganizationMock).toHaveBeenCalledWith({
         code: 'COMPANY_A',
         name: '测试公司',
+        nameEn: 'Test Company Co., Ltd',
         parentId: undefined,
         kind: 2,
         baseCurrency: 'CNY',
