@@ -14,6 +14,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/migrate"
+	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/platform/migration"
 	"github.com/roncin/roncin-go-admin/server/internal/platform/searchtext"
 )
@@ -179,8 +180,12 @@ func TestShippingAgentMigrationPostgres(t *testing.T) {
 	t.Cleanup(cleanup)
 	ctx := t.Context()
 	f := newOrderPostgresFixture(t, d)
-	input := f.validInput()
-	created, err := f.newUsecase().Create(ctx, f.organizationID, f.actorID, input)
+	// 船代迁移只依赖历史订单引用；当前完整建单会读取后续迁移才加入的组织字段。
+	created, err := d.db.Order.Create().SetIdempotencyKey(uuid.NewString()).
+		SetOrganizationID(f.organizationID).SetOrderNo("SHIPPING-MIGRATION-" + f.suffix).
+		SetCustomerID(f.partnerID).SetBusinessType(orderent.BusinessTypeSE).
+		SetTradeDirection(orderent.TradeDirectionExport).SetPaymentTerm(orderent.PaymentTermPREPAID).
+		Save(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}

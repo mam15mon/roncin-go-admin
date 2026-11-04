@@ -180,9 +180,6 @@ func TestWorkbenchTodoAbnormalAndBlockedPostgres(t *testing.T) {
 		{"已退关", func() {
 			f.data.db.Order.UpdateOneID(f.orderID).SetTerminationStatus(orderent.TerminationStatusTERMINATED).SetTerminatedAt(time.Now()).SetTerminatedBy(f.actorID).ExecX(ctx)
 		}, "终止"},
-		{"已结案", func() {
-			f.data.db.Order.UpdateOneID(f.orderID).SetTerminationStatus(orderent.TerminationStatusACTIVE).ClearTerminationType().ClearTerminationReason().ClearTerminatedAt().ClearTerminatedBy().SetClosureStatus(orderent.ClosureStatusCLOSED).SetClosureReason("结案测试").SetClosedAt(time.Now()).SetClosedBy(f.actorID).ExecX(ctx)
-		}, "结案"},
 	} {
 		t.Run(scenario.name, func(t *testing.T) {
 			scenario.apply()
@@ -215,12 +212,21 @@ func TestWorkbenchTodoAbnormalAndBlockedPostgres(t *testing.T) {
 			}
 		})
 	}
-	// 原面板同样可以解析停用类型；解锁后解决/移除会刷新待办事实。
+	// 原面板同样可以解析停用类型；完结未锁订单允许解决、移除和重登记异常。
 	original, err := NewOrderAbnormalCaseRepo(f.data).List(ctx, f.organizationID, f.orderID)
 	if err != nil || len(original) != 2 || original[0].AbnormalCaseName == "" {
 		t.Fatalf("原异常名称缺失: %+v %v", original, err)
 	}
-	f.data.db.Order.UpdateOneID(f.orderID).SetClosureStatus(orderent.ClosureStatusOPEN).ClearClosureReason().ClearClosedAt().ClearClosedBy().ExecX(ctx)
+	f.data.db.Order.UpdateOneID(f.orderID).SetTerminationStatus(orderent.TerminationStatusACTIVE).ClearTerminationType().ClearTerminationReason().ClearTerminatedAt().ClearTerminatedBy().SetClosureStatus(orderent.ClosureStatusCLOSED).SetClosureReason("结案测试").SetClosedAt(time.Now()).SetClosedBy(f.actorID).ExecX(ctx)
+	cases, err := f.repo().ListMyOpenAbnormalCases(ctx, scope, biz.WorkbenchTodoFilter{Page: 1, PageSize: 20})
+	if err != nil || len(cases.Items) != 2 {
+		t.Fatalf("完结未锁订单仍应显示两个待处理异常: %+v %v", cases, err)
+	}
+	for _, item := range cases.Items {
+		if item.BusinessWriteBlockedReason != "" || item.ClosureStatus != string(orderent.ClosureStatusCLOSED) {
+			t.Fatalf("完结本身不构成内容编辑门禁: %+v", item)
+		}
+	}
 	resolved, err := usecase.Resolve(ctx, f.organizationID, f.actorID, f.orderID, a.ID)
 	if err != nil || resolved.AbnormalCaseName != kindA.Name {
 		t.Fatalf("解决停用类型异常失败: %+v %v", resolved, err)
@@ -235,4 +241,8 @@ func TestWorkbenchTodoAbnormalAndBlockedPostgres(t *testing.T) {
 		t.Fatalf("重新登记名称缺失: %+v %v", marked, err)
 	}
 	assertWorkbenchTodoCounts(t, f, scope, 2, 1)
+	currentOrder, err := f.data.db.Order.Get(ctx, f.orderID)
+	if err != nil || currentOrder.ClosureStatus != orderent.ClosureStatusCLOSED {
+		t.Fatalf("异常处理不应改变完结状态: %+v %v", currentOrder, err)
+	}
 }

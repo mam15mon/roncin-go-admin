@@ -164,15 +164,8 @@ func TestFeeCatalogSeedSeedsTemplatesAndCompanyCopies(t *testing.T) {
 	assertFeeSeedCount(t, db, `SELECT count(*) FROM fee_setting_templates WHERE fee_code='KC' AND abnormal_case_id=(SELECT id FROM master_data_items WHERE kind='abnormal_case' AND code='ABN-CUSTOMER-CANCEL')`, 1)
 	assertFeeSeedCount(t, db, `SELECT count(*) FROM fee_setting_templates WHERE search_keywords LIKE '%KONGCANGFEI%' AND fee_code='KC'`, 1)
 
-	// 后续独立迁移新增 13 个异常类型，不应改变费用种子的 5 个目标项。
-	if err := Apply(context.Background(), db, dir); err != nil {
-		t.Fatal(err)
-	}
-	assertFeeSeedCount(t, db, `SELECT count(*) FROM master_data_items WHERE kind='abnormal_case'`, 18)
-	assertFeeSeedCount(t, db, `SELECT count(*) FROM master_data_items WHERE kind='abnormal_case' AND code IN ('ABN-WAITING','ABN-OVERNIGHT','ABN-INSPECTION','ABN-CUSTOMER-CANCEL','ABN-ROLL-REASSIGN')`, 5)
-	assertFeeSeedCount(t, db, `SELECT count(*) FROM master_data_items WHERE kind='abnormal_case' AND code IN ('ABN-MISSED-LOAD','ABN-ROLLED','ABN-DETENTION','ABN-DEMURRAGE','ABN-CARGO-HELD','ABN-40NOR','ABN-VESSEL-DELAY','ABN-SHUT-OUT','ABN-DAMAGED-BOX','ABN-CARGO-DAMAGE','ABN-CARGO-SHORTAGE','ABN-WET-DAMAGE','ABN-SEAL-ISSUE')`, 13)
-
-	// 不仅验证迁移 ledger 的重复 Apply：直接重放幂等种子 SQL，校验业务值与 ID 无变化。
+	// 在种子对应的 Schema 上直接重放 SQL，校验业务值与 ID 无变化。
+	// 后续迁移已移除费用类别，不能在最终 Schema 重放旧版本 SQL。
 	tables := []string{"master_data_items", "billing_units", "fee_setting_templates", "fee_settings", "taxable_services"}
 	before := make(map[string]string, len(tables))
 	for _, table := range tables {
@@ -183,7 +176,7 @@ func TestFeeCatalogSeedSeedsTemplatesAndCompanyCopies(t *testing.T) {
 		t.Fatal(err)
 	}
 	mustFeeSeedSQL(t, db, string(seed))
-	if err := Apply(context.Background(), db, dir); err != nil {
+	if err := Apply(context.Background(), db, seedOnly); err != nil {
 		t.Fatal(err)
 	}
 	for _, table := range tables {
@@ -191,6 +184,14 @@ func TestFeeCatalogSeedSeedsTemplatesAndCompanyCopies(t *testing.T) {
 			t.Fatalf("重复费用种子改变 %s 的业务值或 ID", table)
 		}
 	}
+
+	// 后续独立迁移新增 13 个异常类型，不应改变费用种子的 5 个目标项。
+	if err := Apply(context.Background(), db, dir); err != nil {
+		t.Fatal(err)
+	}
+	assertFeeSeedCount(t, db, `SELECT count(*) FROM master_data_items WHERE kind='abnormal_case'`, 18)
+	assertFeeSeedCount(t, db, `SELECT count(*) FROM master_data_items WHERE kind='abnormal_case' AND code IN ('ABN-WAITING','ABN-OVERNIGHT','ABN-INSPECTION','ABN-CUSTOMER-CANCEL','ABN-ROLL-REASSIGN')`, 5)
+	assertFeeSeedCount(t, db, `SELECT count(*) FROM master_data_items WHERE kind='abnormal_case' AND code IN ('ABN-MISSED-LOAD','ABN-ROLLED','ABN-DETENTION','ABN-DEMURRAGE','ABN-CARGO-HELD','ABN-40NOR','ABN-VESSEL-DELAY','ABN-SHUT-OUT','ABN-DAMAGED-BOX','ABN-CARGO-DAMAGE','ABN-CARGO-SHORTAGE','ABN-WET-DAMAGE','ABN-SEAL-ISSUE')`, 13)
 }
 
 func feeSeedTableSnapshot(t *testing.T, db *sql.DB, table string) string {

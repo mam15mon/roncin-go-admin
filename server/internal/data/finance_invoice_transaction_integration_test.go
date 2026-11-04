@@ -8,7 +8,9 @@ import (
 	"testing"
 	"time"
 
+	kratoserrors "github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	auditlogent "github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
@@ -104,7 +106,6 @@ func (f *financeInvoicePostgresFixture) createConfirmedBill(key string) *ent.Fin
 		SetExchangeRateDate(financeInvoiceIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("100.00000000").
-
 		SetVersion(1).
 		Save(ctx)
 	if err != nil {
@@ -543,8 +544,15 @@ func TestFinanceInvoiceTerminalConcurrencyPostgres(t *testing.T) {
 		if billErr == nil {
 			t.Fatal("账单在发票活动关联未释放时不应取消成功")
 		}
-		if !errors.Is(billErr, biz.ErrFinanceBillVersionConflict) && !errors.Is(billErr, biz.ErrFinanceBillInvalidTransition) {
-			t.Fatalf("账单取消错误 = %v，期望版本冲突或状态冲突", billErr)
+		if !errors.Is(billErr, biz.ErrFinanceBillVersionConflict) {
+			// 发票先释放关联时账单版本过期；账单先取得锁时返回具体依赖与整单回退指引。
+			problem := kratoserrors.FromError(billErr)
+			if problem.Reason != "FINANCE_BILL_CANCELLATION_BLOCKED" ||
+				!strings.Contains(problem.Message, invoice.RecordNo) || !strings.Contains(problem.Message, bill.BillNo) ||
+				problem.Metadata["bill_id"] != bill.ID.String() || problem.Metadata["dependencies"] != "invoice:"+invoice.ID.String() ||
+				problem.Metadata["required_permissions"] != access.FinanceInvoiceUpdate || problem.Metadata["rollback_scope"] != "WHOLE_BILL" {
+				t.Fatalf("账单取消应返回版本冲突或完整发票回退指引，实际: %v", billErr)
+			}
 		}
 		ctx := context.Background()
 		currentBill, err := fixture.data.db.FinanceBill.Get(ctx, bill.ID)

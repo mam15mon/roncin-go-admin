@@ -120,9 +120,6 @@ func TestRetireWeComMigrationPreservesAccountsAndRelationsPostgres(t *testing.T)
 	if err := BackfillSelectorSearchKeywords(ctx, data.sqlDB); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := SyncPermissionManifest(ctx, data.sqlDB); err != nil {
-		t.Fatal(err)
-	}
 	for name, query := range queries {
 		var after string
 		if err := data.sqlDB.QueryRowContext(ctx, query).Scan(&after); err != nil {
@@ -139,13 +136,6 @@ func TestRetireWeComMigrationPreservesAccountsAndRelationsPostgres(t *testing.T)
 	if want := searchtext.Build("保留姓名", "保留钉钉姓名"); keywords != want {
 		t.Fatalf("检索键未按保留姓名来源重建: got=%q want=%q", keywords, want)
 	}
-	if exists, err := data.db.Permission.Query().Where(permissionent.IDEQ(retiredPermission.ID)).Exist(ctx); err != nil || exists {
-		t.Fatalf("退役权限未移除: exists=%v err=%v", exists, err)
-	}
-	grants, err := data.db.Role.Query().WithPermissions().All(ctx)
-	if err != nil || len(grants) != 1 || len(grants[0].Edges.Permissions) != 1 || grants[0].Edges.Permissions[0].Key != access.UserRead {
-		t.Fatalf("角色有效权限未保留: err=%v", err)
-	}
 	// 再执行迁移与回填应幂等，且账密、钉钉身份和旧会话仍可用。
 	if err := migration.Apply(ctx, data.sqlDB, dir); err != nil {
 		t.Fatal(err)
@@ -156,6 +146,17 @@ func TestRetireWeComMigrationPreservesAccountsAndRelationsPostgres(t *testing.T)
 	// 当前认证仓储按最新契约运行；历史快照断言完成后再升级并验证现有账号可用。
 	if err := migration.Apply(ctx, data.sqlDB, fullDir); err != nil {
 		t.Fatal(err)
+	}
+	// 权限同步会使用当前 Ent 组织投影（包含 name_en），须在历史快照断言及完整升级后验证。
+	if _, err := SyncPermissionManifest(ctx, data.sqlDB); err != nil {
+		t.Fatal(err)
+	}
+	if exists, err := data.db.Permission.Query().Where(permissionent.IDEQ(retiredPermission.ID)).Exist(ctx); err != nil || exists {
+		t.Fatalf("退役权限未移除: exists=%v err=%v", exists, err)
+	}
+	grants, err := data.db.Role.Query().WithPermissions().All(ctx)
+	if err != nil || len(grants) != 1 || len(grants[0].Edges.Permissions) != 1 || grants[0].Edges.Permissions[0].Key != access.UserRead {
+		t.Fatalf("角色有效权限未保留: err=%v", err)
 	}
 	repo := NewAuthRepo(data)
 	if _, err := repo.FindSession(ctx, strings.Repeat("a", 64), time.Now()); err != nil {
