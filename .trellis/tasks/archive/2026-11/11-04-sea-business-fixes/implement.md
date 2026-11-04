@@ -7,7 +7,7 @@
 - [x] 运行定向 Go / Vitest，修改文件 Biome 与必要 tsc；测试数据库使用隔离实例和正式迁移。
 - [x] 分组本地提交（Conventional Commits 中文说明）；独立 trellis-check review 并修复遗漏。
 - [x] 更新现有海运与审核锁规范；执行全量前后端门禁，实际漏洞扫描按用户要求取消；详见 validation.md。
-- [ ] 确认 main 未漂移并合并；随后归档任务、记录 journal；保留用户已有任务目录。
+- [x] 确认 main 未漂移并快进合并；归档任务、记录 journal；保留用户已有任务目录。
 
 ## 所有权
 实施 A 负责 R1 的 order_write_sea_document.go / 创建相关 biz 守卫与前端 form-adapter 及对应测试。
