@@ -12,6 +12,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	portent "github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	seamasterbillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
+	seasharedcontainerallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seasharedcontainerallocation"
 	shippinglineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/shippingline"
 )
 
@@ -265,4 +266,13 @@ func sortAndDeduplicateUUIDs(ids []uuid.UUID) []uuid.UUID {
 		return strings.Compare(unique[i].String(), unique[j].String()) < 0
 	})
 	return unique
+}
+
+// hasOrderSharedContainerAllocations 同时覆盖草稿和已确认共享箱；改配执行方须先锁住订单，
+// 与分配保存入口串行，避免检查通过后又出现仍指向旧航次的分配。
+func hasOrderSharedContainerAllocations(ctx context.Context, client *ent.Client, organizationID, orderID uuid.UUID) (bool, error) {
+	return client.SeaSharedContainerAllocation.Query().Where(
+		seasharedcontainerallocationent.OrganizationIDEQ(organizationID),
+		seasharedcontainerallocationent.OrderIDEQ(orderID),
+	).Exist(ctx)
 }

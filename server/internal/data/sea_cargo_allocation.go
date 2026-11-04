@@ -212,8 +212,7 @@ func (r *seaSharedContainerRepo) Update(ctx context.Context, organizationID, act
 		if err := validateSharedContainerSpec(txCtx, client, input.ContainerSpecID); err != nil {
 			return err
 		}
-		// 锁定目标箱后，以锁内实体校验锚点归属，消除定位与锁定之间的 TOCTOU 窗口
-		container, err := client.SeaSharedContainer.Query().Where(seasharedcontainerent.IDEQ(id), seasharedcontainerent.OrganizationIDEQ(organizationID)).ForUpdate().Only(txCtx)
+		container, err := lockSharedContainerContentMutation(txCtx, client, organizationID, anchorOrderID, id)
 		if err != nil {
 			return mapEntError(err, biz.ErrSeaSharedContainerNotFound, nil)
 		}
@@ -352,7 +351,7 @@ func (r *seaSharedContainerRepo) Withdraw(ctx context.Context, organizationID, a
 		if err != nil {
 			return err
 		}
-		container, err := client.SeaSharedContainer.Query().Where(seasharedcontainerent.IDEQ(id), seasharedcontainerent.OrganizationIDEQ(organizationID)).ForUpdate().Only(txCtx)
+		container, err := lockSharedContainerContentMutation(txCtx, client, organizationID, anchorOrderID, id)
 		if err != nil {
 			return mapEntError(err, biz.ErrSeaSharedContainerNotFound, nil)
 		}
@@ -400,7 +399,7 @@ func (r *seaSharedContainerRepo) mutateAllocations(ctx context.Context, organiza
 				houseBillIDs = append(houseBillIDs, allocation.HouseBillID)
 			}
 			orderIDs, cargoIDs, houseBillIDs = sortedUUIDs(orderIDs), sortedUUIDs(cargoIDs), sortedUUIDs(houseBillIDs)
-			orders, err := lockSharedOrders(txCtx, tx, organizationID, orderIDs)
+			orders, err := lockSharedOrders(txCtx, client, organizationID, orderIDs)
 			if err != nil {
 				return err
 			}
@@ -761,12 +760,59 @@ func validateExecutionHasHouseOrders(ctx context.Context, client *ent.Client, or
 	return nil
 }
 
-func lockSharedOrders(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, ids []uuid.UUID) (map[uuid.UUID]*ent.Order, error) {
+// lockSharedContainerContentMutation 先锁锚点及所有分配成员订单，再锁共享箱。
+// 分配保存同样锁成员订单和共享箱；锁箱后重验成员集合，禁止补锁新订单造成锁序反转。
+func lockSharedContainerContentMutation(ctx context.Context, client *ent.Client, organizationID, anchorOrderID, id uuid.UUID) (*ent.SeaSharedContainer, error) {
+	allocations, err := client.SeaSharedContainerAllocation.Query().Where(
+		seasharedcontainerallocationent.OrganizationIDEQ(organizationID),
+		seasharedcontainerallocationent.SharedContainerIDEQ(id),
+	).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	memberIDs := []uuid.UUID{anchorOrderID}
+	for _, allocation := range allocations {
+		memberIDs = append(memberIDs, allocation.OrderID)
+	}
+	memberIDs = sortedUUIDs(memberIDs)
+	if _, err := lockSharedOrders(ctx, client, organizationID, memberIDs); err != nil {
+		return nil, err
+	}
+	container, err := client.SeaSharedContainer.Query().Where(
+		seasharedcontainerent.IDEQ(id), seasharedcontainerent.OrganizationIDEQ(organizationID),
+	).ForUpdate().Only(ctx)
+	if err != nil {
+		return nil, mapEntError(err, biz.ErrSeaSharedContainerNotFound, nil)
+	}
+	current, err := client.SeaSharedContainerAllocation.Query().Where(
+		seasharedcontainerallocationent.OrganizationIDEQ(organizationID),
+		seasharedcontainerallocationent.SharedContainerIDEQ(id),
+	).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	currentIDs := []uuid.UUID{anchorOrderID}
+	for _, allocation := range current {
+		currentIDs = append(currentIDs, allocation.OrderID)
+	}
+	currentIDs = sortedUUIDs(currentIDs)
+	if len(currentIDs) != len(memberIDs) {
+		return nil, biz.ErrSeaSharedContainerConflict
+	}
+	for i, memberID := range memberIDs {
+		if memberID != currentIDs[i] {
+			return nil, biz.ErrSeaSharedContainerConflict
+		}
+	}
+	return container, nil
+}
+
+func lockSharedOrders(ctx context.Context, client *ent.Client, organizationID uuid.UUID, ids []uuid.UUID) (map[uuid.UUID]*ent.Order, error) {
 	result := make(map[uuid.UUID]*ent.Order, len(ids))
 	if len(ids) == 0 {
 		return result, nil
 	}
-	rows, err := tx.Order.Query().Where(orderent.IDIn(ids...), orderent.OrganizationIDEQ(organizationID)).Order(orderent.ByID()).ForUpdate().All(ctx)
+	rows, err := client.Order.Query().Where(orderent.IDIn(ids...), orderent.OrganizationIDEQ(organizationID)).Order(orderent.ByID()).ForUpdate().All(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -774,7 +820,7 @@ func lockSharedOrders(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID,
 		return nil, biz.ErrSeaSharedContainerInvalidReference
 	}
 	for _, row := range rows {
-		if err := ensureOrderBusinessEditable(ctx, tx, row); err != nil {
+		if err := ensureOrderBusinessContentEditable(ctx, client.User, row); err != nil {
 			return nil, err
 		}
 		result[row.ID] = row

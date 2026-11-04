@@ -77,6 +77,17 @@ func (r *seaOrderChangeRepo) PreviewReassignment(ctx context.Context, organizati
 		preview.GateBlockedError = gateErr
 		preview.Errors = append(preview.Errors, "订单 "+order.OrderNo+" "+orderBusinessEditBlockReason(gateErr))
 	}
+	hasSharedAllocations, err := hasOrderSharedContainerAllocations(ctx, client, organizationID, order.ID)
+	if err != nil {
+		return nil, err
+	}
+	if hasSharedAllocations {
+		preview.IsValid = false
+		if preview.GateBlockedError == nil && order.TerminationStatus == orderent.TerminationStatusACTIVE {
+			preview.GateBlockedError = biz.ErrSeaOrderReassignmentSharedAllocation
+		}
+		preview.Errors = append(preview.Errors, biz.ErrSeaOrderReassignmentSharedAllocation.Message)
+	}
 	var targetSummary *biz.SeaMasterBillSummary
 	targetMemberCount := int32(0)
 
@@ -342,6 +353,14 @@ func (r *seaOrderChangeRepo) ExecuteReassignment(ctx context.Context, organizati
 			return err
 		}
 
+		hasSharedAllocations, err := hasOrderSharedContainerAllocations(ctx, tx.Client(), organizationID, order.ID)
+		if err != nil {
+			return err
+		}
+		if hasSharedAllocations {
+			return biz.ErrSeaOrderReassignmentSharedAllocation
+		}
+
 		// C.1: 锁序改造：先无锁定位 Link，仅作 ID 定位
 		unlockedLink, linkErr := tx.SeaMasterBillOrderLink.Query().
 			Where(
@@ -561,14 +580,31 @@ func (r *seaOrderChangeRepo) ExecuteReassignment(ctx context.Context, organizati
 				DischargeLocationID: input.Target.DischargeLocationID,
 				TransitLocationID:   input.Target.TransitLocationID,
 			}
-			newMBL, newTE, err := createNewMasterBillInTx(ctx, tx, organizationID, splitTargetInput)
+			normalizedMasterNo, err := biz.ValidateAndNormalizeSeaMasterNo(splitTargetInput.MasterNo)
 			if err != nil {
 				return err
 			}
-			targetMBLID = newMBL.ID
-			targetTEID = newTE.ID
-			targetMBLNo = newMBL.MasterNo
-			targetTE = newTE
+			if splitTargetInput.ShippingLineID != nil && *splitTargetInput.ShippingLineID == oldMBL.ShippingLineID && normalizedMasterNo == oldMBL.NormalizedMasterNo {
+				// 与预览同口径：同母单改航次只新增运输执行，不重复创建母单。
+				if err := validateTransportExecutionTargetInput(ctx, tx.Client(), organizationID, splitTargetInput, true); err != nil {
+					return err
+				}
+				targetTE, err = createNewTransportExecutionInTx(ctx, tx, organizationID, splitTargetInput)
+				if err != nil {
+					return err
+				}
+				targetMBLID, targetMBLNo = oldMBL.ID, oldMBL.MasterNo
+				targetTEID = targetTE.ID
+			} else {
+				newMBL, newTE, err := createNewMasterBillInTx(ctx, tx, organizationID, splitTargetInput)
+				if err != nil {
+					return err
+				}
+				targetMBLID = newMBL.ID
+				targetTEID = newTE.ID
+				targetMBLNo = newMBL.MasterNo
+				targetTE = newTE
+			}
 		default:
 			return biz.ErrSeaOrderReassignmentInvalidArgument
 		}

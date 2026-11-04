@@ -527,8 +527,8 @@ func TestSeaSharedContainerUpdateImmutableExecution(t *testing.T) {
 	}
 }
 
-// TestSeaSharedContainerUpdateConcurrentMutationLockOrder 验证 Update（共享箱→分配）
-// 与 SaveDraft/Confirm（执行→共享箱→分配）对同一共享箱并发时不会形成反向锁序死锁：
+// TestSeaSharedContainerUpdateConcurrentMutationLockOrder 验证 Update（订单→共享箱→分配）
+// 与 SaveDraft/Confirm（订单→执行→共享箱→分配）对同一共享箱并发时不会形成反向锁序死锁：
 // 结果只能是单一成功或稳定版本冲突，版本递增次数与成功操作数一致，无部分提交。
 func TestSeaSharedContainerUpdateConcurrentMutationLockOrder(t *testing.T) {
 	for _, tc := range []struct {

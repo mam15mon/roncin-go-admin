@@ -42,6 +42,7 @@ var (
 	ErrSeaOrderSplitVersionConflict            = errors.Conflict("SEA_ORDER_SPLIT_VERSION_CONFLICT", "数据已被更新，请刷新后重试")
 	ErrSeaOrderSplitIdempotencyConflict        = errors.Conflict("SEA_ORDER_SPLIT_IDEMPOTENCY_CONFLICT", "相同幂等键请求指纹冲突")
 	ErrSeaOrderReassignmentInvalidArgument     = errors.BadRequest("SEA_ORDER_REASSIGNMENT_INVALID_ARGUMENT", "改配参数不合法")
+	ErrSeaOrderReassignmentSharedAllocation    = errors.Conflict("SEA_ORDER_REASSIGNMENT_BLOCKED", "订单仍有共享箱分配，请先撤销共享箱确认并移除本票分配后再改配")
 	ErrSeaOrderReassignmentBlocked             = errors.BadRequest("SEA_ORDER_REASSIGNMENT_BLOCKED", "当前操作票状态或财务事实不允许改配")
 	ErrSeaOrderReassignmentTargetConflict      = errors.Conflict("SEA_ORDER_REASSIGNMENT_TARGET_CONFLICT", "目标 MBL 冲突或不可用")
 	ErrSeaOrderReassignmentVersionConflict     = errors.Conflict("SEA_ORDER_REASSIGNMENT_VERSION_CONFLICT", "数据已被更新，请刷新后重试")
@@ -355,7 +356,7 @@ type SeaOrderReassignmentInput struct {
 type SeaOrderReassignmentPreview struct {
 	IsValid bool
 	Errors  []string
-	// GateBlockedError 是订单内容门禁（业务锁/终止/结案）未通过时的原始错误。
+	// GateBlockedError 是订单内容或共享箱分配门禁未通过时的原始错误。
 	// Execute 的前置校验必须原样返回它以保留 409 语义，不得包装成改配 400 阻断。
 	GateBlockedError   error
 	CurrentMasterBill  *SeaMasterBillSummary

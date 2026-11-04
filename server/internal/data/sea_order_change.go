@@ -172,6 +172,15 @@ func (r *seaOrderChangeRepo) GetChangeActions(ctx context.Context, organizationI
 		actions.ReassignBlockedReasons = append(actions.ReassignBlockedReasons, msg)
 	}
 
+	hasSharedAllocations, err := hasOrderSharedContainerAllocations(ctx, client, organizationID, orderID)
+	if err != nil {
+		return nil, err
+	}
+	if hasSharedAllocations {
+		actions.CanReassign = false
+		actions.ReassignBlockedReasons = append(actions.ReassignBlockedReasons, biz.ErrSeaOrderReassignmentSharedAllocation.Message)
+	}
+
 	// 5. 拆票专属门禁：HOUSE 订单唯一当前 HBL 即可拆票，不要求多张 HBL
 	if activeLink.DocumentStructure != seamasterbillorderlinkent.DocumentStructureHOUSE {
 		actions.CanSplit = false
