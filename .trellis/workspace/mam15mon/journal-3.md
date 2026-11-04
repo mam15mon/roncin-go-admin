@@ -1035,3 +1035,29 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Next Steps
 
 - 已合并本地main，尚未推送远端
+
+
+## Session 185: 修复海运共享母单与改配一致性并合并主分支
+<!-- trellis-session: v=2 fp=b86f8208dca86309 -->
+
+**Date**: 2026-11-04
+**Task**: 修复海运共享母单与改配一致性并合并主分支
+**Branch**: `main`
+
+### Summary
+
+完成加票正文隔离、共享箱全成员审核锁、分配占用改配门禁、同母单新航次复用；独立 review 无阻断。前端375文件2037用例通过，真实PostgreSQL全包及vet等检查通过；按用户要求取消实际漏洞扫描。同步修正5项旧测试漂移，已快进合并main并归档，保留原页面排版任务。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `a9615cd8` | fix: 防止海运加票覆盖共享母单正文 |
+| `4d410936` | fix: 保证海运共享箱审核锁与改配一致性 |
+| `ff498bdc` | docs: 固化海运共享资料写入与改配门禁 |
+| `e7e748e6` | test: 同步数据库回归夹具与现行业务契约 |
+| `a01dada7` | docs: 记录海运修复复审与验收结果 |
+
+### Status
+
+[OK] **Completed**
