@@ -5,3 +5,4 @@
 {"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "海运事务、正文、审核锁及跨层验证约束"}
 {"file": ".trellis/spec/web/frontend/index.md", "reason": "海运事务、正文、审核锁及跨层验证约束"}
 {"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "海运事务、正文、审核锁及跨层验证约束"}
+{"file": ".trellis/spec/server/backend/sea-shared-write-consistency.md", "reason": "本次四项修复的可执行合同、错误矩阵与测试断言"}
