@@ -963,3 +963,39 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 183: 完成海运出口 HBL 制作并合并主分支
+<!-- trellis-session: v=2 fp=74c24a54c07b8668 -->
+
+**Date**: 2026-11-04
+**Task**: 完成海运出口 HBL 制作并合并主分支
+**Branch**: `main`
+
+### Summary
+
+完成北京自签 HBL 制作、同一单证保存及四版本 PDF 输出；review 修正入口扩展边界和极长内容分页，完整门禁、生产构建与 Go 同域浏览器验收通过，已合并本地 main 并归档。
+
+### Main Changes
+
+- 补齐 HBL 印字持久化、正式迁移、版本哈希与历史快照以及前端生成契约
+- 新增制作入口、草稿与并发保护、四版本同一 PDF 预览下载打印及真实 Logo/中文字体
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `063ddafb` | feat: 实现海运出口 HBL 制作与四版本 PDF 输出 |
+
+### Testing
+
+- [OK] 专用 PostgreSQL 定向集成无 Skip；check:fast 全部通过，Web 2014 项测试通过
+- [OK] 生产 build 和 Go 同域浏览器2项验收通过；PDF 极值17页逐字数量/坐标/看图通过
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 本期仅北京自签模板；成都、第三方模板与电子签章延后；尚未推送远端

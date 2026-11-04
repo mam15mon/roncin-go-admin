@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 182
-- **Last Active**: 2026-11-03
+- **Total Sessions**: 183
+- **Last Active**: 2026-11-04
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~965 | Active |
+| `journal-3.md` | ~1001 | Active |
 | `journal-2.md` | ~2003 | Archived |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 183 | 2026-11-04 | 完成海运出口 HBL 制作并合并主分支 | `063ddafb` | `main` |
 | 182 | 2026-11-03 | 订单附件接入阿里云 OSS 并配置专用私有 Bucket | `043a0d08`, `aa83e544` | `codex/order-attachments-aliyun-oss` |
 | 181 | 2026-10-30 | 改善海运详情提单模式可读性 | `8256b5a3` | `codex/sea-shared-leg-destination` |
 | 180 | 2026-10-30 | 海运最终目的港默认同卸货港并简化共享航程操作 | `2da755a6` | `codex/sea-shared-leg-destination` |
