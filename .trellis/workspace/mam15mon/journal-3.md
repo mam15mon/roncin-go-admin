@@ -999,3 +999,39 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Next Steps
 
 - 本期仅北京自签模板；成都、第三方模板与电子签章延后；尚未推送远端
+
+
+## Session 184: 公司英文名与多公司 HBL 抬头完成
+<!-- trellis-session: v=2 fp=08cd66bfaa4432ec -->
+
+**Date**: 2026-11-04
+**Task**: 公司英文名与多公司 HBL 抬头完成
+**Branch**: `main`
+
+### Summary
+
+增加公司正式英文名维护，HBL按真实签发主体输出；北京成都按用户确认城市拼音规则进入默认种子和正式迁移，review与全部验收通过，合并本地main。
+
+### Main Changes
+
+- 公司nameEn完整契约、审计、搜索和清空语义；真实HBL issuerOrganizationNameEn与RONCIN_SELF模板
+- 北京成都英文名进入默认种子，保留既有人工值；两份正式迁移已应用开发库
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3cc22ce7` | feat: 维护公司英文名称并支持各公司自签 HBL 输出 |
+
+### Testing
+
+- [OK] 真实PostgreSQL迁移/种子/权限审计/Unicode200字符边界无Skip；PDF长名及17页极值正常
+- [OK] VITEST_MAX_WORKERS=16 pnpm run check:fast通过，前端2033项；生产build与Go同域浏览器5项全部通过
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 已合并本地main，尚未推送远端
