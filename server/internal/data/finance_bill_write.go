@@ -43,7 +43,7 @@ func (r *financeBillRepo) Create(ctx context.Context, bill *biz.FinanceBill, aud
 		}
 		for _, fee := range fees {
 			line := expected[fee.ID]
-			if line == nil || fee.EconomicEffect != orderfeeent.EconomicEffectINCREASE || entFeeSettlementDirection(fee) != bill.Direction || entFeeBillPurpose(fee) != bill.Purpose || !fee.AccountingRequired || fee.SupersededByRequestID != nil || fee.SettlementPartyID != bill.SettlementPartyID || fee.Currency != bill.Currency || fee.BaseCurrency != bill.BaseCurrency || fee.TotalAmount != line.TotalAmount.StringFixed(8) || fee.NetAmount != line.NetAmount.StringFixed(8) || fee.TaxAmount != line.TaxAmount.StringFixed(8) || fee.BaseCurrencyAmount != line.BaseCurrencyAmount.StringFixed(8) || !financeDecimalStringEqual(fee.TaxRate, line.TaxRate, 4) {
+			if line == nil || line.OrderID != fee.OrderID || line.Currency != bill.Currency || line.BaseCurrency != bill.BaseCurrency || !line.ExchangeRate.Equal(bill.ExchangeRate) || fee.EconomicEffect != orderfeeent.EconomicEffectINCREASE || entFeeSettlementDirection(fee) != bill.Direction || entFeeBillPurpose(fee) != bill.Purpose || !fee.AccountingRequired || fee.SupersededByRequestID != nil || fee.SettlementPartyID != bill.SettlementPartyID || fee.Currency != bill.Currency || fee.BaseCurrency != bill.BaseCurrency || fee.TotalAmount != line.TotalAmount.StringFixed(8) || fee.NetAmount != line.NetAmount.StringFixed(8) || fee.TaxAmount != line.TaxAmount.StringFixed(8) || !financeDecimalStringEqual(fee.TaxRate, line.TaxRate, 4) {
 				return biz.ErrFinanceBillFeeInvalid
 			}
 		}
@@ -99,6 +99,9 @@ func (r *financeBillRepo) Create(ctx context.Context, bill *biz.FinanceBill, aud
 		}
 		if affected != len(feeIDs) {
 			return biz.ErrFinanceBillFeeInvalid
+		}
+		if err := reconcileBillEconomics(ctx, tx.Client(), bill.OrganizationID, billEconomicOrderIDs(bill.Lines), billEconomicActor(audit), biz.CommissionEconomicTrigger{Kind: "BILL_CREATE", ID: bill.ID, Version: 1}); err != nil {
+			return err
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	}); err != nil {
@@ -193,6 +196,13 @@ func (r *financeBillRepo) Update(ctx context.Context, organizationIDs []uuid.UUI
 				return err
 			}
 		}
+		orderIDs := make([]uuid.UUID, 0, len(lockedLines))
+		for _, line := range lockedLines {
+			orderIDs = append(orderIDs, line.OrderID)
+		}
+		if err := reconcileBillEconomics(ctx, tx.Client(), item.OrganizationID, orderIDs, billEconomicActor(audit), biz.CommissionEconomicTrigger{Kind: "BILL_UPDATE", ID: item.ID, Version: item.Version + 1}); err != nil {
+			return err
+		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	}); err != nil {
 		return nil, err
@@ -282,6 +292,13 @@ func (r *financeBillRepo) Cancel(ctx context.Context, organizationIDs []uuid.UUI
 		}
 		now := time.Now()
 		if _, err = tx.FinanceBill.UpdateOneID(id).SetStatus(financebillent.StatusCANCELLED).SetCancelledAt(now).SetCancelledBy(actorID).SetCancellationReason(reason).SetVersion(item.Version + 1).Save(ctx); err != nil {
+			return err
+		}
+		orderIDs := make([]uuid.UUID, 0, len(lines))
+		for _, line := range lines {
+			orderIDs = append(orderIDs, line.OrderID)
+		}
+		if err := reconcileBillEconomics(ctx, tx.Client(), item.OrganizationID, orderIDs, actorID, biz.CommissionEconomicTrigger{Kind: "BILL_CANCEL", ID: item.ID, Version: item.Version + 1}); err != nil {
 			return err
 		}
 		return writeAudit(ctx, tx.AuditLog, audit)

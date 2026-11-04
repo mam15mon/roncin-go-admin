@@ -34,6 +34,20 @@ func (_u *FinanceNettingAllocationUpdate) SetUpdatedAt(v time.Time) *FinanceNett
 	return _u
 }
 
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (_u *FinanceNettingAllocationUpdate) SetBaseCurrencyAmount(v string) *FinanceNettingAllocationUpdate {
+	_u.mutation.SetBaseCurrencyAmount(v)
+	return _u
+}
+
+// SetNillableBaseCurrencyAmount sets the "base_currency_amount" field if the given value is not nil.
+func (_u *FinanceNettingAllocationUpdate) SetNillableBaseCurrencyAmount(v *string) *FinanceNettingAllocationUpdate {
+	if v != nil {
+		_u.SetBaseCurrencyAmount(*v)
+	}
+	return _u
+}
+
 // SetActive sets the "active" field.
 func (_u *FinanceNettingAllocationUpdate) SetActive(v bool) *FinanceNettingAllocationUpdate {
 	_u.mutation.SetActive(v)
@@ -115,6 +129,9 @@ func (_u *FinanceNettingAllocationUpdate) sqlSave(ctx context.Context) (_node in
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financenettingallocation.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.BaseCurrencyAmount(); ok {
+		_spec.SetField(financenettingallocation.FieldBaseCurrencyAmount, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Active(); ok {
 		_spec.SetField(financenettingallocation.FieldActive, field.TypeBool, value)
 	}
@@ -141,6 +158,20 @@ type FinanceNettingAllocationUpdateOne struct {
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *FinanceNettingAllocationUpdateOne) SetUpdatedAt(v time.Time) *FinanceNettingAllocationUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (_u *FinanceNettingAllocationUpdateOne) SetBaseCurrencyAmount(v string) *FinanceNettingAllocationUpdateOne {
+	_u.mutation.SetBaseCurrencyAmount(v)
+	return _u
+}
+
+// SetNillableBaseCurrencyAmount sets the "base_currency_amount" field if the given value is not nil.
+func (_u *FinanceNettingAllocationUpdateOne) SetNillableBaseCurrencyAmount(v *string) *FinanceNettingAllocationUpdateOne {
+	if v != nil {
+		_u.SetBaseCurrencyAmount(*v)
+	}
 	return _u
 }
 
@@ -254,6 +285,9 @@ func (_u *FinanceNettingAllocationUpdateOne) sqlSave(ctx context.Context) (_node
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financenettingallocation.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.BaseCurrencyAmount(); ok {
+		_spec.SetField(financenettingallocation.FieldBaseCurrencyAmount, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Active(); ok {
 		_spec.SetField(financenettingallocation.FieldActive, field.TypeBool, value)

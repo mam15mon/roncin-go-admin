@@ -53,6 +53,48 @@ func (_u *FinanceNettingUpdate) SetNillableStatus(v *financenetting.Status) *Fin
 	return _u
 }
 
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (_u *FinanceNettingUpdate) SetBaseCurrencyAmount(v string) *FinanceNettingUpdate {
+	_u.mutation.SetBaseCurrencyAmount(v)
+	return _u
+}
+
+// SetNillableBaseCurrencyAmount sets the "base_currency_amount" field if the given value is not nil.
+func (_u *FinanceNettingUpdate) SetNillableBaseCurrencyAmount(v *string) *FinanceNettingUpdate {
+	if v != nil {
+		_u.SetBaseCurrencyAmount(*v)
+	}
+	return _u
+}
+
+// SetPayableBaseAmount sets the "payable_base_amount" field.
+func (_u *FinanceNettingUpdate) SetPayableBaseAmount(v string) *FinanceNettingUpdate {
+	_u.mutation.SetPayableBaseAmount(v)
+	return _u
+}
+
+// SetNillablePayableBaseAmount sets the "payable_base_amount" field if the given value is not nil.
+func (_u *FinanceNettingUpdate) SetNillablePayableBaseAmount(v *string) *FinanceNettingUpdate {
+	if v != nil {
+		_u.SetPayableBaseAmount(*v)
+	}
+	return _u
+}
+
+// SetExchangeGainLoss sets the "exchange_gain_loss" field.
+func (_u *FinanceNettingUpdate) SetExchangeGainLoss(v string) *FinanceNettingUpdate {
+	_u.mutation.SetExchangeGainLoss(v)
+	return _u
+}
+
+// SetNillableExchangeGainLoss sets the "exchange_gain_loss" field if the given value is not nil.
+func (_u *FinanceNettingUpdate) SetNillableExchangeGainLoss(v *string) *FinanceNettingUpdate {
+	if v != nil {
+		_u.SetExchangeGainLoss(*v)
+	}
+	return _u
+}
+
 // SetNote sets the "note" field.
 func (_u *FinanceNettingUpdate) SetNote(v string) *FinanceNettingUpdate {
 	_u.mutation.SetNote(v)
@@ -527,6 +569,15 @@ func (_u *FinanceNettingUpdate) sqlSave(ctx context.Context) (_node int, err err
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(financenetting.FieldStatus, field.TypeEnum, value)
 	}
+	if value, ok := _u.mutation.BaseCurrencyAmount(); ok {
+		_spec.SetField(financenetting.FieldBaseCurrencyAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.PayableBaseAmount(); ok {
+		_spec.SetField(financenetting.FieldPayableBaseAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ExchangeGainLoss(); ok {
+		_spec.SetField(financenetting.FieldExchangeGainLoss, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Note(); ok {
 		_spec.SetField(financenetting.FieldNote, field.TypeString, value)
 	}
@@ -827,6 +878,48 @@ func (_u *FinanceNettingUpdateOne) SetStatus(v financenetting.Status) *FinanceNe
 func (_u *FinanceNettingUpdateOne) SetNillableStatus(v *financenetting.Status) *FinanceNettingUpdateOne {
 	if v != nil {
 		_u.SetStatus(*v)
+	}
+	return _u
+}
+
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (_u *FinanceNettingUpdateOne) SetBaseCurrencyAmount(v string) *FinanceNettingUpdateOne {
+	_u.mutation.SetBaseCurrencyAmount(v)
+	return _u
+}
+
+// SetNillableBaseCurrencyAmount sets the "base_currency_amount" field if the given value is not nil.
+func (_u *FinanceNettingUpdateOne) SetNillableBaseCurrencyAmount(v *string) *FinanceNettingUpdateOne {
+	if v != nil {
+		_u.SetBaseCurrencyAmount(*v)
+	}
+	return _u
+}
+
+// SetPayableBaseAmount sets the "payable_base_amount" field.
+func (_u *FinanceNettingUpdateOne) SetPayableBaseAmount(v string) *FinanceNettingUpdateOne {
+	_u.mutation.SetPayableBaseAmount(v)
+	return _u
+}
+
+// SetNillablePayableBaseAmount sets the "payable_base_amount" field if the given value is not nil.
+func (_u *FinanceNettingUpdateOne) SetNillablePayableBaseAmount(v *string) *FinanceNettingUpdateOne {
+	if v != nil {
+		_u.SetPayableBaseAmount(*v)
+	}
+	return _u
+}
+
+// SetExchangeGainLoss sets the "exchange_gain_loss" field.
+func (_u *FinanceNettingUpdateOne) SetExchangeGainLoss(v string) *FinanceNettingUpdateOne {
+	_u.mutation.SetExchangeGainLoss(v)
+	return _u
+}
+
+// SetNillableExchangeGainLoss sets the "exchange_gain_loss" field if the given value is not nil.
+func (_u *FinanceNettingUpdateOne) SetNillableExchangeGainLoss(v *string) *FinanceNettingUpdateOne {
+	if v != nil {
+		_u.SetExchangeGainLoss(*v)
 	}
 	return _u
 }
@@ -1334,6 +1427,15 @@ func (_u *FinanceNettingUpdateOne) sqlSave(ctx context.Context) (_node *FinanceN
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(financenetting.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.BaseCurrencyAmount(); ok {
+		_spec.SetField(financenetting.FieldBaseCurrencyAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.PayableBaseAmount(); ok {
+		_spec.SetField(financenetting.FieldPayableBaseAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ExchangeGainLoss(); ok {
+		_spec.SetField(financenetting.FieldExchangeGainLoss, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Note(); ok {
 		_spec.SetField(financenetting.FieldNote, field.TypeString, value)

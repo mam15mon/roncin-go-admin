@@ -237,6 +237,13 @@ func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBil
 				}
 			}
 		}
+		var orderIDs []uuid.UUID
+		for _, bill := range batch.Bills {
+			orderIDs = append(orderIDs, billEconomicOrderIDs(bill.Lines)...)
+		}
+		if err := reconcileBillEconomics(ctx, tx.Client(), batch.OrganizationID, orderIDs, batch.CreatedBy, biz.CommissionEconomicTrigger{Kind: "BILL_BATCH_CREATE", ID: batch.ID, Version: 1}); err != nil {
+			return err
+		}
 		return writeAudit(ctx, tx.AuditLog, audit)
 	}); err != nil {
 		return nil, err

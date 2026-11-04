@@ -25,7 +25,8 @@ func (FinanceNettingAllocation) Fields() []ent.Field {
 		field.String("bill_no").NotEmpty().MaxLen(64).Immutable(),
 		field.Enum("direction").Values("RECEIVABLE", "PAYABLE").Immutable(),
 		field.String("amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
-		field.String("base_currency_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
+		// 草稿确认时按已锁账单重算；已确认后的金额由状态机保护。
+		field.String("base_currency_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}),
 		field.Bool("active").Default(false),
 	}
 }

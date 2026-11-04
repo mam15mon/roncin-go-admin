@@ -425,6 +425,18 @@ func (u *FinanceNettingAllocationUpsert) UpdateUpdatedAt() *FinanceNettingAlloca
 	return u
 }
 
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (u *FinanceNettingAllocationUpsert) SetBaseCurrencyAmount(v string) *FinanceNettingAllocationUpsert {
+	u.Set(financenettingallocation.FieldBaseCurrencyAmount, v)
+	return u
+}
+
+// UpdateBaseCurrencyAmount sets the "base_currency_amount" field to the value that was provided on create.
+func (u *FinanceNettingAllocationUpsert) UpdateBaseCurrencyAmount() *FinanceNettingAllocationUpsert {
+	u.SetExcluded(financenettingallocation.FieldBaseCurrencyAmount)
+	return u
+}
+
 // SetActive sets the "active" field.
 func (u *FinanceNettingAllocationUpsert) SetActive(v bool) *FinanceNettingAllocationUpsert {
 	u.Set(financenettingallocation.FieldActive, v)
@@ -475,9 +487,6 @@ func (u *FinanceNettingAllocationUpsertOne) UpdateNewValues() *FinanceNettingAll
 		if _, exists := u.create.mutation.Amount(); exists {
 			s.SetIgnore(financenettingallocation.FieldAmount)
 		}
-		if _, exists := u.create.mutation.BaseCurrencyAmount(); exists {
-			s.SetIgnore(financenettingallocation.FieldBaseCurrencyAmount)
-		}
 	}))
 	return u
 }
@@ -520,6 +529,20 @@ func (u *FinanceNettingAllocationUpsertOne) SetUpdatedAt(v time.Time) *FinanceNe
 func (u *FinanceNettingAllocationUpsertOne) UpdateUpdatedAt() *FinanceNettingAllocationUpsertOne {
 	return u.Update(func(s *FinanceNettingAllocationUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (u *FinanceNettingAllocationUpsertOne) SetBaseCurrencyAmount(v string) *FinanceNettingAllocationUpsertOne {
+	return u.Update(func(s *FinanceNettingAllocationUpsert) {
+		s.SetBaseCurrencyAmount(v)
+	})
+}
+
+// UpdateBaseCurrencyAmount sets the "base_currency_amount" field to the value that was provided on create.
+func (u *FinanceNettingAllocationUpsertOne) UpdateBaseCurrencyAmount() *FinanceNettingAllocationUpsertOne {
+	return u.Update(func(s *FinanceNettingAllocationUpsert) {
+		s.UpdateBaseCurrencyAmount()
 	})
 }
 
@@ -741,9 +764,6 @@ func (u *FinanceNettingAllocationUpsertBulk) UpdateNewValues() *FinanceNettingAl
 			if _, exists := b.mutation.Amount(); exists {
 				s.SetIgnore(financenettingallocation.FieldAmount)
 			}
-			if _, exists := b.mutation.BaseCurrencyAmount(); exists {
-				s.SetIgnore(financenettingallocation.FieldBaseCurrencyAmount)
-			}
 		}
 	}))
 	return u
@@ -787,6 +807,20 @@ func (u *FinanceNettingAllocationUpsertBulk) SetUpdatedAt(v time.Time) *FinanceN
 func (u *FinanceNettingAllocationUpsertBulk) UpdateUpdatedAt() *FinanceNettingAllocationUpsertBulk {
 	return u.Update(func(s *FinanceNettingAllocationUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (u *FinanceNettingAllocationUpsertBulk) SetBaseCurrencyAmount(v string) *FinanceNettingAllocationUpsertBulk {
+	return u.Update(func(s *FinanceNettingAllocationUpsert) {
+		s.SetBaseCurrencyAmount(v)
+	})
+}
+
+// UpdateBaseCurrencyAmount sets the "base_currency_amount" field to the value that was provided on create.
+func (u *FinanceNettingAllocationUpsertBulk) UpdateBaseCurrencyAmount() *FinanceNettingAllocationUpsertBulk {
+	return u.Update(func(s *FinanceNettingAllocationUpsert) {
+		s.UpdateBaseCurrencyAmount()
 	})
 }
 

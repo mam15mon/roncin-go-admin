@@ -264,12 +264,8 @@ func lockBillFeeOrders(ctx context.Context, client *ent.Client, organizationIDs,
 		}
 	}
 	sort.Slice(ids, func(i, j int) bool { return ids[i].String() < ids[j].String() })
-	orders, err := client.Order.Query().Where(orderent.IDIn(ids...), orderent.OrganizationIDIn(organizationIDs...)).Order(orderent.ByID()).ForUpdate().All(ctx)
-	if err != nil {
+	if err := lockBillEconomicOrders(ctx, client, organizationIDs, ids); err != nil {
 		return err
-	}
-	if len(orders) != len(ids) {
-		return biz.ErrFinanceBillFeeInvalid
 	}
 	latest, err := client.OrderFee.Query().Where(feeent.IDIn(feeIDs...)).All(ctx)
 	if err != nil {
@@ -445,12 +441,28 @@ func lockExistingBillOrders(ctx context.Context, client *ent.Client, organizatio
 	if len(ids) == 0 {
 		return nil
 	}
-	orders, err := client.Order.Query().Where(orderent.IDIn(ids...), orderent.OrganizationIDIn(organizationIDs...)).Order(orderent.ByID()).ForUpdate().All(ctx)
+	if err := lockBillEconomicOrders(ctx, client, organizationIDs, ids); err != nil {
+		if err == biz.ErrFinanceBillFeeInvalid {
+			return biz.ErrFinanceBillNotFound
+		}
+		return err
+	}
+	// 来源账单行集合与经济闭包分开复核；不能把闭包中的其他订单当作来源漂移。
+	latest, err := client.FinanceBillLine.Query().Where(lineent.BillIDIn(billIDs...), lineent.ActiveEQ(true)).All(ctx)
 	if err != nil {
 		return err
 	}
-	if len(orders) != len(ids) {
-		return biz.ErrFinanceBillNotFound
+	if len(latest) != len(lines) {
+		return biz.ErrFinanceBillVersionConflict
+	}
+	original := make(map[uuid.UUID]uuid.UUID, len(lines))
+	for _, line := range lines {
+		original[line.ID] = line.OrderID
+	}
+	for _, line := range latest {
+		if original[line.ID] != line.OrderID {
+			return biz.ErrFinanceBillVersionConflict
+		}
 	}
 	return nil
 }
