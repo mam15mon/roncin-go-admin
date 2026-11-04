@@ -197,6 +197,12 @@ export function buildSeaExportCreatePayload(
     };
   }
 
+  if (seaMasterBill?.candidateId && seaDocument) {
+    // 加票只提交本票单证，表单保留的默认正文不能覆盖已有共享主单。
+    seaDocument = { ...seaDocument };
+    delete seaDocument.masterBillContent;
+  }
+
   return {
     customerId: values.customerId,
     customerReferenceNo: values.customerReferenceNo?.trim() || undefined,

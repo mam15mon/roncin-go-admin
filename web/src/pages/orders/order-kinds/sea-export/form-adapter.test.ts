@@ -269,6 +269,53 @@ describe('buildSeaExportCreatePayload', () => {
     });
   });
 
+  it.each(['表单分散字段', '完整单证对象'])(
+    '%s 关联已有主单时只提交本票分单',
+    (source) => {
+      const content = { shipperText: '不应覆盖共享主单的本地草稿' };
+      const document = {
+        documentStructure: SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE,
+        masterBillContent: content,
+        houseBill: { houseNo: 'HBL-NEW', issuerSource: 1 },
+      };
+      const result = buildSeaExportCreatePayload({
+        customerId: 'customer-1',
+        paymentTerm: 1,
+        seaMasterBillMasterNo: 'COSCO999901',
+        ...(source === '表单分散字段'
+          ? {
+              seaMasterBillCandidateId: 'existing-mbl',
+              seaDocumentStructure: document.documentStructure,
+              seaMasterBillContent: content,
+              seaHouseBill: document.houseBill,
+            }
+          : {
+              seaMasterBill: {
+                masterNo: 'COSCO999901',
+                candidateId: 'existing-mbl',
+              },
+              seaDocument: document,
+            }),
+      });
+
+      expect(result.seaDocument).not.toHaveProperty('masterBillContent');
+      expect(result.seaDocument?.houseBill?.houseNo).toBe('HBL-NEW');
+      expect(document.masterBillContent).toEqual(content);
+    },
+  );
+
+  it('独立新建主单仍提交完整正文', () => {
+    const content = { shipperText: '新母单发货人', packageCount: 12 };
+    const result = buildSeaExportCreatePayload({
+      customerId: 'customer-1',
+      paymentTerm: 1,
+      seaMasterBillMasterNo: 'COSCO999903',
+      seaMasterBillContent: content,
+    });
+
+    expect(result.seaDocument?.masterBillContent).toEqual(content);
+  });
+
   it('MBL 只提交主单字段，船公司由订单 shippingLineId 统一表达', () => {
     const result = buildSeaExportCreatePayload({
       customerId: 'customer-1',
@@ -660,7 +707,6 @@ describe('SE 适配器完整固定夹具等价', () => {
       },
       seaDocument: {
         documentStructure: 3,
-        masterBillContent: { remark: 'MBL 备注' },
         houseBill: {
           houseNo: ' HBL-001 ',
           id: undefined,

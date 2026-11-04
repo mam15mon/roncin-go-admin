@@ -146,6 +146,12 @@ export function SeaDocumentSectionComponent({
     | string
     | undefined;
   const mblMasterNo = Form.useWatch('seaMasterBillMasterNo', form);
+  const candidateMasterBillId = Form.useWatch(
+    (values) =>
+      values.seaMasterBillCandidateId || values.seaMasterBill?.candidateId,
+    { form, preserve: true },
+  );
+  const creatingWithSharedMasterBill = !isDetail && !!candidateMasterBillId;
   const docStructure = isDocumentStructure(watchedStructure)
     ? watchedStructure
     : isDocumentStructure(storedStructure)
@@ -555,12 +561,20 @@ export function SeaDocumentSectionComponent({
             </Col>
           </Row>
         ) : null}
-        <SeaBillContentFormFields
-          namePathPrefix={['seaMasterBillContent']}
-          disabled={disabled || mblDetail?.status === 'VOIDED'}
-          showCargoMeasurements={false}
-          measurementsTitle="MBL 实际件重尺"
-        />
+        {creatingWithSharedMasterBill ? (
+          <Alert
+            type="info"
+            showIcon
+            title="已关联共享主单，新增分单不会修改主单内容。如需调整，请保存订单后进入主单资料。"
+          />
+        ) : (
+          <SeaBillContentFormFields
+            namePathPrefix={['seaMasterBillContent']}
+            disabled={disabled || mblDetail?.status === 'VOIDED'}
+            showCargoMeasurements={false}
+            measurementsTitle="MBL 实际件重尺"
+          />
+        )}
         {renderReleasePods(
           relatedReleasePods(
             SeaDocumentType.SEA_DOCUMENT_TYPE_MASTER_BILL,

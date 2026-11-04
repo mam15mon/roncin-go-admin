@@ -66,6 +66,10 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 	}
 
 	if mblInput.CandidateID != nil && *mblInput.CandidateID != uuid.Nil {
+		// 加票只建立关联；共享主单正文必须走带版本与审核锁校验的修改入口。
+		if input.SeaDocumentInput.MasterBillContent != nil {
+			return errors.BadRequest("SEA_DOCUMENT_INVALID_ARGUMENT", "关联已有主单时不能提交主单正文，请通过主单修改入口处理")
+		}
 		candidateID := *mblInput.CandidateID
 		if mblInput.CandidateTEID == nil || *mblInput.CandidateTEID == uuid.Nil ||
 			mblInput.ExpectedCandidateTEVersion == nil || *mblInput.ExpectedCandidateTEVersion == 0 {
@@ -78,6 +82,9 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 			Only(ctx)
 		if err != nil {
 			return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
+		}
+		if targetMBL.Status == seamasterbill.StatusVOIDED {
+			return biz.ErrSeaDocumentVoided
 		}
 		if mblInput.ExpectedCandidateVersion == nil || targetMBL.Version != *mblInput.ExpectedCandidateVersion {
 			return biz.ErrSeaMasterBillStatusConflict

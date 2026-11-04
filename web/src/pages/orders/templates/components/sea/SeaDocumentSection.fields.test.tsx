@@ -138,6 +138,32 @@ describe('SeaDocumentSectionComponent', () => {
     executeMode.mockResolvedValue({ success: true });
   });
 
+  it('关联共享主单时关闭母单编辑，解除关联后恢复本地草稿', async () => {
+    let capturedForm: FormInstance | undefined;
+    render(
+      <TestForm
+        initialValues={{
+          seaMasterBillCandidateId: 'existing-mbl',
+          seaMasterBillContent: { shipperText: '独立主单草稿' },
+        }}
+        exposeForm={(form) => {
+          capturedForm = form;
+        }}
+      />,
+    );
+
+    expect(
+      await screen.findByText(/已关联共享主单，新增分单不会修改主单内容/),
+    ).toBeVisible();
+    expect(screen.queryByDisplayValue('独立主单草稿')).not.toBeInTheDocument();
+    expect(
+      capturedForm?.getFieldValue(['seaMasterBillContent', 'shipperText']),
+    ).toBe('独立主单草稿');
+
+    capturedForm?.setFieldValue('seaMasterBillCandidateId', undefined);
+    expect(await screen.findByDisplayValue('独立主单草稿')).toBeVisible();
+  });
+
   it('支持通知人与第二通知人切换，并支持从订单国外代理带入抬头与地址', async () => {
     let capturedForm: FormInstance | undefined;
     getPartner.mockResolvedValue({
