@@ -7,6 +7,7 @@
 - SE 锁定额外覆盖不可变 MBL/HBL 版本和共享 MBL 写入口；非 SE 锁定不得创建或引用海运单证快照。
 - SE 订单最终流转到 `TERMINATED` 时，同一事务结束其活动 `SeaMasterBillOrderLink`；恢复订单不复活历史 Link。
 - 新增订单写入口、修改 MBL 身份/权威航程/内容、改变 MBL 活动成员关系时，必须复核本文的事务门禁与固定锁序。
+- 共享箱基础资料与撤销确认同样属于成员订单的业务内容写入；须校验锚点及全部分配成员。关联已有 MBL 加票不得写共享正文。具体载荷、锁序与改配占用规则见 [海运一致性契约](./sea-shared-write-consistency.md)。
 - 钉钉审批的外部派发、回调与本地生效另行实现；不得把当前 `PENDING_DISPATCH` 事实误当成审批已经发起。
 
 ## 2. Signatures（API / Biz / DB）
@@ -65,7 +66,7 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 - `Security.DingTalk.approval_process_code/event_token/event_aes_key` 只接受环境注入；仓库配置仅保留空值或占位符。
 - 列表分页必须满足 `page >= 1`、`1 <= page_size <= 200`；缺省值由 service 统一补齐。
 - 统一内容写门禁（`internal/data/order_lock.go` 的 `ensureOrderBusinessContentEditable`）：所有订单业务资料及子资源写入口在 Order `FOR UPDATE` 后校验，订单必须满足 `termination_status = ACTIVE` 且未业务锁定；`closure_status` 不限制业务内容编辑；校验顺序为先生命周期后业务锁，禁止另写第二套重复门禁（如原 `ensureReleasePodOrderEditable` 已删除并复用统一实现）。单证变更（MBL/HBL 改单、作废、模式变更）与订单级变更（共享航程船期更新、改配）同样复用该门禁：对事务内已按主键序 `FOR UPDATE` 锁定的目标及全部成员订单逐单校验，任一不满足即整体 409 回滚。
-- **门禁的预读面同源**：预览与按钮接口与 Execute 同口径感知门禁，避免"预览通过、提交才被拒"——单证/船期/改配预览将门禁事实并入 Impacts（`ORDER_BUSINESS_LOCK` 阻断事实，Executable=false）；`PreviewSplit` 写入 `ValidationErrors`（Reason=ORDER_GATE，预览正常返回）；`GetChangeActions` 将 `CanSplit/CanReassign` 置 false 并追加含订单号的原因（`orderBusinessEditBlockReason` 统一文案提取）。预读不做锁、不改变 Execute 的 409 语义；改配的终止仍走既有 `SEA_ORDER_REASSIGNMENT_BLOCKED` 文案口径（`GateBlockedError` 仅透传业务锁 409），完结未锁不阻断改配。
+- **门禁的预读面同源**：预览与按钮接口与 Execute 同口径感知门禁，避免"预览通过、提交才被拒"——单证/船期/改配预览将门禁事实并入 Impacts（`ORDER_BUSINESS_LOCK` 阻断事实，Executable=false）；`PreviewSplit` 写入 `ValidationErrors`（Reason=ORDER_GATE，预览正常返回）；`GetChangeActions` 将 `CanSplit/CanReassign` 置 false 并追加含订单号的原因（`orderBusinessEditBlockReason` 统一文案提取）。预读不做锁、不改变 Execute 的 409 语义；改配的终止仍走既有 `SEA_ORDER_REASSIGNMENT_BLOCKED` 文案口径（`GateBlockedError` 透传业务锁或共享箱分配占用 409；已有业务锁优先，共享箱占用不得覆盖该错误），完结未锁不阻断改配。
 - 生命周期命令的专属校验：`TransitionStatus` 显式要求 ACTIVE + OPEN + 未业务锁定（主流程推进属业务写入，锁定后不得推进）；`TransitionTermination` 只要求结案维度保持 OPEN，其中 `ACTIVE → TERMINATING` 仍要求订单未业务锁定，`TERMINATING → ACTIVE/TERMINATED` 与 `TERMINATED → ACTIVE` 不因业务锁被阻断；`TransitionClosure` 的完结方向不校验业务锁或主流程前置节点，未完结订单可直接发起结案，未完成节点由事务补齐；`orderAllowedActions` 同样不得要求已放单或已退关，避免按钮投影与执行逻辑分叉。反结案原因选填（最多 500 字），只允许未审核锁定订单，动作投影不得为锁定订单返回 `REOPEN`，提交须在 Order `FOR UPDATE` 后独立检查业务锁并返回 `ORDER_BUSINESS_LOCKED`；不得套用内容门禁误拦终止状态。结案 readiness 在事务内重验，包含无待审补录；`OrderClosureReadiness.HasPendingFeeSupplement` 与锁内查询同源。待审返回 ORDER_CLOSURE_BLOCKED 及明确中文原因，不修改共享错误对象。锁后更正可覆盖结案订单；不能将 CLOSED 与 PENDING 设为静态互斥（见费用更正规范）。解锁前同样阻断待审更正，先撤回或补审。
 - 标准业务顺序是「建单 → 录入费用 → 完结 → 审批锁单 → 建立账单」。完结只表示业务操作完成，不代表财务结清。`OrderClosureReadiness` 与 `TransitionClosure` 的锁内复核只检查活动异常及待审费用变更，不查询未建账费用、不要求费用已经建账/开票/核销，也不自动创建账单或审核锁。活动异常返回 `OrderClosureActiveExceptionError()`，待审费用返回 `OrderClosurePendingSupplementError()`，均保留 `ORDER_CLOSURE_BLOCKED`（409）及具体中文处理指引。
 - SE 订单流转到 `TERMINATED` 时在同一事务结束活动 Link：按 Link ID 排序 `FOR UPDATE`，超过一条活动 Link 返回 `SEA_DOCUMENT_STRUCTURE_CONFLICT`（fail-closed，不静默修复）；更新为 `ENDED`、写入 UTC `ended_at`、固定中文 `ended_reason = "订单退关"` 并递增 Link 版本，不修改 MBL/TransportExecution 版本；Order、Link、生命周期事件、审计任一步失败全部回滚。`TERMINATED → ACTIVE` 只恢复订单状态，历史 Link 保持不可变。

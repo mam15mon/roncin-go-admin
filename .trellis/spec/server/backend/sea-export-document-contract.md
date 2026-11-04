@@ -477,3 +477,7 @@ return transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
 - 必须验证：订单/MBL/Link/HBL 过期版本、同批重号、错误目标、终态、共享成员锁定、
   连续保存与幂等重放；数据库断言同时覆盖业务行版本和审计，使用专用 PostgreSQL
   集成库隔离 Schema 与正式迁移，不能将跳过的测试算作成功。
+
+
+关联已有母单加票、共享箱资料/确认与整票改配的一致性边界，见
+[海运共享资料写入一致性](./sea-shared-write-consistency.md)。
