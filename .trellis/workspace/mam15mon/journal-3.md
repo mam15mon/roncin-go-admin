@@ -1061,3 +1061,28 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 186: 财务与提成九项业务修复和验收
+<!-- trellis-session: v=2 fp=743c5e698ff833e3 -->
+
+**Date**: 2026-11-04
+**Task**: 财务与提成九项业务修复和验收
+**Branch**: `codex/finance-business-fixes`
+
+### Summary
+
+修复提成确认历史费用门禁、账单经济重算、对冲汇率、同币种手工率、发票方向、方案编辑区间与入口权限；独立复审与前后端完整门禁通过，实际漏洞扫描按用户要求取消。已本地提交并归档，未合并main或推送远端。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `5971470b` | fix: 校准财务手工汇率与发票方向及入口权限 |
+| `db192a48` | fix: 联动账单变更提成差额并刷新对冲汇率快照 |
+| `8d36d954` | fix: 修复提成确认历史费用门禁与方案维护校验 |
+| `88e75d2e` | docs: 记录财务修复独立复审与全量验收结果 |
+
+### Status
+
+[OK] **Completed**
