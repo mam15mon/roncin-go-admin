@@ -92,9 +92,22 @@ func commissionRuleQueryWithAssignments(q *ent.FinanceCommissionRuleQuery) *ent.
 // 固定锁序：同一员工的并发名单变更被成员行锁串行化，首次分配也不存在
 // 「没有关系行可锁」的竞态。
 func lockCommissionRuleMemberships(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, employeeIDs []uuid.UUID) ([]uuid.UUID, error) {
+	ids, rows, err := lockCommissionRuleMembershipRows(ctx, tx, organizationID, employeeIDs)
+	if err != nil {
+		return nil, err
+	}
+	if err := ensureCommissionRuleMembersEnabled(ctx, tx, ids, rows); err != nil {
+		return nil, err
+	}
+	return ids, nil
+}
+
+// lockCommissionRuleMembershipRows 只取得现存成员父行锁。历史方案元数据维护
+// 不新增员工资格，不应被已离职或停用员工阻断；资格写入仍另行校验有效性。
+func lockCommissionRuleMembershipRows(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, employeeIDs []uuid.UUID) ([]uuid.UUID, []*ent.Membership, error) {
 	sorted := uniqueSortedUUIDs(employeeIDs)
 	if len(sorted) == 0 {
-		return nil, biz.ErrCommissionRuleEmployeeInvalid
+		return nil, nil, biz.ErrCommissionRuleEmployeeInvalid
 	}
 	rows, err := tx.Membership.Query().
 		Where(membership.OrganizationIDEQ(organizationID), membership.UserIDIn(sorted...)).
@@ -102,33 +115,43 @@ func lockCommissionRuleMemberships(ctx context.Context, tx *ent.Tx, organization
 		ForUpdate().
 		All(ctx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if len(rows) != len(sorted) {
-		return nil, biz.ErrCommissionRuleEmployeeInvalid
+		return nil, nil, biz.ErrCommissionRuleEmployeeInvalid
 	}
+	return sorted, rows, nil
+}
+
+// ensureCommissionRuleMembersEnabled 消费已经锁定的成员行；不再取得新行锁，
+// 避免方案锁后补锁成员。新增、启用或修改资格参数均须保留此校验。
+func ensureCommissionRuleMembersEnabled(ctx context.Context, tx *ent.Tx, employeeIDs []uuid.UUID, rows []*ent.Membership) error {
 	for _, row := range rows {
 		if !row.Enabled {
-			return nil, biz.ErrCommissionRuleEmployeeInvalid
+			return biz.ErrCommissionRuleEmployeeInvalid
 		}
 	}
 	validUsers, err := tx.User.Query().
-		Where(user.IDIn(sorted...), user.EnabledEQ(true)).
+		Where(user.IDIn(employeeIDs...), user.EnabledEQ(true)).
 		Order(ent.Asc(user.FieldID)).
 		All(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	if len(validUsers) != len(sorted) {
-		return nil, biz.ErrCommissionRuleEmployeeInvalid
+	if len(validUsers) != len(employeeIDs) {
+		return biz.ErrCommissionRuleEmployeeInvalid
 	}
-	return sorted, nil
+	return nil
 }
 
 // ensureCommissionRuleIntervalFree 在锁内校验员工在当前组织同身份的已启用方案
 // 上，未取消分配的实际有效区间（方案区间 ∩ 分配区间）与候选区间不重叠；
 // excludeAssignmentIDs 供后续变更段时排除自身。
 func ensureCommissionRuleIntervalFree(ctx context.Context, tx *ent.Tx, organizationID, employeeID uuid.UUID, personnelRole biz.CommissionPersonnelRole, planFrom, planTo *string, segmentFrom string, segmentTo *string, excludeAssignmentIDs ...uuid.UUID) error {
+	candidate, valid := biz.WorkbenchActualAssignmentWindow(true, optionalStringValue(planFrom), optionalStringValue(planTo), segmentFrom, optionalStringValue(segmentTo))
+	if !valid {
+		return nil
+	}
 	query := tx.FinanceCommissionRuleAssignment.Query().Where(
 		assignment.OrganizationIDEQ(organizationID),
 		assignment.EmployeeIDEQ(employeeID),
@@ -151,12 +174,10 @@ func ensureCommissionRuleIntervalFree(ctx context.Context, tx *ent.Tx, organizat
 		if existing == nil {
 			continue
 		}
-		// 实际有效区间 = 方案区间 ∩ 分配区间；两段实际区间相交 ⇔ 方案区间
-		// 相交且分配区间相交。
-		if !biz.CommissionClosedIntervalsOverlap(optionalStringValue(planFrom), optionalStringValue(planTo), optionalStringValue(existing.EffectiveFrom), optionalStringValue(existing.EffectiveTo)) {
-			continue
-		}
-		if !biz.CommissionClosedIntervalsOverlap(segmentFrom, optionalStringValue(segmentTo), row.EffectiveFrom, optionalStringValue(row.EffectiveTo)) {
+		// 分别求方案与分配的交集，再比较两个实际区间；两类原区间各自相交
+		// 不能证明实际资格相交。
+		window, valid := biz.WorkbenchActualAssignmentWindow(existing.Enabled, optionalStringValue(existing.EffectiveFrom), optionalStringValue(existing.EffectiveTo), row.EffectiveFrom, optionalStringValue(row.EffectiveTo))
+		if !valid || !biz.CommissionClosedIntervalsOverlap(candidate.EffectiveFrom, candidate.EffectiveTo, window.EffectiveFrom, window.EffectiveTo) {
 			continue
 		}
 		return biz.ErrCommissionRuleIntervalOverlap
@@ -260,16 +281,20 @@ func (r *commissionRepo) UpdateRule(ctx context.Context, org uuid.UUID, in biz.U
 		// 先按当前分配段预读需要锁定成员关系的员工集合，再按 Membership → Rule
 		// 固定锁序锁定成员行与方案行；方案行的权威状态以锁定后重读为准。
 		preAssignments, err := tx.FinanceCommissionRuleAssignment.Query().
-			Where(assignment.RuleIDEQ(in.ID), assignment.CancelledAtIsNil()).All(ctx)
+			Where(assignment.RuleIDEQ(in.ID), assignment.OrganizationIDEQ(org), assignment.CancelledAtIsNil()).All(ctx)
 		if err != nil {
 			return err
 		}
+		var lockedEmployeeIDs []uuid.UUID
+		var lockedMemberships []*ent.Membership
 		if len(preAssignments) > 0 {
 			employeeIDs := make([]uuid.UUID, 0, len(preAssignments))
 			for _, item := range preAssignments {
 				employeeIDs = append(employeeIDs, item.EmployeeID)
 			}
-			if _, lockErr := lockCommissionRuleMemberships(ctx, tx, org, employeeIDs); lockErr != nil {
+			var lockErr error
+			lockedEmployeeIDs, lockedMemberships, lockErr = lockCommissionRuleMembershipRows(ctx, tx, org, employeeIDs)
+			if lockErr != nil {
 				return lockErr
 			}
 		}
@@ -283,6 +308,22 @@ func (r *commissionRepo) UpdateRule(ctx context.Context, org uuid.UUID, in biz.U
 		if x.LegacyReadonly {
 			return biz.ErrCommissionRuleLegacyReadOnly
 		}
+		segments, err := tx.FinanceCommissionRuleAssignment.Query().
+			Where(assignment.RuleIDEQ(in.ID), assignment.OrganizationIDEQ(org), assignment.CancelledAtIsNil()).All(ctx)
+		if err != nil {
+			return err
+		}
+		preEmployeeIDs := make([]uuid.UUID, 0, len(preAssignments))
+		employeeIDs := make([]uuid.UUID, 0, len(segments))
+		for _, segment := range preAssignments {
+			preEmployeeIDs = append(preEmployeeIDs, segment.EmployeeID)
+		}
+		for _, segment := range segments {
+			employeeIDs = append(employeeIDs, segment.EmployeeID)
+		}
+		if !sameUUIDSet(preEmployeeIDs, employeeIDs) {
+			return biz.ErrCommissionRuleConflict
+		}
 		today := in.Today
 		reached := x.Enabled && x.EffectiveFrom != nil && *x.EffectiveFrom <= today
 		switch {
@@ -291,10 +332,13 @@ func (r *commissionRepo) UpdateRule(ctx context.Context, org uuid.UUID, in biz.U
 			if lockErr := ensureCommissionRuleParamsLocked(x, in); lockErr != nil {
 				return lockErr
 			}
-			if in.EffectiveTo != nil && *in.EffectiveTo < today {
+			if in.EffectiveTo != nil && *in.EffectiveTo < today && optionalStringValue(in.EffectiveTo) != optionalStringValue(x.EffectiveTo) {
 				return biz.ErrCommissionRuleRetroactive
 			}
 		default:
+			if in.Enabled && (in.EffectiveFrom == nil || *in.EffectiveFrom < today) {
+				return biz.ErrCommissionRuleInvalid
+			}
 			// 未到生效日或停用草稿：允许完整编辑；已产生提成引用时参数同样
 			// 锁定，避免历史来源被追溯重算。
 			referenced, refErr := tx.FinanceCommission.Query().Where(commission.RuleIDEQ(in.ID)).Exist(ctx)
@@ -306,10 +350,32 @@ func (r *commissionRepo) UpdateRule(ctx context.Context, org uuid.UUID, in biz.U
 					return lockErr
 				}
 			}
-			// 启用停用草稿：重新校验名单（成员有效性与区间唯一）后放行。
-			if !x.Enabled && in.Enabled {
-				if enableErr := enableCommissionRuleDraft(ctx, tx, org, x, in); enableErr != nil {
-					return enableErr
+		}
+		existingRate, err := decimalOf(x.RatePercent)
+		if err != nil {
+			return err
+		}
+		// 只有名称、备注变化时不产生新资格；历史员工停用不能阻止说明维护。
+		qualificationUnchanged := x.Enabled == in.Enabled && x.PersonnelRole == rule.PersonnelRole(in.PersonnelRole) &&
+			x.CalculationBasis == rule.CalculationBasis(in.CalculationBasis) && existingRate.Equal(in.RatePercent) &&
+			optionalStringValue(x.EffectiveFrom) == optionalStringValue(in.EffectiveFrom) &&
+			optionalStringValue(x.EffectiveTo) == optionalStringValue(in.EffectiveTo)
+		if !qualificationUnchanged && len(lockedEmployeeIDs) > 0 {
+			if activeErr := ensureCommissionRuleMembersEnabled(ctx, tx, lockedEmployeeIDs, lockedMemberships); activeErr != nil {
+				return activeErr
+			}
+		}
+		if in.Enabled {
+			if !x.Enabled && len(segments) == 0 {
+				return biz.ErrCommissionRuleEnableNoEmployee
+			}
+			excludeIDs := make([]uuid.UUID, 0, len(segments))
+			for _, segment := range segments {
+				excludeIDs = append(excludeIDs, segment.ID)
+			}
+			for _, segment := range segments {
+				if overlapErr := ensureCommissionRuleIntervalFree(ctx, tx, org, segment.EmployeeID, in.PersonnelRole, in.EffectiveFrom, in.EffectiveTo, segment.EffectiveFrom, segment.EffectiveTo, excludeIDs...); overlapErr != nil {
+					return overlapErr
 				}
 			}
 		}
@@ -338,27 +404,6 @@ func (r *commissionRepo) UpdateRule(ctx context.Context, org uuid.UUID, in biz.U
 		return nil, err
 	}
 	return r.GetRuleScoped(ctx, []uuid.UUID{org}, updated.ID)
-}
-
-// enableCommissionRuleDraft 启用停用草稿前的锁内复核：至少一名未取消分配、
-// 成员关系与账号有效、且与同身份其他启用方案的实际区间不重叠。
-func enableCommissionRuleDraft(ctx context.Context, tx *ent.Tx, org uuid.UUID, x *ent.FinanceCommissionRule, in biz.UpdateCommissionRuleInput) error {
-	segments, err := tx.FinanceCommissionRuleAssignment.Query().
-		Where(assignment.RuleIDEQ(x.ID), assignment.CancelledAtIsNil()).All(ctx)
-	if err != nil {
-		return err
-	}
-	if len(segments) == 0 {
-		return biz.ErrCommissionRuleEnableNoEmployee
-	}
-	employeeIDs := make([]uuid.UUID, 0, len(segments))
-	for _, item := range segments {
-		employeeIDs = append(employeeIDs, item.EmployeeID)
-	}
-	if _, lockErr := lockCommissionRuleMemberships(ctx, tx, org, employeeIDs); lockErr != nil {
-		return lockErr
-	}
-	return checkCommissionRuleAssignmentsFree(ctx, tx, org, biz.CommissionPersonnelRole(x.PersonnelRole), in.EffectiveFrom, in.EffectiveTo, uniqueSortedUUIDs(employeeIDs), optionalStringValue(in.EffectiveFrom), in.EffectiveTo)
 }
 
 // commissionRuleReachedEffectiveness 判断方案是否已到达生效日：启用且起始日

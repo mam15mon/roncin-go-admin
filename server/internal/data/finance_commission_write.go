@@ -152,7 +152,7 @@ func (r *commissionRepo) Transition(ctx context.Context, org, id, actor uuid.UUI
 				return orderIDErr
 			}
 			lineOrderIDs := orderUUIDsFromLines(orderIDs)
-			hasUnbilledFees, unbilledErr := tx.OrderFee.Query().Where(fee.OrderIDIn(lineOrderIDs...), fee.Not(fee.HasFinanceBillLinesWith(effectiveBillLinePredicate()))).Exist(ctx)
+			hasUnbilledFees, unbilledErr := tx.OrderFee.Query().Where(fee.OrderIDIn(lineOrderIDs...), accountingOrderFeePredicate(), fee.Not(fee.HasFinanceBillLinesWith(effectiveBillLinePredicate()))).Exist(ctx)
 			if unbilledErr != nil {
 				return unbilledErr
 			}
@@ -283,7 +283,7 @@ func confirmCommissionsForApplicationApproval(ctx context.Context, tx *ent.Tx, o
 	}
 	parents = locked
 	orderIDs := orderUUIDsFromLines(lineRows)
-	hasUnbilledFees, err := tx.OrderFee.Query().Where(fee.OrderIDIn(orderIDs...), fee.Not(fee.HasFinanceBillLinesWith(effectiveBillLinePredicate()))).Exist(ctx)
+	hasUnbilledFees, err := tx.OrderFee.Query().Where(fee.OrderIDIn(orderIDs...), accountingOrderFeePredicate(), fee.Not(fee.HasFinanceBillLinesWith(effectiveBillLinePredicate()))).Exist(ctx)
 	if err != nil {
 		return err
 	}

@@ -77,7 +77,7 @@ func (u *CommissionUsecase) CreateRule(ctx context.Context, org, actor uuid.UUID
 }
 
 func (u *CommissionUsecase) UpdateRule(ctx context.Context, org, actor uuid.UUID, in UpdateCommissionRuleInput) (*FinanceCommissionRule, error) {
-	normalized, err := normalizeCommissionRuleInput(in.CreateCommissionRuleInput)
+	normalized, err := normalizeCommissionRuleFields(in.CreateCommissionRuleInput)
 	if err != nil || org == uuid.Nil || actor == uuid.Nil || in.ID == uuid.Nil || in.ExpectedVersion == 0 {
 		return nil, ErrCommissionRuleInvalid
 	}
@@ -218,6 +218,18 @@ func commissionRuleEmployeeChangeAudit(org, actor uuid.UUID, change CommissionRu
 }
 
 func normalizeCommissionRuleInput(in CreateCommissionRuleInput) (CreateCommissionRuleInput, error) {
+	in, err := normalizeCommissionRuleFields(in)
+	if err != nil {
+		return CreateCommissionRuleInput{}, err
+	}
+	// 新建启用方案不得追溯生效；更新时由锁内既有方案状态判断是否允许。
+	if in.Enabled && *in.EffectiveFrom < in.Today {
+		return CreateCommissionRuleInput{}, ErrCommissionRuleInvalid
+	}
+	return in, nil
+}
+
+func normalizeCommissionRuleFields(in CreateCommissionRuleInput) (CreateCommissionRuleInput, error) {
 	in.Name = strings.TrimSpace(in.Name)
 	in.EffectiveFrom = normalizedOptionalFinanceString(in.EffectiveFrom)
 	in.EffectiveTo = normalizedOptionalFinanceString(in.EffectiveTo)
@@ -234,8 +246,8 @@ func normalizeCommissionRuleInput(in CreateCommissionRuleInput) (CreateCommissio
 	if in.Name == "" || utf8.RuneCountInString(in.Name) > 100 || !validCommissionPersonnelRole(in.PersonnelRole) || (in.CalculationBasis != CommissionBasisRealizedProfit && in.CalculationBasis != CommissionBasisRealizedRevenue) || !in.RatePercent.IsPositive() || in.RatePercent.GreaterThan(decimal.NewFromInt(100)) || (in.EffectiveFrom != nil && !validFinanceDate(*in.EffectiveFrom)) || (in.EffectiveTo != nil && !validFinanceDate(*in.EffectiveTo)) || (in.EffectiveFrom != nil && in.EffectiveTo != nil && *in.EffectiveFrom > *in.EffectiveTo) || (in.Note != nil && utf8.RuneCountInString(*in.Note) > 500) {
 		return CreateCommissionRuleInput{}, ErrCommissionRuleInvalid
 	}
-	// 新启用方案必须有当天或未来的生效起始日；未启用草稿可暂不设起始日。
-	if in.Enabled && (in.EffectiveFrom == nil || *in.EffectiveFrom < in.Today) {
+	// 启用方案必须有生效起始日；未启用草稿可暂不设起始日。
+	if in.Enabled && in.EffectiveFrom == nil {
 		return CreateCommissionRuleInput{}, ErrCommissionRuleInvalid
 	}
 	return in, nil
