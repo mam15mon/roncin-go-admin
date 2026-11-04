@@ -257,6 +257,7 @@ func TestResolveOrderFeeExchangeRateUsesExactManualSnapshot(t *testing.T) {
 	override := decimal.RequireFromString("0.1")
 	settingID := uuid.Must(uuid.NewV7())
 	fee := validOrderFeeForTest()
+	fee.Currency = "USD"
 	fee.ExchangeRateOverride = &override
 	fee.ExchangeRateSettingID = &settingID
 

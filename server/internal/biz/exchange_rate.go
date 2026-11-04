@@ -17,6 +17,7 @@ import (
 var (
 	ErrExchangeRateNotFound            = errors.NotFound("EXCHANGE_RATE_NOT_FOUND", "汇率设置不存在")
 	ErrExchangeRateInvalidArgument     = errors.BadRequest("EXCHANGE_RATE_INVALID_ARGUMENT", "汇率设置字段不合法")
+	ErrExchangeRateSameCurrencyInvalid = errors.BadRequest("EXCHANGE_RATE_SAME_CURRENCY_INVALID", "同币种折算汇率必须为 1")
 	ErrExchangeRateMissing             = errors.BadRequest(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FEE_EXCHANGE_RATE_MISSING), "汇率日期未命中生效汇率，请先维护汇率")
 	ErrExchangeRateOverlap             = errors.Conflict("EXCHANGE_RATE_OVERLAP", "汇率生效周与现有设置冲突，请刷新后重试")
 	ErrExchangeRateConflict            = errors.Conflict("FEE_EXCHANGE_RATE_CONFLICT", "汇率日期命中多条生效汇率")

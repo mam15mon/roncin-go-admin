@@ -313,8 +313,8 @@ func (uc *FinanceInvoiceUsecase) Issue(ctx context.Context, organizationID, acto
 	if uc.exchangeRate == nil {
 		return nil, ErrFinanceInvoiceInvalidArgument
 	}
-	// 发票面向客户开票，折算恒走应收汇率（ar_rate，现汇卖出价）。
-	resolved, err := uc.exchangeRate.ResolveRate(ctx, organizationID, OrderFeeReceivable, invoice.Currency, invoiceDate)
+	// 开票采用应收汇率，收票采用应付汇率，与来源账单方向保持一致。
+	resolved, err := uc.exchangeRate.ResolveRate(ctx, organizationID, invoice.Direction, invoice.Currency, invoiceDate)
 	if err != nil {
 		return nil, err
 	}

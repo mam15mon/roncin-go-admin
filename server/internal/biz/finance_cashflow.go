@@ -169,6 +169,9 @@ func (uc *FinanceCashflowUsecase) Create(ctx context.Context, org, actor uuid.UU
 	if err != nil {
 		return nil, err
 	}
+	if in.ExchangeRateOverride != nil && in.Currency == baseCurrency && !resolvedRate.Equal(decimal.NewFromInt(1)) {
+		return nil, ErrExchangeRateSameCurrencyInvalid
+	}
 	in.BaseCurrency = baseCurrency
 	name, isCasual, e := uc.repo.ResolveParty(ctx, org, in.SettlementPartyID)
 	if e != nil {

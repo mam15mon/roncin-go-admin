@@ -531,6 +531,13 @@ func (uc *OrderFeeUsecase) resolveExchangeRate(ctx context.Context, organization
 		if !orderFeeCurrencySetsMatch(existingFees, fee) {
 			return ErrOrderFeeExchangeRateOverrideMismatch
 		}
+		baseCurrency, err := uc.exchangeRate.BaseCurrency(ctx, organizationID)
+		if err != nil {
+			return err
+		}
+		if fee.Currency == baseCurrency && !fee.ExchangeRateOverride.Equal(decimal.NewFromInt(1)) {
+			return ErrExchangeRateSameCurrencyInvalid
+		}
 		fee.ExchangeRate = *fee.ExchangeRateOverride
 		fee.ExchangeRateSource = ExchangeRateSourceManual
 		fee.ExchangeRateDate = etdDay
