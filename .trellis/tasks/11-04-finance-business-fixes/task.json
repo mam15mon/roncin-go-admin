@@ -4,10 +4,10 @@
   "title": "修复财务与提成九项业务一致性问题",
   "description": "修复提成确认与经济重算、账单对冲和同币种汇率、发票方向、方案区间与流水权限；定向回归和独立审查",
   "status": "in_progress",
-  "dev_type": null,
+  "dev_type": "fullstack",
   "scope": null,
   "package": null,
-  "priority": "P2",
+  "priority": "P1",
   "creator": "mam15mon",
   "assignee": "mam15mon",
   "createdAt": "2026-11-04",
@@ -15,7 +15,7 @@
   "branch": "codex/finance-business-fixes",
   "base_branch": "main",
   "worktree_path": null,
-  "commit": null,
+  "commit": "8d36d954",
   "pr_url": null,
   "subtasks": [],
   "children": [
@@ -24,7 +24,16 @@
     "11-04-finance-rate-fixes"
   ],
   "parent": null,
-  "relatedFiles": [],
-  "notes": "",
+  "relatedFiles": [
+    "server/internal/data/finance_bill_economics.go",
+    "server/internal/data/finance_netting.go",
+    "server/internal/data/finance_commission_rules.go",
+    "server/internal/data/finance_commission_write.go",
+    "server/internal/biz/finance_cashflow.go",
+    "server/internal/biz/finance_invoice.go",
+    "server/internal/biz/order_fee.go",
+    "web/src/pages/finance/cashflows/index.tsx"
+  ],
+  "notes": "九项修复、分组真实回归和独立review通过；父任务完整前后端门禁通过，实际漏洞扫描按用户要求取消。已分组本地提交，未合并main或推送远端。",
   "meta": {}
 }
