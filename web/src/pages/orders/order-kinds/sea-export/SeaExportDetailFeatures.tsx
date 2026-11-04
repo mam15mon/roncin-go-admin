@@ -1,4 +1,5 @@
 import {
+  FileDoneOutlined,
   HistoryOutlined,
   ReloadOutlined,
   ScissorOutlined,
@@ -217,6 +218,16 @@ export default function SeaExportDetailFeatures({
     ? businessWriteBlockedReason
     : changeActions?.reassignBlockedReasons?.join('；');
   const actionMenuItems: MenuProps['items'] = [
+    ...(canOrder('read')
+      ? [
+          {
+            key: 'hbl-production',
+            icon: <FileDoneOutlined />,
+            label: 'HBL 制作',
+            onClick: () => history.push(`/orders/${kind}/${orderId}/hbl`),
+          },
+        ]
+      : []),
     ...(canOrder('split')
       ? [
           {

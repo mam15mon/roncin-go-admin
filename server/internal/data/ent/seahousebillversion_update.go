@@ -275,6 +275,9 @@ func (_u *SeaHouseBillVersionUpdate) sqlSave(ctx context.Context) (_node int, er
 	if _u.mutation.NoteCleared() {
 		_spec.ClearField(seahousebillversion.FieldNote, field.TypeString)
 	}
+	if _u.mutation.PrintDetailsCleared() {
+		_spec.ClearField(seahousebillversion.FieldPrintDetails, field.TypeJSON)
+	}
 	if _u.mutation.ReasonCleared() {
 		_spec.ClearField(seahousebillversion.FieldReason, field.TypeString)
 	}
@@ -859,6 +862,9 @@ func (_u *SeaHouseBillVersionUpdateOne) sqlSave(ctx context.Context) (_node *Sea
 	}
 	if _u.mutation.NoteCleared() {
 		_spec.ClearField(seahousebillversion.FieldNote, field.TypeString)
+	}
+	if _u.mutation.PrintDetailsCleared() {
+		_spec.ClearField(seahousebillversion.FieldPrintDetails, field.TypeJSON)
 	}
 	if _u.mutation.ReasonCleared() {
 		_spec.ClearField(seahousebillversion.FieldReason, field.TypeString)

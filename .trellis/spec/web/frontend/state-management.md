@@ -210,6 +210,7 @@ clearTabDrafts(tabKey: string, draftScope?: string): void;
 // OrderFormTemplate 动作接口：页面外部清理草稿与脏状态只能经由该接口。
 interface OrderFormTemplateActions<T> {
   resetTo: (values?: Partial<T>) => void;
+  applyValues: (values: Partial<T>) => void;
 }
 ```
 
@@ -227,6 +228,9 @@ interface OrderFormTemplateActions<T> {
   不再提供受控 `dirty/onDirtyChange` props。页面级显式刷新成功、底部「重置修改」等外部
   动作只能调用 `actionsRef.resetTo(values)`（清当前草稿 → 重置 Form store → 回填最新值 →
   清 dirty）。
+- 用户点击「带入」等显式编辑动作时，调用 `actionsRef.applyValues(values)` 合并字段、标记
+  未保存并同步持久化完整草稿；只读或编辑禁用时不应用。不得只调用 `setFieldsValue`，
+  否则首次程序带入不会触发输入事件，导致草稿与关闭保护遗漏；初始化和后台查询仍不标脏。
 - 草稿恢复由模板在首次同时满足「非 loading、非 readonly、草稿身份完整」时通过浏览器绘制
   前的 layout effect 执行一次；初始只读或加载中的页面不读取草稿，首次变为可编辑时仍可恢复，
   同身份后续锁状态往返不得覆盖内存中的表单值。
@@ -280,7 +284,8 @@ interface OrderFormTemplateActions<T> {
 - 模板测试：缺少任一草稿身份输入（tabKey / draftPathname / draftScope）时不持久化，完整
   输入只命中唯一规范路径键；只读挂载不恢复草稿、初始只读在首次解除后只恢复一次且后续
   readonly 往返不覆盖内存编辑值；提交成功清草稿、提交失败保留草稿、原生重置清草稿；
-  `resetTo` 清当前草稿、清旧 Form store、回填新值并清 internal dirty。
+  `resetTo` 清当前草稿、清旧 Form store、回填新值并清 internal dirty；`applyValues` 首次
+  带入即标脏并保存完整草稿，保留未涉及字段，只读或编辑禁用时不修改。
 - 详情生命周期测试：详情 A 原地导航到 B 后模板实例被重建，B 不显示 A 的 Form store 与
   dirty 状态；A 的迟到显式刷新不得重置 B 的表单与 dirty；保存成功立即清草稿，后台刷新
   失败不改判保存结果；底部重置修改与显式刷新成功经由 `actionsRef.resetTo` 生效。
@@ -310,6 +315,9 @@ clearFormDraft(draftKey);
 
 // 需要外部重置表单时，经由模板动作接口执行。
 templateActionsRef.current?.resetTo(initialValues);
+
+// 用户显式带入属于编辑，经由模板同时合并字段、标脏并保存草稿。
+templateActionsRef.current?.applyValues({ printDetails: { containersText } });
 ```
 
 ## 场景：业务页签列表查询恢复

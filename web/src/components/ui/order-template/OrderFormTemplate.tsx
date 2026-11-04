@@ -175,6 +175,14 @@ export function OrderFormTemplate<T>({
   useImperativeHandle(
     actionsRef,
     () => ({
+      applyValues: (values: Partial<T>) => {
+        if (readonly || editingDisabled || !resolvedFormRef.current) return;
+        resolvedFormRef.current.setFieldsValue(values);
+        dirtyRef.current = true;
+        setInternalDirty(true);
+        if (draftKey)
+          saveFormDraft(draftKey, resolvedFormRef.current.getFieldsValue(true));
+      },
       resetTo: (values?: Partial<T>) => {
         if (draftKey) {
           clearFormDraft(draftKey);
@@ -189,7 +197,7 @@ export function OrderFormTemplate<T>({
         setSectionErrors({});
       },
     }),
-    [draftKey, resolvedFormRef],
+    [draftKey, resolvedFormRef, readonly, editingDisabled],
   );
 
   const handleFinish = async (values: T) => {

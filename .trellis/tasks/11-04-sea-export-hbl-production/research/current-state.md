@@ -37,7 +37,7 @@
 - `server/internal/data/ent/schema/sea_house_bill_version.go:34`：不可变内容和签发主体；版本源含审核、改单、作废和模式切换。
 - `.trellis/spec/server/backend/sea-document-change-history.md:86`：历史只读不可变字段，禁止回读当前内容改写历史。
 - 整单保存已有订单/主单/HBL 的原子更新及并发防护；用户已确认制作编辑保存回同一 HBL，后续设计复用现有写入与并发契约，不另建独立打印稿。
-- `web/public/logo.svg`、`web/public/images/logo-mark.png` 有品牌素材，设计时与模板比对并复用，不生成近似 Logo。
+- `web/public/logo.svg`、`web/public/images/logo-mark.png` 为全站蓝底 R 标志，与用户模板鸟形 Logo 不同。实现时确认 PDF 中 xref171 为独立 Logo（986×665，alpha mask173），提取为模板专用 `web/public/images/roncin-hbl-logo.png`；不带客户文字，不改全站图标，不生成近似 Logo。
 
 ## 模板签发公司盘点
 

@@ -15,6 +15,7 @@
 | [DingTalk Notification Messages](./dingtalk-notification-markdown.md) | 机器人Markdown/单按钮ActionCard、紧凑模板与验证码敏感边界 | ✅ |
 | [DingTalk Notification Test](./dingtalk-notification-test.md) | 独立Admin预览、本人测试发送、无效验证码与受控费用链接 | ✅ |
 | [Sea Export Document Contract](./sea-export-document-contract.md) | 海运操作票、共享 MBL、运输执行与 HBL 跨层契约 | ✅ |
+| [HBL 制作与 PDF 输出](./sea-hbl-production.md) | 同一 HBL 印字、北京自签模板、四版本独立于利润审核和完整分页输出 | ✅ |
 | [Air Export Contract](./air-export-contract.md) | 空运共享 MAWB/HAWB、成员与单证历史、流程、重量确认和费用来源 | ✅ |
 | [Order Shared Enum Field](./order-shared-enum-field.md) | 订单共享契约新增可选枚举字段的五层配方、迁移列形与更新语义 | ✅ |
 | [Order Personnel Editor Retirement](./order-personnel-editor-retirement.md) | 订单协作团队独立维护退役，保留表单读取、底层人员与通知/提成依赖 | ✅ |

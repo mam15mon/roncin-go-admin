@@ -41,6 +41,7 @@ func (SeaHouseBillVersion) Fields() []ent.Field {
 		field.UUID("issuer_partner_id", uuid.Nil).Optional().Nillable().Immutable(),
 		field.Enum("status").Values("DRAFT", "CONFIRMED", "RELEASED", "VOIDED").Immutable(),
 		field.String("note").Optional().Nillable().MaxLen(500).Immutable(),
+		field.JSON("print_details", &SeaHouseBillPrintDetails{}).Optional().Immutable(),
 		field.String("content_hash").NotEmpty().MaxLen(64).Immutable(),
 		field.Enum("source").Values("ORDER_LOCK", "AMENDMENT", "VOID", "MODE_CHANGE").Immutable(),
 		field.String("reason").Optional().Nillable().MaxLen(500).Immutable(),

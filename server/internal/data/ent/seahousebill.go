@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
@@ -51,6 +53,8 @@ type SeaHouseBill struct {
 	Version uint64 `json:"version,omitempty"`
 	// Note holds the value of the "note" field.
 	Note *string `json:"note,omitempty"`
+	// PrintDetails holds the value of the "print_details" field.
+	PrintDetails *schema.SeaHouseBillPrintDetails `json:"print_details,omitempty"`
 	// ShipperText holds the value of the "shipper_text" field.
 	ShipperText *string `json:"shipper_text,omitempty"`
 	// ConsigneeText holds the value of the "consignee_text" field.
@@ -258,6 +262,8 @@ func (*SeaHouseBill) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case seahousebill.FieldIssuerOrganizationID, seahousebill.FieldIssuerPartnerID, seahousebill.FieldCurrentVersionID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case seahousebill.FieldPrintDetails:
+			values[i] = new([]byte)
 		case seahousebill.FieldGrossWeightKg, seahousebill.FieldVolumeCbm:
 			values[i] = new(sql.NullFloat64)
 		case seahousebill.FieldVersion, seahousebill.FieldPackageCount:
@@ -376,6 +382,14 @@ func (_m *SeaHouseBill) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Note = new(string)
 				*_m.Note = value.String
+			}
+		case seahousebill.FieldPrintDetails:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field print_details", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.PrintDetails); err != nil {
+					return fmt.Errorf("unmarshal field print_details: %w", err)
+				}
 			}
 		case seahousebill.FieldShipperText:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -639,6 +653,9 @@ func (_m *SeaHouseBill) String() string {
 		builder.WriteString("note=")
 		builder.WriteString(*v)
 	}
+	builder.WriteString(", ")
+	builder.WriteString("print_details=")
+	builder.WriteString(fmt.Sprintf("%v", _m.PrintDetails))
 	builder.WriteString(", ")
 	if v := _m.ShipperText; v != nil {
 		builder.WriteString("shipper_text=")

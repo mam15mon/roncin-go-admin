@@ -14,7 +14,7 @@ describe('订单列表单证入口', () => {
     rawRecord: { id: 'order-1' } as API.Order,
   } satisfies OrderListItem;
 
-  it('海运出口进入真实订单详情且不打开旧分单抽屉', () => {
+  it('海运出口进入真实 HBL 制作页且不打开旧分单抽屉', () => {
     const navigate = vi.fn();
     const openLegacyDocuments = vi.fn();
 
@@ -29,7 +29,7 @@ describe('订单列表单证入口', () => {
       openLegacyDocuments,
     );
 
-    expect(navigate).toHaveBeenCalledWith('/orders/sea-export/order-1');
+    expect(navigate).toHaveBeenCalledWith('/orders/sea-export/order-1/hbl');
     expect(openLegacyDocuments).not.toHaveBeenCalled();
   });
 

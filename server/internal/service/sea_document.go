@@ -253,6 +253,10 @@ func seaHouseBillToAPI(hb *biz.SeaHouseBill) *v1.SeaHouseBill {
 		partnerName = &hb.IssuerPartnerName
 	}
 
+	var printTemplate *string
+	if hb.PrintTemplate != "" {
+		printTemplate = &hb.PrintTemplate
+	}
 	return &v1.SeaHouseBill{
 		Id:                     hb.ID.String(),
 		OrganizationId:         hb.OrganizationID.String(),
@@ -270,6 +274,8 @@ func seaHouseBillToAPI(hb *biz.SeaHouseBill) *v1.SeaHouseBill {
 		ImmutableVersionCount:  uint64(hb.ImmutableVersionCount),
 		Note:                   hb.Note,
 		Content:                seaBillContentToAPI(hb.Content),
+		PrintDetails:           seaHouseBillPrintDetailsToAPI(hb.PrintDetails),
+		PrintTemplate:          printTemplate,
 		CreatedAt:              hb.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:              hb.UpdatedAt.Format(time.RFC3339),
 	}
@@ -302,6 +308,7 @@ func seaHouseBillInputFromAPI(in *v1.SeaHouseBillInput) (*biz.SeaHouseBillInput,
 		IssuerPartnerID: partnerID,
 		Note:            in.Note,
 		Content:         seaBillContentFromAPI(in.GetContent()),
+		PrintDetails:    seaHouseBillPrintDetailsFromAPI(in.GetPrintDetails()),
 		ExpectedVersion: in.ExpectedVersion,
 	}, nil
 }

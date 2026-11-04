@@ -194,6 +194,11 @@ func ValidateSeaHouseBillInput(input *SeaHouseBillInput) (*SeaHouseBillInput, er
 		}
 	}
 
+	normalizedPrintDetails, err := ValidateSeaHouseBillPrintDetails(input.PrintDetails)
+	if err != nil {
+		return nil, err
+	}
+
 	normalizedContent, err := ValidateSeaBillContent(input.Content)
 	if err != nil {
 		return nil, err
@@ -206,6 +211,7 @@ func ValidateSeaHouseBillInput(input *SeaHouseBillInput) (*SeaHouseBillInput, er
 		IssuerPartnerID: input.IssuerPartnerID,
 		Note:            note,
 		Content:         normalizedContent,
+		PrintDetails:    normalizedPrintDetails,
 		ExpectedVersion: input.ExpectedVersion,
 	}, nil
 }
@@ -361,6 +367,8 @@ type SeaHouseBill struct {
 	ImmutableVersionCount  int
 	Note                   *string
 	Content                *SeaBillContent
+	PrintDetails           *SeaHouseBillPrintDetails
+	PrintTemplate          string
 	CreatedAt              time.Time
 	UpdatedAt              time.Time
 }
@@ -373,6 +381,7 @@ type SeaHouseBillInput struct {
 	IssuerPartnerID *uuid.UUID
 	Note            *string
 	Content         *SeaBillContent
+	PrintDetails    *SeaHouseBillPrintDetails
 	ExpectedVersion *uint64
 }
 

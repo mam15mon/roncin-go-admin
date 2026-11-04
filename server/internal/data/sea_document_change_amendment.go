@@ -183,6 +183,7 @@ func (r *seaDocumentChangeRepo) executeHouseAmendment(ctx context.Context, tx *e
 		builder.ClearNote()
 	}
 	setSeaHouseBillContentUpdate(builder, input.Input.HouseBill.Content)
+	setSeaHouseBillPrintDetailsUpdate(builder, input.Input.HouseBill.PrintDetails)
 	updated, err := builder.Save(ctx)
 	if err != nil {
 		if ent.IsConstraintError(err) {

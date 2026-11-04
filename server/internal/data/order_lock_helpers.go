@@ -81,6 +81,7 @@ func computeHBLContentHash(hbl *ent.SeaHouseBill) string {
 	fmt.Fprintf(h, "pkgs:%d|pkgunit:%s|gw:%.4f|vol:%.4f|freight:%s|trans_terms:%s|bill_form:%s|release:%s|clauses:%s|foreignAgent:%s|",
 		derefInt(hbl.PackageCount), derefStr(hbl.PackageUnit), derefFloat(hbl.GrossWeightKg), derefFloat(hbl.VolumeCbm),
 		derefStr(hbl.FreightTerms), derefStr(hbl.TransportTerms), derefStr(hbl.BillForm), derefStr(hbl.ReleaseType), derefStr(hbl.Clauses), derefStr(hbl.ForeignAgentText))
+	fmt.Fprint(h, seaHouseBillPrintDetailsHash(hbl.PrintDetails))
 	return hex.EncodeToString(h.Sum(nil))
 }
 

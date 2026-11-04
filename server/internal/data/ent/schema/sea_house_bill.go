@@ -28,6 +28,7 @@ func (SeaHouseBill) Fields() []ent.Field {
 		field.UUID("current_version_id", uuid.Nil).Optional().Nillable(),
 		field.Uint64("version").Default(1),
 		field.String("note").Optional().Nillable().MaxLen(500),
+		field.JSON("print_details", &SeaHouseBillPrintDetails{}).Optional(),
 	}
 	return append(fields, seaBillContentFields()...)
 }

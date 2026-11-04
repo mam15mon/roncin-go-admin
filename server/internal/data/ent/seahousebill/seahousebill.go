@@ -44,6 +44,8 @@ const (
 	FieldVersion = "version"
 	// FieldNote holds the string denoting the note field in the database.
 	FieldNote = "note"
+	// FieldPrintDetails holds the string denoting the print_details field in the database.
+	FieldPrintDetails = "print_details"
 	// FieldShipperText holds the string denoting the shipper_text field in the database.
 	FieldShipperText = "shipper_text"
 	// FieldConsigneeText holds the string denoting the consignee_text field in the database.
@@ -214,6 +216,7 @@ var Columns = []string{
 	FieldCurrentVersionID,
 	FieldVersion,
 	FieldNote,
+	FieldPrintDetails,
 	FieldShipperText,
 	FieldConsigneeText,
 	FieldNotifyPartyText,

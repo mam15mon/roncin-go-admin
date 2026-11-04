@@ -147939,6 +147939,7 @@ type SeaHouseBillMutation struct {
 	version                             *uint64
 	addversion                          *int64
 	note                                *string
+	print_details                       **schema.SeaHouseBillPrintDetails
 	shipper_text                        *string
 	consignee_text                      *string
 	notify_party_text                   *string
@@ -148675,6 +148676,55 @@ func (m *SeaHouseBillMutation) NoteCleared() bool {
 func (m *SeaHouseBillMutation) ResetNote() {
 	m.note = nil
 	delete(m.clearedFields, seahousebill.FieldNote)
+}
+
+// SetPrintDetails sets the "print_details" field.
+func (m *SeaHouseBillMutation) SetPrintDetails(shbpd *schema.SeaHouseBillPrintDetails) {
+	m.print_details = &shbpd
+}
+
+// PrintDetails returns the value of the "print_details" field in the mutation.
+func (m *SeaHouseBillMutation) PrintDetails() (r *schema.SeaHouseBillPrintDetails, exists bool) {
+	v := m.print_details
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPrintDetails returns the old "print_details" field's value of the SeaHouseBill entity.
+// If the SeaHouseBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillMutation) OldPrintDetails(ctx context.Context) (v *schema.SeaHouseBillPrintDetails, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPrintDetails is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPrintDetails requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPrintDetails: %w", err)
+	}
+	return oldValue.PrintDetails, nil
+}
+
+// ClearPrintDetails clears the value of the "print_details" field.
+func (m *SeaHouseBillMutation) ClearPrintDetails() {
+	m.print_details = nil
+	m.clearedFields[seahousebill.FieldPrintDetails] = struct{}{}
+}
+
+// PrintDetailsCleared returns if the "print_details" field was cleared in this mutation.
+func (m *SeaHouseBillMutation) PrintDetailsCleared() bool {
+	_, ok := m.clearedFields[seahousebill.FieldPrintDetails]
+	return ok
+}
+
+// ResetPrintDetails resets all changes to the "print_details" field.
+func (m *SeaHouseBillMutation) ResetPrintDetails() {
+	m.print_details = nil
+	delete(m.clearedFields, seahousebill.FieldPrintDetails)
 }
 
 // SetShipperText sets the "shipper_text" field.
@@ -150098,7 +150148,7 @@ func (m *SeaHouseBillMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SeaHouseBillMutation) Fields() []string {
-	fields := make([]string, 0, 30)
+	fields := make([]string, 0, 31)
 	if m.created_at != nil {
 		fields = append(fields, seahousebill.FieldCreatedAt)
 	}
@@ -150140,6 +150190,9 @@ func (m *SeaHouseBillMutation) Fields() []string {
 	}
 	if m.note != nil {
 		fields = append(fields, seahousebill.FieldNote)
+	}
+	if m.print_details != nil {
+		fields = append(fields, seahousebill.FieldPrintDetails)
 	}
 	if m.shipper_text != nil {
 		fields = append(fields, seahousebill.FieldShipperText)
@@ -150225,6 +150278,8 @@ func (m *SeaHouseBillMutation) Field(name string) (ent.Value, bool) {
 		return m.Version()
 	case seahousebill.FieldNote:
 		return m.Note()
+	case seahousebill.FieldPrintDetails:
+		return m.PrintDetails()
 	case seahousebill.FieldShipperText:
 		return m.ShipperText()
 	case seahousebill.FieldConsigneeText:
@@ -150294,6 +150349,8 @@ func (m *SeaHouseBillMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldVersion(ctx)
 	case seahousebill.FieldNote:
 		return m.OldNote(ctx)
+	case seahousebill.FieldPrintDetails:
+		return m.OldPrintDetails(ctx)
 	case seahousebill.FieldShipperText:
 		return m.OldShipperText(ctx)
 	case seahousebill.FieldConsigneeText:
@@ -150432,6 +150489,13 @@ func (m *SeaHouseBillMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetNote(v)
+		return nil
+	case seahousebill.FieldPrintDetails:
+		v, ok := value.(*schema.SeaHouseBillPrintDetails)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPrintDetails(v)
 		return nil
 	case seahousebill.FieldShipperText:
 		v, ok := value.(string)
@@ -150638,6 +150702,9 @@ func (m *SeaHouseBillMutation) ClearedFields() []string {
 	if m.FieldCleared(seahousebill.FieldNote) {
 		fields = append(fields, seahousebill.FieldNote)
 	}
+	if m.FieldCleared(seahousebill.FieldPrintDetails) {
+		fields = append(fields, seahousebill.FieldPrintDetails)
+	}
 	if m.FieldCleared(seahousebill.FieldShipperText) {
 		fields = append(fields, seahousebill.FieldShipperText)
 	}
@@ -150711,6 +150778,9 @@ func (m *SeaHouseBillMutation) ClearField(name string) error {
 		return nil
 	case seahousebill.FieldNote:
 		m.ClearNote()
+		return nil
+	case seahousebill.FieldPrintDetails:
+		m.ClearPrintDetails()
 		return nil
 	case seahousebill.FieldShipperText:
 		m.ClearShipperText()
@@ -150809,6 +150879,9 @@ func (m *SeaHouseBillMutation) ResetField(name string) error {
 		return nil
 	case seahousebill.FieldNote:
 		m.ResetNote()
+		return nil
+	case seahousebill.FieldPrintDetails:
+		m.ResetPrintDetails()
 		return nil
 	case seahousebill.FieldShipperText:
 		m.ResetShipperText()
@@ -151226,6 +151299,7 @@ type SeaHouseBillVersionMutation struct {
 	issuer_source                      *seahousebillversion.IssuerSource
 	status                             *seahousebillversion.Status
 	note                               *string
+	print_details                      **schema.SeaHouseBillPrintDetails
 	content_hash                       *string
 	source                             *seahousebillversion.Source
 	reason                             *string
@@ -151975,6 +152049,55 @@ func (m *SeaHouseBillVersionMutation) NoteCleared() bool {
 func (m *SeaHouseBillVersionMutation) ResetNote() {
 	m.note = nil
 	delete(m.clearedFields, seahousebillversion.FieldNote)
+}
+
+// SetPrintDetails sets the "print_details" field.
+func (m *SeaHouseBillVersionMutation) SetPrintDetails(shbpd *schema.SeaHouseBillPrintDetails) {
+	m.print_details = &shbpd
+}
+
+// PrintDetails returns the value of the "print_details" field in the mutation.
+func (m *SeaHouseBillVersionMutation) PrintDetails() (r *schema.SeaHouseBillPrintDetails, exists bool) {
+	v := m.print_details
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPrintDetails returns the old "print_details" field's value of the SeaHouseBillVersion entity.
+// If the SeaHouseBillVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaHouseBillVersionMutation) OldPrintDetails(ctx context.Context) (v *schema.SeaHouseBillPrintDetails, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPrintDetails is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPrintDetails requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPrintDetails: %w", err)
+	}
+	return oldValue.PrintDetails, nil
+}
+
+// ClearPrintDetails clears the value of the "print_details" field.
+func (m *SeaHouseBillVersionMutation) ClearPrintDetails() {
+	m.print_details = nil
+	m.clearedFields[seahousebillversion.FieldPrintDetails] = struct{}{}
+}
+
+// PrintDetailsCleared returns if the "print_details" field was cleared in this mutation.
+func (m *SeaHouseBillVersionMutation) PrintDetailsCleared() bool {
+	_, ok := m.clearedFields[seahousebillversion.FieldPrintDetails]
+	return ok
+}
+
+// ResetPrintDetails resets all changes to the "print_details" field.
+func (m *SeaHouseBillVersionMutation) ResetPrintDetails() {
+	m.print_details = nil
+	delete(m.clearedFields, seahousebillversion.FieldPrintDetails)
 }
 
 // SetContentHash sets the "content_hash" field.
@@ -153821,7 +153944,7 @@ func (m *SeaHouseBillVersionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SeaHouseBillVersionMutation) Fields() []string {
-	fields := make([]string, 0, 40)
+	fields := make([]string, 0, 41)
 	if m.created_at != nil {
 		fields = append(fields, seahousebillversion.FieldCreatedAt)
 	}
@@ -153863,6 +153986,9 @@ func (m *SeaHouseBillVersionMutation) Fields() []string {
 	}
 	if m.note != nil {
 		fields = append(fields, seahousebillversion.FieldNote)
+	}
+	if m.print_details != nil {
+		fields = append(fields, seahousebillversion.FieldPrintDetails)
 	}
 	if m.content_hash != nil {
 		fields = append(fields, seahousebillversion.FieldContentHash)
@@ -153978,6 +154104,8 @@ func (m *SeaHouseBillVersionMutation) Field(name string) (ent.Value, bool) {
 		return m.Status()
 	case seahousebillversion.FieldNote:
 		return m.Note()
+	case seahousebillversion.FieldPrintDetails:
+		return m.PrintDetails()
 	case seahousebillversion.FieldContentHash:
 		return m.ContentHash()
 	case seahousebillversion.FieldSource:
@@ -154067,6 +154195,8 @@ func (m *SeaHouseBillVersionMutation) OldField(ctx context.Context, name string)
 		return m.OldStatus(ctx)
 	case seahousebillversion.FieldNote:
 		return m.OldNote(ctx)
+	case seahousebillversion.FieldPrintDetails:
+		return m.OldPrintDetails(ctx)
 	case seahousebillversion.FieldContentHash:
 		return m.OldContentHash(ctx)
 	case seahousebillversion.FieldSource:
@@ -154225,6 +154355,13 @@ func (m *SeaHouseBillVersionMutation) SetField(name string, value ent.Value) err
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetNote(v)
+		return nil
+	case seahousebillversion.FieldPrintDetails:
+		v, ok := value.(*schema.SeaHouseBillPrintDetails)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPrintDetails(v)
 		return nil
 	case seahousebillversion.FieldContentHash:
 		v, ok := value.(string)
@@ -154510,6 +154647,9 @@ func (m *SeaHouseBillVersionMutation) ClearedFields() []string {
 	if m.FieldCleared(seahousebillversion.FieldNote) {
 		fields = append(fields, seahousebillversion.FieldNote)
 	}
+	if m.FieldCleared(seahousebillversion.FieldPrintDetails) {
+		fields = append(fields, seahousebillversion.FieldPrintDetails)
+	}
 	if m.FieldCleared(seahousebillversion.FieldReason) {
 		fields = append(fields, seahousebillversion.FieldReason)
 	}
@@ -154604,6 +154744,9 @@ func (m *SeaHouseBillVersionMutation) ClearField(name string) error {
 		return nil
 	case seahousebillversion.FieldNote:
 		m.ClearNote()
+		return nil
+	case seahousebillversion.FieldPrintDetails:
+		m.ClearPrintDetails()
 		return nil
 	case seahousebillversion.FieldReason:
 		m.ClearReason()
@@ -154726,6 +154869,9 @@ func (m *SeaHouseBillVersionMutation) ResetField(name string) error {
 		return nil
 	case seahousebillversion.FieldNote:
 		m.ResetNote()
+		return nil
+	case seahousebillversion.FieldPrintDetails:
+		m.ResetPrintDetails()
 		return nil
 	case seahousebillversion.FieldContentHash:
 		m.ResetContentHash()

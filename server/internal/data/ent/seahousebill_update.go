@@ -18,6 +18,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
@@ -241,6 +242,18 @@ func (_u *SeaHouseBillUpdate) SetNillableNote(v *string) *SeaHouseBillUpdate {
 // ClearNote clears the value of the "note" field.
 func (_u *SeaHouseBillUpdate) ClearNote() *SeaHouseBillUpdate {
 	_u.mutation.ClearNote()
+	return _u
+}
+
+// SetPrintDetails sets the "print_details" field.
+func (_u *SeaHouseBillUpdate) SetPrintDetails(v *schema.SeaHouseBillPrintDetails) *SeaHouseBillUpdate {
+	_u.mutation.SetPrintDetails(v)
+	return _u
+}
+
+// ClearPrintDetails clears the value of the "print_details" field.
+func (_u *SeaHouseBillUpdate) ClearPrintDetails() *SeaHouseBillUpdate {
+	_u.mutation.ClearPrintDetails()
 	return _u
 }
 
@@ -1062,6 +1075,12 @@ func (_u *SeaHouseBillUpdate) sqlSave(ctx context.Context) (_node int, err error
 	if _u.mutation.NoteCleared() {
 		_spec.ClearField(seahousebill.FieldNote, field.TypeString)
 	}
+	if value, ok := _u.mutation.PrintDetails(); ok {
+		_spec.SetField(seahousebill.FieldPrintDetails, field.TypeJSON, value)
+	}
+	if _u.mutation.PrintDetailsCleared() {
+		_spec.ClearField(seahousebill.FieldPrintDetails, field.TypeJSON)
+	}
 	if value, ok := _u.mutation.ShipperText(); ok {
 		_spec.SetField(seahousebill.FieldShipperText, field.TypeString, value)
 	}
@@ -1878,6 +1897,18 @@ func (_u *SeaHouseBillUpdateOne) SetNillableNote(v *string) *SeaHouseBillUpdateO
 // ClearNote clears the value of the "note" field.
 func (_u *SeaHouseBillUpdateOne) ClearNote() *SeaHouseBillUpdateOne {
 	_u.mutation.ClearNote()
+	return _u
+}
+
+// SetPrintDetails sets the "print_details" field.
+func (_u *SeaHouseBillUpdateOne) SetPrintDetails(v *schema.SeaHouseBillPrintDetails) *SeaHouseBillUpdateOne {
+	_u.mutation.SetPrintDetails(v)
+	return _u
+}
+
+// ClearPrintDetails clears the value of the "print_details" field.
+func (_u *SeaHouseBillUpdateOne) ClearPrintDetails() *SeaHouseBillUpdateOne {
+	_u.mutation.ClearPrintDetails()
 	return _u
 }
 
@@ -2728,6 +2759,12 @@ func (_u *SeaHouseBillUpdateOne) sqlSave(ctx context.Context) (_node *SeaHouseBi
 	}
 	if _u.mutation.NoteCleared() {
 		_spec.ClearField(seahousebill.FieldNote, field.TypeString)
+	}
+	if value, ok := _u.mutation.PrintDetails(); ok {
+		_spec.SetField(seahousebill.FieldPrintDetails, field.TypeJSON, value)
+	}
+	if _u.mutation.PrintDetailsCleared() {
+		_spec.ClearField(seahousebill.FieldPrintDetails, field.TypeJSON)
 	}
 	if value, ok := _u.mutation.ShipperText(); ok {
 		_spec.SetField(seahousebill.FieldShipperText, field.TypeString, value)

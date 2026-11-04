@@ -36,6 +36,10 @@ export const DYNAMIC_ROUTE_PATTERNS: Array<{
   { pattern: /^\/partners\/customers\/(?!create)[^/]+$/, title: '客户详情' },
   { pattern: /^\/partners\/suppliers\/(?!create)[^/]+$/, title: '供应商详情' },
   {
+    pattern: /^\/orders\/sea-export\/[^/]+\/hbl$/,
+    title: 'HBL 制作',
+  },
+  {
     pattern: /^\/partners\/foreign-agents\/(?!create)[^/]+$/,
     title: '国外代理详情',
   },
@@ -72,10 +76,10 @@ export const REDIRECT_ROUTES: Record<string, string> = {
  * 严格限定在实际存在的路径结构，未知扩展路径不得被过度合并。
  */
 export const TAB_KEY_RULES: Array<{ pattern: RegExp; key: string }> = [
-  // 1. 海运出口订单：列表、新建、详情、费用录入、拆票
-  // 仅允许：/orders/sea-export, /orders/sea-export/new, /orders/sea-export/:id, /orders/sea-export/:id/fees, /orders/sea-export/:id/split
+  // 1. 海运出口订单：列表、新建、详情、费用录入、拆票、HBL 制作
   {
-    pattern: /^\/orders\/sea-export(?:\/(?:new|[^/]+(?:\/(?:fees|split))?))?$/,
+    pattern:
+      /^\/orders\/sea-export(?:\/(?:new|[^/]+(?:\/(?:fees|split|hbl))?))?$/,
     key: '/orders/sea-export',
   },
   // 2. 客商管理：客户列表、新建、详情

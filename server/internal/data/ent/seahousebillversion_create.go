@@ -18,6 +18,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockhousebillsnapshot"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
@@ -147,6 +148,12 @@ func (_c *SeaHouseBillVersionCreate) SetNillableNote(v *string) *SeaHouseBillVer
 	if v != nil {
 		_c.SetNote(*v)
 	}
+	return _c
+}
+
+// SetPrintDetails sets the "print_details" field.
+func (_c *SeaHouseBillVersionCreate) SetPrintDetails(v *schema.SeaHouseBillPrintDetails) *SeaHouseBillVersionCreate {
+	_c.mutation.SetPrintDetails(v)
 	return _c
 }
 
@@ -907,6 +914,10 @@ func (_c *SeaHouseBillVersionCreate) createSpec() (*SeaHouseBillVersion, *sqlgra
 		_spec.SetField(seahousebillversion.FieldNote, field.TypeString, value)
 		_node.Note = &value
 	}
+	if value, ok := _c.mutation.PrintDetails(); ok {
+		_spec.SetField(seahousebillversion.FieldPrintDetails, field.TypeJSON, value)
+		_node.PrintDetails = value
+	}
 	if value, ok := _c.mutation.ContentHash(); ok {
 		_spec.SetField(seahousebillversion.FieldContentHash, field.TypeString, value)
 		_node.ContentHash = value
@@ -1330,6 +1341,9 @@ func (u *SeaHouseBillVersionUpsertOne) UpdateNewValues() *SeaHouseBillVersionUps
 		if _, exists := u.create.mutation.Note(); exists {
 			s.SetIgnore(seahousebillversion.FieldNote)
 		}
+		if _, exists := u.create.mutation.PrintDetails(); exists {
+			s.SetIgnore(seahousebillversion.FieldPrintDetails)
+		}
 		if _, exists := u.create.mutation.ContentHash(); exists {
 			s.SetIgnore(seahousebillversion.FieldContentHash)
 		}
@@ -1663,6 +1677,9 @@ func (u *SeaHouseBillVersionUpsertBulk) UpdateNewValues() *SeaHouseBillVersionUp
 			}
 			if _, exists := b.mutation.Note(); exists {
 				s.SetIgnore(seahousebillversion.FieldNote)
+			}
+			if _, exists := b.mutation.PrintDetails(); exists {
+				s.SetIgnore(seahousebillversion.FieldPrintDetails)
 			}
 			if _, exists := b.mutation.ContentHash(); exists {
 				s.SetIgnore(seahousebillversion.FieldContentHash)

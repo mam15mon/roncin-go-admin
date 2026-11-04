@@ -223,6 +223,7 @@ export function SeaDocumentSectionComponent({
                   : undefined,
               note: currentHouseBill.note,
               content: seaBillContentFormValues(currentHouseBill.content),
+              printDetails: currentHouseBill.printDetails,
               expectedVersion: currentHouseBill.version,
             }
           : undefined,

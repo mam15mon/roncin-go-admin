@@ -43,6 +43,7 @@ export function seaDocumentFormValues(
               : undefined,
           note: house.note,
           content: seaBillContentFormValues(house.content),
+          printDetails: house.printDetails,
           expectedVersion: house.version,
           status: house.status,
         }
@@ -90,6 +91,7 @@ export function buildSeaDocumentUpdate(
           issuerPartnerId: house.issuerPartnerId,
           note: house.note,
           content: house.content,
+          printDetails: house.printDetails,
         }
       : undefined;
   const houseChanged =

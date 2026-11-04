@@ -84,7 +84,7 @@ export default function OrderDetailHeader({
               icon: <FileDoneOutlined />,
               label: (
                 <Tooltip title={businessWriteBlockedReason}>
-                  <span>导出单证 (POD)</span>
+                  <span>放货凭证 (POD)</span>
                 </Tooltip>
               ),
               disabled: businessWritesDisabled,

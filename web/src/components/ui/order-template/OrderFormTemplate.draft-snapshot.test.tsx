@@ -10,7 +10,10 @@ import {
 import React from 'react';
 import { afterEach, expect, it } from 'vitest';
 import { getFormDraft, getFormDraftKey } from '@/components/layout/formDraft';
-import { _clearAllTabCloseGuards } from '@/components/layout/tabCloseGuard';
+import {
+  _clearAllTabCloseGuards,
+  isTabDirty,
+} from '@/components/layout/tabCloseGuard';
 import { OrderFormTemplate } from './OrderFormTemplate';
 import type { OrderFormTemplateActions } from './types';
 
@@ -91,4 +94,38 @@ it('人员程序回填及清空进入草稿，重挂恢复与可见表单一致�
   });
   expect(getFormDraft(draftKey)).toBeNull();
   expect(screen.getByLabelText('操作员')).toHaveValue('saved-operator');
+});
+
+it('用户显式程序带入作为首次修改立即存整表草稿，初始化与resetTo仍保持干净', async () => {
+  const actionsRef: React.MutableRefObject<
+    OrderFormTemplateActions<Record<string, unknown>> | undefined
+  > = { current: undefined };
+  render(
+    <OrderFormTemplate
+      {...identity}
+      actionsRef={actionsRef}
+      initialValues={{ reference: '初始值', sourceVersion: '3' }}
+      sections={[
+        {
+          key: 'reference',
+          title: '参考',
+          content: <ProFormText name="reference" label="参考号" />,
+        },
+      ]}
+    />,
+  );
+  expect(isTabDirty(identity.tabKey, identity.draftScope)).toBe(false);
+  expect(getFormDraft(draftKey)).toBeNull();
+  await act(async () =>
+    actionsRef.current?.applyValues({ reference: '带入值' }),
+  );
+  expect(screen.getByLabelText('参考号')).toHaveValue('带入值');
+  expect(getFormDraft(draftKey)).toEqual({
+    reference: '带入值',
+    sourceVersion: '3',
+  });
+  expect(isTabDirty(identity.tabKey, identity.draftScope)).toBe(true);
+  await act(async () => actionsRef.current?.resetTo({ reference: '同步值' }));
+  expect(isTabDirty(identity.tabKey, identity.draftScope)).toBe(false);
+  expect(getFormDraft(draftKey)).toBeNull();
 });

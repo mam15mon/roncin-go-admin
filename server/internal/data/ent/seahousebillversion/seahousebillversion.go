@@ -44,6 +44,8 @@ const (
 	FieldStatus = "status"
 	// FieldNote holds the string denoting the note field in the database.
 	FieldNote = "note"
+	// FieldPrintDetails holds the string denoting the print_details field in the database.
+	FieldPrintDetails = "print_details"
 	// FieldContentHash holds the string denoting the content_hash field in the database.
 	FieldContentHash = "content_hash"
 	// FieldSource holds the string denoting the source field in the database.
@@ -234,6 +236,7 @@ var Columns = []string{
 	FieldIssuerPartnerID,
 	FieldStatus,
 	FieldNote,
+	FieldPrintDetails,
 	FieldContentHash,
 	FieldSource,
 	FieldReason,

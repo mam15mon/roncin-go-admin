@@ -118,6 +118,9 @@ func syncOrderSeaDocumentOnCreate(ctx context.Context, tx *ent.Tx, organizationI
 			builder.SetNote(*hbInput.Note)
 		}
 		setSeaHouseBillContentCreate(builder, hbInput.Content)
+		if hbInput.PrintDetails != nil {
+			builder.SetPrintDetails(seaHouseBillPrintDetailsToPO(hbInput.PrintDetails))
+		}
 		if _, err := builder.Save(ctx); err != nil {
 			if ent.IsConstraintError(err) {
 				return biz.ErrSeaHouseBillBatchNoDuplicate

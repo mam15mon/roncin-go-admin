@@ -189,6 +189,9 @@ func (r *seaDocumentChangeRepo) ExecuteModeChange(ctx context.Context, orgID, ac
 				hblBuilder.SetNote(*input.NewHouseBill.Note)
 			}
 			setSeaHouseBillContentCreate(hblBuilder, input.NewHouseBill.Content)
+			if input.NewHouseBill.PrintDetails != nil {
+				hblBuilder.SetPrintDetails(seaHouseBillPrintDetailsToPO(input.NewHouseBill.PrintDetails))
+			}
 			hbl, err := hblBuilder.Save(ctx)
 			if err != nil {
 				if ent.IsConstraintError(err) {

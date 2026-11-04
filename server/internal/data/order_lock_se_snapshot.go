@@ -217,7 +217,7 @@ func ensureSeaHouseBillLockVersion(ctx context.Context, tx *ent.Tx, organization
 	if latest != nil {
 		nextVersion = latest.VersionNo + 1
 	}
-	created, createErr := tx.SeaHouseBillVersion.Create().
+	createBuilder := tx.SeaHouseBillVersion.Create().
 		SetOrganizationID(organizationID).
 		SetHouseBillID(hbl.ID).
 		SetOrderID(orderID).
@@ -249,7 +249,11 @@ func ensureSeaHouseBillLockVersion(ctx context.Context, tx *ent.Tx, organization
 		SetNillableBillForm(hbl.BillForm).
 		SetNillableReleaseType(hbl.ReleaseType).
 		SetNillableClauses(hbl.Clauses).
-		Save(ctx)
+		SetNillableForeignAgentText(hbl.ForeignAgentText)
+	if hbl.PrintDetails != nil {
+		createBuilder.SetPrintDetails(hbl.PrintDetails)
+	}
+	created, createErr := createBuilder.Save(ctx)
 	if createErr != nil {
 		return uuid.Nil, createErr
 	}

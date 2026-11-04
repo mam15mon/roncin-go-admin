@@ -199,6 +199,29 @@ message SeaBillContent {
   optional string foreign_agent_text = 16;
 }
 
+// SeaHouseBillPrintDetails 海运分单专属印字资料，不反写共享运输资料。
+message SeaHouseBillPrintDetails {
+  optional string header_contact_text = 1;
+  optional string booking_no_text = 2;
+  optional string export_references_text = 3;
+  optional string footer_reference_text = 4;
+  optional string pre_carriage_text = 5;
+  optional string place_of_receipt_text = 6;
+  optional string domestic_routing_text = 7;
+  optional string point_of_origin_text = 8;
+  optional string onward_routing_text = 9;
+  optional string vessel_voyage_text = 10;
+  optional string port_of_loading_text = 11;
+  optional string port_of_discharge_text = 12;
+  optional string place_of_delivery_text = 13;
+  optional string containers_text = 14;
+  optional int32 original_count = 15;
+  optional string shipped_on_board_date = 16;
+  optional string issue_place_text = 17;
+  optional string issue_date = 18;
+  optional string delivery_contact_text = 19;
+}
+
 // SeaHouseBill 海运分单（HBL）信息。
 message SeaHouseBill {
   string id = 1;
@@ -219,6 +242,8 @@ message SeaHouseBill {
   string updated_at = 16;
   optional string current_version_id = 17;
   uint64 immutable_version_count = 18;
+  optional SeaHouseBillPrintDetails print_details = 19;
+  optional string print_template = 20 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
 // SeaHouseBillInput 表单中的海运分单输入。
@@ -230,6 +255,7 @@ message SeaHouseBillInput {
   optional string note = 5;
   optional SeaBillContent content = 6;
   optional uint64 expected_version = 7;
+  optional SeaHouseBillPrintDetails print_details = 8;
 }
 
 // SeaMasterBillDetail 海运主单内容详情。
@@ -423,6 +449,7 @@ message SeaDocumentVersion {
   optional string shipping_line_id = 25;
   optional string shipping_line_name = 26;
   optional SeaExternalConfirmationSummary confirmation = 27;
+  optional SeaHouseBillPrintDetails print_details = 28;
 }
 
 message SeaDocumentFieldDifference {

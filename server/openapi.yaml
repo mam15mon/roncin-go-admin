@@ -21341,6 +21341,8 @@ components:
                     type: string
                 confirmation:
                     $ref: '#/components/schemas/order.v1.SeaExternalConfirmationSummary'
+                printDetails:
+                    $ref: '#/components/schemas/order.v1.SeaHouseBillPrintDetails'
             description: SeaDocumentVersion 完整、不可变的主单或分单内容版本。
         order.v1.SeaDocumentVoidPreview:
             type: object
@@ -21428,6 +21430,11 @@ components:
                     type: string
                 immutableVersionCount:
                     type: string
+                printDetails:
+                    $ref: '#/components/schemas/order.v1.SeaHouseBillPrintDetails'
+                printTemplate:
+                    readOnly: true
+                    type: string
             description: SeaHouseBill 海运分单（HBL）信息。
         order.v1.SeaHouseBillInput:
             required:
@@ -21450,7 +21457,52 @@ components:
                     $ref: '#/components/schemas/order.v1.SeaBillContent'
                 expectedVersion:
                     type: string
+                printDetails:
+                    $ref: '#/components/schemas/order.v1.SeaHouseBillPrintDetails'
             description: SeaHouseBillInput 表单中的海运分单输入。
+        order.v1.SeaHouseBillPrintDetails:
+            type: object
+            properties:
+                headerContactText:
+                    type: string
+                bookingNoText:
+                    type: string
+                exportReferencesText:
+                    type: string
+                footerReferenceText:
+                    type: string
+                preCarriageText:
+                    type: string
+                placeOfReceiptText:
+                    type: string
+                domesticRoutingText:
+                    type: string
+                pointOfOriginText:
+                    type: string
+                onwardRoutingText:
+                    type: string
+                vesselVoyageText:
+                    type: string
+                portOfLoadingText:
+                    type: string
+                portOfDischargeText:
+                    type: string
+                placeOfDeliveryText:
+                    type: string
+                containersText:
+                    type: string
+                originalCount:
+                    type: integer
+                    format: int32
+                shippedOnBoardDate:
+                    type: string
+                issuePlaceText:
+                    type: string
+                issueDate:
+                    type: string
+                deliveryContactText:
+                    type: string
+            description: SeaHouseBillPrintDetails 海运分单专属印字资料，不反写共享运输资料。
         order.v1.SeaMasterBillCandidate:
             type: object
             properties:

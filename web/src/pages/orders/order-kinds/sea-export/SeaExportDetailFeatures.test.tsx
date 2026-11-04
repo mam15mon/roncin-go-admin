@@ -209,6 +209,29 @@ describe('SeaExportDetailFeatures', () => {
     } as never);
   });
 
+  it('HBL 制作按读取权限贡献，审核锁定时仍导航到本票制作页', async () => {
+    const ensureWrite = vi.fn(() => false);
+    const harness = renderFeatures(
+      buildContext({
+        businessWritesDisabled: true,
+        canOrder: (action) => action === 'read',
+        ensureBusinessWriteAllowed: ensureWrite,
+      }),
+    );
+    const item = await screen.findByRole('menuitem', { name: /HBL 制作/ });
+    expect(item).not.toHaveAttribute('aria-disabled', 'true');
+    fireEvent.click(item);
+    expect(mockPush).toHaveBeenCalledWith('/orders/sea-export/ord-1/hbl');
+    expect(ensureWrite).not.toHaveBeenCalled();
+    harness.rerenderWith(buildContext({ canOrder: () => false }));
+    expect(
+      screen.queryByRole('menuitem', { name: /HBL 制作/ }),
+    ).not.toBeInTheDocument();
+    await act(async () => {
+      await Promise.resolve();
+    });
+  });
+
   it('拆票与改配按钮按权限渲染，阻断原因进入 Tooltip', async () => {
     mockGetChangeActions.mockResolvedValue({
       data: {

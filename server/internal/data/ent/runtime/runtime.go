@@ -8568,35 +8568,35 @@ func init() {
 	// seahousebill.NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	seahousebill.NoteValidator = seahousebillDescNote.Validators[0].(func(string) error)
 	// seahousebillDescPackageCount is the schema descriptor for package_count field.
-	seahousebillDescPackageCount := seahousebillFields[18].Descriptor()
+	seahousebillDescPackageCount := seahousebillFields[19].Descriptor()
 	// seahousebill.PackageCountValidator is a validator for the "package_count" field. It is called by the builders before save.
 	seahousebill.PackageCountValidator = seahousebillDescPackageCount.Validators[0].(func(int) error)
 	// seahousebillDescPackageUnit is the schema descriptor for package_unit field.
-	seahousebillDescPackageUnit := seahousebillFields[19].Descriptor()
+	seahousebillDescPackageUnit := seahousebillFields[20].Descriptor()
 	// seahousebill.PackageUnitValidator is a validator for the "package_unit" field. It is called by the builders before save.
 	seahousebill.PackageUnitValidator = seahousebillDescPackageUnit.Validators[0].(func(string) error)
 	// seahousebillDescGrossWeightKg is the schema descriptor for gross_weight_kg field.
-	seahousebillDescGrossWeightKg := seahousebillFields[20].Descriptor()
+	seahousebillDescGrossWeightKg := seahousebillFields[21].Descriptor()
 	// seahousebill.GrossWeightKgValidator is a validator for the "gross_weight_kg" field. It is called by the builders before save.
 	seahousebill.GrossWeightKgValidator = seahousebillDescGrossWeightKg.Validators[0].(func(float64) error)
 	// seahousebillDescVolumeCbm is the schema descriptor for volume_cbm field.
-	seahousebillDescVolumeCbm := seahousebillFields[21].Descriptor()
+	seahousebillDescVolumeCbm := seahousebillFields[22].Descriptor()
 	// seahousebill.VolumeCbmValidator is a validator for the "volume_cbm" field. It is called by the builders before save.
 	seahousebill.VolumeCbmValidator = seahousebillDescVolumeCbm.Validators[0].(func(float64) error)
 	// seahousebillDescFreightTerms is the schema descriptor for freight_terms field.
-	seahousebillDescFreightTerms := seahousebillFields[22].Descriptor()
+	seahousebillDescFreightTerms := seahousebillFields[23].Descriptor()
 	// seahousebill.FreightTermsValidator is a validator for the "freight_terms" field. It is called by the builders before save.
 	seahousebill.FreightTermsValidator = seahousebillDescFreightTerms.Validators[0].(func(string) error)
 	// seahousebillDescTransportTerms is the schema descriptor for transport_terms field.
-	seahousebillDescTransportTerms := seahousebillFields[23].Descriptor()
+	seahousebillDescTransportTerms := seahousebillFields[24].Descriptor()
 	// seahousebill.TransportTermsValidator is a validator for the "transport_terms" field. It is called by the builders before save.
 	seahousebill.TransportTermsValidator = seahousebillDescTransportTerms.Validators[0].(func(string) error)
 	// seahousebillDescBillForm is the schema descriptor for bill_form field.
-	seahousebillDescBillForm := seahousebillFields[24].Descriptor()
+	seahousebillDescBillForm := seahousebillFields[25].Descriptor()
 	// seahousebill.BillFormValidator is a validator for the "bill_form" field. It is called by the builders before save.
 	seahousebill.BillFormValidator = seahousebillDescBillForm.Validators[0].(func(string) error)
 	// seahousebillDescReleaseType is the schema descriptor for release_type field.
-	seahousebillDescReleaseType := seahousebillFields[25].Descriptor()
+	seahousebillDescReleaseType := seahousebillFields[26].Descriptor()
 	// seahousebill.ReleaseTypeValidator is a validator for the "release_type" field. It is called by the builders before save.
 	seahousebill.ReleaseTypeValidator = seahousebillDescReleaseType.Validators[0].(func(string) error)
 	// seahousebillDescID is the schema descriptor for id field.
@@ -8653,7 +8653,7 @@ func init() {
 	// seahousebillversion.NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	seahousebillversion.NoteValidator = seahousebillversionDescNote.Validators[0].(func(string) error)
 	// seahousebillversionDescContentHash is the schema descriptor for content_hash field.
-	seahousebillversionDescContentHash := seahousebillversionFields[14].Descriptor()
+	seahousebillversionDescContentHash := seahousebillversionFields[15].Descriptor()
 	// seahousebillversion.ContentHashValidator is a validator for the "content_hash" field. It is called by the builders before save.
 	seahousebillversion.ContentHashValidator = func() func(string) error {
 		validators := seahousebillversionDescContentHash.Validators
@@ -8671,55 +8671,55 @@ func init() {
 		}
 	}()
 	// seahousebillversionDescReason is the schema descriptor for reason field.
-	seahousebillversionDescReason := seahousebillversionFields[16].Descriptor()
+	seahousebillversionDescReason := seahousebillversionFields[17].Descriptor()
 	// seahousebillversion.ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
 	seahousebillversion.ReasonValidator = seahousebillversionDescReason.Validators[0].(func(string) error)
 	// seahousebillversionDescIdempotencyKey is the schema descriptor for idempotency_key field.
-	seahousebillversionDescIdempotencyKey := seahousebillversionFields[18].Descriptor()
+	seahousebillversionDescIdempotencyKey := seahousebillversionFields[19].Descriptor()
 	// seahousebillversion.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
 	seahousebillversion.IdempotencyKeyValidator = seahousebillversionDescIdempotencyKey.Validators[0].(func(string) error)
 	// seahousebillversionDescRequestFingerprint is the schema descriptor for request_fingerprint field.
-	seahousebillversionDescRequestFingerprint := seahousebillversionFields[19].Descriptor()
+	seahousebillversionDescRequestFingerprint := seahousebillversionFields[20].Descriptor()
 	// seahousebillversion.RequestFingerprintValidator is a validator for the "request_fingerprint" field. It is called by the builders before save.
 	seahousebillversion.RequestFingerprintValidator = seahousebillversionDescRequestFingerprint.Validators[0].(func(string) error)
 	// seahousebillversionDescConfirmedByParty is the schema descriptor for confirmed_by_party field.
-	seahousebillversionDescConfirmedByParty := seahousebillversionFields[20].Descriptor()
+	seahousebillversionDescConfirmedByParty := seahousebillversionFields[21].Descriptor()
 	// seahousebillversion.ConfirmedByPartyValidator is a validator for the "confirmed_by_party" field. It is called by the builders before save.
 	seahousebillversion.ConfirmedByPartyValidator = seahousebillversionDescConfirmedByParty.Validators[0].(func(string) error)
 	// seahousebillversionDescConfirmationNote is the schema descriptor for confirmation_note field.
-	seahousebillversionDescConfirmationNote := seahousebillversionFields[22].Descriptor()
+	seahousebillversionDescConfirmationNote := seahousebillversionFields[23].Descriptor()
 	// seahousebillversion.ConfirmationNoteValidator is a validator for the "confirmation_note" field. It is called by the builders before save.
 	seahousebillversion.ConfirmationNoteValidator = seahousebillversionDescConfirmationNote.Validators[0].(func(string) error)
 	// seahousebillversionDescPackageCount is the schema descriptor for package_count field.
-	seahousebillversionDescPackageCount := seahousebillversionFields[30].Descriptor()
+	seahousebillversionDescPackageCount := seahousebillversionFields[31].Descriptor()
 	// seahousebillversion.PackageCountValidator is a validator for the "package_count" field. It is called by the builders before save.
 	seahousebillversion.PackageCountValidator = seahousebillversionDescPackageCount.Validators[0].(func(int) error)
 	// seahousebillversionDescPackageUnit is the schema descriptor for package_unit field.
-	seahousebillversionDescPackageUnit := seahousebillversionFields[31].Descriptor()
+	seahousebillversionDescPackageUnit := seahousebillversionFields[32].Descriptor()
 	// seahousebillversion.PackageUnitValidator is a validator for the "package_unit" field. It is called by the builders before save.
 	seahousebillversion.PackageUnitValidator = seahousebillversionDescPackageUnit.Validators[0].(func(string) error)
 	// seahousebillversionDescGrossWeightKg is the schema descriptor for gross_weight_kg field.
-	seahousebillversionDescGrossWeightKg := seahousebillversionFields[32].Descriptor()
+	seahousebillversionDescGrossWeightKg := seahousebillversionFields[33].Descriptor()
 	// seahousebillversion.GrossWeightKgValidator is a validator for the "gross_weight_kg" field. It is called by the builders before save.
 	seahousebillversion.GrossWeightKgValidator = seahousebillversionDescGrossWeightKg.Validators[0].(func(float64) error)
 	// seahousebillversionDescVolumeCbm is the schema descriptor for volume_cbm field.
-	seahousebillversionDescVolumeCbm := seahousebillversionFields[33].Descriptor()
+	seahousebillversionDescVolumeCbm := seahousebillversionFields[34].Descriptor()
 	// seahousebillversion.VolumeCbmValidator is a validator for the "volume_cbm" field. It is called by the builders before save.
 	seahousebillversion.VolumeCbmValidator = seahousebillversionDescVolumeCbm.Validators[0].(func(float64) error)
 	// seahousebillversionDescFreightTerms is the schema descriptor for freight_terms field.
-	seahousebillversionDescFreightTerms := seahousebillversionFields[34].Descriptor()
+	seahousebillversionDescFreightTerms := seahousebillversionFields[35].Descriptor()
 	// seahousebillversion.FreightTermsValidator is a validator for the "freight_terms" field. It is called by the builders before save.
 	seahousebillversion.FreightTermsValidator = seahousebillversionDescFreightTerms.Validators[0].(func(string) error)
 	// seahousebillversionDescTransportTerms is the schema descriptor for transport_terms field.
-	seahousebillversionDescTransportTerms := seahousebillversionFields[35].Descriptor()
+	seahousebillversionDescTransportTerms := seahousebillversionFields[36].Descriptor()
 	// seahousebillversion.TransportTermsValidator is a validator for the "transport_terms" field. It is called by the builders before save.
 	seahousebillversion.TransportTermsValidator = seahousebillversionDescTransportTerms.Validators[0].(func(string) error)
 	// seahousebillversionDescBillForm is the schema descriptor for bill_form field.
-	seahousebillversionDescBillForm := seahousebillversionFields[36].Descriptor()
+	seahousebillversionDescBillForm := seahousebillversionFields[37].Descriptor()
 	// seahousebillversion.BillFormValidator is a validator for the "bill_form" field. It is called by the builders before save.
 	seahousebillversion.BillFormValidator = seahousebillversionDescBillForm.Validators[0].(func(string) error)
 	// seahousebillversionDescReleaseType is the schema descriptor for release_type field.
-	seahousebillversionDescReleaseType := seahousebillversionFields[37].Descriptor()
+	seahousebillversionDescReleaseType := seahousebillversionFields[38].Descriptor()
 	// seahousebillversion.ReleaseTypeValidator is a validator for the "release_type" field. It is called by the builders before save.
 	seahousebillversion.ReleaseTypeValidator = seahousebillversionDescReleaseType.Validators[0].(func(string) error)
 	// seahousebillversionDescID is the schema descriptor for id field.

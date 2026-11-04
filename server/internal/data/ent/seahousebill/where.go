@@ -711,6 +711,16 @@ func NoteContainsFold(v string) predicate.SeaHouseBill {
 	return predicate.SeaHouseBill(sql.FieldContainsFold(FieldNote, v))
 }
 
+// PrintDetailsIsNil applies the IsNil predicate on the "print_details" field.
+func PrintDetailsIsNil() predicate.SeaHouseBill {
+	return predicate.SeaHouseBill(sql.FieldIsNull(FieldPrintDetails))
+}
+
+// PrintDetailsNotNil applies the NotNil predicate on the "print_details" field.
+func PrintDetailsNotNil() predicate.SeaHouseBill {
+	return predicate.SeaHouseBill(sql.FieldNotNull(FieldPrintDetails))
+}
+
 // ShipperTextEQ applies the EQ predicate on the "shipper_text" field.
 func ShipperTextEQ(v string) predicate.SeaHouseBill {
 	return predicate.SeaHouseBill(sql.FieldEQ(FieldShipperText, v))

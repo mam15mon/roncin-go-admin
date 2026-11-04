@@ -746,6 +746,16 @@ func NoteContainsFold(v string) predicate.SeaHouseBillVersion {
 	return predicate.SeaHouseBillVersion(sql.FieldContainsFold(FieldNote, v))
 }
 
+// PrintDetailsIsNil applies the IsNil predicate on the "print_details" field.
+func PrintDetailsIsNil() predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldIsNull(FieldPrintDetails))
+}
+
+// PrintDetailsNotNil applies the NotNil predicate on the "print_details" field.
+func PrintDetailsNotNil() predicate.SeaHouseBillVersion {
+	return predicate.SeaHouseBillVersion(sql.FieldNotNull(FieldPrintDetails))
+}
+
 // ContentHashEQ applies the EQ predicate on the "content_hash" field.
 func ContentHashEQ(v string) predicate.SeaHouseBillVersion {
 	return predicate.SeaHouseBillVersion(sql.FieldEQ(FieldContentHash, v))

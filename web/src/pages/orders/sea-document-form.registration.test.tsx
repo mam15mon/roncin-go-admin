@@ -22,6 +22,11 @@ it('整页提交保留未展示的件重尺与单证备注，普通资料修改�
       houseNo: 'HBL',
       issuerSource: 1,
       note: '已有备注',
+      printDetails: {
+        issuePlaceText: 'SHANGHAI',
+        issueDate: '2026-11-04',
+        originalCount: 3,
+      },
       content: { shipperText: 'HBL', grossWeightKg: 123 },
     },
   };
@@ -55,4 +60,14 @@ it('整页提交保留未展示的件重尺与单证备注，普通资料修改�
   expect(
     buildSeaDocumentUpdate(form.getFieldsValue(true), documents),
   ).toBeUndefined();
+  await act(async () =>
+    form.setFieldValue(
+      ['seaHouseBill', 'content', 'shipperText'],
+      '修改发货人',
+    ),
+  );
+  expect(
+    buildSeaDocumentUpdate(form.getFieldsValue(true), documents)?.houseBill
+      ?.printDetails,
+  ).toEqual(documents.houseBill?.printDetails);
 });

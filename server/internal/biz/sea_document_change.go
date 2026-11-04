@@ -71,6 +71,7 @@ type SeaDocumentVersion struct {
 	ETA                  *time.Time
 	Note                 *string
 	Content              *SeaBillContent
+	PrintDetails         *SeaHouseBillPrintDetails
 	CreatedBy            *uuid.UUID
 	CreatedAt            time.Time
 	Confirmation         *SeaExternalConfirmation

@@ -15,6 +15,8 @@ export interface OrderFormTemplateSection {
 export interface OrderFormTemplateActions<T> {
   /** 清当前草稿、重置 Form store、可选回填指定值并清除脏状态。 */
   resetTo: (values?: Partial<T>) => void;
+  /** 用户显式带入资料：合并值、标记未保存并持久化完整草稿。 */
+  applyValues: (values: Partial<T>) => void;
 }
 
 export interface OrderFormTemplateProps<T> {

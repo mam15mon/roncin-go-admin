@@ -365,6 +365,9 @@ func createHouseVersion(ctx context.Context, tx *ent.Tx, hbl *ent.SeaHouseBill, 
 		return nil, err
 	}
 	b := tx.SeaHouseBillVersion.Create().SetOrganizationID(hbl.OrganizationID).SetHouseBillID(hbl.ID).SetOrderID(hbl.OrderID).SetMasterBillID(hbl.MasterBillID).SetVersionNo(next).SetSourceEntityVersion(hbl.Version).SetHouseNo(hbl.HouseNo).SetNormalizedHouseNo(hbl.NormalizedHouseNo).SetIssuerSource(seahousebillversionent.IssuerSource(hbl.IssuerSource)).SetNillableIssuerOrganizationID(hbl.IssuerOrganizationID).SetNillableIssuerPartnerID(hbl.IssuerPartnerID).SetStatus(seahousebillversionent.Status(hbl.Status)).SetNillableNote(hbl.Note).SetContentHash(computeHBLContentHash(hbl)).SetSource(seahousebillversionent.Source(source)).SetNillableReason(reason).SetNillableCreatedBy(&actorID).SetNillableIdempotencyKey(idempotencyKey).SetNillableRequestFingerprint(fingerprint).SetNillableShipperText(hbl.ShipperText).SetNillableConsigneeText(hbl.ConsigneeText).SetNillableNotifyPartyText(hbl.NotifyPartyText).SetNillableSecondNotifyPartyText(hbl.SecondNotifyPartyText).SetNillableMarksText(hbl.MarksText).SetNillableGoodsDescriptionText(hbl.GoodsDescriptionText).SetNillablePackageCount(hbl.PackageCount).SetNillablePackageUnit(hbl.PackageUnit).SetNillableGrossWeightKg(hbl.GrossWeightKg).SetNillableVolumeCbm(hbl.VolumeCbm).SetNillableFreightTerms(hbl.FreightTerms).SetNillableTransportTerms(hbl.TransportTerms).SetNillableBillForm(hbl.BillForm).SetNillableReleaseType(hbl.ReleaseType).SetNillableClauses(hbl.Clauses).SetNillableForeignAgentText(hbl.ForeignAgentText)
+	if hbl.PrintDetails != nil {
+		b.SetPrintDetails(hbl.PrintDetails)
+	}
 	setHouseVersionConfirmation(b, confirmation)
 	return b.Save(ctx)
 }

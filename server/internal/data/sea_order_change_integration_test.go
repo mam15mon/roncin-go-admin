@@ -463,6 +463,9 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 	// A. 单当前 HBL 的 HOUSE 订单可拆票：守恒、归属、幂等
 	t.Run("单当前HBL拆票守恒与幂等", func(t *testing.T) {
 		f := createTestSplitFixture(t, env, "001", splitFixtureOptions{})
+		issueDate := "2026-11-04"
+		printDetails := seaHouseBillPrintDetailsToPO(&biz.SeaHouseBillPrintDetails{IssueDate: &issueDate})
+		f.hbl = f.hbl.Update().SetPrintDetails(printDetails).SaveX(ctx)
 
 		actions, err := env.uc.GetChangeActions(ctx, env.orgID, f.order.ID)
 		if err != nil || !actions.CanSplit {
@@ -499,9 +502,15 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 		if len(originHBLs) != 1 || originHBLs[0].ID != f.hbl.ID {
 			t.Fatalf("原订单应保留唯一当前 HBL: %+v", originHBLs)
 		}
+		if originHBLs[0].PrintDetails == nil || originHBLs[0].PrintDetails.IssueDate == nil || *originHBLs[0].PrintDetails.IssueDate != issueDate {
+			t.Fatal("拆票丢失原票已保存的签发印字")
+		}
 		createdHBLs, _ := env.data.db.SeaHouseBill.Query().Where(seahousebillent.OrderIDEQ(createdOrderID)).All(ctx)
 		if len(createdHBLs) != 1 || createdHBLs[0].HouseNo != splitInput.Results[1].HouseBill.HouseNo || createdHBLs[0].Version != 1 {
 			t.Fatalf("新订单应恰有一张新建 HBL: %+v", createdHBLs)
+		}
+		if createdHBLs[0].PrintDetails != nil {
+			t.Fatal("拆票新 HBL 不能继承原票签发日期和印字参考")
 		}
 
 		// 货物守恒

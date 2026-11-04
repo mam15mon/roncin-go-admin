@@ -20,7 +20,12 @@ export function openOrderDocuments(
     businessType === OrderBusinessType.BUSINESS_TYPE_SE ||
     businessType === OrderBusinessType.BUSINESS_TYPE_AE
   ) {
-    navigate(`/orders/${item.orderKind || fallbackOrderKind}/${item.id}`);
+    const path = `/orders/${item.orderKind || fallbackOrderKind}/${item.id}`;
+    navigate(
+      businessType === OrderBusinessType.BUSINESS_TYPE_SE
+        ? `${path}/hbl`
+        : path,
+    );
     return;
   }
   if (item.rawRecord) {

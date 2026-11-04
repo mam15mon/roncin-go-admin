@@ -18,6 +18,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderreleasepod"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/schema"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentmodechangeevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seadocumentvoidevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
@@ -179,6 +180,12 @@ func (_c *SeaHouseBillCreate) SetNillableNote(v *string) *SeaHouseBillCreate {
 	if v != nil {
 		_c.SetNote(*v)
 	}
+	return _c
+}
+
+// SetPrintDetails sets the "print_details" field.
+func (_c *SeaHouseBillCreate) SetPrintDetails(v *schema.SeaHouseBillPrintDetails) *SeaHouseBillCreate {
+	_c.mutation.SetPrintDetails(v)
 	return _c
 }
 
@@ -786,6 +793,10 @@ func (_c *SeaHouseBillCreate) createSpec() (*SeaHouseBill, *sqlgraph.CreateSpec)
 		_spec.SetField(seahousebill.FieldNote, field.TypeString, value)
 		_node.Note = &value
 	}
+	if value, ok := _c.mutation.PrintDetails(); ok {
+		_spec.SetField(seahousebill.FieldPrintDetails, field.TypeJSON, value)
+		_node.PrintDetails = value
+	}
 	if value, ok := _c.mutation.ShipperText(); ok {
 		_spec.SetField(seahousebill.FieldShipperText, field.TypeString, value)
 		_node.ShipperText = &value
@@ -1299,6 +1310,24 @@ func (u *SeaHouseBillUpsert) UpdateNote() *SeaHouseBillUpsert {
 // ClearNote clears the value of the "note" field.
 func (u *SeaHouseBillUpsert) ClearNote() *SeaHouseBillUpsert {
 	u.SetNull(seahousebill.FieldNote)
+	return u
+}
+
+// SetPrintDetails sets the "print_details" field.
+func (u *SeaHouseBillUpsert) SetPrintDetails(v *schema.SeaHouseBillPrintDetails) *SeaHouseBillUpsert {
+	u.Set(seahousebill.FieldPrintDetails, v)
+	return u
+}
+
+// UpdatePrintDetails sets the "print_details" field to the value that was provided on create.
+func (u *SeaHouseBillUpsert) UpdatePrintDetails() *SeaHouseBillUpsert {
+	u.SetExcluded(seahousebill.FieldPrintDetails)
+	return u
+}
+
+// ClearPrintDetails clears the value of the "print_details" field.
+func (u *SeaHouseBillUpsert) ClearPrintDetails() *SeaHouseBillUpsert {
+	u.SetNull(seahousebill.FieldPrintDetails)
 	return u
 }
 
@@ -1873,6 +1902,27 @@ func (u *SeaHouseBillUpsertOne) UpdateNote() *SeaHouseBillUpsertOne {
 func (u *SeaHouseBillUpsertOne) ClearNote() *SeaHouseBillUpsertOne {
 	return u.Update(func(s *SeaHouseBillUpsert) {
 		s.ClearNote()
+	})
+}
+
+// SetPrintDetails sets the "print_details" field.
+func (u *SeaHouseBillUpsertOne) SetPrintDetails(v *schema.SeaHouseBillPrintDetails) *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetPrintDetails(v)
+	})
+}
+
+// UpdatePrintDetails sets the "print_details" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertOne) UpdatePrintDetails() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdatePrintDetails()
+	})
+}
+
+// ClearPrintDetails clears the value of the "print_details" field.
+func (u *SeaHouseBillUpsertOne) ClearPrintDetails() *SeaHouseBillUpsertOne {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearPrintDetails()
 	})
 }
 
@@ -2665,6 +2715,27 @@ func (u *SeaHouseBillUpsertBulk) UpdateNote() *SeaHouseBillUpsertBulk {
 func (u *SeaHouseBillUpsertBulk) ClearNote() *SeaHouseBillUpsertBulk {
 	return u.Update(func(s *SeaHouseBillUpsert) {
 		s.ClearNote()
+	})
+}
+
+// SetPrintDetails sets the "print_details" field.
+func (u *SeaHouseBillUpsertBulk) SetPrintDetails(v *schema.SeaHouseBillPrintDetails) *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.SetPrintDetails(v)
+	})
+}
+
+// UpdatePrintDetails sets the "print_details" field to the value that was provided on create.
+func (u *SeaHouseBillUpsertBulk) UpdatePrintDetails() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.UpdatePrintDetails()
+	})
+}
+
+// ClearPrintDetails clears the value of the "print_details" field.
+func (u *SeaHouseBillUpsertBulk) ClearPrintDetails() *SeaHouseBillUpsertBulk {
+	return u.Update(func(s *SeaHouseBillUpsert) {
+		s.ClearPrintDetails()
 	})
 }
 

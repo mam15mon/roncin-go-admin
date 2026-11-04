@@ -181,6 +181,14 @@ const routes: UmiRoute[] = [
         hideInMenu: true,
         component: './orders/fees',
       },
+      {
+        path: '/orders/sea-export/:id/hbl',
+        organizationSwitch: { list: '/orders/sea-export' },
+        name: 'HBL 制作',
+        access: 'canReadSEOrders',
+        hideInMenu: true,
+        component: './orders/hbl',
+      },
     ],
   },
   {

@@ -609,6 +609,13 @@ export default function SeaDocumentHistoryActions({
                     {JSON.stringify(row.content ?? {}, null, 2)}
                   </Typography.Text>
                 </Descriptions.Item>
+                {row.printDetails && (
+                  <Descriptions.Item label="制单印字资料" span={2}>
+                    <Typography.Text code>
+                      {JSON.stringify(row.printDetails, null, 2)}
+                    </Typography.Text>
+                  </Descriptions.Item>
+                )}
               </Descriptions>
             ),
           }}

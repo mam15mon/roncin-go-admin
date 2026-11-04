@@ -186,6 +186,7 @@ export function buildSeaExportCreatePayload(
             issuerPartnerId: values.seaHouseBill.issuerPartnerId || undefined,
             note: values.seaHouseBill.note?.trim() || undefined,
             content: values.seaHouseBill.content,
+            printDetails: values.seaHouseBill.printDetails,
           }
         : undefined;
 

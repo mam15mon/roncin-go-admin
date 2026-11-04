@@ -7393,6 +7393,7 @@ declare namespace API {
     shippingLineId?: string;
     shippingLineName?: string;
     confirmation?: SeaExternalConfirmationSummary;
+    printDetails?: SeaHouseBillPrintDetails;
   };
 
   type SeaDocumentVoidPreview = {
@@ -7436,6 +7437,8 @@ declare namespace API {
     updatedAt?: string;
     currentVersionId?: string;
     immutableVersionCount?: string;
+    printDetails?: SeaHouseBillPrintDetails;
+    printTemplate?: string;
   };
 
   type SeaHouseBillInput = {
@@ -7446,6 +7449,29 @@ declare namespace API {
     note?: string;
     content?: SeaBillContent;
     expectedVersion?: string;
+    printDetails?: SeaHouseBillPrintDetails;
+  };
+
+  type SeaHouseBillPrintDetails = {
+    headerContactText?: string;
+    bookingNoText?: string;
+    exportReferencesText?: string;
+    footerReferenceText?: string;
+    preCarriageText?: string;
+    placeOfReceiptText?: string;
+    domesticRoutingText?: string;
+    pointOfOriginText?: string;
+    onwardRoutingText?: string;
+    vesselVoyageText?: string;
+    portOfLoadingText?: string;
+    portOfDischargeText?: string;
+    placeOfDeliveryText?: string;
+    containersText?: string;
+    originalCount?: number;
+    shippedOnBoardDate?: string;
+    issuePlaceText?: string;
+    issueDate?: string;
+    deliveryContactText?: string;
   };
 
   type SeaMasterBillCandidate = {

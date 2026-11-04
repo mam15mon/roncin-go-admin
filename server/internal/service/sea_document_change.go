@@ -382,7 +382,7 @@ func seaDocumentVersionToAPI(v *biz.SeaDocumentVersion) *v1.SeaDocumentVersion {
 	if v == nil {
 		return nil
 	}
-	result := &v1.SeaDocumentVersion{Id: v.ID.String(), DocumentType: seaDocumentTypeToAPI(v.DocumentType), DocumentId: v.DocumentID.String(), OrderId: v.OrderID.String(), MasterBillId: v.MasterBillID.String(), VersionNo: v.VersionNo, SourceEntityVersion: v.SourceEntityVersion, DocumentNo: v.DocumentNo, NormalizedDocumentNo: v.NormalizedDocumentNo, Status: v.Status, Source: seaVersionSourceToAPI(v.Source), Reason: v.Reason, IssuerSource: seaHouseBillIssuerSourceToAPI(v.IssuerSource), VesselName: v.VesselName, VoyageNo: v.VoyageNo, Note: v.Note, Content: seaBillContentToAPI(v.Content), CreatedAt: v.CreatedAt.Format(time.RFC3339), Confirmation: seaExternalConfirmationToAPI(v.Confirmation)}
+	result := &v1.SeaDocumentVersion{Id: v.ID.String(), DocumentType: seaDocumentTypeToAPI(v.DocumentType), DocumentId: v.DocumentID.String(), OrderId: v.OrderID.String(), MasterBillId: v.MasterBillID.String(), VersionNo: v.VersionNo, SourceEntityVersion: v.SourceEntityVersion, DocumentNo: v.DocumentNo, NormalizedDocumentNo: v.NormalizedDocumentNo, Status: v.Status, Source: seaVersionSourceToAPI(v.Source), Reason: v.Reason, IssuerSource: seaHouseBillIssuerSourceToAPI(v.IssuerSource), VesselName: v.VesselName, VoyageNo: v.VoyageNo, Note: v.Note, Content: seaBillContentToAPI(v.Content), PrintDetails: seaHouseBillPrintDetailsToAPI(v.PrintDetails), CreatedAt: v.CreatedAt.Format(time.RFC3339), Confirmation: seaExternalConfirmationToAPI(v.Confirmation)}
 	if v.IssuerPartnerID != nil {
 		s := v.IssuerPartnerID.String()
 		result.IssuerPartnerId = &s

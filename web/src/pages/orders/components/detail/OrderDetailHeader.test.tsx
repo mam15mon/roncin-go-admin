@@ -123,7 +123,7 @@ describe('订单详情页头操作层级', () => {
     expect(
       document.querySelectorAll('.ant-dropdown-menu-item-divider'),
     ).toHaveLength(2);
-    fireEvent.click(screen.getByRole('menuitem', { name: /导出单证/ }));
+    fireEvent.click(screen.getByRole('menuitem', { name: /放货凭证/ }));
     expect(openPod).toHaveBeenCalledOnce();
     fireEvent.click(screen.getByRole('button', { name: /更多操作/ }));
     fireEvent.click(screen.getByRole('menuitem', { name: /重置修改/ }));
@@ -144,7 +144,7 @@ describe('订单详情页头操作层级', () => {
     fireEvent.click(screen.getByRole('button', { name: /附件/ }));
     expect(openAttachments).toHaveBeenCalledOnce();
     fireEvent.click(screen.getByRole('button', { name: /更多操作/ }));
-    expect(screen.getByRole('menuitem', { name: /导出单证/ })).toHaveAttribute(
+    expect(screen.getByRole('menuitem', { name: /放货凭证/ })).toHaveAttribute(
       'aria-disabled',
       'true',
     );
@@ -163,5 +163,19 @@ describe('订单详情页头操作层级', () => {
     expect(
       screen.queryByRole('button', { name: /附件/ }),
     ).not.toBeInTheDocument();
+  });
+
+  it('类型扩展贡献的读取入口在审核锁定时仍可使用', () => {
+    const open = vi.fn();
+    renderHeader(false, {
+      businessMenuItems: [
+        { key: 'hbl-production', label: 'HBL 制作', onClick: open },
+      ],
+    });
+    fireEvent.click(screen.getByRole('button', { name: /更多操作/ }));
+    const item = screen.getByRole('menuitem', { name: 'HBL 制作' });
+    expect(item).not.toHaveAttribute('aria-disabled', 'true');
+    fireEvent.click(item);
+    expect(open).toHaveBeenCalledOnce();
   });
 });

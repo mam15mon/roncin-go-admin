@@ -30,7 +30,7 @@ func houseVersionToBiz(v *ent.SeaHouseBillVersion) *biz.SeaDocumentVersion {
 	if v == nil {
 		return nil
 	}
-	return &biz.SeaDocumentVersion{ID: v.ID, DocumentType: biz.SeaDocumentTypeHouseBill, DocumentID: v.HouseBillID, OrderID: v.OrderID, MasterBillID: v.MasterBillID, VersionNo: v.VersionNo, SourceEntityVersion: v.SourceEntityVersion, DocumentNo: v.HouseNo, NormalizedDocumentNo: v.NormalizedHouseNo, Status: string(v.Status), Source: string(v.Source), Reason: v.Reason, IssuerPartnerID: v.IssuerPartnerID, IssuerOrganizationID: v.IssuerOrganizationID, IssuerSource: biz.SeaHouseBillIssuerSource(v.IssuerSource), Note: v.Note, Content: versionContent(v.ShipperText, v.ConsigneeText, v.NotifyPartyText, v.SecondNotifyPartyText, v.MarksText, v.GoodsDescriptionText, v.PackageCount, v.PackageUnit, v.GrossWeightKg, v.VolumeCbm, v.FreightTerms, v.TransportTerms, v.BillForm, v.ReleaseType, v.Clauses, v.ForeignAgentText), CreatedBy: v.CreatedBy, CreatedAt: v.CreatedAt, Confirmation: externalConfirmationFromVersion(v.ConfirmedByParty, v.ConfirmedAt, v.ConfirmationNote, v.ConfirmationAttachmentID)}
+	return &biz.SeaDocumentVersion{ID: v.ID, DocumentType: biz.SeaDocumentTypeHouseBill, DocumentID: v.HouseBillID, OrderID: v.OrderID, MasterBillID: v.MasterBillID, VersionNo: v.VersionNo, SourceEntityVersion: v.SourceEntityVersion, DocumentNo: v.HouseNo, NormalizedDocumentNo: v.NormalizedHouseNo, Status: string(v.Status), Source: string(v.Source), Reason: v.Reason, IssuerPartnerID: v.IssuerPartnerID, IssuerOrganizationID: v.IssuerOrganizationID, IssuerSource: biz.SeaHouseBillIssuerSource(v.IssuerSource), Note: v.Note, PrintDetails: seaHouseBillPrintDetailsToBiz(v.PrintDetails), Content: versionContent(v.ShipperText, v.ConsigneeText, v.NotifyPartyText, v.SecondNotifyPartyText, v.MarksText, v.GoodsDescriptionText, v.PackageCount, v.PackageUnit, v.GrossWeightKg, v.VolumeCbm, v.FreightTerms, v.TransportTerms, v.BillForm, v.ReleaseType, v.Clauses, v.ForeignAgentText), CreatedBy: v.CreatedBy, CreatedAt: v.CreatedAt, Confirmation: externalConfirmationFromVersion(v.ConfirmedByParty, v.ConfirmedAt, v.ConfirmationNote, v.ConfirmationAttachmentID)}
 }
 
 func externalConfirmationFromVersion(party *string, confirmedAt *time.Time, note *string, attachmentID *uuid.UUID) *biz.SeaExternalConfirmation {
@@ -110,7 +110,8 @@ func diffHouseVersionToInput(base *biz.SeaDocumentVersion, input *biz.SeaHouseBi
 	}
 	addDiff(&result, "issuer_identity_id", "签发主体", beforeIssuerID, afterIssuerID)
 	addDiff(&result, "note", "备注", documentStringValue(base.Note), documentStringValue(input.Note))
-	return append(result, diffContent(base.Content, input.Content)...)
+	result = append(result, diffContent(base.Content, input.Content)...)
+	return append(result, diffHousePrintDetails(base.PrintDetails, input.PrintDetails)...)
 }
 func diffContent(before, after *biz.SeaBillContent) []*biz.SeaDocumentFieldDifference {
 	if before == nil {

@@ -33,6 +33,7 @@ export function buildHouseBillInput(
         : undefined,
     note: values.note?.trim() || undefined,
     content: values.content,
+    printDetails: values.printDetails,
     expectedVersion: values.expectedVersion,
   };
 }

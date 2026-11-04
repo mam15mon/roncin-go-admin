@@ -99,9 +99,9 @@ func (r *seaDocumentRepo) GetSeaOrderDocuments(ctx context.Context, organization
 	var currentHB *biz.SeaHouseBill
 	if len(hbs) > 0 {
 		hb := hbs[0]
-		var orgName, partnerName string
+		var orgName, orgCode, partnerName string
 		if hb.IssuerOrganizationID != nil {
-			orgName, err = r.getOrganizationName(ctx, client, *hb.IssuerOrganizationID)
+			orgName, orgCode, err = r.getOrganizationName(ctx, client, *hb.IssuerOrganizationID)
 			if err != nil {
 				return nil, err
 			}
@@ -119,6 +119,7 @@ func (r *seaDocumentRepo) GetSeaOrderDocuments(ctx context.Context, organization
 			return nil, err
 		}
 		currentHB = seaHouseBillToBiz(hb, orgName, partnerName, versionCount)
+		currentHB.PrintTemplate = seaHouseBillPrintTemplate(hb, orgCode)
 	}
 
 	structure := biz.SeaDocumentStructure(link.DocumentStructure)
@@ -357,6 +358,7 @@ func updateLockedSeaHouseBill(ctx context.Context, tx *ent.Tx, organizationID uu
 		updater.ClearNote()
 	}
 	setSeaHouseBillContentUpdate(updater, normalizedContent)
+	setSeaHouseBillPrintDetailsUpdate(updater, input.PrintDetails)
 
 	if _, err := updater.Save(ctx); err != nil {
 		if ent.IsConstraintError(err) {
@@ -542,9 +544,9 @@ func (r *seaDocumentRepo) getSeaHouseBillByID(ctx context.Context, organizationI
 		return nil, mapEntError(err, biz.ErrSeaHouseBillNotFound, nil)
 	}
 
-	var orgName, partnerName string
+	var orgName, orgCode, partnerName string
 	if hb.IssuerOrganizationID != nil {
-		orgName, err = r.getOrganizationName(ctx, client, *hb.IssuerOrganizationID)
+		orgName, orgCode, err = r.getOrganizationName(ctx, client, *hb.IssuerOrganizationID)
 		if err != nil {
 			return nil, err
 		}
@@ -556,7 +558,9 @@ func (r *seaDocumentRepo) getSeaHouseBillByID(ctx context.Context, organizationI
 		}
 	}
 
-	return seaHouseBillToBiz(hb, orgName, partnerName), nil
+	result := seaHouseBillToBiz(hb, orgName, partnerName)
+	result.PrintTemplate = seaHouseBillPrintTemplate(hb, orgCode)
+	return result, nil
 }
 
 func (r *seaDocumentRepo) getPartnerName(ctx context.Context, client *ent.Client, organizationID, partnerID uuid.UUID) (string, error) {
@@ -583,15 +587,15 @@ func (r *seaDocumentRepo) getShippingLineName(ctx context.Context, client *ent.C
 	return formatShippingLineName(line.NameZh, line.NameEn, line.ScacCode), nil
 }
 
-func (r *seaDocumentRepo) getOrganizationName(ctx context.Context, client *ent.Client, orgID uuid.UUID) (string, error) {
+func (r *seaDocumentRepo) getOrganizationName(ctx context.Context, client *ent.Client, orgID uuid.UUID) (string, string, error) {
 	if orgID == uuid.Nil {
-		return "", nil
+		return "", "", nil
 	}
 	org, err := client.Organization.Query().Where(organizationent.IDEQ(orgID)).Only(ctx)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	return org.Name, nil
+	return org.Name, org.Code, nil
 }
 
 func resolveIssuerOrganization(ctx context.Context, client *ent.Client, rootOrgID, orderOrgID uuid.UUID) (uuid.UUID, error) {
@@ -845,6 +849,7 @@ func seaHouseBillToBiz(item *ent.SeaHouseBill, orgName, partnerName string, vers
 		ImmutableVersionCount:  immutableVersionCount,
 		Note:                   item.Note,
 		Content:                content,
+		PrintDetails:           seaHouseBillPrintDetailsToBiz(item.PrintDetails),
 		CreatedAt:              item.CreatedAt,
 		UpdatedAt:              item.UpdatedAt,
 	}
