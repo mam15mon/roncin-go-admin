@@ -1,0 +1,30 @@
+{
+  "id": "finance-business-fixes",
+  "name": "finance-business-fixes",
+  "title": "修复财务与提成九项业务一致性问题",
+  "description": "修复提成确认与经济重算、账单对冲和同币种汇率、发票方向、方案区间与流水权限；定向回归和独立审查",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-11-04",
+  "completedAt": null,
+  "branch": "codex/finance-business-fixes",
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "11-04-finance-commission-fixes",
+    "11-04-finance-bill-fixes",
+    "11-04-finance-rate-fixes"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}
