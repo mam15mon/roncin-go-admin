@@ -1,0 +1,10 @@
+{"file":".trellis/spec/server/backend/index.md","reason":"后端分层和专项规范入口"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"Ent Schema、正式迁移、统一事务和并发"}
+{"file":".trellis/spec/server/backend/sea-export-document-contract.md","reason":"真实 HBL、签发主体、共享主单和单证契约"}
+{"file":".trellis/spec/server/backend/order-lock-and-document-version.md","reason":"沿用锁单写入边界和不可变版本，不将审核作为输出前置"}
+{"file":".trellis/spec/server/backend/sea-document-change-history.md","reason":"同步哈希、改单差异、版本快照和历史读取"}
+{"file":".trellis/spec/web/frontend/index.md","reason":"前端页面组织、权限和生成客户端"}
+{"file":".trellis/spec/web/frontend/component-guidelines.md","reason":"全宽页面骨架、页头和业务分节"}
+{"file":".trellis/spec/web/frontend/state-management.md","reason":"React Query、编辑基线、15 秒变动检测和工作区隔离"}
+{"file":".trellis/tasks/11-04-sea-export-hbl-production/research/current-state.md","reason":"模板字段、现有路径、公司适用范围和已确认业务决策"}
+{"file":".trellis/tasks/11-04-sea-export-hbl-production/research/pdf-output.md","reason":"PDF 渲染器选型、字体实测、来源及后续验证范围"}

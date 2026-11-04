@@ -13,7 +13,7 @@
 - `web/src/pages/orders/list-documents-action.ts:12`：海运单证导航到订单详情。
 - `web/src/pages/orders/components/detail/OrderDetailHeader.tsx:79`：「导出单证 (POD)」实际调用登记面板。
 - `web/src/pages/orders/release-pod-panel.tsx`：抽屉为放货/回单记录维护，无打印或 PDF 生成。
-- 未发现 HBL 制作路由及 PDF 输出工具链，设计阶段需验证字体、长文本及分页方案。
+- 未发现 HBL 制作路由及 PDF 输出工具链，选型与字体试验现已记录在 [PDF 输出研究](./pdf-output.md)；完整 HBL 的长文本与浏览器打印留待实现后验收。
 
 ## 字段映射与缺口
 
@@ -39,9 +39,16 @@
 - 整单保存已有订单/主单/HBL 的原子更新及并发防护；用户已确认制作编辑保存回同一 HBL，后续设计复用现有写入与并发契约，不另建独立打印稿。
 - `web/public/logo.svg`、`web/public/images/logo-mark.png` 有品牌素材，设计时与模板比对并复用，不生成近似 Logo。
 
-## 下一步
+## 模板签发公司盘点
 
-编辑保存归属和输出独立于审核均已确认，继续确认模板主体范围。决策完成前不修改产品代码或确定数据库结构。
+- 用户已确认首期只做 RONCIN 自签模板，客户与代理自己签发的模板延后。
+- 开发数据库仅执行只读查询 `SELECT code, name, kind FROM organizations WHERE kind = 'company' ORDER BY code`，当前有 `BJ`（融迅北京）和 `CD`（融迅成都），未读取或写入业务单据，也未记录连接信息。
+- 模板抬头明确为北京公司。最终设计将该模板绑定 `BJ` 对应真实自有签发主体，成都及其他主体不套用北京抬头；这是基于当前单一模板的首期边界，列入最终摘要供用户审阅。
+- Organization 的 code 在 Schema 中不可变，可用已有公司代码绑定首期固定模板；不需要写死某个环境的 UUID 或新增通用品牌平台。
+
+## 需求收敛
+
+已确认同一 HBL 保存、输出独立于审核、自有签发模板。`design.md` 与 `implement.md` 已补齐，下一步提交最终规划摘要，收到之后的明确实现批准前不得开始产品代码修改。
 
 ## 正式输出门槛研究
 

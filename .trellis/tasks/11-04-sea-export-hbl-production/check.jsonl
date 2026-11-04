@@ -1,0 +1,9 @@
+{"file":".trellis/spec/server/backend/quality-guidelines.md","reason":"生成物、权限组织范围和真实 PostgreSQL 验证"}
+{"file":".trellis/spec/server/backend/database-guidelines.md","reason":"确认正式迁移、事务版本检查及零部分写入"}
+{"file":".trellis/spec/server/backend/sea-export-document-contract.md","reason":"签发主体、有效 HBL、共享运输与单证边界"}
+{"file":".trellis/spec/server/backend/order-lock-and-document-version.md","reason":"锁定限制写入、历史快照和固定锁序"}
+{"file":".trellis/spec/server/backend/sea-document-change-history.md","reason":"印字信息不丢失、历史稳定和改单差异"}
+{"file":".trellis/spec/web/frontend/quality-guidelines.md","reason":"定向测试、类型检查、构建和长尾约束"}
+{"file":".trellis/spec/web/frontend/state-management.md","reason":"输入保护、并发基线、异步隔离和迟到响应"}
+{"file":".trellis/tasks/11-04-sea-export-hbl-production/research/current-state.md","reason":"核对用户决定，特别是输出不绑定利润审核"}
+{"file":".trellis/tasks/11-04-sea-export-hbl-production/research/pdf-output.md","reason":"字体必须看图、续页需核对全文，不能只检查文件存在"}
