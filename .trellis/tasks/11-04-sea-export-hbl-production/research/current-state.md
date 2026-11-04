@@ -36,9 +36,16 @@
 - `server/internal/data/ent/schema/sea_house_bill.go:24`：HBL 身份、主体、当前版本，同票有效 HBL 唯一。
 - `server/internal/data/ent/schema/sea_house_bill_version.go:34`：不可变内容和签发主体；版本源含审核、改单、作废和模式切换。
 - `.trellis/spec/server/backend/sea-document-change-history.md:86`：历史只读不可变字段，禁止回读当前内容改写历史。
-- 整单保存已有订单/主单/HBL 的原子更新及并发防护，打印编辑是否纳入此路径须先确认保存归属。
+- 整单保存已有订单/主单/HBL 的原子更新及并发防护；用户已确认制作编辑保存回同一 HBL，后续设计复用现有写入与并发契约，不另建独立打印稿。
 - `web/public/logo.svg`、`web/public/images/logo-mark.png` 有品牌素材，设计时与模板比对并复用，不生成近似 Logo。
 
 ## 下一步
 
-先确认编辑保存归属，再确认正式输出门槛和模板主体范围。决策完成前不修改产品代码或确定数据库结构。
+编辑保存归属已确认，继续确认正式输出门槛和模板主体范围。决策完成前不修改产品代码或确定数据库结构。
+
+## 正式输出门槛研究
+
+- `web/src/pages/orders/templates/components/sea/seaDocumentSectionConstants.ts:63` 已有提单形式选项；`:72` 已有放单方式选项。它们是业务资料，并非现成的打印授权规则。
+- `server/internal/data/order_lock_se_snapshot.go:199` 的 `ensureSeaHouseBillLockVersion` 在审核锁定时创建/复用与当前 HBL 一致的不可变版本，可作为已核对资料的证据。
+- 未发现正本或电放 PDF 输出接口，不能从现有 `DRAFT/CONFIRMED/RELEASED` 枚举推断本期允许输出的时机。
+- 建议交由用户确认「未审核可出草稿/副本，审核后才出正本/电放，正式类型匹配放单方式」，而不是由实现擅自新增业务门槛。
