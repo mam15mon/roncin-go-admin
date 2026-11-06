@@ -23,9 +23,21 @@ setupReassignmentTests();
 
 describe('改配预览与当前目标绑定', () => {
   it('预览失败展示具体业务原因，确认不可用且保留输入', async () => {
-    preview.mockRejectedValue(new Error('目标 MBL 冲突或不可用'));
+    preview.mockRejectedValue(
+      Object.assign(new Error('Request failed with status code 409'), {
+        response: {
+          status: 409,
+          data: {
+            success: false,
+            code: 409,
+            message: '目标 MBL 冲突或不可用',
+            reason: 'SEA_ORDER_REASSIGNMENT_TARGET_CONFLICT',
+          },
+        },
+      }),
+    );
     renderReassignment();
-    enterMasterNo();
+    await enterMasterNo();
     await waitFor(() =>
       expect(screen.getByText('目标 MBL 冲突或不可用')).toBeVisible(),
     );
@@ -51,7 +63,7 @@ describe('改配预览与当前目标绑定', () => {
       },
     });
     renderReassignment();
-    enterMasterNo();
+    await enterMasterNo();
     await waitFor(() =>
       expect(screen.getByText('请先移除本票共享箱分配')).toBeVisible(),
     );
@@ -75,9 +87,9 @@ describe('改配预览与当前目标绑定', () => {
         : newPreview.promise,
     );
     renderReassignment();
-    enterMasterNo('OLDTARGET');
+    await enterMasterNo('OLDTARGET');
     await waitFor(() => expect(preview).toHaveBeenCalledOnce());
-    enterMasterNo('CURRENTTARGET');
+    await enterMasterNo('CURRENTTARGET');
     await waitFor(() => expect(preview).toHaveBeenCalledTimes(2));
     expect(outerConfirmButton()).toBeDisabled();
     await act(async () =>

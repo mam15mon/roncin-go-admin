@@ -24,6 +24,7 @@ import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGua
 import { ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { useAsyncGuard } from '@/hooks/useAsyncGuard';
+import { getRequestErrorMessage } from '@/requestErrorConfig';
 import { orderServiceMatchSeaMasterBillCandidate } from '@/services/roncin/orderService';
 import {
   seaOrderChangeServiceExecuteSeaOrderReassignment,
@@ -237,9 +238,15 @@ function ReassignmentForm({
   const previewing = matching || (previewEnabled && previewQuery.isFetching);
   const previewError =
     matchLookup && matchQuery.isError
-      ? getErrorMessage(matchQuery.error, '匹配候选母单失败')
+      ? getRequestErrorMessage(
+          matchQuery.error,
+          getErrorMessage(matchQuery.error, '匹配候选母单失败'),
+        )
       : previewEnabled && previewQuery.isError
-        ? getErrorMessage(previewQuery.error, '改配比对校验失败')
+        ? getRequestErrorMessage(
+            previewQuery.error,
+            getErrorMessage(previewQuery.error, '改配比对校验失败'),
+          )
         : previewData?.isValid === false
           ? previewData.errors?.join('；') || '当前目标不满足改配条件'
           : null;
@@ -361,7 +368,12 @@ function ReassignmentForm({
         },
       );
     } catch (error: unknown) {
-      message.error(getErrorMessage(error, '执行改配失败'));
+      message.error(
+        getRequestErrorMessage(
+          error ?? {},
+          getErrorMessage(error, '执行改配失败'),
+        ),
+      );
     }
   };
 

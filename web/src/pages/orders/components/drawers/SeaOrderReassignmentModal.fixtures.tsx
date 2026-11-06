@@ -6,7 +6,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
-import { ConfigProvider } from 'antd';
+import { App, ConfigProvider } from 'antd';
 import type { ComponentProps } from 'react';
 import { beforeEach, vi } from 'vitest';
 import { orderServiceMatchSeaMasterBillCandidate } from '@/services/roncin/orderService';
@@ -120,7 +120,9 @@ export function renderReassignment(
   };
   const content = (changed: Partial<typeof props> = {}) => (
     <ConfigProvider theme={{ token: { motion: false } }}>
-      <SeaOrderReassignmentModal {...props} {...changed} />
+      <App>
+        <SeaOrderReassignmentModal {...props} {...changed} />
+      </App>
     </ConfigProvider>
   );
   const result = renderWithApp(content());
@@ -140,9 +142,11 @@ export function enterDate(label: string, value: string) {
   fireEvent.blur(input);
 }
 
-export function enterMasterNo(value = 'NEWMBL456') {
-  fireEvent.change(screen.getByPlaceholderText('请输入目标提单号'), {
-    target: { value },
+export async function enterMasterNo(value = 'NEWMBL456') {
+  await act(async () => {
+    fireEvent.change(screen.getByPlaceholderText('请输入目标提单号'), {
+      target: { value },
+    });
   });
 }
 

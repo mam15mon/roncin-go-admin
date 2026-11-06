@@ -22,7 +22,7 @@ describe('SeaOrderReassignmentModal', () => {
     renderReassignment();
     expect(outerConfirmButton()).toBeDisabled();
     expect(preview).not.toHaveBeenCalled();
-    enterMasterNo();
+    await enterMasterNo();
 
     await waitFor(() => {
       expect(screen.getByText(/订单整票改配/)).toBeInTheDocument();
@@ -43,7 +43,7 @@ describe('SeaOrderReassignmentModal', () => {
 
   it('真实母单输入与 RFC3339 航程进入预览，并以相同目标和版本完成 NEW 改配', async () => {
     const { props } = renderReassignment();
-    enterMasterNo();
+    await enterMasterNo();
     fireEvent.change(screen.getByPlaceholderText('船名'), {
       target: { value: 'NEW VESSEL' },
     });
@@ -100,7 +100,7 @@ describe('SeaOrderReassignmentModal', () => {
       candidate,
     });
     renderReassignment();
-    enterMasterNo('EXISTING123');
+    await enterMasterNo('EXISTING123');
     fireEvent.click(screen.getByRole('button', { name: '检查/匹配' }));
     await waitFor(() =>
       expect(screen.getByText('已匹配现有共享母单：EXISTING123')).toBeVisible(),
