@@ -320,3 +320,23 @@ current := locked.EnabledCurrencies // 从锁定行读取权威列表后再计�
 - 选择器类查询支持服务端 `keyword` 过滤；keyword 必须覆盖业务代码、中英文
   名称、别名（若有）、无声调全拼及拼音首字母；新增可搜索中文实体时同步维护
   拼音检索键、索引与历史回填。
+
+## Ent 可空字段的互斥更新
+
+- 适用场景：目标记录可空字段需要随权威来源同步，特别是改配的地点与日期投影。
+- 调用契约：`SetOriginLocationID(id)` 与 `ClearOriginLocationID()` 二选一；日期的 `SetEtd(value)` / `ClearEtd()` 同理。
+- 本仓库生成的 Mutation 同时记录 Set 与 Clear；`ClearX().SetNillableX(value)` 不保证后者覆盖前者。非空值会使 PostgreSQL 收到重复列赋值并报 `SQLSTATE 42601`，整体事务回滚。
+- 正确：目标非空时只 Set，目标为空时只 Clear。基础场景为无地点/日期的目标；不得通过保留旧值隐藏目标空值。
+- 验证：真实 PostgreSQL 必须分别覆盖空值清除与非空赋值，并断言持久化字段和事务原子性；只验证空值不能发现 Clear+Set 的生成 SQL 缺陷。
+- 回归入口：`TestSeaOrderSplitAndReassignment_PostgresIntegration/DIRECT拆票阻断与整票改配成功`。
+
+```go
+// 错误：非空来源同时产生清空与赋值。
+update.ClearOriginLocationID().SetNillableOriginLocationID(target.OriginLocationID)
+// 正确：每次更新只声明一种意图。
+if target.OriginLocationID != nil {
+    update.SetOriginLocationID(*target.OriginLocationID)
+} else {
+    update.ClearOriginLocationID()
+}
+```

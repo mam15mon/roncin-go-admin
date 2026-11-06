@@ -36,3 +36,7 @@
 全部 TestSea 与订单创建/幂等/审核相邻集成回归运行 121 秒，仅两个旧单证测试因 actorID 为未入库随机 UUID 而失败；将这两处夹具改为真实 User 后，重跑这两项及分单印字、完整拆票改配、业务锁、真实创建至转换链路，共六个父测试组 PASS（15.7 秒）。没有放宽 created_by 外键。
 
 二次执行全部上述生成命令，逐文件 SHA-256 比较生成目标，差异为空。最终修改文件 Biome 与 git diff --check 通过。主会话负责最终全量门禁、独立 review 和合并。
+
+## 开发种子契约同步
+
+sync-dev 在本次新建订单的演示操作完成后，调用导出的 SaveSeaHouseBillDraftVersion，为有效 HBL 归档最终工作状态。仅处理 newOrderIDs，既有用户记录不回填；历史事件仍引用旧的不可变版本。种子审核样例为 DIRECT，当前快照推进不会改写审核引用。TestDevelopmentSeedPostgres 真实 PostgreSQL 验证当前身份/版本/内容完整、重复执行版本数不变（3.796 秒通过）。
