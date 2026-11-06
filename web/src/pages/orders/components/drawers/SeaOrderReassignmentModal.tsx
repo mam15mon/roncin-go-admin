@@ -1,4 +1,4 @@
-import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Alert,
   App,
@@ -20,8 +20,10 @@ import type { DefaultOptionType } from 'antd/es/select';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
+import { useAsyncGuard } from '@/hooks/useAsyncGuard';
 import { orderServiceMatchSeaMasterBillCandidate } from '@/services/roncin/orderService';
 import {
   seaOrderChangeServiceExecuteSeaOrderReassignment,
@@ -29,10 +31,16 @@ import {
 } from '@/services/roncin/seaOrderChangeService';
 import { isWriteResponse } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
-import { computeCanonicalSha256 } from '@/utils/hash';
+import { formatDate } from '@/utils/format';
+import { canonicalStringify, computeCanonicalSha256 } from '@/utils/hash';
+import { generateUUID } from '@/utils/uuid';
 import SeaExternalConfirmationFields, {
   buildSeaExternalConfirmation,
 } from '../../templates/components/sea/SeaExternalConfirmationFields';
+import {
+  buildReassignmentTarget,
+  type ReassignmentFormValues,
+} from './seaOrderReassignmentModels';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -51,44 +59,49 @@ interface SeaOrderReassignmentModalProps {
   initialShippingLineName?: string;
 }
 
-export const SeaOrderReassignmentModal: React.FC<
-  SeaOrderReassignmentModalProps
-> = ({
+function ReassignmentForm({
   orderId,
   orderNo,
-  open,
   disabled = false,
-  disabledReason,
   onClose,
   onSuccess,
   searchShippingLines,
   searchLocations,
   initialShippingLineId,
   initialShippingLineName,
-}) => {
-  const { markDirty } = useUnsavedChangesGuard({ enabled: open, identity: orderId });
-  const [form] = Form.useForm();
-  const { message, modal } = App.useApp();
+}: SeaOrderReassignmentModalProps) {
+  const { markDirty, resetDirty } = useUnsavedChangesGuard({
+    identity: orderId,
+  });
+  const [form] = Form.useForm<ReassignmentFormValues>();
+  const values = Form.useWatch([], form) as ReassignmentFormValues | undefined;
+  const { message } = App.useApp();
+  const queryClient = useQueryClient();
+  const executionGuard = useAsyncGuard();
+  // 每次打开均建立独立编辑会话，关闭后旧预览和写入结果不得影响再次打开的弹窗。
+  const [sessionId] = useState(generateUUID);
+  const [requestedTargetType, setTargetType] = useState<'candidate' | 'new'>(
+    'new',
+  );
+  const [matchLookup, setMatchLookup] = useState<{
+    masterNo: string;
+    shippingLineId: string;
+    attemptId: string;
+  } | null>(null);
+  const [selectedTeId, setSelectedTeId] = useState<string>();
+  const [confirmation, setConfirmation] =
+    useState<API.ExecuteSeaOrderReassignmentRequest | null>(null);
 
-  const [submitting, setSubmitting] = useState(false);
-  const [previewing, setPreviewing] = useState(false);
-  const [previewData, setPreviewData] =
-    useState<API.SeaOrderReassignmentPreviewData | null>(null);
-  const [previewError, setPreviewError] = useState<string | null>(null);
-  const [orderVersion, setOrderVersion] = useState<string>('0');
-  const [linkVersion, setLinkVersion] = useState<string>('0');
-  const [targetType, setTargetType] = useState<'candidate' | 'new'>('new');
-  const [candidateMatched, setCandidateMatched] =
-    useState<API.SeaMasterBillCandidate | null>(null);
-  const [candidateTe, setCandidateTe] =
-    useState<API.SeaTransportExecution | null>(null);
-  const disabledRef = useRef({ disabled, reason: disabledReason });
-  disabledRef.current = { disabled, reason: disabledReason };
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
-
-  // 选项缓存
-  const [carrierOptions, setCarrierOptions] = useState<DefaultOptionType[]>([]);
+  const [carrierOptions, setCarrierOptions] = useState<DefaultOptionType[]>(
+    initialShippingLineId
+      ? [
+          {
+            label: initialShippingLineName || initialShippingLineId,
+            value: initialShippingLineId,
+          },
+        ]
+      : [],
+  );
   const [originPortOptions, setOriginPortOptions] = useState<
     DefaultOptionType[]
   >([]);
@@ -98,359 +111,257 @@ export const SeaOrderReassignmentModal: React.FC<
   const [transitPortOptions, setTransitPortOptions] = useState<
     DefaultOptionType[]
   >([]);
-
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   useEffect(() => {
-    if (open && disabled) {
-      onCloseRef.current();
-      return;
-    }
-    if (open && orderId) {
-      form.resetFields();
-      form.setFieldValue('shippingLineId', initialShippingLineId);
-      setCarrierOptions(
-        initialShippingLineId
-          ? [
-              {
-                label: initialShippingLineName || initialShippingLineId,
-                value: initialShippingLineId,
-              },
-            ]
-          : [],
+    if (disabled) onCloseRef.current();
+  }, [disabled]);
+
+  const matchQuery = useQuery({
+    queryKey: [
+      'order-reassignment',
+      'candidate',
+      { orderId, sessionId, matchLookup },
+    ],
+    enabled: !disabled && Boolean(matchLookup),
+    queryFn: async ({ signal }) => {
+      if (!matchLookup) throw new Error('请先输入目标提单号并选择船公司');
+      const response = await orderServiceMatchSeaMasterBillCandidate(
+        {
+          masterNo: matchLookup.masterNo,
+          shippingLineId: matchLookup.shippingLineId,
+        },
+        { signal, skipErrorHandler: true },
       );
-      setCandidateMatched(null);
-      setCandidateTe(null);
-      setPreviewData(null);
-      setPreviewError(null);
-      setTargetType('new');
+      if (
+        !response ||
+        response.success === false ||
+        (response.success !== true && typeof response.matched !== 'boolean')
+      ) {
+        throw new Error('匹配候选母单失败，请重试');
+      }
+      if (
+        response.matched &&
+        (!response.candidate?.id ||
+          !response.candidate.version ||
+          !(response.candidate.transportExecutions ?? []).some(
+            (item) => item.id && item.version,
+          ))
+      ) {
+        throw new Error('候选母单没有可选择的运输执行或版本信息');
+      }
+      return { ...response, matched: response.matched === true };
+    },
+    meta: { silent: true },
+  });
+  const candidateMatched =
+    matchLookup && matchQuery.data?.matched
+      ? (matchQuery.data.candidate ?? null)
+      : null;
+  const transportExecutions = (
+    candidateMatched?.transportExecutions ?? []
+  ).filter((item) => item.id && item.version);
+  const candidateTe =
+    transportExecutions.length === 1
+      ? transportExecutions[0]
+      : (transportExecutions.find((item) => item.id === selectedTeId) ?? null);
+  const targetType = candidateMatched
+    ? 'candidate'
+    : matchLookup && matchQuery.data?.matched === false
+      ? 'new'
+      : requestedTargetType;
 
-      triggerPreview();
+  // 仅将本次显式匹配/选择的航程回显到表单，候选航程不接受本票手工改写。
+  useEffect(() => {
+    if (!candidateMatched || !candidateTe) return;
+    form.setFieldsValue({
+      masterNo: candidateMatched.masterNo,
+      shippingLineId: candidateTe.shippingLineId,
+      vesselName: candidateTe.vesselName,
+      voyageNo: candidateTe.voyageNo,
+      originLocationId: candidateTe.originLocationId,
+      dischargeLocationId: candidateTe.dischargeLocationId,
+      transitLocationId: candidateTe.transitLocationId,
+      etd: candidateTe.etd ? dayjs(candidateTe.etd) : undefined,
+      eta: candidateTe.eta ? dayjs(candidateTe.eta) : undefined,
+    });
+    if (candidateTe.shippingLineId) {
+      setCarrierOptions((current) => [
+        ...current.filter((item) => item.value !== candidateTe.shippingLineId),
+        {
+          label:
+            candidateMatched.shippingLineName || candidateTe.shippingLineId,
+          value: candidateTe.shippingLineId,
+        },
+      ]);
     }
-  }, [
-    disabled,
-    form,
-    initialShippingLineId,
-    initialShippingLineName,
-    open,
-    orderId,
-  ]);
+  }, [candidateMatched, candidateTe, form]);
 
-  // 实时触发比对预览
-  const triggerPreview = async (
-    customTarget?: API.SeaOrderReassignmentTargetInput,
-  ) => {
-    if (!orderId || disabledRef.current.disabled) return;
-    setPreviewing(true);
-    setPreviewError(null);
-    try {
-      const values = form.getFieldsValue();
-      const targetInput: API.SeaOrderReassignmentTargetInput = customTarget || {
-        targetType:
-          targetType === 'candidate' && candidateMatched?.id
-            ? 'CANDIDATE'
-            : 'NEW',
-        candidateId:
-          targetType === 'candidate' ? candidateMatched?.id : undefined,
-        candidateVersion:
-          targetType === 'candidate' && candidateMatched?.version
-            ? String(candidateMatched.version)
-            : undefined,
-        candidateTeId: targetType === 'candidate' ? candidateTe?.id : undefined,
-        candidateTeVersion:
-          targetType === 'candidate' && candidateTe?.version
-            ? String(candidateTe.version)
-            : undefined,
-        masterNo: values.masterNo || '',
-        shippingLineId: values.shippingLineId,
-        vesselName: values.vesselName?.trim(),
-        voyageNo: values.voyageNo?.trim(),
-        originLocationId: values.originLocationId,
-        dischargeLocationId: values.dischargeLocationId,
-        transitLocationId: values.transitLocationId,
-        etd: values.etd
-          ? dayjs(values.etd).format('YYYY-MM-DD HH:mm:ss')
-          : undefined,
-        eta: values.eta
-          ? dayjs(values.eta).format('YYYY-MM-DD HH:mm:ss')
-          : undefined,
-      };
-
-      const resp = await seaOrderChangeServicePreviewSeaOrderReassignment(
+  const targetInput = buildReassignmentTarget(
+    values ?? {},
+    targetType,
+    candidateMatched,
+    candidateTe,
+  );
+  const matching = Boolean(matchLookup) && matchQuery.isFetching;
+  const previewEnabled =
+    !disabled && !matching && !matchQuery.isError && Boolean(targetInput);
+  const previewQuery = useQuery({
+    queryKey: [
+      'order-reassignment',
+      'preview',
+      { orderId, sessionId, target: targetInput },
+    ],
+    enabled: previewEnabled,
+    queryFn: async ({ signal }) => {
+      if (!targetInput) throw new Error('请填写完整的改配目标');
+      const response = await seaOrderChangeServicePreviewSeaOrderReassignment(
         { orderId },
         { orderId, target: targetInput },
+        { signal, skipErrorHandler: true },
       );
-      if (resp?.data) {
-        setPreviewData(resp.data);
-        if (resp.data.orderVersion) {
-          setOrderVersion(String(resp.data.orderVersion));
-        }
-        if (resp.data.currentLinkVersion) {
-          setLinkVersion(String(resp.data.currentLinkVersion));
-        }
+      if (!response?.data || response.success === false)
+        throw new Error('改配预览未返回有效结果，请重试');
+      if (
+        response.data.isValid &&
+        (!/^[1-9]\d*$/.test(String(response.data.orderVersion ?? '')) ||
+          !/^[1-9]\d*$/.test(String(response.data.currentLinkVersion ?? '')))
+      ) {
+        throw new Error('改配预览缺少订单或关联版本，请重新预览');
       }
-    } catch (error: unknown) {
-      setPreviewError(getErrorMessage(error, '改配比对校验失败'));
-      setPreviewData(null);
-    } finally {
-      setPreviewing(false);
-    }
+      return response.data;
+    },
+    meta: { silent: true },
+  });
+  const previewData = previewEnabled ? previewQuery.data : undefined;
+  const previewing = matching || (previewEnabled && previewQuery.isFetching);
+  const previewError =
+    matchLookup && matchQuery.isError
+      ? getErrorMessage(matchQuery.error, '匹配候选母单失败')
+      : previewEnabled && previewQuery.isError
+        ? getErrorMessage(previewQuery.error, '改配比对校验失败')
+        : previewData?.isValid === false
+          ? previewData.errors?.join('；') || '当前目标不满足改配条件'
+          : null;
+  const canExecute =
+    previewEnabled &&
+    !previewing &&
+    previewQuery.isSuccess &&
+    previewData?.isValid === true;
+  const currentPreviewRef = useRef({
+    canExecute,
+    targetInput,
+    previewData,
+    targetType,
+    candidateMatched,
+    candidateTe,
+    disabled,
+  });
+  currentPreviewRef.current = {
+    canExecute,
+    targetInput,
+    previewData,
+    targetType,
+    candidateMatched,
+    candidateTe,
+    disabled,
   };
 
-  // 匹配候选母单
+  const execution = useMutation({
+    mutationFn: (payload: API.ExecuteSeaOrderReassignmentRequest) =>
+      seaOrderChangeServiceExecuteSeaOrderReassignment({ orderId }, payload, {
+        skipErrorHandler: true,
+      }),
+    meta: { silent: true },
+  });
+  const submitting = execution.isPending;
+
   const handleMatchCandidate = async () => {
-    if (disabledRef.current.disabled) {
-      message.warning(disabledRef.current.reason || '订单当前不可编辑');
-      return;
-    }
-    const masterNo = form.getFieldValue('masterNo');
-    const shippingLineId = form.getFieldValue('shippingLineId');
-    if (!masterNo) {
-      message.warning('请先输入提单号(MBL)');
-      return;
-    }
-    if (!/^[A-Za-z0-9]+$/.test(masterNo)) {
-      message.warning('提单号只能包含英文字母和阿拉伯数字，不能包含空格或符号');
-      return;
-    }
-    if (!shippingLineId) {
-      message.warning('请先选择船公司');
-      return;
-    }
+    if (disabled || confirmation || submitting) return;
     try {
-      const resp = await orderServiceMatchSeaMasterBillCandidate({
-        masterNo,
-        shippingLineId,
+      const fields = await form.validateFields(['masterNo', 'shippingLineId']);
+      if (!fields.masterNo || !fields.shippingLineId) return;
+      markDirty();
+      setSelectedTeId(undefined);
+      setMatchLookup({
+        masterNo: fields.masterNo,
+        shippingLineId: fields.shippingLineId,
+        attemptId: generateUUID(),
       });
-      if (resp?.matched && resp.candidate) {
-        const c = resp.candidate;
-        const transportExecutions = (c.transportExecutions ?? []).filter(
-          (item) => item.id && item.version,
-        );
-        if (!c.id || !c.version || transportExecutions.length === 0) {
-          message.error('候选母单没有可选择的运输执行或版本信息！');
-          return;
-        }
-        const te =
-          transportExecutions.length === 1 ? transportExecutions[0] : null;
-        setCandidateMatched(c);
-        setCandidateTe(te);
-        if (!te) {
-          message.info('该 MBL 存在多个实际航次，请明确选择目标航次');
-          return;
-        }
-        setTargetType('candidate');
-        // 自动填充信息
-        form.setFieldsValue({
-          masterNo: c.masterNo,
-          shippingLineId: te?.shippingLineId,
-          vesselName: te?.vesselName,
-          voyageNo: te?.voyageNo,
-          originLocationId: te?.originLocationId,
-          dischargeLocationId: te?.dischargeLocationId,
-          transitLocationId: te?.transitLocationId,
-          etd: te?.etd ? dayjs(te.etd) : undefined,
-          eta: te?.eta ? dayjs(te.eta) : undefined,
-        });
-        message.success(
-          `成功匹配到共享母单 [${c.masterNo}]，当前已有 ${c.memberCount || 1} 票订单`,
-        );
-        const nextTargetInput: API.SeaOrderReassignmentTargetInput = {
-          targetType: 'CANDIDATE',
-          candidateId: c.id,
-          candidateVersion: String(c.version),
-          candidateTeId: te.id,
-          candidateTeVersion: String(te.version),
-          masterNo: c.masterNo,
-          shippingLineId: te?.shippingLineId,
-          vesselName: te?.vesselName,
-          voyageNo: te?.voyageNo,
-          originLocationId: te?.originLocationId,
-          dischargeLocationId: te?.dischargeLocationId,
-          transitLocationId: te?.transitLocationId,
-          etd: te?.etd
-            ? dayjs(te.etd).format('YYYY-MM-DD HH:mm:ss')
-            : undefined,
-          eta: te?.eta
-            ? dayjs(te.eta).format('YYYY-MM-DD HH:mm:ss')
-            : undefined,
-        };
-        triggerPreview(nextTargetInput);
-      } else {
-        message.info('未找到匹配的已有母单，将作为新母单创建');
-        setCandidateMatched(null);
-        setTargetType('new');
-        const values = form.getFieldsValue();
-        const nextTargetInput: API.SeaOrderReassignmentTargetInput = {
-          targetType: 'NEW',
-          masterNo: values.masterNo || '',
-          shippingLineId: values.shippingLineId,
-          vesselName: values.vesselName?.trim(),
-          voyageNo: values.voyageNo?.trim(),
-          originLocationId: values.originLocationId,
-          dischargeLocationId: values.dischargeLocationId,
-          transitLocationId: values.transitLocationId,
-          etd: values.etd
-            ? dayjs(values.etd).format('YYYY-MM-DD HH:mm:ss')
-            : undefined,
-          eta: values.eta
-            ? dayjs(values.eta).format('YYYY-MM-DD HH:mm:ss')
-            : undefined,
-        };
-        triggerPreview(nextTargetInput);
-      }
-    } catch (error: unknown) {
-      message.error(getErrorMessage(error, '匹配候选母单失败'));
+    } catch {
+      // 字段错误由 Form 呈现，不发送不完整的匹配请求。
     }
   };
 
-  // 提交执行改配
   const handleExecute = async () => {
-    if (disabledRef.current.disabled) {
-      message.warning(disabledRef.current.reason || '订单当前不可编辑');
+    if (!currentPreviewRef.current.canExecute || submitting || confirmation)
       return;
-    }
-    if (
-      !orderVersion ||
-      orderVersion === '0' ||
-      !linkVersion ||
-      linkVersion === '0'
-    ) {
-      message.error('未获取到有效的订单或母单关联版本，请刷新重试！');
-      return;
-    }
-    if (
-      targetType === 'candidate' &&
-      (!candidateMatched?.id ||
-        !candidateMatched?.version ||
-        !candidateTe?.id ||
-        !candidateTe.version)
-    ) {
-      message.error('候选母单或运输执行缺少有效版本，无法提交！');
-      return;
-    }
-
     try {
-      const values = await form.validateFields();
-      const confirmation = buildSeaExternalConfirmation(values);
+      const fields = await form.validateFields();
+      const current = currentPreviewRef.current;
+      const target = buildReassignmentTarget(
+        fields,
+        current.targetType,
+        current.candidateMatched,
+        current.candidateTe,
+      );
+      if (
+        !current.canExecute ||
+        current.disabled ||
+        !target ||
+        canonicalStringify(target) !== canonicalStringify(current.targetInput)
+      ) {
+        message.warning('改配目标已变化，请等待当前预览通过后再确认');
+        return;
+      }
+      const payload = {
+        orderId,
+        target,
+        reason: fields.reason?.trim() ?? '',
+        responsibilityType: fields.responsibilityType ?? '',
+        responsiblePartnerId: fields.responsiblePartnerId || undefined,
+        confirmation: buildSeaExternalConfirmation(fields),
+        expectedOrderVersion: String(current.previewData?.orderVersion),
+        expectedLinkVersion: String(current.previewData?.currentLinkVersion),
+        expectedCandidateMblVersion: target.candidateVersion,
+        expectedCandidateTeVersion: target.candidateTeVersion,
+      };
+      const hash = computeCanonicalSha256(payload);
+      setConfirmation({
+        ...payload,
+        requestFingerprint: `reassign-fp:${hash}`,
+        idempotencyKey: `reassign:${orderId}:${hash}`,
+      });
+    } catch (error: unknown) {
+      if (error instanceof Error)
+        message.error(getErrorMessage(error, '请检查改配资料'));
+    }
+  };
 
-      modal.confirm({
-        title: '确认提交整票改配？',
-        content: (
-          <div>
-            <p>
-              保留当前操作票号与流程状态，不会复制订单；当前航程将切换为目标 MBL
-              权威航程。
-            </p>
-            <p style={{ color: '#fa8c16' }}>
-              请核对下方航程要素变动表。执行后将生成不可变改配历史记录。
-            </p>
-          </div>
-        ),
-        okText: '确认改配',
-        cancelText: '取消',
-        onOk: async () => {
-          if (disabledRef.current.disabled) {
-            message.warning(disabledRef.current.reason || '订单当前不可编辑');
+  const executeConfirmed = async () => {
+    if (!confirmation || submitting || disabled) return;
+    try {
+      await executionGuard.run(
+        () => execution.mutateAsync(confirmation),
+        (response) => {
+          if (
+            !isWriteResponse(response) ||
+            !response.data?.reassignmentEventId ||
+            response.data.orderId !== orderId
+          ) {
+            message.error('执行改配未返回有效结果，请核对后重试');
             return;
           }
-          setSubmitting(true);
-          try {
-            const targetInput: API.SeaOrderReassignmentTargetInput = {
-              targetType:
-                targetType === 'candidate' && candidateMatched?.id
-                  ? 'CANDIDATE'
-                  : 'NEW',
-              candidateId:
-                targetType === 'candidate' ? candidateMatched?.id : undefined,
-              candidateVersion:
-                targetType === 'candidate' && candidateMatched?.version
-                  ? String(candidateMatched.version)
-                  : undefined,
-              candidateTeId:
-                targetType === 'candidate' ? candidateTe?.id : undefined,
-              candidateTeVersion:
-                targetType === 'candidate' && candidateTe?.version
-                  ? String(candidateTe.version)
-                  : undefined,
-              masterNo: values.masterNo || '',
-              shippingLineId: values.shippingLineId,
-              vesselName: values.vesselName?.trim(),
-              voyageNo: values.voyageNo?.trim(),
-              originLocationId: values.originLocationId,
-              dischargeLocationId: values.dischargeLocationId,
-              transitLocationId: values.transitLocationId,
-              etd: values.etd
-                ? dayjs(values.etd).format('YYYY-MM-DD HH:mm:ss')
-                : undefined,
-              eta: values.eta
-                ? dayjs(values.eta).format('YYYY-MM-DD HH:mm:ss')
-                : undefined,
-            };
-
-            const payloadForHash = {
-              orderId,
-              target: targetInput,
-              reason: values.reason?.trim() || '',
-              responsibilityType: values.responsibilityType,
-              responsiblePartnerId: values.responsiblePartnerId || undefined,
-              confirmation,
-              expectedOrderVersion: orderVersion,
-              expectedLinkVersion: linkVersion,
-              expectedCandidateMblVersion:
-                targetType === 'candidate'
-                  ? String(candidateMatched?.version)
-                  : undefined,
-              expectedCandidateTeVersion:
-                targetType === 'candidate'
-                  ? String(candidateTe?.version)
-                  : undefined,
-            };
-            const hash = computeCanonicalSha256(payloadForHash);
-            const fingerprint = `reassign-fp:${hash}`;
-            const idempotencyKey = `reassign:${orderId}:${hash}`;
-
-            const writeResponse1 =
-              await seaOrderChangeServiceExecuteSeaOrderReassignment(
-                { orderId },
-                {
-                  orderId,
-                  idempotencyKey,
-                  requestFingerprint: fingerprint,
-                  target: targetInput,
-                  reason: values.reason.trim(),
-                  responsibilityType: values.responsibilityType,
-                  responsiblePartnerId:
-                    values.responsiblePartnerId || undefined,
-                  confirmation,
-                  expectedOrderVersion: orderVersion,
-                  expectedLinkVersion: linkVersion,
-                  expectedCandidateMblVersion:
-                    targetType === 'candidate'
-                      ? String(candidateMatched?.version)
-                      : undefined,
-                  expectedCandidateTeVersion:
-                    targetType === 'candidate'
-                      ? String(candidateTe?.version)
-                      : undefined,
-                },
-              );
-            if (!isWriteResponse(writeResponse1) || !writeResponse1.data?.reassignmentEventId || writeResponse1.data.orderId !== orderId) return Promise.reject();
-
-            message.success('整票改配成功！航程与母单已更新');
-            onSuccess();
-            onClose();
-          } catch (error: unknown) {
-            message.error(getErrorMessage(error, '执行改配失败'));
-            throw error;
-          } finally {
-            setSubmitting(false);
-          }
+          resetDirty();
+          setConfirmation(null);
+          message.success('整票改配成功！航程与母单已更新');
+          void queryClient.invalidateQueries({ queryKey: ['orders'] });
+          onSuccess();
+          onClose();
         },
-      }).then(
-      () => {},
-      () => {},
-    );
-    } catch (_error: unknown) {
-      // 表单校验未通过
+      );
+    } catch (error: unknown) {
+      message.error(getErrorMessage(error, '执行改配失败'));
     }
   };
 
@@ -502,13 +413,15 @@ export const SeaOrderReassignmentModal: React.FC<
   return (
     <Modal
       title={`订单整票改配 - ${orderNo || orderId}`}
-      open={open}
+      open
       onCancel={onClose}
       width={900}
-      destroyOnHidden={false}
       confirmLoading={submitting}
       onOk={handleExecute}
-      okButtonProps={{ disabled }}
+      okButtonProps={{ disabled: !canExecute || Boolean(confirmation) }}
+      cancelButtonProps={{ disabled: submitting }}
+      closable={!submitting}
+      mask={{ closable: !submitting }}
       okText="确认改配"
       cancelText="取消"
     >
@@ -535,8 +448,16 @@ export const SeaOrderReassignmentModal: React.FC<
         layout="vertical"
         initialValues={{
           responsibilityType: 'OWN_COMPANY',
+          shippingLineId: initialShippingLineId,
         }}
-        onValuesChange={() => { markDirty(); triggerPreview(); }}
+        disabled={disabled || submitting || Boolean(confirmation)}
+        onValuesChange={(changed: Partial<ReassignmentFormValues>) => {
+          markDirty();
+          if ('masterNo' in changed || 'shippingLineId' in changed) {
+            setMatchLookup(null);
+            setSelectedTeId(undefined);
+          }
+        }}
       >
         <Row gutter={16}>
           <Col span={12}>
@@ -546,11 +467,8 @@ export const SeaOrderReassignmentModal: React.FC<
                 onChange={(e) => {
                   markDirty();
                   setTargetType(e.target.value);
-                  if (e.target.value === 'new') {
-                    setCandidateMatched(null);
-                    setCandidateTe(null);
-                  }
-                  triggerPreview();
+                  setMatchLookup(null);
+                  setSelectedTeId(undefined);
                 }}
               >
                 <Radio.Button value="new">手工录入新母单</Radio.Button>
@@ -560,23 +478,33 @@ export const SeaOrderReassignmentModal: React.FC<
           </Col>
           <Col span={12}>
             <Form.Item
-              name="masterNo"
               label="目标提单号 (MBL No)"
-              rules={[
-                { required: true, message: '请输入目标提单号' },
-                {
-                  pattern: /^[A-Za-z0-9]+$/,
-                  message:
-                    '提单号只能包含英文字母和阿拉伯数字，不能包含空格或符号',
-                },
-              ]}
+              required
+              htmlFor="reassignment-master-no"
             >
               <Space.Compact style={{ width: '100%' }}>
-                <Input
-                  placeholder="请输入目标提单号"
-                  onChange={() => setCandidateMatched(null)}
-                />
-                <Button type="primary" onClick={handleMatchCandidate}>
+                <Form.Item
+                  name="masterNo"
+                  noStyle
+                  rules={[
+                    { required: true, message: '请输入目标提单号' },
+                    {
+                      pattern: /^[A-Za-z0-9]+$/,
+                      message:
+                        '提单号只能包含英文字母和阿拉伯数字，不能包含空格或符号',
+                    },
+                  ]}
+                >
+                  <Input
+                    id="reassignment-master-no"
+                    placeholder="请输入目标提单号"
+                  />
+                </Form.Item>
+                <Button
+                  type="primary"
+                  onClick={handleMatchCandidate}
+                  loading={matching}
+                >
                   检查/匹配
                 </Button>
               </Space.Compact>
@@ -601,7 +529,7 @@ export const SeaOrderReassignmentModal: React.FC<
               options={(candidateMatched.transportExecutions ?? []).map(
                 (te) => ({
                   value: te.id,
-                  label: `${te.vesselName || '-'} / ${te.voyageNo || '-'} / ${te.etd || '无 ETD'}`,
+                  label: `${te.vesselName || '-'} / ${te.voyageNo || '-'} / ${te.etd ? formatDate(te.etd, 'minute') : '无 ETD'}`,
                 }),
               )}
               onChange={(id) => {
@@ -610,27 +538,7 @@ export const SeaOrderReassignmentModal: React.FC<
                   (item) => item.id === id,
                 );
                 if (!te?.id || !te.version) return;
-                setCandidateTe(te);
-                setTargetType('candidate');
-                form.setFieldsValue({
-                  shippingLineId: te.shippingLineId,
-                  vesselName: te.vesselName,
-                  voyageNo: te.voyageNo,
-                  originLocationId: te.originLocationId,
-                  dischargeLocationId: te.dischargeLocationId,
-                  transitLocationId: te.transitLocationId,
-                  etd: te.etd ? dayjs(te.etd) : undefined,
-                  eta: te.eta ? dayjs(te.eta) : undefined,
-                });
-                void triggerPreview({
-                  targetType: 'CANDIDATE',
-                  candidateId: candidateMatched.id,
-                  candidateVersion: String(candidateMatched.version),
-                  candidateTeId: te.id,
-                  candidateTeVersion: String(te.version),
-                  masterNo: candidateMatched.masterNo,
-                  shippingLineId: te.shippingLineId,
-                });
+                setSelectedTeId(te.id);
               }}
             />
           </Space>
@@ -655,21 +563,23 @@ export const SeaOrderReassignmentModal: React.FC<
                   },
                 }}
                 options={carrierOptions}
-                onChange={() => {
-                  setCandidateMatched(null);
-                  setCandidateTe(null);
-                }}
               />
             </Form.Item>
           </Col>
           <Col span={8}>
             <Form.Item name="vesselName" label="船名">
-              <Input placeholder="船名" />
+              <Input
+                placeholder="船名"
+                disabled={targetType === 'candidate' || undefined}
+              />
             </Form.Item>
           </Col>
           <Col span={8}>
             <Form.Item name="voyageNo" label="航次">
-              <Input placeholder="航次" />
+              <Input
+                placeholder="航次"
+                disabled={targetType === 'candidate' || undefined}
+              />
             </Form.Item>
           </Col>
         </Row>
@@ -679,6 +589,7 @@ export const SeaOrderReassignmentModal: React.FC<
             <Form.Item name="originLocationId" label="起运港 (POL)">
               <Select
                 allowClear
+                disabled={targetType === 'candidate' || undefined}
                 placeholder="搜索起运港"
                 showSearch={{
                   filterOption: false,
@@ -697,6 +608,7 @@ export const SeaOrderReassignmentModal: React.FC<
             <Form.Item name="dischargeLocationId" label="卸货港 (POD)">
               <Select
                 allowClear
+                disabled={targetType === 'candidate' || undefined}
                 placeholder="搜索卸货港"
                 showSearch={{
                   filterOption: false,
@@ -715,6 +627,7 @@ export const SeaOrderReassignmentModal: React.FC<
             <Form.Item name="transitLocationId" label="中转港">
               <Select
                 allowClear
+                disabled={targetType === 'candidate' || undefined}
                 placeholder="搜索中转港"
                 showSearch={{
                   filterOption: false,
@@ -734,12 +647,20 @@ export const SeaOrderReassignmentModal: React.FC<
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item name="etd" label="预计离港时间 (ETD)">
-              <DatePicker showTime style={{ width: '100%' }} />
+              <DatePicker
+                showTime
+                style={{ width: '100%' }}
+                disabled={targetType === 'candidate' || undefined}
+              />
             </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item name="eta" label="预计到港时间 (ETA)">
-              <DatePicker showTime style={{ width: '100%' }} />
+              <DatePicker
+                showTime
+                style={{ width: '100%' }}
+                disabled={targetType === 'candidate' || undefined}
+              />
             </Form.Item>
           </Col>
         </Row>
@@ -757,7 +678,10 @@ export const SeaOrderReassignmentModal: React.FC<
                   { label: '客户原因 (CUSTOMER)', value: 'CUSTOMER' },
                   { label: '船东原因 (CARRIER)', value: 'CARRIER' },
                   { label: '海关原因 (CUSTOMS)', value: 'CUSTOMS' },
-                  { label: '不可抗力 (FORCE_MAJEURE)', value: 'FORCE_MAJEURE' },
+                  {
+                    label: '不可抗力 (FORCE_MAJEURE)',
+                    value: 'FORCE_MAJEURE',
+                  },
                   { label: '其他原因 (OTHER)', value: 'OTHER' },
                 ]}
               />
@@ -779,6 +703,34 @@ export const SeaOrderReassignmentModal: React.FC<
 
         <SeaExternalConfirmationFields orderId={orderId} />
       </Form>
+
+      {!targetInput && (
+        <Alert
+          type="info"
+          showIcon
+          title={
+            targetType === 'candidate'
+              ? '请匹配已有母单，并明确选择目标实际航次后预览'
+              : '填写目标提单号并选择船公司后，系统将校验改配条件'
+          }
+        />
+      )}
+      {matchLookup && matchQuery.data?.matched === false && (
+        <Alert
+          type="info"
+          showIcon
+          title="未找到已有母单，将按填写的航程新建母单"
+        />
+      )}
+      <Button
+        onClick={() => void previewQuery.refetch()}
+        disabled={
+          !previewEnabled || previewing || submitting || Boolean(confirmation)
+        }
+        style={{ marginTop: 12 }}
+      >
+        重新预览
+      </Button>
 
       {/* 航程要素比对表格 */}
       <div style={{ marginTop: 12 }}>
@@ -814,8 +766,35 @@ export const SeaOrderReassignmentModal: React.FC<
           </>
         )}
       </div>
+      <Modal
+        title="确认提交整票改配？"
+        open={Boolean(confirmation)}
+        onCancel={() => setConfirmation(null)}
+        onOk={executeConfirmed}
+        confirmLoading={submitting}
+        cancelButtonProps={{ disabled: submitting }}
+        closable={!submitting}
+        mask={{ closable: !submitting }}
+        okText="确认改配"
+        cancelText="返回修改"
+      >
+        <p>
+          保留当前操作票号与流程状态，不会复制订单；当前航程将切换为目标 MBL
+          权威航程。
+        </p>
+        <p>目标母单：{confirmation?.target.masterNo}</p>
+        <p>请核对航程要素变动表。执行后将生成不可变改配历史记录。</p>
+      </Modal>
     </Modal>
   );
-};
+}
+
+export function SeaOrderReassignmentModal(
+  props: SeaOrderReassignmentModalProps,
+) {
+  return props.open ? (
+    <ReassignmentForm key={props.orderId} {...props} />
+  ) : null;
+}
 
 export default SeaOrderReassignmentModal;
