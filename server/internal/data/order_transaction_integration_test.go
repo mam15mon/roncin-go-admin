@@ -26,6 +26,7 @@ import (
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	portent "github.com/roncin/roncin-go-admin/server/internal/data/ent/port"
 	seahousebill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
+	seahousebillversion "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebillversion"
 	seamasterbill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbill"
 	seamasterbillorderlink "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 	seatransportexecution "github.com/roncin/roncin-go-admin/server/internal/data/ent/seatransportexecution"
@@ -1158,6 +1159,12 @@ func (f *orderPostgresFixture) cleanup() {
 			return err
 		}},
 		{name: "海运分单", run: func() error {
+			if _, err := f.data.db.SeaHouseBill.Update().Where(seahousebill.OrganizationIDEQ(f.organizationID)).ClearCurrentVersionID().Save(ctx); err != nil {
+				return err
+			}
+			if _, err := f.data.db.SeaHouseBillVersion.Delete().Where(seahousebillversion.OrganizationIDEQ(f.organizationID)).Exec(ctx); err != nil {
+				return err
+			}
 			_, err := f.data.db.SeaHouseBill.Delete().Where(seahousebill.OrganizationIDEQ(f.organizationID)).Exec(ctx)
 			return err
 		}},

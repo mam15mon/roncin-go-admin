@@ -30,6 +30,7 @@ const (
 	VersionSourceAmendment  = "AMENDMENT"
 	VersionSourceVoid       = "VOID"
 	VersionSourceModeChange = "MODE_CHANGE"
+	VersionSourceDraftSave  = "DRAFT_SAVE"
 
 	// LockSourceManual 人工锁定：locked_by 必填，归属实际锁定人。
 	LockSourceManual = "MANUAL"

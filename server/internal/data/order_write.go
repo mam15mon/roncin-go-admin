@@ -127,7 +127,7 @@ func (r *orderRepo) Create(ctx context.Context, organizationID, actorID uuid.UUI
 		if err := syncOrderSeaMasterBillOnCreate(ctx, tx, organizationID, created, input); err != nil {
 			return err
 		}
-		if err := syncOrderSeaDocumentOnCreate(ctx, tx, organizationID, created, input, audit); err != nil {
+		if err := syncOrderSeaDocumentOnCreate(ctx, tx, organizationID, actorID, created, input, audit); err != nil {
 			return err
 		}
 		if _, err := tx.OrderLifecycleEvent.Create().SetOrderID(created.ID).SetDimension(orderlifecycleeventent.DimensionFLOW).SetToStatus("DRAFT").SetAction("create").SetOperatorID(actorID).Save(ctx); err != nil {

@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   SeaDocumentEventType,
   SeaDocumentType,
+  SeaDocumentVersionSource,
   SeaHouseBillIssuerSource,
   SeaHouseBillStatus,
 } from '@/enums.generated';
@@ -231,6 +232,46 @@ describe('SeaDocumentHistoryActions', () => {
     expect(
       screen.getByText('中远海运 / COSCO SHIPPING (COSU)'),
     ).toBeInTheDocument();
+  });
+
+  it('HBL 普通创建和保存的版本显示草稿保存来源', async () => {
+    vi.spyOn(
+      service,
+      'seaDocumentServiceListSeaHouseBillVersions',
+    ).mockResolvedValue({
+      data: [
+        {
+          id: 'draft-version-1',
+          documentType: SeaDocumentType.SEA_DOCUMENT_TYPE_HOUSE_BILL,
+          documentNo: 'HBL-001',
+          versionNo: '1',
+          sourceEntityVersion: '1',
+          source:
+            SeaDocumentVersionSource.SEA_DOCUMENT_VERSION_SOURCE_DRAFT_SAVE,
+          content: {},
+        },
+      ],
+      total: 1,
+    });
+    historyServiceMocks.listDocumentEvents.mockResolvedValue({ data: [] });
+    render(
+      <App>
+        <SeaDocumentHistoryActions
+          orderId="order-1"
+          orderVersion="1"
+          documentType={SeaDocumentType.SEA_DOCUMENT_TYPE_HOUSE_BILL}
+          documentId="house-1"
+          documentNo="HBL-001"
+          documentVersion="1"
+          currentVersionId="draft-version-1"
+          getAmendmentInput={() => ({})}
+          onSuccess={vi.fn()}
+        />
+      </App>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /版本与事件/ }));
+    expect(await screen.findByText('草稿保存')).toBeInTheDocument();
+    expect(screen.queryByText('订单锁定')).not.toBeInTheDocument();
   });
 
   it('版本总数超过一页时展示加载更多并追加第二页，刷新时重置回第一页', async () => {

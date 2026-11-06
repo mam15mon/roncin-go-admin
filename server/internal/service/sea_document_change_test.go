@@ -11,6 +11,9 @@ import (
 )
 
 func TestSeaDocumentChangeDTOConversions(t *testing.T) {
+	if source := seaVersionSourceToAPI(biz.VersionSourceDraftSave); source != v1.SeaDocumentVersionSource_SEA_DOCUMENT_VERSION_SOURCE_DRAFT_SAVE {
+		t.Fatalf("草稿保存来源没有映射到明确的 API 枚举: %v", source)
+	}
 	now := time.Date(2026, 9, 4, 16, 0, 0, 0, time.UTC)
 	versionID := uuid.New()
 	documentID := uuid.New()

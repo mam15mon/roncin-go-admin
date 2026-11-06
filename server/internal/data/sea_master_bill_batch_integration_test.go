@@ -142,17 +142,16 @@ func TestSeaMasterBillBatchRulesPostgres(t *testing.T) {
 		if err != nil {
 			t.Fatalf("读取订单1当前 HBL 失败: %v", err)
 		}
-		// 订单创建路径不生成版本快照；模式切换要求 current_version_id 已就绪。
-		currentVersionID := ensureHouseBillCurrentVersion(t, fixture.data, fixture.actorID, hbl1.ID)
+		if hbl1.CurrentVersionID == nil {
+			t.Fatal("正常创建 HOUSE 订单后必须已有当前分单快照")
+		}
+		currentVersionID := *hbl1.CurrentVersionID
 		// 本用例产生的不可变版本与模式切换事件必须先于夹具清理删除，
 		// 否则 HBL 外键（NO ACTION）会阻断夹具行级清理。
 		t.Cleanup(func() {
 			cleanupCtx := context.Background()
 			_, _ = fixture.data.db.SeaDocumentModeChangeEvent.Delete().
 				Where(seadocumentmodechangeeventent.OrganizationIDEQ(fixture.organizationID)).
-				Exec(cleanupCtx)
-			_, _ = fixture.data.db.SeaHouseBillVersion.Delete().
-				Where(seahousebillversionent.OrganizationIDEQ(fixture.organizationID)).
 				Exec(cleanupCtx)
 		})
 		link1, err := fixture.data.db.SeaMasterBillOrderLink.Query().
@@ -296,6 +295,12 @@ func TestSeaMasterBillBatchRulesPostgres(t *testing.T) {
 		if err != nil {
 			t.Fatalf("读取订单2 HBL 失败: %v", err)
 		}
+		if _, err := fixture.data.db.SeaHouseBill.UpdateOneID(order2HBL.ID).ClearCurrentVersionID().Save(ctx); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := fixture.data.db.SeaHouseBillVersion.Delete().Where(seahousebillversionent.HouseBillIDEQ(order2HBL.ID)).Exec(ctx); err != nil {
+			t.Fatal(err)
+		}
 		if _, err := fixture.data.db.SeaHouseBill.Delete().Where(seahousebillent.IDEQ(order2HBL.ID)).Exec(ctx); err != nil {
 			t.Fatalf("清理订单2 HBL 失败: %v", err)
 		}
@@ -403,32 +408,6 @@ func createOrderConfirmCandidate(
 		input.SeaDocumentInput = seaDocumentInput
 	}
 	return usecase.Create(ctx, fixture.organizationID, fixture.actorID, input)
-}
-
-// ensureHouseBillCurrentVersion 为 HBL 补当前不可变版本并返回版本 ID。
-func ensureHouseBillCurrentVersion(t *testing.T, data *Data, actorID, hblID uuid.UUID) uuid.UUID {
-	t.Helper()
-	ctx := context.Background()
-	var versionID uuid.UUID
-	err := data.WithTx(ctx, func(tx *ent.Tx) error {
-		hbl, err := tx.SeaHouseBill.Get(ctx, hblID)
-		if err != nil {
-			return err
-		}
-		version, err := createHouseVersion(ctx, tx, hbl, actorID, biz.VersionSourceOrderLock, nil, nil, nil, nil)
-		if err != nil {
-			return err
-		}
-		if _, err := hbl.Update().SetCurrentVersionID(version.ID).Save(ctx); err != nil {
-			return err
-		}
-		versionID = version.ID
-		return nil
-	})
-	if err != nil {
-		t.Fatalf("补齐 HBL 当前不可变版本失败: %v", err)
-	}
-	return versionID
 }
 
 func seaBatchTestConfirmation() *biz.SeaExternalConfirmation {

@@ -124,13 +124,23 @@ func (r *seaDocumentChangeRepo) PreviewModeChange(ctx context.Context, orgID uui
 			return nil, mapEntError(err, biz.ErrSeaDocumentStructureConflict, nil)
 		}
 		impactHouseBillID = hbl.ID
-		if hbl.CurrentVersionID != nil {
-			version, err := client.SeaHouseBillVersion.Query().Where(seahousebillversionent.IDEQ(*hbl.CurrentVersionID)).Only(ctx)
-			if err != nil {
-				return nil, err
-			}
-			base = houseVersionToBiz(version)
+		if hbl.CurrentVersionID == nil {
+			return nil, biz.ErrSeaDocumentVersionConflict
 		}
+		version, err := client.SeaHouseBillVersion.Query().Where(
+			seahousebillversionent.IDEQ(*hbl.CurrentVersionID),
+			seahousebillversionent.OrganizationIDEQ(orgID),
+			seahousebillversionent.HouseBillIDEQ(hbl.ID),
+			seahousebillversionent.OrderIDEQ(order.ID),
+			seahousebillversionent.MasterBillIDEQ(link.MasterBillID),
+		).Only(ctx)
+		if err != nil {
+			return nil, mapEntError(err, biz.ErrSeaDocumentVersionConflict, nil)
+		}
+		if version.SourceEntityVersion != hbl.Version || version.ContentHash != computeHBLContentHash(hbl) {
+			return nil, biz.ErrSeaDocumentVersionConflict
+		}
+		base = houseVersionToBiz(version)
 	} else {
 		if input.NewHouseBill == nil {
 			return nil, biz.ErrSeaDocumentInvalidArgument

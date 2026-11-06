@@ -90,12 +90,16 @@ func TestSeaHouseBillPrintDetailsPostgres(t *testing.T) {
 	}
 	failedAudit := audit(fixture.actorID)
 	failedAudit.Result = "invalid-result"
+	versionCount := data.db.SeaHouseBillVersion.Query().Where(seahousebillversionent.HouseBillIDEQ(docs.HouseBill.ID)).CountX(ctx)
 	if _, err = repo.UpdateSeaHouseBill(ctx, fixture.organizationID, fixture.actorID, order.ID, docs.HouseBill.ID, docs.HouseBill.Version, docs.LinkVersion, makeInput(), failedAudit); err == nil {
 		t.Fatal("审计校验失败应回滚")
 	}
 	afterRollback := read()
-	if afterRollback.HouseBill.Version != docs.HouseBill.Version || !reflect.DeepEqual(afterRollback.HouseBill.PrintDetails, &nextDetails) {
-		t.Fatal("审计失败未回滚印字")
+	if afterRollback.HouseBill.Version != docs.HouseBill.Version || !reflect.DeepEqual(afterRollback.HouseBill.PrintDetails, &nextDetails) || !reflect.DeepEqual(afterRollback.HouseBill.CurrentVersionID, docs.HouseBill.CurrentVersionID) {
+		t.Fatal("审计失败未回滚印字和当前快照指针")
+	}
+	if count := data.db.SeaHouseBillVersion.Query().Where(seahousebillversionent.HouseBillIDEQ(docs.HouseBill.ID)).CountX(ctx); count != versionCount {
+		t.Fatal("审计失败留下了部分草稿快照")
 	}
 	var snapshotID uuid.UUID
 	err = data.WithTx(ctx, func(tx *ent.Tx) error {

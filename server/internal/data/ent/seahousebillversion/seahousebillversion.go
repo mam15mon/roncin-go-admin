@@ -374,6 +374,7 @@ const (
 	SourceAMENDMENT   Source = "AMENDMENT"
 	SourceVOID        Source = "VOID"
 	SourceMODE_CHANGE Source = "MODE_CHANGE"
+	SourceDRAFT_SAVE  Source = "DRAFT_SAVE"
 )
 
 func (s Source) String() string {
@@ -383,7 +384,7 @@ func (s Source) String() string {
 // SourceValidator is a validator for the "source" field enum values. It is called by the builders before save.
 func SourceValidator(s Source) error {
 	switch s {
-	case SourceORDER_LOCK, SourceAMENDMENT, SourceVOID, SourceMODE_CHANGE:
+	case SourceORDER_LOCK, SourceAMENDMENT, SourceVOID, SourceMODE_CHANGE, SourceDRAFT_SAVE:
 		return nil
 	default:
 		return fmt.Errorf("seahousebillversion: invalid enum value for source field: %q", s)

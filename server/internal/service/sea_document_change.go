@@ -372,6 +372,8 @@ func seaVersionSourceToAPI(v string) v1.SeaDocumentVersionSource {
 		return v1.SeaDocumentVersionSource_SEA_DOCUMENT_VERSION_SOURCE_AMENDMENT
 	case biz.VersionSourceModeChange:
 		return v1.SeaDocumentVersionSource_SEA_DOCUMENT_VERSION_SOURCE_MODE_CHANGE
+	case biz.VersionSourceDraftSave:
+		return v1.SeaDocumentVersionSource_SEA_DOCUMENT_VERSION_SOURCE_DRAFT_SAVE
 	case biz.VersionSourceVoid:
 		return v1.SeaDocumentVersionSource_SEA_DOCUMENT_VERSION_SOURCE_VOID
 	default:

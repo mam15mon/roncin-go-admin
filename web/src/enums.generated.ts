@@ -586,6 +586,7 @@ export const SeaDocumentVersionSource = {
   SEA_DOCUMENT_VERSION_SOURCE_AMENDMENT: 2,
   SEA_DOCUMENT_VERSION_SOURCE_VOID: 4,
   SEA_DOCUMENT_VERSION_SOURCE_MODE_CHANGE: 5,
+  SEA_DOCUMENT_VERSION_SOURCE_DRAFT_SAVE: 6,
 } as const;
 
 export type SeaDocumentVersionSource = (typeof SeaDocumentVersionSource)[keyof typeof SeaDocumentVersionSource];

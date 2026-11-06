@@ -1597,6 +1597,10 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 						if err != nil {
 							return err
 						}
+						updatedHBL, err = SaveSeaHouseBillDraftVersion(ctx, tx, updatedHBL, actorID)
+						if err != nil {
+							return err
+						}
 						resultHouseBillMap[res.ClientResultKey] = updatedHBL
 					} else {
 						resultHouseBillMap[res.ClientResultKey] = curHBL
@@ -1681,6 +1685,10 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 						if ent.IsConstraintError(err) {
 							return biz.ErrSeaHouseBillExists
 						}
+						return err
+					}
+					createdHBL, err = SaveSeaHouseBillDraftVersion(ctx, tx, createdHBL, actorID)
+					if err != nil {
 						return err
 					}
 					resultHouseBillMap[res.ClientResultKey] = createdHBL

@@ -225,7 +225,7 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 		if syncErr := syncOrderSeaMasterBillOnUpdate(ctx, tx, organizationID, existing, input, audit, mblLockContext); syncErr != nil {
 			return syncErr
 		}
-		if syncErr := syncOrderSeaDocumentOnUpdate(ctx, tx, organizationID, existing, input, audit, mblLockContext); syncErr != nil {
+		if syncErr := syncOrderSeaDocumentOnUpdate(ctx, tx, organizationID, *audit.UserID, existing, input, audit, mblLockContext); syncErr != nil {
 			return syncErr
 		}
 		if err := updateAirOrderDocuments(ctx, tx, organizationID, *audit.UserID, existing, input); err != nil {

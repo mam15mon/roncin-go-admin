@@ -481,3 +481,49 @@ return transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
 
 关联已有母单加票、共享箱资料/确认与整票改配的一致性边界，见
 [海运共享资料写入一致性](./sea-shared-write-consistency.md)。
+
+## Scenario：普通 HBL 保存与模式切换的快照生命周期
+
+### 1. Scope / Trigger
+
+适用于正式创建 HOUSE 订单、整单/独立保存 HBL、拆票新分单或改挂、整票改配。
+这些入口必须同步工作实体与不可变当前版本，避免预览通过而执行缺少版本基线。
+
+### 2. Signatures
+
+- `SaveSeaHouseBillDraftVersion(ctx, tx, hbl, actorID)`：归档已写入的 HBL，推进 `current_version_id`；调用方在同一事务持有写锁或刚创建该分单。
+- `SEA_DOCUMENT_VERSION_SOURCE_DRAFT_SAVE = 6`，数据库来源值 `DRAFT_SAVE`，界面显示「草稿保存」。
+- 正式迁移 `20261106090000_sea_house_bill_draft_versions.sql` 与 Ent `sea_house_bill_versions_source_check` 同步约束。
+
+### 3. Contracts
+
+- 普通写入后追加完整快照，内容哈希、`source_entity_version`、组织/订单/MBL/HBL 身份必须对应当前工作状态；不能借用 `ORDER_LOCK` 伪造审核历史。
+- HOUSE→DIRECT 预览必须验证当前快照身份、实体版本和哈希，执行继续校验 `expected_current_version_id` 并在锁内重验。
+- 审核可复用同实体版本及内容的当前快照；草稿快照本身不代表审核。历史只追加，审计失败须连同实体及当前指针全部回滚。
+- `sync:dev` 只对本次新建订单的有效分单归档最终种子状态，保留演示事件所指的旧版本；重复同步不得回填已有订单或增加版本。
+- 不自动回填既有无快照分单；用户显式保存分单可建立基线。MBL/TE 普通保存不在此范围。
+
+### 4. Validation & Error Matrix
+
+| 条件 | 行为 |
+| --- | --- |
+| 正式新建未审核 HOUSE，无下游阻断事实 | 已有 DRAFT_SAVE 当前快照，可预览并执行转 DIRECT |
+| 当前快照缺失、身份不符、实体版本或哈希过期 | 预览拒绝，不展示可执行状态 |
+| 保存后用旧 expectedCurrentVersionId 执行 | 409，保留输入并重新预览 |
+| 审计或快照写入失败 | 同一事务回滚，无孤立版本或指针推进 |
+
+### 5. Good / Base / Bad Cases
+
+正确：普通保存归档当前 HBL，再用该基线切换模式；基础场景为未审核且无账务/共享箱分配的 HOUSE。
+错误：只在测试夹具中手建版本，或者为绕过缺快照删除执行侧并发校验。
+
+### 6. Tests Required
+
+- `TestSeaHouseBillDraftVersionLifecyclePostgres` 从真实 Usecase.Create 进入，覆盖普通与独立保存、旧基线冲突、双向模式切换、幂等重放及旧历史不变。
+- 缺失/过期快照拒绝、审计失败整体回滚、拆票/改配后主单身份与实体版本一致。
+- 正式旧迁移前态升级、重复迁移、Ent CHECK 与 DRAFT_SAVE 枚举一致；开发种子两次运行计数不变且有效分单当前快照完整。
+
+### 7. Wrong vs Correct
+
+错误：创建 HBL 返回成功，但 `current_version_id` 为空，直到审核才补版本。
+正确：创建/保存 HBL 后在同一 `WithTx` 回调调用 `SaveSeaHouseBillDraftVersion`，任何错误原样返回并回滚。

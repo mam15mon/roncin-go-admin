@@ -14,7 +14,7 @@ import (
 	seamasterbillorderlink "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 )
 
-func syncOrderSeaDocumentOnCreate(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, order *ent.Order, input *biz.Order, audit *biz.AuditEvent) error {
+func syncOrderSeaDocumentOnCreate(ctx context.Context, tx *ent.Tx, organizationID, actorID uuid.UUID, order *ent.Order, input *biz.Order, audit *biz.AuditEvent) error {
 	if input.BusinessType != biz.OrderBusinessSE || input.SeaDocumentInput == nil {
 		return nil
 	}
@@ -121,10 +121,14 @@ func syncOrderSeaDocumentOnCreate(ctx context.Context, tx *ent.Tx, organizationI
 		if hbInput.PrintDetails != nil {
 			builder.SetPrintDetails(seaHouseBillPrintDetailsToPO(hbInput.PrintDetails))
 		}
-		if _, err := builder.Save(ctx); err != nil {
+		hbl, err := builder.Save(ctx)
+		if err != nil {
 			if ent.IsConstraintError(err) {
 				return biz.ErrSeaHouseBillBatchNoDuplicate
 			}
+			return err
+		}
+		if _, err := SaveSeaHouseBillDraftVersion(ctx, tx, hbl, actorID); err != nil {
 			return err
 		}
 	}
@@ -145,7 +149,7 @@ func syncOrderSeaDocumentOnCreate(ctx context.Context, tx *ent.Tx, organizationI
 func syncOrderSeaDocumentOnUpdate(
 	ctx context.Context,
 	tx *ent.Tx,
-	organizationID uuid.UUID,
+	organizationID, actorID uuid.UUID,
 	order *ent.Order,
 	input *biz.Order,
 	audit *biz.AuditEvent,
@@ -206,7 +210,7 @@ func syncOrderSeaDocumentOnUpdate(
 		if link.DocumentStructure != seamasterbillorderlink.DocumentStructureHOUSE || link.Version != *docInput.ExpectedLinkVersion {
 			return biz.ErrSeaDocumentStructureConflict
 		}
-		if err := updateLockedSeaHouseBill(ctx, tx, organizationID, order, link, input.CustomerID, *docInput.HouseBill.ID, *docInput.HouseBill.ExpectedVersion, docInput.HouseBill, audit); err != nil {
+		if err := updateLockedSeaHouseBill(ctx, tx, organizationID, actorID, order, link, input.CustomerID, *docInput.HouseBill.ID, *docInput.HouseBill.ExpectedVersion, docInput.HouseBill, audit); err != nil {
 			return err
 		}
 	}

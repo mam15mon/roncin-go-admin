@@ -356,6 +356,17 @@ func createMasterVersion(ctx context.Context, tx *ent.Tx, mbl *ent.SeaMasterBill
 	return b.Save(ctx)
 }
 
+// SaveSeaHouseBillDraftVersion 在工作分单写入的同一事务中归档其当前状态。
+// 草稿快照不代表订单已审核；审核可复用同一实体版本及内容的快照。
+// 调用方须持有工作分单的写锁或刚创建该分单；开发种子仅用于本次新建订单。
+func SaveSeaHouseBillDraftVersion(ctx context.Context, tx *ent.Tx, hbl *ent.SeaHouseBill, actorID uuid.UUID) (*ent.SeaHouseBill, error) {
+	version, err := createHouseVersion(ctx, tx, hbl, actorID, biz.VersionSourceDraftSave, nil, nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	return hbl.Update().SetCurrentVersionID(version.ID).Save(ctx)
+}
+
 func createHouseVersion(ctx context.Context, tx *ent.Tx, hbl *ent.SeaHouseBill, actorID uuid.UUID, source string, reason, idempotencyKey, fingerprint *string, confirmation *biz.SeaExternalConfirmation) (*ent.SeaHouseBillVersion, error) {
 	latest, err := tx.SeaHouseBillVersion.Query().Where(seahousebillversionent.HouseBillIDEQ(hbl.ID)).Order(ent.Desc(seahousebillversionent.FieldVersionNo)).First(ctx)
 	next := uint64(1)

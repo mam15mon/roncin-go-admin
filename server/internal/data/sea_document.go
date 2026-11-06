@@ -286,7 +286,7 @@ func (r *seaDocumentRepo) UpdateSeaHouseBill(ctx context.Context, organizationID
 			return biz.ErrSeaDocumentStructureConflict
 		}
 
-		if err := updateLockedSeaHouseBill(ctx, tx, organizationID, order, link, order.CustomerID, houseBillID, expectedVersion, input, audit); err != nil {
+		if err := updateLockedSeaHouseBill(ctx, tx, organizationID, actorID, order, link, order.CustomerID, houseBillID, expectedVersion, input, audit); err != nil {
 			return err
 		}
 
@@ -303,7 +303,7 @@ func (r *seaDocumentRepo) UpdateSeaHouseBill(ctx context.Context, organizationID
 }
 
 // updateLockedSeaHouseBill 复用已有 Order→MBL→Link 写锁，只在其后锁定并更新本票 HBL。
-func updateLockedSeaHouseBill(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, order *ent.Order, link *ent.SeaMasterBillOrderLink, customerID, houseBillID uuid.UUID, expectedVersion uint64, input *biz.SeaHouseBillInput, audit *biz.AuditEvent) error {
+func updateLockedSeaHouseBill(ctx context.Context, tx *ent.Tx, organizationID, actorID uuid.UUID, order *ent.Order, link *ent.SeaMasterBillOrderLink, customerID, houseBillID uuid.UUID, expectedVersion uint64, input *biz.SeaHouseBillInput, audit *biz.AuditEvent) error {
 	normalized, err := biz.NormalizeSeaHouseNo(input.HouseNo)
 	if err != nil {
 		return err
@@ -362,10 +362,14 @@ func updateLockedSeaHouseBill(ctx context.Context, tx *ent.Tx, organizationID uu
 	setSeaHouseBillContentUpdate(updater, normalizedContent)
 	setSeaHouseBillPrintDetailsUpdate(updater, input.PrintDetails)
 
-	if _, err := updater.Save(ctx); err != nil {
+	updated, err := updater.Save(ctx)
+	if err != nil {
 		if ent.IsConstraintError(err) {
 			return biz.ErrSeaHouseBillBatchNoDuplicate
 		}
+		return err
+	}
+	if _, err := SaveSeaHouseBillDraftVersion(ctx, tx, updated, actorID); err != nil {
 		return err
 	}
 

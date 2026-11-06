@@ -92,6 +92,7 @@ func TestDevelopmentSeedPostgres(t *testing.T) {
 		t.Fatalf("重复注入产生额外记录: %s -> %s", before, after)
 	}
 	checks := map[string]string{
+		"有效分单当前快照完整": `SELECT count(*) FROM sea_house_bills h LEFT JOIN sea_house_bill_versions v ON v.id=h.current_version_id WHERE h.status <> 'VOIDED' AND (v.id IS NULL OR v.organization_id<>h.organization_id OR v.order_id<>h.order_id OR v.master_bill_id<>h.master_bill_id OR v.source_entity_version<>h.version OR v.house_no<>h.house_no OR v.package_count IS DISTINCT FROM h.package_count OR v.gross_weight_kg IS DISTINCT FROM h.gross_weight_kg OR v.shipper_text IS DISTINCT FROM h.shipper_text)`,
 		"不补建上海重庆":    `SELECT count(*) FROM organizations WHERE code IN ('SH','CQ')`,
 		"员工无系统身份":    `SELECT count(*) FROM memberships m JOIN organizations o ON o.id=m.organization_id JOIN users u ON u.id=m.user_id WHERE o.kind='system' AND NOT u.is_bootstrap_admin`,
 		"角色公司一致":     `SELECT count(*) FROM role_assignments a JOIN memberships m ON m.id=a.membership_id JOIN roles r ON r.id=a.role_id WHERE m.organization_id<>r.organization_id`,

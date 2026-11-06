@@ -512,6 +512,13 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 		if createdHBLs[0].PrintDetails != nil {
 			t.Fatal("拆票新 HBL 不能继承原票签发日期和印字参考")
 		}
+		if createdHBLs[0].CurrentVersionID == nil {
+			t.Fatal("拆票新建 HBL 必须同步当前草稿快照")
+		}
+		createdVersion := env.data.db.SeaHouseBillVersion.GetX(ctx, *createdHBLs[0].CurrentVersionID)
+		if createdVersion.Source != "DRAFT_SAVE" || createdVersion.SourceEntityVersion != createdHBLs[0].Version || createdVersion.MasterBillID != createdHBLs[0].MasterBillID {
+			t.Fatalf("拆票新建 HBL 的当前快照没有记录真实版本和主单: %#v", createdVersion)
+		}
 
 		// 货物守恒
 		originCargo, _ := env.data.db.OrderCargoItem.Query().Where(ordercargoitement.OrderIDEQ(f.order.ID)).Only(ctx)
@@ -1626,6 +1633,14 @@ func TestSeaOrderChangeBusinessLockGate_Postgres(t *testing.T) {
 		}
 		if after := env.data.db.Order.GetX(ctx, f.order.ID); after.ClosureStatus != orderent.ClosureStatusCLOSED {
 			t.Fatal("改配不得自动反结案")
+		}
+		house := env.data.db.SeaHouseBill.GetX(ctx, f.hbl.ID)
+		if house.CurrentVersionID == nil {
+			t.Fatal("改配后必须同步当前分单快照")
+		}
+		version := env.data.db.SeaHouseBillVersion.GetX(ctx, *house.CurrentVersionID)
+		if version.MasterBillID != house.MasterBillID || version.SourceEntityVersion != house.Version || version.Source != "DRAFT_SAVE" {
+			t.Fatalf("改配后当前快照仍指向旧主单或版本: %#v", version)
 		}
 	})
 

@@ -680,13 +680,17 @@ func (r *seaOrderChangeRepo) ExecuteReassignment(ctx context.Context, organizati
 			}
 		}
 		for _, h := range hbls {
-			if _, err := tx.SeaHouseBill.UpdateOneID(h.ID).
+			updated, err := tx.SeaHouseBill.UpdateOneID(h.ID).
 				SetMasterBillID(targetMBLID).
 				SetVersion(h.Version + 1).
-				Save(ctx); err != nil {
+				Save(ctx)
+			if err != nil {
 				if ent.IsConstraintError(err) {
 					return biz.ErrSeaHouseBillExists
 				}
+				return err
+			}
+			if _, err := SaveSeaHouseBillDraftVersion(ctx, tx, updated, actorID); err != nil {
 				return err
 			}
 		}

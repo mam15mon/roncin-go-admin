@@ -21,6 +21,7 @@ func (SeaHouseBillVersion) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entsql.Checks(map[string]string{
 			"sea_house_bill_versions_issuer_check": "((issuer_source = 'SELF_ORGANIZATION' AND issuer_organization_id IS NOT NULL AND issuer_partner_id IS NULL) OR (issuer_source IN ('CUSTOMER_PARTNER', 'OTHER_PARTNER') AND issuer_organization_id IS NULL AND issuer_partner_id IS NOT NULL))",
+			"sea_house_bill_versions_source_check": "source IN ('ORDER_LOCK', 'AMENDMENT', 'VOID', 'MODE_CHANGE', 'DRAFT_SAVE')",
 		}),
 	}
 }
@@ -43,7 +44,7 @@ func (SeaHouseBillVersion) Fields() []ent.Field {
 		field.String("note").Optional().Nillable().MaxLen(500).Immutable(),
 		field.JSON("print_details", &SeaHouseBillPrintDetails{}).Optional().Immutable(),
 		field.String("content_hash").NotEmpty().MaxLen(64).Immutable(),
-		field.Enum("source").Values("ORDER_LOCK", "AMENDMENT", "VOID", "MODE_CHANGE").Immutable(),
+		field.Enum("source").Values("ORDER_LOCK", "AMENDMENT", "VOID", "MODE_CHANGE", "DRAFT_SAVE").Immutable(),
 		field.String("reason").Optional().Nillable().MaxLen(500).Immutable(),
 		field.UUID("created_by", uuid.Nil).Optional().Nillable().Immutable(),
 		field.String("idempotency_key").Optional().Nillable().MaxLen(128).Immutable(),

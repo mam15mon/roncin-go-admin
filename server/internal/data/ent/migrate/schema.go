@@ -6479,7 +6479,7 @@ var (
 		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "print_details", Type: field.TypeJSON, Nullable: true},
 		{Name: "content_hash", Type: field.TypeString, Size: 64},
-		{Name: "source", Type: field.TypeEnum, Enums: []string{"ORDER_LOCK", "AMENDMENT", "VOID", "MODE_CHANGE"}},
+		{Name: "source", Type: field.TypeEnum, Enums: []string{"ORDER_LOCK", "AMENDMENT", "VOID", "MODE_CHANGE", "DRAFT_SAVE"}},
 		{Name: "reason", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "idempotency_key", Type: field.TypeString, Nullable: true, Size: 128},
 		{Name: "request_fingerprint", Type: field.TypeString, Nullable: true, Size: 128},
@@ -8191,6 +8191,7 @@ func init() {
 	SeaHouseBillVersionsTable.Annotation = &entsql.Annotation{}
 	SeaHouseBillVersionsTable.Annotation.Checks = map[string]string{
 		"sea_house_bill_versions_issuer_check": "((issuer_source = 'SELF_ORGANIZATION' AND issuer_organization_id IS NOT NULL AND issuer_partner_id IS NULL) OR (issuer_source IN ('CUSTOMER_PARTNER', 'OTHER_PARTNER') AND issuer_organization_id IS NULL AND issuer_partner_id IS NOT NULL))",
+		"sea_house_bill_versions_source_check": "source IN ('ORDER_LOCK', 'AMENDMENT', 'VOID', 'MODE_CHANGE', 'DRAFT_SAVE')",
 	}
 	SeaMasterBillsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	SeaMasterBillsTable.ForeignKeys[1].RefTable = SeaMasterBillVersionsTable

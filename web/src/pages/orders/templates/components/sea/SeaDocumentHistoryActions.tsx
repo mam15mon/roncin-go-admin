@@ -79,6 +79,7 @@ const sourceText: Record<number, string> = {
   [SeaDocumentVersionSource.SEA_DOCUMENT_VERSION_SOURCE_VOID]: '作废',
   [SeaDocumentVersionSource.SEA_DOCUMENT_VERSION_SOURCE_MODE_CHANGE]:
     '模式切换',
+  [SeaDocumentVersionSource.SEA_DOCUMENT_VERSION_SOURCE_DRAFT_SAVE]: '草稿保存',
 };
 
 const eventText: Record<number, string> = {

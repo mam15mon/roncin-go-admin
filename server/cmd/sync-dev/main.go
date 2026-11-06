@@ -185,6 +185,9 @@ func runSeed(ctx context.Context, client *ent.Client) (*seedContext, error) {
 		if err := seedSeaDocumentOperations(ctx, sc); err != nil {
 			return fmt.Errorf("海运单证操作（拆票/改配/共享箱/改单作废）同步失败: %w", err)
 		}
+		if err := seedNewSeaHouseBillVersions(ctx, sc); err != nil {
+			return fmt.Errorf("新建分单当前快照同步失败: %w", err)
+		}
 		if err := seedOrderOperations(ctx, sc); err != nil {
 			return fmt.Errorf("订单运营数据（POD/附件/异常）同步失败: %w", err)
 		}
@@ -195,6 +198,31 @@ func runSeed(ctx context.Context, client *ent.Client) (*seedContext, error) {
 		return nil
 	})
 	return sc, err
+}
+
+// seedNewSeaHouseBillVersions 在演示操作完成后归档本次新建分单的最终工作状态。
+// 已有订单不参与，重复同步不会回填用户记录或追加历史；演示历史保持只追加。
+func seedNewSeaHouseBillVersions(ctx context.Context, sc *seedContext) error {
+	ids := make([]uuid.UUID, 0, len(sc.newOrderIDs))
+	for id := range sc.newOrderIDs {
+		ids = append(ids, id)
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	houses, err := sc.tx.SeaHouseBill.Query().Where(
+		seahousebillent.OrderIDIn(ids...),
+		seahousebillent.StatusNEQ(seahousebillent.StatusVOIDED),
+	).Order(seahousebillent.ByID()).All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, house := range houses {
+		if _, err := data.SaveSeaHouseBillDraftVersion(ctx, sc.tx, house, sc.adminUser.ID); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func printSeedSummary(sc *seedContext) {

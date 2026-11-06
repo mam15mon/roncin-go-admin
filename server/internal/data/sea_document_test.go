@@ -76,7 +76,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 		t.Fatalf("创建测试船公司失败: %v", err)
 	}
 
-	actorID := uuid.New()
+	actorID := data.db.User.Create().SetDisplayName("海运单证测试保存人").SetEnabled(true).SaveX(ctx).ID
 	makeAudit := func() *biz.AuditEvent {
 		return &biz.AuditEvent{
 			OrganizationID: &businessCompany.ID,
@@ -700,7 +700,7 @@ func TestSeaDocument_ConcurrentOperationsNoDeadlock(t *testing.T) {
 		t.Fatalf("create HBL failed: %v", err)
 	}
 
-	actorID := uuid.New()
+	actorID := data.db.User.Create().SetDisplayName("海运单证并发测试保存人").SetEnabled(true).SaveX(ctx).ID
 
 	// 并发执行多次更新分单（严格锁序保证无死锁，且仅能有一个成功更新）
 	var wg sync.WaitGroup
