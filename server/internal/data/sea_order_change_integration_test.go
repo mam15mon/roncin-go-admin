@@ -718,6 +718,29 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 		if _, err = env.uc.ExecuteReassignment(ctx, env.orgID, env.userID, &diffFpInput); kratoserrors.Reason(err) != "SEA_ORDER_REASSIGNMENT_IDEMPOTENCY_CONFLICT" {
 			t.Fatalf("改配异指纹应冲突报错，实际: %v", err)
 		}
+
+		// 非空目标投影也必须在真实 PostgreSQL 生效；同一字段 Clear+Set 会生成重复赋值。
+		origin := env.data.db.Port.Create().SetUnLocode("CN" + strings.ToUpper(uuid.NewString()[:3])).SetNameEn("ORIGIN").SetCountryCode("CN").SetTransportModes([]string{"SEA"}).SaveX(ctx)
+		discharge := env.data.db.Port.Create().SetUnLocode("US" + strings.ToUpper(uuid.NewString()[:3])).SetNameEn("DISCHARGE").SetCountryCode("US").SetTransportModes([]string{"SEA"}).SaveX(ctx)
+		transit := env.data.db.Port.Create().SetUnLocode("SG" + strings.ToUpper(uuid.NewString()[:3])).SetNameEn("TRANSIT").SetCountryCode("SG").SetTransportModes([]string{"SEA"}).SaveX(ctx)
+		filledInput := *reassignInput
+		filledInput.IdempotencyKey = "reas-direct-filled"
+		filledInput.RequestFingerprint = "fp-reas-filled"
+		filledInput.ExpectedOrderVersion = storedOrder.Version
+		filledInput.ExpectedLinkVersion = newLinkAfter.Version
+		filledInput.Target = &biz.SeaOrderReassignmentTargetInput{
+			TargetType: biz.SplitTargetTypeNew, MasterNo: reassignInput.Target.MasterNo,
+			ShippingLineID: &env.carrier2ID, VesselName: "TARGET SHIP", VoyageNo: "099E",
+			OriginLocationID: &origin.ID, DischargeLocationID: &discharge.ID, TransitLocationID: &transit.ID,
+			ETD: "2026-12-01T00:00:00Z", ETA: "2026-12-10T00:00:00Z",
+		}
+		if _, err := env.uc.ExecuteReassignment(ctx, env.orgID, env.userID, &filledInput); err != nil {
+			t.Fatalf("非空目标航程改配失败: %v", err)
+		}
+		projected := env.data.db.Order.GetX(ctx, directOrder.ID)
+		if projected.OriginLocationID == nil || *projected.OriginLocationID != origin.ID || projected.DischargeLocationID == nil || *projected.DischargeLocationID != discharge.ID || projected.TransitLocationID == nil || *projected.TransitLocationID != transit.ID || projected.Etd != filledInput.Target.ETD || projected.Eta != filledInput.Target.ETA {
+			t.Fatalf("非空目标航程未同步: %+v", projected)
+		}
 	})
 
 	// E. 货物与共享箱两套全局守恒通过但结果票内部超分必须拒绝

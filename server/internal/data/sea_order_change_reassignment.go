@@ -775,16 +775,31 @@ func (r *seaOrderChangeRepo) ExecuteReassignment(ctx context.Context, organizati
 		orderUpdate := tx.Order.UpdateOneID(order.ID).
 			SetVersion(order.Version + 1).
 			SetShippingLineID(targetTE.ShippingLineID).
-			SetVesselVoyage(biz.CombineVesselVoyage(targetTE.VesselName, targetTE.VoyageNo)).
-			ClearOriginLocationID().SetNillableOriginLocationID(targetTE.OriginLocationID).
-			ClearDischargeLocationID().SetNillableDischargeLocationID(targetTE.DischargeLocationID).
-			ClearTransitLocationID().SetNillableTransitLocationID(targetTE.TransitLocationID).
-			ClearEtd().ClearEta()
+			SetVesselVoyage(biz.CombineVesselVoyage(targetTE.VesselName, targetTE.VoyageNo))
+		if targetTE.OriginLocationID != nil {
+			orderUpdate.SetOriginLocationID(*targetTE.OriginLocationID)
+		} else {
+			orderUpdate.ClearOriginLocationID()
+		}
+		if targetTE.DischargeLocationID != nil {
+			orderUpdate.SetDischargeLocationID(*targetTE.DischargeLocationID)
+		} else {
+			orderUpdate.ClearDischargeLocationID()
+		}
+		if targetTE.TransitLocationID != nil {
+			orderUpdate.SetTransitLocationID(*targetTE.TransitLocationID)
+		} else {
+			orderUpdate.ClearTransitLocationID()
+		}
 		if targetTE.Etd != nil {
 			orderUpdate.SetEtd(targetTE.Etd.Format(time.RFC3339))
+		} else {
+			orderUpdate.ClearEtd()
 		}
 		if targetTE.Eta != nil {
 			orderUpdate.SetEta(targetTE.Eta.Format(time.RFC3339))
+		} else {
+			orderUpdate.ClearEta()
 		}
 		if _, err := orderUpdate.Save(ctx); err != nil {
 			return err
