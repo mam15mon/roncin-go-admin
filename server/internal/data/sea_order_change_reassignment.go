@@ -771,7 +771,22 @@ func (r *seaOrderChangeRepo) ExecuteReassignment(ctx context.Context, organizati
 			return err
 		}
 
-		if _, err := tx.Order.UpdateOneID(order.ID).SetVersion(order.Version + 1).Save(ctx); err != nil {
+		// 同步订单筛选和名称关联使用的航程投影，避免返回新船公司 ID 与旧名称。
+		orderUpdate := tx.Order.UpdateOneID(order.ID).
+			SetVersion(order.Version + 1).
+			SetShippingLineID(targetTE.ShippingLineID).
+			SetVesselVoyage(biz.CombineVesselVoyage(targetTE.VesselName, targetTE.VoyageNo)).
+			ClearOriginLocationID().SetNillableOriginLocationID(targetTE.OriginLocationID).
+			ClearDischargeLocationID().SetNillableDischargeLocationID(targetTE.DischargeLocationID).
+			ClearTransitLocationID().SetNillableTransitLocationID(targetTE.TransitLocationID).
+			ClearEtd().ClearEta()
+		if targetTE.Etd != nil {
+			orderUpdate.SetEtd(targetTE.Etd.Format(time.RFC3339))
+		}
+		if targetTE.Eta != nil {
+			orderUpdate.SetEta(targetTE.Eta.Format(time.RFC3339))
+		}
+		if _, err := orderUpdate.Save(ctx); err != nil {
 			return err
 		}
 

@@ -665,6 +665,11 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 			t.Fatalf("DIRECT 拆票应被阻断，实际: %v", err)
 		}
 
+		// 旧订单投影必须随改配切换，不能仅让读取层覆盖 ID 而留下旧船公司名称。
+		if _, err := directOrder.Update().SetShippingLineID(env.carrierID).
+			SetVesselVoyage("OLD VESSEL OLDVOYAGE").SetEtd("2026-01-01T00:00:00Z").SetEta("2026-01-08T00:00:00Z").Save(ctx); err != nil {
+			t.Fatal(err)
+		}
 		confirmation := &biz.SeaExternalConfirmation{ConfirmedByParty: "船代窗口", ConfirmedAt: time.Now().UTC(), ConfirmationNote: "船代确认改配"}
 		reassignInput := &biz.SeaOrderReassignmentInput{
 			OrderID:            directOrder.ID,
@@ -686,6 +691,10 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 		reasEvt, err := env.uc.ExecuteReassignment(ctx, env.orgID, env.userID, reassignInput)
 		if err != nil {
 			t.Fatalf("DIRECT 整票改配失败: %v", err)
+		}
+		storedOrder := env.data.db.Order.Query().Where(orderent.IDEQ(directOrder.ID)).WithShippingLine().OnlyX(ctx)
+		if storedOrder.ShippingLineID == nil || *storedOrder.ShippingLineID != env.carrier2ID || storedOrder.Edges.ShippingLine.ID != env.carrier2ID || storedOrder.VesselVoyage != "COSCO SHIPPING GEMINI / 088E" || storedOrder.Etd != "" || storedOrder.Eta != "" {
+			t.Fatalf("改配未同步船公司/航程投影或未清除目标空日期: %+v", storedOrder)
 		}
 		oldLinkAfter, _ := env.data.db.SeaMasterBillOrderLink.Get(ctx, directLink.ID)
 		if oldLinkAfter.Status != seamasterbillorderlinkent.StatusENDED {
