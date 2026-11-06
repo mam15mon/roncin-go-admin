@@ -244,11 +244,14 @@ describe('SeaExportDetailFeatures', () => {
     renderFeatures(buildContext());
 
     const splitButton = await screen.findByRole('menuitem', { name: /拆票/ });
-    expect(splitButton).toHaveAttribute('aria-disabled', 'true');
-    expect(screen.getByRole('menuitem', { name: /改配/ })).not.toHaveAttribute(
-      'aria-disabled',
-      'true',
-    );
+    // 菜单初次渲染早于动作资格请求完成，等待服务端资格落地后核对两项能力。
+    await waitFor(() => {
+      expect(splitButton).toHaveAttribute('aria-disabled', 'true');
+      expect(screen.getByRole('menuitem', { name: /改配/ })).not.toHaveAttribute(
+        'aria-disabled',
+        'true',
+      );
+    });
 
     fireEvent.mouseEnter(screen.getByText('拆票', { exact: true }));
     expect(await screen.findByText('该订单已拆票')).toBeInTheDocument();

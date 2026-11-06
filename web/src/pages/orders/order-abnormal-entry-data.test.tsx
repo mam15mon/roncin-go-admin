@@ -154,7 +154,10 @@ describe('异常直达的真实详情权限链', () => {
       renderEntry(kind);
       expect(await screen.findByText('订单001')).toBeInTheDocument();
       await waitFor(() => expect(openPanel).toHaveBeenCalledTimes(1));
-      expect(screen.getByTestId('query')).toBeEmptyDOMElement();
+      // 面板打开与 Router replace 的 React 提交分属不同异步阶段。
+      await waitFor(() =>
+        expect(screen.getByTestId('query')).toBeEmptyDOMElement(),
+      );
       expect(orderPersonnelServiceListPersonnel).not.toHaveBeenCalled();
       expect(getOrderPersonnelOptions).not.toHaveBeenCalled();
       expect(screen.getByTestId('personnel-count')).toHaveTextContent('0');
