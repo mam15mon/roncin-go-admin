@@ -46,6 +46,16 @@ import {
 const { Text } = Typography;
 const { TextArea } = Input;
 
+function formatDifferenceValue(
+  value: string | undefined,
+  record: API.VoyageDifferenceItem,
+) {
+  if (!value) return '未填写';
+  return record.fieldName === 'etd' || record.fieldName === 'eta'
+    ? formatDate(value, 'datetime')
+    : value;
+}
+
 interface SeaOrderReassignmentModalProps {
   orderId: string;
   orderNo?: string;
@@ -53,7 +63,7 @@ interface SeaOrderReassignmentModalProps {
   disabled?: boolean;
   disabledReason?: string;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: () => void | Promise<void>;
   searchShippingLines?: (keyword?: string) => Promise<DefaultOptionType[]>;
   searchLocations?: (keyword?: string) => Promise<DefaultOptionType[]>;
   initialShippingLineId?: string;
@@ -92,6 +102,7 @@ function ReassignmentForm({
   const [selectedTeId, setSelectedTeId] = useState<string>();
   const [confirmation, setConfirmation] =
     useState<API.ExecuteSeaOrderReassignmentRequest | null>(null);
+  const [synchronizing, setSynchronizing] = useState(false);
 
   const [carrierOptions, setCarrierOptions] = useState<DefaultOptionType[]>(
     initialShippingLineId
@@ -115,8 +126,8 @@ function ReassignmentForm({
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   useEffect(() => {
-    if (disabled) onCloseRef.current();
-  }, [disabled]);
+    if (disabled && !synchronizing) onCloseRef.current();
+  }, [disabled, synchronizing]);
 
   const matchQuery = useQuery({
     queryKey: [
@@ -281,7 +292,7 @@ function ReassignmentForm({
       }),
     meta: { silent: true },
   });
-  const submitting = execution.isPending;
+  const submitting = execution.isPending || synchronizing;
 
   const handleMatchCandidate = async () => {
     if (disabled || confirmation || submitting) return;
@@ -348,7 +359,8 @@ function ReassignmentForm({
   const executeConfirmed = async () => {
     if (!confirmation || submitting || disabled) return;
     try {
-      await executionGuard.run(
+      let written = false;
+      const result = await executionGuard.run(
         () => execution.mutateAsync(confirmation),
         (response) => {
           if (
@@ -359,11 +371,35 @@ function ReassignmentForm({
             message.error('执行改配未返回有效结果，请核对后重试');
             return;
           }
+          written = true;
           resetDirty();
+          setSynchronizing(true);
+        },
+      );
+      if (!result.current || !written) return;
+      // 写入已经成功；刷新失败单独提示，不能误报为改配失败或允许重复提交。
+      await executionGuard.run(
+        async () => {
+          try {
+            await Promise.all([
+              queryClient.invalidateQueries({ queryKey: ['orders'] }),
+              onSuccess(),
+            ]);
+            return undefined;
+          } catch (error) {
+            return getErrorMessage(error, '详情刷新失败，请手动刷新。');
+          }
+        },
+        (refreshError) => {
+          setSynchronizing(false);
           setConfirmation(null);
-          message.success('整票改配成功！航程与母单已更新');
-          void queryClient.invalidateQueries({ queryKey: ['orders'] });
-          onSuccess();
+          if (refreshError) {
+            message.warning(
+              `整票改配已成功，${refreshError}请勿重复提交改配。`,
+            );
+          } else {
+            message.success('整票改配成功！航程与母单已更新');
+          }
           onClose();
         },
       );
@@ -386,7 +422,9 @@ function ReassignmentForm({
     {
       title: '当前原值',
       dataIndex: 'currentValue',
-      render: (val: string) => <Text type="secondary">{val || '未填写'}</Text>,
+      render: (val: string, record) => (
+        <Text type="secondary">{formatDifferenceValue(val, record)}</Text>
+      ),
     },
     {
       title: '改配目标值',
@@ -395,11 +433,11 @@ function ReassignmentForm({
         if (record.isDifferent) {
           return (
             <Text strong style={{ color: '#cf1322' }}>
-              {val || '未填写'}
+              {formatDifferenceValue(val, record)}
             </Text>
           );
         }
-        return <Text>{val || '未填写'}</Text>;
+        return <Text>{formatDifferenceValue(val, record)}</Text>;
       },
     },
     {

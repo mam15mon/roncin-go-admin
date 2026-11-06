@@ -1205,8 +1205,23 @@ export default function OrderDetailPage() {
     searchShippingLines: templateProps.searchShippingLines,
     searchLocations: templateProps.searchLocations,
     containerSpecOptions,
-    refreshOrderAndLock: async () => {
-      await Promise.all([loadData(), refreshLockState()]);
+    refreshOrderAndLock: async (options) => {
+      if (!options?.resetForm) {
+        await Promise.all([loadData(), refreshLockState()]);
+        return;
+      }
+      const pathname = `/orders/${definition.kind}/${orderId}`;
+      if (isTabDirty(resolveTabKey(pathname), draftScope)) {
+        await Promise.all([loadData(), refreshLockState()]);
+        throw new Error(
+          '详情页有未保存修改，输入已保留，请使用“刷新数据”确认更新。',
+        );
+      }
+      const [refreshed] = await Promise.all([
+        refreshOrderDataAndResetForm(),
+        refreshLockState(),
+      ]);
+      if (!refreshed) throw new Error('详情刷新未完成，请手动刷新。');
     },
     ensureBusinessWriteAllowed,
   };

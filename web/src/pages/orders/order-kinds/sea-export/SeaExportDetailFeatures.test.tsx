@@ -247,10 +247,9 @@ describe('SeaExportDetailFeatures', () => {
     // 菜单初次渲染早于动作资格请求完成，等待服务端资格落地后核对两项能力。
     await waitFor(() => {
       expect(splitButton).toHaveAttribute('aria-disabled', 'true');
-      expect(screen.getByRole('menuitem', { name: /改配/ })).not.toHaveAttribute(
-        'aria-disabled',
-        'true',
-      );
+      expect(
+        screen.getByRole('menuitem', { name: /改配/ }),
+      ).not.toHaveAttribute('aria-disabled', 'true');
     });
 
     fireEvent.mouseEnter(screen.getByText('拆票', { exact: true }));
@@ -304,9 +303,13 @@ describe('SeaExportDetailFeatures', () => {
     );
   });
 
-  it('改配弹窗成功后执行普通刷新命令并重载动作资格', async () => {
-    const refreshOrderAndLock = vi.fn().mockResolvedValue(undefined);
-    renderFeatures(buildContext({ refreshOrderAndLock }));
+  it('改配弹窗成功后要求回填详情表单并重载动作资格', async () => {
+    let finishRefresh!: () => void;
+    const refresh = new Promise<void>((resolve) => {
+      finishRefresh = resolve;
+    });
+    const refreshOrderAndLock = vi.fn(() => refresh);
+    const harness = renderFeatures(buildContext({ refreshOrderAndLock }));
 
     await screen.findByRole('menuitem', { name: /改配/ });
     expect(mockGetChangeActions).toHaveBeenCalledTimes(1);
@@ -317,8 +320,17 @@ describe('SeaExportDetailFeatures', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: '弹窗成功' }));
+    // 写入后的锁状态重查暂时关闭业务入口，不得提前卸载正在同步的改配会话。
+    harness.rerenderWith(
+      buildContext({ refreshOrderAndLock, businessWritesDisabled: true }),
+    );
+    expect(screen.getByTestId('reassign-modal')).toHaveTextContent('true');
+    harness.rerenderWith(buildContext({ refreshOrderAndLock }));
+    await act(async () => finishRefresh());
     await waitFor(() => {
-      expect(refreshOrderAndLock).toHaveBeenCalledTimes(1);
+      expect(refreshOrderAndLock).toHaveBeenCalledExactlyOnceWith({
+        resetForm: true,
+      });
       expect(mockGetChangeActions).toHaveBeenCalledTimes(2);
     });
   });

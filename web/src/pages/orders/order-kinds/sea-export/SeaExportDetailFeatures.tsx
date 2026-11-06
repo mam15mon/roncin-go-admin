@@ -91,6 +91,7 @@ export default function SeaExportDetailFeatures({
       : null;
 
   const [reassignModalOpen, setReassignModalOpen] = useState(false);
+  const reassignSynchronizingRef = useRef(false);
   const [voyageUpdateModalOpen, setVoyageUpdateModalOpen] = useState(false);
   const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
   const [sharedContainerDrawerOpen, setSharedContainerDrawerOpen] =
@@ -166,7 +167,8 @@ export default function SeaExportDetailFeatures({
 
   useEffect(() => {
     if (businessWritesDisabled) {
-      setReassignModalOpen(false);
+      // 已提交的改配等待刷新结果；锁状态重查期间不要卸载成功提示的会话。
+      if (!reassignSynchronizingRef.current) setReassignModalOpen(false);
       setVoyageUpdateModalOpen(false);
     }
   }, [businessWritesDisabled]);
@@ -377,8 +379,16 @@ export default function SeaExportDetailFeatures({
           disabledReason={changeActions?.reassignBlockedReasons?.join('；')}
           onClose={() => setReassignModalOpen(false)}
           onSuccess={async () => {
-            await refreshOrderAndLock();
-            await loadChangeActions();
+            reassignSynchronizingRef.current = true;
+            try {
+              try {
+                await refreshOrderAndLock({ resetForm: true });
+              } finally {
+                await loadChangeActions();
+              }
+            } finally {
+              reassignSynchronizingRef.current = false;
+            }
           }}
           searchShippingLines={searchShippingLines}
           searchLocations={searchLocations}

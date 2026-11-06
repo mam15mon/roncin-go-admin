@@ -71,8 +71,8 @@ export interface OrderDetailFeaturesContext {
   searchShippingLines: (keyword?: string) => Promise<SelectOption[]>;
   searchLocations: (keyword?: string) => Promise<SelectOption[]>;
   containerSpecOptions: SelectOption[];
-  /** 业务写成功后的普通快照刷新；不清草稿、不触碰显式刷新令牌。 */
-  refreshOrderAndLock: () => Promise<void>;
+  /** 业务写成功后刷新快照；改配显式要求回填表单，有未保存修改时保留输入并提示。 */
+  refreshOrderAndLock: (options?: { resetForm?: boolean }) => Promise<void>;
   /** 复用通用锁单提示的写入口校验。 */
   ensureBusinessWriteAllowed: () => boolean;
 }
