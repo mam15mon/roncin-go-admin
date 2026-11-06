@@ -28,6 +28,7 @@ type CargoItemDrawerProps = {
   canCreate: boolean;
   canUpdate: boolean;
   canRemove: boolean;
+  onChanged?: (order: API.Order) => void;
 };
 
 type CargoItemFormValues = {
@@ -89,7 +90,10 @@ const columns: ProColumns<API.OrderCargoItem>[] = [
 ];
 
 const CargoItemDrawer = forwardRef<CargoItemDrawerRef, CargoItemDrawerProps>(
-  function CargoItemDrawer({ canCreate, canUpdate, canRemove }, ref) {
+  function CargoItemDrawer(
+    { canCreate, canUpdate, canRemove, onChanged },
+    ref,
+  ) {
     const { message } = App.useApp();
     const queryClient = useQueryClient();
     const refreshWeightsAfterWrite = async <T,>(
@@ -98,11 +102,11 @@ const CargoItemDrawer = forwardRef<CargoItemDrawerRef, CargoItemDrawerProps>(
       requireId = true,
     ): Promise<T> => {
       const response = await pending;
-      if (
-        order.businessType === OrderBusinessType.BUSINESS_TYPE_AE &&
-        isWriteResponse(response, requireId)
-      )
-        await queryClient.invalidateQueries({ queryKey: ['air-weight'] });
+      if (isWriteResponse(response, requireId)) {
+        if (order.businessType === OrderBusinessType.BUSINESS_TYPE_AE)
+          await queryClient.invalidateQueries({ queryKey: ['air-weight'] });
+        onChanged?.(order);
+      }
       return response;
     };
     return (
@@ -125,8 +129,9 @@ const CargoItemDrawer = forwardRef<CargoItemDrawerRef, CargoItemDrawerProps>(
             orderId: order.id as string,
           })
         }
-        createItem={(values, order) =>
-          refreshWeightsAfterWrite(
+        createItem={(values, order) => {
+          if (!canCreate) return Promise.resolve(false);
+          return refreshWeightsAfterWrite(
             order,
             orderCargoItemServiceAddCargoItem(
               { orderId: order.id as string },
@@ -144,10 +149,11 @@ const CargoItemDrawer = forwardRef<CargoItemDrawerRef, CargoItemDrawerProps>(
                 note: values.note?.trim() || undefined,
               },
             ),
-          )
-        }
-        updateItem={(record, values, order) =>
-          refreshWeightsAfterWrite(
+          );
+        }}
+        updateItem={(record, values, order) => {
+          if (!canUpdate) return Promise.resolve(false);
+          return refreshWeightsAfterWrite(
             order,
             orderCargoItemServiceUpdateCargoItem(
               {
@@ -170,9 +176,10 @@ const CargoItemDrawer = forwardRef<CargoItemDrawerRef, CargoItemDrawerProps>(
                 expectedVersion: String(record.version ?? '1'),
               },
             ),
-          )
-        }
+          );
+        }}
         removeItem={(record, order) => {
+          if (!canRemove) return Promise.resolve(false);
           const version = Number(record.version);
           if (!Number.isSafeInteger(version) || version <= 0) {
             const error = new Error('货物记录版本缺失，请刷新后重试');

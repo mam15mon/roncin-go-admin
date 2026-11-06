@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { usePageForeground } from '@/hooks/usePageForeground';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import { generateUUID } from '@/utils/uuid';
 
@@ -52,9 +53,8 @@ export function useOrderChangeNotice(options: Options) {
   canCheck.current = ready && !paused;
   const latest = useRef(options);
   latest.current = options;
-  const [foreground, setForeground] = useState(
-    () => document.visibilityState === 'visible' && document.hasFocus(),
-  );
+  const resumeRef = useRef<() => void>(() => undefined);
+  const foreground = usePageForeground(() => resumeRef.current());
   const query = useQuery({
     queryKey: [
       'orders',
@@ -79,42 +79,9 @@ export function useOrderChangeNotice(options: Options) {
     },
     meta: { silent: true },
   });
-  const refetch = useRef(query.refetch);
-  refetch.current = query.refetch;
-
-  useEffect(() => {
-    let focused = document.hasFocus();
-    let active = document.visibilityState === 'visible' && focused;
-    setForeground(active);
-    const synchronize = () => {
-      const next = document.visibilityState === 'visible' && focused;
-      if (next === active) return;
-      active = next;
-      setForeground(next);
-      if (next && canCheck.current)
-        void refetch.current({ cancelRefetch: false });
-    };
-    const onFocus = () => {
-      focused = true;
-      synchronize();
-    };
-    const onBlur = () => {
-      focused = false;
-      synchronize();
-    };
-    const onVisibility = () => {
-      focused = document.hasFocus();
-      synchronize();
-    };
-    window.addEventListener('focus', onFocus);
-    window.addEventListener('blur', onBlur);
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => {
-      window.removeEventListener('focus', onFocus);
-      window.removeEventListener('blur', onBlur);
-      document.removeEventListener('visibilitychange', onVisibility);
-    };
-  }, []);
+  resumeRef.current = () => {
+    if (canCheck.current) void query.refetch({ cancelRefetch: false });
+  };
 
   useEffect(() => {
     if (!ready || paused || !query.isSuccess || !query.data) return;

@@ -14,12 +14,13 @@ import {
 } from 'antd';
 import type { DefaultOptionType } from 'antd/es/select';
 import Decimal from 'decimal.js';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router';
 import { useAccess } from '@/app/access';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { AsyncPopconfirm, StickyFooterBar } from '@/components/ui';
 import { OrderBusinessType } from '@/enums.generated';
+import { usePageForeground } from '@/hooks/usePageForeground';
 import { history } from '@/router/history';
 import {
   seaOrderChangeServiceExecuteSeaOrderSplit,
@@ -28,6 +29,9 @@ import {
 } from '@/services/roncin/seaOrderChangeService';
 import { isWriteResponse } from '@/utils/api';
 import { computeCanonicalSha256 } from '@/utils/hash';
+import CargoItemDrawer, {
+  type CargoItemDrawerRef,
+} from './components/drawers/CargoItemDrawer';
 import OrderPageHeader from './components/OrderPageHeader';
 import SplitAllocationSection from './components/split/SplitAllocationSection';
 import SplitAttachmentsAndNotesSection from './components/split/SplitAttachmentsAndNotesSection';
@@ -74,12 +78,23 @@ import {
 export default function SeaOrderSplitPage() {
   const params = useParams<{ id: string }>();
   const orderId = params.id || '';
-  const { message } = App.useApp();
+  const { message, modal } = App.useApp();
+  const activeOrderIdRef = useRef(orderId);
+  activeOrderIdRef.current = orderId;
+  const cargoItemDrawerRef = useRef<CargoItemDrawerRef>(null);
   const access = useAccess();
   const canSplit = access.canOrder(OrderBusinessType.BUSINESS_TYPE_SE, 'split');
   const canReassign = access.canOrder(
     OrderBusinessType.BUSINESS_TYPE_SE,
     'reassign',
+  );
+  const canReadCargo = access.canOrder(
+    OrderBusinessType.BUSINESS_TYPE_SE,
+    'cargo_item.read',
+  );
+  const canCreateCargo = access.canOrder(
+    OrderBusinessType.BUSINESS_TYPE_SE,
+    'cargo_item.create',
   );
   const {
     state: lockState,
@@ -103,11 +118,19 @@ export default function SeaOrderSplitPage() {
     return false;
   };
 
+  const [submitting, setSubmitting] = useState(false);
+  const [refreshingOrderId, setRefreshingOrderId] = useState<string>();
+  const resumeCheckRef = useRef<() => void>(() => undefined);
+  const foreground = usePageForeground(() => resumeCheckRef.current());
+
   // 拆票上下文：React Query 管理，orderId 变化自然重查；
   // 无拆票能力时不发起请求（与旧 loadContext 门禁一致）。
   const splitContextQuery = useQuery({
     queryKey: [SPLIT_QUERY_PREFIX, 'context', { orderId }],
     enabled: Boolean(orderId) && canSplit,
+    // 独立箱货写入不会推进订单版本，检查上下文自身才能发现分配基线变化。
+    refetchInterval: foreground && !submitting ? 15_000 : false,
+    refetchIntervalInBackground: false,
     queryFn: async () => {
       if (!orderId) {
         // enabled 已保证；此处仅为类型收窄兜底。
@@ -117,7 +140,8 @@ export default function SeaOrderSplitPage() {
         const resp = await seaOrderChangeServiceGetSeaOrderSplitContext({
           orderId,
         });
-        return resp?.data ?? null;
+        if (!resp?.data) throw new Error('接口未返回拆票上下文，请重试');
+        return resp.data;
       } catch (error) {
         // 非 Error 抛出统一包装，保证全局 onError 文案与旧 catch 一致。
         throw error instanceof Error
@@ -126,13 +150,53 @@ export default function SeaOrderSplitPage() {
       }
     },
   });
-  const splitContext = splitContextQuery.data ?? null;
-  const loadingContext = splitContextQuery.isFetching;
+  resumeCheckRef.current = () => {
+    if (canSplit && orderId && !submitting)
+      void splitContextQuery.refetch({ cancelRefetch: false });
+  };
+  // 已采纳上下文是本次分配的编辑基线；后台重查只更新查询缓存，不能替换该基线。
+  const [splitBaseline, setSplitBaseline] = useState<{
+    orderId: string;
+    data: API.SeaOrderSplitContextData;
+  } | null>(null);
+  const splitContext =
+    splitBaseline?.orderId === orderId ? splitBaseline.data : null;
+  useEffect(() => {
+    if (
+      !splitContext &&
+      splitContextQuery.isSuccess &&
+      !splitContextQuery.isFetching &&
+      splitContextQuery.data
+    ) {
+      setSplitBaseline({ orderId, data: splitContextQuery.data });
+    }
+  }, [
+    orderId,
+    splitContext,
+    splitContextQuery.data,
+    splitContextQuery.isSuccess,
+    splitContextQuery.isFetching,
+  ]);
+  const loadingContext =
+    (splitContextQuery.isFetching && !splitContext) ||
+    refreshingOrderId === orderId;
 
   // 拆票结果集：至少 1 个 ORIGINAL + 1 个 CREATED
-  const { markDirty, resetDirty } = useUnsavedChangesGuard({
-    identity: orderId,
-  });
+  const { markDirty: markUnsaved, resetDirty: resetUnsaved } =
+    useUnsavedChangesGuard({
+      identity: orderId,
+    });
+  const splitEditedRef = useRef(false);
+  const markDirty = useCallback(() => {
+    splitEditedRef.current = true;
+    markUnsaved();
+  }, [markUnsaved]);
+  const resetDirty = useCallback(() => {
+    splitEditedRef.current = false;
+    resetUnsaved();
+  }, [resetUnsaved]);
+  const [changedCargoOrderId, setChangedCargoOrderId] = useState<string>();
+  const cargoChanged = changedCargoOrderId === orderId;
   const [results, setResults] = useState<ResultConfig[]>([]);
 
   // 分配状态
@@ -166,11 +230,21 @@ export default function SeaOrderSplitPage() {
   const initialPreviewTriggeredRef = useRef(false);
   const [note, setNote] = useState<string>('');
   const [confirmationForm] = Form.useForm<SeaExternalConfirmationFormValues>();
+  const confirmationActiveRef = useRef(false);
+  confirmationActiveRef.current = results.some(
+    (result) => result.targetType !== 'CURRENT',
+  );
 
   // 防抖后的预览输入：进 queryKey 驱动预览查询（沿用「防抖关键词进 queryKey」模式）
   const [debouncedPreviewInput, setDebouncedPreviewInput] =
     useState<SplitPreviewInput | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const baselineNeedsRefresh =
+    cargoChanged ||
+    Boolean(
+      splitContext &&
+        splitContextQuery.data &&
+        splitContextQuery.data !== splitContext,
+    );
 
   // 下拉选项
   const [carrierOptions, setCarrierOptions] = useState<DefaultOptionType[]>([]);
@@ -185,9 +259,7 @@ export default function SeaOrderSplitPage() {
     [splitContext?.draftFees, feeAssignments, results],
   );
 
-  // 上下文加载完成后初始化本地可编辑状态。依赖 dataUpdatedAt：每次上下文
-  // 重新拉取完成（含「刷新数据」）都按服务端数据重建一次分配状态，
-  // 与旧 loadContext 的「刷新会丢弃未保存分配编辑」行为一致。
+  // 只在首次采纳或用户确认刷新后重建分配，不跟随查询缓存自动覆盖输入。
   useEffect(() => {
     if (!splitContext) return;
     const ctx = splitContext;
@@ -313,7 +385,52 @@ export default function SeaOrderSplitPage() {
       }
     });
     setAttAssignments(initialAttMap);
-  }, [splitContext, splitContextQuery.dataUpdatedAt]);
+    setNote('');
+    if (confirmationActiveRef.current) confirmationForm.resetFields();
+    setChangedCargoOrderId(undefined);
+    setDebouncedPreviewInput(null);
+    initialPreviewTriggeredRef.current = false;
+    resetDirty();
+  }, [splitBaseline, splitContext, confirmationForm, resetDirty]);
+
+  const refreshSplitBaseline = async () => {
+    const requestedOrderId = orderId;
+    setRefreshingOrderId(requestedOrderId);
+    try {
+      const [contextResult] = await Promise.all([
+        splitContextQuery.refetch(),
+        refreshLockState(),
+      ]);
+      if (activeOrderIdRef.current !== requestedOrderId) return;
+      if (contextResult.isSuccess && contextResult.data) {
+        setSplitBaseline({
+          orderId: requestedOrderId,
+          data: contextResult.data,
+        });
+        // 相同内容的响应会被 React Query 复用，仍需解除货物写入后的过期标记。
+        setChangedCargoOrderId(undefined);
+      }
+    } finally {
+      setRefreshingOrderId((current) =>
+        current === requestedOrderId ? undefined : current,
+      );
+    }
+  };
+
+  const handleRefresh = () => {
+    if (!splitEditedRef.current) {
+      void refreshSplitBaseline();
+      return;
+    }
+    modal.confirm({
+      title: '刷新拆票数据？',
+      content:
+        '刷新后将重新分配货物、箱、费用和附件，并清除当前未保存的拆票编辑。',
+      okText: '确认刷新',
+      cancelText: '保留编辑',
+      onOk: refreshSplitBaseline,
+    });
+  };
 
   // 页签占位标题为中性「订单拆票」，加载成功后回填带单号的真实标题。
   useEffect(() => {
@@ -486,7 +603,8 @@ export default function SeaOrderSplitPage() {
 
   // 预览请求输入：由当前分配状态派生；null 表示上下文未就绪或结果不足
   const previewInput = useMemo<SplitPreviewInput | null>(() => {
-    if (!splitContext || results.length < 2) return null;
+    if (!splitContext || results.length < 2 || baselineNeedsRefresh)
+      return null;
     const expectedVersions = buildExpectedVersions(results);
     if (!expectedVersions) return { kind: 'missing-versions' };
     return {
@@ -516,12 +634,14 @@ export default function SeaOrderSplitPage() {
     sharedAllocations,
     feeAssignments,
     attAssignments,
+    baselineNeedsRefresh,
   ]);
 
   // 供结果分节在「匹配候选母单」后立即发起预览：直接写入防抖值绕过等待窗口
   const triggerPreview = (currentResults: ResultConfig[] = results) => {
     if (
       lockWritePolicyRef.current.disabled ||
+      baselineNeedsRefresh ||
       !orderId ||
       !splitContext ||
       currentResults.length < 2
@@ -581,6 +701,7 @@ export default function SeaOrderSplitPage() {
     enabled:
       Boolean(orderId) &&
       !lockWritePolicy.disabled &&
+      !baselineNeedsRefresh &&
       debouncedPreviewInput?.kind === 'ready',
     placeholderData: keepPreviousData,
     queryFn: async () => {
@@ -601,6 +722,7 @@ export default function SeaOrderSplitPage() {
   // 旧 previewData / previewError / previewing 三个 state 的派生等价映射
   const previewData =
     !lockWritePolicy.disabled &&
+    !baselineNeedsRefresh &&
     debouncedPreviewInput?.kind === 'ready' &&
     !previewQuery.error
       ? (previewQuery.data ?? null)
@@ -612,6 +734,21 @@ export default function SeaOrderSplitPage() {
         ? getErrorMessage(previewQuery.error, '拆票校验未通过')
         : null;
   const previewing = previewQuery.isFetching;
+  const previewMatchesInput =
+    previewInput?.kind === 'ready' &&
+    debouncedPreviewInput?.kind === 'ready' &&
+    computeCanonicalSha256(previewInput.request) ===
+      computeCanonicalSha256(debouncedPreviewInput.request);
+  const canExecuteSplit =
+    !lockWritePolicy.disabled &&
+    !loadingContext &&
+    !splitContextQuery.error &&
+    !baselineNeedsRefresh &&
+    Boolean(splitContext?.cargoItems?.length) &&
+    previewMatchesInput &&
+    !previewQuery.isFetching &&
+    !previewQuery.isPlaceholderData &&
+    Boolean(previewData?.isValid && previewData.conservationPassed);
 
   // 添加新票
   const handleAddResult = () => {
@@ -757,7 +894,7 @@ export default function SeaOrderSplitPage() {
   // 执行拆票提交
   const handleExecuteSplit = async (): Promise<false | undefined> => {
     if (!ensureSplitEditable()) return false;
-    if (!previewData?.isValid || !previewData?.conservationPassed) {
+    if (!canExecuteSplit) {
       message.error(
         previewError || '拆票数据未满足守恒校验或存在门禁错误，请检查！',
       );
@@ -861,19 +998,39 @@ export default function SeaOrderSplitPage() {
           subTitle="支持整单部分拆票、HBL/箱货零误差守恒切分、未建账费用整行归属及多票并行派生"
           tags={<Tag color="blue">海运出口 (HOUSE)</Tag>}
           extra={
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={() => {
-                void splitContextQuery.refetch();
-                void refreshLockState();
-              }}
-            >
+            <Button icon={<ReloadOutlined />} onClick={handleRefresh}>
               刷新数据
             </Button>
           }
         />
 
         <div style={{ paddingBottom: 80 }}>
+          {splitContextQuery.error && (
+            <Alert
+              type="error"
+              showIcon
+              title="拆票数据加载失败"
+              description={getErrorMessage(
+                splitContextQuery.error,
+                '请重新加载拆票数据',
+              )}
+              style={{ marginBottom: 16 }}
+            />
+          )}
+          {baselineNeedsRefresh && (
+            <Alert
+              type="warning"
+              showIcon
+              title="拆票数据需要刷新"
+              description={
+                cargoChanged
+                  ? '实际货物明细已更新，请刷新拆票数据后重新确认分配。当前编辑暂时保留，刷新前不能执行拆票。'
+                  : '这个订单已经发生变动，请重新刷新。当前拆票编辑暂时保留，刷新后请重新确认分配。'
+              }
+              action={<Button onClick={handleRefresh}>刷新拆票数据</Button>}
+              style={{ marginBottom: 16 }}
+            />
+          )}
           {lockWritePolicy.disabled && (
             <Alert
               type={
@@ -916,6 +1073,52 @@ export default function SeaOrderSplitPage() {
                 previewData={previewData}
                 splitContext={splitContext}
               />
+
+              {splitContext && (
+                <Alert
+                  type={splitContext.cargoItems?.length ? 'info' : 'warning'}
+                  showIcon
+                  title={
+                    splitContext.cargoItems?.length
+                      ? '拆票按实际货物明细分配'
+                      : '尚未登记可分配的实际货物明细'
+                  }
+                  description={
+                    <>
+                      拆票以实际货物明细的件数、毛重和体积为守恒依据；委托件重尺和实际箱记录不会自动生成货物明细。请先登记实际货物，再刷新拆票数据并分配到原票和新票。
+                      {(!canReadCargo || !canCreateCargo) && (
+                        <div>
+                          当前没有实际货物录入权限，请联系有权限的操作人员补录。
+                        </div>
+                      )}
+                    </>
+                  }
+                  action={
+                    <Button
+                      disabled={
+                        !canReadCargo ||
+                        !canCreateCargo ||
+                        lockWritePolicy.disabled
+                      }
+                      onClick={() => {
+                        if (
+                          !canReadCargo ||
+                          !canCreateCargo ||
+                          !ensureSplitEditable()
+                        )
+                          return;
+                        cargoItemDrawerRef.current?.open({
+                          id: orderId,
+                          orderNo: splitContext.orderNo,
+                          businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+                        });
+                      }}
+                    >
+                      录入实际货物
+                    </Button>
+                  }
+                />
+              )}
 
               <SplitResultsSection
                 results={results}
@@ -999,7 +1202,7 @@ export default function SeaOrderSplitPage() {
                 分配进度：{previewData?.allocated?.packageCount ?? 0} /{' '}
                 {previewData?.baseline?.packageCount ?? 0} 件
               </Text>
-              {previewData?.conservationPassed && previewData?.isValid ? (
+              {canExecuteSplit ? (
                 <Tag color="success">守恒验证通过</Tag>
               ) : (
                 <Tag color="error">等待满足守恒条件</Tag>
@@ -1016,26 +1219,41 @@ export default function SeaOrderSplitPage() {
             okText="确认执行"
             cancelText="取消"
             onConfirm={handleExecuteSplit}
-            disabled={
-              lockWritePolicy.disabled ||
-              !previewData?.isValid ||
-              !previewData?.conservationPassed
-            }
+            disabled={!canExecuteSplit}
           >
             <Button
               type="primary"
               loading={submitting}
-              disabled={
-                lockWritePolicy.disabled ||
-                !previewData?.isValid ||
-                !previewData?.conservationPassed
-              }
+              disabled={!canExecuteSplit}
             >
               确认执行拆票
             </Button>
           </AsyncPopconfirm>
         </StickyFooterBar>
       </Spin>
+      <CargoItemDrawer
+        key={orderId}
+        ref={cargoItemDrawerRef}
+        canCreate={!lockWritePolicy.disabled && canCreateCargo}
+        canUpdate={
+          !lockWritePolicy.disabled &&
+          access.canOrder(
+            OrderBusinessType.BUSINESS_TYPE_SE,
+            'cargo_item.update',
+          )
+        }
+        canRemove={
+          !lockWritePolicy.disabled &&
+          access.canOrder(
+            OrderBusinessType.BUSINESS_TYPE_SE,
+            'cargo_item.delete',
+          )
+        }
+        onChanged={(order) => {
+          if (order.id === activeOrderIdRef.current)
+            setChangedCargoOrderId(order.id);
+        }}
+      />
     </PageContainer>
   );
 }

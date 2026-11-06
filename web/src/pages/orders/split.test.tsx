@@ -45,6 +45,12 @@ vi.mock('@/services/roncin/orderLockService', () => ({
   orderLockServiceGetOrderLockState: vi.fn(),
 }));
 
+vi.mock('@/services/roncin/orderAttachmentService', () => ({
+  orderAttachmentServiceListAttachments: vi
+    .fn()
+    .mockResolvedValue({ data: [] }),
+}));
+
 const getLockState = vi.mocked(orderLockServiceGetOrderLockState);
 
 describe('SeaOrderSplitPage', () => {
