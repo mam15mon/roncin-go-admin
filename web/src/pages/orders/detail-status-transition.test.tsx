@@ -286,7 +286,7 @@ describe('订单详情状态卡流转编排', () => {
 
     const [, , , onCompleted, options] = mockConfirmFlow.mock.calls[0];
     expect(options?.canSubmit?.()).toBe(true);
-    await onCompleted();
+    await onCompleted(testState.order);
     expect(testState.loadData).toHaveBeenCalledOnce();
     expect(testState.refreshLockState).toHaveBeenCalledOnce();
 

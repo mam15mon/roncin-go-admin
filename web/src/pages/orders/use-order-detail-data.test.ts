@@ -3,6 +3,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { OrderTerminationStatus } from '@/enums.generated';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
 import { fetchOrderMasterData, searchOrderLocations } from './common';
@@ -121,6 +122,30 @@ describe('useOrderDetailData', () => {
     expect(result.current.order?.id).toBe('ord-1');
     expect(result.current.order?.orderNo).toBe('SE001');
     expect(result.current.loadedOrderId).toBe('ord-1');
+  });
+
+  it('已完成退关订单仍将保留单证与终态完整加载', async () => {
+    mockGetOrder.mockResolvedValueOnce({
+      data: {
+        id: 'ord-1',
+        version: '5',
+        terminationStatus:
+          OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED,
+      },
+    });
+    const { wrapper } = createHookWrapper();
+    const { result } = renderHook(() => useOrderDetailData('ord-1', config), {
+      wrapper,
+    });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.error).toBeNull();
+    expect(result.current.order?.terminationStatus).toBe(
+      OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED,
+    );
+    expect(result.current.seaDocuments).toMatchObject({
+      documentStructure: 2,
+      linkVersion: '1',
+    });
   });
 
   it('订单档案请求被全局错误处理器消费后 resolve undefined 时，抛出明确业务错误而非 TypeError', async () => {

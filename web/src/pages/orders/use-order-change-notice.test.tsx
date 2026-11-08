@@ -3,6 +3,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { act, cleanup, renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { OrderTerminationStatus } from '@/enums.generated';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import { useOrderChangeNotice } from './use-order-change-notice';
 
@@ -276,4 +277,207 @@ describe('订单变动轻量检查', () => {
     await advance(30_000);
     expect(getOrder).not.toHaveBeenCalled();
   });
+});
+
+describe('本人状态操作的检查参考点', () => {
+  it('连续状态操作用确切写响应推进检查，但保留原编辑版本并识别更晚外部修改', async () => {
+    const { result, editing } = mount();
+    const before = snapshot();
+    const terminating = {
+      ...before,
+      version: '9007199254740994',
+      terminationStatus:
+        OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATING,
+    };
+    act(() => result.current.acceptTransition(before, terminating));
+    const terminated = {
+      id: before.id,
+      version: '9007199254740995',
+      terminationStatus:
+        OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED,
+    };
+    act(() => result.current.acceptTransition(terminating, terminated));
+    expect(result.current.changed).toBe(false);
+    expect(editing.current).toEqual(before);
+    getOrder.mockResolvedValue({ data: terminated });
+    await advance(15_000);
+    await advance(1);
+    expect(result.current.changed).toBe(false);
+    getOrder.mockResolvedValue({
+      data: { ...terminated, version: '9007199254740996' },
+    });
+    await advance(15_000);
+    await advance(1);
+    expect(result.current.changed).toBe(true);
+    expect(editing.current).toEqual(before);
+  });
+
+  it('已有外部变动提醒和旧草稿都不能由状态操作清除', async () => {
+    const { result, editing } = mount();
+    getOrder.mockResolvedValue({
+      data: { ...snapshot(), version: '9007199254740994' },
+    });
+    await advance(15_000);
+    await advance(1);
+    expect(result.current.changed).toBe(true);
+    act(() =>
+      result.current.acceptTransition(snapshot(), {
+        ...snapshot(),
+        version: '9007199254740995',
+      }),
+    );
+    expect(result.current.changed).toBe(true);
+    expect(editing.current.version).toBe(snapshot().version);
+  });
+
+  it('订单切换后本人操作的迟到响应不推进新身份参考点', async () => {
+    const { result, rerender, editing, options } = mount();
+    const oldAccept = result.current.acceptTransition;
+    editing.current = snapshot('order-2');
+    rerender({
+      ...options,
+      orderId: 'order-2',
+      identity: 'sea-export:order-2',
+      initialOrder: editing.current,
+    });
+    act(() => oldAccept(snapshot(), { ...snapshot(), version: '99' }));
+    getOrder.mockResolvedValue({
+      data: { ...editing.current, version: '100' },
+    });
+    await advance(15_000);
+    await advance(1);
+    expect(result.current.changed).toBe(true);
+    expect(editing.current.id).toBe('order-2');
+  });
+});
+
+it.each([
+  { version: '9007199254740995' },
+  {
+    version: '9007199254740994',
+    seaMasterBill: { ...snapshot().seaMasterBill, version: '8' },
+  },
+])('写响应重读已混入外部变动时不接纳检查参考点 %j', async (change) => {
+  const { result, editing } = mount();
+  const later = { ...snapshot(), ...change };
+  act(() => result.current.acceptTransition(snapshot(), later));
+  getOrder.mockResolvedValue({ data: later });
+  await advance(15_000);
+  await advance(1);
+  expect(result.current.changed).toBe(true);
+  expect(editing.current.version).toBe(snapshot().version);
+});
+
+it('终态首次加载和轮询忽略保留单证的活动关系差异，仍识别订单本身更新', async () => {
+  const terminated: API.Order = {
+    id: 'order-1',
+    version: snapshot().version,
+    terminationStatus:
+      OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED,
+  };
+  const { result, editing } = mount({ initialOrder: terminated });
+  await advance(0);
+  expect(result.current.changed).toBe(false);
+  getOrder.mockResolvedValue({ data: terminated });
+  await advance(15_000);
+  await advance(1);
+  expect(result.current.changed).toBe(false);
+  expect(editing.current.seaMasterBill).toBeDefined();
+  getOrder.mockResolvedValue({
+    data: { ...terminated, version: '9007199254740994' },
+  });
+  await advance(15_000);
+  await advance(1);
+  expect(result.current.changed).toBe(true);
+});
+
+it('轮询先观察到本人状态写响应时可清除误报，保留原编辑基线', async () => {
+  const { result, editing } = mount();
+  const written = { ...snapshot(), version: '9007199254740994' };
+  getOrder.mockResolvedValue({ data: written });
+  await advance(15_000);
+  await advance(1);
+  expect(result.current.changed).toBe(true);
+  act(() => result.current.acceptTransition(snapshot(), written));
+  expect(result.current.changed).toBe(false);
+  expect(editing.current.version).toBe(snapshot().version);
+  await advance(15_000);
+  await advance(1);
+  expect(result.current.changed).toBe(false);
+});
+
+it.each(['先本人后外部', '先外部后本人'])(
+  '%s的轮询差异不能被本人写响应清除',
+  async (sequence) => {
+    const { result } = mount();
+    const written = { ...snapshot(), version: '9007199254740994' };
+    const external = {
+      ...written,
+      seaMasterBill: { ...snapshot().seaMasterBill, version: '8' },
+    };
+    const observations =
+      sequence === '先本人后外部' ? [written, external] : [external, written];
+    for (const observed of observations) {
+      getOrder.mockResolvedValue({ data: observed });
+      await advance(15_000);
+      await advance(1);
+    }
+    expect(result.current.changed).toBe(true);
+    act(() => result.current.acceptTransition(snapshot(), written));
+    expect(result.current.changed).toBe(true);
+  },
+);
+
+it('旧草稿观察到本人写响应也不能接纳版本', async () => {
+  const oldDraft = { ...snapshot(), version: '9007199254740992' };
+  const { result } = mount({
+    readEditingOrder: () => ({ order: oldDraft, masterContentVersion: '2' }),
+  });
+  const written = { ...snapshot(), version: '9007199254740994' };
+  getOrder.mockResolvedValue({ data: written });
+  await advance(15_000);
+  await advance(1);
+  act(() => result.current.acceptTransition(snapshot(), written));
+  expect(result.current.changed).toBe(true);
+  expect(oldDraft.version).toBe('9007199254740992');
+});
+
+it('整包重读已包含更晚外部更新时立即提示，无需等待轮询', () => {
+  const { result, editing } = mount();
+  const written = { ...snapshot(), version: '9007199254740994' };
+  act(() =>
+    result.current.acceptTransition(snapshot(), written, {
+      ...written,
+      version: '9007199254740995',
+    }),
+  );
+  expect(result.current.changed).toBe(true);
+  expect(editing.current.version).toBe(snapshot().version);
+});
+
+it('终态首次打开后本人关账可推进检查参考点，后续外部更新仍提示', async () => {
+  const terminated: API.Order = {
+    id: 'order-1',
+    version: snapshot().version,
+    terminationStatus:
+      OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED,
+  };
+  const { result, editing } = mount({ initialOrder: terminated });
+  const closed = {
+    ...terminated,
+    version: '9007199254740994',
+    closureStatus: 2,
+  };
+  act(() => result.current.acceptTransition(terminated, closed));
+  getOrder.mockResolvedValue({ data: closed });
+  await advance(15_000);
+  await advance(1);
+  expect(result.current.changed).toBe(false);
+  expect(editing.current.version).toBe(snapshot().version);
+  getOrder.mockResolvedValue({
+    data: { ...closed, version: '9007199254740995' },
+  });
+  await advance(15_000);
+  await advance(1);
+  expect(result.current.changed).toBe(true);
 });

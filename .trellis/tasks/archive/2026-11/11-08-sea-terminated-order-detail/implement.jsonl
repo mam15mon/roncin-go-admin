@@ -1,0 +1,6 @@
+{"file": ".trellis/spec/server/backend/sea-export-document-contract.md", "reason": "海运单证与主单关联契约"}
+{"file": ".trellis/spec/server/backend/sea-document-change-history.md", "reason": "终态写门禁与历史边界"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "仓储读取及事务约束"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "真实 PostgreSQL 回归规范"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "输入保护、刷新与变动基线"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端测试及门禁"}

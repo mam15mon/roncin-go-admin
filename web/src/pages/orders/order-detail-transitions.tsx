@@ -66,7 +66,7 @@ export function confirmOrderFlow(
   app: TransitionApp,
   order: API.Order,
   targetStatus: number,
-  onCompleted: () => Promise<void> | void,
+  onCompleted: (order: API.Order) => Promise<void> | void,
   options: ConfirmTransitionOptions = {},
 ) {
   const orderID = order.id;
@@ -116,7 +116,7 @@ export function confirmOrderFlow(
       if (!isWriteResponse(response, true)) return Promise.reject();
       if (!response?.data) return Promise.reject();
       app.message.success(`状态已流转至${targetStatusLabel}`);
-      await onCompleted();
+      await onCompleted(response.data);
 
       return undefined;
     },
@@ -132,7 +132,7 @@ export function confirmOrderTermination(
   app: TransitionApp,
   order: API.Order,
   targetStatus: number,
-  onCompleted: () => Promise<void> | void,
+  onCompleted: (order: API.Order) => Promise<void> | void,
   options: ConfirmTransitionOptions = {},
 ) {
   const orderID = order.id;
@@ -219,7 +219,7 @@ export function confirmOrderTermination(
             ? '取消退关成功'
             : '更新退关状态成功',
       );
-      await onCompleted();
+      await onCompleted(response.data);
 
       return undefined;
     },
@@ -235,7 +235,7 @@ export function confirmOrderClosure(
   app: TransitionApp,
   order: API.Order,
   targetStatus: number,
-  onCompleted: () => Promise<void> | void,
+  onCompleted: (order: API.Order) => Promise<void> | void,
   options: ConfirmTransitionOptions = {},
 ) {
   const orderID = order.id;
@@ -269,7 +269,7 @@ export function confirmOrderClosure(
       if (!isWriteResponse(response, true)) return Promise.reject();
       if (!response?.data) return Promise.reject();
       app.message.success(isReopen ? '反结案成功' : '完结订单成功');
-      await onCompleted();
+      await onCompleted(response.data);
 
       return undefined;
     },

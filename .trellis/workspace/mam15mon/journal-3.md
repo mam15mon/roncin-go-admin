@@ -1112,3 +1112,36 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Next Steps
 
 - 若偶发错误页再次出现，保留现场错误栈和触发顺序继续定位；既有无快照分单需用户显式保存后再转换，不自动回填。
+
+
+## Session 188: 修复退关后详情读取与状态变动提醒
+<!-- trellis-session: v=2 fp=3564f80ce09df72a -->
+
+**Date**: 2026-11-08
+**Task**: 修复退关后详情读取与状态变动提醒
+**Branch**: `codex/fix-sea-terminated-order-detail`
+
+### Summary
+
+修复海运订单完成退关后保留单证读取失败及本人操作变动误报，补齐终态与迟到刷新保护；独立 review 与最终前后端门禁通过，按授权合并主分支并推送。
+
+### Main Changes
+
+- 终态精确读取本次退关结束关联，维持单证只读与组织边界；主单历史入口暂禁用，HBL 历史保留
+- 识别本人状态响应及轮询竞态，保护外部变更、未保存输入与切换订单后的身份
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `efd30bd1` | fix: 修复退关后详情读取与状态变动误报 |
+
+### Testing
+
+- [OK] 实测订单 SE2026110600004 强制只读仓储调用成功；DIRECT/HOUSE 定向真实库回归及 data 全包通过（878.375 秒）
+- [OK] 最终 check:web 通过：388 文件、2088 测试通过；独立 review 无阻塞项
+- [OK] 排除开发环境变量污染后 check:server 全部通过，含 Go vet、分层、Proto 与漏洞门禁
+
+### Status
+
+[OK] **Completed**

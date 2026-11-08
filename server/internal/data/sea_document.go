@@ -43,14 +43,26 @@ func (r *seaDocumentRepo) GetSeaOrderDocuments(ctx context.Context, organization
 		return nil, biz.ErrOrderBusinessUnsupported
 	}
 
-	link, err := client.SeaMasterBillOrderLink.Query().
+	linkQuery := client.SeaMasterBillOrderLink.Query().
 		Where(
 			seamasterbillorderlink.OrganizationIDEQ(organizationID),
 			seamasterbillorderlink.OrderIDEQ(orderID),
-			seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
-		).
-		WithMasterBill().
-		Only(ctx)
+		)
+	terminated := order.TerminationStatus == orderent.TerminationStatusTERMINATED
+	if terminated {
+		// 终态读取本次退关保留的关联，不能误取改配或上一次退关的历史行。
+		if order.TerminatedAt == nil {
+			return nil, biz.ErrSeaDocumentNoActiveLink
+		}
+		linkQuery.Where(
+			seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusENDED),
+			seamasterbillorderlink.EndedReasonEQ(orderTerminationLinkEndedReason),
+			seamasterbillorderlink.EndedAtEQ(*order.TerminatedAt),
+		)
+	} else {
+		linkQuery.Where(seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE))
+	}
+	link, err := linkQuery.WithMasterBill().Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return nil, biz.ErrSeaDocumentNoActiveLink
@@ -143,6 +155,9 @@ func (r *seaDocumentRepo) GetSeaOrderDocuments(ctx context.Context, organization
 			biz.SeaDocumentActionUpdateMasterBillContent,
 			biz.SeaDocumentActionChangeMode,
 		}
+	}
+	if terminated {
+		allowedActions = nil
 	}
 
 	return &biz.SeaOrderDocuments{
