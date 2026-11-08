@@ -620,9 +620,6 @@ export default function OrderDetailPage() {
       organizationId: order?.organizationId,
       seaHouseOrderSourceOrderId: order?.id,
       seaDocuments: currentDocuments,
-      seaMasterHistoryDisabled:
-        order?.terminationStatus ===
-        OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED,
       searchCustomers: withSeededOptions(
         (keyword?: string) =>
           searchPartnersByRole(PARTNER_ROLES.CUSTOMER, keyword),

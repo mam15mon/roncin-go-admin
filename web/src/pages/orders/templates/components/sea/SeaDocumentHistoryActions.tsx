@@ -62,7 +62,6 @@ interface SeaDocumentHistoryActionsProps {
   getAmendmentInput: () => API.SeaDocumentAmendmentInput;
   onSuccess: () => Promise<void> | void;
   disabled?: boolean;
-  historyDisabledReason?: string;
 }
 
 interface ActionFormValues extends SeaExternalConfirmationFormValues {
@@ -209,7 +208,6 @@ export default function SeaDocumentHistoryActions({
   getAmendmentInput,
   onSuccess,
   disabled = false,
-  historyDisabledReason,
 }: SeaDocumentHistoryActionsProps) {
   const access = useAccess();
   const { message } = App.useApp();
@@ -535,13 +533,7 @@ export default function SeaDocumentHistoryActions({
   return (
     <>
       <Space wrap>
-        <Button
-          size="small"
-          icon={<HistoryOutlined />}
-          onClick={openHistory}
-          disabled={Boolean(historyDisabledReason)}
-          title={historyDisabledReason}
-        >
+        <Button size="small" icon={<HistoryOutlined />} onClick={openHistory}>
           版本与事件
         </Button>
         {access.canOrder(OrderBusinessType.BUSINESS_TYPE_SE, 'amend') ? (

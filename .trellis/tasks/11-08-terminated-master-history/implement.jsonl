@@ -1,0 +1,6 @@
+{"file": ".trellis/spec/server/backend/sea-terminated-order-read.md", "reason": "精确终态关联读取"}
+{"file": ".trellis/spec/server/backend/sea-document-change-history.md", "reason": "不可变版本与事件读取/写入边界"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "仓储客户端与隔离库"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "正式迁移与真实库回归"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "历史抽屉请求和只读动作"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "定向组件测试"}
