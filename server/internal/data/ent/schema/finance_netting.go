@@ -31,9 +31,10 @@ func (FinanceNetting) Fields() []ent.Field {
 		field.String("currency").NotEmpty().MinLen(3).MaxLen(3).Immutable(),
 		field.String("amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
 		field.String("base_currency").NotEmpty().MinLen(3).MaxLen(3).Immutable(),
-		field.String("base_currency_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
-		field.String("payable_base_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
-		field.String("exchange_gain_loss").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
+		// 草稿确认时按已锁账单重算；已确认后的金额由状态机保护。
+		field.String("base_currency_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}),
+		field.String("payable_base_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}),
+		field.String("exchange_gain_loss").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}),
 		field.String("note").Optional().Nillable().MaxLen(500),
 		field.Uint64("version").Default(1),
 		field.Time("confirmed_at").Optional().Nillable(),

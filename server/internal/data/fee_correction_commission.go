@@ -309,6 +309,9 @@ func applyCommissionEconomicPlans(ctx context.Context, client *ent.Client, org, 
 				builder.SetSourceVerificationID(trigger.ID)
 			} else if trigger.Kind == "NETTING_CREATE" || trigger.Kind == "NETTING_REVERSE" {
 				builder.SetSourceNettingID(trigger.ID)
+			} else if trigger.Kind == "BILL_CREATE" || trigger.Kind == "BILL_BATCH_CREATE" || trigger.Kind == "BILL_UPDATE" || trigger.Kind == "BILL_CANCEL" {
+				// 账单改变经济基准，调整仍归属原核销/对冲收入来源；触发账单记在审计中。
+				builder.SetNillableSourceVerificationID(p.Parent.VerificationID).SetNillableSourceNettingID(p.Parent.NettingID)
 			}
 		}
 		if _, err := builder.Save(ctx); err != nil {

@@ -681,7 +681,7 @@ export default function FinanceCashflowsPage() {
           label="发生金额"
           rules={[{ required: true }, decimalRule]}
         />
-        {access.canOverrideFeeExchangeRate && (
+        {access.canUpdateExchangeRates && (
           <ProFormText
             name="exchangeRate"
             label="结算汇率（可选）"

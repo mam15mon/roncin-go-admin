@@ -433,12 +433,36 @@ func (r *financeNettingRepo) Confirm(ctx context.Context, organizationID, actorI
 			if item.Status != financenettingent.StatusDRAFT {
 				return biz.ErrFinanceNettingTransition
 			}
+			// 草稿不冻结账单汇率：批量建账后仍可修改草稿账单日期。
+			// 确认按当前已锁账单快照重算双端本位币，再使分摊生效。
+			billByID := make(map[uuid.UUID]*biz.FinanceNettingBill, len(facts))
+			for _, bill := range facts {
+				billByID[bill.ID] = bill
+			}
+			receivableBase, payableBase := decimal.Zero, decimal.Zero
+			for _, allocation := range locked.Allocations {
+				bill := billByID[allocation.BillID]
+				if bill.BaseCurrency != locked.BaseCurrency || !bill.ExchangeRate.IsPositive() {
+					return biz.ErrFinanceNettingMismatch
+				}
+				base := allocation.Amount.Mul(bill.ExchangeRate).RoundBank(8)
+				if err := tx.FinanceNettingAllocation.UpdateOneID(allocation.ID).SetBaseCurrencyAmount(base.StringFixed(8)).Exec(ctx); err != nil {
+					return err
+				}
+				if allocation.Direction == biz.OrderFeeReceivable {
+					receivableBase = receivableBase.Add(base)
+				} else {
+					payableBase = payableBase.Add(base)
+				}
+			}
 			// 分摊在确认时才生效；生效后立即参与账单可用余额计算。
 			if _, err = tx.FinanceNettingAllocation.Update().Where(financenettingallocationent.NettingIDEQ(id), financenettingallocationent.ActiveEQ(false)).SetActive(true).Save(ctx); err != nil {
 				return err
 			}
 			now := time.Now().UTC()
 			if _, err = tx.FinanceNetting.UpdateOneID(id).
+				SetBaseCurrencyAmount(receivableBase.StringFixed(8)).SetPayableBaseAmount(payableBase.StringFixed(8)).
+				SetExchangeGainLoss(payableBase.Sub(receivableBase).StringFixed(8)).
 				SetStatus(financenettingent.StatusCONFIRMED).SetConfirmedAt(now).SetConfirmedBy(actorID).
 				SetVersion(item.Version + 1).Save(ctx); err != nil {
 				return err

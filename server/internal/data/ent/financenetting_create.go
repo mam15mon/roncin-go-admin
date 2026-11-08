@@ -972,6 +972,42 @@ func (u *FinanceNettingUpsert) UpdateStatus() *FinanceNettingUpsert {
 	return u
 }
 
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (u *FinanceNettingUpsert) SetBaseCurrencyAmount(v string) *FinanceNettingUpsert {
+	u.Set(financenetting.FieldBaseCurrencyAmount, v)
+	return u
+}
+
+// UpdateBaseCurrencyAmount sets the "base_currency_amount" field to the value that was provided on create.
+func (u *FinanceNettingUpsert) UpdateBaseCurrencyAmount() *FinanceNettingUpsert {
+	u.SetExcluded(financenetting.FieldBaseCurrencyAmount)
+	return u
+}
+
+// SetPayableBaseAmount sets the "payable_base_amount" field.
+func (u *FinanceNettingUpsert) SetPayableBaseAmount(v string) *FinanceNettingUpsert {
+	u.Set(financenetting.FieldPayableBaseAmount, v)
+	return u
+}
+
+// UpdatePayableBaseAmount sets the "payable_base_amount" field to the value that was provided on create.
+func (u *FinanceNettingUpsert) UpdatePayableBaseAmount() *FinanceNettingUpsert {
+	u.SetExcluded(financenetting.FieldPayableBaseAmount)
+	return u
+}
+
+// SetExchangeGainLoss sets the "exchange_gain_loss" field.
+func (u *FinanceNettingUpsert) SetExchangeGainLoss(v string) *FinanceNettingUpsert {
+	u.Set(financenetting.FieldExchangeGainLoss, v)
+	return u
+}
+
+// UpdateExchangeGainLoss sets the "exchange_gain_loss" field to the value that was provided on create.
+func (u *FinanceNettingUpsert) UpdateExchangeGainLoss() *FinanceNettingUpsert {
+	u.SetExcluded(financenetting.FieldExchangeGainLoss)
+	return u
+}
+
 // SetNote sets the "note" field.
 func (u *FinanceNettingUpsert) SetNote(v string) *FinanceNettingUpsert {
 	u.Set(financenetting.FieldNote, v)
@@ -1205,15 +1241,6 @@ func (u *FinanceNettingUpsertOne) UpdateNewValues() *FinanceNettingUpsertOne {
 		if _, exists := u.create.mutation.BaseCurrency(); exists {
 			s.SetIgnore(financenetting.FieldBaseCurrency)
 		}
-		if _, exists := u.create.mutation.BaseCurrencyAmount(); exists {
-			s.SetIgnore(financenetting.FieldBaseCurrencyAmount)
-		}
-		if _, exists := u.create.mutation.PayableBaseAmount(); exists {
-			s.SetIgnore(financenetting.FieldPayableBaseAmount)
-		}
-		if _, exists := u.create.mutation.ExchangeGainLoss(); exists {
-			s.SetIgnore(financenetting.FieldExchangeGainLoss)
-		}
 	}))
 	return u
 }
@@ -1270,6 +1297,48 @@ func (u *FinanceNettingUpsertOne) SetStatus(v financenetting.Status) *FinanceNet
 func (u *FinanceNettingUpsertOne) UpdateStatus() *FinanceNettingUpsertOne {
 	return u.Update(func(s *FinanceNettingUpsert) {
 		s.UpdateStatus()
+	})
+}
+
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (u *FinanceNettingUpsertOne) SetBaseCurrencyAmount(v string) *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetBaseCurrencyAmount(v)
+	})
+}
+
+// UpdateBaseCurrencyAmount sets the "base_currency_amount" field to the value that was provided on create.
+func (u *FinanceNettingUpsertOne) UpdateBaseCurrencyAmount() *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateBaseCurrencyAmount()
+	})
+}
+
+// SetPayableBaseAmount sets the "payable_base_amount" field.
+func (u *FinanceNettingUpsertOne) SetPayableBaseAmount(v string) *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetPayableBaseAmount(v)
+	})
+}
+
+// UpdatePayableBaseAmount sets the "payable_base_amount" field to the value that was provided on create.
+func (u *FinanceNettingUpsertOne) UpdatePayableBaseAmount() *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdatePayableBaseAmount()
+	})
+}
+
+// SetExchangeGainLoss sets the "exchange_gain_loss" field.
+func (u *FinanceNettingUpsertOne) SetExchangeGainLoss(v string) *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetExchangeGainLoss(v)
+	})
+}
+
+// UpdateExchangeGainLoss sets the "exchange_gain_loss" field to the value that was provided on create.
+func (u *FinanceNettingUpsertOne) UpdateExchangeGainLoss() *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateExchangeGainLoss()
 	})
 }
 
@@ -1702,15 +1771,6 @@ func (u *FinanceNettingUpsertBulk) UpdateNewValues() *FinanceNettingUpsertBulk {
 			if _, exists := b.mutation.BaseCurrency(); exists {
 				s.SetIgnore(financenetting.FieldBaseCurrency)
 			}
-			if _, exists := b.mutation.BaseCurrencyAmount(); exists {
-				s.SetIgnore(financenetting.FieldBaseCurrencyAmount)
-			}
-			if _, exists := b.mutation.PayableBaseAmount(); exists {
-				s.SetIgnore(financenetting.FieldPayableBaseAmount)
-			}
-			if _, exists := b.mutation.ExchangeGainLoss(); exists {
-				s.SetIgnore(financenetting.FieldExchangeGainLoss)
-			}
 		}
 	}))
 	return u
@@ -1768,6 +1828,48 @@ func (u *FinanceNettingUpsertBulk) SetStatus(v financenetting.Status) *FinanceNe
 func (u *FinanceNettingUpsertBulk) UpdateStatus() *FinanceNettingUpsertBulk {
 	return u.Update(func(s *FinanceNettingUpsert) {
 		s.UpdateStatus()
+	})
+}
+
+// SetBaseCurrencyAmount sets the "base_currency_amount" field.
+func (u *FinanceNettingUpsertBulk) SetBaseCurrencyAmount(v string) *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetBaseCurrencyAmount(v)
+	})
+}
+
+// UpdateBaseCurrencyAmount sets the "base_currency_amount" field to the value that was provided on create.
+func (u *FinanceNettingUpsertBulk) UpdateBaseCurrencyAmount() *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateBaseCurrencyAmount()
+	})
+}
+
+// SetPayableBaseAmount sets the "payable_base_amount" field.
+func (u *FinanceNettingUpsertBulk) SetPayableBaseAmount(v string) *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetPayableBaseAmount(v)
+	})
+}
+
+// UpdatePayableBaseAmount sets the "payable_base_amount" field to the value that was provided on create.
+func (u *FinanceNettingUpsertBulk) UpdatePayableBaseAmount() *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdatePayableBaseAmount()
+	})
+}
+
+// SetExchangeGainLoss sets the "exchange_gain_loss" field.
+func (u *FinanceNettingUpsertBulk) SetExchangeGainLoss(v string) *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetExchangeGainLoss(v)
+	})
+}
+
+// UpdateExchangeGainLoss sets the "exchange_gain_loss" field to the value that was provided on create.
+func (u *FinanceNettingUpsertBulk) UpdateExchangeGainLoss() *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateExchangeGainLoss()
 	})
 }
 

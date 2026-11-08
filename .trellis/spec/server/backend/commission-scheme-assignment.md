@@ -34,6 +34,7 @@ finance_commission_rule_assignments  分配表：organization_id、rule_id、emp
 - **实际有效区间** = 方案区间 ∩ 分配区间，`YYYY-MM-DD` 字符串闭区间比较；
   起点必填，空终点 = 正无穷。同一 `组织 × 员工 × 身份` 的实际区间不得跨方案重叠；
   唯一索引仅作并发兜底，判定靠锁内区间校验。
+- **更新校验**：创建启用方案的起始日不得早于业务日期；更新不能机械复用此限制而拒绝已生效方案名称/备注维护。已到期方案保留原终止日不变时仍允许非核心修改；纯名称/备注修改且全部资格字段不变时，仍锁现存 Membership，但不要求历史员工当前启用。创建/启用及任何资格字段变化继续检查成员、账号有效性，不得借纯元数据例外恢复停用员工资格；实际修改结束日才适用禁止追溯规则。所有启用方案更新都按每个未取消分配段的实际交集复核其他方案冲突，排除本方案分配，不能只在停用转启用时检查。预读成员集合与锁内集合变化返回冲突，禁止持方案锁后补锁新成员。
 - **生效后参数锁定**：方案到达生效日后，身份、口径、比例、起始日不可原地修改，
   不得用 `enabled = false` 追溯失效；调整走【复制为新方案】（新方案当天/未来生效，
   旧方案终止日 = 新方案生效日前一日）。`enabled = false` 仅用于未生效草稿/作废
@@ -88,6 +89,7 @@ finance_commission_rule_assignments  分配表：organization_id、rule_id、emp
 - PostgreSQL 并发：`TestCommissionRuleConcurrentOverlapPostgres`（两事务把同一
   员工身份加入重叠方案恰好一个成功）、分配 Schema/锁序集成
   （`TestCommissionRuleAssignmentSchemaPostgres` 等）。
+- 更新：已生效/已到期方案名称备注可改，核心参数与追溯修改拒绝；未来启用方案延长到后继方案区间拒绝且零写入。区间计算必须先分别求方案与分配的交集，再比较实际交集，不能用两个区间对各自相交代替。
 - 解析与资格：`TestCommissionResolutionPostgres`（多员工共享、员工差异、多身份
   独立候选、固定薪无候选、加入/退出日期边界、离职历史资格、复制衔接后历史命中）。
 - 摘要隐私矩阵：`TestOrderCommissionSummaryPrivacyPostgres`（仅本人/组织级/

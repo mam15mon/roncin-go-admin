@@ -31,7 +31,7 @@ ResolveRate(ctx context.Context, companyID uuid.UUID, direction OrderFeeDirectio
 
 维护 API 从服务端 principal 取得组织并解析所属公司，列表只返回公司行；按记录 ID 编辑、停用、读取导入批次时仍需公司范围校验。`system.finance.exchange_rate.read` 用于查看，`create` 用于新建、导入和同步，`update` 用于编辑配置及单据显式手工输入，`disable` 用于停用。独立 `override` 权限退役，旧授权不能代替 `update`。系统工作台即使直接请求 API 也不得读写业务汇率。
 
-新解析仅查目标自然周的本公司启用行。相同币种返回 `rate=1`、来源 `SYSTEM`；应收取 `ar_rate`、应付取 `ap_rate`，空值沿用 `rate`。命中行快照携带设置 ID，来源为 `WEEKLY` 或 `BOC_SYNC`。不存在上周继承、公共直连、公共历史回溯或公共交叉套算。外部牌价预览可计算交叉报价，它不读取数据库公共行。跨组织资金流仍按原币记账。
+新解析仅查目标自然周的本公司启用行。相同币种自动解析返回 `rate=1`、来源 `SYSTEM`；显式手工输入同币种汇率也必须等于 `1`，非 `1` 返回 `EXCHANGE_RATE_SAME_CURRENCY_INVALID`，不得静默纠正。该规则按单据所属公司的实际本币判断，不能硬编码 CNY；应收取 `ar_rate`、应付取 `ap_rate`，空值沿用 `rate`。命中行快照携带设置 ID，来源为 `WEEKLY` 或 `BOC_SYNC`。不存在上周继承、公共直连、公共历史回溯或公共交叉套算。外部牌价预览可计算交叉报价，它不读取数据库公共行。跨组织资金流仍按原币记账。
 
 `MANUAL` 只代表有显式手工输入权限者输入；不能静默生成公司周配置。保留既有单据的手工快照不等于新手工输入，更新其他字段时不得因此要求重新输入，也不得允许借旧来源改价。旧 `INHERITED_LAST_WEEK`、`DERIVED`、公共行 `SYSTEM` 来源仅供已有快照展示；不删除枚举或历史 SQL 约束，也不重算已保存金额。
 
@@ -39,7 +39,8 @@ ResolveRate(ctx context.Context, companyID uuid.UUID, direction OrderFeeDirectio
 
 - 订单费用（应收与应付）折本币汇率统一按**订单 ETD** 所在自然周解析，解析日期不再是费用发生日期（发生日期字段已退役，录入时间以 `created_at` 为准）；费用快照的 `exchange_rate_date` 记录 ETD 所在业务日。订单未填写 ETD 时解析返回 `ORDER_ETD_MISSING`，前端提示先补 ETD。
 - 订单费用中的手工汇率覆盖使用独立权限 `system.finance.order_fee.exchange_rate.override`（「调整订单费用汇率」），与维护公司周汇率的 `update` 权限分离；且仅当订单内应收费用币种集合与应付费用币种集合一致且均非空时允许（`orderFeeCurrencySetsMatch`），否则返回 `ORDER_FEE_EXCHANGE_RATE_OVERRIDE_MISMATCH`。
-- 账单、资金流水等其他折本币调用的权限与日期口径不变（账单按账单日期、资金流水仍用 `update` 权限）。
+- 账单、资金流水等其他折本币调用的权限与日期口径不变（账单按账单日期、资金流水仍用 `update` 权限）。流水页面复用 `access.canUpdateExchangeRates`，不得误用费用专属 `canOverrideFeeExchangeRate`；服务端继续独立校验权限。
+- 发票确认按单据方向解析周汇率：应收开票取 `ar_rate`，应付收票取 `ap_rate`；不能把全部发票视为应收。
 
 ## 4. 校验与错误矩阵
 
@@ -63,6 +64,8 @@ ResolveRate(ctx context.Context, companyID uuid.UUID, direction OrderFeeDirectio
 ## 6. 必要验证
 
 - 公司 A/B、部门和系统工作台覆盖查询、维护、导入批次与同步预览的范围隔离。
+- 手工汇率：100 CNY（公司本币）填 7 必须拒绝，填 1 与合法外币率允许；非 CNY 公司同样验证。费用新增/修改复用同一解析校验，未改汇率的历史快照保留。
+- 应付 100 USD，`ar_rate=7.2` / `ap_rate=7` 时收票本币为 700；应收为 720。流水入口覆盖仅有费用覆盖权限/仅有汇率维护权限的差异。
 - 自然周精确命中、历史开口行不跨周、应收/应付方向、同币种恒等、非 CNY 公司。
 - 当周缺失但存在前后周或公共直连/交叉价时，断言缺失错误及前端提示。
 - 无权限伪造手工值、有权限显式输入、旧 `MANUAL` 快照保留、事务内并发改价。
