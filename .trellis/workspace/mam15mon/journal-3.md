@@ -1253,3 +1253,25 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 193: 提成调整公司名称修复与恢复现场核验
+<!-- trellis-session: v=2 fp=fd8d0e20e9bfb9db -->
+
+**Date**: 2026-11-08
+**Task**: 提成调整公司名称修复与恢复现场核验
+**Branch**: `codex/commission-adjustment-company`
+
+### Summary
+
+修复四处提成内嵌调整真实公司名称预载；真实 PostgreSQL 六场景与页面十项回归、独立 review、check:fast 全部通过。正式开发接口只读确认 ADJ001/ADJ002 公司名正确且仍取消，恢复单 SE2026110800002 ACTIVE v8 详情单证正常。按用户授权合并 main、推送并安全删除修复分支。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `7f2c5666` | fix: 补齐提成内嵌调整的真实公司名称 |
+
+### Status
+
+[OK] **Completed**

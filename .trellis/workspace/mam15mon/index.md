@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 192
+- **Total Sessions**: 193
 - **Last Active**: 2026-11-08
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~1255 | Active |
+| `journal-3.md` | ~1277 | Active |
 | `journal-2.md` | ~2003 | Archived |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 193 | 2026-11-08 | 提成调整公司名称修复与恢复现场核验 | `7f2c5666` | `codex/commission-adjustment-company` |
 | 192 | 2026-11-08 | 海运退关原子恢复与现场补链 | `a0b2783b` | `codex/sea-order-restore-link` |
 | 191 | 2026-11-08 | 退关后主单版本与事件只读访问 | `0bee7642` | `codex/terminated-master-history` |
 | 190 | 2026-11-08 | 退关船公司名称与补审批准验收 | `ba6034d6` | `codex/terminated-shipping-line-fee-approval` |
