@@ -3837,21 +3837,7 @@ func init() {
 	// financecommissionlineDescCustomerCode is the schema descriptor for customer_code field.
 	financecommissionlineDescCustomerCode := financecommissionlineFields[6].Descriptor()
 	// financecommissionline.CustomerCodeValidator is a validator for the "customer_code" field. It is called by the builders before save.
-	financecommissionline.CustomerCodeValidator = func() func(string) error {
-		validators := financecommissionlineDescCustomerCode.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(customer_code string) error {
-			for _, fn := range fns {
-				if err := fn(customer_code); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
+	financecommissionline.CustomerCodeValidator = financecommissionlineDescCustomerCode.Validators[0].(func(string) error)
 	// financecommissionlineDescCustomerName is the schema descriptor for customer_name field.
 	financecommissionlineDescCustomerName := financecommissionlineFields[7].Descriptor()
 	// financecommissionline.CustomerNameValidator is a validator for the "customer_name" field. It is called by the builders before save.

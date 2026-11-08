@@ -48,6 +48,10 @@ type commissionNettingPostgresFixture struct {
 var commissionNettingBillAmounts = [2]string{"300.00000000", "500.00000000"}
 
 func newCommissionNettingPostgresFixture(t *testing.T) *commissionNettingPostgresFixture {
+	return newCommissionNettingPostgresFixtureWithRule(t, true)
+}
+
+func newCommissionNettingPostgresFixtureWithRule(t *testing.T, createRule bool) *commissionNettingPostgresFixture {
 	t.Helper()
 	data, cleanup := getIntegrationData(t)
 	t.Cleanup(cleanup)
@@ -168,7 +172,6 @@ func newCommissionNettingPostgresFixture(t *testing.T) *commissionNettingPostgre
 				SetExchangeRateDate(financeCommissionIntegrationDate).
 				SetBaseCurrency("CNY").
 				SetBaseCurrencyAmount(feeSpec.amount).
-
 				SetVersion(1).
 				Save(ctx)
 			if feeErr != nil {
@@ -287,28 +290,31 @@ func newCommissionNettingPostgresFixture(t *testing.T) *commissionNettingPostgre
 		t.Fatalf("创建测试提成编号规则: %v", err)
 	}
 
-	ruleItem, err := data.db.FinanceCommissionRule.Create().
-		SetOrganizationID(org.ID).
-		SetName("销售提成规则-" + suffix).
-		SetPersonnelRole(rule.PersonnelRoleSALES).
-		SetCalculationBasis(rule.CalculationBasisREALIZED_PROFIT).
-		SetRatePercent("10.0000").
-		SetEnabled(true).
-		SetVersion(1).
-		Save(ctx)
-	if err != nil {
-		t.Fatalf("创建测试提成规则: %v", err)
-	}
-	fixture.ruleID = ruleItem.ID
-	// 方案员工分配：覆盖夹具归属日期的未取消有效段，供计提自动解析唯一命中。
-	if _, err = data.db.FinanceCommissionRuleAssignment.Create().
-		SetOrganizationID(org.ID).
-		SetRuleID(ruleItem.ID).
-		SetEmployeeID(fixture.employeeID).
-		SetEffectiveFrom("2026-01-01").
-		SetCreatedBy(fixture.actorID).
-		Save(ctx); err != nil {
-		t.Fatalf("创建测试方案员工分配: %v", err)
+	if createRule {
+		ruleItem, err := data.db.FinanceCommissionRule.Create().
+			SetOrganizationID(org.ID).
+			SetName("销售提成规则-" + suffix).
+			SetPersonnelRole(rule.PersonnelRoleSALES).
+			SetCalculationBasis(rule.CalculationBasisREALIZED_PROFIT).
+			SetRatePercent("10.0000").
+			SetEnabled(true).
+			SetVersion(1).
+			Save(ctx)
+		if err != nil {
+			t.Fatalf("创建测试提成规则: %v", err)
+		}
+		fixture.ruleID = ruleItem.ID
+		// 方案员工分配：覆盖夹具归属日期的未取消有效段，供计提自动解析唯一命中。
+		if _, err = data.db.FinanceCommissionRuleAssignment.Create().
+			SetOrganizationID(org.ID).
+			SetRuleID(ruleItem.ID).
+			SetEmployeeID(fixture.employeeID).
+			SetEffectiveFrom("2026-01-01").
+			SetCreatedBy(fixture.actorID).
+			Save(ctx); err != nil {
+			t.Fatalf("创建测试方案员工分配: %v", err)
+		}
+
 	}
 
 	// 走真实对冲创建/确认链路形成 CONFIRMED 对冲单：金额 800 双方全额抵销。
@@ -678,7 +684,6 @@ func (f *commissionNettingPostgresFixture) createVerificationSource(ctx context.
 		SetExchangeRateDate(financeCommissionIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount("200.00000000").
-
 		SetVersion(1).
 		Save(ctx)
 	if err != nil {

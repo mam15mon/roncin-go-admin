@@ -56,6 +56,7 @@ export default function CommissionRuleFormModal({
   return (
     <GuardedModalForm<RuleValues>
       formRef={formRef}
+      dateFormatter={false}
       key={editingRule?.id || 'new-rule'}
       title={editingRule ? '编辑提成方案' : '新建提成方案'}
       open={open}
@@ -154,6 +155,31 @@ export default function CommissionRuleFormModal({
       <ProFormDateRangePicker
         name="effectiveRange"
         label="生效区间"
+        dependencies={['enabled']}
+        rules={[
+          ({ getFieldValue }) => ({
+            validator: async (_, range) => {
+              const start = range?.[0];
+              const end = range?.[1];
+              if (!editingRule && getFieldValue('enabled') && !start) {
+                throw new Error('启用方案请选择生效起始日');
+              }
+              if (start && (!start.isValid() || (end && !end.isValid()))) {
+                throw new Error('请选择有效的生效区间');
+              }
+              if (start && end?.isBefore(start, 'day')) {
+                throw new Error('生效结束日不能早于起始日');
+              }
+              if (
+                !editingRule &&
+                getFieldValue('enabled') &&
+                start?.isBefore(dayjs(), 'day')
+              ) {
+                throw new Error('新启用方案的起始日必须是当天或未来日期');
+              }
+            },
+          }),
+        ]}
         fieldProps={{
           disabled: [Boolean(editingRule && editingReached), false],
         }}

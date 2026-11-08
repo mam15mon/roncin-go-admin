@@ -36,7 +36,8 @@ func (FinanceCommissionLine) Fields() []ent.Field {
 		field.String("order_no").NotEmpty().MaxLen(64).Immutable(),
 		field.String("order_date").NotEmpty().MaxLen(32).Immutable(),
 		field.UUID("customer_id", uuid.Nil).Immutable(),
-		field.String("customer_code").NotEmpty().MaxLen(64).Immutable(),
+		// 客商编码为选填，快照保留真实空值，不阻断合法订单计提。
+		field.String("customer_code").MaxLen(64).Immutable(),
 		field.String("customer_name").NotEmpty().MaxLen(200).Immutable(),
 		field.UUID("personnel_assignment_id", uuid.Nil).Immutable(),
 		field.UUID("personnel_organization_id", uuid.Nil).Immutable(),
