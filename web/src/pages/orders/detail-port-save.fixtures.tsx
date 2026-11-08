@@ -50,6 +50,7 @@ vi.mock('@/services/roncin/orderService', () => ({
   orderServiceUpdateOrder: vi.fn(),
   orderServiceMatchSeaMasterBillCandidate: vi.fn(),
   orderServiceGetOrder: vi.fn(),
+  orderServiceTransitionOrderTermination: vi.fn(),
 }));
 vi.mock('./use-order-detail-data', () => ({
   useOrderDetailData: () => ({

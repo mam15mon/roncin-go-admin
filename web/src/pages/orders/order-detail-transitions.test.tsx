@@ -89,7 +89,7 @@ describe('订单详情状态确认函数', () => {
         targetFlowStatus: OrderFlowStatus.ORDER_FLOW_STATUS_BOOKED,
       },
     );
-    expect(onCompleted).toHaveBeenCalledOnce();
+    expect(onCompleted).toHaveBeenCalledWith({ id: 'order-1' });
   });
 
   it('空响应不会误报主流程成功或刷新', async () => {

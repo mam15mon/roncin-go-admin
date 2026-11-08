@@ -166,7 +166,7 @@
 | MBL 含空格、标点、非 ASCII 字母或数字 | 400 `SEA_MASTER_BILL_INVALID_ARGUMENT` |
 | 同组织、同船公司、同规范化 MBL 已存在但未确认 | 409 `SEA_MASTER_BILL_CONFIRMATION_REQUIRED`，事务回滚 |
 | 候选身份、版本或共享航程变化 | 409 对应 MBL 冲突错误，事务回滚 |
-| 单证聚合找不到活动 Link | 400 `SEA_DOCUMENT_NO_ACTIVE_LINK`，不得构造虚假默认响应 |
+| 非终态单证聚合找不到活动 Link，或终态找不到本次退关结束关联 | 400 `SEA_DOCUMENT_NO_ACTIVE_LINK`，不得构造虚假默认响应；终态读取见[退关后详情契约](./sea-terminated-order-read.md) |
 | HOUSE→DIRECT 缺外部确认、幂等键，或 HBL 预期版本/当前版本 ID 不一致 | 400/409 对应单证冲突错误，事务回滚 |
 | Link、MBL 或 HBL 预期版本不一致 | 409 `SEA_DOCUMENT_STRUCTURE_CONFLICT`、`SEA_MASTER_BILL_CONFLICT` 或 `SEA_HOUSE_BILL_CONFLICT` |
 | HBL 号为空或超过 128 个字符 | 400 `SEA_HOUSE_BILL_INVALID_ARGUMENT` |

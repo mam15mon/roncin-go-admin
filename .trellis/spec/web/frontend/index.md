@@ -16,6 +16,7 @@
 | [HBL 制作与 PDF 输出](../../server/backend/sea-hbl-production.md) | 同一 HBL 保存、四版本独立于利润审核、字体与完整分页输出 | ✅ |
 | [Component Guidelines](./component-guidelines.md) | UI 模板规范、公共组件与金额/时间显示口径 | ✅ |
 | [State Management](./state-management.md) | 服务端状态与请求客户端 | ✅ |
+| [退关后详情读取](../../server/backend/sea-terminated-order-read.md) | 终态单证读取、本人状态操作识别与编辑基线保护 | ✅ |
 | [Workbench Todos](../../server/backend/workbench-todos.md) | 本人待办分页、权限、返回刷新与异常直达的一次性消费 | ✅ |
 | [Organization Switch](./organization-switch.md) | 组织切换落点、异步工作区转换与未保存输入保护 | ✅ |
 | [Hook Guidelines](./hook-guidelines.md) | 数据获取与自定义 Hook | ✅ |

@@ -45,6 +45,8 @@ export interface TemplateProps {
   /** 当前订单归属，供独立单证命令校验工作台能力。 */
   organizationId?: string;
   seaDocuments?: API.SeaOrderDocuments;
+  /** 退关后主单历史接口仍要求活动关联，明确关闭该入口。 */
+  seaMasterHistoryDisabled?: boolean;
   /** 详情扩展贡献的实际装箱，独立于计划及整页保存。 */
   actualContainers?: ReactNode;
   /** 复用详情现有共享航程命令提供就近维护入口，不另建写路径。 */

@@ -620,6 +620,9 @@ export default function OrderDetailPage() {
       organizationId: order?.organizationId,
       seaHouseOrderSourceOrderId: order?.id,
       seaDocuments: currentDocuments,
+      seaMasterHistoryDisabled:
+        order?.terminationStatus ===
+        OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED,
       searchCustomers: withSeededOptions(
         (keyword?: string) =>
           searchPartnersByRole(PARTNER_ROLES.CUSTOMER, keyword),
@@ -753,6 +756,7 @@ export default function OrderDetailPage() {
       canSearchPersonnel,
       effectiveReadonly,
       order?.organizationId,
+      order?.terminationStatus,
       order?.id,
       customerSeeds,
       bookingAgentSeeds,
@@ -1014,21 +1018,45 @@ export default function OrderDetailPage() {
     return true;
   };
 
-  const refreshStatusState = async () => {
+  const refreshStatusState = async (updatedOrder?: API.Order) => {
+    const token = explicitRefreshTokenRef.current;
     const results = await Promise.allSettled([loadData(), refreshLockState()]);
+    if (token !== explicitRefreshTokenRef.current) return;
+    if (
+      results[0].status === 'fulfilled' &&
+      updatedOrder &&
+      order &&
+      results[0].value?.order
+    ) {
+      changeNotice.acceptTransition(
+        order,
+        updatedOrder,
+        results[0].value.order,
+      );
+    }
     if (results.some((result) => result.status === 'rejected')) {
       message.warning('状态已更新，但最新数据刷新失败，请手动刷新');
     }
   };
 
   const openStatusConfirmation = (
-    open: (afterClose: () => void) => boolean,
+    open: (
+      afterClose: () => void,
+      onCompleted: (updatedOrder: API.Order) => Promise<void>,
+    ) => boolean,
   ) => {
     if (statusTransitionConfirmOpenRef.current) return;
     statusTransitionConfirmOpenRef.current = true;
-    const opened = open(() => {
-      statusTransitionConfirmOpenRef.current = false;
-    });
+    const token = explicitRefreshTokenRef.current;
+    const opened = open(
+      () => {
+        statusTransitionConfirmOpenRef.current = false;
+      },
+      async (updatedOrder) => {
+        if (token !== explicitRefreshTokenRef.current) return;
+        await refreshStatusState(updatedOrder);
+      },
+    );
     if (!opened) statusTransitionConfirmOpenRef.current = false;
   };
 
@@ -1041,22 +1069,16 @@ export default function OrderDetailPage() {
     ) {
       return;
     }
-    openStatusConfirmation((afterClose) =>
-      confirmOrderFlow(
-        { modal, message },
-        order,
-        targetStatus,
-        refreshStatusState,
-        {
-          afterClose,
-          signal: getModalOwnerSignal(),
-          canSubmit: () =>
-            ensureStatusActionAllowed(
-              OrderAllowedAction.ORDER_ALLOWED_ACTION_TRANSITION_FLOW,
-              { requiresBusinessWrite: true, targetFlowStatus: targetStatus },
-            ),
-        },
-      ),
+    openStatusConfirmation((afterClose, onCompleted) =>
+      confirmOrderFlow({ modal, message }, order, targetStatus, onCompleted, {
+        afterClose,
+        signal: getModalOwnerSignal(),
+        canSubmit: () =>
+          ensureStatusActionAllowed(
+            OrderAllowedAction.ORDER_ALLOWED_ACTION_TRANSITION_FLOW,
+            { requiresBusinessWrite: true, targetFlowStatus: targetStatus },
+          ),
+      }),
     );
   };
 
@@ -1072,12 +1094,12 @@ export default function OrderDetailPage() {
     const requiresBusinessWrite =
       action === OrderAllowedAction.ORDER_ALLOWED_ACTION_START_TERMINATION;
     if (!ensureStatusActionAllowed(action, { requiresBusinessWrite })) return;
-    openStatusConfirmation((afterClose) =>
+    openStatusConfirmation((afterClose, onCompleted) =>
       confirmOrderTermination(
         { modal, message },
         order,
         targetStatus,
-        refreshStatusState,
+        onCompleted,
         {
           afterClose,
           signal: getModalOwnerSignal(),
@@ -1094,12 +1116,12 @@ export default function OrderDetailPage() {
         ? OrderAllowedAction.ORDER_ALLOWED_ACTION_CLOSE
         : OrderAllowedAction.ORDER_ALLOWED_ACTION_REOPEN;
     if (!ensureStatusActionAllowed(action)) return;
-    openStatusConfirmation((afterClose) =>
+    openStatusConfirmation((afterClose, onCompleted) =>
       confirmOrderClosure(
         { modal, message },
         order,
         targetStatus,
-        refreshStatusState,
+        onCompleted,
         {
           afterClose,
           signal: getModalOwnerSignal(),
