@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 187
-- **Last Active**: 2026-11-06
+- **Total Sessions**: 188
+- **Last Active**: 2026-11-08
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~1114 | Active |
+| `journal-3.md` | ~1147 | Active |
 | `journal-2.md` | ~2003 | Archived |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 188 | 2026-11-08 | 修复退关后详情读取与状态变动提醒 | `efd30bd1` | `codex/fix-sea-terminated-order-detail` |
 | 187 | 2026-11-06 | 海运拆票改配与分单转换阻塞修复 | `3893b2fd`, `50251427`, `d1e0dcb7`, `fee8142c`, `76769e4d`, `211ca641`, `296f1cc5`, `a77d62b4` | `main` |
 | 186 | 2026-11-04 | 财务与提成九项业务修复和验收 | `5971470b`, `db192a48`, `8d36d954`, `88e75d2e` | `codex/finance-business-fixes` |
 | 185 | 2026-11-04 | 修复海运共享母单与改配一致性并合并主分支 | `a9615cd8`, `4d410936`, `ff498bdc`, `e7e748e6`, `a01dada7` | `main` |
