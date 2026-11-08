@@ -280,6 +280,7 @@ const dangerousPackingGroupOptions = [
 
 function SeaCarrierField({
   seaHouseOrderCreateSource,
+  seaDocuments,
   isDetail,
   readonly,
   searchShippingLines,
@@ -287,7 +288,7 @@ function SeaCarrierField({
   isDetail?: boolean;
   readonly?: boolean;
   searchShippingLines: (keyword?: string) => Promise<SelectOption[]>;
-} & Pick<TemplateProps, 'seaHouseOrderCreateSource'>) {
+} & Pick<TemplateProps, 'seaHouseOrderCreateSource' | 'seaDocuments'>) {
   const form = Form.useFormInstance();
   const existingMbl = Form.useWatch('seaMasterBill', {
     form,
@@ -295,17 +296,25 @@ function SeaCarrierField({
   }) as API.SeaMasterBillSummary | undefined;
   const isMultiMemberLocked =
     isDetail && !!existingMbl && (existingMbl.memberCount ?? 0) > 1;
-  const currentShippingLineOption = existingMbl?.shippingLineId
+  const shippingLineId = Form.useWatch('shippingLineId', {
+    form,
+    preserve: true,
+  });
+  // 退关结束活动关系后，保留单证仍提供当前引用的名称；不为展示恢复活动主单。
+  const displaySource = [
+    existingMbl,
+    seaDocuments?.masterBill,
+    seaHouseOrderCreateSource,
+  ].find(
+    (source) => shippingLineId && source?.shippingLineId === shippingLineId,
+  );
+  const currentShippingLineOption = displaySource
     ? {
-        label: existingMbl.shippingLineName || existingMbl.shippingLineId,
-        value: existingMbl.shippingLineId,
+        value: displaySource.shippingLineId,
+        label: displaySource.shippingLineName || '船公司名称读取失败',
       }
-    : seaHouseOrderCreateSource
-      ? {
-          value: seaHouseOrderCreateSource.shippingLineId,
-          label:
-            seaHouseOrderCreateSource.shippingLineName || '船公司名称读取失败',
-        }
+    : shippingLineId && readonly
+      ? { value: shippingLineId, label: '船公司名称读取失败' }
       : undefined;
 
   return (
@@ -724,6 +733,7 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
     ),
     carrier: (
       <SeaCarrierField
+        seaDocuments={props.seaDocuments}
         seaHouseOrderCreateSource={props.seaHouseOrderCreateSource}
         isDetail={props.isDetail}
         readonly={props.readonly}
