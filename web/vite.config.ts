@@ -72,6 +72,8 @@ export default defineConfig(({ mode }) => ({
       'config/dingtalkLoginBootstrap.test.ts',
     ],
     fileParallelism: true,
+    // 限制测试文件的工作进程数，避免与并行的 Go 门禁争抢资源。
+    maxWorkers: 16,
     maxConcurrency: 32,
     exclude: ['node_modules', 'dist'],
     coverage: {

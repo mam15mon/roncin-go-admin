@@ -1,5 +1,9 @@
 import '@testing-library/jest-dom/vitest';
+import { configure } from '@testing-library/react';
 import { vi } from 'vitest';
+
+// 并发门禁下为组件渲染、表单校验及防抖查询预留合理的异步等待时间。
+configure({ asyncUtilTimeout: 3000 });
 
 const store: Record<string, string> = {};
 
@@ -105,7 +109,10 @@ globalThis.ResizeObserver = class {
 };
 
 process.on('uncaughtException', (err) => {
-  if (err?.name === 'ReferenceError' && err?.message?.includes('window is not defined')) {
+  if (
+    err?.name === 'ReferenceError' &&
+    err?.message?.includes('window is not defined')
+  ) {
     return;
   }
   throw err;
