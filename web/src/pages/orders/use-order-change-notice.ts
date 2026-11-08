@@ -1,6 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { OrderTerminationStatus } from '@/enums.generated';
+import {
+  OrderBusinessType,
+  OrderTerminationStatus,
+  SeaDocumentStructure,
+} from '@/enums.generated';
 import { usePageForeground } from '@/hooks/usePageForeground';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import { generateUUID } from '@/utils/uuid';
@@ -22,11 +26,58 @@ function orderChangeFingerprint(order: API.Order, terminated = false): string {
   ]);
 }
 
+/** 仅用恢复前已经持有的保留单证辨识本次原关联恢复；原航程身份由服务端锁内验证。 */
+function matchesRestoredSeaRelation(
+  previous: API.Order,
+  restored: API.Order,
+  retainedDocuments?: API.SeaOrderDocuments,
+): boolean {
+  const master = retainedDocuments?.masterBill;
+  const linkVersion =
+    restored.seaDocumentLinkVersion ?? restored.seaDocumentSummary?.linkVersion;
+  const structure =
+    restored.seaDocumentStructure ??
+    restored.seaDocumentSummary?.documentStructure;
+  if (
+    previous.businessType !== OrderBusinessType.BUSINESS_TYPE_SE ||
+    previous.terminationStatus !==
+      OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED ||
+    restored.terminationStatus !==
+      OrderTerminationStatus.ORDER_TERMINATION_STATUS_ACTIVE ||
+    !master?.id ||
+    !master.version ||
+    restored.seaMasterBill?.masterBillId !== master.id ||
+    restored.seaMasterBill.version !== master.version ||
+    !restored.seaMasterBill.transportExecutionId ||
+    !restored.seaMasterBill.transportExecutionVersion ||
+    linkVersion !== '1' ||
+    (retainedDocuments?.documentStructure !==
+      SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT &&
+      retainedDocuments?.documentStructure !==
+        SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE) ||
+    structure !== retainedDocuments.documentStructure
+  )
+    return false;
+  return (
+    [
+      'shippingLineId',
+      'originLocationId',
+      'dischargeLocationId',
+      'transitLocationId',
+      'vesselVoyage',
+      'etd',
+      'eta',
+    ] as const
+  ).every((key) => (previous[key] ?? '') === (restored[key] ?? ''));
+}
+
 interface Options {
   identity?: string;
   scope?: string;
   orderId?: string;
   initialOrder?: API.Order;
+  /** 当前编辑身份已加载的保留单证，不使用恢复后查询替换它来识别本人操作。 */
+  retainedDocuments?: API.SeaOrderDocuments;
   enabled: boolean;
   paused: boolean;
   readEditingOrder: () =>
@@ -45,7 +96,15 @@ interface Observation {
 }
 
 export function useOrderChangeNotice(options: Options) {
-  const { identity, scope, orderId, initialOrder, enabled, paused } = options;
+  const {
+    identity,
+    scope,
+    orderId,
+    initialOrder,
+    retainedDocuments,
+    enabled,
+    paused,
+  } = options;
   // A→B→A 仍创建独立消费范围，旧请求与旧提醒不能回到新实例。
   const owner = useMemo(() => generateUUID(), [identity, scope]);
   const ownerRef = useRef(owner);
@@ -178,13 +237,25 @@ export function useOrderChangeNotice(options: Options) {
         snapshot.seaDocumentLinkVersion == null &&
         snapshot.seaDocumentSummary == null &&
         snapshot.seaDocumentStructure == null;
+      const restoringSeaOrder =
+        previousOrder.businessType === OrderBusinessType.BUSINESS_TYPE_SE &&
+        previousOrder.terminationStatus ===
+          OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED &&
+        snapshot.terminationStatus ===
+          OrderTerminationStatus.ORDER_TERMINATION_STATUS_ACTIVE;
       const validTransition =
         validVersion &&
         (completedTermination ||
-          orderChangeFingerprint({
-            ...snapshot,
-            version: previousOrder.version,
-          }) === orderChangeFingerprint(previousOrder));
+          (restoringSeaOrder
+            ? matchesRestoredSeaRelation(
+                previousOrder,
+                snapshot,
+                retainedDocuments,
+              )
+            : orderChangeFingerprint({
+                ...snapshot,
+                version: previousOrder.version,
+              }) === orderChangeFingerprint(previousOrder)));
       setObservation((previous) => {
         if (ownerRef.current !== owner || refreshedOrder.id !== snapshot.id)
           return previous;
@@ -243,7 +314,7 @@ export function useOrderChangeNotice(options: Options) {
         };
       });
     },
-    [owner],
+    [owner, retainedDocuments],
   );
   return {
     changed: current?.changed === true,

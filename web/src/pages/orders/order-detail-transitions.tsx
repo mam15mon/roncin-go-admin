@@ -2,7 +2,11 @@ import { type App, Input, Select, Space } from 'antd';
 import { resolveTabKey } from '@/components/layout/routeUtils';
 import { registerTabCloseGuard } from '@/components/layout/tabCloseGuard';
 import { getOrderFlowStatusText } from '@/constants/statusMeta';
-import { OrderClosureStatus, OrderTerminationStatus } from '@/enums.generated';
+import {
+  OrderBusinessType,
+  OrderClosureStatus,
+  OrderTerminationStatus,
+} from '@/enums.generated';
 import { history } from '@/router/history';
 import {
   orderServiceTransitionOrderClosure,
@@ -160,6 +164,12 @@ export function confirmOrderTermination(
 
     content: (
       <Space vertical style={{ width: '100%', marginTop: 12 }}>
+        {isRestore &&
+          order.businessType === OrderBusinessType.BUSINESS_TYPE_SE && (
+            <div>
+              恢复到退关前的原主单和原航程，保留原退关记录；原运输安排不再适用时将拒绝恢复。
+            </div>
+          )}
         {targetStatus !==
           OrderTerminationStatus.ORDER_TERMINATION_STATUS_ACTIVE && (
           <Select

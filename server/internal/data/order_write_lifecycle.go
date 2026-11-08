@@ -66,7 +66,25 @@ func (r *orderRepo) TransitionStatus(ctx context.Context, organizationID, id uui
 
 func (r *orderRepo) TransitionTermination(ctx context.Context, organizationID, id uuid.UUID, expectedVersion uint64, target biz.OrderTerminationStatus, terminationType *biz.OrderTerminationType, reason string, actorID uuid.UUID, event *biz.OrderLifecycleChangedEvent) (*biz.Order, error) {
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		existing, airLock, queryErr := lockAirLifecycleTarget(ctx, tx, organizationID, id)
+		var existing *ent.Order
+		var airLock *airMasterLockContext
+		var restoreSource *ent.SeaMasterBillOrderLink
+		located, queryErr := tx.Order.Query().Where(orderent.IDEQ(id), orderent.OrganizationIDEQ(organizationID)).Only(ctx)
+		if queryErr != nil {
+			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
+		}
+		if located.BusinessType == orderent.BusinessTypeSE && located.TerminationStatus == orderent.TerminationStatusTERMINATED && target == biz.OrderTerminationActive {
+			_, source, err := readableSeaOrderDocumentLink(ctx, tx.Client(), organizationID, id)
+			if err != nil {
+				if ent.IsNotSingular(err) {
+					return biz.ErrSeaDocumentStructureConflict
+				}
+				return err
+			}
+			existing, restoreSource, queryErr = lockSeaOrderRestore(ctx, tx, organizationID, id, source)
+		} else {
+			existing, airLock, queryErr = lockAirLifecycleTarget(ctx, tx, organizationID, id)
+		}
 		if queryErr != nil {
 			return mapEntError(queryErr, biz.ErrOrderNotFound, nil)
 		}
@@ -74,18 +92,29 @@ func (r *orderRepo) TransitionTermination(ctx context.Context, organizationID, i
 			return biz.ErrOrderStatusConflict
 		}
 		// 终止维度是生命周期命令：不复用内容写门禁。专属校验只要求结案维度
-		// 保持 OPEN；完成、取消与恢复不得因业务锁或历史终止状态被误封。
+		// 保持 OPEN；完成、取消不因业务锁误封。SE恢复重建关联，须额外通过共享成员与审核锁检查。
 		if existing.ClosureStatus != orderent.ClosureStatusOPEN {
 			return biz.ErrOrderTerminationInvalid
 		}
 		// ACTIVE → TERMINATING 属于发起业务变更，保持“锁定资料不可发起退关”
-		// 的现行约束；其余流转路径不因业务锁被阻断。
+		// 的现行约束；SE恢复的关联门禁已在lockSeaOrderRestore中执行。
 		if existing.TerminationStatus == orderent.TerminationStatusACTIVE &&
 			target == biz.OrderTerminationTerminating && existing.LockedAt != nil {
 			return ensureOrderNotBusinessLocked(ctx, tx.User, existing)
 		}
 		if existing.BusinessType == orderent.BusinessTypeAE && existing.TerminationStatus == orderent.TerminationStatusTERMINATED && target == biz.OrderTerminationActive {
 			return biz.NewAirFlowDataError("请从原主单显式关联并恢复订单")
+		}
+		var restoredLink *ent.SeaMasterBillOrderLink
+		if restoreSource != nil {
+			if existing.TerminatedAt == nil || restoreSource.EndedAt == nil || !existing.TerminatedAt.Equal(*restoreSource.EndedAt) {
+				return biz.ErrOrderStatusConflict
+			}
+			var err error
+			restoredLink, err = createSeaOrderRestoreLink(ctx, tx, restoreSource, event.OccurredAt)
+			if err != nil {
+				return err
+			}
 		}
 		update := existing.Update().SetTerminationStatus(orderent.TerminationStatus(target)).SetVersion(existing.Version + 1)
 		if target == biz.OrderTerminationActive {
@@ -111,10 +140,22 @@ func (r *orderRepo) TransitionTermination(ctx context.Context, organizationID, i
 				return linkErr
 			}
 		}
-		if _, eventErr := tx.OrderLifecycleEvent.Create().SetOrderID(id).SetDimension(orderlifecycleeventent.DimensionTERMINATION).SetFromStatus(event.FromStatus).SetToStatus(event.ToStatus).SetAction("transition").SetReason(reason).SetOperatorID(actorID).SetChangedAt(event.OccurredAt).Save(ctx); eventErr != nil {
+		eventCreate := tx.OrderLifecycleEvent.Create().SetOrderID(id).SetDimension(orderlifecycleeventent.DimensionTERMINATION).SetFromStatus(event.FromStatus).SetToStatus(event.ToStatus).SetAction("transition").SetReason(reason).SetOperatorID(actorID).SetChangedAt(event.OccurredAt)
+		if restoredLink != nil {
+			eventCreate.SetReferenceType("sea_master_bill_order_link").SetReferenceID(restoredLink.ID)
+		}
+		if _, eventErr := eventCreate.Save(ctx); eventErr != nil {
 			return eventErr
 		}
-		return writeAudit(ctx, tx.AuditLog, event.AuditEvent())
+		audit := event.AuditEvent()
+		if restoredLink != nil {
+			if audit.Details == nil {
+				audit.Details = map[string]string{}
+			}
+			audit.Details["ended_link_id"] = restoreSource.ID.String()
+			audit.Details["new_link_id"] = restoredLink.ID.String()
+		}
+		return writeAudit(ctx, tx.AuditLog, audit)
 	})
 	if err != nil {
 		return nil, err

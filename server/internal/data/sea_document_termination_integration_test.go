@@ -101,17 +101,23 @@ func TestSeaDocumentTerminationPostgres(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if _, err := repo.GetSeaOrderDocuments(ctx, fixture.organizationID, created.ID); !errors.Is(err, biz.ErrSeaDocumentNoActiveLink) {
-				t.Fatalf("恢复后无活动关联不得读取历史: %v", err)
+			if _, err := repo.GetSeaOrderDocuments(ctx, fixture.organizationID, created.ID); err != nil {
+				t.Fatalf("恢复后活动关系应可读: %v", err)
 			}
 			version := mustStartTermination(t, usecase, fixture, restored)
-			if _, err := repo.GetSeaOrderDocuments(ctx, fixture.organizationID, created.ID); !errors.Is(err, biz.ErrSeaDocumentNoActiveLink) {
-				t.Fatalf("退关中无活动关联不得读取历史: %v", err)
+			if _, err := repo.GetSeaOrderDocuments(ctx, fixture.organizationID, created.ID); err != nil {
+				t.Fatalf("退关中应保留新活动关系: %v", err)
 			}
+			// 新关系使用独立并发版本，确保第二轮读取不能借用旧结束关系。
+			newLink := data.db.SeaMasterBillOrderLink.Query().Where(linkent.OrderIDEQ(created.ID), linkent.StatusEQ(linkent.StatusACTIVE)).OnlyX(ctx)
+			newLink.Update().SetVersion(7).SaveX(ctx)
 			mustCompleteTerminationFrom(t, usecase, fixture, created.ID, version)
-			if _, err := repo.GetSeaOrderDocuments(ctx, fixture.organizationID, created.ID); !errors.Is(err, biz.ErrSeaDocumentNoActiveLink) {
-				t.Fatalf("新一轮退关无关联不得借用上次退关: %v", err)
+			secondEnded := data.db.SeaMasterBillOrderLink.GetX(ctx, newLink.ID)
+			second, err := repo.GetSeaOrderDocuments(ctx, fixture.organizationID, created.ID)
+			if err != nil || second.MasterBill == nil || second.LinkVersion != secondEnded.Version || second.LinkVersion == ended.Version {
+				t.Fatalf("新一轮退关应读取其新结束关系: %v", err)
 			}
+
 		})
 	}
 }

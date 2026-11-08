@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  OrderBusinessType,
   OrderClosureStatus,
   OrderFlowStatus,
   OrderTerminationStatus,
@@ -136,6 +137,32 @@ describe('订单详情状态确认函数', () => {
     });
     await expect(getConfig().onOk()).rejects.toBeUndefined();
     expect(app.message.success).not.toHaveBeenCalled();
+  });
+
+  it('海运恢复确认明确原主单原航程，失败不会显示成功或刷新', async () => {
+    const { app, getConfig } = createApp();
+    const onCompleted = vi.fn();
+    transitionTermination.mockRejectedValueOnce(new Error('原主单已作废'));
+    confirmOrderTermination(
+      app,
+      {
+        id: 'order-1',
+        version: '8',
+        businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+        terminationStatus:
+          OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED,
+      },
+      OrderTerminationStatus.ORDER_TERMINATION_STATUS_ACTIVE,
+      onCompleted,
+    );
+    render(getConfig().content);
+    expect(screen.getByText(/恢复到退关前的原主单和原航程/)).toBeVisible();
+    fireEvent.change(screen.getByPlaceholderText('请输入原因（必填）'), {
+      target: { value: '原安排继续承接' },
+    });
+    await expect(getConfig().onOk()).rejects.toThrow('原主单已作废');
+    expect(app.message.success).not.toHaveBeenCalled();
+    expect(onCompleted).not.toHaveBeenCalled();
   });
 
   it('完结不提供备注输入，直接确认提交', async () => {
