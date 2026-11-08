@@ -5,8 +5,9 @@ import {
   fireEvent,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react';
-import { App } from 'antd';
+import { App, ConfigProvider } from 'antd';
 import dayjs from 'dayjs';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -15,6 +16,9 @@ import { FinanceCommissionStatus } from '@/enums.generated';
 const serviceMocks = vi.hoisted(() => ({
   exportCommissions: vi.fn(),
   listCommissions: vi.fn(),
+  getCommission: vi.fn(),
+  confirmAdjustment: vi.fn(),
+  cancelAdjustment: vi.fn(),
   listFinanceOrganizationOptions: vi.fn().mockResolvedValue({ data: [] }),
 }));
 
@@ -65,11 +69,11 @@ vi.mock('@/components/ui', async () => ({
 
 vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceCancelCommission: vi.fn(),
-  settlementServiceCancelCommissionAdjustment: vi.fn(),
+  settlementServiceCancelCommissionAdjustment: serviceMocks.cancelAdjustment,
   settlementServiceConfirmCommission: vi.fn(),
-  settlementServiceConfirmCommissionAdjustment: vi.fn(),
+  settlementServiceConfirmCommissionAdjustment: serviceMocks.confirmAdjustment,
   settlementServiceExportCommissions: serviceMocks.exportCommissions,
-  settlementServiceGetCommission: vi.fn(),
+  settlementServiceGetCommission: serviceMocks.getCommission,
   settlementServiceListCommissions: serviceMocks.listCommissions,
   settlementServiceListFinanceOrganizationOptions:
     serviceMocks.listFinanceOrganizationOptions,
@@ -77,15 +81,33 @@ vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceMarkCommissionPaid: vi.fn(),
 }));
 
-vi.mock('@/utils/versionActions', () => ({
-  makeVersionActions: () => ({ confirm: vi.fn() }),
-}));
-
 vi.mock('./components/CommissionAdjustmentModal', () => ({
   default: () => null,
 }));
 vi.mock('./components/CommissionCreateModal', () => ({ default: () => null }));
-vi.mock('./components/CommissionDetailDrawer', () => ({ default: () => null }));
+// 仅替换明细排版；动作和确认框均由真实页面、makeVersionActions 与 App 构造。
+vi.mock('./components/CommissionDetailDrawer', () => ({
+  default: (props: Record<string, any>) => {
+    const adjustment = props.detail?.adjustments?.[0];
+    if (!adjustment) return null;
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() => props.onTransitionAdjustment(adjustment, 'CONFIRMED')}
+        >
+          确认内嵌调整
+        </button>
+        <button
+          type="button"
+          onClick={() => props.onCancelAdjustment(adjustment)}
+        >
+          取消内嵌调整
+        </button>
+      </>
+    );
+  },
+}));
 vi.mock('./components/CommissionRulesDrawer', () => ({ default: () => null }));
 
 const panelState = vi.hoisted(() => ({
@@ -101,9 +123,10 @@ vi.mock('./components/PendingDecreasePanel', () => ({
 
 import FinanceCommissionsPage from './index';
 
-describe('提成导出按钮', () => {
+describe('提成台账动作', () => {
   afterEach(() => {
     cleanup();
+    accessState.canManageFinanceCommissions = false;
     accessState.canExportFinanceCommissions = false;
     accessState.canConfigureFinanceCommissions = false;
     componentProps.searchFilter = undefined;
@@ -112,6 +135,9 @@ describe('提成导出按钮', () => {
     vi.restoreAllMocks();
     serviceMocks.exportCommissions.mockReset();
     serviceMocks.listCommissions.mockReset();
+    serviceMocks.getCommission.mockReset();
+    serviceMocks.confirmAdjustment.mockReset();
+    serviceMocks.cancelAdjustment.mockReset();
     serviceMocks.listFinanceOrganizationOptions.mockReset();
     serviceMocks.listFinanceOrganizationOptions.mockResolvedValue({ data: [] });
   });
@@ -285,5 +311,111 @@ describe('提成导出按钮', () => {
     expect(
       screen.queryByTestId('pending-decrease-panel'),
     ).not.toBeInTheDocument();
+  });
+
+  const openEmbeddedAdjustment = async () => {
+    accessState.canManageFinanceCommissions = true;
+    const adjustment = {
+      id: 'adjustment-beijing',
+      adjustmentNo: 'ADJ001',
+      organizationId: 'company-beijing',
+      organizationName: '融迅（北京）供应链管理有限公司',
+      direction: 'INCREASE',
+      amount: '1.00000000',
+      status: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_DRAFT,
+      sourceType: 'MANUAL',
+      version: '7',
+    };
+    serviceMocks.listFinanceOrganizationOptions.mockResolvedValue({
+      data: [{ id: 'company-tianjin', name: '融迅天津当前工作台' }],
+    });
+    serviceMocks.getCommission.mockResolvedValue({
+      data: {
+        id: 'commission-beijing',
+        organizationId: adjustment.organizationId,
+        organizationName: adjustment.organizationName,
+        adjustments: [adjustment],
+      },
+    });
+    renderWithClient(
+      <ConfigProvider theme={{ token: { motion: false } }}>
+        <App>
+          <FinanceCommissionsPage />
+        </App>
+      </ConfigProvider>,
+    );
+    await act(async () => {});
+    const actionColumn = componentProps.proTable?.columns.find(
+      (column: Record<string, any>) => column.valueType === 'option',
+    );
+    if (!actionColumn) throw new Error('提成操作列不存在');
+    renderWithClient(
+      <div>{actionColumn.render(undefined, { id: 'commission-beijing' })}</div>,
+    );
+    fireEvent.click(screen.getByText('明细'));
+    await screen.findByRole('button', { name: '确认内嵌调整' });
+    return adjustment;
+  };
+
+  it('确认内嵌调整显示记录真实公司，提交保留该记录版本', async () => {
+    const adjustment = await openEmbeddedAdjustment();
+    serviceMocks.confirmAdjustment.mockResolvedValue({
+      data: { id: adjustment.id },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '确认内嵌调整' }));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog).toHaveTextContent('确认调整 ADJ001？');
+    expect(dialog).toHaveTextContent(
+      `所属公司：${adjustment.organizationName}`,
+    );
+    expect(dialog).not.toHaveTextContent('所属公司未标识');
+    expect(dialog).not.toHaveTextContent('融迅天津当前工作台');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'OK' }));
+    await waitFor(() =>
+      expect(serviceMocks.confirmAdjustment).toHaveBeenCalledWith(
+        { id: adjustment.id },
+        { id: adjustment.id, expectedVersion: '7' },
+      ),
+    );
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  });
+
+  it('取消内嵌调整显示记录真实公司，保留版本与必填取消原因', async () => {
+    const adjustment = await openEmbeddedAdjustment();
+    serviceMocks.cancelAdjustment.mockResolvedValue({
+      data: { id: adjustment.id },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: '取消内嵌调整' }));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog).toHaveTextContent(
+      `取消 ${adjustment.organizationName} 的调整 ADJ001？`,
+    );
+    expect(dialog).not.toHaveTextContent('所属公司未标识');
+    expect(dialog).not.toHaveTextContent('融迅天津当前工作台');
+    const submit = within(dialog).getByRole('button', { name: /确.*认/ });
+    fireEvent.click(submit);
+    expect(serviceMocks.cancelAdjustment).not.toHaveBeenCalled();
+    fireEvent.change(
+      within(dialog).getByPlaceholderText('请输入取消原因（必填）'),
+      {
+        target: { value: '  公司归属核对后取消  ' },
+      },
+    );
+    fireEvent.click(submit);
+    await waitFor(() =>
+      expect(serviceMocks.cancelAdjustment).toHaveBeenCalledWith(
+        { id: adjustment.id },
+        {
+          id: adjustment.id,
+          expectedVersion: '7',
+          reason: '公司归属核对后取消',
+        },
+      ),
+    );
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
   });
 });

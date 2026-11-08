@@ -40,3 +40,11 @@
 - 连续补审：已实际追回 100 后理论目标恢复 90，保留追回事实，另生 +90 补付；未执行的旧 -100 则取消并净重建为 -10。
 - 真实 PostgreSQL 必须覆盖普通新增/修改/删除、部分来源反转、重建账重核销、连续更正、手工调整并存、已确认/已付父单及已执行调整。验证实际金额与失败零写入，SKIP 不算验收。
 - 不得再新增“提成存在则冻结整票费用”或净额释放费用锁的并行状态机。
+
+## 6. 内嵌调整的公司投影
+
+- `commissionRepo.ListScoped`、`ExportBatchScoped`、`GetScoped`、`GetByKey` 对外返回 `FinanceCommission.Adjustments` 时，必须在 `WithAdjustments` 中预载 `WithOrganization`；父提成的 `WithOrganization` 不会预载调整的组织边。映射复用 `commissionAdjustmentToBiz`，每条调整的 `organizationId/organizationName` 来自该记录的真实组织。
+- 独立调整列表/详情与内嵌调整必须返回相同公司名称；确认/取消弹窗消费调整记录名称，不用当前工作台或父单名称兜底。纯能力计算的 `commissionAdjustmentParentProjection` 不输出名称，无需额外预载。
+- 不改变父单或调整的组织范围谓词：范围外详情保持不可见，列表/导出过滤，幂等键读取按目标公司限定。
+- 回归 `TestCommissionAdjustmentOrganizationProjectionPostgres` 必须用正式迁移的 PostgreSQL 验证四个父提成读取入口、独立调整读取及其他公司拒绝；前端通过真实页面动作构造确认/取消弹窗，核对公司名和 `expectedVersion`、取消原因透传。只测试独立调整列表无法覆盖内嵌投影缺失。
+- 错误：`WithOrganization().WithAdjustments()` 后认为嵌套公司边已经加载；正确：`WithAdjustments(func(q *ent.FinanceCommissionAdjustmentQuery) { q.WithOrganization().Order(adjustment.ByCreatedAt()) })`。

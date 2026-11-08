@@ -46,7 +46,7 @@ func (r *commissionRepo) ListScoped(ctx context.Context, organizationIDs []uuid.
 		return nil, err
 	}
 	xs, err := q.WithOrganization().WithAdjustments(func(q *ent.FinanceCommissionAdjustmentQuery) {
-		q.Order(adjustment.ByCreatedAt())
+		q.WithOrganization().Order(adjustment.ByCreatedAt())
 	}).Order(commission.ByCommissionDate(entsql.OrderDesc()), commission.ByCreatedAt(entsql.OrderDesc()), commission.ByID(entsql.OrderDesc())).Offset((f.Page - 1) * f.PageSize).Limit(f.PageSize).All(ctx)
 	if err != nil {
 		return nil, err
@@ -92,7 +92,7 @@ func (r *commissionRepo) ExportBatchScoped(ctx context.Context, organizationIDs 
 		return nil, err
 	}
 	xs, err := client.FinanceCommission.Query().Where(commissionListPredicatesScoped(organizationIDs, f)...).WithOrganization().WithAdjustments(func(q *ent.FinanceCommissionAdjustmentQuery) {
-		q.Order(adjustment.ByCreatedAt())
+		q.WithOrganization().Order(adjustment.ByCreatedAt())
 	}).Order(commission.ByCommissionDate(entsql.OrderDesc()), commission.ByCreatedAt(entsql.OrderDesc()), commission.ByID(entsql.OrderDesc())).Offset((f.Page - 1) * f.PageSize).Limit(f.PageSize).All(ctx)
 	if err != nil {
 		return nil, err
@@ -130,7 +130,7 @@ func (r *commissionRepo) GetByKey(ctx context.Context, org uuid.UUID, key string
 			})
 		})
 	}).WithAdjustments(func(q *ent.FinanceCommissionAdjustmentQuery) {
-		q.Order(adjustment.ByCreatedAt())
+		q.WithOrganization().Order(adjustment.ByCreatedAt())
 	}).Only(ctx)
 	if ent.IsNotFound(err) {
 		return nil, nil
@@ -156,7 +156,7 @@ func (r *commissionRepo) GetScoped(ctx context.Context, organizationIDs []uuid.U
 			})
 		})
 	}).WithAdjustments(func(q *ent.FinanceCommissionAdjustmentQuery) {
-		q.Order(adjustment.ByCreatedAt())
+		q.WithOrganization().Order(adjustment.ByCreatedAt())
 	}).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrCommissionNotFound, nil)
