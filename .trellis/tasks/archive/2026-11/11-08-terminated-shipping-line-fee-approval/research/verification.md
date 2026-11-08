@@ -6,4 +6,4 @@
 - PermissionsVersionsAndConcurrency及ApprovalRollback真实库回归PASS，5.965秒。
 - Biome修改文件检查及git diff --check通过。
 - 主会话review见review.md；独立review服务额度403不可用。
-- 完整check:fast结果待补录。
+- 完整pnpm run check:fast通过（退出码0），包含前端权限/Proto常量/架构/重复检测/类型/lint/全量测试，以及后端分层/Proto/测试/vet/漏洞门禁。相关真实数据库验收另行注入专库通过。
