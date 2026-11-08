@@ -1175,3 +1175,29 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 190: 退关船公司名称与补审批准验收
+<!-- trellis-session: v=2 fp=c26f455d42199d1c -->
+
+**Date**: 2026-11-08
+**Task**: 退关船公司名称与补审批准验收
+**Branch**: `codex/terminated-shipping-line-fee-approval`
+
+### Summary
+
+修复退关只读船公司UUID显示，隔离PostgreSQL真实授权证明补审待审1000批准1100且单次生效，开发撤回记录不变；主会话代码复核与check:fast通过，独立review服务额度403限制已记录。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `ba6034d6` | fix: 修复退关船公司显示并验证补审授权批准 |
+
+### Testing
+
+- [OK] check:fast通过：前端389文件2095项，后端单测vet漏洞门禁通过；补审经济/授权并发/回滚真实库定向通过
+
+### Status
+
+[OK] **Completed**

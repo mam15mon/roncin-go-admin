@@ -36,6 +36,76 @@ describe('来源船公司初始选项', () => {
       expect(screen.queryByText('carrier-uuid')).toBeNull();
     },
   );
+  it.each(['中远海运集运', undefined])(
+    '退关只读字段显示保留单证名称 %s，重新进入仍不搜索',
+    async (name) => {
+      const searchShippingLines = vi.fn().mockResolvedValue([]);
+      const renderCarrier = () => {
+        const { carrier } = getSeaBaseInfoFields({
+          ...props,
+          readonly: true,
+          isDetail: true,
+          searchShippingLines,
+          seaDocuments: {
+            masterBill: {
+              shippingLineId: 'carrier-uuid',
+              shippingLineName: name,
+            },
+          },
+        });
+        return render(
+          <ConfigProvider theme={{ token: { motion: false } }}>
+            <Form initialValues={{ shippingLineId: 'carrier-uuid' }}>
+              {carrier}
+            </Form>
+          </ConfigProvider>,
+        );
+      };
+      const expected = name || '船公司名称读取失败';
+      const first = renderCarrier();
+      expect(await screen.findByText(expected)).toBeVisible();
+      expect(screen.queryByText('carrier-uuid')).toBeNull();
+      first.unmount();
+      renderCarrier();
+      expect(await screen.findByText(expected)).toBeVisible();
+      expect(screen.queryByText('carrier-uuid')).toBeNull();
+      expect(searchShippingLines).not.toHaveBeenCalled();
+    },
+  );
+  it('共享活动主单仍使用自身船公司名称且禁止修改', async () => {
+    const searchShippingLines = vi.fn().mockResolvedValue([]);
+    const { carrier } = getSeaBaseInfoFields({
+      ...props,
+      isDetail: true,
+      searchShippingLines,
+      seaDocuments: {
+        masterBill: {
+          shippingLineId: 'other-id',
+          shippingLineName: '其他船公司',
+        },
+      },
+    });
+    render(
+      <ConfigProvider theme={{ token: { motion: false } }}>
+        <Form
+          initialValues={{
+            shippingLineId: 'carrier-uuid',
+            seaMasterBill: {
+              shippingLineId: 'carrier-uuid',
+              shippingLineName: '活动船公司',
+              memberCount: 2,
+            },
+          }}
+        >
+          {carrier}
+        </Form>
+      </ConfigProvider>,
+    );
+    expect(await screen.findByText('活动船公司')).toBeVisible();
+    expect(screen.getByRole('combobox')).toBeDisabled();
+    expect(screen.queryByText('其他船公司')).toBeNull();
+    expect(searchShippingLines).not.toHaveBeenCalled();
+  });
   it('锁定详情的订舱号、合约号和工厂均不可编辑', async () => {
     const fields = getSeaBaseInfoFields({
       ...props,

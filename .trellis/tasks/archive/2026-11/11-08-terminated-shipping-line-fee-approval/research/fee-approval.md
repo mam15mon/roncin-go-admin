@@ -1,0 +1,7 @@
+# 隔离库补审验收
+
+使用专用PostgreSQL隔离Schema和正式迁移。新增TestFeeCorrectionApprovalAcceptancePostgres：普通非bootstrap审核人、真实启用Membership与同公司RoleAssignment和品类read/update/fee.read/lock授权；初始化管理员即使绑定同一角色仍拒绝预览，无授权用户同样拒绝。
+
+100元应收ADD：PENDING时正式应收1000且2条费用；旧版本批准拒绝；合法预览批准后应收1100且3条费用；同版本同令牌重放不追加费用；人工锁保持、锁代次不变、费用内容版本仅增一次。仓储CanApprove在真实Principal上下文中为true。
+
+新验收PASS（2.38秒）；连同ADD/REPLACE/VOID经济操作回归共9.455秒通过，无SKIP。开发环境SE2026110600001及原WITHDRAWN申请没有修改。
