@@ -1201,3 +1201,29 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 191: 退关后主单版本与事件只读访问
+<!-- trellis-session: v=2 fp=15f75a8e5ece043d -->
+
+**Date**: 2026-11-08
+**Task**: 退关后主单版本与事件只读访问
+**Branch**: `codex/terminated-master-history`
+
+### Summary
+
+恢复退关后主单版本历史入口，详情与历史列表复用本次退关关联，保留终态写限制；本次独立review实际完成并通过，前后端完整门禁和真实库回归通过，现场只读核验成功。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `0bee7642` | fix: 恢复退关后主单版本与事件只读访问 |
+
+### Testing
+
+- [OK] 最终check:web 389文件2095项通过；check:fast后端门禁通过；独立review及真实改单v1/v2退关回归通过
+
+### Status
+
+[OK] **Completed**

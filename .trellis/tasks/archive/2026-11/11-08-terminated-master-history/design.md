@@ -1,0 +1,8 @@
+# 技术方案
+
+- 后端sea_document_change.go的ListMasterBillVersions按订单生命周期获取可读关联：活动订单ACTIVE；TERMINATED按本次terminated_at与固定退关原因读取ENDED。优先复用/小范围提取现有单证详情的精确读取逻辑，避免两套终态规则漂移；写路径继续独立要求活动关系。
+- GetDocumentVersion与ListDocumentEvents已有历史关联契约，本期核对并回归，不无故收紧或扩展既有可见范围。列表定位本次保留MBL，版本详情继续按真实历史关联校验；事件沿原订单历史范围读取。
+- 前端去除本次限制所添加的seaMasterHistoryDisabled/masterHistoryDisabled/historyDisabledReason传递及提示，恢复历史按钮。保留disabled对业务写动作的限制，不借开放历史启用改单/作废。
+- 不变更proto/数据库结构；历史内容来自不可变版本表。共享主单后续版本可见性沿现有历史契约，本期不新增时间截断/退关快照。
+- 定向回归：真实v1/v2改单历史→完成退关→列表/版本内容/事件仍可读，旧改配关联不混入当前版本列表，跨组织拒绝、缺关联报错、终态写入拒绝；前端退关历史按钮启用且写按钮禁用、可打开抽屉及浏览版本事件。
+- 若独立代理服务仍有额度403，先尝试规定的implement/check派发；实施失败时主会话可接管；独立review失败则保留已验证修复提交，待服务恢复或可用review来源完成后才合并push。

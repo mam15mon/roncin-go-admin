@@ -91,14 +91,12 @@ export function SeaDocumentSectionComponent({
   isDetail = false,
   organizationId,
   documents,
-  masterHistoryDisabled = false,
   onOrderDataChanged,
 }: {
   disabled?: boolean;
   isDetail?: boolean;
   organizationId?: string;
   documents?: API.SeaOrderDocuments;
-  masterHistoryDisabled?: boolean;
   onOrderDataChanged?: (
     document?: 'master' | 'house' | 'mode',
   ) => Promise<void> | void;
@@ -549,11 +547,6 @@ export function SeaDocumentSectionComponent({
                 documentVersion={String(mblDetail.version ?? '')}
                 currentVersionId={mblDetail.currentVersionId}
                 documentStatus={mblDetail.status}
-                historyDisabledReason={
-                  masterHistoryDisabled
-                    ? '退关后暂不支持查看主单版本与事件'
-                    : undefined
-                }
                 getAmendmentInput={() => ({
                   masterBillContent: (form.getFieldValue(
                     'seaMasterBillContent',
@@ -906,7 +899,6 @@ export function buildSeaDocumentSection(props: TemplateProps): TemplateSection {
         isDetail={props.isDetail}
         organizationId={props.organizationId}
         documents={props.seaDocuments}
-        masterHistoryDisabled={props.seaMasterHistoryDisabled}
         onOrderDataChanged={props.onOrderDataChanged}
       />
     ),

@@ -28,14 +28,11 @@ func (r *seaDocumentChangeRepo) ListMasterBillVersions(ctx context.Context, orgI
 	if err != nil {
 		return nil, 0, err
 	}
-	link, err := client.SeaMasterBillOrderLink.Query().Where(
-		seamasterbillorderlinkent.OrganizationIDEQ(orgID),
-		seamasterbillorderlinkent.OrderIDEQ(orderID),
-		seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE),
-	).Only(ctx)
+	_, link, err := readableSeaOrderDocumentLink(ctx, client, orgID, orderID)
 	if err != nil {
-		return nil, 0, mapEntError(err, biz.ErrSeaDocumentNoActiveLink, nil)
+		return nil, 0, err
 	}
+
 	query := client.SeaMasterBillVersion.Query().Where(
 		seamasterbillversionent.OrganizationIDEQ(orgID),
 		seamasterbillversionent.MasterBillIDEQ(link.MasterBillID),

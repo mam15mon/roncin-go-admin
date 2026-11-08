@@ -27,20 +27,16 @@ func NewSeaDocumentRepo(data *Data) biz.SeaDocumentRepo {
 	return &seaDocumentRepo{data: data}
 }
 
-func (r *seaDocumentRepo) GetSeaOrderDocuments(ctx context.Context, organizationID, orderID uuid.UUID) (*biz.SeaOrderDocuments, error) {
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return nil, err
-	}
-
+// readableSeaOrderDocumentLink 定位只读单证所属关系；终态只读取本次退关保留关系，写入仍须验证活动关系。
+func readableSeaOrderDocumentLink(ctx context.Context, client *ent.Client, organizationID, orderID uuid.UUID) (*ent.Order, *ent.SeaMasterBillOrderLink, error) {
 	order, err := client.Order.Query().
 		Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).
 		Only(ctx)
 	if err != nil {
-		return nil, mapEntError(err, biz.ErrOrderNotFound, nil)
+		return nil, nil, mapEntError(err, biz.ErrOrderNotFound, nil)
 	}
 	if order.BusinessType != orderent.BusinessTypeSE {
-		return nil, biz.ErrOrderBusinessUnsupported
+		return nil, nil, biz.ErrOrderBusinessUnsupported
 	}
 
 	linkQuery := client.SeaMasterBillOrderLink.Query().
@@ -52,7 +48,7 @@ func (r *seaDocumentRepo) GetSeaOrderDocuments(ctx context.Context, organization
 	if terminated {
 		// 终态读取本次退关保留的关联，不能误取改配或上一次退关的历史行。
 		if order.TerminatedAt == nil {
-			return nil, biz.ErrSeaDocumentNoActiveLink
+			return nil, nil, biz.ErrSeaDocumentNoActiveLink
 		}
 		linkQuery.Where(
 			seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusENDED),
@@ -65,10 +61,25 @@ func (r *seaDocumentRepo) GetSeaOrderDocuments(ctx context.Context, organization
 	link, err := linkQuery.WithMasterBill().Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			return nil, biz.ErrSeaDocumentNoActiveLink
+			return nil, nil, biz.ErrSeaDocumentNoActiveLink
 		}
+		return nil, nil, err
+	}
+
+	return order, link, nil
+}
+
+func (r *seaDocumentRepo) GetSeaOrderDocuments(ctx context.Context, organizationID, orderID uuid.UUID) (*biz.SeaOrderDocuments, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
 		return nil, err
 	}
+
+	order, link, err := readableSeaOrderDocumentLink(ctx, client, organizationID, orderID)
+	if err != nil {
+		return nil, err
+	}
+	terminated := order.TerminationStatus == orderent.TerminationStatusTERMINATED
 
 	var mblDetail *biz.SeaMasterBillDetail
 	if link.Edges.MasterBill != nil {
