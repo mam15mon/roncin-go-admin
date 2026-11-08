@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 190
+- **Total Sessions**: 191
 - **Last Active**: 2026-11-08
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~1203 | Active |
+| `journal-3.md` | ~1229 | Active |
 | `journal-2.md` | ~2003 | Archived |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 191 | 2026-11-08 | 退关后主单版本与事件只读访问 | `0bee7642` | `codex/terminated-master-history` |
 | 190 | 2026-11-08 | 退关船公司名称与补审批准验收 | `ba6034d6` | `codex/terminated-shipping-line-fee-approval` |
 | 189 | 2026-11-08 | 提成方案日期修复与对冲计提验收 | `bd0baa53` | `codex/commission-rule-netting-acceptance` |
 | 188 | 2026-11-08 | 修复退关后详情读取与状态变动提醒 | `efd30bd1` | `codex/fix-sea-terminated-order-detail` |
