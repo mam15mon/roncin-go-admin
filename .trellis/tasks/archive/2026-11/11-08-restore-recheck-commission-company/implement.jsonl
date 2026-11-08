@@ -1,0 +1,7 @@
+{"file": ".trellis/spec/server/backend/finance-commission-lock.md", "reason": "调整金额及生命周期不改"}
+{"file": ".trellis/spec/server/backend/commission-scheme-assignment.md", "reason": "提成投影与公司范围"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "Ent预载与仓储读取"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "真实库与边界验证"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "确认取消弹窗与写入版本"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "定向回归与完整门禁"}
+{"file": ".trellis/tasks/11-08-restore-recheck-commission-company/research/findings.md", "reason": "现场HTTP与代码证据"}
