@@ -16,6 +16,7 @@
 | [DingTalk Notification Test](./dingtalk-notification-test.md) | 独立Admin预览、本人测试发送、无效验证码与受控费用链接 | ✅ |
 | [Sea Export Document Contract](./sea-export-document-contract.md) | 海运操作票、共享 MBL、运输执行与 HBL 跨层契约 | ✅ |
 | [退关后详情读取](./sea-terminated-order-read.md) | 本次退关关联精确读取、终态只读与状态操作后变动提示 | ✅ |
+| [海运退关恢复](./sea-order-restore.md) | 原主单原航程原子重关联、现场受控补链与审核锁边界 | ✅ |
 | [海运共享资料写入一致性](./sea-shared-write-consistency.md) | 加票正文隔离、共享箱成员审核锁与改配占用门禁 | ✅ |
 | [HBL 制作与 PDF 输出](./sea-hbl-production.md) | 同一 HBL 印字、自签公司动态抬头、四版本独立于利润审核和完整分页输出 | ✅ |
 | [Air Export Contract](./air-export-contract.md) | 空运共享 MAWB/HAWB、成员与单证历史、流程、重量确认和费用来源 | ✅ |

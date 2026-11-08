@@ -140,10 +140,10 @@ func (uc *OrderUsecase) TransitionStatus(ctx context.Context, organizationID, ac
 // TransitionTermination 校验并执行订单终止维度流转。
 //
 // 终止维度是生命周期命令，不经过内容写门禁：完成（TERMINATING → TERMINATED）、
-// 取消（TERMINATING → ACTIVE）与恢复（TERMINATED → ACTIVE）不因业务锁或历史
-// 终止状态被阻断；仅 ACTIVE → TERMINATING 发起时仍要求订单未业务锁定。
+// 取消（TERMINATING → ACTIVE）不因业务锁阻断；SE恢复（TERMINATED → ACTIVE）
+// 须校验原主单/航程并重建新活动关联，本票和原批次成员审核锁均阻断恢复。
 // 最终进入 TERMINATED 时，仓储层在同一事务结束该订单的活动 SE Link，且恢复
-// 订单不自动复活历史 Link。
+// 订单不复活历史 Link，而在同一事务建立新 Link。
 func (uc *OrderUsecase) TransitionTermination(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, target OrderTerminationStatus, terminationType *OrderTerminationType, reason string) (*Order, error) {
 	reason = strings.TrimSpace(reason)
 	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 || !target.Valid() || reason == "" || utf8.RuneCountInString(reason) > 500 || target != OrderTerminationActive && (terminationType == nil || !terminationType.Valid()) {

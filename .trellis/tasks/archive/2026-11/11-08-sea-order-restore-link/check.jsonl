@@ -1,0 +1,7 @@
+{"file": ".trellis/spec/server/backend/sea-export-document-contract.md", "reason": "主单航程结构与批次约束"}
+{"file": ".trellis/spec/server/backend/sea-shared-write-consistency.md", "reason": "共享成员与锁序"}
+{"file": ".trellis/spec/server/backend/sea-terminated-order-read.md", "reason": "精确本次退关关系与读路径"}
+{"file": ".trellis/spec/server/backend/order-lock-and-document-version.md", "reason": "审核锁和不可变历史"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "统一事务与并发"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "本人恢复识别与输入保护"}
+{"file": ".trellis/tasks/11-08-sea-order-restore-link/research/restore-options.md", "reason": "本期恢复及现场修复研究证据"}

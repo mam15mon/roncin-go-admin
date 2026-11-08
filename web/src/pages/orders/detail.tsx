@@ -210,6 +210,7 @@ export default function OrderDetailPage() {
     scope: draftScope,
     orderId,
     initialOrder: order,
+    retainedDocuments: currentDocuments,
     enabled:
       definition?.transportMode === 'sea' &&
       canAccessPage &&

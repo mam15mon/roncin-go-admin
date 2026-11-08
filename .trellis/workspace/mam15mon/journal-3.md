@@ -1227,3 +1227,29 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 192: 海运退关原子恢复与现场补链
+<!-- trellis-session: v=2 fp=0bff956906dc06d3 -->
+
+**Date**: 2026-11-08
+**Task**: 海运退关原子恢复与现场补链
+**Branch**: `codex/sea-order-restore-link`
+
+### Summary
+
+恢复原MBL/TE新建活动Link并与订单状态原子提交；独立review与完整门禁通过，真实库覆盖并发与回滚。已授权现场SE2026110800002显式补链后ACTIVE版本8，原主单航程/HBL及v1v2历史正式API重读成功，原ENDED与事件保持不变。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `a0b2783b` | fix: 原子恢复海运运输关联并修复已恢复无主单订单 |
+
+### Testing
+
+- [OK] check:fast通过前端2109项；实施65.030秒和独立56.972秒真实库恢复套件PASS无SKIP；AE相邻恢复4.274秒通过
+
+### Status
+
+[OK] **Completed**

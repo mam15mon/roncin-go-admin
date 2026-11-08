@@ -283,7 +283,7 @@ func TestOrderLifecycleGatePostgres(t *testing.T) {
 
 	})
 
-	t.Run("退关完成原子结束活动 Link 且恢复不复活", func(t *testing.T) {
+	t.Run("退关完成结束旧关系且恢复新建活动关系", func(t *testing.T) {
 		fixture := newOrderPostgresFixture(t, data)
 		cleanupLifecycleGateSubresources(t, data, fixture)
 		ctx := context.Background()
@@ -366,7 +366,7 @@ func TestOrderLifecycleGatePostgres(t *testing.T) {
 			t.Fatalf("终止维度审计数 = %d，期望 2（error=%v）", count, err)
 		}
 
-		// TERMINATED → ACTIVE 恢复订单但不复活历史 Link。
+		// TERMINATED → ACTIVE 保留历史ENDED关系并新建活动Link。
 		recovered, err := usecase.TransitionTermination(ctx, fixture.organizationID, fixture.actorID, created.ID, terminated, biz.OrderTerminationActive, nil, "恢复订单")
 		if err != nil {
 			t.Fatalf("终止恢复应成功: %v", err)
@@ -377,8 +377,14 @@ func TestOrderLifecycleGatePostgres(t *testing.T) {
 		storedLinks, err := data.db.SeaMasterBillOrderLink.Query().Where(
 			seamasterbillorderlinkent.OrderIDEQ(created.ID),
 		).All(ctx)
-		if err != nil || len(storedLinks) != 1 || storedLinks[0].Status != seamasterbillorderlinkent.StatusENDED {
-			t.Fatalf("恢复后历史 Link 应保持 ENDED 不可变: %#v error=%v", storedLinks, err)
+		if err != nil || len(storedLinks) != 2 {
+			t.Fatalf("恢复后应保留旧 Link 并创建新 Link: %#v error=%v", storedLinks, err)
+		}
+		if stored := data.db.SeaMasterBillOrderLink.GetX(ctx, ended.ID); stored.Status != seamasterbillorderlinkent.StatusENDED || stored.Version != ended.Version {
+			t.Fatal("历史关系被复活或改写")
+		}
+		if active, err := NewSeaDocumentRepo(data).GetSeaOrderDocuments(ctx, fixture.organizationID, created.ID); err != nil || active.MasterBill == nil {
+			t.Fatalf("恢复后详情应可读: %v", err)
 		}
 	})
 

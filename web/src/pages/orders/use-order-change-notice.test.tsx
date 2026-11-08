@@ -3,7 +3,11 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { act, cleanup, renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { OrderTerminationStatus } from '@/enums.generated';
+import {
+  OrderBusinessType,
+  OrderTerminationStatus,
+  SeaDocumentStructure,
+} from '@/enums.generated';
 import { orderServiceGetOrder } from '@/services/roncin/orderService';
 import { useOrderChangeNotice } from './use-order-change-notice';
 
@@ -479,5 +483,167 @@ it('终态首次打开后本人关账可推进检查参考点，后续外部更�
   });
   await advance(15_000);
   await advance(1);
+  expect(result.current.changed).toBe(true);
+});
+
+function restoreSnapshots() {
+  const terminated: API.Order = {
+    id: 'order-1',
+    version: snapshot().version,
+    businessType: OrderBusinessType.BUSINESS_TYPE_SE,
+    terminationStatus:
+      OrderTerminationStatus.ORDER_TERMINATION_STATUS_TERMINATED,
+    shippingLineId: 'line-1',
+    vesselVoyage: 'VESSEL / 001',
+    etd: '2026-11-09T00:00:00Z',
+    eta: '2026-11-12T00:00:00Z',
+  };
+  const restored: API.Order = {
+    ...terminated,
+    version: '9007199254740994',
+    terminationStatus: OrderTerminationStatus.ORDER_TERMINATION_STATUS_ACTIVE,
+    seaMasterBill: { ...snapshot().seaMasterBill },
+    seaDocumentLinkVersion: '1',
+    seaDocumentStructure: SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT,
+  };
+  const retainedDocuments: API.SeaOrderDocuments = {
+    documentStructure: SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT,
+    linkVersion: '5',
+    masterBill: { id: 'mbl-1', version: '2' },
+  };
+  return { terminated, restored, retainedDocuments };
+}
+
+it('本人恢复原关联可清除先到轮询误报，仍保留输入基线并识别更晚外部更新', async () => {
+  const { terminated, restored, retainedDocuments } = restoreSnapshots();
+  const { result, editing } = mount({
+    initialOrder: terminated,
+    retainedDocuments,
+  });
+  getOrder.mockResolvedValue({ data: restored });
+  await advance(15_000);
+  await advance(1);
+  expect(result.current.changed).toBe(true);
+  act(() => result.current.acceptTransition(terminated, restored));
+  expect(result.current.changed).toBe(false);
+  expect(editing.current.version).toBe(terminated.version);
+  expect(editing.current.seaDocumentLinkVersion).toBe('4');
+  await advance(15_000);
+  await advance(1);
+  expect(result.current.changed).toBe(false);
+  getOrder.mockResolvedValue({
+    data: {
+      ...restored,
+      seaMasterBill: {
+        ...restored.seaMasterBill,
+        transportExecutionVersion: '4',
+      },
+    },
+  });
+  await advance(15_000);
+  await advance(1);
+  expect(result.current.changed).toBe(true);
+});
+
+it.each([
+  [
+    '不同主单',
+    { seaMasterBill: { ...snapshot().seaMasterBill, masterBillId: 'other' } },
+  ],
+  [
+    '主单已更新',
+    { seaMasterBill: { ...snapshot().seaMasterBill, version: '3' } },
+  ],
+  ['不是新关联', { seaDocumentLinkVersion: '2' }],
+  [
+    '没有活动关联',
+    {
+      seaMasterBill: undefined,
+      seaDocumentLinkVersion: undefined,
+      seaDocumentStructure: undefined,
+    },
+  ],
+  [
+    '单证结构变化',
+    { seaDocumentStructure: SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE },
+  ],
+  ['运输字段变化', { vesselVoyage: 'OTHER / 002' }],
+  [
+    '缺少航程',
+    {
+      seaMasterBill: {
+        ...snapshot().seaMasterBill,
+        transportExecutionId: undefined,
+      },
+    },
+  ],
+] satisfies Array<[string, Partial<API.Order>]>)(
+  '恢复响应%s时不清除变动提醒',
+  (_label, change) => {
+    const { terminated, restored, retainedDocuments } = restoreSnapshots();
+    const { result } = mount({ initialOrder: terminated, retainedDocuments });
+    act(() =>
+      result.current.acceptTransition(terminated, { ...restored, ...change }),
+    );
+    expect(result.current.changed).toBe(true);
+  },
+);
+
+it('恢复没有保留单证证据或整包重读已包含外部更改时不接纳', () => {
+  const { terminated, restored } = restoreSnapshots();
+  const { result } = mount({ initialOrder: terminated });
+  act(() => result.current.acceptTransition(terminated, restored));
+  expect(result.current.changed).toBe(true);
+});
+
+it('恢复使用操作前保留单证，重读包含外部更新仍立即提示', () => {
+  const { terminated, restored, retainedDocuments } = restoreSnapshots();
+  const { result, editing } = mount({
+    initialOrder: terminated,
+    retainedDocuments,
+  });
+  act(() =>
+    result.current.acceptTransition(terminated, restored, {
+      ...restored,
+      version: '9007199254740995',
+    }),
+  );
+  expect(result.current.changed).toBe(true);
+  expect(editing.current.version).toBe(terminated.version);
+});
+
+it('恢复不接纳旧草稿，且操作后新查到的保留主单不能替换原证据', () => {
+  const { terminated, restored, retainedDocuments } = restoreSnapshots();
+  const oldDraft = { ...snapshot(), version: '9007199254740992' };
+  const { result } = mount({
+    initialOrder: terminated,
+    retainedDocuments,
+    readEditingOrder: () => ({ order: oldDraft, masterContentVersion: '2' }),
+  });
+  act(() => result.current.acceptTransition(terminated, restored));
+  expect(result.current.changed).toBe(true);
+  expect(oldDraft.version).toBe('9007199254740992');
+});
+
+it('本人恢复回调只能使用操作前持有的保留主单版本', () => {
+  const { terminated, restored, retainedDocuments } = restoreSnapshots();
+  const { result, rerender, options } = mount({
+    initialOrder: terminated,
+    retainedDocuments,
+  });
+  const originalAccept = result.current.acceptTransition;
+  rerender({
+    ...options,
+    retainedDocuments: {
+      ...retainedDocuments,
+      masterBill: { id: 'mbl-1', version: '3' },
+    },
+  });
+  act(() =>
+    originalAccept(terminated, {
+      ...restored,
+      seaMasterBill: { ...restored.seaMasterBill, version: '3' },
+    }),
+  );
   expect(result.current.changed).toBe(true);
 });

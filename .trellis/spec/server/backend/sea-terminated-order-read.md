@@ -12,7 +12,7 @@
   `GetSeaOrderDocuments(ctx, organizationID, orderID)`。
 - `TransitionTermination` 完成退关，在同一事务中写入订单 `terminated_at`，并将活动
   Link 改为 `ENDED`、`ended_reason = "订单退关"`、`ended_at = terminated_at`。
-- MBL/HBL 工作实体保留；Link 不得因读取或恢复状态而自动复活。
+- MBL/HBL 工作实体保留；Link 不得因读取或恢复状态而自动复活。恢复须新建ACTIVE关系，与状态原子提交，见[恢复契约](./sea-order-restore.md)。
 
 ## 3. 读取及刷新契约
 
