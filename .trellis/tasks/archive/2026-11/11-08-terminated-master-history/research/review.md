@@ -28,3 +28,12 @@
 - 专用PostgreSQL正式迁移隔离Schema：TestSeaDocumentTerminatedHistoryPostgres，PASS，2.938秒，无SKIP；覆盖真实改单和退关、分页、不可变内容、事件、HBL、旧改配、跨组织、缺失关联及终态写拒绝。
 - Go修改文件gofmt -l无输出；git diff --check通过。
 - 主会话负责最终完整门禁与现场只读核验，本记录不将其未完成结果计为通过。
+
+## 首轮完整门禁失败的追加复核
+
+主会话首轮完整门禁日志 `/tmp/terminated-history-final-check.log` 的错误首行为
+「Found multiple elements with the text: v1」，匹配HBL版本Tag及历史表格单元格，
+说明该轮启动时仍编译旧版全局查询；报错堆栈映射到后改文件的findByRole行，并非
+最新版抽屉查询超时。已提交0bee7642中的测试与本review独立通过版本一致，均使用
+within(drawer)及中文「展开行」。本次不新增sleep、不增加超时、不弱化可见性断言；
+原独立review结论保持有效，最终完整前端门禁由主会话重跑核验。
