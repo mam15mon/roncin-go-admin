@@ -1145,3 +1145,33 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 189: 提成方案日期修复与对冲计提验收
+<!-- trellis-session: v=2 fp=ca326735494dac52 -->
+
+**Date**: 2026-11-08
+**Task**: 提成方案日期修复与对冲计提验收
+**Branch**: `codex/commission-rule-netting-acceptance`
+
+### Summary
+
+修复真实ProForm日期转换及无客商编码计提失败；新建独立正毛利验收单并确认6.66666667元提成，原反转单保持原样；完整门禁与主会话复核通过，独立review服务因额度403不可用已记录。
+
+### Main Changes
+
+- 验收订单SE2026110800001，对冲NT2026110800002，提成CM2026110800003已确认未发放
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `bd0baa53` | fix: 修复提成方案日期提交与空客商编码计提 |
+
+### Testing
+
+- [OK] check:web 389文件2092项通过；check:server与相关真实PostgreSQL回归通过
+
+### Status
+
+[OK] **Completed**

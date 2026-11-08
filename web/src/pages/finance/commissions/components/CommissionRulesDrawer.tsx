@@ -181,17 +181,17 @@ export default function CommissionRulesDrawer({
 
   // 方案核心参数：名单变更只走名单管理入口，不随本表单提交。
   const handleRuleSubmit = async (values: RuleValues) => {
-    const rule = {
-      name: values.name,
-      personnelRole: values.personnelRole,
-      calculationBasis: values.calculationBasis,
-      ratePercent: String(values.ratePercent),
-      effectiveFrom: values.effectiveRange?.[0]?.format('YYYY-MM-DD'),
-      effectiveTo: values.effectiveRange?.[1]?.format('YYYY-MM-DD'),
-      enabled: values.enabled,
-      note: values.note,
-    };
     try {
+      const rule = {
+        name: values.name,
+        personnelRole: values.personnelRole,
+        calculationBasis: values.calculationBasis,
+        ratePercent: String(values.ratePercent),
+        effectiveFrom: values.effectiveRange?.[0]?.format('YYYY-MM-DD'),
+        effectiveTo: values.effectiveRange?.[1]?.format('YYYY-MM-DD'),
+        enabled: values.enabled,
+        note: values.note,
+      };
       if (editingRule?.id && editingRule.version) {
         const writeResponse1 = await settlementServiceUpdateCommissionRule(
           { id: editingRule.id },
