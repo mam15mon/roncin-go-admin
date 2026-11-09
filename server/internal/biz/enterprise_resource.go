@@ -3,7 +3,6 @@ package biz
 import (
 	"context"
 	"net/mail"
-	"regexp"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -15,9 +14,7 @@ import (
 var (
 	ErrEnterpriseResourceNotFound        = errors.NotFound("ENTERPRISE_RESOURCE_NOT_FOUND", "企业资源不存在")
 	ErrEnterpriseResourceInvalidArgument = errors.BadRequest("ENTERPRISE_RESOURCE_INVALID_ARGUMENT", "企业资源字段不合法")
-	ErrEnterpriseTagGroupNotEmpty        = errors.Conflict("ENTERPRISE_TAG_GROUP_NOT_EMPTY", "标签组下仍有标签")
 	ErrEnterpriseImageStorageUnavailable = errors.ServiceUnavailable("ENTERPRISE_IMAGE_STORAGE_UNAVAILABLE", "图片对象存储未配置")
-	ErrEnterpriseTagInUse                = errors.Conflict("ENTERPRISE_TAG_IN_USE", "标签正在被使用，请先移除关联")
 	ErrEnterpriseResourceImportAmbiguous = errors.Conflict("ENTERPRISE_RESOURCE_IMPORT_AMBIGUOUS", "导入行匹配到多个现有资源，请先修正企业名称或业务代码")
 )
 
@@ -28,7 +25,6 @@ const (
 	EnterpriseResourceAddressType          EnterpriseResourceType = "ADDRESS"
 	EnterpriseResourceRemarkType           EnterpriseResourceType = "REMARK"
 	EnterpriseResourceImageType            EnterpriseResourceType = "IMAGE"
-	EnterpriseResourceTagType              EnterpriseResourceType = "TAG"
 	EnterpriseResourceShipperType          EnterpriseResourceType = "SHIPPER"
 	EnterpriseResourceConsigneeType        EnterpriseResourceType = "CONSIGNEE"
 	EnterpriseResourceNotifyPartyType      EnterpriseResourceType = "NOTIFY_PARTY"
@@ -39,7 +35,7 @@ const (
 
 func (value EnterpriseResourceType) Public() bool {
 	switch value {
-	case EnterpriseResourceAddressType, EnterpriseResourceRemarkType, EnterpriseResourceImageType, EnterpriseResourceTagType, EnterpriseResourceShipperType, EnterpriseResourceConsigneeType, EnterpriseResourceNotifyPartyType:
+	case EnterpriseResourceAddressType, EnterpriseResourceRemarkType, EnterpriseResourceImageType, EnterpriseResourceShipperType, EnterpriseResourceConsigneeType, EnterpriseResourceNotifyPartyType:
 		return true
 	default:
 		return false
@@ -61,7 +57,6 @@ var enterpriseRemarkTypes = map[EnterpriseRemarkType]struct{}{
 	"BOOKING": {}, "ALLOCATION": {}, "TRANSPORT": {}, "ORDER": {}, "BILL_OF_LADING": {}, "CUSTOMER": {}, "SUPPLIER": {}, "FOREIGN_AGENT": {}, "QUOTATION": {}, "MANIFEST": {}, "PACKING_LIST": {}, "OPERATION": {}, "COMMISSION": {}, "WAREHOUSE": {},
 }
 var enterpriseAddressTypes = map[EnterpriseAddressType]struct{}{"CONTAINER_OPERATION": {}, "PICKUP": {}, "DELIVERY": {}}
-var tagColorPattern = regexp.MustCompile(`^#[0-9A-F]{6}$`)
 
 type EnterpriseResourceAddress struct {
 	ContactName, ContactPhone, CountryCode, ProvinceCode, CityCode, DistrictCode, AddressDetail, Remark string
@@ -80,7 +75,6 @@ type EnterpriseResourceImage struct {
 	FileSize                                int64
 	Width, Height                           *int
 }
-type EnterpriseResourceTag struct{ GroupID uuid.UUID }
 
 type EnterpriseResource struct {
 	ID, OrganizationID      uuid.UUID
@@ -94,7 +88,6 @@ type EnterpriseResource struct {
 	Remark                  *EnterpriseResourceRemark
 	Party                   *EnterpriseResourceParty
 	Image                   *EnterpriseResourceImage
-	Tag                     *EnterpriseResourceTag
 	CreatedBy, UpdatedBy    *uuid.UUID
 	CreatedAt, UpdatedAt    time.Time
 }
@@ -108,13 +101,6 @@ type EnterpriseResourceListOptions struct {
 	SortBy                string
 	SortDesc              bool
 	Page, PageSize        int
-}
-
-type EnterpriseTagGroup struct {
-	ID, OrganizationID   uuid.UUID
-	Name, Color          string
-	SortOrder            int
-	CreatedAt, UpdatedAt time.Time
 }
 
 type EnterpriseResourceImportConflict struct {
@@ -160,10 +146,6 @@ type EnterpriseResourceRepo interface {
 	BatchPartners(context.Context, uuid.UUID, []uuid.UUID, []uuid.UUID, bool, *AuditEvent) (int, error)
 	BatchAddressTypes(context.Context, uuid.UUID, []uuid.UUID, []EnterpriseAddressType, bool, *AuditEvent) (int, error)
 	BatchAssignees(context.Context, uuid.UUID, []uuid.UUID, []uuid.UUID, bool, *AuditEvent) (int, error)
-	ListTagGroups(context.Context, uuid.UUID) ([]*EnterpriseTagGroup, error)
-	CreateTagGroup(context.Context, uuid.UUID, *EnterpriseTagGroup, *AuditEvent) (*EnterpriseTagGroup, error)
-	UpdateTagGroup(context.Context, uuid.UUID, uuid.UUID, *EnterpriseTagGroup, *AuditEvent) (*EnterpriseTagGroup, error)
-	DeleteTagGroup(context.Context, uuid.UUID, uuid.UUID, *AuditEvent) error
 	FindImportConflicts(context.Context, uuid.UUID, []*EnterpriseResource) ([]*EnterpriseResourceImportConflict, error)
 	Import(context.Context, uuid.UUID, uuid.UUID, []*EnterpriseResource, bool, *AuditEvent) ([]*EnterpriseResource, int, int, []*EnterpriseResourceImportConflict, error)
 }
@@ -287,9 +269,6 @@ func (uc *EnterpriseResourceUsecase) Create(ctx context.Context, organizationID,
 		}
 	}
 	action := "enterprise_resource.create"
-	if value.ResourceType == EnterpriseResourceTagType {
-		action = "enterprise_tag.create"
-	}
 	return uc.repo.Create(ctx, organizationID, actorID, value, enterpriseResourceAudit(organizationID, actorID, action, uuid.Nil, value.ResourceType))
 }
 
@@ -302,9 +281,6 @@ func (uc *EnterpriseResourceUsecase) Update(ctx context.Context, organizationID,
 		return nil, err
 	}
 	action := "enterprise_resource.update"
-	if value.ResourceType == EnterpriseResourceTagType {
-		action = "enterprise_tag.update"
-	}
 	return uc.repo.Update(ctx, organizationID, actorID, id, value, enterpriseResourceAudit(organizationID, actorID, action, id, value.ResourceType))
 }
 
@@ -319,9 +295,6 @@ func (uc *EnterpriseResourceUsecase) Delete(ctx context.Context, organizationID,
 	// 图片对象不在删除事务内直接删除：仓储会在同一事务登记类型化删除任务，
 	// 提交后由对象删除 Worker 领取执行，避免数据库删除失败后对象先被删掉。
 	action := "enterprise_resource.delete"
-	if resource.ResourceType == EnterpriseResourceTagType {
-		action = "enterprise_tag.delete"
-	}
 	return uc.repo.Delete(ctx, organizationID, id, enterpriseResourceAudit(organizationID, actorID, action, id, resource.ResourceType))
 }
 
@@ -364,33 +337,6 @@ func (uc *EnterpriseResourceUsecase) BatchAssignees(ctx context.Context, organiz
 		action = "enterprise_resource.assignee.batch_assign"
 	}
 	return uc.repo.BatchAssignees(ctx, organizationID, resourceIDs, userIDs, assign, enterpriseResourceAudit(organizationID, actorID, action, uuid.Nil, EnterpriseResourceAddressType))
-}
-
-func (uc *EnterpriseResourceUsecase) ListTagGroups(ctx context.Context, organizationID uuid.UUID) ([]*EnterpriseTagGroup, error) {
-	return uc.repo.ListTagGroups(ctx, organizationID)
-}
-
-func (uc *EnterpriseResourceUsecase) CreateTagGroup(ctx context.Context, organizationID, actorID uuid.UUID, input *EnterpriseTagGroup) (*EnterpriseTagGroup, error) {
-	value, err := normalizeEnterpriseTagGroup(input)
-	if err != nil {
-		return nil, err
-	}
-	return uc.repo.CreateTagGroup(ctx, organizationID, value, enterpriseResourceAudit(organizationID, actorID, "enterprise_tag_group.create", uuid.Nil, EnterpriseResourceTagType))
-}
-
-func (uc *EnterpriseResourceUsecase) UpdateTagGroup(ctx context.Context, organizationID, actorID, id uuid.UUID, input *EnterpriseTagGroup) (*EnterpriseTagGroup, error) {
-	value, err := normalizeEnterpriseTagGroup(input)
-	if err != nil || id == uuid.Nil {
-		return nil, ErrEnterpriseResourceInvalidArgument
-	}
-	return uc.repo.UpdateTagGroup(ctx, organizationID, id, value, enterpriseResourceAudit(organizationID, actorID, "enterprise_tag_group.update", id, EnterpriseResourceTagType))
-}
-
-func (uc *EnterpriseResourceUsecase) DeleteTagGroup(ctx context.Context, organizationID, actorID, id uuid.UUID) error {
-	if id == uuid.Nil {
-		return ErrEnterpriseResourceInvalidArgument
-	}
-	return uc.repo.DeleteTagGroup(ctx, organizationID, id, enterpriseResourceAudit(organizationID, actorID, "enterprise_tag_group.delete", id, EnterpriseResourceTagType))
 }
 
 func (uc *EnterpriseResourceUsecase) PreviewImport(ctx context.Context, organizationID uuid.UUID, inputs []*EnterpriseResource, resourceType EnterpriseResourceType) (*EnterpriseResourceImportOutcome, error) {
@@ -480,7 +426,7 @@ func normalizeEnterpriseResource(input *EnterpriseResource) (*EnterpriseResource
 		return nil, ErrEnterpriseResourceInvalidArgument
 	}
 	detailCount := 0
-	for _, exists := range []bool{value.Address != nil, value.Remark != nil, value.Party != nil, value.Image != nil, value.Tag != nil} {
+	for _, exists := range []bool{value.Address != nil, value.Remark != nil, value.Party != nil, value.Image != nil} {
 		if exists {
 			detailCount++
 		}
@@ -519,10 +465,6 @@ func normalizeEnterpriseResource(input *EnterpriseResource) (*EnterpriseResource
 		default:
 			return nil, ErrEnterpriseResourceInvalidArgument
 		}
-	case EnterpriseResourceTagType:
-		if value.Tag == nil || value.Tag.GroupID == uuid.Nil {
-			return nil, ErrEnterpriseResourceInvalidArgument
-		}
 	default:
 		if !value.ResourceType.Party() || value.Party == nil {
 			return nil, ErrEnterpriseResourceInvalidArgument
@@ -545,19 +487,6 @@ func normalizeEnterpriseResource(input *EnterpriseResource) (*EnterpriseResource
 			detail.DisplayContent = enterprisePartyDisplayContent(detail.CompanyName, detail.Address, detail.ContactName, detail.ContactPhone)
 		}
 		value.Party = &detail
-	}
-	return &value, nil
-}
-
-func normalizeEnterpriseTagGroup(input *EnterpriseTagGroup) (*EnterpriseTagGroup, error) {
-	if input == nil || input.SortOrder < 0 {
-		return nil, ErrEnterpriseResourceInvalidArgument
-	}
-	value := *input
-	value.Name = strings.TrimSpace(value.Name)
-	value.Color = strings.ToUpper(strings.TrimSpace(value.Color))
-	if value.Name == "" || utf8.RuneCountInString(value.Name) > 100 || (value.Color != "" && !tagColorPattern.MatchString(value.Color)) {
-		return nil, ErrEnterpriseResourceInvalidArgument
 	}
 	return &value, nil
 }

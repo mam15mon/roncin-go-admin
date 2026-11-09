@@ -10,7 +10,7 @@
 - 「中文消息」列为定义处的静态消息；同一错误码多处定义时逐行列出全部消息。含 `%s` 的为动态模板（`fmt.Sprintf` 或字符串拼接），完全动态（变量传参）时记为「（动态消息）」。
 - 「关联 proto ErrorReason」列仅在错误码经 `reasonFromProto(...)` 关联 `server/api/**/error_reason.proto` 枚举时填写。
 - 分组按定义文件所属业务域（同一错误码出现在多个业务域时在各域分别列出），组内按错误码排序；「定义位置」为 `server/internal/biz/` 下的文件名。
-- 当前共 404 个唯一错误码，406 条目录记录。
+- 当前共 403 个唯一错误码，406 条目录记录。
 
 ## 汇总
 
@@ -18,11 +18,11 @@
 | --- | --- |
 | 订单 | 119 |
 | 单证 | 29 |
-| 财务 | 85 |
+| 财务 | 86 |
 | 提成 | 40 |
 | 往来单位 | 34 |
-| 权限 | 48 |
-| 平台 | 51 |
+| 权限 | 49 |
+| 平台 | 49 |
 
 ## 订单
 
@@ -127,7 +127,7 @@
 | SEA_DOCUMENT_VERSION_CONFLICT | 409 Conflict | 单证版本冲突，请刷新后重试 | order_lock.go | — |
 | SEA_MASTER_BILL_INVALID_ARGUMENT | 400 Bad Request | 海运出口订单必须选择船公司<br>海运出口订单必须提供主单信息 | order_usecase.go | — |
 | SEA_MASTER_BILL_MEMBER_ORDER_LOCKED | 409 Conflict | 共享 MBL 关联的部分订单已被锁定，需全部解锁后才能修改共享 MBL | order_lock.go | — |
-| SEA_ORDER_REASSIGNMENT_BLOCKED | 400 Bad Request | 当前操作票状态或财务事实不允许改配 | sea_order_change.go | — |
+| SEA_ORDER_REASSIGNMENT_BLOCKED | 409 Conflict / 400 Bad Request | 订单仍有共享箱分配，请先撤销共享箱确认并移除本票分配后再改配<br>当前操作票状态或财务事实不允许改配 | sea_order_change.go | — |
 | SEA_ORDER_REASSIGNMENT_IDEMPOTENCY_CONFLICT | 409 Conflict | 相同幂等键请求指纹冲突 | sea_order_change.go | — |
 | SEA_ORDER_REASSIGNMENT_INVALID_ARGUMENT | 400 Bad Request | 改配参数不合法 | sea_order_change.go | — |
 | SEA_ORDER_REASSIGNMENT_TARGET_CONFLICT | 409 Conflict | 目标 MBL 冲突或不可用 | sea_order_change.go | — |
@@ -207,6 +207,7 @@
 | EXCHANGE_RATE_OVERLAP | 409 Conflict | 汇率生效周与现有设置冲突，请刷新后重试 | exchange_rate.go | — |
 | EXCHANGE_RATE_PERMISSION_DENIED | 403 Forbidden | 无权维护当前公司汇率 | exchange_rate.go | — |
 | EXCHANGE_RATE_QUOTE_UNAVAILABLE | 400 Bad Request | 外汇牌价抓取失败，请稍后重试或手工录入汇率 | exchange_rate.go | — |
+| EXCHANGE_RATE_SAME_CURRENCY_INVALID | 400 Bad Request | 同币种折算汇率必须为 1 | exchange_rate.go | — |
 | EXCHANGE_RATE_SYNC_ROWS_EMPTY | 400 Bad Request | 汇率同步数据为空 | exchange_rate.go | — |
 | EXCHANGE_RATE_SYNC_ROWS_INVALID | 400 Bad Request | 汇率同步数据不合法 | exchange_rate.go | — |
 | EXCHANGE_RATE_SYNC_TARGET_INVALID | 400 Bad Request | 汇率同步目标周不合法 | exchange_rate.go | — |
@@ -369,6 +370,7 @@
 | ADMIN_ORGANIZATION_CODE_EXISTS | 409 Conflict | 组织编码已存在 | admin_organization.go | — |
 | ADMIN_ORGANIZATION_CURRENCY_INVALID | 400 Bad Request | 组织本币必须是启用的 ISO 币种 | admin_organization.go | — |
 | ADMIN_ORGANIZATION_HIERARCHY_INVALID | 400 Bad Request | 组织层级不合法 | admin_organization.go | — |
+| ADMIN_ORGANIZATION_NAME_EN_INVALID | 400 Bad Request | 仅公司可维护英文名称<br>公司英文名称不能超过200个字符，且不能包含换行或控制字符 | admin_organization.go | — |
 | ADMIN_ORGANIZATION_NOT_FOUND | 404 Not Found | 组织不存在 | admin_organization.go | — |
 | ADMIN_ORGANIZATION_PARENT_REQUIRED | 400 Bad Request | 新建组织必须指定上级组织 | admin_organization.go | — |
 | ADMIN_PERMISSION_INVALID | 400 Bad Request | 权限不存在或不属于当前请求 | admin_role.go | — |
@@ -442,7 +444,6 @@
 | BACKGROUND_TASK_NOT_FOUND | 404 Not Found | 后台任务不存在 | background_task.go | — |
 | BACKGROUND_TASK_NOT_REQUEUEABLE | 409 Conflict | 后台任务当前状态不可回放 | background_task.go | — |
 | BACKGROUND_TASK_NO_TASK | 404 Not Found | 没有可执行的后台任务 | background_task.go | — |
-| BUSINESS_TAG_INVALID_ARGUMENT | 400 Bad Request | 业务标签参数不合法 | business_tag.go | — |
 | CURRENCY_BASE_CANNOT_BE_DISABLED | 400 Bad Request | 本位币不可禁用 | reference_data.go | — |
 | CURRENCY_NOT_FOUND | 404 Not Found | 货币币种不存在 | reference_data.go | — |
 | DINGTALK_NOTIFICATION_SITE_INVALID | 400 Bad Request | 钉钉通知站点配置不合法，请检查回调地址配置 | notification.go | — |
@@ -450,8 +451,6 @@
 | ENTERPRISE_RESOURCE_IMPORT_AMBIGUOUS | 409 Conflict | 导入行匹配到多个现有资源，请先修正企业名称或业务代码 | enterprise_resource.go | — |
 | ENTERPRISE_RESOURCE_INVALID_ARGUMENT | 400 Bad Request | 企业资源字段不合法 | enterprise_resource.go | — |
 | ENTERPRISE_RESOURCE_NOT_FOUND | 404 Not Found | 企业资源不存在 | enterprise_resource.go | — |
-| ENTERPRISE_TAG_GROUP_NOT_EMPTY | 409 Conflict | 标签组下仍有标签 | enterprise_resource.go | — |
-| ENTERPRISE_TAG_IN_USE | 409 Conflict | 标签正在被使用，请先移除关联 | enterprise_resource.go | — |
 | INDUSTRY_REFERENCE_CODE_EXISTS | 409 Conflict | 行业标准码已存在 | industry_reference.go | — |
 | INDUSTRY_REFERENCE_NOT_FOUND | 404 Not Found | 行业主数据不存在 | industry_reference.go | — |
 | MASTER_DATA_CODE_EXISTS | 409 Conflict | 主数据编码已存在 | masterdata.go | — |
@@ -463,5 +462,6 @@
 | NOTIFICATION_TEST_RECIPIENT_UNBOUND | 400 Bad Request | 当前账号未绑定钉钉 | notification_test_usecase.go | — |
 | NOTIFICATION_TEST_TYPE_INVALID | 400 Bad Request | 通知测试类型不受支持 | notification_test_usecase.go | — |
 | REFERENCE_DATA_INVALID_ARGUMENT | 400 Bad Request | 基础字典查询参数不合法 | reference_data.go | — |
+| SEA_HOUSE_BILL_INVALID_ARGUMENT | 400 Bad Request | %s不能超过%d个字符<br>%s包含无效控制字符<br>正本份数必须在0至99之间<br>%s必须为合法的YYYY-MM-DD日期 | sea_house_bill_print.go | — |
 | WORKBENCH_INVALID_ARGUMENT | 400 Bad Request | 工作台查询参数不合法 | workbench.go | — |
 

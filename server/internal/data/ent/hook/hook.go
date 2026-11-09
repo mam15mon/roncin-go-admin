@@ -321,30 +321,6 @@ func (f EnterpriseResourceShippingTextFunc) Mutate(ctx context.Context, m ent.Mu
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EnterpriseResourceShippingTextMutation", m)
 }
 
-// The EnterpriseTagFunc type is an adapter to allow the use of ordinary
-// function as EnterpriseTag mutator.
-type EnterpriseTagFunc func(context.Context, *ent.EnterpriseTagMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f EnterpriseTagFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.EnterpriseTagMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EnterpriseTagMutation", m)
-}
-
-// The EnterpriseTagGroupFunc type is an adapter to allow the use of ordinary
-// function as EnterpriseTagGroup mutator.
-type EnterpriseTagGroupFunc func(context.Context, *ent.EnterpriseTagGroupMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f EnterpriseTagGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.EnterpriseTagGroupMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EnterpriseTagGroupMutation", m)
-}
-
 // The ExchangeRateImportBatchFunc type is an adapter to allow the use of ordinary
 // function as ExchangeRateImportBatch mutator.
 type ExchangeRateImportBatchFunc func(context.Context, *ent.ExchangeRateImportBatchMutation) (ent.Value, error)
@@ -415,18 +391,6 @@ func (f FinanceBillBatchFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinanceBillBatchMutation", m)
-}
-
-// The FinanceBillEnterpriseTagFunc type is an adapter to allow the use of ordinary
-// function as FinanceBillEnterpriseTag mutator.
-type FinanceBillEnterpriseTagFunc func(context.Context, *ent.FinanceBillEnterpriseTagMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f FinanceBillEnterpriseTagFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.FinanceBillEnterpriseTagMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinanceBillEnterpriseTagMutation", m)
 }
 
 // The FinanceBillLineFunc type is an adapter to allow the use of ordinary
@@ -825,18 +789,6 @@ func (f OrderContainerRequestFunc) Mutate(ctx context.Context, m ent.Mutation) (
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderContainerRequestMutation", m)
 }
 
-// The OrderEnterpriseTagFunc type is an adapter to allow the use of ordinary
-// function as OrderEnterpriseTag mutator.
-type OrderEnterpriseTagFunc func(context.Context, *ent.OrderEnterpriseTagMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f OrderEnterpriseTagFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.OrderEnterpriseTagMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderEnterpriseTagMutation", m)
-}
-
 // The OrderFeeFunc type is an adapter to allow the use of ordinary
 // function as OrderFee mutator.
 type OrderFeeFunc func(context.Context, *ent.OrderFeeMutation) (ent.Value, error)
@@ -859,18 +811,6 @@ func (f OrderFeeCorrectionRequestFunc) Mutate(ctx context.Context, m ent.Mutatio
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderFeeCorrectionRequestMutation", m)
-}
-
-// The OrderFeeEnterpriseTagFunc type is an adapter to allow the use of ordinary
-// function as OrderFeeEnterpriseTag mutator.
-type OrderFeeEnterpriseTagFunc func(context.Context, *ent.OrderFeeEnterpriseTagMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f OrderFeeEnterpriseTagFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.OrderFeeEnterpriseTagMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OrderFeeEnterpriseTagMutation", m)
 }
 
 // The OrderFeeReviewEventFunc type is an adapter to allow the use of ordinary

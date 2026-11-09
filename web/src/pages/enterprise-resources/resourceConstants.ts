@@ -68,7 +68,6 @@ export type EditorValues = {
   customDisplay?: boolean;
   displayContent?: string;
   partyRemark?: string;
-  groupId?: string;
   assigneeIds?: string[];
 };
 

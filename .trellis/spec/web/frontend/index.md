@@ -24,6 +24,7 @@
 | [DingTalk Embedded Login](../../server/backend/dingtalk-embedded-login.md) | 钉钉内按需SDK免登、单次尝试/迟到隔离、三层预热分流及安全回跳 | ✅ |
 | [DingTalk Notification Test](../../server/backend/dingtalk-notification-test.md) | 独立Admin通知测试页、仅系统管理员有效权限、紧凑卡片/动作与本人发送 | ✅ |
 | [DingTalk QR Login](./dingtalk-qr-login.md) | 默认扫码、账号密码/自助设置切换、配置串行和消息校验 | ✅ |
+| [业务标签退役](../../server/backend/business-tag-retirement.md) | 全站业务标签入口删除、普通标记保留与账单公司范围 | ✅ |
 | [Type Safety](./type-safety.md) | 生成物类型与权限键对齐 | ✅ |
 | [Quality Guidelines](./quality-guidelines.md) | pnpm、校验命令、禁令 | ✅ |
 

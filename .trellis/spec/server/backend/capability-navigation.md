@@ -34,7 +34,6 @@
 | 组织与权限 | `admin_organization.go`、`admin_role.go`、`admin_user.go`、`admin_user_membership.go`、`access/`（manifest） | 组织、角色库、用户、成员资格、权限清单 | 前端复制权限真相 |
 | 登录与会话 | `auth.go`、`auth_dingtalk_qr.go`、`passkey.go`、`password_reset.go` | 手机号/本地账号登录、本站二维码生成/扫码轮询、通行密钥注册/认证/本人管理、钉钉客户端免登（见 `dingtalk-embedded-login.md`）、钉钉验证码设置/找回、组织切换、会话轮转 | 手机号猜测身份、验证码进入通用通知存储、切换不走单事务轮转 |
 | 审计 | `admin_audit.go`、`biz.go`（审计上下文） | 业务审计独立存储 | 审计写运行日志 |
-| 业务标签 | `business_tag.go`、`enterprise_resource.go` | 标签分组、企业资源配置 | 每页自建标签查询 |
 | 钉钉集成 | `dingtalk_directory.go`、`admin_user.go`、`dingtalk_approval.go` | 通讯录同步、组织角色开通、业务审批 | 手机号/令牌入日志 |
 | 后台任务/通知 | `background_task.go`、`background_task_scheduler.go`、`notification.go`、`workbench.go` | 任务领取、通知唤醒与到期检查（见 `background-task-notify.md`）、紧凑Markdown/ActionCard消息（见 `dingtalk-notification-markdown.md`）、工作台聚合 | 工作台直查多仓储；空闲高频轮询；把通知当作任务真相；验证码进入通知持久化 |
 | 本人作业待办 | `workbench.go` | 本人协作订单费用/异常分页投影及摘要（见 `workbench-todos.md`） | lock 替代 fee.read；仅以无账单关联判断未建账；隐藏仍未处理的锁定订单待办 |

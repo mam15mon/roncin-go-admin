@@ -29,7 +29,9 @@ func (Organization) Fields() []ent.Field {
 	}
 }
 
-func (Organization) Hooks() []ent.Hook { return []ent.Hook{searchKeywordsHook("code", "name", "name_en")} }
+func (Organization) Hooks() []ent.Hook {
+	return []ent.Hook{searchKeywordsHook("code", "name", "name_en")}
+}
 
 func (Organization) Edges() []ent.Edge {
 	return []ent.Edge{
@@ -71,10 +73,6 @@ func (Organization) Edges() []ent.Edge {
 		edge.To("order_commission_attributions", OrderCommissionAttribution.Type),
 		edge.To("finance_custom_setting", FinanceCustomSetting.Type),
 		edge.To("enterprise_resources", EnterpriseResource.Type),
-		edge.To("enterprise_tag_groups", EnterpriseTagGroup.Type),
-		edge.To("order_enterprise_tags", OrderEnterpriseTag.Type),
-		edge.To("order_fee_enterprise_tags", OrderFeeEnterpriseTag.Type),
-		edge.To("finance_bill_enterprise_tags", FinanceBillEnterpriseTag.Type),
 		edge.To("attachment_assets", OrderAttachmentAsset.Type),
 		edge.To("sea_order_split_events", SeaOrderSplitEvent.Type),
 		edge.To("sea_order_split_results", SeaOrderSplitResult.Type),

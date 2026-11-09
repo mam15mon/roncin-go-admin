@@ -112,8 +112,6 @@ const (
 	EdgeTargetedCorrectionRequests = "targeted_correction_requests"
 	// EdgeFinanceBillLines holds the string denoting the finance_bill_lines edge name in mutations.
 	EdgeFinanceBillLines = "finance_bill_lines"
-	// EdgeEnterpriseTagLinks holds the string denoting the enterprise_tag_links edge name in mutations.
-	EdgeEnterpriseTagLinks = "enterprise_tag_links"
 	// Table holds the table name of the orderfee in the database.
 	Table = "order_fees"
 	// OrderTable is the table that holds the order relation/edge.
@@ -194,13 +192,6 @@ const (
 	FinanceBillLinesInverseTable = "finance_bill_lines"
 	// FinanceBillLinesColumn is the table column denoting the finance_bill_lines relation/edge.
 	FinanceBillLinesColumn = "order_fee_id"
-	// EnterpriseTagLinksTable is the table that holds the enterprise_tag_links relation/edge.
-	EnterpriseTagLinksTable = "order_fee_enterprise_tags"
-	// EnterpriseTagLinksInverseTable is the table name for the OrderFeeEnterpriseTag entity.
-	// It exists in this package in order to avoid circular dependency with the "orderfeeenterprisetag" package.
-	EnterpriseTagLinksInverseTable = "order_fee_enterprise_tags"
-	// EnterpriseTagLinksColumn is the table column denoting the enterprise_tag_links relation/edge.
-	EnterpriseTagLinksColumn = "order_fee_id"
 )
 
 // Columns holds all SQL columns for orderfee fields.
@@ -661,20 +652,6 @@ func ByFinanceBillLines(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption 
 		sqlgraph.OrderByNeighborTerms(s, newFinanceBillLinesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-
-// ByEnterpriseTagLinksCount orders the results by enterprise_tag_links count.
-func ByEnterpriseTagLinksCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newEnterpriseTagLinksStep(), opts...)
-	}
-}
-
-// ByEnterpriseTagLinks orders the results by enterprise_tag_links terms.
-func ByEnterpriseTagLinks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newEnterpriseTagLinksStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
 func newOrderStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -757,12 +734,5 @@ func newFinanceBillLinesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FinanceBillLinesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FinanceBillLinesTable, FinanceBillLinesColumn),
-	)
-}
-func newEnterpriseTagLinksStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(EnterpriseTagLinksInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, EnterpriseTagLinksTable, EnterpriseTagLinksColumn),
 	)
 }

@@ -3,7 +3,6 @@ import {
   EditOutlined,
   LinkOutlined,
   PlusOutlined,
-  TagsOutlined,
   UploadOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
@@ -36,17 +35,14 @@ import {
   enterpriseResourceServiceBatchRemoveAssignees,
   enterpriseResourceServiceCommitEnterpriseResourceImport,
   enterpriseResourceServiceCreateEnterpriseResource,
-  enterpriseResourceServiceCreateEnterpriseTagGroup,
   enterpriseResourceServiceDeleteEnterpriseResource,
   enterpriseResourceServiceGetEnterpriseResourceCapabilities,
   enterpriseResourceServiceGetEnterpriseResourceImageAccess,
   enterpriseResourceServiceListEnterpriseResources,
-  enterpriseResourceServiceListEnterpriseTagGroups,
   enterpriseResourceServicePreviewEnterpriseResourceImport,
   enterpriseResourceServiceSearchEnterpriseResourceAssigneeOptions,
   enterpriseResourceServiceSearchEnterpriseResourcePartnerOptions,
   enterpriseResourceServiceUpdateEnterpriseResource,
-  enterpriseResourceServiceUpdateEnterpriseTagGroup,
 } from '@/services/roncin/enterpriseResourceService';
 import { isWriteResponse, toTableRequest, unwrapList } from '@/utils/api';
 import { longRequestOptions } from '@/utils/requestTimeout';
@@ -56,7 +52,6 @@ import BatchAssociationModal from './components/BatchAssociationModal';
 import ImageStorageCard from './components/ImageStorageCard';
 import ResourceEditorModal from './components/ResourceEditorModal';
 import ResourceImportModal from './components/ResourceImportModal';
-import TagGroupModal from './components/TagGroupModal';
 import {
   addressTypes,
   type EditorValues,
@@ -109,10 +104,6 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
   const [assigneeOptions, setAssigneeOptions] = useState<
     { label: string; value: string }[]
   >([]);
-  const [tagGroups, setTagGroups] = useState<API.EnterpriseTagGroup[]>([]);
-  const [groupOpen, setGroupOpen] = useState(false);
-  const [editingGroup, setEditingGroup] = useState<API.EnterpriseTagGroup>();
-  const [groupForm] = Form.useForm();
   const [imageFiles, setImageFiles] = useState<UploadFile[]>([]);
   const [importOpen, setImportOpen] = useState(false);
   const [importFiles, setImportFiles] = useState<UploadFile[]>([]);
@@ -133,15 +124,9 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
     cityCode,
   });
 
-  const loadTagGroups = useCallback(async () => {
-    const response = await enterpriseResourceServiceListEnterpriseTagGroups();
-    setTagGroups(unwrapList(response));
-  }, []);
-
   useEffect(() => {
-    if (active.type === 4) void loadTagGroups();
     setSelectedKeys([]);
-  }, [active.type, loadTagGroups]);
+  }, [active.type]);
 
   const searchPartners = useCallback(async (keyword = '') => {
     const response =
@@ -225,7 +210,6 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
         customDisplay: record.party?.customDisplay,
         displayContent: record.party?.displayContent,
         partyRemark: record.party?.remark,
-        groupId: record.tag?.groupId,
       });
       void searchPartners();
     }
@@ -270,8 +254,6 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
         displayContent: values.displayContent,
         remark: values.partyRemark,
       };
-    } else if (active.type === 4) {
-      input.tag = { groupId: values.groupId };
     } else if (active.type === 3 && imageFiles[0]) {
       const file = imageFiles[0].originFileObj;
       input.image = {
@@ -350,14 +332,6 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
         { title: '企业代码', dataIndex: ['party', 'businessCode'] },
         { title: '国家', dataIndex: ['party', 'countryCode'], width: 72 },
       );
-    if (active.type === 4)
-      detailColumns.push({
-        title: '标签组',
-        key: 'tagGroupId',
-        render: (_, record) =>
-          tagGroups.find((group) => group.id === record.tag?.groupId)?.name ??
-          '-',
-      });
     if (active.type === 3)
       detailColumns.push(
         {
@@ -535,7 +509,6 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
     partnerOptions,
     searchAssignees,
     searchPartners,
-    tagGroups,
   ]);
 
   const columnSettings = useColumnSettings<ProColumns<API.EnterpriseResource>>({
@@ -601,40 +574,6 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
     setAssigneeOpen(false);
     setSelectedKeys([]);
     actionRef.current?.reload();
-
-    return undefined;
-  };
-
-  const saveGroup = async (): Promise<false | undefined> => {
-    const values = await groupForm.validateFields();
-    const color =
-      typeof values.color === 'string'
-        ? values.color
-        : values.color?.toHexString();
-    if (editingGroup?.id) {
-      const writeResponse10 =
-        await enterpriseResourceServiceUpdateEnterpriseTagGroup(
-          { id: editingGroup.id },
-          {
-            id: editingGroup.id,
-            group: {
-              name: values.name,
-              color,
-              sortOrder: values.sortOrder ?? 0,
-            },
-          },
-        );
-      if (!isWriteResponse(writeResponse10, true)) return false;
-    } else {
-      const writeResponse11 =
-        await enterpriseResourceServiceCreateEnterpriseTagGroup({
-          group: { name: values.name, color, sortOrder: values.sortOrder ?? 0 },
-        });
-      if (!isWriteResponse(writeResponse11, true)) return false;
-    }
-    message.success('标签组已保存');
-    setGroupOpen(false);
-    await loadTagGroups();
 
     return undefined;
   };
@@ -768,19 +707,6 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
         options={{ reload: true, density: true, setting: false }}
         toolBarRender={() => [
           columnSettings.entry,
-          active.type === 4 && access.canCreateEnterpriseResources && (
-            <Button
-              key="groups"
-              icon={<TagsOutlined />}
-              onClick={() => {
-                setEditingGroup(undefined);
-                groupForm.resetFields();
-                setGroupOpen(true);
-              }}
-            >
-              标签组
-            </Button>
-          ),
           partyTypes.has(active.type) &&
             access.canCreateEnterpriseResources && (
               <Button
@@ -798,7 +724,6 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
             ),
           active.type !== 2 &&
             active.type !== 3 &&
-            active.type !== 4 &&
             access.canUpdateEnterpriseResources && (
               <Button
                 key="link"
@@ -816,7 +741,6 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
             ),
           active.type !== 2 &&
             active.type !== 3 &&
-            active.type !== 4 &&
             access.canUpdateEnterpriseResources && (
               <Button
                 key="unlink"
@@ -892,7 +816,6 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
         countryCode={countryCode}
         provinceCode={provinceCode}
         cityCode={cityCode}
-        tagGroups={tagGroups}
         message={message}
       />
 
@@ -927,16 +850,6 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
         onOk={() => void submitAssignees()}
       />
 
-      <TagGroupModal
-        open={groupOpen}
-        setOpen={setGroupOpen}
-        editingGroup={editingGroup}
-        setEditingGroup={setEditingGroup}
-        groupForm={groupForm}
-        tagGroups={tagGroups}
-        loadTagGroups={loadTagGroups}
-        onSave={() => void saveGroup()}
-      />
       <ResourceImportModal
         active={active}
         open={importOpen}

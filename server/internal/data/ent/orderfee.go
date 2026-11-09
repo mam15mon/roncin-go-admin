@@ -129,11 +129,9 @@ type OrderFeeEdges struct {
 	TargetedCorrectionRequests []*OrderFeeCorrectionRequest `json:"targeted_correction_requests,omitempty"`
 	// FinanceBillLines holds the value of the finance_bill_lines edge.
 	FinanceBillLines []*FinanceBillLine `json:"finance_bill_lines,omitempty"`
-	// EnterpriseTagLinks holds the value of the enterprise_tag_links edge.
-	EnterpriseTagLinks []*OrderFeeEnterpriseTag `json:"enterprise_tag_links,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [13]bool
+	loadedTypes [12]bool
 }
 
 // OrderOrErr returns the Order value or an error if the edge
@@ -258,15 +256,6 @@ func (e OrderFeeEdges) FinanceBillLinesOrErr() ([]*FinanceBillLine, error) {
 		return e.FinanceBillLines, nil
 	}
 	return nil, &NotLoadedError{edge: "finance_bill_lines"}
-}
-
-// EnterpriseTagLinksOrErr returns the EnterpriseTagLinks value or an error if the edge
-// was not loaded in eager-loading.
-func (e OrderFeeEdges) EnterpriseTagLinksOrErr() ([]*OrderFeeEnterpriseTag, error) {
-	if e.loadedTypes[12] {
-		return e.EnterpriseTagLinks, nil
-	}
-	return nil, &NotLoadedError{edge: "enterprise_tag_links"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -608,11 +597,6 @@ func (_m *OrderFee) QueryTargetedCorrectionRequests() *OrderFeeCorrectionRequest
 // QueryFinanceBillLines queries the "finance_bill_lines" edge of the OrderFee entity.
 func (_m *OrderFee) QueryFinanceBillLines() *FinanceBillLineQuery {
 	return NewOrderFeeClient(_m.config).QueryFinanceBillLines(_m)
-}
-
-// QueryEnterpriseTagLinks queries the "enterprise_tag_links" edge of the OrderFee entity.
-func (_m *OrderFee) QueryEnterpriseTagLinks() *OrderFeeEnterpriseTagQuery {
-	return NewOrderFeeClient(_m.config).QueryEnterpriseTagLinks(_m)
 }
 
 // Update returns a builder for updating this OrderFee.

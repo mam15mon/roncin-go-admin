@@ -558,8 +558,8 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 
 // Remove 在事务内按账单占用关系物理删除费用：锁定订单与费用行并核对版本后，
 // 复核存在未取消账单的活动关联行则拒绝（须先取消对应账单）；通过后删除费用
-// 主记录。费用标签关联由外键级联清理；历史账单行的来源引用由外键置空，金额
-// 与科目快照保留在账单行上。reason 仅写入审计明细。
+// 主记录。历史账单行的来源引用由外键置空，金额与科目快照保留在账单行上。
+// reason 仅写入审计明细。
 func (r *orderFeeRepo) Remove(ctx context.Context, organizationID, orderID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *biz.AuditEvent) error {
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		if lockErr := lockOrderForFeeMutation(ctx, tx, organizationID, orderID); lockErr != nil {
@@ -748,9 +748,8 @@ func (r *orderFeeRepo) BulkUpdate(ctx context.Context, organizationID, orderID u
 
 // BulkRemove 批量删除未建账费用：整批单一事务，锁订单行后按费用主键固定排序
 // 锁全部目标行，逐行复核归属、版本、账单占用与状态（占用错误携带账单号便于
-// 界面定位），全部通过后统一物理删除并逐行写审计；任一行失败整批回滚。费用
-// 标签关联随删除级联清理，历史账单行的来源引用由外键置空，金额与科目快照
-// 保留在账单行上。
+// 界面定位），全部通过后统一物理删除并逐行写审计；任一行失败整批回滚。
+// 历史账单行的来源引用由外键置空，金额与科目快照保留在账单行上。
 func (r *orderFeeRepo) BulkRemove(ctx context.Context, organizationID, orderID uuid.UUID, targets []biz.OrderFeeBulkTarget, audits map[uuid.UUID]*biz.AuditEvent) error {
 	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		if lockErr := lockOrderForFeeMutation(ctx, tx, organizationID, orderID); lockErr != nil {

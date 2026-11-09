@@ -1,10 +1,10 @@
 import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType } from '@ant-design/pro-components';
-import { App, Form, Select, Space } from 'antd';
+import { App, Form } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
+import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
-import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
 import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
 import {
   type FinanceLedgerMetricCard,
@@ -13,7 +13,6 @@ import {
   SearchFilterTemplate,
 } from '@/components/ui';
 import { useListQueryState } from '@/components/ui/list-query-state';
-import { FinanceOrganizationPurpose } from '@/enums.generated';
 import { BillCreationWorkbench } from '@/features/finance/bill-creation';
 import { billStatusMeta } from '@/features/finance/bill-status';
 import {
@@ -24,15 +23,10 @@ import {
 import { getCurrencyOptions } from '@/features/master-data/currencies';
 import { searchPartnerOptions } from '@/features/partners';
 import {
-  settlementServiceBatchAssignFinanceBillTags,
-  settlementServiceBatchRemoveFinanceBillTags,
   settlementServiceCancelBill,
   settlementServiceConfirmBill,
   settlementServiceGetBill,
   settlementServiceListBills,
-  settlementServiceListFinanceBillTagAssignmentOptions,
-  settlementServiceListFinanceBillTagOptions,
-  settlementServiceListFinanceOrganizationOptions,
   settlementServiceUpdateBill,
 } from '@/services/roncin/settlementService';
 import {
@@ -66,93 +60,21 @@ type BillSearchParams = {
 
 export default function FinanceBillsPage() {
   const access = useAccess();
+  const { initialState } = useInitialState();
+  const organizationId = initialState?.currentUser?.currentOrganization?.id;
   const getModalOwnerSignal = useModalOwnerSignal();
   const queryState = useListQueryState<{
     search: BillSearchParams;
-    organizationId?: string;
-    tagIds?: string[];
-    tagLabels?: Record<string, string>;
   }>({
     tabKey: '/finance/bills',
     listId: 'finance:bills',
     defaultPageSize: 40,
     defaultFilters: { search: {} },
   });
-  const [tagModalOpen, setTagModalOpen] = useState(false);
-  const [tagBillIds, setTagBillIds] = useState<string[]>([]);
-  const [tagExisting, setTagExisting] = useState<API.BusinessTagSummary[]>([]);
-  const [tagOptions, setTagOptions] = useState<
-    { label: string; value: string }[]
-  >(() =>
-    Object.entries(queryState.initial.filters.tagLabels ?? {}).map(
-      ([value, label]) => ({ value, label }),
-    ),
-  );
-  const [tagOptionsLoading, setTagOptionsLoading] = useState(false);
-  const [tagFilterIds, setTagFilterIds] = useState<string[] | undefined>(
-    queryState.initial.filters.tagIds,
-  );
   const { selectionScope, commitFilters } = useLedgerSelectionScope(
     queryState.commit,
     () => queryState.snapshotRef.current.filters,
   );
-  const [organizationId, setOrganizationId] = useState<string | undefined>(
-    queryState.initial.filters.organizationId,
-  );
-  const [organizationOptions, setOrganizationOptions] = useState<
-    API.FinanceOrganizationOption[]
-  >([]);
-  const tagFilterRequestRef = useRef(0);
-
-  const loadTagFilterOptions = useCallback(
-    async (keyword?: string, selectedIds: string[] = []) => {
-      if (!organizationId) {
-        setTagOptions([]);
-        return;
-      }
-      const requestSequence = ++tagFilterRequestRef.current;
-      setTagOptionsLoading(true);
-      try {
-        const response = await settlementServiceListFinanceBillTagOptions({
-          page: 1,
-          pageSize: 50,
-          keyword: keyword?.trim() || undefined,
-          organizationId,
-        });
-        if (requestSequence !== tagFilterRequestRef.current) return;
-        setTagOptions((current) => {
-          const selected = new Set(selectedIds);
-          const options = new Map(
-            current
-              .filter((option) => selected.has(option.value))
-              .map((option) => [option.value, option]),
-          );
-          for (const tag of response.tags ?? []) {
-            if (tag.id) {
-              options.set(tag.id, { label: tag.name ?? '', value: tag.id });
-            }
-          }
-          return [...options.values()];
-        });
-      } finally {
-        if (requestSequence === tagFilterRequestRef.current) {
-          setTagOptionsLoading(false);
-        }
-      }
-    },
-    [organizationId],
-  );
-
-  useEffect(() => {
-    if (organizationId) void loadTagFilterOptions(undefined, tagFilterIds);
-  }, [loadTagFilterOptions]);
-  useEffect(() => {
-    void settlementServiceListFinanceOrganizationOptions({
-      purpose:
-        FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_BILL_READ,
-    }).then((response) => setOrganizationOptions(response.data ?? []));
-  }, []);
-
   const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [form] = Form.useForm<BillFormValues>();
@@ -466,75 +388,6 @@ export default function FinanceBillsPage() {
         pagination={queryState.pagination}
         pageTitle="账单管理"
         pageSubTitle="集中管理与跟踪海运出口及各业务线收付账单、开票与结算流转状态"
-        topBar={
-          <Space size={16} align="center" wrap>
-            <Space size={8} align="center">
-              <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
-                所属公司：
-              </span>
-              <Select
-                allowClear
-                style={{ minWidth: 220 }}
-                placeholder="请选择所属公司"
-                options={organizationOptions.map((item) => ({
-                  value: item.id,
-                  label: item.name ?? item.code ?? item.id,
-                }))}
-                value={organizationId}
-                onChange={(value) => {
-                  // 使在切换或清空公司前发出的标签请求立即失效，避免迟到结果回填。
-                  tagFilterRequestRef.current += 1;
-                  setTagOptionsLoading(false);
-                  commitFilters({
-                    ...queryState.snapshotRef.current.filters,
-                    organizationId: value,
-                    tagIds: undefined,
-                    tagLabels: {},
-                  });
-                  setOrganizationId(value);
-                  setTagFilterIds(undefined);
-                  setTagOptions([]);
-                  actionRef.current?.reload(true);
-                }}
-              />
-            </Space>
-            <Space size={8} align="center">
-              <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
-                标签筛选：
-              </span>
-              <Select
-                mode="multiple"
-                allowClear
-                showSearch={{
-                  filterOption: false,
-                  onSearch: (keyword) =>
-                    void loadTagFilterOptions(keyword, tagFilterIds),
-                }}
-                disabled={!organizationId}
-                loading={tagOptionsLoading}
-                style={{ minWidth: 280 }}
-                placeholder={
-                  organizationId ? '命中任一标签即返回' : '请先选择所属公司'
-                }
-                options={tagOptions}
-                value={tagFilterIds}
-                onChange={(value) => {
-                  commitFilters({
-                    ...queryState.snapshotRef.current.filters,
-                    tagIds: value.length ? value : undefined,
-                    tagLabels: Object.fromEntries(
-                      tagOptions
-                        .filter((option) => value.includes(option.value))
-                        .map((option) => [option.value, option.label]),
-                    ),
-                  });
-                  setTagFilterIds(value.length ? value : undefined);
-                  actionRef.current?.reload(true);
-                }}
-              />
-            </Space>
-          </Space>
-        }
         headerTitle="账单列表"
         actionRef={actionRef}
         exportColumns={billExportColumns}
@@ -578,39 +431,6 @@ export default function FinanceBillsPage() {
         primaryActionText={
           access.canCreateFinanceBills ? '批量创建账单' : undefined
         }
-        batchActions={
-          access.canUpdateFinanceBills &&
-          access.canOperateOrganization(organizationId)
-            ? [
-                {
-                  key: 'manage-tags',
-                  label: '添加/移除标签',
-                  onClick: (_keys: React.Key[], rows: API.FinanceBill[]) => {
-                    if (!organizationId) {
-                      message.warning('请先选择所属公司后再维护账单标签');
-                      return;
-                    }
-                    if (
-                      !rows.length ||
-                      rows.some((row) => row.organizationId !== organizationId)
-                    ) {
-                      message.warning('只能维护当前所属公司的账单标签');
-                      return;
-                    }
-                    setTagBillIds(
-                      rows.map((row) => row.id ?? '').filter(Boolean),
-                    );
-                    const seen = new Map<string, API.BusinessTagSummary>();
-                    for (const row of rows)
-                      for (const tag of row.tags ?? [])
-                        if (tag.id) seen.set(tag.id, tag);
-                    setTagExisting([...seen.values()]);
-                    setTagModalOpen(true);
-                  },
-                },
-              ]
-            : []
-        }
         primaryActionIcon={<PlusOutlined />}
         onPrimaryAction={openCreate}
         summaryConfig={billLedgerSummaryConfig}
@@ -623,11 +443,11 @@ export default function FinanceBillsPage() {
           });
         }}
         request={async (params) => {
-          const {
-            search: searchParams,
-            organizationId,
-            tagIds: tagFilterIds,
-          } = queryState.snapshotRef.current.filters;
+          if (!organizationId) {
+            return { data: [], success: false, total: 0 };
+          }
+          const { search: searchParams } =
+            queryState.snapshotRef.current.filters;
           const billDateFrom = searchParams.billDateRange?.[0]
             ? searchParams.billDateRange[0].format('YYYY-MM-DD')
             : undefined;
@@ -658,7 +478,6 @@ export default function FinanceBillsPage() {
                 searchParams.onlyUnsettled === 'true' ? true : undefined,
               onlyOverdue:
                 searchParams.onlyOverdue === 'true' ? true : undefined,
-              tagIds: tagFilterIds?.length ? tagFilterIds : undefined,
               organizationId,
             },
             { skipErrorHandler: true },
@@ -696,43 +515,6 @@ export default function FinanceBillsPage() {
         loading={detailLoading}
         detail={detail}
         onClose={() => setDetailOpen(false)}
-      />
-      <BusinessTagModal
-        open={tagModalOpen}
-        targetCount={tagBillIds.length}
-        existingTags={tagExisting}
-        // 跨组织财务标签写入不支持在此快捷新建，避免新标签误归当前工作区。
-        canQuickCreate={false}
-        loadOptions={(params) => {
-          if (!organizationId) {
-            return Promise.resolve({ tags: [], total: '0' });
-          }
-          return settlementServiceListFinanceBillTagAssignmentOptions({
-            ...params,
-            organizationId,
-          });
-        }}
-        onSubmit={async (mode, tagIds): Promise<false | undefined> => {
-          if (mode === 'assign') {
-            const writeResponse3 =
-              await settlementServiceBatchAssignFinanceBillTags({
-                billIds: tagBillIds,
-                tagIds,
-              });
-            if (!isWriteResponse(writeResponse3, 'count')) return false;
-          } else {
-            const writeResponse4 =
-              await settlementServiceBatchRemoveFinanceBillTags({
-                billIds: tagBillIds,
-                tagIds,
-              });
-            if (!isWriteResponse(writeResponse4, 'count')) return false;
-          }
-          actionRef.current?.reload();
-
-          return undefined;
-        }}
-        onCancel={() => setTagModalOpen(false)}
       />
     </>
   );

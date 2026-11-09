@@ -1,7 +1,6 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { Space, Tag, Tooltip } from 'antd';
 import Decimal from 'decimal.js';
-import { BusinessTagList } from '@/components/business-tag/BusinessTagList';
 import {
   applyColumnFreeze,
   deriveColumnFreezeDefaults,
@@ -136,7 +135,7 @@ function netUnitPriceNumberOf(record: API.OrderFee): number | undefined {
 }
 
 /**
- * 可选只读列：不含税单价、税率、税金、不含税总额、折本币金额与费用标签。
+ * 可选只读列：不含税单价、税率、税金、不含税总额、折本币金额。
  * 保存后金额与税率为服务端快照；行内编辑进行中（传入该行预览时）按
  * 单价×数量与所选费用项目默认税率实时折算，折本币金额乘实时解析汇率，
  * 不含税单价按预览单价与默认税率反算（编辑始终提交含税口径）。
@@ -341,13 +340,6 @@ export function buildOptionalFeeColumns(
           </Space>
         );
       },
-    },
-    {
-      title: '费用标签',
-      dataIndex: 'tags',
-      width: 140,
-      editable: false,
-      render: (_, record) => <BusinessTagList tags={record.tags} />,
     },
     ...financeColumns,
   ];

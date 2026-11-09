@@ -41,7 +41,6 @@ service OrderFeeService {
     option (google.api.http) = {post: "/api/v1/orders/{order_id}/fee-correction-requests/{id}/withdraw" body: "*"};
   }
 
-
   rpc GetOrderFeeReview(GetOrderFeeReviewRequest) returns (GetOrderFeeReviewResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED};
     option (google.api.http) = {get: "/api/v1/orders/{order_id}/fee-review"};
@@ -110,7 +109,7 @@ service OrderFeeService {
 
   // BulkRemoveOrderFees 批量物理删除订单未建账费用：整批单一事务，被有效账单
   // 关联占用、补录来源、版本冲突或越订单任一不满足时整批回滚并返回具体费用与
-  // 原因；费用标签关联随删除级联清理，历史账单行快照保留、来源引用置空。
+  // 原因；历史账单行快照保留、来源引用置空。
   rpc BulkRemoveOrderFees(BulkRemoveOrderFeesRequest) returns (BulkRemoveOrderFeesResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.delete" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {
@@ -149,18 +148,6 @@ service OrderFeeService {
   // 未被有效账单关联占用且未产生确认冲减的补录；同事务物理删除费用并撤销
   // 当前整票批准，APPROVED 申请事实及历史账单行快照保留。
 
-  rpc ListOrderFeeTagOptions(ListOrderFeeTagOptionsRequest) returns (ListOrderFeeTagOptionsResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.read" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {get: "/api/v1/orders/{order_id}/fee-tag-options"};
-  }
-  rpc BatchAssignOrderFeeTags(BatchAssignOrderFeeTagsRequest) returns (BatchAssignOrderFeeTagsResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.update" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {post: "/api/v1/orders/{order_id}/fee-tags/batch-assign" body: "*"};
-  }
-  rpc BatchRemoveOrderFeeTags(BatchRemoveOrderFeeTagsRequest) returns (BatchRemoveOrderFeeTagsResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_ORDER_PERMISSION order_operation: "fee.update" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {post: "/api/v1/orders/{order_id}/fee-tags/batch-remove" body: "*"};
-  }
 }
 
 enum OrderFeeDirection {
@@ -205,7 +192,8 @@ message OrderFee {
   string base_currency = 30;
   string base_currency_amount = 31;
   uint64 version = 32;
-  repeated BusinessTagSummary tags = 36;
+  reserved 36;
+  reserved "tags";
   // 只读计算字段：是否存在有效账单关联（活动账单行且所属账单未取消，草稿账单
   // 同样构成占用）。不持久化、不接受请求写入，是否已建账由账单关联事实决定。
   bool has_active_bill = 37;
@@ -417,41 +405,6 @@ message BulkRemoveOrderFeesResponse {
   string message = 3;
   int32 removed_count = 4;
   string trace_id = 5;
-}
-
-message ListOrderFeeTagOptionsRequest {
-  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
-  string keyword = 2;
-  int32 page = 3;
-  int32 page_size = 4;
-}
-
-message ListOrderFeeTagOptionsResponse {
-  repeated BusinessTagSummary tags = 1;
-  int64 total = 2;
-  string trace_id = 3;
-}
-
-message BatchAssignOrderFeeTagsRequest {
-  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
-  repeated string fee_ids = 2 [(google.api.field_behavior) = REQUIRED];
-  repeated string tag_ids = 3 [(google.api.field_behavior) = REQUIRED];
-}
-
-message BatchAssignOrderFeeTagsResponse {
-  int32 assigned_count = 1;
-  string trace_id = 2;
-}
-
-message BatchRemoveOrderFeeTagsRequest {
-  string order_id = 1 [(google.api.field_behavior) = REQUIRED];
-  repeated string fee_ids = 2 [(google.api.field_behavior) = REQUIRED];
-  repeated string tag_ids = 3 [(google.api.field_behavior) = REQUIRED];
-}
-
-message BatchRemoveOrderFeeTagsResponse {
-  int32 removed_count = 1;
-  string trace_id = 2;
 }
 
 // -------------------------------------------------------------

@@ -1,14 +1,9 @@
 import type { ActionType } from '@ant-design/pro-components';
-import {
-  keepPreviousData,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { App, Select, Space } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
-import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
 import {
   type FinanceLedgerMetricCard,
   FinanceLedgerTemplate,
@@ -32,19 +27,10 @@ import {
 } from '@/features/finance/ledger-summary';
 import { history } from '@/router/history';
 import {
-  settlementServiceBatchAssignFinanceFeeTags,
-  settlementServiceBatchRemoveFinanceFeeTags,
   settlementServiceListFeeLedger,
-  settlementServiceListFinanceFeeTagAssignmentOptions,
-  settlementServiceListFinanceFeeTagOptions,
   settlementServiceListFinanceOrganizationOptions,
 } from '@/services/roncin/settlementService';
-import {
-  ensureListResponse,
-  isWriteResponse,
-  toTableRequest,
-  unwrapPage,
-} from '@/utils/api';
+import { ensureListResponse, toTableRequest, unwrapPage } from '@/utils/api';
 import { formatAmount } from '@/utils/format';
 import {
   type FeeLedgerFilterParams,
@@ -87,23 +73,10 @@ export function hasBothBillDirections(rows: API.FeeLedgerItem[]) {
   return directions.has('RECEIVABLE') && directions.has('PAYABLE');
 }
 
-// 费用标签写入以当前筛选的单一公司为边界；跨组织选择应在请求候选和提交前拦截。
-export function feeRowsBelongToOrganization(
-  rows: API.FeeLedgerItem[],
-  organizationId: string | undefined,
-) {
-  return (
-    Boolean(organizationId) &&
-    rows.length > 0 &&
-    rows.every((row) => row.organizationId === organizationId)
-  );
-}
-
 /** 表头偏好为本浏览器本地配置，按「用户 + 当前组织」隔离。 */
 
 export default function FinanceFeeLedgerPage() {
   const { message } = App.useApp();
-  const queryClient = useQueryClient();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const { initialState } = useInitialState();
   const currentUser = initialState?.currentUser;
@@ -133,8 +106,6 @@ export default function FinanceFeeLedgerPage() {
   const queryState = useListQueryState<{
     search: FeeLedgerFilterParams;
     organizationId?: string;
-    tagIds?: string[];
-    tagLabels?: Record<string, string>;
   }>({
     tabKey: '/finance/fees',
     listId: 'finance:fees',
@@ -232,86 +203,6 @@ export default function FinanceFeeLedgerPage() {
   ];
 
   const access = useAccess();
-  const [tagModalOpen, setTagModalOpen] = useState(false);
-  const [tagFeeIds, setTagFeeIds] = useState<string[]>([]);
-  const [tagExisting, setTagExisting] = useState<API.BusinessTagSummary[]>([]);
-  const [tagSearchKeyword, setTagSearchKeyword] = useState('');
-  const [tagFilterIds, setTagFilterIds] = useState<string[] | undefined>(
-    queryState.initial.filters.tagIds,
-  );
-  // 搜索词规范化与原请求一致：空白关键字按未过滤处理，规范化后的词进 queryKey。
-  const normalizedTagKeyword = tagSearchKeyword.trim() || undefined;
-
-  // 标签筛选候选：keyword 进 queryKey，公司切换整体换键重查；搜索期间保留
-  // 上一关键词结果，下拉不闪空。历史请求失败静默，声明 silent 避免全局
-  // onError 重复提示。
-  const tagOptionsQuery = useQuery({
-    queryKey: [
-      'finance',
-      'fee-tag-options',
-      { organizationId, keyword: normalizedTagKeyword },
-    ],
-    enabled: !!organizationId,
-    placeholderData: keepPreviousData,
-    meta: { silent: true },
-    queryFn: async () => {
-      const response = await settlementServiceListFinanceFeeTagOptions({
-        page: 1,
-        pageSize: 50,
-        keyword: normalizedTagKeyword,
-        organizationId,
-      });
-      return response.tags ?? [];
-    },
-  });
-
-  // 渲染侧合并候选（保留原 Map 合并语义）：服务端当前结果作为最终覆盖，
-  // 未在当前结果命中的已选标签从历史 keyword 查询缓存回填名称保活，
-  // 保证已选项始终以名称展示而非裸 ID。
-  const tagOptions = useMemo(() => {
-    if (!organizationId) return [];
-    const selected = new Set(tagFilterIds ?? []);
-    const options = new Map<string, { label: string; value: string }>(
-      Object.entries(queryState.snapshotRef.current.filters.tagLabels ?? {})
-        .filter(([id]) => selected.has(id))
-        .map(([value, label]) => [value, { value, label }]),
-    );
-    const cachedEntries = queryClient.getQueriesData<API.BusinessTagSummary[]>({
-      queryKey: ['finance', 'fee-tag-options', { organizationId }],
-    });
-    for (const [, cached] of cachedEntries) {
-      for (const tag of cached ?? []) {
-        if (tag.id && selected.has(tag.id)) {
-          options.set(tag.id, { label: tag.name ?? '', value: tag.id });
-        }
-      }
-    }
-    for (const tag of tagOptionsQuery.data ?? []) {
-      if (tag.id) {
-        options.set(tag.id, { label: tag.name ?? '', value: tag.id });
-      }
-    }
-    return [...options.values()];
-  }, [organizationId, tagFilterIds, tagOptionsQuery.data, queryClient]);
-
-  const openTagModal = (_keys: React.Key[], rows: API.FeeLedgerItem[]) => {
-    if (!organizationId) {
-      message.warning('请先选择所属公司后再维护费用标签');
-      return;
-    }
-    if (!rows.length) return;
-    if (!feeRowsBelongToOrganization(rows, organizationId)) {
-      message.warning('只能维护当前所属公司的费用标签');
-      return;
-    }
-    setTagFeeIds(rows.map((row) => row.id ?? '').filter(Boolean));
-    const seen = new Map<string, API.BusinessTagSummary>();
-    for (const row of rows)
-      for (const tag of row.tags ?? []) if (tag.id) seen.set(tag.id, tag);
-    setTagExisting([...seen.values()]);
-    setTagModalOpen(true);
-  };
-
   const baseColumns = useMemo(() => getBaseFeeLedgerColumns(), []);
 
   // 列显隐与排序由统一列设置浮层按 columnSettingsKey 即时应用与持久化。
@@ -370,51 +261,11 @@ export default function FinanceFeeLedgerPage() {
                   label: item.name ?? item.code ?? item.id,
                 }))}
                 onChange={(value) => {
-                  // 切换或清空公司即整体换键：旧组织的在途结果落在旧 queryKey，
-                  // 不再回填；同步重置标签筛选与搜索词，候选按新公司重查。
                   commitFilters({
                     ...queryState.snapshotRef.current.filters,
                     organizationId: value,
-                    tagIds: undefined,
-                    tagLabels: {},
                   });
                   setOrganizationId(value);
-                  setTagSearchKeyword('');
-                  setTagFilterIds(undefined);
-                  actionRef.current?.reload(true);
-                }}
-              />
-            </Space>
-            <Space size={8} align="center">
-              <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
-                标签筛选：
-              </span>
-              <Select
-                mode="multiple"
-                allowClear
-                showSearch={{
-                  filterOption: false,
-                  onSearch: (keyword) => setTagSearchKeyword(keyword),
-                }}
-                loading={tagOptionsQuery.isFetching}
-                style={{ minWidth: 280 }}
-                placeholder={
-                  organizationId ? '命中任一标签即返回' : '请先选择所属公司'
-                }
-                options={tagOptions}
-                value={tagFilterIds}
-                disabled={!organizationId}
-                onChange={(value) => {
-                  commitFilters({
-                    ...queryState.snapshotRef.current.filters,
-                    tagIds: value.length ? value : undefined,
-                    tagLabels: Object.fromEntries(
-                      tagOptions
-                        .filter((option) => value.includes(option.value))
-                        .map((option) => [option.value, option.label]),
-                    ),
-                  });
-                  setTagFilterIds(value.length ? value : undefined);
                   actionRef.current?.reload(true);
                 }}
               />
@@ -510,17 +361,6 @@ export default function FinanceFeeLedgerPage() {
                 },
               ]
             : []),
-          ...(access.canManageFinanceFeeTags &&
-          access.canOperateOrganization(organizationId)
-            ? [
-                {
-                  key: 'manage-tags',
-                  label: '添加/移除标签',
-                  onClick: (keys: React.Key[], rows: API.FeeLedgerItem[]) =>
-                    openTagModal(keys, rows),
-                },
-              ]
-            : []),
         ]}
         onImport={() => message.info('可通过 Excel 模板批量导入费用明细')}
         columnSettingsKey="finance-fees:ledger"
@@ -544,11 +384,8 @@ export default function FinanceFeeLedgerPage() {
           setSummary(snapshot.summary);
         }}
         request={async (params) => {
-          const {
-            search: filterParams,
-            organizationId,
-            tagIds: tagFilterIds,
-          } = queryState.snapshotRef.current.filters;
+          const { search: filterParams, organizationId } =
+            queryState.snapshotRef.current.filters;
           const createdAtFrom = filterParams.createdAtRange?.[0]
             ? filterParams.createdAtRange[0].format('YYYY-MM-DD')
             : undefined;
@@ -596,7 +433,6 @@ export default function FinanceFeeLedgerPage() {
 
               createdAtFrom,
               createdAtTo,
-              tagIds: tagFilterIds?.length ? tagFilterIds : undefined,
               organizationId,
             },
             { skipErrorHandler: true },
@@ -631,51 +467,6 @@ export default function FinanceFeeLedgerPage() {
           setSelectedBillOrganizationId(undefined);
           actionRef.current?.reload();
         }}
-      />
-
-      {/* 行配色经列设置浮层「更多设置」进入，配色即时生效并持久化 */}
-      <BusinessTagModal
-        open={tagModalOpen}
-        targetCount={tagFeeIds.length}
-        existingTags={tagExisting}
-        // 跨组织财务标签写入不支持在此快捷新建，避免新标签误归当前工作区。
-        canQuickCreate={false}
-        loadOptions={(params) => {
-          if (!organizationId) {
-            return Promise.resolve({ tags: [], total: '0' });
-          }
-          return settlementServiceListFinanceFeeTagAssignmentOptions({
-            ...params,
-            organizationId,
-          });
-        }}
-        onSubmit={async (mode, tagIds): Promise<false | undefined> => {
-          if (!organizationId) {
-            message.warning('请先选择所属公司后再维护费用标签');
-            return;
-          }
-          if (mode === 'assign') {
-            const writeResponse1 =
-              await settlementServiceBatchAssignFinanceFeeTags({
-                feeIds: tagFeeIds,
-                tagIds,
-                organizationId,
-              });
-            if (!isWriteResponse(writeResponse1, 'count')) return false;
-          } else {
-            const writeResponse2 =
-              await settlementServiceBatchRemoveFinanceFeeTags({
-                feeIds: tagFeeIds,
-                tagIds,
-                organizationId,
-              });
-            if (!isWriteResponse(writeResponse2, 'count')) return false;
-          }
-          actionRef.current?.reload();
-
-          return undefined;
-        }}
-        onCancel={() => setTagModalOpen(false)}
       />
     </>
   );

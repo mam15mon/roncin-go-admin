@@ -48,9 +48,6 @@ vi.mock(
       .fn()
       .mockResolvedValue({}),
     enterpriseResourceServiceListEnterpriseResources: state.list,
-    enterpriseResourceServiceListEnterpriseTagGroups: vi
-      .fn()
-      .mockResolvedValue({ data: [] }),
     enterpriseResourceServiceSearchEnterpriseResourcePartnerOptions: vi
       .fn()
       .mockResolvedValue({ data: [] }),
@@ -74,7 +71,6 @@ const resources: Record<number, API.EnterpriseResource> = {
     enabled: true,
     remark: { remarkType: 4, content: '备注正文' },
   },
-  4: { id: 'tag-1', resourceType: 4, shortName: '本类标签', enabled: true },
   6: {
     id: 'consignee-1',
     resourceType: 6,
@@ -96,7 +92,7 @@ function RouterBridge() {
   }, [navigate]);
   return null;
 }
-function setup() {
+function setup(tab = 'addresses') {
   return renderWithApp(
     <ConfigProvider theme={{ token: { motion: false } }}>
       <RouterBridge />
@@ -104,7 +100,7 @@ function setup() {
     </ConfigProvider>,
     {
       routerProps: {
-        initialEntries: ['/enterprise-resources/config?tab=addresses'],
+        initialEntries: [`/enterprise-resources/config?tab=${tab}`],
       },
     },
   );
@@ -117,11 +113,10 @@ beforeEach(() => {
 });
 
 describe('企业资源类型隔离', () => {
-  it('切换标签、备注、收货人后自动查询本类，编辑目标和表头同属当前类型', async () => {
+  it('切换备注、收货人后自动查询本类，编辑目标和表头同属当前类型', async () => {
     setup();
     await screen.findByText('CODEX地址验收1109');
     for (const [tab, name, type] of [
-      ['标签管理', '本类标签', 4],
       ['备注管理', '本类备注', 2],
       ['收货人管理', '本类收货人', 6],
     ] as const) {
@@ -146,7 +141,7 @@ describe('企业资源类型隔离', () => {
     expect(state.remove).not.toHaveBeenCalled();
   });
 
-  it('旧类型请求迟到不会把地址重新填回标签列表', async () => {
+  it('旧类型请求迟到不会把地址重新填回备注列表', async () => {
     let finishAddress: (value: ReturnType<typeof result>) => void = () => {};
     state.list.mockImplementation(
       ({ resourceType }: { resourceType: number }) =>
@@ -158,11 +153,11 @@ describe('企业资源类型隔离', () => {
     );
     setup();
     await waitFor(() => expect(state.list).toHaveBeenCalledOnce());
-    fireEvent.click(screen.getByRole('tab', { name: '标签管理' }));
-    await screen.findByText('本类标签');
+    fireEvent.click(screen.getByRole('tab', { name: '备注管理' }));
+    await screen.findByText('本类备注');
     await act(async () => finishAddress(result(1)));
     expect(screen.queryByText('CODEX地址验收1109')).not.toBeInTheDocument();
-    expect(screen.getByText('本类标签')).toBeInTheDocument();
+    expect(screen.getByText('本类备注')).toBeInTheDocument();
   });
 
   it('切换类型关闭旧编辑会话；新类型请求失败也不能操作旧记录', async () => {
@@ -182,5 +177,17 @@ describe('企业资源类型隔离', () => {
     ).not.toBeInTheDocument();
     expect(state.update).not.toHaveBeenCalled();
     expect(state.remove).not.toHaveBeenCalled();
+  });
+  it('移除标签页签后旧链接按未知页签规则展示地址，绝不查询退役类型', async () => {
+    setup('tags');
+    await screen.findByText('CODEX地址验收1109');
+    expect(
+      screen.queryByRole('tab', { name: '标签管理' }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('标签组')).not.toBeInTheDocument();
+    expect(state.list).toHaveBeenCalled();
+    for (const [params] of state.list.mock.calls) {
+      expect(params.resourceType).toBe(1);
+    }
   });
 });

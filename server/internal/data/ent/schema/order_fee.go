@@ -80,7 +80,6 @@ func (OrderFee) Edges() []ent.Edge {
 		edge.From("source_fee", OrderFee.Type).Ref("derived_fees").Field("source_fee_id").Unique().Immutable(),
 		edge.To("targeted_correction_requests", OrderFeeCorrectionRequest.Type).Annotations(entsql.OnDelete(entsql.NoAction)),
 		edge.To("finance_bill_lines", FinanceBillLine.Type),
-		edge.To("enterprise_tag_links", OrderFeeEnterpriseTag.Type),
 	}
 }
 

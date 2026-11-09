@@ -21,7 +21,7 @@ func TestSharedLocationOrderReadPostgres(t *testing.T) {
 	link := f.data.db.SeaMasterBillOrderLink.GetX(ctx, f.linkID)
 	f.data.db.SeaTransportExecution.UpdateOneID(link.TransportExecutionID).SetOriginLocationID(shared.ID).SetDischargeLocationID(local.ID).SetTransitLocationID(shared.ID).SaveX(ctx)
 	repo := NewSeaMasterBillRepo(f.data)
-	uc := biz.NewOrderUsecase(NewOrderRepo(f.data), nil, repo, nil, nil, nil)
+	uc := biz.NewOrderUsecase(NewOrderRepo(f.data), repo, nil, nil, nil)
 	check := func(t *testing.T) {
 		t.Helper()
 		summaries, err := repo.GetSummariesByOrderIDs(ctx, f.orgID, []uuid.UUID{f.orderID})

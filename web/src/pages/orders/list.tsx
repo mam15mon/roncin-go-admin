@@ -1,11 +1,10 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
-import { App, Button, Popover, Result } from 'antd';
+import { Button, Popover, Result } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router';
 import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
-import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
 import { OrderListTemplate } from '@/components/ui';
 import type { OrderListItem } from '@/components/ui/order-list-template/types';
 import {
@@ -13,12 +12,6 @@ import {
   FeeReviewSummary,
 } from '@/features/orders/fee-review';
 import { history } from '@/router/history';
-import {
-  orderTagServiceBatchAssignOrderTags,
-  orderTagServiceBatchRemoveOrderTags,
-  orderTagServiceListOrderTagOptions,
-} from '@/services/roncin/orderTagService';
-import { isWriteResponse } from '@/utils/api';
 import AbnormalCasePanel, {
   type AbnormalCasePanelRef,
 } from './abnormal-case-panel';
@@ -78,7 +71,6 @@ export default function OrderListPage() {
   const canOperateActiveOrder = access.canOperateOrganization(
     activeOrder?.organizationId,
   );
-  const { message } = App.useApp();
   const [reviewOrderId, setReviewOrderId] = useState<string>();
   useEffect(() => {
     setReviewOrderId(undefined);
@@ -127,11 +119,6 @@ export default function OrderListPage() {
       ),
     },
   ];
-  const [tagModalOpen, setTagModalOpen] = useState(false);
-  const [tagRows, setTagRows] = useState<OrderListItem[]>([]);
-  const [tagFilterOptions, setTagFilterOptions] = useState<
-    { label: string; value: string }[]
-  >([]);
   const [commissionModalState, setCommissionModalState] =
     useState<CommissionSummaryModalState | null>(null);
 
@@ -158,21 +145,6 @@ export default function OrderListPage() {
     [],
   );
 
-  useEffect(() => {
-    if (!definition) return;
-    void orderTagServiceListOrderTagOptions({
-      businessType: definition.businessType as number,
-      page: 1,
-      pageSize: 200,
-    }).then((response) => {
-      setTagFilterOptions(
-        (response.tags ?? []).map((tag) => ({
-          label: tag.name ?? '',
-          value: tag.id ?? '',
-        })),
-      );
-    });
-  }, [definition?.businessType]);
   const {
     ports,
     airports,
@@ -220,27 +192,7 @@ export default function OrderListPage() {
           loadPartners: searchCustomers,
           loadCarriers: searchOrderCarriers,
           loadPersonnel: searchOrderPersonnel,
-          tags: tagFilterOptions,
         }}
-        onManageTags={
-          access.canOrder(definition.businessType, 'update')
-            ? (rows) => {
-                if (
-                  rows.some(
-                    (row) =>
-                      !access.canOperateOrganization(
-                        row.rawRecord?.organizationId,
-                      ),
-                  )
-                ) {
-                  message.warning('只能在订单所属分公司工作台维护标签');
-                  return;
-                }
-                setTagRows(rows);
-                setTagModalOpen(true);
-              }
-            : undefined
-        }
         queryOrders={(params) =>
           queryOrderList(params, definition, {
             organizationId: workspaceId,
@@ -309,52 +261,6 @@ export default function OrderListPage() {
         orderId={reviewOrderId}
         onClose={() => setReviewOrderId(undefined)}
         onChanged={() => actionRef.current?.reload()}
-      />
-      <BusinessTagModal
-        open={tagModalOpen}
-        loadOptions={(params) =>
-          orderTagServiceListOrderTagOptions({
-            ...params,
-            businessType: definition.businessType as number,
-          })
-        }
-        targetCount={tagRows.length}
-        existingTags={tagRows.flatMap(
-          (row) => row.rawRecord?.tags ?? row.tags ?? [],
-        )}
-        canQuickCreate={Boolean(access.canCreateEnterpriseResources)}
-        onSubmit={async (mode, tagIds): Promise<false | undefined> => {
-          if (
-            !tagRows.length ||
-            tagRows.some(
-              (row) =>
-                !access.canOperateOrganization(row.rawRecord?.organizationId),
-            )
-          )
-            return;
-          const orderIds = tagRows.map((row) => row.id);
-          if (mode === 'assign') {
-            const writeResponse1 = await orderTagServiceBatchAssignOrderTags({
-              businessType: definition.businessType as number,
-              orderIds,
-              tagIds,
-            });
-            if (!isWriteResponse(writeResponse1, 'count')) return false;
-            message.success(`已为 ${orderIds.length} 个订单添加标签`);
-          } else {
-            const writeResponse2 = await orderTagServiceBatchRemoveOrderTags({
-              businessType: definition.businessType as number,
-              orderIds,
-              tagIds,
-            });
-            if (!isWriteResponse(writeResponse2, 'count')) return false;
-            message.success(`已从 ${orderIds.length} 个订单移除标签`);
-          }
-          actionRef.current?.reload();
-
-          return undefined;
-        }}
-        onCancel={() => setTagModalOpen(false)}
       />
       <AttachmentDrawer
         ref={attachmentDrawerRef}

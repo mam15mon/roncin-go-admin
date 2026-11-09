@@ -19,8 +19,6 @@ const _ = http.SupportPackageIsVersion3
 
 const OperationOrderFeeServiceAddFee = "/order.v1.OrderFeeService/AddFee"
 const OperationOrderFeeServiceApproveOrderFeeCorrection = "/order.v1.OrderFeeService/ApproveOrderFeeCorrection"
-const OperationOrderFeeServiceBatchAssignOrderFeeTags = "/order.v1.OrderFeeService/BatchAssignOrderFeeTags"
-const OperationOrderFeeServiceBatchRemoveOrderFeeTags = "/order.v1.OrderFeeService/BatchRemoveOrderFeeTags"
 const OperationOrderFeeServiceBulkRemoveOrderFees = "/order.v1.OrderFeeService/BulkRemoveOrderFees"
 const OperationOrderFeeServiceBulkUpdateOrderFees = "/order.v1.OrderFeeService/BulkUpdateOrderFees"
 const OperationOrderFeeServiceCreateOrderFeeCorrection = "/order.v1.OrderFeeService/CreateOrderFeeCorrection"
@@ -30,7 +28,6 @@ const OperationOrderFeeServiceListFeeOptions = "/order.v1.OrderFeeService/ListFe
 const OperationOrderFeeServiceListFees = "/order.v1.OrderFeeService/ListFees"
 const OperationOrderFeeServiceListOrderFeeCorrectionRequests = "/order.v1.OrderFeeService/ListOrderFeeCorrectionRequests"
 const OperationOrderFeeServiceListOrderFeeSupplementRequests = "/order.v1.OrderFeeService/ListOrderFeeSupplementRequests"
-const OperationOrderFeeServiceListOrderFeeTagOptions = "/order.v1.OrderFeeService/ListOrderFeeTagOptions"
 const OperationOrderFeeServicePreviewFeeQuantity = "/order.v1.OrderFeeService/PreviewFeeQuantity"
 const OperationOrderFeeServicePreviewOrderFeeCorrectionApproval = "/order.v1.OrderFeeService/PreviewOrderFeeCorrectionApproval"
 const OperationOrderFeeServicePreviewOrderFeeSupplementApproval = "/order.v1.OrderFeeService/PreviewOrderFeeSupplementApproval"
@@ -44,11 +41,9 @@ type OrderFeeServiceHTTPServer interface {
 	// AddFee AddFee 录入订单费用，总金额由服务端按数量乘单价精确计算。
 	AddFee(context.Context, *AddFeeRequest) (*AddFeeResponse, error)
 	ApproveOrderFeeCorrection(context.Context, *ApproveOrderFeeCorrectionRequest) (*ApproveOrderFeeCorrectionResponse, error)
-	BatchAssignOrderFeeTags(context.Context, *BatchAssignOrderFeeTagsRequest) (*BatchAssignOrderFeeTagsResponse, error)
-	BatchRemoveOrderFeeTags(context.Context, *BatchRemoveOrderFeeTagsRequest) (*BatchRemoveOrderFeeTagsResponse, error)
 	// BulkRemoveOrderFees BulkRemoveOrderFees 批量物理删除订单未建账费用：整批单一事务，被有效账单
 	// 关联占用、补录来源、版本冲突或越订单任一不满足时整批回滚并返回具体费用与
-	// 原因；费用标签关联随删除级联清理，历史账单行快照保留、来源引用置空。
+	// 原因；历史账单行快照保留、来源引用置空。
 	BulkRemoveOrderFees(context.Context, *BulkRemoveOrderFeesRequest) (*BulkRemoveOrderFeesResponse, error)
 	// BulkUpdateOrderFees BulkUpdateOrderFees 批量定向修改订单未被有效账单关联占用的费用：每次仅修改
 	// 结算单位或费用发生时间之一，整批单一事务，任一行版本冲突、已建账、越订单或
@@ -66,7 +61,6 @@ type OrderFeeServiceHTTPServer interface {
 	// （fee.read 或发起人本人或有效费用审核权限及组织范围）在领域层执行，不得被组织级
 	// fee.read 注解提前挡住，也不泄露无权申请。
 	ListOrderFeeSupplementRequests(context.Context, *ListOrderFeeSupplementRequestsRequest) (*ListOrderFeeSupplementRequestsResponse, error)
-	ListOrderFeeTagOptions(context.Context, *ListOrderFeeTagOptionsRequest) (*ListOrderFeeTagOptionsResponse, error)
 	// PreviewFeeQuantity PreviewFeeQuantity 预览本订单数量来源与计算依据，确认后由调用方填入表单。
 	PreviewFeeQuantity(context.Context, *PreviewFeeQuantityRequest) (*PreviewFeeQuantityResponse, error)
 	PreviewOrderFeeCorrectionApproval(context.Context, *PreviewOrderFeeCorrectionApprovalRequest) (*PreviewOrderFeeCorrectionApprovalResponse, error)
@@ -105,9 +99,6 @@ func RegisterOrderFeeServiceHTTPServer(s *http.Server, srv OrderFeeServiceHTTPSe
 	r.Handle("POST", "/api/v1/orders/{order_id}/fees/bulk-remove", _OrderFeeService_BulkRemoveOrderFees0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/orders/{order_id}/fee-supplement-requests", _OrderFeeService_ListOrderFeeSupplementRequests0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/orders/{order_id}/fee-supplement-requests/{id}/approval-preview", _OrderFeeService_PreviewOrderFeeSupplementApproval0_HTTP_Handler(srv))
-	r.Handle("GET", "/api/v1/orders/{order_id}/fee-tag-options", _OrderFeeService_ListOrderFeeTagOptions0_HTTP_Handler(srv))
-	r.Handle("POST", "/api/v1/orders/{order_id}/fee-tags/batch-assign", _OrderFeeService_BatchAssignOrderFeeTags0_HTTP_Handler(srv))
-	r.Handle("POST", "/api/v1/orders/{order_id}/fee-tags/batch-remove", _OrderFeeService_BatchRemoveOrderFeeTags0_HTTP_Handler(srv))
 }
 
 func _OrderFeeService_CreateOrderFeeCorrection0_HTTP_Handler(srv OrderFeeServiceHTTPServer) func(ctx http.Context) error {
@@ -528,81 +519,13 @@ func _OrderFeeService_PreviewOrderFeeSupplementApproval0_HTTP_Handler(srv OrderF
 	}
 }
 
-func _OrderFeeService_ListOrderFeeTagOptions0_HTTP_Handler(srv OrderFeeServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ListOrderFeeTagOptionsRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationOrderFeeServiceListOrderFeeTagOptions)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListOrderFeeTagOptions(ctx, req.(*ListOrderFeeTagOptionsRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*ListOrderFeeTagOptionsResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _OrderFeeService_BatchAssignOrderFeeTags0_HTTP_Handler(srv OrderFeeServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in BatchAssignOrderFeeTagsRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationOrderFeeServiceBatchAssignOrderFeeTags)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.BatchAssignOrderFeeTags(ctx, req.(*BatchAssignOrderFeeTagsRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*BatchAssignOrderFeeTagsResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _OrderFeeService_BatchRemoveOrderFeeTags0_HTTP_Handler(srv OrderFeeServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in BatchRemoveOrderFeeTagsRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationOrderFeeServiceBatchRemoveOrderFeeTags)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.BatchRemoveOrderFeeTags(ctx, req.(*BatchRemoveOrderFeeTagsRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*BatchRemoveOrderFeeTagsResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
 type OrderFeeServiceHTTPClient interface {
 	// AddFee AddFee 录入订单费用，总金额由服务端按数量乘单价精确计算。
 	AddFee(ctx context.Context, req *AddFeeRequest, opts ...http.CallOption) (rsp *AddFeeResponse, err error)
 	ApproveOrderFeeCorrection(ctx context.Context, req *ApproveOrderFeeCorrectionRequest, opts ...http.CallOption) (rsp *ApproveOrderFeeCorrectionResponse, err error)
-	BatchAssignOrderFeeTags(ctx context.Context, req *BatchAssignOrderFeeTagsRequest, opts ...http.CallOption) (rsp *BatchAssignOrderFeeTagsResponse, err error)
-	BatchRemoveOrderFeeTags(ctx context.Context, req *BatchRemoveOrderFeeTagsRequest, opts ...http.CallOption) (rsp *BatchRemoveOrderFeeTagsResponse, err error)
 	// BulkRemoveOrderFees BulkRemoveOrderFees 批量物理删除订单未建账费用：整批单一事务，被有效账单
 	// 关联占用、补录来源、版本冲突或越订单任一不满足时整批回滚并返回具体费用与
-	// 原因；费用标签关联随删除级联清理，历史账单行快照保留、来源引用置空。
+	// 原因；历史账单行快照保留、来源引用置空。
 	BulkRemoveOrderFees(ctx context.Context, req *BulkRemoveOrderFeesRequest, opts ...http.CallOption) (rsp *BulkRemoveOrderFeesResponse, err error)
 	// BulkUpdateOrderFees BulkUpdateOrderFees 批量定向修改订单未被有效账单关联占用的费用：每次仅修改
 	// 结算单位或费用发生时间之一，整批单一事务，任一行版本冲突、已建账、越订单或
@@ -620,7 +543,6 @@ type OrderFeeServiceHTTPClient interface {
 	// （fee.read 或发起人本人或有效费用审核权限及组织范围）在领域层执行，不得被组织级
 	// fee.read 注解提前挡住，也不泄露无权申请。
 	ListOrderFeeSupplementRequests(ctx context.Context, req *ListOrderFeeSupplementRequestsRequest, opts ...http.CallOption) (rsp *ListOrderFeeSupplementRequestsResponse, err error)
-	ListOrderFeeTagOptions(ctx context.Context, req *ListOrderFeeTagOptionsRequest, opts ...http.CallOption) (rsp *ListOrderFeeTagOptionsResponse, err error)
 	// PreviewFeeQuantity PreviewFeeQuantity 预览本订单数量来源与计算依据，确认后由调用方填入表单。
 	PreviewFeeQuantity(ctx context.Context, req *PreviewFeeQuantityRequest, opts ...http.CallOption) (rsp *PreviewFeeQuantityResponse, err error)
 	PreviewOrderFeeCorrectionApproval(ctx context.Context, req *PreviewOrderFeeCorrectionApprovalRequest, opts ...http.CallOption) (rsp *PreviewOrderFeeCorrectionApprovalResponse, err error)
@@ -681,43 +603,9 @@ func (c *OrderFeeServiceHTTPClientImpl) ApproveOrderFeeCorrection(ctx context.Co
 	return &out, nil
 }
 
-func (c *OrderFeeServiceHTTPClientImpl) BatchAssignOrderFeeTags(ctx context.Context, in *BatchAssignOrderFeeTagsRequest, opts ...http.CallOption) (*BatchAssignOrderFeeTagsResponse, error) {
-	var out BatchAssignOrderFeeTagsResponse
-	pattern := "/api/v1/orders/{order_id}/fee-tags/batch-assign"
-	path := http.BuildPath(pattern, in)
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.ContentType("application/protojson"),
-		http.Operation(OperationOrderFeeServiceBatchAssignOrderFeeTags),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *OrderFeeServiceHTTPClientImpl) BatchRemoveOrderFeeTags(ctx context.Context, in *BatchRemoveOrderFeeTagsRequest, opts ...http.CallOption) (*BatchRemoveOrderFeeTagsResponse, error) {
-	var out BatchRemoveOrderFeeTagsResponse
-	pattern := "/api/v1/orders/{order_id}/fee-tags/batch-remove"
-	path := http.BuildPath(pattern, in)
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.ContentType("application/protojson"),
-		http.Operation(OperationOrderFeeServiceBatchRemoveOrderFeeTags),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 // BulkRemoveOrderFees BulkRemoveOrderFees 批量物理删除订单未建账费用：整批单一事务，被有效账单
 // 关联占用、补录来源、版本冲突或越订单任一不满足时整批回滚并返回具体费用与
-// 原因；费用标签关联随删除级联清理，历史账单行快照保留、来源引用置空。
+// 原因；历史账单行快照保留、来源引用置空。
 func (c *OrderFeeServiceHTTPClientImpl) BulkRemoveOrderFees(ctx context.Context, in *BulkRemoveOrderFeesRequest, opts ...http.CallOption) (*BulkRemoveOrderFeesResponse, error) {
 	var out BulkRemoveOrderFeesResponse
 	pattern := "/api/v1/orders/{order_id}/fees/bulk-remove"
@@ -864,22 +752,6 @@ func (c *OrderFeeServiceHTTPClientImpl) ListOrderFeeSupplementRequests(ctx conte
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationOrderFeeServiceListOrderFeeSupplementRequests),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *OrderFeeServiceHTTPClientImpl) ListOrderFeeTagOptions(ctx context.Context, in *ListOrderFeeTagOptionsRequest, opts ...http.CallOption) (*ListOrderFeeTagOptionsResponse, error) {
-	var out ListOrderFeeTagOptionsResponse
-	pattern := "/api/v1/orders/{order_id}/fee-tag-options"
-	path := http.BuildPath(pattern, in, http.WithQueryParams())
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.Operation(OperationOrderFeeServiceListOrderFeeTagOptions),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

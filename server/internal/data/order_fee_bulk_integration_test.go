@@ -13,10 +13,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	auditlogent "github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
-	enterpriseresourceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
-	orderfeeenterprisetagent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 )
 
 // newOrderFeeBulkUsecase 组装带信用控制与真实汇率解析的订单费用用例，
@@ -53,7 +51,6 @@ func createBulkFee(t *testing.T, data *Data, orderID, settlementPartyID uuid.UUI
 		SetExchangeRateDate(financeBillIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount(baseAmount).
-
 		SetVersion(1).
 		Save(context.Background())
 	if err != nil {
@@ -64,7 +61,7 @@ func createBulkFee(t *testing.T, data *Data, orderID, settlementPartyID uuid.UUI
 
 // TestOrderFeeBulkMaintenancePostgres 验证订单费用批量维护的真实事务行为：
 // 批量改结算单位不动金额汇率、批量改费用时间逐行重解析系统汇率并保留手工
-// 汇率、批量删除级联清理标签；任一行版本冲突、状态不符、账单占用或越订单
+// 汇率、批量删除保留审计快照；任一行版本冲突、状态不符、账单占用或越订单
 // 时整批零写入回滚；审计逐行落库。隔离 Schema 执行全量迁移链冷启动。
 func TestOrderFeeBulkMaintenancePostgres(t *testing.T) {
 	if os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE") == "" {
@@ -152,31 +149,10 @@ func TestOrderFeeBulkMaintenancePostgres(t *testing.T) {
 		}
 	})
 
-	t.Run("批量删除未建账费用并级联清理标签", func(t *testing.T) {
+	t.Run("批量删除未建账费用并保留审计快照", func(t *testing.T) {
 		// 两条费用挂不同结算单位，覆盖批量按单位去重查询后逐行正确回填名称快照。
 		first := fixture.createUnbilledFee("bulk-del-1")
 		second := createBulkFee(t, data, orderID, newParty.ID, "bulk-del-2", "CNY", "1.00000000", "100.00000000", orderfeeent.ExchangeRateSourceSYSTEM)
-		resource, resourceErr := data.db.EnterpriseResource.Create().
-			SetOrganizationID(organizationID).
-			SetResourceType(enterpriseresourceent.ResourceTypeTAG).
-			SetShortName("批量删除级联标签-" + fixture.suffix).
-			Save(context.Background())
-		if resourceErr != nil {
-			t.Fatalf("创建标签资源: %v", resourceErr)
-		}
-		t.Cleanup(func() {
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-			_ = data.db.EnterpriseResource.DeleteOneID(resource.ID).Exec(ctx)
-		})
-		if _, err := data.db.OrderFeeEnterpriseTag.Create().
-			SetOrganizationID(organizationID).
-			SetOrderFeeID(first).
-			SetTagResourceID(resource.ID).
-			Save(context.Background()); err != nil {
-			t.Fatalf("创建费用标签关联: %v", err)
-		}
-
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		if err := usecase.BulkRemove(ctx, organizationID, actor, orderID, targetsOf(first, second), "批量清理"); err != nil {
@@ -185,10 +161,6 @@ func TestOrderFeeBulkMaintenancePostgres(t *testing.T) {
 		count, err := data.db.OrderFee.Query().Where(orderfeeent.IDIn(first, second)).Count(context.Background())
 		if err != nil || count != 0 {
 			t.Fatalf("批量删除后费用仍存在: count=%d err=%v", count, err)
-		}
-		links, err := data.db.OrderFeeEnterpriseTag.Query().Where(orderfeeenterprisetagent.OrderFeeIDEQ(first)).Count(context.Background())
-		if err != nil || links != 0 {
-			t.Fatalf("费用标签关联应级联清理: count=%d err=%v", links, err)
 		}
 		audits, auditErr := data.db.AuditLog.Query().
 			Where(auditlogent.ActionEQ("order.fee.delete"), auditlogent.OrganizationIDEQ(organizationID)).

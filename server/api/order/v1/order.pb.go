@@ -1107,92 +1107,6 @@ func (x *OrderCommissionSummary) GetPendingDecreaseAmount() string {
 	return ""
 }
 
-// Order 订单核心信息。
-// BusinessTagSummary 订单返回的组织标签概要。
-type BusinessTagSummary struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	GroupId       string                 `protobuf:"bytes,3,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
-	GroupName     string                 `protobuf:"bytes,4,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
-	GroupColor    string                 `protobuf:"bytes,5,opt,name=group_color,json=groupColor,proto3" json:"group_color,omitempty"`
-	Enabled       bool                   `protobuf:"varint,6,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *BusinessTagSummary) Reset() {
-	*x = BusinessTagSummary{}
-	mi := &file_order_v1_order_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *BusinessTagSummary) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*BusinessTagSummary) ProtoMessage() {}
-
-func (x *BusinessTagSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use BusinessTagSummary.ProtoReflect.Descriptor instead.
-func (*BusinessTagSummary) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *BusinessTagSummary) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *BusinessTagSummary) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *BusinessTagSummary) GetGroupId() string {
-	if x != nil {
-		return x.GroupId
-	}
-	return ""
-}
-
-func (x *BusinessTagSummary) GetGroupName() string {
-	if x != nil {
-		return x.GroupName
-	}
-	return ""
-}
-
-func (x *BusinessTagSummary) GetGroupColor() string {
-	if x != nil {
-		return x.GroupColor
-	}
-	return ""
-}
-
-func (x *BusinessTagSummary) GetEnabled() bool {
-	if x != nil {
-		return x.Enabled
-	}
-	return false
-}
-
 // 整票审核摘要。仅向具备该组织费用读取或审核资格的人返回。
 type OrderFeeReviewSummary struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
@@ -1211,7 +1125,7 @@ type OrderFeeReviewSummary struct {
 
 func (x *OrderFeeReviewSummary) Reset() {
 	*x = OrderFeeReviewSummary{}
-	mi := &file_order_v1_order_proto_msgTypes[2]
+	mi := &file_order_v1_order_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1223,7 +1137,7 @@ func (x *OrderFeeReviewSummary) String() string {
 func (*OrderFeeReviewSummary) ProtoMessage() {}
 
 func (x *OrderFeeReviewSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[2]
+	mi := &file_order_v1_order_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1236,7 +1150,7 @@ func (x *OrderFeeReviewSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderFeeReviewSummary.ProtoReflect.Descriptor instead.
 func (*OrderFeeReviewSummary) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{2}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *OrderFeeReviewSummary) GetBaseCurrency() string {
@@ -1323,7 +1237,7 @@ type OrderFeeReviewProjection struct {
 
 func (x *OrderFeeReviewProjection) Reset() {
 	*x = OrderFeeReviewProjection{}
-	mi := &file_order_v1_order_proto_msgTypes[3]
+	mi := &file_order_v1_order_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1335,7 +1249,7 @@ func (x *OrderFeeReviewProjection) String() string {
 func (*OrderFeeReviewProjection) ProtoMessage() {}
 
 func (x *OrderFeeReviewProjection) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[3]
+	mi := &file_order_v1_order_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1348,7 +1262,7 @@ func (x *OrderFeeReviewProjection) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderFeeReviewProjection.ProtoReflect.Descriptor instead.
 func (*OrderFeeReviewProjection) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{3}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *OrderFeeReviewProjection) GetStatus() string {
@@ -1457,7 +1371,7 @@ type OrderStatusRecord struct {
 
 func (x *OrderStatusRecord) Reset() {
 	*x = OrderStatusRecord{}
-	mi := &file_order_v1_order_proto_msgTypes[4]
+	mi := &file_order_v1_order_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1469,7 +1383,7 @@ func (x *OrderStatusRecord) String() string {
 func (*OrderStatusRecord) ProtoMessage() {}
 
 func (x *OrderStatusRecord) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[4]
+	mi := &file_order_v1_order_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1482,7 +1396,7 @@ func (x *OrderStatusRecord) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderStatusRecord.ProtoReflect.Descriptor instead.
 func (*OrderStatusRecord) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{4}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *OrderStatusRecord) GetDimension() string {
@@ -1599,7 +1513,6 @@ type Order struct {
 	ConsigneeShortName        *string                  `protobuf:"bytes,76,opt,name=consignee_short_name,json=consigneeShortName,proto3,oneof" json:"consignee_short_name,omitempty"`
 	LockedAt                  *string                  `protobuf:"bytes,77,opt,name=locked_at,json=lockedAt,proto3,oneof" json:"locked_at,omitempty"`
 	IsShared                  bool                     `protobuf:"varint,78,opt,name=is_shared,json=isShared,proto3" json:"is_shared,omitempty"`
-	Tags                      []*BusinessTagSummary    `protobuf:"bytes,79,rep,name=tags,proto3" json:"tags,omitempty"`
 	AllowedTargetFlowStatuses []OrderFlowStatus        `protobuf:"varint,80,rep,packed,name=allowed_target_flow_statuses,json=allowedTargetFlowStatuses,proto3,enum=order.v1.OrderFlowStatus" json:"allowed_target_flow_statuses,omitempty"`
 	SeaMasterBill             *SeaMasterBillSummary    `protobuf:"bytes,81,opt,name=sea_master_bill,json=seaMasterBill,proto3,oneof" json:"sea_master_bill,omitempty"`
 	SeaDocumentStructure      *SeaDocumentStructure    `protobuf:"varint,82,opt,name=sea_document_structure,json=seaDocumentStructure,proto3,enum=order.v1.SeaDocumentStructure,oneof" json:"sea_document_structure,omitempty"`
@@ -1634,7 +1547,7 @@ type Order struct {
 
 func (x *Order) Reset() {
 	*x = Order{}
-	mi := &file_order_v1_order_proto_msgTypes[5]
+	mi := &file_order_v1_order_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1646,7 +1559,7 @@ func (x *Order) String() string {
 func (*Order) ProtoMessage() {}
 
 func (x *Order) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[5]
+	mi := &file_order_v1_order_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1659,7 +1572,7 @@ func (x *Order) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Order.ProtoReflect.Descriptor instead.
 func (*Order) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{5}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Order) GetId() string {
@@ -2194,13 +2107,6 @@ func (x *Order) GetIsShared() bool {
 	return false
 }
 
-func (x *Order) GetTags() []*BusinessTagSummary {
-	if x != nil {
-		return x.Tags
-	}
-	return nil
-}
-
 func (x *Order) GetAllowedTargetFlowStatuses() []OrderFlowStatus {
 	if x != nil {
 		return x.AllowedTargetFlowStatuses
@@ -2380,7 +2286,7 @@ type OrderCargoMeasurement struct {
 
 func (x *OrderCargoMeasurement) Reset() {
 	*x = OrderCargoMeasurement{}
-	mi := &file_order_v1_order_proto_msgTypes[6]
+	mi := &file_order_v1_order_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2392,7 +2298,7 @@ func (x *OrderCargoMeasurement) String() string {
 func (*OrderCargoMeasurement) ProtoMessage() {}
 
 func (x *OrderCargoMeasurement) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[6]
+	mi := &file_order_v1_order_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2405,7 +2311,7 @@ func (x *OrderCargoMeasurement) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderCargoMeasurement.ProtoReflect.Descriptor instead.
 func (*OrderCargoMeasurement) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{6}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *OrderCargoMeasurement) GetPackages() int32 {
@@ -2443,7 +2349,7 @@ type OrderConsolidationMember struct {
 
 func (x *OrderConsolidationMember) Reset() {
 	*x = OrderConsolidationMember{}
-	mi := &file_order_v1_order_proto_msgTypes[7]
+	mi := &file_order_v1_order_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2455,7 +2361,7 @@ func (x *OrderConsolidationMember) String() string {
 func (*OrderConsolidationMember) ProtoMessage() {}
 
 func (x *OrderConsolidationMember) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[7]
+	mi := &file_order_v1_order_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2468,7 +2374,7 @@ func (x *OrderConsolidationMember) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderConsolidationMember.ProtoReflect.Descriptor instead.
 func (*OrderConsolidationMember) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{7}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *OrderConsolidationMember) GetOrderId() string {
@@ -2527,7 +2433,7 @@ type OrderConsolidationSummary struct {
 
 func (x *OrderConsolidationSummary) Reset() {
 	*x = OrderConsolidationSummary{}
-	mi := &file_order_v1_order_proto_msgTypes[8]
+	mi := &file_order_v1_order_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2539,7 +2445,7 @@ func (x *OrderConsolidationSummary) String() string {
 func (*OrderConsolidationSummary) ProtoMessage() {}
 
 func (x *OrderConsolidationSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[8]
+	mi := &file_order_v1_order_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2552,7 +2458,7 @@ func (x *OrderConsolidationSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderConsolidationSummary.ProtoReflect.Descriptor instead.
 func (*OrderConsolidationSummary) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{8}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *OrderConsolidationSummary) GetConsolidationId() string {
@@ -2611,7 +2517,7 @@ type OrderShippingDocumentInput struct {
 
 func (x *OrderShippingDocumentInput) Reset() {
 	*x = OrderShippingDocumentInput{}
-	mi := &file_order_v1_order_proto_msgTypes[9]
+	mi := &file_order_v1_order_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2623,7 +2529,7 @@ func (x *OrderShippingDocumentInput) String() string {
 func (*OrderShippingDocumentInput) ProtoMessage() {}
 
 func (x *OrderShippingDocumentInput) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[9]
+	mi := &file_order_v1_order_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2636,7 +2542,7 @@ func (x *OrderShippingDocumentInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderShippingDocumentInput.ProtoReflect.Descriptor instead.
 func (*OrderShippingDocumentInput) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{9}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *OrderShippingDocumentInput) GetId() string {
@@ -2679,7 +2585,7 @@ type OrderContainerRequestInput struct {
 
 func (x *OrderContainerRequestInput) Reset() {
 	*x = OrderContainerRequestInput{}
-	mi := &file_order_v1_order_proto_msgTypes[10]
+	mi := &file_order_v1_order_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2691,7 +2597,7 @@ func (x *OrderContainerRequestInput) String() string {
 func (*OrderContainerRequestInput) ProtoMessage() {}
 
 func (x *OrderContainerRequestInput) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[10]
+	mi := &file_order_v1_order_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2704,7 +2610,7 @@ func (x *OrderContainerRequestInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderContainerRequestInput.ProtoReflect.Descriptor instead.
 func (*OrderContainerRequestInput) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{10}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *OrderContainerRequestInput) GetId() string {
@@ -2743,7 +2649,7 @@ type OrderContainerRequest struct {
 
 func (x *OrderContainerRequest) Reset() {
 	*x = OrderContainerRequest{}
-	mi := &file_order_v1_order_proto_msgTypes[11]
+	mi := &file_order_v1_order_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2755,7 +2661,7 @@ func (x *OrderContainerRequest) String() string {
 func (*OrderContainerRequest) ProtoMessage() {}
 
 func (x *OrderContainerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[11]
+	mi := &file_order_v1_order_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2768,7 +2674,7 @@ func (x *OrderContainerRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderContainerRequest.ProtoReflect.Descriptor instead.
 func (*OrderContainerRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{11}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *OrderContainerRequest) GetId() string {
@@ -2825,7 +2731,7 @@ type OrderPersonnelAssignmentInput struct {
 
 func (x *OrderPersonnelAssignmentInput) Reset() {
 	*x = OrderPersonnelAssignmentInput{}
-	mi := &file_order_v1_order_proto_msgTypes[12]
+	mi := &file_order_v1_order_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2837,7 +2743,7 @@ func (x *OrderPersonnelAssignmentInput) String() string {
 func (*OrderPersonnelAssignmentInput) ProtoMessage() {}
 
 func (x *OrderPersonnelAssignmentInput) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[12]
+	mi := &file_order_v1_order_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2850,7 +2756,7 @@ func (x *OrderPersonnelAssignmentInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderPersonnelAssignmentInput.ProtoReflect.Descriptor instead.
 func (*OrderPersonnelAssignmentInput) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{12}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *OrderPersonnelAssignmentInput) GetUserId() string {
@@ -2880,7 +2786,7 @@ type OrderPersonnelOption struct {
 
 func (x *OrderPersonnelOption) Reset() {
 	*x = OrderPersonnelOption{}
-	mi := &file_order_v1_order_proto_msgTypes[13]
+	mi := &file_order_v1_order_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2892,7 +2798,7 @@ func (x *OrderPersonnelOption) String() string {
 func (*OrderPersonnelOption) ProtoMessage() {}
 
 func (x *OrderPersonnelOption) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[13]
+	mi := &file_order_v1_order_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2905,7 +2811,7 @@ func (x *OrderPersonnelOption) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderPersonnelOption.ProtoReflect.Descriptor instead.
 func (*OrderPersonnelOption) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{13}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *OrderPersonnelOption) GetUserId() string {
@@ -2942,7 +2848,7 @@ type OrderServiceSelection struct {
 
 func (x *OrderServiceSelection) Reset() {
 	*x = OrderServiceSelection{}
-	mi := &file_order_v1_order_proto_msgTypes[14]
+	mi := &file_order_v1_order_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2954,7 +2860,7 @@ func (x *OrderServiceSelection) String() string {
 func (*OrderServiceSelection) ProtoMessage() {}
 
 func (x *OrderServiceSelection) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[14]
+	mi := &file_order_v1_order_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2967,7 +2873,7 @@ func (x *OrderServiceSelection) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderServiceSelection.ProtoReflect.Descriptor instead.
 func (*OrderServiceSelection) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{14}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *OrderServiceSelection) GetId() string {
@@ -3011,7 +2917,7 @@ type OrderCargoSelection struct {
 
 func (x *OrderCargoSelection) Reset() {
 	*x = OrderCargoSelection{}
-	mi := &file_order_v1_order_proto_msgTypes[15]
+	mi := &file_order_v1_order_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3023,7 +2929,7 @@ func (x *OrderCargoSelection) String() string {
 func (*OrderCargoSelection) ProtoMessage() {}
 
 func (x *OrderCargoSelection) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[15]
+	mi := &file_order_v1_order_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3036,7 +2942,7 @@ func (x *OrderCargoSelection) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderCargoSelection.ProtoReflect.Descriptor instead.
 func (*OrderCargoSelection) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{15}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *OrderCargoSelection) GetId() string {
@@ -3084,7 +2990,7 @@ type OrderStatusLog struct {
 
 func (x *OrderStatusLog) Reset() {
 	*x = OrderStatusLog{}
-	mi := &file_order_v1_order_proto_msgTypes[16]
+	mi := &file_order_v1_order_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3096,7 +3002,7 @@ func (x *OrderStatusLog) String() string {
 func (*OrderStatusLog) ProtoMessage() {}
 
 func (x *OrderStatusLog) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[16]
+	mi := &file_order_v1_order_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3109,7 +3015,7 @@ func (x *OrderStatusLog) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderStatusLog.ProtoReflect.Descriptor instead.
 func (*OrderStatusLog) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{16}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *OrderStatusLog) GetId() string {
@@ -3178,7 +3084,7 @@ type GetOrderRequest struct {
 
 func (x *GetOrderRequest) Reset() {
 	*x = GetOrderRequest{}
-	mi := &file_order_v1_order_proto_msgTypes[17]
+	mi := &file_order_v1_order_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3190,7 +3096,7 @@ func (x *GetOrderRequest) String() string {
 func (*GetOrderRequest) ProtoMessage() {}
 
 func (x *GetOrderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[17]
+	mi := &file_order_v1_order_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3203,7 +3109,7 @@ func (x *GetOrderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOrderRequest.ProtoReflect.Descriptor instead.
 func (*GetOrderRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{17}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetOrderRequest) GetId() string {
@@ -3246,7 +3152,6 @@ type ListOrdersRequest struct {
 	SalesId               string                  `protobuf:"bytes,29,opt,name=sales_id,json=salesId,proto3" json:"sales_id,omitempty"`
 	CustomerServiceId     string                  `protobuf:"bytes,31,opt,name=customer_service_id,json=customerServiceId,proto3" json:"customer_service_id,omitempty"`
 	CreatorId             string                  `protobuf:"bytes,33,opt,name=creator_id,json=creatorId,proto3" json:"creator_id,omitempty"`
-	TagIds                []string                `protobuf:"bytes,35,rep,name=tag_ids,json=tagIds,proto3" json:"tag_ids,omitempty"`
 	IsLocked              *bool                   `protobuf:"varint,37,opt,name=is_locked,json=isLocked,proto3,oneof" json:"is_locked,omitempty"`
 	IsShared              *bool                   `protobuf:"varint,38,opt,name=is_shared,json=isShared,proto3,oneof" json:"is_shared,omitempty"`
 	unknownFields         protoimpl.UnknownFields
@@ -3255,7 +3160,7 @@ type ListOrdersRequest struct {
 
 func (x *ListOrdersRequest) Reset() {
 	*x = ListOrdersRequest{}
-	mi := &file_order_v1_order_proto_msgTypes[18]
+	mi := &file_order_v1_order_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3267,7 +3172,7 @@ func (x *ListOrdersRequest) String() string {
 func (*ListOrdersRequest) ProtoMessage() {}
 
 func (x *ListOrdersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[18]
+	mi := &file_order_v1_order_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3280,7 +3185,7 @@ func (x *ListOrdersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrdersRequest.ProtoReflect.Descriptor instead.
 func (*ListOrdersRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{18}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ListOrdersRequest) GetPage() int32 {
@@ -3493,13 +3398,6 @@ func (x *ListOrdersRequest) GetCreatorId() string {
 	return ""
 }
 
-func (x *ListOrdersRequest) GetTagIds() []string {
-	if x != nil {
-		return x.TagIds
-	}
-	return nil
-}
-
 func (x *ListOrdersRequest) GetIsLocked() bool {
 	if x != nil && x.IsLocked != nil {
 		return *x.IsLocked
@@ -3527,7 +3425,7 @@ type CheckOrderReferenceRequest struct {
 
 func (x *CheckOrderReferenceRequest) Reset() {
 	*x = CheckOrderReferenceRequest{}
-	mi := &file_order_v1_order_proto_msgTypes[19]
+	mi := &file_order_v1_order_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3539,7 +3437,7 @@ func (x *CheckOrderReferenceRequest) String() string {
 func (*CheckOrderReferenceRequest) ProtoMessage() {}
 
 func (x *CheckOrderReferenceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[19]
+	mi := &file_order_v1_order_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3552,7 +3450,7 @@ func (x *CheckOrderReferenceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckOrderReferenceRequest.ProtoReflect.Descriptor instead.
 func (*CheckOrderReferenceRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{19}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *CheckOrderReferenceRequest) GetReferenceType() OrderReferenceType {
@@ -3595,7 +3493,7 @@ type ListPersonnelOptionsRequest struct {
 
 func (x *ListPersonnelOptionsRequest) Reset() {
 	*x = ListPersonnelOptionsRequest{}
-	mi := &file_order_v1_order_proto_msgTypes[20]
+	mi := &file_order_v1_order_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3607,7 +3505,7 @@ func (x *ListPersonnelOptionsRequest) String() string {
 func (*ListPersonnelOptionsRequest) ProtoMessage() {}
 
 func (x *ListPersonnelOptionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[20]
+	mi := &file_order_v1_order_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3620,7 +3518,7 @@ func (x *ListPersonnelOptionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPersonnelOptionsRequest.ProtoReflect.Descriptor instead.
 func (*ListPersonnelOptionsRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{20}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ListPersonnelOptionsRequest) GetBusinessType() BusinessType {
@@ -3660,7 +3558,7 @@ type ListOrderConsolidationsRequest struct {
 
 func (x *ListOrderConsolidationsRequest) Reset() {
 	*x = ListOrderConsolidationsRequest{}
-	mi := &file_order_v1_order_proto_msgTypes[21]
+	mi := &file_order_v1_order_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3672,7 +3570,7 @@ func (x *ListOrderConsolidationsRequest) String() string {
 func (*ListOrderConsolidationsRequest) ProtoMessage() {}
 
 func (x *ListOrderConsolidationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[21]
+	mi := &file_order_v1_order_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3685,7 +3583,7 @@ func (x *ListOrderConsolidationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrderConsolidationsRequest.ProtoReflect.Descriptor instead.
 func (*ListOrderConsolidationsRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{21}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *ListOrderConsolidationsRequest) GetId() string {
@@ -3707,7 +3605,7 @@ type OrderReferenceCheck struct {
 
 func (x *OrderReferenceCheck) Reset() {
 	*x = OrderReferenceCheck{}
-	mi := &file_order_v1_order_proto_msgTypes[22]
+	mi := &file_order_v1_order_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3719,7 +3617,7 @@ func (x *OrderReferenceCheck) String() string {
 func (*OrderReferenceCheck) ProtoMessage() {}
 
 func (x *OrderReferenceCheck) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[22]
+	mi := &file_order_v1_order_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3732,7 +3630,7 @@ func (x *OrderReferenceCheck) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderReferenceCheck.ProtoReflect.Descriptor instead.
 func (*OrderReferenceCheck) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{22}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *OrderReferenceCheck) GetDuplicate() bool {
@@ -3826,7 +3724,7 @@ type CreateOrderRequest struct {
 
 func (x *CreateOrderRequest) Reset() {
 	*x = CreateOrderRequest{}
-	mi := &file_order_v1_order_proto_msgTypes[23]
+	mi := &file_order_v1_order_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3838,7 +3736,7 @@ func (x *CreateOrderRequest) String() string {
 func (*CreateOrderRequest) ProtoMessage() {}
 
 func (x *CreateOrderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[23]
+	mi := &file_order_v1_order_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3851,7 +3749,7 @@ func (x *CreateOrderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOrderRequest.ProtoReflect.Descriptor instead.
 func (*CreateOrderRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{23}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *CreateOrderRequest) GetCustomerId() string {
@@ -4339,7 +4237,7 @@ type UpdateOrderRequest struct {
 
 func (x *UpdateOrderRequest) Reset() {
 	*x = UpdateOrderRequest{}
-	mi := &file_order_v1_order_proto_msgTypes[24]
+	mi := &file_order_v1_order_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4351,7 +4249,7 @@ func (x *UpdateOrderRequest) String() string {
 func (*UpdateOrderRequest) ProtoMessage() {}
 
 func (x *UpdateOrderRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[24]
+	mi := &file_order_v1_order_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4364,7 +4262,7 @@ func (x *UpdateOrderRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOrderRequest.ProtoReflect.Descriptor instead.
 func (*UpdateOrderRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{24}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *UpdateOrderRequest) GetId() string {
@@ -4800,7 +4698,7 @@ type TransitionOrderStatusRequest struct {
 
 func (x *TransitionOrderStatusRequest) Reset() {
 	*x = TransitionOrderStatusRequest{}
-	mi := &file_order_v1_order_proto_msgTypes[25]
+	mi := &file_order_v1_order_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4812,7 +4710,7 @@ func (x *TransitionOrderStatusRequest) String() string {
 func (*TransitionOrderStatusRequest) ProtoMessage() {}
 
 func (x *TransitionOrderStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[25]
+	mi := &file_order_v1_order_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4825,7 +4723,7 @@ func (x *TransitionOrderStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransitionOrderStatusRequest.ProtoReflect.Descriptor instead.
 func (*TransitionOrderStatusRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{25}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *TransitionOrderStatusRequest) GetId() string {
@@ -4869,7 +4767,7 @@ type TransitionOrderTerminationRequest struct {
 
 func (x *TransitionOrderTerminationRequest) Reset() {
 	*x = TransitionOrderTerminationRequest{}
-	mi := &file_order_v1_order_proto_msgTypes[26]
+	mi := &file_order_v1_order_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4881,7 +4779,7 @@ func (x *TransitionOrderTerminationRequest) String() string {
 func (*TransitionOrderTerminationRequest) ProtoMessage() {}
 
 func (x *TransitionOrderTerminationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[26]
+	mi := &file_order_v1_order_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4894,7 +4792,7 @@ func (x *TransitionOrderTerminationRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use TransitionOrderTerminationRequest.ProtoReflect.Descriptor instead.
 func (*TransitionOrderTerminationRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{26}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *TransitionOrderTerminationRequest) GetId() string {
@@ -4945,7 +4843,7 @@ type TransitionOrderClosureRequest struct {
 
 func (x *TransitionOrderClosureRequest) Reset() {
 	*x = TransitionOrderClosureRequest{}
-	mi := &file_order_v1_order_proto_msgTypes[27]
+	mi := &file_order_v1_order_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4957,7 +4855,7 @@ func (x *TransitionOrderClosureRequest) String() string {
 func (*TransitionOrderClosureRequest) ProtoMessage() {}
 
 func (x *TransitionOrderClosureRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[27]
+	mi := &file_order_v1_order_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4970,7 +4868,7 @@ func (x *TransitionOrderClosureRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransitionOrderClosureRequest.ProtoReflect.Descriptor instead.
 func (*TransitionOrderClosureRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{27}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *TransitionOrderClosureRequest) GetId() string {
@@ -5015,7 +4913,7 @@ type GetOrderResponse struct {
 
 func (x *GetOrderResponse) Reset() {
 	*x = GetOrderResponse{}
-	mi := &file_order_v1_order_proto_msgTypes[28]
+	mi := &file_order_v1_order_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5027,7 +4925,7 @@ func (x *GetOrderResponse) String() string {
 func (*GetOrderResponse) ProtoMessage() {}
 
 func (x *GetOrderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[28]
+	mi := &file_order_v1_order_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5040,7 +4938,7 @@ func (x *GetOrderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOrderResponse.ProtoReflect.Descriptor instead.
 func (*GetOrderResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{28}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *GetOrderResponse) GetSuccess() bool {
@@ -5091,7 +4989,7 @@ type CreateOrderResponse struct {
 
 func (x *CreateOrderResponse) Reset() {
 	*x = CreateOrderResponse{}
-	mi := &file_order_v1_order_proto_msgTypes[29]
+	mi := &file_order_v1_order_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5103,7 +5001,7 @@ func (x *CreateOrderResponse) String() string {
 func (*CreateOrderResponse) ProtoMessage() {}
 
 func (x *CreateOrderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[29]
+	mi := &file_order_v1_order_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5116,7 +5014,7 @@ func (x *CreateOrderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOrderResponse.ProtoReflect.Descriptor instead.
 func (*CreateOrderResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{29}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *CreateOrderResponse) GetSuccess() bool {
@@ -5167,7 +5065,7 @@ type UpdateOrderResponse struct {
 
 func (x *UpdateOrderResponse) Reset() {
 	*x = UpdateOrderResponse{}
-	mi := &file_order_v1_order_proto_msgTypes[30]
+	mi := &file_order_v1_order_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5179,7 +5077,7 @@ func (x *UpdateOrderResponse) String() string {
 func (*UpdateOrderResponse) ProtoMessage() {}
 
 func (x *UpdateOrderResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[30]
+	mi := &file_order_v1_order_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5192,7 +5090,7 @@ func (x *UpdateOrderResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateOrderResponse.ProtoReflect.Descriptor instead.
 func (*UpdateOrderResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{30}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *UpdateOrderResponse) GetSuccess() bool {
@@ -5243,7 +5141,7 @@ type TransitionOrderStatusResponse struct {
 
 func (x *TransitionOrderStatusResponse) Reset() {
 	*x = TransitionOrderStatusResponse{}
-	mi := &file_order_v1_order_proto_msgTypes[31]
+	mi := &file_order_v1_order_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5255,7 +5153,7 @@ func (x *TransitionOrderStatusResponse) String() string {
 func (*TransitionOrderStatusResponse) ProtoMessage() {}
 
 func (x *TransitionOrderStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[31]
+	mi := &file_order_v1_order_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5268,7 +5166,7 @@ func (x *TransitionOrderStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransitionOrderStatusResponse.ProtoReflect.Descriptor instead.
 func (*TransitionOrderStatusResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{31}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *TransitionOrderStatusResponse) GetSuccess() bool {
@@ -5319,7 +5217,7 @@ type TransitionOrderTerminationResponse struct {
 
 func (x *TransitionOrderTerminationResponse) Reset() {
 	*x = TransitionOrderTerminationResponse{}
-	mi := &file_order_v1_order_proto_msgTypes[32]
+	mi := &file_order_v1_order_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5331,7 +5229,7 @@ func (x *TransitionOrderTerminationResponse) String() string {
 func (*TransitionOrderTerminationResponse) ProtoMessage() {}
 
 func (x *TransitionOrderTerminationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[32]
+	mi := &file_order_v1_order_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5344,7 +5242,7 @@ func (x *TransitionOrderTerminationResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use TransitionOrderTerminationResponse.ProtoReflect.Descriptor instead.
 func (*TransitionOrderTerminationResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{32}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *TransitionOrderTerminationResponse) GetSuccess() bool {
@@ -5395,7 +5293,7 @@ type TransitionOrderClosureResponse struct {
 
 func (x *TransitionOrderClosureResponse) Reset() {
 	*x = TransitionOrderClosureResponse{}
-	mi := &file_order_v1_order_proto_msgTypes[33]
+	mi := &file_order_v1_order_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5407,7 +5305,7 @@ func (x *TransitionOrderClosureResponse) String() string {
 func (*TransitionOrderClosureResponse) ProtoMessage() {}
 
 func (x *TransitionOrderClosureResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[33]
+	mi := &file_order_v1_order_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5420,7 +5318,7 @@ func (x *TransitionOrderClosureResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransitionOrderClosureResponse.ProtoReflect.Descriptor instead.
 func (*TransitionOrderClosureResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{33}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *TransitionOrderClosureResponse) GetSuccess() bool {
@@ -5475,7 +5373,7 @@ type ListOrdersResponse struct {
 
 func (x *ListOrdersResponse) Reset() {
 	*x = ListOrdersResponse{}
-	mi := &file_order_v1_order_proto_msgTypes[34]
+	mi := &file_order_v1_order_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5487,7 +5385,7 @@ func (x *ListOrdersResponse) String() string {
 func (*ListOrdersResponse) ProtoMessage() {}
 
 func (x *ListOrdersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[34]
+	mi := &file_order_v1_order_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5500,7 +5398,7 @@ func (x *ListOrdersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrdersResponse.ProtoReflect.Descriptor instead.
 func (*ListOrdersResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{34}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *ListOrdersResponse) GetSuccess() bool {
@@ -5572,7 +5470,7 @@ type ListOrderConsolidationsResponse struct {
 
 func (x *ListOrderConsolidationsResponse) Reset() {
 	*x = ListOrderConsolidationsResponse{}
-	mi := &file_order_v1_order_proto_msgTypes[35]
+	mi := &file_order_v1_order_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5584,7 +5482,7 @@ func (x *ListOrderConsolidationsResponse) String() string {
 func (*ListOrderConsolidationsResponse) ProtoMessage() {}
 
 func (x *ListOrderConsolidationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[35]
+	mi := &file_order_v1_order_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5597,7 +5495,7 @@ func (x *ListOrderConsolidationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListOrderConsolidationsResponse.ProtoReflect.Descriptor instead.
 func (*ListOrderConsolidationsResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{35}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *ListOrderConsolidationsResponse) GetSuccess() bool {
@@ -5649,7 +5547,7 @@ type CheckOrderReferenceResponse struct {
 
 func (x *CheckOrderReferenceResponse) Reset() {
 	*x = CheckOrderReferenceResponse{}
-	mi := &file_order_v1_order_proto_msgTypes[36]
+	mi := &file_order_v1_order_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5661,7 +5559,7 @@ func (x *CheckOrderReferenceResponse) String() string {
 func (*CheckOrderReferenceResponse) ProtoMessage() {}
 
 func (x *CheckOrderReferenceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[36]
+	mi := &file_order_v1_order_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5674,7 +5572,7 @@ func (x *CheckOrderReferenceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckOrderReferenceResponse.ProtoReflect.Descriptor instead.
 func (*CheckOrderReferenceResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{36}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *CheckOrderReferenceResponse) GetSuccess() bool {
@@ -5728,7 +5626,7 @@ type ListPersonnelOptionsResponse struct {
 
 func (x *ListPersonnelOptionsResponse) Reset() {
 	*x = ListPersonnelOptionsResponse{}
-	mi := &file_order_v1_order_proto_msgTypes[37]
+	mi := &file_order_v1_order_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5740,7 +5638,7 @@ func (x *ListPersonnelOptionsResponse) String() string {
 func (*ListPersonnelOptionsResponse) ProtoMessage() {}
 
 func (x *ListPersonnelOptionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[37]
+	mi := &file_order_v1_order_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5753,7 +5651,7 @@ func (x *ListPersonnelOptionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPersonnelOptionsResponse.ProtoReflect.Descriptor instead.
 func (*ListPersonnelOptionsResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{37}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *ListPersonnelOptionsResponse) GetSuccess() bool {
@@ -5835,7 +5733,7 @@ type SeaTransportExecution struct {
 
 func (x *SeaTransportExecution) Reset() {
 	*x = SeaTransportExecution{}
-	mi := &file_order_v1_order_proto_msgTypes[38]
+	mi := &file_order_v1_order_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5847,7 +5745,7 @@ func (x *SeaTransportExecution) String() string {
 func (*SeaTransportExecution) ProtoMessage() {}
 
 func (x *SeaTransportExecution) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[38]
+	mi := &file_order_v1_order_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5860,7 +5758,7 @@ func (x *SeaTransportExecution) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaTransportExecution.ProtoReflect.Descriptor instead.
 func (*SeaTransportExecution) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{38}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *SeaTransportExecution) GetId() string {
@@ -5989,7 +5887,7 @@ type SeaMasterBillSummary struct {
 
 func (x *SeaMasterBillSummary) Reset() {
 	*x = SeaMasterBillSummary{}
-	mi := &file_order_v1_order_proto_msgTypes[39]
+	mi := &file_order_v1_order_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6001,7 +5899,7 @@ func (x *SeaMasterBillSummary) String() string {
 func (*SeaMasterBillSummary) ProtoMessage() {}
 
 func (x *SeaMasterBillSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[39]
+	mi := &file_order_v1_order_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6014,7 +5912,7 @@ func (x *SeaMasterBillSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaMasterBillSummary.ProtoReflect.Descriptor instead.
 func (*SeaMasterBillSummary) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{39}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *SeaMasterBillSummary) GetMasterBillId() string {
@@ -6165,7 +6063,7 @@ type SeaMasterBillInput struct {
 
 func (x *SeaMasterBillInput) Reset() {
 	*x = SeaMasterBillInput{}
-	mi := &file_order_v1_order_proto_msgTypes[40]
+	mi := &file_order_v1_order_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6177,7 +6075,7 @@ func (x *SeaMasterBillInput) String() string {
 func (*SeaMasterBillInput) ProtoMessage() {}
 
 func (x *SeaMasterBillInput) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[40]
+	mi := &file_order_v1_order_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6190,7 +6088,7 @@ func (x *SeaMasterBillInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaMasterBillInput.ProtoReflect.Descriptor instead.
 func (*SeaMasterBillInput) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{40}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *SeaMasterBillInput) GetMasterNo() string {
@@ -6248,7 +6146,7 @@ type SeaVoyageConflict struct {
 
 func (x *SeaVoyageConflict) Reset() {
 	*x = SeaVoyageConflict{}
-	mi := &file_order_v1_order_proto_msgTypes[41]
+	mi := &file_order_v1_order_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6260,7 +6158,7 @@ func (x *SeaVoyageConflict) String() string {
 func (*SeaVoyageConflict) ProtoMessage() {}
 
 func (x *SeaVoyageConflict) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[41]
+	mi := &file_order_v1_order_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6273,7 +6171,7 @@ func (x *SeaVoyageConflict) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaVoyageConflict.ProtoReflect.Descriptor instead.
 func (*SeaVoyageConflict) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{41}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *SeaVoyageConflict) GetField() string {
@@ -6317,7 +6215,7 @@ type SeaMasterBillMemberSummary struct {
 
 func (x *SeaMasterBillMemberSummary) Reset() {
 	*x = SeaMasterBillMemberSummary{}
-	mi := &file_order_v1_order_proto_msgTypes[42]
+	mi := &file_order_v1_order_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6329,7 +6227,7 @@ func (x *SeaMasterBillMemberSummary) String() string {
 func (*SeaMasterBillMemberSummary) ProtoMessage() {}
 
 func (x *SeaMasterBillMemberSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[42]
+	mi := &file_order_v1_order_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6342,7 +6240,7 @@ func (x *SeaMasterBillMemberSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaMasterBillMemberSummary.ProtoReflect.Descriptor instead.
 func (*SeaMasterBillMemberSummary) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{42}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *SeaMasterBillMemberSummary) GetOrderId() string {
@@ -6391,7 +6289,7 @@ type SeaMasterBillCandidate struct {
 
 func (x *SeaMasterBillCandidate) Reset() {
 	*x = SeaMasterBillCandidate{}
-	mi := &file_order_v1_order_proto_msgTypes[43]
+	mi := &file_order_v1_order_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6403,7 +6301,7 @@ func (x *SeaMasterBillCandidate) String() string {
 func (*SeaMasterBillCandidate) ProtoMessage() {}
 
 func (x *SeaMasterBillCandidate) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[43]
+	mi := &file_order_v1_order_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6416,7 +6314,7 @@ func (x *SeaMasterBillCandidate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SeaMasterBillCandidate.ProtoReflect.Descriptor instead.
 func (*SeaMasterBillCandidate) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{43}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *SeaMasterBillCandidate) GetId() string {
@@ -6500,7 +6398,7 @@ type MatchSeaMasterBillCandidateRequest struct {
 
 func (x *MatchSeaMasterBillCandidateRequest) Reset() {
 	*x = MatchSeaMasterBillCandidateRequest{}
-	mi := &file_order_v1_order_proto_msgTypes[44]
+	mi := &file_order_v1_order_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6512,7 +6410,7 @@ func (x *MatchSeaMasterBillCandidateRequest) String() string {
 func (*MatchSeaMasterBillCandidateRequest) ProtoMessage() {}
 
 func (x *MatchSeaMasterBillCandidateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[44]
+	mi := &file_order_v1_order_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6525,7 +6423,7 @@ func (x *MatchSeaMasterBillCandidateRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use MatchSeaMasterBillCandidateRequest.ProtoReflect.Descriptor instead.
 func (*MatchSeaMasterBillCandidateRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{44}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *MatchSeaMasterBillCandidateRequest) GetShippingLineId() string {
@@ -6607,7 +6505,7 @@ type MatchSeaMasterBillCandidateResponse struct {
 
 func (x *MatchSeaMasterBillCandidateResponse) Reset() {
 	*x = MatchSeaMasterBillCandidateResponse{}
-	mi := &file_order_v1_order_proto_msgTypes[45]
+	mi := &file_order_v1_order_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6619,7 +6517,7 @@ func (x *MatchSeaMasterBillCandidateResponse) String() string {
 func (*MatchSeaMasterBillCandidateResponse) ProtoMessage() {}
 
 func (x *MatchSeaMasterBillCandidateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[45]
+	mi := &file_order_v1_order_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6632,7 +6530,7 @@ func (x *MatchSeaMasterBillCandidateResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use MatchSeaMasterBillCandidateResponse.ProtoReflect.Descriptor instead.
 func (*MatchSeaMasterBillCandidateResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{45}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *MatchSeaMasterBillCandidateResponse) GetSuccess() bool {
@@ -6706,7 +6604,7 @@ type SameBatchOrderSummary struct {
 
 func (x *SameBatchOrderSummary) Reset() {
 	*x = SameBatchOrderSummary{}
-	mi := &file_order_v1_order_proto_msgTypes[46]
+	mi := &file_order_v1_order_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6718,7 +6616,7 @@ func (x *SameBatchOrderSummary) String() string {
 func (*SameBatchOrderSummary) ProtoMessage() {}
 
 func (x *SameBatchOrderSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[46]
+	mi := &file_order_v1_order_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6731,7 +6629,7 @@ func (x *SameBatchOrderSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SameBatchOrderSummary.ProtoReflect.Descriptor instead.
 func (*SameBatchOrderSummary) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{46}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *SameBatchOrderSummary) GetOrderId() string {
@@ -6834,7 +6732,7 @@ type ListSameBatchOrdersRequest struct {
 
 func (x *ListSameBatchOrdersRequest) Reset() {
 	*x = ListSameBatchOrdersRequest{}
-	mi := &file_order_v1_order_proto_msgTypes[47]
+	mi := &file_order_v1_order_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6846,7 +6744,7 @@ func (x *ListSameBatchOrdersRequest) String() string {
 func (*ListSameBatchOrdersRequest) ProtoMessage() {}
 
 func (x *ListSameBatchOrdersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[47]
+	mi := &file_order_v1_order_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6859,7 +6757,7 @@ func (x *ListSameBatchOrdersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSameBatchOrdersRequest.ProtoReflect.Descriptor instead.
 func (*ListSameBatchOrdersRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{47}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *ListSameBatchOrdersRequest) GetId() string {
@@ -6882,7 +6780,7 @@ type ListSameBatchOrdersResponse struct {
 
 func (x *ListSameBatchOrdersResponse) Reset() {
 	*x = ListSameBatchOrdersResponse{}
-	mi := &file_order_v1_order_proto_msgTypes[48]
+	mi := &file_order_v1_order_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6894,7 +6792,7 @@ func (x *ListSameBatchOrdersResponse) String() string {
 func (*ListSameBatchOrdersResponse) ProtoMessage() {}
 
 func (x *ListSameBatchOrdersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_proto_msgTypes[48]
+	mi := &file_order_v1_order_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6907,7 +6805,7 @@ func (x *ListSameBatchOrdersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSameBatchOrdersResponse.ProtoReflect.Descriptor instead.
 func (*ListSameBatchOrdersResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_proto_rawDescGZIP(), []int{48}
+	return file_order_v1_order_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *ListSameBatchOrdersResponse) GetSuccess() bool {
@@ -6971,16 +6869,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x18_draft_commission_amountB\x1e\n" +
 	"\x1c_confirmed_commission_amountB\x19\n" +
 	"\x17_paid_commission_amountB\x1a\n" +
-	"\x18_pending_decrease_amount\"\xad\x01\n" +
-	"\x12BusinessTagSummary\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12\x19\n" +
-	"\bgroup_id\x18\x03 \x01(\tR\agroupId\x12\x1d\n" +
-	"\n" +
-	"group_name\x18\x04 \x01(\tR\tgroupName\x12\x1f\n" +
-	"\vgroup_color\x18\x05 \x01(\tR\n" +
-	"groupColor\x12\x18\n" +
-	"\aenabled\x18\x06 \x01(\bR\aenabled\"\xe3\x02\n" +
+	"\x18_pending_decrease_amount\"\xe3\x02\n" +
 	"\x15OrderFeeReviewSummary\x12#\n" +
 	"\rbase_currency\x18\x01 \x01(\tR\fbaseCurrency\x12\x1e\n" +
 	"\n" +
@@ -7017,7 +6906,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\roperator_name\x18\x03 \x01(\tR\foperatorName\x12\x1d\n" +
 	"\n" +
 	"changed_at\x18\x04 \x01(\tR\tchangedAt\x12\x16\n" +
-	"\x06reason\x18\x05 \x01(\tR\x06reason\"\xc64\n" +
+	"\x06reason\x18\x05 \x01(\tR\x06reason\"\xa04\n" +
 	"\x05Order\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x19\n" +
@@ -7108,8 +6997,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x12shipper_short_name\x18K \x01(\tH3R\x10shipperShortName\x88\x01\x01\x125\n" +
 	"\x14consignee_short_name\x18L \x01(\tH4R\x12consigneeShortName\x88\x01\x01\x12 \n" +
 	"\tlocked_at\x18M \x01(\tH5R\blockedAt\x88\x01\x01\x12\x1b\n" +
-	"\tis_shared\x18N \x01(\bR\bisShared\x120\n" +
-	"\x04tags\x18O \x03(\v2\x1c.order.v1.BusinessTagSummaryR\x04tags\x12Z\n" +
+	"\tis_shared\x18N \x01(\bR\bisShared\x12Z\n" +
 	"\x1callowed_target_flow_statuses\x18P \x03(\x0e2\x19.order.v1.OrderFlowStatusR\x19allowedTargetFlowStatuses\x12K\n" +
 	"\x0fsea_master_bill\x18Q \x01(\v2\x1e.order.v1.SeaMasterBillSummaryH6R\rseaMasterBill\x88\x01\x01\x12Y\n" +
 	"\x16sea_document_structure\x18R \x01(\x0e2\x1e.order.v1.SeaDocumentStructureH7R\x14seaDocumentStructure\x88\x01\x01\x12>\n" +
@@ -7217,7 +7105,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\v_sales_nameB\x0f\n" +
 	"\r_sales_branchB\x0f\n" +
 	"\r_creator_nameB\x15\n" +
-	"\x13_shipping_line_nameJ\x04\b\x0f\x10\x10J\x04\b\x10\x10\x11J\x04\b2\x103R\x12status_template_idR\x10service_type_idsR\rloading_terms\"z\n" +
+	"\x13_shipping_line_nameJ\x04\b\x0f\x10\x10J\x04\b\x10\x10\x11J\x04\b2\x103J\x04\bO\x10PR\x12status_template_idR\x10service_type_idsR\rloading_termsR\x04tags\"z\n" +
 	"\x15OrderCargoMeasurement\x12\x1a\n" +
 	"\bpackages\x18\x01 \x01(\x05R\bpackages\x12&\n" +
 	"\x0fgross_weight_kg\x18\x02 \x01(\x01R\rgrossWeightKg\x12\x1d\n" +
@@ -7295,7 +7183,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\a_reasonB\x0e\n" +
 	"\f_operator_id\"&\n" +
 	"\x0fGetOrderRequest\x12\x13\n" +
-	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xb3\f\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\"\xa9\f\n" +
 	"\x11ListOrdersRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x18\n" +
@@ -7333,8 +7221,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\bsales_id\x18\x1d \x01(\tR\asalesId\x12.\n" +
 	"\x13customer_service_id\x18\x1f \x01(\tR\x11customerServiceId\x12\x1d\n" +
 	"\n" +
-	"creator_id\x18! \x01(\tR\tcreatorId\x12\x17\n" +
-	"\atag_ids\x18# \x03(\tR\x06tagIds\x12 \n" +
+	"creator_id\x18! \x01(\tR\tcreatorId\x12 \n" +
 	"\tis_locked\x18% \x01(\bH\x06R\bisLocked\x88\x01\x01\x12 \n" +
 	"\tis_shared\x18& \x01(\bH\aR\bisShared\x88\x01\x01B\x0e\n" +
 	"\f_flow_statusB\x10\n" +
@@ -7346,7 +7233,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\n" +
 	"_is_lockedB\f\n" +
 	"\n" +
-	"_is_sharedJ\x04\b'\x10(J\x04\b(\x10)R\x11fee_review_statusR\x1ahas_pending_fee_supplement\"\x88\x02\n" +
+	"_is_sharedJ\x04\b#\x10$J\x04\b'\x10(J\x04\b(\x10)R\atag_idsR\x11fee_review_statusR\x1ahas_pending_fee_supplement\"\x88\x02\n" +
 	"\x1aCheckOrderReferenceRequest\x12H\n" +
 	"\x0ereference_type\x18\x01 \x01(\x0e2\x1c.order.v1.OrderReferenceTypeB\x03\xe0A\x02R\rreferenceType\x12&\n" +
 	"\freference_no\x18\x02 \x01(\tB\x03\xe0A\x02R\vreferenceNo\x12$\n" +
@@ -8004,7 +7891,7 @@ func file_order_v1_order_proto_rawDescGZIP() []byte {
 }
 
 var file_order_v1_order_proto_enumTypes = make([]protoimpl.EnumInfo, 16)
-var file_order_v1_order_proto_msgTypes = make([]protoimpl.MessageInfo, 49)
+var file_order_v1_order_proto_msgTypes = make([]protoimpl.MessageInfo, 48)
 var file_order_v1_order_proto_goTypes = []any{
 	(BusinessType)(0),                           // 0: order.v1.BusinessType
 	(TradeDirection)(0),                         // 1: order.v1.TradeDirection
@@ -8023,65 +7910,64 @@ var file_order_v1_order_proto_goTypes = []any{
 	(OrderAllowedAction)(0),                     // 14: order.v1.OrderAllowedAction
 	(OrderCommissionVisibilityMode)(0),          // 15: order.v1.OrderCommissionVisibilityMode
 	(*OrderCommissionSummary)(nil),              // 16: order.v1.OrderCommissionSummary
-	(*BusinessTagSummary)(nil),                  // 17: order.v1.BusinessTagSummary
-	(*OrderFeeReviewSummary)(nil),               // 18: order.v1.OrderFeeReviewSummary
-	(*OrderFeeReviewProjection)(nil),            // 19: order.v1.OrderFeeReviewProjection
-	(*OrderStatusRecord)(nil),                   // 20: order.v1.OrderStatusRecord
-	(*Order)(nil),                               // 21: order.v1.Order
-	(*OrderCargoMeasurement)(nil),               // 22: order.v1.OrderCargoMeasurement
-	(*OrderConsolidationMember)(nil),            // 23: order.v1.OrderConsolidationMember
-	(*OrderConsolidationSummary)(nil),           // 24: order.v1.OrderConsolidationSummary
-	(*OrderShippingDocumentInput)(nil),          // 25: order.v1.OrderShippingDocumentInput
-	(*OrderContainerRequestInput)(nil),          // 26: order.v1.OrderContainerRequestInput
-	(*OrderContainerRequest)(nil),               // 27: order.v1.OrderContainerRequest
-	(*OrderPersonnelAssignmentInput)(nil),       // 28: order.v1.OrderPersonnelAssignmentInput
-	(*OrderPersonnelOption)(nil),                // 29: order.v1.OrderPersonnelOption
-	(*OrderServiceSelection)(nil),               // 30: order.v1.OrderServiceSelection
-	(*OrderCargoSelection)(nil),                 // 31: order.v1.OrderCargoSelection
-	(*OrderStatusLog)(nil),                      // 32: order.v1.OrderStatusLog
-	(*GetOrderRequest)(nil),                     // 33: order.v1.GetOrderRequest
-	(*ListOrdersRequest)(nil),                   // 34: order.v1.ListOrdersRequest
-	(*CheckOrderReferenceRequest)(nil),          // 35: order.v1.CheckOrderReferenceRequest
-	(*ListPersonnelOptionsRequest)(nil),         // 36: order.v1.ListPersonnelOptionsRequest
-	(*ListOrderConsolidationsRequest)(nil),      // 37: order.v1.ListOrderConsolidationsRequest
-	(*OrderReferenceCheck)(nil),                 // 38: order.v1.OrderReferenceCheck
-	(*CreateOrderRequest)(nil),                  // 39: order.v1.CreateOrderRequest
-	(*UpdateOrderRequest)(nil),                  // 40: order.v1.UpdateOrderRequest
-	(*TransitionOrderStatusRequest)(nil),        // 41: order.v1.TransitionOrderStatusRequest
-	(*TransitionOrderTerminationRequest)(nil),   // 42: order.v1.TransitionOrderTerminationRequest
-	(*TransitionOrderClosureRequest)(nil),       // 43: order.v1.TransitionOrderClosureRequest
-	(*GetOrderResponse)(nil),                    // 44: order.v1.GetOrderResponse
-	(*CreateOrderResponse)(nil),                 // 45: order.v1.CreateOrderResponse
-	(*UpdateOrderResponse)(nil),                 // 46: order.v1.UpdateOrderResponse
-	(*TransitionOrderStatusResponse)(nil),       // 47: order.v1.TransitionOrderStatusResponse
-	(*TransitionOrderTerminationResponse)(nil),  // 48: order.v1.TransitionOrderTerminationResponse
-	(*TransitionOrderClosureResponse)(nil),      // 49: order.v1.TransitionOrderClosureResponse
-	(*ListOrdersResponse)(nil),                  // 50: order.v1.ListOrdersResponse
-	(*ListOrderConsolidationsResponse)(nil),     // 51: order.v1.ListOrderConsolidationsResponse
-	(*CheckOrderReferenceResponse)(nil),         // 52: order.v1.CheckOrderReferenceResponse
-	(*ListPersonnelOptionsResponse)(nil),        // 53: order.v1.ListPersonnelOptionsResponse
-	(*SeaTransportExecution)(nil),               // 54: order.v1.SeaTransportExecution
-	(*SeaMasterBillSummary)(nil),                // 55: order.v1.SeaMasterBillSummary
-	(*SeaMasterBillInput)(nil),                  // 56: order.v1.SeaMasterBillInput
-	(*SeaVoyageConflict)(nil),                   // 57: order.v1.SeaVoyageConflict
-	(*SeaMasterBillMemberSummary)(nil),          // 58: order.v1.SeaMasterBillMemberSummary
-	(*SeaMasterBillCandidate)(nil),              // 59: order.v1.SeaMasterBillCandidate
-	(*MatchSeaMasterBillCandidateRequest)(nil),  // 60: order.v1.MatchSeaMasterBillCandidateRequest
-	(*MatchSeaMasterBillCandidateResponse)(nil), // 61: order.v1.MatchSeaMasterBillCandidateResponse
-	(*SameBatchOrderSummary)(nil),               // 62: order.v1.SameBatchOrderSummary
-	(*ListSameBatchOrdersRequest)(nil),          // 63: order.v1.ListSameBatchOrdersRequest
-	(*ListSameBatchOrdersResponse)(nil),         // 64: order.v1.ListSameBatchOrdersResponse
-	(*OrderShippingDocument)(nil),               // 65: order.v1.OrderShippingDocument
-	(SeaDocumentStructure)(0),                   // 66: order.v1.SeaDocumentStructure
-	(*SeaOrderDocumentSummary)(nil),             // 67: order.v1.SeaOrderDocumentSummary
-	(*AirOrderInfo)(nil),                        // 68: order.v1.AirOrderInfo
-	(OrderPersonnelRole)(0),                     // 69: order.v1.OrderPersonnelRole
-	(*SeaOrderDocumentInput)(nil),               // 70: order.v1.SeaOrderDocumentInput
-	(*AirOrderInput)(nil),                       // 71: order.v1.AirOrderInput
+	(*OrderFeeReviewSummary)(nil),               // 17: order.v1.OrderFeeReviewSummary
+	(*OrderFeeReviewProjection)(nil),            // 18: order.v1.OrderFeeReviewProjection
+	(*OrderStatusRecord)(nil),                   // 19: order.v1.OrderStatusRecord
+	(*Order)(nil),                               // 20: order.v1.Order
+	(*OrderCargoMeasurement)(nil),               // 21: order.v1.OrderCargoMeasurement
+	(*OrderConsolidationMember)(nil),            // 22: order.v1.OrderConsolidationMember
+	(*OrderConsolidationSummary)(nil),           // 23: order.v1.OrderConsolidationSummary
+	(*OrderShippingDocumentInput)(nil),          // 24: order.v1.OrderShippingDocumentInput
+	(*OrderContainerRequestInput)(nil),          // 25: order.v1.OrderContainerRequestInput
+	(*OrderContainerRequest)(nil),               // 26: order.v1.OrderContainerRequest
+	(*OrderPersonnelAssignmentInput)(nil),       // 27: order.v1.OrderPersonnelAssignmentInput
+	(*OrderPersonnelOption)(nil),                // 28: order.v1.OrderPersonnelOption
+	(*OrderServiceSelection)(nil),               // 29: order.v1.OrderServiceSelection
+	(*OrderCargoSelection)(nil),                 // 30: order.v1.OrderCargoSelection
+	(*OrderStatusLog)(nil),                      // 31: order.v1.OrderStatusLog
+	(*GetOrderRequest)(nil),                     // 32: order.v1.GetOrderRequest
+	(*ListOrdersRequest)(nil),                   // 33: order.v1.ListOrdersRequest
+	(*CheckOrderReferenceRequest)(nil),          // 34: order.v1.CheckOrderReferenceRequest
+	(*ListPersonnelOptionsRequest)(nil),         // 35: order.v1.ListPersonnelOptionsRequest
+	(*ListOrderConsolidationsRequest)(nil),      // 36: order.v1.ListOrderConsolidationsRequest
+	(*OrderReferenceCheck)(nil),                 // 37: order.v1.OrderReferenceCheck
+	(*CreateOrderRequest)(nil),                  // 38: order.v1.CreateOrderRequest
+	(*UpdateOrderRequest)(nil),                  // 39: order.v1.UpdateOrderRequest
+	(*TransitionOrderStatusRequest)(nil),        // 40: order.v1.TransitionOrderStatusRequest
+	(*TransitionOrderTerminationRequest)(nil),   // 41: order.v1.TransitionOrderTerminationRequest
+	(*TransitionOrderClosureRequest)(nil),       // 42: order.v1.TransitionOrderClosureRequest
+	(*GetOrderResponse)(nil),                    // 43: order.v1.GetOrderResponse
+	(*CreateOrderResponse)(nil),                 // 44: order.v1.CreateOrderResponse
+	(*UpdateOrderResponse)(nil),                 // 45: order.v1.UpdateOrderResponse
+	(*TransitionOrderStatusResponse)(nil),       // 46: order.v1.TransitionOrderStatusResponse
+	(*TransitionOrderTerminationResponse)(nil),  // 47: order.v1.TransitionOrderTerminationResponse
+	(*TransitionOrderClosureResponse)(nil),      // 48: order.v1.TransitionOrderClosureResponse
+	(*ListOrdersResponse)(nil),                  // 49: order.v1.ListOrdersResponse
+	(*ListOrderConsolidationsResponse)(nil),     // 50: order.v1.ListOrderConsolidationsResponse
+	(*CheckOrderReferenceResponse)(nil),         // 51: order.v1.CheckOrderReferenceResponse
+	(*ListPersonnelOptionsResponse)(nil),        // 52: order.v1.ListPersonnelOptionsResponse
+	(*SeaTransportExecution)(nil),               // 53: order.v1.SeaTransportExecution
+	(*SeaMasterBillSummary)(nil),                // 54: order.v1.SeaMasterBillSummary
+	(*SeaMasterBillInput)(nil),                  // 55: order.v1.SeaMasterBillInput
+	(*SeaVoyageConflict)(nil),                   // 56: order.v1.SeaVoyageConflict
+	(*SeaMasterBillMemberSummary)(nil),          // 57: order.v1.SeaMasterBillMemberSummary
+	(*SeaMasterBillCandidate)(nil),              // 58: order.v1.SeaMasterBillCandidate
+	(*MatchSeaMasterBillCandidateRequest)(nil),  // 59: order.v1.MatchSeaMasterBillCandidateRequest
+	(*MatchSeaMasterBillCandidateResponse)(nil), // 60: order.v1.MatchSeaMasterBillCandidateResponse
+	(*SameBatchOrderSummary)(nil),               // 61: order.v1.SameBatchOrderSummary
+	(*ListSameBatchOrdersRequest)(nil),          // 62: order.v1.ListSameBatchOrdersRequest
+	(*ListSameBatchOrdersResponse)(nil),         // 63: order.v1.ListSameBatchOrdersResponse
+	(*OrderShippingDocument)(nil),               // 64: order.v1.OrderShippingDocument
+	(SeaDocumentStructure)(0),                   // 65: order.v1.SeaDocumentStructure
+	(*SeaOrderDocumentSummary)(nil),             // 66: order.v1.SeaOrderDocumentSummary
+	(*AirOrderInfo)(nil),                        // 67: order.v1.AirOrderInfo
+	(OrderPersonnelRole)(0),                     // 68: order.v1.OrderPersonnelRole
+	(*SeaOrderDocumentInput)(nil),               // 69: order.v1.SeaOrderDocumentInput
+	(*AirOrderInput)(nil),                       // 70: order.v1.AirOrderInput
 }
 var file_order_v1_order_proto_depIdxs = []int32{
 	15, // 0: order.v1.OrderCommissionSummary.visibility_mode:type_name -> order.v1.OrderCommissionVisibilityMode
-	18, // 1: order.v1.OrderFeeReviewProjection.summary:type_name -> order.v1.OrderFeeReviewSummary
+	17, // 1: order.v1.OrderFeeReviewProjection.summary:type_name -> order.v1.OrderFeeReviewSummary
 	0,  // 2: order.v1.Order.business_type:type_name -> order.v1.BusinessType
 	1,  // 3: order.v1.Order.trade_direction:type_name -> order.v1.TradeDirection
 	2,  // 4: order.v1.Order.trade_term:type_name -> order.v1.TradeTerm
@@ -8090,112 +7976,111 @@ var file_order_v1_order_proto_depIdxs = []int32{
 	5,  // 7: order.v1.Order.container_ownership:type_name -> order.v1.ContainerOwnership
 	6,  // 8: order.v1.Order.shipment_mode:type_name -> order.v1.ShipmentMode
 	10, // 9: order.v1.Order.flow_status:type_name -> order.v1.OrderFlowStatus
-	65, // 10: order.v1.Order.shipping_documents:type_name -> order.v1.OrderShippingDocument
-	27, // 11: order.v1.Order.container_requests:type_name -> order.v1.OrderContainerRequest
+	64, // 10: order.v1.Order.shipping_documents:type_name -> order.v1.OrderShippingDocument
+	26, // 11: order.v1.Order.container_requests:type_name -> order.v1.OrderContainerRequest
 	7,  // 12: order.v1.Order.dangerous_packing_group:type_name -> order.v1.DangerousPackingGroup
 	11, // 13: order.v1.Order.termination_status:type_name -> order.v1.OrderTerminationStatus
 	12, // 14: order.v1.Order.termination_type:type_name -> order.v1.OrderTerminationType
 	13, // 15: order.v1.Order.closure_status:type_name -> order.v1.OrderClosureStatus
 	14, // 16: order.v1.Order.allowed_actions:type_name -> order.v1.OrderAllowedAction
-	17, // 17: order.v1.Order.tags:type_name -> order.v1.BusinessTagSummary
-	10, // 18: order.v1.Order.allowed_target_flow_statuses:type_name -> order.v1.OrderFlowStatus
-	55, // 19: order.v1.Order.sea_master_bill:type_name -> order.v1.SeaMasterBillSummary
-	66, // 20: order.v1.Order.sea_document_structure:type_name -> order.v1.SeaDocumentStructure
-	67, // 21: order.v1.Order.sea_document_summary:type_name -> order.v1.SeaOrderDocumentSummary
-	68, // 22: order.v1.Order.air_export:type_name -> order.v1.AirOrderInfo
-	16, // 23: order.v1.Order.commission_summary:type_name -> order.v1.OrderCommissionSummary
-	19, // 24: order.v1.Order.fee_review:type_name -> order.v1.OrderFeeReviewProjection
-	20, // 25: order.v1.Order.status_records:type_name -> order.v1.OrderStatusRecord
-	22, // 26: order.v1.OrderConsolidationMember.entrusted:type_name -> order.v1.OrderCargoMeasurement
-	22, // 27: order.v1.OrderConsolidationMember.actual:type_name -> order.v1.OrderCargoMeasurement
-	22, // 28: order.v1.OrderConsolidationSummary.entrusted:type_name -> order.v1.OrderCargoMeasurement
-	22, // 29: order.v1.OrderConsolidationSummary.actual:type_name -> order.v1.OrderCargoMeasurement
-	23, // 30: order.v1.OrderConsolidationSummary.members:type_name -> order.v1.OrderConsolidationMember
-	69, // 31: order.v1.OrderPersonnelAssignmentInput.role:type_name -> order.v1.OrderPersonnelRole
-	10, // 32: order.v1.ListOrdersRequest.flow_status:type_name -> order.v1.OrderFlowStatus
-	0,  // 33: order.v1.ListOrdersRequest.business_type:type_name -> order.v1.BusinessType
-	11, // 34: order.v1.ListOrdersRequest.termination_status:type_name -> order.v1.OrderTerminationStatus
-	13, // 35: order.v1.ListOrdersRequest.closure_status:type_name -> order.v1.OrderClosureStatus
-	9,  // 36: order.v1.ListOrdersRequest.number_type:type_name -> order.v1.OrderNumberFilterType
-	8,  // 37: order.v1.CheckOrderReferenceRequest.reference_type:type_name -> order.v1.OrderReferenceType
-	0,  // 38: order.v1.ListPersonnelOptionsRequest.business_type:type_name -> order.v1.BusinessType
-	0,  // 39: order.v1.CreateOrderRequest.business_type:type_name -> order.v1.BusinessType
-	1,  // 40: order.v1.CreateOrderRequest.trade_direction:type_name -> order.v1.TradeDirection
-	2,  // 41: order.v1.CreateOrderRequest.trade_term:type_name -> order.v1.TradeTerm
-	3,  // 42: order.v1.CreateOrderRequest.payment_term:type_name -> order.v1.PaymentTerm
-	4,  // 43: order.v1.CreateOrderRequest.shipment_type:type_name -> order.v1.ShipmentType
-	5,  // 44: order.v1.CreateOrderRequest.container_ownership:type_name -> order.v1.ContainerOwnership
-	6,  // 45: order.v1.CreateOrderRequest.shipment_mode:type_name -> order.v1.ShipmentMode
-	28, // 46: order.v1.CreateOrderRequest.personnel_assignments:type_name -> order.v1.OrderPersonnelAssignmentInput
-	25, // 47: order.v1.CreateOrderRequest.shipping_documents:type_name -> order.v1.OrderShippingDocumentInput
-	26, // 48: order.v1.CreateOrderRequest.container_requests:type_name -> order.v1.OrderContainerRequestInput
-	7,  // 49: order.v1.CreateOrderRequest.dangerous_packing_group:type_name -> order.v1.DangerousPackingGroup
-	56, // 50: order.v1.CreateOrderRequest.sea_master_bill:type_name -> order.v1.SeaMasterBillInput
-	70, // 51: order.v1.CreateOrderRequest.sea_document:type_name -> order.v1.SeaOrderDocumentInput
-	71, // 52: order.v1.CreateOrderRequest.air_export:type_name -> order.v1.AirOrderInput
-	0,  // 53: order.v1.UpdateOrderRequest.business_type:type_name -> order.v1.BusinessType
-	1,  // 54: order.v1.UpdateOrderRequest.trade_direction:type_name -> order.v1.TradeDirection
-	2,  // 55: order.v1.UpdateOrderRequest.trade_term:type_name -> order.v1.TradeTerm
-	3,  // 56: order.v1.UpdateOrderRequest.payment_term:type_name -> order.v1.PaymentTerm
-	4,  // 57: order.v1.UpdateOrderRequest.shipment_type:type_name -> order.v1.ShipmentType
-	5,  // 58: order.v1.UpdateOrderRequest.container_ownership:type_name -> order.v1.ContainerOwnership
-	6,  // 59: order.v1.UpdateOrderRequest.shipment_mode:type_name -> order.v1.ShipmentMode
-	25, // 60: order.v1.UpdateOrderRequest.shipping_documents:type_name -> order.v1.OrderShippingDocumentInput
-	26, // 61: order.v1.UpdateOrderRequest.container_requests:type_name -> order.v1.OrderContainerRequestInput
-	7,  // 62: order.v1.UpdateOrderRequest.dangerous_packing_group:type_name -> order.v1.DangerousPackingGroup
-	56, // 63: order.v1.UpdateOrderRequest.sea_master_bill:type_name -> order.v1.SeaMasterBillInput
-	70, // 64: order.v1.UpdateOrderRequest.sea_document:type_name -> order.v1.SeaOrderDocumentInput
-	71, // 65: order.v1.UpdateOrderRequest.air_export:type_name -> order.v1.AirOrderInput
-	10, // 66: order.v1.TransitionOrderStatusRequest.target_flow_status:type_name -> order.v1.OrderFlowStatus
-	11, // 67: order.v1.TransitionOrderTerminationRequest.target_status:type_name -> order.v1.OrderTerminationStatus
-	12, // 68: order.v1.TransitionOrderTerminationRequest.termination_type:type_name -> order.v1.OrderTerminationType
-	13, // 69: order.v1.TransitionOrderClosureRequest.target_status:type_name -> order.v1.OrderClosureStatus
-	21, // 70: order.v1.GetOrderResponse.data:type_name -> order.v1.Order
-	21, // 71: order.v1.CreateOrderResponse.data:type_name -> order.v1.Order
-	21, // 72: order.v1.UpdateOrderResponse.data:type_name -> order.v1.Order
-	21, // 73: order.v1.TransitionOrderStatusResponse.data:type_name -> order.v1.Order
-	21, // 74: order.v1.TransitionOrderTerminationResponse.data:type_name -> order.v1.Order
-	21, // 75: order.v1.TransitionOrderClosureResponse.data:type_name -> order.v1.Order
-	21, // 76: order.v1.ListOrdersResponse.data:type_name -> order.v1.Order
-	24, // 77: order.v1.ListOrderConsolidationsResponse.data:type_name -> order.v1.OrderConsolidationSummary
-	38, // 78: order.v1.CheckOrderReferenceResponse.data:type_name -> order.v1.OrderReferenceCheck
-	29, // 79: order.v1.ListPersonnelOptionsResponse.data:type_name -> order.v1.OrderPersonnelOption
-	66, // 80: order.v1.SeaMasterBillMemberSummary.document_structure:type_name -> order.v1.SeaDocumentStructure
-	58, // 81: order.v1.SeaMasterBillCandidate.members:type_name -> order.v1.SeaMasterBillMemberSummary
-	54, // 82: order.v1.SeaMasterBillCandidate.transport_executions:type_name -> order.v1.SeaTransportExecution
-	59, // 83: order.v1.MatchSeaMasterBillCandidateResponse.candidate:type_name -> order.v1.SeaMasterBillCandidate
-	57, // 84: order.v1.MatchSeaMasterBillCandidateResponse.conflicts:type_name -> order.v1.SeaVoyageConflict
-	10, // 85: order.v1.SameBatchOrderSummary.flow_status:type_name -> order.v1.OrderFlowStatus
-	62, // 86: order.v1.ListSameBatchOrdersResponse.data:type_name -> order.v1.SameBatchOrderSummary
-	60, // 87: order.v1.OrderService.MatchSeaMasterBillCandidate:input_type -> order.v1.MatchSeaMasterBillCandidateRequest
-	33, // 88: order.v1.OrderService.GetOrder:input_type -> order.v1.GetOrderRequest
-	34, // 89: order.v1.OrderService.ListOrders:input_type -> order.v1.ListOrdersRequest
-	35, // 90: order.v1.OrderService.CheckOrderReference:input_type -> order.v1.CheckOrderReferenceRequest
-	36, // 91: order.v1.OrderService.ListPersonnelOptions:input_type -> order.v1.ListPersonnelOptionsRequest
-	37, // 92: order.v1.OrderService.ListOrderConsolidations:input_type -> order.v1.ListOrderConsolidationsRequest
-	63, // 93: order.v1.OrderService.ListSameBatchOrders:input_type -> order.v1.ListSameBatchOrdersRequest
-	39, // 94: order.v1.OrderService.CreateOrder:input_type -> order.v1.CreateOrderRequest
-	40, // 95: order.v1.OrderService.UpdateOrder:input_type -> order.v1.UpdateOrderRequest
-	41, // 96: order.v1.OrderService.TransitionOrderStatus:input_type -> order.v1.TransitionOrderStatusRequest
-	42, // 97: order.v1.OrderService.TransitionOrderTermination:input_type -> order.v1.TransitionOrderTerminationRequest
-	43, // 98: order.v1.OrderService.TransitionOrderClosure:input_type -> order.v1.TransitionOrderClosureRequest
-	61, // 99: order.v1.OrderService.MatchSeaMasterBillCandidate:output_type -> order.v1.MatchSeaMasterBillCandidateResponse
-	44, // 100: order.v1.OrderService.GetOrder:output_type -> order.v1.GetOrderResponse
-	50, // 101: order.v1.OrderService.ListOrders:output_type -> order.v1.ListOrdersResponse
-	52, // 102: order.v1.OrderService.CheckOrderReference:output_type -> order.v1.CheckOrderReferenceResponse
-	53, // 103: order.v1.OrderService.ListPersonnelOptions:output_type -> order.v1.ListPersonnelOptionsResponse
-	51, // 104: order.v1.OrderService.ListOrderConsolidations:output_type -> order.v1.ListOrderConsolidationsResponse
-	64, // 105: order.v1.OrderService.ListSameBatchOrders:output_type -> order.v1.ListSameBatchOrdersResponse
-	45, // 106: order.v1.OrderService.CreateOrder:output_type -> order.v1.CreateOrderResponse
-	46, // 107: order.v1.OrderService.UpdateOrder:output_type -> order.v1.UpdateOrderResponse
-	47, // 108: order.v1.OrderService.TransitionOrderStatus:output_type -> order.v1.TransitionOrderStatusResponse
-	48, // 109: order.v1.OrderService.TransitionOrderTermination:output_type -> order.v1.TransitionOrderTerminationResponse
-	49, // 110: order.v1.OrderService.TransitionOrderClosure:output_type -> order.v1.TransitionOrderClosureResponse
-	99, // [99:111] is the sub-list for method output_type
-	87, // [87:99] is the sub-list for method input_type
-	87, // [87:87] is the sub-list for extension type_name
-	87, // [87:87] is the sub-list for extension extendee
-	0,  // [0:87] is the sub-list for field type_name
+	10, // 17: order.v1.Order.allowed_target_flow_statuses:type_name -> order.v1.OrderFlowStatus
+	54, // 18: order.v1.Order.sea_master_bill:type_name -> order.v1.SeaMasterBillSummary
+	65, // 19: order.v1.Order.sea_document_structure:type_name -> order.v1.SeaDocumentStructure
+	66, // 20: order.v1.Order.sea_document_summary:type_name -> order.v1.SeaOrderDocumentSummary
+	67, // 21: order.v1.Order.air_export:type_name -> order.v1.AirOrderInfo
+	16, // 22: order.v1.Order.commission_summary:type_name -> order.v1.OrderCommissionSummary
+	18, // 23: order.v1.Order.fee_review:type_name -> order.v1.OrderFeeReviewProjection
+	19, // 24: order.v1.Order.status_records:type_name -> order.v1.OrderStatusRecord
+	21, // 25: order.v1.OrderConsolidationMember.entrusted:type_name -> order.v1.OrderCargoMeasurement
+	21, // 26: order.v1.OrderConsolidationMember.actual:type_name -> order.v1.OrderCargoMeasurement
+	21, // 27: order.v1.OrderConsolidationSummary.entrusted:type_name -> order.v1.OrderCargoMeasurement
+	21, // 28: order.v1.OrderConsolidationSummary.actual:type_name -> order.v1.OrderCargoMeasurement
+	22, // 29: order.v1.OrderConsolidationSummary.members:type_name -> order.v1.OrderConsolidationMember
+	68, // 30: order.v1.OrderPersonnelAssignmentInput.role:type_name -> order.v1.OrderPersonnelRole
+	10, // 31: order.v1.ListOrdersRequest.flow_status:type_name -> order.v1.OrderFlowStatus
+	0,  // 32: order.v1.ListOrdersRequest.business_type:type_name -> order.v1.BusinessType
+	11, // 33: order.v1.ListOrdersRequest.termination_status:type_name -> order.v1.OrderTerminationStatus
+	13, // 34: order.v1.ListOrdersRequest.closure_status:type_name -> order.v1.OrderClosureStatus
+	9,  // 35: order.v1.ListOrdersRequest.number_type:type_name -> order.v1.OrderNumberFilterType
+	8,  // 36: order.v1.CheckOrderReferenceRequest.reference_type:type_name -> order.v1.OrderReferenceType
+	0,  // 37: order.v1.ListPersonnelOptionsRequest.business_type:type_name -> order.v1.BusinessType
+	0,  // 38: order.v1.CreateOrderRequest.business_type:type_name -> order.v1.BusinessType
+	1,  // 39: order.v1.CreateOrderRequest.trade_direction:type_name -> order.v1.TradeDirection
+	2,  // 40: order.v1.CreateOrderRequest.trade_term:type_name -> order.v1.TradeTerm
+	3,  // 41: order.v1.CreateOrderRequest.payment_term:type_name -> order.v1.PaymentTerm
+	4,  // 42: order.v1.CreateOrderRequest.shipment_type:type_name -> order.v1.ShipmentType
+	5,  // 43: order.v1.CreateOrderRequest.container_ownership:type_name -> order.v1.ContainerOwnership
+	6,  // 44: order.v1.CreateOrderRequest.shipment_mode:type_name -> order.v1.ShipmentMode
+	27, // 45: order.v1.CreateOrderRequest.personnel_assignments:type_name -> order.v1.OrderPersonnelAssignmentInput
+	24, // 46: order.v1.CreateOrderRequest.shipping_documents:type_name -> order.v1.OrderShippingDocumentInput
+	25, // 47: order.v1.CreateOrderRequest.container_requests:type_name -> order.v1.OrderContainerRequestInput
+	7,  // 48: order.v1.CreateOrderRequest.dangerous_packing_group:type_name -> order.v1.DangerousPackingGroup
+	55, // 49: order.v1.CreateOrderRequest.sea_master_bill:type_name -> order.v1.SeaMasterBillInput
+	69, // 50: order.v1.CreateOrderRequest.sea_document:type_name -> order.v1.SeaOrderDocumentInput
+	70, // 51: order.v1.CreateOrderRequest.air_export:type_name -> order.v1.AirOrderInput
+	0,  // 52: order.v1.UpdateOrderRequest.business_type:type_name -> order.v1.BusinessType
+	1,  // 53: order.v1.UpdateOrderRequest.trade_direction:type_name -> order.v1.TradeDirection
+	2,  // 54: order.v1.UpdateOrderRequest.trade_term:type_name -> order.v1.TradeTerm
+	3,  // 55: order.v1.UpdateOrderRequest.payment_term:type_name -> order.v1.PaymentTerm
+	4,  // 56: order.v1.UpdateOrderRequest.shipment_type:type_name -> order.v1.ShipmentType
+	5,  // 57: order.v1.UpdateOrderRequest.container_ownership:type_name -> order.v1.ContainerOwnership
+	6,  // 58: order.v1.UpdateOrderRequest.shipment_mode:type_name -> order.v1.ShipmentMode
+	24, // 59: order.v1.UpdateOrderRequest.shipping_documents:type_name -> order.v1.OrderShippingDocumentInput
+	25, // 60: order.v1.UpdateOrderRequest.container_requests:type_name -> order.v1.OrderContainerRequestInput
+	7,  // 61: order.v1.UpdateOrderRequest.dangerous_packing_group:type_name -> order.v1.DangerousPackingGroup
+	55, // 62: order.v1.UpdateOrderRequest.sea_master_bill:type_name -> order.v1.SeaMasterBillInput
+	69, // 63: order.v1.UpdateOrderRequest.sea_document:type_name -> order.v1.SeaOrderDocumentInput
+	70, // 64: order.v1.UpdateOrderRequest.air_export:type_name -> order.v1.AirOrderInput
+	10, // 65: order.v1.TransitionOrderStatusRequest.target_flow_status:type_name -> order.v1.OrderFlowStatus
+	11, // 66: order.v1.TransitionOrderTerminationRequest.target_status:type_name -> order.v1.OrderTerminationStatus
+	12, // 67: order.v1.TransitionOrderTerminationRequest.termination_type:type_name -> order.v1.OrderTerminationType
+	13, // 68: order.v1.TransitionOrderClosureRequest.target_status:type_name -> order.v1.OrderClosureStatus
+	20, // 69: order.v1.GetOrderResponse.data:type_name -> order.v1.Order
+	20, // 70: order.v1.CreateOrderResponse.data:type_name -> order.v1.Order
+	20, // 71: order.v1.UpdateOrderResponse.data:type_name -> order.v1.Order
+	20, // 72: order.v1.TransitionOrderStatusResponse.data:type_name -> order.v1.Order
+	20, // 73: order.v1.TransitionOrderTerminationResponse.data:type_name -> order.v1.Order
+	20, // 74: order.v1.TransitionOrderClosureResponse.data:type_name -> order.v1.Order
+	20, // 75: order.v1.ListOrdersResponse.data:type_name -> order.v1.Order
+	23, // 76: order.v1.ListOrderConsolidationsResponse.data:type_name -> order.v1.OrderConsolidationSummary
+	37, // 77: order.v1.CheckOrderReferenceResponse.data:type_name -> order.v1.OrderReferenceCheck
+	28, // 78: order.v1.ListPersonnelOptionsResponse.data:type_name -> order.v1.OrderPersonnelOption
+	65, // 79: order.v1.SeaMasterBillMemberSummary.document_structure:type_name -> order.v1.SeaDocumentStructure
+	57, // 80: order.v1.SeaMasterBillCandidate.members:type_name -> order.v1.SeaMasterBillMemberSummary
+	53, // 81: order.v1.SeaMasterBillCandidate.transport_executions:type_name -> order.v1.SeaTransportExecution
+	58, // 82: order.v1.MatchSeaMasterBillCandidateResponse.candidate:type_name -> order.v1.SeaMasterBillCandidate
+	56, // 83: order.v1.MatchSeaMasterBillCandidateResponse.conflicts:type_name -> order.v1.SeaVoyageConflict
+	10, // 84: order.v1.SameBatchOrderSummary.flow_status:type_name -> order.v1.OrderFlowStatus
+	61, // 85: order.v1.ListSameBatchOrdersResponse.data:type_name -> order.v1.SameBatchOrderSummary
+	59, // 86: order.v1.OrderService.MatchSeaMasterBillCandidate:input_type -> order.v1.MatchSeaMasterBillCandidateRequest
+	32, // 87: order.v1.OrderService.GetOrder:input_type -> order.v1.GetOrderRequest
+	33, // 88: order.v1.OrderService.ListOrders:input_type -> order.v1.ListOrdersRequest
+	34, // 89: order.v1.OrderService.CheckOrderReference:input_type -> order.v1.CheckOrderReferenceRequest
+	35, // 90: order.v1.OrderService.ListPersonnelOptions:input_type -> order.v1.ListPersonnelOptionsRequest
+	36, // 91: order.v1.OrderService.ListOrderConsolidations:input_type -> order.v1.ListOrderConsolidationsRequest
+	62, // 92: order.v1.OrderService.ListSameBatchOrders:input_type -> order.v1.ListSameBatchOrdersRequest
+	38, // 93: order.v1.OrderService.CreateOrder:input_type -> order.v1.CreateOrderRequest
+	39, // 94: order.v1.OrderService.UpdateOrder:input_type -> order.v1.UpdateOrderRequest
+	40, // 95: order.v1.OrderService.TransitionOrderStatus:input_type -> order.v1.TransitionOrderStatusRequest
+	41, // 96: order.v1.OrderService.TransitionOrderTermination:input_type -> order.v1.TransitionOrderTerminationRequest
+	42, // 97: order.v1.OrderService.TransitionOrderClosure:input_type -> order.v1.TransitionOrderClosureRequest
+	60, // 98: order.v1.OrderService.MatchSeaMasterBillCandidate:output_type -> order.v1.MatchSeaMasterBillCandidateResponse
+	43, // 99: order.v1.OrderService.GetOrder:output_type -> order.v1.GetOrderResponse
+	49, // 100: order.v1.OrderService.ListOrders:output_type -> order.v1.ListOrdersResponse
+	51, // 101: order.v1.OrderService.CheckOrderReference:output_type -> order.v1.CheckOrderReferenceResponse
+	52, // 102: order.v1.OrderService.ListPersonnelOptions:output_type -> order.v1.ListPersonnelOptionsResponse
+	50, // 103: order.v1.OrderService.ListOrderConsolidations:output_type -> order.v1.ListOrderConsolidationsResponse
+	63, // 104: order.v1.OrderService.ListSameBatchOrders:output_type -> order.v1.ListSameBatchOrdersResponse
+	44, // 105: order.v1.OrderService.CreateOrder:output_type -> order.v1.CreateOrderResponse
+	45, // 106: order.v1.OrderService.UpdateOrder:output_type -> order.v1.UpdateOrderResponse
+	46, // 107: order.v1.OrderService.TransitionOrderStatus:output_type -> order.v1.TransitionOrderStatusResponse
+	47, // 108: order.v1.OrderService.TransitionOrderTermination:output_type -> order.v1.TransitionOrderTerminationResponse
+	48, // 109: order.v1.OrderService.TransitionOrderClosure:output_type -> order.v1.TransitionOrderClosureResponse
+	98, // [98:110] is the sub-list for method output_type
+	86, // [86:98] is the sub-list for method input_type
+	86, // [86:86] is the sub-list for extension type_name
+	86, // [86:86] is the sub-list for extension extendee
+	0,  // [0:86] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_order_proto_init() }
@@ -8208,35 +8093,35 @@ func file_order_v1_order_proto_init() {
 	file_order_v1_sea_document_proto_init()
 	file_order_v1_air_export_proto_init()
 	file_order_v1_order_proto_msgTypes[0].OneofWrappers = []any{}
-	file_order_v1_order_proto_msgTypes[2].OneofWrappers = []any{}
-	file_order_v1_order_proto_msgTypes[5].OneofWrappers = []any{}
-	file_order_v1_order_proto_msgTypes[7].OneofWrappers = []any{}
+	file_order_v1_order_proto_msgTypes[1].OneofWrappers = []any{}
+	file_order_v1_order_proto_msgTypes[4].OneofWrappers = []any{}
+	file_order_v1_order_proto_msgTypes[6].OneofWrappers = []any{}
+	file_order_v1_order_proto_msgTypes[8].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[9].OneofWrappers = []any{}
-	file_order_v1_order_proto_msgTypes[10].OneofWrappers = []any{}
-	file_order_v1_order_proto_msgTypes[16].OneofWrappers = []any{}
+	file_order_v1_order_proto_msgTypes[15].OneofWrappers = []any{}
+	file_order_v1_order_proto_msgTypes[17].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[18].OneofWrappers = []any{}
-	file_order_v1_order_proto_msgTypes[19].OneofWrappers = []any{}
+	file_order_v1_order_proto_msgTypes[21].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[22].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[23].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[24].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[25].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[26].OneofWrappers = []any{}
-	file_order_v1_order_proto_msgTypes[27].OneofWrappers = []any{}
+	file_order_v1_order_proto_msgTypes[37].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[38].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[39].OneofWrappers = []any{}
-	file_order_v1_order_proto_msgTypes[40].OneofWrappers = []any{}
+	file_order_v1_order_proto_msgTypes[41].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[42].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[43].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[44].OneofWrappers = []any{}
 	file_order_v1_order_proto_msgTypes[45].OneofWrappers = []any{}
-	file_order_v1_order_proto_msgTypes[46].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_order_v1_order_proto_rawDesc), len(file_order_v1_order_proto_rawDesc)),
 			NumEnums:      16,
-			NumMessages:   49,
+			NumMessages:   48,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

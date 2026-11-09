@@ -72,7 +72,7 @@ func newNotificationPreviewFixture() (*NotificationTestUsecase, *notificationPre
 		permissions[k] = struct{}{}
 	}
 	p := &Principal{UserID: user, Organization: Organization{ID: org, Kind: OrganizationKindSystem}, OrganizationNodes: []OrganizationScopeNode{{ID: org, Kind: OrganizationKindSystem}}, RoleGrants: []RoleGrant{{RoleCode: "administrator", DataScope: DataScopeOrganization, Permissions: permissions}}}
-	return NewNotificationTestUsecase(repo, NewOrderUsecase(orders, nil, nil, nil, nil, nil), sender, sender), repo, sender, p, orders
+	return NewNotificationTestUsecase(repo, NewOrderUsecase(orders, nil, nil, nil, nil), sender, sender), repo, sender, p, orders
 }
 func TestNotificationTestAllTypesPreviewAndSelfSend(t *testing.T) {
 	uc, repo, sender, p, _ := newNotificationPreviewFixture()

@@ -23,7 +23,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	correctionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
-	orderfeeenterprisetag "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	supplementent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -455,9 +454,6 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationIDs []uu
 			p = order.LockedAtIsNil()
 		}
 		predicates = append(predicates, orderfee.HasOrderWith(p))
-	}
-	if len(filter.TagIDs) > 0 {
-		predicates = append(predicates, orderfee.HasEnterpriseTagLinksWith(orderfeeenterprisetag.TagResourceIDIn(filter.TagIDs...)))
 	}
 	if filter.FinancialProgress != "" {
 		predicates = append(predicates, feeLedgerFinancialProgressPredicate(filter.FinancialProgress))

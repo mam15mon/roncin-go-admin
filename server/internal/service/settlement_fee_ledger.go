@@ -31,11 +31,6 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 	filter.CreatedDateFrom = financeOptionalString(request.CreatedAtFrom)
 	filter.CreatedDateTo = financeOptionalString(request.CreatedAtTo)
 	filter.OrderLocked = request.OrderLocked
-	tagIDs, err := parseUUIDValues(request.GetTagIds(), biz.ErrFinanceLedgerInvalidArgument)
-	if err != nil {
-		return nil, biz.ErrFinanceLedgerInvalidArgument
-	}
-	filter.TagIDs = tagIDs
 	if request.SettlementPartyId != nil && strings.TrimSpace(*request.SettlementPartyId) != "" {
 		id, err := uuid.Parse(strings.TrimSpace(*request.SettlementPartyId))
 		if err != nil {
@@ -58,17 +53,9 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 	if err != nil {
 		return nil, err
 	}
-	feeIDs := make([]uuid.UUID, 0, len(result.Items))
-	for _, item := range result.Items {
-		feeIDs = append(feeIDs, item.Fee.ID)
-	}
-	feeTags, err := s.tagUsecase.LoadOrderFeeTags(ctx, feeIDs)
-	if err != nil {
-		return nil, err
-	}
 	data := make([]*v1.FeeLedgerItem, 0, len(result.Items))
 	for _, item := range result.Items {
-		data = append(data, feeLedgerItemToAPI(item, businessTagSummariesToFinanceAPI(feeTags[item.Fee.ID])))
+		data = append(data, feeLedgerItemToAPI(item))
 	}
 	return okList(ctx, &v1.ListFeeLedgerResponse{
 		MatchedSummary: financeLedgerMatchedSummaryToAPI(result.MatchedSummary),
@@ -96,12 +83,12 @@ func (s *SettlementService) GetFeeLedgerOrderDetail(ctx context.Context, request
 	}
 	fees := make([]*v1.FeeLedgerItem, 0, len(detail.Items))
 	for _, item := range detail.Items {
-		fees = append(fees, feeLedgerItemToAPI(item, nil))
+		fees = append(fees, feeLedgerItemToAPI(item))
 	}
 	return ok(ctx, &v1.GetFeeLedgerOrderDetailResponse{Data: &v1.FeeLedgerOrderDetail{OrderId: detail.OrderID, OrderNo: detail.OrderNo, BusinessType: detail.Business, CustomerName: detail.CustomerName, OrganizationId: detail.OrganizationID.String(), OrganizationName: detail.OrganizationName, Fees: fees, AmountsByBaseCurrency: feeLedgerAmountsByBaseCurrencyToAPI(detail.AmountsByBaseCurrency)}}), nil
 }
 
-func feeLedgerItemToAPI(item *biz.FeeLedgerItem, tags []*v1.BusinessTagSummary) *v1.FeeLedgerItem {
+func feeLedgerItemToAPI(item *biz.FeeLedgerItem) *v1.FeeLedgerItem {
 	fee := item.Fee
 	result := &v1.FeeLedgerItem{
 		OrderLocked: item.OrderLocked, HasPendingFeeSupplement: item.HasPendingFeeSupplement, HasPendingFeeCorrection: item.HasPendingFeeCorrection, EconomicEffect: string(fee.EconomicEffect), CanBill: item.CanBill, BlockedReasons: item.BlockedReasons,
@@ -110,7 +97,7 @@ func feeLedgerItemToAPI(item *biz.FeeLedgerItem, tags []*v1.BusinessTagSummary) 
 		Quantity: fee.Quantity.StringFixed(4), UnitPrice: fee.UnitPrice.StringFixed(4), TotalAmount: fee.TotalAmount.StringFixed(8), NetAmount: fee.NetAmount.StringFixed(8), TaxAmount: fee.TaxAmount.StringFixed(8), Currency: fee.Currency,
 		ExchangeRate: fee.ExchangeRate.StringFixed(8), BaseCurrency: fee.BaseCurrency, BaseCurrencyAmount: fee.BaseCurrencyAmount.StringFixed(8), Note: fee.Note, Version: fee.Version,
 		CreatedAt: fee.CreatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"), UpdatedAt: fee.UpdatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"), TaxRate: financeDecimalPointer(fee.TaxRate, 4),
-		FinancialProgress: feeLedgerFinancialProgressToAPI(item.FinancialProgress), Tags: tags,
+		FinancialProgress: feeLedgerFinancialProgressToAPI(item.FinancialProgress),
 	}
 	if fee.CorrectionRequestID != nil {
 		v := fee.CorrectionRequestID.String()

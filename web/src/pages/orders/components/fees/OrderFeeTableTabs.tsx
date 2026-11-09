@@ -5,7 +5,6 @@ import {
   FileDoneOutlined,
   PlusOutlined,
   SwapOutlined,
-  TagsOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProFormTextArea } from '@ant-design/pro-components';
@@ -20,7 +19,6 @@ import {
   Tag,
 } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { BusinessTagModal } from '@/components/business-tag/BusinessTagModal';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import {
   ColumnSettingsEntry,
@@ -38,12 +36,9 @@ import { financeErrorReasons } from '@/errorReasons.generated';
 import { history } from '@/router/history';
 import {
   orderFeeServiceAddFee,
-  orderFeeServiceBatchAssignOrderFeeTags,
-  orderFeeServiceBatchRemoveOrderFeeTags,
   orderFeeServiceBulkRemoveOrderFees,
   orderFeeServiceBulkUpdateOrderFees,
   orderFeeServiceListFees,
-  orderFeeServiceListOrderFeeTagOptions,
   orderFeeServiceResolveFeeExchangeRate,
   orderFeeServiceUpdateFee,
 } from '@/services/roncin/orderFeeService';
@@ -376,11 +371,6 @@ export default function OrderFeeTableTabs({
 
   // ===== 批量维护（阶段二）：应收/应付两表各自一套入口，作用于该表勾选行 =====
 
-  // 标签弹窗上下文：记录触发表格方向与入口模式（添加/移除标签）。
-  const [tagModalContext, setTagModalContext] = useState<
-    { direction: number; mode: 'assign' | 'remove' } | undefined
-  >(undefined);
-
   /** 按方向取该表最近一次成功加载的有效费用行（版本号快照来源）。 */
   const getDirectionItems = (direction: number): API.OrderFee[] => {
     const result =
@@ -473,18 +463,6 @@ export default function OrderFeeTableTabs({
         label: '批量改结算单位',
         onClick: () =>
           setBulkActionContext({ direction, type: 'settlementParty' }),
-      },
-      {
-        key: 'addTags',
-        icon: <TagsOutlined />,
-        label: '添加标签',
-        onClick: () => setTagModalContext({ direction, mode: 'assign' }),
-      },
-      {
-        key: 'removeTags',
-        icon: <TagsOutlined />,
-        label: '删除标签',
-        onClick: () => setTagModalContext({ direction, mode: 'remove' }),
       },
       {
         type: 'divider',
@@ -1491,11 +1469,6 @@ export default function OrderFeeTableTabs({
     ];
   };
 
-  // 标签弹窗打开时解析目标行快照（含已建账行；标签维护不受账单占用限制）。
-  const tagModalRows = tagModalContext
-    ? getSelectedRows(tagModalContext.direction)
-    : [];
-
   return (
     <>
       <SectionCard
@@ -1789,49 +1762,6 @@ export default function OrderFeeTableTabs({
           }
         />
       </SectionCard>
-
-      {/* 批量标签维护：两个表共用一个弹窗，打开时按入口锁定添加/移除模式。 */}
-      <BusinessTagModal
-        open={Boolean(tagModalContext)}
-        defaultMode={tagModalContext?.mode}
-        targetCount={tagModalRows.length}
-        existingTags={tagModalRows.flatMap((row) => row.tags ?? [])}
-        canQuickCreate={false}
-        loadOptions={(params) =>
-          orderFeeServiceListOrderFeeTagOptions({ orderId, ...params })
-        }
-        onSubmit={async (mode, tagIds): Promise<false | undefined> => {
-          const direction = tagModalContext?.direction ?? RECEIVABLE;
-          const rows = getSelectedRows(direction);
-          const feeIds = rows.map((row) => String(row.id));
-          if (feeIds.length === 0 || tagIds.length === 0) return;
-          try {
-            if (mode === 'assign') {
-              const writeResponse3 =
-                await orderFeeServiceBatchAssignOrderFeeTags(
-                  { orderId },
-                  { orderId, feeIds, tagIds },
-                );
-              if (!isWriteResponse(writeResponse3, 'count')) return false;
-              message.success(`已为 ${feeIds.length} 笔费用添加标签`);
-            } else {
-              const writeResponse4 =
-                await orderFeeServiceBatchRemoveOrderFeeTags(
-                  { orderId },
-                  { orderId, feeIds, tagIds },
-                );
-              if (!isWriteResponse(writeResponse4, 'count')) return false;
-              message.success(`已从 ${feeIds.length} 笔费用移除标签`);
-            }
-            handleBulkDone(direction);
-          } catch (error) {
-            message.error(getErrorMessage(error, '维护费用标签失败'));
-          }
-
-          return undefined;
-        }}
-        onCancel={() => setTagModalContext(undefined)}
-      />
 
       {/* 批量修改结算单位 */}
       <GuardedModalForm<{ settlementPartyId: string }>

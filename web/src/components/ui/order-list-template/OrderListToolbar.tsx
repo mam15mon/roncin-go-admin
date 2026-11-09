@@ -5,7 +5,6 @@ import {
   FilterOutlined,
   PlusOutlined,
   ReloadOutlined,
-  TagOutlined,
 } from '@ant-design/icons';
 import { Button, Space, Switch, Tooltip, Typography } from 'antd';
 import React from 'react';
@@ -20,7 +19,6 @@ export interface OrderListToolbarProps {
   onCreateOrder?: () => void;
   onCopyOrder?: (selectedRows: OrderListItem[]) => void;
   onExportDocuments?: (selectedRows: OrderListItem[]) => void;
-  onManageTags?: (selectedRows: OrderListItem[]) => void;
   onExportTable?: () => void;
   filterVisible?: boolean;
   onToggleFilter?: () => void;
@@ -36,7 +34,6 @@ export function OrderListToolbar({
   onCreateOrder,
   onCopyOrder,
   onExportDocuments,
-  onManageTags,
   onExportTable,
   filterVisible = false,
   onToggleFilter,
@@ -67,16 +64,6 @@ export function OrderListToolbar({
             style={{ fontWeight: 500 }}
           >
             新增{orderKindTitle}
-          </Button>
-        )}
-
-        {!readonly && onManageTags && (
-          <Button
-            icon={<TagOutlined />}
-            disabled={!hasSelected}
-            onClick={() => onManageTags(selectedRows)}
-          >
-            批量维护标签
           </Button>
         )}
 

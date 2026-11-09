@@ -112,13 +112,12 @@ type OrderOrganizationScope struct {
 
 type OrderUsecase struct {
 	repo              OrderRepo
-	tagRepo           BusinessTagRepo
 	seaMasterBillRepo SeaMasterBillRepo
 	seaDocumentRepo   SeaDocumentRepo
 	creditControl     *PartnerCreditUsecase
 	transactor        Transactor
 }
 
-func NewOrderUsecase(repo OrderRepo, tagRepo BusinessTagRepo, seaMasterBillRepo SeaMasterBillRepo, seaDocumentRepo SeaDocumentRepo, creditControl *PartnerCreditUsecase, transactor Transactor) *OrderUsecase {
-	return &OrderUsecase{repo: repo, tagRepo: tagRepo, seaMasterBillRepo: seaMasterBillRepo, seaDocumentRepo: seaDocumentRepo, creditControl: creditControl, transactor: transactor}
+func NewOrderUsecase(repo OrderRepo, seaMasterBillRepo SeaMasterBillRepo, seaDocumentRepo SeaDocumentRepo, creditControl *PartnerCreditUsecase, transactor Transactor) *OrderUsecase {
+	return &OrderUsecase{repo: repo, seaMasterBillRepo: seaMasterBillRepo, seaDocumentRepo: seaDocumentRepo, creditControl: creditControl, transactor: transactor}
 }

@@ -9,7 +9,7 @@ import (
 )
 
 var enterpriseResourceTypes = []string{
-	"ADDRESS", "REMARK", "IMAGE", "TAG", "SHIPPER", "CONSIGNEE", "NOTIFY_PARTY",
+	"ADDRESS", "REMARK", "IMAGE", "SHIPPER", "CONSIGNEE", "NOTIFY_PARTY",
 	"ENGLISH_CARGO_NAME", "HS_CODE", "MARKS",
 }
 
@@ -43,13 +43,9 @@ func (EnterpriseResource) Edges() []ent.Edge {
 		edge.To("image", EnterpriseResourceImage.Type).Unique(),
 		edge.To("party", EnterpriseResourceParty.Type).Unique(),
 		edge.To("shipping_text", EnterpriseResourceShippingText.Type).Unique(),
-		edge.To("tag", EnterpriseTag.Type).Unique(),
 		edge.To("partner_links", EnterpriseResourcePartner.Type),
 		edge.To("assignees", EnterpriseResourceAssignee.Type),
 		edge.To("address_types", EnterpriseResourceAddressType.Type),
-		edge.To("order_tag_links", OrderEnterpriseTag.Type),
-		edge.To("order_fee_tag_links", OrderFeeEnterpriseTag.Type),
-		edge.To("finance_bill_tag_links", FinanceBillEnterpriseTag.Type),
 	}
 }
 

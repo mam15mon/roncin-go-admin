@@ -132,7 +132,6 @@ func TestScopedFinancePermissionWritesClassifiesAllMigratedPermissions(t *testin
 		access.FinanceNettingConfirm:      true,
 		access.FinanceNettingReverse:      true,
 		access.FinanceCommissionManage:    true,
-		access.FinanceFeeTag:              true,
 	}
 	for permission, wantWritable := range tests {
 		writable, known := scopedFinancePermissionWrites(permission)
@@ -517,7 +516,7 @@ func TestRequestOrderUsesPermissionScopedRepositoryQuery(t *testing.T) {
 		OrganizationID: organizationID,
 		BusinessType:   biz.OrderBusinessSE,
 	}}
-	usecase := biz.NewOrderUsecase(repo, nil, nil, nil, newReminderModeCreditControl(), nil)
+	usecase := biz.NewOrderUsecase(repo, nil, nil, newReminderModeCreditControl(), nil)
 
 	principal := principalWithOrderPermission(access.OrderBusinessSE, access.OrderRead)
 	principal.Organization = biz.Organization{Kind: biz.OrganizationKindCompany, ID: organizationID}
@@ -613,7 +612,7 @@ func TestSharedContainerRequestsAuthorizeThroughAnchorOrder(t *testing.T) {
 	organizationID := uuid.New()
 	anchorOrder := &biz.Order{ID: uuid.New(), OrganizationID: organizationID, BusinessType: biz.OrderBusinessSE}
 	repo := &anchorAwareOrderRepoStub{order: anchorOrder}
-	orderUsecase := biz.NewOrderUsecase(repo, nil, nil, nil, newReminderModeCreditControl(), nil)
+	orderUsecase := biz.NewOrderUsecase(repo, nil, nil, newReminderModeCreditControl(), nil)
 
 	for _, tc := range sharedContainerAuthRequests(anchorOrder.ID) {
 		principal := principalWithOrderPermission(access.OrderBusinessSE, tc.operation)
@@ -634,7 +633,7 @@ func TestSharedContainerRequestsAuthorizeThroughAnchorOrder(t *testing.T) {
 func TestSharedContainerRequestsDeniedWithoutMatchingPermission(t *testing.T) {
 	organizationID := uuid.New()
 	anchorOrder := &biz.Order{ID: uuid.New(), OrganizationID: organizationID, BusinessType: biz.OrderBusinessSE}
-	orderUsecase := biz.NewOrderUsecase(&anchorAwareOrderRepoStub{order: anchorOrder}, nil, nil, nil, newReminderModeCreditControl(), nil)
+	orderUsecase := biz.NewOrderUsecase(&anchorAwareOrderRepoStub{order: anchorOrder}, nil, nil, newReminderModeCreditControl(), nil)
 
 	for _, tc := range sharedContainerAuthRequests(anchorOrder.ID) {
 		// 持有其他业务线的同名细粒度权限不得授权 SE 共享箱
@@ -654,7 +653,7 @@ func TestSharedContainerRequestsDeniedWithoutMatchingPermission(t *testing.T) {
 
 func TestSharedContainerIdIsNotTreatedAsOrderID(t *testing.T) {
 	anchorOrder := &biz.Order{ID: uuid.New(), OrganizationID: uuid.New(), BusinessType: biz.OrderBusinessSE}
-	orderUsecase := biz.NewOrderUsecase(&anchorAwareOrderRepoStub{order: anchorOrder}, nil, nil, nil, newReminderModeCreditControl(), nil)
+	orderUsecase := biz.NewOrderUsecase(&anchorAwareOrderRepoStub{order: anchorOrder}, nil, nil, newReminderModeCreditControl(), nil)
 
 	// 缺少 order_id 时，GetId()（共享箱 ID）会被当成订单 ID 查询并失败，授权必须拒绝
 	legacyRequest := &orderv1.GetSeaSharedContainerRequest{Id: uuid.New().String()}
@@ -680,7 +679,7 @@ func TestSharedContainerAnchorOrderResolvesOrganizationContext(t *testing.T) {
 	principalOrg := uuid.New()
 	anchorOrder := &biz.Order{ID: uuid.New(), OrganizationID: anchorOrg, BusinessType: biz.OrderBusinessSE}
 	repo := &anchorAwareOrderRepoStub{order: anchorOrder}
-	orderUsecase := biz.NewOrderUsecase(repo, nil, nil, nil, newReminderModeCreditControl(), nil)
+	orderUsecase := biz.NewOrderUsecase(repo, nil, nil, newReminderModeCreditControl(), nil)
 
 	principal := &biz.Principal{
 		Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: principalOrg},
@@ -715,7 +714,7 @@ func TestRequestOrderRejectsCrossOrganizationUpdateOutsideScope(t *testing.T) {
 	tianjinID := uuid.New()
 	beijingID := uuid.New()
 	order := &biz.Order{ID: uuid.New(), OrganizationID: beijingID, BusinessType: biz.OrderBusinessSE}
-	usecase := biz.NewOrderUsecase(&anchorAwareOrderRepoStub{order: order}, nil, nil, nil, newReminderModeCreditControl(), nil)
+	usecase := biz.NewOrderUsecase(&anchorAwareOrderRepoStub{order: order}, nil, nil, newReminderModeCreditControl(), nil)
 	principal := &biz.Principal{
 		Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: tianjinID},
 		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),
@@ -733,7 +732,7 @@ func TestRequestOrderDoesNotBorrowFinanceRoleScope(t *testing.T) {
 	tianjinID := uuid.New()
 	beijingID := uuid.New()
 	order := &biz.Order{ID: uuid.New(), OrganizationID: beijingID, BusinessType: biz.OrderBusinessSE}
-	usecase := biz.NewOrderUsecase(&anchorAwareOrderRepoStub{order: order}, nil, nil, nil, newReminderModeCreditControl(), nil)
+	usecase := biz.NewOrderUsecase(&anchorAwareOrderRepoStub{order: order}, nil, nil, newReminderModeCreditControl(), nil)
 	principal := &biz.Principal{
 		Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: tianjinID},
 		OrganizationNodes: serverOrganizationNodes(tianjinID, beijingID),

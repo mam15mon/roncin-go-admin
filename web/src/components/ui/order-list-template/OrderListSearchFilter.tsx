@@ -57,7 +57,6 @@ type OrderListFilterRawValues = {
   stage?: string;
   shareStatus?: 'all' | 'shared' | 'unshared';
   isLocked?: 'all' | 'locked' | 'unlocked';
-  tagIds?: string[];
 };
 
 export interface OrderListSearchFilterProps {
@@ -271,7 +270,6 @@ export function OrderListSearchFilter({
             string,
           ])
         : undefined;
-    const tagIds = (rawValues.tagIds as string[] | undefined)?.filter(Boolean);
     const numberKeyword = rawValues.numberKeyword?.trim() || undefined;
 
     onSearch(
@@ -297,7 +295,6 @@ export function OrderListSearchFilter({
         shareStatus:
           rawValues.shareStatus === 'all' ? undefined : rawValues.shareStatus,
         isLocked: rawValues.isLocked === 'all' ? undefined : rawValues.isLocked,
-        tagIds: tagIds?.length ? tagIds : undefined,
       },
       { ...labelsRef.current },
     );
@@ -524,43 +521,6 @@ export function OrderListSearchFilter({
                     { label: '已分享', value: 'shared' },
                     { label: '未分享', value: 'unshared' },
                   ]}
-                />
-              </Form.Item>
-            </Col>
-            <Col xs={24} sm={12} lg={11}>
-              <Form.Item name="tagIds" label="订单标签">
-                <Select
-                  mode="multiple"
-                  allowClear
-                  showSearch={{ optionFilterProp: 'label' }}
-                  placeholder="选择标签筛选订单"
-                  options={Array.from(
-                    new Map(
-                      [
-                        ...Object.entries(labelsRef.current)
-                          .filter(([key]) => key.startsWith('tagIds:'))
-                          .map(([key, label]) => ({
-                            value: key.slice(7),
-                            label,
-                          })),
-                        ...(options.tags ?? []),
-                      ].map((option) => [option.value, option]),
-                    ).values(),
-                  )}
-                  onChange={(_values, selected) => {
-                    for (const key of Object.keys(labelsRef.current)) {
-                      if (key.startsWith('tagIds:'))
-                        delete labelsRef.current[key];
-                    }
-                    for (const option of Array.isArray(selected)
-                      ? selected
-                      : []) {
-                      if (option.value != null && option.label != null)
-                        labelsRef.current[`tagIds:${option.value}`] = String(
-                          option.label,
-                        );
-                    }
-                  }}
                 />
               </Form.Item>
             </Col>

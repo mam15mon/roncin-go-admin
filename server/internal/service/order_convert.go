@@ -20,7 +20,7 @@ func orderToAPI(item *biz.Order) *v1.Order {
 		ClosureStatus: orderClosureStatusToAPI(item.ClosureStatus), ClosureReason: stringPtrIfNotEmpty(item.ClosureReason), ClosedAt: timePtrToString(item.ClosedAt), ClosedBy: uuidStringPtr(item.ClosedBy),
 		Version: item.Version, HasActiveException: item.HasActiveException, ActiveExceptionCount: int32(item.ActiveExceptionCount), AllowedActions: orderAllowedActionsToAPI(item.AllowedActions), AllowedTargetFlowStatuses: orderFlowStatusesToAPI(item.AllowedTargetFlowStatuses()),
 		CargoCategoryIds: uuidStrings(item.CargoCategoryIDs),
-		ShippingLineId: uuidStringPtr(item.ShippingLineID), BookingAgentId: uuidStringPtr(item.BookingAgentID), ForeignAgentId: uuidStringPtr(item.ForeignAgentID), ShippingAgentId: uuidStringPtr(item.ShippingAgentID), ShipmentType: orderShipmentTypeToAPI(item.ShipmentType), ContainerOwnership: orderContainerOwnershipToAPI(item.ContainerOwnership), ShipmentMode: orderShipmentModeToAPI(item.ShipmentMode), DangerousPackingGroup: orderDangerousPackingGroupToAPI(item.DangerousPackingGroup),
+		ShippingLineId:   uuidStringPtr(item.ShippingLineID), BookingAgentId: uuidStringPtr(item.BookingAgentID), ForeignAgentId: uuidStringPtr(item.ForeignAgentID), ShippingAgentId: uuidStringPtr(item.ShippingAgentID), ShipmentType: orderShipmentTypeToAPI(item.ShipmentType), ContainerOwnership: orderContainerOwnershipToAPI(item.ContainerOwnership), ShipmentMode: orderShipmentModeToAPI(item.ShipmentMode), DangerousPackingGroup: orderDangerousPackingGroupToAPI(item.DangerousPackingGroup),
 		CustomerReferenceNo: stringPtrIfNotEmpty(item.CustomerReferenceNo), InternalReferenceNo: stringPtrIfNotEmpty(item.InternalReferenceNo), ContractNo: stringPtrIfNotEmpty(item.ContractNo), CargoValue: stringPtrIfNotEmpty(item.CargoValue), CargoCurrency: stringPtrIfNotEmpty(item.CargoCurrency),
 		InsurancePremium: stringPtrIfNotEmpty(item.InsurancePremium), InsuranceCurrency: stringPtrIfNotEmpty(item.InsuranceCurrency), UnNumber: stringPtrIfNotEmpty(item.UNNumber), HazardClass: stringPtrIfNotEmpty(item.HazardClass), FactoryName: stringPtrIfNotEmpty(item.FactoryName), CargoReadyAt: stringPtrIfNotEmpty(item.CargoReadyAt),
 		DeclarationCutoffAt: stringPtrIfNotEmpty(item.DeclarationCutoffAt), ReceivedAt: stringPtrIfNotEmpty(item.ReceivedAt),
@@ -34,7 +34,7 @@ func orderToAPI(item *biz.Order) *v1.Order {
 		OperatorName: stringPtrIfNotEmpty(item.OperatorName), OperatorBranch: stringPtrIfNotEmpty(item.OperatorBranch), SalesName: stringPtrIfNotEmpty(item.SalesName), SalesBranch: stringPtrIfNotEmpty(item.SalesBranch), CreatorName: stringPtrIfNotEmpty(item.CreatorName),
 		ShippingLineName: stringPtrIfNotEmpty(item.ShippingLineName),
 		BookingNo:        stringPtrIfNotEmpty(item.BookingNo),
-		ShipperShortName: stringPtrIfNotEmpty(item.ShipperShortName), ConsigneeShortName: stringPtrIfNotEmpty(item.ConsigneeShortName), LockedAt: timePtrToString(item.LockedAt), IsShared: item.IsShared, Tags: businessTagSummariesToAPI(item.Tags),
+		ShipperShortName: stringPtrIfNotEmpty(item.ShipperShortName), ConsigneeShortName: stringPtrIfNotEmpty(item.ConsigneeShortName), LockedAt: timePtrToString(item.LockedAt), IsShared: item.IsShared,
 		CreatedAt: item.CreatedAt.UTC().Format(timeFormatRFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(timeFormatRFC3339),
 	}
 	for _, record := range item.StatusRecords {
@@ -224,17 +224,6 @@ func timePtrToString(value *time.Time) *string {
 	}
 	formatted := value.UTC().Format(timeFormatRFC3339)
 	return &formatted
-}
-
-func businessTagSummariesToAPI(items []*biz.BusinessTagSummary) []*v1.BusinessTagSummary {
-	if len(items) == 0 {
-		return nil
-	}
-	result := make([]*v1.BusinessTagSummary, 0, len(items))
-	for _, item := range items {
-		result = append(result, businessTagSummaryToAPI(item))
-	}
-	return result
 }
 
 func seaMasterBillSummaryToAPI(item *biz.SeaMasterBillSummary) *v1.SeaMasterBillSummary {

@@ -1,4 +1,3 @@
-import { AsyncPopconfirm } from '@/components/ui';
 import {
   CheckOutlined,
   CloseCircleOutlined,
@@ -8,7 +7,7 @@ import {
 import type { ProColumns } from '@ant-design/pro-components';
 import { Space, Tag } from 'antd';
 import dayjs from 'dayjs';
-import { BusinessTagList } from '@/components/business-tag/BusinessTagList';
+import { AsyncPopconfirm } from '@/components/ui';
 import { makeValueEnum, statusTag } from '@/constants/statusMeta';
 import { FinanceBillStatus } from '@/enums.generated';
 import { billStatusMeta } from '@/features/finance/bill-status';
@@ -34,12 +33,6 @@ export function getFinanceBillColumns({
   onCancelBill,
 }: GetFinanceBillColumnsParams): ProColumns<API.FinanceBill>[] {
   return [
-    {
-      title: '标签',
-      dataIndex: 'tags',
-      width: 140,
-      render: (_, row) => <BusinessTagList tags={row.tags} />,
-    },
     {
       title: '序号',
       dataIndex: 'index',

@@ -57,7 +57,6 @@ describe('queryOrderList', () => {
         numberKeyword: 'MBL-001',
         isLocked: 'locked',
         shareStatus: 'unshared',
-        tagIds: ['tag-1'],
       },
       seaExportDefinition,
       { ports: [], airports: [], customerMap: {}, organizationId: 'org-1' },
@@ -74,10 +73,10 @@ describe('queryOrderList', () => {
         numberKeyword: 'MBL-001',
         isLocked: true,
         isShared: false,
-        tagIds: ['tag-1'],
       }),
     );
     expect(listOrdersMock.mock.calls[0][0]).not.toHaveProperty('closureStatus');
+    expect(listOrdersMock.mock.calls[0][0]).not.toHaveProperty('tagIds');
   });
 
   it.each([

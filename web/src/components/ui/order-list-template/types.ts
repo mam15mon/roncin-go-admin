@@ -19,7 +19,6 @@ export interface OrderListFilterOptions {
   partners?: OrderSelectOption[];
   users?: OrderSelectOption[];
   departments?: OrderSelectOption[];
-  tags?: OrderSelectOption[];
   loadPorts?: (keyword?: string) => Promise<OrderSelectOption[]>;
   loadPartners?: (keyword?: string) => Promise<OrderSelectOption[]>;
   loadCarriers?: (keyword?: string) => Promise<OrderSelectOption[]>;
@@ -60,7 +59,6 @@ export interface OrderListFilterParams {
   stage?: string; // 进程（未退关、已完结等）
   shareStatus?: 'all' | 'shared' | 'unshared'; // 分享状态
   isLocked?: 'all' | 'locked' | 'unlocked'; // 是否锁定
-  tagIds?: string[]; // 订单标签（字典 ID，任一命中）
 
   // 分页与排序
   page?: number;
@@ -82,7 +80,6 @@ export interface OrderListItem {
   customerId?: string;
   customerReferenceNo?: string;
   createdAt?: string;
-  tags?: API.BusinessTagSummary[]; // 组织标签（字典）
 
   // 航程与船运
   bookingAgentName?: string;
@@ -174,8 +171,6 @@ export interface OrderListTemplateProps {
   onCopyOrder?: (selectedRows: OrderListItem[]) => void;
   /** 批量导出单证 */
   onExportDocuments?: (selectedRows: OrderListItem[]) => void;
-  /** 批量维护选中订单的标签 */
-  onManageTags?: (selectedRows: OrderListItem[]) => void;
   /** 点击查看订单详情 */
   onViewDetail?: (record: OrderListItem) => void;
   /** 点击编辑订单 */

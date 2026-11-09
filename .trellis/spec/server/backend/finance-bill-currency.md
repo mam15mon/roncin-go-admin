@@ -178,7 +178,7 @@ netting summary amount = sum(nettings where status = CONFIRMED)
 占用判定（`orderFeeRepo.Remove` 事务内复核，冲突码 `ORDER_FEE_BILL_OCCUPIED`）；已取消账单
 的历史行不阻断。`finance_bill_lines.order_fee_id` 可空，来源费用删除时由外键
 `ON DELETE SET NULL` 置空，行上费用代码/名称/数量/单价/税额/币种快照独立支撑历史展示；
-`order_fee_enterprise_tags` 随费用删除级联清理（迁移 20260922130000）。
+业务标签及其费用关联已[正式退役](./business-tag-retirement.md)；费用删除不再参与标签关联清理。历史迁移 20260922130000 保留，不作为当前写路径契约。
 
 **Why**：用户澄清「取消账单后费用可删，不能因曾建过账永久禁删」（2026-09-22）；同时历史
 账单及其金额快照必须原样保留，故来源引用改可空而非级联删行。

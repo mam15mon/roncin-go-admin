@@ -9,10 +9,6 @@ import { type CsvColumn, csvAmount, csvDecimal } from '@/utils/csv';
 import { formatDate } from '@/utils/format';
 
 export const feeExportColumns: CsvColumn<API.FeeLedgerItem>[] = [
-  {
-    header: '标签',
-    value: (row) => row.tags?.map((tag) => tag.name).join('；'),
-  },
   { header: '所属公司', value: (row) => row.organizationName },
   {
     header: '属性',

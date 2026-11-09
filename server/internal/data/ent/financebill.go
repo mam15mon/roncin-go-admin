@@ -134,11 +134,9 @@ type FinanceBillEdges struct {
 	VerificationAllocations []*FinanceVerificationAllocation `json:"verification_allocations,omitempty"`
 	// NettingAllocations holds the value of the netting_allocations edge.
 	NettingAllocations []*FinanceNettingAllocation `json:"netting_allocations,omitempty"`
-	// EnterpriseTagLinks holds the value of the enterprise_tag_links edge.
-	EnterpriseTagLinks []*FinanceBillEnterpriseTag `json:"enterprise_tag_links,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [10]bool
+	loadedTypes [9]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -230,15 +228,6 @@ func (e FinanceBillEdges) NettingAllocationsOrErr() ([]*FinanceNettingAllocation
 		return e.NettingAllocations, nil
 	}
 	return nil, &NotLoadedError{edge: "netting_allocations"}
-}
-
-// EnterpriseTagLinksOrErr returns the EnterpriseTagLinks value or an error if the edge
-// was not loaded in eager-loading.
-func (e FinanceBillEdges) EnterpriseTagLinksOrErr() ([]*FinanceBillEnterpriseTag, error) {
-	if e.loadedTypes[9] {
-		return e.EnterpriseTagLinks, nil
-	}
-	return nil, &NotLoadedError{edge: "enterprise_tag_links"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -605,11 +594,6 @@ func (_m *FinanceBill) QueryVerificationAllocations() *FinanceVerificationAlloca
 // QueryNettingAllocations queries the "netting_allocations" edge of the FinanceBill entity.
 func (_m *FinanceBill) QueryNettingAllocations() *FinanceNettingAllocationQuery {
 	return NewFinanceBillClient(_m.config).QueryNettingAllocations(_m)
-}
-
-// QueryEnterpriseTagLinks queries the "enterprise_tag_links" edge of the FinanceBill entity.
-func (_m *FinanceBill) QueryEnterpriseTagLinks() *FinanceBillEnterpriseTagQuery {
-	return NewFinanceBillClient(_m.config).QueryEnterpriseTagLinks(_m)
 }
 
 // Update returns a builder for updating this FinanceBill.

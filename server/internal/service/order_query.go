@@ -206,11 +206,6 @@ func (s *OrderService) ListOrders(ctx context.Context, request *v1.ListOrdersReq
 	if options.Creator, err = orderPersonnelFilterFromAPI(request.GetCreatorId()); err != nil {
 		return nil, err
 	}
-	tagIDs, err := parseUUIDValues(request.GetTagIds(), biz.ErrOrderInvalidArgument)
-	if err != nil {
-		return nil, err
-	}
-	options.TagIDs = tagIDs
 	if request.IsLocked != nil {
 		value := request.GetIsLocked()
 		options.IsLocked = &value

@@ -30,7 +30,7 @@
 
 ## 数据处置方案与授权边界
 拟由一份正式迁移永久删除标签专用数据及关联：enterprise_tag_groups、enterprise_tags、order_enterprise_tags、order_fee_enterprise_tags、finance_bill_enterprise_tags；精确删除TAG的企业资源基表行及指向这些ID的客商关联。其他数据一律保留。
-这是最终方案中需要明确批准的删除范围，不能仅因用户说取消功能就执行。当前只做规划和只读审计，未运行DDL/DML。实施验证仅使用隔离测试库；真实环境迁移执行须有本方案明确删除授权，不能自动重置开发库。
+用户已在最终方案后明确批准实施及上述标签数据删除范围。实施验证使用隔离测试库；真实环境是否执行迁移须在交付记录中明确说明，不能自动重置开发库。
 
 ## 交付与规划状态
-PRD、design.md、implement.md及研究/上下文清单齐备。最终摘要将明确所有删除范围和验证后，由用户后续批准进入实施；当前status=planning，无产品修改。
+PRD、design.md、implement.md及研究/上下文清单齐备。2026-11-09 已按用户授权进入实施，当前 status=in_progress；完成后进行独立审查、合并 main、安全删除已合并分支并推送。

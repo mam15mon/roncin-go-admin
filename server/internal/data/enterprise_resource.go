@@ -19,12 +19,7 @@ import (
 	partnerlinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourcepartner"
 	partyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceparty"
 	remarkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceremark"
-	tagent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetag"
-	taggroupent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetaggroup"
-	billtaglinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
 	membershipent "github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
-	ordertaglinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
-	feetaglinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	partneraliasent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
 	partnercontactent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
@@ -40,7 +35,7 @@ func NewEnterpriseResourceRepo(data *Data) biz.EnterpriseResourceRepo {
 
 func enterpriseResourceQuery(client *ent.Client) *ent.EnterpriseResourceQuery {
 	return client.EnterpriseResource.Query().
-		WithAddress().WithRemark().WithImage().WithParty().WithTag().
+		WithAddress().WithRemark().WithImage().WithParty().
 		WithPartnerLinks().WithAssignees().WithAddressTypes()
 }
 
@@ -306,40 +301,6 @@ func (r *enterpriseResourceRepo) Delete(ctx context.Context, organizationID, id 
 			}
 			imageObjectKey = image.ObjectKey
 		}
-		if item.ResourceType == resourceent.ResourceType(biz.EnterpriseResourceTagType) {
-			// 与批量关联写入使用同一行锁：先锁标签资源再统计使用，防止统计与删除之间并发写入关联
-			locked, err := tx.EnterpriseResource.Query().Where(resourceent.IDEQ(id)).Order(resourceent.ByID()).ForUpdate().All(ctx)
-			if err != nil || len(locked) != 1 {
-				if err != nil {
-					return err
-				}
-				return biz.ErrEnterpriseResourceNotFound
-			}
-			partnerCount, err := tx.EnterpriseResourcePartner.Query().Where(partnerlinkent.ResourceIDEQ(id)).Count(ctx)
-			if err != nil {
-				return err
-			}
-			orderTagCount, err := tx.OrderEnterpriseTag.Query().Where(ordertaglinkent.TagResourceIDEQ(id)).Count(ctx)
-			if err != nil {
-				return err
-			}
-			feeTagCount, err := tx.OrderFeeEnterpriseTag.Query().Where(feetaglinkent.TagResourceIDEQ(id)).Count(ctx)
-			if err != nil {
-				return err
-			}
-			billTagCount, err := tx.FinanceBillEnterpriseTag.Query().Where(billtaglinkent.TagResourceIDEQ(id)).Count(ctx)
-			if err != nil {
-				return err
-			}
-			if partnerCount > 0 || orderTagCount > 0 || feeTagCount > 0 || billTagCount > 0 {
-				return biz.ErrEnterpriseTagInUse.WithMetadata(map[string]string{
-					"partner_count":      stringInt(partnerCount),
-					"order_count":        stringInt(orderTagCount),
-					"order_fee_count":    stringInt(feeTagCount),
-					"finance_bill_count": stringInt(billTagCount),
-				})
-			}
-		}
 		for _, deleteRows := range []func(context.Context) (int, error){
 			func(ctx context.Context) (int, error) {
 				return tx.EnterpriseResourcePartner.Delete().Where(partnerlinkent.ResourceIDEQ(id)).Exec(ctx)
@@ -364,9 +325,6 @@ func (r *enterpriseResourceRepo) Delete(ctx context.Context, organizationID, id 
 			},
 			func(ctx context.Context) (int, error) {
 				return tx.EnterpriseResourceShippingText.Delete().Where(func(s *sql.Selector) { s.Where(sql.EQ(s.C("resource_id"), id)) }).Exec(ctx)
-			},
-			func(ctx context.Context) (int, error) {
-				return tx.EnterpriseTag.Delete().Where(tagent.ResourceIDEQ(id)).Exec(ctx)
 			},
 		} {
 			if _, err := deleteRows(ctx); err != nil {
@@ -528,79 +486,6 @@ func (r *enterpriseResourceRepo) BatchAssignees(ctx context.Context, organizatio
 	return affected, nil
 }
 
-func (r *enterpriseResourceRepo) ListTagGroups(ctx context.Context, organizationID uuid.UUID) ([]*biz.EnterpriseTagGroup, error) {
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return nil, err
-	}
-	items, err := client.EnterpriseTagGroup.Query().Where(taggroupent.OrganizationIDEQ(organizationID)).Order(taggroupent.BySortOrder(), taggroupent.ByName()).All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	result := make([]*biz.EnterpriseTagGroup, len(items))
-	for i, item := range items {
-		result[i] = enterpriseTagGroupToBiz(item)
-	}
-	return result, nil
-}
-func (r *enterpriseResourceRepo) CreateTagGroup(ctx context.Context, organizationID uuid.UUID, input *biz.EnterpriseTagGroup, audit *biz.AuditEvent) (*biz.EnterpriseTagGroup, error) {
-	var created *ent.EnterpriseTagGroup
-	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		var err error
-		created, err = tx.EnterpriseTagGroup.Create().SetOrganizationID(organizationID).SetName(input.Name).SetNormalizedName(strings.ToUpper(input.Name)).SetNillableColor(optionalString(input.Color)).SetSortOrder(input.SortOrder).Save(ctx)
-		if err != nil {
-			return err
-		}
-		audit.ResourceID = created.ID.String()
-		audit.Details["resource.id"] = created.ID.String()
-		return writeAudit(ctx, tx.AuditLog, audit)
-	}); err != nil {
-		return nil, err
-	}
-	return enterpriseTagGroupToBiz(created), nil
-}
-func (r *enterpriseResourceRepo) UpdateTagGroup(ctx context.Context, organizationID, id uuid.UUID, input *biz.EnterpriseTagGroup, audit *biz.AuditEvent) (*biz.EnterpriseTagGroup, error) {
-	var updated *ent.EnterpriseTagGroup
-	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		existing, err := tx.EnterpriseTagGroup.Query().Where(taggroupent.IDEQ(id), taggroupent.OrganizationIDEQ(organizationID)).Only(ctx)
-		if err != nil {
-			return mapEntError(err, biz.ErrEnterpriseResourceNotFound, nil)
-		}
-		builder := existing.Update().SetName(input.Name).SetNormalizedName(strings.ToUpper(input.Name)).SetSortOrder(input.SortOrder)
-		if input.Color == "" {
-			builder.ClearColor()
-		} else {
-			builder.SetColor(input.Color)
-		}
-		updated, err = builder.Save(ctx)
-		if err != nil {
-			return err
-		}
-		return writeAudit(ctx, tx.AuditLog, audit)
-	}); err != nil {
-		return nil, err
-	}
-	return enterpriseTagGroupToBiz(updated), nil
-}
-func (r *enterpriseResourceRepo) DeleteTagGroup(ctx context.Context, organizationID, id uuid.UUID, audit *biz.AuditEvent) error {
-	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		group, err := tx.EnterpriseTagGroup.Query().Where(taggroupent.IDEQ(id), taggroupent.OrganizationIDEQ(organizationID)).Only(ctx)
-		if err != nil {
-			return mapEntError(err, biz.ErrEnterpriseResourceNotFound, nil)
-		}
-		has, err := group.QueryTags().Exist(ctx)
-		if err != nil {
-			return err
-		}
-		if has {
-			return biz.ErrEnterpriseTagGroupNotEmpty
-		}
-		if err := tx.EnterpriseTagGroup.DeleteOne(group).Exec(ctx); err != nil {
-			return err
-		}
-		return writeAudit(ctx, tx.AuditLog, audit)
-	})
-}
 func (r *enterpriseResourceRepo) FindImportConflicts(ctx context.Context, organizationID uuid.UUID, inputs []*biz.EnterpriseResource) ([]*biz.EnterpriseResourceImportConflict, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
@@ -791,15 +676,6 @@ func validateEnterpriseResourceRelations(ctx context.Context, tx *ent.Tx, organi
 	if input.AddressTypes != nil && input.ResourceType != biz.EnterpriseResourceAddressType {
 		return biz.ErrEnterpriseResourceInvalidArgument
 	}
-	if input.Tag != nil {
-		exists, err := tx.EnterpriseTagGroup.Query().Where(taggroupent.IDEQ(input.Tag.GroupID), taggroupent.OrganizationIDEQ(organizationID)).Exist(ctx)
-		if err != nil {
-			return err
-		}
-		if !exists {
-			return biz.ErrEnterpriseResourceInvalidArgument
-		}
-	}
 	return nil
 }
 
@@ -857,9 +733,6 @@ func createEnterpriseResourceDetail(ctx context.Context, tx *ent.Tx, id, organiz
 		}
 		_, err := builder.Save(ctx)
 		return err
-	case biz.EnterpriseResourceTagType:
-		_, err := tx.EnterpriseTag.Create().SetResourceID(id).SetOrganizationID(organizationID).SetGroupID(input.Tag.GroupID).SetNormalizedName(strings.ToUpper(input.ShortName)).SetSortOrder(input.SortOrder).Save(ctx)
-		return err
 	default:
 		v := input.Party
 		_, err := tx.EnterpriseResourceParty.Create().SetResourceID(id).SetOrganizationID(organizationID).SetResourceType(partyent.ResourceType(input.ResourceType)).SetCompanyName(v.CompanyName).SetNillableBusinessCode(optionalString(v.BusinessCode)).SetNillableNormalizedBusinessCode(optionalString(strings.ToUpper(v.BusinessCode))).SetNillableAddress(optionalString(v.Address)).SetCountryCode(v.CountryCode).SetNillableContactName(optionalString(v.ContactName)).SetNillableContactPhone(optionalString(v.ContactPhone)).SetNillableEmail(optionalString(v.Email)).SetNillableTaxIdentifier(optionalString(v.TaxIdentifier)).SetNillableAeoCode(optionalString(v.AEOCode)).SetCustomDisplay(v.CustomDisplay).SetNillableDisplayContent(optionalString(v.DisplayContent)).SetNillableRemark(optionalString(v.Remark)).Save(ctx)
@@ -880,9 +753,6 @@ func updateEnterpriseResourceDetail(ctx context.Context, tx *ent.Tx, id, organiz
 		return err
 	case biz.EnterpriseResourceImageType:
 		return biz.ErrEnterpriseResourceInvalidArgument
-	case biz.EnterpriseResourceTagType:
-		_, err := tx.EnterpriseTag.Update().Where(tagent.ResourceIDEQ(id)).SetGroupID(input.Tag.GroupID).SetNormalizedName(strings.ToUpper(input.ShortName)).SetSortOrder(input.SortOrder).Save(ctx)
-		return err
 	default:
 		v := input.Party
 		builder := tx.EnterpriseResourceParty.Update().Where(partyent.ResourceIDEQ(id)).SetCompanyName(v.CompanyName).SetCountryCode(v.CountryCode).SetCustomDisplay(v.CustomDisplay).ClearBusinessCode().ClearNormalizedBusinessCode().ClearAddress().ClearContactName().ClearContactPhone().ClearEmail().ClearTaxIdentifier().ClearAeoCode().ClearDisplayContent().ClearRemark()
@@ -1002,13 +872,7 @@ func enterpriseResourceToBiz(item *ent.EnterpriseResource) *biz.EnterpriseResour
 	if v := item.Edges.Image; v != nil {
 		result.Image = &biz.EnterpriseResourceImage{FileName: v.FileName, MIMEType: v.MimeType, FileSize: v.FileSize, ObjectKey: v.ObjectKey, Checksum: v.Checksum, Width: v.Width, Height: v.Height}
 	}
-	if v := item.Edges.Tag; v != nil {
-		result.Tag = &biz.EnterpriseResourceTag{GroupID: v.GroupID}
-	}
 	return result
-}
-func enterpriseTagGroupToBiz(item *ent.EnterpriseTagGroup) *biz.EnterpriseTagGroup {
-	return &biz.EnterpriseTagGroup{ID: item.ID, OrganizationID: item.OrganizationID, Name: item.Name, Color: stringValue(item.Color), SortOrder: item.SortOrder, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
 }
 func optionalString(value string) *string {
 	if value == "" {

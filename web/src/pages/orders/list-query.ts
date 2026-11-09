@@ -69,7 +69,6 @@ export async function queryOrderList(
     salesId: params.salesId,
     customerServiceId: params.customerServiceId,
     creatorId: params.creatorId,
-    tagIds: params.tagIds,
     isLocked:
       params.isLocked === 'locked'
         ? true
@@ -207,7 +206,6 @@ export async function queryOrderList(
       creatorName: order.creatorName || undefined,
       lockedAt: order.lockedAt,
       isLocked: Boolean(order.lockedAt),
-      tags: order.tags,
       notes: order.notes,
       statusName: getOrderFlowStatusText(order.flowStatus, order.businessType),
       abnormalLevel: order.hasActiveException ? 'high' : 'normal',

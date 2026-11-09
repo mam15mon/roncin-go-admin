@@ -262,7 +262,7 @@ func scopedFinancePermissionWrites(permission string) (bool, bool) {
 		access.FinanceInvoiceCreate, access.FinanceInvoiceUpdate, access.FinanceCashflowCreate,
 		access.FinanceCashflowUpdate, access.FinanceVerificationCreate, access.FinanceVerificationReverse,
 		access.FinanceNettingCreate, access.FinanceNettingConfirm, access.FinanceNettingReverse,
-		access.FinanceCommissionManage, access.FinanceFeeTag:
+		access.FinanceCommissionManage:
 		return true, true
 	default:
 		return false, false
@@ -329,12 +329,6 @@ func requestOrderBusinessType(request any) (access.OrderBusinessType, bool) {
 	case *orderv1.CreateOrderRequest:
 		return orderBusinessTypeFromAPI(value.GetBusinessType())
 	case *orderv1.ListPersonnelOptionsRequest:
-		return orderBusinessTypeFromAPI(value.GetBusinessType())
-	case *orderv1.ListOrderTagOptionsRequest:
-		return orderBusinessTypeFromAPI(value.GetBusinessType())
-	case *orderv1.BatchAssignOrderTagsRequest:
-		return orderBusinessTypeFromAPI(value.GetBusinessType())
-	case *orderv1.BatchRemoveOrderTagsRequest:
 		return orderBusinessTypeFromAPI(value.GetBusinessType())
 	case *orderv1.MatchSeaMasterBillCandidateRequest:
 		// 共享主单候选匹配仅适用于海运出口订单，且服务实现只查询当前组织。

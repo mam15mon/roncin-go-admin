@@ -24,7 +24,7 @@ func TestOrderClosureBeforeReviewAndBillingPostgres(t *testing.T) {
 				t.Fatal("夹具应为未审核锁定的草稿订单")
 			}
 			repo := NewOrderRepo(f.data)
-			uc := biz.NewOrderUsecase(repo, nil, nil, nil, nil, nil)
+			uc := biz.NewOrderUsecase(repo, nil, nil, nil, nil)
 			closed, err := uc.TransitionClosure(f.ctx, f.organizationID, f.approverID, o.ID, o.Version, biz.OrderClosureClosed, "资料与费用录入完成")
 			if err != nil || closed.ClosureStatus != biz.OrderClosureClosed || closed.FlowStatus != biz.OrderFlowDocumentReleased || closed.LockedAt != nil || closed.Version != o.Version+1 {
 				t.Fatalf("未建账未审核订单应可完结并补齐主流程: order=%+v err=%v", closed, err)

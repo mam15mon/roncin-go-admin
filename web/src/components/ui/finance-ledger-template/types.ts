@@ -101,7 +101,7 @@ export interface FinanceLedgerTemplateProps<
   scrollX?: number | string;
   actionRef?: React.MutableRefObject<ActionType | undefined>;
 
-  // 顶部全局工具栏/筛选插槽（如所属公司选择器、标签筛选等，置于指标卡上方）
+  // 顶部全局工具栏/筛选插槽（如所属公司选择器，置于指标卡上方）
   topBar?: ReactNode;
 
   // 顶部宏观统计指标卡配置

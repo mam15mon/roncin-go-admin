@@ -38,15 +38,12 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceparty"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceremark"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceshippingtext"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetag"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetaggroup"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangerateimportbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesettingtemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
@@ -80,10 +77,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeereviewevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
@@ -217,15 +212,12 @@ func checkColumn(t, c string) error {
 			enterpriseresourceparty.Table:          enterpriseresourceparty.ValidColumn,
 			enterpriseresourceremark.Table:         enterpriseresourceremark.ValidColumn,
 			enterpriseresourceshippingtext.Table:   enterpriseresourceshippingtext.ValidColumn,
-			enterprisetag.Table:                    enterprisetag.ValidColumn,
-			enterprisetaggroup.Table:               enterprisetaggroup.ValidColumn,
 			exchangerateimportbatch.Table:          exchangerateimportbatch.ValidColumn,
 			exchangeratesetting.Table:              exchangeratesetting.ValidColumn,
 			feesetting.Table:                       feesetting.ValidColumn,
 			feesettingtemplate.Table:               feesettingtemplate.ValidColumn,
 			financebill.Table:                      financebill.ValidColumn,
 			financebillbatch.Table:                 financebillbatch.ValidColumn,
-			financebillenterprisetag.Table:         financebillenterprisetag.ValidColumn,
 			financebillline.Table:                  financebillline.ValidColumn,
 			financecashflow.Table:                  financecashflow.ValidColumn,
 			financecommission.Table:                financecommission.ValidColumn,
@@ -259,10 +251,8 @@ func checkColumn(t, c string) error {
 			ordercommissionattribution.Table:       ordercommissionattribution.ValidColumn,
 			ordercontainer.Table:                   ordercontainer.ValidColumn,
 			ordercontainerrequest.Table:            ordercontainerrequest.ValidColumn,
-			orderenterprisetag.Table:               orderenterprisetag.ValidColumn,
 			orderfee.Table:                         orderfee.ValidColumn,
 			orderfeecorrectionrequest.Table:        orderfeecorrectionrequest.ValidColumn,
-			orderfeeenterprisetag.Table:            orderfeeenterprisetag.ValidColumn,
 			orderfeereviewevent.Table:              orderfeereviewevent.ValidColumn,
 			orderfeesupplementrequest.Table:        orderfeesupplementrequest.ValidColumn,
 			orderlifecycleevent.Table:              orderlifecycleevent.ValidColumn,

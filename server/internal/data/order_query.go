@@ -14,7 +14,6 @@ import (
 	masterdataent "github.com/roncin/roncin-go-admin/server/internal/data/ent/masterdataitem"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	orderabnormalcaseent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
-	ordertaglinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	orderlifecycleeventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
@@ -174,9 +173,6 @@ func (r *orderRepo) List(ctx context.Context, scopes []biz.OrderOrganizationScop
 	}
 	if options.IsShared != nil {
 		query.Where(orderent.IsSharedEQ(*options.IsShared))
-	}
-	if len(options.TagIDs) > 0 {
-		query.Where(orderent.HasEnterpriseTagLinksWith(ordertaglinkent.TagResourceIDIn(options.TagIDs...)))
 	}
 	result, err := paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.Order, error) {
 		return withOrderEdges(query).Order(orderent.ByCreatedAt(entsql.OrderDesc())).Offset(offset).Limit(limit).All(ctx)

@@ -312,7 +312,6 @@ type Order struct {
 	LockedAt              *time.Time
 	IsShared              bool
 	Version               uint64
-	Tags                  []*BusinessTagSummary
 	HasActiveException    bool
 	ActiveExceptionCount  int
 	AllowedActions        []OrderAllowedAction
@@ -395,7 +394,6 @@ type OrderListOptions struct {
 	Sales                 OrderPersonnelFilter
 	CustomerService       OrderPersonnelFilter
 	Creator               OrderPersonnelFilter
-	TagIDs                []uuid.UUID
 	IsLocked              *bool
 	IsShared              *bool
 }

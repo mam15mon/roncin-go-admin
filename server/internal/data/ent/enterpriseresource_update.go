@@ -21,10 +21,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceparty"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceremark"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceshippingtext"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetag"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -245,25 +241,6 @@ func (_u *EnterpriseResourceUpdate) SetShippingText(v *EnterpriseResourceShippin
 	return _u.SetShippingTextID(v.ID)
 }
 
-// SetTagID sets the "tag" edge to the EnterpriseTag entity by ID.
-func (_u *EnterpriseResourceUpdate) SetTagID(id uuid.UUID) *EnterpriseResourceUpdate {
-	_u.mutation.SetTagID(id)
-	return _u
-}
-
-// SetNillableTagID sets the "tag" edge to the EnterpriseTag entity by ID if the given value is not nil.
-func (_u *EnterpriseResourceUpdate) SetNillableTagID(id *uuid.UUID) *EnterpriseResourceUpdate {
-	if id != nil {
-		_u = _u.SetTagID(*id)
-	}
-	return _u
-}
-
-// SetTag sets the "tag" edge to the EnterpriseTag entity.
-func (_u *EnterpriseResourceUpdate) SetTag(v *EnterpriseTag) *EnterpriseResourceUpdate {
-	return _u.SetTagID(v.ID)
-}
-
 // AddPartnerLinkIDs adds the "partner_links" edge to the EnterpriseResourcePartner entity by IDs.
 func (_u *EnterpriseResourceUpdate) AddPartnerLinkIDs(ids ...uuid.UUID) *EnterpriseResourceUpdate {
 	_u.mutation.AddPartnerLinkIDs(ids...)
@@ -309,51 +286,6 @@ func (_u *EnterpriseResourceUpdate) AddAddressTypes(v ...*EnterpriseResourceAddr
 	return _u.AddAddressTypeIDs(ids...)
 }
 
-// AddOrderTagLinkIDs adds the "order_tag_links" edge to the OrderEnterpriseTag entity by IDs.
-func (_u *EnterpriseResourceUpdate) AddOrderTagLinkIDs(ids ...uuid.UUID) *EnterpriseResourceUpdate {
-	_u.mutation.AddOrderTagLinkIDs(ids...)
-	return _u
-}
-
-// AddOrderTagLinks adds the "order_tag_links" edges to the OrderEnterpriseTag entity.
-func (_u *EnterpriseResourceUpdate) AddOrderTagLinks(v ...*OrderEnterpriseTag) *EnterpriseResourceUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddOrderTagLinkIDs(ids...)
-}
-
-// AddOrderFeeTagLinkIDs adds the "order_fee_tag_links" edge to the OrderFeeEnterpriseTag entity by IDs.
-func (_u *EnterpriseResourceUpdate) AddOrderFeeTagLinkIDs(ids ...uuid.UUID) *EnterpriseResourceUpdate {
-	_u.mutation.AddOrderFeeTagLinkIDs(ids...)
-	return _u
-}
-
-// AddOrderFeeTagLinks adds the "order_fee_tag_links" edges to the OrderFeeEnterpriseTag entity.
-func (_u *EnterpriseResourceUpdate) AddOrderFeeTagLinks(v ...*OrderFeeEnterpriseTag) *EnterpriseResourceUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddOrderFeeTagLinkIDs(ids...)
-}
-
-// AddFinanceBillTagLinkIDs adds the "finance_bill_tag_links" edge to the FinanceBillEnterpriseTag entity by IDs.
-func (_u *EnterpriseResourceUpdate) AddFinanceBillTagLinkIDs(ids ...uuid.UUID) *EnterpriseResourceUpdate {
-	_u.mutation.AddFinanceBillTagLinkIDs(ids...)
-	return _u
-}
-
-// AddFinanceBillTagLinks adds the "finance_bill_tag_links" edges to the FinanceBillEnterpriseTag entity.
-func (_u *EnterpriseResourceUpdate) AddFinanceBillTagLinks(v ...*FinanceBillEnterpriseTag) *EnterpriseResourceUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddFinanceBillTagLinkIDs(ids...)
-}
-
 // Mutation returns the EnterpriseResourceMutation object of the builder.
 func (_u *EnterpriseResourceUpdate) Mutation() *EnterpriseResourceMutation {
 	return _u.mutation
@@ -392,12 +324,6 @@ func (_u *EnterpriseResourceUpdate) ClearParty() *EnterpriseResourceUpdate {
 // ClearShippingText clears the "shipping_text" edge to the EnterpriseResourceShippingText entity.
 func (_u *EnterpriseResourceUpdate) ClearShippingText() *EnterpriseResourceUpdate {
 	_u.mutation.ClearShippingText()
-	return _u
-}
-
-// ClearTag clears the "tag" edge to the EnterpriseTag entity.
-func (_u *EnterpriseResourceUpdate) ClearTag() *EnterpriseResourceUpdate {
-	_u.mutation.ClearTag()
 	return _u
 }
 
@@ -462,69 +388,6 @@ func (_u *EnterpriseResourceUpdate) RemoveAddressTypes(v ...*EnterpriseResourceA
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAddressTypeIDs(ids...)
-}
-
-// ClearOrderTagLinks clears all "order_tag_links" edges to the OrderEnterpriseTag entity.
-func (_u *EnterpriseResourceUpdate) ClearOrderTagLinks() *EnterpriseResourceUpdate {
-	_u.mutation.ClearOrderTagLinks()
-	return _u
-}
-
-// RemoveOrderTagLinkIDs removes the "order_tag_links" edge to OrderEnterpriseTag entities by IDs.
-func (_u *EnterpriseResourceUpdate) RemoveOrderTagLinkIDs(ids ...uuid.UUID) *EnterpriseResourceUpdate {
-	_u.mutation.RemoveOrderTagLinkIDs(ids...)
-	return _u
-}
-
-// RemoveOrderTagLinks removes "order_tag_links" edges to OrderEnterpriseTag entities.
-func (_u *EnterpriseResourceUpdate) RemoveOrderTagLinks(v ...*OrderEnterpriseTag) *EnterpriseResourceUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveOrderTagLinkIDs(ids...)
-}
-
-// ClearOrderFeeTagLinks clears all "order_fee_tag_links" edges to the OrderFeeEnterpriseTag entity.
-func (_u *EnterpriseResourceUpdate) ClearOrderFeeTagLinks() *EnterpriseResourceUpdate {
-	_u.mutation.ClearOrderFeeTagLinks()
-	return _u
-}
-
-// RemoveOrderFeeTagLinkIDs removes the "order_fee_tag_links" edge to OrderFeeEnterpriseTag entities by IDs.
-func (_u *EnterpriseResourceUpdate) RemoveOrderFeeTagLinkIDs(ids ...uuid.UUID) *EnterpriseResourceUpdate {
-	_u.mutation.RemoveOrderFeeTagLinkIDs(ids...)
-	return _u
-}
-
-// RemoveOrderFeeTagLinks removes "order_fee_tag_links" edges to OrderFeeEnterpriseTag entities.
-func (_u *EnterpriseResourceUpdate) RemoveOrderFeeTagLinks(v ...*OrderFeeEnterpriseTag) *EnterpriseResourceUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveOrderFeeTagLinkIDs(ids...)
-}
-
-// ClearFinanceBillTagLinks clears all "finance_bill_tag_links" edges to the FinanceBillEnterpriseTag entity.
-func (_u *EnterpriseResourceUpdate) ClearFinanceBillTagLinks() *EnterpriseResourceUpdate {
-	_u.mutation.ClearFinanceBillTagLinks()
-	return _u
-}
-
-// RemoveFinanceBillTagLinkIDs removes the "finance_bill_tag_links" edge to FinanceBillEnterpriseTag entities by IDs.
-func (_u *EnterpriseResourceUpdate) RemoveFinanceBillTagLinkIDs(ids ...uuid.UUID) *EnterpriseResourceUpdate {
-	_u.mutation.RemoveFinanceBillTagLinkIDs(ids...)
-	return _u
-}
-
-// RemoveFinanceBillTagLinks removes "finance_bill_tag_links" edges to FinanceBillEnterpriseTag entities.
-func (_u *EnterpriseResourceUpdate) RemoveFinanceBillTagLinks(v ...*FinanceBillEnterpriseTag) *EnterpriseResourceUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveFinanceBillTagLinkIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -791,35 +654,6 @@ func (_u *EnterpriseResourceUpdate) sqlSave(ctx context.Context) (_node int, err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.TagCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
-			Table:   enterpriseresource.TagTable,
-			Columns: []string{enterpriseresource.TagColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(enterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.TagIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
-			Table:   enterpriseresource.TagTable,
-			Columns: []string{enterpriseresource.TagColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(enterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if _u.mutation.PartnerLinksCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -948,141 +782,6 @@ func (_u *EnterpriseResourceUpdate) sqlSave(ctx context.Context) (_node int, err
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(enterpriseresourceaddresstype.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.OrderTagLinksCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   enterpriseresource.OrderTagLinksTable,
-			Columns: []string{enterpriseresource.OrderTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedOrderTagLinksIDs(); len(nodes) > 0 && !_u.mutation.OrderTagLinksCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   enterpriseresource.OrderTagLinksTable,
-			Columns: []string{enterpriseresource.OrderTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.OrderTagLinksIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   enterpriseresource.OrderTagLinksTable,
-			Columns: []string{enterpriseresource.OrderTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.OrderFeeTagLinksCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   enterpriseresource.OrderFeeTagLinksTable,
-			Columns: []string{enterpriseresource.OrderFeeTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderfeeenterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedOrderFeeTagLinksIDs(); len(nodes) > 0 && !_u.mutation.OrderFeeTagLinksCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   enterpriseresource.OrderFeeTagLinksTable,
-			Columns: []string{enterpriseresource.OrderFeeTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderfeeenterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.OrderFeeTagLinksIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   enterpriseresource.OrderFeeTagLinksTable,
-			Columns: []string{enterpriseresource.OrderFeeTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderfeeenterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.FinanceBillTagLinksCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   enterpriseresource.FinanceBillTagLinksTable,
-			Columns: []string{enterpriseresource.FinanceBillTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(financebillenterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedFinanceBillTagLinksIDs(); len(nodes) > 0 && !_u.mutation.FinanceBillTagLinksCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   enterpriseresource.FinanceBillTagLinksTable,
-			Columns: []string{enterpriseresource.FinanceBillTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(financebillenterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.FinanceBillTagLinksIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   enterpriseresource.FinanceBillTagLinksTable,
-			Columns: []string{enterpriseresource.FinanceBillTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(financebillenterprisetag.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1313,25 +1012,6 @@ func (_u *EnterpriseResourceUpdateOne) SetShippingText(v *EnterpriseResourceShip
 	return _u.SetShippingTextID(v.ID)
 }
 
-// SetTagID sets the "tag" edge to the EnterpriseTag entity by ID.
-func (_u *EnterpriseResourceUpdateOne) SetTagID(id uuid.UUID) *EnterpriseResourceUpdateOne {
-	_u.mutation.SetTagID(id)
-	return _u
-}
-
-// SetNillableTagID sets the "tag" edge to the EnterpriseTag entity by ID if the given value is not nil.
-func (_u *EnterpriseResourceUpdateOne) SetNillableTagID(id *uuid.UUID) *EnterpriseResourceUpdateOne {
-	if id != nil {
-		_u = _u.SetTagID(*id)
-	}
-	return _u
-}
-
-// SetTag sets the "tag" edge to the EnterpriseTag entity.
-func (_u *EnterpriseResourceUpdateOne) SetTag(v *EnterpriseTag) *EnterpriseResourceUpdateOne {
-	return _u.SetTagID(v.ID)
-}
-
 // AddPartnerLinkIDs adds the "partner_links" edge to the EnterpriseResourcePartner entity by IDs.
 func (_u *EnterpriseResourceUpdateOne) AddPartnerLinkIDs(ids ...uuid.UUID) *EnterpriseResourceUpdateOne {
 	_u.mutation.AddPartnerLinkIDs(ids...)
@@ -1377,51 +1057,6 @@ func (_u *EnterpriseResourceUpdateOne) AddAddressTypes(v ...*EnterpriseResourceA
 	return _u.AddAddressTypeIDs(ids...)
 }
 
-// AddOrderTagLinkIDs adds the "order_tag_links" edge to the OrderEnterpriseTag entity by IDs.
-func (_u *EnterpriseResourceUpdateOne) AddOrderTagLinkIDs(ids ...uuid.UUID) *EnterpriseResourceUpdateOne {
-	_u.mutation.AddOrderTagLinkIDs(ids...)
-	return _u
-}
-
-// AddOrderTagLinks adds the "order_tag_links" edges to the OrderEnterpriseTag entity.
-func (_u *EnterpriseResourceUpdateOne) AddOrderTagLinks(v ...*OrderEnterpriseTag) *EnterpriseResourceUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddOrderTagLinkIDs(ids...)
-}
-
-// AddOrderFeeTagLinkIDs adds the "order_fee_tag_links" edge to the OrderFeeEnterpriseTag entity by IDs.
-func (_u *EnterpriseResourceUpdateOne) AddOrderFeeTagLinkIDs(ids ...uuid.UUID) *EnterpriseResourceUpdateOne {
-	_u.mutation.AddOrderFeeTagLinkIDs(ids...)
-	return _u
-}
-
-// AddOrderFeeTagLinks adds the "order_fee_tag_links" edges to the OrderFeeEnterpriseTag entity.
-func (_u *EnterpriseResourceUpdateOne) AddOrderFeeTagLinks(v ...*OrderFeeEnterpriseTag) *EnterpriseResourceUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddOrderFeeTagLinkIDs(ids...)
-}
-
-// AddFinanceBillTagLinkIDs adds the "finance_bill_tag_links" edge to the FinanceBillEnterpriseTag entity by IDs.
-func (_u *EnterpriseResourceUpdateOne) AddFinanceBillTagLinkIDs(ids ...uuid.UUID) *EnterpriseResourceUpdateOne {
-	_u.mutation.AddFinanceBillTagLinkIDs(ids...)
-	return _u
-}
-
-// AddFinanceBillTagLinks adds the "finance_bill_tag_links" edges to the FinanceBillEnterpriseTag entity.
-func (_u *EnterpriseResourceUpdateOne) AddFinanceBillTagLinks(v ...*FinanceBillEnterpriseTag) *EnterpriseResourceUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddFinanceBillTagLinkIDs(ids...)
-}
-
 // Mutation returns the EnterpriseResourceMutation object of the builder.
 func (_u *EnterpriseResourceUpdateOne) Mutation() *EnterpriseResourceMutation {
 	return _u.mutation
@@ -1460,12 +1095,6 @@ func (_u *EnterpriseResourceUpdateOne) ClearParty() *EnterpriseResourceUpdateOne
 // ClearShippingText clears the "shipping_text" edge to the EnterpriseResourceShippingText entity.
 func (_u *EnterpriseResourceUpdateOne) ClearShippingText() *EnterpriseResourceUpdateOne {
 	_u.mutation.ClearShippingText()
-	return _u
-}
-
-// ClearTag clears the "tag" edge to the EnterpriseTag entity.
-func (_u *EnterpriseResourceUpdateOne) ClearTag() *EnterpriseResourceUpdateOne {
-	_u.mutation.ClearTag()
 	return _u
 }
 
@@ -1530,69 +1159,6 @@ func (_u *EnterpriseResourceUpdateOne) RemoveAddressTypes(v ...*EnterpriseResour
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAddressTypeIDs(ids...)
-}
-
-// ClearOrderTagLinks clears all "order_tag_links" edges to the OrderEnterpriseTag entity.
-func (_u *EnterpriseResourceUpdateOne) ClearOrderTagLinks() *EnterpriseResourceUpdateOne {
-	_u.mutation.ClearOrderTagLinks()
-	return _u
-}
-
-// RemoveOrderTagLinkIDs removes the "order_tag_links" edge to OrderEnterpriseTag entities by IDs.
-func (_u *EnterpriseResourceUpdateOne) RemoveOrderTagLinkIDs(ids ...uuid.UUID) *EnterpriseResourceUpdateOne {
-	_u.mutation.RemoveOrderTagLinkIDs(ids...)
-	return _u
-}
-
-// RemoveOrderTagLinks removes "order_tag_links" edges to OrderEnterpriseTag entities.
-func (_u *EnterpriseResourceUpdateOne) RemoveOrderTagLinks(v ...*OrderEnterpriseTag) *EnterpriseResourceUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveOrderTagLinkIDs(ids...)
-}
-
-// ClearOrderFeeTagLinks clears all "order_fee_tag_links" edges to the OrderFeeEnterpriseTag entity.
-func (_u *EnterpriseResourceUpdateOne) ClearOrderFeeTagLinks() *EnterpriseResourceUpdateOne {
-	_u.mutation.ClearOrderFeeTagLinks()
-	return _u
-}
-
-// RemoveOrderFeeTagLinkIDs removes the "order_fee_tag_links" edge to OrderFeeEnterpriseTag entities by IDs.
-func (_u *EnterpriseResourceUpdateOne) RemoveOrderFeeTagLinkIDs(ids ...uuid.UUID) *EnterpriseResourceUpdateOne {
-	_u.mutation.RemoveOrderFeeTagLinkIDs(ids...)
-	return _u
-}
-
-// RemoveOrderFeeTagLinks removes "order_fee_tag_links" edges to OrderFeeEnterpriseTag entities.
-func (_u *EnterpriseResourceUpdateOne) RemoveOrderFeeTagLinks(v ...*OrderFeeEnterpriseTag) *EnterpriseResourceUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveOrderFeeTagLinkIDs(ids...)
-}
-
-// ClearFinanceBillTagLinks clears all "finance_bill_tag_links" edges to the FinanceBillEnterpriseTag entity.
-func (_u *EnterpriseResourceUpdateOne) ClearFinanceBillTagLinks() *EnterpriseResourceUpdateOne {
-	_u.mutation.ClearFinanceBillTagLinks()
-	return _u
-}
-
-// RemoveFinanceBillTagLinkIDs removes the "finance_bill_tag_links" edge to FinanceBillEnterpriseTag entities by IDs.
-func (_u *EnterpriseResourceUpdateOne) RemoveFinanceBillTagLinkIDs(ids ...uuid.UUID) *EnterpriseResourceUpdateOne {
-	_u.mutation.RemoveFinanceBillTagLinkIDs(ids...)
-	return _u
-}
-
-// RemoveFinanceBillTagLinks removes "finance_bill_tag_links" edges to FinanceBillEnterpriseTag entities.
-func (_u *EnterpriseResourceUpdateOne) RemoveFinanceBillTagLinks(v ...*FinanceBillEnterpriseTag) *EnterpriseResourceUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveFinanceBillTagLinkIDs(ids...)
 }
 
 // Where appends a list predicates to the EnterpriseResourceUpdate builder.
@@ -1889,35 +1455,6 @@ func (_u *EnterpriseResourceUpdateOne) sqlSave(ctx context.Context) (_node *Ente
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if _u.mutation.TagCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
-			Table:   enterpriseresource.TagTable,
-			Columns: []string{enterpriseresource.TagColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(enterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.TagIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
-			Table:   enterpriseresource.TagTable,
-			Columns: []string{enterpriseresource.TagColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(enterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if _u.mutation.PartnerLinksCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -2046,141 +1583,6 @@ func (_u *EnterpriseResourceUpdateOne) sqlSave(ctx context.Context) (_node *Ente
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(enterpriseresourceaddresstype.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.OrderTagLinksCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   enterpriseresource.OrderTagLinksTable,
-			Columns: []string{enterpriseresource.OrderTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedOrderTagLinksIDs(); len(nodes) > 0 && !_u.mutation.OrderTagLinksCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   enterpriseresource.OrderTagLinksTable,
-			Columns: []string{enterpriseresource.OrderTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.OrderTagLinksIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   enterpriseresource.OrderTagLinksTable,
-			Columns: []string{enterpriseresource.OrderTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.OrderFeeTagLinksCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   enterpriseresource.OrderFeeTagLinksTable,
-			Columns: []string{enterpriseresource.OrderFeeTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderfeeenterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedOrderFeeTagLinksIDs(); len(nodes) > 0 && !_u.mutation.OrderFeeTagLinksCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   enterpriseresource.OrderFeeTagLinksTable,
-			Columns: []string{enterpriseresource.OrderFeeTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderfeeenterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.OrderFeeTagLinksIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   enterpriseresource.OrderFeeTagLinksTable,
-			Columns: []string{enterpriseresource.OrderFeeTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderfeeenterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.FinanceBillTagLinksCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   enterpriseresource.FinanceBillTagLinksTable,
-			Columns: []string{enterpriseresource.FinanceBillTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(financebillenterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedFinanceBillTagLinksIDs(); len(nodes) > 0 && !_u.mutation.FinanceBillTagLinksCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   enterpriseresource.FinanceBillTagLinksTable,
-			Columns: []string{enterpriseresource.FinanceBillTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(financebillenterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.FinanceBillTagLinksIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   enterpriseresource.FinanceBillTagLinksTable,
-			Columns: []string{enterpriseresource.FinanceBillTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(financebillenterprisetag.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

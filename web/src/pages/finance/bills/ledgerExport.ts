@@ -5,10 +5,6 @@ import { formatDate } from '@/utils/format';
 
 export const billExportColumns: CsvColumn<API.FinanceBill>[] = [
   {
-    header: '标签',
-    value: (row) => row.tags?.map((tag) => tag.name).join('；'),
-  },
-  {
     header: '方向',
     value: (row) =>
       row.direction === 'RECEIVABLE'

@@ -19,11 +19,6 @@ describe('bills 台账导出字段', () => {
       netAmount: '-15300.00000000',
       exchangeRate: '6.71830000',
       baseCurrencyAmount: '-103210.88000000',
-      tags: [
-        {
-          name: '重点客户',
-        },
-      ],
       direction: 'RECEIVABLE',
       purpose: 'CORRECTION_REVERSAL',
       status: 2,
@@ -48,7 +43,6 @@ describe('bills 台账导出字段', () => {
       本位币币种: 'CNY',
       创建时间: '2026-10-17 22:44:52',
       备注: '备注,含"引号"\n第二行',
-      标签: '重点客户',
       方向: '应收',
       账单用途: '更正冲回',
       状态: '已确认',
@@ -69,12 +63,13 @@ describe('bills 台账导出字段', () => {
       逾期天数: '0',
     });
     expect(new Set(billExportColumns.map((column) => column.header)).size).toBe(
-      25,
+      24,
     );
     const csv = serializeCsv(
       [row, { ...row, currency: 'EUR', baseCurrency: 'HKD' }],
       billExportColumns,
     );
+    expect(csv).not.toContain('标签');
     expect(csv).toContain('EUR');
     expect(csv).toContain('HKD');
     expect(csv).not.toContain('[object Object]');

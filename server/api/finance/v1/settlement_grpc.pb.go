@@ -30,14 +30,6 @@ const (
 	SettlementService_ListBillSettlementAccountCandidates_FullMethodName       = "/finance.v1.SettlementService/ListBillSettlementAccountCandidates"
 	SettlementService_ListBillSettlementAccountUpdateCandidates_FullMethodName = "/finance.v1.SettlementService/ListBillSettlementAccountUpdateCandidates"
 	SettlementService_GetBill_FullMethodName                                   = "/finance.v1.SettlementService/GetBill"
-	SettlementService_ListFinanceBillTagOptions_FullMethodName                 = "/finance.v1.SettlementService/ListFinanceBillTagOptions"
-	SettlementService_ListFinanceBillTagAssignmentOptions_FullMethodName       = "/finance.v1.SettlementService/ListFinanceBillTagAssignmentOptions"
-	SettlementService_BatchAssignFinanceBillTags_FullMethodName                = "/finance.v1.SettlementService/BatchAssignFinanceBillTags"
-	SettlementService_BatchRemoveFinanceBillTags_FullMethodName                = "/finance.v1.SettlementService/BatchRemoveFinanceBillTags"
-	SettlementService_ListFinanceFeeTagOptions_FullMethodName                  = "/finance.v1.SettlementService/ListFinanceFeeTagOptions"
-	SettlementService_ListFinanceFeeTagAssignmentOptions_FullMethodName        = "/finance.v1.SettlementService/ListFinanceFeeTagAssignmentOptions"
-	SettlementService_BatchAssignFinanceFeeTags_FullMethodName                 = "/finance.v1.SettlementService/BatchAssignFinanceFeeTags"
-	SettlementService_BatchRemoveFinanceFeeTags_FullMethodName                 = "/finance.v1.SettlementService/BatchRemoveFinanceFeeTags"
 	SettlementService_CreateBill_FullMethodName                                = "/finance.v1.SettlementService/CreateBill"
 	SettlementService_PreviewBillBatch_FullMethodName                          = "/finance.v1.SettlementService/PreviewBillBatch"
 	SettlementService_CreateBillBatch_FullMethodName                           = "/finance.v1.SettlementService/CreateBillBatch"
@@ -123,16 +115,6 @@ type SettlementServiceClient interface {
 	ListBillSettlementAccountCandidates(ctx context.Context, in *ListBillSettlementAccountCandidatesRequest, opts ...grpc.CallOption) (*ListBillSettlementAccountCandidatesResponse, error)
 	ListBillSettlementAccountUpdateCandidates(ctx context.Context, in *ListBillSettlementAccountUpdateCandidatesRequest, opts ...grpc.CallOption) (*ListBillSettlementAccountUpdateCandidatesResponse, error)
 	GetBill(ctx context.Context, in *GetBillRequest, opts ...grpc.CallOption) (*GetBillResponse, error)
-	ListFinanceBillTagOptions(ctx context.Context, in *ListFinanceBillTagOptionsRequest, opts ...grpc.CallOption) (*ListFinanceBillTagOptionsResponse, error)
-	// ListFinanceBillTagAssignmentOptions 仅为账单标签写入提供候选，按 bill.update 可写组织过滤。
-	ListFinanceBillTagAssignmentOptions(ctx context.Context, in *ListFinanceBillTagAssignmentOptionsRequest, opts ...grpc.CallOption) (*ListFinanceBillTagAssignmentOptionsResponse, error)
-	BatchAssignFinanceBillTags(ctx context.Context, in *BatchAssignFinanceBillTagsRequest, opts ...grpc.CallOption) (*BatchAssignFinanceBillTagsResponse, error)
-	BatchRemoveFinanceBillTags(ctx context.Context, in *BatchRemoveFinanceBillTagsRequest, opts ...grpc.CallOption) (*BatchRemoveFinanceBillTagsResponse, error)
-	ListFinanceFeeTagOptions(ctx context.Context, in *ListFinanceFeeTagOptionsRequest, opts ...grpc.CallOption) (*ListFinanceFeeTagOptionsResponse, error)
-	// ListFinanceFeeTagAssignmentOptions 仅为费用标签写入提供候选，按 fee.tag 可写组织过滤。
-	ListFinanceFeeTagAssignmentOptions(ctx context.Context, in *ListFinanceFeeTagAssignmentOptionsRequest, opts ...grpc.CallOption) (*ListFinanceFeeTagAssignmentOptionsResponse, error)
-	BatchAssignFinanceFeeTags(ctx context.Context, in *BatchAssignFinanceFeeTagsRequest, opts ...grpc.CallOption) (*BatchAssignFinanceFeeTagsResponse, error)
-	BatchRemoveFinanceFeeTags(ctx context.Context, in *BatchRemoveFinanceFeeTagsRequest, opts ...grpc.CallOption) (*BatchRemoveFinanceFeeTagsResponse, error)
 	CreateBill(ctx context.Context, in *CreateBillRequest, opts ...grpc.CallOption) (*CreateBillResponse, error)
 	PreviewBillBatch(ctx context.Context, in *PreviewBillBatchRequest, opts ...grpc.CallOption) (*PreviewBillBatchResponse, error)
 	CreateBillBatch(ctx context.Context, in *CreateBillBatchRequest, opts ...grpc.CallOption) (*CreateBillBatchResponse, error)
@@ -332,86 +314,6 @@ func (c *settlementServiceClient) GetBill(ctx context.Context, in *GetBillReques
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetBillResponse)
 	err := c.cc.Invoke(ctx, SettlementService_GetBill_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *settlementServiceClient) ListFinanceBillTagOptions(ctx context.Context, in *ListFinanceBillTagOptionsRequest, opts ...grpc.CallOption) (*ListFinanceBillTagOptionsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListFinanceBillTagOptionsResponse)
-	err := c.cc.Invoke(ctx, SettlementService_ListFinanceBillTagOptions_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *settlementServiceClient) ListFinanceBillTagAssignmentOptions(ctx context.Context, in *ListFinanceBillTagAssignmentOptionsRequest, opts ...grpc.CallOption) (*ListFinanceBillTagAssignmentOptionsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListFinanceBillTagAssignmentOptionsResponse)
-	err := c.cc.Invoke(ctx, SettlementService_ListFinanceBillTagAssignmentOptions_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *settlementServiceClient) BatchAssignFinanceBillTags(ctx context.Context, in *BatchAssignFinanceBillTagsRequest, opts ...grpc.CallOption) (*BatchAssignFinanceBillTagsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(BatchAssignFinanceBillTagsResponse)
-	err := c.cc.Invoke(ctx, SettlementService_BatchAssignFinanceBillTags_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *settlementServiceClient) BatchRemoveFinanceBillTags(ctx context.Context, in *BatchRemoveFinanceBillTagsRequest, opts ...grpc.CallOption) (*BatchRemoveFinanceBillTagsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(BatchRemoveFinanceBillTagsResponse)
-	err := c.cc.Invoke(ctx, SettlementService_BatchRemoveFinanceBillTags_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *settlementServiceClient) ListFinanceFeeTagOptions(ctx context.Context, in *ListFinanceFeeTagOptionsRequest, opts ...grpc.CallOption) (*ListFinanceFeeTagOptionsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListFinanceFeeTagOptionsResponse)
-	err := c.cc.Invoke(ctx, SettlementService_ListFinanceFeeTagOptions_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *settlementServiceClient) ListFinanceFeeTagAssignmentOptions(ctx context.Context, in *ListFinanceFeeTagAssignmentOptionsRequest, opts ...grpc.CallOption) (*ListFinanceFeeTagAssignmentOptionsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListFinanceFeeTagAssignmentOptionsResponse)
-	err := c.cc.Invoke(ctx, SettlementService_ListFinanceFeeTagAssignmentOptions_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *settlementServiceClient) BatchAssignFinanceFeeTags(ctx context.Context, in *BatchAssignFinanceFeeTagsRequest, opts ...grpc.CallOption) (*BatchAssignFinanceFeeTagsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(BatchAssignFinanceFeeTagsResponse)
-	err := c.cc.Invoke(ctx, SettlementService_BatchAssignFinanceFeeTags_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *settlementServiceClient) BatchRemoveFinanceFeeTags(ctx context.Context, in *BatchRemoveFinanceFeeTagsRequest, opts ...grpc.CallOption) (*BatchRemoveFinanceFeeTagsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(BatchRemoveFinanceFeeTagsResponse)
-	err := c.cc.Invoke(ctx, SettlementService_BatchRemoveFinanceFeeTags_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1050,16 +952,6 @@ type SettlementServiceServer interface {
 	ListBillSettlementAccountCandidates(context.Context, *ListBillSettlementAccountCandidatesRequest) (*ListBillSettlementAccountCandidatesResponse, error)
 	ListBillSettlementAccountUpdateCandidates(context.Context, *ListBillSettlementAccountUpdateCandidatesRequest) (*ListBillSettlementAccountUpdateCandidatesResponse, error)
 	GetBill(context.Context, *GetBillRequest) (*GetBillResponse, error)
-	ListFinanceBillTagOptions(context.Context, *ListFinanceBillTagOptionsRequest) (*ListFinanceBillTagOptionsResponse, error)
-	// ListFinanceBillTagAssignmentOptions 仅为账单标签写入提供候选，按 bill.update 可写组织过滤。
-	ListFinanceBillTagAssignmentOptions(context.Context, *ListFinanceBillTagAssignmentOptionsRequest) (*ListFinanceBillTagAssignmentOptionsResponse, error)
-	BatchAssignFinanceBillTags(context.Context, *BatchAssignFinanceBillTagsRequest) (*BatchAssignFinanceBillTagsResponse, error)
-	BatchRemoveFinanceBillTags(context.Context, *BatchRemoveFinanceBillTagsRequest) (*BatchRemoveFinanceBillTagsResponse, error)
-	ListFinanceFeeTagOptions(context.Context, *ListFinanceFeeTagOptionsRequest) (*ListFinanceFeeTagOptionsResponse, error)
-	// ListFinanceFeeTagAssignmentOptions 仅为费用标签写入提供候选，按 fee.tag 可写组织过滤。
-	ListFinanceFeeTagAssignmentOptions(context.Context, *ListFinanceFeeTagAssignmentOptionsRequest) (*ListFinanceFeeTagAssignmentOptionsResponse, error)
-	BatchAssignFinanceFeeTags(context.Context, *BatchAssignFinanceFeeTagsRequest) (*BatchAssignFinanceFeeTagsResponse, error)
-	BatchRemoveFinanceFeeTags(context.Context, *BatchRemoveFinanceFeeTagsRequest) (*BatchRemoveFinanceFeeTagsResponse, error)
 	CreateBill(context.Context, *CreateBillRequest) (*CreateBillResponse, error)
 	PreviewBillBatch(context.Context, *PreviewBillBatchRequest) (*PreviewBillBatchResponse, error)
 	CreateBillBatch(context.Context, *CreateBillBatchRequest) (*CreateBillBatchResponse, error)
@@ -1187,30 +1079,6 @@ func (UnimplementedSettlementServiceServer) ListBillSettlementAccountUpdateCandi
 }
 func (UnimplementedSettlementServiceServer) GetBill(context.Context, *GetBillRequest) (*GetBillResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetBill not implemented")
-}
-func (UnimplementedSettlementServiceServer) ListFinanceBillTagOptions(context.Context, *ListFinanceBillTagOptionsRequest) (*ListFinanceBillTagOptionsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListFinanceBillTagOptions not implemented")
-}
-func (UnimplementedSettlementServiceServer) ListFinanceBillTagAssignmentOptions(context.Context, *ListFinanceBillTagAssignmentOptionsRequest) (*ListFinanceBillTagAssignmentOptionsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListFinanceBillTagAssignmentOptions not implemented")
-}
-func (UnimplementedSettlementServiceServer) BatchAssignFinanceBillTags(context.Context, *BatchAssignFinanceBillTagsRequest) (*BatchAssignFinanceBillTagsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method BatchAssignFinanceBillTags not implemented")
-}
-func (UnimplementedSettlementServiceServer) BatchRemoveFinanceBillTags(context.Context, *BatchRemoveFinanceBillTagsRequest) (*BatchRemoveFinanceBillTagsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method BatchRemoveFinanceBillTags not implemented")
-}
-func (UnimplementedSettlementServiceServer) ListFinanceFeeTagOptions(context.Context, *ListFinanceFeeTagOptionsRequest) (*ListFinanceFeeTagOptionsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListFinanceFeeTagOptions not implemented")
-}
-func (UnimplementedSettlementServiceServer) ListFinanceFeeTagAssignmentOptions(context.Context, *ListFinanceFeeTagAssignmentOptionsRequest) (*ListFinanceFeeTagAssignmentOptionsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListFinanceFeeTagAssignmentOptions not implemented")
-}
-func (UnimplementedSettlementServiceServer) BatchAssignFinanceFeeTags(context.Context, *BatchAssignFinanceFeeTagsRequest) (*BatchAssignFinanceFeeTagsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method BatchAssignFinanceFeeTags not implemented")
-}
-func (UnimplementedSettlementServiceServer) BatchRemoveFinanceFeeTags(context.Context, *BatchRemoveFinanceFeeTagsRequest) (*BatchRemoveFinanceFeeTagsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method BatchRemoveFinanceFeeTags not implemented")
 }
 func (UnimplementedSettlementServiceServer) CreateBill(context.Context, *CreateBillRequest) (*CreateBillResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateBill not implemented")
@@ -1610,150 +1478,6 @@ func _SettlementService_GetBill_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SettlementServiceServer).GetBill(ctx, req.(*GetBillRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _SettlementService_ListFinanceBillTagOptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListFinanceBillTagOptionsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SettlementServiceServer).ListFinanceBillTagOptions(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: SettlementService_ListFinanceBillTagOptions_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SettlementServiceServer).ListFinanceBillTagOptions(ctx, req.(*ListFinanceBillTagOptionsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _SettlementService_ListFinanceBillTagAssignmentOptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListFinanceBillTagAssignmentOptionsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SettlementServiceServer).ListFinanceBillTagAssignmentOptions(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: SettlementService_ListFinanceBillTagAssignmentOptions_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SettlementServiceServer).ListFinanceBillTagAssignmentOptions(ctx, req.(*ListFinanceBillTagAssignmentOptionsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _SettlementService_BatchAssignFinanceBillTags_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BatchAssignFinanceBillTagsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SettlementServiceServer).BatchAssignFinanceBillTags(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: SettlementService_BatchAssignFinanceBillTags_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SettlementServiceServer).BatchAssignFinanceBillTags(ctx, req.(*BatchAssignFinanceBillTagsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _SettlementService_BatchRemoveFinanceBillTags_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BatchRemoveFinanceBillTagsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SettlementServiceServer).BatchRemoveFinanceBillTags(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: SettlementService_BatchRemoveFinanceBillTags_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SettlementServiceServer).BatchRemoveFinanceBillTags(ctx, req.(*BatchRemoveFinanceBillTagsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _SettlementService_ListFinanceFeeTagOptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListFinanceFeeTagOptionsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SettlementServiceServer).ListFinanceFeeTagOptions(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: SettlementService_ListFinanceFeeTagOptions_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SettlementServiceServer).ListFinanceFeeTagOptions(ctx, req.(*ListFinanceFeeTagOptionsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _SettlementService_ListFinanceFeeTagAssignmentOptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListFinanceFeeTagAssignmentOptionsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SettlementServiceServer).ListFinanceFeeTagAssignmentOptions(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: SettlementService_ListFinanceFeeTagAssignmentOptions_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SettlementServiceServer).ListFinanceFeeTagAssignmentOptions(ctx, req.(*ListFinanceFeeTagAssignmentOptionsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _SettlementService_BatchAssignFinanceFeeTags_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BatchAssignFinanceFeeTagsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SettlementServiceServer).BatchAssignFinanceFeeTags(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: SettlementService_BatchAssignFinanceFeeTags_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SettlementServiceServer).BatchAssignFinanceFeeTags(ctx, req.(*BatchAssignFinanceFeeTagsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _SettlementService_BatchRemoveFinanceFeeTags_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BatchRemoveFinanceFeeTagsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SettlementServiceServer).BatchRemoveFinanceFeeTags(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: SettlementService_BatchRemoveFinanceFeeTags_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SettlementServiceServer).BatchRemoveFinanceFeeTags(ctx, req.(*BatchRemoveFinanceFeeTagsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2906,38 +2630,6 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetBill",
 			Handler:    _SettlementService_GetBill_Handler,
-		},
-		{
-			MethodName: "ListFinanceBillTagOptions",
-			Handler:    _SettlementService_ListFinanceBillTagOptions_Handler,
-		},
-		{
-			MethodName: "ListFinanceBillTagAssignmentOptions",
-			Handler:    _SettlementService_ListFinanceBillTagAssignmentOptions_Handler,
-		},
-		{
-			MethodName: "BatchAssignFinanceBillTags",
-			Handler:    _SettlementService_BatchAssignFinanceBillTags_Handler,
-		},
-		{
-			MethodName: "BatchRemoveFinanceBillTags",
-			Handler:    _SettlementService_BatchRemoveFinanceBillTags_Handler,
-		},
-		{
-			MethodName: "ListFinanceFeeTagOptions",
-			Handler:    _SettlementService_ListFinanceFeeTagOptions_Handler,
-		},
-		{
-			MethodName: "ListFinanceFeeTagAssignmentOptions",
-			Handler:    _SettlementService_ListFinanceFeeTagAssignmentOptions_Handler,
-		},
-		{
-			MethodName: "BatchAssignFinanceFeeTags",
-			Handler:    _SettlementService_BatchAssignFinanceFeeTags_Handler,
-		},
-		{
-			MethodName: "BatchRemoveFinanceFeeTags",
-			Handler:    _SettlementService_BatchRemoveFinanceFeeTags_Handler,
 		},
 		{
 			MethodName: "CreateBill",

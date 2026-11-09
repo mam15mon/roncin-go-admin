@@ -17,11 +17,9 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkapprovaldispatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/dingtalkinvitation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetaggroup"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionadjustment"
@@ -41,9 +39,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercargoitem"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockhousebillsnapshot"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlockrecord"
@@ -760,66 +756,6 @@ func (_c *OrganizationCreate) AddEnterpriseResources(v ...*EnterpriseResource) *
 		ids[i] = v[i].ID
 	}
 	return _c.AddEnterpriseResourceIDs(ids...)
-}
-
-// AddEnterpriseTagGroupIDs adds the "enterprise_tag_groups" edge to the EnterpriseTagGroup entity by IDs.
-func (_c *OrganizationCreate) AddEnterpriseTagGroupIDs(ids ...uuid.UUID) *OrganizationCreate {
-	_c.mutation.AddEnterpriseTagGroupIDs(ids...)
-	return _c
-}
-
-// AddEnterpriseTagGroups adds the "enterprise_tag_groups" edges to the EnterpriseTagGroup entity.
-func (_c *OrganizationCreate) AddEnterpriseTagGroups(v ...*EnterpriseTagGroup) *OrganizationCreate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddEnterpriseTagGroupIDs(ids...)
-}
-
-// AddOrderEnterpriseTagIDs adds the "order_enterprise_tags" edge to the OrderEnterpriseTag entity by IDs.
-func (_c *OrganizationCreate) AddOrderEnterpriseTagIDs(ids ...uuid.UUID) *OrganizationCreate {
-	_c.mutation.AddOrderEnterpriseTagIDs(ids...)
-	return _c
-}
-
-// AddOrderEnterpriseTags adds the "order_enterprise_tags" edges to the OrderEnterpriseTag entity.
-func (_c *OrganizationCreate) AddOrderEnterpriseTags(v ...*OrderEnterpriseTag) *OrganizationCreate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddOrderEnterpriseTagIDs(ids...)
-}
-
-// AddOrderFeeEnterpriseTagIDs adds the "order_fee_enterprise_tags" edge to the OrderFeeEnterpriseTag entity by IDs.
-func (_c *OrganizationCreate) AddOrderFeeEnterpriseTagIDs(ids ...uuid.UUID) *OrganizationCreate {
-	_c.mutation.AddOrderFeeEnterpriseTagIDs(ids...)
-	return _c
-}
-
-// AddOrderFeeEnterpriseTags adds the "order_fee_enterprise_tags" edges to the OrderFeeEnterpriseTag entity.
-func (_c *OrganizationCreate) AddOrderFeeEnterpriseTags(v ...*OrderFeeEnterpriseTag) *OrganizationCreate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddOrderFeeEnterpriseTagIDs(ids...)
-}
-
-// AddFinanceBillEnterpriseTagIDs adds the "finance_bill_enterprise_tags" edge to the FinanceBillEnterpriseTag entity by IDs.
-func (_c *OrganizationCreate) AddFinanceBillEnterpriseTagIDs(ids ...uuid.UUID) *OrganizationCreate {
-	_c.mutation.AddFinanceBillEnterpriseTagIDs(ids...)
-	return _c
-}
-
-// AddFinanceBillEnterpriseTags adds the "finance_bill_enterprise_tags" edges to the FinanceBillEnterpriseTag entity.
-func (_c *OrganizationCreate) AddFinanceBillEnterpriseTags(v ...*FinanceBillEnterpriseTag) *OrganizationCreate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddFinanceBillEnterpriseTagIDs(ids...)
 }
 
 // AddAttachmentAssetIDs adds the "attachment_assets" edge to the OrderAttachmentAsset entity by IDs.
@@ -1901,70 +1837,6 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(enterpriseresource.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.EnterpriseTagGroupsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.EnterpriseTagGroupsTable,
-			Columns: []string{organization.EnterpriseTagGroupsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(enterprisetaggroup.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.OrderEnterpriseTagsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.OrderEnterpriseTagsTable,
-			Columns: []string{organization.OrderEnterpriseTagsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.OrderFeeEnterpriseTagsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.OrderFeeEnterpriseTagsTable,
-			Columns: []string{organization.OrderFeeEnterpriseTagsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderfeeenterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.FinanceBillEnterpriseTagsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   organization.FinanceBillEnterpriseTagsTable,
-			Columns: []string{organization.FinanceBillEnterpriseTagsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(financebillenterprisetag.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

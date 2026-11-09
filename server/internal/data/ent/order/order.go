@@ -218,8 +218,6 @@ const (
 	EdgeFinanceCommissionAdjustments = "finance_commission_adjustments"
 	// EdgeCommissionAttributions holds the string denoting the commission_attributions edge name in mutations.
 	EdgeCommissionAttributions = "commission_attributions"
-	// EdgeEnterpriseTagLinks holds the string denoting the enterprise_tag_links edge name in mutations.
-	EdgeEnterpriseTagLinks = "enterprise_tag_links"
 	// EdgeSeaMasterBillLinks holds the string denoting the sea_master_bill_links edge name in mutations.
 	EdgeSeaMasterBillLinks = "sea_master_bill_links"
 	// EdgeSeaHouseBills holds the string denoting the sea_house_bills edge name in mutations.
@@ -393,13 +391,6 @@ const (
 	CommissionAttributionsInverseTable = "order_commission_attributions"
 	// CommissionAttributionsColumn is the table column denoting the commission_attributions relation/edge.
 	CommissionAttributionsColumn = "order_id"
-	// EnterpriseTagLinksTable is the table that holds the enterprise_tag_links relation/edge.
-	EnterpriseTagLinksTable = "order_enterprise_tags"
-	// EnterpriseTagLinksInverseTable is the table name for the OrderEnterpriseTag entity.
-	// It exists in this package in order to avoid circular dependency with the "orderenterprisetag" package.
-	EnterpriseTagLinksInverseTable = "order_enterprise_tags"
-	// EnterpriseTagLinksColumn is the table column denoting the enterprise_tag_links relation/edge.
-	EnterpriseTagLinksColumn = "order_id"
 	// SeaMasterBillLinksTable is the table that holds the sea_master_bill_links relation/edge.
 	SeaMasterBillLinksTable = "sea_master_bill_order_links"
 	// SeaMasterBillLinksInverseTable is the table name for the SeaMasterBillOrderLink entity.
@@ -1748,20 +1739,6 @@ func ByCommissionAttributions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderO
 	}
 }
 
-// ByEnterpriseTagLinksCount orders the results by enterprise_tag_links count.
-func ByEnterpriseTagLinksCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newEnterpriseTagLinksStep(), opts...)
-	}
-}
-
-// ByEnterpriseTagLinks orders the results by enterprise_tag_links terms.
-func ByEnterpriseTagLinks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newEnterpriseTagLinksStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // BySeaMasterBillLinksCount orders the results by sea_master_bill_links count.
 func BySeaMasterBillLinksCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -2067,13 +2044,6 @@ func newCommissionAttributionsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CommissionAttributionsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, CommissionAttributionsTable, CommissionAttributionsColumn),
-	)
-}
-func newEnterpriseTagLinksStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(EnterpriseTagLinksInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, EnterpriseTagLinksTable, EnterpriseTagLinksColumn),
 	)
 }
 func newSeaMasterBillLinksStep() *sqlgraph.Step {

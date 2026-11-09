@@ -138,7 +138,6 @@ func (Order) Edges() []ent.Edge {
 		edge.To("finance_commission_lines", FinanceCommissionLine.Type),
 		edge.To("finance_commission_adjustments", FinanceCommissionAdjustment.Type),
 		edge.To("commission_attributions", OrderCommissionAttribution.Type),
-		edge.To("enterprise_tag_links", OrderEnterpriseTag.Type),
 		edge.To("sea_master_bill_links", SeaMasterBillOrderLink.Type),
 		edge.To("sea_house_bills", SeaHouseBill.Type),
 		edge.To("sea_document_mode_change_events", SeaDocumentModeChangeEvent.Type),

@@ -260,69 +260,6 @@ export async function orderFeeServicePreviewOrderFeeSupplementApproval(
   );
 }
 
-/** 此处后端没有提供注释 GET /api/v1/orders/${param0}/fee-tag-options */
-export async function orderFeeServiceListOrderFeeTagOptions(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.OrderFeeServiceListOrderFeeTagOptionsParams,
-  options?: { [key: string]: any }
-) {
-  const { orderId: param0, ...queryParams } = params;
-  return request<API.ListOrderFeeTagOptionsResponse>(
-    `/api/v1/orders/${param0}/fee-tag-options`,
-    {
-      method: "GET",
-      params: {
-        ...queryParams,
-      },
-      ...(options || {}),
-    }
-  );
-}
-
-/** 此处后端没有提供注释 POST /api/v1/orders/${param0}/fee-tags/batch-assign */
-export async function orderFeeServiceBatchAssignOrderFeeTags(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.OrderFeeServiceBatchAssignOrderFeeTagsParams,
-  body: API.BatchAssignOrderFeeTagsRequest,
-  options?: { [key: string]: any }
-) {
-  const { orderId: param0, ...queryParams } = params;
-  return request<API.BatchAssignOrderFeeTagsResponse>(
-    `/api/v1/orders/${param0}/fee-tags/batch-assign`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      params: { ...queryParams },
-      data: body,
-      ...(options || {}),
-    }
-  );
-}
-
-/** 此处后端没有提供注释 POST /api/v1/orders/${param0}/fee-tags/batch-remove */
-export async function orderFeeServiceBatchRemoveOrderFeeTags(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.OrderFeeServiceBatchRemoveOrderFeeTagsParams,
-  body: API.BatchRemoveOrderFeeTagsRequest,
-  options?: { [key: string]: any }
-) {
-  const { orderId: param0, ...queryParams } = params;
-  return request<API.BatchRemoveOrderFeeTagsResponse>(
-    `/api/v1/orders/${param0}/fee-tags/batch-remove`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      params: { ...queryParams },
-      data: body,
-      ...(options || {}),
-    }
-  );
-}
-
 /** ListFees 获取指定订单的费用列表。 GET /api/v1/orders/${param0}/fees */
 export async function orderFeeServiceListFees(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -401,7 +338,7 @@ export async function orderFeeServiceRemoveFee(
 
 /** BulkRemoveOrderFees 批量物理删除订单未建账费用：整批单一事务，被有效账单
  关联占用、补录来源、版本冲突或越订单任一不满足时整批回滚并返回具体费用与
- 原因；费用标签关联随删除级联清理，历史账单行快照保留、来源引用置空。 POST /api/v1/orders/${param0}/fees/bulk-remove */
+ 原因；历史账单行快照保留、来源引用置空。 POST /api/v1/orders/${param0}/fees/bulk-remove */
 export async function orderFeeServiceBulkRemoveOrderFees(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.OrderFeeServiceBulkRemoveOrderFeesParams,

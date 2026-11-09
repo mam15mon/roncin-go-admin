@@ -14,7 +14,6 @@ import {
   orderServiceListOrders,
   orderServiceListPersonnelOptions,
 } from '@/services/roncin/orderService';
-import { orderTagServiceListOrderTagOptions } from '@/services/roncin/orderTagService';
 import OrderListPage from './list';
 
 const locationState = vi.hoisted(() => ({
@@ -99,10 +98,6 @@ vi.mock('@/services/roncin/orderService', () => ({
   orderServiceListOrders: vi.fn().mockResolvedValue({ data: [], total: 0 }),
 }));
 
-vi.mock('@/services/roncin/orderTagService', () => ({
-  orderTagServiceListOrderTagOptions: vi.fn().mockResolvedValue({ tags: [] }),
-}));
-
 vi.mock('./components/fees/fee-review/OrderFeeReview', () => ({
   OrderFeeReviewDrawer: ({ orderId }: { orderId?: string }) =>
     orderId ? <div>审核订单：{orderId}</div> : null,
@@ -112,7 +107,6 @@ const mockGetMasterDataOptions = vi.mocked(getMasterDataOptions);
 const mockGetPorts = vi.mocked(getCachedPorts);
 const mockGetAirports = vi.mocked(getCachedAirports);
 const mockSearchPartners = vi.mocked(searchPartnerOptions);
-const mockListTagOptions = vi.mocked(orderTagServiceListOrderTagOptions);
 const mockListPersonnelOptions = vi.mocked(orderServiceListPersonnelOptions);
 const mockListOrders = vi.mocked(orderServiceListOrders);
 
@@ -122,7 +116,7 @@ describe('订单列表页未知业务类型 fail-closed', () => {
     locationState.pathname = '/orders/sea-import';
   });
 
-  it('未知 kind 展示 404 且不发起任何主数据、标签或人员请求', () => {
+  it('未知 kind 展示 404 且不发起任何主数据或人员请求', () => {
     renderWithClient(
       <App>
         <OrderListPage />
@@ -134,7 +128,6 @@ describe('订单列表页未知业务类型 fail-closed', () => {
     expect(mockGetPorts).not.toHaveBeenCalled();
     expect(mockGetAirports).not.toHaveBeenCalled();
     expect(mockSearchPartners).not.toHaveBeenCalled();
-    expect(mockListTagOptions).not.toHaveBeenCalled();
     expect(mockListPersonnelOptions).not.toHaveBeenCalled();
   });
 });

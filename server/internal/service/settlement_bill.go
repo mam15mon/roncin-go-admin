@@ -41,11 +41,6 @@ func (s *SettlementService) ListBills(ctx context.Context, request *v1.ListBills
 		}
 		filter.SettlementPartyID = &id
 	}
-	tagIDs, err := parseUUIDValues(request.GetTagIds(), biz.ErrFinanceBillInvalidArgument)
-	if err != nil {
-		return nil, biz.ErrFinanceBillInvalidArgument
-	}
-	filter.TagIDs = tagIDs
 	organizationIDs, err := organizationIDsForRequestedOrganization(principal, access.FinanceBillRead, false, request.OrganizationId)
 	if err != nil {
 		return nil, err
@@ -54,18 +49,9 @@ func (s *SettlementService) ListBills(ctx context.Context, request *v1.ListBills
 	if err != nil {
 		return nil, err
 	}
-	billIDs := make([]uuid.UUID, 0, len(result.Items))
-	for _, item := range result.Items {
-		billIDs = append(billIDs, item.ID)
-	}
-	billTags, err := s.tagUsecase.LoadFinanceBillTags(ctx, billIDs)
-	if err != nil {
-		return nil, err
-	}
 	data := make([]*v1.FinanceBill, 0, len(result.Items))
 	for _, item := range result.Items {
 		converted := financeBillToAPI(item)
-		converted.Tags = businessTagSummariesToFinanceAPI(billTags[item.ID])
 		data = append(data, converted)
 	}
 	return okList(ctx, &v1.ListBillsResponse{
@@ -208,12 +194,7 @@ func (s *SettlementService) GetBill(ctx context.Context, request *v1.GetBillRequ
 	if err != nil {
 		return nil, err
 	}
-	billTags, err := s.tagUsecase.LoadFinanceBillTags(ctx, []uuid.UUID{id})
-	if err != nil {
-		return nil, err
-	}
 	converted := financeBillToAPI(item)
-	converted.Tags = businessTagSummariesToFinanceAPI(billTags[id])
 	return ok(ctx, &v1.GetBillResponse{Data: converted}), nil
 }
 

@@ -41,33 +41,32 @@ const (
 	FinanceExchangeRateDisable = "system.finance.exchange_rate.disable"
 	// 财务在业务单据中手工调整订单费用汇率的独立权限（限应收应付同币种订单）。
 	FinanceOrderFeeExchangeRateOverride = "system.finance.order_fee.exchange_rate.override"
-	FinanceFeeSettingRead      = "system.finance.fee_setting.read"
-	FinanceFeeSettingCreate    = "system.finance.fee_setting.create"
-	FinanceFeeSettingUpdate    = "system.finance.fee_setting.update"
-	FinanceFeeRead             = "system.finance.fee.read"
-	FinanceFeeTag              = "system.finance.fee.tag"
-	FinanceBillConfigure       = "system.finance.bill.configure"
-	FinanceBillRead            = "system.finance.bill.read"
-	FinanceBillCreate          = "system.finance.bill.create"
-	FinanceBillUpdate          = "system.finance.bill.update"
-	FinanceBillConfirm         = "system.finance.bill.confirm"
-	FinanceInvoiceRead         = "system.finance.invoice.read"
-	FinanceInvoiceCreate       = "system.finance.invoice.create"
-	FinanceInvoiceUpdate       = "system.finance.invoice.update"
-	FinanceCashflowRead        = "system.finance.cashflow.read"
-	FinanceCashflowCreate      = "system.finance.cashflow.create"
-	FinanceCashflowUpdate      = "system.finance.cashflow.update"
-	FinanceVerificationRead    = "system.finance.verification.read"
-	FinanceVerificationCreate  = "system.finance.verification.create"
-	FinanceVerificationReverse = "system.finance.verification.reverse"
-	FinanceNettingRead         = "system.finance.netting.read"
-	FinanceNettingCreate       = "system.finance.netting.create"
-	FinanceNettingConfirm      = "system.finance.netting.confirm"
-	FinanceNettingReverse      = "system.finance.netting.reverse"
-	FinanceCommissionRead      = "system.finance.commission.read"
-	FinanceCommissionConfigure = "system.finance.commission.configure"
-	FinanceCommissionManage    = "system.finance.commission.manage"
-	FinanceCommissionExport    = "system.finance.commission.export"
+	FinanceFeeSettingRead               = "system.finance.fee_setting.read"
+	FinanceFeeSettingCreate             = "system.finance.fee_setting.create"
+	FinanceFeeSettingUpdate             = "system.finance.fee_setting.update"
+	FinanceFeeRead                      = "system.finance.fee.read"
+	FinanceBillConfigure                = "system.finance.bill.configure"
+	FinanceBillRead                     = "system.finance.bill.read"
+	FinanceBillCreate                   = "system.finance.bill.create"
+	FinanceBillUpdate                   = "system.finance.bill.update"
+	FinanceBillConfirm                  = "system.finance.bill.confirm"
+	FinanceInvoiceRead                  = "system.finance.invoice.read"
+	FinanceInvoiceCreate                = "system.finance.invoice.create"
+	FinanceInvoiceUpdate                = "system.finance.invoice.update"
+	FinanceCashflowRead                 = "system.finance.cashflow.read"
+	FinanceCashflowCreate               = "system.finance.cashflow.create"
+	FinanceCashflowUpdate               = "system.finance.cashflow.update"
+	FinanceVerificationRead             = "system.finance.verification.read"
+	FinanceVerificationCreate           = "system.finance.verification.create"
+	FinanceVerificationReverse          = "system.finance.verification.reverse"
+	FinanceNettingRead                  = "system.finance.netting.read"
+	FinanceNettingCreate                = "system.finance.netting.create"
+	FinanceNettingConfirm               = "system.finance.netting.confirm"
+	FinanceNettingReverse               = "system.finance.netting.reverse"
+	FinanceCommissionRead               = "system.finance.commission.read"
+	FinanceCommissionConfigure          = "system.finance.commission.configure"
+	FinanceCommissionManage             = "system.finance.commission.manage"
+	FinanceCommissionExport             = "system.finance.commission.export"
 
 	PartnerRead                 = "business.partner.read"
 	PartnerCreate               = "business.partner.create"
@@ -206,10 +205,10 @@ var manifest = append([]Permission{
 	{Key: AuditRead, Name: "查看审计日志", Group: "系统管理 · 审计", Description: "查看安全与业务操作审计"},
 	{Key: TaskRead, Name: "查看后台任务", Group: "系统管理 · 后台任务", Description: "查看后台任务执行状态"},
 	{Key: TaskRequeue, Name: "重新入队后台任务", Group: "系统管理 · 后台任务", Description: "重新入队失败或死信后台任务", Requires: []string{TaskRead}},
-	{Key: EnterpriseResourceRead, Name: "查看资源备忘", Group: "业务资料 · 企业资源 · 资源备忘", Description: "查看地址、备注、图片、标签和单证主体资源"},
-	{Key: EnterpriseResourceCreate, Name: "新建资源备忘", Group: "业务资料 · 企业资源 · 资源备忘", Description: "新建资源及标签组", Requires: []string{EnterpriseResourceRead}},
-	{Key: EnterpriseResourceUpdate, Name: "编辑资源备忘", Group: "业务资料 · 企业资源 · 资源备忘", Description: "编辑资源、标签组和企业关联", Requires: []string{EnterpriseResourceRead}},
-	{Key: EnterpriseResourceDelete, Name: "删除资源备忘", Group: "业务资料 · 企业资源 · 资源备忘", Description: "删除资源及空标签组", Requires: []string{EnterpriseResourceRead}},
+	{Key: EnterpriseResourceRead, Name: "查看资源备忘", Group: "业务资料 · 企业资源 · 资源备忘", Description: "查看地址、备注、图片和单证主体资源"},
+	{Key: EnterpriseResourceCreate, Name: "新建资源备忘", Group: "业务资料 · 企业资源 · 资源备忘", Description: "新建资源", Requires: []string{EnterpriseResourceRead}},
+	{Key: EnterpriseResourceUpdate, Name: "编辑资源备忘", Group: "业务资料 · 企业资源 · 资源备忘", Description: "编辑资源和企业关联", Requires: []string{EnterpriseResourceRead}},
+	{Key: EnterpriseResourceDelete, Name: "删除资源备忘", Group: "业务资料 · 企业资源 · 资源备忘", Description: "删除资源", Requires: []string{EnterpriseResourceRead}},
 	{Key: FinanceExchangeRateRead, Name: "查看汇率", Group: "费用管理 · 汇率", Description: "查看本公司业务汇率"},
 	{Key: FinanceExchangeRateCreate, Name: "新建汇率", Group: "费用管理 · 汇率", Description: "新建本公司业务汇率（含导入与一键同步）", Requires: []string{FinanceExchangeRateRead}},
 	{Key: FinanceExchangeRateUpdate, Name: "编辑汇率", Group: "费用管理 · 汇率", Description: "修改本公司业务汇率", Requires: []string{FinanceExchangeRateRead}},
@@ -219,7 +218,6 @@ var manifest = append([]Permission{
 	{Key: FinanceFeeSettingCreate, Name: "新建费用设置", Group: "费用管理 · 费用设置", Description: "新建费用设置及关联基础资料", Requires: []string{FinanceFeeSettingRead}},
 	{Key: FinanceFeeSettingUpdate, Name: "编辑费用设置", Group: "费用管理 · 费用设置", Description: "编辑和停用费用设置及关联基础资料", Requires: []string{FinanceFeeSettingRead}},
 	{Key: FinanceFeeRead, Name: "查看费用总台账", Group: "费用管理 · 费用总台账", Description: "查看当前组织全部业务线的应收应付费用"},
-	{Key: FinanceFeeTag, Name: "维护费用标签", Group: "费用管理 · 费用总台账", Description: "在费用总台账批量添加或移除业务标签", Requires: []string{FinanceFeeRead}},
 	{Key: FinanceBillConfigure, Name: "配置公司账单策略", Group: "费用管理 · 账单", Description: "维护已计费费用编辑与信用额度管控策略", Requires: []string{FinanceBillRead}},
 	{Key: FinanceBillRead, Name: "查看账单", Group: "费用管理 · 账单", Description: "查看应收应付账单及明细"},
 	{Key: FinanceBillCreate, Name: "创建账单", Group: "费用管理 · 账单", Description: "按结算单位聚合未建账费用创建账单", Requires: []string{FinanceBillRead}},

@@ -13,7 +13,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	currencyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
-	billtaglink "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
 	financebilllineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	financenettingallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	verificationallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
@@ -83,9 +82,6 @@ func (r *financeBillRepo) List(ctx context.Context, organizationIDs []uuid.UUID,
 	currentBusinessDate := time.Now().In(biz.ExchangeRateBusinessLocation()).Format("2006-01-02")
 	if filter.OnlyOverdue {
 		predicates = append(predicates, billOverduePredicate(currentBusinessDate))
-	}
-	if len(filter.TagIDs) > 0 {
-		predicates = append(predicates, financebillent.HasEnterpriseTagLinksWith(billtaglink.TagResourceIDIn(filter.TagIDs...)))
 	}
 	query := client.FinanceBill.Query().Where(predicates...)
 	matchedSummary, matchedErr := loadFinanceLedgerMatchedSummary(ctx, query.Clone().GroupBy(financebillent.FieldDirection, financebillent.FieldCurrency, financebillent.FieldBaseCurrency).Aggregate(financeLedgerMatchedAggregates(financebillent.FieldTotalAmount, financebillent.FieldBaseCurrencyAmount)...).Scan)

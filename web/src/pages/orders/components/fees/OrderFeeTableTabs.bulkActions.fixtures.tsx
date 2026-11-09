@@ -11,12 +11,9 @@ import { App } from 'antd';
 import type React from 'react';
 import { expect, vi } from 'vitest';
 import {
-  orderFeeServiceBatchAssignOrderFeeTags,
-  orderFeeServiceBatchRemoveOrderFeeTags,
   orderFeeServiceBulkRemoveOrderFees,
   orderFeeServiceBulkUpdateOrderFees,
   orderFeeServiceListFees,
-  orderFeeServiceListOrderFeeTagOptions,
   orderFeeServiceResolveFeeExchangeRate,
 } from '@/services/roncin/orderFeeService';
 import { RECEIVABLE } from './feeConstants';
@@ -29,23 +26,12 @@ vi.mock('@/services/roncin/orderFeeService', () => ({
   orderFeeServiceResolveFeeExchangeRate: vi.fn(),
   orderFeeServiceBulkUpdateOrderFees: vi.fn(),
   orderFeeServiceBulkRemoveOrderFees: vi.fn(),
-  orderFeeServiceListOrderFeeTagOptions: vi.fn(),
-  orderFeeServiceBatchAssignOrderFeeTags: vi.fn(),
-  orderFeeServiceBatchRemoveOrderFeeTags: vi.fn(),
 }));
 
 export const listFees = vi.mocked(orderFeeServiceListFees);
 export const resolveRate = vi.mocked(orderFeeServiceResolveFeeExchangeRate);
 export const bulkUpdate = vi.mocked(orderFeeServiceBulkUpdateOrderFees);
 export const bulkRemove = vi.mocked(orderFeeServiceBulkRemoveOrderFees);
-export const listTagOptions = vi.mocked(orderFeeServiceListOrderFeeTagOptions);
-export const batchAssignTags = vi.mocked(
-  orderFeeServiceBatchAssignOrderFeeTags,
-);
-export const batchRemoveTags = vi.mocked(
-  orderFeeServiceBatchRemoveOrderFeeTags,
-);
-
 /** 模拟 antd Select：点开下拉并选择可见选项。 */
 export async function pickSelectOption(combobox: Element, name: string) {
   fireEvent.mouseDown(combobox);
@@ -189,24 +175,5 @@ export function resetBulkActionMocks() {
   bulkRemove.mockReset();
   bulkRemove.mockResolvedValue({ removedCount: 0 } as Awaited<
     ReturnType<typeof bulkRemove>
-  >);
-  listTagOptions.mockReset();
-  listTagOptions.mockResolvedValue({
-    tags: [
-      {
-        id: 'tag-1',
-        name: '重点单',
-        groupName: '运营',
-        enabled: true,
-      },
-    ],
-  } as Awaited<ReturnType<typeof listTagOptions>>);
-  batchAssignTags.mockReset();
-  batchAssignTags.mockResolvedValue({ assignedCount: 0 } as Awaited<
-    ReturnType<typeof batchAssignTags>
-  >);
-  batchRemoveTags.mockReset();
-  batchRemoveTags.mockResolvedValue({ removedCount: 0 } as Awaited<
-    ReturnType<typeof batchRemoveTags>
   >);
 }

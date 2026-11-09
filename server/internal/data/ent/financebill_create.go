@@ -15,7 +15,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
@@ -576,21 +575,6 @@ func (_c *FinanceBillCreate) AddNettingAllocations(v ...*FinanceNettingAllocatio
 		ids[i] = v[i].ID
 	}
 	return _c.AddNettingAllocationIDs(ids...)
-}
-
-// AddEnterpriseTagLinkIDs adds the "enterprise_tag_links" edge to the FinanceBillEnterpriseTag entity by IDs.
-func (_c *FinanceBillCreate) AddEnterpriseTagLinkIDs(ids ...uuid.UUID) *FinanceBillCreate {
-	_c.mutation.AddEnterpriseTagLinkIDs(ids...)
-	return _c
-}
-
-// AddEnterpriseTagLinks adds the "enterprise_tag_links" edges to the FinanceBillEnterpriseTag entity.
-func (_c *FinanceBillCreate) AddEnterpriseTagLinks(v ...*FinanceBillEnterpriseTag) *FinanceBillCreate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddEnterpriseTagLinkIDs(ids...)
 }
 
 // Mutation returns the FinanceBillMutation object of the builder.
@@ -1196,22 +1180,6 @@ func (_c *FinanceBillCreate) createSpec() (*FinanceBill, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financenettingallocation.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.EnterpriseTagLinksIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   financebill.EnterpriseTagLinksTable,
-			Columns: []string{financebill.EnterpriseTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(financebillenterprisetag.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

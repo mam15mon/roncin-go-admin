@@ -161,7 +161,7 @@ func TestOrderCreateBlocksExceededCustomerInInterventionMode(t *testing.T) {
 	creditControl := NewPartnerCreditUsecase(&partnerCreditRepoStub{summaries: map[uuid.UUID]*PartnerCreditSummary{
 		exceededCustomerID: {PartnerID: exceededCustomerID, CreditLimitBase: &creditLimit, UnsettledReceivableBase: decimal.NewFromInt(200)},
 	}}, NewFinanceCustomSettingUsecase(&interventionModeSettingRepo{allowSelection: false}))
-	usecase := NewOrderUsecase(&orderRepoStub{}, nil, &seaMasterBillRepoStub{}, nil, creditControl, nil)
+	usecase := NewOrderUsecase(&orderRepoStub{}, &seaMasterBillRepoStub{}, nil, creditControl, nil)
 	directMode := SeaDocumentStructureDirect
 	commissionUserID := uuid.New()
 	input := &Order{
@@ -189,7 +189,7 @@ func TestOrderCreateBlocksExceededCustomerInInterventionMode(t *testing.T) {
 	}
 
 	// 仅提醒模式（默认）下同一客户放行，行为与额度上线前一致。
-	reminderUsecase := NewOrderUsecase(&orderRepoStub{}, nil, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
+	reminderUsecase := NewOrderUsecase(&orderRepoStub{}, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
 	if _, err := reminderUsecase.Create(context.Background(), organizationID, uuid.New(), input); err != nil {
 		t.Fatalf("仅提醒模式下超额客户应放行: %v", err)
 	}
@@ -197,7 +197,7 @@ func TestOrderCreateBlocksExceededCustomerInInterventionMode(t *testing.T) {
 
 func TestOrderCreateAudits(t *testing.T) {
 	repo := &orderRepoStub{}
-	usecase := NewOrderUsecase(repo, nil, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
+	usecase := NewOrderUsecase(repo, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	customerID := uuid.New()
@@ -238,7 +238,7 @@ func TestOrderCreateAudits(t *testing.T) {
 }
 
 func TestOrderRejectsInvalidAggregateAndDraftRollback(t *testing.T) {
-	usecase := NewOrderUsecase(&orderRepoStub{current: &Order{BusinessType: OrderBusinessSE, FlowStatus: OrderFlowBooked, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, Version: 1}}, nil, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
+	usecase := NewOrderUsecase(&orderRepoStub{current: &Order{BusinessType: OrderBusinessSE, FlowStatus: OrderFlowBooked, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, Version: 1}}, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	duplicateID := uuid.New()
@@ -422,7 +422,7 @@ func TestOrderBreakBulkRejectsContainerPlanAndVGM(t *testing.T) {
 
 func TestOrderUpdateRejectsChangingContainerOrderToNonFCL(t *testing.T) {
 	repo := &orderRepoStub{hasContainers: true}
-	usecase := NewOrderUsecase(repo, nil, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
+	usecase := NewOrderUsecase(repo, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
 	breakBulk := OrderShipmentBreakBulk
 	shippingLineID := uuid.New()
 	input := &Order{
@@ -445,7 +445,7 @@ func TestOrderCheckReferenceNormalizesScopeAndReturnsMatch(t *testing.T) {
 	customerID := uuid.New()
 	match := &OrderReferenceMatch{OrderID: uuid.New(), OrderNo: "SE0001"}
 	repo := &orderRepoStub{referenceMatch: match}
-	usecase := NewOrderUsecase(repo, nil, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
+	usecase := NewOrderUsecase(repo, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
 
 	result, err := usecase.CheckReference(context.Background(), organizationID, OrderReferenceCheck{
 		ReferenceType: OrderReferenceCustomer,
@@ -470,7 +470,7 @@ func TestOrderCheckReferenceNormalizesScopeAndReturnsMatch(t *testing.T) {
 
 func TestOrderTransitionValidatesEdgeAndAudits(t *testing.T) {
 	repo := &orderRepoStub{current: &Order{BusinessType: OrderBusinessSE, FlowStatus: OrderFlowDraft, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, Version: 1}}
-	usecase := NewOrderUsecase(repo, nil, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
+	usecase := NewOrderUsecase(repo, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	id := uuid.New()
@@ -514,7 +514,7 @@ func TestOrderAllowedTargetFlowStatusesFollowDomainState(t *testing.T) {
 func TestOrderTerminationTransitionRequiresReasonAndValidEdge(t *testing.T) {
 	terminationType := OrderTerminationCustomsReturn
 	repo := &orderRepoStub{current: &Order{BusinessType: OrderBusinessSE, FlowStatus: OrderFlowSpaceAllocated, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, Version: 4}}
-	usecase := NewOrderUsecase(repo, nil, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
+	usecase := NewOrderUsecase(repo, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
 	organizationID := uuid.New()
 	actorID := uuid.New()
 	id := uuid.New()
@@ -556,7 +556,7 @@ func TestOrderClosureRequiresTerminalBusinessAndNoBlockers(t *testing.T) {
 	for _, testCase := range blockedCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			repo := &orderRepoStub{closureReadiness: testCase.readiness}
-			usecase := NewOrderUsecase(repo, nil, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
+			usecase := NewOrderUsecase(repo, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
 			_, err := usecase.TransitionClosure(context.Background(), organizationID, actorID, id, 8, OrderClosureClosed, "确认结案")
 			detail := errors.FromError(err)
 			if detail.Code != 409 || detail.Reason != ErrOrderClosureBlocked.Reason || detail.Message != testCase.message || repo.closureEvent != nil {
@@ -566,7 +566,7 @@ func TestOrderClosureRequiresTerminalBusinessAndNoBlockers(t *testing.T) {
 	}
 
 	repo := &orderRepoStub{closureReadiness: &OrderClosureReadiness{FlowStatus: OrderFlowSpaceAllocated, TerminationStatus: OrderTerminationTerminated, ClosureStatus: OrderClosureOpen}}
-	usecase := NewOrderUsecase(repo, nil, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
+	usecase := NewOrderUsecase(repo, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
 	updated, err := usecase.TransitionClosure(context.Background(), organizationID, actorID, id, 8, OrderClosureClosed, "  退关费用已处理  ")
 	if err != nil {
 		t.Fatalf("terminated order closure error = %v", err)
@@ -599,7 +599,7 @@ func TestOrderClosureReasonOptional(t *testing.T) {
 				current = OrderClosureClosed
 			}
 			repo := &orderRepoStub{closureReadiness: &OrderClosureReadiness{FlowStatus: OrderFlowDocumentReleased, TerminationStatus: OrderTerminationActive, ClosureStatus: current}}
-			uc := NewOrderUsecase(repo, nil, nil, nil, nil, nil)
+			uc := NewOrderUsecase(repo, nil, nil, nil, nil)
 			_, err := uc.TransitionClosure(context.Background(), uuid.New(), uuid.New(), uuid.New(), 1, tc.target, tc.reason)
 			if tc.wantErr {
 				if err != ErrOrderClosureInvalid || repo.closureEvent != nil {
@@ -615,7 +615,7 @@ func TestOrderClosureReasonOptional(t *testing.T) {
 func TestOrderClosurePendingSupplement(t *testing.T) {
 	readiness := &OrderClosureReadiness{FlowStatus: OrderFlowDocumentReleased, TerminationStatus: OrderTerminationActive, ClosureStatus: OrderClosureOpen, HasPendingFeeSupplement: true}
 	repo := &orderRepoStub{closureReadiness: readiness}
-	usecase := NewOrderUsecase(repo, nil, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
+	usecase := NewOrderUsecase(repo, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
 	organizationID, actorID, id := uuid.New(), uuid.New(), uuid.New()
 	_, err := usecase.TransitionClosure(context.Background(), organizationID, actorID, id, 8, OrderClosureClosed, "确认结案")
 	detail := errors.FromError(err)

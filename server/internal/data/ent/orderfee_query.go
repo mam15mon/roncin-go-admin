@@ -21,7 +21,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -46,7 +45,6 @@ type OrderFeeQuery struct {
 	withSourceFee                    *OrderFeeQuery
 	withTargetedCorrectionRequests   *OrderFeeCorrectionRequestQuery
 	withFinanceBillLines             *FinanceBillLineQuery
-	withEnterpriseTagLinks           *OrderFeeEnterpriseTagQuery
 	modifiers                        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -348,28 +346,6 @@ func (_q *OrderFeeQuery) QueryFinanceBillLines() *FinanceBillLineQuery {
 	return query
 }
 
-// QueryEnterpriseTagLinks chains the current query on the "enterprise_tag_links" edge.
-func (_q *OrderFeeQuery) QueryEnterpriseTagLinks() *OrderFeeEnterpriseTagQuery {
-	query := (&OrderFeeEnterpriseTagClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(orderfee.Table, orderfee.FieldID, selector),
-			sqlgraph.To(orderfeeenterprisetag.Table, orderfeeenterprisetag.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, orderfee.EnterpriseTagLinksTable, orderfee.EnterpriseTagLinksColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
 // First returns the first OrderFee entity from the query.
 // Returns a *NotFoundError when no OrderFee was found.
 func (_q *OrderFeeQuery) First(ctx context.Context) (*OrderFee, error) {
@@ -574,7 +550,6 @@ func (_q *OrderFeeQuery) Clone() *OrderFeeQuery {
 		withSourceFee:                    _q.withSourceFee.Clone(),
 		withTargetedCorrectionRequests:   _q.withTargetedCorrectionRequests.Clone(),
 		withFinanceBillLines:             _q.withFinanceBillLines.Clone(),
-		withEnterpriseTagLinks:           _q.withEnterpriseTagLinks.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -713,17 +688,6 @@ func (_q *OrderFeeQuery) WithFinanceBillLines(opts ...func(*FinanceBillLineQuery
 	return _q
 }
 
-// WithEnterpriseTagLinks tells the query-builder to eager-load the nodes that are connected to
-// the "enterprise_tag_links" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *OrderFeeQuery) WithEnterpriseTagLinks(opts ...func(*OrderFeeEnterpriseTagQuery)) *OrderFeeQuery {
-	query := (&OrderFeeEnterpriseTagClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withEnterpriseTagLinks = query
-	return _q
-}
-
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -802,7 +766,7 @@ func (_q *OrderFeeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ord
 	var (
 		nodes       = []*OrderFee{}
 		_spec       = _q.querySpec()
-		loadedTypes = [13]bool{
+		loadedTypes = [12]bool{
 			_q.withOrder != nil,
 			_q.withFeeSetting != nil,
 			_q.withSettlementParty != nil,
@@ -815,7 +779,6 @@ func (_q *OrderFeeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ord
 			_q.withSourceFee != nil,
 			_q.withTargetedCorrectionRequests != nil,
 			_q.withFinanceBillLines != nil,
-			_q.withEnterpriseTagLinks != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -916,15 +879,6 @@ func (_q *OrderFeeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ord
 		if err := _q.loadFinanceBillLines(ctx, query, nodes,
 			func(n *OrderFee) { n.Edges.FinanceBillLines = []*FinanceBillLine{} },
 			func(n *OrderFee, e *FinanceBillLine) { n.Edges.FinanceBillLines = append(n.Edges.FinanceBillLines, e) }); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withEnterpriseTagLinks; query != nil {
-		if err := _q.loadEnterpriseTagLinks(ctx, query, nodes,
-			func(n *OrderFee) { n.Edges.EnterpriseTagLinks = []*OrderFeeEnterpriseTag{} },
-			func(n *OrderFee, e *OrderFeeEnterpriseTag) {
-				n.Edges.EnterpriseTagLinks = append(n.Edges.EnterpriseTagLinks, e)
-			}); err != nil {
 			return nil, err
 		}
 	}
@@ -1295,36 +1249,6 @@ func (_q *OrderFeeQuery) loadFinanceBillLines(ctx context.Context, query *Financ
 	}
 	query.Where(predicate.FinanceBillLine(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(orderfee.FinanceBillLinesColumn), fks...))
-	}))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		fk := n.OrderFeeID
-		node, ok := nodeids[fk]
-		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "order_fee_id" returned %v for node %v`, fk, n.ID)
-		}
-		assign(node, n)
-	}
-	return nil
-}
-func (_q *OrderFeeQuery) loadEnterpriseTagLinks(ctx context.Context, query *OrderFeeEnterpriseTagQuery, nodes []*OrderFee, init func(*OrderFee), assign func(*OrderFee, *OrderFeeEnterpriseTag)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*OrderFee)
-	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
-		}
-	}
-	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(orderfeeenterprisetag.FieldOrderFeeID)
-	}
-	query.Where(predicate.OrderFeeEnterpriseTag(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(orderfee.EnterpriseTagLinksColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

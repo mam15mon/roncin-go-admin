@@ -24,7 +24,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeereviewevent"
@@ -1421,21 +1420,6 @@ func (_c *OrderCreate) AddCommissionAttributions(v ...*OrderCommissionAttributio
 	return _c.AddCommissionAttributionIDs(ids...)
 }
 
-// AddEnterpriseTagLinkIDs adds the "enterprise_tag_links" edge to the OrderEnterpriseTag entity by IDs.
-func (_c *OrderCreate) AddEnterpriseTagLinkIDs(ids ...uuid.UUID) *OrderCreate {
-	_c.mutation.AddEnterpriseTagLinkIDs(ids...)
-	return _c
-}
-
-// AddEnterpriseTagLinks adds the "enterprise_tag_links" edges to the OrderEnterpriseTag entity.
-func (_c *OrderCreate) AddEnterpriseTagLinks(v ...*OrderEnterpriseTag) *OrderCreate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddEnterpriseTagLinkIDs(ids...)
-}
-
 // AddSeaMasterBillLinkIDs adds the "sea_master_bill_links" edge to the SeaMasterBillOrderLink entity by IDs.
 func (_c *OrderCreate) AddSeaMasterBillLinkIDs(ids ...uuid.UUID) *OrderCreate {
 	_c.mutation.AddSeaMasterBillLinkIDs(ids...)
@@ -2713,22 +2697,6 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(ordercommissionattribution.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.EnterpriseTagLinksIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   order.EnterpriseTagLinksTable,
-			Columns: []string{order.EnterpriseTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

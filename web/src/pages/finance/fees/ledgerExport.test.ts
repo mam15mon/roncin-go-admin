@@ -19,11 +19,6 @@ describe('fees 台账导出字段', () => {
       netAmount: '-15300.00000000',
       exchangeRate: '6.71830000',
       baseCurrencyAmount: '-103210.88000000',
-      tags: [
-        {
-          name: '重点客户',
-        },
-      ],
       direction: 'PAYABLE',
       customerName: '委托甲',
       businessType: 'SE',
@@ -54,7 +49,6 @@ describe('fees 台账导出字段', () => {
       本位币币种: 'CNY',
       创建时间: '2026-10-17 22:44:52',
       备注: '备注,含"引号"\n第二行',
-      标签: '重点客户',
       属性: '应付',
       委托单位: '委托甲',
       业务类型: '海运出口',
@@ -80,12 +74,13 @@ describe('fees 台账导出字段', () => {
       更新时间: '2026-10-17 22:44:52',
     });
     expect(new Set(feeExportColumns.map((column) => column.header)).size).toBe(
-      30,
+      29,
     );
     const csv = serializeCsv(
       [row, { ...row, currency: 'EUR', baseCurrency: 'HKD' }],
       feeExportColumns,
     );
+    expect(csv).not.toContain('标签');
     expect(csv).toContain('EUR');
     expect(csv).toContain('HKD');
     expect(csv).not.toContain('[object Object]');

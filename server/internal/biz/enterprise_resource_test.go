@@ -118,3 +118,19 @@ func TestEnterpriseResourceBatchAuditHasNoZeroResourceID(t *testing.T) {
 		t.Fatalf("批量审计不应写入零 UUID: %q", audit.ResourceID)
 	}
 }
+
+func TestEnterpriseResourceRejectsRetiredTagType(t *testing.T) {
+	retired := EnterpriseResourceType("TAG")
+	if retired.Public() || retired.Party() || retired.BatchAssociable() {
+		t.Fatal("退役标签类型不应再提供资源能力")
+	}
+	if _, err := normalizeEnterpriseResource(&EnterpriseResource{
+		ResourceType: retired, ShortName: "旧标签", Remark: &EnterpriseResourceRemark{RemarkType: "ORDER", Content: "备注"},
+	}); err != ErrEnterpriseResourceInvalidArgument {
+		t.Fatalf("退役标签类型不应复用其他详情: %v", err)
+	}
+	usecase := &EnterpriseResourceUsecase{}
+	if _, _, err := usecase.List(t.Context(), uuid.New(), EnterpriseResourceListOptions{ResourceType: retired, Page: 1, PageSize: 20}); err != ErrEnterpriseResourceInvalidArgument {
+		t.Fatalf("退役标签列表应在访问仓储前拒绝: %v", err)
+	}
+}

@@ -64,10 +64,6 @@ type Tx struct {
 	EnterpriseResourceRemark *EnterpriseResourceRemarkClient
 	// EnterpriseResourceShippingText is the client for interacting with the EnterpriseResourceShippingText builders.
 	EnterpriseResourceShippingText *EnterpriseResourceShippingTextClient
-	// EnterpriseTag is the client for interacting with the EnterpriseTag builders.
-	EnterpriseTag *EnterpriseTagClient
-	// EnterpriseTagGroup is the client for interacting with the EnterpriseTagGroup builders.
-	EnterpriseTagGroup *EnterpriseTagGroupClient
 	// ExchangeRateImportBatch is the client for interacting with the ExchangeRateImportBatch builders.
 	ExchangeRateImportBatch *ExchangeRateImportBatchClient
 	// ExchangeRateSetting is the client for interacting with the ExchangeRateSetting builders.
@@ -80,8 +76,6 @@ type Tx struct {
 	FinanceBill *FinanceBillClient
 	// FinanceBillBatch is the client for interacting with the FinanceBillBatch builders.
 	FinanceBillBatch *FinanceBillBatchClient
-	// FinanceBillEnterpriseTag is the client for interacting with the FinanceBillEnterpriseTag builders.
-	FinanceBillEnterpriseTag *FinanceBillEnterpriseTagClient
 	// FinanceBillLine is the client for interacting with the FinanceBillLine builders.
 	FinanceBillLine *FinanceBillLineClient
 	// FinanceCashflow is the client for interacting with the FinanceCashflow builders.
@@ -148,14 +142,10 @@ type Tx struct {
 	OrderContainer *OrderContainerClient
 	// OrderContainerRequest is the client for interacting with the OrderContainerRequest builders.
 	OrderContainerRequest *OrderContainerRequestClient
-	// OrderEnterpriseTag is the client for interacting with the OrderEnterpriseTag builders.
-	OrderEnterpriseTag *OrderEnterpriseTagClient
 	// OrderFee is the client for interacting with the OrderFee builders.
 	OrderFee *OrderFeeClient
 	// OrderFeeCorrectionRequest is the client for interacting with the OrderFeeCorrectionRequest builders.
 	OrderFeeCorrectionRequest *OrderFeeCorrectionRequestClient
-	// OrderFeeEnterpriseTag is the client for interacting with the OrderFeeEnterpriseTag builders.
-	OrderFeeEnterpriseTag *OrderFeeEnterpriseTagClient
 	// OrderFeeReviewEvent is the client for interacting with the OrderFeeReviewEvent builders.
 	OrderFeeReviewEvent *OrderFeeReviewEventClient
 	// OrderFeeSupplementRequest is the client for interacting with the OrderFeeSupplementRequest builders.
@@ -407,15 +397,12 @@ func (tx *Tx) init() {
 	tx.EnterpriseResourceParty = NewEnterpriseResourcePartyClient(tx.config)
 	tx.EnterpriseResourceRemark = NewEnterpriseResourceRemarkClient(tx.config)
 	tx.EnterpriseResourceShippingText = NewEnterpriseResourceShippingTextClient(tx.config)
-	tx.EnterpriseTag = NewEnterpriseTagClient(tx.config)
-	tx.EnterpriseTagGroup = NewEnterpriseTagGroupClient(tx.config)
 	tx.ExchangeRateImportBatch = NewExchangeRateImportBatchClient(tx.config)
 	tx.ExchangeRateSetting = NewExchangeRateSettingClient(tx.config)
 	tx.FeeSetting = NewFeeSettingClient(tx.config)
 	tx.FeeSettingTemplate = NewFeeSettingTemplateClient(tx.config)
 	tx.FinanceBill = NewFinanceBillClient(tx.config)
 	tx.FinanceBillBatch = NewFinanceBillBatchClient(tx.config)
-	tx.FinanceBillEnterpriseTag = NewFinanceBillEnterpriseTagClient(tx.config)
 	tx.FinanceBillLine = NewFinanceBillLineClient(tx.config)
 	tx.FinanceCashflow = NewFinanceCashflowClient(tx.config)
 	tx.FinanceCommission = NewFinanceCommissionClient(tx.config)
@@ -449,10 +436,8 @@ func (tx *Tx) init() {
 	tx.OrderCommissionAttribution = NewOrderCommissionAttributionClient(tx.config)
 	tx.OrderContainer = NewOrderContainerClient(tx.config)
 	tx.OrderContainerRequest = NewOrderContainerRequestClient(tx.config)
-	tx.OrderEnterpriseTag = NewOrderEnterpriseTagClient(tx.config)
 	tx.OrderFee = NewOrderFeeClient(tx.config)
 	tx.OrderFeeCorrectionRequest = NewOrderFeeCorrectionRequestClient(tx.config)
-	tx.OrderFeeEnterpriseTag = NewOrderFeeEnterpriseTagClient(tx.config)
 	tx.OrderFeeReviewEvent = NewOrderFeeReviewEventClient(tx.config)
 	tx.OrderFeeSupplementRequest = NewOrderFeeSupplementRequestClient(tx.config)
 	tx.OrderLifecycleEvent = NewOrderLifecycleEventClient(tx.config)

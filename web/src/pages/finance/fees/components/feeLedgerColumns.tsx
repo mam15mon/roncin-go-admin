@@ -1,6 +1,5 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { Tag } from 'antd';
-import { BusinessTagList } from '@/components/business-tag/BusinessTagList';
 import type { RowColorsConfig } from '@/components/ui/finance-ledger-template';
 import {
   businessTypeMeta,
@@ -79,13 +78,6 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
       width: 50,
       fixed: 'left',
       search: false,
-    },
-    {
-      title: '标签',
-      dataIndex: 'tags',
-      width: 140,
-      search: false,
-      render: (_, row) => <BusinessTagList tags={row.tags} />,
     },
     {
       title: '所属公司',

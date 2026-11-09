@@ -177,7 +177,7 @@ export function FinanceLedgerTemplate<
           position: 'relative',
         }}
       >
-        {/* 0. 顶层全局筛选工具栏（如所属公司选择器、全局标签筛选） */}
+        {/* 0. 顶层全局筛选工具栏（如所属公司选择器） */}
         {topBar && (
           <Card
             size="small"

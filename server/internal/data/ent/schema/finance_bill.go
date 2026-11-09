@@ -73,7 +73,6 @@ func (FinanceBill) Edges() []ent.Edge {
 		edge.To("invoice_links", FinanceInvoiceBill.Type),
 		edge.To("verification_allocations", FinanceVerificationAllocation.Type),
 		edge.To("netting_allocations", FinanceNettingAllocation.Type),
-		edge.To("enterprise_tag_links", FinanceBillEnterpriseTag.Type),
 	}
 }
 

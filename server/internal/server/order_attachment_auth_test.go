@@ -12,7 +12,7 @@ import (
 func TestOrderAttachmentCommandsRequireTheirOwnOrderPermission(t *testing.T) {
 	org, otherOrg := uuid.New(), uuid.New()
 	target := &biz.Order{ID: uuid.New(), OrganizationID: org, BusinessType: biz.OrderBusinessSE}
-	uc := biz.NewOrderUsecase(&anchorAwareOrderRepoStub{order: target}, nil, nil, nil, newReminderModeCreditControl(), nil)
+	uc := biz.NewOrderUsecase(&anchorAwareOrderRepoStub{order: target}, nil, nil, newReminderModeCreditControl(), nil)
 	cases := []struct {
 		request   any
 		operation access.OrderOperation

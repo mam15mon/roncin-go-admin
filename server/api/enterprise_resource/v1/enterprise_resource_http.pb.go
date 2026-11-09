@@ -25,21 +25,17 @@ const OperationEnterpriseResourceServiceBatchRemoveAddressTypes = "/enterprise_r
 const OperationEnterpriseResourceServiceBatchRemoveAssignees = "/enterprise_resource.v1.EnterpriseResourceService/BatchRemoveAssignees"
 const OperationEnterpriseResourceServiceCommitEnterpriseResourceImport = "/enterprise_resource.v1.EnterpriseResourceService/CommitEnterpriseResourceImport"
 const OperationEnterpriseResourceServiceCreateEnterpriseResource = "/enterprise_resource.v1.EnterpriseResourceService/CreateEnterpriseResource"
-const OperationEnterpriseResourceServiceCreateEnterpriseTagGroup = "/enterprise_resource.v1.EnterpriseResourceService/CreateEnterpriseTagGroup"
 const OperationEnterpriseResourceServiceDeleteEnterpriseResource = "/enterprise_resource.v1.EnterpriseResourceService/DeleteEnterpriseResource"
-const OperationEnterpriseResourceServiceDeleteEnterpriseTagGroup = "/enterprise_resource.v1.EnterpriseResourceService/DeleteEnterpriseTagGroup"
 const OperationEnterpriseResourceServiceGetEnterpriseResource = "/enterprise_resource.v1.EnterpriseResourceService/GetEnterpriseResource"
 const OperationEnterpriseResourceServiceGetEnterpriseResourceCapabilities = "/enterprise_resource.v1.EnterpriseResourceService/GetEnterpriseResourceCapabilities"
 const OperationEnterpriseResourceServiceGetEnterpriseResourceImageAccess = "/enterprise_resource.v1.EnterpriseResourceService/GetEnterpriseResourceImageAccess"
 const OperationEnterpriseResourceServiceListEnterpriseResourceRegionOptions = "/enterprise_resource.v1.EnterpriseResourceService/ListEnterpriseResourceRegionOptions"
 const OperationEnterpriseResourceServiceListEnterpriseResources = "/enterprise_resource.v1.EnterpriseResourceService/ListEnterpriseResources"
-const OperationEnterpriseResourceServiceListEnterpriseTagGroups = "/enterprise_resource.v1.EnterpriseResourceService/ListEnterpriseTagGroups"
 const OperationEnterpriseResourceServicePrepareEnterpriseResourceImageUpload = "/enterprise_resource.v1.EnterpriseResourceService/PrepareEnterpriseResourceImageUpload"
 const OperationEnterpriseResourceServicePreviewEnterpriseResourceImport = "/enterprise_resource.v1.EnterpriseResourceService/PreviewEnterpriseResourceImport"
 const OperationEnterpriseResourceServiceSearchEnterpriseResourceAssigneeOptions = "/enterprise_resource.v1.EnterpriseResourceService/SearchEnterpriseResourceAssigneeOptions"
 const OperationEnterpriseResourceServiceSearchEnterpriseResourcePartnerOptions = "/enterprise_resource.v1.EnterpriseResourceService/SearchEnterpriseResourcePartnerOptions"
 const OperationEnterpriseResourceServiceUpdateEnterpriseResource = "/enterprise_resource.v1.EnterpriseResourceService/UpdateEnterpriseResource"
-const OperationEnterpriseResourceServiceUpdateEnterpriseTagGroup = "/enterprise_resource.v1.EnterpriseResourceService/UpdateEnterpriseTagGroup"
 
 type EnterpriseResourceServiceHTTPServer interface {
 	BatchAssignAddressTypes(context.Context, *BatchAssignAddressTypesRequest) (*BatchAssignAddressTypesResponse, error)
@@ -50,21 +46,17 @@ type EnterpriseResourceServiceHTTPServer interface {
 	BatchRemoveAssignees(context.Context, *BatchRemoveAssigneesRequest) (*BatchRemoveAssigneesResponse, error)
 	CommitEnterpriseResourceImport(context.Context, *CommitEnterpriseResourceImportRequest) (*CommitEnterpriseResourceImportResponse, error)
 	CreateEnterpriseResource(context.Context, *CreateEnterpriseResourceRequest) (*CreateEnterpriseResourceResponse, error)
-	CreateEnterpriseTagGroup(context.Context, *CreateEnterpriseTagGroupRequest) (*CreateEnterpriseTagGroupResponse, error)
 	DeleteEnterpriseResource(context.Context, *DeleteEnterpriseResourceRequest) (*DeleteEnterpriseResourceResponse, error)
-	DeleteEnterpriseTagGroup(context.Context, *DeleteEnterpriseTagGroupRequest) (*DeleteEnterpriseTagGroupResponse, error)
 	GetEnterpriseResource(context.Context, *GetEnterpriseResourceRequest) (*GetEnterpriseResourceResponse, error)
 	GetEnterpriseResourceCapabilities(context.Context, *GetEnterpriseResourceCapabilitiesRequest) (*GetEnterpriseResourceCapabilitiesResponse, error)
 	GetEnterpriseResourceImageAccess(context.Context, *GetEnterpriseResourceImageAccessRequest) (*GetEnterpriseResourceImageAccessResponse, error)
 	ListEnterpriseResourceRegionOptions(context.Context, *ListEnterpriseResourceRegionOptionsRequest) (*ListEnterpriseResourceRegionOptionsResponse, error)
 	ListEnterpriseResources(context.Context, *ListEnterpriseResourcesRequest) (*ListEnterpriseResourcesResponse, error)
-	ListEnterpriseTagGroups(context.Context, *ListEnterpriseTagGroupsRequest) (*ListEnterpriseTagGroupsResponse, error)
 	PrepareEnterpriseResourceImageUpload(context.Context, *PrepareEnterpriseResourceImageUploadRequest) (*PrepareEnterpriseResourceImageUploadResponse, error)
 	PreviewEnterpriseResourceImport(context.Context, *PreviewEnterpriseResourceImportRequest) (*PreviewEnterpriseResourceImportResponse, error)
 	SearchEnterpriseResourceAssigneeOptions(context.Context, *SearchEnterpriseResourceAssigneeOptionsRequest) (*SearchEnterpriseResourceAssigneeOptionsResponse, error)
 	SearchEnterpriseResourcePartnerOptions(context.Context, *SearchEnterpriseResourcePartnerOptionsRequest) (*SearchEnterpriseResourcePartnerOptionsResponse, error)
 	UpdateEnterpriseResource(context.Context, *UpdateEnterpriseResourceRequest) (*UpdateEnterpriseResourceResponse, error)
-	UpdateEnterpriseTagGroup(context.Context, *UpdateEnterpriseTagGroupRequest) (*UpdateEnterpriseTagGroupResponse, error)
 }
 
 func RegisterEnterpriseResourceServiceHTTPServer(s *http.Server, srv EnterpriseResourceServiceHTTPServer) {
@@ -86,10 +78,6 @@ func RegisterEnterpriseResourceServiceHTTPServer(s *http.Server, srv EnterpriseR
 	r.Handle("POST", "/api/v1/enterprise-resource-address-types/batch-remove", _EnterpriseResourceService_BatchRemoveAddressTypes0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/enterprise-resource-assignees/batch-assign", _EnterpriseResourceService_BatchAssignAssignees0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/enterprise-resource-assignees/batch-remove", _EnterpriseResourceService_BatchRemoveAssignees0_HTTP_Handler(srv))
-	r.Handle("GET", "/api/v1/enterprise-tag-groups", _EnterpriseResourceService_ListEnterpriseTagGroups0_HTTP_Handler(srv))
-	r.Handle("POST", "/api/v1/enterprise-tag-groups", _EnterpriseResourceService_CreateEnterpriseTagGroup0_HTTP_Handler(srv))
-	r.Handle("PUT", "/api/v1/enterprise-tag-groups/{id}", _EnterpriseResourceService_UpdateEnterpriseTagGroup0_HTTP_Handler(srv))
-	r.Handle("DELETE", "/api/v1/enterprise-tag-groups/{id}", _EnterpriseResourceService_DeleteEnterpriseTagGroup0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/enterprise-resources/import-preview", _EnterpriseResourceService_PreviewEnterpriseResourceImport0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/enterprise-resources/import-commit", _EnterpriseResourceService_CommitEnterpriseResourceImport0_HTTP_Handler(srv))
 }
@@ -429,88 +417,6 @@ func _EnterpriseResourceService_BatchRemoveAssignees0_HTTP_Handler(srv Enterpris
 	}
 }
 
-func _EnterpriseResourceService_ListEnterpriseTagGroups0_HTTP_Handler(srv EnterpriseResourceServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ListEnterpriseTagGroupsRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationEnterpriseResourceServiceListEnterpriseTagGroups)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListEnterpriseTagGroups(ctx, req.(*ListEnterpriseTagGroupsRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*ListEnterpriseTagGroupsResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _EnterpriseResourceService_CreateEnterpriseTagGroup0_HTTP_Handler(srv EnterpriseResourceServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in CreateEnterpriseTagGroupRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationEnterpriseResourceServiceCreateEnterpriseTagGroup)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.CreateEnterpriseTagGroup(ctx, req.(*CreateEnterpriseTagGroupRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*CreateEnterpriseTagGroupResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _EnterpriseResourceService_UpdateEnterpriseTagGroup0_HTTP_Handler(srv EnterpriseResourceServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in UpdateEnterpriseTagGroupRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationEnterpriseResourceServiceUpdateEnterpriseTagGroup)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.UpdateEnterpriseTagGroup(ctx, req.(*UpdateEnterpriseTagGroupRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*UpdateEnterpriseTagGroupResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _EnterpriseResourceService_DeleteEnterpriseTagGroup0_HTTP_Handler(srv EnterpriseResourceServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in DeleteEnterpriseTagGroupRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindVars(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationEnterpriseResourceServiceDeleteEnterpriseTagGroup)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.DeleteEnterpriseTagGroup(ctx, req.(*DeleteEnterpriseTagGroupRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*DeleteEnterpriseTagGroupResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
 func _EnterpriseResourceService_PreviewEnterpriseResourceImport0_HTTP_Handler(srv EnterpriseResourceServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in PreviewEnterpriseResourceImportRequest
@@ -558,21 +464,17 @@ type EnterpriseResourceServiceHTTPClient interface {
 	BatchRemoveAssignees(ctx context.Context, req *BatchRemoveAssigneesRequest, opts ...http.CallOption) (rsp *BatchRemoveAssigneesResponse, err error)
 	CommitEnterpriseResourceImport(ctx context.Context, req *CommitEnterpriseResourceImportRequest, opts ...http.CallOption) (rsp *CommitEnterpriseResourceImportResponse, err error)
 	CreateEnterpriseResource(ctx context.Context, req *CreateEnterpriseResourceRequest, opts ...http.CallOption) (rsp *CreateEnterpriseResourceResponse, err error)
-	CreateEnterpriseTagGroup(ctx context.Context, req *CreateEnterpriseTagGroupRequest, opts ...http.CallOption) (rsp *CreateEnterpriseTagGroupResponse, err error)
 	DeleteEnterpriseResource(ctx context.Context, req *DeleteEnterpriseResourceRequest, opts ...http.CallOption) (rsp *DeleteEnterpriseResourceResponse, err error)
-	DeleteEnterpriseTagGroup(ctx context.Context, req *DeleteEnterpriseTagGroupRequest, opts ...http.CallOption) (rsp *DeleteEnterpriseTagGroupResponse, err error)
 	GetEnterpriseResource(ctx context.Context, req *GetEnterpriseResourceRequest, opts ...http.CallOption) (rsp *GetEnterpriseResourceResponse, err error)
 	GetEnterpriseResourceCapabilities(ctx context.Context, req *GetEnterpriseResourceCapabilitiesRequest, opts ...http.CallOption) (rsp *GetEnterpriseResourceCapabilitiesResponse, err error)
 	GetEnterpriseResourceImageAccess(ctx context.Context, req *GetEnterpriseResourceImageAccessRequest, opts ...http.CallOption) (rsp *GetEnterpriseResourceImageAccessResponse, err error)
 	ListEnterpriseResourceRegionOptions(ctx context.Context, req *ListEnterpriseResourceRegionOptionsRequest, opts ...http.CallOption) (rsp *ListEnterpriseResourceRegionOptionsResponse, err error)
 	ListEnterpriseResources(ctx context.Context, req *ListEnterpriseResourcesRequest, opts ...http.CallOption) (rsp *ListEnterpriseResourcesResponse, err error)
-	ListEnterpriseTagGroups(ctx context.Context, req *ListEnterpriseTagGroupsRequest, opts ...http.CallOption) (rsp *ListEnterpriseTagGroupsResponse, err error)
 	PrepareEnterpriseResourceImageUpload(ctx context.Context, req *PrepareEnterpriseResourceImageUploadRequest, opts ...http.CallOption) (rsp *PrepareEnterpriseResourceImageUploadResponse, err error)
 	PreviewEnterpriseResourceImport(ctx context.Context, req *PreviewEnterpriseResourceImportRequest, opts ...http.CallOption) (rsp *PreviewEnterpriseResourceImportResponse, err error)
 	SearchEnterpriseResourceAssigneeOptions(ctx context.Context, req *SearchEnterpriseResourceAssigneeOptionsRequest, opts ...http.CallOption) (rsp *SearchEnterpriseResourceAssigneeOptionsResponse, err error)
 	SearchEnterpriseResourcePartnerOptions(ctx context.Context, req *SearchEnterpriseResourcePartnerOptionsRequest, opts ...http.CallOption) (rsp *SearchEnterpriseResourcePartnerOptionsResponse, err error)
 	UpdateEnterpriseResource(ctx context.Context, req *UpdateEnterpriseResourceRequest, opts ...http.CallOption) (rsp *UpdateEnterpriseResourceResponse, err error)
-	UpdateEnterpriseTagGroup(ctx context.Context, req *UpdateEnterpriseTagGroupRequest, opts ...http.CallOption) (rsp *UpdateEnterpriseTagGroupResponse, err error)
 }
 
 type EnterpriseResourceServiceHTTPClientImpl struct {
@@ -719,23 +621,6 @@ func (c *EnterpriseResourceServiceHTTPClientImpl) CreateEnterpriseResource(ctx c
 	return &out, nil
 }
 
-func (c *EnterpriseResourceServiceHTTPClientImpl) CreateEnterpriseTagGroup(ctx context.Context, in *CreateEnterpriseTagGroupRequest, opts ...http.CallOption) (*CreateEnterpriseTagGroupResponse, error) {
-	var out CreateEnterpriseTagGroupResponse
-	pattern := "/api/v1/enterprise-tag-groups"
-	path := http.BuildPath(pattern, in)
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.ContentType("application/protojson"),
-		http.Operation(OperationEnterpriseResourceServiceCreateEnterpriseTagGroup),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 func (c *EnterpriseResourceServiceHTTPClientImpl) DeleteEnterpriseResource(ctx context.Context, in *DeleteEnterpriseResourceRequest, opts ...http.CallOption) (*DeleteEnterpriseResourceResponse, error) {
 	var out DeleteEnterpriseResourceResponse
 	pattern := "/api/v1/enterprise-resources/{id}"
@@ -743,22 +628,6 @@ func (c *EnterpriseResourceServiceHTTPClientImpl) DeleteEnterpriseResource(ctx c
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationEnterpriseResourceServiceDeleteEnterpriseResource),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *EnterpriseResourceServiceHTTPClientImpl) DeleteEnterpriseTagGroup(ctx context.Context, in *DeleteEnterpriseTagGroupRequest, opts ...http.CallOption) (*DeleteEnterpriseTagGroupResponse, error) {
-	var out DeleteEnterpriseTagGroupResponse
-	pattern := "/api/v1/enterprise-tag-groups/{id}"
-	path := http.BuildPath(pattern, in, http.WithQueryParams())
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.Operation(OperationEnterpriseResourceServiceDeleteEnterpriseTagGroup),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
@@ -848,22 +717,6 @@ func (c *EnterpriseResourceServiceHTTPClientImpl) ListEnterpriseResources(ctx co
 	return &out, nil
 }
 
-func (c *EnterpriseResourceServiceHTTPClientImpl) ListEnterpriseTagGroups(ctx context.Context, in *ListEnterpriseTagGroupsRequest, opts ...http.CallOption) (*ListEnterpriseTagGroupsResponse, error) {
-	var out ListEnterpriseTagGroupsResponse
-	pattern := "/api/v1/enterprise-tag-groups"
-	path := http.BuildPath(pattern, in, http.WithQueryParams())
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.Operation(OperationEnterpriseResourceServiceListEnterpriseTagGroups),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
 func (c *EnterpriseResourceServiceHTTPClientImpl) PrepareEnterpriseResourceImageUpload(ctx context.Context, in *PrepareEnterpriseResourceImageUploadRequest, opts ...http.CallOption) (*PrepareEnterpriseResourceImageUploadResponse, error) {
 	var out PrepareEnterpriseResourceImageUploadResponse
 	pattern := "/api/v1/enterprise-resource-image-uploads"
@@ -938,23 +791,6 @@ func (c *EnterpriseResourceServiceHTTPClientImpl) UpdateEnterpriseResource(ctx c
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationEnterpriseResourceServiceUpdateEnterpriseResource),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *EnterpriseResourceServiceHTTPClientImpl) UpdateEnterpriseTagGroup(ctx context.Context, in *UpdateEnterpriseTagGroupRequest, opts ...http.CallOption) (*UpdateEnterpriseTagGroupResponse, error) {
-	var out UpdateEnterpriseTagGroupResponse
-	pattern := "/api/v1/enterprise-tag-groups/{id}"
-	path := http.BuildPath(pattern, in)
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.ContentType("application/protojson"),
-		http.Operation(OperationEnterpriseResourceServiceUpdateEnterpriseTagGroup),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)

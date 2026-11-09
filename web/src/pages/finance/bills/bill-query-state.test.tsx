@@ -11,6 +11,9 @@ import { settlementServiceListBills } from '@/services/roncin/settlementService'
 import FinanceBillsPage from './index';
 
 type LedgerProps = {
+  columns: { dataIndex?: unknown }[];
+  topBar?: ReactNode;
+  batchActions?: unknown[];
   pagination: { defaultCurrent: number; defaultPageSize: number };
   actionRef: { current: unknown };
   customSearch: ReactNode;
@@ -25,6 +28,15 @@ const state = vi.hoisted(() => ({
   ledger: undefined as undefined | LedgerProps,
   search: undefined as undefined | FilterProps,
   reload: vi.fn(),
+  organizationId: 'workspace-org' as string | undefined,
+  organizations: vi.fn(),
+}));
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
+    initialState: {
+      currentUser: { currentOrganization: { id: state.organizationId } },
+    },
+  }),
 }));
 vi.mock('@/app/access', () => ({
   useAccess: () => ({ canOperateOrganization: () => true }),
@@ -40,9 +52,6 @@ vi.mock('@/components/ui', () => ({
     return null;
   },
 }));
-vi.mock('@/components/business-tag/BusinessTagModal', () => ({
-  BusinessTagModal: () => null,
-}));
 vi.mock('@/features/finance/bill-creation', () => ({
   BillCreationWorkbench: () => null,
 }));
@@ -55,12 +64,7 @@ vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceListBills: vi
     .fn()
     .mockResolvedValue({ data: [], total: 0, matchedSummary: {} }),
-  settlementServiceListFinanceOrganizationOptions: vi
-    .fn()
-    .mockResolvedValue({ data: [] }),
-  settlementServiceListFinanceBillTagOptions: vi
-    .fn()
-    .mockResolvedValue({ tags: [] }),
+  settlementServiceListFinanceOrganizationOptions: state.organizations,
 }));
 function Seed() {
   const state = useListQueryState({
@@ -78,18 +82,19 @@ function Seed() {
         dueDateRange: [dayjs('2026-11-01'), dayjs('2026-11-12')],
         onlyUnsettled: 'true',
       },
-      organizationId: 'target-org',
-      tagIds: ['tag'],
-      tagLabels: { tag: '标签显示名' },
+      organizationId: 'other-org',
     } as never,
     { settlementPartyId: '恢复结算单位' },
   );
   state.pagination.onChange(3, 20);
   return null;
 }
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+  state.organizationId = 'workspace-org';
+});
 describe('账单查询恢复消费', () => {
-  it('已提交日期、候选名称、目标公司标签和分页恢复，提交同步生效并回第一页，重置清查询', async () => {
+  it('恢复已提交日期、候选名称和分页，旧公司筛选不能覆盖当前工作区，提交同步生效并回第一页，重置清查询', async () => {
     const { rerender } = render(
       <ListQueryStateProvider enabled>
         <Seed />
@@ -102,6 +107,12 @@ describe('账单查询恢复消费', () => {
         </App>
       </ListQueryStateProvider>,
     );
+    expect(
+      state.ledger?.columns.map((column) => column.dataIndex),
+    ).not.toContain('tags');
+    expect(state.ledger?.topBar).toBeUndefined();
+    expect(state.ledger?.batchActions).toBeUndefined();
+    expect(state.organizations).not.toHaveBeenCalled();
     expect(state.ledger?.pagination).toMatchObject({
       defaultCurrent: 3,
       defaultPageSize: 20,
@@ -117,8 +128,7 @@ describe('账单查询恢复消费', () => {
         page: 3,
         pageSize: 20,
         keyword: '账单条件',
-        organizationId: 'target-org',
-        tagIds: ['tag'],
+        organizationId: 'workspace-org',
         billDateFrom: '2026-10-01',
         dueDateTo: '2026-11-12',
       }),
@@ -131,10 +141,17 @@ describe('账单查询恢复消费', () => {
       await state.ledger?.request({ current: 1, pageSize: 20 });
     });
     expect(settlementServiceListBills).toHaveBeenLastCalledWith(
-      expect.objectContaining({ keyword: '新的条件', page: 1 }),
+      expect.objectContaining({
+        keyword: '新的条件',
+        page: 1,
+        organizationId: 'workspace-org',
+      }),
       { skipErrorHandler: true },
     );
     expect(state.reload).toHaveBeenCalledWith(true);
+    expect(
+      vi.mocked(settlementServiceListBills).mock.lastCall?.[0],
+    ).not.toHaveProperty('tagIds');
     act(() => state.search?.onReset());
     await act(async () => {
       await state.ledger?.request({ current: 1, pageSize: 20 });
@@ -142,10 +159,57 @@ describe('账单查询恢复消费', () => {
     expect(settlementServiceListBills).toHaveBeenLastCalledWith(
       expect.objectContaining({
         keyword: undefined,
-        organizationId: 'target-org',
-        tagIds: ['tag'],
+        organizationId: 'workspace-org',
       }),
       { skipErrorHandler: true },
     );
+  });
+  it('当前公司尚未就绪时不发送无组织边界的列表查询', async () => {
+    state.organizationId = undefined;
+    render(
+      <App>
+        <FinanceBillsPage />
+      </App>,
+    );
+    await expect(
+      state.ledger?.request({ current: 1, pageSize: 40 }),
+    ).resolves.toEqual({ data: [], success: false, total: 0 });
+    expect(settlementServiceListBills).not.toHaveBeenCalled();
+    expect(state.organizations).not.toHaveBeenCalled();
+  });
+
+  it('工作区重建后只查询新公司，翻页仍使用当前公司', async () => {
+    const first = render(
+      <ListQueryStateProvider enabled>
+        <App>
+          <FinanceBillsPage />
+        </App>
+      </ListQueryStateProvider>,
+    );
+    await act(async () => {
+      await state.ledger?.request({ current: 1, pageSize: 40 });
+    });
+    expect(
+      vi.mocked(settlementServiceListBills).mock.lastCall?.[0],
+    ).toMatchObject({ organizationId: 'workspace-org' });
+    first.unmount();
+    state.organizationId = 'next-workspace-org';
+    render(
+      <ListQueryStateProvider enabled>
+        <App>
+          <FinanceBillsPage />
+        </App>
+      </ListQueryStateProvider>,
+    );
+    await act(async () => {
+      await state.ledger?.request({ current: 2, pageSize: 20 });
+    });
+    expect(
+      vi.mocked(settlementServiceListBills).mock.lastCall?.[0],
+    ).toMatchObject({
+      organizationId: 'next-workspace-org',
+      page: 2,
+      pageSize: 20,
+    });
   });
 });

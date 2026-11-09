@@ -23,9 +23,6 @@ func (uc *OrderUsecase) Get(ctx context.Context, organizationID, id uuid.UUID) (
 	if err != nil {
 		return nil, err
 	}
-	if err := attachOrderTags(ctx, uc.tagRepo, order); err != nil {
-		return nil, err
-	}
 	if err := attachSeaMasterBillSummaries(ctx, uc.seaMasterBillRepo, organizationID, order); err != nil {
 		return nil, err
 	}
@@ -33,24 +30,6 @@ func (uc *OrderUsecase) Get(ctx context.Context, organizationID, id uuid.UUID) (
 		return nil, err
 	}
 	return order, nil
-}
-
-func attachOrderTags(ctx context.Context, tagRepo BusinessTagRepo, orders ...*Order) error {
-	if tagRepo == nil || len(orders) == 0 {
-		return nil
-	}
-	ids := make([]uuid.UUID, 0, len(orders))
-	for _, order := range orders {
-		ids = append(ids, order.ID)
-	}
-	tags, err := tagRepo.LoadOrderTags(ctx, ids)
-	if err != nil {
-		return err
-	}
-	for _, order := range orders {
-		order.Tags = tags[order.ID]
-	}
-	return nil
 }
 
 // FindAuthorized 在仓储查询中同时限制订单 ID、业务类型和组织范围，供传输鉴权
@@ -86,9 +65,6 @@ func (uc *OrderUsecase) List(ctx context.Context, scopes []OrderOrganizationScop
 	}
 	result, err := uc.repo.List(ctx, scopes, options)
 	if err != nil {
-		return nil, err
-	}
-	if err := attachOrderTags(ctx, uc.tagRepo, result.Items...); err != nil {
 		return nil, err
 	}
 	for _, organizationID := range orderOrganizationIDs(scopes) {

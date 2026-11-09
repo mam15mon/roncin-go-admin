@@ -36,10 +36,6 @@ const (
 	EnterpriseResourceService_BatchRemoveAddressTypes_FullMethodName                 = "/enterprise_resource.v1.EnterpriseResourceService/BatchRemoveAddressTypes"
 	EnterpriseResourceService_BatchAssignAssignees_FullMethodName                    = "/enterprise_resource.v1.EnterpriseResourceService/BatchAssignAssignees"
 	EnterpriseResourceService_BatchRemoveAssignees_FullMethodName                    = "/enterprise_resource.v1.EnterpriseResourceService/BatchRemoveAssignees"
-	EnterpriseResourceService_ListEnterpriseTagGroups_FullMethodName                 = "/enterprise_resource.v1.EnterpriseResourceService/ListEnterpriseTagGroups"
-	EnterpriseResourceService_CreateEnterpriseTagGroup_FullMethodName                = "/enterprise_resource.v1.EnterpriseResourceService/CreateEnterpriseTagGroup"
-	EnterpriseResourceService_UpdateEnterpriseTagGroup_FullMethodName                = "/enterprise_resource.v1.EnterpriseResourceService/UpdateEnterpriseTagGroup"
-	EnterpriseResourceService_DeleteEnterpriseTagGroup_FullMethodName                = "/enterprise_resource.v1.EnterpriseResourceService/DeleteEnterpriseTagGroup"
 	EnterpriseResourceService_PreviewEnterpriseResourceImport_FullMethodName         = "/enterprise_resource.v1.EnterpriseResourceService/PreviewEnterpriseResourceImport"
 	EnterpriseResourceService_CommitEnterpriseResourceImport_FullMethodName          = "/enterprise_resource.v1.EnterpriseResourceService/CommitEnterpriseResourceImport"
 )
@@ -65,10 +61,6 @@ type EnterpriseResourceServiceClient interface {
 	BatchRemoveAddressTypes(ctx context.Context, in *BatchRemoveAddressTypesRequest, opts ...grpc.CallOption) (*BatchRemoveAddressTypesResponse, error)
 	BatchAssignAssignees(ctx context.Context, in *BatchAssignAssigneesRequest, opts ...grpc.CallOption) (*BatchAssignAssigneesResponse, error)
 	BatchRemoveAssignees(ctx context.Context, in *BatchRemoveAssigneesRequest, opts ...grpc.CallOption) (*BatchRemoveAssigneesResponse, error)
-	ListEnterpriseTagGroups(ctx context.Context, in *ListEnterpriseTagGroupsRequest, opts ...grpc.CallOption) (*ListEnterpriseTagGroupsResponse, error)
-	CreateEnterpriseTagGroup(ctx context.Context, in *CreateEnterpriseTagGroupRequest, opts ...grpc.CallOption) (*CreateEnterpriseTagGroupResponse, error)
-	UpdateEnterpriseTagGroup(ctx context.Context, in *UpdateEnterpriseTagGroupRequest, opts ...grpc.CallOption) (*UpdateEnterpriseTagGroupResponse, error)
-	DeleteEnterpriseTagGroup(ctx context.Context, in *DeleteEnterpriseTagGroupRequest, opts ...grpc.CallOption) (*DeleteEnterpriseTagGroupResponse, error)
 	PreviewEnterpriseResourceImport(ctx context.Context, in *PreviewEnterpriseResourceImportRequest, opts ...grpc.CallOption) (*PreviewEnterpriseResourceImportResponse, error)
 	CommitEnterpriseResourceImport(ctx context.Context, in *CommitEnterpriseResourceImportRequest, opts ...grpc.CallOption) (*CommitEnterpriseResourceImportResponse, error)
 }
@@ -251,46 +243,6 @@ func (c *enterpriseResourceServiceClient) BatchRemoveAssignees(ctx context.Conte
 	return out, nil
 }
 
-func (c *enterpriseResourceServiceClient) ListEnterpriseTagGroups(ctx context.Context, in *ListEnterpriseTagGroupsRequest, opts ...grpc.CallOption) (*ListEnterpriseTagGroupsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListEnterpriseTagGroupsResponse)
-	err := c.cc.Invoke(ctx, EnterpriseResourceService_ListEnterpriseTagGroups_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *enterpriseResourceServiceClient) CreateEnterpriseTagGroup(ctx context.Context, in *CreateEnterpriseTagGroupRequest, opts ...grpc.CallOption) (*CreateEnterpriseTagGroupResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateEnterpriseTagGroupResponse)
-	err := c.cc.Invoke(ctx, EnterpriseResourceService_CreateEnterpriseTagGroup_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *enterpriseResourceServiceClient) UpdateEnterpriseTagGroup(ctx context.Context, in *UpdateEnterpriseTagGroupRequest, opts ...grpc.CallOption) (*UpdateEnterpriseTagGroupResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UpdateEnterpriseTagGroupResponse)
-	err := c.cc.Invoke(ctx, EnterpriseResourceService_UpdateEnterpriseTagGroup_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *enterpriseResourceServiceClient) DeleteEnterpriseTagGroup(ctx context.Context, in *DeleteEnterpriseTagGroupRequest, opts ...grpc.CallOption) (*DeleteEnterpriseTagGroupResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeleteEnterpriseTagGroupResponse)
-	err := c.cc.Invoke(ctx, EnterpriseResourceService_DeleteEnterpriseTagGroup_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *enterpriseResourceServiceClient) PreviewEnterpriseResourceImport(ctx context.Context, in *PreviewEnterpriseResourceImportRequest, opts ...grpc.CallOption) (*PreviewEnterpriseResourceImportResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PreviewEnterpriseResourceImportResponse)
@@ -332,10 +284,6 @@ type EnterpriseResourceServiceServer interface {
 	BatchRemoveAddressTypes(context.Context, *BatchRemoveAddressTypesRequest) (*BatchRemoveAddressTypesResponse, error)
 	BatchAssignAssignees(context.Context, *BatchAssignAssigneesRequest) (*BatchAssignAssigneesResponse, error)
 	BatchRemoveAssignees(context.Context, *BatchRemoveAssigneesRequest) (*BatchRemoveAssigneesResponse, error)
-	ListEnterpriseTagGroups(context.Context, *ListEnterpriseTagGroupsRequest) (*ListEnterpriseTagGroupsResponse, error)
-	CreateEnterpriseTagGroup(context.Context, *CreateEnterpriseTagGroupRequest) (*CreateEnterpriseTagGroupResponse, error)
-	UpdateEnterpriseTagGroup(context.Context, *UpdateEnterpriseTagGroupRequest) (*UpdateEnterpriseTagGroupResponse, error)
-	DeleteEnterpriseTagGroup(context.Context, *DeleteEnterpriseTagGroupRequest) (*DeleteEnterpriseTagGroupResponse, error)
 	PreviewEnterpriseResourceImport(context.Context, *PreviewEnterpriseResourceImportRequest) (*PreviewEnterpriseResourceImportResponse, error)
 	CommitEnterpriseResourceImport(context.Context, *CommitEnterpriseResourceImportRequest) (*CommitEnterpriseResourceImportResponse, error)
 	mustEmbedUnimplementedEnterpriseResourceServiceServer()
@@ -398,18 +346,6 @@ func (UnimplementedEnterpriseResourceServiceServer) BatchAssignAssignees(context
 }
 func (UnimplementedEnterpriseResourceServiceServer) BatchRemoveAssignees(context.Context, *BatchRemoveAssigneesRequest) (*BatchRemoveAssigneesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchRemoveAssignees not implemented")
-}
-func (UnimplementedEnterpriseResourceServiceServer) ListEnterpriseTagGroups(context.Context, *ListEnterpriseTagGroupsRequest) (*ListEnterpriseTagGroupsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListEnterpriseTagGroups not implemented")
-}
-func (UnimplementedEnterpriseResourceServiceServer) CreateEnterpriseTagGroup(context.Context, *CreateEnterpriseTagGroupRequest) (*CreateEnterpriseTagGroupResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method CreateEnterpriseTagGroup not implemented")
-}
-func (UnimplementedEnterpriseResourceServiceServer) UpdateEnterpriseTagGroup(context.Context, *UpdateEnterpriseTagGroupRequest) (*UpdateEnterpriseTagGroupResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method UpdateEnterpriseTagGroup not implemented")
-}
-func (UnimplementedEnterpriseResourceServiceServer) DeleteEnterpriseTagGroup(context.Context, *DeleteEnterpriseTagGroupRequest) (*DeleteEnterpriseTagGroupResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method DeleteEnterpriseTagGroup not implemented")
 }
 func (UnimplementedEnterpriseResourceServiceServer) PreviewEnterpriseResourceImport(context.Context, *PreviewEnterpriseResourceImportRequest) (*PreviewEnterpriseResourceImportResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method PreviewEnterpriseResourceImport not implemented")
@@ -745,78 +681,6 @@ func _EnterpriseResourceService_BatchRemoveAssignees_Handler(srv interface{}, ct
 	return interceptor(ctx, in, info, handler)
 }
 
-func _EnterpriseResourceService_ListEnterpriseTagGroups_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListEnterpriseTagGroupsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(EnterpriseResourceServiceServer).ListEnterpriseTagGroups(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: EnterpriseResourceService_ListEnterpriseTagGroups_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EnterpriseResourceServiceServer).ListEnterpriseTagGroups(ctx, req.(*ListEnterpriseTagGroupsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _EnterpriseResourceService_CreateEnterpriseTagGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateEnterpriseTagGroupRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(EnterpriseResourceServiceServer).CreateEnterpriseTagGroup(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: EnterpriseResourceService_CreateEnterpriseTagGroup_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EnterpriseResourceServiceServer).CreateEnterpriseTagGroup(ctx, req.(*CreateEnterpriseTagGroupRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _EnterpriseResourceService_UpdateEnterpriseTagGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateEnterpriseTagGroupRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(EnterpriseResourceServiceServer).UpdateEnterpriseTagGroup(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: EnterpriseResourceService_UpdateEnterpriseTagGroup_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EnterpriseResourceServiceServer).UpdateEnterpriseTagGroup(ctx, req.(*UpdateEnterpriseTagGroupRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _EnterpriseResourceService_DeleteEnterpriseTagGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteEnterpriseTagGroupRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(EnterpriseResourceServiceServer).DeleteEnterpriseTagGroup(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: EnterpriseResourceService_DeleteEnterpriseTagGroup_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EnterpriseResourceServiceServer).DeleteEnterpriseTagGroup(ctx, req.(*DeleteEnterpriseTagGroupRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _EnterpriseResourceService_PreviewEnterpriseResourceImport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PreviewEnterpriseResourceImportRequest)
 	if err := dec(in); err != nil {
@@ -927,22 +791,6 @@ var EnterpriseResourceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BatchRemoveAssignees",
 			Handler:    _EnterpriseResourceService_BatchRemoveAssignees_Handler,
-		},
-		{
-			MethodName: "ListEnterpriseTagGroups",
-			Handler:    _EnterpriseResourceService_ListEnterpriseTagGroups_Handler,
-		},
-		{
-			MethodName: "CreateEnterpriseTagGroup",
-			Handler:    _EnterpriseResourceService_CreateEnterpriseTagGroup_Handler,
-		},
-		{
-			MethodName: "UpdateEnterpriseTagGroup",
-			Handler:    _EnterpriseResourceService_UpdateEnterpriseTagGroup_Handler,
-		},
-		{
-			MethodName: "DeleteEnterpriseTagGroup",
-			Handler:    _EnterpriseResourceService_DeleteEnterpriseTagGroup_Handler,
 		},
 		{
 			MethodName: "PreviewEnterpriseResourceImport",

@@ -37,7 +37,7 @@ func TestOrderDraftRequiresValidScheduleBeforeWriting(t *testing.T) {
 					input.IdempotencyKey = ""
 					input.ETD, input.ETA = testCase.etd, testCase.eta
 					repo := &orderRepoStub{}
-					usecase := NewOrderUsecase(repo, nil, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
+					usecase := NewOrderUsecase(repo, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
 					var saved *Order
 					var err error
 					if operation == "创建" {

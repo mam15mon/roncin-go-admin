@@ -49,11 +49,10 @@ type ResourceEditorModalProps = {
   countryCode?: string;
   provinceCode?: string;
   cityCode?: string;
-  tagGroups: API.EnterpriseTagGroup[];
   message: MessageInstance;
 };
 
-/** 企业资源新建 / 编辑弹窗：按资源类型渲染地址、备注、往来单位、标签、图片分区表单。 */
+/** 企业资源新建 / 编辑弹窗：按资源类型渲染地址、备注、往来单位、图片分区表单。 */
 export default function ResourceEditorModal({
   active,
   open,
@@ -75,7 +74,6 @@ export default function ResourceEditorModal({
   countryCode,
   provinceCode,
   cityCode,
-  tagGroups,
   message,
 }: ResourceEditorModalProps) {
   const { markDirty } = useUnsavedChangesGuard({
@@ -291,15 +289,6 @@ export default function ResourceEditorModal({
               <Input.TextArea rows={2} />
             </Form.Item>
           </>
-        )}
-        {active.type === 4 && (
-          <Form.Item name="groupId" label="标签组" rules={[{ required: true }]}>
-            <Select
-              options={tagGroups.flatMap((group) =>
-                group.id ? [{ value: group.id, label: group.name }] : [],
-              )}
-            />
-          </Form.Item>
         )}
         {active.type === 3 && (
           <Form.Item label="图片" required>

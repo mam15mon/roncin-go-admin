@@ -32,15 +32,12 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceparty"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceremark"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceshippingtext"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetag"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetaggroup"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangerateimportbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/exchangeratesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/feesettingtemplate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
@@ -74,10 +71,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeereviewevent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
@@ -1930,124 +1925,6 @@ func init() {
 	enterpriseresourceshippingtextDescID := enterpriseresourceshippingtextMixinFields0[0].Descriptor()
 	// enterpriseresourceshippingtext.DefaultID holds the default value on creation for the id field.
 	enterpriseresourceshippingtext.DefaultID = enterpriseresourceshippingtextDescID.Default.(func() uuid.UUID)
-	enterprisetagMixin := schema.EnterpriseTag{}.Mixin()
-	enterprisetagMixinFields0 := enterprisetagMixin[0].Fields()
-	_ = enterprisetagMixinFields0
-	enterprisetagMixinFields1 := enterprisetagMixin[1].Fields()
-	_ = enterprisetagMixinFields1
-	enterprisetagFields := schema.EnterpriseTag{}.Fields()
-	_ = enterprisetagFields
-	// enterprisetagDescCreatedAt is the schema descriptor for created_at field.
-	enterprisetagDescCreatedAt := enterprisetagMixinFields1[0].Descriptor()
-	// enterprisetag.DefaultCreatedAt holds the default value on creation for the created_at field.
-	enterprisetag.DefaultCreatedAt = enterprisetagDescCreatedAt.Default.(func() time.Time)
-	// enterprisetagDescUpdatedAt is the schema descriptor for updated_at field.
-	enterprisetagDescUpdatedAt := enterprisetagMixinFields1[1].Descriptor()
-	// enterprisetag.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	enterprisetag.DefaultUpdatedAt = enterprisetagDescUpdatedAt.Default.(func() time.Time)
-	// enterprisetag.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	enterprisetag.UpdateDefaultUpdatedAt = enterprisetagDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// enterprisetagDescNormalizedName is the schema descriptor for normalized_name field.
-	enterprisetagDescNormalizedName := enterprisetagFields[3].Descriptor()
-	// enterprisetag.NormalizedNameValidator is a validator for the "normalized_name" field. It is called by the builders before save.
-	enterprisetag.NormalizedNameValidator = func() func(string) error {
-		validators := enterprisetagDescNormalizedName.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(normalized_name string) error {
-			for _, fn := range fns {
-				if err := fn(normalized_name); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
-	// enterprisetagDescSortOrder is the schema descriptor for sort_order field.
-	enterprisetagDescSortOrder := enterprisetagFields[4].Descriptor()
-	// enterprisetag.DefaultSortOrder holds the default value on creation for the sort_order field.
-	enterprisetag.DefaultSortOrder = enterprisetagDescSortOrder.Default.(int)
-	// enterprisetag.SortOrderValidator is a validator for the "sort_order" field. It is called by the builders before save.
-	enterprisetag.SortOrderValidator = enterprisetagDescSortOrder.Validators[0].(func(int) error)
-	// enterprisetagDescID is the schema descriptor for id field.
-	enterprisetagDescID := enterprisetagMixinFields0[0].Descriptor()
-	// enterprisetag.DefaultID holds the default value on creation for the id field.
-	enterprisetag.DefaultID = enterprisetagDescID.Default.(func() uuid.UUID)
-	enterprisetaggroupMixin := schema.EnterpriseTagGroup{}.Mixin()
-	enterprisetaggroupHooks := schema.EnterpriseTagGroup{}.Hooks()
-	enterprisetaggroup.Hooks[0] = enterprisetaggroupHooks[0]
-	enterprisetaggroupMixinFields0 := enterprisetaggroupMixin[0].Fields()
-	_ = enterprisetaggroupMixinFields0
-	enterprisetaggroupMixinFields1 := enterprisetaggroupMixin[1].Fields()
-	_ = enterprisetaggroupMixinFields1
-	enterprisetaggroupFields := schema.EnterpriseTagGroup{}.Fields()
-	_ = enterprisetaggroupFields
-	// enterprisetaggroupDescCreatedAt is the schema descriptor for created_at field.
-	enterprisetaggroupDescCreatedAt := enterprisetaggroupMixinFields1[0].Descriptor()
-	// enterprisetaggroup.DefaultCreatedAt holds the default value on creation for the created_at field.
-	enterprisetaggroup.DefaultCreatedAt = enterprisetaggroupDescCreatedAt.Default.(func() time.Time)
-	// enterprisetaggroupDescUpdatedAt is the schema descriptor for updated_at field.
-	enterprisetaggroupDescUpdatedAt := enterprisetaggroupMixinFields1[1].Descriptor()
-	// enterprisetaggroup.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	enterprisetaggroup.DefaultUpdatedAt = enterprisetaggroupDescUpdatedAt.Default.(func() time.Time)
-	// enterprisetaggroup.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	enterprisetaggroup.UpdateDefaultUpdatedAt = enterprisetaggroupDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// enterprisetaggroupDescName is the schema descriptor for name field.
-	enterprisetaggroupDescName := enterprisetaggroupFields[1].Descriptor()
-	// enterprisetaggroup.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	enterprisetaggroup.NameValidator = func() func(string) error {
-		validators := enterprisetaggroupDescName.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(name string) error {
-			for _, fn := range fns {
-				if err := fn(name); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
-	// enterprisetaggroupDescNormalizedName is the schema descriptor for normalized_name field.
-	enterprisetaggroupDescNormalizedName := enterprisetaggroupFields[2].Descriptor()
-	// enterprisetaggroup.NormalizedNameValidator is a validator for the "normalized_name" field. It is called by the builders before save.
-	enterprisetaggroup.NormalizedNameValidator = func() func(string) error {
-		validators := enterprisetaggroupDescNormalizedName.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(normalized_name string) error {
-			for _, fn := range fns {
-				if err := fn(normalized_name); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
-	// enterprisetaggroupDescSearchKeywords is the schema descriptor for search_keywords field.
-	enterprisetaggroupDescSearchKeywords := enterprisetaggroupFields[3].Descriptor()
-	// enterprisetaggroup.DefaultSearchKeywords holds the default value on creation for the search_keywords field.
-	enterprisetaggroup.DefaultSearchKeywords = enterprisetaggroupDescSearchKeywords.Default.(string)
-	// enterprisetaggroupDescColor is the schema descriptor for color field.
-	enterprisetaggroupDescColor := enterprisetaggroupFields[4].Descriptor()
-	// enterprisetaggroup.ColorValidator is a validator for the "color" field. It is called by the builders before save.
-	enterprisetaggroup.ColorValidator = enterprisetaggroupDescColor.Validators[0].(func(string) error)
-	// enterprisetaggroupDescSortOrder is the schema descriptor for sort_order field.
-	enterprisetaggroupDescSortOrder := enterprisetaggroupFields[5].Descriptor()
-	// enterprisetaggroup.DefaultSortOrder holds the default value on creation for the sort_order field.
-	enterprisetaggroup.DefaultSortOrder = enterprisetaggroupDescSortOrder.Default.(int)
-	// enterprisetaggroup.SortOrderValidator is a validator for the "sort_order" field. It is called by the builders before save.
-	enterprisetaggroup.SortOrderValidator = enterprisetaggroupDescSortOrder.Validators[0].(func(int) error)
-	// enterprisetaggroupDescID is the schema descriptor for id field.
-	enterprisetaggroupDescID := enterprisetaggroupMixinFields0[0].Descriptor()
-	// enterprisetaggroup.DefaultID holds the default value on creation for the id field.
-	enterprisetaggroup.DefaultID = enterprisetaggroupDescID.Default.(func() uuid.UUID)
 	exchangerateimportbatchMixin := schema.ExchangeRateImportBatch{}.Mixin()
 	exchangerateimportbatchMixinFields0 := exchangerateimportbatchMixin[0].Fields()
 	_ = exchangerateimportbatchMixinFields0
@@ -2865,27 +2742,6 @@ func init() {
 	financebillbatchDescID := financebillbatchMixinFields0[0].Descriptor()
 	// financebillbatch.DefaultID holds the default value on creation for the id field.
 	financebillbatch.DefaultID = financebillbatchDescID.Default.(func() uuid.UUID)
-	financebillenterprisetagMixin := schema.FinanceBillEnterpriseTag{}.Mixin()
-	financebillenterprisetagMixinFields0 := financebillenterprisetagMixin[0].Fields()
-	_ = financebillenterprisetagMixinFields0
-	financebillenterprisetagMixinFields1 := financebillenterprisetagMixin[1].Fields()
-	_ = financebillenterprisetagMixinFields1
-	financebillenterprisetagFields := schema.FinanceBillEnterpriseTag{}.Fields()
-	_ = financebillenterprisetagFields
-	// financebillenterprisetagDescCreatedAt is the schema descriptor for created_at field.
-	financebillenterprisetagDescCreatedAt := financebillenterprisetagMixinFields1[0].Descriptor()
-	// financebillenterprisetag.DefaultCreatedAt holds the default value on creation for the created_at field.
-	financebillenterprisetag.DefaultCreatedAt = financebillenterprisetagDescCreatedAt.Default.(func() time.Time)
-	// financebillenterprisetagDescUpdatedAt is the schema descriptor for updated_at field.
-	financebillenterprisetagDescUpdatedAt := financebillenterprisetagMixinFields1[1].Descriptor()
-	// financebillenterprisetag.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	financebillenterprisetag.DefaultUpdatedAt = financebillenterprisetagDescUpdatedAt.Default.(func() time.Time)
-	// financebillenterprisetag.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	financebillenterprisetag.UpdateDefaultUpdatedAt = financebillenterprisetagDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// financebillenterprisetagDescID is the schema descriptor for id field.
-	financebillenterprisetagDescID := financebillenterprisetagMixinFields0[0].Descriptor()
-	// financebillenterprisetag.DefaultID holds the default value on creation for the id field.
-	financebillenterprisetag.DefaultID = financebillenterprisetagDescID.Default.(func() uuid.UUID)
 	financebilllineMixin := schema.FinanceBillLine{}.Mixin()
 	financebilllineMixinFields0 := financebilllineMixin[0].Fields()
 	_ = financebilllineMixinFields0
@@ -5882,27 +5738,6 @@ func init() {
 	ordercontainerrequestDescID := ordercontainerrequestMixinFields0[0].Descriptor()
 	// ordercontainerrequest.DefaultID holds the default value on creation for the id field.
 	ordercontainerrequest.DefaultID = ordercontainerrequestDescID.Default.(func() uuid.UUID)
-	orderenterprisetagMixin := schema.OrderEnterpriseTag{}.Mixin()
-	orderenterprisetagMixinFields0 := orderenterprisetagMixin[0].Fields()
-	_ = orderenterprisetagMixinFields0
-	orderenterprisetagMixinFields1 := orderenterprisetagMixin[1].Fields()
-	_ = orderenterprisetagMixinFields1
-	orderenterprisetagFields := schema.OrderEnterpriseTag{}.Fields()
-	_ = orderenterprisetagFields
-	// orderenterprisetagDescCreatedAt is the schema descriptor for created_at field.
-	orderenterprisetagDescCreatedAt := orderenterprisetagMixinFields1[0].Descriptor()
-	// orderenterprisetag.DefaultCreatedAt holds the default value on creation for the created_at field.
-	orderenterprisetag.DefaultCreatedAt = orderenterprisetagDescCreatedAt.Default.(func() time.Time)
-	// orderenterprisetagDescUpdatedAt is the schema descriptor for updated_at field.
-	orderenterprisetagDescUpdatedAt := orderenterprisetagMixinFields1[1].Descriptor()
-	// orderenterprisetag.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	orderenterprisetag.DefaultUpdatedAt = orderenterprisetagDescUpdatedAt.Default.(func() time.Time)
-	// orderenterprisetag.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	orderenterprisetag.UpdateDefaultUpdatedAt = orderenterprisetagDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// orderenterprisetagDescID is the schema descriptor for id field.
-	orderenterprisetagDescID := orderenterprisetagMixinFields0[0].Descriptor()
-	// orderenterprisetag.DefaultID holds the default value on creation for the id field.
-	orderenterprisetag.DefaultID = orderenterprisetagDescID.Default.(func() uuid.UUID)
 	orderfeeMixin := schema.OrderFee{}.Mixin()
 	orderfeeMixinFields0 := orderfeeMixin[0].Fields()
 	_ = orderfeeMixinFields0
@@ -6164,27 +5999,6 @@ func init() {
 	orderfeecorrectionrequestDescID := orderfeecorrectionrequestMixinFields0[0].Descriptor()
 	// orderfeecorrectionrequest.DefaultID holds the default value on creation for the id field.
 	orderfeecorrectionrequest.DefaultID = orderfeecorrectionrequestDescID.Default.(func() uuid.UUID)
-	orderfeeenterprisetagMixin := schema.OrderFeeEnterpriseTag{}.Mixin()
-	orderfeeenterprisetagMixinFields0 := orderfeeenterprisetagMixin[0].Fields()
-	_ = orderfeeenterprisetagMixinFields0
-	orderfeeenterprisetagMixinFields1 := orderfeeenterprisetagMixin[1].Fields()
-	_ = orderfeeenterprisetagMixinFields1
-	orderfeeenterprisetagFields := schema.OrderFeeEnterpriseTag{}.Fields()
-	_ = orderfeeenterprisetagFields
-	// orderfeeenterprisetagDescCreatedAt is the schema descriptor for created_at field.
-	orderfeeenterprisetagDescCreatedAt := orderfeeenterprisetagMixinFields1[0].Descriptor()
-	// orderfeeenterprisetag.DefaultCreatedAt holds the default value on creation for the created_at field.
-	orderfeeenterprisetag.DefaultCreatedAt = orderfeeenterprisetagDescCreatedAt.Default.(func() time.Time)
-	// orderfeeenterprisetagDescUpdatedAt is the schema descriptor for updated_at field.
-	orderfeeenterprisetagDescUpdatedAt := orderfeeenterprisetagMixinFields1[1].Descriptor()
-	// orderfeeenterprisetag.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	orderfeeenterprisetag.DefaultUpdatedAt = orderfeeenterprisetagDescUpdatedAt.Default.(func() time.Time)
-	// orderfeeenterprisetag.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	orderfeeenterprisetag.UpdateDefaultUpdatedAt = orderfeeenterprisetagDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// orderfeeenterprisetagDescID is the schema descriptor for id field.
-	orderfeeenterprisetagDescID := orderfeeenterprisetagMixinFields0[0].Descriptor()
-	// orderfeeenterprisetag.DefaultID holds the default value on creation for the id field.
-	orderfeeenterprisetag.DefaultID = orderfeeenterprisetagDescID.Default.(func() uuid.UUID)
 	orderfeerevieweventMixin := schema.OrderFeeReviewEvent{}.Mixin()
 	orderfeerevieweventMixinFields0 := orderfeerevieweventMixin[0].Fields()
 	_ = orderfeerevieweventMixinFields0

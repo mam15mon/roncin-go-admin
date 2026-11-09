@@ -121,7 +121,7 @@ describe('订单费用自定义多列冻结', () => {
       right: [],
     });
     expect(stored.hidden).toContain('feeCode');
-    expect(stored.hidden).toContain('tags');
+    expect(stored.hidden).toContain('createdAt');
     expect(stored.order.at(-1)).toBe('option');
     rendered.unmount();
     render(

@@ -44,7 +44,7 @@ func TestOrderReopenRequiresUnlockPostgres(t *testing.T) {
 		t.Fatalf("审核人员直接解锁失败: %v", err)
 	}
 	stored = f.data.db.Order.GetX(f.ctx, o.ID)
-	uc := biz.NewOrderUsecase(NewOrderRepo(f.data), nil, nil, nil, nil, nil)
+	uc := biz.NewOrderUsecase(NewOrderRepo(f.data), nil, nil, nil, nil)
 	reopened, err := uc.TransitionClosure(f.ctx, f.organizationID, f.approverID, o.ID, stored.Version, biz.OrderClosureOpen, "  ")
 	if err != nil || reopened.ClosureStatus != biz.OrderClosureOpen || reopened.Version != stored.Version+1 {
 		t.Fatalf("解锁后应可空原因反结案: order=%+v err=%v", reopened, err)

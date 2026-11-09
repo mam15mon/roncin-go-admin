@@ -11,7 +11,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { OrderListSearchFilter } from './OrderListSearchFilter';
 
 afterEach(cleanup);
-it('恢复五类日期、候选外标签与名称，收展保留输入，重置不回旧初值', async () => {
+it('恢复五类日期、候选名称，收展保留输入，重置不回旧初值', async () => {
   const onSearch = vi.fn();
   const onReset = vi.fn();
   const range: [string, string] = ['2026-10-01', '2026-10-12'];
@@ -21,14 +21,13 @@ it('恢复五类日期、候选外标签与名称，收展保留输入，重置�
         initialValues={{
           numberKeyword: '旧单号',
           customerId: 'customer-a',
-          tagIds: ['tag-a'],
           createdAtRange: range,
           etaRange: range,
           etdRange: range,
           lockedAtRange: range,
           statusTimeRange: range,
         }}
-        initialLabels={{ customerId: '客户甲', 'tagIds:tag-a': '高优先级' }}
+        initialLabels={{ customerId: '客户甲' }}
         options={{ loadPartners: async () => [] }}
         onSearch={onSearch}
         onReset={onReset}
@@ -37,7 +36,6 @@ it('恢复五类日期、候选外标签与名称，收展保留输入，重置�
   );
   expect(screen.getByText('客户甲')).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: /展开更多/ }));
-  expect(screen.getByText('高优先级')).toBeInTheDocument();
   expect(screen.getAllByDisplayValue('2026-10-01')).toHaveLength(5);
   fireEvent.change(screen.getByPlaceholderText('输入单号'), {
     target: { value: '未提交单号' },
@@ -56,9 +54,8 @@ it('恢复五类日期、候选外标签与名称，收展保留输入，重置�
         etdRange: range,
         lockedAtRange: range,
         statusTimeRange: range,
-        tagIds: ['tag-a'],
       }),
-      expect.objectContaining({ 'tagIds:tag-a': '高优先级' }),
+      expect.objectContaining({ customerId: '客户甲' }),
     ),
   );
   fireEvent.click(screen.getByRole('button', { name: /重置/ }));
@@ -69,7 +66,6 @@ it('恢复五类日期、候选外标签与名称，收展保留输入，重置�
     expect(onSearch).toHaveBeenLastCalledWith(
       expect.objectContaining({
         customerId: undefined,
-        tagIds: undefined,
         numberKeyword: undefined,
         etdRange: undefined,
       }),

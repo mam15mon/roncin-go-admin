@@ -20,9 +20,7 @@ import (
 	ordercommissionattributionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	ordercontainerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	ordercontainerrequestent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
-	orderenterprisetagent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
-	orderfeeenterprisetagent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 	orderlifecycleeventent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
 	orderpersonnelent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderpersonnel"
 	seahousebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
@@ -1359,27 +1357,6 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 					}
 				}
 
-				// 复制订单组织标签
-				sourceTags, err := tx.OrderEnterpriseTag.Query().
-					Where(orderenterprisetagent.OrderIDEQ(sourceOrder.ID)).
-					All(ctx)
-				if err != nil {
-					return err
-				}
-				tagBuilders := make([]*ent.OrderEnterpriseTagCreate, 0, len(sourceTags))
-				for _, st := range sourceTags {
-					tagBuilders = append(tagBuilders, tx.OrderEnterpriseTag.Create().
-						SetOrganizationID(organizationID).
-						SetOrderID(newOrder.ID).
-						SetTagResourceID(st.TagResourceID),
-					)
-				}
-				if len(tagBuilders) > 0 {
-					if _, err := tx.OrderEnterpriseTag.CreateBulk(tagBuilders...).Save(ctx); err != nil {
-						return err
-					}
-				}
-
 				// 复制品类
 				cargoCategories, err := sourceOrder.QueryCargoCategories().All(ctx)
 				if err != nil {
@@ -1937,29 +1914,6 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 						return err
 					}
 
-					// 复制企业标签关联
-					existingTags, err := tx.OrderFeeEnterpriseTag.Query().
-						Where(orderfeeenterprisetagent.OrderFeeIDEQ(oldFee.ID)).
-						All(ctx)
-					if err != nil {
-						return err
-					}
-					for _, et := range existingTags {
-						if _, err := tx.OrderFeeEnterpriseTag.Create().
-							SetOrganizationID(et.OrganizationID).
-							SetOrderFeeID(newFeeID).
-							SetTagResourceID(et.TagResourceID).
-							Save(ctx); err != nil {
-							return err
-						}
-					}
-
-					// 删除原费用的标签关联及原费用
-					if _, err := tx.OrderFeeEnterpriseTag.Delete().
-						Where(orderfeeenterprisetagent.OrderFeeIDEQ(oldFee.ID)).
-						Exec(ctx); err != nil {
-						return err
-					}
 					if err := tx.OrderFee.DeleteOneID(oldFee.ID).Exec(ctx); err != nil {
 						return err
 					}

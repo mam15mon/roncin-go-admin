@@ -77,22 +77,6 @@ service EnterpriseResourceService {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/enterprise-resource-assignees/batch-remove" body: "*"};
   }
-  rpc ListEnterpriseTagGroups(ListEnterpriseTagGroupsRequest) returns (ListEnterpriseTagGroupsResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.read" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {get: "/api/v1/enterprise-tag-groups"};
-  }
-  rpc CreateEnterpriseTagGroup(CreateEnterpriseTagGroupRequest) returns (CreateEnterpriseTagGroupResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.create" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {post: "/api/v1/enterprise-tag-groups" body: "*"};
-  }
-  rpc UpdateEnterpriseTagGroup(UpdateEnterpriseTagGroupRequest) returns (UpdateEnterpriseTagGroupResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.update" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {put: "/api/v1/enterprise-tag-groups/{id}" body: "*"};
-  }
-  rpc DeleteEnterpriseTagGroup(DeleteEnterpriseTagGroupRequest) returns (DeleteEnterpriseTagGroupResponse) {
-    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.delete" scope: DATA_SCOPE_ORGANIZATION};
-    option (google.api.http) = {delete: "/api/v1/enterprise-tag-groups/{id}"};
-  }
   rpc PreviewEnterpriseResourceImport(PreviewEnterpriseResourceImportRequest) returns (PreviewEnterpriseResourceImportResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.enterprise_resource.create" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/enterprise-resources/import-preview" body: "*"};
@@ -108,7 +92,8 @@ enum EnterpriseResourceType {
   ENTERPRISE_RESOURCE_TYPE_ADDRESS = 1;
   ENTERPRISE_RESOURCE_TYPE_REMARK = 2;
   ENTERPRISE_RESOURCE_TYPE_IMAGE = 3;
-  ENTERPRISE_RESOURCE_TYPE_TAG = 4;
+  reserved 4;
+  reserved "ENTERPRISE_RESOURCE_TYPE_TAG";
   ENTERPRISE_RESOURCE_TYPE_SHIPPER = 5;
   ENTERPRISE_RESOURCE_TYPE_CONSIGNEE = 6;
   ENTERPRISE_RESOURCE_TYPE_NOTIFY_PARTY = 7;
@@ -197,9 +182,9 @@ message PrepareEnterpriseResourceImageUploadResponse { bool success = 1; int32 c
 message GetEnterpriseResourceImageAccessRequest { string id = 1 [(google.api.field_behavior) = REQUIRED]; }
 message GetEnterpriseResourceImageAccessResponse { bool success = 1; int32 code = 2; string message = 3; string url = 4; string expires_at = 5; string trace_id = 6; }
 
-message EnterpriseResourceTag { string group_id = 1; }
-
 message EnterpriseResource {
+  reserved 13;
+  reserved "tag";
   string id = 1;
   EnterpriseResourceType resource_type = 2;
   string short_name = 3;
@@ -213,7 +198,6 @@ message EnterpriseResource {
     EnterpriseResourceRemark remark = 10;
     EnterpriseResourceParty party = 11;
     EnterpriseResourceImage image = 12;
-    EnterpriseResourceTag tag = 13;
   }
   string created_by = 14;
   string updated_by = 15;
@@ -222,6 +206,8 @@ message EnterpriseResource {
 }
 
 message EnterpriseResourceInput {
+  reserved 12;
+  reserved "tag";
   EnterpriseResourceType resource_type = 1 [(google.api.field_behavior) = REQUIRED];
   string short_name = 2 [(google.api.field_behavior) = REQUIRED];
   bool enabled = 3;
@@ -234,7 +220,6 @@ message EnterpriseResourceInput {
     EnterpriseResourceRemark remark = 9;
     EnterpriseResourceParty party = 10;
     EnterpriseResourceImage image = 11;
-    EnterpriseResourceTag tag = 12;
   }
 }
 
@@ -273,17 +258,6 @@ message BatchAssignAssigneesRequest { repeated string resource_ids = 1 [(google.
 message BatchAssignAssigneesResponse { bool success = 1; int32 code = 2; string message = 3; int32 affected_count = 4; string trace_id = 5; }
 message BatchRemoveAssigneesRequest { repeated string resource_ids = 1 [(google.api.field_behavior) = REQUIRED]; repeated string assignee_ids = 2 [(google.api.field_behavior) = REQUIRED]; }
 message BatchRemoveAssigneesResponse { bool success = 1; int32 code = 2; string message = 3; int32 affected_count = 4; string trace_id = 5; }
-
-message EnterpriseTagGroup { string id = 1; string name = 2; string color = 3; int32 sort_order = 4; string created_at = 5; string updated_at = 6; }
-message EnterpriseTagGroupInput { string name = 1 [(google.api.field_behavior) = REQUIRED]; string color = 2; int32 sort_order = 3; }
-message ListEnterpriseTagGroupsRequest {}
-message ListEnterpriseTagGroupsResponse { bool success = 1; int32 code = 2; string message = 3; repeated EnterpriseTagGroup data = 4; string trace_id = 5; }
-message CreateEnterpriseTagGroupRequest { EnterpriseTagGroupInput group = 1 [(google.api.field_behavior) = REQUIRED]; }
-message UpdateEnterpriseTagGroupRequest { string id = 1 [(google.api.field_behavior) = REQUIRED]; EnterpriseTagGroupInput group = 2 [(google.api.field_behavior) = REQUIRED]; }
-message DeleteEnterpriseTagGroupRequest { string id = 1 [(google.api.field_behavior) = REQUIRED]; }
-message CreateEnterpriseTagGroupResponse { bool success = 1; int32 code = 2; string message = 3; EnterpriseTagGroup data = 4; string trace_id = 5; }
-message UpdateEnterpriseTagGroupResponse { bool success = 1; int32 code = 2; string message = 3; EnterpriseTagGroup data = 4; string trace_id = 5; }
-message DeleteEnterpriseTagGroupResponse { bool success = 1; int32 code = 2; string message = 3; string trace_id = 4; }
 
 message EnterpriseResourceImportConflict { string existing_resource_id = 1; string existing_short_name = 2; repeated string matched_fields = 3; }
 message EnterpriseResourceImportRow { int32 row_number = 1; EnterpriseResourceInput resource = 2; repeated string errors = 3; repeated EnterpriseResourceImportConflict conflicts = 4; }

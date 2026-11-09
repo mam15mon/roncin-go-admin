@@ -13,16 +13,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	auditlogent "github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
-	enterpriseresourceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
 	financebilllineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
-	orderfeeenterprisetagent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeeenterprisetag"
 )
 
 // TestOrderFeeDeleteByBillOccupancyPostgres 验证费用按账单占用关系物理删除：
 // 可编辑且无有效账单才可删；批准冻结整票。取消账单后需显式撤销批准，
 // 再删除并保留历史快照、来源引用置空；与建账并发不能绕过批准冻结。
-// 隔离 Schema 执行全量迁移链冷启动，同时验证外键置空/级联契约。
+// 隔离 Schema 执行全量迁移链冷启动，同时验证来源外键置空与历史金额快照保留契约。
 func TestOrderFeeDeleteByBillOccupancyPostgres(t *testing.T) {
 	if os.Getenv("RONCIN_INTEGRATION_DATABASE_SOURCE") == "" {
 		t.Skip("未配置专用 RONCIN_INTEGRATION_DATABASE_SOURCE")
@@ -210,41 +208,6 @@ func TestOrderFeeDeleteByBillOccupancyPostgres(t *testing.T) {
 		}
 		if second == nil {
 			t.Fatal("新账单缺失")
-		}
-	})
-
-	t.Run("费用标签关联随删除级联清理", func(t *testing.T) {
-		fixture = newFinanceBillPostgresFixture(t, data)
-		actor = fixture.actorID
-		orgIDs = []uuid.UUID{fixture.organizationID}
-		billUsecase = fixture.newUsecase(NewFinanceBillRepo(data))
-		feeID := fixture.createUnbilledFee("del-tags")
-		resource, err := data.db.EnterpriseResource.Create().
-			SetOrganizationID(fixture.organizationID).
-			SetResourceType(enterpriseresourceent.ResourceTypeTAG).
-			SetShortName("删除级联标签-" + fixture.suffix).
-			Save(context.Background())
-		if err != nil {
-			t.Fatalf("创建标签资源: %v", err)
-		}
-		t.Cleanup(func() {
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-			_ = data.db.EnterpriseResource.DeleteOneID(resource.ID).Exec(ctx)
-		})
-		if _, err := data.db.OrderFeeEnterpriseTag.Create().
-			SetOrganizationID(fixture.organizationID).
-			SetOrderFeeID(feeID).
-			SetTagResourceID(resource.ID).
-			Save(context.Background()); err != nil {
-			t.Fatalf("创建费用标签关联: %v", err)
-		}
-		if err := deleteFee(t, feeID, 1); err != nil {
-			t.Fatalf("删除带标签费用失败: %v", err)
-		}
-		links, err := data.db.OrderFeeEnterpriseTag.Query().Where(orderfeeenterprisetagent.OrderFeeIDEQ(feeID)).Count(context.Background())
-		if err != nil || links != 0 {
-			t.Fatalf("费用标签关联应级联清理: count=%d err=%v", links, err)
 		}
 	})
 

@@ -90,10 +90,6 @@ vi.mock('../list-resources', () => ({
   }),
 }));
 
-vi.mock('@/services/roncin/orderTagService', () => ({
-  orderTagServiceListOrderTagOptions: vi.fn().mockResolvedValue({ tags: [] }),
-}));
-
 import OrderListPage from '../list';
 
 const employeeMode =

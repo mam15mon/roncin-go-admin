@@ -51,18 +51,6 @@ func (stub *enterpriseResourceImportRepoStub) BatchAddressTypes(context.Context,
 func (stub *enterpriseResourceImportRepoStub) BatchAssignees(context.Context, uuid.UUID, []uuid.UUID, []uuid.UUID, bool, *biz.AuditEvent) (int, error) {
 	return 0, nil
 }
-func (stub *enterpriseResourceImportRepoStub) ListTagGroups(context.Context, uuid.UUID) ([]*biz.EnterpriseTagGroup, error) {
-	return nil, nil
-}
-func (stub *enterpriseResourceImportRepoStub) CreateTagGroup(context.Context, uuid.UUID, *biz.EnterpriseTagGroup, *biz.AuditEvent) (*biz.EnterpriseTagGroup, error) {
-	return nil, nil
-}
-func (stub *enterpriseResourceImportRepoStub) UpdateTagGroup(context.Context, uuid.UUID, uuid.UUID, *biz.EnterpriseTagGroup, *biz.AuditEvent) (*biz.EnterpriseTagGroup, error) {
-	return nil, nil
-}
-func (stub *enterpriseResourceImportRepoStub) DeleteTagGroup(context.Context, uuid.UUID, uuid.UUID, *biz.AuditEvent) error {
-	return nil
-}
 func (stub *enterpriseResourceImportRepoStub) FindImportConflicts(context.Context, uuid.UUID, []*biz.EnterpriseResource) ([]*biz.EnterpriseResourceImportConflict, error) {
 	return stub.conflicts, nil
 }

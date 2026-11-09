@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import access from '@/access';
+import { enterpriseResourceTabs } from '@/router/workspaceTabs';
 import {
   buildWorkspaceMenus,
   resolveWorkspaceMenuKey,
@@ -67,5 +68,20 @@ describe('工作区共享导航菜单', () => {
     ).toBeUndefined();
     const onlyUsers = menusFor(['system.user.update'], true);
     expect(resolveWorkspaceMenuKey('/admin', '', onlyUsers)).toBeUndefined();
+  });
+  it('企业资源导航共享清单不含退役标签且存续类型不重编号', () => {
+    expect(enterpriseResourceTabs.map(({ key, type }) => [key, type])).toEqual([
+      ['addresses', 1],
+      ['remarks', 2],
+      ['images', 3],
+      ['consignees', 6],
+      ['shippers', 5],
+      ['notify-parties', 7],
+    ]);
+    const menus = menusFor(['business.enterprise_resource.read']);
+    expect(JSON.stringify(menus)).not.toContain('标签管理');
+    expect(JSON.stringify(toMobileWorkspaceMenus(menus))).not.toContain(
+      '标签管理',
+    );
   });
 });

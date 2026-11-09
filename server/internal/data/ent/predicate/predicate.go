@@ -84,12 +84,6 @@ type EnterpriseResourceRemark func(*sql.Selector)
 // EnterpriseResourceShippingText is the predicate function for enterpriseresourceshippingtext builders.
 type EnterpriseResourceShippingText func(*sql.Selector)
 
-// EnterpriseTag is the predicate function for enterprisetag builders.
-type EnterpriseTag func(*sql.Selector)
-
-// EnterpriseTagGroup is the predicate function for enterprisetaggroup builders.
-type EnterpriseTagGroup func(*sql.Selector)
-
 // ExchangeRateImportBatch is the predicate function for exchangerateimportbatch builders.
 type ExchangeRateImportBatch func(*sql.Selector)
 
@@ -107,9 +101,6 @@ type FinanceBill func(*sql.Selector)
 
 // FinanceBillBatch is the predicate function for financebillbatch builders.
 type FinanceBillBatch func(*sql.Selector)
-
-// FinanceBillEnterpriseTag is the predicate function for financebillenterprisetag builders.
-type FinanceBillEnterpriseTag func(*sql.Selector)
 
 // FinanceBillLine is the predicate function for financebillline builders.
 type FinanceBillLine func(*sql.Selector)
@@ -210,17 +201,11 @@ type OrderContainer func(*sql.Selector)
 // OrderContainerRequest is the predicate function for ordercontainerrequest builders.
 type OrderContainerRequest func(*sql.Selector)
 
-// OrderEnterpriseTag is the predicate function for orderenterprisetag builders.
-type OrderEnterpriseTag func(*sql.Selector)
-
 // OrderFee is the predicate function for orderfee builders.
 type OrderFee func(*sql.Selector)
 
 // OrderFeeCorrectionRequest is the predicate function for orderfeecorrectionrequest builders.
 type OrderFeeCorrectionRequest func(*sql.Selector)
-
-// OrderFeeEnterpriseTag is the predicate function for orderfeeenterprisetag builders.
-type OrderFeeEnterpriseTag func(*sql.Selector)
 
 // OrderFeeReviewEvent is the predicate function for orderfeereviewevent builders.
 type OrderFeeReviewEvent func(*sql.Selector)

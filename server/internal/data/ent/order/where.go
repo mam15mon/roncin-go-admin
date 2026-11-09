@@ -5129,29 +5129,6 @@ func HasCommissionAttributionsWith(preds ...predicate.OrderCommissionAttribution
 	})
 }
 
-// HasEnterpriseTagLinks applies the HasEdge predicate on the "enterprise_tag_links" edge.
-func HasEnterpriseTagLinks() predicate.Order {
-	return predicate.Order(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, EnterpriseTagLinksTable, EnterpriseTagLinksColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasEnterpriseTagLinksWith applies the HasEdge predicate on the "enterprise_tag_links" edge with a given conditions (other predicates).
-func HasEnterpriseTagLinksWith(preds ...predicate.OrderEnterpriseTag) predicate.Order {
-	return predicate.Order(func(s *sql.Selector) {
-		step := newEnterpriseTagLinksStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
 // HasSeaMasterBillLinks applies the HasEdge predicate on the "sea_master_bill_links" edge.
 func HasSeaMasterBillLinks() predicate.Order {
 	return predicate.Order(func(s *sql.Selector) {

@@ -43,7 +43,6 @@ type FeeLedgerFilter struct {
 	BillNo                  string
 	CreatedDateFrom         string
 	CreatedDateTo           string
-	TagIDs                  []uuid.UUID
 }
 
 type FeeLedgerItem struct {

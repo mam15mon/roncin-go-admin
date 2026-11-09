@@ -30,7 +30,6 @@ React 19 + Ant Design 6 (web/)          ←─ 同域部署 /api/* ─→   Go K
 | 提成（方案/台账/月度申请） | `biz/finance_commission*.go`、`data/finance_commission*.go` | `pages/finance/commissions/**`、`pages/workbench/**` |
 | 往来单位 | `biz/partner*.go` | `pages/partners/**`、`features/partners`（候选搜索 `searchPartnerOptions`） |
 | 主数据候选 | `biz/masterdata.go`、`biz/industry_reference.go` | `features/master-data/{currencies,shipping-lines}`、`pages/master-data/**`（通用类型 `types/select-option.ts`） |
-| 业务标签 | `biz/business_tag.go` | `components/business-tag/`（列表渲染与分配弹窗） |
 | 企业资源 | `biz/enterprise_resource.go` | `pages/enterprise-resources/**` |
 | 组织/角色/权限 | `biz/admin_*.go`、`biz/auth.go` | `pages/admin/**` |
 | 单据编号规则 | `biz/orderconfig.go` | `pages/admin/components/number-rules/` |

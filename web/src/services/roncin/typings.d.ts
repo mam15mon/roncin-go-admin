@@ -638,49 +638,6 @@ declare namespace API {
     traceId?: string;
   };
 
-  type BatchAssignFinanceBillTagsRequest = {
-    billIds: string[];
-    tagIds: string[];
-  };
-
-  type BatchAssignFinanceBillTagsResponse = {
-    assignedCount?: number;
-    traceId?: string;
-  };
-
-  type BatchAssignFinanceFeeTagsRequest = {
-    feeIds: string[];
-    tagIds: string[];
-    organizationId: string;
-  };
-
-  type BatchAssignFinanceFeeTagsResponse = {
-    assignedCount?: number;
-    traceId?: string;
-  };
-
-  type BatchAssignOrderFeeTagsRequest = {
-    orderId: string;
-    feeIds: string[];
-    tagIds: string[];
-  };
-
-  type BatchAssignOrderFeeTagsResponse = {
-    assignedCount?: number;
-    traceId?: string;
-  };
-
-  type BatchAssignOrderTagsRequest = {
-    businessType: number;
-    orderIds: string[];
-    tagIds: string[];
-  };
-
-  type BatchAssignOrderTagsResponse = {
-    assignedCount?: number;
-    traceId?: string;
-  };
-
   type BatchAuthorizeDingTalkUsersRequest = {
     userIds: string[];
     items: UserMembershipCreation[];
@@ -743,49 +700,6 @@ declare namespace API {
     code?: number;
     message?: string;
     affectedCount?: number;
-    traceId?: string;
-  };
-
-  type BatchRemoveFinanceBillTagsRequest = {
-    billIds: string[];
-    tagIds: string[];
-  };
-
-  type BatchRemoveFinanceBillTagsResponse = {
-    removedCount?: number;
-    traceId?: string;
-  };
-
-  type BatchRemoveFinanceFeeTagsRequest = {
-    feeIds: string[];
-    tagIds: string[];
-    organizationId: string;
-  };
-
-  type BatchRemoveFinanceFeeTagsResponse = {
-    removedCount?: number;
-    traceId?: string;
-  };
-
-  type BatchRemoveOrderFeeTagsRequest = {
-    orderId: string;
-    feeIds: string[];
-    tagIds: string[];
-  };
-
-  type BatchRemoveOrderFeeTagsResponse = {
-    removedCount?: number;
-    traceId?: string;
-  };
-
-  type BatchRemoveOrderTagsRequest = {
-    businessType: number;
-    orderIds: string[];
-    tagIds: string[];
-  };
-
-  type BatchRemoveOrderTagsResponse = {
-    removedCount?: number;
     traceId?: string;
   };
 
@@ -925,24 +839,6 @@ declare namespace API {
     message?: string;
     updatedCount?: number;
     traceId?: string;
-  };
-
-  type BusinessTagSummary = {
-    id?: string;
-    name?: string;
-    groupId?: string;
-    groupName?: string;
-    groupColor?: string;
-    enabled?: boolean;
-  };
-
-  type BusinessTagSummary = {
-    id?: string;
-    name?: string;
-    groupId?: string;
-    groupName?: string;
-    groupColor?: string;
-    enabled?: boolean;
   };
 
   type CancelBillRequest = {
@@ -1546,18 +1442,6 @@ declare namespace API {
     traceId?: string;
   };
 
-  type CreateEnterpriseTagGroupRequest = {
-    group: EnterpriseTagGroupInput;
-  };
-
-  type CreateEnterpriseTagGroupResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: EnterpriseTagGroup;
-    traceId?: string;
-  };
-
   type CreateExchangeRateSettingRequest = {
     fromCurrency: string;
     toCurrency: string;
@@ -2060,13 +1944,6 @@ declare namespace API {
     traceId?: string;
   };
 
-  type DeleteEnterpriseTagGroupResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    traceId?: string;
-  };
-
   type DeletePasskeyResponse = {
     success?: boolean;
     code?: number;
@@ -2228,7 +2105,6 @@ declare namespace API {
     remark?: EnterpriseResourceRemark;
     party?: EnterpriseResourceParty;
     image?: EnterpriseResourceImage;
-    tag?: EnterpriseResourceTag;
     createdBy?: string;
     updatedBy?: string;
     createdAt?: string;
@@ -2287,7 +2163,6 @@ declare namespace API {
     remark?: EnterpriseResourceRemark;
     party?: EnterpriseResourceParty;
     image?: EnterpriseResourceImage;
-    tag?: EnterpriseResourceTag;
   };
 
   type EnterpriseResourcePartnerOption = {
@@ -2324,10 +2199,6 @@ declare namespace API {
   };
 
   type EnterpriseResourceServiceDeleteEnterpriseResourceParams = {
-    id: string;
-  };
-
-  type EnterpriseResourceServiceDeleteEnterpriseTagGroupParams = {
     id: string;
   };
 
@@ -2375,29 +2246,6 @@ declare namespace API {
 
   type EnterpriseResourceServiceUpdateEnterpriseResourceParams = {
     id: string;
-  };
-
-  type EnterpriseResourceServiceUpdateEnterpriseTagGroupParams = {
-    id: string;
-  };
-
-  type EnterpriseResourceTag = {
-    groupId?: string;
-  };
-
-  type EnterpriseTagGroup = {
-    id?: string;
-    name?: string;
-    color?: string;
-    sortOrder?: number;
-    createdAt?: string;
-    updatedAt?: string;
-  };
-
-  type EnterpriseTagGroupInput = {
-    name: string;
-    color?: string;
-    sortOrder?: number;
   };
 
   type ExchangeRateImportBatch = {
@@ -2741,7 +2589,6 @@ declare namespace API {
     customerName?: string;
     financialProgress?: number;
     billNo?: string;
-    tags?: BusinessTagSummary[];
     organizationId?: string;
     organizationName?: string;
     hasPendingFeeSupplement?: boolean;
@@ -2916,7 +2763,6 @@ declare namespace API {
     exchangeRateSource?: string;
     exchangeRateDate?: string;
     exchangeRateSettingId?: string;
-    tags?: BusinessTagSummary[];
     organizationId?: string;
     organizationName?: string;
     settlementAccountId?: string;
@@ -4162,14 +4008,6 @@ declare namespace API {
     traceId?: string;
   };
 
-  type ListEnterpriseTagGroupsResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: EnterpriseTagGroup[];
-    traceId?: string;
-  };
-
   type ListExchangeRateSettingsResponse = {
     success?: boolean;
     code?: number;
@@ -4232,30 +4070,6 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: OrderFee[];
-    traceId?: string;
-  };
-
-  type ListFinanceBillTagAssignmentOptionsResponse = {
-    tags?: BusinessTagSummary[];
-    total?: string;
-    traceId?: string;
-  };
-
-  type ListFinanceBillTagOptionsResponse = {
-    tags?: BusinessTagSummary[];
-    total?: string;
-    traceId?: string;
-  };
-
-  type ListFinanceFeeTagAssignmentOptionsResponse = {
-    tags?: BusinessTagSummary[];
-    total?: string;
-    traceId?: string;
-  };
-
-  type ListFinanceFeeTagOptionsResponse = {
-    tags?: BusinessTagSummary[];
-    total?: string;
     traceId?: string;
   };
 
@@ -4461,12 +4275,6 @@ declare namespace API {
     traceId?: string;
   };
 
-  type ListOrderFeeTagOptionsResponse = {
-    tags?: BusinessTagSummary[];
-    total?: string;
-    traceId?: string;
-  };
-
   type ListOrdersResponse = {
     success?: boolean;
     code?: number;
@@ -4475,12 +4283,6 @@ declare namespace API {
     total?: number;
     page?: number;
     pageSize?: number;
-    traceId?: string;
-  };
-
-  type ListOrderTagOptionsResponse = {
-    tags?: BusinessTagSummary[];
-    total?: string;
     traceId?: string;
   };
 
@@ -5173,7 +4975,6 @@ declare namespace API {
     consigneeShortName?: string;
     lockedAt?: string;
     isShared?: boolean;
-    tags?: BusinessTagSummary[];
     allowedTargetFlowStatuses?: number[];
     seaMasterBill?: SeaMasterBillSummary;
     seaDocumentStructure?: number;
@@ -5433,7 +5234,6 @@ declare namespace API {
     baseCurrency?: string;
     baseCurrencyAmount?: string;
     version?: string;
-    tags?: BusinessTagSummary[];
     /** 只读计算字段：是否存在有效账单关联（活动账单行且所属账单未取消，草稿账单
  同样构成占用）。不持久化、不接受请求写入，是否已建账由账单关联事实决定。 */
     hasActiveBill?: boolean;
@@ -5602,14 +5402,6 @@ declare namespace API {
     id: string;
   };
 
-  type OrderFeeServiceBatchAssignOrderFeeTagsParams = {
-    orderId: string;
-  };
-
-  type OrderFeeServiceBatchRemoveOrderFeeTagsParams = {
-    orderId: string;
-  };
-
   type OrderFeeServiceBulkRemoveOrderFeesParams = {
     orderId: string;
   };
@@ -5647,13 +5439,6 @@ declare namespace API {
 
   type OrderFeeServiceListOrderFeeSupplementRequestsParams = {
     orderId: string;
-    page?: number;
-    pageSize?: number;
-  };
-
-  type OrderFeeServiceListOrderFeeTagOptionsParams = {
-    orderId: string;
-    keyword?: string;
     page?: number;
     pageSize?: number;
   };
@@ -6000,7 +5785,6 @@ declare namespace API {
     salesId?: string;
     customerServiceId?: string;
     creatorId?: string;
-    tagIds?: string[];
     isLocked?: boolean;
     isShared?: boolean;
   };
@@ -6093,13 +5877,6 @@ declare namespace API {
     operatorName?: string;
     changedAt?: string;
     reason?: string;
-  };
-
-  type OrderTagServiceListOrderTagOptionsParams = {
-    businessType?: number;
-    keyword?: string;
-    page?: number;
-    pageSize?: number;
   };
 
   type OrderUnlockApproverCandidateData = {
@@ -8419,7 +8196,6 @@ declare namespace API {
     currency?: string;
     billDateFrom?: string;
     billDateTo?: string;
-    tagIds?: string[];
     organizationId?: string;
     dueDateFrom?: string;
     dueDateTo?: string;
@@ -8523,38 +8299,9 @@ declare namespace API {
     customerId?: string;
     financialProgress?: number;
     billNo?: string;
-    tagIds?: string[];
     organizationId?: string;
     hasPendingFeeSupplement?: boolean;
     orderLocked?: boolean;
-  };
-
-  type SettlementServiceListFinanceBillTagAssignmentOptionsParams = {
-    organizationId?: string;
-    keyword?: string;
-    page?: number;
-    pageSize?: number;
-  };
-
-  type SettlementServiceListFinanceBillTagOptionsParams = {
-    keyword?: string;
-    page?: number;
-    pageSize?: number;
-    organizationId?: string;
-  };
-
-  type SettlementServiceListFinanceFeeTagAssignmentOptionsParams = {
-    organizationId?: string;
-    keyword?: string;
-    page?: number;
-    pageSize?: number;
-  };
-
-  type SettlementServiceListFinanceFeeTagOptionsParams = {
-    keyword?: string;
-    page?: number;
-    pageSize?: number;
-    organizationId?: string;
   };
 
   type SettlementServiceListFinanceOrganizationOptionsParams = {
@@ -9026,19 +8773,6 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: EnterpriseResource;
-    traceId?: string;
-  };
-
-  type UpdateEnterpriseTagGroupRequest = {
-    id: string;
-    group: EnterpriseTagGroupInput;
-  };
-
-  type UpdateEnterpriseTagGroupResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: EnterpriseTagGroup;
     traceId?: string;
   };
 

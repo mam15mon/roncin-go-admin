@@ -23,7 +23,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainerrequest"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderenterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeereviewevent"
@@ -1841,21 +1840,6 @@ func (_u *OrderUpdate) AddCommissionAttributions(v ...*OrderCommissionAttributio
 	return _u.AddCommissionAttributionIDs(ids...)
 }
 
-// AddEnterpriseTagLinkIDs adds the "enterprise_tag_links" edge to the OrderEnterpriseTag entity by IDs.
-func (_u *OrderUpdate) AddEnterpriseTagLinkIDs(ids ...uuid.UUID) *OrderUpdate {
-	_u.mutation.AddEnterpriseTagLinkIDs(ids...)
-	return _u
-}
-
-// AddEnterpriseTagLinks adds the "enterprise_tag_links" edges to the OrderEnterpriseTag entity.
-func (_u *OrderUpdate) AddEnterpriseTagLinks(v ...*OrderEnterpriseTag) *OrderUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddEnterpriseTagLinkIDs(ids...)
-}
-
 // AddSeaMasterBillLinkIDs adds the "sea_master_bill_links" edge to the SeaMasterBillOrderLink entity by IDs.
 func (_u *OrderUpdate) AddSeaMasterBillLinkIDs(ids ...uuid.UUID) *OrderUpdate {
 	_u.mutation.AddSeaMasterBillLinkIDs(ids...)
@@ -2439,27 +2423,6 @@ func (_u *OrderUpdate) RemoveCommissionAttributions(v ...*OrderCommissionAttribu
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCommissionAttributionIDs(ids...)
-}
-
-// ClearEnterpriseTagLinks clears all "enterprise_tag_links" edges to the OrderEnterpriseTag entity.
-func (_u *OrderUpdate) ClearEnterpriseTagLinks() *OrderUpdate {
-	_u.mutation.ClearEnterpriseTagLinks()
-	return _u
-}
-
-// RemoveEnterpriseTagLinkIDs removes the "enterprise_tag_links" edge to OrderEnterpriseTag entities by IDs.
-func (_u *OrderUpdate) RemoveEnterpriseTagLinkIDs(ids ...uuid.UUID) *OrderUpdate {
-	_u.mutation.RemoveEnterpriseTagLinkIDs(ids...)
-	return _u
-}
-
-// RemoveEnterpriseTagLinks removes "enterprise_tag_links" edges to OrderEnterpriseTag entities.
-func (_u *OrderUpdate) RemoveEnterpriseTagLinks(v ...*OrderEnterpriseTag) *OrderUpdate {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveEnterpriseTagLinkIDs(ids...)
 }
 
 // ClearSeaMasterBillLinks clears all "sea_master_bill_links" edges to the SeaMasterBillOrderLink entity.
@@ -4320,51 +4283,6 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(ordercommissionattribution.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.EnterpriseTagLinksCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   order.EnterpriseTagLinksTable,
-			Columns: []string{order.EnterpriseTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedEnterpriseTagLinksIDs(); len(nodes) > 0 && !_u.mutation.EnterpriseTagLinksCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   order.EnterpriseTagLinksTable,
-			Columns: []string{order.EnterpriseTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.EnterpriseTagLinksIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   order.EnterpriseTagLinksTable,
-			Columns: []string{order.EnterpriseTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -6694,21 +6612,6 @@ func (_u *OrderUpdateOne) AddCommissionAttributions(v ...*OrderCommissionAttribu
 	return _u.AddCommissionAttributionIDs(ids...)
 }
 
-// AddEnterpriseTagLinkIDs adds the "enterprise_tag_links" edge to the OrderEnterpriseTag entity by IDs.
-func (_u *OrderUpdateOne) AddEnterpriseTagLinkIDs(ids ...uuid.UUID) *OrderUpdateOne {
-	_u.mutation.AddEnterpriseTagLinkIDs(ids...)
-	return _u
-}
-
-// AddEnterpriseTagLinks adds the "enterprise_tag_links" edges to the OrderEnterpriseTag entity.
-func (_u *OrderUpdateOne) AddEnterpriseTagLinks(v ...*OrderEnterpriseTag) *OrderUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddEnterpriseTagLinkIDs(ids...)
-}
-
 // AddSeaMasterBillLinkIDs adds the "sea_master_bill_links" edge to the SeaMasterBillOrderLink entity by IDs.
 func (_u *OrderUpdateOne) AddSeaMasterBillLinkIDs(ids ...uuid.UUID) *OrderUpdateOne {
 	_u.mutation.AddSeaMasterBillLinkIDs(ids...)
@@ -7292,27 +7195,6 @@ func (_u *OrderUpdateOne) RemoveCommissionAttributions(v ...*OrderCommissionAttr
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveCommissionAttributionIDs(ids...)
-}
-
-// ClearEnterpriseTagLinks clears all "enterprise_tag_links" edges to the OrderEnterpriseTag entity.
-func (_u *OrderUpdateOne) ClearEnterpriseTagLinks() *OrderUpdateOne {
-	_u.mutation.ClearEnterpriseTagLinks()
-	return _u
-}
-
-// RemoveEnterpriseTagLinkIDs removes the "enterprise_tag_links" edge to OrderEnterpriseTag entities by IDs.
-func (_u *OrderUpdateOne) RemoveEnterpriseTagLinkIDs(ids ...uuid.UUID) *OrderUpdateOne {
-	_u.mutation.RemoveEnterpriseTagLinkIDs(ids...)
-	return _u
-}
-
-// RemoveEnterpriseTagLinks removes "enterprise_tag_links" edges to OrderEnterpriseTag entities.
-func (_u *OrderUpdateOne) RemoveEnterpriseTagLinks(v ...*OrderEnterpriseTag) *OrderUpdateOne {
-	ids := make([]uuid.UUID, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveEnterpriseTagLinkIDs(ids...)
 }
 
 // ClearSeaMasterBillLinks clears all "sea_master_bill_links" edges to the SeaMasterBillOrderLink entity.
@@ -9203,51 +9085,6 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(ordercommissionattribution.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.EnterpriseTagLinksCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   order.EnterpriseTagLinksTable,
-			Columns: []string{order.EnterpriseTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedEnterpriseTagLinksIDs(); len(nodes) > 0 && !_u.mutation.EnterpriseTagLinksCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   order.EnterpriseTagLinksTable,
-			Columns: []string{order.EnterpriseTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.EnterpriseTagLinksIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   order.EnterpriseTagLinksTable,
-			Columns: []string{order.EnterpriseTagLinksColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(orderenterprisetag.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

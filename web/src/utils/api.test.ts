@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { toTableRequest, unwrapList, unwrapPage } from './api';
+import { isWriteResponse, toTableRequest, unwrapList, unwrapPage } from './api';
 
 describe('API 响应解包', () => {
   it('将缺失的列表数据解包为空数组', () => {
@@ -28,5 +28,14 @@ describe('API 响应解包', () => {
       data: [{ id: '1' }],
       success: true,
     });
+  });
+  it('写入必须取得成功信封或有效实体，不将空对象视为成功', () => {
+    expect(isWriteResponse({})).toBe(false);
+    expect(isWriteResponse({ success: true })).toBe(true);
+    expect(isWriteResponse({ success: false, data: { id: 'id' } }, true)).toBe(
+      false,
+    );
+    expect(isWriteResponse({ data: { id: 'id' } }, true)).toBe(true);
+    expect(isWriteResponse({ data: {} }, true)).toBe(false);
   });
 });

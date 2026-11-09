@@ -16,7 +16,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceparty"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceremark"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceshippingtext"
-	"github.com/roncin/roncin-go-admin/server/internal/data/ent/enterprisetag"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -70,23 +69,15 @@ type EnterpriseResourceEdges struct {
 	Party *EnterpriseResourceParty `json:"party,omitempty"`
 	// ShippingText holds the value of the shipping_text edge.
 	ShippingText *EnterpriseResourceShippingText `json:"shipping_text,omitempty"`
-	// Tag holds the value of the tag edge.
-	Tag *EnterpriseTag `json:"tag,omitempty"`
 	// PartnerLinks holds the value of the partner_links edge.
 	PartnerLinks []*EnterpriseResourcePartner `json:"partner_links,omitempty"`
 	// Assignees holds the value of the assignees edge.
 	Assignees []*EnterpriseResourceAssignee `json:"assignees,omitempty"`
 	// AddressTypes holds the value of the address_types edge.
 	AddressTypes []*EnterpriseResourceAddressType `json:"address_types,omitempty"`
-	// OrderTagLinks holds the value of the order_tag_links edge.
-	OrderTagLinks []*OrderEnterpriseTag `json:"order_tag_links,omitempty"`
-	// OrderFeeTagLinks holds the value of the order_fee_tag_links edge.
-	OrderFeeTagLinks []*OrderFeeEnterpriseTag `json:"order_fee_tag_links,omitempty"`
-	// FinanceBillTagLinks holds the value of the finance_bill_tag_links edge.
-	FinanceBillTagLinks []*FinanceBillEnterpriseTag `json:"finance_bill_tag_links,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [15]bool
+	loadedTypes [11]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -177,21 +168,10 @@ func (e EnterpriseResourceEdges) ShippingTextOrErr() (*EnterpriseResourceShippin
 	return nil, &NotLoadedError{edge: "shipping_text"}
 }
 
-// TagOrErr returns the Tag value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e EnterpriseResourceEdges) TagOrErr() (*EnterpriseTag, error) {
-	if e.Tag != nil {
-		return e.Tag, nil
-	} else if e.loadedTypes[8] {
-		return nil, &NotFoundError{label: enterprisetag.Label}
-	}
-	return nil, &NotLoadedError{edge: "tag"}
-}
-
 // PartnerLinksOrErr returns the PartnerLinks value or an error if the edge
 // was not loaded in eager-loading.
 func (e EnterpriseResourceEdges) PartnerLinksOrErr() ([]*EnterpriseResourcePartner, error) {
-	if e.loadedTypes[9] {
+	if e.loadedTypes[8] {
 		return e.PartnerLinks, nil
 	}
 	return nil, &NotLoadedError{edge: "partner_links"}
@@ -200,7 +180,7 @@ func (e EnterpriseResourceEdges) PartnerLinksOrErr() ([]*EnterpriseResourcePartn
 // AssigneesOrErr returns the Assignees value or an error if the edge
 // was not loaded in eager-loading.
 func (e EnterpriseResourceEdges) AssigneesOrErr() ([]*EnterpriseResourceAssignee, error) {
-	if e.loadedTypes[10] {
+	if e.loadedTypes[9] {
 		return e.Assignees, nil
 	}
 	return nil, &NotLoadedError{edge: "assignees"}
@@ -209,37 +189,10 @@ func (e EnterpriseResourceEdges) AssigneesOrErr() ([]*EnterpriseResourceAssignee
 // AddressTypesOrErr returns the AddressTypes value or an error if the edge
 // was not loaded in eager-loading.
 func (e EnterpriseResourceEdges) AddressTypesOrErr() ([]*EnterpriseResourceAddressType, error) {
-	if e.loadedTypes[11] {
+	if e.loadedTypes[10] {
 		return e.AddressTypes, nil
 	}
 	return nil, &NotLoadedError{edge: "address_types"}
-}
-
-// OrderTagLinksOrErr returns the OrderTagLinks value or an error if the edge
-// was not loaded in eager-loading.
-func (e EnterpriseResourceEdges) OrderTagLinksOrErr() ([]*OrderEnterpriseTag, error) {
-	if e.loadedTypes[12] {
-		return e.OrderTagLinks, nil
-	}
-	return nil, &NotLoadedError{edge: "order_tag_links"}
-}
-
-// OrderFeeTagLinksOrErr returns the OrderFeeTagLinks value or an error if the edge
-// was not loaded in eager-loading.
-func (e EnterpriseResourceEdges) OrderFeeTagLinksOrErr() ([]*OrderFeeEnterpriseTag, error) {
-	if e.loadedTypes[13] {
-		return e.OrderFeeTagLinks, nil
-	}
-	return nil, &NotLoadedError{edge: "order_fee_tag_links"}
-}
-
-// FinanceBillTagLinksOrErr returns the FinanceBillTagLinks value or an error if the edge
-// was not loaded in eager-loading.
-func (e EnterpriseResourceEdges) FinanceBillTagLinksOrErr() ([]*FinanceBillEnterpriseTag, error) {
-	if e.loadedTypes[14] {
-		return e.FinanceBillTagLinks, nil
-	}
-	return nil, &NotLoadedError{edge: "finance_bill_tag_links"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -395,11 +348,6 @@ func (_m *EnterpriseResource) QueryShippingText() *EnterpriseResourceShippingTex
 	return NewEnterpriseResourceClient(_m.config).QueryShippingText(_m)
 }
 
-// QueryTag queries the "tag" edge of the EnterpriseResource entity.
-func (_m *EnterpriseResource) QueryTag() *EnterpriseTagQuery {
-	return NewEnterpriseResourceClient(_m.config).QueryTag(_m)
-}
-
 // QueryPartnerLinks queries the "partner_links" edge of the EnterpriseResource entity.
 func (_m *EnterpriseResource) QueryPartnerLinks() *EnterpriseResourcePartnerQuery {
 	return NewEnterpriseResourceClient(_m.config).QueryPartnerLinks(_m)
@@ -413,21 +361,6 @@ func (_m *EnterpriseResource) QueryAssignees() *EnterpriseResourceAssigneeQuery 
 // QueryAddressTypes queries the "address_types" edge of the EnterpriseResource entity.
 func (_m *EnterpriseResource) QueryAddressTypes() *EnterpriseResourceAddressTypeQuery {
 	return NewEnterpriseResourceClient(_m.config).QueryAddressTypes(_m)
-}
-
-// QueryOrderTagLinks queries the "order_tag_links" edge of the EnterpriseResource entity.
-func (_m *EnterpriseResource) QueryOrderTagLinks() *OrderEnterpriseTagQuery {
-	return NewEnterpriseResourceClient(_m.config).QueryOrderTagLinks(_m)
-}
-
-// QueryOrderFeeTagLinks queries the "order_fee_tag_links" edge of the EnterpriseResource entity.
-func (_m *EnterpriseResource) QueryOrderFeeTagLinks() *OrderFeeEnterpriseTagQuery {
-	return NewEnterpriseResourceClient(_m.config).QueryOrderFeeTagLinks(_m)
-}
-
-// QueryFinanceBillTagLinks queries the "finance_bill_tag_links" edge of the EnterpriseResource entity.
-func (_m *EnterpriseResource) QueryFinanceBillTagLinks() *FinanceBillEnterpriseTagQuery {
-	return NewEnterpriseResourceClient(_m.config).QueryFinanceBillTagLinks(_m)
 }
 
 // Update returns a builder for updating this EnterpriseResource.

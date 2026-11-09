@@ -54,7 +54,7 @@ func TestOrderCreateReplaysExistingOrderForSameIntent(t *testing.T) {
 	organizationID := uuid.Must(uuid.NewV7())
 	existing := buildExistingFromCreate(idempotentCreateInput(organizationID))
 	repo := &orderRepoStub{byIdempotencyKey: existing}
-	usecase := NewOrderUsecase(repo, nil, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), inlineTransactor{})
+	usecase := NewOrderUsecase(repo, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), inlineTransactor{})
 
 	request := *existing
 	request.OrderDate = ""
@@ -76,7 +76,7 @@ func TestOrderCreateRejectsDifferentIntentWithSameKey(t *testing.T) {
 	organizationID := uuid.Must(uuid.NewV7())
 	existing := buildExistingFromCreate(idempotentCreateInput(organizationID))
 	repo := &orderRepoStub{byIdempotencyKey: existing}
-	usecase := NewOrderUsecase(repo, nil, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), inlineTransactor{})
+	usecase := NewOrderUsecase(repo, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), inlineTransactor{})
 
 	request := *existing
 	request.CustomerID = uuid.Must(uuid.NewV7())
@@ -93,7 +93,7 @@ func TestOrderCreateRejectsSameKeyWithDriftedContent(t *testing.T) {
 	organizationID := uuid.Must(uuid.NewV7())
 	existing := buildExistingFromCreate(idempotentCreateInput(organizationID))
 	repo := &orderRepoStub{byIdempotencyKey: existing}
-	usecase := NewOrderUsecase(repo, nil, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), inlineTransactor{})
+	usecase := NewOrderUsecase(repo, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), inlineTransactor{})
 
 	// 全量请求哈希覆盖此前清单式比对遗漏的字段：仅改货物描述也必须判为冲突。
 	request := *existing
@@ -163,7 +163,7 @@ func TestOrderCreateRejectsSameKeyWithDriftedContent(t *testing.T) {
 
 func TestOrderCreateWithoutIdempotencyKeyKeepsDirectCreate(t *testing.T) {
 	repo := &orderRepoStub{}
-	usecase := NewOrderUsecase(repo, nil, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
+	usecase := NewOrderUsecase(repo, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
 
 	input := idempotentCreateInput(uuid.Must(uuid.NewV7()))
 	input.IdempotencyKey = ""

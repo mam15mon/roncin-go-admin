@@ -92,8 +92,9 @@ describe('OrderListTemplate', () => {
     expect(screen.queryByText('全部订单')).not.toBeInTheDocument();
     expect(screen.queryByText('待订舱')).not.toBeInTheDocument();
     expect(screen.getByText('新增海运出口订单')).toBeInTheDocument();
-    expect(screen.queryByText('批量操作')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /刷新/ })).toBeEnabled();
     expect(screen.queryByText('批量维护标签')).not.toBeInTheDocument();
+    expect(screen.queryByText('批量操作')).not.toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText('ORD202608260001')).toBeInTheDocument();
@@ -175,21 +176,16 @@ describe('订单列表批量操作', () => {
     cleanup();
   });
 
-  it('选中订单后只提供可执行的标签批量操作', () => {
+  it('选中订单后保留刷新和选择提示且没有业务标签入口', () => {
     const selectedRows = [
       { id: 'order-1', orderNo: 'SE-001' } as OrderListItem,
     ];
-    const onManageTags = vi.fn();
     render(
-      <OrderListToolbar
-        selectedRows={selectedRows}
-        onRefresh={vi.fn()}
-        onManageTags={onManageTags}
-      />,
+      <OrderListToolbar selectedRows={selectedRows} onRefresh={vi.fn()} />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /批量维护标签/ }));
-    expect(onManageTags).toHaveBeenCalledWith(selectedRows);
+    expect(screen.getByRole('button', { name: /刷新/ })).toBeEnabled();
+    expect(screen.queryByText('批量维护标签')).not.toBeInTheDocument();
     expect(screen.queryByText('批量操作')).not.toBeInTheDocument();
   });
 });
@@ -259,7 +255,7 @@ describe('OrderListSearchFilter', () => {
     expect(screen.getByText('业务人员')).toBeInTheDocument();
     expect(screen.getByText('客服人员')).toBeInTheDocument();
     expect(screen.getByText('订单创建人员')).toBeInTheDocument();
-    expect(screen.getByText('订单标签')).toBeInTheDocument();
+    expect(screen.queryByText('订单标签')).not.toBeInTheDocument();
 
     await waitFor(() => {
       expect(loadPorts).toHaveBeenCalled();

@@ -3,7 +3,7 @@
   "name": "retire-business-tags",
   "title": "全站取消业务标签并精简账单公司选择",
   "description": "退役订单、费用、账单及企业资源业务标签，清理契约权限和存储依赖，账单绑定当前公司工作区",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": null,

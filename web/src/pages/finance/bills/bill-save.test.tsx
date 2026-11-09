@@ -8,6 +8,13 @@ const state = vi.hoisted(() => ({
   openEdit: undefined as undefined | ((bill: API.FinanceBill) => void),
   reload: vi.fn(),
 }));
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
+    initialState: {
+      currentUser: { currentOrganization: { id: 'workspace-org' } },
+    },
+  }),
+}));
 vi.mock('@/app/access', () => ({
   useAccess: () => ({ canOperateOrganization: () => true }),
 }));
@@ -35,9 +42,6 @@ vi.mock('@/components/ui', () => ({
     );
   },
   SearchFilterTemplate: () => null,
-}));
-vi.mock('@/components/business-tag/BusinessTagModal', () => ({
-  BusinessTagModal: () => null,
 }));
 vi.mock('@/features/finance/bill-creation', () => ({
   BillCreationWorkbench: () => null,
@@ -76,9 +80,6 @@ vi.mock('./components/BillEditModal', () => ({
 }));
 vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceUpdateBill: vi.fn(),
-  settlementServiceListFinanceOrganizationOptions: vi
-    .fn()
-    .mockResolvedValue({ data: [] }),
 }));
 beforeEach(() => {
   vi.clearAllMocks();

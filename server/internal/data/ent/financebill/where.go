@@ -2773,29 +2773,6 @@ func HasNettingAllocationsWith(preds ...predicate.FinanceNettingAllocation) pred
 	})
 }
 
-// HasEnterpriseTagLinks applies the HasEdge predicate on the "enterprise_tag_links" edge.
-func HasEnterpriseTagLinks() predicate.FinanceBill {
-	return predicate.FinanceBill(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, EnterpriseTagLinksTable, EnterpriseTagLinksColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasEnterpriseTagLinksWith applies the HasEdge predicate on the "enterprise_tag_links" edge with a given conditions (other predicates).
-func HasEnterpriseTagLinksWith(preds ...predicate.FinanceBillEnterpriseTag) predicate.FinanceBill {
-	return predicate.FinanceBill(func(s *sql.Selector) {
-		step := newEnterpriseTagLinksStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.FinanceBill) predicate.FinanceBill {
 	return predicate.FinanceBill(sql.AndPredicates(predicates...))

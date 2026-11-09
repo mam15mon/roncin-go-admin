@@ -33,7 +33,6 @@ export const FEE_COLUMN_KEYS = [
   'baseCurrencyAmount',
   'createdAt',
   'note',
-  'tags',
   'billNo',
   'financialProgress',
   'option',
@@ -52,7 +51,7 @@ export interface FeeColumnDef {
   financeOnly?: boolean;
 }
 
-/** 默认列按费用对象、计价输入、原币税额、本币折算、日期备注排列；录入日期、费用标签与关联账单列默认隐藏。 */
+/** 默认列按费用对象、计价输入、原币税额、本币折算、日期备注排列；录入日期与关联账单列默认隐藏。 */
 export const DEFAULT_FEE_COLUMN_DEFS: FeeColumnDef[] = [
   {
     key: 'feeCode',
@@ -131,12 +130,6 @@ export const DEFAULT_FEE_COLUMN_DEFS: FeeColumnDef[] = [
     defaultVisible: false,
   },
   { key: 'note', title: '备注', lockVisible: false, defaultVisible: true },
-  {
-    key: 'tags',
-    title: '费用标签',
-    lockVisible: false,
-    defaultVisible: false,
-  },
   {
     key: 'billNo',
     title: '账单号',

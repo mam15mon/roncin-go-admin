@@ -113,14 +113,6 @@ const (
 	EdgeFinanceCustomSetting = "finance_custom_setting"
 	// EdgeEnterpriseResources holds the string denoting the enterprise_resources edge name in mutations.
 	EdgeEnterpriseResources = "enterprise_resources"
-	// EdgeEnterpriseTagGroups holds the string denoting the enterprise_tag_groups edge name in mutations.
-	EdgeEnterpriseTagGroups = "enterprise_tag_groups"
-	// EdgeOrderEnterpriseTags holds the string denoting the order_enterprise_tags edge name in mutations.
-	EdgeOrderEnterpriseTags = "order_enterprise_tags"
-	// EdgeOrderFeeEnterpriseTags holds the string denoting the order_fee_enterprise_tags edge name in mutations.
-	EdgeOrderFeeEnterpriseTags = "order_fee_enterprise_tags"
-	// EdgeFinanceBillEnterpriseTags holds the string denoting the finance_bill_enterprise_tags edge name in mutations.
-	EdgeFinanceBillEnterpriseTags = "finance_bill_enterprise_tags"
 	// EdgeAttachmentAssets holds the string denoting the attachment_assets edge name in mutations.
 	EdgeAttachmentAssets = "attachment_assets"
 	// EdgeSeaOrderSplitEvents holds the string denoting the sea_order_split_events edge name in mutations.
@@ -416,34 +408,6 @@ const (
 	EnterpriseResourcesInverseTable = "enterprise_resources"
 	// EnterpriseResourcesColumn is the table column denoting the enterprise_resources relation/edge.
 	EnterpriseResourcesColumn = "organization_id"
-	// EnterpriseTagGroupsTable is the table that holds the enterprise_tag_groups relation/edge.
-	EnterpriseTagGroupsTable = "enterprise_tag_groups"
-	// EnterpriseTagGroupsInverseTable is the table name for the EnterpriseTagGroup entity.
-	// It exists in this package in order to avoid circular dependency with the "enterprisetaggroup" package.
-	EnterpriseTagGroupsInverseTable = "enterprise_tag_groups"
-	// EnterpriseTagGroupsColumn is the table column denoting the enterprise_tag_groups relation/edge.
-	EnterpriseTagGroupsColumn = "organization_id"
-	// OrderEnterpriseTagsTable is the table that holds the order_enterprise_tags relation/edge.
-	OrderEnterpriseTagsTable = "order_enterprise_tags"
-	// OrderEnterpriseTagsInverseTable is the table name for the OrderEnterpriseTag entity.
-	// It exists in this package in order to avoid circular dependency with the "orderenterprisetag" package.
-	OrderEnterpriseTagsInverseTable = "order_enterprise_tags"
-	// OrderEnterpriseTagsColumn is the table column denoting the order_enterprise_tags relation/edge.
-	OrderEnterpriseTagsColumn = "organization_id"
-	// OrderFeeEnterpriseTagsTable is the table that holds the order_fee_enterprise_tags relation/edge.
-	OrderFeeEnterpriseTagsTable = "order_fee_enterprise_tags"
-	// OrderFeeEnterpriseTagsInverseTable is the table name for the OrderFeeEnterpriseTag entity.
-	// It exists in this package in order to avoid circular dependency with the "orderfeeenterprisetag" package.
-	OrderFeeEnterpriseTagsInverseTable = "order_fee_enterprise_tags"
-	// OrderFeeEnterpriseTagsColumn is the table column denoting the order_fee_enterprise_tags relation/edge.
-	OrderFeeEnterpriseTagsColumn = "organization_id"
-	// FinanceBillEnterpriseTagsTable is the table that holds the finance_bill_enterprise_tags relation/edge.
-	FinanceBillEnterpriseTagsTable = "finance_bill_enterprise_tags"
-	// FinanceBillEnterpriseTagsInverseTable is the table name for the FinanceBillEnterpriseTag entity.
-	// It exists in this package in order to avoid circular dependency with the "financebillenterprisetag" package.
-	FinanceBillEnterpriseTagsInverseTable = "finance_bill_enterprise_tags"
-	// FinanceBillEnterpriseTagsColumn is the table column denoting the finance_bill_enterprise_tags relation/edge.
-	FinanceBillEnterpriseTagsColumn = "organization_id"
 	// AttachmentAssetsTable is the table that holds the attachment_assets relation/edge.
 	AttachmentAssetsTable = "order_attachment_assets"
 	// AttachmentAssetsInverseTable is the table name for the OrderAttachmentAsset entity.
@@ -1235,62 +1199,6 @@ func ByEnterpriseResources(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOpti
 	}
 }
 
-// ByEnterpriseTagGroupsCount orders the results by enterprise_tag_groups count.
-func ByEnterpriseTagGroupsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newEnterpriseTagGroupsStep(), opts...)
-	}
-}
-
-// ByEnterpriseTagGroups orders the results by enterprise_tag_groups terms.
-func ByEnterpriseTagGroups(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newEnterpriseTagGroupsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
-// ByOrderEnterpriseTagsCount orders the results by order_enterprise_tags count.
-func ByOrderEnterpriseTagsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newOrderEnterpriseTagsStep(), opts...)
-	}
-}
-
-// ByOrderEnterpriseTags orders the results by order_enterprise_tags terms.
-func ByOrderEnterpriseTags(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newOrderEnterpriseTagsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
-// ByOrderFeeEnterpriseTagsCount orders the results by order_fee_enterprise_tags count.
-func ByOrderFeeEnterpriseTagsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newOrderFeeEnterpriseTagsStep(), opts...)
-	}
-}
-
-// ByOrderFeeEnterpriseTags orders the results by order_fee_enterprise_tags terms.
-func ByOrderFeeEnterpriseTags(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newOrderFeeEnterpriseTagsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
-// ByFinanceBillEnterpriseTagsCount orders the results by finance_bill_enterprise_tags count.
-func ByFinanceBillEnterpriseTagsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newFinanceBillEnterpriseTagsStep(), opts...)
-	}
-}
-
-// ByFinanceBillEnterpriseTags orders the results by finance_bill_enterprise_tags terms.
-func ByFinanceBillEnterpriseTags(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newFinanceBillEnterpriseTagsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
 // ByAttachmentAssetsCount orders the results by attachment_assets count.
 func ByAttachmentAssetsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1827,34 +1735,6 @@ func newEnterpriseResourcesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(EnterpriseResourcesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, EnterpriseResourcesTable, EnterpriseResourcesColumn),
-	)
-}
-func newEnterpriseTagGroupsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(EnterpriseTagGroupsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, EnterpriseTagGroupsTable, EnterpriseTagGroupsColumn),
-	)
-}
-func newOrderEnterpriseTagsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(OrderEnterpriseTagsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, OrderEnterpriseTagsTable, OrderEnterpriseTagsColumn),
-	)
-}
-func newOrderFeeEnterpriseTagsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(OrderFeeEnterpriseTagsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, OrderFeeEnterpriseTagsTable, OrderFeeEnterpriseTagsColumn),
-	)
-}
-func newFinanceBillEnterpriseTagsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(FinanceBillEnterpriseTagsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, FinanceBillEnterpriseTagsTable, FinanceBillEnterpriseTagsColumn),
 	)
 }
 func newAttachmentAssetsStep() *sqlgraph.Step {

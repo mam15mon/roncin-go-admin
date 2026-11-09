@@ -319,55 +319,6 @@ func (s *EnterpriseResourceService) batchAssignees(ctx context.Context, resource
 	return count, nil
 }
 
-func (s *EnterpriseResourceService) ListEnterpriseTagGroups(ctx context.Context, _ *v1.ListEnterpriseTagGroupsRequest) (*v1.ListEnterpriseTagGroupsResponse, error) {
-	principal, principalErr := biz.RequirePrincipal(ctx)
-	if principalErr != nil {
-		return nil, principalErr
-	}
-	items, err := s.usecase.ListTagGroups(ctx, principal.Organization.ID)
-	if err != nil {
-		return nil, err
-	}
-	data := make([]*v1.EnterpriseTagGroup, len(items))
-	for i, item := range items {
-		data[i] = enterpriseTagGroupToAPI(item)
-	}
-	return okList(ctx, &v1.ListEnterpriseTagGroupsResponse{Data: data}), nil
-}
-func (s *EnterpriseResourceService) CreateEnterpriseTagGroup(ctx context.Context, request *v1.CreateEnterpriseTagGroupRequest) (*v1.CreateEnterpriseTagGroupResponse, error) {
-	principal, principalErr := biz.RequirePrincipal(ctx)
-	if principalErr != nil {
-		return nil, principalErr
-	}
-	input := enterpriseTagGroupFromAPI(request.GetGroup())
-	item, err := s.usecase.CreateTagGroup(ctx, principal.Organization.ID, principal.UserID, input)
-	if err != nil {
-		return nil, err
-	}
-	return ok(ctx, &v1.CreateEnterpriseTagGroupResponse{Data: enterpriseTagGroupToAPI(item)}), nil
-}
-func (s *EnterpriseResourceService) UpdateEnterpriseTagGroup(ctx context.Context, request *v1.UpdateEnterpriseTagGroupRequest) (*v1.UpdateEnterpriseTagGroupResponse, error) {
-	principal, id, err := enterpriseResourcePrincipalAndID(ctx, request.GetId())
-	if err != nil {
-		return nil, err
-	}
-	item, err := s.usecase.UpdateTagGroup(ctx, principal.Organization.ID, principal.UserID, id, enterpriseTagGroupFromAPI(request.GetGroup()))
-	if err != nil {
-		return nil, err
-	}
-	return ok(ctx, &v1.UpdateEnterpriseTagGroupResponse{Data: enterpriseTagGroupToAPI(item)}), nil
-}
-func (s *EnterpriseResourceService) DeleteEnterpriseTagGroup(ctx context.Context, request *v1.DeleteEnterpriseTagGroupRequest) (*v1.DeleteEnterpriseTagGroupResponse, error) {
-	principal, id, err := enterpriseResourcePrincipalAndID(ctx, request.GetId())
-	if err != nil {
-		return nil, err
-	}
-	if err := s.usecase.DeleteTagGroup(ctx, principal.Organization.ID, principal.UserID, id); err != nil {
-		return nil, err
-	}
-	return ok(ctx, &v1.DeleteEnterpriseTagGroupResponse{}), nil
-}
-
 func (s *EnterpriseResourceService) PreviewEnterpriseResourceImport(ctx context.Context, request *v1.PreviewEnterpriseResourceImportRequest) (*v1.PreviewEnterpriseResourceImportResponse, error) {
 	principal, principalErr := biz.RequirePrincipal(ctx)
 	if principalErr != nil {
@@ -447,13 +398,6 @@ func enterpriseResourceFromAPI(value *v1.EnterpriseResourceInput) (*biz.Enterpri
 			result.Image.Height = &height
 		}
 	}
-	if item := value.GetTag(); item != nil {
-		id, err := uuid.Parse(item.GetGroupId())
-		if err != nil {
-			return nil, biz.ErrEnterpriseResourceInvalidArgument
-		}
-		result.Tag = &biz.EnterpriseResourceTag{GroupID: id}
-	}
 	return result, nil
 }
 
@@ -482,9 +426,6 @@ func enterpriseResourceToAPI(value *biz.EnterpriseResource) *v1.EnterpriseResour
 			detail.Height = &height
 		}
 		result.Detail = &v1.EnterpriseResource_Image{Image: detail}
-	}
-	if item := value.Tag; item != nil {
-		result.Detail = &v1.EnterpriseResource_Tag{Tag: &v1.EnterpriseResourceTag{GroupId: item.GroupID.String()}}
 	}
 	return result
 }
@@ -521,15 +462,6 @@ func enterpriseUUIDStrings(values []uuid.UUID) []string {
 		result[i] = value.String()
 	}
 	return result
-}
-func enterpriseTagGroupFromAPI(value *v1.EnterpriseTagGroupInput) *biz.EnterpriseTagGroup {
-	if value == nil {
-		return nil
-	}
-	return &biz.EnterpriseTagGroup{Name: value.GetName(), Color: value.GetColor(), SortOrder: int(value.GetSortOrder())}
-}
-func enterpriseTagGroupToAPI(value *biz.EnterpriseTagGroup) *v1.EnterpriseTagGroup {
-	return &v1.EnterpriseTagGroup{Id: value.ID.String(), Name: value.Name, Color: value.Color, SortOrder: int32(value.SortOrder), CreatedAt: value.CreatedAt.Format(time.RFC3339), UpdatedAt: value.UpdatedAt.Format(time.RFC3339)}
 }
 func enterpriseResourceInputsFromAPI(values []*v1.EnterpriseResourceInput) ([]*biz.EnterpriseResource, error) {
 	result := make([]*biz.EnterpriseResource, len(values))

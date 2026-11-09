@@ -2722,122 +2722,6 @@
         }
       }
     },
-    "/api/v1/enterprise-tag-groups": {
-      "get": {
-        "tags": [
-          "EnterpriseResourceService"
-        ],
-        "operationId": "EnterpriseResourceService_ListEnterpriseTagGroups",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/enterprise_resource.v1.ListEnterpriseTagGroupsResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "EnterpriseResourceService"
-        ],
-        "operationId": "EnterpriseResourceService_CreateEnterpriseTagGroup",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/enterprise_resource.v1.CreateEnterpriseTagGroupRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/enterprise_resource.v1.CreateEnterpriseTagGroupResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/enterprise-tag-groups/{id}": {
-      "put": {
-        "tags": [
-          "EnterpriseResourceService"
-        ],
-        "operationId": "EnterpriseResourceService_UpdateEnterpriseTagGroup",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/enterprise_resource.v1.UpdateEnterpriseTagGroupRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/enterprise_resource.v1.UpdateEnterpriseTagGroupResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "EnterpriseResourceService"
-        ],
-        "operationId": "EnterpriseResourceService_DeleteEnterpriseTagGroup",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/enterprise_resource.v1.DeleteEnterpriseTagGroupResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/finance/bill-batches": {
       "post": {
         "tags": [
@@ -3010,171 +2894,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/finance.v1.ListBillSettlementAccountUpdateCandidatesResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/finance/bill-tag-assignment-options": {
-      "get": {
-        "tags": [
-          "SettlementService"
-        ],
-        "description": "ListFinanceBillTagAssignmentOptions 仅为账单标签写入提供候选，按 bill.update 可写组织过滤。",
-        "operationId": "SettlementService_ListFinanceBillTagAssignmentOptions",
-        "parameters": [
-          {
-            "name": "organizationId",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "keyword",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/finance.v1.ListFinanceBillTagAssignmentOptionsResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/finance/bill-tag-options": {
-      "get": {
-        "tags": [
-          "SettlementService"
-        ],
-        "operationId": "SettlementService_ListFinanceBillTagOptions",
-        "parameters": [
-          {
-            "name": "keyword",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "organizationId",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/finance.v1.ListFinanceBillTagOptionsResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/finance/bill-tags/batch-assign": {
-      "post": {
-        "tags": [
-          "SettlementService"
-        ],
-        "operationId": "SettlementService_BatchAssignFinanceBillTags",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/finance.v1.BatchAssignFinanceBillTagsRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/finance.v1.BatchAssignFinanceBillTagsResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/finance/bill-tags/batch-remove": {
-      "post": {
-        "tags": [
-          "SettlementService"
-        ],
-        "operationId": "SettlementService_BatchRemoveFinanceBillTags",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/finance.v1.BatchRemoveFinanceBillTagsRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/finance.v1.BatchRemoveFinanceBillTagsResponse"
                 }
               }
             }
@@ -3386,16 +3105,6 @@
             "in": "query",
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "tagIds",
-            "in": "query",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
             }
           },
           {
@@ -5871,171 +5580,6 @@
         }
       }
     },
-    "/api/v1/finance/fee-tag-assignment-options": {
-      "get": {
-        "tags": [
-          "SettlementService"
-        ],
-        "description": "ListFinanceFeeTagAssignmentOptions 仅为费用标签写入提供候选，按 fee.tag 可写组织过滤。",
-        "operationId": "SettlementService_ListFinanceFeeTagAssignmentOptions",
-        "parameters": [
-          {
-            "name": "organizationId",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "keyword",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/finance.v1.ListFinanceFeeTagAssignmentOptionsResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/finance/fee-tag-options": {
-      "get": {
-        "tags": [
-          "SettlementService"
-        ],
-        "operationId": "SettlementService_ListFinanceFeeTagOptions",
-        "parameters": [
-          {
-            "name": "keyword",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "organizationId",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/finance.v1.ListFinanceFeeTagOptionsResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/finance/fee-tags/batch-assign": {
-      "post": {
-        "tags": [
-          "SettlementService"
-        ],
-        "operationId": "SettlementService_BatchAssignFinanceFeeTags",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/finance.v1.BatchAssignFinanceFeeTagsRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/finance.v1.BatchAssignFinanceFeeTagsResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/finance/fee-tags/batch-remove": {
-      "post": {
-        "tags": [
-          "SettlementService"
-        ],
-        "operationId": "SettlementService_BatchRemoveFinanceFeeTags",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/finance.v1.BatchRemoveFinanceFeeTagsRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/finance.v1.BatchRemoveFinanceFeeTagsResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/finance/fees": {
       "get": {
         "tags": [
@@ -6129,16 +5673,6 @@
             "in": "query",
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "tagIds",
-            "in": "query",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
             }
           },
           {
@@ -8187,119 +7721,6 @@
         }
       }
     },
-    "/api/v1/order-tag-options": {
-      "get": {
-        "tags": [
-          "OrderTagService"
-        ],
-        "operationId": "OrderTagService_ListOrderTagOptions",
-        "parameters": [
-          {
-            "name": "businessType",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "enum"
-            }
-          },
-          {
-            "name": "keyword",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/order.v1.ListOrderTagOptionsResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/order-tags/batch-assign": {
-      "post": {
-        "tags": [
-          "OrderTagService"
-        ],
-        "operationId": "OrderTagService_BatchAssignOrderTags",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/order.v1.BatchAssignOrderTagsRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/order.v1.BatchAssignOrderTagsResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/order-tags/batch-remove": {
-      "post": {
-        "tags": [
-          "OrderTagService"
-        ],
-        "operationId": "OrderTagService_BatchRemoveOrderTags",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/order.v1.BatchRemoveOrderTagsRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/order.v1.BatchRemoveOrderTagsResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/orders": {
       "get": {
         "tags": [
@@ -8522,16 +7943,6 @@
             "in": "query",
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "tagIds",
-            "in": "query",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
             }
           },
           {
@@ -10557,139 +9968,6 @@
         }
       }
     },
-    "/api/v1/orders/{orderId}/fee-tag-options": {
-      "get": {
-        "tags": [
-          "OrderFeeService"
-        ],
-        "operationId": "OrderFeeService_ListOrderFeeTagOptions",
-        "parameters": [
-          {
-            "name": "orderId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "keyword",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/order.v1.ListOrderFeeTagOptionsResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/orders/{orderId}/fee-tags/batch-assign": {
-      "post": {
-        "tags": [
-          "OrderFeeService"
-        ],
-        "operationId": "OrderFeeService_BatchAssignOrderFeeTags",
-        "parameters": [
-          {
-            "name": "orderId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/order.v1.BatchAssignOrderFeeTagsRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/order.v1.BatchAssignOrderFeeTagsResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/orders/{orderId}/fee-tags/batch-remove": {
-      "post": {
-        "tags": [
-          "OrderFeeService"
-        ],
-        "operationId": "OrderFeeService_BatchRemoveOrderFeeTags",
-        "parameters": [
-          {
-            "name": "orderId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/order.v1.BatchRemoveOrderFeeTagsRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/order.v1.BatchRemoveOrderFeeTagsResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/orders/{orderId}/fees": {
       "get": {
         "tags": [
@@ -10765,7 +10043,7 @@
         "tags": [
           "OrderFeeService"
         ],
-        "description": "BulkRemoveOrderFees 批量物理删除订单未建账费用：整批单一事务，被有效账单\n 关联占用、补录来源、版本冲突或越订单任一不满足时整批回滚并返回具体费用与\n 原因；费用标签关联随删除级联清理，历史账单行快照保留、来源引用置空。",
+        "description": "BulkRemoveOrderFees 批量物理删除订单未建账费用：整批单一事务，被有效账单\n 关联占用、补录来源、版本冲突或越订单任一不满足时整批回滚并返回具体费用与\n 原因；历史账单行快照保留、来源引用置空。",
         "operationId": "OrderFeeService_BulkRemoveOrderFees",
         "parameters": [
           {
@@ -16824,57 +16102,7 @@
           }
         }
       },
-      "enterprise_resource.v1.CreateEnterpriseTagGroupRequest": {
-        "required": [
-          "group"
-        ],
-        "type": "object",
-        "properties": {
-          "group": {
-            "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseTagGroupInput"
-          }
-        }
-      },
-      "enterprise_resource.v1.CreateEnterpriseTagGroupResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseTagGroup"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "enterprise_resource.v1.DeleteEnterpriseResourceResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "enterprise_resource.v1.DeleteEnterpriseTagGroupResponse": {
         "type": "object",
         "properties": {
           "success": {
@@ -16942,9 +16170,6 @@
           },
           "image": {
             "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseResourceImage"
-          },
-          "tag": {
-            "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseResourceTag"
           },
           "createdBy": {
             "type": "string"
@@ -17120,9 +16345,6 @@
           },
           "image": {
             "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseResourceImage"
-          },
-          "tag": {
-            "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseResourceTag"
           }
         }
       },
@@ -17208,56 +16430,6 @@
           },
           "content": {
             "type": "string"
-          }
-        }
-      },
-      "enterprise_resource.v1.EnterpriseResourceTag": {
-        "type": "object",
-        "properties": {
-          "groupId": {
-            "type": "string"
-          }
-        }
-      },
-      "enterprise_resource.v1.EnterpriseTagGroup": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "color": {
-            "type": "string"
-          },
-          "sortOrder": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "createdAt": {
-            "type": "string"
-          },
-          "updatedAt": {
-            "type": "string"
-          }
-        }
-      },
-      "enterprise_resource.v1.EnterpriseTagGroupInput": {
-        "required": [
-          "name"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "color": {
-            "type": "string"
-          },
-          "sortOrder": {
-            "type": "integer",
-            "format": "int32"
           }
         }
       },
@@ -17400,30 +16572,6 @@
           "pageSize": {
             "type": "integer",
             "format": "int32"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "enterprise_resource.v1.ListEnterpriseTagGroupsResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseTagGroup"
-            }
           },
           "traceId": {
             "type": "string"
@@ -17665,42 +16813,6 @@
           }
         }
       },
-      "enterprise_resource.v1.UpdateEnterpriseTagGroupRequest": {
-        "required": [
-          "id",
-          "group"
-        ],
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "group": {
-            "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseTagGroupInput"
-          }
-        }
-      },
-      "enterprise_resource.v1.UpdateEnterpriseTagGroupResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/enterprise_resource.v1.EnterpriseTagGroup"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "finance.v1.ApproveCommissionApplicationRequest": {
         "required": [
           "id",
@@ -17767,146 +16879,6 @@
           },
           "data": {
             "$ref": "#/components/schemas/finance.v1.FinanceCommissionRule"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "finance.v1.BatchAssignFinanceBillTagsRequest": {
-        "required": [
-          "billIds",
-          "tagIds"
-        ],
-        "type": "object",
-        "properties": {
-          "billIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "tagIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "finance.v1.BatchAssignFinanceBillTagsResponse": {
-        "type": "object",
-        "properties": {
-          "assignedCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "finance.v1.BatchAssignFinanceFeeTagsRequest": {
-        "required": [
-          "feeIds",
-          "tagIds",
-          "organizationId"
-        ],
-        "type": "object",
-        "properties": {
-          "feeIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "tagIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "organizationId": {
-            "type": "string"
-          }
-        }
-      },
-      "finance.v1.BatchAssignFinanceFeeTagsResponse": {
-        "type": "object",
-        "properties": {
-          "assignedCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "finance.v1.BatchRemoveFinanceBillTagsRequest": {
-        "required": [
-          "billIds",
-          "tagIds"
-        ],
-        "type": "object",
-        "properties": {
-          "billIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "tagIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "finance.v1.BatchRemoveFinanceBillTagsResponse": {
-        "type": "object",
-        "properties": {
-          "removedCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "finance.v1.BatchRemoveFinanceFeeTagsRequest": {
-        "required": [
-          "feeIds",
-          "tagIds",
-          "organizationId"
-        ],
-        "type": "object",
-        "properties": {
-          "feeIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "tagIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "organizationId": {
-            "type": "string"
-          }
-        }
-      },
-      "finance.v1.BatchRemoveFinanceFeeTagsResponse": {
-        "type": "object",
-        "properties": {
-          "removedCount": {
-            "type": "integer",
-            "format": "int32"
           },
           "traceId": {
             "type": "string"
@@ -18143,29 +17115,6 @@
             "type": "boolean"
           },
           "quantityMustBeInteger": {
-            "type": "boolean"
-          }
-        }
-      },
-      "finance.v1.BusinessTagSummary": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "groupId": {
-            "type": "string"
-          },
-          "groupName": {
-            "type": "string"
-          },
-          "groupColor": {
-            "type": "string"
-          },
-          "enabled": {
             "type": "boolean"
           }
         }
@@ -20318,12 +19267,6 @@
           "billNo": {
             "type": "string"
           },
-          "tags": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/finance.v1.BusinessTagSummary"
-            }
-          },
           "organizationId": {
             "type": "string"
           },
@@ -20699,12 +19642,6 @@
           },
           "exchangeRateSettingId": {
             "type": "string"
-          },
-          "tags": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/finance.v1.BusinessTagSummary"
-            }
           },
           "organizationId": {
             "type": "string"
@@ -23082,74 +22019,6 @@
           "pageSize": {
             "type": "integer",
             "format": "int32"
-          }
-        }
-      },
-      "finance.v1.ListFinanceBillTagAssignmentOptionsResponse": {
-        "type": "object",
-        "properties": {
-          "tags": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/finance.v1.BusinessTagSummary"
-            }
-          },
-          "total": {
-            "type": "string"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "finance.v1.ListFinanceBillTagOptionsResponse": {
-        "type": "object",
-        "properties": {
-          "tags": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/finance.v1.BusinessTagSummary"
-            }
-          },
-          "total": {
-            "type": "string"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "finance.v1.ListFinanceFeeTagAssignmentOptionsResponse": {
-        "type": "object",
-        "properties": {
-          "tags": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/finance.v1.BusinessTagSummary"
-            }
-          },
-          "total": {
-            "type": "string"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "finance.v1.ListFinanceFeeTagOptionsResponse": {
-        "type": "object",
-        "properties": {
-          "tags": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/finance.v1.BusinessTagSummary"
-            }
-          },
-          "total": {
-            "type": "string"
-          },
-          "traceId": {
-            "type": "string"
           }
         }
       },
@@ -27073,156 +25942,6 @@
         },
         "description": "AttachmentUpload 包含直传地址与服务端登记凭证。"
       },
-      "order.v1.BatchAssignOrderFeeTagsRequest": {
-        "required": [
-          "orderId",
-          "feeIds",
-          "tagIds"
-        ],
-        "type": "object",
-        "properties": {
-          "orderId": {
-            "type": "string"
-          },
-          "feeIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "tagIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "order.v1.BatchAssignOrderFeeTagsResponse": {
-        "type": "object",
-        "properties": {
-          "assignedCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "order.v1.BatchAssignOrderTagsRequest": {
-        "required": [
-          "businessType",
-          "orderIds",
-          "tagIds"
-        ],
-        "type": "object",
-        "properties": {
-          "businessType": {
-            "type": "integer",
-            "format": "enum"
-          },
-          "orderIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "tagIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "order.v1.BatchAssignOrderTagsResponse": {
-        "type": "object",
-        "properties": {
-          "assignedCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "order.v1.BatchRemoveOrderFeeTagsRequest": {
-        "required": [
-          "orderId",
-          "feeIds",
-          "tagIds"
-        ],
-        "type": "object",
-        "properties": {
-          "orderId": {
-            "type": "string"
-          },
-          "feeIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "tagIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "order.v1.BatchRemoveOrderFeeTagsResponse": {
-        "type": "object",
-        "properties": {
-          "removedCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "order.v1.BatchRemoveOrderTagsRequest": {
-        "required": [
-          "businessType",
-          "orderIds",
-          "tagIds"
-        ],
-        "type": "object",
-        "properties": {
-          "businessType": {
-            "type": "integer",
-            "format": "enum"
-          },
-          "orderIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "tagIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "order.v1.BatchRemoveOrderTagsResponse": {
-        "type": "object",
-        "properties": {
-          "removedCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "order.v1.BulkOrderFeeTarget": {
         "required": [
           "feeId",
@@ -27326,30 +26045,6 @@
             "type": "string"
           }
         }
-      },
-      "order.v1.BusinessTagSummary": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "groupId": {
-            "type": "string"
-          },
-          "groupName": {
-            "type": "string"
-          },
-          "groupColor": {
-            "type": "string"
-          },
-          "enabled": {
-            "type": "boolean"
-          }
-        },
-        "description": "Order 订单核心信息。\n BusinessTagSummary 订单返回的组织标签概要。"
       },
       "order.v1.CheckOrderReferenceResponse": {
         "type": "object",
@@ -29170,40 +27865,6 @@
           }
         }
       },
-      "order.v1.ListOrderFeeTagOptionsResponse": {
-        "type": "object",
-        "properties": {
-          "tags": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/order.v1.BusinessTagSummary"
-            }
-          },
-          "total": {
-            "type": "string"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
-      "order.v1.ListOrderTagOptionsResponse": {
-        "type": "object",
-        "properties": {
-          "tags": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/order.v1.BusinessTagSummary"
-            }
-          },
-          "total": {
-            "type": "string"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "order.v1.ListOrderUnlockRequestsData": {
         "type": "object",
         "properties": {
@@ -29985,12 +28646,6 @@
           "isShared": {
             "type": "boolean"
           },
-          "tags": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/order.v1.BusinessTagSummary"
-            }
-          },
           "allowedTargetFlowStatuses": {
             "type": "array",
             "items": {
@@ -30523,12 +29178,6 @@
           },
           "version": {
             "type": "string"
-          },
-          "tags": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/order.v1.BusinessTagSummary"
-            }
           },
           "hasActiveBill": {
             "type": "boolean",
@@ -39292,10 +37941,6 @@
     {
       "name": "OrderShippingDocumentService",
       "description": "OrderShippingDocumentService 订单提单服务。\n 新建提单固定为草稿态；字段编辑仅允许草稿/已确认；状态仅允许\n DRAFT→CONFIRMED→RELEASED 向前流转并携带期望状态并发条件。"
-    },
-    {
-      "name": "OrderTagService",
-      "description": "OrderTagService 提供订单标签候选与批量维护能力。"
     },
     {
       "name": "PartnerService"

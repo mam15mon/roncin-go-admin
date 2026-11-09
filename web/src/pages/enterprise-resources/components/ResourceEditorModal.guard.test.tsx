@@ -48,7 +48,6 @@ function Harness({ open = true }: { open?: boolean }) {
         provinceOptions={[]}
         cityOptions={[]}
         districtOptions={[]}
-        tagGroups={[]}
         message={message}
       />
     </App>

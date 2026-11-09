@@ -120,8 +120,6 @@ const (
 	EdgeVerificationAllocations = "verification_allocations"
 	// EdgeNettingAllocations holds the string denoting the netting_allocations edge name in mutations.
 	EdgeNettingAllocations = "netting_allocations"
-	// EdgeEnterpriseTagLinks holds the string denoting the enterprise_tag_links edge name in mutations.
-	EdgeEnterpriseTagLinks = "enterprise_tag_links"
 	// Table holds the table name of the financebill in the database.
 	Table = "finance_bills"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -187,13 +185,6 @@ const (
 	NettingAllocationsInverseTable = "finance_netting_allocations"
 	// NettingAllocationsColumn is the table column denoting the netting_allocations relation/edge.
 	NettingAllocationsColumn = "bill_id"
-	// EnterpriseTagLinksTable is the table that holds the enterprise_tag_links relation/edge.
-	EnterpriseTagLinksTable = "finance_bill_enterprise_tags"
-	// EnterpriseTagLinksInverseTable is the table name for the FinanceBillEnterpriseTag entity.
-	// It exists in this package in order to avoid circular dependency with the "financebillenterprisetag" package.
-	EnterpriseTagLinksInverseTable = "finance_bill_enterprise_tags"
-	// EnterpriseTagLinksColumn is the table column denoting the enterprise_tag_links relation/edge.
-	EnterpriseTagLinksColumn = "finance_bill_id"
 )
 
 // Columns holds all SQL columns for financebill fields.
@@ -723,20 +714,6 @@ func ByNettingAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOptio
 		sqlgraph.OrderByNeighborTerms(s, newNettingAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-
-// ByEnterpriseTagLinksCount orders the results by enterprise_tag_links count.
-func ByEnterpriseTagLinksCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newEnterpriseTagLinksStep(), opts...)
-	}
-}
-
-// ByEnterpriseTagLinks orders the results by enterprise_tag_links terms.
-func ByEnterpriseTagLinks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newEnterpriseTagLinksStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -798,12 +775,5 @@ func newNettingAllocationsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(NettingAllocationsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, NettingAllocationsTable, NettingAllocationsColumn),
-	)
-}
-func newEnterpriseTagLinksStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(EnterpriseTagLinksInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, EnterpriseTagLinksTable, EnterpriseTagLinksColumn),
 	)
 }

@@ -13,6 +13,8 @@ import { settlementServiceListFeeLedger } from '@/services/roncin/settlementServ
 import FinanceFeeLedgerPage from './index';
 
 type LedgerProps = {
+  columns: { dataIndex?: unknown }[];
+  batchActions: { key: string }[];
   metricCards: { key: string; value: string | number }[];
   onAcceptedSnapshot: (snapshot: {
     total: number;
@@ -58,9 +60,6 @@ vi.mock('./components/FeeLedgerSearchFilter', () => ({
     return null;
   },
 }));
-vi.mock('@/components/business-tag/BusinessTagModal', () => ({
-  BusinessTagModal: () => null,
-}));
 vi.mock('@/features/finance/bill-creation', () => ({
   BillCreationWorkbench: () => null,
 }));
@@ -71,9 +70,6 @@ vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceListFinanceOrganizationOptions: vi
     .fn()
     .mockResolvedValue({ data: [] }),
-  settlementServiceListFinanceFeeTagOptions: vi
-    .fn()
-    .mockResolvedValue({ tags: [] }),
 }));
 function Seed() {
   const q = useListQueryState({
@@ -91,8 +87,6 @@ function Seed() {
         orderLocked: 'LOCKED',
       },
       organizationId: 'target-org',
-      tagIds: ['tag'],
-      tagLabels: { tag: '标签显示名' },
     } as never,
     { settlementPartyId: '恢复结算单位' },
   );
@@ -173,7 +167,7 @@ describe('费用查询恢复消费', () => {
     );
   });
 
-  it('保存原始筛选而保留原keyword优先级，日期/公司/标签/分页恢复，提交立即生效，重置保公司标签', async () => {
+  it('保存原始筛选而保留原keyword优先级，日期/公司/分页恢复，提交立即生效，重置保公司', async () => {
     const { rerender, queryClient } = renderWithClient(
       <ListQueryStateProvider enabled>
         <Seed />
@@ -192,6 +186,12 @@ describe('费用查询恢复消费', () => {
       defaultCurrent: 4,
       defaultPageSize: 50,
     });
+    expect(
+      state.ledger?.columns.map((column) => column.dataIndex),
+    ).not.toContain('tags');
+    expect(
+      state.ledger?.batchActions.some((action) => action.key === 'manage-tags'),
+    ).toBe(false);
     expect(state.search?.initialLabels).toEqual({
       settlementPartyId: '恢复结算单位',
     });
@@ -204,7 +204,6 @@ describe('费用查询恢复消费', () => {
         pageSize: 50,
         keyword: '订单条件',
         organizationId: 'target-org',
-        tagIds: ['tag'],
         createdAtFrom: '2026-10-01',
         createdAtTo: '2026-10-12',
         orderLocked: true,
@@ -220,6 +219,9 @@ describe('费用查询恢复消费', () => {
       { skipErrorHandler: true },
     );
     expect(state.reload).toHaveBeenCalledWith(true);
+    expect(
+      vi.mocked(settlementServiceListFeeLedger).mock.lastCall?.[0],
+    ).not.toHaveProperty('tagIds');
     act(() => state.search?.onReset());
     await act(async () => {
       await state.ledger?.request({ current: 1, pageSize: 50 });
@@ -228,7 +230,6 @@ describe('费用查询恢复消费', () => {
       expect.objectContaining({
         keyword: undefined,
         organizationId: 'target-org',
-        tagIds: ['tag'],
       }),
       { skipErrorHandler: true },
     );

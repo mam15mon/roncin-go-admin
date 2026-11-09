@@ -66,7 +66,7 @@ func TestSharedContainerHTTPAuthorizationAndBinding(t *testing.T) {
 				principal := &biz.Principal{Organization: biz.Organization{ID: tc.company, Kind: biz.OrganizationKindCompany}, OrganizationNodes: serverOrganizationNodes(tc.company), RoleGrants: []biz.RoleGrant{serverRoleGrant("operator", biz.DataScopeOrganization, tc.permissions)}}
 				policy := &biz.SessionPolicy{CookieName: "sid", TTL: time.Hour, SameSite: "lax"}
 				authUC := biz.NewAuthUsecase(&middlewareAuthRepoStub{session: &biz.Session{UserID: uuid.New(), OrganizationID: tc.company, ExpiresAt: time.Now().Add(time.Hour)}, principal: principal}, policy, nil, nil)
-				orderUC := biz.NewOrderUsecase(&anchorAwareOrderRepoStub{order: anchor}, nil, nil, nil, newReminderModeCreditControl(), nil)
+				orderUC := biz.NewOrderUsecase(&anchorAwareOrderRepoStub{order: anchor}, nil, nil, newReminderModeCreditControl(), nil)
 				var operation string
 				srv := khttp.NewServer(khttp.ErrorEncoder(encodeError), khttp.Middleware(func(next middleware.Handler) middleware.Handler {
 					return func(ctx context.Context, req any) (any, error) {
