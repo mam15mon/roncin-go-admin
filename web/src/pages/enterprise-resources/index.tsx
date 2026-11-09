@@ -62,29 +62,27 @@ import {
   type EditorValues,
   importHeaders,
   partyTypes,
+  type ResourceTab,
   remarkTypes,
   resourceTabs,
 } from './resourceConstants';
 import { useRegionOptions } from './useRegionOptions';
 
-const EnterpriseResourcesPage: React.FC = () => {
+type ResourceTypePageProps = {
+  active: ResourceTab;
+  availableTabs: readonly ResourceTab[];
+  capabilities?: API.GetEnterpriseResourceCapabilitiesResponse;
+};
+
+const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
+  active,
+  availableTabs,
+  capabilities,
+}) => {
   const access = useAccess();
-  const [searchParams] = useSearchParams();
   const { message } = App.useApp();
   const actionRef = useRef<ActionType>(undefined);
   const [form] = Form.useForm<EditorValues>();
-  const queryTab = searchParams.get('tab');
-  const [capabilities, setCapabilities] =
-    useState<API.GetEnterpriseResourceCapabilitiesResponse>();
-  const availableTabs = useMemo(
-    () =>
-      capabilities?.imageEnabled
-        ? resourceTabs
-        : resourceTabs.filter((item) => item.type !== 3),
-    [capabilities?.imageEnabled],
-  );
-  const active =
-    availableTabs.find((item) => item.key === queryTab) ?? availableTabs[0];
   const activeTab = active.key;
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<API.EnterpriseResource>();
@@ -134,12 +132,6 @@ const EnterpriseResourcesPage: React.FC = () => {
     provinceCode,
     cityCode,
   });
-
-  useEffect(() => {
-    void enterpriseResourceServiceGetEnterpriseResourceCapabilities().then(
-      setCapabilities,
-    );
-  }, []);
 
   const loadTagGroups = useCallback(async () => {
     const response = await enterpriseResourceServiceListEnterpriseTagGroups();
@@ -962,6 +954,37 @@ const EnterpriseResourcesPage: React.FC = () => {
         message={message}
       />
     </PageContainer>
+  );
+};
+
+const EnterpriseResourcesPage: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const [capabilities, setCapabilities] =
+    useState<API.GetEnterpriseResourceCapabilitiesResponse>();
+  useEffect(() => {
+    void enterpriseResourceServiceGetEnterpriseResourceCapabilities().then(
+      setCapabilities,
+    );
+  }, []);
+  const availableTabs = useMemo(
+    () =>
+      capabilities?.imageEnabled
+        ? resourceTabs
+        : resourceTabs.filter((item) => item.type !== 3),
+    [capabilities?.imageEnabled],
+  );
+  const active =
+    availableTabs.find((item) => item.key === searchParams.get('tab')) ??
+    availableTabs[0];
+
+  // 类型是请求、选择和所有编辑会话的边界，切换后卸载旧表格及其在途请求。
+  return (
+    <ResourceTypePage
+      key={active.type}
+      active={active}
+      availableTabs={availableTabs}
+      capabilities={capabilities}
+    />
   );
 };
 
