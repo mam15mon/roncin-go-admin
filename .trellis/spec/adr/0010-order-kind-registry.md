@@ -6,7 +6,7 @@
 
 ## 背景
 
-系统规划六类订单（SE/SI/AE/AI/LAND/RAIL），当前只交付海运出口。此前
+系统规划六类订单（SE/SI/AE/AI/LAND/RAIL），本决策建立时只交付海运出口。此前
 订单类型字典散落多处：通用 layout 维护 kind→标题映射、列表模板维护
 kind→文案映射、各页维护业务枚举→路由映射。任何新增类型都要改 N 处，
 且「谁能对某类订单做什么」的能力判断容易和「这类订单的 UI 在哪」耦合成
@@ -19,6 +19,8 @@ kind→文案映射、各页维护业务枚举→路由映射。任何新增类�
   注册表（`ORDER_KIND_REGISTRY` + `getOrderKindDefinition`），以
   `satisfies Record<OrderKind, OrderKindDefinition>` 穷尽约束；只注册已
   真实交付的类型，不提前注册占位类型。
+- 截至 2026-11-09，注册表已包含海运出口 `sea-export` 与空运出口 `air-export`；
+  SI/AI/LAND/RAIL 尚未注册。开放范围以注册表及实际路由为准，不以早期背景推断。
 - 三类真相严格分界，不得越权：
 
   | 真相 | 唯一所有者 |

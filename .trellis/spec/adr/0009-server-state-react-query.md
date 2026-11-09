@@ -19,9 +19,11 @@
 - 表单、弹窗开合等 UI 状态留在组件内；跨页面共享的 UI 偏好才考虑全局。
 - 所有后端请求经过统一请求配置或 OpenAPI 生成客户端，页面禁止自行拼接
   后端主机地址（与 ADR 0001 契约单向流配套）。
-- 长流程例外按专项契约管理：跨页签表单草稿以「用户 ID + 组织 ID + 页签
-  key + pathname」命名空间持久化在 sessionStorage，由 `OrderFormTemplate`
-  独占生命周期（详见
+- 表单输入按专项契约管理：订单主详情只保留当前挂载期间的输入与提交基线，
+  不读写持久草稿；关闭、导航和浏览器离开复用统一的未保存修改保护。
+  订单新建与独立 HBL 编辑仍可按「用户 ID + 公司 ID + 页签 key + 路径」
+  在 sessionStorage 暂存；`OrderFormTemplate` 只有取得完整草稿身份才开启
+  持久化，并独占 dirty、恢复与 `resetTo` 生命周期（详见
   [../web/frontend/state-management.md](../web/frontend/state-management.md)）。
 
 ## 理由

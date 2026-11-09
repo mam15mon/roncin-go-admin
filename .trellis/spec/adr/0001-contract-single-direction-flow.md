@@ -15,12 +15,13 @@
 - `server/api/**/*.proto` 是 HTTP/gRPC 契约的唯一真相源。
 - 契约变更固定走单向流程：
   1. 修改 `.proto`；
-  2. `make -C server api` 生成 Go 绑定，检查生成差异；
-  3. 仓库根目录 `pnpm run generate:web-client` 更新 `server/openapi.yaml`
-     与前端客户端（`web/src/services/roncin/`、`web/types/`）；
+  2. `make -C server api` 生成 Go 绑定、`server/openapi.yaml` 与接口权限规则，检查生成差异；
+  3. 仓库根目录 `pnpm run generate:web-client` 消费服务端 OpenAPI，更新
+     `web/config/openapi.generated.json`、`web/src/services/roncin/` 与
+     `web/src/enums.generated.ts`、`web/src/errorReasons.generated.ts`；
   4. 源文件与生成物放在同一提交中审阅。
 - 禁止手改任何生成物：`*.pb.go`、`*_grpc.pb.go`、`*_http.pb.go`、
-  `openapi.yaml`、`web/src/services/roncin/`、`web/types/`。
+  `openapi.yaml`、前端 OpenAPI 输入、客户端及 Proto 常量生成物。
 - 前端所有请求经过统一请求配置或生成客户端，页面不得自行拼接后端主机地址。
 
 ## 理由

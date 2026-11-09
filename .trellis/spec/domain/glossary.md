@@ -12,7 +12,7 @@
 | 运输执行 | `SeaTransportExecution` | MBL 下的实际航次（船名/航次/泊位/ETD/ETA），独立版本化，一个 MBL 多航次需改配明确选择 | `sea_transport_execution.go` |
 | 共同段卸货港 | `SeaTransportExecution.discharge_location_id` | 本组操作票共同运输段的卸货港，共同 ETA 到此港；不是每票后续全程的最终目的港 | `sea_transport_execution.go` |
 | 本票最终目的港 | `Order.destination_location_id` | 每票独立保存；新票默认同共同段卸货港，人工不同去向不随共同段批量覆盖；当前仅港口目录，不代表任意交付地址 | `order.go`、`data/order_convert.go` |
-| 母单-订单关联 | `SeaMasterBillOrderLink` | 订单挂到 MBL 的活动链接；订单状态流转/退关会结束链接 | `sea_master_bill_order_link.go` |
+| 母单-订单关联 | `SeaMasterBillOrderLink` | 订单挂到 MBL 的当前与历史链接；退关或改配按各自流程结束原活动链接，普通进度变化不等于结束关联 | `sea_master_bill_order_link.go` |
 | 单证版本 | `SeaMasterBillVersion` 等 | 每次修订生成不可变版本快照（换单历史），含外部确认信息 | `sea_*_version.go` |
 | 共享箱 | `SeaSharedContainer` / `...Allocation` | 跨订单共用的集装箱；箱货分配必须件重尺守恒 | `sea_shared_container*.go` |
 | 货物分配 | `SeaCargoAllocation` | 货物项在各订单/结果票间的件数/毛重/体积切分 | `sea_cargo_allocation.go` |
@@ -47,7 +47,7 @@
 | 提成 | `FinanceCommission` / `...Line` | 计提引擎按核销/对冲来源生成的提成（金额、CNY 快照、来源指纹）；状态 DRAFT→CONFIRMED→PAID，可 Cancel | `data/finance_commission_calculation.go` |
 | 提成调整 | `FinanceCommissionAdjustment` | 手工奖励/处罚与费用变化引起的系统差额；普通费用和补审均事务内重算，保留已付事实及手工调整；未付父单发放时合并已确认调整净额，已付父单的后续调整独立执行 | `data/fee_correction_commission.go`、`finance_commission_adjustment.go` |
 | 月度提成申请 | `FinanceCommissionApplication` / `...Line` | 员工按完整自然月汇总申请全部未申请合格提成；财务整单批准/驳回（不做部分批准）；驳回原单显式重提（Resubmit） | `biz/finance_commission_application.go` |
-| 提成归属 | `OrderCommissionAttribution` | 订单经营归属（销售/操作/客服三岗）锚点，计提依据；创建时按订单人员分工固化，客户档案责任人仅作表单带入默认值 | 计提源解析见 `finance_commission_calculation.go`，契约见 `server/backend/operating-company-commission-attribution.md` |
+| 提成归属 | `OrderCommissionAttribution` | 订单经营归属（销售/操作/客服三岗）锚点，计提依据；创建时按订单人员分工固化，客户档案责任人仅作表单带入默认值 | 计提源解析见 `finance_commission_calculation.go`，契约见 [经营公司与提成归属](../server/backend/operating-company-commission-attribution.md) |
 | 结算单位 | Settlement Party | 费用/账单的往来结算对象（Partner） | `partner.go` |
 
 ## 往来单位域（Partner）
@@ -64,7 +64,7 @@
 
 | 术语 | 代码 | 含义与要点 |
 | --- | --- | --- |
-| 订单 | `Order` | 状态机：草稿→确认→…→退关(Termination)/关账(Closure)；`version` 乐观锁；写路径范本 `data/order_write_draft.go` |
+| 订单 | `Order` | 分别管理操作进度 `flow_status`、终止状态 `termination_status` 和结案状态 `closure_status`，审核锁独立；`version` 乐观锁；写路径范本 `data/order_write_draft.go` |
 | 订单审核锁 | `OrderLockRecord` / `OrderUnlockRequest` | 唯一人工锁，约束业务内容与普通费用写入；授权锁角色直解、管理员应急、普通编辑人审批解锁；待审更正阻断解锁；结算不自动锁单 | `data/order_lock_*.go` |
 | 组织/数据范围 | `Organization` / `Membership` / `Role` / `RoleAssignment` / `Permission` | 多组织 + 角色授权；角色范围配置已退役，有效边界由工作台推导（公司本公司、系统治理）；权限清单唯一真相源 `internal/access/manifest.go` | `biz/auth.go` |
 | 审计 | `AuditLog` | 业务审计事件（action 非空约束），独立于运行日志 | `audit_log.go` |

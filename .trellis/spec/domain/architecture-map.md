@@ -13,8 +13,9 @@ React 19 + Ant Design 6 (web/)          ←─ 同域部署 /api/* ─→   Go K
   权限来自 /auth/me（不复制第二套）                                internal/access   权限 Manifest 唯一真相源
 ```
 
-- 契约单向流：`.proto` → 生成 Go 绑定 + `openapi.yaml` → 前端客户端。
-  生成物禁止手改，变更走 `pnpm run generate:web-client`。
+- 契约单向流：修改 `.proto` 后执行 `make -C server api` 生成 Go 绑定、
+  `server/openapi.yaml` 与接口权限规则，再在根目录执行 `pnpm run generate:web-client`
+  更新前端 OpenAPI 输入、客户端与 Proto 常量；生成物禁止手改。
 - 生产同域：Go 同时服务 `/api/*`、`/health/*` 与 React 静态资源。
 
 ## 2. 业务域地图（找代码先看这里）
@@ -57,7 +58,7 @@ flowchart LR
 
 要点（改代码前必须理解的链路约束）：
 
-1. **统一人工审核锁**：订单资料与费用只保留一次人工审核锁；结清不自动锁。未锁且未建账的费用可直接修改，已建账含草稿均占用费用。建账不等待整票审核，可按供应商分批办理；锁后更正补审才生效，待审仅阻止源费用建账及受影响提成确认/发放。已付提成保留实付历史，通过经济重算生成差额，不设提成财务锁。账务回退按发票、核销、对冲实际依赖及权限办理，合并单据提示完整影响范围；详见 `server/backend/order-fee-correction.md`。
+1. **统一人工审核锁**：订单资料与费用只保留一次人工审核锁；结清不自动锁。未锁且未建账的费用可直接修改，已建账含草稿均占用费用。建账不等待整票审核，可按供应商分批办理；锁后更正补审才生效，待审仅阻止源费用建账及受影响提成确认/发放。已付提成保留实付历史，通过经济重算生成差额，不设提成财务锁。账务回退按发票、核销、对冲实际依赖及权限办理，合并单据提示完整影响范围；详见 [费用更正契约](../server/backend/order-fee-correction.md)。
 2. **守恒不变量**：拆票与共享箱的件数/毛重/体积必须逐票守恒（前端实时校验 +
    服务端预览复核双层）；费用拆分按「方向+币种」守恒。
 3. **版本乐观锁贯穿**：订单/账单/提成/申请全部 `expected_version` 校验，
@@ -76,14 +77,14 @@ erDiagram
     Membership }o--|| User : binds
     Organization ||--o{ Order : owns
     Order ||--o{ OrderFee : bills
-    Order ||--o{ OrderFeeReviewEvent : reviews
+    Order ||--o{ OrderFeeReviewEvent : historical_reviews
     Order ||--o{ OrderLockRecord : reviews_and_locks
     Order ||--o{ OrderFeeCorrectionRequest : corrections
     Order }o--o| SeaMasterBill : "link (active)"
     SeaMasterBill ||--o{ SeaTransportExecution : voyages
     Order ||--o| SeaHouseBill : "HOUSE 结构"
-    Order }o--|| AirMasterWaybill : "活动 Link，终止保留历史"
-    Order ||--|| AirHouseWaybill : "建票必填"
+    Order }o--o| AirMasterWaybill : "AE 活动 Link，终止保留历史"
+    Order ||--o| AirHouseWaybill : "AE 建票必填"
     AirHouseWaybill ||--o{ AirHouseWaybillVersion : "不可变版本"
     AirMasterWaybill ||--o{ AirWeightConfirmation : "主单独立确认"
     Order ||--o{ AirWeightConfirmation : "本票独立确认"
