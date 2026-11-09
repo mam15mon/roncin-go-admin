@@ -44,7 +44,8 @@
   `pnpm --dir web test` 按风险选取最小集通过。
 - `pnpm run check:architecture` 验证模块依赖边界（提取/迁移代码后必跑，
   已接入 `check:web` 与 CI）。
-- 未手改 `web/src/services/roncin/`、`web/types/`、`permissions.generated.ts`。
+- 未手改生成客户端、OpenAPI 输入、权限键及 Proto 常量；实际路径与生成入口见
+  [类型安全规范](./type-safety.md)。
 - 全部命令使用 `pnpm`，没有引入 npm/npx/Yarn 入口。
 
 **语言**：界面文案与开发者文档使用中文。

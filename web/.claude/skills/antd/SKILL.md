@@ -1,236 +1,91 @@
 ---
 name: antd
 description: >
-  Use when the user's task involves Ant Design (antd) — writing antd components,
-  debugging antd issues, querying antd APIs/props/tokens/demos, migrating between
-  antd versions, or analyzing antd usage in a project. Triggers on antd-related
-  code, imports from 'antd', or explicit antd questions.
+  查询本项目 Ant Design 的组件 API、示例、语义样式和设计令牌，分析用法或辅助版本迁移。
+  适用于编写或排查 antd 组件，以及明确的 antd 查询和升级任务。
 allowed-tools:
   - Bash(antd *)
   - Bash(antd bug*)
   - Bash(antd bug-cli*)
-  - Bash(npx antd *)
-  - Bash(npx antd bug*)
-  - Bash(npx antd bug-cli*)
+  - Bash(pnpm exec antd *)
+  - Bash(pnpm exec antd bug*)
+  - Bash(pnpm exec antd bug-cli*)
 ---
 
-# Ant Design CLI
+# Roncin 的 Ant Design 本地查询
 
-You have access to `@ant-design/cli` — a local CLI tool with bundled antd metadata for v3/v4/v5/v6. Use it to query component knowledge, analyze projects, and guide migrations. All data is offline, no network needed.
+`web/package.json` 已声明 `@ant-design/cli`。本文件中的命令均在 `web/` 目录执行，使用 `pnpm exec antd`；从仓库根目录执行时使用 `pnpm --dir web exec antd`。组件知识可从本地元数据查询，目标版本以本项目实际安装的 antd 为准。查询新发布版本时须核对官方发布记录，不能把 CLI 缓存当作外部最新状态。
 
-## Setup
+## 组件编写与排查
 
-The CLI is installed as a dev dependency. Use `npx antd` to run it.
-
-**Always use `--format json` for structured output you can parse programmatically.**
-
-## Scenarios
-
-### 1. Writing antd component code
-
-Before writing any antd component code, look up its API first — don't rely on memory.
+先查看所改组件的 API，再按问题查询示例、语义结构或令牌；不依据旧版记忆猜测属性：
 
 ```bash
-# Check what props are available
-npx antd info Button --format json
-
-# Get a working demo as starting point
-npx antd demo Button basic --format json
-
-# Check semantic classNames/styles for custom styling
-npx antd semantic Button --format json
-
-# Check component-level design tokens for theming
-npx antd token Button --format json
+pnpm exec antd info Button --format json
+pnpm exec antd demo Button basic --format json
+pnpm exec antd semantic Button --format json
+pnpm exec antd token Button --format json
+pnpm exec antd doc Table --lang zh --format json
 ```
 
-**Workflow:** `antd info` → understand props → `antd demo` → grab a working example → write code.
-
-### 2. Looking up full documentation
-
-When you need comprehensive component docs (not just props):
+排查当前环境或使用方式：
 
 ```bash
-npx antd doc Table --format json        # full markdown docs for Table
-npx antd doc Table --lang zh            # Chinese docs
+pnpm exec antd env --format json
+pnpm exec antd doctor --format json
+pnpm exec antd lint ./src/components/MyForm.tsx --format json
+pnpm exec antd usage ./src --filter Form --format json
 ```
 
-### 3. Debugging antd issues
+最后两条路径按实际改动替换。优先检查修改文件，不把全仓扫描叠加为普通提交的固定门禁。统计与诊断不能替代项目的类型检查和业务测试；验证阶段以根 `AGENTS.md` 为准。
 
-When code isn't working as expected or the user reports an antd bug:
+## 版本比较与迁移
+
+仅在用户任务包含依赖升级时执行迁移；查询迁移建议不等于授权升级。按当前与目标的实际版本替换参数：
 
 ```bash
-# Collect full environment snapshot (system, deps, browsers, build tools)
-npx antd env --format json
-
-# Check if the prop exists for the user's antd version
-npx antd info Select --version 5.12.0 --format json
-
-# Check if the prop is deprecated
-npx antd lint ./src/components/MyForm.tsx --format json
-
-# Diagnose project-level configuration issues
-npx antd doctor --format json
+pnpm exec antd changelog <当前版本> <目标版本> --format json
+pnpm exec antd migrate <当前主版本> <目标主版本> --format json
+pnpm exec antd list --format json
 ```
 
-**Workflow:** `antd env` → capture full environment → `antd doctor` → check configuration → `antd info --version X` → verify API against the user's exact version → `antd lint` → find deprecated or incorrect usage.
+不自动覆盖 Vite、React Router、公司工作区或权限实现；升级边界见相邻的 `pro-upgrade` 技能和根协作规范。
 
-### 4. Migrating between versions
+## 问题报告
 
-When the user wants to upgrade antd (e.g., v3 → v4 or v4 → v5):
+只有用户明确要求向外部项目报告问题时才准备报告。先用 `env` 收集必要环境，移除秘密、公司数据及内部地址，使用 `antd bug` 或 `antd bug-cli` 的预览输出展示标题、复现、期望和实际行为；获得发送授权后才使用 `--submit`。用户已有明确发送授权时不重复请求；仅排查问题不意味着允许发送。
 
 ```bash
-# Get full migration checklist
-npx antd migrate 3 4 --format json    # v3 → v4
-npx antd migrate 4 5 --format json    # v4 → v5
-
-# Check migration for a specific component
-npx antd migrate 4 5 --component Select --format json
-
-# See what changed between two versions
-npx antd changelog 4.24.0 5.0.0 --format json
-
-# See changes for a specific component
-npx antd changelog 4.24.0 5.0.0 Select --format json
+pnpm exec antd bug --help
+pnpm exec antd bug-cli --help
 ```
 
-**Workflow:** `antd migrate` → get full checklist → `antd changelog <v1> <v2>` → understand breaking changes → apply fixes → `antd lint` → verify no deprecated usage remains.
+未带 `--submit` 的预览按当前 CLI 帮助核对，不猜测参数。设置 `ANTD_NO_AUTO_REPORT=1` 时不主动建议报告。
 
-### 5. Analyzing project antd usage
+## MCP 接入示例
 
-When the user wants to understand how antd is used in their project:
-
-```bash
-# Scan component usage statistics
-npx antd usage ./src --format json
-
-# Filter to a specific component
-npx antd usage ./src --filter Form --format json
-
-# Lint for best practice violations
-npx antd lint ./src --format json
-
-# Check only specific rule categories
-npx antd lint ./src --only deprecated --format json
-npx antd lint ./src --only a11y --format json
-npx antd lint ./src --only performance --format json
-```
-
-### 6. Checking changelogs and version history
-
-When the user asks about what changed in a version:
-
-```bash
-# Specific version changelog
-npx antd changelog 5.22.0 --format json
-
-# Version range (both ends inclusive)
-npx antd changelog 5.21.0..5.24.0 --format json
-```
-
-### 7. Exploring available components
-
-When the user is choosing which component to use:
-
-```bash
-# List all components with categories
-npx antd list --format json
-
-# List components for a specific antd version
-npx antd list --version 5.0.0 --format json
-```
-
-### 8. Collecting environment info
-
-When you need to understand the project's antd setup, or prepare info for a bug report:
-
-```bash
-# Full environment snapshot (text — paste into GitHub Issues)
-npx antd env
-
-# Structured JSON for programmatic use
-npx antd env --format json
-
-# Scan a specific project directory
-npx antd env ./my-project --format json
-```
-
-### 9. Reporting antd bugs
-
-When the user asks you to report an antd bug:
-
-```bash
-# Step 0: Collect environment info for reference (optional)
-npx antd env --format json
-
-# Step 1: Preview for user review
-npx antd bug --title "DatePicker crashes when selecting date" \
-  --reproduction "https://codesandbox.io/s/xxx" \
-  --steps "1. Open DatePicker 2. Click a date" \
-  --expected "Date is selected" \
-  --actual "Component crashes with error" \
-  --format json
-
-# Step 2: Show to user, ask for confirmation
-
-# Step 3: Submit after user confirms
-npx antd bug --title "DatePicker crashes when selecting date" \
-  --reproduction "https://codesandbox.io/s/xxx" \
-  --steps "1. Open DatePicker 2. Click a date" \
-  --expected "Date is selected" \
-  --actual "Component crashes with error" \
-  --submit
-```
-
-### 10. Reporting CLI issues
-
-When the user asks to report a CLI bug:
-
-```bash
-npx antd bug-cli --title "antd info Button returns wrong props" \
-  --description "When querying Button props for version 5.12.0, the output includes props that don't exist" \
-  --steps "1. Run: npx antd info Button --version 5.12.0 --format json" \
-  --expected "Props matching antd 5.12.0 Button API" \
-  --actual "Props include 'classNames' which was added in 5.16.0" \
-  --format json
-```
-
-Show the report to the user and confirm before submitting with `--submit`.
-
-**Opt-out:** If the environment variable `ANTD_NO_AUTO_REPORT=1` is set, skip all bug-reporting suggestions entirely.
-
-### 11. Using as MCP server
-
-If working in an IDE that supports MCP (Claude Desktop, Cursor, etc.), the CLI can also run as an MCP server:
+仅在用户要求配置 MCP 时修改配置；下面的绝对路径占位符须替换为实际仓库的 `web/` 目录：
 
 ```json
 {
   "mcpServers": {
     "antd": {
-      "command": "npx",
-      "args": ["antd", "mcp"]
+      "command": "pnpm",
+      "args": ["--dir", "<仓库绝对路径>/web", "exec", "antd", "mcp"]
     }
   }
 }
 ```
 
-This provides 7 tools (`antd_list`, `antd_info`, `antd_doc`, `antd_demo`, `antd_token`, `antd_semantic`, `antd_changelog`) and 2 prompts (`antd-expert`, `antd-page-generator`) via MCP protocol.
+MCP 与 CLI 使用同一份组件知识，实际工具集合以当前安装版本暴露的能力为准。
 
-## Global Flags
+## 参数约定
 
-| Flag | Purpose |
-|---|---|
-| `--format json` | Structured output — always use this |
-| `--version <v>` | Target a specific antd version (e.g. `5.20.0`) |
-| `--lang zh` | Chinese output (default: `en`) |
-| `--detail` | Include extra fields (description, since, deprecated, FAQ) |
+| 参数 | 用途 |
+| --- | --- |
+| `--format json` | 需要结构化处理时使用 |
+| `--version <版本>` | 指定目标组件版本；省略时按 CLI 实际检测结果核对 |
+| `--lang zh` | 中文输出 |
+| `--detail` | 查询更完整的说明、引入版本等元数据 |
 
-## Key Rules
-
-1. **Always query before writing** — Don't guess antd APIs from memory. Run `antd info` first.
-2. **Match the user's version** — This project uses antd v6. The CLI auto-detects from `node_modules` if no flag is given.
-3. **Use `--format json`** — Every command supports it. Parse the JSON output rather than regex-matching text output.
-4. **Check before suggesting migration** — Run `antd changelog <v1> <v2>` and `antd migrate` before advising on version upgrades.
-5. **Lint after changes** — After writing or modifying antd code, run `antd lint` on the changed files to catch deprecated or problematic usage.
-6. **Report antd bugs** — When the user asks to report an antd bug, use `antd bug`. Always preview first, get user confirmation, then submit.
-7. **Report CLI issues** — When the user asks about a CLI problem, use `antd bug-cli` to help them file a report. Always preview first, get user confirmation, then submit.
+本技能不修改生成客户端，不引入另一套依赖安装入口，不替代根协作规范中的权限、生成、验证或提交要求。

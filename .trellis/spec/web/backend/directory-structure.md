@@ -1,54 +1,5 @@
-# Directory Structure
+# 服务端目录结构
 
-> How backend code is organized in this project.
+后端实现位于 `server/`。本入口不维护另一套后端规则，请阅读[对应服务端规范](../../server/backend/directory-structure.md)及[服务端规范索引](../../server/backend/index.md)。
 
----
-
-## Overview
-
-<!--
-Document your project's backend directory structure here.
-
-Questions to answer:
-- How are modules/packages organized?
-- Where does business logic live?
-- Where are API endpoints defined?
-- How are utilities and helpers organized?
--->
-
-(To be filled by the team)
-
----
-
-## Directory Layout
-
-```
-<!-- Replace with your actual structure -->
-src/
-├── ...
-└── ...
-```
-
----
-
-## Module Organization
-
-<!-- How should new features/modules be organized? -->
-
-(To be filled by the team)
-
----
-
-## Naming Conventions
-
-<!-- File and folder naming rules -->
-
-(To be filled by the team)
-
----
-
-## Examples
-
-<!-- Link to well-organized modules as examples -->
-
-(To be filled by the team)
+跨前后端任务同时遵循根 [AGENTS.md](../../../../AGENTS.md) 与[前端规范](../frontend/index.md)。

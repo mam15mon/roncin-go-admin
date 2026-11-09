@@ -1,51 +1,5 @@
-# Database Guidelines
+# 服务端数据与事务规范
 
-> Database patterns and conventions for this project.
+后端实现位于 `server/`。本入口不维护另一套后端规则，请阅读[对应服务端规范](../../server/backend/database-guidelines.md)及[服务端规范索引](../../server/backend/index.md)。
 
----
-
-## Overview
-
-<!--
-Document your project's database conventions here.
-
-Questions to answer:
-- What ORM/query library do you use?
-- How are migrations managed?
-- What are the naming conventions for tables/columns?
-- How do you handle transactions?
--->
-
-(To be filled by the team)
-
----
-
-## Query Patterns
-
-<!-- How should queries be written? Batch operations? -->
-
-(To be filled by the team)
-
----
-
-## Migrations
-
-<!-- How to create and run migrations -->
-
-(To be filled by the team)
-
----
-
-## Naming Conventions
-
-<!-- Table names, column names, index names -->
-
-(To be filled by the team)
-
----
-
-## Common Mistakes
-
-<!-- Database-related mistakes your team has made -->
-
-(To be filled by the team)
+跨前后端任务同时遵循根 [AGENTS.md](../../../../AGENTS.md) 与[前端规范](../frontend/index.md)。

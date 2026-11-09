@@ -1,164 +1,65 @@
-<h1 align="center">Ant Design Pro</h1>
+# Roncin 管理后台前端
 
-<div align="center">
+Roncin 货代后台的 React 应用。当前使用 React 19、Vite 7、React Router 8、React Query 5、Ant Design 6 和 ProComponents；依赖版本以 [package.json](./package.json) 与根目录锁文件为准。当前订单入口包含海运出口和空运出口；业务能力与验收边界见[项目说明](../README.md)。
 
-An out-of-box UI solution for enterprise applications as a React boilerplate.
+## 开发入口
 
-[![CI](https://github.com/ant-design/ant-design-pro/actions/workflows/ci.yml/badge.svg)](https://github.com/ant-design/ant-design-pro/actions/workflows/ci.yml)
-[![GitHub release](https://img.shields.io/github/v/release/ant-design/ant-design-pro.svg)](https://github.com/ant-design/ant-design-pro/releases)
-[![Build With Utoo](https://img.shields.io/badge/build%20with-utoo-028fe4.svg)](https://utoo.land)
-[![Build With Umi](https://img.shields.io/badge/build%20with-umi-028fe4.svg)](https://umijs.org/)
-[![Checked with Biome](https://img.shields.io/badge/Checked_with-Biome-60a5fa?style=flat&logo=biome)](https://biomejs.dev)
-[![Ant Design](https://badgen.net/badge/icon/Ant%20Design?icon=https://gw.alipayobjects.com/zos/antfincdn/Pp4WPgVDB3/KDpgvguMpGfqaHPjicRK.svg&label)](https://ant.design/)
-
-Language: English | [简体中文](./README.zh-CN.md)
-
-<img width="1718" height="1191" alt="light theme preview" src="https://github.com/user-attachments/assets/74ad0b4a-e086-4955-8edd-9f2cff31aee8" />
-<img width="1718" height="1191" alt="dark theme preview" src="https://github.com/user-attachments/assets/d4bcb7c1-42c7-4c0f-b130-1193a931f9f7" />
-
-</div>
-
-- Preview: https://preview.pro.ant.design
-- Documentation: [docs/cheatsheet.en-US.md](./docs/cheatsheet.en-US.md)
-- ChangeLog: https://github.com/ant-design/ant-design-pro/releases
-- FAQ: [docs/cheatsheet.en-US.md#faq](./docs/cheatsheet.en-US.md#faq)
-- **v6 Released!** — [What's new in v6](https://github.com/ant-design/ant-design-pro/releases/tag/v6.0.0)
-
-## Features
-
-- :bulb: **TypeScript**: A language for application-scale JavaScript
-- :scroll: **Blocks**: Build page with block template
-- :gem: **Neat Design**: Built on [Ant Design 6](https://ant.design/) specification
-- :triangular_ruler: **Common Templates**: Typical templates for enterprise applications
-- :rocket: **State of The Art Development**: Newest development stack of React 19/[Umi Max 4](https://umijs.org/)/[antd 6](https://ant.design/)/[utoopack](https://utoo.land)
-- :iphone: **Responsive**: Designed for variable screen sizes
-- :art: **Theming**: Customizable theme with [Tailwind CSS v4](https://tailwindcss.com/) + [antd-style](https://github.com/ant-design/antd-style)
-- :globe_with_meridians: **International**: Built-in i18n solution
-- :gear: **Best Practices**: Solid workflow to make your code healthy
-- :1234: **Mock development**: Easy to use mock development solution
-- :robot: **AI Assistant**: Built-in AI chatbot page powered by [Ant Design X](https://x.ant.design/)
-- :white_check_mark: **UI Test**: Fly safely with unit and e2e tests
-
-## Templates
-
-```
-- Welcome
-- Dashboard
-  - Analysis
-  - Monitor
-  - Workplace
-- Form
-  - Basic Form
-  - Step Form
-  - Advanced Form
-- List
-  - Search List (Articles/Projects/Applications)
-  - Table List
-  - Basic List
-  - Card List
-- Profile
-  - Basic Profile
-  - Advanced Profile
-- Result
-  - Success
-  - Fail
-- Exception
-  - 403
-  - 404
-  - 500
-- Account
-  - Account Center
-  - Account Settings
-- AI Assistant
-- User
-  - Login
-  - Register
-  - Register Result
-```
-
-## Usage
-
-### Get Started
-
-Clone or download this repository to your local machine:
+在仓库根目录安装和启动，Node.js 与 pnpm 版本遵循根 [package.json](../package.json)：
 
 ```bash
-git clone --depth=1 https://github.com/ant-design/ant-design-pro.git myapp
-cd myapp
+pnpm install
+pnpm dev
 ```
 
-### Installation
+`pnpm dev` 检查数据库并执行开发迁移，随后启动前后端；数据库准备与初始化步骤见[本地开发](../docs/local-development.md)。单独启动前端可执行 `pnpm run dev:web`，默认访问 `http://localhost:8001`，API 经开发代理访问本地 Go 服务。
+
+## 目录与职责
+
+| 入口 | 职责 |
+| --- | --- |
+| [vite.config.ts](./vite.config.ts) | Vite 构建、开发代理和 Vitest 测试入口 |
+| [config/routes.ts](./config/routes.ts) | 路由、菜单、稳定标题和组织切换落点元数据 |
+| [src/router/](./src/router/) | React Router 适配、路由权限与导航 |
+| [src/app/](./src/app/) | 身份、应用布局与 access 接入 |
+| [src/pages/](./src/pages/) | 页面及其专属请求、类型、样式和测试 |
+| [src/features/](./src/features/) | 真实跨页面共享的领域能力，通过各领域 `index.ts` 公开 |
+| [src/components/ui/](./src/components/ui/) | 页面骨架、表格、表单等公共模板 |
+| [src/services/roncin/](./src/services/roncin/) | OpenAPI 生成客户端，禁止手工修改 |
+
+列表优先使用 ProTable 官方 `request`、`actionRef` 和已采纳快照；其他服务端状态使用 React Query。认证业务查询按用户及公司工作区隔离，权限消费 `/api/v1/auth/me` 的 `permissionCapabilities`，不在页面复制规则。财务经营请求绑定当前公司工作区。
+
+订单主详情只保护当前内存输入，关闭或离开时确认未保存修改，重新进入读取服务端数据；订单新建与独立 HBL 编辑仍按身份保存持久草稿。详细规则见[状态管理](../.trellis/spec/web/frontend/state-management.md)。
+
+## 代码生成
+
+接口真相源为 `server/api/**/*.proto`。契约变化先执行服务端生成，再在仓库根目录更新前端派生物：
 
 ```bash
-npm install
+make -C server api
+pnpm run generate:web-client
 ```
 
-### Development
+前端命令读取 `server/openapi.yaml`，更新 OpenAPI JSON 输入、`src/services/roncin/` 和 Proto 枚举/错误常量；后端权限清单变化另执行 `pnpm run generate:permission-keys`。源文件与生成物须一起审阅，禁止手工修补生成结果。
+
+## 验证与交付
+
+下列命令均从仓库根目录执行，定向测试路径相对 `web/`：
 
 ```bash
-# Start development server (full version by default)
-npm start
+pnpm --dir web exec vitest run src/pages/orders/detail-leave-guard.test.tsx
+pnpm --dir web test:changed
+pnpm --dir web tsc
+pnpm run check:architecture
 ```
 
-### Simplify to Simple Version
+开发过程中按改动运行定向测试及修改文件的 Biome 检查；普通提交增加 `git diff --check`，按类型影响决定是否执行 tsc。整个前端任务验收执行 `pnpm run check:web`；全栈任务可用 `pnpm run check:fast`。构建配置、依赖、生产入口变化或发布前验收才执行 `pnpm run build`，具体阶段要求见[协作规范](../AGENTS.md)。实现功能后按风险补验证，禁止 TDD。
 
-This project includes all blocks by default. If you need a minimal version, run:
+生产由 Go 同域提供 API 和内嵌前端资源，使用仓库根目录构建流程。应用壳源自 Ant Design Pro，现行工程已采用 Vite 与 React Router；上游模板只作参考，不作为框架覆盖或部署依据。
 
-```bash
-npm run simple
-```
+## 规范导航
 
-This will:
-- Remove extra page directories (dashboard, form, list/*, profile, result, exception, account, etc.)
-- Remove extra mock files
-- Replace routes with simple version
-- Remove extra dependencies from package.json
-
-**Note**: This operation is irreversible and will permanently delete files.
-
-### Build
-
-```bash
-npm run build
-```
-
-## AI Skills (Claude Code)
-
-This project ships with two built-in [Claude Code Skills](https://docs.anthropic.com/en/docs/claude-code/skills) in `.claude/skills/`:
-
-| Skill | Trigger | Description |
-|---|---|---|
-| `/pro-upgrade` | "upgrade pro", "update to latest" | Auto-upgrade to the latest Ant Design Pro version. Diffs the latest template, merges framework changes while preserving your business code. |
-| `/antd` | antd-related code or questions | Query antd component APIs, props, tokens, demos; lint for deprecated usage; migrate between versions — all via `@ant-design/cli`. |
-
-**Usage in Claude Code:**
-
-```bash
-# Upgrade the project to latest Pro version
-/pro-upgrade
-
-# Query antd component info, debug issues, run lint, etc.
-/antd
-```
-
-> 💡 If your project was cloned from this repo, these skills are already included — no installation needed. To get the latest skill definitions, pull the updates from the template or run `npx skills add ant-design/ant-design-pro` to refresh them.
-
-## Browsers support
-
-Modern browsers.
-
-| [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/edge/edge_48x48.png" alt="Edge" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>Edge | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/firefox/firefox_48x48.png" alt="Firefox" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>Firefox | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/chrome/chrome_48x48.png" alt="Chrome" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>Chrome | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/safari/safari_48x48.png" alt="Safari" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>Safari |
-| --- | --- | --- | --- |
-| Edge | last 2 versions | last 2 versions | last 2 versions |
-
-## Contributing
-
-Any type of contribution is welcome, here are some examples of how you may contribute to this project:
-
-- Use Ant Design Pro in your daily work.
-- Submit [issues](http://github.com/ant-design/ant-design-pro/issues) to report bugs or ask questions.
-- Propose [pull requests](http://github.com/ant-design/ant-design-pro/pulls) to improve our code.
-
-<a href="https://openomy.app/github/ant-design/ant-design-pro" target="_blank" style="display: block; width: 100%;" align="center">
-  <img src="https://openomy.app/svg?repo=ant-design/ant-design-pro&chart=bubble&latestMonth=3" target="_blank" alt="Contribution Leaderboard" style="display: block; width: 100%;" />
-</a>
+- [全仓文档入口](../docs/README.md)
+- [前端开发规范](../.trellis/spec/web/frontend/index.md)
+- [复用能力导航](../.trellis/spec/web/frontend/capability-navigation.md)
+- [类型与权限契约](../.trellis/spec/web/frontend/type-safety.md)
+- [财务当前公司工作区](../.trellis/spec/web/frontend/finance-current-workspace.md)

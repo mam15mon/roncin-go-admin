@@ -4,7 +4,8 @@
 
 所有表格（ProTable、EditableProTable、普通 Table、抽屉/弹窗/嵌套表及导入预览）
 通过 `@/components/ui/column-settings` 的 `useColumnSettings` 接入；关闭 ProTable
-原生 `options.setting`，同一表格只保留一个齿轮入口。订单费用保留专有偏好存储，
+原生 `options.setting`，同一表格只保留一个齿轮入口。订单审核弹窗与抽屉的完整费用
+核对表为明确例外，固定展示全部列，不读取个人列偏好，见[组件规范](./component-guidelines.md#表格列设置全站统一)。订单费用保留专有偏好存储，
 复用 `ColumnSettingsEntry` 和公共冻结函数，应收/应付共享；财务台账高级偏好保持
 原契约。
 

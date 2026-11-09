@@ -1,51 +1,5 @@
-# Quality Guidelines
+# 服务端质量规范
 
-> Code quality standards for backend development.
+后端实现位于 `server/`。本入口不维护另一套后端规则，请阅读[对应服务端规范](../../server/backend/quality-guidelines.md)及[服务端规范索引](../../server/backend/index.md)。
 
----
-
-## Overview
-
-<!--
-Document your project's quality standards here.
-
-Questions to answer:
-- What patterns are forbidden?
-- What linting rules do you enforce?
-- What are your testing requirements?
-- What code review standards apply?
--->
-
-(To be filled by the team)
-
----
-
-## Forbidden Patterns
-
-<!-- Patterns that should never be used and why -->
-
-(To be filled by the team)
-
----
-
-## Required Patterns
-
-<!-- Patterns that must always be used -->
-
-(To be filled by the team)
-
----
-
-## Testing Requirements
-
-<!-- What level of testing is expected -->
-
-(To be filled by the team)
-
----
-
-## Code Review Checklist
-
-<!-- What reviewers should check -->
-
-(To be filled by the team)
+跨前后端任务同时遵循根 [AGENTS.md](../../../../AGENTS.md) 与[前端规范](../frontend/index.md)。

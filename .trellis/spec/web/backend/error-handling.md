@@ -1,51 +1,5 @@
-# Error Handling
+# 服务端错误处理
 
-> How errors are handled in this project.
+后端实现位于 `server/`。本入口不维护另一套后端规则，请阅读[对应服务端规范](../../server/backend/error-handling.md)及[服务端规范索引](../../server/backend/index.md)。
 
----
-
-## Overview
-
-<!--
-Document your project's error handling conventions here.
-
-Questions to answer:
-- What error types do you define?
-- How are errors propagated?
-- How are errors logged?
-- How are errors returned to clients?
--->
-
-(To be filled by the team)
-
----
-
-## Error Types
-
-<!-- Custom error classes/types -->
-
-(To be filled by the team)
-
----
-
-## Error Handling Patterns
-
-<!-- Try-catch patterns, error propagation -->
-
-(To be filled by the team)
-
----
-
-## API Error Responses
-
-<!-- Standard error response format -->
-
-(To be filled by the team)
-
----
-
-## Common Mistakes
-
-<!-- Error handling mistakes your team has made -->
-
-(To be filled by the team)
+跨前后端任务同时遵循根 [AGENTS.md](../../../../AGENTS.md) 与[前端规范](../frontend/index.md)。

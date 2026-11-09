@@ -1,126 +1,35 @@
-# CLAUDE.md
+# Roncin 前端协作入口
 
-## Project
+本目录遵循根 [AGENTS.md](../AGENTS.md)。本文仅记录项目定位，完整规则见[前端规范](../.trellis/spec/web/frontend/index.md)；文档、设计说明和开发者注释使用中文。
 
-React admin SPA on Vite + React Router v8 + React Query v5, antd v6, ProComponents v3, Vitest.
+## 技术与代码入口
 
-## Commands
+- React 19 + Vite 7 + React Router 8 + React Query 5 + Ant Design 6 / ProComponents；以 [package.json](./package.json) 和根锁文件为版本依据。
+- `vite.config.ts` 为构建与测试入口；`config/routes.ts` 统一路由、菜单、标题与切换落点。`src/router/adaptRoutes.tsx` 将集中配置装配为 React Router 和 ProLayout 菜单。
+- `src/app/AppProvider.tsx` 管理认证初始状态；`src/access.ts` 从 `/api/v1/auth/me` 的 `permissionCapabilities` 按具体权限及范围推导能力。`roleScopes` 和权限展示列表不能替代能力判定，按钮与路由复用同一 access。
+- 页面专属能力就近放 `src/pages/`，真实跨模块复用才进入 `src/features/<领域>/<能力>/index.ts`；先查[能力导航](../.trellis/spec/web/frontend/capability-navigation.md)。
+- 列表请求使用 ProTable 官方 `request` / `actionRef`，指标、当前页导出消费已采纳快照；其他服务端状态使用 React Query。认证业务缓存由 `OrganizationWorkspace` 按用户与工作台隔离，不直接使用公开登录预热单例。
+- 后端请求使用生成客户端与 `src/utils/requestClient.ts`；错误已被统一处理后可能返回 `undefined`，写入必须验证成功响应再关闭、导航或清 dirty。
+- 订单主详情仅保留当前内存编辑与未保存离开保护；新建订单和独立 HBL 编辑仍支持身份隔离的持久草稿，见[状态管理](../.trellis/spec/web/frontend/state-management.md)。
 
-Run from `web/` (or via `pnpm --dir web <script>` from the repo root; this repo uses **pnpm only** for dependency management — no npm/Yarn installs):
+## 命令与生成物
 
-`pnpm dev` (Vite dev server on :8001; `pnpm start` is an alias), `pnpm build`, `pnpm lint` (Biome+tsc), `pnpm test` (Vitest), `pnpm test:e2e` (Playwright), `npx antd lint ./src` (antd-specific checks).
+统一使用 pnpm，在仓库根目录执行：
 
-Other: `pnpm openapi` (regenerate `src/services/` from the server OpenAPI document; root shortcut `pnpm run generate:web-client`), `pnpm biome` (auto-fix), `pnpm tsc` (type-check only).
-
-## Critical Rules
-
-- **Never edit `src/services/roncin/`** — auto-generated, regenerate with `pnpm openapi`
-- **Biome only** — no ESLint, no Prettier. `pnpm lint` must pass before commit; run `npx antd lint ./src` for antd-specific checks
-- **Always `npx antd info <Component>` before writing antd code** — don't guess APIs from memory
-- **Conventional commits** required (commitlint enforced)
-- **TypeScript strict** · **Node ≥ 24.14.1** · **pnpm** with the repo-root `pnpm-lock.yaml` (not npm/Yarn)
-
-## Architecture Essentials
-
-**Config**: `vite.config.ts` (dev server, proxy, build), `config/routes.ts` (route table). `src/router/adaptRoutes.tsx` maps it onto React Router (`import.meta.glob` lazy pages) and ProLayout menu data; the `access` field gates visibility via `AccessGuard`.
-
-**Entry & key files** (`src/`): `main.tsx` (Provider chain + global styles), `app/AppProvider.tsx` (initial state), `access.ts` (permissions), `requestErrorConfig.ts` (shared request-error handling), `typings.d.ts`.
-
-**Auth**: `app/AppProvider.tsx` calls `authServiceMe()` (`/api/v1/auth/me`, proxied to the Go server in dev); 401 → redirect login. `access.ts` derives every gate from `currentUser.permissions` + `roleScopes`; permission key names are generated into `src/permissions.generated.ts` from the backend manifest — never hardcode a second source of truth.
-
-**State**: `useInitialState()` (from `src/app/AppProvider.tsx`) for currentUser/settings. ProTable `request` prop for most data loading. `@tanstack/react-query` for server state.
-
-**Styling priority**: Tailwind CSS v4 (layout) → antd-style v4 / `createStyles` (theme tokens) → CSS Modules → Less (legacy only).
-
-**Request**: OpenAPI-generated clients in `src/services/roncin/` (regenerate via `pnpm openapi`); shared error handling in `src/requestErrorConfig.ts`. Page-specific requests/types/styles live next to the page — no ad-hoc backend host strings.
-
-**Dev mock**: there is no global `mock/` directory. For offline local development, `src/utils/devMockUser.ts` provides a full-permission placeholder user, enabled only in dev builds via the localStorage flag `roncin_dev_mock_mode = 'true'`.
-
-## AI Skills
-
-This project ships with two built-in Claude Code Skills (`.claude/skills/`). If you already have these skills in your project, no installation is needed — just run them directly. To update to the latest skill definitions, run `npx skills add ant-design/ant-design-pro`.
-
-### `/pro-upgrade` — Project Upgrade
-
-Run `/pro-upgrade` in Claude Code to auto-upgrade the project to the latest Ant Design Pro version. It diffs the latest template against this project and merges framework changes while preserving business code. Works for any version gap (v5→v6, v6.x→latest, etc.).
-
-### `/antd` — Ant Design CLI
-
-Run `/antd` in Claude Code for any antd-related work. It provides access to `@ant-design/cli` with offline metadata for antd v3/v4/v5/v6. Key commands:
-
-- `npx antd info <Component>` — look up props/API before writing code (mandatory)
-- `npx antd lint ./src` — check for deprecated or problematic usage (must pass before commit)
-- `npx antd demo <Component> <demo>` — get working code examples
-- `npx antd migrate <from> <to>` — migration checklist between major versions
-
-## Page Co-location
-
-Each page dir keeps page-specific code next to the page: `index.tsx` / `detail.tsx` entry points, a `components/` subfolder, co-located `*.test.ts` files, and plain TS helpers/constants (`common.ts`, `*-constants.ts`, `list-query.ts`, …). Generated API calls come from `src/services/roncin/`.
-
-# CLAUDE.md
-
-Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
-
-**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
-
-## 1. Think Before Coding
-
-**Don't assume. Don't hide confusion. Surface tradeoffs.**
-
-Before implementing:
-- State your assumptions explicitly. If uncertain, ask.
-- If multiple interpretations exist, present them - don't pick silently.
-- If a simpler approach exists, say so. Push back when warranted.
-- If something is unclear, stop. Name what's confusing. Ask.
-
-## 2. Simplicity First
-
-**Minimum code that solves the problem. Nothing speculative.**
-
-- No features beyond what was asked.
-- No abstractions for single-use code.
-- No "flexibility" or "configurability" that wasn't requested.
-- No error handling for impossible scenarios.
-- If you write 200 lines and it could be 50, rewrite it.
-
-Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
-
-## 3. Surgical Changes
-
-**Touch only what you must. Clean up only your own mess.**
-
-When editing existing code:
-- Don't "improve" adjacent code, comments, or formatting.
-- Don't refactor things that aren't broken.
-- Match existing style, even if you'd do it differently.
-- If you notice unrelated dead code, mention it - don't delete it.
-
-When your changes create orphans:
-- Remove imports/variables/functions that YOUR changes made unused.
-- Don't remove pre-existing dead code unless asked.
-
-The test: Every changed line should trace directly to the user's request.
-
-## 4. Goal-Driven Execution
-
-**Define success criteria. Loop until verified.**
-
-Transform tasks into verifiable goals:
-- "Add validation" → "Write tests for invalid inputs, then make them pass"
-- "Fix the bug" → "Write a test that reproduces it, then make it pass"
-- "Refactor X" → "Ensure tests pass before and after"
-
-For multi-step tasks, state a brief plan:
-```
-1. [Step] → verify: [check]
-2. [Step] → verify: [check]
-3. [Step] → verify: [check]
+```bash
+pnpm run dev:web
+pnpm --dir web exec vitest run src/pages/orders/detail-leave-guard.test.tsx
+pnpm --dir web test:changed
+pnpm --dir web tsc
+pnpm run check:architecture
 ```
 
-Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+接口变化先修改 Proto 并执行 `make -C server api`，再执行 `pnpm run generate:web-client`。权限 Manifest 变化另执行 `pnpm run generate:permission-keys`。`src/services/roncin/`、`config/openapi.generated.json`、`src/enums.generated.ts`、`src/errorReasons.generated.ts` 与 `src/permissions.generated.ts` 均由对应生成流程维护，不手改。
 
----
+Ant Design API 优先使用本地 `pnpm --dir web exec antd info <组件> --format json` 查询，必要时查询 demo、semantic 和 token。仓库内 [antd 技能](./.claude/skills/antd/SKILL.md)提供本地查询方式；[升级技能](./.claude/skills/pro-upgrade/SKILL.md)仅用于已授权的依赖升级，上游模板不能覆盖本项目路由、工作区和权限实现。
 
-**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+## 验证与提交
 
----
+先实现功能，再按风险补充针对性验证；缺陷至少覆盖触发场景和相邻路径，禁止 TDD。开发期只运行定向测试与修改文件的 Biome 检查；普通本地提交运行相关测试和 `git diff --check`，按类型影响选择 tsc。任务最终验收运行风险匹配的 `check:web` 或 `check:fast`，构建仅按根规范的变更风险触发。
+
+修改前检查 Git 状态，保留他人的未提交内容；每组可验证变更用准确的中文 Conventional Commit 提交。不要为通过检查关闭规则，也不要引入历史兼容、静默回退或无需求的抽象。

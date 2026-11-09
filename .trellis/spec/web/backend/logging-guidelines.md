@@ -1,51 +1,5 @@
-# Logging Guidelines
+# 服务端日志规范
 
-> How logging is done in this project.
+后端实现位于 `server/`。本入口不维护另一套后端规则，请阅读[对应服务端规范](../../server/backend/logging-guidelines.md)及[服务端规范索引](../../server/backend/index.md)。
 
----
-
-## Overview
-
-<!--
-Document your project's logging conventions here.
-
-Questions to answer:
-- What logging library do you use?
-- What are the log levels and when to use each?
-- What should be logged?
-- What should NOT be logged (PII, secrets)?
--->
-
-(To be filled by the team)
-
----
-
-## Log Levels
-
-<!-- When to use each level: debug, info, warn, error -->
-
-(To be filled by the team)
-
----
-
-## Structured Logging
-
-<!-- Log format, required fields -->
-
-(To be filled by the team)
-
----
-
-## What to Log
-
-<!-- Important events to log -->
-
-(To be filled by the team)
-
----
-
-## What NOT to Log
-
-<!-- Sensitive data, PII, secrets -->
-
-(To be filled by the team)
+跨前后端任务同时遵循根 [AGENTS.md](../../../../AGENTS.md) 与[前端规范](../frontend/index.md)。

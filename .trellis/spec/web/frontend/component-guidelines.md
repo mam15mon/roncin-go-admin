@@ -10,6 +10,8 @@
 |----------|------|------|
 | 整页分节表单 / 详情页 | `PageHeaderShell` + `SectionCard` + `StickyFooterBar` | 吸顶导航（返回列表、层级路径、编码 Tag、主操作组）；区块卡片带 `3px × 15px` 品牌蓝竖标（`#1677ff`）、白底细边框（`#f0f0f0`），支持 `collapsible`；底部吸底操作栏（左摘要、右取消+提交） |
 | 订单多品类表单 | `OrderFormTemplate` | 配置式分节结构，不另造表单骨架 |
+| 主数据 / 通用 CRUD | `MasterDataTemplate` | 顶部指标统计卡、关键字+下拉筛选、标准分页表格、快捷模态表单 |
+| 表格列表页 | ProTable 高密度样式 | 搜索卡片与表格卡片细边框微圆角，操作列靠右 |
 
 ## 订单表单可读性与标题层级
 
@@ -21,8 +23,6 @@
   `TemplateFieldGroup` 与操作备注小节使用 13px、中等字重和留白，不重复蓝竖标。
 - 海运详情的提单模式使用蓝色标签展示当前值，不用禁用单选组承载只读信息；
   新建保留模式选择，详情变更继续走提单信息区原有的预览与确认流程。
-| 主数据 / 通用 CRUD | `MasterDataTemplate` | 顶部指标统计卡、关键字+下拉筛选、标准分页表格、快捷模态表单 |
-| 表格列表页 | ProTable 高密度样式 | 搜索卡片与表格卡片细边框微圆角，操作列靠右 |
 
 ## 订单详情页头操作层级
 
@@ -329,7 +329,7 @@ if (
 
 注册契约：
 
-- 注册项以 `satisfies Record<OrderKind, OrderKindDefinition>` 穷尽约束；只注册已真实交付的类型（当前仅 `sea-export`），不提前注册 SI/AE/AI/LAND/RAIL 占位。
+- 注册项以 `satisfies Record<OrderKind, OrderKindDefinition>` 穷尽约束；只注册已真实交付的类型（当前为 `sea-export` 和 `air-export`），不提前注册 SI/AI/LAND/RAIL 占位。
 - `getOrderKindDefinition(kindOrPath?)` 接受直接 kind 或 `/orders/<kind>` 路径；空值、未知、未注册类型一律返回 `undefined`，页面据此展示 404，禁止默认 Sea/Air 兜底，未知类型不得进入数据 Hook 或发起请求。API 只返回业务枚举时使用 `getOrderKindDefinitionByBusinessType` 反查已注册定义（如财务费用详情的订单链接），不得在各页维护数字枚举到路由的第二套映射。
 - 页面（列表/新建/详情/费用）与列表查询、资源 Hook 只消费注册定义；`common.ts` 只保留跨类型共享的选项、搜索与主数据工具，不再维护类型字典。
 - 运输方式（`OrderTransportMode`）相关的地点主数据、站点装载与候选项选择必须穷尽分发（如 `searchOrderLocations`、`fetchOrderMasterData`、`resolveOrderLocationOptions`）；land/rail 显式抛「尚未开放」，不得静默落入机场/空运分支。
@@ -356,8 +356,9 @@ if (
 
 ## antd6 API 契约（禁用弃用用法，2026-09 清理后口径）
 
-源码侧弃用用法已全部清零（`cd web && antd lint ./src --only deprecated` 保持
-0 issues），新代码禁止再次引入以下旧写法：
+2026-09 清理时源码侧弃用用法已清零。后续按改动范围使用本地
+`pnpm --dir web exec antd lint <修改文件> --only deprecated` 核查，不将历史清理结果
+当作每次变更后自动成立的验收结论；新代码禁止再次引入以下旧写法：
 
 - Alert `message` → `title`；Space `direction` → `orientation`；Spin `tip` → `description`。
 - Drawer `width` → `size`（支持 `number | string`）；Drawer/Modal `destroyOnClose` →
@@ -400,7 +401,8 @@ if (
 
 - 共用 `SeaScheduleDateFields` 的 ETD、ETA 在新建与整单草稿保存时均必填，
   使用 `ProFormDatePicker` 只显示和选择日期，不提供时分秒，不自动补默认日期。
-- ETA 按日比较不得早于 ETD，同一天允许保存；改 ETD 时仅清空日期更早的 ETA。
+- ETA 按日比较不得早于 ETD，同一天允许保存；改 ETD 后保留已输入的 ETA，
+  由依赖校验显示冲突，不静默清空日期。
 - 创建、更新和共享主单候选请求对 ETD/ETA 统一使用所选本地日零点序列化，
   保留现有 RFC3339 请求格式；截关等其它时间字段不变。
 - 服务端在 Create/UpdateDraft 共用的 `normalizeOrder` 中复核必填、RFC3339

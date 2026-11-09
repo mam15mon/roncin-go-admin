@@ -1,18 +1,17 @@
 ---
 name: pro-upgrade
 description: >
-  Use when the user wants to upgrade their Ant Design Pro project to the latest version.
-  Triggers on: upgrade pro, pro upgrade, migrate pro, update pro, 升级, 迁移项目,
-  "how to upgrade", "update to latest", "keep project up to date".
+  对 Roncin 的 Ant Design、ProComponents 或前端工程依赖执行已授权的升级，
+  核对 API 变化并保留 Vite、React Router、工作区和业务边界。
+  适用于明确的依赖升级或版本迁移，不用于一般文档更新，也不从上游模板覆盖项目。
 allowed-tools:
   - Bash(git clone *)
   - Bash(diff *)
-  - Bash(npm install)
-  - Bash(npm run lint*)
-  - Bash(npm run build*)
-  - Bash(npm run tsc*)
-  - Bash(npx antd *)
-  - Bash(rm -rf /tmp/ant-design-pro-upgrade*)
+  - Bash(pnpm install)
+  - Bash(pnpm run lint*)
+  - Bash(pnpm run build*)
+  - Bash(pnpm run tsc*)
+  - Bash(pnpm exec antd *)
   - Read
   - Edit
   - Write
@@ -20,147 +19,56 @@ allowed-tools:
   - Grep
 ---
 
-# Ant Design Pro Upgrade Skill
+# Roncin 前端依赖升级
 
-You are an Ant Design Pro upgrade assistant. Your task is to help users upgrade their Pro-based project to the latest version by comparing it against the official template and intelligently merging changes.
+本项目的应用壳源自 Ant Design Pro，现行工程采用 Vite、React Router、React Query 与 Go 同域交付。上游模板是参考资料，不拥有本项目的路由、权限、运行时配置或业务代码；不得用“同步最新模板”恢复 Umi 或直接覆盖框架文件。
 
-## Preflight
+## 先确认实际差异
 
-Before starting, confirm:
+1. 读取根 `AGENTS.md`、任务要求、根及 `web/package.json`、根 `pnpm-lock.yaml` 与现有配置。目标是完成用户授权的依赖升级范围，不主动更新全部依赖。
+2. 检查 `git status`，保留已有未提交工作；仅在改动确实无法安全分离时向用户说明冲突，不要求为了升级清空工作区或自动 stash。
+3. 从本项目安装版本与官方发布记录确认当前、目标及兼容性约束。需要上游模板作对照时放在独立临时目录，只比较相关 API/配置差异，不把模板依赖集合当目标版本清单。
+4. 对公开 API 变化核对所有真实调用方；本项目不默认保留历史兼容分支，契约变化一次性同步实现与验证。
 
-1. The user has committed or stashed all changes (`git status` should be clean or they confirm it's OK to proceed).
-2. If not clean, remind them to commit or stash their changes first (e.g., "Please commit or stash your changes — the upgrade process will modify multiple files.") and wait for them to confirm.
+## 保护的项目入口
 
-## Upgrade Flow
+| 入口（相对 `web/`） | 升级时的处理 |
+| --- | --- |
+| `vite.config.ts`、`config/` | 保留 Vite 构建、测试、代理、主题和集中路由；仅按目标依赖实际 API 调整 |
+| `src/router/`、`src/app/` | 保留 React Router 装配、认证工作区与身份隔离，不采用上游 Umi 运行时 |
+| `src/access.ts`、`src/requestErrorConfig.ts`、`src/utils/requestClient.ts` | 保护后端有效能力判定、请求与错误处理契约 |
+| `src/pages/`、`src/features/`、`src/components/` | 保留业务语义、公开边界、表格采纳快照和表单生命周期；只改目标 API 必需的调用 |
+| `src/services/roncin/`、`config/openapi.generated.json` | 自动生成；禁止手改或按普通业务文件覆盖 |
+| `src/permissions.generated.ts` | 后端权限清单生成；禁止手改 |
+| `src/enums.generated.ts`、`src/errorReasons.generated.ts` | Proto 常量生成；禁止手改 |
+| `tests/`、就近单测、`scripts/`、根 `patches/` | 核对与目标依赖相关的测试基础设施、生成脚本和补丁适用性，不机械删除 |
 
-### Step 1 — Fetch the latest template
+实际文件与目录以仓库为准，不创建旧模板的 `src/app.tsx`、`config/config.ts` 或样例服务目录。通用模块不得反向依赖 pages/features，提取能力时更新导航并运行架构检查。
 
-```bash
-rm -rf /tmp/ant-design-pro-upgrade
-git clone --depth=1 https://github.com/ant-design/ant-design-pro.git /tmp/ant-design-pro-upgrade
-```
+## 修改与验证
 
-Read the template's `package.json` to confirm its version.
-
-### Step 2 — Classify files
-
-Separate the user's project files into **framework files** (Pro-owned, rarely customized) and **business files** (user-written, must be preserved).
-
-**Framework files** — diff these against the template:
-
-| Path | Notes |
-|---|---|
-| `package.json` | dependencies, scripts, devDependencies only |
-| `config/config.ts` | framework config |
-| `config/routes.ts` | structure only — preserve user-added routes |
-| `config/defaultSettings.ts` | layout/theme defaults |
-| `config/proxy.ts` | structure only — preserve user targets |
-| `src/app.tsx` | runtime config |
-| `src/access.ts` | permission definitions |
-| `src/global.tsx` | global side effects |
-| `src/loading.tsx` | loading component |
-| `src/requestErrorConfig.ts` | request interceptor |
-| `src/typings.d.ts` | global type declarations |
-| `tsconfig.json` | TypeScript config |
-| `biome.json` or `biome.jsonc` | linter config |
-| `.husky/` | git hooks |
-| `commitlint.config.*` | commit lint config |
-| `src/services/ant-design-pro/` | auto-generated — do NOT manually edit; regenerate with `npm run openapi` |
-
-**Business files** — preserve these, only adjust imports/APIs if needed:
-
-- `src/pages/**` — user pages
-- `src/components/**` — user components
-- `src/models/**` — user models
-- `src/services/**/*.ts` — custom service files (NOT the `ant-design-pro/` subdirectory)
-- `src/locales/**` — user translations (framework keys may need updating)
-- `src/utils/**` — user utilities
-- `mock/**` — user mocks
-- Any other files not listed above
-
-### Step 3 — Diff framework files
-
-For each framework file, read both the user's version and the template version. Identify:
-
-- **New dependencies** or version bumps in `package.json`
-- **New/changed config options** in `config/` files
-- **Import path changes** (e.g., `from 'umi'` → `from '@umijs/max'`)
-- **API changes** in `src/app.tsx`, `src/access.ts`, etc.
-- **New files** that exist in template but not in user's project
-
-### Step 4 — Merge intelligently
-
-Apply changes with these rules:
-
-**Framework files — adopt template structure, preserve user customizations:**
-- `package.json`: update dependency versions to match template. Keep any extra deps the user added. If a dependency exists in the user's project but not in the template, assume it is a user customization and preserve it.
-- `config/routes.ts`: adopt the template's route structure for framework pages, but keep all user-added routes intact.
-- `config/proxy.ts`: adopt structure, preserve user's proxy targets.
-- Other framework files: adopt the template version, preserving any user customizations that are clearly intentional (comments, extra exports, business logic mixed in).
-
-**Business files — minimal changes only:**
-- Update import paths if framework modules moved (e.g., `'umi'` → `'@umijs/max'`).
-- Update deprecated API calls if the template shows a new pattern.
-- Never rewrite business logic, restructure components, or change styling approaches unless the old approach is broken.
-
-**Auto-generated files:**
-- `src/services/ant-design-pro/`: do NOT edit. Tell the user to run `npm run openapi` after upgrade.
-
-### Step 5 — Antd-specific migration checks
-
-Run these commands to catch antd API changes:
+依赖安装在仓库根目录执行 `pnpm install`，提交对应清单和根锁文件。不要采用另一个包管理器或直接复制上游锁文件。涉及 antd 时可在 `web/` 目录用本地 CLI 查询：
 
 ```bash
-npx antd env --format json
-npx antd lint ./src --format json --only deprecated
+pnpm exec antd env --format json
+pnpm exec antd info <组件> --format json
+pnpm exec antd changelog <当前版本> <目标版本> --format json
+pnpm exec antd migrate <当前主版本> <目标主版本> --format json
 ```
 
-If the user is upgrading across major antd versions, also run:
+先实现 API 适配，再按风险补针对性测试，禁止 TDD。开发期使用修改文件的 Biome 检查和相对 `web/` 路径的定向 Vitest；不要运行全仓自动修复去改无关文件。依赖和生产入口的最终验收从仓库根目录按风险执行：
 
 ```bash
-npx antd migrate <current_major> <target_major> --format json
+pnpm run check:web
+pnpm run build
 ```
 
-Detect the current major version from the user's `package.json` and the target from the template's.
+如果同时影响后端或跨层契约，使用根规范规定的全栈门禁。测试失败时修正实际 API 或实现，不通过关闭规则掩盖错误。构建会写入前端产物及服务端资源暂存，只提交仓库规定的源文件、必要生成物和锁文件，不提交缓存。
 
-Address any findings by updating the flagged code.
+客户端及常量需要更新时使用真实源与生成入口：
 
-### Step 6 — Install and verify
+- API 变化：先改 Proto，执行 `make -C server api`，再在根目录执行 `pnpm run generate:web-client`。
+- 权限 Manifest 变化：根目录执行 `pnpm run generate:permission-keys`。
+- 仅依赖升级时不为“刷新”而改 API 契约或生成器。
 
-```bash
-npm install
-npm run lint
-npm run build
-```
-
-Fix any errors. Common post-upgrade issues:
-- Type errors from changed APIs → check `npx antd info <Component>` for current APIs
-- New lint rules from Biome config changes → run `npm run biome` to auto-fix
-- Missing peer dependencies → check `npm install` warnings
-
-### Step 7 — Cleanup and summarize
-
-```bash
-rm -rf /tmp/ant-design-pro-upgrade
-```
-
-Output a summary of all changes made, grouped by category:
-
-1. **Dependencies updated** — list version changes
-2. **Config changes** — what changed in config files
-3. **Code patterns migrated** — import path changes, API updates
-4. **New files added** — any files from the template that didn't exist before
-5. **Manual review needed** — anything you're unsure about or that requires user action
-
-Remind the user to:
-- Run `npm run openapi` if they use the auto-generated API services
-- Test their application thoroughly
-- Commit the changes
-
-## Key Principles
-
-- **No hardcoded versions** — this skill works regardless of the version gap between the user's project and the latest template.
-- **Preserve business code** — only modify what's necessary for framework compatibility.
-- **Conservative merging** — when uncertain whether a change is a user customization or an outdated pattern, ask the user instead of guessing.
-- **Leverage `@ant-design/cli`** — use `antd migrate`, `antd lint`, `antd info` for antd-specific checks; don't guess APIs from memory.
-- **Clean up** — always remove the temporary clone directory.
+完成后报告实际版本变化、必要配置/API 适配、验证结果、尚未覆盖的真实业务场景；按根协作规范提交可验证变更组。清理仅限本次创建且确认无需保留的临时目录，保留用户文件和其他会话工作。

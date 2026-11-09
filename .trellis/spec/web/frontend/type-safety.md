@@ -4,9 +4,9 @@
 
 | 文件 | 来源 |
 |------|------|
-| `web/src/services/roncin/` | OpenAPI（服务端契约变更后 `pnpm run generate:web-client`） |
+| `web/config/openapi.generated.json`、`web/src/services/roncin/` | 消费 `server/openapi.yaml` 生成（服务端契约变更并执行 `make -C server api` 后，运行 `pnpm run generate:web-client`） |
 | `web/src/permissions.generated.ts` | 后端 `manifest.go`（`pnpm run generate:permission-keys`） |
-| `web/src/enums.generated.ts`、`errorReasons.generated.ts` | 生成产物，同样禁手改 |
+| `web/src/enums.generated.ts`、`web/src/errorReasons.generated.ts` | Proto 常量（`pnpm run generate:proto-constants`，已包含在 `generate:web-client`） |
 
 修改服务端契约后运行生成命令，源文件与生成物放同一提交审阅。
 
