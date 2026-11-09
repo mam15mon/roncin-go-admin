@@ -4,6 +4,7 @@
 
 export const ROUTE_TITLE_MAP: Record<string, string> = {
   '/welcome': '工作台',
+  '/enterprise-resources/config': '配置管理',
   '/partners/customers': '客户',
   '/partners/customers/create': '新建客户',
   '/partners/suppliers': '供应商',

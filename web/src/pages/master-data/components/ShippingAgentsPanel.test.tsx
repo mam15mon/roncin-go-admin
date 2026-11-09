@@ -74,26 +74,32 @@ describe('船代公共主数据维护', () => {
 
   it('全量包含停用记录，本地翻页与搜索不再次请求', async () => {
     state.list.mockResolvedValue({
-      data: Array.from({ length: 12 }, (_, index) => ({
+      data: Array.from({ length: 29 }, (_, index) => ({
         ...agent,
         id: `agent-${index}`,
         code: `HGJ-${index + 1}`,
         name: `船代${index + 1}`,
-        enabled: index !== 11,
+        // 模拟 ProtoJSON：首条零排序、停用记录 false 均不输出字段。
+        sortOrder: index === 0 ? undefined : index,
+        enabled: index === 28 ? undefined : true,
       })),
     });
     renderPanel();
     expect(await screen.findByText('HGJ-10')).toBeInTheDocument();
-    fireEvent.click(screen.getByTitle('2'));
-    expect(await screen.findByText('HGJ-12')).toBeInTheDocument();
-    expect(screen.getByText('船代12')).toBeInTheDocument();
+    expect(screen.getByText('HGJ-1')).toBeInTheDocument();
+    fireEvent.click(screen.getByTitle('3'));
+    expect(await screen.findByText('HGJ-29')).toBeInTheDocument();
+    expect(screen.getByText('船代29')).toBeInTheDocument();
+    const lastRow = screen.getByText('HGJ-29').closest('tr');
+    if (!lastRow) throw new Error('缺少船代行');
+    expect(within(lastRow).getByText('停用')).toBeInTheDocument();
     fireEvent.change(
       screen.getByPlaceholderText('搜索船代编码 / 中文名称 / 英文名称...'),
       {
-        target: { value: 'HGJ-12' },
+        target: { value: 'HGJ-29' },
       },
     );
-    expect(await screen.findByText('HGJ-12')).toBeInTheDocument();
+    expect(await screen.findByText('HGJ-29')).toBeInTheDocument();
     expect(state.list).toHaveBeenCalledExactlyOnceWith({ kind: 11 });
   });
 

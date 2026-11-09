@@ -336,17 +336,22 @@ describe('TagsView Component', () => {
     expect(screen.queryByLabelText('关闭 工作台')).not.toBeInTheDocument();
   });
 
-  it('直接进入对冲管理时页签与顶栏均显示中文名称', () => {
-    mockPathname = '/finance/nettings';
+  it.each([
+    ['/finance/nettings', '对冲管理'],
+    ['/enterprise-resources/config', '配置管理'],
+  ])('直接进入 %s 时页签与顶栏均显示 %s', (path, title) => {
+    mockPathname = path;
     render(
       <>
         <HeaderTitle />
         <TagsView />
       </>,
     );
-    expect(screen.getAllByText('对冲管理')).toHaveLength(2);
-    expect(screen.queryByText('nettings')).not.toBeInTheDocument();
-    expect(resolveRouteTitle('/finance/nettings/')).toBe('对冲管理');
+    expect(screen.getAllByText(title)).toHaveLength(2);
+    expect(
+      screen.queryByText(path.split('/').at(-1) ?? ''),
+    ).not.toBeInTheDocument();
+    expect(resolveRouteTitle(`${path}/`)).toBe(title);
   });
 
   it.each([

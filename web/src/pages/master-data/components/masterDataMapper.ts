@@ -8,14 +8,7 @@ export interface PersistedMasterDataItem extends BaseMasterDataItem {
 export function mapPersistedMasterDataItem(
   item: API.MasterDataItem,
 ): PersistedMasterDataItem {
-  if (
-    !item.id ||
-    !item.code ||
-    !item.name ||
-    item.enabled === undefined ||
-    item.source === undefined ||
-    item.sortOrder === undefined
-  ) {
+  if (!item.id || !item.code || !item.name || item.source === undefined) {
     throw new Error('主数据响应缺少必填字段');
   }
   return {
@@ -23,9 +16,10 @@ export function mapPersistedMasterDataItem(
     code: item.code,
     name: item.name,
     nameEn: item.nameEn,
-    enabled: item.enabled,
+    // ProtoJSON 会省略非 optional 标量的零值，按契约还原停用状态和排序。
+    enabled: item.enabled ?? false,
     source: item.source,
-    sortOrder: item.sortOrder,
+    sortOrder: item.sortOrder ?? 0,
     updatedAt: item.updatedAt,
   };
 }
