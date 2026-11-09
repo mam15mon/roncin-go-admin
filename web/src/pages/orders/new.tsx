@@ -14,7 +14,6 @@ import {
   getFormDraftScope,
 } from '@/components/layout/formDraft';
 import { resolveTabKey } from '@/components/layout/routeUtils';
-import { StickyFooterBar } from '@/components/ui';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
 import type { OrderFormTemplateActions } from '@/components/ui/order-template/types';
 import { SeaDocumentStructure } from '@/enums.generated';
@@ -514,20 +513,6 @@ function NewOrderContent({
               },
             ]
           : []
-      }
-      footer={
-        isSea ? (
-          <StickyFooterBar info="海运出口录单">
-            <Button
-              disabled={createBusy || seaCreate.status === 'blocked'}
-              onClick={submitCreate}
-              type="primary"
-              loading={createBusy}
-            >
-              {createLabel}
-            </Button>
-          </StickyFooterBar>
-        ) : undefined
       }
       header={
         <OrderPageHeader

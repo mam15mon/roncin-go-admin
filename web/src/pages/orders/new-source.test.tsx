@@ -466,7 +466,7 @@ describe('连续新增分单的来源与资源生命周期', () => {
     fireEvent.click(screen.getAllByRole('button', { name: /创建订单/ })[0]);
     await waitFor(() => expect(createOrder).toHaveBeenCalledTimes(1));
     expect(reference()).toBeDisabled();
-    expect(screen.getAllByRole('button', { name: /创建订单/ })).toHaveLength(2);
+    expect(screen.getAllByRole('button', { name: /创建订单/ })).toHaveLength(1);
     await act(async () => pending.reject(new Error('超时')));
     const firstPayload = createOrder.mock.calls[0][0];
     cleanup();
