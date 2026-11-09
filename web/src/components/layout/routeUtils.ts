@@ -1,77 +1,59 @@
-/**
- * 路由名称映射与解析工具
- */
+import routes from '@root/config/routes';
+import { matchPath } from 'react-router';
+import type { UmiRoute } from '@/router/routeTypes';
 
-export const ROUTE_TITLE_MAP: Record<string, string> = {
-  '/welcome': '工作台',
-  '/enterprise-resources/config': '配置管理',
-  '/partners/customers': '客户',
-  '/partners/customers/create': '新建客户',
-  '/partners/suppliers': '供应商',
-  '/partners/suppliers/create': '新建供应商',
-  '/partners/foreign-agents': '国外代理',
-  '/partners/foreign-agents/create': '新建国外代理',
-  '/orders/sea-export': '海运出口订单列表',
-  '/orders/sea-export/new': 'SE 新建订单',
-  '/orders/air-export': '空运出口订单列表',
-  '/orders/air-export/new': 'AE 新建订单',
-  '/orders': '订单管理',
-  '/master-data': '主数据',
-  '/settings': '参数设置',
-  '/finance/fee-settings': '费用设置',
-  '/finance/exchange-rates': '汇率管理',
-  '/finance/fees': '集运费用明细',
-  '/finance/bills': '账单管理',
-  '/finance/invoices': '开票记录',
-  '/finance/cashflows': '收付管理',
-  '/finance/verifications': '核销管理',
-  '/finance/nettings': '对冲管理',
-  '/finance/commissions': '提成管理',
-  '/admin': '系统管理',
-  '/admin/notification-test': '通知测试',
-};
+/** 页面标题、重定向与布局属性统一读取真实路由配置，隐藏菜单不影响标题。 */
+function flattenRoutes(items: UmiRoute[], parentLayout = true): UmiRoute[] {
+  return items.flatMap((route) => {
+    const layout = parentLayout && route.layout !== false;
+    return [{ ...route, layout }, ...flattenRoutes(route.routes ?? [], layout)];
+  });
+}
 
-export const DYNAMIC_ROUTE_PATTERNS: Array<{
-  pattern: RegExp;
-  title: string | ((matches: RegExpMatchArray) => string);
-}> = [
-  { pattern: /^\/partners\/customers\/(?!create)[^/]+$/, title: '客户详情' },
-  { pattern: /^\/partners\/suppliers\/(?!create)[^/]+$/, title: '供应商详情' },
-  {
-    pattern: /^\/orders\/sea-export\/[^/]+\/hbl$/,
-    title: 'HBL 制作',
-  },
-  {
-    pattern: /^\/partners\/foreign-agents\/(?!create)[^/]+$/,
-    title: '国外代理详情',
-  },
-  {
-    // 订单动态路由统一使用中性占位标题；具体订单页在数据加载后
-    // 通过 roncin:update-tab-title 事件回填带业务类型的真实标题。
-    pattern: /^\/orders\/([^/]+)\/([^/]+)\/fees$/,
-    title: '订单费用录入',
-  },
-  {
-    pattern: /^\/orders\/([^/]+)\/([^/]+)\/split$/,
-    title: '订单拆票',
-  },
-  {
-    pattern: /^\/orders\/([^/]+)\/(?!new)[^/]+$/,
-    title: '订单详情',
-  },
-  {
-    pattern: /^\/finance\/fees\/detail\/[^/]+$/,
-    title: '费用详情',
-  },
-];
+const configuredRoutes = flattenRoutes(routes);
+const titleRoutes = configuredRoutes
+  .filter(
+    (route) => route.path && route.layout && (route.pageTitle || route.name),
+  )
+  .sort(
+    (a, b) => routeSpecificity(b.path ?? '') - routeSpecificity(a.path ?? ''),
+  );
 
-/**
- * 纯重定向入口向最终业务菜单页签的映射表，避免进入中转重定向时产生冗余中间页签
- */
-export const REDIRECT_ROUTES: Record<string, string> = {
-  '/orders': '/orders/sea-export',
-  '/partners': '/partners/customers',
-};
+function routeSpecificity(path: string): number {
+  return path
+    .split('/')
+    .reduce((score, segment) => score + (segment.startsWith(':') ? 1 : 10), 0);
+}
+
+function normalizePath(pathname: string): string {
+  const path = pathname.split(/[?#]/, 1)[0] || '/';
+  return path.length > 1 && path.endsWith('/') ? path.slice(0, -1) : path;
+}
+
+function resolveRedirectPath(pathname: string): string {
+  let path = normalizePath(pathname);
+  const visited = new Set<string>();
+  while (!visited.has(path)) {
+    visited.add(path);
+    const redirect = configuredRoutes.find(
+      (route) => route.path === path && route.redirect,
+    )?.redirect;
+    if (!redirect) return path;
+    path = normalizePath(redirect);
+  }
+  throw new Error('路由重定向存在循环');
+}
+
+/** 无布局页面及其子路由不创建业务页签。 */
+export function isRouteWithoutLayout(pathname: string): boolean {
+  const path = normalizePath(pathname);
+  return configuredRoutes.some(
+    (route) =>
+      route.layout === false &&
+      route.path &&
+      matchPath({ path: route.path, end: false }, path),
+  );
+}
 
 /**
  * 集中配置内部子页面向稳定菜单页签键的归组规则表。
@@ -119,12 +101,7 @@ export function resolveTabKey(pathname: string): string {
   }
 
   // 规范化：去除末尾的斜杠
-  const normalized =
-    pathname.length > 1 && pathname.endsWith('/')
-      ? pathname.slice(0, -1)
-      : pathname;
-
-  const targetPath = REDIRECT_ROUTES[normalized] || normalized;
+  const targetPath = resolveRedirectPath(pathname);
 
   for (const { pattern, key } of TAB_KEY_RULES) {
     if (pattern.test(targetPath)) {
@@ -139,34 +116,26 @@ export function resolveTabKey(pathname: string): string {
  * 根据 pathname 解析展示的模块/页面标题
  */
 export function resolveRouteTitle(pathname: string): string {
-  if (!pathname || pathname === '/') return '工作台';
-
-  const normalized =
-    pathname.length > 1 && pathname.endsWith('/')
-      ? pathname.slice(0, -1)
-      : pathname;
-
-  const targetPath = REDIRECT_ROUTES[normalized] || normalized;
-
-  if (ROUTE_TITLE_MAP[targetPath]) return ROUTE_TITLE_MAP[targetPath];
-
-  for (const { pattern, title } of DYNAMIC_ROUTE_PATTERNS) {
-    const match = targetPath.match(pattern);
-    if (match) {
-      return typeof title === 'function' ? title(match) : title;
-    }
+  const targetPath = resolveRedirectPath(pathname);
+  for (const route of titleRoutes) {
+    const match = matchPath({ path: route.path ?? '', end: true }, targetPath);
+    if (!match) continue;
+    return typeof route.pageTitle === 'function'
+      ? route.pageTitle(match.params)
+      : (route.pageTitle ?? route.name ?? '工作台');
   }
 
-  // 按路径长度倒序进行前缀匹配，确保更具体的子路径优先命中
-  const sortedPrefixes = Object.entries(ROUTE_TITLE_MAP).sort(
-    (a, b) => b[0].length - a[0].length,
-  );
-  for (const [routePath, title] of sortedPrefixes) {
-    if (targetPath === routePath || targetPath.startsWith(`${routePath}/`)) {
-      return title;
-    }
+  // 仅使用静态父入口兜底，避免未知路径被不相干的动态详情吞掉。
+  for (const route of titleRoutes) {
+    if (
+      route.path?.includes(':') ||
+      !route.path ||
+      !targetPath.startsWith(`${route.path}/`)
+    )
+      continue;
+    return typeof route.pageTitle === 'string'
+      ? route.pageTitle
+      : (route.name ?? '工作台');
   }
-
-  const segments = targetPath.split('/').filter(Boolean);
-  return segments[segments.length - 1] || '工作台';
+  return targetPath.split('/').filter(Boolean).at(-1) || '工作台';
 }

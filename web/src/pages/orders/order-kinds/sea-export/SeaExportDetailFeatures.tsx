@@ -219,6 +219,10 @@ export default function SeaExportDetailFeatures({
   const reassignReason = businessWritesDisabled
     ? businessWriteBlockedReason
     : changeActions?.reassignBlockedReasons?.join('；');
+  const reassignDisabled =
+    !canOrder('reassign') ||
+    businessWritesDisabled ||
+    changeActions?.canReassign !== true;
   const actionMenuItems: MenuProps['items'] = [
     ...(canOrder('read')
       ? [
@@ -259,7 +263,7 @@ export default function SeaExportDetailFeatures({
                 <span>改配</span>
               </Tooltip>
             ),
-            disabled: !changeActions?.canReassign || businessWritesDisabled,
+            disabled: reassignDisabled,
             onClick: () => setReassignModalOpen(true),
           },
         ]
@@ -375,7 +379,7 @@ export default function SeaExportDetailFeatures({
           orderId={orderId}
           orderNo={order.orderNo}
           open={reassignModalOpen}
-          disabled={changeActions?.canReassign === false}
+          disabled={reassignDisabled}
           disabledReason={changeActions?.reassignBlockedReasons?.join('；')}
           onClose={() => setReassignModalOpen(false)}
           onSuccess={async () => {

@@ -52,30 +52,48 @@ describe('改配预览与当前目标绑定', () => {
     );
   });
 
-  it('服务端返回不可执行预览或缺失版本时不允许确认', async () => {
-    preview.mockResolvedValueOnce({
-      success: true,
-      data: {
-        isValid: false,
-        errors: ['请先移除本票共享箱分配'],
-        orderVersion: '7',
-        currentLinkVersion: '4',
-      },
-    });
+  it.each([undefined, false])(
+    '不可执行预览（isValid=%s）或缺失版本时不允许确认',
+    async (isValid) => {
+      preview.mockResolvedValueOnce({
+        success: true,
+        data: {
+          ...(isValid === undefined ? {} : { isValid }),
+          errors: ['请先移除本票共享箱分配'],
+          orderVersion: '7',
+          currentLinkVersion: '4',
+        },
+      });
+      renderReassignment();
+      await enterMasterNo();
+      await waitFor(() =>
+        expect(screen.getByText('请先移除本票共享箱分配')).toBeVisible(),
+      );
+      expect(outerConfirmButton()).toBeDisabled();
+      preview.mockResolvedValueOnce({ success: true, data: { isValid: true } });
+      fireEvent.click(screen.getByRole('button', { name: '重新预览' }));
+      await waitFor(() =>
+        expect(
+          screen.getByText('改配预览缺少订单或关联版本，请重新预览'),
+        ).toBeVisible(),
+      );
+      expect(outerConfirmButton()).toBeDisabled();
+    },
+  );
+
+  it('加载中不显示业务否定，成功省略 isValid 和 errors 后显示兜底原因', async () => {
+    const pending = deferred<API.PreviewSeaOrderReassignmentResponse>();
+    preview.mockReturnValueOnce(pending.promise);
     renderReassignment();
     await enterMasterNo();
-    await waitFor(() =>
-      expect(screen.getByText('请先移除本票共享箱分配')).toBeVisible(),
-    );
+    await waitFor(() => expect(preview).toHaveBeenCalledOnce());
+    expect(
+      screen.queryByText('当前目标不满足改配条件'),
+    ).not.toBeInTheDocument();
+    await act(async () => pending.resolve({ success: true, data: {} }));
+    expect(await screen.findByText('当前目标不满足改配条件')).toBeVisible();
     expect(outerConfirmButton()).toBeDisabled();
-    preview.mockResolvedValueOnce({ success: true, data: { isValid: true } });
-    fireEvent.click(screen.getByRole('button', { name: '重新预览' }));
-    await waitFor(() =>
-      expect(
-        screen.getByText('改配预览缺少订单或关联版本，请重新预览'),
-      ).toBeVisible(),
-    );
-    expect(outerConfirmButton()).toBeDisabled();
+    expect(execute).not.toHaveBeenCalled();
   });
 
   it('目标变化立即阻止提交，旧预览迟到也不能替换新目标和版本', async () => {

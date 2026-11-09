@@ -56,6 +56,22 @@ describe('改配弹窗会话隔离', () => {
     });
   });
 
+  it('已打开的确认会话在资格失效后关闭并禁止执行', async () => {
+    const { rerenderModal, props } = renderReassignment();
+    await enterMasterNo();
+    await fillConfirmation();
+    const confirmation = await openExecutionConfirmation();
+    expect(
+      within(confirmation).getByRole('button', { name: '确认改配' }),
+    ).toBeEnabled();
+    rerenderModal({ disabled: true });
+    await waitFor(() => expect(props.onClose).toHaveBeenCalled());
+    fireEvent.click(
+      within(confirmation).getByRole('button', { name: '确认改配' }),
+    );
+    expect(execute).not.toHaveBeenCalled();
+  });
+
   it('用户改了目标后，迟到的候选匹配不得覆盖新输入', async () => {
     const previous = deferred<API.MatchSeaMasterBillCandidateResponse>();
     matchCandidate.mockImplementationOnce(() => previous.promise);

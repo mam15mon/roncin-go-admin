@@ -19,7 +19,11 @@ import { useInitialState } from '@/app/AppProvider';
 import { useClearListQueries } from '@/components/ui/list-query-state';
 import { history } from '@/router/history';
 import { clearTabDrafts, getFormDraftScope } from './formDraft';
-import { resolveRouteTitle, resolveTabKey } from './routeUtils';
+import {
+  isRouteWithoutLayout,
+  resolveRouteTitle,
+  resolveTabKey,
+} from './routeUtils';
 import { confirmIfTabsDirty } from './tabCloseGuard';
 
 export interface TagItem {
@@ -36,16 +40,12 @@ export const FIXED_TAB: TagItem = {
   closable: false,
 };
 
-const IGNORED_PREFIXES = ['/user/login', '/user', '/login'];
-
 /**
  * 判断路径是否无需加入多页签
  */
 export function shouldIgnorePath(pathname: string): boolean {
   if (!pathname || pathname === '/') return false;
-  return IGNORED_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-  );
+  return isRouteWithoutLayout(pathname);
 }
 
 /**

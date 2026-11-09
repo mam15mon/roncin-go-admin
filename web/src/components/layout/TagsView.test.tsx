@@ -146,6 +146,7 @@ describe('routeUtils', () => {
     it('纯重定向入口正确解析为最终业务菜单页签', () => {
       expect(resolveTabKey('/orders')).toBe('/orders/sea-export');
       expect(resolveTabKey('/partners')).toBe('/partners/customers');
+      expect(resolveTabKey('/settings')).toBe('/finance/fee-settings');
     });
 
     it('已知前缀下的未知子路径不进行合并，保持自身规范化路径', () => {
@@ -228,7 +229,7 @@ describe('routeUtils', () => {
     });
 
     it('未命中特殊归组规则的页面回退到自身规范化路径', () => {
-      expect(resolveTabKey('/settings')).toBe('/settings');
+      expect(resolveTabKey('/settings')).toBe('/finance/fee-settings');
       expect(resolveTabKey('/master-data')).toBe('/master-data');
       expect(resolveTabKey('/admin')).toBe('/admin');
       expect(resolveTabKey('/unknown-page/')).toBe('/unknown-page');
@@ -241,6 +242,8 @@ describe('TagsView logic', () => {
     expect(shouldIgnorePath('/user/login')).toBe(true);
     expect(shouldIgnorePath('/user')).toBe(true);
     expect(shouldIgnorePath('/login')).toBe(true);
+    expect(shouldIgnorePath('/user/login/dingtalk/callback')).toBe(true);
+    expect(shouldIgnorePath('/enterprise-resources/config')).toBe(false);
     expect(shouldIgnorePath('/orders')).toBe(false);
     expect(shouldIgnorePath('/welcome')).toBe(false);
   });
@@ -339,6 +342,8 @@ describe('TagsView Component', () => {
   it.each([
     ['/finance/nettings', '对冲管理'],
     ['/enterprise-resources/config', '配置管理'],
+    ['/orders/air-export/masters/MAWB-1', '航空共享主单'],
+    ['/commission-adjustments/ADJ-1/my-supplement-source', '我的冲减来源'],
   ])('直接进入 %s 时页签与顶栏均显示 %s', (path, title) => {
     mockPathname = path;
     render(
@@ -471,8 +476,8 @@ describe('TagsView Component', () => {
     mockHash = '';
     rerender(<TagsView />);
 
-    // 点击参数设置页签，应带回完整 search 与 hash
-    const settingsTab = screen.getByText('参数设置');
+    // 点击配置声明的费用设置页签，应带回完整 search 与 hash
+    const settingsTab = screen.getByText('费用设置');
     fireEvent.click(settingsTab);
     expect(mockPush).toHaveBeenCalledWith('/settings?tab=security#logs');
   });

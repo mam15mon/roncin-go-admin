@@ -241,7 +241,7 @@ function ReassignmentForm({
       ) {
         throw new Error('改配预览缺少订单或关联版本，请重新预览');
       }
-      return response.data;
+      return { ...response.data, isValid: response.data.isValid === true };
     },
     meta: { silent: true },
   });

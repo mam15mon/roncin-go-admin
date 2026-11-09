@@ -38,6 +38,7 @@ const routes: UmiRoute[] = [
     path: '/enterprise-resources/config',
     organizationSwitch: { keep: true },
     name: '企业资源配置管理',
+    pageTitle: '配置管理',
     access: 'canReadEnterpriseResources',
     hideInMenu: true,
     component: './enterprise-resources',
@@ -131,6 +132,7 @@ const routes: UmiRoute[] = [
         path: '/orders/sea-export',
         organizationSwitch: { keep: true },
         name: '海运出口',
+        pageTitle: '海运出口订单列表',
         access: 'canReadSEOrders',
         component: './orders/list',
       },
@@ -138,6 +140,7 @@ const routes: UmiRoute[] = [
         path: '/orders/air-export',
         organizationSwitch: { keep: true },
         name: '空运出口',
+        pageTitle: '空运出口订单列表',
         access: 'canReadAEOrders',
         component: './orders/list',
       },
@@ -153,6 +156,12 @@ const routes: UmiRoute[] = [
         path: '/orders/:kind/new',
         organizationSwitch: { list: '/orders/:kind' },
         name: '新建订单',
+        pageTitle: ({ kind }) =>
+          kind === 'sea-export'
+            ? 'SE 新建订单'
+            : kind === 'air-export'
+              ? 'AE 新建订单'
+              : '订单管理',
         access: 'canCreateAnyOrders',
         hideInMenu: true,
         component: './orders/new',
@@ -161,6 +170,7 @@ const routes: UmiRoute[] = [
         path: '/orders/sea-export/:id/split',
         organizationSwitch: { list: '/orders/sea-export' },
         name: '海运出口拆票',
+        pageTitle: '订单拆票',
         access: 'canSplitSEOrders',
         hideInMenu: true,
         component: './orders/split',
@@ -177,6 +187,7 @@ const routes: UmiRoute[] = [
         path: '/orders/:kind/:id/fees',
         organizationSwitch: { list: '/orders/:kind' },
         name: '费用录入',
+        pageTitle: '订单费用录入',
         access: 'canAccessAnyOrderFees',
         hideInMenu: true,
         component: './orders/fees',

@@ -9,6 +9,10 @@ export type AccessKey = keyof AccessState;
 export interface UmiRoute {
   path?: string;
   name?: string;
+  /** 菜单短名与页面标题不同时显式声明；动态标题只解释路由参数。 */
+  pageTitle?:
+    | string
+    | ((params: Readonly<Record<string, string | undefined>>) => string);
   icon?: string;
   access?: AccessKey;
   component?: string;
