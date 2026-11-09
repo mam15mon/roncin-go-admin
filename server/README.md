@@ -2,7 +2,8 @@
 
 基于 [go-kratos/kratos](https://github.com/go-kratos/kratos) v3 的货代后台服务：
 Protobuf 契约优先（HTTP + gRPC 双传输）、Ent + PostgreSQL 持久化、Wire 依赖注入。
-目录约定、分层边界与权限清单规则见根目录 `AGENTS.md` 与 `server/AGENTS.md`。
+目录约定、分层边界与权限清单规则见[根协作规范](../AGENTS.md)与[服务端协作规范](AGENTS.md)。
+Go 工具链版本以 [go.mod](go.mod) 为准。行业资料来源和同步参数见[种子说明](seeds/README.md)。
 
 ## 目录结构
 
@@ -14,7 +15,7 @@ cmd/                  入口指令
   migrate/              版本化迁移执行器（迁移后自动同步权限清单）
   sync-airports/        OurAirports 机场同步 CLI
   sync-regions/         全国行政区划同步 CLI
-  sync-unlocode/        UN/LOCODE 海港同步 CLI（需人工下载发布包）
+  sync-unlocode/        UN/LOCODE 海港同步 CLI（默认读取 seeds 归档包及中文表）
   export-permission-manifest/   导出权限码清单供前端权限键生成
   generate-access-rules/        由 Proto 契约生成接口权限规则
 configs/              运行配置（config.yaml、config.production.yaml 等，不含凭据）
@@ -35,7 +36,7 @@ openapi.yaml          生成的 OpenAPI 文档
 
 ```bash
 make init      # 安装 wire、buf 等生成器
-make api       # 生成 API 绑定代码（含 go:generate 权限规则）
+make api       # 生成 API 绑定、服务端 OpenAPI 与接口权限规则
 make config    # 生成配置 Protobuf
 make all       # 全量生成、Wire 与模块整理
 ```
@@ -51,7 +52,8 @@ go run ./cmd/server -conf ./configs
 
 默认端口见 `configs/config.yaml`：HTTP `0.0.0.0:8000`、gRPC `0.0.0.0:9000`。
 开发期推荐在仓库根目录使用 `pnpm dev` / `pnpm run dev:server`（Air 热重载），
-数据库迁移与初始化使用 `pnpm run migrate:server` 和 `pnpm run bootstrap:admin`。
+开发迁移使用 `pnpm run migrate:dev`，生产迁移使用严格校验的 `pnpm run migrate:server`；
+初始化使用 `pnpm run bootstrap:admin`。
 
 首次初始化按 `.env.example` 设置 `BOOTSTRAP_ADMIN_USERNAME`、`BOOTSTRAP_ADMIN_DISPLAY_NAME`
 和至少 12 位的 `BOOTSTRAP_ADMIN_PASSWORD`，执行 `pnpm run bootstrap:admin`。命令先建立
@@ -65,7 +67,8 @@ go run ./cmd/server -conf ./configs
 此时用户名、姓名、密码可留空；若提供用户名必须匹配原初始管理员，
 `BOOTSTRAP_ORGANIZATION_CODE` 必须匹配原系统工作台。账号表非空却没有初始管理员、
 存在多个初始管理员或身份配置冲突时明确失败，不会接管普通同名账号。
-系统工作台必须唯一，配置编码不得指向另一套工作台；角色 `self` 数据范围已失效，保持配置并要求人工处理。
+系统工作台必须唯一，配置编码不得指向另一套工作台。角色数据范围字段已退役；
+旧 `self` 角色由正式迁移显式停用，bootstrap 不重新启用，需管理员核实后人工处理。
 停用的初始账号或系统管理/系统管理员资格使整次授权失败；停用公司、公司管理员角色
 或原公司成员关系保持停用并逐公司报告跳过原因，需人工恢复后重跑。数据库/审计错误
 回滚整次可处理项，成功摘要区分新增成员、绑定、已满足和跳过，含跳过项时不表示全部成功。
@@ -79,7 +82,7 @@ go run ./cmd/server -conf ./configs
 ## 测试与检查
 
 ```bash
-go test ./...
+go test -p 32 ./...
 go vet ./...
 ```
 
@@ -89,7 +92,8 @@ govulncheck。扫描由 `scripts/check-server-vuln.mjs` 统一执行；脚本仅
 的 `GO-2026-6452` 做审计豁免，因为该伪版本已包含上游完整修复提交
 `f98df08a8f6aed8bc3b193115d1abb5b1ea2e433`，且有内存与临时文件路径的
 恶意工作簿回归测试。
-任何其他可达漏洞、Excelize 版本变化或扫描异常仍会使检查失败。
+上述豁免只在扫描报告受影响且模块、版本和漏洞编号精确匹配时适用，不随依赖升级扩大。
+其他可达漏洞或扫描异常仍会使检查失败；当前依赖版本以 `go.mod` 为准。
 
 ## 构建与部署
 

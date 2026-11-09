@@ -25,6 +25,6 @@ service → biz ← data（data 实现 biz 定义的仓储接口）
 ## 契约变更流程
 
 1. 修改 `server/api/**/*.proto`。
-2. `make -C server api` 生成绑定代码，检查差异。
-3. 仓库根目录 `pnpm run generate:web-client` 更新 OpenAPI 与前端客户端。
+2. `make -C server api` 生成 Go 绑定、`server/openapi.yaml` 与接口权限规则，检查差异。
+3. 仓库根目录 `pnpm run generate:web-client` 消费服务端 OpenAPI，更新前端 OpenAPI 输入、客户端与 Proto 常量。
 4. 源文件与生成物放同一提交。

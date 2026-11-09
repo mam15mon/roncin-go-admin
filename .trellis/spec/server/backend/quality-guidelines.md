@@ -14,7 +14,7 @@
 |--------|----------|
 | `*.pb.go` / `*_grpc.pb.go` / `*_http.pb.go` / `openapi.yaml` | 修改 `.proto` 后 `make -C server api` |
 | 配置绑定代码 | `make -C server config` |
-| `web/src/services/roncin/`、`web/types/` | `pnpm run generate:web-client` |
+| `web/config/openapi.generated.json`、`web/src/services/roncin/`、`web/src/enums.generated.ts`、`web/src/errorReasons.generated.ts` | `pnpm run generate:web-client` |
 | `web/src/permissions.generated.ts` | 改 `manifest.go` 后 `pnpm run generate:permission-keys` |
 
 生成结果异常时修源文件或生成配置后重新生成，不手工修补；源与生成物同提交。
@@ -197,9 +197,9 @@ bill, err := repo.Get(ctx, id, scope.ReadableOrganizationIDs)
 ## 验证命令（按风险选取最小集）
 
 ```bash
-go -C server test ./...
+go -C server test -p 32 ./...
 go -C server vet ./...
-go -C server generate
+go -C server generate ./...
 make -C server api
 ```
 

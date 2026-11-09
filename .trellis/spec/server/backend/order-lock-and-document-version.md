@@ -8,7 +8,9 @@
 - SE 订单最终流转到 `TERMINATED` 时，同一事务结束其活动 `SeaMasterBillOrderLink`；SE恢复订单须新建指向原MBL/TE的ACTIVE Link，旧历史Link不复活；本票及共享活动成员审核锁阻断重关联。
 - 新增订单写入口、修改 MBL 身份/权威航程/内容、改变 MBL 活动成员关系时，必须复核本文的事务门禁与固定锁序。
 - 共享箱基础资料与撤销确认同样属于成员订单的业务内容写入；须校验锚点及全部分配成员。关联已有 MBL 加票不得写共享正文。具体载荷、锁序与改配占用规则见 [海运一致性契约](./sea-shared-write-consistency.md)。
-- 钉钉审批的外部派发、回调与本地生效另行实现；不得把当前 `PENDING_DISPATCH` 事实误当成审批已经发起。
+- 钉钉解锁审批已实现后台派发、加密签名回调入箱、上游权威状态查询及锁内本地生效。
+  `PENDING_DISPATCH` 仅表示待派发，不等于上游已发起；创建结果 `UNKNOWN` 不自动重发。
+  入口为 `server/internal/biz/dingtalk_approval.go`、`server/internal/data/dingtalk_approval_inbox.go` 与 `server/internal/server/dingtalk_approval_worker.go`；源码存在不代表真实钉钉环境已验收。
 
 ## 2. Signatures（API / Biz / DB）
 
@@ -69,7 +71,8 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 - **门禁的预读面同源**：预览与按钮接口与 Execute 同口径感知门禁，避免"预览通过、提交才被拒"——单证/船期/改配预览将门禁事实并入 Impacts（`ORDER_BUSINESS_LOCK` 阻断事实，Executable=false）；`PreviewSplit` 写入 `ValidationErrors`（Reason=ORDER_GATE，预览正常返回）；`GetChangeActions` 将 `CanSplit/CanReassign` 置 false 并追加含订单号的原因（`orderBusinessEditBlockReason` 统一文案提取）。预读不做锁、不改变 Execute 的 409 语义；改配的终止仍走既有 `SEA_ORDER_REASSIGNMENT_BLOCKED` 文案口径（`GateBlockedError` 透传业务锁或共享箱分配占用 409；已有业务锁优先，共享箱占用不得覆盖该错误），完结未锁不阻断改配。
 - 生命周期命令的专属校验：`TransitionStatus` 显式要求 ACTIVE + OPEN + 未业务锁定（主流程推进属业务写入，锁定后不得推进）；`TransitionTermination` 只要求结案维度保持 OPEN，其中 `ACTIVE → TERMINATING` 仍要求订单未业务锁定，`TERMINATING → ACTIVE/TERMINATED` 不因业务锁被阻断；SE的`TERMINATED → ACTIVE`须同事务新建原运输关联，并独立校验本票与共享成员未审核锁定；`TransitionClosure` 的完结方向不校验业务锁或主流程前置节点，未完结订单可直接发起结案，未完成节点由事务补齐；`orderAllowedActions` 同样不得要求已放单或已退关，避免按钮投影与执行逻辑分叉。反结案原因选填（最多 500 字），只允许未审核锁定订单，动作投影不得为锁定订单返回 `REOPEN`，提交须在 Order `FOR UPDATE` 后独立检查业务锁并返回 `ORDER_BUSINESS_LOCKED`；不得套用内容门禁误拦终止状态。结案 readiness 在事务内重验，包含无待审补录；`OrderClosureReadiness.HasPendingFeeSupplement` 与锁内查询同源。待审返回 ORDER_CLOSURE_BLOCKED 及明确中文原因，不修改共享错误对象。锁后更正可覆盖结案订单；不能将 CLOSED 与 PENDING 设为静态互斥（见费用更正规范）。解锁前同样阻断待审更正，先撤回或补审。
 - 标准业务顺序是「建单 → 录入费用 → 完结 → 审批锁单 → 建立账单」。完结只表示业务操作完成，不代表财务结清。`OrderClosureReadiness` 与 `TransitionClosure` 的锁内复核只检查活动异常及待审费用变更，不查询未建账费用、不要求费用已经建账/开票/核销，也不自动创建账单或审核锁。活动异常返回 `OrderClosureActiveExceptionError()`，待审费用返回 `OrderClosurePendingSupplementError()`，均保留 `ORDER_CLOSURE_BLOCKED`（409）及具体中文处理指引。
-- SE 订单流转到 `TERMINATED` 时在同一事务结束活动 Link：按 Link ID 排序 `FOR UPDATE`，超过一条活动 Link 返回 `SEA_DOCUMENT_STRUCTURE_CONFLICT`（fail-closed，不静默修复）；更新为 `ENDED`、写入 UTC `ended_at`、固定中文 `ended_reason = "订单退关"` 并递增 Link 版本，不修改 MBL/TransportExecution 版本；Order、Link、生命周期事件、审计任一步失败全部回滚。`TERMINATED → ACTIVE` 只恢复订单状态，历史 Link 保持不可变。
+- SE 订单流转到 `TERMINATED` 时在同一事务结束活动 Link：按 Link ID 排序 `FOR UPDATE`，超过一条活动 Link 返回 `SEA_DOCUMENT_STRUCTURE_CONFLICT`（fail-closed，不静默修复）；更新为 `ENDED`、写入 UTC `ended_at`、固定中文 `ended_reason = "订单退关"` 并递增 Link 版本，不修改 MBL/TransportExecution 版本；Order、Link、生命周期事件、审计任一步失败全部回滚。`TERMINATED → ACTIVE` 在恢复状态的同一事务新建指向原 MBL/运输执行的 ACTIVE Link，历史 Link 保持不可变；
+  本票及原共享成员审核锁、主单/运输执行差异等阻断依据见 [退关恢复](./sea-order-restore.md)。
 
 ## 4. Validation & Error Matrix
 
@@ -125,7 +128,8 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 - `TestOrderClosureBeforeReviewAndBillingPostgres`：SE/SI 草稿订单录费后未建账、未审核即可完结，版本递增且只有一条完结事件，不改费用、不建账、不锁单；继续验证真实人工审核及锁后费用建账资格。补审批准与结案竞争时，批准生效的费用即使未建账也不得阻止结案，PENDING 申请仍须阻断。
 
 - Biz：锁定/三路解锁资格、bootstrap 优先、幂等同键同/异指纹、错误 metadata。
-- Data/PostgreSQL 锁资格矩阵：组织内 ORG 角色、上级组织 TREE 角色（按真实上级 membership/role 快照）、ALL 范围 `administrator` 角色、无锁权限的 `administrator` 角色、bootstrap（可锁、应急解锁、不进候选池）、ORG 范围越组织与 TREE 范围兄弟组织拒绝、撤权后旧候选回调 `APPROVER_NOT_QUALIFIED`。
+- Data/PostgreSQL 锁资格矩阵：同公司根/启用部门/团队成员的有效 lock grant、持有锁权限的 `administrator` 角色、无锁权限的同名角色、bootstrap（可锁、应急解锁、不进候选池）；
+  系统或其他公司角色、停用成员/公司/角色和跨品类 grant 拒绝，撤权后旧候选回调 `APPROVER_NOT_QUALIFIED`。角色数据范围配置已退役，不再构造 ORG/TREE/ALL 授权分支。
 - Data 单元：内容门禁表驱动测试覆盖 TERMINATING/TERMINATED/已锁定阻断、终止原因优先于业务锁、ACTIVE+未锁定在 OPEN/CLOSED 下均放行。
 - Data/PostgreSQL：六类型锁定/解锁、跨类型权限隔离、每类订单资料与费用写阻断、非 SE 空快照、SE 版本快照、DIRECT 零 HBL、共享版本复用、审计失败回滚、普通写与锁定竞争、双锁/双直解竞争、活动请求唯一。
 - Data/PostgreSQL：代表性子资源（草稿、POD、货物等）在终止中、已终止、已审核锁定时写阻断且零部分写入，完结但未锁时允许写入；锁定 `DOCUMENT_RELEASED` 订单可完结，但反结案须先解锁；空原因反结案放行、锁内拒绝及并发锁定竞态均须覆盖；退关完成原子结束活动 Link（ENDED、ended_at、ended_reason、version+1、事件与审计），取消退关保留 Link，恢复新建原MBL/TE活动Link且旧Link不可变，写后详情可重开，审核锁/原单作废/结构或运输差异阻断且事务零部分提交，旧版本稳定冲突。

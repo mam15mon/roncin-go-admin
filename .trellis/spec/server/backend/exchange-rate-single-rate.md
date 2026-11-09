@@ -51,7 +51,8 @@ ResolveRate(ctx context.Context, companyID uuid.UUID, direction OrderFeeDirectio
 | 新写入的组织为空、非公司或批量混公司 | 拒绝写入，不产生 NULL 公共行 |
 | 当周本公司有效行缺失，只有过去、未来或公共行 | `ErrExchangeRateMissing`，提示「请先维护汇率」，依赖自动折算的提交停止 |
 | 当周同公司同币种对命中多条 | `ErrExchangeRateConflict`，不得任选一条 |
-| 无 `update` 权限却提交手工汇率 | 服务端拒绝；仅有旧 `override` 权限同样拒绝 |
+| 账单、流水等调用无汇率维护 `update` 权限却提交手工汇率 | 服务端拒绝；旧通用 `override` 不替代 `update` |
+| 订单费用缺专属汇率覆盖权限，或应收/应付币种集合不匹配 | 按费用专属权限与币种条件拒绝，维护 `update` 不替代费用覆盖授权 |
 | 已固化单据汇率快照 | 保留原值与来源，不随周配置修改而重算 |
 
 ## 5. 正常、边界与错误场景
@@ -59,7 +60,7 @@ ResolveRate(ctx context.Context, companyID uuid.UUID, direction OrderFeeDirectio
 - 正常：两家公司在同一周配置不同报价，各自单据按归属公司取值。
 - 边界：部门成员在获授权的公司业务范围使用公司汇率；历史业务按其业务日期所在周取值。
 - 错误：目标周缺失但上周、未来周或旧 NULL 公共行有价，仍返回缺失，不继承、不套算。
-- 错误：无 `update` 权限者伪造 `MANUAL`；只隐藏前端输入框不足以构成授权。
+- 错误：没有对应调用方所需权限仍伪造 `MANUAL`；订单费用检查专属覆盖权限，其他调用检查维护 `update`。只隐藏前端输入框不足以构成授权。
 
 ## 6. 必要验证
 

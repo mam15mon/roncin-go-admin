@@ -257,7 +257,7 @@ err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 - 配置型读-改-写（读列表 → 内存计算 → 整体写回）必须 `WithTx` + 目标行
   `ForUpdate`，且**先锁后读**权威数据。范本：`reference_data.go` 的
   `SetCurrencyEnabled` 分公司路径——先锁组织行，再从锁定的行读
-  `enabled_currencies` 计算新列表；总部路径为单行原子更新，无需额外加锁。
+  `enabled_currencies` 计算新列表；系统工作台路径为单行原子更新，无需额外加锁。
   先读后锁等于没锁：读到的仍是旧快照。
 - 锁互斥行为无法用 sqlmock 单测覆盖；此类改动的并发回归依赖
   `RONCIN_INTEGRATION_DATABASE_SOURCE` 集成环境，至少在审查时人工核对

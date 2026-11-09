@@ -6,7 +6,7 @@
 
 ## 2. 签名
 
-- `PartnerAssignmentInput { role, user_id }`、`OrderPersonnelAssignmentInput { user_id, role }`、`AssignPersonnelRequest { order_id, user_id, role }`：写契约均不接收 `organization_id`。
+- `PartnerAssignmentInput { role, user_id }`、`OrderPersonnelAssignmentInput { user_id, role }`：写契约均不接收 `organization_id`。订单人员通过核心订单表单维护；独立 `AssignPersonnel/RemovePersonnel` 写接口已[退役](./order-personnel-editor-retirement.md)。
 - `PartnerAssignmentOption` / `OrderPersonnelOption`：返回人员 ID、姓名及当前公司内部门/团队元数据，分页实体为唯一用户；前端统一仅显示姓名，不展示登录账号。
 - 数据库不变量：`partner_assignments.organization_id = partners.organization_id`；`order_personnels.organization_id = orders.organization_id`；上述经营归属组织的 `kind = company`。
 - `snapshotOrderCommissionAttributions(ctx, tx, companyID, orderID, customerID, at)` 在订单创建事务中运行，取数来源为同事务已写入的 `order_personnels`（销售/操作/客服三岗，`source_assignment_id` 记订单人员行 ID）；订单人员分工是提成归属的唯一真相，客户档案责任人仅作为前端选客户时的带入默认值。草稿更换客户不重拍快照，仅同步归属行 `customer_id`。
@@ -20,7 +20,7 @@
 - 客户/订单人员可仅在公司下的部门或团队拥有启用 Membership，但用户、成员关系和所在组织必须启用；人员范围到其他公司节点即截止，不包含下属其他公司的人员。落库 `organization_id` 一律写经营主体公司，而不是 Membership 所在部门。
 - 同一员工可兼任客户的业务、操作、客服等不同岗位，去重键为岗位与用户组合，不能按用户跨岗位去重。单人岗位仍只能一人；内部关联人员最多两位且同一人不得重复占位。订单人员及提成归属继续分别按岗位保存，不能因同人兼岗合并。
 - 人员选择只提交 user_id，不提供旁置公司选择。全站统一仅显示姓名，不拼接公司、部门或团队后缀；同一用户多部门聚合为一个候选，同名不同用户保留。
-- 往来单位及其列表、导出、详情和子资料固定当前公司；角色 ALL/TREE 和初始化管理员身份不扩大该范围。其他经营领域同样限定当前公司。
+- 往来单位及其列表、导出、详情和子资料固定当前公司；内部推导的有效范围和初始化管理员身份不扩大该范围，角色不再配置 ALL/TREE 等范围。其他经营领域同样限定当前公司。
 - 客户 `CREATOR` 是用例根据当前操作者自动追加的创建事实，不是客户端分配的业务岗位，不要求创建人在公司子树内拥有 Membership；例如初始化管理员合法切换到公司后可创建客户。销售、操作、客服等可编辑责任岗位仍严格校验成员资格，客户端不得指定或改写 `CREATOR`；客户档案三岗为选填，缺配不阻断开单。
 - 订单必须使用同公司客户；快照查询严格匹配 `order_personnel.organization_id == order.organization_id`，订单创建请求必须配齐销售/操作/客服三岗。既有订单提成快照不会因后续人员或客户责任人变化自动刷新；草稿换客户仅把归属行 `customer_id` 更新为新客户。
 - 迁移 `20260917120000_operating_company_personnel_ownership.sql` 先断言系统管理无客户和订单，再幂等收敛两张人员表的归属；不改历史 `order_commission_attributions`。
@@ -40,7 +40,7 @@
 ## 5. Good / Base / Bad
 
 - Good：张三挂靠深圳公司的业务部，深圳订单创建时把张三选为业务人员；订单人员归属深圳公司，提成快照命中张三。客户档案预配的责任人只负责表单带入默认值。
-- Base：系统管理管理员可按授权查看分公司订单；要确认分公司账单时先切换该公司。组织、角色与公共配置维护仍按治理权限办理。
+- Base：系统管理管理员维护组织、角色与公共配置；查看分公司订单或办理账单须先通过真实成员资格切换该公司，再按该公司的有效权限访问。
 - Bad：把部门 Membership 的组织 ID 或用户随手选的另一公司写入责任分配；严格等值快照会漏人，导致提成丢失。开单放任三岗缺失，或以客户档案缺配为由阻断已手选齐三岗的订单。
 
 ## 6. 必需测试
@@ -50,7 +50,7 @@
 - 创建订单三岗位齐备时快照含对应订单人员（`source_assignment_id` 指向订单人员行）；请求缺岗位时创建报 `ORDER_COMMISSION_PERSONNEL_MISSING` 并回滚。草稿换客户后归属人员不变、仅 `customer_id` 更新，不因客户档案缺配报错。
 - 系统管理直接写入失败；迁移在开发库执行两次，查询两张人员表与所属根对象的组织不一致行数均为 0，并核对系统管理客户/订单数为 0。
 - 前端表单只下发用户和岗位；生成的 OpenAPI/客户端与 Proto 同步。
-- 系统管理普通用户/初始化管理员持跨组织业务权限均不能办理；切换公司后仅可写当前公司。批量混合公司拒绝且无部分提交；系统管理治理维护与只读查看不受影响。
+- 系统管理普通用户/初始化管理员持跨组织业务权限均不能办理；切换公司后仅可写当前公司。批量混合公司拒绝且无部分提交；系统管理治理资料的维护与只读查询不受影响，不据此开放公司经营只读旁路。
 
 ## 7. 错误与正确示例
 

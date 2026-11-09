@@ -74,15 +74,16 @@
 ### 3. Contracts
 
 - SE 首次保存必须选择 `Order.shipping_line_id`（页面名称“船公司”）并提交 MBL
-  `master_no`；HBL 可为空。新建时无 HBL 且未明确直单，结构为 `UNDETERMINED`。
+  `master_no`，并显式提交 `sea_document.document_structure` 为 DIRECT 或 HOUSE；
+  DIRECT 不带 HBL，HOUSE 必须有唯一真实 HBL。缺省模式及已退役的 `UNDETERMINED` 均拒绝。
 - 海运船公司是 `ShippingLine` 行业参考数据，不是 Partner 商业往来方。所有 SE 创建、
   普通整单更新、拆票 NEW 目标和整票改配 NEW 目标必须满足
   `Order.shipping_line_id = SeaTransportExecution.shipping_line_id = SeaMasterBill.shipping_line_id`；
   前端和服务端只传递、保存一份船公司身份，不再从 Partner carrier 或 MBL issuer
   派生船公司。
-- 新建或更换船公司时，必须选择同组织且启用的 `ShippingLine`；历史引用后来被停用时，
+- 新建或更换船公司时，必须选择全局公共目录中启用的 `ShippingLine`；历史引用后来被停用时，
   未更换船公司的其他字段修改仍可保存。拆票和改配的 CANDIDATE 在 Preview 与 Execute
-  都必须复验同组织且启用，Execute 在共享事务中用 `FOR SHARE` 稳定该引用。
+  都必须复验公共船公司记录启用，Execute 在共享事务中用 `FOR SHARE` 稳定该引用。
 - 普通 SE 整单更新仍必须提交 MBL 输入；独立的 MBL 内容更新可以不重复提交 MBL
   身份，但必须保持当前 shipping line 不变，并验证 Order、运输执行和 MBL 的三方身份一致。
 - MBL 的唯一索引、不可变版本、锁定快照和响应都保存 `shipping_line_id`；不得同时保留
@@ -97,13 +98,12 @@
   `TrimSpace`、删除标点或根据号码猜测船公司。
 - HBL 原号必须无损保存。`normalized_house_no` 只执行 Unicode NFC、去首尾
   Unicode 空白、ASCII 小写转大写；不得删除内部空白/标点、改变年份或前导零。
-- 单证结构只允许：
-  - `UNDETERMINED`：无 HBL，尚未明确直单。
+- 单证结构只允许两态：
   - `DIRECT`：明确无 HBL。
   - `HOUSE`：恰好一张真实 HBL。
 - 结构互转只经模式切换命令完成（预览 + 执行，需外部确认与幂等键）：
   DIRECT→HOUSE 随切换提交唯一 HBL；HOUSE→DIRECT 将唯一活动 HBL 作废。
-  不存在新增第二张 HBL、硬删除或回到 `UNDETERMINED` 的路径。
+  不存在新增第二张 HBL、硬删除或回到 `UNDETERMINED` 的路径；后者的 Proto 名称和编号已 reserved。
 - 共享主单批次规则（2026-09 全员分单制，业务确认）：
   - 批次 = 同一 `SeaMasterBill` 上全部活动成员票。确认关联已有批次时，任一成员
     为 `DIRECT` 即阻断加拼（直单票独占主单）；全 HOUSE 批次要求本单必须为
@@ -116,8 +116,8 @@
   - 前端新建页命中候选时自动携带候选确认（ID+版本）入批，并以候选响应的
     `batch_normalized_house_nos` 做分单号即时排重提示；服务端事务内校验为权威。
 - HBL 签发主体无默认值：
-  - `SELF_ORGANIZATION`：沿订单所属组织向上解析最近的 `company` 或
-    `headquarters`，保存真实 Organization ID。系统不存在“一家公司下选择多个
+  - `SELF_ORGANIZATION`：合法经营订单归属公司，保存其真实公司 Organization ID；
+    内部沿父链解析工作台，不再使用已退役的 `headquarters` 类型。系统不存在“一家公司下选择多个
     对外签发品牌”的场景，不创建自有 Partner、品牌配置、选择器或 seed。
   - `CUSTOMER_PARTNER`：固定保存订单当前客户 Partner ID，请求不得另传
     `issuer_partner_id`。
@@ -161,7 +161,7 @@
 |------|------|
 | SE 创建或普通整单更新缺船公司、MBL 输入或 MBL 号 | 400 对应订单/MBL InvalidArgument，零写入 |
 | MBL 内容独立更新改变 shipping line，或现有 Order/TE/MBL 身份不一致 | 400 `SEA_MASTER_BILL_INVALID_ARGUMENT`，零写入 |
-| 新选/更换的 ShippingLine 不属于当前组织或已停用 | 400 对应订单/MBL InvalidArgument，零写入 |
+| 新选/更换的 ShippingLine 不存在或已停用 | 400 对应订单/MBL InvalidArgument，零写入 |
 | 拆票/改配 CANDIDATE 的 ShippingLine 被停用 | Preview 明确拒绝；Execute 锁内复验并回滚 |
 | MBL 含空格、标点、非 ASCII 字母或数字 | 400 `SEA_MASTER_BILL_INVALID_ARGUMENT` |
 | 同组织、同船公司、同规范化 MBL 已存在但未确认 | 409 `SEA_MASTER_BILL_CONFIRMATION_REQUIRED`，事务回滚 |
@@ -175,21 +175,20 @@
 | 确认关联的全 HOUSE 批次但本单非 HOUSE 或分单号为空 | 400 `SEA_ORDER_BATCH_REQUIRES_HOUSE` |
 | 批次还有其他活动成员时成员模式切换转 DIRECT | 409 `SEA_DOCUMENT_BATCH_MEMBER_EXIT_BLOCKED` |
 | SELF/CUSTOMER 请求额外 Partner ID，或 OTHER 未选择 Partner | 400 `SEA_HOUSE_BILL_INVALID_ARGUMENT` |
-| SELF 无法解析到 company/headquarters | 400 `SEA_HOUSE_BILL_INVALID_ARGUMENT`，不得创建占位主体 |
+| SELF 无法解析到有效工作台归属 | 400 `SEA_HOUSE_BILL_INVALID_ARGUMENT`，不得创建占位主体 |
 | 已有 CUSTOMER HBL 时修改订单客户 | 409 `ORDER_CUSTOMER_CHANGE_WITH_HOUSE_BILL_BLOCKED` |
 | 件数、毛重、体积为负，浮点值为 NaN/Inf，或文本超限 | 400 `SEA_BILL_CONTENT_INVALID_ARGUMENT` |
 | 操作日志写入失败 | 接口失败，HBL、ReleasePod、Link 版本和其他业务写入全部回滚 |
 
 ### 5. Good / Base / Bad Cases
 
-- Good：新建 SE 订单选择 ShippingLine 并填写 MBL 号，不填写 HBL；系统将同一个
-  `shipping_line_id` 写入 Order、运输执行和 MBL，保存为 `UNDETERMINED`。用户明确点击“标记为直单”
-  后才进入 `DIRECT`。
+- Good：新建 SE 订单选择 ShippingLine、填写 MBL 号并明确选择 DIRECT，不填写 HBL；系统将同一个
+  `shipping_line_id` 写入 Order、运输执行和 MBL，保存为 DIRECT。选择 HOUSE 时必须提交唯一真实 HBL。
 - Good：历史订单引用的 ShippingLine 后来被停用，用户不更换船公司而修改其他字段；
   系统保留历史引用，不把停用误判为身份变更。
 - Good：DIRECT 订单经模式切换提交 `  hbl/001  `；原号按输入保存，唯一检索键为
   `HBL/001`，结构在同一事务变为 `HOUSE`。
-- Good：HBL 选择“本公司”，订单属于部门，系统保存其最近公司/总部的 Organization
+- Good：HBL 选择“本公司”，订单经营归属公司，系统保存该真实公司 Organization
   ID，页面显示解析后的名称，不显示品牌选择器。
 - Good：HOUSE 订单经模式切换退回 DIRECT，页面预览列出影响（唯一 HBL 作废）；
   用户一次确认后，结构、HBL 状态和操作日志原子完成，放单记录保留可查。
@@ -207,7 +206,7 @@
 ### 6. Tests Required
 
 - Biz：SE ShippingLine 与 MBL 必填、三方身份一致及字符规则；HBL 原号无损和
-  规范化边界；SELF/CUSTOMER/OTHER 互斥；DIRECT 三态转换；内容长度、NaN/Inf、负数。
+  规范化边界；SELF/CUSTOMER/OTHER 互斥；DIRECT/HOUSE 两态切换与缺省模式拒绝；内容长度、NaN/Inf、负数。
 - Service/HTTP：请求 UUID、枚举和必填对象转换；可空 UUID 不输出全零 UUID；静态
   路由不能被 `/orders/{id}` 吞掉；错误 reason 可供前端稳定识别。
 - Data/PostgreSQL：创建/单成员更正后 Order、TE、MBL 的 ShippingLine 三方一致；共享 MBL 的 shipping line
@@ -216,7 +215,7 @@
 - Data/PostgreSQL：批次规则——命中全 HOUSE 批次自动入批与候选并发 409；含直单
   成员批次阻断加拼；批次成员转直单按剩余成员阻断/放行；批次内排重（含作废行）
   友好报错且跨批次重号放行；存量重号使迁移 fail-fast。
-- Data/PostgreSQL：新选/更换 ShippingLine 校验组织和启用状态；未更换的停用历史引用
+- Data/PostgreSQL：新选/更换 ShippingLine 校验公共目录记录存在和启用状态；未更换的停用历史引用
   可保留；拆票/改配 CANDIDATE 在 Preview 与 Execute 均拒绝停用引用。
 - Data/PostgreSQL：真实 `writeAudit` 失败后结构/版本/业务行回滚；并发单证命令无
   死锁；批量摘要必须按 `(order_id, active_master_bill_id)` 过滤历史 HBL。
@@ -321,7 +320,7 @@ return data.WithinTransaction(ctx, func(txCtx context.Context) error {
 - 每个结果键必须命中已定义目标；缺失目标不得按 `CURRENT` 处理。
 - `CURRENT` 不得夹带候选或新建字段；`CANDIDATE` 必须提供完整候选身份与版本，并在
   锁内验证候选 MBL 与候选运输执行引用同一个 ShippingLine；`NEW` 不得夹带候选字段，
-  必须提供同组织且启用的 ShippingLine，并满足新 MBL 的号码、港口和日期规则。NEW
+  必须提供公共目录中启用的 ShippingLine，并满足新 MBL 的号码、港口和日期规则。NEW
   目标的 Order、运输执行和 MBL 均由同一个 `shipping_line_id` 维护。
 - Preview 与 Execute 必须复用同一个 biz 输入校验；Execute 仍在事务锁内重验候选身份、
   版本、唯一性和共享航程。
@@ -345,7 +344,7 @@ return data.WithinTransaction(ctx, func(txCtx context.Context) error {
 | 候选身份字段缺失或版本与 expected map 不一致 | 对应 400/409，Preview 与 Execute 一致 |
 | NEW 缺船公司，或船公司、港口、日期、MBL 号非法 | Preview 即明确拒绝，Execute 同样拒绝 |
 | CANDIDATE 的 MBL 与运输执行 ShippingLine 不一致 | 409 对应候选冲突错误，事务回滚 |
-| CANDIDATE 的 ShippingLine 不属于当前组织或已停用 | Preview 拒绝；Execute 在事务内 `FOR SHARE` 复验并回滚 |
+| CANDIDATE 的 ShippingLine 不存在或已停用 | Preview 拒绝；Execute 在事务内 `FOR SHARE` 复验并回滚 |
 | 两个不同幂等键以同一 Order 版本并发执行合法拆票 | 一个成功，另一个 409 `SEA_ORDER_SPLIT_VERSION_CONFLICT` |
 | Execute 的 Order/Link/Allocation/HBL/箱货/费用版本过期 | 409 `SEA_ORDER_SPLIT_VERSION_CONFLICT`，不得先返回可变业务状态 400 |
 

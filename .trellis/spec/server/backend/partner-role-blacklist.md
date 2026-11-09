@@ -3,7 +3,7 @@
 ## 1. 适用范围与触发条件
 
 - 客户、供应商、国外代理的黑名单状态属于 `PartnerRole`，不属于整个往来单位档案。
-- 新建或修改订单中的客户、订舱代理、国外代理、船务代理引用时必须执行本契约。
+- 新建或修改订单中的客户、订舱代理、国外代理引用时必须执行本契约。
 - 黑名单只禁止新增业务关联；历史订单履约、账单、收付款、核销及清欠不得复用该门禁。
 
 ## 2. 接口签名
@@ -34,7 +34,9 @@
 | 客户 | customer |
 | 订舱代理 | supplier |
 | 国外代理 | foreign_agent |
-| 船务代理 | supplier |
+
+
+船代 `shipping_agent_id` 已改为公共 `MasterDataItem(kind=shipping_agent)`，不再映射 Partner supplier 或套用角色黑名单；新选择与旧停用引用规则见[公共船代目录](./organization-shared-masterdata.md#船代公共字典与订单引用)。
 
 ## 4. 校验与错误矩阵
 
@@ -57,7 +59,7 @@
 - Biz：三种合法角色、非法角色、空白/超长原因、Trim 后入仓及审计 `role_type`。
 - Biz：ListPartners 的 `blacklisted` true/false/nil 三态透传（
   `TestPartnerListFiltersByBlacklisted`，范本 `TestPartnerListFiltersByIsCasual`）。
-- Data：四个订单字段的新建门禁；草稿换入拒绝、原关联保留允许、可选关联清空允许；同档案不同角色独立判定；错误 reason 正确。
+- Data：客户、订舱代理、国外代理三个字段的新建门禁；草稿换入拒绝、原关联保留允许、可选关联清空允许；同档案不同角色独立判定；错误 reason 正确。
 - Data：角色替换和导入不能移除任意已拉黑角色，重新启用保留状态。
 - PostgreSQL 集成：订单对去重且排序后的档案行使用 `FOR SHARE`，拉黑使用同一档案行 `FOR UPDATE`，验证并发提交先后不会产生检查空窗。
 - Web：默认角色与默认黑名单状态必须来自同一个 `PartnerRole`；提交载荷显式包含实际选中的 `roleType` 和 Trim 后原因。

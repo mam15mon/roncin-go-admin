@@ -13,7 +13,7 @@
 | 订单创建/查询/流转 | `order_usecase.go`、`order.go`、`order_transition.go` | 订单档案、状态流转、列表过滤、跨组织范围 | 在 service 写业务规则或绕过 biz 直查 data |
 | 海运出口单证 | `sea_document.go`、`sea_master_bill.go`、`sea_cargo_allocation.go` | 操作票、共享 MBL、货物分摊（契约见专项 spec） | 单证版本判断散落调用方 |
 | 空运出口主分单与重量 | `air_export.go`、`air_weight.go`、`order_fee_quantity_source.go` | 显式共享 MAWB、HAWB 历史、主单成员、独立重量确认和费用来源（见 air-export-contract） | 字符串隐式拼单、重复带入主单总重、覆盖人工确认 |
-| 海运改单/作废/Switch | `sea_document_change.go`、`order_shipping_document.go` | 改单历史、财务门禁、不可变版本 | 跳过 Preview 直接改单 |
+| 海运改单/作废/模式切换 | `sea_document_change.go`、`order_shipping_document.go` | 改单历史、财务门禁、不可变版本 | 跳过 Preview 直接改单 |
 | 统一订单审核锁 | `order_lock.go` | 人工审核资料与费用快照、解锁审批、固定锁序；结算不自动锁 | 独立费用审核门禁、拼接角色审核资格 |
 | 订单费用 | `order_fee.go`、`order_fee_quantity_preview.go` | 未锁未建账的逐费写入、分批建账能力、事务内提成经济重算、来源数量建议 | 用整票状态拦截无关费用、把 canEdit 当删除权限 |
 | 费用摘要与补审 | `order_fee_review.go`、`order_fee_correction*.go` | 当前摘要/历史只读；锁后 ADD/REPLACE/VOID、源费账务回退、补审经济差额 | 恢复旧独立审核写状态；未回退账单直接更正；待审冻结整票建账 |
@@ -26,7 +26,7 @@
 | 发票 | `finance_invoice.go`、`partner_invoice_profile.go` | 发票登记、开票资料 | 修改他人组织发票 |
 | 结算单位设置 | `settlement.go`、`finance_custom_setting.go` | 结算候选、自定义设置 | 信用判定复制第二套 |
 | 提成方案与分配 | `finance_commission_rules.go` | 方案区间、员工分配、资格门禁 | 实际区间允许重叠 |
-| 月度提成申请 | `finance_commission_application.go`、`finance_commission_lifecycle.go` | 申请、批准/驳回、Clawback 锁 | 绕过净额锁直接改提成 |
+| 月度提成申请 | `finance_commission_application.go`、`finance_commission_lifecycle.go` | 自然月申请、整单批准/驳回、待审更正门禁与净额发放 | 把已发事实改写为当前权益；恢复提成财务锁 |
 | 汇率 | `exchange_rate.go`、`exchange_rate_import.go`、`exchange_rate_reminder.go` | 周汇率双轨、导入、到期提醒 | 自造第二套汇率容灾链 |
 | 主数据 | `masterdata.go`、`industry_reference.go`、`reference_data.go`、`fee_catalog.go` | 公共船代全量维护与订单选择、船公司/港口/机场/行政区划、费目目录；船代补缺执行 `pnpm run sync:shipping-agents` | 绕过 B 型统一读取谓词 |
 | 往来单位档案 | `partner.go` | 档案、散客契约、角色黑名单 | 散客标识写多处 |

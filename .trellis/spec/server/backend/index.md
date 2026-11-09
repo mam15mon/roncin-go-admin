@@ -19,16 +19,16 @@
 | [海运退关恢复](./sea-order-restore.md) | 原主单原航程原子重关联、现场受控补链与审核锁边界 | ✅ |
 | [海运共享资料写入一致性](./sea-shared-write-consistency.md) | 加票正文隔离、共享箱成员审核锁与改配占用门禁 | ✅ |
 | [HBL 制作与 PDF 输出](./sea-hbl-production.md) | 同一 HBL 印字、自签公司动态抬头、四版本独立于利润审核和完整分页输出 | ✅ |
-| [Air Export Contract](./air-export-contract.md) | 空运共享 MAWB/HAWB、成员与单证历史、流程、重量确认和费用来源 | ✅ |
+| [Air Export Contract](./air-export-contract.md) | 空运共享 MAWB、每票 HAWB、成员与单证历史、流程、重量确认和费用来源 | ✅ |
 | [Order Shared Enum Field](./order-shared-enum-field.md) | 订单共享契约新增可选枚举字段的五层配方、迁移列形与更新语义 | ✅ |
 | [Order Personnel Editor Retirement](./order-personnel-editor-retirement.md) | 订单协作团队独立维护退役，保留表单读取、底层人员与通知/提成依赖 | ✅ |
 | [Order Milestone Retirement](./order-milestone-retirement.md) | 独立订单里程碑退役：删表、权限同步、生成清理和操作进度保留 | ✅ |
 | [Order Lock and Document Version](./order-lock-and-document-version.md) | 海运出口订单业务锁、不可变版本与共享 MBL 固定锁序 | ✅ |
-| [Sea Document Change History](./sea-document-change-history.md) | 海运提单改单、作废、Switch、财务门禁与不可变历史 | ✅ |
+| [Sea Document Change History](./sea-document-change-history.md) | 海运提单改单、作废、模式切换、外部确认与不可变历史 | ✅ |
 | [Finance Bill Currency](./finance-bill-currency.md) | 普通账单固定费用币种边界、账单日汇率、核销/对冲本位币口径与预计开票快照 | ✅ |
 | [Exchange Rate Single Rate](./exchange-rate-single-rate.md) | 公司周汇率双轨点差：当周精确命中、权限与手工输入、跨组织原币记账 | ✅ |
-| [Finance Commission Lock](./finance-commission-lock.md) | 提成净额财务锁：Clawback 冲减、净额归零释放、双落点同口径 | ✅ |
-| [Order Fee Review](./order-fee-review.md) | 整票审核、经济内容快照、冻结、建账准入、补录与机器人提醒边界 | ✅ |
+| [提成经济重算与已发事实保护](./finance-commission-lock.md) | 财务锁退役、普通费用与账单经济重算、差额调整及已发事实保护 | ✅ |
+| [Order Fee Review](./order-fee-review.md) | 统一人工审核锁、费用快照、逐费建账准入与锁后补审边界 | ✅ |
 | [Order Fee Correction](./order-fee-correction.md) | 批准后费用更正、账单行清偿投影、发票覆盖范围、真实回款提成及补付追回 | ✅ |
 | [Commission Scheme Assignment](./commission-scheme-assignment.md) | 提成方案与员工分配：实际区间唯一、Membership 固定锁序、legacy_readonly、工作台资格门禁与订单摘要隐私投影 | ✅ |
 | [Billing Unit Quantity Rule](./billing-unit-quantity-rule.md) | 计费单位整数/小数规则、初始化与费用更新语义 | ✅ |
@@ -68,11 +68,11 @@
 4. 列表接口分页是否复用 `internal/biz` 公共校验（`1 <= pageSize <= 200`）。
 5. 新增权限码是否登记 `internal/access/manifest.go` 并重新生成前端权限键。
 6. 订单锁、解锁或共享 MBL 写入是否遵循不可变版本与固定锁序规范。
-7. 单改、作废或 Switch 是否先 Preview、锁内重算，并保留不可变历史与财务门禁。
+7. 单改、作废或模式切换 是否先 Preview、锁内重算，并保留不可变历史与财务门禁。
 8. 跨组织访问是否按具体权限筛选角色、保留权限与组织范围来源绑定，并在仓储查询中
    显式应用实体 ID 与允许组织集合。
 9. 普通账单是否始终按费用币种拆分，契约中不存在关闭分币种、目标账单币种或跨币种人工折算旁路。
-10. 涉及汇率、核销、对冲、提成锁或总部共享主数据的改动是否对照对应专项规范
+10. 涉及汇率、核销、对冲、提成经济重算或公共主数据的改动是否对照对应专项规范
     （exchange-rate-single-rate / finance-bill-currency / finance-commission-lock /
     organization-shared-masterdata）。
 11. 涉及角色读写、成员关系角色分配或组织 kind 判定的改动是否对照角色库归属规范

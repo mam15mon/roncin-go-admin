@@ -67,14 +67,15 @@ go -C server run ./cmd/sync-airports
 输出示例：
 ```text
 航司数据源：seeds/airlines.dat
-组织：HQ，版本：OpenFlights，SHA-256：39be1a43...
+版本：OpenFlights，SHA-256：39be1a43...
 原始行 6162，有效活跃航司 988（中文对照 136，运单前缀 136，全货机 16），非活跃跳过 4907，无效跳过 253
 当前为预览模式；确认统计后使用 -apply 写入数据库
 ```
 
-### 3. 高级用法（指定文件、版本或组织）
+### 3. 高级用法（指定文件或版本）
 
-如需同步外部特定路径的更新文件或切换组织：
+行业资料属于全局公共目录，不通过组织参数重复导入；系统工作台负责维护。
+如需同步外部特定路径的更新文件：
 
 ```bash
 # 同步指定路径的船公司 Excel 与配套完整中文表
@@ -102,7 +103,7 @@ go -C server run ./cmd/sync-airlines -source /path/to/airlines.dat -apply
 - **多标识对齐**：整合 SMDG Code（3位主代码）、SCAC（美国海关4字码）、BIC Code（箱主代码）。
 - **全量中文补全**：原 seed 命令自动读取配套 `shipping-lines.zh-CN.csv`，覆盖 360 家船司；已有中文与编译名分开标注来源，不宣称全部为官方译名。新建和已有同来源记录都写入中文并刷新全拼、首字母检索键；缺行、身份错配或纯英文中文名明确失败。见[编制与同步说明](shipping-lines.zh-CN.md)。
 - **航运联盟标签**：自动打标 Ocean Alliance（海洋联盟）、Gemini Cooperation（双子星）、Premier Alliance（卓越联盟）、MSC 等联盟属性。
-- **箱号前缀关联**：级联建立箱号前缀表（如 `MSKU`、`COSU`、`EGLV`），支持订单录入集装箱号时智能推导承运船司。
+- **箱号前缀关联**：级联建立箱号前缀表（如 `MSKU`、`COSU`、`EMCU`），支持订单录入集装箱号时智能推导承运船司。
 
 ### 3. 航空公司主数据 (`airlines.dat`)
 - **全球基础数据**：复用 OpenFlights 全球航司开放数据集，过滤无 IATA 二字码的失效记录，保障空运国际覆盖率。

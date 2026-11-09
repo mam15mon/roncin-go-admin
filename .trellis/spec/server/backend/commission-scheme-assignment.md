@@ -29,7 +29,7 @@ finance_commission_rule_assignments  分配表：organization_id、rule_id、emp
 
 ## 3. Contracts
 
-- **配置与办理权限分离**：方案维护、名单分配、复制使用 `system.finance.commission.configure`；计提、确认、付款、调整与业务申请审批使用 `system.finance.commission.manage`。总部可按配置权限维护方案，但经营办理必须进入获授权的公司工作台；原 manage 不作为 configure 的隐式兼容授权。
+- **配置与办理权限分离**：方案维护、名单分配、复制使用 `system.finance.commission.configure`；计提、确认、付款、调整与业务申请审批使用 `system.finance.commission.manage`。方案配置和经营办理均须进入获授权的当前公司工作台；系统管理工作台不维护公司提成方案，原 manage 不作为 configure 的隐式兼容授权。
 
 - **实际有效区间** = 方案区间 ∩ 分配区间，`YYYY-MM-DD` 字符串闭区间比较；
   起点必填，空终点 = 正无穷。同一 `组织 × 员工 × 身份` 的实际区间不得跨方案重叠；

@@ -25,7 +25,7 @@ userIds: [绑定的企业员工ID]
 
 - 短标题、关键编号/对象、一句话说明和必要备注，使用固定少量状态图标；不全字段逐段加粗，不依赖font/HTML颜色或自定义彩色背景。动态值作为普通文本转义且压成一行，不能形成链接/标题/结构。
 - 标题固定，不含验证码、令牌或敏感业务摘要；验证码保留6位前导零、5分钟有效和保密提示，仅即时正文出现。
-- 合法动作仅限/welcome、/orders、/finance/exchange-rates、/orders/sea-export/{UUID}/fees、/commission-adjustments/{UUID}/my-supplement-source。订单分配和补录去明确标注的列表；补录ResourceID是RequestID，不能当订单ID。提成去本人最小来源页，不换成组织级财务入口。
+- 合法动作仅限/welcome、/orders、/finance/exchange-rates、/orders/{sea-export|air-export}/{UUID}/fees、/commission-adjustments/{UUID}/my-supplement-source。订单分配和补录去明确标注的列表；补录ResourceID是RequestID，不能当订单ID。提成去本人最小来源页，不换成组织级财务入口。
 - 费用入口继续严格匹配Parameter末尾由当前ResourceID构成的固定费用路径；缺合法目标则无动作，不猜测或纠错。姓名和摘要不能提供URL。
 - 准备只做离线内容/本站URL解析，不申请token或发送；预览和发送复用。动作字段成对、目标限定本站路径，不能放任意外链。最终准备幂等，无正文重复追加链接。
 - 根据是否有合法动作显式选型；请求失败时不发送第二条Markdown作为回退。响应必须有processQueryKey且目标不在invalidStaffIdList/flowControlledStaffIdList，否则视为未受理；processQueryKey只代表接口受理，不代表客户端实际收到或视觉一致。
