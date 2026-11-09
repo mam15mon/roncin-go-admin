@@ -6,8 +6,8 @@
 
 ## 🌟 核心业务特性
 
-- **海运出口订单管理**：海运出口 (FCL/LCL) 全生命周期状态流转与单证处理（提单、集装箱、POD 放货凭证）；海运进口、空运、陆运与铁路目前仅作为统一订单聚合的线路类型预留，录单入口尚未开放。
-- **通用业务标签**：组织级标签字典可关联企业、订单、费用与账单，订单列表、费用台账与账单均支持标签展示、筛选和批量打标。
+- **海运出口订单管理**：海运出口 (FCL/LCL) 状态流转与单证处理（共享主单、运输执行、分单、集装箱、POD 放货凭证），支持拆票、改配及不可变单证历史。
+- **空运出口订单管理**：已开放空运出口录单、共享 MAWB、每票独立 HAWB、运输及计费重确认；海运进口、空运进口、陆运和铁路尚未注册录单入口。
 - **多币种费用录入工作台**：支持原币/本位币实时折算、汇率基准自动匹配、手动汇率重写与防重校验。
 - **财务对账与结算中心**：
   - 双向应收/应付账单管理与批量合并账单 (`BillCreationWorkbench`)。
@@ -16,10 +16,12 @@
   - 业务员/操作提成自动化核算与多维度业绩归属。
 - **行业基础主数据**：
   - 集成 ISO 4217 货币代码、标准箱型 (20GP/40HQ 等)、增值税税目。
-  - 支持联合国 UN/LOCODE 全球海运港口、IATA 全球民航机场、民政部全国五级行政区划实时同步。
+  - 支持联合国 UN/LOCODE 全球海运港口、IATA 全球民航机场、全国五级行政区划等公共目录的显式同步；数据来源及归档版本见[主数据说明](server/seeds/README.md)。
 - **安全与权限体系**：基于后端统一 Manifest 的细粒度 RBAC 权限，支持本地账密、钉钉扫码与钉钉客户端免登。
-- **多组织工作区**：顶栏切换当前工作台，页签与表单草稿按用户与工作台隔离；进入公司须有有效成员资格，角色不再配置数据访问范围。公司经营数据限定当前公司，系统工作台负责公共资料与授权治理，经营业务须切换公司后按具体权限办理。
+- **多组织工作区**：顶栏切换当前工作台，页签按用户与工作台隔离；订单新建及独立 HBL 编辑支持持久草稿，订单主详情使用当前输入及未保存离开保护；进入公司须有有效成员资格，角色不再配置数据访问范围。公司经营数据限定当前公司，系统工作台负责公共资料与授权治理，经营业务须切换公司后按具体权限办理。
 - **订单附件**：接入阿里云 OSS 私有存储，支持文件上传、图片/PDF 预览、授权下载与解除订单引用；配置方法见[订单附件 OSS 配置](docs/order-attachment-oss.md)。
+
+自由维护的业务标签已退役，普通状态、操作进度和界面页签继续保留，详见[退役契约](.trellis/spec/server/backend/business-tag-retirement.md)。
 
 业务入口已开放不代表全部真实场景完成验收。海运出口的当前验收口径、既有脚本限制和运行结果记录要求见[海运出口订单闭环验收](docs/plans/海运出口订单闭环验收.md)。
 
@@ -29,9 +31,9 @@
 
 | 领域 | 核心技术选型 |
 | :--- | :--- |
-| **后端框架** | Go 1.26.9+, [go-kratos/kratos](https://github.com/go-kratos/kratos) v3, Protocol Buffers / gRPC / HTTP |
-| **ORM / 数据库** | [entgo.io/ent](https://entgo.io), PostgreSQL 16 (支持 GIN 模糊全文检索) |
-| **依赖注入与安全** | Google Wire, JWT Session, Argon2id 密码哈希, OpenTelemetry 链路追踪 |
+| **后端框架** | Go 1.26.10+, [go-kratos/kratos](https://github.com/go-kratos/kratos) v3, Protocol Buffers / gRPC / HTTP |
+| **ORM / 数据库** | [entgo.io/ent](https://entgo.io), PostgreSQL 16（使用 pg_trgm 与 GIN 索引支持模糊检索） |
+| **依赖注入与安全** | Google Wire, 数据库会话（随机令牌摘要）, Argon2id 密码哈希, OpenTelemetry 链路追踪 |
 | **前端架构** | React 19, TypeScript 7.x, React Router v8, React Query v5, [Ant Design](https://ant.design) 6.x, Ant Design ProComponents |
 | **前端工具链** | Vite 7, Biome (Lint & Format), Vitest；构建与测试配置入口为 `web/vite.config.ts` |
 | **包管理** | pnpm (Workspace Monorepo) |
@@ -77,7 +79,7 @@ roncin-go-admin/
 ### 1. 环境准备 (Prerequisites)
 
 - **Node.js** >= `24.14.1`，**pnpm** 版本按根 `package.json` 的 `packageManager`（当前为 `10.33.4`）
-- **Go** >= `1.26.9`（以 `server/go.mod` 为准）
+- **Go** >= `1.26.10`（以 `server/go.mod` 为准）
 - **PostgreSQL** >= `16`
 
 ### 2. 克隆项目与安装依赖
@@ -116,7 +118,8 @@ pnpm run bootstrap:admin
 # 3. 导入公共行业资料（含 29 条船代快照）
 pnpm run sync:all
 ```
-> **初始管理员账号**：`admin`  
+> **初始管理员账号**：`admin`
+>
 > **初始管理员密码**：由 `.env.local` 中的 `BOOTSTRAP_ADMIN_PASSWORD` 指定（必须至少 12 位，命令不会使用任何默认密码）。
 
 `bootstrap:admin` 首次运行要求账号表为空，创建唯一标记的初始管理员；以后重复运行
@@ -128,8 +131,7 @@ pnpm run sync:all
 可处理项和审计在同一事务提交，数据库错误整次回滚；成功摘要区分新增、已满足、跳过。
 
 后台新建公司要求初始管理员完整有效的系统成员、管理员角色及绑定，缺失时先执行 bootstrap；
-公司与其管理员成员/绑定在同一事务建立。系统工作台必须唯一；角色已失效的 `self` 范围
-不会自动升级，公司跳过、系统资格则整次拒绝。后来手工授予
+公司与其管理员成员/绑定在同一事务建立。系统工作台必须唯一；角色数据范围字段已退役，正式迁移停用的旧 `self` 角色不会由初始化重新启用。公司资格停用时跳过，系统资格失效则整次拒绝。后来手工授予
 系统管理员角色的其他账号不会自动加入。部门/团队复用所属公司工作台，不重复加入。
 默认分公司种子仅包含北京（`BJ`）和成都（`CD`），初始化不会补建上海或重庆公司；
 自建启用公司也在补齐范围。仅补默认公司可用 `pnpm run bootstrap:admin --seed-branches`。
@@ -182,8 +184,8 @@ pnpm run sync:unlocode
 # 4. 同步船代快照（只补缺失记录）
 pnpm run sync:shipping-agents
 
-# 使用其他发布包时，显式指定路径与版本
-pnpm run sync:unlocode -- -source /path/to/loc252csv.zip -release 2025-2
+# 换包时同时提供匹配的中文对照；参数直接附在脚本名后
+pnpm run sync:unlocode -source /path/to/loc252csv.zip -chinese-source /path/to/ports.zh-CN.csv -release 2025-2
 ```
 
 ---
@@ -193,8 +195,14 @@ pnpm run sync:unlocode -- -source /path/to/loc252csv.zip -release 2025-2
 ### 代码生成与权限同步
 
 ```bash
-# 当修改 protobuf 或 openapi 定义后，重新生成前端 TypeScript SDK 客户端
+# 修改 server/api/**/*.proto 后先生成 Go 绑定、服务端 OpenAPI 与接口权限规则
+make -C server api
+
+# 再从生成的 OpenAPI 更新前端输入、请求客户端和 Proto 常量
 pnpm run generate:web-client
+
+# 修改后端权限 Manifest 后同步前端权限键
+pnpm run generate:permission-keys
 
 # 权限清单 (access.Manifest) 由 pnpm run migrate:server 在迁移后自动同步并补挂至系统管理员；
 # 如需在不执行迁移的情况下手工同步，可单独运行：
@@ -222,6 +230,7 @@ pnpm run check:server
 
 ### 继续开发的规范入口
 
+- [文档导航](docs/README.md)：开发、专项规范与历史计划的统一入口。
 - [协作约束](AGENTS.md)：变更边界、生成流程、验证和提交要求。
 - [领域地图](.trellis/spec/domain/architecture-map.md)：核心业务链路与代码定位。
 - [服务端规范](.trellis/spec/server/backend/index.md)：分层、事务、权限和领域契约。
@@ -242,7 +251,6 @@ pnpm run check:server
 - 钉钉开放平台及后端回调地址：`https://ops.roncin.com.cn/user/login/dingtalk/callback`。
 - 通行密钥：`PASSKEY_RP_ID=roncin.com.cn`、`PASSKEY_ORIGIN=https://ops.roncin.com.cn`；
   完成正式迁移和 HTTPS 配置后再开启 `PASSKEY_ENABLED`。
-
 
 项目支持编译为**单二进制独立部署**模式：前端生产构建产物会自动注入 Go 二进制的内嵌资源系统 (`server/internal/webassets`)。
 

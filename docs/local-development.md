@@ -53,7 +53,7 @@ BOOTSTRAP_ADMIN_USERNAME=admin
 BOOTSTRAP_ADMIN_DISPLAY_NAME=系统管理员
 BOOTSTRAP_ADMIN_PASSWORD=请替换为至少12位密码
 BOOTSTRAP_ORGANIZATION_CODE=HQ
-BOOTSTRAP_ORGANIZATION_NAME=总部
+BOOTSTRAP_ORGANIZATION_NAME=系统管理
 OTEL_ENABLED=false
 ```
 
@@ -69,8 +69,9 @@ sudo -u postgres createdb --owner=roncin roncin_go_admin_integration
 ```
 
 把该数据库的连接地址写入 `.env.local` 的
-`RONCIN_INTEGRATION_DATABASE_SOURCE`。测试会自动建表，并使用带唯一后缀的组织数据；
-用例结束后会清理本次业务数据，但仍应保持数据库隔离。
+`RONCIN_INTEGRATION_DATABASE_SOURCE`。每个用例在专用集成库中创建随机隔离 Schema，
+按顺序执行 `server/migrations/*.sql` 正式迁移，结束时删除该 Schema；不使用 Ent
+运行期自动建表，仍须与日常开发库隔离。
 
 在仓库根目录显式加载 `.env.local` 并运行账单、核销共享事务与订单事务测试：
 
@@ -95,8 +96,14 @@ pnpm run migrate:server
 pnpm run bootstrap:admin
 ```
 
-迁移命令使用 `.env.local` 中的 `DATABASE_SOURCE`。管理员初始化只允许迁移完成且
-尚无用户的数据库执行；如果数据库中已经存在用户，命令会拒绝继续。
+迁移命令使用 `.env.local` 中的 `DATABASE_SOURCE`。首次初始化要求账号表为空，
+创建唯一初始管理员；重复执行定位同一管理员，只补齐系统工作台及实际启用公司的成员和
+管理员绑定，不修改密码、不覆盖其他账号、不重新启用已停用资格。账号表非空但无唯一
+初始管理员、用户名冲突或系统资格失效时拒绝。首次创建密码至少 12 位，重复补齐无需
+再次提供密码。具体规则见[管理员初始化](../.trellis/spec/server/backend/company-admin-provisioning.md)。
+
+随后可执行 `pnpm run sync:all` 导入公共资料。开发演示数据仅在开发库执行
+`pnpm run sync:dev`，且须先完成管理员初始化。
 
 ## 启动服务
 
@@ -106,9 +113,11 @@ pnpm run bootstrap:admin
 pnpm dev
 ```
 
-该命令会先检查本机 PostgreSQL 是否可连接，执行数据库迁移，然后并行启动后端
-Air 热重载和前端开发服务。Air 会监听 Go、YAML 和 SQL 文件；每次后端重载前
-都会执行幂等迁移。修改 Ent Schema 时仍需要按项目约束生成对应迁移 SQL。
+该命令会先检查本机 PostgreSQL 是否可连接，执行 `migrate:dev`，然后并行启动后端
+Air 热重载和前端开发服务。Air 虽监听 Go、YAML 和 SQL 文件，后续重载只重编译和启动 Go，
+不会再次执行迁移。新增或修改迁移后须显式运行 `pnpm run migrate:dev`，或重启
+`pnpm dev`；生产仍执行严格校验的 `pnpm run migrate:server`。Ent Schema 变更须生成
+正式迁移 SQL，不以热重载代替迁移。
 
 打开 `http://localhost:8001/user/login`。前端开发服务器会把 `/api/*` 请求代理到 Go 的 `http://127.0.0.1:8000`。
 
@@ -121,22 +130,32 @@ curl http://127.0.0.1:8000/health/ready
 
 ## 行业主数据同步
 
-机场使用 OurAirports 每日数据，可在仓库根目录直接联网同步到
-`BOOTSTRAP_ORGANIZATION_CODE` 指定的组织：
+机场、港口、航司、船公司等同步到全局公共目录，不按公司复制，也不读取
+`BOOTSTRAP_ORGANIZATION_CODE` 作为同步目标。系统工作台负责公共维护，各公司按权限消费。
 
 ```bash
+# 一次同步全部公共资料；这些根目录脚本已带 -apply，会写库
+pnpm run sync:all
+
+# 单独同步机场（默认下载 OurAirports CSV）
 pnpm run sync:airports
+
+# 单独同步海港（默认读取仓库归档 ZIP 与配套中文对照）
+pnpm run sync:unlocode
 ```
 
-港口使用 UNECE UN/LOCODE 官方发布包。下载 ZIP 后必须显式提供文件和版本：
+若先预览，直接使用不带 `-apply` 的 Go CLI，不能将根目录同步脚本当只读预览：
 
 ```bash
-pnpm run sync:unlocode -- -source /path/to/loc251csv.zip -release 2025-1
+node --env-file-if-exists=.env.local scripts/run-with-env.mjs \
+  go -C server run ./cmd/sync-unlocode
 ```
 
-两个命令均会先完成全量解析、标准码冲突检查和组织内异来源冲突检查，再开启
-写事务；解析不完整或存在致命冲突时不会停用现有数据。机场、港口的网络同步
-只更新官方英文信息和来源元数据，不覆盖人工维护的中文名。
+机场以 IATA、港口以 UN/LOCODE 全局匹配。解析、冲突预检通过后才在事务内写入，
+写事务中再次校验；同来源本版缺失记录停用，异来源同码冲突拒绝，不抢占人工记录。
+机场同步保留人工中文名；港口同步采用配套中文对照，更新时会写入对照值，不适用
+“所有同步永不覆盖中文”的说法。换用其他港口版本时须同时提供匹配的 ZIP、中文 CSV
+及必要版本参数，见[机场港口同步](airport-port-sync.md)和[归档数据说明](../server/seeds/README.md)。
 
 ## 数据库服务管理
 
