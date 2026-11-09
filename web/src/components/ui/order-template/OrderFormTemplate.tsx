@@ -14,6 +14,7 @@ import {
 } from 'antd';
 import React, {
   useEffect,
+  useId,
   useImperativeHandle,
   useLayoutEffect,
   useRef,
@@ -106,6 +107,31 @@ export function OrderFormTemplate<T>({
   );
   const innerFormRef = useRef<ProFormInstance | undefined>(undefined);
   const resolvedFormRef = formRef ?? innerFormRef;
+  const formId = useId();
+
+  useEffect(() => {
+    const root = document.getElementById(formId);
+    if (loading || !root) return;
+    // 条件字段卸载和异步校验落地可能晚于值变更；按当前表单实际错误项同步角标。
+    const syncSectionErrors = () => {
+      const next = collectFormSectionErrors(root);
+      setSectionErrors((previous) =>
+        Object.keys(previous).length === Object.keys(next).length &&
+        Object.keys(next).every((key) => previous[key] === next[key])
+          ? previous
+          : next,
+      );
+    };
+    const observer = new MutationObserver(syncSectionErrors);
+    observer.observe(root, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+    syncSectionErrors();
+    return () => observer.disconnect();
+  }, [loading, formId]);
 
   const [form] = Form.useForm();
   const allSections = [...prependSections, ...sections, ...appendSections];
@@ -235,19 +261,10 @@ export function OrderFormTemplate<T>({
         requestAnimationFrame(() => resolve()),
       );
     }
-    const res = scrollToFirstFormError({
+    scrollToFirstFormError({
       errorFields: errorInfo?.errorFields,
       notify: (msg) => message.warning(msg),
     });
-    setSectionErrors(res.errorsBySection);
-
-    // 延迟 100ms 兜底重算一次分节错误分布，防止依赖微任务时序导致 DOM 的 has-error 漏计
-    window.setTimeout(() => {
-      const delayedErrors = collectFormSectionErrors();
-      if (Object.keys(delayedErrors).length > 0) {
-        setSectionErrors(delayedErrors);
-      }
-    }, 100);
   };
 
   // 点击楼层中带错误的分节，精确定位至该分节内的错误字段
@@ -313,6 +330,7 @@ export function OrderFormTemplate<T>({
         </div>
       ) : (
         <ProForm<T>
+          id={formId}
           className="roncin-order-form"
           form={form}
           formRef={resolvedFormRef}
@@ -337,11 +355,6 @@ export function OrderFormTemplate<T>({
             }
             if (!readonly && draftKey) {
               saveFormDraft(draftKey, form.getFieldsValue(true));
-            }
-            if (Object.keys(sectionErrors).length > 0) {
-              window.setTimeout(() => {
-                setSectionErrors(collectFormSectionErrors());
-              }, 200);
             }
             onValuesChange?.(changedValues, allValues);
           }}
@@ -394,11 +407,11 @@ export function OrderFormTemplate<T>({
             }}
           />
           {visibleSections.map(renderSection)}
-
-          {/* 4. 额外底部插槽 */}
-          {footer}
         </ProForm>
       )}
+
+      {/* 底栏独立于表单栅格，铺满内容区且不受栅格行高度限制。 */}
+      {!loading && footer}
 
       {/* 5. 悬浮楼层导航与分节错误指示器 */}
       {anchorNavVisible && (

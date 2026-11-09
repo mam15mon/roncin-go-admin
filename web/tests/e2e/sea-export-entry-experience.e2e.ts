@@ -195,6 +195,7 @@ test('海运表单所有输入包含自动填充标识，隐藏占位框也纳�
 
 for (const viewport of [
   { width: 1366, height: 768 },
+  { width: 1440, height: 900 },
   { width: 1920, height: 1080 },
 ]) {
   test(`海运新建 ${viewport.width} 键盘录入与日期冲突保留`, async ({
@@ -204,6 +205,32 @@ for (const viewport of [
     const state = await fixture(page);
     await page.goto('/orders/sea-export/new');
     await expect(page.locator('#customerId')).toBeVisible();
+    const footer = page.locator('.roncin-sticky-footer-bar');
+    const header = page.locator('.roncin-page-header-shell');
+    await expect(footer).toBeVisible();
+    const initialFooter = await footer.boundingBox();
+    const headerBox = await header.boundingBox();
+    if (!initialFooter || !headerBox) throw new Error('页头或底栏未渲染');
+    expect(Math.abs(initialFooter.x - headerBox.x)).toBeLessThan(1);
+    expect(Math.abs(initialFooter.width - headerBox.width)).toBeLessThan(1);
+    expect(initialFooter.y + initialFooter.height).toBeLessThanOrEqual(
+      viewport.height,
+    );
+    await page
+      .getByLabel('船名', { exact: true })
+      .evaluate((input) => input.scrollIntoView({ block: 'center' }));
+    await page.getByLabel('船名', { exact: true }).fill('TEST VESSEL');
+    const vesselBox = await page
+      .getByLabel('船名', { exact: true })
+      .boundingBox();
+    const vesselFooter = await footer.boundingBox();
+    if (!vesselBox || !vesselFooter) throw new Error('船名或底栏未渲染');
+    expect(vesselBox.y + vesselBox.height).toBeLessThan(vesselFooter.y);
+    if (viewport.width === 1440) {
+      await page.screenshot({
+        path: '/tmp/roncin-se-order-fixes/footer-1440.png',
+      });
+    }
     await choose(page, '委托单位', '录入体验');
     await expect(page.locator('#salesUserId').locator('..')).toContainText(
       '客户业务员',
@@ -237,7 +264,6 @@ for (const viewport of [
     await expect(
       page.getByText('ETA 不能早于 ETD', { exact: true }),
     ).toBeVisible();
-    const footer = page.locator('.roncin-sticky-footer-bar');
     await page.getByLabel('操作人员', { exact: true }).scrollIntoViewIfNeeded();
     await expect(
       footer.getByRole('button', { name: '创建订单', exact: true }),
@@ -379,5 +405,37 @@ test('空表提交自动定位并聚焦首个必填字段', async ({ page }) => 
     .click();
   await expect(page.locator('#customerId')).toBeFocused();
   expect(state.writes).toHaveLength(0);
+  expect(state.errors).toEqual([]);
+});
+
+test('1440 视口切到 DIRECT 后错误角标同步减少，切回 HOUSE 仍校验分单', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const state = await fixture(page);
+  await page.goto('/orders/sea-export/new');
+  await expect(page.locator('#customerId')).toBeVisible();
+  const badge = page.locator(
+    '.roncin-form-anchor-nav-collapsed .ant-badge-count',
+  );
+  const submit = page.getByRole('button', { name: /创建订单$/ }).first();
+  await submit.click();
+  await expect(badge).toHaveText('9');
+  await page.getByText('仅船公司主单（DIRECT）', { exact: true }).click();
+  await expect(page.getByPlaceholder('请输入分单号')).toHaveCount(0);
+  await expect(badge).toHaveText('8');
+  // 普通字段异步校验完成后同样同步，不需要再次提交。
+  await page.getByLabel('MBL 主单号', { exact: true }).fill('TESTMBL123');
+  await expect(badge).toHaveText('7');
+  await page.getByText('有货代分单（HOUSE）', { exact: true }).click();
+  await expect(page.getByPlaceholder('请输入分单号')).toBeVisible();
+  await submit.click();
+  await expect(badge).toHaveText('8');
+  await expect(page.getByText('分单号不能为空', { exact: true })).toBeVisible();
+  await page.screenshot({
+    path: '/tmp/roncin-se-order-fixes/validation-1440.png',
+  });
+  expect(state.writes).toHaveLength(0);
+  expect(state.unexpected).toEqual([]);
   expect(state.errors).toEqual([]);
 });
