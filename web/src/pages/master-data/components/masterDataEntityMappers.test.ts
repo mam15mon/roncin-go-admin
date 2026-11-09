@@ -70,6 +70,15 @@ describe('专有字段语义', () => {
     expect(mapAirport(airport)).toMatchObject({ name: '', cityName: '' });
   });
 
+  it('港口只接受正式运输类型，非标准代码显式失败', () => {
+    expect(
+      mapPort({ ...port, transportModes: ['SEA', 'RAIL', 'ROAD'] }).modes,
+    ).toEqual(['SEA', 'RAIL', 'ROAD']);
+    expect(() => mapPort({ ...port, transportModes: ['maritime'] })).toThrow(
+      '港口响应包含无效运输类型',
+    );
+  });
+
   it('航司可选前缀保持缺失，纯货机省略按 false 映射', () => {
     expect(mapAirline(airline)).toMatchObject({
       name: 'EXAMPLE',

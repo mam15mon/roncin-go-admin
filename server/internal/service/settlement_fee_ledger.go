@@ -98,6 +98,7 @@ func feeLedgerItemToAPI(item *biz.FeeLedgerItem) *v1.FeeLedgerItem {
 		ExchangeRate: fee.ExchangeRate.StringFixed(8), BaseCurrency: fee.BaseCurrency, BaseCurrencyAmount: fee.BaseCurrencyAmount.StringFixed(8), Note: fee.Note, Version: fee.Version,
 		CreatedAt: fee.CreatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"), UpdatedAt: fee.UpdatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"), TaxRate: financeDecimalPointer(fee.TaxRate, 4),
 		FinancialProgress: feeLedgerFinancialProgressToAPI(item.FinancialProgress),
+		VerifiedAmount:    item.VerifiedAmount.StringFixed(8), UnverifiedAmount: item.UnverifiedAmount.StringFixed(8), NettedAmount: item.NettedAmount.StringFixed(8),
 	}
 	if fee.CorrectionRequestID != nil {
 		v := fee.CorrectionRequestID.String()

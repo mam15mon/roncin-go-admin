@@ -814,8 +814,13 @@ type FeeLedgerItem struct {
 	CorrectionRequestId     *string                    `protobuf:"bytes,42,opt,name=correction_request_id,json=correctionRequestId,proto3,oneof" json:"correction_request_id,omitempty"`
 	HasPendingFeeCorrection bool                       `protobuf:"varint,43,opt,name=has_pending_fee_correction,json=hasPendingFeeCorrection,proto3" json:"has_pending_fee_correction,omitempty"`
 	OrderLocked             bool                       `protobuf:"varint,44,opt,name=order_locked,json=orderLocked,proto3" json:"order_locked,omitempty"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	// 按费用行重放有效结算分摊，均为原币金额；核销和对冲分别展示。
+	VerifiedAmount string `protobuf:"bytes,45,opt,name=verified_amount,json=verifiedAmount,proto3" json:"verified_amount,omitempty"`
+	// 未核销余额已扣除有效核销及对冲，未建账费用为费用原币金额。
+	UnverifiedAmount string `protobuf:"bytes,46,opt,name=unverified_amount,json=unverifiedAmount,proto3" json:"unverified_amount,omitempty"`
+	NettedAmount     string `protobuf:"bytes,47,opt,name=netted_amount,json=nettedAmount,proto3" json:"netted_amount,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *FeeLedgerItem) Reset() {
@@ -1105,6 +1110,27 @@ func (x *FeeLedgerItem) GetOrderLocked() bool {
 		return x.OrderLocked
 	}
 	return false
+}
+
+func (x *FeeLedgerItem) GetVerifiedAmount() string {
+	if x != nil {
+		return x.VerifiedAmount
+	}
+	return ""
+}
+
+func (x *FeeLedgerItem) GetUnverifiedAmount() string {
+	if x != nil {
+		return x.UnverifiedAmount
+	}
+	return ""
+}
+
+func (x *FeeLedgerItem) GetNettedAmount() string {
+	if x != nil {
+		return x.NettedAmount
+	}
+	return ""
 }
 
 // 财务列表完整筛选结果的明细金额，不叠加顶部有效业务指标的状态条件。
@@ -19281,7 +19307,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x1b_has_pending_fee_supplementB\x0f\n" +
 	"\r_order_lockedJ\x04\b\x06\x10\aJ\x04\b\t\x10\n" +
 	"J\x04\b\n" +
-	"\x10\vJ\x04\b\x0e\x10\x0fJ\x04\b\x0f\x10\x10J\x04\b\x11\x10\x12R\x06statusR\x11expense_date_fromR\x0fexpense_date_toR\x0efinance_lockedR\atag_idsR\x11fee_review_status\"\xf9\v\n" +
+	"\x10\vJ\x04\b\x0e\x10\x0fJ\x04\b\x0f\x10\x10J\x04\b\x11\x10\x12R\x06statusR\x11expense_date_fromR\x0fexpense_date_toR\x0efinance_lockedR\atag_idsR\x11fee_review_status\"\xf4\f\n" +
 	"\rFeeLedgerItem\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x19\n" +
@@ -19326,7 +19352,10 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x0feconomic_effect\x18) \x01(\tR\x0eeconomicEffect\x127\n" +
 	"\x15correction_request_id\x18* \x01(\tH\x03R\x13correctionRequestId\x88\x01\x01\x12;\n" +
 	"\x1ahas_pending_fee_correction\x18+ \x01(\bR\x17hasPendingFeeCorrection\x12!\n" +
-	"\forder_locked\x18, \x01(\bR\vorderLockedB\a\n" +
+	"\forder_locked\x18, \x01(\bR\vorderLocked\x12'\n" +
+	"\x0fverified_amount\x18- \x01(\tR\x0everifiedAmount\x12+\n" +
+	"\x11unverified_amount\x18. \x01(\tR\x10unverifiedAmount\x12#\n" +
+	"\rnetted_amount\x18/ \x01(\tR\fnettedAmountB\a\n" +
 	"\x05_noteB\v\n" +
 	"\t_tax_rateB\n" +
 	"\n" +

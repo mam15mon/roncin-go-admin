@@ -309,6 +309,11 @@ message FeeLedgerItem {
   optional string correction_request_id = 42;
   bool has_pending_fee_correction = 43;
   bool order_locked = 44;
+  // 按费用行重放有效结算分摊，均为原币金额；核销和对冲分别展示。
+  string verified_amount = 45;
+  // 未核销余额已扣除有效核销及对冲，未建账费用为费用原币金额。
+  string unverified_amount = 46;
+  string netted_amount = 47;
   reserved 32 to 33;
 }
 

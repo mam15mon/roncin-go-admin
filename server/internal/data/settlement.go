@@ -364,6 +364,9 @@ func (r *settlementRepo) GetFeeLedgerOrderDetail(ctx context.Context, organizati
 	sort.Slice(detail.AmountsByBaseCurrency, func(i, j int) bool {
 		return detail.AmountsByBaseCurrency[i].BaseCurrency < detail.AmountsByBaseCurrency[j].BaseCurrency
 	})
+	if err := enrichFeeLedgerBalances(ctx, client, detail.Items, item.Edges.Fees); err != nil {
+		return nil, err
+	}
 	return detail, nil
 }
 
@@ -577,6 +580,9 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationIDs []uu
 			return nil, projectionErr
 		}
 		resultItems = append(resultItems, ledgerItem)
+	}
+	if err := enrichFeeLedgerBalances(ctx, client, resultItems, items); err != nil {
+		return nil, err
 	}
 	result := &biz.FeeLedgerResult{MatchedSummary: matchedSummary,
 		Items:   resultItems,

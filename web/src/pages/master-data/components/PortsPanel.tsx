@@ -32,6 +32,9 @@ export const mapPort = (item: API.Port): PortItem => {
   if (!item.unLocode || !item.nameEn || !item.countryCode) {
     throw new Error('港口响应缺少必填字段');
   }
+  if (item.transportModes?.some((mode) => !MODE_LABELS[mode])) {
+    throw new Error('港口响应包含无效运输类型');
+  }
   return {
     ...mapPersistedMasterDataFields(item, '港口'),
     code: item.unLocode,
@@ -108,21 +111,22 @@ export default function PortsPanel() {
       onQueryChange={setQuery}
       onRefresh={reload}
       searchPlaceholder="搜索五字码(如 CNSHG) / 港口中英文名..."
-      extraStats={[
+      customStats={[
+        { label: '筛选结果港口', value: total, color: '#1677ff' },
+        { label: '全目录启用中', value: activeTotal, color: '#52c41a' },
+        { label: '全目录已停用', value: disabledTotal, color: '#8c8c8c' },
         {
-          label: '海港枢纽',
-          value: data.filter(
-            (p) => p.modes.includes('SEA') || p.modes.includes('PORT'),
-          ).length,
+          label: '本页海港枢纽',
+          value: data.filter((p) => p.modes.includes('SEA')).length,
           color: '#1677ff',
         },
         {
-          label: '铁路联运枢纽',
+          label: '本页铁路联运枢纽',
           value: data.filter((p) => p.modes.includes('RAIL')).length,
           color: '#fa8c16',
         },
         {
-          label: '多式联运港',
+          label: '本页多式联运港',
           value: data.filter((p) => p.modes.length > 1).length,
           color: '#722ed1',
         },
@@ -168,7 +172,7 @@ export default function PortsPanel() {
           render: (modes: string[] = []) => (
             <Space size={4} wrap>
               {modes.map((m) => {
-                const conf = MODE_LABELS[m] || { label: m, color: 'default' };
+                const conf = MODE_LABELS[m];
                 return (
                   <Tag
                     key={m}

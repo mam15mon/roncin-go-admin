@@ -119,7 +119,6 @@ func (f *feeLedgerPostgresFixture) createLedgerFee(key, total string) uuid.UUID 
 		SetExchangeRateDate(financeBillIntegrationDate).
 		SetBaseCurrency("CNY").
 		SetBaseCurrencyAmount(total8).
-
 		SetVersion(1).
 		Save(context.Background())
 	if err != nil {
@@ -205,6 +204,14 @@ func (f *feeLedgerPostgresFixture) createNetting(key string, status financenetti
 		Save(context.Background())
 	if err != nil {
 		f.t.Fatalf("创建台账测试对冲 %s: %v", key, err)
+	}
+	if status != financenettingent.StatusDRAFT {
+		confirmedAt := time.Now().Add(-time.Minute)
+		update := netting.Update().SetConfirmedAt(confirmedAt)
+		if status == financenettingent.StatusREVERSED {
+			update.SetReversedAt(time.Now())
+		}
+		netting = update.SaveX(context.Background())
 	}
 	allocation, err := f.data.db.FinanceNettingAllocation.Create().
 		SetNettingID(netting.ID).
@@ -489,7 +496,7 @@ func TestFeeLedgerNettingSettlementConsistencyPostgres(t *testing.T) {
 		}
 		requireFeeLedgerProjection(t, "详情", findFeeLedgerItem(detail.Items, feeID), bill.BillNo, biz.FeeLedgerVerifiedUninvoiced, false)
 
-		if _, err = data.db.FinanceNetting.UpdateOneID(netting.ID).SetStatus(financenettingent.StatusREVERSED).Save(ctx); err != nil {
+		if _, err = data.db.FinanceNetting.UpdateOneID(netting.ID).SetStatus(financenettingent.StatusREVERSED).SetReversedAt(time.Now()).Save(ctx); err != nil {
 			t.Fatalf("反转对冲失败: %v", err)
 		}
 		if _, err = data.db.FinanceNettingAllocation.UpdateOneID(allocation.ID).SetActive(false).Save(ctx); err != nil {

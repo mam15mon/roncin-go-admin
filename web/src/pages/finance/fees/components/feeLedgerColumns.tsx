@@ -246,6 +246,8 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
     },
     {
       title: '财务进度',
+      tooltip:
+        '关联整张账单的开票与结清进度，结清包含核销和对冲；逐笔金额以对应金额列为准。',
       dataIndex: 'financialProgress',
       width: 125,
       valueType: 'select',
@@ -474,15 +476,24 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
       width: 100,
       align: 'right',
       search: false,
-      render: () => <span style={{ color: '#8c8c8c' }}>-</span>,
+      render: (_, row) => formatAmount(row.verifiedAmount),
     },
     {
       title: '未核销金额',
+      tooltip: '费用原币余额，已扣除有效核销和对冲金额。',
       dataIndex: 'unverifiedAmount',
       width: 100,
       align: 'right',
       search: false,
-      render: () => <span style={{ color: '#8c8c8c' }}>-</span>,
+      render: (_, row) => formatAmount(row.unverifiedAmount),
+    },
+    {
+      title: '已对冲金额',
+      dataIndex: 'nettedAmount',
+      width: 100,
+      align: 'right',
+      search: false,
+      render: (_, row) => formatAmount(row.nettedAmount),
     },
 
     // 8. 实际总毛重(KGS)、实际总体积、备注

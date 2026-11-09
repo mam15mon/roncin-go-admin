@@ -60,6 +60,9 @@ type FeeLedgerItem struct {
 	CustomerName            string
 	FinancialProgress       FeeLedgerFinancialProgress
 	BillNo                  string
+	VerifiedAmount          decimal.Decimal
+	UnverifiedAmount        decimal.Decimal
+	NettedAmount            decimal.Decimal
 }
 
 // ResolveFeeLedgerFinancialProgress 依据账单事实解析费用台账的财务进度。

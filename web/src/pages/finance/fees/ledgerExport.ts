@@ -93,6 +93,21 @@ export const feeExportColumns: CsvColumn<API.FeeLedgerItem>[] = [
       ]?.text ?? '',
   },
   { header: '账单编号', value: (row) => row.billNo },
+  {
+    header: '已核销金额',
+    kind: 'number',
+    value: (row) => csvAmount(row.verifiedAmount),
+  },
+  {
+    header: '未核销金额',
+    kind: 'number',
+    value: (row) => csvAmount(row.unverifiedAmount),
+  },
+  {
+    header: '已对冲金额',
+    kind: 'number',
+    value: (row) => csvAmount(row.nettedAmount),
+  },
   { header: '订单编号', value: (row) => row.orderNo },
   { header: '备注', value: (row) => row.note },
   {

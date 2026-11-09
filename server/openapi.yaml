@@ -12104,6 +12104,14 @@ components:
                     type: boolean
                 orderLocked:
                     type: boolean
+                verifiedAmount:
+                    type: string
+                    description: 按费用行重放有效结算分摊，均为原币金额；核销和对冲分别展示。
+                unverifiedAmount:
+                    type: string
+                    description: 未核销余额已扣除有效核销及对冲，未建账费用为费用原币金额。
+                nettedAmount:
+                    type: string
         finance.v1.FeeLedgerOrderDetail:
             type: object
             properties:

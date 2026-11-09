@@ -2598,6 +2598,11 @@ declare namespace API {
     correctionRequestId?: string;
     hasPendingFeeCorrection?: boolean;
     orderLocked?: boolean;
+    /** 按费用行重放有效结算分摊，均为原币金额；核销和对冲分别展示。 */
+    verifiedAmount?: string;
+    /** 未核销余额已扣除有效核销及对冲，未建账费用为费用原币金额。 */
+    unverifiedAmount?: string;
+    nettedAmount?: string;
   };
 
   type FeeLedgerOrderDetail = {
