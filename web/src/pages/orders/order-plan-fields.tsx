@@ -253,13 +253,15 @@ export function OrderContainerRequestFields({
 /** 通过 Form.Item 的公开值事件提交用户编辑，交由订单模板统一管理草稿与 dirty。 */
 function ContainerRequestsControl({
   options,
-  value: containerRequests = [],
+  value,
   onChange,
 }: {
   options: SelectOption[];
-  value?: API.OrderContainerRequestInput[];
+  value?: API.OrderContainerRequestInput[] | null;
   onChange?: (value: API.OrderContainerRequestInput[]) => void;
 }) {
+  // 草稿用 null 保留显式清空，恢复后与未填写一样展示为空计划。
+  const containerRequests = value ?? [];
   const inputId = React.useId();
   const handleAdd = () => {
     const next = [
