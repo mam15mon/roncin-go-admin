@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "前端架构与开发入口"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "ProtoJSON 与生成类型规范，实施时同步修订"}
+{"file": ".trellis/spec/web/frontend/directory-structure.md", "reason": "领域适配层及公共模块边界"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "定向验证与门禁"}
+{"file": ".trellis/tasks/11-09-protojson-response-contract/research/protojson-audit.md", "reason": "已确认问题及最小方案证据"}
