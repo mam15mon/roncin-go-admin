@@ -208,7 +208,7 @@ export function OrderListTemplate({
         title: '主单号',
         dataIndex: 'masterBlNo',
         width: 140,
-        copyable: true,
+        ellipsis: true,
         renderText: (val) => val || '-',
       },
       {
