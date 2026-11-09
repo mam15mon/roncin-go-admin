@@ -110,7 +110,6 @@ service SettlementService {
   rpc CancelInvoice(CancelInvoiceRequest) returns (CancelInvoiceResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.invoice.update" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/invoices/{id}/cancel" body: "*"}; }
   rpc RedFlushInvoice(RedFlushInvoiceRequest) returns (RedFlushInvoiceResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.invoice.update" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/invoices/{id}/red-flush" body: "*"}; }
   rpc ListCashflows(ListCashflowsRequest) returns (ListCashflowsResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.cashflow.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/cashflows"}; }
-  rpc ListFinanceOrganizationOptions(ListFinanceOrganizationOptionsRequest) returns (ListFinanceOrganizationOptionsResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED}; option (google.api.http) = {get: "/api/v1/finance/organization-options"}; }
   rpc ListFinanceSettlementPartyOptions(ListFinanceSettlementPartyOptionsRequest) returns (ListFinanceSettlementPartyOptionsResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_AUTHENTICATED}; option (google.api.http) = {get: "/api/v1/finance/settlement-party-options"}; }
   rpc CreateCashflow(CreateCashflowRequest) returns (CreateCashflowResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.cashflow.create" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/cashflows" body: "*"}; }
   rpc ConfirmCashflow(ConfirmCashflowRequest) returns (ConfirmCashflowResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.cashflow.update" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/cashflows/{id}/confirm" body: "*"}; }
@@ -1029,23 +1028,12 @@ message RejectCommissionApplicationRequest { string id=1 [(google.api.field_beha
 message RejectCommissionApplicationResponse { bool success=1; int32 code=2; string message=3; FinanceCommissionApplication data=4; string trace_id=5; }
 
 enum FinanceOrganizationPurpose {
+  reserved 1, 2, 3, 5, 6, 7, 8, 10, 11, 12;
+  reserved "FINANCE_ORGANIZATION_PURPOSE_BILL_READ", "FINANCE_ORGANIZATION_PURPOSE_INVOICE_READ", "FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_READ", "FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_READ", "FINANCE_ORGANIZATION_PURPOSE_COMMISSION_READ", "FINANCE_ORGANIZATION_PURPOSE_COMMISSION_MANAGE", "FINANCE_ORGANIZATION_PURPOSE_FEE_READ", "FINANCE_ORGANIZATION_PURPOSE_INVOICE_CREATE", "FINANCE_ORGANIZATION_PURPOSE_BILL_CREATE", "FINANCE_ORGANIZATION_PURPOSE_NETTING_READ";
   FINANCE_ORGANIZATION_PURPOSE_UNSPECIFIED = 0;
-  FINANCE_ORGANIZATION_PURPOSE_BILL_READ = 1;
-  FINANCE_ORGANIZATION_PURPOSE_INVOICE_READ = 2;
-  FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_READ = 3;
   FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_CREATE = 4;
-  FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_READ = 5;
-  FINANCE_ORGANIZATION_PURPOSE_COMMISSION_READ = 6;
-  FINANCE_ORGANIZATION_PURPOSE_COMMISSION_MANAGE = 7;
-  FINANCE_ORGANIZATION_PURPOSE_FEE_READ = 8;
   FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_CREATE = 9;
-  FINANCE_ORGANIZATION_PURPOSE_INVOICE_CREATE = 10;
-  FINANCE_ORGANIZATION_PURPOSE_BILL_CREATE = 11;
-  FINANCE_ORGANIZATION_PURPOSE_NETTING_READ = 12;
 }
-message FinanceOrganizationOption { string id = 1; string code = 2; string name = 3; string base_currency = 4; }
-message ListFinanceOrganizationOptionsRequest { FinanceOrganizationPurpose purpose = 1 [(google.api.field_behavior) = REQUIRED]; optional string keyword = 2; }
-message ListFinanceOrganizationOptionsResponse { bool success = 1; int32 code = 2; string message = 3; repeated FinanceOrganizationOption data = 4; string trace_id = 5; }
 message FinanceSettlementPartyOption { string id = 1; string code = 2; string name = 3; bool is_casual = 4; bool credit_exceeded = 5; }
 message ListFinanceSettlementPartyOptionsRequest { FinanceOrganizationPurpose purpose = 1 [(google.api.field_behavior) = REQUIRED]; string organization_id = 2 [(google.api.field_behavior) = REQUIRED]; optional string keyword = 3; int32 page = 4; int32 page_size = 5; }
 message ListFinanceSettlementPartyOptionsResponse { bool success = 1; int32 code = 2; string message = 3; repeated FinanceSettlementPartyOption data = 4; int64 total = 5; string trace_id = 6; }

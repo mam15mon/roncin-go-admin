@@ -11,7 +11,15 @@ import CommissionPaymentModal from './CommissionPaymentModal';
 
 vi.mock('@/app/AppProvider', () => ({
   useInitialState: () => ({
-    initialState: { currentUser: { currentOrganization: { id: 'org-1' } } },
+    initialState: {
+      currentUser: { id: 'user-1', currentOrganization: { id: 'org-1' } },
+    },
+  }),
+}));
+vi.mock('@/app/access', () => ({
+  useAccess: () => ({
+    canManageFinanceCommissions: true,
+    canOperateOrganization: (id?: string) => id === 'org-1',
   }),
 }));
 vi.mock('@/services/roncin/settlementService', async (original) => ({
@@ -46,7 +54,12 @@ it('登记实际净额与付款预览身份，父单和抵扣清单由同一提�
   renderWithClient(
     <App>
       <CommissionPaymentModal
-        record={{ id: 'c1', version: '3', commissionNo: 'COM-1' }}
+        record={{
+          id: 'c1',
+          organizationId: 'org-1',
+          version: '3',
+          commissionNo: 'COM-1',
+        }}
         onClose={vi.fn()}
         onPaid={paid}
       />
@@ -93,7 +106,7 @@ it('失败空响应保留确认与预览，重试沿用同一发放身份', asyn
   renderWithClient(
     <App>
       <CommissionPaymentModal
-        record={{ id: 'c1', version: '3' }}
+        record={{ id: 'c1', organizationId: 'org-1', version: '3' }}
         onClose={close}
         onPaid={paid}
       />

@@ -1,6 +1,5 @@
 import type { ActionType } from '@ant-design/pro-components';
-import { useQuery } from '@tanstack/react-query';
-import { App, Select, Space } from 'antd';
+import { App } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
@@ -12,10 +11,7 @@ import {
   type RowColorsConfig,
 } from '@/components/ui';
 import { useListQueryState } from '@/components/ui/list-query-state';
-import {
-  FeeLedgerFinancialProgress,
-  FinanceOrganizationPurpose,
-} from '@/enums.generated';
+import { FeeLedgerFinancialProgress } from '@/enums.generated';
 import {
   type BillCreationMode,
   BillCreationWorkbench,
@@ -26,10 +22,7 @@ import {
   useLedgerSelectionScope,
 } from '@/features/finance/ledger-summary';
 import { history } from '@/router/history';
-import {
-  settlementServiceListFeeLedger,
-  settlementServiceListFinanceOrganizationOptions,
-} from '@/services/roncin/settlementService';
+import { settlementServiceListFeeLedger } from '@/services/roncin/settlementService';
 import { ensureListResponse, toTableRequest, unwrapPage } from '@/utils/api';
 import { formatAmount } from '@/utils/format';
 import {
@@ -50,14 +43,12 @@ import { feeExportColumns } from './ledgerExport';
 
 export function resolveSingleBillCreationOrganization(
   rows: API.FeeLedgerItem[],
+  currentOrganizationId?: string,
 ) {
-  const ids = Array.from(
-    new Set(rows.map((row) => row.organizationId).filter(Boolean)),
-  );
-  return rows.length > 0 &&
-    rows.every((row) => Boolean(row.organizationId)) &&
-    ids.length === 1
-    ? ids[0]
+  return currentOrganizationId &&
+    rows.length > 0 &&
+    rows.every((row) => row.organizationId === currentOrganizationId)
+    ? currentOrganizationId
     : undefined;
 }
 
@@ -80,6 +71,7 @@ export default function FinanceFeeLedgerPage() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const { initialState } = useInitialState();
   const currentUser = initialState?.currentUser;
+  const organizationId = currentUser?.currentOrganization?.id;
   const rowColorScope = useMemo(
     () => ({
       userId: currentUser?.id,
@@ -105,7 +97,6 @@ export default function FinanceFeeLedgerPage() {
     useState<string>();
   const queryState = useListQueryState<{
     search: FeeLedgerFilterParams;
-    organizationId?: string;
   }>({
     tabKey: '/finance/fees',
     listId: 'finance:fees',
@@ -116,31 +107,6 @@ export default function FinanceFeeLedgerPage() {
     queryState.commit,
     () => queryState.snapshotRef.current.filters,
   );
-  const [organizationId, setOrganizationId] = useState<string | undefined>(
-    queryState.initial.filters.organizationId,
-  );
-
-  // 顶部筛选所属公司候选：失败经全局 onError 提示原文案。
-  const organizationQuery = useQuery({
-    queryKey: [
-      'finance',
-      'organization-options',
-      {
-        purpose:
-          FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_FEE_READ,
-      },
-    ],
-    meta: { errorMessage: '所属公司候选加载失败' },
-    queryFn: async () => {
-      const response = await settlementServiceListFinanceOrganizationOptions({
-        purpose:
-          FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_FEE_READ,
-      });
-      return response.data ?? [];
-    },
-  });
-  const organizationOptions = organizationQuery.data ?? [];
-
   const handleSearch = (values: FeeLedgerFilterParams) => {
     commitFilters({
       ...queryState.snapshotRef.current.filters,
@@ -203,6 +169,11 @@ export default function FinanceFeeLedgerPage() {
   ];
 
   const access = useAccess();
+  const hasCompanyScope = Boolean(
+    currentUser?.id &&
+      organizationId &&
+      access.canOperateOrganization(organizationId),
+  );
   const baseColumns = useMemo(() => getBaseFeeLedgerColumns(), []);
 
   // 列显隐与排序由统一列设置浮层按 columnSettingsKey 即时应用与持久化。
@@ -245,33 +216,6 @@ export default function FinanceFeeLedgerPage() {
         pagination={queryState.pagination}
         pageTitle="费用明细台账"
         pageSubTitle="全维度多币种费用台账，支持按单据、财务进度、结算单位快速对账与生成账单"
-        topBar={
-          <Space size={16} align="center" wrap>
-            <Space size={8} align="center">
-              <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
-                所属公司：
-              </span>
-              <Select
-                allowClear
-                placeholder="请选择所属公司"
-                style={{ minWidth: 220 }}
-                value={organizationId}
-                options={organizationOptions.map((item) => ({
-                  value: item.id,
-                  label: item.name ?? item.code ?? item.id,
-                }))}
-                onChange={(value) => {
-                  commitFilters({
-                    ...queryState.snapshotRef.current.filters,
-                    organizationId: value,
-                  });
-                  setOrganizationId(value);
-                  actionRef.current?.reload(true);
-                }}
-              />
-            </Space>
-          </Space>
-        }
         headerTitle="费用明细台账"
         actionRef={actionRef}
         exportColumns={feeExportColumns}
@@ -279,6 +223,7 @@ export default function FinanceFeeLedgerPage() {
         metricCards={metricCards}
         customSearch={
           <FeeLedgerSearchFilter
+            enabled={hasCompanyScope}
             initialValues={queryState.initial.filters.search}
             initialLabels={queryState.initial.labels}
             onCommit={(values, labels) =>
@@ -310,8 +255,10 @@ export default function FinanceFeeLedgerPage() {
             );
             return;
           }
-          const selectedOrganizationID =
-            resolveSingleBillCreationOrganization(rows);
+          const selectedOrganizationID = resolveSingleBillCreationOrganization(
+            rows,
+            organizationId,
+          );
           if (!selectedOrganizationID) {
             message.warning('所选费用缺少所属公司或跨公司，不能创建账单');
             return;
@@ -344,7 +291,10 @@ export default function FinanceFeeLedgerPage() {
                       return;
                     }
                     const selectedOrganizationID =
-                      resolveSingleBillCreationOrganization(rows);
+                      resolveSingleBillCreationOrganization(
+                        rows,
+                        organizationId,
+                      );
                     if (!selectedOrganizationID) {
                       message.warning(
                         '所选费用缺少所属公司或跨公司，不能创建对冲账单',
@@ -384,7 +334,8 @@ export default function FinanceFeeLedgerPage() {
           setSummary(snapshot.summary);
         }}
         request={async (params) => {
-          const { search: filterParams, organizationId } =
+          if (!hasCompanyScope) return { data: [], success: false, total: 0 };
+          const { search: filterParams } =
             queryState.snapshotRef.current.filters;
           const createdAtFrom = filterParams.createdAtRange?.[0]
             ? filterParams.createdAtRange[0].format('YYYY-MM-DD')
@@ -453,11 +404,7 @@ export default function FinanceFeeLedgerPage() {
         open={billWorkbenchOpen}
         initialFeeIds={selectedFeeIds}
         initialOrganizationId={selectedBillOrganizationId}
-        initialOrganizationName={
-          organizationOptions.find(
-            (item) => item.id === selectedBillOrganizationId,
-          )?.name
-        }
+        initialOrganizationName={currentUser?.currentOrganization?.name}
         sourceLabel={`从费用明细勾选的 ${selectedFeeIds.length} 笔费用`}
         mode={billWorkbenchMode}
         onClose={() => setBillWorkbenchOpen(false)}

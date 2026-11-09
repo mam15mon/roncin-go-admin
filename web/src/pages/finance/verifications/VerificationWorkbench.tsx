@@ -21,6 +21,8 @@ import type { ColumnsType } from 'antd/es/table';
 import dayjs, { type Dayjs } from 'dayjs';
 import Decimal from 'decimal.js';
 import { useEffect, useMemo, useState } from 'react';
+import { useInitialState } from '@/app/AppProvider';
+import { useAccess } from '@/app/access';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { MODAL_SIZE, ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
@@ -33,7 +35,6 @@ import { getCurrencyOptions } from '@/features/master-data/currencies';
 import { PartnerSelectOptionTags } from '@/features/partners';
 import {
   settlementServiceCreateVerification,
-  settlementServiceListFinanceOrganizationOptions,
   settlementServiceListFinanceSettlementPartyOptions,
   settlementServiceListVerificationCreationCandidates,
 } from '@/services/roncin/settlementService';
@@ -56,7 +57,6 @@ type Props = {
 };
 
 type Scope = {
-  organizationId?: string;
   direction: 'RECEIVABLE' | 'PAYABLE';
   settlementPartyId?: string;
   currency: string;
@@ -77,6 +77,13 @@ export default function VerificationWorkbench({
 }: Props) {
   const { markDirty, resetDirty } = useUnsavedChangesGuard({ enabled: open });
   const { message } = App.useApp();
+  const { initialState } = useInitialState();
+  const access = useAccess();
+  const organizationId = initialState?.currentUser?.currentOrganization?.id;
+  const canOperate =
+    Boolean(initialState?.currentUser?.id) &&
+    access.canCreateFinanceVerifications &&
+    access.canOperateOrganization(organizationId);
   const [scope, setScope] = useState<Scope>({
     direction: 'RECEIVABLE',
     currency: 'CNY',
@@ -96,26 +103,18 @@ export default function VerificationWorkbench({
   );
   const [submitting, setSubmitting] = useState(false);
   // 直接干预模式下超额客户禁选（标签与禁用都由契约字段渲染）。
-  const creditInterventionActive = useCreditLimitIntervention();
+  const creditInterventionActive = useCreditLimitIntervention(
+    open && canOperate,
+  );
 
-  // 第一段：弹窗打开即并行拉取组织候选与币种候选（历史为 Promise.all 单文案）。
+  // 币种候选只随当前公司工作台打开加载。
   const bootstrapQuery = useQuery({
-    queryKey: [...VERIFICATION_WORKBENCH_QUERY_BASE, 'bootstrap'],
-    enabled: open,
+    queryKey: [...VERIFICATION_WORKBENCH_QUERY_BASE, 'currencies'],
+    enabled: open && canOperate,
     meta: { errorMessage: '加载核销创建候选失败' },
-    queryFn: async () => {
-      const [organizationResponse, currencies] = await Promise.all([
-        settlementServiceListFinanceOrganizationOptions({
-          purpose:
-            FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_CREATE,
-        }),
-        getCurrencyOptions(),
-      ]);
-      return { organizations: organizationResponse.data ?? [], currencies };
-    },
+    queryFn: getCurrencyOptions,
   });
-  const organizationOptions = bootstrapQuery.data?.organizations ?? [];
-  const currencyOptions = bootstrapQuery.data?.currencies ?? [];
+  const currencyOptions = bootstrapQuery.data ?? [];
 
   // 第二段：结算单位候选，依赖已选组织（enabled 门控）与搜索关键字。
   const partnerQuery = useQuery({
@@ -123,39 +122,36 @@ export default function VerificationWorkbench({
       ...VERIFICATION_WORKBENCH_QUERY_BASE,
       'settlement-party-options',
       {
-        organizationId: scope.organizationId,
+        organizationId: organizationId,
         keyword: partnerKeyword || undefined,
       },
     ],
-    enabled: open && Boolean(scope.organizationId),
+    enabled: open && canOperate && Boolean(organizationId),
     // 关键字搜索期间保留上一批候选，避免下拉闪空。
     placeholderData: (previous) => previous,
     meta: { errorMessage: '加载结算单位失败' },
     queryFn: async () => {
-      if (!scope.organizationId) return [] as SelectOption[];
+      if (!canOperate || !organizationId) return [] as SelectOption[];
       const response = await settlementServiceListFinanceSettlementPartyOptions(
         {
           purpose:
             FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_CREATE,
-          organizationId: scope.organizationId,
+          organizationId: organizationId,
           keyword: partnerKeyword || undefined,
           page: 1,
           pageSize: 50,
         },
       );
-      return disableCreditExceededOptions(
-        (response.data ?? [])
-          .filter((item) => item.id)
-          .map((item) => ({
-            value: item.id as string,
-            label:
-              item.name && item.code
-                ? `${item.name} (${item.code})`
-                : item.name || item.code || item.id || '',
-            creditExceeded: Boolean(item.creditExceeded),
-          })),
-        creditInterventionActive,
-      );
+      return (response.data ?? [])
+        .filter((item) => item.id)
+        .map((item) => ({
+          value: item.id as string,
+          label:
+            item.name && item.code
+              ? `${item.name} (${item.code})`
+              : item.name || item.code || item.id || '',
+          creditExceeded: Boolean(item.creditExceeded),
+        }));
     },
   });
 
@@ -165,20 +161,24 @@ export default function VerificationWorkbench({
       ...VERIFICATION_WORKBENCH_QUERY_BASE,
       'candidates',
       {
-        organizationId: scope.organizationId,
+        organizationId: organizationId,
         direction: scope.direction,
         settlementPartyId: scope.settlementPartyId,
         currency: scope.currency,
       },
     ],
     enabled: Boolean(
-      open && scope.organizationId && scope.settlementPartyId && scope.currency,
+      open &&
+        canOperate &&
+        organizationId &&
+        scope.settlementPartyId &&
+        scope.currency,
     ),
     meta: { errorMessage: '加载待核销资金和账单失败' },
     queryFn: async () => {
       const response =
         await settlementServiceListVerificationCreationCandidates({
-          organizationId: scope.organizationId as string,
+          organizationId: organizationId as string,
           direction: scope.direction,
           settlementPartyId: scope.settlementPartyId as string,
           currency: scope.currency,
@@ -200,7 +200,7 @@ export default function VerificationWorkbench({
     setAllocations([]);
   }, [
     open,
-    scope.organizationId,
+    organizationId,
     scope.direction,
     scope.settlementPartyId,
     scope.currency,
@@ -209,11 +209,13 @@ export default function VerificationWorkbench({
   // 关键字过滤后把当前选中项拼回展示列表头，保持 Select 回显 label 不退化为 ID。
   const partnerOptions = useMemo(() => {
     const options = partnerQuery.data ?? [];
-    if (!selectedPartyOption) return options;
-    return options.some((option) => option.value === selectedPartyOption.value)
-      ? options
-      : [selectedPartyOption, ...options];
-  }, [partnerQuery.data, selectedPartyOption]);
+    const merged =
+      !selectedPartyOption ||
+      options.some((option) => option.value === selectedPartyOption.value)
+        ? options
+        : [selectedPartyOption, ...options];
+    return disableCreditExceededOptions(merged, creditInterventionActive);
+  }, [partnerQuery.data, selectedPartyOption, creditInterventionActive]);
 
   const selectedCashflows = useMemo(
     () =>
@@ -231,6 +233,16 @@ export default function VerificationWorkbench({
   );
 
   const autoAllocate = () => {
+    if (
+      !canOperate ||
+      selectedCashflows.some(
+        (item) => item.organizationId !== organizationId,
+      ) ||
+      selectedBills.some((item) => item.organizationId !== organizationId)
+    ) {
+      message.warning('所选资金或账单不属于当前公司，不能核销');
+      return;
+    }
     const next = buildVerificationAllocations(
       selectedCashflows.map((item) => ({
         id: item.id as string,
@@ -297,11 +309,23 @@ export default function VerificationWorkbench({
 
   const submit = async (): Promise<false | undefined> => {
     if (
-      !scope.organizationId ||
+      !canOperate ||
+      !organizationId ||
       !scope.settlementPartyId ||
       validationMessage
     ) {
-      message.warning(validationMessage || '请先选择所属公司和结算单位');
+      message.warning(validationMessage || '请在当前公司工作区选择结算单位');
+      return;
+    }
+    if (
+      allocations.some(
+        (item) =>
+          cashflowById.get(item.cashflowId)?.organizationId !==
+            organizationId ||
+          billById.get(item.billId)?.organizationId !== organizationId,
+      )
+    ) {
+      message.warning('所选资金或账单不属于当前公司，不能核销');
       return;
     }
     setSubmitting(true);
@@ -427,29 +451,6 @@ export default function VerificationWorkbench({
     >
       <Card size="small" style={{ marginBottom: 12 }}>
         <Row gutter={12}>
-          <Col span={5}>
-            <Typography.Text>所属公司</Typography.Text>
-            <Select
-              aria-label="所属公司"
-              value={scope.organizationId}
-              style={{ width: '100%', marginTop: 6 }}
-              placeholder="请选择有核销创建权限的公司"
-              options={organizationOptions.map((item) => ({
-                value: item.id,
-                label: item.name || item.code || item.id,
-              }))}
-              onChange={(organizationId) => {
-                // 切换组织即换 queryKey：结算单位候选重置，旧组织数据不再回显。
-                setPartnerKeyword('');
-                setSelectedPartyOption(undefined);
-                setScope((value) => ({
-                  ...value,
-                  organizationId,
-                  settlementPartyId: undefined,
-                }));
-              }}
-            />
-          </Col>
           <Col span={4}>
             <Typography.Text>核销方向</Typography.Text>
             <Select
@@ -465,7 +466,7 @@ export default function VerificationWorkbench({
               }}
             />
           </Col>
-          <Col span={7}>
+          <Col span={12}>
             <Typography.Text>结算单位</Typography.Text>
             <Select
               showSearch={{
@@ -476,9 +477,9 @@ export default function VerificationWorkbench({
               value={scope.settlementPartyId}
               style={{ width: '100%', marginTop: 6 }}
               placeholder={
-                scope.organizationId ? '请选择结算单位' : '请先选择所属公司'
+                canOperate ? '请选择结算单位' : '请在公司工作区办理核销'
               }
-              disabled={!scope.organizationId}
+              disabled={!canOperate}
               options={partnerOptions}
               optionRender={(option) => (
                 <div
@@ -542,8 +543,8 @@ export default function VerificationWorkbench({
         </Tag>
       </Card>
 
-      {!scope.organizationId ? (
-        <Empty description="请先选择有核销创建权限的所属公司" />
+      {!canOperate ? (
+        <Empty description="请在有核销创建权限的公司工作区办理" />
       ) : !scope.settlementPartyId ? (
         <Empty description="请先选择结算单位，再选择同方向、同币种的资金与账单" />
       ) : (
@@ -570,6 +571,10 @@ export default function VerificationWorkbench({
                   selectedRowKeys: selectedCashflowIds,
                   preserveSelectedRowKeys: true,
                   onChange: setSelectedCashflowIds,
+                  getCheckboxProps: (record) => ({
+                    disabled:
+                      !canOperate || record.organizationId !== organizationId,
+                  }),
                 }}
               />
             </Card>
@@ -596,6 +601,10 @@ export default function VerificationWorkbench({
                   selectedRowKeys: selectedBillIds,
                   preserveSelectedRowKeys: true,
                   onChange: setSelectedBillIds,
+                  getCheckboxProps: (record) => ({
+                    disabled:
+                      !canOperate || record.organizationId !== organizationId,
+                  }),
                 }}
               />
             </Card>

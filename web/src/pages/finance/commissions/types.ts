@@ -12,7 +12,6 @@ export type CreateValues = {
 };
 
 export type RuleValues = {
-  organizationId?: string;
   name: string;
   personnelRole: 'SALES' | 'OPERATOR' | 'CUSTOMER_SERVICE';
   calculationBasis: 'REALIZED_PROFIT' | 'REALIZED_REVENUE';

@@ -52,6 +52,7 @@
 | [Order Attachment OSS](./order-attachment-oss.md) | 订单附件上传授权、私有访问、共享引用与存储删除路由 | ✅ |
 | [Error Handling](./error-handling.md) | 领域错误与驱动错误映射 | ✅ |
 | [财务列表筛选汇总](../../web/frontend/finance-ledger-snapshots.md) | 六列表完整筛选聚合、原币/本币与未折算契约 | ✅ |
+| [财务当前公司工作区](../../web/frontend/finance-current-workspace.md) | 公司候选接口退役、共享用途保留及当前公司查询/写入 | ✅ |
 | [业务标签退役](./business-tag-retirement.md) | 18个RPC与标签存储退役、非标签资源保留、账单当前公司范围 | ✅ |
 | [Quality Guidelines](./quality-guidelines.md) | 分层禁令、生成物、路由与权限范围、真实库验证及迁移测试时点 | ✅ |
 | [Logging Guidelines](./logging-guidelines.md) | 结构化日志与审计 | ✅ |

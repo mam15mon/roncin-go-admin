@@ -13,6 +13,8 @@
 - 公共模板 `components/ui/finance-ledger-template` 只接收稳定展示模型；领域行与汇总投影由 `features/finance/ledger-summary` 的各业务适配器承担，禁止通用组件依赖页面/服务端枚举并猜测同名字段。
 
 ## 3. 数据与选择约定
+公司范围统一来自[当前公司工作区](./finance-current-workspace.md)，不作为独立可选或可恢复筛选；公司切换依赖既有工作区重建隔离查询和选择。
+
 1. 列表行、顶部指标、底栏筛选合计、当前页导出只能来自 ProTable 官方已采纳结果。`request` 负责返回数据及两种 summary，禁止 await 后直接 setMetricStats/setSummary。
 2. 扩展既有返回数组 WeakMap + `onLoad` 快照机制；失败、取消、迟到请求不得推进快照，不引入 sequenceRef 等手工竞态链，不绕过官方 request/actionRef。
 3. 底栏只显示一行：有选择显示“已选 N 条”，无选择显示“筛选结果共 N 条”。后者必须消费服务端全量匹配汇总，不能用本页代算或循环翻页。

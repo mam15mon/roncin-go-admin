@@ -7,10 +7,32 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const serviceMocks = vi.hoisted(() => ({
   listFinanceOrganizationOptions: vi.fn(),
+  organizationId: 'organization-a' as string | undefined,
+  canOperate: true,
+  onOk: vi.fn(),
   listInvoiceCreationBills: vi.fn(),
   listInvoiceProfilesForBill: vi.fn(),
 }));
 
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
+    initialState: {
+      currentUser: {
+        id: 'user',
+        currentOrganization: { id: serviceMocks.organizationId },
+      },
+    },
+  }),
+}));
+vi.mock('@/app/access', () => ({
+  useAccess: () => ({
+    canCreateFinanceInvoices: serviceMocks.canOperate,
+    canOperateOrganization: (id?: string) =>
+      serviceMocks.canOperate &&
+      Boolean(id) &&
+      id === serviceMocks.organizationId,
+  }),
+}));
 vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceListFinanceOrganizationOptions:
     serviceMocks.listFinanceOrganizationOptions,
@@ -22,10 +44,17 @@ vi.mock('@/services/roncin/settlementService', () => ({
 
 import InvoiceCreateModal from './InvoiceCreateModal';
 
-function InvoiceCreateModalHarness({ open = true }: { open?: boolean }) {
+function InvoiceCreateModalHarness({
+  open = true,
+  initialBills = [],
+}: {
+  open?: boolean;
+  initialBills?: API.FinanceBill[];
+}) {
   const [form] = Form.useForm();
   const [selectedIDs, setSelectedIDs] = useState<React.Key[]>([]);
-  const [selectedBills, setSelectedBills] = useState<API.FinanceBill[]>([]);
+  const [selectedBills, setSelectedBills] =
+    useState<API.FinanceBill[]>(initialBills);
   return (
     <InvoiceCreateModal
       open={open}
@@ -36,13 +65,16 @@ function InvoiceCreateModalHarness({ open = true }: { open?: boolean }) {
       selectedIDs={selectedIDs}
       setSelectedIDs={setSelectedIDs}
       setSelectedBills={setSelectedBills}
-      onOk={async () => undefined}
+      onOk={serviceMocks.onOk}
     />
   );
 }
 
 describe('InvoiceCreateModal 发票创建组织候选', () => {
   beforeEach(() => {
+    serviceMocks.organizationId = 'organization-a';
+    serviceMocks.canOperate = true;
+    serviceMocks.onOk.mockReset();
     serviceMocks.listFinanceOrganizationOptions.mockReset();
     serviceMocks.listInvoiceCreationBills.mockReset();
     serviceMocks.listInvoiceProfilesForBill.mockReset();
@@ -75,33 +107,57 @@ describe('InvoiceCreateModal 发票创建组织候选', () => {
     );
   });
 
-  const selectOrganization = async (name: string) => {
-    fireEvent.mouseDown(screen.getByLabelText('所属公司'));
-    fireEvent.click(await screen.findByText(name));
-  };
-
-  it('未选公司不请求账单，选择可写公司后仅透传该 organizationId', async () => {
+  it('无需选择公司即请求当前公司账单，保留开票金额展示', async () => {
     renderWithClient(
       <App>
         <InvoiceCreateModalHarness />
       </App>,
     );
     await waitFor(() =>
-      expect(serviceMocks.listFinanceOrganizationOptions).toHaveBeenCalledWith({
-        purpose: 10,
-      }),
-    );
-    expect(serviceMocks.listInvoiceCreationBills).not.toHaveBeenCalled();
-
-    await selectOrganization('公司 A');
-    await waitFor(() =>
       expect(serviceMocks.listInvoiceCreationBills).toHaveBeenCalledWith(
         expect.objectContaining({ organizationId: 'organization-a' }),
       ),
     );
+    expect(serviceMocks.listFinanceOrganizationOptions).not.toHaveBeenCalled();
+    expect(screen.queryByLabelText('所属公司')).not.toBeInTheDocument();
     expect(await screen.findByText('BILL-A')).toBeInTheDocument();
     expect(screen.getByText('100.00 CNY')).toBeInTheDocument();
     expect(screen.queryByText('1,200.00 CNY')).not.toBeInTheDocument();
+  });
+
+  it.each([undefined, 'system'])(
+    '身份%s不在公司工作区时不请求、不提交',
+    async (id) => {
+      serviceMocks.organizationId = id;
+      serviceMocks.canOperate = false;
+      renderWithClient(
+        <App>
+          <InvoiceCreateModalHarness />
+        </App>,
+      );
+      fireEvent.click(screen.getByRole('button', { name: /OK|确\s*定/ }));
+      expect(serviceMocks.listInvoiceCreationBills).not.toHaveBeenCalled();
+      expect(serviceMocks.listInvoiceProfilesForBill).not.toHaveBeenCalled();
+      expect(serviceMocks.onOk).not.toHaveBeenCalled();
+    },
+  );
+
+  it('注入外公司账单不能读取抬头或提交', async () => {
+    renderWithClient(
+      <App>
+        <InvoiceCreateModalHarness
+          initialBills={[
+            { id: 'foreign-bill', organizationId: 'organization-b' },
+          ]}
+        />
+      </App>,
+    );
+    await waitFor(() =>
+      expect(serviceMocks.listInvoiceCreationBills).toHaveBeenCalled(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: /OK|确\s*定/ }));
+    expect(serviceMocks.listInvoiceProfilesForBill).not.toHaveBeenCalled();
+    expect(serviceMocks.onOk).not.toHaveBeenCalled();
   });
 
   it('切换公司清空账单和资料，并忽略迟到的旧账单资料响应', async () => {
@@ -112,12 +168,11 @@ describe('InvoiceCreateModal 发票创建组织候选', () => {
           resolveOldProfiles = resolve;
         }),
     );
-    renderWithClient(
+    const view = renderWithClient(
       <App>
         <InvoiceCreateModalHarness />
       </App>,
     );
-    await selectOrganization('公司 A');
     const billRow = (await screen.findByText('BILL-A')).closest('tr');
     if (!billRow) throw new Error('账单候选行不存在');
     fireEvent.click(within(billRow).getByRole('checkbox'));
@@ -128,7 +183,14 @@ describe('InvoiceCreateModal 发票创建组织候选', () => {
       ),
     );
 
-    await selectOrganization('公司 B');
+    serviceMocks.organizationId = 'organization-b';
+    view.rerender(
+      <QueryClientProvider client={view.queryClient}>
+        <App>
+          <InvoiceCreateModalHarness key="B" />
+        </App>
+      </QueryClientProvider>,
+    );
     await waitFor(() => {
       expect(screen.queryByText('BILL-A')).not.toBeInTheDocument();
       expect(screen.getByText('BILL-B')).toBeInTheDocument();
@@ -165,7 +227,6 @@ describe('InvoiceCreateModal 发票创建组织候选', () => {
         <InvoiceCreateModalHarness />
       </App>,
     );
-    await selectOrganization('公司 A');
     const billRow = (await screen.findByText('BILL-A')).closest('tr');
     if (!billRow) throw new Error('账单候选行不存在');
     fireEvent.click(within(billRow).getByRole('checkbox'));

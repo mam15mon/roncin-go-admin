@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -11,8 +12,25 @@ import {
 } from '@/services/roncin/settlementService';
 import PendingDecreasePanel from './PendingDecreasePanel';
 
+const workspace = vi.hoisted(() => ({
+  organizationId: 'org-a' as string | undefined,
+  userId: 'user-1' as string | undefined,
+  canOperate: true,
+}));
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
+    initialState: {
+      currentUser: {
+        id: workspace.userId,
+        currentOrganization: { id: workspace.organizationId },
+      },
+    },
+  }),
+}));
 const accessState = vi.hoisted(() => ({
-  canOperateOrganization: () => true,
+  canOperateOrganization: (id?: string) =>
+    workspace.canOperate && Boolean(id) && id === workspace.organizationId,
+  canReadFinanceCommissions: true,
   canConfigureFinanceCommissions: false,
   canManageFinanceCommissions: true,
 }));
@@ -65,6 +83,7 @@ function adjustmentRow(
 ): API.FinanceCommissionAdjustment {
   return {
     id: 'adj-1',
+    organizationId: 'org-a',
     adjustmentNo: 'COM-ADJ-001',
     commissionId: 'commission-1',
     commissionNo: 'COM-2026-001',
@@ -94,6 +113,9 @@ function renderPanel() {
 
 describe('PendingDecreasePanel 待处理冲减视图', () => {
   beforeEach(() => {
+    workspace.organizationId = 'org-a';
+    workspace.userId = 'user-1';
+    workspace.canOperate = true;
     accessState.canManageFinanceCommissions = true;
     vi.clearAllMocks();
     listAdjustments.mockResolvedValue({
@@ -109,6 +131,7 @@ describe('PendingDecreasePanel 待处理冲减视图', () => {
     expect(listAdjustments).toHaveBeenCalledWith({
       page: 1,
       pageSize: 20,
+      organizationId: 'org-a',
       status: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED,
       keyword: undefined,
     });
@@ -123,6 +146,7 @@ describe('PendingDecreasePanel 待处理冲减视图', () => {
     expect(listAdjustments).toHaveBeenLastCalledWith({
       page: 1,
       pageSize: 20,
+      organizationId: 'org-a',
       status: 2,
       keyword: 'SE-100',
     });

@@ -14,6 +14,8 @@ import {
   Typography,
 } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
+import { useInitialState } from '@/app/AppProvider';
+import { useAccess } from '@/app/access';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import {
   GuardedModalForm,
@@ -22,13 +24,12 @@ import {
   ResponsiveTable as Table,
 } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
-import { FinanceOrganizationPurpose } from '@/enums.generated';
+import { useLatestAsync } from '@/hooks/useLatestAsync';
 import {
   settlementServiceCreateCommission,
   settlementServiceListCommissionCandidates,
   settlementServiceListCommissionNettingCandidates,
   settlementServiceListCommissionVerificationCandidates,
-  settlementServiceListFinanceOrganizationOptions,
   settlementServicePreviewCommission,
 } from '@/services/roncin/settlementService';
 import { isWriteResponse, unwrapList } from '@/utils/api';
@@ -92,6 +93,16 @@ export default function CommissionCreateModal({
   onSuccess,
 }: CommissionCreateModalProps) {
   const { message } = App.useApp();
+  const access = useAccess();
+  const { initialState } = useInitialState();
+  const currentUser = initialState?.currentUser;
+  const organizationId = currentUser?.currentOrganization?.id;
+  const canCreate = Boolean(
+    currentUser?.id &&
+      access.canOperateOrganization(organizationId) &&
+      access.canManageFinanceCommissions,
+  );
+  const previewRequest = useLatestAsync();
   const formRef = useRef<ProFormInstance | undefined>(undefined);
   const { markDirty, resetDirty } = useUnsavedChangesGuard({ enabled: open });
   const [preview, setPreview] = useState<API.CommissionCalculation>();
@@ -100,10 +111,13 @@ export default function CommissionCreateModal({
   const [createIdempotencyKey, setCreateIdempotencyKey] = useState(() =>
     generateUUID(),
   );
-  const [organizationId, setOrganizationId] = useState<string>();
   const [sourceType, setSourceType] =
     useState<CommissionSourceTab>('verification');
   const [selectedNetting, setSelectedNetting] = useState<API.FinanceNetting>();
+  const [selectedVerification, setSelectedVerification] = useState<{
+    id: string;
+    organizationId?: string;
+  }>();
   const [verificationKeyword, setVerificationKeyword] = useState('');
   const [nettingKeyword, setNettingKeyword] = useState('');
   // 关键字防抖态：输入停顿 300ms 后收敛进 queryKey，防抖期内不触发搜索。
@@ -114,26 +128,14 @@ export default function CommissionCreateModal({
   const [candidateSource, setCandidateSource] = useState<CandidateSource>();
 
   const resetPreview = () => {
+    previewRequest.invalidate();
+    setPreviewLoading(false);
     setPreview(undefined);
     setPreviewSignature('');
     setCreateIdempotencyKey(generateUUID());
   };
 
-  // 公司候选：弹窗打开即拉取；失败经全局 cache onError 以 meta 文案提示。
-  const organizationQuery = useQuery({
-    queryKey: ['commission-create', 'organization-options'],
-    enabled: open,
-    meta: { errorMessage: '提成创建公司候选加载失败' },
-    queryFn: async () => {
-      const response = await settlementServiceListFinanceOrganizationOptions({
-        purpose:
-          FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_COMMISSION_MANAGE,
-      });
-      return response.data ?? [];
-    },
-  });
-
-  // 核销单候选：已选公司即拉取首批；关键字搜索经 300ms 防抖进 queryKey，
+  // 核销单候选：当前公司可办理时拉取首批；关键字搜索经 300ms 防抖进 queryKey，
   // 输入期间 keepPreviousData 保持列表不闪空，竞态由库按 queryKey 收敛。
   const verificationQuery = useQuery({
     queryKey: [
@@ -141,11 +143,11 @@ export default function CommissionCreateModal({
       'verification-candidates',
       { organizationId, keyword: verificationSearchKeyword || undefined },
     ],
-    enabled: open && Boolean(organizationId),
+    enabled: open && canCreate,
     placeholderData: keepPreviousData,
     meta: { errorMessage: '有效应收核销候选加载失败' },
     queryFn: async () => {
-      if (!organizationId) return [];
+      if (!organizationId || !canCreate) return [];
       const response =
         await settlementServiceListCommissionVerificationCandidates({
           page: 1,
@@ -158,22 +160,23 @@ export default function CommissionCreateModal({
       return unwrapList(response).map((item) => ({
         label: `${item.verificationNo}｜${item.settlementPartyName}｜${formatAmount(item.amount)} ${item.currency}`,
         value: item.id as string,
+        organizationId: item.organizationId,
       }));
     },
   });
 
-  // 对冲提成候选：进入对冲 Tab 且已选公司时加载已确认且有应收分摊的对冲单。
+  // 对冲提成候选：进入对冲 Tab 且当前公司可办理时加载已确认且有应收分摊的对冲单。
   const nettingQuery = useQuery({
     queryKey: [
       'commission-create',
       'netting-candidates',
       { organizationId, keyword: nettingSearchKeyword || undefined },
     ],
-    enabled: open && sourceType === 'netting' && Boolean(organizationId),
+    enabled: open && sourceType === 'netting' && canCreate,
     placeholderData: keepPreviousData,
     meta: { errorMessage: '对冲提成候选加载失败' },
     queryFn: async () => {
-      if (!organizationId) return [];
+      if (!organizationId || !canCreate) return [];
       const response = await settlementServiceListCommissionNettingCandidates({
         page: 1,
         pageSize: 200,
@@ -198,11 +201,11 @@ export default function CommissionCreateModal({
     ],
     enabled:
       open &&
-      Boolean(organizationId) &&
+      canCreate &&
       Boolean(candidateSource?.verificationId || candidateSource?.nettingId),
     meta: { errorMessage: '计提候选加载失败' },
     queryFn: async () => {
-      if (!organizationId || !candidateSource) return [];
+      if (!organizationId || !canCreate || !candidateSource) return [];
       const response = await settlementServiceListCommissionCandidates({
         page: 1,
         pageSize: 200,
@@ -224,6 +227,16 @@ export default function CommissionCreateModal({
       });
     },
   });
+
+  useEffect(() => {
+    previewRequest.invalidate();
+    setPreview(undefined);
+    setPreviewSignature('');
+    setPreviewLoading(false);
+    setSelectedVerification(undefined);
+    setSelectedNetting(undefined);
+    setCandidateSource(undefined);
+  }, [open, organizationId, previewRequest]);
 
   // 核销关键字防抖：清空立即收敛为空，输入停顿 300ms 后收敛进 queryKey。
   useEffect(() => {
@@ -267,6 +280,7 @@ export default function CommissionCreateModal({
 
   const resetSourceSelection = () => {
     setSelectedNetting(undefined);
+    setSelectedVerification(undefined);
     formRef.current?.setFieldsValue({
       verificationId: undefined,
       nettingId: undefined,
@@ -294,6 +308,10 @@ export default function CommissionCreateModal({
   };
 
   const handleSelectNetting = (record: API.FinanceNetting) => {
+    if (!canCreate || !access.canOperateOrganization(record.organizationId)) {
+      message.warning('只能选择当前公司工作区的对冲单');
+      return false;
+    }
     markDirty();
     setSelectedNetting(record);
     resetPreview();
@@ -301,6 +319,23 @@ export default function CommissionCreateModal({
       nettingId: record.id,
       candidateKey: undefined,
     });
+    return true;
+  };
+
+  const matchesSelectedSource = (values: Partial<CreateValues>) => {
+    if (values.verificationId) {
+      return (
+        candidateSource?.verificationId === values.verificationId &&
+        selectedVerification?.id === values.verificationId &&
+        access.canOperateOrganization(selectedVerification.organizationId)
+      );
+    }
+    return Boolean(
+      values.nettingId &&
+        candidateSource?.nettingId === values.nettingId &&
+        selectedNetting?.id === values.nettingId &&
+        access.canOperateOrganization(selectedNetting.organizationId),
+    );
   };
 
   return (
@@ -311,7 +346,7 @@ export default function CommissionCreateModal({
       width={MODAL_SIZE.LG}
       submitter={{
         searchConfig: { submitText: '生成草稿' },
-        submitButtonProps: { disabled: !preview },
+        submitButtonProps: { disabled: !canCreate || !preview },
       }}
       modalProps={{
         destroyOnHidden: true,
@@ -329,6 +364,14 @@ export default function CommissionCreateModal({
         }
       }}
       onFinish={async (values) => {
+        if (!canCreate || !organizationId) {
+          message.warning('请切换到有提成办理权限的公司工作区');
+          return false;
+        }
+        if (!matchesSelectedSource(values)) {
+          message.warning('请选择当前公司工作区的有效提成来源');
+          return false;
+        }
         if (!preview || previewSignature !== calculationSignature(values)) {
           message.warning('请先计算并核对当前选择的提成预览');
           return false;
@@ -349,7 +392,7 @@ export default function CommissionCreateModal({
             personnelRole,
             note: values.note,
             idempotencyKey: createIdempotencyKey,
-            organizationId: organizationId ?? '',
+            organizationId,
           });
           if (!isWriteResponse(writeResponse1, true)) return false;
           resetDirty();
@@ -367,29 +410,6 @@ export default function CommissionCreateModal({
         }
       }}
     >
-      <ProFormSearchableSelect
-        name="organizationId"
-        label="所属公司"
-        rules={[{ required: true, message: '请选择所属公司' }]}
-        options={(organizationQuery.data ?? []).map((item) => ({
-          value: item.id ?? '',
-          label: item.name ?? item.code ?? item.id ?? '',
-        }))}
-        fieldProps={{
-          onChange: (value) => {
-            setOrganizationId(value);
-            // 切换组织后候选与关键字全部重置，立即拉取新组织首批；
-            // 防抖态同步清空，避免渲染间隙携带旧关键字发请求。
-            setVerificationKeyword('');
-            setVerificationSearchKeyword('');
-            setNettingKeyword('');
-            setNettingSearchKeyword('');
-            setCandidateSource(undefined);
-            resetPreview();
-            resetSourceSelection();
-          },
-        }}
-      />
       <Tabs
         size="small"
         activeKey={sourceType}
@@ -406,15 +426,31 @@ export default function CommissionCreateModal({
           name="verificationId"
           label="有效应收核销"
           rules={[{ required: true, message: '请选择有效应收核销单' }]}
-          disabled={!organizationId}
+          disabled={!canCreate}
           options={verificationQuery.data ?? []}
           fieldProps={{
             filterOption: false,
             loading: verificationQuery.isFetching,
             onSearch: (value: string) => setVerificationKeyword(value),
             onChange: (value?: string) => {
-              if (!value) return;
               resetPreview();
+              const selected = verificationQuery.data?.find(
+                (item) => item.value === value,
+              );
+              if (
+                !canCreate ||
+                !value ||
+                !access.canOperateOrganization(selected?.organizationId)
+              ) {
+                setCandidateSource(undefined);
+                resetSourceSelection();
+                if (value) message.warning('只能选择当前公司工作区的核销单');
+                return;
+              }
+              setSelectedVerification({
+                id: value,
+                organizationId: selected?.organizationId,
+              });
               setCandidateSource({ verificationId: value });
             },
           }}
@@ -434,7 +470,7 @@ export default function CommissionCreateModal({
           </Form.Item>
           <Input
             allowClear
-            disabled={!organizationId}
+            disabled={!canCreate}
             placeholder="搜索对冲单号 / 结算单位"
             value={nettingKeyword}
             onChange={(event) => setNettingKeyword(event.target.value)}
@@ -462,33 +498,27 @@ export default function CommissionCreateModal({
               type: 'radio',
               selectedRowKeys: selectedNetting?.id ? [selectedNetting.id] : [],
               onSelect: (record) => {
-                handleSelectNetting(record);
-                setCandidateSource({ nettingId: record.id });
+                if (handleSelectNetting(record))
+                  setCandidateSource({ nettingId: record.id });
               },
             }}
             onRow={(record) => ({
               onClick: () => {
-                handleSelectNetting(record);
-                setCandidateSource({ nettingId: record.id });
+                if (handleSelectNetting(record))
+                  setCandidateSource({ nettingId: record.id });
               },
               style: { cursor: 'pointer' },
             })}
             locale={{
-              emptyText: organizationId
+              emptyText: canCreate
                 ? '暂无符合条件的对冲单'
-                : '请先选择所属公司',
+                : '请切换到有提成办理权限的公司工作区',
             }}
           />
         </Form.Item>
       )}
-      <ProFormDependency
-        name={['verificationId', 'nettingId', 'organizationId']}
-      >
-        {({
-          verificationId,
-          nettingId,
-          organizationId: selectedOrganizationID,
-        }) => {
+      <ProFormDependency name={['verificationId', 'nettingId']}>
+        {({ verificationId, nettingId }) => {
           const sourceId = verificationId || nettingId;
           return (
             <ProFormSearchableSelect
@@ -496,7 +526,7 @@ export default function CommissionCreateModal({
               name="candidateKey"
               label="计提候选（员工 / 身份 / 已解析方案）"
               rules={[{ required: true, message: '请选择计提候选' }]}
-              disabled={!sourceId || !selectedOrganizationID}
+              disabled={!sourceId || !canCreate}
               options={candidateQuery.data ?? []}
               fieldProps={{
                 filterOption: false,
@@ -521,29 +551,47 @@ export default function CommissionCreateModal({
                 type="primary"
                 ghost
                 loading={previewLoading}
-                disabled={!sourceId || !values.candidateKey}
+                disabled={!canCreate || !sourceId || !values.candidateKey}
                 onClick={async () => {
                   const { employeeId, personnelRole } = parseCandidateKey(
                     values.candidateKey,
                   );
-                  if (!sourceId || !employeeId || !personnelRole) return;
+                  if (
+                    !canCreate ||
+                    !organizationId ||
+                    !sourceId ||
+                    !employeeId ||
+                    !personnelRole
+                  )
+                    return;
+                  if (!matchesSelectedSource(values)) {
+                    message.warning('请选择当前公司工作区的有效提成来源');
+                    return;
+                  }
                   try {
                     setPreviewLoading(true);
-                    const response = await settlementServicePreviewCommission({
-                      ...(values.verificationId
-                        ? { verificationId: values.verificationId }
-                        : { nettingId: values.nettingId }),
-                      employeeId,
-                      personnelRole,
-                      organizationId: organizationId ?? '',
-                    });
-                    setPreview(response.data);
-                    setPreviewSignature(calculationSignature(values));
+                    await previewRequest.run(
+                      ({ signal }) =>
+                        settlementServicePreviewCommission(
+                          {
+                            ...(values.verificationId
+                              ? { verificationId: values.verificationId }
+                              : { nettingId: values.nettingId }),
+                            employeeId,
+                            personnelRole,
+                            organizationId,
+                          },
+                          { signal },
+                        ),
+                      (response) => {
+                        setPreview(response.data);
+                        setPreviewSignature(calculationSignature(values));
+                        setPreviewLoading(false);
+                      },
+                    );
                   } catch (error) {
                     resetPreview();
                     message.error(getErrorMessage(error, '提成预览计算失败'));
-                  } finally {
-                    setPreviewLoading(false);
                   }
                 }}
               >

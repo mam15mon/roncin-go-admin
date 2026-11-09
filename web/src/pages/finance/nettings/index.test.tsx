@@ -29,6 +29,13 @@ const reasonFlow = vi.hoisted(() => ({
   submit: undefined as ((reason: string) => Promise<void> | void) | undefined,
 }));
 
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
+    initialState: {
+      currentUser: { id: 'user', currentOrganization: { id: 'workspace-org' } },
+    },
+  }),
+}));
 vi.mock('@/app/access', () => ({
   useAccess: () => accessState,
 }));

@@ -2,6 +2,8 @@ import type { ProFormInstance } from '@ant-design/pro-components';
 import { ProFormDigit, ProFormTextArea } from '@ant-design/pro-components';
 import { Alert, App } from 'antd';
 import React, { useRef, useState } from 'react';
+import { useInitialState } from '@/app/AppProvider';
+import { useAccess } from '@/app/access';
 import {
   GuardedModalForm,
   MODAL_SIZE,
@@ -27,6 +29,13 @@ export default function CommissionAdjustmentModal({
   onSuccess,
 }: CommissionAdjustmentModalProps) {
   const { message } = App.useApp();
+  const { initialState } = useInitialState();
+  const access = useAccess();
+  const canManage = Boolean(
+    initialState?.currentUser?.id &&
+      access.canManageFinanceCommissions &&
+      access.canOperateOrganization(detail?.organizationId),
+  );
   const formRef = useRef<ProFormInstance | undefined>(undefined);
   const [adjustmentIdempotencyKey] = useState(() => generateUUID());
 
@@ -37,13 +46,14 @@ export default function CommissionAdjustmentModal({
       title={`新增提成调整${detail?.commissionNo ? ` · ${detail.commissionNo}` : ''}`}
       open={open}
       width={MODAL_SIZE.MD}
+      disabled={!canManage}
       initialValues={{ direction: 'INCREASE' }}
       modalProps={{
         destroyOnHidden: true,
         onCancel: () => onOpenChange(false),
       }}
       onFinish={async (values) => {
-        if (!detail?.id) return false;
+        if (!detail?.id || !canManage) return false;
         try {
           const writeResponse1 =
             await settlementServiceCreateCommissionAdjustment(

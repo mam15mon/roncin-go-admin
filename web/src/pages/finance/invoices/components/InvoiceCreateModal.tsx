@@ -11,12 +11,12 @@ import {
   Typography,
 } from 'antd';
 import React, { useEffect, useState } from 'react';
+import { useInitialState } from '@/app/AppProvider';
+import { useAccess } from '@/app/access';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { MODAL_SIZE, ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
-import { FinanceOrganizationPurpose } from '@/enums.generated';
 import {
-  settlementServiceListFinanceOrganizationOptions,
   settlementServiceListInvoiceCreationBills,
   settlementServiceListInvoiceProfilesForBill,
 } from '@/services/roncin/settlementService';
@@ -55,26 +55,18 @@ export default function InvoiceCreateModal({
   const { message } = App.useApp();
   const { markDirty } = useUnsavedChangesGuard({ enabled: open });
   const queryClient = useQueryClient();
-  const [organizationID, setOrganizationID] = useState<string>();
+  const { initialState } = useInitialState();
+  const access = useAccess();
+  const organizationID = initialState?.currentUser?.currentOrganization?.id;
+  const canOperate =
+    Boolean(initialState?.currentUser?.id) &&
+    access.canCreateFinanceInvoices &&
+    access.canOperateOrganization(organizationID);
+  const validSelection = selectedBills.every(
+    (bill) => Boolean(organizationID) && bill.organizationId === organizationID,
+  );
   const [selectedProfile, setSelectedProfile] =
     useState<API.FinanceInvoiceProfileOption>();
-
-  // 可开票所属公司候选：弹窗打开即拉取；动态错误文案包装进 Error 交全局 onError。
-  const organizationQuery = useQuery({
-    queryKey: [...INVOICE_CREATE_QUERY_BASE, 'organization-options'],
-    enabled: open,
-    queryFn: async () => {
-      try {
-        const response = await settlementServiceListFinanceOrganizationOptions({
-          purpose:
-            FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_INVOICE_CREATE,
-        });
-        return response.data ?? [];
-      } catch (error) {
-        throw new Error(getErrorMessage(error, '加载可开票所属公司失败'));
-      }
-    },
-  });
 
   // 开票抬头联动：跟随首张已选账单自动加载，账单变化即换 key 重查。
   const firstBillId = selectedBills[0]?.id;
@@ -82,9 +74,9 @@ export default function InvoiceCreateModal({
     queryKey: [
       ...INVOICE_CREATE_QUERY_BASE,
       'invoice-profiles',
-      { billId: firstBillId },
+      { organizationId: organizationID, billId: firstBillId },
     ],
-    enabled: open && Boolean(firstBillId),
+    enabled: open && canOperate && validSelection && Boolean(firstBillId),
     queryFn: async () => {
       try {
         const response = await settlementServiceListInvoiceProfilesForBill(
@@ -101,7 +93,8 @@ export default function InvoiceCreateModal({
   // 抬头就绪后回填默认选择；账单未定或加载中时清空选择，旧抬头不残留。
   useEffect(() => {
     if (!open) return;
-    const profiles = profilesQuery.data;
+    const profiles =
+      canOperate && validSelection ? profilesQuery.data : undefined;
     if (!profiles) {
       setSelectedProfile(undefined);
       createForm.setFieldValue('invoiceProfileId', undefined);
@@ -116,24 +109,23 @@ export default function InvoiceCreateModal({
     if (!selected) {
       message.warning('该结算单位尚未配置可用开票抬头，请先到往来单位档案维护');
     }
-  }, [createForm, message, open, profilesQuery.data]);
+  }, [
+    canOperate,
+    validSelection,
+    createForm,
+    message,
+    open,
+    profilesQuery.data,
+  ]);
 
-  // 关闭弹窗即重置组织与抬头选择，并清除本弹窗查询缓存，
+  // 关闭弹窗即重置抬头选择，并清除本弹窗查询缓存，
   // 避免在途/缓存响应在下次打开时回填上一次会话的数据。
   useEffect(() => {
     if (open) return;
-    setOrganizationID(undefined);
     setSelectedProfile(undefined);
     createForm.setFieldValue('invoiceProfileId', undefined);
     queryClient.removeQueries({ queryKey: INVOICE_CREATE_QUERY_BASE });
   }, [createForm, open, queryClient]);
-
-  const clearSelection = () => {
-    setSelectedIDs([]);
-    setSelectedBills([]);
-    setSelectedProfile(undefined);
-    createForm.setFieldValue('invoiceProfileId', undefined);
-  };
 
   const columns: ProColumns<API.FinanceBill>[] = [
     { title: '账单编号', dataIndex: 'billNo' },
@@ -167,7 +159,13 @@ export default function InvoiceCreateModal({
       width={MODAL_SIZE.LG}
       confirmLoading={submitting}
       onCancel={onCancel}
-      onOk={() => void onOk()}
+      onOk={() => {
+        if (!canOperate || !validSelection || selectedBills.length === 0) {
+          message.warning('请选择当前公司可开票的账单');
+          return;
+        }
+        void onOk();
+      }}
     >
       <Form
         form={createForm}
@@ -175,23 +173,6 @@ export default function InvoiceCreateModal({
         style={{ marginBottom: 12 }}
         onValuesChange={markDirty}
       >
-        <Form.Item label="所属公司">
-          <Select
-            aria-label="所属公司"
-            allowClear
-            placeholder="请先选择可开票所属公司"
-            style={{ width: 240 }}
-            value={organizationID}
-            options={(organizationQuery.data ?? []).map((item) => ({
-              value: item.id,
-              label: item.name ?? item.code ?? item.id,
-            }))}
-            onChange={(value) => {
-              setOrganizationID(value);
-              clearSelection();
-            }}
-          />
-        </Form.Item>
         <Form.Item
           name="invoiceProfileId"
           label="开票抬头"
@@ -202,7 +183,7 @@ export default function InvoiceCreateModal({
             placeholder={
               selectedBills[0] ? '请选择该客户的开票抬头' : '请先选择账单'
             }
-            disabled={!selectedBills[0] || !organizationID}
+            disabled={!selectedBills[0] || !canOperate || !validSelection}
             options={(profilesQuery.data ?? []).map((item) => ({
               value: item.id,
               label: `${item.invoiceTitle}${item.isDefault ? '（默认）' : ''}`,
@@ -289,17 +270,19 @@ export default function InvoiceCreateModal({
             const f = selectedBills[0];
             return {
               disabled:
-                Boolean(f) &&
-                (r.direction !== f.direction ||
-                  r.organizationId !== f.organizationId ||
-                  r.settlementPartyId !== f.settlementPartyId ||
-                  r.currency !== f.currency),
+                !canOperate ||
+                r.organizationId !== organizationID ||
+                (Boolean(f) &&
+                  (r.direction !== f?.direction ||
+                    r.organizationId !== f?.organizationId ||
+                    r.settlementPartyId !== f?.settlementPartyId ||
+                    r.currency !== f?.currency)),
             };
           },
         }}
         request={async (p) => {
-          if (!organizationID) {
-            return { data: [], success: true, total: 0 };
+          if (!canOperate || !organizationID) {
+            return { data: [], success: false, total: 0 };
           }
           const r = await settlementServiceListInvoiceCreationBills({
             page: p.current,

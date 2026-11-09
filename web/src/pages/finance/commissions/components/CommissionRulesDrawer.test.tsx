@@ -10,6 +10,30 @@ import dayjs from 'dayjs';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+const workspace = vi.hoisted(() => ({
+  organizationId: 'org-a' as string | undefined,
+  userId: 'user-1' as string | undefined,
+  canOperate: true,
+}));
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
+    initialState: {
+      currentUser: {
+        id: workspace.userId,
+        currentOrganization: { id: workspace.organizationId },
+      },
+    },
+  }),
+}));
+vi.mock('@/app/access', () => ({
+  useAccess: () => ({
+    canReadFinanceCommissions: true,
+    canConfigureFinanceCommissions: true,
+    canManageFinanceCommissions: true,
+    canOperateOrganization: (id?: string) =>
+      workspace.canOperate && Boolean(id) && id === workspace.organizationId,
+  }),
+}));
 const serviceMocks = vi.hoisted(() => ({
   createCommissionRule: vi.fn(),
   updateCommissionRule: vi.fn(),
@@ -18,11 +42,12 @@ const serviceMocks = vi.hoisted(() => ({
   removeCommissionRuleEmployees: vi.fn(),
   listCommissionRules: vi.fn(),
   listCommissionEmployees: vi.fn(),
-  listFinanceOrganizationOptions: vi.fn(),
 }));
 
 const drawerState = vi.hoisted(() => ({
   forms: {} as Record<string, Record<string, any>>,
+  table: undefined as Record<string, any> | undefined,
+  sourceOrganizationId: 'org-a' as string | undefined,
 }));
 
 vi.mock('@ant-design/pro-components', () => ({
@@ -46,10 +71,11 @@ vi.mock('@ant-design/pro-components', () => ({
   ProFormText: () => null,
   ProFormTextArea: () => null,
   ProTable: (props: Record<string, any>) => {
+    drawerState.table = props;
     const sample = {
       id: 'rule-source',
       name: '旧方案',
-      organizationId: 'org-a',
+      organizationId: drawerState.sourceOrganizationId,
       version: 3,
       assignments: [{ employeeId: 'employee-1', employeeName: '张三' }],
     };
@@ -87,8 +113,6 @@ vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceListCommissionEmployees:
     serviceMocks.listCommissionEmployees,
   settlementServiceListCommissionRules: serviceMocks.listCommissionRules,
-  settlementServiceListFinanceOrganizationOptions:
-    serviceMocks.listFinanceOrganizationOptions,
   settlementServiceRemoveCommissionRuleEmployees:
     serviceMocks.removeCommissionRuleEmployees,
   settlementServiceUpdateCommissionRule: serviceMocks.updateCommissionRule,
@@ -98,13 +122,15 @@ import CommissionRulesDrawer from './CommissionRulesDrawer';
 
 describe('提成方案抽屉', () => {
   beforeEach(() => {
+    workspace.organizationId = 'org-a';
+    workspace.userId = 'user-1';
+    workspace.canOperate = true;
     drawerState.forms = {};
+    drawerState.table = undefined;
+    drawerState.sourceOrganizationId = 'org-a';
     for (const mock of Object.values(serviceMocks)) {
       mock.mockReset();
     }
-    serviceMocks.listFinanceOrganizationOptions.mockResolvedValue({
-      data: [],
-    });
     serviceMocks.listCommissionEmployees.mockResolvedValue({
       data: [
         { id: 'employee-1', displayName: '张三' },
@@ -234,4 +260,106 @@ describe('提成方案抽屉', () => {
     });
     expect(serviceMocks.copyCommissionRule).not.toHaveBeenCalled();
   });
+
+  it('方案列表与复制员工候选固定当前公司，旧表单公司不改变新建目标', async () => {
+    serviceMocks.listCommissionRules.mockResolvedValue({ data: [], total: 0 });
+    serviceMocks.createCommissionRule.mockResolvedValue({
+      data: { id: 'new-rule' },
+    });
+    render(
+      <App>
+        <CommissionRulesDrawer open onClose={vi.fn()} canManage />
+      </App>,
+    );
+    await act(async () => {
+      await drawerState.table?.request({
+        current: 2,
+        pageSize: 40,
+        organizationId: 'org-b',
+      });
+    });
+    expect(serviceMocks.listCommissionRules).toHaveBeenCalledWith(
+      expect.objectContaining({
+        organizationId: 'org-a',
+        page: 2,
+        pageSize: 40,
+      }),
+    );
+    fireEvent.click(screen.getByText('复制为新方案'));
+    await waitFor(() =>
+      expect(serviceMocks.listCommissionEmployees).toHaveBeenCalledWith({
+        page: 1,
+        pageSize: 200,
+        organizationId: 'org-a',
+      }),
+    );
+    await act(async () => {
+      expect(
+        await drawerState.forms.新建提成方案.onFinish({
+          organizationId: 'org-b',
+          name: '当前公司方案',
+          personnelRole: 'SALES',
+          calculationBasis: 'REALIZED_PROFIT',
+          ratePercent: 10,
+          enabled: false,
+        }),
+      ).toBe(true);
+    });
+    expect(serviceMocks.createCommissionRule).toHaveBeenCalledWith(
+      expect.objectContaining({ organizationId: 'org-a' }),
+    );
+  });
+
+  it.each([undefined, 'org-b'])(
+    '来源方案公司为%s时拒绝编辑和复制，不加载外公司员工',
+    async (sourceOrganizationId) => {
+      drawerState.sourceOrganizationId = sourceOrganizationId;
+      render(
+        <App>
+          <CommissionRulesDrawer open onClose={vi.fn()} canManage />
+        </App>,
+      );
+      fireEvent.click(screen.getByText('复制为新方案'));
+      fireEvent.click(screen.getByText('编辑'));
+      expect(
+        await screen.findAllByText('只能操作当前公司工作区的提成方案'),
+      ).toHaveLength(2);
+      expect(drawerState.forms.复制为新方案.open).toBe(false);
+      expect(drawerState.forms.新建提成方案.open).toBe(false);
+      expect(serviceMocks.listCommissionEmployees).not.toHaveBeenCalled();
+      expect(serviceMocks.copyCommissionRule).not.toHaveBeenCalled();
+      expect(serviceMocks.updateCommissionRule).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['missing-user', 'missing-company', 'non-company'])(
+    '%s 不查询方案或允许提交',
+    async (scenario) => {
+      if (scenario === 'missing-user') workspace.userId = undefined;
+      if (scenario === 'missing-company') workspace.organizationId = undefined;
+      if (scenario === 'non-company') workspace.canOperate = false;
+      render(
+        <App>
+          <CommissionRulesDrawer open onClose={vi.fn()} canManage />
+        </App>,
+      );
+      await act(async () => {
+        expect(
+          await drawerState.table?.request({ current: 1, pageSize: 20 }),
+        ).toMatchObject({ success: false });
+        expect(
+          await drawerState.forms.新建提成方案.onFinish({
+            name: '无效提交',
+            personnelRole: 'SALES',
+            calculationBasis: 'REALIZED_PROFIT',
+            ratePercent: 10,
+            enabled: false,
+          }),
+        ).toBe(false);
+      });
+      expect(serviceMocks.listCommissionRules).not.toHaveBeenCalled();
+      expect(serviceMocks.listCommissionEmployees).not.toHaveBeenCalled();
+      expect(serviceMocks.createCommissionRule).not.toHaveBeenCalled();
+    },
+  );
 });

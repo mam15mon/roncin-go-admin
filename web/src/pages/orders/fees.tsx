@@ -711,8 +711,11 @@ export default function OrderFeesPage() {
         onFeeSaved={refreshFeeBillTracking}
         onOpenBillWorkbench={(feeIds) => {
           if (!orderId) return;
-          if (!order?.organizationId) {
-            message.warning('无法确定费用所属公司，不能创建账单');
+          if (
+            !order?.organizationId ||
+            !access.canOperateOrganization(order.organizationId)
+          ) {
+            message.warning('所选费用不属于当前公司，不能创建账单');
             return;
           }
           setBillWorkbenchContext({

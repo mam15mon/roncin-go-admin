@@ -32,30 +32,6 @@ type SettlementService struct {
 	accountUsecase               *biz.PartnerAccountUsecase
 }
 
-func (s *SettlementService) ListFinanceOrganizationOptions(ctx context.Context, request *v1.ListFinanceOrganizationOptionsRequest) (*v1.ListFinanceOrganizationOptionsResponse, error) {
-	principal, err := biz.RequirePrincipal(ctx)
-	if err != nil {
-		return nil, err
-	}
-	permission, writable, ok := financeOrganizationPurposePermission(request.GetPurpose())
-	if !ok {
-		return nil, biz.ErrFinanceLedgerInvalidArgument
-	}
-	organizationIDs, err := organizationIDsForPermission(principal, permission, writable)
-	if err != nil {
-		return nil, err
-	}
-	items, err := s.usecase.ListFinanceOrganizations(ctx, organizationIDs, financeOptionalString(request.Keyword))
-	if err != nil {
-		return nil, err
-	}
-	data := make([]*v1.FinanceOrganizationOption, 0, len(items))
-	for _, item := range items {
-		data = append(data, &v1.FinanceOrganizationOption{Id: item.ID.String(), Code: item.Code, Name: item.Name, BaseCurrency: item.BaseCurrency})
-	}
-	return okList(ctx, &v1.ListFinanceOrganizationOptionsResponse{Data: data}), nil
-}
-
 func (s *SettlementService) ListFinanceSettlementPartyOptions(ctx context.Context, request *v1.ListFinanceSettlementPartyOptionsRequest) (*v1.ListFinanceSettlementPartyOptionsResponse, error) {
 	principal, err := biz.RequirePrincipal(ctx)
 	if err != nil {
@@ -91,30 +67,10 @@ func (s *SettlementService) ListFinanceSettlementPartyOptions(ctx context.Contex
 
 func financeOrganizationPurposePermission(purpose v1.FinanceOrganizationPurpose) (string, bool, bool) {
 	switch purpose {
-	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_BILL_READ:
-		return access.FinanceBillRead, false, true
-	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_BILL_CREATE:
-		return access.FinanceBillCreate, true, true
-	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_INVOICE_READ:
-		return access.FinanceInvoiceRead, false, true
-	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_INVOICE_CREATE:
-		return access.FinanceInvoiceCreate, true, true
-	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_READ:
-		return access.FinanceCashflowRead, false, true
 	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_CREATE:
 		return access.FinanceCashflowCreate, true, true
-	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_READ:
-		return access.FinanceVerificationRead, false, true
 	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_CREATE:
 		return access.FinanceVerificationCreate, true, true
-	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_COMMISSION_READ:
-		return access.FinanceCommissionRead, false, true
-	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_COMMISSION_MANAGE:
-		return access.FinanceCommissionManage, true, true
-	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_FEE_READ:
-		return access.FinanceFeeRead, false, true
-	case v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_NETTING_READ:
-		return access.FinanceNettingRead, false, true
 	default:
 		return "", false, false
 	}

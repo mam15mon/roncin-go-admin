@@ -21,10 +21,6 @@ func (*settlementRepoStub) GetFeeLedgerOrderDetail(context.Context, []uuid.UUID,
 	return nil, nil
 }
 
-func (*settlementRepoStub) ListFinanceOrganizations(context.Context, []uuid.UUID, string) ([]*FinanceOrganizationOption, error) {
-	return nil, nil
-}
-
 func (*settlementRepoStub) ListFinanceSettlementParties(context.Context, uuid.UUID, string, int, int) ([]*FinanceSettlementPartyOption, int64, error) {
 	return nil, 0, nil
 }

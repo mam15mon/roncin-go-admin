@@ -46,7 +46,6 @@ const (
 	SettlementService_CancelInvoice_FullMethodName                             = "/finance.v1.SettlementService/CancelInvoice"
 	SettlementService_RedFlushInvoice_FullMethodName                           = "/finance.v1.SettlementService/RedFlushInvoice"
 	SettlementService_ListCashflows_FullMethodName                             = "/finance.v1.SettlementService/ListCashflows"
-	SettlementService_ListFinanceOrganizationOptions_FullMethodName            = "/finance.v1.SettlementService/ListFinanceOrganizationOptions"
 	SettlementService_ListFinanceSettlementPartyOptions_FullMethodName         = "/finance.v1.SettlementService/ListFinanceSettlementPartyOptions"
 	SettlementService_CreateCashflow_FullMethodName                            = "/finance.v1.SettlementService/CreateCashflow"
 	SettlementService_ConfirmCashflow_FullMethodName                           = "/finance.v1.SettlementService/ConfirmCashflow"
@@ -131,7 +130,6 @@ type SettlementServiceClient interface {
 	CancelInvoice(ctx context.Context, in *CancelInvoiceRequest, opts ...grpc.CallOption) (*CancelInvoiceResponse, error)
 	RedFlushInvoice(ctx context.Context, in *RedFlushInvoiceRequest, opts ...grpc.CallOption) (*RedFlushInvoiceResponse, error)
 	ListCashflows(ctx context.Context, in *ListCashflowsRequest, opts ...grpc.CallOption) (*ListCashflowsResponse, error)
-	ListFinanceOrganizationOptions(ctx context.Context, in *ListFinanceOrganizationOptionsRequest, opts ...grpc.CallOption) (*ListFinanceOrganizationOptionsResponse, error)
 	ListFinanceSettlementPartyOptions(ctx context.Context, in *ListFinanceSettlementPartyOptionsRequest, opts ...grpc.CallOption) (*ListFinanceSettlementPartyOptionsResponse, error)
 	CreateCashflow(ctx context.Context, in *CreateCashflowRequest, opts ...grpc.CallOption) (*CreateCashflowResponse, error)
 	ConfirmCashflow(ctx context.Context, in *ConfirmCashflowRequest, opts ...grpc.CallOption) (*ConfirmCashflowResponse, error)
@@ -474,16 +472,6 @@ func (c *settlementServiceClient) ListCashflows(ctx context.Context, in *ListCas
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListCashflowsResponse)
 	err := c.cc.Invoke(ctx, SettlementService_ListCashflows_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *settlementServiceClient) ListFinanceOrganizationOptions(ctx context.Context, in *ListFinanceOrganizationOptionsRequest, opts ...grpc.CallOption) (*ListFinanceOrganizationOptionsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListFinanceOrganizationOptionsResponse)
-	err := c.cc.Invoke(ctx, SettlementService_ListFinanceOrganizationOptions_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -968,7 +956,6 @@ type SettlementServiceServer interface {
 	CancelInvoice(context.Context, *CancelInvoiceRequest) (*CancelInvoiceResponse, error)
 	RedFlushInvoice(context.Context, *RedFlushInvoiceRequest) (*RedFlushInvoiceResponse, error)
 	ListCashflows(context.Context, *ListCashflowsRequest) (*ListCashflowsResponse, error)
-	ListFinanceOrganizationOptions(context.Context, *ListFinanceOrganizationOptionsRequest) (*ListFinanceOrganizationOptionsResponse, error)
 	ListFinanceSettlementPartyOptions(context.Context, *ListFinanceSettlementPartyOptionsRequest) (*ListFinanceSettlementPartyOptionsResponse, error)
 	CreateCashflow(context.Context, *CreateCashflowRequest) (*CreateCashflowResponse, error)
 	ConfirmCashflow(context.Context, *ConfirmCashflowRequest) (*ConfirmCashflowResponse, error)
@@ -1127,9 +1114,6 @@ func (UnimplementedSettlementServiceServer) RedFlushInvoice(context.Context, *Re
 }
 func (UnimplementedSettlementServiceServer) ListCashflows(context.Context, *ListCashflowsRequest) (*ListCashflowsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListCashflows not implemented")
-}
-func (UnimplementedSettlementServiceServer) ListFinanceOrganizationOptions(context.Context, *ListFinanceOrganizationOptionsRequest) (*ListFinanceOrganizationOptionsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListFinanceOrganizationOptions not implemented")
 }
 func (UnimplementedSettlementServiceServer) ListFinanceSettlementPartyOptions(context.Context, *ListFinanceSettlementPartyOptionsRequest) (*ListFinanceSettlementPartyOptionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListFinanceSettlementPartyOptions not implemented")
@@ -1766,24 +1750,6 @@ func _SettlementService_ListCashflows_Handler(srv interface{}, ctx context.Conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SettlementServiceServer).ListCashflows(ctx, req.(*ListCashflowsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _SettlementService_ListFinanceOrganizationOptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListFinanceOrganizationOptionsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SettlementServiceServer).ListFinanceOrganizationOptions(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: SettlementService_ListFinanceOrganizationOptions_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SettlementServiceServer).ListFinanceOrganizationOptions(ctx, req.(*ListFinanceOrganizationOptionsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2694,10 +2660,6 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListCashflows",
 			Handler:    _SettlementService_ListCashflows_Handler,
-		},
-		{
-			MethodName: "ListFinanceOrganizationOptions",
-			Handler:    _SettlementService_ListFinanceOrganizationOptions_Handler,
 		},
 		{
 			MethodName: "ListFinanceSettlementPartyOptions",

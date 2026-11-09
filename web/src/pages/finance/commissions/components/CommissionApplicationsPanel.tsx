@@ -1,7 +1,9 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import { useQuery } from '@tanstack/react-query';
 import { App, DatePicker, Space } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
+import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
 import {
@@ -57,33 +59,39 @@ export function isApplicationConflictError(error: unknown): boolean {
  */
 export default function CommissionApplicationsPanel() {
   const access = useAccess();
+  const { initialState } = useInitialState();
+  const currentUser = initialState?.currentUser;
+  const organizationId = currentUser?.currentOrganization?.id;
+  const hasCompanyScope = Boolean(
+    currentUser?.id && access.canOperateOrganization(organizationId),
+  );
   const getModalOwnerSignal = useModalOwnerSignal();
   const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const committedFiltersRef = useRef<CommittedApplicationFilters>({});
-  const [employeeOptions, setEmployeeOptions] = useState<
-    { label: string; value: string }[]
-  >([]);
   const [detailId, setDetailId] = useState<string>();
   const [detailRefreshToken, setDetailRefreshToken] = useState(0);
 
-  const canManage = access.canManageFinanceCommissions === true;
+  const canManage =
+    hasCompanyScope && access.canManageFinanceCommissions === true;
 
-  useEffect(() => {
-    // 员工过滤候选项沿用提成台账先例：单页 200 条服务端员工选项。
-    settlementServiceListCommissionEmployees({ page: 1, pageSize: 200 })
-      .then((response) => {
-        setEmployeeOptions(
-          (response.data ?? [])
-            .filter((item) => item.id)
-            .map((item) => ({
-              label: item.displayName || (item.id as string),
-              value: item.id as string,
-            })),
-        );
-      })
-      .catch(() => setEmployeeOptions([]));
-  }, []);
+  const employeeQuery = useQuery({
+    queryKey: ['commission-applications', 'employees', { organizationId }],
+    enabled: hasCompanyScope && access.canReadFinanceCommissions,
+    meta: { silent: true },
+    queryFn: async () => {
+      if (!hasCompanyScope || !organizationId) return [];
+      const response = await settlementServiceListCommissionEmployees({
+        page: 1,
+        pageSize: 200,
+        organizationId,
+      });
+      return (response.data ?? []).flatMap((item) =>
+        item.id ? [{ label: item.displayName || item.id, value: item.id }] : [],
+      );
+    },
+  });
+  const employeeOptions = employeeQuery.data ?? [];
 
   const reload = () => actionRef.current?.reload();
 
@@ -335,6 +343,8 @@ export default function CommissionApplicationsPanel() {
           style: { borderRadius: 8, border: '1px solid #f0f0f0' },
         }}
         request={async (params) => {
+          if (!hasCompanyScope || !access.canReadFinanceCommissions)
+            return { data: [], success: false, total: 0 };
           const filters = committedFiltersRef.current;
           const response = await settlementServiceListCommissionApplications({
             page: params.current ?? 1,
@@ -345,6 +355,7 @@ export default function CommissionApplicationsPanel() {
               FinanceCommissionApplicationStatus.FINANCE_COMMISSION_APPLICATION_STATUS_PENDING_REVIEW,
             applicationMonth: filters.applicationMonth,
             employeeId: filters.employeeId,
+            organizationId,
           });
           return toTableRequest(response);
         }}

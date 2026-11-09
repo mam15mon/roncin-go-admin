@@ -2,15 +2,14 @@ import { CheckOutlined, RollbackOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import {
   App,
-  Card,
   Descriptions,
   Drawer,
-  Select,
   Space,
   type TableColumnsType,
   Tag,
 } from 'antd';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
+import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
 import {
@@ -19,10 +18,7 @@ import {
   ResponsiveTable as Table,
 } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
-import {
-  FinanceNettingStatus,
-  FinanceOrganizationPurpose,
-} from '@/enums.generated';
+import { FinanceNettingStatus } from '@/enums.generated';
 import { ExchangeGainLossTag } from '@/features/finance/exchange-gain-loss';
 import {
   mapMatchedSummary,
@@ -31,7 +27,6 @@ import {
 import {
   settlementServiceCancelNetting,
   settlementServiceConfirmNetting,
-  settlementServiceListFinanceOrganizationOptions,
   settlementServiceListNettings,
   settlementServiceReverseNetting,
 } from '@/services/roncin/settlementService';
@@ -69,27 +64,22 @@ function nettingStatusTag(status?: number) {
 
 export default function FinanceNettingsPage() {
   const access = useAccess();
+  const { initialState } = useInitialState();
+  const currentUser = initialState?.currentUser;
+  const organizationId = currentUser?.currentOrganization?.id;
+  const hasCompanyScope = Boolean(
+    currentUser?.id &&
+      organizationId &&
+      access.canOperateOrganization(organizationId),
+  );
   const getModalOwnerSignal = useModalOwnerSignal();
   const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [detail, setDetail] = useState<API.FinanceNetting>();
-  const [organizationId, setOrganizationId] = useState<string>();
-  const [organizationOptions, setOrganizationOptions] = useState<
-    API.FinanceOrganizationOption[]
-  >([]);
   const [metricStats, setMetricStats] = useState({
     confirmedCount: 0,
     amountsByBaseCurrency: [] as API.FinanceNettingBaseCurrencyAmount[],
   });
-
-  useEffect(() => {
-    void settlementServiceListFinanceOrganizationOptions({
-      purpose:
-        FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_NETTING_READ,
-    })
-      .then((response) => setOrganizationOptions(response.data ?? []))
-      .catch(() => setOrganizationOptions([]));
-  }, []);
 
   const reload = () => actionRef.current?.reload();
   const nettingActions = makeVersionActions<API.FinanceNetting>(
@@ -428,36 +418,6 @@ export default function FinanceNettingsPage() {
 
   return (
     <>
-      <Card
-        size="small"
-        style={{
-          marginBottom: 'var(--roncin-page-section-gap)',
-          borderRadius: 8,
-          border: '1px solid #f0f0f0',
-          backgroundColor: '#ffffff',
-        }}
-        styles={{ body: { padding: '10px 16px' } }}
-      >
-        <Space size={8} align="center">
-          <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
-            所属公司：
-          </span>
-          <Select
-            allowClear
-            placeholder="请选择所属公司"
-            style={{ minWidth: 220 }}
-            value={organizationId}
-            options={organizationOptions.map((item) => ({
-              value: item.id,
-              label: item.name ?? item.code ?? item.id,
-            }))}
-            onChange={(value) => {
-              setOrganizationId(value);
-              actionRef.current?.reload();
-            }}
-          />
-        </Space>
-      </Card>
       <FinanceLedgerTemplate<
         API.FinanceNetting,
         NettingLedgerFilterParams,
@@ -481,6 +441,7 @@ export default function FinanceNettingsPage() {
           });
         }}
         request={async (params) => {
+          if (!hasCompanyScope) return { data: [], success: false, total: 0 };
           const response = await settlementServiceListNettings(
             {
               page: params.current,

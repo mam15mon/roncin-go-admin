@@ -295,10 +295,6 @@ func TestInvoiceCreateCandidatesUseWritableOrganizationScope(t *testing.T) {
 	direction := string(biz.OrderFeeReceivable)
 	currency := "usd"
 
-	permission, writable, ok := financeOrganizationPurposePermission(v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_INVOICE_CREATE)
-	if !ok || permission != access.FinanceInvoiceCreate || !writable {
-		t.Fatalf("发票创建组织用途映射错误: permission=%q writable=%t ok=%t", permission, writable, ok)
-	}
 	_, err := service.ListInvoiceCreationBills(ctx, &v1.ListInvoiceCreationBillsRequest{
 		OrganizationId: organizationID.String(), Page: 1, PageSize: 20, Direction: &direction, Currency: &currency,
 	})
@@ -336,10 +332,7 @@ func TestBillCreationCandidatesUseCreateWritableOrganization(t *testing.T) {
 	repo := &billCreationCandidateServiceRepoStub{}
 	service := &SettlementService{billUsecase: biz.NewFinanceBillUsecase(repo, nil, nil, nil)}
 	ctx := biz.WithPrincipal(context.Background(), p)
-	permission, writable, ok := financeOrganizationPurposePermission(v1.FinanceOrganizationPurpose_FINANCE_ORGANIZATION_PURPOSE_BILL_CREATE)
-	if !ok || permission != access.FinanceBillCreate || !writable {
-		t.Fatalf("建账用途错误:%q %t", permission, writable)
-	}
+
 	if _, err := service.ListBillCreationCandidates(ctx, &v1.ListBillCreationCandidatesRequest{OrganizationId: allowed.String(), Page: 1, PageSize: 20}); err != nil {
 		t.Fatal(err)
 	}

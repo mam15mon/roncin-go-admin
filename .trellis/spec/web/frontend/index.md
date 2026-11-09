@@ -16,6 +16,7 @@
 | [HBL 制作与 PDF 输出](../../server/backend/sea-hbl-production.md) | 同一 HBL 保存、四版本独立于利润审核、字体与完整分页输出 | ✅ |
 | [Component Guidelines](./component-guidelines.md) | UI 模板规范、公共组件与金额/时间显示口径 | ✅ |
 | [财务列表快照与汇总](./finance-ledger-snapshots.md) | 六列表 matchedSummary、官方采纳、单行底栏与跨页选择 | ✅ |
+| [财务当前公司工作区](./finance-current-workspace.md) | 列表与弹窗唯一公司来源、公司候选接口退役及来源等值校验 | ✅ |
 | [State Management](./state-management.md) | 服务端状态与请求客户端 | ✅ |
 | [退关后详情读取](../../server/backend/sea-terminated-order-read.md) | 终态单证读取、本人状态操作识别与编辑基线保护 | ✅ |
 | [Workbench Todos](../../server/backend/workbench-todos.md) | 本人待办分页、权限、返回刷新与异常直达的一次性消费 | ✅ |

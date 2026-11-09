@@ -24,7 +24,6 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	correctionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeecorrectionrequest"
 	supplementent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfeesupplementrequest"
-	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	partneralias "github.com/roncin/roncin-go-admin/server/internal/data/ent/partneralias"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -218,30 +217,6 @@ func feeLedgerOrderQuery(query *ent.OrderQuery) *ent.OrderQuery {
 
 func NewSettlementRepo(data *Data) biz.SettlementRepo {
 	return &settlementRepo{data: data}
-}
-
-func (r *settlementRepo) ListFinanceOrganizations(ctx context.Context, organizationIDs []uuid.UUID, keyword string) ([]*biz.FinanceOrganizationOption, error) {
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return nil, err
-	}
-	predicates := []predicate.Organization{organizationent.IDIn(organizationIDs...), organizationent.EnabledEQ(true)}
-	if keyword != "" {
-		predicates = append(predicates, organizationent.Or(organizationent.NameContainsFold(keyword), organizationent.CodeContainsFold(keyword), organizationent.SearchKeywordsContainsFold(keyword)))
-	}
-	items, err := client.Organization.Query().Where(predicates...).Order(organizationent.ByCode(), organizationent.ByID()).All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	result := make([]*biz.FinanceOrganizationOption, 0, len(items))
-	for _, item := range items {
-		baseCurrency := ""
-		if item.BaseCurrency != nil {
-			baseCurrency = *item.BaseCurrency
-		}
-		result = append(result, &biz.FinanceOrganizationOption{ID: item.ID, Code: item.Code, Name: item.Name, BaseCurrency: baseCurrency})
-	}
-	return result, nil
 }
 
 func (r *settlementRepo) ListFinanceSettlementParties(ctx context.Context, organizationID uuid.UUID, keyword string, page, pageSize int) ([]*biz.FinanceSettlementPartyOption, int64, error) {

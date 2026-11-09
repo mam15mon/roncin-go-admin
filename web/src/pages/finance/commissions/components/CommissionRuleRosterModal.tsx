@@ -10,6 +10,8 @@ import {
 } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React from 'react';
+import { useInitialState } from '@/app/AppProvider';
+import { useAccess } from '@/app/access';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { MODAL_SIZE, ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
@@ -38,7 +40,6 @@ type CommissionRuleRosterModalProps = {
   employeeOptions: EmployeeOption[];
   searchEmployees: (
     keyword: string,
-    targetOrganizationId: string | undefined,
     apply: (options: EmployeeOption[]) => void,
   ) => Promise<void>;
   onEmployeeOptionsChange: React.Dispatch<
@@ -124,11 +125,7 @@ export default function CommissionRuleRosterModal({
             rosterRule={rosterRule}
             employeeOptions={employeeOptions}
             searchEmployees={(keyword) => {
-              void searchEmployees(
-                keyword ?? '',
-                rosterRule.organizationId,
-                onEmployeeOptionsChange,
-              );
+              void searchEmployees(keyword ?? '', onEmployeeOptionsChange);
             }}
             onChanged={onChanged}
             onError={onError}
@@ -161,6 +158,13 @@ function RosterChangeForms({
   onError,
 }: RosterChangeFormsProps) {
   const { message } = App.useApp();
+  const access = useAccess();
+  const { initialState } = useInitialState();
+  const canManage = Boolean(
+    initialState?.currentUser?.id &&
+      access.canConfigureFinanceCommissions &&
+      access.canOperateOrganization(rosterRule.organizationId),
+  );
   const [addForm] = Form.useForm<RosterChangeValues>();
   const [removeForm] = Form.useForm<RosterChangeValues>();
   const addGuard = useUnsavedChangesGuard({ identity: rosterRule.id });
@@ -178,6 +182,10 @@ function RosterChangeForms({
     values: RosterChangeValues,
     action: 'assign' | 'remove',
   ): Promise<false | undefined> => {
+    if (!canManage) {
+      message.warning('只能维护当前公司工作区的提成方案名单');
+      return false;
+    }
     if (!values.employeeIds?.length) {
       message.warning(
         action === 'assign' ? '请选择要加入的员工' : '请选择要移除的员工',
@@ -226,6 +234,7 @@ function RosterChangeForms({
     <div style={{ display: 'grid', gap: 16 }}>
       <Form
         form={addForm}
+        disabled={!canManage}
         onValuesChange={addGuard.markDirty}
         layout="inline"
         onFinish={(values) => void submit(values, 'assign')}
@@ -260,6 +269,7 @@ function RosterChangeForms({
       </Form>
       <Form
         form={removeForm}
+        disabled={!canManage}
         onValuesChange={removeGuard.markDirty}
         layout="inline"
         onFinish={(values) => void submit(values, 'remove')}

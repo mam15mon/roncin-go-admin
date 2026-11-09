@@ -22,11 +22,9 @@ type CommissionRuleFormModalProps = {
   open: boolean;
   editingRule: API.FinanceCommissionRule | undefined;
   formRef: React.RefObject<ProFormInstance | undefined>;
-  organizationOptions: API.FinanceOrganizationOption[];
   employeeOptions: EmployeeOption[];
   searchEmployees: (
     keyword: string,
-    targetOrganizationId: string | undefined,
     apply: (options: EmployeeOption[]) => void,
   ) => Promise<void>;
   onEmployeeOptionsChange: React.Dispatch<
@@ -41,7 +39,6 @@ export default function CommissionRuleFormModal({
   open,
   editingRule,
   formRef,
-  organizationOptions,
   employeeOptions,
   searchEmployees,
   onEmployeeOptionsChange,
@@ -76,7 +73,6 @@ export default function CommissionRuleFormModal({
             : undefined,
         enabled: editingRule?.enabled ?? true,
         note: editingRule?.note,
-        organizationId: editingRule?.organizationId,
       }}
       onFinish={onFinish}
     >
@@ -87,26 +83,6 @@ export default function CommissionRuleFormModal({
           style={{ marginBottom: 16 }}
           title="迁移前历史旧规则为只读"
           description="该规则没有任何员工分配且已停用，不能编辑或重新启用；请复制为新方案并重新分配员工。"
-        />
-      )}
-      {!editingRule && (
-        <ProFormSearchableSelect
-          name="organizationId"
-          label="所属公司"
-          rules={[{ required: true, message: '请选择所属公司' }]}
-          options={organizationOptions.map((item) => ({
-            value: item.id ?? '',
-            label: item.name ?? item.code ?? item.id ?? '',
-          }))}
-          fieldProps={{
-            onChange: (value: string) => {
-              // 组织变化后清空员工候选并按新组织重载。
-              onEmployeeOptionsChange([]);
-              if (value) {
-                void searchEmployees('', value, onEmployeeOptionsChange);
-              }
-            },
-          }}
         />
       )}
       <ProFormText
@@ -209,23 +185,11 @@ export default function CommissionRuleFormModal({
             mode: 'multiple',
             filterOption: false,
             onSearch: (value: string) => {
-              void searchEmployees(
-                value,
-                formRef.current?.getFieldValue('organizationId') as
-                  | string
-                  | undefined,
-                onEmployeeOptionsChange,
-              );
+              void searchEmployees(value, onEmployeeOptionsChange);
             },
             onDropdownVisibleChange: (visible: boolean) => {
               if (visible) {
-                void searchEmployees(
-                  '',
-                  formRef.current?.getFieldValue('organizationId') as
-                    | string
-                    | undefined,
-                  onEmployeeOptionsChange,
-                );
+                void searchEmployees('', onEmployeeOptionsChange);
               }
             },
           }}

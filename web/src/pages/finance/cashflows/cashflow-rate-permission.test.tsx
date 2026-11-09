@@ -8,11 +8,20 @@ import { AuthOrganizationKind } from '@/enums.generated';
 import FinanceCashflowsPage from './index';
 
 const state = vi.hoisted(() => ({ permissions: [] as string[] }));
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
+    initialState: {
+      currentUser: { id: 'user', currentOrganization: { id: 'workspace-org' } },
+    },
+  }),
+}));
 vi.mock('@/app/access', () => ({
   useAccess: () =>
     getAccess({
       currentUser: {
+        id: 'user',
         currentOrganization: {
+          id: 'workspace-org',
           kind: AuthOrganizationKind.ORGANIZATION_KIND_COMPANY,
         },
         permissions: state.permissions,
@@ -54,11 +63,7 @@ vi.mock('@ant-design/pro-components', () => ({
   ProFormText: ({ label }: { label: string }) => <input aria-label={label} />,
   ProFormTextArea: () => null,
 }));
-vi.mock('@/services/roncin/settlementService', () => ({
-  settlementServiceListFinanceOrganizationOptions: vi
-    .fn()
-    .mockResolvedValue({ data: [] }),
-}));
+vi.mock('@/services/roncin/settlementService', () => ({}));
 
 describe('流水手工汇率入口权限', () => {
   it.each([

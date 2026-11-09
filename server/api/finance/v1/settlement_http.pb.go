@@ -66,7 +66,6 @@ const OperationSettlementServiceListCommissionRules = "/finance.v1.SettlementSer
 const OperationSettlementServiceListCommissionVerificationCandidates = "/finance.v1.SettlementService/ListCommissionVerificationCandidates"
 const OperationSettlementServiceListCommissions = "/finance.v1.SettlementService/ListCommissions"
 const OperationSettlementServiceListFeeLedger = "/finance.v1.SettlementService/ListFeeLedger"
-const OperationSettlementServiceListFinanceOrganizationOptions = "/finance.v1.SettlementService/ListFinanceOrganizationOptions"
 const OperationSettlementServiceListFinanceSettlementPartyOptions = "/finance.v1.SettlementService/ListFinanceSettlementPartyOptions"
 const OperationSettlementServiceListInvoiceCreationBills = "/finance.v1.SettlementService/ListInvoiceCreationBills"
 const OperationSettlementServiceListInvoiceProfilesForBill = "/finance.v1.SettlementService/ListInvoiceProfilesForBill"
@@ -164,7 +163,6 @@ type SettlementServiceHTTPServer interface {
 	ListCommissions(context.Context, *ListCommissionsRequest) (*ListCommissionsResponse, error)
 	// ListFeeLedger ListFeeLedger 获取当前组织全部业务线的应收应付费用总台账。
 	ListFeeLedger(context.Context, *ListFeeLedgerRequest) (*ListFeeLedgerResponse, error)
-	ListFinanceOrganizationOptions(context.Context, *ListFinanceOrganizationOptionsRequest) (*ListFinanceOrganizationOptionsResponse, error)
 	ListFinanceSettlementPartyOptions(context.Context, *ListFinanceSettlementPartyOptionsRequest) (*ListFinanceSettlementPartyOptionsResponse, error)
 	ListInvoiceCreationBills(context.Context, *ListInvoiceCreationBillsRequest) (*ListInvoiceCreationBillsResponse, error)
 	ListInvoiceProfilesForBill(context.Context, *ListInvoiceProfilesForBillRequest) (*ListInvoiceProfilesForBillResponse, error)
@@ -223,7 +221,6 @@ func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHT
 	r.Handle("POST", "/api/v1/finance/invoices/{id}/cancel", _SettlementService_CancelInvoice0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/invoices/{id}/red-flush", _SettlementService_RedFlushInvoice0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/cashflows", _SettlementService_ListCashflows0_HTTP_Handler(srv))
-	r.Handle("GET", "/api/v1/finance/organization-options", _SettlementService_ListFinanceOrganizationOptions0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/settlement-party-options", _SettlementService_ListFinanceSettlementPartyOptions0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/cashflows", _SettlementService_CreateCashflow0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/cashflows/{id}/confirm", _SettlementService_ConfirmCashflow0_HTTP_Handler(srv))
@@ -809,25 +806,6 @@ func _SettlementService_ListCashflows0_HTTP_Handler(srv SettlementServiceHTTPSer
 			return err
 		}
 		reply := out.(*ListCashflowsResponse)
-		return ctx.Result(200, reply)
-	}
-}
-
-func _SettlementService_ListFinanceOrganizationOptions0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ListFinanceOrganizationOptionsRequest
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationSettlementServiceListFinanceOrganizationOptions)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListFinanceOrganizationOptions(ctx, req.(*ListFinanceOrganizationOptionsRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*ListFinanceOrganizationOptionsResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -1814,7 +1792,6 @@ type SettlementServiceHTTPClient interface {
 	ListCommissions(ctx context.Context, req *ListCommissionsRequest, opts ...http.CallOption) (rsp *ListCommissionsResponse, err error)
 	// ListFeeLedger ListFeeLedger 获取当前组织全部业务线的应收应付费用总台账。
 	ListFeeLedger(ctx context.Context, req *ListFeeLedgerRequest, opts ...http.CallOption) (rsp *ListFeeLedgerResponse, err error)
-	ListFinanceOrganizationOptions(ctx context.Context, req *ListFinanceOrganizationOptionsRequest, opts ...http.CallOption) (rsp *ListFinanceOrganizationOptionsResponse, err error)
 	ListFinanceSettlementPartyOptions(ctx context.Context, req *ListFinanceSettlementPartyOptionsRequest, opts ...http.CallOption) (rsp *ListFinanceSettlementPartyOptionsResponse, err error)
 	ListInvoiceCreationBills(ctx context.Context, req *ListInvoiceCreationBillsRequest, opts ...http.CallOption) (rsp *ListInvoiceCreationBillsResponse, err error)
 	ListInvoiceProfilesForBill(ctx context.Context, req *ListInvoiceProfilesForBillRequest, opts ...http.CallOption) (rsp *ListInvoiceProfilesForBillResponse, err error)
@@ -2676,22 +2653,6 @@ func (c *SettlementServiceHTTPClientImpl) ListFeeLedger(ctx context.Context, in 
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
 		http.Operation(OperationSettlementServiceListFeeLedger),
-		http.PathTemplate(pattern),
-	}, opts...)
-	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *SettlementServiceHTTPClientImpl) ListFinanceOrganizationOptions(ctx context.Context, in *ListFinanceOrganizationOptionsRequest, opts ...http.CallOption) (*ListFinanceOrganizationOptionsResponse, error) {
-	var out ListFinanceOrganizationOptionsResponse
-	pattern := "/api/v1/finance/organization-options"
-	path := http.BuildPath(pattern, in, http.WithQueryParams())
-	opts = append([]http.CallOption{
-		http.Accept("application/protojson"),
-		http.Operation(OperationSettlementServiceListFinanceOrganizationOptions),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

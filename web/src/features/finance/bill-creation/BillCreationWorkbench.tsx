@@ -8,16 +8,14 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useInitialState } from '@/app/AppProvider';
+import { useAccess } from '@/app/access';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { DRAWER_SIZE } from '@/components/ui';
-import {
-  BillGroupingMode,
-  FinanceOrganizationPurpose,
-} from '@/enums.generated';
+import { BillGroupingMode } from '@/enums.generated';
 import {
   settlementServiceConfirmBillBatch,
   settlementServiceCreateBillBatch,
-  settlementServiceListFinanceOrganizationOptions,
   settlementServicePreviewBillBatch,
 } from '@/services/roncin/settlementService';
 import { isWriteResponse, unwrapList } from '@/utils/api';
@@ -101,7 +99,16 @@ export default function BillCreationWorkbench({
   const [selectedFeeIds, setSelectedFeeIds] = useState<React.Key[]>([]);
   const [splitByOrder, setSplitByOrder] = useState(true);
   const [splitByTaxRate, setSplitByTaxRate] = useState(false);
-  const [organizationId, setOrganizationId] = useState<string>();
+  const { initialState } = useInitialState();
+  const access = useAccess();
+  const currentOrganization = initialState?.currentUser?.currentOrganization;
+  const organizationId = currentOrganization?.id;
+  const canOperate =
+    Boolean(initialState?.currentUser?.id) &&
+    access.canCreateFinanceBills &&
+    access.canOperateOrganization(organizationId);
+  const validSource =
+    !initialFeeIds.length || initialOrganizationId === organizationId;
   const [result, setResult] = useState<API.FinanceBillBatch>();
   const [submitting, setSubmitting] = useState(false);
   const [idempotencyKey, setIdempotencyKey] = useState('');
@@ -125,7 +132,6 @@ export default function BillCreationWorkbench({
   // 会话序号：同时驱动账户候选隔离身份（sessionIdentity）与预览 queryKey 分层。
   const sessionSequenceRef = useRef(0);
   const selectedIdsRef = useRef<string[]>([]);
-  const organizationIdRef = useRef<string | undefined>(undefined);
   const splitByOrderRef = useRef(splitByOrder);
   const splitByTaxRateRef = useRef(splitByTaxRate);
 
@@ -134,36 +140,6 @@ export default function BillCreationWorkbench({
     [initialFeeIds],
   );
   const fixedSelection = initialFeeKey.length > 0;
-
-  // 可建账所属公司候选：抽屉打开即加载；错误文案由 queryFn 包装后经全局
-  // cache onError 透出；失败时展示为空候选（等价原 catch 置空）。
-  const organizationOptionsQuery = useQuery({
-    queryKey: [
-      'finance-bills',
-      'organization-options',
-      {
-        purpose:
-          FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_BILL_CREATE,
-      },
-    ],
-    enabled: open,
-    queryFn: async (): Promise<API.FinanceOrganizationOption[]> => {
-      try {
-        const response = await settlementServiceListFinanceOrganizationOptions({
-          purpose:
-            FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_BILL_CREATE,
-        });
-        return response.data ?? [];
-      } catch (error: unknown) {
-        throw error instanceof Error
-          ? error
-          : new Error(getErrorMessage(error, '加载可建账所属公司失败'));
-      }
-    },
-  });
-  const organizationOptions = organizationOptionsQuery.isError
-    ? []
-    : (organizationOptionsQuery.data ?? []);
 
   const selectedIds = useMemo(
     () => selectedFeeIds.map(String).filter(Boolean),
@@ -207,7 +183,6 @@ export default function BillCreationWorkbench({
 
   useEffect(() => {
     selectedIdsRef.current = selectedIds;
-    organizationIdRef.current = organizationId;
     splitByOrderRef.current = splitByOrder;
     splitByTaxRateRef.current = splitByTaxRate;
     previewDataRef.current = previewQuery.data;
@@ -230,17 +205,18 @@ export default function BillCreationWorkbench({
     async (
       overrideIds?: string[],
       policyOverride?: API.BillGroupingPolicy,
-      organizationIdOverride?: string,
     ): Promise<boolean> => {
       if (previewTimerRef.current) {
         clearTimeout(previewTimerRef.current);
         previewTimerRef.current = undefined;
       }
       const ids = overrideIds ?? selectedIdsRef.current;
-      const requestedOrganizationId =
-        organizationIdOverride ?? organizationIdRef.current;
-      if (!requestedOrganizationId) {
-        message.warning('请先选择可建账所属公司');
+      if (!canOperate || !organizationId || !validSource) {
+        message.warning(
+          validSource
+            ? '请在当前公司工作区建账'
+            : '所选费用不属于当前公司，不能建账',
+        );
         return false;
       }
       if (ids.length === 0) {
@@ -268,7 +244,7 @@ export default function BillCreationWorkbench({
       const request = {
         feeIds: [...ids].sort(),
         groupingPolicy: policy,
-        organizationId: requestedOrganizationId,
+        organizationId,
         groupConfigs,
       } satisfies API.PreviewBillBatchRequest;
       setPreviewRequest(request);
@@ -284,7 +260,15 @@ export default function BillCreationWorkbench({
         return false;
       }
     },
-    [form, groupingMode, message, queryClient],
+    [
+      canOperate,
+      organizationId,
+      validSource,
+      form,
+      groupingMode,
+      message,
+      queryClient,
+    ],
   );
 
   const runPreviewRef = useRef(runPreview);
@@ -319,11 +303,11 @@ export default function BillCreationWorkbench({
   const schedulePreview = useCallback(() => {
     if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
     previewTimerRef.current = setTimeout(() => {
-      if (organizationIdRef.current && selectedIdsRef.current.length > 0) {
+      if (canOperate && selectedIdsRef.current.length > 0) {
         void runPreview();
       }
     }, 350);
-  }, [runPreview]);
+  }, [canOperate, runPreview]);
 
   const handleConfigurationChange = useCallback(() => {
     invalidatePreview();
@@ -343,15 +327,11 @@ export default function BillCreationWorkbench({
     const initialIds = initialFeeKey
       ? initialFeeKey.split('|').filter(Boolean)
       : [];
-    const initKey = `${initialFeeKey}:${initialOrganizationId || ''}:${groupingMode}`;
+    const initKey = `${organizationId || ''}:${canOperate}:${initialFeeKey}:${initialOrganizationId || ''}:${groupingMode}`;
     if (previewInitKeyRef.current === initKey) return;
     previewInitKeyRef.current = initKey;
     clearPreviewSnapshot();
     setSelectedFeeIds(initialIds);
-    const nextOrganizationId =
-      initialIds.length > 0 ? initialOrganizationId : undefined;
-    organizationIdRef.current = nextOrganizationId;
-    setOrganizationId(nextOrganizationId);
     setSplitByOrder(true);
     setSplitByTaxRate(false);
     setResult(undefined);
@@ -360,18 +340,14 @@ export default function BillCreationWorkbench({
     setIdempotencyKey(generateUUID());
     form.resetFields();
 
-    if (initialIds.length > 0 && initialOrganizationId) {
+    if (initialIds.length > 0 && canOperate && validSource) {
       // 极速模式：从单票/多选费用带入时，直接拉取预览并切到账单资料页
       void runPreviewRef
-        .current(
-          initialIds,
-          {
-            mode: groupingMode,
-            splitByOrder: true,
-            splitByTaxRate: false,
-          },
-          initialOrganizationId,
-        )
+        .current(initialIds, {
+          mode: groupingMode,
+          splitByOrder: true,
+          splitByTaxRate: false,
+        })
         .then((ok) => {
           setCurrent(ok ? 2 : 0);
         });
@@ -382,19 +358,13 @@ export default function BillCreationWorkbench({
     open,
     initialFeeKey,
     initialOrganizationId,
+    organizationId,
+    canOperate,
+    validSource,
     groupingMode,
     clearPreviewSnapshot,
     form,
   ]);
-
-  const handleOrganizationChange = (value: string | undefined) => {
-    organizationIdRef.current = value;
-    setOrganizationId(value);
-    setSelectedFeeIds([]);
-    clearPreviewSnapshot();
-    setResult(undefined);
-    setCurrent(0);
-  };
 
   // 从预览明细中即时剔除误选行
   const handleRemoveFee = async (feeId?: string) => {
@@ -415,8 +385,12 @@ export default function BillCreationWorkbench({
 
   const next = async () => {
     if (current === 0) {
-      if (!organizationId) {
-        message.warning('请先选择可建账所属公司');
+      if (!canOperate || !organizationId || !validSource) {
+        message.warning(
+          validSource
+            ? '请在当前公司工作区建账'
+            : '所选费用不属于当前公司，不能建账',
+        );
         return;
       }
       if (selectedIds.length === 0) {
@@ -440,8 +414,12 @@ export default function BillCreationWorkbench({
   };
 
   const createBatch = async (): Promise<false | undefined> => {
-    if (!organizationId) {
-      message.warning('请先选择可建账所属公司');
+    if (!canOperate || !organizationId || !validSource) {
+      message.warning(
+        validSource
+          ? '请在当前公司工作区建账'
+          : '所选费用不属于当前公司，不能建账',
+      );
       return;
     }
     const currentValues = form.getFieldsValue(true) as WorkbenchFormValue;
@@ -549,7 +527,7 @@ export default function BillCreationWorkbench({
   };
 
   const confirmBatch = async (): Promise<false | undefined> => {
-    if (!result?.id || !result.bills?.length) return;
+    if (!canOperate || !result?.id || !result.bills?.length) return;
     setConfirming(true);
     try {
       const response = await settlementServiceConfirmBillBatch(
@@ -710,11 +688,11 @@ export default function BillCreationWorkbench({
           selectedIds={selectedIds}
           selectedFeeIds={selectedFeeIds}
           onSelectedFeeIdsChange={setSelectedFeeIds}
-          initialOrganizationId={initialOrganizationId}
-          initialOrganizationName={initialOrganizationName}
+          sourceOrganizationName={
+            initialOrganizationName || currentOrganization?.name
+          }
           organizationId={organizationId}
-          organizationOptions={organizationOptions}
-          onOrganizationChange={handleOrganizationChange}
+          canOperate={canOperate && validSource}
         />
       )}
 

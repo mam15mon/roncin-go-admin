@@ -1,6 +1,7 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { App, Button, Space, Tag, Tooltip, Typography } from 'antd';
 import React, { useRef } from 'react';
+import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import {
   ResponsiveProTable as ProTable,
@@ -72,12 +73,19 @@ export default function PendingDecreasePanel({
   onOpenCommissionDetail,
 }: PendingDecreasePanelProps) {
   const access = useAccess();
+  const { initialState } = useInitialState();
+  const currentUser = initialState?.currentUser;
+  const organizationId = currentUser?.currentOrganization?.id;
+  const hasCompanyScope = Boolean(
+    currentUser?.id && access.canOperateOrganization(organizationId),
+  );
   const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   // 列表与动作读取同一份已提交筛选；表单编辑值在提交时才固化。
   const committedFiltersRef = useRef<DecreaseFilterValues>({});
 
-  const canManage = access.canManageFinanceCommissions === true;
+  const canManage =
+    hasCompanyScope && access.canManageFinanceCommissions === true;
 
   const reload = () => actionRef.current?.reload();
 
@@ -87,40 +95,42 @@ export default function PendingDecreasePanel({
     const version = record.version;
     const increase = record.direction === 'INCREASE';
     const action = increase ? '补付' : '扣回';
-    modal.confirm({
-      title: `标记已${action} ${record.adjustmentNo || ''}？`,
-      content: increase
-        ? '确认该笔提成已实际补付。'
-        : '原提成已发放后，确认该笔金额已在线下实际扣回。父提成尚未发放时，请登记父单净额发放，系统会一并抵扣。',
-      okText: `标记已${action}`,
-      onOk: async () => {
-        try {
-          const writeResponse1 =
-            await settlementServiceMarkCommissionAdjustmentPaid(
-              { id },
-              { id, expectedVersion: version },
-            );
-          if (!isWriteResponse(writeResponse1, true)) return Promise.reject();
-          message.success(`调整已标记为已${action}`);
-          reload();
-        } catch (error: unknown) {
-          const reason = getBusinessReason(error);
-          if (
-            reason ===
-            financeErrorReasons.FINANCE_COMMISSION_ADJUSTMENT_TRANSITION
-          ) {
-            message.warning('建议状态已变化，列表已刷新');
+    modal
+      .confirm({
+        title: `标记已${action} ${record.adjustmentNo || ''}？`,
+        content: increase
+          ? '确认该笔提成已实际补付。'
+          : '原提成已发放后，确认该笔金额已在线下实际扣回。父提成尚未发放时，请登记父单净额发放，系统会一并抵扣。',
+        okText: `标记已${action}`,
+        onOk: async () => {
+          try {
+            const writeResponse1 =
+              await settlementServiceMarkCommissionAdjustmentPaid(
+                { id },
+                { id, expectedVersion: version },
+              );
+            if (!isWriteResponse(writeResponse1, true)) return Promise.reject();
+            message.success(`调整已标记为已${action}`);
             reload();
+          } catch (error: unknown) {
+            const reason = getBusinessReason(error);
+            if (
+              reason ===
+              financeErrorReasons.FINANCE_COMMISSION_ADJUSTMENT_TRANSITION
+            ) {
+              message.warning('建议状态已变化，列表已刷新');
+              reload();
+              throw error;
+            }
+            message.error((error as Error).message || '标记执行失败');
             throw error;
           }
-          message.error((error as Error).message || '标记执行失败');
-          throw error;
-        }
-      },
-    }).then(
-      () => {},
-      () => {},
-    );
+        },
+      })
+      .then(
+        () => {},
+        () => {},
+      );
   };
 
   const columns: ProColumns<Adjustment>[] = [
@@ -299,6 +309,8 @@ export default function PendingDecreasePanel({
           style: { borderRadius: 8, border: '1px solid #f0f0f0' },
         }}
         request={async (params) => {
+          if (!hasCompanyScope || !access.canReadFinanceCommissions)
+            return { data: [], success: false, total: 0 };
           // 默认展示全部已确认调整，执行资格由服务端返回。
           const filters = committedFiltersRef.current;
           const response = await settlementServiceListCommissionAdjustments({
@@ -308,6 +320,7 @@ export default function PendingDecreasePanel({
               filters.status ??
               FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED,
             keyword: filters.keyword,
+            organizationId,
           });
           return toTableRequest(response);
         }}

@@ -12,6 +12,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   organizations: vi.fn(),
+  organizationId: 'A' as string | undefined,
+  canOperate: true,
   candidates: vi.fn(),
   preview: vi.fn(),
   create: vi.fn(),
@@ -44,9 +46,24 @@ vi.mock('@ant-design/pro-components', () => ({
 }));
 
 vi.mock('@/app/access', () => ({
-  useAccess: () => ({ hasAction: () => true }),
+  useAccess: () => ({
+    hasAction: () => true,
+    canCreateFinanceBills: mocks.canOperate,
+    canOperateOrganization: (id?: string) =>
+      mocks.canOperate && Boolean(id) && id === mocks.organizationId,
+  }),
 }));
 
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
+    initialState: {
+      currentUser: {
+        id: 'user',
+        currentOrganization: { id: mocks.organizationId, name: '当前公司' },
+      },
+    },
+  }),
+}));
 vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceListFinanceOrganizationOptions: mocks.organizations,
   settlementServiceListBillCreationCandidates: mocks.candidates,
@@ -75,6 +92,10 @@ const sleepInAct = async (ms: number) => {
 };
 
 function resetWorkbenchMocks() {
+  mocks.organizationId = 'A';
+  mocks.canOperate = true;
+  mocks.organizationId = 'A';
+  mocks.canOperate = true;
   mocks.organizations.mockReset();
   mocks.candidates.mockReset();
   mocks.preview.mockReset();
@@ -94,6 +115,8 @@ function resetWorkbenchMocks() {
           id: `fee-${organizationId}`,
           feeName: `费用${organizationId}`,
           status: 2,
+          organizationId,
+          canBill: true,
         },
       ],
     }),

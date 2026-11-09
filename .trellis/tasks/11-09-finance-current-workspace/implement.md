@@ -1,7 +1,7 @@
 # 实施与验证计划
 
 ## 启动门禁
-当前仅用户已批准的规划。最终PRD/design/implement与research完成并通过上下文校验后，向用户展示摘要，收到后续明确批准再执行task.py start；不得同回合越过规划。
+用户已明确批准“开始实施，独立review 完了合并回主 push”。2026-11-09 完成上下文校验并执行task.py start；交付时沿用该合并与推送授权，无需重复询问。
 
 ## 工作区与协作
 分支codex/finance-current-workspace基于497d3209，复用已附着的隔离worktree；原checkout /home/vince/roncin-go-admin 的未跟踪海运布局任务保留。修改前git status，不覆盖并行工作。通过原生trellis-implement/trellis-check代理分工，所有代理显式workdir、不再派生代理、不提交；主会话协调生成、文档、检查和提交。

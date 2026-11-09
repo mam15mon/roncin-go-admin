@@ -6,17 +6,17 @@ import type {
 } from '@ant-design/pro-components';
 import { App, Button, Drawer, Select, Tag } from 'antd';
 import dayjs from 'dayjs';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
+import { useInitialState } from '@/app/AppProvider';
+import { useAccess } from '@/app/access';
 import { DRAWER_SIZE, ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
-import { FinanceOrganizationPurpose } from '@/enums.generated';
 import { financeErrorReasons } from '@/errorReasons.generated';
 import {
   settlementServiceCopyCommissionRule,
   settlementServiceCreateCommissionRule,
   settlementServiceListCommissionEmployees,
   settlementServiceListCommissionRules,
-  settlementServiceListFinanceOrganizationOptions,
   settlementServiceUpdateCommissionRule,
 } from '@/services/roncin/settlementService';
 import { isWriteResponse, toTableRequest } from '@/utils/api';
@@ -49,18 +49,21 @@ export default function CommissionRulesDrawer({
   canManage,
 }: CommissionRulesDrawerProps) {
   const { message, modal } = App.useApp();
+  const access = useAccess();
+  const { initialState } = useInitialState();
+  const currentUser = initialState?.currentUser;
+  const organizationId = currentUser?.currentOrganization?.id;
+  const hasCompanyScope = Boolean(
+    currentUser?.id && access.canOperateOrganization(organizationId),
+  );
+  const canRead = hasCompanyScope && access.canReadFinanceCommissions;
+  const canManageCurrent =
+    hasCompanyScope && canManage && access.canConfigureFinanceCommissions;
   const ruleActionRef = useRef<ActionType | undefined>(undefined);
   const ruleFormRef = useRef<ProFormInstance | undefined>(undefined);
   const [ruleFormOpen, setRuleFormOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<API.FinanceCommissionRule>();
-  const [organizationOptions, setOrganizationOptions] = useState<
-    API.FinanceOrganizationOption[]
-  >([]);
-  const [readOrganizationOptions, setReadOrganizationOptions] = useState<
-    API.FinanceOrganizationOption[]
-  >([]);
-  const [organizationId, setOrganizationId] = useState<string>();
-  // 员工候选（新建表单 / 名单 / 复制共用，按各自组织刷新）。
+  // 员工候选（新建表单 / 名单 / 复制共用，固定当前公司）。
   const [employeeOptions, setEmployeeOptions] = useState<EmployeeOption[]>([]);
   // 名单管理：当前操作的方案。
   const [rosterRule, setRosterRule] = useState<API.FinanceCommissionRule>();
@@ -73,55 +76,18 @@ export default function CommissionRulesDrawer({
   >([]);
   const [employeeFilter, setEmployeeFilter] = useState<string>();
 
-  useEffect(() => {
-    if (!open || !canManage) return;
-    let cancelled = false;
-    void settlementServiceListFinanceOrganizationOptions({
-      purpose:
-        FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_COMMISSION_MANAGE,
-    })
-      .then((response) => {
-        if (!cancelled) setOrganizationOptions(response.data ?? []);
-      })
-      .catch(() => {
-        if (!cancelled) message.warning('提成方案可管理公司候选加载失败');
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [canManage, message, open]);
-  useEffect(() => {
-    if (!open) return;
-    let cancelled = false;
-    void settlementServiceListFinanceOrganizationOptions({
-      purpose:
-        FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_COMMISSION_READ,
-    })
-      .then((response) => {
-        if (!cancelled) setReadOrganizationOptions(response.data ?? []);
-      })
-      .catch(() => {
-        if (!cancelled) message.warning('提成方案公司候选加载失败');
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [message, open]);
-
   /** 指定组织内员工远程搜索：服务端关键字分页，pageSize 不超过 200。 */
   const searchEmployees = useCallback(
-    async (
-      keyword: string,
-      targetOrganizationId: string | undefined,
-      apply: (options: EmployeeOption[]) => void,
-    ) => {
+    async (keyword: string, apply: (options: EmployeeOption[]) => void) => {
+      if (!canRead || !organizationId) {
+        apply([]);
+        return;
+      }
       try {
         const response = await settlementServiceListCommissionEmployees({
           page: 1,
           pageSize: 200,
-          ...(targetOrganizationId
-            ? { organizationId: targetOrganizationId }
-            : {}),
+          organizationId,
           ...(keyword ? { keyword } : {}),
         });
         apply(toEmployeeOptions(response));
@@ -129,26 +95,46 @@ export default function CommissionRulesDrawer({
         apply([]);
       }
     },
-    [],
+    [canRead, organizationId],
   );
 
-  const searchEmployeeFilter = useCallback(async (keyword = '') => {
-    try {
-      const response = await settlementServiceListCommissionEmployees({
-        page: 1,
-        pageSize: 200,
-        ...(keyword ? { keyword } : {}),
-      });
-      setEmployeeFilterOptions(toEmployeeOptions(response));
-    } catch {
-      setEmployeeFilterOptions([]);
+  const searchEmployeeFilter = useCallback(
+    async (keyword = '') => {
+      if (!canRead || !organizationId) {
+        setEmployeeFilterOptions([]);
+        return;
+      }
+      try {
+        const response = await settlementServiceListCommissionEmployees({
+          page: 1,
+          pageSize: 200,
+          ...(keyword ? { keyword } : {}),
+          organizationId,
+        });
+        setEmployeeFilterOptions(toEmployeeOptions(response));
+      } catch {
+        setEmployeeFilterOptions([]);
+      }
+    },
+    [canRead, organizationId],
+  );
+
+  const requireCurrentRule = (record: API.FinanceCommissionRule) => {
+    if (
+      !hasCompanyScope ||
+      !access.canOperateOrganization(record.organizationId)
+    ) {
+      message.warning('只能操作当前公司工作区的提成方案');
+      return false;
     }
-  }, []);
+    return true;
+  };
 
   const openRoster = (record: API.FinanceCommissionRule) => {
+    if (!canRead || !requireCurrentRule(record)) return;
     setRosterRule(record);
     setEmployeeOptions([]);
-    void searchEmployees('', record.organizationId, setEmployeeOptions);
+    void searchEmployees('', setEmployeeOptions);
   };
 
   const handleRuleError = (error: unknown, fallback: string) => {
@@ -181,6 +167,11 @@ export default function CommissionRulesDrawer({
 
   // 方案核心参数：名单变更只走名单管理入口，不随本表单提交。
   const handleRuleSubmit = async (values: RuleValues) => {
+    if (!canManageCurrent || !organizationId) {
+      message.warning('请切换到有方案维护权限的公司工作区');
+      return false;
+    }
+    if (editingRule && !requireCurrentRule(editingRule)) return false;
     try {
       const rule = {
         name: values.name,
@@ -204,19 +195,12 @@ export default function CommissionRulesDrawer({
         if (!isWriteResponse(writeResponse1, true)) return false;
         message.success('提成方案已更新');
       } else {
-        const formOrganizationId = ruleFormRef.current?.getFieldValue(
-          'organizationId',
-        ) as string | undefined;
-        if (!formOrganizationId) {
-          message.error('请选择所属公司');
-          return false;
-        }
         if (values.enabled && !(values.employeeIds ?? []).length) {
           message.error('启用方案前必须至少分配一名员工');
           return false;
         }
         const writeResponse2 = await settlementServiceCreateCommissionRule({
-          organizationId: formOrganizationId,
+          organizationId,
           rule: { ...rule, employeeIds: values.employeeIds ?? [] },
         });
         if (!isWriteResponse(writeResponse2, true)) return false;
@@ -232,7 +216,12 @@ export default function CommissionRulesDrawer({
   };
 
   const handleCopySubmit = async (values: CopyValues) => {
-    if (!copySourceRule?.id) return false;
+    if (
+      !copySourceRule?.id ||
+      !canManageCurrent ||
+      !requireCurrentRule(copySourceRule)
+    )
+      return false;
     const effectiveFrom = values.effectiveFrom
       ? dayjs(values.effectiveFrom).format('YYYY-MM-DD')
       : '';
@@ -380,18 +369,15 @@ export default function CommissionRulesDrawer({
       fixed: 'right',
       width: 150,
       render: (_, record) =>
-        canManage ? (
+        canManageCurrent ? (
           <span>
             <a
               key="copy"
               onClick={() => {
+                if (!requireCurrentRule(record)) return;
                 setCopySourceRule(record);
                 setEmployeeOptions([]);
-                void searchEmployees(
-                  '',
-                  record.organizationId,
-                  setEmployeeOptions,
-                );
+                void searchEmployees('', setEmployeeOptions);
               }}
             >
               复制为新方案
@@ -401,6 +387,7 @@ export default function CommissionRulesDrawer({
                 key="edit"
                 style={{ marginLeft: 8 }}
                 onClick={() => {
+                  if (!requireCurrentRule(record)) return;
                   setEditingRule(record);
                   setRuleFormOpen(true);
                 }}
@@ -431,20 +418,6 @@ export default function CommissionRulesDrawer({
         <div style={{ marginBottom: 12, display: 'flex', gap: 8 }}>
           <Select
             allowClear
-            placeholder="所属公司"
-            style={{ minWidth: 220 }}
-            value={organizationId}
-            options={readOrganizationOptions.map((item) => ({
-              value: item.id,
-              label: item.name ?? item.code ?? item.id,
-            }))}
-            onChange={(value) => {
-              setOrganizationId(value);
-              ruleActionRef.current?.reload();
-            }}
-          />
-          <Select
-            allowClear
             showSearch={{
               filterOption: false,
               onSearch: (value) => void searchEmployeeFilter(value),
@@ -472,7 +445,7 @@ export default function CommissionRulesDrawer({
           options={{ reload: true, density: true, setting: false }}
           toolBarRender={() => [
             ruleColumnSettings.entry,
-            ...(canManage
+            ...(canManageCurrent
               ? [
                   <Button
                     key="new-rule"
@@ -482,6 +455,7 @@ export default function CommissionRulesDrawer({
                       setEditingRule(undefined);
                       setEmployeeOptions([]);
                       setRuleFormOpen(true);
+                      void searchEmployees('', setEmployeeOptions);
                     }}
                   >
                     新建方案
@@ -490,6 +464,8 @@ export default function CommissionRulesDrawer({
               : []),
           ]}
           request={async (params) => {
+            if (!canRead || !open || !organizationId)
+              return { data: [], success: false, total: 0 };
             const response = await settlementServiceListCommissionRules({
               page: params.current ?? 1,
               pageSize: params.pageSize ?? 20,
@@ -508,7 +484,6 @@ export default function CommissionRulesDrawer({
         open={ruleFormOpen}
         editingRule={editingRule}
         formRef={ruleFormRef}
-        organizationOptions={organizationOptions}
         employeeOptions={employeeOptions}
         searchEmployees={searchEmployees}
         onEmployeeOptionsChange={setEmployeeOptions}

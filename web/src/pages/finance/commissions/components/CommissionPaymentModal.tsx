@@ -3,6 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { Alert, Descriptions, Spin, Table } from 'antd';
 import React, { useRef } from 'react';
 import { useInitialState } from '@/app/AppProvider';
+import { useAccess } from '@/app/access';
 import { GuardedModalForm } from '@/components/ui';
 import {
   settlementServiceMarkCommissionPaid,
@@ -21,6 +22,12 @@ export default function CommissionPaymentModal({
   onPaid: () => void;
 }) {
   const { initialState } = useInitialState();
+  const access = useAccess();
+  const canManage = Boolean(
+    initialState?.currentUser?.id &&
+      access.canManageFinanceCommissions &&
+      access.canOperateOrganization(record.organizationId),
+  );
   const actionKey = useRef(generateUUID());
   const preview = useQuery({
     queryKey: [
@@ -30,7 +37,9 @@ export default function CommissionPaymentModal({
       record.id,
       record.version,
     ],
+    enabled: canManage,
     queryFn: async () => {
+      if (!canManage) throw new Error('只能发放当前公司工作区的提成');
       if (!record.id || !record.version) throw new Error('提成身份或版本缺失');
       const response = await settlementServicePreviewCommissionPayment(
         { id: record.id as string },
@@ -61,11 +70,16 @@ export default function CommissionPaymentModal({
             : '登记实际发放',
         },
         submitButtonProps: {
-          disabled: preview.isFetching || preview.isError || !preview.data,
+          disabled:
+            !canManage ||
+            preview.isFetching ||
+            preview.isError ||
+            !preview.data,
         },
       }}
       onFinish={async () => {
         if (
+          !canManage ||
           !record.id ||
           !preview.data?.version ||
           !preview.data.previewToken ||

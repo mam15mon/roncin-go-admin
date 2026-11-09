@@ -4,7 +4,7 @@ import { act } from '@testing-library/react';
 import { App } from 'antd';
 import dayjs from 'dayjs';
 import type { ReactNode } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   ListQueryStateProvider,
   useListQueryState,
@@ -31,17 +31,22 @@ type FilterProps = {
   onReset: () => void;
 };
 const state = vi.hoisted(() => ({
+  company: true,
+  organizationId: 'workspace-org' as string | undefined,
   ledger: undefined as LedgerProps | undefined,
   search: undefined as FilterProps | undefined,
   reload: vi.fn(),
 }));
 vi.mock('@/app/access', () => ({
-  useAccess: () => ({ canOperateOrganization: () => true }),
+  useAccess: () => ({ canOperateOrganization: () => state.company }),
 }));
 vi.mock('@/app/AppProvider', () => ({
   useInitialState: () => ({
     initialState: {
-      currentUser: { id: 'user', currentOrganization: { id: 'workspace-org' } },
+      currentUser: {
+        id: 'user',
+        currentOrganization: { id: state.organizationId },
+      },
     },
   }),
 }));
@@ -67,9 +72,6 @@ vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceListFeeLedger: vi
     .fn()
     .mockResolvedValue({ data: [], total: 0, matchedSummary: {} }),
-  settlementServiceListFinanceOrganizationOptions: vi
-    .fn()
-    .mockResolvedValue({ data: [] }),
 }));
 function Seed() {
   const q = useListQueryState({
@@ -93,6 +95,11 @@ function Seed() {
   q.pagination.onChange(4, 50);
   return null;
 }
+beforeEach(() => {
+  vi.clearAllMocks();
+  state.company = true;
+  state.organizationId = 'workspace-org';
+});
 describe('费用查询恢复消费', () => {
   it('消费后的缺失响应明确失败，不读取 undefined 或伪造空汇总', async () => {
     vi.mocked(settlementServiceListFeeLedger).mockResolvedValueOnce(
@@ -203,7 +210,7 @@ describe('费用查询恢复消费', () => {
         page: 4,
         pageSize: 50,
         keyword: '订单条件',
-        organizationId: 'target-org',
+        organizationId: 'workspace-org',
         createdAtFrom: '2026-10-01',
         createdAtTo: '2026-10-12',
         orderLocked: true,
@@ -229,9 +236,22 @@ describe('费用查询恢复消费', () => {
     expect(settlementServiceListFeeLedger).toHaveBeenLastCalledWith(
       expect.objectContaining({
         keyword: undefined,
-        organizationId: 'target-org',
+        organizationId: 'workspace-org',
       }),
       { skipErrorHandler: true },
     );
+  });
+  it.each(['未就绪', '系统工作台'])('%s不会查询经营数据', async (scenario) => {
+    if (scenario === '未就绪') state.organizationId = undefined;
+    else state.company = false;
+    renderWithClient(
+      <App>
+        <FinanceFeeLedgerPage />
+      </App>,
+    );
+    await expect(
+      state.ledger?.request({ current: 1, pageSize: 20 }),
+    ).resolves.toMatchObject({ success: false });
+    expect(settlementServiceListFeeLedger).not.toHaveBeenCalled();
   });
 });

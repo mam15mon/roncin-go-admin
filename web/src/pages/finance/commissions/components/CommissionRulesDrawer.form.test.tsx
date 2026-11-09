@@ -15,6 +15,31 @@ import * as services from '@/services/roncin/settlementService';
 import CommissionRuleFormModal from './CommissionRuleFormModal';
 import CommissionRulesDrawer from './CommissionRulesDrawer';
 
+const workspace = vi.hoisted(() => ({
+  organizationId: 'org-a' as string | undefined,
+  userId: 'user-1' as string | undefined,
+  canOperate: true,
+}));
+vi.mock('@/app/AppProvider', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/app/AppProvider')>()),
+  useInitialState: () => ({
+    initialState: {
+      currentUser: {
+        id: workspace.userId,
+        currentOrganization: { id: workspace.organizationId },
+      },
+    },
+  }),
+}));
+vi.mock('@/app/access', () => ({
+  useAccess: () => ({
+    canReadFinanceCommissions: true,
+    canConfigureFinanceCommissions: true,
+    canManageFinanceCommissions: true,
+    canOperateOrganization: (id?: string) =>
+      workspace.canOperate && Boolean(id) && id === workspace.organizationId,
+  }),
+}));
 const state = vi.hoisted(() => ({
   formRef: undefined as RefObject<ProFormInstance | undefined> | undefined,
   reload: vi.fn(),
@@ -41,7 +66,6 @@ vi.mock('@/components/ui', async (importOriginal) => {
 });
 vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceListCommissionRules: vi.fn(),
-  settlementServiceListFinanceOrganizationOptions: vi.fn(),
   settlementServiceListCommissionEmployees: vi.fn(),
   settlementServiceCreateCommissionRule: vi.fn(),
   settlementServiceUpdateCommissionRule: vi.fn(),
@@ -51,10 +75,10 @@ vi.mock('@/services/roncin/settlementService', () => ({
 }));
 
 beforeEach(() => {
+  workspace.organizationId = 'org-a';
+  workspace.userId = 'user-1';
+  workspace.canOperate = true;
   vi.clearAllMocks();
-  vi.mocked(
-    services.settlementServiceListFinanceOrganizationOptions,
-  ).mockResolvedValue({ data: [{ id: 'org-a', name: '融迅北京' }] });
   vi.mocked(
     services.settlementServiceListCommissionEmployees,
   ).mockResolvedValue({ data: [{ id: 'employee-1', displayName: '张冠楠' }] });
@@ -76,7 +100,7 @@ async function openForm() {
   await waitFor(() => expect(state.formRef?.current).toBeTruthy());
   await act(async () =>
     state.formRef?.current?.setFieldsValue({
-      organizationId: 'org-a',
+      organizationId: 'ignored-form-company',
       name: 'CODEX测试方案1108',
       personnelRole: 'SALES',
       calculationBasis: 'REALIZED_PROFIT',
@@ -196,7 +220,6 @@ it('已生效有限区间编辑保留真实 Dayjs 提交且不触发新建日期
           effectiveTo: end.format('YYYY-MM-DD'),
         }}
         formRef={ref}
-        organizationOptions={[]}
         employeeOptions={[]}
         searchEmployees={vi.fn()}
         onEmployeeOptionsChange={vi.fn()}

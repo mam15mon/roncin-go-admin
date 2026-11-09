@@ -1,7 +1,6 @@
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
 import {
   act,
-  cleanup,
   fireEvent,
   screen,
   waitFor,
@@ -12,137 +11,19 @@ import dayjs from 'dayjs';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { FinanceCommissionStatus } from '@/enums.generated';
-
-const serviceMocks = vi.hoisted(() => ({
-  exportCommissions: vi.fn(),
-  listCommissions: vi.fn(),
-  getCommission: vi.fn(),
-  confirmAdjustment: vi.fn(),
-  cancelAdjustment: vi.fn(),
-  listFinanceOrganizationOptions: vi.fn().mockResolvedValue({ data: [] }),
-}));
-
-const componentProps = vi.hoisted(() => ({
-  searchFilter: undefined as Record<string, any> | undefined,
-  proTable: undefined as Record<string, any> | undefined,
-}));
-
-const accessState = vi.hoisted(() => ({
-  canOperateOrganization: () => true,
-  canConfigureFinanceCommissions: false,
-  canExportFinanceCommissions: false,
-  canManageFinanceCommissions: false,
-}));
-
-vi.mock('@/app/access', () => ({
-  useAccess: () => accessState,
-}));
-
-vi.mock('@ant-design/pro-components', () => ({
-  PageContainer: ({
-    children,
-    extra,
-  }: {
-    children?: React.ReactNode;
-    extra?: React.ReactNode;
-  }) => (
-    <>
-      <div data-testid="page-extra">{extra}</div>
-      {children}
-    </>
-  ),
-  ProTable: (props: Record<string, any>) => {
-    componentProps.proTable = props;
-    return null;
-  },
-}));
-
-vi.mock('@/components/ui', async () => ({
-  GuardedModalForm: (await import('@/components/ui/GuardedModalForm'))
-    .GuardedModalForm,
-  ResponsiveProTable: (await import('@ant-design/pro-components')).ProTable,
-  SearchFilterTemplate: (props: Record<string, any>) => {
-    componentProps.searchFilter = props;
-    return <>{props.extraRight}</>;
-  },
-}));
-
-vi.mock('@/services/roncin/settlementService', () => ({
-  settlementServiceCancelCommission: vi.fn(),
-  settlementServiceCancelCommissionAdjustment: serviceMocks.cancelAdjustment,
-  settlementServiceConfirmCommission: vi.fn(),
-  settlementServiceConfirmCommissionAdjustment: serviceMocks.confirmAdjustment,
-  settlementServiceExportCommissions: serviceMocks.exportCommissions,
-  settlementServiceGetCommission: serviceMocks.getCommission,
-  settlementServiceListCommissions: serviceMocks.listCommissions,
-  settlementServiceListFinanceOrganizationOptions:
-    serviceMocks.listFinanceOrganizationOptions,
-  settlementServiceMarkCommissionAdjustmentPaid: vi.fn(),
-  settlementServiceMarkCommissionPaid: vi.fn(),
-}));
-
-vi.mock('./components/CommissionAdjustmentModal', () => ({
-  default: () => null,
-}));
-vi.mock('./components/CommissionCreateModal', () => ({ default: () => null }));
-// 仅替换明细排版；动作和确认框均由真实页面、makeVersionActions 与 App 构造。
-vi.mock('./components/CommissionDetailDrawer', () => ({
-  default: (props: Record<string, any>) => {
-    const adjustment = props.detail?.adjustments?.[0];
-    if (!adjustment) return null;
-    return (
-      <>
-        <button
-          type="button"
-          onClick={() => props.onTransitionAdjustment(adjustment, 'CONFIRMED')}
-        >
-          确认内嵌调整
-        </button>
-        <button
-          type="button"
-          onClick={() => props.onCancelAdjustment(adjustment)}
-        >
-          取消内嵌调整
-        </button>
-      </>
-    );
-  },
-}));
-vi.mock('./components/CommissionRulesDrawer', () => ({ default: () => null }));
-
-const panelState = vi.hoisted(() => ({
-  renderCount: 0,
-}));
-
-vi.mock('./components/PendingDecreasePanel', () => ({
-  default: () => {
-    panelState.renderCount += 1;
-    return <div data-testid="pending-decrease-panel">待处理冲减视图</div>;
-  },
-}));
-
-import FinanceCommissionsPage from './index';
+import {
+  accessState,
+  componentProps,
+  FinanceCommissionsPage,
+  resetCommissionPageMocks,
+  serviceMocks,
+  workspace,
+} from './index.fixtures';
 
 describe('提成台账动作', () => {
-  afterEach(() => {
-    cleanup();
-    accessState.canManageFinanceCommissions = false;
-    accessState.canExportFinanceCommissions = false;
-    accessState.canConfigureFinanceCommissions = false;
-    componentProps.searchFilter = undefined;
-    componentProps.proTable = undefined;
-    panelState.renderCount = 0;
-    vi.restoreAllMocks();
-    serviceMocks.exportCommissions.mockReset();
-    serviceMocks.listCommissions.mockReset();
-    serviceMocks.getCommission.mockReset();
-    serviceMocks.confirmAdjustment.mockReset();
-    serviceMocks.cancelAdjustment.mockReset();
-    serviceMocks.listFinanceOrganizationOptions.mockReset();
-    serviceMocks.listFinanceOrganizationOptions.mockResolvedValue({ data: [] });
-  });
+  afterEach(resetCommissionPageMocks);
 
-  it('系统管理配置权限保留考核规则维护入口，不授予提成办理能力', async () => {
+  it('当前公司配置权限保留考核规则维护入口，不授予提成办理能力', async () => {
     accessState.canConfigureFinanceCommissions = true;
     renderWithClient(
       <App>
@@ -165,7 +46,6 @@ describe('提成台账动作', () => {
         <FinanceCommissionsPage />
       </App>,
     );
-    // 等待挂载触发的公司候选请求在 act 内收敛。
     await act(async () => {});
     expect(
       screen.getByRole('button', { name: /导出提成/ }),
@@ -178,7 +58,6 @@ describe('提成台账动作', () => {
         <FinanceCommissionsPage />
       </App>,
     );
-    // 等待挂载触发的公司候选请求在 act 内收敛。
     await act(async () => {});
     expect(
       screen.queryByRole('button', { name: /导出提成/ }),
@@ -194,7 +73,6 @@ describe('提成台账动作', () => {
         <FinanceCommissionsPage />
       </App>,
     );
-    // 等待挂载触发的公司候选请求在 act 内收敛。
     await act(async () => {});
 
     const searchValues = {
@@ -211,6 +89,7 @@ describe('提成台账动作', () => {
       status: FinanceCommissionStatus.FINANCE_COMMISSION_STATUS_CONFIRMED,
       commissionDateFrom: '2026-07-01',
       commissionDateTo: '2026-08-31',
+      organizationId: 'org-a',
     };
     expect(serviceMocks.listCommissions).toHaveBeenCalledWith({
       page: 2,
@@ -274,7 +153,6 @@ describe('提成台账动作', () => {
         <FinanceCommissionsPage />
       </App>,
     );
-    // 等待挂载触发的公司候选请求在 act 内收敛。
     await act(async () => {});
 
     const columns: Record<string, any>[] =
@@ -297,7 +175,6 @@ describe('提成台账动作', () => {
         <FinanceCommissionsPage />
       </App>,
     );
-    // 等待挂载触发的公司候选请求在 act 内收敛。
     await act(async () => {});
     expect(
       screen.queryByTestId('pending-decrease-panel'),
@@ -315,6 +192,7 @@ describe('提成台账动作', () => {
 
   const openEmbeddedAdjustment = async () => {
     accessState.canManageFinanceCommissions = true;
+    workspace.organizationId = 'company-beijing';
     const adjustment = {
       id: 'adjustment-beijing',
       adjustmentNo: 'ADJ001',
@@ -326,9 +204,6 @@ describe('提成台账动作', () => {
       sourceType: 'MANUAL',
       version: '7',
     };
-    serviceMocks.listFinanceOrganizationOptions.mockResolvedValue({
-      data: [{ id: 'company-tianjin', name: '融迅天津当前工作台' }],
-    });
     serviceMocks.getCommission.mockResolvedValue({
       data: {
         id: 'commission-beijing',
@@ -350,7 +225,12 @@ describe('提成台账动作', () => {
     );
     if (!actionColumn) throw new Error('提成操作列不存在');
     renderWithClient(
-      <div>{actionColumn.render(undefined, { id: 'commission-beijing' })}</div>,
+      <div>
+        {actionColumn.render(undefined, {
+          id: 'commission-beijing',
+          organizationId: 'company-beijing',
+        })}
+      </div>,
     );
     fireEvent.click(screen.getByText('明细'));
     await screen.findByRole('button', { name: '确认内嵌调整' });

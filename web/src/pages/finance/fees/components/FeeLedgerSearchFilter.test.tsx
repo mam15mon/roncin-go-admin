@@ -33,7 +33,9 @@ describe('FeeLedgerSearchFilter', () => {
     const onSearch = vi.fn();
     const onReset = vi.fn();
 
-    render(<FeeLedgerSearchFilter onSearch={onSearch} onReset={onReset} />);
+    render(
+      <FeeLedgerSearchFilter enabled onSearch={onSearch} onReset={onReset} />,
+    );
 
     expect(screen.getByText('综合搜索')).not.toBeNull();
     expect(screen.getByText('费用属性')).not.toBeNull();
@@ -56,7 +58,9 @@ describe('FeeLedgerSearchFilter', () => {
     const onSearch = vi.fn();
     const onReset = vi.fn();
 
-    render(<FeeLedgerSearchFilter onSearch={onSearch} onReset={onReset} />);
+    render(
+      <FeeLedgerSearchFilter enabled onSearch={onSearch} onReset={onReset} />,
+    );
 
     fireEvent.click(screen.getByText(/展开/));
 
@@ -87,7 +91,9 @@ describe('FeeLedgerSearchFilter', () => {
     const onSearch = vi.fn();
     const onReset = vi.fn();
 
-    render(<FeeLedgerSearchFilter onSearch={onSearch} onReset={onReset} />);
+    render(
+      <FeeLedgerSearchFilter enabled onSearch={onSearch} onReset={onReset} />,
+    );
 
     fireEvent.click(screen.getByText('重置'));
     expect(onReset).toHaveBeenCalled();
@@ -102,7 +108,9 @@ describe('FeeLedgerSearchFilter', () => {
   });
 
   it('结算单位筛选渲染远程搜索下拉并展示服务端候选项', async () => {
-    render(<FeeLedgerSearchFilter onSearch={vi.fn()} onReset={vi.fn()} />);
+    render(
+      <FeeLedgerSearchFilter enabled onSearch={vi.fn()} onReset={vi.fn()} />,
+    );
 
     // 挂载即触发结算单位候选请求（首屏 50 条，服务端关键字过滤）
     await waitFor(() =>
@@ -114,5 +122,19 @@ describe('FeeLedgerSearchFilter', () => {
     fireEvent.mouseDown(screen.getByLabelText('结算单位'));
     expect(await screen.findByText('宁波中远海运 (COSCO)')).toBeInTheDocument();
     expect(screen.getByText('上海美森轮船 (MATSON)')).toBeInTheDocument();
+  });
+  it('工作区业务身份未就绪时不会加载客商候选', async () => {
+    vi.mocked(partnerServiceListPartners).mockClear();
+    render(
+      <FeeLedgerSearchFilter
+        enabled={false}
+        onSearch={vi.fn()}
+        onReset={vi.fn()}
+      />,
+    );
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(partnerServiceListPartners).not.toHaveBeenCalled();
   });
 });

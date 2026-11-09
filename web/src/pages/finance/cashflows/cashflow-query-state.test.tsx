@@ -2,7 +2,7 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
 import { act } from '@testing-library/react';
 import { App } from 'antd';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   ListQueryStateProvider,
   useListQueryState,
@@ -25,15 +25,27 @@ type LedgerProps = {
   }) => Promise<unknown>;
 };
 const state = vi.hoisted(() => ({
+  company: true,
+  organizationId: 'workspace-org' as string | undefined,
   ledger: undefined as undefined | LedgerProps,
   searchForm: undefined as
     | undefined
     | { setFieldsValue: ReturnType<typeof vi.fn> },
 }));
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
+    initialState: {
+      currentUser: {
+        id: 'user',
+        currentOrganization: { id: state.organizationId },
+      },
+    },
+  }),
+}));
 vi.mock('@/app/access', () => ({
   useAccess: () => ({
     canCreateFinanceCashflows: false,
-    canOperateOrganization: () => true,
+    canOperateOrganization: () => state.company,
   }),
 }));
 vi.mock('@/components/ui', async () => ({
@@ -63,9 +75,6 @@ vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceListCashflows: vi
     .fn()
     .mockResolvedValue({ data: [], total: 0, matchedSummary: {} }),
-  settlementServiceListFinanceOrganizationOptions: vi
-    .fn()
-    .mockResolvedValue({ data: [] }),
 }));
 function Seed() {
   const q = useListQueryState({
@@ -78,6 +87,11 @@ function Seed() {
   q.pagination.onChange(2, 20);
   return null;
 }
+beforeEach(() => {
+  vi.clearAllMocks();
+  state.company = true;
+  state.organizationId = 'workspace-org';
+});
 describe('流水原生搜索恢复消费', () => {
   it('支付方式列与登记选项和 CSV 使用一致的业务名称', async () => {
     renderWithClient(
@@ -154,7 +168,7 @@ describe('流水原生搜索恢复消费', () => {
         pageSize: 20,
         direction: 'PAYABLE',
         status: 2,
-        organizationId: 'target-org',
+        organizationId: 'workspace-org',
       }),
       { skipErrorHandler: true },
     );
@@ -174,7 +188,7 @@ describe('流水原生搜索恢复消费', () => {
       expect.objectContaining({
         direction: undefined,
         status: undefined,
-        organizationId: 'target-org',
+        organizationId: 'workspace-org',
       }),
       { skipErrorHandler: true },
     );
@@ -186,5 +200,18 @@ describe('流水原生搜索恢复消费', () => {
       expect.objectContaining({ direction: 'RECEIVABLE', status: 1 }),
       { skipErrorHandler: true },
     );
+  });
+  it.each(['未就绪', '系统工作台'])('%s不会查询经营数据', async (scenario) => {
+    if (scenario === '未就绪') state.organizationId = undefined;
+    else state.company = false;
+    renderWithClient(
+      <App>
+        <FinanceCashflowsPage />
+      </App>,
+    );
+    await expect(
+      state.ledger?.request({ current: 1, pageSize: 20 }),
+    ).resolves.toMatchObject({ success: false });
+    expect(settlementServiceListCashflows).not.toHaveBeenCalled();
   });
 });

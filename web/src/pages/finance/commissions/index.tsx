@@ -9,7 +9,6 @@ import {
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
-import { useQuery } from '@tanstack/react-query';
 import {
   App,
   Button,
@@ -20,6 +19,7 @@ import {
   Typography,
 } from 'antd';
 import React, { useRef, useState } from 'react';
+import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
 import {
@@ -27,10 +27,7 @@ import {
   SearchFilterTemplate,
 } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
-import {
-  FinanceCommissionStatus,
-  FinanceOrganizationPurpose,
-} from '@/enums.generated';
+import { FinanceCommissionStatus } from '@/enums.generated';
 import { financeErrorReasons } from '@/errorReasons.generated';
 import {
   settlementServiceCancelCommission,
@@ -40,7 +37,6 @@ import {
   settlementServiceExportCommissions,
   settlementServiceGetCommission,
   settlementServiceListCommissions,
-  settlementServiceListFinanceOrganizationOptions,
   settlementServiceMarkCommissionAdjustmentPaid,
 } from '@/services/roncin/settlementService';
 import { isWriteResponse, toTableRequest } from '@/utils/api';
@@ -79,6 +75,12 @@ type CommissionView = 'ledger' | 'pending-decrease' | 'applications';
 
 export default function FinanceCommissionsPage() {
   const access = useAccess();
+  const { initialState } = useInitialState();
+  const currentUser = initialState?.currentUser;
+  const organizationId = currentUser?.currentOrganization?.id;
+  const hasCompanyScope = Boolean(
+    currentUser?.id && access.canOperateOrganization(organizationId),
+  );
   const getModalOwnerSignal = useModalOwnerSignal();
   const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
@@ -94,34 +96,22 @@ export default function FinanceCommissionsPage() {
   const [paymentRecord, setPaymentRecord] = useState<API.FinanceCommission>();
   const [exporting, setExporting] = useState(false);
 
-  // 筛选所属公司候选：历史无错误兜底，保持静默（仅请求层通知）。
-  const organizationQuery = useQuery({
-    queryKey: [
-      'finance',
-      'organization-options',
-      {
-        purpose:
-          FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_COMMISSION_READ,
-      },
-    ],
-    meta: { silent: true },
-    queryFn: async () => {
-      const response = await settlementServiceListFinanceOrganizationOptions({
-        purpose:
-          FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_COMMISSION_READ,
-      });
-      return response.data ?? [];
-    },
-  });
-  const organizationOptions = organizationQuery.data ?? [];
-
   const reload = () => actionRef.current?.reload();
 
   const exportCommissions = async () => {
+    if (
+      !hasCompanyScope ||
+      !organizationId ||
+      !access.canExportFinanceCommissions
+    )
+      return;
     try {
       setExporting(true);
       const filters = searchFiltersRef.current;
-      const response = await settlementServiceExportCommissions(filters);
+      const response = await settlementServiceExportCommissions({
+        ...filters,
+        organizationId,
+      });
       const content = serializeCommissionCsv(response.data ?? []);
       if (!content) {
         message.warning('当前筛选条件下没有可导出的提成');
@@ -158,7 +148,8 @@ export default function FinanceCommissionsPage() {
   );
 
   const openDetailById = async (commissionId?: string) => {
-    if (!commissionId) return;
+    if (!commissionId || !hasCompanyScope || !access.canReadFinanceCommissions)
+      return;
     setDetailOpen(true);
     setDetailLoading(true);
     setDetail(undefined);
@@ -175,8 +166,14 @@ export default function FinanceCommissionsPage() {
     }
   };
 
-  const openDetail = (record: API.FinanceCommission) =>
-    openDetailById(record.id);
+  const openDetail = (record: API.FinanceCommission) => {
+    if (
+      !hasCompanyScope ||
+      !access.canOperateOrganization(record.organizationId)
+    )
+      return;
+    return openDetailById(record.id);
+  };
 
   const refreshDetail = async () => {
     if (!detail?.id) return;
@@ -193,7 +190,14 @@ export default function FinanceCommissionsPage() {
     record: API.FinanceCommissionAdjustment,
     target: 'CONFIRMED' | 'PAID',
   ) => {
-    if (!record.id || !record.version) return;
+    if (
+      !record.id ||
+      !record.version ||
+      !hasCompanyScope ||
+      !access.canManageFinanceCommissions ||
+      !access.canOperateOrganization(record.organizationId)
+    )
+      return;
     const adjustmentID = record.id;
     const adjustmentVersion = record.version;
     const isReversal = isReversalAdjustment(record.sourceType);
@@ -216,59 +220,73 @@ export default function FinanceCommissionsPage() {
       }
     }
 
-    modal.confirm({
-      title: `${action} ${record.adjustmentNo}？`,
-      content: `所属公司：${record.organizationName || '所属公司未标识'}。${content}`,
-      onOk: async () => {
-        try {
-          const body = { id: adjustmentID, expectedVersion: adjustmentVersion };
-          if (target === 'CONFIRMED') {
-            const writeResponse1 =
-              await settlementServiceConfirmCommissionAdjustment(
-                { id: adjustmentID },
-                body,
-              );
-            if (!isWriteResponse(writeResponse1, true)) return Promise.reject();
-          } else {
-            const writeResponse2 =
-              await settlementServiceMarkCommissionAdjustmentPaid(
-                { id: adjustmentID },
-                body,
-              );
-            if (!isWriteResponse(writeResponse2, true)) return Promise.reject();
-          }
-          message.success(`${action}成功`);
-          await refreshDetail();
-        } catch (error) {
-          const reason = getBusinessReason(error);
-          if (
-            reason === financeErrorReasons.FINANCE_COMMISSION_ADJUSTMENT_EXCEEDS
-          ) {
-            modal.warning({
-              title: '冲减金额超限',
-              content: '冲减后的有效提成不能小于零，请检查调整金额。',
-            });
-            throw error;
-          }
-          if (
-            reason ===
-            financeErrorReasons.FINANCE_COMMISSION_ADJUSTMENT_TRANSITION
-          ) {
-            message.warning('调整状态已变化，已刷新详情');
+    modal
+      .confirm({
+        title: `${action} ${record.adjustmentNo}？`,
+        content: `所属公司：${record.organizationName || '所属公司未标识'}。${content}`,
+        onOk: async () => {
+          try {
+            const body = {
+              id: adjustmentID,
+              expectedVersion: adjustmentVersion,
+            };
+            if (target === 'CONFIRMED') {
+              const writeResponse1 =
+                await settlementServiceConfirmCommissionAdjustment(
+                  { id: adjustmentID },
+                  body,
+                );
+              if (!isWriteResponse(writeResponse1, true))
+                return Promise.reject();
+            } else {
+              const writeResponse2 =
+                await settlementServiceMarkCommissionAdjustmentPaid(
+                  { id: adjustmentID },
+                  body,
+                );
+              if (!isWriteResponse(writeResponse2, true))
+                return Promise.reject();
+            }
+            message.success(`${action}成功`);
             await refreshDetail();
+          } catch (error) {
+            const reason = getBusinessReason(error);
+            if (
+              reason ===
+              financeErrorReasons.FINANCE_COMMISSION_ADJUSTMENT_EXCEEDS
+            ) {
+              modal.warning({
+                title: '冲减金额超限',
+                content: '冲减后的有效提成不能小于零，请检查调整金额。',
+              });
+              throw error;
+            }
+            if (
+              reason ===
+              financeErrorReasons.FINANCE_COMMISSION_ADJUSTMENT_TRANSITION
+            ) {
+              message.warning('调整状态已变化，已刷新详情');
+              await refreshDetail();
+              throw error;
+            }
+            message.error(getErrorMessage(error, `${action}失败`));
             throw error;
           }
-          message.error(getErrorMessage(error, `${action}失败`));
-          throw error;
-        }
-      },
-    }).then(
-      () => {},
-      () => {},
-    );
+        },
+      })
+      .then(
+        () => {},
+        () => {},
+      );
   };
 
   const cancelAdjustment = (record: API.FinanceCommissionAdjustment) => {
+    if (
+      !hasCompanyScope ||
+      !access.canManageFinanceCommissions ||
+      !access.canOperateOrganization(record.organizationId)
+    )
+      return;
     adjustmentActions.confirm(
       record,
       `取消 ${record.organizationName || '所属公司未标识'} 的调整 ${record.adjustmentNo}？`,
@@ -300,7 +318,14 @@ export default function FinanceCommissionsPage() {
     record: API.FinanceCommission,
     target: 'CONFIRMED' | 'PAID',
   ) => {
-    if (!record.id || !record.version) return;
+    if (
+      !record.id ||
+      !record.version ||
+      !hasCompanyScope ||
+      !access.canManageFinanceCommissions ||
+      !access.canOperateOrganization(record.organizationId)
+    )
+      return;
     if (target === 'PAID') {
       setPaymentRecord(record);
       return;
@@ -308,63 +333,71 @@ export default function FinanceCommissionsPage() {
     const id = record.id;
     const version = record.version;
     const action = target === 'CONFIRMED' ? '确认' : '标记已发放';
-    modal.confirm({
-      title: `${action} ${record.organizationName || '所属公司未标识'} 的提成 ${record.commissionNo}？`,
-      content:
-        target === 'CONFIRMED'
-          ? '系统会重新核对来源单（核销或对冲）、账单费用、提成规则和客户人员归属；来源发生变化时将拒绝确认。'
-          : '该操作表示提成已实际发放，完成后不可取消。',
-      onOk: async () => {
-        try {
-          const body = { id, expectedVersion: version };
-          const writeResponse4 = await settlementServiceConfirmCommission(
-            { id },
-            body,
-          );
-          if (!isWriteResponse(writeResponse4, true)) return Promise.reject();
-          message.success(`${action}成功`);
-          reload();
-          if (detail?.id === id) {
-            await refreshDetail();
-          }
-        } catch (error) {
-          const reason = getBusinessReason(error);
-          if (
-            reason === financeErrorReasons.FINANCE_COMMISSION_SOURCE_CHANGED
-          ) {
-            modal.warning({
-              title: '提成来源已经变化',
-              content:
-                '请取消当前草稿，然后根据最新来源单、费用和人员归属重新生成。',
-            });
-            throw error;
-          }
-          if (
-            reason === financeErrorReasons.FINANCE_COMMISSION_UNCONFIRMED_FEES
-          ) {
-            modal.warning({
-              title: '关联订单存在未建账费用',
-              content: '请先建账或删除未建账费用，再确认提成。',
-            });
-            throw error;
-          }
-          if (reason === financeErrorReasons.FINANCE_COMMISSION_TRANSITION) {
-            message.warning('提成状态已变化，页面已刷新');
+    modal
+      .confirm({
+        title: `${action} ${record.organizationName || '所属公司未标识'} 的提成 ${record.commissionNo}？`,
+        content:
+          target === 'CONFIRMED'
+            ? '系统会重新核对来源单（核销或对冲）、账单费用、提成规则和客户人员归属；来源发生变化时将拒绝确认。'
+            : '该操作表示提成已实际发放，完成后不可取消。',
+        onOk: async () => {
+          try {
+            const body = { id, expectedVersion: version };
+            const writeResponse4 = await settlementServiceConfirmCommission(
+              { id },
+              body,
+            );
+            if (!isWriteResponse(writeResponse4, true)) return Promise.reject();
+            message.success(`${action}成功`);
             reload();
-            if (detail?.id === id) await refreshDetail();
+            if (detail?.id === id) {
+              await refreshDetail();
+            }
+          } catch (error) {
+            const reason = getBusinessReason(error);
+            if (
+              reason === financeErrorReasons.FINANCE_COMMISSION_SOURCE_CHANGED
+            ) {
+              modal.warning({
+                title: '提成来源已经变化',
+                content:
+                  '请取消当前草稿，然后根据最新来源单、费用和人员归属重新生成。',
+              });
+              throw error;
+            }
+            if (
+              reason === financeErrorReasons.FINANCE_COMMISSION_UNCONFIRMED_FEES
+            ) {
+              modal.warning({
+                title: '关联订单存在未建账费用',
+                content: '请先建账或删除未建账费用，再确认提成。',
+              });
+              throw error;
+            }
+            if (reason === financeErrorReasons.FINANCE_COMMISSION_TRANSITION) {
+              message.warning('提成状态已变化，页面已刷新');
+              reload();
+              if (detail?.id === id) await refreshDetail();
+              throw error;
+            }
+            message.error(getErrorMessage(error, `${action}失败`));
             throw error;
           }
-          message.error(getErrorMessage(error, `${action}失败`));
-          throw error;
-        }
-      },
-    }).then(
-      () => {},
-      () => {},
-    );
+        },
+      })
+      .then(
+        () => {},
+        () => {},
+      );
   };
 
   const cancel = (record: API.FinanceCommission) => {
+    if (
+      !hasCompanyScope ||
+      !access.canManageFinanceCommissions ||
+      !access.canOperateOrganization(record.organizationId)
+    )
+      return;
     commissionActions.confirm(
       record,
       `取消 ${record.organizationName || '所属公司未标识'} 的提成 ${record.commissionNo}？`,
@@ -709,17 +742,6 @@ export default function FinanceCommissionsPage() {
                   />
                 ),
               },
-              {
-                name: 'organizationId',
-                label: '所属公司',
-                type: 'select',
-                placeholder: '全部公司',
-                span: 6,
-                options: organizationOptions.map((item) => ({
-                  value: item.id ?? '',
-                  label: item.name ?? item.code ?? item.id ?? '',
-                })),
-              },
             ]}
             onSearch={(values) => {
               searchFiltersRef.current = normalizeCommissionFilters(values);
@@ -731,7 +753,7 @@ export default function FinanceCommissionsPage() {
             }}
             extraRight={
               <Space size={8} wrap style={{ maxWidth: '100%' }}>
-                {access.canExportFinanceCommissions && (
+                {hasCompanyScope && access.canExportFinanceCommissions && (
                   <Button
                     key="export"
                     icon={<DownloadOutlined />}
@@ -741,7 +763,7 @@ export default function FinanceCommissionsPage() {
                     导出提成
                   </Button>
                 )}
-                {access.canManageFinanceCommissions && (
+                {hasCompanyScope && access.canManageFinanceCommissions && (
                   <Button
                     key="create"
                     type="primary"
@@ -754,6 +776,7 @@ export default function FinanceCommissionsPage() {
                 <Button
                   key="rules"
                   icon={<SettingOutlined />}
+                  disabled={!hasCompanyScope}
                   onClick={() => setRulesDrawerOpen(true)}
                 >
                   {access.canConfigureFinanceCommissions
@@ -779,10 +802,13 @@ export default function FinanceCommissionsPage() {
             toolBarRender={() => [columnSettings.entry]}
             options={{ reload: true, density: true, setting: false }}
             request={async (params) => {
+              if (!hasCompanyScope || !access.canReadFinanceCommissions)
+                return { data: [], success: false, total: 0 };
               const response = await settlementServiceListCommissions({
                 page: params.current ?? 1,
                 pageSize: params.pageSize ?? 20,
                 ...searchFiltersRef.current,
+                organizationId,
               });
               return toTableRequest(response);
             }}

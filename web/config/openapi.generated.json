@@ -6371,43 +6371,6 @@
         }
       }
     },
-    "/api/v1/finance/organization-options": {
-      "get": {
-        "tags": [
-          "SettlementService"
-        ],
-        "operationId": "SettlementService_ListFinanceOrganizationOptions",
-        "parameters": [
-          {
-            "name": "purpose",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "enum"
-            }
-          },
-          {
-            "name": "keyword",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/finance.v1.ListFinanceOrganizationOptionsResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/finance/settlement-party-options": {
       "get": {
         "tags": [
@@ -21013,23 +20976,6 @@
           }
         }
       },
-      "finance.v1.FinanceOrganizationOption": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "code": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "baseCurrency": {
-            "type": "string"
-          }
-        }
-      },
       "finance.v1.FinanceSettlementAccountOption": {
         "type": "object",
         "properties": {
@@ -22019,30 +21965,6 @@
           "pageSize": {
             "type": "integer",
             "format": "int32"
-          }
-        }
-      },
-      "finance.v1.ListFinanceOrganizationOptionsResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/finance.v1.FinanceOrganizationOption"
-            }
-          },
-          "traceId": {
-            "type": "string"
           }
         }
       },

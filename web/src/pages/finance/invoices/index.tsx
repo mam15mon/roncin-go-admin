@@ -6,19 +6,16 @@ import {
   SwapOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { useQuery } from '@tanstack/react-query';
-import { App, Form, Select, Space, Tag } from 'antd';
+import { App, Form, Space, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
+import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import {
   type FinanceLedgerMetricCard,
   FinanceLedgerTemplate,
 } from '@/components/ui';
-import {
-  FinanceInvoiceStatus,
-  FinanceOrganizationPurpose,
-} from '@/enums.generated';
+import { FinanceInvoiceStatus } from '@/enums.generated';
 import { financeErrorReasons } from '@/errorReasons.generated';
 import {
   invoiceLedgerSummaryConfig,
@@ -29,7 +26,6 @@ import {
   settlementServiceCreateInvoice,
   settlementServiceGetInvoice,
   settlementServiceIssueInvoice,
-  settlementServiceListFinanceOrganizationOptions,
   settlementServiceListInvoices,
   settlementServiceRedFlushInvoice,
 } from '@/services/roncin/settlementService';
@@ -101,6 +97,14 @@ function readInvoiceErrorReason(error: unknown): string | undefined {
 
 export default function FinanceInvoicesPage() {
   const access = useAccess();
+  const { initialState } = useInitialState();
+  const currentUser = initialState?.currentUser;
+  const organizationId = currentUser?.currentOrganization?.id;
+  const hasCompanyScope = Boolean(
+    currentUser?.id &&
+      organizationId &&
+      access.canOperateOrganization(organizationId),
+  );
   const { message } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [createForm] = Form.useForm<CreateValues>();
@@ -115,27 +119,6 @@ export default function FinanceInvoicesPage() {
   const [selectedBills, setSelectedBills] = useState<API.FinanceBill[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [detail, setDetail] = useState<API.FinanceInvoice>();
-  const [organizationId, setOrganizationId] = useState<string>();
-  // 顶部筛选所属公司候选：历史无错误兜底，保持静默（仅请求层通知）。
-  const organizationQuery = useQuery({
-    queryKey: [
-      'finance',
-      'organization-options',
-      {
-        purpose:
-          FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_INVOICE_READ,
-      },
-    ],
-    meta: { silent: true },
-    queryFn: async () => {
-      const response = await settlementServiceListFinanceOrganizationOptions({
-        purpose:
-          FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_INVOICE_READ,
-      });
-      return response.data ?? [];
-    },
-  });
-  const organizationOptions = organizationQuery.data ?? [];
   const [metricStats, setMetricStats] = useState({
     totalCount: 0,
     issuedCount: 0,
@@ -166,6 +149,19 @@ export default function FinanceInvoicesPage() {
     if (!selectedIDs.length) {
       message.warning('请至少选择一张已确认账单');
       return;
+    }
+    if (
+      !hasCompanyScope ||
+      !access.canCreateFinanceInvoices ||
+      selectedBills.length !== selectedIDs.length ||
+      selectedBills.some(
+        (bill) =>
+          bill.organizationId !== organizationId ||
+          !selectedIDs.includes(bill.id ?? ''),
+      )
+    ) {
+      message.warning('只能为当前公司工作区的账单创建开票记录');
+      return false;
     }
     setSubmitting(true);
     try {
@@ -549,27 +545,6 @@ export default function FinanceInvoicesPage() {
       >
         pageTitle="发票管理"
         pageSubTitle="进项与销项发票开具、收票核验与发票状态跟踪"
-        topBar={
-          <Space size={8} align="center">
-            <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
-              所属公司：
-            </span>
-            <Select
-              allowClear
-              placeholder="请选择所属公司"
-              style={{ minWidth: 220 }}
-              value={organizationId}
-              options={organizationOptions.map((item) => ({
-                value: item.id,
-                label: item.name ?? item.code ?? item.id,
-              }))}
-              onChange={(value) => {
-                setOrganizationId(value);
-                actionRef.current?.reload();
-              }}
-            />
-          </Space>
-        }
         headerTitle="发票明细列表"
         actionRef={actionRef}
         exportColumns={invoiceExportColumns}
@@ -597,6 +572,7 @@ export default function FinanceInvoicesPage() {
           });
         }}
         request={async (p) => {
+          if (!hasCompanyScope) return { data: [], success: false, total: 0 };
           const r = await settlementServiceListInvoices(
             {
               page: p.current,

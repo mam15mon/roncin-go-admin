@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -12,8 +13,25 @@ import {
 } from '@/services/roncin/settlementService';
 import CommissionApplicationsPanel from './CommissionApplicationsPanel';
 
+const workspace = vi.hoisted(() => ({
+  organizationId: 'org-a' as string | undefined,
+  userId: 'user-1' as string | undefined,
+  canOperate: true,
+}));
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
+    initialState: {
+      currentUser: {
+        id: workspace.userId,
+        currentOrganization: { id: workspace.organizationId },
+      },
+    },
+  }),
+}));
 const accessState = vi.hoisted(() => ({
-  canOperateOrganization: () => true,
+  canOperateOrganization: (id?: string) =>
+    workspace.canOperate && Boolean(id) && id === workspace.organizationId,
+  canReadFinanceCommissions: true,
   canConfigureFinanceCommissions: false,
   canManageFinanceCommissions: true,
 }));
@@ -45,6 +63,7 @@ function applicationRow(
 ): API.FinanceCommissionApplication {
   return {
     id: 'app-1',
+    organizationId: 'org-a',
     applicationMonth: '2026-08',
     coverageTo: '2026-08-31',
     status:
@@ -70,6 +89,9 @@ function renderPanel() {
 }
 
 beforeEach(() => {
+  workspace.organizationId = 'org-a';
+  workspace.userId = 'user-1';
+  workspace.canOperate = true;
   accessState.canManageFinanceCommissions = true;
   vi.clearAllMocks();
   listApplications.mockResolvedValue({
@@ -94,13 +116,18 @@ describe('CommissionApplicationsPanel 月度申请批次面板', () => {
     expect(listApplications).toHaveBeenCalledWith({
       page: 1,
       pageSize: 20,
+      organizationId: 'org-a',
       status:
         FinanceCommissionApplicationStatus.FINANCE_COMMISSION_APPLICATION_STATUS_PENDING_REVIEW,
       applicationMonth: undefined,
       employeeId: undefined,
     });
     await waitFor(() => expect(listEmployees).toHaveBeenCalledTimes(1));
-    expect(listEmployees).toHaveBeenCalledWith({ page: 1, pageSize: 200 });
+    expect(listEmployees).toHaveBeenCalledWith({
+      page: 1,
+      pageSize: 200,
+      organizationId: 'org-a',
+    });
   });
 
   it('真实 MonthPicker 选择提交月份后按 YYYY-MM 字符串发起查询', async () => {
@@ -132,6 +159,7 @@ describe('CommissionApplicationsPanel 月度申请批次面板', () => {
     expect(listApplications).toHaveBeenLastCalledWith({
       page: 1,
       pageSize: 20,
+      organizationId: 'org-a',
       status:
         FinanceCommissionApplicationStatus.FINANCE_COMMISSION_APPLICATION_STATUS_PENDING_REVIEW,
       applicationMonth: '2026-08',
@@ -144,6 +172,7 @@ describe('CommissionApplicationsPanel 月度申请批次面板', () => {
     expect(listApplications).toHaveBeenLastCalledWith({
       page: 1,
       pageSize: 20,
+      organizationId: 'org-a',
       status:
         FinanceCommissionApplicationStatus.FINANCE_COMMISSION_APPLICATION_STATUS_PENDING_REVIEW,
       applicationMonth: undefined,
@@ -179,7 +208,8 @@ describe('CommissionApplicationsPanel 月度申请批次面板', () => {
 
   it('整单批准携带 expectedVersion 且确认内容只承诺确认计算结果', async () => {
     approveApplication.mockResolvedValue({
-      success: true, data: { id: 'app-1' },
+      success: true,
+      data: { id: 'app-1' },
     } as Awaited<ReturnType<typeof approveApplication>>);
     listApplications.mockResolvedValue({
       data: [applicationRow()],
@@ -230,7 +260,8 @@ describe('CommissionApplicationsPanel 月度申请批次面板', () => {
 
   it('整单驳回原因必填：空原因不调用接口', async () => {
     rejectApplication.mockResolvedValue({
-      success: true, data: { id: 'app-1' },
+      success: true,
+      data: { id: 'app-1' },
     } as Awaited<ReturnType<typeof rejectApplication>>);
     listApplications.mockResolvedValue({
       data: [applicationRow()],

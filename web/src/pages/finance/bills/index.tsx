@@ -61,7 +61,13 @@ type BillSearchParams = {
 export default function FinanceBillsPage() {
   const access = useAccess();
   const { initialState } = useInitialState();
-  const organizationId = initialState?.currentUser?.currentOrganization?.id;
+  const currentUser = initialState?.currentUser;
+  const organizationId = currentUser?.currentOrganization?.id;
+  const hasCompanyScope = Boolean(
+    currentUser?.id &&
+      organizationId &&
+      access.canOperateOrganization(organizationId),
+  );
   const getModalOwnerSignal = useModalOwnerSignal();
   const queryState = useListQueryState<{
     search: BillSearchParams;
@@ -164,7 +170,8 @@ export default function FinanceBillsPage() {
       label: '结算单位',
       type: 'searchable-select',
       placeholder: '输入名称/全拼搜索结算单位',
-      request: ({ keyWords }) => searchPartnerOptions(keyWords),
+      request: ({ keyWords }) =>
+        hasCompanyScope ? searchPartnerOptions(keyWords) : Promise.resolve([]),
     },
     {
       name: 'currency',
@@ -443,7 +450,7 @@ export default function FinanceBillsPage() {
           });
         }}
         request={async (params) => {
-          if (!organizationId) {
+          if (!hasCompanyScope) {
             return { data: [], success: false, total: 0 };
           }
           const { search: searchParams } =

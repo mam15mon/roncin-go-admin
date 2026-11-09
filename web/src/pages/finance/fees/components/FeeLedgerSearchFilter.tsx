@@ -38,6 +38,7 @@ export type FeeLedgerFilterParams = {
 };
 
 export interface FeeLedgerSearchFilterProps {
+  enabled: boolean;
   initialValues?: FeeLedgerFilterParams;
   initialLabels?: Record<string, string>;
   onCommit?: (
@@ -50,6 +51,7 @@ export interface FeeLedgerSearchFilterProps {
 }
 
 export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
+  enabled,
   initialValues,
   initialLabels,
   onCommit,
@@ -122,7 +124,8 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
       label: '结算单位',
       type: 'searchable-select',
       placeholder: '输入名称/全拼搜索结算单位',
-      request: ({ keyWords }) => searchPartnerOptions(keyWords),
+      request: ({ keyWords }) =>
+        enabled ? searchPartnerOptions(keyWords) : Promise.resolve([]),
     },
 
     {
@@ -158,7 +161,10 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
       label: '委托单位',
       type: 'searchable-select',
       placeholder: '输入名称/全拼搜索委托单位',
-      request: ({ keyWords }) => searchPartnerOptions(keyWords, { role: 1 }),
+      request: ({ keyWords }) =>
+        enabled
+          ? searchPartnerOptions(keyWords, { role: 1 })
+          : Promise.resolve([]),
     },
     {
       name: 'billNo',

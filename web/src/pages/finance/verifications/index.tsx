@@ -1,15 +1,8 @@
 import { PlusOutlined, RollbackOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import {
-  App,
-  Descriptions,
-  Drawer,
-  Select,
-  Space,
-  type TableColumnsType,
-  Tag,
-} from 'antd';
-import { useEffect, useRef, useState } from 'react';
+import { App, Descriptions, Drawer, type TableColumnsType, Tag } from 'antd';
+import { useRef, useState } from 'react';
+import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
 import {
@@ -18,17 +11,13 @@ import {
   ResponsiveTable as Table,
 } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
-import {
-  FinanceOrganizationPurpose,
-  FinanceVerificationStatus,
-} from '@/enums.generated';
+import { FinanceVerificationStatus } from '@/enums.generated';
 import { ExchangeGainLossTag } from '@/features/finance/exchange-gain-loss';
 import {
   mapMatchedSummary,
   verificationLedgerSummaryConfig,
 } from '@/features/finance/ledger-summary';
 import {
-  settlementServiceListFinanceOrganizationOptions,
   settlementServiceListVerifications,
   settlementServiceReverseVerification,
 } from '@/services/roncin/settlementService';
@@ -53,21 +42,19 @@ type VerificationLedgerFilterParams = {
 
 export default function FinanceVerificationsPage() {
   const access = useAccess();
+  const { initialState } = useInitialState();
+  const currentUser = initialState?.currentUser;
+  const organizationId = currentUser?.currentOrganization?.id;
+  const hasCompanyScope = Boolean(
+    currentUser?.id &&
+      organizationId &&
+      access.canOperateOrganization(organizationId),
+  );
   const getModalOwnerSignal = useModalOwnerSignal();
   const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState<API.FinanceVerification>();
-  const [organizationId, setOrganizationId] = useState<string>();
-  const [organizationOptions, setOrganizationOptions] = useState<
-    API.FinanceOrganizationOption[]
-  >([]);
-  useEffect(() => {
-    void settlementServiceListFinanceOrganizationOptions({
-      purpose:
-        FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_READ,
-    }).then((response) => setOrganizationOptions(response.data ?? []));
-  }, []);
   const [metricStats, setMetricStats] = useState({
     totalCount: 0,
     amountsByBaseCurrency: [] as API.FinanceBaseCurrencyAmount[],
@@ -373,27 +360,6 @@ export default function FinanceVerificationsPage() {
       >
         pageTitle="核销管理"
         pageSubTitle="应收/应付账单对账核销与多币种汇差结算"
-        topBar={
-          <Space size={8} align="center">
-            <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
-              所属公司：
-            </span>
-            <Select
-              allowClear
-              placeholder="请选择所属公司"
-              style={{ minWidth: 220 }}
-              value={organizationId}
-              options={organizationOptions.map((item) => ({
-                value: item.id,
-                label: item.name ?? item.code ?? item.id,
-              }))}
-              onChange={(value) => {
-                setOrganizationId(value);
-                actionRef.current?.reload();
-              }}
-            />
-          </Space>
-        }
         headerTitle="核销记录列表"
         actionRef={actionRef}
         exportColumns={verificationExportColumns}
@@ -415,6 +381,7 @@ export default function FinanceVerificationsPage() {
           });
         }}
         request={async (p) => {
+          if (!hasCompanyScope) return { data: [], success: false, total: 0 };
           const r = await settlementServiceListVerifications(
             {
               page: p.current,

@@ -116,7 +116,6 @@ type SettlementRepo interface {
 	ListFeeLedger(ctx context.Context, organizationIDs []uuid.UUID, filter FeeLedgerFilter) (*FeeLedgerResult, error)
 	GetFeeLedgerOrderDetail(context.Context, []uuid.UUID, uuid.UUID) (*FeeLedgerOrderDetail, error)
 	ResolveFeeLedgerOrganization(ctx context.Context, organizationIDs, feeIDs []uuid.UUID) (uuid.UUID, error)
-	ListFinanceOrganizations(context.Context, []uuid.UUID, string) ([]*FinanceOrganizationOption, error)
 	ListFinanceSettlementParties(context.Context, uuid.UUID, string, int, int) ([]*FinanceSettlementPartyOption, int64, error)
 }
 
@@ -134,11 +133,6 @@ func (uc *SettlementUsecase) GetFeeLedgerOrderDetail(ctx context.Context, organi
 	return uc.repo.GetFeeLedgerOrderDetail(ctx, organizationIDs, orderID)
 }
 
-type FinanceOrganizationOption struct {
-	ID                       uuid.UUID
-	Code, Name, BaseCurrency string
-}
-
 type FinanceSettlementPartyOption struct {
 	ID, Code, Name string
 	IsCasual       bool
@@ -149,23 +143,6 @@ type FinanceSettlementPartyOption struct {
 
 type SettlementUsecase struct {
 	repo SettlementRepo
-}
-
-func (uc *SettlementUsecase) ListFinanceOrganizations(ctx context.Context, organizationIDs []uuid.UUID, keyword string) ([]*FinanceOrganizationOption, error) {
-	if len(organizationIDs) == 0 || utf8.RuneCountInString(strings.TrimSpace(keyword)) > 100 {
-		return nil, ErrFinanceLedgerInvalidArgument
-	}
-	seen := make(map[uuid.UUID]struct{}, len(organizationIDs))
-	for _, organizationID := range organizationIDs {
-		if organizationID == uuid.Nil {
-			return nil, ErrFinanceLedgerInvalidArgument
-		}
-		if _, exists := seen[organizationID]; exists {
-			return nil, ErrFinanceLedgerInvalidArgument
-		}
-		seen[organizationID] = struct{}{}
-	}
-	return uc.repo.ListFinanceOrganizations(ctx, organizationIDs, strings.TrimSpace(keyword))
 }
 
 func (uc *SettlementUsecase) ListFinanceSettlementParties(ctx context.Context, organizationID uuid.UUID, keyword string, page, pageSize int) ([]*FinanceSettlementPartyOption, int64, error) {

@@ -58,6 +58,9 @@ func TestBusinessTagRetirementRegistrations(t *testing.T) {
 	routes := map[string]bool{}
 	if err := httpServer.WalkRoute(func(route khttp.RouteInfo) error {
 		routes[route.Method+" "+route.Path] = true
+		if route.Path == "/api/v1/finance/organization-options" {
+			t.Errorf("财务公司候选 HTTP 入口仍注册: %s", route.Path)
+		}
 		if strings.Contains(route.Path, "tag-") || strings.Contains(route.Path, "tags/") || strings.Contains(route.Path, "enterprise-tag-groups") {
 			t.Errorf("标签 HTTP 入口仍注册: %s %s", route.Method, route.Path)
 		}
@@ -65,7 +68,7 @@ func TestBusinessTagRetirementRegistrations(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
-	for _, route := range []string{"GET /api/v1/orders", "GET /api/v1/orders/{order_id}/fees", "GET /api/v1/finance/bills", "GET /api/v1/finance/fees", "GET /api/v1/enterprise-resources"} {
+	for _, route := range []string{"GET /api/v1/orders", "GET /api/v1/orders/{order_id}/fees", "GET /api/v1/finance/bills", "GET /api/v1/finance/fees", "GET /api/v1/finance/settlement-party-options", "GET /api/v1/enterprise-resources"} {
 		if !routes[route] {
 			t.Errorf("相邻业务 HTTP 入口缺失: %s", route)
 		}
@@ -115,6 +118,9 @@ func TestBusinessTagRetirementRegistrations(t *testing.T) {
 			t.Errorf("相邻业务 gRPC 服务缺失: %s", name)
 		}
 		for _, method := range info.Methods {
+			if method.Name == "ListFinanceOrganizationOptions" {
+				t.Errorf("财务公司候选 RPC 仍注册: %s/%s", name, method.Name)
+			}
 			if strings.Contains(method.Name, "Tag") {
 				t.Errorf("标签 RPC 仍注册: %s/%s", name, method.Name)
 			}
@@ -135,6 +141,15 @@ func TestBusinessTagRetirementRegistrations(t *testing.T) {
 		if !found {
 			t.Errorf("相邻业务 RPC 缺失: %s/%s", name, required)
 		}
+	}
+	partyOptionsFound := false
+	for _, method := range infos["finance.v1.SettlementService"].Methods {
+		if method.Name == "ListFinanceSettlementPartyOptions" {
+			partyOptionsFound = true
+		}
+	}
+	if !partyOptionsFound {
+		t.Error("结算单位候选 RPC 缺失")
 	}
 	for _, permission := range access.Manifest() {
 		if permission.Key == "system.finance.fee.tag" {

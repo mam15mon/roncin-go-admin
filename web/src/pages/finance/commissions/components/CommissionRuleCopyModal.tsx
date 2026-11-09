@@ -32,7 +32,6 @@ type CommissionRuleCopyModalProps = {
   employeeOptions: EmployeeOption[];
   searchEmployees: (
     keyword: string,
-    targetOrganizationId: string | undefined,
     apply: (options: EmployeeOption[]) => void,
   ) => Promise<void>;
   onEmployeeOptionsChange: React.Dispatch<
@@ -142,19 +141,11 @@ export default function CommissionRuleCopyModal({
           mode: 'multiple',
           filterOption: false,
           onSearch: (value: string) => {
-            void searchEmployees(
-              value,
-              copySourceRule?.organizationId,
-              onEmployeeOptionsChange,
-            );
+            void searchEmployees(value, onEmployeeOptionsChange);
           },
           onDropdownVisibleChange: (visible: boolean) => {
             if (visible) {
-              void searchEmployees(
-                '',
-                copySourceRule?.organizationId,
-                onEmployeeOptionsChange,
-              );
+              void searchEmployees('', onEmployeeOptionsChange);
             }
           },
         }}

@@ -3231,13 +3231,6 @@ declare namespace API {
     confirmedCount?: string;
   };
 
-  type FinanceOrganizationOption = {
-    id?: string;
-    code?: string;
-    name?: string;
-    baseCurrency?: string;
-  };
-
   type FinanceSettlementAccountOption = {
     id?: string;
     name?: string;
@@ -4070,14 +4063,6 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: OrderFee[];
-    traceId?: string;
-  };
-
-  type ListFinanceOrganizationOptionsResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: FinanceOrganizationOption[];
     traceId?: string;
   };
 
@@ -8302,11 +8287,6 @@ declare namespace API {
     organizationId?: string;
     hasPendingFeeSupplement?: boolean;
     orderLocked?: boolean;
-  };
-
-  type SettlementServiceListFinanceOrganizationOptionsParams = {
-    purpose?: number;
-    keyword?: string;
   };
 
   type SettlementServiceListFinanceSettlementPartyOptionsParams = {

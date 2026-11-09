@@ -13,17 +13,12 @@ export type CommissionMonthRange = [Dayjs | null, Dayjs | null] | null;
 export type CommissionSearchValues = {
   keyword?: string;
   status?: number;
-  organizationId?: string;
   commissionMonth?: CommissionMonthRange;
 };
 
 export type CommissionQueryFilters = Pick<
   API.SettlementServiceExportCommissionsParams,
-  | 'keyword'
-  | 'status'
-  | 'commissionDateFrom'
-  | 'commissionDateTo'
-  | 'organizationId'
+  'keyword' | 'status' | 'commissionDateFrom' | 'commissionDateTo'
 >;
 
 export function normalizeCommissionFilters(
@@ -35,7 +30,6 @@ export function normalizeCommissionFilters(
   return {
     keyword: keyword || undefined,
     status: values.status,
-    organizationId: values.organizationId,
     commissionDateFrom: startMonth
       ? startMonth.startOf('month').format('YYYY-MM-DD')
       : undefined,

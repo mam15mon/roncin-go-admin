@@ -1,17 +1,38 @@
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import dayjs from 'dayjs';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { settlementServiceCreateCashflow } from '@/services/roncin/settlementService';
+import {
+  settlementServiceCreateCashflow,
+  settlementServiceListFinanceSettlementPartyOptions,
+} from '@/services/roncin/settlementService';
 import FinanceCashflowsPage from './index';
 
-const state = vi.hoisted(() => ({ reload: vi.fn(), results: [] as boolean[] }));
+const state = vi.hoisted(() => ({
+  reload: vi.fn(),
+  results: [] as boolean[],
+  company: true,
+  organizationId: 'workspace-org' as string | undefined,
+  partyRequest: undefined as
+    | undefined
+    | ((params: { keyWords: string }) => Promise<unknown>),
+}));
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
+    initialState: {
+      currentUser: {
+        id: 'user',
+        currentOrganization: { id: state.organizationId },
+      },
+    },
+  }),
+}));
 vi.mock('@/app/access', () => ({
   useAccess: () => ({
     canCreateFinanceCashflows: true,
-    canOperateOrganization: () => true,
+    canOperateOrganization: () => state.company,
   }),
 }));
 vi.mock('@/components/ui', async () => ({
@@ -31,7 +52,13 @@ vi.mock('@/components/ui', async () => ({
       </button>
     );
   },
-  ProFormSearchableSelect: () => null,
+  ProFormSearchableSelect: (props: {
+    name: string;
+    request?: (params: { keyWords: string }) => Promise<unknown>;
+  }) => {
+    if (props.name === 'settlementPartyId') state.partyRequest = props.request;
+    return null;
+  },
 }));
 vi.mock('@/features/finance/credit-control', () => ({
   useCreditLimitIntervention: () => false,
@@ -48,13 +75,14 @@ vi.mock('@ant-design/pro-components', () => ({
   }) =>
     p.open ? (
       <div>
+        {p.children}
         <input aria-label="流水备注" defaultValue="未保存备注" />
         <button
           type="button"
           onClick={() =>
             void p
               .onFinish({
-                organizationId: 'org',
+                organizationId: 'other-org',
                 direction: 'RECEIVABLE',
                 settlementPartyId: 'partner',
                 currency: 'CNY',
@@ -76,13 +104,15 @@ vi.mock('@ant-design/pro-components', () => ({
 }));
 vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceCreateCashflow: vi.fn(),
-  settlementServiceListFinanceOrganizationOptions: vi
+  settlementServiceListFinanceSettlementPartyOptions: vi
     .fn()
     .mockResolvedValue({ data: [] }),
 }));
 beforeEach(() => {
   vi.clearAllMocks();
   state.results = [];
+  state.company = true;
+  state.organizationId = 'workspace-org';
   vi.mocked(settlementServiceCreateCashflow).mockReset();
 });
 describe('资金流水登记失败判定', () => {
@@ -116,5 +146,50 @@ describe('资金流水登记失败判定', () => {
     );
     expect(screen.queryByLabelText('流水备注')).not.toBeInTheDocument();
     expect(state.reload).toHaveBeenCalledTimes(1);
+    expect(settlementServiceCreateCashflow).toHaveBeenLastCalledWith(
+      expect.objectContaining({ organizationId: 'workspace-org' }),
+    );
   });
+  it('登记客商候选使用当前公司和收付用途，不再依赖已移除的公司表单项', async () => {
+    renderWithClient(
+      <App>
+        <FinanceCashflowsPage />
+      </App>,
+    );
+    fireEvent.click(screen.getByText('登记流水'));
+    await act(async () => {
+      await state.partyRequest?.({ keyWords: '客户' });
+    });
+    expect(
+      settlementServiceListFinanceSettlementPartyOptions,
+    ).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        organizationId: 'workspace-org',
+        purpose: 4,
+        keyword: '客户',
+      }),
+    );
+  });
+  it.each(['未就绪', '系统工作台'])(
+    '%s不加载登记候选或提交',
+    async (scenario) => {
+      if (scenario === '未就绪') state.organizationId = undefined;
+      else state.company = false;
+      renderWithClient(
+        <App>
+          <FinanceCashflowsPage />
+        </App>,
+      );
+      fireEvent.click(screen.getByText('登记流水'));
+      await act(async () => {
+        await state.partyRequest?.({ keyWords: '' });
+      });
+      fireEvent.click(screen.getByText('提交流水'));
+      await waitFor(() => expect(state.results).toEqual([false]));
+      expect(
+        settlementServiceListFinanceSettlementPartyOptions,
+      ).not.toHaveBeenCalled();
+      expect(settlementServiceCreateCashflow).not.toHaveBeenCalled();
+    },
+  );
 });

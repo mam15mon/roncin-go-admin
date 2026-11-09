@@ -10,10 +10,10 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { useQuery } from '@tanstack/react-query';
-import { App, Form, Select, Space, Tag } from 'antd';
+import { App, Form, Space, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
+import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
 import {
@@ -44,7 +44,6 @@ import {
   settlementServiceConfirmCashflow,
   settlementServiceCreateCashflow,
   settlementServiceListCashflows,
-  settlementServiceListFinanceOrganizationOptions,
   settlementServiceListFinanceSettlementPartyOptions,
 } from '@/services/roncin/settlementService';
 import {
@@ -71,7 +70,6 @@ type CashflowLedgerFilterParams = {
 };
 
 type Values = {
-  organizationId: string;
   direction: string;
   settlementPartyId: string;
   currency: string;
@@ -92,11 +90,18 @@ const decimalRule = {
 
 export default function FinanceCashflowsPage() {
   const access = useAccess();
+  const { initialState } = useInitialState();
+  const currentUser = initialState?.currentUser;
+  const organizationId = currentUser?.currentOrganization?.id;
+  const hasCompanyScope = Boolean(
+    currentUser?.id &&
+      organizationId &&
+      access.canOperateOrganization(organizationId),
+  );
   const getModalOwnerSignal = useModalOwnerSignal();
   const queryState = useListQueryState<{
     direction?: string;
     status?: string;
-    organizationId?: string;
   }>({
     tabKey: '/finance/cashflows',
     listId: 'finance:cashflows',
@@ -112,9 +117,6 @@ export default function FinanceCashflowsPage() {
     queryState.commit,
     () => queryState.snapshotRef.current.filters,
   );
-  const [organizationId, setOrganizationId] = useState<string | undefined>(
-    queryState.initial.filters.organizationId,
-  );
   const [partyCasualMap, setPartyCasualMap] = useState<Record<string, boolean>>(
     {},
   );
@@ -127,48 +129,6 @@ export default function FinanceCashflowsPage() {
     currentDirection === 'PAYABLE' &&
     Boolean(partyCasualMap[currentSettlementPartyId]);
 
-  // 登记弹窗所属公司候选：仅具备登记权限时拉取；失败经全局 onError 提示原文案。
-  const createOrganizationQuery = useQuery({
-    queryKey: [
-      'finance',
-      'organization-options',
-      {
-        purpose:
-          FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_CREATE,
-      },
-    ],
-    enabled: access.canCreateFinanceCashflows,
-    meta: { errorMessage: '资金登记公司候选加载失败' },
-    queryFn: async () => {
-      const response = await settlementServiceListFinanceOrganizationOptions({
-        purpose:
-          FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_CREATE,
-      });
-      return response.data ?? [];
-    },
-  });
-
-  // 顶部筛选所属公司候选：历史无错误兜底，保持静默（仅请求层通知）。
-  const readOrganizationQuery = useQuery({
-    queryKey: [
-      'finance',
-      'organization-options',
-      {
-        purpose:
-          FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_READ,
-      },
-    ],
-    meta: { silent: true },
-    queryFn: async () => {
-      const response = await settlementServiceListFinanceOrganizationOptions({
-        purpose:
-          FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_READ,
-      });
-      return response.data ?? [];
-    },
-  });
-  const organizationOptions = createOrganizationQuery.data ?? [];
-  const readOrganizationOptions = readOrganizationQuery.data ?? [];
   const [metricStats, setMetricStats] = useState({
     totalCount: 0,
     amountsByBaseCurrency: [] as API.FinanceBaseCurrencyAmount[],
@@ -478,15 +438,14 @@ export default function FinanceCashflowsPage() {
         pagination={queryState.pagination}
         form={{
           initialValues: {
-            ...queryState.initial.filters,
+            direction: queryState.initial.filters.direction,
+            status: queryState.initial.filters.status,
             current: queryState.initial.current,
             pageSize: queryState.initial.pageSize,
           },
         }}
         onSubmit={(values) =>
           commitFilters({
-            organizationId:
-              queryState.snapshotRef.current.filters.organizationId,
             direction: values.direction,
             status: values.status,
           })
@@ -498,41 +457,10 @@ export default function FinanceCashflowsPage() {
             current: undefined,
             pageSize: undefined,
           });
-          commitFilters(
-            {
-              organizationId:
-                queryState.snapshotRef.current.filters.organizationId,
-            },
-            {},
-          );
+          commitFilters({}, {});
         }}
         pageTitle="收付管理"
         pageSubTitle="银行流水认领、资金收付流水台账及状态跟踪"
-        topBar={
-          <Space size={8} align="center">
-            <span style={{ fontSize: 13, color: 'rgba(0, 0, 0, 0.65)' }}>
-              所属公司：
-            </span>
-            <Select
-              allowClear
-              placeholder="请选择所属公司"
-              style={{ minWidth: 220 }}
-              value={organizationId}
-              options={readOrganizationOptions.map((item) => ({
-                value: item.id,
-                label: item.name ?? item.code ?? item.id,
-              }))}
-              onChange={(value) => {
-                commitFilters({
-                  ...queryState.snapshotRef.current.filters,
-                  organizationId: value,
-                });
-                setOrganizationId(value);
-                actionRef.current?.reload(true);
-              }}
-            />
-          </Space>
-        }
         headerTitle="资金流水列表"
         actionRef={actionRef}
         exportColumns={cashflowExportColumns}
@@ -554,8 +482,7 @@ export default function FinanceCashflowsPage() {
           });
         }}
         request={async (p) => {
-          const organizationId =
-            queryState.snapshotRef.current.filters.organizationId;
+          if (!hasCompanyScope) return { data: [], success: false, total: 0 };
           const r = await settlementServiceListCashflows(
             {
               page: p.current,
@@ -591,9 +518,17 @@ export default function FinanceCashflowsPage() {
           paymentMethod: 'BANK_TRANSFER',
         }}
         onFinish={async (v) => {
+          if (
+            !organizationId ||
+            !hasCompanyScope ||
+            !access.canCreateFinanceCashflows
+          ) {
+            message.warning('请切换到有登记权限的公司工作区');
+            return false;
+          }
           try {
             const response = await settlementServiceCreateCashflow({
-              organizationId: v.organizationId,
+              organizationId,
               direction: v.direction,
               settlementPartyId: v.settlementPartyId,
               currency: v.currency,
@@ -621,18 +556,6 @@ export default function FinanceCashflowsPage() {
         }}
       >
         <ProFormSearchableSelect
-          name="organizationId"
-          label="所属公司"
-          rules={[{ required: true, message: '请选择所属公司' }]}
-          options={organizationOptions.map((item) => ({
-            value: item.id ?? '',
-            label: item.name ?? item.code ?? item.id ?? '',
-          }))}
-          fieldProps={{
-            onChange: () => form.setFieldValue('settlementPartyId', undefined),
-          }}
-        />
-        <ProFormSearchableSelect
           name="direction"
           label="流水方向"
           rules={[{ required: true }]}
@@ -646,12 +569,17 @@ export default function FinanceCashflowsPage() {
           label="往来结算单位"
           rules={[{ required: true }]}
           request={({ keyWords }) => {
-            const selectedOrganizationID = form.getFieldValue('organizationId');
-            if (!selectedOrganizationID) return Promise.resolve([]);
+            if (
+              !organizationId ||
+              !hasCompanyScope ||
+              !access.canCreateFinanceCashflows
+            ) {
+              return Promise.resolve([]);
+            }
             return settlementServiceListFinanceSettlementPartyOptions({
               purpose:
                 FinanceOrganizationPurpose.FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_CREATE,
-              organizationId: selectedOrganizationID,
+              organizationId,
               keyword: keyWords,
               page: 1,
               pageSize: 50,

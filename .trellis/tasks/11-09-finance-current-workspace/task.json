@@ -3,7 +3,7 @@
   "name": "finance-current-workspace",
   "title": "财务页面及弹窗统一绑定当前公司工作区",
   "description": "移除财务列表与业务弹窗内公司选择，查询、候选和写入统一使用当前公司工作区并保护切换隔离",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": null,

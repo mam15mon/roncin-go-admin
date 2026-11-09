@@ -29,17 +29,20 @@ const state = vi.hoisted(() => ({
   search: undefined as undefined | FilterProps,
   reload: vi.fn(),
   organizationId: 'workspace-org' as string | undefined,
-  organizations: vi.fn(),
+  company: true,
 }));
 vi.mock('@/app/AppProvider', () => ({
   useInitialState: () => ({
     initialState: {
-      currentUser: { currentOrganization: { id: state.organizationId } },
+      currentUser: {
+        id: 'user',
+        currentOrganization: { id: state.organizationId },
+      },
     },
   }),
 }));
 vi.mock('@/app/access', () => ({
-  useAccess: () => ({ canOperateOrganization: () => true }),
+  useAccess: () => ({ canOperateOrganization: () => state.company }),
 }));
 vi.mock('@/components/ui', () => ({
   FinanceLedgerTemplate: (p: LedgerProps) => {
@@ -64,7 +67,6 @@ vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceListBills: vi
     .fn()
     .mockResolvedValue({ data: [], total: 0, matchedSummary: {} }),
-  settlementServiceListFinanceOrganizationOptions: state.organizations,
 }));
 function Seed() {
   const state = useListQueryState({
@@ -92,6 +94,7 @@ function Seed() {
 beforeEach(() => {
   vi.clearAllMocks();
   state.organizationId = 'workspace-org';
+  state.company = true;
 });
 describe('账单查询恢复消费', () => {
   it('恢复已提交日期、候选名称和分页，旧公司筛选不能覆盖当前工作区，提交同步生效并回第一页，重置清查询', async () => {
@@ -112,7 +115,6 @@ describe('账单查询恢复消费', () => {
     ).not.toContain('tags');
     expect(state.ledger?.topBar).toBeUndefined();
     expect(state.ledger?.batchActions).toBeUndefined();
-    expect(state.organizations).not.toHaveBeenCalled();
     expect(state.ledger?.pagination).toMatchObject({
       defaultCurrent: 3,
       defaultPageSize: 20,
@@ -175,7 +177,6 @@ describe('账单查询恢复消费', () => {
       state.ledger?.request({ current: 1, pageSize: 40 }),
     ).resolves.toEqual({ data: [], success: false, total: 0 });
     expect(settlementServiceListBills).not.toHaveBeenCalled();
-    expect(state.organizations).not.toHaveBeenCalled();
   });
 
   it('工作区重建后只查询新公司，翻页仍使用当前公司', async () => {
@@ -211,5 +212,17 @@ describe('账单查询恢复消费', () => {
       page: 2,
       pageSize: 20,
     });
+  });
+  it('非公司工作区有组织ID也不查询经营账单', async () => {
+    state.company = false;
+    render(
+      <App>
+        <FinanceBillsPage />
+      </App>,
+    );
+    await expect(
+      state.ledger?.request({ current: 1, pageSize: 20 }),
+    ).resolves.toMatchObject({ success: false });
+    expect(settlementServiceListBills).not.toHaveBeenCalled();
   });
 });

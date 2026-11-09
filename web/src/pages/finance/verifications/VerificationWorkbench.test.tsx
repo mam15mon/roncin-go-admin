@@ -12,12 +12,33 @@ import { getAnyDirtyTabKey } from '@/components/layout/tabCloseGuard';
 
 const serviceMocks = vi.hoisted(() => ({
   createVerification: vi.fn(),
+  organizationId: 'organization-a' as string | undefined,
+  canOperate: true,
   listFinanceOrganizationOptions: vi.fn(),
   listFinanceSettlementPartyOptions: vi.fn(),
   listVerificationCreationCandidates: vi.fn(),
   getCreditLimitControlPolicy: vi.fn(),
 }));
 
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
+    initialState: {
+      currentUser: {
+        id: 'user',
+        currentOrganization: { id: serviceMocks.organizationId },
+      },
+    },
+  }),
+}));
+vi.mock('@/app/access', () => ({
+  useAccess: () => ({
+    canCreateFinanceVerifications: serviceMocks.canOperate,
+    canOperateOrganization: (id?: string) =>
+      serviceMocks.canOperate &&
+      Boolean(id) &&
+      id === serviceMocks.organizationId,
+  }),
+}));
 vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceCreateVerification: serviceMocks.createVerification,
   settlementServiceListFinanceOrganizationOptions:
@@ -176,6 +197,8 @@ import VerificationWorkbench from './VerificationWorkbench';
 describe('核销创建工作台组织候选', () => {
   beforeEach(() => {
     window.history.replaceState({}, '', '/finance/verifications');
+    serviceMocks.organizationId = 'organization-a';
+    serviceMocks.canOperate = true;
     serviceMocks.createVerification.mockReset();
     serviceMocks.listFinanceOrganizationOptions.mockReset();
     serviceMocks.listFinanceSettlementPartyOptions.mockReset();
@@ -207,9 +230,21 @@ describe('核销创建工作台组织候选', () => {
     serviceMocks.listVerificationCreationCandidates.mockResolvedValue({
       data: {
         cashflows: [
-          { id: 'cashflow-a', flowNo: 'FLOW-A', unverifiedAmount: '10' },
+          {
+            id: 'cashflow-a',
+            flowNo: 'FLOW-A',
+            unverifiedAmount: '10',
+            organizationId: 'organization-a',
+          },
         ],
-        bills: [{ id: 'bill-a', billNo: 'BILL-A', unverifiedAmount: '10' }],
+        bills: [
+          {
+            id: 'bill-a',
+            billNo: 'BILL-A',
+            unverifiedAmount: '10',
+            organizationId: 'organization-a',
+          },
+        ],
       },
     });
     serviceMocks.createVerification.mockResolvedValue({
@@ -218,16 +253,6 @@ describe('核销创建工作台组织候选', () => {
   });
 
   const selectOrganizationAndParty = async (organizationName: string) => {
-    await screen.findByRole('option', { name: organizationName });
-    await act(async () => {
-      fireEvent.change(screen.getByLabelText('所属公司'), {
-        target: {
-          value:
-            organizationName === '公司 A' ? 'organization-a' : 'organization-b',
-        },
-      });
-      await Promise.resolve();
-    });
     await waitFor(() =>
       expect(
         serviceMocks.listFinanceSettlementPartyOptions,
@@ -239,6 +264,9 @@ describe('核销创建工作台组织候选', () => {
         }),
       ),
     );
+    await screen.findByRole('option', {
+      name: `结算单位 ${organizationName === '公司 A' ? 'organization-a' : 'organization-b'} (PARTY)`,
+    });
     await act(async () => {
       fireEvent.change(screen.getByLabelText('结算单位'), {
         target: {
@@ -249,7 +277,7 @@ describe('核销创建工作台组织候选', () => {
     });
   };
 
-  it('先选择核销创建可写公司，再以该组织请求候选并能自动分配提交', async () => {
+  it('默认当前公司请求候选并能自动分配提交', async () => {
     const onCreated = vi.fn();
     renderWithClient(
       <App>
@@ -257,14 +285,8 @@ describe('核销创建工作台组织候选', () => {
       </App>,
     );
 
-    await waitFor(() =>
-      expect(serviceMocks.listFinanceOrganizationOptions).toHaveBeenCalledWith({
-        purpose: 9,
-      }),
-    );
-    expect(
-      serviceMocks.listVerificationCreationCandidates,
-    ).not.toHaveBeenCalled();
+    expect(serviceMocks.listFinanceOrganizationOptions).not.toHaveBeenCalled();
+    expect(screen.queryByLabelText('所属公司')).not.toBeInTheDocument();
 
     await selectOrganizationAndParty('公司 A');
 
@@ -332,30 +354,22 @@ describe('核销创建工作台组织候选', () => {
     expect(getAnyDirtyTabKey()).toBe('/finance/verifications');
   });
 
-  it('切换公司清空上一组织候选与选择，并只向新组织请求结算单位', async () => {
-    renderWithClient(
+  it('切换工作区重建后只请求新公司结算单位并清空选择', async () => {
+    const view = renderWithClient(
       <App>
         <VerificationWorkbench open onClose={vi.fn()} onCreated={vi.fn()} />
       </App>,
     );
     await selectOrganizationAndParty('公司 A');
     expect(await screen.findByText('FLOW-A')).toBeInTheDocument();
-
-    const cashflowRow = screen.getByText('FLOW-A').closest('tr');
-    if (!cashflowRow) throw new Error('资金流水候选行不存在');
-    fireEvent.click(within(cashflowRow).getByRole('checkbox'));
-
-    await act(async () => {
-      fireEvent.change(screen.getByLabelText('所属公司'), {
-        target: { value: 'organization-b' },
-      });
-      await Promise.resolve();
-    });
-
-    await waitFor(() => {
-      expect(screen.queryByText('FLOW-A')).not.toBeInTheDocument();
-      expect(screen.queryByText('BILL-A')).not.toBeInTheDocument();
-    });
+    view.unmount();
+    serviceMocks.organizationId = 'organization-b';
+    renderWithClient(
+      <App>
+        <VerificationWorkbench open onClose={vi.fn()} onCreated={vi.fn()} />
+      </App>,
+    );
+    expect(screen.queryByText('FLOW-A')).not.toBeInTheDocument();
     await waitFor(() =>
       expect(
         serviceMocks.listFinanceSettlementPartyOptions,
@@ -368,12 +382,35 @@ describe('核销创建工作台组织候选', () => {
     );
   });
 
+  it.each([undefined, 'system'])(
+    '身份%s不在公司工作区时不请求经营候选',
+    async (id) => {
+      serviceMocks.organizationId = id;
+      serviceMocks.canOperate = false;
+      renderWithClient(
+        <App>
+          <VerificationWorkbench open onClose={vi.fn()} onCreated={vi.fn()} />
+        </App>,
+      );
+      expect(
+        serviceMocks.listFinanceSettlementPartyOptions,
+      ).not.toHaveBeenCalled();
+      expect(
+        serviceMocks.listVerificationCreationCandidates,
+      ).not.toHaveBeenCalled();
+      expect(serviceMocks.createVerification).not.toHaveBeenCalled();
+    },
+  );
+
   it('直接干预模式下超额客户置灰禁用，仅提醒模式可选', async () => {
     // 服务端省略 false 布尔：直接以「缺省 = 干预模式」覆写策略响应。
-    serviceMocks.getCreditLimitControlPolicy.mockResolvedValue({
-      success: true,
-      data: {},
-    });
+    let resolvePolicy: ((response: unknown) => void) | undefined;
+    serviceMocks.getCreditLimitControlPolicy.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolvePolicy = resolve;
+        }),
+    );
     serviceMocks.listFinanceSettlementPartyOptions.mockImplementation(
       ({ organizationId }) =>
         Promise.resolve({
@@ -403,13 +440,58 @@ describe('核销创建工作台组织候选', () => {
     const exceededOption = await screen.findByRole('option', {
       name: '超额客户 (EXCEED)',
     });
-    // 直接干预模式：超额候选置灰禁用，无法被选择；label 保持纯净文本。
-    expect(exceededOption).toBeDisabled();
+    expect(exceededOption).toBeEnabled();
+    await act(async () => resolvePolicy?.({ success: true, data: {} }));
+    // 直接干预模式：策略迟到仍更新超额候选禁用，label 保持纯净文本。
+    await waitFor(() => expect(exceededOption).toBeDisabled());
     const normalOption = screen.getByRole('option', {
       name: '结算单位 organization-a (PARTY)',
     });
     expect(normalOption).toBeEnabled();
   });
+  it.each(['cashflows', 'bills'])(
+    '候选混入外公司%s时拒绝核销分配和提交',
+    async (source) => {
+      serviceMocks.listVerificationCreationCandidates.mockResolvedValue({
+        data: {
+          cashflows: [
+            {
+              id: 'cashflow-a',
+              flowNo: 'FLOW-A',
+              unverifiedAmount: '10',
+              organizationId:
+                source === 'cashflows' ? 'foreign' : 'organization-a',
+            },
+          ],
+          bills: [
+            {
+              id: 'bill-a',
+              billNo: 'BILL-A',
+              unverifiedAmount: '10',
+              organizationId: source === 'bills' ? 'foreign' : 'organization-a',
+            },
+          ],
+        },
+      });
+      renderWithClient(
+        <App>
+          <VerificationWorkbench open onClose={vi.fn()} onCreated={vi.fn()} />
+        </App>,
+      );
+      await selectOrganizationAndParty('公司 A');
+      const cashflowRow = (await screen.findByText('FLOW-A')).closest('tr');
+      const billRow = screen.getByText('BILL-A').closest('tr');
+      if (!cashflowRow || !billRow) throw new Error('候选行不存在');
+      fireEvent.click(within(cashflowRow).getByRole('checkbox'));
+      fireEvent.click(within(billRow).getByRole('checkbox'));
+      fireEvent.click(screen.getByRole('button', { name: /按余额自动分配/ }));
+      expect(
+        screen.queryByLabelText('第 1 行核销金额'),
+      ).not.toBeInTheDocument();
+      expect(serviceMocks.createVerification).not.toHaveBeenCalled();
+    },
+  );
+
   it('纯 state 备注输入会保护，关闭后清理', async () => {
     const view = renderWithClient(
       <App>
