@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 197
+- **Total Sessions**: 198
 - **Last Active**: 2026-11-09
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~1391 | Active |
+| `journal-3.md` | ~1424 | Active |
 | `journal-2.md` | ~2003 | Archived |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 198 | 2026-11-09 | 简化订单主详情草稿与未保存离开保护 | `2fdda73f` | `codex/order-unsaved-close-guard` |
 | 197 | 2026-11-09 | 财务页面及弹窗绑定当前公司工作区 | `b6393686` | `codex/finance-current-workspace` |
 | 196 | 2026-11-09 | 全站业务标签退役及账单公司范围收敛 | `9ec85af8` | `codex/retire-business-tags` |
 | 195 | 2026-11-09 | 财务筛选汇总与跨页选择公共契约修复 | `3495b19f`, `611c8523`, `425d1c52`, `0e4974a0` | `codex/shared-ui-contracts` |

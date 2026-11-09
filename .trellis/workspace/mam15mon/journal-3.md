@@ -1389,3 +1389,36 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 198: 简化订单主详情草稿与未保存离开保护
+<!-- trellis-session: v=2 fp=cf2019885624cb0e -->
+
+**Date**: 2026-11-09
+**Task**: 简化订单主详情草稿与未保存离开保护
+**Package**: web
+**Branch**: `codex/order-unsaved-close-guard`
+
+### Summary
+
+订单主详情退役本地草稿；任何有损离开先确认，取消留原页、确认放弃。独立review完成，全前端门禁通过，按授权交付main。
+
+### Main Changes
+
+- 复用实时dirty和路由/页签守卫，补关闭全部、原生beforeunload与主动退出确认。新建和独立HBL草稿保留。
+- 完整门禁修正真实DataRouter测试包装及草稿观察器测试清理顺序，不增内存会话或KeepAlive。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `2fdda73f` | refactor: 简化订单详情草稿与未保存离开保护 |
+
+### Testing
+
+- [OK] pnpm run check:web退出0：418测试文件通过，2279用例通过，1文件/11用例按原配置跳过。
+- [OK] 独立review、33变更TS/TSX文件Biome、tsc及git diff --check通过；原生关窗做事件级验证，未实际关闭浏览器窗口。
+
+### Status
+
+[OK] **Completed**
