@@ -6,11 +6,7 @@ import {
   within,
 } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
-import {
-  getFormDraft,
-  hasFormDraft,
-  saveFormDraft,
-} from '@/components/layout/formDraft';
+import { hasFormDraft, saveFormDraft } from '@/components/layout/formDraft';
 import { orderErrorReasons } from '@/errorReasons.generated';
 import {
   advanceVersion,
@@ -22,11 +18,10 @@ import {
   resetPortSaveState,
   save,
 } from './detail-port-save.fixtures';
-import type { OrderDetailFormValues } from './order-kinds/form-values';
 
 const state = getPortSaveState();
 
-describe('海运详情修改港口的版本与草稿', () => {
+describe('海运详情修改港口的版本与未保存输入', () => {
   beforeEach(resetPortSaveState);
 
   it.each(ports)(
@@ -52,6 +47,21 @@ describe('海运详情修改港口的版本与草稿', () => {
       expect(hasFormDraft(draftKey)).toBe(false);
     },
   );
+
+  it('忽略遗留详情草稿，初始化仍使用服务端资料与版本', () => {
+    saveFormDraft(draftKey, {
+      version: '1',
+      seaMasterBillExpectedCandidateVersion: '2',
+      originLocationId: 'old-draft-port',
+      containerRequests: null,
+    });
+    renderDetail();
+    expect(screen.getByLabelText('起运港')).toHaveValue('origin-old');
+    expect(state.form?.getFieldsValue(true)).toMatchObject({
+      version: '4',
+      seaMasterBillExpectedCandidateVersion: '4',
+    });
+  });
 
   it('连续保存使用成功刷新后的主单版本', async () => {
     getOrderUpdateMock().mockImplementation(async (_params, payload) => {
@@ -84,12 +94,7 @@ describe('海运详情修改港口的版本与草稿', () => {
     ]);
   });
 
-  it('恢复旧版本草稿仍由服务端拒绝，保留港口输入且不自动重试', async () => {
-    saveFormDraft(draftKey, {
-      version: '4',
-      seaMasterBillExpectedCandidateVersion: '2',
-      originLocationId: 'draft-port',
-    });
+  it('编辑基线过期时仍由服务端拒绝，保留港口输入且不自动重试', async () => {
     getOrderUpdateMock().mockRejectedValue({
       response: {
         status: 409,
@@ -100,8 +105,11 @@ describe('海运详情修改港口的版本与草稿', () => {
       },
     });
     renderDetail();
-    await waitFor(() =>
-      expect(screen.getByLabelText('起运港')).toHaveValue('draft-port'),
+    fireEvent.change(screen.getByLabelText('起运港'), {
+      target: { value: 'draft-port' },
+    });
+    await act(async () =>
+      state.form?.setFieldValue('seaMasterBillExpectedCandidateVersion', '2'),
     );
     await save();
     expect(
@@ -114,24 +122,30 @@ describe('海运详情修改港口的版本与草稿', () => {
     expect(getOrderUpdateMock()).toHaveBeenCalledOnce();
     expect(state.loadData).not.toHaveBeenCalled();
     expect(screen.getByLabelText('起运港')).toHaveValue('draft-port');
-    expect(
-      getFormDraft<Partial<OrderDetailFormValues>>(draftKey),
-    ).toMatchObject({
+    expect(state.form?.getFieldsValue(true)).toMatchObject({
       seaMasterBillExpectedCandidateVersion: '2',
       originLocationId: 'draft-port',
     });
   });
 
-  it('缺少原主单版本的草稿不能借用最新版本，明确重置后才可保存', async () => {
-    saveFormDraft(draftKey, { version: '4', originLocationId: 'draft-port' });
+  it('缺少编辑基线原主单版本时不能借用最新版本，明确重置后才可保存', async () => {
     renderDetail();
+    fireEvent.change(screen.getByLabelText('起运港'), {
+      target: { value: 'draft-port' },
+    });
+    await act(async () =>
+      state.form?.setFieldValue(
+        'seaMasterBillExpectedCandidateVersion',
+        undefined,
+      ),
+    );
     await save();
     expect(
       await screen.findByText('订单草稿信息不完整，输入已保留，请刷新后重试。'),
     ).toBeInTheDocument();
     expect(getOrderUpdateMock()).not.toHaveBeenCalled();
     expect(screen.getByLabelText('起运港')).toHaveValue('draft-port');
-    expect(hasFormDraft(draftKey)).toBe(true);
+    expect(hasFormDraft(draftKey)).toBe(false);
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: '重置修改' }));
     });
@@ -145,13 +159,11 @@ describe('海运详情修改港口的版本与草稿', () => {
     ).toBe('4');
   });
 
-  it('显式刷新清除旧草稿后使用当前主单版本', async () => {
-    saveFormDraft(draftKey, {
-      version: '4',
-      seaMasterBillExpectedCandidateVersion: '2',
-      originLocationId: 'draft-port',
-    });
+  it('显式刷新丢弃当前修改后使用当前主单版本', async () => {
     renderDetail();
+    fireEvent.change(screen.getByLabelText('起运港'), {
+      target: { value: 'draft-port' },
+    });
     advanceVersion('5');
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: '刷新数据' }));

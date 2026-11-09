@@ -115,6 +115,11 @@ describe('页签关闭查询清理', () => {
       '关闭其他标签页',
       ['/partners/customers', '/partners/suppliers', '/finance/fees'],
     ],
+    [
+      '客户',
+      '关闭全部标签页',
+      ['/partners/customers', '/partners/suppliers', '/finance/fees'],
+    ],
   ])('%s执行%s仅清理实际关闭页签', (title, action, expected) => {
     visitTabs();
     menu(title, action);

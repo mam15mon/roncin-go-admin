@@ -5,10 +5,10 @@ import { render } from '@testing-library/react';
 import { App as AntdApp, ConfigProvider } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import type { ReactElement, ReactNode } from 'react';
-import { useMemo, useState } from 'react';
+import { createContext, useContext, useMemo, useState } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import type { MemoryRouterProps } from 'react-router';
-import { MemoryRouter } from 'react-router';
+import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router';
 import type { InitialState } from '@/app/AppProvider';
 import { appInitialStateContext } from '@/app/AppProvider';
 import { paginationSizeChanger } from '../config/pagination';
@@ -18,6 +18,7 @@ import { createTestQueryClient } from './queryClientTestUtils';
 export interface RenderWithAppOptions extends Omit<RenderOptions, 'wrapper'> {
   user?: API.CurrentUser;
   routerProps?: MemoryRouterProps;
+  dataRouter?: boolean;
 }
 
 /**
@@ -29,8 +30,18 @@ export interface RenderWithAppOptions extends Omit<RenderOptions, 'wrapper'> {
 export function renderWithApp(
   ui: ReactElement,
   options: RenderWithAppOptions = {},
-): RenderResult & { queryClient: QueryClient } {
-  const { user, routerProps, ...renderOptions } = options;
+): RenderResult & {
+  queryClient: QueryClient;
+  router?: ReturnType<typeof createMemoryRouter>;
+} {
+  const { user, routerProps, dataRouter = false, ...renderOptions } = options;
+  const router = dataRouter
+    ? createMemoryRouter([{ path: '*', element: <DataRouterChildren /> }], {
+        initialEntries: routerProps?.initialEntries,
+        initialIndex: routerProps?.initialIndex,
+        basename: routerProps?.basename,
+      })
+    : undefined;
   const queryClient = createTestQueryClient();
 
   function TestApp({ children }: { children: ReactNode }) {
@@ -56,7 +67,13 @@ export function renderWithApp(
           <AntdApp>
             <QueryClientProvider client={queryClient}>
               <appInitialStateContext.Provider value={model}>
-                <MemoryRouter {...routerProps}>{children}</MemoryRouter>
+                {router ? (
+                  <dataRouterChildrenContext.Provider value={children}>
+                    <RouterProvider router={router} />
+                  </dataRouterChildrenContext.Provider>
+                ) : (
+                  <MemoryRouter {...routerProps}>{children}</MemoryRouter>
+                )}
               </appInitialStateContext.Provider>
             </QueryClientProvider>
           </AntdApp>
@@ -66,5 +83,18 @@ export function renderWithApp(
   }
 
   const result = render(ui, { wrapper: TestApp, ...renderOptions });
-  return { ...result, queryClient };
+  return { ...result, queryClient, router };
+}
+
+// 真实数据路由承载 useBlocker；Context 使 rerender 更新当前路由元素而不重建 Router。
+const dataRouterChildrenContext = createContext<ReactNode>(null);
+function DataRouterChildren() {
+  return useContext(dataRouterChildrenContext);
+}
+
+export function renderWithDataRouter(
+  ui: ReactElement,
+  options: RenderWithAppOptions = {},
+) {
+  return renderWithApp(ui, { ...options, dataRouter: true });
 }

@@ -132,7 +132,14 @@ export function hasTabDraft(tabKey: string, draftScope?: string): boolean {
     for (let i = 0; i < sessionStorage.length; i++) {
       const key = sessionStorage.key(i);
       if (key?.startsWith(prefix)) {
-        return true;
+        const pathname = key.slice(prefix.length).split(/[?#]/, 1)[0];
+        // 主详情已退役持久草稿；仅现有新建与独立 HBL 编辑仍参与关闭判定。
+        if (
+          /^\/orders\/(sea-export|air-export)\/new$/.test(pathname) ||
+          /^\/orders\/sea-export\/[^/]+\/hbl$/.test(pathname)
+        ) {
+          return true;
+        }
       }
     }
     return false;

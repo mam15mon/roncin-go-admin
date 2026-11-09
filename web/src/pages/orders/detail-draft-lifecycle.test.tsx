@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { renderWithApp as render } from '@root/tests/renderWithApp';
+import { renderWithDataRouter as render } from '@root/tests/renderWithApp';
 import {
   act,
   fireEvent,
@@ -11,11 +11,7 @@ import {
 import { App, Form, Input } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  getFormDraftKey,
-  hasTabDraft,
-  saveFormDraft,
-} from '@/components/layout/formDraft';
+import { getFormDraftKey, saveFormDraft } from '@/components/layout/formDraft';
 import { resolveTabKey } from '@/components/layout/routeUtils';
 import { OrderAllowedAction } from '@/enums.generated';
 import { orderServiceUpdateOrder } from '@/services/roncin/orderService';
@@ -35,7 +31,6 @@ const templateLifecycleState = vi.hoisted(() => ({
     | null,
   internalDirty: false,
   resetToCalls: 0,
-  restoreDraft: false,
 }));
 
 const detailTestState = vi.hoisted(() => ({
@@ -153,7 +148,9 @@ vi.mock('./use-order-lock-state', async (importOriginal) => {
 });
 
 vi.mock('@/components/ui/order-template/OrderFormTemplate', async () => {
-  const formDraft = await import('@/components/layout/formDraft');
+  const { useTabCloseGuard } = await import(
+    '@/components/layout/tabCloseGuard'
+  );
   return {
     OrderFormTemplate: (props: {
       header?: React.ReactNode;
@@ -175,6 +172,11 @@ vi.mock('@/components/ui/order-template/OrderFormTemplate', async () => {
       }
       const [form] = Form.useForm();
       const [internalDirty, setInternalDirty] = React.useState(false);
+      const dirtyRef = React.useRef(false);
+      useTabCloseGuard({
+        tabKey: props.tabKey,
+        isDirty: () => dirtyRef.current,
+      });
       detailTestState.templateReadonly = props.readonly;
       templateLifecycleState.activeInstanceProps = props;
       templateLifecycleState.internalDirty = internalDirty;
@@ -194,46 +196,25 @@ vi.mock('@/components/ui/order-template/OrderFormTemplate', async () => {
         }
       }, [form, props.formRef]);
 
-      const draftKey =
-        props.tabKey && props.draftPathname && props.draftScope
-          ? formDraft.getFormDraftKey(
-              props.tabKey,
-              props.draftPathname,
-              props.draftScope,
-            )
-          : '';
-
       React.useImperativeHandle(
         props.actionsRef,
         () => ({
           resetTo: (values?: { customerReferenceNo?: string }) => {
             templateLifecycleState.resetToCalls += 1;
-            formDraft.clearFormDraft(draftKey);
+            dirtyRef.current = false;
             form.resetFields();
             if (values) form.setFieldsValue(values);
             setInternalDirty(false);
           },
         }),
-        [form, draftKey],
+        [form],
       );
 
-      // 模拟真实模板：首次可编辑时机恢复本身份草稿并标记 dirty。
-      React.useEffect(() => {
-        if (props.readonly || !templateLifecycleState.restoreDraft) return;
-        if (!draftKey) return;
-        const draft = formDraft.getFormDraft<{
-          customerReferenceNo?: string;
-        }>(draftKey);
-        if (!draft) return;
-        form.setFieldsValue(draft);
-        setInternalDirty(true);
-      }, [form, draftKey, props.readonly]);
-
-      // 模拟真实模板：提交成功由模板清当前草稿并复位 dirty。
+      // 模拟真实模板：只有明确保存成功或 resetTo 才清未保存状态。
       const handleFinish = async (values: any) => {
         const result = await props.onFinish?.(values);
         if (result !== false) {
-          formDraft.clearFormDraft(draftKey);
+          dirtyRef.current = false;
           setInternalDirty(false);
         }
         return result;
@@ -244,7 +225,10 @@ vi.mock('@/components/ui/order-template/OrderFormTemplate', async () => {
         <Form
           form={form}
           initialValues={props.initialValues}
-          onValuesChange={() => setInternalDirty(true)}
+          onValuesChange={() => {
+            dirtyRef.current = true;
+            setInternalDirty(true);
+          }}
           onFinish={handleFinish}
         >
           <Form.Item name="customerReferenceNo">
@@ -320,7 +304,7 @@ async function confirmRefreshIfOpen() {
   });
 }
 
-describe('订单详情页草稿生命周期与记录身份', () => {
+describe('订单详情页未保存修改与记录身份', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     sessionStorage.clear();
@@ -332,7 +316,6 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     templateLifecycleState.activeHandleFinish = null;
     templateLifecycleState.internalDirty = false;
     templateLifecycleState.resetToCalls = 0;
-    templateLifecycleState.restoreDraft = false;
 
     detailTestState.loadData.mockReset().mockResolvedValue(undefined);
     detailTestState.refreshLockState.mockResolvedValue(null);
@@ -378,7 +361,7 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     await flushMountFetches();
   });
 
-  it('详情 A 原地导航到 B 后，只恢复 B 自己的草稿并保持 dirty', async () => {
+  it('详情 A 原地导航到 B 后，忽略 B 的遗留草稿并保持干净', async () => {
     const tabKey = resolveTabKey('/orders/sea-export/ord-B');
     saveFormDraft(
       getFormDraftKey(
@@ -388,7 +371,6 @@ describe('订单详情页草稿生命周期与记录身份', () => {
       ),
       { customerReferenceNo: 'B-自己的草稿' },
     );
-    templateLifecycleState.restoreDraft = true;
 
     const { rerender } = render(
       <App>
@@ -407,24 +389,15 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByLabelText('客户参考号')).toHaveValue('B-自己的草稿');
-      expect(templateLifecycleState.internalDirty).toBe(true);
+      expect(screen.getByLabelText('客户参考号')).toHaveValue('B-服务端初始值');
+      expect(templateLifecycleState.internalDirty).toBe(false);
+      expect(
+        templateLifecycleState.activeInstanceProps.draftPathname,
+      ).toBeUndefined();
     });
   });
 
-  it('更新接口失败时保留当前草稿', async () => {
-    const tabKey = resolveTabKey('/orders/sea-export/ord-A');
-    const draftKey = getFormDraftKey(
-      tabKey,
-      '/orders/sea-export/ord-A',
-      detailTestState.draftScope,
-    );
-    saveFormDraft(draftKey, {
-      version: '1',
-      customerReferenceNo: 'TEMP-MODIFIED',
-    });
-    expect(hasTabDraft(tabKey, detailTestState.draftScope)).toBe(true);
-
+  it('更新接口失败时保留当前输入和未保存状态', async () => {
     mockUpdateOrder.mockRejectedValueOnce(new Error('保存失败'));
     mockUpdateOrder.mockResolvedValueOnce(undefined as never);
     mockUpdateOrder.mockResolvedValueOnce({ data: {} } as never);
@@ -439,6 +412,10 @@ describe('订单详情页草稿生命周期与记录身份', () => {
       </App>,
     );
 
+    fireEvent.change(screen.getByLabelText('客户参考号'), {
+      target: { value: 'USER-EDITED' },
+    });
+
     const formRef = templateLifecycleState.activeInstanceProps.formRef;
     const finish = templateLifecycleState.activeHandleFinish;
     expect(finish).toBeTruthy();
@@ -450,23 +427,12 @@ describe('订单详情页草稿生命周期与记录身份', () => {
           : undefined;
       });
       expect(saveResult).toBe(false);
-      expect(hasTabDraft(tabKey, detailTestState.draftScope)).toBe(true);
+      expect(templateLifecycleState.internalDirty).toBe(true);
+      expect(screen.getByLabelText('客户参考号')).toHaveValue('USER-EDITED');
     }
   });
 
-  it('已保存但读取失败保留草稿，重试读取后清理dirty', async () => {
-    const tabKey = resolveTabKey('/orders/sea-export/ord-A');
-    const draftKey = getFormDraftKey(
-      tabKey,
-      '/orders/sea-export/ord-A',
-      detailTestState.draftScope,
-    );
-    saveFormDraft(draftKey, {
-      version: '1',
-      customerReferenceNo: 'TEMP-MODIFIED',
-    });
-    expect(hasTabDraft(tabKey, detailTestState.draftScope)).toBe(true);
-
+  it('已保存但读取失败保留输入，重试读取后清理dirty', async () => {
     mockUpdateOrder.mockResolvedValueOnce({ data: { id: 'ord-A' } } as never);
     detailTestState.loadData.mockRejectedValueOnce(new Error('网络刷新失败'));
 
@@ -492,17 +458,15 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     });
 
     expect(saveResult).toBe(false);
-    expect(hasTabDraft(tabKey, detailTestState.draftScope)).toBe(true);
     expect(templateLifecycleState.internalDirty).toBe(true);
     await act(async () =>
       fireEvent.click(screen.getByRole('button', { name: '重试读取' })),
     );
     expect(mockUpdateOrder).toHaveBeenCalledTimes(1);
-    expect(hasTabDraft(tabKey, detailTestState.draftScope)).toBe(false);
     expect(templateLifecycleState.internalDirty).toBe(false);
   });
 
-  it('草稿保存失败重试沿用同一幂等键，成功后重新生成', async () => {
+  it('订单保存失败重试沿用同一幂等键，成功后重新生成', async () => {
     mockUpdateOrder.mockRejectedValueOnce(new Error('保存失败'));
     mockUpdateOrder.mockResolvedValueOnce({ data: { id: 'ord-A' } } as never);
     mockUpdateOrder.mockResolvedValueOnce({ data: { id: 'ord-A' } } as never);
@@ -540,19 +504,8 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     expect(sentKeys[2]).not.toBe(sentKeys[1]);
   });
 
-  it('显式刷新按真实 loadData 契约失败时保留草稿', async () => {
-    const tabKey = resolveTabKey('/orders/sea-export/ord-A');
-    const draftKey = getFormDraftKey(
-      tabKey,
-      '/orders/sea-export/ord-A',
-      detailTestState.draftScope,
-    );
-    saveFormDraft(draftKey, {
-      version: '1',
-      customerReferenceNo: 'DIRTY-DRAFT',
-    });
-
-    // 海运刷新失败保留现有表单和草稿，loadData向调用方明确拒绝。
+  it('显式刷新按真实 loadData 契约失败时保留输入', async () => {
+    // 海运刷新失败保留现有表单和未保存修改，loadData向调用方明确拒绝。
     detailTestState.loadData.mockRejectedValueOnce(new Error('刷新失败'));
 
     render(
@@ -561,6 +514,10 @@ describe('订单详情页草稿生命周期与记录身份', () => {
       </App>,
     );
 
+    fireEvent.change(screen.getByLabelText('客户参考号'), {
+      target: { value: 'USER-EDITED' },
+    });
+
     const refreshBtn = screen.getByText('刷新数据');
 
     await act(async () => {
@@ -568,23 +525,12 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     });
     await confirmRefreshIfOpen();
 
-    expect(hasTabDraft(tabKey, detailTestState.draftScope)).toBe(true);
+    expect(templateLifecycleState.internalDirty).toBe(true);
     expect(screen.getByLabelText('客户参考号')).toBeInTheDocument();
     expect(templateLifecycleState.resetToCalls).toBe(0);
   });
 
-  it('显式刷新成功时通过模板 resetTo 清草稿并回填最新服务端值', async () => {
-    const tabKey = resolveTabKey('/orders/sea-export/ord-A');
-    const draftKey = getFormDraftKey(
-      tabKey,
-      '/orders/sea-export/ord-A',
-      detailTestState.draftScope,
-    );
-    saveFormDraft(draftKey, {
-      version: '1',
-      customerReferenceNo: 'DIRTY-DRAFT',
-    });
-
+  it('显式刷新成功时通过模板 resetTo 清修改并回填最新服务端值', async () => {
     detailTestState.loadData.mockResolvedValueOnce(undefined);
     detailTestState.customerReferenceNo = '刷新后的服务端值';
 
@@ -594,13 +540,17 @@ describe('订单详情页草稿生命周期与记录身份', () => {
       </App>,
     );
 
+    fireEvent.change(screen.getByLabelText('客户参考号'), {
+      target: { value: 'USER-EDITED' },
+    });
+
     await act(async () => {
       fireEvent.click(screen.getByText('刷新数据'));
     });
     await confirmRefreshIfOpen();
 
     await waitFor(() => {
-      expect(hasTabDraft(tabKey, detailTestState.draftScope)).toBe(false);
+      expect(templateLifecycleState.internalDirty).toBe(false);
       expect(screen.getByLabelText('客户参考号')).toHaveValue(
         '刷新后的服务端值',
       );
@@ -776,23 +726,16 @@ describe('订单详情页草稿生命周期与记录身份', () => {
     expect(templateLifecycleState.resetToCalls).toBe(0);
   });
 
-  it('移除底部操作栏后，页头重置修改仍通过模板 resetTo 清草稿并回填 initialValues', async () => {
-    const tabKey = resolveTabKey('/orders/sea-export/ord-A');
-    const draftKey = getFormDraftKey(
-      tabKey,
-      '/orders/sea-export/ord-A',
-      detailTestState.draftScope,
-    );
-    saveFormDraft(draftKey, {
-      version: '1',
-      customerReferenceNo: 'USER-EDITED',
-    });
-
+  it('移除底部操作栏后，页头重置修改仍通过模板 resetTo 清修改并回填 initialValues', async () => {
     render(
       <App>
         <OrderDetailPage />
       </App>,
     );
+
+    fireEvent.change(screen.getByLabelText('客户参考号'), {
+      target: { value: 'USER-EDITED' },
+    });
 
     const undoBtn = screen.getByText('重置修改');
     expect(document.querySelector('.roncin-sticky-footer-bar')).toBeNull();
@@ -801,7 +744,7 @@ describe('订单详情页草稿生命周期与记录身份', () => {
       fireEvent.click(undoBtn);
     });
 
-    expect(hasTabDraft(tabKey, detailTestState.draftScope)).toBe(false);
+    expect(templateLifecycleState.internalDirty).toBe(false);
     const input = screen.getByLabelText('客户参考号') as HTMLInputElement;
     expect(input.value).toBe('服务端初始值');
     expect(templateLifecycleState.internalDirty).toBe(false);

@@ -1,4 +1,4 @@
-import { renderWithApp } from '@root/tests/renderWithApp';
+import { renderWithDataRouter as renderWithApp } from '@root/tests/renderWithApp';
 import { screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { OrderPersonnelRole } from '@/enums.generated';

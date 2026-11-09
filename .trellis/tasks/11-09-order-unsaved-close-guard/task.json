@@ -3,7 +3,7 @@
   "name": "order-unsaved-close-guard",
   "title": "简化订单详情草稿与未保存关闭保护",
   "description": "取消已有订单主详情本地草稿；切换、关闭及其他会丢输入的离开均先确认，取消留原页，确认放弃修改。",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": "frontend",
   "scope": "web",
   "package": "web",
@@ -12,7 +12,7 @@
   "assignee": "mam15mon",
   "createdAt": "2026-11-09",
   "completedAt": null,
-  "branch": null,
+  "branch": "codex/order-unsaved-close-guard",
   "base_branch": "main",
   "worktree_path": null,
   "commit": null,
@@ -24,6 +24,8 @@
   "notes": "",
   "meta": {
     "latest_user_decision": "最简有损离开确认；取消留原页，确认放弃；不新增内存会话或页面保活",
-    "planning_review": "pending"
+    "planning_review": "approved",
+    "delivery": "用户已授权：实现完成、独立review通过后合并main并push",
+    "worktree_path": "/home/vince/.codex/worktrees/order-unsaved-close-guard/roncin-go-admin"
   }
 }

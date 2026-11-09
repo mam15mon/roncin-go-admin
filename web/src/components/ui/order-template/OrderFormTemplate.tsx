@@ -172,14 +172,13 @@ export function OrderFormTemplate<T>({
       ? getFormDraftKey(tabKey, draftPathname, draftScope)
       : undefined;
 
-  const [internalDirty, setInternalDirty] = useState(false);
   const dirtyRef = useRef(false);
 
   useTabCloseGuard({
     tabKey,
-    isDirty: internalDirty,
+    isDirty: () => dirtyRef.current,
     message: closeGuardMessage,
-    enabled: !readonly && enableCloseGuard,
+    enabled: enableCloseGuard,
   });
 
   // 草稿恢复：draftKey 在模板挂载期内恒定，组织与单据身份变化分别由 OrganizationWorkspace 和调用方 key 负责卸载重挂载。
@@ -194,7 +193,6 @@ export function OrderFormTemplate<T>({
     if (draft && typeof draft === 'object' && Object.keys(draft).length > 0) {
       resolvedFormRef.current?.setFieldsValue(draft);
       dirtyRef.current = true;
-      setInternalDirty(true);
     }
   }, [draftKey, loading, readonly]);
 
@@ -205,7 +203,6 @@ export function OrderFormTemplate<T>({
         if (readonly || editingDisabled || !resolvedFormRef.current) return;
         resolvedFormRef.current.setFieldsValue(values);
         dirtyRef.current = true;
-        setInternalDirty(true);
         if (draftKey)
           saveFormDraft(draftKey, resolvedFormRef.current.getFieldsValue(true));
       },
@@ -219,7 +216,6 @@ export function OrderFormTemplate<T>({
           resolvedFormRef.current?.setFieldsValue(values);
         }
         dirtyRef.current = false;
-        setInternalDirty(false);
         setSectionErrors({});
       },
     }),
@@ -236,7 +232,6 @@ export function OrderFormTemplate<T>({
           clearFormDraft(draftKey);
         }
         dirtyRef.current = false;
-        setInternalDirty(false);
         setSectionErrors({});
       }
       return result;
@@ -349,9 +344,8 @@ export function OrderFormTemplate<T>({
           }}
           initialValues={initialValues}
           onValuesChange={(changedValues, allValues) => {
-            if (!internalDirty) {
+            if (!dirtyRef.current) {
               dirtyRef.current = true;
-              setInternalDirty(true);
             }
             if (!readonly && draftKey) {
               saveFormDraft(draftKey, form.getFieldsValue(true));
@@ -363,7 +357,6 @@ export function OrderFormTemplate<T>({
               clearFormDraft(draftKey);
             }
             dirtyRef.current = false;
-            setInternalDirty(false);
             setSectionErrors({});
             onReset?.();
           }}
@@ -400,12 +393,14 @@ export function OrderFormTemplate<T>({
                 }
           }
         >
-          <DraftSnapshotObserver
-            onSnapshot={(values) => {
-              if (!readonly && draftKey && dirtyRef.current)
-                saveFormDraft(draftKey, values);
-            }}
-          />
+          {draftKey && (
+            <DraftSnapshotObserver
+              onSnapshot={(values) => {
+                if (!readonly && dirtyRef.current)
+                  saveFormDraft(draftKey, values);
+              }}
+            />
+          )}
           {visibleSections.map(renderSection)}
         </ProForm>
       )}

@@ -8,7 +8,8 @@ import {
 } from '@testing-library/react';
 import { App, ConfigProvider } from 'antd';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getFormDraft, hasFormDraft } from '@/components/layout/formDraft';
+import { hasFormDraft } from '@/components/layout/formDraft';
+import { isTabDirty } from '@/components/layout/tabCloseGuard';
 import {
   advanceVersion,
   bundle,
@@ -64,7 +65,7 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe('海运详情变动提醒与真实刷新确认', () => {
-  it('轻量检查发现外部修改时持续提醒，并保留表单与原草稿版本', async () => {
+  it('轻量检查发现外部修改时持续提醒，并保留表单与原编辑版本', async () => {
     const view = renderDetail();
     fireEvent.change(screen.getByLabelText('起运港'), {
       target: { value: 'unsaved-port' },
@@ -73,7 +74,7 @@ describe('海运详情变动提醒与真实刷新确认', () => {
     expect(getOrderReadMock()).toHaveBeenCalledOnce();
     expect(state.loadData).not.toHaveBeenCalled();
     expect(screen.getByLabelText('起运港')).toHaveValue('unsaved-port');
-    expect(getFormDraft(draftKey)).toMatchObject({
+    expect(state.form?.getFieldsValue(true)).toMatchObject({
       version: '4',
       seaMasterBillExpectedCandidateVersion: '4',
       originLocationId: 'unsaved-port',
@@ -116,12 +117,13 @@ describe('海运详情变动提醒与真实刷新确认', () => {
       await waitFor(() => expect(dialog).not.toBeInTheDocument());
       expect(state.loadData).not.toHaveBeenCalled();
       expect(screen.getByLabelText('起运港')).toHaveValue('unsaved-port');
-      expect(hasFormDraft(draftKey)).toBe(true);
+      expect(isTabDirty('/orders/sea-export')).toBe(true);
+      expect(hasFormDraft(draftKey)).toBe(false);
       expect(screen.getByText(changedMessage)).toBeVisible();
     }
   });
 
-  it('确认刷新后冻结输入，成功才重置完整快照并清除草稿和提醒', async () => {
+  it('确认刷新后冻结输入，成功才重置完整快照并清除未保存标记和提醒', async () => {
     let finishRefresh!: (value: ReturnType<typeof bundle>) => void;
     state.loadData.mockImplementation(
       () =>
@@ -139,7 +141,8 @@ describe('海运详情变动提醒与真实刷新确认', () => {
     expect(state.loadData).toHaveBeenCalledOnce();
     expect(screen.getByLabelText('起运港')).toBeDisabled();
     expect(screen.getByLabelText('起运港')).toHaveValue('unsaved-port');
-    expect(hasFormDraft(draftKey)).toBe(true);
+    expect(isTabDirty('/orders/sea-export')).toBe(true);
+    expect(hasFormDraft(draftKey)).toBe(false);
     advanceVersion('5');
     state.order.originLocationId = 'latest-port';
     await act(async () => {
@@ -153,7 +156,7 @@ describe('海运详情变动提醒与真实刷新确认', () => {
     expect(screen.queryByText(changedMessage)).toBeNull();
   });
 
-  it('刷新失败保留输入、草稿和提醒，并恢复编辑能力', async () => {
+  it('刷新失败保留输入、未保存标记和提醒，并恢复编辑能力', async () => {
     state.loadData.mockRejectedValue(new Error('模拟订单读取失败'));
     const view = renderDetail();
     fireEvent.change(screen.getByLabelText('起运港'), {
@@ -169,7 +172,8 @@ describe('海运详情变动提醒与真实刷新确认', () => {
     expect(errorMessage).toBeInTheDocument();
     expect(screen.getByLabelText('起运港')).toBeEnabled();
     expect(screen.getByLabelText('起运港')).toHaveValue('unsaved-port');
-    expect(hasFormDraft(draftKey)).toBe(true);
+    expect(isTabDirty('/orders/sea-export')).toBe(true);
+    expect(hasFormDraft(draftKey)).toBe(false);
     expect(screen.getByText(changedMessage)).toBeVisible();
     expect(state.loadData).toHaveBeenCalledOnce();
   });
@@ -210,7 +214,8 @@ describe('海运详情变动提醒与真实刷新确认', () => {
     });
     expect(state.loadData).not.toHaveBeenCalled();
     expect(screen.getByLabelText('起运港')).toHaveValue('order-two-port');
-    expect(hasFormDraft(draftKey)).toBe(true);
+    expect(isTabDirty('/orders/sea-export')).toBe(false);
+    expect(hasFormDraft(draftKey)).toBe(false);
   });
 
   it('无未保存内容时手动刷新直接同步，无需弹出确认', async () => {

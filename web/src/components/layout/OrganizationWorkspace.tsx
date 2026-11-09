@@ -1,11 +1,12 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { App } from 'antd';
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { useInitialState } from '@/app/AppProvider';
 import { TagsView } from '@/components/layout/TagsView';
 import { ListQueryStateProvider } from '@/components/ui/list-query-state';
 import { createQueryClient } from '@/utils/queryClient';
 import { activateWorkspaceRequestScope } from '@/utils/requestClient';
+import { getAnyDirtyTabKey } from './tabCloseGuard';
 
 export function getOrganizationWorkspaceKey(
   currentUser?: API.CurrentUser,
@@ -40,6 +41,16 @@ export function OrganizationWorkspace({
 
 function WorkspaceQueryProvider({ children }: { children: React.ReactNode }) {
   const [client] = useState(createQueryClient);
+
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!getAnyDirtyTabKey()) return;
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
 
   useLayoutEffect(() => {
     const releaseRequests = activateWorkspaceRequestScope();

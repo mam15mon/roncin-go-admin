@@ -189,134 +189,124 @@ queryClient.invalidateQueries({ queryKey: ['orders'] });
   详情测试首次失败重试、有数据重查不覆盖输入，以及在途保存跨身份和往返的迟到结果；
   不能以 mock 关闭函数替代真实路由测试。
 
-## 场景：跨页签表单草稿
+## 场景：订单详情离开保护与可选持久草稿
 
 ### 1. 适用范围
 
-- 适用于 `OrderFormTemplate` 等在 `sessionStorage` 暂存未提交表单、并由
-  `TagsView` 在后台页签关闭时继续判断脏状态的场景。
-- 该存储跨组件挂载存在，必须视为用户与组织级业务数据，不能只按路由命名。
+- 已有海运、空运订单主详情只维护当前挂载表单，不读写 `sessionStorage` 草稿。系统页签仅保存导航地址，不保活页面；切换、关闭或其他会丢输入的离开先确认，确认即放弃，重新打开读取服务端值。
+- 新建订单（含带 `sourceOrderId` 的新建分单）和独立 HBL 制作仍保留既有持久草稿。草稿跨组件挂载存在，必须按用户、公司和完整表单路径隔离；不把此机制重新带回订单主详情。
+- 不引入内存编辑会话、整页 KeepAlive、自动保存或旧详情草稿迁移。
 
-### 2. 签名
+### 2. 签名与职责
 
 ```ts
 getFormDraftScope(userId?: string, organizationId?: string): string | undefined;
-// pathname 必传：tabKey、pathname、draftScope 任一缺失时返回空串，
-// 不再回退 window.location，也不生成有效草稿键。
 getFormDraftKey(tabKey?: string, pathname?: string, draftScope?: string): string;
 hasTabDraft(tabKey: string, draftScope?: string): boolean;
 clearTabDrafts(tabKey: string, draftScope?: string): void;
 
-// OrderFormTemplate 动作接口：页面外部清理草稿与脏状态只能经由该接口。
 interface OrderFormTemplateActions<T> {
   resetTo: (values?: Partial<T>) => void;
   applyValues: (values: Partial<T>) => void;
 }
+
+useRouteLeaveGuard(tabKey: string, isDirty: () => boolean): void;
+getTabGuardMessage(tabKey: string, action?: 'leave' | 'close'): string;
+// confirmIfAnyTabDirty 的尾参 action?: 'organization' | 'logout' 默认 organization；
+// 主动退出显式传 logout，确认后异步动作须返回 Promise。
 ```
 
-### 3. 契约
+- `OrderFormTemplate` 独占 dirty、保存与重置生命周期；页面不维护受控 dirty 镜像，类型扩展不读写草稿键或显式刷新令牌。
+- 用户/组织由 `OrganizationWorkspace` key 隔离；业务类型/记录身份变化由模板外层 React key 重建。旧表单及迟到异步任务不得影响新记录或往返后重挂的同一记录。
 
-- 草稿键必须同时包含用户 ID、当前组织 ID、稳定页签 key 与完整 pathname；缺少用户或组织时
-  禁止持久化草稿。
-- 草稿身份由页面显式提供：`OrderFormTemplate` 只接收调用方传入的
-  `tabKey + draftPathname + draftScope`（如 `/orders/:kind/new`、`/orders/:kind/:id`），
-  不读取 `window.location`，也不从当前路由猜测 tabKey；任一身份输入缺失时不生成草稿键、
-  不读写持久草稿。
-- 完整 `draftKey` 只允许在 `OrderFormTemplate` 内通过 `getFormDraftKey` 计算；页面不得
-  自行计算草稿键或直接调用草稿清理函数。
-- 脏状态与草稿生命周期由模板独占：模板维护 `internalDirty` 并注册 `useTabCloseGuard`，
-  不再提供受控 `dirty/onDirtyChange` props。页面级显式刷新成功、底部「重置修改」等外部
-  动作只能调用 `actionsRef.resetTo(values)`（清当前草稿 → 重置 Form store → 回填最新值 →
-  清 dirty）。
-- 用户点击「带入」等显式编辑动作时，调用 `actionsRef.applyValues(values)` 合并字段、标记
-  未保存并同步持久化完整草稿；只读或编辑禁用时不应用。不得只调用 `setFieldsValue`，
-  否则首次程序带入不会触发输入事件，导致草稿与关闭保护遗漏；初始化和后台查询仍不标脏。
-- 草稿恢复由模板在首次同时满足「非 loading、非 readonly、草稿身份完整」时通过浏览器绘制
-  前的 layout effect 执行一次；初始只读或加载中的页面不读取草稿，首次变为可编辑时仍可恢复，
-  同身份后续锁状态往返不得覆盖内存中的表单值。
-- 身份重建由双层边界保证：用户与组织身份由 `OrganizationWorkspace` key 管理（切换时整体卸载
-  页签与页面），页面内资源身份（如业务类型或记录 ID）由调用方在模板边界提供对应 React `key`
-  （如 `key={`${config.kind}:${orderId}`}`）。
-- 模板挂载期间 `(draftScope, tabKey, draftPathname)` 必须保持同一身份，模板内部不再进行
-  多重身份探测；只要页面内资源身份可能变化，调用方就必须在模板边界提供对应 key。
-- 新 identity key 挂载新表单实例时，先使用新身份的 `initialValues`，再恢复新身份自己的
-  草稿；不得保留旧组织的 Form store 与 dirty 状态。
-- 页签脏状态取“实时 guard 或当前身份持久草稿”，防止 React 状态尚未提交时漏掉已同步写入
-  的草稿。
-- 用户确认关闭后，只清除当前身份、目标页签下的草稿；其他用户或组织的草稿保持不变。
-- 订单保存的成功/失败只由订单更新接口决定；更新成功由模板统一清草稿与 dirty，详情与锁状态
-  的后台刷新是 best-effort 任务，不得把已落库的保存改判为失败。显式刷新以统一单调令牌
-  门禁：发起时递增令牌；订单身份发生变化时在 `useLayoutEffect` 的 setup 与 cleanup
-  中均递增同一令牌并清空 pending（不需要额外的 previousRef，亦不在 render 阶段修改 ref），
-  使旧身份的全部在途刷新立即失效（覆盖 A→B 与 A→B→回 A 往返）。pending 同时携带令牌与订单身份，
-  请求完成与消费 effect 两端都必须复核，覆盖「完成写入 pending 后、消费前令牌或身份已变化」的
-  窗口。字符串身份只能区分订单、区分不了同一订单的实例代际（A→B→回 A 往返）；只有最后一次发起、
-  且从未跨越身份切换的刷新完成才允许回填，A 的迟到刷新不得清 B 的草稿或重置 B 的表单，旧实例的
-  迟到刷新不得覆盖重新挂载实例中的内容。
-- 显式刷新令牌只属于通用订单详情页编排层；订单类型详情扩展（见
-  component-guidelines.md 的「订单类型三类真相边界」）不得读写该令牌或模板
-  `resetTo`，其业务写成功后的刷新只走页面提供的 `refreshOrderAndLock` 普通命令。
-- 日期反序列化覆盖订单表单使用的 `*Date`、`*Cutoff`、`*At` 以及 `etd`、`eta` 等字段，普通
-  ISO 格式文本不得仅凭值形态被转换。
+### 3. 行为契约
 
-### 4. 校验与错误矩阵
+#### 订单主详情
+
+- 详情只提供稳定页签 key、用户公司 scope、动作引用和服务端初值，不提供开启持久草稿的完整身份，也不自行调用 `getFormDraft` 恢复输入、版本或单证基线。
+- 当前表单初始化后，后台重读不覆盖用户输入、不替换原 `version`、主单/分单 expectedVersion；外部变动继续前台每 15 秒及回焦检查。确认刷新且成功重读后才 `resetTo`，失败保留原输入。
+- 真实用户编辑及显式 `applyValues` 同步标脏；初始化、候选加载、只读浏览不标脏。guard 必须读取同步 ref，覆盖修改后立即关闭或导航的时序。
+- 已有修改不能因外部锁单或权限变化成为 readonly 就丢失保护；readonly 禁止继续编辑，关闭或离开仍确认。
+- 保存成功、明确重置或放弃才清 dirty；失败、校验未过、409 和未知结果继续保留。保存结果未知时不能声称请求已撤销；确认离开后再次进入核对服务端实际状态，不增加详情恢复平台。
+- 站内离开复用 `useRouteLeaveGuard` 的 Data Router blocker，覆盖菜单、系统页签、返回列表、同菜单对象替换及浏览器 POP/replace。取消留在原页并保留输入，确认后卸载放弃。纯锚点滚动不新增确认。
+
+#### 关闭、退出与浏览器离开
+
+- 单关、关闭其他、关闭左/右和关闭全部均通过 `confirmIfTabsDirty` 一次确认真实关闭范围；取消不清页签、查询或输入，确认后才执行。固定工作台不可关闭。
+- 关闭提示“有未保存的修改，是否放弃并关闭？”，操作为“继续编辑／放弃并关闭”；路由离开使用“离开”动作语义。
+- 已确认动作仍用 `runConfirmedDeparture`/`isTabDepartureConfirmed` 临时放行本次全部 dirty guard，避免页签关闭和路由双重提示。异步动作结束或失败后撤回放行，不清 dirty 代替确认。
+- 路由守卫保留源 `location.key` 检查，旧实例尚未注销时不得阻止新页面下一次导航。
+- 主动退出在销毁身份及编辑前确认；接口失败保留当前内容和保护，强制鉴权失效不被旧表单阻止。
+- 工作区统一监听 `beforeunload`，事件时检查实时 `getAnyDirtyTabKey()`，存在修改才 `preventDefault` 并设置 `returnValue`。刷新、关浏览器标签页和整页站外跳转使用浏览器原生提示，不开业务模态；工作区卸载删除监听。
+
+#### 仍支持的持久草稿
+
+- 只有 `tabKey + draftPathname + draftScope` 齐全才生成草稿键；不从 `window.location` 或当前路由猜身份，缺用户或公司不持久化。
+- 仍有效的路径为订单新建和独立 HBL 编辑；来源 query 是新建身份的一部分。`hasTabDraft` 不把退役的普通订单详情键算作 dirty，不读取或迁移其内容，不扫删其他用户/公司的数据。
+- 首次非 loading、非 readonly 且身份齐全时在 layout effect 恢复一次；后续锁态往返不覆盖内存编辑。新身份只恢复自己的草稿。
+- `applyValues` 合并用户主动带入、标脏；启用持久化的表单同步存完整快照，已修改后的程序回填/清空也入草稿。初始化及 `resetTo` 不生成脏草稿。
+- `resetTo(values)` 清当前草稿、重置旧 Form store、回填新值并清 dirty。保存成功才清草稿，失败保留；确认关闭只清当前身份、被关闭页签范围的有效草稿。
+- 显式清空序列化为 `null`，不得省略 `undefined` 而让默认值复活。日期按已知字段及 `*Date/*Cutoff/*At` 恢复 Dayjs，普通 ISO 文本不凭值猜测。
+
+#### 显式刷新与版本
+
+- 保存结果由订单更新接口决定，后台重读失败不能把已落库结果改判成写入失败；已提交后只重试读取，结果未知继续沿用原键原载荷确认。
+- 显式刷新令牌归通用详情页所有：每次刷新递增，身份 layout effect 的 setup/cleanup 也递增并清 pending。请求完成和回填两端都复核令牌与身份，覆盖 A→B→A 及“写入 pending 后、消费前”变化，旧任务不能重置新实例。
+- 订单品类扩展只使用 `refreshOrderAndLock` 等普通命令，不取得模板 actions、dirty setter、草稿键或显式刷新令牌。
+
+### 4. 验证与错误矩阵
 
 | 条件 | 行为 |
 | --- | --- |
-| 用户 ID 或组织 ID 缺失 | 不生成草稿键，不读写草稿；实时关闭 guard 仍工作 |
-| 同用户切换组织 | 重建表单，只加载新组织命名空间 |
-| 同组织切换用户 | 不读取原用户草稿 |
-| 存储不可用、超限或 JSON 非法 | 捕获存储异常；读取返回 `null`，不阻断表单 |
-| 实时 guard 为 false、当前身份已有草稿 | 仍判定为 dirty |
-| 用户取消关闭 | 保留页签与草稿 |
-| 用户确认关闭 | 仅清理当前身份与目标页签草稿 |
+| 主详情存在旧 storage 草稿 | 忽略，不恢复、不产生假 dirty |
+| 初始化完成，没有用户修改 | 关闭、导航和浏览器离开不提示 |
+| 修改后点击工作台或另一页签，取消 | 路由不变，输入及原版本保留 |
+| 修改后确认离开再返回 | 读取服务端值，不恢复放弃内容 |
+| 批量关闭含多个 dirty 页签 | 一次确认，仅处理实际关闭范围 |
+| 外部变 readonly / 保存失败 / 409 | 输入和离开保护继续保留 |
+| 明确保存成功 / resetTo | 清 dirty，后续离开不误提示 |
+| dirty 时刷新或关闭浏览器页 | 请求浏览器原生确认；取消留原页 |
+| 有效新建/HBL草稿，实时 guard 已卸载 | 当前用户公司内仍判定该页签 dirty |
+| 缺用户公司 / 存储受限 / JSON 非法 | 不串身份；持久读失败不使表单崩溃 |
 
-### 5. Good / Base / Bad
+### 5. 正常、基准与错误场景
 
-- Good：用户 A 在组织 1 输入后切到组织 2，页面展示组织 2 默认值或其自身草稿；组织 1 草稿
-  留存且不会显示。
-- Base：没有草稿时按当前表单 `initialValues` 渲染，关闭页签不提示。
-- Bad：使用 `roncin:form-draft:${tabKey}:${pathname}`，导致不同用户或组织共享同一个键。
+- 正常：修改客户业务编号后切工作台，先确认；取消可继续编辑，确认后回来展示服务端编号。
+- 基准：只读打开、初始化、候选搜索或保存成功后直接离开，不出现误提示。
+- 错误：订单主详情继续恢复旧草稿，或为了保留跨页输入另加匿名缓存；另一类错误是变 readonly 后注销 guard，静默丢失原修改。
 
 ### 6. 必需测试
 
-- 工具测试：同页签、同路径的两个身份命名空间可以独立保存、判断和清理。
-- 模板测试：缺少任一草稿身份输入（tabKey / draftPathname / draftScope）时不持久化，完整
-  输入只命中唯一规范路径键；只读挂载不恢复草稿、初始只读在首次解除后只恢复一次且后续
-  readonly 往返不覆盖内存编辑值；提交成功清草稿、提交失败保留草稿、原生重置清草稿；
-  `resetTo` 清当前草稿、清旧 Form store、回填新值并清 internal dirty；`applyValues` 首次
-  带入即标脏并保存完整草稿，保留未涉及字段，只读或编辑禁用时不修改。
-- 详情生命周期测试：详情 A 原地导航到 B 后模板实例被重建，B 不显示 A 的 Form store 与
-  dirty 状态；A 的迟到显式刷新不得重置 B 的表单与 dirty；保存成功立即清草稿，后台刷新
-  失败不改判保存结果；底部重置修改与显式刷新成功经由 `actionsRef.resetTo` 生效。
-- 新建页测试：页面向模板传入规范 `tabKey + draftPathname + draftScope`，并从规范路径键
-  恢复新建草稿。
-- 关闭保护测试：实时 guard 暂为 false 但草稿已写入时仍提示；确认后仅清理当前 scope。
-- 日期测试：嵌套对象中的 `cargoReadyAt`、截止时间及 `etd`/`eta` 恢复为 Dayjs，普通文本保持
-  字符串。
+- 真实 data router + Form 验证海运、空运编辑→离开取消/确认→重开；预埋旧草稿不恢复、不误报，未填写配箱计划不崩溃。
+- 保存/重置成功清 dirty，失败与外部只读后仍保护；用户编辑后同 tick 关闭，程序带入，初始化不误标脏。
+- 单关及批量确认取消/确认、关闭全部只提示一次、未关闭页签不误清、已确认动作复用及失败后继续保护。
+- 原生 `beforeunload` 的 clean/dirty/保存成功、工作区卸载及 StrictMode 清理；主动退出取消不发请求、失败保留、成功正常离开。
+- 原并发及刷新回归不得删除：A/B 与 A→B→A 隔离、迟到刷新、原版本不偷换、已写入后重读失败只读重试。
+- 新建来源 query、独立 HBL 草稿、日期复活、显式清空及独立创建幂等记录继续通过；重型用例按功能分文件，不能放大单文件长尾。
 
 ### 7. 错误与正确示例
 
-```ts
-// 错误：组织切换后仍命中同一个草稿。
-getFormDraftKey(tabKey, pathname);
+```tsx
+// 错误：订单主详情重新接入本地恢复。
+<OrderFormTemplate draftPathname={`/orders/${kind}/${orderId}`} />;
 
-// 错误：页面自行计算草稿键并直接清理，绕过模板生命周期所有权。
-const draftKey = getFormDraftKey(tabKey, pathname, draftScope);
-clearFormDraft(draftKey);
-
-// 正确：页面只提供规范身份，模板独占草稿键与清理动作。
+// 正确：主详情只接即时关闭保护，并由详情编排复用路由离开 guard。
 <OrderFormTemplate
   tabKey={resolveTabKey(`/orders/${kind}/${orderId}`)}
-  draftPathname={`/orders/${kind}/${orderId}`}
   draftScope={getFormDraftScope(user.id, currentOrganization.id)}
   actionsRef={templateActionsRef}
 />;
 
-// 需要外部重置表单时，经由模板动作接口执行。
-templateActionsRef.current?.resetTo(initialValues);
+// 正确：仍支持的表单由模板独占持久草稿键，来源 query 保留在规范身份中。
+<OrderFormTemplate
+  tabKey={resolveTabKey(`/orders/${kind}/new`)}
+  draftPathname={sourceRequest.draftPathname}
+  draftScope={getFormDraftScope(user.id, currentOrganization.id)}
+  actionsRef={templateActionsRef}
+/>;
 
-// 用户显式带入属于编辑，经由模板同时合并字段、标脏并保存草稿。
+// 明确重置和用户主动带入均通过模板动作，不另造dirty或存储链路。
+templateActionsRef.current?.resetTo(initialValues);
 templateActionsRef.current?.applyValues({ printDetails: { containersText } });
 ```
 
@@ -499,14 +489,14 @@ escapeCsvCell(protectFormula(value));
 ### 适用入口与签名
 
 - `SeaCustomerField`：客户岗位仅作为选择客户时的默认值；显式重载恢复草稿人员时不能清除已有人工值。
-- `OrderFormTemplate`：通过独立快照观察器保存完整 Form store；`actionsRef.resetTo(values?)` 清除草稿与脏状态。
+- `OrderFormTemplate`：启用持久草稿时通过独立观察器保存完整 Form store；订单主详情不挂持久快照观察器；`actionsRef.resetTo(values?)` 清除当前草稿与脏状态。
 - `useSeaOrderCreate(draftKey)`：返回 `status/frozen/submit/clear`，`submit(payload?)` 返回服务端确认的订单 ID；待确认时不再读取当前输入。
 
 ### 行为契约
 
 - 海运付款方式和主分单条款默认值由表单初始化入口提供；同一个字段不得同时声明整表 `initialValues` 与 `Form.Item/ProForm` 的 `initialValue`，否则会触发覆盖告警。移除字段默认值前必须核查新建、详情和主分单切换的全部入口，先补齐初始化；编辑、草稿恢复及用户显式清空不得被重复默认值覆盖。回归需检查实际 Form store 和控制台告警，不能仅断言常量。
 - 客户默认值仅应用到本次选择后尚未手动修改的字段，包括主动清空也算修改；客户切换、A→B→A、组件重挂和请求迟到均隔离，后台重查不得覆盖表单。
-- `setFieldsValue/setFieldValue/setFields` 不触发 `onValuesChange`。用户已开始编辑后，程序回填/清空也必须保存完整快照；只初始化、候选加载、resetTo 和保存成功不生成脏草稿。
+- `setFieldsValue/setFieldValue/setFields` 不触发 `onValuesChange`。启用持久草稿且用户已开始编辑后，程序回填/清空也必须保存完整快照；只初始化、候选加载、resetTo 和保存成功不生成脏草稿。
 - 草稿显式清空字段序列化为 `null`；不能省略 `undefined` 后让恢复时的 `initialValues` 重新带入旧值。日期继续通过 `reviveFormDraft` 恢复。
 - 自定义集合控件必须接受草稿恢复传入的 `null`：计划箱型箱量将 `null` 与 `undefined` 均作为空计划渲染，新增、修改、删除统一基于该空集合语义；不能只用参数默认值 `value = []`，该写法不处理 `null`。回归须经过真实草稿序列化、卸载与重挂，覆盖只改其他字段和已有计划显式清空，并保留输入与版本基线。
 - 创建前保存 JSON 规范化载荷与幂等键，待确认记录使用独立 `roncin:pending-order-create:` 前缀并包含用户/组织/来源路径草稿身份。普通页签草稿清理不得删除未确认提交意图。

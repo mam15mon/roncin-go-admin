@@ -1,6 +1,6 @@
-import { renderWithApp } from '@root/tests/renderWithApp';
+import { renderWithDataRouter as renderWithApp } from '@root/tests/renderWithApp';
 import { act, fireEvent, screen } from '@testing-library/react';
-import { App, ConfigProvider, Form, Input } from 'antd';
+import { App, ConfigProvider, Form, type FormInstance, Input } from 'antd';
 import React from 'react';
 import { vi } from 'vitest';
 import { getFormDraftKey } from '@/components/layout/formDraft';
@@ -22,6 +22,7 @@ const state = vi.hoisted(() => ({
   onOrderDataChanged: undefined as TemplateProps['onOrderDataChanged'],
   routeKind: 'sea-export',
   routeId: 'order-1',
+  form: undefined as FormInstance | undefined,
 }));
 const pathname = '/orders/sea-export/order-1';
 const draftScope = 'user-1:org-1';
@@ -123,9 +124,13 @@ vi.mock('./templates', () => ({
 
 /** 使用真实候选 Hook 和 Form，仅保留本次保存相关的可见字段。 */
 function TransportFields() {
+  state.form = Form.useFormInstance();
   useSeaMasterBillCandidate(true, []);
   return (
     <>
+      <Form.Item name="customerReferenceNo" label="客户业务编号">
+        <Input />
+      </Form.Item>
       <Form.Item name="seaMasterBillMasterNo" label="主单号">
         <Input />
       </Form.Item>
@@ -141,14 +146,16 @@ function TransportFields() {
   );
 }
 
-export function renderDetail() {
+export function renderDetail(ui: React.ReactElement = <OrderDetailPage />) {
   return renderWithApp(
     <ConfigProvider theme={{ token: { motion: false } }}>
-      <App>
-        <OrderDetailPage />
-      </App>
+      <App>{ui}</App>
     </ConfigProvider>,
-    { routerProps: { initialEntries: [pathname] } },
+    {
+      routerProps: {
+        initialEntries: [`/orders/${state.routeKind}/${state.routeId}`],
+      },
+    },
   );
 }
 
@@ -187,6 +194,7 @@ export function resetPortSaveState() {
   vi.clearAllMocks();
   sessionStorage.clear();
   state.onOrderDataChanged = undefined;
+  state.form = undefined;
   state.routeKind = 'sea-export';
   state.routeId = 'order-1';
   state.order = {

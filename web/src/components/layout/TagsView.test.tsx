@@ -835,9 +835,9 @@ describe('TagsView Component', () => {
     expect(modalSpy).toHaveBeenCalledTimes(1);
     const modalArgs = modalSpy.mock.calls[0][0];
     expect(modalArgs.title).toBe('提示');
-    expect(modalArgs.content).toBe('修改的信息尚未保存，您确定要离开吗？');
-    expect(modalArgs.okText).toBe('确定离开');
-    expect(modalArgs.cancelText).toBe('取消');
+    expect(modalArgs.content).toBe('有未保存的修改，是否放弃并关闭？');
+    expect(modalArgs.okText).toBe('放弃并关闭');
+    expect(modalArgs.cancelText).toBe('继续编辑');
 
     // 未执行 onOk，页签依然存在，未跳转
     expect(screen.getByText('SE 新建订单')).toBeInTheDocument();
@@ -864,7 +864,7 @@ describe('TagsView Component', () => {
     expect(modalSpy).toHaveBeenCalledTimes(1);
     const modalArgs = modalSpy.mock.calls[0][0];
 
-    // 模拟用户点击「确定离开」
+    // 模拟用户点击「放弃并关闭」
     act(() => {
       modalArgs.onOk?.();
     });
@@ -901,7 +901,7 @@ describe('TagsView Component', () => {
 
     expect(modalSpy).toHaveBeenCalledTimes(1);
     expect(modalSpy.mock.calls[0][0].content).toBe(
-      '修改的信息尚未保存，您确定要离开吗？',
+      '有未保存的修改，是否放弃并关闭？',
     );
 
     // 取消时，海运出口页签依然存在
@@ -921,13 +921,13 @@ describe('TagsView Component', () => {
   });
 
   it('确认关闭已编辑页签后，自动清除该页签在 sessionStorage 中的草稿', () => {
-    mockPathname = '/orders/sea-export/SE001';
+    mockPathname = '/orders/sea-export/new';
     render(<TagsView />);
 
     const draftScope = getFormDraftScope('user-1', 'org-1');
     const draftKey = getFormDraftKey(
       '/orders/sea-export',
-      '/orders/sea-export/SE001',
+      '/orders/sea-export/new',
       draftScope,
     );
     sessionStorage.setItem(draftKey, JSON.stringify({ field: 'value' }));
@@ -935,7 +935,7 @@ describe('TagsView Component', () => {
 
     const modalSpy = spyOnConfirm();
 
-    const closeBtn = screen.getByLabelText('关闭 订单详情');
+    const closeBtn = screen.getByLabelText(/^关闭 /);
     act(() => {
       fireEvent.click(closeBtn);
     });

@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import { useBlocker, useLocation } from 'react-router';
 import { getTabGuardMessage, isTabDepartureConfirmed } from './tabCloseGuard';
 
-/** 客商无持久草稿：真实路由离开复用页签确认，并保留取消后的表单。 */
+/** 真实路由离开复用页签确认，取消时保留当前表单。 */
 export function useRouteLeaveGuard(tabKey: string, isDirty: () => boolean) {
   const { modal } = App.useApp();
   const location = useLocation();
@@ -27,8 +27,8 @@ export function useRouteLeaveGuard(tabKey: string, isDirty: () => boolean) {
     confirmationRef.current = modal.confirm({
       title: '提示',
       content: getTabGuardMessage(tabKey),
-      okText: '确定离开',
-      cancelText: '取消',
+      okText: '放弃并离开',
+      cancelText: '继续编辑',
       centered: true,
       onOk: () => {
         confirmationRef.current = undefined;

@@ -1,9 +1,7 @@
 import { act, fireEvent, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { saveFormDraft } from '@/components/layout/formDraft';
 import {
   advanceVersion,
-  draftKey,
   getOrderUpdateMock,
   getPortSaveState,
   renderDetail,
@@ -13,7 +11,7 @@ import {
 
 const state = getPortSaveState();
 
-describe('海运详情主单正式动作与港口草稿版本', () => {
+describe('海运详情主单正式动作与编辑版本', () => {
   beforeEach(resetPortSaveState);
 
   it('主单正式动作推进主单版本并保留未保存港口', async () => {
@@ -34,13 +32,14 @@ describe('海运详情主单正式动作与港口草稿版本', () => {
     });
   });
 
-  it('旧港口草稿不能借主单正式动作采纳当前版本', async () => {
-    saveFormDraft(draftKey, {
-      version: '4',
-      seaMasterBillExpectedCandidateVersion: '2',
-      originLocationId: 'draft-port',
-    });
+  it('旧港口编辑版本不能借主单正式动作采纳当前版本', async () => {
     renderDetail();
+    fireEvent.change(screen.getByLabelText('起运港'), {
+      target: { value: 'draft-port' },
+    });
+    await act(async () =>
+      state.form?.setFieldValue('seaMasterBillExpectedCandidateVersion', '2'),
+    );
     advanceVersion('5');
     await act(async () => {
       await state.onOrderDataChanged?.('master');
@@ -130,7 +129,7 @@ describe('海运详情主单正式动作与港口草稿版本', () => {
     });
   });
 
-  it('主单动作不借用并发更新的航程标识，提前提醒保留旧港口草稿', async () => {
+  it('主单动作不借用并发更新的航程标识，提前提醒保留未保存港口', async () => {
     state.order = {
       ...state.order,
       seaMasterBill: {

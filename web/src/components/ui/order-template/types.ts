@@ -15,7 +15,7 @@ export interface OrderFormTemplateSection {
 export interface OrderFormTemplateActions<T> {
   /** 清当前草稿、重置 Form store、可选回填指定值并清除脏状态。 */
   resetTo: (values?: Partial<T>) => void;
-  /** 用户显式带入资料：合并值、标记未保存并持久化完整草稿。 */
+  /** 用户显式带入资料：合并值并同步标脏；启用持久草稿时才保存完整快照。 */
   applyValues: (values: Partial<T>) => void;
 }
 
@@ -60,7 +60,7 @@ export interface OrderFormTemplateProps<T> {
   actionsRef?: React.MutableRefObject<OrderFormTemplateActions<T> | undefined>;
   /** 是否启用页签关闭拦截提示，默认为 true */
   enableCloseGuard?: boolean;
-  /** 自定义关闭提示文案，默认："修改的信息尚未保存，您确定要离开吗？" */
+  /** 自定义未保存提示；缺省时按实际动作提示放弃并关闭或离开。 */
   closeGuardMessage?: string;
   /** 表单值变动回调 */
   onValuesChange?: (changedValues: Partial<T>, allValues: T) => void;

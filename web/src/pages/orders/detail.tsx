@@ -24,10 +24,10 @@ import React, {
 } from 'react';
 import { useParams } from 'react-router';
 import { useAccess } from '@/app/access';
-import { getFormDraft, getFormDraftKey } from '@/components/layout/formDraft';
 import { resolveTabKey } from '@/components/layout/routeUtils';
 import { isTabDirty } from '@/components/layout/tabCloseGuard';
 import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
+import { useRouteLeaveGuard } from '@/components/layout/useRouteLeaveGuard';
 import { SectionCard } from '@/components/ui';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';
 import type {
@@ -304,16 +304,7 @@ export default function OrderDetailPage() {
     }
   }, [order?.orderNo, order?.id, orderId, definition?.kind, definition?.title]);
 
-  // 恢复草稿时版本必须与草稿一起恢复；缺失原版本不能被最新服务端值补齐。
-  const restoredDraft = useMemo(() => {
-    if (definition?.transportMode !== 'sea' || !orderId || !draftScope)
-      return undefined;
-    const pathname = `/orders/${definition.kind}/${orderId}`;
-    return getFormDraft<Partial<OrderDetailFormValues> & { version?: string }>(
-      getFormDraftKey(resolveTabKey(pathname), pathname, draftScope),
-    );
-  }, [definition?.kind, orderId, draftScope]);
-  // 2. 构造表单初始值
+  // 详情只使用本次服务端快照，未保存输入不再持久化或跨挂载恢复。
   const initialValues = useMemo(
     () => ({
       ...(definition?.form.buildDetailInitialValues(
@@ -323,37 +314,13 @@ export default function OrderDetailPage() {
       ) ?? {}),
       ...seaDocumentFormValues(currentDocuments),
       id: order?.id,
-      version: restoredDraft ? restoredDraft.version : order?.version,
-      seaMasterBillExpectedCandidateVersion: restoredDraft
-        ? restoredDraft.seaMasterBillExpectedCandidateVersion
-        : order?.seaMasterBill?.version,
-      ...(restoredDraft?.seaMasterBillContent
-        ? {
-            seaMasterBillContentVersion:
-              restoredDraft.seaMasterBillContentVersion,
-          }
-        : {}),
-      ...(restoredDraft?.seaHouseBill
-        ? {
-            seaDocumentLinkVersion: restoredDraft.seaDocumentLinkVersion,
-            seaHouseBill: {
-              ...seaDocumentFormValues(currentDocuments).seaHouseBill,
-              ...restoredDraft.seaHouseBill,
-              id: restoredDraft.seaHouseBill.id,
-              expectedVersion: restoredDraft.seaHouseBill.expectedVersion,
-            },
-          }
-        : {}),
+      version: order?.version,
+      seaMasterBillExpectedCandidateVersion: order?.seaMasterBill?.version,
     }),
-    [
-      definition,
-      order,
-      shippingDocs,
-      personnel,
-      currentDocuments,
-      restoredDraft,
-    ],
+    [definition, order, shippingDocs, personnel, currentDocuments],
   );
+  const orderTabKey = resolveTabKey(`/orders/${kind}/${orderId}`);
+  useRouteLeaveGuard(orderTabKey, () => isTabDirty(orderTabKey));
 
   const resetEditableForm = () =>
     templateActionsRef.current?.resetTo({
@@ -514,7 +481,7 @@ export default function OrderDetailPage() {
       ]);
     };
     const pathname = `/orders/${definition?.kind}/${orderId}`;
-    if (!isTabDirty(resolveTabKey(pathname), draftScope)) {
+    if (!isTabDirty(resolveTabKey(pathname))) {
       void proceed();
       return;
     }
@@ -1241,7 +1208,7 @@ export default function OrderDetailPage() {
         return;
       }
       const pathname = `/orders/${definition.kind}/${orderId}`;
-      if (isTabDirty(resolveTabKey(pathname), draftScope)) {
+      if (isTabDirty(resolveTabKey(pathname))) {
         await Promise.all([loadData(), refreshLockState()]);
         throw new Error(
           '详情页有未保存修改，输入已保留，请使用“刷新数据”确认更新。',
@@ -1347,11 +1314,6 @@ export default function OrderDetailPage() {
               tabKey={
                 definition && orderId
                   ? resolveTabKey(`/orders/${definition.kind}/${orderId}`)
-                  : undefined
-              }
-              draftPathname={
-                definition && orderId
-                  ? `/orders/${definition.kind}/${orderId}`
                   : undefined
               }
               draftScope={draftScope}

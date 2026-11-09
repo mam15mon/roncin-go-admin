@@ -1,11 +1,10 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App, ConfigProvider } from 'antd';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { getFormDraft, saveFormDraft } from '@/components/layout/formDraft';
+import { isTabDirty } from '@/components/layout/tabCloseGuard';
 import { OrderAllowedAction, OrderTerminationStatus } from '@/enums.generated';
 import {
   bundle,
-  draftKey,
   getOrderReadMock,
   getPortSaveState,
   renderDetail,
@@ -55,11 +54,6 @@ function completedOrder(): API.Order {
 }
 
 it('完成退关后显示终态，不把本人操作当外部变更，并保留输入与原提交版本', async () => {
-  saveFormDraft(draftKey, {
-    version: '4',
-    seaMasterBillExpectedCandidateVersion: '4',
-    originLocationId: 'unsaved-port',
-  });
   const view = renderDetail();
   fireEvent.change(screen.getByLabelText('起运港'), {
     target: { value: 'unsaved-port' },
@@ -75,7 +69,7 @@ it('完成退关后显示终态，不把本人操作当外部变更，并保留�
   });
   expect(screen.getByText('已退关')).toBeVisible();
   expect(screen.getByLabelText('起运港')).toHaveValue('unsaved-port');
-  expect(getFormDraft(draftKey)).toMatchObject({
+  expect(state.form?.getFieldsValue(true)).toMatchObject({
     version: '4',
     originLocationId: 'unsaved-port',
   });
@@ -93,15 +87,11 @@ it('完成退关后显示终态，不把本人操作当外部变更，并保留�
     });
   });
   expect(await screen.findByText(changedMessage)).toBeVisible();
-  expect(getFormDraft(draftKey)).toMatchObject({ version: '4' });
+  expect(state.form?.getFieldsValue(true)).toMatchObject({ version: '4' });
+  expect(isTabDirty('/orders/sea-export')).toBe(true);
 });
 
-it('完成退关后重读失败保留输入、草稿和原有变动提醒', async () => {
-  saveFormDraft(draftKey, {
-    version: '4',
-    seaMasterBillExpectedCandidateVersion: '4',
-    originLocationId: 'unsaved-port',
-  });
+it('完成退关后重读失败保留输入、未保存状态和原有变动提醒', async () => {
   const view = renderDetail();
   fireEvent.change(screen.getByLabelText('起运港'), {
     target: { value: 'unsaved-port' },
@@ -126,7 +116,7 @@ it('完成退关后重读失败保留输入、草稿和原有变动提醒', asyn
     ).toBeInTheDocument(),
   );
   expect(screen.getByLabelText('起运港')).toHaveValue('unsaved-port');
-  expect(getFormDraft(draftKey)).toMatchObject({
+  expect(state.form?.getFieldsValue(true)).toMatchObject({
     version: '4',
     originLocationId: 'unsaved-port',
   });

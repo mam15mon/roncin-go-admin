@@ -3,9 +3,10 @@ import {
   LogoutOutlined,
   SafetyCertificateOutlined,
 } from '@ant-design/icons';
-import { Avatar, Button, Divider, Spin, Tag } from 'antd';
+import { App, Avatar, Button, Divider, Spin, Tag } from 'antd';
 import React, { startTransition, useEffect, useState } from 'react';
 import { useInitialState } from '@/app/AppProvider';
+import { confirmIfAnyTabDirty } from '@/components/layout/tabCloseGuard';
 import { PasskeyManagerModal } from '@/features/auth/passkeys';
 import { clearOrderMasterDataCache } from '@/features/orders/options';
 import { history } from '@/router/history';
@@ -27,6 +28,7 @@ type AvatarDropdownProps = { children?: React.ReactNode };
 
 export const AvatarDropdown: React.FC<AvatarDropdownProps> = () => {
   const { initialState, setInitialState } = useInitialState();
+  const { modal } = App.useApp();
   const [passkeyManagerOpen, setPasskeyManagerOpen] = useState(false);
   const currentUserId = initialState?.currentUser?.id;
   useEffect(() => {
@@ -43,7 +45,7 @@ export const AvatarDropdown: React.FC<AvatarDropdownProps> = () => {
       startTransition(() => {
         setInitialState((state) => ({ ...state, currentUser: undefined }));
       });
-      history.replace('/user/login');
+      await history.replace('/user/login');
     } catch {
       // 登出失败时保持当前会话缓存与登录态不变
     }
@@ -169,7 +171,9 @@ export const AvatarDropdown: React.FC<AvatarDropdownProps> = () => {
         type="text"
         danger
         icon={<LogoutOutlined />}
-        onClick={handleLogout}
+        onClick={() =>
+          confirmIfAnyTabDirty(handleLogout, modal.confirm, undefined, 'logout')
+        }
         style={{
           width: '100%',
           textAlign: 'left',

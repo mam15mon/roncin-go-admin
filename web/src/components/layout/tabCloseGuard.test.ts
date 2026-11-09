@@ -110,7 +110,7 @@ describe('tabCloseGuard', () => {
 
   it('返回默认提示文案，或自定义文案', () => {
     expect(getTabGuardMessage('/not-exist')).toBe(
-      '修改的信息尚未保存，您确定要离开吗？',
+      '有未保存的修改，是否放弃并离开？',
     );
 
     registerTabCloseGuard('/custom-tab', {
@@ -240,9 +240,9 @@ describe('tabCloseGuard', () => {
 
       const callArg = mockModal.mock.calls[0][0];
       expect(callArg.title).toBe('提示');
-      expect(callArg.content).toBe('修改的信息尚未保存，您确定要离开吗？');
-      expect(callArg.okText).toBe('确定离开');
-      expect(callArg.cancelText).toBe('取消');
+      expect(callArg.content).toBe('有未保存的修改，是否放弃并关闭？');
+      expect(callArg.okText).toBe('放弃并关闭');
+      expect(callArg.cancelText).toBe('继续编辑');
 
       // 模拟用户点击「确定离开」
       callArg.onOk();

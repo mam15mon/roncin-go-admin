@@ -104,10 +104,16 @@ export function isTabDirty(tabKey: string, draftScope?: string): boolean {
 /**
  * 获取指定 tabKey 注册的提示文案，默认返回标准文案
  */
-export function getTabGuardMessage(tabKey: string): string {
+export function getTabGuardMessage(
+  tabKey: string,
+  action: 'leave' | 'close' = 'leave',
+): string {
   const tabGuards = [...(guards.get(tabKey) ?? [])];
   const guard = tabGuards.find((item) => item.isDirty()) ?? tabGuards[0];
-  return guard?.message || '修改的信息尚未保存，您确定要离开吗？';
+  return (
+    guard?.message ||
+    `有未保存的修改，是否放弃并${action === 'close' ? '关闭' : '离开'}？`
+  );
 }
 
 /**
@@ -135,6 +141,7 @@ export function confirmIfAnyTabDirty(
   onConfirm: () => void | Promise<void>,
   customConfirmModal?: (props: Parameters<typeof Modal.confirm>[0]) => void,
   onCancel?: () => void,
+  action: 'organization' | 'logout' = 'organization',
 ): boolean {
   const dirtyTabKey = getAnyDirtyTabKey();
   if (!dirtyTabKey) {
@@ -144,10 +151,13 @@ export function confirmIfAnyTabDirty(
 
   const confirmFn = resolveConfirmFn(customConfirmModal);
   confirmFn({
-    title: '切换组织',
-    content: `${getTabGuardMessage(dirtyTabKey)} 切换组织将关闭当前编辑，未保存内容不会带入新组织。`,
-    okText: '确定离开',
-    cancelText: '取消',
+    title: action === 'organization' ? '切换组织' : '退出登录',
+    content:
+      action === 'organization'
+        ? `${getTabGuardMessage(dirtyTabKey)} 切换组织将关闭当前编辑，未保存内容不会带入新组织。`
+        : `${getTabGuardMessage(dirtyTabKey)} 退出登录将放弃当前编辑。`,
+    okText: '放弃并离开',
+    cancelText: '继续编辑',
     centered: true,
     onOk: () => runConfirmedDeparture([...guards.keys()], onConfirm),
     onCancel,
@@ -173,14 +183,14 @@ export function confirmIfTabsDirty(
     return true;
   }
 
-  const message = getTabGuardMessage(dirtyTabKey);
+  const message = getTabGuardMessage(dirtyTabKey, 'close');
   const confirmFn = resolveConfirmFn(customConfirmModal);
 
   confirmFn({
     title: '提示',
     content: message,
-    okText: '确定离开',
-    cancelText: '取消',
+    okText: '放弃并关闭',
+    cancelText: '继续编辑',
     centered: true,
     onOk: () => {
       return runConfirmedDeparture(tabKeys, onConfirm);
@@ -213,7 +223,9 @@ export function useTabCloseGuard(options: {
         const check = isDirtyRef.current;
         return typeof check === 'function' ? check() : check;
       },
-      message: messageRef.current,
+      get message() {
+        return messageRef.current;
+      },
     });
   }, [tabKey, enabled]);
 }

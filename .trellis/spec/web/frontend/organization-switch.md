@@ -9,13 +9,14 @@
 - `UmiRoute.organizationSwitch` 在集中路由声明保留功能页或返回所属列表；落点统一由 `resolveOrganizationSwitchDestination(location, access(newUser))` 计算。
 - `router/workspaceTabs.ts` 共享子页签可见条件，页面与切换落点共用，继续消费既有 access 布尔能力。
 - `useUnsavedChangesGuard({ enabled, identity, tabKey, message })` 返回 `markDirty/resetDirty`；复用 `resolveTabKey` 和现有页签守卫。
+- `confirmIfAnyTabDirty(onConfirm, customConfirmModal?, onCancel?, action?)` 的 action 为 `organization`（默认）或 `logout`，共用实时 dirty 与本次动作临时放行；异步动作返回 Promise，失败不清 dirty。
 - `GuardedModalForm` 经 `@/components/ui` 公开，透传官方 ModalForm 生命周期；额外状态控件仍显式接入轻量守卫。
 - 费用 `EditableProTable` 的两个单行编辑区分别登记 guard，通过 `editable.formProps.onFieldsChange` 筛选用户 touched 字段同步标脏；`editable.onValuesChange` 内部有 64ms 防抖，不能承担紧随输入切换组织的检测。保存成功或取消只清对应方向，失败保留，单纯进入编辑模式不标脏。
 
 ### 3. 契约
 
 - 切换成功后保留可访问列表/配置页及已知功能 tab；记录详情、新建、拆票、费用录入等回所属列表。未知路径回工作台，不猜测业务品类；新组织无路由或子页签权限回工作台并明确说明。
-- 不携带旧组织的实体 ID、筛选、分页、hash；列表查询缓存、弹窗和未保存状态随用户+组织工作区重新建立。原组织的隔离持久草稿按既有模板契约保留，不迁移、不扫描清空其他工作区草稿。
+- 不携带旧组织的实体 ID、筛选、分页、hash；列表查询缓存、弹窗和未保存状态随用户+组织工作区重新建立。已有订单主详情不再保存或恢复持久草稿，切换前有修改则确认放弃；仍支持的新建订单及独立 HBL 草稿继续按身份隔离，不迁移、不扫描清空其他工作区草稿。
 - 接口成功前保留旧业务子树和输入；成功后先隔离旧业务、再更新身份并完成目标导航，确认路由实际提交后才挂新工作区。懒加载等待、路由失败和取消导航不得让新身份挂载旧记录，也不能无限等待或恢复已失效旧会话。
 - 每个 tabKey 可以有多个独立 guard，注销只清当前实例；任一真实编辑未保存即提示。组织离开一次确认覆盖本次涉及的全部 dirty guard，异步动作结束或失败撤回临时放行，不能通过清 dirty 绕过提示。
 - 路由离开守卫绑定当前 `location.key`，只有导航源仍属于该路由实例才检查 dirty。
@@ -25,6 +26,7 @@
   并覆盖同菜单实体切换、query 变化及返回后重新编辑的保护。
 - 只由真实用户编辑标脏：Form 的 onValuesChange、角色权限勾选、图片/关联等提交载荷状态、核销金额/备注/日期和建账配置。初始化、候选自动填充、搜索、展开、只读浏览和单纯候选行选择不标脏。
 - 关闭/更换编辑对象/已验证保存成功后重置；失败、全局消费后 undefined、校验未通过均保留输入和 dirty。ModalForm 只有明确 onFinish===true 才按成功清理，不能把 Promise resolve 当成业务成功。
+- 主动退出登录在销毁身份前检查实时未保存 guard，取消不发请求，失败保留输入；强制鉴权失效仍完成身份隔离。工作区原生 `beforeunload` 监听事件时查询实时 dirty，有修改才请求浏览器原生提示，卸载删除监听。
 - 不通过 Form.Provider 匿名全局 boolean、DOM 扫描或猴补丁检测全站输入。当前真实共享模板与独立编辑表单显式接入；App modal 的临时输入闭包必须随所属工作区卸载销毁，不能跨组织保留可提交入口。
 - `OrganizationWorkspace` 内的 `AntdApp component={false}` 持有业务确认框，普通无字段确认也随工作区销毁。根 App 保留头部组织切换确认与统一反馈桥；不得把桥指向已卸载工作区实例。带输入的异步确认仍显式传 owner signal，保证销毁后等待结束且不提交旧实体闭包。
 

@@ -1,4 +1,4 @@
-import { renderWithApp as render } from '@root/tests/renderWithApp';
+import { renderWithDataRouter as render } from '@root/tests/renderWithApp';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';

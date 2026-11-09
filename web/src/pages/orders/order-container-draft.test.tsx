@@ -1,7 +1,13 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { ProFormText } from '@ant-design/pro-components';
 import { renderWithApp } from '@root/tests/renderWithApp';
-import { act, fireEvent, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { getFormDraft, getFormDraftKey } from '@/components/layout/formDraft';
@@ -10,8 +16,8 @@ import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTempl
 import { OrderContainerRequestFields } from './order-plan-fields';
 
 const identity = {
-  tabKey: '/orders/sea-export/order-1',
-  draftPathname: '/orders/sea-export/order-1',
+  tabKey: '/orders/sea-export',
+  draftPathname: '/orders/sea-export/new',
   draftScope: 'user:company',
 };
 const draftKey = getFormDraftKey(
@@ -53,6 +59,8 @@ function orderForm(containerRequests?: API.OrderContainerRequestInput[]) {
 }
 
 afterEach(() => {
+  // 先卸载快照观察器，再清存储，避免上个用例的脏快照回写到下一用例。
+  cleanup();
   sessionStorage.clear();
   _clearAllTabCloseGuards();
 });
@@ -63,7 +71,7 @@ function editReference() {
   });
 }
 
-describe('订单计划箱量的草稿恢复', () => {
+describe('新建订单计划箱量的草稿恢复', () => {
   it.each([undefined, []])(
     '无配箱计划 %j 时，只改业务编号并重开仍可编辑',
     async (containerRequests) => {

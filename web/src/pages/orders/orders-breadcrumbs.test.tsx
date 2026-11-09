@@ -1,4 +1,5 @@
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import { renderWithDataRouter } from '@root/tests/renderWithApp';
 import { cleanup, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React, { type ReactElement } from 'react';
@@ -23,7 +24,8 @@ vi.mock('@/app/access', () => ({
   }),
 }));
 
-vi.mock('@/app/AppProvider', () => ({
+vi.mock('@/app/AppProvider', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/app/AppProvider')>()),
   useInitialState: () => ({
     initialState: {
       currentUser: {
@@ -49,15 +51,13 @@ vi.mock('@/utils/requestClient', () => ({
 }));
 
 vi.mock('@/services/roncin/seaDocumentService', () => ({
-  seaDocumentServiceGetSeaOrderDocuments: vi
-    .fn()
-    .mockResolvedValue({
-      data: {
-        documentStructure: 2,
-        linkVersion: '1',
-        masterBill: { id: 'mbl-1', version: '1', content: {} },
-      },
-    }),
+  seaDocumentServiceGetSeaOrderDocuments: vi.fn().mockResolvedValue({
+    data: {
+      documentStructure: 2,
+      linkVersion: '1',
+      masterBill: { id: 'mbl-1', version: '1', content: {} },
+    },
+  }),
 }));
 vi.mock('@/services/roncin/orderService', () => ({
   orderServiceGetOrder: vi.fn(),
@@ -169,6 +169,26 @@ function renderOrderPage(page: ReactElement, suffix = '') {
   );
 }
 
+function renderOrderDetail() {
+  return renderWithDataRouter(
+    <Routes>
+      <Route
+        path="/orders/:kind/:id/*"
+        element={
+          <App>
+            <OrderDetailPage />
+          </App>
+        }
+      />
+    </Routes>,
+    {
+      routerProps: {
+        initialEntries: [`/orders/${mockParams.kind}/${mockParams.id}`],
+      },
+    },
+  );
+}
+
 describe('订单模块面包屑与异常路由校验', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -189,7 +209,7 @@ describe('订单模块面包屑与异常路由校验', () => {
   it('详情页遇到未知 kind 时显示 404 且不调用订单与锁状态接口', () => {
     mockParams = { kind: 'unknown-freight', id: 'ord-1' };
 
-    renderOrderPage(<OrderDetailPage />);
+    renderOrderDetail();
 
     expect(screen.getByText('业务类型不存在')).toBeInTheDocument();
     expect(
@@ -234,7 +254,7 @@ describe('订单模块面包屑与异常路由校验', () => {
 
     mockParams = { kind: 'sea-export', id: 'ord-loading' };
 
-    renderOrderPage(<OrderDetailPage />);
+    renderOrderDetail();
 
     // 1. 加载中状态：分节骨架占位，页头不暴露原始订单 ID
     expect(screen.getByText('业务基本信息')).toBeInTheDocument();
@@ -304,7 +324,7 @@ describe('订单模块面包屑与异常路由校验', () => {
       },
     } as any);
 
-    renderOrderPage(<OrderDetailPage />);
+    renderOrderDetail();
 
     await waitFor(() => {
       expect(screen.getAllByText('SE20260905001').length).toBeGreaterThan(0);

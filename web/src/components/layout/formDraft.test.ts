@@ -113,6 +113,20 @@ describe('formDraft', () => {
   });
 
   describe('hasTabDraft and clearTabDrafts', () => {
+    it.each([
+      ['/orders/sea-export/new?sourceOrderId=order-1', true],
+      ['/orders/air-export/new#basic', true],
+      ['/orders/sea-export/order-1/hbl', true],
+      ['/orders/sea-export/order-1', false],
+      ['/orders/air-export/order-1', false],
+    ])('只识别仍支持的持久草稿：%s', (path, expected) => {
+      const tabKey = '/orders/sea-export';
+      saveFormDraft(getFormDraftKey(tabKey, path, draftScope), {
+        note: '未提交',
+      });
+      expect(hasTabDraft(tabKey, draftScope)).toBe(expected);
+    });
+
     it('detects and clears drafts belonging to a specific tabKey', () => {
       const tabKey = '/orders/sea-export';
       const key1 = getFormDraftKey(
@@ -126,8 +140,8 @@ describe('formDraft', () => {
         draftScope,
       );
       const otherKey = getFormDraftKey(
-        '/partners/customers',
-        '/partners/customers/create',
+        '/orders/air-export/new',
+        '/orders/air-export/new',
         draftScope,
       );
 
@@ -136,7 +150,7 @@ describe('formDraft', () => {
       saveFormDraft(otherKey, { field3: 'val3' });
 
       expect(hasTabDraft(tabKey, draftScope)).toBe(true);
-      expect(hasTabDraft('/partners/customers', draftScope)).toBe(true);
+      expect(hasTabDraft('/orders/air-export/new', draftScope)).toBe(true);
 
       clearTabDrafts(tabKey, draftScope);
 
@@ -144,7 +158,7 @@ describe('formDraft', () => {
       expect(hasFormDraft(key1)).toBe(false);
       expect(hasFormDraft(key2)).toBe(false);
       // Other tab's draft is untouched
-      expect(hasTabDraft('/partners/customers', draftScope)).toBe(true);
+      expect(hasTabDraft('/orders/air-export/new', draftScope)).toBe(true);
       expect(hasFormDraft(otherKey)).toBe(true);
     });
 

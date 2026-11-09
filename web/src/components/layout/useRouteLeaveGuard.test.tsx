@@ -103,7 +103,7 @@ describe('客商真实路由离开保护', () => {
       await act(async () => {
         await router.navigate(-1);
       });
-      fireEvent.click(await screen.findByText('确定离开'));
+      fireEvent.click(await screen.findByText('放弃并离开'));
       await waitFor(() => {
         expect(returned).toBe(true);
         expect(router.state.location.pathname).toBe('/partners/customers/A');
@@ -111,7 +111,7 @@ describe('客商真实路由离开保护', () => {
       expect(staleGuardCount).toBe(1);
       expect(screen.getByLabelText('未保存内容')).toBeInTheDocument();
       await waitFor(() =>
-        expect(screen.queryByText('确定离开')).not.toBeInTheDocument(),
+        expect(screen.queryByText('放弃并离开')).not.toBeInTheDocument(),
       );
     } finally {
       unsubscribe();
@@ -148,7 +148,7 @@ describe('客商真实路由离开保护', () => {
     });
     await screen.findByText('工作台页面');
     expect(sessionStorage.getItem(draftKey)).toBeNull();
-    expect(screen.queryByText('确定离开')).not.toBeInTheDocument();
+    expect(screen.queryByText('放弃并离开')).not.toBeInTheDocument();
   });
 
   it('同菜单身份切换取消时保留输入，确认后才导航', async () => {
@@ -157,16 +157,16 @@ describe('客商真实路由离开保护', () => {
       target: { value: '编辑值' },
     });
     fireEvent.click(screen.getByText('另一个客商'));
-    expect(await screen.findByText('确定离开')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /取\s*消/ }));
+    expect(await screen.findByText('放弃并离开')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '继续编辑' }));
     await waitFor(() =>
-      expect(screen.queryByText('确定离开')).not.toBeInTheDocument(),
+      expect(screen.queryByText('放弃并离开')).not.toBeInTheDocument(),
     );
     await waitFor(() => expect(router.state.blockers.size).toBe(1));
     expect(router.state.location.pathname).toBe('/partners/customers/A');
     expect(screen.getByLabelText('未保存内容')).toHaveValue('编辑值');
     fireEvent.click(screen.getByText('另一个客商'));
-    fireEvent.click(await screen.findByText('确定离开'));
+    fireEvent.click(await screen.findByText('放弃并离开'));
     await waitFor(() =>
       expect(router.state.location.pathname).toBe('/partners/customers/B'),
     );
@@ -178,22 +178,22 @@ describe('客商真实路由离开保护', () => {
       target: { value: '编辑值' },
     });
     fireEvent.click(screen.getByText('切换查询参数'));
-    fireEvent.click(await screen.findByRole('button', { name: /取\s*消/ }));
+    fireEvent.click(await screen.findByRole('button', { name: '继续编辑' }));
     await waitFor(() =>
-      expect(screen.queryByText('确定离开')).not.toBeInTheDocument(),
+      expect(screen.queryByText('放弃并离开')).not.toBeInTheDocument(),
     );
     expect(router.state.location.search).toBe('');
     expect(screen.getByLabelText('未保存内容')).toHaveValue('编辑值');
     fireEvent.click(screen.getByText('切换查询参数'));
-    fireEvent.click(await screen.findByText('确定离开'));
+    fireEvent.click(await screen.findByText('放弃并离开'));
     await waitFor(() =>
       expect(router.state.location.search).toBe('?mode=edit'),
     );
     await waitFor(() =>
-      expect(screen.queryByText('确定离开')).not.toBeInTheDocument(),
+      expect(screen.queryByText('放弃并离开')).not.toBeInTheDocument(),
     );
     fireEvent.click(screen.getByText('工作台'));
-    expect(await screen.findByText('确定离开')).toBeInTheDocument();
+    expect(await screen.findByText('放弃并离开')).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/partners/customers/A');
   });
 
@@ -205,23 +205,23 @@ describe('客商真实路由离开保护', () => {
     await act(async () => {
       await router.navigate(-1);
     });
-    fireEvent.click(await screen.findByRole('button', { name: /取\s*消/ }));
+    fireEvent.click(await screen.findByRole('button', { name: '继续编辑' }));
     await waitFor(() =>
-      expect(screen.queryByText('确定离开')).not.toBeInTheDocument(),
+      expect(screen.queryByText('放弃并离开')).not.toBeInTheDocument(),
     );
     expect(router.state.location.pathname).toBe('/partners/customers/A');
     await act(async () => {
       await router.navigate(1);
     });
-    fireEvent.click(await screen.findByRole('button', { name: /取\s*消/ }));
+    fireEvent.click(await screen.findByRole('button', { name: '继续编辑' }));
     await waitFor(() =>
-      expect(screen.queryByText('确定离开')).not.toBeInTheDocument(),
+      expect(screen.queryByText('放弃并离开')).not.toBeInTheDocument(),
     );
     expect(router.state.location.pathname).toBe('/partners/customers/A');
     await act(async () => {
       await router.navigate(-1);
     });
-    fireEvent.click(await screen.findByText('确定离开'));
+    fireEvent.click(await screen.findByText('放弃并离开'));
     await screen.findByText('工作台页面');
     await act(async () => {
       await router.navigate(1);
@@ -232,15 +232,15 @@ describe('客商真实路由离开保护', () => {
     await act(async () => {
       await router.navigate(-1);
     });
-    fireEvent.click(await screen.findByRole('button', { name: /取\s*消/ }));
+    fireEvent.click(await screen.findByRole('button', { name: '继续编辑' }));
     await waitFor(() =>
-      expect(screen.queryByText('确定离开')).not.toBeInTheDocument(),
+      expect(screen.queryByText('放弃并离开')).not.toBeInTheDocument(),
     );
     expect(router.state.location.pathname).toBe('/partners/customers/A');
     await act(async () => {
       await router.navigate('/partners/customers/B', { replace: true });
     });
-    fireEvent.click(await screen.findByText('确定离开'));
+    fireEvent.click(await screen.findByText('放弃并离开'));
     await waitFor(() =>
       expect(router.state.location.pathname).toBe('/partners/customers/B'),
     );
@@ -263,7 +263,7 @@ describe('客商真实路由离开保护', () => {
       modal.mock.calls[0][0].onOk();
     });
     await screen.findByText('工作台页面');
-    expect(screen.queryByText('确定离开')).not.toBeInTheDocument();
+    expect(screen.queryByText('放弃并离开')).not.toBeInTheDocument();
     await act(async () => {
       await router.navigate(-1);
     });
@@ -279,6 +279,6 @@ describe('客商真实路由离开保护', () => {
     );
     await expect(modal.mock.calls[1][0].onOk()).rejects.toThrow('模拟切换失败');
     fireEvent.click(screen.getByText('工作台'));
-    expect(await screen.findByText('确定离开')).toBeInTheDocument();
+    expect(await screen.findByText('放弃并离开')).toBeInTheDocument();
   });
 });
