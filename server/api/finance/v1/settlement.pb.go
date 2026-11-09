@@ -776,33 +776,34 @@ func (x *ListFeeLedgerRequest) GetOrderLocked() bool {
 }
 
 type FeeLedgerItem struct {
-	state                   protoimpl.MessageState     `protogen:"open.v1"`
-	Id                      string                     `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OrderId                 string                     `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
-	OrderNo                 string                     `protobuf:"bytes,3,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
-	BusinessType            string                     `protobuf:"bytes,4,opt,name=business_type,json=businessType,proto3" json:"business_type,omitempty"`
-	Direction               string                     `protobuf:"bytes,5,opt,name=direction,proto3" json:"direction,omitempty"`
-	FeeCode                 string                     `protobuf:"bytes,7,opt,name=fee_code,json=feeCode,proto3" json:"fee_code,omitempty"`
-	FeeName                 string                     `protobuf:"bytes,8,opt,name=fee_name,json=feeName,proto3" json:"fee_name,omitempty"`
-	SettlementPartyId       string                     `protobuf:"bytes,9,opt,name=settlement_party_id,json=settlementPartyId,proto3" json:"settlement_party_id,omitempty"`
-	SettlementPartyName     string                     `protobuf:"bytes,10,opt,name=settlement_party_name,json=settlementPartyName,proto3" json:"settlement_party_name,omitempty"`
-	BillingUnit             string                     `protobuf:"bytes,11,opt,name=billing_unit,json=billingUnit,proto3" json:"billing_unit,omitempty"`
-	Quantity                string                     `protobuf:"bytes,12,opt,name=quantity,proto3" json:"quantity,omitempty"`
-	UnitPrice               string                     `protobuf:"bytes,13,opt,name=unit_price,json=unitPrice,proto3" json:"unit_price,omitempty"`
-	TotalAmount             string                     `protobuf:"bytes,14,opt,name=total_amount,json=totalAmount,proto3" json:"total_amount,omitempty"`
-	NetAmount               string                     `protobuf:"bytes,15,opt,name=net_amount,json=netAmount,proto3" json:"net_amount,omitempty"`
-	TaxAmount               string                     `protobuf:"bytes,16,opt,name=tax_amount,json=taxAmount,proto3" json:"tax_amount,omitempty"`
-	Currency                string                     `protobuf:"bytes,17,opt,name=currency,proto3" json:"currency,omitempty"`
-	ExchangeRate            string                     `protobuf:"bytes,18,opt,name=exchange_rate,json=exchangeRate,proto3" json:"exchange_rate,omitempty"`
-	BaseCurrency            string                     `protobuf:"bytes,19,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
-	BaseCurrencyAmount      string                     `protobuf:"bytes,20,opt,name=base_currency_amount,json=baseCurrencyAmount,proto3" json:"base_currency_amount,omitempty"`
-	Note                    *string                    `protobuf:"bytes,22,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	Version                 uint64                     `protobuf:"varint,23,opt,name=version,proto3" json:"version,omitempty"`
-	CreatedAt               string                     `protobuf:"bytes,24,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt               string                     `protobuf:"bytes,25,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	TaxRate                 *string                    `protobuf:"bytes,26,opt,name=tax_rate,json=taxRate,proto3,oneof" json:"tax_rate,omitempty"`
-	CustomerId              string                     `protobuf:"bytes,27,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
-	CustomerName            string                     `protobuf:"bytes,28,opt,name=customer_name,json=customerName,proto3" json:"customer_name,omitempty"`
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Id                  string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	OrderId             string                 `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	OrderNo             string                 `protobuf:"bytes,3,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
+	BusinessType        string                 `protobuf:"bytes,4,opt,name=business_type,json=businessType,proto3" json:"business_type,omitempty"`
+	Direction           string                 `protobuf:"bytes,5,opt,name=direction,proto3" json:"direction,omitempty"`
+	FeeCode             string                 `protobuf:"bytes,7,opt,name=fee_code,json=feeCode,proto3" json:"fee_code,omitempty"`
+	FeeName             string                 `protobuf:"bytes,8,opt,name=fee_name,json=feeName,proto3" json:"fee_name,omitempty"`
+	SettlementPartyId   string                 `protobuf:"bytes,9,opt,name=settlement_party_id,json=settlementPartyId,proto3" json:"settlement_party_id,omitempty"`
+	SettlementPartyName string                 `protobuf:"bytes,10,opt,name=settlement_party_name,json=settlementPartyName,proto3" json:"settlement_party_name,omitempty"`
+	BillingUnit         string                 `protobuf:"bytes,11,opt,name=billing_unit,json=billingUnit,proto3" json:"billing_unit,omitempty"`
+	Quantity            string                 `protobuf:"bytes,12,opt,name=quantity,proto3" json:"quantity,omitempty"`
+	UnitPrice           string                 `protobuf:"bytes,13,opt,name=unit_price,json=unitPrice,proto3" json:"unit_price,omitempty"`
+	TotalAmount         string                 `protobuf:"bytes,14,opt,name=total_amount,json=totalAmount,proto3" json:"total_amount,omitempty"`
+	NetAmount           string                 `protobuf:"bytes,15,opt,name=net_amount,json=netAmount,proto3" json:"net_amount,omitempty"`
+	TaxAmount           string                 `protobuf:"bytes,16,opt,name=tax_amount,json=taxAmount,proto3" json:"tax_amount,omitempty"`
+	Currency            string                 `protobuf:"bytes,17,opt,name=currency,proto3" json:"currency,omitempty"`
+	ExchangeRate        string                 `protobuf:"bytes,18,opt,name=exchange_rate,json=exchangeRate,proto3" json:"exchange_rate,omitempty"`
+	BaseCurrency        string                 `protobuf:"bytes,19,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
+	BaseCurrencyAmount  string                 `protobuf:"bytes,20,opt,name=base_currency_amount,json=baseCurrencyAmount,proto3" json:"base_currency_amount,omitempty"`
+	Note                *string                `protobuf:"bytes,22,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	Version             uint64                 `protobuf:"varint,23,opt,name=version,proto3" json:"version,omitempty"`
+	CreatedAt           string                 `protobuf:"bytes,24,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt           string                 `protobuf:"bytes,25,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	TaxRate             *string                `protobuf:"bytes,26,opt,name=tax_rate,json=taxRate,proto3,oneof" json:"tax_rate,omitempty"`
+	CustomerId          string                 `protobuf:"bytes,27,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
+	CustomerName        string                 `protobuf:"bytes,28,opt,name=customer_name,json=customerName,proto3" json:"customer_name,omitempty"`
+	// 关联账单的开票与实际收付款进度：仅对冲仍未付款；发生核销后，剩余余额结清才算已付款。
 	FinancialProgress       FeeLedgerFinancialProgress `protobuf:"varint,29,opt,name=financial_progress,json=financialProgress,proto3,enum=finance.v1.FeeLedgerFinancialProgress" json:"financial_progress,omitempty"`
 	BillNo                  *string                    `protobuf:"bytes,30,opt,name=bill_no,json=billNo,proto3,oneof" json:"bill_no,omitempty"`
 	OrganizationId          string                     `protobuf:"bytes,35,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`

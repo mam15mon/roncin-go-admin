@@ -1,7 +1,7 @@
 package data
 
-// 集成测试覆盖费用台账「有效结清金额 = 有效核销分摊 + 有效对冲分摊」口径：
-// 列表筛选 SQL、列表行投影与订单详情投影三处一致（FIN-01/FIN-02），
+// 集成测试覆盖费用台账实际收付款与对冲分开的进度口径：
+// 纯对冲仍未付款；发生核销后按剩余余额判定付清。列表筛选、行及订单详情三处一致，
 // 以及核销候选的未结清过滤发生在 LIMIT 之前、不被大量已结清记录截断（FIN-03）。
 
 import (
@@ -474,27 +474,27 @@ func TestFeeLedgerNettingSettlementConsistencyPostgres(t *testing.T) {
 		return fixture, NewSettlementRepo(data), context.Background(), []uuid.UUID{fixture.organizationID}
 	}
 
-	t.Run("确认对冲全额结清与列表详情一致", func(t *testing.T) {
+	t.Run("纯对冲全额结清仍未付款且列表详情一致", func(t *testing.T) {
 		fixture, repo, ctx, organizationIDs := newScopedFixture(t)
 		feeID := fixture.createLedgerFee("netting-full", "100")
 		bill := fixture.createConfirmedBill("netting-full", "100", financeBillIntegrationDate)
 		fixture.linkBillFee("netting-full", bill, feeID, "100")
 		netting, allocation := fixture.createNetting("netting-full", financenettingent.StatusCONFIRMED, bill, "100", true)
 
-		verified := listFeeLedgerByProgress(t, repo, organizationIDs, biz.FeeLedgerVerifiedUninvoiced)
+		verified := listFeeLedgerByProgress(t, repo, organizationIDs, biz.FeeLedgerUnverifiedUninvoiced)
 		if verified.Total != 1 || len(verified.Items) != 1 {
-			t.Fatalf("有效结清金额应包含确认对冲：total=%d items=%d", verified.Total, len(verified.Items))
+			t.Fatalf("纯对冲应命中未付款筛选：total=%d items=%d", verified.Total, len(verified.Items))
 		}
-		requireFeeLedgerProjection(t, "列表", verified.Items[0], bill.BillNo, biz.FeeLedgerVerifiedUninvoiced, false)
-		if unverified := listFeeLedgerByProgress(t, repo, organizationIDs, biz.FeeLedgerUnverifiedUninvoiced); unverified.Total != 0 {
-			t.Fatalf("全额结清后不应再命中未结清筛选：total=%d", unverified.Total)
+		requireFeeLedgerProjection(t, "列表", verified.Items[0], bill.BillNo, biz.FeeLedgerUnverifiedUninvoiced, false)
+		if unverified := listFeeLedgerByProgress(t, repo, organizationIDs, biz.FeeLedgerVerifiedUninvoiced); unverified.Total != 0 {
+			t.Fatalf("纯对冲不应命中已付款筛选：total=%d", unverified.Total)
 		}
 
 		detail, err := repo.GetFeeLedgerOrderDetail(ctx, organizationIDs, fixture.orderID)
 		if err != nil {
 			t.Fatalf("查询台账订单详情失败: %v", err)
 		}
-		requireFeeLedgerProjection(t, "详情", findFeeLedgerItem(detail.Items, feeID), bill.BillNo, biz.FeeLedgerVerifiedUninvoiced, false)
+		requireFeeLedgerProjection(t, "详情", findFeeLedgerItem(detail.Items, feeID), bill.BillNo, biz.FeeLedgerUnverifiedUninvoiced, false)
 
 		if _, err = data.db.FinanceNetting.UpdateOneID(netting.ID).SetStatus(financenettingent.StatusREVERSED).SetReversedAt(time.Now()).Save(ctx); err != nil {
 			t.Fatalf("反转对冲失败: %v", err)
@@ -504,11 +504,11 @@ func TestFeeLedgerNettingSettlementConsistencyPostgres(t *testing.T) {
 		}
 
 		if verifiedAfter := listFeeLedgerByProgress(t, repo, organizationIDs, biz.FeeLedgerVerifiedUninvoiced); verifiedAfter.Total != 0 {
-			t.Fatalf("反对冲后不应保持已结清：total=%d", verifiedAfter.Total)
+			t.Fatalf("反对冲后仍不应变为已付款：total=%d", verifiedAfter.Total)
 		}
 		unverifiedAfter := listFeeLedgerByProgress(t, repo, organizationIDs, biz.FeeLedgerUnverifiedUninvoiced)
 		if unverifiedAfter.Total != 1 {
-			t.Fatalf("反对冲后应回到未结清：total=%d", unverifiedAfter.Total)
+			t.Fatalf("反对冲后仍应为未付款：total=%d", unverifiedAfter.Total)
 		}
 		detailAfter, err := repo.GetFeeLedgerOrderDetail(ctx, organizationIDs, fixture.orderID)
 		if err != nil {

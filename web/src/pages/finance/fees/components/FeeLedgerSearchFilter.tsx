@@ -5,6 +5,7 @@ import {
   SearchFilterTemplate,
 } from '@/components/ui';
 import { FeeLedgerFinancialProgress } from '@/enums.generated';
+import { feeLedgerProgressLabels } from '@/features/finance/fee-progress';
 import { getCurrencyOptions } from '@/features/master-data/currencies';
 import { searchPartnerOptions } from '@/features/partners';
 
@@ -82,42 +83,14 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
       type: 'select',
       placeholder: '全部财务进度',
       options: [
-        {
-          label: '账单未建立',
-          value:
-            FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_UNBILLED,
-        },
-        {
-          label: '未核销未开票',
-          value:
-            FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_UNVERIFIED_UNINVOICED,
-        },
-        {
-          label: '已开票未核销',
-          value:
-            FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_UNVERIFIED,
-        },
-        {
-          label: '已开票部分核销',
-          value:
-            FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_PARTIALLY_VERIFIED,
-        },
-        {
-          label: '部分核销未开票',
-          value:
-            FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_PARTIALLY_VERIFIED_UNINVOICED,
-        },
-        {
-          label: '已核销未开票',
-          value:
-            FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_VERIFIED_UNINVOICED,
-        },
-        {
-          label: '已完成',
-          value:
-            FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_COMPLETED,
-        },
-      ],
+        FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_UNBILLED,
+        FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_UNVERIFIED_UNINVOICED,
+        FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_UNVERIFIED,
+        FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_PARTIALLY_VERIFIED,
+        FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_PARTIALLY_VERIFIED_UNINVOICED,
+        FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_VERIFIED_UNINVOICED,
+        FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_COMPLETED,
+      ].map((value) => ({ label: feeLedgerProgressLabels[value].text, value })),
     },
     {
       name: 'settlementPartyId',

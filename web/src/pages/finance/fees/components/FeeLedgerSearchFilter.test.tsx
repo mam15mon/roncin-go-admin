@@ -5,8 +5,10 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
+import { ConfigProvider } from 'antd';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
+import { feeLedgerProgressLabels } from '@/features/finance/fee-progress';
 import { masterDataServiceListCurrencies } from '@/services/roncin/masterDataService';
 import { partnerServiceListPartners } from '@/services/roncin/partnerService';
 import { FeeLedgerSearchFilter } from './FeeLedgerSearchFilter';
@@ -29,6 +31,27 @@ vi.mock('@/services/roncin/masterDataService', () => ({
 }));
 
 describe('FeeLedgerSearchFilter', () => {
+  it('财务进度筛选消费共享的开票与付款文案', async () => {
+    render(
+      <ConfigProvider theme={{ token: { motion: false } }} virtual={false}>
+        <FeeLedgerSearchFilter
+          enabled={false}
+          onSearch={vi.fn()}
+          onReset={vi.fn()}
+        />
+      </ConfigProvider>,
+    );
+    fireEvent.mouseDown(screen.getByLabelText('财务进度'));
+    for (const { text } of Object.values(feeLedgerProgressLabels)) {
+      await waitFor(() =>
+        expect(screen.getByText(text, { exact: true })).toBeVisible(),
+      );
+    }
+    expect(
+      screen.queryByText('部分核销未开票', { exact: true }),
+    ).not.toBeInTheDocument();
+  });
+
   it('正确基于 SearchFilterTemplate 渲染首屏 5 项高密度行内搜索与展开按钮', async () => {
     const onSearch = vi.fn();
     const onReset = vi.fn();

@@ -12081,6 +12081,7 @@ components:
                     type: string
                 financialProgress:
                     type: integer
+                    description: 关联账单的开票与实际收付款进度：仅对冲仍未付款；发生核销后，剩余余额结清才算已付款。
                     format: enum
                 billNo:
                     type: string

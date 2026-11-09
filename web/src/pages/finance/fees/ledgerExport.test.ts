@@ -1,10 +1,31 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { FeeLedgerFinancialProgress } from '@/enums.generated';
 import { serializeCsv } from '@/utils/csv';
 import { feeExportColumns } from './ledgerExport';
 
 afterEach(() => vi.unstubAllEnvs());
 
 describe('fees 台账导出字段', () => {
+  it('纯对冲费用导出为未付款，并独立保留对冲和余额', () => {
+    const row: API.FeeLedgerItem = {
+      totalAmount: '300.00000000',
+      verifiedAmount: '0.00000000',
+      nettedAmount: '200.00000000',
+      unverifiedAmount: '100.00000000',
+      financialProgress:
+        FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_UNVERIFIED_UNINVOICED,
+    };
+    const values = Object.fromEntries(
+      feeExportColumns.map((column) => [column.header, column.value(row)]),
+    );
+    expect(values).toMatchObject({
+      财务进度: '未开票未付款',
+      已核销金额: '0.00',
+      已对冲金额: '200.00',
+      未核销金额: '100.00',
+    });
+  });
+
   it('完整保留业务列、独立币种、金额精度与中文语义，日期按本地时区输出', () => {
     vi.stubEnv('TZ', 'Asia/Shanghai');
     const row: API.FeeLedgerItem = {

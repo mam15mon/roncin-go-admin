@@ -10,6 +10,7 @@ import {
 import { App } from 'antd';
 import type React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { FeeLedgerFinancialProgress } from '@/enums.generated';
 import {
   orderFeeServiceListFees,
   orderFeeServiceResolveFeeExchangeRate,
@@ -144,7 +145,8 @@ describe('OrderFeeTableTabs 关联账单列', () => {
           feeBillTracking={trackingView('ready', {
             'fee-billed': {
               billNo: 'BILL-2026-001',
-              financialProgress: 3,
+              financialProgress:
+                FeeLedgerFinancialProgress.FEE_LEDGER_FINANCIAL_PROGRESS_INVOICED_UNVERIFIED,
             },
             'fee-unbilled': {},
           })}
@@ -167,7 +169,7 @@ describe('OrderFeeTableTabs 关联账单列', () => {
     await enableTrackingColumns();
 
     expect(screen.getByText('BILL-2026-001')).toBeInTheDocument();
-    expect(screen.getAllByText('已开票未核销')).toHaveLength(1);
+    expect(screen.getAllByText('已开票未付款')).toHaveLength(1);
     // 未建账在账单号与财务进度两格分别表达
     expect(screen.getAllByText('未建账')).toHaveLength(2);
   });

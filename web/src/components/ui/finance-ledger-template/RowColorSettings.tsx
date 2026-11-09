@@ -39,38 +39,38 @@ const COLOR_STATUS_ITEMS: {
   {
     key: 'unverifiedUninvoiced',
     tagColor: 'orange',
-    label: '未核销未开票',
+    label: '未开票未付款',
     desc: '（已进账单待处理）',
   },
   {
     key: 'invoicedUnverified',
     tagColor: 'blue',
-    label: '已开票未核销',
+    label: '已开票未付款',
     desc: '（发票已开待收付款）',
   },
   {
     key: 'invoicedPartiallyVerified',
     tagColor: 'cyan',
-    label: '已开票部分核销',
+    label: '已开票部分付款',
     desc: '（已开发票且部分收付款）',
   },
   {
     key: 'partiallyVerifiedUninvoiced',
     tagColor: 'purple',
-    label: '部分核销未开票',
+    label: '未开票部分付款',
     desc: '（未开发票但部分收付款）',
   },
   {
     key: 'verifiedUninvoiced',
     tagColor: 'purple',
-    label: '已核销未开票',
-    desc: '（资金已全收付待开票）',
+    label: '未开票已付款',
+    desc: '（已有收付款且余额结清待开票）',
   },
   {
     key: 'completed',
     tagColor: 'green',
-    label: '已完成',
-    desc: '（已全额核销并开票完毕）',
+    label: '已开票已付款',
+    desc: '（已有收付款且余额结清并开票）',
   },
 ];
 

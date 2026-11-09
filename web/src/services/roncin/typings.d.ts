@@ -2587,6 +2587,7 @@ declare namespace API {
     taxRate?: string;
     customerId?: string;
     customerName?: string;
+    /** 关联账单的开票与实际收付款进度：仅对冲仍未付款；发生核销后，剩余余额结清才算已付款。 */
     financialProgress?: number;
     billNo?: string;
     organizationId?: string;

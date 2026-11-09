@@ -44,7 +44,7 @@ func TestFeeLedgerFinancialProgressPredicate(t *testing.T) {
 		{
 			name:     "未开票部分结清",
 			progress: biz.FeeLedgerPartiallyVerifiedUninvoiced,
-			query:    `SELECT COUNT.*FROM "order_fees".*NOT EXISTS.*finance_invoice_bills.*COALESCE.*\+ COALESCE.*\) > 0 AND \(COALESCE.*\+ COALESCE.*\) < fb.total_amount`,
+			query:    `SELECT COUNT.*FROM "order_fees".*NOT EXISTS.*finance_invoice_bills.*COALESCE.*\) > 0 AND \(COALESCE.*\+ COALESCE.*\) < fb.total_amount`,
 		},
 		{
 			name:     "已完成",
@@ -231,9 +231,8 @@ func TestFinanceCashflowOnlyUnverifiedEntersCountAndPageQuery(t *testing.T) {
 	}
 }
 
-// TestFeeLedgerFinancialProgressPredicateCountsConfirmedNetting 断言有效结清金额 SQL
-// 同时累计有效核销分摊与有效对冲分摊（父单据状态分别为 ACTIVE / CONFIRMED）。
-func TestFeeLedgerFinancialProgressPredicateCountsConfirmedNetting(t *testing.T) {
+// 未付款筛选只看有效核销；发生核销后才组合对冲余额判断部分或全部付清。
+func TestFeeLedgerFinancialProgressPredicateSeparatesPaymentAndNetting(t *testing.T) {
 	for _, progress := range []biz.FeeLedgerFinancialProgress{
 		biz.FeeLedgerUnverifiedUninvoiced,
 		biz.FeeLedgerInvoicedUnverified,
@@ -244,7 +243,11 @@ func TestFeeLedgerFinancialProgressPredicateCountsConfirmedNetting(t *testing.T)
 	} {
 		t.Run(string(progress), func(t *testing.T) {
 			repo, mock := setupTestSettlementRepo(t)
-			mock.ExpectQuery(`SELECT COUNT.*FROM "order_fees".*finance_verification_allocations.*finance_verifications.*finance_netting_allocations.*finance_nettings`).
+			query := `SELECT COUNT.*FROM "order_fees".*finance_verification_allocations.*finance_verifications`
+			if progress != biz.FeeLedgerUnverifiedUninvoiced && progress != biz.FeeLedgerInvoicedUnverified {
+				query += `.*> 0 AND.*finance_netting_allocations.*finance_nettings`
+			}
+			mock.ExpectQuery(query).
 				WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
 			if _, err := repo.data.db.OrderFee.Query().
 				Where(feeLedgerFinancialProgressPredicate(progress)).
@@ -252,7 +255,7 @@ func TestFeeLedgerFinancialProgressPredicateCountsConfirmedNetting(t *testing.T)
 				t.Fatalf("生成含有效对冲的进度筛选查询失败: %v", err)
 			}
 			if err := mock.ExpectationsWereMet(); err != nil {
-				t.Fatalf("进度筛选 SQL 的有效结清金额缺少有效对冲分摊: %v", err)
+				t.Fatalf("进度筛选 SQL 未区分付款与对冲余额: %v", err)
 			}
 		})
 	}

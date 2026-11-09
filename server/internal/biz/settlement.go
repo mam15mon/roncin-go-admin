@@ -66,19 +66,19 @@ type FeeLedgerItem struct {
 }
 
 // ResolveFeeLedgerFinancialProgress 依据账单事实解析费用台账的财务进度。
-// settledAmount 是「有效结清金额」：有效核销分摊（allocation active 且核销单 ACTIVE）
-// 加有效对冲分摊（allocation active 且对冲单 CONFIRMED）；对外状态枚举保持既有契约不变。
-func ResolveFeeLedgerFinancialProgress(hasBill, invoiced bool, billAmount, settledAmount decimal.Decimal) FeeLedgerFinancialProgress {
+// verifiedAmount 是有效收付款核销，nettedAmount 是有效对冲，两者不能混称付款。
+// 没有实际核销时始终未付款；发生实际核销后，按扣除对冲的剩余余额判断是否付清。
+func ResolveFeeLedgerFinancialProgress(hasBill, invoiced bool, billAmount, verifiedAmount, nettedAmount decimal.Decimal) FeeLedgerFinancialProgress {
 	if !hasBill {
 		return FeeLedgerUnbilled
 	}
-	if settledAmount.LessThanOrEqual(decimal.Zero) {
+	if verifiedAmount.LessThanOrEqual(decimal.Zero) {
 		if invoiced {
 			return FeeLedgerInvoicedUnverified
 		}
 		return FeeLedgerUnverifiedUninvoiced
 	}
-	if settledAmount.LessThan(billAmount) {
+	if verifiedAmount.Add(nettedAmount).LessThan(billAmount) {
 		if invoiced {
 			return FeeLedgerInvoicedPartiallyVerified
 		}

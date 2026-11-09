@@ -35,20 +35,27 @@ func TestResolveFeeLedgerFinancialProgressCoversSevenStates(t *testing.T) {
 		hasBill  bool
 		invoiced bool
 		bill     string
-		settled  string
+		verified string
+		netted   string
 		expected FeeLedgerFinancialProgress
 	}{
-		{name: "账单未建立", hasBill: false, bill: "100", settled: "0", expected: FeeLedgerUnbilled},
-		{name: "未核销未开票", hasBill: true, bill: "100", settled: "0", expected: FeeLedgerUnverifiedUninvoiced},
-		{name: "已开票未核销", hasBill: true, invoiced: true, bill: "100", settled: "0", expected: FeeLedgerInvoicedUnverified},
-		{name: "已结清未开票", hasBill: true, bill: "100", settled: "100", expected: FeeLedgerVerifiedUninvoiced},
-		{name: "已开票部分结清", hasBill: true, invoiced: true, bill: "100", settled: "40", expected: FeeLedgerInvoicedPartiallyVerified},
-		{name: "部分结清未开票", hasBill: true, bill: "100", settled: "40", expected: FeeLedgerPartiallyVerifiedUninvoiced},
-		{name: "已完成", hasBill: true, invoiced: true, bill: "100", settled: "100", expected: FeeLedgerCompleted},
+		{name: "账单未建立", hasBill: false, bill: "100", verified: "0", netted: "0", expected: FeeLedgerUnbilled},
+		{name: "未开票未付款", hasBill: true, bill: "100", verified: "0", netted: "0", expected: FeeLedgerUnverifiedUninvoiced},
+		{name: "已开票未付款", hasBill: true, invoiced: true, bill: "100", verified: "0", netted: "0", expected: FeeLedgerInvoicedUnverified},
+		{name: "未开票已付款", hasBill: true, bill: "100", verified: "100", netted: "0", expected: FeeLedgerVerifiedUninvoiced},
+		{name: "已开票部分付款", hasBill: true, invoiced: true, bill: "100", verified: "40", netted: "0", expected: FeeLedgerInvoicedPartiallyVerified},
+		{name: "未开票部分付款", hasBill: true, bill: "100", verified: "40", netted: "0", expected: FeeLedgerPartiallyVerifiedUninvoiced},
+		{name: "已开票已付款", hasBill: true, invoiced: true, bill: "100", verified: "100", netted: "0", expected: FeeLedgerCompleted},
+		{name: "仅部分对冲仍未付款", hasBill: true, bill: "300", verified: "0", netted: "200", expected: FeeLedgerUnverifiedUninvoiced},
+		{name: "仅全部对冲仍未付款", hasBill: true, bill: "200", verified: "0", netted: "200", expected: FeeLedgerUnverifiedUninvoiced},
+		{name: "开票和全额对冲仍未付款", hasBill: true, invoiced: true, bill: "200", verified: "0", netted: "200", expected: FeeLedgerInvoicedUnverified},
+		{name: "对冲后部分收付", hasBill: true, bill: "300", verified: "50", netted: "200", expected: FeeLedgerPartiallyVerifiedUninvoiced},
+		{name: "对冲后剩余金额已付款", hasBill: true, bill: "300", verified: "100", netted: "200", expected: FeeLedgerVerifiedUninvoiced},
+		{name: "开票且对冲后剩余金额已付款", hasBill: true, invoiced: true, bill: "300", verified: "100", netted: "200", expected: FeeLedgerCompleted},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			actual := ResolveFeeLedgerFinancialProgress(test.hasBill, test.invoiced, decimal.RequireFromString(test.bill), decimal.RequireFromString(test.settled))
+			actual := ResolveFeeLedgerFinancialProgress(test.hasBill, test.invoiced, decimal.RequireFromString(test.bill), decimal.RequireFromString(test.verified), decimal.RequireFromString(test.netted))
 			if actual != test.expected {
 				t.Fatalf("财务进度 = %s，期望 %s", actual, test.expected)
 			}

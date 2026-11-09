@@ -292,6 +292,7 @@ message FeeLedgerItem {
   optional string tax_rate = 26;
   string customer_id = 27;
   string customer_name = 28;
+  // 关联账单的开票与实际收付款进度：仅对冲仍未付款；发生核销后，剩余余额结清才算已付款。
   FeeLedgerFinancialProgress financial_progress = 29;
   optional string bill_no = 30;
   reserved 31;

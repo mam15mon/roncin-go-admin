@@ -247,7 +247,7 @@ export function getBaseFeeLedgerColumns(): ProColumns<API.FeeLedgerItem>[] {
     {
       title: '财务进度',
       tooltip:
-        '关联整张账单的开票与结清进度，结清包含核销和对冲；逐笔金额以对应金额列为准。',
+        '关联整张账单的实际开票与付款状态；无收付款核销时为未付款，有实际收付且剩余余额结清后为已付款；对冲金额单独展示。',
       dataIndex: 'financialProgress',
       width: 125,
       valueType: 'select',

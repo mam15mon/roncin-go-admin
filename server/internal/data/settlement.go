@@ -57,10 +57,10 @@ func financeCommissionLockNetAmount(lines []*ent.FinanceCommissionLine, adjustme
 	return result, nil
 }
 
-// feeLedgerFinancialProgressPredicate 将费用的账单、开票和「有效结清金额」组合状态下推到数据库。
+// feeLedgerFinancialProgressPredicate 将费用的账单、开票和实际收付款状态下推到数据库。
 // 这里使用固定表名的相关子查询，是因为该组合状态并非单一 Ent 字段，无法用普通字段谓词表达。
-// 有效结清金额 = 有效核销分摊（allocation active 且核销单 ACTIVE）+ 有效对冲分摊（allocation active 且对冲单 CONFIRMED），
-// 与行投影函数 applyFeeLedgerBillProjection 的预加载口径必须一致。
+// 无有效收付款核销时不因对冲变成已付款；有核销后再按扣除对冲的余额判断付清程度。
+// 与 applyFeeLedgerBillProjection 和 biz.ResolveFeeLedgerFinancialProgress 保持同一口径。
 func feeLedgerFinancialProgressPredicate(progress biz.FeeLedgerFinancialProgress) predicate.OrderFee {
 	return func(selector *entsql.Selector) {
 		feeID := selector.C(orderfee.FieldID)
@@ -85,21 +85,28 @@ func feeLedgerFinancialProgressPredicate(progress biz.FeeLedgerFinancialProgress
 			builder.WriteString(" (SELECT 1 FROM finance_invoice_bills AS fib JOIN finance_invoices AS fi ON fi.id = fib.invoice_id WHERE fib.bill_id = fb.id AND fib.active = TRUE AND fi.status = ").Arg(financeinvoice.StatusISSUED)
 			builder.WriteString(") AND ")
 
+			writeVerifiedAmount := func() {
+				builder.WriteString("COALESCE((SELECT SUM(fva.amount) FROM finance_verification_allocations AS fva JOIN finance_verifications AS fv ON fv.id = fva.verification_id WHERE fva.bill_id = fb.id AND fva.active = TRUE AND fv.status = ").Arg(financeverification.StatusACTIVE)
+				builder.WriteString("), 0)")
+			}
 			writeSettledAmount := func() {
-				builder.WriteString("(COALESCE((SELECT SUM(fva.amount) FROM finance_verification_allocations AS fva JOIN finance_verifications AS fv ON fv.id = fva.verification_id WHERE fva.bill_id = fb.id AND fva.active = TRUE AND fv.status = ").Arg(financeverification.StatusACTIVE)
-				builder.WriteString("), 0) + COALESCE((SELECT SUM(fna.amount) FROM finance_netting_allocations AS fna JOIN finance_nettings AS fnt ON fnt.id = fna.netting_id WHERE fna.bill_id = fb.id AND fna.active = TRUE AND fnt.status = ").Arg(financenetting.StatusCONFIRMED)
+				builder.WriteString("(")
+				writeVerifiedAmount()
+				builder.WriteString(" + COALESCE((SELECT SUM(fna.amount) FROM finance_netting_allocations AS fna JOIN finance_nettings AS fnt ON fnt.id = fna.netting_id WHERE fna.bill_id = fb.id AND fna.active = TRUE AND fnt.status = ").Arg(financenetting.StatusCONFIRMED)
 				builder.WriteString("), 0))")
 			}
 			switch progress {
 			case biz.FeeLedgerUnverifiedUninvoiced, biz.FeeLedgerInvoicedUnverified:
-				writeSettledAmount()
+				writeVerifiedAmount()
 				builder.WriteString(" <= 0")
 			case biz.FeeLedgerPartiallyVerifiedUninvoiced, biz.FeeLedgerInvoicedPartiallyVerified:
-				writeSettledAmount()
+				writeVerifiedAmount()
 				builder.WriteString(" > 0 AND ")
 				writeSettledAmount()
 				builder.WriteString(" < fb.total_amount")
 			case biz.FeeLedgerVerifiedUninvoiced, biz.FeeLedgerCompleted:
+				writeVerifiedAmount()
+				builder.WriteString(" > 0 AND ")
 				writeSettledAmount()
 				builder.WriteString(" >= fb.total_amount")
 			}
@@ -148,8 +155,8 @@ func feeLedgerBillLineQuery(lineQuery *ent.FinanceBillLineQuery) {
 }
 
 // applyFeeLedgerBillProjection 把费用已经按 feeLedgerBillLineQuery 装载的活动账单关系
-// 投影为账单号与财务进度。有效结清金额 = 有效核销分摊 + 有效对冲分摊，两类一对多分摊
-// 分别预加载后在此聚合，禁止直接 join 两表聚合造成金额倍增；列表与订单详情共用本函数。
+// 投影为账单号与财务进度。核销与对冲分别聚合后交领域规则判定付款进度，
+// 禁止直接 join 两表聚合造成金额倍增；列表与订单详情共用本函数。
 func applyFeeLedgerBillProjection(ledgerItem *biz.FeeLedgerItem, billLines []*ent.FinanceBillLine) error {
 	if len(billLines) == 0 {
 		return nil
@@ -166,7 +173,7 @@ func applyFeeLedgerBillProjection(ledgerItem *biz.FeeLedgerItem, billLines []*en
 	if linkErr != nil {
 		return linkErr
 	}
-	settledAmount := decimal.Zero
+	verifiedAmount := decimal.Zero
 	verificationAllocations, verificationErr := bill.Edges.VerificationAllocationsOrErr()
 	if verificationErr != nil {
 		return verificationErr
@@ -176,21 +183,22 @@ func applyFeeLedgerBillProjection(ledgerItem *biz.FeeLedgerItem, billLines []*en
 		if amountErr != nil {
 			return amountErr
 		}
-		settledAmount = settledAmount.Add(amount)
+		verifiedAmount = verifiedAmount.Add(amount)
 	}
 	nettingAllocations, nettingErr := bill.Edges.NettingAllocationsOrErr()
 	if nettingErr != nil {
 		return nettingErr
 	}
+	nettedAmount := decimal.Zero
 	for _, allocation := range nettingAllocations {
 		amount, amountErr := decimalOf(allocation.Amount)
 		if amountErr != nil {
 			return amountErr
 		}
-		settledAmount = settledAmount.Add(amount)
+		nettedAmount = nettedAmount.Add(amount)
 	}
 	ledgerItem.BillNo = bill.BillNo
-	ledgerItem.FinancialProgress = biz.ResolveFeeLedgerFinancialProgress(true, len(invoiceLinks) > 0, billAmount, settledAmount)
+	ledgerItem.FinancialProgress = biz.ResolveFeeLedgerFinancialProgress(true, len(invoiceLinks) > 0, billAmount, verifiedAmount, nettedAmount)
 	return nil
 }
 
