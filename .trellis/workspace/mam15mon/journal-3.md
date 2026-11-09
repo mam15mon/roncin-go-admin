@@ -1323,3 +1323,38 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 196: 全站业务标签退役及账单公司范围收敛
+<!-- trellis-session: v=2 fp=9e2038b822fd93de -->
+
+**Date**: 2026-11-09
+**Task**: 全站业务标签退役及账单公司范围收敛
+**Branch**: `codex/retire-business-tags`
+
+### Summary
+
+删除18个标签RPC及五个Ent实体、前后端入口和专属权限；账单绑定当前公司工作区。独立review与check:fast通过，真实隔离PG迁移和相邻业务零跳过；未应用真实开发库，保留无关海运布局工作。
+
+### Main Changes
+
+- 同步Proto reserved、生成物、正式精确清理迁移及开发规范
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `9ec85af8` | refactor: 全站退役业务标签并将账单绑定当前公司 |
+
+### Testing
+
+- [OK] check:fast全部通过，前端401套2183例通过；相关真实PG测试全部通过且0 SKIP
+- [OK] 独立trellis-check审查无剩余阻塞，生成幂等及类型检查通过
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 正式环境发版时按正常迁移流程应用20261109100000；本次不部署
