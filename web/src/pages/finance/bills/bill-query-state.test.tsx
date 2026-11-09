@@ -52,7 +52,9 @@ vi.mock('@/features/master-data/currencies', () => ({
 vi.mock('./components/BillEditModal', () => ({ default: () => null }));
 vi.mock('./components/BillDetailDrawer', () => ({ default: () => null }));
 vi.mock('@/services/roncin/settlementService', () => ({
-  settlementServiceListBills: vi.fn().mockResolvedValue({ data: [], total: 0 }),
+  settlementServiceListBills: vi
+    .fn()
+    .mockResolvedValue({ data: [], total: 0, matchedSummary: {} }),
   settlementServiceListFinanceOrganizationOptions: vi
     .fn()
     .mockResolvedValue({ data: [] }),
@@ -120,6 +122,7 @@ describe('账单查询恢复消费', () => {
         billDateFrom: '2026-10-01',
         dueDateTo: '2026-11-12',
       }),
+      { skipErrorHandler: true },
     );
     act(() => {
       state.search?.onSearch({ keyword: '新的条件' });
@@ -129,6 +132,7 @@ describe('账单查询恢复消费', () => {
     });
     expect(settlementServiceListBills).toHaveBeenLastCalledWith(
       expect.objectContaining({ keyword: '新的条件', page: 1 }),
+      { skipErrorHandler: true },
     );
     expect(state.reload).toHaveBeenCalledWith(true);
     act(() => state.search?.onReset());
@@ -141,6 +145,7 @@ describe('账单查询恢复消费', () => {
         organizationId: 'target-org',
         tagIds: ['tag'],
       }),
+      { skipErrorHandler: true },
     );
   });
 });

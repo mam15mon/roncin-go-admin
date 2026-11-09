@@ -24,11 +24,20 @@ import {
 } from '@/enums.generated';
 import { ExchangeGainLossTag } from '@/features/finance/exchange-gain-loss';
 import {
+  mapMatchedSummary,
+  verificationLedgerSummaryConfig,
+} from '@/features/finance/ledger-summary';
+import {
   settlementServiceListFinanceOrganizationOptions,
   settlementServiceListVerifications,
   settlementServiceReverseVerification,
 } from '@/services/roncin/settlementService';
-import { isWriteResponse, toTableRequest, unwrapPage } from '@/utils/api';
+import {
+  ensureListResponse,
+  isWriteResponse,
+  toTableRequest,
+  unwrapPage,
+} from '@/utils/api';
 import { formatAmount, formatDate } from '@/utils/format';
 import { makeVersionActions } from '@/utils/versionActions';
 import {
@@ -105,19 +114,19 @@ export default function FinanceVerificationsPage() {
   const metricCards: FinanceLedgerMetricCard[] = [
     {
       key: 'total-verifications',
-      title: '有效核销总笔数',
+      title: '筛选核销总笔数',
       value: metricStats.totalCount,
       suffix: '笔',
     },
     {
       key: 'rec-verifications',
-      title: '应收核销总金额',
+      title: '有效应收核销金额',
       value: formatBaseCurrencyAmounts('receivableBaseAmount'),
       valueColor: '#1677ff',
     },
     {
       key: 'pay-verifications',
-      title: '应付核销总金额',
+      title: '有效应付核销金额',
       value: formatBaseCurrencyAmounts('payableBaseAmount'),
       valueColor: '#fa8c16',
     },
@@ -359,7 +368,8 @@ export default function FinanceVerificationsPage() {
     <>
       <FinanceLedgerTemplate<
         API.FinanceVerification,
-        VerificationLedgerFilterParams
+        VerificationLedgerFilterParams,
+        API.FinanceVerificationSummary
       >
         pageTitle="核销管理"
         pageSubTitle="应收/应付账单对账核销与多币种汇差结算"
@@ -395,20 +405,34 @@ export default function FinanceVerificationsPage() {
         onPrimaryAction={
           access.canCreateFinanceVerifications ? () => setOpen(true) : undefined
         }
-        request={async (p) => {
-          const r = await settlementServiceListVerifications({
-            page: p.current,
-            pageSize: p.pageSize,
-            keyword: p.keyword,
-            status: p.status ? Number(p.status) : undefined,
-            organizationId,
-          });
-          const page = unwrapPage(r);
+        summaryConfig={verificationLedgerSummaryConfig}
+        selectionScope={organizationId}
+        onAcceptedSnapshot={(snapshot) => {
           setMetricStats({
-            totalCount: page.total,
-            amountsByBaseCurrency: r.summary?.amountsByBaseCurrency ?? [],
+            totalCount: snapshot.total,
+            amountsByBaseCurrency:
+              snapshot.summary?.amountsByBaseCurrency ?? [],
           });
-          return { ...toTableRequest(r), total: page.total };
+        }}
+        request={async (p) => {
+          const r = await settlementServiceListVerifications(
+            {
+              page: p.current,
+              pageSize: p.pageSize,
+              keyword: p.keyword,
+              status: p.status ? Number(p.status) : undefined,
+              organizationId,
+            },
+            { skipErrorHandler: true },
+          );
+          ensureListResponse(r, '财务列表加载失败，请稍后重试');
+          const page = unwrapPage(r);
+          return {
+            ...toTableRequest(r),
+            total: page.total,
+            summary: r.summary,
+            matchedSummary: mapMatchedSummary(r.matchedSummary),
+          };
         }}
       />
       <VerificationWorkbench

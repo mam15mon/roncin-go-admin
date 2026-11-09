@@ -14,6 +14,10 @@ import FinanceFeeLedgerPage from './index';
 
 type LedgerProps = {
   metricCards: { key: string; value: string | number }[];
+  onAcceptedSnapshot: (snapshot: {
+    total: number;
+    summary?: API.FeeLedgerSummary;
+  }) => void;
   pagination: { defaultCurrent: number; defaultPageSize: number };
   actionRef: { current: unknown };
   customSearch: ReactNode;
@@ -63,7 +67,7 @@ vi.mock('@/features/finance/bill-creation', () => ({
 vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceListFeeLedger: vi
     .fn()
-    .mockResolvedValue({ data: [], total: 0 }),
+    .mockResolvedValue({ data: [], total: 0, matchedSummary: {} }),
   settlementServiceListFinanceOrganizationOptions: vi
     .fn()
     .mockResolvedValue({ data: [] }),
@@ -96,10 +100,31 @@ function Seed() {
   return null;
 }
 describe('费用查询恢复消费', () => {
+  it('消费后的缺失响应明确失败，不读取 undefined 或伪造空汇总', async () => {
+    vi.mocked(settlementServiceListFeeLedger).mockResolvedValueOnce(
+      undefined as unknown as API.ListFeeLedgerResponse,
+    );
+    renderWithClient(
+      <ListQueryStateProvider enabled>
+        <App>
+          <FinanceFeeLedgerPage />
+        </App>
+      </ListQueryStateProvider>,
+    );
+    await expect(
+      state.ledger?.request({ current: 1, pageSize: 40 }),
+    ).rejects.toThrow('财务列表加载失败，请稍后重试');
+    expect(settlementServiceListFeeLedger).toHaveBeenLastCalledWith(
+      expect.objectContaining({ page: 1, pageSize: 40 }),
+      { skipErrorHandler: true },
+    );
+  });
+
   it('顶部汇总金额统一千分位和两位小数，保留负值并将空金额显示为零', async () => {
     vi.mocked(settlementServiceListFeeLedger).mockResolvedValueOnce({
       data: [],
       total: '0',
+      matchedSummary: {},
       summary: {
         amountsByBaseCurrency: [
           {
@@ -124,7 +149,11 @@ describe('费用查询恢复消费', () => {
       </ListQueryStateProvider>,
     );
     await act(async () => {
-      await state.ledger?.request({ current: 1, pageSize: 40 });
+      const result = (await state.ledger?.request({
+        current: 1,
+        pageSize: 40,
+      })) as { total: number; summary?: API.FeeLedgerSummary };
+      state.ledger?.onAcceptedSnapshot(result);
     });
     expect(state.ledger?.metricCards).toEqual(
       expect.arrayContaining([
@@ -180,6 +209,7 @@ describe('费用查询恢复消费', () => {
         createdAtTo: '2026-10-12',
         orderLocked: true,
       }),
+      { skipErrorHandler: true },
     );
     act(() => state.search?.onSearch({ feeName: '新费用条件' }));
     await act(async () => {
@@ -187,6 +217,7 @@ describe('费用查询恢复消费', () => {
     });
     expect(settlementServiceListFeeLedger).toHaveBeenLastCalledWith(
       expect.objectContaining({ keyword: '新费用条件' }),
+      { skipErrorHandler: true },
     );
     expect(state.reload).toHaveBeenCalledWith(true);
     act(() => state.search?.onReset());
@@ -199,6 +230,7 @@ describe('费用查询恢复消费', () => {
         organizationId: 'target-org',
         tagIds: ['tag'],
       }),
+      { skipErrorHandler: true },
     );
   });
 });

@@ -16,6 +16,11 @@ import { useListQueryState } from '@/components/ui/list-query-state';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
 import { BillCreationWorkbench } from '@/features/finance/bill-creation';
 import { billStatusMeta } from '@/features/finance/bill-status';
+import {
+  billLedgerSummaryConfig,
+  mapMatchedSummary,
+  useLedgerSelectionScope,
+} from '@/features/finance/ledger-summary';
 import { getCurrencyOptions } from '@/features/master-data/currencies';
 import { searchPartnerOptions } from '@/features/partners';
 import {
@@ -30,7 +35,12 @@ import {
   settlementServiceListFinanceOrganizationOptions,
   settlementServiceUpdateBill,
 } from '@/services/roncin/settlementService';
-import { isWriteResponse, toTableRequest, unwrapPage } from '@/utils/api';
+import {
+  ensureListResponse,
+  isWriteResponse,
+  toTableRequest,
+  unwrapPage,
+} from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { formatAmount, trimDecimal } from '@/utils/format';
 import { makeVersionActions } from '@/utils/versionActions';
@@ -81,6 +91,10 @@ export default function FinanceBillsPage() {
   const [tagOptionsLoading, setTagOptionsLoading] = useState(false);
   const [tagFilterIds, setTagFilterIds] = useState<string[] | undefined>(
     queryState.initial.filters.tagIds,
+  );
+  const { selectionScope, commitFilters } = useLedgerSelectionScope(
+    queryState.commit,
+    () => queryState.snapshotRef.current.filters,
   );
   const [organizationId, setOrganizationId] = useState<string | undefined>(
     queryState.initial.filters.organizationId,
@@ -396,25 +410,25 @@ export default function FinanceBillsPage() {
   const metricCards: FinanceLedgerMetricCard[] = [
     {
       key: 'total-bills',
-      title: '有效账单总记录数',
+      title: '筛选账单总记录数',
       value: metricStats.totalCount,
       suffix: '笔',
     },
     {
       key: 'rec-bills',
-      title: '应收账单折本币',
+      title: '已确认应收账单折本币',
       value: formatBaseCurrencyAmounts('receivableBaseAmount'),
       valueColor: '#1677ff',
     },
     {
       key: 'pay-bills',
-      title: '应付账单折本币',
+      title: '已确认应付账单折本币',
       value: formatBaseCurrencyAmounts('payableBaseAmount'),
       valueColor: '#fa8c16',
     },
     {
       key: 'unv-bills',
-      title: '未核销总额折本币',
+      title: '已确认账单未核销折本币',
       value: formatBaseCurrencyAmounts('unverifiedBaseAmount'),
       valueColor: metricStats.amountsByBaseCurrency.some(
         (item) => Number(item.unverifiedBaseAmount ?? 0) > 0,
@@ -424,7 +438,7 @@ export default function FinanceBillsPage() {
     },
     {
       key: 'overdue-bills',
-      title: '逾期应收折本币',
+      title: '已确认账单逾期应收折本币',
       value: formatBaseCurrencyAmounts('overdueReceivableBaseAmount'),
       valueColor: metricStats.amountsByBaseCurrency.some(
         (item) => Number(item.overdueReceivableBaseAmount ?? 0) > 0,
@@ -444,7 +458,11 @@ export default function FinanceBillsPage() {
 
   return (
     <>
-      <FinanceLedgerTemplate<API.FinanceBill>
+      <FinanceLedgerTemplate<
+        API.FinanceBill,
+        Record<string, unknown>,
+        API.FinanceBillSummary
+      >
         pagination={queryState.pagination}
         pageTitle="账单管理"
         pageSubTitle="集中管理与跟踪海运出口及各业务线收付账单、开票与结算流转状态"
@@ -467,7 +485,7 @@ export default function FinanceBillsPage() {
                   // 使在切换或清空公司前发出的标签请求立即失效，避免迟到结果回填。
                   tagFilterRequestRef.current += 1;
                   setTagOptionsLoading(false);
-                  queryState.commit({
+                  commitFilters({
                     ...queryState.snapshotRef.current.filters,
                     organizationId: value,
                     tagIds: undefined,
@@ -501,7 +519,7 @@ export default function FinanceBillsPage() {
                 options={tagOptions}
                 value={tagFilterIds}
                 onChange={(value) => {
-                  queryState.commit({
+                  commitFilters({
                     ...queryState.snapshotRef.current.filters,
                     tagIds: value.length ? value : undefined,
                     tagLabels: Object.fromEntries(
@@ -529,7 +547,7 @@ export default function FinanceBillsPage() {
             initialValues={queryState.initial.filters.search}
             initialLabels={queryState.initial.labels}
             onCommit={(values, labels) =>
-              queryState.commit(
+              commitFilters(
                 { ...queryState.snapshotRef.current.filters, search: values },
                 labels,
               )
@@ -542,14 +560,14 @@ export default function FinanceBillsPage() {
             defaultVisibleCount={5}
             items={filterItems}
             onSearch={(values) => {
-              queryState.commit({
+              commitFilters({
                 ...queryState.snapshotRef.current.filters,
                 search: values,
               });
               actionRef.current?.reload(true);
             }}
             onReset={() => {
-              queryState.commit(
+              commitFilters(
                 { ...queryState.snapshotRef.current.filters, search: {} },
                 {},
               );
@@ -595,6 +613,15 @@ export default function FinanceBillsPage() {
         }
         primaryActionIcon={<PlusOutlined />}
         onPrimaryAction={openCreate}
+        summaryConfig={billLedgerSummaryConfig}
+        selectionScope={selectionScope}
+        onAcceptedSnapshot={(snapshot) => {
+          setMetricStats({
+            totalCount: snapshot.total,
+            amountsByBaseCurrency:
+              snapshot.summary?.amountsByBaseCurrency ?? [],
+          });
+        }}
         request={async (params) => {
           const {
             search: searchParams,
@@ -614,33 +641,37 @@ export default function FinanceBillsPage() {
             ? searchParams.dueDateRange[1].format('YYYY-MM-DD')
             : undefined;
 
-          const response = await settlementServiceListBills({
-            page: params.current,
-            pageSize: params.pageSize,
-            keyword: searchParams.keyword || undefined,
-            direction: searchParams.direction || undefined,
-            status: searchParams.status,
-            settlementPartyId: searchParams.settlementPartyId || undefined,
-            currency: searchParams.currency || undefined,
-            billDateFrom,
-            billDateTo,
-            dueDateFrom,
-            dueDateTo,
-            onlyUnsettled:
-              searchParams.onlyUnsettled === 'true' ? true : undefined,
-            onlyOverdue: searchParams.onlyOverdue === 'true' ? true : undefined,
-            tagIds: tagFilterIds?.length ? tagFilterIds : undefined,
-            organizationId,
-          });
+          const response = await settlementServiceListBills(
+            {
+              page: params.current,
+              pageSize: params.pageSize,
+              keyword: searchParams.keyword || undefined,
+              direction: searchParams.direction || undefined,
+              status: searchParams.status,
+              settlementPartyId: searchParams.settlementPartyId || undefined,
+              currency: searchParams.currency || undefined,
+              billDateFrom,
+              billDateTo,
+              dueDateFrom,
+              dueDateTo,
+              onlyUnsettled:
+                searchParams.onlyUnsettled === 'true' ? true : undefined,
+              onlyOverdue:
+                searchParams.onlyOverdue === 'true' ? true : undefined,
+              tagIds: tagFilterIds?.length ? tagFilterIds : undefined,
+              organizationId,
+            },
+            { skipErrorHandler: true },
+          );
+          ensureListResponse(response, '财务列表加载失败，请稍后重试');
 
           const page = unwrapPage(response);
-          setMetricStats({
-            totalCount: page.total,
-            amountsByBaseCurrency:
-              response.summary?.amountsByBaseCurrency ?? [],
-          });
-
-          return { ...toTableRequest(response), total: page.total };
+          return {
+            ...toTableRequest(response),
+            total: page.total,
+            summary: response.summary,
+            matchedSummary: mapMatchedSummary(response.matchedSummary),
+          };
         }}
       />
 

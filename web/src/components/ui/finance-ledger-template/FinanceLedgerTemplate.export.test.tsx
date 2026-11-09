@@ -1,3 +1,4 @@
+import type { ActionType } from '@ant-design/pro-components';
 import {
   act,
   fireEvent,
@@ -6,7 +7,6 @@ import {
   waitFor,
 } from '@testing-library/react';
 import { App } from 'antd';
-import type { ActionType } from '@ant-design/pro-components';
 import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { csvAmount } from '@/utils/csv';

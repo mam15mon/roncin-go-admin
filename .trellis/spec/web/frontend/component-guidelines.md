@@ -550,3 +550,16 @@ if (isFetching && !order) return <Skeleton />;
 ## 快捷创建的失败结果
 
 统一请求层通知过的失败可能返回 `undefined`。快捷建档必须先检查响应再读取 `.data`；返回空结果时保留输入，不触发成功回调、不关闭弹窗，也不追加技术错误。`QuickCreateModal` 只在取得非空成功结果后重置表单；成功响应缺少业务 ID 仍须报错，不得伪装创建成功。
+
+## 路由标题的唯一配置
+
+- `web/config/routes.ts` 的 `name` 是菜单基础名，`pageTitle` 为有意差异的展示标题，
+  可用仅解释路由参数的 resolver 保留 SE/AE 新建标题；不从页面注册表反向导入。
+- `components/layout/routeUtils.ts` 从配置匹配标题与重定向，不能新增第二张手工标题表。
+  航空共享主单等具体路由优先于泛型详情；`hideInMenu` 不排除标题；无布局路由
+  不建立业务页签。未知 kind 中性回退、现有页签归组与动态单号事件保持。
+- 回归覆盖新增普通 name 路由自动生效、菜单短名差异、两处历史遗漏、重定向
+  /orders、/partners、/settings 及过期动态事件不污染其他路径。
+
+财务台账的状态与范围规则见 [财务列表快照与汇总](./finance-ledger-snapshots.md)，
+公共模板不得把所有财务实体都投影成费用利润。

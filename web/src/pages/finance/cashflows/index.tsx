@@ -32,6 +32,11 @@ import {
   disableCreditExceededOptions,
   useCreditLimitIntervention,
 } from '@/features/finance/credit-control';
+import {
+  cashflowLedgerSummaryConfig,
+  mapMatchedSummary,
+  useLedgerSelectionScope,
+} from '@/features/finance/ledger-summary';
 import { getCurrencyOptions } from '@/features/master-data/currencies';
 import { PartnerSelectOptionTags } from '@/features/partners';
 import {
@@ -42,7 +47,11 @@ import {
   settlementServiceListFinanceOrganizationOptions,
   settlementServiceListFinanceSettlementPartyOptions,
 } from '@/services/roncin/settlementService';
-import { isWriteResponse, toTableRequest } from '@/utils/api';
+import {
+  ensureListResponse,
+  isWriteResponse,
+  toTableRequest,
+} from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { formatAmount, trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
@@ -98,6 +107,10 @@ export default function FinanceCashflowsPage() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [form] = Form.useForm<Values>();
   const [open, setOpen] = useState(false);
+  const { selectionScope, commitFilters } = useLedgerSelectionScope(
+    queryState.commit,
+    () => queryState.snapshotRef.current.filters,
+  );
   const [organizationId, setOrganizationId] = useState<string | undefined>(
     queryState.initial.filters.organizationId,
   );
@@ -230,19 +243,19 @@ export default function FinanceCashflowsPage() {
     },
     {
       key: 'income-cashflows',
-      title: '收款流水折本币',
+      title: '已确认收款折本币',
       value: formatBaseCurrencyAmounts('receivableBaseAmount'),
       valueColor: '#1677ff',
     },
     {
       key: 'payout-cashflows',
-      title: '付款流水折本币',
+      title: '已确认付款折本币',
       value: formatBaseCurrencyAmounts('payableBaseAmount'),
       valueColor: '#fa8c16',
     },
     {
       key: 'unverified-cashflows',
-      title: '未核销可用资金',
+      title: '已确认流水未核销资金',
       value: formatBaseCurrencyAmounts('unverifiedBaseAmount'),
       valueColor: '#52c41a',
     },
@@ -454,7 +467,11 @@ export default function FinanceCashflowsPage() {
 
   return (
     <>
-      <FinanceLedgerTemplate<API.FinanceCashflow, CashflowLedgerFilterParams>
+      <FinanceLedgerTemplate<
+        API.FinanceCashflow,
+        CashflowLedgerFilterParams,
+        API.FinanceCashflowSummary
+      >
         formRef={searchFormRef}
         pagination={queryState.pagination}
         form={{
@@ -465,7 +482,7 @@ export default function FinanceCashflowsPage() {
           },
         }}
         onSubmit={(values) =>
-          queryState.commit({
+          commitFilters({
             organizationId:
               queryState.snapshotRef.current.filters.organizationId,
             direction: values.direction,
@@ -479,7 +496,7 @@ export default function FinanceCashflowsPage() {
             current: undefined,
             pageSize: undefined,
           });
-          queryState.commit(
+          commitFilters(
             {
               organizationId:
                 queryState.snapshotRef.current.filters.organizationId,
@@ -504,7 +521,7 @@ export default function FinanceCashflowsPage() {
                 label: item.name ?? item.code ?? item.id,
               }))}
               onChange={(value) => {
-                queryState.commit({
+                commitFilters({
                   ...queryState.snapshotRef.current.filters,
                   organizationId: value,
                 });
@@ -525,24 +542,38 @@ export default function FinanceCashflowsPage() {
         onPrimaryAction={
           access.canCreateFinanceCashflows ? () => setOpen(true) : undefined
         }
+        summaryConfig={cashflowLedgerSummaryConfig}
+        selectionScope={selectionScope}
+        onAcceptedSnapshot={(snapshot) => {
+          setMetricStats({
+            totalCount: snapshot.total,
+            amountsByBaseCurrency:
+              snapshot.summary?.amountsByBaseCurrency ?? [],
+          });
+        }}
         request={async (p) => {
           const organizationId =
             queryState.snapshotRef.current.filters.organizationId;
-          const r = await settlementServiceListCashflows({
-            page: p.current,
-            pageSize: p.pageSize,
-            keyword: p.keyword,
-            direction: queryState.snapshotRef.current.filters.direction,
-            status: queryState.snapshotRef.current.filters.status
-              ? Number(queryState.snapshotRef.current.filters.status)
-              : undefined,
-            organizationId,
-          });
-          setMetricStats({
-            totalCount: Number(r.total ?? 0),
-            amountsByBaseCurrency: r.summary?.amountsByBaseCurrency ?? [],
-          });
-          return { ...toTableRequest(r), total: Number(r.total ?? 0) };
+          const r = await settlementServiceListCashflows(
+            {
+              page: p.current,
+              pageSize: p.pageSize,
+              keyword: p.keyword,
+              direction: queryState.snapshotRef.current.filters.direction,
+              status: queryState.snapshotRef.current.filters.status
+                ? Number(queryState.snapshotRef.current.filters.status)
+                : undefined,
+              organizationId,
+            },
+            { skipErrorHandler: true },
+          );
+          ensureListResponse(r, '财务列表加载失败，请稍后重试');
+          return {
+            ...toTableRequest(r),
+            total: Number(r.total ?? 0),
+            summary: r.summary,
+            matchedSummary: mapMatchedSummary(r.matchedSummary),
+          };
         }}
       />
       <GuardedModalForm<Values>

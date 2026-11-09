@@ -185,6 +185,10 @@ scripts/                  根目录开发与构建辅助脚本
 - 前端依赖、脚本和校验统一使用 `pnpm`。不得新增 `npm`、`npx`、Yarn 入口；
   历史文档中的其他命令以本文件和 `package.json` 为准。
 
+- 路由标题与重定向统一来自 `web/config/routes.ts`。菜单短名与展示标题不同的
+  场景显式声明 `pageTitle`；布局、页签不得再维护同一路由的独立名称或重定向表。
+  `hideInMenu` 不排除标题解析，动态业务单号事件与稳定页签身份保持各自职责。
+
 ### 前端 UI 与页面模板规范
 
 全站页面统一遵循纯白高密度企业级视觉规范，公共模板组件统一由 `@/components/ui` 导出：
@@ -205,6 +209,13 @@ scripts/                  根目录开发与构建辅助脚本
   - 统一采用 Ant Design ProTable 高密度样式，搜索卡片与表格卡片外层统一细边框与微圆角，操作列靠右对齐。
 - **Ant Design Pro / ProComponents 状态与请求核心范式**：
   - **表格数据流一律走官方 `request` 协议**：严禁在外层自建 `data/loading/query` 状态去架空 ProTable；服务端分页列表与搜索一律优先通过 ProTable 的 `request={(params) => Promise<{ data, success, total }>}` 消费接口，由组件内建引擎自动调度分页与防竞态。
+  - **列表汇总与选择范围**：顶部指标、筛选结果合计和当前页导出必须与表格共用
+    官方 `onLoad` 已采纳快照，禁止在 `request` 完成时直接更新指标，防止迟到请求
+    污染当前筛选。全量合计必须来自服务端完整筛选聚合，不得用当前页代算。
+    财务底栏有勾选显示已选合计，无勾选显示筛选结果合计；翻页/页大小/排序保留
+    选择，提交筛选或切换公司立即清空，表头全选仅本页。金额按币种分组，未折算
+    与显式零分开，专用业务字段经领域适配后才交公共模板。完整契约见
+    `.trellis/spec/web/frontend/finance-ledger-snapshots.md`。
   - **刷新与重置一律走官方 `actionRef`**：新增、编辑、删除或启停操作成功后，统一通过 `actionRef.current?.reload()` 触发列表刷新，严禁层层透传手写的 `reload/fetchList` 触发式回调。
   - **模态表单生命周期一律走 `ModalForm.onFinish`**：异步提交必须返回 Promise，由 ProComponents 自动接管提交中 loading 态与成功关闭，严禁在外部手工维护 `confirmLoading` 镜像状态。
   - **自定义 Hook 依赖防护**：在封装涉及异步请求的 Hook 时，纯动作型回调（如 api 函数、数据转换 map 函数）必须使用 `useRef` 保障引用稳定性，严禁将未 memoize 的内联函数作为 `useCallback` 依赖引发渲染死循环（`Maximum update depth exceeded`）。

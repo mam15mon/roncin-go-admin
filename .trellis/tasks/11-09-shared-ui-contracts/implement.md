@@ -1,7 +1,7 @@
 # 执行与验证计划
 
 ## 启动条件
-PRD/design/implement 和研究已形成最终方案。用户已确认底栏条件切换及筛选清空规则；需要在后续消息明确批准最终规划摘要后，才 task.py start 并编辑产品代码。
+PRD/design/implement 和研究已形成最终方案。用户已确认底栏条件切换及筛选清空规则；用户已在后续消息明确批准最终方案并要求开始修复、独立 review、合并 main、安全删分支和 push；2026-11-09 已启动。
 
 ## 可验证交付包与依赖
 1. 财务契约：六列表读取 matchedSummary 的 Proto/biz/data/service 与生成物，保持业务写入边界；先实现再补后端精确筛选/聚合测试。前端正式依赖本包生成类型。
@@ -23,3 +23,6 @@ PRD/design/implement 和研究已形成最终方案。用户已确认底栏条�
 ## 门禁与交付
 每包运行修改文件 Biome、相关定向 Vitest/Go、git diff --check；按类型影响运行 tsc。契约生成按 make -C server api → pnpm run generate:web-client，不手修生成物。全部范围完成且独立 review 无阻塞后执行 pnpm run check:fast；不固定跑 build。
 若现有集成环境无法验证，记录具体缺口并在不改真实数据的前提下补安全隔离验证。最终只暂存本任务文件，确认远端 main 进度，普通合并/安全删除分支/推送，不覆盖其他工作。
+
+## 隔离工作区
+原checkout有19处并行分页修改及新文件（含FinanceLedgerTemplate），本任务使用 /home/vince/.codex/worktrees/shared-ui-contracts/roncin-go-admin，分支 codex/shared-ui-contracts，基于用户批准规划提交20f14205。原checkout保留main与原未提交分页改动；任务状态改动已仅移到本worktree。合并时必须保护FinanceLedgerTemplate同文件的分页改动，不带入其他并行工作。

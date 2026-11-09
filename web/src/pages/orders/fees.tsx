@@ -3,7 +3,6 @@ import type { ActionType, ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { App, Button, Card, Empty, Result, Spin } from 'antd';
-import dayjs from 'dayjs';
 import React, {
   useCallback,
   useEffect,
@@ -15,8 +14,10 @@ import { useParams } from 'react-router';
 import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import { FinanceSummaryBoard, SectionCard } from '@/components/ui';
+import { aggregateLedgerAmounts } from '@/components/ui/finance-ledger-template/summary';
 import { OrderBusinessType, PartnerRoleType } from '@/enums.generated';
 import { BillCreationWorkbench } from '@/features/finance/bill-creation';
+import { orderFeeSummaryConfig } from '@/features/finance/ledger-summary';
 import { FeeCorrectionSection } from '@/features/orders/fee-correction';
 import { useOrderFeeReview } from '@/features/orders/fee-review';
 import { history } from '@/router/history';
@@ -777,15 +778,25 @@ export default function OrderFeesPage() {
         />
       </SectionCard>
 
-      {/* 底部双层多币种动态汇总看板 */}
+      {/* 整单接口提供完整有效费用，采用同一币种安全的金额投影。 */}
       <FinanceSummaryBoard
-        selectedRows={[...allReceivableItems, ...allPayableItems].filter(
-          (f) =>
-            Boolean(f.id) &&
-            (selectedReceivableFeeIds.includes(f.id || '') ||
-              selectedPayableFeeIds.includes(f.id || '')),
+        selected={
+          selectedReceivableFeeIds.length + selectedPayableFeeIds.length > 0
+        }
+        config={orderFeeSummaryConfig}
+        scopeLabel="整单有效费用共"
+        summary={aggregateLedgerAmounts(
+          [...allReceivableItems, ...allPayableItems]
+            .filter(
+              (f) =>
+                selectedReceivableFeeIds.length +
+                  selectedPayableFeeIds.length ===
+                  0 ||
+                selectedReceivableFeeIds.includes(f.id || '') ||
+                selectedPayableFeeIds.includes(f.id || ''),
+            )
+            .map(orderFeeSummaryConfig.projectRow),
         )}
-        allRows={[...allReceivableItems, ...allPayableItems]}
       />
 
       <BillCreationWorkbench

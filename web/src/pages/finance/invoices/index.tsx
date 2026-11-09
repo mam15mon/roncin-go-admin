@@ -21,6 +21,10 @@ import {
 } from '@/enums.generated';
 import { financeErrorReasons } from '@/errorReasons.generated';
 import {
+  invoiceLedgerSummaryConfig,
+  mapMatchedSummary,
+} from '@/features/finance/ledger-summary';
+import {
   settlementServiceCancelInvoice,
   settlementServiceCreateInvoice,
   settlementServiceGetInvoice,
@@ -29,7 +33,12 @@ import {
   settlementServiceListInvoices,
   settlementServiceRedFlushInvoice,
 } from '@/services/roncin/settlementService';
-import { isWriteResponse, toTableRequest, unwrapPage } from '@/utils/api';
+import {
+  ensureListResponse,
+  isWriteResponse,
+  toTableRequest,
+  unwrapPage,
+} from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { formatAmount, trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
@@ -512,13 +521,13 @@ export default function FinanceInvoicesPage() {
     },
     {
       key: 'rec-invoices',
-      title: '销项发票金额',
+      title: '已开票销项金额',
       value: formatBaseCurrencyAmounts('receivableBaseAmount'),
       valueColor: '#1677ff',
     },
     {
       key: 'pay-invoices',
-      title: '进项发票金额',
+      title: '已开票进项金额',
       value: formatBaseCurrencyAmounts('payableBaseAmount'),
       valueColor: '#fa8c16',
     },
@@ -533,7 +542,11 @@ export default function FinanceInvoicesPage() {
 
   return (
     <>
-      <FinanceLedgerTemplate<API.FinanceInvoice, InvoiceLedgerFilterParams>
+      <FinanceLedgerTemplate<
+        API.FinanceInvoice,
+        InvoiceLedgerFilterParams,
+        API.FinanceInvoiceSummary
+      >
         pageTitle="发票管理"
         pageSubTitle="进项与销项发票开具、收票核验与发票状态跟踪"
         topBar={
@@ -573,22 +586,36 @@ export default function FinanceInvoicesPage() {
           createForm.resetFields();
           setCreateOpen(true);
         }}
-        request={async (p) => {
-          const r = await settlementServiceListInvoices({
-            page: p.current,
-            pageSize: p.pageSize,
-            keyword: p.keyword,
-            direction: p.direction,
-            status: p.status ? Number(p.status) : undefined,
-            organizationId,
-          });
-          const page = unwrapPage(r);
+        summaryConfig={invoiceLedgerSummaryConfig}
+        selectionScope={organizationId}
+        onAcceptedSnapshot={(snapshot) => {
           setMetricStats({
-            totalCount: page.total,
-            issuedCount: Number(r.summary?.issuedCount || 0),
-            amountsByBaseCurrency: r.summary?.amountsByBaseCurrency ?? [],
+            totalCount: snapshot.total,
+            issuedCount: Number(snapshot.summary?.issuedCount ?? 0),
+            amountsByBaseCurrency:
+              snapshot.summary?.amountsByBaseCurrency ?? [],
           });
-          return { ...toTableRequest(r), total: page.total };
+        }}
+        request={async (p) => {
+          const r = await settlementServiceListInvoices(
+            {
+              page: p.current,
+              pageSize: p.pageSize,
+              keyword: p.keyword,
+              direction: p.direction,
+              status: p.status ? Number(p.status) : undefined,
+              organizationId,
+            },
+            { skipErrorHandler: true },
+          );
+          ensureListResponse(r, '财务列表加载失败，请稍后重试');
+          const page = unwrapPage(r);
+          return {
+            ...toTableRequest(r),
+            total: page.total,
+            summary: r.summary,
+            matchedSummary: mapMatchedSummary(r.matchedSummary),
+          };
         }}
       />
 

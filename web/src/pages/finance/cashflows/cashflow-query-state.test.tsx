@@ -38,7 +38,7 @@ vi.mock('@/components/ui', async () => ({
     .GuardedModalForm,
   FinanceLedgerTemplate: (p: LedgerProps) => {
     state.ledger = p;
-    state.searchForm = { setFieldsValue: vi.fn() };
+    state.searchForm ??= { setFieldsValue: vi.fn() };
     p.formRef.current = state.searchForm;
     return null;
   },
@@ -59,7 +59,7 @@ vi.mock('@ant-design/pro-components', () => ({
 vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceListCashflows: vi
     .fn()
-    .mockResolvedValue({ data: [], total: 0 }),
+    .mockResolvedValue({ data: [], total: 0, matchedSummary: {} }),
   settlementServiceListFinanceOrganizationOptions: vi
     .fn()
     .mockResolvedValue({ data: [] }),
@@ -109,6 +109,7 @@ describe('流水原生搜索恢复消费', () => {
         status: 2,
         organizationId: 'target-org',
       }),
+      { skipErrorHandler: true },
     );
     act(() => state.ledger?.onReset());
     expect(state.searchForm?.setFieldsValue).toHaveBeenCalledWith(
@@ -128,6 +129,7 @@ describe('流水原生搜索恢复消费', () => {
         status: undefined,
         organizationId: 'target-org',
       }),
+      { skipErrorHandler: true },
     );
     act(() => state.ledger?.onSubmit({ direction: 'RECEIVABLE', status: '1' }));
     await act(async () => {
@@ -135,6 +137,7 @@ describe('流水原生搜索恢复消费', () => {
     });
     expect(settlementServiceListCashflows).toHaveBeenLastCalledWith(
       expect.objectContaining({ direction: 'RECEIVABLE', status: 1 }),
+      { skipErrorHandler: true },
     );
   });
 });

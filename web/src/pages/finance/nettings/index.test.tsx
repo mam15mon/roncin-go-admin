@@ -124,6 +124,7 @@ describe('对冲结算单管理页', () => {
     serviceMocks.listNettings.mockResolvedValue({
       data: [],
       total: '0',
+      matchedSummary: {},
       summary: { amountsByBaseCurrency: [], confirmedCount: '0' },
     });
   });

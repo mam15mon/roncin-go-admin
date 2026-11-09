@@ -20,14 +20,16 @@ import {
   Tooltip,
 } from 'antd';
 import dayjs from 'dayjs';
-import React, { useRef, useState } from 'react';
+import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { getRequestErrorMessage } from '@/requestErrorConfig';
 import { toTableRequest, unwrapPage } from '@/utils/api';
 import { downloadCsv, serializeCsv } from '@/utils/csv';
 import { useColumnSettings } from '../column-settings';
 import { ResponsiveProTable } from '../responsive-table';
 import { FinanceSummaryBoard } from './FinanceSummaryBoard';
+import { aggregateLedgerAmounts } from './summary';
 import type {
-  FinanceLedgerGlobalSummary,
+  FinanceLedgerAcceptedSnapshot,
   FinanceLedgerRequestParams,
   FinanceLedgerSummaryItem,
   FinanceLedgerTemplateProps,
@@ -38,6 +40,7 @@ type DensitySize = 'middle' | 'small' | 'large' | undefined;
 export function FinanceLedgerTemplate<
   T extends FinanceLedgerSummaryItem = FinanceLedgerSummaryItem,
   TFilter extends Record<string, unknown> = Record<string, unknown>,
+  TSummary = unknown,
 >({
   pagination,
   formRef,
@@ -66,6 +69,9 @@ export function FinanceLedgerTemplate<
   extraToolBarActions = [],
   request,
   showSummaryBoard = true,
+  summaryConfig,
+  onAcceptedSnapshot,
+  selectionScope = '',
   columnSettingsKey,
   columnSettingsStructuralKeys,
   advancedSettings,
@@ -75,20 +81,51 @@ export function FinanceLedgerTemplate<
   onRowClick,
   search,
   customSearch,
-}: FinanceLedgerTemplateProps<T, TFilter>) {
+}: FinanceLedgerTemplateProps<T, TFilter, TSummary>) {
   const { message } = App.useApp();
   const internalActionRef = useRef<ActionType | undefined>(undefined);
   const actionRef = externalActionRef || internalActionRef;
 
   const [currentData, setCurrentData] = useState<T[]>([]);
-  const [totalCount, setTotalCount] = useState<number>(0);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [selectedRows, setSelectedRows] = useState<T[]>([]);
-  const [globalSummary, setGlobalSummary] =
-    useState<FinanceLedgerGlobalSummary>();
+  const [submittedScope, setSubmittedScope] = useState('');
+  const activeScope = JSON.stringify([selectionScope, submittedScope]);
+  const scopeRef = useRef(activeScope);
+  scopeRef.current = activeScope;
+  const [accepted, setAccepted] = useState<
+    FinanceLedgerAcceptedSnapshot<T, TSummary> & { scope: string }
+  >();
   const loadedSnapshots = useRef(
-    new WeakMap<T[], { total: number; summary?: FinanceLedgerGlobalSummary }>(),
+    new WeakMap<
+      T[],
+      FinanceLedgerAcceptedSnapshot<T, TSummary> & { scope: string }
+    >(),
   );
+  const clearSelection = () => {
+    setSelectedRowKeys([]);
+    setSelectedRows([]);
+  };
+  // 筛选身份与页码分离：条件切换先清选，不等待查询成功，也不在翻页时清选。
+  useLayoutEffect(clearSelection, [activeScope]);
+  const selectedSummary = useMemo(
+    () =>
+      summaryConfig && selectedRows.length
+        ? aggregateLedgerAmounts(selectedRows.map(summaryConfig.projectRow))
+        : undefined,
+    [selectedRows, summaryConfig],
+  );
+  const submitScope = (params: Record<string, unknown>) => {
+    const filters = Object.fromEntries(
+      Object.entries(params)
+        .filter(
+          ([key]) =>
+            !['current', 'pageSize', 'sorter', 'sort', 'order'].includes(key),
+        )
+        .sort(([a], [b]) => a.localeCompare(b)),
+    );
+    setSubmittedScope(JSON.stringify(filters));
+  };
   const [densitySize, setDensitySize] = useState<DensitySize>('small');
   // 统一列设置：表格标识由调用方按业务视图传入，不使用实体 ID。
   const enableColumnSettings = Boolean(columnSettingsKey);
@@ -175,7 +212,7 @@ export function FinanceLedgerTemplate<
                 >
                   <Statistic
                     title={card.title}
-                    value={card.value}
+                    value={accepted ? card.value : '-'}
                     precision={card.precision}
                     suffix={card.suffix}
                     styles={
@@ -215,10 +252,14 @@ export function FinanceLedgerTemplate<
           }
           formRef={formRef}
           form={form}
-          onSubmit={(params) =>
-            onSubmit?.(params as TFilter & FinanceLedgerRequestParams)
-          }
-          onReset={onReset}
+          onSubmit={(params) => {
+            submitScope(params);
+            onSubmit?.(params as TFilter & FinanceLedgerRequestParams);
+          }}
+          onReset={() => {
+            submitScope({});
+            onReset?.();
+          }}
           search={
             search === false
               ? false
@@ -347,54 +388,78 @@ export function FinanceLedgerTemplate<
             rowSelection === false
               ? undefined
               : {
+                  ...(typeof rowSelection === 'object' ? rowSelection : {}),
                   selectedRowKeys,
                   preserveSelectedRowKeys: true,
                   onChange: (keys, rows, info) => {
                     setSelectedRowKeys(keys);
                     setSelectedRows(rows);
-                    if (
-                      typeof rowSelection === 'object' &&
-                      rowSelection?.onChange
-                    ) {
-                      rowSelection.onChange(keys, rows, info);
-                    }
+                    if (typeof rowSelection === 'object')
+                      rowSelection.onChange?.(keys, rows, info);
                   },
-                  ...(typeof rowSelection === 'object' ? rowSelection : {}),
                 }
           }
           request={async (params) => {
             // ProTable 以 ParamsType 提供参数，此处断言到 TFilter 边界由消费方契约保证
+            const requestScope = scopeRef.current;
             const res = await request(
               params as TFilter & FinanceLedgerRequestParams,
             );
             const page = unwrapPage(res);
             loadedSnapshots.current.set(page.data, {
+              rows: page.data,
               total: page.total,
               summary: res.summary,
+              matchedSummary: res.matchedSummary,
+              scope: requestScope,
             });
             return {
               ...toTableRequest(res),
               data: page.data,
             };
           }}
+          onRequestError={(error) => {
+            message.error(
+              getRequestErrorMessage(error, '财务列表加载失败，请稍后重试'),
+            );
+          }}
           onLoad={(data) => {
             // 官方 request 引擎采纳数据后再同步快照，迟到或失败请求不影响导出。
             const snapshot = loadedSnapshots.current.get(data);
+            if (snapshot && snapshot.scope !== scopeRef.current) return;
             setCurrentData(data);
             if (snapshot) {
-              setTotalCount(snapshot.total);
-              setGlobalSummary(snapshot.summary);
+              setAccepted(snapshot);
+              const loaded = new Map(
+                data.map((row) => [
+                  String((row as Record<string, unknown>)[rowKey]),
+                  row,
+                ]),
+              );
+              setSelectedRows((current) =>
+                current.map(
+                  (row) =>
+                    loaded.get(
+                      String((row as Record<string, unknown>)[rowKey]),
+                    ) ?? row,
+                ),
+              );
+              onAcceptedSnapshot?.(snapshot);
             }
           }}
         />
 
-        {/* 3. 底部双层多币种动态汇总底栏 */}
-        {showSummaryBoard && (
+        {/* 3. 勾选优先；未勾选使用服务端完整筛选汇总，禁止用本页代替。 */}
+        {showSummaryBoard && summaryConfig && (
           <FinanceSummaryBoard
-            selectedRows={selectedRows}
-            allRows={currentData}
-            totalCount={totalCount}
-            globalSummary={globalSummary}
+            summary={
+              selectedSummary ??
+              (accepted?.scope === activeScope
+                ? accepted.matchedSummary
+                : undefined)
+            }
+            selected={selectedRows.length > 0}
+            config={summaryConfig}
           />
         )}
       </div>

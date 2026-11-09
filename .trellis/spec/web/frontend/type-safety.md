@@ -240,3 +240,12 @@ const disabled = query.isSuccess && query.data?.canModify !== true;
 ### 7. 错误与正确
 错误：`permissions.includes(key) && roleScopes.some(scopeMeetsMinimum)`。
 正确：查找 `permissionCapabilities` 中 key 对应的条目，仅比较该条目的范围。
+
+## 海运改配预览与资格
+
+- `SeaOrderReassignmentPreviewData.is_valid` 为非 optional bool；在成功查询返回边界
+  归一化后再展示无效 errors/中文兜底，不能直接用原始响应 `=== false` 漏掉省略值。
+- `matched` 已有成功边界归一化，其下游 `=== false` 是稳定模型判断，不机械替换。
+- 菜单与已经打开的改配弹窗共用明确允许的资格派生值，加载/失效/失败不得继续操作；
+  保留现有写成功后的同步阶段保护，不改变服务端权限、并发版本和状态机。
+- 回归至少覆盖省略 false、错误列表缺失、加载/失败、缺版本、资格撤回及成功同步。

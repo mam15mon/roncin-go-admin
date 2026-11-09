@@ -40,12 +40,36 @@ export interface FinanceLedgerSummaryItem {
   baseCurrencyAmount?: string | number;
 }
 
-export interface FinanceLedgerGlobalSummary {
-  activeCount?: number | string;
-  receivableBaseAmount?: string | number;
-  payableBaseAmount?: string | number;
-  profitBaseAmount?: string | number;
+/** 领域适配后的金额桶；本币未取得时保留缺失，不能补成零。 */
+export interface FinanceLedgerAmount {
+  direction: string;
+  currency: string;
+  amount: string;
   baseCurrency?: string;
+  baseAmount?: string;
+  unconvertedCount?: number;
+}
+
+export interface FinanceLedgerMatchedSummary {
+  count: number;
+  amounts: FinanceLedgerAmount[];
+}
+
+export interface FinanceLedgerSummaryConfig<T> {
+  groups: { direction: string; label: string; color?: string }[];
+  projectRow: (row: T) => FinanceLedgerAmount;
+  profit?: {
+    label: string;
+    receivableDirection: string;
+    payableDirection: string;
+  };
+}
+
+export interface FinanceLedgerAcceptedSnapshot<T, TSummary> {
+  rows: T[];
+  total: number;
+  summary?: TSummary;
+  matchedSummary?: FinanceLedgerMatchedSummary;
 }
 
 export interface FinanceBatchActionItem<T = FinanceLedgerSummaryItem> {
@@ -58,6 +82,7 @@ export interface FinanceBatchActionItem<T = FinanceLedgerSummaryItem> {
 export interface FinanceLedgerTemplateProps<
   T extends FinanceLedgerSummaryItem = FinanceLedgerSummaryItem,
   TFilter extends Record<string, unknown> = Record<string, unknown>,
+  TSummary = unknown,
 > {
   pagination?: ProTableProps<
     T,
@@ -108,10 +133,19 @@ export interface FinanceLedgerTemplateProps<
     data: T[];
     total: number;
     success?: boolean;
-    summary?: FinanceLedgerGlobalSummary;
+    summary?: TSummary;
+    matchedSummary?: FinanceLedgerMatchedSummary;
   }>;
 
-  // 是否展示底部双层多币种动态汇总底栏（默认 true）
+  /** 只在官方表格采纳响应后通知指标消费方，request 内不得写指标状态。 */
+  onAcceptedSnapshot?: (
+    snapshot: FinanceLedgerAcceptedSnapshot<T, TSummary>,
+  ) => void;
+  summaryConfig?: FinanceLedgerSummaryConfig<T>;
+  /** 外部已提交筛选/公司身份；分页、排序和未提交输入不得放入该值。 */
+  selectionScope?: string;
+
+  // 是否展示底部单行条件汇总（默认 true）
   showSummaryBoard?: boolean;
 
   // 统一列设置表格标识（业务视图级）；提供时启用内置统一列设置浮层。

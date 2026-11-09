@@ -94,10 +94,13 @@ vi.mock('@/components/ui', async () => ({
   GuardedModalForm: (await import('@/components/ui/GuardedModalForm'))
     .GuardedModalForm,
   ResponsiveProTable: (await import('@ant-design/pro-components')).ProTable,
-  FinanceSummaryBoard: ({ selectedRows, allRows }: any) => (
+  FinanceSummaryBoard: ({
+    selected,
+    summary,
+  }: import('@/components/ui/finance-ledger-template').FinanceSummaryBoardProps) => (
     <div data-testid="finance-summary-board">
-      {selectedRows.map((item: API.OrderFee) => item.id).join(',')}|
-      {allRows.map((item: API.OrderFee) => item.id).join(',')}
+      {String(selected)}|{summary?.count}|
+      {summary?.amounts.map((item) => item.amount).join(',')}
     </div>
   ),
   SectionCard: (await import('@/components/ui/page-shell/SectionCard'))
@@ -253,8 +256,26 @@ vi.mock('./components/fees/OrderFeeTableTabs', () => ({
           const payableId = `payable-${props.orderId}`;
           props.setSelectedReceivableFeeIds([receivableId]);
           props.setSelectedPayableFeeIds([payableId]);
-          props.setAllReceivableItems([{ id: receivableId }]);
-          props.setAllPayableItems([{ id: payableId }]);
+          props.setAllReceivableItems([
+            {
+              id: receivableId,
+              direction: 1,
+              currency: 'CNY',
+              totalAmount: '120',
+              baseCurrency: 'CNY',
+              baseCurrencyAmount: '120',
+            },
+          ]);
+          props.setAllPayableItems([
+            {
+              id: payableId,
+              direction: 2,
+              currency: 'CNY',
+              totalAmount: '20',
+              baseCurrency: 'CNY',
+              baseCurrencyAmount: '20',
+            },
+          ]);
           props.setReceivableSummary({ totalAmount: 120, count: 1 });
           props.setPayableSummary({ totalAmount: 20, count: 1 });
           props.onOpenBillWorkbench([receivableId]);
@@ -406,7 +427,7 @@ describe('订单费用页跨订单状态隔离', () => {
     );
     expect(screen.getByTestId('fee-summary')).toHaveTextContent('1:120|1:20');
     expect(screen.getByTestId('finance-summary-board')).toHaveTextContent(
-      'receivable-order-A,payable-order-A|receivable-order-A,payable-order-A',
+      'true|2|120,20',
     );
     expect(screen.getByTestId('bill-workbench')).toHaveTextContent(
       'true|receivable-order-A|organization-order-A|订单 ORDER-A',
@@ -429,7 +450,7 @@ describe('订单费用页跨订单状态隔离', () => {
       );
       expect(screen.getByTestId('fee-summary')).toHaveTextContent('0:0|0:0');
       expect(screen.getByTestId('finance-summary-board')).toHaveTextContent(
-        '|',
+        'false|0|',
       );
       expect(screen.getByTestId('bill-workbench')).toHaveTextContent(
         'false|||订单 ORDER-B',

@@ -18,6 +18,7 @@
 | 订单费用 | `order_fee.go`、`order_fee_quantity_preview.go` | 未锁未建账的逐费写入、分批建账能力、事务内提成经济重算、来源数量建议 | 用整票状态拦截无关费用、把 canEdit 当删除权限 |
 | 费用摘要与补审 | `order_fee_review.go`、`order_fee_correction*.go` | 当前摘要/历史只读；锁后 ADD/REPLACE/VOID、源费账务回退、补审经济差额 | 恢复旧独立审核写状态；未回退账单直接更正；待审冻结整票建账 |
 | 提成实付登记 | `finance_commission_payment.go`、`finance_commission_lifecycle.go` | 原额与调整净发预览、实际金额、抵扣关联、独立执行保护 | 用累计权益净额代替历史实付；同一冲减重复少发及扣回 |
+| 六类财务列表筛选合计 | `finance_ledger_summary.go` 与各列表仓储接口 | 纯领域 matchedSummary，count等于total；data克隆完整筛选聚合原币/本币/未折算，见[契约](../../web/frontend/finance-ledger-snapshots.md) | 当前页代算全部、组织范围外聚合、把未折算null当零 |
 | 账单 | `finance_bill.go`、`finance_bill_batch.go` | 建账、批量建账、固定费用币种边界 | 跨币种人工折算旁路 |
 | 核销 | `finance_verification.go` | 费用核销、反核销、汇兑损益 | 绕过 idempotencyKey 重放 |
 | 对冲 | `finance_netting.go` | 应收应付对冲、汇差 | 独立实现汇差口径 |

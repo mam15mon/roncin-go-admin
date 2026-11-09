@@ -25,13 +25,22 @@ import {
 } from '@/enums.generated';
 import { ExchangeGainLossTag } from '@/features/finance/exchange-gain-loss';
 import {
+  mapMatchedSummary,
+  nettingLedgerSummaryConfig,
+} from '@/features/finance/ledger-summary';
+import {
   settlementServiceCancelNetting,
   settlementServiceConfirmNetting,
   settlementServiceListFinanceOrganizationOptions,
   settlementServiceListNettings,
   settlementServiceReverseNetting,
 } from '@/services/roncin/settlementService';
-import { isWriteResponse, toTableRequest, unwrapPage } from '@/utils/api';
+import {
+  ensureListResponse,
+  isWriteResponse,
+  toTableRequest,
+  unwrapPage,
+} from '@/utils/api';
 import { formatAmount, formatDate } from '@/utils/format';
 import { makeVersionActions } from '@/utils/versionActions';
 
@@ -449,7 +458,11 @@ export default function FinanceNettingsPage() {
           />
         </Space>
       </Card>
-      <FinanceLedgerTemplate<API.FinanceNetting, NettingLedgerFilterParams>
+      <FinanceLedgerTemplate<
+        API.FinanceNetting,
+        NettingLedgerFilterParams,
+        API.FinanceNettingSummary
+      >
         pageTitle="对冲管理"
         pageSubTitle="往来单位双向费用对冲结算台账"
         headerTitle="对冲结算单列表"
@@ -458,24 +471,35 @@ export default function FinanceNettingsPage() {
         columns={columns}
         columnSettingsKey="finance:nettings"
         metricCards={metricCards}
-        request={async (params) => {
-          const response = await settlementServiceListNettings({
-            page: params.current,
-            pageSize: params.pageSize,
-            keyword: params.keyword,
-            currency: params.currency,
-            status: params.status ? Number(params.status) : undefined,
-            organizationId,
-          });
-          const page = unwrapPage(response);
+        summaryConfig={nettingLedgerSummaryConfig}
+        selectionScope={organizationId}
+        onAcceptedSnapshot={(snapshot) => {
           setMetricStats({
-            confirmedCount: response.summary?.confirmedCount
-              ? Number(response.summary.confirmedCount)
-              : 0,
+            confirmedCount: Number(snapshot.summary?.confirmedCount ?? 0),
             amountsByBaseCurrency:
-              response.summary?.amountsByBaseCurrency ?? [],
+              snapshot.summary?.amountsByBaseCurrency ?? [],
           });
-          return { ...toTableRequest(response), total: page.total };
+        }}
+        request={async (params) => {
+          const response = await settlementServiceListNettings(
+            {
+              page: params.current,
+              pageSize: params.pageSize,
+              keyword: params.keyword,
+              currency: params.currency,
+              status: params.status ? Number(params.status) : undefined,
+              organizationId,
+            },
+            { skipErrorHandler: true },
+          );
+          ensureListResponse(response, '财务列表加载失败，请稍后重试');
+          const page = unwrapPage(response);
+          return {
+            ...toTableRequest(response),
+            total: page.total,
+            summary: response.summary,
+            matchedSummary: mapMatchedSummary(response.matchedSummary),
+          };
         }}
       />
 

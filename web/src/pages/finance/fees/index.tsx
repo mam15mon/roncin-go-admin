@@ -25,6 +25,11 @@ import {
   type BillCreationMode,
   BillCreationWorkbench,
 } from '@/features/finance/bill-creation';
+import {
+  feeLedgerSummaryConfig,
+  mapMatchedSummary,
+  useLedgerSelectionScope,
+} from '@/features/finance/ledger-summary';
 import { history } from '@/router/history';
 import {
   settlementServiceBatchAssignFinanceFeeTags,
@@ -34,7 +39,12 @@ import {
   settlementServiceListFinanceFeeTagOptions,
   settlementServiceListFinanceOrganizationOptions,
 } from '@/services/roncin/settlementService';
-import { isWriteResponse, toTableRequest, unwrapPage } from '@/utils/api';
+import {
+  ensureListResponse,
+  isWriteResponse,
+  toTableRequest,
+  unwrapPage,
+} from '@/utils/api';
 import { formatAmount } from '@/utils/format';
 import {
   type FeeLedgerFilterParams,
@@ -131,6 +141,10 @@ export default function FinanceFeeLedgerPage() {
     defaultPageSize: 40,
     defaultFilters: { search: {} },
   });
+  const { selectionScope, commitFilters } = useLedgerSelectionScope(
+    queryState.commit,
+    () => queryState.snapshotRef.current.filters,
+  );
   const [organizationId, setOrganizationId] = useState<string | undefined>(
     queryState.initial.filters.organizationId,
   );
@@ -157,7 +171,7 @@ export default function FinanceFeeLedgerPage() {
   const organizationOptions = organizationQuery.data ?? [];
 
   const handleSearch = (values: FeeLedgerFilterParams) => {
-    queryState.commit({
+    commitFilters({
       ...queryState.snapshotRef.current.filters,
       search: values,
     });
@@ -165,7 +179,7 @@ export default function FinanceFeeLedgerPage() {
   };
 
   const handleReset = () => {
-    queryState.commit(
+    commitFilters(
       { ...queryState.snapshotRef.current.filters, search: {} },
       {},
     );
@@ -195,19 +209,19 @@ export default function FinanceFeeLedgerPage() {
     },
     {
       key: 'receivable-base',
-      title: '应收折本币总池',
+      title: '有效费用应收折本币',
       value: formatAmounts('receivableBaseAmount'),
       valueColor: '#1677ff',
     },
     {
       key: 'payable-base',
-      title: '应付折本币总池',
+      title: '有效费用应付折本币',
       value: formatAmounts('payableBaseAmount'),
       valueColor: '#fa8c16',
     },
     {
       key: 'profit-base',
-      title: '确认综合毛利',
+      title: '有效费用利润',
       value: formatAmounts('profitBaseAmount'),
       valueColor: (summary?.amountsByBaseCurrency ?? []).every(
         (item) => amount(item.profitBaseAmount) >= 0,
@@ -332,7 +346,11 @@ export default function FinanceFeeLedgerPage() {
 
   return (
     <>
-      <FinanceLedgerTemplate<API.FeeLedgerItem>
+      <FinanceLedgerTemplate<
+        API.FeeLedgerItem,
+        Record<string, unknown>,
+        API.FeeLedgerSummary
+      >
         pagination={queryState.pagination}
         pageTitle="费用明细台账"
         pageSubTitle="全维度多币种费用台账，支持按单据、财务进度、结算单位快速对账与生成账单"
@@ -354,7 +372,7 @@ export default function FinanceFeeLedgerPage() {
                 onChange={(value) => {
                   // 切换或清空公司即整体换键：旧组织的在途结果落在旧 queryKey，
                   // 不再回填；同步重置标签筛选与搜索词，候选按新公司重查。
-                  queryState.commit({
+                  commitFilters({
                     ...queryState.snapshotRef.current.filters,
                     organizationId: value,
                     tagIds: undefined,
@@ -387,7 +405,7 @@ export default function FinanceFeeLedgerPage() {
                 value={tagFilterIds}
                 disabled={!organizationId}
                 onChange={(value) => {
-                  queryState.commit({
+                  commitFilters({
                     ...queryState.snapshotRef.current.filters,
                     tagIds: value.length ? value : undefined,
                     tagLabels: Object.fromEntries(
@@ -413,7 +431,7 @@ export default function FinanceFeeLedgerPage() {
             initialValues={queryState.initial.filters.search}
             initialLabels={queryState.initial.labels}
             onCommit={(values, labels) =>
-              queryState.commit(
+              commitFilters(
                 { ...queryState.snapshotRef.current.filters, search: values },
                 labels,
               )
@@ -520,6 +538,11 @@ export default function FinanceFeeLedgerPage() {
         onRowClick={(row) => {
           if (row.orderId) history.push(`/finance/fees/detail/${row.orderId}`);
         }}
+        summaryConfig={feeLedgerSummaryConfig}
+        selectionScope={selectionScope}
+        onAcceptedSnapshot={(snapshot) => {
+          setSummary(snapshot.summary);
+        }}
         request={async (params) => {
           const {
             search: filterParams,
@@ -533,54 +556,58 @@ export default function FinanceFeeLedgerPage() {
             ? filterParams.createdAtRange[1].format('YYYY-MM-DD')
             : undefined;
 
-          const response = await settlementServiceListFeeLedger({
-            page: params.current,
-            pageSize: params.pageSize,
-            keyword:
-              filterParams.orderNo ||
-              filterParams.masterNo ||
-              filterParams.houseNo ||
-              filterParams.feeName ||
-              filterParams.operatorName ||
-              filterParams.salesName ||
-              filterParams.invoiceNo ||
-              filterParams.consignee ||
-              filterParams.shipper ||
-              filterParams.vesselName ||
-              filterParams.voyageNo ||
-              filterParams.keyword ||
-              undefined,
-            billNo: filterParams.billNo || undefined,
-            businessType: filterParams.businessType || undefined,
-            direction: filterParams.direction || undefined,
-            financialProgress: filterParams.financialProgress || undefined,
-            orderLocked:
-              filterParams.orderLocked === 'LOCKED'
-                ? true
-                : filterParams.orderLocked === 'UNLOCKED'
-                  ? false
-                  : undefined,
-            hasPendingFeeSupplement:
-              filterParams.hasPendingFeeSupplement === 'yes'
-                ? true
-                : filterParams.hasPendingFeeSupplement === 'no'
-                  ? false
-                  : undefined,
-            customerId: filterParams.customerId || undefined,
-            settlementPartyId: filterParams.settlementPartyId || undefined,
-            currency: filterParams.currency || undefined,
+          const response = await settlementServiceListFeeLedger(
+            {
+              page: params.current,
+              pageSize: params.pageSize,
+              keyword:
+                filterParams.orderNo ||
+                filterParams.masterNo ||
+                filterParams.houseNo ||
+                filterParams.feeName ||
+                filterParams.operatorName ||
+                filterParams.salesName ||
+                filterParams.invoiceNo ||
+                filterParams.consignee ||
+                filterParams.shipper ||
+                filterParams.vesselName ||
+                filterParams.voyageNo ||
+                filterParams.keyword ||
+                undefined,
+              billNo: filterParams.billNo || undefined,
+              businessType: filterParams.businessType || undefined,
+              direction: filterParams.direction || undefined,
+              financialProgress: filterParams.financialProgress || undefined,
+              orderLocked:
+                filterParams.orderLocked === 'LOCKED'
+                  ? true
+                  : filterParams.orderLocked === 'UNLOCKED'
+                    ? false
+                    : undefined,
+              hasPendingFeeSupplement:
+                filterParams.hasPendingFeeSupplement === 'yes'
+                  ? true
+                  : filterParams.hasPendingFeeSupplement === 'no'
+                    ? false
+                    : undefined,
+              customerId: filterParams.customerId || undefined,
+              settlementPartyId: filterParams.settlementPartyId || undefined,
+              currency: filterParams.currency || undefined,
 
-            createdAtFrom,
-            createdAtTo,
-            tagIds: tagFilterIds?.length ? tagFilterIds : undefined,
-            organizationId,
-          });
-          setSummary(response.summary);
+              createdAtFrom,
+              createdAtTo,
+              tagIds: tagFilterIds?.length ? tagFilterIds : undefined,
+              organizationId,
+            },
+            { skipErrorHandler: true },
+          );
+          ensureListResponse(response, '财务列表加载失败，请稍后重试');
           const page = unwrapPage(response);
           return {
             ...toTableRequest(response),
             total: page.total,
             summary: response.summary,
+            matchedSummary: mapMatchedSummary(response.matchedSummary),
           };
         }}
       />
