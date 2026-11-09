@@ -69,7 +69,8 @@ func (s *SettlementService) ListBills(ctx context.Context, request *v1.ListBills
 		data = append(data, converted)
 	}
 	return okList(ctx, &v1.ListBillsResponse{
-		Data: data, Total: result.Total,
+		MatchedSummary: financeLedgerMatchedSummaryToAPI(result.MatchedSummary),
+		Data:           data, Total: result.Total,
 		Summary: financeBillSummaryToAPI(result.Summary),
 	}), nil
 }

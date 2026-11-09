@@ -77,8 +77,8 @@ func TestSettlementRepoListFeeLedgerUsesDatabasePaginationAndSummary(t *testing.
 	locked := true
 
 	organizationID := uuid.New()
-	mock.ExpectQuery(`SELECT COUNT.*FROM "order_fees".*organization_id.*locked_at.*finance_bill_lines.*finance_invoice_bills.*finance_verification_allocations`).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(3))
+	mock.ExpectQuery(`SELECT .*"record_count".*FROM "order_fees".*organization_id.*locked_at.*finance_bill_lines.*finance_invoice_bills.*finance_verification_allocations`).
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "currency", "base_currency", "record_count", "amount", "base_amount", "unconverted_count"}).AddRow("RECEIVABLE", "CNY", "CNY", 3, "0", "0", 0))
 	mock.ExpectQuery(`SELECT .*"active_count".*"base_amount".*FROM "order_fees".*GROUP BY`).
 		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "active_count", "base_amount"}).
 			AddRow("RECEIVABLE", "CNY", 2, "100.25").
@@ -121,16 +121,16 @@ func TestVerificationCreationCandidatesKeepOrganizationPredicateInBothSourceQuer
 	organizationID := uuid.New()
 	partyID := uuid.New()
 
-	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_cashflows".*organization_id.*finance_verification_allocations.*finance_verifications`).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
+	mock.ExpectQuery(`SELECT .*"record_count".*FROM "finance_cashflows".*organization_id.*finance_verification_allocations.*finance_verifications`).
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "currency", "base_currency", "record_count", "amount", "base_amount", "unconverted_count"}).AddRow("RECEIVABLE", "CNY", "CNY", 0, "0", "0", 0))
 	mock.ExpectQuery(`SELECT .*FROM "finance_cashflows".*GROUP BY`).
 		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "base_amount"}))
 	mock.ExpectQuery(`SELECT .*FROM "finance_verification_allocations".*finance_cashflows.*organization_id`).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}))
 	mock.ExpectQuery(`SELECT .*FROM "finance_cashflows".*organization_id`).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}))
-	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_bills".*organization_id.*finance_verification_allocations.*finance_netting_allocations`).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
+	mock.ExpectQuery(`SELECT .*"record_count".*FROM "finance_bills".*organization_id.*finance_verification_allocations.*finance_netting_allocations`).
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "currency", "base_currency", "record_count", "amount", "base_amount", "unconverted_count"}).AddRow("RECEIVABLE", "CNY", "CNY", 0, "0", "0", 0))
 	mock.ExpectQuery(`SELECT .*FROM "finance_bills".*GROUP BY`).
 		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "base_amount"}))
 	mock.ExpectQuery(`SELECT .*FROM "finance_verification_allocations".*finance_bills.*organization_id`).
@@ -166,16 +166,16 @@ func TestVerificationCreationCandidatesPushDownBalancePredicates(t *testing.T) {
 	cashflowBalance := `finance_cashflows"\."amount" > COALESCE\(\(SELECT SUM\(fva.amount\) FROM finance_verification_allocations AS fva JOIN finance_verifications AS fv`
 	billBalance := `finance_bills"\."total_amount" > \(COALESCE\(\(SELECT SUM\(fva.amount\) FROM finance_verification_allocations AS fva WHERE fva.bill_id = "finance_bills"\."id" AND fva.active = TRUE\), 0\) \+ COALESCE\(\(SELECT SUM\(fna.amount\) FROM finance_netting_allocations AS fna`
 
-	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_cashflows".*` + cashflowBalance).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
+	mock.ExpectQuery(`SELECT .*"record_count".*FROM "finance_cashflows".*` + cashflowBalance).
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "currency", "base_currency", "record_count", "amount", "base_amount", "unconverted_count"}).AddRow("RECEIVABLE", "CNY", "CNY", 0, "0", "0", 0))
 	mock.ExpectQuery(`SELECT .*FROM "finance_cashflows".*GROUP BY`).
 		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "base_amount"}))
 	mock.ExpectQuery(`SELECT .*FROM "finance_verification_allocations".*finance_cashflows`).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}))
 	mock.ExpectQuery(`SELECT .*FROM "finance_cashflows".*` + cashflowBalance + `.*ORDER BY`).
 		WillReturnRows(sqlmock.NewRows(financecashflow.Columns))
-	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_bills".*` + billBalance).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
+	mock.ExpectQuery(`SELECT .*"record_count".*FROM "finance_bills".*` + billBalance).
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "currency", "base_currency", "record_count", "amount", "base_amount", "unconverted_count"}).AddRow("RECEIVABLE", "CNY", "CNY", 0, "0", "0", 0))
 	mock.ExpectQuery(`SELECT .*FROM "finance_bills".*GROUP BY`).
 		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "base_amount"}))
 	mock.ExpectQuery(`SELECT .*FROM "finance_verification_allocations".*finance_bills`).
@@ -208,8 +208,8 @@ func TestFinanceCashflowOnlyUnverifiedEntersCountAndPageQuery(t *testing.T) {
 	repo := &financeCashflowRepo{data: settlementRepo.data}
 	balance := `finance_cashflows"\."amount" > COALESCE\(\(SELECT SUM\(fva.amount\) FROM finance_verification_allocations AS fva JOIN finance_verifications AS fv`
 
-	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_cashflows".*` + balance).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
+	mock.ExpectQuery(`SELECT .*"record_count".*FROM "finance_cashflows".*` + balance).
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "currency", "base_currency", "record_count", "amount", "base_amount", "unconverted_count"}).AddRow("RECEIVABLE", "CNY", "CNY", 0, "0", "0", 0))
 	mock.ExpectQuery(`SELECT .*FROM "finance_cashflows".*GROUP BY`).
 		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "base_amount"}))
 	mock.ExpectQuery(`SELECT .*FROM "finance_verification_allocations".*finance_cashflows.*` + balance).

@@ -347,6 +347,21 @@ message FeeLedgerItem {
   reserved 32 to 33;
 }
 
+// 财务列表完整筛选结果的明细金额，不叠加顶部有效业务指标的状态条件。
+message FinanceLedgerMatchedAmount {
+  // 沿用所属实体的领域方向代码；对冲无方向，留空。
+  string direction = 1;
+  string currency = 2;
+  string amount = 3;
+  optional string base_currency = 4;
+  optional string base_amount = 5;
+  int64 unconverted_count = 6;
+}
+message FinanceLedgerMatchedSummary {
+  int64 count = 1;
+  repeated FinanceLedgerMatchedAmount amounts = 2;
+}
+
 message FeeLedgerBaseCurrencyAmount { string base_currency = 1; string receivable_base_amount = 2; string payable_base_amount = 3; string profit_base_amount = 4; }
 message FeeLedgerSummary {
   int64 active_count = 1;
@@ -361,6 +376,8 @@ message ListFeeLedgerResponse {
   int64 total = 5;
   FeeLedgerSummary summary = 6;
   string trace_id = 7;
+
+  FinanceLedgerMatchedSummary matched_summary = 8;
 }
 message GetFeeLedgerOrderDetailRequest { string order_id = 1 [(google.api.field_behavior) = REQUIRED]; }
 message FeeLedgerOrderDetail { string order_id = 1; string order_no = 2; string business_type = 3; string customer_name = 4; string organization_id = 5; string organization_name = 6; repeated FeeLedgerItem fees = 7; repeated FeeLedgerBaseCurrencyAmount amounts_by_base_currency = 8; }
@@ -769,6 +786,8 @@ message ListBillsResponse {
   int64 total = 5;
   string trace_id = 6;
   FinanceBillSummary summary = 7;
+
+  FinanceLedgerMatchedSummary matched_summary = 8;
 }
 
 message FinanceBaseCurrencyAmount {
@@ -830,7 +849,9 @@ message RedFlushInvoiceRequest { string id = 1 [(google.api.field_behavior) = RE
 message FinanceInvoiceBill { string id = 1; string bill_id = 2; string bill_no = 3; string amount = 4; string tax_amount = 5; bool active = 6; repeated string source_fee_ids = 7; }
 message FinanceInvoiceLine { string id = 1; int32 line_no = 2; string item_code = 3; string item_name = 4; string tax_rate = 5; string net_amount = 6; string tax_amount = 7; string total_amount = 8; string currency = 9; int32 source_line_count = 10; }
 message FinanceInvoice { string id = 1; string record_no = 2; string direction = 3; FinanceInvoiceStatus status = 4; string invoice_type = 5; string settlement_party_id = 6; string settlement_party_name = 7; string currency = 8; string total_amount = 9; string tax_amount = 10; int32 bill_count = 11; optional string tax_invoice_no = 12; optional string invoice_date = 13; optional string note = 14; uint64 version = 15; optional string issued_at = 16; optional string cancelled_at = 17; optional string cancellation_reason = 18; repeated FinanceInvoiceBill bill_links = 19; string created_at = 20; string updated_at = 21; optional string red_invoice_no = 22; optional string red_invoice_date = 23; optional string red_flushed_at = 24; optional string red_flush_reason = 25; string net_amount = 26; optional string invoice_profile_id = 27; optional string invoice_title = 28; optional string taxpayer_identification_no = 29; optional string registered_address = 30; optional string registered_phone = 31; optional string bank_name = 32; optional string bank_account = 33; repeated FinanceInvoiceLine lines = 34; string base_currency = 35; optional string exchange_rate = 36; optional string exchange_rate_source = 37; optional string exchange_rate_date = 38; optional string exchange_rate_setting_id = 39; optional string base_currency_amount = 40; string organization_id = 41; string organization_name = 42; }
-message ListInvoicesResponse { bool success = 1; int32 code = 2; string message = 3; repeated FinanceInvoice data = 4; int64 total = 5; string trace_id = 6; FinanceInvoiceSummary summary = 7; }
+message ListInvoicesResponse { bool success = 1; int32 code = 2; string message = 3; repeated FinanceInvoice data = 4; int64 total = 5; string trace_id = 6; FinanceInvoiceSummary summary = 7;
+  FinanceLedgerMatchedSummary matched_summary = 8;
+}
 message FinanceInvoiceSummary { repeated FinanceBaseCurrencyAmount amounts_by_base_currency = 1; int64 issued_count = 2; }
 message ListInvoiceCreationBillsRequest { string organization_id = 1 [(google.api.field_behavior) = REQUIRED]; int32 page = 2; int32 page_size = 3; optional string keyword = 4; optional string direction = 5; optional string settlement_party_id = 6; optional string currency = 7; }
 message ListInvoiceCreationBillsResponse { bool success = 1; int32 code = 2; string message = 3; repeated FinanceBill data = 4; int64 total = 5; string trace_id = 6; }
@@ -848,7 +869,9 @@ message CreateCashflowRequest { string direction=1 [(google.api.field_behavior)=
 message ConfirmCashflowRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; uint64 expected_version=2 [(google.api.field_behavior)=REQUIRED]; }
 message CancelCashflowRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; uint64 expected_version=2 [(google.api.field_behavior)=REQUIRED]; string reason=3 [(google.api.field_behavior)=REQUIRED]; }
 message FinanceCashflow { string id=1; string flow_no=2; string direction=3; FinanceCashflowStatus status=4; string settlement_party_id=5; string settlement_party_name=6; string currency=7; string amount=8; string exchange_rate=9; string base_currency=10; string base_amount=11; string transaction_date=12; string our_account=13; optional string counterparty_account=14; string payment_method=15; optional string bank_reference_no=16; optional string note=17; uint64 version=18; optional string confirmed_at=19; optional string cancelled_at=20; optional string cancellation_reason=21; string created_at=22; string updated_at=23; string verified_amount=24; string unverified_amount=25; string exchange_rate_source=26; string exchange_rate_date=27; optional string exchange_rate_setting_id=28; string organization_id=29; string organization_name=30; }
-message ListCashflowsResponse { bool success=1; int32 code=2; string message=3; repeated FinanceCashflow data=4; int64 total=5; string trace_id=6; FinanceCashflowSummary summary=7; }
+message ListCashflowsResponse { bool success=1; int32 code=2; string message=3; repeated FinanceCashflow data=4; int64 total=5; string trace_id=6; FinanceCashflowSummary summary=7;
+  FinanceLedgerMatchedSummary matched_summary = 8;
+}
 message FinanceCashflowSummary { repeated FinanceBaseCurrencyAmount amounts_by_base_currency=1; }
 message CreateCashflowResponse { bool success=1; int32 code=2; string message=3; FinanceCashflow data=4; string trace_id=5; }
 message ConfirmCashflowResponse { bool success=1; int32 code=2; string message=3; FinanceCashflow data=4; string trace_id=5; }
@@ -866,7 +889,9 @@ message CreateVerificationRequest { repeated VerificationAllocationInput allocat
 message ReverseVerificationRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; uint64 expected_version=2 [(google.api.field_behavior)=REQUIRED]; string reason=3 [(google.api.field_behavior)=REQUIRED]; }
 message FinanceVerificationAllocation { string id=1; string cashflow_id=2; string bill_id=3; string cashflow_no=4; string bill_no=5; string amount=6; bool active=7; string bill_base_amount=8; string cashflow_base_amount=9; reserved 10; reserved "write_off_base_amount"; string exchange_gain_loss=11; }
 message FinanceVerification { string id=1; string verification_no=2; FinanceVerificationStatus status=3; string direction=4; string settlement_party_id=5; string settlement_party_name=6; string currency=7; string amount=8; string verification_date=9; optional string note=10; uint64 version=11; optional string reversed_at=12; optional string reversal_reason=13; repeated FinanceVerificationAllocation allocations=14; string created_at=15; string base_currency=16; reserved 17; reserved "exchange_rate"; reserved 18; reserved "exchange_rate_source"; reserved 19; reserved "exchange_rate_date"; reserved 20; reserved "exchange_rate_setting_id"; string base_amount=21; string bill_base_amount=22; string cashflow_base_amount=23; string exchange_gain_loss=24; string organization_id=25; string organization_name=26; }
-message ListVerificationsResponse { bool success=1; int32 code=2; string message=3; repeated FinanceVerification data=4; int64 total=5; string trace_id=6; FinanceVerificationSummary summary=7; }
+message ListVerificationsResponse { bool success=1; int32 code=2; string message=3; repeated FinanceVerification data=4; int64 total=5; string trace_id=6; FinanceVerificationSummary summary=7;
+  FinanceLedgerMatchedSummary matched_summary = 8;
+}
 message FinanceVerificationSummary { repeated FinanceBaseCurrencyAmount amounts_by_base_currency=1; }
 message CreateVerificationResponse { bool success=1; int32 code=2; string message=3; FinanceVerification data=4; string trace_id=5; }
 message ReverseVerificationResponse { bool success=1; int32 code=2; string message=3; FinanceVerification data=4; string trace_id=5; }
@@ -890,7 +915,9 @@ message ReverseNettingResponse { bool success=1; int32 code=2; string message=3;
 message ListNettingsRequest { int32 page=1; int32 page_size=2; optional string keyword=3; optional FinanceNettingStatus status=4; optional string settlement_party_id=5; optional string currency=6; optional string organization_id=7; }
 message FinanceNettingBaseCurrencyAmount { string base_currency=1; string netting_base_amount=2; }
 message FinanceNettingSummary { repeated FinanceNettingBaseCurrencyAmount amounts_by_base_currency=1; int64 confirmed_count=2; }
-message ListNettingsResponse { bool success=1; int32 code=2; string message=3; repeated FinanceNetting data=4; int64 total=5; string trace_id=6; FinanceNettingSummary summary=7; }
+message ListNettingsResponse { bool success=1; int32 code=2; string message=3; repeated FinanceNetting data=4; int64 total=5; string trace_id=6; FinanceNettingSummary summary=7;
+  FinanceLedgerMatchedSummary matched_summary = 8;
+}
 message GetNettingRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; }
 message GetNettingResponse { bool success=1; int32 code=2; string message=3; FinanceNetting data=4; string trace_id=5; }
 message ListCommissionsRequest { int32 page=1; int32 page_size=2; optional string keyword=3; optional FinanceCommissionStatus status=4; optional string commission_date_from=5; optional string commission_date_to=6; optional string organization_id=7; }

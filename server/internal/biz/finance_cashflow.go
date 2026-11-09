@@ -59,9 +59,10 @@ type FinanceCashflowFilter struct {
 	OnlyUnverified bool
 }
 type FinanceCashflowListResult struct {
-	Items   []*FinanceCashflow
-	Total   int64
-	Summary FinanceCashflowSummary
+	MatchedSummary FinanceLedgerMatchedSummary
+	Items          []*FinanceCashflow
+	Total          int64
+	Summary        FinanceCashflowSummary
 }
 type FinanceCashflowSummary struct {
 	AmountsByBaseCurrency []FinanceBaseCurrencyAmount

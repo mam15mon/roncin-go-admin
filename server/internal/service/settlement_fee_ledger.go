@@ -71,7 +71,8 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 		data = append(data, feeLedgerItemToAPI(item, businessTagSummariesToFinanceAPI(feeTags[item.Fee.ID])))
 	}
 	return okList(ctx, &v1.ListFeeLedgerResponse{
-		Data: data, Total: result.Total,
+		MatchedSummary: financeLedgerMatchedSummaryToAPI(result.MatchedSummary),
+		Data:           data, Total: result.Total,
 		Summary: &v1.FeeLedgerSummary{ActiveCount: result.Summary.ActiveCount, AmountsByBaseCurrency: feeLedgerAmountsByBaseCurrencyToAPI(result.Summary.AmountsByBaseCurrency)},
 	}), nil
 }

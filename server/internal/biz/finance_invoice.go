@@ -95,9 +95,10 @@ type FinanceInvoiceFilter struct {
 }
 
 type FinanceInvoiceListResult struct {
-	Items   []*FinanceInvoice
-	Total   int64
-	Summary FinanceInvoiceSummary
+	MatchedSummary FinanceLedgerMatchedSummary
+	Items          []*FinanceInvoice
+	Total          int64
+	Summary        FinanceInvoiceSummary
 }
 
 type FinanceInvoiceSummary struct {

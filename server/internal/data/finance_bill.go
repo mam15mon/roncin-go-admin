@@ -88,10 +88,12 @@ func (r *financeBillRepo) List(ctx context.Context, organizationIDs []uuid.UUID,
 		predicates = append(predicates, financebillent.HasEnterpriseTagLinksWith(billtaglink.TagResourceIDIn(filter.TagIDs...)))
 	}
 	query := client.FinanceBill.Query().Where(predicates...)
-	total, err := query.Clone().Count(ctx)
-	if err != nil {
-		return nil, err
+	matchedSummary, matchedErr := loadFinanceLedgerMatchedSummary(ctx, query.Clone().GroupBy(financebillent.FieldDirection, financebillent.FieldCurrency, financebillent.FieldBaseCurrency).Aggregate(financeLedgerMatchedAggregates(financebillent.FieldTotalAmount, financebillent.FieldBaseCurrencyAmount)...).Scan)
+	if matchedErr != nil {
+		return nil, matchedErr
 	}
+
+	total := int(matchedSummary.Count)
 	summaryPredicates := append([]predicate.FinanceBill{}, predicates...)
 	summaryPredicates = append(summaryPredicates, financebillent.StatusEQ(financebillent.StatusCONFIRMED))
 	summaryRows := make([]financeBillSummaryRow, 0)
@@ -238,7 +240,7 @@ func (r *financeBillRepo) List(ctx context.Context, organizationIDs []uuid.UUID,
 	if err != nil {
 		return nil, err
 	}
-	result := &biz.FinanceBillListResult{Items: make([]*biz.FinanceBill, 0, len(items)), Total: int64(total), Summary: summary}
+	result := &biz.FinanceBillListResult{MatchedSummary: matchedSummary, Items: make([]*biz.FinanceBill, 0, len(items)), Total: int64(total), Summary: summary}
 	for _, item := range items {
 		converted, convertErr := financeBillToBiz(item)
 		if convertErr != nil {

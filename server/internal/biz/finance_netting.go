@@ -164,9 +164,10 @@ type FinanceNettingFilter struct {
 }
 
 type FinanceNettingListResult struct {
-	Items   []*FinanceNetting
-	Total   int64
-	Summary FinanceNettingSummary
+	MatchedSummary FinanceLedgerMatchedSummary
+	Items          []*FinanceNetting
+	Total          int64
+	Summary        FinanceNettingSummary
 }
 
 type FinanceNettingSummary struct {

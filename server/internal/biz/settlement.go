@@ -99,9 +99,10 @@ type FeeLedgerBaseCurrencyAmount struct {
 }
 
 type FeeLedgerResult struct {
-	Items   []*FeeLedgerItem
-	Total   int64
-	Summary FeeLedgerSummary
+	MatchedSummary FinanceLedgerMatchedSummary
+	Items          []*FeeLedgerItem
+	Total          int64
+	Summary        FeeLedgerSummary
 }
 
 type FeeLedgerOrderDetail struct {

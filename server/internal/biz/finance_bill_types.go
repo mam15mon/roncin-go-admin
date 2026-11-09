@@ -148,9 +148,10 @@ type FinanceBillCreationCandidateResult struct {
 }
 
 type FinanceBillListResult struct {
-	Items   []*FinanceBill
-	Total   int64
-	Summary FinanceBillSummary
+	MatchedSummary FinanceLedgerMatchedSummary
+	Items          []*FinanceBill
+	Total          int64
+	Summary        FinanceBillSummary
 }
 
 type FinanceBillSummary struct {

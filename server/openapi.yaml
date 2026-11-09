@@ -13764,6 +13764,32 @@ components:
                         $ref: '#/components/schemas/finance.v1.FinanceBaseCurrencyAmount'
                 issuedCount:
                     type: string
+        finance.v1.FinanceLedgerMatchedAmount:
+            type: object
+            properties:
+                direction:
+                    type: string
+                    description: 沿用所属实体的领域方向代码；对冲无方向，留空。
+                currency:
+                    type: string
+                amount:
+                    type: string
+                baseCurrency:
+                    type: string
+                baseAmount:
+                    type: string
+                unconvertedCount:
+                    type: string
+            description: 财务列表完整筛选结果的明细金额，不叠加顶部有效业务指标的状态条件。
+        finance.v1.FinanceLedgerMatchedSummary:
+            type: object
+            properties:
+                count:
+                    type: string
+                amounts:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceLedgerMatchedAmount'
         finance.v1.FinanceNetting:
             type: object
             properties:
@@ -14302,6 +14328,8 @@ components:
                     type: string
                 summary:
                     $ref: '#/components/schemas/finance.v1.FinanceBillSummary'
+                matchedSummary:
+                    $ref: '#/components/schemas/finance.v1.FinanceLedgerMatchedSummary'
         finance.v1.ListCashflowsResponse:
             type: object
             properties:
@@ -14322,6 +14350,8 @@ components:
                     type: string
                 summary:
                     $ref: '#/components/schemas/finance.v1.FinanceCashflowSummary'
+                matchedSummary:
+                    $ref: '#/components/schemas/finance.v1.FinanceLedgerMatchedSummary'
         finance.v1.ListCommissionAdjustmentsResponse:
             type: object
             properties:
@@ -14530,6 +14560,8 @@ components:
                     $ref: '#/components/schemas/finance.v1.FeeLedgerSummary'
                 traceId:
                     type: string
+                matchedSummary:
+                    $ref: '#/components/schemas/finance.v1.FinanceLedgerMatchedSummary'
         finance.v1.ListFeeSettingTemplatesResponse:
             type: object
             properties:
@@ -14710,6 +14742,8 @@ components:
                     type: string
                 summary:
                     $ref: '#/components/schemas/finance.v1.FinanceInvoiceSummary'
+                matchedSummary:
+                    $ref: '#/components/schemas/finance.v1.FinanceLedgerMatchedSummary'
         finance.v1.ListNettingsResponse:
             type: object
             properties:
@@ -14730,6 +14764,8 @@ components:
                     type: string
                 summary:
                     $ref: '#/components/schemas/finance.v1.FinanceNettingSummary'
+                matchedSummary:
+                    $ref: '#/components/schemas/finance.v1.FinanceLedgerMatchedSummary'
         finance.v1.ListTaxableServicesResponse:
             type: object
             properties:
@@ -14789,6 +14825,8 @@ components:
                     type: string
                 summary:
                     $ref: '#/components/schemas/finance.v1.FinanceVerificationSummary'
+                matchedSummary:
+                    $ref: '#/components/schemas/finance.v1.FinanceLedgerMatchedSummary'
         finance.v1.MarkCommissionAdjustmentPaidRequest:
             required:
                 - id

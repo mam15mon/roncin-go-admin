@@ -49,7 +49,8 @@ func (s *SettlementService) ListNettings(ctx context.Context, request *v1.ListNe
 		amounts = append(amounts, &v1.FinanceNettingBaseCurrencyAmount{BaseCurrency: item.BaseCurrency, NettingBaseAmount: item.NettingBaseAmount.StringFixed(8)})
 	}
 	return okList(ctx, &v1.ListNettingsResponse{
-		Data: data, Total: result.Total,
+		MatchedSummary: financeLedgerMatchedSummaryToAPI(result.MatchedSummary),
+		Data:           data, Total: result.Total,
 		Summary: &v1.FinanceNettingSummary{AmountsByBaseCurrency: amounts, ConfirmedCount: result.Summary.ConfirmedCount},
 	}), nil
 }

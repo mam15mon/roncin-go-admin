@@ -43,8 +43,9 @@ func (s *SettlementService) ListCashflows(ctx context.Context, r *v1.ListCashflo
 		data = append(data, cashflowToAPI(x))
 	}
 	return okList(ctx, &v1.ListCashflowsResponse{
-		Data:  data,
-		Total: result.Total,
+		MatchedSummary: financeLedgerMatchedSummaryToAPI(result.MatchedSummary),
+		Data:           data,
+		Total:          result.Total,
 
 		Summary: &v1.FinanceCashflowSummary{AmountsByBaseCurrency: financeBaseCurrencyAmountsToAPI(result.Summary.AmountsByBaseCurrency)},
 	}), nil

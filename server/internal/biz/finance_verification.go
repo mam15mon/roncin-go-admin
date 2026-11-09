@@ -69,9 +69,10 @@ type VerificationFilter struct {
 	Direction      OrderFeeDirection
 }
 type VerificationListResult struct {
-	Items   []*FinanceVerification
-	Total   int64
-	Summary VerificationSummary
+	MatchedSummary FinanceLedgerMatchedSummary
+	Items          []*FinanceVerification
+	Total          int64
+	Summary        VerificationSummary
 }
 
 // VerificationCreationCandidateFilter 是核销创建工作台的单组织候选约束。

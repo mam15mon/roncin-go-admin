@@ -3294,6 +3294,21 @@ declare namespace API {
     issuedCount?: string;
   };
 
+  type FinanceLedgerMatchedAmount = {
+    /** 沿用所属实体的领域方向代码；对冲无方向，留空。 */
+    direction?: string;
+    currency?: string;
+    amount?: string;
+    baseCurrency?: string;
+    baseAmount?: string;
+    unconvertedCount?: string;
+  };
+
+  type FinanceLedgerMatchedSummary = {
+    count?: string;
+    amounts?: FinanceLedgerMatchedAmount[];
+  };
+
   type FinanceNetting = {
     id?: string;
     nettingNo?: string;
@@ -4004,6 +4019,7 @@ declare namespace API {
     total?: string;
     traceId?: string;
     summary?: FinanceBillSummary;
+    matchedSummary?: FinanceLedgerMatchedSummary;
   };
 
   type ListCargoItemsResponse = {
@@ -4022,6 +4038,7 @@ declare namespace API {
     total?: string;
     traceId?: string;
     summary?: FinanceCashflowSummary;
+    matchedSummary?: FinanceLedgerMatchedSummary;
   };
 
   type ListCommissionAdjustmentsResponse = {
@@ -4171,6 +4188,7 @@ declare namespace API {
     total?: string;
     summary?: FeeLedgerSummary;
     traceId?: string;
+    matchedSummary?: FinanceLedgerMatchedSummary;
   };
 
   type ListFeeOptionsResponse = {
@@ -4283,6 +4301,7 @@ declare namespace API {
     total?: string;
     traceId?: string;
     summary?: FinanceInvoiceSummary;
+    matchedSummary?: FinanceLedgerMatchedSummary;
   };
 
   type ListItemsResponse = {
@@ -4381,6 +4400,7 @@ declare namespace API {
     total?: string;
     traceId?: string;
     summary?: FinanceNettingSummary;
+    matchedSummary?: FinanceLedgerMatchedSummary;
   };
 
   type ListNotificationTestTypesResponse = {
@@ -4769,6 +4789,7 @@ declare namespace API {
     total?: string;
     traceId?: string;
     summary?: FinanceVerificationSummary;
+    matchedSummary?: FinanceLedgerMatchedSummary;
   };
 
   type LockOrderRequest = {

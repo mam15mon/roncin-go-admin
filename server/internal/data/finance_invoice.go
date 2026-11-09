@@ -50,10 +50,12 @@ func (r *financeInvoiceRepo) ListScoped(ctx context.Context, organizationIDs []u
 		return nil, clientErr
 	}
 	q := client.FinanceInvoice.Query().WithOrganization().Where(p...)
-	total, err := q.Clone().Count(ctx)
-	if err != nil {
-		return nil, err
+	matchedSummary, matchedErr := loadFinanceLedgerMatchedSummary(ctx, q.Clone().GroupBy(financeinvoiceent.FieldDirection, financeinvoiceent.FieldCurrency, financeinvoiceent.FieldBaseCurrency).Aggregate(financeLedgerMatchedAggregates(financeinvoiceent.FieldTotalAmount, financeinvoiceent.FieldBaseCurrencyAmount)...).Scan)
+	if matchedErr != nil {
+		return nil, matchedErr
 	}
+
+	total := int(matchedSummary.Count)
 	summaryPredicates := append([]predicate.FinanceInvoice{}, p...)
 	summaryPredicates = append(summaryPredicates, financeinvoiceent.StatusEQ(financeinvoiceent.StatusISSUED))
 	summaryQuery := client.FinanceInvoice.Query().WithOrganization().Where(summaryPredicates...)
@@ -88,7 +90,7 @@ func (r *financeInvoiceRepo) ListScoped(ctx context.Context, organizationIDs []u
 	if err != nil {
 		return nil, err
 	}
-	result := &biz.FinanceInvoiceListResult{Items: make([]*biz.FinanceInvoice, 0, len(items)), Total: int64(total), Summary: summary}
+	result := &biz.FinanceInvoiceListResult{MatchedSummary: matchedSummary, Items: make([]*biz.FinanceInvoice, 0, len(items)), Total: int64(total), Summary: summary}
 	for _, item := range items {
 		converted, e := financeInvoiceToBiz(item)
 		if e != nil {

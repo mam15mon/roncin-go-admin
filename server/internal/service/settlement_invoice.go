@@ -35,7 +35,8 @@ func (s *SettlementService) ListInvoices(ctx context.Context, request *v1.ListIn
 		data = append(data, financeInvoiceToAPI(item))
 	}
 	return okList(ctx, &v1.ListInvoicesResponse{
-		Data: data, Total: result.Total,
+		MatchedSummary: financeLedgerMatchedSummaryToAPI(result.MatchedSummary),
+		Data:           data, Total: result.Total,
 		Summary: &v1.FinanceInvoiceSummary{AmountsByBaseCurrency: financeBaseCurrencyAmountsToAPI(result.Summary.AmountsByBaseCurrency), IssuedCount: result.Summary.IssuedCount},
 	}), nil
 }

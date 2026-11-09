@@ -471,10 +471,12 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationIDs []uu
 		predicates = append(predicates, orderfee.HasOrderWith(p))
 	}
 	baseQuery := client.OrderFee.Query().Where(predicates...)
-	total, err := baseQuery.Clone().Count(ctx)
-	if err != nil {
-		return nil, err
+	matchedSummary, matchedErr := loadFinanceLedgerMatchedSummary(ctx, baseQuery.Clone().GroupBy(orderfee.FieldDirection, orderfee.FieldCurrency, orderfee.FieldBaseCurrency).Aggregate(financeLedgerMatchedAggregates(orderfee.FieldTotalAmount, orderfee.FieldBaseCurrencyAmount)...).Scan)
+	if matchedErr != nil {
+		return nil, matchedErr
 	}
+
+	total := int(matchedSummary.Count)
 	summaryRows := make([]feeLedgerSummaryRow, 0)
 	if err := baseQuery.Clone().Where(currentOrderFeePredicate()).
 		GroupBy(orderfee.FieldDirection, orderfee.FieldBaseCurrency).
@@ -524,7 +526,7 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationIDs []uu
 		return nil, err
 	}
 	if len(items) == 0 {
-		return &biz.FeeLedgerResult{Items: []*biz.FeeLedgerItem{}, Total: int64(total), Summary: summary}, nil
+		return &biz.FeeLedgerResult{MatchedSummary: matchedSummary, Items: []*biz.FeeLedgerItem{}, Total: int64(total), Summary: summary}, nil
 	}
 	orders := make([]*ent.Order, 0, len(items))
 	for _, item := range items {
@@ -605,7 +607,7 @@ func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationIDs []uu
 		}
 		resultItems = append(resultItems, ledgerItem)
 	}
-	result := &biz.FeeLedgerResult{
+	result := &biz.FeeLedgerResult{MatchedSummary: matchedSummary,
 		Items:   resultItems,
 		Total:   int64(total),
 		Summary: summary,

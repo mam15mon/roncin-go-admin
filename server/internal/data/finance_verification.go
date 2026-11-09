@@ -50,10 +50,13 @@ func (r *verificationRepo) ListScoped(ctx context.Context, organizationIDs []uui
 		return nil, clientErr
 	}
 	q := client.FinanceVerification.Query().WithOrganization().Where(p...)
-	n, e := q.Clone().Count(ctx)
-	if e != nil {
-		return nil, e
+	matchedSummary, matchedErr := loadFinanceLedgerMatchedSummary(ctx, q.Clone().GroupBy(ver.FieldDirection, ver.FieldCurrency, ver.FieldBaseCurrency).Aggregate(financeLedgerMatchedAggregates(ver.FieldAmount, ver.FieldBaseAmount)...).Scan)
+	if matchedErr != nil {
+		return nil, matchedErr
 	}
+
+	n := int(matchedSummary.Count)
+	var e error
 	summaryPredicates := append([]predicate.FinanceVerification{}, p...)
 	summaryPredicates = append(summaryPredicates, ver.StatusEQ(ver.StatusACTIVE))
 	summaryRows := make([]verificationSummaryRow, 0)
@@ -82,7 +85,7 @@ func (r *verificationRepo) ListScoped(ctx context.Context, organizationIDs []uui
 	if e != nil {
 		return nil, e
 	}
-	out := &biz.VerificationListResult{Items: make([]*biz.FinanceVerification, 0, len(xs)), Total: int64(n), Summary: summary}
+	out := &biz.VerificationListResult{MatchedSummary: matchedSummary, Items: make([]*biz.FinanceVerification, 0, len(xs)), Total: int64(n), Summary: summary}
 	for _, x := range xs {
 		v, e := verificationToBiz(x)
 		if e != nil {

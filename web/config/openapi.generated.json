@@ -21819,6 +21819,45 @@
           }
         }
       },
+      "finance.v1.FinanceLedgerMatchedAmount": {
+        "type": "object",
+        "properties": {
+          "direction": {
+            "type": "string",
+            "description": "沿用所属实体的领域方向代码；对冲无方向，留空。"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "baseCurrency": {
+            "type": "string"
+          },
+          "baseAmount": {
+            "type": "string"
+          },
+          "unconvertedCount": {
+            "type": "string"
+          }
+        },
+        "description": "财务列表完整筛选结果的明细金额，不叠加顶部有效业务指标的状态条件。"
+      },
+      "finance.v1.FinanceLedgerMatchedSummary": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "string"
+          },
+          "amounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceLedgerMatchedAmount"
+            }
+          }
+        }
+      },
       "finance.v1.FinanceNetting": {
         "type": "object",
         "properties": {
@@ -22624,6 +22663,9 @@
           },
           "summary": {
             "$ref": "#/components/schemas/finance.v1.FinanceBillSummary"
+          },
+          "matchedSummary": {
+            "$ref": "#/components/schemas/finance.v1.FinanceLedgerMatchedSummary"
           }
         }
       },
@@ -22654,6 +22696,9 @@
           },
           "summary": {
             "$ref": "#/components/schemas/finance.v1.FinanceCashflowSummary"
+          },
+          "matchedSummary": {
+            "$ref": "#/components/schemas/finance.v1.FinanceLedgerMatchedSummary"
           }
         }
       },
@@ -22962,6 +23007,9 @@
           },
           "traceId": {
             "type": "string"
+          },
+          "matchedSummary": {
+            "$ref": "#/components/schemas/finance.v1.FinanceLedgerMatchedSummary"
           }
         }
       },
@@ -23231,6 +23279,9 @@
           },
           "summary": {
             "$ref": "#/components/schemas/finance.v1.FinanceInvoiceSummary"
+          },
+          "matchedSummary": {
+            "$ref": "#/components/schemas/finance.v1.FinanceLedgerMatchedSummary"
           }
         }
       },
@@ -23261,6 +23312,9 @@
           },
           "summary": {
             "$ref": "#/components/schemas/finance.v1.FinanceNettingSummary"
+          },
+          "matchedSummary": {
+            "$ref": "#/components/schemas/finance.v1.FinanceLedgerMatchedSummary"
           }
         }
       },
@@ -23348,6 +23402,9 @@
           },
           "summary": {
             "$ref": "#/components/schemas/finance.v1.FinanceVerificationSummary"
+          },
+          "matchedSummary": {
+            "$ref": "#/components/schemas/finance.v1.FinanceLedgerMatchedSummary"
           }
         }
       },

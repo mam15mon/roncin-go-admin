@@ -53,10 +53,13 @@ func (r *financeCashflowRepo) ListScoped(ctx context.Context, organizationIDs []
 		return nil, clientErr
 	}
 	q := client.FinanceCashflow.Query().WithOrganization().Where(p...)
-	n, e := q.Clone().Count(ctx)
-	if e != nil {
-		return nil, e
+	matchedSummary, matchedErr := loadFinanceLedgerMatchedSummary(ctx, q.Clone().GroupBy(cash.FieldDirection, cash.FieldCurrency, cash.FieldBaseCurrency).Aggregate(financeLedgerMatchedAggregates(cash.FieldAmount, cash.FieldBaseAmount)...).Scan)
+	if matchedErr != nil {
+		return nil, matchedErr
 	}
+
+	n := int(matchedSummary.Count)
+	var e error
 	summaryPredicates := append([]predicate.FinanceCashflow{}, p...)
 	summaryPredicates = append(summaryPredicates, cash.StatusEQ(cash.StatusCONFIRMED))
 	summaryQuery := client.FinanceCashflow.Query().WithOrganization().Where(summaryPredicates...)
@@ -109,7 +112,7 @@ func (r *financeCashflowRepo) ListScoped(ctx context.Context, organizationIDs []
 	if e != nil {
 		return nil, e
 	}
-	out := &biz.FinanceCashflowListResult{Items: make([]*biz.FinanceCashflow, 0, len(xs)), Total: int64(n), Summary: summary}
+	out := &biz.FinanceCashflowListResult{MatchedSummary: matchedSummary, Items: make([]*biz.FinanceCashflow, 0, len(xs)), Total: int64(n), Summary: summary}
 	for _, x := range xs {
 		v, e := cashflowToBiz(x)
 		if e != nil {

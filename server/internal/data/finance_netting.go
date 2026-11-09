@@ -49,24 +49,16 @@ func (r *financeNettingRepo) List(ctx context.Context, organizationIDs []uuid.UU
 		predicates = append(predicates, financenettingent.CurrencyEQ(filter.Currency))
 	}
 	query := client.FinanceNetting.Query().Where(predicates...)
-	total, err := query.Clone().Count(ctx)
-	if err != nil {
-		return nil, err
+	matchedSummary, matchedErr := loadFinanceLedgerMatchedSummary(ctx, query.Clone().GroupBy(financenettingent.FieldCurrency, financenettingent.FieldBaseCurrency).Aggregate(financeLedgerMatchedAggregates(financenettingent.FieldAmount, financenettingent.FieldBaseCurrencyAmount)...).Scan)
+	if matchedErr != nil {
+		return nil, matchedErr
 	}
+
+	total := int(matchedSummary.Count)
 	// 汇总口径只统计已确认对冲；草稿、已取消与已反转记录保留审计但不进入有效金额。
-	summaryPredicates := []predicate.FinanceNetting{financenettingent.OrganizationIDIn(organizationIDs...), financenettingent.StatusEQ(financenettingent.StatusCONFIRMED)}
-	if filter.Keyword != "" {
-		summaryPredicates = append(summaryPredicates, financenettingent.Or(
-			financenettingent.NettingNoContainsFold(filter.Keyword),
-			financenettingent.SettlementPartyNameContainsFold(filter.Keyword),
-		))
-	}
-	if filter.SettlementPartyID != nil {
-		summaryPredicates = append(summaryPredicates, financenettingent.SettlementPartyIDEQ(*filter.SettlementPartyID))
-	}
-	if filter.Currency != "" {
-		summaryPredicates = append(summaryPredicates, financenettingent.CurrencyEQ(filter.Currency))
-	}
+	summaryPredicates := append([]predicate.FinanceNetting{}, predicates...)
+	summaryPredicates = append(summaryPredicates, financenettingent.StatusEQ(financenettingent.StatusCONFIRMED))
+
 	summaryQuery := client.FinanceNetting.Query().Where(summaryPredicates...)
 	confirmedCount, err := summaryQuery.Clone().Count(ctx)
 	if err != nil {
@@ -93,7 +85,7 @@ func (r *financeNettingRepo) List(ctx context.Context, organizationIDs []uuid.UU
 	if err != nil {
 		return nil, err
 	}
-	result := &biz.FinanceNettingListResult{Items: make([]*biz.FinanceNetting, 0, len(items)), Total: int64(total), Summary: biz.FinanceNettingSummary{AmountsByBaseCurrency: amounts, ConfirmedCount: int64(confirmedCount)}}
+	result := &biz.FinanceNettingListResult{MatchedSummary: matchedSummary, Items: make([]*biz.FinanceNetting, 0, len(items)), Total: int64(total), Summary: biz.FinanceNettingSummary{AmountsByBaseCurrency: amounts, ConfirmedCount: int64(confirmedCount)}}
 	for _, item := range items {
 		converted, convertErr := financeNettingToBiz(item)
 		if convertErr != nil {

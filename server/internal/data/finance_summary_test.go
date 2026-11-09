@@ -79,8 +79,8 @@ func TestFinanceCashflowListUsesFilteredDatabaseSummary(t *testing.T) {
 	data, mock := setupFinanceSummaryData(t)
 	repo := &financeCashflowRepo{data: data}
 
-	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_cashflows"`).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(5))
+	mock.ExpectQuery(`SELECT .*"record_count".*FROM "finance_cashflows"`).
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "currency", "base_currency", "record_count", "amount", "base_amount", "unconverted_count"}).AddRow("RECEIVABLE", "CNY", "CNY", 5, "0", "0", 0))
 	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_cashflows".*GROUP BY`).
 		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "base_amount"}).
 			AddRow("RECEIVABLE", "CNY", "200.5").
@@ -107,8 +107,8 @@ func TestFinanceBillListUsesFilteredDatabaseSummary(t *testing.T) {
 	data, mock := setupFinanceSummaryData(t)
 	repo := &financeBillRepo{data: data}
 
-	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_bills"`).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(3))
+	mock.ExpectQuery(`SELECT .*"record_count".*FROM "finance_bills"`).
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "currency", "base_currency", "record_count", "amount", "base_amount", "unconverted_count"}).AddRow("RECEIVABLE", "CNY", "CNY", 3, "0", "0", 0))
 	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_bills".*GROUP BY`).
 		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "base_amount"}).
 			AddRow("RECEIVABLE", "CNY", "150.25").
@@ -142,8 +142,8 @@ func TestFinanceCashflowListDeductsActiveAllocationsByBaseCurrency(t *testing.T)
 	usdID := uuid.New()
 	cnyID := uuid.New()
 
-	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_cashflows"`).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(4))
+	mock.ExpectQuery(`SELECT .*"record_count".*FROM "finance_cashflows"`).
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "currency", "base_currency", "record_count", "amount", "base_amount", "unconverted_count"}).AddRow("RECEIVABLE", "CNY", "CNY", 4, "0", "0", 0))
 	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_cashflows".*GROUP BY`).
 		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "base_amount"}).
 			AddRow("RECEIVABLE", "USD", "120").
@@ -179,8 +179,8 @@ func TestFinanceBillListDeductsActiveAllocationsByBaseCurrency(t *testing.T) {
 	usdID := uuid.New()
 	cnyID := uuid.New()
 
-	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_bills"`).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(4))
+	mock.ExpectQuery(`SELECT .*"record_count".*FROM "finance_bills"`).
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "currency", "base_currency", "record_count", "amount", "base_amount", "unconverted_count"}).AddRow("RECEIVABLE", "CNY", "CNY", 4, "0", "0", 0))
 	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_bills".*GROUP BY`).
 		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "base_amount"}).
 			AddRow("RECEIVABLE", "USD", "120").
@@ -226,8 +226,8 @@ func TestFinanceBillListOverdueSummary(t *testing.T) {
 	organizationID := uuid.New()
 	overdueBillID := uuid.New()
 
-	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_bills"`).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+	mock.ExpectQuery(`SELECT .*"record_count".*FROM "finance_bills"`).
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "currency", "base_currency", "record_count", "amount", "base_amount", "unconverted_count"}).AddRow("RECEIVABLE", "CNY", "CNY", 1, "0", "0", 0))
 	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_bills".*status.*GROUP BY`).
 		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "base_amount"}).
 			AddRow("RECEIVABLE", "CNY", "100"))
@@ -323,8 +323,8 @@ func TestFinanceInvoiceListUsesFilteredDatabaseSummary(t *testing.T) {
 	data, mock := setupFinanceSummaryData(t)
 	repo := &financeInvoiceRepo{data: data}
 
-	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_invoices"`).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(4))
+	mock.ExpectQuery(`SELECT .*"record_count".*FROM "finance_invoices"`).
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "currency", "base_currency", "record_count", "amount", "base_amount", "unconverted_count"}).AddRow("RECEIVABLE", "CNY", "CNY", 4, "0", "0", 0))
 	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_invoices".*GROUP BY`).
 		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "base_amount"}).
 			AddRow("RECEIVABLE", "CNY", "80").
@@ -351,8 +351,8 @@ func TestVerificationListUsesFilteredDatabaseSummary(t *testing.T) {
 	data, mock := setupFinanceSummaryData(t)
 	repo := &verificationRepo{data: data}
 
-	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_verifications".*"organization_id".*"status".*"direction"`).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(2))
+	mock.ExpectQuery(`SELECT .*"record_count".*FROM "finance_verifications".*"organization_id".*"status".*"direction"`).
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "currency", "base_currency", "record_count", "amount", "base_amount", "unconverted_count"}).AddRow("RECEIVABLE", "CNY", "CNY", 2, "0", "0", 0))
 	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_verifications".*"organization_id".*"status".*"direction".*GROUP BY`).
 		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "base_amount"}).
 			AddRow("RECEIVABLE", "CNY", "60").
@@ -378,13 +378,13 @@ func TestFinanceNettingListUsesFilteredDatabaseSummary(t *testing.T) {
 	repo := NewFinanceNettingRepo(data)
 	orgID := uuid.New()
 
-	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_nettings".*"organization_id".*("netting_no" ILIKE|"settlement_party_name" ILIKE)`).
+	mock.ExpectQuery(`SELECT .*"record_count".*FROM "finance_nettings".*"organization_id".*("netting_no" ILIKE|"settlement_party_name" ILIKE)`).
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "currency", "base_currency", "record_count", "amount", "base_amount", "unconverted_count"}).AddRow("RECEIVABLE", "CNY", "CNY", 1, "0", "0", 0))
+
+	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_nettings".*"organization_id".*("netting_no" ILIKE|"settlement_party_name" ILIKE).*"status"`).
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 
-	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_nettings".*"organization_id".*"status".*("netting_no" ILIKE|"settlement_party_name" ILIKE)`).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
-
-	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_nettings".*"organization_id".*"status".*("netting_no" ILIKE|"settlement_party_name" ILIKE).*GROUP BY`).
+	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_nettings".*"organization_id".*("netting_no" ILIKE|"settlement_party_name" ILIKE).*"status".*GROUP BY`).
 		WillReturnRows(sqlmock.NewRows([]string{"base_currency", "base_amount"}).AddRow("CNY", "150.00000000"))
 
 	mock.ExpectQuery(`SELECT "finance_nettings"\..*FROM "finance_nettings".*"organization_id".*("netting_no" ILIKE|"settlement_party_name" ILIKE).*ORDER BY.*LIMIT 20`).
@@ -437,9 +437,9 @@ func TestFinanceBillOnlyUnsettledDefaultsToConfirmed(t *testing.T) {
 	repo := &financeBillRepo{data: data}
 	organizationID := uuid.New()
 
-	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_bills".*WHERE.*"organization_id" IN \(\$1\).*AND.*"status" = \$2.*fva.*fna`).
+	mock.ExpectQuery(`SELECT .*"record_count".*FROM "finance_bills".*WHERE.*"organization_id" IN \(\$1\).*AND.*"status" = \$2.*fva.*fna`).
 		WithArgs(organizationID, financebillent.StatusCONFIRMED).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "currency", "base_currency", "record_count", "amount", "base_amount", "unconverted_count"}).AddRow("RECEIVABLE", "CNY", "CNY", 0, "0", "0", 0))
 	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_bills"`).
 		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "base_amount"}))
 	mock.ExpectQuery(`SELECT .*FROM "finance_verification_allocations"`).
@@ -467,8 +467,8 @@ func TestFinanceSummaryExcludesInvalidStatuses(t *testing.T) {
 
 	// 1. 验证账单汇总严格过滤已确认状态（即便列表未传状态筛选）
 	billRepo := &financeBillRepo{data: data}
-	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_bills"`).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(2))
+	mock.ExpectQuery(`SELECT .*"record_count".*FROM "finance_bills"`).
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "currency", "base_currency", "record_count", "amount", "base_amount", "unconverted_count"}).AddRow("RECEIVABLE", "CNY", "CNY", 2, "0", "0", 0))
 	// 汇总查询必须包含 "finance_bills"."status" = $2 (CONFIRMED)
 	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_bills".*"status".*GROUP BY`).
 		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "base_amount"}).
@@ -489,8 +489,8 @@ func TestFinanceSummaryExcludesInvalidStatuses(t *testing.T) {
 
 	// 2. 验证发票汇总严格过滤已开具状态
 	invoiceRepo := &financeInvoiceRepo{data: data}
-	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_invoices"`).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+	mock.ExpectQuery(`SELECT .*"record_count".*FROM "finance_invoices"`).
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "currency", "base_currency", "record_count", "amount", "base_amount", "unconverted_count"}).AddRow("RECEIVABLE", "CNY", "CNY", 1, "0", "0", 0))
 	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_invoices".*"status".*GROUP BY`).
 		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "base_amount"}).
 			AddRow("RECEIVABLE", "CNY", "100"))
@@ -506,8 +506,8 @@ func TestFinanceSummaryExcludesInvalidStatuses(t *testing.T) {
 
 	// 3. 验证资金流水汇总严格过滤已确认状态
 	cashflowRepo := &financeCashflowRepo{data: data}
-	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_cashflows"`).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+	mock.ExpectQuery(`SELECT .*"record_count".*FROM "finance_cashflows"`).
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "currency", "base_currency", "record_count", "amount", "base_amount", "unconverted_count"}).AddRow("RECEIVABLE", "CNY", "CNY", 1, "0", "0", 0))
 	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_cashflows".*"status".*GROUP BY`).
 		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "base_amount"}).
 			AddRow("RECEIVABLE", "CNY", "100"))
@@ -523,8 +523,8 @@ func TestFinanceSummaryExcludesInvalidStatuses(t *testing.T) {
 
 	// 4. 验证核销汇总严格过滤有效状态
 	verRepo := &verificationRepo{data: data}
-	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_verifications"`).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+	mock.ExpectQuery(`SELECT .*"record_count".*FROM "finance_verifications"`).
+		WillReturnRows(sqlmock.NewRows([]string{"direction", "currency", "base_currency", "record_count", "amount", "base_amount", "unconverted_count"}).AddRow("RECEIVABLE", "CNY", "CNY", 1, "0", "0", 0))
 	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_verifications".*"status".*GROUP BY`).
 		WillReturnRows(sqlmock.NewRows([]string{"direction", "base_currency", "base_amount"}).
 			AddRow("RECEIVABLE", "CNY", "100"))
