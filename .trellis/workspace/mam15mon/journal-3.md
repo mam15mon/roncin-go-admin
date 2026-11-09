@@ -1358,3 +1358,34 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Next Steps
 
 - 正式环境发版时按正常迁移流程应用20261109100000；本次不部署
+
+
+## Session 197: 财务页面及弹窗绑定当前公司工作区
+<!-- trellis-session: v=2 fp=a29223615d61034a -->
+
+**Date**: 2026-11-09
+**Task**: 财务页面及弹窗绑定当前公司工作区
+**Branch**: `codex/finance-current-workspace`
+
+### Summary
+
+移除全部财务公司选择及候选RPC，列表候选预览写入统一认证当前公司；独立最终review无阻塞，完整门禁与最终前端408套2236例通过，无数据库操作。
+
+### Main Changes
+
+- 同步用途枚举reserved、生成物、来源等值检查和已选来源快照，保护工作区与未保存输入隔离
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b6393686` | refactor: 财务页面与业务弹窗统一绑定当前公司 |
+
+### Testing
+
+- [OK] check:fast全通过；最终check:web 408套2236例通过，原有1套11例跳过
+- [OK] 独立review重跑tsc、来源8例、真实注册与权限回归通过；生成物118文件幂等
+
+### Status
+
+[OK] **Completed**
