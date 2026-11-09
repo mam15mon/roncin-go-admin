@@ -34,7 +34,6 @@ interface PersonnelAssignmentFieldsProps {
   userField: string;
   options: PersonnelAssignmentOption[];
   disabled?: boolean;
-  nameOnly?: boolean;
   /** 表单校验规则：新建模式下提成相关三岗由调用方传入必填规则。 */
   rules?: Rule[];
 }
@@ -44,7 +43,6 @@ export function PersonnelAssignmentFields({
   userField,
   options,
   disabled = false,
-  nameOnly = false,
   rules,
 }: PersonnelAssignmentFieldsProps) {
   const userOptions = Array.from(
@@ -54,9 +52,7 @@ export function PersonnelAssignmentFields({
         .map((option) => [
           option.userId as string,
           {
-            label: nameOnly
-              ? option.displayName || '未命名人员'
-              : formatPersonnelLabel(option),
+            label: formatPersonnelLabel(option),
             value: option.userId as string,
           },
         ]),
@@ -132,7 +128,6 @@ export function buildSeaPersonnelSection(props: TemplateProps) {
               : []
           }
           disabled
-          nameOnly={!isDetail}
         />
         {fields.map(({ label, userField, rules, locked }) => (
           <PersonnelAssignmentFields
@@ -142,7 +137,6 @@ export function buildSeaPersonnelSection(props: TemplateProps) {
             options={personnelOptions}
             rules={rules}
             disabled={locked || props.personnelReadonly}
-            nameOnly={!isDetail}
           />
         ))}
       </FormRow>

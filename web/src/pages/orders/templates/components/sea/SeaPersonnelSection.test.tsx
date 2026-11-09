@@ -70,7 +70,6 @@ describe('订单人员选择', () => {
           <PersonnelAssignmentFields
             label="操作"
             userField="operatorUserId"
-            nameOnly
             options={[
               {
                 userId: 'user-a',

@@ -38,6 +38,7 @@ import type {
 import {
   OrderAllowedAction,
   OrderClosureStatus,
+  OrderPersonnelRole,
   OrderTerminationStatus,
 } from '@/enums.generated';
 import { searchShippingLineOptions } from '@/features/master-data/shipping-lines';
@@ -610,6 +611,9 @@ export default function OrderDetailPage() {
   const foreignAgentSeeds = foreignAgentOption ? [foreignAgentOption] : [];
   const shippingAgentSeeds = shippingAgentOption ? [shippingAgentOption] : [];
   const shippingLineSeeds = shippingLineOption ? [shippingLineOption] : [];
+  const creatorUserId = personnel.find(
+    (item) => item.role === OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CREATOR,
+  )?.userId;
   const templateProps = useMemo(
     () => ({
       cargoCategoryOptions,
@@ -647,6 +651,10 @@ export default function OrderDetailPage() {
       setCustomerCode: (code?: string) =>
         formRef.current?.setFieldValue('customerCode', code ?? ''),
       personnelOptions,
+      // 创建人可能已停用或不在可选人员中，姓名使用订单详情的只读投影。
+      creator: creatorUserId
+        ? { userId: creatorUserId, displayName: order?.creatorName ?? '' }
+        : undefined,
       personnelReadonly: !canSearchPersonnel,
       readonly:
         effectiveReadonly ||
@@ -751,6 +759,8 @@ export default function OrderDetailPage() {
       currencyOptions,
       containerSpecOptions,
       personnelOptions,
+      creatorUserId,
+      order?.creatorName,
       canSearchPersonnel,
       effectiveReadonly,
       order?.organizationId,

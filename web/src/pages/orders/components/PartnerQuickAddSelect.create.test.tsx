@@ -268,7 +268,7 @@ describe('PartnerQuickAddSelect', () => {
         .closest('[role="dialog"]')
         ?.querySelectorAll('[role="combobox"]'),
     ).toHaveLength(3);
-    await pickSelectOption(comboboxes[0], '张三 · 公司');
+    await pickSelectOption(comboboxes[0], '张三');
     await savePartner();
 
     await waitFor(() =>
