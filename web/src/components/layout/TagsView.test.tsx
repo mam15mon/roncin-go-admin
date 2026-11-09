@@ -14,6 +14,7 @@ import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setAppFeedback } from '@/utils/appFeedback';
 import { getFormDraftKey, getFormDraftScope, hasTabDraft } from './formDraft';
+import { HeaderTitle } from './HeaderTitle';
 import { resolveRouteTitle, resolveTabKey } from './routeUtils';
 import {
   computeNextActivePath,
@@ -333,6 +334,19 @@ describe('TagsView Component', () => {
     render(<TagsView />);
     expect(screen.getByText('工作台')).toBeInTheDocument();
     expect(screen.queryByLabelText('关闭 工作台')).not.toBeInTheDocument();
+  });
+
+  it('直接进入对冲管理时页签与顶栏均显示中文名称', () => {
+    mockPathname = '/finance/nettings';
+    render(
+      <>
+        <HeaderTitle />
+        <TagsView />
+      </>,
+    );
+    expect(screen.getAllByText('对冲管理')).toHaveLength(2);
+    expect(screen.queryByText('nettings')).not.toBeInTheDocument();
+    expect(resolveRouteTitle('/finance/nettings/')).toBe('对冲管理');
   });
 
   it.each([

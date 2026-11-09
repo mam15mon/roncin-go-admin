@@ -24,6 +24,7 @@ export const ROUTE_TITLE_MAP: Record<string, string> = {
   '/finance/invoices': '开票记录',
   '/finance/cashflows': '收付管理',
   '/finance/verifications': '核销管理',
+  '/finance/nettings': '对冲管理',
   '/finance/commissions': '提成管理',
   '/admin': '系统管理',
   '/admin/notification-test': '通知测试',

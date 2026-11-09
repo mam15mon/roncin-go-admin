@@ -35,6 +35,7 @@ import {
   settlementServiceListFinanceOrganizationOptions,
 } from '@/services/roncin/settlementService';
 import { isWriteResponse, toTableRequest, unwrapPage } from '@/utils/api';
+import { formatAmount } from '@/utils/format';
 import {
   type FeeLedgerFilterParams,
   FeeLedgerSearchFilter,
@@ -180,7 +181,10 @@ export default function FinanceFeeLedgerPage() {
     field: 'receivableBaseAmount' | 'payableBaseAmount' | 'profitBaseAmount',
   ) =>
     summary?.amountsByBaseCurrency
-      ?.map((item) => `${amount(item[field])} ${item.baseCurrency || '-'}`)
+      ?.map(
+        (item) =>
+          `${formatAmount(item[field] ?? '0')} ${item.baseCurrency || '-'}`,
+      )
       .join(' / ') || '-';
   const metricCards: FinanceLedgerMetricCard[] = [
     {

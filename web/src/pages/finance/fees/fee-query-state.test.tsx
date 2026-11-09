@@ -13,6 +13,7 @@ import { settlementServiceListFeeLedger } from '@/services/roncin/settlementServ
 import FinanceFeeLedgerPage from './index';
 
 type LedgerProps = {
+  metricCards: { key: string; value: string | number }[];
   pagination: { defaultCurrent: number; defaultPageSize: number };
   actionRef: { current: unknown };
   customSearch: ReactNode;
@@ -95,6 +96,54 @@ function Seed() {
   return null;
 }
 describe('费用查询恢复消费', () => {
+  it('顶部汇总金额统一千分位和两位小数，保留负值并将空金额显示为零', async () => {
+    vi.mocked(settlementServiceListFeeLedger).mockResolvedValueOnce({
+      data: [],
+      total: '0',
+      summary: {
+        amountsByBaseCurrency: [
+          {
+            baseCurrency: 'CNY',
+            receivableBaseAmount: '3106.4252',
+            payableBaseAmount: '1739.1046',
+            profitBaseAmount: '1367.3206',
+          },
+          {
+            baseCurrency: 'USD',
+            payableBaseAmount: '111.00000000',
+            profitBaseAmount: '-111.00000000',
+          },
+        ],
+      },
+    });
+    renderWithClient(
+      <ListQueryStateProvider enabled>
+        <App>
+          <FinanceFeeLedgerPage />
+        </App>
+      </ListQueryStateProvider>,
+    );
+    await act(async () => {
+      await state.ledger?.request({ current: 1, pageSize: 40 });
+    });
+    expect(state.ledger?.metricCards).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key: 'receivable-base',
+          value: '3,106.43 CNY / 0.00 USD',
+        }),
+        expect.objectContaining({
+          key: 'payable-base',
+          value: '1,739.10 CNY / 111.00 USD',
+        }),
+        expect.objectContaining({
+          key: 'profit-base',
+          value: '1,367.32 CNY / -111.00 USD',
+        }),
+      ]),
+    );
+  });
+
   it('保存原始筛选而保留原keyword优先级，日期/公司/标签/分页恢复，提交立即生效，重置保公司标签', async () => {
     const { rerender, queryClient } = renderWithClient(
       <ListQueryStateProvider enabled>

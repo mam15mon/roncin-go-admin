@@ -138,7 +138,7 @@ export function FinanceSummaryBoard({
           }
           return (
             <span key={curr} style={{ whiteSpace: 'nowrap' }}>
-              {idx > 0 && (
+              {idx > 0 && !isProfit && (
                 <span style={{ color: '#bfbfbf', margin: '0 3px' }}>+</span>
               )}
               <strong style={{ color }}>
