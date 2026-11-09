@@ -1,0 +1,7 @@
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "前端变更边界和验收要求"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "模板dirty、草稿、保存成功及并发基线契约；详情策略由本任务更新"}
+{"file": ".trellis/spec/web/frontend/organization-switch.md", "reason": "组织离开确认、多guard及路由源location key保护"}
+{"file": ".trellis/spec/web/frontend/directory-structure.md", "reason": "通用守卫与页面分层边界"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "定向测试、类型与完整前端门禁"}
+{"file": ".trellis/tasks/11-09-order-unsaved-close-guard/research/tab-close.md", "reason": "现有页签关闭、真实路由和beforeunload最薄方案"}
+{"file": ".trellis/tasks/11-09-order-unsaved-close-guard/research/order-drafts.md", "reason": "主详情草稿删除、dirty及版本基线、受影响测试"}
