@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 194
+- **Total Sessions**: 195
 - **Last Active**: 2026-11-09
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~1300 | Active |
+| `journal-3.md` | ~1325 | Active |
 | `journal-2.md` | ~2003 | Archived |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 195 | 2026-11-09 | 财务筛选汇总与跨页选择公共契约修复 | `3495b19f`, `611c8523`, `425d1c52`, `0e4974a0` | `codex/shared-ui-contracts` |
 | 194 | 2026-11-09 | 统一主数据 ProtoJSON 映射与防复发门禁 | `fc1740c0`, `af4b252f` | `codex/protojson-response-contract` |
 | 193 | 2026-11-08 | 提成调整公司名称修复与恢复现场核验 | `7f2c5666` | `codex/commission-adjustment-company` |
 | 192 | 2026-11-08 | 海运退关原子恢复与现场补链 | `a0b2783b` | `codex/sea-order-restore-link` |

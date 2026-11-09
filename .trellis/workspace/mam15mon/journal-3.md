@@ -1298,3 +1298,28 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 195: 财务筛选汇总与跨页选择公共契约修复
+<!-- trellis-session: v=2 fp=19f5646275d80b6a -->
+
+**Date**: 2026-11-09
+**Task**: 财务筛选汇总与跨页选择公共契约修复
+**Branch**: `codex/shared-ui-contracts`
+
+### Summary
+
+六类财务列表完整分币种筛选汇总与官方采纳快照，跨页勾选及筛选清空；统一路由标题并修复改配预览提示。独立review无阻塞，六实体真实PostgreSQL集成PASS，check:fast全栈PASS；并行分页修复已合入，按授权合并main删分支push。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3495b19f` | fix: 统一路由标题来源并修复改配预览与资格提示 |
+| `611c8523` | feat: 为六类财务列表提供完整筛选分币种汇总 |
+| `425d1c52` | fix: 统一财务采纳快照与跨页选择汇总 |
+| `0e4974a0` | test: 完善财务失败提示回归并记录独立验收结果 |
+
+### Status
+
+[OK] **Completed**
