@@ -1,4 +1,3 @@
-import { AsyncPopconfirm } from '@/components/ui';
 import {
   DeleteOutlined,
   EditOutlined,
@@ -21,8 +20,12 @@ import React, {
 } from 'react';
 import { useSearchParams } from 'react-router';
 import { useAccess } from '@/app/access';
-import { ResponsiveProTable as ProTable } from '@/components/ui';
+import {
+  AsyncPopconfirm,
+  ResponsiveProTable as ProTable,
+} from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
+import { getRequestErrorMessage } from '@/requestErrorConfig';
 import { history } from '@/router/history';
 import {
   enterpriseResourceServiceBatchAssignAddressTypes,
@@ -290,8 +293,9 @@ const EnterpriseResourcesPage: React.FC = () => {
     return input;
   };
 
-  const saveResource = async (): Promise<false | undefined> => {
-    const values = await form.validateFields();
+  const saveResource = async (
+    values: EditorValues,
+  ): Promise<false | undefined> => {
     setSaving(true);
     try {
       const input = toInput(values);
@@ -312,6 +316,9 @@ const EnterpriseResourcesPage: React.FC = () => {
       message.success(editing ? '资源已更新' : '资源已创建');
       setEditorOpen(false);
       actionRef.current?.reload();
+    } catch (error) {
+      message.error(getRequestErrorMessage(error, '资源保存失败，请稍后重试'));
+      return false;
     } finally {
       setSaving(false);
     }
@@ -879,7 +886,7 @@ const EnterpriseResourcesPage: React.FC = () => {
         editing={editing}
         saving={saving}
         form={form}
-        onSave={() => void saveResource()}
+        onSave={saveResource}
         imageFiles={imageFiles}
         setImageFiles={setImageFiles}
         capabilities={capabilities}

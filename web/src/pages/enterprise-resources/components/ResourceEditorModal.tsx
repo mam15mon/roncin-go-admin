@@ -35,7 +35,7 @@ type ResourceEditorModalProps = {
   editing?: API.EnterpriseResource;
   saving: boolean;
   form: FormInstance<EditorValues>;
-  onSave: () => void;
+  onSave: (values: EditorValues) => undefined | Promise<false | undefined>;
   imageFiles: UploadFile[];
   setImageFiles: Dispatch<SetStateAction<UploadFile[]>>;
   capabilities?: API.GetEnterpriseResourceCapabilitiesResponse;
@@ -88,11 +88,16 @@ export default function ResourceEditorModal({
       open={open}
       width={MODAL_SIZE.MD}
       confirmLoading={saving}
-      onOk={onSave}
+      onOk={() => form.submit()}
       onCancel={() => setOpen(false)}
       destroyOnHidden
     >
-      <Form form={form} layout="vertical" onValuesChange={markDirty}>
+      <Form
+        form={form}
+        layout="vertical"
+        onValuesChange={markDirty}
+        onFinish={onSave}
+      >
         <Space align="start" size={16} style={{ width: '100%' }}>
           <Form.Item
             name="shortName"
