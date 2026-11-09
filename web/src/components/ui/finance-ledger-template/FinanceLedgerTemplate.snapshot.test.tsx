@@ -75,9 +75,9 @@ describe('财务台账官方采纳快照', () => {
       .fn()
       .mockRejectedValue(new TypeError('Cannot read properties of undefined'));
     const { accepted } = setup(request);
-    expect(
-      await screen.findByText('财务列表加载失败，请稍后重试'),
-    ).toBeVisible();
+    await waitFor(() =>
+      expect(screen.getByText('财务列表加载失败，请稍后重试')).toBeVisible(),
+    );
     expect(screen.getByRole('status', { name: '金额合计' })).toHaveTextContent(
       '汇总尚未加载',
     );
@@ -89,13 +89,15 @@ describe('财务台账官方采纳快照', () => {
   });
 
   it('列表独立处理请求错误时保留服务端中文原因', async () => {
-    const request = vi
-      .fn()
-      .mockRejectedValue({
+    const request = vi.fn().mockRejectedValue(
+      Object.assign(new Error('Request failed with status code 403'), {
         response: { data: { message: '当前公司无权读取账单' } },
-      });
+      }),
+    );
     const { accepted } = setup(request);
-    expect(await screen.findByText('当前公司无权读取账单')).toBeVisible();
+    await waitFor(() =>
+      expect(screen.getByText('当前公司无权读取账单')).toBeVisible(),
+    );
     expect(
       screen.queryByText('财务列表加载失败，请稍后重试'),
     ).not.toBeInTheDocument();

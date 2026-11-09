@@ -36,4 +36,4 @@
 - 不顺带改变空运页签归组、动态顶栏单号、配置中心 query 页签命名或拆票业务。
 
 ## 规划与风险
-设计及执行计划分别见 design.md、implement.md，研究和真实复现已归档于本任务 research/。生成物影响较广，必须按正式生成流程与全栈门禁验收。待用户审阅本轮最终摘要后开始实施，当前未修改产品代码。
+设计及执行计划分别见 design.md、implement.md，研究和真实复现已归档于本任务 research/。生成物影响较广，必须按正式生成流程与全栈门禁验收。用户已批准最终摘要并明确授权实施、独立review、合并main、安全删分支和push。实施与独立review、全栈门禁均完成；具体验收记录见implement.md与research/independent-review.md。
