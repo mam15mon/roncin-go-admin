@@ -1,0 +1,9 @@
+{"file": "AGENTS.md", "reason": "纯文档变更边界、中文、验证与按组提交要求"}
+{"file": ".trellis/spec/domain/architecture-map.md", "reason": "现行领域及模块定位，费用审核/工作区/空运口径"}
+{"file": ".trellis/spec/server/backend/index.md", "reason": "后端专项规范导航"}
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "前端专项规范导航"}
+{"file": ".trellis/tasks/11-09-documentation-current-state/research/document-inventory.md", "reason": "全量文档范围与分类边界"}
+{"file": ".trellis/tasks/11-09-documentation-current-state/research/adr-doc-audit.md", "reason": "ADR、生成链及链接核查依据"}
+{"file": ".trellis/tasks/11-09-documentation-current-state/research/general-doc-audit.md", "reason": "根目录及 docs 的源码差异与历史计划状态"}
+{"file": ".trellis/tasks/11-09-documentation-current-state/research/backend-doc-audit.md", "reason": "后端说明和专项规范的现状差异"}
+{"file": ".trellis/tasks/11-09-documentation-current-state/research/web-doc-audit.md", "reason": "前端说明、草稿与仓库自带技能的现状差异"}
