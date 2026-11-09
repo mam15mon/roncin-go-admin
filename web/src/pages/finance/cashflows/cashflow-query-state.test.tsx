@@ -1,3 +1,4 @@
+import type { ProColumns } from '@ant-design/pro-components';
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
 import { act } from '@testing-library/react';
 import { App } from 'antd';
@@ -8,8 +9,10 @@ import {
 } from '@/components/ui/list-query-state';
 import { settlementServiceListCashflows } from '@/services/roncin/settlementService';
 import FinanceCashflowsPage from './index';
+import { cashflowExportColumns, paymentMethodOptions } from './ledgerExport';
 
 type LedgerProps = {
+  columns: ProColumns<API.FinanceCashflow>[];
   form: { initialValues: Record<string, unknown> };
   formRef: { current: unknown };
   onReset: () => void;
@@ -76,6 +79,50 @@ function Seed() {
   return null;
 }
 describe('流水原生搜索恢复消费', () => {
+  it('支付方式列与登记选项和 CSV 使用一致的业务名称', async () => {
+    renderWithClient(
+      <App>
+        <FinanceCashflowsPage />
+      </App>,
+    );
+    await act(async () => {});
+    const column = state.ledger?.columns.find(
+      (item) => item.dataIndex === 'paymentMethod',
+    );
+    const exportColumn = cashflowExportColumns.find(
+      (item) => item.header === '结算方式',
+    );
+    if (!column?.renderText || !exportColumn) {
+      throw new Error('缺少支付方式展示配置');
+    }
+    const action = {
+      reload: vi.fn(),
+      isEditable: vi.fn(),
+      startEditable: vi.fn(),
+      cancelEditable: vi.fn(),
+      addEditRecord: vi.fn(),
+      saveEditable: vi.fn(),
+      preEditableKeys: undefined,
+      onValuesChange: vi.fn(),
+      getRealIndex: undefined,
+    };
+    for (const [flowNo, paymentMethod, label] of [
+      ['PR2026110600001', 'BANK_TRANSFER', '银行转账'],
+      ['PR2026110600002', 'BANK_TRANSFER', '银行转账'],
+      ['PR-CHECK', 'CHECK', '支票'],
+      ['PR-CASH', 'CASH', '现金'],
+      ['PR-THIRD-PARTY', 'THIRD_PARTY', '第三方支付'],
+    ]) {
+      const row = { flowNo, paymentMethod };
+      expect(column.renderText(paymentMethod, row, 0, action)).toBe(label);
+      expect(exportColumn.value(row)).toBe(label);
+      expect(
+        paymentMethodOptions.find((option) => option.value === paymentMethod)
+          ?.label,
+      ).toBe(label);
+    }
+  });
+
   it('恢复方向状态与初始化分页，重置清恢复条件与表单但保目标公司', async () => {
     const { rerender, queryClient } = renderWithClient(
       <ListQueryStateProvider enabled>

@@ -59,6 +59,7 @@ import { makeVersionActions } from '@/utils/versionActions';
 
 import {
   cashflowExportColumns,
+  getPaymentMethodLabel,
   paymentMethodOptions,
   cashflowStates as states,
 } from './ledgerExport';
@@ -423,6 +424,7 @@ export default function FinanceCashflowsPage() {
       dataIndex: 'paymentMethod',
       width: 95,
       search: false,
+      renderText: (_, row) => getPaymentMethodLabel(row.paymentMethod),
     },
     {
       title: '银行水单号',

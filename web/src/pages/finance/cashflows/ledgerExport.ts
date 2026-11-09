@@ -9,6 +9,13 @@ export const paymentMethodOptions = [
   { label: '第三方支付', value: 'THIRD_PARTY' },
 ];
 
+export function getPaymentMethodLabel(paymentMethod: string | undefined) {
+  return (
+    paymentMethodOptions.find((option) => option.value === paymentMethod)
+      ?.label ?? paymentMethod
+  );
+}
+
 export const cashflowStates: Record<number, { text: string; color: string }> = {
   [FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_DRAFT]: {
     text: '草稿',
@@ -72,9 +79,7 @@ export const cashflowExportColumns: CsvColumn<API.FinanceCashflow>[] = [
   { header: '对方账户', value: (row) => row.counterpartyAccount },
   {
     header: '结算方式',
-    value: (row) =>
-      paymentMethodOptions.find((option) => option.value === row.paymentMethod)
-        ?.label ?? row.paymentMethod,
+    value: (row) => getPaymentMethodLabel(row.paymentMethod),
   },
   { header: '银行流水号', value: (row) => row.bankReferenceNo },
   { header: '备注', value: (row) => row.note },
