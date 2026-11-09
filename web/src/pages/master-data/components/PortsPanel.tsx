@@ -11,7 +11,10 @@ import {
   masterDataServiceListPorts,
   masterDataServiceUpdatePort,
 } from '@/services/roncin/masterDataService';
-import type { PersistedMasterDataItem } from './masterDataMapper';
+import {
+  mapPersistedMasterDataFields,
+  type PersistedMasterDataItem,
+} from './masterDataMapper';
 
 export interface PortItem extends PersistedMasterDataItem {
   countryCode: string;
@@ -25,29 +28,17 @@ const MODE_LABELS: Record<string, { label: string; color: string }> = {
   ROAD: { label: '公路集散', color: 'green' },
 };
 
-const mapPort = (item: API.Port): PortItem => {
-  if (
-    !item.id ||
-    !item.unLocode ||
-    !item.nameEn ||
-    !item.countryCode ||
-    item.enabled === undefined ||
-    item.source === undefined ||
-    item.sortOrder === undefined
-  ) {
+export const mapPort = (item: API.Port): PortItem => {
+  if (!item.unLocode || !item.nameEn || !item.countryCode) {
     throw new Error('港口响应缺少必填字段');
   }
   return {
-    id: item.id,
+    ...mapPersistedMasterDataFields(item, '港口'),
     code: item.unLocode,
     name: item.nameZh ?? '',
     nameEn: item.nameEn,
     countryCode: item.countryCode,
     modes: item.transportModes ?? [],
-    enabled: item.enabled,
-    source: item.source,
-    sortOrder: item.sortOrder,
-    updatedAt: item.updatedAt,
   };
 };
 

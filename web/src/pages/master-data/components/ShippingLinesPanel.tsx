@@ -11,7 +11,10 @@ import {
   masterDataServiceListShippingLines,
   masterDataServiceUpdateShippingLine,
 } from '@/services/roncin/masterDataService';
-import type { PersistedMasterDataItem } from './masterDataMapper';
+import {
+  mapPersistedMasterDataFields,
+  type PersistedMasterDataItem,
+} from './masterDataMapper';
 
 export interface ShippingLineItem extends PersistedMasterDataItem {
   containerPrefixes: string[];
@@ -22,22 +25,13 @@ export interface ShippingLineItem extends PersistedMasterDataItem {
   alliance?: string;
 }
 
-const mapShippingLine = (item: API.ShippingLine): ShippingLineItem => {
-  if (
-    !item.id ||
-    !item.scacCode ||
-    !item.nameZh ||
-    !item.nameEn ||
-    !item.countryCode ||
-    item.enabled === undefined ||
-    item.source === undefined ||
-    item.sortOrder === undefined
-  ) {
+export const mapShippingLine = (item: API.ShippingLine): ShippingLineItem => {
+  if (!item.scacCode || !item.nameZh || !item.nameEn || !item.countryCode) {
     throw new Error('船司响应缺少必填字段');
   }
   const containerPrefixes = item.containerPrefixes ?? [];
   return {
-    id: item.id,
+    ...mapPersistedMasterDataFields(item, '船司'),
     code: item.scacCode,
     name: item.nameZh,
     nameEn: item.nameEn,
@@ -46,10 +40,6 @@ const mapShippingLine = (item: API.ShippingLine): ShippingLineItem => {
     alliance: item.alliance,
     containerPrefixes,
     containerPrefixesText: containerPrefixes.join(', '),
-    enabled: item.enabled,
-    source: item.source,
-    sortOrder: item.sortOrder,
-    updatedAt: item.updatedAt,
   };
 };
 

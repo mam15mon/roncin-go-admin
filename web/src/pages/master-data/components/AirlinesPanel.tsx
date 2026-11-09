@@ -11,7 +11,10 @@ import {
   masterDataServiceListAirlines,
   masterDataServiceUpdateAirline,
 } from '@/services/roncin/masterDataService';
-import type { PersistedMasterDataItem } from './masterDataMapper';
+import {
+  mapPersistedMasterDataFields,
+  type PersistedMasterDataItem,
+} from './masterDataMapper';
 
 export interface AirlineItem extends PersistedMasterDataItem {
   awbPrefix?: string;
@@ -21,31 +24,19 @@ export interface AirlineItem extends PersistedMasterDataItem {
   isCargoOnly?: boolean;
 }
 
-const mapAirline = (item: API.Airline): AirlineItem => {
-  if (
-    !item.id ||
-    !item.iataCode ||
-    !item.nameEn ||
-    !item.countryCode ||
-    item.enabled === undefined ||
-    item.source === undefined ||
-    item.sortOrder === undefined
-  ) {
+export const mapAirline = (item: API.Airline): AirlineItem => {
+  if (!item.iataCode || !item.nameEn || !item.countryCode) {
     throw new Error('航司响应缺少必填字段');
   }
   return {
-    id: item.id,
+    ...mapPersistedMasterDataFields(item, '航司'),
     code: item.iataCode,
     icaoCode: item.icaoCode,
     awbPrefix: item.awbPrefix,
     name: item.nameZh || item.nameEn,
     nameEn: item.nameEn,
     countryCode: item.countryCode,
-    isCargoOnly: item.cargoOnly,
-    enabled: item.enabled,
-    source: item.source,
-    sortOrder: item.sortOrder,
-    updatedAt: item.updatedAt,
+    isCargoOnly: item.cargoOnly ?? false,
   };
 };
 

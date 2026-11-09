@@ -16,6 +16,12 @@ describe('主数据 ProtoJSON 映射', () => {
     });
   });
 
+  it('显式零值与省略零值映射一致', () => {
+    expect(
+      mapPersistedMasterDataItem({ ...item, enabled: false, sortOrder: 0 }),
+    ).toEqual(mapPersistedMasterDataItem(item));
+  });
+
   it('保留显式排序和启用状态', () => {
     expect(
       mapPersistedMasterDataItem({ ...item, sortOrder: 10, enabled: true }),

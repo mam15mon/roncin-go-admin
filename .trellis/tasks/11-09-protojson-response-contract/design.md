@@ -8,7 +8,7 @@ server/internal/server/jsoncodec.go:35-36 按 ProtoJSON 默认规则省略非 op
 
 公共 UI 模板消费转换后的稳定行模型，不承担 Proto 解码或具体 API 类型判断。现有复用范围在主数据页面模块内，不额外迁移 features；真正跨页面领域使用再提取公共 feature 入口。
 
-非 optional enabled/sortOrder 缺失分别按 false/0 解读；optional 字段保留 undefined；不可用全局 JSON 拦截器猜测字段，也不对所有 undefined 统一填零。来源与业务标识继续按现有业务约束验证，不把损坏响应吞成空数组。
+非 optional enabled/sortOrder 缺失分别按 false/0 解读；协议与业务判断保留 optional 的存在性（已明确的纯展示空文本投影保持）；不可用全局 JSON 拦截器猜测字段，也不对所有 undefined 统一填零。来源与业务标识继续按现有业务约束验证，不把损坏响应吞成空数组。
 
 ## 防复发
 1. AGENTS.md 明确 Proto 为真相源、presence 区分、响应转换归属及复用要求；类型安全 spec 替换仅限布尔比较的片面规则，导航登记 mapper。

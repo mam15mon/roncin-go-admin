@@ -1,11 +1,14 @@
 package server
 
 import (
+	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/go-kratos/kratos/v3/encoding"
 	adminv1 "github.com/roncin/roncin-go-admin/server/api/admin/v1"
 	financev1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
+	masterdatav1 "github.com/roncin/roncin-go-admin/server/api/masterdata/v1"
 	partnerv1 "github.com/roncin/roncin-go-admin/server/api/partner/v1"
 	"go.einride.tech/aip/fieldbehavior"
 	"google.golang.org/protobuf/proto"
@@ -123,5 +126,94 @@ func TestProtoJSONCodecKeepsExplicitZeroExpectedVersionPresence(t *testing.T) {
 				t.Fatalf("未覆盖的请求类型 %T", request)
 			}
 		})
+	}
+}
+
+// 主数据响应的标量零值省略是实际 wire 契约，前端必须按字段 presence 适配。
+func TestProtoJSONCodecMasterDataResponseZeroValues(t *testing.T) {
+	codec := encoding.GetCodec("json")
+	tests := []struct {
+		name    string
+		message proto.Message
+	}{
+		{"通用主数据", &masterdatav1.MasterDataItem{Id: "record-1", Source: "seed"}},
+		{"港口", &masterdatav1.Port{Id: "record-1", Source: "seed"}},
+		{"机场", &masterdatav1.Airport{Id: "record-1", Source: "seed"}},
+		{"航司", &masterdatav1.Airline{Id: "record-1", Source: "seed"}},
+		{"船司", &masterdatav1.ShippingLine{Id: "record-1", Source: "seed"}},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			payload, err := codec.Marshal(test.message)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var fields map[string]json.RawMessage
+			if err := json.Unmarshal(payload, &fields); err != nil {
+				t.Fatal(err)
+			}
+			for _, key := range []string{"enabled", "sortOrder"} {
+				if _, exists := fields[key]; exists {
+					t.Fatalf("零值字段 %s 应被省略，实际 %s", key, payload)
+				}
+			}
+			if string(fields["id"]) != `"record-1"` || string(fields["source"]) != `"seed"` {
+				t.Fatalf("非零字段丢失：%s", payload)
+			}
+		})
+	}
+	payload, err := codec.Marshal(&masterdatav1.MasterDataItem{Enabled: true, SortOrder: 25})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(payload, &fields); err != nil {
+		t.Fatal(err)
+	}
+	if string(fields["enabled"]) != "true" || string(fields["sortOrder"]) != "25" {
+		t.Fatalf("非零字段未正确输出：%s", payload)
+	}
+}
+
+func TestProtoJSONCodecMasterDataOptionalPresence(t *testing.T) {
+	codec := encoding.GetCodec("json")
+	for _, enabled := range []*bool{nil, proto.Bool(false), proto.Bool(true)} {
+		request := &masterdatav1.ListPortsRequest{Enabled: enabled}
+		payload, err := codec.Marshal(request)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var fields map[string]json.RawMessage
+		if err := json.Unmarshal(payload, &fields); err != nil {
+			t.Fatal(err)
+		}
+		value, exists := fields["enabled"]
+		if exists != (enabled != nil) {
+			t.Fatalf("optional 筛选存在性丢失：%s", payload)
+		}
+		if enabled != nil && string(value) != fmt.Sprint(*enabled) {
+			t.Fatalf("optional 筛选值丢失：%s", payload)
+		}
+		var decoded masterdatav1.ListPortsRequest
+		if err := codec.Unmarshal(payload, &decoded); err != nil {
+			t.Fatal(err)
+		}
+		if (decoded.Enabled == nil) != (enabled == nil) {
+			t.Fatalf("请求往返后筛选存在性丢失：%s", payload)
+		}
+	}
+	for _, name := range []*string{nil, proto.String("")} {
+		payload, err := codec.Marshal(&masterdatav1.Port{NameZh: name})
+		if err != nil {
+			t.Fatal(err)
+		}
+		var fields map[string]json.RawMessage
+		if err := json.Unmarshal(payload, &fields); err != nil {
+			t.Fatal(err)
+		}
+		value, exists := fields["nameZh"]
+		if exists != (name != nil) || (exists && string(value) != `""`) {
+			t.Fatalf("optional 响应空字符串存在性丢失：%s", payload)
+		}
 	}
 }

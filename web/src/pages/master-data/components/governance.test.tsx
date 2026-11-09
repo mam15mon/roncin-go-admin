@@ -1,6 +1,12 @@
 import { createTestQueryClient } from '@root/tests/queryClientTestUtils';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -99,6 +105,38 @@ describe('公共主数据按工作台控制维护入口', () => {
 
   afterEach(() => {
     cleanup();
+  });
+
+  it('国家和港口省略零排序及停用字段时仍展示记录', async () => {
+    accessRef.current = { isSystemWorkspace: true };
+    mockListItems.mockResolvedValue({
+      data: [{ id: 'country-zero', code: 'CN', name: '中国', source: 'seed' }],
+      total: 1,
+    });
+    mockListPorts.mockResolvedValue({
+      data: [
+        {
+          id: 'port-zero',
+          unLocode: 'CNSHG',
+          nameEn: 'SHANGHAI',
+          countryCode: 'CN',
+          source: 'seed',
+        },
+      ],
+      total: 1,
+    });
+    renderPanel(
+      <>
+        <CountriesPanel />
+        <PortsPanel />
+      </>,
+    );
+
+    for (const label of ['中国', 'CNSHG']) {
+      const row = (await screen.findByText(label)).closest('tr');
+      if (!row) throw new Error('缺少主数据行');
+      expect(within(row).getByText('停用')).toBeInTheDocument();
+    }
   });
 
   it('A 型页签：非系统管理组织显示系统管理维护横幅并隐藏全部写按钮', async () => {

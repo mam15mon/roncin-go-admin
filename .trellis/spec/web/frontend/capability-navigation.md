@@ -33,6 +33,7 @@
 | 订单费用维护入口 | [`pages/orders/fees.tsx`](../../../../web/src/pages/orders/fees.tsx) | 订单列表“费用核算”和详情“费用录入”统一进入 `/orders/<kind>/<id>/fees`，使用现有费用读取权限 | 重新引入快速费用抽屉或另建平行的费用维护界面 |
 | 订单审核与费用摘要 | [`features/orders/fee-review`](../../../../web/src/features/orders/fee-review/index.ts) | `FeeReviewStatus`、`FeeReviewSummary`、`useOrderFeeReview` 与意见计数规则；只读摘要/全部当前有效费用/历史，当前审核状态源自人工订单锁；审核弹窗逐笔展示费用、不输入意见；费用台账按 order_locked 筛选，逐费消费服务端能力 | 审核资格／建账资格在前端自行推算；引用页面私有审批弹窗；将机器人消息当审批结果 |
 | 费用更正历史与审批 | [`features/orders/fee-correction`](../../../../web/src/features/orders/fee-correction/index.ts) | `FeeCorrectionSection`：订单与财务费用详情共用的申请历史、原/新费用、批准时利润及提成快照、动态财务进度、审批与撤回；审批资格消费服务端，预览绑定版本和指纹；锁后 ADD/REPLACE/VOID，源费占账先回退 | 费用录入表单留在订单页面；不在前端推算提成或金融结清，不导入页面私有表单 |
+| 主数据 DTO 公共字段转换（模块内复用） | [`pages/master-data/components/masterDataMapper.ts`](../../../../web/src/pages/master-data/components/masterDataMapper.ts) | `mapPersistedMasterDataFields` 统一身份、来源、启停、排序、更新时间；通用/专用 mapper 组合入口，区分 ProtoJSON 零值和业务必填 | 将专有字段规则塞入公共表格、全局按字段名补值、因 TS `?` 猜 Proto optional |
 | 币种候选 | [`features/master-data/currencies`](../../../../web/src/features/master-data/currencies/index.ts) | `getCurrencies` / `getCurrencyOptions`，启停后显式强制刷新 | 在每个页面重复维护币种请求缓存 |
 | 船公司候选 | [`features/master-data/shipping-lines`](../../../../web/src/features/master-data/shipping-lines/index.ts) | `searchShippingLineOptions` 服务端关键字搜索 | 循环翻页拼接全量 |
 | 通用候选类型 | [`types/select-option.ts`](../../../../web/src/types/select-option.ts) | `SelectOption` 基础字段，业务类型按领域组合 | 散客、信用超额等业务字段 |

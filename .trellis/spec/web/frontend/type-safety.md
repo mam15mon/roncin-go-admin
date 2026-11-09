@@ -101,33 +101,90 @@ status ?? WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_DRAFT;
 **Prevention**：code review 与 trellis-check 时对每个生成枚举导入核对
 「导入名与消费字段所属消息一致」；测试数据同样使用字段所属枚举构造。
 
-## 服务端布尔响应的零值省略陷阱
+## ProtoJSON 响应映射与零值存在性
 
-### Convention: 判断后端 false 一律用 `!== true`，禁止 `=== false`
+### 1. 适用范围
 
-**What**：服务端 `internal/server/jsoncodec.go` 的 protojson 未开启
-`EmitUnpopulated`，**非 optional 布尔字段为 false 时会在 JSON 响应中被整体省略**，
-前端拿到的是 `undefined` 而不是 `false`。因此对后端布尔的严格 `=== false`
-比较永远不成立，构成死分支。
+消费生成客户端响应、增加 DTO → 行模型转换或校验时适用。服务端唯一编码入口为
+`server/internal/server/jsoncodec.go`，目前只配置 `UseEnumNumbers: true`，
+不会主动输出非 optional 标量的默认值。HTTP 200、集合非空仍可能因单条错误
+映射导致 queryFn 整批失败；UI 模板无法替代协议转换。
 
-**Why**：proto3 标量字段默认不序列化零值。已实际踩中：`can_modify`（订单
-「已锁单」标签死分支）、`configuration_complete`（建账工作台三处配置守卫死分支）
-与 `tax_inclusive`（订单费用「不含税单价」列初版 `=== false` 死分支，后按本规范
-改为 `!== true` 才能识别 wire 上字段缺失的历史不含税行）。
+### 2. 签名与入口
 
-**Example**：
+- Proto 字段声明是语义真相源；生成 TS 属性 `?` 只表示 JSON 属性可省略，
+  不能据此判断它是不是 Proto `optional`。
+- `MasterDataItem.sort_order: int32`、`enabled: bool` 均非 optional，省略分别为
+  `0`、`false`；请求中的 `optional bool enabled` 省略表示“不筛选”。
+- 主数据公共入口：`pages/master-data/components/masterDataMapper.ts`。
+  `mapPersistedMasterDataFields` 统一身份、来源、启停、排序和更新时间，
+  `mapPersistedMasterDataItem` 组合通用主数据的代码与名称校验；专用 mapper
+  组合公共字段并处理本实体字段。港口/机场中文名可选，不强套通用名称必填。
+- `MasterDataTemplate` / `useMasterDataCrud` 消费已转换行模型或显式 `mapItem`，
+  模板不感知具体 Proto 类型，不通过字段名猜默认值。
+
+### 3. 契约
+
+1. 仅还原已核对的非 optional 默认值；协议与业务判断保留 optional 字段及消息对象的
+   存在性。纯展示的明确投影（如机场城市名输出空文本）可保持既有行为，不得用
+   展示投影反推“已设置”或改变请求筛选/业务提交语义。
+2. 同一领域的公共字段转换只有一个入口，不能逐页重新定义缺失拒绝或默认值。
+   映射先留所属模块，有真实跨模块使用再按依赖边界提取公共 feature。
+3. 标识、代码等业务必填条件仍校验；合法零值与缺损业务对象分别处理。
+   禁止把转换异常吞成空数组或在全局请求拦截器递归补零。
+4. 只有成功取得数据后，才可按已知非 optional bool 语义使用 `!== true`。
+   optional bool 的未设置不等于 false，尚未加载也不等于业务否定。
+   不机械替换 `success === false`：有些计数接口没有 success 信封，须核对契约。
+5. 字符串/数值枚举格式保持生成契约，不增加旧类型转换或历史兼容分支。
+
+### 4. 验证与错误矩阵
+
+| 输入/上下文 | 结果 |
+| --- | --- |
+| 已加载主数据省略 enabled / sortOrder | 行模型为 false / 0，可正常显示与维护 |
+| 显式 false / 0、true / 非零排序 | 保留实际值，不改成新建默认值 100 |
+| optional bool 未设置与显式 false | 保留 undefined 与 false 的区别，请求筛选语义不混淆 |
+| 缺必填 id / code 等 | 显式抛错，不返回空列表掩盖 |
+| 港口/机场缺可选中文名 | 按专用 mapper 显示规则转换，不能整批拒绝 |
+| 数据尚未加载或请求失败 | 保留加载/错误状态，不按省略 bool 推导业务结论 |
+| 列表字段省略 | 仅按对应 repeated 契约解读为空列表，不掩盖整个响应缺失 |
+
+### 5. 正常、基础与错误场景
+
+- 正常：29 条船代首条无 sortOrder、末条无 enabled，列表、搜索和分页均成功。
+- 基础：显式排序与启用值不变，国家和四类专用目录组合公共映射。
+- 错误：每个 mapper 在调用公共转换之前仍校验 `enabled === undefined`。
+- 错误：为消除缺字段而全局补值，抹掉 optional 及消息对象的存在性。
+
+### 6. 必需测试与门禁
+
+- 服务端用真实 Proto 消息经注册 codec 编码，断言省略非 optional 零值、
+  保留 optional 显式零值、未设置 optional 不输出，不修改实际编码策略。
+- 前端 fixture 包含真正缺 key 的对象、显式零值、非零及真实缺损对象；
+  覆盖公共 mapper、专用 mapper、页面读取和维护路径，不能只用完整对象 mock。
+- 主数据复用门禁限定 `map*` 命名且首参为已登记 API DTO 的适配器，验证消费公共入口、
+  阻止重复公共字段判断；普通 DTO helper 与请求筛选函数不在范围内。
+  门禁自身包含合法 optional 判断不误报的测试。不要全仓禁止 undefined/false 比较。
+- `pnpm run check:web` 包含复用检查；具体脚本入口见根 package.json。
+
+### 7. 错误与正确示例
 
 ```tsx
-// 错误：false 被省略成 undefined，条件永不成立
-{order.canModify === false && <Tag>已锁单</Tag>}
+// 错误：非 optional false / 0 在真实响应被省略，合法行因此报错。
+if (item.enabled === undefined || item.sortOrder === undefined) {
+  throw new Error('主数据响应缺少必填字段');
+}
 
-// 正确
-{order.canModify !== true && <Tag>已锁单</Tag>}
+// 正确：公共适配器统一还原已核对的字段，专用 mapper 组合它。
+const fields = mapPersistedMasterDataFields(item);
+// optional 请求筛选保留 undefined，而不是套上述字段规则。
+const enabledFilter = query.enabled;
+
+// 错误：未完成请求就把 undefined 解释成业务 false。
+const disabled = query.data?.canModify !== true;
+// 正确：成功取得对象后才解释 non-optional bool，加载/失败单独处理。
+const disabled = query.isSuccess && query.data?.canModify !== true;
 ```
-
-**判定真值时用 truthy 即可**（`success`、`financeLocked` 等 true 才序列化的场景
-不受影响）；只有需要区分「明确 false」的分支必须用 `!== true`。新增后端响应
-布尔消费点时同步检查此规则。
 
 ## 权限能力与数据范围契约
 

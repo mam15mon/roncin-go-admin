@@ -11,7 +11,10 @@ import {
   masterDataServiceListAirports,
   masterDataServiceUpdateAirport,
 } from '@/services/roncin/masterDataService';
-import type { PersistedMasterDataItem } from './masterDataMapper';
+import {
+  mapPersistedMasterDataFields,
+  type PersistedMasterDataItem,
+} from './masterDataMapper';
 
 export interface AirportItem extends PersistedMasterDataItem {
   icaoCode: string;
@@ -21,20 +24,12 @@ export interface AirportItem extends PersistedMasterDataItem {
   countryName?: string;
 }
 
-const mapAirport = (item: API.Airport): AirportItem => {
-  if (
-    !item.id ||
-    !item.iataCode ||
-    !item.nameEn ||
-    !item.countryCode ||
-    item.enabled === undefined ||
-    item.source === undefined ||
-    item.sortOrder === undefined
-  ) {
+export const mapAirport = (item: API.Airport): AirportItem => {
+  if (!item.iataCode || !item.nameEn || !item.countryCode) {
     throw new Error('机场响应缺少必填字段');
   }
   return {
-    id: item.id,
+    ...mapPersistedMasterDataFields(item, '机场'),
     code: item.iataCode,
     icaoCode: item.icaoCode ?? '',
     name: item.nameZh ?? '',
@@ -42,10 +37,6 @@ const mapAirport = (item: API.Airport): AirportItem => {
     cityName: item.cityNameZh ?? '',
     cityNameEn: item.cityNameEn,
     countryCode: item.countryCode,
-    enabled: item.enabled,
-    source: item.source,
-    sortOrder: item.sortOrder,
-    updatedAt: item.updatedAt,
   };
 };
 

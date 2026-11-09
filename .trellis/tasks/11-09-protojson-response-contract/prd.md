@@ -32,4 +32,4 @@
 - 全仓 success===false 不能机械替换，计数型接口/缺失响应与业务失败必须按具体契约判定。
 
 ## 规划状态
-PRD 已按目标、事实、验收、边界和风险收敛；design.md、implement.md 与两份真实 JSONL 上下文齐备。当前保持 planning，等待用户对最终方案的后续明确批准后再启动实施。
+PRD 已按目标、事实、验收、边界和风险收敛；design.md、implement.md 与两份真实 JSONL 上下文齐备。用户已于本会话确认最终方案，2026-11-09 启动实施；随后明确要求独立 review、合并 main、安全删除分支并 push。
