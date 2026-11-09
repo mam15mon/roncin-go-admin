@@ -1,4 +1,5 @@
 import type { ProColumns } from '@ant-design/pro-components';
+import { paginationSizeChanger } from '@root/config/pagination';
 import { Alert, Card, Select, Typography } from 'antd';
 import React from 'react';
 import { ResponsiveProTable as ProTable } from '@/components/ui';
@@ -80,7 +81,10 @@ export default function BillCandidateSelectionStep({
         bordered
         options={{ reload: true, density: true, setting: false }}
         toolBarRender={() => [candidateSettings.entry]}
-        pagination={{ defaultPageSize: 15, showSizeChanger: true }}
+        pagination={{
+          defaultPageSize: 15,
+          showSizeChanger: paginationSizeChanger,
+        }}
         rowSelection={{
           selectedRowKeys: selectedFeeIds,
           preserveSelectedRowKeys: true,

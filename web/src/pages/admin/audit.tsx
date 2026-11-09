@@ -1,5 +1,6 @@
 import { HistoryOutlined, ReloadOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import { paginationSizeChanger } from '@root/config/pagination';
 import { Button, Descriptions, Space, Tag, Typography } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef } from 'react';
@@ -130,7 +131,7 @@ export default function AuditPanel() {
       bordered
       pagination={{
         defaultPageSize: 20,
-        showSizeChanger: true,
+        showSizeChanger: paginationSizeChanger,
         showQuickJumper: true,
       }}
       request={async (params) => {

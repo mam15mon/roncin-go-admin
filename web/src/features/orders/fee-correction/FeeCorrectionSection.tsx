@@ -1,5 +1,6 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProFormTextArea } from '@ant-design/pro-components';
+import { paginationSizeChanger } from '@root/config/pagination';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, App, Button, Descriptions, Space, Spin, Tag } from 'antd';
 import { type ReactNode, useRef, useState } from 'react';
@@ -339,7 +340,10 @@ export function FeeCorrectionSection({
         toolBarRender={() =>
           [renderCreate?.(refresh), settings.entry].filter(Boolean)
         }
-        pagination={{ defaultPageSize: 10, showSizeChanger: true }}
+        pagination={{
+          defaultPageSize: 10,
+          showSizeChanger: paginationSizeChanger,
+        }}
         request={async ({ current, pageSize }) => {
           const response = await orderFeeServiceListOrderFeeCorrectionRequests({
             orderId,

@@ -9,6 +9,7 @@ import type {
   ProColumns,
   ProFormInstance,
 } from '@ant-design/pro-components';
+import { paginationSizeChanger } from '@root/config/pagination';
 import {
   App,
   Button,
@@ -347,7 +348,7 @@ export default function BackgroundTasksPanel() {
       }}
       pagination={{
         defaultPageSize: 20,
-        showSizeChanger: true,
+        showSizeChanger: paginationSizeChanger,
         showQuickJumper: true,
       }}
       request={async (params) => {

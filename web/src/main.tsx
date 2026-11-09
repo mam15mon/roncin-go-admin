@@ -8,6 +8,7 @@ import { createRoot } from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
 import { RouterProvider } from 'react-router';
 import { layoutCssVariables } from '../config/layout';
+import { paginationSizeChanger } from '../config/pagination';
 import { themeConfig } from '../config/theme';
 import { AppProvider } from './app/AppProvider';
 import { preloadDingTalkLoginConfig } from './app/dingtalkLoginConfig';
@@ -44,6 +45,7 @@ createRoot(container).render(
     <ConfigProvider
       locale={zhCN}
       theme={themeConfig}
+      pagination={{ showSizeChanger: paginationSizeChanger }}
       spin={{ indicator: <QuarterRing /> }}
       button={{ loadingIcon: <QuarterRing size="1em" strokeWidth="2px" /> }}
     >

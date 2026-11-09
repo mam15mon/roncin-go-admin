@@ -1,3 +1,4 @@
+import { paginationSizeChanger } from '@root/config/pagination';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { TableColumnsType } from 'antd';
 import { Button, Drawer, Select, Space, Tag, Tooltip } from 'antd';
@@ -226,7 +227,7 @@ export default function MyCommissionDrawer({
             current: query.page,
             pageSize: query.pageSize,
             total,
-            showSizeChanger: true,
+            showSizeChanger: paginationSizeChanger,
             showTotal: (count) => `共 ${count} 条`,
             onChange: (page, pageSize) =>
               setQuery((prev) => ({ ...prev, page, pageSize })),

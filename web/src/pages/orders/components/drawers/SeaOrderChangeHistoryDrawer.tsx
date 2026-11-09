@@ -1,3 +1,4 @@
+import { paginationSizeChanger } from '@root/config/pagination';
 import {
   App,
   Button,
@@ -336,7 +337,7 @@ export const SeaOrderChangeHistoryDrawer: React.FC<
             current: page,
             pageSize,
             total,
-            showSizeChanger: true,
+            showSizeChanger: paginationSizeChanger,
             onChange: (p, ps) => {
               setPage(p);
               setPageSize(ps);

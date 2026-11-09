@@ -11,6 +11,7 @@ import type { MemoryRouterProps } from 'react-router';
 import { MemoryRouter } from 'react-router';
 import type { InitialState } from '@/app/AppProvider';
 import { appInitialStateContext } from '@/app/AppProvider';
+import { paginationSizeChanger } from '../config/pagination';
 import { themeConfig } from '../config/theme';
 import { createTestQueryClient } from './queryClientTestUtils';
 
@@ -47,7 +48,11 @@ export function renderWithApp(
     );
     return (
       <HelmetProvider>
-        <ConfigProvider locale={zhCN} theme={themeConfig}>
+        <ConfigProvider
+          locale={zhCN}
+          theme={themeConfig}
+          pagination={{ showSizeChanger: paginationSizeChanger }}
+        >
           <AntdApp>
             <QueryClientProvider client={queryClient}>
               <appInitialStateContext.Provider value={model}>
