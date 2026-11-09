@@ -1,4 +1,5 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import { paginationSizeChanger } from '@root/config/pagination';
 import { Alert, Button, Drawer, Space, Tabs, Tag, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
 import { ResponsiveProTable, useColumnSettings } from '@/components/ui';
@@ -246,7 +247,7 @@ function TodoTable<T extends object>({
       locale={{ emptyText: '当前没有此类待办' }}
       pagination={{
         defaultPageSize: 20,
-        showSizeChanger: true,
+        showSizeChanger: paginationSizeChanger,
         pageSizeOptions: [20, 50, 100, 200],
         showTotal: (total) => `共 ${total} ${unit}`,
       }}

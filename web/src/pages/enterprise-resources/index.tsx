@@ -9,6 +9,7 @@ import {
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
+import { paginationSizeChanger } from '@root/config/pagination';
 import type { UploadFile } from 'antd';
 import { App, Button, Form, Tabs, Tag } from 'antd';
 import React, {
@@ -761,7 +762,10 @@ const EnterpriseResourcesPage: React.FC = () => {
             });
           return toTableRequest(response);
         }}
-        pagination={{ defaultPageSize: 20, showSizeChanger: true }}
+        pagination={{
+          defaultPageSize: 20,
+          showSizeChanger: paginationSizeChanger,
+        }}
         options={{ reload: true, density: true, setting: false }}
         toolBarRender={() => [
           columnSettings.entry,

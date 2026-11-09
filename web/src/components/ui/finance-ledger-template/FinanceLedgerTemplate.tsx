@@ -9,6 +9,7 @@ import {
   PageContainer,
   type ProColumns,
 } from '@ant-design/pro-components';
+import { paginationSizeChanger } from '@root/config/pagination';
 import {
   App,
   Button,
@@ -211,7 +212,11 @@ export function FinanceLedgerTemplate<
           pagination={
             pagination === false
               ? false
-              : { defaultPageSize: 40, showSizeChanger: true, ...pagination }
+              : {
+                  defaultPageSize: 40,
+                  showSizeChanger: paginationSizeChanger,
+                  ...pagination,
+                }
           }
           formRef={formRef}
           form={form}

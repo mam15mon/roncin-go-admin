@@ -18,6 +18,7 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
+import { paginationSizeChanger } from '@root/config/pagination';
 import {
   Alert,
   App,
@@ -761,7 +762,7 @@ export function MasterDataTemplate<
             isRequestMode
               ? {
                   defaultPageSize: 10,
-                  showSizeChanger: true,
+                  showSizeChanger: paginationSizeChanger,
                   pageSizeOptions: ['10', '20', '50', '100'],
                   showTotal: (t) => `共 ${t} 条`,
                 }
@@ -769,7 +770,7 @@ export function MasterDataTemplate<
                   current: currentPage,
                   pageSize: currentPageSize,
                   total: filteredTotal,
-                  showSizeChanger: true,
+                  showSizeChanger: paginationSizeChanger,
                   pageSizeOptions: ['10', '20', '50', '100'],
                   showTotal: (t) => `共 ${t} 条`,
                   onChange: (p, ps) => {

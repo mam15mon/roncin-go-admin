@@ -1,3 +1,4 @@
+import { paginationSizeChanger } from '@root/config/pagination';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { TableColumnsType } from 'antd';
 import { Alert, Drawer, Space, Tag } from 'antd';
@@ -156,7 +157,7 @@ export default function MyReceivablesDrawer({ open, onClose }: Props) {
             current: query.page,
             pageSize: query.pageSize,
             total,
-            showSizeChanger: true,
+            showSizeChanger: paginationSizeChanger,
             showTotal: (count) => `共 ${count} 条`,
             onChange: (page, pageSize) =>
               setQuery((prev) => ({ ...prev, page, pageSize })),

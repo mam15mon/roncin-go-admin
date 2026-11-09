@@ -12,6 +12,7 @@ import {
   ProFormSelect,
   ProFormText,
 } from '@ant-design/pro-components';
+import { paginationSizeChanger } from '@root/config/pagination';
 import { App, Button, Card, Form, Space, Tag, Tooltip } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
@@ -269,7 +270,7 @@ export function ExchangeRatesPanel() {
         search={false}
         pagination={{
           defaultPageSize: 20,
-          showSizeChanger: true,
+          showSizeChanger: paginationSizeChanger,
           pageSizeOptions: ['10', '20', '50', '100', '200'],
           showTotal: (total) => `共 ${total} 条`,
         }}

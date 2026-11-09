@@ -4,6 +4,7 @@ import type {
   ProColumns,
   ProFormInstance,
 } from '@ant-design/pro-components';
+import { paginationSizeChanger } from '@root/config/pagination';
 import { useQuery } from '@tanstack/react-query';
 import { App, Button, Card, Space, Tabs } from 'antd';
 import React, { useRef, useState } from 'react';
@@ -196,7 +197,7 @@ export default function UsersPanel() {
         bordered
         pagination={{
           defaultPageSize: 20,
-          showSizeChanger: true,
+          showSizeChanger: paginationSizeChanger,
           showQuickJumper: true,
         }}
         params={{ listTab, keyword: searchParams.keyword }}

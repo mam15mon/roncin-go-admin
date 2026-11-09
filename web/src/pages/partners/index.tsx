@@ -21,6 +21,7 @@ import {
   ProFormSwitch,
   ProFormTextArea,
 } from '@ant-design/pro-components';
+import { paginationSizeChanger } from '@root/config/pagination';
 import {
   App,
   Button,
@@ -616,7 +617,10 @@ function PartnersContent() {
             border: '1px solid #f0f0f0',
           },
         }}
-        pagination={{ ...queryState.pagination, showSizeChanger: true }}
+        pagination={{
+          ...queryState.pagination,
+          showSizeChanger: paginationSizeChanger,
+        }}
         request={async (params) => {
           const response = await partnerServiceListPartners({
             page: params.current,

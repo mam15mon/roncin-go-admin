@@ -12,6 +12,7 @@ import {
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
+import { paginationSizeChanger } from '@root/config/pagination';
 import { Button, Card, Dropdown, Space, Tag, Tooltip } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ShipmentType } from '@/enums.generated';
@@ -670,7 +671,7 @@ export function OrderListTemplate({
           }}
           pagination={{
             ...queryState.pagination,
-            showSizeChanger: true,
+            showSizeChanger: paginationSizeChanger,
             pageSizeOptions: ['10', '20', '50', '100'],
             showTotal: (total) => `共 ${total} 笔订单`,
           }}
