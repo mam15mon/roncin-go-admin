@@ -74,6 +74,7 @@ func TestFeeLedgerFinancialProgressPredicate(t *testing.T) {
 
 func TestSettlementRepoListFeeLedgerUsesDatabasePaginationAndSummary(t *testing.T) {
 	repo, mock := setupTestSettlementRepo(t)
+	mock.ExpectBegin()
 	locked := true
 
 	organizationID := uuid.New()
@@ -86,6 +87,7 @@ func TestSettlementRepoListFeeLedgerUsesDatabasePaginationAndSummary(t *testing.
 			AddRow("RECEIVABLE", "USD", 1, "20"))
 	mock.ExpectQuery(`SELECT "order_fees"\..*FROM "order_fees".*ORDER BY.*LIMIT 20 OFFSET 20`).
 		WillReturnRows(sqlmock.NewRows(orderfee.Columns))
+	mock.ExpectCommit()
 
 	result, err := repo.ListFeeLedger(context.Background(), []uuid.UUID{organizationID}, biz.FeeLedgerFilter{
 		Page:              2,

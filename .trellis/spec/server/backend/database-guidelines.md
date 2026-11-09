@@ -187,6 +187,14 @@ err := r.transactor.WithinTransaction(ctx, func(txCtx context.Context) error { .
   重读（范本：`internal/biz/finance_bill.go` 的 `Create`）；回调错误必须原样
   外传，不得吞掉后继续提交。
 
+- 费用台账列表和整单详情要组合多条 SELECT 的账单、核销与对冲事实，入口统一
+  通过 `Data.withReadSnapshot(ctx, fn)` 使用只读 `REPEATABLE READ` 快照；回调内
+  仍经 `Data.client(snapshotCtx)` 查询。普通 `WithTx` 的默认隔离级别不能保证
+  多次读取一致，禁止只给最后的金额投影包事务。快照内嵌套读取复用外层，普通
+  写事务内调用及已结束快照上下文显式拒绝；写操作提交后再读完整响应。
+  并发回归须在首次加载关联后提交取消账单、反核销/对冲等动作，验证当前响应
+  保持同一快照且后续请求读到最新状态，不能靠固定等待或自动重试掩盖不一致。
+
 ## 并发修改防护：「悲观锁 + 乐观锁」双层模式
 
 范本：`internal/data/order_write_draft.go` 的 `UpdateDraft`

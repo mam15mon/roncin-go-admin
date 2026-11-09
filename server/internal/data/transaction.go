@@ -11,12 +11,14 @@ import (
 )
 
 var errTransactionContextClosed = errors.New("事务上下文已经结束")
+var errReadSnapshotRequired = errors.New("一致性快照查询必须在写事务提交后执行")
 
 type transactionContextKey struct{}
 
 type transactionContext struct {
-	tx     *ent.Tx
-	active atomic.Bool
+	tx           *ent.Tx
+	active       atomic.Bool
+	readSnapshot bool
 }
 
 type transaction interface {
@@ -70,6 +72,28 @@ func (d *Data) WithinTransaction(ctx context.Context, operation func(context.Con
 		transaction.active.Store(true)
 		defer transaction.active.Store(false)
 		return operation(context.WithValue(ctx, transactionContextKey{}, transaction))
+	})
+}
+
+// withReadSnapshot 让一次财务查询的多条 SELECT 使用同一只读快照。
+// 普通写事务不提供该隔离保证，完整响应应在提交后用普通上下文重读。
+func (d *Data) withReadSnapshot(ctx context.Context, operation func(context.Context) error) error {
+	if current, ok := transactionFromContext(ctx); ok {
+		if !current.active.Load() {
+			return errTransactionContextClosed
+		}
+		if !current.readSnapshot {
+			return errReadSnapshotRequired
+		}
+		return operation(ctx)
+	}
+	return runTransaction(func() (*ent.Tx, error) {
+		return d.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelRepeatableRead, ReadOnly: true})
+	}, func(tx *ent.Tx) error {
+		current := &transactionContext{tx: tx, readSnapshot: true}
+		current.active.Store(true)
+		defer current.active.Store(false)
+		return operation(context.WithValue(ctx, transactionContextKey{}, current))
 	})
 }
 

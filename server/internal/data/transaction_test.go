@@ -171,6 +171,60 @@ func TestWithinTransactionKeepsOperationAndRollbackFailures(t *testing.T) {
 	}
 }
 
+func TestReadSnapshotReusesAndExpiresContext(t *testing.T) {
+	data, mock := setupTransactionData(t)
+	mock.ExpectBegin()
+	mock.ExpectCommit()
+	var snapshotCtx context.Context
+	err := data.withReadSnapshot(context.Background(), func(ctx context.Context) error {
+		snapshotCtx = ctx
+		outer, err := data.client(ctx)
+		if err != nil {
+			return err
+		}
+		return data.withReadSnapshot(ctx, func(nestedCtx context.Context) error {
+			inner, err := data.client(nestedCtx)
+			if err != nil {
+				return err
+			}
+			if inner != outer {
+				t.Fatal("嵌套读取没有复用快照")
+			}
+			return nil
+		})
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := data.withReadSnapshot(snapshotCtx, func(context.Context) error {
+		t.Fatal("结束后的快照不能继续查询")
+		return nil
+	}); !errors.Is(err, errTransactionContextClosed) {
+		t.Fatalf("结束上下文错误: %v", err)
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestReadSnapshotRejectsOrdinaryWriteTransaction(t *testing.T) {
+	data, mock := setupTransactionData(t)
+	mock.ExpectBegin()
+	mock.ExpectRollback()
+	err := data.WithinTransaction(context.Background(), func(ctx context.Context) error {
+		return data.withReadSnapshot(ctx, func(context.Context) error {
+			t.Fatal("不能在普通写事务中降低快照查询的隔离保证")
+			return nil
+		})
+	})
+	if !errors.Is(err, errReadSnapshotRequired) {
+		t.Fatalf("应要求写事务提交后读取: %v", err)
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestWithinTransactionRollsBackPanicAndRethrows(t *testing.T) {
 	data, mock := setupTransactionData(t)
 	mock.ExpectBegin()

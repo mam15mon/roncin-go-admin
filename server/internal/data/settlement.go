@@ -281,6 +281,19 @@ func (r *settlementRepo) ResolveFeeLedgerOrganization(ctx context.Context, organ
 }
 
 func (r *settlementRepo) GetFeeLedgerOrderDetail(ctx context.Context, organizationIDs []uuid.UUID, orderID uuid.UUID) (*biz.FeeLedgerOrderDetail, error) {
+	var result *biz.FeeLedgerOrderDetail
+	err := r.data.withReadSnapshot(ctx, func(snapshotCtx context.Context) error {
+		var err error
+		result, err = r.getFeeLedgerOrderDetail(snapshotCtx, organizationIDs, orderID)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *settlementRepo) getFeeLedgerOrderDetail(ctx context.Context, organizationIDs []uuid.UUID, orderID uuid.UUID) (*biz.FeeLedgerOrderDetail, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
@@ -371,6 +384,19 @@ func (r *settlementRepo) GetFeeLedgerOrderDetail(ctx context.Context, organizati
 }
 
 func (r *settlementRepo) ListFeeLedger(ctx context.Context, organizationIDs []uuid.UUID, filter biz.FeeLedgerFilter) (*biz.FeeLedgerResult, error) {
+	var result *biz.FeeLedgerResult
+	err := r.data.withReadSnapshot(ctx, func(snapshotCtx context.Context) error {
+		var err error
+		result, err = r.listFeeLedger(snapshotCtx, organizationIDs, filter)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *settlementRepo) listFeeLedger(ctx context.Context, organizationIDs []uuid.UUID, filter biz.FeeLedgerFilter) (*biz.FeeLedgerResult, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
