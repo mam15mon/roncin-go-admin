@@ -1,7 +1,9 @@
 {"file": ".trellis/spec/web/frontend/index.md", "reason": "前端规范与质量门禁"}
-{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "官方请求和身份/结果采纳边界"}
-{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "模板复用、金额、请求协议"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "官方请求和身份/结果采纳边界；如注入被截断，子代理须按相关小节完整读取"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "模板复用、金额、路由标题规范；如注入被截断，子代理须完整读取相关小节"}
 {"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "正式 DTO 与 ProtoJSON presence"}
 {"file": ".trellis/spec/web/frontend/directory-structure.md", "reason": "公共模板不依赖领域页面"}
-{"file": ".trellis/tasks/11-09-shared-ui-contracts/research/finance-summary.md", "reason": "六类财务语义和真实竞态实验"}
+{"file": ".trellis/spec/server/backend/index.md", "reason": "后端分层与契约生成"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "后端针对性与集成验证约束"}
+{"file": ".trellis/tasks/11-09-shared-ui-contracts/research/finance-summary.md", "reason": "六类财务语义、matchedSummary建议及真实竞态实验"}
 {"file": ".trellis/tasks/11-09-shared-ui-contracts/research/title-and-reassignment.md", "reason": "路由标题及改配提示证据"}

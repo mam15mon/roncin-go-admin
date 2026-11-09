@@ -1,8 +1,8 @@
 // 研究实验：使用仓库实际安装的 ProTable useFetchData 验证 request 副作用不能被取消保护。
-import { act, renderHook, waitFor } from '/home/vince/roncin-go-admin/web/node_modules/@testing-library/react/dist/index.js';
-import { useState } from '/home/vince/roncin-go-admin/web/node_modules/react/index.js';
-import { expect, it } from '/home/vince/roncin-go-admin/web/node_modules/vitest/dist/index.js';
-import useFetchData from '/home/vince/roncin-go-admin/web/node_modules/@ant-design/pro-components/es/table/useFetchData.js';
+import { act, renderHook, waitFor } from 'research-testing';
+import { useState } from 'research-react';
+import { expect, it } from 'research-vitest';
+import useFetchData from 'research-pro-fetch';
 
 it('旧请求已被表格取消，但 request 内的指标副作用仍覆盖新指标', async () => {
   const resolvers = [];
