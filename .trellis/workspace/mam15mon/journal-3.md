@@ -1275,3 +1275,26 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 194: 统一主数据 ProtoJSON 映射与防复发门禁
+<!-- trellis-session: v=2 fp=14e83481ca8e9b58 -->
+
+**Date**: 2026-11-09
+**Task**: 统一主数据 ProtoJSON 映射与防复发门禁
+**Branch**: `codex/protojson-response-contract`
+
+### Summary
+
+主数据公共映射收敛，四类专用适配修复合法零值省略；同步 AGENTS 和类型安全规范；独立 review 修正门禁范围并补页面回归，全栈 check:fast 通过。用户已授权合并 main、删除任务分支并推送。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `fc1740c0` | fix: 统一主数据 ProtoJSON 映射并强制公共契约复用 |
+| `af4b252f` | docs: 规划 ProtoJSON 公共映射与主数据契约治理任务 |
+
+### Status
+
+[OK] **Completed**
