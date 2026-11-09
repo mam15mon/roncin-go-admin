@@ -1,0 +1,13 @@
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "前端入口、质量检查与生成物边界"}
+{"file": ".trellis/spec/web/frontend/directory-structure.md", "reason": "页面/feature公开入口与禁止跨模块深引"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "Proto唯一真相、类型与请求映射"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "React Query、表单依赖与请求会话"}
+{"file": ".trellis/spec/web/frontend/organization-switch.md", "reason": "当前公司切换、dirty与旧工作区销毁"}
+{"file": ".trellis/spec/web/frontend/finance-ledger-snapshots.md", "reason": "官方采纳快照、汇总与选择隔离"}
+{"file": ".trellis/spec/web/frontend/capability-navigation.md", "reason": "复用现有账单/财务能力，不另造平台"}
+{"file": ".trellis/spec/server/backend/index.md", "reason": "后端分层与契约生成"}
+{"file": ".trellis/spec/server/backend/operating-company-commission-attribution.md", "reason": "经营入口当前公司与实体归属边界"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "真实注册、生成和风险验证"}
+{"file": ".trellis/tasks/11-09-finance-current-workspace/research/lists.md", "reason": "列表/导出/筛选当前范围与测试地图"}
+{"file": ".trellis/tasks/11-09-finance-current-workspace/research/dialogs.md", "reason": "所有弹窗公司依赖、来源校验和写入契约"}
+{"file": ".trellis/tasks/11-09-finance-current-workspace/research/contracts.md", "reason": "公司候选RPC退役及共享purpose4/9保留"}
