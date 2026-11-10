@@ -1,0 +1,75 @@
+{
+  "baseline": "2aeaeeee",
+  "date": "2026-11-10",
+  "tracked_md": 1126,
+  "additional_md": 267,
+  "all_records": 1393,
+  "tracked_status": {
+    "历史保留": 893,
+    "已核实无需修改": 134,
+    "已修正": 43,
+    "待确认": 56
+  },
+  "additional_status": {
+    "历史保留": 219,
+    "已修正": 13,
+    "已核实无需修改": 8,
+    "待确认": 27
+  },
+  "categories": {
+    "会话记录": {
+      "历史保留": 4
+    },
+    "前端领域和架构说明": {
+      "已核实无需修改": 41,
+      "已修正": 10,
+      "待确认": 1
+    },
+    "历史任务": {
+      "历史保留": 889
+    },
+    "工具与框架说明": {
+      "已核实无需修改": 25,
+      "已修正": 25,
+      "待确认": 53
+    },
+    "服务端说明与规范": {
+      "已核实无需修改": 53,
+      "待确认": 2,
+      "已修正": 3
+    },
+    "根说明指南与工作区入口": {
+      "已修正": 5,
+      "已核实无需修改": 15
+    },
+    "本地备份或工具构建产物": {
+      "历史保留": 219
+    },
+    "本地忽略技能": {
+      "已修正": 13,
+      "已核实无需修改": 8,
+      "待确认": 26
+    },
+    "用户未提交任务": {
+      "待确认": 1
+    }
+  },
+  "tracked_changed": 43,
+  "local_changed": 13,
+  "pending_current_project": {
+    "backend": [
+      {
+        "path": ".trellis/spec/server/backend/error-handling.md",
+        "notes": "全文和集中helper核查已完成：规范禁止字符串解析驱动细节，而mapEntConstraint先ent.IsConstraintError后按约束名strings.Contains；这是规范/实现边界需决策项，不是未做审阅。不擅自降低规范、不改实现。"
+      },
+      {
+        "path": ".trellis/spec/server/backend/logging-guidelines.md",
+        "notes": "全文和ExportScoped失败路径已核查：规范要求导出成功/失败审计，当前参数/计数/超限/分批读取失败均在成功SaveExportAudit前返回，构造结果固定success。明确实现缺口，保留规范不假称已覆盖失败审计；本次不改业务。"
+      }
+    ],
+    "community_contact": "web/CODE_OF_CONDUCT.md",
+    "external_framework_tracked": 53,
+    "external_framework_local": 26,
+    "user_uncommitted_task": 1
+  }
+}

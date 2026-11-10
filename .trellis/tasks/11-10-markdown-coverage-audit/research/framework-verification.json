@@ -1,0 +1,21 @@
+{
+  "scope_paths": 150,
+  "changed_paths": 38,
+  "tracked_changes": 25,
+  "ignored_local_changes": 13,
+  "status": {
+    "已核实无需修改": 33,
+    "已修正": 38,
+    "待确认": 79
+  },
+  "md_local_links_checked": 0,
+  "broken_targets": [],
+  "workflow_state_blocks_preserved": 8,
+  "copies_equal": 12,
+  "business_tests": "未运行：纯文档，按批准风险匹配范围",
+  "external_platforms": "未运行：保留待确认",
+  "local_patch_replay": "13份临时原始树dry-run/重放及字节比对通过",
+  "typescript_jsx_example": "@babel/parser语法通过；未执行测试或tsc",
+  "phase_parser": "1.4及2.1只读解析通过",
+  "git_diff_check": "范围内通过"
+}

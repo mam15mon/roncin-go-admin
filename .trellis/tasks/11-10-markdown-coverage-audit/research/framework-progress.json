@@ -1,0 +1,196 @@
+{
+  "batch": "第四批：工作流命令、清单与钩子事实修正；全部状态块逐字节保持",
+  "workflow_state_blocks_preserved": 8,
+  "changed": [
+    {
+      "path": ".claude/skills/trellis-break-loop/SKILL.md",
+      "before_sha256": "f5a93699832f29dee443b53c135a7459519b371f689af191d15c29e8ee5c7bde",
+      "after_sha256": "f80441fce6abb11e1b7617631d179dfc9f0ecbecc92bad68597cb2d6ab28fd75"
+    },
+    {
+      "path": ".claude/skills/trellis-channel/SKILL.md",
+      "before_sha256": "ff84801c511a736da018b4b1149348ebc9a16b7fc18d905ec10cfa7acbf269a3",
+      "after_sha256": "e3595db1fb41be4e4b3d04f5162b85a534fe9f3675668611392b10eabc04b9a8"
+    },
+    {
+      "path": ".claude/skills/trellis-channel/references/command-reference.md",
+      "before_sha256": "c4df3d940d89814310bfdaded20e84dd1d6b96786f6772688de7a123338d3c8e",
+      "after_sha256": "d4d30468eda8b0f5ba96f417204b4ccd023cf47afc5568c5e5a5402543c848b4"
+    },
+    {
+      "path": ".claude/skills/trellis-channel/references/progress-debugging.md",
+      "before_sha256": "93b021fd8d5d3d4ee54952c40424ab91ca57c2ab8032bfbfc3b5c5e22f1464cd",
+      "after_sha256": "6e6949213cc5fcc1685661099270b5dec4759c2ed41afd043ef8560df9563110"
+    },
+    {
+      "path": ".claude/skills/trellis-channel/references/workers.md",
+      "before_sha256": "d4481b2858bca82050cb8d131916da8a2ccc3857f199cdb9ced8bb41d592e2a7",
+      "after_sha256": "e0cc622879d023bee64cb3669b6afbc6721403b08093495bd74b36d857af3f52"
+    },
+    {
+      "path": ".claude/skills/trellis-channel/references/workflows.md",
+      "before_sha256": "0782d602efde6e94a7d7d7950fd605eedc9a1f5a523908284e76b628fd618fd4",
+      "after_sha256": "616e811ce22e24f82f73d53ae6b4ef5e8fb48c5895358c0af88e6caf46a0070e"
+    },
+    {
+      "path": ".claude/skills/trellis-meta/SKILL.md",
+      "before_sha256": "ee7bcfd0023def62688339c4b63c50f2fbeea12a34eb89e8bb63a992b58cb168",
+      "after_sha256": "acce4e481ceb692129bbeb2606ccf6f2fef31fbc095b25d9edec391db319dd67"
+    },
+    {
+      "path": ".claude/skills/trellis-meta/references/customize-local/change-spec-structure.md",
+      "before_sha256": "31eccaad7097d96e66a45c1b4caea1ba4f2e54b7814184c3ebf82c87dafc4841",
+      "after_sha256": "01971a1a874f587f43b92e17e754a853eb20b1ffebf13b70bf0de8719c984f7f"
+    },
+    {
+      "path": ".claude/skills/trellis-meta/references/customize-local/change-task-lifecycle.md",
+      "before_sha256": "60ff9efb93604b87a461a4af30322d76750402a51e40f31531a7ff88d309996d",
+      "after_sha256": "28c94c3e8071cd3eb7b1a36d43af0045361385dacc9d785019b38f6f1df0437d"
+    },
+    {
+      "path": ".claude/skills/trellis-meta/references/local-architecture/spec-system.md",
+      "before_sha256": "b8d8a6a0888b44a232c8f50161b9e20e903cf621ad7be4021715ab6fab226f47",
+      "after_sha256": "4f428ec4f9227dcca400401a45cadcbd510f5f216a82a3a52a87c1326a197785"
+    },
+    {
+      "path": ".claude/skills/trellis-session-insight/references/triggering-patterns.md",
+      "before_sha256": "121ecd23be83d1567e8ce15c366a81073d7a2b1d3ad616fce235c07ca1f1cc20",
+      "after_sha256": "e8af6c63aa5cab49688d56b69f5ae707d93adef127472eb89f441ff5297e6d81"
+    },
+    {
+      "path": ".claude/skills/trellis-spec-bootstrap/references/mcp-setup.md",
+      "before_sha256": "df542fc8f279edd38046d26a7c8151804b708f57b24d4aa2733cea587a88c65e",
+      "after_sha256": "8fa9a1992eb51f365cf6f38f09361b5d1352b881cf0db8972e20d2d46c346417"
+    },
+    {
+      "path": ".zcode/skills/trellis-break-loop/SKILL.md",
+      "before_sha256": "f5a93699832f29dee443b53c135a7459519b371f689af191d15c29e8ee5c7bde",
+      "after_sha256": "f80441fce6abb11e1b7617631d179dfc9f0ecbecc92bad68597cb2d6ab28fd75"
+    },
+    {
+      "path": ".zcode/skills/trellis-channel/SKILL.md",
+      "before_sha256": "ff84801c511a736da018b4b1149348ebc9a16b7fc18d905ec10cfa7acbf269a3",
+      "after_sha256": "e3595db1fb41be4e4b3d04f5162b85a534fe9f3675668611392b10eabc04b9a8"
+    },
+    {
+      "path": ".zcode/skills/trellis-channel/references/command-reference.md",
+      "before_sha256": "c4df3d940d89814310bfdaded20e84dd1d6b96786f6772688de7a123338d3c8e",
+      "after_sha256": "d4d30468eda8b0f5ba96f417204b4ccd023cf47afc5568c5e5a5402543c848b4"
+    },
+    {
+      "path": ".zcode/skills/trellis-channel/references/progress-debugging.md",
+      "before_sha256": "93b021fd8d5d3d4ee54952c40424ab91ca57c2ab8032bfbfc3b5c5e22f1464cd",
+      "after_sha256": "6e6949213cc5fcc1685661099270b5dec4759c2ed41afd043ef8560df9563110"
+    },
+    {
+      "path": ".zcode/skills/trellis-channel/references/workers.md",
+      "before_sha256": "d4481b2858bca82050cb8d131916da8a2ccc3857f199cdb9ced8bb41d592e2a7",
+      "after_sha256": "e0cc622879d023bee64cb3669b6afbc6721403b08093495bd74b36d857af3f52"
+    },
+    {
+      "path": ".zcode/skills/trellis-channel/references/workflows.md",
+      "before_sha256": "0782d602efde6e94a7d7d7950fd605eedc9a1f5a523908284e76b628fd618fd4",
+      "after_sha256": "616e811ce22e24f82f73d53ae6b4ef5e8fb48c5895358c0af88e6caf46a0070e"
+    },
+    {
+      "path": ".zcode/skills/trellis-meta/SKILL.md",
+      "before_sha256": "ee7bcfd0023def62688339c4b63c50f2fbeea12a34eb89e8bb63a992b58cb168",
+      "after_sha256": "acce4e481ceb692129bbeb2606ccf6f2fef31fbc095b25d9edec391db319dd67"
+    },
+    {
+      "path": ".zcode/skills/trellis-meta/references/customize-local/change-spec-structure.md",
+      "before_sha256": "31eccaad7097d96e66a45c1b4caea1ba4f2e54b7814184c3ebf82c87dafc4841",
+      "after_sha256": "01971a1a874f587f43b92e17e754a853eb20b1ffebf13b70bf0de8719c984f7f"
+    },
+    {
+      "path": ".zcode/skills/trellis-meta/references/customize-local/change-task-lifecycle.md",
+      "before_sha256": "60ff9efb93604b87a461a4af30322d76750402a51e40f31531a7ff88d309996d",
+      "after_sha256": "28c94c3e8071cd3eb7b1a36d43af0045361385dacc9d785019b38f6f1df0437d"
+    },
+    {
+      "path": ".zcode/skills/trellis-meta/references/local-architecture/spec-system.md",
+      "before_sha256": "b8d8a6a0888b44a232c8f50161b9e20e903cf621ad7be4021715ab6fab226f47",
+      "after_sha256": "4f428ec4f9227dcca400401a45cadcbd510f5f216a82a3a52a87c1326a197785"
+    },
+    {
+      "path": ".zcode/skills/trellis-session-insight/references/triggering-patterns.md",
+      "before_sha256": "121ecd23be83d1567e8ce15c366a81073d7a2b1d3ad616fce235c07ca1f1cc20",
+      "after_sha256": "e8af6c63aa5cab49688d56b69f5ae707d93adef127472eb89f441ff5297e6d81"
+    },
+    {
+      "path": ".zcode/skills/trellis-spec-bootstrap/references/mcp-setup.md",
+      "before_sha256": "df542fc8f279edd38046d26a7c8151804b708f57b24d4aa2733cea587a88c65e",
+      "after_sha256": "8fa9a1992eb51f365cf6f38f09361b5d1352b881cf0db8972e20d2d46c346417"
+    },
+    {
+      "path": ".trellis/workflow.md",
+      "before_sha256": "eb4508a4f6792f3d53705c1f9e7d21807dabd774543bd7b01f56372a704f6ad0",
+      "after_sha256": "a1cd58f8b93b57180653c73e49f0aae51dc528a19323aac3e7c372e6800b651e"
+    },
+    {
+      "path": ".agents/skills/roncin-web-stack/SKILL.md",
+      "before_sha256": "5df9e1aa949d5a212d515d1956cf252360cda950a29a765b535bc104ff1ad6ad",
+      "after_sha256": "52e1474a450e7d3d0d290f8dfd361793baeab5043f2fedeee629e1af35246d95"
+    },
+    {
+      "path": ".agents/skills/trellis-break-loop/SKILL.md",
+      "before_sha256": "f5a93699832f29dee443b53c135a7459519b371f689af191d15c29e8ee5c7bde",
+      "after_sha256": "f80441fce6abb11e1b7617631d179dfc9f0ecbecc92bad68597cb2d6ab28fd75"
+    },
+    {
+      "path": ".agents/skills/trellis-channel/SKILL.md",
+      "before_sha256": "ff84801c511a736da018b4b1149348ebc9a16b7fc18d905ec10cfa7acbf269a3",
+      "after_sha256": "e3595db1fb41be4e4b3d04f5162b85a534fe9f3675668611392b10eabc04b9a8"
+    },
+    {
+      "path": ".agents/skills/trellis-channel/references/command-reference.md",
+      "before_sha256": "c4df3d940d89814310bfdaded20e84dd1d6b96786f6772688de7a123338d3c8e",
+      "after_sha256": "d4d30468eda8b0f5ba96f417204b4ccd023cf47afc5568c5e5a5402543c848b4"
+    },
+    {
+      "path": ".agents/skills/trellis-channel/references/progress-debugging.md",
+      "before_sha256": "93b021fd8d5d3d4ee54952c40424ab91ca57c2ab8032bfbfc3b5c5e22f1464cd",
+      "after_sha256": "6e6949213cc5fcc1685661099270b5dec4759c2ed41afd043ef8560df9563110"
+    },
+    {
+      "path": ".agents/skills/trellis-channel/references/workers.md",
+      "before_sha256": "d4481b2858bca82050cb8d131916da8a2ccc3857f199cdb9ced8bb41d592e2a7",
+      "after_sha256": "e0cc622879d023bee64cb3669b6afbc6721403b08093495bd74b36d857af3f52"
+    },
+    {
+      "path": ".agents/skills/trellis-channel/references/workflows.md",
+      "before_sha256": "0782d602efde6e94a7d7d7950fd605eedc9a1f5a523908284e76b628fd618fd4",
+      "after_sha256": "616e811ce22e24f82f73d53ae6b4ef5e8fb48c5895358c0af88e6caf46a0070e"
+    },
+    {
+      "path": ".agents/skills/trellis-meta/SKILL.md",
+      "before_sha256": "ee7bcfd0023def62688339c4b63c50f2fbeea12a34eb89e8bb63a992b58cb168",
+      "after_sha256": "acce4e481ceb692129bbeb2606ccf6f2fef31fbc095b25d9edec391db319dd67"
+    },
+    {
+      "path": ".agents/skills/trellis-meta/references/customize-local/change-spec-structure.md",
+      "before_sha256": "31eccaad7097d96e66a45c1b4caea1ba4f2e54b7814184c3ebf82c87dafc4841",
+      "after_sha256": "01971a1a874f587f43b92e17e754a853eb20b1ffebf13b70bf0de8719c984f7f"
+    },
+    {
+      "path": ".agents/skills/trellis-meta/references/customize-local/change-task-lifecycle.md",
+      "before_sha256": "60ff9efb93604b87a461a4af30322d76750402a51e40f31531a7ff88d309996d",
+      "after_sha256": "28c94c3e8071cd3eb7b1a36d43af0045361385dacc9d785019b38f6f1df0437d"
+    },
+    {
+      "path": ".agents/skills/trellis-meta/references/local-architecture/spec-system.md",
+      "before_sha256": "b8d8a6a0888b44a232c8f50161b9e20e903cf621ad7be4021715ab6fab226f47",
+      "after_sha256": "4f428ec4f9227dcca400401a45cadcbd510f5f216a82a3a52a87c1326a197785"
+    },
+    {
+      "path": ".agents/skills/trellis-session-insight/references/triggering-patterns.md",
+      "before_sha256": "121ecd23be83d1567e8ce15c366a81073d7a2b1d3ad616fce235c07ca1f1cc20",
+      "after_sha256": "e8af6c63aa5cab49688d56b69f5ae707d93adef127472eb89f441ff5297e6d81"
+    },
+    {
+      "path": ".agents/skills/trellis-spec-bootstrap/references/mcp-setup.md",
+      "before_sha256": "df542fc8f279edd38046d26a7c8151804b708f57b24d4aa2733cea587a88c65e",
+      "after_sha256": "8fa9a1992eb51f365cf6f38f09361b5d1352b881cf0db8972e20d2d46c346417"
+    }
+  ]
+}
