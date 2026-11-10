@@ -136,7 +136,7 @@ export function buildSeaPersonnelSection(props: TemplateProps) {
             userField={userField}
             options={personnelOptions}
             rules={rules}
-            disabled={locked || props.personnelReadonly}
+            disabled={locked || props.readonly || props.personnelReadonly}
           />
         ))}
       </FormRow>

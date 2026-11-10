@@ -223,6 +223,7 @@ export function OrderFormTemplate<T>({
   );
 
   const handleFinish = async (values: T) => {
+    if (readonly || editingDisabled) return false;
     if (!onFinish) return true;
     setSubmitting(true);
     try {
@@ -331,7 +332,7 @@ export function OrderFormTemplate<T>({
           formRef={resolvedFormRef}
           autoComplete="off"
           readonly={readonly}
-          disabled={editingDisabled}
+          disabled={readonly || editingDisabled}
           grid
           layout="vertical"
           style={{

@@ -107,6 +107,28 @@ describe('订单人员选择', () => {
 });
 
 describe('buildSeaPersonnelSection 提成三岗必填', () => {
+  it('详情已锁定时独立人员分节也禁止编辑，解锁后恢复可编辑岗位', () => {
+    const ui = (readonly: boolean) => {
+      const section = buildSeaPersonnelSection({
+        ...baseTemplateProps,
+        isDetail: true,
+        readonly,
+        personnelReadonly: false,
+      });
+      return <Form>{section.content}</Form>;
+    };
+    const { rerender } = render(ui(true));
+    for (const select of screen.getAllByRole('combobox')) {
+      expect(select).toBeDisabled();
+    }
+    rerender(ui(false));
+    expect(screen.getByLabelText('操作人员')).toBeEnabled();
+    expect(screen.getByLabelText('单证人员')).toBeEnabled();
+    expect(screen.getByLabelText('业务人员')).toBeDisabled();
+    expect(screen.getByLabelText('客服人员')).toBeDisabled();
+    expect(screen.getByLabelText('创建人员')).toBeDisabled();
+  });
+
   it('详情无人员候选权限时，所有人员选择保持只读', () => {
     const section = buildSeaPersonnelSection({
       ...baseTemplateProps,

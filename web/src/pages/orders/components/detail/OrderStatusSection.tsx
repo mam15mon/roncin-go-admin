@@ -204,7 +204,8 @@ function ActionBadge({
       <span>
         <Button
           aria-label={ariaLabel}
-          disabled={action.disabled}
+          // 独立状态命令按自身资格判定，不继承内容表单的禁用状态。
+          disabled={Boolean(action.disabled)}
           onClick={action.onClick}
           style={badgeStyle}
         >
@@ -268,6 +269,7 @@ function buildTerminationBadge(
           <Dropdown menu={{ items: menuItems }} trigger={['click']}>
             <Button
               aria-label="选择退关操作"
+              disabled={menuItems.every((item) => item.disabled === true)}
               style={{
                 height: 24,
                 padding: '2px 10px',
