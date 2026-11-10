@@ -5,7 +5,7 @@
 - [x] 用户批准创建任务；已检查main状态并保留原未跟踪任务。
 - [x] 检查Ent Unwrap、pgx驱动及现有审计链路，明确最小边界。
 - [x] 汇总两份研究报告，收敛PRD、设计及验收；保留数据库实测边界。
-- [ ] 向用户提交最终方案，后续消息批准后再task.py start。
+- [x] 已提交最终方案；用户批准实施，并要求独立review后合并main并push。
 
 ## 实施（批准后）
 
@@ -15,7 +15,7 @@
 4. 独立trellis-check按设计复核错误链、精确名称、权限/公司、敏感输入、取消/审计超时及失败不交付数据。
 5. 最小验证：go -C server test -p 32 ./internal/data -run 'TestMapEnt|TestCommissionRepoSaveExportAudit|约束相关回归'；go -C server test -p 32 ./internal/biz -run 'TestCommission.*Export'；service/server相关导出权限及安全错误用例；git diff --check。
 6. 任务验收运行pnpm run check:server（公共data错误映射影响多个仓储、审计跨biz/data，需服务端门禁）；不因无前端代码变更跑完整前端或构建。真实集成测试SKIP单列。
-7. 规范/生成错误目录一致性及文档链接检查，分组中文Conventional Commit，保留用户原四文件；归档与会话记录，不推送。
+7. 规范/生成错误目录一致性及文档链接检查，分组中文Conventional Commit，保留用户原四文件；归档与会话记录；独立review通过后合并main并push（用户本轮已授权）。
 
 ## 预期文件
 
@@ -25,3 +25,12 @@
 - .trellis/spec/server/backend/{error-handling,logging-guidelines}.md、docs/markdown-audit.md、web文档的社区原文说明。
 
 如果发现需更改事务封装/Schema/权限/API，返回规划说明，不自行扩大。审计不使用新事务/锁/版本字段，SaveExportAudit只接受普通上下文，5秒独立取消上下文可测试。
+
+## 实施与复核完成
+
+- [x] 结构化映射、全部必要运行时约束名及相关测试已同步。
+- [x] 导出成功/失败/取消审计、共享上下文拒绝及安全错误链已实现。
+- [x] 规范、总览及社区公约适用说明已同步，历史研究时点明确保留。
+- [x] 定向与专项真实库测试通过；独立review修复三处相邻测试夹具后，全服务端门禁通过。
+- [x] 错误目录及差异检查通过；验证结果与未执行边界见validation.md。
+- [ ] 分组提交、合并main、归档记录及用户已授权的push。
