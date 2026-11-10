@@ -1473,3 +1473,33 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 201: 结构化约束映射与提成导出失败审计
+<!-- trellis-session: v=2 fp=6efd17a6f7d97c9d -->
+
+**Date**: 2026-11-10
+**Task**: 结构化约束映射与提成导出失败审计
+**Branch**: `main`
+
+### Summary
+
+以Ent与pgx结构化字段精确映射约束，补齐提成导出参数/读取/超限/取消审计及安全错误链；独立review修复三处相邻测试夹具后服务端完整门禁通过，三类正式迁移PostgreSQL唯一冲突专项实测通过。同步规范及核查总览并合并main，原未提交任务摘要不变，一次性库已清理。按用户授权推送。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `09339e06` | fix: 使用结构化约束名映射数据库错误 |
+| `73cc5cec` | fix: 补齐提成导出失败与取消审计 |
+| `2cd6ce3f` | docs: 同步错误审计契约与独立复核结果 |
+| `9eacde3e` | docs: 记录修复合并与验证收尾结果 |
+
+### Testing
+
+- [OK] pnpm run check:server退出0；定向biz/service/data及403错误目录、差异和本地链接校验通过。
+- [OK] 专项TestMapEnt真实PostgreSQL回归2.340秒，无FAIL/SKIP；默认门禁历史集成按环境配置跳过，审计持久化仅sqlmock验证，未执行完整真实库与外部验收。
+
+### Status
+
+[OK] **Completed**
