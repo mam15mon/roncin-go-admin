@@ -19,6 +19,7 @@ export const themeConfig: ThemeConfig = {
     colorTextTertiary: '#94a3b8',
     colorTextQuaternary: '#cbd5e1',
     colorTextPlaceholder: '#64748b',
+    colorTextDisabled: '#64748b',
     controlHeight: 32,
     controlHeightSM: 24,
     fontSize: 13,

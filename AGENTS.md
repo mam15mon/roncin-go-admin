@@ -211,6 +211,8 @@ scripts/                  根目录开发与构建辅助脚本
   - 订单多品类表单统一复用 `OrderFormTemplate` 及其配置式分节结构。
   - 表单占位提示统一由 `web/config/theme.ts` 的 `colorTextPlaceholder` 管理，
     白底文字对比度至少 4.5:1；禁止用全局 CSS 硬编码浅色覆盖，禁用态仍保留独立语义。
+    禁用控件文字通过同一主题的 `colorTextDisabled` 统一为 `#64748b`，与占位提示同色，
+    不可编辑状态通过禁用背景、边框与交互区分，禁止逐页覆盖文字颜色。
 - **基础主数据与通用 CRUD 列表页 (Master Data / CRUD Pages)**：
   - 标准化配置类数据统一复用 `MasterDataTemplate`，内置顶部指标统计卡、关键字与下拉筛选栏、标准分页表格与快捷模态表单。
 - **表格列表页 (Table List Pages)**：
