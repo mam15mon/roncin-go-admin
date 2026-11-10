@@ -1,6 +1,12 @@
 import { layoutOffsets } from '@root/config/layout';
 import type { TableProps } from 'antd';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import {
   type LayoutColumn,
   releaseFixedColumns,
@@ -10,6 +16,11 @@ import {
 
 type Sticky = TableProps<object>['sticky'];
 type Scroll = TableProps<object>['scroll'];
+type LayoutState = {
+  releaseFixed: boolean;
+  scrollContainer: HTMLElement | Window | null;
+  headerOffset: number;
+};
 
 /** 页面自身吸顶区会盖住表头，按其 top 和真实高度避让。 */
 function pageHeaderOffset(element: HTMLElement): number {
@@ -67,23 +78,47 @@ export function useResponsiveTableLayout<C extends LayoutColumn>(options: {
     auxiliaryWidth = 0,
   } = options;
   const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(0);
-  const [scrollContainer, setScrollContainer] = useState<
-    HTMLElement | Window | null
-  >(null);
-  const [headerOffset, setHeaderOffset] = useState<number>(
-    layoutOffsets.topStackHeight,
-  );
+  // 宽度动画会逐帧触发观察器；只发布固定列策略、滚动容器或吸顶偏移的变化。
+  const [layout, setLayout] = useState<LayoutState>(() => ({
+    releaseFixed: shouldReleaseFixedColumns(
+      columns ?? [],
+      0,
+      auxiliaryFixedWidth,
+    ),
+    scrollContainer: null,
+    headerOffset: layoutOffsets.topStackHeight,
+  }));
+  const measuredLayoutRef = useRef(layout);
+  const fixedLayoutRef = useRef({ columns, auxiliaryFixedWidth });
+  fixedLayoutRef.current = { columns, auxiliaryFixedWidth };
+  const measureRef = useRef<() => void>(undefined);
 
   useEffect(() => {
     const element = containerRef.current;
     if (!element) return;
     const measure = () => {
-      setContainerWidth(element.clientWidth);
+      const current = fixedLayoutRef.current;
       const container = findScrollContainer(element);
-      setScrollContainer(container);
-      setHeaderOffset(container === window ? pageHeaderOffset(element) : 0);
+      const next: LayoutState = {
+        releaseFixed: shouldReleaseFixedColumns(
+          current.columns ?? [],
+          element.clientWidth,
+          current.auxiliaryFixedWidth,
+        ),
+        scrollContainer: container,
+        headerOffset: container === window ? pageHeaderOffset(element) : 0,
+      };
+      const previous = measuredLayoutRef.current;
+      if (
+        previous.releaseFixed !== next.releaseFixed ||
+        previous.scrollContainer !== next.scrollContainer ||
+        previous.headerOffset !== next.headerOffset
+      ) {
+        measuredLayoutRef.current = next;
+        setLayout(next);
+      }
     };
+    measureRef.current = measure;
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(element);
@@ -96,20 +131,22 @@ export function useResponsiveTableLayout<C extends LayoutColumn>(options: {
     // 弹层其他区块展开可能只增加 scrollHeight；捕获其首次滚动再确认容器归属。
     document.addEventListener('scroll', measure, true);
     return () => {
+      measureRef.current = undefined;
       observer.disconnect();
       window.removeEventListener('resize', measure);
       document.removeEventListener('scroll', measure, true);
     };
   }, []);
 
+  // 列偏好与选择列变化也会影响固定策略，不能只等待下一次容器缩放。
+  useLayoutEffect(() => {
+    measureRef.current?.();
+  }, [columns, auxiliaryFixedWidth]);
+
+  const { releaseFixed, scrollContainer, headerOffset } = layout;
   const getContainer = useCallback(
     () => scrollContainer ?? window,
     [scrollContainer],
-  );
-  const releaseFixed = shouldReleaseFixedColumns(
-    columns ?? [],
-    containerWidth,
-    auxiliaryFixedWidth,
   );
   const columnsWidth = visibleColumnsWidth(columns ?? []);
   const defaultScrollWidth =

@@ -2,7 +2,14 @@ import type { MenuDataItem, ProLayoutProps } from '@ant-design/pro-components';
 import { ProLayout } from '@ant-design/pro-components';
 import { layoutDimensions } from '@root/config/layout';
 import { Grid } from 'antd';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  Fragment,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { flushSync } from 'react-dom';
 import { Link, Outlet, useLocation } from 'react-router';
 import { HeaderMenus } from '@/components/layout/HeaderMenus';
@@ -180,6 +187,10 @@ export function AppLayout() {
         locale: false,
         collapsedWidth: layoutDimensions.collapsedSiderWidth,
       }}
+      // 两种菜单模式独立挂载，切换时立即销毁旧浮层，避免退场动画叠在内联菜单上。
+      menuContentRender={({ collapsed }, dom) => (
+        <Fragment key={collapsed ? 'collapsed' : 'expanded'}>{dom}</Fragment>
+      )}
       menuHeaderRender={() => (
         <Link
           to="/welcome"

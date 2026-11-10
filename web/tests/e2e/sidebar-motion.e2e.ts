@@ -60,6 +60,7 @@ async function sampleToggle(page: Page, reverseDuringMotion = false) {
       logo: sider.querySelector('img')?.getBoundingClientRect().x,
       itemHeight: sider.querySelector('.ant-menu-item')?.getBoundingClientRect()
         .height,
+      popupCount: document.querySelectorAll('.ant-menu-submenu-popup').length,
     });
     const samples = [snapshot()];
     const started = performance.now();
@@ -146,6 +147,39 @@ test('折叠态悬停仍展示纯白子菜单并可跳转', async ({ page }) => 
   );
   await popup.getByRole('link', { name: '海运出口' }).click();
   await expect(page).toHaveURL(/\/orders\/sea-export$/);
+});
+
+test('当前订单子菜单已展开时切换侧栏，不自动弹出或残留折叠态浮层', async ({
+  page,
+}) => {
+  await page.goto('/orders/sea-export');
+  const sider = page.getByTestId('pro-layout-sider');
+  const orders = sider
+    .locator('.ant-menu-submenu-title')
+    .filter({ hasText: '订单管理' });
+  await expect(orders).toHaveAttribute('aria-expanded', 'true');
+  await expect(sider.getByRole('link', { name: '海运出口' })).toBeVisible();
+
+  const collapsing = await sampleToggle(page);
+  expect(collapsing.every((sample) => sample.popupCount === 0)).toBe(true);
+  await orders.hover();
+  await expect(page.locator('.ant-menu-submenu-popup:visible')).toBeVisible();
+  // 指针离开后退场尚未结束就展开，覆盖截图中的两套子菜单重叠。
+  await page.mouse.move(24, 800);
+  const expanding = await sampleToggle(page);
+  expect(expanding.slice(1).every((sample) => sample.popupCount === 0)).toBe(
+    true,
+  );
+  await expect(sider).toHaveCSS('width', '208px');
+  await expect(sider.getByRole('link', { name: '海运出口' })).toBeVisible();
+  await expect(sider.locator('.ant-menu-item-selected a')).toHaveAttribute(
+    'href',
+    '/orders/sea-export',
+  );
+  await orders.click();
+  await expect(sider.getByRole('link', { name: '海运出口' })).not.toBeVisible();
+  await orders.click();
+  await expect(sider.getByRole('link', { name: '海运出口' })).toBeVisible();
 });
 
 test('移动端菜单展开与点击关闭保持正常，顶栏铺满视口', async ({ page }) => {

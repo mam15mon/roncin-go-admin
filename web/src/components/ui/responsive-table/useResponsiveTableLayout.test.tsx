@@ -4,7 +4,64 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useResponsiveTableLayout } from './useResponsiveTableLayout';
 
 describe('共享表格布局配置', () => {
-  afterEach(() => vi.restoreAllMocks());
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('侧栏逐帧改变宽度时只在固定列策略跨过阈值后重绘，列变化读取最新宽度', () => {
+    let width = 1200;
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(
+      () => width,
+    );
+    let notify: ResizeObserverCallback = () => {};
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(callback: ResizeObserverCallback) {
+          notify = callback;
+        }
+        observe() {}
+        disconnect() {}
+      },
+    );
+    let layout: ReturnType<typeof useResponsiveTableLayout> | undefined;
+    const rendered = vi.fn();
+    const columns = [{ width: 300, fixed: 'left' as const }];
+    function Harness({ fixedWidth = 300, selectionWidth = 0 }) {
+      rendered();
+      layout = useResponsiveTableLayout({
+        columns:
+          fixedWidth === 300 ? columns : [{ width: fixedWidth, fixed: 'left' }],
+        auxiliaryFixedWidth: selectionWidth,
+      });
+      return <div ref={layout.containerRef} />;
+    }
+    const view = render(<Harness />);
+    expect(layout?.releaseFixed).toBe(false);
+    const initialRenders = rendered.mock.calls.length;
+    for (const nextWidth of [1180, 1160, 1120, 1080, 1040, 1000]) {
+      width = nextWidth;
+      act(() => notify([], {} as ResizeObserver));
+    }
+    expect(rendered).toHaveBeenCalledTimes(initialRenders);
+
+    // 这时容器实际只有 1000px；不能沿用首次 1200px 的测量结果。
+    view.rerender(<Harness fixedWidth={650} />);
+    expect(layout?.releaseFixed).toBe(true);
+    view.rerender(<Harness fixedWidth={300} />);
+    expect(layout?.releaseFixed).toBe(false);
+    view.rerender(<Harness fixedWidth={300} selectionWidth={400} />);
+    expect(layout?.releaseFixed).toBe(true);
+    view.rerender(<Harness />);
+
+    width = 600;
+    act(() => notify([], {} as ResizeObserver));
+    expect(layout?.releaseFixed).toBe(true);
+    width = 1000;
+    act(() => notify([], {} as ResizeObserver));
+    expect(layout?.releaseFixed).toBe(false);
+  });
 
   it('按实际容器取消固定，保留显式纵向滚动和业务列内容', async () => {
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(299);
