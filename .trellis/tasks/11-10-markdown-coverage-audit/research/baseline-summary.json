@@ -1,0 +1,17 @@
+{
+  "baseline": "2aeaeeee",
+  "tracked_md": 1126,
+  "additional_md": 267,
+  "all_records": 1393,
+  "categories": {
+    "现行待分域核查": 233,
+    "历史任务": 889,
+    "会话记录": 4,
+    "本地忽略技能": 47,
+    "本地备份或工具构建产物": 219,
+    "用户未提交任务": 1
+  },
+  "broken_targets": 1,
+  "broken_current_targets": [],
+  "archived_tasks": 233
+}
