@@ -1,5 +1,6 @@
 # 本轮代码核对摘要
 
+> 本文保留规划研究时点的结论与限制；实施后的验证及边界见本任务 validation.md，不将研究阶段的“未实测”解释为最终结果。
 - 任务创建已批准，当前仅规划；未写产品代码。
 - data/ent_error.go:29 用strings.Contains约束名；Ent生成ent.go:489-511有Unwrap保留wrap，生成builder包裹sqlgraph错误也保留原错误。pgx/v5当前驱动，PgError.ConstraintName可用。
 - finance_bill_write.go:81仍传idempotency子串，正式20260826160000迁移索引financebill_organization_id_idempotency_key。精确匹配须同步调用方。

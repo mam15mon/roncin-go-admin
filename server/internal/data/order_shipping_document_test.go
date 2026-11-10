@@ -11,6 +11,7 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
@@ -138,9 +139,9 @@ func TestOrderShippingDocumentRepo_Add_UniqueConstraintMapping(t *testing.T) {
 		WithArgs(orderID, orgID).
 		WillReturnRows(airOrderRows(orderID, orgID))
 
-	// Unique constraint error with Postgres constraint name
+	// 通过当前 pgx 的结构化错误验证完整约束名映射。
 	mock.ExpectExec(`INSERT INTO "order_shipping_documents"`).
-		WillReturnError(errors.New(`pq: duplicate key value violates unique constraint "ordershippingdocument_order_id_house_no"`))
+		WillReturnError(&pgconn.PgError{Code: "23505", ConstraintName: "ordershippingdocument_order_id_house_no", Message: "duplicate key value violates unique constraint"})
 
 	mock.ExpectRollback()
 

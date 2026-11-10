@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	stderrors "errors"
 	"sort"
 	"strconv"
 	"strings"
@@ -131,66 +132,138 @@ func validCommissionOrganizationIDs(organizationIDs []uuid.UUID) bool {
 	return true
 }
 
-// Export 按与列表一致的筛选、排序和 CNY 口径同步导出提成：先按同一谓词计数，
-// 超过单次上限时直接拒绝且不执行数据查询；未超限时按每批最多 200 行分批读取。
-// 全部数据读取后、返回响应前写入成功导出审计，审计失败时整体失败，避免
-// 数据成功返回却没有审计。
+// Export 使用列表相同的筛选与排序分批读取；可靠身份与公司范围内的尝试均写审计。
+// 审计写入独立于请求取消，保存失败时不返回导出数据。
 func (u *CommissionUsecase) Export(ctx context.Context, org, actor uuid.UUID, f CommissionFilter) ([]*FinanceCommission, error) {
 	return u.ExportScoped(ctx, []uuid.UUID{org}, actor, f)
 }
 
-func (u *CommissionUsecase) ExportScoped(ctx context.Context, organizationIDs []uuid.UUID, actor uuid.UUID, f CommissionFilter) ([]*FinanceCommission, error) {
+func (u *CommissionUsecase) ExportScoped(ctx context.Context, organizationIDs []uuid.UUID, actor uuid.UUID, f CommissionFilter) (items []*FinanceCommission, exportErr error) {
+	if !validCommissionOrganizationIDs(organizationIDs) || actor == uuid.Nil {
+		return nil, ErrCommissionInvalid
+	}
 	f.Keyword = strings.TrimSpace(f.Keyword)
 	f.CommissionDateFrom = strings.TrimSpace(f.CommissionDateFrom)
 	f.CommissionDateTo = strings.TrimSpace(f.CommissionDateTo)
-	if !validCommissionOrganizationIDs(organizationIDs) || actor == uuid.Nil || (f.Status != "" && f.Status != CommissionDraft && f.Status != CommissionConfirmed && f.Status != CommissionPaid && f.Status != CommissionCancelled) || !validFinanceDateRange(f.CommissionDateFrom, f.CommissionDateTo) {
+	stage := "validation"
+	defer func() {
+		if stderrors.Is(exportErr, context.Canceled) {
+			stage = "cancelled"
+		}
+		if stderrors.Is(exportErr, context.DeadlineExceeded) {
+			stage = "deadline"
+		}
+		event := commissionExportAudit(organizationIDs, actor, f, len(items))
+		if exportErr != nil {
+			event.Result = "failure"
+			event.Details["row_count"] = "0"
+			event.Details["failure_stage"] = stage
+		}
+		auditCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
+		defer cancel()
+		auditErr := u.repo.SaveExportAudit(auditCtx, event)
+		if exportErr != nil || auditErr != nil {
+			items = nil
+			exportErr = commissionExportFailure(exportErr, auditErr)
+		}
+	}()
+	if !validCommissionExportStatus(f.Status) || !validFinanceDateRange(f.CommissionDateFrom, f.CommissionDateTo) {
 		return nil, ErrCommissionInvalid
 	}
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	stage = "count"
 	total, err := u.repo.CountScoped(ctx, organizationIDs, f)
 	if err != nil {
 		return nil, err
 	}
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 	if total > CommissionExportLimit {
+		stage = "limit"
 		return nil, ErrCommissionExportLimit
 	}
-	items := make([]*FinanceCommission, 0, total)
+	items = make([]*FinanceCommission, 0, total)
+	stage = "batch"
 	for offset := 0; offset < int(total); offset += commissionExportBatchSize {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
 		f.Page, f.PageSize = offset/commissionExportBatchSize+1, commissionExportBatchSize
-		batch, batchErr := u.repo.ExportBatchScoped(ctx, organizationIDs, f)
-		if batchErr != nil {
-			return nil, batchErr
+		batch, err := u.repo.ExportBatchScoped(ctx, organizationIDs, f)
+		if err != nil {
+			return nil, err
 		}
 		items = append(items, batch...)
 	}
-	if err := u.repo.SaveExportAudit(ctx, commissionExportAudit(organizationIDs, actor, f, len(items))); err != nil {
+	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
 	return items, nil
 }
 
-// commissionExportAudit 构造成功导出审计：记录操作人、组织、规范化筛选摘要与
-// 最终行数，不保存导出内容。
+func validCommissionExportStatus(status CommissionStatus) bool {
+	return status == "" || status == CommissionDraft || status == CommissionConfirmed || status == CommissionPaid || status == CommissionCancelled
+}
+
+// commissionExportError 仅输出安全摘要；错误链保留失败原因供内部定位，传输层先取得安全状态。
+type commissionExportError struct {
+	status      *errors.Error
+	causes      []error
+	auditFailed bool
+}
+
+func (e *commissionExportError) Error() string {
+	if e.auditFailed {
+		return "提成导出失败，审计保存失败"
+	}
+	return "提成导出失败"
+}
+func (e *commissionExportError) Unwrap() []error { return append([]error{e.status}, e.causes...) }
+
+var errCommissionExportAudit = stderrors.New("提成导出审计保存失败")
+
+func commissionExportFailure(exportErr, auditErr error) error {
+	status := errors.New(500, "", "提成导出失败，请稍后重试")
+	var domain *errors.Error
+	if stderrors.As(exportErr, &domain) {
+		// 只复制领域状态，不把原始cause或任意metadata带入HTTP与运行日志。
+		status = errors.New(int(domain.Code), domain.Reason, domain.Message)
+	}
+	causes := []error{}
+	if exportErr != nil {
+		causes = append(causes, exportErr)
+	}
+	if auditErr != nil {
+		causes = append(causes, errCommissionExportAudit, auditErr)
+		if exportErr == nil {
+			status = errors.New(500, "", "提成导出审计保存失败，请稍后重试")
+		}
+	}
+	return &commissionExportError{status: status, causes: causes, auditFailed: auditErr != nil}
+}
+
+// commissionExportAudit 只保留规范化筛选摘要；任意关键字、非法状态与日期不进入审计。
 func commissionExportAudit(organizationIDs []uuid.UUID, actor uuid.UUID, f CommissionFilter, rowCount int) *AuditEvent {
 	organizationIDStrings := make([]string, 0, len(organizationIDs))
 	for _, organizationID := range organizationIDs {
 		organizationIDStrings = append(organizationIDStrings, organizationID.String())
 	}
 	sort.Strings(organizationIDStrings)
-	details := map[string]string{"row_count": strconv.Itoa(rowCount), "organization_count": strconv.Itoa(len(organizationIDStrings)), "organization_ids": strings.Join(organizationIDStrings, ",")}
+	details := map[string]string{"row_count": strconv.Itoa(rowCount), "organization_count": strconv.Itoa(len(organizationIDStrings)), "organization_ids": strings.Join(organizationIDStrings, ","), "keyword_present": strconv.FormatBool(f.Keyword != ""), "keyword_length": strconv.Itoa(utf8.RuneCountInString(f.Keyword))}
 	var organizationID *uuid.UUID
 	if len(organizationIDs) == 1 {
 		organizationID = &organizationIDs[0]
 	}
-	if f.Keyword != "" {
-		details["keyword"] = f.Keyword
-	}
-	if f.Status != "" {
+	if f.Status != "" && validCommissionExportStatus(f.Status) {
 		details["status"] = string(f.Status)
 	}
-	if f.CommissionDateFrom != "" {
+	if f.CommissionDateFrom != "" && validFinanceDate(f.CommissionDateFrom) {
 		details["commission_date_from"] = f.CommissionDateFrom
 	}
-	if f.CommissionDateTo != "" {
+	if f.CommissionDateTo != "" && validFinanceDate(f.CommissionDateTo) {
 		details["commission_date_to"] = f.CommissionDateTo
 	}
 	return &AuditEvent{OrganizationID: organizationID, UserID: &actor, Action: "finance.commission.export", Result: "success", ResourceType: "finance_commission", Details: details}

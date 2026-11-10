@@ -39,7 +39,7 @@ func (s *SettlementService) ListCommissions(ctx context.Context, r *v1.ListCommi
 }
 
 // ExportCommissions 同步导出提成：service 只转换筛选与扁平 DTO，不生成 CSV；
-// 上限门禁、分批读取与成功审计由用例编排。
+// 上限门禁、分批读取及成功/失败审计由用例编排。
 func (s *SettlementService) ExportCommissions(ctx context.Context, r *v1.ExportCommissionsRequest) (*v1.ExportCommissionsResponse, error) {
 	p, principalErr := biz.RequirePrincipal(ctx)
 	if principalErr != nil {

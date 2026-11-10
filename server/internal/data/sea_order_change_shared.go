@@ -125,7 +125,7 @@ func createNewMasterBillInTx(ctx context.Context, tx *ent.Tx, organizationID uui
 		SetVersion(1).
 		Save(ctx)
 	if err != nil {
-		return nil, nil, mapEntConstraint(err, "seamasterbill_organization_id_shipping_line_id_normalized_master_no", biz.ErrSeaMasterBillExists)
+		return nil, nil, mapEntConstraint(err, "seamasterbill_organization_id_shipping_line_id_normalized_maste", biz.ErrSeaMasterBillExists)
 	}
 
 	return mbl, te, nil

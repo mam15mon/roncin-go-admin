@@ -1,5 +1,9 @@
 # Contributor Covenant Code of Conduct
 
+> 适用说明：以下保留前端模板上游的社区公约原文。文中的上游联系人不是
+> Roncin 项目的支持或投诉入口；本仓库尚未指定该入口，不应据此向上游发送
+> 本项目相关信息。待项目维护者明确负责人后另行公布，本说明不修改上游原文。
+
 ## Our Pledge
 
 In the interest of fostering an open and welcoming environment, we as contributors and maintainers pledge to making participation in our project and our community a harassment-free experience for everyone, regardless of age, body size, disability, ethnicity, gender identity and expression, level of experience, nationality, personal appearance, race, religion, or sexual identity and orientation.

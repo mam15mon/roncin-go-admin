@@ -1,5 +1,6 @@
 # Research: Ent 约束错误结构化映射
 
+> 本文保留规划研究时点的结论与限制；实施后的验证及边界见本任务 validation.md，不将研究阶段的“未实测”解释为最终结果。
 - Query: 审计 mapEntConstraint/mapEntConstraints 的错误链、调用方约束名称及精确匹配迁移影响。
 - Scope: internal
 - Date: 2026-11-10

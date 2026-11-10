@@ -227,7 +227,7 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 
 	mbl, err := mblBuilder.Save(ctx)
 	if err != nil {
-		return mapEntConstraint(err, "seamasterbill_organization_id_shipping_line_id_normalized_master_no", biz.ErrSeaMasterBillConfirmationRequired)
+		return mapEntConstraint(err, "seamasterbill_organization_id_shipping_line_id_normalized_maste", biz.ErrSeaMasterBillConfirmationRequired)
 	}
 
 	_, err = tx.SeaMasterBillOrderLink.Create().
@@ -415,7 +415,7 @@ func syncOrderSeaMasterBillOnUpdate(
 			SetNormalizedMasterNo(mblInput.MasterNo).
 			SetVersion(currentMBL.Version + 1).
 			Save(ctx); err != nil {
-			return mapEntConstraint(err, "seamasterbill_organization_id_shipping_line_id_normalized_master_no", biz.ErrSeaMasterBillConfirmationRequired)
+			return mapEntConstraint(err, "seamasterbill_organization_id_shipping_line_id_normalized_maste", biz.ErrSeaMasterBillConfirmationRequired)
 		}
 
 		if currentTE != nil && voyageChanged {

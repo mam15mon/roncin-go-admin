@@ -10,6 +10,7 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	orderabnormalcaseent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderabnormalcase"
@@ -60,9 +61,9 @@ func TestOrderAbnormalCaseRepo_Mark_UniqueConstraintMapping(t *testing.T) {
 		WithArgs(orderID, caseID).
 		WillReturnRows(sqlmock.NewRows(orderabnormalcaseent.Columns))
 
-	// Insert causes duplicate key
+	// 通过当前 pgx 的结构化错误验证完整约束名映射。
 	mock.ExpectExec(`INSERT INTO "order_abnormal_cases"`).
-		WillReturnError(errors.New(`pq: duplicate key value violates unique constraint "orderabnormalcase_order_id_abnormal_case_id"`))
+		WillReturnError(&pgconn.PgError{Code: "23505", ConstraintName: "orderabnormalcase_order_id_abnormal_case_id", Message: "duplicate key value violates unique constraint"})
 
 	mock.ExpectRollback()
 

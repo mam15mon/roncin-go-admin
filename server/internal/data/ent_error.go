@@ -1,7 +1,9 @@
 package data
 
 import (
-	"strings"
+	"errors"
+
+	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 )
@@ -27,10 +29,20 @@ func mapEntError(err, notFoundErr, constraintErr error) error {
 
 // mapEntConstraint 仅在命中指定数据库约束名时返回对应领域错误。
 func mapEntConstraint(err error, constraintName string, constraintErr error) error {
-	if ent.IsConstraintError(err) && strings.Contains(err.Error(), constraintName) {
-		return constraintErr
+	if constraintName == "" || constraintErr == nil || !ent.IsConstraintError(err) {
+		return err
 	}
-	return err
+	var pgErr *pgconn.PgError
+	if !errors.As(err, &pgErr) || pgErr.ConstraintName != constraintName {
+		return err
+	}
+	// 当前 Ent 生成器包装唯一、外键和 CHECK 约束；其他 SQLSTATE 不按命名约束映射。
+	switch pgErr.Code {
+	case "23505", "23503", "23514":
+		return constraintErr
+	default:
+		return err
+	}
 }
 
 // mapEntConstraints 按顺序尝试多个命名约束映射，未命中时保留原错误。

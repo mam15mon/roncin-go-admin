@@ -27,6 +27,7 @@ type commissionRepoStub struct {
 	ruleErr         error
 	rateContext     *biz.ExchangeRateContext
 	rateStub        *exchangeRateStub
+	exportCalls     int
 	exportTotal     int64
 	exportBatch     []*biz.FinanceCommission
 	exportFilter    biz.CommissionFilter
@@ -53,6 +54,7 @@ func (s *commissionRepoStub) Count(_ context.Context, _ uuid.UUID, f biz.Commiss
 }
 
 func (s *commissionRepoStub) CountScoped(_ context.Context, _ []uuid.UUID, f biz.CommissionFilter) (int64, error) {
+	s.exportCalls++
 	s.exportFilter = f
 	return s.exportTotal, nil
 }
