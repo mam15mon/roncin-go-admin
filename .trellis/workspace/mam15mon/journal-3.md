@@ -1448,3 +1448,28 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 200: Markdown逐份补查与覆盖证据
+<!-- trellis-session: v=2 fp=17d3b7e3e8839cf0 -->
+
+**Date**: 2026-11-10
+**Task**: Markdown逐份补查与覆盖证据
+**Branch**: `main`
+
+### Summary
+
+对1126份Git Markdown与267份额外本地文件建立逐份状态、摘要、核查深度和依据，修正43份原文档并新增核查总览，本地同步13份忽略技能并保存重放补丁。后端待核条目已完成语义核对，两处真实规范实现差异及外部宿主/联系人等保留待确认；1393条台账、原四文件摘要、439链接锚点和403错误目录检查通过。纯文档未运行业务测试、构建或数据库/外部验收。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `527cf3c5` | docs: 修正工具说明中的失效命令与配置位置 |
+| `249f8cae` | docs: 修正领域契约与前后端示例遗漏 |
+| `89a8ccd7` | docs: 更新工程指南并提供逐份核查入口 |
+| `767a4a27` | docs: 记录Markdown逐份补查结果与验证证据 |
+
+### Status
+
+[OK] **Completed**

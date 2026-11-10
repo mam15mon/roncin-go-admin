@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 199
-- **Last Active**: 2026-11-09
+- **Total Sessions**: 200
+- **Last Active**: 2026-11-10
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~1450 | Active |
+| `journal-3.md` | ~1475 | Active |
 | `journal-2.md` | ~2003 | Archived |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 200 | 2026-11-10 | Markdown逐份补查与覆盖证据 | `527cf3c5`, `249f8cae`, `89a8ccd7`, `767a4a27` | `main` |
 | 199 | 2026-11-09 | 全仓文档盘点与现状同步 | `ec175848`, `5e3cd721`, `71f2a988`, `d41ead36`, `2dd784b2` | `main` |
 | 198 | 2026-11-09 | 简化订单主详情草稿与未保存离开保护 | `2fdda73f` | `codex/order-unsaved-close-guard` |
 | 197 | 2026-11-09 | 财务页面及弹窗绑定当前公司工作区 | `b6393686` | `codex/finance-current-workspace` |
