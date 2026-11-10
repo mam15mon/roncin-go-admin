@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"errors"
 
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -108,9 +109,16 @@ func (r *commissionRepo) ExportBatchScoped(ctx context.Context, organizationIDs 
 	return items, nil
 }
 
-// SaveExportAudit 在导出成功返回前持久化业务审计；导出为只读链路，不参与
-// 共享事务，审计写入失败时由用例整体失败。
+var errCommissionExportAuditTransaction = errors.New("提成导出审计不支持共享事务上下文")
+
+// SaveExportAudit 直接持久化只读导出的审计；显式拒绝共享事务上下文，避免审计随业务回滚。
 func (r *commissionRepo) SaveExportAudit(ctx context.Context, event *biz.AuditEvent) error {
+	if current, ok := transactionFromContext(ctx); ok {
+		if !current.active.Load() {
+			return errTransactionContextClosed
+		}
+		return errCommissionExportAuditTransaction
+	}
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return err

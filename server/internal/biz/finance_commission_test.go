@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"testing"
@@ -578,18 +579,18 @@ func commissionExportBatch(size, offset int) []*FinanceCommission {
 func TestCommissionUsecaseExportCountGateAndBatching(t *testing.T) {
 	org, actor := uuid.New(), uuid.New()
 
-	t.Run("超上限拒绝且不查询数据不写审计", func(t *testing.T) {
+	t.Run("超上限拒绝且只写失败审计", func(t *testing.T) {
 		repo := &commissionRepoStub{count: CommissionExportLimit + 1}
 		usecase := NewCommissionUsecase(repo, nil, nil)
 		items, err := usecase.Export(context.Background(), org, actor, CommissionFilter{Status: CommissionPaid})
-		if err != ErrCommissionExportLimit {
+		if !errors.Is(err, ErrCommissionExportLimit) {
 			t.Fatalf("Export() error = %v, want %v", err, ErrCommissionExportLimit)
 		}
 		if items != nil {
 			t.Fatalf("超限时应拒绝导出且不返回数据")
 		}
-		if len(repo.exportCalls) != 0 || repo.exportAudit != nil {
-			t.Fatalf("超限时不应执行数据查询或写审计: calls=%d audit=%#v", len(repo.exportCalls), repo.exportAudit)
+		if len(repo.exportCalls) != 0 || repo.exportAudit == nil || repo.exportAudit.Result != "failure" {
+			t.Fatalf("超限时应只写失败审计: calls=%d audit=%#v", len(repo.exportCalls), repo.exportAudit)
 		}
 	})
 
@@ -684,7 +685,7 @@ func TestCommissionUsecaseExportCountGateAndBatching(t *testing.T) {
 			event.ResourceType != "finance_commission" || event.ResourceID != "" {
 			t.Fatalf("导出审计主体不符: %#v", event)
 		}
-		if event.Details["keyword"] != "张三" || event.Details["status"] != string(CommissionConfirmed) ||
+		if event.Details["keyword"] != "" || event.Details["keyword_present"] != "true" || event.Details["keyword_length"] != "2" || event.Details["status"] != string(CommissionConfirmed) ||
 			event.Details["commission_date_from"] != "2026-07-01" || event.Details["commission_date_to"] != "2026-08-31" ||
 			event.Details["row_count"] != "1" {
 			t.Fatalf("导出审计详情不符: %#v", event.Details)
@@ -695,7 +696,7 @@ func TestCommissionUsecaseExportCountGateAndBatching(t *testing.T) {
 		repo := &commissionRepoStub{count: 1, exportBatches: [][]*FinanceCommission{commissionExportBatch(1, 0)}, exportAuditErr: ErrCommissionInvalid}
 		usecase := NewCommissionUsecase(repo, nil, nil)
 		items, err := usecase.Export(context.Background(), org, actor, CommissionFilter{})
-		if err != ErrCommissionInvalid {
+		if !errors.Is(err, ErrCommissionInvalid) {
 			t.Fatalf("Export() error = %v, want %v", err, ErrCommissionInvalid)
 		}
 		if items != nil {
@@ -718,7 +719,7 @@ func TestCommissionUsecaseExportCountGateAndBatching(t *testing.T) {
 		} {
 			repo := &commissionRepoStub{}
 			usecase := NewCommissionUsecase(repo, nil, nil)
-			if _, err := usecase.Export(context.Background(), tt.org, tt.actor, tt.filter); err != ErrCommissionInvalid {
+			if _, err := usecase.Export(context.Background(), tt.org, tt.actor, tt.filter); !errors.Is(err, ErrCommissionInvalid) {
 				t.Fatalf("%s: error = %v, want %v", tt.name, err, ErrCommissionInvalid)
 			}
 			if repo.countFilter != nil {
@@ -730,11 +731,11 @@ func TestCommissionUsecaseExportCountGateAndBatching(t *testing.T) {
 	t.Run("计数失败原样外传", func(t *testing.T) {
 		repo := &commissionRepoStub{countErr: ErrCommissionInvalid}
 		usecase := NewCommissionUsecase(repo, nil, nil)
-		if _, err := usecase.Export(context.Background(), org, actor, CommissionFilter{}); err != ErrCommissionInvalid {
+		if _, err := usecase.Export(context.Background(), org, actor, CommissionFilter{}); !errors.Is(err, ErrCommissionInvalid) {
 			t.Fatalf("Export() error = %v, want %v", err, ErrCommissionInvalid)
 		}
-		if len(repo.exportCalls) != 0 || repo.exportAudit != nil {
-			t.Fatalf("计数失败时不应继续读取或写审计")
+		if len(repo.exportCalls) != 0 || repo.exportAudit == nil || repo.exportAudit.Result != "failure" {
+			t.Fatalf("计数失败时应停止读取并写失败审计")
 		}
 	})
 }
