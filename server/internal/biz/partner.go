@@ -14,20 +14,20 @@ import (
 )
 
 var (
-	ErrPartnerNotFound                = errors.NotFound("PARTNER_NOT_FOUND", "往来单位不存在")
-	ErrPartnerCodeExists              = errors.Conflict("PARTNER_CODE_EXISTS", "往来单位编码已存在")
-	ErrPartnerNameExists              = errors.Conflict("PARTNER_NAME_EXISTS", "往来单位名称已存在")
-	ErrPartnerUSCCExists              = errors.Conflict("PARTNER_USCC_EXISTS", "统一社会信用代码已存在")
-	ErrPartnerRoleRequired            = errors.BadRequest("PARTNER_ROLE_REQUIRED", "往来单位至少需要一个有效角色")
-	ErrPartnerInvalidRole             = errors.BadRequest("PARTNER_INVALID_ROLE", "往来单位角色不合法")
-	ErrPartnerInvalidArgument         = errors.BadRequest("PARTNER_INVALID_ARGUMENT", "往来单位字段不合法")
-	ErrPartnerPrimaryContactConflict  = errors.BadRequest("PARTNER_PRIMARY_CONTACT_CONFLICT", "只能设置一个主联系人")
-	ErrPartnerAliasExists             = errors.Conflict("PARTNER_ALIAS_EXISTS", "往来单位别名重复")
-	ErrPartnerSupplierRoleRequired    = errors.BadRequest("PARTNER_SUPPLIER_ROLE_REQUIRED", "往来单位没有供应商角色")
-	ErrPartnerBlacklistReasonRequired = errors.BadRequest("PARTNER_BLACKLIST_REASON_REQUIRED", "黑名单变更原因不能为空")
-	ErrPartnerBlacklistedRole         = errors.BadRequest("PARTNER_BLACKLISTED_ROLE", "清除黑名单前不能移除已拉黑角色")
-	ErrPartnerBlacklistRoleRequired   = errors.BadRequest("PARTNER_BLACKLIST_ROLE_REQUIRED", "往来单位没有指定的黑名单角色")
-	ErrPartnerImportInvalidArgument   = errors.BadRequest("PARTNER_INVALID_ARGUMENT", "往来单位导入参数不合法")
+	ErrPartnerNotFound               = errors.NotFound("PARTNER_NOT_FOUND", "往来单位不存在")
+	ErrPartnerCodeExists             = errors.Conflict("PARTNER_CODE_EXISTS", "往来单位编码已存在")
+	ErrPartnerNameExists             = errors.Conflict("PARTNER_NAME_EXISTS", "往来单位名称已存在")
+	ErrPartnerUSCCExists             = errors.Conflict("PARTNER_USCC_EXISTS", "统一社会信用代码已存在")
+	ErrPartnerRoleRequired           = errors.BadRequest("PARTNER_ROLE_REQUIRED", "往来单位至少需要一个有效角色")
+	ErrPartnerInvalidRole            = errors.BadRequest("PARTNER_INVALID_ROLE", "往来单位角色不合法")
+	ErrPartnerInvalidArgument        = errors.BadRequest("PARTNER_INVALID_ARGUMENT", "往来单位字段不合法")
+	ErrPartnerPrimaryContactConflict = errors.BadRequest("PARTNER_PRIMARY_CONTACT_CONFLICT", "只能设置一个主联系人")
+	ErrPartnerAliasExists            = errors.Conflict("PARTNER_ALIAS_EXISTS", "往来单位别名重复")
+	ErrPartnerSupplierRoleRequired   = errors.BadRequest("PARTNER_SUPPLIER_ROLE_REQUIRED", "往来单位没有供应商角色")
+	ErrPartnerBlacklistReasonTooLong = errors.BadRequest("PARTNER_BLACKLIST_REASON_TOO_LONG", "黑名单说明不能超过500字")
+	ErrPartnerBlacklistedRole        = errors.BadRequest("PARTNER_BLACKLISTED_ROLE", "清除黑名单前不能移除已拉黑角色")
+	ErrPartnerBlacklistRoleRequired  = errors.BadRequest("PARTNER_BLACKLIST_ROLE_REQUIRED", "往来单位没有指定的黑名单角色")
+	ErrPartnerImportInvalidArgument  = errors.BadRequest("PARTNER_INVALID_ARGUMENT", "往来单位导入参数不合法")
 )
 
 type PartnerRoleType string
@@ -405,8 +405,8 @@ func (uc *PartnerUsecase) SetPartnerRoleBlacklist(ctx context.Context, organizat
 	if !roleType.Valid() {
 		return nil, ErrPartnerInvalidRole
 	}
-	if reason == "" || utf8.RuneCountInString(reason) > 500 {
-		return nil, ErrPartnerBlacklistReasonRequired
+	if utf8.RuneCountInString(reason) > 500 {
+		return nil, ErrPartnerBlacklistReasonTooLong
 	}
 	result, err := uc.repo.SetPartnerRoleBlacklist(ctx, organizationID, id, PartnerBlacklistUpdate{
 		RoleType:    roleType,

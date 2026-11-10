@@ -330,7 +330,7 @@
 | PARTNER_ATTACHMENT_INVALID_ARGUMENT | 400 Bad Request | 附件字段不合法 | partner_attachment.go | — |
 | PARTNER_ATTACHMENT_NOT_FOUND | 404 Not Found | 附件不存在 | partner_attachment.go | — |
 | PARTNER_BLACKLISTED_ROLE | 400 Bad Request | 清除黑名单前不能移除已拉黑角色 | partner.go | — |
-| PARTNER_BLACKLIST_REASON_REQUIRED | 400 Bad Request | 黑名单变更原因不能为空 | partner.go | — |
+| PARTNER_BLACKLIST_REASON_TOO_LONG | 400 Bad Request | 黑名单说明不能超过500字 | partner.go | — |
 | PARTNER_BLACKLIST_ROLE_REQUIRED | 400 Bad Request | 往来单位没有指定的黑名单角色 | partner.go | — |
 | PARTNER_CODE_EXISTS | 409 Conflict | 往来单位编码已存在 | partner.go | — |
 | PARTNER_CONTRACT_INVALID_ARGUMENT | 400 Bad Request | 合同字段不合法 | partner_contract.go | — |

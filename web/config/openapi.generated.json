@@ -11992,6 +11992,14 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "name": "isCasual",
+            "in": "query",
+            "description": "与列表共用合作类型筛选，散客页签只导出散客。",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -36250,8 +36258,7 @@
       "partner.v1.SetPartnerRoleBlacklistRequest": {
         "required": [
           "id",
-          "roleType",
-          "reason"
+          "roleType"
         ],
         "type": "object",
         "properties": {
@@ -36266,7 +36273,8 @@
             "type": "boolean"
           },
           "reason": {
-            "type": "string"
+            "type": "string",
+            "description": "可选说明，加入或解除黑名单均不要求填写。"
           }
         }
       },

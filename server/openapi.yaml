@@ -7278,6 +7278,11 @@ paths:
                   description: 语义与 ListPartnersRequest.blacklisted 一致，保证黑名单视图导出与列表口径相同。
                   schema:
                     type: boolean
+                - name: isCasual
+                  in: query
+                  description: 与列表共用合作类型筛选，散客页签只导出散客。
+                  schema:
+                    type: boolean
             responses:
                 "200":
                     description: OK
@@ -23646,7 +23651,6 @@ components:
             required:
                 - id
                 - roleType
-                - reason
             type: object
             properties:
                 id:
@@ -23658,6 +23662,7 @@ components:
                     type: boolean
                 reason:
                     type: string
+                    description: 可选说明，加入或解除黑名单均不要求填写。
         partner.v1.SetPartnerRoleBlacklistResponse:
             type: object
             properties:

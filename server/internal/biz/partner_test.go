@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	stderrors "errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -435,7 +436,7 @@ func TestPartnerNormalizesRoleSettlementRule(t *testing.T) {
 	}
 }
 
-func TestPartnerSetPartnerRoleBlacklistRequiresValidRoleReasonAndAudits(t *testing.T) {
+func TestPartnerSetPartnerRoleBlacklistValidatesRoleAndAudits(t *testing.T) {
 	partnerID := uuid.New()
 	organizationID := uuid.New()
 	actorID := uuid.New()
@@ -450,8 +451,8 @@ func TestPartnerSetPartnerRoleBlacklistRequiresValidRoleReasonAndAudits(t *testi
 	if _, err := usecase.SetPartnerRoleBlacklist(context.Background(), organizationID, actorID, partnerID, "invalid", true, "严重违约"); err != ErrPartnerInvalidRole {
 		t.Fatalf("invalid role error = %v, want ErrPartnerInvalidRole", err)
 	}
-	if _, err := usecase.SetPartnerRoleBlacklist(context.Background(), organizationID, actorID, partnerID, PartnerRoleCustomer, true, "   "); err != ErrPartnerBlacklistReasonRequired {
-		t.Fatalf("empty reason error = %v, want ErrPartnerBlacklistReasonRequired", err)
+	if _, err := usecase.SetPartnerRoleBlacklist(context.Background(), organizationID, actorID, partnerID, PartnerRoleCustomer, true, strings.Repeat("字", 501)); err != ErrPartnerBlacklistReasonTooLong {
+		t.Fatalf("超长说明应被拒绝，实际为 %v", err)
 	}
 	updated, err := usecase.SetPartnerRoleBlacklist(context.Background(), organizationID, actorID, partnerID, PartnerRoleCustomer, true, "  严重违约  ")
 	if err != nil {
@@ -462,6 +463,17 @@ func TestPartnerSetPartnerRoleBlacklistRequiresValidRoleReasonAndAudits(t *testi
 	}
 	if repo.auditEvent == nil || repo.auditEvent.Action != "partner.role_blacklist.set" || repo.auditEvent.Details["role_type"] != "customer" || repo.auditEvent.Details["reason"] != "严重违约" || repo.auditEvent.Details["blacklisted"] != "true" {
 		t.Fatalf("audit event = %#v", repo.auditEvent)
+	}
+	for _, blacklisted := range []bool{true, false} {
+		if _, err := usecase.SetPartnerRoleBlacklist(context.Background(), organizationID, actorID, partnerID, PartnerRoleCustomer, blacklisted, "   "); err != nil {
+			t.Fatalf("无说明时仍应允许变更黑名单状态 %t: %v", blacklisted, err)
+		}
+		if repo.blacklistInput.Blacklisted != blacklisted || repo.blacklistInput.Reason != "" || repo.blacklistInput.ChangedBy != actorID || repo.blacklistInput.ChangedAt != changedAt {
+			t.Fatalf("无说明操作仍需记录状态、操作人与时间: %+v", repo.blacklistInput)
+		}
+		if repo.auditEvent == nil || repo.auditEvent.Action != "partner.role_blacklist.set" || repo.auditEvent.Details["reason"] != "" {
+			t.Fatalf("无说明操作仍需记录审计: %+v", repo.auditEvent)
+		}
 	}
 }
 

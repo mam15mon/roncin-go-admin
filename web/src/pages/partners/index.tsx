@@ -17,9 +17,8 @@ import type {
 } from '@ant-design/pro-components';
 import {
   PageContainer,
+  ProFormRadio,
   ProFormSelect,
-  ProFormSwitch,
-  ProFormTextArea,
 } from '@ant-design/pro-components';
 import { paginationSizeChanger } from '@root/config/pagination';
 import {
@@ -108,8 +107,9 @@ const roleLabels: Record<number, string> = Object.fromEntries(
 type BlacklistFormValues = {
   roleType?: PartnerRoleType;
   blacklisted?: boolean;
-  reason?: string;
 };
+
+type PartnerListView = 'all' | 'blacklist' | 'casual';
 
 function roleTags(roles?: API.PartnerRole[]) {
   return (roles ?? []).map((role) => {
@@ -152,18 +152,18 @@ function PartnersContent() {
     useState<API.Partner | null>(null);
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
-  // 黑名单视图：仅显示当前角色类型已拉黑的档案（列表与导出口径一致）
   const queryState = useListQueryState<
-    PartnerSearchParams & { blacklistView?: boolean }
+    PartnerSearchParams & { view?: PartnerListView }
   >({
     tabKey: location.pathname,
     listId: `partners:${location.pathname}`,
     defaultPageSize: 20,
     defaultFilters: {},
   });
-  const [blacklistView, setBlacklistView] = useState(
-    queryState.initial.filters.blacklistView ?? false,
+  const [listView, setListView] = useState<PartnerListView>(
+    queryState.initial.filters.view ?? 'all',
   );
+  const blacklistView = listView === 'blacklist';
 
   const currentView =
     currentViewMeta[location.pathname] ||
@@ -189,18 +189,21 @@ function PartnersContent() {
   const isCustomerView =
     currentView.roleType === PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER;
 
+  const getRequestFilters = () => {
+    const filters = queryState.snapshotRef.current.filters;
+    return {
+      keyword: filters.keyword,
+      role: currentView.roleType,
+      enabled: filters.enabled,
+      isCasual: filters.view === 'casual' ? true : filters.isCasual,
+      blacklisted: filters.view === 'blacklist' ? true : undefined,
+    };
+  };
+
   const handleExport = async () => {
     try {
       setExporting(true);
-      // 导出走服务端聚合翻页的 ExportPartners 接口，与列表读取同一组已提交
-      // 搜索条件（契约无 isCasual 过滤字段，故不透传）
-      const response = await partnerServiceExportPartners({
-        keyword: queryState.snapshotRef.current.filters.keyword,
-        role: currentView.roleType,
-        enabled: queryState.snapshotRef.current.filters.enabled,
-        blacklisted:
-          queryState.snapshotRef.current.filters.blacklistView || undefined,
-      });
+      const response = await partnerServiceExportPartners(getRequestFilters());
       const data = unwrapList(response);
       if (data.length === 0) {
         message.warning('没有可导出的数据');
@@ -259,7 +262,7 @@ function PartnersContent() {
       XLSX.utils.book_append_sheet(wb, ws, `${currentView.title}档案`);
       XLSX.writeFile(
         wb,
-        `${blacklistView ? '黑名单' : ''}${currentView.title}档案列表.xlsx`,
+        `${blacklistView ? '黑名单' : listView === 'casual' ? '散客' : ''}${currentView.title}档案列表.xlsx`,
       );
       message.success(`成功导出 ${data.length} 条数据至 Excel`);
     } catch (err) {
@@ -522,7 +525,7 @@ function PartnersContent() {
               { label: '停用', value: false },
             ],
           },
-          ...(isCustomerView
+          ...(isCustomerView && listView !== 'casual'
             ? [
                 {
                   name: 'isCasual',
@@ -537,11 +540,11 @@ function PartnersContent() {
             : []),
         ]}
         onSearch={(values) => {
-          queryState.commit({ ...values, blacklistView });
+          queryState.commit({ ...values, view: listView });
           actionRef.current?.reload(true);
         }}
         onReset={() => {
-          queryState.commit({ blacklistView }, {});
+          queryState.commit({ view: listView }, {});
           actionRef.current?.reload(true);
         }}
         extraRight={
@@ -591,18 +594,21 @@ function PartnersContent() {
           <Space size={8} wrap style={{ maxWidth: '100%' }}>
             <ContactsOutlined style={{ color: '#1677ff' }} />
             <span>{currentView.title}档案列表</span>
-            <Segmented
-              value={blacklistView ? 'blacklist' : 'all'}
+            <Segmented<PartnerListView>
+              value={listView}
               options={[
                 { label: `全部${currentView.title}`, value: 'all' },
                 { label: `黑名单${currentView.title}`, value: 'blacklist' },
+                ...(isCustomerView
+                  ? [{ label: '散客', value: 'casual' as const }]
+                  : []),
               ]}
               onChange={(value) => {
                 queryState.commit({
                   ...queryState.snapshotRef.current.filters,
-                  blacklistView: value === 'blacklist',
+                  view: value,
                 });
-                setBlacklistView(value === 'blacklist');
+                setListView(value);
                 actionRef.current?.reload(true);
               }}
             />
@@ -625,12 +631,7 @@ function PartnersContent() {
           const response = await partnerServiceListPartners({
             page: params.current,
             pageSize: params.pageSize,
-            keyword: queryState.snapshotRef.current.filters.keyword,
-            role: currentView.roleType,
-            enabled: queryState.snapshotRef.current.filters.enabled,
-            isCasual: queryState.snapshotRef.current.filters.isCasual,
-            blacklisted:
-              queryState.snapshotRef.current.filters.blacklistView || undefined,
+            ...getRequestFilters(),
           });
           return toTableRequest(response);
         }}
@@ -687,7 +688,6 @@ function PartnersContent() {
               id: blacklistPartner.id,
               roleType: values.roleType,
               blacklisted: values.blacklisted ?? false,
-              reason: values.reason?.trim() ?? '',
             },
           );
           if (!isWriteResponse(writeResponse1, true)) return false;
@@ -712,12 +712,13 @@ function PartnersContent() {
             }))}
           rules={[{ required: true, message: '请选择目标角色' }]}
         />
-        <ProFormSwitch name="blacklisted" label="列入该角色黑名单" />
-        <ProFormTextArea
-          name="reason"
-          label="变更原因与说明"
-          rules={[{ required: true, message: '请输入黑名单变更原因' }]}
-          fieldProps={{ rows: 4, maxLength: 500, showCount: true }}
+        <ProFormRadio.Group
+          name="blacklisted"
+          label="黑名单状态"
+          options={[
+            { label: '正常合作', value: false },
+            { label: '已加入黑名单', value: true },
+          ]}
         />
       </GuardedModalForm>
 

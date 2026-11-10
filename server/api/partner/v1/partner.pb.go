@@ -2539,7 +2539,9 @@ type ExportPartnersRequest struct {
 	Role    PartnerRoleType        `protobuf:"varint,2,opt,name=role,proto3,enum=partner.v1.PartnerRoleType" json:"role,omitempty"`
 	Enabled *bool                  `protobuf:"varint,3,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
 	// 语义与 ListPartnersRequest.blacklisted 一致，保证黑名单视图导出与列表口径相同。
-	Blacklisted   *bool `protobuf:"varint,4,opt,name=blacklisted,proto3,oneof" json:"blacklisted,omitempty"`
+	Blacklisted *bool `protobuf:"varint,4,opt,name=blacklisted,proto3,oneof" json:"blacklisted,omitempty"`
+	// 与列表共用合作类型筛选，散客页签只导出散客。
+	IsCasual      *bool `protobuf:"varint,5,opt,name=is_casual,json=isCasual,proto3,oneof" json:"is_casual,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2598,6 +2600,13 @@ func (x *ExportPartnersRequest) GetEnabled() bool {
 func (x *ExportPartnersRequest) GetBlacklisted() bool {
 	if x != nil && x.Blacklisted != nil {
 		return *x.Blacklisted
+	}
+	return false
+}
+
+func (x *ExportPartnersRequest) GetIsCasual() bool {
+	if x != nil && x.IsCasual != nil {
+		return *x.IsCasual
 	}
 	return false
 }
@@ -3875,11 +3884,12 @@ func (x *ListPartnerAuditLogsResponse) GetTraceId() string {
 }
 
 type SetPartnerRoleBlacklistRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	RoleType      PartnerRoleType        `protobuf:"varint,2,opt,name=role_type,json=roleType,proto3,enum=partner.v1.PartnerRoleType" json:"role_type,omitempty"`
-	Blacklisted   bool                   `protobuf:"varint,3,opt,name=blacklisted,proto3" json:"blacklisted,omitempty"`
-	Reason        string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Id          string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	RoleType    PartnerRoleType        `protobuf:"varint,2,opt,name=role_type,json=roleType,proto3,enum=partner.v1.PartnerRoleType" json:"role_type,omitempty"`
+	Blacklisted bool                   `protobuf:"varint,3,opt,name=blacklisted,proto3" json:"blacklisted,omitempty"`
+	// 可选说明，加入或解除黑名单均不要求填写。
+	Reason        string `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -7692,15 +7702,18 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12#\n" +
 	"\rcreated_count\x18\x04 \x01(\x05R\fcreatedCount\x12#\n" +
 	"\rupdated_count\x18\x05 \x01(\x05R\fupdatedCount\x12\x19\n" +
-	"\btrace_id\x18\x06 \x01(\tR\atraceId\"\xc4\x01\n" +
+	"\btrace_id\x18\x06 \x01(\tR\atraceId\"\xf4\x01\n" +
 	"\x15ExportPartnersRequest\x12\x18\n" +
 	"\akeyword\x18\x01 \x01(\tR\akeyword\x12/\n" +
 	"\x04role\x18\x02 \x01(\x0e2\x1b.partner.v1.PartnerRoleTypeR\x04role\x12\x1d\n" +
 	"\aenabled\x18\x03 \x01(\bH\x00R\aenabled\x88\x01\x01\x12%\n" +
-	"\vblacklisted\x18\x04 \x01(\bH\x01R\vblacklisted\x88\x01\x01B\n" +
+	"\vblacklisted\x18\x04 \x01(\bH\x01R\vblacklisted\x88\x01\x01\x12 \n" +
+	"\tis_casual\x18\x05 \x01(\bH\x02R\bisCasual\x88\x01\x01B\n" +
 	"\n" +
 	"\b_enabledB\x0e\n" +
-	"\f_blacklisted\"\xd2\x02\n" +
+	"\f_blacklistedB\f\n" +
+	"\n" +
+	"_is_casual\"\xd2\x02\n" +
 	"\x11PartnerExportItem\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\x12\x1d\n" +
 	"\n" +
@@ -7827,12 +7840,12 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\x05total\x18\x05 \x01(\x05R\x05total\x12\x12\n" +
 	"\x04page\x18\x06 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\a \x01(\x05R\bpageSize\x12\x19\n" +
-	"\btrace_id\x18\b \x01(\tR\atraceId\"\xb3\x01\n" +
+	"\btrace_id\x18\b \x01(\tR\atraceId\"\xae\x01\n" +
 	"\x1eSetPartnerRoleBlacklistRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12=\n" +
 	"\trole_type\x18\x02 \x01(\x0e2\x1b.partner.v1.PartnerRoleTypeB\x03\xe0A\x02R\broleType\x12 \n" +
-	"\vblacklisted\x18\x03 \x01(\bR\vblacklisted\x12\x1b\n" +
-	"\x06reason\x18\x04 \x01(\tB\x03\xe0A\x02R\x06reason\"\xfa\x03\n" +
+	"\vblacklisted\x18\x03 \x01(\bR\vblacklisted\x12\x16\n" +
+	"\x06reason\x18\x04 \x01(\tR\x06reason\"\xfa\x03\n" +
 	"\x0ePartnerAccount\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +

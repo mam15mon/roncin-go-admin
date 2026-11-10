@@ -438,6 +438,8 @@ message ExportPartnersRequest {
   optional bool enabled = 3;
   // 语义与 ListPartnersRequest.blacklisted 一致，保证黑名单视图导出与列表口径相同。
   optional bool blacklisted = 4;
+  // 与列表共用合作类型筛选，散客页签只导出散客。
+  optional bool is_casual = 5;
 }
 
 message PartnerExportItem {
@@ -587,7 +589,8 @@ message SetPartnerRoleBlacklistRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];
   PartnerRoleType role_type = 2 [(google.api.field_behavior) = REQUIRED];
   bool blacklisted = 3;
-  string reason = 4 [(google.api.field_behavior) = REQUIRED];
+  // 可选说明，加入或解除黑名单均不要求填写。
+  string reason = 4;
 }
 
 enum PartnerAccountUsage {

@@ -50,3 +50,22 @@ func TestPartnerListAndExportUseCurrentCompany(t *testing.T) {
 		})
 	}
 }
+
+func TestPartnerExportPreservesCasualFilter(t *testing.T) {
+	companyID := uuid.New()
+	p := &biz.Principal{Organization: biz.Organization{ID: companyID, Kind: biz.OrganizationKindCompany}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: companyID, Kind: biz.OrganizationKindCompany}}, RoleGrants: []biz.RoleGrant{{DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{access.PartnerExport: {}}}}}
+	ctx := biz.WithPrincipal(t.Context(), p)
+	for _, isCasual := range []*bool{nil, new(true), new(false)} {
+		repo := &partnerWorkspaceRepo{}
+		service := &PartnerService{usecase: biz.NewPartnerUsecase(repo)}
+		if _, err := service.ExportPartners(ctx, &v1.ExportPartnersRequest{Keyword: "测试", Role: v1.PartnerRoleType_PARTNER_ROLE_TYPE_CUSTOMER, IsCasual: isCasual, Enabled: new(true), Blacklisted: new(true)}); err != nil {
+			t.Fatal(err)
+		}
+		if (repo.options.IsCasual == nil) != (isCasual == nil) || isCasual != nil && *repo.options.IsCasual != *isCasual {
+			t.Fatalf("导出应保留未筛选、散客与正式客户三种语义: %+v", repo.options)
+		}
+		if !slices.Equal(repo.ids, []uuid.UUID{companyID}) || repo.options.Keyword != "测试" || repo.options.Role != biz.PartnerRoleCustomer || repo.options.Enabled == nil || !*repo.options.Enabled || repo.options.Blacklisted == nil || !*repo.options.Blacklisted || repo.options.PageSize != biz.MaxListPageSize {
+			t.Fatalf("散客筛选不能改变公司范围与其他筛选: %+v", repo.options)
+		}
+	}
+}

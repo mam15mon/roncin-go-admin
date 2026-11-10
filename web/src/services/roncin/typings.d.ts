@@ -6180,6 +6180,8 @@ declare namespace API {
     enabled?: boolean;
     /** 语义与 ListPartnersRequest.blacklisted 一致，保证黑名单视图导出与列表口径相同。 */
     blacklisted?: boolean;
+    /** 与列表共用合作类型筛选，散客页签只导出散客。 */
+    isCasual?: boolean;
   };
 
   type PartnerServiceGetPartnerParams = {
@@ -8039,7 +8041,8 @@ declare namespace API {
     id: string;
     roleType: number;
     blacklisted?: boolean;
-    reason: string;
+    /** 可选说明，加入或解除黑名单均不要求填写。 */
+    reason?: string;
   };
 
   type SetPartnerRoleBlacklistResponse = {

@@ -202,7 +202,7 @@ func (s *PartnerService) ExportPartners(ctx context.Context, request *v1.ExportP
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	options := biz.PartnerListOptions{Page: 1, PageSize: biz.MaxListPageSize, Keyword: request.GetKeyword(), Role: partnerRoleTypeFromAPI(request.GetRole())}
+	options := biz.PartnerListOptions{Page: 1, PageSize: biz.MaxListPageSize, Keyword: request.GetKeyword(), Role: partnerRoleTypeFromAPI(request.GetRole()), IsCasual: request.IsCasual}
 	if request.Enabled != nil {
 		enabled := request.GetEnabled()
 		options.Enabled = &enabled

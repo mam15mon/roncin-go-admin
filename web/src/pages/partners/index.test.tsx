@@ -2,8 +2,8 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { history } from '@/router/history';
 import { PartnerRoleType } from '@/enums.generated';
+import { history } from '@/router/history';
 import {
   partnerServiceExportPartners,
   partnerServiceListPartners,
@@ -102,7 +102,7 @@ describe('Partners 列表页', () => {
     ).toBeInTheDocument();
 
     // 行内散客与正式 Tag
-    expect(screen.getByText('散客')).toBeInTheDocument();
+    expect(screen.getAllByText('散客')).toHaveLength(2);
     expect(screen.getByText('正式')).toBeInTheDocument();
 
     // 快捷筛选包含合作类型
@@ -140,6 +140,9 @@ describe('Partners 列表页', () => {
       screen.queryByRole('columnheader', { name: '合作类型' }),
     ).not.toBeInTheDocument();
     expect(screen.queryByText('合作类型')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('radio', { name: '散客' }),
+    ).not.toBeInTheDocument();
   });
 
   it('列表页展示导出 Excel 与导入 Excel 按钮，并在操作列提供编辑与更多操作菜单', async () => {
@@ -245,7 +248,8 @@ describe('Partners 列表页', () => {
       total: 1,
     } as never);
     vi.mocked(partnerServiceSetPartnerRoleBlacklist).mockResolvedValue({
-      success: true, data: { id: 'p-blacklist' },
+      success: true,
+      data: { id: 'p-blacklist' },
     });
 
     render(
@@ -261,11 +265,9 @@ describe('Partners 列表页', () => {
     expect(
       await screen.findByText('角色黑名单管理 - 多角色合作单位'),
     ).toBeInTheDocument();
-    expect(screen.getByRole('switch')).toBeChecked();
-
-    fireEvent.change(screen.getByLabelText('变更原因与说明'), {
-      target: { value: '  延续供应商限制  ' },
-    });
+    expect(screen.getByRole('radio', { name: '已加入黑名单' })).toBeChecked();
+    expect(screen.queryByLabelText('变更原因与说明')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('radio', { name: '正常合作' }));
     fireEvent.click(screen.getByRole('button', { name: '确 定' }));
 
     // 提交后存在表单校验、弹窗关闭动画、消息提示与列表刷新等多段异步流，
@@ -276,8 +278,7 @@ describe('Partners 列表页', () => {
         {
           id: 'p-blacklist',
           roleType: 2,
-          blacklisted: true,
-          reason: '延续供应商限制',
+          blacklisted: false,
         },
       );
     });
@@ -322,6 +323,7 @@ describe('Partners 列表页', () => {
       expect.objectContaining({
         role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
         blacklisted: undefined,
+        isCasual: undefined,
       }),
     );
     // 初始视图不展示拉黑信息列
@@ -416,9 +418,12 @@ describe('Partners 列表页', () => {
         role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
         enabled: undefined,
         blacklisted: undefined,
+        isCasual: undefined,
       });
     });
-    expect(await screen.findByText('成功导出 1 条数据至 Excel')).toBeInTheDocument();
+    expect(
+      await screen.findByText('成功导出 1 条数据至 Excel'),
+    ).toBeInTheDocument();
     // ListPartners 只承担表格分页请求，不再出现超限 pageSize 的全量拉取
     for (const call of vi.mocked(partnerServiceListPartners).mock.calls) {
       expect((call[0] as { pageSize?: number }).pageSize).toBeLessThanOrEqual(
@@ -459,9 +464,12 @@ describe('Partners 列表页', () => {
         role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
         enabled: undefined,
         blacklisted: true,
+        isCasual: undefined,
       });
     });
-    expect(await screen.findByText('成功导出 1 条数据至 Excel')).toBeInTheDocument();
+    expect(
+      await screen.findByText('成功导出 1 条数据至 Excel'),
+    ).toBeInTheDocument();
     expect(xlsxMock.writeFile).toHaveBeenLastCalledWith(
       expect.anything(),
       '黑名单客户档案列表.xlsx',
