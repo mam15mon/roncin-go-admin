@@ -64,50 +64,54 @@ describe('Partners 列表页', () => {
     routeState.pathname = '/partners/customers';
   });
 
-  it('表格渲染合作类型列与快捷筛选，并正确展示散客与正式标签', async () => {
-    vi.mocked(partnerServiceListPartners).mockResolvedValue({
-      data: [
-        {
-          id: 'p-1',
-          code: 'CUST-CASUAL',
-          legalName: '单次合作散客公司',
-          isCasual: true,
-          enabled: true,
-          roles: [{ type: 1, enabled: true }],
-        },
-        {
-          id: 'p-2',
-          code: 'CUST-REGULAR',
-          legalName: '长期正式合作公司',
-          isCasual: false,
-          enabled: true,
-          roles: [{ type: 1, enabled: true }],
-        },
+  it('正式客户与散客分开查询，保留合作类型列并移除重复筛选', async () => {
+    const regular = {
+      id: 'regular-1',
+      legalName: '长期正式合作公司',
+      roles: [
+        { type: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER, enabled: true },
       ],
-      total: 2,
-    } as never);
-
+    };
+    const casual = {
+      id: 'casual-1',
+      legalName: '单次合作散客公司',
+      isCasual: true,
+      roles: [
+        { type: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER, enabled: true },
+      ],
+    };
+    vi.mocked(partnerServiceListPartners).mockImplementation(
+      async (params) => ({
+        data: params.isCasual ? [casual] : [regular],
+        total: 1,
+      }),
+    );
     render(
       <App>
         <Partners />
       </App>,
     );
-
-    expect(await screen.findByText('单次合作散客公司')).toBeInTheDocument();
-    expect(screen.getByText('长期正式合作公司')).toBeInTheDocument();
-
-    // 合作类型表头
+    expect(await screen.findByText('长期正式合作公司')).toBeInTheDocument();
+    expect(screen.queryByText('单次合作散客公司')).not.toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: '正式客户' })).toBeChecked();
+    expect(partnerServiceListPartners).toHaveBeenLastCalledWith(
+      expect.objectContaining({ isCasual: false, blacklisted: false }),
+    );
     expect(
       screen.getByRole('columnheader', { name: '合作类型' }),
     ).toBeInTheDocument();
-
-    // 行内散客与正式 Tag
-    expect(screen.getAllByText('散客')).toHaveLength(2);
     expect(screen.getByText('正式')).toBeInTheDocument();
-
-    // 快捷筛选包含合作类型
-    const placeholders = screen.getAllByText('合作类型');
-    expect(placeholders.length).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.queryByText('合作类型', { selector: '.ant-select-placeholder' }),
+    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('radio', { name: '散客' }));
+    expect(await screen.findByText('单次合作散客公司')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.queryByText('长期正式合作公司')).not.toBeInTheDocument(),
+    );
+    expect(partnerServiceListPartners).toHaveBeenLastCalledWith(
+      expect.objectContaining({ isCasual: true, blacklisted: false }),
+    );
   });
 
   it('国外代理列表页隐藏合作类型列与散客筛选', async () => {
@@ -282,7 +286,7 @@ describe('Partners 列表页', () => {
     });
   });
 
-  it('切换黑名单视图后请求携带 blacklisted 参数并保持当前角色类型，切回全部后恢复', async () => {
+  it('切换黑名单视图后请求携带 blacklisted 参数并保持当前角色类型，切回正式客户后恢复', async () => {
     vi.mocked(partnerServiceListPartners).mockResolvedValue({
       data: [
         {
@@ -313,12 +317,12 @@ describe('Partners 列表页', () => {
     );
 
     expect(await screen.findByText('黑名单视图客户公司')).toBeInTheDocument();
-    // 初始请求按当前视图角色查询，不携带黑名单过滤
+    // 正式客户仅查询未拉黑的非散客
     expect(partnerServiceListPartners).toHaveBeenLastCalledWith(
       expect.objectContaining({
         role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
-        blacklisted: undefined,
-        isCasual: undefined,
+        blacklisted: false,
+        isCasual: false,
       }),
     );
     // 初始视图不展示拉黑信息列
@@ -327,7 +331,7 @@ describe('Partners 列表页', () => {
     ).not.toBeInTheDocument();
 
     // 切到黑名单视图：请求携带 blacklisted: true，role 保持客户类型
-    fireEvent.click(screen.getByText('黑名单客户'));
+    fireEvent.click(screen.getByRole('radio', { name: '黑名单' }));
     await waitFor(() => {
       expect(partnerServiceListPartners).toHaveBeenLastCalledWith(
         expect.objectContaining({
@@ -345,13 +349,13 @@ describe('Partners 列表页', () => {
     expect(screen.getByText(/张风控/)).toBeInTheDocument();
     expect(screen.queryByText(/admin/)).not.toBeInTheDocument();
 
-    // 切回全部视图：blacklisted 回到 undefined，拉黑信息列隐藏
-    fireEvent.click(screen.getByText('全部客户'));
+    // 切回正式客户：排除黑名单和散客，隐藏拉黑信息列
+    fireEvent.click(screen.getByRole('radio', { name: '正式客户' }));
     await waitFor(() => {
       expect(partnerServiceListPartners).toHaveBeenLastCalledWith(
         expect.objectContaining({
           role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
-          blacklisted: undefined,
+          blacklisted: false,
         }),
       );
     });
@@ -405,15 +409,15 @@ describe('Partners 列表页', () => {
 
     expect(await screen.findByText('导出测试公司')).toBeInTheDocument();
 
-    // 全部视图导出：走 ExportPartners 接口，透传当前视图角色
+    // 正式客户导出：与列表共用未拉黑及正式客户条件
     fireEvent.click(screen.getByRole('button', { name: /导出 Excel/ }));
     await waitFor(() => {
       expect(partnerServiceExportPartners).toHaveBeenLastCalledWith({
         keyword: undefined,
         role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
         enabled: undefined,
-        blacklisted: undefined,
-        isCasual: undefined,
+        blacklisted: false,
+        isCasual: false,
       });
     });
     expect(
@@ -442,11 +446,11 @@ describe('Partners 列表页', () => {
     ]);
     expect(xlsxMock.writeFile).toHaveBeenLastCalledWith(
       expect.anything(),
-      '客户档案列表.xlsx',
+      '正式客户档案列表.xlsx',
     );
 
     // 切到黑名单视图导出：携带 blacklisted: true，文件名带黑名单前缀
-    fireEvent.click(screen.getByText('黑名单客户'));
+    fireEvent.click(screen.getByRole('radio', { name: '黑名单' }));
     await waitFor(() => {
       expect(partnerServiceListPartners).toHaveBeenLastCalledWith(
         expect.objectContaining({ blacklisted: true }),

@@ -1946,7 +1946,8 @@ type ListPartnersRequest struct {
 	Enabled  *bool                  `protobuf:"varint,5,opt,name=enabled,proto3,oneof" json:"enabled,omitempty"`
 	IsCasual *bool                  `protobuf:"varint,6,opt,name=is_casual,json=isCasual,proto3,oneof" json:"is_casual,omitempty"`
 	// 按业务角色的黑名单状态过滤；缺省不过滤。true 匹配存在已拉黑角色
-	// （不要求角色启用）的档案，false 匹配存在未拉黑角色的档案。
+	// 的档案，false 匹配存在未拉黑角色的档案；显式筛选时均不要求角色启用，
+	// 未指定时仅匹配启用角色。
 	Blacklisted   *bool `protobuf:"varint,7,opt,name=blacklisted,proto3,oneof" json:"blacklisted,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

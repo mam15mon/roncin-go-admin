@@ -95,7 +95,7 @@ const roleLabels: Record<number, string> = Object.fromEntries(
   roleOptions.map((option) => [option.value, option.label]),
 );
 
-type PartnerListView = 'all' | 'blacklist' | 'casual';
+type PartnerListView = 'regular' | 'casual' | 'blacklist';
 
 function roleTags(roles?: API.PartnerRole[]) {
   return (roles ?? []).map((role) => {
@@ -115,7 +115,6 @@ function roleTags(roles?: API.PartnerRole[]) {
 type PartnerSearchParams = {
   keyword?: string;
   enabled?: boolean;
-  isCasual?: boolean;
 };
 
 function PartnersContent() {
@@ -141,7 +140,7 @@ function PartnersContent() {
     defaultFilters: {},
   });
   const [listView, setListView] = useState<PartnerListView>(
-    queryState.initial.filters.view ?? 'all',
+    queryState.initial.filters.view ?? 'regular',
   );
   const blacklistView = listView === 'blacklist';
 
@@ -158,6 +157,13 @@ function PartnersContent() {
 
   const isCustomerView =
     currentView.roleType === PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER;
+  const listViewTitle = blacklistView
+    ? `黑名单${currentView.title}`
+    : isCustomerView
+      ? listView === 'casual'
+        ? '散客'
+        : '正式客户'
+      : currentView.title;
 
   const getRequestFilters = () => {
     const filters = queryState.snapshotRef.current.filters;
@@ -165,8 +171,11 @@ function PartnersContent() {
       keyword: filters.keyword,
       role: currentView.roleType,
       enabled: filters.enabled,
-      isCasual: filters.view === 'casual' ? true : filters.isCasual,
-      blacklisted: filters.view === 'blacklist' ? true : undefined,
+      isCasual:
+        isCustomerView && filters.view !== 'blacklist'
+          ? filters.view === 'casual'
+          : undefined,
+      blacklisted: filters.view === 'blacklist',
     };
   };
 
@@ -229,11 +238,8 @@ function PartnersContent() {
         { wch: 20 },
       ];
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, `${currentView.title}档案`);
-      XLSX.writeFile(
-        wb,
-        `${blacklistView ? '黑名单' : listView === 'casual' ? '散客' : ''}${currentView.title}档案列表.xlsx`,
-      );
+      XLSX.utils.book_append_sheet(wb, ws, `${listViewTitle}档案`);
+      XLSX.writeFile(wb, `${listViewTitle}档案列表.xlsx`);
       message.success(`成功导出 ${data.length} 条数据至 Excel`);
     } catch (err) {
       message.error(getErrorMessage(err, '导出 Excel 失败'));
@@ -257,15 +263,17 @@ function PartnersContent() {
       );
       if (!isWriteResponse(response, true)) return;
       message.success(blacklisted ? '已加入黑名单' : '已移出黑名单');
-      if (blacklisted) {
-        queryState.commit({
-          ...queryState.snapshotRef.current.filters,
-          view: 'blacklist',
-          isCasual: getRequestFilters().isCasual,
-        });
-        setListView('blacklist');
-      }
-      actionRef.current?.reload(blacklisted);
+      const nextView = blacklisted
+        ? 'blacklist'
+        : isCustomerView && response.data?.isCasual
+          ? 'casual'
+          : 'regular';
+      queryState.commit({
+        ...queryState.snapshotRef.current.filters,
+        view: nextView,
+      });
+      setListView(nextView);
+      actionRef.current?.reload(true);
     } catch (error) {
       message.error(getErrorMessage(error, '黑名单操作失败'));
     } finally {
@@ -523,19 +531,6 @@ function PartnersContent() {
               { label: '停用', value: false },
             ],
           },
-          ...(isCustomerView && listView !== 'casual'
-            ? [
-                {
-                  name: 'isCasual',
-                  placeholder: '合作类型',
-                  width: 120,
-                  options: [
-                    { label: '正式伙伴', value: false },
-                    { label: '散客', value: true },
-                  ],
-                },
-              ]
-            : []),
         ]}
         onSearch={(values) => {
           queryState.commit({ ...values, view: listView });
@@ -595,11 +590,14 @@ function PartnersContent() {
             <Segmented<PartnerListView>
               value={listView}
               options={[
-                { label: `全部${currentView.title}`, value: 'all' },
-                { label: `黑名单${currentView.title}`, value: 'blacklist' },
+                {
+                  label: isCustomerView ? '正式客户' : '正常合作',
+                  value: 'regular',
+                },
                 ...(isCustomerView
                   ? [{ label: '散客', value: 'casual' as const }]
                   : []),
+                { label: '黑名单', value: 'blacklist' },
               ]}
               onChange={(value) => {
                 queryState.commit({

@@ -365,7 +365,8 @@ message ListPartnersRequest {
   optional bool enabled = 5;
   optional bool is_casual = 6;
   // 按业务角色的黑名单状态过滤；缺省不过滤。true 匹配存在已拉黑角色
-  //（不要求角色启用）的档案，false 匹配存在未拉黑角色的档案。
+  // 的档案，false 匹配存在未拉黑角色的档案；显式筛选时均不要求角色启用，
+  // 未指定时仅匹配启用角色。
   optional bool blacklisted = 7;
 }
 

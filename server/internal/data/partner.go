@@ -81,14 +81,12 @@ func (r *partnerRepo) List(ctx context.Context, organizationIDs []uuid.UUID, opt
 	rolePredicates := []entpredicate.PartnerRole{
 		partnerroleent.RoleTypeEQ(partnerroleent.RoleType(options.Role)),
 	}
-	if options.Blacklisted != nil && *options.Blacklisted {
-		// 黑名单视图：只认拉黑标记，不要求角色启用（拉黑与停用正交）。
-		rolePredicates = append(rolePredicates, partnerroleent.BlacklistedEQ(true))
+	if options.Blacklisted != nil {
+		// 管理页按黑名单状态互斥分组，角色停用不改变分组。
+		rolePredicates = append(rolePredicates, partnerroleent.BlacklistedEQ(*options.Blacklisted))
 	} else {
+		// 业务选择器未指定黑名单条件时，仍只提供启用角色。
 		rolePredicates = append(rolePredicates, partnerroleent.EnabledEQ(true))
-		if options.Blacklisted != nil {
-			rolePredicates = append(rolePredicates, partnerroleent.BlacklistedEQ(false))
-		}
 	}
 	if options.Role != "" {
 		query.Where(partnerent.HasRolesWith(rolePredicates...))

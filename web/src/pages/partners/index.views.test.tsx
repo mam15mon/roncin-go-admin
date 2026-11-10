@@ -84,7 +84,7 @@ describe('Partners 页签与黑名单交互', () => {
       expect(partnerServiceListPartners).toHaveBeenLastCalledWith(
         expect.objectContaining({
           isCasual: true,
-          blacklisted: undefined,
+          blacklisted: false,
           page: 1,
         }),
       ),
@@ -107,7 +107,7 @@ describe('Partners 页签与黑名单交互', () => {
     await waitFor(() =>
       expect(xlsxMock.writeFile).toHaveBeenCalledWith(
         expect.anything(),
-        '散客客户档案列表.xlsx',
+        '散客档案列表.xlsx',
       ),
     );
     expect(partnerServiceExportPartners).toHaveBeenLastCalledWith({
@@ -115,7 +115,7 @@ describe('Partners 页签与黑名单交互', () => {
       role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
       enabled: undefined,
       isCasual: true,
-      blacklisted: undefined,
+      blacklisted: false,
     });
 
     fireEvent.click(screen.getByRole('button', { name: /重置/ }));
@@ -124,18 +124,18 @@ describe('Partners 页签与黑名单交互', () => {
         expect.objectContaining({ keyword: undefined, isCasual: true }),
       ),
     );
-    fireEvent.click(screen.getByRole('radio', { name: '黑名单客户' }));
+    fireEvent.click(screen.getByRole('radio', { name: '黑名单' }));
     await waitFor(() =>
       expect(partnerServiceListPartners).toHaveBeenLastCalledWith(
         expect.objectContaining({ isCasual: undefined, blacklisted: true }),
       ),
     );
-    fireEvent.click(screen.getByRole('radio', { name: '全部客户' }));
+    fireEvent.click(screen.getByRole('radio', { name: '正式客户' }));
     await waitFor(() =>
       expect(partnerServiceListPartners).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          isCasual: undefined,
-          blacklisted: undefined,
+          isCasual: false,
+          blacklisted: false,
         }),
       ),
     );
@@ -217,7 +217,7 @@ describe('Partners 页签与黑名单交互', () => {
     await waitFor(() =>
       expect(partnerServiceListPartners).toHaveBeenCalledTimes(2),
     );
-    expect(screen.getByRole('radio', { name: '黑名单客户' })).toBeChecked();
+    expect(screen.getByRole('radio', { name: '黑名单' })).toBeChecked();
     expect(partnerServiceListPartners).toHaveBeenLastCalledWith(
       expect.objectContaining({ blacklisted: true, page: 1 }),
     );
@@ -253,7 +253,7 @@ describe('Partners 页签与黑名单交互', () => {
     );
     expect(partnerServiceSetPartnerRoleBlacklist).toHaveBeenCalledTimes(1);
     expect(partnerServiceListPartners).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole('radio', { name: '全部客户' })).toBeChecked();
+    expect(screen.getByRole('radio', { name: '正式客户' })).toBeChecked();
     expect(screen.queryByText('已加入黑名单')).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /更多/ }));
     fireEvent.click(await screen.findByText('加入黑名单'));
@@ -261,6 +261,6 @@ describe('Partners 页签与黑名单交互', () => {
       expect(partnerServiceListPartners).toHaveBeenCalledTimes(2),
     );
     expect(partnerServiceSetPartnerRoleBlacklist).toHaveBeenCalledTimes(2);
-    expect(screen.getByRole('radio', { name: '黑名单客户' })).toBeChecked();
+    expect(screen.getByRole('radio', { name: '黑名单' })).toBeChecked();
   });
 });
