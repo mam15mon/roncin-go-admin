@@ -1,97 +1,28 @@
-# Thinking Guides
+# 开发思考指南
 
-> **Purpose**: Expand your thinking to catch things you might not have considered.
+本目录提供 Roncin 项目的开发前检查表，帮助定位真实规则和复用入口。具体业务契约由对应规范、Proto 与实现维护，协作要求遵循[根 AGENTS.md](../../../AGENTS.md)。
 
----
+| 指南 | 使用场景 | 后续入口 |
+| --- | --- | --- |
+| [代码复用检查](./code-reuse-thinking-guide.md) | 新增函数、常量、配置、重复映射或跨页面能力 | [前端能力导航](../web/frontend/capability-navigation.md)、[后端能力导航](../server/backend/capability-navigation.md) |
+| [跨层数据流检查](./cross-layer-thinking-guide.md) | 接口、持久化、权限、异步状态或多层调用变化 | [后端规范](../server/backend/index.md)、[前端规范](../web/frontend/index.md) |
 
-## Why Thinking Guides?
+## 修改前
 
-**Most bugs and tech debt come from "didn't think of that"**, not from lack of skill:
-
-- Didn't think about what happens at layer boundaries → cross-layer bugs
-- Didn't think about code patterns repeating → duplicated code everywhere
-- Didn't think about edge cases → runtime errors
-- Didn't think about future maintainers → unreadable code
-
-These guides help you **ask the right questions before coding**.
-
----
-
-## Available Guides
-
-| Guide | Purpose | When to Use |
-|-------|---------|-------------|
-| [Code Reuse Thinking Guide](./code-reuse-thinking-guide.md) | Identify patterns and reduce duplication | When you notice repeated patterns |
-| [Cross-Layer Thinking Guide](./cross-layer-thinking-guide.md) | Think through data flow across layers | Features spanning multiple layers |
-
----
-
-## Quick Reference: Thinking Triggers
-
-### When to Think About Cross-Layer Issues
-
-- [ ] Feature touches 3+ layers (API, Service, Component, Database)
-- [ ] Data format changes between layers
-- [ ] Multiple consumers need the same data
-- [ ] You're not sure where to put some logic
-- [ ] You are adding an event kind, JSONL record, RPC payload, or config field
-- [ ] UI / command code starts casting raw payload fields directly
-
-→ Read [Cross-Layer Thinking Guide](./cross-layer-thinking-guide.md)
-
-### When to Think About Code Reuse
-
-- [ ] You're writing similar code to something that exists
-- [ ] You see the same pattern repeated 3+ times
-- [ ] You're adding a new field to multiple places
-- [ ] **You're modifying any constant or config**
-- [ ] **You're creating a new utility/helper function** ← Search first!
-- [ ] Two files read the same untyped payload field with local casts
-- [ ] Multiple branches update the same derived state from `kind` / `action`
-
-→ Read [Code Reuse Thinking Guide](./code-reuse-thinking-guide.md)
-
-### When Verifying AI Cross-Review Results
-
-- [ ] Reviewer claims "user input can be malicious" → Check the actual data source (internal manifest? user config? external API?)
-- [ ] Reviewer flags "missing validation" → Is the data from a trusted internal source?
-- [ ] Reviewer says "behavior change" → Read the code comments — is it intentional design?
-- [ ] Reviewer identifies a "bug" in test → Mentally delete the feature being tested — does the test still pass? If yes → tautological test
-
-**Common AI reviewer false-positive patterns**:
-1. **Trust boundary confusion**: Treating internal data (bundled JSON manifests) as untrusted external input
-2. **Ignoring design comments**: Flagging intentional behavior documented in code comments as bugs
-3. **Variable misreading**: Not tracing a variable to its actual definition (e.g., Map keyed by path vs name)
-
-**Verification rule**: Every CRITICAL/WARNING finding must be verified against the actual code before prioritizing. Budget ~35% false-positive rate for AI reviews.
-
----
-
-## Pre-Modification Rule (CRITICAL)
-
-> **Before changing ANY value, ALWAYS search first!**
+- 明确本次行为差异、所属层、影响文件和验证方式，先检查 Git 状态并保留已有工作。
+- 用 `rg` 搜索将要修改的符号、字段、文案或配置，沿真实调用链确认所有消费方。
+- 多页面使用或多个入口处理同一数据时，先查领域能力；不要按文件名相似就新建抽象。
+- 核对代码评审发现的来源和触发条件：当前实现、设计要求、历史记录及外部假设分别说明。
 
 ```bash
-# Search for the value you're about to change
-grep -r "value_to_change" .
+rg --files web/src/features server/internal/biz
+rg -n '待核对的符号或字段' web/src server/internal
 ```
 
-This single habit prevents most "forgot to update X" bugs.
+## 文档与验证
 
----
+实现功能后按风险补验证，禁止 TDD。业务缺陷至少覆盖触发场景和相邻路径；未执行的真实环境验收明确写未执行。
 
-## How to Use This Directory
+文档陈旧时先追查源码；规范要求尚未实现时记录缺口，不通过降低要求掩盖问题。文档核查应逐份记录范围、依据、深度和未确认项，不把全量路径盘点称为全量内容验证。
 
-1. **Before coding**: Skim the relevant thinking guide
-2. **During coding**: If something feels repetitive or complex, check the guides
-3. **After bugs**: Add new insights to the relevant guide (learn from mistakes)
-
----
-
-## Contributing
-
-Found a new "didn't think of that" moment? Add it to the relevant guide.
-
----
-
-**Core Principle**: 30 minutes of thinking saves 3 hours of debugging.
+本仓库是 Trellis 的使用方。维护本地规范时修改实际 `.trellis/spec/`，工具自定义按 `trellis-meta` 指引核对当前本地脚本和配置，不执行 Trellis 上游源码目录的同步命令。

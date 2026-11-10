@@ -1,125 +1,43 @@
-# Workspace Index
+# 开发工作区记录
 
-> Records of all AI Agent work records across all developers
+本目录保存开发者的会话索引和日志。项目任务在独立的 `.trellis/tasks/`，历史日志保留当时事实；现行业务规则请查[根协作规范](../../AGENTS.md)和[领域地图](../spec/domain/architecture-map.md)。文档及开发者说明使用中文。
 
----
+## 目录与入口
 
-## Overview
-
-This directory tracks records for all developers working with AI Agents on this project.
-
-### File Structure
-
-```
-workspace/
-|-- index.md              # This file - main index
-+-- {developer}/          # Per-developer directory
-    |-- index.md          # Personal index with session history
-    |-- tasks/         # Task files
-    |   |-- *.json        # Active tasks
-    |   +-- archive/      # Archived tasks by month
-    +-- journal-N.md     # Journal files (sequential: 1, 2, 3...)
+```text
+.trellis/
+├── tasks/                     # 活跃任务及 archive/<年月>/ 历史任务
+└── workspace/
+    ├── index.md               # 本入口
+    └── <开发者>/
+        ├── index.md           # 个人状态、日志列表与会话历史
+        └── journal-N.md       # 顺序追加的会话日志
 ```
 
----
+当前已有开发者：[mam15mon](./mam15mon/index.md)。最近活动、会话数量和当前日志由个人索引的自动区段维护，不在本入口复制一份动态统计。
 
-## Active Developers
+## 查阅与初始化
 
-| Developer | Last Active | Sessions | Active File |
-|-----------|-------------|----------|-------------|
-| (none yet) | - | - | - |
-
----
-
-## Getting Started
-
-### For New Developers
-
-Run the initialization script:
+以下命令在仓库根目录运行：
 
 ```bash
-python3 ./.trellis/scripts/init_developer.py <your-name>
+python3 .trellis/scripts/get_developer.py
+python3 .trellis/scripts/get_context.py --mode record
 ```
 
-This will:
-1. Create your identity file (gitignored)
-2. Create your progress directory
-3. Create your personal index
-4. Create initial journal file
+新开发者尚未初始化时，使用 `python3 .trellis/scripts/init_developer.py <开发者名>` 建立身份、个人目录、索引与首份日志；已有身份不通过删除或覆盖配置来切换。具体任务流程以[工作流](../workflow.md)为准。
 
-### For Returning Developers
+## 记录会话
 
-1. Get your developer name:
-   ```bash
-   python3 ./.trellis/scripts/get_developer.py
-   ```
+代码或文档的可验证变更先按任务提交，完成任务后由既有脚本追加会话及更新个人索引：
 
-2. Read your personal index:
-   ```bash
-   cat .trellis/workspace/$(python3 ./.trellis/scripts/get_developer.py)/index.md
-   ```
-
----
-
-## Guidelines
-
-### Journal File Rules
-
-- **Max 2000 lines** per journal file
-- When limit is reached, create `journal-{N+1}.md`
-- Update your personal `index.md` when creating new files
-
-### Session Record Format
-
-Each session should include:
-- Summary: One-line description
-- Branch: Which branch the work was done on
-- Main Changes: What was modified
-- Git Commits: Commit hashes and messages
-- Next Steps: What to do next
-
----
-
-## Session Template
-
-Use this template when recording sessions:
-
-```markdown
-## Session {N}: {Title}
-
-**Date**: YYYY-MM-DD
-**Task**: {task-name}
-**Branch**: `{branch-name}`
-
-### Summary
-
-{One-line summary}
-
-### Main Changes
-
-- {Change 1}
-- {Change 2}
-
-### Git Commits
-
-| Hash | Message |
-|------|---------|
-| `abc1234` | {commit message} |
-
-### Testing
-
-- [OK] {Test result}
-
-### Status
-
-[OK] **Completed** / # **In Progress** / [P] **Blocked**
-
-### Next Steps
-
-- {Next step 1}
-- {Next step 2}
+```bash
+python3 .trellis/scripts/add_session.py \
+  --title '本次会话标题' \
+  --commit '<实际工作提交哈希>' \
+  --summary '具体变更、验证结果与未完成事项'
 ```
 
----
+无工作提交时可省略 `--commit` 或传 `-`，不能编造哈希；脚本会先解析提交证据再写记录。日志自动提交与任务归档由 `.trellis/config.yaml` 的相应设置控制，不把其他任务的未提交内容并入本次会话。
 
-**Language**: All documentation must be written in **English**.
+日志轮转阈值来自 `max_journal_lines`（未配置时默认 2000 行），由脚本维护当前日志和索引。保留自动区段标记，避免手写另一套状态；记录实际检查结果，未执行或跳过的业务验收不写通过。

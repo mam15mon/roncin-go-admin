@@ -1,223 +1,48 @@
-# Code Reuse Thinking Guide
+# 代码复用检查
 
-> **Purpose**: Stop and think before creating new code - does it already exist?
+新增函数、字段映射、常量或跨页面能力前，先确定同一概念的所有者，减少需要一起维护的重复规则。仅为当前需求提取真实共用能力，具体边界以[根协作规范](../../../AGENTS.md)为准。
 
----
+## 先找真实入口
 
-## The Problem
-
-**Duplicated code is the #1 source of inconsistency bugs.**
-
-When you copy-paste or rewrite existing logic:
-- Bug fixes don't propagate
-- Behavior diverges over time
-- Codebase becomes harder to understand
-
----
-
-## Before Writing New Code
-
-### Step 1: Search First
+1. 查[前端能力导航](../web/frontend/capability-navigation.md)和[后端能力导航](../server/backend/capability-navigation.md)。
+2. 用 `rg` 查符号及调用方，确认是否已存在领域映射、候选查询、状态展示或事务封装。
+3. 对比语义：相同字符串或相似代码不等于同一概念；同一数据契约也不应由多个页面分别解释。
+4. 明确变更所有者和消费范围，再选择就近实现或提取共享能力。
 
 ```bash
-# Search for similar function names
-grep -r "functionName" .
-
-# Search for similar logic
-grep -r "keyword" .
+rg --files web/src/features web/src/pages server/internal/biz server/internal/data
+rg -n '待查询的函数或业务字段' web/src server/internal
 ```
 
-### Step 2: Ask These Questions
+## 按项目边界复用
 
-| Question | If Yes... |
-|----------|-----------|
-| Does a similar function exist? | Use or extend it |
-| Is this pattern used elsewhere? | Follow the existing pattern |
-| Could this be a shared utility? | Create it in the right place |
-| Am I copying code from another file? | **STOP** - extract to shared |
+| 场景 | 处理 |
+| --- | --- |
+| 仅一个页面使用 | 页面专属请求、类型和样式就近存放 |
+| 真实跨页面使用的领域能力 | 放 `web/src/features/<领域>/<能力>/`，经 `index.ts` 公开最小导出面 |
+| 通用 UI 或基础工具 | 不反向依赖 pages/features，UI 模板只消费稳定行模型 |
+| DTO 到行模型的公共字段 | 归所属领域共享映射；主数据复用 `masterDataMapper.ts` |
+| 后端业务判断 | 复用 biz 用例与领域规则，不在 service 或页面复制另一套规则 |
+| 数据库事务与错误映射 | 复用 data 封装，遵守共享事务、锁序及领域错误边界 |
+| 金额与时间展示 | 复用 `formatAmount`、`trimDecimal`、`formatDate`，不逐页复制正则或字符串截取 |
 
----
+详细约束见[前端模块结构](../web/frontend/directory-structure.md)、[类型安全](../web/frontend/type-safety.md)和[后端分层](../server/backend/directory-structure.md)。
 
-## Common Duplication Patterns
+## 契约与派生物
 
-### Pattern 1: Copy-Paste Functions
+- 接口字段以 `.proto` 为源，客户端与枚举由生成入口更新，不手工复制生成常量。
+- 权限只消费后端返回的有效能力，路由和按钮复用同一 access 判断，不再维护第二套权限映射。
+- 多个消费方解析同一未类型化载荷时，由真实数据所有者提供校验与类型化投影；渲染层不各写一份字段解释。
+- 由状态或动作派生结果时，对已支持值逐项明确处理；未知值按真实契约显式失败，不静默落入默认业务类型。
+- 同一输出由多条生成或装配路径产生时，核对入口、源文件和输出集合；有实际风险才补一致性验证。
 
-**Bad**: Copying a validation function to another file
+## 提取前与变更后
 
-**Good**: Extract to shared utilities, import where needed
+- 能指出至少两个真实消费方，并说明它们必须共同变化的稳定语义；不能只为未来可能使用而抽象。
+- 新共享入口不扩大无关职责，不建立全局总 barrel；更新能力导航并检查所有调用方。
+- 前端提取或迁移后执行 `pnpm run check:architecture`；其他验证按改动风险选择定向测试和类型检查。
+- 再次用 `rg` 查原字段和旧入口，确认没有遗漏调用或失效导航；不要为消除文本重复而改写历史记录。
 
-### Pattern 2: Similar Components
+## Trellis 使用方边界
 
-**Bad**: Creating a new component that's 80% similar to existing
-
-**Good**: Extend existing component with props/variants
-
-### Pattern 3: Repeated Constants
-
-**Bad**: Defining the same constant in multiple files
-
-**Good**: Single source of truth, import everywhere
-
-### Pattern 4: Repeated Payload Field Extraction
-
-**Bad**: Multiple consumers cast the same JSON/event fields locally:
-
-```typescript
-const description = (ev as { description?: string }).description;
-const context = (ev as { context?: ContextEntry[] }).context;
-```
-
-This is duplicated contract logic even when the code is only two lines. Each
-consumer now has its own definition of what a valid payload means.
-
-**Good**: Put the decoder, type guard, or projection next to the data owner:
-
-```typescript
-if (isThreadEvent(ev)) {
-  renderThreadEvent(ev);
-}
-```
-
-**Rule**: If the same untyped payload field is read in 2+ places, create a
-shared type guard / normalizer / projection before adding a third reader.
-
----
-
-## When to Abstract
-
-**Abstract when**:
-- Same code appears 3+ times
-- Logic is complex enough to have bugs
-- Multiple people might need this
-
-**Don't abstract when**:
-- Only used once
-- Trivial one-liner
-- Abstraction would be more complex than duplication
-
----
-
-## After Batch Modifications
-
-When you've made similar changes to multiple files:
-
-1. **Review**: Did you catch all instances?
-2. **Search**: Run grep to find any missed
-3. **Consider**: Should this be abstracted?
-
-### Reducers Should Use Exhaustive Structure
-
-When state is derived from action-like values (`action`, `kind`, `status`,
-`phase`), prefer a reducer with one `switch` over scattered `if/else` updates.
-
-```typescript
-// BAD - action-specific state transitions are hard to audit
-if (action === "opened") { ... }
-else if (action === "comment") { ... }
-else if (action === "status") { ... }
-
-// GOOD - one reducer owns the transition table
-switch (event.action) {
-  case "opened":
-    ...
-    return;
-  case "comment":
-    ...
-    return;
-}
-```
-
-This matters when the event log is the source of truth. A reducer is the
-documented replay model; display code and commands should not duplicate pieces
-of that replay model.
-
----
-
-## Checklist Before Commit
-
-- [ ] Searched for existing similar code
-- [ ] No copy-pasted logic that should be shared
-- [ ] No repeated untyped payload field extraction outside a shared decoder
-- [ ] Constants defined in one place
-- [ ] Similar patterns follow same structure
-- [ ] Reducer/action transitions live in one reducer or command dispatcher
-
----
-
-## Gotcha: Python if/elif/else Exhaustive Check
-
-**Problem**: Python's if/elif/else chains have no compile-time exhaustive check. When you add a new value to a `Literal` type (e.g., `Platform`), existing if/elif/else chains silently fall through to `else` with wrong defaults.
-
-**Symptom**: New platform works partially — some methods return Claude defaults instead of platform-specific values. No error is raised.
-
-**Example** (`cli_adapter.py`):
-```python
-# BAD: "gemini" falls through to else, returns "claude"
-@property
-def cli_name(self) -> str:
-    if self.platform == "opencode":
-        return "opencode"
-    else:
-        return "claude"  # gemini silently gets "claude"!
-
-# GOOD: explicit branch for every platform
-@property
-def cli_name(self) -> str:
-    if self.platform == "opencode":
-        return "opencode"
-    elif self.platform == "gemini":
-        return "gemini"
-    else:
-        return "claude"
-```
-
-**Prevention**: When adding a new value to a Python `Literal` type, search for ALL if/elif/else chains that switch on that type and add explicit branches. Don't rely on `else` being correct for new values.
-
----
-
-## Gotcha: Asymmetric Mechanisms Producing Same Output
-
-**Problem**: When two different mechanisms must produce the same file set (e.g., recursive directory copy for init vs. manual `files.set()` for update), structural changes (renaming, moving, adding subdirectories) only propagate through the automatic mechanism. The manual one silently drifts.
-
-**Symptom**: Init works perfectly, but update creates files at wrong paths or misses files entirely.
-
-**Prevention**:
-- **Best**: Eliminate the asymmetry — have the manual path call the automatic one (e.g., `collectTemplateFiles()` calls `getAllScripts()` instead of maintaining its own list)
-- **If asymmetry is unavoidable**: Add a regression test that compares outputs from both mechanisms
-- When migrating directory structures, search for ALL code paths that reference the old structure
-
-**Real example**: `trellis update` had a manual `files.set()` list for 11 scripts that `getAllScripts()` already tracked. Fix: replaced the manual list with a `for..of getAllScripts()` loop. See `update.ts` refactor in v0.4.0-beta.3.
-
----
-
-## Template File Registration (Trellis-specific)
-
-When adding new files to `src/templates/trellis/scripts/`:
-
-**Single registration point**: `src/templates/trellis/index.ts`
-
-1. Add `export const xxxScript = readTemplate("scripts/path/file.py");`
-2. Add to `getAllScripts()` Map
-
-That's it. `commands/update.ts` uses `getAllScripts()` directly — no manual sync needed.
-
-**Why this matters**: Without registration in `getAllScripts()`, `trellis update` won't sync the file to user projects. Bug fixes and features won't propagate.
-
-**History**: Before v0.4.0-beta.3, `update.ts` had its own hand-maintained file list that frequently fell out of sync with `getAllScripts()`. This caused 11 Python files to be silently skipped during `trellis update`. The fix was to eliminate the duplicate list and use `getAllScripts()` as the single source of truth.
-
-### Quick Checklist for New Scripts
-
-```bash
-# After adding a new .py file, verify it's in getAllScripts():
-grep -l "newFileName" src/templates/trellis/index.ts  # Should match
-```
-
-### Template Sync Convention
-
-`.trellis/scripts/` (dogfooded) and `packages/cli/src/templates/trellis/scripts/` (template) must stay identical. After editing `.trellis/scripts/`, always sync:
-
-```bash
-rsync -av --delete --exclude='__pycache__' .trellis/scripts/ packages/cli/src/templates/trellis/scripts/
-```
-
-**Gotcha**: Running rsync with wrong source/destination paths can create nested garbage directories (e.g., `.trellis/scripts/packages/cli/...`). Always double-check paths before running.
+本仓库没有 Trellis 上游的 `src/templates/`、`packages/cli/` 或发布模板注册表。本地规范回写到实际 `.trellis/spec/`；工具说明依据本地脚本与已安装 CLI 核对，不向不存在的上游目录执行复制、删除或同步。
