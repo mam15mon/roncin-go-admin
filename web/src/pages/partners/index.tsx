@@ -10,16 +10,8 @@ import {
   StopOutlined,
   SwapOutlined,
 } from '@ant-design/icons';
-import type {
-  ActionType,
-  ProColumns,
-  ProFormInstance,
-} from '@ant-design/pro-components';
-import {
-  PageContainer,
-  ProFormRadio,
-  ProFormSelect,
-} from '@ant-design/pro-components';
+import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import { PageContainer } from '@ant-design/pro-components';
 import { paginationSizeChanger } from '@root/config/pagination';
 import {
   App,
@@ -36,7 +28,6 @@ import { useLocation } from 'react-router';
 import * as XLSX from 'xlsx';
 import { useAccess } from '@/app/access';
 import {
-  GuardedModalForm,
   ResponsiveProTable as ProTable,
   SearchFilterTemplate,
 } from '@/components/ui';
@@ -104,11 +95,6 @@ const roleLabels: Record<number, string> = Object.fromEntries(
   roleOptions.map((option) => [option.value, option.label]),
 );
 
-type BlacklistFormValues = {
-  roleType?: PartnerRoleType;
-  blacklisted?: boolean;
-};
-
 type PartnerListView = 'all' | 'blacklist' | 'casual';
 
 function roleTags(roles?: API.PartnerRole[]) {
@@ -137,14 +123,8 @@ function PartnersContent() {
   const location = useLocation();
   const access = useAccess();
   const actionRef = useRef<ActionType>(null);
-  const blacklistFormRef = useRef<
-    ProFormInstance<BlacklistFormValues> | undefined
-  >(undefined);
-
-  const [blacklistModalOpen, setBlacklistModalOpen] = useState(false);
-  const [blacklistPartner, setBlacklistPartner] = useState<API.Partner | null>(
-    null,
-  );
+  const blacklistPendingRef = useRef(false);
+  const [blacklistPendingId, setBlacklistPendingId] = useState<string>();
   const [secondaryPartner, setSecondaryPartner] = useState<
     API.Partner | undefined
   >(undefined);
@@ -168,16 +148,6 @@ function PartnersContent() {
   const currentView =
     currentViewMeta[location.pathname] ||
     currentViewMeta['/partners/customers'];
-  const defaultBlacklistRoleType = blacklistPartner?.roles?.some(
-    (role) => role.type === currentView.roleType,
-  )
-    ? currentView.roleType
-    : blacklistPartner?.roles?.find((role) => roleMap.has(role.type ?? 0))
-        ?.type;
-  const defaultBlacklistRole = blacklistPartner?.roles?.find(
-    (role) => role.type === defaultBlacklistRoleType,
-  );
-
   const openCreate = () => {
     history.push(`${location.pathname}/create`);
   };
@@ -276,10 +246,32 @@ function PartnersContent() {
     history.push(`${location.pathname}/${partner.id}`);
   };
 
-  const openBlacklist = (partner: API.Partner) => {
-    setBlacklistPartner(partner);
-    blacklistFormRef.current?.resetFields();
-    setBlacklistModalOpen(true);
+  const setBlacklist = async (partner: API.Partner, blacklisted: boolean) => {
+    if (!partner.id || blacklistPendingRef.current) return;
+    blacklistPendingRef.current = true;
+    setBlacklistPendingId(partner.id);
+    try {
+      const response = await partnerServiceSetPartnerRoleBlacklist(
+        { id: partner.id },
+        { id: partner.id, roleType: currentView.roleType, blacklisted },
+      );
+      if (!isWriteResponse(response, true)) return;
+      message.success(blacklisted ? '已加入黑名单' : '已移出黑名单');
+      if (blacklisted) {
+        queryState.commit({
+          ...queryState.snapshotRef.current.filters,
+          view: 'blacklist',
+          isCasual: getRequestFilters().isCasual,
+        });
+        setListView('blacklist');
+      }
+      actionRef.current?.reload(blacklisted);
+    } catch (error) {
+      message.error(getErrorMessage(error, '黑名单操作失败'));
+    } finally {
+      blacklistPendingRef.current = false;
+      setBlacklistPendingId(undefined);
+    }
   };
 
   const columns: ProColumns<API.Partner>[] = [
@@ -422,6 +414,9 @@ function PartnersContent() {
       render: (_, record) => {
         const moreItems: MenuProps['items'] = [];
         const canOperate = access.canOperateOrganization(record.organizationId);
+        const currentRole = record.roles?.find(
+          (role) => role.type === currentView.roleType,
+        );
 
         moreItems.push({
           key: 'secondary',
@@ -445,7 +440,7 @@ function PartnersContent() {
         if (
           canOperate &&
           (access.canManagePartners || access.canBlacklistPartners) &&
-          record.roles?.some((role) => roleMap.has(role.type ?? 0))
+          currentRole
         ) {
           moreItems.push({
             type: 'divider',
@@ -453,9 +448,10 @@ function PartnersContent() {
           moreItems.push({
             key: 'blacklist',
             icon: <StopOutlined />,
-            label: '黑名单',
-            danger: true,
-            onClick: () => openBlacklist(record),
+            label: currentRole.blacklisted ? '移出黑名单' : '加入黑名单',
+            danger: !currentRole.blacklisted,
+            disabled: Boolean(blacklistPendingId),
+            onClick: () => setBlacklist(record, !currentRole.blacklisted),
           });
         }
 
@@ -479,6 +475,7 @@ function PartnersContent() {
                   type="link"
                   size="small"
                   style={{ padding: 0 }}
+                  loading={blacklistPendingId === record.id}
                   onClick={(e) => e.preventDefault()}
                 >
                   更多 <DownOutlined style={{ fontSize: 10 }} />
@@ -511,8 +508,9 @@ function PartnersContent() {
       style={{ minHeight: '100vh', backgroundColor: '#f5f7fa' }}
     >
       <SearchFilterTemplate<PartnerSearchParams>
-        initialValues={queryState.initial.filters}
-        initialLabels={queryState.initial.labels}
+        key={listView}
+        initialValues={queryState.snapshotRef.current.filters}
+        initialLabels={queryState.snapshotRef.current.labels}
         layout="bar"
         keywordPlaceholder={`搜索单位编码、名称、拼音或税号...`}
         quickFilters={[
@@ -654,73 +652,6 @@ function PartnersContent() {
         onClose={() => setRoleSwitchPartner(null)}
         onSuccess={() => actionRef.current?.reload()}
       />
-
-      <GuardedModalForm<BlacklistFormValues>
-        title={`角色黑名单管理 - ${blacklistPartner?.legalName ?? ''}`}
-        open={blacklistModalOpen}
-        formRef={blacklistFormRef}
-        initialValues={{
-          roleType: defaultBlacklistRoleType,
-          blacklisted: Boolean(defaultBlacklistRole?.blacklisted),
-        }}
-        modalProps={{
-          destroyOnHidden: true,
-          width: 520,
-          onCancel: () => setBlacklistModalOpen(false),
-        }}
-        onOpenChange={setBlacklistModalOpen}
-        onValuesChange={(changedValues) => {
-          if (changedValues.roleType === undefined) return;
-          const role = blacklistPartner?.roles?.find(
-            (item) => item.type === changedValues.roleType,
-          );
-          blacklistFormRef.current?.setFieldValue(
-            'blacklisted',
-            Boolean(role?.blacklisted),
-          );
-        }}
-        onFinish={async (values) => {
-          if (!blacklistPartner?.id) return false;
-          if (!values.roleType) return false;
-          const writeResponse1 = await partnerServiceSetPartnerRoleBlacklist(
-            { id: blacklistPartner.id },
-            {
-              id: blacklistPartner.id,
-              roleType: values.roleType,
-              blacklisted: values.blacklisted ?? false,
-            },
-          );
-          if (!isWriteResponse(writeResponse1, true)) return false;
-          message.success(
-            values.blacklisted
-              ? `已将${roleLabels[values.roleType]}角色加入黑名单`
-              : `已将${roleLabels[values.roleType]}角色移出黑名单`,
-          );
-          setBlacklistModalOpen(false);
-          actionRef.current?.reload();
-          return true;
-        }}
-      >
-        <ProFormSelect
-          name="roleType"
-          label="目标角色"
-          options={(blacklistPartner?.roles ?? [])
-            .filter((role) => roleMap.has(role.type ?? 0))
-            .map((role) => ({
-              label: roleLabels[role.type ?? 0],
-              value: role.type,
-            }))}
-          rules={[{ required: true, message: '请选择目标角色' }]}
-        />
-        <ProFormRadio.Group
-          name="blacklisted"
-          label="黑名单状态"
-          options={[
-            { label: '正常合作', value: false },
-            { label: '已加入黑名单', value: true },
-          ]}
-        />
-      </GuardedModalForm>
 
       <PartnerSecondary
         partner={secondaryPartner}

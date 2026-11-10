@@ -177,7 +177,7 @@ describe('Partners 页签与黑名单交互', () => {
     );
   });
 
-  it('客户黑名单状态使用明确选项且无需说明即可加入黑名单', async () => {
+  it('点击加入黑名单直接处理并进入黑名单页签，不显示弹窗', async () => {
     vi.mocked(partnerServiceListPartners).mockResolvedValue({
       data: [
         {
@@ -200,14 +200,10 @@ describe('Partners 页签与黑名单交互', () => {
       </App>,
     );
     fireEvent.click(await screen.findByRole('button', { name: /更多/ }));
-    fireEvent.click(await screen.findByText('黑名单'));
-    expect(
-      await screen.findByRole('radio', { name: '正常合作' }),
-    ).toBeChecked();
+    fireEvent.click(await screen.findByText('加入黑名单'));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.queryByRole('switch')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('变更原因与说明')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('radio', { name: '已加入黑名单' }));
-    fireEvent.click(screen.getByRole('button', { name: '确 定' }));
     await waitFor(() =>
       expect(partnerServiceSetPartnerRoleBlacklist).toHaveBeenCalledWith(
         { id: 'customer-1' },
@@ -221,5 +217,50 @@ describe('Partners 页签与黑名单交互', () => {
     await waitFor(() =>
       expect(partnerServiceListPartners).toHaveBeenCalledTimes(2),
     );
+    expect(screen.getByRole('radio', { name: '黑名单客户' })).toBeChecked();
+    expect(partnerServiceListPartners).toHaveBeenLastCalledWith(
+      expect.objectContaining({ blacklisted: true, page: 1 }),
+    );
+  });
+
+  it('加入黑名单失败时保留原页签，允许再次点击重试', async () => {
+    vi.mocked(partnerServiceListPartners).mockResolvedValue({
+      data: [
+        {
+          id: 'customer-retry',
+          legalName: '重试客户',
+          roles: [
+            { type: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER, enabled: true },
+          ],
+        },
+      ],
+      total: 1,
+    });
+    vi.mocked(partnerServiceSetPartnerRoleBlacklist)
+      .mockResolvedValueOnce(undefined as never)
+      .mockResolvedValueOnce({ success: true, data: { id: 'customer-retry' } });
+    render(
+      <App>
+        <Partners />
+      </App>,
+    );
+    fireEvent.click(await screen.findByRole('button', { name: /更多/ }));
+    fireEvent.click(await screen.findByText('加入黑名单'));
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /更多/ })).not.toHaveClass(
+        'ant-btn-loading',
+      ),
+    );
+    expect(partnerServiceSetPartnerRoleBlacklist).toHaveBeenCalledTimes(1);
+    expect(partnerServiceListPartners).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('radio', { name: '全部客户' })).toBeChecked();
+    expect(screen.queryByText('已加入黑名单')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /更多/ }));
+    fireEvent.click(await screen.findByText('加入黑名单'));
+    await waitFor(() =>
+      expect(partnerServiceListPartners).toHaveBeenCalledTimes(2),
+    );
+    expect(partnerServiceSetPartnerRoleBlacklist).toHaveBeenCalledTimes(2);
+    expect(screen.getByRole('radio', { name: '黑名单客户' })).toBeChecked();
   });
 });

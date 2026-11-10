@@ -234,7 +234,8 @@ describe('Partners 列表页', () => {
     unmountAgent();
   });
 
-  it('黑名单弹窗回退到档案已有角色并提交该角色当前状态', async () => {
+  it('供应商列表直接移出当前供应商角色的黑名单，不弹窗且不修改客户角色', async () => {
+    routeState.pathname = '/partners/suppliers';
     vi.mocked(partnerServiceListPartners).mockResolvedValue({
       data: [
         {
@@ -242,7 +243,10 @@ describe('Partners 列表页', () => {
           code: 'PARTNER-001',
           legalName: '多角色合作单位',
           enabled: true,
-          roles: [{ type: 2, enabled: true, blacklisted: true }],
+          roles: [
+            { type: 1, enabled: true, blacklisted: false },
+            { type: 2, enabled: true, blacklisted: true },
+          ],
         },
       ],
       total: 1,
@@ -260,18 +264,9 @@ describe('Partners 列表页', () => {
 
     expect(await screen.findByText('多角色合作单位')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /更多/ }));
-    fireEvent.click(await screen.findByText('黑名单'));
-
-    expect(
-      await screen.findByText('角色黑名单管理 - 多角色合作单位'),
-    ).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: '已加入黑名单' })).toBeChecked();
+    fireEvent.click(await screen.findByText('移出黑名单'));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('变更原因与说明')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('radio', { name: '正常合作' }));
-    fireEvent.click(screen.getByRole('button', { name: '确 定' }));
-
-    // 提交后存在表单校验、弹窗关闭动画、消息提示与列表刷新等多段异步流，
-    // 用 RTL waitFor 等待整条链路收敛，避免用例结束后更新迟到触发 act 警告
     await waitFor(() => {
       expect(partnerServiceSetPartnerRoleBlacklist).toHaveBeenCalledWith(
         { id: 'p-blacklist' },
