@@ -491,9 +491,9 @@ func (r *financeCommissionApplicationRepo) createApplication(ctx context.Context
 		SetSubmittedBy(scope.UserID).
 		Save(ctx)
 	if err != nil {
-		// 月度唯一索引兜底：并发提交只有一个事务成功。
+		// 月度唯一索引兜底；使用 PostgreSQL 截断到 63 字节后的实际索引名。
 		return nil, mapEntConstraints(err,
-			entConstraintMapping{name: "financecommissionapplication_organization_id_employee_id_application_month", domainErr: biz.ErrCommissionApplicationConflict},
+			entConstraintMapping{name: "financecommissionapplication_organization_id_employee_id_applic", domainErr: biz.ErrCommissionApplicationConflict},
 			entConstraintMapping{name: "financecommissionapplicationline_commission_id", domainErr: biz.ErrCommissionApplicationSourceConflict},
 		)
 	}

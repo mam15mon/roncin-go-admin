@@ -78,7 +78,7 @@ func (r *financeBillRepo) Create(ctx context.Context, bill *biz.FinanceBill, aud
 			SetTotalAmount(bill.TotalAmount.StringFixed(8)).SetNetAmount(bill.NetAmount.StringFixed(8)).SetTaxAmount(bill.TaxAmount.StringFixed(8)).SetBaseCurrencyAmount(bill.BaseCurrencyAmount.StringFixed(8)).
 			SetFeeCount(bill.FeeCount).SetBillDate(bill.BillDate).SetNillableStatementTitle(bill.StatementTitle).SetNillablePaymentTermsDays(bill.PaymentTermsDays).SetNillableDueDate(bill.DueDate).SetNillableNote(bill.Note).SetVersion(1).Save(ctx)
 		if err != nil {
-			return mapEntConstraint(err, "idempotency", biz.ErrFinanceBillIdempotencyConflict)
+			return mapEntConstraint(err, "financebill_organization_id_idempotency_key", biz.ErrFinanceBillIdempotencyConflict)
 		}
 		builders := make([]*ent.FinanceBillLineCreate, 0, len(bill.Lines))
 		for _, line := range bill.Lines {
