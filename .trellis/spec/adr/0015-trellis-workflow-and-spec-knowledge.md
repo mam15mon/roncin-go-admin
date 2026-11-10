@@ -18,8 +18,9 @@
   **一切持久化到文件**（conversations get compacted, files don't）。
 - 知识分四层存放：
   - `AGENTS.md`：协作规范唯一真相源；
-  - `.trellis/spec/domain|server|web/guides/`：面向 AI 任务执行的浓缩规范，
-    冲突时以 `AGENTS.md` 为准；
+  - `.trellis/spec/domain/`、`.trellis/spec/server/backend/`、
+    `.trellis/spec/web/frontend/` 与同级 `.trellis/spec/guides/`：领域知识、
+    开发规范与思考指南，冲突时以 `AGENTS.md` 为准；
   - `.trellis/tasks/<task>/`：任务级 prd / design / implement 与过程记录；
   - `.trellis/spec/adr/`（本目录）：架构决策的「为什么」。
 - 每完成一个任务，把可复用的教训回写 spec（trellis-update-spec /

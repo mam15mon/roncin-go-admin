@@ -1,48 +1,46 @@
 ---
-name: '报告 Bug | Report bug 🐛'
-about: 报告 Ant Design Pro 的 bug
+name: '报告缺陷 🐛'
+about: 报告 Roncin 货代后台的缺陷
 title: '🐛 [BUG]'
 labels: '🐛 bug'
 assignees: ''
 ---
 
-### 🐛 bug 描述
+### 🐛 问题描述
 
 <!--
-详细地描述 bug，让大家都能理解
-Describe the bug in detail so that everyone can understand it
+说明受影响的模块、页面及具体问题。
 -->
 
-### 📷 复现步骤 | Recurrence steps
+### 📷 复现步骤
 
 <!--
-清晰描述复现步骤，让别人也能看到问题
-Clearly describe the recurrence steps so that others can see the problem
+按顺序描述操作，注明系统管理或公司工作台，以及相关角色和权限条件。
 -->
 
-### 🏞 期望结果 | Expected results
+### 🏞 期望结果与实际结果
 
 <!--
-描述你原本期望看到的结果
-Describe what you expected to see
+分别描述期望行为和实际行为，记录页面提示或错误码。
 -->
 
-### 💻 复现代码 | Recurrence code
+### 💻 最小复现与样例
 
 <!--
-提供可复现的代码，仓库，或线上示例
-Provide reproducible code, warehouse, or online examples
+提供最小复现代码、脱敏样例或必要日志，不粘贴密码、Cookie、令牌及真实客户资料。
 -->
 
 ### © 版本信息
 
-- Ant Design Pro 版本: [e.g. 4.0.0]
-- umi 版本
-- 浏览器环境
-- 开发环境 [e.g. mac OS]
+- Roncin 版本或 Git 提交号：
+- Node.js 与 pnpm 版本：
+- 浏览器及版本：
+- 操作系统：
+- 涉及服务端时的 Go 与 PostgreSQL 版本：
+- 相关 React、Vite、Ant Design 或 ProComponents 版本（按依赖清单填写）：
 
 ### 🚑 其他信息
 
 <!--
-如截图等其他信息可以贴在这里
+补充截图、发生时间和复现频率等定位信息，先移除敏感内容。
 -->

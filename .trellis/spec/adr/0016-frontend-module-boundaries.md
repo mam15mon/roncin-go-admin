@@ -1,7 +1,7 @@
 # ADR 0016: 前端模块边界与 features 领域能力层
 
 - 状态：已采纳
-- 日期：2026-09-20（AI 友好架构改造，任务 `.trellis/tasks/09-20-ai-friendly-architecture/`）
+- 日期：2026-09-20（AI 友好架构改造，[归档任务](../../tasks/archive/2026-09/09-20-ai-friendly-architecture/)）
 - 主题：前端
 
 ## 背景
@@ -17,7 +17,7 @@
 
 对 AI 会话而言，没有稳定公开入口就无法判断「该复用什么、代码归属哪里」；
 没有自动门禁，约定会随迭代漂移。证据见
-`.trellis/tasks/09-20-ai-friendly-architecture/research/architecture-audit.md`。
+[原架构审计](../../tasks/archive/2026-09/09-20-ai-friendly-architecture/research/architecture-audit.md)。
 
 ## 决策
 

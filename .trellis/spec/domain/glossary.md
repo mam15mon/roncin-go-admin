@@ -46,7 +46,7 @@
 | 提成方案 | `FinanceCommissionRule` / `...Assignment` | 按员工+角色分配的提成规则（区间不可重叠，生效/草稿/停用） | `biz/finance_commission_rules.go` |
 | 提成 | `FinanceCommission` / `...Line` | 计提引擎按核销/对冲来源生成的提成（金额、CNY 快照、来源指纹）；状态 DRAFT→CONFIRMED→PAID，可 Cancel | `data/finance_commission_calculation.go` |
 | 提成调整 | `FinanceCommissionAdjustment` | 手工奖励/处罚与费用变化引起的系统差额；普通费用和补审均事务内重算，保留已付事实及手工调整；未付父单发放时合并已确认调整净额，已付父单的后续调整独立执行 | `data/fee_correction_commission.go`、`finance_commission_adjustment.go` |
-| 月度提成申请 | `FinanceCommissionApplication` / `...Line` | 员工按完整自然月汇总申请全部未申请合格提成；财务整单批准/驳回（不做部分批准）；驳回原单显式重提（Resubmit） | `biz/finance_commission_application.go` |
+| 月度提成申请 | `FinanceCommissionApplication` / `...Line` | 同公司、同员工每个提交月一份；覆盖截至上月末全部未申请合格来源，可含更早多个归属月；财务整单批准/驳回（不做部分批准），驳回原单显式重提（Resubmit） | `biz/finance_commission_application.go`、`data/finance_commission_application_candidates.go` |
 | 提成归属 | `OrderCommissionAttribution` | 订单经营归属（销售/操作/客服三岗）锚点，计提依据；创建时按订单人员分工固化，客户档案责任人仅作表单带入默认值 | 计提源解析见 `finance_commission_calculation.go`，契约见 [经营公司与提成归属](../server/backend/operating-company-commission-attribution.md) |
 | 结算单位 | Settlement Party | 费用/账单的往来结算对象（Partner） | `partner.go` |
 
@@ -57,7 +57,7 @@
 | 往来单位档案 | `Partner` / `...Profile` | 客户/供应商/承运人等外部主体 |
 | 信用 | `PartnerCredit` | 应收账期与信用额度，建账时校验 |
 | 结算规则 | `PartnerSettlementRule` | 币种/账期等结算约定 |
-| 快捷预设 | `PartnerShippingPreset` | 出货预设（港口/船司等快捷填充） |
+| 常用单证预设 | `PartnerShippingPreset` | 客商关联的收发通知人、英文品名、HS 编码与唛头；由企业资源及其客商关联投影，不是独立旧预设表 |
 | 角色黑名单 | `partner_role.go` | 限制某些合作角色 |
 
 ## 订单与平台域

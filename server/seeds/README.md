@@ -15,7 +15,7 @@
 | **`shipping-lines.zh-CN.csv`** | 360 家船公司完整中文对照 | 已有中文与编译名，逐行注明来源 | 配套 SMDG 2026-09-03 | [中文编制与 seed 说明](shipping-lines.zh-CN.md) |
 | **`SMDG-Terminal-Code-List-v20260609.xlsx`** | 全球集装箱码头与泊位代码表 | 国际船舶规划系统用户协会 (SMDG) | 2026-06-09 | [SMDG Terminal Code List](https://smdg.org/documents/smdg-terminal-code-list/) |
 | **`shipping-agents.hgj.20261027.json`** | 29 条船代候选字典 | 海管家订单候选快照（非完整行业名录） | 2026-10-27 | [来源与映射说明](shipping-agents.md) |
-| **`airlines.dat`** | 全球航空公司主数据 | OpenFlights 数据集 + 官方字典增强 | OpenFlights | [OpenFlights Airline Database](https://openflights.org/data.html) |
+| **`airlines.dat`** | 全球航空公司主数据 | OpenFlights 数据集 + 项目重点航司字典增强 | OpenFlights | [OpenFlights Airline Database](https://openflights.org/data.html) |
 
 ---
 
@@ -37,7 +37,7 @@ pnpm run sync:shipping-lines
 # 同步联合国港口数据及配套中文名（17,524 个海港）
 pnpm run sync:unlocode
 
-# 同步全球航空公司主数据（自动导入 988 家活跃航司，136+ 家主流客货运航司中文名与 AWB 前缀）
+# 同步全球航空公司主数据（归档数据与重点字典合并为 988 条，136 家含中文名与 AWB 前缀）
 pnpm run sync:airlines
 
 # 同步全球机场主数据（自动从 OurAirports 拉取或使用本地 airports.csv）
@@ -100,35 +100,34 @@ go -C server run ./cmd/sync-airlines -source /path/to/airlines.dat -apply
 - **更新与追溯**：新增和已有同来源港口都写入中文并刷新全拼、首字母检索；摘要显示 100% 覆盖、类别统计、两个源文件摘要和联合指纹。缺行、错版、重复码或无效中文直接失败，不在运行时翻译。
 
 ### 2. SMDG 船公司主数据 (`SMDG_Liner-codes-list-20260903.xlsx`)
-- **多标识对齐**：整合 SMDG Code（3位主代码）、SCAC（美国海关4字码）、BIC Code（箱主代码）。
+- **代码映射**：同步器读取 SMDG 表首列三位代码，存入当前模型的 `scac_code` 字段；该字段名不表示同步器另行取得了美国 SCAC 认证。箱号前缀来自项目维护的代码映射，不从独立 BIC 表导入。
 - **全量中文补全**：原 seed 命令自动读取配套 `shipping-lines.zh-CN.csv`，覆盖 360 家船司；已有中文与编译名分开标注来源，不宣称全部为官方译名。新建和已有同来源记录都写入中文并刷新全拼、首字母检索键；缺行、身份错配或纯英文中文名明确失败。见[编制与同步说明](shipping-lines.zh-CN.md)。
 - **航运联盟标签**：自动打标 Ocean Alliance（海洋联盟）、Gemini Cooperation（双子星）、Premier Alliance（卓越联盟）、MSC 等联盟属性。
 - **箱号前缀关联**：级联建立箱号前缀表（如 `MSKU`、`COSU`、`EMCU`），支持订单录入集装箱号时智能推导承运船司。
 
 ### 3. 航空公司主数据 (`airlines.dat`)
-- **全球基础数据**：复用 OpenFlights 全球航司开放数据集，过滤无 IATA 二字码的失效记录，保障空运国际覆盖率。
-- **主流航司与前缀字典增强**：内置 136+ 家主流客货运航司（国航 CA、南航 CZ、东航 MU、汉莎 LH、FedEx FX、UPS 5X、Cargolux CV 等）的官方中文名称、AWB 三位运单前缀（如 999、784、112、023、406、172 等）与全货机属性。
+- **全球基础数据**：复用 OpenFlights 全球航司开放数据集，基础记录须为 `Active=Y`、IATA 二字母/数字代码有效且国家可映射；先按项目字典注入重点航司，因此重点航司不受源文件 `Active=N` 过滤影响。当前归档解析为 988 条，不将其解释为全球实际运营航司总数。
+- **主流航司与前缀字典增强**：内置 136 家主流客货运航司（国航 CA、南航 CZ、东航 MU、汉莎 LH、FedEx FX、UPS 5X、Cargolux CV 等）的中文名称、AWB 三位运单前缀（如 999、784、112、023、406、172 等）与全货机属性。
 - **约束放宽**：`awb_prefix` 与 `name_zh` 均为可选字段，既兼容全球各类小型区域航司，又为骨干货代业务提供完整的单号识别支持。
 
 ### 4. 机场主数据 (OurAirports)
-- **数据源**：默认从 [OurAirports 官方 GitHub 下载地址](https://davidmegginson.github.io/ourairports-data/airports.csv) 获取每日更新的全球机场数据，也支持显式指定本地 `airports.csv`。下载保留 TLS 证书校验，失败直接报错，不自动改用缓存。
+- **数据源**：默认从 [OurAirports 官方 GitHub 下载地址](https://davidmegginson.github.io/ourairports-data/airports.csv) 获取全球机场数据，也支持显式指定本地 `airports.csv`。下载保留 TLS 证书校验，失败直接报错，不自动改用缓存。
 - **三字码索引**：严格校验 IATA 3 字码与 ICAO 4 字码唯一性，支持按中英文及拼音联想检索。
 
 ---
 
 ## 🔄 未来官方更新与维护流程
 
-1. **官方更新周期**：
-   - UNECE UN/LOCODE 通常于**每年 6 月与 12 月**发布两次更新（如 `2025-1`、`2025-2`）。
-   - SMDG 船公司与码头表通常每季度至半年发布一次修订版。
-   - OpenFlights 与 OurAirports 社区持续维护。
+1. **更新版本确认**：
+   - 通过上方各来源页面确认实际公告、文件版本及许可，再决定是否更新本仓库快照。
+   - 仓库中的文件名与摘要仅证明已归档版本，不表示它是外部最新版本；不依赖固定月份或周期自动替换。
 2. **更新替换步骤**：
    - 从上方官方链接下载最新文件。
    - 替换本目录下的对应文件（如将 `loc251csv.zip` 升级为 `loc252csv.zip`）。
    - 按新版本解析后的代码和英文名更新完整中文表；新增、撤销、英文更名必须一起核对，保持一码一行。
    - 先执行预览命令确认无结构变更与异常冲突：
      `go -C server run ./cmd/sync-unlocode -source seeds/loc252csv.zip -chinese-source seeds/ports.zh-CN.csv -release 2025-2`
-   - 执行带 `-apply` 落库，系统将自动对比 SHA-256 并平滑增量更新。
+   - 执行带 `-apply` 落库，系统记录源文件 SHA-256，并按同来源代码更新、补缺及停用；异来源代码占用按冲突规则拒绝。
    - 随同业务代码或单测提交 Git。
 
 

@@ -56,7 +56,7 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 
 - `LockOrderRequest` 必须包含合法 UUID `order_id`、大于零的 `expected_order_version` 、大于零的 `expected_fee_content_version`、非空 `fee_content_fingerprint` 和去除空白后非空的 `idempotency_key`；`comment` 可选，亏损不改变这一规则。审核弹窗完整展示逐笔费用，不提供审核意见输入。订单与费用版本、指纹均在锁内重验。
 - `RequestOrderUnlockRequest` 使用相同并发与幂等字段；`reason` 可选，管理员紧急解锁不得伪造默认原因。
-- 锁定资格按「有效 lock grant」统一计算（`internal/data/order_lock.go` 的 `qualifiedBusinessLockGrantPredicate`，单用户判断与候选查询必须复用同一谓词）：用户 enabled、membership enabled、角色 enabled 且真实持有目标类型显式 `business.order.<type>.lock` 权限（不按角色代码排除 `administrator` 等任何角色），角色归属目标公司，membership 位于该公司启用子树（部门/团队可参与，到其他公司截止）；不再按已退役的角色范围配置判断，系统或其他公司角色不得进入候选；同一角色须持有同类型 read/update/fee.read/lock，不跨角色拼接资格，不得跨类型授权。
+- 锁定资格按「有效 lock grant」统一计算（`internal/data/order_lock_qualification.go` 的 `qualifiedBusinessLockGrantPredicate`，单用户判断与候选查询必须复用同一谓词）：用户 enabled、membership enabled、角色 enabled 且真实持有目标类型显式 `business.order.<type>.lock` 权限（不按角色代码排除 `administrator` 等任何角色），角色归属目标公司，membership 位于该公司启用子树（部门/团队可参与，到其他公司截止）；不再按已退役的角色范围配置判断，系统或其他公司角色不得进入候选；同一角色须持有同类型 read/update/fee.read/lock，不跨角色拼接资格，不得跨类型授权。
 - bootstrap admin 显式具备锁单资格（`GetOrderLockState`/`LockOrder` 直接视为可锁），但不得进入普通审批候选池，回调也不得绕过候选快照。
 - 解锁固定分流：bootstrap admin → `ADMIN_EMERGENCY`；持有效 lock grant 的用户（含真实持锁权限的 `administrator` 角色）→ `ROLE_DIRECT`；普通订单编辑人 → `DINGTALK_APPROVAL`。
 - 审批候选人快照保存实际 `membership_id`、`role_id` 与 DingTalk UserID；同一用户有多个合格 grant 时按 RoleAssignment ID 升序取首个可追溯 grant；钉钉回调先校验审批人存在于快照，再以同一资格口径实时复核，权限或成员关系被撤销后旧候选回调稳定标记 `APPROVER_NOT_QUALIFIED`。
@@ -114,7 +114,7 @@ GetOrderUnlockRequest(ctx, organizationID, orderID, requestID)
 - Good：按 UUID 升序一次性锁住共享 MBL 的全部活动成员 Order，再锁 MBL、目标 Link、TransportExecution；锁后重验成员集合，随后执行共享写入。
 - Good：SE 订单完成退关的事务先锁 Order，再按 Link ID 锁定并结束唯一活动 Link，随后写生命周期事件与审计，任一步失败整体回滚。
 - Base：普通订单字段更新不携带 MBL 身份、权威航程或 `MasterBillContent` 写入时，只锁目标 Order 并执行统一内容写门禁（生命周期 + 业务锁）。
-- Base：已锁定的 `DOCUMENT_RELEASED` 订单直接结案；`TERMINATED → ACTIVE` 恢复订单但不复活历史 Link，后续显式建立新 Link 由活动 Link 唯一索引兜底。
+- Base：已锁定的 `DOCUMENT_RELEASED` 订单直接结案；`TERMINATED → ACTIVE` 在恢复事务内新建指向原 MBL/TransportExecution 的活动 Link，历史 Link 保持不可变；活动 Link 唯一索引兜底。
 - Bad：在生命周期命令（终止/恢复/结案/反结案）里统一复用内容写门禁，导致合法流转被 `ORDER_BUSINESS_LOCKED`/`ORDER_TERMINATED` 误杀。
 - Good：录入费用后先完结，再审核锁单与建账。Bad：把“尚未建账”作为结案阻断条件，或仅把提示改成“先建账再结案”。
 - Bad：先锁目标 Link 或 MBL，再查询并 `FOR UPDATE` 其他成员 Order；这会与拆票、改配、锁单路径形成反向锁序。

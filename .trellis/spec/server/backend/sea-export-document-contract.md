@@ -275,8 +275,13 @@ if link.Status != seamasterbillorderlink.StatusACTIVE || link.MasterBillID != mb
 ```
 
 ```typescript
-// 不静默改写或丢弃；所有表单行进入 payload，再由明确校验给出错误。
-const houseBills = (values.seaHouseBills ?? []).map(toSeaHouseBillInput);
+// HOUSE 只映射本票唯一 HBL，原号不 trim；不完整输入仍交给明确校验拒绝。
+const houseBill = values.seaHouseBill
+  ? {
+      ...values.seaHouseBill,
+      houseNo: values.seaHouseBill.houseNo ?? '',
+    }
+  : undefined;
 ```
 
 ```typescript
