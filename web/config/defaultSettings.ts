@@ -22,6 +22,8 @@ const Settings: ProLayoutProps & {
   splitMenus: false,
   token: {
     sider: {
+      // 菜单根节点统一提供留白，收起后保留完整的 36px 图标槽。
+      paddingInlineLayoutMenu: 0,
       colorBgCollapsedButton: '#ffffff',
       colorTextCollapsedButton: 'rgba(0, 0, 0, 0.45)',
       colorTextCollapsedButtonHover: '#1677ff',

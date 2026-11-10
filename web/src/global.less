@@ -78,17 +78,20 @@ body,
     background: #ffffff !important;
     border-right: 1px solid #f0f0f0 !important;
     box-shadow: 1px 0 0 0 rgba(0, 0, 0, 0.02) !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    // 与 ProLayout 的正文占位保持相同节奏，避免运动中边界错位。
+    transition: width 0.2s ease, min-width 0.2s ease, max-width 0.2s ease,
+      flex-basis 0.2s ease !important;
 
     .ant-pro-sider-logo {
       height: var(--roncin-header-height);
-      padding: 0 14px;
+      padding: 0 12px !important;
       border-bottom: 1px solid #f0f0f0;
       display: flex;
+      flex-direction: row;
       align-items: center;
+      justify-content: flex-start;
       gap: 10px;
       background: #ffffff;
-      transition: all 0.2s ease;
       overflow: hidden;
 
       a {
@@ -96,6 +99,8 @@ body,
         align-items: center;
         gap: 10px;
         min-width: 0;
+        justify-content: flex-start;
+        flex-shrink: 0;
       }
 
       img,
@@ -113,7 +118,10 @@ body,
         margin: 0;
         white-space: nowrap;
         opacity: 1;
-        transition: opacity 0.2s ease;
+        flex-shrink: 0;
+        visibility: visible;
+        animation: none;
+        transition: opacity 0.2s ease, visibility 0.2s ease;
       }
     }
 
@@ -135,7 +143,7 @@ body,
         color: #475569 !important;
         font-size: 13px;
         font-weight: 500;
-        transition: all 0.15s ease;
+        transition: background-color 0.15s ease, color 0.15s ease;
         display: flex;
         align-items: center;
 
@@ -204,9 +212,58 @@ body,
       }
     }
 
-    // ------------------------------------
-    // 侧边栏折叠/收起时的紧凑居中对齐样式
-    // ------------------------------------
+    // 首级菜单保留固定的左侧图标槽，只随侧栏裁切右侧文字。
+    .ant-menu-root {
+      width: 100% !important;
+      padding: 4px 6px calc(var(--roncin-sider-trigger-height) + var(--roncin-sider-menu-bottom-gap)) !important;
+      transition: none;
+
+      > .ant-menu-item,
+      > .ant-menu-submenu > .ant-menu-submenu-title {
+        width: 100% !important;
+        min-width: var(--roncin-collapsed-menu-item-size);
+        height: var(--roncin-collapsed-menu-item-size);
+        line-height: var(--roncin-collapsed-menu-item-size);
+        margin: 4px 0 !important;
+        padding: 0 !important;
+        overflow: hidden;
+      }
+    }
+
+    .roncin-sider-menu-label {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      min-width: 0;
+      height: var(--roncin-collapsed-menu-item-size);
+      flex-shrink: 0;
+    }
+
+    .roncin-sider-menu-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 var(--roncin-collapsed-menu-item-size);
+      height: var(--roncin-collapsed-menu-item-size);
+
+      > .anticon {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        font-size: 16px !important;
+        line-height: 1 !important;
+        margin: 0 !important;
+      }
+    }
+
+    .roncin-sider-menu-text {
+      white-space: nowrap;
+      opacity: 1;
+      transition: opacity 0.2s ease;
+    }
+
     &.ant-layout-sider-collapsed,
     &.ant-pro-sider-collapsed {
       width: var(--roncin-collapsed-sider-width) !important;
@@ -215,103 +272,19 @@ body,
       flex: 0 0 var(--roncin-collapsed-sider-width) !important;
 
       .ant-pro-sider-logo {
-        padding: 0 !important;
-        justify-content: center !important;
-
-        a {
-          justify-content: center !important;
-          width: 100% !important;
-          gap: 0 !important;
-        }
-
         h1 {
-          display: none !important;
-          opacity: 0 !important;
-          width: 0 !important;
-        }
-
-        img,
-        svg {
-          margin: 0 !important;
+          opacity: 0;
+          visibility: hidden;
         }
       }
 
-      .ant-menu,
-      .ant-menu-inline-collapsed {
-        width: 100% !important;
-        padding: 4px 0 calc(var(--roncin-sider-trigger-height) + var(--roncin-sider-menu-bottom-gap)) 0 !important;
+      .roncin-sider-menu-text {
+        opacity: 0;
+      }
 
-        .ant-menu-item,
-        .ant-menu-submenu-title {
-          width: var(--roncin-collapsed-menu-item-size) !important;
-          height: var(--roncin-collapsed-menu-item-size) !important;
-          line-height: var(--roncin-collapsed-menu-item-size) !important;
-          margin: 4px auto !important;
-          padding: 0 !important;
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-          border-radius: 6px !important;
-          overflow: hidden !important;
-
-          .roncin-menu-item-link,
-          .ant-pro-menu-item,
-          a {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            width: 100% !important;
-            height: 100% !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            gap: 0 !important;
-            color: inherit !important;
-          }
-
-          .ant-pro-menu-item-icon,
-          .anticon,
-          [role='img'] {
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            font-size: 16px !important;
-            line-height: 1 !important;
-            color: #64748b !important;
-          }
-
-          &:hover {
-            background: rgba(0, 0, 0, 0.04) !important;
-
-            .ant-pro-menu-item-icon,
-            .anticon,
-            [role='img'] {
-              color: #0f172a !important;
-            }
-          }
-
-          &.ant-menu-item-selected {
-            background: #e6f4ff !important;
-
-            .ant-pro-menu-item-icon,
-            .anticon,
-            [role='img'] {
-              color: #1677ff !important;
-            }
-          }
-
-          // 仅隐藏收起状态下的文本标题与展开箭头
-          .ant-pro-menu-item-title,
-          .ant-pro-base-menu-vertical-item-text,
-          .ant-menu-submenu-arrow {
-            display: none !important;
-            width: 0 !important;
-            height: 0 !important;
-            overflow: hidden !important;
-            visibility: hidden !important;
-          }
-        }
+      .ant-menu-submenu-arrow {
+        opacity: 0;
+        visibility: hidden;
       }
     }
 
@@ -392,7 +365,7 @@ body,
     background: #ffffff !important;
     padding: 0 !important;
     z-index: var(--roncin-layer-header) !important;
-    transition: all 0.2s ease !important;
+    transition: left 0.2s ease, width 0.2s ease !important;
   }
 
   // 内层铺满外层，水平留白只由内层 padding 提供。

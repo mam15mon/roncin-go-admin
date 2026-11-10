@@ -1,4 +1,4 @@
-import type { ProLayoutProps } from '@ant-design/pro-components';
+import type { MenuDataItem, ProLayoutProps } from '@ant-design/pro-components';
 import { ProLayout } from '@ant-design/pro-components';
 import { layoutDimensions } from '@root/config/layout';
 import { Grid } from 'antd';
@@ -24,6 +24,18 @@ import { history } from '@/router/history';
 import { RouteErrorPage } from '@/router/RouteErrorPage';
 import { LOGIN_PATH, PUBLIC_AUTH_PATHS, useInitialState } from './AppProvider';
 import { useAccess } from './access';
+
+// 自有标签在展开和收起时保持同一图标槽，避免 Pro 菜单切换模式后重新居中。
+function SiderMenuLabel({ item }: { item: MenuDataItem }) {
+  return (
+    <span className="roncin-sider-menu-label">
+      <span className="roncin-sider-menu-icon" aria-hidden="true">
+        {item.icon}
+      </span>
+      <span className="roncin-sider-menu-text">{item.name}</span>
+    </span>
+  );
+}
 
 // ProLayout 壳：插槽与守卫逻辑自 src/app.tsx 的 RunTimeLayoutConfig 原样平移。
 // menuItemRender 的 prefetch 属性随 Umi routePrefetch 一并放弃（RR Link 无此能力）。
@@ -168,7 +180,7 @@ export function AppLayout() {
         locale: false,
         collapsedWidth: layoutDimensions.collapsedSiderWidth,
       }}
-      menuHeaderRender={(_logo, title) => (
+      menuHeaderRender={() => (
         <Link
           to="/welcome"
           style={{ display: 'flex', alignItems: 'center', gap: 10 }}
@@ -185,7 +197,7 @@ export function AppLayout() {
           ) : (
             layoutSettings?.logo
           )}
-          {title}
+          <h1>{layoutSettings?.title}</h1>
         </Link>
       )}
       collapsedButtonRender={(collapsed, defaultDom) => (
@@ -203,11 +215,14 @@ export function AppLayout() {
             onClick={item.isMobile ? item.onClick : undefined}
             className="roncin-menu-item-link"
           >
-            {dom}
+            {item.icon ? <SiderMenuLabel item={item} /> : dom}
           </Link>
         ) : (
           dom
         )
+      }
+      subMenuItemRender={(item, dom) =>
+        item.icon ? <SiderMenuLabel item={item} /> : dom
       }
       headerContentRender={() => (
         <div className="roncin-header-content">
