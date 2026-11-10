@@ -31,12 +31,12 @@ it('客商角色转换失败保留选中身份和弹窗，完整实体成功后�
   const supplier = screen.getByRole('checkbox', { name: '供应商' });
   fireEvent.click(supplier);
   for (let n = 1; n <= 3; n++) {
-    fireEvent.click(screen.getByRole('button', { name: '确认转换' }));
+    fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
     await waitFor(() =>
       expect(partnerServiceUpdatePartner).toHaveBeenCalledTimes(n),
     );
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: '确认转换' })).not.toHaveClass(
+      expect(screen.getByRole('button', { name: /保\s*存/ })).not.toHaveClass(
         'ant-btn-loading',
       ),
     );
@@ -44,7 +44,7 @@ it('客商角色转换失败保留选中身份和弹窗，完整实体成功后�
     expect(onClose).not.toHaveBeenCalled();
     expect(onSuccess).not.toHaveBeenCalled();
   }
-  fireEvent.click(screen.getByRole('button', { name: '确认转换' }));
+  fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
   await waitFor(() => expect(onSuccess).toHaveBeenCalledOnce());
   expect(onClose).toHaveBeenCalledOnce();
 });

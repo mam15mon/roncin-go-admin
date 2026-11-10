@@ -14,7 +14,7 @@ describe('RoleSwitchModal 业务角色转换弹窗', () => {
     vi.clearAllMocks();
   });
 
-  it('展示当前单位信息与已生效角色，并支持勾选切换角色提交', async () => {
+  it('展示单位名称与已选业务身份，勾选后直接保存', async () => {
     const mockPartner = {
       id: 'p-switch-1',
       code: 'CUST-888',
@@ -43,14 +43,19 @@ describe('RoleSwitchModal 业务角色转换弹窗', () => {
     );
 
     expect(screen.getByText('远洋国际货运代理有限公司')).toBeInTheDocument();
-    expect(screen.getByText('CUST-888')).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: '客户' })).toBeChecked();
+    expect(screen.queryByText('当前生效角色：')).not.toBeInTheDocument();
+    expect(screen.queryByText('角色转换规则说明')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: '仅设为供应商' }),
+    ).not.toBeInTheDocument();
 
-    // 点击快捷设置：仅设为供应商
-    const supplierBtn = screen.getByRole('button', { name: '仅设为供应商' });
-    fireEvent.click(supplierBtn);
+    // 取消客户身份并勾选供应商，直接编辑最终身份。
+    fireEvent.click(screen.getByRole('checkbox', { name: '客户' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: '供应商' }));
 
-    // 点击确认转换
-    const submitBtn = screen.getByRole('button', { name: '确认转换' });
+    // 点击保存
+    const submitBtn = screen.getByRole('button', { name: /保\s*存/ });
     fireEvent.click(submitBtn);
 
     await waitFor(() => {

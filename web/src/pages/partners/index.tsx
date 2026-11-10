@@ -417,8 +417,9 @@ function PartnersContent() {
     {
       title: '操作',
       valueType: 'option',
-      width: 120,
+      width: 160,
       fixed: 'right',
+      align: 'right',
       render: (_, record) => {
         const moreItems: MenuProps['items'] = [];
         const canOperate = access.canOperateOrganization(record.organizationId);
@@ -440,7 +441,7 @@ function PartnersContent() {
           moreItems.push({
             key: 'role-switch',
             icon: <SwapOutlined />,
-            label: '转角色',
+            label: '业务身份',
             onClick: () => setRoleSwitchPartner(record),
           });
         }

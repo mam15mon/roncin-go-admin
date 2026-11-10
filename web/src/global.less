@@ -1042,7 +1042,7 @@ body,
       }
     }
 
-    .ant-table-tbody > tr > td {
+    .ant-table-tbody > tr:not(.ant-table-measure-row) > td {
       font-size: 13px !important;
       border-bottom: 1px solid #f1f5f9 !important;
       color: #0f172a !important;
@@ -1071,7 +1071,7 @@ body,
   .ant-table-small {
     .ant-table-header .ant-table-thead > tr > th,
     .ant-table-content .ant-table-thead > tr > th,
-    .ant-table-tbody > tr > td {
+    .ant-table-tbody > tr:not(.ant-table-measure-row) > td {
       padding-block: 6px !important;
       &:not(.ant-table-selection-column):not(.ant-table-row-expand-icon-cell) {
         padding-inline: 8px !important;
@@ -1084,7 +1084,7 @@ body,
   .ant-table-middle {
     .ant-table-header .ant-table-thead > tr > th,
     .ant-table-content .ant-table-thead > tr > th,
-    .ant-table-tbody > tr > td {
+    .ant-table-tbody > tr:not(.ant-table-measure-row) > td {
       padding-block: 10px !important;
       &:not(.ant-table-selection-column):not(.ant-table-row-expand-icon-cell) {
         padding-inline: 12px !important;
@@ -1096,7 +1096,7 @@ body,
   &:not(.ant-table-wrapper-small):not(.ant-table-wrapper-middle) .ant-table:not(.ant-table-small):not(.ant-table-middle) {
     .ant-table-header .ant-table-thead > tr > th,
     .ant-table-content .ant-table-thead > tr > th,
-    .ant-table-tbody > tr > td {
+    .ant-table-tbody > tr:not(.ant-table-measure-row) > td {
       padding-block: 14px !important;
       &:not(.ant-table-selection-column):not(.ant-table-row-expand-icon-cell) {
         padding-inline: 16px !important;
@@ -1106,18 +1106,28 @@ body,
 
   // 各密度共用结构列横向留白，避免宽松模式的内边距挤压窄列控件。
   .ant-table-thead > tr > th,
-  .ant-table-tbody > tr > td {
+  .ant-table-tbody > tr:not(.ant-table-measure-row) > td {
     &.ant-table-selection-column,
     &.ant-table-row-expand-icon-cell {
       padding-inline: 8px !important;
     }
   }
 
-  // 4. 只重置直属滚动表的测量占位，保留展开行内嵌套表格的真实表头。
+  // 4. 横向滚动的 content 与固定表头的 body 都有测量行，不参与业务行密度。
+  .ant-table-tbody > .ant-table-measure-row > td {
+    height: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+    visibility: hidden !important;
+  }
+
+  // 只重置直属滚动表内的占位表头，保留展开行内嵌套表格的真实表头。
   .ant-table-body {
     > table > .ant-table-thead > tr > th,
-    > table > .ant-table-thead > tr,
-    > table > .ant-table-tbody > .ant-table-measure-row > td {
+    > table > .ant-table-thead > tr {
       height: 0 !important;
       padding: 0 !important;
       border: none !important;

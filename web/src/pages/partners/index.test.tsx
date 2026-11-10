@@ -183,7 +183,7 @@ describe('Partners 列表页', () => {
     expect(moreBtn).toBeInTheDocument();
     fireEvent.click(moreBtn);
 
-    expect(await screen.findByText('转角色')).toBeInTheDocument();
+    expect(await screen.findByText('业务身份')).toBeInTheDocument();
     expect(screen.getByText('账户/合同')).toBeInTheDocument();
   });
 
