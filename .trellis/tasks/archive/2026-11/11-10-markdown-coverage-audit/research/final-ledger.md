@@ -1442,4 +1442,3 @@
 | 文件 | 版本范围 | 结论 | 核查深度 | 依据记录 |
 | --- | --- | --- | --- | --- |
 | `.trellis/tasks/10-30-sea-order-page-layout/prd.md` | 本地额外 | 待确认 | 仅路径、字节数、SHA-256完整性记录 | `baseline-ledger.jsonl` |
-
