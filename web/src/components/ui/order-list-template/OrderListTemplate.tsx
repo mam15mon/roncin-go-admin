@@ -5,7 +5,7 @@ import {
   EditOutlined,
   FileDoneOutlined,
   InboxOutlined,
-  LockOutlined,
+  LockFilled,
   NodeIndexOutlined,
   PaperClipOutlined,
   WarningOutlined,
@@ -29,6 +29,7 @@ import type {
   OrderListTemplateProps,
 } from './types';
 import { useOrderAutoRefresh } from './useOrderAutoRefresh';
+import './OrderListTemplate.less';
 
 /** 低频辅助信息默认收起，仍可通过列设置按需开启。 */
 const DEFAULT_HIDDEN_COLUMN_KEYS = [
@@ -143,23 +144,34 @@ export function OrderListTemplate({
       {
         title: '订单编号',
         dataIndex: 'orderNo',
-        width: 150,
+        width: 160,
         sorter: true,
         fixed: 'left',
         render: (_, record) => (
-          <Space orientation="horizontal" size={4}>
-            <a
-              style={{ fontWeight: 600, color: '#1677ff' }}
-              onClick={() => onViewDetail?.(record)}
-            >
-              {record.orderNo}
-            </a>
-            {record.isLocked && (
-              <Tooltip title="订单已锁定">
-                <LockOutlined style={{ color: '#faad14' }} />
-              </Tooltip>
-            )}
-          </Space>
+          <Tooltip title={record.isLocked ? '已审核，订单已锁定' : undefined}>
+            <span className="roncin-order-number">
+              {record.isLocked && (
+                <LockFilled
+                  className="roncin-order-number-lock"
+                  aria-hidden="true"
+                />
+              )}
+              <a
+                role="link"
+                tabIndex={0}
+                className="roncin-order-number-link"
+                aria-label={
+                  record.isLocked ? `${record.orderNo}，已审核` : undefined
+                }
+                onClick={() => onViewDetail?.(record)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') onViewDetail?.(record);
+                }}
+              >
+                {record.orderNo}
+              </a>
+            </span>
+          </Tooltip>
         ),
       },
       // 4. 业务类型（页面查询已按注册定义映射好显示文案）

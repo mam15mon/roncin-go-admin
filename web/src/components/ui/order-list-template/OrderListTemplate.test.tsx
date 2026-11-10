@@ -45,6 +45,7 @@ describe('OrderListTemplate', () => {
         {
           id: 'order-1',
           orderNo: 'ORD202608260001',
+          isLocked: true,
           customerName: '阿里巴巴国际站',
           customerReferenceNo: 'CUST-REF-888',
           vesselVoyage: 'COSCO STAR / 024W',
@@ -112,6 +113,19 @@ describe('OrderListTemplate', () => {
     const orderRow = screen.getByText('ORD202608260001').closest('tr');
     expect(orderRow).not.toBeNull();
     const row = within(orderRow as HTMLElement);
+    const orderNumberCell = row.getByText('ORD202608260001').closest('td');
+    expect(
+      orderNumberCell?.querySelector('.roncin-order-number-lock'),
+    ).toHaveAttribute('aria-hidden', 'true');
+    expect(row.getByText('ORD202608260001')).toHaveAccessibleName(
+      'ORD202608260001，已审核',
+    );
+    expect(
+      screen
+        .getByText('ORD202608260002')
+        .closest('td')
+        ?.querySelector('.roncin-order-number-lock'),
+    ).toBeNull();
     const operatorCell = row.getByText('张强').closest('td');
     expect(operatorCell).toHaveTextContent(/^张强$/);
     expect(row.queryByText(/上海分公司/)).not.toBeInTheDocument();
