@@ -145,8 +145,7 @@ Behavior:
 
 ## tag-vs-kind — how event shape is actually controlled
 
-There is **no `--tag` flag** anywhere in the v0.6.0 channel CLI; `--kind` is
-not a legacy alias for any `--tag` flag.
+本机核对版本 0.6.17 的 channel CLI **没有 `--tag` 参数**；`--kind` 不是旧标签参数的别名。
 
 Concrete model in the current source:
 
@@ -162,9 +161,9 @@ Concrete model in the current source:
 - `--kind` lives on `wait` (CSV, OR semantics) and `messages` (single
   value). `send` and `run` cannot emit a custom kind — every `send` writes
   a `message` event.
-- Mid-turn worker abort is **not** a tag. It is the dedicated
-  `channel interrupt` command, which appends an `interrupt_requested` /
-  `interrupted` pair and provider-level interrupts the worker.
+- 轮中中断不使用标签。`channel interrupt` 先登记 `interrupt_requested`；
+  运行中的 supervisor 消费后才尝试处理中断并追加 `interrupted` 结果，
+  请求已写入不等于中断已完成。
 
 Practical rule for dispatchers waiting on workers:
 
@@ -199,9 +198,10 @@ trellis channel interrupt <name> [text]
 ```
 
 Behavior:
-- Appends an `interrupt` event with `reason: "user"` and a replacement
-  instruction body; supervisor performs provider-level interrupt where
-  supported (Claude `/interrupt`, Codex turn cancel).
+- CLI 追加 `interrupt_requested`，携带 `reason: "user"`、目标 `worker` 和替代指令 `message`。
+- 运行中的 supervisor 读取请求，在 adapter 就绪后处理当前轮并追加 `interrupted`，
+  其中 `method` / `outcome` 记录处理方式与结果；没有 `interrupt` 事件类型。
+  只有请求、没有处理结果时，不宣称已完成中断；提供方行为仍须核对实际运行。
 - Prints the appended event JSON on stdout.
 
 ---

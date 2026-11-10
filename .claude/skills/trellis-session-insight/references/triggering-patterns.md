@@ -41,7 +41,7 @@ The user resumed work after a gap and the context is implicit.
 - "我们上次做到哪了"
 - "接着昨天那个任务"
 
-Reach: `trellis mem list --task <current-task-dir>` to find the most recent sessions tied to the active task, then `extract` the last one.
+用 `trellis mem list --cwd <仓库绝对路径> --limit 10` 定位本项目最近会话，结合任务名或关键词选择真实会话 ID，再 `extract`；当前 CLI 没有 `--task` 过滤参数，不能仅凭“最近一条”认定它属于当前任务。
 
 ## Familiar-bug debugging
 
@@ -80,14 +80,14 @@ The user explicitly wants to look back at this task — not as a forced step, on
 - "记一下这次踩的坑"
 - "复盘下这个任务"
 
-Reach: identify the current task's session id (from `.trellis/.runtime/sessions/*.json` or `mem list --task <task-dir>`), then `extract <id> --phase brainstorm` and `--phase implement`. Present a summary — surface concrete file:line citations where possible. Whether to also write the summary somewhere (PRD, spec, notes file) is the user's call; offer, don't auto-write.
+先用 `trellis mem list --cwd <仓库绝对路径>` 及任务关键词定位真实会话 ID；`.trellis/.runtime/sessions/*.json` 是当前任务指针，不等同于所有平台的历史会话 ID。确认命中后再用 `extract <id> --phase brainstorm` / `--phase implement`；OpenCode 不支持该切片，会警告并返回全部。摘要尽量给真实文件定位，是否额外写入 PRD/spec/记录按当前任务授权决定，不因为回忆就自动改写历史事实。
 
 ## Anti-patterns: do NOT reach for `mem` here
 
 - "What does this function do?" → read the file.
 - "Why is this test failing?" → read the test output and the file.
 - "What's the right pattern for X in our codebase?" → grep / read spec files.
-- "What's the latest npm version of Y?" → call `npm view`.
+- "What's the latest npm version of Y?" → 按项目包管理约定查询，例如 `pnpm view`，并核对官方发布记录。
 - "Fix this bug." → debug. Reach for `mem` only if you suspect prior context exists; otherwise it is noise.
 
 The bar stays: would a senior teammate ask "didn't we already talk about this?" before answering? If yes, reach for `mem`. If no, don't.

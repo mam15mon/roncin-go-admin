@@ -43,7 +43,7 @@ Every task has its own directory under `.trellis/tasks/{MM-DD-name}/` holding `t
 
 ```bash
 # Task lifecycle
-python3 ./.trellis/scripts/task.py create "<title>" [--slug <name>] [--parent <dir>]
+python3 ./.trellis/scripts/task.py create "<title>" --description "<任务摘要>" [--slug <name>] [--parent <dir>]
 python3 ./.trellis/scripts/task.py start <name>          # set active task (session-scoped when available)
 python3 ./.trellis/scripts/task.py current --source      # show active task and source
 python3 ./.trellis/scripts/task.py finish                # clear active task (triggers after_finish hooks)
@@ -69,8 +69,7 @@ python3 ./.trellis/scripts/task.py set-scope <name> <scope>
 python3 ./.trellis/scripts/task.py add-subtask <parent> <child>
 python3 ./.trellis/scripts/task.py remove-subtask <parent> <child>
 
-# PR creation
-python3 ./.trellis/scripts/task.py create-pr [name] [--dry-run]
+# PR 创建不由 task.py 提供；需要时使用宿主或仓库的现有 PR 工具，并遵守任务授权。
 ```
 
 > Run `python3 ./.trellis/scripts/task.py --help` to see the authoritative, up-to-date list.
@@ -138,10 +137,11 @@ python3 ./.trellis/scripts/get_context.py --mode phase --step <X.Y>  # detailed 
   Editing checklist:
     - When you change a [workflow-state:STATUS] block, also check the
       matching phase's `[required · once]` walkthrough steps for sync
-    - Run `trellis update` after editing to push the new bodies to
-      downstream user projects (block-level managed replacement)
-    - Full runtime contract:
-      .trellis/spec/cli/backend/workflow-state-contract.md
+    - 本项目不包含 Trellis 上游模板源码；本地定制后核对实际钩子解析结果，
+      不把 trellis update 视为向其他项目发布本地改动的命令。
+    - 上游 .trellis/spec/cli/backend/workflow-state-contract.md 不在本仓库；
+      本地依据为 .trellis/scripts/common/{active_task,workflow_phase,task_store}.py
+      及各已配置平台的 inject-workflow-state.py。
 -->
 
 ## Phase Index
@@ -172,7 +172,7 @@ Use a parent task when one user request contains several independently verifiabl
 
 Use child tasks for deliverables that can be planned, implemented, checked, and archived independently. Parent/child structure is not a dependency system: if one child must wait for another, write that ordering in the child `prd.md` / `implement.md` and keep each child's acceptance criteria testable.
 
-Create new children with `task.py create "<title>" --slug <name> --parent <parent-dir>`. Link existing tasks with `task.py add-subtask <parent> <child>`, and unlink mistakes with `task.py remove-subtask <parent> <child>`.
+Create new children with `task.py create "<title>" --description "<任务摘要>" --slug <name> --parent <parent-dir>`. Link existing tasks with `task.py add-subtask <parent> <child>`, and unlink mistakes with `task.py remove-subtask <parent> <child>`.
 
 <!-- Per-turn breadcrumb: shown when there is no active task (before Phase 1) -->
 
@@ -325,7 +325,7 @@ Goal: classify the request, get task-creation consent when a task is needed, and
 Create the task directory only after task-creation consent. The command sets status to `planning`, writes `task.json`, creates a default `prd.md`, and auto-targets the new task when session identity is available:
 
 ```bash
-python3 ./.trellis/scripts/task.py create "<task title>" --slug <name>
+python3 ./.trellis/scripts/task.py create "<task title>" --description "<任务摘要>" --slug <name>
 ```
 
 `--slug` is the human-readable name only. Do **not** include the `MM-DD-` date prefix; `task.py create` adds that prefix automatically.
@@ -393,7 +393,7 @@ Brainstorm and research can interleave freely — pause to research a technical 
 
 [Claude Code, Cursor, OpenCode, codex-sub-agent, Kiro, Gemini, Qoder, CodeBuddy, Copilot, Droid, Pi, Oh My Pi, ZCode, Snow, Reasonix, Trae, Grok, Kimi Code]
 
-Curate `implement.jsonl` and `check.jsonl` so the Phase 2 sub-agents get the right spec/research context. These files were seeded on `task create` with a single self-describing `_example` line; your job here is to fill in real entries.
+为 Phase 2 子代理整理 `implement.jsonl` 与 `check.jsonl`。当前 `task create` 创建的是空文件，不含 `_example` 示例行；规划阶段必须写入真实规范和研究条目。
 
 **Location**: `{TASK_DIR}/implement.jsonl` and `{TASK_DIR}/check.jsonl` (already exist).
 
@@ -430,7 +430,7 @@ python3 ./.trellis/scripts/task.py add-context "$TASK_DIR" implement "<path>" "<
 python3 ./.trellis/scripts/task.py add-context "$TASK_DIR" check "<path>" "<reason>"
 ```
 
-Delete the seed `_example` line once real entries exist (optional — it's skipped automatically by consumers).
+若旧任务仍有 `_example` 占位行，可在整理时移除；只有真实 `file`/`reason` 条目才作为本项目可审阅的上下文，不能把占位行当作已完成整理。
 
 Ready gate: both `implement.jsonl` and `check.jsonl` must contain at least one real `{"file": "...", "reason": "..."}` entry before `task.py start`. The seed `_example` row alone is not ready.
 
@@ -452,7 +452,7 @@ After artifact review, flip the task status to `in_progress`:
 python3 ./.trellis/scripts/task.py start <task-dir>
 ```
 
-For lightweight tasks, `prd.md` can be enough. For complex tasks, `prd.md`, `design.md`, and `implement.md` must exist and be reviewed before start. On sub-agent-dispatch platforms, `implement.jsonl` and `check.jsonl` must both have real curated entries before start. Runtime consumers tolerate missing or seed-only manifests for compatibility, but that tolerance is not a planning-ready state.
+For lightweight tasks, `prd.md` can be enough. For complex tasks, `prd.md`, `design.md`, and `implement.md` must exist and be reviewed before start. On sub-agent-dispatch platforms, `implement.jsonl` and `check.jsonl` must both have real curated entries before start. 本地 `task.py start` 默认拒绝已经存在但没有真实条目的清单；历史的文件缺失由解析器区别处理，不等于本项目规划已就绪。`--allow-empty-context` 是 CLI 的显式技术选项，不替代这里的规划与审阅门禁。
 
 After this command succeeds, the breadcrumb auto-switches to `[workflow-state:in_progress]`, and the rest of Phase 2 / 3 follows.
 
@@ -657,7 +657,7 @@ After the above, remind the user they can run `/finish-work` to wrap up (archive
 
 ## Customizing Trellis (for forks)
 
-This section is for developers who want to modify the Trellis workflow itself. All customization is done by editing this file; the scripts are parsers only.
+本节说明 Trellis 工作流的本地定制入口。阶段文案与状态块在本文件；生命周期配置来自 `.trellis/config.yaml`，实际状态写入和解析边界以本地 `.trellis/scripts/` 及平台钩子为准。修改前先区分文案、配置和运行逻辑，不把上游源码仓库的发布步骤套到本项目。
 
 ### Changing what a step means
 
@@ -695,20 +695,16 @@ your per-turn prompt text
 Constraints:
 - STATUS charset: `[A-Za-z0-9_-]+` (underscores and hyphens allowed, e.g. `in-review`, `blocked-by-team`)
 - A lifecycle hook must write `task.json.status` to your custom value, otherwise the tag is never read
-- Lifecycle hooks live in `task.json.hooks.after_*` and bind to one of `after_create / after_start / after_finish / after_archive`
+- 生命周期钩子配置位于 `.trellis/config.yaml` 的 `hooks.after_*`，事件为 `after_create / after_start / after_finish / after_archive`，不是 `task.json.hooks`。
 
 ### Adding a lifecycle hook
 
-Add a `hooks` field to your `task.json`:
+在 `.trellis/config.yaml` 中配置 `hooks`，命令从仓库根目录执行，并通过 `TASK_JSON_PATH` 取得当前任务 JSON 路径：
 
-```json
-{
-  "hooks": {
-    "after_finish": [
-      "your-script-or-command-here"
-    ]
-  }
-}
+```yaml
+hooks:
+  after_finish:
+    - "<已授权的脚本或命令>"
 ```
 
 Supported events: `after_create / after_start / after_finish / after_archive`. Note that `after_finish` ≠ a status change (it only clears the active-task pointer); use `after_archive` for "task is done" notifications.
@@ -717,5 +713,9 @@ Supported events: `after_create / after_start / after_finish / after_archive`. N
 
 For the workflow state machine's runtime contract, the locations of all status writers, pseudo-statuses (`no_task` / `stale_<source_type>`), the hook reachability matrix, and other deep details, see:
 
-- `.trellis/spec/cli/backend/workflow-state-contract.md` — runtime contract + writer table + test invariants
-- `.trellis/scripts/inject-workflow-state.py` — actual parser (reads workflow.md only, no embedded text)
+- `.trellis/scripts/common/active_task.py`、`task_store.py` — 当前会话指针、状态写入及归档。
+- `.trellis/scripts/common/workflow_phase.py` — 本地阶段文案解析。
+- `.claude/hooks/inject-workflow-state.py`、`.codex/hooks/inject-workflow-state.py`、`.zcode/hooks/inject-workflow-state.py` — 已配置平台的状态注入入口。
+- `.trellis/scripts/common/config.py` 的 `get_hooks` 与 `task_utils.py` 的 `run_task_hooks` — config.yaml 钩子读取和执行。
+
+上游的 `.trellis/spec/cli/backend/workflow-state-contract.md` 不随本项目提供；本文件保留其历史设计背景，但不能把它列作本地必读文件。

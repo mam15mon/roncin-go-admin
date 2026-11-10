@@ -17,7 +17,7 @@ When the user wants to change the engineering conventions AI follows, add new sp
 | Add shared thinking guides | `.trellis/spec/guides/` |
 | Adjust monorepo packages | `packages` in `.trellis/config.yaml` |
 | Change default package | `default_package` in `.trellis/config.yaml` |
-| Control spec scanning scope | `spec_scope` in `.trellis/config.yaml` |
+| Control spec scanning scope | `.trellis/config.yaml` 中的 `session.spec_scope`，不是顶层 `spec_scope` |
 | Make a task read a new spec | Task `implement.jsonl` / `check.jsonl` |
 
 ## Add A Spec Layer
@@ -74,6 +74,15 @@ python3 ./.trellis/scripts/get_context.py --mode packages
 ```
 
 Use this output to confirm AI can see the correct packages and spec layers.
+
+扫描范围由 `session.spec_scope` 读取；可省略以扫描全部包，或使用包名列表、`active_task`：
+
+```yaml
+session:
+  spec_scope: active_task
+```
+
+这里只展示配置位置，不替本项目修改配置；以 `.trellis/scripts/common/config.py` 的 `get_spec_scope` 为准。
 
 ## Notes
 

@@ -128,11 +128,10 @@ matching event; timeout exits with code **124** and prints
 
 ## Soft Interrupt — `interrupt`
 
-`channel interrupt` is the cooperative redirect: it appends an `interrupt`
-event (reason `"user"`) and, where the adapter supports it, issues a
-provider-level turn interrupt with a replacement instruction. Use it when the
-worker should drop its current turn and act on new input immediately, without
-losing its session.
+`channel interrupt` 用于请求工作者放弃当前轮并处理替代指令。当前 CLI
+先追加 `interrupt_requested`（reason 为 `"user"`）；运行中的 supervisor
+收到该请求后按 adapter 能力处理，并写 `interrupted` 结果。仅看到请求事件
+不能认定工作者已中断；工作者未运行、尚未就绪或提供方不支持时，应检查实际结果。
 
 ```bash
 echo "Stop refactoring the parser — switch to fixing the failing test in src/foo.ts" \
@@ -146,18 +145,16 @@ Flags:
 - `--scope <project|global>` — channel scope.
 - `--stdin` / `--text-file <path>` / `[text]` — replacement instruction body.
 
-The appended event has `kind: "interrupt"` — downstream `wait` / `messages`
-filters can subscribe with `--kind interrupt` to react to redirections (e.g.
-to log the rerouting, or to gate other workers behind a coordinator's
-correction).
+登记请求用 `--kind interrupt_requested` 观察；supervisor 的处理结果用
+`--kind interrupted` 观察，检查其 `method` / `outcome`，不存在 `interrupt`
+事件类型。默认路由过滤仍然生效，查询时按目标 worker 和作者选择过滤条件。
 
-For low-priority hints that should wait for the worker's next turn, send a
-plain tagged message instead:
+普通低优先级提示使用 `send`；正文可说明问题类型，但不添加不存在的标签参数：
 
 ```bash
 echo "Check this when you reach the next turn." \
   | trellis channel send impl-task --as dispatcher --to codex-impl \
-      --stdin --tag question
+      --stdin
 ```
 
 ## Hard Interrupt — `kill` + `--resume`
@@ -245,8 +242,8 @@ Inbox-relevant subcommands:
 - `wait <channel>` — block until matching events arrive.
   - `--as <agent>` **(required)** — `self` for filter context.
   - `--from <agents>` — CSV authors.
-  - `--kind <kind[,kind...]>` — CSV (OR semantics); supports `interrupt`,
-    `done`, `progress`, etc.
+  - `--kind <kind[,kind...]>` — CSV（OR）；可选 `interrupt_requested`、
+    `interrupted`、`done`、`progress` 等运行时白名单类型。
   - `--to <target>` — defaults to own agent (broadcast + explicit-to-me).
   - `--include-progress` — also wake on progress events.
   - `--all` — require every `--from` agent to match (timeout → exit **124**).

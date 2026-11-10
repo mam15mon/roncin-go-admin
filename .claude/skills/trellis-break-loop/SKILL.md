@@ -176,12 +176,12 @@ Never express binary certainty when evidence is incomplete. Use "most likely", "
 **IMPORTANT**: After completing the analysis above, you MUST immediately:
 
 1. **Update spec/guides** - Don't just list TODOs, actually update the relevant files:
-   - If it's a cross-platform issue → update `cross-platform-thinking-guide.md`
-   - If it's a cross-layer issue → update `cross-layer-thinking-guide.md`
-   - If it's a code reuse issue → update `code-reuse-thinking-guide.md`
-   - If it's domain-specific → update `backend/*.md` or `frontend/*.md`
+   - 跨平台问题：核对本地平台说明与 `.trellis/workflow.md`，仅在任务授权范围内更新对应入口；不假设有 `cross-platform-thinking-guide.md`。
+   - 跨层问题：更新 `.trellis/spec/guides/cross-layer-thinking-guide.md` 并指向真实领域契约。
+   - 复用问题：更新 `.trellis/spec/guides/code-reuse-thinking-guide.md`。
+   - 领域问题：更新 `.trellis/spec/server/backend/` 或 `.trellis/spec/web/frontend/` 的对应规范。
 
-2. **Sync templates** - After updating `.trellis/spec/`, sync to `src/templates/markdown/spec/`
+2. **核对维护边界**：本仓库是使用 Trellis 的业务项目，没有 `src/templates/markdown/spec/` 上游源码目录；本地只维护真实 `.trellis/spec/` 及其引用。只有任务明确维护 Trellis 上游模板仓库且目录实际存在时，才按那个仓库的规则同步模板，不能在本项目创建或覆盖不存在的模板树。
 
 3. **Commit the spec updates** - This is the primary output, not just the analysis text
 

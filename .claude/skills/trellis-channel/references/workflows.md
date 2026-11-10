@@ -64,8 +64,11 @@ trellis channel spawn cr-foo \
 
 trellis channel send cr-foo --as main --to check --text-file /tmp/cr-brief.md
 trellis channel wait cr-foo --as main --kind done --from check --timeout 15m
-trellis channel messages cr-foo --kind message --from check --tag final_answer
+trellis channel messages cr-foo --kind message --from check --raw --last 10
 ```
+
+完成事件用于判定工作者结束一轮；随后读取该工作者的 `message` 正文确认最终结果。
+当前 CLI 没有 `--tag final_answer` 过滤器，不能把消息中的文字当成事件类型。
 
 For implement work, use `--agent implement` and send an implementation brief.
 For check work, include the exact diff scope, relevant specs, and validation

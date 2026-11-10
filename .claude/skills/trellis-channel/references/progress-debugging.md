@@ -133,7 +133,7 @@ Useful filters:
 ```bash
 trellis channel wait T --as main --from check --kind done --timeout 15m
 trellis channel wait T --as main --from check,check-cx --kind done --all --timeout 15m
-trellis channel wait T --as worker --tag interrupt --timeout 1h
+trellis channel wait T --as worker --kind interrupt_requested --timeout 1h
 trellis channel wait T --as main --thread release-note --action status --timeout 10m
 ```
 
@@ -149,41 +149,41 @@ Don't make it a habit, and **never** do it for forum channels.
 Why subcommands first:
 
 - `messages` already replays the file with filters (`--kind`, `--from`,
-  `--last`, `--tag`, `--thread`, `--action`) and gives you `--raw` for the
+  `--last`, `--thread`, `--action`) and gives you `--raw` for the
   exact JSON. Anything you would write a one-liner for, `messages` already
   does.
 - `wait` consumes the same file with EOF semantics — re-implementing that
   with `tail -f | jq` will drop events under load and misorder them under
   rotation.
-- `context` materializes a worker's inbox view, including cursor state.
-  Hand-rolled filters do not respect `<worker>.inbox-cursor`.
+- `context list` 投影频道或 thread 的上下文条目，不提供工作者 inbox 查询。
+  交付是否被消费要结合 supervisor 日志及 `<worker>.inbox-cursor` 诊断，
+  不能把上下文列表或普通消息回放当成待处理收件箱。
 
 ### Forum channels: never parse `events.jsonl` directly
 
 Forum channels multiplex many logical threads onto a single `events.jsonl`.
-Each event carries `thread`, `action`, and tag fields that the forum
-subcommands know how to fold together. Parsing the file by hand will:
+论坛事件通过 `thread`、`action` 等字段表达线程变化，CLI 投影负责合并。
+普通发送没有自定义 tag 参数。手写文件解析容易出现以下问题：
 
 - Mix threads together and make a thread look incoherent.
 - Miss thread lifecycle events (open / status / close) that change how
   later events should be interpreted.
-- Ignore worker inbox cursors, so you will "see" events a worker has
-  already consumed and assume they are pending.
+- 将历史消息回放误判为未消费消息；这些视图不是工作者 inbox 的待办列表。
 
 Use the forum-aware views instead:
 
 ```bash
 # List logical threads inside the forum channel
-trellis channel forum list <channel>
+trellis channel forum <channel>
 
 # Inspect one thread end-to-end
-trellis channel thread show <channel> <thread>
+trellis channel thread <channel> <thread>
 
 # Replay messages for a thread (supports --raw, --kind, --last)
 trellis channel messages <channel> --thread <thread> --raw --last 100
 
-# What a specific worker still has pending
-trellis channel context <channel> --as <worker>
+# 查看 thread 当前关联的上下文；不是查询某工作者的待处理消息
+trellis channel context list <channel> --thread <thread>
 ```
 
 Direct reads of `events.jsonl` are reserved for the case where the CLI
@@ -194,7 +194,7 @@ diffing against `<worker>.inbox-cursor` while debugging the supervisor.
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `trellis: command not found` | CLI not installed globally | `npm install -g @mindfoldhq/trellis` |
+| `trellis: command not found` | CLI not installed globally | 确认用户已授权安装后执行 `pnpm add -g @mindfoldhq/trellis`，否则先报告缺失 |
 | `wait` exits immediately | wrong filter or identity collision | use distinct `--as`, inspect raw messages |
 | zsh errors on message text | shell interpreted punctuation | use `--stdin` or `--text-file` |
 | progress line is cut off | pretty output truncation | use `messages --raw --kind progress` |

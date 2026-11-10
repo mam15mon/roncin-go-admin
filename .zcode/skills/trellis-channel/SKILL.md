@@ -46,9 +46,9 @@ trellis channel context list <board> --scope global --thread <thread>
 - Use `--stdin` or `--text-file` for long messages. Do not put long mixed Chinese/English text in the positional shell argument.
 - Pretty `messages` output is an operator dashboard and may truncate progress. Use `--raw` for audit.
 - `--as` is the speaker or worker handle, depending on the command. Use explicit, stable names when multiple agents or sessions are involved.
-- `--scope project` (default) operates on the current cwd's project bucket; `--scope global` operates on the shared `__global__` bucket. Pick scope deliberately — a global board is invisible from project listings unless `--scope global` is passed.
+- `--scope project` (default) operates on the current cwd's project bucket; `--scope global` operates on the shared `_global` bucket. Pick scope deliberately — a global board is invisible from project listings unless `--scope global` is passed.
 - For brainstorm, do multiple pressure-test rounds. One answer plus one confirmation is review, not brainstorm.
-- **Dispatcher wait pattern**: use `--kind done` / `--kind turn_finished` (trellis-emitted system events), NOT a user `--tag` as the completion signal. CLI help lists `phase_done` / `question` as `--tag` examples but only `interrupt` is a reserved tag with hardcoded trellis behavior; the others are opaque user labels. Relying on a worker to run `send --tag <my_signal>` is unreliable — LLM workers commonly write the tag string into prose instead of running the actual CLI command. See `references/command-reference.md` "tag vs kind".
+- **调度等待**：完成信号使用 `--kind done` / `--kind turn_finished`，它们由运行时产生；当前本机 CLI 0.6.17 的 `send`、`wait`、`messages` 没有 `--tag` 参数。普通 `send` 写入 `message`，消息正文中的自定义字符串不能作为 `wait` 的事件类型。中断使用独立的 `channel interrupt` 命令；它先登记 `interrupt_requested`，运行中的 supervisor 接收后才追加处理结果 `interrupted`，不能把登记请求当作中断已完成。见 `references/command-reference.md`。
 - Forum channels are event-sourced. Do not parse `events.jsonl` first; use `forum`, `thread`, `messages --thread`, and `context list`.
 - `@mindfoldhq/trellis-core` owns reusable channel/thread state, event append, seq allocation, context/title projection, reducers, and task helpers. The CLI owns flags, terminal rendering, prompts, worker lifecycle, and process exits.
 

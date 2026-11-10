@@ -2,21 +2,25 @@
 
 GitNexus and ABCoder are recommended when bootstrapping Trellis specs because they expose architecture and AST context to the agent. They are tool choices, not platform requirements. Configure them through whatever MCP mechanism your agent host provides.
 
+## 工具使用边界
+
+这些工具是可选项。本仓库未把 GitNexus/ABCoder 作为必需依赖；未安装或未获授权时，直接使用 `rg` 和源码阅读完成规范分析。下面只是工具已经可用后的命令示例，不授权安装、升级、联网索引或修改 MCP 配置。需要安装时先确认目标版本与安装范围，依赖命令遵循本项目 pnpm 约定。
+
 ## GitNexus
 
 GitNexus builds a code knowledge graph from the repository. Use it for module boundaries, execution flows, dependency relationships, blast radius, and graph queries.
 
-### Install and Index
+### 已安装工具的索引与查询
 
 ```bash
 # Run from the repository root.
-npx gitnexus analyze
+pnpm exec gitnexus analyze
 
 # Check index status.
-npx gitnexus status
+pnpm exec gitnexus status
 
 # Re-index after code changes when the analysis is stale.
-npx gitnexus analyze
+pnpm exec gitnexus analyze
 ```
 
 The index is written to `.gitnexus/`. Keep embeddings only if the project already uses them; otherwise a normal index is enough for spec bootstrapping.
@@ -26,7 +30,7 @@ The index is written to `.gitnexus/`. Keep embeddings only if the project alread
 Use this server command in the host's MCP configuration:
 
 ```bash
-npx -y gitnexus mcp
+pnpm exec gitnexus mcp
 ```
 
 ### Useful Tools
@@ -44,10 +48,10 @@ npx -y gitnexus mcp
 
 ABCoder parses code into UniAST and gives precise package, file, and node-level structure. Use it for signatures, type shapes, implementations, dependencies, and reverse references.
 
-### Install
+### 安装（仅在明确获授权后）
 
 ```bash
-go install github.com/cloudwego/abcoder@latest
+go install github.com/cloudwego/abcoder@<已确认版本>
 abcoder --help
 ```
 

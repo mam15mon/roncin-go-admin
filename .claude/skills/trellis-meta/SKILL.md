@@ -15,7 +15,7 @@ The default operating scope is local files in the user project:
 - Platform directories: `.claude/`, `.codex/`, `.cursor/`, `.opencode/`, `.kiro/`, `.gemini/`, `.qoder/`, `.codebuddy/`, `.github/`, `.factory/`, `.pi/`, `.reasonix/`, `.kilocode/`, `.agent/`, `.devin/`, `.kimi-code/`, and similar directories. Pi additionally exposes a native `trellis_subagent` tool with `single` / `parallel` / `chain` dispatch modes, throttled progress cards, and `isTrellisAgent()` validation on top of the file layout. Reasonix stores both workflow skills and subagent skills as `.reasonix/skills/<name>/SKILL.md`; subagent skills carry `runAs: subagent` frontmatter. Kimi Code keeps workflow skills in the shared `.agents/skills/` layer, delivers commands plus agent prompts as `.kimi-code/skills/<name>/SKILL.md`, and installs the same agent prompts as custom sub-agents under `.kimi-code/agents/<name>.md`.
 - Shared skill layer: `.agents/skills/`.
 - User-owned channel store outside the project tree: `~/.trellis/channels/<project>/<channel>/events.jsonl`.
-- Raw platform conversation logs queryable via `trellis mem`: `~/.claude/projects/`, `~/.codex/sessions/`, and `~/.pi/agent/sessions/` (OpenCode adapter degraded for the v0.6 line).
+- `trellis mem` 可读取原始会话日志，例如 `~/.claude/projects/`、`~/.codex/sessions/`、`~/.pi/agent/sessions/`。本机 0.6.17 的 `trellis mem help` 也列出 OpenCode 会话读取；OpenCode 不支持 `--phase` 切片，会警告并返回全部，不能据此把整个会话读取能力判为不可用。
 
 Do not assume the user has the Trellis source repository. Do not default to modifying the global npm install directory or `node_modules` — both `@mindfoldhq/trellis` and `@mindfoldhq/trellis-core` ship as published packages sharing one version and one git tag per release.
 
