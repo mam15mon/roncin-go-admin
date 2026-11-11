@@ -1,10 +1,10 @@
 {
   "id": "system-audit-round2-cross-review",
   "name": "system-audit-round2-cross-review",
-  "title": "交叉复核第二轮六项审计发现",
-  "description": "复核第二轮四项客商财务问题与新增两项订单问题，整理触发链、并发时序和验证边界，仅记录证据，不实施修复。",
+  "title": "修复第二轮六项审计缺陷并交付",
+  "description": "修复 B1–B6，完成独立审阅与验证，合并 main、安全删除本次分支、push 后继续父任务只读审计。",
   "status": "planning",
-  "dev_type": null,
+  "dev_type": "fullstack",
   "scope": null,
   "package": null,
   "priority": "P1",
@@ -21,6 +21,6 @@
   "children": [],
   "parent": "11-11-system-audit-round2",
   "relatedFiles": [],
-  "notes": "",
+  "notes": "2026-11-11 用户追加修复与完整 Git 交付授权；保留原复核目录和报告，待最终方案 review 后启动。",
   "meta": {}
 }
