@@ -257,6 +257,7 @@ export default function OrderDetailPage() {
     explicitRefreshTokenRef.current += 1;
     pendingExplicitFormRefreshRef.current = null;
     setRefreshingIdentity(undefined);
+    setSaving(false);
     return () => {
       explicitRefreshTokenRef.current += 1;
       pendingExplicitFormRefreshRef.current = null;
@@ -417,6 +418,7 @@ export default function OrderDetailPage() {
     const requestedIdentity = orderFormIdentity;
     if (!requestedIdentity || refreshBusyRef.current) return false;
     const token = ++explicitRefreshTokenRef.current;
+    setSaving(false);
     refreshBusyRef.current = true;
     setRefreshingIdentity(requestedIdentity);
     try {
@@ -786,25 +788,99 @@ export default function OrderDetailPage() {
         return false;
       }
     }
+    const submittedIdentity = orderFormIdentity;
+    const submittedToken = explicitRefreshTokenRef.current;
+    const submittedForm = formRef.current;
+    const isCurrentSave = () =>
+      submittedIdentity === saveIdentityRef.current &&
+      submittedToken === explicitRefreshTokenRef.current &&
+      submittedForm === formRef.current;
+    const draftValues = submittedForm?.getFieldsValue(true) as
+      | OrderDetailFormValues
+      | undefined;
+    const submittedValues = { ...draftValues, ...values };
+    const submittedAir = submittedValues.airExport
+      ? { ...submittedValues.airExport }
+      : undefined;
+    const submittedReason = submittedValues.airHouseChangeReason;
     setSaving(true);
     try {
+      const expectedVersion =
+        definition.transportMode === 'air'
+          ? draftValues?.version
+          : order?.version;
+      if (!expectedVersion)
+        throw new Error('订单草稿信息不完整，输入已保留，请刷新后重试。');
       const payload = definition.form.buildUpdatePayload(
         orderId,
-        order?.version || '0',
-        values,
+        expectedVersion,
+        submittedValues,
       );
       const response = await orderServiceUpdateOrder(
         { id: orderId },
         { ...payload, idempotencyKey: updateIdempotencyKeyRef.current },
       );
-      if (!response) return false;
+      if (!isCurrentSave() || !response) return false;
       if (!response.data?.id || response.success === false)
         throw new Error('保存订单失败，请重试');
       updateIdempotencyKeyRef.current = generateUUID();
-      message.success('保存订单成功');
-      // 详情与锁状态刷新是 best-effort 后台任务：不阻塞成功返回，
-      // 也不把已落库的保存改判为失败；Hook 已呈现普通请求错误，
-      // 这里只兜底意外泄漏的 reject。
+      let acceptedBaseline = true;
+      if (definition.transportMode === 'air') {
+        const saved = response.data;
+        const savedAir = saved.airExport;
+        const houseChanged =
+          submittedAir?.houseStatus !== payload.airExport?.houseStatus ||
+          (submittedAir?.houseContent ?? '') !==
+            (payload.airExport?.houseContent ?? '');
+        // 更新接口提交后会重读完整详情；只采纳本次提交应推进的版本，
+        // 不把他人随后的修改或共享主单/关联版本套给当前编辑内容。
+        acceptedBaseline = Boolean(
+          saved.id === orderId &&
+            saved.organizationId === order?.organizationId &&
+            payload.expectedVersion &&
+            /^\d+$/.test(payload.expectedVersion) &&
+            saved.version &&
+            /^\d+$/.test(saved.version) &&
+            BigInt(saved.version) === BigInt(payload.expectedVersion) + 1n &&
+            submittedAir?.houseId &&
+            submittedAir.houseId === savedAir?.houseId &&
+            submittedAir.linkId === savedAir?.linkId &&
+            submittedAir.linkVersion === savedAir?.linkVersion &&
+            submittedAir.houseNo === savedAir?.houseNo &&
+            savedAir?.houseStatus === payload.airExport?.houseStatus &&
+            (savedAir?.houseContent ?? '') ===
+              (payload.airExport?.houseContent ?? '') &&
+            submittedAir?.houseVersion &&
+            /^\d+$/.test(submittedAir.houseVersion) &&
+            savedAir?.houseVersion &&
+            /^\d+$/.test(savedAir.houseVersion) &&
+            BigInt(savedAir.houseVersion) ===
+              BigInt(submittedAir.houseVersion) + (houseChanged ? 1n : 0n),
+        );
+        if (acceptedBaseline && savedAir) {
+          submittedForm?.setFieldValue('version', saved.version);
+          submittedForm?.setFieldValue(
+            ['airExport', 'houseStatus'],
+            savedAir.houseStatus,
+          );
+          submittedForm?.setFieldValue(
+            ['airExport', 'houseVersion'],
+            savedAir.houseVersion,
+          );
+          submittedForm?.setFieldValue(
+            ['airExport', 'houseContent'],
+            savedAir.houseContent,
+          );
+          if (
+            submittedForm?.getFieldValue('airHouseChangeReason') ===
+            submittedReason
+          )
+            submittedForm?.setFieldValue('airHouseChangeReason', undefined);
+        }
+      }
+      if (acceptedBaseline) message.success('保存订单成功');
+      else message.warning('订单已保存，但已发生后续变动，请刷新后继续修改。');
+      // 后台刷新不覆盖编辑字段，也不把已落库保存改判为写入失败。
       Promise.all([
         loadData(),
         refreshLockState(),
@@ -812,14 +888,17 @@ export default function OrderDetailPage() {
           ? [queryClient.invalidateQueries({ queryKey: ['air-weight'] })]
           : []),
       ]).catch(() => {
-        message.warning('订单已保存，但最新数据刷新失败，请手动刷新');
+        if (isCurrentSave())
+          message.warning('订单已保存，但最新数据刷新失败，请手动刷新');
       });
-      return true;
+      // 未采纳的后续快照继续保留当前输入及未保存保护，等待显式刷新。
+      return acceptedBaseline;
     } catch (error: unknown) {
-      message.error(error instanceof Error ? error.message : '保存订单失败');
+      if (isCurrentSave())
+        message.error(error instanceof Error ? error.message : '保存订单失败');
       return false;
     } finally {
-      setSaving(false);
+      if (isCurrentSave()) setSaving(false);
     }
   };
 

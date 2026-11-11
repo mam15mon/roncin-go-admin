@@ -84,19 +84,12 @@ func (r *orderContainerRepo) List(ctx context.Context, organizationID, orderID u
 }
 
 func (r *orderContainerRepo) Add(ctx context.Context, organizationID, orderID uuid.UUID, input *biz.OrderContainer, audit *biz.AuditEvent) (*biz.OrderContainer, error) {
-	item, err := r.order(ctx, organizationID, orderID)
-	if err != nil {
-		return nil, err
-	}
-	if err := validateOrderSupportsContainers(item); err != nil {
-		return nil, err
-	}
 	if err := r.validateContainerSpec(ctx, organizationID, input.ContainerSpecID); err != nil {
 		return nil, err
 	}
 
 	var created *ent.OrderContainer
-	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		// 锁订单
 		order, queryErr := tx.Order.Query().
 			Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).
@@ -106,6 +99,9 @@ func (r *orderContainerRepo) Add(ctx context.Context, organizationID, orderID uu
 			return mapEntError(queryErr, biz.ErrOrderContainerNotFound, nil)
 		}
 		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
+		}
+		if err := validateOrderSupportsContainers(order); err != nil {
 			return err
 		}
 
@@ -143,19 +139,12 @@ func (r *orderContainerRepo) Add(ctx context.Context, organizationID, orderID uu
 }
 
 func (r *orderContainerRepo) Update(ctx context.Context, organizationID, orderID, id uuid.UUID, expectedVersion uint64, input *biz.OrderContainer, audit *biz.AuditEvent) (*biz.OrderContainer, error) {
-	item, err := r.order(ctx, organizationID, orderID)
-	if err != nil {
-		return nil, err
-	}
-	if err := validateOrderSupportsContainers(item); err != nil {
-		return nil, err
-	}
 	if err := r.validateContainerSpec(ctx, organizationID, input.ContainerSpecID); err != nil {
 		return nil, err
 	}
 
 	var updated *ent.OrderContainer
-	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		order, queryErr := tx.Order.Query().
 			Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).
 			ForUpdate().
@@ -164,6 +153,9 @@ func (r *orderContainerRepo) Update(ctx context.Context, organizationID, orderID
 			return mapEntError(queryErr, biz.ErrOrderContainerNotFound, nil)
 		}
 		if err := ensureOrderBusinessEditable(ctx, tx, order); err != nil {
+			return err
+		}
+		if err := validateOrderSupportsContainers(order); err != nil {
 			return err
 		}
 

@@ -10,6 +10,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	ordercommissionattributionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercommissionattribution"
+	ordercontainerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/ordercontainer"
 	seahousebill "github.com/roncin/roncin-go-admin/server/internal/data/ent/seahousebill"
 	seamasterbillorderlink "github.com/roncin/roncin-go-admin/server/internal/data/ent/seamasterbillorderlink"
 )
@@ -199,6 +200,18 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 		}
 		if existing.BusinessType != orderent.BusinessType(input.BusinessType) {
 			return biz.ErrOrderBusinessUnsupported
+		}
+		if input.ShipmentType == nil || *input.ShipmentType != biz.OrderShipmentFCL {
+			hasContainers, err := tx.OrderContainer.Query().Where(
+				ordercontainerent.OrderIDEQ(id),
+				ordercontainerent.OrganizationIDEQ(organizationID),
+			).Exist(ctx)
+			if err != nil {
+				return err
+			}
+			if hasContainers {
+				return biz.ErrOrderContainerShipmentType
+			}
 		}
 		if validateErr := validateOrderReferences(ctx, tx, organizationID, input, existing); validateErr != nil {
 			return validateErr

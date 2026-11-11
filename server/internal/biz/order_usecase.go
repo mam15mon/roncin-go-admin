@@ -281,15 +281,7 @@ func (uc *OrderUsecase) UpdateDraft(ctx context.Context, organizationID, actorID
 	if err := uc.creditControl.EnsurePartnerSelectionAllowed(ctx, organizationID, normalized.CustomerID); err != nil {
 		return nil, err
 	}
-	if normalized.ShipmentType == nil || *normalized.ShipmentType != OrderShipmentFCL {
-		hasContainers, err := uc.repo.HasContainers(ctx, organizationID, id)
-		if err != nil {
-			return nil, err
-		}
-		if hasContainers {
-			return nil, ErrOrderContainerShipmentType
-		}
-	}
+
 	audit := &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &actorID,

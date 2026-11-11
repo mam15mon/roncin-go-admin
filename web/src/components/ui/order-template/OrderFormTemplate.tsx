@@ -173,6 +173,8 @@ export function OrderFormTemplate<T>({
       : undefined;
 
   const dirtyRef = useRef(false);
+  // 保存等待期间的新编辑仍属于未保存内容，不能被旧提交的成功结果清除。
+  const editRevisionRef = useRef(0);
 
   useTabCloseGuard({
     tabKey,
@@ -202,6 +204,7 @@ export function OrderFormTemplate<T>({
       applyValues: (values: Partial<T>) => {
         if (readonly || editingDisabled || !resolvedFormRef.current) return;
         resolvedFormRef.current.setFieldsValue(values);
+        editRevisionRef.current += 1;
         dirtyRef.current = true;
         if (draftKey)
           saveFormDraft(draftKey, resolvedFormRef.current.getFieldsValue(true));
@@ -225,10 +228,11 @@ export function OrderFormTemplate<T>({
   const handleFinish = async (values: T) => {
     if (readonly || editingDisabled) return false;
     if (!onFinish) return true;
+    const submittedRevision = editRevisionRef.current;
     setSubmitting(true);
     try {
       const result = await onFinish(values);
-      if (result !== false) {
+      if (result !== false && editRevisionRef.current === submittedRevision) {
         if (draftKey) {
           clearFormDraft(draftKey);
         }
@@ -345,6 +349,7 @@ export function OrderFormTemplate<T>({
           }}
           initialValues={initialValues}
           onValuesChange={(changedValues, allValues) => {
+            editRevisionRef.current += 1;
             if (!dirtyRef.current) {
               dirtyRef.current = true;
             }

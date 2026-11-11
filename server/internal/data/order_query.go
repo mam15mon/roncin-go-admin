@@ -393,18 +393,6 @@ func (r *orderRepo) FindReferenceDuplicate(ctx context.Context, organizationID u
 	return &biz.OrderReferenceMatch{OrderID: item.ID, OrderNo: item.OrderNo}, nil
 }
 
-func (r *orderRepo) HasContainers(ctx context.Context, organizationID, orderID uuid.UUID) (bool, error) {
-	client, err := r.data.client(ctx)
-	if err != nil {
-		return false, err
-	}
-	return client.Order.Query().Where(
-		orderent.IDEQ(orderID),
-		orderent.OrganizationIDEQ(organizationID),
-		orderent.HasContainers(),
-	).Exist(ctx)
-}
-
 func (r *orderRepo) ListConsolidationSummaries(ctx context.Context, organizationID, orderID uuid.UUID) ([]*biz.OrderConsolidationSummary, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {

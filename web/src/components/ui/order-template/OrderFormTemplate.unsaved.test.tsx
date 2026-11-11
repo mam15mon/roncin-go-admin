@@ -1,9 +1,14 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { ProFormText } from '@ant-design/pro-components';
 import { renderWithApp } from '@root/tests/renderWithApp';
-import { act, fireEvent, screen } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import type { MutableRefObject } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import {
+  getFormDraft,
+  getFormDraftKey,
+  hasFormDraft,
+} from '@/components/layout/formDraft';
 import {
   _clearAllTabCloseGuards,
   confirmIfTabsDirty,
@@ -100,4 +105,68 @@ describe('订单表单无持久草稿的未保存保护', () => {
     });
     expect(screen.getByLabelText('业务编号')).toHaveValue('已保存值');
   });
+  it.each(['用户继续键入', '主动带入'] as const)(
+    '保存等待期间%s后保留输入、草稿和离开保护，下一次无新编辑保存才清除',
+    async (editMode) => {
+      const tabKey = '/orders/sea-export';
+      const draftPathname = '/orders/sea-export/create';
+      const draftScope = 'user:company';
+      const draftKey = getFormDraftKey(tabKey, draftPathname, draftScope);
+      const formRef: MutableRefObject<ProFormInstance | undefined> = {
+        current: undefined,
+      };
+      const actionsRef: MutableRefObject<
+        OrderFormTemplateActions<{ reference: string }> | undefined
+      > = { current: undefined };
+      let finishSave!: (saved: boolean) => void;
+      const onFinish = vi.fn(
+        () =>
+          new Promise<boolean>((resolve) => {
+            finishSave = resolve;
+          }),
+      );
+      renderWithApp(
+        <OrderFormTemplate
+          tabKey={tabKey}
+          draftPathname={draftPathname}
+          draftScope={draftScope}
+          formRef={formRef}
+          actionsRef={actionsRef}
+          onFinish={onFinish}
+          initialValues={{ reference: '初始值' }}
+          sections={[
+            {
+              key: 'reference',
+              title: '订单资料',
+              content: <ProFormText name="reference" label="业务编号" />,
+            },
+          ]}
+        />,
+      );
+      fireEvent.change(screen.getByLabelText('业务编号'), {
+        target: { value: '本次提交' },
+      });
+      await act(async () => formRef.current?.submit());
+      await waitFor(() => expect(onFinish).toHaveBeenCalledOnce());
+      if (editMode === '用户继续键入')
+        fireEvent.change(screen.getByLabelText('业务编号'), {
+          target: { value: '尚未提交的新值' },
+        });
+      else
+        await act(async () =>
+          actionsRef.current?.applyValues({ reference: '尚未提交的新值' }),
+        );
+      await act(async () => finishSave(true));
+      expect(screen.getByLabelText('业务编号')).toHaveValue('尚未提交的新值');
+      expect(isTabDirty(tabKey)).toBe(true);
+      expect(getFormDraft(draftKey)).toMatchObject({
+        reference: '尚未提交的新值',
+      });
+      await act(async () => formRef.current?.submit());
+      await waitFor(() => expect(onFinish).toHaveBeenCalledTimes(2));
+      await act(async () => finishSave(true));
+      expect(isTabDirty(tabKey)).toBe(false);
+      expect(hasFormDraft(draftKey)).toBe(false);
+    },
+  );
 });

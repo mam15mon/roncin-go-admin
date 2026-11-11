@@ -145,7 +145,7 @@ function AirHouseDocumentFields({ props }: { props: TemplateProps }) {
         <ProFormSearchableSelect
           name="airHouseStatus"
           label="本票分单状态"
-          initialValue="DRAFT"
+          initialValue={props.isDetail ? undefined : 'DRAFT'}
           options={[
             { label: '资料待完善', value: 'DRAFT' },
             { label: '已确认', value: 'CONFIRMED' },

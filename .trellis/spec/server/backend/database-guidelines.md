@@ -247,6 +247,14 @@ err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 写入口对关联实体的校验读放在事务内、防护锁**之后**执行，不采用
 「锁外预检、锁内直写」结构：
 
+- 普通独占实际箱与订单运输类型须双向守约：`orderContainerRepo.Add/Update` 使用
+  Order `ForUpdate` 返回的权威行检查 FCL；`orderRepo.UpdateDraft` 在订单锁与版本
+  检查通过后、业务写入前检查非 FCL 目标是否已有普通箱，存在则返回
+  `ErrOrderContainerShipmentType`。旧锁外 `HasContainers` 不作为独立权威入口。
+  共享箱不属于该谓词，删除普通箱不增加 FCL 门禁；不靠新增箱递增父版本代替锁后复核。
+  并发验证须控制“加箱先完成”和“切拼箱先完成”两个顺序，通过真实锁等待探针确定时序，
+  不能用固定 sleep 或单边预检证明安全。
+
 - 范本：`internal/data/order_fee.go` 的 `Add`/`Update`/`Transition`/`Remove`。
   订单存在性由 `lockOrderForFeeMutation` 在 `FOR UPDATE` 后确认；结算方、币种
   等引用校验用 `tx.*` 在锁后读取。锁外预检读存在两个问题：看不到同一共享事务

@@ -91,7 +91,6 @@ type OrderRepo interface {
 	List(context.Context, []OrderOrganizationScope, OrderListOptions) (*OrderList, error)
 	FindReferenceDuplicate(context.Context, uuid.UUID, OrderReferenceCheck) (*OrderReferenceMatch, error)
 	ListPersonnelOptions(context.Context, uuid.UUID, SelectorListOptions) (*PagedList[*OrderPersonnelOption], error)
-	HasContainers(context.Context, uuid.UUID, uuid.UUID) (bool, error)
 	ListConsolidationSummaries(context.Context, uuid.UUID, uuid.UUID) ([]*OrderConsolidationSummary, error)
 	ListSameBatchOrders(context.Context, uuid.UUID, uuid.UUID) ([]*SameBatchOrderSummary, error)
 	GetByIdempotencyKey(context.Context, uuid.UUID, string) (*Order, error)

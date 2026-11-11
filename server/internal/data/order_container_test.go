@@ -46,10 +46,6 @@ func TestOrderContainerRepo_Add_UniqueConstraintMapping(t *testing.T) {
 		VolumeCbm:     20.0,
 	}
 
-	mock.ExpectQuery(`SELECT "orders"\."id"`).
-		WithArgs(orderID, orgID).
-		WillReturnRows(orderRows(orderID, orgID))
-
 	mock.ExpectQuery(`SELECT COUNT\("master_data_items"\."id"\) FROM "master_data_items"`).
 		WithArgs(input.ContainerSpecID, "container_spec").
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
@@ -88,9 +84,14 @@ func TestOrderContainerRepo_Add_RejectsNonFCLOrder(t *testing.T) {
 				ID: uuid.New(), ContainerNo: "MSCU1234567", ContainerSpecID: uuid.New(),
 				GrossWeightKg: 1000, VolumeCbm: 20,
 			}
+			mock.ExpectQuery(`SELECT COUNT\("master_data_items"\."id"\) FROM "master_data_items"`).
+				WithArgs(input.ContainerSpecID, "container_spec").
+				WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+			mock.ExpectBegin()
 			mock.ExpectQuery(`SELECT "orders"\."id"`).
 				WithArgs(orderID, orgID).
 				WillReturnRows(orderRowsWithShipmentType(orderID, orgID, shipmentType))
+			mock.ExpectRollback()
 
 			_, err := repo.Add(context.Background(), orgID, orderID, input, nil)
 			if !errors.Is(err, biz.ErrOrderContainerShipmentType) {
@@ -125,7 +126,6 @@ func TestOrderContainerRepo_Add_AuditErrorRollsBack(t *testing.T) {
 		Result:         "success",
 	}
 
-	mock.ExpectQuery(`SELECT "orders"\."id"`).WithArgs(orderID, orgID).WillReturnRows(orderRows(orderID, orgID))
 	mock.ExpectQuery(`SELECT COUNT\("master_data_items"\."id"\) FROM "master_data_items"`).
 		WithArgs(input.ContainerSpecID, "container_spec").
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
@@ -146,5 +146,26 @@ func TestOrderContainerRepo_Add_AuditErrorRollsBack(t *testing.T) {
 	}
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Fatalf("未满足 sqlmock 期望: %v", err)
+	}
+}
+
+func TestOrderContainerRepo_Update_RejectsNonFCLAfterLock(t *testing.T) {
+	repo, mock, cleanup := setupTestOrderContainerRepo(t)
+	defer cleanup()
+	orgID, orderID := uuid.New(), uuid.New()
+	input := &biz.OrderContainer{ID: uuid.New(), ContainerSpecID: uuid.New(), ContainerNo: "MSCU1234567"}
+	mock.ExpectQuery(`SELECT COUNT\("master_data_items"\."id"\) FROM "master_data_items"`).
+		WithArgs(input.ContainerSpecID, "container_spec").
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+	mock.ExpectBegin()
+	mock.ExpectQuery(`SELECT "orders"\."id".*FOR UPDATE`).WithArgs(orderID, orgID).
+		WillReturnRows(orderRowsWithShipmentType(orderID, orgID, "LCL"))
+	mock.ExpectRollback()
+	_, err := repo.Update(context.Background(), orgID, orderID, input.ID, 1, input, nil)
+	if !errors.Is(err, biz.ErrOrderContainerShipmentType) {
+		t.Fatalf("锁后发现 LCL 应拒绝更新: %v", err)
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatal(err)
 	}
 }

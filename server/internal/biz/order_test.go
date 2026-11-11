@@ -32,7 +32,6 @@ type orderRepoStub struct {
 	closureTarget              OrderClosureStatus
 	closureReason              string
 	closureEvent               *OrderLifecycleChangedEvent
-	hasContainers              bool
 	current                    *Order
 	byIdempotencyKey           *Order
 }
@@ -59,10 +58,6 @@ func (s *orderRepoStub) FindReferenceDuplicate(_ context.Context, _ uuid.UUID, c
 
 func (s *orderRepoStub) ListPersonnelOptions(_ context.Context, _ uuid.UUID, options SelectorListOptions) (*PagedList[*OrderPersonnelOption], error) {
 	return &PagedList[*OrderPersonnelOption]{Page: options.Page, PageSize: options.PageSize}, nil
-}
-
-func (s *orderRepoStub) HasContainers(context.Context, uuid.UUID, uuid.UUID) (bool, error) {
-	return s.hasContainers, nil
 }
 
 func (s *orderRepoStub) ListConsolidationSummaries(context.Context, uuid.UUID, uuid.UUID) ([]*OrderConsolidationSummary, error) {
@@ -417,26 +412,6 @@ func TestOrderBreakBulkRejectsContainerPlanAndVGM(t *testing.T) {
 
 	if _, err := normalizeOrder(&base, false); err != nil {
 		t.Fatalf("不含集装箱数据的散杂订单 error = %v", err)
-	}
-}
-
-func TestOrderUpdateRejectsChangingContainerOrderToNonFCL(t *testing.T) {
-	repo := &orderRepoStub{hasContainers: true}
-	usecase := NewOrderUsecase(repo, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
-	breakBulk := OrderShipmentBreakBulk
-	shippingLineID := uuid.New()
-	input := &Order{
-		CustomerID: uuid.New(), BusinessType: OrderBusinessSE,
-		ShippingLineID:     &shippingLineID,
-		SeaMasterBillInput: &SeaMasterBillInput{MasterNo: "COSCO123456"},
-		TradeDirection:     OrderTradeExport, TradeTerm: OrderTradeFOB, PaymentTerm: OrderPaymentPrepaid,
-		ETD: "2026-09-10T00:00:00Z", ETA: "2026-09-25T00:00:00Z",
-		ShipmentType: &breakBulk,
-	}
-
-	_, err := usecase.UpdateDraft(context.Background(), uuid.New(), uuid.New(), uuid.New(), 1, input)
-	if err != ErrOrderContainerShipmentType {
-		t.Fatalf("已有实际箱时切换到散杂 error = %v, want ErrOrderContainerShipmentType", err)
 	}
 }
 
