@@ -84,4 +84,35 @@ func TestPartnerShippingPresetValidatesPayloadTypeAndHSCode(t *testing.T) {
 	}
 }
 
+func TestPartnerShippingPresetRejectsDisabledDefaultBeforeWriting(t *testing.T) {
+	for _, kind := range []string{"party", "text"} {
+		for _, action := range []string{"create", "update"} {
+			t.Run(kind+"/"+action, func(t *testing.T) {
+				repo := &partnerShippingPresetRepoStub{}
+				uc := NewPartnerShippingPresetUsecase(repo)
+				input := &PartnerShippingPreset{Title: "禁用默认", IsDefault: true}
+				if kind == "party" {
+					input.PresetType = PartnerShippingPresetShipper
+					input.Party = &PartnerShippingPartyPayload{CompanyName: "ACME", CountryCode: "CN"}
+				} else {
+					input.PresetType = PartnerShippingPresetMarks
+					input.Text = &PartnerShippingTextPayload{Content: "MARKS"}
+				}
+				var err error
+				if action == "create" {
+					_, err = uc.Create(t.Context(), uuid.New(), uuid.New(), uuid.New(), input)
+				} else {
+					_, err = uc.Update(t.Context(), uuid.New(), uuid.New(), uuid.New(), uuid.New(), input)
+				}
+				if err != ErrPartnerShippingPresetInvalidArgument {
+					t.Fatalf("禁用默认应被拒绝: %v", err)
+				}
+				if repo.created != nil || repo.updated != nil || repo.audit != nil {
+					t.Fatal("无效组合不能进入仓储或生成成功审计")
+				}
+			})
+		}
+	}
+}
+
 var _ PartnerShippingPresetRepo = (*partnerShippingPresetRepoStub)(nil)

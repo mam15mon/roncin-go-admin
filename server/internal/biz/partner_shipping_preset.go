@@ -119,7 +119,7 @@ func (uc *PartnerShippingPresetUsecase) Update(ctx context.Context, organization
 }
 
 func normalizePartnerShippingPreset(input *PartnerShippingPreset) (*PartnerShippingPreset, error) {
-	if input == nil || !input.PresetType.Valid() || input.SortOrder < 0 {
+	if input == nil || !input.PresetType.Valid() || input.SortOrder < 0 || (input.IsDefault && !input.Enabled) {
 		return nil, ErrPartnerShippingPresetInvalidArgument
 	}
 	output := *input
