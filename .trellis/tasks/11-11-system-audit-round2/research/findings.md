@@ -4,7 +4,7 @@
 
 ## 本批修复状态
 
-B1–B6 已于 2026-11-11 完成实现、定向真实库/前端验证和独立 review，正在最终门禁与 Git 交付。分组提交为 `1a0f4a9d`（B3/B4）、`fee61336`（B5/B6）、`dbc3ee8b`（B1/B2）。以下保留修复前证据，动态验收与交付状态见 [修复验收记录](../../11-11-system-audit-round2-cross-review/research/fix-verification.md)。
+B1–B6 已于 2026-11-11 完成实现、定向真实库/前端验证和独立 review，已完成门禁组成项与 Git 交付，修复及标准库补丁已推送 main `80f883f6`。分组提交为 `1a0f4a9d`（B3/B4）、`fee61336`（B5/B6）、`dbc3ee8b`（B1/B2）。以下保留修复前证据，动态验收与交付状态见 [修复验收记录](../../11-11-system-audit-round2-cross-review/research/fix-verification.md)。
 
 ## B1 / P1：主档聚合接口绕过结算规则独立读写权限
 

@@ -38,7 +38,7 @@ Schema，执行正式 SQL 迁移，未重置或写入日常业务数据库。运
 ## Go 补丁门禁追加
 
 - 官方漏洞库 `https://vuln.go.dev/ID/GO-2026-6859.json` 指明标准库修复版本 1.26.11。
-  本次仅将 `server/go.mod` 从 1.26.10 提升到 1.26.11，CI 的 go-version-file 自动跟随；
+  本次将 `server/go.mod` 与 Docker 构建镜像从 1.26.10 提升到 1.26.11，README 同步最低版本；CI 的 go-version-file 自动跟随；
   没有增加漏洞豁免或修改业务逻辑。
 - Go 1.26.11 下 `check:server` 的测试、架构、Proto、vet 均通过，最后扫描发生漏洞库请求
   EOF，单独重试扫描；不能把这次命令整体记为通过。
@@ -46,3 +46,7 @@ Schema，执行正式 SQL 迁移，未重置或写入日常业务数据库。运
   取消增提净额、对冲候选、两种箱竞态，以及真实时间 worker 验收，无 SKIP。
 
 - 漏洞扫描单独重试 `pnpm run check:server:vuln` 已退出 0：未发现未处理的可达漏洞。所有组成门禁均通过；首次 check:fast 仍如实记为被新标准库漏洞拦截，不伪造整命令通过。
+
+## Git 交付结果
+
+六项修复和 Go 补丁已快进合并 main，使用 ancestor 校验后 `git branch -d` 安全删除本次工作分支；普通 push 成功。本地及 origin/main 已核对同为 `80f883f6d8fb6193523068f481c98a53f5e16b5d`。随后继续父任务只读审计，当前补记文档另提交推送；持续审计父任务未归档。未执行 Docker 容器镜像构建，Go 可执行程序实际构建通过。

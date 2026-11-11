@@ -31,7 +31,7 @@
 
 | 领域 | 核心技术选型 |
 | :--- | :--- |
-| **后端框架** | Go 1.26.10+, [go-kratos/kratos](https://github.com/go-kratos/kratos) v3, Protocol Buffers / gRPC / HTTP |
+| **后端框架** | Go 1.26.11+, [go-kratos/kratos](https://github.com/go-kratos/kratos) v3, Protocol Buffers / gRPC / HTTP |
 | **ORM / 数据库** | [entgo.io/ent](https://entgo.io), PostgreSQL 16（使用 pg_trgm 与 GIN 索引支持模糊检索） |
 | **依赖注入与安全** | Google Wire, 数据库会话（随机令牌摘要）, Argon2id 密码哈希, OpenTelemetry 链路追踪 |
 | **前端架构** | React 19, TypeScript 7.x, React Router v8, React Query v5, [Ant Design](https://ant.design) 6.x, Ant Design ProComponents |
@@ -79,7 +79,7 @@ roncin-go-admin/
 ### 1. 环境准备 (Prerequisites)
 
 - **Node.js** >= `24.14.1`，**pnpm** 版本按根 `package.json` 的 `packageManager`（当前为 `10.33.4`）
-- **Go** >= `1.26.10`（以 `server/go.mod` 为准）
+- **Go** >= `1.26.11`（以 `server/go.mod` 为准）
 - **PostgreSQL** >= `16`
 
 ### 2. 克隆项目与安装依赖
