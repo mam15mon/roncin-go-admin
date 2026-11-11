@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/domain/glossary.md", "reason": "审计业务名词与不变量"}
+{"file": ".trellis/spec/domain/architecture-map.md", "reason": "审计跨层调用链与事实来源"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "复核事务与版本边界"}
+{"file": ".trellis/spec/server/backend/partner-credit-currency.md", "reason": "排除上一批信用币种已修复问题"}
