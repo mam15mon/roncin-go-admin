@@ -136,6 +136,7 @@ status ?? WorkbenchCommissionStatus.WORKBENCH_COMMISSION_STATUS_DRAFT;
 5. 只有成功取得数据后，才可按已知非 optional bool 语义使用 `!== true`。
    optional bool 的未设置不等于 false，尚未加载也不等于业务否定。
    不机械替换 `success === false`：有些计数接口没有 success 信封，须核对契约。
+   嵌套表单依赖的子资料加载失败时，不得按“成功但无记录”初始化或提交；重试只完成尚未初始化的分区，保留用户已编辑的其他字段。客商结算规则以查询成功和初始化完成作为嵌套写入前提，避免误启用停用规则或清空额度。
 6. 字符串/数值枚举格式保持生成契约，不增加旧类型转换或历史兼容分支。
 
 ### 4. 验证与错误矩阵

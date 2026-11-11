@@ -15,7 +15,7 @@
   "branch": "codex/system-audit-fixes",
   "base_branch": "main",
   "worktree_path": "/home/vince/.codex/worktrees/system-audit-fixes/roncin-go-admin",
-  "commit": null,
+  "commit": "d7b8116c",
   "pr_url": null,
   "subtasks": [],
   "children": [],
