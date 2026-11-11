@@ -1,0 +1,33 @@
+{
+  "id": "system-audit-fixes",
+  "name": "system-audit-fixes",
+  "title": "修复系统审计发现的六类业务缺陷",
+  "description": "修复客商资料丢失、资源导入越权、停用状态误启用、流水重试重复、信用额度币种错误和空运地点筛选错位，按独立子任务验证与提交。",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "mam15mon",
+  "assignee": "mam15mon",
+  "createdAt": "2026-11-11",
+  "completedAt": null,
+  "branch": "codex/system-audit-fixes",
+  "base_branch": "main",
+  "worktree_path": "/home/vince/.codex/worktrees/system-audit-fixes/roncin-go-admin",
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "11-11-partner-role-preservation",
+    "11-11-resource-import-permission",
+    "11-11-disabled-state-preservation",
+    "11-11-cashflow-retry-idempotency",
+    "11-11-credit-currency-consistency",
+    "11-11-air-order-location-filter"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

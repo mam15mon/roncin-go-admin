@@ -1,0 +1,7 @@
+{"file": ".trellis/spec/guides/index.md", "reason": "父任务集成与边界检查"}
+{"file": ".trellis/spec/server/backend/index.md", "reason": "父任务集成与边界检查"}
+{"file": ".trellis/spec/web/frontend/index.md", "reason": "父任务集成与边界检查"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "父任务集成与边界检查"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "父任务集成与边界检查"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "父任务集成与边界检查"}
+{"file": ".trellis/tasks/11-11-system-audit-fixes/research/planning-review.md", "reason": "独立设计复核及遗漏入口"}
