@@ -7,3 +7,6 @@
 4. Trellis独立复核并修复跨层、权限、生成物和相邻功能问题。
 5. 定向Vitest、相关Go测试、Biome、tsc、diff检查；最终check:fast（跨层接口和公共组件风险），无构建变化不固定build。
 6. 更新相关规范、记录验证及未测项、Git提交并归档记日志，保留已有未跟踪任务目录。
+
+## 完成状态
+以上六步全部完成，专项与全栈验收见research/acceptance.md；独立复核与SQL引用缺陷回顾见research/review.md。浏览器实测未执行，未扩充数据库或财务汇总业务。
