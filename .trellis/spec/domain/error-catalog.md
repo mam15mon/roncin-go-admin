@@ -338,6 +338,7 @@
 | PARTNER_CONTRACT_NO_EXISTS | 409 Conflict | 合同编号已存在 | partner_contract.go | — |
 | PARTNER_CONTRACT_STATUS_CONFLICT | 409 Conflict | 合同状态不允许该变更 | partner_contract.go | — |
 | PARTNER_CREDIT_LIMIT_EXCEEDED | 400 Bad Request | 该客户应收未核销总额已超出信用额度，系统已限制选择 | partner_credit.go | ERROR_REASON_PARTNER_CREDIT_LIMIT_EXCEEDED |
+| PARTNER_CREDIT_CURRENCY_MISMATCH | 400 Bad Request | 信用额度必须使用所属公司本币，请在往来单位结算规则中重新填写本币额度 | partner_settlement_rule.go | — |
 | PARTNER_INVALID_ARGUMENT | 400 Bad Request | 往来单位字段不合法<br>往来单位导入参数不合法 | partner.go | — |
 | PARTNER_INVALID_ROLE | 400 Bad Request | 往来单位角色不合法 | partner.go | — |
 | PARTNER_INVOICE_PROFILE_DEFAULT_REQUIRED | 409 Conflict | 请先将其他启用抬头设为默认抬头 | partner_invoice_profile.go | — |

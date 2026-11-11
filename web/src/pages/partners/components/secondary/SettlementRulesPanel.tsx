@@ -10,8 +10,9 @@ import {
   ProFormSwitch,
   ProFormText,
 } from '@ant-design/pro-components';
-import { App, Button, Space, Tag } from 'antd';
+import { Alert, App, Button, Space, Tag } from 'antd';
 import React, { useRef, useState } from 'react';
+import { useInitialState } from '@/app/AppProvider';
 import {
   GuardedModalForm,
   ResponsiveProTable as ProTable,
@@ -29,6 +30,8 @@ import {
   partnerServiceUpdatePartnerSettlementRule,
 } from '@/services/roncin/partnerService';
 import { isWriteResponse, unwrapList } from '@/utils/api';
+import { formatAmount } from '@/utils/format';
+import { creditLimitFields, hasInvalidCreditCurrency } from '../../creditLimit';
 
 const roleOptions = [
   {
@@ -144,7 +147,7 @@ type SettlementRuleFormValues = {
   isActive?: boolean;
   /** 默认信用账期天数（账单日 + N 天），留空表示未配置。 */
   paymentTermsDays?: number;
-  /** 信用额度（元），提交时换算为最小货币单位 creditLimitMinor。 */
+  /** 信用额度（本币主单位），提交时换算为最小货币单位 creditLimitMinor。 */
   creditLimitAmount?: number;
 };
 
@@ -158,6 +161,9 @@ export default function SettlementRulesPanel({
   canManage,
 }: SettlementRulesPanelProps) {
   const { message } = App.useApp();
+  const { initialState } = useInitialState();
+  const baseCurrency =
+    initialState?.currentUser?.currentOrganization?.baseCurrency;
   const actionRef = useRef<ActionType | undefined>(undefined);
   const formRef = useRef<ProFormInstance | undefined>(undefined);
   const [modalOpen, setModalOpen] = useState(false);
@@ -235,7 +241,7 @@ export default function SettlementRulesPanel({
       width: 120,
       render: (_, record) =>
         record.creditLimitMinor != null
-          ? `${Number(record.creditLimitMinor) / 100} ${record.creditCurrency ?? ''}`.trim()
+          ? `${formatAmount(Number(record.creditLimitMinor) / 100)} ${record.creditCurrency ?? ''}`.trim()
           : '-',
     },
     {
@@ -346,8 +352,10 @@ export default function SettlementRulesPanel({
           editingRule
             ? {
                 ...editingRule,
+                isActive: editingRule.isActive ?? false,
                 creditLimitAmount:
-                  editingRule.creditLimitMinor != null
+                  editingRule.creditLimitMinor != null &&
+                  !hasInvalidCreditCurrency(editingRule, baseCurrency)
                     ? Number(editingRule.creditLimitMinor) / 100
                     : undefined,
               }
@@ -386,17 +394,7 @@ export default function SettlementRulesPanel({
             settlementCurrency: values.settlementCurrency.trim().toUpperCase(),
             isActive: values.isActive ?? false,
             paymentTermsDays: values.paymentTermsDays,
-            creditLimitMinor:
-              values.creditLimitAmount !== undefined &&
-              values.creditLimitAmount !== null
-                ? String(Math.round(Number(values.creditLimitAmount) * 100))
-                : undefined,
-            // 信用额度必与币种成对出现；未填额度时同步清空币种，两字段一起置空。
-            creditCurrency:
-              values.creditLimitAmount !== undefined &&
-              values.creditLimitAmount !== null
-                ? values.settlementCurrency.trim().toUpperCase()
-                : undefined,
+            ...creditLimitFields(values.creditLimitAmount, baseCurrency),
           };
           if (editingRule?.id) {
             const writeResponse1 =
@@ -436,6 +434,14 @@ export default function SettlementRulesPanel({
           return true;
         }}
       >
+        {hasInvalidCreditCurrency(editingRule, baseCurrency) && (
+          <Alert
+            type="warning"
+            showIcon
+            title={`原信用额度为 ${formatAmount(Number(editingRule?.creditLimitMinor) / 100)} ${editingRule?.creditCurrency || '币种缺失'}，请重新填写 ${baseCurrency || '公司本币'} 额度`}
+            style={{ marginBottom: 16 }}
+          />
+        )}
         <ProFormSelect
           name="roleType"
           label="适用业务角色"
@@ -489,10 +495,20 @@ export default function SettlementRulesPanel({
         />
         <ProFormDigit
           name="creditLimitAmount"
-          label="信用额度（元）"
+          label={`信用额度（${baseCurrency || '公司本币'}）`}
           tooltip="超出该额度的应收未核销金额将触发信用预警；按管控策略可能被直接拦截"
           min={0}
-          addonAfter="元"
+          addonAfter={baseCurrency}
+          rules={
+            hasInvalidCreditCurrency(editingRule, baseCurrency)
+              ? [
+                  {
+                    required: true,
+                    message: '请明确重新填写本币额度，填 0 表示不设额度',
+                  },
+                ]
+              : undefined
+          }
           fieldProps={{ precision: 2 }}
         />
         <ProFormText
@@ -501,7 +517,7 @@ export default function SettlementRulesPanel({
           placeholder="例如: CNY / USD"
           rules={[{ required: true, message: '请输入结算币种' }]}
         />
-        <ProFormSwitch name="isActive" label="规则启用状态" initialValue />
+        <ProFormSwitch name="isActive" label="规则启用状态" />
       </GuardedModalForm>
     </>
   );

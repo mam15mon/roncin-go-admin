@@ -7,6 +7,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	currencyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/currency"
+	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	partnerroleent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerrole"
 	partnerfilterent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnersettlementrule"
@@ -70,6 +71,9 @@ func (r *partnerSettlementRuleRepo) Create(ctx context.Context, organizationID, 
 	}
 	var created *ent.PartnerSettlementRule
 	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if err := validatePartnerCreditCurrency(ctx, tx.Client(), organizationID, input.CreditLimitMinor, input.CreditCurrency); err != nil {
+			return err
+		}
 		var saveErr error
 		created, saveErr = createPartnerSettlementRule(ctx, tx.PartnerSettlementRule.Create().SetPartnerRoleID(role.ID), input)
 		if saveErr != nil {
@@ -98,6 +102,9 @@ func (r *partnerSettlementRuleRepo) Update(ctx context.Context, organizationID, 
 	}
 	var updated *ent.PartnerSettlementRule
 	err = r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		if err := validatePartnerCreditCurrency(ctx, tx.Client(), organizationID, input.CreditLimitMinor, input.CreditCurrency); err != nil {
+			return err
+		}
 		update := tx.PartnerSettlementRule.UpdateOneID(id).Where(partnerfilterent.PartnerRoleIDEQ(role.ID))
 		var saveErr error
 		updated, saveErr = updatePartnerSettlementRule(ctx, update, input)
@@ -209,4 +216,31 @@ func validateSettlementCurrencies(ctx context.Context, query *ent.CurrencyQuery,
 		return biz.ErrPartnerSettlementRuleInvalidArgument
 	}
 	return nil
+}
+
+// 额度始终按归属公司本币维护，结算币种可以独立选择；读取旧配置也不得重标金额。
+func validatePartnerCreditCurrency(ctx context.Context, client *ent.Client, organizationID uuid.UUID, amount *int64, currency *string) error {
+	if amount == nil {
+		return nil
+	}
+	baseCurrency, err := partnerCreditBaseCurrency(ctx, client, organizationID)
+	if err != nil {
+		return err
+	}
+	if currency == nil || *currency != baseCurrency {
+		return biz.ErrPartnerCreditCurrencyMismatch
+	}
+	return nil
+}
+
+func partnerCreditBaseCurrency(ctx context.Context, client *ent.Client, organizationID uuid.UUID) (string, error) {
+	query := client.Organization.Query().Where(organizationent.IDEQ(organizationID))
+	if _, transactional := transactionFromContext(ctx); transactional {
+		query.ForShare()
+	}
+	organization, err := query.Only(ctx)
+	if err != nil {
+		return "", err
+	}
+	return resolveOrganizationBaseCurrency(ctx, client.Organization, organization)
 }

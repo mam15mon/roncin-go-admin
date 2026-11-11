@@ -59,6 +59,14 @@ vi.mock('@/router/history', () => ({
   },
 }));
 
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
+    initialState: {
+      currentUser: { currentOrganization: { baseCurrency: 'CNY' } },
+    },
+  }),
+}));
+
 vi.mock('@/app/access', () => ({
   useAccess: () => accessState,
 }));

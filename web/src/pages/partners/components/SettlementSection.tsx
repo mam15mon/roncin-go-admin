@@ -78,6 +78,8 @@ type SettlementSectionProps = {
   onCollapseChange: (collapsed: boolean) => void;
   currencyOptions: { label: string; value: string }[];
   roleLabel?: string;
+  baseCurrency?: string;
+  requireCreditLimit?: boolean;
 };
 
 export default function SettlementSection({
@@ -85,6 +87,8 @@ export default function SettlementSection({
   onCollapseChange,
   currencyOptions,
   roleLabel,
+  baseCurrency,
+  requireCreditLimit,
 }: SettlementSectionProps) {
   const isSupplier = roleLabel === '供应商';
   return (
@@ -229,13 +233,13 @@ export default function SettlementSection({
           </Col>
 
           {/* Row 3 - Col 1: 信用额度(本币) - 仅客户适用（应收信用敞口管控） */}
-          {!isSupplier && (
+          {(!isSupplier || requireCreditLimit) && (
             <Col xs={24} sm={12} md={8}>
               <ProFormDigit
                 name="creditLimit"
                 label={
                   <Space size={4}>
-                    <span>信用额度(本币)</span>
+                    <span>信用额度({baseCurrency || '本币'})</span>
                     <Tooltip title="本币最大允许未核销应收账款额度">
                       <QuestionCircleOutlined style={{ color: '#8c8c8c' }} />
                     </Tooltip>
@@ -245,7 +249,17 @@ export default function SettlementSection({
                 placeholder="输入信用额度"
                 min={0}
                 formItemProps={{ style: { marginBottom: 0 } }}
-                addonAfter="元"
+                addonAfter={baseCurrency}
+                rules={
+                  requireCreditLimit
+                    ? [
+                        {
+                          required: true,
+                          message: '请明确重新填写本币额度，填 0 表示不设额度',
+                        },
+                      ]
+                    : undefined
+                }
                 fieldProps={{
                   precision: 2,
                 }}

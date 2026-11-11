@@ -94,7 +94,19 @@ func partnerCreditSummaries(ctx context.Context, client *ent.Client, organizatio
 	for _, partnerID := range partnerIDs {
 		summaries[partnerID] = &biz.PartnerCreditSummary{PartnerID: partnerID, UnsettledReceivableBase: decimal.Zero}
 	}
+	baseCurrency := ""
 	for _, item := range ruleItems {
+		if item.CreditLimitMinor != nil && *item.CreditLimitMinor > 0 {
+			if baseCurrency == "" {
+				baseCurrency, err = partnerCreditBaseCurrency(ctx, client, organizationID)
+				if err != nil {
+					return nil, err
+				}
+			}
+			if item.CreditCurrency == nil || *item.CreditCurrency != baseCurrency {
+				return nil, biz.ErrPartnerCreditCurrencyMismatch
+			}
+		}
 		partnerID := item.Edges.PartnerRole.PartnerID
 		summary := summaries[partnerID]
 		if item.PaymentTermsDays != nil && (summary.DefaultPaymentTermsDays == nil || *item.PaymentTermsDays > *summary.DefaultPaymentTermsDays) {

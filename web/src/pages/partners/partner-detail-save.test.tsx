@@ -9,6 +9,7 @@ import { history } from '@/router/history';
 import {
   partnerServiceCreatePartner,
   partnerServiceGetPartner,
+  partnerServiceListPartnerSettlementRules,
   partnerServiceUpdatePartner,
 } from '@/services/roncin/partnerService';
 import PartnerDetailPage from './partner-detail';
@@ -16,6 +17,8 @@ import PartnerDetailPage from './partner-detail';
 const state = vi.hoisted(() => ({
   id: 'create',
   pathname: '/partners/customers/create',
+  baseCurrency: 'CNY',
+  manageSettlement: false,
 }));
 const ID = '11111111-1111-4111-8111-111111111111';
 vi.mock('react-router', async (load) => ({
@@ -31,6 +34,16 @@ vi.mock('@/components/layout/useRouteLeaveGuard', () => ({
 vi.mock('@/router/history', () => ({
   history: { push: vi.fn(), replace: vi.fn() },
 }));
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
+    initialState: {
+      currentUser: {
+        currentOrganization: { baseCurrency: state.baseCurrency },
+      },
+    },
+  }),
+}));
+
 vi.mock('@/app/access', () => ({
   useAccess: () => ({
     canOperateBusiness: true,
@@ -38,6 +51,8 @@ vi.mock('@/app/access', () => ({
     canCreatePartners: true,
     canUpdatePartners: true,
     canManagePartners: false,
+    canReadPartnerSettlementRules: state.manageSettlement,
+    canUpdatePartnerSettlementRules: state.manageSettlement,
   }),
 }));
 vi.mock('@/services/roncin/partnerService', () => ({
@@ -83,7 +98,18 @@ vi.mock('./components/ContactsSection', () => ({
     </button>
   ),
 }));
-vi.mock('./components/SettlementSection', () => ({ default: () => null }));
+vi.mock('./components/SettlementSection', () => ({
+  default: () => (
+    <>
+      <Form.Item name="creditLimit" label="信用额度测试">
+        <Input />
+      </Form.Item>
+      <Form.Item name="settlementCurrency" label="结算币种测试">
+        <Input />
+      </Form.Item>
+    </>
+  ),
+}));
 vi.mock('./components/AccountsSection', () => ({ default: () => null }));
 vi.mock('./components/ContractsSection', () => ({ default: () => null }));
 vi.mock('./components/LogsSection', () => ({ default: () => null }));
@@ -114,6 +140,11 @@ beforeEach(() => {
   vi.clearAllMocks();
   state.id = 'create';
   state.pathname = '/partners/customers/create';
+  state.baseCurrency = 'CNY';
+  state.manageSettlement = false;
+  vi.mocked(partnerServiceListPartnerSettlementRules)
+    .mockReset()
+    .mockResolvedValue({ data: [] });
   vi.mocked(partnerServiceGetPartner)
     .mockReset()
     .mockResolvedValue({
@@ -296,4 +327,128 @@ describe('客商保存与失败恢复', () => {
     });
     expect(isTabDirty('/partners/customers')).toBe(true);
   });
+});
+
+it.each(['CNY', 'USD'])(
+  '主档普通保存保留%s本币额度且不绑定结算币种',
+  async (baseCurrency) => {
+    state.baseCurrency = baseCurrency;
+    state.manageSettlement = true;
+    const settlementCurrency = baseCurrency === 'CNY' ? 'USD' : 'CNY';
+    vi.mocked(partnerServiceListPartnerSettlementRules).mockResolvedValue({
+      data: [
+        {
+          id: 'rule',
+          statementMode: 1,
+          settlementMethod: 1,
+          settlementCurrency,
+          creditLimitMinor: '100001',
+          creditCurrency: baseCurrency,
+          isActive: baseCurrency === 'CNY' ? true : undefined,
+        },
+      ],
+    });
+    vi.mocked(partnerServiceUpdatePartner).mockResolvedValue({
+      data: { id: ID },
+    });
+    renderPage(true);
+    await waitFor(() =>
+      expect(screen.getByLabelText('信用额度测试')).toHaveValue('1000.01'),
+    );
+    await save();
+    await waitFor(() =>
+      expect(partnerServiceUpdatePartner).toHaveBeenCalledWith(
+        { id: ID },
+        expect.objectContaining({
+          roles: [
+            expect.objectContaining({
+              settlementRule: expect.objectContaining({
+                settlementCurrency,
+                creditLimitMinor: '100001',
+                creditCurrency: baseCurrency,
+                isActive: baseCurrency === 'CNY',
+              }),
+            }),
+          ],
+        }),
+      ),
+    );
+  },
+);
+
+it('规则首次失败和后台失败均阻止嵌套保存，重试成功回填原额度和停用状态且保留名称输入', async () => {
+  state.manageSettlement = true;
+  const rule = {
+    id: 'rule',
+    statementMode: 1,
+    settlementMethod: 1,
+    settlementCurrency: 'USD',
+    creditLimitMinor: '100001',
+    creditCurrency: 'CNY',
+  };
+  vi.mocked(partnerServiceListPartnerSettlementRules)
+    .mockRejectedValueOnce(new Error('首次失败'))
+    .mockResolvedValueOnce(undefined as never)
+    .mockResolvedValue({ data: [rule] });
+  vi.mocked(partnerServiceUpdatePartner).mockResolvedValue({
+    data: { id: ID },
+  });
+  const { queryClient } = renderPage(true);
+  await screen.findByText('结算规则加载失败，原资料和输入已保留，请重试后保存');
+  await waitFor(() =>
+    expect(screen.getByLabelText('公司抬头')).toHaveValue('原名称'),
+  );
+  fireEvent.change(screen.getByLabelText('公司抬头'), {
+    target: { value: '只改名称的未保存输入' },
+  });
+  await save();
+  expect(partnerServiceUpdatePartner).not.toHaveBeenCalled();
+  expect(isTabDirty('/partners/customers')).toBe(true);
+  fireEvent.click(screen.getByRole('button', { name: '重新加载结算规则' }));
+  await waitFor(() =>
+    expect(partnerServiceListPartnerSettlementRules).toHaveBeenCalledTimes(2),
+  );
+  await screen.findByText('结算规则加载失败，原资料和输入已保留，请重试后保存');
+  await save();
+  expect(partnerServiceUpdatePartner).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('button', { name: '重新加载结算规则' }));
+  await waitFor(() =>
+    expect(screen.getByLabelText('信用额度测试')).toHaveValue('1000.01'),
+  );
+  expect(screen.getByLabelText('公司抬头')).toHaveValue('只改名称的未保存输入');
+  // 有旧data的后台失败仍不能变成成功空配置。
+  vi.mocked(partnerServiceListPartnerSettlementRules).mockRejectedValueOnce(
+    new Error('后台失败'),
+  );
+  await act(async () => {
+    await queryClient.refetchQueries({
+      queryKey: ['partner-detail', 'settlement-rule'],
+    });
+  });
+  await screen.findByText('结算规则加载失败，原资料和输入已保留，请重试后保存');
+  await save();
+  expect(partnerServiceUpdatePartner).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('button', { name: '重新加载结算规则' }));
+  await waitFor(() =>
+    expect(screen.getByLabelText('信用额度测试')).toHaveValue('1000.01'),
+  );
+  await save();
+  await waitFor(() =>
+    expect(partnerServiceUpdatePartner).toHaveBeenCalledWith(
+      { id: ID },
+      expect.objectContaining({
+        legalName: '只改名称的未保存输入',
+        roles: [
+          expect.objectContaining({
+            settlementRule: expect.objectContaining({
+              creditLimitMinor: '100001',
+              creditCurrency: 'CNY',
+              settlementCurrency: 'USD',
+              isActive: false,
+            }),
+          }),
+        ],
+      }),
+    ),
+  );
 });

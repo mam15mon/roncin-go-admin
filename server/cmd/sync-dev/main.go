@@ -673,6 +673,7 @@ func seedPartners(ctx context.Context, sc *seedContext) error {
 				SetSettlementMethod(method).
 				SetSettlementCurrency("CNY").
 				SetCreditLimitMinor(limit).
+				SetNillableCreditCurrency(co.BaseCurrency).
 				SetPaymentTermsDays(days).
 				SetIsActive(true).
 				Save(ctx)

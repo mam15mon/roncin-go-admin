@@ -34,8 +34,10 @@
 | [Billing Unit Quantity Rule](./billing-unit-quantity-rule.md) | 计费单位整数/小数规则、初始化与费用更新语义 | ✅ |
 | [Order Fee Quantity Preview](./order-fee-quantity-preview.md) | 公共单位补齐、计划/实际数量来源、十进制预览与确认带入 | ✅ |
 | [Organization Shared Masterdata](./organization-shared-masterdata.md) | 公共主数据、系统费用模板与公司独立配置、工作台维护权及迁移约束 | ✅ |
+| [信用额度本币口径](./partner-credit-currency.md) | 额度与结算币种分离、全部写入口及信用聚合校验 | ✅ |
 | [Partner Casual Contract](./partner-casual-contract.md) | 散客往来单位跨层契约：伙伴级标识、账期零底线、出款账户刚性 | ✅ |
-| [Partner Role Blacklist](./partner-role-blacklist.md) | 客户、供应商、国外代理角色级黑名单及订单新增关联门禁 | ✅ |
+| [Partner Role Blacklist](./partner-role-blacklist.md) | 角色级黑名单、订单新增关联门禁与身份专用写入 | ✅ |
+| [资源覆盖导入权限](./enterprise-resource-import-permission.md) | 新建与覆盖分权、预览资格及服务端拒绝 | ✅ |
 | [Auth Session Org Switch](./auth-session-org-switch.md) | 登录组织选择、应用内切换与会话轮转契约：成员资格唯一入场券、单事务轮转、并发语义 | ✅ |
 | [Passkey Authentication](./passkey-authentication.md) | 本站通行密钥、RP/来源约束、仪式一次性、凭证原子更新与本人管理 | ✅ |
 | [DingTalk QR Protocol](./dingtalk-qr-protocol.md) | 本站二维码、上游生成与长轮询、尝试隔离与授权码校验 | ✅ |

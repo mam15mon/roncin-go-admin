@@ -12,6 +12,7 @@ var (
 	ErrPartnerSettlementRuleNotFound        = errors.NotFound("PARTNER_SETTLEMENT_RULE_NOT_FOUND", "结算规则不存在")
 	ErrPartnerSettlementRuleExists          = errors.Conflict("PARTNER_SETTLEMENT_RULE_EXISTS", "结算规则已存在")
 	ErrPartnerSettlementRuleInvalidArgument = errors.BadRequest("PARTNER_SETTLEMENT_RULE_INVALID_ARGUMENT", "结算规则字段不合法")
+	ErrPartnerCreditCurrencyMismatch        = errors.BadRequest("PARTNER_CREDIT_CURRENCY_MISMATCH", "信用额度必须使用所属公司本币，请在往来单位结算规则中重新填写本币额度")
 )
 
 type PartnerStatementMode string

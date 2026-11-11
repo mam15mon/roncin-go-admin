@@ -313,7 +313,7 @@ func (r *partnerRepo) Update(ctx context.Context, organizationID, id uuid.UUID, 
 		if replaceErr := replacePartnerRoles(ctx, tx, id, existing.Edges.Roles, input.Roles); replaceErr != nil {
 			return replaceErr
 		}
-		if saveErr := savePartnerRoleSettlementRules(ctx, tx, id, input.Roles); saveErr != nil {
+		if saveErr := savePartnerRoleSettlementRules(ctx, tx, organizationID, id, input.Roles); saveErr != nil {
 			return saveErr
 		}
 		if _, deleteErr := tx.PartnerContact.Delete().Where(partnercontactent.PartnerIDEQ(id)).Exec(ctx); deleteErr != nil {
@@ -501,7 +501,7 @@ func updatePartnerInTx(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID
 	if err := replacePartnerRoles(ctx, tx, existing.ID, existing.Edges.Roles, input.Roles); err != nil {
 		return err
 	}
-	if err := savePartnerRoleSettlementRules(ctx, tx, existing.ID, input.Roles); err != nil {
+	if err := savePartnerRoleSettlementRules(ctx, tx, organizationID, existing.ID, input.Roles); err != nil {
 		return err
 	}
 	if _, err := tx.PartnerContact.Delete().Where(partnercontactent.PartnerIDEQ(existing.ID)).Exec(ctx); err != nil {
@@ -561,7 +561,7 @@ func createPartnerChildren(ctx context.Context, tx *ent.Tx, organizationID, part
 			return mapEntConstraint(err, "partner_role_type_key", biz.ErrPartnerInvalidRole)
 		}
 	}
-	if err := savePartnerRoleSettlementRules(ctx, tx, partnerID, input.Roles); err != nil {
+	if err := savePartnerRoleSettlementRules(ctx, tx, organizationID, partnerID, input.Roles); err != nil {
 		return err
 	}
 	if err := createPartnerContacts(ctx, tx, partnerID, input.Contacts); err != nil {
@@ -755,7 +755,7 @@ func replacePartnerRoles(ctx context.Context, tx *ent.Tx, partnerID uuid.UUID, e
 	return nil
 }
 
-func savePartnerRoleSettlementRules(ctx context.Context, tx *ent.Tx, partnerID uuid.UUID, roles []*biz.PartnerRole) error {
+func savePartnerRoleSettlementRules(ctx context.Context, tx *ent.Tx, organizationID, partnerID uuid.UUID, roles []*biz.PartnerRole) error {
 	for _, role := range roles {
 		if role.SettlementRule == nil {
 			continue
@@ -765,6 +765,9 @@ func savePartnerRoleSettlementRules(ctx context.Context, tx *ent.Tx, partnerID u
 			partnerroleent.RoleTypeEQ(partnerroleent.RoleType(role.Type)),
 		).Only(ctx)
 		if err != nil {
+			return err
+		}
+		if err := validatePartnerCreditCurrency(ctx, tx.Client(), organizationID, role.SettlementRule.CreditLimitMinor, role.SettlementRule.CreditCurrency); err != nil {
 			return err
 		}
 		if err := validateSettlementCurrencies(ctx, tx.Currency.Query(), role.SettlementRule); err != nil {

@@ -22,6 +22,7 @@ type creditPartnerFixture struct {
 	data           *Data
 	repo           *financeBillRepo
 	organizationID uuid.UUID
+	baseCurrency   string
 	suffix         string
 }
 
@@ -32,13 +33,13 @@ func newCreditPartnerFixture(t *testing.T, data *Data) *creditPartnerFixture {
 	organization, err := data.db.Organization.Create().
 		SetCode("CREDIT-" + suffix).
 		SetName("信用聚合集成测试组织-" + suffix).
-		SetKind("system").
+		SetKind("company").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
 		t.Fatalf("创建测试组织: %v", err)
 	}
-	return &creditPartnerFixture{t: t, data: data, repo: NewFinanceBillRepo(data).(*financeBillRepo), organizationID: organization.ID, suffix: suffix}
+	return &creditPartnerFixture{t: t, data: data, repo: NewFinanceBillRepo(data).(*financeBillRepo), organizationID: organization.ID, baseCurrency: "CNY", suffix: suffix}
 }
 
 // newCreditPartner 创建带客户角色的往来户，返回 (partnerID, roleID)。
@@ -101,7 +102,7 @@ func (f *creditPartnerFixture) newConfirmedBill(key string, partyID uuid.UUID, p
 		SetSettlementPartyID(partyID).
 		SetSettlementPartyName(partyName).
 		SetCurrency("CNY").
-		SetBaseCurrency("CNY").
+		SetBaseCurrency(f.baseCurrency).
 		SetExchangeRate("1.00000000").
 		SetExchangeRateSource(financebillent.ExchangeRateSourceSYSTEM).
 		SetExchangeRateDate(financeBillIntegrationDate).
@@ -137,7 +138,7 @@ func (f *creditPartnerFixture) settleBill(key string, bill *ent.FinanceBill, amo
 		SetExchangeRate("1.00000000").
 		SetExchangeRateSource(financecashflowent.ExchangeRateSourceSYSTEM).
 		SetExchangeRateDate(financeBillIntegrationDate).
-		SetBaseCurrency("CNY").
+		SetBaseCurrency(f.baseCurrency).
 		SetBaseAmount(amount8).
 		SetTransactionDate(financeBillIntegrationDate).
 		SetOurAccount("测试账户").
@@ -157,7 +158,7 @@ func (f *creditPartnerFixture) settleBill(key string, bill *ent.FinanceBill, amo
 		SetSettlementPartyName(bill.SettlementPartyName).
 		SetCurrency("CNY").
 		SetAmount(amount8).
-		SetBaseCurrency("CNY").
+		SetBaseCurrency(f.baseCurrency).
 		SetBaseAmount(amount8).
 		SetBillBaseAmount(amount8).
 		SetCashflowBaseAmount(amount8).
