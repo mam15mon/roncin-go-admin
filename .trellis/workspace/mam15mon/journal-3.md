@@ -1604,3 +1604,39 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 205: 海运出口列表字段补齐与提成摘要退役
+<!-- trellis-session: v=2 fp=2738d83e1987b813 -->
+
+**Date**: 2026-11-11
+**Task**: 海运出口列表字段补齐与提成摘要退役
+**Branch**: `codex/sea-export-list-fields`
+
+### Summary
+
+新增23个海运可选列，补齐备注/箱号/附件/客服投影，品类列偏好隔离与真实稳定排序，移除订单列表提成专用展示和聚合；全栈门禁及五项专用PostgreSQL回归通过，未做真实浏览器验收。
+
+### Main Changes
+
+- 订单列表精简默认视图、已有数据可选列与提成摘要退役；无Schema与开发数据变更
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `582dcba7` | docs: 规划海运出口列表字段补齐与提成列退役 |
+| `38513a05` | feat: 补齐海运出口订单列表字段并移除提成摘要 |
+| `ffc3d6c6` | docs: 记录海运列表字段交付与全栈验收 |
+
+### Testing
+
+- [OK] check:fast通过；前端2367通过/11跳过；本次五项定向真实PostgreSQL测试均PASS无SKIP；独立复核通过
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 可按业务需要继续讨论实际运输、报关和财务状态字段；真实浏览器交互尚未验收
