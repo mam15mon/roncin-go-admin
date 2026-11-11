@@ -184,7 +184,7 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
     } else {
       form.setFieldsValue({
         shortName: record.shortName ?? '',
-        enabled: record.enabled ?? true,
+        enabled: Boolean(record.enabled),
         sortOrder: record.sortOrder ?? 0,
         partnerIds: record.partnerIds ?? [],
         contactName: record.address?.contactName ?? record.party?.contactName,
@@ -593,6 +593,16 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
   };
 
   const commitImport = async (): Promise<false | undefined> => {
+    const overwriteConflicts = (importPreview?.conflictCount ?? 0) > 0;
+    if (
+      !access.canCreateEnterpriseResources ||
+      (overwriteConflicts &&
+        (!access.canUpdateEnterpriseResources ||
+          importPreview?.overwriteAllowed !== true))
+    ) {
+      message.warning('覆盖已有资源需要编辑资源权限，且每行只能匹配一个资源');
+      return false;
+    }
     setImportLoading(true);
     try {
       const response =
@@ -600,7 +610,7 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
           {
             resourceType: active.type,
             rows: importRows,
-            overwriteConflicts: (importPreview?.conflictCount ?? 0) > 0,
+            overwriteConflicts,
           },
           longRequestOptions,
         );
@@ -859,6 +869,7 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
         rows={importRows}
         setRows={setImportRows}
         preview={importPreview}
+        canOverwrite={access.canUpdateEnterpriseResources}
         setPreview={setImportPreview}
         loading={importLoading}
         onPreview={() => void previewImport()}

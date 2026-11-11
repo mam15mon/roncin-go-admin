@@ -1,9 +1,9 @@
-import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { DownloadOutlined, UploadOutlined } from '@ant-design/icons';
 import type { UploadFile } from 'antd';
 import { Alert, Button, Modal, Space, Upload } from 'antd';
 import type { MessageInstance } from 'antd/es/message/interface';
 import type { Dispatch, SetStateAction } from 'react';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import {
   importConflictFieldLabels,
   parseImportFile,
@@ -22,6 +22,7 @@ type ResourceImportModalProps = {
   setPreview: Dispatch<
     SetStateAction<API.PreviewEnterpriseResourceImportResponse | undefined>
   >;
+  canOverwrite: boolean;
   loading: boolean;
   onPreview: () => void;
   onCommit: () => void;
@@ -40,13 +41,17 @@ export default function ResourceImportModal({
   setRows,
   preview,
   setPreview,
+  canOverwrite,
   loading,
   onPreview,
   onCommit,
   onDownloadTemplate,
   message,
 }: ResourceImportModalProps) {
-  const { markDirty, resetDirty } = useUnsavedChangesGuard({ enabled: open, identity: active.type });
+  const { markDirty, resetDirty } = useUnsavedChangesGuard({
+    enabled: open,
+    identity: active.type,
+  });
   return (
     <Modal
       title={`批量导入${active.label.replace('管理', '')}`}
@@ -64,7 +69,7 @@ export default function ResourceImportModal({
           !rows.length ||
           (preview?.invalidCount ?? 0) > 0 ||
           ((preview?.conflictCount ?? 0) > 0 &&
-            preview?.overwriteAllowed !== true),
+            (!canOverwrite || preview?.overwriteAllowed !== true)),
       }}
       onOk={() => (preview ? onCommit() : onPreview())}
       onCancel={() => setOpen(false)}
@@ -124,7 +129,7 @@ export default function ResourceImportModal({
             type={
               (preview.invalidCount ?? 0) > 0 ||
               ((preview.conflictCount ?? 0) > 0 &&
-                preview.overwriteAllowed !== true)
+                (!canOverwrite || preview.overwriteAllowed !== true))
                 ? 'error'
                 : (preview.conflictCount ?? 0) > 0
                   ? 'warning'
@@ -135,9 +140,11 @@ export default function ResourceImportModal({
             description={
               <Space orientation="vertical" size={4}>
                 {(preview.conflictCount ?? 0) > 0 &&
-                  preview.overwriteAllowed !== true && (
+                  (!canOverwrite || preview.overwriteAllowed !== true) && (
                     <span>
-                      存在一行匹配多个资源的歧义，请先修正企业名称或企业代码后重新上传。
+                      {canOverwrite
+                        ? '存在一行匹配多个资源的歧义，请先修正企业名称或企业代码后重新上传。'
+                        : '覆盖已有资源需要编辑资源权限，请联系有权限的人员处理。'}
                     </span>
                   )}
                 {preview.rows
@@ -164,7 +171,7 @@ export default function ResourceImportModal({
                         .join('、')}
                       ）
                       {(preview.conflictCount ?? 0) > 0 &&
-                      preview.overwriteAllowed !== true
+                      (!canOverwrite || preview.overwriteAllowed !== true)
                         ? ''
                         : '，确认后将覆盖该资源'}
                     </span>

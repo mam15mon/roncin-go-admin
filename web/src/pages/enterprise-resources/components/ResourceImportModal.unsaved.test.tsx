@@ -34,6 +34,7 @@ function Harness({ open = true }: { open?: boolean }) {
         setRows={setRows}
         preview={preview}
         setPreview={setPreview}
+        canOverwrite
         loading={false}
         onPreview={vi.fn()}
         onCommit={vi.fn()}

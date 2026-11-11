@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	v1 "github.com/roncin/roncin-go-admin/server/api/enterprise_resource/v1"
+	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 )
@@ -324,6 +325,9 @@ func (s *EnterpriseResourceService) PreviewEnterpriseResourceImport(ctx context.
 	if principalErr != nil {
 		return nil, principalErr
 	}
+	if err := currentOrganizationAllowedForPermission(principal, access.EnterpriseResourceCreate, true); err != nil {
+		return nil, err
+	}
 	inputs, err := enterpriseResourceInputsFromAPI(request.GetRows())
 	if err != nil {
 		return nil, err
@@ -333,16 +337,22 @@ func (s *EnterpriseResourceService) PreviewEnterpriseResourceImport(ctx context.
 		return nil, err
 	}
 	result := enterpriseResourceImportResult(outcome)
-	return &v1.PreviewEnterpriseResourceImportResponse{Success: result.invalidCount == 0, Message: "OK", Rows: result.rows, ValidCount: result.validCount, InvalidCount: result.invalidCount, CreatedCount: 0, TraceId: requestmeta.TraceID(ctx), ConflictCount: result.conflictCount, OverwriteAllowed: result.overwriteAllowed}, nil
+	return &v1.PreviewEnterpriseResourceImportResponse{Success: result.invalidCount == 0, Message: "OK", Rows: result.rows, ValidCount: result.validCount, InvalidCount: result.invalidCount, CreatedCount: 0, TraceId: requestmeta.TraceID(ctx), ConflictCount: result.conflictCount, OverwriteAllowed: result.overwriteAllowed && principal.CanAccessOrganizationForPermission(access.EnterpriseResourceUpdate, principal.Organization.ID, true)}, nil
 }
 func (s *EnterpriseResourceService) CommitEnterpriseResourceImport(ctx context.Context, request *v1.CommitEnterpriseResourceImportRequest) (*v1.CommitEnterpriseResourceImportResponse, error) {
 	principal, principalErr := biz.RequirePrincipal(ctx)
 	if principalErr != nil {
 		return nil, principalErr
 	}
+	if err := currentOrganizationAllowedForPermission(principal, access.EnterpriseResourceCreate, true); err != nil {
+		return nil, err
+	}
 	inputs, err := enterpriseResourceInputsFromAPI(request.GetRows())
 	if err != nil {
 		return nil, err
+	}
+	if request.GetOverwriteConflicts() && !principal.CanAccessOrganizationForPermission(access.EnterpriseResourceUpdate, principal.Organization.ID, true) {
+		return nil, biz.ErrPermissionDenied
 	}
 	outcome, err := s.usecase.CommitImport(ctx, principal.Organization.ID, principal.UserID, inputs, enterpriseResourceTypeFromAPI(request.GetResourceType()), request.GetOverwriteConflicts())
 	if err != nil {
