@@ -3,7 +3,7 @@
   "name": "system-audit-round2-cross-review",
   "title": "修复第二轮六项审计缺陷并交付",
   "description": "修复 B1–B6，完成独立审阅与验证，合并 main、安全删除本次分支、push 后继续父任务只读审计。",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": "fullstack",
   "scope": null,
   "package": null,
@@ -12,7 +12,7 @@
   "assignee": "mam15mon",
   "createdAt": "2026-11-11",
   "completedAt": null,
-  "branch": null,
+  "branch": "codex/system-audit-round2-fixes",
   "base_branch": "main",
   "worktree_path": null,
   "commit": null,
@@ -21,6 +21,6 @@
   "children": [],
   "parent": "11-11-system-audit-round2",
   "relatedFiles": [],
-  "notes": "2026-11-11 用户追加修复与完整 Git 交付授权；保留原复核目录和报告，待最终方案 review 后启动。",
+  "notes": "2026-11-11 用户已批准最终方案及修复、独立review、合并main、安全删除本次分支、push后继续审计；当前按三组并行实施。",
   "meta": {}
 }

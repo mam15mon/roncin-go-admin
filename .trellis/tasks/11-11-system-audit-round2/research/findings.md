@@ -2,6 +2,10 @@
 
 基线：main `60d6bc5d`。本轮未运行前端测试、未修改产品代码、未写入业务数据库；以下为完整静态调用链及独立交叉审阅确认，尚未真实库动态复现。
 
+## 本批修复状态
+
+B1–B6 已于 2026-11-11 完成实现、定向真实库/前端验证和独立 review，正在最终门禁与 Git 交付。分组提交为 `1a0f4a9d`（B3/B4）、`fee61336`（B5/B6）、`dbc3ee8b`（B1/B2）。以下保留修复前证据，动态验收与交付状态见 [修复验收记录](../../11-11-system-audit-round2-cross-review/research/fix-verification.md)。
+
 ## B1 / P1：主档聚合接口绕过结算规则独立读写权限
 
 - 位置：`server/internal/service/partner_profile.go:142`；`server/internal/data/partner.go:758`；`server/internal/service/partner_convert.go:273`。
