@@ -263,13 +263,6 @@ export default function CommissionRulesDrawer({
 
   const ruleColumns: ProColumns<API.FinanceCommissionRule>[] = [
     {
-      title: '所属公司',
-      dataIndex: 'organizationName',
-      width: 140,
-      search: false,
-      renderText: (value) => value || '-',
-    },
-    {
       title: '方案名称',
       dataIndex: 'name',
       copyable: true,

@@ -8,6 +8,7 @@
 - 公司ID不属于Form、可恢复查询或用户筛选，不写隐藏字段、不镜像到可变state，不接受预览调用的公司覆盖参数。公司名/本币用认证投影；列表、详情、CSV中的归属展示继续保留。
 - `ListFinanceOrganizationOptions`（GET `/api/v1/finance/organization-options`）及其独占类型已退役。共享 `FinanceOrganizationPurpose` 仅保留0、4（收付创建）、9（核销创建），其余原名称/编号reserved；`ListFinanceSettlementPartyOptions` 继续按4/9使用对应动作权限。
 - 保留其他业务DTO的 `organizationId`；开票和核销创建由实体鉴权，契约没有该字段时不添加猜测字段。
+- 提成方案列表省略重复的「所属公司」列，方案查询、创建、编辑、复制与名单仍固定当前公司并校验来源归属。
 
 ## 3. 数据流与校验
 列表/候选/导出/预览/提交都使用同一认证公司，先组装业务筛选，最后显式写公司ID。身份未就绪或非公司工作区不发经营请求、不提交；官方列表request返回失败，不把未请求当成功空快照。
