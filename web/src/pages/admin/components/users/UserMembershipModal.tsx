@@ -58,7 +58,7 @@ export default function UserMembershipModal({
           ? {
               organizationId: membershipEditing.organizationId,
               roleIds: membershipEditing.roleIds ?? [],
-              enabled: membershipEditing.enabled ?? true,
+              enabled: membershipEditing.enabled ?? false,
             }
           : { organizationIds: [], rolesByOrganization: {} }
       }
@@ -77,7 +77,7 @@ export default function UserMembershipModal({
               userId,
               id: membershipEditing.id,
               roleIds: values.roleIds ?? [],
-              enabled: values.enabled ?? true,
+              enabled: values.enabled ?? false,
             },
           );
           if (!isWriteResponse(response, true)) return false;

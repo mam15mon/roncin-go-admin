@@ -42,25 +42,27 @@ vi.mock('@ant-design/pro-components', () => ({
   ),
   ModalForm: ({
     open,
+    initialValues,
     onFinish,
     onOpenChange,
     submitter,
     children,
   }: {
     open: boolean;
-    onFinish: (values: { name: string }) => Promise<boolean>;
+    initialValues: { enabled: boolean };
+    onFinish: (values: { name: string; enabled: boolean }) => Promise<boolean>;
     onOpenChange: (open: boolean) => void;
     submitter: { submitButtonProps: { disabled: boolean } };
     children: React.ReactNode;
   }) => {
-    formState.onFinish = onFinish;
+    formState.onFinish = (values) => onFinish({ ...initialValues, ...values });
     return open ? (
       <div>
         {children}
         <button
           type="button"
           disabled={submitter.submitButtonProps.disabled}
-          onClick={() => void onFinish({ name: '管理员' })}
+          onClick={() => void onFinish({ ...initialValues, name: '管理员' })}
         >
           保存角色
         </button>

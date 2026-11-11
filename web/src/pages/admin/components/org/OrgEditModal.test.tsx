@@ -106,3 +106,29 @@ describe('公司英文名称维护', () => {
     expect(screen.queryByLabelText('公司英文名称')).not.toBeInTheDocument();
   });
 });
+
+it.each([undefined, false, true])(
+  '组织 enabled=%s 修改名称后保持原启停语义',
+  async (enabled) => {
+    const { enabled: _enabled, ...withoutEnabled } = company;
+    await mount({
+      ...withoutEnabled,
+      ...(enabled === undefined ? {} : { enabled }),
+    });
+    expect(screen.getByRole('switch')).toHaveAttribute(
+      'aria-checked',
+      String(enabled === true),
+    );
+    fireEvent.change(screen.getByLabelText('组织名称'), {
+      target: { value: '只修改名称' },
+    });
+    await submit();
+    expect(updateOrganization).toHaveBeenCalledWith(
+      { id: company.id },
+      expect.objectContaining({
+        name: '只修改名称',
+        enabled: enabled === true,
+      }),
+    );
+  },
+);

@@ -40,7 +40,7 @@ export default function OrgEditModal({
       initialValues={{
         name: editingOrg?.name,
         nameEn: editingOrg?.nameEn,
-        enabled: editingOrg?.enabled ?? true,
+        enabled: editingOrg?.enabled ?? false,
         baseCurrency: editingOrg?.baseCurrency,
       }}
       modalProps={{
@@ -61,7 +61,7 @@ export default function OrgEditModal({
                 editingOrg.kind === 2
                   ? (values.nameEn?.trim() ?? '')
                   : undefined,
-              enabled: values.enabled ?? true,
+              enabled: values.enabled ?? false,
               baseCurrency:
                 editingOrg.kind === 1 || editingOrg.kind === 2
                   ? values.baseCurrency?.trim().toUpperCase()

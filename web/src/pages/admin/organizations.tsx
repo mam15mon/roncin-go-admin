@@ -156,7 +156,7 @@ export default function OrganizationsPanel() {
           name: org.name ?? '',
           code: org.code ?? '',
           kind: org.kind ?? 0,
-          enabled: org.enabled ?? true,
+          enabled: org.enabled ?? false,
           parentId: org.parentId,
           childrenCount: children.length,
         },

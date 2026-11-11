@@ -125,3 +125,17 @@ describe('organization-tree utils', () => {
     expect(result.matchedKeys).toEqual(['2', '1']);
   });
 });
+
+it.each([undefined, false, true])(
+  '组织树正确解释省略或显式 enabled=%s',
+  (enabled) => {
+    const organization = {
+      id: 'wire-org',
+      name: '组织',
+      ...(enabled === undefined ? {} : { enabled }),
+    };
+    const { treeData, orgMap } = buildOrgTree([organization]);
+    expect(treeData[0].enabled).toBe(enabled === true);
+    expect(orgMap.get('wire-org')?.enabled).toBe(enabled);
+  },
+);

@@ -182,6 +182,33 @@ describe('RoleFormModal 角色提交载荷', () => {
     expect(onSuccess).toHaveBeenCalledOnce();
   });
 
+  it.each([undefined, false, true])(
+    '角色 enabled=%s 往返不改变状态',
+    async (enabled) => {
+      render(
+        <RoleFormHarness
+          editing={{
+            id: 'role-wire',
+            name: '状态回归',
+            code: 'wire',
+            ...(enabled === undefined ? {} : { enabled }),
+          }}
+        />,
+      );
+      const initialValues = modalState.props?.initialValues as {
+        enabled: boolean;
+      };
+      expect(initialValues.enabled).toBe(enabled === true);
+      await act(async () => {
+        await requiredOnFinish()({ name: '状态回归', ...initialValues });
+      });
+      expect(serviceMocks.updateRole).toHaveBeenCalledWith(
+        { id: 'role-wire' },
+        expect.objectContaining({ enabled: enabled === true }),
+      );
+    },
+  );
+
   it('更新停用角色时只提交名称、启用状态与权限集', async () => {
     render(
       <RoleFormHarness

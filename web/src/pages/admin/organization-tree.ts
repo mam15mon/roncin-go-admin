@@ -53,7 +53,7 @@ export function buildOrgTree(
       title: org.name ?? '',
       code: org.code ?? '',
       kind: org.kind ?? 0,
-      enabled: org.enabled ?? true,
+      enabled: org.enabled ?? false,
       raw: org,
       children:
         subList && subList.length > 0 ? subList.map(createNode) : undefined,

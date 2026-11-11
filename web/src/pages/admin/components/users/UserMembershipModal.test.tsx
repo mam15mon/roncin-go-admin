@@ -161,3 +161,32 @@ describe('组织成员关系真实表单', () => {
     await waitFor(() => expect(state.onSaved).toHaveBeenCalledOnce());
   });
 });
+
+it.each([undefined, false, true])(
+  '成员 enabled=%s 仅改角色不能自动启用',
+  async (enabled) => {
+    mount({
+      id: 'membership',
+      organizationId: 'company',
+      roleIds: [],
+      ...(enabled === undefined ? {} : { enabled }),
+    });
+    expect(screen.getByRole('switch')).toHaveAttribute(
+      'aria-checked',
+      String(enabled === true),
+    );
+    await select('组织角色', '操作员 (OP)');
+    await submit();
+    await waitFor(() =>
+      expect(state.update).toHaveBeenCalledWith(
+        { userId: 'user', id: 'membership' },
+        {
+          userId: 'user',
+          id: 'membership',
+          roleIds: ['role'],
+          enabled: enabled === true,
+        },
+      ),
+    );
+  },
+);

@@ -182,7 +182,7 @@ export default function ShippingPresetSection({
       isDefault: preset.isDefault ?? false,
       sortOrder: preset.sortOrder ?? 0,
       remark: preset.remark,
-      enabled: preset.enabled ?? true,
+      enabled: preset.enabled ?? false,
 
       // Party fields
       companyName: preset.party?.companyName,
@@ -243,7 +243,7 @@ export default function ShippingPresetSection({
         isDefault: Boolean(values.isDefault),
         sortOrder: Number(values.sortOrder || 0),
         remark: values.remark?.trim(),
-        enabled: values.enabled ?? true,
+        enabled: values.enabled ?? !editingPreset,
       };
 
       if (isParty) {
@@ -295,7 +295,7 @@ export default function ShippingPresetSection({
   };
 
   const activePresets = useMemo(
-    () => presets.filter((p) => p.enabled !== false),
+    () => presets.filter((p) => p.enabled === true),
     [presets],
   );
 

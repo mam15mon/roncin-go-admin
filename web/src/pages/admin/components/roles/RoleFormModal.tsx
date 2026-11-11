@@ -315,7 +315,11 @@ export default function RoleFormModal({
       formRef={formRef}
       initialValues={
         editing
-          ? { ...editing, permissionKeys: editing.permissionKeys }
+          ? {
+              ...editing,
+              enabled: editing.enabled ?? false,
+              permissionKeys: editing.permissionKeys,
+            }
           : { enabled: true }
       }
       modalProps={{
@@ -343,7 +347,7 @@ export default function RoleFormModal({
               {
                 id: editing.id,
                 name: values.name?.trim() ?? '',
-                enabled: values.enabled ?? true,
+                enabled: values.enabled ?? false,
                 permissionKeys: selectedPermissionKeys,
               },
             );

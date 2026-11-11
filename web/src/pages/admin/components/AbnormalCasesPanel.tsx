@@ -94,8 +94,8 @@ export function AbnormalCasesPanel() {
               code: editing.code,
               name: editing.name,
               nameEn: editing.nameEn,
-              sortOrder: editing.sortOrder ?? 100,
-              enabled: editing.enabled ?? true,
+              sortOrder: editing.sortOrder ?? 0,
+              enabled: editing.enabled ?? false,
             }
           : { sortOrder: 100, enabled: true }
       }
