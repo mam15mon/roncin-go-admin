@@ -237,17 +237,23 @@ type PartnerBlacklistResult struct {
 	PreviouslyBlacklisted bool
 }
 
+// PartnerSettlementRuleWriteAccess 限定聚合主档内嵌规则的实际写入动作，零值不授予权限。
+type PartnerSettlementRuleWriteAccess struct {
+	Create bool
+	Update bool
+}
+
 type PartnerRepo interface {
 	Get(context.Context, uuid.UUID, uuid.UUID) (*Partner, error)
 	FindAuthorized(context.Context, uuid.UUID, []uuid.UUID) (*Partner, error)
 	List(context.Context, []uuid.UUID, PartnerListOptions) (*PartnerList, error)
 	ListAssignmentOptions(context.Context, uuid.UUID, SelectorListOptions) (*PagedList[*PartnerAssignmentOption], error)
 	ListAuditLogs(context.Context, uuid.UUID, uuid.UUID, int, int) (*PartnerAuditLogList, error)
-	Create(context.Context, uuid.UUID, *Partner, *AuditEvent) (*Partner, error)
-	Update(context.Context, uuid.UUID, uuid.UUID, *Partner, *AuditEvent) (*PartnerUpdateResult, error)
+	Create(context.Context, uuid.UUID, *Partner, PartnerSettlementRuleWriteAccess, *AuditEvent) (*Partner, error)
+	Update(context.Context, uuid.UUID, uuid.UUID, *Partner, PartnerSettlementRuleWriteAccess, *AuditEvent) (*PartnerUpdateResult, error)
 	UpdateRoles(context.Context, uuid.UUID, uuid.UUID, []*PartnerRole, *AuditEvent) (*PartnerUpdateResult, error)
 	SetPartnerRoleBlacklist(context.Context, uuid.UUID, uuid.UUID, PartnerBlacklistUpdate, *AuditEvent) (*PartnerBlacklistResult, error)
-	Import(context.Context, uuid.UUID, PartnerImportMode, []*Partner, *AuditEvent) (*PartnerImportResult, error)
+	Import(context.Context, uuid.UUID, PartnerImportMode, []*Partner, PartnerSettlementRuleWriteAccess, *AuditEvent) (*PartnerImportResult, error)
 }
 
 type PartnerUsecase struct {
@@ -316,7 +322,7 @@ func (uc *PartnerUsecase) ListAuditLogs(ctx context.Context, organizationID, par
 	return uc.repo.ListAuditLogs(ctx, organizationID, partnerID, page, pageSize)
 }
 
-func (uc *PartnerUsecase) Import(ctx context.Context, organizationID, userID uuid.UUID, input PartnerImportInput) (*PartnerImportResult, error) {
+func (uc *PartnerUsecase) Import(ctx context.Context, organizationID, userID uuid.UUID, input PartnerImportInput, ruleAccess PartnerSettlementRuleWriteAccess) (*PartnerImportResult, error) {
 	if organizationID == uuid.Nil || userID == uuid.Nil || strings.TrimSpace(input.Source) == "" || !input.Mode.Valid() || len(input.Items) == 0 || len(input.Items) > 500 {
 		return nil, ErrPartnerImportInvalidArgument
 	}
@@ -337,7 +343,7 @@ func (uc *PartnerUsecase) Import(ctx context.Context, organizationID, userID uui
 		value.Assignments = append(value.Assignments, &PartnerAssignment{Role: PartnerAssignmentCreator, UserID: userID, OrganizationID: organizationID})
 		normalized = append(normalized, value)
 	}
-	return uc.repo.Import(ctx, organizationID, input.Mode, normalized, &AuditEvent{
+	return uc.repo.Import(ctx, organizationID, input.Mode, normalized, ruleAccess, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &userID,
 		Action:         "partner.import",
@@ -349,7 +355,7 @@ func (uc *PartnerUsecase) Import(ctx context.Context, organizationID, userID uui
 	})
 }
 
-func (uc *PartnerUsecase) Create(ctx context.Context, organizationID, userID uuid.UUID, input *Partner) (*Partner, error) {
+func (uc *PartnerUsecase) Create(ctx context.Context, organizationID, userID uuid.UUID, input *Partner, ruleAccess PartnerSettlementRuleWriteAccess) (*Partner, error) {
 	normalized, err := normalizePartner(input, true)
 	if err != nil {
 		return nil, err
@@ -369,10 +375,10 @@ func (uc *PartnerUsecase) Create(ctx context.Context, organizationID, userID uui
 			"roles":        FormatPartnerRolesAuditValue(normalized.Roles),
 		},
 	}
-	return uc.repo.Create(ctx, organizationID, normalized, audit)
+	return uc.repo.Create(ctx, organizationID, normalized, ruleAccess, audit)
 }
 
-func (uc *PartnerUsecase) Update(ctx context.Context, organizationID, userID, id uuid.UUID, input *Partner) (*Partner, error) {
+func (uc *PartnerUsecase) Update(ctx context.Context, organizationID, userID, id uuid.UUID, input *Partner, ruleAccess PartnerSettlementRuleWriteAccess) (*Partner, error) {
 	if id == uuid.Nil {
 		return nil, ErrPartnerNotFound
 	}
@@ -380,7 +386,7 @@ func (uc *PartnerUsecase) Update(ctx context.Context, organizationID, userID, id
 	if err != nil {
 		return nil, err
 	}
-	result, err := uc.repo.Update(ctx, organizationID, id, normalized, &AuditEvent{
+	result, err := uc.repo.Update(ctx, organizationID, id, normalized, ruleAccess, &AuditEvent{
 		OrganizationID: &organizationID,
 		UserID:         &userID,
 		Action:         "partner.update",

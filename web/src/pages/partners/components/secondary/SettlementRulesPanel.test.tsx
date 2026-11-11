@@ -7,11 +7,10 @@ const state = vi.hoisted(() => ({
   create: vi.fn(),
   update: vi.fn(),
   row: undefined as API.PartnerSettlementRule | undefined,
+  list: vi.fn(),
 }));
 vi.mock('@/services/roncin/partnerService', () => ({
-  partnerServiceListPartnerSettlementRules: vi
-    .fn()
-    .mockResolvedValue({ data: [] }),
+  partnerServiceListPartnerSettlementRules: state.list,
   partnerServiceCreatePartnerSettlementRule: state.create,
   partnerServiceUpdatePartnerSettlementRule: state.update,
 }));
@@ -19,6 +18,7 @@ vi.mock('@/components/ui', async (original) => ({
   ...(await original<typeof import('@/components/ui')>()),
   ResponsiveProTable: (props: {
     toolBarRender: () => React.ReactNode;
+    request: () => Promise<unknown>;
     columns: {
       valueType?: string;
       render?: (_: unknown, row: API.PartnerSettlementRule) => React.ReactNode;
@@ -26,6 +26,9 @@ vi.mock('@/components/ui', async (original) => ({
   }) => (
     <>
       {props.toolBarRender()}
+      <button type="button" onClick={() => void props.request()}>
+        加载规则
+      </button>
       {state.row
         ? props.columns
             .find((column) => column.valueType === 'option')
@@ -40,12 +43,15 @@ vi.mock('@/components/ui', async (original) => ({
 
 const partner = { id: 'partner', roles: [{ type: 1, enabled: true }] };
 function mount(currency: string) {
-  renderWithApp(<SettlementRulesPanel partner={partner} canManage />, {
-    user: {
-      id: 'user',
-      currentOrganization: { id: 'company', baseCurrency: currency },
+  renderWithApp(
+    <SettlementRulesPanel partner={partner} canRead canCreate canUpdate />,
+    {
+      user: {
+        id: 'user',
+        currentOrganization: { id: 'company', baseCurrency: currency },
+      },
     },
-  });
+  );
 }
 async function submit() {
   fireEvent.click(screen.getByRole('button', { name: /确\s*定/ }));
@@ -53,6 +59,7 @@ async function submit() {
 beforeEach(() => {
   vi.clearAllMocks();
   state.row = undefined;
+  state.list.mockResolvedValue({ data: [] });
   state.create.mockResolvedValue({ data: { id: 'rule' } });
   state.update.mockResolvedValue({ data: { id: 'rule' } });
 });
@@ -149,3 +156,44 @@ describe('结算规则信用额度本币表单', () => {
     );
   });
 });
+
+it('没有独立读权限不发送规则查询，也不开放创建或编辑', async () => {
+  state.row = { id: 'rule' };
+  renderWithApp(
+    <SettlementRulesPanel
+      partner={partner}
+      canRead={false}
+      canCreate
+      canUpdate
+    />,
+  );
+  fireEvent.click(screen.getByRole('button', { name: '加载规则' }));
+  expect(state.list).not.toHaveBeenCalled();
+  expect(
+    screen.queryByRole('button', { name: /新增结算规则/ }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole('button', { name: /编辑/ }),
+  ).not.toBeInTheDocument();
+});
+
+it.each([false, true])(
+  '创建和修改分别使用独立权限（仅创建：%s）',
+  (createOnly) => {
+    state.row = { id: 'rule' };
+    renderWithApp(
+      <SettlementRulesPanel
+        partner={partner}
+        canRead
+        canCreate={createOnly}
+        canUpdate={!createOnly}
+      />,
+    );
+    expect(
+      Boolean(screen.queryByRole('button', { name: /新增结算规则/ })),
+    ).toBe(createOnly);
+    expect(Boolean(screen.queryByRole('button', { name: /编辑/ }))).toBe(
+      !createOnly,
+    );
+  },
+);

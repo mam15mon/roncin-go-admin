@@ -234,7 +234,7 @@ func (r *partnerRepo) ListAuditLogs(ctx context.Context, organizationID, partner
 	return &biz.PartnerAuditLogList{Items: result, Total: total, Page: page, PageSize: pageSize}, nil
 }
 
-func (r *partnerRepo) Create(ctx context.Context, organizationID uuid.UUID, input *biz.Partner, audit *biz.AuditEvent) (*biz.Partner, error) {
+func (r *partnerRepo) Create(ctx context.Context, organizationID uuid.UUID, input *biz.Partner, ruleAccess biz.PartnerSettlementRuleWriteAccess, audit *biz.AuditEvent) (*biz.Partner, error) {
 	var created *ent.Partner
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		if companyErr := ensureOperatingCompany(ctx, tx, organizationID); companyErr != nil {
@@ -262,7 +262,7 @@ func (r *partnerRepo) Create(ctx context.Context, organizationID uuid.UUID, inpu
 				entConstraintMapping{name: "partner_org_uscc_key", domainErr: biz.ErrPartnerUSCCExists},
 			)
 		}
-		if childErr := createPartnerChildren(ctx, tx, organizationID, created.ID, input); childErr != nil {
+		if childErr := createPartnerChildren(ctx, tx, organizationID, created.ID, input, ruleAccess); childErr != nil {
 			return childErr
 		}
 		audit.ResourceID = created.ID.String()
@@ -275,7 +275,7 @@ func (r *partnerRepo) Create(ctx context.Context, organizationID uuid.UUID, inpu
 	return r.Get(ctx, organizationID, created.ID)
 }
 
-func (r *partnerRepo) Update(ctx context.Context, organizationID, id uuid.UUID, input *biz.Partner, audit *biz.AuditEvent) (*biz.PartnerUpdateResult, error) {
+func (r *partnerRepo) Update(ctx context.Context, organizationID, id uuid.UUID, input *biz.Partner, ruleAccess biz.PartnerSettlementRuleWriteAccess, audit *biz.AuditEvent) (*biz.PartnerUpdateResult, error) {
 	var previousRoles []*biz.PartnerRole
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		existing, queryErr := tx.Partner.Query().
@@ -313,7 +313,7 @@ func (r *partnerRepo) Update(ctx context.Context, organizationID, id uuid.UUID, 
 		if replaceErr := replacePartnerRoles(ctx, tx, id, existing.Edges.Roles, input.Roles); replaceErr != nil {
 			return replaceErr
 		}
-		if saveErr := savePartnerRoleSettlementRules(ctx, tx, organizationID, id, input.Roles); saveErr != nil {
+		if saveErr := savePartnerRoleSettlementRules(ctx, tx, organizationID, id, input.Roles, ruleAccess); saveErr != nil {
 			return saveErr
 		}
 		if _, deleteErr := tx.PartnerContact.Delete().Where(partnercontactent.PartnerIDEQ(id)).Exec(ctx); deleteErr != nil {
@@ -414,7 +414,7 @@ func (r *partnerRepo) SetPartnerRoleBlacklist(ctx context.Context, organizationI
 	return &biz.PartnerBlacklistResult{Partner: updated, PreviouslyBlacklisted: previouslyBlacklisted}, nil
 }
 
-func (r *partnerRepo) Import(ctx context.Context, organizationID uuid.UUID, mode biz.PartnerImportMode, inputs []*biz.Partner, audit *biz.AuditEvent) (*biz.PartnerImportResult, error) {
+func (r *partnerRepo) Import(ctx context.Context, organizationID uuid.UUID, mode biz.PartnerImportMode, inputs []*biz.Partner, ruleAccess biz.PartnerSettlementRuleWriteAccess, audit *biz.AuditEvent) (*biz.PartnerImportResult, error) {
 	result := &biz.PartnerImportResult{}
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		if companyErr := ensureOperatingCompany(ctx, tx, organizationID); companyErr != nil {
@@ -457,7 +457,7 @@ func (r *partnerRepo) Import(ctx context.Context, organizationID uuid.UUID, mode
 						entConstraintMapping{name: "partner_org_uscc_key", domainErr: biz.ErrPartnerUSCCExists},
 					)
 				}
-				if childErr := createPartnerChildren(ctx, tx, organizationID, created.ID, input); childErr != nil {
+				if childErr := createPartnerChildren(ctx, tx, organizationID, created.ID, input, ruleAccess); childErr != nil {
 					return childErr
 				}
 				result.CreatedCount++
@@ -466,7 +466,7 @@ func (r *partnerRepo) Import(ctx context.Context, organizationID uuid.UUID, mode
 			if mode == biz.PartnerImportCreateOnly {
 				return biz.ErrPartnerCodeExists
 			}
-			if updateErr := updatePartnerInTx(ctx, tx, organizationID, existing, input); updateErr != nil {
+			if updateErr := updatePartnerInTx(ctx, tx, organizationID, existing, input, ruleAccess); updateErr != nil {
 				return updateErr
 			}
 			result.UpdatedCount++
@@ -481,7 +481,7 @@ func (r *partnerRepo) Import(ctx context.Context, organizationID uuid.UUID, mode
 	return result, nil
 }
 
-func updatePartnerInTx(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, existing *ent.Partner, input *biz.Partner) error {
+func updatePartnerInTx(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID, existing *ent.Partner, input *biz.Partner, ruleAccess biz.PartnerSettlementRuleWriteAccess) error {
 	update := existing.Update().
 		SetLegalName(input.LegalName).
 		SetNormalizedName(input.NormalizedName).
@@ -501,7 +501,7 @@ func updatePartnerInTx(ctx context.Context, tx *ent.Tx, organizationID uuid.UUID
 	if err := replacePartnerRoles(ctx, tx, existing.ID, existing.Edges.Roles, input.Roles); err != nil {
 		return err
 	}
-	if err := savePartnerRoleSettlementRules(ctx, tx, organizationID, existing.ID, input.Roles); err != nil {
+	if err := savePartnerRoleSettlementRules(ctx, tx, organizationID, existing.ID, input.Roles, ruleAccess); err != nil {
 		return err
 	}
 	if _, err := tx.PartnerContact.Delete().Where(partnercontactent.PartnerIDEQ(existing.ID)).Exec(ctx); err != nil {
@@ -551,7 +551,7 @@ func withPartnerEdges(query *ent.PartnerQuery) *ent.PartnerQuery {
 		})
 }
 
-func createPartnerChildren(ctx context.Context, tx *ent.Tx, organizationID, partnerID uuid.UUID, input *biz.Partner) error {
+func createPartnerChildren(ctx context.Context, tx *ent.Tx, organizationID, partnerID uuid.UUID, input *biz.Partner, ruleAccess biz.PartnerSettlementRuleWriteAccess) error {
 	for _, role := range input.Roles {
 		if _, err := tx.PartnerRole.Create().
 			SetPartnerID(partnerID).
@@ -561,7 +561,7 @@ func createPartnerChildren(ctx context.Context, tx *ent.Tx, organizationID, part
 			return mapEntConstraint(err, "partner_role_type_key", biz.ErrPartnerInvalidRole)
 		}
 	}
-	if err := savePartnerRoleSettlementRules(ctx, tx, organizationID, partnerID, input.Roles); err != nil {
+	if err := savePartnerRoleSettlementRules(ctx, tx, organizationID, partnerID, input.Roles, ruleAccess); err != nil {
 		return err
 	}
 	if err := createPartnerContacts(ctx, tx, partnerID, input.Contacts); err != nil {
@@ -755,7 +755,7 @@ func replacePartnerRoles(ctx context.Context, tx *ent.Tx, partnerID uuid.UUID, e
 	return nil
 }
 
-func savePartnerRoleSettlementRules(ctx context.Context, tx *ent.Tx, organizationID, partnerID uuid.UUID, roles []*biz.PartnerRole) error {
+func savePartnerRoleSettlementRules(ctx context.Context, tx *ent.Tx, organizationID, partnerID uuid.UUID, roles []*biz.PartnerRole, ruleAccess biz.PartnerSettlementRuleWriteAccess) error {
 	for _, role := range roles {
 		if role.SettlementRule == nil {
 			continue
@@ -767,12 +767,6 @@ func savePartnerRoleSettlementRules(ctx context.Context, tx *ent.Tx, organizatio
 		if err != nil {
 			return err
 		}
-		if err := validatePartnerCreditCurrency(ctx, tx.Client(), organizationID, role.SettlementRule.CreditLimitMinor, role.SettlementRule.CreditCurrency); err != nil {
-			return err
-		}
-		if err := validateSettlementCurrencies(ctx, tx.Currency.Query(), role.SettlementRule); err != nil {
-			return err
-		}
 		existingRules, err := tx.PartnerSettlementRule.Query().Where(
 			partnersettlementruleent.PartnerRoleIDEQ(partnerRole.ID),
 		).ForUpdate().All(ctx)
@@ -781,6 +775,15 @@ func savePartnerRoleSettlementRules(ctx context.Context, tx *ent.Tx, organizatio
 		}
 		if len(existingRules) > 1 {
 			return biz.ErrPartnerSettlementRuleInvalidArgument
+		}
+		if (len(existingRules) == 0 && !ruleAccess.Create) || (len(existingRules) == 1 && !ruleAccess.Update) {
+			return biz.ErrPermissionDenied
+		}
+		if err := validatePartnerCreditCurrency(ctx, tx.Client(), organizationID, role.SettlementRule.CreditLimitMinor, role.SettlementRule.CreditCurrency); err != nil {
+			return err
+		}
+		if err := validateSettlementCurrencies(ctx, tx.Currency.Query(), role.SettlementRule); err != nil {
+			return err
 		}
 		if len(existingRules) == 0 {
 			if _, err := createPartnerSettlementRule(ctx, tx.PartnerSettlementRule.Create().SetPartnerRoleID(partnerRole.ID), role.SettlementRule); err != nil {

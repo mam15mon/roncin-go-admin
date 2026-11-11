@@ -3,9 +3,8 @@ import { FormAnchorNav, locateSectionError } from '@/components/ui';
 
 type PartnerAnchorNavProps = {
   sectionErrors: Record<string, number>;
-  isCreate: boolean;
   partnerId: string | undefined;
-  canReadSettlementRules: boolean;
+  showSettlement: boolean;
   canReadAccounts: boolean;
   canReadShippingPresets: boolean;
   canReadContracts: boolean;
@@ -18,9 +17,8 @@ type PartnerAnchorNavProps = {
 /** 楼层大纲与错误定位导航 */
 export default function PartnerAnchorNav({
   sectionErrors,
-  isCreate,
   partnerId,
-  canReadSettlementRules,
+  showSettlement,
   canReadAccounts,
   canReadShippingPresets,
   canReadContracts,
@@ -36,9 +34,7 @@ export default function PartnerAnchorNav({
       onCollapsedChange={onCollapsedChange}
       items={[
         { key: 'basic', title: '基础信息' },
-        ...(isCreate || canReadSettlementRules
-          ? [{ key: 'settlement', title: '财务结算' }]
-          : []),
+        ...(showSettlement ? [{ key: 'settlement', title: '财务结算' }] : []),
         ...(partnerId && canReadAccounts
           ? [{ key: 'accounts', title: '账户信息' }]
           : []),

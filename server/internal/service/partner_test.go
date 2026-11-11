@@ -43,7 +43,7 @@ func TestPartnerAssignmentDocumentRoleRoundTrip(t *testing.T) {
 
 func TestPartnerRoleToAPIOutputsBlacklistedOperatorName(t *testing.T) {
 	role := &biz.PartnerRole{Type: biz.PartnerRoleCustomer, Enabled: true, Blacklisted: true, BlacklistedByName: "张风控"}
-	apiRole := partnerRoleToAPI(role)
+	apiRole := partnerRoleToAPI(role, true)
 	if apiRole.BlacklistedByName != "张风控" {
 		t.Fatalf("拉黑操作人显示姓名转换结果为 %q", apiRole.BlacklistedByName)
 	}
@@ -63,7 +63,7 @@ func TestPartnerExportItemToAPICarriesFullRolesContactsUpdatedAt(t *testing.T) {
 		Contacts:  []*biz.PartnerContact{{Name: "王联系", Phone: "13800000000"}},
 		UpdatedAt: time.Date(2026, 9, 20, 8, 0, 0, 0, time.UTC),
 	}
-	item := partnerExportItemToAPI(value)
+	item := partnerExportItemToAPI(value, true)
 	if len(item.Roles) != 1 || item.Roles[0].Enabled || !item.Roles[0].Blacklisted || item.Roles[0].BlacklistedByName != "张风控" {
 		t.Fatalf("导出条目角色应保留停用与拉黑状态及操作人姓名，实际为 %+v", item.Roles)
 	}

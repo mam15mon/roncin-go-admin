@@ -23,7 +23,7 @@ func (s *PartnerService) GetPartner(ctx context.Context, request *v1.GetPartnerR
 	if err != nil {
 		return nil, err
 	}
-	return ok(ctx, &v1.GetPartnerResponse{Data: partnerToAPI(item)}), nil
+	return ok(ctx, &v1.GetPartnerResponse{Data: partnerToAPI(item, principal.CanAccessOrganizationForPermission(access.PartnerSettlementRuleRead, item.OrganizationID, false))}), nil
 }
 
 func (s *PartnerService) ListPartners(ctx context.Context, request *v1.ListPartnersRequest) (*v1.ListPartnersResponse, error) {
@@ -63,7 +63,7 @@ func (s *PartnerService) ListPartners(ctx context.Context, request *v1.ListPartn
 	}
 	data := make([]*v1.Partner, 0, len(result.Items))
 	for _, item := range result.Items {
-		data = append(data, partnerToAPI(item))
+		data = append(data, partnerToAPI(item, principal.CanAccessOrganizationForPermission(access.PartnerSettlementRuleRead, item.OrganizationID, false)))
 	}
 	return okList(ctx, &v1.ListPartnersResponse{
 		Data:  data,
@@ -123,11 +123,11 @@ func (s *PartnerService) CreatePartner(ctx context.Context, request *v1.CreatePa
 		IsCasual: request.GetIsCasual(),
 		Roles:    partnerRolesFromAPI(request.GetRoles()), Contacts: partnerContactsFromAPI(request.GetContacts()), Aliases: partnerAliasesFromAPI(request.GetAliases()),
 		Profile: partnerProfileFromAPI(request.GetProfile()), Assignments: partnerAssignmentsFromAPI(request.GetAssignments()),
-	})
+	}, partnerSettlementRuleWriteAccess(principal, principal.Organization.ID))
 	if err != nil {
 		return nil, err
 	}
-	return ok(ctx, &v1.CreatePartnerResponse{Data: partnerToAPI(created)}), nil
+	return ok(ctx, &v1.CreatePartnerResponse{Data: partnerToAPI(created, principal.CanAccessOrganizationForPermission(access.PartnerSettlementRuleRead, created.OrganizationID, false))}), nil
 }
 
 func (s *PartnerService) UpdatePartner(ctx context.Context, request *v1.UpdatePartnerRequest) (*v1.UpdatePartnerResponse, error) {
@@ -145,11 +145,11 @@ func (s *PartnerService) UpdatePartner(ctx context.Context, request *v1.UpdatePa
 		IsCasual: request.GetIsCasual(),
 		Roles:    partnerRolesFromAPI(request.GetRoles()), Contacts: partnerContactsFromAPI(request.GetContacts()), Aliases: partnerAliasesFromAPI(request.GetAliases()),
 		Profile: partnerProfileFromAPI(request.GetProfile()), Assignments: partnerAssignmentsFromAPI(request.GetAssignments()),
-	})
+	}, partnerSettlementRuleWriteAccess(principal, principal.Organization.ID))
 	if err != nil {
 		return nil, err
 	}
-	return ok(ctx, &v1.UpdatePartnerResponse{Data: partnerToAPI(updated)}), nil
+	return ok(ctx, &v1.UpdatePartnerResponse{Data: partnerToAPI(updated, principal.CanAccessOrganizationForPermission(access.PartnerSettlementRuleRead, updated.OrganizationID, false))}), nil
 }
 
 func (s *PartnerService) UpdatePartnerRoles(ctx context.Context, request *v1.UpdatePartnerRolesRequest) (*v1.UpdatePartnerRolesResponse, error) {
@@ -169,7 +169,7 @@ func (s *PartnerService) UpdatePartnerRoles(ctx context.Context, request *v1.Upd
 	if err != nil {
 		return nil, err
 	}
-	return ok(ctx, &v1.UpdatePartnerRolesResponse{Data: partnerToAPI(updated)}), nil
+	return ok(ctx, &v1.UpdatePartnerRolesResponse{Data: partnerToAPI(updated, principal.CanAccessOrganizationForPermission(access.PartnerSettlementRuleRead, updated.OrganizationID, false))}), nil
 }
 
 func (s *PartnerService) SetPartnerRoleBlacklist(ctx context.Context, request *v1.SetPartnerRoleBlacklistRequest) (*v1.SetPartnerRoleBlacklistResponse, error) {
@@ -185,7 +185,7 @@ func (s *PartnerService) SetPartnerRoleBlacklist(ctx context.Context, request *v
 	if err != nil {
 		return nil, err
 	}
-	return ok(ctx, &v1.SetPartnerRoleBlacklistResponse{Data: partnerToAPI(updated)}), nil
+	return ok(ctx, &v1.SetPartnerRoleBlacklistResponse{Data: partnerToAPI(updated, principal.CanAccessOrganizationForPermission(access.PartnerSettlementRuleRead, updated.OrganizationID, false))}), nil
 }
 
 func (s *PartnerService) ImportPartners(ctx context.Context, request *v1.ImportPartnersRequest) (*v1.ImportPartnersResponse, error) {
@@ -210,7 +210,7 @@ func (s *PartnerService) ImportPartners(ctx context.Context, request *v1.ImportP
 	}
 	result, err := s.usecase.Import(ctx, principal.Organization.ID, principal.UserID, biz.PartnerImportInput{
 		Source: request.GetSource(), Mode: partnerImportModeFromAPI(request.GetMode()), Items: items,
-	})
+	}, partnerSettlementRuleWriteAccess(principal, principal.Organization.ID))
 	if err != nil {
 		return nil, err
 	}
@@ -242,7 +242,7 @@ func (s *PartnerService) ExportPartners(ctx context.Context, request *v1.ExportP
 			return nil, err
 		}
 		for _, item := range result.Items {
-			items = append(items, partnerExportItemToAPI(item))
+			items = append(items, partnerExportItemToAPI(item, principal.CanAccessOrganizationForPermission(access.PartnerSettlementRuleRead, item.OrganizationID, false)))
 		}
 		if len(result.Items) == 0 || len(items) >= result.Total {
 			break
@@ -277,4 +277,11 @@ func (s *PartnerService) ListPartnerAuditLogs(ctx context.Context, request *v1.L
 		Data:  data,
 		Total: int32(list.Total), Page: int32(list.Page), PageSize: int32(list.PageSize),
 	}), nil
+}
+
+func partnerSettlementRuleWriteAccess(principal *biz.Principal, organizationID uuid.UUID) biz.PartnerSettlementRuleWriteAccess {
+	return biz.PartnerSettlementRuleWriteAccess{
+		Create: principal.CanAccessOrganizationForPermission(access.PartnerSettlementRuleCreate, organizationID, true),
+		Update: principal.CanAccessOrganizationForPermission(access.PartnerSettlementRuleUpdate, organizationID, true),
+	}
 }

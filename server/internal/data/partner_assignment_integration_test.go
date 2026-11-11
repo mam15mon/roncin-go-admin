@@ -46,7 +46,7 @@ func TestPartnerCreateAssignmentEligibility(t *testing.T) {
 		created, err := uc.Create(ctx, company.ID, actor.ID, &biz.Partner{
 			LegalName: "测试的", IsCasual: true,
 			Roles: []*biz.PartnerRole{{Type: biz.PartnerRoleCustomer, Enabled: true}},
-		})
+		}, biz.PartnerSettlementRuleWriteAccess{Create: true, Update: true})
 		if err != nil {
 			t.Fatalf("快捷创建客户失败: %v", err)
 		}
@@ -94,7 +94,7 @@ func TestPartnerCreateAssignmentEligibility(t *testing.T) {
 				LegalName: tc.name, IsCasual: true,
 				Roles:       []*biz.PartnerRole{{Type: biz.PartnerRoleCustomer, Enabled: true}},
 				Assignments: []*biz.PartnerAssignment{{Role: biz.PartnerAssignmentSales, UserID: userID}},
-			})
+			}, biz.PartnerSettlementRuleWriteAccess{Create: true, Update: true})
 			if tc.reject {
 				if !errors.Is(err, biz.ErrPartnerInvalidArgument) {
 					t.Fatalf("应拒绝无资格业务员，实际: %v", err)
@@ -137,7 +137,7 @@ func TestPartnerMultiRoleOrderPostgres(t *testing.T) {
 			{Role: biz.PartnerAssignmentOperator, UserID: fixture.actorID},
 			{Role: biz.PartnerAssignmentCustomerService, UserID: fixture.actorID},
 		},
-	})
+	}, biz.PartnerSettlementRuleWriteAccess{Create: true, Update: true})
 	if err != nil {
 		t.Fatalf("同一成员兼任三个岗位创建客户失败: %v", err)
 	}

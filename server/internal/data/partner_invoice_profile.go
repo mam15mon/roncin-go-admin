@@ -48,7 +48,7 @@ func (r *partnerInvoiceProfileRepo) Create(ctx context.Context, organizationID u
 		}
 		profile.IsDefault = profile.IsDefault || count == 0
 		if profile.IsDefault {
-			if _, updateErr := tx.PartnerInvoiceProfile.Update().Where(profileent.OrganizationIDEQ(organizationID), profileent.PartnerIDEQ(profile.PartnerID), profileent.IsDefaultEQ(true)).SetIsDefault(false).Save(ctx); updateErr != nil {
+			if _, updateErr := tx.PartnerInvoiceProfile.Update().Where(profileent.OrganizationIDEQ(organizationID), profileent.PartnerIDEQ(profile.PartnerID), profileent.IsDefaultEQ(true)).SetIsDefault(false).AddVersion(1).Save(ctx); updateErr != nil {
 				return updateErr
 			}
 		}
@@ -102,7 +102,7 @@ func (r *partnerInvoiceProfileRepo) Update(ctx context.Context, organizationID u
 			}
 		}
 		if profile.IsDefault {
-			if _, updateErr := tx.PartnerInvoiceProfile.Update().Where(profileent.OrganizationIDEQ(organizationID), profileent.PartnerIDEQ(profile.PartnerID), profileent.IDNEQ(profile.ID), profileent.IsDefaultEQ(true)).SetIsDefault(false).Save(ctx); updateErr != nil {
+			if _, updateErr := tx.PartnerInvoiceProfile.Update().Where(profileent.OrganizationIDEQ(organizationID), profileent.PartnerIDEQ(profile.PartnerID), profileent.IDNEQ(profile.ID), profileent.IsDefaultEQ(true)).SetIsDefault(false).AddVersion(1).Save(ctx); updateErr != nil {
 				return updateErr
 			}
 		}

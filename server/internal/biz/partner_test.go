@@ -44,7 +44,7 @@ func (s *partnerRepoStub) ListAuditLogs(context.Context, uuid.UUID, uuid.UUID, i
 	return &PartnerAuditLogList{}, nil
 }
 
-func (s *partnerRepoStub) Create(_ context.Context, organizationID uuid.UUID, input *Partner, audit *AuditEvent) (*Partner, error) {
+func (s *partnerRepoStub) Create(_ context.Context, organizationID uuid.UUID, input *Partner, ruleAccess PartnerSettlementRuleWriteAccess, audit *AuditEvent) (*Partner, error) {
 	s.created = input
 	input.ID = uuid.New()
 	input.OrganizationID = organizationID
@@ -54,7 +54,7 @@ func (s *partnerRepoStub) Create(_ context.Context, organizationID uuid.UUID, in
 	return input, nil
 }
 
-func (s *partnerRepoStub) Update(_ context.Context, organizationID, id uuid.UUID, input *Partner, audit *AuditEvent) (*PartnerUpdateResult, error) {
+func (s *partnerRepoStub) Update(_ context.Context, organizationID, id uuid.UUID, input *Partner, ruleAccess PartnerSettlementRuleWriteAccess, audit *AuditEvent) (*PartnerUpdateResult, error) {
 	s.updated = input
 	s.auditEvent = audit
 	if s.updateResult != nil {
@@ -83,7 +83,7 @@ func (s *partnerRepoStub) SetPartnerRoleBlacklist(_ context.Context, organizatio
 	return &PartnerBlacklistResult{Partner: &Partner{ID: id, OrganizationID: organizationID}}, nil
 }
 
-func (s *partnerRepoStub) Import(_ context.Context, _ uuid.UUID, mode PartnerImportMode, items []*Partner, audit *AuditEvent) (*PartnerImportResult, error) {
+func (s *partnerRepoStub) Import(_ context.Context, _ uuid.UUID, mode PartnerImportMode, items []*Partner, ruleAccess PartnerSettlementRuleWriteAccess, audit *AuditEvent) (*PartnerImportResult, error) {
 	s.importedMode = mode
 	s.importedItems = items
 	s.auditEvent = audit
@@ -107,7 +107,7 @@ func TestPartnerCreateNormalizesAggregateAndAudits(t *testing.T) {
 		},
 		Contacts: []*PartnerContact{{Name: " 张三 ", Phone: " 13800000000 ", Email: "contact@example.com", IsPrimary: true}},
 		Aliases:  []*PartnerAlias{{AliasName: " ACME  Logistics ", SortOrder: 1}},
-	})
+	}, PartnerSettlementRuleWriteAccess{Create: true, Update: true})
 	if err != nil {
 		t.Fatalf("Create() error = %v", err)
 	}
@@ -143,7 +143,7 @@ func TestPartnerCreateKeepsEmptyCode(t *testing.T) {
 		LegalName:               "快捷新建往来单位",
 		UnifiedSocialCreditCode: "91310000MA1FL7A21Q",
 		Roles:                   []*PartnerRole{{Type: PartnerRoleCustomer, Enabled: true}},
-	})
+	}, PartnerSettlementRuleWriteAccess{Create: true, Update: true})
 	if err != nil {
 		t.Fatalf("Create() error = %v", err)
 	}
@@ -163,7 +163,7 @@ type conflictPartnerRepoStub struct {
 	codes       []string
 }
 
-func (s *conflictPartnerRepoStub) Create(ctx context.Context, organizationID uuid.UUID, input *Partner, audit *AuditEvent) (*Partner, error) {
+func (s *conflictPartnerRepoStub) Create(ctx context.Context, organizationID uuid.UUID, input *Partner, ruleAccess PartnerSettlementRuleWriteAccess, audit *AuditEvent) (*Partner, error) {
 	s.createCalls++
 	s.codes = append(s.codes, input.Code)
 	if s.err != nil {
@@ -172,7 +172,7 @@ func (s *conflictPartnerRepoStub) Create(ctx context.Context, organizationID uui
 	if s.createCalls <= s.conflicts {
 		return nil, ErrPartnerCodeExists
 	}
-	return s.partnerRepoStub.Create(ctx, organizationID, input, audit)
+	return s.partnerRepoStub.Create(ctx, organizationID, input, ruleAccess, audit)
 }
 
 func TestPartnerCreateDoesNotRetryExplicitCodeConflict(t *testing.T) {
@@ -184,7 +184,7 @@ func TestPartnerCreateDoesNotRetryExplicitCodeConflict(t *testing.T) {
 		LegalName:               "显式编码冲突往来单位",
 		UnifiedSocialCreditCode: "91310000MA1FL7A21Q",
 		Roles:                   []*PartnerRole{{Type: PartnerRoleSupplier, Enabled: true}},
-	})
+	}, PartnerSettlementRuleWriteAccess{Create: true, Update: true})
 	if !stderrors.Is(err, ErrPartnerCodeExists) {
 		t.Fatalf("Create() error = %v, want ErrPartnerCodeExists", err)
 	}
@@ -202,7 +202,7 @@ func TestPartnerCreateDoesNotRetryOtherErrors(t *testing.T) {
 		LegalName:               "仓储失败往来单位",
 		UnifiedSocialCreditCode: "91310000MA1FL7A21Q",
 		Roles:                   []*PartnerRole{{Type: PartnerRoleCustomer, Enabled: true}},
-	})
+	}, PartnerSettlementRuleWriteAccess{Create: true, Update: true})
 	if !stderrors.Is(err, repoErr) {
 		t.Fatalf("Create() error = %v, want %v", err, repoErr)
 	}
@@ -218,13 +218,13 @@ func TestPartnerRejectsRoleAndPrimaryContactConflicts(t *testing.T) {
 
 	if _, err := usecase.Create(context.Background(), organizationID, actorID, &Partner{
 		Code: "P001", LegalName: "无角色公司",
-	}); err != ErrPartnerRoleRequired {
+	}, PartnerSettlementRuleWriteAccess{Create: true, Update: true}); err != ErrPartnerRoleRequired {
 		t.Fatalf("empty roles error = %v, want ErrPartnerRoleRequired", err)
 	}
 	if _, err := usecase.Create(context.Background(), organizationID, actorID, &Partner{
 		Code: "P002", LegalName: "重复角色公司",
 		Roles: []*PartnerRole{{Type: PartnerRoleCustomer, Enabled: true}, {Type: PartnerRoleCustomer, Enabled: true}},
-	}); err != ErrPartnerInvalidRole {
+	}, PartnerSettlementRuleWriteAccess{Create: true, Update: true}); err != ErrPartnerInvalidRole {
 		t.Fatalf("duplicate roles error = %v, want ErrPartnerInvalidRole", err)
 	}
 	if _, err := usecase.Create(context.Background(), organizationID, actorID, &Partner{
@@ -234,7 +234,7 @@ func TestPartnerRejectsRoleAndPrimaryContactConflicts(t *testing.T) {
 			{Name: "张三", IsPrimary: true},
 			{Name: "李四", IsPrimary: true},
 		},
-	}); err != ErrPartnerPrimaryContactConflict {
+	}, PartnerSettlementRuleWriteAccess{Create: true, Update: true}); err != ErrPartnerPrimaryContactConflict {
 		t.Fatalf("primary contacts error = %v, want ErrPartnerPrimaryContactConflict", err)
 	}
 }
@@ -247,14 +247,14 @@ func TestPartnerRejectsInvalidUSCCAndDuplicateAlias(t *testing.T) {
 	if _, err := usecase.Create(context.Background(), organizationID, actorID, &Partner{
 		Code: "P001", LegalName: "信用代码错误公司", UnifiedSocialCreditCode: "123",
 		Roles: []*PartnerRole{{Type: PartnerRoleCustomer, Enabled: true}},
-	}); err != ErrPartnerInvalidArgument {
+	}, PartnerSettlementRuleWriteAccess{Create: true, Update: true}); err != ErrPartnerInvalidArgument {
 		t.Fatalf("invalid USCC error = %v, want ErrPartnerInvalidArgument", err)
 	}
 	if _, err := usecase.Create(context.Background(), organizationID, actorID, &Partner{
 		Code: "P002", LegalName: "重复别名公司",
 		Roles:   []*PartnerRole{{Type: PartnerRoleCustomer, Enabled: true}},
 		Aliases: []*PartnerAlias{{AliasName: "Acme Logistics"}, {AliasName: " acme   logistics "}},
-	}); err != ErrPartnerAliasExists {
+	}, PartnerSettlementRuleWriteAccess{Create: true, Update: true}); err != ErrPartnerAliasExists {
 		t.Fatalf("duplicate aliases error = %v, want ErrPartnerAliasExists", err)
 	}
 }
@@ -269,7 +269,7 @@ func TestPartnerCreateWithoutTaxIdentifier(t *testing.T) {
 		if _, err := usecase.Create(context.Background(), organizationID, actorID, &Partner{
 			Code: "NOTAX", LegalName: "无税号往来单位",
 			Roles: []*PartnerRole{{Type: roleType, Enabled: true}},
-		}); err != nil {
+		}, PartnerSettlementRuleWriteAccess{Create: true, Update: true}); err != nil {
 			t.Fatalf("role %s create without tax identifier error = %v", roleType, err)
 		}
 	}
@@ -291,7 +291,7 @@ func TestPartnerNormalizesProfileAndAssignments(t *testing.T) {
 			BusinessTypes: []PartnerBusinessType{PartnerBusinessSE, PartnerBusinessAI},
 		},
 		Assignments: []*PartnerAssignment{{Role: PartnerAssignmentSales, UserID: userID, OrganizationID: organizationID}},
-	})
+	}, PartnerSettlementRuleWriteAccess{Create: true, Update: true})
 	if err != nil {
 		t.Fatalf("Create() error = %v", err)
 	}
@@ -322,7 +322,7 @@ func TestPartnerRejectsInvalidProfileAndAssignments(t *testing.T) {
 	for index, profile := range invalidProfiles {
 		input := base
 		input.Profile = profile
-		if _, err := usecase.Create(context.Background(), organizationID, actorID, &input); err != ErrPartnerInvalidArgument {
+		if _, err := usecase.Create(context.Background(), organizationID, actorID, &input, PartnerSettlementRuleWriteAccess{Create: true, Update: true}); err != ErrPartnerInvalidArgument {
 			t.Fatalf("invalid profile %d error = %v, want ErrPartnerInvalidArgument", index, err)
 		}
 	}
@@ -332,12 +332,12 @@ func TestPartnerRejectsInvalidProfileAndAssignments(t *testing.T) {
 		{Role: PartnerAssignmentSales, UserID: uuid.New(), OrganizationID: organizationID},
 		{Role: PartnerAssignmentSales, UserID: uuid.New(), OrganizationID: organizationID},
 	}
-	if _, err := usecase.Create(context.Background(), organizationID, actorID, &input); err != ErrPartnerInvalidArgument {
+	if _, err := usecase.Create(context.Background(), organizationID, actorID, &input, PartnerSettlementRuleWriteAccess{Create: true, Update: true}); err != ErrPartnerInvalidArgument {
 		t.Fatalf("duplicate assignment role error = %v, want ErrPartnerInvalidArgument", err)
 	}
 
 	input.Assignments = []*PartnerAssignment{{Role: PartnerAssignmentCreator, UserID: actorID, OrganizationID: organizationID}}
-	if _, err := usecase.Create(context.Background(), organizationID, actorID, &input); err != ErrPartnerInvalidArgument {
+	if _, err := usecase.Create(context.Background(), organizationID, actorID, &input, PartnerSettlementRuleWriteAccess{Create: true, Update: true}); err != ErrPartnerInvalidArgument {
 		t.Fatalf("client creator assignment error = %v, want ErrPartnerInvalidArgument", err)
 	}
 }
@@ -355,7 +355,7 @@ func TestPartnerAllowsTwoInternalContacts(t *testing.T) {
 			{Role: PartnerAssignmentInternalContact, UserID: uuid.New(), OrganizationID: organizationID},
 		},
 	}
-	created, err := usecase.Create(context.Background(), organizationID, actorID, input)
+	created, err := usecase.Create(context.Background(), organizationID, actorID, input, PartnerSettlementRuleWriteAccess{Create: true, Update: true})
 	if err != nil {
 		t.Fatalf("Create() error = %v", err)
 	}
@@ -366,7 +366,7 @@ func TestPartnerAllowsTwoInternalContacts(t *testing.T) {
 	input.Assignments = append(input.Assignments, &PartnerAssignment{
 		Role: PartnerAssignmentInternalContact, UserID: uuid.New(), OrganizationID: organizationID,
 	})
-	if _, err := usecase.Create(context.Background(), organizationID, actorID, input); err != ErrPartnerInvalidArgument {
+	if _, err := usecase.Create(context.Background(), organizationID, actorID, input, PartnerSettlementRuleWriteAccess{Create: true, Update: true}); err != ErrPartnerInvalidArgument {
 		t.Fatalf("third internal contact error = %v, want ErrPartnerInvalidArgument", err)
 	}
 }
@@ -385,7 +385,7 @@ func TestPartnerAllowsSameUserAcrossBusinessRoles(t *testing.T) {
 			{Role: PartnerAssignmentOperator, UserID: userID},
 			{Role: PartnerAssignmentCustomerService, UserID: userID},
 		},
-	})
+	}, PartnerSettlementRuleWriteAccess{Create: true, Update: true})
 	if err != nil {
 		t.Fatalf("同一人员兼任销售、操作、客服应允许: %v", err)
 	}
@@ -400,7 +400,7 @@ func TestPartnerAllowsSameUserAcrossBusinessRoles(t *testing.T) {
 			{Role: PartnerAssignmentSales, UserID: userID},
 			{Role: PartnerAssignmentSales, UserID: userID},
 		},
-	})
+	}, PartnerSettlementRuleWriteAccess{Create: true, Update: true})
 	if err != ErrPartnerInvalidArgument {
 		t.Fatalf("同一人员重复担任销售应拒绝，实际: %v", err)
 	}
@@ -430,7 +430,7 @@ func TestPartnerNormalizesRoleSettlementRule(t *testing.T) {
 				SettlementCurrency: " cny ", CreditLimitMinor: &creditLimit, CreditCurrency: &creditCurrency, IsActive: true,
 			},
 		}},
-	})
+	}, PartnerSettlementRuleWriteAccess{Create: true, Update: true})
 	if err != nil {
 		t.Fatalf("Create() error = %v", err)
 	}
@@ -441,7 +441,7 @@ func TestPartnerNormalizesRoleSettlementRule(t *testing.T) {
 
 	created.Roles[0].SettlementRule.SettlementMethod = PartnerSettlementMonthly
 	created.Assignments = nil
-	if _, err := usecase.Create(context.Background(), organizationID, actorID, created); err != ErrPartnerSettlementRuleInvalidArgument {
+	if _, err := usecase.Create(context.Background(), organizationID, actorID, created, PartnerSettlementRuleWriteAccess{Create: true, Update: true}); err != ErrPartnerSettlementRuleInvalidArgument {
 		t.Fatalf("monthly rule without settlement base error = %v, want ErrPartnerSettlementRuleInvalidArgument", err)
 	}
 }
@@ -524,7 +524,7 @@ func TestPartnerCreateAndUpdatePreservesIsCasual(t *testing.T) {
 		UnifiedSocialCreditCode: "91310000MA1FL7A21Q",
 		IsCasual:                true,
 		Roles:                   []*PartnerRole{{Type: PartnerRoleCustomer, Enabled: true}},
-	})
+	}, PartnerSettlementRuleWriteAccess{Create: true, Update: true})
 	if err != nil {
 		t.Fatalf("Create() casual partner error = %v", err)
 	}
@@ -540,7 +540,7 @@ func TestPartnerCreateAndUpdatePreservesIsCasual(t *testing.T) {
 		UnifiedSocialCreditCode: "91310000MA1FL7A21Q",
 		IsCasual:                false,
 		Roles:                   []*PartnerRole{{Type: PartnerRoleCustomer, Enabled: true}},
-	})
+	}, PartnerSettlementRuleWriteAccess{Create: true, Update: true})
 	if err != nil {
 		t.Fatalf("Update() partner error = %v", err)
 	}
@@ -576,7 +576,7 @@ func TestPartnerImportForcesIsCasualFalse(t *testing.T) {
 		Source: "test.xlsx",
 		Mode:   PartnerImportCreateOnly,
 		Items:  items,
-	})
+	}, PartnerSettlementRuleWriteAccess{Create: true, Update: true})
 	if err != nil {
 		t.Fatalf("Import() error = %v", err)
 	}

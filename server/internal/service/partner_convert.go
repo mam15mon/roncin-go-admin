@@ -241,10 +241,10 @@ func partnerAssignmentsFromAPI(items []*v1.PartnerAssignmentInput) []*biz.Partne
 	return result
 }
 
-func partnerToAPI(value *biz.Partner) *v1.Partner {
+func partnerToAPI(value *biz.Partner, includeSettlementRule bool) *v1.Partner {
 	roles := make([]*v1.PartnerRole, 0, len(value.Roles))
 	for _, role := range value.Roles {
-		roles = append(roles, partnerRoleToAPI(role))
+		roles = append(roles, partnerRoleToAPI(role, includeSettlementRule))
 	}
 	contacts := partnerContactsToAPI(value.Contacts)
 	aliases := make([]*v1.PartnerAlias, 0, len(value.Aliases))
@@ -265,13 +265,16 @@ func partnerToAPI(value *biz.Partner) *v1.Partner {
 }
 
 // partnerRoleToAPI 输出角色完整状态，含 data 层联查回填的拉黑操作人显示姓名。
-func partnerRoleToAPI(role *biz.PartnerRole) *v1.PartnerRole {
-	return &v1.PartnerRole{
+func partnerRoleToAPI(role *biz.PartnerRole, includeSettlementRule bool) *v1.PartnerRole {
+	result := &v1.PartnerRole{
 		Type: partnerRoleTypeToAPI(role.Type), Enabled: role.Enabled, Blacklisted: role.Blacklisted,
 		BlacklistReason: role.BlacklistReason, BlacklistedAt: formatOptionalTime(role.BlacklistedAt), BlacklistedBy: formatOptionalUUID(role.BlacklistedBy),
 		BlacklistedByName: role.BlacklistedByName,
-		SettlementRule:    partnerSettlementRuleToAPI(role.SettlementRule),
 	}
+	if includeSettlementRule {
+		result.SettlementRule = partnerSettlementRuleToAPI(role.SettlementRule)
+	}
+	return result
 }
 
 func partnerContactsToAPI(items []*biz.PartnerContact) []*v1.PartnerContact {
@@ -287,10 +290,10 @@ func partnerContactsToAPI(items []*biz.PartnerContact) []*v1.PartnerContact {
 
 // partnerExportItemToAPI 把导出档案转换为契约条目：携带完整角色（含启停与
 // 拉黑状态）、联系人列表与更新时间，供前端导出列渲染。
-func partnerExportItemToAPI(value *biz.Partner) *v1.PartnerExportItem {
+func partnerExportItemToAPI(value *biz.Partner, includeSettlementRule bool) *v1.PartnerExportItem {
 	roles := make([]*v1.PartnerRole, 0, len(value.Roles))
 	for _, role := range value.Roles {
-		roles = append(roles, partnerRoleToAPI(role))
+		roles = append(roles, partnerRoleToAPI(role, includeSettlementRule))
 	}
 	return &v1.PartnerExportItem{
 		Code: value.Code, LegalName: value.LegalName, UnifiedSocialCreditCode: value.UnifiedSocialCreditCode,

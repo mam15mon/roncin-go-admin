@@ -37,7 +37,7 @@ func TestPartnerUpdateRolesPreservesAggregatePostgres(t *testing.T) {
 			{Role: biz.PartnerAssignmentOperator, UserID: fixture.actorID},
 			{Role: biz.PartnerAssignmentCustomerService, UserID: fixture.actorID},
 		},
-	})
+	}, biz.PartnerSettlementRuleWriteAccess{Create: true, Update: true})
 	if err != nil {
 		t.Fatal(err)
 	}

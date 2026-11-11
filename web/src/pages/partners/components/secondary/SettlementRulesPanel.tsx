@@ -153,12 +153,16 @@ type SettlementRuleFormValues = {
 
 type SettlementRulesPanelProps = {
   partner?: API.Partner;
-  canManage: boolean;
+  canRead: boolean;
+  canCreate: boolean;
+  canUpdate: boolean;
 };
 
 export default function SettlementRulesPanel({
   partner,
-  canManage,
+  canRead,
+  canCreate,
+  canUpdate,
 }: SettlementRulesPanelProps) {
   const { message } = App.useApp();
   const { initialState } = useInitialState();
@@ -170,6 +174,7 @@ export default function SettlementRulesPanel({
   const [editingRule, setEditingRule] = useState<SettlementRuleItem>();
 
   const openForm = (rule?: SettlementRuleItem) => {
+    if (!canRead || (rule ? !canUpdate : !canCreate)) return;
     setEditingRule(rule);
     formRef.current?.resetFields();
     setModalOpen(true);
@@ -271,7 +276,7 @@ export default function SettlementRulesPanel({
       width: 80,
       fixed: 'right',
       render: (_, record) =>
-        canManage ? (
+        canRead && canUpdate ? (
           <Button
             type="link"
             size="small"
@@ -307,7 +312,7 @@ export default function SettlementRulesPanel({
         pagination={false}
         options={{ reload: true, density: true, setting: false }}
         request={async () => {
-          if (!partner?.id) return { data: [], success: true };
+          if (!canRead || !partner?.id) return { data: [], success: true };
           const partnerId = partner.id;
           const rolesToQuery = (partner.roles ?? [])
             .map((r) => r.type)
@@ -328,7 +333,7 @@ export default function SettlementRulesPanel({
         }}
         toolBarRender={() => [
           columnSettings.entry,
-          ...(canManage
+          ...(canRead && canCreate
             ? [
                 <Button
                   key="create"
@@ -377,6 +382,8 @@ export default function SettlementRulesPanel({
         onOpenChange={setModalOpen}
         onFinish={async (values) => {
           if (
+            !canRead ||
+            (editingRule ? !canUpdate : !canCreate) ||
             !partner?.id ||
             !values.roleType ||
             !values.statementMode ||

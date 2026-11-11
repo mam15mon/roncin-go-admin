@@ -167,9 +167,7 @@ export default function PartnerDetailPage() {
 
   const isInvalidId = !isCreate && Boolean(rawId) && !hasValidUuid;
 
-  const canReadSettlementRules = Boolean(
-    access.canReadPartnerSettlementRules || access.canManagePartners,
-  );
+  const canReadSettlementRules = Boolean(access.canReadPartnerSettlementRules);
   const canReadContracts = Boolean(
     access.canReadPartnerContracts || access.canManagePartners,
   );
@@ -288,15 +286,25 @@ export default function PartnerDetailPage() {
       ? Boolean(access.canCreatePartners || access.canManagePartners)
       : Boolean(access.canUpdatePartners || access.canManagePartners));
 
+  const canWriteSettlementRules =
+    canOperate &&
+    Boolean(
+      access.canCreatePartnerSettlementRules ||
+        access.canUpdatePartnerSettlementRules,
+    );
   const canSaveSettlement =
     canOperate &&
     (isCreate
-      ? Boolean(
-          access.canCreatePartnerSettlementRules || access.canManagePartners,
-        )
-      : Boolean(
-          access.canUpdatePartnerSettlementRules || access.canManagePartners,
+      ? Boolean(access.canCreatePartnerSettlementRules)
+      : canReadSettlementRules &&
+        settlementRuleQuery.isSuccess &&
+        !settlementRuleQuery.isFetching &&
+        Boolean(
+          settlementRuleQuery.data
+            ? access.canUpdatePartnerSettlementRules
+            : access.canCreatePartnerSettlementRules,
         ));
+  const showSettlement = isCreate ? canSaveSettlement : canReadSettlementRules;
 
   useEffect(() => {
     if (isInvalidId) {
@@ -516,7 +524,8 @@ export default function PartnerDetailPage() {
 
     if (
       !isCreate &&
-      canSaveSettlement &&
+      canReadSettlementRules &&
+      canWriteSettlementRules &&
       (!settlementRuleQuery.isSuccess ||
         settlementRuleQuery.isFetching ||
         initializedSettlementRef.current !== identity)
@@ -611,23 +620,26 @@ export default function PartnerDetailPage() {
         settlementMethod ===
           PartnerSettlementMethod.PARTNER_SETTLEMENT_METHOD_PREPAID;
 
-      const settlementRuleInput: API.PartnerSettlementRuleInput = {
-        statementMode: Number(values.statementMode || 1),
-        settlementMethod,
-        ...(isTermFree
-          ? {}
-          : {
-              settlementDay: Number(values.settlementDay || 25),
-              settlementBase: Number(values.settlementBase || 1),
-              settlementCycleDays: Number(values.creditDays || 30),
-            }),
-        settlementCurrency: values.settlementCurrency || 'CNY',
-        ...creditLimitFields(values.creditLimit, baseCurrency),
-        paymentTermsDays: values.paymentTermsDays,
-        isActive: settlementRuleQuery.data
-          ? (settlementRuleQuery.data.isActive ?? false)
-          : true,
-      };
+      const settlementRuleInput: API.PartnerSettlementRuleInput | undefined =
+        canSaveSettlement
+          ? {
+              statementMode: Number(values.statementMode || 1),
+              settlementMethod,
+              ...(isTermFree
+                ? {}
+                : {
+                    settlementDay: Number(values.settlementDay || 25),
+                    settlementBase: Number(values.settlementBase || 1),
+                    settlementCycleDays: Number(values.creditDays || 30),
+                  }),
+              settlementCurrency: values.settlementCurrency || 'CNY',
+              ...creditLimitFields(values.creditLimit, baseCurrency),
+              paymentTermsDays: values.paymentTermsDays,
+              isActive: settlementRuleQuery.data
+                ? (settlementRuleQuery.data.isActive ?? false)
+                : true,
+            }
+          : undefined;
 
       const selectedRoleTypes: number[] = values.roleTypes || [roleType];
       const roleInputs: API.PartnerRoleInput[] = selectedRoleTypes.map(
@@ -881,14 +893,18 @@ export default function PartnerDetailPage() {
           />
 
           {/* Section 2: 财务结算规则 */}
-          {(isCreate || canReadSettlementRules) && (
+          {showSettlement && (
             <>
               {!isCreate && settlementRuleQuery.isError && (
                 <Alert
                   type="error"
                   showIcon
                   style={{ marginBottom: 12 }}
-                  title="结算规则加载失败，原资料和输入已保留，请重试后保存"
+                  title={
+                    canWriteSettlementRules
+                      ? '结算规则加载失败，原资料和输入已保留，请重试后保存'
+                      : '结算规则加载失败，可重试查看；普通档案资料仍可保存'
+                  }
                   action={
                     <Button
                       loading={settlementRuleQuery.isFetching}
@@ -907,7 +923,7 @@ export default function PartnerDetailPage() {
                   type="warning"
                   showIcon
                   style={{ marginBottom: 12 }}
-                  title={`原信用额度为 ${formatAmount(Number(settlementRuleQuery.data?.creditLimitMinor) / 100)} ${settlementRuleQuery.data?.creditCurrency || '币种缺失'}，请重新填写 ${baseCurrency || '公司本币'} 额度`}
+                  title={`原信用额度为 ${formatAmount(Number(settlementRuleQuery.data?.creditLimitMinor) / 100)} ${settlementRuleQuery.data?.creditCurrency || '币种缺失'}，${canSaveSettlement ? `请重新填写 ${baseCurrency || '公司本币'} 额度` : '请由有结算规则编辑权限的人员维护'}`}
                 />
               )}
               {(isCreate ||
@@ -921,10 +937,14 @@ export default function PartnerDetailPage() {
                   currencyOptions={currencyOptions}
                   roleLabel={roleLabel}
                   baseCurrency={baseCurrency}
-                  requireCreditLimit={hasInvalidCreditCurrency(
-                    settlementRuleQuery.data,
-                    baseCurrency,
-                  )}
+                  disabled={!canSaveSettlement}
+                  requireCreditLimit={
+                    canSaveSettlement &&
+                    hasInvalidCreditCurrency(
+                      settlementRuleQuery.data,
+                      baseCurrency,
+                    )
+                  }
                 />
               )}
             </>
@@ -1063,9 +1083,8 @@ export default function PartnerDetailPage() {
       {!loading && (
         <PartnerAnchorNav
           sectionErrors={sectionErrors}
-          isCreate={isCreate}
           partnerId={partnerId}
-          canReadSettlementRules={canReadSettlementRules}
+          showSettlement={showSettlement}
           canReadAccounts={canReadAccounts}
           canReadShippingPresets={canReadShippingPresets}
           canReadContracts={canReadContracts}

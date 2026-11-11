@@ -80,6 +80,7 @@ type SettlementSectionProps = {
   roleLabel?: string;
   baseCurrency?: string;
   requireCreditLimit?: boolean;
+  disabled?: boolean;
 };
 
 export default function SettlementSection({
@@ -89,6 +90,7 @@ export default function SettlementSection({
   roleLabel,
   baseCurrency,
   requireCreditLimit,
+  disabled,
 }: SettlementSectionProps) {
   const isSupplier = roleLabel === '供应商';
   return (
@@ -106,6 +108,7 @@ export default function SettlementSection({
           {/* Row 1 - Col 1: 对账方式 */}
           <Col xs={24} sm={12} md={8}>
             <ProFormSelect
+              disabled={disabled}
               name="statementMode"
               label="对账方式"
               labelCol={labelCol}
@@ -117,6 +120,7 @@ export default function SettlementSection({
           {/* Row 1 - Col 2: 结算方式 */}
           <Col xs={24} sm={12} md={8}>
             <ProFormSelect
+              disabled={disabled}
               name="settlementMethod"
               label="结算方式"
               labelCol={labelCol}
@@ -128,6 +132,7 @@ export default function SettlementSection({
           {/* Row 1 - Col 3: 结算币种 */}
           <Col xs={24} sm={12} md={8}>
             <ProFormSelect
+              disabled={disabled}
               name="settlementCurrency"
               label="结算币种"
               labelCol={labelCol}
@@ -169,6 +174,7 @@ export default function SettlementSection({
                 </div>
                 <Form.Item name="settlementDay" noStyle>
                   <Select
+                    disabled={disabled}
                     options={SETTLEMENT_DAY_OPTIONS}
                     placeholder="请选择"
                     style={{ width: '100%' }}
@@ -195,6 +201,7 @@ export default function SettlementSection({
               <Space.Compact style={{ width: '100%' }}>
                 <Form.Item name="settlementBase" noStyle>
                   <Select
+                    disabled={disabled}
                     options={SETTLEMENT_BASE_OPTIONS}
                     placeholder="请选择"
                     style={{ width: '55%' }}
@@ -202,6 +209,7 @@ export default function SettlementSection({
                 </Form.Item>
                 <Form.Item name="creditDays" noStyle>
                   <Input
+                    disabled={disabled}
                     placeholder="天数"
                     style={{ width: '45%', textAlign: 'center' }}
                     suffix="天"
@@ -214,6 +222,7 @@ export default function SettlementSection({
           {/* Row 2 - Col 3: 默认账期天数 */}
           <Col xs={24} sm={12} md={8}>
             <ProFormDigit
+              disabled={disabled}
               name="paymentTermsDays"
               label={
                 <Space size={4}>
@@ -236,6 +245,7 @@ export default function SettlementSection({
           {(!isSupplier || requireCreditLimit) && (
             <Col xs={24} sm={12} md={8}>
               <ProFormDigit
+                disabled={disabled}
                 name="creditLimit"
                 label={
                   <Space size={4}>

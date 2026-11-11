@@ -19,6 +19,9 @@ type PartnerSecondaryProps = {
   canCreateAccounts: boolean;
   canUpdateAccounts: boolean;
   canManage: boolean;
+  canReadSettlementRules: boolean;
+  canCreateSettlementRules: boolean;
+  canUpdateSettlementRules: boolean;
   onClose: () => void;
 };
 
@@ -29,6 +32,9 @@ export default function PartnerSecondary({
   canCreateAccounts,
   canUpdateAccounts,
   canManage,
+  canReadSettlementRules,
+  canCreateSettlementRules,
+  canUpdateSettlementRules,
   onClose,
 }: PartnerSecondaryProps) {
   return (
@@ -101,7 +107,12 @@ export default function PartnerSecondary({
               </Space>
             ),
             children: (
-              <SettlementRulesPanel partner={partner} canManage={canManage} />
+              <SettlementRulesPanel
+                partner={partner}
+                canRead={canReadSettlementRules}
+                canCreate={canCreateSettlementRules}
+                canUpdate={canUpdateSettlementRules}
+              />
             ),
           },
           {

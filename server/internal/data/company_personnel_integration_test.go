@@ -155,7 +155,7 @@ func TestCompanyPersonnelWorkspacePostgres(t *testing.T) {
 			LegalName: "跨公司责任人客户", IsCasual: true,
 			Roles:       []*biz.PartnerRole{{Type: biz.PartnerRoleCustomer, Enabled: true}},
 			Assignments: []*biz.PartnerAssignment{{Role: biz.PartnerAssignmentSales, UserID: outsider.ID}},
-		})
+		}, biz.PartnerSettlementRuleWriteAccess{Create: true, Update: true})
 		if !errors.Is(err, biz.ErrPartnerInvalidArgument) {
 			t.Fatalf("应拒绝下属公司责任人: %v", err)
 		}

@@ -68,10 +68,10 @@ func TestPartnerCreditCurrencyPostgres(t *testing.T) {
 			partner.LegalName = "不得落库的新名称"
 			partner.NormalizedName = partner.LegalName
 			partner.Roles[0].SettlementRule = &invalid
-			if _, err := partnerRepo.Update(ctx, f.organizationID, partnerID, partner, audit()); err != biz.ErrPartnerCreditCurrencyMismatch {
+			if _, err := partnerRepo.Update(ctx, f.organizationID, partnerID, partner, biz.PartnerSettlementRuleWriteAccess{Create: true, Update: true}, audit()); err != biz.ErrPartnerCreditCurrencyMismatch {
 				t.Fatalf("内嵌结算规则同样拒绝: %v", err)
 			}
-			if _, err := partnerRepo.Import(ctx, f.organizationID, biz.PartnerImportUpsert, []*biz.Partner{partner}, audit()); err != biz.ErrPartnerCreditCurrencyMismatch {
+			if _, err := partnerRepo.Import(ctx, f.organizationID, biz.PartnerImportUpsert, []*biz.Partner{partner}, biz.PartnerSettlementRuleWriteAccess{Create: true, Update: true}, audit()); err != biz.ErrPartnerCreditCurrencyMismatch {
 				t.Fatalf("导入更新内嵌结算规则同样拒绝: %v", err)
 			}
 			stored, err := data.db.Partner.Get(ctx, partnerID)
@@ -86,10 +86,10 @@ func TestPartnerCreditCurrencyPostgres(t *testing.T) {
 			newPartner.Code = "INVALID-CURRENCY-" + uuid.NewString()[:8]
 			newPartner.LegalName = newPartner.Code
 			newPartner.NormalizedName = newPartner.Code
-			if _, err := partnerRepo.Create(ctx, f.organizationID, &newPartner, audit()); err != biz.ErrPartnerCreditCurrencyMismatch {
+			if _, err := partnerRepo.Create(ctx, f.organizationID, &newPartner, biz.PartnerSettlementRuleWriteAccess{Create: true, Update: true}, audit()); err != biz.ErrPartnerCreditCurrencyMismatch {
 				t.Fatalf("新建档案的内嵌结算规则同样拒绝: %v", err)
 			}
-			if _, err := partnerRepo.Import(ctx, f.organizationID, biz.PartnerImportUpsert, []*biz.Partner{&newPartner}, audit()); err != biz.ErrPartnerCreditCurrencyMismatch {
+			if _, err := partnerRepo.Import(ctx, f.organizationID, biz.PartnerImportUpsert, []*biz.Partner{&newPartner}, biz.PartnerSettlementRuleWriteAccess{Create: true, Update: true}, audit()); err != biz.ErrPartnerCreditCurrencyMismatch {
 				t.Fatalf("导入新建内嵌结算规则同样拒绝: %v", err)
 			}
 			if count, err := data.db.Partner.Query().Count(ctx); err != nil || count != beforeCount {

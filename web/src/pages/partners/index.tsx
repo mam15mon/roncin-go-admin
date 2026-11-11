@@ -655,6 +655,15 @@ function PartnersContent() {
       <PartnerSecondary
         partner={secondaryPartner}
         open={Boolean(secondaryPartner)}
+        canReadSettlementRules={access.canReadPartnerSettlementRules}
+        canCreateSettlementRules={
+          access.canOperateOrganization(secondaryPartner?.organizationId) &&
+          access.canCreatePartnerSettlementRules
+        }
+        canUpdateSettlementRules={
+          access.canOperateOrganization(secondaryPartner?.organizationId) &&
+          access.canUpdatePartnerSettlementRules
+        }
         canReadAccounts={access.canReadPartnerAccounts}
         canCreateAccounts={
           access.canOperateOrganization(secondaryPartner?.organizationId) &&
