@@ -16,7 +16,7 @@ const { Text } = Typography;
  * 语义铁律：
  * - 「已发」仅表示对应提成单已发放，不宣称整票或全部回款结清；
  * - 「待冲减」是待处理的冲减建议，不代表已实际扣回；
- * - 「预计」是尚未生成有效提成单的估算机会，非应发承诺；
+ * - 「可计提来源」是尚未生成有效提成单的来源笔数，非应发承诺；
  * - 金额为订单组织本位币口径，不同币种不合并。
  * 更多明细（按员工、来源单）前往现有提成台账页进一步查看。
  */
@@ -157,7 +157,7 @@ export function OrderCommissionSummaryModal({
                   <span>{factDescription(fact, summary?.baseCurrency)}</span>
                   {fact.key === 'expected' && (
                     <Text type="secondary">
-                      尚未生成有效提成单的估算机会，非应发承诺
+                      按核销、对冲来源去重计数，尚未生成有效提成单，不代表金额或待发提成
                     </Text>
                   )}
                   {fact.key === 'draft' && (

@@ -163,7 +163,7 @@ describe('OrderCommissionSummaryCell', () => {
       <OrderCommissionSummaryCell summary={organizationSummary} />,
     );
 
-    expect(screen.getByText('预计 3')).toBeInTheDocument();
+    expect(screen.getByText('可计提来源 3 笔')).toBeInTheDocument();
     expect(screen.getByText('待发 ¥260.50')).toBeInTheDocument();
     expect(screen.getByText('待冲减 ¥30.00')).toBeInTheDocument();
     expect(screen.queryByText('我暂无提成')).not.toBeInTheDocument();
@@ -197,7 +197,7 @@ describe('OrderCommissionSummaryCell', () => {
       <OrderCommissionSummaryCell summary={mixed} />,
     );
 
-    expect(screen.getByText('预计 1')).toBeInTheDocument();
+    expect(screen.getByText('可计提来源 1 笔')).toBeInTheDocument();
     expect(screen.getByText('待确认 1')).toBeInTheDocument();
     expect(screen.getByText('待发 1')).toBeInTheDocument();
     expect(screen.getByText('已发 1')).toBeInTheDocument();
@@ -274,6 +274,7 @@ describe('OrderCommissionSummaryModal', () => {
 
     expect(screen.getByText('提成摘要 · SE202609180001')).toBeInTheDocument();
     expect(screen.getByText('组织全员视图')).toBeInTheDocument();
+    expect(screen.getByText('可计提来源')).toBeInTheDocument();
     expect(screen.getByText('3 笔')).toBeInTheDocument();
     expect(screen.getByText('1 笔 · ¥260.50')).toBeInTheDocument();
     expect(screen.getByText('2 笔 · ¥120.00')).toBeInTheDocument();
@@ -286,7 +287,9 @@ describe('OrderCommissionSummaryModal', () => {
       screen.getByText('冲减建议待处理，尚未实际扣回'),
     ).toBeInTheDocument();
     expect(
-      screen.getByText('尚未生成有效提成单的估算机会，非应发承诺'),
+      screen.getByText(
+        '按核销、对冲来源去重计数，尚未生成有效提成单，不代表金额或待发提成',
+      ),
     ).toBeInTheDocument();
     expect(screen.getByText(/订单组织本位币（CNY）口径/)).toBeInTheDocument();
     expect(

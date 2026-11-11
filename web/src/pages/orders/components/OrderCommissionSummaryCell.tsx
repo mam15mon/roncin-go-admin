@@ -32,7 +32,7 @@ export function buildCommissionFacts(
   if (summary.hasExpectedOpportunity === true) {
     facts.push({
       key: 'expected',
-      label: '预计',
+      label: '可计提来源',
       count: summary.expectedOpportunityCount,
       color: 'cyan',
     });
@@ -132,7 +132,9 @@ export function OrderCommissionSummaryCell({
             style={{ cursor: onOpen ? 'pointer' : undefined }}
             onClick={onOpen ? () => onOpen(summary) : undefined}
           >
-            {fact.label} {amountText ?? fact.count ?? 0}
+            {fact.key === 'expected'
+              ? `${fact.label} ${fact.count ?? 0} 笔`
+              : `${fact.label} ${amountText ?? fact.count ?? 0}`}
           </Tag>
         );
       })}
