@@ -1574,3 +1574,33 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Next Steps
 
 - 继续常用单证预设默认项只读核查，证据不足不计确认问题；用户说结束前不归档。
+
+
+## Session 204: 海运出口列表主分单关系可见性
+<!-- trellis-session: v=2 fp=f2913fa3bf85b128 -->
+
+**Date**: 2026-11-11
+**Task**: 海运出口列表主分单关系可见性
+**Branch**: `codex/sea-order-bill-visibility`
+
+### Summary
+
+海运出口逐票列表增加主单 MBL、分单 HBL、直单状态与真实活动关联票数，保留列偏好；check:web 完整门禁通过，并以模拟 API 完成浏览器三密度和窄屏验证。
+
+### Main Changes
+
+- 规范同步主分单身份与计数口径，独立复核无剩余阻塞。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `c7cb956f` | feat: 清晰展示海运出口订单的主分单关系 |
+
+### Testing
+
+- [OK] check:web：436 文件通过，2370 用例通过，既有跳过项保持不变。
+
+### Status
+
+[OK] **Completed**
