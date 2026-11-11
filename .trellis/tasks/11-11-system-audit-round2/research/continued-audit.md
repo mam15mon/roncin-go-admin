@@ -21,3 +21,7 @@
 但最终以 `isDefault && enabled` 保存本项。主档详情确有 PresetsSection→ShippingPresetSection
 的 RPC 消费入口，但该 UI 新建默认 enabled=true 且无启停开关，不能写成正常 UI 直接可触发。
 尚未动态复现或证明订单自动带入影响，暂记待证，不混入已经修复的 B1–B6。
+
+## 动态确认结果
+
+用户要求实际确认后，禁用默认组合已在 SHIPPER 路径经真实 Service→Biz→Data→正式迁移 PostgreSQL 复现，创建和更新均清除原有效默认，对照正常。现升格为 B7/P2，详见 [动态证据及复现源码](preset-default-dynamic-confirmation.md)。上文暂定状态保留为此前时点；本轮未修复产品。
