@@ -190,6 +190,17 @@ netting summary amount = sum(nettings where status = CONFIRMED)
 
 **Related**：普通费用的提成收入及分母使用账单行 `BaseCurrencyAmount`（账单日汇率）；未建账普通费用使用费用自身快照。受控补录/更正费用使用批准时的费用经济汇率快照，后续建账日汇率不得再次改变提成基础。收入归属须消费统一账单行清偿与经济来源投影，见 [费用更正契约](./order-fee-correction.md) 与提成分母测试。
 
+### 对冲预览候选数量按未结账单计算
+
+`financeNettingRepo.LoadPreview` 按公司、结算单位、账单币种和 CONFIRMED 筛选，并在
+`LIMIT MaxFinanceNettingBills + 1` 之前应用 `billUnsettledPredicate()`。未结定义为
+总金额大于有效核销与有效对冲之和，不能用确认状态代替结清状态；500 张上限只限制可参与
+候选，不能先装入已结清历史再报超限。真正 501 张未结仍返回 `ErrFinanceNettingTooManyBills`。
+
+正式迁移回归覆盖 500 张已清历史加两张未清、真正 500/501 未清边界、核销/对冲/混合结清、
+撤销分摊后恢复候选及公司/单位/币种隔离。预览公开参数无日期或账单 ID，不得把历史耗尽上限
+归因于用户没有继续缩小筛选范围。
+
 ### Convention: 费用删除按账单占用判定，账单行快照独立于来源费用
 
 **What**：当前有效订单费用的普通删除是物理删除；订单须 ACTIVE、未人工审核锁定，并通过删除权限及版本校验。

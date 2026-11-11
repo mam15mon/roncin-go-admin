@@ -8,6 +8,7 @@ import (
 
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
@@ -298,69 +299,8 @@ func (r *commissionRepo) TransitionAdjustment(ctx context.Context, org, id, acto
 				if parseErr != nil {
 					return parseErr
 				}
-				// 订单行层有效余额：以 FinanceCommissionLine.commission_amount 为起点，
-				// 只汇总同 commission_id + order_id 的 CONFIRMED/PAID 符号化调整
-				//（不含其他 DRAFT）。确认在锁内重算，不静默缩小建议金额；
-				// 同父单其他订单行的正余额不得替当前订单行兜底。
-				line, lineErr := tx.FinanceCommissionLine.Query().
-					Where(commissionline.CommissionIDEQ(parent.ID), commissionline.OrderIDEQ(x.OrderID)).
-					Only(ctx)
-				if lineErr != nil {
-					return mapEntError(lineErr, biz.ErrCommissionAdjustmentInvalid, nil)
-				}
-				lineEffective, parseErr := decimalOf(line.CommissionAmount)
-				if parseErr != nil {
-					return parseErr
-				}
-				lineAdjustments, queryErr := tx.FinanceCommissionAdjustment.Query().Where(
-					adjustment.CommissionIDEQ(parent.ID),
-					adjustment.OrderIDEQ(x.OrderID),
-					adjustment.IDNEQ(x.ID),
-					adjustment.StatusIn(adjustment.StatusCONFIRMED, adjustment.StatusPAID),
-				).All(ctx)
-				if queryErr != nil {
-					return queryErr
-				}
-				for _, old := range lineAdjustments {
-					amount, amountErr := decimalOf(old.Amount)
-					if amountErr != nil {
-						return amountErr
-					}
-					if old.Direction == adjustment.DirectionDECREASE {
-						lineEffective = lineEffective.Sub(amount)
-					} else {
-						lineEffective = lineEffective.Add(amount)
-					}
-				}
-				if lineEffective.Sub(currentAmount).IsNegative() {
-					return biz.ErrCommissionAdjustmentExceeds
-				}
-				// 父单层有效余额：以 FinanceCommission.commission_amount 为起点，
-				// 汇总父单全部 CONFIRMED/PAID 符号化调整（不含其他 DRAFT）。
-				active, queryErr := tx.FinanceCommissionAdjustment.Query().Where(
-					adjustment.CommissionIDEQ(parent.ID), adjustment.IDNEQ(x.ID),
-					adjustment.StatusIn(adjustment.StatusCONFIRMED, adjustment.StatusPAID),
-				).All(ctx)
-				if queryErr != nil {
-					return queryErr
-				}
-				effective, parseErr := decimalOf(parent.CommissionAmount)
-				if parseErr != nil {
-					return parseErr
-				}
-				for _, old := range active {
-					amount, amountErr := decimalOf(old.Amount)
-					if amountErr != nil {
-						return amountErr
-					}
-					if old.Direction == adjustment.DirectionDECREASE {
-						effective = effective.Sub(amount)
-					} else {
-						effective = effective.Add(amount)
-					}
-				}
-				if effective.Sub(currentAmount).IsNegative() {
-					return biz.ErrCommissionAdjustmentExceeds
+				if err := ensureCommissionAdjustmentBalances(ctx, tx, parent, x, currentAmount); err != nil {
+					return err
 				}
 			}
 			update.SetStatus(adjustment.StatusCONFIRMED).SetConfirmedAt(now).SetConfirmedBy(actor)
@@ -392,6 +332,12 @@ func (r *commissionRepo) TransitionAdjustment(ctx context.Context, org, id, acto
 			if x.Status != adjustment.StatusDRAFT && x.Status != adjustment.StatusCONFIRMED {
 				return biz.ErrCommissionAdjustmentTransition
 			}
+			if x.Status == adjustment.StatusCONFIRMED && x.Direction == adjustment.DirectionINCREASE {
+				// 已确认增提可能已被后续冲减使用，移除后仍须守住订单行与父单非负。
+				if err := ensureCommissionAdjustmentBalances(ctx, tx, parent, x, decimal.Zero); err != nil {
+					return err
+				}
+			}
 			update.SetStatus(adjustment.StatusCANCELLED).SetCancelledAt(now).SetCancelledBy(actor).SetCancellationReason(reason)
 		default:
 			return biz.ErrCommissionAdjustmentInvalid
@@ -406,6 +352,49 @@ func (r *commissionRepo) TransitionAdjustment(ctx context.Context, org, id, acto
 	}
 	loaded, err := r.GetAdjustmentScoped(ctx, []uuid.UUID{org}, updated.ID)
 	return loaded, err
+}
+
+// ensureCommissionAdjustmentBalances 在父单与订单已锁定后计算排除当前调整的双层
+// 有效余额。确认冲减再扣本次金额，取消增提不再扣款；其他草稿不计入可用余额。
+func ensureCommissionAdjustmentBalances(ctx context.Context, tx *ent.Tx, parent *ent.FinanceCommission, current *ent.FinanceCommissionAdjustment, decrease decimal.Decimal) error {
+	line, err := tx.FinanceCommissionLine.Query().
+		Where(commissionline.CommissionIDEQ(parent.ID), commissionline.OrderIDEQ(current.OrderID)).
+		Only(ctx)
+	if err != nil {
+		return mapEntError(err, biz.ErrCommissionAdjustmentInvalid, nil)
+	}
+	lineEffective, err := decimalOf(line.CommissionAmount)
+	if err != nil {
+		return err
+	}
+	parentEffective, err := decimalOf(parent.CommissionAmount)
+	if err != nil {
+		return err
+	}
+	active, err := tx.FinanceCommissionAdjustment.Query().Where(
+		adjustment.CommissionIDEQ(parent.ID), adjustment.IDNEQ(current.ID),
+		adjustment.StatusIn(adjustment.StatusCONFIRMED, adjustment.StatusPAID),
+	).All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, old := range active {
+		amount, err := decimalOf(old.Amount)
+		if err != nil {
+			return err
+		}
+		if old.Direction == adjustment.DirectionDECREASE {
+			amount = amount.Neg()
+		}
+		parentEffective = parentEffective.Add(amount)
+		if old.OrderID == current.OrderID {
+			lineEffective = lineEffective.Add(amount)
+		}
+	}
+	if lineEffective.Sub(decrease).IsNegative() || parentEffective.Sub(decrease).IsNegative() {
+		return biz.ErrCommissionAdjustmentExceeds
+	}
+	return nil
 }
 
 func commissionAdjustmentToBiz(x *ent.FinanceCommissionAdjustment) (*biz.FinanceCommissionAdjustment, error) {
