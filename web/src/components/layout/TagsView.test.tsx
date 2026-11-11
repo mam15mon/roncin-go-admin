@@ -166,20 +166,17 @@ describe('routeUtils', () => {
         '/finance/fees/export',
       );
     });
-    it('海运出口所有子路由归组为 /orders/sea-export', () => {
-      expect(resolveTabKey('/orders/sea-export')).toBe('/orders/sea-export');
-      expect(resolveTabKey('/orders/sea-export/new')).toBe(
+    it('海运出口列表、新建和各订单页面使用独立页签', () => {
+      for (const path of [
         '/orders/sea-export',
-      );
-      expect(resolveTabKey('/orders/sea-export/SE2026082600004')).toBe(
-        '/orders/sea-export',
-      );
-      expect(resolveTabKey('/orders/sea-export/SE2026082600004/fees')).toBe(
-        '/orders/sea-export',
-      );
-      expect(resolveTabKey('/orders/sea-export/SE2026082600004/split')).toBe(
-        '/orders/sea-export',
-      );
+        '/orders/sea-export/new',
+        '/orders/sea-export/SE001',
+        '/orders/sea-export/SE001/fees',
+        '/orders/sea-export/SE001/split',
+        '/orders/sea-export/SE001/hbl',
+      ]) {
+        expect(resolveTabKey(path)).toBe(path);
+      }
     });
 
     it('客商三类入口各自归组且互不合并', () => {
@@ -373,56 +370,32 @@ describe('TagsView Component', () => {
     expect(tabs.length).toBe(2);
   });
 
-  it('同一菜单内连续跳转（列表 → 新建 → 详情 → 费用 → 列表）不增加重复页签', () => {
+  it('列表、新建和详情各自保留页签，返回列表不新增页签', () => {
     mockPathname = '/orders/sea-export';
     const { rerender } = render(<TagsView />);
-
-    expect(screen.getByText('海运出口订单列表')).toBeInTheDocument();
-    expect(screen.getAllByRole('tab').length).toBe(2);
-
-    // 跳转至新建订单
     mockPathname = '/orders/sea-export/new';
     rerender(<TagsView />);
-    expect(screen.getAllByRole('tab').length).toBe(2);
+    mockPathname = '/orders/sea-export/SE001';
+    rerender(<TagsView />);
+    expect(screen.getAllByRole('tab')).toHaveLength(4);
+    expect(screen.getByText('海运出口订单列表')).toBeInTheDocument();
     expect(screen.getByText('SE 新建订单')).toBeInTheDocument();
-    expect(screen.queryByText('海运出口订单列表')).not.toBeInTheDocument();
-
-    // 跳转至订单详情
-    mockPathname = '/orders/sea-export/SE2026082600004';
-    rerender(<TagsView />);
-    expect(screen.getAllByRole('tab').length).toBe(2);
     expect(screen.getByText('订单详情')).toBeInTheDocument();
-
-    // 跳转至费用录入
-    mockPathname = '/orders/sea-export/SE2026082600004/fees';
-    rerender(<TagsView />);
-    expect(screen.getAllByRole('tab').length).toBe(2);
-    expect(screen.getByText('订单费用录入')).toBeInTheDocument();
-
-    // 返回列表
     mockPathname = '/orders/sea-export';
     rerender(<TagsView />);
-    expect(screen.getAllByRole('tab').length).toBe(2);
-    expect(screen.getByText('海运出口订单列表')).toBeInTheDocument();
+    expect(screen.getAllByRole('tab')).toHaveLength(4);
+    fireEvent.click(screen.getByText('SE 新建订单'));
+    expect(mockPush).toHaveBeenCalledWith('/orders/sea-export/new');
   });
 
-  it('连续打开不同订单详情时，页签保持单个并指向最后打开的订单', () => {
+  it('不同订单详情各自保留页签和路径', () => {
     mockPathname = '/orders/sea-export/SE001';
     const { rerender } = render(<TagsView />);
-
-    expect(screen.getAllByRole('tab').length).toBe(2);
-
     mockPathname = '/orders/sea-export/SE002';
     rerender(<TagsView />);
-    expect(screen.getAllByRole('tab').length).toBe(2);
-
-    // 切到工作台后点击海运出口页签，应恢复到最后打开的 SE002
-    mockPathname = '/welcome';
-    rerender(<TagsView />);
-
-    const orderTab = screen.getByText('订单详情');
-    fireEvent.click(orderTab);
-    expect(mockPush).toHaveBeenCalledWith('/orders/sea-export/SE002');
+    expect(screen.getAllByRole('tab')).toHaveLength(3);
+    fireEvent.click(screen.getAllByText('订单详情')[0]);
+    expect(mockPush).toHaveBeenCalledWith('/orders/sea-export/SE001');
   });
 
   it('客户、供应商、国外代理各自复用且互不合并', () => {
@@ -482,7 +455,7 @@ describe('TagsView Component', () => {
     expect(mockPush).toHaveBeenCalledWith('/settings?tab=security#logs');
   });
 
-  it('响应 roncin:update-tab-title 动态更新标题，并拦截迟到事件', () => {
+  it('动态标题更新只影响对应订单页签', () => {
     mockPathname = '/orders/sea-export/SE001';
     const { rerender } = render(<TagsView />);
 
@@ -507,7 +480,7 @@ describe('TagsView Component', () => {
     rerender(<TagsView />);
     expect(screen.getByText('SE 新建订单')).toBeInTheDocument();
 
-    // 之前 SE001 迟到的标题事件到达，应被门禁拦截，不能覆盖新建页面的标题
+    // SE001 的标题事件更新原页签，不影响新建页面的标题
     act(() => {
       window.dispatchEvent(
         new CustomEvent('roncin:update-tab-title', {
@@ -520,7 +493,7 @@ describe('TagsView Component', () => {
     });
 
     expect(screen.getByText('SE 新建订单')).toBeInTheDocument();
-    expect(screen.queryByText('迟到的SE001标题')).not.toBeInTheDocument();
+    expect(screen.getByText('迟到的SE001标题')).toBeInTheDocument();
   });
 
   it('点击关闭当前激活页签时移除并激活前序页签', () => {
@@ -574,7 +547,7 @@ describe('TagsView Component', () => {
     mockPathname = '/orders/sea-export/SE002';
     rerender(<TagsView />);
 
-    // 此时 SE001 的标题更新事件迟到到达，应被丢弃，不可覆盖 SE002 的标题
+    // SE001 的标题事件只更新其自身页签，不覆盖 SE002 的标题
     act(() => {
       window.dispatchEvent(
         new CustomEvent('roncin:update-tab-title', {
@@ -586,7 +559,7 @@ describe('TagsView Component', () => {
       );
     });
 
-    expect(screen.queryByText('SE001 (海运出口)')).not.toBeInTheDocument();
+    expect(screen.getByText('SE001 (海运出口)')).toBeInTheDocument();
     expect(screen.getByText('订单详情')).toBeInTheDocument();
 
     // SE002 的标题更新事件正常到达，页签标题更新为 SE002
@@ -821,7 +794,7 @@ describe('TagsView Component', () => {
     render(<TagsView />);
 
     // 注册海运出口新建订单处于 dirty 状态
-    registerTabCloseGuard('/orders/sea-export', {
+    registerTabCloseGuard('/orders/sea-export/new', {
       isDirty: () => true,
     });
 
@@ -850,7 +823,7 @@ describe('TagsView Component', () => {
     mockPathname = '/orders/sea-export/SE001';
     render(<TagsView />);
 
-    registerTabCloseGuard('/orders/sea-export', {
+    registerTabCloseGuard('/orders/sea-export/SE001', {
       isDirty: () => true,
     });
 
@@ -882,8 +855,8 @@ describe('TagsView Component', () => {
     mockPathname = '/partners/customers';
     rerender(<TagsView />);
 
-    // 此时标签为：工作台、海运出口、客户；海运出口处于 dirty 状态
-    registerTabCloseGuard('/orders/sea-export', {
+    // 此时标签为：工作台、新建订单、客户；新建订单处于 dirty 状态
+    registerTabCloseGuard('/orders/sea-export/new', {
       isDirty: () => true,
     });
 
@@ -904,7 +877,7 @@ describe('TagsView Component', () => {
       '有未保存的修改，是否放弃并关闭？',
     );
 
-    // 取消时，海运出口页签依然存在
+    // 取消时，新建订单页签依然存在
     expect(screen.getByText('SE 新建订单')).toBeInTheDocument();
 
     // 确认后，其他标签页被关闭
@@ -926,12 +899,12 @@ describe('TagsView Component', () => {
 
     const draftScope = getFormDraftScope('user-1', 'org-1');
     const draftKey = getFormDraftKey(
-      '/orders/sea-export',
+      '/orders/sea-export/new',
       '/orders/sea-export/new',
       draftScope,
     );
     sessionStorage.setItem(draftKey, JSON.stringify({ field: 'value' }));
-    expect(hasTabDraft('/orders/sea-export', draftScope)).toBe(true);
+    expect(hasTabDraft('/orders/sea-export/new', draftScope)).toBe(true);
 
     const modalSpy = spyOnConfirm();
 
@@ -947,7 +920,7 @@ describe('TagsView Component', () => {
       modalSpy.mock.calls[0][0].onOk?.();
     });
 
-    expect(hasTabDraft('/orders/sea-export', draftScope)).toBe(false);
+    expect(hasTabDraft('/orders/sea-export/new', draftScope)).toBe(false);
     expect(sessionStorage.getItem(draftKey)).toBeNull();
 
     modalSpy.mockRestore();

@@ -294,7 +294,7 @@ describe('NewOrderPage', () => {
     const draftScope = getFormDraftScope('user-1', 'org-1');
     saveFormDraft(
       getFormDraftKey(
-        '/orders/sea-export',
+        '/orders/sea-export/new',
         '/orders/sea-export/new',
         draftScope,
       ),
@@ -303,7 +303,7 @@ describe('NewOrderPage', () => {
 
     renderWithApp(<NewOrderPage />);
 
-    expect(lastTemplateProps?.tabKey).toBe('/orders/sea-export');
+    expect(lastTemplateProps?.tabKey).toBe('/orders/sea-export/new');
     expect(lastTemplateProps?.draftPathname).toBe('/orders/sea-export/new');
     expect(lastTemplateProps?.draftScope).toBe('user-1:org-1');
 

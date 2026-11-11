@@ -310,7 +310,7 @@ describe('连续新增分单的来源与资源生命周期', () => {
   it('来源加载完成后恢复本来源草稿，后台重查成功或失败均不覆盖输入和初始来源', async () => {
     saveFormDraft(
       getFormDraftKey(
-        '/orders/sea-export',
+        '/orders/sea-export/new',
         '/orders/sea-export/new?sourceOrderId=A',
         getFormDraftScope('user-1', 'org-1'),
       ),

@@ -88,7 +88,7 @@ it('完成退关后显示终态，不把本人操作当外部变更，并保留�
   });
   expect(await screen.findByText(changedMessage)).toBeVisible();
   expect(state.form?.getFieldsValue(true)).toMatchObject({ version: '4' });
-  expect(isTabDirty('/orders/sea-export')).toBe(true);
+  expect(isTabDirty('/orders/sea-export/order-1')).toBe(true);
 });
 
 it('完成退关后重读失败保留输入、未保存状态和原有变动提醒', async () => {

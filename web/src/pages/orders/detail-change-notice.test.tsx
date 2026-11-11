@@ -117,7 +117,7 @@ describe('海运详情变动提醒与真实刷新确认', () => {
       await waitFor(() => expect(dialog).not.toBeInTheDocument());
       expect(state.loadData).not.toHaveBeenCalled();
       expect(screen.getByLabelText('起运港')).toHaveValue('unsaved-port');
-      expect(isTabDirty('/orders/sea-export')).toBe(true);
+      expect(isTabDirty('/orders/sea-export/order-1')).toBe(true);
       expect(hasFormDraft(draftKey)).toBe(false);
       expect(screen.getByText(changedMessage)).toBeVisible();
     }
@@ -141,7 +141,7 @@ describe('海运详情变动提醒与真实刷新确认', () => {
     expect(state.loadData).toHaveBeenCalledOnce();
     expect(screen.getByLabelText('起运港')).toBeDisabled();
     expect(screen.getByLabelText('起运港')).toHaveValue('unsaved-port');
-    expect(isTabDirty('/orders/sea-export')).toBe(true);
+    expect(isTabDirty('/orders/sea-export/order-1')).toBe(true);
     expect(hasFormDraft(draftKey)).toBe(false);
     advanceVersion('5');
     state.order.originLocationId = 'latest-port';
@@ -172,7 +172,7 @@ describe('海运详情变动提醒与真实刷新确认', () => {
     expect(errorMessage).toBeInTheDocument();
     expect(screen.getByLabelText('起运港')).toBeEnabled();
     expect(screen.getByLabelText('起运港')).toHaveValue('unsaved-port');
-    expect(isTabDirty('/orders/sea-export')).toBe(true);
+    expect(isTabDirty('/orders/sea-export/order-1')).toBe(true);
     expect(hasFormDraft(draftKey)).toBe(false);
     expect(screen.getByText(changedMessage)).toBeVisible();
     expect(state.loadData).toHaveBeenCalledOnce();
@@ -214,7 +214,7 @@ describe('海运详情变动提醒与真实刷新确认', () => {
     });
     expect(state.loadData).not.toHaveBeenCalled();
     expect(screen.getByLabelText('起运港')).toHaveValue('order-two-port');
-    expect(isTabDirty('/orders/sea-export')).toBe(false);
+    expect(isTabDirty('/orders/sea-export/order-1')).toBe(false);
     expect(hasFormDraft(draftKey)).toBe(false);
   });
 

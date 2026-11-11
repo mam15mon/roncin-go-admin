@@ -197,7 +197,7 @@ it('原因输入标脏；所属订单页卸载销毁 App modal，不能在新工
   fireEvent.change(screen.getByPlaceholderText('请输入原因（必填）'), {
     target: { value: '北京订单待提交原因' },
   });
-  expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');
+  expect(getAnyDirtyTabKey()).toBe('/orders/sea-export/order-1');
   fireEvent.click(screen.getByText('销毁旧工作区'));
   expect(getAnyDirtyTabKey()).toBeUndefined();
   await waitFor(() =>

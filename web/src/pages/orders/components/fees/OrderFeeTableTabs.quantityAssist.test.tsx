@@ -122,7 +122,7 @@ describe('行内费用数量带入', () => {
       expect(confirmIfAnyTabDirty(switchOrganization, confirmation)).toBe(
         false,
       );
-      expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');
+      expect(getAnyDirtyTabKey()).toBe('/orders/sea-export/order-1/fees');
       confirmation.mock.calls[0][0].onCancel?.();
       expect(switchOrganization).not.toHaveBeenCalled();
       const row = screen.getByText('保存').closest('tr');

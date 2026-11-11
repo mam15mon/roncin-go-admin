@@ -6,7 +6,7 @@ import { preview, renderEditor, save, state } from './HblEditor.fixtures';
 import type { HblFormValues } from './model';
 
 const scope = 'user-1:org-1';
-const tabKey = '/orders/sea-export';
+const tabKey = '/orders/sea-export/order-1/hbl';
 const draftKey = getFormDraftKey(
   tabKey,
   '/orders/sea-export/order-1/hbl',

@@ -149,7 +149,7 @@ describe('订单详情真实路由离开保护', () => {
     const modal = vi.fn();
     const close = () =>
       confirmIfTabsDirty(
-        ['/orders/sea-export'],
+        ['/orders/sea-export/order-1'],
         () => router.navigate('/welcome'),
         modal,
       );
@@ -174,18 +174,18 @@ describe('订单详情真实路由离开保护', () => {
       response: { status: 409, data: { message: '已被更新' } },
     });
     await save();
-    expect(isTabDirty('/orders/sea-export')).toBe(true);
+    expect(isTabDirty('/orders/sea-export/order-1')).toBe(true);
     expect(state.form?.getFieldValue('version')).toBe('4');
     expect(screen.getByLabelText('客户业务编号')).toHaveValue('未保存业务编号');
     fireEvent.click(screen.getByText('前往工作台'));
     fireEvent.click(await screen.findByRole('button', { name: '继续编辑' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     await save();
-    expect(isTabDirty('/orders/sea-export')).toBe(false);
+    expect(isTabDirty('/orders/sea-export/order-1')).toBe(false);
     expect(
       hasFormDraft(
         getFormDraftKey(
-          '/orders/sea-export',
+          '/orders/sea-export/order-1',
           '/orders/sea-export/order-1',
           'user-1:org-1',
         ),

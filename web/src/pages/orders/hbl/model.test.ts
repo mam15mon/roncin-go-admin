@@ -131,7 +131,7 @@ describe('HBL 制作资料模型', () => {
       }),
     ).toContain('暂无适用模板');
     expect(resolveTabKey('/orders/sea-export/order-1/hbl')).toBe(
-      '/orders/sea-export',
+      '/orders/sea-export/order-1/hbl',
     );
   });
   it('实际箱只带入本票共享箱分配，不混入箱计划或别票共享箱', () => {

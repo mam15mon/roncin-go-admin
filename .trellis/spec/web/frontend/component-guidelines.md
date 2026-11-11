@@ -309,14 +309,14 @@ style={{ top: 'calc(var(--roncin-header-height) + var(--roncin-tags-height))' }}
 
 ## 多页签导航（TagsView 页面复用）
 
-- 菜单入口为稳定页签身份（`key`）；菜单内部的新建、详情、编辑、费用录入、拆票等子页面共用该菜单的稳定页签，不裂变生成新页签。
-- 页签记录该菜单最后访问的完整地址（`path`，包含 `pathname`、`search`、`hash`）；切换离开再切回时无缝恢复最后停留的内部页面与筛选状态。
+- 海运出口列表、新建、各订单详情及费用录入、拆票、HBL 等页面按各自路径建立稳定页签；其他已配置归组的菜单内部页面继续共用菜单页签。
+- 页签记录最后访问的完整地址（`path`，包含 `pathname`、`search`、`hash`）；切换离开再切回时无缝恢复最后停留的内部页面与筛选状态。
 - 页签标题随当前子页面动态呈现：列表与新建直接使用路由标题；订单详情、费用录入与拆票在
   `routeUtils` 中统一使用中性占位标题（`订单详情` / `订单费用录入` / `订单拆票`），由页面在
   数据加载成功后经 `roncin:update-tab-title` 事件回填带单号的真实标题；标题变更不影响页签稳定 key。
 - 通用 layout 不维护订单类型字典：未注册订单类型（如 `/orders/sea-import`）的页签标题回落
   中性「订单管理」，不得显示未开放业务名。
-- 新增具有内部整页子路由的菜单入口时，统一在 `src/components/layout/routeUtils.ts` 的 `TAB_KEY_RULES` 与测试矩阵中集中登记。
+- 需要共用页签的内部整页子路由在 `src/components/layout/routeUtils.ts` 的 `TAB_KEY_RULES` 与测试矩阵中集中登记；独立页签使用各自路径。
 
 ### 复用页面的业务数据隔离
 
@@ -601,7 +601,7 @@ if (isFetching && !order) return <Skeleton />;
   可用仅解释路由参数的 resolver 保留 SE/AE 新建标题；不从页面注册表反向导入。
 - `components/layout/routeUtils.ts` 从配置匹配标题与重定向，不能新增第二张手工标题表。
   航空共享主单等具体路由优先于泛型详情；`hideInMenu` 不排除标题；无布局路由
-  不建立业务页签。未知 kind 中性回退、现有页签归组与动态单号事件保持。
+  不建立业务页签。未知 kind 中性回退；页签身份与动态单号事件各司其职。
 - 回归覆盖新增普通 name 路由自动生效、菜单短名差异、两处历史遗漏、重定向
   /orders、/partners、/settings 及过期动态事件不污染其他路径。
 

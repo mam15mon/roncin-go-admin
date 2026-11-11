@@ -61,12 +61,12 @@ vi.mock('antd', async (original) => ({
 }));
 
 function Editor() {
-  useRouteLeaveGuard('/orders/sea-export', () =>
-    isTabDirty('/orders/sea-export'),
+  useRouteLeaveGuard('/orders/sea-export/order-1', () =>
+    isTabDirty('/orders/sea-export/order-1'),
   );
   return (
     <OrderFormTemplate
-      tabKey="/orders/sea-export"
+      tabKey="/orders/sea-export/order-1"
       initialValues={{ customerReferenceNo: '原编号' }}
       sections={[
         {
@@ -154,7 +154,7 @@ describe('关闭全部标签页的真实路由确认', () => {
     expect(hasFormDraft(newDraft)).toBe(false);
     expect(clearQueries).toHaveBeenCalledExactlyOnceWith([
       '/orders/air-export/new',
-      '/orders/sea-export',
+      '/orders/sea-export/order-1',
     ]);
     expect(screen.queryByText('有未保存的修改，是否放弃并离开？')).toBeNull();
   });

@@ -105,7 +105,7 @@ it('行内真实输入同步保护；单纯进入编辑不脏，取消一侧不�
     await within(payableRow).findByPlaceholderText('备注（可选）');
   expect(getAnyDirtyTabKey()).toBeUndefined();
   fireEvent.change(receivableInput, { target: { value: '应收未保存' } });
-  expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');
+  expect(getAnyDirtyTabKey()).toBe('/orders/sea-export/order-1/fees');
   fireEvent.change(payableInput, { target: { value: '应付未保存' } });
   fireEvent.click(within(receivableRow).getByText('取消'));
   await waitFor(() =>
@@ -113,7 +113,7 @@ it('行内真实输入同步保护；单纯进入编辑不脏，取消一侧不�
       within(receivableRow).queryByPlaceholderText('备注（可选）'),
     ).not.toBeInTheDocument(),
   );
-  expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');
+  expect(getAnyDirtyTabKey()).toBe('/orders/sea-export/order-1/fees');
   const leave = vi.fn();
   const confirmation = vi.fn();
   expect(confirmIfAnyTabDirty(leave, confirmation)).toBe(false);
@@ -130,7 +130,7 @@ it('行内真实输入同步保护；单纯进入编辑不脏，取消一侧不�
     expect.objectContaining({ id: 'fee-2', orderId: 'order-1' }),
   );
   expect(payableInput).toHaveValue('应付未保存');
-  expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');
+  expect(getAnyDirtyTabKey()).toBe('/orders/sea-export/order-1/fees');
   vi.mocked(orderFeeServiceUpdateFee).mockResolvedValue({
     data: { canEdit: true, canBill: true, id: 'fee-2' },
   });

@@ -60,12 +60,6 @@ export function isRouteWithoutLayout(pathname: string): boolean {
  * 严格限定在实际存在的路径结构，未知扩展路径不得被过度合并。
  */
 export const TAB_KEY_RULES: Array<{ pattern: RegExp; key: string }> = [
-  // 1. 海运出口订单：列表、新建、详情、费用录入、拆票、HBL 制作
-  {
-    pattern:
-      /^\/orders\/sea-export(?:\/(?:new|[^/]+(?:\/(?:fees|split|hbl))?))?$/,
-    key: '/orders/sea-export',
-  },
   // 2. 客商管理：客户列表、新建、详情
   // 仅允许：/partners/customers, /partners/customers/create, /partners/customers/:id
   {

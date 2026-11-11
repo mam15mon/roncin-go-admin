@@ -145,7 +145,7 @@ describe('费用数量带入表单入口', () => {
     expect(confirmation).toHaveBeenCalledOnce();
     confirmation.mock.calls[0][0].onCancel?.();
     expect(switchOrganization).not.toHaveBeenCalled();
-    expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');
+    expect(getAnyDirtyTabKey()).toBe('/orders/sea-export/order-1/fees');
     expect(screen.getByLabelText('数量')).toHaveValue('8');
     expect(await screen.findByText(/800\.00/)).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('数量'), { target: { value: '9' } });
@@ -175,7 +175,7 @@ describe('费用数量带入表单入口', () => {
     const switchOrganization = vi.fn();
     expect(confirmIfAnyTabDirty(switchOrganization, vi.fn())).toBe(false);
     expect(switchOrganization).not.toHaveBeenCalled();
-    expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');
+    expect(getAnyDirtyTabKey()).toBe('/orders/sea-export/order-1/fees');
     expect(screen.getByLabelText('数量')).toHaveValue('8');
     expect(await screen.findByText(/800\.00/)).toBeInTheDocument();
   });
@@ -188,7 +188,7 @@ describe('费用数量带入表单入口', () => {
     });
     expect(getAnyDirtyTabKey()).toBeUndefined();
     fireEvent.click(changeSource);
-    expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');
+    expect(getAnyDirtyTabKey()).toBe('/orders/sea-export/order-1/fees');
     expect(
       screen.queryByRole('button', { name: '改为纯手工数量' }),
     ).not.toBeInTheDocument();

@@ -304,7 +304,7 @@ describe('SeaSharedContainerDrawer', () => {
     const packageInputs = screen.getAllByRole('spinbutton');
     fireEvent.change(packageInputs[1], { target: { value: '30' } });
     fireEvent.blur(packageInputs[1]);
-    expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');
+    expect(getAnyDirtyTabKey()).toBe('/orders/sea-export/order-1');
 
     // 未保存直接翻到第二页
     fireEvent.click(screen.getByTitle('2'));
@@ -340,7 +340,7 @@ describe('SeaSharedContainerDrawer', () => {
 
     expect(getAnyDirtyTabKey()).toBeUndefined();
     fireEvent.click(screen.getAllByText('全部填入')[0]);
-    expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');
+    expect(getAnyDirtyTabKey()).toBe('/orders/sea-export/order-1');
     fireEvent.click(screen.getByText('确认分配'));
 
     await waitFor(() => {
@@ -358,7 +358,7 @@ describe('SeaSharedContainerDrawer', () => {
       ).toBe(true);
     });
     expect(listContainersSpy).toHaveBeenCalledOnce();
-    expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');
+    expect(getAnyDirtyTabKey()).toBe('/orders/sea-export/order-1');
     expect(screen.getAllByRole('spinbutton')[0]).toHaveValue('100');
   });
 
