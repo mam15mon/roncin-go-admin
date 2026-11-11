@@ -49,6 +49,7 @@ export function OrderListTemplate({
   title = '业务订单管理',
   subTitle = '支持多维复杂筛选、主分单跟踪、集装箱调度、费用结算与履约状态流转',
   customColumns,
+  showBillRelations = false,
   extraColumns = [],
   trailingColumns = [],
   completedSelectionIds,
@@ -99,7 +100,7 @@ export function OrderListTemplate({
   const [filterVisible, setFilterVisible] = useState(false);
 
   // 1. 构建完整表头列定义
-  const defaultColumns: ProColumns<OrderListItem>[] = useMemo(
+  const defaultColumns = useMemo<ProColumns<OrderListItem>[]>(
     () => [
       // 1. 序号
       {
@@ -174,6 +175,59 @@ export function OrderListTemplate({
           </Tooltip>
         ),
       },
+      ...(showBillRelations
+        ? [
+            {
+              title: '主单 / 分单',
+              dataIndex: 'masterBlNo',
+              width: 280,
+              render: (_: unknown, record: OrderListItem) => (
+                <div className="roncin-order-bills">
+                  <div className="roncin-order-bills-line">
+                    <span className="roncin-order-bills-label">主单 MBL</span>
+                    <span className="roncin-order-bills-number">
+                      {record.masterBlNo || '未填写'}
+                    </span>
+                    {record.billRelation &&
+                      record.billRelation.memberCount > 0 && (
+                        <Tooltip
+                          trigger={['hover', 'focus']}
+                          title="同一主单当前关联的订单数，包含本票，不是分单数量或本页数量"
+                        >
+                          <button
+                            type="button"
+                            className="roncin-order-bills-count"
+                          >
+                            共 {record.billRelation.memberCount} 票
+                          </button>
+                        </Tooltip>
+                      )}
+                  </div>
+                  <div className="roncin-order-bills-line">
+                    {record.billRelation?.kind === 'direct' ? (
+                      <span className="roncin-order-bills-direct">
+                        直单 · 无分单
+                      </span>
+                    ) : record.billRelation?.kind === 'house' ? (
+                      <>
+                        <span className="roncin-order-bills-label">
+                          分单 HBL
+                        </span>
+                        <span className="roncin-order-bills-number">
+                          {record.billRelation.houseNo || '未填写'}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="roncin-order-bills-label">
+                        单证结构待确认
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ),
+            },
+          ]
+        : []),
       // 4. 业务类型（页面查询已按注册定义映射好显示文案）
       {
         title: '业务类型',
@@ -216,13 +270,17 @@ export function OrderListTemplate({
         ellipsis: true,
         renderText: (val) => val || '-',
       },
-      {
-        title: '主单号',
-        dataIndex: 'masterBlNo',
-        width: 140,
-        ellipsis: true,
-        renderText: (val) => val || '-',
-      },
+      ...(!showBillRelations
+        ? [
+            {
+              title: '主单号',
+              dataIndex: 'masterBlNo',
+              width: 140,
+              ellipsis: true,
+              renderText: (val: string | undefined) => val || '-',
+            },
+          ]
+        : []),
       {
         title: options?.transportMode === 'air' ? '航班号' : '船名航次',
         dataIndex: 'vesselVoyage',
@@ -560,6 +618,7 @@ export function OrderListTemplate({
     ],
     [
       options?.transportMode,
+      showBillRelations,
       trailingColumns,
       extraColumns,
       onViewDetail,

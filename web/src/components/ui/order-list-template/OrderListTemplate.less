@@ -24,3 +24,42 @@
     text-overflow: ellipsis;
   }
 }
+
+.roncin-order-bills {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  &-line {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  &-label {
+    color: #64748b;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  &-number {
+    overflow-wrap: anywhere;
+    min-width: 0;
+  }
+
+  &-count {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    font-family: inherit;
+    color: #1677ff;
+    font-size: 12px;
+    white-space: nowrap;
+    cursor: help;
+  }
+
+  &-direct {
+    color: #64748b;
+    font-size: 12px;
+  }
+}

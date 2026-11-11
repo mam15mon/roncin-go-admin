@@ -3,6 +3,7 @@ import {
   OrderClosureStatus,
   OrderFlowStatus,
   OrderTerminationStatus,
+  SeaDocumentStructure,
 } from '@/enums.generated';
 import { queryOrderList } from './list-query';
 import { airExportDefinition } from './order-kinds/air-export/definition';
@@ -472,5 +473,74 @@ describe('queryOrderList', () => {
     expect(result.data).toEqual([]);
     expect(seaExportDefinition.title).toBe('海运出口订单');
     expect(seaExportDefinition.navigationTitle).toBe('海运出口');
+  });
+  it.each([
+    [undefined, undefined, 'unknown', 0],
+    [SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_UNSPECIFIED, 0, 'unknown', 0],
+    [SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE, 2, 'house', 2],
+    [SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT, 1, 'direct', 1],
+  ] as const)(
+    '海运单证映射遵循真实 wire 结构 %s / 票数 %s',
+    async (structure, count, kind, memberCount) => {
+      listOrdersMock.mockResolvedValue({
+        data: [
+          {
+            id: 'order-1',
+            orderNo: 'SE-001',
+            seaMasterBill: {
+              masterNo: 'MBL-001',
+              ...(count === undefined ? {} : { memberCount: count }),
+            },
+            seaDocumentSummary:
+              structure === undefined
+                ? undefined
+                : { documentStructure: structure, houseNo: 'HBL-001' },
+            shippingDocuments: [{ houseNo: '旧单证不得使用' }],
+          },
+        ],
+        total: 1,
+      });
+      const result = await queryOrderList({}, seaExportDefinition, {
+        ports: [],
+        airports: [],
+        customerMap: {},
+        organizationId: 'org-1',
+      });
+      expect(result.data[0].masterBlNo).toBe('MBL-001');
+      expect(result.data[0].billRelation).toEqual({
+        kind,
+        memberCount,
+        houseNo: structure === undefined ? undefined : 'HBL-001',
+      });
+    },
+  );
+
+  it('HOUSE 没有 HBL 号码时保留缺失，空运不启用海运关系模型', async () => {
+    listOrdersMock.mockResolvedValue({
+      data: [
+        {
+          id: 'order-1',
+          seaDocumentSummary: {
+            documentStructure:
+              SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE,
+          },
+        },
+      ],
+      total: 1,
+    });
+    const ctx = {
+      ports: [],
+      airports: [],
+      customerMap: {},
+      organizationId: 'org-1',
+    };
+    const sea = await queryOrderList({}, seaExportDefinition, ctx);
+    expect(sea.data[0].billRelation).toEqual({
+      kind: 'house',
+      memberCount: 0,
+      houseNo: undefined,
+    });
+    const air = await queryOrderList({}, airExportDefinition, ctx);
+    expect(air.data[0].billRelation).toBeUndefined();
   });
 });

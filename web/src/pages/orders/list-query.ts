@@ -4,6 +4,7 @@ import {
   OrderClosureStatus,
   OrderNumberFilterType,
   OrderTerminationStatus,
+  SeaDocumentStructure,
 } from '@/enums.generated';
 import { getMasterDataOptions } from '@/features/orders/options';
 import { orderServiceListOrders } from '@/services/roncin/orderService';
@@ -178,6 +179,21 @@ export async function queryOrderList(
       masterBlNo:
         order.airExport?.master?.content?.masterNo ||
         order.seaMasterBill?.masterNo,
+      billRelation:
+        definition.kind === 'sea-export'
+          ? {
+              kind:
+                order.seaDocumentSummary?.documentStructure ===
+                SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
+                  ? 'house'
+                  : order.seaDocumentSummary?.documentStructure ===
+                      SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT
+                    ? 'direct'
+                    : 'unknown',
+              houseNo: order.seaDocumentSummary?.houseNo,
+              memberCount: order.seaMasterBill?.memberCount ?? 0,
+            }
+          : undefined,
       bookingAgentName: order.bookingAgentName,
       createdAt: order.createdAt,
       vesselVoyage:

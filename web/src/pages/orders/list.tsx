@@ -180,6 +180,7 @@ export default function OrderListPage() {
         }}
         actionRef={actionRef}
         title={definition.title}
+        showBillRelations={definition.kind === 'sea-export'}
         subTitle={`统一维护${definition.title}全流程状态、主分单据、箱量配载、费用核算与业务履约轨迹`}
         extraColumns={commissionExtraColumns}
         trailingColumns={reviewColumns}

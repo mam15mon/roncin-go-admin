@@ -84,6 +84,12 @@ export interface OrderListItem {
   // 航程与船运
   bookingAgentName?: string;
   masterBlNo?: string;
+  /** 页面完成海运单证投影，模板不解释接口枚举。 */
+  billRelation?: {
+    kind: 'house' | 'direct' | 'unknown';
+    houseNo?: string;
+    memberCount: number;
+  };
   vesselVoyage?: string;
   originPortCode?: string;
   originPortName?: string;
@@ -153,6 +159,8 @@ export interface OrderListTemplateProps {
 
   /** 自定义或扩展 ProTable 表格列 */
   customColumns?: ProColumns<OrderListItem>[];
+  /** 在订单编号附近展示主分单关系，由业务页面显式启用。 */
+  showBillRelations?: boolean;
   /** 扩展列：插入在货物与单证之间的品类专属列（如海运截关时间、空运起飞时间等） */
   extraColumns?: ProColumns<OrderListItem>[];
   /** 业务末列，保持领域实现位于页面。 */
