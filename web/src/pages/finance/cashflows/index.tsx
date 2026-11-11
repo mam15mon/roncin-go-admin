@@ -541,29 +541,31 @@ export default function FinanceCashflowsPage() {
             message.warning('请切换到有登记权限的公司工作区');
             return false;
           }
+          const session = createSession.current;
+          const owner = getModalOwnerSignal();
           try {
             const intent = buildCashflowCreateIntent(organizationId, v);
             const fingerprint = JSON.stringify(intent);
             const idempotencyKey =
               createIntentKeys.current.get(fingerprint) ?? generateUUID();
             createIntentKeys.current.set(fingerprint, idempotencyKey);
-            const session = createSession.current;
-            const owner = getModalOwnerSignal();
             const response = await settlementServiceCreateCashflow({
               ...intent,
               idempotencyKey,
             });
+            if (owner.aborted || session !== createSession.current)
+              return false;
             if (!response) return false;
             if (!response.data?.id || response.success === false)
               throw new Error('登记失败，请重试');
-            if (owner.aborted || session !== createSession.current)
-              return false;
             createIntentKeys.current.delete(fingerprint);
             message.success('资金流水已登记');
             setOpen(false);
             reload();
             return true;
           } catch (e) {
+            if (owner.aborted || session !== createSession.current)
+              return false;
             message.error(getErrorMessage(e, '登记失败'));
             return false;
           }
