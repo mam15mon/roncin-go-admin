@@ -7,4 +7,4 @@
 {"file": ".trellis/spec/web/frontend/state-management.md", "reason": "本任务分层与行为契约"}
 {"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "后端验证与真实库验收边界"}
 {"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端门禁与回归质量"}
-{"file": ".trellis/tasks/11-11-system-audit-fixes/research/planning-review.md", "reason": "独立设计复核及遗漏入口"}
+{"file": ".trellis/tasks/archive/2026-11/11-11-system-audit-fixes/research/planning-review.md", "reason": "独立设计复核及遗漏入口"}
