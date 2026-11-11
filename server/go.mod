@@ -1,6 +1,6 @@
 module github.com/roncin/roncin-go-admin/server
 
-go 1.26.10
+go 1.26.11
 
 require (
 	entgo.io/ent v0.14.6
