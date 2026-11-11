@@ -15,6 +15,7 @@ import { preloadDingTalkLoginConfig } from './app/dingtalkLoginConfig';
 import { QuarterRing } from './components/ui';
 import { router } from './router';
 import { AppFeedbackBridge } from './utils/appFeedback';
+import { ignorePasswordManagers } from './utils/ignorePasswordManagers';
 import { queryClient } from './utils/queryClient';
 // Umi 隐式全局入口在此显式化：39KB 全局高密度样式 + Tailwind 基础层。
 import 'dayjs/locale/zh-cn';
@@ -27,6 +28,7 @@ void preloadDingTalkLoginConfig(queryClient, window.location.pathname);
 dayjs.locale('zh-cn');
 
 Spin.setDefaultIndicator(<QuarterRing />);
+ignorePasswordManagers(document.body);
 
 // 首次渲染前安装尺寸，正文与 body 浮层继承同一份布局变量。
 for (const [name, value] of Object.entries(layoutCssVariables)) {

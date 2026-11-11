@@ -336,6 +336,13 @@ function SeaCarrierField({
           : undefined
       }
       rules={[{ required: true, message: '请选择船公司' }]}
+      fieldProps={{
+        labelRender: ({ label }) => (
+          <Tooltip title={label}>
+            <span>{label}</span>
+          </Tooltip>
+        ),
+      }}
       request={
         readonly || isMultiMemberLocked
           ? undefined

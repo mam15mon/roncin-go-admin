@@ -1,11 +1,26 @@
 import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
-import { screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { ConfigProvider, Form } from 'antd';
 import { describe, expect, it, vi } from 'vitest';
 import { props } from '../../sea-create-layout.fixtures';
 import { getSeaBaseInfoFields } from './SeaBasicInfoSection';
 
 describe('来源船公司初始选项', () => {
+  it('悬停已选船公司时显示完整名称', async () => {
+    const name = '中远海运集装箱运输有限公司 / COSCO SHIPPING LINES';
+    const { carrier } = getSeaBaseInfoFields({
+      ...props,
+      readonly: true,
+      seaDocuments: {
+        masterBill: { shippingLineId: 'carrier-uuid', shippingLineName: name },
+      },
+    });
+    render(
+      <Form initialValues={{ shippingLineId: 'carrier-uuid' }}>{carrier}</Form>,
+    );
+    fireEvent.mouseOver(await screen.findByText(name));
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(name);
+  });
   it.each(['来源船公司', undefined])(
     '远程空候选仍保留来源名称 %s',
     async (shippingLineName) => {
