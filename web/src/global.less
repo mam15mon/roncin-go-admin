@@ -626,10 +626,11 @@ body,
   outline: none;
   flex-shrink: 0;
   min-width: 100px;
+  border: 1px solid transparent;
   border-radius: 6px;
   background: transparent;
   color: #64748b;
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 
   .roncin-chrome-tab-icon {
     font-size: 13px;
@@ -700,16 +701,11 @@ body,
   &-active {
     background: #ffffff !important;
     color: #1677ff !important;
-    font-weight: 600 !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    border: 1px solid #e2e8f0;
+    border-color: #e2e8f0;
 
     .roncin-chrome-tab-icon {
       color: #1677ff !important;
-    }
-
-    .roncin-chrome-tab-title {
-      font-weight: 600;
     }
 
     .roncin-chrome-tab-divider {
