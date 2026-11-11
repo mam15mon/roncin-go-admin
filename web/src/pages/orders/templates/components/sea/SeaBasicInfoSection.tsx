@@ -115,7 +115,7 @@ export function SeaOrderReferenceField({
   );
 }
 
-const useDangerousGoodsStyles = createStyles(({ css }) => ({
+const useRevealStyles = createStyles(({ css }) => ({
   reveal: css`
     display: grid;
     grid-template-rows: 0fr;
@@ -132,7 +132,7 @@ const useDangerousGoodsStyles = createStyles(({ css }) => ({
       visibility: visible;
       transition-delay: 0s;
     }
-    .dangerous-goods-clip {
+    .reveal-clip {
       min-height: 0;
       overflow: hidden;
     }
@@ -156,7 +156,7 @@ export function SeaDangerousGoodsFields({
   /** 仅空运出口需要包装类别（IATA DGR）；海运不传，渲染保持三字段不变。 */
   showPackingGroup?: boolean;
 }) {
-  const { styles } = useDangerousGoodsStyles();
+  const { styles } = useRevealStyles();
   const form = Form.useFormInstance();
   const cargoCategoryIds = (Form.useWatch('cargoCategoryIds') ??
     form?.getFieldValue('cargoCategoryIds')) as (string | number)[] | undefined;
@@ -206,7 +206,7 @@ export function SeaDangerousGoodsFields({
       aria-hidden={!isDangerousGoodsSelected}
       inert={!isDangerousGoodsSelected}
     >
-      <div className="dangerous-goods-clip">
+      <div className="reveal-clip">
         <div className="dangerous-goods-content">
           <FormRow cols={showPackingGroup ? 4 : 3}>
             <div>
@@ -435,6 +435,7 @@ export function SeaCustomerField({
   personnelOptions?: Array<{ userId?: string; displayName?: string }>;
   onCustomerChange?: (option?: PartnerSelectOption) => void;
 }) {
+  const { styles } = useRevealStyles();
   const form = Form.useFormInstance();
   const [selection, setSelection] = React.useState<{
     id?: string;
@@ -592,12 +593,19 @@ export function SeaCustomerField({
           }
         />
       )}
-      {selection.id && !readonly && missingStaff && (
-        <Alert
-          type="warning"
-          title="客户尚未配置业务或客服人员，请联系客户档案维护人员补齐后重新选择客户。"
-        />
-      )}
+      <div
+        className={styles.reveal}
+        data-open={Boolean(selection.id && !readonly && missingStaff)}
+        aria-hidden={!selection.id || readonly || !missingStaff}
+        inert={!selection.id || readonly || !missingStaff}
+      >
+        <div className="reveal-clip">
+          <Alert
+            type="warning"
+            title="客户尚未配置业务或客服人员，请联系客户档案维护人员补齐后重新选择客户。"
+          />
+        </div>
+      </div>
     </div>
   );
 }

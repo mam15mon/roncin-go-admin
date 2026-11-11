@@ -152,6 +152,31 @@ describe('SeaCustomerField 联动带出内部信息', () => {
     vi.clearAllMocks();
   });
 
+  it('客户缺少人员时展开提示，清空客户后收起提示', async () => {
+    vi.mocked(partnerServiceGetPartner).mockResolvedValue({
+      data: { id: 'cust-1', assignments: [] },
+    } as any);
+
+    const view = render(
+      <ProForm submitter={false}>
+        <SeaCustomerField searchCustomers={vi.fn()} setCustomerCode={vi.fn()} />
+      </ProForm>,
+    );
+    const warning = view.getByText(
+      '客户尚未配置业务或客服人员，请联系客户档案维护人员补齐后重新选择客户。',
+    );
+    const reveal = warning.closest('[data-open]');
+    expect(reveal).toHaveAttribute('data-open', 'false');
+
+    fireEvent.click(view.getByTestId('trigger-change'));
+    await waitFor(() => expect(reveal).toHaveAttribute('data-open', 'true'));
+    expect(reveal).not.toHaveAttribute('aria-hidden', 'true');
+
+    fireEvent.click(view.getByTestId('trigger-clear'));
+    expect(reveal).toHaveAttribute('data-open', 'false');
+    expect(reveal).toHaveAttribute('aria-hidden', 'true');
+  });
+
   it('选择委托单位后异步获取客商档案并自动反填人员信息', async () => {
     const setCustomerCode = vi.fn();
     const mockPartner = {
