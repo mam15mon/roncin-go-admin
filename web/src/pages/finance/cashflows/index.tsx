@@ -56,6 +56,7 @@ import { formatAmount, trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
 import { makeVersionActions } from '@/utils/versionActions';
 
+import { buildCashflowCreateIntent } from './cashflowCreateIntent';
 import {
   cashflowExportColumns,
   getPaymentMethodLabel,
@@ -113,6 +114,9 @@ export default function FinanceCashflowsPage() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [form] = Form.useForm<Values>();
   const [open, setOpen] = useState(false);
+  // 未知结果关闭重开仍保留意图键；只在服务端确认成功后移除对应意图。
+  const createIntentKeys = useRef(new Map<string, string>());
+  const createSession = useRef(0);
   const { selectionScope, commitFilters } = useLedgerSelectionScope(
     queryState.commit,
     () => queryState.snapshotRef.current.filters,
@@ -470,7 +474,12 @@ export default function FinanceCashflowsPage() {
         primaryActionText="登记流水"
         primaryActionIcon={<PlusOutlined />}
         onPrimaryAction={
-          access.canCreateFinanceCashflows ? () => setOpen(true) : undefined
+          access.canCreateFinanceCashflows
+            ? () => {
+                createSession.current += 1;
+                setOpen(true);
+              }
+            : undefined
         }
         summaryConfig={cashflowLedgerSummaryConfig}
         selectionScope={selectionScope}
@@ -510,7 +519,13 @@ export default function FinanceCashflowsPage() {
         open={open}
         form={form}
         width={760}
-        modalProps={{ destroyOnHidden: true, onCancel: () => setOpen(false) }}
+        modalProps={{
+          destroyOnHidden: true,
+          onCancel: () => {
+            createSession.current += 1;
+            setOpen(false);
+          },
+        }}
         initialValues={{
           direction: 'RECEIVABLE',
           currency: 'CNY',
@@ -527,24 +542,23 @@ export default function FinanceCashflowsPage() {
             return false;
           }
           try {
+            const intent = buildCashflowCreateIntent(organizationId, v);
+            const fingerprint = JSON.stringify(intent);
+            const idempotencyKey =
+              createIntentKeys.current.get(fingerprint) ?? generateUUID();
+            createIntentKeys.current.set(fingerprint, idempotencyKey);
+            const session = createSession.current;
+            const owner = getModalOwnerSignal();
             const response = await settlementServiceCreateCashflow({
-              organizationId,
-              direction: v.direction,
-              settlementPartyId: v.settlementPartyId,
-              currency: v.currency,
-              amount: v.amount,
-              exchangeRate: v.exchangeRate ? v.exchangeRate.trim() : undefined,
-              transactionDate: dayjs(v.transactionDate).format('YYYY-MM-DD'),
-              ourAccount: v.ourAccount,
-              counterpartyAccount: v.counterpartyAccount,
-              paymentMethod: v.paymentMethod,
-              bankReferenceNo: v.bankReferenceNo,
-              note: v.note,
-              idempotencyKey: generateUUID(),
+              ...intent,
+              idempotencyKey,
             });
             if (!response) return false;
             if (!response.data?.id || response.success === false)
               throw new Error('登记失败，请重试');
+            if (owner.aborted || session !== createSession.current)
+              return false;
+            createIntentKeys.current.delete(fingerprint);
             message.success('资金流水已登记');
             setOpen(false);
             reload();

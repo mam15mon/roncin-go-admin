@@ -15,6 +15,7 @@ const state = vi.hoisted(() => ({
   results: [] as boolean[],
   company: true,
   organizationId: 'workspace-org' as string | undefined,
+  values: {} as Record<string, unknown>,
   partyRequest: undefined as
     | undefined
     | ((params: { keyWords: string }) => Promise<unknown>),
@@ -72,10 +73,14 @@ vi.mock('@ant-design/pro-components', () => ({
     open: boolean;
     onFinish: (v: unknown) => Promise<boolean>;
     children: ReactNode;
+    modalProps: { onCancel: () => void };
   }) =>
     p.open ? (
       <div>
         {p.children}
+        <button type="button" onClick={p.modalProps.onCancel}>
+          关闭登记
+        </button>
         <input aria-label="流水备注" defaultValue="未保存备注" />
         <button
           type="button"
@@ -90,6 +95,7 @@ vi.mock('@ant-design/pro-components', () => ({
                 transactionDate: dayjs('2026-10-12'),
                 ourAccount: 'account',
                 paymentMethod: 'BANK_TRANSFER',
+                ...state.values,
               })
               .then((result) => state.results.push(result))
           }
@@ -111,6 +117,7 @@ vi.mock('@/services/roncin/settlementService', () => ({
 beforeEach(() => {
   vi.clearAllMocks();
   state.results = [];
+  state.values = {};
   state.company = true;
   state.organizationId = 'workspace-org';
   vi.mocked(settlementServiceCreateCashflow).mockReset();
@@ -192,4 +199,82 @@ describe('资金流水登记失败判定', () => {
       expect(settlementServiceCreateCashflow).not.toHaveBeenCalled();
     },
   );
+});
+
+describe('资金流水登记意图防重', () => {
+  async function submitIntent() {
+    const next = state.results.length + 1;
+    fireEvent.click(screen.getByText('提交流水'));
+    await waitFor(() => expect(state.results).toHaveLength(next));
+    return vi.mocked(settlementServiceCreateCashflow).mock.calls.at(-1)?.[0];
+  }
+  function mount() {
+    renderWithClient(
+      <App>
+        <FinanceCashflowsPage />
+      </App>,
+    );
+    fireEvent.click(screen.getByText('登记流水'));
+  }
+  it('未知结果重试、格式等价和 A→B→A 均保留原意图的键', async () => {
+    vi.mocked(settlementServiceCreateCashflow).mockResolvedValue(
+      undefined as never,
+    );
+    mount();
+    const first = await submitIntent();
+    state.values = {
+      amount: '100.0000',
+      currency: ' cny ',
+      ourAccount: ' account ',
+      note: '   ',
+    };
+    const equivalent = await submitIntent();
+    expect(equivalent?.idempotencyKey).toBe(first?.idempotencyKey);
+    expect(equivalent).toEqual(first);
+    state.values = { amount: '200' };
+    const changed = await submitIntent();
+    expect(changed?.idempotencyKey).not.toBe(first?.idempotencyKey);
+    state.values = { amount: '100' };
+    expect((await submitIntent())?.idempotencyKey).toBe(first?.idempotencyKey);
+  });
+  it('未知结果关闭重开同键，成功后的新登记使用新键', async () => {
+    vi.mocked(settlementServiceCreateCashflow)
+      .mockResolvedValueOnce(undefined as never)
+      .mockResolvedValue({ data: { id: 'cashflow' } });
+    mount();
+    const first = await submitIntent();
+    fireEvent.click(screen.getByText('关闭登记'));
+    fireEvent.click(screen.getByText('登记流水'));
+    expect((await submitIntent())?.idempotencyKey).toBe(first?.idempotencyKey);
+    fireEvent.click(screen.getByText('登记流水'));
+    expect((await submitIntent())?.idempotencyKey).not.toBe(
+      first?.idempotencyKey,
+    );
+  });
+  it('旧弹窗在途成功不关闭新打开的登记', async () => {
+    let resolve: ((value: API.CreateCashflowResponse) => void) | undefined;
+    vi.mocked(settlementServiceCreateCashflow).mockImplementationOnce(
+      () =>
+        new Promise((done) => {
+          resolve = done;
+        }),
+    );
+    mount();
+    fireEvent.click(screen.getByText('提交流水'));
+    await waitFor(() => expect(resolve).toBeDefined());
+    fireEvent.click(screen.getByText('关闭登记'));
+    fireEvent.click(screen.getByText('登记流水'));
+    await act(async () => {
+      resolve?.({ data: { id: 'old-cashflow' } });
+    });
+    expect(screen.getByText('提交流水')).toBeInTheDocument();
+    expect(state.reload).not.toHaveBeenCalled();
+    expect(state.results).toEqual([false]);
+    const originalKey = vi.mocked(settlementServiceCreateCashflow).mock
+      .calls[0][0].idempotencyKey;
+    vi.mocked(settlementServiceCreateCashflow).mockResolvedValueOnce({
+      data: { id: 'old-cashflow' },
+    });
+    expect((await submitIntent())?.idempotencyKey).toBe(originalKey);
+  });
 });
