@@ -134,7 +134,8 @@ func (uc *OrderUsecase) TransitionStatus(ctx context.Context, organizationID, ac
 		return nil, ErrOrderStatusInvalid
 	}
 	event := &OrderStatusChangedEvent{OrganizationID: organizationID, OrderID: id, ActorID: actorID, FromStatus: current.FlowStatus, ToStatus: targetStatus, OccurredAt: time.Now().UTC()}
-	return uc.repo.TransitionStatus(ctx, organizationID, id, expectedVersion, targetStatus, reason, actorID, event)
+	updated, err := uc.repo.TransitionStatus(ctx, organizationID, id, expectedVersion, targetStatus, reason, actorID, event)
+	return uc.transitionSnapshot(ctx, organizationID, updated, err)
 }
 
 // TransitionTermination 校验并执行订单终止维度流转。
@@ -160,7 +161,8 @@ func (uc *OrderUsecase) TransitionTermination(ctx context.Context, organizationI
 		return nil, ErrOrderTerminationInvalid
 	}
 	event := &OrderLifecycleChangedEvent{OrganizationID: organizationID, OrderID: id, ActorID: actorID, Dimension: "TERMINATION", FromStatus: string(current.TerminationStatus), ToStatus: string(target), OccurredAt: time.Now().UTC()}
-	return uc.repo.TransitionTermination(ctx, organizationID, id, expectedVersion, target, terminationType, reason, actorID, event)
+	updated, err := uc.repo.TransitionTermination(ctx, organizationID, id, expectedVersion, target, terminationType, reason, actorID, event)
+	return uc.transitionSnapshot(ctx, organizationID, updated, err)
 }
 
 // TransitionClosure 校验并执行订单结案或反结案。
@@ -192,7 +194,22 @@ func (uc *OrderUsecase) TransitionClosure(ctx context.Context, organizationID, a
 		}
 	}
 	event := &OrderLifecycleChangedEvent{OrganizationID: organizationID, OrderID: id, ActorID: actorID, Dimension: "CLOSURE", FromStatus: string(readiness.ClosureStatus), ToStatus: string(target), OccurredAt: time.Now().UTC()}
-	return uc.repo.TransitionClosure(ctx, organizationID, id, expectedVersion, target, reason, actorID, event)
+	updated, err := uc.repo.TransitionClosure(ctx, organizationID, id, expectedVersion, target, reason, actorID, event)
+	return uc.transitionSnapshot(ctx, organizationID, updated, err)
+}
+
+// 状态响应与详情读取使用相同的关联摘要，供前端辨识本人操作。
+func (uc *OrderUsecase) transitionSnapshot(ctx context.Context, organizationID uuid.UUID, order *Order, err error) (*Order, error) {
+	if err != nil {
+		return nil, err
+	}
+	if err := attachSeaMasterBillSummaries(ctx, uc.seaMasterBillRepo, organizationID, order); err != nil {
+		return nil, err
+	}
+	if err := attachSeaDocumentSummaries(ctx, uc.seaDocumentRepo, organizationID, order); err != nil {
+		return nil, err
+	}
+	return order, nil
 }
 
 func (event *OrderStatusChangedEvent) AuditEvent() *AuditEvent {
