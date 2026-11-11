@@ -268,6 +268,9 @@ type Order struct {
 	OperatorBranch          string
 	SalesName               string
 	SalesBranch             string
+	CustomerServiceName     string
+	ContainerNos            []string
+	AttachmentCount         *int
 	CreatorName             string
 	ShippingLineName        string
 	CustomerReferenceNo     string
@@ -368,6 +371,8 @@ type OrderContainerRequest struct {
 }
 
 type OrderListOptions struct {
+	SortBy                string
+	SortOrder             string
 	Page                  int
 	PageSize              int
 	Keyword               string

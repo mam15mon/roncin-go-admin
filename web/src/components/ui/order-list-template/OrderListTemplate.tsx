@@ -17,7 +17,7 @@ import { Button, Card, Dropdown, Space, Tag, Tooltip } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ShipmentType } from '@/enums.generated';
 import { toTableRequest } from '@/utils/api';
-import { formatDate } from '@/utils/format';
+import { formatDate, trimDecimal } from '@/utils/format';
 import { useColumnSettings } from '../column-settings';
 import { useListQueryState } from '../list-query-state';
 import { ResponsiveProTable } from '../responsive-table';
@@ -40,7 +40,21 @@ const DEFAULT_HIDDEN_COLUMN_KEYS = [
   'spaceNotes',
   'bookingNotes',
   'operationNotes',
-  'commissionSummary',
+  'customerReferenceNo',
+  'createdAt',
+  'bookingAgentName',
+  'containerNos',
+  'salesName',
+  'customerServiceName',
+  'totalPackages',
+  'grossWeightKg',
+  'volumeCbm',
+  'paymentTerm',
+  'tradeTerm',
+  'contractNo',
+  'consigneeName',
+  'shipperName',
+  'attachmentCount',
 ];
 
 export function OrderListTemplate({
@@ -70,6 +84,7 @@ export function OrderListTemplate({
   options,
   readonly = false,
   columnSettingsKey = 'orders:list',
+  defaultHiddenColumnKeys = [],
 }: OrderListTemplateProps) {
   const internalActionRef = useRef<ActionType | undefined>(undefined);
   const actionRef =
@@ -115,7 +130,6 @@ export function OrderListTemplate({
         title: '进程',
         dataIndex: 'stage',
         width: 112,
-        sorter: true,
         render: (_, record) =>
           record.stage?.length ? (
             <Space size={4} wrap>
@@ -233,7 +247,6 @@ export function OrderListTemplate({
         title: '业务类型',
         dataIndex: 'businessType',
         width: 88,
-        sorter: true,
         renderText: (val) => val || '-',
       },
       // 5. 委托单位
@@ -242,7 +255,6 @@ export function OrderListTemplate({
         dataIndex: 'customerName',
         width: 160,
         ellipsis: true,
-        sorter: true,
       },
       // 6. 客户业务编号
       {
@@ -250,7 +262,6 @@ export function OrderListTemplate({
         dataIndex: 'customerReferenceNo',
         width: 120,
         ellipsis: true,
-        sorter: true,
         renderText: (val) => val || '-',
       },
       // 7. 创建时间
@@ -301,7 +312,7 @@ export function OrderListTemplate({
             : record.originPortCode || '-',
       },
       {
-        title: options?.transportMode === 'air' ? '目的机场' : '目的港',
+        title: options?.transportMode === 'air' ? '目的机场' : '本票目的港',
         dataIndex: 'destinationPortName',
         width: 112,
         ellipsis: true,
@@ -311,13 +322,6 @@ export function OrderListTemplate({
               ? `${record.destinationPortName} (${record.destinationPortCode})`
               : record.destinationPortName
             : record.destinationPortCode || '-',
-      },
-      {
-        title: '目的地',
-        dataIndex: 'finalDestination',
-        width: 104,
-        ellipsis: true,
-        renderText: (val) => val || '-',
       },
       {
         title: '箱型箱量',
@@ -374,6 +378,13 @@ export function OrderListTemplate({
             : '-',
       },
       {
+        title: '客服人员',
+        dataIndex: 'customerServiceName',
+        width: 88,
+        ellipsis: true,
+        renderText: (val) => val || '-',
+      },
+      {
         title: '创建人',
         dataIndex: 'creatorName',
         width: 88,
@@ -397,14 +408,16 @@ export function OrderListTemplate({
         dataIndex: 'grossWeightKg',
         width: 120,
         align: 'right',
-        renderText: (val) => (val !== undefined ? `${val} KGS` : '-'),
+        renderText: (val) =>
+          val !== undefined ? `${trimDecimal(val)} KGS` : '-',
       },
       {
         title: '委托总体积(CBM)',
         dataIndex: 'volumeCbm',
         width: 120,
         align: 'right',
-        renderText: (val) => (val !== undefined ? `${val} CBM` : '-'),
+        renderText: (val) =>
+          val !== undefined ? `${trimDecimal(val)} CBM` : '-',
       },
 
       // 11. 单证与商务条款
@@ -471,14 +484,19 @@ export function OrderListTemplate({
         dataIndex: 'attachmentCount',
         width: 56,
         align: 'center',
-        render: (_, record) => (
-          <Space size={2}>
-            <PaperClipOutlined
-              style={{ color: record.attachmentCount ? '#1677ff' : '#bfbfbf' }}
-            />
-            <span>{record.attachmentCount || 0}</span>
-          </Space>
-        ),
+        render: (_, record) =>
+          record.attachmentCount === undefined ? (
+            '-'
+          ) : (
+            <Space size={2}>
+              <PaperClipOutlined
+                style={{
+                  color: record.attachmentCount ? '#1677ff' : '#bfbfbf',
+                }}
+              />
+              <span>{record.attachmentCount}</span>
+            </Space>
+          ),
       },
       {
         title: '订单锁定时间',
@@ -637,12 +655,15 @@ export function OrderListTemplate({
 
   const columns = customColumns || defaultColumns;
 
-  // 统一列设置：订单列表各业务视图共享同一业务标识。
+  // 品类页面显式传入独立标识，公共模板只应用当前视图偏好。
   const columnSettings = useColumnSettings<ProColumns<OrderListItem>>({
     tableKey: columnSettingsKey,
     columns,
     structuralKeys: ['option'],
-    defaultHiddenKeys: DEFAULT_HIDDEN_COLUMN_KEYS,
+    defaultHiddenKeys: [
+      ...DEFAULT_HIDDEN_COLUMN_KEYS,
+      ...defaultHiddenColumnKeys,
+    ],
   });
 
   return (

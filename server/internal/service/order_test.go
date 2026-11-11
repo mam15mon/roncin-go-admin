@@ -266,3 +266,27 @@ func TestSeaMasterBillCandidateToAPIPreservesScheduleInstants(t *testing.T) {
 		t.Fatal("未设置运输执行时应保持空值")
 	}
 }
+
+func TestOrderListResourceVisibility(t *testing.T) {
+	organizationID := uuid.New()
+	count := 0
+	item := &biz.Order{BusinessType: biz.OrderBusinessSE, OrganizationID: organizationID, ContainerNos: []string{"OWN001"}, AttachmentCount: &count, CustomerServiceName: "客服甲"}
+	principal := &biz.Principal{Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: organizationID}, OrganizationNodes: []biz.OrganizationScopeNode{{Kind: biz.OrganizationKindCompany, ID: organizationID}}}
+	hidden := orderToAPIForPrincipal(principal, item)
+	if len(hidden.ContainerNos) != 0 || hidden.AttachmentCount != nil {
+		t.Fatal("没有子资源读取权时不得暴露摘要")
+	}
+	principal.RoleGrants = []biz.RoleGrant{{RoleID: uuid.New(), RoleCode: "reader", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{
+		access.OrderPermission(access.OrderBusinessSE, access.OrderContainerRead):  {},
+		access.OrderPermission(access.OrderBusinessSE, access.OrderAttachmentRead): {},
+	}}}
+	shown := orderToAPIForPrincipal(principal, item)
+	if len(shown.ContainerNos) != 1 || shown.AttachmentCount == nil || *shown.AttachmentCount != 0 || shown.GetCustomerServiceName() != "客服甲" {
+		t.Fatal("授权的显式零和人员信息必须保留")
+	}
+	item.OrganizationID = uuid.New()
+	hidden = orderToAPIForPrincipal(principal, item)
+	if len(hidden.ContainerNos) != 0 || hidden.AttachmentCount != nil {
+		t.Fatal("不能借当前组织权限读取其他组织的摘要")
+	}
+}

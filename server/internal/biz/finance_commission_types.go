@@ -69,7 +69,7 @@ type FinanceCommissionAdjustment struct {
 type CommissionFeeDetail struct {
 	FeeID, SettlementPartyID                         uuid.UUID
 	Direction, FeeCode, FeeName, SettlementPartyName string
-	Currency, BaseCurrency, Status      string
+	Currency, BaseCurrency, Status                   string
 	TotalAmount, ExchangeRate, BaseCurrencyAmount    decimal.Decimal
 }
 
@@ -476,68 +476,6 @@ type MyFeeSupplementAdjustmentSource struct {
 	SupplementReason      string
 }
 
-// OrderCommissionSummaryVisibility 标识订单提成摘要的可见模式：EMPLOYEE 仅含
-// 本人提成事实（SQL 层固定 employee_id = 调用者），ORGANIZATION 为组织级全员
-// 状态与汇总。判定真相源是目标组织的 system.finance.commission.read 权限范围，
-// 用户角色或管理员身份本身不替代该权限。
-type OrderCommissionSummaryVisibility string
-
-const (
-	OrderCommissionVisibilityEmployee     OrderCommissionSummaryVisibility = "EMPLOYEE"
-	OrderCommissionVisibilityOrganization OrderCommissionSummaryVisibility = "ORGANIZATION"
-)
-
-// OrderCommissionSummaryTarget 是订单页内一个需要附加提成摘要的订单；订单必须
-// 已通过订单读取授权，由调用方（订单列表服务）传入。
-type OrderCommissionSummaryTarget struct {
-	OrderID        uuid.UUID
-	OrganizationID uuid.UUID
-}
-
-// OrderCommissionSummaryScope 描述同一组织、同一可见模式下一组订单的批量聚合
-// 范围。EMPLOYEE 模式的 EmployeeID 必填：隐私裁剪发生在 SQL 查询条件内，禁止
-// 先聚合全员再在内存或前端裁剪。
-type OrderCommissionSummaryScope struct {
-	OrganizationID uuid.UUID
-	Visibility     OrderCommissionSummaryVisibility
-	OrderIDs       []uuid.UUID
-	EmployeeID     uuid.UUID
-}
-
-// OrderCommissionSummary 是订单列表提成摘要的领域投影：可并存事实集合，允许
-// 同票多员工、多来源、分期回款与不同状态同时存在，不构造整票互斥状态。
-// 金额是当前可见范围内的汇总（订单组织本位币），取消记录不参与有效汇总；
-// Paid 只表示对应提成单已发，PendingDecrease 只表示 DRAFT 冲减建议尚未处理，
-// 预计机会是尚未生成有效基础提成单的估算来源数量，均不做应发承诺。
-type OrderCommissionSummary struct {
-	Visibility   OrderCommissionSummaryVisibility
-	BaseCurrency string
-
-	HasExpectedOpportunity   bool
-	ExpectedOpportunityCount int
-
-	HasDraftCommission    bool
-	DraftCommissionCount  int
-	DraftCommissionAmount decimal.Decimal
-
-	HasConfirmedCommission    bool
-	ConfirmedCommissionCount  int
-	ConfirmedCommissionAmount decimal.Decimal
-
-	HasPaidCommission    bool
-	PaidCommissionCount  int
-	PaidCommissionAmount decimal.Decimal
-
-	HasPendingDecrease    bool
-	PendingDecreaseCount  int
-	PendingDecreaseAmount decimal.Decimal
-}
-
-// newEmptyOrderCommissionSummary 返回指定可见模式的本人/全员空态摘要。
-func newEmptyOrderCommissionSummary(visibility OrderCommissionSummaryVisibility) *OrderCommissionSummary {
-	return &OrderCommissionSummary{Visibility: visibility}
-}
-
 // validCommissionAdjustmentSourceType 判断来源类型取值是否已登记。
 func validCommissionAdjustmentSourceType(source CommissionAdjustmentSourceType) bool {
 	switch source {
@@ -617,10 +555,6 @@ type CommissionRepo interface {
 	// 同时限定调整 ID、employee_id = 当前用户、LOCKED_FEE_SUPPLEMENT 来源和组织
 	// 成员关系；任一不满足时按不存在处理，不泄露记录事实。
 	GetMyFeeSupplementAdjustmentSource(context.Context, uuid.UUID, uuid.UUID) (*MyFeeSupplementAdjustmentSource, error)
-	// ListOrderSummaries 按组织与可见模式分组的批量聚合查询：一次处理整页订单
-	// ID，不逐行查询。EMPLOYEE 作用域必须在 SQL 条件内固定 employee_id，普通
-	// 员工响应不得包含他人数量、姓名、状态、金额或整票是否有提成等旁路字段。
-	ListOrderSummaries(context.Context, []OrderCommissionSummaryScope) (map[uuid.UUID]*OrderCommissionSummary, error)
 	CreateAdjustment(context.Context, uuid.UUID, uuid.UUID, *FinanceCommissionAdjustment, *AuditEvent) (*FinanceCommissionAdjustment, error)
 	TransitionAdjustment(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, CommissionStatus, string, *AuditEvent) (*FinanceCommissionAdjustment, error)
 }

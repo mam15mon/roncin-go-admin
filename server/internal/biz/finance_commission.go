@@ -13,7 +13,6 @@ import (
 	"github.com/google/uuid"
 
 	financev1 "github.com/roncin/roncin-go-admin/server/api/finance/v1"
-	"github.com/roncin/roncin-go-admin/server/internal/access"
 )
 
 var (
@@ -305,68 +304,6 @@ func (u *CommissionUsecase) GetMyFeeSupplementAdjustmentSource(ctx context.Conte
 		return nil, ErrCommissionAdjustmentNotFound
 	}
 	return u.repo.GetMyFeeSupplementAdjustmentSource(ctx, caller.UserID, id)
-}
-
-// BuildOrderListSummaries 为已授权订单页批量构建提成摘要：对每个订单组织单独
-// 判定调用者是否持有该组织 system.finance.commission.read，持有则组织级全员
-// 状态与汇总，否则 SQL 层固定 employee_id = 调用者。可见模式只在 SQL 条件中
-// 生效，不先聚合全员再裁剪；对越权组织返回本人视图（一致的空态语义），不泄露
-// 他人记录存在性。返回映射覆盖全部去重后的目标订单，本人/全员无记录时为空态。
-func (u *CommissionUsecase) BuildOrderListSummaries(ctx context.Context, caller *Principal, targets []OrderCommissionSummaryTarget) (map[uuid.UUID]*OrderCommissionSummary, error) {
-	if caller == nil || caller.UserID == uuid.Nil || len(targets) == 0 || len(targets) > MaxListPageSize {
-		return nil, ErrCommissionInvalid
-	}
-	// 去重目标订单；同一订单只聚合一次，重复目标共享同一份摘要。
-	deduped := make(map[uuid.UUID]uuid.UUID, len(targets))
-	orderIDsByOrganization := make(map[uuid.UUID][]uuid.UUID)
-	organizations := make([]uuid.UUID, 0, 2)
-	for _, target := range targets {
-		if target.OrderID == uuid.Nil || target.OrganizationID == uuid.Nil {
-			return nil, ErrCommissionInvalid
-		}
-		if _, exists := deduped[target.OrderID]; exists {
-			continue
-		}
-		deduped[target.OrderID] = target.OrganizationID
-		existing, seen := orderIDsByOrganization[target.OrganizationID]
-		if !seen {
-			organizations = append(organizations, target.OrganizationID)
-		}
-		orderIDsByOrganization[target.OrganizationID] = append(existing, target.OrderID)
-	}
-	// 逐组织判定可见模式：同一主体在不同组织权限可以不同，切换组织后重新判定。
-	scopes := make([]OrderCommissionSummaryScope, 0, len(organizations))
-	visibilityByOrganization := make(map[uuid.UUID]OrderCommissionSummaryVisibility, len(organizations))
-	for _, organizationID := range organizations {
-		visibility := OrderCommissionVisibilityEmployee
-		if caller.CanAccessOrganizationForPermission(access.FinanceCommissionRead, organizationID, false) {
-			visibility = OrderCommissionVisibilityOrganization
-		}
-		visibilityByOrganization[organizationID] = visibility
-		scope := OrderCommissionSummaryScope{OrganizationID: organizationID, Visibility: visibility, OrderIDs: orderIDsByOrganization[organizationID]}
-		if visibility == OrderCommissionVisibilityEmployee {
-			scope.EmployeeID = caller.UserID
-		}
-		scopes = append(scopes, scope)
-	}
-	summaries, err := u.repo.ListOrderSummaries(ctx, scopes)
-	if err != nil {
-		return nil, err
-	}
-	result := make(map[uuid.UUID]*OrderCommissionSummary, len(deduped))
-	for orderID, organizationID := range deduped {
-		summary, exists := summaries[orderID]
-		if !exists || summary == nil {
-			// 本人/全员无记录：返回一致的空态，而不是缺失，避免调用方把缺失
-			// 解释为不可见事实。
-			summary = newEmptyOrderCommissionSummary(visibilityByOrganization[organizationID])
-		}
-		if summary.Visibility != visibilityByOrganization[organizationID] {
-			return nil, ErrCommissionInvalid
-		}
-		result[orderID] = summary
-	}
-	return result, nil
 }
 
 // Preview 按核销或对冲来源二选一预览提成：服务端按来源归属日期、员工与人员

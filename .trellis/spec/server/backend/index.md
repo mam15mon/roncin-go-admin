@@ -21,6 +21,7 @@
 | [HBL 制作与 PDF 输出](./sea-hbl-production.md) | 同一 HBL 印字、自签公司动态抬头、四版本独立于利润审核和完整分页输出 | ✅ |
 | [Air Export Contract](./air-export-contract.md) | 空运共享 MAWB、每票 HAWB、成员与单证历史、流程、重量确认和费用来源 | ✅ |
 | [Order Shared Enum Field](./order-shared-enum-field.md) | 订单共享契约新增可选枚举字段的五层配方、迁移列形与更新语义 | ✅ |
+| [订单列表字段与排序](./order-list-fields.md) | 海运可选列、本页批量摘要、权限裁剪、真实排序与提成摘要退役 | ✅ |
 | [Order Personnel Editor Retirement](./order-personnel-editor-retirement.md) | 订单协作团队独立维护退役，保留表单读取、底层人员与通知/提成依赖 | ✅ |
 | [Order Milestone Retirement](./order-milestone-retirement.md) | 独立订单里程碑退役：删表、权限同步、生成清理和操作进度保留 | ✅ |
 | [Order Lock and Document Version](./order-lock-and-document-version.md) | 海运出口订单业务锁、不可变版本与共享 MBL 固定锁序 | ✅ |
@@ -30,7 +31,7 @@
 | [提成经济重算与已发事实保护](./finance-commission-lock.md) | 财务锁退役、普通费用与账单经济重算、差额调整及已发事实保护 | ✅ |
 | [Order Fee Review](./order-fee-review.md) | 统一人工审核锁、费用快照、逐费建账准入与锁后补审边界 | ✅ |
 | [Order Fee Correction](./order-fee-correction.md) | 批准后费用更正、账单行清偿投影、发票覆盖范围、真实回款提成及补付追回 | ✅ |
-| [Commission Scheme Assignment](./commission-scheme-assignment.md) | 提成方案与员工分配：实际区间唯一、Membership 固定锁序、legacy_readonly、工作台资格门禁与订单摘要隐私投影 | ✅ |
+| [Commission Scheme Assignment](./commission-scheme-assignment.md) | 提成方案与员工分配：实际区间唯一、Membership 固定锁序、legacy_readonly、工作台资格门禁与订单列表摘要退役 | ✅ |
 | [Billing Unit Quantity Rule](./billing-unit-quantity-rule.md) | 计费单位整数/小数规则、初始化与费用更新语义 | ✅ |
 | [Order Fee Quantity Preview](./order-fee-quantity-preview.md) | 公共单位补齐、计划/实际数量来源、十进制预览与确认带入 | ✅ |
 | [Organization Shared Masterdata](./organization-shared-masterdata.md) | 公共主数据、系统费用模板与公司独立配置、工作台维护权及迁移约束 | ✅ |

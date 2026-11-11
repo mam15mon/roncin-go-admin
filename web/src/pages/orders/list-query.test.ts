@@ -543,4 +543,162 @@ describe('queryOrderList', () => {
     const air = await queryOrderList({}, airExportDefinition, ctx);
     expect(air.data[0].billRelation).toBeUndefined();
   });
+  it.each(['orderNo', 'createdAt', 'etd', 'eta'])(
+    '向服务端传递 %s 排序，清除排序恢复默认',
+    async (sorterField) => {
+      listOrdersMock.mockResolvedValue({ data: [], total: 0 });
+      const context = {
+        ports: [],
+        airports: [],
+        customerMap: {},
+        organizationId: 'org-1',
+      };
+      await queryOrderList(
+        { sorterField, sorterOrder: 'ascend' },
+        seaExportDefinition,
+        context,
+      );
+      expect(listOrdersMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ sortBy: sorterField, sortOrder: 'ascend' }),
+      );
+      await queryOrderList(
+        { sorterField, sorterOrder: 'descend' },
+        seaExportDefinition,
+        context,
+      );
+      expect(listOrdersMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ sortBy: sorterField, sortOrder: 'descend' }),
+      );
+      await queryOrderList({ sorterField }, seaExportDefinition, context);
+      expect(listOrdersMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ sortBy: undefined, sortOrder: undefined }),
+      );
+    },
+  );
+
+  it('映射真实列表投影，分别保留本票目的港、共同卸货港及业务备注', async () => {
+    listOrdersMock.mockResolvedValue({
+      data: [
+        {
+          id: 'order-1',
+          orderNo: 'SE-001',
+          destinationLocationName: '鹿特丹港',
+          dischargeLocationName: '汉堡港',
+          transitLocationName: '新加坡港',
+          shippingLineName: '示例船公司',
+          etd: '2026-11-11T03:00:00Z',
+          eta: '2026-11-25T04:00:00Z',
+          siCutoff: '2026-11-10T03:00:00Z',
+          docCutoff: '2026-11-10T04:00:00Z',
+          customsCutoff: '2026-11-10T05:00:00Z',
+          vgmCutoff: '2026-11-10T06:00:00Z',
+          declarationCutoffAt: '2026-11-10T07:00:00Z',
+          bookingNo: 'SO-001',
+          foreignAgentName: '海外代理',
+          shippingAgentName: '船代',
+          internalReferenceNo: 'IN-001',
+          orderDate: '2026-11-11',
+          receivedAt: '2026-11-01T03:00:00Z',
+          cargoReadyAt: '2026-11-05T03:00:00Z',
+          factoryName: '工厂甲',
+          goodsDescription: '机器',
+          cargoValue: '15362.50000000',
+          cargoCurrency: 'USD',
+          unNumber: '1203',
+          hazardClass: '3',
+          allocationNotes: '配舱备注甲',
+          bookingNotes: '订舱备注乙',
+          operationNotes: '操作备注丙',
+          containerNos: ['CSQU3054383', 'MSCU1234567'],
+          attachmentCount: 2,
+          customerServiceName: '客服李',
+        },
+      ],
+      total: 1,
+    });
+    const result = await queryOrderList({}, seaExportDefinition, {
+      ports: [],
+      airports: [],
+      customerMap: {},
+      organizationId: 'org-1',
+    });
+    expect(result.data[0]).toEqual(
+      expect.objectContaining({
+        destinationPortName: '鹿特丹港',
+        dischargePortName: '汉堡港',
+        transitPortName: '新加坡港',
+        shippingLineName: '示例船公司',
+        etd: '2026-11-11T03:00:00Z',
+        eta: '2026-11-25T04:00:00Z',
+        siCutoff: '2026-11-10T03:00:00Z',
+        docCutoff: '2026-11-10T04:00:00Z',
+        customsCutoff: '2026-11-10T05:00:00Z',
+        vgmCutoff: '2026-11-10T06:00:00Z',
+        declarationCutoffAt: '2026-11-10T07:00:00Z',
+        bookingNo: 'SO-001',
+        foreignAgentName: '海外代理',
+        shippingAgentName: '船代',
+        internalReferenceNo: 'IN-001',
+        orderDate: '2026-11-11',
+        receivedAt: '2026-11-01T03:00:00Z',
+        cargoReadyAt: '2026-11-05T03:00:00Z',
+        factoryName: '工厂甲',
+        goodsDescription: '机器',
+        cargoValue: '15362.50000000',
+        cargoCurrency: 'USD',
+        unNumber: '1203',
+        hazardClass: '3',
+        spaceNotes: '配舱备注甲',
+        bookingNotes: '订舱备注乙',
+        operationNotes: '操作备注丙',
+        containerNos: ['CSQU3054383', 'MSCU1234567'],
+        attachmentCount: 2,
+        customerServiceName: '客服李',
+      }),
+    );
+    expect(result.data[0]).not.toHaveProperty('finalDestination');
+    expect(result.data[0]).not.toHaveProperty('commissionSummary');
+  });
+
+  it('可选附件数与货值保持存在性，缺省数组为空而显式零不丢失', async () => {
+    listOrdersMock.mockResolvedValue({
+      data: [
+        { id: 'missing', orderNo: 'SE-MISSING' },
+        {
+          id: 'zero',
+          orderNo: 'SE-ZERO',
+          attachmentCount: 0,
+          cargoValue: '0',
+          totalPackages: 0,
+          totalGrossWeightKg: 0,
+          totalVolumeCbm: 0,
+        },
+      ],
+      total: 2,
+    });
+    const result = await queryOrderList({}, seaExportDefinition, {
+      ports: [],
+      airports: [],
+      customerMap: {},
+      organizationId: 'org-1',
+    });
+    expect(result.data[0]).toEqual(
+      expect.objectContaining({
+        containerNos: [],
+        attachmentCount: undefined,
+        cargoValue: undefined,
+        customerServiceName: undefined,
+      }),
+    );
+    expect(result.data[1]).toEqual(
+      expect.objectContaining({
+        containerNos: [],
+        attachmentCount: 0,
+        cargoValue: '0',
+        totalPackages: 0,
+        grossWeightKg: 0,
+        volumeCbm: 0,
+      }),
+    );
+  });
 });

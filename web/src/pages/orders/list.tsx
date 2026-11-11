@@ -1,7 +1,7 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
 import { Button, Popover, Result } from 'antd';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router';
 import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
@@ -31,8 +31,6 @@ import ShippingDocumentDrawer, {
   type ShippingDocumentDrawerRef,
 } from './components/drawers/ShippingDocumentDrawer';
 import { OrderFeeReviewDrawer } from './components/fees/fee-review/OrderFeeReview';
-import OrderCommissionSummaryCell from './components/OrderCommissionSummaryCell';
-import OrderCommissionSummaryModal from './components/OrderCommissionSummaryModal';
 import {
   getDocumentsActionLabel,
   openOrderDocuments,
@@ -41,13 +39,11 @@ import { queryOrderList } from './list-query';
 import { useOrderListResources } from './list-resources';
 import { getOrderKindDefinition } from './order-kinds/registry';
 import ReleasePodPanel, { type ReleasePodPanelRef } from './release-pod-panel';
+import {
+  SEA_EXPORT_HIDDEN_COLUMNS,
+  seaExportListColumns,
+} from './sea-export-list-columns';
 import { getOrderBusinessWritePolicy } from './use-order-lock-state';
-
-/** 提成摘要下钻弹窗的行级上下文：只保存服务端已裁剪投影与单号。 */
-interface CommissionSummaryModalState {
-  orderNo: string;
-  summary?: API.OrderCommissionSummary;
-}
 
 export default function OrderListPage() {
   const location = useLocation();
@@ -119,32 +115,6 @@ export default function OrderListPage() {
       ),
     },
   ];
-  const [commissionModalState, setCommissionModalState] =
-    useState<CommissionSummaryModalState | null>(null);
-
-  // 海运出口订单列表的提成摘要列：只消费服务端按当前用户权限裁剪的投影。
-  const commissionExtraColumns: ProColumns<OrderListItem>[] = useMemo(
-    () => [
-      {
-        title: '提成',
-        dataIndex: 'commissionSummary',
-        width: 176,
-        render: (_, record) => (
-          <OrderCommissionSummaryCell
-            summary={record.rawRecord?.commissionSummary}
-            onOpen={(summary) =>
-              setCommissionModalState({
-                orderNo: record.orderNo,
-                summary,
-              })
-            }
-          />
-        ),
-      },
-    ],
-    [],
-  );
-
   const {
     ports,
     airports,
@@ -182,7 +152,13 @@ export default function OrderListPage() {
         title={definition.title}
         showBillRelations={definition.kind === 'sea-export'}
         subTitle={`统一维护${definition.title}全流程状态、主分单据、箱量配载、费用核算与业务履约轨迹`}
-        extraColumns={commissionExtraColumns}
+        columnSettingsKey={`orders:${definition.kind}`}
+        extraColumns={
+          definition.kind === 'sea-export' ? seaExportListColumns : []
+        }
+        defaultHiddenColumnKeys={
+          definition.kind === 'sea-export' ? SEA_EXPORT_HIDDEN_COLUMNS : []
+        }
         trailingColumns={reviewColumns}
         options={{
           transportMode: definition.transportMode === 'air' ? 'air' : 'sea',
@@ -317,17 +293,6 @@ export default function OrderListPage() {
           canOperateActiveOrder &&
           access.canOrder(definition.businessType, 'release_pod.create')
         }
-      />
-      <OrderCommissionSummaryModal
-        open={commissionModalState !== null}
-        orderNo={commissionModalState?.orderNo}
-        summary={commissionModalState?.summary}
-        canOpenLedger={access.canReadFinanceCommissions === true}
-        onClose={() => setCommissionModalState(null)}
-        onOpenLedger={() => {
-          setCommissionModalState(null);
-          history.push('/finance/commissions');
-        }}
       />
       <AbnormalCasePanel
         ref={abnormalCasePanelRef}

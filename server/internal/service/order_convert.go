@@ -33,6 +33,7 @@ func orderToAPI(item *biz.Order) *v1.Order {
 		BookingAgentName: stringPtrIfNotEmpty(item.BookingAgentName), ForeignAgentName: stringPtrIfNotEmpty(item.ForeignAgentName), ShippingAgentName: stringPtrIfNotEmpty(item.ShippingAgentName),
 		OperatorName: stringPtrIfNotEmpty(item.OperatorName), OperatorBranch: stringPtrIfNotEmpty(item.OperatorBranch), SalesName: stringPtrIfNotEmpty(item.SalesName), SalesBranch: stringPtrIfNotEmpty(item.SalesBranch), CreatorName: stringPtrIfNotEmpty(item.CreatorName),
 		ShippingLineName: stringPtrIfNotEmpty(item.ShippingLineName),
+		ContainerNos:     item.ContainerNos, CustomerServiceName: stringPtrIfNotEmpty(item.CustomerServiceName),
 		BookingNo:        stringPtrIfNotEmpty(item.BookingNo),
 		ShipperShortName: stringPtrIfNotEmpty(item.ShipperShortName), ConsigneeShortName: stringPtrIfNotEmpty(item.ConsigneeShortName), LockedAt: timePtrToString(item.LockedAt), IsShared: item.IsShared,
 		CreatedAt: item.CreatedAt.UTC().Format(timeFormatRFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(timeFormatRFC3339),
@@ -43,6 +44,11 @@ func orderToAPI(item *biz.Order) *v1.Order {
 			ChangedAt: record.ChangedAt.UTC().Format(timeFormatRFC3339), Reason: record.Reason,
 		})
 	}
+	if item.AttachmentCount != nil {
+		count := int32(*item.AttachmentCount)
+		result.AttachmentCount = &count
+	}
+
 	if r := item.FeeReview; r != nil {
 		result.FeeReview = &v1.OrderFeeReviewProjection{Status: r.Status, ContentVersion: r.ContentVersion, ReviewVersion: r.ReviewVersion, HasPendingSupplement: r.HasPendingSupplement, HasPendingCorrection: r.HasPendingCorrection, HasPendingChange: r.HasPendingChange, CanApprove: r.CanApprove, CanEdit: r.CanEdit, CanBill: r.CanBill, BlockedReasons: r.BlockedReasons, Summary: feeReviewSummaryToAPI(r.Summary)}
 		if r.SubmissionID != nil {

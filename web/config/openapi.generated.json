@@ -7921,6 +7921,22 @@
             "schema": {
               "type": "boolean"
             }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "description": "仅支持 orderNo、createdAt、etd、eta；未指定默认 createdAt。",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "description": "仅支持 ascend、descend；未指定默认 descend，空时间始终排最后。",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -28654,14 +28670,6 @@
           "bookingNo": {
             "type": "string"
           },
-          "commissionSummary": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/order.v1.OrderCommissionSummary"
-              }
-            ],
-            "description": "commission_summary 列表页可选提成摘要：仅海运出口列表由服务端按当前用户\n 可见范围批量附加；普通员工视图不含他人提成事实。"
-          },
           "feeReview": {
             "$ref": "#/components/schemas/order.v1.OrderFeeReviewProjection"
           },
@@ -28714,6 +28722,20 @@
             "items": {
               "$ref": "#/components/schemas/order.v1.OrderStatusRecord"
             }
+          },
+          "containerNos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "列表轻量摘要；附件数仅向具备附件读取权限者返回，零表示确实没有附件。"
+          },
+          "attachmentCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "customerServiceName": {
+            "type": "string"
           }
         }
       },
@@ -28862,67 +28884,6 @@
             "format": "double"
           }
         }
-      },
-      "order.v1.OrderCommissionSummary": {
-        "type": "object",
-        "properties": {
-          "visibilityMode": {
-            "type": "integer",
-            "format": "enum"
-          },
-          "baseCurrency": {
-            "type": "string",
-            "description": "base_currency 金额口径币种（订单组织本位币）；无金额事实时为空。"
-          },
-          "hasExpectedOpportunity": {
-            "type": "boolean"
-          },
-          "expectedOpportunityCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "hasDraftCommission": {
-            "type": "boolean"
-          },
-          "draftCommissionCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "draftCommissionAmount": {
-            "type": "string"
-          },
-          "hasConfirmedCommission": {
-            "type": "boolean"
-          },
-          "confirmedCommissionCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "confirmedCommissionAmount": {
-            "type": "string"
-          },
-          "hasPaidCommission": {
-            "type": "boolean"
-          },
-          "paidCommissionCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "paidCommissionAmount": {
-            "type": "string"
-          },
-          "hasPendingDecrease": {
-            "type": "boolean"
-          },
-          "pendingDecreaseCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pendingDecreaseAmount": {
-            "type": "string"
-          }
-        },
-        "description": "OrderCommissionSummary 订单列表可选提成摘要：仅 ListOrders 的海运出口结果\n 按需填充，订单详情不自动附加。摘要以可并存事实集合表达当前用户可见范围内\n 的提成状态，不构造整票互斥状态；普通员工视图仅含本人提成事实，不含他人\n 数量、姓名、状态、金额或「整票是否有提成」等旁路信息，本人无记录时所有\n 事实均为 false 的本人空态。\n 金额为订单组织本位币口径（不同币种不合并），取消记录不参与有效汇总；\n PAID 仅表示对应提成单已发放，不宣称整票全部结清；待处理冲减是 DRAFT\n 冲减建议，不代表已实际扣回；预计可计提来源是尚未生成有效基础提成单的\n 估算机会，非应发承诺。"
       },
       "order.v1.OrderConsolidationMember": {
         "type": "object",

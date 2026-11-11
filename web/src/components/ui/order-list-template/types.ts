@@ -91,11 +91,33 @@ export interface OrderListItem {
     memberCount: number;
   };
   vesselVoyage?: string;
+  shippingLineName?: string;
+  etd?: string;
+  eta?: string;
+  siCutoff?: string;
+  docCutoff?: string;
+  customsCutoff?: string;
+  vgmCutoff?: string;
+  declarationCutoffAt?: string;
+  bookingNo?: string;
+  dischargePortName?: string;
+  transitPortName?: string;
+  foreignAgentName?: string;
+  shippingAgentName?: string;
+  internalReferenceNo?: string;
+  orderDate?: string;
+  receivedAt?: string;
+  cargoReadyAt?: string;
+  factoryName?: string;
+  goodsDescription?: string;
+  cargoValue?: string;
+  cargoCurrency?: string;
+  unNumber?: string;
+  hazardClass?: string;
   originPortCode?: string;
   originPortName?: string;
   destinationPortCode?: string;
   destinationPortName?: string;
-  finalDestination?: string;
   containerSummary?: string; // 如 "2×20GP, 1×40HQ"
   containerNos?: string[];
 
@@ -104,6 +126,7 @@ export interface OrderListItem {
   operatorBranch?: string;
   salesName?: string;
   salesBranch?: string;
+  customerServiceName?: string;
   creatorName?: string;
   creatorOrg?: string;
 
@@ -148,6 +171,8 @@ export interface OrderListTemplateProps {
   completedSelectionIds?: string[];
   /** 统一列设置表格标识（业务视图级）；缺省 `orders:list`。 */
   columnSettingsKey?: string;
+  /** 品类扩展列的默认隐藏项，与公共低频列合并。 */
+  defaultHiddenColumnKeys?: string[];
   /** 页面/工作台主标题，如 "海运出口订单" */
   title?: string;
   /** 表格动作 Ref（支持外部受控刷新） */

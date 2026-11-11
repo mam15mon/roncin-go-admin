@@ -20,7 +20,10 @@ const SECONDARY_TITLES = [
   '配舱备注',
   '订舱备注',
   '操作备注',
-  '提成',
+  'ETA',
+  '创建时间',
+  '客服人员',
+  '附件',
 ];
 
 beforeEach(() => localStorage.clear());
@@ -33,16 +36,17 @@ function renderOrders() {
         columnSettingsKey={TABLE_KEY}
         queryOrders={vi.fn().mockResolvedValue({
           data: [
-            { id: 'order-1', orderNo: 'SE-001' },
+            { id: 'order-1', orderNo: 'SE-001', attachmentCount: 0 },
             { id: 'order-2', orderNo: 'SE-002' },
           ],
           total: 2,
         })}
+        defaultHiddenColumnKeys={['eta']}
         extraColumns={[
           {
-            title: '提成',
-            dataIndex: 'commissionSummary',
-            render: () => '待发 ¥100.00',
+            title: 'ETA',
+            dataIndex: 'eta',
+            render: () => '2026-11-20 12:00',
           },
         ]}
         trailingColumns={[
@@ -53,7 +57,7 @@ function renderOrders() {
   );
 }
 
-it('辅助列默认隐藏，序号与提成可重新开启并恢复精简默认布局', async () => {
+it('辅助列默认隐藏，序号与ETA可重新开启并恢复精简默认布局', async () => {
   const { container } = renderOrders();
   await screen.findByText('SE-001');
   const headers = within(
@@ -87,11 +91,14 @@ it('辅助列默认隐藏，序号与提成可重新开启并恢复精简默认�
   }
   fireEvent.click(sequenceCheckbox);
   fireEvent.click(
-    screen.getByLabelText('提成', { selector: 'input[type=checkbox]' }),
+    screen.getByLabelText('ETA', { selector: 'input[type=checkbox]' }),
+  );
+  fireEvent.click(
+    screen.getByLabelText('附件', { selector: 'input[type=checkbox]' }),
   );
   await waitFor(() => {
     expect(headers.getByText('序号')).toBeInTheDocument();
-    expect(headers.getByText('提成')).toBeInTheDocument();
+    expect(headers.getByText('ETA')).toBeInTheDocument();
   });
   const firstRow = within(
     screen.getByText('SE-001').closest('tr') as HTMLElement,
@@ -101,7 +108,9 @@ it('辅助列默认隐藏，序号与提成可重新开启并恢复精简默认�
   );
   expect(firstRow.getByText('1')).toBeInTheDocument();
   expect(secondRow.getByText('2')).toBeInTheDocument();
-  expect(firstRow.getByText('待发 ¥100.00')).toBeInTheDocument();
+  expect(firstRow.getByText('2026-11-20 12:00')).toBeInTheDocument();
+  expect(firstRow.getByText('0')).toBeInTheDocument();
+  expect(secondRow.queryByText('0')).not.toBeInTheDocument();
 
   fireEvent.click(screen.getByRole('button', { name: '恢复默认' }));
   await waitFor(() => {
@@ -114,9 +123,9 @@ it('辅助列默认隐藏，序号与提成可重新开启并恢复精简默认�
 
 it('保留已保存的辅助列显隐、顺序和冻结偏好，不改写浏览器存储', async () => {
   const saved = JSON.stringify({
-    order: ['commissionSummary', 'businessType', 'orderNo', 'operatorName'],
+    order: ['eta', 'businessType', 'orderNo', 'operatorName'],
     hidden: ['operatorName'],
-    freeze: { left: ['commissionSummary'], right: ['option'] },
+    freeze: { left: ['eta'], right: ['option'] },
   });
   localStorage.setItem(STORAGE_KEY, saved);
   const { container } = renderOrders();
@@ -125,14 +134,17 @@ it('保留已保存的辅助列显隐、顺序和冻结偏好，不改写浏览�
     'thead',
   ) as HTMLTableSectionElement;
   const headers = within(headerElement);
-  expect(headers.getByText('提成')).toBeInTheDocument();
+  expect(headers.getByText('ETA')).toBeInTheDocument();
   expect(headers.getByText('业务类型')).toBeInTheDocument();
+  expect(headers.queryByText('客服人员')).not.toBeInTheDocument();
+  expect(headers.queryByText('目的地')).not.toBeInTheDocument();
+  expect(headers.queryByText('提成')).not.toBeInTheDocument();
   expect(headers.queryByText('操作人员')).not.toBeInTheDocument();
   expect(headers.queryByText('序号')).not.toBeInTheDocument();
   const titles = Array.from(headerElement.querySelectorAll('th')).map(
     (cell) => cell.textContent,
   );
-  expect(titles.indexOf('提成')).toBeLessThan(titles.indexOf('业务类型'));
+  expect(titles.indexOf('ETA')).toBeLessThan(titles.indexOf('业务类型'));
   expect(titles.indexOf('业务类型')).toBeLessThan(titles.indexOf('订单编号'));
   expect(localStorage.getItem(STORAGE_KEY)).toBe(saved);
 });

@@ -4973,9 +4973,6 @@ declare namespace API {
     seaDocumentSummary?: SeaOrderDocumentSummary;
     airExport?: AirOrderInfo;
     bookingNo?: string;
-    /** commission_summary 列表页可选提成摘要：仅海运出口列表由服务端按当前用户
- 可见范围批量附加；普通员工视图不含他人提成事实。 */
-    commissionSummary?: OrderCommissionSummary;
     feeReview?: OrderFeeReviewProjection;
     /** 列表展示名称由服务端批量解析；前端本地候选缓存缺项时禁止回退展示原始 ID。 */
     customerName?: string;
@@ -4994,6 +4991,10 @@ declare namespace API {
     creatorName?: string;
     shippingLineName?: string;
     statusRecords?: OrderStatusRecord[];
+    /** 列表轻量摘要；附件数仅向具备附件读取权限者返回，零表示确实没有附件。 */
+    containerNos?: string[];
+    attachmentCount?: number;
+    customerServiceName?: string;
   };
 
   type OrderAbnormalCase = {
@@ -5105,26 +5106,6 @@ declare namespace API {
     packages?: number;
     grossWeightKg?: number;
     volumeCbm?: number;
-  };
-
-  type OrderCommissionSummary = {
-    visibilityMode?: number;
-    /** base_currency 金额口径币种（订单组织本位币）；无金额事实时为空。 */
-    baseCurrency?: string;
-    hasExpectedOpportunity?: boolean;
-    expectedOpportunityCount?: number;
-    hasDraftCommission?: boolean;
-    draftCommissionCount?: number;
-    draftCommissionAmount?: string;
-    hasConfirmedCommission?: boolean;
-    confirmedCommissionCount?: number;
-    confirmedCommissionAmount?: string;
-    hasPaidCommission?: boolean;
-    paidCommissionCount?: number;
-    paidCommissionAmount?: string;
-    hasPendingDecrease?: boolean;
-    pendingDecreaseCount?: number;
-    pendingDecreaseAmount?: string;
   };
 
   type OrderConsolidationMember = {
@@ -5778,6 +5759,10 @@ declare namespace API {
     creatorId?: string;
     isLocked?: boolean;
     isShared?: boolean;
+    /** 仅支持 orderNo、createdAt、etd、eta；未指定默认 createdAt。 */
+    sortBy?: string;
+    /** 仅支持 ascend、descend；未指定默认 descend，空时间始终排最后。 */
+    sortOrder?: string;
   };
 
   type OrderServiceListPersonnelOptionsParams = {

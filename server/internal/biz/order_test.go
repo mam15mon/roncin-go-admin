@@ -888,3 +888,20 @@ func TestNormalizeOrderRequiresCommissionPersonnelOnCreate(t *testing.T) {
 		}
 	})
 }
+
+func TestOrderListRejectsUnsupportedSort(t *testing.T) {
+	usecase := NewOrderUsecase(&orderRepoStub{}, &seaMasterBillRepoStub{}, nil, newReminderModeCreditControl(), nil)
+	scopes := []OrderOrganizationScope{{BusinessType: OrderBusinessSE, OrganizationIDs: []uuid.UUID{uuid.New()}}}
+	for _, tc := range []struct {
+		field, direction string
+		valid            bool
+	}{
+		{"", "", true}, {"orderNo", "ascend", true}, {"createdAt", "descend", true}, {"etd", "ascend", true}, {"eta", "descend", true},
+		{"customerName", "ascend", false}, {"createdAt", "asc", false}, {"created_at; DROP TABLE orders", "descend", false},
+	} {
+		_, err := usecase.List(context.Background(), scopes, OrderListOptions{Page: 1, PageSize: 20, BusinessType: OrderBusinessSE, SortBy: tc.field, SortOrder: tc.direction})
+		if (err == nil) != tc.valid {
+			t.Fatalf("排序 %q/%q: %v", tc.field, tc.direction, err)
+		}
+	}
+}

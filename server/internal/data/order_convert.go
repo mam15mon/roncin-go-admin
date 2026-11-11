@@ -87,6 +87,8 @@ func orderToBiz(item *ent.Order) *biz.Order {
 		case orderpersonnelent.RoleSALES:
 			result.SalesName = assignment.Edges.User.DisplayName
 			result.SalesBranch = branch
+		case orderpersonnelent.RoleCUSTOMER_SERVICE:
+			result.CustomerServiceName = assignment.Edges.User.DisplayName
 		case orderpersonnelent.RoleCREATOR:
 			result.CreatorName = assignment.Edges.User.DisplayName
 		}

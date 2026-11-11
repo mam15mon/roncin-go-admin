@@ -175,9 +175,12 @@ func (r *orderRepo) List(ctx context.Context, scopes []biz.OrderOrganizationScop
 		query.Where(orderent.IsSharedEQ(*options.IsShared))
 	}
 	result, err := paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.Order, error) {
-		return withOrderEdges(query).Order(orderent.ByCreatedAt(entsql.OrderDesc())).Offset(offset).Limit(limit).All(ctx)
+		return withOrderEdges(query).Order(orderListSort(options)...).Offset(offset).Limit(limit).All(ctx)
 	}, options.Page, options.PageSize, infalliblePageConverter(orderToBiz))
 	if err != nil {
+		return nil, err
+	}
+	if err := attachOrderListResources(ctx, client, result.Items); err != nil {
 		return nil, err
 	}
 	if err := attachOrderDisplayNames(ctx, client, result.Items); err != nil {

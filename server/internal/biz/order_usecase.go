@@ -50,6 +50,14 @@ func (uc *OrderUsecase) List(ctx context.Context, scopes []OrderOrganizationScop
 			return nil, ErrOrderInvalidArgument
 		}
 	}
+	switch options.SortBy {
+	case "", "orderNo", "createdAt", "etd", "eta":
+	default:
+		return nil, ErrOrderInvalidArgument
+	}
+	if options.SortOrder != "" && options.SortOrder != "ascend" && options.SortOrder != "descend" {
+		return nil, ErrOrderInvalidArgument
+	}
 	options.Keyword = strings.TrimSpace(options.Keyword)
 	options.NumberKeyword = strings.TrimSpace(options.NumberKeyword)
 	options.ConsigneeShortName = strings.TrimSpace(options.ConsigneeShortName)
