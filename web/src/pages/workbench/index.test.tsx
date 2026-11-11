@@ -471,6 +471,15 @@ describe('工作台财务卡与组织切换', () => {
     expect(screen.getByText('3 条（尚未扣回）')).toBeInTheDocument();
     expect(screen.getByText('7 笔')).toBeInTheDocument();
     expect(
+      screen.queryByRole('button', { name: '台账导出' }),
+    ).not.toBeInTheDocument();
+    const ledgerButton = screen.getByRole('button', {
+      name: '查看提成台账',
+    });
+    fireEvent.click(ledgerButton);
+    expect(umiState.historyPush).toHaveBeenCalledWith('/finance/commissions');
+    umiState.historyPush.mockClear();
+    expect(
       screen.getByRole('button', { name: '去处理冲减' }),
     ).toBeInTheDocument();
 

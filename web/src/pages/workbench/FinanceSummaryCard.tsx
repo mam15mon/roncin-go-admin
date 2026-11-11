@@ -157,20 +157,12 @@ export default function FinanceSummaryCard({ finance }: Props) {
                   {finance.confirmedCommissionCount ?? 0} 笔
                 </Tag>
               </Space>
-              <Space size={8}>
-                <Button
-                  size="small"
-                  onClick={() => history.push('/finance/commissions')}
-                >
-                  提成台账
-                </Button>
-                <Button
-                  size="small"
-                  onClick={() => history.push('/finance/commissions')}
-                >
-                  台账导出
-                </Button>
-              </Space>
+              <Button
+                size="small"
+                onClick={() => history.push('/finance/commissions')}
+              >
+                查看提成台账
+              </Button>
             </div>
           </>
         ) : null}
