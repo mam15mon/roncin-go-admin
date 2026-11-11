@@ -152,6 +152,26 @@ func (s *PartnerService) UpdatePartner(ctx context.Context, request *v1.UpdatePa
 	return ok(ctx, &v1.UpdatePartnerResponse{Data: partnerToAPI(updated)}), nil
 }
 
+func (s *PartnerService) UpdatePartnerRoles(ctx context.Context, request *v1.UpdatePartnerRolesRequest) (*v1.UpdatePartnerRolesResponse, error) {
+	principal, err := biz.RequirePrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	partnerID, err := uuid.Parse(request.GetPartnerId())
+	if err != nil {
+		return nil, biz.ErrPartnerNotFound
+	}
+	roleTypes := make([]biz.PartnerRoleType, 0, len(request.GetRoleTypes()))
+	for _, roleType := range request.GetRoleTypes() {
+		roleTypes = append(roleTypes, partnerRoleTypeFromAPI(roleType))
+	}
+	updated, err := s.usecase.UpdateRoles(ctx, principal.Organization.ID, principal.UserID, partnerID, roleTypes)
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.UpdatePartnerRolesResponse{Data: partnerToAPI(updated)}), nil
+}
+
 func (s *PartnerService) SetPartnerRoleBlacklist(ctx context.Context, request *v1.SetPartnerRoleBlacklistRequest) (*v1.SetPartnerRoleBlacklistResponse, error) {
 	principal, principalErr := biz.RequirePrincipal(ctx)
 	if principalErr != nil {

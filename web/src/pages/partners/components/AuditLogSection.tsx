@@ -27,7 +27,15 @@ function renderDetailValue(key: string, value: unknown): React.ReactNode {
   if (value === undefined || value === null) return '—';
 
   // 角色列表格式化为中文标签
-  if (['roles', 'to_roles', 'roles_added', 'roles_removed'].includes(key)) {
+  if (
+    [
+      'roles',
+      'from_roles',
+      'to_roles',
+      'roles_added',
+      'roles_removed',
+    ].includes(key)
+  ) {
     const badges = parseRoleBadges(String(value));
     if (badges.length > 0) {
       return (

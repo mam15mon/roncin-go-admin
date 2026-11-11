@@ -92,3 +92,12 @@ describe('审计日志业务化展示', () => {
     expect(auditDetailValue('role_type', 'foreign_agent')).toBe('国外代理');
   });
 });
+
+it('客商业务身份审计使用明确中文动作', () => {
+  expect(auditActionPresentation('partner.roles.update')).toEqual({
+    title: '修改客商业务身份',
+    category: '往来单位',
+    color: 'green',
+    objectType: '往来单位',
+  });
+});

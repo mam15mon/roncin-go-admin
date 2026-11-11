@@ -2,7 +2,7 @@ import { App, Button, Checkbox, Form, Modal, Typography } from 'antd';
 import React, { useEffect } from 'react';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { PartnerRoleType } from '@/enums.generated';
-import { partnerServiceUpdatePartner } from '@/services/roncin/partnerService';
+import { partnerServiceUpdatePartnerRoles } from '@/services/roncin/partnerService';
 import { isWriteResponse } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 
@@ -58,23 +58,9 @@ export default function RoleSwitchModal({
 
       setSubmitting(true);
 
-      // 构建角色输入
-      const roleInputs: API.PartnerRoleInput[] = selectedTypes.map((type) => ({
-        type,
-        enabled: true,
-      }));
-
-      const writeResponse1 = await partnerServiceUpdatePartner(
-        { id: partner.id },
-        {
-          id: partner.id,
-          legalName: partner.legalName ?? '',
-          code: partner.code ?? '',
-          unifiedSocialCreditCode: partner.unifiedSocialCreditCode,
-          registeredAddress: partner.registeredAddress,
-          enabled: partner.enabled ?? true,
-          roles: roleInputs,
-        },
+      const writeResponse1 = await partnerServiceUpdatePartnerRoles(
+        { partnerId: partner.id },
+        { partnerId: partner.id, roleTypes: selectedTypes },
       );
       if (!isWriteResponse(writeResponse1, true)) return false;
 

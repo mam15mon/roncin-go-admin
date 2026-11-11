@@ -1,15 +1,15 @@
 import { renderWithApp } from '@root/tests/renderWithApp';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { beforeEach, expect, it, vi } from 'vitest';
-import { partnerServiceUpdatePartner } from '@/services/roncin/partnerService';
+import { partnerServiceUpdatePartnerRoles } from '@/services/roncin/partnerService';
 import RoleSwitchModal from './RoleSwitchModal';
 
 vi.mock('@/services/roncin/partnerService', () => ({
-  partnerServiceUpdatePartner: vi.fn(),
+  partnerServiceUpdatePartnerRoles: vi.fn(),
 }));
 beforeEach(() => vi.clearAllMocks());
 it('客商角色转换失败保留选中身份和弹窗，完整实体成功后才关闭刷新', async () => {
-  vi.mocked(partnerServiceUpdatePartner)
+  vi.mocked(partnerServiceUpdatePartnerRoles)
     .mockResolvedValueOnce(undefined as never)
     .mockResolvedValueOnce({ success: false, data: { id: 'p-1' } })
     .mockResolvedValueOnce({ success: true, data: {} })
@@ -33,7 +33,7 @@ it('客商角色转换失败保留选中身份和弹窗，完整实体成功后�
   for (let n = 1; n <= 3; n++) {
     fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
     await waitFor(() =>
-      expect(partnerServiceUpdatePartner).toHaveBeenCalledTimes(n),
+      expect(partnerServiceUpdatePartnerRoles).toHaveBeenCalledTimes(n),
     );
     await waitFor(() =>
       expect(screen.getByRole('button', { name: /保\s*存/ })).not.toHaveClass(

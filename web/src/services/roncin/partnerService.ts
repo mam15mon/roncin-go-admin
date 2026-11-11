@@ -363,6 +363,28 @@ export async function partnerServiceSetPartnerRoleBlacklist(
   );
 }
 
+/** 此处后端没有提供注释 PUT /api/v1/partners/${param0}/roles */
+export async function partnerServiceUpdatePartnerRoles(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.PartnerServiceUpdatePartnerRolesParams,
+  body: API.UpdatePartnerRolesRequest,
+  options?: { [key: string]: any }
+) {
+  const { partnerId: param0, ...queryParams } = params;
+  return request<API.UpdatePartnerRolesResponse>(
+    `/api/v1/partners/${param0}/roles`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/partners/${param0}/roles/${param1}/settlement-rules */
 export async function partnerServiceListPartnerSettlementRules(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

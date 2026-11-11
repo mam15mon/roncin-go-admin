@@ -358,6 +358,12 @@ const actionPresentations: Record<string, AuditActionPresentation> = {
     color: 'green',
     objectType: '往来单位',
   },
+  'partner.roles.update': {
+    title: '修改客商业务身份',
+    category: '往来单位',
+    color: 'green',
+    objectType: '往来单位',
+  },
   'partner.import': {
     title: '导入往来单位',
     category: '往来单位',
@@ -756,6 +762,7 @@ const detailLabels: Record<string, string> = {
   'preset.id': '预设 ID',
   legal_name: '单位名称',
   roles: '身份角色',
+  from_roles: '变更前角色',
   to_roles: '变更后角色',
   roles_added: '新增角色',
   roles_removed: '移除角色',

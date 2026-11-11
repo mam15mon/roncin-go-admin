@@ -6271,6 +6271,10 @@ declare namespace API {
     id: string;
   };
 
+  type PartnerServiceUpdatePartnerRolesParams = {
+    partnerId: string;
+  };
+
   type PartnerServiceUpdatePartnerSettlementRuleParams = {
     partnerId: string;
     roleType: number;
@@ -9059,6 +9063,19 @@ declare namespace API {
   };
 
   type UpdatePartnerResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: Partner;
+    traceId?: string;
+  };
+
+  type UpdatePartnerRolesRequest = {
+    partnerId: string;
+    roleTypes: number[];
+  };
+
+  type UpdatePartnerRolesResponse = {
     success?: boolean;
     code?: number;
     message?: string;

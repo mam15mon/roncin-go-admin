@@ -7671,6 +7671,30 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/partner.v1.UpdatePartnerInvoiceProfileResponse'
+    /api/v1/partners/{partnerId}/roles:
+        put:
+            tags:
+                - PartnerService
+            operationId: PartnerService_UpdatePartnerRoles
+            parameters:
+                - name: partnerId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/partner.v1.UpdatePartnerRolesRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/partner.v1.UpdatePartnerRolesResponse'
     /api/v1/partners/{partnerId}/roles/{roleType}/settlement-rules:
         get:
             tags:
@@ -23843,6 +23867,34 @@ components:
                     type: string
                     description: 单位编码：全量覆盖语义，空串表示清空；组织内唯一
         partner.v1.UpdatePartnerResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/partner.v1.Partner'
+                traceId:
+                    type: string
+        partner.v1.UpdatePartnerRolesRequest:
+            required:
+                - partnerId
+                - roleTypes
+            type: object
+            properties:
+                partnerId:
+                    type: string
+                roleTypes:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
+            description: 仅替换业务身份，不修改档案资料、启停、散客状态及角色结算规则。
+        partner.v1.UpdatePartnerRolesResponse:
             type: object
             properties:
                 success:

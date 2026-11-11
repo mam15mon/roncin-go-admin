@@ -347,6 +347,37 @@ func (r *partnerRepo) Update(ctx context.Context, organizationID, id uuid.UUID, 
 	return &biz.PartnerUpdateResult{Partner: updated, PreviousRoles: previousRoles}, nil
 }
 
+func (r *partnerRepo) UpdateRoles(ctx context.Context, organizationID, id uuid.UUID, roles []*biz.PartnerRole, audit *biz.AuditEvent) (*biz.PartnerUpdateResult, error) {
+	var previousRoles []*biz.PartnerRole
+	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		existing, err := tx.Partner.Query().
+			Where(partnerent.IDEQ(id), partnerent.OrganizationIDEQ(organizationID)).
+			WithRoles(func(query *ent.PartnerRoleQuery) { query.Order(partnerroleent.ByRoleType()) }).
+			ForUpdate().Only(ctx)
+		if err != nil {
+			return mapEntError(err, biz.ErrPartnerNotFound, nil)
+		}
+		previousRoles = partnerRolesToBiz(existing.Edges.Roles)
+		if err := replacePartnerRoles(ctx, tx, id, existing.Edges.Roles, roles); err != nil {
+			return err
+		}
+		// 仅触发档案更新时间，角色以外的主档与子资料不参与本次更新。
+		if _, err := existing.Update().Save(ctx); err != nil {
+			return err
+		}
+		audit.Details["from_roles"] = biz.FormatPartnerRolesAuditValue(previousRoles)
+		return writeAudit(ctx, tx.AuditLog, audit)
+	})
+	if err != nil {
+		return nil, err
+	}
+	updated, err := r.Get(ctx, organizationID, id)
+	if err != nil {
+		return nil, err
+	}
+	return &biz.PartnerUpdateResult{Partner: updated, PreviousRoles: previousRoles}, nil
+}
+
 func (r *partnerRepo) SetPartnerRoleBlacklist(ctx context.Context, organizationID, id uuid.UUID, input biz.PartnerBlacklistUpdate, audit *biz.AuditEvent) (*biz.PartnerBlacklistResult, error) {
 	previouslyBlacklisted := false
 	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {

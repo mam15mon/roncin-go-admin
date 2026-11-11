@@ -42,6 +42,7 @@ const OperationPartnerServiceUpdatePartner = "/partner.v1.PartnerService/UpdateP
 const OperationPartnerServiceUpdatePartnerAccount = "/partner.v1.PartnerService/UpdatePartnerAccount"
 const OperationPartnerServiceUpdatePartnerContract = "/partner.v1.PartnerService/UpdatePartnerContract"
 const OperationPartnerServiceUpdatePartnerInvoiceProfile = "/partner.v1.PartnerService/UpdatePartnerInvoiceProfile"
+const OperationPartnerServiceUpdatePartnerRoles = "/partner.v1.PartnerService/UpdatePartnerRoles"
 const OperationPartnerServiceUpdatePartnerSettlementRule = "/partner.v1.PartnerService/UpdatePartnerSettlementRule"
 const OperationPartnerServiceUpdatePartnerShippingPreset = "/partner.v1.PartnerService/UpdatePartnerShippingPreset"
 
@@ -71,6 +72,7 @@ type PartnerServiceHTTPServer interface {
 	UpdatePartnerAccount(context.Context, *UpdatePartnerAccountRequest) (*UpdatePartnerAccountResponse, error)
 	UpdatePartnerContract(context.Context, *UpdatePartnerContractRequest) (*UpdatePartnerContractResponse, error)
 	UpdatePartnerInvoiceProfile(context.Context, *UpdatePartnerInvoiceProfileRequest) (*UpdatePartnerInvoiceProfileResponse, error)
+	UpdatePartnerRoles(context.Context, *UpdatePartnerRolesRequest) (*UpdatePartnerRolesResponse, error)
 	UpdatePartnerSettlementRule(context.Context, *UpdatePartnerSettlementRuleRequest) (*UpdatePartnerSettlementRuleResponse, error)
 	UpdatePartnerShippingPreset(context.Context, *UpdatePartnerShippingPresetRequest) (*UpdatePartnerShippingPresetResponse, error)
 }
@@ -83,6 +85,7 @@ func RegisterPartnerServiceHTTPServer(s *http.Server, srv PartnerServiceHTTPServ
 	r.Handle("GET", "/api/v1/partner-assignment-options/search", _PartnerService_SearchPartnerAssignmentOptions0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/partners", _PartnerService_CreatePartner0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/partners/{id}", _PartnerService_UpdatePartner0_HTTP_Handler(srv))
+	r.Handle("PUT", "/api/v1/partners/{partner_id}/roles", _PartnerService_UpdatePartnerRoles0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/partners/{partner_id}/invoice-profiles", _PartnerService_ListPartnerInvoiceProfiles0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/partners/{partner_id}/invoice-profiles", _PartnerService_CreatePartnerInvoiceProfile0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/partners/{partner_id}/invoice-profiles/{id}", _PartnerService_UpdatePartnerInvoiceProfile0_HTTP_Handler(srv))
@@ -222,6 +225,28 @@ func _PartnerService_UpdatePartner0_HTTP_Handler(srv PartnerServiceHTTPServer) f
 			return err
 		}
 		reply := out.(*UpdatePartnerResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _PartnerService_UpdatePartnerRoles0_HTTP_Handler(srv PartnerServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdatePartnerRolesRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationPartnerServiceUpdatePartnerRoles)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdatePartnerRoles(ctx, req.(*UpdatePartnerRolesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdatePartnerRolesResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -708,6 +733,7 @@ type PartnerServiceHTTPClient interface {
 	UpdatePartnerAccount(ctx context.Context, req *UpdatePartnerAccountRequest, opts ...http.CallOption) (rsp *UpdatePartnerAccountResponse, err error)
 	UpdatePartnerContract(ctx context.Context, req *UpdatePartnerContractRequest, opts ...http.CallOption) (rsp *UpdatePartnerContractResponse, err error)
 	UpdatePartnerInvoiceProfile(ctx context.Context, req *UpdatePartnerInvoiceProfileRequest, opts ...http.CallOption) (rsp *UpdatePartnerInvoiceProfileResponse, err error)
+	UpdatePartnerRoles(ctx context.Context, req *UpdatePartnerRolesRequest, opts ...http.CallOption) (rsp *UpdatePartnerRolesResponse, err error)
 	UpdatePartnerSettlementRule(ctx context.Context, req *UpdatePartnerSettlementRuleRequest, opts ...http.CallOption) (rsp *UpdatePartnerSettlementRuleResponse, err error)
 	UpdatePartnerShippingPreset(ctx context.Context, req *UpdatePartnerShippingPresetRequest, opts ...http.CallOption) (rsp *UpdatePartnerShippingPresetResponse, err error)
 }
@@ -1124,6 +1150,23 @@ func (c *PartnerServiceHTTPClientImpl) UpdatePartnerInvoiceProfile(ctx context.C
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationPartnerServiceUpdatePartnerInvoiceProfile),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *PartnerServiceHTTPClientImpl) UpdatePartnerRoles(ctx context.Context, in *UpdatePartnerRolesRequest, opts ...http.CallOption) (*UpdatePartnerRolesResponse, error) {
+	var out UpdatePartnerRolesResponse
+	pattern := "/api/v1/partners/{partner_id}/roles"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationPartnerServiceUpdatePartnerRoles),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)

@@ -13,6 +13,7 @@ import (
 type partnerRepoStub struct {
 	created         *Partner
 	updated         *Partner
+	updatedRoles    []*PartnerRole
 	updateResult    *PartnerUpdateResult
 	blacklistInput  PartnerBlacklistUpdate
 	blacklistResult *PartnerBlacklistResult
@@ -62,6 +63,15 @@ func (s *partnerRepoStub) Update(_ context.Context, organizationID, id uuid.UUID
 	input.ID = id
 	input.OrganizationID = organizationID
 	return &PartnerUpdateResult{Partner: input}, nil
+}
+
+func (s *partnerRepoStub) UpdateRoles(_ context.Context, organizationID, id uuid.UUID, roles []*PartnerRole, audit *AuditEvent) (*PartnerUpdateResult, error) {
+	s.updatedRoles = roles
+	s.auditEvent = audit
+	if s.updateResult != nil {
+		return s.updateResult, nil
+	}
+	return &PartnerUpdateResult{Partner: &Partner{ID: id, OrganizationID: organizationID, Roles: roles}}, nil
 }
 
 func (s *partnerRepoStub) SetPartnerRoleBlacklist(_ context.Context, organizationID, id uuid.UUID, input PartnerBlacklistUpdate, audit *AuditEvent) (*PartnerBlacklistResult, error) {
@@ -681,3 +691,37 @@ func TestPartnerListFiltersByBlacklisted(t *testing.T) {
 }
 
 var _ PartnerRepo = (*partnerRepoStub)(nil)
+
+func TestPartnerUpdateRolesValidatesFinalSetAndAudits(t *testing.T) {
+	organizationID, actorID, partnerID := uuid.New(), uuid.New(), uuid.New()
+	for _, tc := range []struct {
+		name  string
+		roles []PartnerRoleType
+		want  error
+	}{
+		{name: "空集合", want: ErrPartnerRoleRequired},
+		{name: "非法身份", roles: []PartnerRoleType{"invalid"}, want: ErrPartnerInvalidRole},
+		{name: "重复身份", roles: []PartnerRoleType{PartnerRoleCustomer, PartnerRoleCustomer}, want: ErrPartnerInvalidRole},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			repo := &partnerRepoStub{}
+			_, err := NewPartnerUsecase(repo).UpdateRoles(t.Context(), organizationID, actorID, partnerID, tc.roles)
+			if !stderrors.Is(err, tc.want) || repo.updatedRoles != nil {
+				t.Fatalf("非法角色不能入仓: err=%v roles=%+v", err, repo.updatedRoles)
+			}
+		})
+	}
+	repo := &partnerRepoStub{}
+	updated, err := NewPartnerUsecase(repo).UpdateRoles(t.Context(), organizationID, actorID, partnerID, []PartnerRoleType{PartnerRoleCustomer, PartnerRoleSupplier})
+	if err != nil || updated.ID != partnerID || repo.updated != nil || len(repo.updatedRoles) != 2 {
+		t.Fatalf("身份更新不能调用全量写入: updated=%+v err=%v", updated, err)
+	}
+	for _, role := range repo.updatedRoles {
+		if !role.Enabled || role.SettlementRule != nil {
+			t.Fatalf("角色专用输入只写启用身份: %+v", role)
+		}
+	}
+	if repo.auditEvent.Action != "partner.roles.update" || repo.auditEvent.ResourceID != partnerID.String() || *repo.auditEvent.UserID != actorID || repo.auditEvent.Details["to_roles"] != "customer:true,supplier:true" {
+		t.Fatalf("身份审计不完整: %+v", repo.auditEvent)
+	}
+}

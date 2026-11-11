@@ -245,6 +245,7 @@ type PartnerRepo interface {
 	ListAuditLogs(context.Context, uuid.UUID, uuid.UUID, int, int) (*PartnerAuditLogList, error)
 	Create(context.Context, uuid.UUID, *Partner, *AuditEvent) (*Partner, error)
 	Update(context.Context, uuid.UUID, uuid.UUID, *Partner, *AuditEvent) (*PartnerUpdateResult, error)
+	UpdateRoles(context.Context, uuid.UUID, uuid.UUID, []*PartnerRole, *AuditEvent) (*PartnerUpdateResult, error)
 	SetPartnerRoleBlacklist(context.Context, uuid.UUID, uuid.UUID, PartnerBlacklistUpdate, *AuditEvent) (*PartnerBlacklistResult, error)
 	Import(context.Context, uuid.UUID, PartnerImportMode, []*Partner, *AuditEvent) (*PartnerImportResult, error)
 }
@@ -389,6 +390,37 @@ func (uc *PartnerUsecase) Update(ctx context.Context, organizationID, userID, id
 		Details: map[string]string{
 			"partner.id": id.String(),
 			"to_roles":   FormatPartnerRolesAuditValue(normalized.Roles),
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result.Partner, nil
+}
+
+// UpdateRoles 仅维护最终启用身份集合，其他档案资料不属于本次写集。
+func (uc *PartnerUsecase) UpdateRoles(ctx context.Context, organizationID, userID, id uuid.UUID, roleTypes []PartnerRoleType) (*Partner, error) {
+	if organizationID == uuid.Nil || userID == uuid.Nil || id == uuid.Nil {
+		return nil, ErrPartnerNotFound
+	}
+	roles := make([]*PartnerRole, 0, len(roleTypes))
+	for _, roleType := range roleTypes {
+		roles = append(roles, &PartnerRole{Type: roleType, Enabled: true})
+	}
+	normalized, err := normalizePartnerRoles(roles, false)
+	if err != nil {
+		return nil, err
+	}
+	result, err := uc.repo.UpdateRoles(ctx, organizationID, id, normalized, &AuditEvent{
+		OrganizationID: &organizationID,
+		UserID:         &userID,
+		Action:         "partner.roles.update",
+		ResourceType:   "partner",
+		ResourceID:     id.String(),
+		Result:         "success",
+		Details: map[string]string{
+			"partner.id": id.String(),
+			"to_roles":   FormatPartnerRolesAuditValue(normalized),
 		},
 	})
 	if err != nil {

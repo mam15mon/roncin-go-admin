@@ -45,6 +45,14 @@ service PartnerService {
     };
   }
 
+  rpc UpdatePartnerRoles(UpdatePartnerRolesRequest) returns (UpdatePartnerRolesResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {
+      put: "/api/v1/partners/{partner_id}/roles"
+      body: "*"
+    };
+  }
+
   rpc ListPartnerInvoiceProfiles(ListPartnerInvoiceProfilesRequest) returns (ListPartnerInvoiceProfilesResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "business.partner.read" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {get: "/api/v1/partners/{partner_id}/invoice-profiles"};
@@ -382,6 +390,20 @@ message CreatePartnerRequest {
   PartnerProfile profile = 8;
   repeated PartnerAssignmentInput assignments = 9;
   optional bool is_casual = 10;
+}
+
+// 仅替换业务身份，不修改档案资料、启停、散客状态及角色结算规则。
+message UpdatePartnerRolesRequest {
+  string partner_id = 1 [(google.api.field_behavior) = REQUIRED];
+  repeated PartnerRoleType role_types = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+message UpdatePartnerRolesResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  Partner data = 4;
+  string trace_id = 5;
 }
 
 message UpdatePartnerRequest {

@@ -82,3 +82,35 @@
 错误：只查询 `PartnerRole.blacklisted`，随后在另一个事务写订单；并发拉黑可在检查与写入之间穿透。
 
 正确：订单写事务内先将所有关联档案 UUID 去重、排序，再对档案行 `ORDER BY id FOR SHARE`；随后读取角色状态并完成订单写入。黑名单修改在事务中对同一档案行 `FOR UPDATE`，从而由数据库锁确定先后顺序。
+
+## 8. 业务身份专用更新
+
+### 适用范围
+
+列表的“业务身份”弹窗仅修改身份集合，不能复用全量 `UpdatePartner` 并省略档案资料；该错误会删除联系人、别名、Profile、责任人并清空散客标识。
+
+### 签名
+
+`UpdatePartnerRoles(UpdatePartnerRolesRequest{partner_id, role_types})`，HTTP `PUT /api/v1/partners/{partner_id}/roles`，权限 `business.partner.update`，公司范围。请求只有最终启用角色类型集合，不接受嵌套结算规则或其他档案字段。
+
+### 契约
+
+用例验证角色非空、合法、无重复；仓储在 `WithTx` 中按当前公司和档案 ID `ForUpdate` 锁定，复用 `replacePartnerRoles` 保留角色记录与黑名单事实。仅角色与档案更新时间属于写集，不调用 `savePartnerRoleSettlementRules` 或档案子资料替换。审计 `partner.roles.update` 与写入同事务，记录前后角色集合；完整响应提交后重读。`partner_id` 继续由通用资源鉴权识别，不能仅依赖前端按钮权限。
+
+### 校验矩阵
+
+空集合返回 `PARTNER_ROLE_REQUIRED`；非法/重复角色返回 `PARTNER_INVALID_ROLE`；移除已拉黑角色按现有黑名单契约拒绝；外公司或无编辑权限拒绝。停用档案维护角色后仍停用，散客仍为散客。
+
+### 正常、基础与错误案例
+
+正常：给客户增加供应商身份，联系人、别名、Profile、人员、已有结算规则不变。基础：原集合重提只维护该集合。错误：先 GET 全档案再 PUT 旧副本，仍可能覆盖并发修改，不是角色专用写入的替代。
+
+### 必需验证
+
+真实 PostgreSQL 验证资料逐字段保留、角色集合生效、规则/黑名单保留、审计失败回滚和外公司拒绝；客户端断言只发送 `partnerId` 与 `roleTypes`，失败输入保持，成功后刷新；鉴权请求资源识别及生成物同步回归。
+
+### 错误与正确
+
+错误：`UpdatePartner({ legalName, enabled, roles })` 省略联系人等完整更新字段。
+
+正确：`UpdatePartnerRoles({ partnerId, roleTypes })`，data 仅操作角色集合，未包含字段从不参与写集。

@@ -25,6 +25,7 @@ const (
 	PartnerService_SearchPartnerAssignmentOptions_FullMethodName = "/partner.v1.PartnerService/SearchPartnerAssignmentOptions"
 	PartnerService_CreatePartner_FullMethodName                  = "/partner.v1.PartnerService/CreatePartner"
 	PartnerService_UpdatePartner_FullMethodName                  = "/partner.v1.PartnerService/UpdatePartner"
+	PartnerService_UpdatePartnerRoles_FullMethodName             = "/partner.v1.PartnerService/UpdatePartnerRoles"
 	PartnerService_ListPartnerInvoiceProfiles_FullMethodName     = "/partner.v1.PartnerService/ListPartnerInvoiceProfiles"
 	PartnerService_CreatePartnerInvoiceProfile_FullMethodName    = "/partner.v1.PartnerService/CreatePartnerInvoiceProfile"
 	PartnerService_UpdatePartnerInvoiceProfile_FullMethodName    = "/partner.v1.PartnerService/UpdatePartnerInvoiceProfile"
@@ -58,6 +59,7 @@ type PartnerServiceClient interface {
 	SearchPartnerAssignmentOptions(ctx context.Context, in *SearchPartnerAssignmentOptionsRequest, opts ...grpc.CallOption) (*SearchPartnerAssignmentOptionsResponse, error)
 	CreatePartner(ctx context.Context, in *CreatePartnerRequest, opts ...grpc.CallOption) (*CreatePartnerResponse, error)
 	UpdatePartner(ctx context.Context, in *UpdatePartnerRequest, opts ...grpc.CallOption) (*UpdatePartnerResponse, error)
+	UpdatePartnerRoles(ctx context.Context, in *UpdatePartnerRolesRequest, opts ...grpc.CallOption) (*UpdatePartnerRolesResponse, error)
 	ListPartnerInvoiceProfiles(ctx context.Context, in *ListPartnerInvoiceProfilesRequest, opts ...grpc.CallOption) (*ListPartnerInvoiceProfilesResponse, error)
 	CreatePartnerInvoiceProfile(ctx context.Context, in *CreatePartnerInvoiceProfileRequest, opts ...grpc.CallOption) (*CreatePartnerInvoiceProfileResponse, error)
 	UpdatePartnerInvoiceProfile(ctx context.Context, in *UpdatePartnerInvoiceProfileRequest, opts ...grpc.CallOption) (*UpdatePartnerInvoiceProfileResponse, error)
@@ -143,6 +145,16 @@ func (c *partnerServiceClient) UpdatePartner(ctx context.Context, in *UpdatePart
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdatePartnerResponse)
 	err := c.cc.Invoke(ctx, PartnerService_UpdatePartner_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *partnerServiceClient) UpdatePartnerRoles(ctx context.Context, in *UpdatePartnerRolesRequest, opts ...grpc.CallOption) (*UpdatePartnerRolesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdatePartnerRolesResponse)
+	err := c.cc.Invoke(ctx, PartnerService_UpdatePartnerRoles_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -369,6 +381,7 @@ type PartnerServiceServer interface {
 	SearchPartnerAssignmentOptions(context.Context, *SearchPartnerAssignmentOptionsRequest) (*SearchPartnerAssignmentOptionsResponse, error)
 	CreatePartner(context.Context, *CreatePartnerRequest) (*CreatePartnerResponse, error)
 	UpdatePartner(context.Context, *UpdatePartnerRequest) (*UpdatePartnerResponse, error)
+	UpdatePartnerRoles(context.Context, *UpdatePartnerRolesRequest) (*UpdatePartnerRolesResponse, error)
 	ListPartnerInvoiceProfiles(context.Context, *ListPartnerInvoiceProfilesRequest) (*ListPartnerInvoiceProfilesResponse, error)
 	CreatePartnerInvoiceProfile(context.Context, *CreatePartnerInvoiceProfileRequest) (*CreatePartnerInvoiceProfileResponse, error)
 	UpdatePartnerInvoiceProfile(context.Context, *UpdatePartnerInvoiceProfileRequest) (*UpdatePartnerInvoiceProfileResponse, error)
@@ -417,6 +430,9 @@ func (UnimplementedPartnerServiceServer) CreatePartner(context.Context, *CreateP
 }
 func (UnimplementedPartnerServiceServer) UpdatePartner(context.Context, *UpdatePartnerRequest) (*UpdatePartnerResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdatePartner not implemented")
+}
+func (UnimplementedPartnerServiceServer) UpdatePartnerRoles(context.Context, *UpdatePartnerRolesRequest) (*UpdatePartnerRolesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdatePartnerRoles not implemented")
 }
 func (UnimplementedPartnerServiceServer) ListPartnerInvoiceProfiles(context.Context, *ListPartnerInvoiceProfilesRequest) (*ListPartnerInvoiceProfilesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPartnerInvoiceProfiles not implemented")
@@ -606,6 +622,24 @@ func _PartnerService_UpdatePartner_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PartnerServiceServer).UpdatePartner(ctx, req.(*UpdatePartnerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PartnerService_UpdatePartnerRoles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePartnerRolesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PartnerServiceServer).UpdatePartnerRoles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PartnerService_UpdatePartnerRoles_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PartnerServiceServer).UpdatePartnerRoles(ctx, req.(*UpdatePartnerRolesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1018,6 +1052,10 @@ var PartnerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdatePartner",
 			Handler:    _PartnerService_UpdatePartner_Handler,
+		},
+		{
+			MethodName: "UpdatePartnerRoles",
+			Handler:    _PartnerService_UpdatePartnerRoles_Handler,
 		},
 		{
 			MethodName: "ListPartnerInvoiceProfiles",

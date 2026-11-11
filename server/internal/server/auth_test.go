@@ -777,3 +777,32 @@ func TestDisabledSelfCannotPassResourcePermissionGates(t *testing.T) {
 		})
 	}
 }
+
+func TestRequestPartnerRolesUsesResourcePermissionScope(t *testing.T) {
+	companyID, otherCompanyID := uuid.New(), uuid.New()
+	partner := &biz.Partner{ID: uuid.New(), OrganizationID: companyID}
+	request := &partnerv1.UpdatePartnerRolesRequest{PartnerId: partner.ID.String()}
+	for _, tc := range []struct {
+		name           string
+		permissions    []string
+		organizationID uuid.UUID
+		allowed        bool
+	}{
+		{name: "本公司编辑", permissions: []string{access.PartnerUpdate}, organizationID: companyID, allowed: true},
+		{name: "只有查看", permissions: []string{access.PartnerRead}, organizationID: companyID},
+		{name: "其他公司编辑", permissions: []string{access.PartnerUpdate}, organizationID: otherCompanyID},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			repo := &authorizationPartnerRepoStub{partner: partner}
+			principal := &biz.Principal{
+				Organization:      biz.Organization{Kind: biz.OrganizationKindCompany, ID: tc.organizationID},
+				OrganizationNodes: serverOrganizationNodes(companyID, otherCompanyID),
+				RoleGrants:        []biz.RoleGrant{serverRoleGrant("partner-editor", biz.DataScopeOrganization, tc.permissions)},
+			}
+			resolved, direct := requestPartner(t.Context(), request, biz.NewPartnerUsecase(repo), partnerOrganizationIDs(principal, access.PartnerUpdate, true))
+			if !direct || (resolved != nil) != tc.allowed {
+				t.Fatalf("角色写入资源鉴权不正确: resolved=%+v direct=%v", resolved, direct)
+			}
+		})
+	}
+}

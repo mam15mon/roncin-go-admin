@@ -29,7 +29,7 @@
 | 月度提成申请 | `finance_commission_application.go`、`finance_commission_lifecycle.go` | 自然月申请、整单批准/驳回、待审更正门禁与净额发放 | 把已发事实改写为当前权益；恢复提成财务锁 |
 | 汇率 | `exchange_rate.go`、`exchange_rate_import.go`、`exchange_rate_reminder.go` | 周汇率双轨、导入、到期提醒 | 自造第二套汇率容灾链 |
 | 主数据 | `masterdata.go`、`industry_reference.go`、`reference_data.go`、`fee_catalog.go` | 公共船代全量维护与订单选择、船公司/港口/机场/行政区划、费目目录；船代补缺执行 `pnpm run sync:shipping-agents` | 绕过 B 型统一读取谓词 |
-| 往来单位档案 | `partner.go` | 档案、散客契约、角色黑名单 | 散客标识写多处 |
+| 往来单位档案 | `partner.go` | 档案、散客契约、角色黑名单、专用 UpdateRoles 身份维护 | 用不完整全量更新修改身份，误删子资料 |
 | 往来单位财务配置 | `partner_account.go`、`partner_contract.go`、`partner_credit.go`、`partner_settlement_rule.go`、`partner_shipping_preset.go`、`partner_attachment.go` | 账户、合同、信用、结算规则、运输预设、附件 | 信用口径与账单不一致 |
 | 组织与权限 | `admin_organization.go`、`admin_role.go`、`admin_user.go`、`admin_user_membership.go`、`access/`（manifest） | 组织、角色库、用户、成员资格、权限清单 | 前端复制权限真相 |
 | 登录与会话 | `auth.go`、`auth_dingtalk_qr.go`、`passkey.go`、`password_reset.go` | 手机号/本地账号登录、本站二维码生成/扫码轮询、通行密钥注册/认证/本人管理、钉钉客户端免登（见 `dingtalk-embedded-login.md`）、钉钉验证码设置/找回、组织切换、会话轮转 | 手机号猜测身份、验证码进入通用通知存储、切换不走单事务轮转 |
