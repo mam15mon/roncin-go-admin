@@ -43,11 +43,15 @@
   }
 
   &-number {
+    flex: 1;
+    // 表格单元格默认 nowrap，号码须单独换行，避免溢出覆盖关联票数。
+    white-space: normal;
     overflow-wrap: anywhere;
     min-width: 0;
   }
 
   &-count {
+    flex-shrink: 0;
     border: 0;
     padding: 0;
     background: transparent;
