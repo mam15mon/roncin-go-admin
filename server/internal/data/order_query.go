@@ -146,10 +146,10 @@ func (r *orderRepo) List(ctx context.Context, scopes []biz.OrderOrganizationScop
 		query.Where(orderent.CustomerIDEQ(*options.CustomerID))
 	}
 	if options.OriginLocationID != nil {
-		query.Where(orderent.OriginLocationIDEQ(*options.OriginLocationID))
+		query.Where(orderLocationMatches(orderent.FieldOriginLocationID, *options.OriginLocationID))
 	}
 	if options.DestinationLocationID != nil {
-		query.Where(orderent.DestinationLocationIDEQ(*options.DestinationLocationID))
+		query.Where(orderLocationMatches(orderent.FieldDestinationLocationID, *options.DestinationLocationID))
 	}
 	if options.ShippingLineID != nil {
 		query.Where(orderent.ShippingLineIDEQ(*options.ShippingLineID))

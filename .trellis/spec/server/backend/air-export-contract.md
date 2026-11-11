@@ -40,6 +40,7 @@ Schema：`AirMasterWaybill`、`AirMasterWaybillOrderLink`、`AirHouseWaybill`、
   每票最多一个 ACTIVE Link，终止结束 Link，恢复创建新 Link，不复活历史行。
 - 新建主单或明确选中候选是两条显式意图；同号冲突返回 409，不自动合并。
   选已有主单必须携带其 ID、版本和权威共同资料。
+- 订单列表 `originLocationId` / `destinationLocationId` 对 AE 读取与详情相同的最近关联主单机场（含终止后的最后关联），不能过滤 Order 旧地点字段；主单机场 A 改 B 后，新机场命中、旧机场不命中，分页总数与结果共用谓词。缺主单不得借旧字段伪造权威地点；非 AE 仍按原订单地点口径。
 - 航司、机场、航班、起降时刻和截止时间由主单统一维护；本票私有保存不覆盖共享事实。
   本票客户、人员、货物、HAWB 内容和费用独立。普通保存不能改配到另一主单。
 - 六个操作节点沿用公共状态枚举，AE 单独验证航班、货物、操作记录与签发资料。
@@ -100,6 +101,7 @@ Schema：`AirMasterWaybill`、`AirMasterWaybillOrderLink`、`AirHouseWaybill`、
 
 ## 6. 必需验证
 
+- 地点筛选在 PostgreSQL 中覆盖共享主单机场变更、起运/目的及组合过滤、同主单多票、分页总数、终止历史关联、无关联、非 AE 和跨公司；比较返回地点与筛选值，不能只断言记录数量。
 - PostgreSQL 正式迁移冷启动、唯一性/活动关联、并发同号/版本、成员集合变化、锁单、
   终止恢复、事务回滚、公司隔离，集成用例不得 SKIP 或调用 Schema.Create。
 - 重量算例、输入单位和最终舍入、PLANNED/ACTUAL 独立、确认历史/过期、费用保存并发来源复核。
