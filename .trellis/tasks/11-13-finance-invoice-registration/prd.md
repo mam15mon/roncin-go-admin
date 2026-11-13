@@ -26,3 +26,9 @@ web/src/pages/finance/invoices；server/internal/biz/finance_invoice.go。这是
 
 遵守父任务已确认规则、当前公司边界、服务端权限、原子性与并发检查；不恢复标签，不复制参考系统未验证算法，不隐式改变已有财务事实。
 需求收敛后补 design.md、implement.md 及真实上下文清单；完成方案审阅前不启动实施。实现后按风险验证触发场景、相邻路径及跨层契约。
+
+## 补充参考证据
+
+参考详情可以带入既有发票行继续编辑/新增，补票入口疑问已解决；批量载荷没有显式逐账单分配数组，服务端分摊仍未知。类型「-」不能作为无需发票依据；本项目每张发票日期仍按已确认需求处理，不照搬参考顶层统一日期。
+
+详见父任务 [脚本补充证据](../11-13-order-fees-finance-workflow/research/hgj-finance-script-followup.md)，证据来自用户提供的 REA 分析，未在本会话独立验证。

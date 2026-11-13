@@ -26,3 +26,9 @@ web/src/features/finance/bill-creation；web/src/pages/finance/bills；server/in
 
 遵守父任务已确认规则、当前公司边界、服务端权限、原子性与并发检查；不恢复标签，不复制参考系统未验证算法，不隐式改变已有财务事实。
 需求收敛后补 design.md、implement.md 及真实上下文清单；完成方案审阅前不启动实施。实现后按风险验证触发场景、相邻路径及跨层契约。
+
+## 补充参考证据
+
+参考已定位 addFee/removeFee 按费用 ID 提交及详情增删按钮条件；本项目坚持同对象 ID、币种、公司与方向校验及按真实财务事实锁定，不复制名称匹配或状态码。空账单行为尚未查明。
+
+详见父任务 [脚本补充证据](../11-13-order-fees-finance-workflow/research/hgj-finance-script-followup.md)，证据来自用户提供的 REA 分析，未在本会话独立验证。

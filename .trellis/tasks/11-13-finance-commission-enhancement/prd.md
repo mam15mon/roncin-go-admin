@@ -26,3 +26,9 @@ web/src/pages/finance/commissions；server/internal/biz/finance_commission_rules
 
 遵守父任务已确认规则、当前公司边界、服务端权限、原子性与并发检查；不恢复标签，不复制参考系统未验证算法，不隐式改变已有财务事实。
 需求收敛后补 design.md、implement.md 及真实上下文清单；完成方案审阅前不启动实施。实现后按风险验证触发场景、相邻路径及跨层契约。
+
+## 补充参考证据
+
+参考先获取服务端参考金额，再允许输入最终提成金额；不证明区间算法或计提基础。本项目应先核对既有手工调整能力，不能直接按参考界面允许覆盖已计提/已发放事实。
+
+详见父任务 [脚本补充证据](../11-13-order-fees-finance-workflow/research/hgj-finance-script-followup.md)，证据来自用户提供的 REA 分析，未在本会话独立验证。

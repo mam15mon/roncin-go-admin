@@ -26,3 +26,9 @@ web/config/routes.ts；server/internal/biz/settlement.go；既有费用/账单/�
 
 遵守父任务已确认规则、当前公司边界、服务端权限、原子性与并发检查；不恢复标签，不复制参考系统未验证算法，不隐式改变已有财务事实。
 需求收敛后补 design.md、implement.md 及真实上下文清单；完成方案审阅前不启动实施。实现后按风险验证触发场景、相邻路径及跨层契约。
+
+## 补充参考证据
+
+参考利润及实际收付报表由接口返回指标，账龄默认开票日期、近两年筛选并从响应 feeGroups 生成分组列；尚未证明公式、账龄区间和历史截止余额算法。
+
+详见父任务 [脚本补充证据](../11-13-order-fees-finance-workflow/research/hgj-finance-script-followup.md)，证据来自用户提供的 REA 分析，未在本会话独立验证。
