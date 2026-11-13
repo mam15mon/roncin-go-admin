@@ -84,6 +84,7 @@ function Seed() {
     {
       search: {
         orderNo: '订单条件',
+        masterNo: 'MBL12345',
         settlementPartyId: 'party',
         createdAtRange: [dayjs('2026-10-01'), dayjs('2026-10-12')],
         orderLocked: 'LOCKED',
@@ -210,6 +211,7 @@ describe('费用查询恢复消费', () => {
         page: 4,
         pageSize: 50,
         keyword: '订单条件',
+        masterNo: 'MBL12345',
         organizationId: 'workspace-org',
         createdAtFrom: '2026-10-01',
         createdAtTo: '2026-10-12',

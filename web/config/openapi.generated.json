@@ -5654,6 +5654,14 @@
             }
           },
           {
+            "name": "masterNo",
+            "in": "query",
+            "description": "按海运 MBL / 空运 MAWB 模糊筛选，与其他条件共同生效。",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "customerId",
             "in": "query",
             "schema": {
@@ -19335,6 +19343,10 @@
           },
           "nettedAmount": {
             "type": "string"
+          },
+          "masterNo": {
+            "type": "string",
+            "description": "海运 MBL / 空运 MAWB；终态读取本次终止保留的关联。"
           }
         }
       },

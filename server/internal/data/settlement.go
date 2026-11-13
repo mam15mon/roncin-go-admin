@@ -385,6 +385,9 @@ func (r *settlementRepo) getFeeLedgerOrderDetail(ctx context.Context, organizati
 	sort.Slice(detail.AmountsByBaseCurrency, func(i, j int) bool {
 		return detail.AmountsByBaseCurrency[i].BaseCurrency < detail.AmountsByBaseCurrency[j].BaseCurrency
 	})
+	if err := enrichFeeLedgerMasterNos(ctx, client, detail.Items); err != nil {
+		return nil, err
+	}
 	if err := enrichFeeLedgerBalances(ctx, client, detail.Items, item.Edges.Fees); err != nil {
 		return nil, err
 	}
@@ -415,6 +418,7 @@ func (r *settlementRepo) listFeeLedger(ctx context.Context, organizationIDs []uu
 			orderfee.FeeCodeContainsFold(filter.Keyword),
 			orderfee.FeeNameContainsFold(filter.Keyword),
 			orderfee.HasOrderWith(order.OrderNoContainsFold(filter.Keyword)),
+			orderfee.HasOrderWith(feeLedgerMasterNoPredicate(filter.Keyword)),
 			orderfee.HasSettlementPartyWith(partner.LegalNameContainsFold(filter.Keyword)),
 			orderfee.HasOrderWith(order.HasCustomerWith(partner.LegalNameContainsFold(filter.Keyword))),
 			orderfee.HasFinanceBillLinesWith(
@@ -425,6 +429,9 @@ func (r *settlementRepo) listFeeLedger(ctx context.Context, organizationIDs []uu
 				),
 			),
 		))
+	}
+	if filter.MasterNo != "" {
+		predicates = append(predicates, orderfee.HasOrderWith(feeLedgerMasterNoPredicate(filter.MasterNo)))
 	}
 	if filter.BusinessType != "" {
 		predicates = append(predicates, orderfee.HasOrderWith(order.BusinessTypeEQ(order.BusinessType(filter.BusinessType))))
@@ -614,6 +621,9 @@ func (r *settlementRepo) listFeeLedger(ctx context.Context, organizationIDs []uu
 			return nil, projectionErr
 		}
 		resultItems = append(resultItems, ledgerItem)
+	}
+	if err := enrichFeeLedgerMasterNos(ctx, client, resultItems); err != nil {
+		return nil, err
 	}
 	if err := enrichFeeLedgerBalances(ctx, client, resultItems, items); err != nil {
 		return nil, err

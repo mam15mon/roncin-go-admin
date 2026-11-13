@@ -40,6 +40,7 @@ type FeeLedgerFilter struct {
 	SettlementPartyID       *uuid.UUID
 	CustomerID              *uuid.UUID
 	Currency                string
+	MasterNo                string
 	BillNo                  string
 	CreatedDateFrom         string
 	CreatedDateTo           string
@@ -59,6 +60,7 @@ type FeeLedgerItem struct {
 	CustomerID              uuid.UUID
 	CustomerName            string
 	FinancialProgress       FeeLedgerFinancialProgress
+	MasterNo                string
 	BillNo                  string
 	VerifiedAmount          decimal.Decimal
 	UnverifiedAmount        decimal.Decimal
@@ -165,8 +167,9 @@ func (uc *SettlementUsecase) ListFeeLedger(ctx context.Context, organizationIDs 
 	filter.BusinessType = strings.ToUpper(strings.TrimSpace(filter.BusinessType))
 	filter.Currency = strings.ToUpper(strings.TrimSpace(filter.Currency))
 	filter.BillNo = strings.TrimSpace(filter.BillNo)
+	filter.MasterNo = strings.TrimSpace(filter.MasterNo)
 	filter.FinancialProgress = FeeLedgerFinancialProgress(strings.ToUpper(strings.TrimSpace(string(filter.FinancialProgress))))
-	if !validFinanceOrganizationIDs(organizationIDs) || !ValidListPagination(filter.Page, filter.PageSize) || len([]rune(filter.Keyword)) > 100 || len([]rune(filter.BillNo)) > 64 {
+	if !validFinanceOrganizationIDs(organizationIDs) || !ValidListPagination(filter.Page, filter.PageSize) || len([]rune(filter.Keyword)) > 100 || len([]rune(filter.BillNo)) > 64 || len([]rune(filter.MasterNo)) > 100 {
 		return nil, ErrFinanceLedgerInvalidArgument
 	}
 	if filter.CustomerID != nil && *filter.CustomerID == uuid.Nil {

@@ -2604,6 +2604,8 @@ declare namespace API {
     /** 未核销余额已扣除有效核销及对冲，未建账费用为费用原币金额。 */
     unverifiedAmount?: string;
     nettedAmount?: string;
+    /** 海运 MBL / 空运 MAWB；终态读取本次终止保留的关联。 */
+    masterNo?: string;
   };
 
   type FeeLedgerOrderDetail = {
@@ -8280,6 +8282,8 @@ declare namespace API {
     currency?: string;
     createdAtFrom?: string;
     createdAtTo?: string;
+    /** 按海运 MBL / 空运 MAWB 模糊筛选，与其他条件共同生效。 */
+    masterNo?: string;
     customerId?: string;
     financialProgress?: number;
     billNo?: string;

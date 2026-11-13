@@ -27,3 +27,24 @@ func TestFeeLedgerBalanceResponse(t *testing.T) {
 		t.Fatalf("显式零余额不应丢失: %s", wire)
 	}
 }
+
+func TestFeeLedgerMasterNoResponse(t *testing.T) {
+	for _, masterNo := range []string{"MBL12345", "78112345675", ""} {
+		item := feeLedgerItemToAPI(&biz.FeeLedgerItem{Fee: &biz.OrderFee{}, MasterNo: masterNo})
+		wire, err := protojson.Marshal(item)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var decoded map[string]any
+		if err := json.Unmarshal(wire, &decoded); err != nil {
+			t.Fatal(err)
+		}
+		if masterNo == "" {
+			if _, exists := decoded["masterNo"]; exists {
+				t.Fatalf("零值主单号应省略: %s", wire)
+			}
+		} else if decoded["masterNo"] != masterNo {
+			t.Fatalf("真实响应未返回主单号: %s", wire)
+		}
+	}
+}

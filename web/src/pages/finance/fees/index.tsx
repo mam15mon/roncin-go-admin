@@ -350,7 +350,6 @@ export default function FinanceFeeLedgerPage() {
               pageSize: params.pageSize,
               keyword:
                 filterParams.orderNo ||
-                filterParams.masterNo ||
                 filterParams.houseNo ||
                 filterParams.feeName ||
                 filterParams.operatorName ||
@@ -362,6 +361,7 @@ export default function FinanceFeeLedgerPage() {
                 filterParams.voyageNo ||
                 filterParams.keyword ||
                 undefined,
+              masterNo: filterParams.masterNo || undefined,
               billNo: filterParams.billNo || undefined,
               businessType: filterParams.businessType || undefined,
               direction: filterParams.direction || undefined,

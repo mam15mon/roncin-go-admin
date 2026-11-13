@@ -28,6 +28,7 @@ func (s *SettlementService) ListFeeLedger(ctx context.Context, request *v1.ListF
 	filter.FinancialProgress = feeLedgerFinancialProgressFromAPI(request.FinancialProgress)
 	filter.Currency = financeOptionalString(request.Currency)
 	filter.BillNo = financeOptionalString(request.BillNo)
+	filter.MasterNo = financeOptionalString(request.MasterNo)
 	filter.CreatedDateFrom = financeOptionalString(request.CreatedAtFrom)
 	filter.CreatedDateTo = financeOptionalString(request.CreatedAtTo)
 	filter.OrderLocked = request.OrderLocked
@@ -97,6 +98,7 @@ func feeLedgerItemToAPI(item *biz.FeeLedgerItem) *v1.FeeLedgerItem {
 		Quantity: fee.Quantity.StringFixed(4), UnitPrice: fee.UnitPrice.StringFixed(4), TotalAmount: fee.TotalAmount.StringFixed(8), NetAmount: fee.NetAmount.StringFixed(8), TaxAmount: fee.TaxAmount.StringFixed(8), Currency: fee.Currency,
 		ExchangeRate: fee.ExchangeRate.StringFixed(8), BaseCurrency: fee.BaseCurrency, BaseCurrencyAmount: fee.BaseCurrencyAmount.StringFixed(8), Note: fee.Note, Version: fee.Version,
 		CreatedAt: fee.CreatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"), UpdatedAt: fee.UpdatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"), TaxRate: financeDecimalPointer(fee.TaxRate, 4),
+		MasterNo:          item.MasterNo,
 		FinancialProgress: feeLedgerFinancialProgressToAPI(item.FinancialProgress),
 		VerifiedAmount:    item.VerifiedAmount.StringFixed(8), UnverifiedAmount: item.UnverifiedAmount.StringFixed(8), NettedAmount: item.NettedAmount.StringFixed(8),
 	}

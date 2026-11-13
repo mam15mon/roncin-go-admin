@@ -61,3 +61,10 @@ const response = await list(params);
 return { ...toTableRequest(response), summary: response.summary,
   matchedSummary: response.matchedSummary };
 ```
+
+## 费用台账主单号
+
+- `FeeLedgerItem.masterNo` 由服务端批量投影海运 MBL / 空运 MAWB，列表与订单费用详情共用同一读取规则；前端直接消费生成字段。
+- 活动订单读取活动关联；终态仅读取结束原因和结束时间与本次终止匹配的保留关联，不取旧改配或往次终止关系。
+- 「主提单号」通过独立 `masterNo` 参数模糊筛选，与其他筛选条件共同生效；综合 `keyword` 同样覆盖主单号。空运搜索支持带连字符的 MAWB 输入，纯连字符不能变成匹配全部。
+- 主单号筛选在分页与汇总之前执行，并保留当前公司范围。回归入口：`fee_ledger_master_no_integration_test.go`（真实 PostgreSQL）、`fee_ledger_balances_test.go`（ProtoJSON）、费用台账的 `fee-query-state.test.tsx` 与 `feeLedgerProgress.test.tsx`。

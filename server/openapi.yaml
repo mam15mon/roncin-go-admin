@@ -3427,6 +3427,11 @@ paths:
                   in: query
                   schema:
                     type: string
+                - name: masterNo
+                  in: query
+                  description: 按海运 MBL / 空运 MAWB 模糊筛选，与其他条件共同生效。
+                  schema:
+                    type: string
                 - name: customerId
                   in: query
                   schema:
@@ -12153,6 +12158,9 @@ components:
                     description: 未核销余额已扣除有效核销及对冲，未建账费用为费用原币金额。
                 nettedAmount:
                     type: string
+                masterNo:
+                    type: string
+                    description: 海运 MBL / 空运 MAWB；终态读取本次终止保留的关联。
         finance.v1.FeeLedgerOrderDetail:
             type: object
             properties:

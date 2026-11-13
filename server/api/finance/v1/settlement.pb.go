@@ -620,16 +620,18 @@ func (FinanceOrganizationPurpose) EnumDescriptor() ([]byte, []int) {
 }
 
 type ListFeeLedgerRequest struct {
-	state                   protoimpl.MessageState      `protogen:"open.v1"`
-	Page                    int32                       `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize                int32                       `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
-	Keyword                 *string                     `protobuf:"bytes,3,opt,name=keyword,proto3,oneof" json:"keyword,omitempty"`
-	BusinessType            *string                     `protobuf:"bytes,4,opt,name=business_type,json=businessType,proto3,oneof" json:"business_type,omitempty"`
-	Direction               *string                     `protobuf:"bytes,5,opt,name=direction,proto3,oneof" json:"direction,omitempty"`
-	SettlementPartyId       *string                     `protobuf:"bytes,7,opt,name=settlement_party_id,json=settlementPartyId,proto3,oneof" json:"settlement_party_id,omitempty"`
-	Currency                *string                     `protobuf:"bytes,8,opt,name=currency,proto3,oneof" json:"currency,omitempty"`
-	CreatedAtFrom           *string                     `protobuf:"bytes,26,opt,name=created_at_from,json=createdAtFrom,proto3,oneof" json:"created_at_from,omitempty"`
-	CreatedAtTo             *string                     `protobuf:"bytes,27,opt,name=created_at_to,json=createdAtTo,proto3,oneof" json:"created_at_to,omitempty"`
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Page              int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize          int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Keyword           *string                `protobuf:"bytes,3,opt,name=keyword,proto3,oneof" json:"keyword,omitempty"`
+	BusinessType      *string                `protobuf:"bytes,4,opt,name=business_type,json=businessType,proto3,oneof" json:"business_type,omitempty"`
+	Direction         *string                `protobuf:"bytes,5,opt,name=direction,proto3,oneof" json:"direction,omitempty"`
+	SettlementPartyId *string                `protobuf:"bytes,7,opt,name=settlement_party_id,json=settlementPartyId,proto3,oneof" json:"settlement_party_id,omitempty"`
+	Currency          *string                `protobuf:"bytes,8,opt,name=currency,proto3,oneof" json:"currency,omitempty"`
+	CreatedAtFrom     *string                `protobuf:"bytes,26,opt,name=created_at_from,json=createdAtFrom,proto3,oneof" json:"created_at_from,omitempty"`
+	CreatedAtTo       *string                `protobuf:"bytes,27,opt,name=created_at_to,json=createdAtTo,proto3,oneof" json:"created_at_to,omitempty"`
+	// 按海运 MBL / 空运 MAWB 模糊筛选，与其他条件共同生效。
+	MasterNo                *string                     `protobuf:"bytes,28,opt,name=master_no,json=masterNo,proto3,oneof" json:"master_no,omitempty"`
 	CustomerId              *string                     `protobuf:"bytes,11,opt,name=customer_id,json=customerId,proto3,oneof" json:"customer_id,omitempty"`
 	FinancialProgress       *FeeLedgerFinancialProgress `protobuf:"varint,12,opt,name=financial_progress,json=financialProgress,proto3,enum=finance.v1.FeeLedgerFinancialProgress,oneof" json:"financial_progress,omitempty"`
 	BillNo                  *string                     `protobuf:"bytes,13,opt,name=bill_no,json=billNo,proto3,oneof" json:"bill_no,omitempty"`
@@ -733,6 +735,13 @@ func (x *ListFeeLedgerRequest) GetCreatedAtTo() string {
 	return ""
 }
 
+func (x *ListFeeLedgerRequest) GetMasterNo() string {
+	if x != nil && x.MasterNo != nil {
+		return *x.MasterNo
+	}
+	return ""
+}
+
 func (x *ListFeeLedgerRequest) GetCustomerId() string {
 	if x != nil && x.CustomerId != nil {
 		return *x.CustomerId
@@ -820,8 +829,10 @@ type FeeLedgerItem struct {
 	// 未核销余额已扣除有效核销及对冲，未建账费用为费用原币金额。
 	UnverifiedAmount string `protobuf:"bytes,46,opt,name=unverified_amount,json=unverifiedAmount,proto3" json:"unverified_amount,omitempty"`
 	NettedAmount     string `protobuf:"bytes,47,opt,name=netted_amount,json=nettedAmount,proto3" json:"netted_amount,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	// 海运 MBL / 空运 MAWB；终态读取本次终止保留的关联。
+	MasterNo      string `protobuf:"bytes,48,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *FeeLedgerItem) Reset() {
@@ -1130,6 +1141,13 @@ func (x *FeeLedgerItem) GetUnverifiedAmount() string {
 func (x *FeeLedgerItem) GetNettedAmount() string {
 	if x != nil {
 		return x.NettedAmount
+	}
+	return ""
+}
+
+func (x *FeeLedgerItem) GetMasterNo() string {
+	if x != nil {
+		return x.MasterNo
 	}
 	return ""
 }
@@ -19272,7 +19290,7 @@ var File_finance_v1_settlement_proto protoreflect.FileDescriptor
 const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\n" +
 	"\x1bfinance/v1/settlement.proto\x12\n" +
-	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\x81\b\n" +
+	"finance.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1egoogle/protobuf/wrappers.proto\"\xb1\b\n" +
 	"\x14ListFeeLedgerRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
@@ -19282,15 +19300,16 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x13settlement_party_id\x18\a \x01(\tH\x03R\x11settlementPartyId\x88\x01\x01\x12\x1f\n" +
 	"\bcurrency\x18\b \x01(\tH\x04R\bcurrency\x88\x01\x01\x12+\n" +
 	"\x0fcreated_at_from\x18\x1a \x01(\tH\x05R\rcreatedAtFrom\x88\x01\x01\x12'\n" +
-	"\rcreated_at_to\x18\x1b \x01(\tH\x06R\vcreatedAtTo\x88\x01\x01\x12$\n" +
-	"\vcustomer_id\x18\v \x01(\tH\aR\n" +
+	"\rcreated_at_to\x18\x1b \x01(\tH\x06R\vcreatedAtTo\x88\x01\x01\x12 \n" +
+	"\tmaster_no\x18\x1c \x01(\tH\aR\bmasterNo\x88\x01\x01\x12$\n" +
+	"\vcustomer_id\x18\v \x01(\tH\bR\n" +
 	"customerId\x88\x01\x01\x12Z\n" +
-	"\x12financial_progress\x18\f \x01(\x0e2&.finance.v1.FeeLedgerFinancialProgressH\bR\x11financialProgress\x88\x01\x01\x12\x1c\n" +
-	"\abill_no\x18\r \x01(\tH\tR\x06billNo\x88\x01\x01\x12,\n" +
-	"\x0forganization_id\x18\x10 \x01(\tH\n" +
-	"R\x0eorganizationId\x88\x01\x01\x12@\n" +
-	"\x1ahas_pending_fee_supplement\x18\x12 \x01(\bH\vR\x17hasPendingFeeSupplement\x88\x01\x01\x12&\n" +
-	"\forder_locked\x18\x13 \x01(\bH\fR\vorderLocked\x88\x01\x01B\n" +
+	"\x12financial_progress\x18\f \x01(\x0e2&.finance.v1.FeeLedgerFinancialProgressH\tR\x11financialProgress\x88\x01\x01\x12\x1c\n" +
+	"\abill_no\x18\r \x01(\tH\n" +
+	"R\x06billNo\x88\x01\x01\x12,\n" +
+	"\x0forganization_id\x18\x10 \x01(\tH\vR\x0eorganizationId\x88\x01\x01\x12@\n" +
+	"\x1ahas_pending_fee_supplement\x18\x12 \x01(\bH\fR\x17hasPendingFeeSupplement\x88\x01\x01\x12&\n" +
+	"\forder_locked\x18\x13 \x01(\bH\rR\vorderLocked\x88\x01\x01B\n" +
 	"\n" +
 	"\b_keywordB\x10\n" +
 	"\x0e_business_typeB\f\n" +
@@ -19299,7 +19318,9 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x14_settlement_party_idB\v\n" +
 	"\t_currencyB\x12\n" +
 	"\x10_created_at_fromB\x10\n" +
-	"\x0e_created_at_toB\x0e\n" +
+	"\x0e_created_at_toB\f\n" +
+	"\n" +
+	"_master_noB\x0e\n" +
 	"\f_customer_idB\x15\n" +
 	"\x13_financial_progressB\n" +
 	"\n" +
@@ -19308,7 +19329,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x1b_has_pending_fee_supplementB\x0f\n" +
 	"\r_order_lockedJ\x04\b\x06\x10\aJ\x04\b\t\x10\n" +
 	"J\x04\b\n" +
-	"\x10\vJ\x04\b\x0e\x10\x0fJ\x04\b\x0f\x10\x10J\x04\b\x11\x10\x12R\x06statusR\x11expense_date_fromR\x0fexpense_date_toR\x0efinance_lockedR\atag_idsR\x11fee_review_status\"\xf4\f\n" +
+	"\x10\vJ\x04\b\x0e\x10\x0fJ\x04\b\x0f\x10\x10J\x04\b\x11\x10\x12R\x06statusR\x11expense_date_fromR\x0fexpense_date_toR\x0efinance_lockedR\atag_idsR\x11fee_review_status\"\x91\r\n" +
 	"\rFeeLedgerItem\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x19\n" +
@@ -19356,7 +19377,8 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\forder_locked\x18, \x01(\bR\vorderLocked\x12'\n" +
 	"\x0fverified_amount\x18- \x01(\tR\x0everifiedAmount\x12+\n" +
 	"\x11unverified_amount\x18. \x01(\tR\x10unverifiedAmount\x12#\n" +
-	"\rnetted_amount\x18/ \x01(\tR\fnettedAmountB\a\n" +
+	"\rnetted_amount\x18/ \x01(\tR\fnettedAmount\x12\x1b\n" +
+	"\tmaster_no\x180 \x01(\tR\bmasterNoB\a\n" +
 	"\x05_noteB\v\n" +
 	"\t_tax_rateB\n" +
 	"\n" +

@@ -249,6 +249,8 @@ message ListFeeLedgerRequest {
   reserved "expense_date_from", "expense_date_to";
   optional string created_at_from = 26;
   optional string created_at_to = 27;
+  // 按海运 MBL / 空运 MAWB 模糊筛选，与其他条件共同生效。
+  optional string master_no = 28;
   optional string customer_id = 11;
   optional FeeLedgerFinancialProgress financial_progress = 12;
   optional string bill_no = 13;
@@ -315,6 +317,8 @@ message FeeLedgerItem {
   // 未核销余额已扣除有效核销及对冲，未建账费用为费用原币金额。
   string unverified_amount = 46;
   string netted_amount = 47;
+  // 海运 MBL / 空运 MAWB；终态读取本次终止保留的关联。
+  string master_no = 48;
   reserved 32 to 33;
 }
 

@@ -72,6 +72,7 @@ func TestListFeeLedgerNormalizesFinancialProgressAndBillNumber(t *testing.T) {
 		PageSize:          200,
 		FinancialProgress: "completed",
 		BillNo:            "  FB202608280001  ",
+		MasterNo:          "  MBL12345  ",
 		OrderLocked:       &orderLocked,
 	})
 	if err != nil {
@@ -82,6 +83,9 @@ func TestListFeeLedgerNormalizesFinancialProgressAndBillNumber(t *testing.T) {
 	}
 	if repo.filter.BillNo != "FB202608280001" {
 		t.Fatalf("账单编号 = %q，期望去除首尾空格", repo.filter.BillNo)
+	}
+	if repo.filter.MasterNo != "MBL12345" {
+		t.Fatalf("主单号筛选未规范化: %q", repo.filter.MasterNo)
 	}
 	if repo.filter.OrderLocked == nil || !*repo.filter.OrderLocked {
 		t.Fatal("订单审核锁筛选未传递到数据层")

@@ -9,6 +9,7 @@ it('只有部分或全额对冲的费用按 API 付款状态展示，金额仍�
     {
       id: 'partial-netting',
       feeName: '部分对冲费用',
+      masterNo: 'MBL12345',
       totalAmount: '300.00000000',
       verifiedAmount: '0.00000000',
       nettedAmount: '200.00000000',
@@ -19,6 +20,7 @@ it('只有部分或全额对冲的费用按 API 付款状态展示，金额仍�
     {
       id: 'full-netting',
       feeName: '全额对冲费用',
+      masterNo: '78112345675',
       totalAmount: '200.00000000',
       verifiedAmount: '0.00000000',
       nettedAmount: '200.00000000',
@@ -29,6 +31,7 @@ it('只有部分或全额对冲的费用按 API 付款状态展示，金额仍�
   ];
   const keys = [
     'feeName',
+    'masterNo',
     'financialProgress',
     'verifiedAmount',
     'nettedAmount',
@@ -55,6 +58,8 @@ it('只有部分或全额对冲的费用按 API 付款状态展示，金额仍�
     ).toBeVisible();
     expect(within(row).getByText('200.00', { exact: true })).toBeVisible();
   }
+  expect(within(partial).getByText('MBL12345')).toBeVisible();
+  expect(within(full).getByText('78112345675')).toBeVisible();
   expect(within(partial).getByText('100.00', { exact: true })).toBeVisible();
   expect(within(full).getAllByText('0.00', { exact: true })).toHaveLength(2);
   expect(
