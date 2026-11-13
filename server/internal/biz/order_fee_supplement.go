@@ -374,7 +374,7 @@ func boolToFlag(value bool) string {
 }
 
 // CommissionSupplementCostSensitivity 按 calculation_version 显式路由成本敏感性：
-// 当前 CUSTOMER_REALIZED_PROFIT_V3 下 REALIZED_PROFIT 受应付成本影响、
+// 当前 CUSTOMER_REALIZED_PROFIT_V4 下 REALIZED_PROFIT 受应付成本影响、
 // REALIZED_REVENUE 不受影响；未知版本或未知口径一律失败关闭，禁止猜测放行。
 func CommissionSupplementCostSensitivity(calculationVersion string, basis CommissionCalculationBasis) (bool, error) {
 	switch calculationVersion {
