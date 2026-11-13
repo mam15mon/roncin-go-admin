@@ -12,6 +12,7 @@ import { createStyles } from 'antd-style';
 import React from 'react';
 import {
   CurrencyAmountInput,
+  FormCell,
   FormRow,
   ProFormSearchableSelect,
 } from '@/components/ui';
@@ -630,49 +631,58 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
   } = props;
   return {
     orderIdentity: (
-      <>
-        <ProFormText
-          name="orderNo"
-          label="订单编号"
-          placeholder={props.isDetail ? '订单编号' : '保存后自动生成'}
-          fieldProps={{ disabled: true }}
-        />
-        {!props.isDetail && (
-          <ProFormDatePicker
-            name="orderDate"
-            label="订单编号时间"
-            tooltip="编号时间仅在订单初次保存前可修改"
-            fieldProps={{ style: { width: '100%' } }}
-          />
-        )}
-      </>
+      <ProFormText
+        name="orderNo"
+        label="订单编号"
+        placeholder={props.isDetail ? '订单编号' : '保存后自动生成'}
+        fieldProps={{ disabled: true }}
+      />
+    ),
+    // 仅新建可改；模板置于行尾，保证新建与详情其余字段位置一致。
+    orderDate: props.isDetail ? null : (
+      <ProFormDatePicker
+        name="orderDate"
+        label="订单编号时间"
+        tooltip="编号时间仅在订单初次保存前可修改"
+        fieldProps={{ style: { width: '100%' } }}
+      />
     ),
     customer: (
-      <FormRow cols={4}>
-        <SeaCustomerField
-          searchCustomers={searchCustomers}
-          readonly={props.readonly}
-          setCustomerCode={setCustomerCode}
-          personnelOptions={props.personnelOptions}
-        />
+      <>
+        <FormCell span={2}>
+          <SeaCustomerField
+            searchCustomers={searchCustomers}
+            readonly={props.readonly}
+            setCustomerCode={setCustomerCode}
+            personnelOptions={props.personnelOptions}
+          />
+        </FormCell>
         <Form.Item label="委托单位代码" name="customerCode">
           <TooltipInput disabled placeholder="选择委托单位后自动带出" />
         </Form.Item>
-        <TemplateControlGroup title="集运/跨境">
-          <ProFormRadio.Group
-            name="shipmentMode"
-            fieldProps={{ 'aria-label': '集运/跨境' }}
-            options={shipmentModeOptions}
-          />
-        </TemplateControlGroup>
-        <TemplateControlGroup title="托运类型">
-          <ProFormRadio.Group
-            name="shipmentType"
-            fieldProps={{ 'aria-label': '托运类型' }}
-            options={shipmentTypeOptions}
-          />
-        </TemplateControlGroup>
-      </FormRow>
+      </>
+    ),
+    shipmentOptions: (
+      <>
+        <FormCell span={2}>
+          <TemplateControlGroup title="集运/跨境">
+            <ProFormRadio.Group
+              name="shipmentMode"
+              fieldProps={{ 'aria-label': '集运/跨境' }}
+              options={shipmentModeOptions}
+            />
+          </TemplateControlGroup>
+        </FormCell>
+        <FormCell span={2}>
+          <TemplateControlGroup title="托运类型">
+            <ProFormRadio.Group
+              name="shipmentType"
+              fieldProps={{ 'aria-label': '托运类型' }}
+              options={shipmentTypeOptions}
+            />
+          </TemplateControlGroup>
+        </FormCell>
+      </>
     ),
     categories: (
       <div style={{ width: '100%' }}>
@@ -724,7 +734,7 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
     ),
     agents: (
       <>
-        <div>
+        <FormCell span={2}>
           <PartnerQuickAddSelect
             name="bookingAgentId"
             displayName="订舱代理"
@@ -733,8 +743,8 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
             searchPartners={searchBookingAgents}
             disabled={props.readonly}
           />
-        </div>
-        <div>
+        </FormCell>
+        <FormCell span={2}>
           <PartnerQuickAddSelect
             name="foreignAgentId"
             displayName="国外代理"
@@ -743,7 +753,7 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
             searchPartners={searchForeignAgents}
             disabled={props.readonly}
           />
-        </div>
+        </FormCell>
       </>
     ),
     carrier: (

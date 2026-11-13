@@ -6,22 +6,37 @@ import React from 'react';
  */
 export function TemplateFieldGroup({
   title,
+  extra,
   children,
 }: {
   title: string;
+  /** 标题行右侧的小节级操作与状态说明，避免压在字段上方打断录入位置。 */
+  extra?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ display: 'grid', gap: 12, width: '100%' }}>
+    <div style={{ display: 'grid', gap: 8, width: '100%' }}>
       <div
         style={{
-          fontSize: 13,
-          fontWeight: 500,
-          color: '#475569',
-          lineHeight: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 8,
+          minHeight: 24,
         }}
       >
-        {title}
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 500,
+            color: '#475569',
+            lineHeight: '20px',
+          }}
+        >
+          {title}
+        </div>
+        {extra}
       </div>
       {children}
     </div>

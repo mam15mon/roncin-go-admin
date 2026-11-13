@@ -132,6 +132,8 @@ export function ModeChangePreviewResult({
   );
 }
 
+const MODE_BUTTON_STYLE = { fontSize: 12, paddingInline: 8 } as const;
+
 export function SeaCreateDocumentModeField({
   disabled = false,
   onModeChange,
@@ -221,17 +223,21 @@ export function SeaCreateDocumentModeField({
         <Radio.Group
           aria-label="提单模式"
           disabled={disabled}
+          // 栅格内只占两列：收紧字号与内边距，保证两个选项不折行。
+          style={{ display: 'flex', whiteSpace: 'nowrap' }}
           onChange={(event) =>
             changeCreateMode(event.target.value as SeaDocumentStructure)
           }
         >
           <Radio.Button
             value={SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE}
+            style={MODE_BUTTON_STYLE}
           >
             有货代分单（HOUSE）
           </Radio.Button>
           <Radio.Button
             value={SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT}
+            style={MODE_BUTTON_STYLE}
           >
             仅船公司主单（DIRECT）
           </Radio.Button>

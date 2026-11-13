@@ -1,10 +1,13 @@
 import { ProFormText } from '@ant-design/pro-components';
-import { Button, Form, Space, Typography } from 'antd';
+import { Button, Form } from 'antd';
 import { useEffect, useId } from 'react';
 import { ProFormSearchableSelect } from '@/components/ui';
 import type { CreateOrderFormValues } from '../../../order-kinds/form-values';
 import type { TemplateProps } from '../../types';
 import { useSharedSeaVoyage } from './useSeaMasterBillCandidate';
+
+const DESTINATION_HINT =
+  '本票独立维护，不随共同航程同步：默认同卸货港，有后续转运时再修改。';
 
 function DestinationModeButton({
   target,
@@ -120,11 +123,35 @@ export function SeaFinalDestinationField({
           <ProFormText name="destinationLocationId" hidden />
           <Form.Item
             label="最终目的港"
+            tooltip={DESTINATION_HINT}
             htmlFor={outputId}
-            style={{ marginBottom: 4 }}
           >
-            <Space wrap>
-              <output id={outputId}>
+            {/* 与同行下拉框等高的只读框，链接按钮作为后缀，避免额外换行。 */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                height: 32,
+                boxSizing: 'border-box',
+                padding: '0 4px 0 11px',
+                border: '1px solid #c3cbd6',
+                borderRadius: 6,
+                background: '#ffffff',
+              }}
+            >
+              <output
+                id={outputId}
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  lineHeight: '30px',
+                  color: destination ? undefined : '#5b6b82',
+                }}
+              >
                 {destination
                   ? `${label || '当前卸货港'}（同卸货港）`
                   : '选择共同航程卸货港后自动带入'}
@@ -136,13 +163,14 @@ export function SeaFinalDestinationField({
                   disabled={readonly}
                 />
               </Form.Item>
-            </Space>
+            </div>
           </Form.Item>
         </>
       ) : (
         <ProFormSearchableSelect
           name="destinationLocationId"
           label="最终目的港"
+          tooltip={DESTINATION_HINT}
           options={options}
           disabled={readonly || undefined}
           request={
@@ -166,11 +194,9 @@ export function SeaFinalDestinationField({
           placeholder="请选择本票最终目的港"
         />
       )}
-      <Space wrap>
-        <Typography.Text type="secondary">
-          默认同卸货港，有后续转运时再修改。
-        </Typography.Text>
-        {!isDetail && !defaultMode && (
+      {/* 说明收进标签提示；仅新建手动改港时保留恢复入口，常规同港不占额外行。 */}
+      {!isDetail && !defaultMode && (
+        <div style={{ marginTop: -8 }}>
           <Form.Item name="seaDestinationDefault" noStyle>
             <DestinationModeButton
               target="discharge"
@@ -178,8 +204,8 @@ export function SeaFinalDestinationField({
               disabled={readonly}
             />
           </Form.Item>
-        )}
-      </Space>
+        </div>
+      )}
     </div>
   );
 }

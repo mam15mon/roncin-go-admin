@@ -99,6 +99,17 @@ describe('SE 新建与详情五卡片合同', () => {
       voyage.closest('.ant-form-item')?.parentElement,
     );
     expect(within(bookingSection).queryByLabelText('船名航次')).toBeNull();
+    // 紧凑布局：WEEK 并入 ETD 后缀、最终目的港并入共同航程、三类备注收拢到同一小节。
+    expect(within(bookingSection).queryByLabelText('WEEK')).toBeNull();
+    expect(bookingSection).not.toHaveTextContent('本票目的地');
+    expect(within(bookingSection).getByText('备注')).toBeInTheDocument();
+    expect(
+      within(bookingSection)
+        .getByTestId('sea-notes-bookingNotes')
+        .parentElement?.contains(
+          within(bookingSection).getByTestId('sea-notes-operationNotes'),
+        ),
+    ).toBe(true);
     await act(async () => {});
   });
 

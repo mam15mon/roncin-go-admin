@@ -309,16 +309,40 @@ export default function SeaExportDetailFeatures({
 
   const contribution: OrderDetailFeatureContribution = {
     sharedVoyageMaintenance: (
-      <div>
+      // 放在「共同航程」小节标题行右侧：缺项说明与入口同行，不压低下方字段。
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          flexWrap: 'wrap',
+          gap: 8,
+          fontSize: 12,
+        }}
+      >
         {order.seaMasterBill &&
         seaVoyageMissingFields(order.seaMasterBill).length > 0 ? (
-          <Typography.Paragraph type="secondary" style={{ marginBottom: 4 }}>
+          <Typography.Text
+            // ETD/ETA 缺失会阻止保存，用警示色；其余缺项只是资料提示。
+            type={
+              !order.seaMasterBill.etd || !order.seaMasterBill.eta
+                ? 'warning'
+                : 'secondary'
+            }
+            style={{ fontSize: 12 }}
+          >
             共同航程尚缺：
             {seaVoyageMissingFields(order.seaMasterBill).join('、')}。
             {!order.seaMasterBill.etd || !order.seaMasterBill.eta
               ? 'ETD、ETA 为开单必填，请先补齐；其余缺项仅作资料提示。'
               : '以上仅作资料提示，不单独阻止保存。'}
-          </Typography.Paragraph>
+          </Typography.Text>
+        ) : null}
+        {businessWritesDisabled || !canOrder('reassign') ? (
+          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            {businessWriteBlockedReason ||
+              '当前账号无共同航程修改权限，请联系有权限的人员补齐。'}
+          </Typography.Text>
         ) : null}
         <Tooltip
           title={
@@ -349,12 +373,6 @@ export default function SeaExportDetailFeatures({
             </Button>
           </span>
         </Tooltip>
-        {businessWritesDisabled || !canOrder('reassign') ? (
-          <Typography.Text type="secondary" style={{ marginLeft: 8 }}>
-            {businessWriteBlockedReason ||
-              '当前账号无共同航程修改权限，请联系有权限的人员补齐。'}
-          </Typography.Text>
-        ) : null}
       </div>
     ),
     actualContainers: (

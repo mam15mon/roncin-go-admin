@@ -10,7 +10,8 @@ import React from 'react';
  * - row-3 三分：一行三等分（对应旧 8/8/8）；
  * - row-4 四分：一行四等分（对应旧 6/6/6/6）；
  * - row-5 五分：一行五等分；
- * - row-6 六分：一行六等分（对应 24 栅格 4/4/4/4/4/4，支持 1格/2格/3格 弹性跨列）。
+ * - row-6 六分：一行六等分（对应 24 栅格 4/4/4/4/4/4，配合 FormCell 1格/2格/3格 弹性跨列）；
+ *   1200px 以下降为三列，长字段跨 2 列仍保持相对宽度。
  * 子元素按顺序直接落入网格（字段组件自带 Form.Item，无需再包 Row/Col）；
  * 992px 以下自动降级为单列。
  */
@@ -57,7 +58,7 @@ const useStyles = createStyles(({ css }) => ({
   // row-6 六分
   row6: css`
     grid-template-columns: repeat(6, minmax(0, 1fr));
-    @media (max-width: 1400px) {
+    @media (max-width: 1200px) {
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
     @media (max-width: 992px) {
@@ -103,5 +104,28 @@ export function FormRow({
         {children}
       </div>
     </GridContext.Provider>
+  );
+}
+
+/**
+ * FormRow 内的跨列单元：长内容字段（客户、船名、港口等）跨 2 列，
+ * 短字段（编号、日期）占 1 列；`full` 独占整行。992px 以下随网格降为单列。
+ */
+export function FormCell({
+  span = 1,
+  children,
+}: {
+  span?: 1 | 2 | 3 | 'full';
+  children?: React.ReactNode;
+}) {
+  return (
+    <div
+      style={{
+        gridColumn: span === 'full' ? '1 / -1' : `span ${span}`,
+        minWidth: 0,
+      }}
+    >
+      {children}
+    </div>
   );
 }

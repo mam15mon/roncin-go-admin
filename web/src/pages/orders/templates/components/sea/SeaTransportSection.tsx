@@ -22,7 +22,7 @@ import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
 import React from 'react';
 import { useAccess } from '@/app/access';
-import { FormRow, ProFormSearchableSelect } from '@/components/ui';
+import { FormCell, FormRow, ProFormSearchableSelect } from '@/components/ui';
 import { OrderBusinessType, SeaDocumentStructure } from '@/enums.generated';
 import { history } from '@/router/history';
 import { formatDate } from '@/utils/format';
@@ -595,7 +595,6 @@ export function SeaContainerPlanFields({
 }
 
 export function SeaScheduleDateFields() {
-  const weekId = React.useId();
   const form = Form.useFormInstance();
   const etd = Form.useWatch('etd', form);
   const { readonly } = useSharedSeaVoyage();
@@ -607,21 +606,23 @@ export function SeaScheduleDateFields() {
       <ProFormDatePicker
         name="etd"
         label="ETD"
+        tooltip="WEEK 依据 ETD 自动计算，显示在日期框右侧"
         disabled={readonly || undefined}
         rules={[{ required: true, message: '请选择 ETD（预计离港时间）' }]}
         fieldProps={{
           style: { width: '100%' },
+          // WEEK 是 ETD 的派生值，以后缀展示，不再单独占一列。
+          suffixIcon: weekValue ? (
+            <span
+              data-testid="sea-etd-week"
+              title={`WEEK ${weekValue}`}
+              style={{ fontSize: 12, fontWeight: 500, color: '#5b6b82' }}
+            >
+              {weekValue}
+            </span>
+          ) : undefined,
         }}
       />
-      <Form.Item label="WEEK" htmlFor={weekId}>
-        <Input
-          id={weekId}
-          value={weekValue}
-          placeholder="依据 ETD 自动生成"
-          disabled
-          style={{ width: '100%' }}
-        />
-      </Form.Item>
       <ProFormDatePicker
         name="eta"
         label="ETA"
@@ -662,6 +663,8 @@ function SeaVesselFields() {
         label="船名"
         placeholder="请输入船名"
         disabled={readonly || undefined}
+        // 长船名与查询入口需要两倍宽度；FormRow 窄屏规则会恢复单列。
+        formItemProps={{ style: { gridColumn: 'span 2', minWidth: 0 } }}
         fieldProps={{
           suffix: (
             <Tooltip
@@ -713,9 +716,23 @@ function SeaPortFields({
     if (value && !options.some((option) => option.value === value))
       options.push({ value, label: label || `${fieldLabel}名称读取失败` });
   }
+  // 直接落入外层 6 列网格：中转港多为空，排在船期行尾；起运港、卸货港名称较长，各跨两列。
   return (
-    <FormRow cols={3}>
-      <div>
+    <>
+      <ProFormSearchableSelect
+        name="transitLocationId"
+        label="中转港"
+        options={options}
+        disabled={readonly || undefined}
+        request={
+          readonly
+            ? undefined
+            : async ({ keyWords }) => searchLocations(keyWords)
+        }
+        fieldProps={{ filterOption: false }}
+        placeholder="请选择中转港"
+      />
+      <FormCell span={2}>
         <ProFormSearchableSelect
           name="originLocationId"
           label="起运港"
@@ -729,45 +746,34 @@ function SeaPortFields({
           fieldProps={{ filterOption: false }}
           placeholder="请选择起运港或地点"
         />
-      </div>
-      <ProFormSearchableSelect
-        name="dischargeLocationId"
-        label="卸货港"
-        options={options}
-        disabled={readonly || undefined}
-        request={
-          readonly
-            ? undefined
-            : async ({ keyWords }) => searchLocations(keyWords)
-        }
-        fieldProps={{
-          filterOption: false,
-          onChange: (value, option) => {
-            const selected = Array.isArray(option) ? option[0] : option;
-            form.setFieldValue(
-              'seaDischargePortOption',
-              value && selected?.label
-                ? { value, label: String(selected.label) }
-                : undefined,
-            );
-          },
-        }}
-        placeholder="请选择卸货港或地点"
-      />
-      <ProFormSearchableSelect
-        name="transitLocationId"
-        label="中转港"
-        options={options}
-        disabled={readonly || undefined}
-        request={
-          readonly
-            ? undefined
-            : async ({ keyWords }) => searchLocations(keyWords)
-        }
-        fieldProps={{ filterOption: false }}
-        placeholder="请选择中转港或地点"
-      />
-    </FormRow>
+      </FormCell>
+      <FormCell span={2}>
+        <ProFormSearchableSelect
+          name="dischargeLocationId"
+          label="卸货港"
+          options={options}
+          disabled={readonly || undefined}
+          request={
+            readonly
+              ? undefined
+              : async ({ keyWords }) => searchLocations(keyWords)
+          }
+          fieldProps={{
+            filterOption: false,
+            onChange: (value, option) => {
+              const selected = Array.isArray(option) ? option[0] : option;
+              form.setFieldValue(
+                'seaDischargePortOption',
+                value && selected?.label
+                  ? { value, label: String(selected.label) }
+                  : undefined,
+              );
+            },
+          }}
+          placeholder="请选择卸货港或地点"
+        />
+      </FormCell>
+    </>
   );
 }
 
