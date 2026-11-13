@@ -14,14 +14,14 @@ func TestCommissionEconomicProjection(t *testing.T) {
 	for _, scenario := range []struct{ name, revenue, cost, received, target string }{{"部分回款优惠", "800", "400", "500", "25"}, {"全收优惠封顶", "900", "100", "1000", "80"}, {"亏损", "800", "900", "500", "0"}} {
 		t.Run(scenario.name, func(t *testing.T) {
 			order, party, root, source := uuid.New(), uuid.New(), uuid.New(), uuid.New()
-			old := &OrderFee{ID: root, OrderID: order, Direction: OrderFeeReceivable, EconomicEffect: OrderFeeEconomicIncrease, SettlementPartyID: party, Currency: "CNY", BaseCurrency: "CNY", TotalAmount: economicTestAmount("1000"), BaseCurrencyAmount: economicTestAmount("1000")}
+			old := &OrderFee{ID: root, OrderID: order, Direction: OrderFeeReceivable, EconomicEffect: OrderFeeEconomicIncrease, SettlementPartyID: party, Currency: "CNY", BaseCurrency: "CNY", TotalAmount: economicTestAmount("1000"), NetAmount: economicTestAmount("1000"), BaseCurrencyAmount: economicTestAmount("1000")}
 			replacement := *old
 			replacement.ID = uuid.New()
 			replacement.SourceFeeID = &root
 			replacement.CorrectionRequestID = &source
 			replacement.TotalAmount = economicTestAmount(scenario.revenue)
-			replacement.BaseCurrencyAmount = replacement.TotalAmount
-			cost := &OrderFee{ID: uuid.New(), OrderID: order, Direction: OrderFeePayable, BaseCurrency: "CNY", BaseCurrencyAmount: economicTestAmount(scenario.cost)}
+			replacement.BaseCurrencyAmount, replacement.NetAmount = replacement.TotalAmount, replacement.TotalAmount
+			cost := &OrderFee{ID: uuid.New(), OrderID: order, Direction: OrderFeePayable, BaseCurrency: "CNY", TotalAmount: economicTestAmount(scenario.cost), NetAmount: economicTestAmount(scenario.cost), BaseCurrencyAmount: economicTestAmount(scenario.cost)}
 			line := &FinanceBillLineSettlement{FeeID: root, Direction: OrderFeeReceivable, Contributions: []FinanceSettlementContribution{{SourceType: "VERIFICATION", SourceID: source, AllocationID: uuid.New(), Amount: economicTestAmount(scenario.received), EffectiveAt: time.Now()}}}
 			p, err := ProjectCommissionEconomics(order, 2, []*OrderFee{old, cost}, []*OrderFee{&replacement, cost}, nil, []*FinanceBillLineSettlement{line})
 			if err != nil {
@@ -37,14 +37,14 @@ func TestCommissionEconomicProjection(t *testing.T) {
 func TestCommissionEconomicFIFOAndRefundReplay(t *testing.T) {
 	order, party, root := uuid.New(), uuid.New(), uuid.New()
 	at := time.Date(2026, 10, 13, 1, 0, 0, 0, time.UTC)
-	old := &OrderFee{ID: root, OrderID: order, Direction: OrderFeeReceivable, SettlementPartyID: party, Currency: "CNY", BaseCurrency: "CNY", TotalAmount: economicTestAmount("1000"), BaseCurrencyAmount: economicTestAmount("1000")}
+	old := &OrderFee{ID: root, OrderID: order, Direction: OrderFeeReceivable, SettlementPartyID: party, Currency: "CNY", BaseCurrency: "CNY", TotalAmount: economicTestAmount("1000"), NetAmount: economicTestAmount("1000"), BaseCurrencyAmount: economicTestAmount("1000")}
 	correction := uuid.New()
 	replacement := *old
 	replacement.ID = uuid.New()
 	replacement.SourceFeeID = &root
 	replacement.CorrectionRequestID = &correction
 	replacement.TotalAmount = economicTestAmount("900")
-	replacement.BaseCurrencyAmount = replacement.TotalAmount
+	replacement.BaseCurrencyAmount, replacement.NetAmount = replacement.TotalAmount, replacement.TotalAmount
 	reversal := *old
 	reversal.ID = uuid.New()
 	reversal.SourceFeeID = &root
@@ -117,7 +117,7 @@ func TestCommissionEconomicTinyRefundConservation(t *testing.T) {
 	order, party, root := uuid.New(), uuid.New(), uuid.New()
 	at := time.Now()
 	tick := decimal.RequireFromString("0.00000001")
-	normal := &OrderFee{ID: root, OrderID: order, Direction: OrderFeeReceivable, SettlementPartyID: party, Currency: "CNY", BaseCurrency: "CNY", TotalAmount: tick.Mul(decimal.NewFromInt(10)), BaseCurrencyAmount: tick.Mul(decimal.NewFromInt(10))}
+	normal := &OrderFee{ID: root, OrderID: order, Direction: OrderFeeReceivable, SettlementPartyID: party, Currency: "CNY", BaseCurrency: "CNY", TotalAmount: tick.Mul(decimal.NewFromInt(10)), NetAmount: tick.Mul(decimal.NewFromInt(10)), BaseCurrencyAmount: tick.Mul(decimal.NewFromInt(10))}
 	reversal := *normal
 	reversal.ID = uuid.New()
 	reversal.SourceFeeID = &root
@@ -148,7 +148,7 @@ func TestCommissionEconomicBaseQuotaRoundingConservation(t *testing.T) {
 		t.Run(base, func(t *testing.T) {
 			order, party, root := uuid.New(), uuid.New(), uuid.New()
 			at := time.Now()
-			normal := &OrderFee{ID: root, OrderID: order, Direction: OrderFeeReceivable, SettlementPartyID: party, Currency: "USD", BaseCurrency: "CNY", TotalAmount: decimal.NewFromInt(10), BaseCurrencyAmount: economicTestAmount(base)}
+			normal := &OrderFee{ID: root, OrderID: order, Direction: OrderFeeReceivable, SettlementPartyID: party, Currency: "USD", BaseCurrency: "CNY", TotalAmount: decimal.NewFromInt(10), NetAmount: decimal.NewFromInt(10), BaseCurrencyAmount: economicTestAmount(base)}
 			line := &FinanceBillLineSettlement{FeeID: root, Direction: OrderFeeReceivable}
 			for i := 0; i < 10; i++ {
 				line.Contributions = append(line.Contributions, FinanceSettlementContribution{SourceType: "VERIFICATION", SourceID: uuid.New(), AllocationID: uuid.New(), Amount: decimal.NewFromInt(1), EffectiveAt: at.Add(time.Duration(i) * time.Second)})

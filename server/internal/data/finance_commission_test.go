@@ -54,14 +54,14 @@ func TestCalculateCommissionFromSourceUsesSharedBatchData(t *testing.T) {
 	receivable := &ent.OrderFee{
 		ID: uuid.New(), OrderID: orderID, SettlementPartyID: settlementParty.ID,
 		Direction: orderfee.DirectionRECEIVABLE,
-		FeeCode:   "FREIGHT", FeeName: "海运费", Currency: "CNY", TotalAmount: "1000", ExchangeRate: "1",
+		FeeCode:   "FREIGHT", FeeName: "海运费", Currency: "CNY", TotalAmount: "1000", NetAmount: "1000", ExchangeRate: "1",
 		BaseCurrency: "CNY", BaseCurrencyAmount: "1000", Version: 1,
 		Edges: ent.OrderFeeEdges{SettlementParty: settlementParty},
 	}
 	payable := &ent.OrderFee{
 		ID: uuid.New(), OrderID: orderID, SettlementPartyID: settlementParty.ID,
 		Direction: orderfee.DirectionPAYABLE,
-		FeeCode:   "COST", FeeName: "成本", Currency: "CNY", TotalAmount: "400", ExchangeRate: "1",
+		FeeCode:   "COST", FeeName: "成本", Currency: "CNY", TotalAmount: "400", NetAmount: "400", ExchangeRate: "1",
 		BaseCurrency: "CNY", BaseCurrencyAmount: "400", Version: 1,
 		Edges: ent.OrderFeeEdges{SettlementParty: settlementParty},
 	}

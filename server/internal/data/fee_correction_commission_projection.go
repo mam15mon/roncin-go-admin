@@ -59,6 +59,16 @@ func loadCommissionEconomicProjection(ctx context.Context, client *ent.Client, o
 			if err != nil {
 				return nil, err
 			}
+			lineNet, err := decimalOf(l.NetAmount)
+			if err != nil {
+				return nil, err
+			}
+			lineTotal, err := decimalOf(l.TotalAmount)
+			if err != nil {
+				return nil, err
+			}
+			// 提成基数为不含税本位币：按账单行自身未税/含税比例折算。
+			amount = biz.CommissionNetBase(amount, lineNet, lineTotal)
 			bases[l.OrderFeeID] = bases[l.OrderFeeID].Add(amount)
 		}
 	}

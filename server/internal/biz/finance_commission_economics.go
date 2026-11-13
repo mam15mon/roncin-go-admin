@@ -89,7 +89,7 @@ func ProjectCommissionEconomics(orderID uuid.UUID, version uint64, allFees, curr
 		if f.BaseCurrency != p.BaseCurrency {
 			return nil, ErrCommissionBaseCurrencyMismatch
 		}
-		base := f.BaseCurrencyAmount
+		base := CommissionNetBase(f.BaseCurrencyAmount, f.NetAmount, f.TotalAmount)
 		if b, ok := bases[f.ID]; ok && f.CorrectionRequestID == nil && f.SupplementRequestID == nil {
 			base = b
 		}
@@ -249,7 +249,7 @@ func ProjectCommissionEconomics(orderID uuid.UUID, version uint64, allFees, curr
 		if !quota.IsPositive() {
 			continue
 		}
-		base := f.BaseCurrencyAmount
+		base := CommissionNetBase(f.BaseCurrencyAmount, f.NetAmount, f.TotalAmount)
 		if b, ok := bases[f.ID]; ok && f.CorrectionRequestID == nil && f.SupplementRequestID == nil {
 			base = b
 		}

@@ -25,7 +25,7 @@ const (
 	CommissionRoleCustomerService                  CommissionPersonnelRole        = "CUSTOMER_SERVICE"
 	CommissionBasisRealizedProfit                  CommissionCalculationBasis     = "REALIZED_PROFIT"
 	CommissionBasisRealizedRevenue                 CommissionCalculationBasis     = "REALIZED_REVENUE"
-	CommissionCalculationVersion                                                  = "CUSTOMER_REALIZED_PROFIT_V3"
+	CommissionCalculationVersion                                                  = "CUSTOMER_REALIZED_PROFIT_V4"
 	CommissionAdjustmentIncrease                   CommissionAdjustmentDirection  = "INCREASE"
 	CommissionAdjustmentDecrease                   CommissionAdjustmentDirection  = "DECREASE"
 	CommissionAdjustmentSourceManual               CommissionAdjustmentSourceType = "MANUAL"

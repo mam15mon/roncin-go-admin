@@ -428,8 +428,17 @@ func loadCommissionCalculationSource(ctx context.Context, store commissionCalcul
 		if parseErr != nil {
 			return nil, parseErr
 		}
-		billLineBaseByFee[line.OrderFeeID] = billLineBaseByFee[line.OrderFeeID].Add(base)
-		fingerprintParts = append(fingerprintParts, fmt.Sprintf("fee_bill_line|%s|%s|%s|%t", line.ID, line.OrderFeeID, line.BaseCurrencyAmount, line.Active))
+		lineNet, parseErr := decimalOf(line.NetAmount)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		lineTotal, parseErr := decimalOf(line.TotalAmount)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		// 提成基数为不含税本位币：按账单行自身未税/含税比例折算。
+		billLineBaseByFee[line.OrderFeeID] = billLineBaseByFee[line.OrderFeeID].Add(biz.CommissionNetBase(base, lineNet, lineTotal))
+		fingerprintParts = append(fingerprintParts, fmt.Sprintf("fee_bill_line|%s|%s|%s|%s|%s|%t", line.ID, line.OrderFeeID, line.BaseCurrencyAmount, line.NetAmount, line.TotalAmount, line.Active))
 	}
 	return &commissionCalculationSource{
 		organizationID: org, verification: verificationEntity, netting: nettingEntity, commissionDate: commissionDate,
@@ -527,7 +536,11 @@ func calculateCommissionFromSource(source *commissionCalculationSource, ruleItem
 			line.BaseCurrency = result.BaseCurrency
 			// 总应收/总应付分母优先使用关联账单行的本位币快照（账单日口径），
 			// 未建账费用回落到费用自身快照，避免分子分母汇率基准混用。
-			aggregateBase := baseAmount
+			feeNet, parseErr := decimalOf(feeItem.NetAmount)
+			if parseErr != nil {
+				return nil, parseErr
+			}
+			aggregateBase := biz.CommissionNetBase(baseAmount, feeNet, totalAmount)
 			if billedBase, billed := source.billLineBaseByFee[feeItem.ID]; billed && feeItem.CorrectionRequestID == nil && feeItem.SupplementRequestID == nil {
 				aggregateBase = billedBase
 			}
@@ -542,7 +555,7 @@ func calculateCommissionFromSource(source *commissionCalculationSource, ruleItem
 				Currency: feeItem.Currency, TotalAmount: totalAmount, ExchangeRate: exchangeRate,
 				BaseCurrency: feeItem.BaseCurrency, BaseCurrencyAmount: baseAmount,
 			})
-			fingerprintParts = append(fingerprintParts, fmt.Sprintf("fee|%s|%s|%s|%s|%s|%s|%s|%d", feeItem.ID, feeItem.OrderID, feeItem.Direction, feeItem.TotalAmount, feeItem.ExchangeRate, feeItem.BaseCurrencyAmount, feeItem.BaseCurrency, feeItem.Version))
+			fingerprintParts = append(fingerprintParts, fmt.Sprintf("fee|%s|%s|%s|%s|%s|%s|%s|%s|%d", feeItem.ID, feeItem.OrderID, feeItem.Direction, feeItem.TotalAmount, feeItem.ExchangeRate, feeItem.BaseCurrencyAmount, feeItem.NetAmount, feeItem.BaseCurrency, feeItem.Version))
 		}
 		line.FeeCount = len(line.Fees)
 		totalReceivable := line.RealizedRevenue.Round(8)

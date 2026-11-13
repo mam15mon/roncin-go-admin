@@ -190,3 +190,12 @@ func (u *CommissionUsecase) transition(ctx context.Context, org, actor, id uuid.
 	}
 	return u.repo.Transition(ctx, org, id, actor, version, target, reason, commissionAudit(org, actor, id, "finance.commission."+strings.ToLower(string(target))))
 }
+
+// CommissionNetBase 把含税本位币金额按未税/含税比例折算为不含税本位币金额，
+// 沿用费用或账单行自身汇率快照；含税总额为零时返回 0。
+func CommissionNetBase(baseCurrencyAmount, netAmount, totalAmount decimal.Decimal) decimal.Decimal {
+	if totalAmount.IsZero() {
+		return decimal.Zero
+	}
+	return baseCurrencyAmount.Mul(netAmount).Div(totalAmount).RoundBank(8)
+}
