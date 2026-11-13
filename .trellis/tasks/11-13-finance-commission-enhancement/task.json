@@ -12,7 +12,7 @@
   "assignee": "mam15mon",
   "createdAt": "2026-11-13",
   "completedAt": null,
-  "branch": "main",
+  "branch": "feat/commission-net-profit",
   "base_branch": "main",
   "worktree_path": null,
   "commit": null,
