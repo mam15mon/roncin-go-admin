@@ -41,7 +41,7 @@
 ## 5. 数值与验证
 
 - **不含税口径（V4）**：提成基数是不含税已实现利润。应收、应付、来源额度的本位币金额一律经 `biz.CommissionNetBase(base, net, total)`，即 `base × net ÷ total`（`RoundBank(8)`，总额为零返回 0）折算，沿用该费用或账单行自身汇率快照，不另取汇率、不取发票或账单税额。已建账且非更正、非补录取**账单行**自身的 net/total，其余取费用自身 net/total；`REALIZED_REVENUE` 依据同样走不含税。禁止在新取值点直接使用含税 `BaseCurrencyAmount` 参与提成计算。
-- **版本**：`CommissionCalculationVersion = CUSTOMER_REALIZED_PROFIT_V4`。`CommissionEconomicTarget`、费用更正重算与 `CommissionSupplementCostSensitivity` 对非当前版本失败关闭，不并存 V3 公式；V3 记录不被改写，但无法重算。变更计算结果须再升版本。
+- **计算标识与上线前取舍**：当前 `CommissionCalculationVersion = CUSTOMER_REALIZED_PROFIT_V4`。用户明确尚未上线，旧开发计算版本不作为兼容目标，不并存双公式，也不要求保留旧开发 DRAFT 的旧公式金额。`refreshApplicationLines` 在驳回申请重提时可通过 `refreshCommissionSnapshot` 按当前公式刷新草稿及申请金额；不为此增加旧版本阻断。现有 `CommissionEconomicTarget`、费用更正与 `CommissionSupplementCostSensitivity` 仍会拒绝非当前版本，这是现状而非所有路径统一的冻结契约。正常并发版本、事务、实际支付事实及审计要求继续有效；不自动清库。
 - **指纹**：费用与账单行来源指纹含 `net_amount`（账单行另含 `total_amount`），税率或未税额变化会被来源变化检测发现。
 - 样例：应收含税 10,600/未税 10,000，应付含税 6,360/未税 6,000，核销占 40%，比例 10%：已实现利润 1,600.00，提成 160.00。回归见 `biz/finance_commission_net_base_test.go` 与真实库 `TestCommissionNetBasePostgres`（账单行与费用行税率不同、已建账与未建账并存）。
 - 展示字段 `CommissionFeeDetail.BaseCurrencyAmount` 等仍为含税值，仅供展示，不参与计算；页面与导出须标清含税/不含税。

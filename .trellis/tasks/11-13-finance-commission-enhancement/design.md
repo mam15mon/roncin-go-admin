@@ -43,18 +43,13 @@ CommissionNetBase(baseCurrencyAmount, netAmount, totalAmount) =
 - `REALIZED_REVENUE` 依据一并走不含税（应收、已实现收入均为不含税），保持两种依据口径一致；不为其保留含税路径。
 - 指纹：费用与账单行指纹需纳入 `net_amount`，使税率或未税额变化触发来源变化检测与重算；现有指纹只含 `TotalAmount`、汇率与本位币额。
 
-## 4. 计算版本
+## 4. 计算标识与上线前取舍
 
-- 新增 `CUSTOMER_REALIZED_PROFIT_V4`（27 字符，不超过 `calculation_version` 的 32 字符上限），常量 `CommissionCalculationVersion` 改为 V4，新生成提成全部写 V4。
-- 项目当前处于上线前，按 AGENTS.md「不兼容历史、不加双读双写」处理：**不实现 V3 与 V4 并存的双公式**。
-- 三处已有「版本不等于当前即失败关闭」的守卫继续生效：
-  - `CommissionEconomicTarget`（`economics.go:312`）；
-  - `fee_correction_commission.go` 的版本判断；
-  - `CommissionSupplementCostSensitivity`（`order_fee_supplement.go:381`）。
-  V3 记录不会被改写，也不会被新公式重算；对其再触发费用更正或经济重算会得到 `ErrCommissionSnapshotUnavailable` 或 `ErrCommissionCalculationVersionUnsupported`。
-- 这与 PRD「已计提、已发放记录保持原样」一致：保持的是已存事实，而不是继续支持其重算。
-- **需用户在实施前确认**：开发库里 `sync:dev` 已注入的 V3 提成（`server/cmd/sync-dev/main.go:2273` `seedCommissionLedger`）会因此无法重算。清空或重建开发数据必须取得用户明确授权，设计不默认执行。
-- `Schema` 默认值 `CUSTOMER_REALIZED_PROFIT_V2` 是列默认值，业务路径显式写入版本；本期不改列定义，不需要迁移。
+- 当前实现使用 `CUSTOMER_REALIZED_PROFIT_V4`，作为计算标识；用户在 review 后明确，尚未上线，不要求兼容旧开发版本或保留旧开发草稿的公式结果。
+- 不建设 V3/V4 并存的双公式，不为旧开发版本增加冻结保护。驳回月度申请重提时，既有 `refreshApplicationLines` / `refreshCommissionSnapshot` 可按当前公式刷新 DRAFT 提成及申请金额；该行为不再列为缺陷。
+- 当前 `CommissionEconomicTarget`、费用更正及 `CommissionSupplementCostSensitivity` 的部分路径仍会拒绝非当前版本，这是现有实现行为；本次文档修订不等于已经统一这些路径，也不要求为旧开发数据补适配层。
+- 保留正常并发控制、幂等及实际支付事实保护；本次取舍不授权自动清库、重建开发数据或改写真实付款事实。
+- `Schema` 默认值 `CUSTOMER_REALIZED_PROFIT_V2` 不变，业务路径显式写入计算版本；本期未修改列定义。
 
 ## 5. 契约与前端
 
@@ -76,7 +71,7 @@ CommissionNetBase(baseCurrencyAmount, netAmount, totalAmount) =
 | 三处取值点漏改，预览与重算口径不一致 | 统一经 `CommissionNetBase`；验证预览金额与重算目标一致 |
 | 未税额与本位币额同比例折算的精度 | `RoundBank(8)`，尾差沿用现有稳定分摊；用 12.00 差额类样例回归 |
 | 已建账费用账单行与费用行税率不一致 | 已建账一律取账单行自身 net/total，不混用 |
-| V3 开发数据失败关闭 | 如实告知，由用户授权重建，不自动清库 |
+| 旧开发版本不兼容 | 不建设双公式，不为草稿重提刷新增加额外版本阻断；不自动清库 |
 | 与费用台账任务汇率快照口径分叉 | 共用同一汇率字段，不新增汇率来源 |
 
 ## 8. 不做的事
