@@ -20,7 +20,7 @@ it('追加的锁定状态列参与普通列显隐、调序与冻结，操作列�
         columnSettingsKey="orders:review-columns-test"
         queryOrders={vi.fn().mockResolvedValue({ data: [], total: 0 })}
         trailingColumns={[
-          { key: 'feeReview', title: '锁定状态', render: () => '未审核' },
+          { key: 'feeReview', title: '锁定状态', render: () => '未锁定' },
         ]}
       />
     </ConfigProvider>,

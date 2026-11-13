@@ -50,7 +50,7 @@ function renderOrders() {
           },
         ]}
         trailingColumns={[
-          { title: '锁定状态', key: 'feeReview', render: () => '未审核' },
+          { title: '锁定状态', key: 'feeReview', render: () => '未锁定' },
         ]}
       />
     </ConfigProvider>,

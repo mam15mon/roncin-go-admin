@@ -70,7 +70,7 @@ describe('OrderLockControl', () => {
     );
 
     expect(
-      screen.getByText(/空运进口 · 已审核 · 测试用户/),
+      screen.getByText(/空运进口 · 已锁定 · 测试用户/),
     ).toBeInTheDocument();
   });
 
@@ -105,9 +105,9 @@ describe('OrderLockControl', () => {
     );
 
     expect(screen.queryByRole('button', { name: '撤销审核' })).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: /审核订单/ }));
+    fireEvent.click(screen.getByRole('button', { name: /锁定订单/ }));
     expect(
-      (await screen.findAllByText('审核空运进口订单')).length,
+      (await screen.findAllByText('锁定空运进口订单')).length,
     ).toBeGreaterThan(0);
     expect(screen.getByText(/自动锁定订单业务资料和费用/)).toBeInTheDocument();
     expect(screen.queryByText(/MBL\/HBL/)).toBeNull();
@@ -186,7 +186,7 @@ describe('OrderLockControl', () => {
         />
       </App>,
     );
-    fireEvent.click(screen.getByRole('button', { name: /审核订单/ }));
+    fireEvent.click(screen.getByRole('button', { name: /锁定订单/ }));
     await waitFor(() =>
       expect(screen.getByRole('button', { name: /确.*认/ })).toBeEnabled(),
     );
@@ -215,7 +215,7 @@ describe('OrderLockControl', () => {
         />
       </App>,
     );
-    expect(screen.getByRole('button', { name: /审核订单/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /锁定订单/ })).toBeDisabled();
     expect(lockOrder).not.toHaveBeenCalled();
   });
 });

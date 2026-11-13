@@ -20,8 +20,8 @@ vi.mock('@/services/roncin/orderLockService', () => ({
   orderLockServiceGetOrderLockState: vi.fn(),
 }));
 vi.mock('../../detail/OrderLockControl', () => ({
-  default: () => <button type="button">审核订单</button>,
-  OrderLockStatusTag: () => <span>未审核</span>,
+  default: () => <button type="button">锁定订单</button>,
+  OrderLockStatusTag: () => <span>未锁定</span>,
 }));
 
 const getReview = vi.mocked(orderFeeServiceGetOrderFeeReview);

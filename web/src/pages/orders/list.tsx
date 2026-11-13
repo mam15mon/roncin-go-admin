@@ -1,16 +1,13 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
-import { Button, Popover, Result } from 'antd';
+import { Button, Popover, Result, Tag } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router';
 import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import { OrderListTemplate } from '@/components/ui';
 import type { OrderListItem } from '@/components/ui/order-list-template/types';
-import {
-  FeeReviewStatus,
-  FeeReviewSummary,
-} from '@/features/orders/fee-review';
+import { FeeReviewSummary } from '@/features/orders/fee-review';
 import { history } from '@/router/history';
 import AbnormalCasePanel, {
   type AbnormalCasePanelRef,
@@ -106,10 +103,12 @@ export default function OrderListPage() {
             }
             onClick={() => setReviewOrderId(row.id)}
           >
-            <FeeReviewStatus
-              status={row.rawRecord?.lockedAt ? 'APPROVED' : 'UNSUBMITTED'}
-              pendingCorrection={row.rawRecord?.feeReview?.hasPendingCorrection}
-            />
+            <Tag color={row.rawRecord?.lockedAt ? 'success' : undefined}>
+              {row.rawRecord?.lockedAt ? '已锁定' : '未锁定'}
+            </Tag>
+            {row.rawRecord?.feeReview?.hasPendingCorrection && (
+              <Tag color="warning">有补录待补审</Tag>
+            )}
           </Button>
         </Popover>
       ),

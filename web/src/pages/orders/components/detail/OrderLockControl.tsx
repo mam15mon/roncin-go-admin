@@ -61,9 +61,9 @@ export function getOrderLockConfirmationDescription(
   businessType?: number,
 ): string {
   if (businessType === OrderBusinessType.BUSINESS_TYPE_SE) {
-    return '确认审核后将固定 MBL/HBL 提单不可变版本，并自动锁定订单业务资料和费用。后续费用变更须申请补录并补审，已建账费用须先完成账务回退。';
+    return '确认锁定后将固定 MBL/HBL 提单不可变版本，并自动锁定订单业务资料和费用。后续费用变更须申请补录并补审，已建账费用须先完成账务回退。';
   }
-  return '确认审核后将自动锁定订单业务资料和费用。后续费用变更须申请补录并补审，已建账费用须先完成账务回退。';
+  return '确认锁定后将自动锁定订单业务资料和费用。后续费用变更须申请补录并补审，已建账费用须先完成账务回退。';
 }
 
 /** 审核锁仅展示服务端记录的人工审核人。 */
@@ -85,13 +85,13 @@ export function OrderLockStatusTag({
   loading,
   error,
 }: OrderLockStatusTagProps) {
-  if (loading) return <Tag color="processing">审核状态同步中</Tag>;
-  if (error) return <Tag color="error">审核状态加载失败</Tag>;
-  if (!state) return <Tag color="warning">审核状态未知</Tag>;
+  if (loading) return <Tag color="processing">锁定状态同步中</Tag>;
+  if (error) return <Tag color="error">锁定状态加载失败</Tag>;
+  if (!state) return <Tag color="warning">锁定状态未知</Tag>;
 
   const businessTypeLabel = getOrderBusinessTypeLabel(state.businessType);
   if (!state.isLocked) {
-    return <Tag icon={<UnlockOutlined />}>{businessTypeLabel} · 未审核</Tag>;
+    return <Tag icon={<UnlockOutlined />}>{businessTypeLabel} · 未锁定</Tag>;
   }
 
   const timeText = state.lockedAt ? formatDate(state.lockedAt, 'minute') : '';
@@ -120,7 +120,7 @@ export function OrderLockStatusTag({
       }
     >
       <Tag color="processing" icon={<LockOutlined />}>
-        {businessTypeLabel} · 已审核 · {sourceDisplay.actorText}
+        {businessTypeLabel} · 已锁定 · {sourceDisplay.actorText}
         {timeText ? ` · ${timeText}` : ''}
       </Tag>
     </Tooltip>
@@ -277,7 +277,7 @@ export default function OrderLockControl({
   const primaryActions = (
     <>
       {!loading && (error || !state) && (
-        <Button onClick={() => void onRetry()}>重试审核状态</Button>
+        <Button onClick={() => void onRetry()}>重试锁定状态</Button>
       )}
       {state && !state.isLocked && (
         <Tooltip
@@ -291,7 +291,7 @@ export default function OrderLockControl({
               disabled={!state.canLock || reviewSnapshotMissing || loading}
               onClick={handleLock}
             >
-              审核订单
+              锁定订单
             </Button>
           </span>
         </Tooltip>
@@ -349,7 +349,7 @@ export default function OrderLockControl({
       {lockSnapshot && (
         <GuardedModalForm
           key={lockKey}
-          title={`审核${getOrderBusinessTypeLabel(lockSnapshot.businessType)}订单`}
+          title={`锁定${getOrderBusinessTypeLabel(lockSnapshot.businessType)}订单`}
           open
           width={1280}
           modalProps={{
@@ -357,7 +357,7 @@ export default function OrderLockControl({
             styles: { body: { maxHeight: '70vh', overflowY: 'auto' } },
           }}
           submitter={{
-            searchConfig: { submitText: '确认审核' },
+            searchConfig: { submitText: '确认锁定' },
             submitButtonProps: { disabled: !feeReviewReady },
           }}
           onOpenChange={(open) => {
@@ -388,7 +388,7 @@ export default function OrderLockControl({
                 response.data?.state?.orderId !== orderId
               )
                 return false;
-              message.success('订单已审核，业务资料和费用已锁定');
+              message.success('订单已锁定，业务资料和费用已锁定');
               await onSynchronize();
               setLockSnapshot(undefined);
               return true;
@@ -405,7 +405,7 @@ export default function OrderLockControl({
             <Alert
               type="warning"
               showIcon
-              title="该订单亏损，请核对每笔应收、应付费用后确认审核。"
+              title="该订单亏损，请核对每笔应收、应付费用后确认锁定。"
               style={{ marginBlock: 12 }}
             />
           )}
@@ -418,7 +418,7 @@ export default function OrderLockControl({
             <Alert
               type="error"
               showIcon
-              title="费用明细加载失败，请重试后审核"
+              title="费用明细加载失败，请重试后锁定"
               action={
                 <Button onClick={() => void feeReview.refetch()}>
                   重试费用明细
@@ -432,7 +432,7 @@ export default function OrderLockControl({
               <Alert
                 type="warning"
                 showIcon
-                title="订单或费用已变化，请刷新后重新审核"
+                title="订单或费用已变化，请刷新后重新锁定"
                 action={
                   <Button
                     onClick={async () => {
@@ -440,7 +440,7 @@ export default function OrderLockControl({
                       await onRetry();
                     }}
                   >
-                    刷新审核信息
+                    刷新锁定信息
                   </Button>
                 }
               />

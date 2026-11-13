@@ -100,7 +100,7 @@ vi.mock('@/services/roncin/orderService', () => ({
 
 vi.mock('./components/fees/fee-review/OrderFeeReview', () => ({
   OrderFeeReviewDrawer: ({ orderId }: { orderId?: string }) =>
-    orderId ? <div>审核订单：{orderId}</div> : null,
+    orderId ? <div>锁定订单：{orderId}</div> : null,
 }));
 
 const mockGetMasterDataOptions = vi.mocked(getMasterDataOptions);
@@ -214,12 +214,25 @@ describe('订单列表审核入口', () => {
     accessControl.canLock = true;
     accessControl.canReadFees = true;
     mockListOrders.mockResolvedValue({
-      data: [{ id: 'review-order', orderNo: 'SE-REVIEW', businessType: 1 }],
-      total: 1,
+      data: [
+        {
+          id: 'review-order',
+          orderNo: 'SE-REVIEW',
+          businessType: 1,
+          feeReview: { hasPendingCorrection: true },
+        },
+        {
+          id: 'locked-order',
+          orderNo: 'SE-LOCKED',
+          businessType: 1,
+          lockedAt: '2026-11-13T02:00:00Z',
+        },
+      ],
+      total: 2,
     });
   });
 
-  it('操作列不重复提供详情或审核，单号进入详情且审核状态打开审核界面', async () => {
+  it('锁定状态区分已锁定和未锁定，保留补审提示与审核入口', async () => {
     renderWithClient(
       <App>
         <OrderListPage />
@@ -230,17 +243,24 @@ describe('订单列表审核入口', () => {
       screen.getByRole('columnheader', { name: '锁定状态' }),
     ).toBeInTheDocument();
     const row = within(orderNumber.closest('tr') as HTMLTableRowElement);
+    expect(row.getByText('有补录待补审')).toBeInTheDocument();
+    const lockedRow = within(
+      screen.getByText('SE-LOCKED').closest('tr') as HTMLTableRowElement,
+    );
+    expect(lockedRow.getByText('已锁定')).toBeInTheDocument();
+    expect(screen.queryByText('未审核')).not.toBeInTheDocument();
+    expect(screen.queryByText('已审核')).not.toBeInTheDocument();
     expect(row.queryByText('详情')).not.toBeInTheDocument();
     fireEvent.click(orderNumber);
     expect(history.push).toHaveBeenCalledWith(
       '/orders/sea-export/review-order',
     );
     expect(row.queryByText('审核')).not.toBeInTheDocument();
-    const review = row.getByText('未审核').closest('button');
+    const review = row.getByText('未锁定').closest('button');
     await waitFor(() => expect(review).toBeVisible());
     expect(review).toBeEnabled();
     fireEvent.click(review as HTMLButtonElement);
-    expect(await screen.findByText('审核订单：review-order')).toBeVisible();
+    expect(await screen.findByText('锁定订单：review-order')).toBeVisible();
   });
 
   it('无审核及费用读取权限时，审核状态入口不可打开审核', async () => {
@@ -254,11 +274,11 @@ describe('订单列表审核入口', () => {
     const orderNumber = await screen.findByText('SE-REVIEW');
     const row = within(orderNumber.closest('tr') as HTMLTableRowElement);
     expect(row.queryByText('审核')).not.toBeInTheDocument();
-    const button = row.getByText('未审核').closest('button');
+    const button = row.getByText('未锁定').closest('button');
     expect(button).toBeDisabled();
     fireEvent.click(button as HTMLButtonElement);
     expect(
-      screen.queryByText('审核订单：review-order'),
+      screen.queryByText('锁定订单：review-order'),
     ).not.toBeInTheDocument();
   });
 });

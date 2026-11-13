@@ -101,7 +101,7 @@ describe('订单审核费用明细', () => {
       }),
     );
     renderControl();
-    fireEvent.click(screen.getByRole('button', { name: /审核订单/ }));
+    fireEvent.click(screen.getByRole('button', { name: /锁定订单/ }));
 
     const receivable = await screen.findByRole('region', { name: '应收费用' });
     const payable = screen.getByRole('region', { name: '应付费用' });
@@ -157,12 +157,12 @@ describe('订单审核费用明细', () => {
         }),
     );
     renderControl();
-    fireEvent.click(screen.getByRole('button', { name: /审核订单/ }));
+    fireEvent.click(screen.getByRole('button', { name: /锁定订单/ }));
     expect(await screen.findByText('正在加载全部费用明细')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /确.*认/ })).toBeDisabled();
     rejectReview(new Error('网络失败'));
     expect(
-      await screen.findByText('费用明细加载失败，请重试后审核'),
+      await screen.findByText('费用明细加载失败，请重试后锁定'),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /确.*认/ })).toBeDisabled();
     expect(lockOrder).not.toHaveBeenCalled();
@@ -181,19 +181,19 @@ describe('订单审核费用明细', () => {
     getReview.mockResolvedValue(reviewResponse({ contentVersion: '9' }));
     const onRetry = vi.fn().mockResolvedValue(snapshot);
     renderControl(onRetry);
-    fireEvent.click(screen.getByRole('button', { name: /审核订单/ }));
+    fireEvent.click(screen.getByRole('button', { name: /锁定订单/ }));
     expect(
-      await screen.findByText('订单或费用已变化，请刷新后重新审核'),
+      await screen.findByText('订单或费用已变化，请刷新后重新锁定'),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /确.*认/ })).toBeDisabled();
     expect(screen.queryByRole('region', { name: '应收费用' })).toBeNull();
     expect(lockOrder).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('button', { name: '刷新审核信息' }));
+    fireEvent.click(screen.getByRole('button', { name: '刷新锁定信息' }));
     await waitFor(() => expect(onRetry).toHaveBeenCalledOnce());
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
 
     getReview.mockResolvedValue(reviewResponse());
-    fireEvent.click(screen.getByRole('button', { name: /审核订单/ }));
+    fireEvent.click(screen.getByRole('button', { name: /锁定订单/ }));
     await waitFor(() =>
       expect(screen.getByRole('button', { name: /确.*认/ })).toBeEnabled(),
     );
@@ -214,13 +214,13 @@ describe('订单审核费用明细', () => {
       ['order-fee-review', undefined, 'review-order'],
       reviewResponse().data,
     );
-    fireEvent.click(screen.getByRole('button', { name: /审核订单/ }));
+    fireEvent.click(screen.getByRole('button', { name: /锁定订单/ }));
     expect(await screen.findByText('正在加载全部费用明细')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '确认审核' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: '确认锁定' })).toBeDisabled();
     expect(screen.queryByRole('region', { name: '应收费用' })).toBeNull();
     resolveReview(reviewResponse());
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: '确认审核' })).toBeEnabled(),
+      expect(screen.getByRole('button', { name: '确认锁定' })).toBeEnabled(),
     );
 
     rerender(
@@ -234,9 +234,9 @@ describe('订单审核费用明细', () => {
       />,
     );
     expect(
-      await screen.findByText('订单或费用已变化，请刷新后重新审核'),
+      await screen.findByText('订单或费用已变化，请刷新后重新锁定'),
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '确认审核' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: '确认锁定' })).toBeDisabled();
     expect(lockOrder).not.toHaveBeenCalled();
   });
 });

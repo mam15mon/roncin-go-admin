@@ -103,12 +103,12 @@ describe('订单详情页头操作层级', () => {
       within(area)
         .getAllByRole('button')
         .map((button) => button.textContent?.trim()),
-    ).toEqual(['费用录入', '附件', '审核订单', '保存', '更多操作']);
+    ).toEqual(['费用录入', '附件', '锁定订单', '保存', '更多操作']);
     expect(area.querySelectorAll('.ant-btn-primary')).toHaveLength(1);
     expect(
       document.querySelector('.roncin-page-header-actions-row'),
     ).toBeNull();
-    expect(screen.getByText(/未审核/).closest('.ant-tag')).not.toHaveClass(
+    expect(screen.getByText(/未锁定/).closest('.ant-tag')).not.toHaveClass(
       'ant-tag-success',
     );
     fireEvent.click(screen.getByRole('button', { name: /保存/ }));
