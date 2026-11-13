@@ -20,7 +20,7 @@ web/src/pages/orders/fees.tsx；web/src/pages/finance/fees；server/internal/biz
 
 ## 待确认
 
-筛选设置适用页面及偏好保存范围。
+筛选偏好的保存方式（本浏览器或跨设备）。
 
 ## 约束与后续产物
 
@@ -72,7 +72,7 @@ web/src/pages/orders/fees.tsx；web/src/pages/finance/fees；server/internal/biz
 
 ## 筛选设置的现有依据
 
-`web/src/components/ui/column-settings/preference.ts:19` 的列偏好按表格及用户/组织作用域保存在浏览器 localStorage；`web/src/pages/finance/fees/index.tsx:77` 已传当前用户作用域。可作为筛选设置偏好的实现参考，尚不等于已批准跨页面覆盖或跨设备同步。
+`web/src/components/ui/column-settings/preference.ts:19` 的列偏好按表格及用户/组织作用域保存在浏览器 localStorage；`web/src/pages/finance/fees/index.tsx:77` 已传当前用户作用域。筛选设置已确认全财务覆盖；现有存储可作为实现参考，跨设备同步尚未确认。
 用户已确认移除字段同时清值并刷新，普通展开/收起保留条件。
 
 ## 已确认：移除筛选项清值，折叠保留条件
@@ -114,3 +114,8 @@ web/src/pages/orders/fees.tsx；web/src/pages/finance/fees；server/internal/biz
 - 只有受保护或手工汇率费用、无须自动更新的系统费用时，不为这些保留项查询新周汇率，也不因新周未配置而阻止日期保存；其他日期权限和业务校验仍执行。
 - 手工修改与航期自动更新并发时，事务内复核来源与版本，不能在旧查询结果上覆盖刚提交的手工值。
 - 本次仅确认保留已有手工值，不新增「恢复自动汇率」开关或放宽财务手工修改权限。
+
+## 已确认：本期统一筛选设置
+
+本子任务所属财务列表/报表接入统一筛选设置交互，各页面提供自己的可选字段；移除清值并刷新，普通折叠保留条件。接入验收遵循父任务「全财务筛选设置的共同验收」，同时验证所属页面查询、汇总及导出一致；不能通过设置移除公司工作区或权限范围。
+本子任务先明确并验证共同交互及偏好方案，提供其他财务模块真实共用的最小入口；偏好是否跨设备保存仍待确认，不默认新增服务端偏好系统。
