@@ -20,7 +20,7 @@ web/src/pages/finance/cashflows；web/src/pages/finance/verifications；web/src/
 
 ## 待确认
 
-参考材料未验证的预收付属性模型、汇总核销分配、手续费及损益符号、反向操作后解锁。
+参考材料未验证的预收付属性模型、汇总核销分配、手续费及损益符号。
 
 ## 约束与后续产物
 
@@ -47,3 +47,8 @@ web/src/pages/finance/cashflows；web/src/pages/finance/verifications；web/src/
 - 差额创建与核销分别要求既有相应权限和公司范围，组合入口不绕过任一步的授权。
 
 现有可复用机制线索：`server/internal/biz/finance_verification.go:176` 已通过 WithinTransaction 实现核销共享事务，`:177` 校验核销幂等；`server/internal/biz/finance_cashflow.go:141` 已有流水幂等检查。具体仓储是否完整参与组合事务仍须设计阶段核实，不能直接前端串联两个独立写请求冒充原子操作。
+
+## 已确认：全部有效关联解除后恢复费用增删
+
+发票全部作废、核销和对冲全部撤销后，恢复账单费用增删；任一有效关联仍存在就保持锁定。历史发票、核销、对冲与操作记录保留，不能仅清空发票号模拟解锁；普通权限、账单有效性与公司边界继续校验，不自动解除订单审核锁。
+验收覆盖部分撤销不解锁、最后一项成功撤销后恢复、撤销失败不提前恢复，以及撤销与新财务关联并发时的服务端复核。父任务「开票与锁定的重点验收场景」为跨子任务统一验收依据。
