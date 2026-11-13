@@ -108,6 +108,7 @@ export const SectionCard: React.FC<SectionCardProps> = ({
       }}
       styles={{
         header: {
+          backgroundColor: '#f7faff',
           padding: '10px 14px',
           minHeight: 40,
           borderBottom: isCollapsed ? 'none' : '1px solid #f1f5f9',
