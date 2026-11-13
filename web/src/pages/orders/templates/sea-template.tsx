@@ -1,10 +1,7 @@
 import { Form, Tag } from 'antd';
 import { FormCell, FormRow } from '@/components/ui';
 import { SeaDocumentStructure } from '@/enums.generated';
-import {
-  TemplateControlGroup,
-  TemplateFieldGroup,
-} from './components/FieldGroup';
+import { TemplateFieldGroup } from './components/FieldGroup';
 import {
   extractPersonnelFromPartnerAssignments,
   getSeaBaseInfoFields,
@@ -43,6 +40,12 @@ export {
 };
 
 /**
+ * 字段自带 12px 下边距（含校验提示位），行间再叠 12px 会显得松散；
+ * 海运录入页把行距收到 4px，整体每行约 74px。
+ */
+const DENSE_ROW = { rowGap: 4 } as const;
+
+/**
  * 五卡片信息架构的唯一构建器：新建与详情共用相同的区块 key、标题、顺序、
  * 字段归属和 6 列底栅格（长值跨 2 列、短值 1 列）；`isDetail` 只影响字段能力（订单编号时间仅新建可改、
  * 详情按服务端动作只读、提单模式详情只展示），不产生第二套分节组合。
@@ -58,7 +61,7 @@ export function getSeaTemplateSections(
       title: '业务与客户',
       // 6 列底栅格：订单编号时间仅新建存在，置于行尾，详情其余字段位置不变。
       content: (
-        <FormRow cols={6}>
+        <FormRow cols={6} style={DENSE_ROW}>
           {basic.customer}
           {basic.orderIdentity}
           {basic.references}
@@ -74,7 +77,7 @@ export function getSeaTemplateSections(
       content: (
         <div style={{ display: 'grid', gap: 12, width: '100%' }}>
           <TemplateFieldGroup title="订舱与主单">
-            <FormRow cols={6}>
+            <FormRow cols={6} style={DENSE_ROW}>
               <FormCell span={2}>
                 <SeaDocumentModeDisplayField props={props} />
               </FormCell>
@@ -90,7 +93,7 @@ export function getSeaTemplateSections(
             title="共同航程"
             extra={props.sharedVoyageMaintenance}
           >
-            <FormRow cols={6}>
+            <FormRow cols={6} style={DENSE_ROW}>
               {transport.vessel}
               {transport.schedule}
               {transport.ports}
@@ -99,13 +102,13 @@ export function getSeaTemplateSections(
           </TemplateFieldGroup>
           <TemplateFieldGroup title="箱量与截关">
             {transport.containers}
-            <FormRow cols={6}>
+            <FormRow cols={6} style={DENSE_ROW}>
               {transport.ownership}
               {transport.cutoffs}
             </FormRow>
           </TemplateFieldGroup>
           <TemplateFieldGroup title="备注">
-            <FormRow cols={3}>
+            <FormRow cols={3} style={DENSE_ROW}>
               <SeaCollapsibleNotesField
                 name="bookingNotes"
                 label="订舱备注"
@@ -159,14 +162,19 @@ export function getSeaTemplateSections(
  * 提单模式字段：新建时可选择 HOUSE/DIRECT；详情只读展示当前模式，
  * 模式变更动作保留在提单信息卡片页签工具栏（走既有预览与确认流程）。
  */
+const SEA_DOCUMENT_MODE_OUTPUT_ID = 'seaDocumentStructureDisplay';
+
 function SeaDocumentModeDisplayField({ props }: { props: TemplateProps }) {
   if (props.isDetail) {
+    // 使用标准 Form.Item 标签，与同行输入框的标签行与控件行严格对齐。
     return (
-      <TemplateControlGroup title="提单模式">
-        <Form.Item name="seaDocumentStructure" style={{ marginBottom: 0 }}>
-          <SeaDocumentModeValue />
-        </Form.Item>
-      </TemplateControlGroup>
+      <Form.Item
+        name="seaDocumentStructure"
+        label="提单模式"
+        htmlFor={SEA_DOCUMENT_MODE_OUTPUT_ID}
+      >
+        <SeaDocumentModeValue />
+      </Form.Item>
     );
   }
   return <SeaCreateDocumentModeField disabled={props.readonly} />;
@@ -180,11 +188,18 @@ function SeaDocumentModeValue({ value }: { value?: SeaDocumentStructure }) {
         ? '仅船公司主单（DIRECT）'
         : '未设置';
   return (
-    <output aria-label="当前提单模式">
-      <Tag
-        color="blue"
-        style={{ marginInlineEnd: 0, paddingInline: 12, lineHeight: '28px' }}
-      >
+    // 与同行输入框等高对齐的只读展示；模式变更入口在提单信息卡片。
+    <output
+      id={SEA_DOCUMENT_MODE_OUTPUT_ID}
+      aria-label="当前提单模式"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        height: 32,
+        padding: 0,
+      }}
+    >
+      <Tag color="blue" style={{ margin: 0, paddingInline: 10 }}>
         {label}
       </Tag>
     </output>

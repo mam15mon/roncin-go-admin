@@ -16,26 +16,35 @@ export function TemplateFieldGroup({
 }) {
   return (
     <div style={{ display: 'grid', gap: 8, width: '100%' }}>
+      {/* 小节标题 + 细分隔线 + 右侧操作：建立卡内层级，又不与卡片蓝色竖标抢视觉。 */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: 8,
+          gap: 12,
           minHeight: 24,
         }}
       >
         <div
           style={{
             fontSize: 13,
-            fontWeight: 500,
-            color: '#475569',
+            fontWeight: 600,
+            color: '#1e293b',
             lineHeight: '20px',
+            whiteSpace: 'nowrap',
           }}
         >
           {title}
         </div>
+        <div
+          aria-hidden="true"
+          style={{
+            flex: '1 1 40px',
+            minWidth: 40,
+            borderTop: '1px solid #e8edf3',
+          }}
+        />
         {extra}
       </div>
       {children}

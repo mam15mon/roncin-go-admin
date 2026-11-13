@@ -76,6 +76,43 @@ export function SeaCollapsibleNotesField({
           {expanded ? '收起' : '展开'}
         </Button>
       </div>
+      {expanded ? null : (
+        // 收起态显示与输入框等高的预览条：空值提示可添加，有内容显示首行摘要；
+        // 点击即展开编辑。真实开关仍是上方「展开」按钮，预览条不重复进入读屏。
+        <div
+          aria-hidden="true"
+          onClick={disabled ? undefined : () => setManualExpanded(true)}
+          style={{
+            height: 32,
+            marginBottom: 12,
+            padding: '0 11px',
+            display: 'flex',
+            alignItems: 'center',
+            border: `1px dashed ${hasContent ? '#c3cbd6' : '#d5dce5'}`,
+            borderRadius: 6,
+            background: disabled ? '#f5f7fa' : '#ffffff',
+            color: hasContent ? '#334155' : '#5b6b82',
+            fontSize: 13,
+            cursor: disabled ? 'not-allowed' : 'text',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          <span
+            style={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {hasContent
+              ? value?.trim().split('\n')[0]
+              : disabled
+                ? '暂无备注'
+                : `点击添加${label}`}
+          </span>
+        </div>
+      )}
       <div style={expanded ? undefined : { display: 'none' }}>
         <ProFormTextArea
           name={name}

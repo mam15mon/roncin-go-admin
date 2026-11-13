@@ -1,4 +1,8 @@
-import { CheckCircleFilled, LoadingOutlined } from '@ant-design/icons';
+import {
+  CheckCircleFilled,
+  LoadingOutlined,
+  PlusOutlined,
+} from '@ant-design/icons';
 import {
   ProFormDatePicker,
   ProFormDateTimePicker,
@@ -185,7 +189,7 @@ export function SeaMasterBillFields({
       )}
       <SeaAssociatedHouseBillsField isDetail={isDetail} disabled={disabled} />
       {canCreateHouse && seaHouseOrderSourceOrderId && (
-        <div style={{ gridColumn: '1 / -1', marginBottom: 12 }}>
+        <div style={{ gridColumn: '1 / -1', marginTop: -8 }}>
           <SeaCreateHouseOrderButton
             sourceOrderId={seaHouseOrderSourceOrderId}
             organizationId={organizationId}
@@ -427,9 +431,13 @@ function SeaCreateHouseOrderButton({
   return (
     <Button
       htmlType="button"
+      type="link"
+      size="small"
+      icon={<PlusOutlined aria-hidden="true" />}
       // 此入口仅在已有订单详情展示，创建另一票不修改当前锁定订单。
       disabled={false}
       onClick={() => history.push(buildSeaHouseOrderCreatePath(sourceOrderId))}
+      style={{ paddingInline: 0 }}
     >
       从此主单新增分单
     </Button>
@@ -777,18 +785,24 @@ function SeaPortFields({
   );
 }
 
+/** 与表单标签同字号同色的区块标签，用于非 Form.Item 的展示区。 */
+const FIELD_LABEL_STYLE: React.CSSProperties = {
+  fontSize: 13,
+  fontWeight: 500,
+  color: '#334155',
+  lineHeight: '22px',
+  marginBottom: 4,
+};
+
 export function getSeaTransportFields(props: TemplateProps) {
   const { locationOptions, searchLocations, containerSpecOptions, isDetail } =
     props;
   return {
     containers: (
       <FormRow cols={2}>
+        <SeaContainerPlanFields options={containerSpecOptions} />
         <div>
-          <Typography.Text strong>计划箱型箱量</Typography.Text>
-          <SeaContainerPlanFields options={containerSpecOptions} />
-        </div>
-        <div>
-          <Typography.Text strong>实际装箱</Typography.Text>
+          <div style={FIELD_LABEL_STYLE}>实际装箱</div>
           {props.isDetail ? (
             (props.actualContainers ?? (
               <Typography.Paragraph type="secondary">
@@ -796,7 +810,7 @@ export function getSeaTransportFields(props: TemplateProps) {
               </Typography.Paragraph>
             ))
           ) : (
-            <Typography.Paragraph type="secondary">
+            <Typography.Paragraph type="secondary" style={{ fontSize: 12 }}>
               保存订单后，可在此维护实际箱型、箱号、封号及件重尺。计划箱量与实际装箱分别维护。
             </Typography.Paragraph>
           )}

@@ -154,7 +154,7 @@ export function SeaFinalDestinationField({
               >
                 {destination
                   ? `${label || '当前卸货港'}（同卸货港）`
-                  : '选择共同航程卸货港后自动带入'}
+                  : '选卸货港后自动带入'}
               </output>
               <Form.Item name="seaDestinationDefault" noStyle>
                 <DestinationModeButton

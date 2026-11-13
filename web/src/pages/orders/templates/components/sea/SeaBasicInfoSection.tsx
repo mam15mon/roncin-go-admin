@@ -658,7 +658,7 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
           />
         </FormCell>
         <Form.Item label="委托单位代码" name="customerCode">
-          <TooltipInput disabled placeholder="选择委托单位后自动带出" />
+          <TooltipInput disabled placeholder="选委托单位后自动带出" />
         </Form.Item>
       </>
     ),
