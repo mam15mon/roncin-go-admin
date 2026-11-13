@@ -44,7 +44,7 @@ export const renderExpandedFees = (record: API.FinanceCommissionLine) => {
       render: (val?: string) => val || '-',
     },
     {
-      title: '原币金额',
+      title: '原币金额（含税）',
       key: 'totalAmount',
       align: 'right' as const,
       render: (_: unknown, fee: API.CommissionFeeDetail) =>
@@ -59,7 +59,7 @@ export const renderExpandedFees = (record: API.FinanceCommissionLine) => {
       render: (val?: string) => trimDecimal(val),
     },
     {
-      title: '折本币金额',
+      title: '折本币金额（含税）',
       dataIndex: 'standardAmount',
       key: 'standardAmount',
       align: 'right' as const,
@@ -148,7 +148,7 @@ export const previewColumns = [
     ),
   },
   {
-    title: '已实现收入',
+    title: '已实现收入（不含税）',
     dataIndex: 'realizedRevenue',
     key: 'realizedRevenue',
     align: 'right' as const,
@@ -156,7 +156,7 @@ export const previewColumns = [
       `${decimalText(value)} ${line.baseCurrency}`,
   },
   {
-    title: '分摊成本',
+    title: '分摊成本（不含税）',
     dataIndex: 'allocatedCost',
     key: 'allocatedCost',
     align: 'right' as const,
@@ -164,7 +164,7 @@ export const previewColumns = [
       `${decimalText(value)} ${line.baseCurrency}`,
   },
   {
-    title: '已实现毛利',
+    title: '已实现毛利（不含税）',
     dataIndex: 'realizedProfit',
     key: 'realizedProfit',
     align: 'right' as const,

@@ -521,7 +521,7 @@ export default function FinanceCommissionsPage() {
       renderText: (value) => calculationBasisText(value),
     },
     {
-      title: '分摊成本',
+      title: '分摊成本（不含税）',
       dataIndex: 'allocatedCost',
       width: 140,
       align: 'right',
@@ -530,7 +530,7 @@ export default function FinanceCommissionsPage() {
         `${decimalText(value)} ${record.baseCurrency}`,
     },
     {
-      title: '已实现毛利',
+      title: '已实现毛利（不含税）',
       dataIndex: 'realizedProfit',
       width: 140,
       align: 'right',

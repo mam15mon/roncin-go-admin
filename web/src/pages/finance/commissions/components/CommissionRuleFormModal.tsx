@@ -111,11 +111,11 @@ export default function CommissionRuleFormModal({
         options={[
           {
             value: 'REALIZED_PROFIT',
-            label: '已实现毛利（推荐，按收入配比分摊成本）',
+            label: '已实现毛利（不含税，推荐，按收入配比分摊成本）',
           },
           {
             value: 'REALIZED_REVENUE',
-            label: '已实现收入（按来源单分摊收入全额）',
+            label: '已实现收入（不含税，按来源单分摊收入全额）',
           },
         ]}
       />

@@ -66,8 +66,8 @@ export const workbenchPersonnelRoleText = (value?: string) => {
 
 export const workbenchCalculationBasisText = (value?: string) => {
   const meta: Record<string, string> = {
-    REALIZED_PROFIT: '已实现毛利',
-    REALIZED_REVENUE: '已实现收入',
+    REALIZED_PROFIT: '已实现毛利（不含税）',
+    REALIZED_REVENUE: '已实现收入（不含税）',
   };
   return meta[value || ''] || '-';
 };

@@ -74,12 +74,12 @@ export const personnelRoleText = (value?: string) =>
   personnelRoleMeta[value || ''] || '业务人员';
 
 export const calculationBasisMeta: Record<string, string> = {
-  REALIZED_PROFIT: '已实现毛利',
-  REALIZED_REVENUE: '已实现收入',
+  REALIZED_PROFIT: '已实现毛利（不含税）',
+  REALIZED_REVENUE: '已实现收入（不含税）',
 };
 
 export const calculationBasisText = (value?: string) =>
-  calculationBasisMeta[value || ''] || '已实现毛利';
+  calculationBasisMeta[value || ''] || '已实现毛利（不含税）';
 
 export const cnyExchangeRateSourceText = (value?: string) => {
   if (value === 'BASE_CURRENCY') return '本位币即 CNY';

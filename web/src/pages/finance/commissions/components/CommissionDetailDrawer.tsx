@@ -308,7 +308,7 @@ export default function CommissionDetailDrawer({
               },
               {
                 key: 'profit',
-                label: '已实现毛利',
+                label: '已实现毛利（不含税）',
                 children: `${decimalText(detail.realizedProfit)} ${detail.baseCurrency}`,
               },
               {

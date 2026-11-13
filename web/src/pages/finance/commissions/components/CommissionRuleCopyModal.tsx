@@ -110,8 +110,8 @@ export default function CommissionRuleCopyModal({
         label="计提口径"
         rules={[{ required: true, message: '请选择计提口径' }]}
         options={[
-          { value: 'REALIZED_PROFIT', label: '已实现毛利（推荐）' },
-          { value: 'REALIZED_REVENUE', label: '已实现收入' },
+          { value: 'REALIZED_PROFIT', label: '已实现毛利（不含税，推荐）' },
+          { value: 'REALIZED_REVENUE', label: '已实现收入（不含税）' },
         ]}
       />
       <ProFormDigit

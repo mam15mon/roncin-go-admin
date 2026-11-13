@@ -602,7 +602,7 @@ export default function CommissionCreateModal({
                   type="info"
                   showIcon
                   title="生成前必须计算预览"
-                  description="系统会按本次来源单（核销或对冲）涉及的订单，分别展示已实现收入、分摊成本、毛利和提成金额，并支持下钻展开费用明细。"
+                  description="系统会按本次来源单（核销或对冲）涉及的订单，分别展示不含税已实现收入、分摊成本、毛利和提成金额，并支持下钻展开费用明细。"
                 />
               ) : (
                 <>
@@ -646,17 +646,17 @@ export default function CommissionCreateModal({
                       },
                       {
                         key: 'revenue',
-                        label: '已实现收入',
+                        label: '已实现收入（不含税）',
                         children: `${decimalText(preview.realizedRevenue)} ${preview.baseCurrency}`,
                       },
                       {
                         key: 'cost',
-                        label: '分摊成本',
+                        label: '分摊成本（不含税）',
                         children: `${decimalText(preview.allocatedCost)} ${preview.baseCurrency}`,
                       },
                       {
                         key: 'profit',
-                        label: '已实现毛利',
+                        label: '已实现毛利（不含税）',
                         children: `${decimalText(preview.realizedProfit)} ${preview.baseCurrency}`,
                       },
                       {
