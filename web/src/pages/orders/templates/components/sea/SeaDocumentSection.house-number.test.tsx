@@ -129,6 +129,8 @@ describe('详情分单号在主单旁编辑', () => {
           id: 'order-1',
           version: '11',
           seaDocumentStructure: HOUSE,
+          // 详情适配器会带入订单单证摘要，作为分单号已保存基线。
+          seaDocumentSummary: { houseNo: 'HBL-001' },
         }}
       />,
     );
@@ -149,11 +151,11 @@ describe('详情分单号在主单旁编辑', () => {
       .getByPlaceholderText('请输入主单号')
       .closest('.ant-form-item')?.parentElement;
     expect(masterItem?.nextElementSibling).toContainElement(houseInput);
-    expect(
-      screen.getByText('修改后点击页面「保存」，与订单资料一起提交。'),
-    ).toBeVisible();
+    // 未改动时不提示；改动分单号后才提示需随页面保存。
+    expect(screen.queryByText('已修改，点「保存」后生效')).toBeNull();
 
     fireEvent.change(houseInput, { target: { value: 'HBL-NEW' } });
+    expect(await screen.findByText('已修改，点「保存」后生效')).toBeVisible();
     fireEvent.click(screen.getByRole('tab', { name: /分单 \(HBL\)/ }));
     expect(screen.getAllByPlaceholderText('请输入分单号')).toHaveLength(1);
     expect(houseInput.closest('[role="tabpanel"]')).toBeNull();

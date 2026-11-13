@@ -41,6 +41,7 @@ import type { TemplateProps } from '../../types';
 import {
   HouseBillNumberField,
   isTerminalHouseBill,
+  normalizeSeaHouseNoForCompare,
 } from './HouseBillIdentityFields';
 import { SeaFinalDestinationField } from './SeaFinalDestinationField';
 import { seaVoyageMissingFields } from './sea-shared-voyage';
@@ -488,6 +489,12 @@ export function SeaAssociatedHouseBillsField({
         watchedHouseBill.expectedVersion &&
         watchedHouseBill.status !== undefined,
     );
+    // 仅在分单号与已保存值不同时提示随页面保存：未改动时无需打扰，
+    // 改动后才是用户需要知道「不会立即生效」的时机。
+    const houseNoPending =
+      isDetail &&
+      normalizeSeaHouseNoForCompare(watchedHouseBill?.houseNo ?? '') !==
+        normalizeSeaHouseNoForCompare(watchedDocSummary?.houseNo ?? '');
     return (
       <HouseBillNumberField
         fieldKey="seaHouseBill"
@@ -498,7 +505,11 @@ export function SeaAssociatedHouseBillsField({
             (!documentReady || isTerminalHouseBill(watchedHouseBill?.status)))
         }
         extra={
-          isDetail ? '修改后点击页面「保存」，与订单资料一起提交。' : undefined
+          houseNoPending ? (
+            <Typography.Text type="warning" style={{ fontSize: 12 }}>
+              已修改，点「保存」后生效
+            </Typography.Text>
+          ) : undefined
         }
       />
     );
