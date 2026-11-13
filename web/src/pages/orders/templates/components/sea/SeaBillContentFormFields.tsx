@@ -198,7 +198,6 @@ export function SeaBillContentFormFields({
   disabled = false,
   showCargoMeasurements = true,
   measurementsTitle,
-  createLayout = false,
 }: {
   namePathPrefix: (string | number)[];
   disabled?: boolean;
@@ -206,7 +205,6 @@ export function SeaBillContentFormFields({
   showCargoMeasurements?: boolean;
   /** showCargoMeasurements=false 时的区块标题（默认 HBL 实际件重尺）。 */
   measurementsTitle?: string;
-  createLayout?: boolean;
 }) {
   const { styles } = useVerticalFormStyles();
   const form = Form.useFormInstance();
@@ -1256,178 +1254,91 @@ export function SeaBillContentFormFields({
             </div>
           </GridContext.Provider>
         )}
+        {/* 提单条款：与全页一致使用上方标签，标签与下拉框建立可访问关联。 */}
         <FormRow cols={4}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: createLayout ? 'stretch' : 'center',
-              flexDirection: createLayout ? 'column' : 'row',
-              gap: createLayout ? 4 : undefined,
+          <ProFormSelect
+            label="付款方式"
+            name={[...namePathPrefix, 'freightTerms']}
+            placeholder="请选择付款方式"
+            disabled={disabled || undefined}
+            options={SEA_FREIGHT_TERM_OPTIONS}
+            fieldProps={{
+              style: { width: '100%' },
+              showSearch: true,
+              allowClear: true,
+              onChange: (val) => {
+                if (form) {
+                  const str = String(val ?? '');
+                  if (str.includes('COLLECT') || str.includes('到付')) {
+                    form.setFieldValue('paymentTerm', 2);
+                  } else {
+                    form.setFieldValue('paymentTerm', 1);
+                  }
+                }
+              },
+              filterOption: (input, option) => {
+                const normInput = input.trim().toLowerCase();
+                const normLabel = String(option?.label ?? '').toLowerCase();
+                const normValue = String(option?.value ?? '').toLowerCase();
+                return (
+                  normLabel.includes(normInput) || normValue.includes(normInput)
+                );
+              },
             }}
-          >
-            <span
-              style={{
-                width: createLayout ? 'auto' : 68,
-                fontSize: 13,
-                color: 'rgba(0, 0, 0, 0.85)',
-                flexShrink: 0,
-              }}
-            >
-              付款方式
-            </span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <ProFormSelect
-                name={[...namePathPrefix, 'freightTerms']}
-                placeholder="请选择付款方式"
-                disabled={disabled || undefined}
-                options={SEA_FREIGHT_TERM_OPTIONS}
-                noStyle
-                fieldProps={{
-                  style: { width: '100%' },
-                  showSearch: true,
-                  allowClear: true,
-                  onChange: (val) => {
-                    if (form) {
-                      const str = String(val ?? '');
-                      if (str.includes('COLLECT') || str.includes('到付')) {
-                        form.setFieldValue('paymentTerm', 2);
-                      } else {
-                        form.setFieldValue('paymentTerm', 1);
-                      }
-                    }
-                  },
-                  filterOption: (input, option) => {
-                    const normInput = input.trim().toLowerCase();
-                    const normLabel = String(option?.label ?? '').toLowerCase();
-                    const normValue = String(option?.value ?? '').toLowerCase();
-                    return (
-                      normLabel.includes(normInput) ||
-                      normValue.includes(normInput)
-                    );
-                  },
-                }}
-              />
-            </div>
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: createLayout ? 'stretch' : 'center',
-              flexDirection: createLayout ? 'column' : 'row',
-              gap: createLayout ? 4 : undefined,
+          />
+          <ProFormSelect
+            label="运输条款"
+            name={[...namePathPrefix, 'transportTerms']}
+            placeholder="请选择运输条款"
+            disabled={disabled || undefined}
+            options={SEA_TRANSPORT_TERM_OPTIONS}
+            fieldProps={{
+              style: { width: '100%' },
+              showSearch: true,
+              allowClear: true,
+              filterOption: (input, option) => {
+                const normInput = input.replace(/[\s\-_/]/g, '').toLowerCase();
+                const normLabel = String(option?.label ?? '')
+                  .replace(/[\s\-_/]/g, '')
+                  .toLowerCase();
+                const normValue = String(option?.value ?? '')
+                  .replace(/[\s\-_/]/g, '')
+                  .toLowerCase();
+                return (
+                  normLabel.includes(normInput) || normValue.includes(normInput)
+                );
+              },
             }}
-          >
-            <span
-              style={{
-                width: createLayout ? 'auto' : 68,
-                fontSize: 13,
-                color: 'rgba(0, 0, 0, 0.85)',
-                flexShrink: 0,
-              }}
-            >
-              运输条款
-            </span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <ProFormSelect
-                name={[...namePathPrefix, 'transportTerms']}
-                placeholder="请选择运输条款"
-                disabled={disabled || undefined}
-                options={SEA_TRANSPORT_TERM_OPTIONS}
-                noStyle
-                fieldProps={{
-                  style: { width: '100%' },
-                  showSearch: true,
-                  allowClear: true,
-                  filterOption: (input, option) => {
-                    const normInput = input
-                      .replace(/[\s\-_/]/g, '')
-                      .toLowerCase();
-                    const normLabel = String(option?.label ?? '')
-                      .replace(/[\s\-_/]/g, '')
-                      .toLowerCase();
-                    const normValue = String(option?.value ?? '')
-                      .replace(/[\s\-_/]/g, '')
-                      .toLowerCase();
-                    return (
-                      normLabel.includes(normInput) ||
-                      normValue.includes(normInput)
-                    );
-                  },
-                }}
-              />
-            </div>
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: createLayout ? 'stretch' : 'center',
-              flexDirection: createLayout ? 'column' : 'row',
-              gap: createLayout ? 4 : undefined,
+          />
+          <ProFormSelect
+            label="提单形式"
+            name={[...namePathPrefix, 'billForm']}
+            placeholder="请选择提单形式"
+            disabled={disabled || undefined}
+            options={SEA_BILL_FORM_OPTIONS}
+            fieldProps={{
+              style: { width: '100%' },
+              allowClear: true,
+              showSearch: true,
             }}
-          >
-            <span
-              style={{
-                width: createLayout ? 'auto' : 68,
-                fontSize: 13,
-                color: 'rgba(0, 0, 0, 0.85)',
-                flexShrink: 0,
-              }}
-            >
-              提单形式
-            </span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <ProFormSelect
-                name={[...namePathPrefix, 'billForm']}
-                placeholder="请选择提单形式"
-                disabled={disabled || undefined}
-                options={SEA_BILL_FORM_OPTIONS}
-                noStyle
-                fieldProps={{
-                  style: { width: '100%' },
-                  allowClear: true,
-                  showSearch: true,
-                }}
-              />
-            </div>
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: createLayout ? 'stretch' : 'center',
-              flexDirection: createLayout ? 'column' : 'row',
-              gap: createLayout ? 4 : undefined,
+          />
+          <ProFormSelect
+            label="放单方式"
+            name={[...namePathPrefix, 'releaseType']}
+            placeholder="请选择放单方式"
+            disabled={disabled || undefined}
+            options={SEA_RELEASE_TYPE_OPTIONS}
+            fieldProps={{
+              style: { width: '100%' },
+              allowClear: true,
+              showSearch: true,
             }}
-          >
-            <span
-              style={{
-                width: createLayout ? 'auto' : 68,
-                fontSize: 13,
-                color: 'rgba(0, 0, 0, 0.85)',
-                flexShrink: 0,
-              }}
-            >
-              放单方式
-            </span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <ProFormSelect
-                name={[...namePathPrefix, 'releaseType']}
-                placeholder="请选择放单方式"
-                disabled={disabled || undefined}
-                options={SEA_RELEASE_TYPE_OPTIONS}
-                noStyle
-                fieldProps={{
-                  style: { width: '100%' },
-                  allowClear: true,
-                  showSearch: true,
-                }}
-              />
-            </div>
-          </div>
+          />
         </FormRow>
       </div>
 
       {/* 提单特别条款：row-2 对半取左格，右格空置 */}
-      <div style={{ marginTop: 12 }}>
+      <div>
         <FormRow cols={2}>
           <ProFormTextArea
             name={[...namePathPrefix, 'clauses']}
