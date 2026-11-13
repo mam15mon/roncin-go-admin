@@ -1,10 +1,10 @@
 import type { ThemeConfig } from 'antd';
 
-// 表单控件使用浅蓝灰底，与白色卡片区分；禁用态继续由 antd 的禁用 token 表达。
+// 表单控件使用淡蓝底，与白色卡片区分；禁用态继续由 antd 的禁用 token 表达。
 const controlSurfaceTokens = {
-  colorBgContainer: '#f3f6fa',
-  colorBorder: '#cbd5e1',
-  hoverBorderColor: '#94a3b8',
+  colorBgContainer: '#f0f7ff',
+  colorBorder: '#c6defa',
+  hoverBorderColor: '#69b1ff',
 };
 const inputSurfaceTokens = {
   ...controlSurfaceTokens,

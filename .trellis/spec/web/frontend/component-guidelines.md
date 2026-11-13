@@ -59,8 +59,8 @@
 
 ## 订单表单可读性与标题层级
 
-- 输入、数字、下拉与日期控件统一消费 `web/config/theme.ts` 的组件 token：浅蓝灰底
-  `#f3f6fa`、边框 `#cbd5e1`、悬停边框 `#94a3b8`，聚焦保留品牌蓝；白色卡片、
+- 输入、数字、下拉与日期控件统一消费 `web/config/theme.ts` 的组件 token：淡蓝底
+  `#f0f7ff`、边框 `#c6defa`、悬停边框 `#69b1ff`，聚焦保留品牌蓝；白色卡片、
   弹层与禁用背景保持各自语义，不逐页覆盖控件底色。文本域、树选择、级联与时间选择
   复用所属 Input / Select / DatePicker 的主题。
 - 占位提示统一消费 `web/config/theme.ts` 的 `colorTextPlaceholder`（当前 `#5b6b82`），
