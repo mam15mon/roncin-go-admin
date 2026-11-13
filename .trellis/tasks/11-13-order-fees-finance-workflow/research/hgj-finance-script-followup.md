@@ -36,7 +36,7 @@
 - 添加候选使用 `saas-service/fee/list`，有 billStatus:[0]、结算单位名称与方向等字段，currency 可为空；目标服务端语义未验证。本项目仍按用户已确认的公司、结算对象 ID、币种、方向、未建账条件校验，不照搬名称匹配或放宽币种。
 - addFee/removeFee 提交账单 ID、账单编号及费用 ID 数组。原始费用是否保留已由用户确认；目标服务端重新计额、移除最后一行和空账单行为仍未知。
 - verification 提交 billNo、feeDetailIds、总额/币种/汇率/时间/账户/方式、手续费、损益及 verificationDetailModels（收付编号与本次金额）；单费用为 feePartVerification。多费用分配、换算舍入及损益算法仍未知。
-- 使用预收付款不足时，参考前端先调用 prmanage/verificationInsert 创建差额流水，提示未保存核销流水仍存在。本项目必须明确两步操作或整体提交的语义，不在仅选择/预览时偷偷落业务流水；推荐在最终提交中原子创建差额流水并核销，尚待产品选择。
+- 使用预收付款不足时，参考前端先调用 prmanage/verificationInsert 创建差额流水，提示未保存核销流水仍存在。本项目必须明确两步操作或整体提交的语义，不在仅选择/预览时偷偷落业务流水；用户后续已确认：最终提交时原子创建差额流水并核销，全部成功或全部失败；取消弹窗不产生新流水。
 - cancelVerification、cancelVerificationBatch、revokeVerification 为不同撤销入口；summaryVerify 提示影响全部关联账单。本项目反向操作应展示真实影响范围，不能只撤销状态而不恢复资金分配。
 
 ## 提成与报表
