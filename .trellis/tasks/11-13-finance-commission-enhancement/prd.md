@@ -20,7 +20,7 @@ web/src/pages/finance/commissions；server/internal/biz/finance_commission_rules
 
 ## 待确认
 
-含税口径、区间/分段累计算法及累计作用范围、负利润、最小最大值及与现有申请发放流程的关系。
+含税口径、累计作用范围、最小最大值及与现有申请发放流程的关系；区间整笔套档与阶梯分段累计已确认。负利润先按既有零计提契约核对，不默认新增倒扣算法。
 
 ## 约束与后续产物
 
@@ -49,4 +49,17 @@ web/src/pages/finance/commissions；server/internal/biz/finance_commission_rules
 - 来源反转、成本或账单经济变化后沿用既有重算与差额调整，已支付提成事实不改写，保留手工奖励/处罚。
 - 列表、预览、申请与导出明确展示基数、采用规则及结果，使用同一服务端口径。
 
-现有依据：`server/internal/biz/finance_commission_types.go:26` 定义 REALIZED_PROFIT；`server/internal/data/finance_commission_calculation.go:556` 将已实现收入及收支成本交给 CalculateCommissionLine；现有规则以单一 RatePercent 为主。新增区间/阶梯仍需明确整笔套档与分段累计的算法、累计范围和边界，不能只扩展表单后继续用单比例计算。
+现有依据：`server/internal/biz/finance_commission_types.go:26` 定义 REALIZED_PROFIT；`server/internal/data/finance_commission_calculation.go:556` 将已实现收入及收支成本交给 CalculateCommissionLine；现有规则以单一 RatePercent 为主。新增区间/阶梯的整笔套档与分段累计算法已由用户确认；累计范围与精确档位边界需在后续规划中收敛，不能只扩展表单后继续用单比例计算。
+
+## 已确认：区间整笔套档，阶梯分段累计
+
+- 区间模式：已实现利润命中某一档位后，整笔计算基数乘该档比例；允许跨档导致提成跳变，用户已知晓并接受。
+- 阶梯模式：各段实际落入的利润分别乘对应比例后相加，不能将整笔利润全部乘最高档比例。
+- 用户确认示例：基数 15,000.00，1 万以内 10%、超出部分 15%，区间模式为 15,000 × 15% = 2,250.00；阶梯模式为 10,000 × 10% + 5,000 × 15% = 1,750.00。
+
+验收要区分相同档位配置下两种计算结果，覆盖档位边界、超过末档及多次回款跨档；具体边界、舍入及未覆盖区间行为由设计统一定义并审阅，不静默采用任意档位。
+
+## 多次回款与累计范围的研究依据
+
+`server/internal/data/finance_commission_calculation.go:495` 起构建带订单、员工、岗位的提成明细，`:555` 按当前来源的订单已实现收入计算；现有单比例模式不能直接证明非线性分档应该按每笔回款重新起档。
+累计按「订单＋员工＋岗位」还是按「员工＋月份」会改变实际提成金额，属于产品决策，当前尚未确认。需避免通过拆分回款或分批勾选人为改变最终分档金额；确定累计范围后设计累计目标减已计提权益的增量处理，并保留已付事实与经济调整契约。
