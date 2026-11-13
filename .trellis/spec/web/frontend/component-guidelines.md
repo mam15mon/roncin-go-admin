@@ -59,9 +59,13 @@
 
 ## 订单表单可读性与标题层级
 
-- 占位提示统一消费 `web/config/theme.ts` 的 `colorTextPlaceholder`（当前 `#64748b`），
-  白底对比度至少 4.5:1；不使用全局 `::placeholder !important` 覆盖主题。
-- 禁用控件文字统一消费主题 `colorTextDisabled: '#64748b'`，与占位提示保持同一文字色，
+- 输入、数字、下拉与日期控件统一消费 `web/config/theme.ts` 的组件 token：浅蓝灰底
+  `#f3f6fa`、边框 `#cbd5e1`、悬停边框 `#94a3b8`，聚焦保留品牌蓝；白色卡片、
+  弹层与禁用背景保持各自语义，不逐页覆盖控件底色。文本域、树选择、级联与时间选择
+  复用所属 Input / Select / DatePicker 的主题。
+- 占位提示统一消费 `web/config/theme.ts` 的 `colorTextPlaceholder`（当前 `#5b6b82`），
+  在控件底色上对比度至少 4.5:1；不使用全局 `::placeholder !important` 覆盖主题。
+- 禁用控件文字统一消费主题 `colorTextDisabled: '#5b6b82'`，与占位提示保持同一文字色，
   不再让已填值比空值提示更浅；输入、下拉、日期、数字等控件通过禁用背景、边框及交互
   状态表达不可编辑，不在业务页面逐项覆盖文字颜色。
 - 海运“业务与客户”卡先展示委托单位、委托单位代码、集运/跨境和托运类型，再展示编号信息；

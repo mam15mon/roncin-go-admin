@@ -1,5 +1,17 @@
 import type { ThemeConfig } from 'antd';
 
+// 表单控件使用浅蓝灰底，与白色卡片区分；禁用态继续由 antd 的禁用 token 表达。
+const controlSurfaceTokens = {
+  colorBgContainer: '#f3f6fa',
+  colorBorder: '#cbd5e1',
+  hoverBorderColor: '#94a3b8',
+};
+const inputSurfaceTokens = {
+  ...controlSurfaceTokens,
+  hoverBg: controlSurfaceTokens.colorBgContainer,
+  activeBg: controlSurfaceTokens.colorBgContainer,
+};
+
 // antd 主题 token：自 web/config/config.ts 的 antd.configProvider.theme 原样平移。
 // 全站高密度企业级视觉规范的唯一 token 真相源，修改需同步 AGENTS.md UI 规范。
 export const themeConfig: ThemeConfig = {
@@ -18,8 +30,8 @@ export const themeConfig: ThemeConfig = {
     colorTextSecondary: '#475569',
     colorTextTertiary: '#94a3b8',
     colorTextQuaternary: '#cbd5e1',
-    colorTextPlaceholder: '#64748b',
-    colorTextDisabled: '#64748b',
+    colorTextPlaceholder: '#5b6b82',
+    colorTextDisabled: '#5b6b82',
     controlHeight: 32,
     controlHeightSM: 24,
     fontSize: 13,
@@ -69,18 +81,20 @@ export const themeConfig: ThemeConfig = {
       defaultHoverBg: '#f8fafc',
     },
     Input: {
-      colorBorder: '#e2e8f0',
-      hoverBorderColor: '#cbd5e1',
+      ...inputSurfaceTokens,
       activeBorderColor: '#1677ff',
       activeShadow: '0 0 0 3px rgba(22, 119, 255, 0.12)',
     },
+    InputNumber: {
+      ...inputSurfaceTokens,
+    },
     Select: {
-      colorBorder: '#e2e8f0',
-      hoverBorderColor: '#cbd5e1',
+      ...controlSurfaceTokens,
+      selectorBg: controlSurfaceTokens.colorBgContainer,
+      clearBg: controlSurfaceTokens.colorBgContainer,
     },
     DatePicker: {
-      colorBorder: '#e2e8f0',
-      hoverBorderColor: '#cbd5e1',
+      ...inputSurfaceTokens,
     },
     Tabs: {
       itemColor: '#64748b',

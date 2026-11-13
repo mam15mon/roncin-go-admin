@@ -1178,27 +1178,7 @@ body,
   }
 }
 
-.ant-input,
-.ant-input-affix-wrapper,
-.ant-select-selector,
-.ant-picker {
-  border-color: #e2e8f0 !important;
-  // 圆角由主题 token 管理，避免覆盖带前后缀输入框的内部零圆角并裁切文字选区。
-  transition: all 0.15s ease !important;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02) !important;
-
-  &:hover {
-    border-color: #cbd5e1 !important;
-  }
-
-  &:focus,
-  &.ant-input-focused,
-  &.ant-select-focused .ant-select-selector,
-  &.ant-picker-focused {
-    border-color: #1677ff !important;
-    box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.12) !important;
-  }
-}
+// 控件背景、边框与交互状态统一由 config/theme.ts 管理，避免覆盖错误和禁用态。
 
 // ----------------------------------------
 // 全局现代软质标签（Soft Badges / Tags）
