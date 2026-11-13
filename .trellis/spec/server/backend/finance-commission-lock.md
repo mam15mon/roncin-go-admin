@@ -40,6 +40,12 @@
 
 ## 5. 数值与验证
 
+- **不含税口径（V4）**：提成基数是不含税已实现利润。应收、应付、来源额度的本位币金额一律经 `biz.CommissionNetBase(base, net, total)`，即 `base × net ÷ total`（`RoundBank(8)`，总额为零返回 0）折算，沿用该费用或账单行自身汇率快照，不另取汇率、不取发票或账单税额。已建账且非更正、非补录取**账单行**自身的 net/total，其余取费用自身 net/total；`REALIZED_REVENUE` 依据同样走不含税。禁止在新取值点直接使用含税 `BaseCurrencyAmount` 参与提成计算。
+- **版本**：`CommissionCalculationVersion = CUSTOMER_REALIZED_PROFIT_V4`。`CommissionEconomicTarget`、费用更正重算与 `CommissionSupplementCostSensitivity` 对非当前版本失败关闭，不并存 V3 公式；V3 记录不被改写，但无法重算。变更计算结果须再升版本。
+- **指纹**：费用与账单行来源指纹含 `net_amount`（账单行另含 `total_amount`），税率或未税额变化会被来源变化检测发现。
+- 样例：应收含税 10,600/未税 10,000，应付含税 6,360/未税 6,000，核销占 40%，比例 10%：已实现利润 1,600.00，提成 160.00。回归见 `biz/finance_commission_net_base_test.go` 与真实库 `TestCommissionNetBasePostgres`（账单行与费用行税率不同、已建账与未建账并存）。
+- 展示字段 `CommissionFeeDetail.BaseCurrencyAmount` 等仍为含税值，仅供展示，不参与计算；页面与导出须标清含税/不含税。
+
 - 账单例：收入1000、本币成本费用快照600/账单快照700，10%提成确认30；取消成本账单后目标40，保留原30并生成+10，支付预览净额40。重新建账与更改账单日也必须产生正确净差额；事务失败不得留下账单或提成部分变更。
 - 原实际发放 60，未锁订单新增成本后目标 50，修改成本后目标 40，删除新增成本后目标回到 60：原支付 60 不变，系统差额分别为 -10、-20、0。
 - 连续补审：已实际追回 100 后理论目标恢复 90，保留追回事实，另生 +90 补付；未执行的旧 -100 则取消并净重建为 -10。
