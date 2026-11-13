@@ -1,8 +1,8 @@
 {
   "id": "order-fees-finance-workflow",
   "name": "order-fees-finance-workflow",
-  "title": "订单费用录入与财务账单流程优化",
-  "description": "优化汇率取值日期、费用整表编辑保存、税率权限、双口径毛利、台账与筛选、结算账户快建及账单费用维护和开票核销状态",
+  "title": "整套财务模块优化与报表建设",
+  "description": "覆盖费用录入与台账、账单、发票、收付核销对冲、提成及四类财务报表；以已确认业务流程和海管家页面参考规划",
   "status": "planning",
   "dev_type": null,
   "scope": null,
@@ -18,7 +18,14 @@
   "commit": null,
   "pr_url": null,
   "subtasks": [],
-  "children": [],
+  "children": [
+    "11-13-finance-fee-entry-ledger",
+    "11-13-finance-bill-workflow",
+    "11-13-finance-invoice-registration",
+    "11-13-finance-cashflow-verification",
+    "11-13-finance-commission-enhancement",
+    "11-13-finance-reports"
+  ],
   "parent": null,
   "relatedFiles": [],
   "notes": "",
