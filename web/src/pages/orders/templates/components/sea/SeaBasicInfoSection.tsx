@@ -209,7 +209,8 @@ export function SeaDangerousGoodsFields({
     >
       <div className="reveal-clip">
         <div className="dangerous-goods-content">
-          <FormRow cols={showPackingGroup ? 4 : 3}>
+          {/* 与货物卡 6 列底栅格对齐，危险品字段各占 1 列。 */}
+          <FormRow cols={6} style={{ rowGap: 4 }}>
             <div>
               <Form.Item
                 label="UN NO."
@@ -815,8 +816,9 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
         />
       </Form.Item>
     ),
+    // 接单/货好时间与委托件重尺同行，工厂与货值、保费同行（均落入 6 列网格）。
     commercial: (
-      <FormRow cols={4}>
+      <>
         <ProFormDateTimePicker
           name="receivedAt"
           label="接单时间"
@@ -827,16 +829,18 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
           label="货好时间"
           fieldProps={{ style: { width: '100%' } }}
         />
-        <div style={{ gridColumn: 'span 2' }}>
-          <Form.Item label="工厂" name="factoryName">
-            <TooltipInput
-              placeholder="请输入工厂"
-              maxLength={200}
-              disabled={props.readonly}
-            />
-          </Form.Item>
-        </div>
-      </FormRow>
+      </>
+    ),
+    factory: (
+      <FormCell span={2}>
+        <Form.Item label="工厂" name="factoryName">
+          <TooltipInput
+            placeholder="请输入工厂"
+            maxLength={200}
+            disabled={props.readonly}
+          />
+        </Form.Item>
+      </FormCell>
     ),
   };
 }

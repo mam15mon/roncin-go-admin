@@ -133,6 +133,7 @@ describe('来源船公司初始选项', () => {
           {fields.booking}
           {fields.contract}
           {fields.commercial}
+          {fields.factory}
         </Form>
       </ConfigProvider>,
     );

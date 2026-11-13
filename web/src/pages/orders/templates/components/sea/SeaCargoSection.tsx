@@ -1,7 +1,7 @@
 import { ProFormDigit, ProFormTextArea } from '@ant-design/pro-components';
 import { Alert, Form, Input } from 'antd';
 import React from 'react';
-import { FormRow, PackageCountInput } from '@/components/ui';
+import { FormCell, FormRow, PackageCountInput } from '@/components/ui';
 import { resolveSeaOrderFormPolicy } from '../../../sea-order-policy';
 
 export function SeaRevenueTonAlert() {
@@ -43,7 +43,8 @@ export function SeaCargoDescriptionFields() {
           fieldProps={{
             maxLength: 1000,
             showCount: true,
-            autoSize: { minRows: 4, maxRows: 6 },
+            // 起始两行保持紧凑，录入长描述时自动增高。
+            autoSize: { minRows: 2, maxRows: 6 },
           }}
         />
         <ProFormTextArea
@@ -53,7 +54,7 @@ export function SeaCargoDescriptionFields() {
           fieldProps={{
             maxLength: 1000,
             showCount: true,
-            autoSize: { minRows: 4, maxRows: 6 },
+            autoSize: { minRows: 2, maxRows: 6 },
           }}
         />
       </FormRow>
@@ -61,7 +62,11 @@ export function SeaCargoDescriptionFields() {
   );
 }
 
-/** 客户委托件重尺：订单级汇总字段（件数/单位/毛重/体积）与散杂计费吨提示。 */
+/**
+ * 客户委托件重尺：订单级汇总字段（件数/单位/毛重/体积）。
+ * 直接落入外层 6 列网格：件数含单位跨 2 列，毛重、体积各 1 列；
+ * 散杂计费吨提示由模板在网格下方单独渲染（SeaRevenueTonAlert）。
+ */
 export function SeaConsignedMeasurementFields({
   disabled,
 }: {
@@ -69,12 +74,8 @@ export function SeaConsignedMeasurementFields({
 }) {
   return (
     <>
-      <FormRow cols={3}>
-        <Form.Item
-          label="委托件数"
-          htmlFor="totalPackages"
-          style={{ marginBottom: 0 }}
-        >
+      <FormCell span={2}>
+        <Form.Item label="委托件数" htmlFor="totalPackages">
           <PackageCountInput
             countName="totalPackages"
             unitName="totalPackageUnit"
@@ -84,24 +85,23 @@ export function SeaConsignedMeasurementFields({
             disabled={disabled}
           />
         </Form.Item>
-        <ProFormDigit
-          name="totalGrossWeightKg"
-          label="委托毛重（KGS）"
-          placeholder="0"
-          disabled={disabled}
-          min={0}
-          fieldProps={{ precision: 3, style: { width: '100%' } }}
-        />
-        <ProFormDigit
-          name="totalVolumeCbm"
-          label="委托体积（CBM）"
-          placeholder="0"
-          disabled={disabled}
-          min={0}
-          fieldProps={{ precision: 3, style: { width: '100%' } }}
-        />
-      </FormRow>
-      <SeaRevenueTonAlert />
+      </FormCell>
+      <ProFormDigit
+        name="totalGrossWeightKg"
+        label="委托毛重（KGS）"
+        placeholder="0"
+        disabled={disabled}
+        min={0}
+        fieldProps={{ precision: 3, style: { width: '100%' } }}
+      />
+      <ProFormDigit
+        name="totalVolumeCbm"
+        label="委托体积（CBM）"
+        placeholder="0"
+        disabled={disabled}
+        min={0}
+        fieldProps={{ precision: 3, style: { width: '100%' } }}
+      />
     </>
   );
 }

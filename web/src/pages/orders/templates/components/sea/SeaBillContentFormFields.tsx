@@ -511,15 +511,16 @@ export function SeaBillContentFormFields({
       <div className={styles.verticalFields}>
         {/* 发货人/收货人 + 通知人/外国代理：FormRow row-2 对半，两行共享列边界 */}
         <FormRow cols={2}>
-          <div style={{ marginBottom: 24 }}>
+          <div style={{ minWidth: 0 }}>
             <div
               className="roncin-sea-bill-heading"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                flexWrap: createLayout ? 'wrap' : undefined,
-                gap: createLayout ? 6 : undefined,
+                // 窄列下操作按钮换行，避免压到相邻列标题。
+                flexWrap: 'wrap',
+                gap: 6,
                 marginBottom: 6,
                 minHeight: 24,
               }}
@@ -556,19 +557,20 @@ export function SeaBillContentFormFields({
               name={[...namePathPrefix, 'shipperText']}
               placeholder="请输入发货人英文名称与详细地址"
               disabled={disabled || undefined}
-              fieldProps={{ autoSize: { minRows: 5, maxRows: 10 } }}
+              fieldProps={{ autoSize: { minRows: 4, maxRows: 10 } }}
               noStyle
             />
           </div>
-          <div style={{ marginBottom: 24 }}>
+          <div style={{ minWidth: 0 }}>
             <div
               className="roncin-sea-bill-heading"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                flexWrap: createLayout ? 'wrap' : undefined,
-                gap: createLayout ? 6 : undefined,
+                // 窄列下操作按钮换行，避免压到相邻列标题。
+                flexWrap: 'wrap',
+                gap: 6,
                 marginBottom: 6,
                 minHeight: 24,
               }}
@@ -625,21 +627,22 @@ export function SeaBillContentFormFields({
               name={[...namePathPrefix, 'consigneeText']}
               placeholder="请输入收货人名称与地址 (TO ORDER 或具体收货人)"
               disabled={disabled || undefined}
-              fieldProps={{ autoSize: { minRows: 5, maxRows: 10 } }}
+              fieldProps={{ autoSize: { minRows: 4, maxRows: 10 } }}
               noStyle
             />
           </div>
 
           {/* 通知人与第二通知人 Tab 切换 */}
-          <div style={{ marginBottom: 24 }}>
+          <div style={{ minWidth: 0 }}>
             <div
               className="roncin-sea-bill-heading"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                flexWrap: createLayout ? 'wrap' : undefined,
-                gap: createLayout ? 6 : undefined,
+                // 窄列下操作按钮换行，避免压到相邻列标题。
+                flexWrap: 'wrap',
+                gap: 6,
                 marginBottom: 6,
                 minHeight: 24,
               }}
@@ -709,7 +712,7 @@ export function SeaBillContentFormFields({
                 name={[...namePathPrefix, 'notifyPartyText']}
                 placeholder="请输入通知人名称与详细地址 (例如：SAME AS CONSIGNEE)"
                 disabled={disabled || undefined}
-                fieldProps={{ autoSize: { minRows: 5, maxRows: 10 } }}
+                fieldProps={{ autoSize: { minRows: 4, maxRows: 10 } }}
                 noStyle
               />
             ) : (
@@ -717,22 +720,23 @@ export function SeaBillContentFormFields({
                 name={[...namePathPrefix, 'secondNotifyPartyText']}
                 placeholder="请输入第二通知人名称与详细地址 (选填，多数提单无需填写)"
                 disabled={disabled || undefined}
-                fieldProps={{ autoSize: { minRows: 5, maxRows: 10 } }}
+                fieldProps={{ autoSize: { minRows: 4, maxRows: 10 } }}
                 noStyle
               />
             )}
           </div>
 
           {/* 外国代理 (Foreign Agent) */}
-          <div style={{ marginBottom: 24 }}>
+          <div style={{ minWidth: 0 }}>
             <div
               className="roncin-sea-bill-heading"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                flexWrap: createLayout ? 'wrap' : undefined,
-                gap: createLayout ? 6 : undefined,
+                // 窄列下操作按钮换行，避免压到相邻列标题。
+                flexWrap: 'wrap',
+                gap: 6,
                 marginBottom: 6,
                 minHeight: 24,
               }}
@@ -769,7 +773,7 @@ export function SeaBillContentFormFields({
               name={[...namePathPrefix, 'foreignAgentText']}
               placeholder="请输入目的港/国外代理名称、地址与联系方式"
               disabled={disabled || undefined}
-              fieldProps={{ autoSize: { minRows: 5, maxRows: 10 } }}
+              fieldProps={{ autoSize: { minRows: 4, maxRows: 10 } }}
               noStyle
             />
           </div>
@@ -782,9 +786,9 @@ export function SeaBillContentFormFields({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            flexWrap: createLayout ? 'wrap' : undefined,
-            gap: createLayout ? 6 : undefined,
-            margin: '8px 0 12px 0',
+            flexWrap: 'wrap',
+            gap: 6,
+            margin: '20px 0 12px 0',
           }}
         >
           <div
@@ -813,15 +817,16 @@ export function SeaBillContentFormFields({
         </div>
 
         <FormRow cols={2}>
-          <div style={{ marginBottom: 24 }}>
+          <div style={{ minWidth: 0 }}>
             <div
               className="roncin-sea-bill-heading"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                flexWrap: createLayout ? 'wrap' : undefined,
-                gap: createLayout ? 6 : undefined,
+                // 窄列下操作按钮换行，避免压到相邻列标题。
+                flexWrap: 'wrap',
+                gap: 6,
                 marginBottom: 6,
                 minHeight: 24,
               }}
@@ -856,19 +861,20 @@ export function SeaBillContentFormFields({
               name={[...namePathPrefix, 'marksText']}
               placeholder="请输入唛头信息 (例如：N/M)"
               disabled={disabled || undefined}
-              fieldProps={{ autoSize: { minRows: 6, maxRows: 12 } }}
+              fieldProps={{ autoSize: { minRows: 5, maxRows: 12 } }}
               noStyle
             />
           </div>
-          <div style={{ marginBottom: 24 }}>
+          <div style={{ minWidth: 0 }}>
             <div
               className="roncin-sea-bill-heading"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                flexWrap: createLayout ? 'wrap' : undefined,
-                gap: createLayout ? 6 : undefined,
+                // 窄列下操作按钮换行，避免压到相邻列标题。
+                flexWrap: 'wrap',
+                gap: 6,
                 marginBottom: 6,
                 minHeight: 24,
               }}
@@ -914,7 +920,7 @@ export function SeaBillContentFormFields({
               name={[...namePathPrefix, 'goodsDescriptionText']}
               placeholder="请输入提单打印品名与货物描述"
               disabled={disabled || undefined}
-              fieldProps={{ autoSize: { minRows: 6, maxRows: 12 } }}
+              fieldProps={{ autoSize: { minRows: 5, maxRows: 12 } }}
               noStyle
             />
           </div>
@@ -928,9 +934,9 @@ export function SeaBillContentFormFields({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          flexWrap: createLayout ? 'wrap' : undefined,
-          gap: createLayout ? 6 : undefined,
-          margin: '8px 0 8px 0',
+          flexWrap: 'wrap',
+          gap: 6,
+          margin: '20px 0 8px 0',
         }}
       >
         <div

@@ -4,7 +4,6 @@ import {
   Alert,
   App,
   Button,
-  Card,
   Col,
   Form,
   Modal,
@@ -38,6 +37,7 @@ import { RELEASE_PODS_CHANGED_EVENT } from '../../../release-pod-events';
 import { seaBillContentFormValues } from '../../../sea-document-form';
 import { onSeaFormErrorReveal } from '../../sea-form-error-reveal';
 import type { TemplateProps, TemplateSection } from '../../types';
+import { TemplateFieldGroup } from '../FieldGroup';
 import SeaDocumentHistoryActions from './SeaDocumentHistoryActions';
 import SeaExternalConfirmationFields, {
   buildSeaExternalConfirmation,
@@ -378,29 +378,34 @@ export function SeaDocumentSectionComponent({
       );
     }
     return (
-      <Card size="small" title="关联放货记录" style={{ marginTop: 12 }}>
-        {items.length === 0 ? (
-          <Text type="secondary">暂无关联放货记录</Text>
-        ) : (
-          <Space orientation="vertical" size={4}>
-            {items.map((item) => (
-              <Space key={item.id} wrap>
-                <Text>放货编号：{item.releaseNo || '-'}</Text>
-                <Text>回单编号：{item.podNo || '-'}</Text>
-                <Tag>
-                  {item.status ===
-                  OrderReleasePodStatus.ORDER_RELEASE_POD_STATUS_RETURNED
-                    ? '已回单'
-                    : item.status ===
-                        OrderReleasePodStatus.ORDER_RELEASE_POD_STATUS_SIGNED
-                      ? '已签收'
-                      : '待签收'}
-                </Tag>
-              </Space>
-            ))}
-          </Space>
-        )}
-      </Card>
+      // 与卡内其他小节同一分组样式（标题 + 细分隔线），不再嵌套卡片。
+      <div style={{ marginTop: 20 }}>
+        <TemplateFieldGroup title="关联放货记录">
+          {items.length === 0 ? (
+            <Text type="secondary" style={{ fontSize: 13 }}>
+              暂无关联放货记录
+            </Text>
+          ) : (
+            <Space orientation="vertical" size={4}>
+              {items.map((item) => (
+                <Space key={item.id} wrap>
+                  <Text>放货编号：{item.releaseNo || '-'}</Text>
+                  <Text>回单编号：{item.podNo || '-'}</Text>
+                  <Tag>
+                    {item.status ===
+                    OrderReleasePodStatus.ORDER_RELEASE_POD_STATUS_RETURNED
+                      ? '已回单'
+                      : item.status ===
+                          OrderReleasePodStatus.ORDER_RELEASE_POD_STATUS_SIGNED
+                        ? '已签收'
+                        : '待签收'}
+                  </Tag>
+                </Space>
+              ))}
+            </Space>
+          )}
+        </TemplateFieldGroup>
+      </div>
     );
   };
 

@@ -12,6 +12,7 @@ import {
 import {
   SeaCargoDescriptionFields,
   SeaConsignedMeasurementFields,
+  SeaRevenueTonAlert,
 } from './components/sea/SeaCargoSection';
 import { SeaCollapsibleNotesField } from './components/sea/SeaCollapsibleNotesField';
 import {
@@ -136,20 +137,24 @@ export function getSeaTemplateSections(
       key: 'cargoCommercial',
       title: '货物与商业',
       content: (
-        <div style={{ display: 'grid', gap: 12, width: '100%' }}>
-          <div>
-            {basic.categories}
-            {basic.dangerous}
-          </div>
-          <SeaCargoDescriptionFields />
-          <FormRow cols={4}>
+        // 与前两张卡共用 6 列底栅格：品类与条款同行，描述对半，
+        // 件重尺与时间同行，金额与工厂同行；危险品与散杂计费吨按需展开。
+        <div style={{ display: 'grid', gap: 4, width: '100%' }}>
+          <FormRow cols={6} style={DENSE_ROW}>
+            <FormCell span={3}>{basic.categories}</FormCell>
             {basic.trade}
-            {basic.contract}
-            {basic.cargoValue}
-            {basic.insurance}
+            <FormCell span={2}>{basic.contract}</FormCell>
           </FormRow>
-          {basic.commercial}
-          <SeaConsignedMeasurementFields disabled={props.readonly} />
+          {basic.dangerous}
+          <SeaCargoDescriptionFields />
+          <FormRow cols={6} style={DENSE_ROW}>
+            <SeaConsignedMeasurementFields disabled={props.readonly} />
+            {basic.commercial}
+            <FormCell span={2}>{basic.cargoValue}</FormCell>
+            <FormCell span={2}>{basic.insurance}</FormCell>
+            {basic.factory}
+          </FormRow>
+          <SeaRevenueTonAlert />
         </div>
       ),
     },
