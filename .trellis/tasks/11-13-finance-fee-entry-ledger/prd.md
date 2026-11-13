@@ -26,3 +26,7 @@ web/src/pages/orders/fees.tsx；web/src/pages/finance/fees；server/internal/biz
 
 遵守父任务已确认规则、当前公司边界、服务端权限、原子性与并发检查；不恢复标签，不复制参考系统未验证算法，不隐式改变已有财务事实。
 需求收敛后补 design.md、implement.md 及真实上下文清单；完成方案审阅前不启动实施。实现后按风险验证触发场景、相邻路径及跨层契约。
+
+## 汇率参考与当前约束
+
+见 [费用汇率日期证据](../11-13-order-fees-finance-workflow/research/hgj-fee-rate-date.md)。参考支持可配置日期顺序与独立结算汇率，但当前本项目只已确认出口 ETD／进口 ETA；是否扩展配置须明确。不得照搬 8 位输入改变现有 4 位汇率口径，不自动回退创建时间或上周汇率，不改变手工覆盖权限。航期变化后的旧费用处理仍待确认；本轮证据并未回答此问题。
