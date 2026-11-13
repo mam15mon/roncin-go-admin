@@ -2,7 +2,7 @@
   "id": "finance-commission-enhancement",
   "name": "finance-commission-enhancement",
   "title": "提成筛选与规则能力完善",
-  "description": "R14：按订单和人员筛选、含税口径、区间与阶梯规则、提成记录导出",
+  "description": "R14：按订单和人员筛选、固定比例与税口径、提成记录查询导出；不新增区间阶梯或累计套档",
   "status": "planning",
   "dev_type": null,
   "scope": null,
