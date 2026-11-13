@@ -1,0 +1,12 @@
+{"file": ".trellis/spec/domain/glossary.md", "reason": "业务术语与提成、账单实体"}
+{"file": ".trellis/spec/domain/architecture-map.md", "reason": "跨层调用链"}
+{"file": ".trellis/spec/server/backend/finance-commission-lock.md", "reason": "经济重算、已发事实保护与数值验证例"}
+{"file": ".trellis/spec/server/backend/commission-scheme-assignment.md", "reason": "方案与分配区间约束，不得误删"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "事务、锁与正式迁移验证"}
+{"file": ".trellis/spec/server/backend/finance-bill-currency.md", "reason": "账单币种与本位币口径"}
+{"file": ".trellis/spec/server/backend/exchange-rate-single-rate.md", "reason": "汇率快照口径"}
+{"file": ".trellis/spec/web/frontend/finance-ledger-snapshots.md", "reason": "列表汇总与导出共用快照"}
+{"file": ".trellis/tasks/11-13-order-fees-finance-workflow/research/hgj-finance-script-followup.md", "reason": "参考系统样本与边界，仅作来源记录"}
+{"file": ".trellis/spec/server/backend/error-handling.md", "reason": "领域错误映射"}
+{"file": ".trellis/spec/web/frontend/finance-current-workspace.md", "reason": "公司工作区契约"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "响应 wire 形态与类型安全"}
