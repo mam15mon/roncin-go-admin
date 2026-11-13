@@ -138,14 +138,16 @@ func TestOrdinaryFeeMutationReconcilesPaidCommissionPostgres(t *testing.T) {
 			t.Fatalf("提成净额=%s，预期%s", net, want)
 		}
 	}
-	assertNet("50")
+	// 新增费用含税 100（税率 6%），提成基数为不含税：未税 94.33962264，冲减 9.43396226。
+	assertNet("50.56603774")
 	fee.UnitPrice = decimal.NewFromInt(200)
 	fee.QuantitySource = nil
 	fee, err = normalFeeUsecaseForRollback(f).Update(f.ctx, f.organizationID, f.approverID, o.ID, fee.ID, fee, false)
 	if err != nil {
 		t.Fatal(err)
 	}
-	assertNet("40")
+	// 改为含税 200，未税 188.67924528，冲减 18.86792453。
+	assertNet("41.13207547")
 	if err = normalFeeUsecaseForRollback(f).Remove(f.ctx, f.organizationID, f.approverID, o.ID, fee.ID, fee.Version, "撤销未建账成本"); err != nil {
 		t.Fatal(err)
 	}
