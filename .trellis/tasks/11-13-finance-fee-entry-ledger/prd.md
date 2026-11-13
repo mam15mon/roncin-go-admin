@@ -20,7 +20,7 @@ web/src/pages/orders/fees.tsx；web/src/pages/finance/fees；server/internal/biz
 
 ## 待确认
 
-筛选偏好的保存方式（本浏览器或跨设备）。
+人工订单审核锁与共享航程自动更新的交互先核对现有规范；其他跨模块待定事项以父任务为准。筛选范围及本地保存方式已确认。
 
 ## 约束与后续产物
 
@@ -72,7 +72,7 @@ web/src/pages/orders/fees.tsx；web/src/pages/finance/fees；server/internal/biz
 
 ## 筛选设置的现有依据
 
-`web/src/components/ui/column-settings/preference.ts:19` 的列偏好按表格及用户/组织作用域保存在浏览器 localStorage；`web/src/pages/finance/fees/index.tsx:77` 已传当前用户作用域。筛选设置已确认全财务覆盖；现有存储可作为实现参考，跨设备同步尚未确认。
+`web/src/components/ui/column-settings/preference.ts:19` 的列偏好按表格及用户/组织作用域保存在浏览器 localStorage；`web/src/pages/finance/fees/index.tsx:77` 已传当前用户作用域。筛选设置已确认全财务覆盖；用户已确认沿用本浏览器按用户、公司、页面隔离的保存方式，不做跨设备同步。
 用户已确认移除字段同时清值并刷新，普通展开/收起保留条件。
 
 ## 已确认：移除筛选项清值，折叠保留条件
@@ -118,4 +118,4 @@ web/src/pages/orders/fees.tsx；web/src/pages/finance/fees；server/internal/biz
 ## 已确认：本期统一筛选设置
 
 本子任务所属财务列表/报表接入统一筛选设置交互，各页面提供自己的可选字段；移除清值并刷新，普通折叠保留条件。接入验收遵循父任务「全财务筛选设置的共同验收」，同时验证所属页面查询、汇总及导出一致；不能通过设置移除公司工作区或权限范围。
-本子任务先明确并验证共同交互及偏好方案，提供其他财务模块真实共用的最小入口；偏好是否跨设备保存仍待确认，不默认新增服务端偏好系统。
+本子任务先明确并验证共同交互及偏好方案，提供其他财务模块真实共用的最小入口；用户已确认偏好按用户＋公司＋页面保存在当前浏览器，不新增服务端同步；同浏览器刷新/重新登录后恢复，跨账号/公司/页面隔离，存储失败明确提示。
