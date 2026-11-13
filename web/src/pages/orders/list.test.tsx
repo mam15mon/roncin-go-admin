@@ -226,6 +226,9 @@ describe('订单列表审核入口', () => {
       </App>,
     );
     const orderNumber = await screen.findByText('SE-REVIEW');
+    expect(
+      screen.getByRole('columnheader', { name: '锁定状态' }),
+    ).toBeInTheDocument();
     const row = within(orderNumber.closest('tr') as HTMLTableRowElement);
     expect(row.queryByText('详情')).not.toBeInTheDocument();
     fireEvent.click(orderNumber);

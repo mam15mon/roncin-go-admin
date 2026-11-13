@@ -74,7 +74,7 @@ export default function OrderListPage() {
   }, [workspaceId]);
   const reviewColumns: ProColumns<OrderListItem>[] = [
     {
-      title: '订单审核',
+      title: '锁定状态',
       key: 'feeReview',
       width: 128,
       render: (_, row) => (

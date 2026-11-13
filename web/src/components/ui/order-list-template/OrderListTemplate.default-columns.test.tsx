@@ -50,7 +50,7 @@ function renderOrders() {
           },
         ]}
         trailingColumns={[
-          { title: '订单审核', key: 'feeReview', render: () => '未审核' },
+          { title: '锁定状态', key: 'feeReview', render: () => '未审核' },
         ]}
       />
     </ConfigProvider>,
@@ -73,7 +73,7 @@ it('辅助列默认隐藏，序号与ETA可重新开启并恢复精简默认布�
     '箱型箱量',
     '操作人员',
     '操作进度',
-    '订单审核',
+    '锁定状态',
     '异常',
     '操作',
   ]) {
@@ -118,7 +118,7 @@ it('辅助列默认隐藏，序号与ETA可重新开启并恢复精简默认布�
       expect(headers.queryByText(title)).not.toBeInTheDocument();
     }
   });
-  expect(headers.getByText('订单审核')).toBeInTheDocument();
+  expect(headers.getByText('锁定状态')).toBeInTheDocument();
 });
 
 it('保留已保存的辅助列显隐、顺序和冻结偏好，不改写浏览器存储', async () => {
