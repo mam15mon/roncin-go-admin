@@ -1,4 +1,4 @@
-import { withAcceptanceSystemWorkspace, prepareAcceptanceCompany, verifyDraftFeeBillLifecycle } from './acceptance-finance-fixtures.mjs';
+import { requireSuccessfulBillBatch, invoiceRegistrationForBills, withAcceptanceSystemWorkspace, prepareAcceptanceCompany, verifyDraftFeeBillLifecycle } from './acceptance-finance-fixtures.mjs';
 
 const baseURL = (
   process.env.RONCIN_ACCEPTANCE_BASE_URL || 'http://127.0.0.1:8000'
@@ -215,8 +215,9 @@ const orderInput = {
     totalVolumeCbm: 2,
     customerReferenceNo: `ACC-FIN-${stamp}`,
     orderDate: new Date().toISOString(),
-    // 费用汇率按订单 ETD 解析，必须提供 ETD 才能添加费用。
+    // 显式提供完整航期；出口费用汇率按 ETD 解析，不使用录入日回退。
     etd: new Date().toISOString(),
+    eta: new Date(Date.now() + 86_400_000).toISOString(),
   };
 const orderResponse = await request('/api/v1/orders', { method: 'POST', body: JSON.stringify(orderInput) });
 const order = orderResponse.data;
@@ -402,7 +403,7 @@ assert(
   initialPreview.data[0].configurationComplete !== true,
   '初次预览未配置日期与账户时应为待补齐状态',
 );
-assert(!initialPreview.previewToken, '初次预览不应签发创建令牌');
+assert(initialPreview.data?.every((group) => !group.groupToken), '初次预览不应签发创建令牌');
 
 const preview = await request('/api/v1/finance/bill-batches/preview', {
   method: 'POST',
@@ -417,16 +418,16 @@ const preview = await request('/api/v1/finance/bill-batches/preview', {
     })),
   }),
 });
-assert(preview.previewToken, '配置账单日期与账户后预览未签发创建令牌');
+assert(preview.data?.every((group) => group.groupToken), '配置账单日期与账户后预览未签发创建令牌');
 
 const createBody = (idempotencyKey) => ({
-  feeIds,
   groupingPolicy: { mode: 1, splitByOrder: true, splitByTaxRate: true },
   organizationId: me.data.currentOrganization.id,
-  previewToken: preview.previewToken,
   idempotencyKey,
   groups: preview.data.map((group) => ({
     groupKey: group.groupKey,
+    groupToken: group.groupToken,
+    feeIds: (group.fees || []).map((item) => item.id),
     statementTitle: customer.legalName,
     billDate: today,
     paymentTermsDays: 30,
@@ -449,7 +450,8 @@ assert(
   concurrentRetries.every((item) => item.response.ok),
   '相同幂等键的并发请求必须全部重放为成功响应',
 );
-const batch = concurrentRetries[0].body.data;
+const batch = requireSuccessfulBillBatch(concurrentRetries[0].body, preview.data.length);
+requireSuccessfulBillBatch(concurrentRetries[1].body, preview.data.length);
 assert(
   concurrentRetries[1].body.data?.id === batch?.id,
   '相同幂等键的并发请求未返回同一个批次',
@@ -462,6 +464,7 @@ const idempotentRetry = await request('/api/v1/finance/bill-batches', {
   method: 'POST',
   body: JSON.stringify(createBody(sharedKey)),
 });
+requireSuccessfulBillBatch(idempotentRetry, preview.data.length);
 assert(idempotentRetry.data?.id === batch.id, '相同幂等请求未返回原批次');
 
 const competingKey = await raw('/api/v1/finance/bill-batches', {
@@ -469,27 +472,12 @@ const competingKey = await raw('/api/v1/finance/bill-batches', {
   body: JSON.stringify(createBody(`acc-fin-batch-${stamp}-competing`)),
 });
 assert(
-  competingKey.response.status === 409,
-  '不同幂等键重复占用同一费用必须返回冲突',
+  competingKey.response.status === 200 && competingKey.body.results?.every((group) => group.success !== true && group.error),
+  '不同幂等键重复占用同一费用必须逐组返回冲突',
 );
 
-const confirmedBatch = await request(
-  `/api/v1/finance/bill-batches/${batch.id}/confirm`,
-  {
-    method: 'POST',
-    body: JSON.stringify({
-      id: batch.id,
-      bills: batch.bills.map((bill) => ({
-        billId: bill.id,
-        expectedVersion: bill.version,
-      })),
-    }),
-  },
-);
-assert(
-  confirmedBatch.data?.bills?.every((bill) => bill.status === 2),
-  '批次账单未全部确认',
-);
+const confirmedBatch = { data: batch };
+assert(batch.bills.every((bill) => bill.status === 2), '创建账单应直接为已确认');
 const feesAfterBilling = await request(`/api/v1/orders/${order.id}/fees`);
 assert(
   feeIds.every(
@@ -620,17 +608,10 @@ assert(
 profile = enabledProfiles.find((item) => item.id === primaryProfile.id);
 assert(profile && !profile.isDefault, '原默认抬头未正确切换为非默认抬头');
 
-const invoiceResponse = await request('/api/v1/finance/invoices', {
-  method: 'POST',
-  body: JSON.stringify({
-    billIds: confirmedBatch.data.bills.map((bill) => bill.id),
-    invoiceProfileId: profile.id,
-    invoiceType: 'NORMAL',
-    note: '财务批量转账单自动验收',
-    idempotencyKey: `acc-fin-invoice-${stamp}`,
-  }),
+const invoiceResponse = await request('/api/v1/finance/invoices/register', {
+  method: 'POST', body: JSON.stringify({ idempotencyKey: `acc-fin-invoice-${stamp}`, records: [invoiceRegistrationForBills(confirmedBatch.data.bills, { invoiceProfileId: profile.id, invoiceType: 'NORMAL', taxInvoiceNo: `ACC-TAX-${stamp}`, invoiceDate: today, note: '财务批量转账单自动验收' })] }),
 });
-const invoice = invoiceResponse.data;
+const invoice = invoiceResponse.data?.[0];
 assert(invoice?.id && invoice?.recordNo, '创建开票记录失败');
 assert(invoice.invoiceTitle === profile.invoiceTitle, '发票未固化开票抬头快照');
 assert(
@@ -650,23 +631,8 @@ assert(
   detail.data?.lines?.length === invoice.lines.length,
   '开票详情未回显税务明细',
 );
-await assertFeeFinancialProgress(
-  'UNVERIFIED_UNINVOICED',
-  '开票草稿不应计为已开票',
-);
-const issuedInvoiceResponse = await request(
-  `/api/v1/finance/invoices/${invoice.id}/issue`,
-  {
-    method: 'POST',
-    body: JSON.stringify({
-      id: invoice.id,
-      expectedVersion: invoice.version,
-      taxInvoiceNo: `ACC-TAX-${stamp}`,
-      invoiceDate: today,
-    }),
-  },
-);
-assert(issuedInvoiceResponse.data?.status === 2, '开票记录登记失败');
+const issuedInvoiceResponse = { data: invoice };
+assert(invoice.status === 2, '发票登记必须直接形成有效开票事实');
 await assertFeeFinancialProgress(
   'INVOICED_UNVERIFIED',
   '登记发票后应为已开票未核销',
@@ -1020,15 +986,10 @@ const finalCommission = (await request('/api/v1/finance/commissions', { method: 
 const confirmedCommissionResponse = await request(`/api/v1/finance/commissions/${finalCommission.id}/confirm`, { method: 'POST', body: JSON.stringify({ id: finalCommission.id, expectedVersion: finalCommission.version }) });
 const confirmedCommission = confirmedCommissionResponse.data;
 assert(confirmedCommission.status === 2, '提成草稿确认失败');
-const lockedFeeOptions = await request(
-  `/api/v1/orders/${order.id}/fee-options`,
-);
+const orderLockAfterConfirm = await request(`/api/v1/orders/${order.id}/lock-state`);
 assert(
-  lockedFeeOptions.financeLocked === true &&
-    lockedFeeOptions.financeLockCommissionNos?.includes(
-      confirmedCommission.commissionNo,
-    ),
-  '提成确认后关联订单未进入财务锁定',
+  orderLockAfterConfirm.data?.orderId === order.id && orderLockAfterConfirm.data.isLocked !== true,
+  '提成确认不得自动建立人工订单审核锁',
 );
 const addFeeAfterClose = await raw(`/api/v1/orders/${order.id}/fees`, {
   method: 'POST',
@@ -1043,14 +1004,17 @@ const addFeeAfterClose = await raw(`/api/v1/orders/${order.id}/fees`, {
     billingUnitId: feeSetting.defaultBillingUnitId,
     idempotencyKey: `acc-fin-fee-${stamp}-after-close`,
     taxInclusive: true,
-    note: '验证提成确认后禁止静默追加费用',
+    note: '验证提成确认不增加已退役的财务锁',
   }),
 });
 assert(
-  addFeeAfterClose.response.status === 409 &&
-    addFeeAfterClose.body.reason === 'ORDER_FEE_FINANCE_LOCKED',
-  '提成确认后新增费用必须返回财务锁定冲突',
+  addFeeAfterClose.response.ok && addFeeAfterClose.body.data?.id && addFeeAfterClose.body.data.totalAmount === '1.00000000',
+  '未人工锁单时提成确认不得阻止新增未建账费用',
 );
+const temporaryFeeAfterConfirm = addFeeAfterClose.body.data;
+await request(`/api/v1/orders/${order.id}/fees/${temporaryFeeAfterConfirm.id}?expectedVersion=${temporaryFeeAfterConfirm.version}&reason=${encodeURIComponent('完成无额外财务锁验收后移除独立临时费用')}`, { method: 'DELETE' });
+const afterTemporaryFeeRemoval = (await request(`/api/v1/orders/${order.id}/fees`)).data;
+assert(!afterTemporaryFeeRemoval.some((item) => item.id === temporaryFeeAfterConfirm.id), '临时未建账费用须按正常规则移除，不影响后续手工提成调整样例');
 
 const adjustmentBody = {
   commissionId: confirmedCommission.id,
@@ -1110,7 +1074,7 @@ const cancelParentWithAdjustment = await raw(
     method: 'POST',
     body: JSON.stringify({
       id: confirmedCommission.id,
-      expectedVersion: confirmedCommission.version,
+      expectedVersion: commissionAfterAdjustment.data.version,
       reason: '验证存在有效调整时禁止取消原提成',
     }),
   },
@@ -1120,6 +1084,8 @@ assert(
     cancelParentWithAdjustment.body.reason === 'FINANCE_COMMISSION_TRANSITION',
   '存在有效调整时必须禁止取消原提成',
 );
+const parentAfterBlockedCancellation = (await request(`/api/v1/finance/commissions/${confirmedCommission.id}`)).data;
+assert(parentAfterBlockedCancellation.status === 2 && parentAfterBlockedCancellation.version === commissionAfterAdjustment.data.version && parentAfterBlockedCancellation.adjustmentAmount === '1.25000000', '禁止取消原提成时必须保留当前版本、确认状态与有效调整事实');
 await request(
   `/api/v1/finance/commission-adjustments/${confirmedAdjustment.id}/cancel`,
   {
@@ -1290,12 +1256,10 @@ assert(
   autoCancelledCommissionResponse.data?.status === 4,
   `反核销后关联未支付提成应自动变为 CANCELLED(4)，实际 ${autoCancelledCommissionResponse.data?.status}`,
 );
-const unlockedFeeOptions = await request(
-  `/api/v1/orders/${order.id}/fee-options`,
-);
+const orderLockAfterReverse = await request(`/api/v1/orders/${order.id}/lock-state`);
 assert(
-  unlockedFeeOptions.financeLocked !== true,
-  '反核销自动反冲提成后订单财务锁未释放',
+  orderLockAfterReverse.data?.orderId === order.id && orderLockAfterReverse.data.isLocked !== true && (orderLockAfterReverse.data.lockGeneration ?? '0') === (orderLockAfterConfirm.data.lockGeneration ?? '0'),
+  '反核销及提成反冲不得自动变更人工订单审核锁或锁周期',
 );
 await assertFeeFinancialProgress(
   'INVOICED_UNVERIFIED',

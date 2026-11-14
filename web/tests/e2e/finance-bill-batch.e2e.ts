@@ -1,3 +1,4 @@
+import { writeFile } from 'node:fs/promises';
 import {
   expect as baseExpect,
   type Locator,
@@ -34,11 +35,75 @@ async function selectOption(
     .click();
 }
 
+async function inspectFinanceReports(
+  page: Page,
+  attach: (name: string, body: Buffer) => Promise<void>,
+) {
+  const reports = [
+    ['profit-analysis', '完整筛选合计'],
+    ['profit', '完整筛选合计'],
+    ['cashflows', '完整筛选原币合计'],
+    ['aging', '完整筛选原币账龄合计'],
+  ] as const;
+  for (const [route, summary] of reports) {
+    await page.setViewportSize({ width: 1440, height: 960 });
+    await page.goto(`/finance/reports/${route}`);
+    await expect(page.getByText(summary, { exact: true })).toBeVisible();
+    await expect(page.getByText(/^生成于 /)).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: '导出全部筛选结果' }),
+    ).toBeEnabled();
+    if (route === 'profit') {
+      const downloading = page.waitForEvent('download');
+      await page.getByRole('button', { name: '导出全部筛选结果' }).click();
+      const download = await downloading;
+      expect(download.suggestedFilename()).toMatch(/\.csv$/);
+      expect(await download.failure()).toBeNull();
+    }
+    await attach(
+      `report-${route}-desktop`,
+      await page.screenshot({ fullPage: true }),
+    );
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.getByText(summary, { exact: true })).toBeVisible();
+    await attach(
+      `report-${route}-narrow`,
+      await page.screenshot({ fullPage: true }),
+    );
+  }
+  await page.setViewportSize({ width: 1440, height: 960 });
+
+  // Go 同域入口必须返回真实构建资源，不能由 SPA 吞掉 API 或缺失资源路径。
+  const serverOrigin = requiredEnvironment('RONCIN_ACCEPTANCE_BASE_URL');
+  for (const [route] of reports) {
+    const response = await page.request.get(
+      `${serverOrigin}/finance/reports/${route}`,
+    );
+    expect(response.ok()).toBeTruthy();
+    expect(response.headers()['content-type']).toContain('text/html');
+    const html = await response.text();
+    const script = html.match(/<script[^>]+src="([^"]+\.js)"/);
+    expect(script?.[1], '生产页面应包含构建后的脚本').toBeTruthy();
+    const resource = await page.request.get(
+      new URL(script?.[1] ?? '', serverOrigin).href,
+    );
+    expect(resource.ok()).toBeTruthy();
+    expect(resource.headers()['content-type']).toMatch(/javascript/);
+  }
+  const identity = await page.request.get(`${serverOrigin}/api/v1/auth/me`);
+  expect(identity.ok()).toBeTruthy();
+  expect(identity.headers()['content-type']).toContain('application/json');
+  const missing = await page.request.get(
+    `${serverOrigin}/assets/finance-acceptance-missing.js`,
+  );
+  expect(missing.status()).toBe(404);
+}
+
 // 基础资料经 API 准备；费用、账单、收款、核销与提成均通过真实页面写入。
 test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款核销与提成生成并刷新重读`, async ({
   page,
 }, testInfo) => {
-  test.setTimeout(240_000);
+  test.setTimeout(360_000);
   page.setDefaultTimeout(15_000);
   const errors: string[] = [];
   const abortedRequests: string[] = [];
@@ -103,7 +168,6 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
   const me = (await api('/api/v1/auth/me')).data;
   expect(me.currentOrganization.kind).toBe(2);
   const organizationId = me.currentOrganization.id;
-  const companyName = me.currentOrganization.name;
   const employee = (
     await api('/api/v1/admin/users', {
       username: `acc_ui_${stamp}`,
@@ -135,7 +199,7 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
       contacts: [
         { name: '页面验收联系人', phone: '13800000000', isPrimary: true },
       ],
-      // 业务/客服岗位挂客户档案，订单创建时由服务端按此带入。
+      // 客户档案保存岗位默认值；订单API仍须显式提交完整内部人员。
       assignments: [
         { role: 3, userId: employee.id },
         { role: 4, userId: me.id },
@@ -165,20 +229,48 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
   ).data;
   let transportInput: Record<string, unknown>;
   if (isAirExport) {
-    const [airlines, origins, destinations] = await Promise.all([
-      api('/api/v1/master-data/airlines?keyword=MU&page=1&pageSize=20'),
-      api('/api/v1/master-data/airports?keyword=PVG&page=1&pageSize=20'),
-      api('/api/v1/master-data/airports?keyword=LAX&page=1&pageSize=20'),
-    ]);
-    const airline = airlines.data.find(
-      (item: { iataCode: string }) => item.iataCode === 'MU',
+    const systemOrganization = me.organizations.find(
+      (organization: { kind: number }) => organization.kind === 1,
     );
-    const origin = origins.data.find(
-      (item: { iataCode: string }) => item.iataCode === 'PVG',
-    );
-    const destination = destinations.data.find(
-      (item: { iataCode: string }) => item.iataCode === 'LAX',
-    );
+    expect(systemOrganization?.id).toBeTruthy();
+    await api('/api/v1/auth/switch-organization', {
+      organizationId: systemOrganization.id,
+    });
+    // 一次性验收库显式创建本场景需要的三条行业基础资料，不依赖开发库快照。
+    const airline = (
+      await api('/api/v1/master-data/airlines', {
+        iataCode: 'MU',
+        icaoCode: 'CES',
+        awbPrefix: '781',
+        nameZh: '验收航空',
+        nameEn: 'Acceptance Airlines',
+        countryCode: 'CN',
+        source: 'MANUAL',
+      })
+    ).data;
+    const origin = (
+      await api('/api/v1/master-data/airports', {
+        iataCode: 'PVG',
+        icaoCode: 'ZSPD',
+        nameZh: '验收上海机场',
+        nameEn: 'Acceptance Shanghai',
+        cityNameZh: '上海',
+        cityNameEn: 'Shanghai',
+        countryCode: 'CN',
+      })
+    ).data;
+    const destination = (
+      await api('/api/v1/master-data/airports', {
+        iataCode: 'LAX',
+        icaoCode: 'KLAX',
+        nameZh: '验收洛杉矶机场',
+        nameEn: 'Acceptance Los Angeles',
+        cityNameZh: '洛杉矶',
+        cityNameEn: 'Los Angeles',
+        countryCode: 'US',
+      })
+    ).data;
+    await api('/api/v1/auth/switch-organization', { organizationId });
     expect(airline?.awbPrefix).toMatch(/^\d{3}$/);
     expect(origin?.id).toBeTruthy();
     expect(destination?.id).toBeTruthy();
@@ -225,8 +317,12 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
       totalVolumeCbm: 1,
       customerReferenceNo: `ACC-UI-${stamp}`,
       orderDate: new Date().toISOString(),
-      // 业务/客服由客户档案岗位带入（服务端覆盖），此处仅手选操作岗。
-      personnelAssignments: [{ userId: me.id, role: 2 }],
+      // API验收显式提交操作、销售与客服，默认带入由真实页面表单负责。
+      personnelAssignments: [
+        { userId: me.id, role: 2 },
+        { userId: employee.id, role: 3 },
+        { userId: me.id, role: 4 },
+      ],
     })
   ).data;
   await api('/api/v1/finance/commission-rules', {
@@ -266,11 +362,11 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
   await editRow.getByPlaceholder('0.00').fill('125');
   const feeResponse = page.waitForResponse(
     (r) =>
-      r.url().endsWith(`/orders/${order.id}/fees`) &&
+      r.url().endsWith(`/orders/${order.id}/fees:save`) &&
       r.request().method() === 'POST',
   );
-  await editRow.getByText('保存', { exact: true }).click();
-  const fee = (await (await feeResponse).json()).data;
+  await page.getByRole('button', { name: '保存应收费用' }).click();
+  const fee = (await (await feeResponse).json()).data[0];
   expect(fee.totalAmount).toBe('125.00000000');
   expect(fee.hasActiveBill).not.toBe(true);
   await expect(page.getByText('125.00', { exact: true }).first()).toBeVisible();
@@ -279,34 +375,21 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
     fullPage: true,
   });
   await page
-    .getByRole('button', { name: '提交整票费用审核', exact: true })
+    .getByRole('button', { name: /锁定订单$/ })
+    .first()
     .click();
-  const submitReview = page.getByRole('dialog', { name: '提交整票费用审核' });
+  const lockDialog = page.getByRole('dialog', { name: /锁定.*订单/ });
   await expect(
-    submitReview.getByRole('columnheader', { name: /^含税金额/ }),
+    lockDialog.getByRole('columnheader', { name: /^原币金额/ }),
   ).toHaveCount(2);
   await expect(
-    submitReview.getByText(feeSetting.nameZh, { exact: true }),
-  ).toBeVisible();
-  await submitReview.getByRole('checkbox').check();
-  await submitReview
-    .getByRole('button', { name: /确\s*定/ })
-    .last()
-    .click();
-  await expect(submitReview).not.toBeVisible();
-  await page.getByRole('button', { name: '批准整票费用', exact: true }).click();
-  const approveReview = page.getByRole('dialog', { name: '批准整票费用' });
-  await expect(
-    approveReview.getByRole('columnheader', { name: /^含税金额/ }),
+    lockDialog.getByRole('columnheader', { name: /^不含税金额/ }),
   ).toHaveCount(2);
   await expect(
-    approveReview.getByText(feeSetting.nameZh, { exact: true }),
+    lockDialog.getByText(feeSetting.nameZh, { exact: true }),
   ).toBeVisible();
-  await approveReview
-    .getByRole('button', { name: /确\s*定/ })
-    .last()
-    .click();
-  await expect(approveReview).not.toBeVisible();
+  await lockDialog.getByRole('button', { name: '确认锁定' }).click();
+  await expect(lockDialog).not.toBeVisible();
   await expect(
     page.getByRole('button', { name: '新增应收费用' }),
   ).toBeDisabled();
@@ -326,7 +409,7 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
   );
   await billDrawer.getByRole('button', { name: '刷新快照' }).click();
   const billPreview = await (await billPreviewResponse).json();
-  expect(billPreview.previewToken).toBeTruthy();
+  expect(billPreview.data[0].groupToken).toBeTruthy();
   expect(billPreview.data).toHaveLength(1);
   expect(billPreview.data[0].configurationComplete).toBe(true);
   const billResponse = page.waitForResponse(
@@ -334,8 +417,15 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
       r.url().endsWith('/finance/bill-batches') &&
       r.request().method() === 'POST',
   );
-  await billDrawer.getByRole('button', { name: /原子生成 1 张账单/ }).click();
-  const batch = (await (await billResponse).json()).data;
+  await billDrawer.getByRole('button', { name: /生成 1 张账单/ }).click();
+  const billResult = await (await billResponse).json();
+  expect(
+    billResult.results.every(
+      (group: { success?: boolean; bill?: { id?: string } }) =>
+        group.success && group.bill?.id,
+    ),
+  ).toBe(true);
+  const batch = billResult.data;
   const bill = batch.bills[0];
   expect(bill.totalAmount).toBe('125.00000000');
   expect(bill.lines).toHaveLength(1);
@@ -383,7 +473,7 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
   await page.goto('/finance/cashflows');
   await page.getByRole('button', { name: '登记流水' }).click();
   const cashDialog = page.getByRole('dialog', { name: '登记资金流水' });
-  await selectOption(page, cashDialog.getByLabel('所属公司'), companyName);
+  await expect(cashDialog.getByLabel('所属公司')).toHaveCount(0);
   await selectOption(
     page,
     cashDialog.getByLabel('往来结算单位'),
@@ -413,11 +503,7 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
   const verificationDialog = page.getByRole('dialog', {
     name: '资金与账单核销工作台',
   });
-  await selectOption(
-    page,
-    verificationDialog.getByLabel('所属公司'),
-    companyName,
-  );
+  await expect(verificationDialog.getByLabel('所属公司')).toHaveCount(0);
   await selectOption(
     page,
     verificationDialog.getByLabel('结算单位'),
@@ -465,11 +551,7 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
   await page.goto('/finance/commissions');
   await page.getByRole('button', { name: '生成提成' }).click();
   const commissionDialog = page.getByRole('dialog', { name: '生成提成' });
-  await selectOption(
-    page,
-    commissionDialog.locator('.ant-select').first(),
-    companyName,
-  );
+  await expect(commissionDialog.getByLabel('所属公司')).toHaveCount(0);
   await selectOption(
     page,
     commissionDialog.getByLabel('有效应收核销'),
@@ -545,36 +627,77 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
   expect(persistedCashflow.verifiedAmount).toBe('125.00000000');
   expect(persistedCashflow.unverifiedAmount).toBe('0.00000000');
   expect(persisted.commissionAmount).toBe('12.50000000');
+  // 抬头属于基础资料；已有发票的明确分配和税额由真实页面提交。
+  await api(`/api/v1/partners/${customer.id}/invoice-profiles`, {
+    partnerId: customer.id,
+    invoiceTitle: customer.legalName,
+    taxpayerIdentificationNo: customer.unifiedSocialCreditCode,
+    registeredAddress: customer.registeredAddress,
+    defaultInvoiceType: 'NORMAL',
+    isDefault: true,
+  });
+  await page.goto('/finance/bills');
+  const registeredBillRow = page.locator(
+    `.ant-table-row[data-row-key="${bill.id}"]`,
+  );
+  await registeredBillRow.getByText('详情', { exact: true }).click();
+  await page.getByRole('button', { name: '继续登记发票', exact: true }).click();
+  const invoiceDialog = page.getByRole('dialog', {
+    name: '登记已有发票',
+    exact: true,
+  });
+  await invoiceDialog.getByRole('button', { name: /继续添加发票$/ }).click();
+  await selectOption(
+    page,
+    invoiceDialog.getByLabel('开票抬头', { exact: true }),
+    customer.legalName,
+  );
+  await invoiceDialog
+    .getByLabel('已有发票号码', { exact: true })
+    .fill(`UI-TAX-${stamp}`);
+  await invoiceDialog.getByLabel('发票含税总额', { exact: true }).fill('125');
+  await invoiceDialog.getByRole('button', { name: /添加账单分配$/ }).click();
+  await invoiceDialog.getByLabel(/本账单含税分配/).fill('125');
+  await invoiceDialog.getByRole('button', { name: /添加费用分配$/ }).click();
+  await selectOption(
+    page,
+    invoiceDialog.getByLabel('来源费用及可登记余额', { exact: true }),
+    feeSetting.nameZh,
+  );
+  await invoiceDialog.getByLabel('本次含税金额', { exact: true }).fill('125');
+  await invoiceDialog
+    .getByLabel('本次登记税额（财务填写）', { exact: true })
+    .fill('7.89');
+  const invoiceSaved = page.waitForResponse(
+    (response) =>
+      response.url().endsWith('/api/v1/finance/invoices/register') &&
+      response.request().method() === 'POST',
+  );
+  await invoiceDialog
+    .getByRole('button', { name: '保存登记', exact: true })
+    .click();
+  const invoiceSaveResponse = await invoiceSaved;
+  expect(invoiceSaveResponse.ok()).toBeTruthy();
+  const issuedInvoice = (await invoiceSaveResponse.json()).data[0];
+  expect(issuedInvoice.taxInvoiceNo).toBe(`UI-TAX-${stamp}`);
+  expect(issuedInvoice.taxAmount).toBe('7.89000000');
+  expect(issuedInvoice.netAmount).toBe('117.11000000');
+  await expect(invoiceDialog).toBeHidden();
+  await expect(page.locator('.ant-notification-notice-error')).toHaveCount(0);
+  expect((await api(`/api/v1/finance/bills/${bill.id}`)).data.completed).toBe(
+    true,
+  );
+  const sourceAfterInvoice = (
+    await api(`/api/v1/orders/${order.id}/fees`)
+  ).data.find((item: { id: string }) => item.id === fee.id);
+  expect(sourceAfterInvoice.netAmount).toBe(fee.netAmount);
+  expect(sourceAfterInvoice.taxAmount).toBe(fee.taxAmount);
+  await page.screenshot({
+    path: testInfo.outputPath('04-invoice-registration.png'),
+    fullPage: true,
+  });
   if (isAirExport) {
-    // 空运复用同一财务契约：应收已由页面核销并计提，再覆盖发票及应付完整链路。
-    const invoiceProfile = (
-      await api(`/api/v1/partners/${customer.id}/invoice-profiles`, {
-        partnerId: customer.id,
-        invoiceTitle: customer.legalName,
-        taxpayerIdentificationNo: customer.unifiedSocialCreditCode,
-        registeredAddress: customer.registeredAddress,
-        defaultInvoiceType: 'NORMAL',
-        isDefault: true,
-      })
-    ).data;
-    const invoice = (
-      await api('/api/v1/finance/invoices', {
-        billIds: [bill.id],
-        invoiceProfileId: invoiceProfile.id,
-        invoiceType: 'NORMAL',
-        idempotencyKey: `ui-ae-invoice-${stamp}`,
-      })
-    ).data;
-    const issuedInvoice = (
-      await api(`/api/v1/finance/invoices/${invoice.id}/issue`, {
-        id: invoice.id,
-        expectedVersion: invoice.version,
-        taxInvoiceNo: `UI-AE-TAX-${stamp}`,
-        invoiceDate: today,
-      })
-    ).data;
-    expect(issuedInvoice.taxInvoiceNo).toBe(`UI-AE-TAX-${stamp}`);
-    expect(issuedInvoice.lines.length).toBeGreaterThan(0);
+    // 空运使用同一页面登记结果，再覆盖应付完整链路。
     const master = order.airExport.master;
     const payableSerial = String(
       (Number(stamp.slice(-7)) + 1) % 10_000_000,
@@ -591,8 +714,12 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
         totalPackages: 1,
         totalGrossWeightKg: 100,
         totalVolumeCbm: 1,
-        // 业务/客服由客户档案岗位带入（服务端覆盖），此处仅手选操作岗。
-        personnelAssignments: [{ userId: me.id, role: 2 }],
+        // API验收显式提交完整内部人员，不依赖服务端猜测客户默认值。
+        personnelAssignments: [
+          { userId: me.id, role: 2 },
+          { userId: employee.id, role: 3 },
+          { userId: me.id, role: 4 },
+        ],
         airExport: {
           master: {
             ...master.content,
@@ -616,31 +743,20 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
         idempotencyKey: `ui-ae-pay-fee-${stamp}`,
       })
     ).data;
-    const review = (
-      await api(`/api/v1/orders/${payableOrder.id}/fee-review/preview`)
+    const lockState = (
+      await api(`/api/v1/orders/${payableOrder.id}/lock-state`)
     ).data;
-    const pending = (
-      await api(`/api/v1/orders/${payableOrder.id}/fee-review/submit`, {
+    const locked = (
+      await api(`/api/v1/orders/${payableOrder.id}/lock`, {
         orderId: payableOrder.id,
-        expectedContentVersion: review.contentVersion,
-        expectedReviewVersion: review.reviewVersion,
-        previewToken: review.previewToken,
-        completenessConfirmed: true,
-        idempotencyKey: `ui-ae-pay-submit-${stamp}`,
+        expectedOrderVersion: lockState.orderVersion,
+        expectedFeeContentVersion: lockState.feeContentVersion,
+        feeContentFingerprint: lockState.feeContentFingerprint,
+        comment: '隔离验收仅录应付以验证亏损核对及空运应付链路',
+        idempotencyKey: `ui-ae-pay-lock-${stamp}`,
       })
     ).data;
-    const approved = (
-      await api(`/api/v1/orders/${payableOrder.id}/fee-review/approve`, {
-        orderId: payableOrder.id,
-        expectedContentVersion: pending.contentVersion,
-        expectedReviewVersion: pending.reviewVersion,
-        submissionId: pending.submissionId,
-        previewToken: pending.previewToken,
-        comment: '隔离验收仅录应付以验证亏损必填意见及空运应付财务链路',
-        idempotencyKey: `ui-ae-pay-approve-${stamp}`,
-      })
-    ).data;
-    expect(approved.status).toBe('APPROVED');
+    expect(locked.state.isLocked).toBe(true);
     const batchInput = {
       feeIds: [payableFee.id],
       organizationId,
@@ -662,25 +778,24 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
     });
     const payableBatch = (
       await api('/api/v1/finance/bill-batches', {
-        ...batchInput,
-        previewToken: preview.previewToken,
+        organizationId,
+        groupingPolicy: batchInput.groupingPolicy,
         idempotencyKey: `ui-ae-pay-batch-${stamp}`,
         groups: [
-          { ...group, statementTitle: customer.legalName, paymentTermsDays: 0 },
+          {
+            ...group,
+            groupToken: preview.data[0].groupToken,
+            feeIds: preview.data[0].fees.map((item: { id: string }) => item.id),
+            statementTitle: customer.legalName,
+            paymentTermsDays: 0,
+          },
         ],
       })
     ).data;
-    const payableBill = (
-      await api(`/api/v1/finance/bill-batches/${payableBatch.id}/confirm`, {
-        id: payableBatch.id,
-        bills: payableBatch.bills.map(
-          (item: { id: string; version: string }) => ({
-            billId: item.id,
-            expectedVersion: item.version,
-          }),
-        ),
-      })
-    ).data.bills[0];
+    const payableBill = payableBatch.bills[0];
+    expect(payableBill.status).toBe(
+      FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED,
+    );
     expect(payableBill.direction).toBe('PAYABLE');
     const payment = (
       await api('/api/v1/finance/cashflows', {
@@ -732,6 +847,11 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
       contentType: 'application/json',
     });
   }
+  await inspectFinanceReports(page, async (name, body) => {
+    const path = testInfo.outputPath(`${name}.png`);
+    await writeFile(path, body);
+    await testInfo.attach(name, { path, contentType: 'image/png' });
+  });
   expect(errors).toEqual([]);
   const evidence = {
     orderId: order.id,
@@ -743,6 +863,8 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
     cashflowNo: cashflow.flowNo,
     verificationId: verification.id,
     verificationNo: verification.verificationNo,
+    invoiceId: issuedInvoice.id,
+    invoiceTaxAmount: issuedInvoice.taxAmount,
     commissionId: commission.id,
     commissionNo: commission.commissionNo,
     expectedFeeAndBillAndVerification: '125.00000000',

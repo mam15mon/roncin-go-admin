@@ -551,3 +551,10 @@ escapeCsvCell(protectFormula(value));
 
 费用页已发现整单外部变化后，应收/应付任一侧保存成功仅确认该侧写入，不能清除另一侧仍未刷新的变化提醒。`useFeeChangeNotice.acceptOwnSave` 保留按订单记录的未处理变化，只有显式刷新后成功取得新探测结果才清除；探测失败而保留旧 Query data 时不得重置。服务端保存版本与页面其他侧的草稿基线保持各自职责。
 回归覆盖 v5 打开 → 他人应付 v6 → 本人应收保存 v7 → 仍提醒 → 失败刷新仍提醒 → 成功显式刷新后解除。
+
+### 费用保存后的审核投影与查询取消
+
+- 费用写入成功后同步共享订单审核状态和费用审核快照，防止立即进入锁定确认时仍使用保存前的费用内容版本。刷新审核投影不得通过整页重载、重建两侧表格或改动另一侧草稿基线完成；范本为 `pages/orders/fees.tsx` 的 `refreshFeeBillTracking`。
+- 同身份下刷新加载中或查询失败只阻断订单提交，保留已打开费用与快捷创建弹窗及输入；成功读到真实锁定、明确失权或身份切换时沿既有生命周期处理。费用表格的已有行和新增行在 loading 往返后仍保留原提交版本。
+- 将 AbortSignal 交由 React Query 管理的发票抬头/修订影响查询，同时设置 `skipErrorHandler: true`；取消或卸载由 Query 生命周期处理，真实失败通过 query.meta 的中文错误提示展示，不能由请求层将取消误报为“请求失败”。不全局吞掉网络失败或取消所有写请求。
+- 回归入口：`fees.test.tsx`、`OrderFeeTableTabs.audit-refresh*.test.tsx`、`InvoiceRegistrationQuery.request.test.tsx`。后者使用真实生成客户端、请求拦截器及取消信号，不能只用完整mock返回值证明取消行为。

@@ -1,4 +1,4 @@
-import { withAcceptanceSystemWorkspace, prepareAcceptanceCompany } from './acceptance-finance-fixtures.mjs';
+import { requireSuccessfulBillBatch, invoiceRegistrationForBills, withAcceptanceSystemWorkspace, prepareAcceptanceCompany } from './acceptance-finance-fixtures.mjs';
 
 const baseURL = (
   process.env.RONCIN_ACCEPTANCE_BASE_URL || 'http://127.0.0.1:8000'
@@ -182,8 +182,9 @@ const orderResponse = await request('/api/v1/orders', {
     totalVolumeCbm: 1,
     customerReferenceNo: `ACC-AP-${stamp}`,
     orderDate: new Date().toISOString(),
-    // 费用汇率按订单 ETD 解析，必须提供 ETD 才能添加费用。
+    // 显式提供完整航期；出口费用汇率按 ETD 解析，不使用录入日回退。
     etd: new Date().toISOString(),
+    eta: new Date(Date.now() + 86_400_000).toISOString(),
   }),
 });
 const order = orderResponse.data;
@@ -343,7 +344,7 @@ const preview = await request('/api/v1/finance/bill-batches/preview', {
     ],
   }),
 });
-assert(preview.previewToken, '应付账单配置后预览未签发创建令牌');
+assert(preview.data?.every((group) => group.groupToken), '应付账单配置后预览未签发创建令牌');
 assert(preview.data?.length === 1, '配置后预览分组数不为 1');
 const previewGroup = preview.data[0];
 assert(previewGroup.direction === 'PAYABLE', '应付账单预览方向错误');
@@ -352,14 +353,14 @@ assert(previewGroup.settlementPartyId === supplier.id, '应付账单预览结算
 const batchResponse = await request('/api/v1/finance/bill-batches', {
   method: 'POST',
   body: JSON.stringify({
-    feeIds: [confirmedFee.id],
     groupingPolicy: { mode: 1, splitByOrder: true, splitByTaxRate: true },
     organizationId: me.data.currentOrganization.id,
-    previewToken: preview.previewToken,
-    idempotencyKey: `acc-ap-batch-${stamp}`,
+      idempotencyKey: `acc-ap-batch-${stamp}`,
     groups: [
       {
         groupKey: previewGroup.groupKey,
+        groupToken: previewGroup.groupToken,
+        feeIds: previewGroup.fees.map((item) => item.id),
         statementTitle: supplierName,
         billDate: today,
         paymentTermsDays: 30,
@@ -369,23 +370,14 @@ const batchResponse = await request('/api/v1/finance/bill-batches', {
     ],
   }),
 });
-const batch = batchResponse.data;
+const batch = requireSuccessfulBillBatch(batchResponse, preview.data.length);
 assert(batch?.id && batch?.bills?.length === 1, '应付账单批次创建失败');
 const draftBill = batch.bills[0];
 assert(draftBill.direction === 'PAYABLE', '生成的账单不是应付方向');
 assert(draftBill.settlementPartyId === supplier.id, '应付账单未关联供应商');
 assert(draftBill.totalAmount === '88.00000000', '应付账单金额快照错误');
 
-const confirmedBatchResponse = await request(
-  `/api/v1/finance/bill-batches/${batch.id}/confirm`,
-  {
-    method: 'POST',
-    body: JSON.stringify({
-      id: batch.id,
-      bills: [{ billId: draftBill.id, expectedVersion: draftBill.version }],
-    }),
-  },
-);
+const confirmedBatchResponse = { data: batch };
 const confirmedBill = confirmedBatchResponse.data?.bills?.[0];
 assert(confirmedBill?.status === 2, '应付账单确认失败');
 assert(confirmedBill.direction === 'PAYABLE', '确认账单时应付方向丢失');

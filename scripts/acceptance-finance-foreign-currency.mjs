@@ -1,4 +1,4 @@
-import { withAcceptanceSystemWorkspace, prepareAcceptanceCompany } from './acceptance-finance-fixtures.mjs';
+import { verifyCompositeFinanceWorkflow, requireSuccessfulBillBatch, invoiceRegistrationForBills, withAcceptanceSystemWorkspace, prepareAcceptanceCompany } from './acceptance-finance-fixtures.mjs';
 
 function requireEnvironment(name) {
   const value = process.env[name]?.trim();
@@ -218,6 +218,7 @@ const orderResponse = await request('/api/v1/orders', {
     orderDate: new Date().toISOString(),
     // 费用汇率按订单 ETD 所在周解析；ETD 取当前时刻，确保命中本周创建的汇率行。
     etd: new Date().toISOString(),
+    eta: new Date(Date.now() + 86_400_000).toISOString(),
   }),
 });
 const order = orderResponse.data;
@@ -374,20 +375,20 @@ const preview = await request('/api/v1/finance/bill-batches/preview', {
     ],
   }),
 });
-assert(preview.previewToken, '配置后预览未签发创建令牌');
+assert(preview.data?.every((group) => group.groupToken), '配置后预览未签发创建令牌');
 assert(preview.data?.length === 1, '配置后预览分组数不为 1');
 
 const batchResponse = await request('/api/v1/finance/bill-batches', {
   method: 'POST',
   body: JSON.stringify({
-    feeIds: [fee.id],
     groupingPolicy: { mode: 1, splitByOrder: true, splitByTaxRate: true },
     organizationId: me.data.currentOrganization.id,
-    previewToken: preview.previewToken,
-    idempotencyKey: `acc-fc-batch-${stamp}`,
+      idempotencyKey: `acc-fc-batch-${stamp}`,
     groups: [
       {
         groupKey: preview.data[0].groupKey,
+        groupToken: preview.data[0].groupToken,
+        feeIds: preview.data[0].fees.map((item) => item.id),
         statementTitle: customer.legalName,
         billDate: today,
         paymentTermsDays: 30,
@@ -397,7 +398,7 @@ const batchResponse = await request('/api/v1/finance/bill-batches', {
     ],
   }),
 });
-const batch = batchResponse.data;
+const batch = requireSuccessfulBillBatch(batchResponse, preview.data.length);
 assert(batch?.bills?.length === 1, '批量建单未生成 1 张账单');
 const draftBill = batch.bills[0];
 assert(draftBill.currency === 'EUR', `账单币种应为 EUR，实际 ${draftBill.currency}`);
@@ -416,16 +417,7 @@ assert(
 );
 
 // 确认账单
-const confirmedBatchResponse = await request(
-  `/api/v1/finance/bill-batches/${batch.id}/confirm`,
-  {
-    method: 'POST',
-    body: JSON.stringify({
-      id: batch.id,
-      bills: [{ billId: draftBill.id, expectedVersion: draftBill.version }],
-    }),
-  },
-);
+const confirmedBatchResponse = { data: batch };
 const confirmedBill = confirmedBatchResponse.data?.bills?.[0];
 assert(confirmedBill?.status === 2, '账单确认失败');
 
@@ -451,31 +443,10 @@ const profile = profileResponse.data;
 assert(profile?.id, '开票资料创建失败');
 
 await updateEURRate('1.22000000');
-const invoiceResponse = await request('/api/v1/finance/invoices', {
-  method: 'POST',
-  body: JSON.stringify({
-    billIds: [confirmedBill.id],
-    invoiceProfileId: profile.id,
-    invoiceType: 'NORMAL',
-    note: '外币发票全链路自动验收',
-    idempotencyKey: `acc-fc-invoice-${stamp}`,
-  }),
+const invoiceResponse = await request('/api/v1/finance/invoices/register', {
+  method: 'POST', body: JSON.stringify({ idempotencyKey: `acc-fc-invoice-${stamp}`, records: [invoiceRegistrationForBills([confirmedBill], { invoiceProfileId: profile.id, invoiceType: 'NORMAL', taxInvoiceNo: `ACC-FC-TAX-${stamp}`, invoiceDate: today, note: '外币发票全链路自动验收' })] }),
 });
-const draftInvoice = invoiceResponse.data;
-assert(draftInvoice?.id, '开票草稿创建失败');
-
-const issuedInvoiceResponse = await request(
-  `/api/v1/finance/invoices/${draftInvoice.id}/issue`,
-  {
-    method: 'POST',
-    body: JSON.stringify({
-      id: draftInvoice.id,
-      expectedVersion: draftInvoice.version,
-      taxInvoiceNo: `ACC-FC-TAX-${stamp}`,
-      invoiceDate: today,
-    }),
-  },
-);
+const issuedInvoiceResponse = { data: invoiceResponse.data?.[0] };
 const issuedInvoice = issuedInvoiceResponse.data;
 assert(issuedInvoice?.status === 2, '发票登记开具失败');
 assert(issuedInvoice.currency === 'EUR', `发票币种应为 EUR，实际 ${issuedInvoice.currency}`);
@@ -736,10 +707,12 @@ assert(
   '持久化提成详情快照重读不一致',
 );
 
+const compositeWorkflow = await verifyCompositeFinanceWorkflow(request, { organizationId: me.data.currentOrganization.id, orderId: order.id, orderNo: order.orderNo, settlementPartyId: customer.id, feeSettingId: feeSetting.id, billingUnitId: billingUnit.id, currency: 'EUR', settlementAccountId: settlementAccount.id, invoiceProfileId: profile.id, billDate: today, stamp });
 console.log('USD 本位币 EUR 业务币外币财务全链路 API 连续验收通过。');
 console.log(
   JSON.stringify(
     {
+      compositeWorkflow,
       organizationBaseCurrency: 'USD',
       rateSettingIds: {
         baseCurrency: createdRateSettings.BASE_CURRENCY.id,
