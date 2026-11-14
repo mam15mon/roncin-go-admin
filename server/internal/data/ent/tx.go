@@ -4,6 +4,8 @@ package ent
 
 import (
 	"context"
+	stdsql "database/sql"
+	"fmt"
 	"sync"
 
 	"entgo.io/ent/dialect"
@@ -100,10 +102,16 @@ type Tx struct {
 	FinanceInvoice *FinanceInvoiceClient
 	// FinanceInvoiceBill is the client for interacting with the FinanceInvoiceBill builders.
 	FinanceInvoiceBill *FinanceInvoiceBillClient
+	// FinanceInvoiceCommand is the client for interacting with the FinanceInvoiceCommand builders.
+	FinanceInvoiceCommand *FinanceInvoiceCommandClient
 	// FinanceInvoiceExemption is the client for interacting with the FinanceInvoiceExemption builders.
 	FinanceInvoiceExemption *FinanceInvoiceExemptionClient
+	// FinanceInvoiceFeeAllocation is the client for interacting with the FinanceInvoiceFeeAllocation builders.
+	FinanceInvoiceFeeAllocation *FinanceInvoiceFeeAllocationClient
 	// FinanceInvoiceLine is the client for interacting with the FinanceInvoiceLine builders.
 	FinanceInvoiceLine *FinanceInvoiceLineClient
+	// FinanceInvoiceRevision is the client for interacting with the FinanceInvoiceRevision builders.
+	FinanceInvoiceRevision *FinanceInvoiceRevisionClient
 	// FinanceNetting is the client for interacting with the FinanceNetting builders.
 	FinanceNetting *FinanceNettingClient
 	// FinanceNettingAllocation is the client for interacting with the FinanceNettingAllocation builders.
@@ -417,8 +425,11 @@ func (tx *Tx) init() {
 	tx.FinanceCustomSetting = NewFinanceCustomSettingClient(tx.config)
 	tx.FinanceInvoice = NewFinanceInvoiceClient(tx.config)
 	tx.FinanceInvoiceBill = NewFinanceInvoiceBillClient(tx.config)
+	tx.FinanceInvoiceCommand = NewFinanceInvoiceCommandClient(tx.config)
 	tx.FinanceInvoiceExemption = NewFinanceInvoiceExemptionClient(tx.config)
+	tx.FinanceInvoiceFeeAllocation = NewFinanceInvoiceFeeAllocationClient(tx.config)
 	tx.FinanceInvoiceLine = NewFinanceInvoiceLineClient(tx.config)
+	tx.FinanceInvoiceRevision = NewFinanceInvoiceRevisionClient(tx.config)
 	tx.FinanceNetting = NewFinanceNettingClient(tx.config)
 	tx.FinanceNettingAllocation = NewFinanceNettingAllocationClient(tx.config)
 	tx.FinanceVerification = NewFinanceVerificationClient(tx.config)
@@ -550,3 +561,27 @@ func (tx *txDriver) Query(ctx context.Context, query string, args, v any) error 
 }
 
 var _ dialect.Driver = (*txDriver)(nil)
+
+// ExecContext allows calling the underlying ExecContext method of the transaction if it is supported by it.
+// See, database/sql#Tx.ExecContext for more information.
+func (tx *txDriver) ExecContext(ctx context.Context, query string, args ...any) (stdsql.Result, error) {
+	ex, ok := tx.tx.(interface {
+		ExecContext(context.Context, string, ...any) (stdsql.Result, error)
+	})
+	if !ok {
+		return nil, fmt.Errorf("Tx.ExecContext is not supported")
+	}
+	return ex.ExecContext(ctx, query, args...)
+}
+
+// QueryContext allows calling the underlying QueryContext method of the transaction if it is supported by it.
+// See, database/sql#Tx.QueryContext for more information.
+func (tx *txDriver) QueryContext(ctx context.Context, query string, args ...any) (*stdsql.Rows, error) {
+	q, ok := tx.tx.(interface {
+		QueryContext(context.Context, string, ...any) (*stdsql.Rows, error)
+	})
+	if !ok {
+		return nil, fmt.Errorf("Tx.QueryContext is not supported")
+	}
+	return q.QueryContext(ctx, query, args...)
+}

@@ -366,7 +366,7 @@ func (r *financeBillRepo) enrichFinanceBillProjection(ctx context.Context, bills
 		}
 		bill.SettlementProgress, bill.InvoiceProgress, bill.Completed = biz.ResolveFinanceBillProgress(bill.Status, bill.TotalAmount, settled, invoiced[bill.ID].Round(8), exempt)
 	}
-	return nil
+	return enrichInvoiceableBalances(ctx, client, bills, nil)
 }
 
 func (r *financeBillRepo) GetByIdempotencyKey(ctx context.Context, organizationID uuid.UUID, idempotencyKey string) (*biz.FinanceBill, error) {

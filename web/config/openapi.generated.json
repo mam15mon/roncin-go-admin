@@ -5919,6 +5919,13 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "billId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -5928,34 +5935,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/finance.v1.ListInvoicesResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "SettlementService"
-        ],
-        "operationId": "SettlementService_CreateInvoice",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/finance.v1.CreateInvoiceRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/finance.v1.CreateInvoiceResponse"
                 }
               }
             }
@@ -6020,6 +5999,13 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "billId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -6058,6 +6044,95 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/finance.v1.ListInvoiceProfilesForBillResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/invoices/party-profiles": {
+      "get": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_ListInvoiceProfilesForParty",
+        "parameters": [
+          {
+            "name": "settlementPartyId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListInvoiceProfilesForPartyResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/invoices/register": {
+      "post": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_RegisterInvoices",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finance.v1.RegisterInvoicesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.RegisterInvoicesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/invoices/revise": {
+      "post": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_ReviseInvoiceRegistrations",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finance.v1.ReviseInvoiceRegistrationsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ReviseInvoiceRegistrationsResponse"
                 }
               }
             }
@@ -6135,46 +6210,6 @@
         }
       }
     },
-    "/api/v1/finance/invoices/{id}/issue": {
-      "post": {
-        "tags": [
-          "SettlementService"
-        ],
-        "operationId": "SettlementService_IssueInvoice",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/finance.v1.IssueInvoiceRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/finance.v1.IssueInvoiceResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/finance/invoices/{id}/red-flush": {
       "post": {
         "tags": [
@@ -6208,6 +6243,36 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/finance.v1.RedFlushInvoiceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/invoices/{id}/revision-impact": {
+      "get": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_GetInvoiceRevisionImpact",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.GetInvoiceRevisionImpactResponse"
                 }
               }
             }
@@ -6491,6 +6556,626 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/finance.v1.ReverseNettingResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/reports/aging": {
+      "get": {
+        "tags": [
+          "FinanceReportService"
+        ],
+        "operationId": "FinanceReportService_ListAgingReport",
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "settlementPartyId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bucket",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListAgingReportResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/reports/aging/export": {
+      "get": {
+        "tags": [
+          "FinanceReportService"
+        ],
+        "operationId": "FinanceReportService_ExportAgingReport",
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "settlementPartyId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bucket",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ExportAgingReportResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/reports/cashflows": {
+      "get": {
+        "tags": [
+          "FinanceReportService"
+        ],
+        "operationId": "FinanceReportService_ListCashflowReport",
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "settlementPartyId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "paymentMethod",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ourAccount",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListCashflowReportResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/reports/cashflows/export": {
+      "get": {
+        "tags": [
+          "FinanceReportService"
+        ],
+        "operationId": "FinanceReportService_ExportCashflowReport",
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "settlementPartyId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "paymentMethod",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ourAccount",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ExportCashflowReportResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/reports/party-options": {
+      "get": {
+        "tags": [
+          "FinanceReportService"
+        ],
+        "operationId": "FinanceReportService_ListFinanceReportPartyOptions",
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListFinanceReportPartyOptionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/reports/personnel-options": {
+      "get": {
+        "tags": [
+          "FinanceReportService"
+        ],
+        "operationId": "FinanceReportService_ListFinanceReportPersonnelOptions",
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListFinanceReportPersonnelOptionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/reports/profits": {
+      "get": {
+        "tags": [
+          "FinanceReportService"
+        ],
+        "operationId": "FinanceReportService_ListProfitReport",
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "businessType",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "salesId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "operatorId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerServiceId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListProfitReportResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/reports/profits/export": {
+      "get": {
+        "tags": [
+          "FinanceReportService"
+        ],
+        "operationId": "FinanceReportService_ExportProfitReport",
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "businessType",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "salesId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "operatorId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerServiceId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ExportProfitReportResponse"
                 }
               }
             }
@@ -17104,6 +17789,93 @@
           }
         }
       },
+      "finance.v1.AgingReportBucketAmount": {
+        "type": "object",
+        "properties": {
+          "direction": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "notDue": {
+            "type": "string"
+          },
+          "days130": {
+            "type": "string"
+          },
+          "days3160": {
+            "type": "string"
+          },
+          "days6190": {
+            "type": "string"
+          },
+          "over90": {
+            "type": "string"
+          },
+          "undated": {
+            "type": "string"
+          },
+          "total": {
+            "type": "string"
+          },
+          "billCount": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.AgingReportRow": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "billNo": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "string"
+          },
+          "settlementPartyId": {
+            "type": "string"
+          },
+          "settlementPartyName": {
+            "type": "string"
+          },
+          "billDate": {
+            "type": "string"
+          },
+          "dueDate": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "totalAmount": {
+            "type": "string"
+          },
+          "settledAmount": {
+            "type": "string"
+          },
+          "balance": {
+            "type": "string"
+          },
+          "baseCurrency": {
+            "type": "string"
+          },
+          "baseBalance": {
+            "type": "string"
+          },
+          "bucket": {
+            "type": "string",
+            "description": "NOT_DUE、DAYS_1_30、DAYS_31_60、DAYS_61_90、OVER_90、UNDATED。"
+          },
+          "overdueDays": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "finance.v1.ApproveCommissionApplicationRequest": {
         "required": [
           "id",
@@ -17176,6 +17948,41 @@
           }
         }
       },
+      "finance.v1.BillBatchCashflowInput": {
+        "required": [
+          "amount",
+          "transactionDate",
+          "ourAccount",
+          "paymentMethod"
+        ],
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "transactionDate": {
+            "type": "string"
+          },
+          "ourAccount": {
+            "type": "string"
+          },
+          "paymentMethod": {
+            "type": "string"
+          },
+          "counterpartyAccount": {
+            "type": "string"
+          },
+          "bankReferenceNo": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "exchangeRate": {
+            "type": "string"
+          }
+        }
+      },
       "finance.v1.BillBatchGroupError": {
         "type": "object",
         "properties": {
@@ -17191,6 +17998,12 @@
               "type": "string"
             },
             "description": "metadata 仅放行缺汇率提示等公开键。"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.BillBatchItemError"
+            }
           }
         }
       },
@@ -17211,6 +18024,61 @@
           }
         },
         "description": "BillBatchGroupResult 成功时携带 bill，失败时携带 error，二者互斥。"
+      },
+      "finance.v1.BillBatchInvoiceInput": {
+        "required": [
+          "invoiceProfileId",
+          "invoiceType",
+          "taxInvoiceNo",
+          "invoiceDate",
+          "totalAmount"
+        ],
+        "type": "object",
+        "properties": {
+          "invoiceProfileId": {
+            "type": "string"
+          },
+          "invoiceType": {
+            "type": "string"
+          },
+          "taxInvoiceNo": {
+            "type": "string"
+          },
+          "invoiceDate": {
+            "type": "string"
+          },
+          "totalAmount": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "fees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.InvoiceRegistrationFeeInput"
+            }
+          }
+        }
+      },
+      "finance.v1.BillBatchItemError": {
+        "type": "object",
+        "properties": {
+          "step": {
+            "type": "string",
+            "description": "step只取BILL、INVOICE、VERIFICATION；item_index为1起记录序号，0表示整个步骤。"
+          },
+          "itemIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
       },
       "finance.v1.BillBatchNettingPair": {
         "type": "object",
@@ -17354,6 +18222,44 @@
           }
         },
         "description": "BillBatchPreviewGroupConfigInput 由服务端上一轮返回的 group_key 标识叶子；\n 初次预览可以省略，服务端会返回待补齐状态，但不会签发可创建的预览令牌。"
+      },
+      "finance.v1.BillBatchVerificationAllocationInput": {
+        "required": [
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "cashflowId": {
+            "type": "string",
+            "description": "空值引用本条核销附带的新差额流水。"
+          },
+          "amount": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.BillBatchVerificationInput": {
+        "required": [
+          "verificationDate"
+        ],
+        "type": "object",
+        "properties": {
+          "verificationDate": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "allocations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.BillBatchVerificationAllocationInput"
+            }
+          },
+          "shortfallCashflow": {
+            "$ref": "#/components/schemas/finance.v1.BillBatchCashflowInput"
+          }
+        }
       },
       "finance.v1.BillGroupingPolicy": {
         "type": "object",
@@ -17671,6 +18577,50 @@
             "$ref": "#/components/schemas/finance.v1.FinanceNetting"
           },
           "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.CashflowReportRow": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "flowNo": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "string"
+          },
+          "transactionDate": {
+            "type": "string"
+          },
+          "settlementPartyId": {
+            "type": "string"
+          },
+          "settlementPartyName": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "baseCurrency": {
+            "type": "string"
+          },
+          "baseAmount": {
+            "type": "string"
+          },
+          "ourAccount": {
+            "type": "string"
+          },
+          "paymentMethod": {
+            "type": "string"
+          },
+          "bankReferenceNo": {
             "type": "string"
           }
         }
@@ -18380,6 +19330,19 @@
               "type": "string"
             },
             "description": "fee_ids 为预览中归入该组的全部费用 ID；服务端在组事务内重新分组复核。"
+          },
+          "invoices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.BillBatchInvoiceInput"
+            },
+            "description": "附带操作与本组建账原子提交，账单ID和版本由服务端内部填充。"
+          },
+          "verifications": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.BillBatchVerificationInput"
+            }
           }
         }
       },
@@ -18925,56 +19888,6 @@
           }
         }
       },
-      "finance.v1.CreateInvoiceRequest": {
-        "required": [
-          "billIds",
-          "invoiceType",
-          "idempotencyKey",
-          "invoiceProfileId"
-        ],
-        "type": "object",
-        "properties": {
-          "billIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "invoiceType": {
-            "type": "string"
-          },
-          "note": {
-            "type": "string"
-          },
-          "idempotencyKey": {
-            "type": "string"
-          },
-          "invoiceProfileId": {
-            "type": "string"
-          }
-        }
-      },
-      "finance.v1.CreateInvoiceResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "code": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/finance.v1.FinanceInvoice"
-          },
-          "traceId": {
-            "type": "string"
-          }
-        }
-      },
       "finance.v1.CreateNettingRequest": {
         "required": [
           "organizationId",
@@ -19401,6 +20314,93 @@
         },
         "description": "ExchangeRateSyncPreviewRow 是单币种的抓取建议值（财务终审前可微调）。"
       },
+      "finance.v1.ExportAgingReportResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.AgingReportRow"
+            }
+          },
+          "total": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "nativeTotals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.AgingReportBucketAmount"
+            }
+          },
+          "baseTotals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.AgingReportBucketAmount"
+            }
+          },
+          "asOfDate": {
+            "type": "string"
+          },
+          "generatedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ExportCashflowReportResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.CashflowReportRow"
+            }
+          },
+          "total": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "nativeTotals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceReportCashAmount"
+            }
+          },
+          "baseTotals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceReportCashAmount"
+            }
+          },
+          "generatedAt": {
+            "type": "string"
+          }
+        }
+      },
       "finance.v1.ExportCommissionsResponse": {
         "type": "object",
         "properties": {
@@ -19421,6 +20421,64 @@
             }
           },
           "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ExportProfitReportResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.ProfitReportRow"
+            }
+          },
+          "total": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "totals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.ProfitReportAmount"
+            }
+          },
+          "nativeTotals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceReportNativeAmount"
+            }
+          },
+          "months": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.ProfitReportMonth"
+            }
+          },
+          "orderCount": {
+            "type": "string"
+          },
+          "feeCount": {
+            "type": "string"
+          },
+          "undatedOrderCount": {
+            "type": "string",
+            "description": "适用其余筛选、但尚缺业务日期的订单数；不将其静默塞入所选日期范围。"
+          },
+          "generatedAt": {
             "type": "string"
           }
         }
@@ -20134,6 +21192,12 @@
             "type": "string"
           },
           "unitPrice": {
+            "type": "string"
+          },
+          "invoicedAmount": {
+            "type": "string"
+          },
+          "invoiceableAmount": {
             "type": "string"
           }
         }
@@ -20963,6 +22027,12 @@
           },
           "organizationName": {
             "type": "string"
+          },
+          "revisions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceInvoiceRevision"
+            }
           }
         }
       },
@@ -20991,6 +22061,12 @@
             "type": "array",
             "items": {
               "type": "string"
+            }
+          },
+          "fees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceInvoiceFeeAllocation"
             }
           }
         }
@@ -21026,6 +22102,47 @@
             "type": "string"
           },
           "revokedByName": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.FinanceInvoiceFeeAllocation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "invoiceBillId": {
+            "type": "string"
+          },
+          "billId": {
+            "type": "string"
+          },
+          "billLineId": {
+            "type": "string"
+          },
+          "orderFeeId": {
+            "type": "string"
+          },
+          "feeCode": {
+            "type": "string"
+          },
+          "feeName": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "sourceTaxRate": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "netAmount": {
+            "type": "string"
+          },
+          "taxAmount": {
             "type": "string"
           }
         }
@@ -21101,6 +22218,81 @@
             "items": {
               "$ref": "#/components/schemas/finance.v1.FinanceInvoiceProfileOption"
             }
+          }
+        }
+      },
+      "finance.v1.FinanceInvoiceRevision": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "revisionNumber": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "actorName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "beforeSnapshot": {
+            "type": "string"
+          },
+          "afterSnapshot": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.FinanceInvoiceRevisionImpact": {
+        "type": "object",
+        "properties": {
+          "invoice": {
+            "$ref": "#/components/schemas/finance.v1.FinanceInvoice"
+          },
+          "bills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceBill"
+            }
+          },
+          "dependencies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceInvoiceSettlementDependency"
+            }
+          },
+          "canRevise": {
+            "type": "boolean"
+          }
+        }
+      },
+      "finance.v1.FinanceInvoiceSettlementDependency": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "billId": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "documentNo": {
+            "type": "string"
+          },
+          "billNo": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
           }
         }
       },
@@ -21371,6 +22563,52 @@
             }
           },
           "confirmedCount": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.FinanceReportCashAmount": {
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string"
+          },
+          "receivableAmount": {
+            "type": "string"
+          },
+          "payableAmount": {
+            "type": "string"
+          },
+          "netAmount": {
+            "type": "string"
+          }
+        },
+        "description": "单一币种下的真实收款、付款和收支净额；原币和本币分别成组。"
+      },
+      "finance.v1.FinanceReportNativeAmount": {
+        "type": "object",
+        "properties": {
+          "direction": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "netAmount": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.FinanceReportOption": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
             "type": "string"
           }
         }
@@ -21721,6 +22959,27 @@
           }
         }
       },
+      "finance.v1.GetInvoiceRevisionImpactResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.FinanceInvoiceRevisionImpact"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "finance.v1.GetMyFeeSupplementAdjustmentSourceResponse": {
         "type": "object",
         "properties": {
@@ -21763,13 +23022,103 @@
           }
         }
       },
-      "finance.v1.IssueInvoiceRequest": {
+      "finance.v1.InvoiceRegistrationAllocationInput": {
         "required": [
-          "id",
+          "billId",
           "expectedVersion",
-          "taxInvoiceNo",
-          "invoiceDate"
+          "amount"
         ],
+        "type": "object",
+        "properties": {
+          "billId": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "fees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.InvoiceRegistrationFeeInput"
+            }
+          }
+        }
+      },
+      "finance.v1.InvoiceRegistrationBillVersion": {
+        "required": [
+          "billId",
+          "expectedVersion"
+        ],
+        "type": "object",
+        "properties": {
+          "billId": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.InvoiceRegistrationFeeInput": {
+        "required": [
+          "orderFeeId",
+          "amount",
+          "taxAmount"
+        ],
+        "type": "object",
+        "properties": {
+          "orderFeeId": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "taxAmount": {
+            "type": "string"
+          }
+        },
+        "description": "发票登记逐层金额由财务明确填写，税额不按来源税率自动重算。"
+      },
+      "finance.v1.InvoiceRegistrationInput": {
+        "required": [
+          "invoiceProfileId",
+          "invoiceType",
+          "taxInvoiceNo",
+          "invoiceDate",
+          "totalAmount"
+        ],
+        "type": "object",
+        "properties": {
+          "invoiceProfileId": {
+            "type": "string"
+          },
+          "invoiceType": {
+            "type": "string"
+          },
+          "taxInvoiceNo": {
+            "type": "string"
+          },
+          "invoiceDate": {
+            "type": "string"
+          },
+          "totalAmount": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "allocations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.InvoiceRegistrationAllocationInput"
+            }
+          }
+        }
+      },
+      "finance.v1.InvoiceRegistrationRevisionEntry": {
         "type": "object",
         "properties": {
           "id": {
@@ -21778,15 +23127,15 @@
           "expectedVersion": {
             "type": "string"
           },
-          "taxInvoiceNo": {
-            "type": "string"
+          "remove": {
+            "type": "boolean"
           },
-          "invoiceDate": {
-            "type": "string"
+          "registration": {
+            "$ref": "#/components/schemas/finance.v1.InvoiceRegistrationInput"
           }
         }
       },
-      "finance.v1.IssueInvoiceResponse": {
+      "finance.v1.ListAgingReportResponse": {
         "type": "object",
         "properties": {
           "success": {
@@ -21800,9 +23149,33 @@
             "type": "string"
           },
           "data": {
-            "$ref": "#/components/schemas/finance.v1.FinanceInvoice"
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.AgingReportRow"
+            }
+          },
+          "total": {
+            "type": "string"
           },
           "traceId": {
+            "type": "string"
+          },
+          "nativeTotals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.AgingReportBucketAmount"
+            }
+          },
+          "baseTotals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.AgingReportBucketAmount"
+            }
+          },
+          "asOfDate": {
+            "type": "string"
+          },
+          "generatedAt": {
             "type": "string"
           }
         }
@@ -21975,6 +23348,48 @@
           },
           "matchedSummary": {
             "$ref": "#/components/schemas/finance.v1.FinanceLedgerMatchedSummary"
+          }
+        }
+      },
+      "finance.v1.ListCashflowReportResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.CashflowReportRow"
+            }
+          },
+          "total": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "nativeTotals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceReportCashAmount"
+            }
+          },
+          "baseTotals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceReportCashAmount"
+            }
+          },
+          "generatedAt": {
+            "type": "string"
           }
         }
       },
@@ -22394,6 +23809,60 @@
           }
         }
       },
+      "finance.v1.ListFinanceReportPartyOptionsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceReportOption"
+            }
+          },
+          "total": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ListFinanceReportPersonnelOptionsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceReportOption"
+            }
+          },
+          "total": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "finance.v1.ListFinanceSettlementPartyOptionsResponse": {
         "type": "object",
         "properties": {
@@ -22449,6 +23918,27 @@
         }
       },
       "finance.v1.ListInvoiceProfilesForBillResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.FinanceInvoiceProfilesForBill"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ListInvoiceProfilesForPartyResponse": {
         "type": "object",
         "properties": {
           "success": {
@@ -22532,6 +24022,64 @@
           },
           "matchedSummary": {
             "$ref": "#/components/schemas/finance.v1.FinanceLedgerMatchedSummary"
+          }
+        }
+      },
+      "finance.v1.ListProfitReportResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.ProfitReportRow"
+            }
+          },
+          "total": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "totals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.ProfitReportAmount"
+            }
+          },
+          "nativeTotals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceReportNativeAmount"
+            }
+          },
+          "months": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.ProfitReportMonth"
+            }
+          },
+          "orderCount": {
+            "type": "string"
+          },
+          "feeCount": {
+            "type": "string"
+          },
+          "undatedOrderCount": {
+            "type": "string",
+            "description": "适用其余筛选、但尚缺业务日期的订单数；不将其静默塞入所选日期范围。"
+          },
+          "generatedAt": {
+            "type": "string"
           }
         }
       },
@@ -23042,6 +24590,107 @@
           }
         }
       },
+      "finance.v1.ProfitReportAmount": {
+        "type": "object",
+        "properties": {
+          "baseCurrency": {
+            "type": "string"
+          },
+          "receivableAmount": {
+            "type": "string"
+          },
+          "payableAmount": {
+            "type": "string"
+          },
+          "profitAmount": {
+            "type": "string"
+          },
+          "netReceivableAmount": {
+            "type": "string"
+          },
+          "netPayableAmount": {
+            "type": "string"
+          },
+          "netProfitAmount": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ProfitReportMonth": {
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "string",
+            "description": "YYYY-MM；未设置业务日期的集合为 UNDATED。"
+          },
+          "amounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.ProfitReportAmount"
+            }
+          }
+        }
+      },
+      "finance.v1.ProfitReportRow": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "orderNo": {
+            "type": "string"
+          },
+          "businessType": {
+            "type": "string"
+          },
+          "businessDate": {
+            "type": "string"
+          },
+          "customerId": {
+            "type": "string"
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "salesName": {
+            "type": "string"
+          },
+          "operatorName": {
+            "type": "string"
+          },
+          "customerServiceName": {
+            "type": "string"
+          },
+          "baseCurrency": {
+            "type": "string"
+          },
+          "receivableAmount": {
+            "type": "string"
+          },
+          "payableAmount": {
+            "type": "string"
+          },
+          "profitAmount": {
+            "type": "string"
+          },
+          "netReceivableAmount": {
+            "type": "string"
+          },
+          "netPayableAmount": {
+            "type": "string"
+          },
+          "netProfitAmount": {
+            "type": "string"
+          },
+          "feeCount": {
+            "type": "string"
+          }
+        },
+        "description": "每订单与本币一行；费用计入当前有效叶子，含税和未税均沿费用汇率快照。"
+      },
       "finance.v1.RedFlushInvoiceRequest": {
         "required": [
           "id",
@@ -23084,6 +24733,47 @@
           },
           "data": {
             "$ref": "#/components/schemas/finance.v1.FinanceInvoice"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.RegisterInvoicesRequest": {
+        "required": [
+          "idempotencyKey"
+        ],
+        "type": "object",
+        "properties": {
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.InvoiceRegistrationInput"
+            }
+          }
+        }
+      },
+      "finance.v1.RegisterInvoicesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceInvoice"
+            }
           },
           "traceId": {
             "type": "string"
@@ -23240,6 +24930,57 @@
           },
           "data": {
             "$ref": "#/components/schemas/finance.v1.FinanceVerification"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.ReviseInvoiceRegistrationsRequest": {
+        "required": [
+          "idempotencyKey",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "billVersions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.InvoiceRegistrationBillVersion"
+            }
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.InvoiceRegistrationRevisionEntry"
+            }
+          }
+        }
+      },
+      "finance.v1.ReviseInvoiceRegistrationsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceInvoice"
+            }
           },
           "traceId": {
             "type": "string"
@@ -38553,6 +40294,10 @@
     {
       "name": "FeeCatalogService",
       "description": "FeeCatalogService 维护订单费用录入使用的费用设置、计费单位和应税劳务目录。"
+    },
+    {
+      "name": "FinanceReportService",
+      "description": "FinanceReportService 只读查询当前公司的经营利润、真实收付与当前账龄。"
     },
     {
       "name": "MasterDataService"

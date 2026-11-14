@@ -146,15 +146,19 @@ describe('角色可授予权限与真实权限清单', () => {
       .mockResolvedValue({ data: { id: 'role-existing' } });
   });
 
-  it('真实工作台能力夹具覆盖完整 281 项权限且边界计数一致', () => {
-    expect(manifestPermissionKeys).toHaveLength(281);
-    expect(capabilityFixture.company).toHaveLength(263);
+  it('真实工作台能力夹具覆盖完整 282 项权限且边界计数一致', () => {
+    expect(manifestPermissionKeys).toHaveLength(282);
+    expect(capabilityFixture.company).toHaveLength(264);
     expect(capabilityFixture.system).toHaveLength(44);
     expect(capabilityFixture.company).toContain(
       'system.finance.invoice.exempt',
     );
     expect(capabilityFixture.system).not.toContain(
       'system.finance.invoice.exempt',
+    );
+    expect(capabilityFixture.company).toContain('system.finance.report.read');
+    expect(capabilityFixture.system).not.toContain(
+      'system.finance.report.read',
     );
     expect(
       new Set([...capabilityFixture.company, ...capabilityFixture.system]),
@@ -166,7 +170,7 @@ describe('角色可授予权限与真实权限清单', () => {
       label: '北京公司',
       system: false,
       keys: capabilityFixture.company,
-      count: 263,
+      count: 264,
     },
     {
       label: '系统管理',
@@ -276,7 +280,7 @@ describe('角色可授予权限与真实权限清单', () => {
         '加载可授予权限失败，暂不能保存，请重新加载权限后重试。',
       ),
     ).toBeInTheDocument();
-    expect(screen.getByText('已选 263 / 263 项')).toBeInTheDocument();
+    expect(screen.getByText('已选 264 / 264 项')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '保存角色' })).toBeDisabled();
     await act(async () =>
       expect(await formState.onFinish?.({ name: '管理员' })).toBe(false),

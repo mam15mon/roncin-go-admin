@@ -30,6 +30,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionruleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicecommand"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceexemption"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
@@ -562,6 +563,21 @@ func (_c *OrganizationCreate) AddFinanceInvoices(v ...*FinanceInvoice) *Organiza
 		ids[i] = v[i].ID
 	}
 	return _c.AddFinanceInvoiceIDs(ids...)
+}
+
+// AddFinanceInvoiceCommandIDs adds the "finance_invoice_commands" edge to the FinanceInvoiceCommand entity by IDs.
+func (_c *OrganizationCreate) AddFinanceInvoiceCommandIDs(ids ...uuid.UUID) *OrganizationCreate {
+	_c.mutation.AddFinanceInvoiceCommandIDs(ids...)
+	return _c
+}
+
+// AddFinanceInvoiceCommands adds the "finance_invoice_commands" edges to the FinanceInvoiceCommand entity.
+func (_c *OrganizationCreate) AddFinanceInvoiceCommands(v ...*FinanceInvoiceCommand) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFinanceInvoiceCommandIDs(ids...)
 }
 
 // AddFinanceInvoiceExemptionIDs adds the "finance_invoice_exemptions" edge to the FinanceInvoiceExemption entity by IDs.
@@ -1645,6 +1661,22 @@ func (_c *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeinvoice.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FinanceInvoiceCommandsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceInvoiceCommandsTable,
+			Columns: []string{organization.FinanceInvoiceCommandsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicecommand.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

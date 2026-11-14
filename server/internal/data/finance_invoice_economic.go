@@ -10,7 +10,6 @@ import (
 	invoicelink "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
 	fee "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/shopspring/decimal"
-	"strings"
 )
 
 // invoiceableFinanceBill 保留账单历史总额，仅投影仍有效的普通经济行及可开票金额。
@@ -22,6 +21,9 @@ func invoiceableFinanceBill(item *ent.FinanceBill) (*biz.FinanceBill, error) {
 	converted.Lines = nil
 	total, net, tax := decimal.Zero, decimal.Zero, decimal.Zero
 	for _, line := range item.Edges.Lines {
+		if !line.Active {
+			continue
+		}
 		original, err := line.Edges.OrderFeeOrErr()
 		if err != nil {
 			return nil, err
@@ -40,76 +42,6 @@ func invoiceableFinanceBill(item *ent.FinanceBill) (*biz.FinanceBill, error) {
 	}
 	converted.InvoiceableAmount, converted.InvoiceableNetAmount, converted.InvoiceableTaxAmount = &total, &net, &tax
 	return converted, nil
-}
-
-// validateInvoiceEconomicSnapshot 签发时重算原草稿快照，经济内容改变必须取消后重建。
-func validateInvoiceEconomicSnapshot(bills []*ent.FinanceBill, invoice *biz.FinanceInvoice) error {
-	if len(bills) != len(invoice.Links) {
-		return biz.ErrFinanceInvoiceBillInvalid
-	}
-	links := make(map[uuid.UUID]*biz.FinanceInvoiceBill)
-	for _, l := range invoice.Links {
-		links[l.BillID] = l
-	}
-	type amount struct {
-		total, net, tax decimal.Decimal
-		count           int
-	}
-	expected := make(map[string]amount)
-	total, net, tax := decimal.Zero, decimal.Zero, decimal.Zero
-	for _, raw := range bills {
-		if raw.Purpose != "NORMAL" || raw.Status != "CONFIRMED" {
-			return biz.ErrFinanceInvoiceBillInvalid
-		}
-		b, err := invoiceableFinanceBill(raw)
-		if err != nil {
-			return err
-		}
-		l := links[b.ID]
-		if l == nil || !b.InvoiceableAmount.IsPositive() || !l.Amount.Equal(*b.InvoiceableAmount) || !l.TaxAmount.Equal(*b.InvoiceableTaxAmount) {
-			return biz.ErrFinanceInvoiceBillInvalid
-		}
-		expectedIDs := make(map[uuid.UUID]bool)
-		for _, line := range b.Lines {
-			expectedIDs[line.OrderFeeID] = true
-		}
-		if len(l.SourceFeeIDs) != len(expectedIDs) {
-			return biz.ErrFinanceInvoiceBillInvalid
-		}
-		for _, id := range l.SourceFeeIDs {
-			if !expectedIDs[id] {
-				return biz.ErrFinanceInvoiceBillInvalid
-			}
-			delete(expectedIDs, id)
-		}
-		total = total.Add(*b.InvoiceableAmount)
-		net = net.Add(*b.InvoiceableNetAmount)
-		tax = tax.Add(*b.InvoiceableTaxAmount)
-		for _, line := range b.Lines {
-			if line.TaxRate == nil {
-				return biz.ErrFinanceInvoiceBillInvalid
-			}
-			key := strings.Join([]string{line.FeeCode, line.FeeName, line.TaxRate.StringFixed(4), line.Currency}, "\x00")
-			a := expected[key]
-			a.total = a.total.Add(line.TotalAmount)
-			a.net = a.net.Add(line.NetAmount)
-			a.tax = a.tax.Add(line.TaxAmount)
-			a.count++
-			expected[key] = a
-		}
-	}
-	if !total.Equal(invoice.TotalAmount) || !net.Equal(invoice.NetAmount) || !tax.Equal(invoice.TaxAmount) || len(expected) != len(invoice.Lines) {
-		return biz.ErrFinanceInvoiceBillInvalid
-	}
-	for _, l := range invoice.Lines {
-		key := strings.Join([]string{l.ItemCode, l.ItemName, l.TaxRate.StringFixed(4), l.Currency}, "\x00")
-		a, ok := expected[key]
-		if !ok || !a.total.Equal(l.TotalAmount) || !a.net.Equal(l.NetAmount) || !a.tax.Equal(l.TaxAmount) || a.count != l.SourceLineCount {
-			return biz.ErrFinanceInvoiceBillInvalid
-		}
-		delete(expected, key)
-	}
-	return nil
 }
 
 // checkCorrectionInvoiceAncestors 禁止原票未取消/红冲时直接对替代内容重复开票。

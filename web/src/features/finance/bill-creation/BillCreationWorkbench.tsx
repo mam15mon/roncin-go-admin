@@ -29,6 +29,7 @@ import BillWorkbenchFooter from './BillWorkbenchFooter';
 import {
   type BillBatchOutcome,
   type BillCreationMode,
+  billGroupOperationPayload,
   directionText,
   type GroupFormValue,
   isGroupComplete,
@@ -510,6 +511,7 @@ export default function BillCreationWorkbench({
           settlementAccountId: value.settlementAccountId || '',
           estimatedInvoiceCurrency: value.estimatedInvoiceCurrency || undefined,
           estimatedInvoiceRate: value.estimatedInvoiceRate?.trim() || undefined,
+          ...billGroupOperationPayload(group, value),
         };
       });
       nextSubmission = {
@@ -576,7 +578,7 @@ export default function BillCreationWorkbench({
         setSubmission(undefined);
         message.error('所选费用必须为未建账状态且尚未进入其他账单');
       } else {
-        message.error(requestMessage(error, '批量生成账单失败'));
+        message.error(requestMessage(error, '批量生成账单失败', target.groups));
       }
     } finally {
       if (requestedSession === sessionSequenceRef.current) setSubmitting(false);

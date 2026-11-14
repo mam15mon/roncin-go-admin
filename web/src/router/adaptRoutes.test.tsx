@@ -6,7 +6,7 @@ import { buildMenuData, buildRouterConfig } from './adaptRoutes';
 // 背景：import.meta.glob 的相对路径错级（../../pages vs ../pages）不会被
 // tsc/build 捕获（lazy 不在构建期求值），只有真实加载才能暴露。
 describe('adaptRoutes 路由适配', () => {
-  it('全部 37 个页面和 1 个布局路由均能解析并加载模块', async () => {
+  it('全部 41 个页面和 1 个布局路由均能解析并加载模块', async () => {
     interface FlatRoute {
       lazy?: () => Promise<unknown>;
       children?: FlatRoute[];
@@ -24,8 +24,8 @@ describe('adaptRoutes 路由适配', () => {
     expect(flat.every((route) => route.errorElement)).toBe(true);
 
     const lazyRoutes = flat.filter((route) => typeof route.lazy === 'function');
-    // 包含独立 HBL 制作页：37 个页面组件 + 1 个 AppLayout 布局壳。
-    expect(lazyRoutes.length).toBe(38);
+    // 包含独立 HBL 制作页与四个财务报表：41 个页面组件 + 1 个 AppLayout 布局壳。
+    expect(lazyRoutes.length).toBe(42);
 
     await Promise.all(
       lazyRoutes.map((route) =>

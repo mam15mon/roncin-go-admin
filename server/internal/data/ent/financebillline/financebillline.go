@@ -53,6 +53,8 @@ const (
 	FieldBaseCurrencyAmount = "base_currency_amount"
 	// FieldActive holds the string denoting the active field in the database.
 	FieldActive = "active"
+	// EdgeInvoiceAllocations holds the string denoting the invoice_allocations edge name in mutations.
+	EdgeInvoiceAllocations = "invoice_allocations"
 	// EdgeBill holds the string denoting the bill edge name in mutations.
 	EdgeBill = "bill"
 	// EdgeOrderFee holds the string denoting the order_fee edge name in mutations.
@@ -61,6 +63,13 @@ const (
 	EdgeOrder = "order"
 	// Table holds the table name of the financebillline in the database.
 	Table = "finance_bill_lines"
+	// InvoiceAllocationsTable is the table that holds the invoice_allocations relation/edge.
+	InvoiceAllocationsTable = "finance_invoice_fee_allocations"
+	// InvoiceAllocationsInverseTable is the table name for the FinanceInvoiceFeeAllocation entity.
+	// It exists in this package in order to avoid circular dependency with the "financeinvoicefeeallocation" package.
+	InvoiceAllocationsInverseTable = "finance_invoice_fee_allocations"
+	// InvoiceAllocationsColumn is the table column denoting the invoice_allocations relation/edge.
+	InvoiceAllocationsColumn = "bill_line_id"
 	// BillTable is the table that holds the bill relation/edge.
 	BillTable = "finance_bill_lines"
 	// BillInverseTable is the table name for the FinanceBill entity.
@@ -244,6 +253,20 @@ func ByActive(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldActive, opts...).ToFunc()
 }
 
+// ByInvoiceAllocationsCount orders the results by invoice_allocations count.
+func ByInvoiceAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newInvoiceAllocationsStep(), opts...)
+	}
+}
+
+// ByInvoiceAllocations orders the results by invoice_allocations terms.
+func ByInvoiceAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newInvoiceAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByBillField orders the results by bill field.
 func ByBillField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -263,6 +286,13 @@ func ByOrderField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newOrderStep(), sql.OrderByField(field, opts...))
 	}
+}
+func newInvoiceAllocationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(InvoiceAllocationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, InvoiceAllocationsTable, InvoiceAllocationsColumn),
+	)
 }
 func newBillStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(

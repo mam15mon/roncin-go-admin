@@ -12,6 +12,7 @@ import * as enterpriseResourceService from "./enterpriseResourceService";
 import * as settlementService from "./settlementService";
 import * as feeCatalogService from "./feeCatalogService";
 import * as exchangeRateService from "./exchangeRateService";
+import * as financeReportService from "./financeReportService";
 import * as masterDataService from "./masterDataService";
 import * as orderService from "./orderService";
 import * as seaSharedContainerService from "./seaSharedContainerService";
@@ -39,6 +40,7 @@ export default {
   settlementService,
   feeCatalogService,
   exchangeRateService,
+  financeReportService,
   masterDataService,
   orderService,
   seaSharedContainerService,

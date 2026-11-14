@@ -95,6 +95,8 @@ type VerificationRepo interface {
 	GetByKey(context.Context, uuid.UUID, string) (*FinanceVerification, error)
 	LoadCashflowContext(context.Context, uuid.UUID, uuid.UUID) (*FinanceCashflow, error)
 	LoadCashflowContextScoped(context.Context, []uuid.UUID, uuid.UUID) (*FinanceCashflow, error)
+	LockBillOrders(context.Context, uuid.UUID, []uuid.UUID) error
+	LockCashflows(context.Context, uuid.UUID, []uuid.UUID) error
 	ListCashflowCandidates(context.Context, uuid.UUID, VerificationCreationCandidateFilter) (*FinanceCashflowListResult, error)
 	ListBillCandidates(context.Context, uuid.UUID, VerificationCreationCandidateFilter) (*FinanceBillListResult, error)
 	Create(context.Context, uuid.UUID, uuid.UUID, *FinanceVerification, *AuditEvent) (*FinanceVerification, error)
@@ -167,6 +169,23 @@ func (u *VerificationUsecase) Create(ctx context.Context, org, actor uuid.UUID, 
 	return u.create(ctx, org, actor, in, true)
 }
 
+// CreateWithinTransaction 仅写入或回放身份，供建账组合在同一外层事务内调用。
+func (u *VerificationUsecase) CreateWithinTransaction(ctx context.Context, org, actor uuid.UUID, in CreateVerificationInput) (uuid.UUID, error) {
+	created, err := u.create(ctx, org, actor, in, false)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return created.ID, nil
+}
+
+// LockCashflowsWithinTransaction 固定整个原子单元的既有资金锁序，避免多条核销反序。
+func (u *VerificationUsecase) LockCashflowsWithinTransaction(ctx context.Context, org uuid.UUID, ids []uuid.UUID) error {
+	if org == uuid.Nil {
+		return ErrVerificationInvalid
+	}
+	return u.repo.LockCashflows(ctx, org, ids)
+}
+
 // create 的组合写路径只返回事务内已写入对象，完整响应由外层提交后重读。
 func (u *VerificationUsecase) create(ctx context.Context, org, actor uuid.UUID, in CreateVerificationInput, readResponse bool) (*FinanceVerification, error) {
 	in.IdempotencyKey = strings.TrimSpace(in.IdempotencyKey)
@@ -178,7 +197,7 @@ func (u *VerificationUsecase) create(ctx context.Context, org, actor uuid.UUID, 
 	v := &FinanceVerification{ID: id, OrganizationID: org, IdempotencyKey: in.IdempotencyKey, Status: VerificationActive, VerificationDate: in.VerificationDate, Note: in.Note, Version: 1, Allocations: in.Allocations}
 	seen := make(map[string]struct{}, len(v.Allocations))
 	for _, a := range v.Allocations {
-		if a == nil || a.CashflowID == uuid.Nil || a.BillID == uuid.Nil || !a.Amount.IsPositive() {
+		if a == nil || a.CashflowID == uuid.Nil || a.BillID == uuid.Nil || !validVerificationAmount(a.Amount) {
 			return nil, ErrVerificationInvalid
 		}
 		pair := a.CashflowID.String() + ":" + a.BillID.String()
@@ -190,6 +209,9 @@ func (u *VerificationUsecase) create(ctx context.Context, org, actor uuid.UUID, 
 		a.VerificationID = id
 		a.Active = true
 		v.Amount = v.Amount.Add(a.Amount)
+	}
+	if !validVerificationAmount(v.Amount) {
+		return nil, ErrVerificationInvalid
 	}
 	if u.exchangeRate == nil {
 		return nil, ErrVerificationInvalid
@@ -239,6 +261,11 @@ func (u *VerificationUsecase) create(ctx context.Context, org, actor uuid.UUID, 
 		return old, nil
 	}
 	return nil, err
+}
+
+// 核销金额与 numeric(28,8) 的持久化精度一致，禁止写入时静默舍入。
+func validVerificationAmount(amount decimal.Decimal) bool {
+	return amount.IsPositive() && amount.Exponent() >= -8 && amount.Exponent() <= 20 && amount.LessThan(decimal.New(1, 20))
 }
 
 // CalculateVerificationAllocationAmounts 计算单笔分摊的账单侧与流水侧本位币金额及汇兑损益；

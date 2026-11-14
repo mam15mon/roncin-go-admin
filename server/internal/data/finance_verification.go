@@ -155,6 +155,72 @@ func (r *verificationRepo) ListBillCandidates(ctx context.Context, organizationI
 	})
 }
 
+// LockBillOrders 在分配流水编号前锁齐账单对应的经济订单闭包。
+// 不预锁账单头，避免颠倒既定的订单→资金→账单顺序。
+func (r *verificationRepo) LockBillOrders(ctx context.Context, org uuid.UUID, billIDs []uuid.UUID) error {
+	if _, ok := transactionFromContext(ctx); !ok || org == uuid.Nil || len(billIDs) == 0 {
+		return biz.ErrVerificationInvalid
+	}
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return err
+	}
+	billIDs = uniqueSortedUUIDs(billIDs)
+	count, err := client.FinanceBill.Query().Where(bill.OrganizationIDEQ(org), bill.IDIn(billIDs...)).Count(ctx)
+	if err != nil {
+		return err
+	}
+	if count != len(billIDs) {
+		return biz.ErrVerificationMismatch
+	}
+	orders, err := commissionEconomicAffectedOrderIDs(ctx, client, org, billIDs)
+	if err != nil {
+		return err
+	}
+	if err := lockFinanceEconomicOrders(ctx, client, orders); err != nil {
+		return err
+	}
+	return validateFinanceEconomicOrderSet(ctx, client, org, billIDs, orders)
+}
+
+// LockCashflows 只能在共享事务中调用，按主键统一预锁多笔核销的全部既有资金。
+func (r *verificationRepo) LockCashflows(ctx context.Context, org uuid.UUID, ids []uuid.UUID) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	if _, ok := transactionFromContext(ctx); !ok {
+		return biz.ErrVerificationInvalid
+	}
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return err
+	}
+	set := make(map[uuid.UUID]struct{}, len(ids))
+	for _, id := range ids {
+		if id == uuid.Nil {
+			return biz.ErrVerificationInvalid
+		}
+		set[id] = struct{}{}
+	}
+	ids = sortedFinanceUUIDs(set)
+	items, err := client.FinanceCashflow.Query().Where(cash.OrganizationIDEQ(org), cash.IDIn(ids...)).Order(cash.ByID()).ForUpdate().All(ctx)
+	if err != nil {
+		return err
+	}
+	if len(items) != len(ids) {
+		found := make(map[uuid.UUID]bool, len(items))
+		for _, item := range items {
+			found[item.ID] = true
+		}
+		for _, id := range ids {
+			if !found[id] {
+				return biz.ErrFinanceCashflowNotFound.WithMetadata(map[string]string{"cashflow_id": id.String()})
+			}
+		}
+	}
+	return nil
+}
+
 func (r *verificationRepo) Create(ctx context.Context, org, actor uuid.UUID, v *biz.FinanceVerification, audit *biz.AuditEvent) (*biz.FinanceVerification, error) {
 	var e error
 	e = r.data.WithTx(ctx, func(tx *ent.Tx) error {

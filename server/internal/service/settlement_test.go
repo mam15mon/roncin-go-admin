@@ -317,7 +317,7 @@ func TestInvoiceCreateCandidatesUseWritableOrganizationScope(t *testing.T) {
 		billResult:    &biz.FinanceInvoiceCreationBillListResult{},
 		profileResult: &biz.FinanceInvoiceProfilesForBill{OrganizationID: organizationID, SettlementPartyID: uuid.New()},
 	}
-	service := &SettlementService{invoiceUsecase: biz.NewFinanceInvoiceUsecase(repo, nil, nil)}
+	service := &SettlementService{invoiceUsecase: biz.NewFinanceInvoiceUsecase(repo, nil, nil, nil)}
 	ctx := biz.WithPrincipal(context.Background(), principal)
 	direction := string(biz.OrderFeeReceivable)
 	currency := "usd"

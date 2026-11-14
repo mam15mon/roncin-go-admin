@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"sort"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -16,7 +15,7 @@ import (
 var (
 	ErrFinanceInvoiceNotFound            = errors.NotFound("FINANCE_INVOICE_NOT_FOUND", "开票记录不存在")
 	ErrFinanceInvoiceInvalidArgument     = errors.BadRequest("FINANCE_INVOICE_INVALID_ARGUMENT", "开票记录字段不合法")
-	ErrFinanceInvoiceBillInvalid         = errors.Conflict("FINANCE_INVOICE_BILL_INVALID", "所选账单必须已确认且未进入其他有效开票记录")
+	ErrFinanceInvoiceBillInvalid         = errors.Conflict("FINANCE_INVOICE_BILL_INVALID", "所选账单必须已确认且存在可登记的有效费用余额")
 	ErrFinanceInvoiceBillMismatch        = errors.BadRequest("FINANCE_INVOICE_BILL_MISMATCH", "同一开票记录的账单必须具有相同收付方向、结算单位和币种")
 	ErrFinanceInvoiceVersionConflict     = errors.Conflict("FINANCE_INVOICE_VERSION_CONFLICT", "开票记录已被其他操作人修改，请刷新后重试")
 	ErrFinanceInvoiceInvalidTransition   = errors.Conflict("FINANCE_INVOICE_INVALID_TRANSITION", "当前开票记录状态不允许执行该操作")
@@ -59,6 +58,7 @@ type FinanceInvoice struct {
 	BillCount                              int
 	TaxInvoiceNo, InvoiceDate, Note        *string
 	Version                                uint64
+	RevisionNumber                         uint64
 	IssuedAt, CancelledAt                  *time.Time
 	IssuedBy, CancelledBy                  *uuid.UUID
 	CancellationReason                     *string
@@ -68,6 +68,7 @@ type FinanceInvoice struct {
 	RedFlushReason                         *string
 	Links                                  []*FinanceInvoiceBill
 	Lines                                  []*FinanceInvoiceLine
+	Revisions                              []*FinanceInvoiceRevision
 	CreatedAt, UpdatedAt                   time.Time
 }
 
@@ -75,7 +76,7 @@ type FinanceInvoiceLine struct {
 	ID, InvoiceID                     uuid.UUID
 	LineNo, SourceLineCount           int
 	ItemCode, ItemName, Currency      string
-	TaxRate                           decimal.Decimal
+	TaxRate                           *decimal.Decimal
 	NetAmount, TaxAmount, TotalAmount decimal.Decimal
 }
 
@@ -85,9 +86,11 @@ type FinanceInvoiceBill struct {
 	BillNo                string
 	Amount, TaxAmount     decimal.Decimal
 	Active                bool
+	Fees                  []*FinanceInvoiceFeeAllocation
 }
 
 type FinanceInvoiceFilter struct {
+	BillID         *uuid.UUID
 	Page, PageSize int
 	Keyword        string
 	Direction      OrderFeeDirection
@@ -107,6 +110,7 @@ type FinanceInvoiceSummary struct {
 }
 
 type FinanceInvoiceCreationBillFilter struct {
+	BillID            *uuid.UUID
 	Page, PageSize    int
 	Keyword           string
 	Direction         OrderFeeDirection
@@ -124,23 +128,15 @@ type FinanceInvoiceProfilesForBill struct {
 	Items                             []*PartnerInvoiceProfile
 }
 
-type CreateFinanceInvoiceInput struct {
-	BillIDs          []uuid.UUID
-	InvoiceProfileID uuid.UUID
-	InvoiceType      FinanceInvoiceType
-	Note             *string
-	IdempotencyKey   string
-}
-
-type FinanceInvoiceIssueInput struct {
-	TaxInvoiceNo, InvoiceDate            string
-	ExchangeRate                         decimal.Decimal
-	ExchangeRateSource, ExchangeRateDate string
-	ExchangeRateSettingID                *uuid.UUID
-	BaseCurrencyAmount                   decimal.Decimal
-}
-
 type FinanceInvoiceRepo interface {
+	ListProfilesForParty(context.Context, []uuid.UUID, uuid.UUID) (*FinanceInvoiceProfilesForBill, error)
+	BeginRegistrationCommand(context.Context, uuid.UUID, uuid.UUID, string, string, string) (*FinanceInvoiceCommand, error)
+	CompleteRegistrationCommand(context.Context, uuid.UUID, []uuid.UUID) error
+	LockRegistrationBills(context.Context, []uuid.UUID, []FinanceInvoiceBillVersion, []uuid.UUID, bool) ([]*FinanceBill, error)
+	LoadRevisionInvoices(context.Context, []uuid.UUID, []FinanceInvoiceRevisionEntry) ([]*FinanceInvoice, error)
+	SaveRegistrations(context.Context, uuid.UUID, uuid.UUID, []*FinanceInvoice, []*FinanceInvoice, string, uuid.UUID) ([]uuid.UUID, error)
+	GetRevisionImpact(context.Context, []uuid.UUID, uuid.UUID) (*FinanceInvoiceRevisionImpact, error)
+
 	SetBillInvoiceExemption(context.Context, []uuid.UUID, uuid.UUID, uuid.UUID, uint64, string, bool, *AuditEvent) error
 	List(context.Context, uuid.UUID, FinanceInvoiceFilter) (*FinanceInvoiceListResult, error)
 	ListScoped(context.Context, []uuid.UUID, FinanceInvoiceFilter) (*FinanceInvoiceListResult, error)
@@ -152,8 +148,6 @@ type FinanceInvoiceRepo interface {
 	ListCreationBills(context.Context, uuid.UUID, FinanceInvoiceCreationBillFilter) (*FinanceInvoiceCreationBillListResult, error)
 	ListProfilesForBill(context.Context, []uuid.UUID, uuid.UUID) (*FinanceInvoiceProfilesForBill, error)
 	LoadInvoiceProfile(context.Context, uuid.UUID, uuid.UUID, uuid.UUID) (*PartnerInvoiceProfile, error)
-	Create(context.Context, *FinanceInvoice, *AuditEvent) (*FinanceInvoice, error)
-	Issue(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, FinanceInvoiceIssueInput, *AuditEvent) (*FinanceInvoice, error)
 	Cancel(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, string, *AuditEvent) (*FinanceInvoice, error)
 	RedFlush(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, string, string, string, *AuditEvent) (*FinanceInvoice, error)
 }
@@ -162,10 +156,11 @@ type FinanceInvoiceUsecase struct {
 	repo         FinanceInvoiceRepo
 	config       *OrderConfigUsecase
 	exchangeRate *ExchangeRateUsecase
+	transactor   Transactor
 }
 
-func NewFinanceInvoiceUsecase(repo FinanceInvoiceRepo, config *OrderConfigUsecase, exchangeRate *ExchangeRateUsecase) *FinanceInvoiceUsecase {
-	return &FinanceInvoiceUsecase{repo: repo, config: config, exchangeRate: exchangeRate}
+func NewFinanceInvoiceUsecase(repo FinanceInvoiceRepo, config *OrderConfigUsecase, exchangeRate *ExchangeRateUsecase, transactor Transactor) *FinanceInvoiceUsecase {
+	return &FinanceInvoiceUsecase{repo: repo, config: config, exchangeRate: exchangeRate, transactor: transactor}
 }
 
 func (uc *FinanceInvoiceUsecase) List(ctx context.Context, organizationID uuid.UUID, filter FinanceInvoiceFilter) (*FinanceInvoiceListResult, error) {
@@ -174,7 +169,7 @@ func (uc *FinanceInvoiceUsecase) List(ctx context.Context, organizationID uuid.U
 
 func (uc *FinanceInvoiceUsecase) ListScoped(ctx context.Context, organizationIDs []uuid.UUID, filter FinanceInvoiceFilter) (*FinanceInvoiceListResult, error) {
 	filter.Keyword = strings.TrimSpace(filter.Keyword)
-	if !validFinanceOrganizationIDs(organizationIDs) || !ValidListPagination(filter.Page, filter.PageSize) || utf8.RuneCountInString(filter.Keyword) > 100 || (filter.Direction != "" && filter.Direction != OrderFeeReceivable && filter.Direction != OrderFeePayable) || (filter.Status != "" && filter.Status != FinanceInvoiceDraft && filter.Status != FinanceInvoiceIssued && filter.Status != FinanceInvoiceCancelled && filter.Status != FinanceInvoiceRedFlushed) {
+	if !validFinanceOrganizationIDs(organizationIDs) || !ValidListPagination(filter.Page, filter.PageSize) || (filter.BillID != nil && *filter.BillID == uuid.Nil) || utf8.RuneCountInString(filter.Keyword) > 100 || (filter.Direction != "" && filter.Direction != OrderFeeReceivable && filter.Direction != OrderFeePayable) || (filter.Status != "" && filter.Status != FinanceInvoiceDraft && filter.Status != FinanceInvoiceIssued && filter.Status != FinanceInvoiceCancelled && filter.Status != FinanceInvoiceRedFlushed) {
 		return nil, ErrFinanceInvoiceInvalidArgument
 	}
 	return uc.repo.ListScoped(ctx, organizationIDs, filter)
@@ -183,7 +178,7 @@ func (uc *FinanceInvoiceUsecase) ListScoped(ctx context.Context, organizationIDs
 func (uc *FinanceInvoiceUsecase) ListCreationBills(ctx context.Context, organizationID uuid.UUID, filter FinanceInvoiceCreationBillFilter) (*FinanceInvoiceCreationBillListResult, error) {
 	filter.Keyword = strings.TrimSpace(filter.Keyword)
 	filter.Currency = strings.ToUpper(strings.TrimSpace(filter.Currency))
-	if organizationID == uuid.Nil || !ValidListPagination(filter.Page, filter.PageSize) || utf8.RuneCountInString(filter.Keyword) > 100 ||
+	if organizationID == uuid.Nil || !ValidListPagination(filter.Page, filter.PageSize) || (filter.BillID != nil && *filter.BillID == uuid.Nil) || utf8.RuneCountInString(filter.Keyword) > 100 ||
 		(filter.Direction != "" && filter.Direction != OrderFeeReceivable && filter.Direction != OrderFeePayable) ||
 		(filter.SettlementPartyID != nil && *filter.SettlementPartyID == uuid.Nil) ||
 		(filter.Currency != "" && !financeBillCurrencyPattern.MatchString(filter.Currency)) {
@@ -218,119 +213,6 @@ func (uc *FinanceInvoiceUsecase) GetScoped(ctx context.Context, organizationIDs 
 	return uc.repo.GetScoped(ctx, organizationIDs, id)
 }
 
-func (uc *FinanceInvoiceUsecase) Create(ctx context.Context, organizationID, actorID uuid.UUID, input CreateFinanceInvoiceInput) (*FinanceInvoice, error) {
-	input.IdempotencyKey = strings.TrimSpace(input.IdempotencyKey)
-	input.Note = normalizedOptionalFinanceString(input.Note)
-	if organizationID == uuid.Nil || actorID == uuid.Nil || input.InvoiceProfileID == uuid.Nil || len(input.BillIDs) == 0 || len(input.BillIDs) > 500 || input.IdempotencyKey == "" || utf8.RuneCountInString(input.IdempotencyKey) > 128 || (input.InvoiceType != FinanceInvoiceNormal && input.InvoiceType != FinanceInvoiceSpecial) || (input.Note != nil && utf8.RuneCountInString(*input.Note) > 500) {
-		return nil, ErrFinanceInvoiceInvalidArgument
-	}
-	seen := map[uuid.UUID]struct{}{}
-	for _, id := range input.BillIDs {
-		if id == uuid.Nil {
-			return nil, ErrFinanceInvoiceInvalidArgument
-		}
-		if _, ok := seen[id]; ok {
-			return nil, ErrFinanceInvoiceInvalidArgument
-		}
-		seen[id] = struct{}{}
-	}
-	sort.Slice(input.BillIDs, func(i, j int) bool { return input.BillIDs[i].String() < input.BillIDs[j].String() })
-	if existing, err := uc.repo.GetByIdempotencyKey(ctx, organizationID, input.IdempotencyKey); err != nil {
-		return nil, err
-	} else if existing != nil {
-		if existing.InvoiceProfileID != nil && *existing.InvoiceProfileID == input.InvoiceProfileID && existing.InvoiceType == input.InvoiceType && stringPointersEqual(existing.Note, input.Note) && len(existing.Links) == len(input.BillIDs) {
-			ids := make([]string, 0, len(existing.Links))
-			for _, l := range existing.Links {
-				ids = append(ids, l.BillID.String())
-			}
-			sort.Strings(ids)
-			same := true
-			for i, id := range input.BillIDs {
-				if ids[i] != id.String() {
-					same = false
-					break
-				}
-			}
-			if same {
-				return existing, nil
-			}
-		}
-		return nil, ErrFinanceInvoiceIdempotencyConflict
-	}
-	bills, err := uc.repo.LoadBills(ctx, organizationID, input.BillIDs)
-	if err != nil {
-		return nil, err
-	}
-	if len(bills) == 0 {
-		return nil, ErrFinanceInvoiceBillInvalid
-	}
-	profile, err := uc.repo.LoadInvoiceProfile(ctx, organizationID, bills[0].SettlementPartyID, input.InvoiceProfileID)
-	if err != nil {
-		if err == ErrPartnerInvoiceProfileNotFound {
-			return nil, ErrFinanceInvoiceProfileRequired
-		}
-		return nil, err
-	}
-	invoice, err := buildFinanceInvoice(organizationID, bills, profile, input)
-	if err != nil {
-		return nil, err
-	}
-	invoice.RecordNo, err = uc.config.NextNumber(ctx, organizationID, DocumentTypeInvoice)
-	if err != nil {
-		return nil, err
-	}
-	return uc.repo.Create(ctx, invoice, financeInvoiceAudit(organizationID, actorID, invoice.ID, "finance.invoice.create"))
-}
-
-// CreateScoped 先在创建权限的组织集合内定位全部来源账单，避免先全局读取后再做内存权限判断。
-func (uc *FinanceInvoiceUsecase) CreateScoped(ctx context.Context, organizationIDs []uuid.UUID, actorID uuid.UUID, input CreateFinanceInvoiceInput) (*FinanceInvoice, error) {
-	if !validFinanceOrganizationIDs(organizationIDs) || actorID == uuid.Nil || len(input.BillIDs) == 0 {
-		return nil, ErrFinanceInvoiceInvalidArgument
-	}
-	bills, err := uc.repo.LoadBillsScoped(ctx, organizationIDs, input.BillIDs)
-	if err != nil {
-		return nil, err
-	}
-	if len(bills) != len(input.BillIDs) || len(bills) == 0 {
-		return nil, ErrFinanceInvoiceBillInvalid
-	}
-	organizationID := bills[0].OrganizationID
-	for _, bill := range bills[1:] {
-		if bill.OrganizationID != organizationID {
-			return nil, ErrFinanceInvoiceBillMismatch
-		}
-	}
-	return uc.Create(ctx, organizationID, actorID, input)
-}
-
-func (uc *FinanceInvoiceUsecase) Issue(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, taxInvoiceNo, invoiceDate string) (*FinanceInvoice, error) {
-	taxInvoiceNo, invoiceDate = strings.TrimSpace(taxInvoiceNo), strings.TrimSpace(invoiceDate)
-	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 || taxInvoiceNo == "" || utf8.RuneCountInString(taxInvoiceNo) > 100 || !validFinanceDate(invoiceDate) {
-		return nil, ErrFinanceInvoiceInvalidArgument
-	}
-	invoice, err := uc.repo.Get(ctx, organizationID, id)
-	if err != nil {
-		return nil, err
-	}
-	if uc.exchangeRate == nil {
-		return nil, ErrFinanceInvoiceInvalidArgument
-	}
-	// 开票采用应收汇率，收票采用应付汇率，与来源账单方向保持一致。
-	resolved, err := uc.exchangeRate.ResolveRate(ctx, organizationID, invoice.Direction, invoice.Currency, invoiceDate)
-	if err != nil {
-		return nil, err
-	}
-	baseCurrency, err := uc.exchangeRate.BaseCurrency(ctx, organizationID)
-	if err != nil {
-		return nil, err
-	}
-	if baseCurrency != invoice.BaseCurrency {
-		return nil, ErrFinanceInvoiceBillMismatch
-	}
-	issue := FinanceInvoiceIssueInput{TaxInvoiceNo: taxInvoiceNo, InvoiceDate: invoiceDate, ExchangeRate: resolved.Rate, ExchangeRateSource: resolved.Source, ExchangeRateDate: invoiceDate, ExchangeRateSettingID: resolved.SettingID, BaseCurrencyAmount: invoice.TotalAmount.Mul(resolved.Rate).RoundBank(8)}
-	return uc.repo.Issue(ctx, organizationID, id, actorID, expectedVersion, issue, financeInvoiceAudit(organizationID, actorID, id, "finance.invoice.issue"))
-}
-
 func (uc *FinanceInvoiceUsecase) Cancel(ctx context.Context, organizationID, actorID, id uuid.UUID, expectedVersion uint64, reason string) (*FinanceInvoice, error) {
 	reason = strings.TrimSpace(reason)
 	if organizationID == uuid.Nil || actorID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 || reason == "" || utf8.RuneCountInString(reason) > 500 {
@@ -339,81 +221,13 @@ func (uc *FinanceInvoiceUsecase) Cancel(ctx context.Context, organizationID, act
 	return uc.repo.Cancel(ctx, organizationID, id, actorID, expectedVersion, reason, financeInvoiceAudit(organizationID, actorID, id, "finance.invoice.cancel"))
 }
 
-func buildFinanceInvoice(organizationID uuid.UUID, bills []*FinanceBill, profile *PartnerInvoiceProfile, input CreateFinanceInvoiceInput) (*FinanceInvoice, error) {
-	if len(bills) != len(input.BillIDs) || len(bills) == 0 || bills[0].Status != FinanceBillConfirmed {
-		return nil, ErrFinanceInvoiceBillInvalid
-	}
-	first := bills[0]
-	if profile == nil || !profile.Enabled || profile.OrganizationID != organizationID || profile.PartnerID != first.SettlementPartyID || profile.InvoiceTitle == "" || profile.TaxpayerIdentificationNo == "" {
-		return nil, ErrFinanceInvoiceProfileRequired
-	}
-	if input.InvoiceType == FinanceInvoiceSpecial && (profile.RegisteredAddress == "" || profile.RegisteredPhone == "" || profile.BankName == "" || profile.BankAccount == "") {
-		return nil, ErrFinanceInvoiceProfileRequired
-	}
-	id := uuid.Must(uuid.NewV7())
-	profileID := profile.ID
-	invoice := &FinanceInvoice{ID: id, OrganizationID: organizationID, InvoiceProfileID: &profileID, IdempotencyKey: input.IdempotencyKey, Direction: first.Direction, Status: FinanceInvoiceDraft, InvoiceType: input.InvoiceType, SettlementPartyID: first.SettlementPartyID, SettlementPartyName: first.SettlementPartyName, InvoiceTitle: profile.InvoiceTitle, TaxpayerIdentificationNo: profile.TaxpayerIdentificationNo, RegisteredAddress: profile.RegisteredAddress, RegisteredPhone: profile.RegisteredPhone, BankName: profile.BankName, BankAccount: profile.BankAccount, Currency: first.Currency, BaseCurrency: first.BaseCurrency, Note: input.Note, Version: 1, Links: make([]*FinanceInvoiceBill, 0, len(bills))}
-	lineGroups := make(map[string]*FinanceInvoiceLine)
-	lineKeys := make([]string, 0)
-	for _, bill := range bills {
-		if bill.Status != FinanceBillConfirmed || bill.Purpose == FinanceBillCorrectionReversal {
-			return nil, ErrFinanceInvoiceBillInvalid
-		}
-		if bill.Direction != invoice.Direction || bill.SettlementPartyID != invoice.SettlementPartyID || bill.Currency != invoice.Currency || bill.BaseCurrency != invoice.BaseCurrency {
-			return nil, ErrFinanceInvoiceBillMismatch
-		}
-		total, net, tax := bill.TotalAmount, bill.NetAmount, bill.TaxAmount
-		if bill.InvoiceableAmount != nil {
-			total, net, tax = *bill.InvoiceableAmount, *bill.InvoiceableNetAmount, *bill.InvoiceableTaxAmount
-		}
-		if !total.IsPositive() {
-			return nil, ErrFinanceInvoiceBillInvalid
-		}
-		invoice.TotalAmount = invoice.TotalAmount.Add(total)
-		invoice.NetAmount = invoice.NetAmount.Add(net)
-		invoice.TaxAmount = invoice.TaxAmount.Add(tax)
-		sourceFeeIDs := make([]uuid.UUID, 0, len(bill.Lines))
-		for _, line := range bill.Lines {
-			sourceFeeIDs = append(sourceFeeIDs, line.OrderFeeID)
-		}
-		invoice.Links = append(invoice.Links, &FinanceInvoiceBill{SourceFeeIDs: sourceFeeIDs, ID: uuid.Must(uuid.NewV7()), InvoiceID: id, BillID: bill.ID, BillNo: bill.BillNo, Amount: total, TaxAmount: tax, Active: true})
-		for _, billLine := range bill.Lines {
-			if billLine == nil || !billLine.Active || billLine.TaxRate == nil {
-				return nil, ErrFinanceInvoiceBillInvalid
-			}
-			key := strings.Join([]string{billLine.FeeCode, billLine.FeeName, billLine.TaxRate.StringFixed(4), billLine.Currency}, "\x00")
-			line := lineGroups[key]
-			if line == nil {
-				line = &FinanceInvoiceLine{ID: uuid.Must(uuid.NewV7()), InvoiceID: id, ItemCode: billLine.FeeCode, ItemName: billLine.FeeName, Currency: billLine.Currency, TaxRate: *billLine.TaxRate}
-				lineGroups[key] = line
-				lineKeys = append(lineKeys, key)
-			}
-			line.NetAmount = line.NetAmount.Add(billLine.NetAmount)
-			line.TaxAmount = line.TaxAmount.Add(billLine.TaxAmount)
-			line.TotalAmount = line.TotalAmount.Add(billLine.TotalAmount)
-			line.SourceLineCount++
-		}
-	}
-	invoice.BillCount = len(invoice.Links)
-	sort.Strings(lineKeys)
-	invoice.Lines = make([]*FinanceInvoiceLine, 0, len(lineKeys))
-	for index, key := range lineKeys {
-		line := lineGroups[key]
-		line.LineNo = index + 1
-		line.NetAmount = line.NetAmount.Round(8)
-		line.TaxAmount = line.TaxAmount.Round(8)
-		line.TotalAmount = line.TotalAmount.Round(8)
-		invoice.Lines = append(invoice.Lines, line)
-	}
-	if len(invoice.Lines) == 0 {
-		return nil, ErrFinanceInvoiceBillInvalid
-	}
-	invoice.TotalAmount = invoice.TotalAmount.Round(8)
-	invoice.NetAmount = invoice.NetAmount.Round(8)
-	invoice.TaxAmount = invoice.TaxAmount.Round(8)
-	return invoice, nil
-}
-
 func financeInvoiceAudit(org, actor, id uuid.UUID, action string) *AuditEvent {
 	return &AuditEvent{OrganizationID: &org, UserID: &actor, Action: action, Result: "success", ResourceType: "finance_invoice", ResourceID: id.String(), Details: map[string]string{"finance_invoice.id": id.String()}}
+}
+
+func (uc *FinanceInvoiceUsecase) ListProfilesForParty(ctx context.Context, scope []uuid.UUID, party uuid.UUID) (*FinanceInvoiceProfilesForBill, error) {
+	if len(scope) != 1 || scope[0] == uuid.Nil || party == uuid.Nil {
+		return nil, ErrFinanceInvoiceInvalidArgument
+	}
+	return uc.repo.ListProfilesForParty(ctx, scope, party)
 }

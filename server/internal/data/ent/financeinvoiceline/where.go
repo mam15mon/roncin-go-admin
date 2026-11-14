@@ -76,6 +76,11 @@ func LineNo(v int) predicate.FinanceInvoiceLine {
 	return predicate.FinanceInvoiceLine(sql.FieldEQ(FieldLineNo, v))
 }
 
+// RevisionNumber applies equality check predicate on the "revision_number" field. It's identical to RevisionNumberEQ.
+func RevisionNumber(v uint64) predicate.FinanceInvoiceLine {
+	return predicate.FinanceInvoiceLine(sql.FieldEQ(FieldRevisionNumber, v))
+}
+
 // ItemCode applies equality check predicate on the "item_code" field. It's identical to ItemCodeEQ.
 func ItemCode(v string) predicate.FinanceInvoiceLine {
 	return predicate.FinanceInvoiceLine(sql.FieldEQ(FieldItemCode, v))
@@ -254,6 +259,46 @@ func LineNoLT(v int) predicate.FinanceInvoiceLine {
 // LineNoLTE applies the LTE predicate on the "line_no" field.
 func LineNoLTE(v int) predicate.FinanceInvoiceLine {
 	return predicate.FinanceInvoiceLine(sql.FieldLTE(FieldLineNo, v))
+}
+
+// RevisionNumberEQ applies the EQ predicate on the "revision_number" field.
+func RevisionNumberEQ(v uint64) predicate.FinanceInvoiceLine {
+	return predicate.FinanceInvoiceLine(sql.FieldEQ(FieldRevisionNumber, v))
+}
+
+// RevisionNumberNEQ applies the NEQ predicate on the "revision_number" field.
+func RevisionNumberNEQ(v uint64) predicate.FinanceInvoiceLine {
+	return predicate.FinanceInvoiceLine(sql.FieldNEQ(FieldRevisionNumber, v))
+}
+
+// RevisionNumberIn applies the In predicate on the "revision_number" field.
+func RevisionNumberIn(vs ...uint64) predicate.FinanceInvoiceLine {
+	return predicate.FinanceInvoiceLine(sql.FieldIn(FieldRevisionNumber, vs...))
+}
+
+// RevisionNumberNotIn applies the NotIn predicate on the "revision_number" field.
+func RevisionNumberNotIn(vs ...uint64) predicate.FinanceInvoiceLine {
+	return predicate.FinanceInvoiceLine(sql.FieldNotIn(FieldRevisionNumber, vs...))
+}
+
+// RevisionNumberGT applies the GT predicate on the "revision_number" field.
+func RevisionNumberGT(v uint64) predicate.FinanceInvoiceLine {
+	return predicate.FinanceInvoiceLine(sql.FieldGT(FieldRevisionNumber, v))
+}
+
+// RevisionNumberGTE applies the GTE predicate on the "revision_number" field.
+func RevisionNumberGTE(v uint64) predicate.FinanceInvoiceLine {
+	return predicate.FinanceInvoiceLine(sql.FieldGTE(FieldRevisionNumber, v))
+}
+
+// RevisionNumberLT applies the LT predicate on the "revision_number" field.
+func RevisionNumberLT(v uint64) predicate.FinanceInvoiceLine {
+	return predicate.FinanceInvoiceLine(sql.FieldLT(FieldRevisionNumber, v))
+}
+
+// RevisionNumberLTE applies the LTE predicate on the "revision_number" field.
+func RevisionNumberLTE(v uint64) predicate.FinanceInvoiceLine {
+	return predicate.FinanceInvoiceLine(sql.FieldLTE(FieldRevisionNumber, v))
 }
 
 // ItemCodeEQ applies the EQ predicate on the "item_code" field.
@@ -439,6 +484,16 @@ func TaxRateHasPrefix(v string) predicate.FinanceInvoiceLine {
 // TaxRateHasSuffix applies the HasSuffix predicate on the "tax_rate" field.
 func TaxRateHasSuffix(v string) predicate.FinanceInvoiceLine {
 	return predicate.FinanceInvoiceLine(sql.FieldHasSuffix(FieldTaxRate, v))
+}
+
+// TaxRateIsNil applies the IsNil predicate on the "tax_rate" field.
+func TaxRateIsNil() predicate.FinanceInvoiceLine {
+	return predicate.FinanceInvoiceLine(sql.FieldIsNull(FieldTaxRate))
+}
+
+// TaxRateNotNil applies the NotNil predicate on the "tax_rate" field.
+func TaxRateNotNil() predicate.FinanceInvoiceLine {
+	return predicate.FinanceInvoiceLine(sql.FieldNotNull(FieldTaxRate))
 }
 
 // TaxRateEqualFold applies the EqualFold predicate on the "tax_rate" field.

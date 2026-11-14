@@ -87,6 +87,8 @@ const (
 	EdgePartnerInvoiceProfiles = "partner_invoice_profiles"
 	// EdgeFinanceInvoices holds the string denoting the finance_invoices edge name in mutations.
 	EdgeFinanceInvoices = "finance_invoices"
+	// EdgeFinanceInvoiceCommands holds the string denoting the finance_invoice_commands edge name in mutations.
+	EdgeFinanceInvoiceCommands = "finance_invoice_commands"
 	// EdgeFinanceInvoiceExemptions holds the string denoting the finance_invoice_exemptions edge name in mutations.
 	EdgeFinanceInvoiceExemptions = "finance_invoice_exemptions"
 	// EdgeFinanceCashflows holds the string denoting the finance_cashflows edge name in mutations.
@@ -319,6 +321,13 @@ const (
 	FinanceInvoicesInverseTable = "finance_invoices"
 	// FinanceInvoicesColumn is the table column denoting the finance_invoices relation/edge.
 	FinanceInvoicesColumn = "organization_id"
+	// FinanceInvoiceCommandsTable is the table that holds the finance_invoice_commands relation/edge.
+	FinanceInvoiceCommandsTable = "finance_invoice_commands"
+	// FinanceInvoiceCommandsInverseTable is the table name for the FinanceInvoiceCommand entity.
+	// It exists in this package in order to avoid circular dependency with the "financeinvoicecommand" package.
+	FinanceInvoiceCommandsInverseTable = "finance_invoice_commands"
+	// FinanceInvoiceCommandsColumn is the table column denoting the finance_invoice_commands relation/edge.
+	FinanceInvoiceCommandsColumn = "organization_id"
 	// FinanceInvoiceExemptionsTable is the table that holds the finance_invoice_exemptions relation/edge.
 	FinanceInvoiceExemptionsTable = "finance_invoice_exemptions"
 	// FinanceInvoiceExemptionsInverseTable is the table name for the FinanceInvoiceExemption entity.
@@ -1026,6 +1035,20 @@ func ByFinanceInvoices(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByFinanceInvoiceCommandsCount orders the results by finance_invoice_commands count.
+func ByFinanceInvoiceCommandsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFinanceInvoiceCommandsStep(), opts...)
+	}
+}
+
+// ByFinanceInvoiceCommands orders the results by finance_invoice_commands terms.
+func ByFinanceInvoiceCommands(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFinanceInvoiceCommandsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByFinanceInvoiceExemptionsCount orders the results by finance_invoice_exemptions count.
 func ByFinanceInvoiceExemptionsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -1667,6 +1690,13 @@ func newFinanceInvoicesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FinanceInvoicesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FinanceInvoicesTable, FinanceInvoicesColumn),
+	)
+}
+func newFinanceInvoiceCommandsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FinanceInvoiceCommandsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FinanceInvoiceCommandsTable, FinanceInvoiceCommandsColumn),
 	)
 }
 func newFinanceInvoiceExemptionsStep() *sqlgraph.Step {

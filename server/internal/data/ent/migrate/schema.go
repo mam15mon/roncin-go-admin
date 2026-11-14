@@ -2645,6 +2645,7 @@ var (
 		{Name: "invoice_date", Type: field.TypeString, Nullable: true, Size: 10},
 		{Name: "note", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "revision_number", Type: field.TypeUint64, Default: 1},
 		{Name: "issued_at", Type: field.TypeTime, Nullable: true},
 		{Name: "cancelled_at", Type: field.TypeTime, Nullable: true},
 		{Name: "cancellation_reason", Type: field.TypeString, Nullable: true, Size: 500},
@@ -2667,37 +2668,37 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_invoices_organizations_finance_invoices",
-				Columns:    []*schema.Column{FinanceInvoicesColumns[37]},
+				Columns:    []*schema.Column{FinanceInvoicesColumns[38]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_invoices_partners_finance_invoices",
-				Columns:    []*schema.Column{FinanceInvoicesColumns[38]},
+				Columns:    []*schema.Column{FinanceInvoicesColumns[39]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_invoices_partner_invoice_profiles_finance_invoices",
-				Columns:    []*schema.Column{FinanceInvoicesColumns[39]},
+				Columns:    []*schema.Column{FinanceInvoicesColumns[40]},
 				RefColumns: []*schema.Column{PartnerInvoiceProfilesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_invoices_users_issued_finance_invoices",
-				Columns:    []*schema.Column{FinanceInvoicesColumns[40]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:     "finance_invoices_users_cancelled_finance_invoices",
 				Columns:    []*schema.Column{FinanceInvoicesColumns[41]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:     "finance_invoices_users_red_flushed_finance_invoices",
+				Symbol:     "finance_invoices_users_cancelled_finance_invoices",
 				Columns:    []*schema.Column{FinanceInvoicesColumns[42]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "finance_invoices_users_red_flushed_finance_invoices",
+				Columns:    []*schema.Column{FinanceInvoicesColumns[43]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -2711,32 +2712,32 @@ var (
 			{
 				Name:    "financeinvoice_organization_id_record_no",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceInvoicesColumns[37], FinanceInvoicesColumns[3]},
+				Columns: []*schema.Column{FinanceInvoicesColumns[38], FinanceInvoicesColumns[3]},
 			},
 			{
 				Name:    "financeinvoice_organization_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceInvoicesColumns[37], FinanceInvoicesColumns[4]},
+				Columns: []*schema.Column{FinanceInvoicesColumns[38], FinanceInvoicesColumns[4]},
 			},
 			{
 				Name:    "financeinvoice_organization_id_status_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceInvoicesColumns[37], FinanceInvoicesColumns[6], FinanceInvoicesColumns[1]},
+				Columns: []*schema.Column{FinanceInvoicesColumns[38], FinanceInvoicesColumns[6], FinanceInvoicesColumns[1]},
 			},
 			{
 				Name:    "financeinvoice_settlement_party_id_direction_currency",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceInvoicesColumns[38], FinanceInvoicesColumns[5], FinanceInvoicesColumns[15]},
+				Columns: []*schema.Column{FinanceInvoicesColumns[39], FinanceInvoicesColumns[5], FinanceInvoicesColumns[15]},
 			},
 			{
 				Name:    "financeinvoice_invoice_profile_id",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceInvoicesColumns[39]},
+				Columns: []*schema.Column{FinanceInvoicesColumns[40]},
 			},
 			{
 				Name:    "financeinvoice_org_tax_invoice_no",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceInvoicesColumns[37], FinanceInvoicesColumns[26]},
+				Columns: []*schema.Column{FinanceInvoicesColumns[38], FinanceInvoicesColumns[26]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "tax_invoice_no IS NOT NULL",
 				},
@@ -2744,7 +2745,7 @@ var (
 			{
 				Name:    "financeinvoice_org_red_invoice_no",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceInvoicesColumns[37], FinanceInvoicesColumns[33]},
+				Columns: []*schema.Column{FinanceInvoicesColumns[38], FinanceInvoicesColumns[34]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "red_invoice_no IS NOT NULL",
 				},
@@ -2798,6 +2799,45 @@ var (
 				Name:    "financeinvoicebill_bill_id_active",
 				Unique:  false,
 				Columns: []*schema.Column{FinanceInvoiceBillsColumns[8], FinanceInvoiceBillsColumns[7]},
+			},
+		},
+	}
+	// FinanceInvoiceCommandsColumns holds the columns for the "finance_invoice_commands" table.
+	FinanceInvoiceCommandsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "actor_id", Type: field.TypeUUID},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"REGISTER", "REVISE"}},
+		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
+		{Name: "request_fingerprint", Type: field.TypeString, Size: 64},
+		{Name: "invoice_ids", Type: field.TypeJSON},
+		{Name: "completed", Type: field.TypeBool, Default: false},
+		{Name: "organization_id", Type: field.TypeUUID},
+	}
+	// FinanceInvoiceCommandsTable holds the schema information for the "finance_invoice_commands" table.
+	FinanceInvoiceCommandsTable = &schema.Table{
+		Name:       "finance_invoice_commands",
+		Columns:    FinanceInvoiceCommandsColumns,
+		PrimaryKey: []*schema.Column{FinanceInvoiceCommandsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "finance_invoice_commands_organizations_finance_invoice_commands",
+				Columns:    []*schema.Column{FinanceInvoiceCommandsColumns[9]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "financeinvoicecommand_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceInvoiceCommandsColumns[2]},
+			},
+			{
+				Name:    "finance_invoice_command_org_key",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceInvoiceCommandsColumns[9], FinanceInvoiceCommandsColumns[5]},
 			},
 		},
 	}
@@ -2855,15 +2895,81 @@ var (
 			},
 		},
 	}
+	// FinanceInvoiceFeeAllocationsColumns holds the columns for the "finance_invoice_fee_allocations" table.
+	FinanceInvoiceFeeAllocationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "order_fee_id", Type: field.TypeUUID},
+		{Name: "fee_code", Type: field.TypeString, Size: 30},
+		{Name: "fee_name", Type: field.TypeString, Size: 80},
+		{Name: "currency", Type: field.TypeString, Size: 3},
+		{Name: "source_tax_rate", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "numeric(7,4)"}},
+		{Name: "amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "net_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "tax_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
+		{Name: "bill_line_id", Type: field.TypeUUID},
+		{Name: "invoice_id", Type: field.TypeUUID},
+		{Name: "invoice_bill_id", Type: field.TypeUUID},
+	}
+	// FinanceInvoiceFeeAllocationsTable holds the schema information for the "finance_invoice_fee_allocations" table.
+	FinanceInvoiceFeeAllocationsTable = &schema.Table{
+		Name:       "finance_invoice_fee_allocations",
+		Columns:    FinanceInvoiceFeeAllocationsColumns,
+		PrimaryKey: []*schema.Column{FinanceInvoiceFeeAllocationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "finance_invoice_fee_allocations_finance_bill_lines_invoice_allocations",
+				Columns:    []*schema.Column{FinanceInvoiceFeeAllocationsColumns[11]},
+				RefColumns: []*schema.Column{FinanceBillLinesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_invoice_fee_allocations_finance_invoices_fee_allocations",
+				Columns:    []*schema.Column{FinanceInvoiceFeeAllocationsColumns[12]},
+				RefColumns: []*schema.Column{FinanceInvoicesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_invoice_fee_allocations_finance_invoice_bills_fee_allocations",
+				Columns:    []*schema.Column{FinanceInvoiceFeeAllocationsColumns[13]},
+				RefColumns: []*schema.Column{FinanceInvoiceBillsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "financeinvoicefeeallocation_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceInvoiceFeeAllocationsColumns[2]},
+			},
+			{
+				Name:    "finance_invoice_fee_allocation_link_line",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceInvoiceFeeAllocationsColumns[13], FinanceInvoiceFeeAllocationsColumns[11]},
+			},
+			{
+				Name:    "financeinvoicefeeallocation_bill_line_id",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceInvoiceFeeAllocationsColumns[11]},
+			},
+			{
+				Name:    "financeinvoicefeeallocation_order_fee_id",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceInvoiceFeeAllocationsColumns[3]},
+			},
+		},
+	}
 	// FinanceInvoiceLinesColumns holds the columns for the "finance_invoice_lines" table.
 	FinanceInvoiceLinesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "line_no", Type: field.TypeInt},
+		{Name: "revision_number", Type: field.TypeUint64, Default: 1},
 		{Name: "item_code", Type: field.TypeString, Size: 30},
 		{Name: "item_name", Type: field.TypeString, Size: 80},
-		{Name: "tax_rate", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(7,4)"}},
+		{Name: "tax_rate", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "numeric(7,4)"}},
 		{Name: "net_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "tax_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
 		{Name: "total_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
@@ -2879,7 +2985,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_invoice_lines_finance_invoices_lines",
-				Columns:    []*schema.Column{FinanceInvoiceLinesColumns[12]},
+				Columns:    []*schema.Column{FinanceInvoiceLinesColumns[13]},
 				RefColumns: []*schema.Column{FinanceInvoicesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -2891,9 +2997,48 @@ var (
 				Columns: []*schema.Column{FinanceInvoiceLinesColumns[2]},
 			},
 			{
-				Name:    "financeinvoiceline_invoice_id_line_no",
+				Name:    "finance_invoice_line_revision_no",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceInvoiceLinesColumns[12], FinanceInvoiceLinesColumns[3]},
+				Columns: []*schema.Column{FinanceInvoiceLinesColumns[13], FinanceInvoiceLinesColumns[4], FinanceInvoiceLinesColumns[3]},
+			},
+		},
+	}
+	// FinanceInvoiceRevisionsColumns holds the columns for the "finance_invoice_revisions" table.
+	FinanceInvoiceRevisionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "actor_id", Type: field.TypeUUID},
+		{Name: "command_id", Type: field.TypeUUID},
+		{Name: "revision_number", Type: field.TypeUint64},
+		{Name: "reason", Type: field.TypeString, Size: 500},
+		{Name: "before_snapshot", Type: field.TypeJSON},
+		{Name: "after_snapshot", Type: field.TypeJSON},
+		{Name: "invoice_id", Type: field.TypeUUID},
+	}
+	// FinanceInvoiceRevisionsTable holds the schema information for the "finance_invoice_revisions" table.
+	FinanceInvoiceRevisionsTable = &schema.Table{
+		Name:       "finance_invoice_revisions",
+		Columns:    FinanceInvoiceRevisionsColumns,
+		PrimaryKey: []*schema.Column{FinanceInvoiceRevisionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "finance_invoice_revisions_finance_invoices_revisions",
+				Columns:    []*schema.Column{FinanceInvoiceRevisionsColumns[9]},
+				RefColumns: []*schema.Column{FinanceInvoicesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "financeinvoicerevision_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceInvoiceRevisionsColumns[2]},
+			},
+			{
+				Name:    "financeinvoicerevision_invoice_id_revision_number",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceInvoiceRevisionsColumns[9], FinanceInvoiceRevisionsColumns[5]},
 			},
 		},
 	}
@@ -7488,8 +7633,11 @@ var (
 		FinanceCustomSettingsTable,
 		FinanceInvoicesTable,
 		FinanceInvoiceBillsTable,
+		FinanceInvoiceCommandsTable,
 		FinanceInvoiceExemptionsTable,
+		FinanceInvoiceFeeAllocationsTable,
 		FinanceInvoiceLinesTable,
+		FinanceInvoiceRevisionsTable,
 		FinanceNettingsTable,
 		FinanceNettingAllocationsTable,
 		FinanceVerificationsTable,
@@ -7727,6 +7875,7 @@ func init() {
 	FinanceInvoicesTable.ForeignKeys[5].RefTable = UsersTable
 	FinanceInvoiceBillsTable.ForeignKeys[0].RefTable = FinanceBillsTable
 	FinanceInvoiceBillsTable.ForeignKeys[1].RefTable = FinanceInvoicesTable
+	FinanceInvoiceCommandsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	FinanceInvoiceExemptionsTable.ForeignKeys[0].RefTable = FinanceBillsTable
 	FinanceInvoiceExemptionsTable.ForeignKeys[1].RefTable = OrganizationsTable
 	FinanceInvoiceExemptionsTable.Annotation = &entsql.Annotation{}
@@ -7734,7 +7883,15 @@ func init() {
 		"finance_invoice_exemption_reason_check": "length(trim(reason)) > 0",
 		"finance_invoice_exemption_revoke_check": "(revoked_at IS NULL AND revoked_by IS NULL AND revocation_reason IS NULL) OR (revoked_at IS NOT NULL AND revoked_by IS NOT NULL AND revocation_reason IS NOT NULL AND length(trim(revocation_reason)) > 0)",
 	}
+	FinanceInvoiceFeeAllocationsTable.ForeignKeys[0].RefTable = FinanceBillLinesTable
+	FinanceInvoiceFeeAllocationsTable.ForeignKeys[1].RefTable = FinanceInvoicesTable
+	FinanceInvoiceFeeAllocationsTable.ForeignKeys[2].RefTable = FinanceInvoiceBillsTable
+	FinanceInvoiceFeeAllocationsTable.Annotation = &entsql.Annotation{}
+	FinanceInvoiceFeeAllocationsTable.Annotation.Checks = map[string]string{
+		"finance_invoice_fee_allocation_amount_check": "amount > 0 AND tax_amount >= 0 AND tax_amount <= amount AND net_amount = amount - tax_amount",
+	}
 	FinanceInvoiceLinesTable.ForeignKeys[0].RefTable = FinanceInvoicesTable
+	FinanceInvoiceRevisionsTable.ForeignKeys[0].RefTable = FinanceInvoicesTable
 	FinanceNettingsTable.ForeignKeys[0].RefTable = FinanceBillBatchesTable
 	FinanceNettingsTable.ForeignKeys[1].RefTable = OrderFeeCorrectionRequestsTable
 	FinanceNettingsTable.ForeignKeys[2].RefTable = OrganizationsTable

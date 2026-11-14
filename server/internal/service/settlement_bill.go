@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strconv"
 	"strings"
 	"time"
 
@@ -324,7 +325,14 @@ func (s *SettlementService) CreateBillBatch(ctx context.Context, request *v1.Cre
 		if estimatedRate != nil && estimatedCurrency == nil {
 			return nil, biz.ErrFinanceBillInvalidArgument
 		}
-		groups = append(groups, biz.CreateFinanceBillBatchGroupInput{GroupKey: group.GetGroupKey(), StatementTitle: group.GetStatementTitle(), BillDate: group.GetBillDate(), DueDate: group.DueDate, PaymentTermsDays: financeInt32Pointer(group.PaymentTermsDays), Note: group.Note, SettlementAccountID: accountID, EstimatedInvoiceCurrency: estimatedCurrency, EstimatedInvoiceRate: estimatedRate, GroupToken: group.GetGroupToken(), FeeIDs: groupFeeIDs})
+		invoices, verifications, operationErr := billBatchOperationsFromAPI(group)
+		var inputError *biz.FinanceBillBatchOperationInputError
+		var inputFingerprint string
+		if operationErr != nil {
+			inputError = operationErr.(*biz.FinanceBillBatchOperationInputError)
+			inputFingerprint = boundaryOperationFingerprint(group)
+		}
+		groups = append(groups, biz.CreateFinanceBillBatchGroupInput{GroupKey: group.GetGroupKey(), StatementTitle: group.GetStatementTitle(), BillDate: group.GetBillDate(), DueDate: group.DueDate, PaymentTermsDays: financeInt32Pointer(group.PaymentTermsDays), Note: group.Note, SettlementAccountID: accountID, EstimatedInvoiceCurrency: estimatedCurrency, EstimatedInvoiceRate: estimatedRate, GroupToken: group.GetGroupToken(), FeeIDs: groupFeeIDs, Invoices: invoices, Verifications: verifications, OperationInputError: inputError, OperationInputFingerprint: inputFingerprint})
 	}
 	requestedOrganization := requestedOrganizationID.String()
 	organizationIDs, scopeErr := organizationIDsForRequestedOrganization(principal, access.FinanceBillCreate, true, &requestedOrganization)
@@ -338,7 +346,7 @@ func (s *SettlementService) CreateBillBatch(ctx context.Context, request *v1.Cre
 	if organizationID != requestedOrganizationID {
 		return nil, biz.ErrFinanceBillInvalidArgument
 	}
-	created, err := s.billUsecase.CreateBatch(ctx, organizationID, principal.UserID, biz.CreateFinanceBillBatchInput{GroupingPolicy: financeBillGroupingPolicyFromAPI(request.GetGroupingPolicy()), Groups: groups, IdempotencyKey: request.GetIdempotencyKey()})
+	created, err := s.billUsecase.CreateBatchWithOperations(ctx, organizationID, principal.UserID, biz.CreateFinanceBillBatchInput{GroupingPolicy: financeBillGroupingPolicyFromAPI(request.GetGroupingPolicy()), Groups: groups, IdempotencyKey: request.GetIdempotencyKey()}, biz.FinanceBillBatchOperations{Invoices: s.invoiceUsecase, Verifications: s.verificationUsecase, Cashflows: s.cashflowUsecase, Permissions: billBatchOperationPermissions(principal, organizationID)})
 	if err != nil {
 		return nil, err
 	}
@@ -369,7 +377,15 @@ func billBatchGroupErrorToAPI(err error) *v1.BillBatchGroupError {
 	}
 	serviceError := kratoserrors.FromError(err)
 	if serviceError.Reason == kratoserrors.UnknownReason || serviceError.Code >= 500 {
-		return &v1.BillBatchGroupError{Reason: "FINANCE_BILL_BATCH_GROUP_FAILED", Message: "该组账单生成失败，请稍后重试"}
+		result := &v1.BillBatchGroupError{Reason: "FINANCE_BILL_BATCH_GROUP_FAILED", Message: "该组账单生成失败，请稍后重试"}
+		if step := serviceError.Metadata["step"]; step == "BILL" || step == "INVOICE" || step == "VERIFICATION" {
+			index, _ := strconv.Atoi(serviceError.Metadata["item_index"])
+			if index < 0 || index > 100 {
+				index = 0
+			}
+			result.Items = []*v1.BillBatchItemError{{Step: step, ItemIndex: int32(index), Reason: result.Reason, Message: result.Message}}
+		}
+		return result
 	}
 	result := &v1.BillBatchGroupError{Reason: serviceError.Reason, Message: serviceError.Message}
 	for _, key := range billBatchGroupPublicMetadataKeys {
@@ -379,6 +395,14 @@ func billBatchGroupErrorToAPI(err error) *v1.BillBatchGroupError {
 			}
 			result.Metadata[key] = value
 		}
+	}
+	step := serviceError.Metadata["step"]
+	if step == "BILL" || step == "INVOICE" || step == "VERIFICATION" {
+		index, _ := strconv.Atoi(serviceError.Metadata["item_index"])
+		if index < 0 || index > 100 {
+			index = 0
+		}
+		result.Items = []*v1.BillBatchItemError{{Step: step, ItemIndex: int32(index), Reason: result.Reason, Message: result.Message}}
 	}
 	return result
 }
@@ -497,7 +521,8 @@ func financeBillToAPI(item *biz.FinanceBill) *v1.FinanceBill {
 			Quantity: line.Quantity.StringFixed(4), UnitPrice: line.UnitPrice.StringFixed(4),
 			TotalAmount: line.TotalAmount.StringFixed(8), NetAmount: line.NetAmount.StringFixed(8), TaxAmount: line.TaxAmount.StringFixed(8), Currency: line.Currency,
 			ExchangeRate: line.ExchangeRate.StringFixed(8), BaseCurrency: line.BaseCurrency, BaseCurrencyAmount: line.BaseCurrencyAmount.StringFixed(8), Active: line.Active,
-			TaxRate: financeDecimalPointer(line.TaxRate, 4),
+			TaxRate:        financeDecimalPointer(line.TaxRate, 4),
+			InvoicedAmount: financeDecimalText(line.InvoicedAmount), InvoiceableAmount: financeDecimalText(line.InvoiceableAmount),
 		})
 	}
 	return &v1.FinanceBill{
@@ -640,4 +665,11 @@ func previewBillBatchConfigsFromAPI(request *v1.PreviewBillBatchRequest) (previe
 func financeBillableFeeToAPI(item *biz.FinanceBillableFee) *v1.FeeLedgerItem {
 	fee := item.Fee
 	return &v1.FeeLedgerItem{EconomicEffect: string(fee.EconomicEffect), CorrectionRequestId: uuidStringPtr(fee.CorrectionRequestID), HasPendingFeeCorrection: item.HasPendingFeeCorrection, OrderLocked: item.OrderLocked, HasPendingFeeSupplement: item.HasPendingFeeSupplement, CanBill: item.CanBill, BlockedReasons: item.BlockedReasons, Id: fee.ID.String(), OrderId: fee.OrderID.String(), OrderNo: item.OrderNo, BusinessType: item.BusinessType, OrganizationId: item.OrganizationID.String(), Direction: string(biz.SettlementDirection(fee)), FeeCode: fee.FeeCode, FeeName: fee.FeeName, SettlementPartyId: fee.SettlementPartyID.String(), SettlementPartyName: fee.SettlementPartyName, BillingUnit: fee.BillingUnit, Quantity: fee.Quantity.StringFixed(4), UnitPrice: fee.UnitPrice.StringFixed(4), TotalAmount: fee.TotalAmount.StringFixed(8), NetAmount: fee.NetAmount.StringFixed(8), TaxAmount: fee.TaxAmount.StringFixed(8), TaxRate: financeDecimalPointer(fee.TaxRate, 4), Currency: fee.Currency, ExchangeRate: fee.ExchangeRate.StringFixed(8), BaseCurrency: fee.BaseCurrency, BaseCurrencyAmount: fee.BaseCurrencyAmount.StringFixed(8), BaseCurrencyNetAmount: fee.BaseCurrencyNetAmount().StringFixed(8), Note: fee.Note, Version: fee.Version, CreatedAt: fee.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: fee.UpdatedAt.UTC().Format(time.RFC3339)}
+}
+
+func financeDecimalText(value *decimal.Decimal) string {
+	if value == nil {
+		return ""
+	}
+	return value.StringFixed(8)
 }

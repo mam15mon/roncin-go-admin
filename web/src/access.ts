@@ -37,6 +37,7 @@ const permissions = {
   financeFeeSettingCreate: 'system.finance.fee_setting.create',
   financeFeeSettingUpdate: 'system.finance.fee_setting.update',
   financeFeeRead: 'system.finance.fee.read',
+  financeReportRead: 'system.finance.report.read',
   financeBillRead: 'system.finance.bill.read',
   financeBillCreate: 'system.finance.bill.create',
   financeBillUpdate: 'system.finance.bill.update',
@@ -228,6 +229,7 @@ export default function access(
     canUpdateFeeSettings: has(permissions.financeFeeSettingUpdate),
     canAccessFinanceManagement: [
       permissions.financeFeeRead,
+      permissions.financeReportRead,
       permissions.financeBillRead,
       permissions.financeInvoiceRead,
       permissions.financeCashflowRead,
@@ -237,6 +239,8 @@ export default function access(
       permissions.financeExchangeRateRead,
       permissions.financeFeeSettingRead,
     ].some((permission) => has(permission)),
+    canReadFinanceReports:
+      canOperateBusiness && has(permissions.financeReportRead),
     canReadFinanceFees: canOperateBusiness && has(permissions.financeFeeRead),
     canReadFinanceBills: canOperateBusiness && has(permissions.financeBillRead),
     canCreateFinanceBills:

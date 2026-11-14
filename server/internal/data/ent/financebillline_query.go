@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicefeeallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
@@ -23,14 +25,15 @@ import (
 // FinanceBillLineQuery is the builder for querying FinanceBillLine entities.
 type FinanceBillLineQuery struct {
 	config
-	ctx          *QueryContext
-	order        []financebillline.OrderOption
-	inters       []Interceptor
-	predicates   []predicate.FinanceBillLine
-	withBill     *FinanceBillQuery
-	withOrderFee *OrderFeeQuery
-	withOrder    *OrderQuery
-	modifiers    []func(*sql.Selector)
+	ctx                    *QueryContext
+	order                  []financebillline.OrderOption
+	inters                 []Interceptor
+	predicates             []predicate.FinanceBillLine
+	withInvoiceAllocations *FinanceInvoiceFeeAllocationQuery
+	withBill               *FinanceBillQuery
+	withOrderFee           *OrderFeeQuery
+	withOrder              *OrderQuery
+	modifiers              []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -65,6 +68,28 @@ func (_q *FinanceBillLineQuery) Unique(unique bool) *FinanceBillLineQuery {
 func (_q *FinanceBillLineQuery) Order(o ...financebillline.OrderOption) *FinanceBillLineQuery {
 	_q.order = append(_q.order, o...)
 	return _q
+}
+
+// QueryInvoiceAllocations chains the current query on the "invoice_allocations" edge.
+func (_q *FinanceBillLineQuery) QueryInvoiceAllocations() *FinanceInvoiceFeeAllocationQuery {
+	query := (&FinanceInvoiceFeeAllocationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financebillline.Table, financebillline.FieldID, selector),
+			sqlgraph.To(financeinvoicefeeallocation.Table, financeinvoicefeeallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financebillline.InvoiceAllocationsTable, financebillline.InvoiceAllocationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // QueryBill chains the current query on the "bill" edge.
@@ -320,18 +345,30 @@ func (_q *FinanceBillLineQuery) Clone() *FinanceBillLineQuery {
 		return nil
 	}
 	return &FinanceBillLineQuery{
-		config:       _q.config,
-		ctx:          _q.ctx.Clone(),
-		order:        append([]financebillline.OrderOption{}, _q.order...),
-		inters:       append([]Interceptor{}, _q.inters...),
-		predicates:   append([]predicate.FinanceBillLine{}, _q.predicates...),
-		withBill:     _q.withBill.Clone(),
-		withOrderFee: _q.withOrderFee.Clone(),
-		withOrder:    _q.withOrder.Clone(),
+		config:                 _q.config,
+		ctx:                    _q.ctx.Clone(),
+		order:                  append([]financebillline.OrderOption{}, _q.order...),
+		inters:                 append([]Interceptor{}, _q.inters...),
+		predicates:             append([]predicate.FinanceBillLine{}, _q.predicates...),
+		withInvoiceAllocations: _q.withInvoiceAllocations.Clone(),
+		withBill:               _q.withBill.Clone(),
+		withOrderFee:           _q.withOrderFee.Clone(),
+		withOrder:              _q.withOrder.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
+}
+
+// WithInvoiceAllocations tells the query-builder to eager-load the nodes that are connected to
+// the "invoice_allocations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FinanceBillLineQuery) WithInvoiceAllocations(opts ...func(*FinanceInvoiceFeeAllocationQuery)) *FinanceBillLineQuery {
+	query := (&FinanceInvoiceFeeAllocationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withInvoiceAllocations = query
+	return _q
 }
 
 // WithBill tells the query-builder to eager-load the nodes that are connected to
@@ -445,7 +482,8 @@ func (_q *FinanceBillLineQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	var (
 		nodes       = []*FinanceBillLine{}
 		_spec       = _q.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
+			_q.withInvoiceAllocations != nil,
 			_q.withBill != nil,
 			_q.withOrderFee != nil,
 			_q.withOrder != nil,
@@ -472,6 +510,15 @@ func (_q *FinanceBillLineQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := _q.withInvoiceAllocations; query != nil {
+		if err := _q.loadInvoiceAllocations(ctx, query, nodes,
+			func(n *FinanceBillLine) { n.Edges.InvoiceAllocations = []*FinanceInvoiceFeeAllocation{} },
+			func(n *FinanceBillLine, e *FinanceInvoiceFeeAllocation) {
+				n.Edges.InvoiceAllocations = append(n.Edges.InvoiceAllocations, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
 	if query := _q.withBill; query != nil {
 		if err := _q.loadBill(ctx, query, nodes, nil,
 			func(n *FinanceBillLine, e *FinanceBill) { n.Edges.Bill = e }); err != nil {
@@ -493,6 +540,36 @@ func (_q *FinanceBillLineQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	return nodes, nil
 }
 
+func (_q *FinanceBillLineQuery) loadInvoiceAllocations(ctx context.Context, query *FinanceInvoiceFeeAllocationQuery, nodes []*FinanceBillLine, init func(*FinanceBillLine), assign func(*FinanceBillLine, *FinanceInvoiceFeeAllocation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*FinanceBillLine)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financeinvoicefeeallocation.FieldBillLineID)
+	}
+	query.Where(predicate.FinanceInvoiceFeeAllocation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(financebillline.InvoiceAllocationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.BillLineID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "bill_line_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 func (_q *FinanceBillLineQuery) loadBill(ctx context.Context, query *FinanceBillQuery, nodes []*FinanceBillLine, init func(*FinanceBillLine), assign func(*FinanceBillLine, *FinanceBill)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*FinanceBillLine)

@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicefeeallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 )
@@ -193,6 +194,21 @@ func (_c *FinanceBillLineCreate) SetNillableID(v *uuid.UUID) *FinanceBillLineCre
 		_c.SetID(*v)
 	}
 	return _c
+}
+
+// AddInvoiceAllocationIDs adds the "invoice_allocations" edge to the FinanceInvoiceFeeAllocation entity by IDs.
+func (_c *FinanceBillLineCreate) AddInvoiceAllocationIDs(ids ...uuid.UUID) *FinanceBillLineCreate {
+	_c.mutation.AddInvoiceAllocationIDs(ids...)
+	return _c
+}
+
+// AddInvoiceAllocations adds the "invoice_allocations" edges to the FinanceInvoiceFeeAllocation entity.
+func (_c *FinanceBillLineCreate) AddInvoiceAllocations(v ...*FinanceInvoiceFeeAllocation) *FinanceBillLineCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddInvoiceAllocationIDs(ids...)
 }
 
 // SetBill sets the "bill" edge to the FinanceBill entity.
@@ -446,6 +462,22 @@ func (_c *FinanceBillLineCreate) createSpec() (*FinanceBillLine, *sqlgraph.Creat
 	if value, ok := _c.mutation.Active(); ok {
 		_spec.SetField(financebillline.FieldActive, field.TypeBool, value)
 		_node.Active = value
+	}
+	if nodes := _c.mutation.InvoiceAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebillline.InvoiceAllocationsTable,
+			Columns: []string{financebillline.InvoiceAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicefeeallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.BillIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

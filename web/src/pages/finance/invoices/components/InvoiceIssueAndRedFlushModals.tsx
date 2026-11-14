@@ -1,60 +1,6 @@
 import { DatePicker, Form, type FormInstance, Input, Modal } from 'antd';
 import React from 'react';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
-import {
-  invoiceIssueActionText,
-  invoiceIssueDateLabel,
-} from './invoiceConstants';
-
-interface InvoiceIssueModalProps {
-  open: boolean;
-  submitting: boolean;
-  issueForm: FormInstance;
-  issueTarget?: API.FinanceInvoice;
-  onCancel: () => void;
-  onOk: () => Promise<unknown>;
-}
-
-export function InvoiceIssueModal({
-  open,
-  submitting,
-  issueForm,
-  issueTarget,
-  onCancel,
-  onOk,
-}: InvoiceIssueModalProps) {
-  const { markDirty } = useUnsavedChangesGuard({
-    enabled: open,
-    identity: issueTarget?.id,
-  });
-  const issueDateLabel = invoiceIssueDateLabel(issueTarget?.direction);
-  return (
-    <Modal
-      title={`${invoiceIssueActionText(issueTarget?.direction)} ${issueTarget?.organizationName || '所属公司未标识'} 的发票`}
-      open={open}
-      confirmLoading={submitting}
-      onCancel={onCancel}
-      onOk={() => void onOk()}
-    >
-      <Form form={issueForm} layout="vertical" onValuesChange={markDirty}>
-        <Form.Item
-          name="taxInvoiceNo"
-          label="税务发票号码"
-          rules={[{ required: true, message: '请输入税务发票号码' }]}
-        >
-          <Input maxLength={100} />
-        </Form.Item>
-        <Form.Item
-          name="invoiceDate"
-          label={issueDateLabel}
-          rules={[{ required: true, message: `请选择${issueDateLabel}` }]}
-        >
-          <DatePicker />
-        </Form.Item>
-      </Form>
-    </Modal>
-  );
-}
 
 interface InvoiceRedFlushModalProps {
   open: boolean;

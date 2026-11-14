@@ -256,7 +256,7 @@ func scopedFinancePermissionWrites(permission string) (bool, bool) {
 	switch permission {
 	case access.FinanceBillRead, access.FinanceInvoiceRead, access.FinanceCashflowRead,
 		access.FinanceVerificationRead, access.FinanceNettingRead, access.FinanceCommissionRead,
-		access.FinanceCommissionExport, access.FinanceFeeRead:
+		access.FinanceCommissionExport, access.FinanceFeeRead, access.FinanceReportRead:
 		return false, true
 	case access.FinanceBillCreate, access.FinanceBillUpdate,
 		access.FinanceInvoiceCreate, access.FinanceInvoiceUpdate, access.FinanceCashflowCreate,

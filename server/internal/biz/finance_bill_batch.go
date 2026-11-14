@@ -511,6 +511,11 @@ func financeBillFeeByID(items []*FinanceBillableFee, id uuid.UUID) *OrderFee {
 // 同幂等键、同请求摘要重发：已成功的组按派生幂等键原样返回，失败的组重新尝试；
 // 同幂等键、不同请求摘要返回批次冲突。
 func (uc *FinanceBillUsecase) CreateBatch(ctx context.Context, organizationID, actorID uuid.UUID, input CreateFinanceBillBatchInput) (*FinanceBillBatchCreateResult, error) {
+	return uc.CreateBatchWithOperations(ctx, organizationID, actorID, input, FinanceBillBatchOperations{})
+}
+
+// CreateBatchWithOperations 在既有分组事务边界中附带发票登记和核销，依赖由调用方显式注入。
+func (uc *FinanceBillUsecase) CreateBatchWithOperations(ctx context.Context, organizationID, actorID uuid.UUID, input CreateFinanceBillBatchInput, operations FinanceBillBatchOperations) (*FinanceBillBatchCreateResult, error) {
 	input.IdempotencyKey = strings.TrimSpace(input.IdempotencyKey)
 	if organizationID == uuid.Nil || actorID == uuid.Nil || input.IdempotencyKey == "" || utf8.RuneCountInString(input.IdempotencyKey) > 128 || len(input.Groups) == 0 {
 		return nil, ErrFinanceBillInvalidArgument
@@ -527,13 +532,24 @@ func (uc *FinanceBillUsecase) CreateBatch(ctx context.Context, organizationID, a
 		return nil, ErrFinanceBillInvalidArgument
 	}
 	requestHash := financeBillBatchRequestHash(input)
+	var result *FinanceBillBatchCreateResult
 	if input.GroupingPolicy.Mode == "NETTING" {
-		return uc.createNettingFinanceBillBatch(ctx, organizationID, actorID, input, requestHash)
+		result, err = uc.createNettingFinanceBillBatch(ctx, organizationID, actorID, input, requestHash, operations)
+	} else {
+		result, err = uc.createNormalFinanceBillBatch(ctx, organizationID, actorID, input, requestHash, operations)
 	}
-	return uc.createNormalFinanceBillBatch(ctx, organizationID, actorID, input, requestHash)
+	if err != nil {
+		return nil, err
+	}
+	return uc.enrichFinanceBillBatchOperationResults(ctx, organizationID, input, result)
 }
 
-func (uc *FinanceBillUsecase) createNettingFinanceBillBatch(ctx context.Context, organizationID, actorID uuid.UUID, input CreateFinanceBillBatchInput, requestHash string) (*FinanceBillBatchCreateResult, error) {
+func (uc *FinanceBillUsecase) createNettingFinanceBillBatch(ctx context.Context, organizationID, actorID uuid.UUID, input CreateFinanceBillBatchInput, requestHash string, operations FinanceBillBatchOperations) (*FinanceBillBatchCreateResult, error) {
+	for _, group := range input.Groups {
+		if err := validateFinanceBillBatchOperationPermissions(group, operations); err != nil {
+			return nil, err
+		}
+	}
 	existing, err := uc.repo.GetBatchByIdempotencyKey(ctx, organizationID, input.IdempotencyKey)
 	if err != nil {
 		return nil, err
@@ -546,7 +562,7 @@ func (uc *FinanceBillUsecase) createNettingFinanceBillBatch(ctx context.Context,
 		batchID := uuid.Must(uuid.NewV7())
 		bills, prepareErr := uc.prepareFinanceBillBatchBills(txCtx, organizationID, actorID, batchID, input, input.Groups, feeIDs)
 		if prepareErr != nil {
-			return prepareErr
+			return financeBillBatchStepError(prepareErr, "", "BILL", 0)
 		}
 		// 对冲批次在同一事务内原子生成双方原始账单与对冲结算单；对冲单初始为草稿，需单独确认生效。
 		nettings, planErr := planBatchFinanceNettings(organizationID, batchID, input.IdempotencyKey, bills)
@@ -558,11 +574,22 @@ func (uc *FinanceBillUsecase) createNettingFinanceBillBatch(ctx context.Context,
 			nettingAudits = append(nettingAudits, financeNettingAudit(organizationID, actorID, netting.ID, "finance.netting.create"))
 		}
 		batch := &FinanceBillBatch{ID: batchID, OrganizationID: organizationID, CreatedBy: actorID, IdempotencyKey: input.IdempotencyKey, RequestHash: requestHash, GroupingPolicy: input.GroupingPolicy}
-		return uc.repo.CreateBatchBills(txCtx, FinanceBillBatchWrite{
+		if err := uc.repo.CreateBatchBills(txCtx, FinanceBillBatchWrite{
 			Batch: batch, ActorID: actorID, CreateHead: true, HeadAudit: financeBillBatchAudit(organizationID, actorID, batchID, "finance.bill_batch.create"),
 			Bills: bills, BillAudits: financeBillBatchBillAudits(organizationID, actorID, batchID, bills),
 			Nettings: nettings, NettingAudits: nettingAudits,
-		})
+		}); err != nil {
+			return financeBillBatchStepError(err, "", "BILL", 0)
+		}
+		if err := lockFinanceBillBatchCashflows(txCtx, organizationID, input.Groups, operations); err != nil {
+			return err
+		}
+		for index, group := range input.Groups {
+			if err := executeFinanceBillBatchOperations(txCtx, organizationID, actorID, input.IdempotencyKey, group, bills[index], operations); err != nil {
+				return err
+			}
+		}
+		return nil
 	})
 	if err != nil {
 		// 同键并发请求可能已由另一请求整批建成；摘要一致时回放，不一致时按批次冲突处理。
@@ -601,14 +628,14 @@ func financeBillBatchReplay(batch *FinanceBillBatch, input CreateFinanceBillBatc
 	return result, nil
 }
 
-func (uc *FinanceBillUsecase) createNormalFinanceBillBatch(ctx context.Context, organizationID, actorID uuid.UUID, input CreateFinanceBillBatchInput, requestHash string) (*FinanceBillBatchCreateResult, error) {
+func (uc *FinanceBillUsecase) createNormalFinanceBillBatch(ctx context.Context, organizationID, actorID uuid.UUID, input CreateFinanceBillBatchInput, requestHash string, operations FinanceBillBatchOperations) (*FinanceBillBatchCreateResult, error) {
 	head, err := uc.ensureFinanceBillBatchHead(ctx, organizationID, actorID, input, requestHash)
 	if err != nil {
 		return nil, err
 	}
 	groups := make([]*FinanceBillBatchGroupResult, 0, len(input.Groups))
 	for _, group := range input.Groups {
-		result := uc.createFinanceBillBatchGroup(ctx, organizationID, actorID, head, input, group)
+		result := uc.createFinanceBillBatchGroup(ctx, organizationID, actorID, head, input, group, operations)
 		// 请求已取消或超时时不再继续后续组；客户端以同键重发即可续做。
 		if result.Err != nil && ctx.Err() != nil {
 			return nil, ctx.Err()
@@ -653,8 +680,12 @@ func (uc *FinanceBillUsecase) ensureFinanceBillBatchHead(ctx context.Context, or
 }
 
 // createFinanceBillBatchGroup 在独立事务内创建一组账单；已按派生幂等键建成的组原样返回。
-func (uc *FinanceBillUsecase) createFinanceBillBatchGroup(ctx context.Context, organizationID, actorID uuid.UUID, head *FinanceBillBatch, input CreateFinanceBillBatchInput, group CreateFinanceBillBatchGroupInput) *FinanceBillBatchGroupResult {
+func (uc *FinanceBillUsecase) createFinanceBillBatchGroup(ctx context.Context, organizationID, actorID uuid.UUID, head *FinanceBillBatch, input CreateFinanceBillBatchInput, group CreateFinanceBillBatchGroupInput, operations FinanceBillBatchOperations) *FinanceBillBatchGroupResult {
 	result := &FinanceBillBatchGroupResult{GroupKey: group.GroupKey}
+	if err := validateFinanceBillBatchOperationPermissions(group, operations); err != nil {
+		result.Err = err
+		return result
+	}
 	billKey := financeBillBatchBillKey(input.IdempotencyKey, group.GroupKey)
 	existing, err := uc.repo.GetByIdempotencyKey(ctx, organizationID, billKey)
 	if err != nil {
@@ -667,9 +698,15 @@ func (uc *FinanceBillUsecase) createFinanceBillBatchGroup(ctx context.Context, o
 	err = uc.transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
 		bills, prepareErr := uc.prepareFinanceBillBatchBills(txCtx, organizationID, actorID, head.ID, input, []CreateFinanceBillBatchGroupInput{group}, group.FeeIDs)
 		if prepareErr != nil {
-			return prepareErr
+			return financeBillBatchStepError(prepareErr, group.GroupKey, "BILL", 0)
 		}
-		return uc.repo.CreateBatchBills(txCtx, FinanceBillBatchWrite{Batch: head, ActorID: actorID, Bills: bills, BillAudits: financeBillBatchBillAudits(organizationID, actorID, head.ID, bills)})
+		if err := uc.repo.CreateBatchBills(txCtx, FinanceBillBatchWrite{Batch: head, ActorID: actorID, Bills: bills, BillAudits: financeBillBatchBillAudits(organizationID, actorID, head.ID, bills)}); err != nil {
+			return financeBillBatchStepError(err, group.GroupKey, "BILL", 0)
+		}
+		if err := lockFinanceBillBatchCashflows(txCtx, organizationID, []CreateFinanceBillBatchGroupInput{group}, operations); err != nil {
+			return err
+		}
+		return executeFinanceBillBatchOperations(txCtx, organizationID, actorID, input.IdempotencyKey, group, bills[0], operations)
 	})
 	if err != nil {
 		// 同键并发请求可能已由另一请求建成该组账单。
@@ -836,6 +873,9 @@ func normalizeFinanceBillBatchGroups(groups []CreateFinanceBillBatchGroupInput) 
 			seenFees[id] = struct{}{}
 		}
 		item.FeeIDs = feeIDs
+		if err := normalizeFinanceBillBatchOperations(&item); err != nil {
+			return nil, err
+		}
 		if _, exists := seen[item.GroupKey]; exists {
 			return nil, ErrFinanceBillBatchMismatch
 		}
@@ -877,6 +917,7 @@ func financeBillBatchRequestHash(input CreateFinanceBillBatchInput) string {
 		for _, id := range group.FeeIDs {
 			writeFinanceHashParts(&builder, id.String())
 		}
+		writeFinanceHashParts(&builder, financeBillBatchOperationsHash(group))
 	}
 	return financeSHA256(builder.String())
 }

@@ -98,6 +98,9 @@ func (_u *FinanceInvoiceLineUpdate) sqlSave(ctx context.Context) (_node int, err
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financeinvoiceline.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if _u.mutation.TaxRateCleared() {
+		_spec.ClearField(financeinvoiceline.FieldTaxRate, field.TypeString)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{financeinvoiceline.Label}
@@ -217,6 +220,9 @@ func (_u *FinanceInvoiceLineUpdateOne) sqlSave(ctx context.Context) (_node *Fina
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financeinvoiceline.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if _u.mutation.TaxRateCleared() {
+		_spec.ClearField(financeinvoiceline.FieldTaxRate, field.TypeString)
 	}
 	_node = &FinanceInvoiceLine{config: _u.config}
 	_spec.Assign = _node.assignValues

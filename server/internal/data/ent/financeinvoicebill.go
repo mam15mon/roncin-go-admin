@@ -51,9 +51,11 @@ type FinanceInvoiceBillEdges struct {
 	Invoice *FinanceInvoice `json:"invoice,omitempty"`
 	// Bill holds the value of the bill edge.
 	Bill *FinanceBill `json:"bill,omitempty"`
+	// FeeAllocations holds the value of the fee_allocations edge.
+	FeeAllocations []*FinanceInvoiceFeeAllocation `json:"fee_allocations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // InvoiceOrErr returns the Invoice value or an error if the edge
@@ -76,6 +78,15 @@ func (e FinanceInvoiceBillEdges) BillOrErr() (*FinanceBill, error) {
 		return nil, &NotFoundError{label: financebill.Label}
 	}
 	return nil, &NotLoadedError{edge: "bill"}
+}
+
+// FeeAllocationsOrErr returns the FeeAllocations value or an error if the edge
+// was not loaded in eager-loading.
+func (e FinanceInvoiceBillEdges) FeeAllocationsOrErr() ([]*FinanceInvoiceFeeAllocation, error) {
+	if e.loadedTypes[2] {
+		return e.FeeAllocations, nil
+	}
+	return nil, &NotLoadedError{edge: "fee_allocations"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -191,6 +202,11 @@ func (_m *FinanceInvoiceBill) QueryInvoice() *FinanceInvoiceQuery {
 // QueryBill queries the "bill" edge of the FinanceInvoiceBill entity.
 func (_m *FinanceInvoiceBill) QueryBill() *FinanceBillQuery {
 	return NewFinanceInvoiceBillClient(_m.config).QueryBill(_m)
+}
+
+// QueryFeeAllocations queries the "fee_allocations" edge of the FinanceInvoiceBill entity.
+func (_m *FinanceInvoiceBill) QueryFeeAllocations() *FinanceInvoiceFeeAllocationQuery {
+	return NewFinanceInvoiceBillClient(_m.config).QueryFeeAllocations(_m)
 }
 
 // Update returns a builder for updating this FinanceInvoiceBill.

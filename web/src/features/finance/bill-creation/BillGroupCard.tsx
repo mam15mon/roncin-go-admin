@@ -17,12 +17,15 @@ import {
 import type { NamePath } from 'antd/es/form/interface';
 import dayjs from 'dayjs';
 import React, { useEffect, useState } from 'react';
+import { useAccess } from '@/app/access';
 import { ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
+import { InvoiceRegistrationEditor } from '@/features/finance/invoice-registration';
 import { getCurrencyOptions } from '@/features/master-data/currencies';
 import type { SelectOption } from '@/types/select-option';
 import { formatAmount, trimDecimal } from '@/utils/format';
 import BillTermsCreditWarnings from './BillTermsCreditWarnings';
+import BillVerificationFields from './BillVerificationFields';
 import SettlementAccountSelect from './SettlementAccountSelect';
 
 const { Text } = Typography;
@@ -45,6 +48,7 @@ export default function BillGroupCard({
   onConfigurationChange,
 }: BillGroupCardProps) {
   const form = Form.useFormInstance();
+  const access = useAccess();
   const groupKey = group.groupKey || '';
   const [currencyOptions, setCurrencyOptions] = useState<SelectOption[]>([]);
 
@@ -301,6 +305,37 @@ export default function BillGroupCard({
           </Col>
         </Row>
       </Card>
+      {access.canCreateFinanceInvoices &&
+        access.canOperateOrganization(organizationId) && (
+          <Card
+            size="small"
+            title="同次登记发票（可选）"
+            style={{ marginBottom: 16 }}
+          >
+            <InvoiceRegistrationEditor
+              name={['groups', groupKey, 'invoices']}
+              organizationId={organizationId}
+              settlementPartyId={group.settlementPartyId ?? ''}
+              bills={[
+                {
+                  id: groupKey,
+                  version: '1',
+                  billNo: group.settlementPartyName,
+                  currency: group.currency,
+                  fees: (group.fees ?? []).map((fee) => ({
+                    orderFeeId: fee.id ?? '',
+                    feeCode: fee.feeCode,
+                    feeName: fee.feeName,
+                    totalAmount: fee.totalAmount,
+                    invoiceableAmount: fee.totalAmount,
+                    sourceTaxRate: fee.taxRate,
+                  })),
+                },
+              ]}
+            />
+          </Card>
+        )}
+      <BillVerificationFields group={group} organizationId={organizationId} />
       <ProTable<API.FeeLedgerItem>
         rowKey="id"
         size="small"

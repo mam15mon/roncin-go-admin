@@ -1148,6 +1148,29 @@ func HasFinanceInvoicesWith(preds ...predicate.FinanceInvoice) predicate.Organiz
 	})
 }
 
+// HasFinanceInvoiceCommands applies the HasEdge predicate on the "finance_invoice_commands" edge.
+func HasFinanceInvoiceCommands() predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FinanceInvoiceCommandsTable, FinanceInvoiceCommandsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFinanceInvoiceCommandsWith applies the HasEdge predicate on the "finance_invoice_commands" edge with a given conditions (other predicates).
+func HasFinanceInvoiceCommandsWith(preds ...predicate.FinanceInvoiceCommand) predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := newFinanceInvoiceCommandsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasFinanceInvoiceExemptions applies the HasEdge predicate on the "finance_invoice_exemptions" edge.
 func HasFinanceInvoiceExemptions() predicate.Organization {
 	return predicate.Organization(func(s *sql.Selector) {

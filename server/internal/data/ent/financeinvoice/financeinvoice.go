@@ -80,6 +80,8 @@ const (
 	FieldNote = "note"
 	// FieldVersion holds the string denoting the version field in the database.
 	FieldVersion = "version"
+	// FieldRevisionNumber holds the string denoting the revision_number field in the database.
+	FieldRevisionNumber = "revision_number"
 	// FieldIssuedAt holds the string denoting the issued_at field in the database.
 	FieldIssuedAt = "issued_at"
 	// FieldIssuedBy holds the string denoting the issued_by field in the database.
@@ -116,6 +118,10 @@ const (
 	EdgeBillLinks = "bill_links"
 	// EdgeLines holds the string denoting the lines edge name in mutations.
 	EdgeLines = "lines"
+	// EdgeFeeAllocations holds the string denoting the fee_allocations edge name in mutations.
+	EdgeFeeAllocations = "fee_allocations"
+	// EdgeRevisions holds the string denoting the revisions edge name in mutations.
+	EdgeRevisions = "revisions"
 	// Table holds the table name of the financeinvoice in the database.
 	Table = "finance_invoices"
 	// OrganizationTable is the table that holds the organization relation/edge.
@@ -174,6 +180,20 @@ const (
 	LinesInverseTable = "finance_invoice_lines"
 	// LinesColumn is the table column denoting the lines relation/edge.
 	LinesColumn = "invoice_id"
+	// FeeAllocationsTable is the table that holds the fee_allocations relation/edge.
+	FeeAllocationsTable = "finance_invoice_fee_allocations"
+	// FeeAllocationsInverseTable is the table name for the FinanceInvoiceFeeAllocation entity.
+	// It exists in this package in order to avoid circular dependency with the "financeinvoicefeeallocation" package.
+	FeeAllocationsInverseTable = "finance_invoice_fee_allocations"
+	// FeeAllocationsColumn is the table column denoting the fee_allocations relation/edge.
+	FeeAllocationsColumn = "invoice_id"
+	// RevisionsTable is the table that holds the revisions relation/edge.
+	RevisionsTable = "finance_invoice_revisions"
+	// RevisionsInverseTable is the table name for the FinanceInvoiceRevision entity.
+	// It exists in this package in order to avoid circular dependency with the "financeinvoicerevision" package.
+	RevisionsInverseTable = "finance_invoice_revisions"
+	// RevisionsColumn is the table column denoting the revisions relation/edge.
+	RevisionsColumn = "invoice_id"
 )
 
 // Columns holds all SQL columns for financeinvoice fields.
@@ -211,6 +231,7 @@ var Columns = []string{
 	FieldInvoiceDate,
 	FieldNote,
 	FieldVersion,
+	FieldRevisionNumber,
 	FieldIssuedAt,
 	FieldIssuedBy,
 	FieldCancelledAt,
@@ -274,6 +295,8 @@ var (
 	NoteValidator func(string) error
 	// DefaultVersion holds the default value on creation for the "version" field.
 	DefaultVersion uint64
+	// DefaultRevisionNumber holds the default value on creation for the "revision_number" field.
+	DefaultRevisionNumber uint64
 	// CancellationReasonValidator is a validator for the "cancellation_reason" field. It is called by the builders before save.
 	CancellationReasonValidator func(string) error
 	// RedInvoiceNoValidator is a validator for the "red_invoice_no" field. It is called by the builders before save.
@@ -555,6 +578,11 @@ func ByVersion(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldVersion, opts...).ToFunc()
 }
 
+// ByRevisionNumber orders the results by the revision_number field.
+func ByRevisionNumber(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRevisionNumber, opts...).ToFunc()
+}
+
 // ByIssuedAt orders the results by the issued_at field.
 func ByIssuedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIssuedAt, opts...).ToFunc()
@@ -674,6 +702,34 @@ func ByLines(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newLinesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByFeeAllocationsCount orders the results by fee_allocations count.
+func ByFeeAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFeeAllocationsStep(), opts...)
+	}
+}
+
+// ByFeeAllocations orders the results by fee_allocations terms.
+func ByFeeAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFeeAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByRevisionsCount orders the results by revisions count.
+func ByRevisionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRevisionsStep(), opts...)
+	}
+}
+
+// ByRevisions orders the results by revisions terms.
+func ByRevisions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRevisionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOrganizationStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -728,5 +784,19 @@ func newLinesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(LinesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, LinesTable, LinesColumn),
+	)
+}
+func newFeeAllocationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FeeAllocationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FeeAllocationsTable, FeeAllocationsColumn),
+	)
+}
+func newRevisionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RevisionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RevisionsTable, RevisionsColumn),
 	)
 }

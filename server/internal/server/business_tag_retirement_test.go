@@ -46,6 +46,7 @@ func TestBusinessTagRetirementRegistrations(t *testing.T) {
 		&service.FeeCatalogService{},            // feeCatalog
 		&service.OrderFeeService{},              // orderFee
 		&service.SettlementService{},            // settlement
+		&service.FinanceReportService{},         // financeReport
 		&service.WorkbenchService{},             // workbench
 		nil,                                     // authUsecase
 		nil,                                     // orderUsecase
@@ -68,7 +69,7 @@ func TestBusinessTagRetirementRegistrations(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
-	for _, route := range []string{"GET /api/v1/orders", "GET /api/v1/orders/{order_id}/fees", "GET /api/v1/finance/bills", "GET /api/v1/finance/fees", "GET /api/v1/finance/settlement-party-options", "GET /api/v1/enterprise-resources"} {
+	for _, route := range []string{"GET /api/v1/orders", "GET /api/v1/orders/{order_id}/fees", "GET /api/v1/finance/bills", "GET /api/v1/finance/reports/profits", "GET /api/v1/finance/reports/profits/export", "GET /api/v1/finance/reports/cashflows", "GET /api/v1/finance/reports/aging", "GET /api/v1/finance/fees", "GET /api/v1/finance/settlement-party-options", "GET /api/v1/enterprise-resources"} {
 		if !routes[route] {
 			t.Errorf("相邻业务 HTTP 入口缺失: %s", route)
 		}
@@ -100,6 +101,7 @@ func TestBusinessTagRetirementRegistrations(t *testing.T) {
 		&service.FeeCatalogService{},            // feeCatalog
 		&service.OrderFeeService{},              // orderFee
 		&service.SettlementService{},            // settlement
+		&service.FinanceReportService{},         // financeReport
 		&service.WorkbenchService{},             // workbench
 		nil,                                     // authUsecase
 		nil,                                     // orderUsecase
@@ -112,7 +114,7 @@ func TestBusinessTagRetirementRegistrations(t *testing.T) {
 	if _, exists := infos["order.v1.OrderTagService"]; exists {
 		t.Error("订单标签服务仍注册")
 	}
-	for _, name := range []string{"order.v1.OrderService", "order.v1.OrderFeeService", "finance.v1.SettlementService", "enterprise_resource.v1.EnterpriseResourceService"} {
+	for _, name := range []string{"order.v1.OrderService", "order.v1.OrderFeeService", "finance.v1.SettlementService", "finance.v1.FinanceReportService", "enterprise_resource.v1.EnterpriseResourceService"} {
 		info, exists := infos[name]
 		if !exists {
 			t.Errorf("相邻业务 gRPC 服务缺失: %s", name)
@@ -130,6 +132,7 @@ func TestBusinessTagRetirementRegistrations(t *testing.T) {
 		"order.v1.OrderService":                            "ListOrders",
 		"order.v1.OrderFeeService":                         "ListFees",
 		"finance.v1.SettlementService":                     "ListBills",
+		"finance.v1.FinanceReportService":                  "ListProfitReport",
 		"enterprise_resource.v1.EnterpriseResourceService": "ListEnterpriseResources",
 	} {
 		found := false

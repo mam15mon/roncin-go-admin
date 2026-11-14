@@ -16,6 +16,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicefeeallocation"
 )
 
 // FinanceInvoiceBillCreate is the builder for creating a FinanceInvoiceBill entity.
@@ -126,6 +127,21 @@ func (_c *FinanceInvoiceBillCreate) SetInvoice(v *FinanceInvoice) *FinanceInvoic
 // SetBill sets the "bill" edge to the FinanceBill entity.
 func (_c *FinanceInvoiceBillCreate) SetBill(v *FinanceBill) *FinanceInvoiceBillCreate {
 	return _c.SetBillID(v.ID)
+}
+
+// AddFeeAllocationIDs adds the "fee_allocations" edge to the FinanceInvoiceFeeAllocation entity by IDs.
+func (_c *FinanceInvoiceBillCreate) AddFeeAllocationIDs(ids ...uuid.UUID) *FinanceInvoiceBillCreate {
+	_c.mutation.AddFeeAllocationIDs(ids...)
+	return _c
+}
+
+// AddFeeAllocations adds the "fee_allocations" edges to the FinanceInvoiceFeeAllocation entity.
+func (_c *FinanceInvoiceBillCreate) AddFeeAllocations(v ...*FinanceInvoiceFeeAllocation) *FinanceInvoiceBillCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFeeAllocationIDs(ids...)
 }
 
 // Mutation returns the FinanceInvoiceBillMutation object of the builder.
@@ -321,6 +337,22 @@ func (_c *FinanceInvoiceBillCreate) createSpec() (*FinanceInvoiceBill, *sqlgraph
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.BillID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.FeeAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeinvoicebill.FeeAllocationsTable,
+			Columns: []string{financeinvoicebill.FeeAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicefeeallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

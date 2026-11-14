@@ -31,6 +31,7 @@ func (FinanceInvoiceBill) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("invoice", FinanceInvoice.Type).Ref("bill_links").Field("invoice_id").Unique().Required().Immutable(),
 		edge.From("bill", FinanceBill.Type).Ref("invoice_links").Field("bill_id").Unique().Required().Immutable(),
+		edge.To("fee_allocations", FinanceInvoiceFeeAllocation.Type),
 	}
 }
 

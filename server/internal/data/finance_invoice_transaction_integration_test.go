@@ -42,7 +42,7 @@ func newFinanceInvoicePostgresFixture(t *testing.T, data *Data) *financeInvoiceP
 	organization, err := data.db.Organization.Create().
 		SetCode("INV-TX-" + suffix).
 		SetName("发票事务集成测试组织-" + suffix).
-		SetKind("system").
+		SetKind("company").
 		SetBaseCurrency("CNY").
 		Save(ctx)
 	if err != nil {
@@ -271,7 +271,7 @@ func TestFinanceInvoiceTerminalStateMachinePostgres(t *testing.T) {
 		status financeinvoiceent.Status
 		allow  bool
 	}{
-		{name: "DRAFT 允许取消", status: financeinvoiceent.StatusDRAFT, allow: true},
+		{name: "DRAFT 拒绝反向操作", status: financeinvoiceent.StatusDRAFT, allow: false},
 		{name: "ISSUED 允许作废", status: financeinvoiceent.StatusISSUED, allow: true},
 		{name: "CANCELLED 拒绝重复取消", status: financeinvoiceent.StatusCANCELLED, allow: false},
 		{name: "RED_FLUSHED 拒绝取消", status: financeinvoiceent.StatusRED_FLUSHED, allow: false},
@@ -376,7 +376,7 @@ func TestFinanceInvoiceTerminalReleasePostgres(t *testing.T) {
 	t.Run("旧账单版本取消失败，新版本取消成功", func(t *testing.T) {
 		fixture := newFinanceInvoicePostgresFixture(t, data)
 		bill := fixture.createConfirmedBill("bill-version")
-		invoice := fixture.createInvoiceWithStatus("bill-version", financeinvoiceent.StatusDRAFT, bill)
+		invoice := fixture.createInvoiceWithStatus("bill-version", financeinvoiceent.StatusISSUED, bill)
 		invoiceRepo := NewFinanceInvoiceRepo(data)
 		billRepo := NewFinanceBillRepo(data)
 		ctx := context.Background()

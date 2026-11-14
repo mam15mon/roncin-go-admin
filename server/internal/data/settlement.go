@@ -77,13 +77,10 @@ func feeLedgerFinancialProgressPredicate(progress biz.FeeLedgerFinancialProgress
 			builder.Ident(feeID)
 			builder.WriteString(" AND fbl.active = TRUE AND fb.status <> ").Arg(financebill.StatusCANCELLED)
 			builder.WriteString(" AND ")
-			if progress == biz.FeeLedgerInvoicedUnverified || progress == biz.FeeLedgerInvoicedPartiallyVerified || progress == biz.FeeLedgerCompleted {
-				builder.WriteString("EXISTS")
-			} else {
-				builder.WriteString("NOT EXISTS")
+			if progress != biz.FeeLedgerInvoicedUnverified && progress != biz.FeeLedgerInvoicedPartiallyVerified && progress != biz.FeeLedgerCompleted {
+				builder.WriteString("NOT ")
 			}
-			builder.WriteString(" (SELECT 1 FROM finance_invoice_bills AS fib JOIN finance_invoices AS fi ON fi.id = fib.invoice_id WHERE fib.bill_id = fb.id AND fib.active = TRUE AND fi.status = ").Arg(financeinvoice.StatusISSUED)
-			builder.WriteString(") AND ")
+			builder.WriteString("(COALESCE((SELECT SUM(fib.amount) FROM finance_invoice_bills AS fib JOIN finance_invoices AS fi ON fi.id=fib.invoice_id WHERE fib.bill_id=fb.id AND fib.active=TRUE AND fi.status=").Arg(financeinvoice.StatusISSUED).WriteString("),0) >= fb.total_amount) AND ")
 
 			writeVerifiedAmount := func() {
 				builder.WriteString("COALESCE((SELECT SUM(fva.amount) FROM finance_verification_allocations AS fva JOIN finance_verifications AS fv ON fv.id = fva.verification_id WHERE fva.bill_id = fb.id AND fva.active = TRUE AND fv.status = ").Arg(financeverification.StatusACTIVE)
@@ -198,7 +195,15 @@ func applyFeeLedgerBillProjection(ledgerItem *biz.FeeLedgerItem, billLines []*en
 		nettedAmount = nettedAmount.Add(amount)
 	}
 	ledgerItem.BillNo = bill.BillNo
-	ledgerItem.FinancialProgress = biz.ResolveFeeLedgerFinancialProgress(true, len(invoiceLinks) > 0, billAmount, verifiedAmount, nettedAmount)
+	invoiced := decimal.Zero
+	for _, link := range invoiceLinks {
+		amount, err := decimalOf(link.Amount)
+		if err != nil {
+			return err
+		}
+		invoiced = invoiced.Add(amount)
+	}
+	ledgerItem.FinancialProgress = biz.ResolveFeeLedgerFinancialProgress(true, invoiced.GreaterThanOrEqual(billAmount), billAmount, verifiedAmount, nettedAmount)
 	return nil
 }
 

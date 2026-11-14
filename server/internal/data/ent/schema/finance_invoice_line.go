@@ -18,9 +18,10 @@ func (FinanceInvoiceLine) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("invoice_id", uuid.Nil).Immutable(),
 		field.Int("line_no").Positive().Immutable(),
+		field.Uint64("revision_number").Default(1).Immutable(),
 		field.String("item_code").NotEmpty().MaxLen(30).Immutable(),
 		field.String("item_name").NotEmpty().MaxLen(80).Immutable(),
-		field.String("tax_rate").SchemaType(map[string]string{dialect.Postgres: "numeric(7,4)"}).Immutable(),
+		field.String("tax_rate").Optional().Nillable().SchemaType(map[string]string{dialect.Postgres: "numeric(7,4)"}).Immutable(),
 		field.String("net_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
 		field.String("tax_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
 		field.String("total_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
@@ -37,6 +38,6 @@ func (FinanceInvoiceLine) Edges() []ent.Edge {
 
 func (FinanceInvoiceLine) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("invoice_id", "line_no").Unique(),
+		index.Fields("invoice_id", "revision_number", "line_no").Unique().StorageKey("finance_invoice_line_revision_no"),
 	}
 }

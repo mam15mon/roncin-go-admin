@@ -112,6 +112,7 @@ func TestFinanceBillPermissionUsesOnlyMatchingRoleScope(t *testing.T) {
 func TestScopedFinancePermissionWritesClassifiesAllMigratedPermissions(t *testing.T) {
 	tests := map[string]bool{
 		access.FinanceFeeRead:             false,
+		access.FinanceReportRead:          false,
 		access.FinanceBillRead:            false,
 		access.FinanceInvoiceRead:         false,
 		access.FinanceCashflowRead:        false,

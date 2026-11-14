@@ -2,8 +2,6 @@ package data
 
 import (
 	"context"
-	"sort"
-	"time"
 
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -16,6 +14,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceexemption"
 	financeinvoicelineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceline"
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
+	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	profileent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerinvoiceprofile"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/shopspring/decimal"
@@ -36,7 +35,20 @@ func (r *financeInvoiceRepo) List(ctx context.Context, org uuid.UUID, filter biz
 }
 
 func (r *financeInvoiceRepo) ListScoped(ctx context.Context, organizationIDs []uuid.UUID, filter biz.FinanceInvoiceFilter) (*biz.FinanceInvoiceListResult, error) {
+	var result *biz.FinanceInvoiceListResult
+	err := r.data.withReadSnapshot(ctx, func(readCtx context.Context) error {
+		var err error
+		result, err = r.listScopedSnapshot(readCtx, organizationIDs, filter)
+		return err
+	})
+	return result, err
+}
+
+func (r *financeInvoiceRepo) listScopedSnapshot(ctx context.Context, organizationIDs []uuid.UUID, filter biz.FinanceInvoiceFilter) (*biz.FinanceInvoiceListResult, error) {
 	p := []predicate.FinanceInvoice{financeinvoiceent.OrganizationIDIn(organizationIDs...)}
+	if filter.BillID != nil {
+		p = append(p, financeinvoiceent.HasBillLinksWith(financeinvoicebillent.BillIDEQ(*filter.BillID)))
+	}
 	if filter.Keyword != "" {
 		p = append(p, financeinvoiceent.Or(financeinvoiceent.RecordNoContainsFold(filter.Keyword), financeinvoiceent.SettlementPartyNameContainsFold(filter.Keyword), financeinvoiceent.TaxInvoiceNoContainsFold(filter.Keyword), financeinvoiceent.HasBillLinksWith(financeinvoicebillent.BillNoContainsFold(filter.Keyword))))
 	}
@@ -50,7 +62,13 @@ func (r *financeInvoiceRepo) ListScoped(ctx context.Context, organizationIDs []u
 	if clientErr != nil {
 		return nil, clientErr
 	}
-	q := client.FinanceInvoice.Query().WithOrganization().Where(p...)
+	q := client.FinanceInvoice.Query().WithOrganization().Where(p...).WithBillLinks(func(lq *ent.FinanceInvoiceBillQuery) {
+		lq.Order(financeinvoicebillent.ByCreatedAt(), financeinvoicebillent.ByID())
+		// 账单内登记列表需要逐费用追溯；普通台账只加载用于展示与导出的账单关联。
+		if filter.BillID != nil {
+			lq.WithFeeAllocations()
+		}
+	})
 	matchedSummary, matchedErr := loadFinanceLedgerMatchedSummary(ctx, q.Clone().GroupBy(financeinvoiceent.FieldDirection, financeinvoiceent.FieldCurrency, financeinvoiceent.FieldBaseCurrency).Aggregate(financeLedgerMatchedAggregates(financeinvoiceent.FieldTotalAmount, financeinvoiceent.FieldBaseCurrencyAmount)...).Scan)
 	if matchedErr != nil {
 		return nil, matchedErr
@@ -104,23 +122,32 @@ func (r *financeInvoiceRepo) ListScoped(ctx context.Context, organizationIDs []u
 
 func (r *financeInvoiceRepo) queryWithLinks(q *ent.FinanceInvoiceQuery) *ent.FinanceInvoiceQuery {
 	return q.WithBillLinks(func(lq *ent.FinanceInvoiceBillQuery) {
-		lq.Order(financeinvoicebillent.ByCreatedAt(), financeinvoicebillent.ByID())
-	}).WithLines(func(lq *ent.FinanceInvoiceLineQuery) { lq.Order(financeinvoicelineent.ByLineNo()) })
+		lq.WithFeeAllocations().Order(financeinvoicebillent.ByCreatedAt(), financeinvoicebillent.ByID())
+	}).WithLines(func(lq *ent.FinanceInvoiceLineQuery) { lq.Order(financeinvoicelineent.ByLineNo()) }).WithRevisions()
 }
 func (r *financeInvoiceRepo) Get(ctx context.Context, org, id uuid.UUID) (*biz.FinanceInvoice, error) {
 	return r.GetScoped(ctx, []uuid.UUID{org}, id)
 }
 
 func (r *financeInvoiceRepo) GetScoped(ctx context.Context, organizationIDs []uuid.UUID, id uuid.UUID) (*biz.FinanceInvoice, error) {
-	client, clientErr := r.data.client(ctx)
-	if clientErr != nil {
-		return nil, clientErr
-	}
-	item, err := r.queryWithLinks(client.FinanceInvoice.Query().WithOrganization()).Where(financeinvoiceent.IDEQ(id), financeinvoiceent.OrganizationIDIn(organizationIDs...)).Only(ctx)
-	if err != nil {
-		return nil, mapEntError(err, biz.ErrFinanceInvoiceNotFound, nil)
-	}
-	return financeInvoiceToBiz(item)
+	var result *biz.FinanceInvoice
+	// 发票头、当前行、分配及修订历史经多次 SELECT 读取，必须沿同一版本快照。
+	err := r.data.withReadSnapshot(ctx, func(readCtx context.Context) error {
+		client, err := r.data.client(readCtx)
+		if err != nil {
+			return err
+		}
+		item, err := r.queryWithLinks(client.FinanceInvoice.Query().WithOrganization()).Where(financeinvoiceent.IDEQ(id), financeinvoiceent.OrganizationIDIn(organizationIDs...)).Only(readCtx)
+		if err != nil {
+			return mapEntError(err, biz.ErrFinanceInvoiceNotFound, nil)
+		}
+		result, err = financeInvoiceToBiz(item)
+		if err != nil {
+			return err
+		}
+		return r.enrichInvoiceRevisionNames(readCtx, client, result)
+	})
+	return result, err
 }
 func (r *financeInvoiceRepo) GetByIdempotencyKey(ctx context.Context, org uuid.UUID, key string) (*biz.FinanceInvoice, error) {
 	client, err := r.data.client(ctx)
@@ -160,6 +187,16 @@ func (r *financeInvoiceRepo) LoadBillsScoped(ctx context.Context, organizationID
 }
 
 func (r *financeInvoiceRepo) ListCreationBills(ctx context.Context, organizationID uuid.UUID, filter biz.FinanceInvoiceCreationBillFilter) (*biz.FinanceInvoiceCreationBillListResult, error) {
+	var result *biz.FinanceInvoiceCreationBillListResult
+	err := r.data.withReadSnapshot(ctx, func(readCtx context.Context) error {
+		var err error
+		result, err = r.listCreationBillsSnapshot(readCtx, organizationID, filter)
+		return err
+	})
+	return result, err
+}
+
+func (r *financeInvoiceRepo) listCreationBillsSnapshot(ctx context.Context, organizationID uuid.UUID, filter biz.FinanceInvoiceCreationBillFilter) (*biz.FinanceInvoiceCreationBillListResult, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
@@ -170,13 +207,18 @@ func (r *financeInvoiceRepo) ListCreationBills(ctx context.Context, organization
 		financebillent.PurposeEQ(financebillent.PurposeNORMAL),
 		financebillent.Not(financebillent.HasInvoiceExemptionsWith(financeinvoiceexemption.RevokedAtIsNil())),
 		financebillent.HasLinesWith(financebilllineent.ActiveEQ(true), financebilllineent.HasOrderFeeWith(orderfeeent.EconomicEffectEQ(orderfeeent.EconomicEffectINCREASE), orderfeeent.SupersededByRequestIDIsNil())),
-		financebillent.Not(financebillent.HasInvoiceLinksWith(financeinvoicebillent.ActiveEQ(true))),
+		financeInvoiceBillHasRemainingPredicate(),
 	}
 	if filter.Keyword != "" {
 		predicates = append(predicates, financebillent.Or(
 			financebillent.BillNoContainsFold(filter.Keyword),
 			financebillent.SettlementPartyNameContainsFold(filter.Keyword),
+			financebillent.HasSettlementPartyWith(financePartyKeywordPredicate(filter.Keyword)),
+			financebillent.HasLinesWith(financebilllineent.OrderNoContainsFold(filter.Keyword)),
 		))
+	}
+	if filter.BillID != nil {
+		predicates = append(predicates, financebillent.IDEQ(*filter.BillID))
 	}
 	if filter.Direction != "" {
 		predicates = append(predicates, financebillent.DirectionEQ(financebillent.Direction(filter.Direction)))
@@ -208,6 +250,9 @@ func (r *financeInvoiceRepo) ListCreationBills(ctx context.Context, organization
 		}
 		result.Items = append(result.Items, converted)
 	}
+	if err := enrichInvoiceableBalances(ctx, client, result.Items, nil); err != nil {
+		return nil, err
+	}
 	return result, nil
 }
 
@@ -223,22 +268,37 @@ func (r *financeInvoiceRepo) ListProfilesForBill(ctx context.Context, organizati
 		financebillent.PurposeEQ(financebillent.PurposeNORMAL),
 		financebillent.Not(financebillent.HasInvoiceExemptionsWith(financeinvoiceexemption.RevokedAtIsNil())),
 		financebillent.HasLinesWith(financebilllineent.ActiveEQ(true), financebilllineent.HasOrderFeeWith(orderfeeent.EconomicEffectEQ(orderfeeent.EconomicEffectINCREASE), orderfeeent.SupersededByRequestIDIsNil())),
-		financebillent.Not(financebillent.HasInvoiceLinksWith(financeinvoicebillent.ActiveEQ(true))),
+		financeInvoiceBillHasRemainingPredicate(),
 	).Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrFinanceInvoiceBillInvalid, nil)
 	}
+	return r.ListProfilesForParty(ctx, []uuid.UUID{bill.OrganizationID}, bill.SettlementPartyID)
+}
+func (r *financeInvoiceRepo) ListProfilesForParty(ctx context.Context, organizationIDs []uuid.UUID, partyID uuid.UUID) (*biz.FinanceInvoiceProfilesForBill, error) {
+	if len(organizationIDs) != 1 || organizationIDs[0] == uuid.Nil || partyID == uuid.Nil {
+		return nil, biz.ErrFinanceInvoiceInvalidArgument
+	}
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if exists, err := client.Partner.Query().Where(partnerent.IDEQ(partyID), partnerent.OrganizationIDEQ(organizationIDs[0])).Exist(ctx); err != nil {
+		return nil, err
+	} else if !exists {
+		return nil, biz.ErrFinanceInvoiceBillInvalid
+	}
 	items, err := client.PartnerInvoiceProfile.Query().Where(
-		profileent.OrganizationIDEQ(bill.OrganizationID),
-		profileent.PartnerIDEQ(bill.SettlementPartyID),
+		profileent.OrganizationIDEQ(organizationIDs[0]),
+		profileent.PartnerIDEQ(partyID),
 		profileent.EnabledEQ(true),
 	).Order(profileent.ByIsDefault(entsql.OrderDesc()), profileent.ByCreatedAt(), profileent.ByID()).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	result := &biz.FinanceInvoiceProfilesForBill{
-		OrganizationID:    bill.OrganizationID,
-		SettlementPartyID: bill.SettlementPartyID,
+		OrganizationID:    organizationIDs[0],
+		SettlementPartyID: partyID,
 		Items:             make([]*biz.PartnerInvoiceProfile, 0, len(items)),
 	}
 	for _, item := range items {
@@ -252,263 +312,15 @@ func (r *financeInvoiceRepo) LoadInvoiceProfile(ctx context.Context, org, partne
 	if clientErr != nil {
 		return nil, clientErr
 	}
-	item, err := client.PartnerInvoiceProfile.Query().Where(profileent.IDEQ(profileID), profileent.OrganizationIDEQ(org), profileent.PartnerIDEQ(partnerID), profileent.EnabledEQ(true)).Only(ctx)
+	query := client.PartnerInvoiceProfile.Query().Where(profileent.IDEQ(profileID), profileent.OrganizationIDEQ(org), profileent.PartnerIDEQ(partnerID), profileent.EnabledEQ(true))
+	if _, transactional := transactionFromContext(ctx); transactional {
+		query.ForShare()
+	}
+	item, err := query.Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrPartnerInvoiceProfileNotFound, nil)
 	}
 	return partnerInvoiceProfileToBiz(item), nil
-}
-
-func (r *financeInvoiceRepo) Create(ctx context.Context, invoice *biz.FinanceInvoice, audit *biz.AuditEvent) (*biz.FinanceInvoice, error) {
-	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		ids := make([]uuid.UUID, 0, len(invoice.Links))
-		for _, link := range invoice.Links {
-			ids = append(ids, link.BillID)
-		}
-		if err := lockExistingBillOrders(ctx, tx.Client(), []uuid.UUID{invoice.OrganizationID}, ids); err != nil {
-			return err
-		}
-		if invoice.InvoiceProfileID == nil {
-			return biz.ErrFinanceInvoiceProfileRequired
-		}
-		profile, queryErr := tx.PartnerInvoiceProfile.Query().Where(profileent.IDEQ(*invoice.InvoiceProfileID), profileent.OrganizationIDEQ(invoice.OrganizationID), profileent.PartnerIDEQ(invoice.SettlementPartyID), profileent.EnabledEQ(true)).ForUpdate().Only(ctx)
-		if queryErr != nil {
-			return mapEntError(queryErr, biz.ErrFinanceInvoiceProfileRequired, nil)
-		}
-		if profile.InvoiceTitle != invoice.InvoiceTitle || profile.TaxpayerIdentificationNo != invoice.TaxpayerIdentificationNo || profile.RegisteredAddress != invoice.RegisteredAddress || profile.RegisteredPhone != invoice.RegisteredPhone || profile.BankName != invoice.BankName || profile.BankAccount != invoice.BankAccount {
-			return biz.ErrFinanceInvoiceProfileRequired
-		}
-		// 锁序与 lockAndReleaseInvoiceActiveBills 保持一致：账单多行锁定必须按 ID 升序，防止并发开票交叉死锁。
-		bills, queryErr := tx.FinanceBill.Query().Where(financebillent.IDIn(ids...), financebillent.OrganizationIDEQ(invoice.OrganizationID)).WithLines(func(q *ent.FinanceBillLineQuery) { q.WithOrderFee() }).Order(financebillent.ByID()).ForUpdate().All(ctx)
-		if queryErr != nil {
-			return queryErr
-		}
-		if len(bills) != len(ids) {
-			return biz.ErrFinanceInvoiceBillInvalid
-		}
-		exempt, queryErr := tx.FinanceInvoiceExemption.Query().Where(financeinvoiceexemption.BillIDIn(ids...), financeinvoiceexemption.RevokedAtIsNil()).Exist(ctx)
-		if queryErr != nil {
-			return queryErr
-		}
-		if exempt {
-			return biz.ErrFinanceInvoiceExemptionConflict
-		}
-		for _, bill := range bills {
-			if bill.Status != financebillent.StatusCONFIRMED || string(bill.Direction) != string(invoice.Direction) || bill.SettlementPartyID != invoice.SettlementPartyID || bill.Currency != invoice.Currency {
-				return biz.ErrFinanceInvoiceBillInvalid
-			}
-		}
-		if err := checkCorrectionInvoiceAncestors(ctx, tx.Client(), bills); err != nil {
-			return err
-		}
-		if err := validateInvoiceEconomicSnapshot(bills, invoice); err != nil {
-			return err
-		}
-		active, queryErr := tx.FinanceInvoiceBill.Query().Where(financeinvoicebillent.BillIDIn(ids...), financeinvoicebillent.ActiveEQ(true)).Exist(ctx)
-		if queryErr != nil {
-			return queryErr
-		}
-		if active {
-			return biz.ErrFinanceInvoiceBillInvalid
-		}
-		if _, createErr := tx.FinanceInvoice.Create().SetID(invoice.ID).SetOrganizationID(invoice.OrganizationID).SetRecordNo(invoice.RecordNo).SetIdempotencyKey(invoice.IdempotencyKey).SetDirection(financeinvoiceent.Direction(invoice.Direction)).SetStatus(financeinvoiceent.StatusDRAFT).SetInvoiceType(financeinvoiceent.InvoiceType(invoice.InvoiceType)).SetNillableInvoiceProfileID(invoice.InvoiceProfileID).SetSettlementPartyID(invoice.SettlementPartyID).SetSettlementPartyName(invoice.SettlementPartyName).SetInvoiceTitle(invoice.InvoiceTitle).SetTaxpayerIdentificationNo(invoice.TaxpayerIdentificationNo).SetRegisteredAddress(invoice.RegisteredAddress).SetRegisteredPhone(invoice.RegisteredPhone).SetBankName(invoice.BankName).SetBankAccount(invoice.BankAccount).SetCurrency(invoice.Currency).SetBaseCurrency(invoice.BaseCurrency).SetTotalAmount(invoice.TotalAmount.StringFixed(8)).SetNetAmount(invoice.NetAmount.StringFixed(8)).SetTaxAmount(invoice.TaxAmount.StringFixed(8)).SetBillCount(invoice.BillCount).SetNillableNote(invoice.Note).SetVersion(1).Save(ctx); createErr != nil {
-			return createErr
-		}
-		builders := make([]*ent.FinanceInvoiceBillCreate, 0, len(invoice.Links))
-		for _, link := range invoice.Links {
-			builders = append(builders, tx.FinanceInvoiceBill.Create().SetSourceFeeIds(link.SourceFeeIDs).SetID(link.ID).SetInvoiceID(invoice.ID).SetBillID(link.BillID).SetBillNo(link.BillNo).SetAmount(link.Amount.StringFixed(8)).SetTaxAmount(link.TaxAmount.StringFixed(8)).SetActive(true))
-		}
-		if _, createErr := tx.FinanceInvoiceBill.CreateBulk(builders...).Save(ctx); createErr != nil {
-			return biz.ErrFinanceInvoiceBillInvalid
-		}
-		lineBuilders := make([]*ent.FinanceInvoiceLineCreate, 0, len(invoice.Lines))
-		for _, line := range invoice.Lines {
-			lineBuilders = append(lineBuilders, tx.FinanceInvoiceLine.Create().SetID(line.ID).SetInvoiceID(invoice.ID).SetLineNo(line.LineNo).SetItemCode(line.ItemCode).SetItemName(line.ItemName).SetTaxRate(line.TaxRate.StringFixed(4)).SetNetAmount(line.NetAmount.StringFixed(8)).SetTaxAmount(line.TaxAmount.StringFixed(8)).SetTotalAmount(line.TotalAmount.StringFixed(8)).SetCurrency(line.Currency).SetSourceLineCount(line.SourceLineCount))
-		}
-		if _, createErr := tx.FinanceInvoiceLine.CreateBulk(lineBuilders...).Save(ctx); createErr != nil {
-			return createErr
-		}
-		return writeAudit(ctx, tx.AuditLog, audit)
-	})
-	if err != nil {
-		return nil, err
-	}
-	return r.Get(ctx, invoice.OrganizationID, invoice.ID)
-}
-
-func (r *financeInvoiceRepo) Issue(ctx context.Context, org, id, actor uuid.UUID, version uint64, issue biz.FinanceInvoiceIssueInput, audit *biz.AuditEvent) (*biz.FinanceInvoice, error) {
-	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		links, err := tx.FinanceInvoiceBill.Query().Where(financeinvoicebillent.InvoiceIDEQ(id), financeinvoicebillent.ActiveEQ(true)).All(ctx)
-		if err != nil {
-			return err
-		}
-		ids := make([]uuid.UUID, 0, len(links))
-		for _, l := range links {
-			ids = append(ids, l.BillID)
-		}
-		if err := lockExistingBillOrders(ctx, tx.Client(), []uuid.UUID{org}, ids); err != nil {
-			return err
-		}
-		item, queryErr := tx.FinanceInvoice.Query().Where(financeinvoiceent.IDEQ(id), financeinvoiceent.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
-		if queryErr != nil {
-			return mapEntError(queryErr, biz.ErrFinanceInvoiceNotFound, nil)
-		}
-		if item.Version != version {
-			return biz.ErrFinanceInvoiceVersionConflict
-		}
-		if item.Status != financeinvoiceent.StatusDRAFT {
-			return biz.ErrFinanceInvoiceInvalidTransition
-		}
-		bills, err := tx.FinanceBill.Query().Where(financebillent.IDIn(ids...), financebillent.OrganizationIDEQ(org)).WithLines(func(q *ent.FinanceBillLineQuery) { q.WithOrderFee() }).Order(financebillent.ByID()).ForUpdate().All(ctx)
-		if err != nil {
-			return err
-		}
-		snapshot, err := r.queryWithLinks(tx.FinanceInvoice.Query()).Where(financeinvoiceent.IDEQ(id)).Only(ctx)
-		if err != nil {
-			return err
-		}
-		converted, err := financeInvoiceToBiz(snapshot)
-		if err != nil {
-			return err
-		}
-		if err := checkCorrectionInvoiceAncestors(ctx, tx.Client(), bills); err != nil {
-			return err
-		}
-		if err := validateInvoiceEconomicSnapshot(bills, converted); err != nil {
-			return err
-		}
-		duplicate, queryErr := tx.FinanceInvoice.Query().Where(financeinvoiceent.OrganizationIDEQ(org), financeinvoiceent.IDNEQ(id), financeinvoiceent.TaxInvoiceNoEQ(issue.TaxInvoiceNo)).Exist(ctx)
-		if queryErr != nil {
-			return queryErr
-		}
-		if duplicate {
-			return biz.ErrFinanceInvoiceTaxNoExists
-		}
-		now := time.Now()
-		if _, updateErr := tx.FinanceInvoice.UpdateOneID(id).SetStatus(financeinvoiceent.StatusISSUED).SetTaxInvoiceNo(issue.TaxInvoiceNo).SetInvoiceDate(issue.InvoiceDate).SetExchangeRate(issue.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financeinvoiceent.ExchangeRateSource(issue.ExchangeRateSource)).SetExchangeRateDate(issue.ExchangeRateDate).SetNillableExchangeRateSettingID(issue.ExchangeRateSettingID).SetBaseCurrencyAmount(issue.BaseCurrencyAmount.StringFixed(8)).SetIssuedAt(now).SetIssuedBy(actor).SetVersion(item.Version + 1).Save(ctx); updateErr != nil {
-			return mapEntConstraint(updateErr, "financeinvoice_org_tax_invoice_no", biz.ErrFinanceInvoiceTaxNoExists)
-		}
-		return writeAudit(ctx, tx.AuditLog, audit)
-	})
-	if err != nil {
-		return nil, err
-	}
-	return r.Get(ctx, org, id)
-}
-
-// lockAndReleaseInvoiceActiveBills 释放发票活动账单关联并推进账单版本，供 Cancel/RedFlush 共用。
-// 发票状态判断不在此辅助内：调用方必须在 Invoice FOR UPDATE 并完成权威状态校验后调用。
-// 锁序固定为 Invoice → 按 ID 排序的活动 FinanceInvoiceBill → 按 UUID 升序的 FinanceBill FOR UPDATE；
-// 释放活动关联后每张受影响账单 version 恰好递增一次，任一步失败由外层事务整体回滚。
-func lockAndReleaseInvoiceActiveBills(ctx context.Context, tx *ent.Tx, org, invoiceID uuid.UUID) error {
-	links, queryErr := tx.FinanceInvoiceBill.Query().Where(financeinvoicebillent.InvoiceIDEQ(invoiceID), financeinvoicebillent.ActiveEQ(true)).Order(financeinvoicebillent.ByID()).ForUpdate().All(ctx)
-	if queryErr != nil {
-		return queryErr
-	}
-	if len(links) == 0 {
-		return biz.ErrFinanceInvoiceInvalidTransition
-	}
-	billIDs := make([]uuid.UUID, 0, len(links))
-	seen := make(map[uuid.UUID]struct{}, len(links))
-	for _, link := range links {
-		if _, ok := seen[link.BillID]; ok {
-			continue
-		}
-		seen[link.BillID] = struct{}{}
-		billIDs = append(billIDs, link.BillID)
-	}
-	sort.Slice(billIDs, func(i, j int) bool { return billIDs[i].String() < billIDs[j].String() })
-	bills, queryErr := tx.FinanceBill.Query().Where(financebillent.IDIn(billIDs...)).Order(financebillent.ByID()).ForUpdate().All(ctx)
-	if queryErr != nil {
-		return queryErr
-	}
-	if len(bills) != len(billIDs) {
-		return biz.ErrFinanceInvoiceBillInvalid
-	}
-	for _, bill := range bills {
-		if bill.OrganizationID != org || bill.Status != financebillent.StatusCONFIRMED {
-			return biz.ErrFinanceInvoiceBillInvalid
-		}
-	}
-	released, updateErr := tx.FinanceInvoiceBill.Update().Where(financeinvoicebillent.InvoiceIDEQ(invoiceID), financeinvoicebillent.ActiveEQ(true)).SetActive(false).Save(ctx)
-	if updateErr != nil {
-		return updateErr
-	}
-	if released != len(links) {
-		return biz.ErrFinanceInvoiceBillInvalid
-	}
-	// 释放关联后推进账单版本，使携带旧版本号的并发账单操作以 409 冲突失败。
-	affected, updateErr := tx.FinanceBill.Update().Where(financebillent.IDIn(billIDs...)).AddVersion(1).Save(ctx)
-	if updateErr != nil {
-		return updateErr
-	}
-	if affected != len(billIDs) {
-		return biz.ErrFinanceInvoiceBillInvalid
-	}
-	return nil
-}
-
-func (r *financeInvoiceRepo) Cancel(ctx context.Context, org, id, actor uuid.UUID, version uint64, reason string, audit *biz.AuditEvent) (*biz.FinanceInvoice, error) {
-	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		item, queryErr := tx.FinanceInvoice.Query().Where(financeinvoiceent.IDEQ(id), financeinvoiceent.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
-		if queryErr != nil {
-			return mapEntError(queryErr, biz.ErrFinanceInvoiceNotFound, nil)
-		}
-		if item.Version != version {
-			return biz.ErrFinanceInvoiceVersionConflict
-		}
-		// CANCELLED 与 RED_FLUSHED 均为终态；只有 DRAFT（取消草稿）与 ISSUED（作废已开票发票）允许取消。
-		if item.Status != financeinvoiceent.StatusDRAFT && item.Status != financeinvoiceent.StatusISSUED {
-			return biz.ErrFinanceInvoiceInvalidTransition
-		}
-		if releaseErr := lockAndReleaseInvoiceActiveBills(ctx, tx, org, id); releaseErr != nil {
-			return releaseErr
-		}
-		now := time.Now()
-		if _, updateErr := tx.FinanceInvoice.UpdateOneID(id).SetStatus(financeinvoiceent.StatusCANCELLED).SetCancelledAt(now).SetCancelledBy(actor).SetCancellationReason(reason).SetVersion(item.Version + 1).Save(ctx); updateErr != nil {
-			return updateErr
-		}
-		return writeAudit(ctx, tx.AuditLog, audit)
-	})
-	if err != nil {
-		return nil, err
-	}
-	return r.Get(ctx, org, id)
-}
-
-func (r *financeInvoiceRepo) RedFlush(ctx context.Context, org, id, actor uuid.UUID, version uint64, redInvoiceNo, redInvoiceDate, reason string, audit *biz.AuditEvent) (*biz.FinanceInvoice, error) {
-	err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		item, queryErr := tx.FinanceInvoice.Query().Where(financeinvoiceent.IDEQ(id), financeinvoiceent.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
-		if queryErr != nil {
-			return mapEntError(queryErr, biz.ErrFinanceInvoiceNotFound, nil)
-		}
-		if item.Version != version {
-			return biz.ErrFinanceInvoiceVersionConflict
-		}
-		// 红冲只允许 ISSUED；DRAFT 未开票、CANCELLED 与 RED_FLUSHED 为终态。
-		if item.Status != financeinvoiceent.StatusISSUED {
-			return biz.ErrFinanceInvoiceInvalidTransition
-		}
-		duplicate, queryErr := tx.FinanceInvoice.Query().Where(financeinvoiceent.OrganizationIDEQ(org), financeinvoiceent.RedInvoiceNoEQ(redInvoiceNo)).Exist(ctx)
-		if queryErr != nil {
-			return queryErr
-		}
-		if duplicate {
-			return biz.ErrFinanceInvoiceRedNoExists
-		}
-		if releaseErr := lockAndReleaseInvoiceActiveBills(ctx, tx, org, id); releaseErr != nil {
-			return releaseErr
-		}
-		now := time.Now()
-		if _, updateErr := tx.FinanceInvoice.UpdateOneID(id).SetStatus(financeinvoiceent.StatusRED_FLUSHED).SetRedInvoiceNo(redInvoiceNo).SetRedInvoiceDate(redInvoiceDate).SetRedFlushedAt(now).SetRedFlushedBy(actor).SetRedFlushReason(reason).SetVersion(item.Version + 1).Save(ctx); updateErr != nil {
-			return mapEntConstraint(updateErr, "financeinvoice_org_red_invoice_no", biz.ErrFinanceInvoiceRedNoExists)
-		}
-		return writeAudit(ctx, tx.AuditLog, audit)
-	})
-	if err != nil {
-		return nil, err
-	}
-	return r.Get(ctx, org, id)
 }
 
 func financeInvoiceToBiz(x *ent.FinanceInvoice) (*biz.FinanceInvoice, error) {
@@ -544,7 +356,7 @@ func financeInvoiceToBiz(x *ent.FinanceInvoice) (*biz.FinanceInvoice, error) {
 		value := string(*x.ExchangeRateSource)
 		exchangeRateSource = &value
 	}
-	out := &biz.FinanceInvoice{ID: x.ID, OrganizationID: x.OrganizationID, InvoiceProfileID: x.InvoiceProfileID, RecordNo: x.RecordNo, IdempotencyKey: x.IdempotencyKey, Direction: biz.OrderFeeDirection(x.Direction), Status: biz.FinanceInvoiceStatus(x.Status), InvoiceType: biz.FinanceInvoiceType(x.InvoiceType), SettlementPartyID: x.SettlementPartyID, SettlementPartyName: x.SettlementPartyName, InvoiceTitle: financeStringValue(x.InvoiceTitle), TaxpayerIdentificationNo: financeStringValue(x.TaxpayerIdentificationNo), RegisteredAddress: financeStringValue(x.RegisteredAddress), RegisteredPhone: financeStringValue(x.RegisteredPhone), BankName: financeStringValue(x.BankName), BankAccount: financeStringValue(x.BankAccount), Currency: x.Currency, BaseCurrency: x.BaseCurrency, ExchangeRate: exchangeRate, ExchangeRateSource: exchangeRateSource, ExchangeRateDate: x.ExchangeRateDate, ExchangeRateSettingID: x.ExchangeRateSettingID, BaseCurrencyAmount: baseCurrencyAmount, TotalAmount: total, NetAmount: net, TaxAmount: tax, BillCount: x.BillCount, TaxInvoiceNo: x.TaxInvoiceNo, InvoiceDate: x.InvoiceDate, Note: x.Note, Version: x.Version, IssuedAt: x.IssuedAt, IssuedBy: x.IssuedBy, CancelledAt: x.CancelledAt, CancelledBy: x.CancelledBy, CancellationReason: x.CancellationReason, RedInvoiceNo: x.RedInvoiceNo, RedInvoiceDate: x.RedInvoiceDate, RedFlushedAt: x.RedFlushedAt, RedFlushedBy: x.RedFlushedBy, RedFlushReason: x.RedFlushReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt, Links: make([]*biz.FinanceInvoiceBill, 0, len(x.Edges.BillLinks)), Lines: make([]*biz.FinanceInvoiceLine, 0, len(x.Edges.Lines))}
+	out := &biz.FinanceInvoice{ID: x.ID, OrganizationID: x.OrganizationID, InvoiceProfileID: x.InvoiceProfileID, RecordNo: x.RecordNo, IdempotencyKey: x.IdempotencyKey, Direction: biz.OrderFeeDirection(x.Direction), Status: biz.FinanceInvoiceStatus(x.Status), InvoiceType: biz.FinanceInvoiceType(x.InvoiceType), SettlementPartyID: x.SettlementPartyID, SettlementPartyName: x.SettlementPartyName, InvoiceTitle: financeStringValue(x.InvoiceTitle), TaxpayerIdentificationNo: financeStringValue(x.TaxpayerIdentificationNo), RegisteredAddress: financeStringValue(x.RegisteredAddress), RegisteredPhone: financeStringValue(x.RegisteredPhone), BankName: financeStringValue(x.BankName), BankAccount: financeStringValue(x.BankAccount), Currency: x.Currency, BaseCurrency: x.BaseCurrency, ExchangeRate: exchangeRate, ExchangeRateSource: exchangeRateSource, ExchangeRateDate: x.ExchangeRateDate, ExchangeRateSettingID: x.ExchangeRateSettingID, BaseCurrencyAmount: baseCurrencyAmount, TotalAmount: total, NetAmount: net, TaxAmount: tax, BillCount: x.BillCount, TaxInvoiceNo: x.TaxInvoiceNo, InvoiceDate: x.InvoiceDate, Note: x.Note, Version: x.Version, RevisionNumber: x.RevisionNumber, IssuedAt: x.IssuedAt, IssuedBy: x.IssuedBy, CancelledAt: x.CancelledAt, CancelledBy: x.CancelledBy, CancellationReason: x.CancellationReason, RedInvoiceNo: x.RedInvoiceNo, RedInvoiceDate: x.RedInvoiceDate, RedFlushedAt: x.RedFlushedAt, RedFlushedBy: x.RedFlushedBy, RedFlushReason: x.RedFlushReason, CreatedAt: x.CreatedAt, UpdatedAt: x.UpdatedAt, Links: make([]*biz.FinanceInvoiceBill, 0, len(x.Edges.BillLinks)), Lines: make([]*biz.FinanceInvoiceLine, 0, len(x.Edges.Lines))}
 	if organization, edgeErr := x.Edges.OrganizationOrErr(); edgeErr == nil {
 		out.OrganizationName = organization.Name
 	}
@@ -557,10 +369,33 @@ func financeInvoiceToBiz(x *ent.FinanceInvoice) (*biz.FinanceInvoice, error) {
 		if e != nil {
 			return nil, e
 		}
-		out.Links = append(out.Links, &biz.FinanceInvoiceBill{SourceFeeIDs: l.SourceFeeIds, ID: l.ID, InvoiceID: l.InvoiceID, BillID: l.BillID, BillNo: l.BillNo, Amount: amount, TaxAmount: tax, Active: l.Active})
+		link := &biz.FinanceInvoiceBill{SourceFeeIDs: l.SourceFeeIds, ID: l.ID, InvoiceID: l.InvoiceID, BillID: l.BillID, BillNo: l.BillNo, Amount: amount, TaxAmount: tax, Active: l.Active}
+		for _, a := range l.Edges.FeeAllocations {
+			amount, err := decimalOf(a.Amount)
+			if err != nil {
+				return nil, err
+			}
+			net, err := decimalOf(a.NetAmount)
+			if err != nil {
+				return nil, err
+			}
+			tax, err := decimalOf(a.TaxAmount)
+			if err != nil {
+				return nil, err
+			}
+			rate, err := invoiceOptionalDecimal(a.SourceTaxRate)
+			if err != nil {
+				return nil, err
+			}
+			link.Fees = append(link.Fees, &biz.FinanceInvoiceFeeAllocation{ID: a.ID, InvoiceID: a.InvoiceID, InvoiceBillID: a.InvoiceBillID, BillID: l.BillID, BillLineID: a.BillLineID, OrderFeeID: a.OrderFeeID, FeeCode: a.FeeCode, FeeName: a.FeeName, Currency: a.Currency, SourceTaxRate: rate, Amount: amount, NetAmount: net, TaxAmount: tax})
+		}
+		out.Links = append(out.Links, link)
 	}
 	for _, line := range x.Edges.Lines {
-		taxRate, parseErr := decimalOf(line.TaxRate)
+		if line.RevisionNumber != x.RevisionNumber {
+			continue
+		}
+		taxRate, parseErr := invoiceOptionalDecimal(line.TaxRate)
 		if parseErr != nil {
 			return nil, parseErr
 		}
@@ -578,6 +413,9 @@ func financeInvoiceToBiz(x *ent.FinanceInvoice) (*biz.FinanceInvoice, error) {
 		}
 		out.Lines = append(out.Lines, &biz.FinanceInvoiceLine{ID: line.ID, InvoiceID: line.InvoiceID, LineNo: line.LineNo, ItemCode: line.ItemCode, ItemName: line.ItemName, TaxRate: taxRate, NetAmount: netAmount, TaxAmount: taxAmount, TotalAmount: totalAmount, Currency: line.Currency, SourceLineCount: line.SourceLineCount})
 	}
+	for _, revision := range x.Edges.Revisions {
+		out.Revisions = append(out.Revisions, &biz.FinanceInvoiceRevision{ID: revision.ID, InvoiceID: revision.InvoiceID, ActorID: revision.ActorID, Reason: revision.Reason, RevisionNumber: revision.RevisionNumber, Before: revision.BeforeSnapshot, After: revision.AfterSnapshot, CreatedAt: revision.CreatedAt})
+	}
 	return out, nil
 }
 
@@ -589,3 +427,14 @@ func financeStringValue(value *string) string {
 }
 
 var _ biz.FinanceInvoiceRepo = (*financeInvoiceRepo)(nil)
+
+func invoiceOptionalDecimal(value *string) (*decimal.Decimal, error) {
+	if value == nil {
+		return nil, nil
+	}
+	parsed, err := decimalOf(*value)
+	if err != nil {
+		return nil, err
+	}
+	return &parsed, nil
+}

@@ -1,12 +1,9 @@
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
 import { act } from '@testing-library/react';
-import { App, Form, type FormInstance } from 'antd';
-import type { Dispatch, ReactElement, SetStateAction } from 'react';
+import { App } from 'antd';
+import type { ReactElement } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  settlementServiceCreateInvoice,
-  settlementServiceListInvoices,
-} from '@/services/roncin/settlementService';
+import { settlementServiceListInvoices } from '@/services/roncin/settlementService';
 import FinanceInvoicesPage from './index';
 
 type LedgerProps = {
@@ -22,17 +19,10 @@ type LedgerProps = {
     organizationId?: string;
   }) => Promise<unknown>;
 };
-type CreateModalProps = {
-  createForm: FormInstance;
-  setSelectedIDs: Dispatch<SetStateAction<React.Key[]>>;
-  setSelectedBills: Dispatch<SetStateAction<API.FinanceBill[]>>;
-  onOk: () => Promise<false | undefined>;
-};
 const state = vi.hoisted(() => ({
   organizationId: 'workspace-A' as string | undefined,
   company: true,
   ledger: undefined as LedgerProps | undefined,
-  createModal: undefined as CreateModalProps | undefined,
 }));
 vi.mock('@/app/AppProvider', () => ({
   useInitialState: () => ({
@@ -60,27 +50,12 @@ vi.mock('@/components/ui', () => ({
   },
 }));
 vi.mock('@/services/roncin/settlementService', () => ({
-  settlementServiceCreateInvoice: vi
-    .fn()
-    .mockResolvedValue({ data: { id: 'invoice' } }),
   settlementServiceListInvoices: vi
     .fn()
     .mockResolvedValue({ data: [], total: '0', matchedSummary: {} }),
 }));
-vi.mock('./components/InvoiceCreateModal', () => ({
-  default: (props: CreateModalProps) => {
-    state.createModal = props;
-    return (
-      <Form form={props.createForm}>
-        <Form.Item name="invoiceProfileId">
-          <input />
-        </Form.Item>
-        <Form.Item name="invoiceType">
-          <input />
-        </Form.Item>
-      </Form>
-    );
-  },
+vi.mock('@/features/finance/invoice-registration', () => ({
+  InvoiceRegistrationModal: () => null,
 }));
 vi.mock('./components/InvoiceDetailDrawer', () => ({ default: () => null }));
 
@@ -150,40 +125,4 @@ describe('invoices列表当前公司', () => {
       { skipErrorHandler: true },
     );
   });
-  it.each(['workspace-A', 'other-company', undefined])(
-    '开票只接受当前公司来源账单：%s',
-    async (billOrganizationId) => {
-      renderWithClient(
-        <App>
-          <FinanceInvoicesPage />
-        </App>,
-      );
-      act(() => {
-        state.createModal?.setSelectedIDs(['bill']);
-        state.createModal?.setSelectedBills([
-          { id: 'bill', organizationId: billOrganizationId },
-        ]);
-        state.createModal?.createForm.setFieldsValue({
-          invoiceProfileId: 'profile',
-          invoiceType: 'VAT_SPECIAL',
-        });
-      });
-      await act(async () => {
-        await state.createModal?.onOk();
-      });
-      if (billOrganizationId === 'workspace-A') {
-        expect(settlementServiceCreateInvoice).toHaveBeenCalledWith(
-          expect.objectContaining({
-            billIds: ['bill'],
-            invoiceProfileId: 'profile',
-          }),
-        );
-        expect(
-          vi.mocked(settlementServiceCreateInvoice).mock.lastCall?.[0],
-        ).not.toHaveProperty('organizationId');
-      } else {
-        expect(settlementServiceCreateInvoice).not.toHaveBeenCalled();
-      }
-    },
-  );
 });

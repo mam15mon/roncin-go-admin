@@ -67,6 +67,8 @@ type FinanceBillLine struct {
 
 // FinanceBillLineEdges holds the relations/edges for other nodes in the graph.
 type FinanceBillLineEdges struct {
+	// InvoiceAllocations holds the value of the invoice_allocations edge.
+	InvoiceAllocations []*FinanceInvoiceFeeAllocation `json:"invoice_allocations,omitempty"`
 	// Bill holds the value of the bill edge.
 	Bill *FinanceBill `json:"bill,omitempty"`
 	// OrderFee holds the value of the order_fee edge.
@@ -75,7 +77,16 @@ type FinanceBillLineEdges struct {
 	Order *Order `json:"order,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
+}
+
+// InvoiceAllocationsOrErr returns the InvoiceAllocations value or an error if the edge
+// was not loaded in eager-loading.
+func (e FinanceBillLineEdges) InvoiceAllocationsOrErr() ([]*FinanceInvoiceFeeAllocation, error) {
+	if e.loadedTypes[0] {
+		return e.InvoiceAllocations, nil
+	}
+	return nil, &NotLoadedError{edge: "invoice_allocations"}
 }
 
 // BillOrErr returns the Bill value or an error if the edge
@@ -83,7 +94,7 @@ type FinanceBillLineEdges struct {
 func (e FinanceBillLineEdges) BillOrErr() (*FinanceBill, error) {
 	if e.Bill != nil {
 		return e.Bill, nil
-	} else if e.loadedTypes[0] {
+	} else if e.loadedTypes[1] {
 		return nil, &NotFoundError{label: financebill.Label}
 	}
 	return nil, &NotLoadedError{edge: "bill"}
@@ -94,7 +105,7 @@ func (e FinanceBillLineEdges) BillOrErr() (*FinanceBill, error) {
 func (e FinanceBillLineEdges) OrderFeeOrErr() (*OrderFee, error) {
 	if e.OrderFee != nil {
 		return e.OrderFee, nil
-	} else if e.loadedTypes[1] {
+	} else if e.loadedTypes[2] {
 		return nil, &NotFoundError{label: orderfee.Label}
 	}
 	return nil, &NotLoadedError{edge: "order_fee"}
@@ -105,7 +116,7 @@ func (e FinanceBillLineEdges) OrderFeeOrErr() (*OrderFee, error) {
 func (e FinanceBillLineEdges) OrderOrErr() (*Order, error) {
 	if e.Order != nil {
 		return e.Order, nil
-	} else if e.loadedTypes[2] {
+	} else if e.loadedTypes[3] {
 		return nil, &NotFoundError{label: order.Label}
 	}
 	return nil, &NotLoadedError{edge: "order"}
@@ -271,6 +282,11 @@ func (_m *FinanceBillLine) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *FinanceBillLine) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
+}
+
+// QueryInvoiceAllocations queries the "invoice_allocations" edge of the FinanceBillLine entity.
+func (_m *FinanceBillLine) QueryInvoiceAllocations() *FinanceInvoiceFeeAllocationQuery {
+	return NewFinanceBillLineClient(_m.config).QueryInvoiceAllocations(_m)
 }
 
 // QueryBill queries the "bill" edge of the FinanceBillLine entity.

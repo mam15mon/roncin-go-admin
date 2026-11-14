@@ -30,44 +30,45 @@ func (s *financeInvoiceCandidateRepoStub) ListProfilesForBill(_ context.Context,
 	return &FinanceInvoiceProfilesForBill{}, s.err
 }
 
-func TestBuildFinanceInvoiceAggregatesConfirmedBills(t *testing.T) {
-	organizationID := uuid.Must(uuid.NewV7())
-	partyID := uuid.Must(uuid.NewV7())
-	taxRate := decimal.RequireFromString("6")
-	bills := []*FinanceBill{
-		{ID: uuid.Must(uuid.NewV7()), BillNo: "BI001", Status: FinanceBillConfirmed, Direction: OrderFeeReceivable, SettlementPartyID: partyID, SettlementPartyName: "客户", Currency: "CNY", BaseCurrency: "CNY", TotalAmount: decimal.RequireFromString("100"), NetAmount: decimal.RequireFromString("94"), TaxAmount: decimal.RequireFromString("6"), Lines: []*FinanceBillLine{{FeeCode: "OCEAN", FeeName: "海运费", Currency: "CNY", TotalAmount: decimal.RequireFromString("100"), NetAmount: decimal.RequireFromString("94"), TaxAmount: decimal.RequireFromString("6"), TaxRate: &taxRate, Active: true}}},
-		{ID: uuid.Must(uuid.NewV7()), BillNo: "BI002", Status: FinanceBillConfirmed, Direction: OrderFeeReceivable, SettlementPartyID: partyID, SettlementPartyName: "客户", Currency: "CNY", BaseCurrency: "CNY", TotalAmount: decimal.RequireFromString("0.02"), NetAmount: decimal.RequireFromString("0.0188"), TaxAmount: decimal.RequireFromString("0.0012"), Lines: []*FinanceBillLine{{FeeCode: "OCEAN", FeeName: "海运费", Currency: "CNY", TotalAmount: decimal.RequireFromString("0.02"), NetAmount: decimal.RequireFromString("0.0188"), TaxAmount: decimal.RequireFromString("0.0012"), TaxRate: &taxRate, Active: true}}},
+func TestNormalizeInvoiceRegistrationsManualTaxAndHierarchy(t *testing.T) {
+	valid := func() RegisterFinanceInvoicesInput {
+		return RegisterFinanceInvoicesInput{IdempotencyKey: "manual-tax", Records: []FinanceInvoiceRegistrationInput{{InvoiceProfileID: uuid.New(), InvoiceType: FinanceInvoiceNormal, TaxInvoiceNo: " 原票 ", InvoiceDate: "2026-11-14", TotalAmount: decimal.RequireFromString("100.00000001"), Allocations: []FinanceInvoiceAllocationInput{{BillID: uuid.New(), ExpectedVersion: 1, Amount: decimal.RequireFromString("100.00000001"), Fees: []FinanceInvoiceFeeInput{{OrderFeeID: uuid.New(), Amount: decimal.RequireFromString("100.00000001"), TaxAmount: decimal.RequireFromString("7.00000001")}}}}}}}
 	}
-	input := CreateFinanceInvoiceInput{BillIDs: []uuid.UUID{bills[0].ID, bills[1].ID}, InvoiceProfileID: uuid.Must(uuid.NewV7()), InvoiceType: FinanceInvoiceSpecial, IdempotencyKey: "invoice-test"}
-	profile := &PartnerInvoiceProfile{ID: input.InvoiceProfileID, OrganizationID: organizationID, PartnerID: partyID, InvoiceTitle: "客户", TaxpayerIdentificationNo: "91310000TEST", RegisteredAddress: "上海市", RegisteredPhone: "021-12345678", BankName: "测试银行", BankAccount: "62220000", Enabled: true}
-	invoice, err := buildFinanceInvoice(organizationID, bills, profile, input)
-	if err != nil {
-		t.Fatalf("构建开票记录失败: %v", err)
+	input := valid()
+	if err := normalizeInvoiceRegistrations(&input); err != nil {
+		t.Fatal(err)
 	}
-	if invoice.TotalAmount.StringFixed(8) != "100.02000000" || invoice.NetAmount.StringFixed(8) != "94.01880000" || invoice.TaxAmount.StringFixed(8) != "6.00120000" || invoice.BillCount != 2 || len(invoice.Lines) != 1 || invoice.Lines[0].SourceLineCount != 2 {
-		t.Fatalf("开票汇总不正确: total=%s tax=%s count=%d", invoice.TotalAmount, invoice.TaxAmount, invoice.BillCount)
+	if input.Records[0].TaxInvoiceNo != "原票" || !input.Records[0].Allocations[0].Fees[0].TaxAmount.Equal(decimal.RequireFromString("7.00000001")) {
+		t.Fatal("规范化不得改写手填税额")
 	}
-	if invoice.BaseCurrency != "CNY" {
-		t.Fatalf("开票记录应继承账单本币，实际为 %q", invoice.BaseCurrency)
-	}
-}
-
-func TestBuildFinanceInvoiceRejectsMixedParties(t *testing.T) {
-	bills := []*FinanceBill{
-		{ID: uuid.Must(uuid.NewV7()), TotalAmount: decimal.NewFromInt(100), Status: FinanceBillConfirmed, Direction: OrderFeeReceivable, SettlementPartyID: uuid.Must(uuid.NewV7()), Currency: "CNY", BaseCurrency: "CNY"},
-		{ID: uuid.Must(uuid.NewV7()), TotalAmount: decimal.NewFromInt(100), Status: FinanceBillConfirmed, Direction: OrderFeeReceivable, SettlementPartyID: uuid.Must(uuid.NewV7()), Currency: "CNY", BaseCurrency: "CNY"},
-	}
-	organizationID := uuid.Must(uuid.NewV7())
-	profile := &PartnerInvoiceProfile{ID: uuid.Must(uuid.NewV7()), OrganizationID: organizationID, PartnerID: bills[0].SettlementPartyID, InvoiceTitle: "客户", TaxpayerIdentificationNo: "91310000TEST", Enabled: true}
-	_, err := buildFinanceInvoice(organizationID, bills, profile, CreateFinanceInvoiceInput{BillIDs: []uuid.UUID{bills[0].ID, bills[1].ID}, InvoiceProfileID: profile.ID, InvoiceType: FinanceInvoiceNormal})
-	if err != ErrFinanceInvoiceBillMismatch {
-		t.Fatalf("混合结算单位应被拒绝，实际 %v", err)
+	for _, tc := range []struct {
+		name string
+		edit func(*FinanceInvoiceRegistrationInput)
+	}{
+		{"发票合计不等", func(r *FinanceInvoiceRegistrationInput) { r.TotalAmount = decimal.NewFromInt(99) }},
+		{"费用合计不等", func(r *FinanceInvoiceRegistrationInput) { r.Allocations[0].Fees[0].Amount = decimal.NewFromInt(99) }},
+		{"税额超额", func(r *FinanceInvoiceRegistrationInput) { r.Allocations[0].Fees[0].TaxAmount = decimal.NewFromInt(101) }},
+		{"税额负数", func(r *FinanceInvoiceRegistrationInput) { r.Allocations[0].Fees[0].TaxAmount = decimal.NewFromInt(-1) }},
+		{"九位精度", func(r *FinanceInvoiceRegistrationInput) {
+			r.Allocations[0].Fees[0].TaxAmount = decimal.RequireFromString("0.000000001")
+		}},
+		{"重复来源", func(r *FinanceInvoiceRegistrationInput) {
+			r.Allocations[0].Fees = append(r.Allocations[0].Fees, r.Allocations[0].Fees[0])
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			input := valid()
+			tc.edit(&input.Records[0])
+			if err := normalizeInvoiceRegistrations(&input); !errors.Is(err, ErrFinanceInvoiceInvalidArgument) {
+				t.Fatalf("必须拒绝: %v", err)
+			}
+		})
 	}
 }
 
 func TestFinanceInvoiceCreationCandidatesValidateAndForwardScopedInputs(t *testing.T) {
 	repo := &financeInvoiceCandidateRepoStub{}
-	usecase := NewFinanceInvoiceUsecase(repo, nil, nil)
+	usecase := NewFinanceInvoiceUsecase(repo, nil, nil, nil)
 	organizationID := uuid.New()
 	partyID := uuid.New()
 	if _, err := usecase.ListCreationBills(context.Background(), organizationID, FinanceInvoiceCreationBillFilter{
@@ -78,7 +79,7 @@ func TestFinanceInvoiceCreationCandidatesValidateAndForwardScopedInputs(t *testi
 	if repo.organizationID != organizationID || repo.filter.Keyword != "客户" || repo.filter.Currency != "USD" || repo.filter.SettlementPartyID == nil || *repo.filter.SettlementPartyID != partyID {
 		t.Fatalf("候选参数未规范化转发: org=%s filter=%+v", repo.organizationID, repo.filter)
 	}
-	if _, err := usecase.ListCreationBills(context.Background(), uuid.Nil, FinanceInvoiceCreationBillFilter{Page: 1, PageSize: 20}); err != ErrFinanceInvoiceInvalidArgument {
+	if _, err := usecase.ListCreationBills(context.Background(), uuid.Nil, FinanceInvoiceCreationBillFilter{Page: 1, PageSize: 20}); !errors.Is(err, ErrFinanceInvoiceInvalidArgument) {
 		t.Fatalf("空组织错误 = %v，期望 %v", err, ErrFinanceInvoiceInvalidArgument)
 	}
 	billID := uuid.New()

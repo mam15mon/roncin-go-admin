@@ -65,6 +65,20 @@ func (_c *FinanceInvoiceLineCreate) SetLineNo(v int) *FinanceInvoiceLineCreate {
 	return _c
 }
 
+// SetRevisionNumber sets the "revision_number" field.
+func (_c *FinanceInvoiceLineCreate) SetRevisionNumber(v uint64) *FinanceInvoiceLineCreate {
+	_c.mutation.SetRevisionNumber(v)
+	return _c
+}
+
+// SetNillableRevisionNumber sets the "revision_number" field if the given value is not nil.
+func (_c *FinanceInvoiceLineCreate) SetNillableRevisionNumber(v *uint64) *FinanceInvoiceLineCreate {
+	if v != nil {
+		_c.SetRevisionNumber(*v)
+	}
+	return _c
+}
+
 // SetItemCode sets the "item_code" field.
 func (_c *FinanceInvoiceLineCreate) SetItemCode(v string) *FinanceInvoiceLineCreate {
 	_c.mutation.SetItemCode(v)
@@ -80,6 +94,14 @@ func (_c *FinanceInvoiceLineCreate) SetItemName(v string) *FinanceInvoiceLineCre
 // SetTaxRate sets the "tax_rate" field.
 func (_c *FinanceInvoiceLineCreate) SetTaxRate(v string) *FinanceInvoiceLineCreate {
 	_c.mutation.SetTaxRate(v)
+	return _c
+}
+
+// SetNillableTaxRate sets the "tax_rate" field if the given value is not nil.
+func (_c *FinanceInvoiceLineCreate) SetNillableTaxRate(v *string) *FinanceInvoiceLineCreate {
+	if v != nil {
+		_c.SetTaxRate(*v)
+	}
 	return _c
 }
 
@@ -175,6 +197,10 @@ func (_c *FinanceInvoiceLineCreate) defaults() {
 		v := financeinvoiceline.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.RevisionNumber(); !ok {
+		v := financeinvoiceline.DefaultRevisionNumber
+		_c.mutation.SetRevisionNumber(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := financeinvoiceline.DefaultID()
 		_c.mutation.SetID(v)
@@ -200,6 +226,9 @@ func (_c *FinanceInvoiceLineCreate) check() error {
 			return &ValidationError{Name: "line_no", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoiceLine.line_no": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.RevisionNumber(); !ok {
+		return &ValidationError{Name: "revision_number", err: errors.New(`ent: missing required field "FinanceInvoiceLine.revision_number"`)}
+	}
 	if _, ok := _c.mutation.ItemCode(); !ok {
 		return &ValidationError{Name: "item_code", err: errors.New(`ent: missing required field "FinanceInvoiceLine.item_code"`)}
 	}
@@ -215,9 +244,6 @@ func (_c *FinanceInvoiceLineCreate) check() error {
 		if err := financeinvoiceline.ItemNameValidator(v); err != nil {
 			return &ValidationError{Name: "item_name", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoiceLine.item_name": %w`, err)}
 		}
-	}
-	if _, ok := _c.mutation.TaxRate(); !ok {
-		return &ValidationError{Name: "tax_rate", err: errors.New(`ent: missing required field "FinanceInvoiceLine.tax_rate"`)}
 	}
 	if _, ok := _c.mutation.NetAmount(); !ok {
 		return &ValidationError{Name: "net_amount", err: errors.New(`ent: missing required field "FinanceInvoiceLine.net_amount"`)}
@@ -295,6 +321,10 @@ func (_c *FinanceInvoiceLineCreate) createSpec() (*FinanceInvoiceLine, *sqlgraph
 		_spec.SetField(financeinvoiceline.FieldLineNo, field.TypeInt, value)
 		_node.LineNo = value
 	}
+	if value, ok := _c.mutation.RevisionNumber(); ok {
+		_spec.SetField(financeinvoiceline.FieldRevisionNumber, field.TypeUint64, value)
+		_node.RevisionNumber = value
+	}
 	if value, ok := _c.mutation.ItemCode(); ok {
 		_spec.SetField(financeinvoiceline.FieldItemCode, field.TypeString, value)
 		_node.ItemCode = value
@@ -305,7 +335,7 @@ func (_c *FinanceInvoiceLineCreate) createSpec() (*FinanceInvoiceLine, *sqlgraph
 	}
 	if value, ok := _c.mutation.TaxRate(); ok {
 		_spec.SetField(financeinvoiceline.FieldTaxRate, field.TypeString, value)
-		_node.TaxRate = value
+		_node.TaxRate = &value
 	}
 	if value, ok := _c.mutation.NetAmount(); ok {
 		_spec.SetField(financeinvoiceline.FieldNetAmount, field.TypeString, value)
@@ -433,6 +463,9 @@ func (u *FinanceInvoiceLineUpsertOne) UpdateNewValues() *FinanceInvoiceLineUpser
 		}
 		if _, exists := u.create.mutation.LineNo(); exists {
 			s.SetIgnore(financeinvoiceline.FieldLineNo)
+		}
+		if _, exists := u.create.mutation.RevisionNumber(); exists {
+			s.SetIgnore(financeinvoiceline.FieldRevisionNumber)
 		}
 		if _, exists := u.create.mutation.ItemCode(); exists {
 			s.SetIgnore(financeinvoiceline.FieldItemCode)
@@ -694,6 +727,9 @@ func (u *FinanceInvoiceLineUpsertBulk) UpdateNewValues() *FinanceInvoiceLineUpse
 			}
 			if _, exists := b.mutation.LineNo(); exists {
 				s.SetIgnore(financeinvoiceline.FieldLineNo)
+			}
+			if _, exists := b.mutation.RevisionNumber(); exists {
+				s.SetIgnore(financeinvoiceline.FieldRevisionNumber)
 			}
 			if _, exists := b.mutation.ItemCode(); exists {
 				s.SetIgnore(financeinvoiceline.FieldItemCode)

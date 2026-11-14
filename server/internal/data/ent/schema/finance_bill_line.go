@@ -41,6 +41,7 @@ func (FinanceBillLine) Fields() []ent.Field {
 
 func (FinanceBillLine) Edges() []ent.Edge {
 	return []ent.Edge{
+		edge.To("invoice_allocations", FinanceInvoiceFeeAllocation.Type),
 		edge.From("bill", FinanceBill.Type).Ref("lines").Field("bill_id").Unique().Required().Immutable(),
 		edge.From("order_fee", OrderFee.Type).Ref("finance_bill_lines").Field("order_fee_id").Unique().Immutable().Annotations(entsql.OnDelete(entsql.SetNull)),
 		edge.From("order", Order.Type).Ref("finance_bill_lines").Field("order_id").Unique().Required().Immutable(),

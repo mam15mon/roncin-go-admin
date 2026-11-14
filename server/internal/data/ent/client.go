@@ -60,8 +60,11 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicecommand"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceexemption"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicefeeallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicerevision"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
@@ -131,6 +134,8 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/shippinglinecontainerprefix"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/taxableservice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
+
+	stdsql "database/sql"
 )
 
 // Client is the client that holds all ent builders.
@@ -226,10 +231,16 @@ type Client struct {
 	FinanceInvoice *FinanceInvoiceClient
 	// FinanceInvoiceBill is the client for interacting with the FinanceInvoiceBill builders.
 	FinanceInvoiceBill *FinanceInvoiceBillClient
+	// FinanceInvoiceCommand is the client for interacting with the FinanceInvoiceCommand builders.
+	FinanceInvoiceCommand *FinanceInvoiceCommandClient
 	// FinanceInvoiceExemption is the client for interacting with the FinanceInvoiceExemption builders.
 	FinanceInvoiceExemption *FinanceInvoiceExemptionClient
+	// FinanceInvoiceFeeAllocation is the client for interacting with the FinanceInvoiceFeeAllocation builders.
+	FinanceInvoiceFeeAllocation *FinanceInvoiceFeeAllocationClient
 	// FinanceInvoiceLine is the client for interacting with the FinanceInvoiceLine builders.
 	FinanceInvoiceLine *FinanceInvoiceLineClient
+	// FinanceInvoiceRevision is the client for interacting with the FinanceInvoiceRevision builders.
+	FinanceInvoiceRevision *FinanceInvoiceRevisionClient
 	// FinanceNetting is the client for interacting with the FinanceNetting builders.
 	FinanceNetting *FinanceNettingClient
 	// FinanceNettingAllocation is the client for interacting with the FinanceNettingAllocation builders.
@@ -423,8 +434,11 @@ func (c *Client) init() {
 	c.FinanceCustomSetting = NewFinanceCustomSettingClient(c.config)
 	c.FinanceInvoice = NewFinanceInvoiceClient(c.config)
 	c.FinanceInvoiceBill = NewFinanceInvoiceBillClient(c.config)
+	c.FinanceInvoiceCommand = NewFinanceInvoiceCommandClient(c.config)
 	c.FinanceInvoiceExemption = NewFinanceInvoiceExemptionClient(c.config)
+	c.FinanceInvoiceFeeAllocation = NewFinanceInvoiceFeeAllocationClient(c.config)
 	c.FinanceInvoiceLine = NewFinanceInvoiceLineClient(c.config)
+	c.FinanceInvoiceRevision = NewFinanceInvoiceRevisionClient(c.config)
 	c.FinanceNetting = NewFinanceNettingClient(c.config)
 	c.FinanceNettingAllocation = NewFinanceNettingAllocationClient(c.config)
 	c.FinanceVerification = NewFinanceVerificationClient(c.config)
@@ -630,8 +644,11 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		FinanceCustomSetting:             NewFinanceCustomSettingClient(cfg),
 		FinanceInvoice:                   NewFinanceInvoiceClient(cfg),
 		FinanceInvoiceBill:               NewFinanceInvoiceBillClient(cfg),
+		FinanceInvoiceCommand:            NewFinanceInvoiceCommandClient(cfg),
 		FinanceInvoiceExemption:          NewFinanceInvoiceExemptionClient(cfg),
+		FinanceInvoiceFeeAllocation:      NewFinanceInvoiceFeeAllocationClient(cfg),
 		FinanceInvoiceLine:               NewFinanceInvoiceLineClient(cfg),
+		FinanceInvoiceRevision:           NewFinanceInvoiceRevisionClient(cfg),
 		FinanceNetting:                   NewFinanceNettingClient(cfg),
 		FinanceNettingAllocation:         NewFinanceNettingAllocationClient(cfg),
 		FinanceVerification:              NewFinanceVerificationClient(cfg),
@@ -764,8 +781,11 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		FinanceCustomSetting:             NewFinanceCustomSettingClient(cfg),
 		FinanceInvoice:                   NewFinanceInvoiceClient(cfg),
 		FinanceInvoiceBill:               NewFinanceInvoiceBillClient(cfg),
+		FinanceInvoiceCommand:            NewFinanceInvoiceCommandClient(cfg),
 		FinanceInvoiceExemption:          NewFinanceInvoiceExemptionClient(cfg),
+		FinanceInvoiceFeeAllocation:      NewFinanceInvoiceFeeAllocationClient(cfg),
 		FinanceInvoiceLine:               NewFinanceInvoiceLineClient(cfg),
+		FinanceInvoiceRevision:           NewFinanceInvoiceRevisionClient(cfg),
 		FinanceNetting:                   NewFinanceNettingClient(cfg),
 		FinanceNettingAllocation:         NewFinanceNettingAllocationClient(cfg),
 		FinanceVerification:              NewFinanceVerificationClient(cfg),
@@ -880,8 +900,9 @@ func (c *Client) Use(hooks ...Hook) {
 		c.FinanceCommissionApplicationLine, c.FinanceCommissionLine,
 		c.FinanceCommissionRule, c.FinanceCommissionRuleAssignment,
 		c.FinanceCustomSetting, c.FinanceInvoice, c.FinanceInvoiceBill,
-		c.FinanceInvoiceExemption, c.FinanceInvoiceLine, c.FinanceNetting,
-		c.FinanceNettingAllocation, c.FinanceVerification,
+		c.FinanceInvoiceCommand, c.FinanceInvoiceExemption,
+		c.FinanceInvoiceFeeAllocation, c.FinanceInvoiceLine, c.FinanceInvoiceRevision,
+		c.FinanceNetting, c.FinanceNettingAllocation, c.FinanceVerification,
 		c.FinanceVerificationAllocation, c.LoginRateLimitBucket, c.MasterDataItem,
 		c.Membership, c.NotificationDelivery, c.NumberRule, c.NumberSequence,
 		c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase, c.OrderAttachment,
@@ -927,8 +948,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.FinanceCommissionApplicationLine, c.FinanceCommissionLine,
 		c.FinanceCommissionRule, c.FinanceCommissionRuleAssignment,
 		c.FinanceCustomSetting, c.FinanceInvoice, c.FinanceInvoiceBill,
-		c.FinanceInvoiceExemption, c.FinanceInvoiceLine, c.FinanceNetting,
-		c.FinanceNettingAllocation, c.FinanceVerification,
+		c.FinanceInvoiceCommand, c.FinanceInvoiceExemption,
+		c.FinanceInvoiceFeeAllocation, c.FinanceInvoiceLine, c.FinanceInvoiceRevision,
+		c.FinanceNetting, c.FinanceNettingAllocation, c.FinanceVerification,
 		c.FinanceVerificationAllocation, c.LoginRateLimitBucket, c.MasterDataItem,
 		c.Membership, c.NotificationDelivery, c.NumberRule, c.NumberSequence,
 		c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase, c.OrderAttachment,
@@ -1045,10 +1067,16 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.FinanceInvoice.mutate(ctx, m)
 	case *FinanceInvoiceBillMutation:
 		return c.FinanceInvoiceBill.mutate(ctx, m)
+	case *FinanceInvoiceCommandMutation:
+		return c.FinanceInvoiceCommand.mutate(ctx, m)
 	case *FinanceInvoiceExemptionMutation:
 		return c.FinanceInvoiceExemption.mutate(ctx, m)
+	case *FinanceInvoiceFeeAllocationMutation:
+		return c.FinanceInvoiceFeeAllocation.mutate(ctx, m)
 	case *FinanceInvoiceLineMutation:
 		return c.FinanceInvoiceLine.mutate(ctx, m)
+	case *FinanceInvoiceRevisionMutation:
+		return c.FinanceInvoiceRevision.mutate(ctx, m)
 	case *FinanceNettingMutation:
 		return c.FinanceNetting.mutate(ctx, m)
 	case *FinanceNettingAllocationMutation:
@@ -6652,6 +6680,22 @@ func (c *FinanceBillLineClient) GetX(ctx context.Context, id uuid.UUID) *Finance
 	return obj
 }
 
+// QueryInvoiceAllocations queries the invoice_allocations edge of a FinanceBillLine.
+func (c *FinanceBillLineClient) QueryInvoiceAllocations(_m *FinanceBillLine) *FinanceInvoiceFeeAllocationQuery {
+	query := (&FinanceInvoiceFeeAllocationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financebillline.Table, financebillline.FieldID, id),
+			sqlgraph.To(financeinvoicefeeallocation.Table, financeinvoicefeeallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financebillline.InvoiceAllocationsTable, financebillline.InvoiceAllocationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryBill queries the bill edge of a FinanceBillLine.
 func (c *FinanceBillLineClient) QueryBill(_m *FinanceBillLine) *FinanceBillQuery {
 	query := (&FinanceBillClient{config: c.config}).Query()
@@ -8974,6 +9018,38 @@ func (c *FinanceInvoiceClient) QueryLines(_m *FinanceInvoice) *FinanceInvoiceLin
 	return query
 }
 
+// QueryFeeAllocations queries the fee_allocations edge of a FinanceInvoice.
+func (c *FinanceInvoiceClient) QueryFeeAllocations(_m *FinanceInvoice) *FinanceInvoiceFeeAllocationQuery {
+	query := (&FinanceInvoiceFeeAllocationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financeinvoice.Table, financeinvoice.FieldID, id),
+			sqlgraph.To(financeinvoicefeeallocation.Table, financeinvoicefeeallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financeinvoice.FeeAllocationsTable, financeinvoice.FeeAllocationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRevisions queries the revisions edge of a FinanceInvoice.
+func (c *FinanceInvoiceClient) QueryRevisions(_m *FinanceInvoice) *FinanceInvoiceRevisionQuery {
+	query := (&FinanceInvoiceRevisionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financeinvoice.Table, financeinvoice.FieldID, id),
+			sqlgraph.To(financeinvoicerevision.Table, financeinvoicerevision.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financeinvoice.RevisionsTable, financeinvoice.RevisionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *FinanceInvoiceClient) Hooks() []Hook {
 	return c.hooks.FinanceInvoice
@@ -9139,6 +9215,22 @@ func (c *FinanceInvoiceBillClient) QueryBill(_m *FinanceInvoiceBill) *FinanceBil
 	return query
 }
 
+// QueryFeeAllocations queries the fee_allocations edge of a FinanceInvoiceBill.
+func (c *FinanceInvoiceBillClient) QueryFeeAllocations(_m *FinanceInvoiceBill) *FinanceInvoiceFeeAllocationQuery {
+	query := (&FinanceInvoiceFeeAllocationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financeinvoicebill.Table, financeinvoicebill.FieldID, id),
+			sqlgraph.To(financeinvoicefeeallocation.Table, financeinvoicefeeallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financeinvoicebill.FeeAllocationsTable, financeinvoicebill.FeeAllocationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *FinanceInvoiceBillClient) Hooks() []Hook {
 	return c.hooks.FinanceInvoiceBill
@@ -9161,6 +9253,155 @@ func (c *FinanceInvoiceBillClient) mutate(ctx context.Context, m *FinanceInvoice
 		return (&FinanceInvoiceBillDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown FinanceInvoiceBill mutation op: %q", m.Op())
+	}
+}
+
+// FinanceInvoiceCommandClient is a client for the FinanceInvoiceCommand schema.
+type FinanceInvoiceCommandClient struct {
+	config
+}
+
+// NewFinanceInvoiceCommandClient returns a client for the FinanceInvoiceCommand from the given config.
+func NewFinanceInvoiceCommandClient(c config) *FinanceInvoiceCommandClient {
+	return &FinanceInvoiceCommandClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `financeinvoicecommand.Hooks(f(g(h())))`.
+func (c *FinanceInvoiceCommandClient) Use(hooks ...Hook) {
+	c.hooks.FinanceInvoiceCommand = append(c.hooks.FinanceInvoiceCommand, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `financeinvoicecommand.Intercept(f(g(h())))`.
+func (c *FinanceInvoiceCommandClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FinanceInvoiceCommand = append(c.inters.FinanceInvoiceCommand, interceptors...)
+}
+
+// Create returns a builder for creating a FinanceInvoiceCommand entity.
+func (c *FinanceInvoiceCommandClient) Create() *FinanceInvoiceCommandCreate {
+	mutation := newFinanceInvoiceCommandMutation(c.config, OpCreate)
+	return &FinanceInvoiceCommandCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FinanceInvoiceCommand entities.
+func (c *FinanceInvoiceCommandClient) CreateBulk(builders ...*FinanceInvoiceCommandCreate) *FinanceInvoiceCommandCreateBulk {
+	return &FinanceInvoiceCommandCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FinanceInvoiceCommandClient) MapCreateBulk(slice any, setFunc func(*FinanceInvoiceCommandCreate, int)) *FinanceInvoiceCommandCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FinanceInvoiceCommandCreateBulk{err: fmt.Errorf("calling to FinanceInvoiceCommandClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FinanceInvoiceCommandCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FinanceInvoiceCommandCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FinanceInvoiceCommand.
+func (c *FinanceInvoiceCommandClient) Update() *FinanceInvoiceCommandUpdate {
+	mutation := newFinanceInvoiceCommandMutation(c.config, OpUpdate)
+	return &FinanceInvoiceCommandUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FinanceInvoiceCommandClient) UpdateOne(_m *FinanceInvoiceCommand) *FinanceInvoiceCommandUpdateOne {
+	mutation := newFinanceInvoiceCommandMutation(c.config, OpUpdateOne, withFinanceInvoiceCommand(_m))
+	return &FinanceInvoiceCommandUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FinanceInvoiceCommandClient) UpdateOneID(id uuid.UUID) *FinanceInvoiceCommandUpdateOne {
+	mutation := newFinanceInvoiceCommandMutation(c.config, OpUpdateOne, withFinanceInvoiceCommandID(id))
+	return &FinanceInvoiceCommandUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FinanceInvoiceCommand.
+func (c *FinanceInvoiceCommandClient) Delete() *FinanceInvoiceCommandDelete {
+	mutation := newFinanceInvoiceCommandMutation(c.config, OpDelete)
+	return &FinanceInvoiceCommandDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FinanceInvoiceCommandClient) DeleteOne(_m *FinanceInvoiceCommand) *FinanceInvoiceCommandDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FinanceInvoiceCommandClient) DeleteOneID(id uuid.UUID) *FinanceInvoiceCommandDeleteOne {
+	builder := c.Delete().Where(financeinvoicecommand.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FinanceInvoiceCommandDeleteOne{builder}
+}
+
+// Query returns a query builder for FinanceInvoiceCommand.
+func (c *FinanceInvoiceCommandClient) Query() *FinanceInvoiceCommandQuery {
+	return &FinanceInvoiceCommandQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFinanceInvoiceCommand},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FinanceInvoiceCommand entity by its id.
+func (c *FinanceInvoiceCommandClient) Get(ctx context.Context, id uuid.UUID) (*FinanceInvoiceCommand, error) {
+	return c.Query().Where(financeinvoicecommand.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FinanceInvoiceCommandClient) GetX(ctx context.Context, id uuid.UUID) *FinanceInvoiceCommand {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOrganization queries the organization edge of a FinanceInvoiceCommand.
+func (c *FinanceInvoiceCommandClient) QueryOrganization(_m *FinanceInvoiceCommand) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financeinvoicecommand.Table, financeinvoicecommand.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financeinvoicecommand.OrganizationTable, financeinvoicecommand.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FinanceInvoiceCommandClient) Hooks() []Hook {
+	return c.hooks.FinanceInvoiceCommand
+}
+
+// Interceptors returns the client interceptors.
+func (c *FinanceInvoiceCommandClient) Interceptors() []Interceptor {
+	return c.inters.FinanceInvoiceCommand
+}
+
+func (c *FinanceInvoiceCommandClient) mutate(ctx context.Context, m *FinanceInvoiceCommandMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FinanceInvoiceCommandCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FinanceInvoiceCommandUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FinanceInvoiceCommandUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FinanceInvoiceCommandDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown FinanceInvoiceCommand mutation op: %q", m.Op())
 	}
 }
 
@@ -9329,6 +9570,187 @@ func (c *FinanceInvoiceExemptionClient) mutate(ctx context.Context, m *FinanceIn
 	}
 }
 
+// FinanceInvoiceFeeAllocationClient is a client for the FinanceInvoiceFeeAllocation schema.
+type FinanceInvoiceFeeAllocationClient struct {
+	config
+}
+
+// NewFinanceInvoiceFeeAllocationClient returns a client for the FinanceInvoiceFeeAllocation from the given config.
+func NewFinanceInvoiceFeeAllocationClient(c config) *FinanceInvoiceFeeAllocationClient {
+	return &FinanceInvoiceFeeAllocationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `financeinvoicefeeallocation.Hooks(f(g(h())))`.
+func (c *FinanceInvoiceFeeAllocationClient) Use(hooks ...Hook) {
+	c.hooks.FinanceInvoiceFeeAllocation = append(c.hooks.FinanceInvoiceFeeAllocation, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `financeinvoicefeeallocation.Intercept(f(g(h())))`.
+func (c *FinanceInvoiceFeeAllocationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FinanceInvoiceFeeAllocation = append(c.inters.FinanceInvoiceFeeAllocation, interceptors...)
+}
+
+// Create returns a builder for creating a FinanceInvoiceFeeAllocation entity.
+func (c *FinanceInvoiceFeeAllocationClient) Create() *FinanceInvoiceFeeAllocationCreate {
+	mutation := newFinanceInvoiceFeeAllocationMutation(c.config, OpCreate)
+	return &FinanceInvoiceFeeAllocationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FinanceInvoiceFeeAllocation entities.
+func (c *FinanceInvoiceFeeAllocationClient) CreateBulk(builders ...*FinanceInvoiceFeeAllocationCreate) *FinanceInvoiceFeeAllocationCreateBulk {
+	return &FinanceInvoiceFeeAllocationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FinanceInvoiceFeeAllocationClient) MapCreateBulk(slice any, setFunc func(*FinanceInvoiceFeeAllocationCreate, int)) *FinanceInvoiceFeeAllocationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FinanceInvoiceFeeAllocationCreateBulk{err: fmt.Errorf("calling to FinanceInvoiceFeeAllocationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FinanceInvoiceFeeAllocationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FinanceInvoiceFeeAllocationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FinanceInvoiceFeeAllocation.
+func (c *FinanceInvoiceFeeAllocationClient) Update() *FinanceInvoiceFeeAllocationUpdate {
+	mutation := newFinanceInvoiceFeeAllocationMutation(c.config, OpUpdate)
+	return &FinanceInvoiceFeeAllocationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FinanceInvoiceFeeAllocationClient) UpdateOne(_m *FinanceInvoiceFeeAllocation) *FinanceInvoiceFeeAllocationUpdateOne {
+	mutation := newFinanceInvoiceFeeAllocationMutation(c.config, OpUpdateOne, withFinanceInvoiceFeeAllocation(_m))
+	return &FinanceInvoiceFeeAllocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FinanceInvoiceFeeAllocationClient) UpdateOneID(id uuid.UUID) *FinanceInvoiceFeeAllocationUpdateOne {
+	mutation := newFinanceInvoiceFeeAllocationMutation(c.config, OpUpdateOne, withFinanceInvoiceFeeAllocationID(id))
+	return &FinanceInvoiceFeeAllocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FinanceInvoiceFeeAllocation.
+func (c *FinanceInvoiceFeeAllocationClient) Delete() *FinanceInvoiceFeeAllocationDelete {
+	mutation := newFinanceInvoiceFeeAllocationMutation(c.config, OpDelete)
+	return &FinanceInvoiceFeeAllocationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FinanceInvoiceFeeAllocationClient) DeleteOne(_m *FinanceInvoiceFeeAllocation) *FinanceInvoiceFeeAllocationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FinanceInvoiceFeeAllocationClient) DeleteOneID(id uuid.UUID) *FinanceInvoiceFeeAllocationDeleteOne {
+	builder := c.Delete().Where(financeinvoicefeeallocation.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FinanceInvoiceFeeAllocationDeleteOne{builder}
+}
+
+// Query returns a query builder for FinanceInvoiceFeeAllocation.
+func (c *FinanceInvoiceFeeAllocationClient) Query() *FinanceInvoiceFeeAllocationQuery {
+	return &FinanceInvoiceFeeAllocationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFinanceInvoiceFeeAllocation},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FinanceInvoiceFeeAllocation entity by its id.
+func (c *FinanceInvoiceFeeAllocationClient) Get(ctx context.Context, id uuid.UUID) (*FinanceInvoiceFeeAllocation, error) {
+	return c.Query().Where(financeinvoicefeeallocation.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FinanceInvoiceFeeAllocationClient) GetX(ctx context.Context, id uuid.UUID) *FinanceInvoiceFeeAllocation {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryInvoice queries the invoice edge of a FinanceInvoiceFeeAllocation.
+func (c *FinanceInvoiceFeeAllocationClient) QueryInvoice(_m *FinanceInvoiceFeeAllocation) *FinanceInvoiceQuery {
+	query := (&FinanceInvoiceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financeinvoicefeeallocation.Table, financeinvoicefeeallocation.FieldID, id),
+			sqlgraph.To(financeinvoice.Table, financeinvoice.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financeinvoicefeeallocation.InvoiceTable, financeinvoicefeeallocation.InvoiceColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryInvoiceBill queries the invoice_bill edge of a FinanceInvoiceFeeAllocation.
+func (c *FinanceInvoiceFeeAllocationClient) QueryInvoiceBill(_m *FinanceInvoiceFeeAllocation) *FinanceInvoiceBillQuery {
+	query := (&FinanceInvoiceBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financeinvoicefeeallocation.Table, financeinvoicefeeallocation.FieldID, id),
+			sqlgraph.To(financeinvoicebill.Table, financeinvoicebill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financeinvoicefeeallocation.InvoiceBillTable, financeinvoicefeeallocation.InvoiceBillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryBillLine queries the bill_line edge of a FinanceInvoiceFeeAllocation.
+func (c *FinanceInvoiceFeeAllocationClient) QueryBillLine(_m *FinanceInvoiceFeeAllocation) *FinanceBillLineQuery {
+	query := (&FinanceBillLineClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financeinvoicefeeallocation.Table, financeinvoicefeeallocation.FieldID, id),
+			sqlgraph.To(financebillline.Table, financebillline.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financeinvoicefeeallocation.BillLineTable, financeinvoicefeeallocation.BillLineColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FinanceInvoiceFeeAllocationClient) Hooks() []Hook {
+	return c.hooks.FinanceInvoiceFeeAllocation
+}
+
+// Interceptors returns the client interceptors.
+func (c *FinanceInvoiceFeeAllocationClient) Interceptors() []Interceptor {
+	return c.inters.FinanceInvoiceFeeAllocation
+}
+
+func (c *FinanceInvoiceFeeAllocationClient) mutate(ctx context.Context, m *FinanceInvoiceFeeAllocationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FinanceInvoiceFeeAllocationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FinanceInvoiceFeeAllocationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FinanceInvoiceFeeAllocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FinanceInvoiceFeeAllocationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown FinanceInvoiceFeeAllocation mutation op: %q", m.Op())
+	}
+}
+
 // FinanceInvoiceLineClient is a client for the FinanceInvoiceLine schema.
 type FinanceInvoiceLineClient struct {
 	config
@@ -9475,6 +9897,155 @@ func (c *FinanceInvoiceLineClient) mutate(ctx context.Context, m *FinanceInvoice
 		return (&FinanceInvoiceLineDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown FinanceInvoiceLine mutation op: %q", m.Op())
+	}
+}
+
+// FinanceInvoiceRevisionClient is a client for the FinanceInvoiceRevision schema.
+type FinanceInvoiceRevisionClient struct {
+	config
+}
+
+// NewFinanceInvoiceRevisionClient returns a client for the FinanceInvoiceRevision from the given config.
+func NewFinanceInvoiceRevisionClient(c config) *FinanceInvoiceRevisionClient {
+	return &FinanceInvoiceRevisionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `financeinvoicerevision.Hooks(f(g(h())))`.
+func (c *FinanceInvoiceRevisionClient) Use(hooks ...Hook) {
+	c.hooks.FinanceInvoiceRevision = append(c.hooks.FinanceInvoiceRevision, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `financeinvoicerevision.Intercept(f(g(h())))`.
+func (c *FinanceInvoiceRevisionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FinanceInvoiceRevision = append(c.inters.FinanceInvoiceRevision, interceptors...)
+}
+
+// Create returns a builder for creating a FinanceInvoiceRevision entity.
+func (c *FinanceInvoiceRevisionClient) Create() *FinanceInvoiceRevisionCreate {
+	mutation := newFinanceInvoiceRevisionMutation(c.config, OpCreate)
+	return &FinanceInvoiceRevisionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FinanceInvoiceRevision entities.
+func (c *FinanceInvoiceRevisionClient) CreateBulk(builders ...*FinanceInvoiceRevisionCreate) *FinanceInvoiceRevisionCreateBulk {
+	return &FinanceInvoiceRevisionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FinanceInvoiceRevisionClient) MapCreateBulk(slice any, setFunc func(*FinanceInvoiceRevisionCreate, int)) *FinanceInvoiceRevisionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FinanceInvoiceRevisionCreateBulk{err: fmt.Errorf("calling to FinanceInvoiceRevisionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FinanceInvoiceRevisionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FinanceInvoiceRevisionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FinanceInvoiceRevision.
+func (c *FinanceInvoiceRevisionClient) Update() *FinanceInvoiceRevisionUpdate {
+	mutation := newFinanceInvoiceRevisionMutation(c.config, OpUpdate)
+	return &FinanceInvoiceRevisionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FinanceInvoiceRevisionClient) UpdateOne(_m *FinanceInvoiceRevision) *FinanceInvoiceRevisionUpdateOne {
+	mutation := newFinanceInvoiceRevisionMutation(c.config, OpUpdateOne, withFinanceInvoiceRevision(_m))
+	return &FinanceInvoiceRevisionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FinanceInvoiceRevisionClient) UpdateOneID(id uuid.UUID) *FinanceInvoiceRevisionUpdateOne {
+	mutation := newFinanceInvoiceRevisionMutation(c.config, OpUpdateOne, withFinanceInvoiceRevisionID(id))
+	return &FinanceInvoiceRevisionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FinanceInvoiceRevision.
+func (c *FinanceInvoiceRevisionClient) Delete() *FinanceInvoiceRevisionDelete {
+	mutation := newFinanceInvoiceRevisionMutation(c.config, OpDelete)
+	return &FinanceInvoiceRevisionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FinanceInvoiceRevisionClient) DeleteOne(_m *FinanceInvoiceRevision) *FinanceInvoiceRevisionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FinanceInvoiceRevisionClient) DeleteOneID(id uuid.UUID) *FinanceInvoiceRevisionDeleteOne {
+	builder := c.Delete().Where(financeinvoicerevision.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FinanceInvoiceRevisionDeleteOne{builder}
+}
+
+// Query returns a query builder for FinanceInvoiceRevision.
+func (c *FinanceInvoiceRevisionClient) Query() *FinanceInvoiceRevisionQuery {
+	return &FinanceInvoiceRevisionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFinanceInvoiceRevision},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FinanceInvoiceRevision entity by its id.
+func (c *FinanceInvoiceRevisionClient) Get(ctx context.Context, id uuid.UUID) (*FinanceInvoiceRevision, error) {
+	return c.Query().Where(financeinvoicerevision.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FinanceInvoiceRevisionClient) GetX(ctx context.Context, id uuid.UUID) *FinanceInvoiceRevision {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryInvoice queries the invoice edge of a FinanceInvoiceRevision.
+func (c *FinanceInvoiceRevisionClient) QueryInvoice(_m *FinanceInvoiceRevision) *FinanceInvoiceQuery {
+	query := (&FinanceInvoiceClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financeinvoicerevision.Table, financeinvoicerevision.FieldID, id),
+			sqlgraph.To(financeinvoice.Table, financeinvoice.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financeinvoicerevision.InvoiceTable, financeinvoicerevision.InvoiceColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FinanceInvoiceRevisionClient) Hooks() []Hook {
+	return c.hooks.FinanceInvoiceRevision
+}
+
+// Interceptors returns the client interceptors.
+func (c *FinanceInvoiceRevisionClient) Interceptors() []Interceptor {
+	return c.inters.FinanceInvoiceRevision
+}
+
+func (c *FinanceInvoiceRevisionClient) mutate(ctx context.Context, m *FinanceInvoiceRevisionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FinanceInvoiceRevisionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FinanceInvoiceRevisionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FinanceInvoiceRevisionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FinanceInvoiceRevisionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown FinanceInvoiceRevision mutation op: %q", m.Op())
 	}
 }
 
@@ -16781,6 +17352,22 @@ func (c *OrganizationClient) QueryFinanceInvoices(_m *Organization) *FinanceInvo
 			sqlgraph.From(organization.Table, organization.FieldID, id),
 			sqlgraph.To(financeinvoice.Table, financeinvoice.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.FinanceInvoicesTable, organization.FinanceInvoicesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFinanceInvoiceCommands queries the finance_invoice_commands edge of a Organization.
+func (c *OrganizationClient) QueryFinanceInvoiceCommands(_m *Organization) *FinanceInvoiceCommandQuery {
+	query := (&FinanceInvoiceCommandClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(financeinvoicecommand.Table, financeinvoicecommand.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.FinanceInvoiceCommandsTable, organization.FinanceInvoiceCommandsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -25896,7 +26483,8 @@ type (
 		FinanceCommission, FinanceCommissionAdjustment, FinanceCommissionApplication,
 		FinanceCommissionApplicationLine, FinanceCommissionLine, FinanceCommissionRule,
 		FinanceCommissionRuleAssignment, FinanceCustomSetting, FinanceInvoice,
-		FinanceInvoiceBill, FinanceInvoiceExemption, FinanceInvoiceLine,
+		FinanceInvoiceBill, FinanceInvoiceCommand, FinanceInvoiceExemption,
+		FinanceInvoiceFeeAllocation, FinanceInvoiceLine, FinanceInvoiceRevision,
 		FinanceNetting, FinanceNettingAllocation, FinanceVerification,
 		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
 		Membership, NotificationDelivery, NumberRule, NumberSequence,
@@ -25932,7 +26520,8 @@ type (
 		FinanceCommission, FinanceCommissionAdjustment, FinanceCommissionApplication,
 		FinanceCommissionApplicationLine, FinanceCommissionLine, FinanceCommissionRule,
 		FinanceCommissionRuleAssignment, FinanceCustomSetting, FinanceInvoice,
-		FinanceInvoiceBill, FinanceInvoiceExemption, FinanceInvoiceLine,
+		FinanceInvoiceBill, FinanceInvoiceCommand, FinanceInvoiceExemption,
+		FinanceInvoiceFeeAllocation, FinanceInvoiceLine, FinanceInvoiceRevision,
 		FinanceNetting, FinanceNettingAllocation, FinanceVerification,
 		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
 		Membership, NotificationDelivery, NumberRule, NumberSequence,
@@ -25955,3 +26544,27 @@ type (
 		ShippingLineContainerPrefix, TaxableService, User []ent.Interceptor
 	}
 )
+
+// ExecContext allows calling the underlying ExecContext method of the driver if it is supported by it.
+// See, database/sql#DB.ExecContext for more information.
+func (c *config) ExecContext(ctx context.Context, query string, args ...any) (stdsql.Result, error) {
+	ex, ok := c.driver.(interface {
+		ExecContext(context.Context, string, ...any) (stdsql.Result, error)
+	})
+	if !ok {
+		return nil, fmt.Errorf("Driver.ExecContext is not supported")
+	}
+	return ex.ExecContext(ctx, query, args...)
+}
+
+// QueryContext allows calling the underlying QueryContext method of the driver if it is supported by it.
+// See, database/sql#DB.QueryContext for more information.
+func (c *config) QueryContext(ctx context.Context, query string, args ...any) (*stdsql.Rows, error) {
+	q, ok := c.driver.(interface {
+		QueryContext(context.Context, string, ...any) (*stdsql.Rows, error)
+	})
+	if !ok {
+		return nil, fmt.Errorf("Driver.QueryContext is not supported")
+	}
+	return q.QueryContext(ctx, query, args...)
+}

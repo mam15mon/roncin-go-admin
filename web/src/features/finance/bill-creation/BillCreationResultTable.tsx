@@ -10,6 +10,7 @@ import type {
   BillBatchGroupOutcome,
   BillBatchOutcome,
 } from './billWorkbenchHelpers';
+import { billBatchItemLabel } from './billWorkbenchHelpers';
 
 type BillCreationResultTableProps = {
   result?: BillBatchOutcome;
@@ -35,7 +36,11 @@ export default function BillCreationResultTable({
       key: 'result',
       width: 80,
       render: (_, row) =>
-        row.bill ? <Tag color="success">成功</Tag> : <Tag color="error">失败</Tag>,
+        row.bill ? (
+          <Tag color="success">成功</Tag>
+        ) : (
+          <Tag color="error">失败</Tag>
+        ),
     },
     {
       title: '结算单位',
@@ -73,7 +78,17 @@ export default function BillCreationResultTable({
         row.bill ? (
           row.bill.billNo
         ) : (
-          <span style={{ color: '#cf1322' }}>{row.errorMessage}</span>
+          <Space orientation="vertical" size={0}>
+            <span style={{ color: '#cf1322' }}>{row.errorMessage}</span>
+            {(row.itemErrors ?? []).map((item) => (
+              <span
+                key={`${item.step}:${item.itemIndex}:${item.reason}`}
+                style={{ color: '#cf1322' }}
+              >
+                {billBatchItemLabel(item)}：{item.message}
+              </span>
+            ))}
+          </Space>
         ),
     },
     {

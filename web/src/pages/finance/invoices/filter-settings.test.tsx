@@ -34,11 +34,12 @@ vi.mock('@/components/ui', async (original) => ({
 vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceListInvoices: mocks.list,
 }));
-vi.mock('./components/InvoiceCreateModal', () => ({ default: () => null }));
+vi.mock('@/features/finance/invoice-registration', () => ({
+  InvoiceRegistrationModal: () => null,
+}));
 vi.mock('./components/InvoiceDetailDrawer', () => ({ default: () => null }));
 vi.mock('./components/InvoiceCancelModal', () => ({ default: () => null }));
 vi.mock('./components/InvoiceIssueAndRedFlushModals', () => ({
-  InvoiceIssueModal: () => null,
   InvoiceRedFlushModal: () => null,
 }));
 

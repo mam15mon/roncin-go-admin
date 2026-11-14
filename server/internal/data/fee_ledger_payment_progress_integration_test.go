@@ -8,8 +8,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	billlineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	invoiceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	invoicelinkent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	allocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicefeeallocation"
 	nettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	verificationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	verificationallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
@@ -26,9 +28,10 @@ func TestFeeLedgerPaymentProgressPostgres(t *testing.T) {
 		status   invoiceent.Status
 		inactive bool
 		invoiced bool
+		amount   string
 	}{
 		{name: "未建发票"},
-		{name: "草稿发票", status: invoiceent.StatusDRAFT},
+		{name: "部分登记不等于票齐", status: invoiceent.StatusISSUED, amount: "100.00000000"},
 		{name: "有效已开票", status: invoiceent.StatusISSUED, invoiced: true},
 		{name: "已取消发票", status: invoiceent.StatusCANCELLED},
 		{name: "已红冲发票", status: invoiceent.StatusRED_FLUSHED},
@@ -41,12 +44,35 @@ func TestFeeLedgerPaymentProgressPostgres(t *testing.T) {
 			bill := f.createConfirmedBill("payment", "300", financeBillIntegrationDate)
 			f.linkBillFee("payment", bill, feeID, "300")
 			if tc.status != "" {
-				invoiceFixture := &financeInvoicePostgresFixture{t: t, data: d, organizationID: f.organizationID, partnerID: f.partnerID, orderID: f.orderID, actorID: f.actorID, suffix: f.suffix}
-				invoice := invoiceFixture.createInvoiceWithStatus("payment", tc.status, bill)
+				amount := tc.amount
+				if amount == "" {
+					amount = "300.00000000"
+				}
+				// 直登记事实必须与本场景实际分配一致；不复用固定100元的旧整票关联夹具。
+				create := d.db.FinanceInvoice.Create().SetOrganizationID(f.organizationID).SetRecordNo("PAYMENT-" + f.suffix).SetIdempotencyKey("payment-" + f.suffix).
+					SetDirection(invoiceent.DirectionRECEIVABLE).SetStatus(tc.status).SetInvoiceType(invoiceent.InvoiceTypeNORMAL).
+					SetSettlementPartyID(f.partnerID).SetSettlementPartyName("付款进度测试客商").SetCurrency("CNY").SetBaseCurrency("CNY").
+					SetTotalAmount(amount).SetNetAmount(amount).SetTaxAmount("0").SetBillCount(1).SetTaxInvoiceNo("TAX-" + f.suffix).
+					SetInvoiceDate(financeBillIntegrationDate).SetIssuedAt(time.Now()).SetIssuedBy(f.actorID).
+					SetExchangeRate("1").SetExchangeRateSource(invoiceent.ExchangeRateSourceSYSTEM).SetExchangeRateDate(financeBillIntegrationDate).SetBaseCurrencyAmount(amount)
+				if tc.status == invoiceent.StatusCANCELLED {
+					create.SetCancelledAt(time.Now()).SetCancelledBy(f.actorID).SetCancellationReason("原票已作废")
+				}
+				if tc.status == invoiceent.StatusRED_FLUSHED {
+					create.SetRedInvoiceNo("RED-" + f.suffix).SetRedInvoiceDate(financeBillIntegrationDate).SetRedFlushedAt(time.Now()).SetRedFlushedBy(f.actorID).SetRedFlushReason("原票已红冲")
+				}
+				invoice := create.SaveX(ctx)
+				link := d.db.FinanceInvoiceBill.Create().SetInvoiceID(invoice.ID).SetBillID(bill.ID).SetBillNo(bill.BillNo).SetSourceFeeIds([]uuid.UUID{feeID}).SetAmount(amount).SetTaxAmount("0").SetActive(true).SaveX(ctx)
+				line := d.db.FinanceBillLine.Query().Where(billlineent.BillIDEQ(bill.ID), billlineent.OrderFeeIDEQ(feeID)).OnlyX(ctx)
+				d.db.FinanceInvoiceFeeAllocation.Create().SetInvoiceID(invoice.ID).SetInvoiceBillID(link.ID).SetBillLineID(line.ID).SetOrderFeeID(feeID).
+					SetFeeCode(line.FeeCode).SetFeeName(line.FeeName).SetCurrency(line.Currency).SetNillableSourceTaxRate(line.TaxRate).SetAmount(amount).SetNetAmount(amount).SetTaxAmount("0").SaveX(ctx)
 				if tc.inactive {
 					d.db.FinanceInvoiceBill.Update().Where(invoicelinkent.InvoiceIDEQ(invoice.ID)).SetActive(false).SaveX(ctx)
 				}
 				t.Cleanup(func() {
+					if _, err := d.db.FinanceInvoiceFeeAllocation.Delete().Where(allocationent.InvoiceIDEQ(invoice.ID)).Exec(ctx); err != nil {
+						t.Error(err)
+					}
 					if _, err := d.db.FinanceInvoiceBill.Delete().Where(invoicelinkent.InvoiceIDEQ(invoice.ID)).Exec(ctx); err != nil {
 						t.Error(err)
 					}

@@ -14,7 +14,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicefeeallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicerevision"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
 )
@@ -48,6 +50,20 @@ func (_u *FinanceInvoiceUpdate) SetStatus(v financeinvoice.Status) *FinanceInvoi
 func (_u *FinanceInvoiceUpdate) SetNillableStatus(v *financeinvoice.Status) *FinanceInvoiceUpdate {
 	if v != nil {
 		_u.SetStatus(*v)
+	}
+	return _u
+}
+
+// SetInvoiceType sets the "invoice_type" field.
+func (_u *FinanceInvoiceUpdate) SetInvoiceType(v financeinvoice.InvoiceType) *FinanceInvoiceUpdate {
+	_u.mutation.SetInvoiceType(v)
+	return _u
+}
+
+// SetNillableInvoiceType sets the "invoice_type" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdate) SetNillableInvoiceType(v *financeinvoice.InvoiceType) *FinanceInvoiceUpdate {
+	if v != nil {
+		_u.SetInvoiceType(*v)
 	}
 	return _u
 }
@@ -152,6 +168,69 @@ func (_u *FinanceInvoiceUpdate) ClearBaseCurrencyAmount() *FinanceInvoiceUpdate 
 	return _u
 }
 
+// SetTotalAmount sets the "total_amount" field.
+func (_u *FinanceInvoiceUpdate) SetTotalAmount(v string) *FinanceInvoiceUpdate {
+	_u.mutation.SetTotalAmount(v)
+	return _u
+}
+
+// SetNillableTotalAmount sets the "total_amount" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdate) SetNillableTotalAmount(v *string) *FinanceInvoiceUpdate {
+	if v != nil {
+		_u.SetTotalAmount(*v)
+	}
+	return _u
+}
+
+// SetNetAmount sets the "net_amount" field.
+func (_u *FinanceInvoiceUpdate) SetNetAmount(v string) *FinanceInvoiceUpdate {
+	_u.mutation.SetNetAmount(v)
+	return _u
+}
+
+// SetNillableNetAmount sets the "net_amount" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdate) SetNillableNetAmount(v *string) *FinanceInvoiceUpdate {
+	if v != nil {
+		_u.SetNetAmount(*v)
+	}
+	return _u
+}
+
+// SetTaxAmount sets the "tax_amount" field.
+func (_u *FinanceInvoiceUpdate) SetTaxAmount(v string) *FinanceInvoiceUpdate {
+	_u.mutation.SetTaxAmount(v)
+	return _u
+}
+
+// SetNillableTaxAmount sets the "tax_amount" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdate) SetNillableTaxAmount(v *string) *FinanceInvoiceUpdate {
+	if v != nil {
+		_u.SetTaxAmount(*v)
+	}
+	return _u
+}
+
+// SetBillCount sets the "bill_count" field.
+func (_u *FinanceInvoiceUpdate) SetBillCount(v int) *FinanceInvoiceUpdate {
+	_u.mutation.ResetBillCount()
+	_u.mutation.SetBillCount(v)
+	return _u
+}
+
+// SetNillableBillCount sets the "bill_count" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdate) SetNillableBillCount(v *int) *FinanceInvoiceUpdate {
+	if v != nil {
+		_u.SetBillCount(*v)
+	}
+	return _u
+}
+
+// AddBillCount adds value to the "bill_count" field.
+func (_u *FinanceInvoiceUpdate) AddBillCount(v int) *FinanceInvoiceUpdate {
+	_u.mutation.AddBillCount(v)
+	return _u
+}
+
 // SetTaxInvoiceNo sets the "tax_invoice_no" field.
 func (_u *FinanceInvoiceUpdate) SetTaxInvoiceNo(v string) *FinanceInvoiceUpdate {
 	_u.mutation.SetTaxInvoiceNo(v)
@@ -230,6 +309,27 @@ func (_u *FinanceInvoiceUpdate) SetNillableVersion(v *uint64) *FinanceInvoiceUpd
 // AddVersion adds value to the "version" field.
 func (_u *FinanceInvoiceUpdate) AddVersion(v int64) *FinanceInvoiceUpdate {
 	_u.mutation.AddVersion(v)
+	return _u
+}
+
+// SetRevisionNumber sets the "revision_number" field.
+func (_u *FinanceInvoiceUpdate) SetRevisionNumber(v uint64) *FinanceInvoiceUpdate {
+	_u.mutation.ResetRevisionNumber()
+	_u.mutation.SetRevisionNumber(v)
+	return _u
+}
+
+// SetNillableRevisionNumber sets the "revision_number" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdate) SetNillableRevisionNumber(v *uint64) *FinanceInvoiceUpdate {
+	if v != nil {
+		_u.SetRevisionNumber(*v)
+	}
+	return _u
+}
+
+// AddRevisionNumber adds value to the "revision_number" field.
+func (_u *FinanceInvoiceUpdate) AddRevisionNumber(v int64) *FinanceInvoiceUpdate {
+	_u.mutation.AddRevisionNumber(v)
 	return _u
 }
 
@@ -520,6 +620,36 @@ func (_u *FinanceInvoiceUpdate) AddLines(v ...*FinanceInvoiceLine) *FinanceInvoi
 	return _u.AddLineIDs(ids...)
 }
 
+// AddFeeAllocationIDs adds the "fee_allocations" edge to the FinanceInvoiceFeeAllocation entity by IDs.
+func (_u *FinanceInvoiceUpdate) AddFeeAllocationIDs(ids ...uuid.UUID) *FinanceInvoiceUpdate {
+	_u.mutation.AddFeeAllocationIDs(ids...)
+	return _u
+}
+
+// AddFeeAllocations adds the "fee_allocations" edges to the FinanceInvoiceFeeAllocation entity.
+func (_u *FinanceInvoiceUpdate) AddFeeAllocations(v ...*FinanceInvoiceFeeAllocation) *FinanceInvoiceUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFeeAllocationIDs(ids...)
+}
+
+// AddRevisionIDs adds the "revisions" edge to the FinanceInvoiceRevision entity by IDs.
+func (_u *FinanceInvoiceUpdate) AddRevisionIDs(ids ...uuid.UUID) *FinanceInvoiceUpdate {
+	_u.mutation.AddRevisionIDs(ids...)
+	return _u
+}
+
+// AddRevisions adds the "revisions" edges to the FinanceInvoiceRevision entity.
+func (_u *FinanceInvoiceUpdate) AddRevisions(v ...*FinanceInvoiceRevision) *FinanceInvoiceUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRevisionIDs(ids...)
+}
+
 // Mutation returns the FinanceInvoiceMutation object of the builder.
 func (_u *FinanceInvoiceUpdate) Mutation() *FinanceInvoiceMutation {
 	return _u.mutation
@@ -585,6 +715,48 @@ func (_u *FinanceInvoiceUpdate) RemoveLines(v ...*FinanceInvoiceLine) *FinanceIn
 	return _u.RemoveLineIDs(ids...)
 }
 
+// ClearFeeAllocations clears all "fee_allocations" edges to the FinanceInvoiceFeeAllocation entity.
+func (_u *FinanceInvoiceUpdate) ClearFeeAllocations() *FinanceInvoiceUpdate {
+	_u.mutation.ClearFeeAllocations()
+	return _u
+}
+
+// RemoveFeeAllocationIDs removes the "fee_allocations" edge to FinanceInvoiceFeeAllocation entities by IDs.
+func (_u *FinanceInvoiceUpdate) RemoveFeeAllocationIDs(ids ...uuid.UUID) *FinanceInvoiceUpdate {
+	_u.mutation.RemoveFeeAllocationIDs(ids...)
+	return _u
+}
+
+// RemoveFeeAllocations removes "fee_allocations" edges to FinanceInvoiceFeeAllocation entities.
+func (_u *FinanceInvoiceUpdate) RemoveFeeAllocations(v ...*FinanceInvoiceFeeAllocation) *FinanceInvoiceUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFeeAllocationIDs(ids...)
+}
+
+// ClearRevisions clears all "revisions" edges to the FinanceInvoiceRevision entity.
+func (_u *FinanceInvoiceUpdate) ClearRevisions() *FinanceInvoiceUpdate {
+	_u.mutation.ClearRevisions()
+	return _u
+}
+
+// RemoveRevisionIDs removes the "revisions" edge to FinanceInvoiceRevision entities by IDs.
+func (_u *FinanceInvoiceUpdate) RemoveRevisionIDs(ids ...uuid.UUID) *FinanceInvoiceUpdate {
+	_u.mutation.RemoveRevisionIDs(ids...)
+	return _u
+}
+
+// RemoveRevisions removes "revisions" edges to FinanceInvoiceRevision entities.
+func (_u *FinanceInvoiceUpdate) RemoveRevisions(v ...*FinanceInvoiceRevision) *FinanceInvoiceUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRevisionIDs(ids...)
+}
+
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *FinanceInvoiceUpdate) Save(ctx context.Context) (int, error) {
 	_u.defaults()
@@ -628,6 +800,11 @@ func (_u *FinanceInvoiceUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.InvoiceType(); ok {
+		if err := financeinvoice.InvoiceTypeValidator(v); err != nil {
+			return &ValidationError{Name: "invoice_type", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.invoice_type": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.ExchangeRateSource(); ok {
 		if err := financeinvoice.ExchangeRateSourceValidator(v); err != nil {
 			return &ValidationError{Name: "exchange_rate_source", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.exchange_rate_source": %w`, err)}
@@ -636,6 +813,11 @@ func (_u *FinanceInvoiceUpdate) check() error {
 	if v, ok := _u.mutation.ExchangeRateDate(); ok {
 		if err := financeinvoice.ExchangeRateDateValidator(v); err != nil {
 			return &ValidationError{Name: "exchange_rate_date", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.exchange_rate_date": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.BillCount(); ok {
+		if err := financeinvoice.BillCountValidator(v); err != nil {
+			return &ValidationError{Name: "bill_count", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.bill_count": %w`, err)}
 		}
 	}
 	if v, ok := _u.mutation.TaxInvoiceNo(); ok {
@@ -700,6 +882,9 @@ func (_u *FinanceInvoiceUpdate) sqlSave(ctx context.Context) (_node int, err err
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(financeinvoice.FieldStatus, field.TypeEnum, value)
 	}
+	if value, ok := _u.mutation.InvoiceType(); ok {
+		_spec.SetField(financeinvoice.FieldInvoiceType, field.TypeEnum, value)
+	}
 	if _u.mutation.InvoiceTitleCleared() {
 		_spec.ClearField(financeinvoice.FieldInvoiceTitle, field.TypeString)
 	}
@@ -748,6 +933,21 @@ func (_u *FinanceInvoiceUpdate) sqlSave(ctx context.Context) (_node int, err err
 	if _u.mutation.BaseCurrencyAmountCleared() {
 		_spec.ClearField(financeinvoice.FieldBaseCurrencyAmount, field.TypeString)
 	}
+	if value, ok := _u.mutation.TotalAmount(); ok {
+		_spec.SetField(financeinvoice.FieldTotalAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.NetAmount(); ok {
+		_spec.SetField(financeinvoice.FieldNetAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TaxAmount(); ok {
+		_spec.SetField(financeinvoice.FieldTaxAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BillCount(); ok {
+		_spec.SetField(financeinvoice.FieldBillCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedBillCount(); ok {
+		_spec.AddField(financeinvoice.FieldBillCount, field.TypeInt, value)
+	}
 	if value, ok := _u.mutation.TaxInvoiceNo(); ok {
 		_spec.SetField(financeinvoice.FieldTaxInvoiceNo, field.TypeString, value)
 	}
@@ -771,6 +971,12 @@ func (_u *FinanceInvoiceUpdate) sqlSave(ctx context.Context) (_node int, err err
 	}
 	if value, ok := _u.mutation.AddedVersion(); ok {
 		_spec.AddField(financeinvoice.FieldVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.RevisionNumber(); ok {
+		_spec.SetField(financeinvoice.FieldRevisionNumber, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedRevisionNumber(); ok {
+		_spec.AddField(financeinvoice.FieldRevisionNumber, field.TypeUint64, value)
 	}
 	if value, ok := _u.mutation.IssuedAt(); ok {
 		_spec.SetField(financeinvoice.FieldIssuedAt, field.TypeTime, value)
@@ -991,6 +1197,96 @@ func (_u *FinanceInvoiceUpdate) sqlSave(ctx context.Context) (_node int, err err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.FeeAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeinvoice.FeeAllocationsTable,
+			Columns: []string{financeinvoice.FeeAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicefeeallocation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFeeAllocationsIDs(); len(nodes) > 0 && !_u.mutation.FeeAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeinvoice.FeeAllocationsTable,
+			Columns: []string{financeinvoice.FeeAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicefeeallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FeeAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeinvoice.FeeAllocationsTable,
+			Columns: []string{financeinvoice.FeeAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicefeeallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RevisionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeinvoice.RevisionsTable,
+			Columns: []string{financeinvoice.RevisionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicerevision.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRevisionsIDs(); len(nodes) > 0 && !_u.mutation.RevisionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeinvoice.RevisionsTable,
+			Columns: []string{financeinvoice.RevisionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicerevision.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RevisionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeinvoice.RevisionsTable,
+			Columns: []string{financeinvoice.RevisionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicerevision.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{financeinvoice.Label}
@@ -1027,6 +1323,20 @@ func (_u *FinanceInvoiceUpdateOne) SetStatus(v financeinvoice.Status) *FinanceIn
 func (_u *FinanceInvoiceUpdateOne) SetNillableStatus(v *financeinvoice.Status) *FinanceInvoiceUpdateOne {
 	if v != nil {
 		_u.SetStatus(*v)
+	}
+	return _u
+}
+
+// SetInvoiceType sets the "invoice_type" field.
+func (_u *FinanceInvoiceUpdateOne) SetInvoiceType(v financeinvoice.InvoiceType) *FinanceInvoiceUpdateOne {
+	_u.mutation.SetInvoiceType(v)
+	return _u
+}
+
+// SetNillableInvoiceType sets the "invoice_type" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdateOne) SetNillableInvoiceType(v *financeinvoice.InvoiceType) *FinanceInvoiceUpdateOne {
+	if v != nil {
+		_u.SetInvoiceType(*v)
 	}
 	return _u
 }
@@ -1131,6 +1441,69 @@ func (_u *FinanceInvoiceUpdateOne) ClearBaseCurrencyAmount() *FinanceInvoiceUpda
 	return _u
 }
 
+// SetTotalAmount sets the "total_amount" field.
+func (_u *FinanceInvoiceUpdateOne) SetTotalAmount(v string) *FinanceInvoiceUpdateOne {
+	_u.mutation.SetTotalAmount(v)
+	return _u
+}
+
+// SetNillableTotalAmount sets the "total_amount" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdateOne) SetNillableTotalAmount(v *string) *FinanceInvoiceUpdateOne {
+	if v != nil {
+		_u.SetTotalAmount(*v)
+	}
+	return _u
+}
+
+// SetNetAmount sets the "net_amount" field.
+func (_u *FinanceInvoiceUpdateOne) SetNetAmount(v string) *FinanceInvoiceUpdateOne {
+	_u.mutation.SetNetAmount(v)
+	return _u
+}
+
+// SetNillableNetAmount sets the "net_amount" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdateOne) SetNillableNetAmount(v *string) *FinanceInvoiceUpdateOne {
+	if v != nil {
+		_u.SetNetAmount(*v)
+	}
+	return _u
+}
+
+// SetTaxAmount sets the "tax_amount" field.
+func (_u *FinanceInvoiceUpdateOne) SetTaxAmount(v string) *FinanceInvoiceUpdateOne {
+	_u.mutation.SetTaxAmount(v)
+	return _u
+}
+
+// SetNillableTaxAmount sets the "tax_amount" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdateOne) SetNillableTaxAmount(v *string) *FinanceInvoiceUpdateOne {
+	if v != nil {
+		_u.SetTaxAmount(*v)
+	}
+	return _u
+}
+
+// SetBillCount sets the "bill_count" field.
+func (_u *FinanceInvoiceUpdateOne) SetBillCount(v int) *FinanceInvoiceUpdateOne {
+	_u.mutation.ResetBillCount()
+	_u.mutation.SetBillCount(v)
+	return _u
+}
+
+// SetNillableBillCount sets the "bill_count" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdateOne) SetNillableBillCount(v *int) *FinanceInvoiceUpdateOne {
+	if v != nil {
+		_u.SetBillCount(*v)
+	}
+	return _u
+}
+
+// AddBillCount adds value to the "bill_count" field.
+func (_u *FinanceInvoiceUpdateOne) AddBillCount(v int) *FinanceInvoiceUpdateOne {
+	_u.mutation.AddBillCount(v)
+	return _u
+}
+
 // SetTaxInvoiceNo sets the "tax_invoice_no" field.
 func (_u *FinanceInvoiceUpdateOne) SetTaxInvoiceNo(v string) *FinanceInvoiceUpdateOne {
 	_u.mutation.SetTaxInvoiceNo(v)
@@ -1209,6 +1582,27 @@ func (_u *FinanceInvoiceUpdateOne) SetNillableVersion(v *uint64) *FinanceInvoice
 // AddVersion adds value to the "version" field.
 func (_u *FinanceInvoiceUpdateOne) AddVersion(v int64) *FinanceInvoiceUpdateOne {
 	_u.mutation.AddVersion(v)
+	return _u
+}
+
+// SetRevisionNumber sets the "revision_number" field.
+func (_u *FinanceInvoiceUpdateOne) SetRevisionNumber(v uint64) *FinanceInvoiceUpdateOne {
+	_u.mutation.ResetRevisionNumber()
+	_u.mutation.SetRevisionNumber(v)
+	return _u
+}
+
+// SetNillableRevisionNumber sets the "revision_number" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdateOne) SetNillableRevisionNumber(v *uint64) *FinanceInvoiceUpdateOne {
+	if v != nil {
+		_u.SetRevisionNumber(*v)
+	}
+	return _u
+}
+
+// AddRevisionNumber adds value to the "revision_number" field.
+func (_u *FinanceInvoiceUpdateOne) AddRevisionNumber(v int64) *FinanceInvoiceUpdateOne {
+	_u.mutation.AddRevisionNumber(v)
 	return _u
 }
 
@@ -1499,6 +1893,36 @@ func (_u *FinanceInvoiceUpdateOne) AddLines(v ...*FinanceInvoiceLine) *FinanceIn
 	return _u.AddLineIDs(ids...)
 }
 
+// AddFeeAllocationIDs adds the "fee_allocations" edge to the FinanceInvoiceFeeAllocation entity by IDs.
+func (_u *FinanceInvoiceUpdateOne) AddFeeAllocationIDs(ids ...uuid.UUID) *FinanceInvoiceUpdateOne {
+	_u.mutation.AddFeeAllocationIDs(ids...)
+	return _u
+}
+
+// AddFeeAllocations adds the "fee_allocations" edges to the FinanceInvoiceFeeAllocation entity.
+func (_u *FinanceInvoiceUpdateOne) AddFeeAllocations(v ...*FinanceInvoiceFeeAllocation) *FinanceInvoiceUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFeeAllocationIDs(ids...)
+}
+
+// AddRevisionIDs adds the "revisions" edge to the FinanceInvoiceRevision entity by IDs.
+func (_u *FinanceInvoiceUpdateOne) AddRevisionIDs(ids ...uuid.UUID) *FinanceInvoiceUpdateOne {
+	_u.mutation.AddRevisionIDs(ids...)
+	return _u
+}
+
+// AddRevisions adds the "revisions" edges to the FinanceInvoiceRevision entity.
+func (_u *FinanceInvoiceUpdateOne) AddRevisions(v ...*FinanceInvoiceRevision) *FinanceInvoiceUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddRevisionIDs(ids...)
+}
+
 // Mutation returns the FinanceInvoiceMutation object of the builder.
 func (_u *FinanceInvoiceUpdateOne) Mutation() *FinanceInvoiceMutation {
 	return _u.mutation
@@ -1564,6 +1988,48 @@ func (_u *FinanceInvoiceUpdateOne) RemoveLines(v ...*FinanceInvoiceLine) *Financ
 	return _u.RemoveLineIDs(ids...)
 }
 
+// ClearFeeAllocations clears all "fee_allocations" edges to the FinanceInvoiceFeeAllocation entity.
+func (_u *FinanceInvoiceUpdateOne) ClearFeeAllocations() *FinanceInvoiceUpdateOne {
+	_u.mutation.ClearFeeAllocations()
+	return _u
+}
+
+// RemoveFeeAllocationIDs removes the "fee_allocations" edge to FinanceInvoiceFeeAllocation entities by IDs.
+func (_u *FinanceInvoiceUpdateOne) RemoveFeeAllocationIDs(ids ...uuid.UUID) *FinanceInvoiceUpdateOne {
+	_u.mutation.RemoveFeeAllocationIDs(ids...)
+	return _u
+}
+
+// RemoveFeeAllocations removes "fee_allocations" edges to FinanceInvoiceFeeAllocation entities.
+func (_u *FinanceInvoiceUpdateOne) RemoveFeeAllocations(v ...*FinanceInvoiceFeeAllocation) *FinanceInvoiceUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFeeAllocationIDs(ids...)
+}
+
+// ClearRevisions clears all "revisions" edges to the FinanceInvoiceRevision entity.
+func (_u *FinanceInvoiceUpdateOne) ClearRevisions() *FinanceInvoiceUpdateOne {
+	_u.mutation.ClearRevisions()
+	return _u
+}
+
+// RemoveRevisionIDs removes the "revisions" edge to FinanceInvoiceRevision entities by IDs.
+func (_u *FinanceInvoiceUpdateOne) RemoveRevisionIDs(ids ...uuid.UUID) *FinanceInvoiceUpdateOne {
+	_u.mutation.RemoveRevisionIDs(ids...)
+	return _u
+}
+
+// RemoveRevisions removes "revisions" edges to FinanceInvoiceRevision entities.
+func (_u *FinanceInvoiceUpdateOne) RemoveRevisions(v ...*FinanceInvoiceRevision) *FinanceInvoiceUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveRevisionIDs(ids...)
+}
+
 // Where appends a list predicates to the FinanceInvoiceUpdate builder.
 func (_u *FinanceInvoiceUpdateOne) Where(ps ...predicate.FinanceInvoice) *FinanceInvoiceUpdateOne {
 	_u.mutation.Where(ps...)
@@ -1620,6 +2086,11 @@ func (_u *FinanceInvoiceUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.status": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.InvoiceType(); ok {
+		if err := financeinvoice.InvoiceTypeValidator(v); err != nil {
+			return &ValidationError{Name: "invoice_type", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.invoice_type": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.ExchangeRateSource(); ok {
 		if err := financeinvoice.ExchangeRateSourceValidator(v); err != nil {
 			return &ValidationError{Name: "exchange_rate_source", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.exchange_rate_source": %w`, err)}
@@ -1628,6 +2099,11 @@ func (_u *FinanceInvoiceUpdateOne) check() error {
 	if v, ok := _u.mutation.ExchangeRateDate(); ok {
 		if err := financeinvoice.ExchangeRateDateValidator(v); err != nil {
 			return &ValidationError{Name: "exchange_rate_date", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.exchange_rate_date": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.BillCount(); ok {
+		if err := financeinvoice.BillCountValidator(v); err != nil {
+			return &ValidationError{Name: "bill_count", err: fmt.Errorf(`ent: validator failed for field "FinanceInvoice.bill_count": %w`, err)}
 		}
 	}
 	if v, ok := _u.mutation.TaxInvoiceNo(); ok {
@@ -1709,6 +2185,9 @@ func (_u *FinanceInvoiceUpdateOne) sqlSave(ctx context.Context) (_node *FinanceI
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(financeinvoice.FieldStatus, field.TypeEnum, value)
 	}
+	if value, ok := _u.mutation.InvoiceType(); ok {
+		_spec.SetField(financeinvoice.FieldInvoiceType, field.TypeEnum, value)
+	}
 	if _u.mutation.InvoiceTitleCleared() {
 		_spec.ClearField(financeinvoice.FieldInvoiceTitle, field.TypeString)
 	}
@@ -1757,6 +2236,21 @@ func (_u *FinanceInvoiceUpdateOne) sqlSave(ctx context.Context) (_node *FinanceI
 	if _u.mutation.BaseCurrencyAmountCleared() {
 		_spec.ClearField(financeinvoice.FieldBaseCurrencyAmount, field.TypeString)
 	}
+	if value, ok := _u.mutation.TotalAmount(); ok {
+		_spec.SetField(financeinvoice.FieldTotalAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.NetAmount(); ok {
+		_spec.SetField(financeinvoice.FieldNetAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TaxAmount(); ok {
+		_spec.SetField(financeinvoice.FieldTaxAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BillCount(); ok {
+		_spec.SetField(financeinvoice.FieldBillCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedBillCount(); ok {
+		_spec.AddField(financeinvoice.FieldBillCount, field.TypeInt, value)
+	}
 	if value, ok := _u.mutation.TaxInvoiceNo(); ok {
 		_spec.SetField(financeinvoice.FieldTaxInvoiceNo, field.TypeString, value)
 	}
@@ -1780,6 +2274,12 @@ func (_u *FinanceInvoiceUpdateOne) sqlSave(ctx context.Context) (_node *FinanceI
 	}
 	if value, ok := _u.mutation.AddedVersion(); ok {
 		_spec.AddField(financeinvoice.FieldVersion, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.RevisionNumber(); ok {
+		_spec.SetField(financeinvoice.FieldRevisionNumber, field.TypeUint64, value)
+	}
+	if value, ok := _u.mutation.AddedRevisionNumber(); ok {
+		_spec.AddField(financeinvoice.FieldRevisionNumber, field.TypeUint64, value)
 	}
 	if value, ok := _u.mutation.IssuedAt(); ok {
 		_spec.SetField(financeinvoice.FieldIssuedAt, field.TypeTime, value)
@@ -1993,6 +2493,96 @@ func (_u *FinanceInvoiceUpdateOne) sqlSave(ctx context.Context) (_node *FinanceI
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeinvoiceline.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FeeAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeinvoice.FeeAllocationsTable,
+			Columns: []string{financeinvoice.FeeAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicefeeallocation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFeeAllocationsIDs(); len(nodes) > 0 && !_u.mutation.FeeAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeinvoice.FeeAllocationsTable,
+			Columns: []string{financeinvoice.FeeAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicefeeallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FeeAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeinvoice.FeeAllocationsTable,
+			Columns: []string{financeinvoice.FeeAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicefeeallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.RevisionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeinvoice.RevisionsTable,
+			Columns: []string{financeinvoice.RevisionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicerevision.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedRevisionsIDs(); len(nodes) > 0 && !_u.mutation.RevisionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeinvoice.RevisionsTable,
+			Columns: []string{financeinvoice.RevisionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicerevision.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RevisionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeinvoice.RevisionsTable,
+			Columns: []string{financeinvoice.RevisionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicerevision.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

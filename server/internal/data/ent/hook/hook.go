@@ -537,6 +537,18 @@ func (f FinanceInvoiceBillFunc) Mutate(ctx context.Context, m ent.Mutation) (ent
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinanceInvoiceBillMutation", m)
 }
 
+// The FinanceInvoiceCommandFunc type is an adapter to allow the use of ordinary
+// function as FinanceInvoiceCommand mutator.
+type FinanceInvoiceCommandFunc func(context.Context, *ent.FinanceInvoiceCommandMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FinanceInvoiceCommandFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.FinanceInvoiceCommandMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinanceInvoiceCommandMutation", m)
+}
+
 // The FinanceInvoiceExemptionFunc type is an adapter to allow the use of ordinary
 // function as FinanceInvoiceExemption mutator.
 type FinanceInvoiceExemptionFunc func(context.Context, *ent.FinanceInvoiceExemptionMutation) (ent.Value, error)
@@ -549,6 +561,18 @@ func (f FinanceInvoiceExemptionFunc) Mutate(ctx context.Context, m ent.Mutation)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinanceInvoiceExemptionMutation", m)
 }
 
+// The FinanceInvoiceFeeAllocationFunc type is an adapter to allow the use of ordinary
+// function as FinanceInvoiceFeeAllocation mutator.
+type FinanceInvoiceFeeAllocationFunc func(context.Context, *ent.FinanceInvoiceFeeAllocationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FinanceInvoiceFeeAllocationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.FinanceInvoiceFeeAllocationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinanceInvoiceFeeAllocationMutation", m)
+}
+
 // The FinanceInvoiceLineFunc type is an adapter to allow the use of ordinary
 // function as FinanceInvoiceLine mutator.
 type FinanceInvoiceLineFunc func(context.Context, *ent.FinanceInvoiceLineMutation) (ent.Value, error)
@@ -559,6 +583,18 @@ func (f FinanceInvoiceLineFunc) Mutate(ctx context.Context, m ent.Mutation) (ent
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinanceInvoiceLineMutation", m)
+}
+
+// The FinanceInvoiceRevisionFunc type is an adapter to allow the use of ordinary
+// function as FinanceInvoiceRevision mutator.
+type FinanceInvoiceRevisionFunc func(context.Context, *ent.FinanceInvoiceRevisionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FinanceInvoiceRevisionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.FinanceInvoiceRevisionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FinanceInvoiceRevisionMutation", m)
 }
 
 // The FinanceNettingFunc type is an adapter to allow the use of ordinary

@@ -22,6 +22,13 @@ func (s *SettlementService) ListInvoices(ctx context.Context, request *v1.ListIn
 		return nil, err
 	}
 	filter := biz.FinanceInvoiceFilter{Page: page, PageSize: pageSize, Keyword: financeOptionalString(request.Keyword), Direction: biz.OrderFeeDirection(strings.ToUpper(financeOptionalString(request.Direction))), Status: financeInvoiceStatusFromAPI(request.Status)}
+	if request.BillId != nil {
+		id, err := uuid.Parse(strings.TrimSpace(*request.BillId))
+		if err != nil {
+			return nil, biz.ErrFinanceInvoiceInvalidArgument
+		}
+		filter.BillID = &id
+	}
 	organizationIDs, scopeErr := organizationIDsForRequestedOrganization(principal, access.FinanceInvoiceRead, false, request.OrganizationId)
 	if scopeErr != nil {
 		return nil, scopeErr
@@ -72,6 +79,13 @@ func (s *SettlementService) ListInvoiceCreationBills(ctx context.Context, reques
 			return nil, biz.ErrFinanceInvoiceInvalidArgument
 		}
 		filter.SettlementPartyID = &settlementPartyID
+	}
+	if request.BillId != nil {
+		id, err := uuid.Parse(strings.TrimSpace(*request.BillId))
+		if err != nil {
+			return nil, biz.ErrFinanceInvoiceInvalidArgument
+		}
+		filter.BillID = &id
 	}
 	result, err := s.invoiceUsecase.ListCreationBills(ctx, organizationIDs[0], filter)
 	if err != nil {
@@ -131,52 +145,6 @@ func (s *SettlementService) GetInvoice(ctx context.Context, request *v1.GetInvoi
 	}
 	return ok(ctx, &v1.GetInvoiceResponse{Data: financeInvoiceToAPI(item)}), nil
 }
-func (s *SettlementService) CreateInvoice(ctx context.Context, request *v1.CreateInvoiceRequest) (*v1.CreateInvoiceResponse, error) {
-	p, principalErr := biz.RequirePrincipal(ctx)
-	if principalErr != nil {
-		return nil, principalErr
-	}
-	ids := make([]uuid.UUID, 0, len(request.GetBillIds()))
-	for _, raw := range request.GetBillIds() {
-		id, err := uuid.Parse(strings.TrimSpace(raw))
-		if err != nil {
-			return nil, biz.ErrFinanceInvoiceInvalidArgument
-		}
-		ids = append(ids, id)
-	}
-	profileID, err := uuid.Parse(strings.TrimSpace(request.GetInvoiceProfileId()))
-	if err != nil {
-		return nil, biz.ErrFinanceInvoiceInvalidArgument
-	}
-	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceInvoiceCreate, true)
-	if scopeErr != nil {
-		return nil, scopeErr
-	}
-	item, err := s.invoiceUsecase.CreateScoped(ctx, organizationIDs, p.UserID, biz.CreateFinanceInvoiceInput{BillIDs: ids, InvoiceProfileID: profileID, InvoiceType: biz.FinanceInvoiceType(strings.ToUpper(request.GetInvoiceType())), Note: request.Note, IdempotencyKey: request.GetIdempotencyKey()})
-	if err != nil {
-		return nil, err
-	}
-	return ok(ctx, &v1.CreateInvoiceResponse{Data: financeInvoiceToAPI(item)}), nil
-}
-func (s *SettlementService) IssueInvoice(ctx context.Context, request *v1.IssueInvoiceRequest) (*v1.IssueInvoiceResponse, error) {
-	p, id, err := financePrincipalAndID(ctx, request.GetId())
-	if err != nil {
-		return nil, err
-	}
-	organizationIDs, scopeErr := organizationIDsForPermission(p, access.FinanceInvoiceUpdate, true)
-	if scopeErr != nil {
-		return nil, scopeErr
-	}
-	existing, err := s.invoiceUsecase.GetScoped(ctx, organizationIDs, id)
-	if err != nil {
-		return nil, err
-	}
-	item, err := s.invoiceUsecase.Issue(ctx, existing.OrganizationID, p.UserID, id, request.GetExpectedVersion(), request.GetTaxInvoiceNo(), request.GetInvoiceDate())
-	if err != nil {
-		return nil, err
-	}
-	return ok(ctx, &v1.IssueInvoiceResponse{Data: financeInvoiceToAPI(item)}), nil
-}
 func (s *SettlementService) CancelInvoice(ctx context.Context, request *v1.CancelInvoiceRequest) (*v1.CancelInvoiceResponse, error) {
 	p, id, err := financePrincipalAndID(ctx, request.GetId())
 	if err != nil {
@@ -225,11 +193,19 @@ func financeInvoiceToAPI(item *biz.FinanceInvoice) *v1.FinanceInvoice {
 		for _, id := range l.SourceFeeIDs {
 			sourceIDs = append(sourceIDs, id.String())
 		}
-		links = append(links, &v1.FinanceInvoiceBill{SourceFeeIds: sourceIDs, Id: l.ID.String(), BillId: l.BillID.String(), BillNo: l.BillNo, Amount: l.Amount.StringFixed(8), TaxAmount: l.TaxAmount.StringFixed(8), Active: l.Active})
+		fees := make([]*v1.FinanceInvoiceFeeAllocation, 0, len(l.Fees))
+		for _, fee := range l.Fees {
+			fees = append(fees, invoiceAllocationToAPI(fee))
+		}
+		links = append(links, &v1.FinanceInvoiceBill{SourceFeeIds: sourceIDs, Id: l.ID.String(), BillId: l.BillID.String(), BillNo: l.BillNo, Amount: l.Amount.StringFixed(8), TaxAmount: l.TaxAmount.StringFixed(8), Active: l.Active, Fees: fees})
 	}
 	lines := make([]*v1.FinanceInvoiceLine, 0, len(item.Lines))
 	for _, line := range item.Lines {
-		lines = append(lines, &v1.FinanceInvoiceLine{Id: line.ID.String(), LineNo: int32(line.LineNo), ItemCode: line.ItemCode, ItemName: line.ItemName, TaxRate: line.TaxRate.StringFixed(4), NetAmount: line.NetAmount.StringFixed(8), TaxAmount: line.TaxAmount.StringFixed(8), TotalAmount: line.TotalAmount.StringFixed(8), Currency: line.Currency, SourceLineCount: int32(line.SourceLineCount)})
+		lines = append(lines, &v1.FinanceInvoiceLine{Id: line.ID.String(), LineNo: int32(line.LineNo), ItemCode: line.ItemCode, ItemName: line.ItemName, TaxRate: financeDecimalPointer(line.TaxRate, 4), NetAmount: line.NetAmount.StringFixed(8), TaxAmount: line.TaxAmount.StringFixed(8), TotalAmount: line.TotalAmount.StringFixed(8), Currency: line.Currency, SourceLineCount: int32(line.SourceLineCount)})
 	}
-	return &v1.FinanceInvoice{Id: item.ID.String(), RecordNo: item.RecordNo, Direction: string(item.Direction), Status: financeInvoiceStatusToAPI(item.Status), InvoiceType: string(item.InvoiceType), OrganizationId: item.OrganizationID.String(), OrganizationName: item.OrganizationName, SettlementPartyId: item.SettlementPartyID.String(), SettlementPartyName: item.SettlementPartyName, Currency: item.Currency, BaseCurrency: item.BaseCurrency, ExchangeRate: financeDecimalPointer(item.ExchangeRate, 8), ExchangeRateSource: item.ExchangeRateSource, ExchangeRateDate: item.ExchangeRateDate, ExchangeRateSettingId: uuidStringPtr(item.ExchangeRateSettingID), BaseCurrencyAmount: financeDecimalPointer(item.BaseCurrencyAmount, 8), TotalAmount: item.TotalAmount.StringFixed(8), NetAmount: item.NetAmount.StringFixed(8), TaxAmount: item.TaxAmount.StringFixed(8), BillCount: int32(item.BillCount), TaxInvoiceNo: item.TaxInvoiceNo, InvoiceDate: item.InvoiceDate, Note: item.Note, Version: item.Version, IssuedAt: financeTime(item.IssuedAt), CancelledAt: financeTime(item.CancelledAt), CancellationReason: item.CancellationReason, RedInvoiceNo: item.RedInvoiceNo, RedInvoiceDate: item.RedInvoiceDate, RedFlushedAt: financeTime(item.RedFlushedAt), RedFlushReason: item.RedFlushReason, BillLinks: links, InvoiceProfileId: uuidStringPtr(item.InvoiceProfileID), InvoiceTitle: financeOptionalValue(item.InvoiceTitle), TaxpayerIdentificationNo: financeOptionalValue(item.TaxpayerIdentificationNo), RegisteredAddress: financeOptionalValue(item.RegisteredAddress), RegisteredPhone: financeOptionalValue(item.RegisteredPhone), BankName: financeOptionalValue(item.BankName), BankAccount: financeOptionalValue(item.BankAccount), Lines: lines, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339)}
+	revisions := make([]*v1.FinanceInvoiceRevision, 0, len(item.Revisions))
+	for _, revision := range item.Revisions {
+		revisions = append(revisions, invoiceRevisionToAPI(revision))
+	}
+	return &v1.FinanceInvoice{Revisions: revisions, Id: item.ID.String(), RecordNo: item.RecordNo, Direction: string(item.Direction), Status: financeInvoiceStatusToAPI(item.Status), InvoiceType: string(item.InvoiceType), OrganizationId: item.OrganizationID.String(), OrganizationName: item.OrganizationName, SettlementPartyId: item.SettlementPartyID.String(), SettlementPartyName: item.SettlementPartyName, Currency: item.Currency, BaseCurrency: item.BaseCurrency, ExchangeRate: financeDecimalPointer(item.ExchangeRate, 8), ExchangeRateSource: item.ExchangeRateSource, ExchangeRateDate: item.ExchangeRateDate, ExchangeRateSettingId: uuidStringPtr(item.ExchangeRateSettingID), BaseCurrencyAmount: financeDecimalPointer(item.BaseCurrencyAmount, 8), TotalAmount: item.TotalAmount.StringFixed(8), NetAmount: item.NetAmount.StringFixed(8), TaxAmount: item.TaxAmount.StringFixed(8), BillCount: int32(item.BillCount), TaxInvoiceNo: item.TaxInvoiceNo, InvoiceDate: item.InvoiceDate, Note: item.Note, Version: item.Version, IssuedAt: financeTime(item.IssuedAt), CancelledAt: financeTime(item.CancelledAt), CancellationReason: item.CancellationReason, RedInvoiceNo: item.RedInvoiceNo, RedInvoiceDate: item.RedInvoiceDate, RedFlushedAt: financeTime(item.RedFlushedAt), RedFlushReason: item.RedFlushReason, BillLinks: links, InvoiceProfileId: uuidStringPtr(item.InvoiceProfileID), InvoiceTitle: financeOptionalValue(item.InvoiceTitle), TaxpayerIdentificationNo: financeOptionalValue(item.TaxpayerIdentificationNo), RegisteredAddress: financeOptionalValue(item.RegisteredAddress), RegisteredPhone: financeOptionalValue(item.RegisteredPhone), BankName: financeOptionalValue(item.BankName), BankAccount: financeOptionalValue(item.BankAccount), Lines: lines, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339), UpdatedAt: item.UpdatedAt.UTC().Format(time.RFC3339)}
 }

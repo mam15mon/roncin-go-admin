@@ -292,6 +292,38 @@ declare namespace API {
     organizationName?: string;
   };
 
+  type AgingReportBucketAmount = {
+    direction?: string;
+    currency?: string;
+    notDue?: string;
+    days130?: string;
+    days3160?: string;
+    days6190?: string;
+    over90?: string;
+    undated?: string;
+    total?: string;
+    billCount?: string;
+  };
+
+  type AgingReportRow = {
+    id?: string;
+    billNo?: string;
+    direction?: string;
+    settlementPartyId?: string;
+    settlementPartyName?: string;
+    billDate?: string;
+    dueDate?: string;
+    currency?: string;
+    totalAmount?: string;
+    settledAmount?: string;
+    balance?: string;
+    baseCurrency?: string;
+    baseBalance?: string;
+    /** NOT_DUE、DAYS_1_30、DAYS_31_60、DAYS_61_90、OVER_90、UNDATED。 */
+    bucket?: string;
+    overdueDays?: number;
+  };
+
   type AirExportServiceGetAirMasterWaybillParams = {
     id: string;
     page?: number;
@@ -725,11 +757,23 @@ declare namespace API {
     traceId?: string;
   };
 
+  type BillBatchCashflowInput = {
+    amount: string;
+    transactionDate: string;
+    ourAccount: string;
+    paymentMethod: string;
+    counterpartyAccount?: string;
+    bankReferenceNo?: string;
+    note?: string;
+    exchangeRate?: string;
+  };
+
   type BillBatchGroupError = {
     reason?: string;
     message?: string;
     /** metadata 仅放行缺汇率提示等公开键。 */
     metadata?: Record<string, any>;
+    items?: BillBatchItemError[];
   };
 
   type BillBatchGroupResult = {
@@ -737,6 +781,24 @@ declare namespace API {
     success?: boolean;
     bill?: FinanceBill;
     error?: BillBatchGroupError;
+  };
+
+  type BillBatchInvoiceInput = {
+    invoiceProfileId: string;
+    invoiceType: string;
+    taxInvoiceNo: string;
+    invoiceDate: string;
+    totalAmount: string;
+    note?: string;
+    fees?: InvoiceRegistrationFeeInput[];
+  };
+
+  type BillBatchItemError = {
+    /** step只取BILL、INVOICE、VERIFICATION；item_index为1起记录序号，0表示整个步骤。 */
+    step?: string;
+    itemIndex?: number;
+    reason?: string;
+    message?: string;
   };
 
   type BillBatchNettingPair = {
@@ -788,6 +850,19 @@ declare namespace API {
     settlementAccountId?: string;
     estimatedInvoiceCurrency?: string;
     estimatedInvoiceRate?: string;
+  };
+
+  type BillBatchVerificationAllocationInput = {
+    /** 空值引用本条核销附带的新差额流水。 */
+    cashflowId?: string;
+    amount: string;
+  };
+
+  type BillBatchVerificationInput = {
+    verificationDate: string;
+    note?: string;
+    allocations?: BillBatchVerificationAllocationInput[];
+    shortfallCashflow?: BillBatchCashflowInput;
   };
 
   type BilledFeeEditPolicy = {
@@ -937,6 +1012,22 @@ declare namespace API {
     message?: string;
     data?: FinanceNetting;
     traceId?: string;
+  };
+
+  type CashflowReportRow = {
+    id?: string;
+    flowNo?: string;
+    direction?: string;
+    transactionDate?: string;
+    settlementPartyId?: string;
+    settlementPartyName?: string;
+    currency?: string;
+    amount?: string;
+    baseCurrency?: string;
+    baseAmount?: string;
+    ourAccount?: string;
+    paymentMethod?: string;
+    bankReferenceNo?: string;
   };
 
   type CheckOrderReferenceResponse = {
@@ -1294,6 +1385,9 @@ declare namespace API {
     groupToken: string;
     /** fee_ids 为预览中归入该组的全部费用 ID；服务端在组事务内重新分组复核。 */
     feeIds: string[];
+    /** 附带操作与本组建账原子提交，账单ID和版本由服务端内部填充。 */
+    invoices?: BillBatchInvoiceInput[];
+    verifications?: BillBatchVerificationInput[];
   };
 
   type CreateBillBatchRequest = {
@@ -1487,22 +1581,6 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FeeSettingTemplate;
-    traceId?: string;
-  };
-
-  type CreateInvoiceRequest = {
-    billIds: string[];
-    invoiceType: string;
-    note?: string;
-    idempotencyKey: string;
-    invoiceProfileId: string;
-  };
-
-  type CreateInvoiceResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: FinanceInvoice;
     traceId?: string;
   };
 
@@ -2479,6 +2557,31 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ExportAgingReportResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AgingReportRow[];
+    total?: string;
+    traceId?: string;
+    nativeTotals?: AgingReportBucketAmount[];
+    baseTotals?: AgingReportBucketAmount[];
+    asOfDate?: string;
+    generatedAt?: string;
+  };
+
+  type ExportCashflowReportResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: CashflowReportRow[];
+    total?: string;
+    traceId?: string;
+    nativeTotals?: FinanceReportCashAmount[];
+    baseTotals?: FinanceReportCashAmount[];
+    generatedAt?: string;
+  };
+
   type ExportCommissionsResponse = {
     success?: boolean;
     code?: number;
@@ -2493,6 +2596,23 @@ declare namespace API {
     message?: string;
     data?: PartnerExportItem[];
     traceId?: string;
+  };
+
+  type ExportProfitReportResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: ProfitReportRow[];
+    total?: string;
+    traceId?: string;
+    totals?: ProfitReportAmount[];
+    nativeTotals?: FinanceReportNativeAmount[];
+    months?: ProfitReportMonth[];
+    orderCount?: string;
+    feeCount?: string;
+    /** 适用其余筛选、但尚缺业务日期的订单数；不将其静默塞入所选日期范围。 */
+    undatedOrderCount?: string;
+    generatedAt?: string;
   };
 
   type FeeCatalogServiceListFeeSettingTemplatesParams = {
@@ -2840,6 +2960,8 @@ declare namespace API {
     taxRate?: string;
     quantity?: string;
     unitPrice?: string;
+    invoicedAmount?: string;
+    invoiceableAmount?: string;
   };
 
   type FinanceBillSummary = {
@@ -3117,6 +3239,7 @@ declare namespace API {
     baseCurrencyAmount?: string;
     organizationId?: string;
     organizationName?: string;
+    revisions?: FinanceInvoiceRevision[];
   };
 
   type FinanceInvoiceBill = {
@@ -3127,6 +3250,7 @@ declare namespace API {
     taxAmount?: string;
     active?: boolean;
     sourceFeeIds?: string[];
+    fees?: FinanceInvoiceFeeAllocation[];
   };
 
   type FinanceInvoiceExemption = {
@@ -3140,6 +3264,21 @@ declare namespace API {
     revocationReason?: string;
     markedByName?: string;
     revokedByName?: string;
+  };
+
+  type FinanceInvoiceFeeAllocation = {
+    id?: string;
+    invoiceBillId?: string;
+    billId?: string;
+    billLineId?: string;
+    orderFeeId?: string;
+    feeCode?: string;
+    feeName?: string;
+    currency?: string;
+    sourceTaxRate?: string;
+    amount?: string;
+    netAmount?: string;
+    taxAmount?: string;
   };
 
   type FinanceInvoiceLine = {
@@ -3167,6 +3306,33 @@ declare namespace API {
     organizationId?: string;
     settlementPartyId?: string;
     data?: FinanceInvoiceProfileOption[];
+  };
+
+  type FinanceInvoiceRevision = {
+    id?: string;
+    revisionNumber?: string;
+    reason?: string;
+    actorName?: string;
+    createdAt?: string;
+    beforeSnapshot?: string;
+    afterSnapshot?: string;
+  };
+
+  type FinanceInvoiceRevisionImpact = {
+    invoice?: FinanceInvoice;
+    bills?: FinanceBill[];
+    dependencies?: FinanceInvoiceSettlementDependency[];
+    canRevise?: boolean;
+  };
+
+  type FinanceInvoiceSettlementDependency = {
+    id?: string;
+    billId?: string;
+    kind?: string;
+    documentNo?: string;
+    billNo?: string;
+    currency?: string;
+    amount?: string;
   };
 
   type FinanceInvoiceSummary = {
@@ -3263,6 +3429,111 @@ declare namespace API {
   type FinanceNettingSummary = {
     amountsByBaseCurrency?: FinanceNettingBaseCurrencyAmount[];
     confirmedCount?: string;
+  };
+
+  type FinanceReportCashAmount = {
+    currency?: string;
+    receivableAmount?: string;
+    payableAmount?: string;
+    netAmount?: string;
+  };
+
+  type FinanceReportNativeAmount = {
+    direction?: string;
+    currency?: string;
+    amount?: string;
+    netAmount?: string;
+  };
+
+  type FinanceReportOption = {
+    id?: string;
+    name?: string;
+  };
+
+  type FinanceReportServiceExportAgingReportParams = {
+    organizationId?: string;
+    keyword?: string;
+    direction?: string;
+    settlementPartyId?: string;
+    currency?: string;
+    bucket?: string;
+  };
+
+  type FinanceReportServiceExportCashflowReportParams = {
+    organizationId?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    keyword?: string;
+    direction?: string;
+    settlementPartyId?: string;
+    currency?: string;
+    paymentMethod?: string;
+    ourAccount?: string;
+  };
+
+  type FinanceReportServiceExportProfitReportParams = {
+    organizationId?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    keyword?: string;
+    businessType?: string;
+    customerId?: string;
+    salesId?: string;
+    operatorId?: string;
+    customerServiceId?: string;
+  };
+
+  type FinanceReportServiceListAgingReportParams = {
+    organizationId?: string;
+    keyword?: string;
+    direction?: string;
+    settlementPartyId?: string;
+    currency?: string;
+    bucket?: string;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type FinanceReportServiceListCashflowReportParams = {
+    organizationId?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    keyword?: string;
+    direction?: string;
+    settlementPartyId?: string;
+    currency?: string;
+    paymentMethod?: string;
+    ourAccount?: string;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type FinanceReportServiceListFinanceReportPartyOptionsParams = {
+    organizationId?: string;
+    keyword?: string;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type FinanceReportServiceListFinanceReportPersonnelOptionsParams = {
+    organizationId?: string;
+    keyword?: string;
+    page?: number;
+    pageSize?: number;
+  };
+
+  type FinanceReportServiceListProfitReportParams = {
+    organizationId?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    keyword?: string;
+    businessType?: string;
+    customerId?: string;
+    salesId?: string;
+    operatorId?: string;
+    customerServiceId?: string;
+    page?: number;
+    pageSize?: number;
   };
 
   type FinanceSettlementAccountOption = {
@@ -3503,6 +3774,14 @@ declare namespace API {
     traceId?: string;
   };
 
+  type GetInvoiceRevisionImpactResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceInvoiceRevisionImpact;
+    traceId?: string;
+  };
+
   type GetLatestDingTalkDirectorySyncResponse = {
     success?: boolean;
     code?: number;
@@ -3696,19 +3975,39 @@ declare namespace API {
     traceId?: string;
   };
 
-  type IssueInvoiceRequest = {
-    id: string;
+  type InvoiceRegistrationAllocationInput = {
+    billId: string;
     expectedVersion: string;
-    taxInvoiceNo: string;
-    invoiceDate: string;
+    amount: string;
+    fees?: InvoiceRegistrationFeeInput[];
   };
 
-  type IssueInvoiceResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: FinanceInvoice;
-    traceId?: string;
+  type InvoiceRegistrationBillVersion = {
+    billId: string;
+    expectedVersion: string;
+  };
+
+  type InvoiceRegistrationFeeInput = {
+    orderFeeId: string;
+    amount: string;
+    taxAmount: string;
+  };
+
+  type InvoiceRegistrationInput = {
+    invoiceProfileId: string;
+    invoiceType: string;
+    taxInvoiceNo: string;
+    invoiceDate: string;
+    totalAmount: string;
+    note?: string;
+    allocations?: InvoiceRegistrationAllocationInput[];
+  };
+
+  type InvoiceRegistrationRevisionEntry = {
+    id?: string;
+    expectedVersion?: string;
+    remove?: boolean;
+    registration?: InvoiceRegistrationInput;
   };
 
   type LinkAirMasterWaybillRequest = {
@@ -3750,6 +4049,19 @@ declare namespace API {
     total?: number;
     page?: number;
     pageSize?: number;
+  };
+
+  type ListAgingReportResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: AgingReportRow[];
+    total?: string;
+    traceId?: string;
+    nativeTotals?: AgingReportBucketAmount[];
+    baseTotals?: AgingReportBucketAmount[];
+    asOfDate?: string;
+    generatedAt?: string;
   };
 
   type ListAirHouseWaybillVersionsResponse = {
@@ -3910,6 +4222,18 @@ declare namespace API {
     message?: string;
     data?: OrderCargoItem[];
     traceId?: string;
+  };
+
+  type ListCashflowReportResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: CashflowReportRow[];
+    total?: string;
+    traceId?: string;
+    nativeTotals?: FinanceReportCashAmount[];
+    baseTotals?: FinanceReportCashAmount[];
+    generatedAt?: string;
   };
 
   type ListCashflowsResponse = {
@@ -4109,6 +4433,24 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ListFinanceReportPartyOptionsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceReportOption[];
+    total?: string;
+    traceId?: string;
+  };
+
+  type ListFinanceReportPersonnelOptionsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceReportOption[];
+    total?: string;
+    traceId?: string;
+  };
+
   type ListFinanceSettlementPartyOptionsResponse = {
     success?: boolean;
     code?: number;
@@ -4128,6 +4470,14 @@ declare namespace API {
   };
 
   type ListInvoiceProfilesForBillResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceInvoiceProfilesForBill;
+    traceId?: string;
+  };
+
+  type ListInvoiceProfilesForPartyResponse = {
     success?: boolean;
     code?: number;
     message?: string;
@@ -4470,6 +4820,23 @@ declare namespace API {
     page?: number;
     pageSize?: number;
     traceId?: string;
+  };
+
+  type ListProfitReportResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: ProfitReportRow[];
+    total?: string;
+    traceId?: string;
+    totals?: ProfitReportAmount[];
+    nativeTotals?: FinanceReportNativeAmount[];
+    months?: ProfitReportMonth[];
+    orderCount?: string;
+    feeCount?: string;
+    /** 适用其余筛选、但尚缺业务日期的订单数；不将其静默塞入所选日期范围。 */
+    undatedOrderCount?: string;
+    generatedAt?: string;
   };
 
   type ListReleasePodsResponse = {
@@ -6775,6 +7142,43 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ProfitReportAmount = {
+    baseCurrency?: string;
+    receivableAmount?: string;
+    payableAmount?: string;
+    profitAmount?: string;
+    netReceivableAmount?: string;
+    netPayableAmount?: string;
+    netProfitAmount?: string;
+  };
+
+  type ProfitReportMonth = {
+    /** YYYY-MM；未设置业务日期的集合为 UNDATED。 */
+    month?: string;
+    amounts?: ProfitReportAmount[];
+  };
+
+  type ProfitReportRow = {
+    id?: string;
+    orderId?: string;
+    orderNo?: string;
+    businessType?: string;
+    businessDate?: string;
+    customerId?: string;
+    customerName?: string;
+    salesName?: string;
+    operatorName?: string;
+    customerServiceName?: string;
+    baseCurrency?: string;
+    receivableAmount?: string;
+    payableAmount?: string;
+    profitAmount?: string;
+    netReceivableAmount?: string;
+    netPayableAmount?: string;
+    netProfitAmount?: string;
+    feeCount?: string;
+  };
+
   type RedFlushInvoiceRequest = {
     id: string;
     expectedVersion: string;
@@ -6801,6 +7205,19 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: OrderAttachment;
+    traceId?: string;
+  };
+
+  type RegisterInvoicesRequest = {
+    idempotencyKey: string;
+    records?: InvoiceRegistrationInput[];
+  };
+
+  type RegisterInvoicesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceInvoice[];
     traceId?: string;
   };
 
@@ -7027,6 +7444,21 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FinanceVerification;
+    traceId?: string;
+  };
+
+  type ReviseInvoiceRegistrationsRequest = {
+    idempotencyKey: string;
+    reason: string;
+    billVersions?: InvoiceRegistrationBillVersion[];
+    entries?: InvoiceRegistrationRevisionEntry[];
+  };
+
+  type ReviseInvoiceRegistrationsResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceInvoice[];
     traceId?: string;
   };
 
@@ -8251,15 +8683,15 @@ declare namespace API {
     id: string;
   };
 
+  type SettlementServiceGetInvoiceRevisionImpactParams = {
+    id: string;
+  };
+
   type SettlementServiceGetMyFeeSupplementAdjustmentSourceParams = {
     id: string;
   };
 
   type SettlementServiceGetNettingParams = {
-    id: string;
-  };
-
-  type SettlementServiceIssueInvoiceParams = {
     id: string;
   };
 
@@ -8428,10 +8860,15 @@ declare namespace API {
     direction?: string;
     settlementPartyId?: string;
     currency?: string;
+    billId?: string;
   };
 
   type SettlementServiceListInvoiceProfilesForBillParams = {
     billId?: string;
+  };
+
+  type SettlementServiceListInvoiceProfilesForPartyParams = {
+    settlementPartyId?: string;
   };
 
   type SettlementServiceListInvoicesParams = {
@@ -8441,6 +8878,7 @@ declare namespace API {
     direction?: string;
     status?: number;
     organizationId?: string;
+    billId?: string;
   };
 
   type SettlementServiceListNettingsParams = {

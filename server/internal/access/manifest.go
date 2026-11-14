@@ -47,6 +47,7 @@ const (
 	FinanceFeeSettingCreate    = "system.finance.fee_setting.create"
 	FinanceFeeSettingUpdate    = "system.finance.fee_setting.update"
 	FinanceFeeRead             = "system.finance.fee.read"
+	FinanceReportRead          = "system.finance.report.read"
 	FinanceBillConfigure       = "system.finance.bill.configure"
 	FinanceBillRead            = "system.finance.bill.read"
 	FinanceBillCreate          = "system.finance.bill.create"
@@ -220,6 +221,7 @@ var manifest = append([]Permission{
 	{Key: FinanceFeeSettingRead, Name: "查看费用设置", Group: "费用管理 · 费用设置", Description: "查看费用设置及关联基础资料"},
 	{Key: FinanceFeeSettingCreate, Name: "新建费用设置", Group: "费用管理 · 费用设置", Description: "新建费用设置及关联基础资料", Requires: []string{FinanceFeeSettingRead}},
 	{Key: FinanceFeeSettingUpdate, Name: "编辑费用设置", Group: "费用管理 · 费用设置", Description: "编辑和停用费用设置及关联基础资料", Requires: []string{FinanceFeeSettingRead}},
+	{Key: FinanceReportRead, Name: "查看财务报表", Group: "费用管理 · 财务报表", Description: "查看和导出本公司利润、实际收付及当前账龄报表"},
 	{Key: FinanceFeeRead, Name: "查看费用总台账", Group: "费用管理 · 费用总台账", Description: "查看当前组织全部业务线的应收应付费用"},
 	{Key: FinanceBillConfigure, Name: "配置公司账单策略", Group: "费用管理 · 账单", Description: "维护已计费费用编辑与信用额度管控策略", Requires: []string{FinanceBillRead}},
 	{Key: FinanceBillRead, Name: "查看账单", Group: "费用管理 · 账单", Description: "查看应收应付账单及明细"},
@@ -227,7 +229,7 @@ var manifest = append([]Permission{
 	{Key: FinanceBillUpdate, Name: "编辑账单", Group: "费用管理 · 账单", Description: "编辑、撤回或作废未结清账单", Requires: []string{FinanceBillRead}},
 	{Key: FinanceInvoiceRead, Name: "查看开票记录", Group: "费用管理 · 开票", Description: "查看销项和进项发票台账"},
 	{Key: FinanceInvoiceCreate, Name: "登记发票", Group: "费用管理 · 开票", Description: "登记发票并向账单分配开票金额", Requires: []string{FinanceInvoiceRead}},
-	{Key: FinanceInvoiceUpdate, Name: "处理发票", Group: "费用管理 · 开票", Description: "开具、作废或红冲发票", Requires: []string{FinanceInvoiceRead}},
+	{Key: FinanceInvoiceUpdate, Name: "处理发票", Group: "费用管理 · 开票", Description: "修订、作废或红冲发票", Requires: []string{FinanceInvoiceRead}},
 	{Key: FinanceInvoiceExempt, Name: "账单免票管理", Group: "费用管理 · 开票", Description: "填写原因标记或撤销账单无需发票决定", Requires: []string{FinanceBillRead}},
 	{Key: FinanceCashflowRead, Name: "查看收付", Group: "费用管理 · 收付", Description: "查看银行流水和收付款单"},
 	{Key: FinanceCashflowCreate, Name: "登记收付", Group: "费用管理 · 收付", Description: "登记银行流水和收付款单", Requires: []string{FinanceCashflowRead}},

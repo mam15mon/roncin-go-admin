@@ -11,7 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicefeeallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
 
@@ -48,9 +50,45 @@ func (_u *FinanceInvoiceBillUpdate) SetNillableActive(v *bool) *FinanceInvoiceBi
 	return _u
 }
 
+// AddFeeAllocationIDs adds the "fee_allocations" edge to the FinanceInvoiceFeeAllocation entity by IDs.
+func (_u *FinanceInvoiceBillUpdate) AddFeeAllocationIDs(ids ...uuid.UUID) *FinanceInvoiceBillUpdate {
+	_u.mutation.AddFeeAllocationIDs(ids...)
+	return _u
+}
+
+// AddFeeAllocations adds the "fee_allocations" edges to the FinanceInvoiceFeeAllocation entity.
+func (_u *FinanceInvoiceBillUpdate) AddFeeAllocations(v ...*FinanceInvoiceFeeAllocation) *FinanceInvoiceBillUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFeeAllocationIDs(ids...)
+}
+
 // Mutation returns the FinanceInvoiceBillMutation object of the builder.
 func (_u *FinanceInvoiceBillUpdate) Mutation() *FinanceInvoiceBillMutation {
 	return _u.mutation
+}
+
+// ClearFeeAllocations clears all "fee_allocations" edges to the FinanceInvoiceFeeAllocation entity.
+func (_u *FinanceInvoiceBillUpdate) ClearFeeAllocations() *FinanceInvoiceBillUpdate {
+	_u.mutation.ClearFeeAllocations()
+	return _u
+}
+
+// RemoveFeeAllocationIDs removes the "fee_allocations" edge to FinanceInvoiceFeeAllocation entities by IDs.
+func (_u *FinanceInvoiceBillUpdate) RemoveFeeAllocationIDs(ids ...uuid.UUID) *FinanceInvoiceBillUpdate {
+	_u.mutation.RemoveFeeAllocationIDs(ids...)
+	return _u
+}
+
+// RemoveFeeAllocations removes "fee_allocations" edges to FinanceInvoiceFeeAllocation entities.
+func (_u *FinanceInvoiceBillUpdate) RemoveFeeAllocations(v ...*FinanceInvoiceFeeAllocation) *FinanceInvoiceBillUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFeeAllocationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -118,6 +156,51 @@ func (_u *FinanceInvoiceBillUpdate) sqlSave(ctx context.Context) (_node int, err
 	if value, ok := _u.mutation.Active(); ok {
 		_spec.SetField(financeinvoicebill.FieldActive, field.TypeBool, value)
 	}
+	if _u.mutation.FeeAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeinvoicebill.FeeAllocationsTable,
+			Columns: []string{financeinvoicebill.FeeAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicefeeallocation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFeeAllocationsIDs(); len(nodes) > 0 && !_u.mutation.FeeAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeinvoicebill.FeeAllocationsTable,
+			Columns: []string{financeinvoicebill.FeeAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicefeeallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FeeAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeinvoicebill.FeeAllocationsTable,
+			Columns: []string{financeinvoicebill.FeeAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicefeeallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{financeinvoicebill.Label}
@@ -158,9 +241,45 @@ func (_u *FinanceInvoiceBillUpdateOne) SetNillableActive(v *bool) *FinanceInvoic
 	return _u
 }
 
+// AddFeeAllocationIDs adds the "fee_allocations" edge to the FinanceInvoiceFeeAllocation entity by IDs.
+func (_u *FinanceInvoiceBillUpdateOne) AddFeeAllocationIDs(ids ...uuid.UUID) *FinanceInvoiceBillUpdateOne {
+	_u.mutation.AddFeeAllocationIDs(ids...)
+	return _u
+}
+
+// AddFeeAllocations adds the "fee_allocations" edges to the FinanceInvoiceFeeAllocation entity.
+func (_u *FinanceInvoiceBillUpdateOne) AddFeeAllocations(v ...*FinanceInvoiceFeeAllocation) *FinanceInvoiceBillUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFeeAllocationIDs(ids...)
+}
+
 // Mutation returns the FinanceInvoiceBillMutation object of the builder.
 func (_u *FinanceInvoiceBillUpdateOne) Mutation() *FinanceInvoiceBillMutation {
 	return _u.mutation
+}
+
+// ClearFeeAllocations clears all "fee_allocations" edges to the FinanceInvoiceFeeAllocation entity.
+func (_u *FinanceInvoiceBillUpdateOne) ClearFeeAllocations() *FinanceInvoiceBillUpdateOne {
+	_u.mutation.ClearFeeAllocations()
+	return _u
+}
+
+// RemoveFeeAllocationIDs removes the "fee_allocations" edge to FinanceInvoiceFeeAllocation entities by IDs.
+func (_u *FinanceInvoiceBillUpdateOne) RemoveFeeAllocationIDs(ids ...uuid.UUID) *FinanceInvoiceBillUpdateOne {
+	_u.mutation.RemoveFeeAllocationIDs(ids...)
+	return _u
+}
+
+// RemoveFeeAllocations removes "fee_allocations" edges to FinanceInvoiceFeeAllocation entities.
+func (_u *FinanceInvoiceBillUpdateOne) RemoveFeeAllocations(v ...*FinanceInvoiceFeeAllocation) *FinanceInvoiceBillUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFeeAllocationIDs(ids...)
 }
 
 // Where appends a list predicates to the FinanceInvoiceBillUpdate builder.
@@ -257,6 +376,51 @@ func (_u *FinanceInvoiceBillUpdateOne) sqlSave(ctx context.Context) (_node *Fina
 	}
 	if value, ok := _u.mutation.Active(); ok {
 		_spec.SetField(financeinvoicebill.FieldActive, field.TypeBool, value)
+	}
+	if _u.mutation.FeeAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeinvoicebill.FeeAllocationsTable,
+			Columns: []string{financeinvoicebill.FeeAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicefeeallocation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFeeAllocationsIDs(); len(nodes) > 0 && !_u.mutation.FeeAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeinvoicebill.FeeAllocationsTable,
+			Columns: []string{financeinvoicebill.FeeAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicefeeallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FeeAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeinvoicebill.FeeAllocationsTable,
+			Columns: []string{financeinvoicebill.FeeAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicefeeallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &FinanceInvoiceBill{config: _u.config}
 	_spec.Assign = _node.assignValues

@@ -1,0 +1,313 @@
+syntax = "proto3";
+
+package finance.v1;
+
+import "access/v1/access.proto";
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+
+option go_package = "github.com/roncin/roncin-go-admin/server/api/finance/v1;v1";
+
+// FinanceReportService 只读查询当前公司的经营利润、真实收付与当前账龄。
+service FinanceReportService {
+  rpc ListProfitReport(ListProfitReportRequest) returns (ListProfitReportResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.report.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/reports/profits"};
+  }
+  rpc ExportProfitReport(ExportProfitReportRequest) returns (ExportProfitReportResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.report.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/reports/profits/export"};
+  }
+  rpc ListCashflowReport(ListCashflowReportRequest) returns (ListCashflowReportResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.report.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/reports/cashflows"};
+  }
+  rpc ExportCashflowReport(ExportCashflowReportRequest) returns (ExportCashflowReportResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.report.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/reports/cashflows/export"};
+  }
+  rpc ListAgingReport(ListAgingReportRequest) returns (ListAgingReportResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.report.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/reports/aging"};
+  }
+  rpc ExportAgingReport(ExportAgingReportRequest) returns (ExportAgingReportResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.report.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/reports/aging/export"};
+  }
+  rpc ListFinanceReportPartyOptions(ListFinanceReportPartyOptionsRequest) returns (ListFinanceReportPartyOptionsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.report.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/reports/party-options"};
+  }
+  rpc ListFinanceReportPersonnelOptions(ListFinanceReportPersonnelOptionsRequest) returns (ListFinanceReportPersonnelOptionsResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.report.read" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/reports/personnel-options"};
+  }
+}
+
+message ListProfitReportRequest {
+  string organization_id = 1 [(google.api.field_behavior) = REQUIRED];
+  optional string date_from = 2;
+  optional string date_to = 3;
+  optional string keyword = 4;
+  optional string business_type = 5;
+  optional string customer_id = 6;
+  optional string sales_id = 7;
+  optional string operator_id = 8;
+  optional string customer_service_id = 9;
+  int32 page = 10;
+  int32 page_size = 11;
+}
+message ExportProfitReportRequest {
+  string organization_id = 1 [(google.api.field_behavior) = REQUIRED];
+  optional string date_from = 2;
+  optional string date_to = 3;
+  optional string keyword = 4;
+  optional string business_type = 5;
+  optional string customer_id = 6;
+  optional string sales_id = 7;
+  optional string operator_id = 8;
+  optional string customer_service_id = 9;
+}
+message ListCashflowReportRequest {
+  string organization_id = 1 [(google.api.field_behavior) = REQUIRED];
+  optional string date_from = 2;
+  optional string date_to = 3;
+  optional string keyword = 4;
+  optional string direction = 5;
+  optional string settlement_party_id = 6;
+  optional string currency = 7;
+  optional string payment_method = 8;
+  optional string our_account = 9;
+  int32 page = 10;
+  int32 page_size = 11;
+}
+message ExportCashflowReportRequest {
+  string organization_id = 1 [(google.api.field_behavior) = REQUIRED];
+  optional string date_from = 2;
+  optional string date_to = 3;
+  optional string keyword = 4;
+  optional string direction = 5;
+  optional string settlement_party_id = 6;
+  optional string currency = 7;
+  optional string payment_method = 8;
+  optional string our_account = 9;
+}
+message ListAgingReportRequest {
+  string organization_id = 1 [(google.api.field_behavior) = REQUIRED];
+  optional string keyword = 2;
+  optional string direction = 3;
+  optional string settlement_party_id = 4;
+  optional string currency = 5;
+  optional string bucket = 6;
+  int32 page = 7;
+  int32 page_size = 8;
+}
+message ExportAgingReportRequest {
+  string organization_id = 1 [(google.api.field_behavior) = REQUIRED];
+  optional string keyword = 2;
+  optional string direction = 3;
+  optional string settlement_party_id = 4;
+  optional string currency = 5;
+  optional string bucket = 6;
+}
+
+// 每订单与本币一行；费用计入当前有效叶子，含税和未税均沿费用汇率快照。
+message ProfitReportRow {
+  string id = 1;
+  string order_id = 2;
+  string order_no = 3;
+  string business_type = 4;
+  optional string business_date = 5;
+  string customer_id = 6;
+  string customer_name = 7;
+  string sales_name = 8;
+  string operator_name = 9;
+  string customer_service_name = 10;
+  string base_currency = 11;
+  string receivable_amount = 12;
+  string payable_amount = 13;
+  string profit_amount = 14;
+  string net_receivable_amount = 15;
+  string net_payable_amount = 16;
+  string net_profit_amount = 17;
+  int64 fee_count = 18;
+}
+message ProfitReportAmount {
+  string base_currency = 1;
+  string receivable_amount = 2;
+  string payable_amount = 3;
+  string profit_amount = 4;
+  string net_receivable_amount = 5;
+  string net_payable_amount = 6;
+  string net_profit_amount = 7;
+}
+message ProfitReportMonth {
+  // YYYY-MM；未设置业务日期的集合为 UNDATED。
+  string month = 1;
+  repeated ProfitReportAmount amounts = 2;
+}
+message FinanceReportNativeAmount {
+  string direction = 1;
+  string currency = 2;
+  string amount = 3;
+  string net_amount = 4;
+}
+message ListProfitReportResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated ProfitReportRow data = 4;
+  int64 total = 5;
+  string trace_id = 6;
+  repeated ProfitReportAmount totals = 7;
+  repeated FinanceReportNativeAmount native_totals = 8;
+  repeated ProfitReportMonth months = 9;
+  int64 order_count = 10;
+  int64 fee_count = 11;
+  // 适用其余筛选、但尚缺业务日期的订单数；不将其静默塞入所选日期范围。
+  int64 undated_order_count = 12;
+  string generated_at = 13;
+}
+message ExportProfitReportResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated ProfitReportRow data = 4;
+  int64 total = 5;
+  string trace_id = 6;
+  repeated ProfitReportAmount totals = 7;
+  repeated FinanceReportNativeAmount native_totals = 8;
+  repeated ProfitReportMonth months = 9;
+  int64 order_count = 10;
+  int64 fee_count = 11;
+  // 适用其余筛选、但尚缺业务日期的订单数；不将其静默塞入所选日期范围。
+  int64 undated_order_count = 12;
+  string generated_at = 13;
+}
+message CashflowReportRow {
+  string id = 1;
+  string flow_no = 2;
+  string direction = 3;
+  string transaction_date = 4;
+  string settlement_party_id = 5;
+  string settlement_party_name = 6;
+  string currency = 7;
+  string amount = 8;
+  string base_currency = 9;
+  string base_amount = 10;
+  string our_account = 11;
+  string payment_method = 12;
+  optional string bank_reference_no = 13;
+}
+// 单一币种下的真实收款、付款和收支净额；原币和本币分别成组。
+message FinanceReportCashAmount {
+  string currency = 1;
+  string receivable_amount = 2;
+  string payable_amount = 3;
+  string net_amount = 4;
+}
+message ListCashflowReportResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated CashflowReportRow data = 4;
+  int64 total = 5;
+  string trace_id = 6;
+  repeated FinanceReportCashAmount native_totals = 7;
+  repeated FinanceReportCashAmount base_totals = 8;
+  string generated_at = 9;
+}
+message ExportCashflowReportResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated CashflowReportRow data = 4;
+  int64 total = 5;
+  string trace_id = 6;
+  repeated FinanceReportCashAmount native_totals = 7;
+  repeated FinanceReportCashAmount base_totals = 8;
+  string generated_at = 9;
+}
+message AgingReportRow {
+  string id = 1;
+  string bill_no = 2;
+  string direction = 3;
+  string settlement_party_id = 4;
+  string settlement_party_name = 5;
+  string bill_date = 6;
+  optional string due_date = 7;
+  string currency = 8;
+  string total_amount = 9;
+  string settled_amount = 10;
+  string balance = 11;
+  string base_currency = 12;
+  string base_balance = 13;
+  // NOT_DUE、DAYS_1_30、DAYS_31_60、DAYS_61_90、OVER_90、UNDATED。
+  string bucket = 14;
+  optional int32 overdue_days = 15;
+}
+message AgingReportBucketAmount {
+  string direction = 1;
+  string currency = 2;
+  string not_due = 3;
+  string days_1_30 = 4;
+  string days_31_60 = 5;
+  string days_61_90 = 6;
+  string over_90 = 7;
+  string undated = 8;
+  string total = 9;
+  int64 bill_count = 10;
+}
+message ListAgingReportResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated AgingReportRow data = 4;
+  int64 total = 5;
+  string trace_id = 6;
+  repeated AgingReportBucketAmount native_totals = 7;
+  repeated AgingReportBucketAmount base_totals = 8;
+  string as_of_date = 9;
+  string generated_at = 10;
+}
+message ExportAgingReportResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated AgingReportRow data = 4;
+  int64 total = 5;
+  string trace_id = 6;
+  repeated AgingReportBucketAmount native_totals = 7;
+  repeated AgingReportBucketAmount base_totals = 8;
+  string as_of_date = 9;
+  string generated_at = 10;
+}
+message ListFinanceReportPartyOptionsRequest {
+  string organization_id = 1 [(google.api.field_behavior) = REQUIRED];
+  optional string keyword = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+message ListFinanceReportPersonnelOptionsRequest {
+  string organization_id = 1 [(google.api.field_behavior) = REQUIRED];
+  optional string keyword = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+message FinanceReportOption { string id = 1; string name = 2; }
+message ListFinanceReportPartyOptionsResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated FinanceReportOption data = 4;
+  int64 total = 5;
+  string trace_id = 6;
+}
+message ListFinanceReportPersonnelOptionsResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  repeated FinanceReportOption data = 4;
+  int64 total = 5;
+  string trace_id = 6;
+}

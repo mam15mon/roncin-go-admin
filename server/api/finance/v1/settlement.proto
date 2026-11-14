@@ -119,8 +119,10 @@ service SettlementService {
   rpc ListInvoiceCreationBills(ListInvoiceCreationBillsRequest) returns (ListInvoiceCreationBillsResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.invoice.create" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/invoices/creation-bills"}; }
   rpc ListInvoiceProfilesForBill(ListInvoiceProfilesForBillRequest) returns (ListInvoiceProfilesForBillResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.invoice.create" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/invoices/creation-profiles"}; }
   rpc GetInvoice(GetInvoiceRequest) returns (GetInvoiceResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.invoice.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/invoices/{id}"}; }
-  rpc CreateInvoice(CreateInvoiceRequest) returns (CreateInvoiceResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.invoice.create" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/invoices" body: "*"}; }
-  rpc IssueInvoice(IssueInvoiceRequest) returns (IssueInvoiceResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.invoice.update" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/invoices/{id}/issue" body: "*"}; }
+  rpc ListInvoiceProfilesForParty(ListInvoiceProfilesForPartyRequest) returns (ListInvoiceProfilesForPartyResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.invoice.create" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/invoices/party-profiles"}; }
+  rpc RegisterInvoices(RegisterInvoicesRequest) returns (RegisterInvoicesResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.invoice.create" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/invoices/register" body: "*"}; }
+  rpc ReviseInvoiceRegistrations(ReviseInvoiceRegistrationsRequest) returns (ReviseInvoiceRegistrationsResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.invoice.update" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/invoices/revise" body: "*"}; }
+  rpc GetInvoiceRevisionImpact(GetInvoiceRevisionImpactRequest) returns (GetInvoiceRevisionImpactResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.invoice.update" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/invoices/{id}/revision-impact"}; }
   rpc CancelInvoice(CancelInvoiceRequest) returns (CancelInvoiceResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.invoice.update" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/invoices/{id}/cancel" body: "*"}; }
   rpc RedFlushInvoice(RedFlushInvoiceRequest) returns (RedFlushInvoiceResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.invoice.update" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/invoices/{id}/red-flush" body: "*"}; }
   rpc ListCashflows(ListCashflowsRequest) returns (ListCashflowsResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.cashflow.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/cashflows"}; }
@@ -588,6 +590,8 @@ message FinanceBillLine {
   optional string tax_rate = 16;
   string quantity = 17;
   string unit_price = 18;
+  string invoiced_amount = 19;
+  string invoiceable_amount = 20;
 }
 
 message FinanceBill {
@@ -799,6 +803,39 @@ message CreateBillBatchGroupInput {
   string group_token = 10 [(google.api.field_behavior) = REQUIRED];
   // fee_ids 为预览中归入该组的全部费用 ID；服务端在组事务内重新分组复核。
   repeated string fee_ids = 11 [(google.api.field_behavior) = REQUIRED];
+  // 附带操作与本组建账原子提交，账单ID和版本由服务端内部填充。
+  repeated BillBatchInvoiceInput invoices = 12;
+  repeated BillBatchVerificationInput verifications = 13;
+}
+message BillBatchInvoiceInput {
+  string invoice_profile_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string invoice_type = 2 [(google.api.field_behavior) = REQUIRED];
+  string tax_invoice_no = 3 [(google.api.field_behavior) = REQUIRED];
+  string invoice_date = 4 [(google.api.field_behavior) = REQUIRED];
+  string total_amount = 5 [(google.api.field_behavior) = REQUIRED];
+  optional string note = 6;
+  repeated InvoiceRegistrationFeeInput fees = 7;
+}
+message BillBatchVerificationAllocationInput {
+  // 空值引用本条核销附带的新差额流水。
+  string cashflow_id = 1;
+  string amount = 2 [(google.api.field_behavior) = REQUIRED];
+}
+message BillBatchCashflowInput {
+  string amount = 1 [(google.api.field_behavior) = REQUIRED];
+  string transaction_date = 2 [(google.api.field_behavior) = REQUIRED];
+  string our_account = 3 [(google.api.field_behavior) = REQUIRED];
+  string payment_method = 4 [(google.api.field_behavior) = REQUIRED];
+  optional string counterparty_account = 5;
+  optional string bank_reference_no = 6;
+  optional string note = 7;
+  optional string exchange_rate = 8;
+}
+message BillBatchVerificationInput {
+  string verification_date = 1 [(google.api.field_behavior) = REQUIRED];
+  optional string note = 2;
+  repeated BillBatchVerificationAllocationInput allocations = 3;
+  BillBatchCashflowInput shortfall_cashflow = 4;
 }
 
 message FinanceSettlementAccountOption {
@@ -886,6 +923,14 @@ message BillBatchGroupError {
   string message = 2;
   // metadata 仅放行缺汇率提示等公开键。
   map<string, string> metadata = 3;
+  repeated BillBatchItemError items = 4;
+}
+message BillBatchItemError {
+  // step只取BILL、INVOICE、VERIFICATION；item_index为1起记录序号，0表示整个步骤。
+  string step = 1;
+  int32 item_index = 2;
+  string reason = 3;
+  string message = 4;
 }
 
 message ListBillsResponse {
@@ -942,28 +987,24 @@ message CancelBillResponse {
   string trace_id = 5;
 }
 
-message ListInvoicesRequest { int32 page = 1; int32 page_size = 2; optional string keyword = 3; optional string direction = 4; optional FinanceInvoiceStatus status = 5; optional string organization_id = 6; }
+message ListInvoicesRequest { int32 page = 1; int32 page_size = 2; optional string keyword = 3; optional string direction = 4; optional FinanceInvoiceStatus status = 5; optional string organization_id = 6; optional string bill_id = 7; }
 message GetInvoiceRequest { string id = 1 [(google.api.field_behavior) = REQUIRED]; }
-message CreateInvoiceRequest { repeated string bill_ids = 1 [(google.api.field_behavior) = REQUIRED]; string invoice_type = 2 [(google.api.field_behavior) = REQUIRED]; optional string note = 3; string idempotency_key = 4 [(google.api.field_behavior) = REQUIRED]; string invoice_profile_id = 5 [(google.api.field_behavior) = REQUIRED]; }
-message IssueInvoiceRequest { string id = 1 [(google.api.field_behavior) = REQUIRED]; uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED]; string tax_invoice_no = 3 [(google.api.field_behavior) = REQUIRED]; string invoice_date = 4 [(google.api.field_behavior) = REQUIRED]; }
 message CancelInvoiceRequest { string id = 1 [(google.api.field_behavior) = REQUIRED]; uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED]; string reason = 3 [(google.api.field_behavior) = REQUIRED]; }
 message RedFlushInvoiceRequest { string id = 1 [(google.api.field_behavior) = REQUIRED]; uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED]; string red_invoice_no = 3 [(google.api.field_behavior) = REQUIRED]; string red_invoice_date = 4 [(google.api.field_behavior) = REQUIRED]; string reason = 5 [(google.api.field_behavior) = REQUIRED]; }
-message FinanceInvoiceBill { string id = 1; string bill_id = 2; string bill_no = 3; string amount = 4; string tax_amount = 5; bool active = 6; repeated string source_fee_ids = 7; }
-message FinanceInvoiceLine { string id = 1; int32 line_no = 2; string item_code = 3; string item_name = 4; string tax_rate = 5; string net_amount = 6; string tax_amount = 7; string total_amount = 8; string currency = 9; int32 source_line_count = 10; }
-message FinanceInvoice { string id = 1; string record_no = 2; string direction = 3; FinanceInvoiceStatus status = 4; string invoice_type = 5; string settlement_party_id = 6; string settlement_party_name = 7; string currency = 8; string total_amount = 9; string tax_amount = 10; int32 bill_count = 11; optional string tax_invoice_no = 12; optional string invoice_date = 13; optional string note = 14; uint64 version = 15; optional string issued_at = 16; optional string cancelled_at = 17; optional string cancellation_reason = 18; repeated FinanceInvoiceBill bill_links = 19; string created_at = 20; string updated_at = 21; optional string red_invoice_no = 22; optional string red_invoice_date = 23; optional string red_flushed_at = 24; optional string red_flush_reason = 25; string net_amount = 26; optional string invoice_profile_id = 27; optional string invoice_title = 28; optional string taxpayer_identification_no = 29; optional string registered_address = 30; optional string registered_phone = 31; optional string bank_name = 32; optional string bank_account = 33; repeated FinanceInvoiceLine lines = 34; string base_currency = 35; optional string exchange_rate = 36; optional string exchange_rate_source = 37; optional string exchange_rate_date = 38; optional string exchange_rate_setting_id = 39; optional string base_currency_amount = 40; string organization_id = 41; string organization_name = 42; }
+message FinanceInvoiceBill { string id = 1; string bill_id = 2; string bill_no = 3; string amount = 4; string tax_amount = 5; bool active = 6; repeated string source_fee_ids = 7; repeated FinanceInvoiceFeeAllocation fees = 8; }
+message FinanceInvoiceLine { string id = 1; int32 line_no = 2; string item_code = 3; string item_name = 4; optional string tax_rate = 5; string net_amount = 6; string tax_amount = 7; string total_amount = 8; string currency = 9; int32 source_line_count = 10; }
+message FinanceInvoice { string id = 1; string record_no = 2; string direction = 3; FinanceInvoiceStatus status = 4; string invoice_type = 5; string settlement_party_id = 6; string settlement_party_name = 7; string currency = 8; string total_amount = 9; string tax_amount = 10; int32 bill_count = 11; optional string tax_invoice_no = 12; optional string invoice_date = 13; optional string note = 14; uint64 version = 15; optional string issued_at = 16; optional string cancelled_at = 17; optional string cancellation_reason = 18; repeated FinanceInvoiceBill bill_links = 19; string created_at = 20; string updated_at = 21; optional string red_invoice_no = 22; optional string red_invoice_date = 23; optional string red_flushed_at = 24; optional string red_flush_reason = 25; string net_amount = 26; optional string invoice_profile_id = 27; optional string invoice_title = 28; optional string taxpayer_identification_no = 29; optional string registered_address = 30; optional string registered_phone = 31; optional string bank_name = 32; optional string bank_account = 33; repeated FinanceInvoiceLine lines = 34; string base_currency = 35; optional string exchange_rate = 36; optional string exchange_rate_source = 37; optional string exchange_rate_date = 38; optional string exchange_rate_setting_id = 39; optional string base_currency_amount = 40; string organization_id = 41; string organization_name = 42; repeated FinanceInvoiceRevision revisions = 43; }
 message ListInvoicesResponse { bool success = 1; int32 code = 2; string message = 3; repeated FinanceInvoice data = 4; int64 total = 5; string trace_id = 6; FinanceInvoiceSummary summary = 7;
   FinanceLedgerMatchedSummary matched_summary = 8;
 }
 message FinanceInvoiceSummary { repeated FinanceBaseCurrencyAmount amounts_by_base_currency = 1; int64 issued_count = 2; }
-message ListInvoiceCreationBillsRequest { string organization_id = 1 [(google.api.field_behavior) = REQUIRED]; int32 page = 2; int32 page_size = 3; optional string keyword = 4; optional string direction = 5; optional string settlement_party_id = 6; optional string currency = 7; }
+message ListInvoiceCreationBillsRequest { string organization_id = 1 [(google.api.field_behavior) = REQUIRED]; int32 page = 2; int32 page_size = 3; optional string keyword = 4; optional string direction = 5; optional string settlement_party_id = 6; optional string currency = 7; optional string bill_id = 8; }
 message ListInvoiceCreationBillsResponse { bool success = 1; int32 code = 2; string message = 3; repeated FinanceBill data = 4; int64 total = 5; string trace_id = 6; }
 message FinanceInvoiceProfileOption { string id = 1; string invoice_title = 2; string taxpayer_identification_no = 3; string default_invoice_type = 4; bool is_default = 5; }
 message FinanceInvoiceProfilesForBill { string organization_id = 1; string settlement_party_id = 2; repeated FinanceInvoiceProfileOption data = 3; }
 message ListInvoiceProfilesForBillRequest { string bill_id = 1 [(google.api.field_behavior) = REQUIRED]; }
 message ListInvoiceProfilesForBillResponse { bool success = 1; int32 code = 2; string message = 3; FinanceInvoiceProfilesForBill data = 4; string trace_id = 5; }
 message GetInvoiceResponse { bool success = 1; int32 code = 2; string message = 3; FinanceInvoice data = 4; string trace_id = 5; }
-message CreateInvoiceResponse { bool success = 1; int32 code = 2; string message = 3; FinanceInvoice data = 4; string trace_id = 5; }
-message IssueInvoiceResponse { bool success = 1; int32 code = 2; string message = 3; FinanceInvoice data = 4; string trace_id = 5; }
 message CancelInvoiceResponse { bool success = 1; int32 code = 2; string message = 3; FinanceInvoice data = 4; string trace_id = 5; }
 message RedFlushInvoiceResponse { bool success = 1; int32 code = 2; string message = 3; FinanceInvoice data = 4; string trace_id = 5; }
 message ListCashflowsRequest { int32 page=1; int32 page_size=2; optional string keyword=3; optional string direction=4; optional FinanceCashflowStatus status=5; optional string settlement_party_id=6; optional string currency=7; optional string organization_id=8; }
@@ -1226,3 +1267,23 @@ message CancelCommissionAdjustmentResponse { bool success=1; int32 code=2; strin
 message ListCommissionAdjustmentsResponse { bool success=1; int32 code=2; string message=3; repeated FinanceCommissionAdjustment data=4; int64 total=5; string trace_id=6; int32 page=7; int32 page_size=8; }
 message GetMyFeeSupplementAdjustmentSourceRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; }
 message GetMyFeeSupplementAdjustmentSourceResponse { bool success=1; int32 code=2; string message=3; MyFeeSupplementAdjustmentSource data=4; string trace_id=5; }
+
+// 发票登记逐层金额由财务明确填写，税额不按来源税率自动重算。
+message InvoiceRegistrationFeeInput { string order_fee_id = 1 [(google.api.field_behavior) = REQUIRED]; string amount = 2 [(google.api.field_behavior) = REQUIRED]; string tax_amount = 3 [(google.api.field_behavior) = REQUIRED]; }
+message InvoiceRegistrationAllocationInput { string bill_id = 1 [(google.api.field_behavior) = REQUIRED]; uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED]; string amount = 3 [(google.api.field_behavior) = REQUIRED]; repeated InvoiceRegistrationFeeInput fees = 4; }
+message InvoiceRegistrationInput { string invoice_profile_id = 1 [(google.api.field_behavior) = REQUIRED]; string invoice_type = 2 [(google.api.field_behavior) = REQUIRED]; string tax_invoice_no = 3 [(google.api.field_behavior) = REQUIRED]; string invoice_date = 4 [(google.api.field_behavior) = REQUIRED]; string total_amount = 5 [(google.api.field_behavior) = REQUIRED]; optional string note = 6; repeated InvoiceRegistrationAllocationInput allocations = 7; }
+message RegisterInvoicesRequest { string idempotency_key = 1 [(google.api.field_behavior) = REQUIRED]; repeated InvoiceRegistrationInput records = 2; }
+message RegisterInvoicesResponse { bool success = 1; int32 code = 2; string message = 3; repeated FinanceInvoice data = 4; string trace_id = 5; }
+message InvoiceRegistrationBillVersion { string bill_id = 1 [(google.api.field_behavior) = REQUIRED]; uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED]; }
+message InvoiceRegistrationRevisionEntry { optional string id = 1; uint64 expected_version = 2; bool remove = 3; InvoiceRegistrationInput registration = 4; }
+message ReviseInvoiceRegistrationsRequest { string idempotency_key = 1 [(google.api.field_behavior) = REQUIRED]; string reason = 2 [(google.api.field_behavior) = REQUIRED]; repeated InvoiceRegistrationBillVersion bill_versions = 3; repeated InvoiceRegistrationRevisionEntry entries = 4; }
+message ReviseInvoiceRegistrationsResponse { bool success = 1; int32 code = 2; string message = 3; repeated FinanceInvoice data = 4; string trace_id = 5; }
+message FinanceInvoiceFeeAllocation { string id = 1; string invoice_bill_id = 2; string bill_id = 3; string bill_line_id = 4; string order_fee_id = 5; string fee_code = 6; string fee_name = 7; string currency = 8; optional string source_tax_rate = 9; string amount = 10; string net_amount = 11; string tax_amount = 12; }
+message FinanceInvoiceRevision { string id = 1; uint64 revision_number = 2; string reason = 3; string actor_name = 4; string created_at = 5; string before_snapshot = 6; string after_snapshot = 7; }
+message FinanceInvoiceSettlementDependency { string id = 1; string bill_id = 2; string kind = 3; string document_no = 4; string bill_no = 5; string currency = 6; string amount = 7; }
+message FinanceInvoiceRevisionImpact { FinanceInvoice invoice = 1; repeated FinanceBill bills = 2; repeated FinanceInvoiceSettlementDependency dependencies = 3; bool can_revise = 4; }
+message GetInvoiceRevisionImpactRequest { string id = 1 [(google.api.field_behavior) = REQUIRED]; }
+message GetInvoiceRevisionImpactResponse { bool success = 1; int32 code = 2; string message = 3; FinanceInvoiceRevisionImpact data = 4; string trace_id = 5; }
+
+message ListInvoiceProfilesForPartyRequest { string settlement_party_id = 1 [(google.api.field_behavior) = REQUIRED]; }
+message ListInvoiceProfilesForPartyResponse { bool success = 1; int32 code = 2; string message = 3; FinanceInvoiceProfilesForBill data = 4; string trace_id = 5; }

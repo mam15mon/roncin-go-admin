@@ -40,7 +40,7 @@ func TestBillInvoiceExemptionUsesDedicatedPermissionAndWritableCompany(t *testin
 	for _, permission := range []string{access.FinanceInvoiceExempt, access.FinanceInvoiceUpdate, access.FinanceBillUpdate, ""} {
 		t.Run(permission, func(t *testing.T) {
 			repo := &exemptionServiceRepoStub{}
-			service := &SettlementService{invoiceUsecase: biz.NewFinanceInvoiceUsecase(repo, nil, nil), billUsecase: biz.NewFinanceBillUsecase(&exemptionBillRepoStub{item: &biz.FinanceBill{ID: billID, OrganizationID: organizationID, Version: 3}}, nil, nil, nil)}
+			service := &SettlementService{invoiceUsecase: biz.NewFinanceInvoiceUsecase(repo, nil, nil, nil), billUsecase: biz.NewFinanceBillUsecase(&exemptionBillRepoStub{item: &biz.FinanceBill{ID: billID, OrganizationID: organizationID, Version: 3}}, nil, nil, nil)}
 			principal := &biz.Principal{UserID: actorID, Organization: biz.Organization{ID: organizationID, Kind: biz.OrganizationKindCompany}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: organizationID, Kind: biz.OrganizationKindCompany}}, RoleGrants: []biz.RoleGrant{{RoleCode: "finance", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{permission: {}}}}}
 			ctx := biz.WithPrincipal(context.Background(), principal)
 			request := &v1.SetBillInvoiceExemptionRequest{Id: billID.String(), ExpectedVersion: 2, Reason: "  境外服务  "}
@@ -68,7 +68,7 @@ func TestBillInvoiceExemptionValidatesReasonAndVersionBeforeRepository(t *testin
 		reason  string
 	}{{0, "免票"}, {1, " \n "}, {1, string(make([]rune, 501))}} {
 		repo := &exemptionServiceRepoStub{}
-		uc := biz.NewFinanceInvoiceUsecase(repo, nil, nil)
+		uc := biz.NewFinanceInvoiceUsecase(repo, nil, nil, nil)
 		err := uc.SetBillInvoiceExemption(context.Background(), []uuid.UUID{uuid.New()}, uuid.New(), uuid.New(), input.version, input.reason, false)
 		if !errors.Is(err, biz.ErrFinanceInvoiceInvalidArgument) || repo.scope != nil {
 			t.Fatalf("不合法免票请求进入仓储: %v", err)

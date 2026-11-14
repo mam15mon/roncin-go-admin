@@ -1,4 +1,10 @@
-import { Descriptions, Space, type TableColumnsType, Tag } from 'antd';
+import {
+  Descriptions,
+  Space,
+  type TableColumnsType,
+  Tag,
+  Typography,
+} from 'antd';
 import React from 'react';
 import {
   DescriptionsDetailDrawer,
@@ -7,6 +13,10 @@ import {
 } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { FinanceInvoiceStatus } from '@/enums.generated';
+import {
+  InvoiceAllocationDetails,
+  InvoiceRevisionHistory,
+} from '@/features/finance/invoice-registration';
 import { formatAmount, trimDecimal } from '@/utils/format';
 import {
   invoiceIssueDateLabel,
@@ -30,10 +40,10 @@ export default function InvoiceDetailDrawer({
     { title: '费用代码', dataIndex: 'itemCode', width: 110 },
     { title: '开票项目', dataIndex: 'itemName' },
     {
-      title: '税率',
+      title: '来源费用税率',
       dataIndex: 'taxRate',
       align: 'right',
-      render: (value) => `${Number(value)}%`,
+      render: (value) => (value === undefined ? '-' : `${trimDecimal(value)}%`),
     },
     {
       title: '未税金额',
@@ -42,7 +52,7 @@ export default function InvoiceDetailDrawer({
       render: (val) => formatAmount(val),
     },
     {
-      title: '税额',
+      title: '登记税额',
       dataIndex: 'taxAmount',
       align: 'right',
       render: (val) => formatAmount(val),
@@ -65,7 +75,7 @@ export default function InvoiceDetailDrawer({
       render: (val) => formatAmount(val),
     },
     {
-      title: '税额',
+      title: '登记税额',
       dataIndex: 'taxAmount',
       align: 'right',
       render: (val) => formatAmount(val),
@@ -236,6 +246,10 @@ export default function InvoiceDetailDrawer({
             dataSource={detail.billLinks || []}
             columns={billLinkColumnSettings.columns}
           />
+          <Typography.Title level={5}>逐账单与费用分配追溯</Typography.Title>
+          <InvoiceAllocationDetails links={detail.billLinks} />
+          <Typography.Title level={5}>修订历史</Typography.Title>
+          <InvoiceRevisionHistory revisions={detail.revisions} />
         </>
       )}
     </DescriptionsDetailDrawer>

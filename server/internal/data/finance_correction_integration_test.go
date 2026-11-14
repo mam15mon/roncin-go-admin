@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"testing"
 	"time"
 
@@ -228,21 +229,33 @@ func correctionFinanceInvoice(t *testing.T, f *financeInvoicePostgresFixture, ke
 	if err != nil {
 		return nil, err
 	}
-	v := &biz.FinanceInvoice{ID: uuid.New(), OrganizationID: f.organizationID, RecordNo: key, IdempotencyKey: key, InvoiceProfileID: &profile.ID, Direction: biz.OrderFeeReceivable, Status: biz.FinanceInvoiceDraft, InvoiceType: biz.FinanceInvoiceNormal, SettlementPartyID: f.partnerID, SettlementPartyName: "测试客户", Currency: "CNY", BaseCurrency: "CNY", InvoiceTitle: profile.InvoiceTitle, TaxpayerIdentificationNo: profile.TaxpayerIdentificationNo, BillCount: len(bills)}
-	for _, b := range bills {
-		v.TotalAmount = v.TotalAmount.Add(*b.InvoiceableAmount)
-		v.NetAmount = v.NetAmount.Add(*b.InvoiceableNetAmount)
-		v.TaxAmount = v.TaxAmount.Add(*b.InvoiceableTaxAmount)
-		sourceIDs := make([]uuid.UUID, 0, len(b.Lines))
-		for _, line := range b.Lines {
-			sourceIDs = append(sourceIDs, line.OrderFeeID)
-		}
-		v.Links = append(v.Links, &biz.FinanceInvoiceBill{SourceFeeIDs: sourceIDs, ID: uuid.New(), BillID: b.ID, BillNo: b.BillNo, Amount: *b.InvoiceableAmount, TaxAmount: *b.InvoiceableTaxAmount, Active: true})
-		for _, l := range b.Lines {
-			v.Lines = append(v.Lines, &biz.FinanceInvoiceLine{ID: uuid.New(), LineNo: len(v.Lines) + 1, ItemCode: l.FeeCode, ItemName: l.FeeName, Currency: "CNY", TaxRate: *l.TaxRate, TotalAmount: l.TotalAmount, NetAmount: l.NetAmount, TaxAmount: l.TaxAmount, SourceLineCount: 1})
+	rule, err := f.data.db.NumberRule.Query().Where(number.OrganizationIDEQ(f.organizationID), number.DocumentTypeEQ(number.DocumentTypeInvoice)).Exist(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if !rule {
+		if _, err = f.data.db.NumberRule.Create().SetOrganizationID(f.organizationID).SetDocumentType(number.DocumentTypeInvoice).SetPrefix("IN").SetDateFormat(number.DateFormatNone).SetSequenceLength(6).SetResetPolicy(number.ResetPolicyNever).SetEnabled(true).Save(ctx); err != nil {
+			return nil, err
 		}
 	}
-	return NewFinanceInvoiceRepo(f.data).Create(ctx, v, &biz.AuditEvent{Action: "test.invoice", Result: "success"})
+	record := biz.FinanceInvoiceRegistrationInput{InvoiceProfileID: profile.ID, InvoiceType: biz.FinanceInvoiceNormal, TaxInvoiceNo: key, InvoiceDate: financeInvoiceIntegrationDate}
+	for _, b := range bills {
+		if b.Purpose != biz.FinanceBillNormal || len(b.Lines) == 0 {
+			return nil, biz.ErrFinanceInvoiceBillInvalid
+		}
+		allocation := biz.FinanceInvoiceAllocationInput{BillID: b.ID, ExpectedVersion: b.Version, Amount: *b.InvoiceableAmount}
+		for _, line := range b.Lines {
+			allocation.Fees = append(allocation.Fees, biz.FinanceInvoiceFeeInput{OrderFeeID: line.OrderFeeID, Amount: line.TotalAmount, TaxAmount: line.TaxAmount})
+		}
+		record.TotalAmount = record.TotalAmount.Add(allocation.Amount)
+		record.Allocations = append(record.Allocations, allocation)
+	}
+	uc := biz.NewFinanceInvoiceUsecase(NewFinanceInvoiceRepo(f.data), biz.NewOrderConfigUsecase(NewOrderConfigRepo(f.data)), biz.NewExchangeRateUsecase(NewExchangeRateRepo(f.data), nil), f.data)
+	invoices, err := uc.RegisterScoped(ctx, []uuid.UUID{f.organizationID}, f.actorID, biz.RegisterFinanceInvoicesInput{IdempotencyKey: key, Records: []biz.FinanceInvoiceRegistrationInput{record}})
+	if err != nil {
+		return nil, err
+	}
+	return invoices[0], nil
 }
 
 func TestFinanceCorrectionInvoiceEconomicContentPostgres(t *testing.T) {
@@ -259,19 +272,16 @@ func TestFinanceCorrectionInvoiceEconomicContentPostgres(t *testing.T) {
 			t.Fatal(err)
 		}
 		repo := NewFinanceInvoiceRepo(data)
-		inv, err = repo.Issue(ctx, f.organizationID, inv.ID, f.actorID, inv.Version, biz.FinanceInvoiceIssueInput{TaxInvoiceNo: "原票", InvoiceDate: financeInvoiceIntegrationDate, ExchangeRate: decimal.NewFromInt(1), ExchangeRateSource: "SYSTEM", ExchangeRateDate: financeInvoiceIntegrationDate, BaseCurrencyAmount: decimal.NewFromInt(1200)}, &biz.AuditEvent{Action: "test.issue", Result: "success"})
-		if err != nil {
-			t.Fatal(err)
-		}
+
 		r := correctionFinanceApprove(t, f, a)
 		rev := correctionFinanceFee(t, f, "冲回A", "1000", &a.ID, &r.ID, fee.EconomicEffectDECREASE)
 		newFee := correctionFinanceFee(t, f, "新A", "100", &a.ID, &r.ID, fee.EconomicEffectINCREASE)
 		reverseBill := correctionFinanceBill(t, f, "reverse-invoice", bill.PurposeCORRECTION_REVERSAL, rev)
 		newBill := correctionFinanceBill(t, f, "new-invoice", bill.PurposeNORMAL, newFee)
-		if _, err := correctionFinanceInvoice(t, f, "重复替代票", newBill.ID); err != biz.ErrFinanceInvoiceBillInvalid {
+		if _, err := correctionFinanceInvoice(t, f, "重复替代票", newBill.ID); !errors.Is(err, biz.ErrFinanceInvoiceBillInvalid) {
 			t.Fatalf("原票未红冲应阻止替代重复票: %v", err)
 		}
-		if _, err := correctionFinanceInvoice(t, f, "冲回普通票", reverseBill.ID); err != biz.ErrFinanceInvoiceBillInvalid {
+		if _, err := correctionFinanceInvoice(t, f, "冲回普通票", reverseBill.ID); !errors.Is(err, biz.ErrFinanceInvoiceBillInvalid) {
 			t.Fatalf("反向账单不可普通开票: %v", err)
 		}
 		if _, err = repo.RedFlush(ctx, f.organizationID, inv.ID, f.actorID, inv.Version, "红票", financeInvoiceIntegrationDate, "更正重开", &biz.AuditEvent{Action: "test.red", Result: "success"}); err != nil {
@@ -293,18 +303,21 @@ func TestFinanceCorrectionInvoiceEconomicContentPostgres(t *testing.T) {
 			t.Fatal("原账历史额丢失", err)
 		}
 	})
-	t.Run("更正前草稿发票不可继续签发", func(t *testing.T) {
+	t.Run("更正后来源不可重复登记", func(t *testing.T) {
 		f := newFinanceInvoicePostgresFixture(t, data)
 		a := correctionFinanceFee(t, f, "A", "1000", nil, nil, fee.EconomicEffectINCREASE)
-		old := correctionFinanceBill(t, f, "draft-original", bill.PurposeNORMAL, a)
-		inv, err := correctionFinanceInvoice(t, f, "原草稿", old.ID)
+		old := correctionFinanceBill(t, f, "registered-original", bill.PurposeNORMAL, a)
+		inv, err := correctionFinanceInvoice(t, f, "原登记", old.ID)
 		if err != nil {
 			t.Fatal(err)
 		}
 		correctionFinanceApprove(t, f, a)
-		_, err = NewFinanceInvoiceRepo(data).Issue(ctx, f.organizationID, inv.ID, f.actorID, inv.Version, biz.FinanceInvoiceIssueInput{TaxInvoiceNo: "过期票", InvoiceDate: financeInvoiceIntegrationDate, ExchangeRate: decimal.NewFromInt(1), ExchangeRateSource: "SYSTEM", ExchangeRateDate: financeInvoiceIntegrationDate, BaseCurrencyAmount: decimal.NewFromInt(1000)}, &biz.AuditEvent{Action: "test.issue", Result: "success"})
-		if err != biz.ErrFinanceInvoiceBillInvalid {
-			t.Fatalf("经济内容变化需取消草稿重建: %v", err)
+		if _, err := correctionFinanceInvoice(t, f, "更正后重复登记", old.ID); err != biz.ErrFinanceInvoiceInvalidArgument && !errors.Is(err, biz.ErrFinanceInvoiceBillInvalid) {
+			t.Fatalf("失效经济来源不得再次登记: %v", err)
+		}
+		current, err := NewFinanceInvoiceRepo(data).Get(ctx, f.organizationID, inv.ID)
+		if err != nil || !current.TotalAmount.Equal(decimal.NewFromInt(1000)) || current.Status != biz.FinanceInvoiceIssued {
+			t.Fatalf("原票历史必须保留: %+v %v", current, err)
 		}
 	})
 }

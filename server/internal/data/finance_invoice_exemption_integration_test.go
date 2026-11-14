@@ -55,7 +55,7 @@ func TestFinanceInvoiceExemptionPostgres(t *testing.T) {
 		bill := f.createConfirmedBill("exempt")
 		scope := []uuid.UUID{f.organizationID}
 		invoiceRepo := NewFinanceInvoiceRepo(data)
-		uc := biz.NewFinanceInvoiceUsecase(invoiceRepo, nil, nil)
+		uc := biz.NewFinanceInvoiceUsecase(invoiceRepo, nil, nil, data)
 		billRepo := NewFinanceBillRepo(data)
 		if err := uc.SetBillInvoiceExemption(ctx, scope, f.actorID, bill.ID, 1, " 境外服务无需发票 ", false); err != nil {
 			t.Fatal(err)
@@ -83,11 +83,7 @@ func TestFinanceInvoiceExemptionPostgres(t *testing.T) {
 		if err := uc.SetBillInvoiceExemption(ctx, scope, f.actorID, bill.ID, 2, "重复免票", false); !errors.Is(err, biz.ErrFinanceInvoiceExemptionConflict) {
 			t.Fatalf("不能覆盖现有有效决定: %v", err)
 		}
-		profile, err := data.db.PartnerInvoiceProfile.Create().SetOrganizationID(f.organizationID).SetPartnerID(f.partnerID).SetInvoiceTitle("免票互斥测试抬头").SetTaxpayerIdentificationNo("EXEMPT-TEST").Save(ctx)
-		if err != nil {
-			t.Fatal(err)
-		}
-		_, err = invoiceRepo.Create(ctx, &biz.FinanceInvoice{ID: uuid.New(), OrganizationID: f.organizationID, InvoiceProfileID: &profile.ID, SettlementPartyID: f.partnerID, InvoiceTitle: profile.InvoiceTitle, TaxpayerIdentificationNo: profile.TaxpayerIdentificationNo, Links: []*biz.FinanceInvoiceBill{{BillID: bill.ID}}}, &biz.AuditEvent{Action: "test.exempt.invoice", Result: "success"})
+		_, err = invoiceRepo.LockRegistrationBills(ctx, scope, []biz.FinanceInvoiceBillVersion{{BillID: bill.ID, ExpectedVersion: 2}}, nil, false)
 		if !errors.Is(err, biz.ErrFinanceInvoiceExemptionConflict) {
 			t.Fatalf("有免票时服务端必须拒绝开票: %v", err)
 		}
@@ -143,7 +139,7 @@ func TestFinanceInvoiceExemptionPostgres(t *testing.T) {
 		f := newFinanceInvoicePostgresFixture(t, data)
 		bill := f.createConfirmedBill("invoiced")
 		f.createInvoiceWithStatus("invoiced", financeinvoice.StatusDRAFT, bill)
-		uc := biz.NewFinanceInvoiceUsecase(NewFinanceInvoiceRepo(data), nil, nil)
+		uc := biz.NewFinanceInvoiceUsecase(NewFinanceInvoiceRepo(data), nil, nil, data)
 		if err := uc.SetBillInvoiceExemption(ctx, []uuid.UUID{f.organizationID}, f.actorID, bill.ID, 1, "免票", false); !errors.Is(err, biz.ErrFinanceInvoiceExemptionConflict) {
 			t.Fatalf("已有部分或全部有效发票应拒绝免票: %v", err)
 		}
@@ -159,7 +155,7 @@ func TestFinanceInvoiceExemptionPostgres(t *testing.T) {
 		f := newFinanceInvoicePostgresFixture(t, data)
 		bill := f.createConfirmedBill("rollback")
 		repo := NewFinanceInvoiceRepo(data)
-		uc := biz.NewFinanceInvoiceUsecase(repo, nil, nil)
+		uc := biz.NewFinanceInvoiceUsecase(repo, nil, nil, data)
 		if err := uc.SetBillInvoiceExemption(ctx, []uuid.UUID{f.organizationID}, f.actorID, bill.ID, 1, " \n ", false); !errors.Is(err, biz.ErrFinanceInvoiceInvalidArgument) {
 			t.Fatalf("空原因应拒绝: %v", err)
 		}
@@ -177,7 +173,7 @@ func TestFinanceInvoiceExemptionPostgres(t *testing.T) {
 	t.Run("同版本并发只能形成一个有效决定", func(t *testing.T) {
 		f := newFinanceInvoicePostgresFixture(t, data)
 		bill := f.createConfirmedBill("race")
-		uc := biz.NewFinanceInvoiceUsecase(NewFinanceInvoiceRepo(data), nil, nil)
+		uc := biz.NewFinanceInvoiceUsecase(NewFinanceInvoiceRepo(data), nil, nil, data)
 		start := make(chan struct{})
 		results := make(chan error, 2)
 		var workers sync.WaitGroup

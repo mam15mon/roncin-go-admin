@@ -1,8 +1,10 @@
 package server
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	nethttp "net/http"
+	"strconv"
 
 	"github.com/roncin/roncin-go-admin/server/internal/platform/requestmeta"
 
@@ -44,14 +46,31 @@ func encodeError(writer nethttp.ResponseWriter, request *nethttp.Request, err er
 }
 
 // publicErrorMetadataKeys 是允许随错误响应返回浏览器的 metadata 键：整表保存的行级定位
-// （client_row_id、field、reason、row_errors）与缺汇率提示（currency、week_start、direction）。
+// （client_row_id、field、reason、row_errors）、缺汇率提示与批量组合操作定位（step、item_index、group_key）。
 // 仅放行这些固定键，避免把其他错误内部携带的元数据整体暴露给前端。
-var publicErrorMetadataKeys = []string{"client_row_id", "field", "reason", "row_errors", "currency", "week_start", "direction"}
+var publicErrorMetadataKeys = []string{"client_row_id", "field", "reason", "row_errors", "currency", "week_start", "direction", "step", "item_index", "group_key"}
 
 func publicErrorMetadata(source map[string]string) map[string]string {
 	var result map[string]string
 	for _, key := range publicErrorMetadataKeys {
 		if value, ok := source[key]; ok {
+			if key == "step" && value != "BILL" && value != "INVOICE" && value != "VERIFICATION" {
+				continue
+			}
+			if key == "item_index" {
+				index, err := strconv.Atoi(value)
+				if err != nil || index < 0 || index > 100 {
+					continue
+				}
+			}
+			if key == "group_key" {
+				if len(value) != 64 {
+					continue
+				}
+				if _, err := hex.DecodeString(value); err != nil {
+					continue
+				}
+			}
 			if result == nil {
 				result = make(map[string]string, len(publicErrorMetadataKeys))
 			}

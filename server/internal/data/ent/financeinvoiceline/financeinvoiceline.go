@@ -23,6 +23,8 @@ const (
 	FieldInvoiceID = "invoice_id"
 	// FieldLineNo holds the string denoting the line_no field in the database.
 	FieldLineNo = "line_no"
+	// FieldRevisionNumber holds the string denoting the revision_number field in the database.
+	FieldRevisionNumber = "revision_number"
 	// FieldItemCode holds the string denoting the item_code field in the database.
 	FieldItemCode = "item_code"
 	// FieldItemName holds the string denoting the item_name field in the database.
@@ -59,6 +61,7 @@ var Columns = []string{
 	FieldUpdatedAt,
 	FieldInvoiceID,
 	FieldLineNo,
+	FieldRevisionNumber,
 	FieldItemCode,
 	FieldItemName,
 	FieldTaxRate,
@@ -88,6 +91,8 @@ var (
 	UpdateDefaultUpdatedAt func() time.Time
 	// LineNoValidator is a validator for the "line_no" field. It is called by the builders before save.
 	LineNoValidator func(int) error
+	// DefaultRevisionNumber holds the default value on creation for the "revision_number" field.
+	DefaultRevisionNumber uint64
 	// ItemCodeValidator is a validator for the "item_code" field. It is called by the builders before save.
 	ItemCodeValidator func(string) error
 	// ItemNameValidator is a validator for the "item_name" field. It is called by the builders before save.
@@ -126,6 +131,11 @@ func ByInvoiceID(opts ...sql.OrderTermOption) OrderOption {
 // ByLineNo orders the results by the line_no field.
 func ByLineNo(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLineNo, opts...).ToFunc()
+}
+
+// ByRevisionNumber orders the results by the revision_number field.
+func ByRevisionNumber(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRevisionNumber, opts...).ToFunc()
 }
 
 // ByItemCode orders the results by the item_code field.

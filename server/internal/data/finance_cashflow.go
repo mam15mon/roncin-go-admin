@@ -250,6 +250,9 @@ func (r *financeCashflowRepo) Create(ctx context.Context, v *biz.FinanceCashflow
 	if e != nil {
 		return nil, e
 	}
+	if _, transactional := transactionFromContext(ctx); transactional {
+		return v, nil
+	}
 	return r.Get(ctx, v.OrganizationID, v.ID)
 }
 
@@ -260,6 +263,7 @@ func (r *financeCashflowRepo) Cancel(ctx context.Context, org, id, actor uuid.UU
 	return r.transition(ctx, org, id, actor, v, reason, false, a)
 }
 func (r *financeCashflowRepo) transition(ctx context.Context, org, id, actor uuid.UUID, v uint64, reason string, confirm bool, a *biz.AuditEvent) (*biz.FinanceCashflow, error) {
+	var written *biz.FinanceCashflow
 	e := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		x, queryErr := tx.FinanceCashflow.Query().Where(cash.IDEQ(id), cash.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
 		if queryErr != nil {
@@ -288,13 +292,21 @@ func (r *financeCashflowRepo) transition(ctx context.Context, org, id, actor uui
 			}
 			u.SetStatus(cash.StatusCANCELLED).SetCancelledAt(now).SetCancelledBy(actor).SetCancellationReason(reason)
 		}
-		if _, saveErr := u.Save(ctx); saveErr != nil {
+		updated, saveErr := u.Save(ctx)
+		if saveErr != nil {
+			return saveErr
+		}
+		written, saveErr = cashflowToBiz(updated)
+		if saveErr != nil {
 			return saveErr
 		}
 		return writeAudit(ctx, tx.AuditLog, a)
 	})
 	if e != nil {
 		return nil, e
+	}
+	if _, transactional := transactionFromContext(ctx); transactional {
+		return written, nil
 	}
 	return r.Get(ctx, org, id)
 }

@@ -196,6 +196,11 @@ func Version(v uint64) predicate.FinanceInvoice {
 	return predicate.FinanceInvoice(sql.FieldEQ(FieldVersion, v))
 }
 
+// RevisionNumber applies equality check predicate on the "revision_number" field. It's identical to RevisionNumberEQ.
+func RevisionNumber(v uint64) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldRevisionNumber, v))
+}
+
 // IssuedAt applies equality check predicate on the "issued_at" field. It's identical to IssuedAtEQ.
 func IssuedAt(v time.Time) predicate.FinanceInvoice {
 	return predicate.FinanceInvoice(sql.FieldEQ(FieldIssuedAt, v))
@@ -2036,6 +2041,46 @@ func VersionLTE(v uint64) predicate.FinanceInvoice {
 	return predicate.FinanceInvoice(sql.FieldLTE(FieldVersion, v))
 }
 
+// RevisionNumberEQ applies the EQ predicate on the "revision_number" field.
+func RevisionNumberEQ(v uint64) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldEQ(FieldRevisionNumber, v))
+}
+
+// RevisionNumberNEQ applies the NEQ predicate on the "revision_number" field.
+func RevisionNumberNEQ(v uint64) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNEQ(FieldRevisionNumber, v))
+}
+
+// RevisionNumberIn applies the In predicate on the "revision_number" field.
+func RevisionNumberIn(vs ...uint64) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldIn(FieldRevisionNumber, vs...))
+}
+
+// RevisionNumberNotIn applies the NotIn predicate on the "revision_number" field.
+func RevisionNumberNotIn(vs ...uint64) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldNotIn(FieldRevisionNumber, vs...))
+}
+
+// RevisionNumberGT applies the GT predicate on the "revision_number" field.
+func RevisionNumberGT(v uint64) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldGT(FieldRevisionNumber, v))
+}
+
+// RevisionNumberGTE applies the GTE predicate on the "revision_number" field.
+func RevisionNumberGTE(v uint64) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldGTE(FieldRevisionNumber, v))
+}
+
+// RevisionNumberLT applies the LT predicate on the "revision_number" field.
+func RevisionNumberLT(v uint64) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldLT(FieldRevisionNumber, v))
+}
+
+// RevisionNumberLTE applies the LTE predicate on the "revision_number" field.
+func RevisionNumberLTE(v uint64) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(sql.FieldLTE(FieldRevisionNumber, v))
+}
+
 // IssuedAtEQ applies the EQ predicate on the "issued_at" field.
 func IssuedAtEQ(v time.Time) predicate.FinanceInvoice {
 	return predicate.FinanceInvoice(sql.FieldEQ(FieldIssuedAt, v))
@@ -2752,6 +2797,52 @@ func HasLines() predicate.FinanceInvoice {
 func HasLinesWith(preds ...predicate.FinanceInvoiceLine) predicate.FinanceInvoice {
 	return predicate.FinanceInvoice(func(s *sql.Selector) {
 		step := newLinesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasFeeAllocations applies the HasEdge predicate on the "fee_allocations" edge.
+func HasFeeAllocations() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FeeAllocationsTable, FeeAllocationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFeeAllocationsWith applies the HasEdge predicate on the "fee_allocations" edge with a given conditions (other predicates).
+func HasFeeAllocationsWith(preds ...predicate.FinanceInvoiceFeeAllocation) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(func(s *sql.Selector) {
+		step := newFeeAllocationsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasRevisions applies the HasEdge predicate on the "revisions" edge.
+func HasRevisions() predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, RevisionsTable, RevisionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRevisionsWith applies the HasEdge predicate on the "revisions" edge with a given conditions (other predicates).
+func HasRevisionsWith(preds ...predicate.FinanceInvoiceRevision) predicate.FinanceInvoice {
+	return predicate.FinanceInvoice(func(s *sql.Selector) {
+		step := newRevisionsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

@@ -38,3 +38,14 @@ func TestEncodeErrorOmitsMetadataWhenNoneAllowed(t *testing.T) {
 func contains(s, sub string) bool {
 	return strings.Contains(s, sub)
 }
+
+func TestBatchOperationMetadataOnlyAllowsNormalizedLocation(t *testing.T) {
+	valid := publicErrorMetadata(map[string]string{"step": "INVOICE", "item_index": "2", "group_key": strings.Repeat("a", 64), "cashflow_id": "private"})
+	if valid["step"] != "INVOICE" || valid["item_index"] != "2" || valid["group_key"] == "" || valid["cashflow_id"] != "" {
+		t.Fatalf("组合定位白名单不符: %+v", valid)
+	}
+	invalid := publicErrorMetadata(map[string]string{"step": "internal_failure", "item_index": "secret", "group_key": "secret"})
+	if len(invalid) != 0 {
+		t.Fatalf("非法组合定位应被过滤: %+v", invalid)
+	}
+}

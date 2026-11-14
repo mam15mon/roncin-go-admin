@@ -588,6 +588,10 @@ export default function FinanceBillsPage() {
         loading={detailLoading}
         detail={detail}
         onClose={() => setDetailOpen(false)}
+        onRegistrationUpdated={() => {
+          if (detail) void openDetail(detail);
+          void actionRef.current?.reload();
+        }}
         invoiceExemptionActions={
           access.canExemptFinanceInvoices &&
           hasCompanyScope &&

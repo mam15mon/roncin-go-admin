@@ -20,7 +20,7 @@ func TestFinanceInvoiceExemptionChineseReasonLengthPostgres(t *testing.T) {
 	f := newFinanceInvoicePostgresFixture(t, data)
 	bill := f.createConfirmedBill("chinese-reason-length")
 	ctx := context.Background()
-	uc := biz.NewFinanceInvoiceUsecase(NewFinanceInvoiceRepo(data), nil, nil)
+	uc := biz.NewFinanceInvoiceUsecase(NewFinanceInvoiceRepo(data), nil, nil, data)
 	scope := []uuid.UUID{f.organizationID}
 	longReason := strings.Repeat("免", 500)
 	if err := uc.SetBillInvoiceExemption(ctx, scope, f.actorID, bill.ID, bill.Version, longReason, false); err != nil {

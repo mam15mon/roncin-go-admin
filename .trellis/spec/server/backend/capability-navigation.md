@@ -20,11 +20,12 @@
 | 提成不含税基数 | `finance_commission_lifecycle.go`（`CommissionNetBase`）、`finance_commission_economics.go` | 应收、应付、来源额度统一取不含税本位币；V4 版本守卫 | 新取值点直接用含税 `BaseCurrencyAmount`；并存 V3 公式 |
 | 提成实付登记 | `finance_commission_payment.go`、`finance_commission_lifecycle.go` | 原额与调整净发预览、实际金额、抵扣关联、独立执行保护 | 用累计权益净额代替历史实付；同一冲减重复少发及扣回 |
 | 六类财务列表筛选合计 | `finance_ledger_summary.go` 与各列表仓储接口 | 纯领域 matchedSummary，count等于total；data克隆完整筛选聚合原币/本币/未折算，见[契约](../../web/frontend/finance-ledger-snapshots.md) | 当前页代算全部、组织范围外聚合、把未折算null当零 |
-| 账单 | `finance_bill.go`、`finance_bill_batch.go` | 建账、批量建账、固定费用币种边界 | 跨币种人工折算旁路 |
+| 财务只读报表 | `finance_report.go`、`finance_report_types.go` | 经营双口径利润、真实收付、当前账龄、完整合计/月份与独立导出 | 本页代全部、核销金额代真实收付、历史余额冒充当前投影 |
+| 账单 | `finance_bill.go`、`finance_bill_batch.go`、`finance_bill_batch_operations.go` | 建账、逐组批量建账、固定费用币种边界；组内多票登记与多笔核销/差额原子编排，提交后读取完整进度 | 跨币种人工折算旁路；串联独立请求代替原子组合；共享事务内读取完整响应 |
 | 核销 | `finance_verification.go`、`finance_verification_shortfall.go` | 核销、反核销、汇兑损益及差额流水原子补录 | 绕过 idempotencyKey 重放 |
 | 对冲 | `finance_netting.go` | 应收应付对冲、汇差 | 独立实现汇差口径 |
 | 收付 | `finance_cashflow.go` | 收付款流水、散户出款账户刚性 | 散户出款走普通账户 |
-| 发票 | `finance_invoice.go`、`partner_invoice_profile.go` | 发票登记、开票资料 | 修改他人组织发票 |
+| 发票 | `finance_invoice.go`、`finance_invoice_registration.go`、`partner_invoice_profile.go` | `RegisterScoped` 多记录直登记、三层明确分配及手填税额；`RegisterWithinTransaction` 只写返回 ID 供建账组合；`ReviseRegistrations` 无有效核销/已确认对冲时修订并保存业务前后快照，原抬头快照逐票保留；`GetRevisionImpact` 全量跨账单影响；来源税率保留 optional 存在性；详情/列表/候选一致快照与完整检索，详见[登记契约](./finance-invoice-registration.md) | 修改他人组织发票；在写事务组完整响应；修订隐式撤销结算或使用其他票的同抬头快照 |
 | 结算单位设置 | `settlement.go`、`finance_custom_setting.go` | 结算候选、自定义设置 | 信用判定复制第二套 |
 | 提成方案与分配 | `finance_commission_rules.go` | 方案区间、员工分配、资格门禁 | 实际区间允许重叠 |
 | 月度提成申请 | `finance_commission_application.go`、`finance_commission_lifecycle.go` | 自然月申请、整单批准/驳回、待审更正门禁与净额发放 | 把已发事实改写为当前权益；恢复提成财务锁 |

@@ -14,6 +14,7 @@ import BillFeeMaintenance from './BillFeeMaintenance';
 import BillInvoiceExemptionSection, {
   type BillInvoiceExemptionActions,
 } from './BillInvoiceExemptionSection';
+import BillInvoiceRegistrationSection from './BillInvoiceRegistrationSection';
 
 interface BillDetailDrawerProps {
   open: boolean;
@@ -22,6 +23,7 @@ interface BillDetailDrawerProps {
   onClose: () => void;
   /** 具备账单编辑权限时提供：在账单行上启用费用增删。 */
   invoiceExemptionActions?: BillInvoiceExemptionActions;
+  onRegistrationUpdated?: () => void;
   feeMaintenance?: {
     onUpdated: (bill: API.FinanceBill) => void;
     onRefresh: () => void;
@@ -35,6 +37,7 @@ export default function BillDetailDrawer({
   onClose,
   feeMaintenance,
   invoiceExemptionActions,
+  onRegistrationUpdated,
 }: BillDetailDrawerProps) {
   const lineColumns: TableColumnsType<API.FinanceBillLine> = [
     { title: '订单编号', dataIndex: 'orderNo', width: 150 },
@@ -70,6 +73,18 @@ export default function BillDetailDrawer({
         </strong>
       ),
       align: 'right',
+    },
+    {
+      title: '已登记金额',
+      key: 'invoicedAmount',
+      align: 'right',
+      render: (_, row) => formatAmount(row.invoicedAmount ?? '0'),
+    },
+    {
+      title: '可登记余额',
+      key: 'invoiceableAmount',
+      align: 'right',
+      render: (_, row) => formatAmount(row.invoiceableAmount),
     },
     {
       title: '费用折本币',
@@ -265,6 +280,11 @@ export default function BillDetailDrawer({
               columns={lineColumnSettings.columns}
             />
           )}
+          <BillInvoiceRegistrationSection
+            bill={detail}
+            active={open}
+            onRefresh={onRegistrationUpdated}
+          />
           <BillInvoiceExemptionSection
             bill={detail}
             actions={open ? invoiceExemptionActions : undefined}

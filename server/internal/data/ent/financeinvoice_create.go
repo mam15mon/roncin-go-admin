@@ -15,7 +15,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicefeeallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceline"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicerevision"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerinvoiceprofile"
@@ -374,6 +376,20 @@ func (_c *FinanceInvoiceCreate) SetNillableVersion(v *uint64) *FinanceInvoiceCre
 	return _c
 }
 
+// SetRevisionNumber sets the "revision_number" field.
+func (_c *FinanceInvoiceCreate) SetRevisionNumber(v uint64) *FinanceInvoiceCreate {
+	_c.mutation.SetRevisionNumber(v)
+	return _c
+}
+
+// SetNillableRevisionNumber sets the "revision_number" field if the given value is not nil.
+func (_c *FinanceInvoiceCreate) SetNillableRevisionNumber(v *uint64) *FinanceInvoiceCreate {
+	if v != nil {
+		_c.SetRevisionNumber(*v)
+	}
+	return _c
+}
+
 // SetIssuedAt sets the "issued_at" field.
 func (_c *FinanceInvoiceCreate) SetIssuedAt(v time.Time) *FinanceInvoiceCreate {
 	_c.mutation.SetIssuedAt(v)
@@ -630,6 +646,36 @@ func (_c *FinanceInvoiceCreate) AddLines(v ...*FinanceInvoiceLine) *FinanceInvoi
 	return _c.AddLineIDs(ids...)
 }
 
+// AddFeeAllocationIDs adds the "fee_allocations" edge to the FinanceInvoiceFeeAllocation entity by IDs.
+func (_c *FinanceInvoiceCreate) AddFeeAllocationIDs(ids ...uuid.UUID) *FinanceInvoiceCreate {
+	_c.mutation.AddFeeAllocationIDs(ids...)
+	return _c
+}
+
+// AddFeeAllocations adds the "fee_allocations" edges to the FinanceInvoiceFeeAllocation entity.
+func (_c *FinanceInvoiceCreate) AddFeeAllocations(v ...*FinanceInvoiceFeeAllocation) *FinanceInvoiceCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddFeeAllocationIDs(ids...)
+}
+
+// AddRevisionIDs adds the "revisions" edge to the FinanceInvoiceRevision entity by IDs.
+func (_c *FinanceInvoiceCreate) AddRevisionIDs(ids ...uuid.UUID) *FinanceInvoiceCreate {
+	_c.mutation.AddRevisionIDs(ids...)
+	return _c
+}
+
+// AddRevisions adds the "revisions" edges to the FinanceInvoiceRevision entity.
+func (_c *FinanceInvoiceCreate) AddRevisions(v ...*FinanceInvoiceRevision) *FinanceInvoiceCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddRevisionIDs(ids...)
+}
+
 // Mutation returns the FinanceInvoiceMutation object of the builder.
 func (_c *FinanceInvoiceCreate) Mutation() *FinanceInvoiceMutation {
 	return _c.mutation
@@ -680,6 +726,10 @@ func (_c *FinanceInvoiceCreate) defaults() {
 	if _, ok := _c.mutation.Version(); !ok {
 		v := financeinvoice.DefaultVersion
 		_c.mutation.SetVersion(v)
+	}
+	if _, ok := _c.mutation.RevisionNumber(); !ok {
+		v := financeinvoice.DefaultRevisionNumber
+		_c.mutation.SetRevisionNumber(v)
 	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := financeinvoice.DefaultID()
@@ -839,6 +889,9 @@ func (_c *FinanceInvoiceCreate) check() error {
 	}
 	if _, ok := _c.mutation.Version(); !ok {
 		return &ValidationError{Name: "version", err: errors.New(`ent: missing required field "FinanceInvoice.version"`)}
+	}
+	if _, ok := _c.mutation.RevisionNumber(); !ok {
+		return &ValidationError{Name: "revision_number", err: errors.New(`ent: missing required field "FinanceInvoice.revision_number"`)}
 	}
 	if v, ok := _c.mutation.CancellationReason(); ok {
 		if err := financeinvoice.CancellationReasonValidator(v); err != nil {
@@ -1018,6 +1071,10 @@ func (_c *FinanceInvoiceCreate) createSpec() (*FinanceInvoice, *sqlgraph.CreateS
 		_spec.SetField(financeinvoice.FieldVersion, field.TypeUint64, value)
 		_node.Version = value
 	}
+	if value, ok := _c.mutation.RevisionNumber(); ok {
+		_spec.SetField(financeinvoice.FieldRevisionNumber, field.TypeUint64, value)
+		_node.RevisionNumber = value
+	}
 	if value, ok := _c.mutation.IssuedAt(); ok {
 		_spec.SetField(financeinvoice.FieldIssuedAt, field.TypeTime, value)
 		_node.IssuedAt = &value
@@ -1180,6 +1237,38 @@ func (_c *FinanceInvoiceCreate) createSpec() (*FinanceInvoice, *sqlgraph.CreateS
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := _c.mutation.FeeAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeinvoice.FeeAllocationsTable,
+			Columns: []string{financeinvoice.FeeAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicefeeallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.RevisionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financeinvoice.RevisionsTable,
+			Columns: []string{financeinvoice.RevisionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoicerevision.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -1253,6 +1342,18 @@ func (u *FinanceInvoiceUpsert) SetStatus(v financeinvoice.Status) *FinanceInvoic
 // UpdateStatus sets the "status" field to the value that was provided on create.
 func (u *FinanceInvoiceUpsert) UpdateStatus() *FinanceInvoiceUpsert {
 	u.SetExcluded(financeinvoice.FieldStatus)
+	return u
+}
+
+// SetInvoiceType sets the "invoice_type" field.
+func (u *FinanceInvoiceUpsert) SetInvoiceType(v financeinvoice.InvoiceType) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldInvoiceType, v)
+	return u
+}
+
+// UpdateInvoiceType sets the "invoice_type" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateInvoiceType() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldInvoiceType)
 	return u
 }
 
@@ -1346,6 +1447,60 @@ func (u *FinanceInvoiceUpsert) ClearBaseCurrencyAmount() *FinanceInvoiceUpsert {
 	return u
 }
 
+// SetTotalAmount sets the "total_amount" field.
+func (u *FinanceInvoiceUpsert) SetTotalAmount(v string) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldTotalAmount, v)
+	return u
+}
+
+// UpdateTotalAmount sets the "total_amount" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateTotalAmount() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldTotalAmount)
+	return u
+}
+
+// SetNetAmount sets the "net_amount" field.
+func (u *FinanceInvoiceUpsert) SetNetAmount(v string) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldNetAmount, v)
+	return u
+}
+
+// UpdateNetAmount sets the "net_amount" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateNetAmount() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldNetAmount)
+	return u
+}
+
+// SetTaxAmount sets the "tax_amount" field.
+func (u *FinanceInvoiceUpsert) SetTaxAmount(v string) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldTaxAmount, v)
+	return u
+}
+
+// UpdateTaxAmount sets the "tax_amount" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateTaxAmount() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldTaxAmount)
+	return u
+}
+
+// SetBillCount sets the "bill_count" field.
+func (u *FinanceInvoiceUpsert) SetBillCount(v int) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldBillCount, v)
+	return u
+}
+
+// UpdateBillCount sets the "bill_count" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateBillCount() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldBillCount)
+	return u
+}
+
+// AddBillCount adds v to the "bill_count" field.
+func (u *FinanceInvoiceUpsert) AddBillCount(v int) *FinanceInvoiceUpsert {
+	u.Add(financeinvoice.FieldBillCount, v)
+	return u
+}
+
 // SetTaxInvoiceNo sets the "tax_invoice_no" field.
 func (u *FinanceInvoiceUpsert) SetTaxInvoiceNo(v string) *FinanceInvoiceUpsert {
 	u.Set(financeinvoice.FieldTaxInvoiceNo, v)
@@ -1415,6 +1570,24 @@ func (u *FinanceInvoiceUpsert) UpdateVersion() *FinanceInvoiceUpsert {
 // AddVersion adds v to the "version" field.
 func (u *FinanceInvoiceUpsert) AddVersion(v uint64) *FinanceInvoiceUpsert {
 	u.Add(financeinvoice.FieldVersion, v)
+	return u
+}
+
+// SetRevisionNumber sets the "revision_number" field.
+func (u *FinanceInvoiceUpsert) SetRevisionNumber(v uint64) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldRevisionNumber, v)
+	return u
+}
+
+// UpdateRevisionNumber sets the "revision_number" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateRevisionNumber() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldRevisionNumber)
+	return u
+}
+
+// AddRevisionNumber adds v to the "revision_number" field.
+func (u *FinanceInvoiceUpsert) AddRevisionNumber(v uint64) *FinanceInvoiceUpsert {
+	u.Add(financeinvoice.FieldRevisionNumber, v)
 	return u
 }
 
@@ -1630,9 +1803,6 @@ func (u *FinanceInvoiceUpsertOne) UpdateNewValues() *FinanceInvoiceUpsertOne {
 		if _, exists := u.create.mutation.Direction(); exists {
 			s.SetIgnore(financeinvoice.FieldDirection)
 		}
-		if _, exists := u.create.mutation.InvoiceType(); exists {
-			s.SetIgnore(financeinvoice.FieldInvoiceType)
-		}
 		if _, exists := u.create.mutation.InvoiceProfileID(); exists {
 			s.SetIgnore(financeinvoice.FieldInvoiceProfileID)
 		}
@@ -1665,18 +1835,6 @@ func (u *FinanceInvoiceUpsertOne) UpdateNewValues() *FinanceInvoiceUpsertOne {
 		}
 		if _, exists := u.create.mutation.BaseCurrency(); exists {
 			s.SetIgnore(financeinvoice.FieldBaseCurrency)
-		}
-		if _, exists := u.create.mutation.TotalAmount(); exists {
-			s.SetIgnore(financeinvoice.FieldTotalAmount)
-		}
-		if _, exists := u.create.mutation.NetAmount(); exists {
-			s.SetIgnore(financeinvoice.FieldNetAmount)
-		}
-		if _, exists := u.create.mutation.TaxAmount(); exists {
-			s.SetIgnore(financeinvoice.FieldTaxAmount)
-		}
-		if _, exists := u.create.mutation.BillCount(); exists {
-			s.SetIgnore(financeinvoice.FieldBillCount)
 		}
 	}))
 	return u
@@ -1734,6 +1892,20 @@ func (u *FinanceInvoiceUpsertOne) SetStatus(v financeinvoice.Status) *FinanceInv
 func (u *FinanceInvoiceUpsertOne) UpdateStatus() *FinanceInvoiceUpsertOne {
 	return u.Update(func(s *FinanceInvoiceUpsert) {
 		s.UpdateStatus()
+	})
+}
+
+// SetInvoiceType sets the "invoice_type" field.
+func (u *FinanceInvoiceUpsertOne) SetInvoiceType(v financeinvoice.InvoiceType) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetInvoiceType(v)
+	})
+}
+
+// UpdateInvoiceType sets the "invoice_type" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateInvoiceType() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateInvoiceType()
 	})
 }
 
@@ -1842,6 +2014,69 @@ func (u *FinanceInvoiceUpsertOne) ClearBaseCurrencyAmount() *FinanceInvoiceUpser
 	})
 }
 
+// SetTotalAmount sets the "total_amount" field.
+func (u *FinanceInvoiceUpsertOne) SetTotalAmount(v string) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetTotalAmount(v)
+	})
+}
+
+// UpdateTotalAmount sets the "total_amount" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateTotalAmount() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateTotalAmount()
+	})
+}
+
+// SetNetAmount sets the "net_amount" field.
+func (u *FinanceInvoiceUpsertOne) SetNetAmount(v string) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetNetAmount(v)
+	})
+}
+
+// UpdateNetAmount sets the "net_amount" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateNetAmount() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateNetAmount()
+	})
+}
+
+// SetTaxAmount sets the "tax_amount" field.
+func (u *FinanceInvoiceUpsertOne) SetTaxAmount(v string) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetTaxAmount(v)
+	})
+}
+
+// UpdateTaxAmount sets the "tax_amount" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateTaxAmount() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateTaxAmount()
+	})
+}
+
+// SetBillCount sets the "bill_count" field.
+func (u *FinanceInvoiceUpsertOne) SetBillCount(v int) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetBillCount(v)
+	})
+}
+
+// AddBillCount adds v to the "bill_count" field.
+func (u *FinanceInvoiceUpsertOne) AddBillCount(v int) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.AddBillCount(v)
+	})
+}
+
+// UpdateBillCount sets the "bill_count" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateBillCount() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateBillCount()
+	})
+}
+
 // SetTaxInvoiceNo sets the "tax_invoice_no" field.
 func (u *FinanceInvoiceUpsertOne) SetTaxInvoiceNo(v string) *FinanceInvoiceUpsertOne {
 	return u.Update(func(s *FinanceInvoiceUpsert) {
@@ -1923,6 +2158,27 @@ func (u *FinanceInvoiceUpsertOne) AddVersion(v uint64) *FinanceInvoiceUpsertOne 
 func (u *FinanceInvoiceUpsertOne) UpdateVersion() *FinanceInvoiceUpsertOne {
 	return u.Update(func(s *FinanceInvoiceUpsert) {
 		s.UpdateVersion()
+	})
+}
+
+// SetRevisionNumber sets the "revision_number" field.
+func (u *FinanceInvoiceUpsertOne) SetRevisionNumber(v uint64) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetRevisionNumber(v)
+	})
+}
+
+// AddRevisionNumber adds v to the "revision_number" field.
+func (u *FinanceInvoiceUpsertOne) AddRevisionNumber(v uint64) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.AddRevisionNumber(v)
+	})
+}
+
+// UpdateRevisionNumber sets the "revision_number" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateRevisionNumber() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateRevisionNumber()
 	})
 }
 
@@ -2334,9 +2590,6 @@ func (u *FinanceInvoiceUpsertBulk) UpdateNewValues() *FinanceInvoiceUpsertBulk {
 			if _, exists := b.mutation.Direction(); exists {
 				s.SetIgnore(financeinvoice.FieldDirection)
 			}
-			if _, exists := b.mutation.InvoiceType(); exists {
-				s.SetIgnore(financeinvoice.FieldInvoiceType)
-			}
 			if _, exists := b.mutation.InvoiceProfileID(); exists {
 				s.SetIgnore(financeinvoice.FieldInvoiceProfileID)
 			}
@@ -2369,18 +2622,6 @@ func (u *FinanceInvoiceUpsertBulk) UpdateNewValues() *FinanceInvoiceUpsertBulk {
 			}
 			if _, exists := b.mutation.BaseCurrency(); exists {
 				s.SetIgnore(financeinvoice.FieldBaseCurrency)
-			}
-			if _, exists := b.mutation.TotalAmount(); exists {
-				s.SetIgnore(financeinvoice.FieldTotalAmount)
-			}
-			if _, exists := b.mutation.NetAmount(); exists {
-				s.SetIgnore(financeinvoice.FieldNetAmount)
-			}
-			if _, exists := b.mutation.TaxAmount(); exists {
-				s.SetIgnore(financeinvoice.FieldTaxAmount)
-			}
-			if _, exists := b.mutation.BillCount(); exists {
-				s.SetIgnore(financeinvoice.FieldBillCount)
 			}
 		}
 	}))
@@ -2439,6 +2680,20 @@ func (u *FinanceInvoiceUpsertBulk) SetStatus(v financeinvoice.Status) *FinanceIn
 func (u *FinanceInvoiceUpsertBulk) UpdateStatus() *FinanceInvoiceUpsertBulk {
 	return u.Update(func(s *FinanceInvoiceUpsert) {
 		s.UpdateStatus()
+	})
+}
+
+// SetInvoiceType sets the "invoice_type" field.
+func (u *FinanceInvoiceUpsertBulk) SetInvoiceType(v financeinvoice.InvoiceType) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetInvoiceType(v)
+	})
+}
+
+// UpdateInvoiceType sets the "invoice_type" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateInvoiceType() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateInvoiceType()
 	})
 }
 
@@ -2547,6 +2802,69 @@ func (u *FinanceInvoiceUpsertBulk) ClearBaseCurrencyAmount() *FinanceInvoiceUpse
 	})
 }
 
+// SetTotalAmount sets the "total_amount" field.
+func (u *FinanceInvoiceUpsertBulk) SetTotalAmount(v string) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetTotalAmount(v)
+	})
+}
+
+// UpdateTotalAmount sets the "total_amount" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateTotalAmount() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateTotalAmount()
+	})
+}
+
+// SetNetAmount sets the "net_amount" field.
+func (u *FinanceInvoiceUpsertBulk) SetNetAmount(v string) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetNetAmount(v)
+	})
+}
+
+// UpdateNetAmount sets the "net_amount" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateNetAmount() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateNetAmount()
+	})
+}
+
+// SetTaxAmount sets the "tax_amount" field.
+func (u *FinanceInvoiceUpsertBulk) SetTaxAmount(v string) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetTaxAmount(v)
+	})
+}
+
+// UpdateTaxAmount sets the "tax_amount" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateTaxAmount() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateTaxAmount()
+	})
+}
+
+// SetBillCount sets the "bill_count" field.
+func (u *FinanceInvoiceUpsertBulk) SetBillCount(v int) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetBillCount(v)
+	})
+}
+
+// AddBillCount adds v to the "bill_count" field.
+func (u *FinanceInvoiceUpsertBulk) AddBillCount(v int) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.AddBillCount(v)
+	})
+}
+
+// UpdateBillCount sets the "bill_count" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateBillCount() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateBillCount()
+	})
+}
+
 // SetTaxInvoiceNo sets the "tax_invoice_no" field.
 func (u *FinanceInvoiceUpsertBulk) SetTaxInvoiceNo(v string) *FinanceInvoiceUpsertBulk {
 	return u.Update(func(s *FinanceInvoiceUpsert) {
@@ -2628,6 +2946,27 @@ func (u *FinanceInvoiceUpsertBulk) AddVersion(v uint64) *FinanceInvoiceUpsertBul
 func (u *FinanceInvoiceUpsertBulk) UpdateVersion() *FinanceInvoiceUpsertBulk {
 	return u.Update(func(s *FinanceInvoiceUpsert) {
 		s.UpdateVersion()
+	})
+}
+
+// SetRevisionNumber sets the "revision_number" field.
+func (u *FinanceInvoiceUpsertBulk) SetRevisionNumber(v uint64) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetRevisionNumber(v)
+	})
+}
+
+// AddRevisionNumber adds v to the "revision_number" field.
+func (u *FinanceInvoiceUpsertBulk) AddRevisionNumber(v uint64) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.AddRevisionNumber(v)
+	})
+}
+
+// UpdateRevisionNumber sets the "revision_number" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateRevisionNumber() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateRevisionNumber()
 	})
 }
 

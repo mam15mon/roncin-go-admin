@@ -40,9 +40,11 @@
 | 费用补录补审 | `OrderFeeCorrectionRequest` | 锁后 ADD/REPLACE/VOID，覆盖新增、修改、调减、作废，批准才影响正式费用；有账单先回退；待审只占用源费建账，单票至多一份待审；具备同公司品类真实 lock grant 者补审 | `data/order_fee_correction*.go` |
 | 账单 | `FinanceBill` / `...Batch` / `...Line` | 费用汇成账单；新建即CONFIRMED，无人工确认；普通批量逐组独立、NETTING整批原子；结算/开票进度与完成状态按事实推导，版本乐观锁 | `biz/finance_bill*.go` |
 | 对冲 | Netting, `FinanceNetting` / `...Allocation` | 同结算单位应收应付互抵；对冲配对在建账预览中生成 | `finance_netting*.go` |
-| 核销 | Verification, `FinanceVerification` / `...Allocation` | 收付款登记后按分配核销到账单/费用 | `finance_verification*.go` |
+| 核销 | Verification, `FinanceVerification` / `...Allocation` | 收付款登记后按明确金额分配到账单/费用；不足时可补差额流水并共事务提交，反核销只解除分配、不冲减真实收付 | `finance_verification*.go` |
 | 资金流水 | `FinanceCashflow` | 收付款流水记录 | `finance_cashflow.go` |
-| 发票 | `FinanceInvoice` / `...Bill` / `...Line` | 发票及其与账单行关联 | `finance_invoice*.go` |
+| 发票登记 | `FinanceInvoice` / `...Bill` / `...FeeAllocation` | 登记已有票据，逐票→账单→费用明确分配含税额及手填税额；可部分、多次登记，不改原费用税基。无有效核销/已确认对冲时才可直接修订，原因及前后业务快照追加留存；不是在线税务开票 | `biz/finance_invoice_registration.go`、`data/finance_invoice_registration.go` |
+| 账单免票 | `FinanceInvoiceExemption` | 独立权限及原因标记整张账单无需发票，与有效发票互斥；结清即可完成，撤销保留历史且不解除人工订单审核锁 | `finance_invoice_exemption.go` |
+| 财务报表 | `FinanceReportUsecase` | 利润图/表读取当前有效费用（含未建账），实际收付只读确认流水，账龄读取当前未清偿余额；独立只读权限及当前公司边界 | `finance_report*.go` |
 | 提成方案 | `FinanceCommissionRule` / `...Assignment` | 按员工+角色分配的提成规则（区间不可重叠，生效/草稿/停用） | `biz/finance_commission_rules.go` |
 | 提成 | `FinanceCommission` / `...Line` | 计提引擎按核销/对冲来源生成的提成（金额、CNY 快照、来源指纹）；状态 DRAFT→CONFIRMED→PAID，可 Cancel | `data/finance_commission_calculation.go` |
 | 提成调整 | `FinanceCommissionAdjustment` | 手工奖励/处罚与费用变化引起的系统差额；普通费用和补审均事务内重算，保留已付事实及手工调整；未付父单发放时合并已确认调整净额，已付父单的后续调整独立执行 | `data/fee_correction_commission.go`、`finance_commission_adjustment.go` |

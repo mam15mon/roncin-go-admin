@@ -27,12 +27,14 @@ type FinanceInvoiceLine struct {
 	InvoiceID uuid.UUID `json:"invoice_id,omitempty"`
 	// LineNo holds the value of the "line_no" field.
 	LineNo int `json:"line_no,omitempty"`
+	// RevisionNumber holds the value of the "revision_number" field.
+	RevisionNumber uint64 `json:"revision_number,omitempty"`
 	// ItemCode holds the value of the "item_code" field.
 	ItemCode string `json:"item_code,omitempty"`
 	// ItemName holds the value of the "item_name" field.
 	ItemName string `json:"item_name,omitempty"`
 	// TaxRate holds the value of the "tax_rate" field.
-	TaxRate string `json:"tax_rate,omitempty"`
+	TaxRate *string `json:"tax_rate,omitempty"`
 	// NetAmount holds the value of the "net_amount" field.
 	NetAmount string `json:"net_amount,omitempty"`
 	// TaxAmount holds the value of the "tax_amount" field.
@@ -74,7 +76,7 @@ func (*FinanceInvoiceLine) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case financeinvoiceline.FieldLineNo, financeinvoiceline.FieldSourceLineCount:
+		case financeinvoiceline.FieldLineNo, financeinvoiceline.FieldRevisionNumber, financeinvoiceline.FieldSourceLineCount:
 			values[i] = new(sql.NullInt64)
 		case financeinvoiceline.FieldItemCode, financeinvoiceline.FieldItemName, financeinvoiceline.FieldTaxRate, financeinvoiceline.FieldNetAmount, financeinvoiceline.FieldTaxAmount, financeinvoiceline.FieldTotalAmount, financeinvoiceline.FieldCurrency:
 			values[i] = new(sql.NullString)
@@ -127,6 +129,12 @@ func (_m *FinanceInvoiceLine) assignValues(columns []string, values []any) error
 			} else if value.Valid {
 				_m.LineNo = int(value.Int64)
 			}
+		case financeinvoiceline.FieldRevisionNumber:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field revision_number", values[i])
+			} else if value.Valid {
+				_m.RevisionNumber = uint64(value.Int64)
+			}
 		case financeinvoiceline.FieldItemCode:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field item_code", values[i])
@@ -143,7 +151,8 @@ func (_m *FinanceInvoiceLine) assignValues(columns []string, values []any) error
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field tax_rate", values[i])
 			} else if value.Valid {
-				_m.TaxRate = value.String
+				_m.TaxRate = new(string)
+				*_m.TaxRate = value.String
 			}
 		case financeinvoiceline.FieldNetAmount:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -228,14 +237,19 @@ func (_m *FinanceInvoiceLine) String() string {
 	builder.WriteString("line_no=")
 	builder.WriteString(fmt.Sprintf("%v", _m.LineNo))
 	builder.WriteString(", ")
+	builder.WriteString("revision_number=")
+	builder.WriteString(fmt.Sprintf("%v", _m.RevisionNumber))
+	builder.WriteString(", ")
 	builder.WriteString("item_code=")
 	builder.WriteString(_m.ItemCode)
 	builder.WriteString(", ")
 	builder.WriteString("item_name=")
 	builder.WriteString(_m.ItemName)
 	builder.WriteString(", ")
-	builder.WriteString("tax_rate=")
-	builder.WriteString(_m.TaxRate)
+	if v := _m.TaxRate; v != nil {
+		builder.WriteString("tax_rate=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("net_amount=")
 	builder.WriteString(_m.NetAmount)

@@ -13,7 +13,6 @@ import (
 	billent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	lineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	cashent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financecashflow"
-	invoiceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	numberent "github.com/roncin/roncin-go-admin/server/internal/data/ent/numberrule"
 )
 
@@ -59,31 +58,42 @@ func TestFinanceBillCancellationDependenciesPostgres(t *testing.T) {
 	data, cleanup := getIntegrationData(t)
 	defer cleanup()
 	ctx := context.Background()
-	for _, status := range []invoiceent.Status{invoiceent.StatusDRAFT, invoiceent.StatusISSUED} {
-		t.Run("发票_"+string(status), func(t *testing.T) {
-			f := newFinanceInvoicePostgresFixture(t, data)
-			bill := f.createConfirmedBill("rollback-" + string(status))
-			invoice := f.createInvoiceWithStatus("rollback-"+string(status), status, bill)
-			action := "取消草稿发票"
-			if status == invoiceent.StatusISSUED {
-				action = "红冲"
+	// 草稿开票已退役：改为当前直登记的部分作废、足额红冲两个相邻回退路径。
+	for _, tc := range []struct {
+		name, amount string
+		cancel       bool
+	}{{"部分登记后作废释放", "30", true}, {"足额登记后红冲释放", "100", false}} {
+		t.Run(tc.name, func(t *testing.T) {
+			f := newRegistrationFixture(t, data)
+			bill := f.createConfirmedBill("rollback-registration")
+			invoices, err := f.register("rollback-registration", f.record(bill, "TAX-"+f.suffix, tc.amount, "0"))
+			if err != nil {
+				t.Fatal(err)
 			}
-			requireBlockedBillCancellation(t, data, bill, f.actorID, invoice.RecordNo, action, access.FinanceInvoiceUpdate)
+			invoice := invoices[0]
+			bill = data.db.FinanceBill.GetX(ctx, bill.ID)
+			requireBlockedBillCancellation(t, data, bill, f.actorID, invoice.RecordNo, "红冲", access.FinanceInvoiceUpdate)
 			repo := NewFinanceInvoiceRepo(data)
-			if status == invoiceent.StatusDRAFT {
-				_, err := repo.Cancel(ctx, f.organizationID, invoice.ID, f.actorID, invoice.Version, "取消关联草稿", financeInvoiceTestAudit("finance.invoice.cancel", f.organizationID, f.actorID, invoice.ID))
-				if err != nil {
-					t.Fatal(err)
-				}
+			if tc.cancel {
+				_, err = repo.Cancel(ctx, f.organizationID, invoice.ID, f.actorID, invoice.Version, "作废关联登记", financeInvoiceTestAudit("finance.invoice.cancel", f.organizationID, f.actorID, invoice.ID))
 			} else {
-				_, err := repo.RedFlush(ctx, f.organizationID, invoice.ID, f.actorID, invoice.Version, "RED-"+f.suffix, financeInvoiceIntegrationDate, "红冲关联发票", financeInvoiceTestAudit("finance.invoice.red_flush", f.organizationID, f.actorID, invoice.ID))
-				if err != nil {
-					t.Fatal(err)
-				}
+				_, err = repo.RedFlush(ctx, f.organizationID, invoice.ID, f.actorID, invoice.Version, "RED-"+f.suffix, financeInvoiceIntegrationDate, "红冲关联登记", financeInvoiceTestAudit("finance.invoice.red_flush", f.organizationID, f.actorID, invoice.ID))
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			// 票据与逐费用分配仍保留，只有活动性释放，才能继续整账取消。
+			original, err := repo.Get(ctx, f.organizationID, invoice.ID)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(original.Links) != 1 || original.Links[0].Active || len(original.Links[0].Fees) != 1 || !original.TotalAmount.Equal(invoice.TotalAmount) || !original.Links[0].Amount.Equal(invoice.TotalAmount) {
+				t.Fatalf("反向操作不得删除或重算原始分配: %+v", original)
 			}
 			cancelReleasedBillForTest(t, data, f.organizationID, bill.ID, f.actorID)
 		})
 	}
+
 	t.Run("核销", func(t *testing.T) {
 		f := newFinanceInvoicePostgresFixture(t, data)
 		if _, err := data.db.NumberRule.Create().SetOrganizationID(f.organizationID).SetDocumentType(numberent.DocumentTypeWriteOff).SetPrefix("WO").SetDateFormat(numberent.DateFormatNone).SetSequenceLength(4).SetResetPolicy(numberent.ResetPolicyNever).SetEnabled(true).Save(ctx); err != nil {

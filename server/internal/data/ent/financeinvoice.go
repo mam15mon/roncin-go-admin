@@ -86,6 +86,8 @@ type FinanceInvoice struct {
 	Note *string `json:"note,omitempty"`
 	// Version holds the value of the "version" field.
 	Version uint64 `json:"version,omitempty"`
+	// RevisionNumber holds the value of the "revision_number" field.
+	RevisionNumber uint64 `json:"revision_number,omitempty"`
 	// IssuedAt holds the value of the "issued_at" field.
 	IssuedAt *time.Time `json:"issued_at,omitempty"`
 	// IssuedBy holds the value of the "issued_by" field.
@@ -130,9 +132,13 @@ type FinanceInvoiceEdges struct {
 	BillLinks []*FinanceInvoiceBill `json:"bill_links,omitempty"`
 	// Lines holds the value of the lines edge.
 	Lines []*FinanceInvoiceLine `json:"lines,omitempty"`
+	// FeeAllocations holds the value of the fee_allocations edge.
+	FeeAllocations []*FinanceInvoiceFeeAllocation `json:"fee_allocations,omitempty"`
+	// Revisions holds the value of the revisions edge.
+	Revisions []*FinanceInvoiceRevision `json:"revisions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [8]bool
+	loadedTypes [10]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -219,6 +225,24 @@ func (e FinanceInvoiceEdges) LinesOrErr() ([]*FinanceInvoiceLine, error) {
 	return nil, &NotLoadedError{edge: "lines"}
 }
 
+// FeeAllocationsOrErr returns the FeeAllocations value or an error if the edge
+// was not loaded in eager-loading.
+func (e FinanceInvoiceEdges) FeeAllocationsOrErr() ([]*FinanceInvoiceFeeAllocation, error) {
+	if e.loadedTypes[8] {
+		return e.FeeAllocations, nil
+	}
+	return nil, &NotLoadedError{edge: "fee_allocations"}
+}
+
+// RevisionsOrErr returns the Revisions value or an error if the edge
+// was not loaded in eager-loading.
+func (e FinanceInvoiceEdges) RevisionsOrErr() ([]*FinanceInvoiceRevision, error) {
+	if e.loadedTypes[9] {
+		return e.Revisions, nil
+	}
+	return nil, &NotLoadedError{edge: "revisions"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*FinanceInvoice) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -226,7 +250,7 @@ func (*FinanceInvoice) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case financeinvoice.FieldInvoiceProfileID, financeinvoice.FieldExchangeRateSettingID, financeinvoice.FieldIssuedBy, financeinvoice.FieldCancelledBy, financeinvoice.FieldRedFlushedBy:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case financeinvoice.FieldBillCount, financeinvoice.FieldVersion:
+		case financeinvoice.FieldBillCount, financeinvoice.FieldVersion, financeinvoice.FieldRevisionNumber:
 			values[i] = new(sql.NullInt64)
 		case financeinvoice.FieldRecordNo, financeinvoice.FieldIdempotencyKey, financeinvoice.FieldDirection, financeinvoice.FieldStatus, financeinvoice.FieldInvoiceType, financeinvoice.FieldSettlementPartyName, financeinvoice.FieldInvoiceTitle, financeinvoice.FieldTaxpayerIdentificationNo, financeinvoice.FieldRegisteredAddress, financeinvoice.FieldRegisteredPhone, financeinvoice.FieldBankName, financeinvoice.FieldBankAccount, financeinvoice.FieldCurrency, financeinvoice.FieldBaseCurrency, financeinvoice.FieldExchangeRate, financeinvoice.FieldExchangeRateSource, financeinvoice.FieldExchangeRateDate, financeinvoice.FieldBaseCurrencyAmount, financeinvoice.FieldTotalAmount, financeinvoice.FieldNetAmount, financeinvoice.FieldTaxAmount, financeinvoice.FieldTaxInvoiceNo, financeinvoice.FieldInvoiceDate, financeinvoice.FieldNote, financeinvoice.FieldCancellationReason, financeinvoice.FieldRedInvoiceNo, financeinvoice.FieldRedInvoiceDate, financeinvoice.FieldRedFlushReason:
 			values[i] = new(sql.NullString)
@@ -462,6 +486,12 @@ func (_m *FinanceInvoice) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Version = uint64(value.Int64)
 			}
+		case financeinvoice.FieldRevisionNumber:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field revision_number", values[i])
+			} else if value.Valid {
+				_m.RevisionNumber = uint64(value.Int64)
+			}
 		case financeinvoice.FieldIssuedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field issued_at", values[i])
@@ -583,6 +613,16 @@ func (_m *FinanceInvoice) QueryBillLinks() *FinanceInvoiceBillQuery {
 // QueryLines queries the "lines" edge of the FinanceInvoice entity.
 func (_m *FinanceInvoice) QueryLines() *FinanceInvoiceLineQuery {
 	return NewFinanceInvoiceClient(_m.config).QueryLines(_m)
+}
+
+// QueryFeeAllocations queries the "fee_allocations" edge of the FinanceInvoice entity.
+func (_m *FinanceInvoice) QueryFeeAllocations() *FinanceInvoiceFeeAllocationQuery {
+	return NewFinanceInvoiceClient(_m.config).QueryFeeAllocations(_m)
+}
+
+// QueryRevisions queries the "revisions" edge of the FinanceInvoice entity.
+func (_m *FinanceInvoice) QueryRevisions() *FinanceInvoiceRevisionQuery {
+	return NewFinanceInvoiceClient(_m.config).QueryRevisions(_m)
 }
 
 // Update returns a builder for updating this FinanceInvoice.
@@ -733,6 +773,9 @@ func (_m *FinanceInvoice) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("version=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Version))
+	builder.WriteString(", ")
+	builder.WriteString("revision_number=")
+	builder.WriteString(fmt.Sprintf("%v", _m.RevisionNumber))
 	builder.WriteString(", ")
 	if v := _m.IssuedAt; v != nil {
 		builder.WriteString("issued_at=")

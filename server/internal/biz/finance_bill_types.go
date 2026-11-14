@@ -96,27 +96,28 @@ type FinanceBill struct {
 func (b *FinanceBill) FeesLocked() bool { return len(b.FeeLockFacts) > 0 }
 
 type FinanceBillLine struct {
-	ID                 uuid.UUID
-	BillID             uuid.UUID
-	OrderFeeID         uuid.UUID
-	OrderID            uuid.UUID
-	OrderNo            string
-	BusinessType       string
-	FeeCode            string
-	FeeName            string
-	Quantity           decimal.Decimal
-	UnitPrice          decimal.Decimal
-	TotalAmount        decimal.Decimal
-	NetAmount          decimal.Decimal
-	TaxAmount          decimal.Decimal
-	TaxRate            *decimal.Decimal
-	Currency           string
-	ExchangeRate       decimal.Decimal
-	BaseCurrency       string
-	BaseCurrencyAmount decimal.Decimal
-	Active             bool
-	CreatedAt          time.Time
-	UpdatedAt          time.Time
+	ID                                uuid.UUID
+	BillID                            uuid.UUID
+	OrderFeeID                        uuid.UUID
+	OrderID                           uuid.UUID
+	OrderNo                           string
+	BusinessType                      string
+	FeeCode                           string
+	FeeName                           string
+	Quantity                          decimal.Decimal
+	UnitPrice                         decimal.Decimal
+	TotalAmount                       decimal.Decimal
+	NetAmount                         decimal.Decimal
+	TaxAmount                         decimal.Decimal
+	TaxRate                           *decimal.Decimal
+	Currency                          string
+	ExchangeRate                      decimal.Decimal
+	BaseCurrency                      string
+	BaseCurrencyAmount                decimal.Decimal
+	Active                            bool
+	CreatedAt                         time.Time
+	UpdatedAt                         time.Time
+	InvoicedAmount, InvoiceableAmount *decimal.Decimal
 }
 
 type FinanceBillableFee struct {
@@ -285,8 +286,12 @@ type CreateFinanceBillBatchGroupInput struct {
 	EstimatedInvoiceCurrency *string
 	EstimatedInvoiceRate     *decimal.Decimal
 	// GroupToken 取自预览中该组的令牌；FeeIDs 为预览归入该组的全部费用。
-	GroupToken string
-	FeeIDs     []uuid.UUID
+	GroupToken                string
+	FeeIDs                    []uuid.UUID
+	Invoices                  []FinanceBillBatchInvoiceInput
+	Verifications             []FinanceBillBatchVerificationInput
+	OperationInputError       *FinanceBillBatchOperationInputError
+	OperationInputFingerprint string
 }
 
 type CreateFinanceBillBatchInput struct {

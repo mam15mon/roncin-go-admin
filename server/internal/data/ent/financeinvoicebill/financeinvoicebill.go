@@ -37,6 +37,8 @@ const (
 	EdgeInvoice = "invoice"
 	// EdgeBill holds the string denoting the bill edge name in mutations.
 	EdgeBill = "bill"
+	// EdgeFeeAllocations holds the string denoting the fee_allocations edge name in mutations.
+	EdgeFeeAllocations = "fee_allocations"
 	// Table holds the table name of the financeinvoicebill in the database.
 	Table = "finance_invoice_bills"
 	// InvoiceTable is the table that holds the invoice relation/edge.
@@ -53,6 +55,13 @@ const (
 	BillInverseTable = "finance_bills"
 	// BillColumn is the table column denoting the bill relation/edge.
 	BillColumn = "bill_id"
+	// FeeAllocationsTable is the table that holds the fee_allocations relation/edge.
+	FeeAllocationsTable = "finance_invoice_fee_allocations"
+	// FeeAllocationsInverseTable is the table name for the FinanceInvoiceFeeAllocation entity.
+	// It exists in this package in order to avoid circular dependency with the "financeinvoicefeeallocation" package.
+	FeeAllocationsInverseTable = "finance_invoice_fee_allocations"
+	// FeeAllocationsColumn is the table column denoting the fee_allocations relation/edge.
+	FeeAllocationsColumn = "invoice_bill_id"
 )
 
 // Columns holds all SQL columns for financeinvoicebill fields.
@@ -157,6 +166,20 @@ func ByBillField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newBillStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByFeeAllocationsCount orders the results by fee_allocations count.
+func ByFeeAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFeeAllocationsStep(), opts...)
+	}
+}
+
+// ByFeeAllocations orders the results by fee_allocations terms.
+func ByFeeAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFeeAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newInvoiceStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -169,5 +192,12 @@ func newBillStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(BillInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, BillTable, BillColumn),
+	)
+}
+func newFeeAllocationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FeeAllocationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FeeAllocationsTable, FeeAllocationsColumn),
 	)
 }

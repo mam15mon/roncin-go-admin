@@ -1166,6 +1166,29 @@ func ActiveNEQ(v bool) predicate.FinanceBillLine {
 	return predicate.FinanceBillLine(sql.FieldNEQ(FieldActive, v))
 }
 
+// HasInvoiceAllocations applies the HasEdge predicate on the "invoice_allocations" edge.
+func HasInvoiceAllocations() predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, InvoiceAllocationsTable, InvoiceAllocationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasInvoiceAllocationsWith applies the HasEdge predicate on the "invoice_allocations" edge with a given conditions (other predicates).
+func HasInvoiceAllocationsWith(preds ...predicate.FinanceInvoiceFeeAllocation) predicate.FinanceBillLine {
+	return predicate.FinanceBillLine(func(s *sql.Selector) {
+		step := newInvoiceAllocationsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasBill applies the HasEdge predicate on the "bill" edge.
 func HasBill() predicate.FinanceBillLine {
 	return predicate.FinanceBillLine(func(s *sql.Selector) {
