@@ -233,7 +233,7 @@ func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHT
 	r.Handle("GET", "/api/v1/finance/invoices/creation-bills", _SettlementService_ListInvoiceCreationBills0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/invoices/creation-profiles", _SettlementService_ListInvoiceProfilesForBill0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/invoices/{id}", _SettlementService_GetInvoice0_HTTP_Handler(srv))
-	r.Handle("GET", "/api/v1/finance/invoices/party-profiles", _SettlementService_ListInvoiceProfilesForParty0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/invoice-creation/party-profiles", _SettlementService_ListInvoiceProfilesForParty0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/invoices/register", _SettlementService_RegisterInvoices0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/invoices/revise", _SettlementService_ReviseInvoiceRegistrations0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/invoices/{id}/revision-impact", _SettlementService_GetInvoiceRevisionImpact0_HTTP_Handler(srv))
@@ -2809,7 +2809,7 @@ func (c *SettlementServiceHTTPClientImpl) ListInvoiceProfilesForBill(ctx context
 
 func (c *SettlementServiceHTTPClientImpl) ListInvoiceProfilesForParty(ctx context.Context, in *ListInvoiceProfilesForPartyRequest, opts ...http.CallOption) (*ListInvoiceProfilesForPartyResponse, error) {
 	var out ListInvoiceProfilesForPartyResponse
-	pattern := "/api/v1/finance/invoices/party-profiles"
+	pattern := "/api/v1/finance/invoice-creation/party-profiles"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),

@@ -5868,6 +5868,35 @@
         }
       }
     },
+    "/api/v1/finance/invoice-creation/party-profiles": {
+      "get": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_ListInvoiceProfilesForParty",
+        "parameters": [
+          {
+            "name": "settlementPartyId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.ListInvoiceProfilesForPartyResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/invoices": {
       "get": {
         "tags": [
@@ -6044,35 +6073,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/finance.v1.ListInvoiceProfilesForBillResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/finance/invoices/party-profiles": {
-      "get": {
-        "tags": [
-          "SettlementService"
-        ],
-        "operationId": "SettlementService_ListInvoiceProfilesForParty",
-        "parameters": [
-          {
-            "name": "settlementPartyId",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/finance.v1.ListInvoiceProfilesForPartyResponse"
                 }
               }
             }

@@ -14,7 +14,7 @@
 | `ReviseInvoiceRegistrations` / `POST /api/v1/finance/invoices/revise` | `system.finance.invoice.update`；含无ID新增项还须同公司 `invoice.create` |
 | `GetInvoiceRevisionImpact` / `GET /api/v1/finance/invoices/{id}/revision-impact` | `invoice.update`，完整原分配、全部关联账单及有效结算依赖 |
 | `ListInvoiceCreationBills` / `GET /api/v1/finance/invoices/creation-bills` | `invoice.create`，分页关键字候选，支持 `bill_id` 精确变动探测，不借 `bill.read` |
-| `ListInvoiceProfilesForParty` / `GET /api/v1/finance/invoices/party-profiles` | `invoice.create`，当前公司、指定结算单位的启用抬头，不借 `partner.read` |
+| `ListInvoiceProfilesForParty` / `GET /api/v1/finance/invoice-creation/party-profiles` | `invoice.create`，当前公司、指定结算单位的启用抬头，不借 `partner.read`；候选命名空间避开`invoices/{id}`动态记录路径 |
 | `CancelInvoice` / `POST /api/v1/finance/invoices/{id}/cancel` | `invoice.update`，带版本与原因的显式作废 |
 | `RedFlushInvoice` / `POST /api/v1/finance/invoices/{id}/red-flush` | `invoice.update`，带版本、原红字号码/日期与原因的显式红冲 |
 
@@ -96,7 +96,8 @@ Schema为真相源，新增 `FinanceInvoiceFeeAllocation` / `FinanceInvoiceComma
 定向入口（PG须显式配置隔离 `RONCIN_INTEGRATION_DATABASE_SOURCE`，SKIP不算通过）：
 
 ```bash
-go -C server test -p 32 ./internal/biz ./internal/service -run 'TestInvoiceRegistration|TestNormalizeInvoice|TestInvoiceRevision|TestInvoiceAllocation'
+go -C server test -p 32 ./internal/biz ./internal/service -run 'TestInvoiceRegistration|TestNormalizeInvoice|TestInvoiceRevision|TestInvoiceAllocation|TestInvoicePartyProfilesUseCreatePermissionAndCurrentCompany'
+go -C server test -p 32 ./internal/server -run '^TestInvoiceCreationPartyProfilesHTTPRoute$'
 go -C server test -p 32 ./internal/data -run '^TestFinanceInvoice(Registration|BillListAllocationProjection|CreationBillKeyword|RevisionReadSnapshot|Terminal|Exemption)' -count=1 -timeout=5m
 pnpm --dir web exec vitest run src/features/finance/invoice-registration/InvoiceRegistrationModal.test.tsx src/features/finance/invoice-registration/InvoiceRevisionHistory.test.tsx src/pages/finance/bills/components/BillInvoiceRegistrationSection.test.tsx
 ```
@@ -117,4 +118,7 @@ pnpm --dir web exec vitest run src/features/finance/invoice-registration/Invoice
 
 错误：头SELECT后并发修订，再取新分配；结果未知换键再建；空分配编码null。
 正确：整次只读快照；保持同意图键确认；合法空分配输出[]。
+
+错误：把新静态候选放到已注册的invoices/{id}后，HTTP被当成详情ID。
+正确：创建候选使用独立invoice-creation命名空间，以真实生成HTTP注册测试验证方法与Operation分发，同时验证正常详情不变。
 ```
