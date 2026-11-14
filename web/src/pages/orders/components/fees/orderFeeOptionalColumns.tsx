@@ -188,7 +188,7 @@ export function buildOptionalFeeColumns(
     {
       title: '不含税单价',
       dataIndex: 'netUnitPrice',
-      width: 110,
+      width: 120,
       align: 'right',
       editable: false,
       shouldCellUpdate: () => true,
@@ -233,7 +233,7 @@ export function buildOptionalFeeColumns(
     {
       title: '税率(%)',
       dataIndex: 'taxRate',
-      width: taxRateOptions?.taxRateEditable ? 120 : 100,
+      width: 90,
       align: 'right',
       editable: taxRateOptions?.taxRateEditable
         ? (_, record) =>
@@ -285,7 +285,7 @@ export function buildOptionalFeeColumns(
     {
       title: '税金',
       dataIndex: 'taxAmount',
-      width: 100,
+      width: 120,
       align: 'right',
       editable: false,
       shouldCellUpdate: () => true,
@@ -316,7 +316,7 @@ export function buildOptionalFeeColumns(
     {
       title: '不含税总额',
       dataIndex: 'netAmount',
-      width: 110,
+      width: 120,
       align: 'right',
       editable: false,
       shouldCellUpdate: () => true,
@@ -347,7 +347,7 @@ export function buildOptionalFeeColumns(
     {
       title: '折本币金额',
       dataIndex: 'baseCurrencyAmount',
-      width: 140,
+      width: 120,
       align: 'right',
       editable: false,
       shouldCellUpdate: () => true,

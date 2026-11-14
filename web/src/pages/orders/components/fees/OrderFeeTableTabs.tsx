@@ -84,6 +84,7 @@ import {
   taxRateInputPattern,
   validateFeeRow,
 } from './feeSave';
+import { type FeeSideSummary, summarizeFees } from './feeSummary';
 import {
   buildOptionalFeeColumns,
   orderColumnsByPreference,
@@ -163,19 +164,16 @@ interface OrderFeeTableTabsProps {
   orderId: string;
   receivableActionRef: React.RefObject<ActionType | undefined>;
   payableActionRef: React.RefObject<ActionType | undefined>;
-  receivableSummary: { totalAmount: number; count: number };
-  payableSummary: { totalAmount: number; count: number };
+  receivableSummary?: FeeSideSummary;
+  payableSummary?: FeeSideSummary;
   selectedReceivableFeeIds: React.Key[];
   setSelectedReceivableFeeIds: (keys: React.Key[]) => void;
   selectedPayableFeeIds: React.Key[];
   setSelectedPayableFeeIds: (keys: React.Key[]) => void;
   setAllReceivableItems: (items: API.OrderFee[]) => void;
   setAllPayableItems: (items: API.OrderFee[]) => void;
-  setReceivableSummary: (summary: {
-    totalAmount: number;
-    count: number;
-  }) => void;
-  setPayableSummary: (summary: { totalAmount: number; count: number }) => void;
+  setReceivableSummary: (summary: FeeSideSummary) => void;
+  setPayableSummary: (summary: FeeSideSummary) => void;
   canCreateFinanceBills: boolean;
   canCreateFees: boolean;
   /** 整表保存接口要求费用修改权限；仅有新增权限的用户不能保存。 */
@@ -1028,7 +1026,7 @@ export default function OrderFeeTableTabs({
       {
         title: '费用名称',
         dataIndex: 'feeSettingId',
-        width: 180,
+        width: 200,
         formItemProps: {
           rules: [{ required: true, message: '请选择费用项目' }],
         },
@@ -1212,7 +1210,7 @@ export default function OrderFeeTableTabs({
       {
         title: '单价',
         dataIndex: 'unitPrice',
-        width: 110,
+        width: 120,
         align: 'right',
         formItemProps: {
           rules: [
@@ -1242,7 +1240,7 @@ export default function OrderFeeTableTabs({
       {
         title: '数量',
         dataIndex: 'quantity',
-        width: 210,
+        width: 190,
         align: 'right',
         formItemProps: (form, { rowKey }) => ({
           rules: [
@@ -1450,7 +1448,7 @@ export default function OrderFeeTableTabs({
       {
         title: '汇率',
         dataIndex: 'exchangeRate',
-        width: 120,
+        width: 110,
         align: 'right',
         editable: false,
         shouldCellUpdate: () => true,
@@ -1497,7 +1495,7 @@ export default function OrderFeeTableTabs({
       {
         title: '备注',
         dataIndex: 'note',
-        width: 140,
+        width: 160,
         ellipsis: true,
         render: (_, record) => record.note || '-',
         fieldProps: {
@@ -1520,7 +1518,7 @@ export default function OrderFeeTableTabs({
       {
         title: '操作',
         valueType: 'option',
-        width: 120,
+        width: 80,
         fixed: 'right',
         render: (_, record) => {
           if (feeWritesDisabled) return [];
@@ -1648,12 +1646,7 @@ export default function OrderFeeTableTabs({
       refs.latest.current = { orderId: requestedOrderId, items };
       syncRefreshedRows(direction, previous, items);
       refs.setAll(items);
-      const total = items.reduce(
-        (acc, cur) =>
-          acc + (cur.baseCurrencyAmount ? Number(cur.baseCurrencyAmount) : 0),
-        0,
-      );
-      refs.setSummary({ totalAmount: total, count: items.length });
+      refs.setSummary(summarizeFees(items));
       // 可编辑行常开编辑；新增行（草稿）保持编辑态。
       refs.setKeys([
         ...draftRowsRef.current[direction].keys(),
@@ -1716,7 +1709,7 @@ export default function OrderFeeTableTabs({
         title={
           <Space size={8} align="center">
             <span>{`${label}费用`}</span>
-            <Tag color="blue">{summary.count}</Tag>
+            <Tag color="blue">{summary?.count ?? 0}</Tag>
           </Space>
         }
         extra={

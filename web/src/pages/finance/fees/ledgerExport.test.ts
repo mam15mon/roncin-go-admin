@@ -95,13 +95,14 @@ describe('fees 台账导出字段', () => {
       财务进度: '账单未建立',
       账单编号: 'B001',
       订单编号: 'O001',
+      主单号: '',
       更新时间: '2026-10-17 22:44:52',
       已核销金额: '1234.50',
       未核销金额: '0.00',
       已对冲金额: '25.00',
     });
     expect(new Set(feeExportColumns.map((column) => column.header)).size).toBe(
-      32,
+      33,
     );
     const csv = serializeCsv(
       [row, { ...row, currency: 'EUR', baseCurrency: 'HKD' }],
@@ -113,5 +114,18 @@ describe('fees 台账导出字段', () => {
     expect(csv).not.toContain('[object Object]');
     expect(csv).not.toContain('T14:44:52Z');
     expect(csv).toContain('"备注,含""引号""\n第二行"');
+  });
+
+  it('主单号导出与列表一致：海运、空运、终止订单保留值，无主单导出空文本', () => {
+    const column = feeExportColumns.find((item) => item.header === '主单号');
+    if (!column) throw new Error('缺少主单号导出列');
+    expect(column.value({ masterNo: 'MBL12345' })).toBe('MBL12345');
+    expect(column.value({ masterNo: '78112345675' })).toBe('78112345675');
+    // 终止订单的保留关联由服务端投影，前端原样导出。
+    expect(
+      column.value({ masterNo: 'MBLEND001', orderNo: 'O-TERMINATED' }),
+    ).toBe('MBLEND001');
+    expect(column.value({})).toBe('');
+    expect(column.value({ masterNo: undefined })).toBe('');
   });
 });

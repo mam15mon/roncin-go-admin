@@ -64,8 +64,20 @@ function makeProps(orderId: string) {
     payableActionRef: {
       current: undefined,
     } as React.RefObject<ActionType | undefined>,
-    receivableSummary: { totalAmount: 100, count: 1 },
-    payableSummary: { totalAmount: 0, count: 0 },
+    receivableSummary: {
+      count: 1,
+      gross: '100',
+      net: '100',
+      unconvertedCount: 0,
+      currencies: [],
+    },
+    payableSummary: {
+      count: 0,
+      gross: '0',
+      net: '0',
+      unconvertedCount: 0,
+      currencies: [],
+    },
     selectedReceivableFeeIds: ['fee-1'],
     setSelectedReceivableFeeIds: vi.fn(),
     selectedPayableFeeIds: [],
@@ -154,16 +166,20 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
       id: 'fee-B',
       direction: RECEIVABLE,
       baseCurrencyAmount: '200',
+      baseCurrencyNetAmount: '200',
     } as API.OrderFee;
     responseB.resolve({ data: [feeB] });
 
     await waitFor(() =>
       expect(props.setAllReceivableItems).toHaveBeenLastCalledWith([feeB]),
     );
-    expect(props.setReceivableSummary).toHaveBeenLastCalledWith({
-      totalAmount: 200,
-      count: 1,
-    });
+    expect(props.setReceivableSummary).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        count: 1,
+        gross: '200',
+        net: '200',
+      }),
+    );
 
     const feeA = {
       canEdit: true,
@@ -177,10 +193,13 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     });
 
     expect(props.setAllReceivableItems).toHaveBeenLastCalledWith([feeB]);
-    expect(props.setReceivableSummary).toHaveBeenLastCalledWith({
-      totalAmount: 200,
-      count: 1,
-    });
+    expect(props.setReceivableSummary).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        count: 1,
+        gross: '200',
+        net: '200',
+      }),
+    );
     expect(props.setAllReceivableItems).not.toHaveBeenCalledWith([feeA]);
   });
 
@@ -258,6 +277,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
       id: 'visible-fee-B',
       direction: RECEIVABLE,
       baseCurrencyAmount: '200',
+      baseCurrencyNetAmount: '200',
     } as API.OrderFee;
     await act(async () => {
       responseB.resolve({ data: [feeB] });
@@ -341,16 +361,20 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
       id: 'payable-B',
       direction: PAYABLE,
       baseCurrencyAmount: '80',
+      baseCurrencyNetAmount: '80',
     } as API.OrderFee;
     responseB.resolve({ data: [feeB] });
 
     await waitFor(() =>
       expect(props.setAllPayableItems).toHaveBeenLastCalledWith([feeB]),
     );
-    expect(props.setPayableSummary).toHaveBeenLastCalledWith({
-      totalAmount: 80,
-      count: 1,
-    });
+    expect(props.setPayableSummary).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        count: 1,
+        gross: '80',
+        net: '80',
+      }),
+    );
 
     const feeA = {
       canEdit: true,
@@ -364,10 +388,13 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
     });
 
     expect(props.setAllPayableItems).toHaveBeenLastCalledWith([feeB]);
-    expect(props.setPayableSummary).toHaveBeenLastCalledWith({
-      totalAmount: 80,
-      count: 1,
-    });
+    expect(props.setPayableSummary).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        count: 1,
+        gross: '80',
+        net: '80',
+      }),
+    );
     expect(props.setAllPayableItems).not.toHaveBeenCalledWith([feeA]);
   });
 

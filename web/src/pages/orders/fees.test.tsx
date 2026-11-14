@@ -239,8 +239,8 @@ vi.mock('./components/OrderPageHeader', () => ({
 vi.mock('./components/fees/OrderFeeHeader', () => ({
   default: ({ receivableSummary, payableSummary }: any) => (
     <div data-testid="fee-summary">
-      {receivableSummary.count}:{receivableSummary.totalAmount}|
-      {payableSummary.count}:{payableSummary.totalAmount}
+      {receivableSummary?.count ?? 0}:{receivableSummary?.gross ?? 0}|
+      {payableSummary?.count ?? 0}:{payableSummary?.gross ?? 0}
     </div>
   ),
 }));
@@ -298,8 +298,20 @@ vi.mock('./components/fees/OrderFeeTableTabs', () => ({
               baseCurrencyAmount: '20',
             },
           ]);
-          props.setReceivableSummary({ totalAmount: 120, count: 1 });
-          props.setPayableSummary({ totalAmount: 20, count: 1 });
+          props.setReceivableSummary({
+            count: 1,
+            gross: '120',
+            net: '120',
+            unconvertedCount: 0,
+            currencies: [],
+          });
+          props.setPayableSummary({
+            count: 1,
+            gross: '20',
+            net: '20',
+            unconvertedCount: 0,
+            currencies: [],
+          });
           props.onOpenBillWorkbench([receivableId]);
         }}
       >

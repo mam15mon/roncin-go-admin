@@ -42,6 +42,7 @@ import { OrderFeeReviewSection } from './components/fees/fee-review/OrderFeeRevi
 import type { FeeBillTrackingView } from './components/fees/feeBillTracking';
 import { RECEIVABLE } from './components/fees/feeConstants';
 import { quantitySelectionForSave } from './components/fees/feeQuantitySource';
+import type { FeeSideSummary } from './components/fees/feeSummary';
 import OrderFeeHeader from './components/fees/OrderFeeHeader';
 import OrderFeeTableTabs from './components/fees/OrderFeeTableTabs';
 import QuickAddFeeModal from './components/fees/QuickAddFeeModal';
@@ -158,14 +159,12 @@ export default function OrderFeesPage() {
     useState<API.OrderFeeSettingOption>();
 
   // 汇总统计数据
-  const [receivableSummary, setReceivableSummary] = useState<{
-    totalAmount: number;
-    count: number;
-  }>({ totalAmount: 0, count: 0 });
-  const [payableSummary, setPayableSummary] = useState<{
-    totalAmount: number;
-    count: number;
-  }>({ totalAmount: 0, count: 0 });
+  const [receivableSummary, setReceivableSummary] = useState<
+    FeeSideSummary | undefined
+  >();
+  const [payableSummary, setPayableSummary] = useState<
+    FeeSideSummary | undefined
+  >();
 
   // 快捷新增费目状态：候选项按订单身份隔离的弹窗期查询。旧实现为点击
   // 拉取 + 请求序号竞态令牌，迁移后由 queryKey 隔离迟到响应。
@@ -266,8 +265,8 @@ export default function OrderFeesPage() {
     setHasCorrections(false);
     setCorrectionCollapsed(undefined);
     setSelectedFeeSetting(undefined);
-    setReceivableSummary({ totalAmount: 0, count: 0 });
-    setPayableSummary({ totalAmount: 0, count: 0 });
+    setReceivableSummary(undefined);
+    setPayableSummary(undefined);
     setQuickAddFeeModalOpen(false);
     setQuickAddPartnerModalOpen(false);
     createIdempotencyKeyRef.current = generateUUID();
@@ -647,12 +646,6 @@ export default function OrderFeesPage() {
     );
   }
 
-  const profitCny = receivableSummary.totalAmount - payableSummary.totalAmount;
-  const profitRate =
-    receivableSummary.totalAmount > 0
-      ? ((profitCny / receivableSummary.totalAmount) * 100).toFixed(1)
-      : '0.0';
-
   return (
     <PageContainer
       title={false}
@@ -723,8 +716,6 @@ export default function OrderFeesPage() {
         onRetryLockState={refreshLockState}
         receivableSummary={receivableSummary}
         payableSummary={payableSummary}
-        profitCny={profitCny}
-        profitRate={profitRate}
       />
 
       {/* 3. 费用表格工作区 */}

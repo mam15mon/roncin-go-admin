@@ -115,8 +115,20 @@ export function makeProps(orderId: string) {
       payableActionRef: {
         current: undefined,
       } as React.RefObject<ActionType | undefined>,
-      receivableSummary: { totalAmount: 0, count: 0 },
-      payableSummary: { totalAmount: 0, count: 0 },
+      receivableSummary: {
+        count: 0,
+        gross: '0',
+        net: '0',
+        unconvertedCount: 0,
+        currencies: [],
+      },
+      payableSummary: {
+        count: 0,
+        gross: '0',
+        net: '0',
+        unconvertedCount: 0,
+        currencies: [],
+      },
       selectedReceivableFeeIds: [] as React.Key[],
       setSelectedReceivableFeeIds: vi.fn(),
       selectedPayableFeeIds: [] as React.Key[],

@@ -24,8 +24,20 @@ function table() {
       payableActionRef={
         { current: undefined } as React.RefObject<ActionType | undefined>
       }
-      receivableSummary={{ totalAmount: 100, count: 1 }}
-      payableSummary={{ totalAmount: 0, count: 0 }}
+      receivableSummary={{
+        count: 1,
+        gross: '100',
+        net: '100',
+        unconvertedCount: 0,
+        currencies: [],
+      }}
+      payableSummary={{
+        count: 0,
+        gross: '0',
+        net: '0',
+        unconvertedCount: 0,
+        currencies: [],
+      }}
       selectedReceivableFeeIds={[]}
       selectedPayableFeeIds={[]}
       setSelectedReceivableFeeIds={vi.fn()}
