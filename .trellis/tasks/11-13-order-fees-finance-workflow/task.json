@@ -3,7 +3,7 @@
   "name": "order-fees-finance-workflow",
   "title": "整套财务模块优化与报表建设",
   "description": "覆盖费用录入与台账、账单、发票、收付核销对冲、提成及四类财务报表；以已确认业务流程和海管家页面参考规划",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -11,11 +11,11 @@
   "creator": "mam15mon",
   "assignee": "mam15mon",
   "createdAt": "2026-11-13",
-  "completedAt": null,
+  "completedAt": "2026-11-14",
   "branch": "feat/bill-workflow",
   "base_branch": "main",
   "worktree_path": null,
-  "commit": null,
+  "commit": "5a8b8d86adc3c77b4d9cd2ea3a3b235c9564b42b",
   "pr_url": null,
   "subtasks": [],
   "children": [
@@ -28,6 +28,6 @@
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "2026-11-14最终方案已呈现，用户随后明确回复“按此方案实施并完成交付”。当前分支feat/bill-workflow：f1e73b9d账户快建、bd6afafa逐组建账/免票/差额核销/检索及审查修复、ee84f032总方案、7addc1f6发票更正边界已提交。核销候选分页检索补修待独立审查提交；发票三层分配/手工税额/修订历史、账单F组合、四报表正在实施。后续完成同订单全链路验收、全量门禁、独立审查、合并主分支与推送。",
+  "notes": "已完成本期批准范围并独立审查修复，最终check:web 2545通过/11既有跳过；后端合并复验3451通过、data532顶层全覆盖，无未复验失败或测试跳过；生产构建与海运/空运浏览器、CNY/USD连续HTTP、四报表及同域入口通过。原数据保留，本地开发库正式迁移完成。详见总任务research/final-delivery-2026-11-14.md。",
   "meta": {}
 }

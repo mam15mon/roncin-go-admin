@@ -7,7 +7,7 @@
 - 利润按出口 ETD／进口 ETA 归期，包含未建账的当前有效费用，含税与不含税并列。
 - 实际收付款按流水日期，剔除撤销流水。
 - 账龄按账单到期日，未到期、1–30、31–60、61–90、90 天以上；首版只查当前余额，历史截止余额延期。
-- 新权限建议 `system.finance.report.read`，限当前公司；设计获审阅后再实施。
+- 新权限 `system.finance.report.read`，限当前公司；设计已获审阅并完成首轮实现，验证证据见 [report-implementation.md](report-implementation.md)。
 
 ## 2. 经营费用与利润
 
@@ -65,3 +65,5 @@
 ## 7. 暂不阻塞本期的延期项
 
 历史截止余额、已实现/现金制利润、汇兑损益并入经营利润、任意维度透视、物化视图/定时快照、跨公司合并、报表订阅、异步导出平台。上述均不能借当前需求提前落地。
+
+实施复核补充：`order_sync.go` 的客户引用锁内校验强制 Partner.OrganizationIDEQ(organizationID)，报表客户同公司关联与写契约一致。结算单位候选复用 `financePartyKeywordPredicate`，覆盖 profile 英文名称及别名/拼音。账龄沿全部 CONFIRMED 有效账单余额，包含已有更正清偿用途，不按 purpose 过滤掉真实债权债务。

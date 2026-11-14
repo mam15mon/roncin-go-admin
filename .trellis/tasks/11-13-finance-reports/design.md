@@ -37,7 +37,7 @@ DRAFT 不代表实际发生；CANCELLED 排除。反核销恢复流水可用余�
 
 ### 2.3 账龄
 
-固定来源有效正常账单，零余额不列；余额 = 账单总额 − 有效核销分配 − 有效对冲分配。沿账单读取谓词的 active 及父单状态事实，不按发票号/免票状态推断清偿，不计草稿对冲；账单取消后排除。
+固定来源当前 CONFIRMED 的有效账单（包含已有更正清偿用途，不能因 purpose 不同遗漏真实债权债务），零余额不列；余额 = 账单总额 − 有效核销分配 − 有效对冲分配。沿账单读取谓词的 active 及父单状态事实，不按发票号/免票状态推断清偿，不计草稿对冲；账单取消后排除。
 
 当前业务日由服务端 `ExchangeRateBusinessLocation()` 产生，一次读取固定 `as_of_date`。不接收调用方任意历史日期。
 
@@ -68,7 +68,7 @@ DRAFT 不代表实际发生；CANCELLED 排除。反核销恢复流水可用余�
 
 新增 `system.finance.report.read`（Manifest 名称建议“查看财务报表”），组织范围与当前公司经营工作区一致；建议不依赖费用维护、账单维护、流水维护权限。前端新 `canReadFinanceReports` 纳入财务目录可见条件，四路由共用。候选、列表、导出同一权限，拥有报表权限不自动获其他实体详情/修改权，跳转详情仍按既有权限展示。
 
-建议在既有 `settlement.proto` 添加三个只读列表及三个同筛选导出 RPC：
+实际在独立 `report.proto` 定义 `FinanceReportService`，提供三个只读列表及三个同筛选导出 RPC，避免扩大既有结算服务：
 
 | RPC | 最小职责 |
 | --- | --- |
@@ -87,7 +87,7 @@ DRAFT 不代表实际发生；CANCELLED 排除。反核销恢复流水可用余�
 
 - biz `finance_report.go`/`finance_report_types.go`：筛选/分页/日期/导出上限、纯金额与分桶规则、仓储接口。
 - data `finance_report_profit.go`、`finance_report_cashflow.go`、`finance_report_aging.go`：Ent/参数化 SQL 聚合、权威日期、同源过滤及读取快照；不在 service 查库。
-- service `settlement_report.go`：鉴权组织、DTO 与领域转换；注入接入既有 provider/wire，不让页面拼 host。
+- service `finance_report.go`：鉴权组织、DTO 与领域转换；注入接入既有 provider/wire，不让页面拼 host。
 
 ## 5. 聚合性能与一致性
 
