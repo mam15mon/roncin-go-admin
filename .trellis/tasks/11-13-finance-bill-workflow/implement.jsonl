@@ -1,0 +1,29 @@
+{"file": ".trellis/spec/domain/glossary.md", "reason": "业务术语与账单、费用、核销、发票实体"}
+{"file": ".trellis/spec/domain/architecture-map.md", "reason": "跨层调用链"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "事务、锁序、版本与正式迁移验证"}
+{"file": ".trellis/spec/server/backend/finance-bill-currency.md", "reason": "固定币种建账、预览令牌与锁序；实施后需改写确认与逐组语义"}
+{"file": ".trellis/spec/server/backend/order-lock-and-document-version.md", "reason": "审核锁与成员订单锁序"}
+{"file": ".trellis/spec/server/backend/finance-commission-lock.md", "reason": "账单变更后的提成经济重算"}
+{"file": ".trellis/spec/server/backend/exchange-rate-single-rate.md", "reason": "账单日汇率快照与费用汇率联动边界"}
+{"file": ".trellis/spec/server/backend/error-handling.md", "reason": "领域错误与元数据"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "后端质量与验证要求"}
+{"file": ".trellis/spec/server/backend/capability-navigation.md", "reason": "后端可复用能力导航"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "外部变动检测与草稿保护"}
+{"file": ".trellis/spec/web/frontend/finance-ledger-snapshots.md", "reason": "列表汇总与导出共用快照"}
+{"file": ".trellis/spec/web/frontend/finance-current-workspace.md", "reason": "公司工作区契约"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "wire 形态与类型安全"}
+{"file": ".trellis/spec/web/frontend/cashflow-create-idempotency.md", "reason": "组合提交重试幂等范本"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "组件与快建弹窗约定"}
+{"file": ".trellis/spec/web/frontend/hook-guidelines.md", "reason": "异步 Hook 依赖防护"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端质量与验证要求"}
+{"file": ".trellis/spec/web/frontend/capability-navigation.md", "reason": "新能力提取后同步导航"}
+{"file": ".trellis/tasks/11-13-order-fees-finance-workflow/prd.md", "reason": "父任务 R8–R11 与开票锁定重点验收场景"}
+{"file": ".trellis/tasks/11-13-order-fees-finance-workflow/research/hgj-finance-script-followup.md", "reason": "参考系统 addFee/removeFee 证据（未独立验证）"}
+{"file": ".trellis/tasks/11-13-order-fees-finance-workflow/research/hgj-finance-reference.md", "reason": "参考系统页面交互对照"}
+{"file": ".trellis/tasks/11-13-order-fees-finance-workflow/research/finance-scope-inventory.md", "reason": "财务范围盘点"}
+{"file": ".trellis/tasks/11-13-finance-fee-entry-ledger/design.md", "reason": "受保护财务事实判定与扩展点"}
+{"file": ".trellis/tasks/11-13-finance-fee-entry-ledger/implement.md", "reason": "相邻任务实施格式与验证口径"}
+{"file": ".trellis/tasks/11-13-finance-invoice-registration/prd.md", "reason": "无需发票标记、发票分配的契约边界"}
+{"file": ".trellis/tasks/11-13-finance-cashflow-verification/prd.md", "reason": "核销、对冲与差额流水的契约边界"}
+{"file": ".trellis/tasks/11-13-finance-bill-workflow/design.md", "reason": "本任务设计"}
+{"file": ".trellis/tasks/11-13-finance-bill-workflow/implement.md", "reason": "实施计划与验证清单"}
