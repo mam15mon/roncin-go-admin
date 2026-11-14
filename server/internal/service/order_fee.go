@@ -163,6 +163,91 @@ func (s *OrderFeeService) UpdateFee(ctx context.Context, request *v1.UpdateFeeRe
 	return ok(ctx, &v1.UpdateFeeResponse{Data: orderFeeToAPI(updated)}), nil
 }
 
+// SaveOrderFees 整表保存单侧费用：边界解析逐行收集错误，细粒度授权（新增 fee.create、修改
+// fee.update、汇率覆盖、税率更改）按订单品类解析后交给用例逐行判定。
+func (s *OrderFeeService) SaveOrderFees(ctx context.Context, request *v1.SaveOrderFeesRequest) (*v1.SaveOrderFeesResponse, error) {
+	principal, principalErr := biz.RequirePrincipal(ctx)
+	if principalErr != nil {
+		return nil, principalErr
+	}
+	orderID, err := uuid.Parse(request.GetOrderId())
+	if err != nil {
+		return nil, biz.ErrOrderFeeInvalidArgument
+	}
+	direction, valid := orderFeeDirectionFromAPI(request.GetDirection())
+	if !valid || len(request.GetRows()) == 0 {
+		return nil, biz.ErrOrderFeeInvalidArgument
+	}
+	businessType, err := s.usecase.OrderBusinessType(ctx, principal.Organization.ID, orderID)
+	if err != nil {
+		return nil, err
+	}
+	canOperate := func(operation access.OrderOperation) bool {
+		permission := access.OrderPermission(access.OrderBusinessType(businessType), operation)
+		return permission != "" && principal.CanAccessOrganizationForPermission(permission, principal.Organization.ID, true)
+	}
+	var failures []biz.OrderFeeSaveRowFailure
+	rows := make([]*biz.OrderFeeSaveRowInput, 0, len(request.GetRows()))
+	for _, item := range request.GetRows() {
+		row, rowErr := saveOrderFeeRowFromAPI(request.GetOrderId(), request.GetDirection(), item)
+		if rowErr != nil {
+			failure, isRowFailure := biz.NewOrderFeeSaveRowFailure(item.GetClientRowId(), rowErr)
+			if !isRowFailure {
+				return nil, rowErr
+			}
+			failures = append(failures, failure)
+			continue
+		}
+		rows = append(rows, row)
+	}
+	if len(failures) > 0 {
+		return nil, biz.NewOrderFeeSaveFailure(failures)
+	}
+	result, err := s.usecase.Save(ctx, principal.Organization.ID, principal.UserID, orderID, direction, request.GetRequestKey(), rows, biz.OrderFeeSavePermissions{
+		CanCreate:               canOperate(access.OrderFeeCreate),
+		CanUpdate:               canOperate(access.OrderFeeUpdate),
+		CanOverrideExchangeRate: principal.HasPermissionInScope(access.FinanceOrderFeeExchangeRateOverride, biz.DataScopeOrganization),
+		CanEditTaxRate:          principal.HasPermissionInScope(access.FinanceOrderFeeTaxRateEdit, biz.DataScopeOrganization),
+	})
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.OrderFee, 0, len(result.Fees))
+	for _, fee := range result.Fees {
+		data = append(data, orderFeeToAPI(fee))
+	}
+	return ok(ctx, &v1.SaveOrderFeesResponse{Data: data, FeeContentVersion: result.FeeContentVersion, Replayed: result.Replayed}), nil
+}
+
+func saveOrderFeeRowFromAPI(orderIDText string, direction v1.OrderFeeDirection, item *v1.SaveOrderFeeRow) (*biz.OrderFeeSaveRowInput, error) {
+	if item == nil {
+		return nil, biz.ErrOrderFeeInvalidArgument
+	}
+	_, input, err := orderFeeInputFromAPI(orderIDText, direction, item.GetFeeSettingId(), item.GetSettlementPartyId(), item.GetBillingUnitId(), item.GetQuantity(), item.GetUnitPrice(), item.GetCurrency(), item.GetNote(), item.ExchangeRateOverride, "", item.TaxInclusive)
+	if err != nil {
+		return nil, err
+	}
+	input.QuantitySource, err = feeQuantitySelectionFromAPI(item.GetQuantitySource())
+	if err != nil {
+		return nil, err
+	}
+	if err := applyOrderFeeTaxRateOverride(input, item.TaxRate); err != nil {
+		return nil, err
+	}
+	row := &biz.OrderFeeSaveRowInput{ClientRowID: item.GetClientRowId(), Fee: input}
+	if item.FeeId != nil {
+		feeID, parseErr := uuid.Parse(item.GetFeeId())
+		if parseErr != nil || item.GetExpectedVersion() == 0 {
+			return nil, biz.ErrOrderFeeInvalidArgument
+		}
+		row.FeeID = &feeID
+		row.ExpectedVersion = item.GetExpectedVersion()
+	} else if item.ExpectedVersion != nil {
+		return nil, biz.ErrOrderFeeInvalidArgument
+	}
+	return row, nil
+}
+
 func (s *OrderFeeService) RemoveFee(ctx context.Context, request *v1.RemoveFeeRequest) (*v1.RemoveFeeResponse, error) {
 	principal, principalErr := biz.RequirePrincipal(ctx)
 	if principalErr != nil {

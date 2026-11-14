@@ -1359,6 +1359,321 @@ func (x *UpdateFeeRequest) GetQuantitySource() *FeeQuantitySelection {
 	return nil
 }
 
+// SaveOrderFeeRow 是整表保存中的一行：带 fee_id 与 expected_version 为修改，
+// 否则为新增；client_row_id 是前端行标识，用于幂等派生与行级错误定位。
+type SaveOrderFeeRow struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	ClientRowId          string                 `protobuf:"bytes,1,opt,name=client_row_id,json=clientRowId,proto3" json:"client_row_id,omitempty"`
+	FeeId                *string                `protobuf:"bytes,2,opt,name=fee_id,json=feeId,proto3,oneof" json:"fee_id,omitempty"`
+	ExpectedVersion      *uint64                `protobuf:"varint,3,opt,name=expected_version,json=expectedVersion,proto3,oneof" json:"expected_version,omitempty"`
+	FeeSettingId         string                 `protobuf:"bytes,4,opt,name=fee_setting_id,json=feeSettingId,proto3" json:"fee_setting_id,omitempty"`
+	SettlementPartyId    string                 `protobuf:"bytes,5,opt,name=settlement_party_id,json=settlementPartyId,proto3" json:"settlement_party_id,omitempty"`
+	BillingUnitId        string                 `protobuf:"bytes,6,opt,name=billing_unit_id,json=billingUnitId,proto3" json:"billing_unit_id,omitempty"`
+	Quantity             string                 `protobuf:"bytes,7,opt,name=quantity,proto3" json:"quantity,omitempty"`
+	UnitPrice            string                 `protobuf:"bytes,8,opt,name=unit_price,json=unitPrice,proto3" json:"unit_price,omitempty"`
+	Currency             string                 `protobuf:"bytes,9,opt,name=currency,proto3" json:"currency,omitempty"`
+	Note                 *string                `protobuf:"bytes,10,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	ExchangeRateOverride *string                `protobuf:"bytes,11,opt,name=exchange_rate_override,json=exchangeRateOverride,proto3,oneof" json:"exchange_rate_override,omitempty"`
+	TaxInclusive         *bool                  `protobuf:"varint,12,opt,name=tax_inclusive,json=taxInclusive,proto3,oneof" json:"tax_inclusive,omitempty"`
+	QuantitySource       *FeeQuantitySelection  `protobuf:"bytes,13,opt,name=quantity_source,json=quantitySource,proto3" json:"quantity_source,omitempty"`
+	// tax_rate 显式税率（0-100）；语义与 AddFee/UpdateFee 一致，更改税率须具备订单费用税率更改权限。
+	TaxRate       *string `protobuf:"bytes,14,opt,name=tax_rate,json=taxRate,proto3,oneof" json:"tax_rate,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SaveOrderFeeRow) Reset() {
+	*x = SaveOrderFeeRow{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SaveOrderFeeRow) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SaveOrderFeeRow) ProtoMessage() {}
+
+func (x *SaveOrderFeeRow) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SaveOrderFeeRow.ProtoReflect.Descriptor instead.
+func (*SaveOrderFeeRow) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *SaveOrderFeeRow) GetClientRowId() string {
+	if x != nil {
+		return x.ClientRowId
+	}
+	return ""
+}
+
+func (x *SaveOrderFeeRow) GetFeeId() string {
+	if x != nil && x.FeeId != nil {
+		return *x.FeeId
+	}
+	return ""
+}
+
+func (x *SaveOrderFeeRow) GetExpectedVersion() uint64 {
+	if x != nil && x.ExpectedVersion != nil {
+		return *x.ExpectedVersion
+	}
+	return 0
+}
+
+func (x *SaveOrderFeeRow) GetFeeSettingId() string {
+	if x != nil {
+		return x.FeeSettingId
+	}
+	return ""
+}
+
+func (x *SaveOrderFeeRow) GetSettlementPartyId() string {
+	if x != nil {
+		return x.SettlementPartyId
+	}
+	return ""
+}
+
+func (x *SaveOrderFeeRow) GetBillingUnitId() string {
+	if x != nil {
+		return x.BillingUnitId
+	}
+	return ""
+}
+
+func (x *SaveOrderFeeRow) GetQuantity() string {
+	if x != nil {
+		return x.Quantity
+	}
+	return ""
+}
+
+func (x *SaveOrderFeeRow) GetUnitPrice() string {
+	if x != nil {
+		return x.UnitPrice
+	}
+	return ""
+}
+
+func (x *SaveOrderFeeRow) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
+}
+
+func (x *SaveOrderFeeRow) GetNote() string {
+	if x != nil && x.Note != nil {
+		return *x.Note
+	}
+	return ""
+}
+
+func (x *SaveOrderFeeRow) GetExchangeRateOverride() string {
+	if x != nil && x.ExchangeRateOverride != nil {
+		return *x.ExchangeRateOverride
+	}
+	return ""
+}
+
+func (x *SaveOrderFeeRow) GetTaxInclusive() bool {
+	if x != nil && x.TaxInclusive != nil {
+		return *x.TaxInclusive
+	}
+	return false
+}
+
+func (x *SaveOrderFeeRow) GetQuantitySource() *FeeQuantitySelection {
+	if x != nil {
+		return x.QuantitySource
+	}
+	return nil
+}
+
+func (x *SaveOrderFeeRow) GetTaxRate() string {
+	if x != nil && x.TaxRate != nil {
+		return *x.TaxRate
+	}
+	return ""
+}
+
+type SaveOrderFeesRequest struct {
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	OrderId   string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	Direction OrderFeeDirection      `protobuf:"varint,2,opt,name=direction,proto3,enum=order.v1.OrderFeeDirection" json:"direction,omitempty"`
+	// request_key 一次保存意图的幂等标识，重试沿用，成功后更换。
+	RequestKey    string             `protobuf:"bytes,3,opt,name=request_key,json=requestKey,proto3" json:"request_key,omitempty"`
+	Rows          []*SaveOrderFeeRow `protobuf:"bytes,4,rep,name=rows,proto3" json:"rows,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SaveOrderFeesRequest) Reset() {
+	*x = SaveOrderFeesRequest{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SaveOrderFeesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SaveOrderFeesRequest) ProtoMessage() {}
+
+func (x *SaveOrderFeesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SaveOrderFeesRequest.ProtoReflect.Descriptor instead.
+func (*SaveOrderFeesRequest) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *SaveOrderFeesRequest) GetOrderId() string {
+	if x != nil {
+		return x.OrderId
+	}
+	return ""
+}
+
+func (x *SaveOrderFeesRequest) GetDirection() OrderFeeDirection {
+	if x != nil {
+		return x.Direction
+	}
+	return OrderFeeDirection_ORDER_FEE_DIRECTION_UNSPECIFIED
+}
+
+func (x *SaveOrderFeesRequest) GetRequestKey() string {
+	if x != nil {
+		return x.RequestKey
+	}
+	return ""
+}
+
+func (x *SaveOrderFeesRequest) GetRows() []*SaveOrderFeeRow {
+	if x != nil {
+		return x.Rows
+	}
+	return nil
+}
+
+type SaveOrderFeesResponse struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Success bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code    int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	// data 为保存后本侧全部当前有效费用。
+	Data    []*OrderFee `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
+	TraceId string      `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	// fee_content_version 保存后的订单费用内容版本，供前端更新外部变动基线。
+	FeeContentVersion uint64 `protobuf:"varint,6,opt,name=fee_content_version,json=feeContentVersion,proto3" json:"fee_content_version,omitempty"`
+	// replayed 为 true 表示请求此前已完整应用，本次仅返回当前状态。
+	Replayed      bool `protobuf:"varint,7,opt,name=replayed,proto3" json:"replayed,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SaveOrderFeesResponse) Reset() {
+	*x = SaveOrderFeesResponse{}
+	mi := &file_order_v1_order_fee_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SaveOrderFeesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SaveOrderFeesResponse) ProtoMessage() {}
+
+func (x *SaveOrderFeesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_order_fee_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SaveOrderFeesResponse.ProtoReflect.Descriptor instead.
+func (*SaveOrderFeesResponse) Descriptor() ([]byte, []int) {
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *SaveOrderFeesResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *SaveOrderFeesResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *SaveOrderFeesResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *SaveOrderFeesResponse) GetData() []*OrderFee {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *SaveOrderFeesResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+func (x *SaveOrderFeesResponse) GetFeeContentVersion() uint64 {
+	if x != nil {
+		return x.FeeContentVersion
+	}
+	return 0
+}
+
+func (x *SaveOrderFeesResponse) GetReplayed() bool {
+	if x != nil {
+		return x.Replayed
+	}
+	return false
+}
+
 type RemoveFeeRequest struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	OrderId         string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
@@ -1372,7 +1687,7 @@ type RemoveFeeRequest struct {
 
 func (x *RemoveFeeRequest) Reset() {
 	*x = RemoveFeeRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[10]
+	mi := &file_order_v1_order_fee_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1384,7 +1699,7 @@ func (x *RemoveFeeRequest) String() string {
 func (*RemoveFeeRequest) ProtoMessage() {}
 
 func (x *RemoveFeeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[10]
+	mi := &file_order_v1_order_fee_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1397,7 +1712,7 @@ func (x *RemoveFeeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveFeeRequest.ProtoReflect.Descriptor instead.
 func (*RemoveFeeRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{10}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *RemoveFeeRequest) GetOrderId() string {
@@ -1439,7 +1754,7 @@ type ResolveFeeExchangeRateRequest struct {
 
 func (x *ResolveFeeExchangeRateRequest) Reset() {
 	*x = ResolveFeeExchangeRateRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[11]
+	mi := &file_order_v1_order_fee_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1451,7 +1766,7 @@ func (x *ResolveFeeExchangeRateRequest) String() string {
 func (*ResolveFeeExchangeRateRequest) ProtoMessage() {}
 
 func (x *ResolveFeeExchangeRateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[11]
+	mi := &file_order_v1_order_fee_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1464,7 +1779,7 @@ func (x *ResolveFeeExchangeRateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResolveFeeExchangeRateRequest.ProtoReflect.Descriptor instead.
 func (*ResolveFeeExchangeRateRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{11}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ResolveFeeExchangeRateRequest) GetOrderId() string {
@@ -1504,7 +1819,7 @@ type ResolveFeeExchangeRateResponse struct {
 
 func (x *ResolveFeeExchangeRateResponse) Reset() {
 	*x = ResolveFeeExchangeRateResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[12]
+	mi := &file_order_v1_order_fee_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1516,7 +1831,7 @@ func (x *ResolveFeeExchangeRateResponse) String() string {
 func (*ResolveFeeExchangeRateResponse) ProtoMessage() {}
 
 func (x *ResolveFeeExchangeRateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[12]
+	mi := &file_order_v1_order_fee_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1529,7 +1844,7 @@ func (x *ResolveFeeExchangeRateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResolveFeeExchangeRateResponse.ProtoReflect.Descriptor instead.
 func (*ResolveFeeExchangeRateResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{12}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ResolveFeeExchangeRateResponse) GetSuccess() bool {
@@ -1601,7 +1916,7 @@ type ListFeesResponse struct {
 
 func (x *ListFeesResponse) Reset() {
 	*x = ListFeesResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[13]
+	mi := &file_order_v1_order_fee_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1613,7 +1928,7 @@ func (x *ListFeesResponse) String() string {
 func (*ListFeesResponse) ProtoMessage() {}
 
 func (x *ListFeesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[13]
+	mi := &file_order_v1_order_fee_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1626,7 +1941,7 @@ func (x *ListFeesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListFeesResponse.ProtoReflect.Descriptor instead.
 func (*ListFeesResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{13}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ListFeesResponse) GetSuccess() bool {
@@ -1677,7 +1992,7 @@ type AddFeeResponse struct {
 
 func (x *AddFeeResponse) Reset() {
 	*x = AddFeeResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[14]
+	mi := &file_order_v1_order_fee_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1689,7 +2004,7 @@ func (x *AddFeeResponse) String() string {
 func (*AddFeeResponse) ProtoMessage() {}
 
 func (x *AddFeeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[14]
+	mi := &file_order_v1_order_fee_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1702,7 +2017,7 @@ func (x *AddFeeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddFeeResponse.ProtoReflect.Descriptor instead.
 func (*AddFeeResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{14}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *AddFeeResponse) GetSuccess() bool {
@@ -1753,7 +2068,7 @@ type UpdateFeeResponse struct {
 
 func (x *UpdateFeeResponse) Reset() {
 	*x = UpdateFeeResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[15]
+	mi := &file_order_v1_order_fee_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1765,7 +2080,7 @@ func (x *UpdateFeeResponse) String() string {
 func (*UpdateFeeResponse) ProtoMessage() {}
 
 func (x *UpdateFeeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[15]
+	mi := &file_order_v1_order_fee_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1778,7 +2093,7 @@ func (x *UpdateFeeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateFeeResponse.ProtoReflect.Descriptor instead.
 func (*UpdateFeeResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{15}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *UpdateFeeResponse) GetSuccess() bool {
@@ -1828,7 +2143,7 @@ type RemoveFeeResponse struct {
 
 func (x *RemoveFeeResponse) Reset() {
 	*x = RemoveFeeResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[16]
+	mi := &file_order_v1_order_fee_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1840,7 +2155,7 @@ func (x *RemoveFeeResponse) String() string {
 func (*RemoveFeeResponse) ProtoMessage() {}
 
 func (x *RemoveFeeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[16]
+	mi := &file_order_v1_order_fee_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1853,7 +2168,7 @@ func (x *RemoveFeeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveFeeResponse.ProtoReflect.Descriptor instead.
 func (*RemoveFeeResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{16}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *RemoveFeeResponse) GetSuccess() bool {
@@ -1895,7 +2210,7 @@ type BulkOrderFeeTarget struct {
 
 func (x *BulkOrderFeeTarget) Reset() {
 	*x = BulkOrderFeeTarget{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[17]
+	mi := &file_order_v1_order_fee_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1907,7 +2222,7 @@ func (x *BulkOrderFeeTarget) String() string {
 func (*BulkOrderFeeTarget) ProtoMessage() {}
 
 func (x *BulkOrderFeeTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[17]
+	mi := &file_order_v1_order_fee_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1920,7 +2235,7 @@ func (x *BulkOrderFeeTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BulkOrderFeeTarget.ProtoReflect.Descriptor instead.
 func (*BulkOrderFeeTarget) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{17}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *BulkOrderFeeTarget) GetFeeId() string {
@@ -1949,7 +2264,7 @@ type BulkUpdateOrderFeesRequest struct {
 
 func (x *BulkUpdateOrderFeesRequest) Reset() {
 	*x = BulkUpdateOrderFeesRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[18]
+	mi := &file_order_v1_order_fee_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1961,7 +2276,7 @@ func (x *BulkUpdateOrderFeesRequest) String() string {
 func (*BulkUpdateOrderFeesRequest) ProtoMessage() {}
 
 func (x *BulkUpdateOrderFeesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[18]
+	mi := &file_order_v1_order_fee_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1974,7 +2289,7 @@ func (x *BulkUpdateOrderFeesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BulkUpdateOrderFeesRequest.ProtoReflect.Descriptor instead.
 func (*BulkUpdateOrderFeesRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{18}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *BulkUpdateOrderFeesRequest) GetOrderId() string {
@@ -2011,7 +2326,7 @@ type BulkUpdateOrderFeesResponse struct {
 
 func (x *BulkUpdateOrderFeesResponse) Reset() {
 	*x = BulkUpdateOrderFeesResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[19]
+	mi := &file_order_v1_order_fee_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2023,7 +2338,7 @@ func (x *BulkUpdateOrderFeesResponse) String() string {
 func (*BulkUpdateOrderFeesResponse) ProtoMessage() {}
 
 func (x *BulkUpdateOrderFeesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[19]
+	mi := &file_order_v1_order_fee_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2036,7 +2351,7 @@ func (x *BulkUpdateOrderFeesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BulkUpdateOrderFeesResponse.ProtoReflect.Descriptor instead.
 func (*BulkUpdateOrderFeesResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{19}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *BulkUpdateOrderFeesResponse) GetSuccess() bool {
@@ -2086,7 +2401,7 @@ type BulkRemoveOrderFeesRequest struct {
 
 func (x *BulkRemoveOrderFeesRequest) Reset() {
 	*x = BulkRemoveOrderFeesRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[20]
+	mi := &file_order_v1_order_fee_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2098,7 +2413,7 @@ func (x *BulkRemoveOrderFeesRequest) String() string {
 func (*BulkRemoveOrderFeesRequest) ProtoMessage() {}
 
 func (x *BulkRemoveOrderFeesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[20]
+	mi := &file_order_v1_order_fee_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2111,7 +2426,7 @@ func (x *BulkRemoveOrderFeesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BulkRemoveOrderFeesRequest.ProtoReflect.Descriptor instead.
 func (*BulkRemoveOrderFeesRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{20}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *BulkRemoveOrderFeesRequest) GetOrderId() string {
@@ -2148,7 +2463,7 @@ type BulkRemoveOrderFeesResponse struct {
 
 func (x *BulkRemoveOrderFeesResponse) Reset() {
 	*x = BulkRemoveOrderFeesResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[21]
+	mi := &file_order_v1_order_fee_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2160,7 +2475,7 @@ func (x *BulkRemoveOrderFeesResponse) String() string {
 func (*BulkRemoveOrderFeesResponse) ProtoMessage() {}
 
 func (x *BulkRemoveOrderFeesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[21]
+	mi := &file_order_v1_order_fee_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2173,7 +2488,7 @@ func (x *BulkRemoveOrderFeesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BulkRemoveOrderFeesResponse.ProtoReflect.Descriptor instead.
 func (*BulkRemoveOrderFeesResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{21}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *BulkRemoveOrderFeesResponse) GetSuccess() bool {
@@ -2280,7 +2595,7 @@ type OrderFeeSupplementRequestData struct {
 
 func (x *OrderFeeSupplementRequestData) Reset() {
 	*x = OrderFeeSupplementRequestData{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[22]
+	mi := &file_order_v1_order_fee_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2292,7 +2607,7 @@ func (x *OrderFeeSupplementRequestData) String() string {
 func (*OrderFeeSupplementRequestData) ProtoMessage() {}
 
 func (x *OrderFeeSupplementRequestData) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[22]
+	mi := &file_order_v1_order_fee_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2305,7 +2620,7 @@ func (x *OrderFeeSupplementRequestData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderFeeSupplementRequestData.ProtoReflect.Descriptor instead.
 func (*OrderFeeSupplementRequestData) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{22}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *OrderFeeSupplementRequestData) GetId() string {
@@ -2667,7 +2982,7 @@ type CreateOrderFeeSupplementRequest struct {
 
 func (x *CreateOrderFeeSupplementRequest) Reset() {
 	*x = CreateOrderFeeSupplementRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[23]
+	mi := &file_order_v1_order_fee_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2679,7 +2994,7 @@ func (x *CreateOrderFeeSupplementRequest) String() string {
 func (*CreateOrderFeeSupplementRequest) ProtoMessage() {}
 
 func (x *CreateOrderFeeSupplementRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[23]
+	mi := &file_order_v1_order_fee_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2692,7 +3007,7 @@ func (x *CreateOrderFeeSupplementRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOrderFeeSupplementRequest.ProtoReflect.Descriptor instead.
 func (*CreateOrderFeeSupplementRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{23}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *CreateOrderFeeSupplementRequest) GetOrderId() string {
@@ -2799,7 +3114,7 @@ type CreateOrderFeeSupplementResponse struct {
 
 func (x *CreateOrderFeeSupplementResponse) Reset() {
 	*x = CreateOrderFeeSupplementResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[24]
+	mi := &file_order_v1_order_fee_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2811,7 +3126,7 @@ func (x *CreateOrderFeeSupplementResponse) String() string {
 func (*CreateOrderFeeSupplementResponse) ProtoMessage() {}
 
 func (x *CreateOrderFeeSupplementResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[24]
+	mi := &file_order_v1_order_fee_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2824,7 +3139,7 @@ func (x *CreateOrderFeeSupplementResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOrderFeeSupplementResponse.ProtoReflect.Descriptor instead.
 func (*CreateOrderFeeSupplementResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{24}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *CreateOrderFeeSupplementResponse) GetSuccess() bool {
@@ -2873,7 +3188,7 @@ type ListOrderFeeSupplementRequestsRequest struct {
 
 func (x *ListOrderFeeSupplementRequestsRequest) Reset() {
 	*x = ListOrderFeeSupplementRequestsRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[25]
+	mi := &file_order_v1_order_fee_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2885,7 +3200,7 @@ func (x *ListOrderFeeSupplementRequestsRequest) String() string {
 func (*ListOrderFeeSupplementRequestsRequest) ProtoMessage() {}
 
 func (x *ListOrderFeeSupplementRequestsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[25]
+	mi := &file_order_v1_order_fee_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2898,7 +3213,7 @@ func (x *ListOrderFeeSupplementRequestsRequest) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use ListOrderFeeSupplementRequestsRequest.ProtoReflect.Descriptor instead.
 func (*ListOrderFeeSupplementRequestsRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{25}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ListOrderFeeSupplementRequestsRequest) GetOrderId() string {
@@ -2934,7 +3249,7 @@ type ListOrderFeeSupplementRequestsData struct {
 
 func (x *ListOrderFeeSupplementRequestsData) Reset() {
 	*x = ListOrderFeeSupplementRequestsData{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[26]
+	mi := &file_order_v1_order_fee_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2946,7 +3261,7 @@ func (x *ListOrderFeeSupplementRequestsData) String() string {
 func (*ListOrderFeeSupplementRequestsData) ProtoMessage() {}
 
 func (x *ListOrderFeeSupplementRequestsData) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[26]
+	mi := &file_order_v1_order_fee_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2959,7 +3274,7 @@ func (x *ListOrderFeeSupplementRequestsData) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use ListOrderFeeSupplementRequestsData.ProtoReflect.Descriptor instead.
 func (*ListOrderFeeSupplementRequestsData) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{26}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *ListOrderFeeSupplementRequestsData) GetItems() []*OrderFeeSupplementRequestData {
@@ -3003,7 +3318,7 @@ type ListOrderFeeSupplementRequestsResponse struct {
 
 func (x *ListOrderFeeSupplementRequestsResponse) Reset() {
 	*x = ListOrderFeeSupplementRequestsResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[27]
+	mi := &file_order_v1_order_fee_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3015,7 +3330,7 @@ func (x *ListOrderFeeSupplementRequestsResponse) String() string {
 func (*ListOrderFeeSupplementRequestsResponse) ProtoMessage() {}
 
 func (x *ListOrderFeeSupplementRequestsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[27]
+	mi := &file_order_v1_order_fee_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3028,7 +3343,7 @@ func (x *ListOrderFeeSupplementRequestsResponse) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use ListOrderFeeSupplementRequestsResponse.ProtoReflect.Descriptor instead.
 func (*ListOrderFeeSupplementRequestsResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{27}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *ListOrderFeeSupplementRequestsResponse) GetSuccess() bool {
@@ -3079,7 +3394,7 @@ type ApproveOrderFeeSupplementRequest struct {
 
 func (x *ApproveOrderFeeSupplementRequest) Reset() {
 	*x = ApproveOrderFeeSupplementRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[28]
+	mi := &file_order_v1_order_fee_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3091,7 +3406,7 @@ func (x *ApproveOrderFeeSupplementRequest) String() string {
 func (*ApproveOrderFeeSupplementRequest) ProtoMessage() {}
 
 func (x *ApproveOrderFeeSupplementRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[28]
+	mi := &file_order_v1_order_fee_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3104,7 +3419,7 @@ func (x *ApproveOrderFeeSupplementRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApproveOrderFeeSupplementRequest.ProtoReflect.Descriptor instead.
 func (*ApproveOrderFeeSupplementRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{28}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ApproveOrderFeeSupplementRequest) GetOrderId() string {
@@ -3153,7 +3468,7 @@ type PreviewOrderFeeSupplementApprovalRequest struct {
 
 func (x *PreviewOrderFeeSupplementApprovalRequest) Reset() {
 	*x = PreviewOrderFeeSupplementApprovalRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[29]
+	mi := &file_order_v1_order_fee_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3165,7 +3480,7 @@ func (x *PreviewOrderFeeSupplementApprovalRequest) String() string {
 func (*PreviewOrderFeeSupplementApprovalRequest) ProtoMessage() {}
 
 func (x *PreviewOrderFeeSupplementApprovalRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[29]
+	mi := &file_order_v1_order_fee_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3178,7 +3493,7 @@ func (x *PreviewOrderFeeSupplementApprovalRequest) ProtoReflect() protoreflect.M
 
 // Deprecated: Use PreviewOrderFeeSupplementApprovalRequest.ProtoReflect.Descriptor instead.
 func (*PreviewOrderFeeSupplementApprovalRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{29}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *PreviewOrderFeeSupplementApprovalRequest) GetOrderId() string {
@@ -3224,7 +3539,7 @@ type PreviewOrderFeeSupplementApprovalData struct {
 
 func (x *PreviewOrderFeeSupplementApprovalData) Reset() {
 	*x = PreviewOrderFeeSupplementApprovalData{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[30]
+	mi := &file_order_v1_order_fee_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3236,7 +3551,7 @@ func (x *PreviewOrderFeeSupplementApprovalData) String() string {
 func (*PreviewOrderFeeSupplementApprovalData) ProtoMessage() {}
 
 func (x *PreviewOrderFeeSupplementApprovalData) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[30]
+	mi := &file_order_v1_order_fee_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3249,7 +3564,7 @@ func (x *PreviewOrderFeeSupplementApprovalData) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use PreviewOrderFeeSupplementApprovalData.ProtoReflect.Descriptor instead.
 func (*PreviewOrderFeeSupplementApprovalData) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{30}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *PreviewOrderFeeSupplementApprovalData) GetBaseCurrency() string {
@@ -3356,7 +3671,7 @@ type PreviewOrderFeeSupplementApprovalResponse struct {
 
 func (x *PreviewOrderFeeSupplementApprovalResponse) Reset() {
 	*x = PreviewOrderFeeSupplementApprovalResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[31]
+	mi := &file_order_v1_order_fee_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3368,7 +3683,7 @@ func (x *PreviewOrderFeeSupplementApprovalResponse) String() string {
 func (*PreviewOrderFeeSupplementApprovalResponse) ProtoMessage() {}
 
 func (x *PreviewOrderFeeSupplementApprovalResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[31]
+	mi := &file_order_v1_order_fee_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3381,7 +3696,7 @@ func (x *PreviewOrderFeeSupplementApprovalResponse) ProtoReflect() protoreflect.
 
 // Deprecated: Use PreviewOrderFeeSupplementApprovalResponse.ProtoReflect.Descriptor instead.
 func (*PreviewOrderFeeSupplementApprovalResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{31}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *PreviewOrderFeeSupplementApprovalResponse) GetSuccess() bool {
@@ -3434,7 +3749,7 @@ type ApproveOrderFeeSupplementResponse struct {
 
 func (x *ApproveOrderFeeSupplementResponse) Reset() {
 	*x = ApproveOrderFeeSupplementResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[32]
+	mi := &file_order_v1_order_fee_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3446,7 +3761,7 @@ func (x *ApproveOrderFeeSupplementResponse) String() string {
 func (*ApproveOrderFeeSupplementResponse) ProtoMessage() {}
 
 func (x *ApproveOrderFeeSupplementResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[32]
+	mi := &file_order_v1_order_fee_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3459,7 +3774,7 @@ func (x *ApproveOrderFeeSupplementResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ApproveOrderFeeSupplementResponse.ProtoReflect.Descriptor instead.
 func (*ApproveOrderFeeSupplementResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{32}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *ApproveOrderFeeSupplementResponse) GetSuccess() bool {
@@ -3516,7 +3831,7 @@ type RejectOrderFeeSupplementRequest struct {
 
 func (x *RejectOrderFeeSupplementRequest) Reset() {
 	*x = RejectOrderFeeSupplementRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[33]
+	mi := &file_order_v1_order_fee_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3528,7 +3843,7 @@ func (x *RejectOrderFeeSupplementRequest) String() string {
 func (*RejectOrderFeeSupplementRequest) ProtoMessage() {}
 
 func (x *RejectOrderFeeSupplementRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[33]
+	mi := &file_order_v1_order_fee_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3541,7 +3856,7 @@ func (x *RejectOrderFeeSupplementRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RejectOrderFeeSupplementRequest.ProtoReflect.Descriptor instead.
 func (*RejectOrderFeeSupplementRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{33}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *RejectOrderFeeSupplementRequest) GetOrderId() string {
@@ -3585,7 +3900,7 @@ type RejectOrderFeeSupplementResponse struct {
 
 func (x *RejectOrderFeeSupplementResponse) Reset() {
 	*x = RejectOrderFeeSupplementResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[34]
+	mi := &file_order_v1_order_fee_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3597,7 +3912,7 @@ func (x *RejectOrderFeeSupplementResponse) String() string {
 func (*RejectOrderFeeSupplementResponse) ProtoMessage() {}
 
 func (x *RejectOrderFeeSupplementResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[34]
+	mi := &file_order_v1_order_fee_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3610,7 +3925,7 @@ func (x *RejectOrderFeeSupplementResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RejectOrderFeeSupplementResponse.ProtoReflect.Descriptor instead.
 func (*RejectOrderFeeSupplementResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{34}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *RejectOrderFeeSupplementResponse) GetSuccess() bool {
@@ -3659,7 +3974,7 @@ type WithdrawOrderFeeSupplementRequest struct {
 
 func (x *WithdrawOrderFeeSupplementRequest) Reset() {
 	*x = WithdrawOrderFeeSupplementRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[35]
+	mi := &file_order_v1_order_fee_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3671,7 +3986,7 @@ func (x *WithdrawOrderFeeSupplementRequest) String() string {
 func (*WithdrawOrderFeeSupplementRequest) ProtoMessage() {}
 
 func (x *WithdrawOrderFeeSupplementRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[35]
+	mi := &file_order_v1_order_fee_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3684,7 +3999,7 @@ func (x *WithdrawOrderFeeSupplementRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use WithdrawOrderFeeSupplementRequest.ProtoReflect.Descriptor instead.
 func (*WithdrawOrderFeeSupplementRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{35}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *WithdrawOrderFeeSupplementRequest) GetOrderId() string {
@@ -3721,7 +4036,7 @@ type WithdrawOrderFeeSupplementResponse struct {
 
 func (x *WithdrawOrderFeeSupplementResponse) Reset() {
 	*x = WithdrawOrderFeeSupplementResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[36]
+	mi := &file_order_v1_order_fee_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3733,7 +4048,7 @@ func (x *WithdrawOrderFeeSupplementResponse) String() string {
 func (*WithdrawOrderFeeSupplementResponse) ProtoMessage() {}
 
 func (x *WithdrawOrderFeeSupplementResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[36]
+	mi := &file_order_v1_order_fee_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3746,7 +4061,7 @@ func (x *WithdrawOrderFeeSupplementResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use WithdrawOrderFeeSupplementResponse.ProtoReflect.Descriptor instead.
 func (*WithdrawOrderFeeSupplementResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{36}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *WithdrawOrderFeeSupplementResponse) GetSuccess() bool {
@@ -3797,7 +4112,7 @@ type CancelApprovedOrderFeeSupplementRequest struct {
 
 func (x *CancelApprovedOrderFeeSupplementRequest) Reset() {
 	*x = CancelApprovedOrderFeeSupplementRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[37]
+	mi := &file_order_v1_order_fee_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3809,7 +4124,7 @@ func (x *CancelApprovedOrderFeeSupplementRequest) String() string {
 func (*CancelApprovedOrderFeeSupplementRequest) ProtoMessage() {}
 
 func (x *CancelApprovedOrderFeeSupplementRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[37]
+	mi := &file_order_v1_order_fee_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3822,7 +4137,7 @@ func (x *CancelApprovedOrderFeeSupplementRequest) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use CancelApprovedOrderFeeSupplementRequest.ProtoReflect.Descriptor instead.
 func (*CancelApprovedOrderFeeSupplementRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{37}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *CancelApprovedOrderFeeSupplementRequest) GetOrderId() string {
@@ -3868,7 +4183,7 @@ type CancelApprovedOrderFeeSupplementResponse struct {
 
 func (x *CancelApprovedOrderFeeSupplementResponse) Reset() {
 	*x = CancelApprovedOrderFeeSupplementResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[38]
+	mi := &file_order_v1_order_fee_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3880,7 +4195,7 @@ func (x *CancelApprovedOrderFeeSupplementResponse) String() string {
 func (*CancelApprovedOrderFeeSupplementResponse) ProtoMessage() {}
 
 func (x *CancelApprovedOrderFeeSupplementResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[38]
+	mi := &file_order_v1_order_fee_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3893,7 +4208,7 @@ func (x *CancelApprovedOrderFeeSupplementResponse) ProtoReflect() protoreflect.M
 
 // Deprecated: Use CancelApprovedOrderFeeSupplementResponse.ProtoReflect.Descriptor instead.
 func (*CancelApprovedOrderFeeSupplementResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{38}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *CancelApprovedOrderFeeSupplementResponse) GetSuccess() bool {
@@ -3951,7 +4266,7 @@ type FeeSupplementCommissionImpact struct {
 
 func (x *FeeSupplementCommissionImpact) Reset() {
 	*x = FeeSupplementCommissionImpact{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[39]
+	mi := &file_order_v1_order_fee_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3963,7 +4278,7 @@ func (x *FeeSupplementCommissionImpact) String() string {
 func (*FeeSupplementCommissionImpact) ProtoMessage() {}
 
 func (x *FeeSupplementCommissionImpact) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[39]
+	mi := &file_order_v1_order_fee_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3976,7 +4291,7 @@ func (x *FeeSupplementCommissionImpact) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeeSupplementCommissionImpact.ProtoReflect.Descriptor instead.
 func (*FeeSupplementCommissionImpact) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{39}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *FeeSupplementCommissionImpact) GetCommissionId() string {
@@ -4073,7 +4388,7 @@ type GetOrderFeeReviewRequest struct {
 
 func (x *GetOrderFeeReviewRequest) Reset() {
 	*x = GetOrderFeeReviewRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[40]
+	mi := &file_order_v1_order_fee_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4085,7 +4400,7 @@ func (x *GetOrderFeeReviewRequest) String() string {
 func (*GetOrderFeeReviewRequest) ProtoMessage() {}
 
 func (x *GetOrderFeeReviewRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[40]
+	mi := &file_order_v1_order_fee_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4098,7 +4413,7 @@ func (x *GetOrderFeeReviewRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOrderFeeReviewRequest.ProtoReflect.Descriptor instead.
 func (*GetOrderFeeReviewRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{40}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *GetOrderFeeReviewRequest) GetOrderId() string {
@@ -4117,7 +4432,7 @@ type PreviewOrderFeeReviewRequest struct {
 
 func (x *PreviewOrderFeeReviewRequest) Reset() {
 	*x = PreviewOrderFeeReviewRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[41]
+	mi := &file_order_v1_order_fee_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4129,7 +4444,7 @@ func (x *PreviewOrderFeeReviewRequest) String() string {
 func (*PreviewOrderFeeReviewRequest) ProtoMessage() {}
 
 func (x *PreviewOrderFeeReviewRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[41]
+	mi := &file_order_v1_order_fee_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4142,7 +4457,7 @@ func (x *PreviewOrderFeeReviewRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreviewOrderFeeReviewRequest.ProtoReflect.Descriptor instead.
 func (*PreviewOrderFeeReviewRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{41}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *PreviewOrderFeeReviewRequest) GetOrderId() string {
@@ -4168,7 +4483,7 @@ type SubmitOrderFeeReviewRequest struct {
 
 func (x *SubmitOrderFeeReviewRequest) Reset() {
 	*x = SubmitOrderFeeReviewRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[42]
+	mi := &file_order_v1_order_fee_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4180,7 +4495,7 @@ func (x *SubmitOrderFeeReviewRequest) String() string {
 func (*SubmitOrderFeeReviewRequest) ProtoMessage() {}
 
 func (x *SubmitOrderFeeReviewRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[42]
+	mi := &file_order_v1_order_fee_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4193,7 +4508,7 @@ func (x *SubmitOrderFeeReviewRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitOrderFeeReviewRequest.ProtoReflect.Descriptor instead.
 func (*SubmitOrderFeeReviewRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{42}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *SubmitOrderFeeReviewRequest) GetOrderId() string {
@@ -4268,7 +4583,7 @@ type WithdrawOrderFeeReviewRequest struct {
 
 func (x *WithdrawOrderFeeReviewRequest) Reset() {
 	*x = WithdrawOrderFeeReviewRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[43]
+	mi := &file_order_v1_order_fee_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4280,7 +4595,7 @@ func (x *WithdrawOrderFeeReviewRequest) String() string {
 func (*WithdrawOrderFeeReviewRequest) ProtoMessage() {}
 
 func (x *WithdrawOrderFeeReviewRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[43]
+	mi := &file_order_v1_order_fee_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4293,7 +4608,7 @@ func (x *WithdrawOrderFeeReviewRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WithdrawOrderFeeReviewRequest.ProtoReflect.Descriptor instead.
 func (*WithdrawOrderFeeReviewRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{43}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *WithdrawOrderFeeReviewRequest) GetOrderId() string {
@@ -4368,7 +4683,7 @@ type ApproveOrderFeeReviewRequest struct {
 
 func (x *ApproveOrderFeeReviewRequest) Reset() {
 	*x = ApproveOrderFeeReviewRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[44]
+	mi := &file_order_v1_order_fee_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4380,7 +4695,7 @@ func (x *ApproveOrderFeeReviewRequest) String() string {
 func (*ApproveOrderFeeReviewRequest) ProtoMessage() {}
 
 func (x *ApproveOrderFeeReviewRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[44]
+	mi := &file_order_v1_order_fee_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4393,7 +4708,7 @@ func (x *ApproveOrderFeeReviewRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApproveOrderFeeReviewRequest.ProtoReflect.Descriptor instead.
 func (*ApproveOrderFeeReviewRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{44}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *ApproveOrderFeeReviewRequest) GetOrderId() string {
@@ -4468,7 +4783,7 @@ type RejectOrderFeeReviewRequest struct {
 
 func (x *RejectOrderFeeReviewRequest) Reset() {
 	*x = RejectOrderFeeReviewRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[45]
+	mi := &file_order_v1_order_fee_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4480,7 +4795,7 @@ func (x *RejectOrderFeeReviewRequest) String() string {
 func (*RejectOrderFeeReviewRequest) ProtoMessage() {}
 
 func (x *RejectOrderFeeReviewRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[45]
+	mi := &file_order_v1_order_fee_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4493,7 +4808,7 @@ func (x *RejectOrderFeeReviewRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RejectOrderFeeReviewRequest.ProtoReflect.Descriptor instead.
 func (*RejectOrderFeeReviewRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{45}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *RejectOrderFeeReviewRequest) GetOrderId() string {
@@ -4568,7 +4883,7 @@ type RevokeOrderFeeReviewRequest struct {
 
 func (x *RevokeOrderFeeReviewRequest) Reset() {
 	*x = RevokeOrderFeeReviewRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[46]
+	mi := &file_order_v1_order_fee_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4580,7 +4895,7 @@ func (x *RevokeOrderFeeReviewRequest) String() string {
 func (*RevokeOrderFeeReviewRequest) ProtoMessage() {}
 
 func (x *RevokeOrderFeeReviewRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[46]
+	mi := &file_order_v1_order_fee_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4593,7 +4908,7 @@ func (x *RevokeOrderFeeReviewRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeOrderFeeReviewRequest.ProtoReflect.Descriptor instead.
 func (*RevokeOrderFeeReviewRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{46}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *RevokeOrderFeeReviewRequest) GetOrderId() string {
@@ -4668,7 +4983,7 @@ type OrderFeeReviewActionData struct {
 
 func (x *OrderFeeReviewActionData) Reset() {
 	*x = OrderFeeReviewActionData{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[47]
+	mi := &file_order_v1_order_fee_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4680,7 +4995,7 @@ func (x *OrderFeeReviewActionData) String() string {
 func (*OrderFeeReviewActionData) ProtoMessage() {}
 
 func (x *OrderFeeReviewActionData) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[47]
+	mi := &file_order_v1_order_fee_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4693,7 +5008,7 @@ func (x *OrderFeeReviewActionData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderFeeReviewActionData.ProtoReflect.Descriptor instead.
 func (*OrderFeeReviewActionData) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{47}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *OrderFeeReviewActionData) GetOrderId() string {
@@ -4769,7 +5084,7 @@ type OrderFeeReviewEventData struct {
 
 func (x *OrderFeeReviewEventData) Reset() {
 	*x = OrderFeeReviewEventData{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[48]
+	mi := &file_order_v1_order_fee_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4781,7 +5096,7 @@ func (x *OrderFeeReviewEventData) String() string {
 func (*OrderFeeReviewEventData) ProtoMessage() {}
 
 func (x *OrderFeeReviewEventData) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[48]
+	mi := &file_order_v1_order_fee_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4794,7 +5109,7 @@ func (x *OrderFeeReviewEventData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderFeeReviewEventData.ProtoReflect.Descriptor instead.
 func (*OrderFeeReviewEventData) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{48}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *OrderFeeReviewEventData) GetId() string {
@@ -4891,7 +5206,7 @@ type OrderFeeReviewData struct {
 
 func (x *OrderFeeReviewData) Reset() {
 	*x = OrderFeeReviewData{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[49]
+	mi := &file_order_v1_order_fee_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4903,7 +5218,7 @@ func (x *OrderFeeReviewData) String() string {
 func (*OrderFeeReviewData) ProtoMessage() {}
 
 func (x *OrderFeeReviewData) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[49]
+	mi := &file_order_v1_order_fee_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4916,7 +5231,7 @@ func (x *OrderFeeReviewData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderFeeReviewData.ProtoReflect.Descriptor instead.
 func (*OrderFeeReviewData) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{49}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *OrderFeeReviewData) GetOrderId() string {
@@ -5093,7 +5408,7 @@ type GetOrderFeeReviewResponse struct {
 
 func (x *GetOrderFeeReviewResponse) Reset() {
 	*x = GetOrderFeeReviewResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[50]
+	mi := &file_order_v1_order_fee_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5105,7 +5420,7 @@ func (x *GetOrderFeeReviewResponse) String() string {
 func (*GetOrderFeeReviewResponse) ProtoMessage() {}
 
 func (x *GetOrderFeeReviewResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[50]
+	mi := &file_order_v1_order_fee_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5118,7 +5433,7 @@ func (x *GetOrderFeeReviewResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOrderFeeReviewResponse.ProtoReflect.Descriptor instead.
 func (*GetOrderFeeReviewResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{50}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *GetOrderFeeReviewResponse) GetSuccess() bool {
@@ -5169,7 +5484,7 @@ type PreviewOrderFeeReviewResponse struct {
 
 func (x *PreviewOrderFeeReviewResponse) Reset() {
 	*x = PreviewOrderFeeReviewResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[51]
+	mi := &file_order_v1_order_fee_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5181,7 +5496,7 @@ func (x *PreviewOrderFeeReviewResponse) String() string {
 func (*PreviewOrderFeeReviewResponse) ProtoMessage() {}
 
 func (x *PreviewOrderFeeReviewResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[51]
+	mi := &file_order_v1_order_fee_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5194,7 +5509,7 @@ func (x *PreviewOrderFeeReviewResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreviewOrderFeeReviewResponse.ProtoReflect.Descriptor instead.
 func (*PreviewOrderFeeReviewResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{51}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *PreviewOrderFeeReviewResponse) GetSuccess() bool {
@@ -5245,7 +5560,7 @@ type SubmitOrderFeeReviewResponse struct {
 
 func (x *SubmitOrderFeeReviewResponse) Reset() {
 	*x = SubmitOrderFeeReviewResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[52]
+	mi := &file_order_v1_order_fee_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5257,7 +5572,7 @@ func (x *SubmitOrderFeeReviewResponse) String() string {
 func (*SubmitOrderFeeReviewResponse) ProtoMessage() {}
 
 func (x *SubmitOrderFeeReviewResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[52]
+	mi := &file_order_v1_order_fee_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5270,7 +5585,7 @@ func (x *SubmitOrderFeeReviewResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitOrderFeeReviewResponse.ProtoReflect.Descriptor instead.
 func (*SubmitOrderFeeReviewResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{52}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *SubmitOrderFeeReviewResponse) GetSuccess() bool {
@@ -5321,7 +5636,7 @@ type WithdrawOrderFeeReviewResponse struct {
 
 func (x *WithdrawOrderFeeReviewResponse) Reset() {
 	*x = WithdrawOrderFeeReviewResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[53]
+	mi := &file_order_v1_order_fee_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5333,7 +5648,7 @@ func (x *WithdrawOrderFeeReviewResponse) String() string {
 func (*WithdrawOrderFeeReviewResponse) ProtoMessage() {}
 
 func (x *WithdrawOrderFeeReviewResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[53]
+	mi := &file_order_v1_order_fee_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5346,7 +5661,7 @@ func (x *WithdrawOrderFeeReviewResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WithdrawOrderFeeReviewResponse.ProtoReflect.Descriptor instead.
 func (*WithdrawOrderFeeReviewResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{53}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *WithdrawOrderFeeReviewResponse) GetSuccess() bool {
@@ -5397,7 +5712,7 @@ type ApproveOrderFeeReviewResponse struct {
 
 func (x *ApproveOrderFeeReviewResponse) Reset() {
 	*x = ApproveOrderFeeReviewResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[54]
+	mi := &file_order_v1_order_fee_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5409,7 +5724,7 @@ func (x *ApproveOrderFeeReviewResponse) String() string {
 func (*ApproveOrderFeeReviewResponse) ProtoMessage() {}
 
 func (x *ApproveOrderFeeReviewResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[54]
+	mi := &file_order_v1_order_fee_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5422,7 +5737,7 @@ func (x *ApproveOrderFeeReviewResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApproveOrderFeeReviewResponse.ProtoReflect.Descriptor instead.
 func (*ApproveOrderFeeReviewResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{54}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *ApproveOrderFeeReviewResponse) GetSuccess() bool {
@@ -5473,7 +5788,7 @@ type RejectOrderFeeReviewResponse struct {
 
 func (x *RejectOrderFeeReviewResponse) Reset() {
 	*x = RejectOrderFeeReviewResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[55]
+	mi := &file_order_v1_order_fee_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5485,7 +5800,7 @@ func (x *RejectOrderFeeReviewResponse) String() string {
 func (*RejectOrderFeeReviewResponse) ProtoMessage() {}
 
 func (x *RejectOrderFeeReviewResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[55]
+	mi := &file_order_v1_order_fee_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5498,7 +5813,7 @@ func (x *RejectOrderFeeReviewResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RejectOrderFeeReviewResponse.ProtoReflect.Descriptor instead.
 func (*RejectOrderFeeReviewResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{55}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *RejectOrderFeeReviewResponse) GetSuccess() bool {
@@ -5549,7 +5864,7 @@ type RevokeOrderFeeReviewResponse struct {
 
 func (x *RevokeOrderFeeReviewResponse) Reset() {
 	*x = RevokeOrderFeeReviewResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[56]
+	mi := &file_order_v1_order_fee_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5561,7 +5876,7 @@ func (x *RevokeOrderFeeReviewResponse) String() string {
 func (*RevokeOrderFeeReviewResponse) ProtoMessage() {}
 
 func (x *RevokeOrderFeeReviewResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[56]
+	mi := &file_order_v1_order_fee_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5574,7 +5889,7 @@ func (x *RevokeOrderFeeReviewResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeOrderFeeReviewResponse.ProtoReflect.Descriptor instead.
 func (*RevokeOrderFeeReviewResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{56}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *RevokeOrderFeeReviewResponse) GetSuccess() bool {
@@ -5621,7 +5936,7 @@ type PreviewOrderFeeReviewsRequest struct {
 
 func (x *PreviewOrderFeeReviewsRequest) Reset() {
 	*x = PreviewOrderFeeReviewsRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[57]
+	mi := &file_order_v1_order_fee_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5633,7 +5948,7 @@ func (x *PreviewOrderFeeReviewsRequest) String() string {
 func (*PreviewOrderFeeReviewsRequest) ProtoMessage() {}
 
 func (x *PreviewOrderFeeReviewsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[57]
+	mi := &file_order_v1_order_fee_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5646,7 +5961,7 @@ func (x *PreviewOrderFeeReviewsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreviewOrderFeeReviewsRequest.ProtoReflect.Descriptor instead.
 func (*PreviewOrderFeeReviewsRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{57}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *PreviewOrderFeeReviewsRequest) GetOrderIds() []string {
@@ -5666,7 +5981,7 @@ type PreviewOrderFeeReviewsResponse struct {
 
 func (x *PreviewOrderFeeReviewsResponse) Reset() {
 	*x = PreviewOrderFeeReviewsResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[58]
+	mi := &file_order_v1_order_fee_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5678,7 +5993,7 @@ func (x *PreviewOrderFeeReviewsResponse) String() string {
 func (*PreviewOrderFeeReviewsResponse) ProtoMessage() {}
 
 func (x *PreviewOrderFeeReviewsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[58]
+	mi := &file_order_v1_order_fee_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5691,7 +6006,7 @@ func (x *PreviewOrderFeeReviewsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreviewOrderFeeReviewsResponse.ProtoReflect.Descriptor instead.
 func (*PreviewOrderFeeReviewsResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{58}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *PreviewOrderFeeReviewsResponse) GetData() []*OrderFeeReviewResult {
@@ -5717,7 +6032,7 @@ type ApproveOrderFeeReviewsRequest struct {
 
 func (x *ApproveOrderFeeReviewsRequest) Reset() {
 	*x = ApproveOrderFeeReviewsRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[59]
+	mi := &file_order_v1_order_fee_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5729,7 +6044,7 @@ func (x *ApproveOrderFeeReviewsRequest) String() string {
 func (*ApproveOrderFeeReviewsRequest) ProtoMessage() {}
 
 func (x *ApproveOrderFeeReviewsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[59]
+	mi := &file_order_v1_order_fee_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5742,7 +6057,7 @@ func (x *ApproveOrderFeeReviewsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApproveOrderFeeReviewsRequest.ProtoReflect.Descriptor instead.
 func (*ApproveOrderFeeReviewsRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{59}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *ApproveOrderFeeReviewsRequest) GetItems() []*OrderFeeReviewActionData {
@@ -5762,7 +6077,7 @@ type ApproveOrderFeeReviewsResponse struct {
 
 func (x *ApproveOrderFeeReviewsResponse) Reset() {
 	*x = ApproveOrderFeeReviewsResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[60]
+	mi := &file_order_v1_order_fee_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5774,7 +6089,7 @@ func (x *ApproveOrderFeeReviewsResponse) String() string {
 func (*ApproveOrderFeeReviewsResponse) ProtoMessage() {}
 
 func (x *ApproveOrderFeeReviewsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[60]
+	mi := &file_order_v1_order_fee_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5787,7 +6102,7 @@ func (x *ApproveOrderFeeReviewsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApproveOrderFeeReviewsResponse.ProtoReflect.Descriptor instead.
 func (*ApproveOrderFeeReviewsResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{60}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *ApproveOrderFeeReviewsResponse) GetData() []*OrderFeeReviewResult {
@@ -5817,7 +6132,7 @@ type OrderFeeReviewResult struct {
 
 func (x *OrderFeeReviewResult) Reset() {
 	*x = OrderFeeReviewResult{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[61]
+	mi := &file_order_v1_order_fee_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5829,7 +6144,7 @@ func (x *OrderFeeReviewResult) String() string {
 func (*OrderFeeReviewResult) ProtoMessage() {}
 
 func (x *OrderFeeReviewResult) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[61]
+	mi := &file_order_v1_order_fee_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5842,7 +6157,7 @@ func (x *OrderFeeReviewResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderFeeReviewResult.ProtoReflect.Descriptor instead.
 func (*OrderFeeReviewResult) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{61}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *OrderFeeReviewResult) GetOrderId() string {
@@ -5900,7 +6215,7 @@ type OrderFeeCorrectionTarget struct {
 
 func (x *OrderFeeCorrectionTarget) Reset() {
 	*x = OrderFeeCorrectionTarget{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[62]
+	mi := &file_order_v1_order_fee_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5912,7 +6227,7 @@ func (x *OrderFeeCorrectionTarget) String() string {
 func (*OrderFeeCorrectionTarget) ProtoMessage() {}
 
 func (x *OrderFeeCorrectionTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[62]
+	mi := &file_order_v1_order_fee_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5925,7 +6240,7 @@ func (x *OrderFeeCorrectionTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderFeeCorrectionTarget.ProtoReflect.Descriptor instead.
 func (*OrderFeeCorrectionTarget) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{62}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *OrderFeeCorrectionTarget) GetDirection() OrderFeeDirection {
@@ -6027,7 +6342,7 @@ type CreateOrderFeeCorrectionRequest struct {
 
 func (x *CreateOrderFeeCorrectionRequest) Reset() {
 	*x = CreateOrderFeeCorrectionRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[63]
+	mi := &file_order_v1_order_fee_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6039,7 +6354,7 @@ func (x *CreateOrderFeeCorrectionRequest) String() string {
 func (*CreateOrderFeeCorrectionRequest) ProtoMessage() {}
 
 func (x *CreateOrderFeeCorrectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[63]
+	mi := &file_order_v1_order_fee_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6052,7 +6367,7 @@ func (x *CreateOrderFeeCorrectionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOrderFeeCorrectionRequest.ProtoReflect.Descriptor instead.
 func (*CreateOrderFeeCorrectionRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{63}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *CreateOrderFeeCorrectionRequest) GetOrderId() string {
@@ -6115,7 +6430,7 @@ type ListOrderFeeCorrectionRequestsRequest struct {
 
 func (x *ListOrderFeeCorrectionRequestsRequest) Reset() {
 	*x = ListOrderFeeCorrectionRequestsRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[64]
+	mi := &file_order_v1_order_fee_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6127,7 +6442,7 @@ func (x *ListOrderFeeCorrectionRequestsRequest) String() string {
 func (*ListOrderFeeCorrectionRequestsRequest) ProtoMessage() {}
 
 func (x *ListOrderFeeCorrectionRequestsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[64]
+	mi := &file_order_v1_order_fee_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6140,7 +6455,7 @@ func (x *ListOrderFeeCorrectionRequestsRequest) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use ListOrderFeeCorrectionRequestsRequest.ProtoReflect.Descriptor instead.
 func (*ListOrderFeeCorrectionRequestsRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{64}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *ListOrderFeeCorrectionRequestsRequest) GetOrderId() string {
@@ -6174,7 +6489,7 @@ type GetOrderFeeCorrectionRequestRequest struct {
 
 func (x *GetOrderFeeCorrectionRequestRequest) Reset() {
 	*x = GetOrderFeeCorrectionRequestRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[65]
+	mi := &file_order_v1_order_fee_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6186,7 +6501,7 @@ func (x *GetOrderFeeCorrectionRequestRequest) String() string {
 func (*GetOrderFeeCorrectionRequestRequest) ProtoMessage() {}
 
 func (x *GetOrderFeeCorrectionRequestRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[65]
+	mi := &file_order_v1_order_fee_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6199,7 +6514,7 @@ func (x *GetOrderFeeCorrectionRequestRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use GetOrderFeeCorrectionRequestRequest.ProtoReflect.Descriptor instead.
 func (*GetOrderFeeCorrectionRequestRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{65}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *GetOrderFeeCorrectionRequestRequest) GetOrderId() string {
@@ -6227,7 +6542,7 @@ type PreviewOrderFeeCorrectionApprovalRequest struct {
 
 func (x *PreviewOrderFeeCorrectionApprovalRequest) Reset() {
 	*x = PreviewOrderFeeCorrectionApprovalRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[66]
+	mi := &file_order_v1_order_fee_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6239,7 +6554,7 @@ func (x *PreviewOrderFeeCorrectionApprovalRequest) String() string {
 func (*PreviewOrderFeeCorrectionApprovalRequest) ProtoMessage() {}
 
 func (x *PreviewOrderFeeCorrectionApprovalRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[66]
+	mi := &file_order_v1_order_fee_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6252,7 +6567,7 @@ func (x *PreviewOrderFeeCorrectionApprovalRequest) ProtoReflect() protoreflect.M
 
 // Deprecated: Use PreviewOrderFeeCorrectionApprovalRequest.ProtoReflect.Descriptor instead.
 func (*PreviewOrderFeeCorrectionApprovalRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{66}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *PreviewOrderFeeCorrectionApprovalRequest) GetOrderId() string {
@@ -6289,7 +6604,7 @@ type ApproveOrderFeeCorrectionRequest struct {
 
 func (x *ApproveOrderFeeCorrectionRequest) Reset() {
 	*x = ApproveOrderFeeCorrectionRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[67]
+	mi := &file_order_v1_order_fee_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6301,7 +6616,7 @@ func (x *ApproveOrderFeeCorrectionRequest) String() string {
 func (*ApproveOrderFeeCorrectionRequest) ProtoMessage() {}
 
 func (x *ApproveOrderFeeCorrectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[67]
+	mi := &file_order_v1_order_fee_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6314,7 +6629,7 @@ func (x *ApproveOrderFeeCorrectionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApproveOrderFeeCorrectionRequest.ProtoReflect.Descriptor instead.
 func (*ApproveOrderFeeCorrectionRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{67}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *ApproveOrderFeeCorrectionRequest) GetOrderId() string {
@@ -6364,7 +6679,7 @@ type RejectOrderFeeCorrectionRequest struct {
 
 func (x *RejectOrderFeeCorrectionRequest) Reset() {
 	*x = RejectOrderFeeCorrectionRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[68]
+	mi := &file_order_v1_order_fee_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6376,7 +6691,7 @@ func (x *RejectOrderFeeCorrectionRequest) String() string {
 func (*RejectOrderFeeCorrectionRequest) ProtoMessage() {}
 
 func (x *RejectOrderFeeCorrectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[68]
+	mi := &file_order_v1_order_fee_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6389,7 +6704,7 @@ func (x *RejectOrderFeeCorrectionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RejectOrderFeeCorrectionRequest.ProtoReflect.Descriptor instead.
 func (*RejectOrderFeeCorrectionRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{68}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *RejectOrderFeeCorrectionRequest) GetOrderId() string {
@@ -6431,7 +6746,7 @@ type WithdrawOrderFeeCorrectionRequest struct {
 
 func (x *WithdrawOrderFeeCorrectionRequest) Reset() {
 	*x = WithdrawOrderFeeCorrectionRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[69]
+	mi := &file_order_v1_order_fee_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6443,7 +6758,7 @@ func (x *WithdrawOrderFeeCorrectionRequest) String() string {
 func (*WithdrawOrderFeeCorrectionRequest) ProtoMessage() {}
 
 func (x *WithdrawOrderFeeCorrectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[69]
+	mi := &file_order_v1_order_fee_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6456,7 +6771,7 @@ func (x *WithdrawOrderFeeCorrectionRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use WithdrawOrderFeeCorrectionRequest.ProtoReflect.Descriptor instead.
 func (*WithdrawOrderFeeCorrectionRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{69}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *WithdrawOrderFeeCorrectionRequest) GetOrderId() string {
@@ -6517,7 +6832,7 @@ type OrderFeeCorrectionRequestData struct {
 
 func (x *OrderFeeCorrectionRequestData) Reset() {
 	*x = OrderFeeCorrectionRequestData{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[70]
+	mi := &file_order_v1_order_fee_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6529,7 +6844,7 @@ func (x *OrderFeeCorrectionRequestData) String() string {
 func (*OrderFeeCorrectionRequestData) ProtoMessage() {}
 
 func (x *OrderFeeCorrectionRequestData) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[70]
+	mi := &file_order_v1_order_fee_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6542,7 +6857,7 @@ func (x *OrderFeeCorrectionRequestData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderFeeCorrectionRequestData.ProtoReflect.Descriptor instead.
 func (*OrderFeeCorrectionRequestData) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{70}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *OrderFeeCorrectionRequestData) GetId() string {
@@ -6766,7 +7081,7 @@ type FeeCorrectionCommissionImpactData struct {
 
 func (x *FeeCorrectionCommissionImpactData) Reset() {
 	*x = FeeCorrectionCommissionImpactData{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[71]
+	mi := &file_order_v1_order_fee_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6778,7 +7093,7 @@ func (x *FeeCorrectionCommissionImpactData) String() string {
 func (*FeeCorrectionCommissionImpactData) ProtoMessage() {}
 
 func (x *FeeCorrectionCommissionImpactData) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[71]
+	mi := &file_order_v1_order_fee_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6791,7 +7106,7 @@ func (x *FeeCorrectionCommissionImpactData) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use FeeCorrectionCommissionImpactData.ProtoReflect.Descriptor instead.
 func (*FeeCorrectionCommissionImpactData) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{71}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *FeeCorrectionCommissionImpactData) GetCommissionId() string {
@@ -6884,7 +7199,7 @@ type OrderFeeCorrectionApprovalData struct {
 
 func (x *OrderFeeCorrectionApprovalData) Reset() {
 	*x = OrderFeeCorrectionApprovalData{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[72]
+	mi := &file_order_v1_order_fee_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6896,7 +7211,7 @@ func (x *OrderFeeCorrectionApprovalData) String() string {
 func (*OrderFeeCorrectionApprovalData) ProtoMessage() {}
 
 func (x *OrderFeeCorrectionApprovalData) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[72]
+	mi := &file_order_v1_order_fee_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6909,7 +7224,7 @@ func (x *OrderFeeCorrectionApprovalData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OrderFeeCorrectionApprovalData.ProtoReflect.Descriptor instead.
 func (*OrderFeeCorrectionApprovalData) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{72}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *OrderFeeCorrectionApprovalData) GetRequest() *OrderFeeCorrectionRequestData {
@@ -7009,7 +7324,7 @@ type CreateOrderFeeCorrectionResponse struct {
 
 func (x *CreateOrderFeeCorrectionResponse) Reset() {
 	*x = CreateOrderFeeCorrectionResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[73]
+	mi := &file_order_v1_order_fee_proto_msgTypes[76]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7021,7 +7336,7 @@ func (x *CreateOrderFeeCorrectionResponse) String() string {
 func (*CreateOrderFeeCorrectionResponse) ProtoMessage() {}
 
 func (x *CreateOrderFeeCorrectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[73]
+	mi := &file_order_v1_order_fee_proto_msgTypes[76]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7034,7 +7349,7 @@ func (x *CreateOrderFeeCorrectionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateOrderFeeCorrectionResponse.ProtoReflect.Descriptor instead.
 func (*CreateOrderFeeCorrectionResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{73}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *CreateOrderFeeCorrectionResponse) GetSuccess() bool {
@@ -7085,7 +7400,7 @@ type GetOrderFeeCorrectionRequestResponse struct {
 
 func (x *GetOrderFeeCorrectionRequestResponse) Reset() {
 	*x = GetOrderFeeCorrectionRequestResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[74]
+	mi := &file_order_v1_order_fee_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7097,7 +7412,7 @@ func (x *GetOrderFeeCorrectionRequestResponse) String() string {
 func (*GetOrderFeeCorrectionRequestResponse) ProtoMessage() {}
 
 func (x *GetOrderFeeCorrectionRequestResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[74]
+	mi := &file_order_v1_order_fee_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7110,7 +7425,7 @@ func (x *GetOrderFeeCorrectionRequestResponse) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use GetOrderFeeCorrectionRequestResponse.ProtoReflect.Descriptor instead.
 func (*GetOrderFeeCorrectionRequestResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{74}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *GetOrderFeeCorrectionRequestResponse) GetSuccess() bool {
@@ -7161,7 +7476,7 @@ type PreviewOrderFeeCorrectionApprovalResponse struct {
 
 func (x *PreviewOrderFeeCorrectionApprovalResponse) Reset() {
 	*x = PreviewOrderFeeCorrectionApprovalResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[75]
+	mi := &file_order_v1_order_fee_proto_msgTypes[78]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7173,7 +7488,7 @@ func (x *PreviewOrderFeeCorrectionApprovalResponse) String() string {
 func (*PreviewOrderFeeCorrectionApprovalResponse) ProtoMessage() {}
 
 func (x *PreviewOrderFeeCorrectionApprovalResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[75]
+	mi := &file_order_v1_order_fee_proto_msgTypes[78]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7186,7 +7501,7 @@ func (x *PreviewOrderFeeCorrectionApprovalResponse) ProtoReflect() protoreflect.
 
 // Deprecated: Use PreviewOrderFeeCorrectionApprovalResponse.ProtoReflect.Descriptor instead.
 func (*PreviewOrderFeeCorrectionApprovalResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{75}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{78}
 }
 
 func (x *PreviewOrderFeeCorrectionApprovalResponse) GetSuccess() bool {
@@ -7237,7 +7552,7 @@ type ApproveOrderFeeCorrectionResponse struct {
 
 func (x *ApproveOrderFeeCorrectionResponse) Reset() {
 	*x = ApproveOrderFeeCorrectionResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[76]
+	mi := &file_order_v1_order_fee_proto_msgTypes[79]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7249,7 +7564,7 @@ func (x *ApproveOrderFeeCorrectionResponse) String() string {
 func (*ApproveOrderFeeCorrectionResponse) ProtoMessage() {}
 
 func (x *ApproveOrderFeeCorrectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[76]
+	mi := &file_order_v1_order_fee_proto_msgTypes[79]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7262,7 +7577,7 @@ func (x *ApproveOrderFeeCorrectionResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ApproveOrderFeeCorrectionResponse.ProtoReflect.Descriptor instead.
 func (*ApproveOrderFeeCorrectionResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{76}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{79}
 }
 
 func (x *ApproveOrderFeeCorrectionResponse) GetSuccess() bool {
@@ -7313,7 +7628,7 @@ type RejectOrderFeeCorrectionResponse struct {
 
 func (x *RejectOrderFeeCorrectionResponse) Reset() {
 	*x = RejectOrderFeeCorrectionResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[77]
+	mi := &file_order_v1_order_fee_proto_msgTypes[80]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7325,7 +7640,7 @@ func (x *RejectOrderFeeCorrectionResponse) String() string {
 func (*RejectOrderFeeCorrectionResponse) ProtoMessage() {}
 
 func (x *RejectOrderFeeCorrectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[77]
+	mi := &file_order_v1_order_fee_proto_msgTypes[80]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7338,7 +7653,7 @@ func (x *RejectOrderFeeCorrectionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RejectOrderFeeCorrectionResponse.ProtoReflect.Descriptor instead.
 func (*RejectOrderFeeCorrectionResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{77}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{80}
 }
 
 func (x *RejectOrderFeeCorrectionResponse) GetSuccess() bool {
@@ -7389,7 +7704,7 @@ type WithdrawOrderFeeCorrectionResponse struct {
 
 func (x *WithdrawOrderFeeCorrectionResponse) Reset() {
 	*x = WithdrawOrderFeeCorrectionResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[78]
+	mi := &file_order_v1_order_fee_proto_msgTypes[81]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7401,7 +7716,7 @@ func (x *WithdrawOrderFeeCorrectionResponse) String() string {
 func (*WithdrawOrderFeeCorrectionResponse) ProtoMessage() {}
 
 func (x *WithdrawOrderFeeCorrectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[78]
+	mi := &file_order_v1_order_fee_proto_msgTypes[81]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7414,7 +7729,7 @@ func (x *WithdrawOrderFeeCorrectionResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use WithdrawOrderFeeCorrectionResponse.ProtoReflect.Descriptor instead.
 func (*WithdrawOrderFeeCorrectionResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{78}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{81}
 }
 
 func (x *WithdrawOrderFeeCorrectionResponse) GetSuccess() bool {
@@ -7468,7 +7783,7 @@ type ListOrderFeeCorrectionRequestsResponse struct {
 
 func (x *ListOrderFeeCorrectionRequestsResponse) Reset() {
 	*x = ListOrderFeeCorrectionRequestsResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[79]
+	mi := &file_order_v1_order_fee_proto_msgTypes[82]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7480,7 +7795,7 @@ func (x *ListOrderFeeCorrectionRequestsResponse) String() string {
 func (*ListOrderFeeCorrectionRequestsResponse) ProtoMessage() {}
 
 func (x *ListOrderFeeCorrectionRequestsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[79]
+	mi := &file_order_v1_order_fee_proto_msgTypes[82]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7493,7 +7808,7 @@ func (x *ListOrderFeeCorrectionRequestsResponse) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use ListOrderFeeCorrectionRequestsResponse.ProtoReflect.Descriptor instead.
 func (*ListOrderFeeCorrectionRequestsResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{79}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{82}
 }
 
 func (x *ListOrderFeeCorrectionRequestsResponse) GetSuccess() bool {
@@ -7565,7 +7880,7 @@ type PreviewFeeQuantityRequest struct {
 
 func (x *PreviewFeeQuantityRequest) Reset() {
 	*x = PreviewFeeQuantityRequest{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[80]
+	mi := &file_order_v1_order_fee_proto_msgTypes[83]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7577,7 +7892,7 @@ func (x *PreviewFeeQuantityRequest) String() string {
 func (*PreviewFeeQuantityRequest) ProtoMessage() {}
 
 func (x *PreviewFeeQuantityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[80]
+	mi := &file_order_v1_order_fee_proto_msgTypes[83]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7590,7 +7905,7 @@ func (x *PreviewFeeQuantityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreviewFeeQuantityRequest.ProtoReflect.Descriptor instead.
 func (*PreviewFeeQuantityRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{80}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{83}
 }
 
 func (x *PreviewFeeQuantityRequest) GetOrderId() string {
@@ -7632,7 +7947,7 @@ type FeeQuantityInput struct {
 
 func (x *FeeQuantityInput) Reset() {
 	*x = FeeQuantityInput{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[81]
+	mi := &file_order_v1_order_fee_proto_msgTypes[84]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7644,7 +7959,7 @@ func (x *FeeQuantityInput) String() string {
 func (*FeeQuantityInput) ProtoMessage() {}
 
 func (x *FeeQuantityInput) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[81]
+	mi := &file_order_v1_order_fee_proto_msgTypes[84]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7657,7 +7972,7 @@ func (x *FeeQuantityInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeeQuantityInput.ProtoReflect.Descriptor instead.
 func (*FeeQuantityInput) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{81}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{84}
 }
 
 func (x *FeeQuantityInput) GetLabel() string {
@@ -7696,7 +8011,7 @@ type FeeQuantityPreview struct {
 
 func (x *FeeQuantityPreview) Reset() {
 	*x = FeeQuantityPreview{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[82]
+	mi := &file_order_v1_order_fee_proto_msgTypes[85]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7708,7 +8023,7 @@ func (x *FeeQuantityPreview) String() string {
 func (*FeeQuantityPreview) ProtoMessage() {}
 
 func (x *FeeQuantityPreview) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[82]
+	mi := &file_order_v1_order_fee_proto_msgTypes[85]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7721,7 +8036,7 @@ func (x *FeeQuantityPreview) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeeQuantityPreview.ProtoReflect.Descriptor instead.
 func (*FeeQuantityPreview) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{82}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{85}
 }
 
 func (x *FeeQuantityPreview) GetAvailable() bool {
@@ -7792,7 +8107,7 @@ type FeeQuantitySelection struct {
 
 func (x *FeeQuantitySelection) Reset() {
 	*x = FeeQuantitySelection{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[83]
+	mi := &file_order_v1_order_fee_proto_msgTypes[86]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7804,7 +8119,7 @@ func (x *FeeQuantitySelection) String() string {
 func (*FeeQuantitySelection) ProtoMessage() {}
 
 func (x *FeeQuantitySelection) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[83]
+	mi := &file_order_v1_order_fee_proto_msgTypes[86]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7817,7 +8132,7 @@ func (x *FeeQuantitySelection) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeeQuantitySelection.ProtoReflect.Descriptor instead.
 func (*FeeQuantitySelection) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{83}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{86}
 }
 
 func (x *FeeQuantitySelection) GetMode() string {
@@ -7896,7 +8211,7 @@ type PreviewFeeQuantityResponse struct {
 
 func (x *PreviewFeeQuantityResponse) Reset() {
 	*x = PreviewFeeQuantityResponse{}
-	mi := &file_order_v1_order_fee_proto_msgTypes[84]
+	mi := &file_order_v1_order_fee_proto_msgTypes[87]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7908,7 +8223,7 @@ func (x *PreviewFeeQuantityResponse) String() string {
 func (*PreviewFeeQuantityResponse) ProtoMessage() {}
 
 func (x *PreviewFeeQuantityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_order_fee_proto_msgTypes[84]
+	mi := &file_order_v1_order_fee_proto_msgTypes[87]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7921,7 +8236,7 @@ func (x *PreviewFeeQuantityResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreviewFeeQuantityResponse.ProtoReflect.Descriptor instead.
 func (*PreviewFeeQuantityResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{84}
+	return file_order_v1_order_fee_proto_rawDescGZIP(), []int{87}
 }
 
 func (x *PreviewFeeQuantityResponse) GetSuccess() bool {
@@ -8122,7 +8437,44 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\x17_exchange_rate_overrideB\x10\n" +
 	"\x0e_tax_inclusiveB\v\n" +
 	"\t_tax_rateB\v\n" +
-	"\t_fee_nameJ\x04\b\x04\x10\x05J\x04\b\x05\x10\x06J\x04\b\a\x10\bJ\x04\b\v\x10\fJ\x04\b\f\x10\rR\bfee_codeR\fbilling_unit\"\x9f\x01\n" +
+	"\t_fee_nameJ\x04\b\x04\x10\x05J\x04\b\x05\x10\x06J\x04\b\a\x10\bJ\x04\b\v\x10\fJ\x04\b\f\x10\rR\bfee_codeR\fbilling_unit\"\xc3\x05\n" +
+	"\x0fSaveOrderFeeRow\x12'\n" +
+	"\rclient_row_id\x18\x01 \x01(\tB\x03\xe0A\x02R\vclientRowId\x12\x1a\n" +
+	"\x06fee_id\x18\x02 \x01(\tH\x00R\x05feeId\x88\x01\x01\x12.\n" +
+	"\x10expected_version\x18\x03 \x01(\x04H\x01R\x0fexpectedVersion\x88\x01\x01\x12)\n" +
+	"\x0efee_setting_id\x18\x04 \x01(\tB\x03\xe0A\x02R\ffeeSettingId\x123\n" +
+	"\x13settlement_party_id\x18\x05 \x01(\tB\x03\xe0A\x02R\x11settlementPartyId\x12+\n" +
+	"\x0fbilling_unit_id\x18\x06 \x01(\tB\x03\xe0A\x02R\rbillingUnitId\x12\x1f\n" +
+	"\bquantity\x18\a \x01(\tB\x03\xe0A\x02R\bquantity\x12\"\n" +
+	"\n" +
+	"unit_price\x18\b \x01(\tB\x03\xe0A\x02R\tunitPrice\x12\x1f\n" +
+	"\bcurrency\x18\t \x01(\tB\x03\xe0A\x02R\bcurrency\x12\x17\n" +
+	"\x04note\x18\n" +
+	" \x01(\tH\x02R\x04note\x88\x01\x01\x129\n" +
+	"\x16exchange_rate_override\x18\v \x01(\tH\x03R\x14exchangeRateOverride\x88\x01\x01\x12(\n" +
+	"\rtax_inclusive\x18\f \x01(\bH\x04R\ftaxInclusive\x88\x01\x01\x12G\n" +
+	"\x0fquantity_source\x18\r \x01(\v2\x1e.order.v1.FeeQuantitySelectionR\x0equantitySource\x12\x1e\n" +
+	"\btax_rate\x18\x0e \x01(\tH\x05R\ataxRate\x88\x01\x01B\t\n" +
+	"\a_fee_idB\x13\n" +
+	"\x11_expected_versionB\a\n" +
+	"\x05_noteB\x19\n" +
+	"\x17_exchange_rate_overrideB\x10\n" +
+	"\x0e_tax_inclusiveB\v\n" +
+	"\t_tax_rate\"\xd0\x01\n" +
+	"\x14SaveOrderFeesRequest\x12\x1e\n" +
+	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12>\n" +
+	"\tdirection\x18\x02 \x01(\x0e2\x1b.order.v1.OrderFeeDirectionB\x03\xe0A\x02R\tdirection\x12$\n" +
+	"\vrequest_key\x18\x03 \x01(\tB\x03\xe0A\x02R\n" +
+	"requestKey\x122\n" +
+	"\x04rows\x18\x04 \x03(\v2\x19.order.v1.SaveOrderFeeRowB\x03\xe0A\x02R\x04rows\"\xee\x01\n" +
+	"\x15SaveOrderFeesResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12&\n" +
+	"\x04data\x18\x04 \x03(\v2\x12.order.v1.OrderFeeR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\x12.\n" +
+	"\x13fee_content_version\x18\x06 \x01(\x04R\x11feeContentVersion\x12\x1a\n" +
+	"\breplayed\x18\a \x01(\bR\breplayed\"\x9f\x01\n" +
 	"\x10RemoveFeeRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +
 	"\x02id\x18\x02 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
@@ -8769,7 +9121,7 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"*ORDER_FEE_CORRECTION_OPERATION_UNSPECIFIED\x10\x00\x12&\n" +
 	"\"ORDER_FEE_CORRECTION_OPERATION_ADD\x10\x01\x12*\n" +
 	"&ORDER_FEE_CORRECTION_OPERATION_REPLACE\x10\x02\x12'\n" +
-	"#ORDER_FEE_CORRECTION_OPERATION_VOID\x10\x032\xbb\x1a\n" +
+	"#ORDER_FEE_CORRECTION_OPERATION_VOID\x10\x032\xd2\x1b\n" +
 	"\x0fOrderFeeService\x12\xb5\x01\n" +
 	"\x18CreateOrderFeeCorrection\x12).order.v1.CreateOrderFeeCorrectionRequest\x1a*.order.v1.CreateOrderFeeCorrectionResponse\"B\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x026:\x01*\"1/api/v1/orders/{order_id}/fee-correction-requests\x12\xc4\x01\n" +
 	"\x1eListOrderFeeCorrectionRequests\x12/.order.v1.ListOrderFeeCorrectionRequestsRequest\x1a0.order.v1.ListOrderFeeCorrectionRequestsResponse\"?\x82\xb5\x18\x02\b\x02\x82\xd3\xe4\x93\x023\x121/api/v1/orders/{order_id}/fee-correction-requests\x12\xc3\x01\n" +
@@ -8788,7 +9140,9 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\tUpdateFee\x12\x1a.order.v1.UpdateFeeRequest\x1a\x1b.order.v1.UpdateFeeResponse\"B\x82\xb5\x18\x10\b\x04\x1a\n" +
 	"fee.update \x02\x82\xd3\xe4\x93\x02(:\x01*\x1a#/api/v1/orders/{order_id}/fees/{id}\x12\x85\x01\n" +
 	"\tRemoveFee\x12\x1a.order.v1.RemoveFeeRequest\x1a\x1b.order.v1.RemoveFeeResponse\"?\x82\xb5\x18\x10\b\x04\x1a\n" +
-	"fee.delete \x02\x82\xd3\xe4\x93\x02%*#/api/v1/orders/{order_id}/fees/{id}\x12\xad\x01\n" +
+	"fee.delete \x02\x82\xd3\xe4\x93\x02%*#/api/v1/orders/{order_id}/fees/{id}\x12\x94\x01\n" +
+	"\rSaveOrderFees\x12\x1e.order.v1.SaveOrderFeesRequest\x1a\x1f.order.v1.SaveOrderFeesResponse\"B\x82\xb5\x18\x10\b\x04\x1a\n" +
+	"fee.update \x02\x82\xd3\xe4\x93\x02(:\x01*\"#/api/v1/orders/{order_id}/fees:save\x12\xad\x01\n" +
 	"\x13BulkUpdateOrderFees\x12$.order.v1.BulkUpdateOrderFeesRequest\x1a%.order.v1.BulkUpdateOrderFeesResponse\"I\x82\xb5\x18\x10\b\x04\x1a\n" +
 	"fee.update \x02\x82\xd3\xe4\x93\x02/:\x01*\"*/api/v1/orders/{order_id}/fees/bulk-update\x12\xad\x01\n" +
 	"\x13BulkRemoveOrderFees\x12$.order.v1.BulkRemoveOrderFeesRequest\x1a%.order.v1.BulkRemoveOrderFeesResponse\"I\x82\xb5\x18\x10\b\x04\x1a\n" +
@@ -8809,7 +9163,7 @@ func file_order_v1_order_fee_proto_rawDescGZIP() []byte {
 }
 
 var file_order_v1_order_fee_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_order_v1_order_fee_proto_msgTypes = make([]protoimpl.MessageInfo, 85)
+var file_order_v1_order_fee_proto_msgTypes = make([]protoimpl.MessageInfo, 88)
 var file_order_v1_order_fee_proto_goTypes = []any{
 	(OrderFeeDirection)(0),                            // 0: order.v1.OrderFeeDirection
 	(OrderFeeCorrectionOperation)(0),                  // 1: order.v1.OrderFeeCorrectionOperation
@@ -8823,191 +9177,200 @@ var file_order_v1_order_fee_proto_goTypes = []any{
 	(*ListFeeOptionsResponse)(nil),                    // 9: order.v1.ListFeeOptionsResponse
 	(*AddFeeRequest)(nil),                             // 10: order.v1.AddFeeRequest
 	(*UpdateFeeRequest)(nil),                          // 11: order.v1.UpdateFeeRequest
-	(*RemoveFeeRequest)(nil),                          // 12: order.v1.RemoveFeeRequest
-	(*ResolveFeeExchangeRateRequest)(nil),             // 13: order.v1.ResolveFeeExchangeRateRequest
-	(*ResolveFeeExchangeRateResponse)(nil),            // 14: order.v1.ResolveFeeExchangeRateResponse
-	(*ListFeesResponse)(nil),                          // 15: order.v1.ListFeesResponse
-	(*AddFeeResponse)(nil),                            // 16: order.v1.AddFeeResponse
-	(*UpdateFeeResponse)(nil),                         // 17: order.v1.UpdateFeeResponse
-	(*RemoveFeeResponse)(nil),                         // 18: order.v1.RemoveFeeResponse
-	(*BulkOrderFeeTarget)(nil),                        // 19: order.v1.BulkOrderFeeTarget
-	(*BulkUpdateOrderFeesRequest)(nil),                // 20: order.v1.BulkUpdateOrderFeesRequest
-	(*BulkUpdateOrderFeesResponse)(nil),               // 21: order.v1.BulkUpdateOrderFeesResponse
-	(*BulkRemoveOrderFeesRequest)(nil),                // 22: order.v1.BulkRemoveOrderFeesRequest
-	(*BulkRemoveOrderFeesResponse)(nil),               // 23: order.v1.BulkRemoveOrderFeesResponse
-	(*OrderFeeSupplementRequestData)(nil),             // 24: order.v1.OrderFeeSupplementRequestData
-	(*CreateOrderFeeSupplementRequest)(nil),           // 25: order.v1.CreateOrderFeeSupplementRequest
-	(*CreateOrderFeeSupplementResponse)(nil),          // 26: order.v1.CreateOrderFeeSupplementResponse
-	(*ListOrderFeeSupplementRequestsRequest)(nil),     // 27: order.v1.ListOrderFeeSupplementRequestsRequest
-	(*ListOrderFeeSupplementRequestsData)(nil),        // 28: order.v1.ListOrderFeeSupplementRequestsData
-	(*ListOrderFeeSupplementRequestsResponse)(nil),    // 29: order.v1.ListOrderFeeSupplementRequestsResponse
-	(*ApproveOrderFeeSupplementRequest)(nil),          // 30: order.v1.ApproveOrderFeeSupplementRequest
-	(*PreviewOrderFeeSupplementApprovalRequest)(nil),  // 31: order.v1.PreviewOrderFeeSupplementApprovalRequest
-	(*PreviewOrderFeeSupplementApprovalData)(nil),     // 32: order.v1.PreviewOrderFeeSupplementApprovalData
-	(*PreviewOrderFeeSupplementApprovalResponse)(nil), // 33: order.v1.PreviewOrderFeeSupplementApprovalResponse
-	(*ApproveOrderFeeSupplementResponse)(nil),         // 34: order.v1.ApproveOrderFeeSupplementResponse
-	(*RejectOrderFeeSupplementRequest)(nil),           // 35: order.v1.RejectOrderFeeSupplementRequest
-	(*RejectOrderFeeSupplementResponse)(nil),          // 36: order.v1.RejectOrderFeeSupplementResponse
-	(*WithdrawOrderFeeSupplementRequest)(nil),         // 37: order.v1.WithdrawOrderFeeSupplementRequest
-	(*WithdrawOrderFeeSupplementResponse)(nil),        // 38: order.v1.WithdrawOrderFeeSupplementResponse
-	(*CancelApprovedOrderFeeSupplementRequest)(nil),   // 39: order.v1.CancelApprovedOrderFeeSupplementRequest
-	(*CancelApprovedOrderFeeSupplementResponse)(nil),  // 40: order.v1.CancelApprovedOrderFeeSupplementResponse
-	(*FeeSupplementCommissionImpact)(nil),             // 41: order.v1.FeeSupplementCommissionImpact
-	(*GetOrderFeeReviewRequest)(nil),                  // 42: order.v1.GetOrderFeeReviewRequest
-	(*PreviewOrderFeeReviewRequest)(nil),              // 43: order.v1.PreviewOrderFeeReviewRequest
-	(*SubmitOrderFeeReviewRequest)(nil),               // 44: order.v1.SubmitOrderFeeReviewRequest
-	(*WithdrawOrderFeeReviewRequest)(nil),             // 45: order.v1.WithdrawOrderFeeReviewRequest
-	(*ApproveOrderFeeReviewRequest)(nil),              // 46: order.v1.ApproveOrderFeeReviewRequest
-	(*RejectOrderFeeReviewRequest)(nil),               // 47: order.v1.RejectOrderFeeReviewRequest
-	(*RevokeOrderFeeReviewRequest)(nil),               // 48: order.v1.RevokeOrderFeeReviewRequest
-	(*OrderFeeReviewActionData)(nil),                  // 49: order.v1.OrderFeeReviewActionData
-	(*OrderFeeReviewEventData)(nil),                   // 50: order.v1.OrderFeeReviewEventData
-	(*OrderFeeReviewData)(nil),                        // 51: order.v1.OrderFeeReviewData
-	(*GetOrderFeeReviewResponse)(nil),                 // 52: order.v1.GetOrderFeeReviewResponse
-	(*PreviewOrderFeeReviewResponse)(nil),             // 53: order.v1.PreviewOrderFeeReviewResponse
-	(*SubmitOrderFeeReviewResponse)(nil),              // 54: order.v1.SubmitOrderFeeReviewResponse
-	(*WithdrawOrderFeeReviewResponse)(nil),            // 55: order.v1.WithdrawOrderFeeReviewResponse
-	(*ApproveOrderFeeReviewResponse)(nil),             // 56: order.v1.ApproveOrderFeeReviewResponse
-	(*RejectOrderFeeReviewResponse)(nil),              // 57: order.v1.RejectOrderFeeReviewResponse
-	(*RevokeOrderFeeReviewResponse)(nil),              // 58: order.v1.RevokeOrderFeeReviewResponse
-	(*PreviewOrderFeeReviewsRequest)(nil),             // 59: order.v1.PreviewOrderFeeReviewsRequest
-	(*PreviewOrderFeeReviewsResponse)(nil),            // 60: order.v1.PreviewOrderFeeReviewsResponse
-	(*ApproveOrderFeeReviewsRequest)(nil),             // 61: order.v1.ApproveOrderFeeReviewsRequest
-	(*ApproveOrderFeeReviewsResponse)(nil),            // 62: order.v1.ApproveOrderFeeReviewsResponse
-	(*OrderFeeReviewResult)(nil),                      // 63: order.v1.OrderFeeReviewResult
-	(*OrderFeeCorrectionTarget)(nil),                  // 64: order.v1.OrderFeeCorrectionTarget
-	(*CreateOrderFeeCorrectionRequest)(nil),           // 65: order.v1.CreateOrderFeeCorrectionRequest
-	(*ListOrderFeeCorrectionRequestsRequest)(nil),     // 66: order.v1.ListOrderFeeCorrectionRequestsRequest
-	(*GetOrderFeeCorrectionRequestRequest)(nil),       // 67: order.v1.GetOrderFeeCorrectionRequestRequest
-	(*PreviewOrderFeeCorrectionApprovalRequest)(nil),  // 68: order.v1.PreviewOrderFeeCorrectionApprovalRequest
-	(*ApproveOrderFeeCorrectionRequest)(nil),          // 69: order.v1.ApproveOrderFeeCorrectionRequest
-	(*RejectOrderFeeCorrectionRequest)(nil),           // 70: order.v1.RejectOrderFeeCorrectionRequest
-	(*WithdrawOrderFeeCorrectionRequest)(nil),         // 71: order.v1.WithdrawOrderFeeCorrectionRequest
-	(*OrderFeeCorrectionRequestData)(nil),             // 72: order.v1.OrderFeeCorrectionRequestData
-	(*FeeCorrectionCommissionImpactData)(nil),         // 73: order.v1.FeeCorrectionCommissionImpactData
-	(*OrderFeeCorrectionApprovalData)(nil),            // 74: order.v1.OrderFeeCorrectionApprovalData
-	(*CreateOrderFeeCorrectionResponse)(nil),          // 75: order.v1.CreateOrderFeeCorrectionResponse
-	(*GetOrderFeeCorrectionRequestResponse)(nil),      // 76: order.v1.GetOrderFeeCorrectionRequestResponse
-	(*PreviewOrderFeeCorrectionApprovalResponse)(nil), // 77: order.v1.PreviewOrderFeeCorrectionApprovalResponse
-	(*ApproveOrderFeeCorrectionResponse)(nil),         // 78: order.v1.ApproveOrderFeeCorrectionResponse
-	(*RejectOrderFeeCorrectionResponse)(nil),          // 79: order.v1.RejectOrderFeeCorrectionResponse
-	(*WithdrawOrderFeeCorrectionResponse)(nil),        // 80: order.v1.WithdrawOrderFeeCorrectionResponse
-	(*ListOrderFeeCorrectionRequestsResponse)(nil),    // 81: order.v1.ListOrderFeeCorrectionRequestsResponse
-	(*PreviewFeeQuantityRequest)(nil),                 // 82: order.v1.PreviewFeeQuantityRequest
-	(*FeeQuantityInput)(nil),                          // 83: order.v1.FeeQuantityInput
-	(*FeeQuantityPreview)(nil),                        // 84: order.v1.FeeQuantityPreview
-	(*FeeQuantitySelection)(nil),                      // 85: order.v1.FeeQuantitySelection
-	(*PreviewFeeQuantityResponse)(nil),                // 86: order.v1.PreviewFeeQuantityResponse
-	(*OrderFeeReviewSummary)(nil),                     // 87: order.v1.OrderFeeReviewSummary
+	(*SaveOrderFeeRow)(nil),                           // 12: order.v1.SaveOrderFeeRow
+	(*SaveOrderFeesRequest)(nil),                      // 13: order.v1.SaveOrderFeesRequest
+	(*SaveOrderFeesResponse)(nil),                     // 14: order.v1.SaveOrderFeesResponse
+	(*RemoveFeeRequest)(nil),                          // 15: order.v1.RemoveFeeRequest
+	(*ResolveFeeExchangeRateRequest)(nil),             // 16: order.v1.ResolveFeeExchangeRateRequest
+	(*ResolveFeeExchangeRateResponse)(nil),            // 17: order.v1.ResolveFeeExchangeRateResponse
+	(*ListFeesResponse)(nil),                          // 18: order.v1.ListFeesResponse
+	(*AddFeeResponse)(nil),                            // 19: order.v1.AddFeeResponse
+	(*UpdateFeeResponse)(nil),                         // 20: order.v1.UpdateFeeResponse
+	(*RemoveFeeResponse)(nil),                         // 21: order.v1.RemoveFeeResponse
+	(*BulkOrderFeeTarget)(nil),                        // 22: order.v1.BulkOrderFeeTarget
+	(*BulkUpdateOrderFeesRequest)(nil),                // 23: order.v1.BulkUpdateOrderFeesRequest
+	(*BulkUpdateOrderFeesResponse)(nil),               // 24: order.v1.BulkUpdateOrderFeesResponse
+	(*BulkRemoveOrderFeesRequest)(nil),                // 25: order.v1.BulkRemoveOrderFeesRequest
+	(*BulkRemoveOrderFeesResponse)(nil),               // 26: order.v1.BulkRemoveOrderFeesResponse
+	(*OrderFeeSupplementRequestData)(nil),             // 27: order.v1.OrderFeeSupplementRequestData
+	(*CreateOrderFeeSupplementRequest)(nil),           // 28: order.v1.CreateOrderFeeSupplementRequest
+	(*CreateOrderFeeSupplementResponse)(nil),          // 29: order.v1.CreateOrderFeeSupplementResponse
+	(*ListOrderFeeSupplementRequestsRequest)(nil),     // 30: order.v1.ListOrderFeeSupplementRequestsRequest
+	(*ListOrderFeeSupplementRequestsData)(nil),        // 31: order.v1.ListOrderFeeSupplementRequestsData
+	(*ListOrderFeeSupplementRequestsResponse)(nil),    // 32: order.v1.ListOrderFeeSupplementRequestsResponse
+	(*ApproveOrderFeeSupplementRequest)(nil),          // 33: order.v1.ApproveOrderFeeSupplementRequest
+	(*PreviewOrderFeeSupplementApprovalRequest)(nil),  // 34: order.v1.PreviewOrderFeeSupplementApprovalRequest
+	(*PreviewOrderFeeSupplementApprovalData)(nil),     // 35: order.v1.PreviewOrderFeeSupplementApprovalData
+	(*PreviewOrderFeeSupplementApprovalResponse)(nil), // 36: order.v1.PreviewOrderFeeSupplementApprovalResponse
+	(*ApproveOrderFeeSupplementResponse)(nil),         // 37: order.v1.ApproveOrderFeeSupplementResponse
+	(*RejectOrderFeeSupplementRequest)(nil),           // 38: order.v1.RejectOrderFeeSupplementRequest
+	(*RejectOrderFeeSupplementResponse)(nil),          // 39: order.v1.RejectOrderFeeSupplementResponse
+	(*WithdrawOrderFeeSupplementRequest)(nil),         // 40: order.v1.WithdrawOrderFeeSupplementRequest
+	(*WithdrawOrderFeeSupplementResponse)(nil),        // 41: order.v1.WithdrawOrderFeeSupplementResponse
+	(*CancelApprovedOrderFeeSupplementRequest)(nil),   // 42: order.v1.CancelApprovedOrderFeeSupplementRequest
+	(*CancelApprovedOrderFeeSupplementResponse)(nil),  // 43: order.v1.CancelApprovedOrderFeeSupplementResponse
+	(*FeeSupplementCommissionImpact)(nil),             // 44: order.v1.FeeSupplementCommissionImpact
+	(*GetOrderFeeReviewRequest)(nil),                  // 45: order.v1.GetOrderFeeReviewRequest
+	(*PreviewOrderFeeReviewRequest)(nil),              // 46: order.v1.PreviewOrderFeeReviewRequest
+	(*SubmitOrderFeeReviewRequest)(nil),               // 47: order.v1.SubmitOrderFeeReviewRequest
+	(*WithdrawOrderFeeReviewRequest)(nil),             // 48: order.v1.WithdrawOrderFeeReviewRequest
+	(*ApproveOrderFeeReviewRequest)(nil),              // 49: order.v1.ApproveOrderFeeReviewRequest
+	(*RejectOrderFeeReviewRequest)(nil),               // 50: order.v1.RejectOrderFeeReviewRequest
+	(*RevokeOrderFeeReviewRequest)(nil),               // 51: order.v1.RevokeOrderFeeReviewRequest
+	(*OrderFeeReviewActionData)(nil),                  // 52: order.v1.OrderFeeReviewActionData
+	(*OrderFeeReviewEventData)(nil),                   // 53: order.v1.OrderFeeReviewEventData
+	(*OrderFeeReviewData)(nil),                        // 54: order.v1.OrderFeeReviewData
+	(*GetOrderFeeReviewResponse)(nil),                 // 55: order.v1.GetOrderFeeReviewResponse
+	(*PreviewOrderFeeReviewResponse)(nil),             // 56: order.v1.PreviewOrderFeeReviewResponse
+	(*SubmitOrderFeeReviewResponse)(nil),              // 57: order.v1.SubmitOrderFeeReviewResponse
+	(*WithdrawOrderFeeReviewResponse)(nil),            // 58: order.v1.WithdrawOrderFeeReviewResponse
+	(*ApproveOrderFeeReviewResponse)(nil),             // 59: order.v1.ApproveOrderFeeReviewResponse
+	(*RejectOrderFeeReviewResponse)(nil),              // 60: order.v1.RejectOrderFeeReviewResponse
+	(*RevokeOrderFeeReviewResponse)(nil),              // 61: order.v1.RevokeOrderFeeReviewResponse
+	(*PreviewOrderFeeReviewsRequest)(nil),             // 62: order.v1.PreviewOrderFeeReviewsRequest
+	(*PreviewOrderFeeReviewsResponse)(nil),            // 63: order.v1.PreviewOrderFeeReviewsResponse
+	(*ApproveOrderFeeReviewsRequest)(nil),             // 64: order.v1.ApproveOrderFeeReviewsRequest
+	(*ApproveOrderFeeReviewsResponse)(nil),            // 65: order.v1.ApproveOrderFeeReviewsResponse
+	(*OrderFeeReviewResult)(nil),                      // 66: order.v1.OrderFeeReviewResult
+	(*OrderFeeCorrectionTarget)(nil),                  // 67: order.v1.OrderFeeCorrectionTarget
+	(*CreateOrderFeeCorrectionRequest)(nil),           // 68: order.v1.CreateOrderFeeCorrectionRequest
+	(*ListOrderFeeCorrectionRequestsRequest)(nil),     // 69: order.v1.ListOrderFeeCorrectionRequestsRequest
+	(*GetOrderFeeCorrectionRequestRequest)(nil),       // 70: order.v1.GetOrderFeeCorrectionRequestRequest
+	(*PreviewOrderFeeCorrectionApprovalRequest)(nil),  // 71: order.v1.PreviewOrderFeeCorrectionApprovalRequest
+	(*ApproveOrderFeeCorrectionRequest)(nil),          // 72: order.v1.ApproveOrderFeeCorrectionRequest
+	(*RejectOrderFeeCorrectionRequest)(nil),           // 73: order.v1.RejectOrderFeeCorrectionRequest
+	(*WithdrawOrderFeeCorrectionRequest)(nil),         // 74: order.v1.WithdrawOrderFeeCorrectionRequest
+	(*OrderFeeCorrectionRequestData)(nil),             // 75: order.v1.OrderFeeCorrectionRequestData
+	(*FeeCorrectionCommissionImpactData)(nil),         // 76: order.v1.FeeCorrectionCommissionImpactData
+	(*OrderFeeCorrectionApprovalData)(nil),            // 77: order.v1.OrderFeeCorrectionApprovalData
+	(*CreateOrderFeeCorrectionResponse)(nil),          // 78: order.v1.CreateOrderFeeCorrectionResponse
+	(*GetOrderFeeCorrectionRequestResponse)(nil),      // 79: order.v1.GetOrderFeeCorrectionRequestResponse
+	(*PreviewOrderFeeCorrectionApprovalResponse)(nil), // 80: order.v1.PreviewOrderFeeCorrectionApprovalResponse
+	(*ApproveOrderFeeCorrectionResponse)(nil),         // 81: order.v1.ApproveOrderFeeCorrectionResponse
+	(*RejectOrderFeeCorrectionResponse)(nil),          // 82: order.v1.RejectOrderFeeCorrectionResponse
+	(*WithdrawOrderFeeCorrectionResponse)(nil),        // 83: order.v1.WithdrawOrderFeeCorrectionResponse
+	(*ListOrderFeeCorrectionRequestsResponse)(nil),    // 84: order.v1.ListOrderFeeCorrectionRequestsResponse
+	(*PreviewFeeQuantityRequest)(nil),                 // 85: order.v1.PreviewFeeQuantityRequest
+	(*FeeQuantityInput)(nil),                          // 86: order.v1.FeeQuantityInput
+	(*FeeQuantityPreview)(nil),                        // 87: order.v1.FeeQuantityPreview
+	(*FeeQuantitySelection)(nil),                      // 88: order.v1.FeeQuantitySelection
+	(*PreviewFeeQuantityResponse)(nil),                // 89: order.v1.PreviewFeeQuantityResponse
+	(*OrderFeeReviewSummary)(nil),                     // 90: order.v1.OrderFeeReviewSummary
 }
 var file_order_v1_order_fee_proto_depIdxs = []int32{
 	0,  // 0: order.v1.OrderFee.direction:type_name -> order.v1.OrderFeeDirection
-	85, // 1: order.v1.OrderFee.quantity_source:type_name -> order.v1.FeeQuantitySelection
+	88, // 1: order.v1.OrderFee.quantity_source:type_name -> order.v1.FeeQuantitySelection
 	5,  // 2: order.v1.ListFeeOptionsResponse.settlement_parties:type_name -> order.v1.OrderFeeSettlementPartyOption
 	6,  // 3: order.v1.ListFeeOptionsResponse.currencies:type_name -> order.v1.OrderFeeCurrencyOption
 	7,  // 4: order.v1.ListFeeOptionsResponse.fee_settings:type_name -> order.v1.OrderFeeSettingOption
 	8,  // 5: order.v1.ListFeeOptionsResponse.billing_units:type_name -> order.v1.OrderFeeBillingUnitOption
 	0,  // 6: order.v1.AddFeeRequest.direction:type_name -> order.v1.OrderFeeDirection
-	85, // 7: order.v1.AddFeeRequest.quantity_source:type_name -> order.v1.FeeQuantitySelection
+	88, // 7: order.v1.AddFeeRequest.quantity_source:type_name -> order.v1.FeeQuantitySelection
 	0,  // 8: order.v1.UpdateFeeRequest.direction:type_name -> order.v1.OrderFeeDirection
-	85, // 9: order.v1.UpdateFeeRequest.quantity_source:type_name -> order.v1.FeeQuantitySelection
-	0,  // 10: order.v1.ResolveFeeExchangeRateRequest.direction:type_name -> order.v1.OrderFeeDirection
-	2,  // 11: order.v1.ListFeesResponse.data:type_name -> order.v1.OrderFee
-	2,  // 12: order.v1.AddFeeResponse.data:type_name -> order.v1.OrderFee
-	2,  // 13: order.v1.UpdateFeeResponse.data:type_name -> order.v1.OrderFee
-	19, // 14: order.v1.BulkUpdateOrderFeesRequest.targets:type_name -> order.v1.BulkOrderFeeTarget
-	19, // 15: order.v1.BulkRemoveOrderFeesRequest.targets:type_name -> order.v1.BulkOrderFeeTarget
-	0,  // 16: order.v1.OrderFeeSupplementRequestData.direction:type_name -> order.v1.OrderFeeDirection
-	0,  // 17: order.v1.CreateOrderFeeSupplementRequest.direction:type_name -> order.v1.OrderFeeDirection
-	24, // 18: order.v1.CreateOrderFeeSupplementResponse.data:type_name -> order.v1.OrderFeeSupplementRequestData
-	24, // 19: order.v1.ListOrderFeeSupplementRequestsData.items:type_name -> order.v1.OrderFeeSupplementRequestData
-	28, // 20: order.v1.ListOrderFeeSupplementRequestsResponse.data:type_name -> order.v1.ListOrderFeeSupplementRequestsData
-	41, // 21: order.v1.PreviewOrderFeeSupplementApprovalData.commission_impacts:type_name -> order.v1.FeeSupplementCommissionImpact
-	32, // 22: order.v1.PreviewOrderFeeSupplementApprovalResponse.data:type_name -> order.v1.PreviewOrderFeeSupplementApprovalData
-	24, // 23: order.v1.ApproveOrderFeeSupplementResponse.data:type_name -> order.v1.OrderFeeSupplementRequestData
-	2,  // 24: order.v1.ApproveOrderFeeSupplementResponse.fee:type_name -> order.v1.OrderFee
-	24, // 25: order.v1.RejectOrderFeeSupplementResponse.data:type_name -> order.v1.OrderFeeSupplementRequestData
-	24, // 26: order.v1.WithdrawOrderFeeSupplementResponse.data:type_name -> order.v1.OrderFeeSupplementRequestData
-	24, // 27: order.v1.CancelApprovedOrderFeeSupplementResponse.data:type_name -> order.v1.OrderFeeSupplementRequestData
-	87, // 28: order.v1.OrderFeeReviewEventData.summary:type_name -> order.v1.OrderFeeReviewSummary
-	87, // 29: order.v1.OrderFeeReviewData.summary:type_name -> order.v1.OrderFeeReviewSummary
-	2,  // 30: order.v1.OrderFeeReviewData.fees:type_name -> order.v1.OrderFee
-	50, // 31: order.v1.OrderFeeReviewData.history:type_name -> order.v1.OrderFeeReviewEventData
-	51, // 32: order.v1.GetOrderFeeReviewResponse.data:type_name -> order.v1.OrderFeeReviewData
-	51, // 33: order.v1.PreviewOrderFeeReviewResponse.data:type_name -> order.v1.OrderFeeReviewData
-	51, // 34: order.v1.SubmitOrderFeeReviewResponse.data:type_name -> order.v1.OrderFeeReviewData
-	51, // 35: order.v1.WithdrawOrderFeeReviewResponse.data:type_name -> order.v1.OrderFeeReviewData
-	51, // 36: order.v1.ApproveOrderFeeReviewResponse.data:type_name -> order.v1.OrderFeeReviewData
-	51, // 37: order.v1.RejectOrderFeeReviewResponse.data:type_name -> order.v1.OrderFeeReviewData
-	51, // 38: order.v1.RevokeOrderFeeReviewResponse.data:type_name -> order.v1.OrderFeeReviewData
-	63, // 39: order.v1.PreviewOrderFeeReviewsResponse.data:type_name -> order.v1.OrderFeeReviewResult
-	49, // 40: order.v1.ApproveOrderFeeReviewsRequest.items:type_name -> order.v1.OrderFeeReviewActionData
-	63, // 41: order.v1.ApproveOrderFeeReviewsResponse.data:type_name -> order.v1.OrderFeeReviewResult
-	51, // 42: order.v1.OrderFeeReviewResult.data:type_name -> order.v1.OrderFeeReviewData
-	0,  // 43: order.v1.OrderFeeCorrectionTarget.direction:type_name -> order.v1.OrderFeeDirection
-	1,  // 44: order.v1.CreateOrderFeeCorrectionRequest.operation:type_name -> order.v1.OrderFeeCorrectionOperation
-	64, // 45: order.v1.CreateOrderFeeCorrectionRequest.target_fee:type_name -> order.v1.OrderFeeCorrectionTarget
-	1,  // 46: order.v1.OrderFeeCorrectionRequestData.operation:type_name -> order.v1.OrderFeeCorrectionOperation
-	2,  // 47: order.v1.OrderFeeCorrectionRequestData.before_fee:type_name -> order.v1.OrderFee
-	2,  // 48: order.v1.OrderFeeCorrectionRequestData.after_fee:type_name -> order.v1.OrderFee
-	73, // 49: order.v1.OrderFeeCorrectionRequestData.commission_impacts:type_name -> order.v1.FeeCorrectionCommissionImpactData
-	87, // 50: order.v1.OrderFeeCorrectionRequestData.approved_current_summary:type_name -> order.v1.OrderFeeReviewSummary
-	87, // 51: order.v1.OrderFeeCorrectionRequestData.approved_projected_summary:type_name -> order.v1.OrderFeeReviewSummary
-	72, // 52: order.v1.OrderFeeCorrectionApprovalData.request:type_name -> order.v1.OrderFeeCorrectionRequestData
-	73, // 53: order.v1.OrderFeeCorrectionApprovalData.commission_impacts:type_name -> order.v1.FeeCorrectionCommissionImpactData
-	72, // 54: order.v1.CreateOrderFeeCorrectionResponse.data:type_name -> order.v1.OrderFeeCorrectionRequestData
-	72, // 55: order.v1.GetOrderFeeCorrectionRequestResponse.data:type_name -> order.v1.OrderFeeCorrectionRequestData
-	74, // 56: order.v1.PreviewOrderFeeCorrectionApprovalResponse.data:type_name -> order.v1.OrderFeeCorrectionApprovalData
-	72, // 57: order.v1.ApproveOrderFeeCorrectionResponse.data:type_name -> order.v1.OrderFeeCorrectionRequestData
-	72, // 58: order.v1.RejectOrderFeeCorrectionResponse.data:type_name -> order.v1.OrderFeeCorrectionRequestData
-	72, // 59: order.v1.WithdrawOrderFeeCorrectionResponse.data:type_name -> order.v1.OrderFeeCorrectionRequestData
-	72, // 60: order.v1.ListOrderFeeCorrectionRequestsResponse.data:type_name -> order.v1.OrderFeeCorrectionRequestData
-	83, // 61: order.v1.FeeQuantityPreview.inputs:type_name -> order.v1.FeeQuantityInput
-	85, // 62: order.v1.FeeQuantityPreview.quantity_source:type_name -> order.v1.FeeQuantitySelection
-	84, // 63: order.v1.PreviewFeeQuantityResponse.data:type_name -> order.v1.FeeQuantityPreview
-	65, // 64: order.v1.OrderFeeService.CreateOrderFeeCorrection:input_type -> order.v1.CreateOrderFeeCorrectionRequest
-	66, // 65: order.v1.OrderFeeService.ListOrderFeeCorrectionRequests:input_type -> order.v1.ListOrderFeeCorrectionRequestsRequest
-	67, // 66: order.v1.OrderFeeService.GetOrderFeeCorrectionRequest:input_type -> order.v1.GetOrderFeeCorrectionRequestRequest
-	68, // 67: order.v1.OrderFeeService.PreviewOrderFeeCorrectionApproval:input_type -> order.v1.PreviewOrderFeeCorrectionApprovalRequest
-	69, // 68: order.v1.OrderFeeService.ApproveOrderFeeCorrection:input_type -> order.v1.ApproveOrderFeeCorrectionRequest
-	70, // 69: order.v1.OrderFeeService.RejectOrderFeeCorrection:input_type -> order.v1.RejectOrderFeeCorrectionRequest
-	71, // 70: order.v1.OrderFeeService.WithdrawOrderFeeCorrection:input_type -> order.v1.WithdrawOrderFeeCorrectionRequest
-	42, // 71: order.v1.OrderFeeService.GetOrderFeeReview:input_type -> order.v1.GetOrderFeeReviewRequest
-	4,  // 72: order.v1.OrderFeeService.ListFeeOptions:input_type -> order.v1.ListFeeOptionsRequest
-	3,  // 73: order.v1.OrderFeeService.ListFees:input_type -> order.v1.ListFeesRequest
-	82, // 74: order.v1.OrderFeeService.PreviewFeeQuantity:input_type -> order.v1.PreviewFeeQuantityRequest
-	13, // 75: order.v1.OrderFeeService.ResolveFeeExchangeRate:input_type -> order.v1.ResolveFeeExchangeRateRequest
-	10, // 76: order.v1.OrderFeeService.AddFee:input_type -> order.v1.AddFeeRequest
-	11, // 77: order.v1.OrderFeeService.UpdateFee:input_type -> order.v1.UpdateFeeRequest
-	12, // 78: order.v1.OrderFeeService.RemoveFee:input_type -> order.v1.RemoveFeeRequest
-	20, // 79: order.v1.OrderFeeService.BulkUpdateOrderFees:input_type -> order.v1.BulkUpdateOrderFeesRequest
-	22, // 80: order.v1.OrderFeeService.BulkRemoveOrderFees:input_type -> order.v1.BulkRemoveOrderFeesRequest
-	27, // 81: order.v1.OrderFeeService.ListOrderFeeSupplementRequests:input_type -> order.v1.ListOrderFeeSupplementRequestsRequest
-	31, // 82: order.v1.OrderFeeService.PreviewOrderFeeSupplementApproval:input_type -> order.v1.PreviewOrderFeeSupplementApprovalRequest
-	75, // 83: order.v1.OrderFeeService.CreateOrderFeeCorrection:output_type -> order.v1.CreateOrderFeeCorrectionResponse
-	81, // 84: order.v1.OrderFeeService.ListOrderFeeCorrectionRequests:output_type -> order.v1.ListOrderFeeCorrectionRequestsResponse
-	76, // 85: order.v1.OrderFeeService.GetOrderFeeCorrectionRequest:output_type -> order.v1.GetOrderFeeCorrectionRequestResponse
-	77, // 86: order.v1.OrderFeeService.PreviewOrderFeeCorrectionApproval:output_type -> order.v1.PreviewOrderFeeCorrectionApprovalResponse
-	78, // 87: order.v1.OrderFeeService.ApproveOrderFeeCorrection:output_type -> order.v1.ApproveOrderFeeCorrectionResponse
-	79, // 88: order.v1.OrderFeeService.RejectOrderFeeCorrection:output_type -> order.v1.RejectOrderFeeCorrectionResponse
-	80, // 89: order.v1.OrderFeeService.WithdrawOrderFeeCorrection:output_type -> order.v1.WithdrawOrderFeeCorrectionResponse
-	52, // 90: order.v1.OrderFeeService.GetOrderFeeReview:output_type -> order.v1.GetOrderFeeReviewResponse
-	9,  // 91: order.v1.OrderFeeService.ListFeeOptions:output_type -> order.v1.ListFeeOptionsResponse
-	15, // 92: order.v1.OrderFeeService.ListFees:output_type -> order.v1.ListFeesResponse
-	86, // 93: order.v1.OrderFeeService.PreviewFeeQuantity:output_type -> order.v1.PreviewFeeQuantityResponse
-	14, // 94: order.v1.OrderFeeService.ResolveFeeExchangeRate:output_type -> order.v1.ResolveFeeExchangeRateResponse
-	16, // 95: order.v1.OrderFeeService.AddFee:output_type -> order.v1.AddFeeResponse
-	17, // 96: order.v1.OrderFeeService.UpdateFee:output_type -> order.v1.UpdateFeeResponse
-	18, // 97: order.v1.OrderFeeService.RemoveFee:output_type -> order.v1.RemoveFeeResponse
-	21, // 98: order.v1.OrderFeeService.BulkUpdateOrderFees:output_type -> order.v1.BulkUpdateOrderFeesResponse
-	23, // 99: order.v1.OrderFeeService.BulkRemoveOrderFees:output_type -> order.v1.BulkRemoveOrderFeesResponse
-	29, // 100: order.v1.OrderFeeService.ListOrderFeeSupplementRequests:output_type -> order.v1.ListOrderFeeSupplementRequestsResponse
-	33, // 101: order.v1.OrderFeeService.PreviewOrderFeeSupplementApproval:output_type -> order.v1.PreviewOrderFeeSupplementApprovalResponse
-	83, // [83:102] is the sub-list for method output_type
-	64, // [64:83] is the sub-list for method input_type
-	64, // [64:64] is the sub-list for extension type_name
-	64, // [64:64] is the sub-list for extension extendee
-	0,  // [0:64] is the sub-list for field type_name
+	88, // 9: order.v1.UpdateFeeRequest.quantity_source:type_name -> order.v1.FeeQuantitySelection
+	88, // 10: order.v1.SaveOrderFeeRow.quantity_source:type_name -> order.v1.FeeQuantitySelection
+	0,  // 11: order.v1.SaveOrderFeesRequest.direction:type_name -> order.v1.OrderFeeDirection
+	12, // 12: order.v1.SaveOrderFeesRequest.rows:type_name -> order.v1.SaveOrderFeeRow
+	2,  // 13: order.v1.SaveOrderFeesResponse.data:type_name -> order.v1.OrderFee
+	0,  // 14: order.v1.ResolveFeeExchangeRateRequest.direction:type_name -> order.v1.OrderFeeDirection
+	2,  // 15: order.v1.ListFeesResponse.data:type_name -> order.v1.OrderFee
+	2,  // 16: order.v1.AddFeeResponse.data:type_name -> order.v1.OrderFee
+	2,  // 17: order.v1.UpdateFeeResponse.data:type_name -> order.v1.OrderFee
+	22, // 18: order.v1.BulkUpdateOrderFeesRequest.targets:type_name -> order.v1.BulkOrderFeeTarget
+	22, // 19: order.v1.BulkRemoveOrderFeesRequest.targets:type_name -> order.v1.BulkOrderFeeTarget
+	0,  // 20: order.v1.OrderFeeSupplementRequestData.direction:type_name -> order.v1.OrderFeeDirection
+	0,  // 21: order.v1.CreateOrderFeeSupplementRequest.direction:type_name -> order.v1.OrderFeeDirection
+	27, // 22: order.v1.CreateOrderFeeSupplementResponse.data:type_name -> order.v1.OrderFeeSupplementRequestData
+	27, // 23: order.v1.ListOrderFeeSupplementRequestsData.items:type_name -> order.v1.OrderFeeSupplementRequestData
+	31, // 24: order.v1.ListOrderFeeSupplementRequestsResponse.data:type_name -> order.v1.ListOrderFeeSupplementRequestsData
+	44, // 25: order.v1.PreviewOrderFeeSupplementApprovalData.commission_impacts:type_name -> order.v1.FeeSupplementCommissionImpact
+	35, // 26: order.v1.PreviewOrderFeeSupplementApprovalResponse.data:type_name -> order.v1.PreviewOrderFeeSupplementApprovalData
+	27, // 27: order.v1.ApproveOrderFeeSupplementResponse.data:type_name -> order.v1.OrderFeeSupplementRequestData
+	2,  // 28: order.v1.ApproveOrderFeeSupplementResponse.fee:type_name -> order.v1.OrderFee
+	27, // 29: order.v1.RejectOrderFeeSupplementResponse.data:type_name -> order.v1.OrderFeeSupplementRequestData
+	27, // 30: order.v1.WithdrawOrderFeeSupplementResponse.data:type_name -> order.v1.OrderFeeSupplementRequestData
+	27, // 31: order.v1.CancelApprovedOrderFeeSupplementResponse.data:type_name -> order.v1.OrderFeeSupplementRequestData
+	90, // 32: order.v1.OrderFeeReviewEventData.summary:type_name -> order.v1.OrderFeeReviewSummary
+	90, // 33: order.v1.OrderFeeReviewData.summary:type_name -> order.v1.OrderFeeReviewSummary
+	2,  // 34: order.v1.OrderFeeReviewData.fees:type_name -> order.v1.OrderFee
+	53, // 35: order.v1.OrderFeeReviewData.history:type_name -> order.v1.OrderFeeReviewEventData
+	54, // 36: order.v1.GetOrderFeeReviewResponse.data:type_name -> order.v1.OrderFeeReviewData
+	54, // 37: order.v1.PreviewOrderFeeReviewResponse.data:type_name -> order.v1.OrderFeeReviewData
+	54, // 38: order.v1.SubmitOrderFeeReviewResponse.data:type_name -> order.v1.OrderFeeReviewData
+	54, // 39: order.v1.WithdrawOrderFeeReviewResponse.data:type_name -> order.v1.OrderFeeReviewData
+	54, // 40: order.v1.ApproveOrderFeeReviewResponse.data:type_name -> order.v1.OrderFeeReviewData
+	54, // 41: order.v1.RejectOrderFeeReviewResponse.data:type_name -> order.v1.OrderFeeReviewData
+	54, // 42: order.v1.RevokeOrderFeeReviewResponse.data:type_name -> order.v1.OrderFeeReviewData
+	66, // 43: order.v1.PreviewOrderFeeReviewsResponse.data:type_name -> order.v1.OrderFeeReviewResult
+	52, // 44: order.v1.ApproveOrderFeeReviewsRequest.items:type_name -> order.v1.OrderFeeReviewActionData
+	66, // 45: order.v1.ApproveOrderFeeReviewsResponse.data:type_name -> order.v1.OrderFeeReviewResult
+	54, // 46: order.v1.OrderFeeReviewResult.data:type_name -> order.v1.OrderFeeReviewData
+	0,  // 47: order.v1.OrderFeeCorrectionTarget.direction:type_name -> order.v1.OrderFeeDirection
+	1,  // 48: order.v1.CreateOrderFeeCorrectionRequest.operation:type_name -> order.v1.OrderFeeCorrectionOperation
+	67, // 49: order.v1.CreateOrderFeeCorrectionRequest.target_fee:type_name -> order.v1.OrderFeeCorrectionTarget
+	1,  // 50: order.v1.OrderFeeCorrectionRequestData.operation:type_name -> order.v1.OrderFeeCorrectionOperation
+	2,  // 51: order.v1.OrderFeeCorrectionRequestData.before_fee:type_name -> order.v1.OrderFee
+	2,  // 52: order.v1.OrderFeeCorrectionRequestData.after_fee:type_name -> order.v1.OrderFee
+	76, // 53: order.v1.OrderFeeCorrectionRequestData.commission_impacts:type_name -> order.v1.FeeCorrectionCommissionImpactData
+	90, // 54: order.v1.OrderFeeCorrectionRequestData.approved_current_summary:type_name -> order.v1.OrderFeeReviewSummary
+	90, // 55: order.v1.OrderFeeCorrectionRequestData.approved_projected_summary:type_name -> order.v1.OrderFeeReviewSummary
+	75, // 56: order.v1.OrderFeeCorrectionApprovalData.request:type_name -> order.v1.OrderFeeCorrectionRequestData
+	76, // 57: order.v1.OrderFeeCorrectionApprovalData.commission_impacts:type_name -> order.v1.FeeCorrectionCommissionImpactData
+	75, // 58: order.v1.CreateOrderFeeCorrectionResponse.data:type_name -> order.v1.OrderFeeCorrectionRequestData
+	75, // 59: order.v1.GetOrderFeeCorrectionRequestResponse.data:type_name -> order.v1.OrderFeeCorrectionRequestData
+	77, // 60: order.v1.PreviewOrderFeeCorrectionApprovalResponse.data:type_name -> order.v1.OrderFeeCorrectionApprovalData
+	75, // 61: order.v1.ApproveOrderFeeCorrectionResponse.data:type_name -> order.v1.OrderFeeCorrectionRequestData
+	75, // 62: order.v1.RejectOrderFeeCorrectionResponse.data:type_name -> order.v1.OrderFeeCorrectionRequestData
+	75, // 63: order.v1.WithdrawOrderFeeCorrectionResponse.data:type_name -> order.v1.OrderFeeCorrectionRequestData
+	75, // 64: order.v1.ListOrderFeeCorrectionRequestsResponse.data:type_name -> order.v1.OrderFeeCorrectionRequestData
+	86, // 65: order.v1.FeeQuantityPreview.inputs:type_name -> order.v1.FeeQuantityInput
+	88, // 66: order.v1.FeeQuantityPreview.quantity_source:type_name -> order.v1.FeeQuantitySelection
+	87, // 67: order.v1.PreviewFeeQuantityResponse.data:type_name -> order.v1.FeeQuantityPreview
+	68, // 68: order.v1.OrderFeeService.CreateOrderFeeCorrection:input_type -> order.v1.CreateOrderFeeCorrectionRequest
+	69, // 69: order.v1.OrderFeeService.ListOrderFeeCorrectionRequests:input_type -> order.v1.ListOrderFeeCorrectionRequestsRequest
+	70, // 70: order.v1.OrderFeeService.GetOrderFeeCorrectionRequest:input_type -> order.v1.GetOrderFeeCorrectionRequestRequest
+	71, // 71: order.v1.OrderFeeService.PreviewOrderFeeCorrectionApproval:input_type -> order.v1.PreviewOrderFeeCorrectionApprovalRequest
+	72, // 72: order.v1.OrderFeeService.ApproveOrderFeeCorrection:input_type -> order.v1.ApproveOrderFeeCorrectionRequest
+	73, // 73: order.v1.OrderFeeService.RejectOrderFeeCorrection:input_type -> order.v1.RejectOrderFeeCorrectionRequest
+	74, // 74: order.v1.OrderFeeService.WithdrawOrderFeeCorrection:input_type -> order.v1.WithdrawOrderFeeCorrectionRequest
+	45, // 75: order.v1.OrderFeeService.GetOrderFeeReview:input_type -> order.v1.GetOrderFeeReviewRequest
+	4,  // 76: order.v1.OrderFeeService.ListFeeOptions:input_type -> order.v1.ListFeeOptionsRequest
+	3,  // 77: order.v1.OrderFeeService.ListFees:input_type -> order.v1.ListFeesRequest
+	85, // 78: order.v1.OrderFeeService.PreviewFeeQuantity:input_type -> order.v1.PreviewFeeQuantityRequest
+	16, // 79: order.v1.OrderFeeService.ResolveFeeExchangeRate:input_type -> order.v1.ResolveFeeExchangeRateRequest
+	10, // 80: order.v1.OrderFeeService.AddFee:input_type -> order.v1.AddFeeRequest
+	11, // 81: order.v1.OrderFeeService.UpdateFee:input_type -> order.v1.UpdateFeeRequest
+	15, // 82: order.v1.OrderFeeService.RemoveFee:input_type -> order.v1.RemoveFeeRequest
+	13, // 83: order.v1.OrderFeeService.SaveOrderFees:input_type -> order.v1.SaveOrderFeesRequest
+	23, // 84: order.v1.OrderFeeService.BulkUpdateOrderFees:input_type -> order.v1.BulkUpdateOrderFeesRequest
+	25, // 85: order.v1.OrderFeeService.BulkRemoveOrderFees:input_type -> order.v1.BulkRemoveOrderFeesRequest
+	30, // 86: order.v1.OrderFeeService.ListOrderFeeSupplementRequests:input_type -> order.v1.ListOrderFeeSupplementRequestsRequest
+	34, // 87: order.v1.OrderFeeService.PreviewOrderFeeSupplementApproval:input_type -> order.v1.PreviewOrderFeeSupplementApprovalRequest
+	78, // 88: order.v1.OrderFeeService.CreateOrderFeeCorrection:output_type -> order.v1.CreateOrderFeeCorrectionResponse
+	84, // 89: order.v1.OrderFeeService.ListOrderFeeCorrectionRequests:output_type -> order.v1.ListOrderFeeCorrectionRequestsResponse
+	79, // 90: order.v1.OrderFeeService.GetOrderFeeCorrectionRequest:output_type -> order.v1.GetOrderFeeCorrectionRequestResponse
+	80, // 91: order.v1.OrderFeeService.PreviewOrderFeeCorrectionApproval:output_type -> order.v1.PreviewOrderFeeCorrectionApprovalResponse
+	81, // 92: order.v1.OrderFeeService.ApproveOrderFeeCorrection:output_type -> order.v1.ApproveOrderFeeCorrectionResponse
+	82, // 93: order.v1.OrderFeeService.RejectOrderFeeCorrection:output_type -> order.v1.RejectOrderFeeCorrectionResponse
+	83, // 94: order.v1.OrderFeeService.WithdrawOrderFeeCorrection:output_type -> order.v1.WithdrawOrderFeeCorrectionResponse
+	55, // 95: order.v1.OrderFeeService.GetOrderFeeReview:output_type -> order.v1.GetOrderFeeReviewResponse
+	9,  // 96: order.v1.OrderFeeService.ListFeeOptions:output_type -> order.v1.ListFeeOptionsResponse
+	18, // 97: order.v1.OrderFeeService.ListFees:output_type -> order.v1.ListFeesResponse
+	89, // 98: order.v1.OrderFeeService.PreviewFeeQuantity:output_type -> order.v1.PreviewFeeQuantityResponse
+	17, // 99: order.v1.OrderFeeService.ResolveFeeExchangeRate:output_type -> order.v1.ResolveFeeExchangeRateResponse
+	19, // 100: order.v1.OrderFeeService.AddFee:output_type -> order.v1.AddFeeResponse
+	20, // 101: order.v1.OrderFeeService.UpdateFee:output_type -> order.v1.UpdateFeeResponse
+	21, // 102: order.v1.OrderFeeService.RemoveFee:output_type -> order.v1.RemoveFeeResponse
+	14, // 103: order.v1.OrderFeeService.SaveOrderFees:output_type -> order.v1.SaveOrderFeesResponse
+	24, // 104: order.v1.OrderFeeService.BulkUpdateOrderFees:output_type -> order.v1.BulkUpdateOrderFeesResponse
+	26, // 105: order.v1.OrderFeeService.BulkRemoveOrderFees:output_type -> order.v1.BulkRemoveOrderFeesResponse
+	32, // 106: order.v1.OrderFeeService.ListOrderFeeSupplementRequests:output_type -> order.v1.ListOrderFeeSupplementRequestsResponse
+	36, // 107: order.v1.OrderFeeService.PreviewOrderFeeSupplementApproval:output_type -> order.v1.PreviewOrderFeeSupplementApprovalResponse
+	88, // [88:108] is the sub-list for method output_type
+	68, // [68:88] is the sub-list for method input_type
+	68, // [68:68] is the sub-list for extension type_name
+	68, // [68:68] is the sub-list for extension extendee
+	0,  // [0:68] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_order_fee_proto_init() }
@@ -9021,24 +9384,25 @@ func file_order_v1_order_fee_proto_init() {
 	file_order_v1_order_fee_proto_msgTypes[8].OneofWrappers = []any{}
 	file_order_v1_order_fee_proto_msgTypes[9].OneofWrappers = []any{}
 	file_order_v1_order_fee_proto_msgTypes[10].OneofWrappers = []any{}
-	file_order_v1_order_fee_proto_msgTypes[12].OneofWrappers = []any{}
-	file_order_v1_order_fee_proto_msgTypes[18].OneofWrappers = []any{}
-	file_order_v1_order_fee_proto_msgTypes[20].OneofWrappers = []any{}
-	file_order_v1_order_fee_proto_msgTypes[22].OneofWrappers = []any{}
+	file_order_v1_order_fee_proto_msgTypes[13].OneofWrappers = []any{}
+	file_order_v1_order_fee_proto_msgTypes[15].OneofWrappers = []any{}
+	file_order_v1_order_fee_proto_msgTypes[21].OneofWrappers = []any{}
 	file_order_v1_order_fee_proto_msgTypes[23].OneofWrappers = []any{}
-	file_order_v1_order_fee_proto_msgTypes[30].OneofWrappers = []any{}
+	file_order_v1_order_fee_proto_msgTypes[25].OneofWrappers = []any{}
+	file_order_v1_order_fee_proto_msgTypes[26].OneofWrappers = []any{}
 	file_order_v1_order_fee_proto_msgTypes[33].OneofWrappers = []any{}
-	file_order_v1_order_fee_proto_msgTypes[62].OneofWrappers = []any{}
-	file_order_v1_order_fee_proto_msgTypes[63].OneofWrappers = []any{}
-	file_order_v1_order_fee_proto_msgTypes[70].OneofWrappers = []any{}
-	file_order_v1_order_fee_proto_msgTypes[72].OneofWrappers = []any{}
+	file_order_v1_order_fee_proto_msgTypes[36].OneofWrappers = []any{}
+	file_order_v1_order_fee_proto_msgTypes[65].OneofWrappers = []any{}
+	file_order_v1_order_fee_proto_msgTypes[66].OneofWrappers = []any{}
+	file_order_v1_order_fee_proto_msgTypes[73].OneofWrappers = []any{}
+	file_order_v1_order_fee_proto_msgTypes[75].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_order_v1_order_fee_proto_rawDesc), len(file_order_v1_order_fee_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   85,
+			NumMessages:   88,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

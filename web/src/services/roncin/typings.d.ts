@@ -5461,6 +5461,10 @@ declare namespace API {
     currency?: string;
   };
 
+  type OrderFeeServiceSaveOrderFeesParams = {
+    orderId: string;
+  };
+
   type OrderFeeServiceUpdateFeeParams = {
     orderId: string;
     id: string;
@@ -7006,6 +7010,45 @@ declare namespace API {
     totalGrossWeightKg?: number;
     totalVolumeCbm?: number;
     createdAt?: string;
+  };
+
+  type SaveOrderFeeRow = {
+    clientRowId: string;
+    feeId?: string;
+    expectedVersion?: string;
+    feeSettingId: string;
+    settlementPartyId: string;
+    billingUnitId: string;
+    quantity: string;
+    unitPrice: string;
+    currency: string;
+    note?: string;
+    exchangeRateOverride?: string;
+    taxInclusive?: boolean;
+    quantitySource?: FeeQuantitySelection;
+    /** tax_rate 显式税率（0-100）；语义与 AddFee/UpdateFee 一致，更改税率须具备订单费用税率更改权限。 */
+    taxRate?: string;
+  };
+
+  type SaveOrderFeesRequest = {
+    orderId: string;
+    direction: number;
+    /** request_key 一次保存意图的幂等标识，重试沿用，成功后更换。 */
+    requestKey: string;
+    rows: SaveOrderFeeRow[];
+  };
+
+  type SaveOrderFeesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    /** data 为保存后本侧全部当前有效费用。 */
+    data?: OrderFee[];
+    traceId?: string;
+    /** fee_content_version 保存后的订单费用内容版本，供前端更新外部变动基线。 */
+    feeContentVersion?: string;
+    /** replayed 为 true 表示请求此前已完整应用，本次仅返回当前状态。 */
+    replayed?: boolean;
   };
 
   type SaveSeaSharedContainerAllocationsDraftRequest = {

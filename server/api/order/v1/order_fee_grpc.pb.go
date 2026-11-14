@@ -34,6 +34,7 @@ const (
 	OrderFeeService_AddFee_FullMethodName                            = "/order.v1.OrderFeeService/AddFee"
 	OrderFeeService_UpdateFee_FullMethodName                         = "/order.v1.OrderFeeService/UpdateFee"
 	OrderFeeService_RemoveFee_FullMethodName                         = "/order.v1.OrderFeeService/RemoveFee"
+	OrderFeeService_SaveOrderFees_FullMethodName                     = "/order.v1.OrderFeeService/SaveOrderFees"
 	OrderFeeService_BulkUpdateOrderFees_FullMethodName               = "/order.v1.OrderFeeService/BulkUpdateOrderFees"
 	OrderFeeService_BulkRemoveOrderFees_FullMethodName               = "/order.v1.OrderFeeService/BulkRemoveOrderFees"
 	OrderFeeService_ListOrderFeeSupplementRequests_FullMethodName    = "/order.v1.OrderFeeService/ListOrderFeeSupplementRequests"
@@ -71,6 +72,13 @@ type OrderFeeServiceClient interface {
 	// RemoveFee 物理删除未被有效账单关联占用（未建账）的订单费用；补录生成的费用
 	// 必须通过补录申请专用撤销删除，历史账单行快照保留、来源引用置空。
 	RemoveFee(ctx context.Context, in *RemoveFeeRequest, opts ...grpc.CallOption) (*RemoveFeeResponse, error)
+	// SaveOrderFees 按单侧（应收或应付）整表保存订单费用的新增与修改：单一事务，
+	// 逐行完整校验后才写入，任一行失败整体回滚；不含删除，不连带另一侧。
+	// 新增行幂等键由 request_key 与 client_row_id 派生，响应丢失后沿用同一
+	// request_key 重试不重复新增；半应用情形返回 409。新增行要求 fee.create，
+	// 修改行要求 fee.update，在服务端分别校验。行级错误通过错误 metadata 的
+	// client_row_id、field、reason 定位。
+	SaveOrderFees(ctx context.Context, in *SaveOrderFeesRequest, opts ...grpc.CallOption) (*SaveOrderFeesResponse, error)
 	// BulkUpdateOrderFees 批量定向修改订单未被有效账单关联占用的费用：每次仅修改
 	// 结算单位或费用发生时间之一，整批单一事务，任一行版本冲突、已建账、越订单或
 	// 汇率缺失时整批回滚并返回具体费用与原因，不允许部分成功。
@@ -245,6 +253,16 @@ func (c *orderFeeServiceClient) RemoveFee(ctx context.Context, in *RemoveFeeRequ
 	return out, nil
 }
 
+func (c *orderFeeServiceClient) SaveOrderFees(ctx context.Context, in *SaveOrderFeesRequest, opts ...grpc.CallOption) (*SaveOrderFeesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SaveOrderFeesResponse)
+	err := c.cc.Invoke(ctx, OrderFeeService_SaveOrderFees_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *orderFeeServiceClient) BulkUpdateOrderFees(ctx context.Context, in *BulkUpdateOrderFeesRequest, opts ...grpc.CallOption) (*BulkUpdateOrderFeesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(BulkUpdateOrderFeesResponse)
@@ -316,6 +334,13 @@ type OrderFeeServiceServer interface {
 	// RemoveFee 物理删除未被有效账单关联占用（未建账）的订单费用；补录生成的费用
 	// 必须通过补录申请专用撤销删除，历史账单行快照保留、来源引用置空。
 	RemoveFee(context.Context, *RemoveFeeRequest) (*RemoveFeeResponse, error)
+	// SaveOrderFees 按单侧（应收或应付）整表保存订单费用的新增与修改：单一事务，
+	// 逐行完整校验后才写入，任一行失败整体回滚；不含删除，不连带另一侧。
+	// 新增行幂等键由 request_key 与 client_row_id 派生，响应丢失后沿用同一
+	// request_key 重试不重复新增；半应用情形返回 409。新增行要求 fee.create，
+	// 修改行要求 fee.update，在服务端分别校验。行级错误通过错误 metadata 的
+	// client_row_id、field、reason 定位。
+	SaveOrderFees(context.Context, *SaveOrderFeesRequest) (*SaveOrderFeesResponse, error)
 	// BulkUpdateOrderFees 批量定向修改订单未被有效账单关联占用的费用：每次仅修改
 	// 结算单位或费用发生时间之一，整批单一事务，任一行版本冲突、已建账、越订单或
 	// 汇率缺失时整批回滚并返回具体费用与原因，不允许部分成功。
@@ -384,6 +409,9 @@ func (UnimplementedOrderFeeServiceServer) UpdateFee(context.Context, *UpdateFeeR
 }
 func (UnimplementedOrderFeeServiceServer) RemoveFee(context.Context, *RemoveFeeRequest) (*RemoveFeeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RemoveFee not implemented")
+}
+func (UnimplementedOrderFeeServiceServer) SaveOrderFees(context.Context, *SaveOrderFeesRequest) (*SaveOrderFeesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveOrderFees not implemented")
 }
 func (UnimplementedOrderFeeServiceServer) BulkUpdateOrderFees(context.Context, *BulkUpdateOrderFeesRequest) (*BulkUpdateOrderFeesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BulkUpdateOrderFees not implemented")
@@ -688,6 +716,24 @@ func _OrderFeeService_RemoveFee_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OrderFeeService_SaveOrderFees_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveOrderFeesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OrderFeeServiceServer).SaveOrderFees(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OrderFeeService_SaveOrderFees_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OrderFeeServiceServer).SaveOrderFees(ctx, req.(*SaveOrderFeesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _OrderFeeService_BulkUpdateOrderFees_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(BulkUpdateOrderFeesRequest)
 	if err := dec(in); err != nil {
@@ -826,6 +872,10 @@ var OrderFeeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveFee",
 			Handler:    _OrderFeeService_RemoveFee_Handler,
+		},
+		{
+			MethodName: "SaveOrderFees",
+			Handler:    _OrderFeeService_SaveOrderFees_Handler,
 		},
 		{
 			MethodName: "BulkUpdateOrderFees",

@@ -172,7 +172,7 @@ type OrderFeeRepo interface {
 	ConfirmedQuantityPreview(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, string) (*FeeQuantityPreview, error)
 	QuantitySource(ctx context.Context, organizationID, orderID, billingUnitID uuid.UUID, source string) (*FeeQuantitySource, error)
 	Options(ctx context.Context, organizationID, orderID uuid.UUID) (*OrderFeeOptions, error)
-	// OrderRateDate 返回订单取汇率日期所需字段（仅 TradeDirection、ETD、ETA 有值），
+	// OrderRateDate 返回订单取汇率日期所需字段（仅 BusinessType、TradeDirection、ETD、ETA 有值），
 	// 订单不存在时报不存在。取值规则见 OrderRateDay。
 	OrderRateDate(ctx context.Context, organizationID, orderID uuid.UUID) (*Order, error)
 	ResolveCatalog(ctx context.Context, organizationID, orderID, feeSettingID, billingUnitID uuid.UUID, allowDisabledUnit bool) (*OrderFeeCatalogSnapshot, error)
@@ -185,6 +185,8 @@ type OrderFeeRepo interface {
 	Remove(ctx context.Context, organizationID, orderID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *AuditEvent) error
 	BulkUpdate(ctx context.Context, organizationID, orderID uuid.UUID, input *OrderFeeBulkUpdateInput, audits map[uuid.UUID]*AuditEvent) error
 	BulkRemove(ctx context.Context, organizationID, orderID uuid.UUID, targets []OrderFeeBulkTarget, audits map[uuid.UUID]*AuditEvent) error
+	// Save 单事务整表保存单侧费用的新增与修改，见 order_fee_save.go。
+	Save(ctx context.Context, organizationID, orderID uuid.UUID, input *OrderFeeSaveInput, audits map[string]*AuditEvent) (*OrderFeeSaveResult, error)
 }
 
 // OrderFeeBulkTarget 批量维护操作的单一费用目标：费用 ID 与乐观锁版本。
@@ -581,6 +583,14 @@ func orderFeeCurrencySetsMatch(existing []*OrderFee, pending *OrderFee) bool {
 }
 
 func (uc *OrderFeeUsecase) resolveExchangeRate(ctx context.Context, organizationID, orderID uuid.UUID, fee *OrderFee, canOverrideExchangeRate bool, existingFees []*OrderFee) error {
+	return uc.resolveExchangeRateWithSets(ctx, organizationID, orderID, fee, canOverrideExchangeRate, func(pending *OrderFee) bool {
+		return orderFeeCurrencySetsMatch(existingFees, pending)
+	})
+}
+
+// resolveExchangeRateWithSets 与 resolveExchangeRate 同口径；setsMatch 为 nil 表示币种集合条件
+// 由调用方在事务内按提交后的整单集合另行判定（整表保存），此处只做权限与同币种校验。
+func (uc *OrderFeeUsecase) resolveExchangeRateWithSets(ctx context.Context, organizationID, orderID uuid.UUID, fee *OrderFee, canOverrideExchangeRate bool, setsMatch func(*OrderFee) bool) error {
 	rateDay, err := uc.orderRateDay(ctx, organizationID, orderID)
 	if err != nil {
 		return err
@@ -589,7 +599,7 @@ func (uc *OrderFeeUsecase) resolveExchangeRate(ctx context.Context, organization
 		if !canOverrideExchangeRate {
 			return ErrOrderFeeExchangeRateOverrideForbidden
 		}
-		if !orderFeeCurrencySetsMatch(existingFees, fee) {
+		if setsMatch != nil && !setsMatch(fee) {
 			return ErrOrderFeeExchangeRateOverrideMismatch
 		}
 		baseCurrency, err := uc.exchangeRate.BaseCurrency(ctx, organizationID)

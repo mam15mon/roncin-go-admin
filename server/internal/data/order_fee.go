@@ -160,7 +160,7 @@ func (r *orderFeeRepo) OrderRateDate(ctx context.Context, organizationID, orderI
 		return nil, mapEntError(err, biz.ErrOrderFeeNotFound, nil)
 	}
 	return &biz.Order{
-		ID: item.ID, OrganizationID: item.OrganizationID,
+		ID: item.ID, OrganizationID: item.OrganizationID, BusinessType: biz.OrderBusinessType(item.BusinessType),
 		TradeDirection: biz.OrderTradeDirection(item.TradeDirection), ETD: item.Etd, ETA: item.Eta,
 	}, nil
 }
@@ -363,37 +363,7 @@ func (r *orderFeeRepo) Add(ctx context.Context, organizationID, orderID uuid.UUI
 			return biz.ErrOrderFeeCurrencyInvalid
 		}
 		var createErr error
-		created, createErr = tx.OrderFee.Create().
-			SetID(input.ID).
-			SetOrderID(orderID).
-			SetIdempotencyKey(input.IdempotencyKey).
-			SetDirection(orderfeeent.Direction(input.Direction)).
-			SetNillableFeeSettingID(input.FeeSettingID).
-			SetFeeCode(input.FeeCode).
-			SetFeeName(input.FeeName).
-			SetNillableFeeNameEn(input.FeeNameEN).
-			SetSettlementPartyID(input.SettlementPartyID).
-			SetNillableBillingUnitID(input.BillingUnitID).
-			SetBillingUnit(input.BillingUnit).
-			SetNillableTaxRate(decimalPointerToString(input.TaxRate, 2)).
-			SetNillableTaxableServiceName(input.TaxableServiceName).
-			SetQuantitySource(feeQuantitySelectionMap(input.QuantitySource)).
-			SetQuantity(input.Quantity.StringFixed(4)).
-			SetUnitPrice(input.UnitPrice.StringFixed(4)).
-			SetTotalAmount(input.TotalAmount.StringFixed(8)).
-			SetTaxInclusive(input.TaxInclusive).
-			SetNetAmount(input.NetAmount.StringFixed(8)).
-			SetTaxAmount(input.TaxAmount.StringFixed(8)).
-			SetCurrency(input.Currency).
-			SetExchangeRate(input.ExchangeRate.StringFixed(8)).
-			SetExchangeRateSource(orderfeeent.ExchangeRateSource(input.ExchangeRateSource)).
-			SetExchangeRateDate(input.ExchangeRateDate).
-			SetNillableExchangeRateSettingID(input.ExchangeRateSettingID).
-			SetBaseCurrency(input.BaseCurrency).
-			SetBaseCurrencyAmount(input.BaseCurrencyAmount.StringFixed(8)).
-			SetNillableNote(input.Note).
-			SetVersion(input.Version).
-			Save(ctx)
+		created, createErr = newOrderFeeCreate(tx, orderID, input).Save(ctx)
 		if createErr != nil {
 			return mapEntConstraint(createErr, "orderfee_order_id_idempotency_key", biz.ErrOrderFeeIdempotencyConflict)
 		}
@@ -484,53 +454,7 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 			}
 		}
 
-		builder := tx.OrderFee.UpdateOne(item).
-			SetDirection(orderfeeent.Direction(input.Direction)).
-			SetNillableFeeSettingID(input.FeeSettingID).
-			SetFeeCode(input.FeeCode).
-			SetFeeName(input.FeeName).
-			SetSettlementPartyID(input.SettlementPartyID).
-			SetNillableBillingUnitID(input.BillingUnitID).
-			SetBillingUnit(input.BillingUnit).
-			SetQuantitySource(feeQuantitySelectionMap(input.QuantitySource)).
-			SetQuantity(input.Quantity.StringFixed(4)).
-			SetUnitPrice(input.UnitPrice.StringFixed(4)).
-			SetTotalAmount(input.TotalAmount.StringFixed(8)).
-			SetTaxInclusive(input.TaxInclusive).
-			SetNetAmount(input.NetAmount.StringFixed(8)).
-			SetTaxAmount(input.TaxAmount.StringFixed(8)).
-			SetCurrency(input.Currency).
-			SetExchangeRate(input.ExchangeRate.StringFixed(8)).
-			SetExchangeRateSource(orderfeeent.ExchangeRateSource(input.ExchangeRateSource)).
-			SetExchangeRateDate(input.ExchangeRateDate).
-			SetBaseCurrency(input.BaseCurrency).
-			SetBaseCurrencyAmount(input.BaseCurrencyAmount.StringFixed(8)).
-			SetVersion(item.Version + 1)
-		if input.FeeNameEN != nil {
-			builder.SetFeeNameEn(*input.FeeNameEN)
-		} else {
-			builder.ClearFeeNameEn()
-		}
-		if input.TaxRate != nil {
-			builder.SetTaxRate(input.TaxRate.StringFixed(2))
-		} else {
-			builder.ClearTaxRate()
-		}
-		if input.TaxableServiceName != nil {
-			builder.SetTaxableServiceName(*input.TaxableServiceName)
-		} else {
-			builder.ClearTaxableServiceName()
-		}
-		if input.ExchangeRateSettingID != nil {
-			builder.SetExchangeRateSettingID(*input.ExchangeRateSettingID)
-		} else {
-			builder.ClearExchangeRateSettingID()
-		}
-		if input.Note != nil {
-			builder.SetNote(*input.Note)
-		} else {
-			builder.ClearNote()
-		}
+		builder := newOrderFeeUpdate(tx, item, input)
 		var updateErr error
 		updated, updateErr = builder.Save(ctx)
 		if updateErr != nil {
@@ -558,6 +482,92 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 	input.CreatedAt = updated.CreatedAt
 	input.UpdatedAt = updated.UpdatedAt
 	return input, nil
+}
+
+// newOrderFeeCreate 由已准备好的费用构建创建语句；Add 与整表保存共用同一字段集。
+func newOrderFeeCreate(tx *ent.Tx, orderID uuid.UUID, input *biz.OrderFee) *ent.OrderFeeCreate {
+	return tx.OrderFee.Create().
+		SetID(input.ID).
+		SetOrderID(orderID).
+		SetIdempotencyKey(input.IdempotencyKey).
+		SetDirection(orderfeeent.Direction(input.Direction)).
+		SetNillableFeeSettingID(input.FeeSettingID).
+		SetFeeCode(input.FeeCode).
+		SetFeeName(input.FeeName).
+		SetNillableFeeNameEn(input.FeeNameEN).
+		SetSettlementPartyID(input.SettlementPartyID).
+		SetNillableBillingUnitID(input.BillingUnitID).
+		SetBillingUnit(input.BillingUnit).
+		SetNillableTaxRate(decimalPointerToString(input.TaxRate, 2)).
+		SetNillableTaxableServiceName(input.TaxableServiceName).
+		SetQuantitySource(feeQuantitySelectionMap(input.QuantitySource)).
+		SetQuantity(input.Quantity.StringFixed(4)).
+		SetUnitPrice(input.UnitPrice.StringFixed(4)).
+		SetTotalAmount(input.TotalAmount.StringFixed(8)).
+		SetTaxInclusive(input.TaxInclusive).
+		SetNetAmount(input.NetAmount.StringFixed(8)).
+		SetTaxAmount(input.TaxAmount.StringFixed(8)).
+		SetCurrency(input.Currency).
+		SetExchangeRate(input.ExchangeRate.StringFixed(8)).
+		SetExchangeRateSource(orderfeeent.ExchangeRateSource(input.ExchangeRateSource)).
+		SetExchangeRateDate(input.ExchangeRateDate).
+		SetNillableExchangeRateSettingID(input.ExchangeRateSettingID).
+		SetBaseCurrency(input.BaseCurrency).
+		SetBaseCurrencyAmount(input.BaseCurrencyAmount.StringFixed(8)).
+		SetNillableNote(input.Note).
+		SetVersion(input.Version)
+}
+
+// newOrderFeeUpdate 由已准备好的费用构建整行更新语句（版本 +1）；Update 与整表保存共用。
+func newOrderFeeUpdate(tx *ent.Tx, item *ent.OrderFee, input *biz.OrderFee) *ent.OrderFeeUpdateOne {
+	builder := tx.OrderFee.UpdateOne(item).
+		SetDirection(orderfeeent.Direction(input.Direction)).
+		SetNillableFeeSettingID(input.FeeSettingID).
+		SetFeeCode(input.FeeCode).
+		SetFeeName(input.FeeName).
+		SetSettlementPartyID(input.SettlementPartyID).
+		SetNillableBillingUnitID(input.BillingUnitID).
+		SetBillingUnit(input.BillingUnit).
+		SetQuantitySource(feeQuantitySelectionMap(input.QuantitySource)).
+		SetQuantity(input.Quantity.StringFixed(4)).
+		SetUnitPrice(input.UnitPrice.StringFixed(4)).
+		SetTotalAmount(input.TotalAmount.StringFixed(8)).
+		SetTaxInclusive(input.TaxInclusive).
+		SetNetAmount(input.NetAmount.StringFixed(8)).
+		SetTaxAmount(input.TaxAmount.StringFixed(8)).
+		SetCurrency(input.Currency).
+		SetExchangeRate(input.ExchangeRate.StringFixed(8)).
+		SetExchangeRateSource(orderfeeent.ExchangeRateSource(input.ExchangeRateSource)).
+		SetExchangeRateDate(input.ExchangeRateDate).
+		SetBaseCurrency(input.BaseCurrency).
+		SetBaseCurrencyAmount(input.BaseCurrencyAmount.StringFixed(8)).
+		SetVersion(item.Version + 1)
+	if input.FeeNameEN != nil {
+		builder.SetFeeNameEn(*input.FeeNameEN)
+	} else {
+		builder.ClearFeeNameEn()
+	}
+	if input.TaxRate != nil {
+		builder.SetTaxRate(input.TaxRate.StringFixed(2))
+	} else {
+		builder.ClearTaxRate()
+	}
+	if input.TaxableServiceName != nil {
+		builder.SetTaxableServiceName(*input.TaxableServiceName)
+	} else {
+		builder.ClearTaxableServiceName()
+	}
+	if input.ExchangeRateSettingID != nil {
+		builder.SetExchangeRateSettingID(*input.ExchangeRateSettingID)
+	} else {
+		builder.ClearExchangeRateSettingID()
+	}
+	if input.Note != nil {
+		builder.SetNote(*input.Note)
+	} else {
+		builder.ClearNote()
+	}
+	return builder
 }
 
 // Remove 在事务内按账单占用关系物理删除费用：锁定订单与费用行并核对版本后，

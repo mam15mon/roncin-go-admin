@@ -76,3 +76,12 @@
 - 税率取值：显式税率优先；未提交时若费用设置未变更则保持已存税率，仅费用设置变更才取目录税率，目录不得覆盖显式或已存税率。
 - 税率变化后重算未税/税额/本币并经 `reconcileOrdinaryFeeEconomics` 重算提成；修改写审计 `fee.tax_rate_before/after`，新增写 `fee.tax_rate_changed`，操作者为审计 UserID。
 - `OrderFee` 与 `FeeLedgerItem` 新增只读计算字段 `base_currency_net_amount`，由 `OrderFee.BaseCurrencyNetAmount()`（即 `CommissionNetBase`）统一计算，不持久化；`base_currency_amount` 恒有值，故不使用 optional。
+
+## 整表保存（SaveOrderFees）
+
+- `POST /api/v1/orders/{order_id}/fees:save`：按单侧（应收或应付）一次提交新增与修改，不含删除、不连带另一侧；调用方只提交有改动的行。接入规则为 `fee.update`，服务端再按订单品类分别校验新增行 `fee.create`、修改行 `fee.update`，并沿用汇率覆盖与税率更改权限。
+- 单事务：订单锁（审核锁与业务门禁）→ 目标费用行按主键升序 `FOR UPDATE` → 逐行完整复核（版本、账单占用、受保护更正、方向、引用）→ 全部通过才写。任一行失败整体回滚。
+- 手工汇率覆盖的币种集合在事务内按「本次提交后的整单费用集合」判定（已落库当前有效费用，提交行取代同 ID 行并并入新增行），不读事务外数据。
+- 一次提交订单 `fee_content_version` 只 +1，提成经济重算只调用一次；每个变更费用各自 `version+1` 并写审计（`fee.save=true`）。响应返回本侧当前有效费用与保存后的订单费用内容版本。
+- 幂等：新增行幂等键 = `sha256(request_key:client_row_id)` 十六进制，复用 `orderfee_order_id_idempotency_key`。全部新增行已存在且意图一致、全部修改行已处于目标内容（版本 expected+1 且字段一致）→ 返回当前状态且 `replayed=true`；部分满足 → 409（具体行意图/版本冲突优先，否则 `ORDER_FEE_SAVE_PARTIALLY_APPLIED`），不重复新增。
+- 行级错误：metadata 带 `client_row_id`、`field`、`reason`；多行同时出错时 HTTP 语义取第一条，`row_errors` 以 JSON 数组列出全部。文案不拼费用 ID。

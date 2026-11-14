@@ -383,3 +383,30 @@ export async function orderFeeServiceBulkUpdateOrderFees(
     }
   );
 }
+
+/** SaveOrderFees 按单侧（应收或应付）整表保存订单费用的新增与修改：单一事务，
+ 逐行完整校验后才写入，任一行失败整体回滚；不含删除，不连带另一侧。
+ 新增行幂等键由 request_key 与 client_row_id 派生，响应丢失后沿用同一
+ request_key 重试不重复新增；半应用情形返回 409。新增行要求 fee.create，
+ 修改行要求 fee.update，在服务端分别校验。行级错误通过错误 metadata 的
+ client_row_id、field、reason 定位。 POST /api/v1/orders/${param0}/fees:save */
+export async function orderFeeServiceSaveOrderFees(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.OrderFeeServiceSaveOrderFeesParams,
+  body: API.SaveOrderFeesRequest,
+  options?: { [key: string]: any }
+) {
+  const { orderId: param0, ...queryParams } = params;
+  return request<API.SaveOrderFeesResponse>(
+    `/api/v1/orders/${param0}/fees:save`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}

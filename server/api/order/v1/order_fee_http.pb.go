@@ -34,6 +34,7 @@ const OperationOrderFeeServicePreviewOrderFeeSupplementApproval = "/order.v1.Ord
 const OperationOrderFeeServiceRejectOrderFeeCorrection = "/order.v1.OrderFeeService/RejectOrderFeeCorrection"
 const OperationOrderFeeServiceRemoveFee = "/order.v1.OrderFeeService/RemoveFee"
 const OperationOrderFeeServiceResolveFeeExchangeRate = "/order.v1.OrderFeeService/ResolveFeeExchangeRate"
+const OperationOrderFeeServiceSaveOrderFees = "/order.v1.OrderFeeService/SaveOrderFees"
 const OperationOrderFeeServiceUpdateFee = "/order.v1.OrderFeeService/UpdateFee"
 const OperationOrderFeeServiceWithdrawOrderFeeCorrection = "/order.v1.OrderFeeService/WithdrawOrderFeeCorrection"
 
@@ -72,6 +73,13 @@ type OrderFeeServiceHTTPServer interface {
 	RemoveFee(context.Context, *RemoveFeeRequest) (*RemoveFeeResponse, error)
 	// ResolveFeeExchangeRate ResolveFeeExchangeRate 按费用发生日解析币种折本位币的公共参考汇率。
 	ResolveFeeExchangeRate(context.Context, *ResolveFeeExchangeRateRequest) (*ResolveFeeExchangeRateResponse, error)
+	// SaveOrderFees SaveOrderFees 按单侧（应收或应付）整表保存订单费用的新增与修改：单一事务，
+	// 逐行完整校验后才写入，任一行失败整体回滚；不含删除，不连带另一侧。
+	// 新增行幂等键由 request_key 与 client_row_id 派生，响应丢失后沿用同一
+	// request_key 重试不重复新增；半应用情形返回 409。新增行要求 fee.create，
+	// 修改行要求 fee.update，在服务端分别校验。行级错误通过错误 metadata 的
+	// client_row_id、field、reason 定位。
+	SaveOrderFees(context.Context, *SaveOrderFeesRequest) (*SaveOrderFeesResponse, error)
 	// UpdateFee UpdateFee 更新订单费用，总金额由服务端重新精确计算；未被有效账单关联占用
 	// （未建账）且订单未锁定的费用可维护；已建账费用必须按权限回退账务。
 	UpdateFee(context.Context, *UpdateFeeRequest) (*UpdateFeeResponse, error)
@@ -95,6 +103,7 @@ func RegisterOrderFeeServiceHTTPServer(s *http.Server, srv OrderFeeServiceHTTPSe
 	r.Handle("POST", "/api/v1/orders/{order_id}/fees", _OrderFeeService_AddFee0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/orders/{order_id}/fees/{id}", _OrderFeeService_UpdateFee0_HTTP_Handler(srv))
 	r.Handle("DELETE", "/api/v1/orders/{order_id}/fees/{id}", _OrderFeeService_RemoveFee0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/orders/{order_id}/fees:save", _OrderFeeService_SaveOrderFees0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders/{order_id}/fees/bulk-update", _OrderFeeService_BulkUpdateOrderFees0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/orders/{order_id}/fees/bulk-remove", _OrderFeeService_BulkRemoveOrderFees0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/orders/{order_id}/fee-supplement-requests", _OrderFeeService_ListOrderFeeSupplementRequests0_HTTP_Handler(srv))
@@ -431,6 +440,28 @@ func _OrderFeeService_RemoveFee0_HTTP_Handler(srv OrderFeeServiceHTTPServer) fun
 	}
 }
 
+func _OrderFeeService_SaveOrderFees0_HTTP_Handler(srv OrderFeeServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SaveOrderFeesRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationOrderFeeServiceSaveOrderFees)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SaveOrderFees(ctx, req.(*SaveOrderFeesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SaveOrderFeesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _OrderFeeService_BulkUpdateOrderFees0_HTTP_Handler(srv OrderFeeServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in BulkUpdateOrderFeesRequest
@@ -554,6 +585,13 @@ type OrderFeeServiceHTTPClient interface {
 	RemoveFee(ctx context.Context, req *RemoveFeeRequest, opts ...http.CallOption) (rsp *RemoveFeeResponse, err error)
 	// ResolveFeeExchangeRate ResolveFeeExchangeRate 按费用发生日解析币种折本位币的公共参考汇率。
 	ResolveFeeExchangeRate(ctx context.Context, req *ResolveFeeExchangeRateRequest, opts ...http.CallOption) (rsp *ResolveFeeExchangeRateResponse, err error)
+	// SaveOrderFees SaveOrderFees 按单侧（应收或应付）整表保存订单费用的新增与修改：单一事务，
+	// 逐行完整校验后才写入，任一行失败整体回滚；不含删除，不连带另一侧。
+	// 新增行幂等键由 request_key 与 client_row_id 派生，响应丢失后沿用同一
+	// request_key 重试不重复新增；半应用情形返回 409。新增行要求 fee.create，
+	// 修改行要求 fee.update，在服务端分别校验。行级错误通过错误 metadata 的
+	// client_row_id、field、reason 定位。
+	SaveOrderFees(ctx context.Context, req *SaveOrderFeesRequest, opts ...http.CallOption) (rsp *SaveOrderFeesResponse, err error)
 	// UpdateFee UpdateFee 更新订单费用，总金额由服务端重新精确计算；未被有效账单关联占用
 	// （未建账）且订单未锁定的费用可维护；已建账费用必须按权限回退账务。
 	UpdateFee(ctx context.Context, req *UpdateFeeRequest, opts ...http.CallOption) (rsp *UpdateFeeResponse, err error)
@@ -858,6 +896,29 @@ func (c *OrderFeeServiceHTTPClientImpl) ResolveFeeExchangeRate(ctx context.Conte
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SaveOrderFees SaveOrderFees 按单侧（应收或应付）整表保存订单费用的新增与修改：单一事务，
+// 逐行完整校验后才写入，任一行失败整体回滚；不含删除，不连带另一侧。
+// 新增行幂等键由 request_key 与 client_row_id 派生，响应丢失后沿用同一
+// request_key 重试不重复新增；半应用情形返回 409。新增行要求 fee.create，
+// 修改行要求 fee.update，在服务端分别校验。行级错误通过错误 metadata 的
+// client_row_id、field、reason 定位。
+func (c *OrderFeeServiceHTTPClientImpl) SaveOrderFees(ctx context.Context, in *SaveOrderFeesRequest, opts ...http.CallOption) (*SaveOrderFeesResponse, error) {
+	var out SaveOrderFeesResponse
+	pattern := "/api/v1/orders/{order_id}/fees:save"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationOrderFeeServiceSaveOrderFees),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

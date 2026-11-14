@@ -10208,6 +10208,47 @@
         }
       }
     },
+    "/api/v1/orders/{orderId}/fees:save": {
+      "post": {
+        "tags": [
+          "OrderFeeService"
+        ],
+        "description": "SaveOrderFees 按单侧（应收或应付）整表保存订单费用的新增与修改：单一事务，\n 逐行完整校验后才写入，任一行失败整体回滚；不含删除，不连带另一侧。\n 新增行幂等键由 request_key 与 client_row_id 派生，响应丢失后沿用同一\n request_key 重试不重复新增；半应用情形返回 409。新增行要求 fee.create，\n 修改行要求 fee.update，在服务端分别校验。行级错误通过错误 metadata 的\n client_row_id、field、reason 定位。",
+        "operationId": "OrderFeeService_SaveOrderFees",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/order.v1.SaveOrderFeesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/order.v1.SaveOrderFeesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/orders/{orderId}/lock": {
       "post": {
         "tags": [
@@ -31289,6 +31330,125 @@
           }
         },
         "description": "SameBatchOrderSummary 同批订单只读摘要。"
+      },
+      "order.v1.SaveOrderFeeRow": {
+        "required": [
+          "clientRowId",
+          "feeSettingId",
+          "settlementPartyId",
+          "billingUnitId",
+          "quantity",
+          "unitPrice",
+          "currency"
+        ],
+        "type": "object",
+        "properties": {
+          "clientRowId": {
+            "type": "string"
+          },
+          "feeId": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          },
+          "feeSettingId": {
+            "type": "string"
+          },
+          "settlementPartyId": {
+            "type": "string"
+          },
+          "billingUnitId": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "string"
+          },
+          "unitPrice": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "exchangeRateOverride": {
+            "type": "string"
+          },
+          "taxInclusive": {
+            "type": "boolean"
+          },
+          "quantitySource": {
+            "$ref": "#/components/schemas/order.v1.FeeQuantitySelection"
+          },
+          "taxRate": {
+            "type": "string",
+            "description": "tax_rate 显式税率（0-100）；语义与 AddFee/UpdateFee 一致，更改税率须具备订单费用税率更改权限。"
+          }
+        },
+        "description": "SaveOrderFeeRow 是整表保存中的一行：带 fee_id 与 expected_version 为修改，\n 否则为新增；client_row_id 是前端行标识，用于幂等派生与行级错误定位。"
+      },
+      "order.v1.SaveOrderFeesRequest": {
+        "required": [
+          "orderId",
+          "direction",
+          "requestKey",
+          "rows"
+        ],
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "integer",
+            "format": "enum"
+          },
+          "requestKey": {
+            "type": "string",
+            "description": "request_key 一次保存意图的幂等标识，重试沿用，成功后更换。"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.SaveOrderFeeRow"
+            }
+          }
+        }
+      },
+      "order.v1.SaveOrderFeesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.OrderFee"
+            },
+            "description": "data 为保存后本侧全部当前有效费用。"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "feeContentVersion": {
+            "type": "string",
+            "description": "fee_content_version 保存后的订单费用内容版本，供前端更新外部变动基线。"
+          },
+          "replayed": {
+            "type": "boolean",
+            "description": "replayed 为 true 表示请求此前已完整应用，本次仅返回当前状态。"
+          }
+        }
       },
       "order.v1.SaveSeaSharedContainerAllocationsDraftRequest": {
         "required": [
