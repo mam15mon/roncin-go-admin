@@ -85,3 +85,6 @@
 - 一次提交订单 `fee_content_version` 只 +1，提成经济重算只调用一次；每个变更费用各自 `version+1` 并写审计（`fee.save=true`）。响应返回本侧当前有效费用与保存后的订单费用内容版本。
 - 幂等：新增行幂等键 = `sha256(request_key:client_row_id)` 十六进制，复用 `orderfee_order_id_idempotency_key`。全部新增行已存在且意图一致、全部修改行已处于目标内容（版本 expected+1 且字段一致）→ 返回当前状态且 `replayed=true`；部分满足 → 409（具体行意图/版本冲突优先，否则 `ORDER_FEE_SAVE_PARTIALLY_APPLIED`），不重复新增。
 - 行级错误：metadata 带 `client_row_id`、`field`、`reason`；多行同时出错时 HTTP 语义取第一条，`row_errors` 以 JSON 数组列出全部。文案不拼费用 ID。
+
+- 保存准备可能先于订单行锁：新增费用、改币种或显式覆盖汇率的行，拿到订单锁后必须用 `validatePreparedFeeRateDay` 复核准备时的 `exchange_rate_date` 与当前出口 ETD／进口 ETA 取值日一致；不一致返回冲突并整体回滚，防止并发改期后插入旧日期汇率。单行 Add/Update 与整表 Save 使用相同判定；未重取汇率的已有手工/历史快照不因此被拒绝。回归见 `order_fee_save_rate_date_integration_test.go`。
+- 前端校验、提交与成功刷新期间仅冻结正在保存的一侧输入及新增/移除，另一侧仍可编辑；禁止保存成功刷新覆盖请求发出后的新输入。费用被外部审核锁定后，已有未保存输入仍保持离开保护，不因编辑能力消失清除 dirty。

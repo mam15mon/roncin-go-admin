@@ -59,6 +59,11 @@ func TestOrderFeeQuantityRuleUpdatePostgres(t *testing.T) {
 	if err != nil {
 		t.Fatalf("读取更新后的费用: %v", err)
 	}
+	// 新增费用的汇率日期须与订单当前取值日一致，避免日期校验遮住本用例的数量边界。
+	if err := data.db.Order.UpdateOneID(fixture.orderID).SetEtd(financeBillIntegrationDate + "T00:00:00+08:00").Exec(ctx); err != nil {
+		t.Fatal(err)
+	}
+	current.ExchangeRateDate = financeBillIntegrationDate
 	current.ID = uuid.New()
 	current.IdempotencyKey = uuid.NewString()
 	current.Quantity = decimal.RequireFromString("4.4")

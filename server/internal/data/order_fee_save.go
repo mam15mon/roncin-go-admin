@@ -141,6 +141,13 @@ func (r *orderFeeRepo) Save(ctx context.Context, organizationID, orderID uuid.UU
 			return biz.ErrOrderFeeSavePartiallyApplied
 		}
 
+		// 新增、改币种或显式覆盖汇率会在用例准备阶段读取取值日。拿到订单锁后须再次
+		// 核对，避免准备与保存之间的改期已完成联动，随后却把旧日期费用插入或写回。
+		order, getErr := tx.Order.Get(ctx, orderID)
+		if getErr != nil {
+			return getErr
+		}
+
 		// 引用校验：在锁内用 tx 读取，通过状态复核的行才继续（避免对已失败行重复报错）。
 		failedRows := make(map[string]struct{}, len(failures))
 		for _, failure := range failures {
@@ -151,6 +158,16 @@ func (r *orderFeeRepo) Save(ctx context.Context, organizationID, orderID uuid.UU
 				continue
 			}
 			var refErr error
+			if row.FeeID == nil || row.ExchangeRateOverridden || locked[*row.FeeID].Currency != row.Fee.Currency {
+				refErr = validatePreparedFeeRateDay(order, row.Fee)
+			}
+			if refErr != nil {
+				if err := fail(row.ClientRowID, refErr); err != nil {
+					return err
+				}
+				failedRows[row.ClientRowID] = struct{}{}
+				continue
+			}
 			if row.FeeID == nil {
 				refErr = validateSaveAddRefs(ctx, tx, organizationID, orderID, row.Fee)
 			} else {
@@ -233,7 +250,7 @@ func (r *orderFeeRepo) Save(ctx context.Context, organizationID, orderID uuid.UU
 				return err
 			}
 		}
-		order, getErr := tx.Order.Get(ctx, orderID)
+		order, getErr = tx.Order.Get(ctx, orderID)
 		if getErr != nil {
 			return getErr
 		}

@@ -334,6 +334,13 @@ func (r *orderFeeRepo) Add(ctx context.Context, organizationID, orderID uuid.UUI
 		if lockErr := lockOrderForFeeMutation(ctx, tx, organizationID, orderID); lockErr != nil {
 			return lockErr
 		}
+		order, dateErr := tx.Order.Get(ctx, orderID)
+		if dateErr != nil {
+			return dateErr
+		}
+		if dateErr = validatePreparedFeeRateDay(order, input); dateErr != nil {
+			return dateErr
+		}
 		if input.BillingUnitID == nil {
 			return biz.ErrOrderFeeBillingUnitInvalid
 		}
@@ -410,6 +417,15 @@ func (r *orderFeeRepo) Update(ctx context.Context, organizationID, orderID, id u
 		}
 		if item.Version != input.Version {
 			return biz.ErrOrderFeeVersionConflict
+		}
+		if input.ExchangeRateOverride != nil || item.Currency != input.Currency {
+			order, dateErr := tx.Order.Get(ctx, orderID)
+			if dateErr != nil {
+				return dateErr
+			}
+			if dateErr = validatePreparedFeeRateDay(order, input); dateErr != nil {
+				return dateErr
+			}
 		}
 		if input.BillingUnitID == nil {
 			return biz.ErrOrderFeeBillingUnitInvalid
@@ -949,3 +965,16 @@ func decimalPointerToString(value *decimal.Decimal, scale int32) *string {
 }
 
 var _ biz.OrderFeeRepo = (*orderFeeRepo)(nil)
+
+// validatePreparedFeeRateDay 在订单锁内确认新解析的费用汇率仍属于当前取值日。
+// 已有行未重新取汇率时不调用，避免误拒绝应保留的手工/历史快照。
+func validatePreparedFeeRateDay(order *ent.Order, fee *biz.OrderFee) error {
+	day, err := orderRateDayOf(order)
+	if err != nil {
+		return err
+	}
+	if day != fee.ExchangeRateDate {
+		return biz.ErrOrderStatusConflict
+	}
+	return nil
+}
