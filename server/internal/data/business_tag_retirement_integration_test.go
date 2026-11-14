@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/access"
@@ -47,7 +48,7 @@ func TestBusinessTagRetirementUpgradePostgres(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	bill, err := withTestFinanceBillSettlementAccountSnapshot(client.FinanceBill.Create(), uuid.New(), "CNY").SetOrganizationID(org.ID).SetExchangeRate("1").SetExchangeRateSource(billent.ExchangeRateSourceSYSTEM).SetExchangeRateDate("2026-11-09").SetBillNo("KEEP-BILL").SetIdempotencyKey(uuid.NewString()).SetDirection(billent.DirectionRECEIVABLE).SetSettlementPartyID(partner.ID).SetSettlementPartyName(partner.LegalName).SetCurrency("CNY").SetBaseCurrency("CNY").SetTotalAmount("123.45").SetNetAmount("123.45").SetTaxAmount("0").SetBaseCurrencyAmount("123.45").SetFeeCount(1).SetBillDate("2026-11-09").SetVersion(4).Save(ctx)
+	bill, err := withTestFinanceBillSettlementAccountSnapshot(client.FinanceBill.Create(), uuid.New(), "CNY").SetOrganizationID(org.ID).SetExchangeRate("1").SetExchangeRateSource(billent.ExchangeRateSourceSYSTEM).SetExchangeRateDate("2026-11-09").SetBillNo("KEEP-BILL").SetIdempotencyKey(uuid.NewString()).SetDirection(billent.DirectionRECEIVABLE).SetSettlementPartyID(partner.ID).SetSettlementPartyName(partner.LegalName).SetCurrency("CNY").SetBaseCurrency("CNY").SetTotalAmount("123.45").SetNetAmount("123.45").SetTaxAmount("0").SetBaseCurrencyAmount("123.45").SetFeeCount(1).SetBillDate("2026-11-09").SetStatus(billent.StatusCONFIRMED).SetConfirmedAt(time.Date(2026, 11, 9, 0, 0, 0, 0, time.UTC)).SetConfirmedBy(actor.ID).SetVersion(4).Save(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
