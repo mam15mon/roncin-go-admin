@@ -228,6 +228,10 @@ func TestCalculateOverdueDays(t *testing.T) {
 	if days := CalculateOverdueDays(OrderFeeReceivable, FinanceBillConfirmed, decimal.Zero, &dueDate, businessDate); days != 0 {
 		t.Fatalf("已结清账单不应计算逾期天数，实际=%d", days)
 	}
+	// 4b. 负数更正账单或带符号余额为负（未钳零）不计算逾期天数
+	if days := CalculateOverdueDays(OrderFeeReceivable, FinanceBillConfirmed, decimal.NewFromInt(-50), &dueDate, businessDate); days != 0 {
+		t.Fatalf("负数余额账单不应计算逾期天数，实际=%d", days)
+	}
 
 	// 5. 到期日为空不计算逾期天数
 	if days := CalculateOverdueDays(OrderFeeReceivable, FinanceBillConfirmed, decimal.NewFromInt(100), nil, businessDate); days != 0 {

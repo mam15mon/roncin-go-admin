@@ -1,4 +1,5 @@
 import {
+  Alert,
   Card,
   DatePicker,
   Form,
@@ -14,6 +15,10 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { FinanceBillStatus, PartnerRoleType } from '@/enums.generated';
 import { BillTermsCreditWarnings } from '@/features/finance/bill-creation';
+import {
+  billFeeLockFactLabels,
+  isBillFieldProtected,
+} from '@/features/finance/bill-status';
 import { getCurrencyOptions } from '@/features/master-data/currencies';
 import { partnerServiceGetPartner } from '@/services/roncin/partnerService';
 import {
@@ -59,6 +64,11 @@ export default function BillEditModal({
     unsettledBaseAmount?: string;
   }>();
   const requestIdentity = open ? editing?.id : undefined;
+  // 列表快照中已有发票、核销或已确认对冲时，仅备注、对账标题与到期日可改；服务端仍做最终校验。
+  const fieldsProtected = isBillFieldProtected(editing);
+  const protectedFactText = billFeeLockFactLabels(editing)
+    .filter((label) => label !== '草稿对冲')
+    .join('、');
   const paymentTermsDays = Form.useWatch('paymentTermsDays', form);
 
   useEffect(() => {
@@ -151,6 +161,8 @@ export default function BillEditModal({
         if (requestSequence !== requestSequenceRef.current) return;
         const accounts = unwrapList(response);
         setAccountOptions(accounts);
+        // 受保护账单不得改账户：保持原账户，不按候选回落到默认账户。
+        if (fieldsProtected) return;
         const selected = form.getFieldValue('settlementAccountId');
         const selectedStillAvailable = accounts.some(
           (account) => account.id === selected,
@@ -172,7 +184,7 @@ export default function BillEditModal({
     return () => {
       requestSequenceRef.current += 1;
     };
-  }, [editing?.id, form, open]);
+  }, [editing?.id, fieldsProtected, form, open]);
 
   return (
     <Modal
@@ -186,6 +198,14 @@ export default function BillEditModal({
       onOk={() => void onOk()}
     >
       <Form form={form} layout="vertical" onValuesChange={markDirty}>
+        {fieldsProtected ? (
+          <Alert
+            type="warning"
+            showIcon
+            style={{ marginBottom: 12 }}
+            title={`账单已有${protectedFactText}，只能修改对账抬头和备注；如需调整账单日期、账期、结算账户或预计开票，请先撤销相关财务记录。`}
+          />
+        ) : null}
         <BillTermsCreditWarnings
           direction={editing?.direction}
           isCasual={counterparty?.isCasual}
@@ -215,10 +235,15 @@ export default function BillEditModal({
             extra="修改账单日期将自动按新账单日重置 BILL 汇率快照"
             rules={[{ required: true, message: '请选择账单日期' }]}
           >
-            <DatePicker allowClear={false} />
+            <DatePicker allowClear={false} disabled={fieldsProtected} />
           </Form.Item>
           <Form.Item name="paymentTermsDays" label="账期（天，可选）">
-            <InputNumber min={0} max={3650} precision={0} />
+            <InputNumber
+              min={0}
+              max={3650}
+              precision={0}
+              disabled={fieldsProtected}
+            />
           </Form.Item>
           <Form.Item
             name="settlementAccountId"
@@ -228,6 +253,7 @@ export default function BillEditModal({
           >
             <Select
               allowClear
+              disabled={fieldsProtected}
               loading={accountsLoading}
               placeholder="请选择可用于该账单的启用账户"
               options={accountOptions.map((account) => ({
@@ -259,6 +285,7 @@ export default function BillEditModal({
               <Form.Item name="estimatedInvoiceCurrency" label="预计开票币种">
                 <Select
                   allowClear
+                  disabled={fieldsProtected}
                   placeholder="默认使用账单币种"
                   options={currencyOptions}
                   style={{ minWidth: 220 }}
@@ -312,7 +339,11 @@ export default function BillEditModal({
                   }),
                 ]}
               >
-                <Input placeholder="预计汇率" style={{ minWidth: 220 }} />
+                <Input
+                  disabled={fieldsProtected}
+                  placeholder="预计汇率"
+                  style={{ minWidth: 220 }}
+                />
               </Form.Item>
             </Space>
           </Card>

@@ -1,7 +1,12 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import React from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { FinanceBillStatus } from '@/enums.generated';
+import {
+  FinanceBillFeeLockFact,
+  FinanceBillInvoiceProgress,
+  FinanceBillSettlementProgress,
+  FinanceBillStatus,
+} from '@/enums.generated';
 import { getFinanceBillColumns } from './billColumns';
 
 describe('getFinanceBillColumns', () => {
@@ -88,5 +93,60 @@ describe('getFinanceBillColumns', () => {
     render(result as React.ReactElement);
     expect(screen.getByText('2026-09-01')).toBeInTheDocument();
     expect(screen.getByText('逾期 9 天')).toBeInTheDocument();
+  });
+});
+
+describe('账单进度列', () => {
+  afterEach(cleanup);
+  const columns = getFinanceBillColumns({
+    access: { canOperateOrganization: () => true },
+    onOpenDetail: () => {},
+    onOpenEdit: () => {},
+    onCancelBill: () => {},
+  });
+  const renderColumn = (title: string, row: API.FinanceBill) => {
+    const column = columns.find((col) => col.title === title);
+    const renderCell = column?.render as any;
+    return render(renderCell(undefined, row));
+  };
+
+  it('按服务端投影展示结算、开票与完成状态', () => {
+    const row = {
+      settlementProgress:
+        FinanceBillSettlementProgress.FINANCE_BILL_SETTLEMENT_PROGRESS_SETTLED,
+      invoiceProgress:
+        FinanceBillInvoiceProgress.FINANCE_BILL_INVOICE_PROGRESS_NOT_REQUIRED,
+      completed: true,
+    };
+    renderColumn('结算进度', row);
+    renderColumn('开票进度', row);
+    renderColumn('完成', row);
+    expect(screen.getByText('已结清')).toBeInTheDocument();
+    expect(screen.getByText('无需开票')).toBeInTheDocument();
+    expect(screen.getByText('已完成')).toBeInTheDocument();
+  });
+
+  it('ProtoJSON 省略零值时：未完成、无锁定标记，未投影进度显示 -', () => {
+    const row = { feeCount: 2 };
+    renderColumn('完成', row);
+    expect(screen.getByText('未完成')).toBeInTheDocument();
+    cleanup();
+    renderColumn('结算进度', row);
+    expect(screen.getByText('-')).toBeInTheDocument();
+    cleanup();
+    renderColumn('费用数', row);
+    expect(screen.getByText('2')).toBeInTheDocument();
+    expect(screen.queryByText('锁定')).not.toBeInTheDocument();
+  });
+
+  it('存在锁定事实时在费用数旁标记锁定', () => {
+    renderColumn('费用数', {
+      feeCount: 1,
+      feeLockFacts: [FinanceBillFeeLockFact.FINANCE_BILL_FEE_LOCK_FACT_INVOICE],
+    });
+    expect(screen.getByText('锁定')).toHaveAttribute(
+      'title',
+      '已有发票，费用不可增删',
+    );
   });
 });

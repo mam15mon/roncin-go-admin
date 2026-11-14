@@ -2763,6 +2763,14 @@ declare namespace API {
     invoiceableAmount?: string;
     invoiceableNetAmount?: string;
     invoiceableTaxAmount?: string;
+    /** 以下为读取时推导的进度投影，仅账单列表与详情返回；不落库、不冻结。 */
+    settlementProgress?: number;
+    invoiceProgress?: number;
+    /** completed 为已确认账单结清且开票完成（或无需开票）。 */
+    completed?: boolean;
+    /** fees_locked 表示账单存在阻止增删费用的有效财务事实，类型见 fee_lock_facts。 */
+    feesLocked?: boolean;
+    feeLockFacts?: number[];
   };
 
   type FinanceBillBatch = {
@@ -8198,6 +8206,9 @@ declare namespace API {
     dueDateTo?: string;
     onlyUnsettled?: boolean;
     onlyOverdue?: boolean;
+    settlementProgress?: number;
+    invoiceProgress?: number;
+    completed?: boolean;
   };
 
   type SettlementServiceListCashflowsParams = {

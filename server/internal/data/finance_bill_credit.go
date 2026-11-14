@@ -18,22 +18,145 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 )
 
-// billUnsettledPredicate 是「未结清」的 SQL 侧定义：总额 > 有效核销 + 有效对冲（原值比较，不钳负）。
-// 展示侧的等价定义在 enrichVerificationAmounts（UnverifiedAmount 负值钳零），两处口径须同步维护。
-func billUnsettledPredicate() predicate.FinanceBill {
+// 账单进度的 SQL 侧定义。展示侧等价定义见 enrichFinanceBillProjection 与
+// biz.ResolveFinanceBillProgress，三处口径须同步维护：
+//   - 结算净额 = 有效核销分摊 + 有效对冲分摊（带符号，分摊 active=TRUE；草稿对冲分摊未激活不计入）；
+//   - 开票额 = 有效发票关联（active=TRUE 且发票为 DRAFT/ISSUED）的登记额；需开票额取账单总额；
+//   - 余额 = 总额 − 结算净额，不钳零。
+
+// writeBillSettledSum 写出账单带符号结算净额子表达式。
+func writeBillSettledSum(builder *entsql.Builder, billID string) {
+	builder.WriteString("(COALESCE((SELECT SUM(fva.amount) FROM finance_verification_allocations AS fva WHERE fva.bill_id = ")
+	builder.Ident(billID)
+	builder.WriteString(" AND fva.active = TRUE), 0) + COALESCE((SELECT SUM(fna.amount) FROM finance_netting_allocations AS fna WHERE fna.bill_id = ")
+	builder.Ident(billID)
+	builder.WriteString(" AND fna.active = TRUE), 0))")
+}
+
+// writeBillInvoicedSum 写出账单有效发票登记额子表达式。
+func writeBillInvoicedSum(builder *entsql.Builder, billID string) {
+	builder.WriteString("COALESCE((SELECT SUM(fib.amount) FROM finance_invoice_bills AS fib JOIN finance_invoices AS fi ON fi.id = fib.invoice_id WHERE fib.bill_id = ")
+	builder.Ident(billID)
+	builder.WriteString(" AND fib.active = TRUE AND fi.status IN ('DRAFT', 'ISSUED')), 0)")
+}
+
+// billAmountPredicate 以账单总额、结算净额、开票额组装谓词；write 负责写出完整布尔表达式。
+func billAmountPredicate(write func(builder *entsql.Builder, total, billID string)) predicate.FinanceBill {
 	return func(selector *entsql.Selector) {
 		billID := selector.C(financebillent.FieldID)
 		totalAmount := selector.C(financebillent.FieldTotalAmount)
 		selector.Where(entsql.P(func(builder *entsql.Builder) {
 			builder.WriteString("(")
-			builder.Ident(totalAmount)
-			builder.WriteString(" > (COALESCE((SELECT SUM(fva.amount) FROM finance_verification_allocations AS fva WHERE fva.bill_id = ")
-			builder.Ident(billID)
-			builder.WriteString(" AND fva.active = TRUE), 0) + COALESCE((SELECT SUM(fna.amount) FROM finance_netting_allocations AS fna WHERE fna.bill_id = ")
-			builder.Ident(billID)
-			builder.WriteString(" AND fna.active = TRUE), 0)))")
+			write(builder, totalAmount, billID)
+			builder.WriteString(")")
 		}))
 	}
+}
+
+// billUnsettledPredicate 是「未结清」的 SQL 侧定义：总额 <> 结算净额（带符号比较）。
+// 零额账单判已结清；负数更正账单在带符号净额等于总额时结清。
+func billUnsettledPredicate() predicate.FinanceBill {
+	return billAmountPredicate(func(builder *entsql.Builder, total, billID string) {
+		builder.Ident(total)
+		builder.WriteString(" <> ")
+		writeBillSettledSum(builder, billID)
+	})
+}
+
+// billPositiveOutstandingPredicate 要求余额为正（总额 > 结算净额），用于逾期与对冲候选等
+// 只处理待收付正数余额的场景；与 biz.CalculateOverdueDays 的正数余额条件同源。
+func billPositiveOutstandingPredicate() predicate.FinanceBill {
+	return billAmountPredicate(func(builder *entsql.Builder, total, billID string) {
+		builder.Ident(total)
+		builder.WriteString(" > ")
+		writeBillSettledSum(builder, billID)
+	})
+}
+
+// billSettlementProgressPredicate 与 biz.ResolveFinanceBillProgress 的结算进度同源。
+func billSettlementProgressPredicate(progress biz.FinanceBillSettlementProgress) predicate.FinanceBill {
+	return billAmountPredicate(func(builder *entsql.Builder, total, billID string) {
+		switch progress {
+		case biz.FinanceBillSettlementSettled:
+			builder.Ident(total)
+			builder.WriteString(" = 0 OR ")
+			builder.Ident(total)
+			builder.WriteString(" = ")
+			writeBillSettledSum(builder, billID)
+		case biz.FinanceBillSettlementUnsettled:
+			builder.Ident(total)
+			builder.WriteString(" <> 0 AND ")
+			writeBillSettledSum(builder, billID)
+			builder.WriteString(" = 0")
+		case biz.FinanceBillSettlementPartial:
+			builder.Ident(total)
+			builder.WriteString(" <> 0 AND ")
+			writeBillSettledSum(builder, billID)
+			builder.WriteString(" <> 0 AND ")
+			builder.Ident(total)
+			builder.WriteString(" <> ")
+			writeBillSettledSum(builder, billID)
+		default:
+			builder.WriteString("FALSE")
+		}
+	})
+}
+
+// billInvoiceProgressPredicate 与 biz.ResolveFinanceBillProgress 的开票进度同源。
+// 「无需发票」标记由发票任务落地后在 NOT_REQUIRED 分支追加，其他分支同步排除。
+func billInvoiceProgressPredicate(progress biz.FinanceBillInvoiceProgress) predicate.FinanceBill {
+	return billAmountPredicate(func(builder *entsql.Builder, total, billID string) {
+		switch progress {
+		case biz.FinanceBillInvoiceNotRequired:
+			builder.Ident(total)
+			builder.WriteString(" = 0")
+		case biz.FinanceBillInvoiceNone:
+			builder.Ident(total)
+			builder.WriteString(" <> 0 AND ")
+			writeBillInvoicedSum(builder, billID)
+			builder.WriteString(" = 0")
+		case biz.FinanceBillInvoiceFull:
+			builder.Ident(total)
+			builder.WriteString(" <> 0 AND ")
+			writeBillInvoicedSum(builder, billID)
+			builder.WriteString(" = ")
+			builder.Ident(total)
+		case biz.FinanceBillInvoicePartial:
+			builder.Ident(total)
+			builder.WriteString(" <> 0 AND ")
+			writeBillInvoicedSum(builder, billID)
+			builder.WriteString(" <> 0 AND ")
+			writeBillInvoicedSum(builder, billID)
+			builder.WriteString(" <> ")
+			builder.Ident(total)
+		default:
+			builder.WriteString("FALSE")
+		}
+	})
+}
+
+// billCompletedPredicate 与 biz.ResolveFinanceBillProgress 的完成判定同源：
+// 已确认，且零额账单，或结算净额与开票额均等于总额。
+func billCompletedPredicate(completed bool) predicate.FinanceBill {
+	done := financebillent.And(
+		financebillent.StatusEQ(financebillent.StatusCONFIRMED),
+		billAmountPredicate(func(builder *entsql.Builder, total, billID string) {
+			builder.Ident(total)
+			builder.WriteString(" = 0 OR (")
+			builder.Ident(total)
+			builder.WriteString(" = ")
+			writeBillSettledSum(builder, billID)
+			builder.WriteString(" AND ")
+			builder.Ident(total)
+			builder.WriteString(" = ")
+			writeBillInvoicedSum(builder, billID)
+			builder.WriteString(")")
+		}),
+	)
+	if completed {
+		return done
+	}
+	return financebillent.Not(done)
 }
 
 func (r *financeBillRepo) GetPartnerUnsettledReceivableBaseAmount(ctx context.Context, organizationID, partnerID uuid.UUID) (decimal.Decimal, error) {
@@ -68,8 +191,8 @@ type unsettledReceivablePartyRow struct {
 
 // partnerCreditSummaries 汇总客户信用额度判定数据：
 //   - 额度与默认账期来自客户角色的激活结算规则（多个激活规则取最大值，不收窄商业弹性）；
-//   - 未核销应收总额复用 09-10 修复后的未结清口径（billUnsettledPredicate + 总额 - 有效核销 - 有效对冲，
-//     折本币、负值钳零），与账单列表汇总的 unverified_base_amount 保持一致。
+//   - 未核销应收总额复用未结清口径（billUnsettledPredicate，带符号：总额 - 有效核销 - 有效对冲，
+//     负数更正账单的负余额参与抵减），折本币后汇总；汇总结果为负时按零计（信用占用不为负）。
 func partnerCreditSummaries(ctx context.Context, client *ent.Client, organizationID uuid.UUID, partnerIDs []uuid.UUID) (map[uuid.UUID]*biz.PartnerCreditSummary, error) {
 	if organizationID == uuid.Nil || len(partnerIDs) == 0 {
 		return map[uuid.UUID]*biz.PartnerCreditSummary{}, nil
@@ -200,6 +323,6 @@ func billOverduePredicate(businessDate string) predicate.FinanceBill {
 		financebillent.DueDateNotNil(),
 		financebillent.DueDateNEQ(""),
 		financebillent.DueDateLT(businessDate),
-		billUnsettledPredicate(),
+		billPositiveOutstandingPredicate(),
 	)
 }

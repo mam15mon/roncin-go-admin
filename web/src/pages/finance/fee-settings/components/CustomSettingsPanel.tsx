@@ -250,7 +250,7 @@ export function CustomSettingsPanel() {
                     type="secondary"
                     style={{ margin: 0, fontSize: 13, lineHeight: '22px' }}
                   >
-                    开启后，当费用所属账单仍处于「草稿」状态时，允许按下方勾选的字段对已建账单费用进行修改，并同步更新账单快照与总金额。已确认或锁定的账单不可修改。
+                    账单创建即生效，不再有「草稿」阶段。已建账费用不能在费用页直接修改，需先取消账单释放费用后再调整；账单已有发票、核销或对冲时，须先按提示撤销。本开关与字段范围目前仅保存配置，不放开已建账费用的直接修改。
                   </Paragraph>
                   {billedFeePolicy?.updatedAt && (
                     <Text type="secondary" style={{ fontSize: 12 }}>

@@ -62,6 +62,12 @@ func (uc *FinanceBillUsecase) List(ctx context.Context, organizationIDs []uuid.U
 	if filter.Currency != "" && !financeBillCurrencyPattern.MatchString(filter.Currency) {
 		return nil, ErrFinanceBillInvalidArgument
 	}
+	if filter.SettlementProgress != "" && !ValidFinanceBillSettlementProgress(filter.SettlementProgress) {
+		return nil, ErrFinanceBillInvalidArgument
+	}
+	if filter.InvoiceProgress != "" && !ValidFinanceBillInvoiceProgress(filter.InvoiceProgress) {
+		return nil, ErrFinanceBillInvalidArgument
+	}
 	if !validFinanceDateRange(filter.BillDateFrom, filter.BillDateTo) {
 		return nil, ErrFinanceBillInvalidArgument
 	}
@@ -560,7 +566,9 @@ func validFinanceDateRange(from, to string) bool {
 	return (from == "" || validFinanceDate(from)) && (to == "" || validFinanceDate(to)) && (from == "" || to == "" || from <= to)
 }
 
-// CalculateOverdueDays 计算应收账单的逾期天数。只有已确认、存在未核销余额且到期日小于当前业务日期的应收账单才计算逾期天数。
+// CalculateOverdueDays 计算应收账单的逾期天数。只有已确认、存在正数未核销余额且到期日小于当前业务日期的应收账单才计算逾期天数。
+// unverifiedAmount 为带符号余额（总额 − 有效核销 − 有效对冲，不钳零）：零额账单、负数更正账单及
+// 余额为零或负的账单一律返回 0；SQL 侧与之同源的是 billOverduePredicate（正数余额谓词）。
 func CalculateOverdueDays(direction OrderFeeDirection, status FinanceBillStatus, unverifiedAmount decimal.Decimal, dueDate *string, businessDate string) int32 {
 	if direction != OrderFeeReceivable || status != FinanceBillConfirmed || !unverifiedAmount.IsPositive() || dueDate == nil || strings.TrimSpace(*dueDate) == "" {
 		return 0

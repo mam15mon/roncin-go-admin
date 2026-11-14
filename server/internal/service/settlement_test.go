@@ -528,3 +528,26 @@ func TestListVerificationCreationCandidatesUsesCreateWritableOrganization(t *tes
 		t.Fatalf("候选错误 = %v，期望原样返回 %v", err, expected)
 	}
 }
+
+func TestFinanceBillProgressProjectionToAPI(t *testing.T) {
+	item := &biz.FinanceBill{
+		ID: uuid.New(), Status: biz.FinanceBillConfirmed,
+		SettlementProgress: biz.FinanceBillSettlementSettled, InvoiceProgress: biz.FinanceBillInvoiceNotRequired, Completed: true,
+		FeeLockFacts: []biz.FinanceBillFeeLockFact{biz.FinanceBillFeeLockInvoice, biz.FinanceBillFeeLockNettingDraft},
+	}
+	converted := financeBillToAPI(item)
+	if converted.SettlementProgress != v1.FinanceBillSettlementProgress_FINANCE_BILL_SETTLEMENT_PROGRESS_SETTLED ||
+		converted.InvoiceProgress != v1.FinanceBillInvoiceProgress_FINANCE_BILL_INVOICE_PROGRESS_NOT_REQUIRED || !converted.Completed {
+		t.Fatalf("进度投影 = %v/%v/%v", converted.SettlementProgress, converted.InvoiceProgress, converted.Completed)
+	}
+	if !converted.FeesLocked || len(converted.FeeLockFacts) != 2 ||
+		converted.FeeLockFacts[0] != v1.FinanceBillFeeLockFact_FINANCE_BILL_FEE_LOCK_FACT_INVOICE ||
+		converted.FeeLockFacts[1] != v1.FinanceBillFeeLockFact_FINANCE_BILL_FEE_LOCK_FACT_NETTING_DRAFT {
+		t.Fatalf("费用锁定投影 = %v %v", converted.FeesLocked, converted.FeeLockFacts)
+	}
+	// 未经投影的账单（建账响应）保持零值，不伪造进度。
+	plain := financeBillToAPI(&biz.FinanceBill{ID: uuid.New()})
+	if plain.SettlementProgress != v1.FinanceBillSettlementProgress_FINANCE_BILL_SETTLEMENT_PROGRESS_UNSPECIFIED || plain.FeesLocked || len(plain.FeeLockFacts) != 0 {
+		t.Fatalf("未投影账单 = %v %v", plain.SettlementProgress, plain.FeesLocked)
+	}
+}

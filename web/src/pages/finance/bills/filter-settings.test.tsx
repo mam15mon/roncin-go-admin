@@ -55,7 +55,7 @@ describe('账单筛选设置接入', () => {
       </App>,
     );
     await act(async () => {});
-    expect(state.search?.visibleNames).toHaveLength(8);
+    expect(state.search?.visibleNames).toHaveLength(11);
     expect(state.search?.visibleNames).not.toContain('billDateRange');
     window.localStorage.clear();
   });

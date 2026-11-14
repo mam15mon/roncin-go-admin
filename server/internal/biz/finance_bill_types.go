@@ -81,7 +81,17 @@ type FinanceBill struct {
 	Lines                                                         []*FinanceBillLine
 	CreatedAt                                                     time.Time
 	UpdatedAt                                                     time.Time
+	// 以下为列表与详情读取时推导的投影（见 ResolveFinanceBillProgress），不落库；
+	// 未经投影的账单（如建账响应）保持零值。
+	SettlementProgress FinanceBillSettlementProgress
+	InvoiceProgress    FinanceBillInvoiceProgress
+	Completed          bool
+	// FeeLockFacts 为阻止增删费用的有效财务事实类型，按固定顺序去重；非空即费用锁定。
+	FeeLockFacts []FinanceBillFeeLockFact
 }
+
+// FeesLocked 表示账单存在阻止增删费用的有效财务事实。
+func (b *FinanceBill) FeesLocked() bool { return len(b.FeeLockFacts) > 0 }
 
 type FinanceBillLine struct {
 	ID                 uuid.UUID
@@ -134,6 +144,10 @@ type FinanceBillFilter struct {
 	DueDateTo         string
 	OnlyUnsettled     bool
 	OnlyOverdue       bool
+	// 进度与完成筛选在 SQL 侧与 ResolveFinanceBillProgress 同源；空值/nil 表示不筛选。
+	SettlementProgress FinanceBillSettlementProgress
+	InvoiceProgress    FinanceBillInvoiceProgress
+	Completed          *bool
 }
 
 type FinanceBillCreationCandidateFilter struct {

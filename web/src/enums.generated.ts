@@ -133,6 +133,36 @@ export const FinanceBillStatus = {
 
 export type FinanceBillStatus = (typeof FinanceBillStatus)[keyof typeof FinanceBillStatus];
 
+export const FinanceBillSettlementProgress = {
+  FINANCE_BILL_SETTLEMENT_PROGRESS_UNSPECIFIED: 0,
+  FINANCE_BILL_SETTLEMENT_PROGRESS_UNSETTLED: 1,
+  FINANCE_BILL_SETTLEMENT_PROGRESS_PARTIAL: 2,
+  FINANCE_BILL_SETTLEMENT_PROGRESS_SETTLED: 3,
+} as const;
+
+export type FinanceBillSettlementProgress = (typeof FinanceBillSettlementProgress)[keyof typeof FinanceBillSettlementProgress];
+
+export const FinanceBillInvoiceProgress = {
+  FINANCE_BILL_INVOICE_PROGRESS_UNSPECIFIED: 0,
+  FINANCE_BILL_INVOICE_PROGRESS_NOT_REQUIRED: 1,
+  FINANCE_BILL_INVOICE_PROGRESS_NONE: 2,
+  FINANCE_BILL_INVOICE_PROGRESS_PARTIAL: 3,
+  FINANCE_BILL_INVOICE_PROGRESS_FULL: 4,
+} as const;
+
+export type FinanceBillInvoiceProgress = (typeof FinanceBillInvoiceProgress)[keyof typeof FinanceBillInvoiceProgress];
+
+export const FinanceBillFeeLockFact = {
+  FINANCE_BILL_FEE_LOCK_FACT_UNSPECIFIED: 0,
+  FINANCE_BILL_FEE_LOCK_FACT_INVOICE: 1,
+  FINANCE_BILL_FEE_LOCK_FACT_VERIFICATION: 2,
+  FINANCE_BILL_FEE_LOCK_FACT_NETTING: 3,
+  FINANCE_BILL_FEE_LOCK_FACT_NETTING_DRAFT: 4,
+  FINANCE_BILL_FEE_LOCK_FACT_INVOICE_EXEMPTION: 5,
+} as const;
+
+export type FinanceBillFeeLockFact = (typeof FinanceBillFeeLockFact)[keyof typeof FinanceBillFeeLockFact];
+
 export const FinanceInvoiceStatus = {
   FINANCE_INVOICE_STATUS_UNSPECIFIED: 0,
   FINANCE_INVOICE_STATUS_DRAFT: 1,

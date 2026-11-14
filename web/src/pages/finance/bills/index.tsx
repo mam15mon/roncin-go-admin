@@ -20,7 +20,11 @@ import {
 } from '@/components/ui/filter-settings';
 import { useListQueryState } from '@/components/ui/list-query-state';
 import { BillCreationWorkbench } from '@/features/finance/bill-creation';
-import { billStatusMeta } from '@/features/finance/bill-status';
+import {
+  billInvoiceProgressMeta,
+  billSettlementProgressMeta,
+  billStatusMeta,
+} from '@/features/finance/bill-status';
 import {
   billLedgerSummaryConfig,
   mapMatchedSummary,
@@ -61,6 +65,9 @@ type BillSearchParams = {
   dueDateRange?: [Dayjs, Dayjs];
   onlyUnsettled?: string;
   onlyOverdue?: string;
+  settlementProgress?: number;
+  invoiceProgress?: number;
+  completed?: string;
 };
 
 /** 筛选设置可选字段：默认全部可见，与改造前显示集合一致。 */
@@ -72,6 +79,9 @@ const billFilterFields: FilterSettingsField[] = [
   { name: 'dueDateRange', label: '到期日期' },
   { name: 'onlyUnsettled', label: '结清状态' },
   { name: 'onlyOverdue', label: '逾期状态' },
+  { name: 'settlementProgress', label: '结算进度' },
+  { name: 'invoiceProgress', label: '开票进度' },
+  { name: 'completed', label: '完成状态' },
   { name: 'settlementPartyId', label: '结算单位' },
   { name: 'currency', label: '计价币种' },
 ].map((field) => ({ ...field, defaultVisible: true }));
@@ -195,6 +205,36 @@ export default function FinanceBillsPage() {
       type: 'select',
       placeholder: '全部',
       options: [{ label: '仅看已逾期', value: 'true' }],
+    },
+    {
+      name: 'settlementProgress',
+      label: '结算进度',
+      type: 'select',
+      placeholder: '全部',
+      // 选项派生自共享进度映射，与列表列、导出保持单一真相。
+      options: Object.entries(billSettlementProgressMeta).map(
+        ([value, meta]) => ({ label: meta.text, value: Number(value) }),
+      ),
+    },
+    {
+      name: 'invoiceProgress',
+      label: '开票进度',
+      type: 'select',
+      placeholder: '全部',
+      options: Object.entries(billInvoiceProgressMeta).map(([value, meta]) => ({
+        label: meta.text,
+        value: Number(value),
+      })),
+    },
+    {
+      name: 'completed',
+      label: '完成状态',
+      type: 'select',
+      placeholder: '全部',
+      options: [
+        { label: '已完成', value: 'true' },
+        { label: '未完成', value: 'false' },
+      ],
     },
     {
       name: 'settlementPartyId',
@@ -503,6 +543,14 @@ export default function FinanceBillsPage() {
                 searchParams.onlyUnsettled === 'true' ? true : undefined,
               onlyOverdue:
                 searchParams.onlyOverdue === 'true' ? true : undefined,
+              settlementProgress: searchParams.settlementProgress,
+              invoiceProgress: searchParams.invoiceProgress,
+              completed:
+                searchParams.completed === 'true'
+                  ? true
+                  : searchParams.completed === 'false'
+                    ? false
+                    : undefined,
               organizationId,
             },
             { skipErrorHandler: true },

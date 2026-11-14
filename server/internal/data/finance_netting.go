@@ -192,7 +192,7 @@ func (r *financeNettingRepo) LoadPreview(ctx context.Context, organizationID, se
 			financebillent.SettlementPartyIDEQ(settlementPartyID),
 			financebillent.CurrencyEQ(currency),
 			financebillent.StatusEQ(financebillent.StatusCONFIRMED),
-			billUnsettledPredicate(),
+			billPositiveOutstandingPredicate(),
 		).Order(financebillent.ByID()).
 		Limit(biz.MaxFinanceNettingBills + 1).
 		All(ctx)

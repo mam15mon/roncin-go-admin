@@ -33,6 +33,13 @@ func (s *SettlementService) ListBills(ctx context.Context, request *v1.ListBills
 		DueDateTo:     financeOptionalString(request.DueDateTo),
 		OnlyUnsettled: request.GetOnlyUnsettled(),
 		OnlyOverdue:   request.GetOnlyOverdue(),
+		Completed:     request.Completed,
+	}
+	if request.SettlementProgress != nil {
+		filter.SettlementProgress = biz.FinanceBillSettlementProgress(strings.TrimPrefix(request.GetSettlementProgress().String(), "FINANCE_BILL_SETTLEMENT_PROGRESS_"))
+	}
+	if request.InvoiceProgress != nil {
+		filter.InvoiceProgress = biz.FinanceBillInvoiceProgress(strings.TrimPrefix(request.GetInvoiceProgress().String(), "FINANCE_BILL_INVOICE_PROGRESS_"))
 	}
 	if request.SettlementPartyId != nil && strings.TrimSpace(*request.SettlementPartyId) != "" {
 		id, err := uuid.Parse(strings.TrimSpace(*request.SettlementPartyId))
@@ -415,7 +422,48 @@ func financeBillToAPI(item *biz.FinanceBill) *v1.FinanceBill {
 		ExchangeRate: item.ExchangeRate.StringFixed(8), ExchangeRateSource: item.ExchangeRateSource, ExchangeRateDate: item.ExchangeRateDate, ExchangeRateSettingId: uuidStringPtr(item.ExchangeRateSettingID),
 		EstimatedInvoiceCurrency: item.EstimatedInvoiceCurrency, EstimatedInvoiceRate: financeDecimalPointer(item.EstimatedInvoiceRate, 8), EstimatedInvoiceAmount: financeDecimalPointer(item.EstimatedInvoiceAmount, 8),
 		Purpose: string(item.Purpose), InvoiceableAmount: financeDecimalPointer(item.InvoiceableAmount, 8), InvoiceableNetAmount: financeDecimalPointer(item.InvoiceableNetAmount, 8), InvoiceableTaxAmount: financeDecimalPointer(item.InvoiceableTaxAmount, 8), OverdueDays: item.OverdueDays,
+		SettlementProgress: financeBillSettlementProgressToAPI(item.SettlementProgress), InvoiceProgress: financeBillInvoiceProgressToAPI(item.InvoiceProgress),
+		Completed: item.Completed, FeesLocked: item.FeesLocked(), FeeLockFacts: financeBillFeeLockFactsToAPI(item.FeeLockFacts),
 	}
+}
+
+// financeBillSettlementProgressToAPI 未经投影的账单（如建账响应）返回 UNSPECIFIED。
+func financeBillSettlementProgressToAPI(value biz.FinanceBillSettlementProgress) v1.FinanceBillSettlementProgress {
+	switch value {
+	case biz.FinanceBillSettlementUnsettled:
+		return v1.FinanceBillSettlementProgress_FINANCE_BILL_SETTLEMENT_PROGRESS_UNSETTLED
+	case biz.FinanceBillSettlementPartial:
+		return v1.FinanceBillSettlementProgress_FINANCE_BILL_SETTLEMENT_PROGRESS_PARTIAL
+	case biz.FinanceBillSettlementSettled:
+		return v1.FinanceBillSettlementProgress_FINANCE_BILL_SETTLEMENT_PROGRESS_SETTLED
+	default:
+		return v1.FinanceBillSettlementProgress_FINANCE_BILL_SETTLEMENT_PROGRESS_UNSPECIFIED
+	}
+}
+
+func financeBillInvoiceProgressToAPI(value biz.FinanceBillInvoiceProgress) v1.FinanceBillInvoiceProgress {
+	switch value {
+	case biz.FinanceBillInvoiceNotRequired:
+		return v1.FinanceBillInvoiceProgress_FINANCE_BILL_INVOICE_PROGRESS_NOT_REQUIRED
+	case biz.FinanceBillInvoiceNone:
+		return v1.FinanceBillInvoiceProgress_FINANCE_BILL_INVOICE_PROGRESS_NONE
+	case biz.FinanceBillInvoicePartial:
+		return v1.FinanceBillInvoiceProgress_FINANCE_BILL_INVOICE_PROGRESS_PARTIAL
+	case biz.FinanceBillInvoiceFull:
+		return v1.FinanceBillInvoiceProgress_FINANCE_BILL_INVOICE_PROGRESS_FULL
+	default:
+		return v1.FinanceBillInvoiceProgress_FINANCE_BILL_INVOICE_PROGRESS_UNSPECIFIED
+	}
+}
+
+func financeBillFeeLockFactsToAPI(values []biz.FinanceBillFeeLockFact) []v1.FinanceBillFeeLockFact {
+	result := make([]v1.FinanceBillFeeLockFact, 0, len(values))
+	for _, value := range values {
+		if converted, exists := v1.FinanceBillFeeLockFact_value["FINANCE_BILL_FEE_LOCK_FACT_"+string(value)]; exists {
+			result = append(result, v1.FinanceBillFeeLockFact(converted))
+		}
+	}
+	return result
 }
 
 func financeBillBatchToAPI(item *biz.FinanceBillBatch) *v1.FinanceBillBatch {

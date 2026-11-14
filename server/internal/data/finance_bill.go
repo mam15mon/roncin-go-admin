@@ -83,6 +83,15 @@ func (r *financeBillRepo) List(ctx context.Context, organizationIDs []uuid.UUID,
 	if filter.OnlyOverdue {
 		predicates = append(predicates, billOverduePredicate(currentBusinessDate))
 	}
+	if filter.SettlementProgress != "" {
+		predicates = append(predicates, billSettlementProgressPredicate(filter.SettlementProgress))
+	}
+	if filter.InvoiceProgress != "" {
+		predicates = append(predicates, billInvoiceProgressPredicate(filter.InvoiceProgress))
+	}
+	if filter.Completed != nil {
+		predicates = append(predicates, billCompletedPredicate(*filter.Completed))
+	}
 	query := client.FinanceBill.Query().Where(predicates...)
 	matchedSummary, matchedErr := loadFinanceLedgerMatchedSummary(ctx, query.Clone().GroupBy(financebillent.FieldDirection, financebillent.FieldCurrency, financebillent.FieldBaseCurrency).Aggregate(financeLedgerMatchedAggregates(financebillent.FieldTotalAmount, financebillent.FieldBaseCurrencyAmount)...).Scan)
 	if matchedErr != nil {
@@ -162,7 +171,7 @@ func (r *financeBillRepo) List(ctx context.Context, organizationIDs []uuid.UUID,
 		financebillent.DueDateNotNil(),
 		financebillent.DueDateNEQ(""),
 		financebillent.DueDateLT(currentBusinessDate),
-		billUnsettledPredicate(),
+		billPositiveOutstandingPredicate(),
 	)
 	var overdueSummaryRows []financeBillSummaryRow
 	if err := client.FinanceBill.Query().Where(overduePredicates...).
@@ -244,7 +253,7 @@ func (r *financeBillRepo) List(ctx context.Context, organizationIDs []uuid.UUID,
 		}
 		result.Items = append(result.Items, converted)
 	}
-	if err := r.enrichVerificationAmounts(ctx, result.Items, currentBusinessDate); err != nil {
+	if err := r.enrichFinanceBillProjection(ctx, result.Items, currentBusinessDate); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -270,7 +279,7 @@ func (r *financeBillRepo) Get(ctx context.Context, organizationIDs []uuid.UUID, 
 	if err != nil {
 		return nil, err
 	}
-	if err = r.enrichVerificationAmounts(ctx, []*biz.FinanceBill{converted}, time.Now().In(biz.ExchangeRateBusinessLocation()).Format("2006-01-02")); err != nil {
+	if err = r.enrichFinanceBillProjection(ctx, []*biz.FinanceBill{converted}, time.Now().In(biz.ExchangeRateBusinessLocation()).Format("2006-01-02")); err != nil {
 		return nil, err
 	}
 	return converted, nil
@@ -310,16 +319,45 @@ func (r *financeBillRepo) enrichVerificationAmounts(ctx context.Context, bills [
 		return err
 	}
 	// 未核销余额 = 总额 - 有效核销 - 有效对冲；普通资金核销只处理抵销后的剩余余额。
-	// 展示侧负值钳零；SQL 侧未结清谓词（billUnsettledPredicate）以原值比较，两处口径须同步维护。
+	// 余额带符号、不钳零（负数更正账单的余额为负），与 SQL 侧 billUnsettledPredicate 的
+	// 带符号比较同源；核销候选、逾期等只处理正数余额的场景各自判断 IsPositive。
 	// currentBusinessDate 由调用方传入：列表场景与筛选谓词共用同一业务日，避免跨上海午夜的不一致。
 	for _, bill := range bills {
 		bill.VerifiedAmount = bill.VerifiedAmount.Round(8)
 		bill.NettedAmount = nettedSums[bill.ID].Round(8)
 		bill.UnverifiedAmount = bill.TotalAmount.Sub(bill.VerifiedAmount).Sub(bill.NettedAmount).Round(8)
-		if bill.UnverifiedAmount.IsNegative() {
-			bill.UnverifiedAmount = decimal.Zero
-		}
 		bill.OverdueDays = biz.CalculateOverdueDays(bill.Direction, bill.Status, bill.UnverifiedAmount, bill.DueDate, currentBusinessDate)
+	}
+	return nil
+}
+
+// enrichFinanceBillProjection 在核销/对冲余额之上补齐列表与详情的进度投影与费用锁定事实。
+// 全部按账单 ID 批量聚合，查询次数与账单数量无关；口径与 SQL 筛选
+// （billSettlementProgressPredicate 等）及 biz.ResolveFinanceBillProgress 同源。
+func (r *financeBillRepo) enrichFinanceBillProjection(ctx context.Context, bills []*biz.FinanceBill, currentBusinessDate string) error {
+	if len(bills) == 0 {
+		return nil
+	}
+	if err := r.enrichVerificationAmounts(ctx, bills, currentBusinessDate); err != nil {
+		return err
+	}
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return err
+	}
+	ids := make([]uuid.UUID, 0, len(bills))
+	for _, bill := range bills {
+		ids = append(ids, bill.ID)
+	}
+	facts, invoiced, err := loadFinanceBillFeeLockFacts(ctx, client, ids)
+	if err != nil {
+		return err
+	}
+	for _, bill := range bills {
+		settled := bill.VerifiedAmount.Add(bill.NettedAmount)
+		// 无需发票标记由发票任务落地，届时以有效标记替换此处的 false。
+		bill.SettlementProgress, bill.InvoiceProgress, bill.Completed = biz.ResolveFinanceBillProgress(bill.Status, bill.TotalAmount, settled, invoiced[bill.ID].Round(8), false)
+		bill.FeeLockFacts = facts[bill.ID]
 	}
 	return nil
 }

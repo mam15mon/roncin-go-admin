@@ -8,7 +8,12 @@ import { Space, Tag } from 'antd';
 import dayjs from 'dayjs';
 import { makeValueEnum, statusTag } from '@/constants/statusMeta';
 import { FinanceBillStatus } from '@/enums.generated';
-import { billStatusMeta } from '@/features/finance/bill-status';
+import {
+  billFeeLockFactLabels,
+  billInvoiceProgressMeta,
+  billSettlementProgressMeta,
+  billStatusMeta,
+} from '@/features/finance/bill-status';
 import { formatAmount, trimDecimal } from '@/utils/format';
 
 interface GetFinanceBillColumnsParams {
@@ -198,11 +203,55 @@ export function getFinanceBillColumns({
       ),
     },
     {
+      title: '结算进度',
+      dataIndex: 'settlementProgress',
+      width: 95,
+      search: false,
+      render: (_, row) =>
+        row.settlementProgress
+          ? statusTag(billSettlementProgressMeta, row.settlementProgress)
+          : '-',
+    },
+    {
+      title: '开票进度',
+      dataIndex: 'invoiceProgress',
+      width: 95,
+      search: false,
+      render: (_, row) =>
+        row.invoiceProgress
+          ? statusTag(billInvoiceProgressMeta, row.invoiceProgress)
+          : '-',
+    },
+    {
+      title: '完成',
+      dataIndex: 'completed',
+      width: 80,
+      search: false,
+      // completed 为非 optional 布尔：ProtoJSON 省略即 false。
+      render: (_, row) =>
+        row.completed === true ? <Tag color="success">已完成</Tag> : '未完成',
+    },
+    {
       title: '费用数',
       dataIndex: 'feeCount',
       width: 75,
       search: false,
       align: 'center',
+      render: (_, row) => {
+        const facts = billFeeLockFactLabels(row);
+        if (!facts.length) return row.feeCount ?? 0;
+        return (
+          <Space size={4}>
+            <span>{row.feeCount ?? 0}</span>
+            <Tag
+              style={{ margin: 0 }}
+              title={`已有${facts.join('、')}，费用不可增删`}
+            >
+              锁定
+            </Tag>
+          </Space>
+        );
+      },
     },
     {
       title: '账单日期',

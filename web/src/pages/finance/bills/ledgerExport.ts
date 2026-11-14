@@ -1,5 +1,9 @@
 import { FinanceBillStatus } from '@/enums.generated';
-import { billStatusMeta } from '@/features/finance/bill-status';
+import {
+  billInvoiceProgressMeta,
+  billSettlementProgressMeta,
+  billStatusMeta,
+} from '@/features/finance/bill-status';
 import { type CsvColumn, csvAmount, csvDecimal } from '@/utils/csv';
 import { formatDate } from '@/utils/format';
 
@@ -73,6 +77,20 @@ export const billExportColumns: CsvColumn<API.FinanceBill>[] = [
     header: '未核销',
     kind: 'number',
     value: (row) => csvAmount(row.unverifiedAmount ?? '0'),
+  },
+  {
+    header: '结算进度',
+    value: (row) =>
+      billSettlementProgressMeta[row.settlementProgress ?? 0]?.text ?? '',
+  },
+  {
+    header: '开票进度',
+    value: (row) =>
+      billInvoiceProgressMeta[row.invoiceProgress ?? 0]?.text ?? '',
+  },
+  {
+    header: '是否完成',
+    value: (row) => (row.completed === true ? '已完成' : '未完成'),
   },
   {
     header: '费用数',

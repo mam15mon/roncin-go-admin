@@ -4,7 +4,9 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 
+	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
@@ -24,8 +26,14 @@ import (
 //   - 核销：活动核销分摊且核销单为 ACTIVE；
 //   - 对冲：活动对冲分摊且对冲单为 CONFIRMED（草稿对冲不算）。
 //
-// 扩展点：账单任务引入「无需发票」标记后，在 protectedFinanceFactPredicate 追加一项
-// 「账单已标记无需发票」条件即可；本任务不创建该字段。
+// 扩展点：发票任务引入「无需发票」标记后，在 protectedFinanceFactPredicate 追加一项
+// 「账单存在有效无需发票标记」条件，并在 loadFinanceBillFeeLockFacts 产出
+// biz.FinanceBillFeeLockInvoiceExemption；标记模型落地前不创建字段、不产生该事实。
+//
+// 口径分层（同一组事实，按用途取舍）：
+//   - 受保护事实（本谓词）：费用汇率联动与账单字段修改共用，草稿对冲不计入；
+//   - 费用锁定事实（loadFinanceBillFeeLockFacts）：增删账单费用使用，在受保护事实之上追加草稿对冲，
+//     因为草稿对冲确认时按账单当前快照重算分摊，费用集合变化会使已配对的抵销失真。
 //
 // 调用方须已按「订单 → 费用」固定锁序持有目标订单行锁：发票创建/开具、核销创建/反转、
 // 对冲确认/反转、建账等写路径均先按主键升序锁 Order，故锁内重读即为最新事实。
@@ -44,7 +52,8 @@ func feeHasProtectedFinanceFact(ctx context.Context, client *ent.Client, feeID u
 }
 
 // billHasProtectedFinanceFact 判断指定账单自身是否存在受保护财务事实，口径与
-// feeHasProtectedFinanceFact 相同（同一谓词）。调用方须已按「订单 → 账单」锁序持有账单行锁。
+// feeHasProtectedFinanceFact 相同（同一谓词，费用侧只多一步「费用 → 有效账单」）。
+// 调用方须已按「订单 → 账单」锁序持有账单行锁。
 func billHasProtectedFinanceFact(ctx context.Context, client *ent.Client, billID uuid.UUID) (bool, error) {
 	return client.FinanceBill.Query().
 		Where(financebill.IDEQ(billID), protectedFinanceFactPredicate()).
@@ -76,4 +85,90 @@ func protectedFinanceFactPredicate() predicate.FinanceBill {
 			financenettingallocation.HasNettingWith(financenetting.StatusEQ(financenetting.StatusCONFIRMED)),
 		),
 	)
+}
+
+// billFeeLockFacts 返回单张账单阻止增删费用的有效财务事实，口径见 loadFinanceBillFeeLockFacts。
+// 写路径调用方须已按「订单 → 账单」锁序持有账单行锁，锁内读取即为最新事实。
+func billFeeLockFacts(ctx context.Context, client *ent.Client, billID uuid.UUID) ([]biz.FinanceBillFeeLockFact, error) {
+	facts, _, err := loadFinanceBillFeeLockFacts(ctx, client, []uuid.UUID{billID})
+	if err != nil {
+		return nil, err
+	}
+	return facts[billID], nil
+}
+
+// loadFinanceBillFeeLockFacts 批量读取账单的费用锁定事实与有效发票登记额，固定 4 次查询、无逐行 N+1：
+//   - INVOICE：活动开票关联且发票为 DRAFT/ISSUED；同一查询累计登记额（开票进度的 invoiced）；
+//   - VERIFICATION：活动核销分摊且核销单 ACTIVE；
+//   - NETTING：活动对冲分摊且对冲单 CONFIRMED；
+//   - NETTING_DRAFT：对冲单为 DRAFT 的分摊（草稿分摊未激活，与取消账单的依赖口径一致）。
+//
+// 前三类与 protectedFinanceFactPredicate 同源；事实按 biz.FinanceBillFeeLockFactOrder 排序。
+func loadFinanceBillFeeLockFacts(ctx context.Context, client *ent.Client, billIDs []uuid.UUID) (map[uuid.UUID][]biz.FinanceBillFeeLockFact, map[uuid.UUID]decimal.Decimal, error) {
+	facts := make(map[uuid.UUID][]biz.FinanceBillFeeLockFact, len(billIDs))
+	invoiced := make(map[uuid.UUID]decimal.Decimal, len(billIDs))
+	if len(billIDs) == 0 {
+		return facts, invoiced, nil
+	}
+	present := make(map[uuid.UUID]map[biz.FinanceBillFeeLockFact]bool, len(billIDs))
+	mark := func(billID uuid.UUID, fact biz.FinanceBillFeeLockFact) {
+		if present[billID] == nil {
+			present[billID] = make(map[biz.FinanceBillFeeLockFact]bool, 1)
+		}
+		present[billID][fact] = true
+	}
+	links, err := client.FinanceInvoiceBill.Query().
+		Where(
+			financeinvoicebill.BillIDIn(billIDs...),
+			financeinvoicebill.ActiveEQ(true),
+			financeinvoicebill.HasInvoiceWith(financeinvoice.StatusIn(financeinvoice.StatusDRAFT, financeinvoice.StatusISSUED)),
+		).
+		Select(financeinvoicebill.FieldBillID, financeinvoicebill.FieldAmount).
+		All(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	for _, link := range links {
+		amount, parseErr := decimalOf(link.Amount)
+		if parseErr != nil {
+			return nil, nil, parseErr
+		}
+		invoiced[link.BillID] = invoiced[link.BillID].Add(amount)
+		mark(link.BillID, biz.FinanceBillFeeLockInvoice)
+	}
+	factQueries := []struct {
+		fact      biz.FinanceBillFeeLockFact
+		predicate predicate.FinanceBill
+	}{
+		{biz.FinanceBillFeeLockVerification, financebill.HasVerificationAllocationsWith(
+			financeverificationallocation.ActiveEQ(true),
+			financeverificationallocation.HasVerificationWith(financeverification.StatusEQ(financeverification.StatusACTIVE)),
+		)},
+		{biz.FinanceBillFeeLockNetting, financebill.HasNettingAllocationsWith(
+			financenettingallocation.ActiveEQ(true),
+			financenettingallocation.HasNettingWith(financenetting.StatusEQ(financenetting.StatusCONFIRMED)),
+		)},
+		{biz.FinanceBillFeeLockNettingDraft, financebill.HasNettingAllocationsWith(
+			financenettingallocation.HasNettingWith(financenetting.StatusEQ(financenetting.StatusDRAFT)),
+		)},
+	}
+	for _, item := range factQueries {
+		ids, queryErr := client.FinanceBill.Query().Where(financebill.IDIn(billIDs...), item.predicate).IDs(ctx)
+		if queryErr != nil {
+			return nil, nil, queryErr
+		}
+		for _, id := range ids {
+			mark(id, item.fact)
+		}
+	}
+	for billID, set := range present {
+		ordered := make([]biz.FinanceBillFeeLockFact, 0, len(set))
+		for _, fact := range biz.FinanceBillFeeLockFactOrder {
+			if set[fact] {
+				ordered = append(ordered, fact)
+			}
+		}
+		facts[billID] = ordered
+	}
+	return facts, invoiced, nil
 }

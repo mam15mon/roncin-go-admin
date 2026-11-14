@@ -6,6 +6,7 @@ import {
   confirmIfAnyTabDirty,
   getAnyDirtyTabKey,
 } from '@/components/layout/tabCloseGuard';
+import { FinanceBillFeeLockFact } from '@/enums.generated';
 import type { BillFormValues } from './billConstants';
 
 const mocks = vi.hoisted(() => ({ accounts: vi.fn() }));
@@ -229,5 +230,74 @@ describe('BillEditModal 结算账户候选', () => {
       <EditHarness editing={{ id: 'bill-next', currency: 'CNY' }} />,
     );
     await waitFor(() => expect(getAnyDirtyTabKey()).toBeUndefined());
+  });
+});
+
+describe('BillEditModal 受保护字段', () => {
+  beforeEach(() => {
+    window.history.replaceState({}, '', '/finance/bills');
+    mocks.accounts.mockReset();
+  });
+
+  it('已有核销时置灰日期、账期、账户与预计开票，且不改写原账户', async () => {
+    mocks.accounts.mockResolvedValue({
+      data: [
+        {
+          id: 'account-default',
+          name: '默认账户',
+          isDefault: true,
+          currency: 'CNY',
+        },
+      ],
+    });
+    render(
+      <EditHarness
+        editing={{
+          id: 'bill-protected',
+          billNo: 'BILL-P',
+          currency: 'CNY',
+          settlementAccountId: 'account-old',
+          feeLockFacts: [
+            FinanceBillFeeLockFact.FINANCE_BILL_FEE_LOCK_FACT_VERIFICATION,
+          ],
+        }}
+      />,
+    );
+    expect(
+      await screen.findByText(/账单已有核销，只能修改对账抬头和备注/),
+    ).toBeInTheDocument();
+    await waitFor(() => expect(mocks.accounts).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(screen.getByTestId('settlement-account-id')).toHaveTextContent(
+        'account-old',
+      ),
+    );
+    expect(screen.getByLabelText('账期（天，可选）')).toBeDisabled();
+    expect(screen.getByLabelText('预计开票汇率')).toBeDisabled();
+    expect(screen.getByLabelText('对账抬头')).not.toBeDisabled();
+    expect(screen.getByLabelText('备注')).not.toBeDisabled();
+  });
+
+  it('仅草稿对冲（或省略锁定事实）时字段保持可编辑', async () => {
+    mocks.accounts.mockResolvedValue({ data: [] });
+    render(
+      <EditHarness
+        editing={{
+          id: 'bill-draft-netting',
+          billNo: 'BILL-D',
+          currency: 'CNY',
+          settlementAccountId: 'account-old',
+          feeLockFacts: [
+            FinanceBillFeeLockFact.FINANCE_BILL_FEE_LOCK_FACT_NETTING_DRAFT,
+          ],
+        }}
+      />,
+    );
+    await waitFor(() => expect(mocks.accounts).toHaveBeenCalled());
+    expect(
+      screen.queryByText(/只能修改对账抬头和备注/),
+    ).not.toBeInTheDocument();
+    expect(screen.getByLabelText('账期（天，可选）')).not.toBeDisabled();
+    expect(screen.getByLabelText('预计开票汇率')).not.toBeDisabled();
   });
 });

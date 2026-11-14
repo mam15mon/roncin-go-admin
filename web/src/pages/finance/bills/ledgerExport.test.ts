@@ -32,6 +32,8 @@ describe('bills 台账导出字段', () => {
       billDate: '2026-10-01',
       dueDate: '2026-10-31',
       overdueDays: 0,
+      settlementProgress: 2,
+      invoiceProgress: 1,
     };
     const values = Object.fromEntries(
       billExportColumns.map((column) => [column.header, column.value(row)]),
@@ -57,13 +59,16 @@ describe('bills 台账导出字段', () => {
       折本币金额: '-103210.88',
       已核销: '-62.50',
       未核销: '-15300.00',
+      结算进度: '部分结清',
+      开票进度: '无需开票',
+      是否完成: '未完成',
       费用数: '3',
       账单日期: '2026-10-01',
       到期日: '2026-10-31',
       逾期天数: '0',
     });
     expect(new Set(billExportColumns.map((column) => column.header)).size).toBe(
-      24,
+      27,
     );
     const csv = serializeCsv(
       [row, { ...row, currency: 'EUR', baseCurrency: 'HKD' }],

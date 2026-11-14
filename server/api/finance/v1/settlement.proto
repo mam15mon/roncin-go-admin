@@ -177,6 +177,35 @@ enum FinanceBillStatus {
   FINANCE_BILL_STATUS_CANCELLED = 3;
 }
 
+// 账单结算进度：按有效核销与有效对冲的带符号净额与账单总额比较；零额账单视为已结清。
+enum FinanceBillSettlementProgress {
+  FINANCE_BILL_SETTLEMENT_PROGRESS_UNSPECIFIED = 0;
+  FINANCE_BILL_SETTLEMENT_PROGRESS_UNSETTLED = 1;
+  FINANCE_BILL_SETTLEMENT_PROGRESS_PARTIAL = 2;
+  FINANCE_BILL_SETTLEMENT_PROGRESS_SETTLED = 3;
+}
+
+// 账单开票进度：按有效发票（草稿或已开具）对本账单的登记额与账单总额比较；零额账单无需开票。
+enum FinanceBillInvoiceProgress {
+  FINANCE_BILL_INVOICE_PROGRESS_UNSPECIFIED = 0;
+  FINANCE_BILL_INVOICE_PROGRESS_NOT_REQUIRED = 1;
+  FINANCE_BILL_INVOICE_PROGRESS_NONE = 2;
+  FINANCE_BILL_INVOICE_PROGRESS_PARTIAL = 3;
+  FINANCE_BILL_INVOICE_PROGRESS_FULL = 4;
+}
+
+// 阻止账单增删费用的有效财务事实类型。
+// NETTING 为已确认对冲；NETTING_DRAFT 为草稿对冲，只阻止增删费用，不限制账单字段修改。
+// INVOICE_EXEMPTION 为无需发票标记的扩展位，发票任务落地标记模型前不会出现。
+enum FinanceBillFeeLockFact {
+  FINANCE_BILL_FEE_LOCK_FACT_UNSPECIFIED = 0;
+  FINANCE_BILL_FEE_LOCK_FACT_INVOICE = 1;
+  FINANCE_BILL_FEE_LOCK_FACT_VERIFICATION = 2;
+  FINANCE_BILL_FEE_LOCK_FACT_NETTING = 3;
+  FINANCE_BILL_FEE_LOCK_FACT_NETTING_DRAFT = 4;
+  FINANCE_BILL_FEE_LOCK_FACT_INVOICE_EXEMPTION = 5;
+}
+
 enum FinanceInvoiceStatus {
   FINANCE_INVOICE_STATUS_UNSPECIFIED = 0;
   FINANCE_INVOICE_STATUS_DRAFT = 1;
@@ -457,6 +486,9 @@ message ListBillsRequest {
   optional string due_date_to = 13;
   optional bool only_unsettled = 14;
   optional bool only_overdue = 15;
+  optional FinanceBillSettlementProgress settlement_progress = 16;
+  optional FinanceBillInvoiceProgress invoice_progress = 17;
+  optional bool completed = 18;
 }
 message ListBillCreationCandidatesRequest { string organization_id = 1 [(google.api.field_behavior) = REQUIRED]; int32 page = 2; int32 page_size = 3; optional string keyword = 4; optional string direction = 5; }
 message ListBillCreationCandidatesResponse { bool success = 1; int32 code = 2; string message = 3; repeated FeeLedgerItem data = 4; int64 total = 5; string trace_id = 6; }
@@ -573,6 +605,14 @@ message FinanceBill {
   optional string invoiceable_amount = 52;
   optional string invoiceable_net_amount = 53;
   optional string invoiceable_tax_amount = 54;
+  // 以下为读取时推导的进度投影，仅账单列表与详情返回；不落库、不冻结。
+  FinanceBillSettlementProgress settlement_progress = 55;
+  FinanceBillInvoiceProgress invoice_progress = 56;
+  // completed 为已确认账单结清且开票完成（或无需开票）。
+  bool completed = 57;
+  // fees_locked 表示账单存在阻止增删费用的有效财务事实，类型见 fee_lock_facts。
+  bool fees_locked = 58;
+  repeated FinanceBillFeeLockFact fee_lock_facts = 59;
 }
 
 message BillGroupingPolicy {

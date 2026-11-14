@@ -1867,6 +1867,20 @@ paths:
                   in: query
                   schema:
                     type: boolean
+                - name: settlementProgress
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: invoiceProgress
+                  in: query
+                  schema:
+                    type: integer
+                    format: enum
+                - name: completed
+                  in: query
+                  schema:
+                    type: boolean
             responses:
                 "200":
                     description: OK
@@ -12356,6 +12370,24 @@ components:
                     type: string
                 invoiceableTaxAmount:
                     type: string
+                settlementProgress:
+                    type: integer
+                    description: 以下为读取时推导的进度投影，仅账单列表与详情返回；不落库、不冻结。
+                    format: enum
+                invoiceProgress:
+                    type: integer
+                    format: enum
+                completed:
+                    type: boolean
+                    description: completed 为已确认账单结清且开票完成（或无需开票）。
+                feesLocked:
+                    type: boolean
+                    description: fees_locked 表示账单存在阻止增删费用的有效财务事实，类型见 fee_lock_facts。
+                feeLockFacts:
+                    type: array
+                    items:
+                        type: integer
+                        format: enum
         finance.v1.FinanceBillBatch:
             type: object
             properties:
