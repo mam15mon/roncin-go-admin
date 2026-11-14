@@ -59,7 +59,8 @@ vi.mock('@/components/ui', () => ({
   RowColorSettings: () => null,
   getDefaultRowColors: () => ({}),
 }));
-vi.mock('./components/FeeLedgerSearchFilter', () => ({
+vi.mock('./components/FeeLedgerSearchFilter', async (orig) => ({
+  ...(await orig<typeof import('./components/FeeLedgerSearchFilter')>()),
   FeeLedgerSearchFilter: (p: FilterProps) => {
     state.search = p;
     return null;

@@ -76,6 +76,11 @@ export interface SearchFilterTemplateProps<TValues = Record<string, unknown>> {
   defaultVisibleCount?: number;
   /** 表单字段配置项列表（用于 'grid' 模式） */
   items?: SearchFilterFieldItem[];
+  /**
+   * 筛选设置的可见字段名（仅 grid 模式）。字段由可见变为不可见时清除其表单值与
+   * 已提交条件，并用剩余已提交条件触发 onCommit/onSearch；不传则 items 全部可见。
+   */
+  visibleNames?: readonly string[];
   /** 快捷搜索栏模式下的关键字占位符（用于 'bar' 模式） */
   keywordPlaceholder?: string;
   /** 快捷搜索栏模式下的关键字字段名，默认 'keyword' */

@@ -114,6 +114,34 @@ describe('OrderFeeTableTabs 整表保存', () => {
     expect(props.onFeeSaved).toHaveBeenCalledWith('7');
   });
 
+  it('保存期间只冻结本侧输入与新增操作，另一侧仍可继续编辑', async () => {
+    let resolveSave!: (response: {
+      success: boolean;
+      data: API.OrderFee[];
+    }) => void;
+    saveFees.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveSave = resolve;
+        }),
+    );
+    await mountBoth();
+    fireEvent.change(noteInput('r1'), { target: { value: '本次提交' } });
+    await clickSave('应收');
+    await waitFor(() => expect(saveFees).toHaveBeenCalledOnce());
+    expect(noteInput('r1')).toBeDisabled();
+    expect(screen.getByText('新增应收费用').closest('button')).toBeDisabled();
+    expect(noteInput('p1')).not.toBeDisabled();
+    fireEvent.change(noteInput('p1'), {
+      target: { value: '请求期间应付输入' },
+    });
+    await act(async () => {
+      resolveSave({ success: true, data: [] });
+    });
+    await waitFor(() => expect(noteInput('r1')).not.toBeDisabled());
+    expect(noteInput('p1')).toHaveValue('请求期间应付输入');
+  });
+
   it('反向：保存应付只提交应付行，应收草稿保留', async () => {
     saveFees.mockResolvedValue({ success: true, data: [] } as never);
     await mountBoth();
@@ -170,28 +198,31 @@ describe('OrderFeeTableTabs 整表保存', () => {
 
   it('多行同时失败时以 row_errors 逐行列出', async () => {
     saveFees.mockRejectedValue(
-      rejection({
-        reason: 'ORDER_FEE_VERSION_CONFLICT',
-        message: '已被更新，请刷新后重试',
-        metadata: {
-          client_row_id: 'r1',
-          field: 'version',
-          row_errors: JSON.stringify([
-            {
-              client_row_id: 'r1',
-              field: 'version',
-              reason: 'ORDER_FEE_VERSION_CONFLICT',
-              message: '已被更新，请刷新后重试',
-            },
-            {
-              client_row_id: 'r2',
-              field: 'settlementPartyId',
-              reason: 'ORDER_FEE_PARTY_INVALID',
-              message: '结算单位无效',
-            },
-          ]),
+      rejection(
+        {
+          reason: 'ORDER_FEE_VERSION_CONFLICT',
+          message: '已被更新，请刷新后重试',
+          metadata: {
+            client_row_id: 'r1',
+            field: 'version',
+            row_errors: JSON.stringify([
+              {
+                client_row_id: 'r1',
+                field: 'version',
+                reason: 'ORDER_FEE_VERSION_CONFLICT',
+                message: '已被更新，请刷新后重试',
+              },
+              {
+                client_row_id: 'r2',
+                field: 'settlementPartyId',
+                reason: 'ORDER_FEE_PARTY_INVALID',
+                message: '结算单位无效',
+              },
+            ]),
+          },
         },
-      }, 409),
+        409,
+      ),
     );
     await mountBoth();
     fireEvent.change(noteInput('r1'), { target: { value: 'x' } });

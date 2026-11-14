@@ -11,10 +11,18 @@ describe('海运出口表单策略', () => {
       resolveSeaOrderFormPolicy({
         shipmentMode: SEA_SHIPMENT_MODE.TRADITIONAL_FORWARDING,
       }),
-    ).toMatchObject({ modeLabel: '集运', emphasizeCrossBorderCompliance: false });
+    ).toMatchObject({
+      modeLabel: '集运',
+      emphasizeCrossBorderCompliance: false,
+    });
     expect(
-      resolveSeaOrderFormPolicy({ shipmentMode: SEA_SHIPMENT_MODE.CROSS_BORDER }),
-    ).toMatchObject({ modeLabel: '跨境', emphasizeCrossBorderCompliance: true });
+      resolveSeaOrderFormPolicy({
+        shipmentMode: SEA_SHIPMENT_MODE.CROSS_BORDER,
+      }),
+    ).toMatchObject({
+      modeLabel: '跨境',
+      emphasizeCrossBorderCompliance: true,
+    });
   });
 
   it('按托运类型控制箱量、自拼入口与计费吨', () => {
@@ -42,5 +50,4 @@ describe('海运出口表单策略', () => {
       showRevenueTon: true,
     });
   });
-
 });

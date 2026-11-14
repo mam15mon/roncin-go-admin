@@ -107,6 +107,8 @@ it('对冲取消真实409后原因仍在且不刷新；缺ID不能完成，重�
   }
   fireEvent.click(screen.getByRole('button', { name: /确.*认/ }));
   await waitFor(() => expect(reload).toHaveBeenCalledOnce());
-  await waitFor(() => expect(document.querySelector('.ant-modal')).toHaveClass('ant-zoom-leave'));
+  await waitFor(() =>
+    expect(document.querySelector('.ant-modal')).toHaveClass('ant-zoom-leave'),
+  );
   expect(notify).toHaveBeenCalledOnce();
 });

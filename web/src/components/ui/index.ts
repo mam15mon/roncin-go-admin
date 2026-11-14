@@ -6,6 +6,7 @@ export * from './descriptions-detail-drawer';
 export * from './dialog-sizes';
 export * from './ellipsis-tooltip';
 export * from './exchange-rate-input';
+export * from './filter-settings';
 export * from './finance-ledger-template';
 export * from './form-navigator';
 export * from './form-row';

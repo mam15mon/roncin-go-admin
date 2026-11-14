@@ -80,7 +80,7 @@ const csvColumns: CsvColumn<API.CommissionExportItem>[] = [
   },
   { header: '规则名称', kind: 'text', value: (item) => item.ruleName ?? '' },
   {
-    header: '计提口径',
+    header: '计提口径（不含税）',
     kind: 'text',
     value: (item) => calculationBasisText(item.calculationBasis),
   },

@@ -1,10 +1,5 @@
 import { renderWithApp as render } from '@root/tests/renderWithApp';
-import {
-  act,
-  fireEvent,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React, { createRef } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';

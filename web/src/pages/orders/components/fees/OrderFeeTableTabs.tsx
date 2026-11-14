@@ -294,11 +294,11 @@ export default function OrderFeeTableTabs({
     [PAYABLE]: new SaveRequestKeyHolder(generateUUID),
   });
   const receivableGuard = useUnsavedChangesGuard({
-    enabled: receivableEditable.length > 0,
+    enabled: Boolean(orderId),
     identity: orderId,
   });
   const payableGuard = useUnsavedChangesGuard({
-    enabled: payableEditable.length > 0,
+    enabled: Boolean(orderId),
     identity: orderId,
   });
   const sideName = (direction: number) =>
@@ -836,9 +836,9 @@ export default function OrderFeeTableTabs({
   };
 
   /** 本侧整表保存：只提交新增行与已改动行，未改动行不提交，失败整体保留输入。 */
-  const handleSaveSide = async (direction: number) => {
+  const saveSide = async (direction: number) => {
     const side = sideName(direction);
-    if (!orderId || savingRef.current[side]) return;
+    if (!orderId) return;
     const form = formRefOf(direction).current;
     if (!form) return;
     if (rowWritesLocked) {
@@ -927,8 +927,6 @@ export default function OrderFeeTableTabs({
       }),
     );
     const requestKey = requestKeyHoldersRef.current[direction].keyFor(rows);
-    savingRef.current[side] = true;
-    setSaving((prev) => ({ ...prev, [side]: true }));
     setRowErrors((prev) => ({ ...prev, [side]: [], rateDetail: undefined }));
     try {
       const response = await orderFeeServiceSaveOrderFees(
@@ -952,10 +950,14 @@ export default function OrderFeeTableTabs({
           : `已保存 ${rows.length} 笔${direction === RECEIVABLE ? '应收' : '应付'}费用`,
       );
       // 只刷新本侧：另一侧的草稿与基线完全保留。
-      (direction === RECEIVABLE
-        ? receivableActionRef
-        : payableActionRef
-      ).current?.reload();
+      try {
+        await (direction === RECEIVABLE
+          ? receivableActionRef
+          : payableActionRef
+        ).current?.reload();
+      } catch {
+        message.warning('费用已保存，列表刷新失败，请手动刷新');
+      }
       onFeeSaved?.(response.feeContentVersion);
     } catch (error) {
       if (currentOrderIdRef.current !== requestedOrderId) return;
@@ -977,6 +979,17 @@ export default function OrderFeeTableTabs({
       message.error(
         rateDetail ? `${parsed.message}（${rateDetail}）` : parsed.message,
       );
+    }
+  };
+
+  // 校验及提交期间冻结本侧输入，避免成功刷新覆盖请求发出后的新编辑；另一侧仍可编辑。
+  const handleSaveSide = async (direction: number) => {
+    const side = sideName(direction);
+    if (savingRef.current[side]) return;
+    savingRef.current[side] = true;
+    setSaving((prev) => ({ ...prev, [side]: true }));
+    try {
+      await saveSide(direction);
     } finally {
       savingRef.current[side] = false;
       if (mountedRef.current) setSaving((prev) => ({ ...prev, [side]: false }));
@@ -1736,7 +1749,7 @@ export default function OrderFeeTableTabs({
               <Button
                 key="add"
                 icon={<PlusOutlined />}
-                disabled={rowWritesLocked || !canCreateFees}
+                disabled={rowWritesLocked || !canCreateFees || saving[side]}
                 onClick={() => handleAddRow(direction)}
               >
                 新增{label}费用
@@ -1781,13 +1794,14 @@ export default function OrderFeeTableTabs({
             },
             formProps: {
               formRef: formRefOf(direction),
+              disabled: saving[side],
               // EditableProTable.onValuesChange 内部防抖 64ms；用字段事件同步保护紧接着的组织切换。
               onFieldsChange: (fields) => {
                 if (fields.some((field) => field.touched)) markDirty(direction);
               },
             },
             actionRender: (row, _config, defaultDom) =>
-              renderRowActions(row, defaultDom),
+              saving[side] ? [] : renderRowActions(row, defaultDom),
           }}
           rowSelection={{
             selectedRowKeys: selectedIds,

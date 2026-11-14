@@ -228,12 +228,14 @@ export function useMasterDataCrud<
 
   const handleToggleActive = useCallback(
     async (target: TItem) => {
-      return (await updateMutation.mutateAsync({
-        id: target.id,
-        values: target,
-        enabled: !target.enabled,
-        record: target,
-      })) !== false;
+      return (
+        (await updateMutation.mutateAsync({
+          id: target.id,
+          values: target,
+          enabled: !target.enabled,
+          record: target,
+        })) !== false
+      );
     },
     [updateMutation],
   );

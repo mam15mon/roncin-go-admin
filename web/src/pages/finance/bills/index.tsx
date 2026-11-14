@@ -12,6 +12,12 @@ import {
   type SearchFilterFieldItem,
   SearchFilterTemplate,
 } from '@/components/ui';
+import {
+  FilterSettingsEntry,
+  type FilterSettingsField,
+  omitHiddenFilterValues,
+  useFilterSettings,
+} from '@/components/ui/filter-settings';
 import { useListQueryState } from '@/components/ui/list-query-state';
 import { BillCreationWorkbench } from '@/features/finance/bill-creation';
 import { billStatusMeta } from '@/features/finance/bill-status';
@@ -58,6 +64,19 @@ type BillSearchParams = {
   onlyOverdue?: string;
 };
 
+/** 筛选设置可选字段：默认全部可见，与改造前显示集合一致。 */
+const billFilterFields: FilterSettingsField[] = [
+  { name: 'keyword', label: '综合搜索' },
+  { name: 'direction', label: '账单属性' },
+  { name: 'status', label: '账单状态' },
+  { name: 'billDateRange', label: '账单日期' },
+  { name: 'dueDateRange', label: '到期日期' },
+  { name: 'onlyUnsettled', label: '结清状态' },
+  { name: 'onlyOverdue', label: '逾期状态' },
+  { name: 'settlementPartyId', label: '结算单位' },
+  { name: 'currency', label: '计价币种' },
+].map((field) => ({ ...field, defaultVisible: true }));
+
 export default function FinanceBillsPage() {
   const access = useAccess();
   const { initialState } = useInitialState();
@@ -69,6 +88,10 @@ export default function FinanceBillsPage() {
       access.canOperateOrganization(organizationId),
   );
   const getModalOwnerSignal = useModalOwnerSignal();
+  const filterSettings = useFilterSettings({
+    pageKey: 'finance:bills',
+    fields: billFilterFields,
+  });
   const queryState = useListQueryState<{
     search: BillSearchParams;
   }>({
@@ -76,6 +99,15 @@ export default function FinanceBillsPage() {
     listId: 'finance:bills',
     defaultPageSize: 40,
     defaultFilters: { search: {} },
+    // 页签恢复时剔除已隐藏筛选项的值，避免隐藏条件继续生效。
+    sanitizeRestored: (filters) => ({
+      ...filters,
+      search: omitHiddenFilterValues(
+        filters.search,
+        billFilterFields,
+        filterSettings.visibleNames,
+      ),
+    }),
   });
   const { selectionScope, commitFilters } = useLedgerSelectionScope(
     queryState.commit,
@@ -419,6 +451,15 @@ export default function FinanceBillsPage() {
             defaultCollapsed={true}
             defaultVisibleCount={5}
             items={filterItems}
+            visibleNames={filterSettings.visibleNames}
+            extraRight={
+              <FilterSettingsEntry
+                fields={billFilterFields}
+                visibleNames={filterSettings.visibleNames}
+                onChange={filterSettings.setVisible}
+                onReset={filterSettings.reset}
+              />
+            }
             onSearch={(values) => {
               commitFilters({
                 ...queryState.snapshotRef.current.filters,

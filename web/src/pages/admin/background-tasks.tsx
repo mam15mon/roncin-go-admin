@@ -1,4 +1,3 @@
-import { AsyncPopconfirm } from '@/components/ui';
 import {
   ClockCircleOutlined,
   RedoOutlined,
@@ -10,19 +9,14 @@ import type {
   ProFormInstance,
 } from '@ant-design/pro-components';
 import { paginationSizeChanger } from '@root/config/pagination';
-import {
-  App,
-  Button,
-  Descriptions,
-  Space,
-  Tabs,
-  Tag,
-  Typography,
-} from 'antd';
+import { App, Button, Descriptions, Space, Tabs, Tag, Typography } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
-import { ResponsiveProTable as ProTable } from '@/components/ui';
+import {
+  AsyncPopconfirm,
+  ResponsiveProTable as ProTable,
+} from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import {
   backgroundTaskStatusMeta,

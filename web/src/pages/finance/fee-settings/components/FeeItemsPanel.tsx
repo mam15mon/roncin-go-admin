@@ -160,7 +160,7 @@ export function FeeItemsPanel() {
             nameZh: values.nameZh.trim(),
             nameEn: values.nameEn?.trim() || undefined,
             aliasName: values.aliasName?.trim() || undefined,
-              defaultCurrency: values.defaultCurrency,
+            defaultCurrency: values.defaultCurrency,
             billingUnitId: values.billingUnitId,
             abnormalCaseId: values.abnormalCaseId || undefined,
             taxRate: values.taxRate,

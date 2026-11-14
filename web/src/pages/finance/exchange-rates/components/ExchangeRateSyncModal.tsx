@@ -1,4 +1,3 @@
-import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import {
   HistoryOutlined,
   InfoCircleOutlined,
@@ -21,6 +20,7 @@ import {
   Typography,
 } from 'antd';
 import React, { useEffect, useState } from 'react';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { ExchangeRateSyncTarget } from '@/enums.generated';
@@ -178,7 +178,10 @@ export function ExchangeRateSyncModal({
   onClose,
   onSuccess,
 }: ExchangeRateSyncModalProps) {
-  const { markDirty, resetDirty } = useUnsavedChangesGuard({ enabled: open, identity: baseCurrency });
+  const { markDirty, resetDirty } = useUnsavedChangesGuard({
+    enabled: open,
+    identity: baseCurrency,
+  });
   const { message } = App.useApp();
   const [target, setTarget] =
     useState<ExchangeRateSyncTargetValue>('CURRENT_WEEK');

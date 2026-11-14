@@ -183,3 +183,24 @@ it('常开编辑：单纯进入不脏，真实输入同步标脏；保存一侧�
   });
   await waitFor(() => expect(getAnyDirtyTabKey()).toBeUndefined());
 });
+
+it('编辑后被外部审核锁定仍保留离开保护，不能因变只读丢失草稿提示', async () => {
+  const props = makeProps();
+  const view = (disabled: boolean) => (
+    <App>
+      <OrderFeeTableTabs {...props} feeWritesDisabled={disabled} />
+    </App>
+  );
+  const { rerender } = render(view(false));
+  const input = await screen.findByDisplayValue('应收测试费');
+  fireEvent.change(input, { target: { value: '锁定前尚未保存' } });
+  expect(getAnyDirtyTabKey()).toBe('/orders/sea-export/order-1/fees');
+  rerender(view(true));
+  await waitFor(() =>
+    expect(screen.getByRole('button', { name: /保存应收费用/ })).toBeDisabled(),
+  );
+  expect(getAnyDirtyTabKey()).toBe('/orders/sea-export/order-1/fees');
+  const confirmation = vi.fn();
+  expect(confirmIfAnyTabDirty(vi.fn(), confirmation)).toBe(false);
+  expect(confirmation).toHaveBeenCalledOnce();
+});

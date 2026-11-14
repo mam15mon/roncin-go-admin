@@ -68,3 +68,13 @@ return { ...toTableRequest(response), summary: response.summary,
 - 活动订单读取活动关联；终态仅读取结束原因和结束时间与本次终止匹配的保留关联，不取旧改配或往次终止关系。
 - 「主提单号」通过独立 `masterNo` 参数模糊筛选，与其他筛选条件共同生效；综合 `keyword` 同样覆盖主单号。空运搜索支持带连字符的 MAWB 输入，纯连字符不能变成匹配全部。
 - 主单号筛选在分页与汇总之前执行，并保留当前公司范围。回归入口：`fee_ledger_master_no_integration_test.go`（真实 PostgreSQL）、`fee_ledger_balances_test.go`（ProtoJSON）、费用台账的 `fee-query-state.test.tsx` 与 `feeLedgerProgress.test.tsx`。
+
+## 筛选项设置（移除清值并刷新）
+
+- 页面通过 `components/ui/filter-settings` 声明可选字段与默认可见集合（默认等于既有显示集合），经 `SearchFilterTemplate.visibleNames` 生效；公司工作区与权限范围不是筛选字段，不可通过设置移除。
+- 字段由可见变不可见：清除其表单值、已提交条件与候选 label（范围字段起止值同清），仅当该字段已有已提交值时，沿用页面 `onSearch` 路径（`commitFilters` + `reload(true)`：回第一页、清空勾选）用剩余已提交条件刷新；不连带提交其他未提交输入；重新加入不恢复旧值。列表、指标、合计、导出沿用既有 `onLoad` 采纳快照，不在 request 完成时直接更新指标。
+- 普通折叠/展开只改变展示：折叠而未挂载的字段值并入提交值，不改变查询。
+- 偏好 key `roncin:filter-settings:v1:<pageKey>:<userId>:<orgId>`，只存可见/隐藏字段名；未知字段忽略，偏好未提及的新字段按声明默认补入；身份未就绪不读不写；存储失败提示一次，当次仍生效。
+- 页签恢复经 `useListQueryState` 的 `sanitizeRestored` 剔除已隐藏字段的值。
+
+- 筛选设置移除字段后执行重置，须对全部声明字段清值并显式清除隐藏字段的初始值，不能让 `Form.resetFields` 在字段重新显示时复活旧条件；范围字段起止值一并验证。

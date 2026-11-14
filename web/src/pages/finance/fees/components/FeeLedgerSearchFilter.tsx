@@ -1,6 +1,7 @@
 import type { Dayjs } from 'dayjs';
-import React from 'react';
+import type React from 'react';
 import {
+  type FilterSettingsField,
   type SearchFilterFieldItem,
   SearchFilterTemplate,
 } from '@/components/ui';
@@ -49,6 +50,10 @@ export interface FeeLedgerSearchFilterProps {
   onSearch: (values: FeeLedgerFilterParams) => void;
   onReset: () => void;
   loading?: boolean;
+  /** 筛选设置的可见字段；字段变为不可见时清值并刷新。 */
+  visibleNames?: readonly string[];
+  /** 筛选设置入口等右侧操作。 */
+  extraRight?: React.ReactNode;
 }
 
 export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
@@ -59,8 +64,34 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
   onSearch,
   onReset,
   loading = false,
+  visibleNames,
+  extraRight,
 }) => {
-  const items: SearchFilterFieldItem[] = [
+  const items = buildFeeLedgerFilterItems(enabled);
+  return (
+    <SearchFilterTemplate<FeeLedgerFilterParams>
+      initialValues={initialValues}
+      initialLabels={initialLabels}
+      onCommit={onCommit}
+      layout="grid"
+      formLayout="horizontal"
+      labelWidth={75}
+      colSpan={4}
+      collapsible={true}
+      defaultCollapsed={true}
+      defaultVisibleCount={6}
+      items={items}
+      visibleNames={visibleNames}
+      extraRight={extraRight}
+      onSearch={onSearch}
+      onReset={onReset}
+      loading={loading}
+    />
+  );
+};
+
+function buildFeeLedgerFilterItems(enabled: boolean): SearchFilterFieldItem[] {
+  return [
     // --- 默认首屏展示的前 5 项核心字段 (高密度单行) ---
     {
       name: 'keyword',
@@ -222,25 +253,14 @@ export const FeeLedgerSearchFilter: React.FC<FeeLedgerSearchFilterProps> = ({
       placeholder: '输入发货人抬头',
     },
   ];
+}
 
-  return (
-    <SearchFilterTemplate<FeeLedgerFilterParams>
-      initialValues={initialValues}
-      initialLabels={initialLabels}
-      onCommit={onCommit}
-      layout="grid"
-      formLayout="horizontal"
-      labelWidth={75}
-      colSpan={4}
-      collapsible={true}
-      defaultCollapsed={true}
-      defaultVisibleCount={6}
-      items={items}
-      onSearch={onSearch}
-      onReset={onReset}
-      loading={loading}
-    />
-  );
-};
+/** 筛选设置可选字段：默认全部可见，与改造前显示集合一致。 */
+export const feeLedgerFilterFields: FilterSettingsField[] =
+  buildFeeLedgerFilterItems(false).map((item) => ({
+    name: item.name,
+    label: String(item.label ?? item.name),
+    defaultVisible: true,
+  }));
 
 export default FeeLedgerSearchFilter;

@@ -1,4 +1,3 @@
-import { AsyncPopconfirm } from '@/components/ui';
 import {
   BankOutlined,
   DeleteOutlined,
@@ -9,6 +8,7 @@ import {
 } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { Avatar, Button, Space, Tag, Typography } from 'antd';
+import { AsyncPopconfirm } from '@/components/ui';
 import { adminUserStatusMeta, statusTag } from '@/constants/statusMeta';
 import { AdminUserStatus } from '@/enums.generated';
 import { formatDate } from '@/utils/format';

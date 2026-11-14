@@ -13,7 +13,10 @@ const localProxy: ProxyConfig = {
   },
 };
 
-function remoteProxy(environment: 'test' | 'pre', rawTarget?: string): ProxyConfig {
+function remoteProxy(
+  environment: 'test' | 'pre',
+  rawTarget?: string,
+): ProxyConfig {
   const target = rawTarget?.trim();
   if (!target) {
     throw new Error(

@@ -151,51 +151,53 @@ export default function MyApplicationHistoryDrawer({
     const applicationId = record.id;
     const expectedVersion = record.version;
     const monthLabel = record.applicationMonth || '';
-    modal.confirm({
-      title: `重新提交 ${monthLabel} 月度申请？`,
-      content: (
-        <div>
-          <p>
-            {`将按最新上游数据刷新本申请各明细的提成金额（已失效的明细会被剔除），重新提交财务整批审批。`}
-          </p>
-          <p style={{ color: '#64748b' }}>
-            最近一次驳回原因：{record.decisionReason || '-'}；重提沿用原申请与
-            申请月份，不会产生第二张申请。
-          </p>
-        </div>
-      ),
-      okText: '重新提交',
-      // antd 6 的 modal.confirm 移除 confirmLoading，经 okButtonProps 表达加载态。
-      okButtonProps: { loading: resubmitting },
-      cancelText: '再想想',
-      onOk: async () => {
-        setResubmitting(true);
-        try {
-          const writeResponse1 =
-            await workbenchServiceResubmitMyCommissionApplication({
-              applicationId,
-              expectedVersion,
-            });
-          if (!isWriteResponse(writeResponse1, true)) return Promise.reject();
-          message.success('申请已重新提交，等待财务审批');
-          backToList();
-          // 重提成功后失效申请历史域（列表与详情快照按原翻页/过滤参数重查）；
-          // 刷新失败由全局查询错误处理提示，不改变本次重提的成功结果。
-          queryClient
-            .invalidateQueries({ queryKey: [...APPLICATIONS_QUERY_BASE] })
-            .catch(() => undefined);
-          await onResubmitted?.();
-        } catch (error: unknown) {
-          message.error((error as Error).message || '重新提交失败');
-          throw error;
-        } finally {
-          setResubmitting(false);
-        }
-      },
-    }).then(
-      () => {},
-      () => {},
-    );
+    modal
+      .confirm({
+        title: `重新提交 ${monthLabel} 月度申请？`,
+        content: (
+          <div>
+            <p>
+              {`将按最新上游数据刷新本申请各明细的提成金额（已失效的明细会被剔除），重新提交财务整批审批。`}
+            </p>
+            <p style={{ color: '#64748b' }}>
+              最近一次驳回原因：{record.decisionReason || '-'}；重提沿用原申请与
+              申请月份，不会产生第二张申请。
+            </p>
+          </div>
+        ),
+        okText: '重新提交',
+        // antd 6 的 modal.confirm 移除 confirmLoading，经 okButtonProps 表达加载态。
+        okButtonProps: { loading: resubmitting },
+        cancelText: '再想想',
+        onOk: async () => {
+          setResubmitting(true);
+          try {
+            const writeResponse1 =
+              await workbenchServiceResubmitMyCommissionApplication({
+                applicationId,
+                expectedVersion,
+              });
+            if (!isWriteResponse(writeResponse1, true)) return Promise.reject();
+            message.success('申请已重新提交，等待财务审批');
+            backToList();
+            // 重提成功后失效申请历史域（列表与详情快照按原翻页/过滤参数重查）；
+            // 刷新失败由全局查询错误处理提示，不改变本次重提的成功结果。
+            queryClient
+              .invalidateQueries({ queryKey: [...APPLICATIONS_QUERY_BASE] })
+              .catch(() => undefined);
+            await onResubmitted?.();
+          } catch (error: unknown) {
+            message.error((error as Error).message || '重新提交失败');
+            throw error;
+          } finally {
+            setResubmitting(false);
+          }
+        },
+      })
+      .then(
+        () => {},
+        () => {},
+      );
   };
 
   const currency = baseCurrency || undefined;

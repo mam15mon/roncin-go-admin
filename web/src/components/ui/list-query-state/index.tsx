@@ -47,19 +47,33 @@ export function useListQueryState<T>({
   listId,
   defaultPageSize,
   defaultFilters,
+  sanitizeRestored,
 }: {
   tabKey: string;
   listId: string;
   defaultPageSize: number;
   defaultFilters: T;
+  /** 仅作用于页签恢复的筛选值（如剔除已隐藏的筛选项），不影响默认值与后续提交。 */
+  sanitizeRestored?: (filters: T) => T;
 }) {
   const store = useContext(Context);
   const lease = useRef(store?.generations.get(tabKey) ?? 0);
-  const initial = useRef(
-    (store?.enabled ? store.snapshots.get(tabKey)?.get(listId) : undefined) as
-      | ListQuerySnapshot<T>
-      | undefined,
+  // 仅挂载时取一次恢复快照（含无快照的结果），后续渲染不再重新读取。
+  const restoredRef = useRef<{ value?: ListQuerySnapshot<T> } | undefined>(
+    undefined,
   );
+  if (!restoredRef.current) {
+    const restored = (
+      store?.enabled ? store.snapshots.get(tabKey)?.get(listId) : undefined
+    ) as ListQuerySnapshot<T> | undefined;
+    restoredRef.current = {
+      value:
+        restored && sanitizeRestored
+          ? { ...restored, filters: sanitizeRestored(restored.filters) }
+          : restored,
+    };
+  }
+  const initial = { current: restoredRef.current.value };
   const snapshotRef = useRef<ListQuerySnapshot<T>>(
     initial.current ?? {
       filters: defaultFilters,

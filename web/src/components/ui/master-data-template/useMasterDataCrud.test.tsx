@@ -44,9 +44,23 @@ describe('useMasterDataCrud', () => {
     const updateItem = vi.fn();
     const { queryClient, wrapper } = createHookWrapper();
     const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
-    const { result } = renderHook(() => useMasterDataCrud<Item, Item>({ entityName: '港口', fetchList, createItem, updateItem, mapItem: (item) => item }), { wrapper });
+    const { result } = renderHook(
+      () =>
+        useMasterDataCrud<Item, Item>({
+          entityName: '港口',
+          fetchList,
+          createItem,
+          updateItem,
+          mapItem: (item) => item,
+        }),
+      { wrapper },
+    );
     await waitFor(() => expect(result.current.data).toEqual([item1]));
-    for (const response of [undefined, { success: false, data: item1 }, { success: true, data: {} }]) {
+    for (const response of [
+      undefined,
+      { success: false, data: item1 },
+      { success: true, data: {} },
+    ]) {
       createItem.mockResolvedValueOnce(response);
       updateItem.mockResolvedValueOnce(response);
       await act(async () => {
@@ -57,7 +71,9 @@ describe('useMasterDataCrud', () => {
       expect(result.current.data).toEqual([item1]);
     }
     createItem.mockResolvedValueOnce({ success: true, data: item2 });
-    await act(async () => expect(await result.current.handleCreate({})).toBe(true));
+    await act(async () =>
+      expect(await result.current.handleCreate({})).toBe(true),
+    );
     expect(invalidate).toHaveBeenCalledOnce();
   });
 

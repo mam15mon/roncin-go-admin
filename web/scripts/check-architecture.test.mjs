@@ -11,10 +11,10 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { after, test } from 'node:test';
 import {
-  PAGES_ASSEMBLY_ALLOWLIST,
-  RULE,
   findFeatureCycles,
+  PAGES_ASSEMBLY_ALLOWLIST,
   pageModuleKey,
+  RULE,
   runScan,
 } from './check-architecture.mjs';
 
@@ -22,7 +22,9 @@ const createdWebRoots = [];
 
 after(async () => {
   await Promise.all(
-    createdWebRoots.map((webRoot) => rm(webRoot, { recursive: true, force: true })),
+    createdWebRoots.map((webRoot) =>
+      rm(webRoot, { recursive: true, force: true }),
+    ),
   );
 });
 
@@ -78,10 +80,16 @@ test('跨页面模块导入：别名与相对路径两种形态均违规', async
     RULE.PAGE_CROSS,
   );
   assert.ok(
-    byAlias.reason.includes('pages/orders') && byAlias.reason.includes('pages/finance/bills'),
+    byAlias.reason.includes('pages/orders') &&
+      byAlias.reason.includes('pages/finance/bills'),
     `原因应包含两个模块名：${byAlias.reason}`,
   );
-  expectFinding(result.findings, 'src/pages/finance/fees/index.tsx', 1, RULE.PAGE_CROSS);
+  expectFinding(
+    result.findings,
+    'src/pages/finance/fees/index.tsx',
+    1,
+    RULE.PAGE_CROSS,
+  );
 });
 
 test('同模块内部引用合法：别名与相对路径均放行（含 finance 子模块内部）', async () => {
@@ -97,8 +105,14 @@ test('同模块内部引用合法：别名与相对路径均放行（含 finance
 });
 
 test('页面模块边界：finance 顶层单文件页面与 finance 子模块互为独立模块', () => {
-  assert.equal(pageModuleKey('pages/finance/settlement-placeholder.tsx'), 'pages/finance/settlement-placeholder.tsx');
-  assert.equal(pageModuleKey('pages/finance/bills/index.tsx'), 'pages/finance/bills');
+  assert.equal(
+    pageModuleKey('pages/finance/settlement-placeholder.tsx'),
+    'pages/finance/settlement-placeholder.tsx',
+  );
+  assert.equal(
+    pageModuleKey('pages/finance/bills/index.tsx'),
+    'pages/finance/bills',
+  );
   assert.equal(pageModuleKey('pages/orders/detail.tsx'), 'pages/orders');
   assert.equal(pageModuleKey('pages/NotFound.tsx'), 'pages/NotFound.tsx');
 });
@@ -113,7 +127,12 @@ test('features 反向依赖 pages：别名与相对路径均违规', async () =>
     'src/pages/admin/legacy.tsx': 'export const legacy = 1;',
   });
   assert.equal(result.findings.length, 2);
-  expectFinding(result.findings, 'src/features/audit/presenter.ts', 1, RULE.FEATURE_TO_PAGES);
+  expectFinding(
+    result.findings,
+    'src/features/audit/presenter.ts',
+    1,
+    RULE.FEATURE_TO_PAGES,
+  );
   expectFinding(
     result.findings,
     'src/features/finance/bill-creation/panel.tsx',
@@ -135,8 +154,18 @@ test('外部绕过 feature 公开入口：别名与相对路径深导入均违�
       'export const auditActorName = 1;\nexport const again = 2;\nexport const viaEntry = 3;',
   });
   assert.equal(result.findings.length, 2);
-  expectFinding(result.findings, 'src/pages/demo/index.tsx', 1, RULE.FEATURE_PRIVATE);
-  expectFinding(result.findings, 'src/pages/demo/other.tsx', 1, RULE.FEATURE_PRIVATE);
+  expectFinding(
+    result.findings,
+    'src/pages/demo/index.tsx',
+    1,
+    RULE.FEATURE_PRIVATE,
+  );
+  expectFinding(
+    result.findings,
+    'src/pages/demo/other.tsx',
+    1,
+    RULE.FEATURE_PRIVATE,
+  );
 });
 
 test('深层目录 index 不自动成为公共 API：外部导入能力内部更深层 index 报违规', async () => {
@@ -147,7 +176,12 @@ test('深层目录 index 不自动成为公共 API：外部导入能力内部更
     'src/features/audit/sub/index.ts': 'export const sub = 1;',
     'src/features/audit/sub/inner/index.ts': 'export const inner = 1;',
   });
-  const hit = expectFinding(result.findings, 'src/pages/demo/index.tsx', 1, RULE.FEATURE_PRIVATE);
+  const hit = expectFinding(
+    result.findings,
+    'src/pages/demo/index.tsx',
+    1,
+    RULE.FEATURE_PRIVATE,
+  );
   assert.ok(
     hit.reason.includes('features/audit/sub/index.ts'),
     `原因应指出真正的公共入口：${hit.reason}`,
@@ -164,18 +198,30 @@ test('重导出链穿透：export from 与 export * from 均按依赖判定', as
     'src/features/audit/deeper.ts': 'export const deep = 1;',
   });
   assert.equal(result.findings.length, 2);
-  expectFinding(result.findings, 'src/pages/demo/index.tsx', 1, RULE.FEATURE_PRIVATE);
-  expectFinding(result.findings, 'src/pages/demo/index.tsx', 2, RULE.FEATURE_PRIVATE);
+  expectFinding(
+    result.findings,
+    'src/pages/demo/index.tsx',
+    1,
+    RULE.FEATURE_PRIVATE,
+  );
+  expectFinding(
+    result.findings,
+    'src/pages/demo/index.tsx',
+    2,
+    RULE.FEATURE_PRIVATE,
+  );
 });
 
 test('import type 违规同样计入：页面跨模块类型导入与绕过 feature 入口的类型导入', async () => {
   const result = await scanFixture({
     'src/pages/finance/bills/index.tsx':
       "import type { FeeValues } from '@/pages/finance/fees/types';",
-    'src/pages/finance/fees/types.ts': 'export type FeeValues = { feeId: string };',
+    'src/pages/finance/fees/types.ts':
+      'export type FeeValues = { feeId: string };',
     'src/pages/demo/index.tsx':
       "import type { AuditActor } from '@/features/audit/audit-presentation';",
-    'src/features/audit/audit-presentation.ts': 'export type AuditActor = string;',
+    'src/features/audit/audit-presentation.ts':
+      'export type AuditActor = string;',
   });
   assert.equal(result.findings.length, 2);
   expectFinding(
@@ -184,7 +230,12 @@ test('import type 违规同样计入：页面跨模块类型导入与绕过 feat
     1,
     RULE.PAGE_CROSS,
   );
-  expectFinding(result.findings, 'src/pages/demo/index.tsx', 1, RULE.FEATURE_PRIVATE);
+  expectFinding(
+    result.findings,
+    'src/pages/demo/index.tsx',
+    1,
+    RULE.FEATURE_PRIVATE,
+  );
 });
 
 test('字面量动态 import() 与 require() 违规同样计入', async () => {
@@ -199,9 +250,24 @@ test('字面量动态 import() 与 require() 违规同样计入', async () => {
     'src/pages/partners/tags.tsx': 'export const tags = 1;',
   });
   assert.equal(result.findings.length, 3);
-  expectFinding(result.findings, 'src/pages/orders/index.tsx', 1, RULE.PAGE_CROSS);
-  expectFinding(result.findings, 'src/pages/orders/index.tsx', 2, RULE.PAGE_CROSS);
-  expectFinding(result.findings, 'src/pages/orders/index.tsx', 3, RULE.PAGE_CROSS);
+  expectFinding(
+    result.findings,
+    'src/pages/orders/index.tsx',
+    1,
+    RULE.PAGE_CROSS,
+  );
+  expectFinding(
+    result.findings,
+    'src/pages/orders/index.tsx',
+    2,
+    RULE.PAGE_CROSS,
+  );
+  expectFinding(
+    result.findings,
+    'src/pages/orders/index.tsx',
+    3,
+    RULE.PAGE_CROSS,
+  );
 });
 
 test('注释、普通字符串、模板字符串与非字面量动态导入不误报', async () => {
@@ -233,7 +299,8 @@ test('合法公开 API 引用：页面消费 feature 入口、feature 间跨能�
       "export { ResultTable } from './result';",
     'src/features/finance/bill-status/index.ts':
       'export const billStatusMeta = {};',
-    'src/features/partners/index.ts': 'export const PartnerSelectOptionTags = 1;',
+    'src/features/partners/index.ts':
+      'export const PartnerSelectOptionTags = 1;',
   });
   expectClean(result.findings);
   assert.deepEqual(result.featureEdges, [
@@ -272,12 +339,37 @@ test('通用层反向依赖：components/ui、hooks、utils、constants 导入 p
     'src/features/audit/index.ts': 'export const audit = 1;',
   });
   assert.equal(result.findings.length, 6);
-  expectFinding(result.findings, 'src/components/ui/box.tsx', 1, RULE.GENERIC_TO_PAGES);
-  expectFinding(result.findings, 'src/components/ui/box.tsx', 2, RULE.GENERIC_TO_FEATURES);
-  expectFinding(result.findings, 'src/hooks/useThing.ts', 1, RULE.GENERIC_TO_PAGES);
+  expectFinding(
+    result.findings,
+    'src/components/ui/box.tsx',
+    1,
+    RULE.GENERIC_TO_PAGES,
+  );
+  expectFinding(
+    result.findings,
+    'src/components/ui/box.tsx',
+    2,
+    RULE.GENERIC_TO_FEATURES,
+  );
+  expectFinding(
+    result.findings,
+    'src/hooks/useThing.ts',
+    1,
+    RULE.GENERIC_TO_PAGES,
+  );
   expectFinding(result.findings, 'src/utils/calc.ts', 1, RULE.GENERIC_TO_PAGES);
-  expectFinding(result.findings, 'src/utils/calc.ts', 2, RULE.GENERIC_TO_FEATURES);
-  expectFinding(result.findings, 'src/constants/lookup.ts', 1, RULE.GENERIC_TO_FEATURES);
+  expectFinding(
+    result.findings,
+    'src/utils/calc.ts',
+    2,
+    RULE.GENERIC_TO_FEATURES,
+  );
+  expectFinding(
+    result.findings,
+    'src/constants/lookup.ts',
+    1,
+    RULE.GENERIC_TO_FEATURES,
+  );
 });
 
 test('features 能力依赖环：两能力互相经公开入口引用时报环', async () => {
@@ -295,7 +387,9 @@ test('features 能力依赖环：两能力互相经公开入口引用时报环',
     RULE.FEATURE_CYCLE,
   );
   assert.ok(
-    hit.reason.includes('features/finance/bill-creation → features/finance/bill-status'),
+    hit.reason.includes(
+      'features/finance/bill-creation → features/finance/bill-status',
+    ),
     `环原因应包含依赖链：${hit.reason}`,
   );
 });
@@ -307,7 +401,12 @@ test('findFeatureCycles：三节点环规范化为单一结果', () => {
     { from: 'features/c', to: 'features/a', file: 'f-c', line: 3 },
   ]);
   assert.equal(cycles.length, 1);
-  assert.deepEqual(cycles[0].units, ['features/a', 'features/b', 'features/c', 'features/a']);
+  assert.deepEqual(cycles[0].units, [
+    'features/a',
+    'features/b',
+    'features/c',
+    'features/a',
+  ]);
 });
 
 test('无法解析的本地路径与越出 web 根目录的路径均报错', async () => {
@@ -316,7 +415,12 @@ test('无法解析的本地路径与越出 web 根目录的路径均报错', asy
       "import './no-such-module';\nimport escape from '../../../../../../outside';",
   });
   assert.equal(result.findings.length, 2);
-  expectFinding(result.findings, 'src/pages/orders/index.tsx', 1, RULE.UNRESOLVED);
+  expectFinding(
+    result.findings,
+    'src/pages/orders/index.tsx',
+    1,
+    RULE.UNRESOLVED,
+  );
   expectFinding(result.findings, 'src/pages/orders/index.tsx', 2, RULE.ESCAPED);
 });
 

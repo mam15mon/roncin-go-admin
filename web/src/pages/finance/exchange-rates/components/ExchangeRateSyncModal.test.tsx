@@ -1,8 +1,8 @@
-import { getAnyDirtyTabKey } from '@/components/layout/tabCloseGuard';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { getAnyDirtyTabKey } from '@/components/layout/tabCloseGuard';
 
 const serviceMocks = vi.hoisted(() => ({
   fetchExchangeRates: vi.fn(),
@@ -214,25 +214,38 @@ describe('ExchangeRateSyncModal', () => {
   });
   it('默认抓取不脏，三类真实汇率编辑均保护，发布失败保留输入且成功清理', async () => {
     serviceMocks.fetchExchangeRates.mockResolvedValue(previewResponse);
-    serviceMocks.syncExchangeRates.mockResolvedValueOnce(undefined).mockResolvedValueOnce({ success: true });
+    serviceMocks.syncExchangeRates
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce({ success: true });
     const callbacks = renderModal();
     expect(getAnyDirtyTabKey()).toBeUndefined();
     fireEvent.click(screen.getByRole('button', { name: /抓取牌价/ }));
     await screen.findByDisplayValue('6.7523');
     expect(getAnyDirtyTabKey()).toBeUndefined();
-    for (const [before, after] of [['6.7523', '6.8'], ['6.7117', '6.7'], ['6.7320', '6.75']]) {
-      fireEvent.change(screen.getByDisplayValue(before), { target: { value: after } });
+    for (const [before, after] of [
+      ['6.7523', '6.8'],
+      ['6.7117', '6.7'],
+      ['6.7320', '6.75'],
+    ]) {
+      fireEvent.change(screen.getByDisplayValue(before), {
+        target: { value: after },
+      });
       expect(getAnyDirtyTabKey()).toBe('/finance/exchange-rates');
     }
     fireEvent.click(screen.getByRole('button', { name: /确认发布/ }));
-    await waitFor(() => expect(serviceMocks.syncExchangeRates).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(serviceMocks.syncExchangeRates).toHaveBeenCalledTimes(1),
+    );
     expect(callbacks.onClose).not.toHaveBeenCalled();
     expect(screen.getByDisplayValue('6.8')).toBeInTheDocument();
-    await waitFor(() => expect(screen.getByRole('button', { name: /确认发布/ })).not.toHaveClass('ant-btn-loading'));
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /确认发布/ })).not.toHaveClass(
+        'ant-btn-loading',
+      ),
+    );
     expect(getAnyDirtyTabKey()).toBe('/finance/exchange-rates');
     fireEvent.click(screen.getByRole('button', { name: /确认发布/ }));
     await waitFor(() => expect(callbacks.onClose).toHaveBeenCalledOnce());
     expect(getAnyDirtyTabKey()).toBeUndefined();
   });
-
 });

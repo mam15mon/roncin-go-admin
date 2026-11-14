@@ -1,7 +1,13 @@
 import { ProTable } from '@ant-design/pro-components';
 import { paginationSizeChanger } from '@root/config/pagination';
 import { renderWithApp } from '@root/tests/renderWithApp';
-import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { Pagination, Select, Table } from 'antd';
 import { describe, expect, it, vi } from 'vitest';
 

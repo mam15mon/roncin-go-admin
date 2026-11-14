@@ -85,10 +85,7 @@ export const renderExpandedFees = (record: API.FinanceCommissionLine) => {
         订单费用构成核算快照（共 {record.fees.length} 笔）
       </Typography.Text>
       <Table<API.CommissionFeeDetail>
-        rowKey={(item) =>
-          item.feeId ||
-          `${item.feeCode}-${item.totalAmount}`
-        }
+        rowKey={(item) => item.feeId || `${item.feeCode}-${item.totalAmount}`}
         columns={feeColumns}
         dataSource={record.fees}
         pagination={false}

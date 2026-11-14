@@ -1,6 +1,6 @@
-import { history } from '@/router/history';
 import { Button, Result } from 'antd';
 import React from 'react';
+import { history } from '@/router/history';
 
 export default function NotFound() {
   return (

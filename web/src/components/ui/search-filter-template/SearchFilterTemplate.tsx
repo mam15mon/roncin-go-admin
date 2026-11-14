@@ -16,7 +16,7 @@ import {
   Space,
   Tag,
 } from 'antd';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { formatDate } from '@/utils/format';
 import { standardDateRangePresets } from '../date-presets';
 import { RemoteSearchSelect, SearchableSelect } from '../searchable-select';
@@ -118,7 +118,8 @@ export function SearchFilterTemplate<
   collapsible = true,
   defaultCollapsed = true,
   defaultVisibleCount = 5,
-  items = [],
+  items: allItems = [],
+  visibleNames,
   keywordPlaceholder = '输入关键字搜索...',
   keywordName = 'keyword',
   quickFilters = [],
@@ -149,6 +150,13 @@ export function SearchFilterTemplate<
 
   const toggleCollapse = () => setCollapsed((prev) => !prev);
 
+  // 筛选设置：仅渲染页面声明为可见的字段；未传 visibleNames 时行为不变。
+  const items = useMemo(() => {
+    if (!visibleNames) return allItems;
+    const visible = new Set(visibleNames);
+    return allItems.filter((item) => visible.has(item.name));
+  }, [allItems, visibleNames]);
+
   // 顶层计算可见字段（确保 Hooks 顶层无条件执行）
   const visibleItems = useMemo(() => {
     if (!collapsible || !collapsed) {
@@ -178,7 +186,18 @@ export function SearchFilterTemplate<
   }, [usedSpan, extraRight]);
 
   // 提交处理：固化已提交条件与当时的 label 快照供 chips 回显
-  const handleFinish = (values: TValues) => {
+  const handleFinish = (mountedValues: TValues) => {
+    // 折叠只改变展示：被折叠而未挂载的字段值仍在表单 store 中，需并入提交值，
+    // 否则收起后再查询会静默丢掉这些条件。
+    const values = { ...mountedValues } as Record<string, unknown>;
+    for (const item of items) {
+      if (visibleItems.includes(item)) continue;
+      const stored = form.getFieldValue(item.name);
+      if (stored !== undefined) values[item.name] = stored;
+    }
+    return commitValues(values as TValues);
+  };
+  const commitValues = (values: TValues) => {
     setCommitted(values);
     setLabelSnapshot({ ...labelMapRef.current });
     onCommit?.(values, { ...labelMapRef.current });
@@ -191,13 +210,15 @@ export function SearchFilterTemplate<
     form.setFieldsValue(
       Object.fromEntries(
         [
-          ...items.map((i) => i.name),
+          ...allItems.map((i) => i.name),
           keywordName,
           ...quickFilters.map((i) => i.name),
         ].map((name) => [
           name,
-          items.find((i) => i.name === name)?.initialValue ??
-            quickFilters.find((i) => i.name === name)?.initialValue,
+          visibleNames && !visibleNames.includes(name)
+            ? undefined
+            : (allItems.find((i) => i.name === name)?.initialValue ??
+              quickFilters.find((i) => i.name === name)?.initialValue),
         ]),
       ),
     );
@@ -228,6 +249,39 @@ export function SearchFilterTemplate<
     );
     onSearch?.(next);
   };
+
+  // 筛选设置移除字段：清除表单值、捕获 label 与已提交条件；仅当被移除字段已有
+  // 已提交值时，才以剩余已提交条件刷新（与 deleteChip 同一路径，不连带提交未提交输入）。
+  // 重新加入字段不恢复旧值；普通折叠不经过这里，只改变展示。
+  const visibleKey = visibleNames?.join('\u0000');
+  const prevVisibleRef = useRef(visibleNames);
+  useEffect(() => {
+    const prev = prevVisibleRef.current;
+    prevVisibleRef.current = visibleNames;
+    if (!prev || !visibleNames) return;
+    const now = new Set(visibleNames);
+    const removed = prev.filter((name) => !now.has(name));
+    if (removed.length === 0) return;
+    const next = { ...committed } as TValues;
+    let hadCommitted = false;
+    for (const name of removed) {
+      if (!isEmptyFilterValue((committed as Record<string, unknown>)[name])) {
+        hadCommitted = true;
+      }
+      delete next[name];
+      form.setFieldValue(name, undefined);
+      delete labelMapRef.current[name];
+    }
+    setCommitted(next);
+    const nextLabels = Object.fromEntries(
+      Object.entries(labelSnapshot).filter(([key]) => !removed.includes(key)),
+    );
+    setLabelSnapshot(nextLabels);
+    if (hadCommitted) {
+      onCommit?.(next, nextLabels);
+      onSearch?.(next);
+    }
+  }, [visibleKey]);
 
   // 已提交条件的 chips 数据：bar 模式统计关键字 + 快捷筛选，grid 模式统计全部 items；
   // custom 插槽无法推断字段配置，不产生 chip

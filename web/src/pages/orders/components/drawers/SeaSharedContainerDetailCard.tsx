@@ -1,4 +1,3 @@
-import { AsyncPopconfirm } from '@/components/ui';
 import {
   CheckCircleOutlined,
   DeleteOutlined,
@@ -16,6 +15,7 @@ import {
   Typography,
 } from 'antd';
 import React from 'react';
+import { AsyncPopconfirm } from '@/components/ui';
 import type { AllocationSummary } from './seaSharedContainerModels';
 
 const { Text } = Typography;

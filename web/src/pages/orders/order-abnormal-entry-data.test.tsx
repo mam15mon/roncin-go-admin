@@ -30,15 +30,13 @@ vi.mock('@/features/orders/options', () => ({
   getOrderPersonnelOptions: vi.fn(),
 }));
 vi.mock('@/services/roncin/seaDocumentService', () => ({
-  seaDocumentServiceGetSeaOrderDocuments: vi
-    .fn()
-    .mockResolvedValue({
-      data: {
-        documentStructure: 2,
-        linkVersion: '1',
-        masterBill: { id: 'mbl-1', version: '1', content: {} },
-      },
-    }),
+  seaDocumentServiceGetSeaOrderDocuments: vi.fn().mockResolvedValue({
+    data: {
+      documentStructure: 2,
+      linkVersion: '1',
+      masterBill: { id: 'mbl-1', version: '1', content: {} },
+    },
+  }),
 }));
 vi.mock('@/services/roncin/orderService', () => ({
   orderServiceGetOrder: vi.fn(),

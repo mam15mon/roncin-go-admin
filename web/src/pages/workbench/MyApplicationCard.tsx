@@ -100,41 +100,43 @@ export default function MyApplicationCard({
     const monthLabels = groups
       .map((group) => group.commissionMonth || '-')
       .join('、');
-    modal.confirm({
-      title: '确认提交月度提成申请？',
-      content: (
-        <div>
-          <p>
-            {`本次申请将覆盖截至上一自然月末的全部合格提成：归属月份 ${monthLabels}，共 ${totalCount} 笔，合计 ${applicationAmount(totalAmount)} ${currencyText}。`}
-          </p>
-          <p style={{ color: '#64748b' }}>
-            覆盖截止日为提交月份的上一自然月末；提交后新满足条件的提成将顺延至下一次申请，
-            不会追加进本申请。申请提交后进入财务整批审批，结果请在申请历史中查看。
-          </p>
-        </div>
-      ),
-      okText: '确认申请',
-      cancelText: '再想想',
-      onOk: async () => {
-        setSubmitting(true);
-        try {
-          const writeResponse1 =
-            await workbenchServiceSubmitMyCommissionApplication({});
-          if (!isWriteResponse(writeResponse1, true)) return Promise.reject();
-          message.success('申请已提交，等待财务审批');
-          // 等待 Overview 刷新完成再解除 loading，避免旧摘要误导重复提交。
-          await onOverviewRefresh();
-        } catch (error: unknown) {
-          message.error((error as Error).message || '提交申请失败');
-          throw error;
-        } finally {
-          setSubmitting(false);
-        }
-      },
-    }).then(
-      () => {},
-      () => {},
-    );
+    modal
+      .confirm({
+        title: '确认提交月度提成申请？',
+        content: (
+          <div>
+            <p>
+              {`本次申请将覆盖截至上一自然月末的全部合格提成：归属月份 ${monthLabels}，共 ${totalCount} 笔，合计 ${applicationAmount(totalAmount)} ${currencyText}。`}
+            </p>
+            <p style={{ color: '#64748b' }}>
+              覆盖截止日为提交月份的上一自然月末；提交后新满足条件的提成将顺延至下一次申请，
+              不会追加进本申请。申请提交后进入财务整批审批，结果请在申请历史中查看。
+            </p>
+          </div>
+        ),
+        okText: '确认申请',
+        cancelText: '再想想',
+        onOk: async () => {
+          setSubmitting(true);
+          try {
+            const writeResponse1 =
+              await workbenchServiceSubmitMyCommissionApplication({});
+            if (!isWriteResponse(writeResponse1, true)) return Promise.reject();
+            message.success('申请已提交，等待财务审批');
+            // 等待 Overview 刷新完成再解除 loading，避免旧摘要误导重复提交。
+            await onOverviewRefresh();
+          } catch (error: unknown) {
+            message.error((error as Error).message || '提交申请失败');
+            throw error;
+          } finally {
+            setSubmitting(false);
+          }
+        },
+      })
+      .then(
+        () => {},
+        () => {},
+      );
   };
 
   const stepsItems: Array<{ title: string; content: React.ReactNode }> = [

@@ -22,9 +22,17 @@
 // 退出码：发现违规或执行失败返回非 0，通过返回 0。
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { basename, dirname, extname, join, relative, resolve, sep } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import {
+  basename,
+  dirname,
+  extname,
+  join,
+  relative,
+  resolve,
+  sep,
+} from 'node:path';
 import process from 'node:process';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parse } from '@babel/parser';
 
 /** 参与扫描的手写源码扩展名（存在手写 JS 时同样处理）。 */
@@ -46,7 +54,12 @@ const EXCLUDED_DIR_NAMES = new Set([
 const RESOLVE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx'];
 
 /** 通用基础层目录（相对 src，带斜杠前缀匹配），禁止反向导入 pages/features。 */
-const GENERIC_DIR_PREFIXES = ['components/ui/', 'hooks/', 'utils/', 'constants/'];
+const GENERIC_DIR_PREFIXES = [
+  'components/ui/',
+  'hooks/',
+  'utils/',
+  'constants/',
+];
 
 /**
  * 路由页面装配的精确授权清单（相对 src 的 POSIX 路径）。
@@ -100,7 +113,8 @@ export function collectSourceFiles(srcRoot) {
         walk(join(dir, entry.name));
         continue;
       }
-      if (!entry.isFile() || !SCAN_EXTENSIONS.has(extname(entry.name))) continue;
+      if (!entry.isFile() || !SCAN_EXTENSIONS.has(extname(entry.name)))
+        continue;
       files.push(join(dir, entry.name));
     }
   };
@@ -180,7 +194,10 @@ export function createDependencyResolver({ webRoot, srcRoot }) {
     if (byExtension) return byExtension;
     const jsLike = /\.jsx?$/.exec(candidate);
     if (jsLike) {
-      const tsCandidate = candidate.replace(/\.jsx?$/, jsLike[0] === '.jsx' ? '.tsx' : '.ts');
+      const tsCandidate = candidate.replace(
+        /\.jsx?$/,
+        jsLike[0] === '.jsx' ? '.tsx' : '.ts',
+      );
       if (isFile(tsCandidate)) return tsCandidate;
     }
     return findIndexFile(candidate);
@@ -233,9 +250,15 @@ function parserPluginsFor(file) {
 export function extractImports(code, file) {
   let program;
   try {
-    ({ program } = parse(code, { sourceType: 'module', plugins: parserPluginsFor(file) }));
+    ({ program } = parse(code, {
+      sourceType: 'module',
+      plugins: parserPluginsFor(file),
+    }));
   } catch (error) {
-    return { imports: [], parseError: error instanceof Error ? error.message : String(error) };
+    return {
+      imports: [],
+      parseError: error instanceof Error ? error.message : String(error),
+    };
   }
   const imports = [];
   const record = (node) => {
@@ -254,16 +277,26 @@ export function extractImports(code, file) {
       case 'CallExpression': {
         // 字面量 import('...') 与 require('...')；变量拼接等非字面量不判定。
         const isDynamicImport = node.callee?.type === 'Import';
-        const isRequire = node.callee?.type === 'Identifier' && node.callee.name === 'require';
-        if ((isDynamicImport || isRequire) && node.arguments[0]?.type === 'StringLiteral') {
-          imports.push({ specifier: node.arguments[0].value, line: node.loc.start.line });
+        const isRequire =
+          node.callee?.type === 'Identifier' && node.callee.name === 'require';
+        if (
+          (isDynamicImport || isRequire) &&
+          node.arguments[0]?.type === 'StringLiteral'
+        ) {
+          imports.push({
+            specifier: node.arguments[0].value,
+            line: node.loc.start.line,
+          });
         }
         break;
       }
       case 'TSImportType':
         // TS 类型级 import('...').Type 引用。
         if (node.argument?.type === 'StringLiteral') {
-          imports.push({ specifier: node.argument.value, line: node.loc.start.line });
+          imports.push({
+            specifier: node.argument.value,
+            line: node.loc.start.line,
+          });
         }
         break;
       default:
@@ -286,7 +319,10 @@ export function extractImports(code, file) {
 }
 
 const NO_VIOLATION = { violations: [], featureEdge: null };
-const violation = (rule, reason) => ({ violations: [{ rule, reason }], featureEdge: null });
+const violation = (rule, reason) => ({
+  violations: [{ rule, reason }],
+  featureEdge: null,
+});
 
 /**
  * 纯函数边界判定：给定已正规化到 src 的导入方/目标相对路径，返回违规列表与
@@ -295,7 +331,10 @@ const violation = (rule, reason) => ({ violations: [{ rule, reason }], featureEd
 export function judgeEdge({ importerRel, targetRel, specifier }) {
   if (targetRel.startsWith('pages/')) {
     if (importerRel.startsWith('features/')) {
-      return violation(RULE.FEATURE_TO_PAGES, `features 禁止导入 pages：${specifier}`);
+      return violation(
+        RULE.FEATURE_TO_PAGES,
+        `features 禁止导入 pages：${specifier}`,
+      );
     }
     // 路由页面装配的精确授权：清单内放行，清单外绝不整体豁免 router 目录。
     if (PAGES_ASSEMBLY_ALLOWLIST.includes(importerRel)) return NO_VIOLATION;
@@ -309,7 +348,10 @@ export function judgeEdge({ importerRel, targetRel, specifier }) {
       );
     }
     if (isGenericDir(importerRel)) {
-      return violation(RULE.GENERIC_TO_PAGES, `components/ui、hooks、utils、constants 通用层禁止导入 pages：${specifier}`);
+      return violation(
+        RULE.GENERIC_TO_PAGES,
+        `components/ui、hooks、utils、constants 通用层禁止导入 pages：${specifier}`,
+      );
     }
     return violation(
       RULE.OTHER_TO_PAGES,
@@ -319,7 +361,10 @@ export function judgeEdge({ importerRel, targetRel, specifier }) {
   if (targetRel.startsWith('features/')) {
     const targetUnit = featureOwnerUnit(targetRel);
     if (!targetUnit) {
-      return violation(RULE.FEATURE_PRIVATE, `features 顶层散文件不属于任何领域/能力单元，禁止导入：${specifier}`);
+      return violation(
+        RULE.FEATURE_PRIVATE,
+        `features 顶层散文件不属于任何领域/能力单元，禁止导入：${specifier}`,
+      );
     }
     const targetEntry = `${targetUnit}/index.ts`;
     if (importerRel.startsWith('features/')) {
@@ -331,10 +376,16 @@ export function judgeEdge({ importerRel, targetRel, specifier }) {
           `外部只能从公共入口 ${targetEntry} 导入 feature，更深层目录的 index.ts 不自动成为公共 API：${specifier}`,
         );
       }
-      return { violations: [], featureEdge: { from: importerUnit, to: targetUnit } };
+      return {
+        violations: [],
+        featureEdge: { from: importerUnit, to: targetUnit },
+      };
     }
     if (isGenericDir(importerRel)) {
-      return violation(RULE.GENERIC_TO_FEATURES, `components/ui、hooks、utils、constants 通用层禁止导入 features：${specifier}`);
+      return violation(
+        RULE.GENERIC_TO_FEATURES,
+        `components/ui、hooks、utils、constants 通用层禁止导入 features：${specifier}`,
+      );
     }
     if (targetRel !== targetEntry) {
       return violation(
@@ -376,7 +427,8 @@ export function findFeatureCycles(edges) {
         // 环的规范化键：旋转到字典序最小的单元开头，避免同一环重复上报。
         let smallestIndex = 0;
         for (let index = 1; index < cycleUnits.length; index += 1) {
-          if (cycleUnits[index] < cycleUnits[smallestIndex]) smallestIndex = index;
+          if (cycleUnits[index] < cycleUnits[smallestIndex])
+            smallestIndex = index;
         }
         const canonical = [
           ...cycleUnits.slice(smallestIndex),
@@ -416,7 +468,13 @@ export function analyze({ webRoot, srcRoot, files }) {
   const findings = [];
   const featureEdges = [];
   const pushFinding = (file, line, rule, specifier, reason) => {
-    findings.push({ file: toPosix(relative(webRoot, file)), line, rule, specifier, reason });
+    findings.push({
+      file: toPosix(relative(webRoot, file)),
+      line,
+      rule,
+      specifier,
+      reason,
+    });
   };
   let scannedFiles = 0;
   let dependencyCount = 0;
@@ -424,30 +482,54 @@ export function analyze({ webRoot, srcRoot, files }) {
     const relFromSrc = toPosix(relative(srcRoot, file));
     if (!isProductFile(relFromSrc)) continue;
     scannedFiles += 1;
-    const { imports, parseError } = extractImports(readFileSync(file, 'utf8'), file);
+    const { imports, parseError } = extractImports(
+      readFileSync(file, 'utf8'),
+      file,
+    );
     if (parseError) {
       pushFinding(file, 0, RULE.PARSE, '', `AST 解析失败：${parseError}`);
       continue;
     }
     for (const { specifier, line } of imports) {
       const resolved = resolveSpecifier(specifier, file);
-      if (resolved.status === 'external' || resolved.status === 'out-of-scope') continue;
+      if (resolved.status === 'external' || resolved.status === 'out-of-scope')
+        continue;
       if (resolved.status === 'escaped') {
-        pushFinding(file, line, RULE.ESCAPED, specifier, `本地路径越界（越出 web 根目录）：${specifier}`);
+        pushFinding(
+          file,
+          line,
+          RULE.ESCAPED,
+          specifier,
+          `本地路径越界（越出 web 根目录）：${specifier}`,
+        );
         continue;
       }
       if (resolved.status === 'unresolved') {
-        pushFinding(file, line, RULE.UNRESOLVED, specifier, `本地路径无法解析到真实文件：${specifier}`);
+        pushFinding(
+          file,
+          line,
+          RULE.UNRESOLVED,
+          specifier,
+          `本地路径无法解析到真实文件：${specifier}`,
+        );
         continue;
       }
       dependencyCount += 1;
       const targetRel = toPosix(relative(srcRoot, resolved.file));
-      const { violations, featureEdge } = judgeEdge({ importerRel: relFromSrc, targetRel, specifier });
+      const { violations, featureEdge } = judgeEdge({
+        importerRel: relFromSrc,
+        targetRel,
+        specifier,
+      });
       for (const item of violations) {
         pushFinding(file, line, item.rule, specifier, item.reason);
       }
       if (featureEdge) {
-        featureEdges.push({ ...featureEdge, file: toPosix(relative(webRoot, file)), line });
+        featureEdges.push({
+          ...featureEdge,
+          file: toPosix(relative(webRoot, file)),
+          line,
+        });
       }
     }
   }
@@ -460,8 +542,12 @@ export function analyze({ webRoot, srcRoot, files }) {
       reason: `features 能力依赖环：${cycle.units.join(' → ')}`,
     });
   }
-  findings.sort((left, right) =>
-    left.file.localeCompare(right.file) || left.line - right.line || left.rule.localeCompare(right.rule));
+  findings.sort(
+    (left, right) =>
+      left.file.localeCompare(right.file) ||
+      left.line - right.line ||
+      left.rule.localeCompare(right.rule),
+  );
   return { scannedFiles, dependencyCount, featureEdges, findings };
 }
 
@@ -485,7 +571,9 @@ function main() {
   lines.push(`发现 ${result.findings.length} 处边界违规：`);
   for (const item of result.findings) {
     const specifier = item.specifier ? `（${item.specifier}）` : '';
-    lines.push(`- ${item.file}:${item.line} [${item.rule}] ${specifier}${item.reason}`);
+    lines.push(
+      `- ${item.file}:${item.line} [${item.rule}] ${specifier}${item.reason}`,
+    );
   }
   process.stdout.write(`${lines.join('\n')}\n`);
   return 1;
@@ -493,7 +581,8 @@ function main() {
 
 // 直接执行本脚本时运行真实扫描；被测试导入时只暴露函数。
 const invokedDirectly =
-  process.argv[1] !== undefined && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
+  process.argv[1] !== undefined &&
+  import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
 if (invokedDirectly) {
   process.exitCode = main();
 }

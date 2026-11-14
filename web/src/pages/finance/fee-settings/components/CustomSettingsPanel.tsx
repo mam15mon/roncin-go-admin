@@ -118,7 +118,12 @@ export function CustomSettingsPanel() {
         editableFields: billedFeePolicy?.editableFields ?? [],
         expectedVersion: billedFeePolicy?.version ?? '0',
       });
-      if (!isWriteResponse(response) || !response.data?.organizationId || !response.data.version) return false;
+      if (
+        !isWriteResponse(response) ||
+        !response.data?.organizationId ||
+        !response.data.version
+      )
+        return false;
       setBilledFeePolicy(response.data);
       message.success(
         checked
@@ -146,7 +151,12 @@ export function CustomSettingsPanel() {
         editableFields: checkedFields,
         expectedVersion: billedFeePolicy?.version ?? '0',
       });
-      if (!isWriteResponse(response) || !response.data?.organizationId || !response.data.version) return false;
+      if (
+        !isWriteResponse(response) ||
+        !response.data?.organizationId ||
+        !response.data.version
+      )
+        return false;
       setBilledFeePolicy(response.data);
       message.success('已更新允许修改的费用字段');
     } catch (e) {
@@ -169,7 +179,12 @@ export function CustomSettingsPanel() {
         allowSelectionWhenCreditExceeded: checked,
         expectedVersion: creditPolicy?.version ?? '0',
       });
-      if (!isWriteResponse(response) || !response.data?.organizationId || !response.data.version) return false;
+      if (
+        !isWriteResponse(response) ||
+        !response.data?.organizationId ||
+        !response.data.version
+      )
+        return false;
       setCreditPolicy(response.data);
       message.success(
         checked

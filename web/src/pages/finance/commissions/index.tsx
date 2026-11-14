@@ -27,6 +27,11 @@ import {
   SearchFilterTemplate,
 } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
+import {
+  FilterSettingsEntry,
+  type FilterSettingsField,
+  useFilterSettings,
+} from '@/components/ui/filter-settings';
 import { FinanceCommissionStatus } from '@/enums.generated';
 import { financeErrorReasons } from '@/errorReasons.generated';
 import {
@@ -71,6 +76,13 @@ import {
 
 const { RangePicker } = DatePicker;
 
+/** 筛选设置可选字段：默认全部可见，与改造前显示集合一致。 */
+const commissionFilterFields: FilterSettingsField[] = [
+  { name: 'keyword', label: '关键词', defaultVisible: true },
+  { name: 'status', label: '状态', defaultVisible: true },
+  { name: 'commissionMonth', label: '归属月份', defaultVisible: true },
+];
+
 type CommissionView = 'ledger' | 'pending-decrease' | 'applications';
 
 export default function FinanceCommissionsPage() {
@@ -87,6 +99,10 @@ export default function FinanceCommissionsPage() {
   const [view, setView] = useState<CommissionView>('ledger');
 
   const searchFiltersRef = useRef<CommissionQueryFilters>({});
+  const filterSettings = useFilterSettings({
+    pageKey: 'finance:commissions',
+    fields: commissionFilterFields,
+  });
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [rulesDrawerOpen, setRulesDrawerOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -692,6 +708,7 @@ export default function FinanceCommissionsPage() {
             layout="grid"
             collapsible={false}
             colSpan={6}
+            visibleNames={filterSettings.visibleNames}
             items={[
               {
                 name: 'keyword',
@@ -753,6 +770,12 @@ export default function FinanceCommissionsPage() {
             }}
             extraRight={
               <Space size={8} wrap style={{ maxWidth: '100%' }}>
+                <FilterSettingsEntry
+                  fields={commissionFilterFields}
+                  visibleNames={filterSettings.visibleNames}
+                  onChange={filterSettings.setVisible}
+                  onReset={filterSettings.reset}
+                />
                 {hasCompanyScope && access.canExportFinanceCommissions && (
                   <Button
                     key="export"

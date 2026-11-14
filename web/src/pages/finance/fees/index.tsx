@@ -10,6 +10,11 @@ import {
   RowColorSettings,
   type RowColorsConfig,
 } from '@/components/ui';
+import {
+  FilterSettingsEntry,
+  omitHiddenFilterValues,
+  useFilterSettings,
+} from '@/components/ui/filter-settings';
 import { useListQueryState } from '@/components/ui/list-query-state';
 import { FeeLedgerFinancialProgress } from '@/enums.generated';
 import {
@@ -28,6 +33,7 @@ import { formatAmount } from '@/utils/format';
 import {
   type FeeLedgerFilterParams,
   FeeLedgerSearchFilter,
+  feeLedgerFilterFields,
 } from './components/FeeLedgerSearchFilter';
 import {
   amount,
@@ -95,6 +101,10 @@ export default function FinanceFeeLedgerPage() {
   const [selectedFeeIds, setSelectedFeeIds] = useState<string[]>([]);
   const [selectedBillOrganizationId, setSelectedBillOrganizationId] =
     useState<string>();
+  const filterSettings = useFilterSettings({
+    pageKey: 'finance:fees',
+    fields: feeLedgerFilterFields,
+  });
   const queryState = useListQueryState<{
     search: FeeLedgerFilterParams;
   }>({
@@ -102,6 +112,15 @@ export default function FinanceFeeLedgerPage() {
     listId: 'finance:fees',
     defaultPageSize: 40,
     defaultFilters: { search: {} },
+    // 页签恢复时剔除已隐藏筛选项的值，避免隐藏条件继续生效。
+    sanitizeRestored: (filters) => ({
+      ...filters,
+      search: omitHiddenFilterValues(
+        filters.search,
+        feeLedgerFilterFields,
+        filterSettings.visibleNames,
+      ),
+    }),
   });
   const { selectionScope, commitFilters } = useLedgerSelectionScope(
     queryState.commit,
@@ -234,6 +253,15 @@ export default function FinanceFeeLedgerPage() {
             }
             onSearch={handleSearch}
             onReset={handleReset}
+            visibleNames={filterSettings.visibleNames}
+            extraRight={
+              <FilterSettingsEntry
+                fields={feeLedgerFilterFields}
+                visibleNames={filterSettings.visibleNames}
+                onChange={filterSettings.setVisible}
+                onReset={filterSettings.reset}
+              />
+            }
           />
         }
         search={false}

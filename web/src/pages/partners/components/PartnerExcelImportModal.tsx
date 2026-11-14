@@ -1,4 +1,3 @@
-import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import {
   DownloadOutlined,
   FileExcelOutlined,
@@ -18,6 +17,7 @@ import {
 import type { UploadFile } from 'antd/es/upload/interface';
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
+import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { PartnerImportMode, PartnerRoleType } from '@/enums.generated';
@@ -49,7 +49,10 @@ export default function PartnerExcelImportModal({
   currentRoleType,
   currentRoleLabel,
 }: PartnerExcelImportModalProps) {
-  const { markDirty, resetDirty } = useUnsavedChangesGuard({ enabled: open, identity: currentRoleType });
+  const { markDirty, resetDirty } = useUnsavedChangesGuard({
+    enabled: open,
+    identity: currentRoleType,
+  });
   const { message } = App.useApp();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [importing, setImporting] = useState(false);
@@ -407,7 +410,10 @@ export default function PartnerExcelImportModal({
           </div>
           <Radio.Group
             value={importMode}
-            onChange={(e) => { markDirty(); setImportMode(e.target.value); }}
+            onChange={(e) => {
+              markDirty();
+              setImportMode(e.target.value);
+            }}
           >
             <Radio value={PartnerImportMode.PARTNER_IMPORT_MODE_UPSERT}>
               存在则更新 (按单位编码匹配，已存在则覆盖更新)

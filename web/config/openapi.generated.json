@@ -7,9 +7,7 @@
   "paths": {
     "/api/v1/admin/audit-logs": {
       "get": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_ListAuditLogs",
         "parameters": [
           {
@@ -87,9 +85,7 @@
     },
     "/api/v1/admin/dingtalk/authorizations": {
       "post": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_BatchAuthorizeDingTalkUsers",
         "requestBody": {
           "content": {
@@ -117,9 +113,7 @@
     },
     "/api/v1/admin/dingtalk/directory-syncs": {
       "post": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_StartDingTalkDirectorySync",
         "requestBody": {
           "content": {
@@ -147,9 +141,7 @@
     },
     "/api/v1/admin/dingtalk/directory-syncs/latest": {
       "get": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_GetLatestDingTalkDirectorySync",
         "parameters": [
           {
@@ -185,9 +177,7 @@
     },
     "/api/v1/admin/dingtalk/directory-syncs/{taskId}": {
       "get": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_GetDingTalkDirectorySync",
         "parameters": [
           {
@@ -231,9 +221,7 @@
     },
     "/api/v1/admin/notification-tests/preview": {
       "get": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_PreviewNotificationTest",
         "parameters": [
           {
@@ -267,9 +255,7 @@
     },
     "/api/v1/admin/notification-tests/send": {
       "post": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_SendNotificationTest",
         "requestBody": {
           "content": {
@@ -297,9 +283,7 @@
     },
     "/api/v1/admin/notification-tests/types": {
       "get": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_ListNotificationTestTypes",
         "responses": {
           "200": {
@@ -317,9 +301,7 @@
     },
     "/api/v1/admin/organizations": {
       "get": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_ListOrganizations",
         "responses": {
           "200": {
@@ -335,9 +317,7 @@
         }
       },
       "post": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_CreateOrganization",
         "requestBody": {
           "content": {
@@ -365,9 +345,7 @@
     },
     "/api/v1/admin/organizations/{id}": {
       "put": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_UpdateOrganization",
         "parameters": [
           {
@@ -405,9 +383,7 @@
     },
     "/api/v1/admin/organizations/{organizationId}/roles": {
       "get": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_ListOrganizationRoles",
         "parameters": [
           {
@@ -435,9 +411,7 @@
     },
     "/api/v1/admin/permissions": {
       "get": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_ListPermissions",
         "responses": {
           "200": {
@@ -455,9 +429,7 @@
     },
     "/api/v1/admin/roles": {
       "get": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_ListRoles",
         "responses": {
           "200": {
@@ -473,9 +445,7 @@
         }
       },
       "post": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_CreateRole",
         "requestBody": {
           "content": {
@@ -503,9 +473,7 @@
     },
     "/api/v1/admin/roles/{id}": {
       "put": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_UpdateRole",
         "parameters": [
           {
@@ -541,9 +509,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_DeleteRole",
         "parameters": [
           {
@@ -571,9 +537,7 @@
     },
     "/api/v1/admin/users": {
       "get": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_ListUsers",
         "parameters": [
           {
@@ -630,9 +594,7 @@
         }
       },
       "post": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_CreateUser",
         "requestBody": {
           "content": {
@@ -660,9 +622,7 @@
     },
     "/api/v1/admin/users/{id}": {
       "put": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_UpdateUser",
         "parameters": [
           {
@@ -700,9 +660,7 @@
     },
     "/api/v1/admin/users/{id}/dingtalk-authorization": {
       "post": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_AuthorizeDingTalkUser",
         "parameters": [
           {
@@ -740,9 +698,7 @@
     },
     "/api/v1/admin/users/{id}/password": {
       "put": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_ResetUserPassword",
         "parameters": [
           {
@@ -780,9 +736,7 @@
     },
     "/api/v1/admin/users/{id}/termination": {
       "post": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "description": "TerminateUser 办理员工离职，保留全局账号、外部身份和历史业务记录。",
         "operationId": "AdminService_TerminateUser",
         "parameters": [
@@ -821,9 +775,7 @@
     },
     "/api/v1/admin/users/{userId}/memberships": {
       "get": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_ListUserMemberships",
         "parameters": [
           {
@@ -851,9 +803,7 @@
     },
     "/api/v1/admin/users/{userId}/memberships/{id}": {
       "put": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_UpdateUserMembership",
         "parameters": [
           {
@@ -897,9 +847,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_DeleteUserMembership",
         "parameters": [
           {
@@ -935,9 +883,7 @@
     },
     "/api/v1/admin/users/{userId}/memberships:batchCreate": {
       "post": {
-        "tags": [
-          "AdminService"
-        ],
+        "tags": ["AdminService"],
         "operationId": "AdminService_CreateUserMemberships",
         "parameters": [
           {
@@ -975,9 +921,7 @@
     },
     "/api/v1/air-export/master-waybills": {
       "get": {
-        "tags": [
-          "AirExportService"
-        ],
+        "tags": ["AirExportService"],
         "operationId": "AirExportService_ListAirMasterWaybills",
         "parameters": [
           {
@@ -1020,9 +964,7 @@
     },
     "/api/v1/air-export/master-waybills/{id}": {
       "get": {
-        "tags": [
-          "AirExportService"
-        ],
+        "tags": ["AirExportService"],
         "operationId": "AirExportService_GetAirMasterWaybill",
         "parameters": [
           {
@@ -1064,9 +1006,7 @@
         }
       },
       "put": {
-        "tags": [
-          "AirExportService"
-        ],
+        "tags": ["AirExportService"],
         "operationId": "AirExportService_UpdateAirMasterWaybill",
         "parameters": [
           {
@@ -1104,9 +1044,7 @@
     },
     "/api/v1/air-export/master-waybills/{id}/link-candidates": {
       "get": {
-        "tags": [
-          "AirExportService"
-        ],
+        "tags": ["AirExportService"],
         "operationId": "AirExportService_ListAirLinkCandidates",
         "parameters": [
           {
@@ -1157,9 +1095,7 @@
     },
     "/api/v1/air-export/master-waybills/{id}/members": {
       "post": {
-        "tags": [
-          "AirExportService"
-        ],
+        "tags": ["AirExportService"],
         "operationId": "AirExportService_LinkAirMasterWaybill",
         "parameters": [
           {
@@ -1197,9 +1133,7 @@
     },
     "/api/v1/air-export/master-waybills/{id}/preview": {
       "post": {
-        "tags": [
-          "AirExportService"
-        ],
+        "tags": ["AirExportService"],
         "operationId": "AirExportService_PreviewAirMasterWaybillUpdate",
         "parameters": [
           {
@@ -1237,9 +1171,7 @@
     },
     "/api/v1/air-export/orders/{orderId}/house-versions": {
       "get": {
-        "tags": [
-          "AirExportService"
-        ],
+        "tags": ["AirExportService"],
         "operationId": "AirExportService_ListAirHouseWaybillVersions",
         "parameters": [
           {
@@ -1283,9 +1215,7 @@
     },
     "/api/v1/air-weights/confirm": {
       "post": {
-        "tags": [
-          "AirWeightService"
-        ],
+        "tags": ["AirWeightService"],
         "operationId": "AirWeightService_ConfirmAirWeight",
         "requestBody": {
           "content": {
@@ -1313,9 +1243,7 @@
     },
     "/api/v1/air-weights/history": {
       "get": {
-        "tags": [
-          "AirWeightService"
-        ],
+        "tags": ["AirWeightService"],
         "operationId": "AirWeightService_ListAirWeightConfirmations",
         "parameters": [
           {
@@ -1365,9 +1293,7 @@
     },
     "/api/v1/air-weights/preview": {
       "post": {
-        "tags": [
-          "AirWeightService"
-        ],
+        "tags": ["AirWeightService"],
         "operationId": "AirWeightService_PreviewAirWeight",
         "requestBody": {
           "content": {
@@ -1395,9 +1321,7 @@
     },
     "/api/v1/auth/dingtalk/embedded-config": {
       "get": {
-        "tags": [
-          "AuthService"
-        ],
+        "tags": ["AuthService"],
         "operationId": "AuthService_GetDingTalkEmbeddedConfig",
         "responses": {
           "200": {
@@ -1415,9 +1339,7 @@
     },
     "/api/v1/auth/dingtalk/embedded-login": {
       "post": {
-        "tags": [
-          "AuthService"
-        ],
+        "tags": ["AuthService"],
         "operationId": "AuthService_DingTalkEmbeddedLogin",
         "requestBody": {
           "content": {
@@ -1445,9 +1367,7 @@
     },
     "/api/v1/auth/dingtalk/login": {
       "post": {
-        "tags": [
-          "AuthService"
-        ],
+        "tags": ["AuthService"],
         "operationId": "AuthService_DingTalkLogin",
         "requestBody": {
           "content": {
@@ -1475,9 +1395,7 @@
     },
     "/api/v1/auth/dingtalk/login-config": {
       "get": {
-        "tags": [
-          "AuthService"
-        ],
+        "tags": ["AuthService"],
         "operationId": "AuthService_GetDingTalkLoginConfig",
         "responses": {
           "200": {
@@ -1495,9 +1413,7 @@
     },
     "/api/v1/auth/dingtalk/qr/poll": {
       "post": {
-        "tags": [
-          "AuthService"
-        ],
+        "tags": ["AuthService"],
         "operationId": "AuthService_PollDingTalkQRCode",
         "requestBody": {
           "content": {
@@ -1525,9 +1441,7 @@
     },
     "/api/v1/auth/login": {
       "post": {
-        "tags": [
-          "AuthService"
-        ],
+        "tags": ["AuthService"],
         "operationId": "AuthService_Login",
         "requestBody": {
           "content": {
@@ -1555,9 +1469,7 @@
     },
     "/api/v1/auth/logout": {
       "post": {
-        "tags": [
-          "AuthService"
-        ],
+        "tags": ["AuthService"],
         "operationId": "AuthService_Logout",
         "requestBody": {
           "content": {
@@ -1585,9 +1497,7 @@
     },
     "/api/v1/auth/me": {
       "get": {
-        "tags": [
-          "AuthService"
-        ],
+        "tags": ["AuthService"],
         "operationId": "AuthService_Me",
         "responses": {
           "200": {
@@ -1605,9 +1515,7 @@
     },
     "/api/v1/auth/passkey/config": {
       "get": {
-        "tags": [
-          "PasskeyService"
-        ],
+        "tags": ["PasskeyService"],
         "operationId": "PasskeyService_GetPasskeyConfig",
         "responses": {
           "200": {
@@ -1625,9 +1533,7 @@
     },
     "/api/v1/auth/passkey/login/begin": {
       "post": {
-        "tags": [
-          "PasskeyService"
-        ],
+        "tags": ["PasskeyService"],
         "operationId": "PasskeyService_BeginPasskeyLogin",
         "requestBody": {
           "content": {
@@ -1655,9 +1561,7 @@
     },
     "/api/v1/auth/passkey/login/finish": {
       "post": {
-        "tags": [
-          "PasskeyService"
-        ],
+        "tags": ["PasskeyService"],
         "operationId": "PasskeyService_FinishPasskeyLogin",
         "requestBody": {
           "content": {
@@ -1685,9 +1589,7 @@
     },
     "/api/v1/auth/passkey/registration/begin": {
       "post": {
-        "tags": [
-          "PasskeyService"
-        ],
+        "tags": ["PasskeyService"],
         "operationId": "PasskeyService_BeginPasskeyRegistration",
         "requestBody": {
           "content": {
@@ -1715,9 +1617,7 @@
     },
     "/api/v1/auth/passkey/registration/finish": {
       "post": {
-        "tags": [
-          "PasskeyService"
-        ],
+        "tags": ["PasskeyService"],
         "operationId": "PasskeyService_FinishPasskeyRegistration",
         "requestBody": {
           "content": {
@@ -1745,9 +1645,7 @@
     },
     "/api/v1/auth/passkeys": {
       "get": {
-        "tags": [
-          "PasskeyService"
-        ],
+        "tags": ["PasskeyService"],
         "operationId": "PasskeyService_ListPasskeys",
         "responses": {
           "200": {
@@ -1765,9 +1663,7 @@
     },
     "/api/v1/auth/passkeys/{id}": {
       "delete": {
-        "tags": [
-          "PasskeyService"
-        ],
+        "tags": ["PasskeyService"],
         "operationId": "PasskeyService_DeletePasskey",
         "parameters": [
           {
@@ -1795,9 +1691,7 @@
     },
     "/api/v1/auth/password-reset/code": {
       "post": {
-        "tags": [
-          "AuthService"
-        ],
+        "tags": ["AuthService"],
         "operationId": "AuthService_RequestPasswordResetCode",
         "requestBody": {
           "content": {
@@ -1825,9 +1719,7 @@
     },
     "/api/v1/auth/password-reset/confirm": {
       "post": {
-        "tags": [
-          "AuthService"
-        ],
+        "tags": ["AuthService"],
         "operationId": "AuthService_ConfirmPasswordReset",
         "requestBody": {
           "content": {
@@ -1855,9 +1747,7 @@
     },
     "/api/v1/auth/switch-organization": {
       "post": {
-        "tags": [
-          "AuthService"
-        ],
+        "tags": ["AuthService"],
         "operationId": "AuthService_SwitchOrganization",
         "requestBody": {
           "content": {
@@ -1885,9 +1775,7 @@
     },
     "/api/v1/background-tasks": {
       "get": {
-        "tags": [
-          "BackgroundTaskService"
-        ],
+        "tags": ["BackgroundTaskService"],
         "description": "ListBackgroundTasks 查询当前组织的后台任务。",
         "operationId": "BackgroundTaskService_ListBackgroundTasks",
         "parameters": [
@@ -1962,9 +1850,7 @@
     },
     "/api/v1/background-tasks/{id}": {
       "get": {
-        "tags": [
-          "BackgroundTaskService"
-        ],
+        "tags": ["BackgroundTaskService"],
         "description": "GetBackgroundTask 查询单个后台任务。",
         "operationId": "BackgroundTaskService_GetBackgroundTask",
         "parameters": [
@@ -1993,9 +1879,7 @@
     },
     "/api/v1/background-tasks/{id}/requeue": {
       "post": {
-        "tags": [
-          "BackgroundTaskService"
-        ],
+        "tags": ["BackgroundTaskService"],
         "description": "RequeueBackgroundTask 回放失败或死信任务：重置为待执行并清空租约。",
         "operationId": "BackgroundTaskService_RequeueBackgroundTask",
         "parameters": [
@@ -2034,9 +1918,7 @@
     },
     "/api/v1/enterprise-resource-address-types/batch-assign": {
       "post": {
-        "tags": [
-          "EnterpriseResourceService"
-        ],
+        "tags": ["EnterpriseResourceService"],
         "operationId": "EnterpriseResourceService_BatchAssignAddressTypes",
         "requestBody": {
           "content": {
@@ -2064,9 +1946,7 @@
     },
     "/api/v1/enterprise-resource-address-types/batch-remove": {
       "post": {
-        "tags": [
-          "EnterpriseResourceService"
-        ],
+        "tags": ["EnterpriseResourceService"],
         "operationId": "EnterpriseResourceService_BatchRemoveAddressTypes",
         "requestBody": {
           "content": {
@@ -2094,9 +1974,7 @@
     },
     "/api/v1/enterprise-resource-assignees/batch-assign": {
       "post": {
-        "tags": [
-          "EnterpriseResourceService"
-        ],
+        "tags": ["EnterpriseResourceService"],
         "operationId": "EnterpriseResourceService_BatchAssignAssignees",
         "requestBody": {
           "content": {
@@ -2124,9 +2002,7 @@
     },
     "/api/v1/enterprise-resource-assignees/batch-remove": {
       "post": {
-        "tags": [
-          "EnterpriseResourceService"
-        ],
+        "tags": ["EnterpriseResourceService"],
         "operationId": "EnterpriseResourceService_BatchRemoveAssignees",
         "requestBody": {
           "content": {
@@ -2154,9 +2030,7 @@
     },
     "/api/v1/enterprise-resource-associations/batch-create": {
       "post": {
-        "tags": [
-          "EnterpriseResourceService"
-        ],
+        "tags": ["EnterpriseResourceService"],
         "operationId": "EnterpriseResourceService_BatchCreateAssociations",
         "requestBody": {
           "content": {
@@ -2184,9 +2058,7 @@
     },
     "/api/v1/enterprise-resource-associations/batch-delete": {
       "post": {
-        "tags": [
-          "EnterpriseResourceService"
-        ],
+        "tags": ["EnterpriseResourceService"],
         "operationId": "EnterpriseResourceService_BatchDeleteAssociations",
         "requestBody": {
           "content": {
@@ -2214,9 +2086,7 @@
     },
     "/api/v1/enterprise-resource-capabilities": {
       "get": {
-        "tags": [
-          "EnterpriseResourceService"
-        ],
+        "tags": ["EnterpriseResourceService"],
         "operationId": "EnterpriseResourceService_GetEnterpriseResourceCapabilities",
         "responses": {
           "200": {
@@ -2234,9 +2104,7 @@
     },
     "/api/v1/enterprise-resource-image-uploads": {
       "post": {
-        "tags": [
-          "EnterpriseResourceService"
-        ],
+        "tags": ["EnterpriseResourceService"],
         "operationId": "EnterpriseResourceService_PrepareEnterpriseResourceImageUpload",
         "requestBody": {
           "content": {
@@ -2264,9 +2132,7 @@
     },
     "/api/v1/enterprise-resource-options/assignees": {
       "get": {
-        "tags": [
-          "EnterpriseResourceService"
-        ],
+        "tags": ["EnterpriseResourceService"],
         "operationId": "EnterpriseResourceService_SearchEnterpriseResourceAssigneeOptions",
         "parameters": [
           {
@@ -2309,9 +2175,7 @@
     },
     "/api/v1/enterprise-resource-options/partners": {
       "get": {
-        "tags": [
-          "EnterpriseResourceService"
-        ],
+        "tags": ["EnterpriseResourceService"],
         "operationId": "EnterpriseResourceService_SearchEnterpriseResourcePartnerOptions",
         "parameters": [
           {
@@ -2354,9 +2218,7 @@
     },
     "/api/v1/enterprise-resource-options/regions": {
       "get": {
-        "tags": [
-          "EnterpriseResourceService"
-        ],
+        "tags": ["EnterpriseResourceService"],
         "operationId": "EnterpriseResourceService_ListEnterpriseResourceRegionOptions",
         "parameters": [
           {
@@ -2407,9 +2269,7 @@
     },
     "/api/v1/enterprise-resources": {
       "get": {
-        "tags": [
-          "EnterpriseResourceService"
-        ],
+        "tags": ["EnterpriseResourceService"],
         "operationId": "EnterpriseResourceService_ListEnterpriseResources",
         "parameters": [
           {
@@ -2508,9 +2368,7 @@
         }
       },
       "post": {
-        "tags": [
-          "EnterpriseResourceService"
-        ],
+        "tags": ["EnterpriseResourceService"],
         "operationId": "EnterpriseResourceService_CreateEnterpriseResource",
         "requestBody": {
           "content": {
@@ -2538,9 +2396,7 @@
     },
     "/api/v1/enterprise-resources/import-commit": {
       "post": {
-        "tags": [
-          "EnterpriseResourceService"
-        ],
+        "tags": ["EnterpriseResourceService"],
         "operationId": "EnterpriseResourceService_CommitEnterpriseResourceImport",
         "requestBody": {
           "content": {
@@ -2568,9 +2424,7 @@
     },
     "/api/v1/enterprise-resources/import-preview": {
       "post": {
-        "tags": [
-          "EnterpriseResourceService"
-        ],
+        "tags": ["EnterpriseResourceService"],
         "operationId": "EnterpriseResourceService_PreviewEnterpriseResourceImport",
         "requestBody": {
           "content": {
@@ -2598,9 +2452,7 @@
     },
     "/api/v1/enterprise-resources/{id}": {
       "get": {
-        "tags": [
-          "EnterpriseResourceService"
-        ],
+        "tags": ["EnterpriseResourceService"],
         "operationId": "EnterpriseResourceService_GetEnterpriseResource",
         "parameters": [
           {
@@ -2626,9 +2478,7 @@
         }
       },
       "put": {
-        "tags": [
-          "EnterpriseResourceService"
-        ],
+        "tags": ["EnterpriseResourceService"],
         "operationId": "EnterpriseResourceService_UpdateEnterpriseResource",
         "parameters": [
           {
@@ -2664,9 +2514,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "EnterpriseResourceService"
-        ],
+        "tags": ["EnterpriseResourceService"],
         "operationId": "EnterpriseResourceService_DeleteEnterpriseResource",
         "parameters": [
           {
@@ -2694,9 +2542,7 @@
     },
     "/api/v1/enterprise-resources/{id}/image-access": {
       "get": {
-        "tags": [
-          "EnterpriseResourceService"
-        ],
+        "tags": ["EnterpriseResourceService"],
         "operationId": "EnterpriseResourceService_GetEnterpriseResourceImageAccess",
         "parameters": [
           {
@@ -2724,9 +2570,7 @@
     },
     "/api/v1/finance/bill-batches": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_CreateBillBatch",
         "requestBody": {
           "content": {
@@ -2754,9 +2598,7 @@
     },
     "/api/v1/finance/bill-batches/preview": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_PreviewBillBatch",
         "requestBody": {
           "content": {
@@ -2784,9 +2626,7 @@
     },
     "/api/v1/finance/bill-batches/{id}/confirm": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_ConfirmBillBatch",
         "parameters": [
           {
@@ -2824,9 +2664,7 @@
     },
     "/api/v1/finance/bill-settlement-account-candidates": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_ListBillSettlementAccountCandidates",
         "parameters": [
           {
@@ -2874,9 +2712,7 @@
     },
     "/api/v1/finance/bill-settlement-account-update-candidates": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_ListBillSettlementAccountUpdateCandidates",
         "parameters": [
           {
@@ -2903,9 +2739,7 @@
     },
     "/api/v1/finance/billing-units": {
       "get": {
-        "tags": [
-          "FeeCatalogService"
-        ],
+        "tags": ["FeeCatalogService"],
         "operationId": "FeeCatalogService_ListBillingUnits",
         "responses": {
           "200": {
@@ -2921,9 +2755,7 @@
         }
       },
       "post": {
-        "tags": [
-          "FeeCatalogService"
-        ],
+        "tags": ["FeeCatalogService"],
         "operationId": "FeeCatalogService_CreateBillingUnit",
         "requestBody": {
           "content": {
@@ -2951,9 +2783,7 @@
     },
     "/api/v1/finance/billing-units/search": {
       "get": {
-        "tags": [
-          "FeeCatalogService"
-        ],
+        "tags": ["FeeCatalogService"],
         "operationId": "FeeCatalogService_SearchBillingUnits",
         "parameters": [
           {
@@ -2996,9 +2826,7 @@
     },
     "/api/v1/finance/billing-units/{id}": {
       "put": {
-        "tags": [
-          "FeeCatalogService"
-        ],
+        "tags": ["FeeCatalogService"],
         "operationId": "FeeCatalogService_UpdateBillingUnit",
         "parameters": [
           {
@@ -3036,9 +2864,7 @@
     },
     "/api/v1/finance/bills": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_ListBills",
         "parameters": [
           {
@@ -3157,9 +2983,7 @@
         }
       },
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_CreateBill",
         "requestBody": {
           "content": {
@@ -3187,9 +3011,7 @@
     },
     "/api/v1/finance/bills/creation-candidates": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_ListBillCreationCandidates",
         "parameters": [
           {
@@ -3246,9 +3068,7 @@
     },
     "/api/v1/finance/bills/{id}": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_GetBill",
         "parameters": [
           {
@@ -3274,9 +3094,7 @@
         }
       },
       "put": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_UpdateBill",
         "parameters": [
           {
@@ -3314,9 +3132,7 @@
     },
     "/api/v1/finance/bills/{id}/cancel": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_CancelBill",
         "parameters": [
           {
@@ -3354,9 +3170,7 @@
     },
     "/api/v1/finance/bills/{id}/confirm": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_ConfirmBill",
         "parameters": [
           {
@@ -3394,9 +3208,7 @@
     },
     "/api/v1/finance/cashflows": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_ListCashflows",
         "parameters": [
           {
@@ -3473,9 +3285,7 @@
         }
       },
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_CreateCashflow",
         "requestBody": {
           "content": {
@@ -3503,9 +3313,7 @@
     },
     "/api/v1/finance/cashflows/{id}/cancel": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_CancelCashflow",
         "parameters": [
           {
@@ -3543,9 +3351,7 @@
     },
     "/api/v1/finance/cashflows/{id}/confirm": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_ConfirmCashflow",
         "parameters": [
           {
@@ -3583,9 +3389,7 @@
     },
     "/api/v1/finance/commission-adjustments": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "description": "ListCommissionAdjustments 财务调整列表：服务端分页，支持状态、来源、员工与\n 订单号/提成号关键字过滤，默认 created_at 倒序；组织范围按 commission.read 解析。",
         "operationId": "SettlementService_ListCommissionAdjustments",
         "parameters": [
@@ -3658,9 +3462,7 @@
     },
     "/api/v1/finance/commission-adjustments/{id}/cancel": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_CancelCommissionAdjustment",
         "parameters": [
           {
@@ -3698,9 +3500,7 @@
     },
     "/api/v1/finance/commission-adjustments/{id}/confirm": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_ConfirmCommissionAdjustment",
         "parameters": [
           {
@@ -3738,9 +3538,7 @@
     },
     "/api/v1/finance/commission-adjustments/{id}/my-supplement-source": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "description": "GetMyFeeSupplementAdjustmentSource 员工本人专属冲减来源最小详情：只返回\n employee_id 等于当前用户且具备组织成员关系的补录冲减调整的订单号、原提成号、\n 补录费用摘要、建议金额、状态与生成时间；不要求组织级 commission.read，\n 查询他人调整稳定返回不存在，不泄露记录事实。",
         "operationId": "SettlementService_GetMyFeeSupplementAdjustmentSource",
         "parameters": [
@@ -3769,9 +3567,7 @@
     },
     "/api/v1/finance/commission-adjustments/{id}/paid": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_MarkCommissionAdjustmentPaid",
         "parameters": [
           {
@@ -3809,9 +3605,7 @@
     },
     "/api/v1/finance/commission-applications": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "description": "月度提成申请：财务按员工申请批次整单处理。列表与详情沿用目标组织\n commission.read；批准与驳回沿用 commission.manage 并按当前组织实时鉴权。\n ListCommissionApplications 组织内申请批次列表：按员工/状态/提交月过滤，服务端分页。",
         "operationId": "SettlementService_ListCommissionApplications",
         "parameters": [
@@ -3878,9 +3672,7 @@
     },
     "/api/v1/finance/commission-applications/{id}": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "description": "GetCommissionApplication 单张申请详情：申请头审计字段与明细快照下钻。",
         "operationId": "SettlementService_GetCommissionApplication",
         "parameters": [
@@ -3909,9 +3701,7 @@
     },
     "/api/v1/finance/commission-applications/{id}/approve": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "description": "ApproveCommissionApplication 整单批准：expected_version 防并发审批；批准只\n 确认申请内提成计算结果，不代表银行付款或工资发放。",
         "operationId": "SettlementService_ApproveCommissionApplication",
         "parameters": [
@@ -3950,9 +3740,7 @@
     },
     "/api/v1/finance/commission-applications/{id}/reject": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "description": "RejectCommissionApplication 整单驳回：原因必填；驳回后员工只能在原申请上重提，\n 不产生同月替代申请。",
         "operationId": "SettlementService_RejectCommissionApplication",
         "parameters": [
@@ -3991,9 +3779,7 @@
     },
     "/api/v1/finance/commission-rules": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_ListCommissionRules",
         "parameters": [
           {
@@ -4062,9 +3848,7 @@
         }
       },
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_CreateCommissionRule",
         "requestBody": {
           "content": {
@@ -4092,9 +3876,7 @@
     },
     "/api/v1/finance/commission-rules/{id}": {
       "put": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_UpdateCommissionRule",
         "parameters": [
           {
@@ -4132,9 +3914,7 @@
     },
     "/api/v1/finance/commission-rules/{id}/copy": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "description": "CopyCommissionRule 实现【复制为新方案】：新方案以当天或未来日期生效，源方案\n 终止日衔接为新方案生效日前一日。按 commission.manage 可写组织过滤。",
         "operationId": "SettlementService_CopyCommissionRule",
         "parameters": [
@@ -4173,9 +3953,7 @@
     },
     "/api/v1/finance/commission-rules/{id}/employees/assign": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "description": "AssignCommissionRuleEmployees / RemoveCommissionRuleEmployees 为方案名单的独立\n 增删入口：expected_version 防并发覆盖；已生效方案只允许当天或未来的变更生效日，\n 不物理删除历史分配。按 commission.manage 可写组织过滤。",
         "operationId": "SettlementService_AssignCommissionRuleEmployees",
         "parameters": [
@@ -4214,9 +3992,7 @@
     },
     "/api/v1/finance/commission-rules/{id}/employees/remove": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_RemoveCommissionRuleEmployees",
         "parameters": [
           {
@@ -4254,9 +4030,7 @@
     },
     "/api/v1/finance/commissions": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_ListCommissions",
         "parameters": [
           {
@@ -4326,9 +4100,7 @@
         }
       },
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_CreateCommission",
         "requestBody": {
           "content": {
@@ -4356,9 +4128,7 @@
     },
     "/api/v1/finance/commissions/candidates": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "description": "ListCommissionCandidates 按来源单发现「员工 + 人员身份 + 已解析方案」的计提\n 候选：来源二选一，服务端按来源订单提成归属与归属日期自动解析唯一有效方案，\n 不再接受客户端指定规则。按 commission.manage 可写组织过滤。",
         "operationId": "SettlementService_ListCommissionCandidates",
         "parameters": [
@@ -4424,9 +4194,7 @@
     },
     "/api/v1/finance/commissions/employees": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_ListCommissionEmployees",
         "parameters": [
           {
@@ -4476,9 +4244,7 @@
     },
     "/api/v1/finance/commissions/export": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_ExportCommissions",
         "parameters": [
           {
@@ -4534,9 +4300,7 @@
     },
     "/api/v1/finance/commissions/netting-candidates": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "description": "ListCommissionNettingCandidates 为对冲提成提供已确认且存在应收分摊的对冲单候选，按 commission.manage 可写组织过滤。",
         "operationId": "SettlementService_ListCommissionNettingCandidates",
         "parameters": [
@@ -4587,9 +4351,7 @@
     },
     "/api/v1/finance/commissions/preview": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_PreviewCommission",
         "requestBody": {
           "content": {
@@ -4617,9 +4379,7 @@
     },
     "/api/v1/finance/commissions/verification-candidates": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_ListCommissionVerificationCandidates",
         "parameters": [
           {
@@ -4669,9 +4429,7 @@
     },
     "/api/v1/finance/commissions/{commissionId}/adjustments": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_CreateCommissionAdjustment",
         "parameters": [
           {
@@ -4709,9 +4467,7 @@
     },
     "/api/v1/finance/commissions/{id}": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_GetCommission",
         "parameters": [
           {
@@ -4739,9 +4495,7 @@
     },
     "/api/v1/finance/commissions/{id}/cancel": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_CancelCommission",
         "parameters": [
           {
@@ -4779,9 +4533,7 @@
     },
     "/api/v1/finance/commissions/{id}/confirm": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_ConfirmCommission",
         "parameters": [
           {
@@ -4819,9 +4571,7 @@
     },
     "/api/v1/finance/commissions/{id}/paid": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_MarkCommissionPaid",
         "parameters": [
           {
@@ -4859,9 +4609,7 @@
     },
     "/api/v1/finance/commissions/{id}/payment-preview": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_PreviewCommissionPayment",
         "parameters": [
           {
@@ -4899,9 +4647,7 @@
     },
     "/api/v1/finance/custom-settings/billed-fee-edit-policy": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "description": "GetBilledFeeEditPolicy 获取账单创建后的费用修改策略。",
         "operationId": "SettlementService_GetBilledFeeEditPolicy",
         "responses": {
@@ -4918,9 +4664,7 @@
         }
       },
       "put": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "description": "UpdateBilledFeeEditPolicy 更新账单创建后的费用修改策略。",
         "operationId": "SettlementService_UpdateBilledFeeEditPolicy",
         "requestBody": {
@@ -4949,9 +4693,7 @@
     },
     "/api/v1/finance/custom-settings/credit-limit-control-policy": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "description": "GetCreditLimitControlPolicy 获取往来单位信用额度管控策略。",
         "operationId": "SettlementService_GetCreditLimitControlPolicy",
         "parameters": [
@@ -4977,9 +4719,7 @@
         }
       },
       "put": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "description": "UpdateCreditLimitControlPolicy 更新往来单位信用额度管控策略。",
         "operationId": "SettlementService_UpdateCreditLimitControlPolicy",
         "requestBody": {
@@ -5008,9 +4748,7 @@
     },
     "/api/v1/finance/exchange-rate-import-template": {
       "get": {
-        "tags": [
-          "ExchangeRateService"
-        ],
+        "tags": ["ExchangeRateService"],
         "description": "DownloadExchangeRateImportTemplate 下载当前版本的汇率 Excel 导入模板。",
         "operationId": "ExchangeRateService_DownloadExchangeRateImportTemplate",
         "responses": {
@@ -5029,9 +4767,7 @@
     },
     "/api/v1/finance/exchange-rate-imports": {
       "post": {
-        "tags": [
-          "ExchangeRateService"
-        ],
+        "tags": ["ExchangeRateService"],
         "description": "ConfirmExchangeRateImport 使用预检令牌确认整批导入。",
         "operationId": "ExchangeRateService_ConfirmExchangeRateImport",
         "requestBody": {
@@ -5060,9 +4796,7 @@
     },
     "/api/v1/finance/exchange-rate-imports/preview": {
       "post": {
-        "tags": [
-          "ExchangeRateService"
-        ],
+        "tags": ["ExchangeRateService"],
         "description": "PreviewExchangeRateImport 解析并严格预检 Excel，不写入汇率设置。",
         "operationId": "ExchangeRateService_PreviewExchangeRateImport",
         "requestBody": {
@@ -5091,9 +4825,7 @@
     },
     "/api/v1/finance/exchange-rate-imports/{id}": {
       "get": {
-        "tags": [
-          "ExchangeRateService"
-        ],
+        "tags": ["ExchangeRateService"],
         "operationId": "ExchangeRateService_GetExchangeRateImport",
         "parameters": [
           {
@@ -5121,9 +4853,7 @@
     },
     "/api/v1/finance/exchange-rate-syncs": {
       "post": {
-        "tags": [
-          "ExchangeRateService"
-        ],
+        "tags": ["ExchangeRateService"],
         "description": "SyncExchangeRates 将财务终审微调后的牌价按自然周幂等 Upsert 入库生效。",
         "operationId": "ExchangeRateService_SyncExchangeRates",
         "requestBody": {
@@ -5152,9 +4882,7 @@
     },
     "/api/v1/finance/exchange-rate-syncs/fetch": {
       "post": {
-        "tags": [
-          "ExchangeRateService"
-        ],
+        "tags": ["ExchangeRateService"],
         "description": "FetchExchangeRates 按当前组织本币与目标周抓取官方/市场牌价，返回结构化预览，\n 不落库；数据来源与换算路径在预览中明示，抓取失败返回业务错误。",
         "operationId": "ExchangeRateService_FetchExchangeRates",
         "requestBody": {
@@ -5183,9 +4911,7 @@
     },
     "/api/v1/finance/exchange-rates": {
       "get": {
-        "tags": [
-          "ExchangeRateService"
-        ],
+        "tags": ["ExchangeRateService"],
         "operationId": "ExchangeRateService_ListExchangeRateSettings",
         "parameters": [
           {
@@ -5226,9 +4952,7 @@
         }
       },
       "post": {
-        "tags": [
-          "ExchangeRateService"
-        ],
+        "tags": ["ExchangeRateService"],
         "operationId": "ExchangeRateService_CreateExchangeRateSetting",
         "requestBody": {
           "content": {
@@ -5256,9 +4980,7 @@
     },
     "/api/v1/finance/exchange-rates/{id}": {
       "put": {
-        "tags": [
-          "ExchangeRateService"
-        ],
+        "tags": ["ExchangeRateService"],
         "operationId": "ExchangeRateService_UpdateExchangeRateSetting",
         "parameters": [
           {
@@ -5296,9 +5018,7 @@
     },
     "/api/v1/finance/exchange-rates/{id}/disable": {
       "post": {
-        "tags": [
-          "ExchangeRateService"
-        ],
+        "tags": ["ExchangeRateService"],
         "operationId": "ExchangeRateService_DisableExchangeRateSetting",
         "parameters": [
           {
@@ -5336,9 +5056,7 @@
     },
     "/api/v1/finance/fee-setting-templates": {
       "get": {
-        "tags": [
-          "FeeCatalogService"
-        ],
+        "tags": ["FeeCatalogService"],
         "operationId": "FeeCatalogService_ListFeeSettingTemplates",
         "parameters": [
           {
@@ -5379,9 +5097,7 @@
         }
       },
       "post": {
-        "tags": [
-          "FeeCatalogService"
-        ],
+        "tags": ["FeeCatalogService"],
         "operationId": "FeeCatalogService_CreateFeeSettingTemplate",
         "requestBody": {
           "content": {
@@ -5409,9 +5125,7 @@
     },
     "/api/v1/finance/fee-setting-templates/{id}": {
       "put": {
-        "tags": [
-          "FeeCatalogService"
-        ],
+        "tags": ["FeeCatalogService"],
         "operationId": "FeeCatalogService_UpdateFeeSettingTemplate",
         "parameters": [
           {
@@ -5449,9 +5163,7 @@
     },
     "/api/v1/finance/fee-settings": {
       "get": {
-        "tags": [
-          "FeeCatalogService"
-        ],
+        "tags": ["FeeCatalogService"],
         "operationId": "FeeCatalogService_ListFeeSettings",
         "responses": {
           "200": {
@@ -5467,9 +5179,7 @@
         }
       },
       "post": {
-        "tags": [
-          "FeeCatalogService"
-        ],
+        "tags": ["FeeCatalogService"],
         "operationId": "FeeCatalogService_CreateFeeSetting",
         "requestBody": {
           "content": {
@@ -5497,9 +5207,7 @@
     },
     "/api/v1/finance/fee-settings/search": {
       "get": {
-        "tags": [
-          "FeeCatalogService"
-        ],
+        "tags": ["FeeCatalogService"],
         "operationId": "FeeCatalogService_SearchFeeSettings",
         "parameters": [
           {
@@ -5542,9 +5250,7 @@
     },
     "/api/v1/finance/fee-settings/{id}": {
       "put": {
-        "tags": [
-          "FeeCatalogService"
-        ],
+        "tags": ["FeeCatalogService"],
         "operationId": "FeeCatalogService_UpdateFeeSetting",
         "parameters": [
           {
@@ -5582,9 +5288,7 @@
     },
     "/api/v1/finance/fees": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "description": "ListFeeLedger 获取当前组织全部业务线的应收应付费用总台账。",
         "operationId": "SettlementService_ListFeeLedger",
         "parameters": [
@@ -5721,9 +5425,7 @@
     },
     "/api/v1/finance/fees/orders/{orderId}": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_GetFeeLedgerOrderDetail",
         "parameters": [
           {
@@ -5751,9 +5453,7 @@
     },
     "/api/v1/finance/invoices": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_ListInvoices",
         "parameters": [
           {
@@ -5816,9 +5516,7 @@
         }
       },
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_CreateInvoice",
         "requestBody": {
           "content": {
@@ -5846,9 +5544,7 @@
     },
     "/api/v1/finance/invoices/creation-bills": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_ListInvoiceCreationBills",
         "parameters": [
           {
@@ -5919,9 +5615,7 @@
     },
     "/api/v1/finance/invoices/creation-profiles": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_ListInvoiceProfilesForBill",
         "parameters": [
           {
@@ -5948,9 +5642,7 @@
     },
     "/api/v1/finance/invoices/{id}": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_GetInvoice",
         "parameters": [
           {
@@ -5978,9 +5670,7 @@
     },
     "/api/v1/finance/invoices/{id}/cancel": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_CancelInvoice",
         "parameters": [
           {
@@ -6018,9 +5708,7 @@
     },
     "/api/v1/finance/invoices/{id}/issue": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_IssueInvoice",
         "parameters": [
           {
@@ -6058,9 +5746,7 @@
     },
     "/api/v1/finance/invoices/{id}/red-flush": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_RedFlushInvoice",
         "parameters": [
           {
@@ -6098,9 +5784,7 @@
     },
     "/api/v1/finance/nettings": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "description": "对冲单：按组织、结算单位和账单币种预览双方未结余额，创建、确认、取消与反转同币种抵销。",
         "operationId": "SettlementService_ListNettings",
         "parameters": [
@@ -6171,9 +5855,7 @@
         }
       },
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_CreateNetting",
         "requestBody": {
           "content": {
@@ -6201,9 +5883,7 @@
     },
     "/api/v1/finance/nettings/preview": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_PreviewNetting",
         "requestBody": {
           "content": {
@@ -6231,9 +5911,7 @@
     },
     "/api/v1/finance/nettings/{id}": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_GetNetting",
         "parameters": [
           {
@@ -6261,9 +5939,7 @@
     },
     "/api/v1/finance/nettings/{id}/cancel": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_CancelNetting",
         "parameters": [
           {
@@ -6301,9 +5977,7 @@
     },
     "/api/v1/finance/nettings/{id}/confirm": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_ConfirmNetting",
         "parameters": [
           {
@@ -6341,9 +6015,7 @@
     },
     "/api/v1/finance/nettings/{id}/reverse": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_ReverseNetting",
         "parameters": [
           {
@@ -6381,9 +6053,7 @@
     },
     "/api/v1/finance/settlement-party-options": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_ListFinanceSettlementPartyOptions",
         "parameters": [
           {
@@ -6441,9 +6111,7 @@
     },
     "/api/v1/finance/taxable-services": {
       "get": {
-        "tags": [
-          "FeeCatalogService"
-        ],
+        "tags": ["FeeCatalogService"],
         "operationId": "FeeCatalogService_ListTaxableServices",
         "responses": {
           "200": {
@@ -6459,9 +6127,7 @@
         }
       },
       "post": {
-        "tags": [
-          "FeeCatalogService"
-        ],
+        "tags": ["FeeCatalogService"],
         "operationId": "FeeCatalogService_CreateTaxableService",
         "requestBody": {
           "content": {
@@ -6489,9 +6155,7 @@
     },
     "/api/v1/finance/taxable-services/search": {
       "get": {
-        "tags": [
-          "FeeCatalogService"
-        ],
+        "tags": ["FeeCatalogService"],
         "operationId": "FeeCatalogService_SearchTaxableServices",
         "parameters": [
           {
@@ -6534,9 +6198,7 @@
     },
     "/api/v1/finance/taxable-services/{id}": {
       "put": {
-        "tags": [
-          "FeeCatalogService"
-        ],
+        "tags": ["FeeCatalogService"],
         "operationId": "FeeCatalogService_UpdateTaxableService",
         "parameters": [
           {
@@ -6574,9 +6236,7 @@
     },
     "/api/v1/finance/verifications": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_ListVerifications",
         "parameters": [
           {
@@ -6632,9 +6292,7 @@
         }
       },
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_CreateVerification",
         "requestBody": {
           "content": {
@@ -6662,9 +6320,7 @@
     },
     "/api/v1/finance/verifications/creation-candidates": {
       "get": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_ListVerificationCreationCandidates",
         "parameters": [
           {
@@ -6712,9 +6368,7 @@
     },
     "/api/v1/finance/verifications/{id}/reverse": {
       "post": {
-        "tags": [
-          "SettlementService"
-        ],
+        "tags": ["SettlementService"],
         "operationId": "SettlementService_ReverseVerification",
         "parameters": [
           {
@@ -6752,9 +6406,7 @@
     },
     "/api/v1/master-data/airlines": {
       "get": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "operationId": "MasterDataService_ListAirlines",
         "parameters": [
           {
@@ -6802,9 +6454,7 @@
         }
       },
       "post": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "operationId": "MasterDataService_CreateAirline",
         "requestBody": {
           "content": {
@@ -6832,9 +6482,7 @@
     },
     "/api/v1/master-data/airlines/{id}": {
       "put": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "operationId": "MasterDataService_UpdateAirline",
         "parameters": [
           {
@@ -6872,9 +6520,7 @@
     },
     "/api/v1/master-data/airports": {
       "get": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "operationId": "MasterDataService_ListAirports",
         "parameters": [
           {
@@ -6922,9 +6568,7 @@
         }
       },
       "post": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "operationId": "MasterDataService_CreateAirport",
         "requestBody": {
           "content": {
@@ -6952,9 +6596,7 @@
     },
     "/api/v1/master-data/airports/{id}": {
       "put": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "operationId": "MasterDataService_UpdateAirport",
         "parameters": [
           {
@@ -6992,9 +6634,7 @@
     },
     "/api/v1/master-data/import": {
       "post": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "operationId": "MasterDataService_ImportItems",
         "requestBody": {
           "content": {
@@ -7022,9 +6662,7 @@
     },
     "/api/v1/master-data/items": {
       "get": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "operationId": "MasterDataService_ListItems",
         "parameters": [
           {
@@ -7080,9 +6718,7 @@
         }
       },
       "post": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "operationId": "MasterDataService_CreateItem",
         "requestBody": {
           "content": {
@@ -7110,9 +6746,7 @@
     },
     "/api/v1/master-data/items/all": {
       "get": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "description": "ListAllItems 为小型主数据维护页返回完整目录，包含停用项。",
         "operationId": "MasterDataService_ListAllItems",
         "parameters": [
@@ -7148,9 +6782,7 @@
     },
     "/api/v1/master-data/items/{id}": {
       "put": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "operationId": "MasterDataService_UpdateItem",
         "parameters": [
           {
@@ -7188,9 +6820,7 @@
     },
     "/api/v1/master-data/number-rules": {
       "get": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "operationId": "MasterDataService_ListNumberRules",
         "responses": {
           "200": {
@@ -7206,9 +6836,7 @@
         }
       },
       "post": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "operationId": "MasterDataService_CreateNumberRule",
         "requestBody": {
           "content": {
@@ -7236,9 +6864,7 @@
     },
     "/api/v1/master-data/number-rules/{id}": {
       "put": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "operationId": "MasterDataService_UpdateNumberRule",
         "parameters": [
           {
@@ -7276,9 +6902,7 @@
     },
     "/api/v1/master-data/options": {
       "get": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "operationId": "MasterDataService_ListOptions",
         "responses": {
           "200": {
@@ -7296,9 +6920,7 @@
     },
     "/api/v1/master-data/options/search": {
       "get": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "description": "SearchOptions 为已登录员工提供启用主数据的分类分页搜索。",
         "operationId": "MasterDataService_SearchOptions",
         "parameters": [
@@ -7350,9 +6972,7 @@
     },
     "/api/v1/master-data/ports": {
       "get": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "operationId": "MasterDataService_ListPorts",
         "parameters": [
           {
@@ -7400,9 +7020,7 @@
         }
       },
       "post": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "operationId": "MasterDataService_CreatePort",
         "requestBody": {
           "content": {
@@ -7430,9 +7048,7 @@
     },
     "/api/v1/master-data/ports/{id}": {
       "put": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "operationId": "MasterDataService_UpdatePort",
         "parameters": [
           {
@@ -7470,9 +7086,7 @@
     },
     "/api/v1/master-data/shipping-lines": {
       "get": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "operationId": "MasterDataService_ListShippingLines",
         "parameters": [
           {
@@ -7520,9 +7134,7 @@
         }
       },
       "post": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "operationId": "MasterDataService_CreateShippingLine",
         "requestBody": {
           "content": {
@@ -7550,9 +7162,7 @@
     },
     "/api/v1/master-data/shipping-lines/{id}": {
       "put": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "operationId": "MasterDataService_UpdateShippingLine",
         "parameters": [
           {
@@ -7590,9 +7200,7 @@
     },
     "/api/v1/order-personnel-options": {
       "get": {
-        "tags": [
-          "OrderService"
-        ],
+        "tags": ["OrderService"],
         "operationId": "OrderService_ListPersonnelOptions",
         "parameters": [
           {
@@ -7643,9 +7251,7 @@
     },
     "/api/v1/order-reference-check": {
       "get": {
-        "tags": [
-          "OrderService"
-        ],
+        "tags": ["OrderService"],
         "operationId": "OrderService_CheckOrderReference",
         "parameters": [
           {
@@ -7694,9 +7300,7 @@
     },
     "/api/v1/orders": {
       "get": {
-        "tags": [
-          "OrderService"
-        ],
+        "tags": ["OrderService"],
         "operationId": "OrderService_ListOrders",
         "parameters": [
           {
@@ -7961,9 +7565,7 @@
         }
       },
       "post": {
-        "tags": [
-          "OrderService"
-        ],
+        "tags": ["OrderService"],
         "operationId": "OrderService_CreateOrder",
         "requestBody": {
           "content": {
@@ -7991,9 +7593,7 @@
     },
     "/api/v1/orders/sea-master-bill-candidate": {
       "get": {
-        "tags": [
-          "OrderService"
-        ],
+        "tags": ["OrderService"],
         "operationId": "OrderService_MatchSeaMasterBillCandidate",
         "parameters": [
           {
@@ -8076,9 +7676,7 @@
     },
     "/api/v1/orders/sea-shared-container-candidates": {
       "get": {
-        "tags": [
-          "SeaSharedContainerService"
-        ],
+        "tags": ["SeaSharedContainerService"],
         "operationId": "SeaSharedContainerService_ListSeaSharedContainerCandidates",
         "parameters": [
           {
@@ -8136,9 +7734,7 @@
     },
     "/api/v1/orders/sea-shared-containers": {
       "get": {
-        "tags": [
-          "SeaSharedContainerService"
-        ],
+        "tags": ["SeaSharedContainerService"],
         "operationId": "SeaSharedContainerService_ListSeaSharedContainers",
         "parameters": [
           {
@@ -8194,9 +7790,7 @@
         }
       },
       "post": {
-        "tags": [
-          "SeaSharedContainerService"
-        ],
+        "tags": ["SeaSharedContainerService"],
         "operationId": "SeaSharedContainerService_CreateSeaSharedContainer",
         "requestBody": {
           "content": {
@@ -8224,9 +7818,7 @@
     },
     "/api/v1/orders/sea-shared-containers/{id}": {
       "get": {
-        "tags": [
-          "SeaSharedContainerService"
-        ],
+        "tags": ["SeaSharedContainerService"],
         "operationId": "SeaSharedContainerService_GetSeaSharedContainer",
         "parameters": [
           {
@@ -8260,9 +7852,7 @@
         }
       },
       "put": {
-        "tags": [
-          "SeaSharedContainerService"
-        ],
+        "tags": ["SeaSharedContainerService"],
         "operationId": "SeaSharedContainerService_UpdateSeaSharedContainer",
         "parameters": [
           {
@@ -8298,9 +7888,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "SeaSharedContainerService"
-        ],
+        "tags": ["SeaSharedContainerService"],
         "operationId": "SeaSharedContainerService_DeleteSeaSharedContainer",
         "parameters": [
           {
@@ -8343,9 +7931,7 @@
     },
     "/api/v1/orders/sea-shared-containers/{id}/allocations/draft": {
       "put": {
-        "tags": [
-          "SeaSharedContainerService"
-        ],
+        "tags": ["SeaSharedContainerService"],
         "operationId": "SeaSharedContainerService_SaveSeaSharedContainerAllocationsDraft",
         "parameters": [
           {
@@ -8383,9 +7969,7 @@
     },
     "/api/v1/orders/sea-shared-containers/{id}/confirm": {
       "post": {
-        "tags": [
-          "SeaSharedContainerService"
-        ],
+        "tags": ["SeaSharedContainerService"],
         "operationId": "SeaSharedContainerService_ConfirmSeaSharedContainer",
         "parameters": [
           {
@@ -8423,9 +8007,7 @@
     },
     "/api/v1/orders/sea-shared-containers/{id}/withdraw": {
       "post": {
-        "tags": [
-          "SeaSharedContainerService"
-        ],
+        "tags": ["SeaSharedContainerService"],
         "operationId": "SeaSharedContainerService_WithdrawSeaSharedContainer",
         "parameters": [
           {
@@ -8463,9 +8045,7 @@
     },
     "/api/v1/orders/{id}": {
       "get": {
-        "tags": [
-          "OrderService"
-        ],
+        "tags": ["OrderService"],
         "operationId": "OrderService_GetOrder",
         "parameters": [
           {
@@ -8491,9 +8071,7 @@
         }
       },
       "put": {
-        "tags": [
-          "OrderService"
-        ],
+        "tags": ["OrderService"],
         "operationId": "OrderService_UpdateOrder",
         "parameters": [
           {
@@ -8531,9 +8109,7 @@
     },
     "/api/v1/orders/{id}/closure": {
       "post": {
-        "tags": [
-          "OrderService"
-        ],
+        "tags": ["OrderService"],
         "operationId": "OrderService_TransitionOrderClosure",
         "parameters": [
           {
@@ -8571,9 +8147,7 @@
     },
     "/api/v1/orders/{id}/consolidations": {
       "get": {
-        "tags": [
-          "OrderService"
-        ],
+        "tags": ["OrderService"],
         "operationId": "OrderService_ListOrderConsolidations",
         "parameters": [
           {
@@ -8601,9 +8175,7 @@
     },
     "/api/v1/orders/{id}/same-batch": {
       "get": {
-        "tags": [
-          "OrderService"
-        ],
+        "tags": ["OrderService"],
         "operationId": "OrderService_ListSameBatchOrders",
         "parameters": [
           {
@@ -8631,9 +8203,7 @@
     },
     "/api/v1/orders/{id}/status": {
       "post": {
-        "tags": [
-          "OrderService"
-        ],
+        "tags": ["OrderService"],
         "operationId": "OrderService_TransitionOrderStatus",
         "parameters": [
           {
@@ -8671,9 +8241,7 @@
     },
     "/api/v1/orders/{id}/termination": {
       "post": {
-        "tags": [
-          "OrderService"
-        ],
+        "tags": ["OrderService"],
         "operationId": "OrderService_TransitionOrderTermination",
         "parameters": [
           {
@@ -8711,9 +8279,7 @@
     },
     "/api/v1/orders/{orderId}/abnormal-cases": {
       "get": {
-        "tags": [
-          "OrderAbnormalCaseService"
-        ],
+        "tags": ["OrderAbnormalCaseService"],
         "description": "ListAbnormalCases 获取指定订单的异常标记列表。",
         "operationId": "OrderAbnormalCaseService_ListAbnormalCases",
         "parameters": [
@@ -8740,9 +8306,7 @@
         }
       },
       "post": {
-        "tags": [
-          "OrderAbnormalCaseService"
-        ],
+        "tags": ["OrderAbnormalCaseService"],
         "description": "MarkAbnormalCase 标记订单异常；同类型已解决的标记会重新激活，进行中的重复标记返回冲突。",
         "operationId": "OrderAbnormalCaseService_MarkAbnormalCase",
         "parameters": [
@@ -8781,9 +8345,7 @@
     },
     "/api/v1/orders/{orderId}/abnormal-cases/{id}": {
       "delete": {
-        "tags": [
-          "OrderAbnormalCaseService"
-        ],
+        "tags": ["OrderAbnormalCaseService"],
         "description": "RemoveAbnormalCase 移除订单异常标记。",
         "operationId": "OrderAbnormalCaseService_RemoveAbnormalCase",
         "parameters": [
@@ -8820,9 +8382,7 @@
     },
     "/api/v1/orders/{orderId}/abnormal-cases/{id}/resolve": {
       "post": {
-        "tags": [
-          "OrderAbnormalCaseService"
-        ],
+        "tags": ["OrderAbnormalCaseService"],
         "description": "ResolveAbnormalCase 解决订单异常，仅进行中的异常可解决。",
         "operationId": "OrderAbnormalCaseService_ResolveAbnormalCase",
         "parameters": [
@@ -8869,9 +8429,7 @@
     },
     "/api/v1/orders/{orderId}/attachments": {
       "get": {
-        "tags": [
-          "OrderAttachmentService"
-        ],
+        "tags": ["OrderAttachmentService"],
         "description": "ListAttachments 获取指定订单的附件列表。",
         "operationId": "OrderAttachmentService_ListAttachments",
         "parameters": [
@@ -8898,9 +8456,7 @@
         }
       },
       "post": {
-        "tags": [
-          "OrderAttachmentService"
-        ],
+        "tags": ["OrderAttachmentService"],
         "description": "RegisterAttachment 注册订单附件。",
         "operationId": "OrderAttachmentService_RegisterAttachment",
         "parameters": [
@@ -8939,9 +8495,7 @@
     },
     "/api/v1/orders/{orderId}/attachments/upload": {
       "post": {
-        "tags": [
-          "OrderAttachmentService"
-        ],
+        "tags": ["OrderAttachmentService"],
         "description": "PrepareAttachmentUpload 为当前订单准备附件上传。",
         "operationId": "OrderAttachmentService_PrepareAttachmentUpload",
         "parameters": [
@@ -8980,9 +8534,7 @@
     },
     "/api/v1/orders/{orderId}/attachments/{id}": {
       "delete": {
-        "tags": [
-          "OrderAttachmentService"
-        ],
+        "tags": ["OrderAttachmentService"],
         "description": "RemoveAttachmentReference 解除订单附件引用。",
         "operationId": "OrderAttachmentService_RemoveAttachmentReference",
         "parameters": [
@@ -9019,9 +8571,7 @@
     },
     "/api/v1/orders/{orderId}/attachments/{id}/access": {
       "get": {
-        "tags": [
-          "OrderAttachmentService"
-        ],
+        "tags": ["OrderAttachmentService"],
         "description": "GetAttachmentAccess 获取短期附件访问链接。",
         "operationId": "OrderAttachmentService_GetAttachmentAccess",
         "parameters": [
@@ -9065,9 +8615,7 @@
     },
     "/api/v1/orders/{orderId}/cargo-items": {
       "get": {
-        "tags": [
-          "OrderCargoItemService"
-        ],
+        "tags": ["OrderCargoItemService"],
         "description": "ListCargoItems 获取指定订单的货物明细列表。",
         "operationId": "OrderCargoItemService_ListCargoItems",
         "parameters": [
@@ -9094,9 +8642,7 @@
         }
       },
       "post": {
-        "tags": [
-          "OrderCargoItemService"
-        ],
+        "tags": ["OrderCargoItemService"],
         "description": "AddCargoItem 添加订单货物明细。",
         "operationId": "OrderCargoItemService_AddCargoItem",
         "parameters": [
@@ -9135,9 +8681,7 @@
     },
     "/api/v1/orders/{orderId}/cargo-items/{id}": {
       "put": {
-        "tags": [
-          "OrderCargoItemService"
-        ],
+        "tags": ["OrderCargoItemService"],
         "description": "UpdateCargoItem 更新订单货物明细，采用全量字段替换语义。",
         "operationId": "OrderCargoItemService_UpdateCargoItem",
         "parameters": [
@@ -9182,9 +8726,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "OrderCargoItemService"
-        ],
+        "tags": ["OrderCargoItemService"],
         "description": "RemoveCargoItem 移除订单货物明细。",
         "operationId": "OrderCargoItemService_RemoveCargoItem",
         "parameters": [
@@ -9228,9 +8770,7 @@
     },
     "/api/v1/orders/{orderId}/containers": {
       "get": {
-        "tags": [
-          "OrderContainerService"
-        ],
+        "tags": ["OrderContainerService"],
         "description": "ListContainers 获取指定订单的集装箱列表。",
         "operationId": "OrderContainerService_ListContainers",
         "parameters": [
@@ -9257,9 +8797,7 @@
         }
       },
       "post": {
-        "tags": [
-          "OrderContainerService"
-        ],
+        "tags": ["OrderContainerService"],
         "description": "AddContainer 添加订单集装箱。",
         "operationId": "OrderContainerService_AddContainer",
         "parameters": [
@@ -9298,9 +8836,7 @@
     },
     "/api/v1/orders/{orderId}/containers/{id}": {
       "put": {
-        "tags": [
-          "OrderContainerService"
-        ],
+        "tags": ["OrderContainerService"],
         "description": "UpdateContainer 更新订单集装箱，采用全量字段替换语义。",
         "operationId": "OrderContainerService_UpdateContainer",
         "parameters": [
@@ -9345,9 +8881,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "OrderContainerService"
-        ],
+        "tags": ["OrderContainerService"],
         "description": "RemoveContainer 移除订单集装箱。",
         "operationId": "OrderContainerService_RemoveContainer",
         "parameters": [
@@ -9391,9 +8925,7 @@
     },
     "/api/v1/orders/{orderId}/fee-correction-requests": {
       "get": {
-        "tags": [
-          "OrderFeeService"
-        ],
+        "tags": ["OrderFeeService"],
         "operationId": "OrderFeeService_ListOrderFeeCorrectionRequests",
         "parameters": [
           {
@@ -9435,9 +8967,7 @@
         }
       },
       "post": {
-        "tags": [
-          "OrderFeeService"
-        ],
+        "tags": ["OrderFeeService"],
         "operationId": "OrderFeeService_CreateOrderFeeCorrection",
         "parameters": [
           {
@@ -9475,9 +9005,7 @@
     },
     "/api/v1/orders/{orderId}/fee-correction-requests/{id}": {
       "get": {
-        "tags": [
-          "OrderFeeService"
-        ],
+        "tags": ["OrderFeeService"],
         "operationId": "OrderFeeService_GetOrderFeeCorrectionRequest",
         "parameters": [
           {
@@ -9513,9 +9041,7 @@
     },
     "/api/v1/orders/{orderId}/fee-correction-requests/{id}/approval-preview": {
       "post": {
-        "tags": [
-          "OrderFeeService"
-        ],
+        "tags": ["OrderFeeService"],
         "operationId": "OrderFeeService_PreviewOrderFeeCorrectionApproval",
         "parameters": [
           {
@@ -9561,9 +9087,7 @@
     },
     "/api/v1/orders/{orderId}/fee-correction-requests/{id}/approve": {
       "post": {
-        "tags": [
-          "OrderFeeService"
-        ],
+        "tags": ["OrderFeeService"],
         "operationId": "OrderFeeService_ApproveOrderFeeCorrection",
         "parameters": [
           {
@@ -9609,9 +9133,7 @@
     },
     "/api/v1/orders/{orderId}/fee-correction-requests/{id}/reject": {
       "post": {
-        "tags": [
-          "OrderFeeService"
-        ],
+        "tags": ["OrderFeeService"],
         "operationId": "OrderFeeService_RejectOrderFeeCorrection",
         "parameters": [
           {
@@ -9657,9 +9179,7 @@
     },
     "/api/v1/orders/{orderId}/fee-correction-requests/{id}/withdraw": {
       "post": {
-        "tags": [
-          "OrderFeeService"
-        ],
+        "tags": ["OrderFeeService"],
         "operationId": "OrderFeeService_WithdrawOrderFeeCorrection",
         "parameters": [
           {
@@ -9705,9 +9225,7 @@
     },
     "/api/v1/orders/{orderId}/fee-exchange-rate": {
       "get": {
-        "tags": [
-          "OrderFeeService"
-        ],
+        "tags": ["OrderFeeService"],
         "description": "ResolveFeeExchangeRate 按费用发生日解析币种折本位币的公共参考汇率。",
         "operationId": "OrderFeeService_ResolveFeeExchangeRate",
         "parameters": [
@@ -9751,9 +9269,7 @@
     },
     "/api/v1/orders/{orderId}/fee-options": {
       "get": {
-        "tags": [
-          "OrderFeeService"
-        ],
+        "tags": ["OrderFeeService"],
         "description": "ListFeeOptions 获取费用录入所需的费用设置、计费单位、结算单位和币种候选项。",
         "operationId": "OrderFeeService_ListFeeOptions",
         "parameters": [
@@ -9782,9 +9298,7 @@
     },
     "/api/v1/orders/{orderId}/fee-quantity-preview": {
       "get": {
-        "tags": [
-          "OrderFeeService"
-        ],
+        "tags": ["OrderFeeService"],
         "description": "PreviewFeeQuantity 预览本订单数量来源与计算依据，确认后由调用方填入表单。",
         "operationId": "OrderFeeService_PreviewFeeQuantity",
         "parameters": [
@@ -9834,9 +9348,7 @@
     },
     "/api/v1/orders/{orderId}/fee-review": {
       "get": {
-        "tags": [
-          "OrderFeeService"
-        ],
+        "tags": ["OrderFeeService"],
         "operationId": "OrderFeeService_GetOrderFeeReview",
         "parameters": [
           {
@@ -9864,9 +9376,7 @@
     },
     "/api/v1/orders/{orderId}/fee-supplement-requests": {
       "get": {
-        "tags": [
-          "OrderFeeService"
-        ],
+        "tags": ["OrderFeeService"],
         "description": "ListOrderFeeSupplementRequests 订单维度分页读取补录申请。逐行授权\n （fee.read 或发起人本人或有效费用审核权限及组织范围）在领域层执行，不得被组织级\n fee.read 注解提前挡住，也不泄露无权申请。",
         "operationId": "OrderFeeService_ListOrderFeeSupplementRequests",
         "parameters": [
@@ -9911,9 +9421,7 @@
     },
     "/api/v1/orders/{orderId}/fee-supplement-requests/{id}/approval-preview": {
       "get": {
-        "tags": [
-          "OrderFeeService"
-        ],
+        "tags": ["OrderFeeService"],
         "description": "PreviewOrderFeeSupplementApproval 只读复核申请及审批资格，估算通过后的订单费用毛利。",
         "operationId": "OrderFeeService_PreviewOrderFeeSupplementApproval",
         "parameters": [
@@ -9957,9 +9465,7 @@
     },
     "/api/v1/orders/{orderId}/fees": {
       "get": {
-        "tags": [
-          "OrderFeeService"
-        ],
+        "tags": ["OrderFeeService"],
         "description": "ListFees 获取指定订单的费用列表。",
         "operationId": "OrderFeeService_ListFees",
         "parameters": [
@@ -9986,9 +9492,7 @@
         }
       },
       "post": {
-        "tags": [
-          "OrderFeeService"
-        ],
+        "tags": ["OrderFeeService"],
         "description": "AddFee 录入订单费用，总金额由服务端按数量乘单价精确计算。",
         "operationId": "OrderFeeService_AddFee",
         "parameters": [
@@ -10027,9 +9531,7 @@
     },
     "/api/v1/orders/{orderId}/fees/bulk-remove": {
       "post": {
-        "tags": [
-          "OrderFeeService"
-        ],
+        "tags": ["OrderFeeService"],
         "description": "BulkRemoveOrderFees 批量物理删除订单未建账费用：整批单一事务，被有效账单\n 关联占用、补录来源、版本冲突或越订单任一不满足时整批回滚并返回具体费用与\n 原因；历史账单行快照保留、来源引用置空。",
         "operationId": "OrderFeeService_BulkRemoveOrderFees",
         "parameters": [
@@ -10068,9 +9570,7 @@
     },
     "/api/v1/orders/{orderId}/fees/bulk-update": {
       "post": {
-        "tags": [
-          "OrderFeeService"
-        ],
+        "tags": ["OrderFeeService"],
         "description": "BulkUpdateOrderFees 批量定向修改订单未被有效账单关联占用的费用：每次仅修改\n 结算单位或费用发生时间之一，整批单一事务，任一行版本冲突、已建账、越订单或\n 汇率缺失时整批回滚并返回具体费用与原因，不允许部分成功。",
         "operationId": "OrderFeeService_BulkUpdateOrderFees",
         "parameters": [
@@ -10109,9 +9609,7 @@
     },
     "/api/v1/orders/{orderId}/fees/{id}": {
       "put": {
-        "tags": [
-          "OrderFeeService"
-        ],
+        "tags": ["OrderFeeService"],
         "description": "UpdateFee 更新订单费用，总金额由服务端重新精确计算；未被有效账单关联占用\n （未建账）且订单未锁定的费用可维护；已建账费用必须按权限回退账务。",
         "operationId": "OrderFeeService_UpdateFee",
         "parameters": [
@@ -10156,9 +9654,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "OrderFeeService"
-        ],
+        "tags": ["OrderFeeService"],
         "description": "RemoveFee 物理删除未被有效账单关联占用（未建账）的订单费用；补录生成的费用\n 必须通过补录申请专用撤销删除，历史账单行快照保留、来源引用置空。",
         "operationId": "OrderFeeService_RemoveFee",
         "parameters": [
@@ -10210,9 +9706,7 @@
     },
     "/api/v1/orders/{orderId}/fees:save": {
       "post": {
-        "tags": [
-          "OrderFeeService"
-        ],
+        "tags": ["OrderFeeService"],
         "description": "SaveOrderFees 按单侧（应收或应付）整表保存订单费用的新增与修改：单一事务，\n 逐行完整校验后才写入，任一行失败整体回滚；不含删除，不连带另一侧。\n 新增行幂等键由 request_key 与 client_row_id 派生，响应丢失后沿用同一\n request_key 重试不重复新增；半应用情形返回 409。新增行要求 fee.create，\n 修改行要求 fee.update，在服务端分别校验。行级错误通过错误 metadata 的\n client_row_id、field、reason 定位。",
         "operationId": "OrderFeeService_SaveOrderFees",
         "parameters": [
@@ -10251,9 +9745,7 @@
     },
     "/api/v1/orders/{orderId}/lock": {
       "post": {
-        "tags": [
-          "OrderLockService"
-        ],
+        "tags": ["OrderLockService"],
         "description": "LockOrder 审核完整订单与费用并锁定；海运出口同时固定单证不可变版本。",
         "operationId": "OrderLockService_LockOrder",
         "parameters": [
@@ -10292,9 +9784,7 @@
     },
     "/api/v1/orders/{orderId}/lock-state": {
       "get": {
-        "tags": [
-          "OrderLockService"
-        ],
+        "tags": ["OrderLockService"],
         "description": "GetOrderLockState 获取订单当前锁定状态与可执行动作。",
         "operationId": "OrderLockService_GetOrderLockState",
         "parameters": [
@@ -10323,9 +9813,7 @@
     },
     "/api/v1/orders/{orderId}/personnel": {
       "get": {
-        "tags": [
-          "OrderPersonnelService"
-        ],
+        "tags": ["OrderPersonnelService"],
         "description": "ListPersonnel 获取指定订单的协作人员列表。",
         "operationId": "OrderPersonnelService_ListPersonnel",
         "parameters": [
@@ -10354,9 +9842,7 @@
     },
     "/api/v1/orders/{orderId}/release-pods": {
       "get": {
-        "tags": [
-          "OrderReleasePodService"
-        ],
+        "tags": ["OrderReleasePodService"],
         "description": "ListReleasePods 获取指定订单的放货凭证列表。",
         "operationId": "OrderReleasePodService_ListReleasePods",
         "parameters": [
@@ -10383,9 +9869,7 @@
         }
       },
       "post": {
-        "tags": [
-          "OrderReleasePodService"
-        ],
+        "tags": ["OrderReleasePodService"],
         "description": "AddReleasePod 添加放货凭证，初始状态为待签收。",
         "operationId": "OrderReleasePodService_AddReleasePod",
         "parameters": [
@@ -10424,9 +9908,7 @@
     },
     "/api/v1/orders/{orderId}/release-pods/{id}": {
       "put": {
-        "tags": [
-          "OrderReleasePodService"
-        ],
+        "tags": ["OrderReleasePodService"],
         "description": "UpdateReleasePod 更新凭证字段，已回单后不可修改。",
         "operationId": "OrderReleasePodService_UpdateReleasePod",
         "parameters": [
@@ -10471,9 +9953,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "OrderReleasePodService"
-        ],
+        "tags": ["OrderReleasePodService"],
         "description": "RemoveReleasePod 移除放货凭证，已回单的凭证不可删除。",
         "operationId": "OrderReleasePodService_RemoveReleasePod",
         "parameters": [
@@ -10510,9 +9990,7 @@
     },
     "/api/v1/orders/{orderId}/release-pods/{id}/transition": {
       "post": {
-        "tags": [
-          "OrderReleasePodService"
-        ],
+        "tags": ["OrderReleasePodService"],
         "description": "TransitionReleasePodStatus 流转凭证状态，仅允许向前单步流转；\n 流转到已签收时由服务端记录签收人与签收时间。",
         "operationId": "OrderReleasePodService_TransitionReleasePodStatus",
         "parameters": [
@@ -10559,9 +10037,7 @@
     },
     "/api/v1/orders/{orderId}/sea-documents": {
       "get": {
-        "tags": [
-          "SeaDocumentService"
-        ],
+        "tags": ["SeaDocumentService"],
         "description": "GetSeaOrderDocuments 获取海运单证聚合信息。",
         "operationId": "SeaDocumentService_GetSeaOrderDocuments",
         "parameters": [
@@ -10590,9 +10066,7 @@
     },
     "/api/v1/orders/{orderId}/sea-documents/amendments": {
       "post": {
-        "tags": [
-          "SeaDocumentService"
-        ],
+        "tags": ["SeaDocumentService"],
         "description": "ExecuteSeaDocumentAmendment 发布改单版本。",
         "operationId": "SeaDocumentService_ExecuteSeaDocumentAmendment",
         "parameters": [
@@ -10631,9 +10105,7 @@
     },
     "/api/v1/orders/{orderId}/sea-documents/amendments/preview": {
       "post": {
-        "tags": [
-          "SeaDocumentService"
-        ],
+        "tags": ["SeaDocumentService"],
         "description": "PreviewSeaDocumentAmendment 基于当前不可变版本重算改单差异与影响。",
         "operationId": "SeaDocumentService_PreviewSeaDocumentAmendment",
         "parameters": [
@@ -10672,9 +10144,7 @@
     },
     "/api/v1/orders/{orderId}/sea-documents/events": {
       "get": {
-        "tags": [
-          "SeaDocumentService"
-        ],
+        "tags": ["SeaDocumentService"],
         "description": "ListSeaDocumentEvents 分页读取改单、作废与模式切换历史。",
         "operationId": "SeaDocumentService_ListSeaDocumentEvents",
         "parameters": [
@@ -10719,9 +10189,7 @@
     },
     "/api/v1/orders/{orderId}/sea-documents/house-bills/{houseBillId}/versions": {
       "get": {
-        "tags": [
-          "SeaDocumentService"
-        ],
+        "tags": ["SeaDocumentService"],
         "description": "ListSeaHouseBillVersions 分页读取一张 HBL 的不可变版本。",
         "operationId": "SeaDocumentService_ListSeaHouseBillVersions",
         "parameters": [
@@ -10774,9 +10242,7 @@
     },
     "/api/v1/orders/{orderId}/sea-documents/house-bills/{id}": {
       "put": {
-        "tags": [
-          "SeaDocumentService"
-        ],
+        "tags": ["SeaDocumentService"],
         "description": "UpdateSeaHouseBill 更新海运分单。",
         "operationId": "SeaDocumentService_UpdateSeaHouseBill",
         "parameters": [
@@ -10823,9 +10289,7 @@
     },
     "/api/v1/orders/{orderId}/sea-documents/master-bill-content": {
       "put": {
-        "tags": [
-          "SeaDocumentService"
-        ],
+        "tags": ["SeaDocumentService"],
         "description": "UpdateSeaMasterBillContent 更新共享 MBL 提单内容。",
         "operationId": "SeaDocumentService_UpdateSeaMasterBillContent",
         "parameters": [
@@ -10864,9 +10328,7 @@
     },
     "/api/v1/orders/{orderId}/sea-documents/master-bill/versions": {
       "get": {
-        "tags": [
-          "SeaDocumentService"
-        ],
+        "tags": ["SeaDocumentService"],
         "description": "ListSeaMasterBillVersions 分页读取当前订单共享 MBL 的不可变版本。",
         "operationId": "SeaDocumentService_ListSeaMasterBillVersions",
         "parameters": [
@@ -10911,9 +10373,7 @@
     },
     "/api/v1/orders/{orderId}/sea-documents/mode-change": {
       "post": {
-        "tags": [
-          "SeaDocumentService"
-        ],
+        "tags": ["SeaDocumentService"],
         "description": "ExecuteChangeSeaDocumentMode 执行单证模式切换（HOUSE <-> DIRECT）。",
         "operationId": "SeaDocumentService_ExecuteChangeSeaDocumentMode",
         "parameters": [
@@ -10952,9 +10412,7 @@
     },
     "/api/v1/orders/{orderId}/sea-documents/mode-change/preview": {
       "post": {
-        "tags": [
-          "SeaDocumentService"
-        ],
+        "tags": ["SeaDocumentService"],
         "description": "PreviewChangeSeaDocumentMode 预览单证模式切换（HOUSE <-> DIRECT）影响。",
         "operationId": "SeaDocumentService_PreviewChangeSeaDocumentMode",
         "parameters": [
@@ -10993,9 +10451,7 @@
     },
     "/api/v1/orders/{orderId}/sea-documents/versions/{versionId}": {
       "get": {
-        "tags": [
-          "SeaDocumentService"
-        ],
+        "tags": ["SeaDocumentService"],
         "description": "GetSeaDocumentVersion 读取一条不可变版本，不回读当前工作字段。",
         "operationId": "SeaDocumentService_GetSeaDocumentVersion",
         "parameters": [
@@ -11040,9 +10496,7 @@
     },
     "/api/v1/orders/{orderId}/sea-documents/voids": {
       "post": {
-        "tags": [
-          "SeaDocumentService"
-        ],
+        "tags": ["SeaDocumentService"],
         "description": "ExecuteSeaDocumentVoid 作废单证身份并追加不可变版本与事件。",
         "operationId": "SeaDocumentService_ExecuteSeaDocumentVoid",
         "parameters": [
@@ -11081,9 +10535,7 @@
     },
     "/api/v1/orders/{orderId}/sea-documents/voids/preview": {
       "post": {
-        "tags": [
-          "SeaDocumentService"
-        ],
+        "tags": ["SeaDocumentService"],
         "description": "PreviewSeaDocumentVoid 基于当前不可变版本预览作废影响。",
         "operationId": "SeaDocumentService_PreviewSeaDocumentVoid",
         "parameters": [
@@ -11122,9 +10574,7 @@
     },
     "/api/v1/orders/{orderId}/sea-order-change/actions": {
       "get": {
-        "tags": [
-          "SeaOrderChangeService"
-        ],
+        "tags": ["SeaOrderChangeService"],
         "description": "GetSeaOrderChangeActions 获取订单可执行动作及阻断原因。",
         "operationId": "SeaOrderChangeService_GetSeaOrderChangeActions",
         "parameters": [
@@ -11153,9 +10603,7 @@
     },
     "/api/v1/orders/{orderId}/sea-order-change/events": {
       "get": {
-        "tags": [
-          "SeaOrderChangeService"
-        ],
+        "tags": ["SeaOrderChangeService"],
         "description": "ListSeaOrderChangeEvents 查询订单拆票与改配事件历史。",
         "operationId": "SeaOrderChangeService_ListSeaOrderChangeEvents",
         "parameters": [
@@ -11200,9 +10648,7 @@
     },
     "/api/v1/orders/{orderId}/sea-order-change/events/{eventId}": {
       "get": {
-        "tags": [
-          "SeaOrderChangeService"
-        ],
+        "tags": ["SeaOrderChangeService"],
         "description": "GetSeaOrderChangeEvent 获取单个拆票或改配事件详情。",
         "operationId": "SeaOrderChangeService_GetSeaOrderChangeEvent",
         "parameters": [
@@ -11246,9 +10692,7 @@
     },
     "/api/v1/orders/{orderId}/sea-order-change/reassignment/execute": {
       "post": {
-        "tags": [
-          "SeaOrderChangeService"
-        ],
+        "tags": ["SeaOrderChangeService"],
         "description": "ExecuteSeaOrderReassignment 执行整体改配。",
         "operationId": "SeaOrderChangeService_ExecuteSeaOrderReassignment",
         "parameters": [
@@ -11287,9 +10731,7 @@
     },
     "/api/v1/orders/{orderId}/sea-order-change/reassignment/preview": {
       "post": {
-        "tags": [
-          "SeaOrderChangeService"
-        ],
+        "tags": ["SeaOrderChangeService"],
         "description": "PreviewSeaOrderReassignment 预览整体改配航程差异。",
         "operationId": "SeaOrderChangeService_PreviewSeaOrderReassignment",
         "parameters": [
@@ -11328,9 +10770,7 @@
     },
     "/api/v1/orders/{orderId}/sea-order-change/split-context": {
       "get": {
-        "tags": [
-          "SeaOrderChangeService"
-        ],
+        "tags": ["SeaOrderChangeService"],
         "description": "GetSeaOrderSplitContext 获取拆票上下文事实与可分配数据。",
         "operationId": "SeaOrderChangeService_GetSeaOrderSplitContext",
         "parameters": [
@@ -11359,9 +10799,7 @@
     },
     "/api/v1/orders/{orderId}/sea-order-change/split/execute": {
       "post": {
-        "tags": [
-          "SeaOrderChangeService"
-        ],
+        "tags": ["SeaOrderChangeService"],
         "description": "ExecuteSeaOrderSplit 执行部分拆票。",
         "operationId": "SeaOrderChangeService_ExecuteSeaOrderSplit",
         "parameters": [
@@ -11400,9 +10838,7 @@
     },
     "/api/v1/orders/{orderId}/sea-order-change/split/preview": {
       "post": {
-        "tags": [
-          "SeaOrderChangeService"
-        ],
+        "tags": ["SeaOrderChangeService"],
         "description": "PreviewSeaOrderSplit 预览拆票结果、守恒计算与计划重算。",
         "operationId": "SeaOrderChangeService_PreviewSeaOrderSplit",
         "parameters": [
@@ -11441,9 +10877,7 @@
     },
     "/api/v1/orders/{orderId}/sea-order-change/transport-execution": {
       "post": {
-        "tags": [
-          "SeaOrderChangeService"
-        ],
+        "tags": ["SeaOrderChangeService"],
         "description": "ExecuteSeaTransportExecutionUpdate 在锁内重验成员并更新共享实际航次。",
         "operationId": "SeaOrderChangeService_ExecuteSeaTransportExecutionUpdate",
         "parameters": [
@@ -11482,9 +10916,7 @@
     },
     "/api/v1/orders/{orderId}/sea-order-change/transport-execution/preview": {
       "post": {
-        "tags": [
-          "SeaOrderChangeService"
-        ],
+        "tags": ["SeaOrderChangeService"],
         "description": "PreviewSeaTransportExecutionUpdate 预览共享实际航次修改及受影响订单。",
         "operationId": "SeaOrderChangeService_PreviewSeaTransportExecutionUpdate",
         "parameters": [
@@ -11523,9 +10955,7 @@
     },
     "/api/v1/orders/{orderId}/shipping-documents": {
       "get": {
-        "tags": [
-          "OrderShippingDocumentService"
-        ],
+        "tags": ["OrderShippingDocumentService"],
         "description": "ListShippingDocuments 获取指定订单的提单列表。",
         "operationId": "OrderShippingDocumentService_ListShippingDocuments",
         "parameters": [
@@ -11552,9 +10982,7 @@
         }
       },
       "post": {
-        "tags": [
-          "OrderShippingDocumentService"
-        ],
+        "tags": ["OrderShippingDocumentService"],
         "description": "AddShippingDocument 添加订单提单，初始状态为草稿。",
         "operationId": "OrderShippingDocumentService_AddShippingDocument",
         "parameters": [
@@ -11593,9 +11021,7 @@
     },
     "/api/v1/orders/{orderId}/shipping-documents/{id}": {
       "put": {
-        "tags": [
-          "OrderShippingDocumentService"
-        ],
+        "tags": ["OrderShippingDocumentService"],
         "description": "UpdateShippingDocument 更新提单字段，草稿与已确认状态可改，已放货后不可改。",
         "operationId": "OrderShippingDocumentService_UpdateShippingDocument",
         "parameters": [
@@ -11640,9 +11066,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "OrderShippingDocumentService"
-        ],
+        "tags": ["OrderShippingDocumentService"],
         "description": "RemoveShippingDocument 移除提单，已放货的提单不可删除。",
         "operationId": "OrderShippingDocumentService_RemoveShippingDocument",
         "parameters": [
@@ -11679,9 +11103,7 @@
     },
     "/api/v1/orders/{orderId}/shipping-documents/{id}/transition": {
       "post": {
-        "tags": [
-          "OrderShippingDocumentService"
-        ],
+        "tags": ["OrderShippingDocumentService"],
         "description": "TransitionShippingDocumentStatus 流转提单状态，仅允许向前单步流转。",
         "operationId": "OrderShippingDocumentService_TransitionShippingDocumentStatus",
         "parameters": [
@@ -11728,9 +11150,7 @@
     },
     "/api/v1/orders/{orderId}/unlock": {
       "post": {
-        "tags": [
-          "OrderLockService"
-        ],
+        "tags": ["OrderLockService"],
         "description": "RequestOrderUnlock 请求或直接解锁订单（根据调用人角色分流）。",
         "operationId": "OrderLockService_RequestOrderUnlock",
         "parameters": [
@@ -11769,9 +11189,7 @@
     },
     "/api/v1/orders/{orderId}/unlock-requests": {
       "get": {
-        "tags": [
-          "OrderLockService"
-        ],
+        "tags": ["OrderLockService"],
         "description": "ListOrderUnlockRequests 查询订单解锁请求历史。",
         "operationId": "OrderLockService_ListOrderUnlockRequests",
         "parameters": [
@@ -11816,9 +11234,7 @@
     },
     "/api/v1/orders/{orderId}/unlock-requests/{requestId}": {
       "get": {
-        "tags": [
-          "OrderLockService"
-        ],
+        "tags": ["OrderLockService"],
         "description": "GetOrderUnlockRequest 获取单个解锁请求详情。",
         "operationId": "OrderLockService_GetOrderUnlockRequest",
         "parameters": [
@@ -11855,9 +11271,7 @@
     },
     "/api/v1/partner-assignment-options": {
       "get": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_ListPartnerAssignmentOptions",
         "responses": {
           "200": {
@@ -11875,9 +11289,7 @@
     },
     "/api/v1/partner-assignment-options/search": {
       "get": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_SearchPartnerAssignmentOptions",
         "parameters": [
           {
@@ -11920,9 +11332,7 @@
     },
     "/api/v1/partners": {
       "get": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_ListPartners",
         "parameters": [
           {
@@ -11993,9 +11403,7 @@
         }
       },
       "post": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_CreatePartner",
         "requestBody": {
           "content": {
@@ -12023,9 +11431,7 @@
     },
     "/api/v1/partners/export": {
       "get": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_ExportPartners",
         "parameters": [
           {
@@ -12083,9 +11489,7 @@
     },
     "/api/v1/partners/import": {
       "post": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_ImportPartners",
         "requestBody": {
           "content": {
@@ -12113,9 +11517,7 @@
     },
     "/api/v1/partners/{id}": {
       "get": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_GetPartner",
         "parameters": [
           {
@@ -12141,9 +11543,7 @@
         }
       },
       "put": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_UpdatePartner",
         "parameters": [
           {
@@ -12181,9 +11581,7 @@
     },
     "/api/v1/partners/{id}/role-blacklist": {
       "post": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_SetPartnerRoleBlacklist",
         "parameters": [
           {
@@ -12221,9 +11619,7 @@
     },
     "/api/v1/partners/{partnerId}/accounts": {
       "get": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_ListPartnerAccounts",
         "parameters": [
           {
@@ -12271,9 +11667,7 @@
         }
       },
       "post": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_CreatePartnerAccount",
         "parameters": [
           {
@@ -12311,9 +11705,7 @@
     },
     "/api/v1/partners/{partnerId}/accounts/{id}": {
       "put": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_UpdatePartnerAccount",
         "parameters": [
           {
@@ -12359,9 +11751,7 @@
     },
     "/api/v1/partners/{partnerId}/attachments": {
       "get": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_ListPartnerAttachments",
         "parameters": [
           {
@@ -12387,9 +11777,7 @@
         }
       },
       "post": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_RegisterPartnerAttachment",
         "parameters": [
           {
@@ -12427,9 +11815,7 @@
     },
     "/api/v1/partners/{partnerId}/audit-logs": {
       "get": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_ListPartnerAuditLogs",
         "parameters": [
           {
@@ -12473,9 +11859,7 @@
     },
     "/api/v1/partners/{partnerId}/contracts": {
       "get": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_ListPartnerContracts",
         "parameters": [
           {
@@ -12509,9 +11893,7 @@
         }
       },
       "post": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_CreatePartnerContract",
         "parameters": [
           {
@@ -12549,9 +11931,7 @@
     },
     "/api/v1/partners/{partnerId}/contracts/{id}": {
       "put": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_UpdatePartnerContract",
         "parameters": [
           {
@@ -12597,9 +11977,7 @@
     },
     "/api/v1/partners/{partnerId}/invoice-profiles": {
       "get": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_ListPartnerInvoiceProfiles",
         "parameters": [
           {
@@ -12625,9 +12003,7 @@
         }
       },
       "post": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_CreatePartnerInvoiceProfile",
         "parameters": [
           {
@@ -12665,9 +12041,7 @@
     },
     "/api/v1/partners/{partnerId}/invoice-profiles/{id}": {
       "put": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_UpdatePartnerInvoiceProfile",
         "parameters": [
           {
@@ -12713,9 +12087,7 @@
     },
     "/api/v1/partners/{partnerId}/roles": {
       "put": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_UpdatePartnerRoles",
         "parameters": [
           {
@@ -12753,9 +12125,7 @@
     },
     "/api/v1/partners/{partnerId}/roles/{roleType}/settlement-rules": {
       "get": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_ListPartnerSettlementRules",
         "parameters": [
           {
@@ -12790,9 +12160,7 @@
         }
       },
       "post": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_CreatePartnerSettlementRule",
         "parameters": [
           {
@@ -12839,9 +12207,7 @@
     },
     "/api/v1/partners/{partnerId}/roles/{roleType}/settlement-rules/{id}": {
       "put": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_UpdatePartnerSettlementRule",
         "parameters": [
           {
@@ -12896,9 +12262,7 @@
     },
     "/api/v1/partners/{partnerId}/shipping-presets": {
       "get": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_ListPartnerShippingPresets",
         "parameters": [
           {
@@ -12939,9 +12303,7 @@
         }
       },
       "post": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_CreatePartnerShippingPreset",
         "parameters": [
           {
@@ -12979,9 +12341,7 @@
     },
     "/api/v1/partners/{partnerId}/shipping-presets/{id}": {
       "put": {
-        "tags": [
-          "PartnerService"
-        ],
+        "tags": ["PartnerService"],
         "operationId": "PartnerService_UpdatePartnerShippingPreset",
         "parameters": [
           {
@@ -13027,9 +12387,7 @@
     },
     "/api/v1/reference/administrative-regions": {
       "get": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "operationId": "MasterDataService_ListAdministrativeRegions",
         "parameters": [
           {
@@ -13087,9 +12445,7 @@
     },
     "/api/v1/reference/currencies": {
       "get": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "operationId": "MasterDataService_ListCurrencies",
         "parameters": [
           {
@@ -13116,9 +12472,7 @@
     },
     "/api/v1/reference/currencies/search": {
       "get": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "operationId": "MasterDataService_SearchCurrencies",
         "parameters": [
           {
@@ -13161,9 +12515,7 @@
     },
     "/api/v1/reference/currencies/{code}/status": {
       "put": {
-        "tags": [
-          "MasterDataService"
-        ],
+        "tags": ["MasterDataService"],
         "operationId": "MasterDataService_SetCurrencyEnabled",
         "parameters": [
           {
@@ -13201,9 +12553,7 @@
     },
     "/api/v1/workbench/application-candidates": {
       "get": {
-        "tags": [
-          "WorkbenchService"
-        ],
+        "tags": ["WorkbenchService"],
         "description": "ListMyApplicationCandidates 返回本人截至上一自然月末、尚未进入任何申请的\n 合格提成候选，按提成归属月过滤并服务端分页；候选由服务端按现有计提口径\n 全量解析，不信任客户端传入的员工/组织/金额。",
         "operationId": "WorkbenchService_ListMyApplicationCandidates",
         "parameters": [
@@ -13248,9 +12598,7 @@
     },
     "/api/v1/workbench/commission-applications": {
       "get": {
-        "tags": [
-          "WorkbenchService"
-        ],
+        "tags": ["WorkbenchService"],
         "description": "ListMyCommissionApplications 返回本人月度提成申请历史，服务端分页并支持状态过滤。",
         "operationId": "WorkbenchService_ListMyCommissionApplications",
         "parameters": [
@@ -13295,9 +12643,7 @@
     },
     "/api/v1/workbench/commission-applications/resubmit": {
       "post": {
-        "tags": [
-          "WorkbenchService"
-        ],
+        "tags": ["WorkbenchService"],
         "description": "ResubmitMyCommissionApplication 显式重提本人被驳回的月度申请：按申请 ID 与\n expected_version 定位原申请（会话固定本人与当前组织），服务端按上游当前\n 事实逐笔刷新明细快照金额/方案/指纹（来源失效或提成已被取消/冲销的明细\n 剔除并留审计），版本递增并回到财务待审。",
         "operationId": "WorkbenchService_ResubmitMyCommissionApplication",
         "requestBody": {
@@ -13326,9 +12672,7 @@
     },
     "/api/v1/workbench/commission-applications/submit": {
       "post": {
-        "tags": [
-          "WorkbenchService"
-        ],
+        "tags": ["WorkbenchService"],
         "description": "SubmitMyCommissionApplication 提交本人月度提成申请（仅用于新建）：无业务参数，\n 服务端以当前会话组织与本人身份全量重算候选并固化申请头与明细快照；当前\n 自然月、空候选与已进入有效申请的提成将被拒绝。当月已存在任何状态的申请头\n 时稳定冲突，重提必须走 ResubmitMyCommissionApplication 显式定位原申请。",
         "operationId": "WorkbenchService_SubmitMyCommissionApplication",
         "requestBody": {
@@ -13357,9 +12701,7 @@
     },
     "/api/v1/workbench/commission-applications/{id}": {
       "get": {
-        "tags": [
-          "WorkbenchService"
-        ],
+        "tags": ["WorkbenchService"],
         "description": "GetMyCommissionApplication 返回本人单张申请详情：申请头、提交/决策版本审计\n 与明细快照；查询他人申请稳定返回不存在。",
         "operationId": "WorkbenchService_GetMyCommissionApplication",
         "parameters": [
@@ -13388,9 +12730,7 @@
     },
     "/api/v1/workbench/my-commissions": {
       "get": {
-        "tags": [
-          "WorkbenchService"
-        ],
+        "tags": ["WorkbenchService"],
         "description": "ListMyCommissions 返回本人提成单与调整明细，服务端分页并支持状态/归属日期过滤。",
         "operationId": "WorkbenchService_ListMyCommissions",
         "parameters": [
@@ -13449,9 +12789,7 @@
     },
     "/api/v1/workbench/my-open-abnormal-cases": {
       "get": {
-        "tags": [
-          "WorkbenchService"
-        ],
+        "tags": ["WorkbenchService"],
         "description": "ListMyOpenAbnormalCases 返回本人协作订单上的进行中异常明细。",
         "operationId": "WorkbenchService_ListMyOpenAbnormalCases",
         "parameters": [
@@ -13488,9 +12826,7 @@
     },
     "/api/v1/workbench/my-receivables": {
       "get": {
-        "tags": [
-          "WorkbenchService"
-        ],
+        "tags": ["WorkbenchService"],
         "description": "ListMyReceivables 返回与本人提成归属相关的已确认应收未结项，服务端分页。",
         "operationId": "WorkbenchService_ListMyReceivables",
         "parameters": [
@@ -13527,9 +12863,7 @@
     },
     "/api/v1/workbench/my-recent-orders": {
       "get": {
-        "tags": [
-          "WorkbenchService"
-        ],
+        "tags": ["WorkbenchService"],
         "description": "ListMyRecentOrders 返回本人真实协作且具备对应业务读取权限的近期出口订单，服务端分页。",
         "operationId": "WorkbenchService_ListMyRecentOrders",
         "parameters": [
@@ -13566,9 +12900,7 @@
     },
     "/api/v1/workbench/my-unbilled-fees": {
       "get": {
-        "tags": [
-          "WorkbenchService"
-        ],
+        "tags": ["WorkbenchService"],
         "description": "ListMyUnbilledFees 返回本人协作订单上仍需记账的未建账费用明细。",
         "operationId": "WorkbenchService_ListMyUnbilledFees",
         "parameters": [
@@ -13605,9 +12937,7 @@
     },
     "/api/v1/workbench/overview": {
       "get": {
-        "tags": [
-          "WorkbenchService"
-        ],
+        "tags": ["WorkbenchService"],
         "description": "GetWorkbenchOverview 返回模块门禁、本人提成状态汇总、近期订单、可靠作业\n 待办计数与当前用户有权查看的财务/审批摘要。",
         "operationId": "WorkbenchService_GetWorkbenchOverview",
         "responses": {
@@ -13923,10 +13253,7 @@
         "description": "用户归属组织摘要；仅在操作者持有 ALL 数据范围时填充，避免组织范围越权可见。"
       },
       "admin.v1.AuthorizeDingTalkUserRequest": {
-        "required": [
-          "id",
-          "items"
-        ],
+        "required": ["id", "items"],
         "type": "object",
         "properties": {
           "id": {
@@ -13962,10 +13289,7 @@
         }
       },
       "admin.v1.BatchAuthorizeDingTalkUsersRequest": {
-        "required": [
-          "userIds",
-          "items"
-        ],
+        "required": ["userIds", "items"],
         "type": "object",
         "properties": {
           "userIds": {
@@ -14007,11 +13331,7 @@
         }
       },
       "admin.v1.CreateOrganizationRequest": {
-        "required": [
-          "code",
-          "name",
-          "kind"
-        ],
+        "required": ["code", "name", "kind"],
         "type": "object",
         "properties": {
           "code": {
@@ -14057,9 +13377,7 @@
         }
       },
       "admin.v1.CreateRoleRequest": {
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "type": "object",
         "properties": {
           "code": {
@@ -14099,10 +13417,7 @@
         }
       },
       "admin.v1.CreateUserMembershipsRequest": {
-        "required": [
-          "userId",
-          "items"
-        ],
+        "required": ["userId", "items"],
         "type": "object",
         "properties": {
           "userId": {
@@ -14141,11 +13456,7 @@
         }
       },
       "admin.v1.CreateUserRequest": {
-        "required": [
-          "username",
-          "displayName",
-          "password"
-        ],
+        "required": ["username", "displayName", "password"],
         "type": "object",
         "properties": {
           "username": {
@@ -14700,10 +14011,7 @@
         }
       },
       "admin.v1.ResetUserPasswordRequest": {
-        "required": [
-          "id",
-          "password"
-        ],
+        "required": ["id", "password"],
         "type": "object",
         "properties": {
           "id": {
@@ -14736,9 +14044,7 @@
         }
       },
       "admin.v1.SendNotificationTestRequest": {
-        "required": [
-          "notificationType"
-        ],
+        "required": ["notificationType"],
         "type": "object",
         "properties": {
           "notificationType": {
@@ -14796,9 +14102,7 @@
         }
       },
       "admin.v1.TerminateUserRequest": {
-        "required": [
-          "id"
-        ],
+        "required": ["id"],
         "type": "object",
         "properties": {
           "id": {
@@ -14825,10 +14129,7 @@
         }
       },
       "admin.v1.UpdateOrganizationRequest": {
-        "required": [
-          "id",
-          "name"
-        ],
+        "required": ["id", "name"],
         "type": "object",
         "properties": {
           "id": {
@@ -14870,10 +14171,7 @@
         }
       },
       "admin.v1.UpdateRoleRequest": {
-        "required": [
-          "id",
-          "name"
-        ],
+        "required": ["id", "name"],
         "type": "object",
         "properties": {
           "id": {
@@ -14915,10 +14213,7 @@
         }
       },
       "admin.v1.UpdateUserMembershipRequest": {
-        "required": [
-          "userId",
-          "id"
-        ],
+        "required": ["userId", "id"],
         "type": "object",
         "properties": {
           "userId": {
@@ -14960,9 +14255,7 @@
         }
       },
       "admin.v1.UpdateUserRequest": {
-        "required": [
-          "id"
-        ],
+        "required": ["id"],
         "type": "object",
         "properties": {
           "id": {
@@ -15001,9 +14294,7 @@
         }
       },
       "admin.v1.UserMembershipCreation": {
-        "required": [
-          "organizationId"
-        ],
+        "required": ["organizationId"],
         "type": "object",
         "properties": {
           "organizationId": {
@@ -15068,11 +14359,7 @@
         }
       },
       "auth.v1.ConfirmPasswordResetRequest": {
-        "required": [
-          "challengeToken",
-          "code",
-          "newPassword"
-        ],
+        "required": ["challengeToken", "code", "newPassword"],
         "type": "object",
         "properties": {
           "challengeToken": {
@@ -15189,10 +14476,7 @@
         }
       },
       "auth.v1.DingTalkEmbeddedLoginRequest": {
-        "required": [
-          "authCode",
-          "state"
-        ],
+        "required": ["authCode", "state"],
         "type": "object",
         "properties": {
           "authCode": {
@@ -15244,10 +14528,7 @@
         }
       },
       "auth.v1.DingTalkLoginRequest": {
-        "required": [
-          "authCode",
-          "state"
-        ],
+        "required": ["authCode", "state"],
         "type": "object",
         "properties": {
           "authCode": {
@@ -15314,9 +14595,7 @@
         }
       },
       "auth.v1.FinishPasskeyLoginRequest": {
-        "required": [
-          "credentialJson"
-        ],
+        "required": ["credentialJson"],
         "type": "object",
         "properties": {
           "credentialJson": {
@@ -15356,10 +14635,7 @@
         }
       },
       "auth.v1.FinishPasskeyRegistrationRequest": {
-        "required": [
-          "credentialJson",
-          "name"
-        ],
+        "required": ["credentialJson", "name"],
         "type": "object",
         "properties": {
           "credentialJson": {
@@ -15476,10 +14752,7 @@
         }
       },
       "auth.v1.LoginRequest": {
-        "required": [
-          "username",
-          "password"
-        ],
+        "required": ["username", "password"],
         "type": "object",
         "properties": {
           "username": {
@@ -15593,11 +14866,7 @@
         }
       },
       "auth.v1.OrganizationChoice": {
-        "required": [
-          "organizationId",
-          "organizationName",
-          "organizationCode"
-        ],
+        "required": ["organizationId", "organizationName", "organizationCode"],
         "type": "object",
         "properties": {
           "organizationId": {
@@ -15706,9 +14975,7 @@
         }
       },
       "auth.v1.PollDingTalkQRCodeRequest": {
-        "required": [
-          "state"
-        ],
+        "required": ["state"],
         "type": "object",
         "properties": {
           "state": {
@@ -15738,9 +15005,7 @@
         }
       },
       "auth.v1.RequestPasswordResetCodeRequest": {
-        "required": [
-          "mobile"
-        ],
+        "required": ["mobile"],
         "type": "object",
         "properties": {
           "mobile": {
@@ -15782,9 +15047,7 @@
         }
       },
       "auth.v1.SwitchOrganizationRequest": {
-        "required": [
-          "organizationId"
-        ],
+        "required": ["organizationId"],
         "type": "object",
         "properties": {
           "organizationId": {
@@ -15821,10 +15084,7 @@
         }
       },
       "enterprise_resource.v1.BatchAssignAddressTypesRequest": {
-        "required": [
-          "resourceIds",
-          "addressTypes"
-        ],
+        "required": ["resourceIds", "addressTypes"],
         "type": "object",
         "properties": {
           "resourceIds": {
@@ -15865,10 +15125,7 @@
         }
       },
       "enterprise_resource.v1.BatchAssignAssigneesRequest": {
-        "required": [
-          "resourceIds",
-          "assigneeIds"
-        ],
+        "required": ["resourceIds", "assigneeIds"],
         "type": "object",
         "properties": {
           "resourceIds": {
@@ -15908,10 +15165,7 @@
         }
       },
       "enterprise_resource.v1.BatchCreateAssociationsRequest": {
-        "required": [
-          "resourceIds",
-          "partnerIds"
-        ],
+        "required": ["resourceIds", "partnerIds"],
         "type": "object",
         "properties": {
           "resourceIds": {
@@ -15951,10 +15205,7 @@
         }
       },
       "enterprise_resource.v1.BatchDeleteAssociationsRequest": {
-        "required": [
-          "resourceIds",
-          "partnerIds"
-        ],
+        "required": ["resourceIds", "partnerIds"],
         "type": "object",
         "properties": {
           "resourceIds": {
@@ -15994,10 +15245,7 @@
         }
       },
       "enterprise_resource.v1.BatchRemoveAddressTypesRequest": {
-        "required": [
-          "resourceIds",
-          "addressTypes"
-        ],
+        "required": ["resourceIds", "addressTypes"],
         "type": "object",
         "properties": {
           "resourceIds": {
@@ -16038,10 +15286,7 @@
         }
       },
       "enterprise_resource.v1.BatchRemoveAssigneesRequest": {
-        "required": [
-          "resourceIds",
-          "assigneeIds"
-        ],
+        "required": ["resourceIds", "assigneeIds"],
         "type": "object",
         "properties": {
           "resourceIds": {
@@ -16081,10 +15326,7 @@
         }
       },
       "enterprise_resource.v1.CommitEnterpriseResourceImportRequest": {
-        "required": [
-          "resourceType",
-          "rows"
-        ],
+        "required": ["resourceType", "rows"],
         "type": "object",
         "properties": {
           "resourceType": {
@@ -16147,9 +15389,7 @@
         }
       },
       "enterprise_resource.v1.CreateEnterpriseResourceRequest": {
-        "required": [
-          "resource"
-        ],
+        "required": ["resource"],
         "type": "object",
         "properties": {
           "resource": {
@@ -16374,10 +15614,7 @@
         }
       },
       "enterprise_resource.v1.EnterpriseResourceInput": {
-        "required": [
-          "resourceType",
-          "shortName"
-        ],
+        "required": ["resourceType", "shortName"],
         "type": "object",
         "properties": {
           "resourceType": {
@@ -16666,12 +15903,7 @@
         }
       },
       "enterprise_resource.v1.PrepareEnterpriseResourceImageUploadRequest": {
-        "required": [
-          "fileName",
-          "mimeType",
-          "fileSize",
-          "checksum"
-        ],
+        "required": ["fileName", "mimeType", "fileSize", "checksum"],
         "type": "object",
         "properties": {
           "fileName": {
@@ -16722,10 +15954,7 @@
         }
       },
       "enterprise_resource.v1.PreviewEnterpriseResourceImportRequest": {
-        "required": [
-          "resourceType",
-          "rows"
-        ],
+        "required": ["resourceType", "rows"],
         "type": "object",
         "properties": {
           "resourceType": {
@@ -16854,10 +16083,7 @@
         }
       },
       "enterprise_resource.v1.UpdateEnterpriseResourceRequest": {
-        "required": [
-          "id",
-          "resource"
-        ],
+        "required": ["id", "resource"],
         "type": "object",
         "properties": {
           "id": {
@@ -16890,10 +16116,7 @@
         }
       },
       "finance.v1.ApproveCommissionApplicationRequest": {
-        "required": [
-          "id",
-          "expectedVersion"
-        ],
+        "required": ["id", "expectedVersion"],
         "type": "object",
         "properties": {
           "id": {
@@ -16926,10 +16149,7 @@
         }
       },
       "finance.v1.AssignCommissionRuleEmployeesRequest": {
-        "required": [
-          "id",
-          "change"
-        ],
+        "required": ["id", "change"],
         "type": "object",
         "properties": {
           "id": {
@@ -17077,9 +16297,7 @@
         }
       },
       "finance.v1.BillBatchPreviewGroupConfigInput": {
-        "required": [
-          "groupKey"
-        ],
+        "required": ["groupKey"],
         "type": "object",
         "properties": {
           "groupKey": {
@@ -17101,10 +16319,7 @@
         "description": "BillBatchPreviewGroupConfigInput 由服务端上一轮返回的 group_key 标识叶子；\n 初次预览可以省略，服务端会返回待补齐状态，但不会签发可创建的预览令牌。"
       },
       "finance.v1.BillExpectedVersion": {
-        "required": [
-          "billId",
-          "expectedVersion"
-        ],
+        "required": ["billId", "expectedVersion"],
         "type": "object",
         "properties": {
           "billId": {
@@ -17196,11 +16411,7 @@
         }
       },
       "finance.v1.CancelBillRequest": {
-        "required": [
-          "id",
-          "expectedVersion",
-          "reason"
-        ],
+        "required": ["id", "expectedVersion", "reason"],
         "type": "object",
         "properties": {
           "id": {
@@ -17236,11 +16447,7 @@
         }
       },
       "finance.v1.CancelCashflowRequest": {
-        "required": [
-          "id",
-          "expectedVersion",
-          "reason"
-        ],
+        "required": ["id", "expectedVersion", "reason"],
         "type": "object",
         "properties": {
           "id": {
@@ -17276,11 +16483,7 @@
         }
       },
       "finance.v1.CancelCommissionAdjustmentRequest": {
-        "required": [
-          "id",
-          "expectedVersion",
-          "reason"
-        ],
+        "required": ["id", "expectedVersion", "reason"],
         "type": "object",
         "properties": {
           "id": {
@@ -17316,11 +16519,7 @@
         }
       },
       "finance.v1.CancelCommissionRequest": {
-        "required": [
-          "id",
-          "expectedVersion",
-          "reason"
-        ],
+        "required": ["id", "expectedVersion", "reason"],
         "type": "object",
         "properties": {
           "id": {
@@ -17356,11 +16555,7 @@
         }
       },
       "finance.v1.CancelInvoiceRequest": {
-        "required": [
-          "id",
-          "expectedVersion",
-          "reason"
-        ],
+        "required": ["id", "expectedVersion", "reason"],
         "type": "object",
         "properties": {
           "id": {
@@ -17396,11 +16591,7 @@
         }
       },
       "finance.v1.CancelNettingRequest": {
-        "required": [
-          "id",
-          "expectedVersion",
-          "reason"
-        ],
+        "required": ["id", "expectedVersion", "reason"],
         "type": "object",
         "properties": {
           "id": {
@@ -17783,10 +16974,7 @@
         "description": "CommissionRuleAssignmentProjection 是方案名单的受控投影：只暴露名单抽屉与\n 资格追溯所需字段，不包含审计操作者等内部信息。"
       },
       "finance.v1.CommissionRuleEmployeeChangeInput": {
-        "required": [
-          "employeeIds",
-          "expectedVersion"
-        ],
+        "required": ["employeeIds", "expectedVersion"],
         "type": "object",
         "properties": {
           "employeeIds": {
@@ -17846,10 +17034,7 @@
         }
       },
       "finance.v1.ConfirmBillBatchRequest": {
-        "required": [
-          "id",
-          "bills"
-        ],
+        "required": ["id", "bills"],
         "type": "object",
         "properties": {
           "id": {
@@ -17885,10 +17070,7 @@
         }
       },
       "finance.v1.ConfirmBillRequest": {
-        "required": [
-          "id",
-          "expectedVersion"
-        ],
+        "required": ["id", "expectedVersion"],
         "type": "object",
         "properties": {
           "id": {
@@ -17921,10 +17103,7 @@
         }
       },
       "finance.v1.ConfirmCashflowRequest": {
-        "required": [
-          "id",
-          "expectedVersion"
-        ],
+        "required": ["id", "expectedVersion"],
         "type": "object",
         "properties": {
           "id": {
@@ -17957,10 +17136,7 @@
         }
       },
       "finance.v1.ConfirmCommissionAdjustmentRequest": {
-        "required": [
-          "id",
-          "expectedVersion"
-        ],
+        "required": ["id", "expectedVersion"],
         "type": "object",
         "properties": {
           "id": {
@@ -17993,10 +17169,7 @@
         }
       },
       "finance.v1.ConfirmCommissionRequest": {
-        "required": [
-          "id",
-          "expectedVersion"
-        ],
+        "required": ["id", "expectedVersion"],
         "type": "object",
         "properties": {
           "id": {
@@ -18029,10 +17202,7 @@
         }
       },
       "finance.v1.ConfirmExchangeRateImportRequest": {
-        "required": [
-          "previewToken",
-          "idempotencyKey"
-        ],
+        "required": ["previewToken", "idempotencyKey"],
         "type": "object",
         "properties": {
           "previewToken": {
@@ -18065,10 +17235,7 @@
         }
       },
       "finance.v1.ConfirmNettingRequest": {
-        "required": [
-          "id",
-          "expectedVersion"
-        ],
+        "required": ["id", "expectedVersion"],
         "type": "object",
         "properties": {
           "id": {
@@ -18324,10 +17491,7 @@
         }
       },
       "finance.v1.CreateBillingUnitRequest": {
-        "required": [
-          "code",
-          "name"
-        ],
+        "required": ["code", "name"],
         "type": "object",
         "properties": {
           "code": {
@@ -18557,10 +17721,7 @@
         }
       },
       "finance.v1.CreateCommissionRuleRequest": {
-        "required": [
-          "rule",
-          "organizationId"
-        ],
+        "required": ["rule", "organizationId"],
         "type": "object",
         "properties": {
           "rule": {
@@ -18792,11 +17953,7 @@
         }
       },
       "finance.v1.CreateNettingRequest": {
-        "required": [
-          "organizationId",
-          "bills",
-          "idempotencyKey"
-        ],
+        "required": ["organizationId", "bills", "idempotencyKey"],
         "type": "object",
         "properties": {
           "organizationId": {
@@ -18838,10 +17995,7 @@
         }
       },
       "finance.v1.CreateTaxableServiceRequest": {
-        "required": [
-          "name",
-          "defaultTaxRate"
-        ],
+        "required": ["name", "defaultTaxRate"],
         "type": "object",
         "properties": {
           "name": {
@@ -18880,11 +18034,7 @@
         }
       },
       "finance.v1.CreateVerificationRequest": {
-        "required": [
-          "allocations",
-          "verificationDate",
-          "idempotencyKey"
-        ],
+        "required": ["allocations", "verificationDate", "idempotencyKey"],
         "type": "object",
         "properties": {
           "allocations": {
@@ -18952,9 +18102,7 @@
         "description": "CreditLimitControlPolicy 是组织级信用额度管控策略：\n allow_selection_when_credit_exceeded=true（默认）为仅提醒模式，超额往来单位仍可选择与录单；\n false 为直接干预模式，超额客户在选择器中禁用且服务端在订单、应收费用写入时拦截。"
       },
       "finance.v1.DisableExchangeRateSettingRequest": {
-        "required": [
-          "id"
-        ],
+        "required": ["id"],
         "type": "object",
         "properties": {
           "id": {
@@ -19572,9 +18720,7 @@
         "description": "系统初始费用目录；税务默认值只保存文本，不引用公司的税务资料。"
       },
       "finance.v1.FetchExchangeRatesRequest": {
-        "required": [
-          "target"
-        ],
+        "required": ["target"],
         "type": "object",
         "properties": {
           "target": {
@@ -21498,12 +20644,7 @@
         }
       },
       "finance.v1.IssueInvoiceRequest": {
-        "required": [
-          "id",
-          "expectedVersion",
-          "taxInvoiceNo",
-          "invoiceDate"
-        ],
+        "required": ["id", "expectedVersion", "taxInvoiceNo", "invoiceDate"],
         "type": "object",
         "properties": {
           "id": {
@@ -22333,10 +21474,7 @@
         }
       },
       "finance.v1.MarkCommissionAdjustmentPaidRequest": {
-        "required": [
-          "id",
-          "expectedVersion"
-        ],
+        "required": ["id", "expectedVersion"],
         "type": "object",
         "properties": {
           "id": {
@@ -22480,10 +21618,7 @@
         }
       },
       "finance.v1.NettingBillExpectedVersion": {
-        "required": [
-          "billId",
-          "expectedVersion"
-        ],
+        "required": ["billId", "expectedVersion"],
         "type": "object",
         "properties": {
           "billId": {
@@ -22495,11 +21630,7 @@
         }
       },
       "finance.v1.PreviewBillBatchRequest": {
-        "required": [
-          "feeIds",
-          "groupingPolicy",
-          "organizationId"
-        ],
+        "required": ["feeIds", "groupingPolicy", "organizationId"],
         "type": "object",
         "properties": {
           "feeIds": {
@@ -22557,10 +21688,7 @@
         }
       },
       "finance.v1.PreviewCommissionPaymentRequest": {
-        "required": [
-          "id",
-          "expectedVersion"
-        ],
+        "required": ["id", "expectedVersion"],
         "type": "object",
         "properties": {
           "id": {
@@ -22593,11 +21721,7 @@
         }
       },
       "finance.v1.PreviewCommissionRequest": {
-        "required": [
-          "employeeId",
-          "personnelRole",
-          "organizationId"
-        ],
+        "required": ["employeeId", "personnelRole", "organizationId"],
         "type": "object",
         "properties": {
           "verificationId": {
@@ -22640,10 +21764,7 @@
         }
       },
       "finance.v1.PreviewExchangeRateImportRequest": {
-        "required": [
-          "fileName",
-          "fileContent"
-        ],
+        "required": ["fileName", "fileContent"],
         "type": "object",
         "properties": {
           "fileName": {
@@ -22680,11 +21801,7 @@
         }
       },
       "finance.v1.PreviewNettingRequest": {
-        "required": [
-          "organizationId",
-          "settlementPartyId",
-          "currency"
-        ],
+        "required": ["organizationId", "settlementPartyId", "currency"],
         "type": "object",
         "properties": {
           "organizationId": {
@@ -22768,11 +21885,7 @@
         }
       },
       "finance.v1.RejectCommissionApplicationRequest": {
-        "required": [
-          "id",
-          "expectedVersion",
-          "reason"
-        ],
+        "required": ["id", "expectedVersion", "reason"],
         "type": "object",
         "properties": {
           "id": {
@@ -22808,10 +21921,7 @@
         }
       },
       "finance.v1.RemoveCommissionRuleEmployeesRequest": {
-        "required": [
-          "id",
-          "change"
-        ],
+        "required": ["id", "change"],
         "type": "object",
         "properties": {
           "id": {
@@ -22844,11 +21954,7 @@
         }
       },
       "finance.v1.ReverseNettingRequest": {
-        "required": [
-          "id",
-          "expectedVersion",
-          "reason"
-        ],
+        "required": ["id", "expectedVersion", "reason"],
         "type": "object",
         "properties": {
           "id": {
@@ -22884,11 +21990,7 @@
         }
       },
       "finance.v1.ReverseVerificationRequest": {
-        "required": [
-          "id",
-          "expectedVersion",
-          "reason"
-        ],
+        "required": ["id", "expectedVersion", "reason"],
         "type": "object",
         "properties": {
           "id": {
@@ -23032,11 +22134,7 @@
         }
       },
       "finance.v1.SyncExchangeRateRow": {
-        "required": [
-          "fromCurrency",
-          "arRate",
-          "apRate"
-        ],
+        "required": ["fromCurrency", "arRate", "apRate"],
         "type": "object",
         "properties": {
           "fromCurrency": {
@@ -23054,10 +22152,7 @@
         }
       },
       "finance.v1.SyncExchangeRatesRequest": {
-        "required": [
-          "target",
-          "rows"
-        ],
+        "required": ["target", "rows"],
         "type": "object",
         "properties": {
           "target": {
@@ -23198,9 +22293,7 @@
         }
       },
       "finance.v1.UpdateBilledFeeEditPolicyRequest": {
-        "required": [
-          "expectedVersion"
-        ],
+        "required": ["expectedVersion"],
         "type": "object",
         "properties": {
           "enabled": {
@@ -23240,11 +22333,7 @@
         }
       },
       "finance.v1.UpdateBillingUnitRequest": {
-        "required": [
-          "id",
-          "code",
-          "name"
-        ],
+        "required": ["id", "code", "name"],
         "type": "object",
         "properties": {
           "id": {
@@ -23293,11 +22382,7 @@
         }
       },
       "finance.v1.UpdateCommissionRuleRequest": {
-        "required": [
-          "id",
-          "rule",
-          "expectedVersion"
-        ],
+        "required": ["id", "rule", "expectedVersion"],
         "type": "object",
         "properties": {
           "id": {
@@ -23333,9 +22418,7 @@
         }
       },
       "finance.v1.UpdateCreditLimitControlPolicyRequest": {
-        "required": [
-          "expectedVersion"
-        ],
+        "required": ["expectedVersion"],
         "type": "object",
         "properties": {
           "organizationId": {
@@ -23534,11 +22617,7 @@
         }
       },
       "finance.v1.UpdateTaxableServiceRequest": {
-        "required": [
-          "id",
-          "name",
-          "defaultTaxRate"
-        ],
+        "required": ["id", "name", "defaultTaxRate"],
         "type": "object",
         "properties": {
           "id": {
@@ -23583,11 +22662,7 @@
         }
       },
       "finance.v1.VerificationAllocationInput": {
-        "required": [
-          "cashflowId",
-          "billId",
-          "amount"
-        ],
+        "required": ["cashflowId", "billId", "amount"],
         "type": "object",
         "properties": {
           "cashflowId": {
@@ -23760,11 +22835,7 @@
         }
       },
       "masterdata.v1.CreateAirlineRequest": {
-        "required": [
-          "iataCode",
-          "nameEn",
-          "countryCode"
-        ],
+        "required": ["iataCode", "nameEn", "countryCode"],
         "type": "object",
         "properties": {
           "iataCode": {
@@ -23877,11 +22948,7 @@
         }
       },
       "masterdata.v1.CreateItemRequest": {
-        "required": [
-          "kind",
-          "code",
-          "name"
-        ],
+        "required": ["kind", "code", "name"],
         "type": "object",
         "properties": {
           "kind": {
@@ -23988,12 +23055,7 @@
         }
       },
       "masterdata.v1.CreatePortRequest": {
-        "required": [
-          "unLocode",
-          "nameZh",
-          "nameEn",
-          "countryCode"
-        ],
+        "required": ["unLocode", "nameZh", "nameEn", "countryCode"],
         "type": "object",
         "properties": {
           "unLocode": {
@@ -24042,12 +23104,7 @@
         }
       },
       "masterdata.v1.CreateShippingLineRequest": {
-        "required": [
-          "scacCode",
-          "nameZh",
-          "nameEn",
-          "countryCode"
-        ],
+        "required": ["scacCode", "nameZh", "nameEn", "countryCode"],
         "type": "object",
         "properties": {
           "scacCode": {
@@ -24138,12 +23195,7 @@
         }
       },
       "masterdata.v1.ImportItemsRequest": {
-        "required": [
-          "kind",
-          "source",
-          "mode",
-          "items"
-        ],
+        "required": ["kind", "source", "mode", "items"],
         "type": "object",
         "properties": {
           "kind": {
@@ -24542,10 +23594,7 @@
         "description": "MasterDataAttributes 只承载仍由通用主数据管理的少量专属属性。"
       },
       "masterdata.v1.MasterDataImportItemInput": {
-        "required": [
-          "code",
-          "name"
-        ],
+        "required": ["code", "name"],
         "type": "object",
         "properties": {
           "code": {
@@ -24781,9 +23830,7 @@
         }
       },
       "masterdata.v1.SetCurrencyEnabledRequest": {
-        "required": [
-          "code"
-        ],
+        "required": ["code"],
         "type": "object",
         "properties": {
           "code": {
@@ -24864,11 +23911,7 @@
         }
       },
       "masterdata.v1.UpdateAirlineRequest": {
-        "required": [
-          "id",
-          "nameEn",
-          "countryCode"
-        ],
+        "required": ["id", "nameEn", "countryCode"],
         "type": "object",
         "properties": {
           "id": {
@@ -24926,13 +23969,7 @@
         }
       },
       "masterdata.v1.UpdateAirportRequest": {
-        "required": [
-          "id",
-          "nameZh",
-          "nameEn",
-          "cityNameZh",
-          "countryCode"
-        ],
+        "required": ["id", "nameZh", "nameEn", "cityNameZh", "countryCode"],
         "type": "object",
         "properties": {
           "id": {
@@ -24987,11 +24024,7 @@
         }
       },
       "masterdata.v1.UpdateItemRequest": {
-        "required": [
-          "id",
-          "name",
-          "kind"
-        ],
+        "required": ["id", "name", "kind"],
         "type": "object",
         "properties": {
           "id": {
@@ -25050,12 +24083,7 @@
         }
       },
       "masterdata.v1.UpdateNumberRuleRequest": {
-        "required": [
-          "id",
-          "dateFormat",
-          "sequenceLength",
-          "resetPolicy"
-        ],
+        "required": ["id", "dateFormat", "sequenceLength", "resetPolicy"],
         "type": "object",
         "properties": {
           "id": {
@@ -25103,12 +24131,7 @@
         }
       },
       "masterdata.v1.UpdatePortRequest": {
-        "required": [
-          "id",
-          "nameZh",
-          "nameEn",
-          "countryCode"
-        ],
+        "required": ["id", "nameZh", "nameEn", "countryCode"],
         "type": "object",
         "properties": {
           "id": {
@@ -25160,12 +24183,7 @@
         }
       },
       "masterdata.v1.UpdateShippingLineRequest": {
-        "required": [
-          "id",
-          "nameZh",
-          "nameEn",
-          "countryCode"
-        ],
+        "required": ["id", "nameZh", "nameEn", "countryCode"],
         "type": "object",
         "properties": {
           "id": {
@@ -25430,9 +24448,7 @@
         }
       },
       "order.v1.AddReleasePodRequest": {
-        "required": [
-          "orderId"
-        ],
+        "required": ["orderId"],
         "type": "object",
         "properties": {
           "orderId": {
@@ -25483,10 +24499,7 @@
         "description": "AddReleasePodResponse 单条放货凭证响应。"
       },
       "order.v1.AddShippingDocumentRequest": {
-        "required": [
-          "orderId",
-          "houseNo"
-        ],
+        "required": ["orderId", "houseNo"],
         "type": "object",
         "properties": {
           "orderId": {
@@ -26002,10 +25015,7 @@
         "description": "AttachmentUpload 包含直传地址与服务端登记凭证。"
       },
       "order.v1.BulkOrderFeeTarget": {
-        "required": [
-          "feeId",
-          "expectedVersion"
-        ],
+        "required": ["feeId", "expectedVersion"],
         "type": "object",
         "properties": {
           "feeId": {
@@ -26018,10 +25028,7 @@
         "description": "BulkOrderFeeTarget 批量操作的单一费用目标：费用 ID 与乐观锁版本。"
       },
       "order.v1.BulkRemoveOrderFeesRequest": {
-        "required": [
-          "orderId",
-          "targets"
-        ],
+        "required": ["orderId", "targets"],
         "type": "object",
         "properties": {
           "orderId": {
@@ -26062,10 +25069,7 @@
         }
       },
       "order.v1.BulkUpdateOrderFeesRequest": {
-        "required": [
-          "orderId",
-          "targets"
-        ],
+        "required": ["orderId", "targets"],
         "type": "object",
         "properties": {
           "orderId": {
@@ -26186,11 +25190,7 @@
         }
       },
       "order.v1.ConfirmSeaSharedContainerRequest": {
-        "required": [
-          "id",
-          "expectedVersion",
-          "orderId"
-        ],
+        "required": ["id", "expectedVersion", "orderId"],
         "type": "object",
         "properties": {
           "id": {
@@ -26517,10 +25517,7 @@
         }
       },
       "order.v1.CreateSeaSharedContainerRequest": {
-        "required": [
-          "input",
-          "orderId"
-        ],
+        "required": ["input", "orderId"],
         "type": "object",
         "properties": {
           "input": {
@@ -28376,10 +27373,7 @@
         }
       },
       "order.v1.MarkAbnormalCaseRequest": {
-        "required": [
-          "orderId",
-          "abnormalCaseId"
-        ],
+        "required": ["orderId", "abnormalCaseId"],
         "type": "object",
         "properties": {
           "orderId": {
@@ -29070,10 +28064,7 @@
         "description": "OrderContainerRequest 订单订舱阶段的箱型箱量计划。"
       },
       "order.v1.OrderContainerRequestInput": {
-        "required": [
-          "containerSpecId",
-          "quantity"
-        ],
+        "required": ["containerSpecId", "quantity"],
         "type": "object",
         "properties": {
           "id": {
@@ -30092,10 +29083,7 @@
         "description": "OrderPersonnel 订单协作人员信息。"
       },
       "order.v1.OrderPersonnelAssignmentInput": {
-        "required": [
-          "userId",
-          "role"
-        ],
+        "required": ["userId", "role"],
         "type": "object",
         "properties": {
           "userId": {
@@ -30228,9 +29216,7 @@
         "description": "OrderShippingDocument 提单（HBL）信息。"
       },
       "order.v1.OrderShippingDocumentInput": {
-        "required": [
-          "houseNo"
-        ],
+        "required": ["houseNo"],
         "type": "object",
         "properties": {
           "id": {
@@ -30541,11 +29527,7 @@
         }
       },
       "order.v1.PreviewChangeSeaDocumentModeRequest": {
-        "required": [
-          "orderId",
-          "targetMode",
-          "reason"
-        ],
+        "required": ["orderId", "targetMode", "reason"],
         "type": "object",
         "properties": {
           "orderId": {
@@ -30830,10 +29812,7 @@
         }
       },
       "order.v1.PreviewSeaOrderReassignmentRequest": {
-        "required": [
-          "orderId",
-          "target"
-        ],
+        "required": ["orderId", "target"],
         "type": "object",
         "properties": {
           "orderId": {
@@ -30866,11 +29845,7 @@
         }
       },
       "order.v1.PreviewSeaOrderSplitRequest": {
-        "required": [
-          "orderId",
-          "targets",
-          "results"
-        ],
+        "required": ["orderId", "targets", "results"],
         "type": "object",
         "properties": {
           "orderId": {
@@ -30962,10 +29937,7 @@
         }
       },
       "order.v1.RegisterAttachmentRequest": {
-        "required": [
-          "orderId",
-          "uploadToken"
-        ],
+        "required": ["orderId", "uploadToken"],
         "type": "object",
         "properties": {
           "orderId": {
@@ -31170,11 +30142,7 @@
         "description": "RemoveShippingDocumentResponse 提单操作响应。"
       },
       "order.v1.RequestOrderUnlockRequest": {
-        "required": [
-          "orderId",
-          "expectedOrderVersion",
-          "idempotencyKey"
-        ],
+        "required": ["orderId", "expectedOrderVersion", "idempotencyKey"],
         "type": "object",
         "properties": {
           "orderId": {
@@ -31213,10 +30181,7 @@
         }
       },
       "order.v1.ResolveAbnormalCaseRequest": {
-        "required": [
-          "orderId",
-          "id"
-        ],
+        "required": ["orderId", "id"],
         "type": "object",
         "properties": {
           "orderId": {
@@ -31390,12 +30355,7 @@
         "description": "SaveOrderFeeRow 是整表保存中的一行：带 fee_id 与 expected_version 为修改，\n 否则为新增；client_row_id 是前端行标识，用于幂等派生与行级错误定位。"
       },
       "order.v1.SaveOrderFeesRequest": {
-        "required": [
-          "orderId",
-          "direction",
-          "requestKey",
-          "rows"
-        ],
+        "required": ["orderId", "direction", "requestKey", "rows"],
         "type": "object",
         "properties": {
           "orderId": {
@@ -31451,11 +30411,7 @@
         }
       },
       "order.v1.SaveSeaSharedContainerAllocationsDraftRequest": {
-        "required": [
-          "id",
-          "expectedVersion",
-          "orderId"
-        ],
+        "required": ["id", "expectedVersion", "orderId"],
         "type": "object",
         "properties": {
           "id": {
@@ -31822,11 +30778,7 @@
         }
       },
       "order.v1.SeaExternalConfirmationInput": {
-        "required": [
-          "confirmedByParty",
-          "confirmedAt",
-          "confirmationNote"
-        ],
+        "required": ["confirmedByParty", "confirmedAt", "confirmationNote"],
         "type": "object",
         "properties": {
           "confirmedByParty": {
@@ -31939,10 +30891,7 @@
         "description": "SeaHouseBill 海运分单（HBL）信息。"
       },
       "order.v1.SeaHouseBillInput": {
-        "required": [
-          "houseNo",
-          "issuerSource"
-        ],
+        "required": ["houseNo", "issuerSource"],
         "type": "object",
         "properties": {
           "id": {
@@ -32118,9 +31067,7 @@
         "description": "SeaMasterBillDetail 海运主单内容详情。"
       },
       "order.v1.SeaMasterBillInput": {
-        "required": [
-          "masterNo"
-        ],
+        "required": ["masterNo"],
         "type": "object",
         "properties": {
           "masterNo": {
@@ -32450,9 +31397,7 @@
         }
       },
       "order.v1.SeaOrderReassignmentTargetInput": {
-        "required": [
-          "targetType"
-        ],
+        "required": ["targetType"],
         "type": "object",
         "properties": {
           "targetType": {
@@ -32523,9 +31468,7 @@
         }
       },
       "order.v1.SeaOrderSplitCargoAllocationInput": {
-        "required": [
-          "cargoItemId"
-        ],
+        "required": ["cargoItemId"],
         "type": "object",
         "properties": {
           "cargoItemId": {
@@ -32840,10 +31783,7 @@
         }
       },
       "order.v1.SeaOrderSplitHouseBillInput": {
-        "required": [
-          "houseNo",
-          "issuerSource"
-        ],
+        "required": ["houseNo", "issuerSource"],
         "type": "object",
         "properties": {
           "houseNo": {
@@ -33065,11 +32005,7 @@
         }
       },
       "order.v1.SeaOrderSplitResultInput": {
-        "required": [
-          "clientResultKey",
-          "resultRole",
-          "clientTargetKey"
-        ],
+        "required": ["clientResultKey", "resultRole", "clientTargetKey"],
         "type": "object",
         "properties": {
           "clientResultKey": {
@@ -33156,9 +32092,7 @@
         }
       },
       "order.v1.SeaOrderSplitSharedContainerAllocationInput": {
-        "required": [
-          "allocationId"
-        ],
+        "required": ["allocationId"],
         "type": "object",
         "properties": {
           "allocationId": {
@@ -33213,10 +32147,7 @@
         }
       },
       "order.v1.SeaOrderSplitTargetInput": {
-        "required": [
-          "clientTargetKey",
-          "targetType"
-        ],
+        "required": ["clientTargetKey", "targetType"],
         "type": "object",
         "properties": {
           "clientTargetKey": {
@@ -33732,11 +32663,7 @@
         "description": "SeaVoyageConflict 航程冲突详情。"
       },
       "order.v1.TransitionOrderClosureRequest": {
-        "required": [
-          "id",
-          "expectedVersion",
-          "targetStatus"
-        ],
+        "required": ["id", "expectedVersion", "targetStatus"],
         "type": "object",
         "properties": {
           "id": {
@@ -33777,11 +32704,7 @@
         }
       },
       "order.v1.TransitionOrderStatusRequest": {
-        "required": [
-          "id",
-          "expectedVersion",
-          "targetFlowStatus"
-        ],
+        "required": ["id", "expectedVersion", "targetFlowStatus"],
         "type": "object",
         "properties": {
           "id": {
@@ -33822,12 +32745,7 @@
         }
       },
       "order.v1.TransitionOrderTerminationRequest": {
-        "required": [
-          "id",
-          "expectedVersion",
-          "targetStatus",
-          "reason"
-        ],
+        "required": ["id", "expectedVersion", "targetStatus", "reason"],
         "type": "object",
         "properties": {
           "id": {
@@ -33871,12 +32789,7 @@
         }
       },
       "order.v1.TransitionReleasePodStatusRequest": {
-        "required": [
-          "orderId",
-          "id",
-          "expectedStatus",
-          "toStatus"
-        ],
+        "required": ["orderId", "id", "expectedStatus", "toStatus"],
         "type": "object",
         "properties": {
           "orderId": {
@@ -33918,12 +32831,7 @@
         }
       },
       "order.v1.TransitionShippingDocumentStatusRequest": {
-        "required": [
-          "orderId",
-          "id",
-          "expectedStatus",
-          "toStatus"
-        ],
+        "required": ["orderId", "id", "expectedStatus", "toStatus"],
         "type": "object",
         "properties": {
           "orderId": {
@@ -34257,10 +33165,7 @@
         }
       },
       "order.v1.UpdateOrderRequest": {
-        "required": [
-          "id",
-          "expectedVersion"
-        ],
+        "required": ["id", "expectedVersion"],
         "type": "object",
         "properties": {
           "id": {
@@ -34490,10 +33395,7 @@
         }
       },
       "order.v1.UpdateReleasePodRequest": {
-        "required": [
-          "orderId",
-          "id"
-        ],
+        "required": ["orderId", "id"],
         "type": "object",
         "properties": {
           "orderId": {
@@ -34596,11 +33498,7 @@
         "description": "UpdateSeaHouseBillResponse 更新分单响应。"
       },
       "order.v1.UpdateSeaMasterBillContentRequest": {
-        "required": [
-          "orderId",
-          "expectedMblVersion",
-          "content"
-        ],
+        "required": ["orderId", "expectedMblVersion", "content"],
         "type": "object",
         "properties": {
           "orderId": {
@@ -34638,12 +33536,7 @@
         "description": "UpdateSeaMasterBillContentResponse 更新共享 MBL 内容响应。"
       },
       "order.v1.UpdateSeaSharedContainerRequest": {
-        "required": [
-          "id",
-          "expectedVersion",
-          "input",
-          "orderId"
-        ],
+        "required": ["id", "expectedVersion", "input", "orderId"],
         "type": "object",
         "properties": {
           "id": {
@@ -34683,11 +33576,7 @@
         }
       },
       "order.v1.UpdateShippingDocumentRequest": {
-        "required": [
-          "orderId",
-          "id",
-          "houseNo"
-        ],
+        "required": ["orderId", "id", "houseNo"],
         "type": "object",
         "properties": {
           "orderId": {
@@ -34785,11 +33674,7 @@
         }
       },
       "order.v1.WithdrawSeaSharedContainerRequest": {
-        "required": [
-          "id",
-          "expectedVersion",
-          "orderId"
-        ],
+        "required": ["id", "expectedVersion", "orderId"],
         "type": "object",
         "properties": {
           "id": {
@@ -34826,10 +33711,7 @@
         }
       },
       "partner.v1.CreatePartnerAccountRequest": {
-        "required": [
-          "partnerId",
-          "account"
-        ],
+        "required": ["partnerId", "account"],
         "type": "object",
         "properties": {
           "partnerId": {
@@ -34862,12 +33744,7 @@
         }
       },
       "partner.v1.CreatePartnerContractInput": {
-        "required": [
-          "name",
-          "status",
-          "startDate",
-          "endDate"
-        ],
+        "required": ["name", "status", "startDate", "endDate"],
         "type": "object",
         "properties": {
           "name": {
@@ -34895,10 +33772,7 @@
         }
       },
       "partner.v1.CreatePartnerContractRequest": {
-        "required": [
-          "partnerId",
-          "contract"
-        ],
+        "required": ["partnerId", "contract"],
         "type": "object",
         "properties": {
           "partnerId": {
@@ -34990,9 +33864,7 @@
         }
       },
       "partner.v1.CreatePartnerRequest": {
-        "required": [
-          "legalName"
-        ],
+        "required": ["legalName"],
         "type": "object",
         "properties": {
           "code": {
@@ -35062,11 +33934,7 @@
         }
       },
       "partner.v1.CreatePartnerSettlementRuleRequest": {
-        "required": [
-          "partnerId",
-          "roleType",
-          "rule"
-        ],
+        "required": ["partnerId", "roleType", "rule"],
         "type": "object",
         "properties": {
           "partnerId": {
@@ -35103,10 +33971,7 @@
         }
       },
       "partner.v1.CreatePartnerShippingPresetRequest": {
-        "required": [
-          "partnerId",
-          "preset"
-        ],
+        "required": ["partnerId", "preset"],
         "type": "object",
         "properties": {
           "partnerId": {
@@ -35184,11 +34049,7 @@
         }
       },
       "partner.v1.ImportPartnersRequest": {
-        "required": [
-          "source",
-          "mode",
-          "items"
-        ],
+        "required": ["source", "mode", "items"],
         "type": "object",
         "properties": {
           "source": {
@@ -35707,10 +34568,7 @@
         }
       },
       "partner.v1.PartnerAssignmentInput": {
-        "required": [
-          "role",
-          "userId"
-        ],
+        "required": ["role", "userId"],
         "type": "object",
         "properties": {
           "role": {
@@ -35946,10 +34804,7 @@
         }
       },
       "partner.v1.PartnerImportItemInput": {
-        "required": [
-          "code",
-          "legalName"
-        ],
+        "required": ["code", "legalName"],
         "type": "object",
         "properties": {
           "code": {
@@ -36189,11 +35044,7 @@
         }
       },
       "partner.v1.PartnerSettlementRuleInput": {
-        "required": [
-          "statementMode",
-          "settlementMethod",
-          "settlementCurrency"
-        ],
+        "required": ["statementMode", "settlementMethod", "settlementCurrency"],
         "type": "object",
         "properties": {
           "statementMode": {
@@ -36304,10 +35155,7 @@
         }
       },
       "partner.v1.PartnerShippingPresetInput": {
-        "required": [
-          "presetType",
-          "title"
-        ],
+        "required": ["presetType", "title"],
         "type": "object",
         "properties": {
           "presetType": {
@@ -36441,10 +35289,7 @@
         }
       },
       "partner.v1.SetPartnerRoleBlacklistRequest": {
-        "required": [
-          "id",
-          "roleType"
-        ],
+        "required": ["id", "roleType"],
         "type": "object",
         "properties": {
           "id": {
@@ -36485,11 +35330,7 @@
         }
       },
       "partner.v1.UpdatePartnerAccountRequest": {
-        "required": [
-          "partnerId",
-          "id",
-          "account"
-        ],
+        "required": ["partnerId", "id", "account"],
         "type": "object",
         "properties": {
           "partnerId": {
@@ -36525,12 +35366,7 @@
         }
       },
       "partner.v1.UpdatePartnerContractInput": {
-        "required": [
-          "name",
-          "status",
-          "startDate",
-          "endDate"
-        ],
+        "required": ["name", "status", "startDate", "endDate"],
         "type": "object",
         "properties": {
           "name": {
@@ -36558,11 +35394,7 @@
         }
       },
       "partner.v1.UpdatePartnerContractRequest": {
-        "required": [
-          "partnerId",
-          "id",
-          "contract"
-        ],
+        "required": ["partnerId", "id", "contract"],
         "type": "object",
         "properties": {
           "partnerId": {
@@ -36668,10 +35500,7 @@
         }
       },
       "partner.v1.UpdatePartnerRequest": {
-        "required": [
-          "id",
-          "legalName"
-        ],
+        "required": ["id", "legalName"],
         "type": "object",
         "properties": {
           "id": {
@@ -36747,10 +35576,7 @@
         }
       },
       "partner.v1.UpdatePartnerRolesRequest": {
-        "required": [
-          "partnerId",
-          "roleTypes"
-        ],
+        "required": ["partnerId", "roleTypes"],
         "type": "object",
         "properties": {
           "partnerId": {
@@ -36788,12 +35614,7 @@
         }
       },
       "partner.v1.UpdatePartnerSettlementRuleRequest": {
-        "required": [
-          "partnerId",
-          "roleType",
-          "id",
-          "rule"
-        ],
+        "required": ["partnerId", "roleType", "id", "rule"],
         "type": "object",
         "properties": {
           "partnerId": {
@@ -36833,11 +35654,7 @@
         }
       },
       "partner.v1.UpdatePartnerShippingPresetRequest": {
-        "required": [
-          "partnerId",
-          "id",
-          "preset"
-        ],
+        "required": ["partnerId", "id", "preset"],
         "type": "object",
         "properties": {
           "partnerId": {
@@ -36978,9 +35795,7 @@
         "description": "ListBackgroundTasksResponse 后台任务列表响应。"
       },
       "task.v1.RequeueBackgroundTaskRequest": {
-        "required": [
-          "id"
-        ],
+        "required": ["id"],
         "type": "object",
         "properties": {
           "id": {
@@ -37032,9 +35847,7 @@
         }
       },
       "workbench.v1.GetWorkbenchOverviewData": {
-        "required": [
-          "hasCommissionEligibility"
-        ],
+        "required": ["hasCommissionEligibility"],
         "type": "object",
         "properties": {
           "hasCommissionEligibility": {
@@ -37341,10 +36154,7 @@
         }
       },
       "workbench.v1.ResubmitMyCommissionApplicationRequest": {
-        "required": [
-          "applicationId",
-          "expectedVersion"
-        ],
+        "required": ["applicationId", "expectedVersion"],
         "type": "object",
         "properties": {
           "applicationId": {
