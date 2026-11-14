@@ -16,7 +16,9 @@ const serviceMocks = vi.hoisted(() => ({
   canOperate: true,
   listFinanceOrganizationOptions: vi.fn(),
   listFinanceSettlementPartyOptions: vi.fn(),
-  listVerificationCreationCandidates: vi.fn(),
+  candidateFixture: vi.fn(),
+  listCashflowCandidates: vi.fn(),
+  listBillCandidates: vi.fn(),
   getCreditLimitControlPolicy: vi.fn(),
 }));
 
@@ -47,12 +49,47 @@ vi.mock('@/services/roncin/settlementService', () => ({
     serviceMocks.listFinanceOrganizationOptions,
   settlementServiceListFinanceSettlementPartyOptions:
     serviceMocks.listFinanceSettlementPartyOptions,
-  settlementServiceListVerificationCreationCandidates:
-    serviceMocks.listVerificationCreationCandidates,
+  settlementServiceListVerificationCashflowCandidates:
+    serviceMocks.listCashflowCandidates,
+  settlementServiceListVerificationBillCandidates:
+    serviceMocks.listBillCandidates,
   // 默认仅提醒模式（超额后仍允许选择），不触发超额禁用；干预模式用例单独覆写。
   settlementServiceGetCreditLimitControlPolicy:
     serviceMocks.getCreditLimitControlPolicy,
 }));
+
+vi.mock('@/components/ui', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/components/ui')>();
+  const React = await import('react');
+  const { Table } = await import('antd');
+  return {
+    ...actual,
+    ResponsiveProTable: (props: any) => {
+      const [data, setData] = React.useState<any[]>([]);
+      React.useEffect(() => {
+        let active = true;
+        void props.request({ current: 1, pageSize: 20 }).then((result: any) => {
+          if (active) setData(result.data);
+        });
+        return () => {
+          active = false;
+        };
+      }, [props.request]);
+      return React.createElement(Table, {
+        ...props,
+        dataSource: data,
+        rowSelection: {
+          ...props.rowSelection,
+          onChange: (keys: string[]) =>
+            props.rowSelection.onChange(
+              keys,
+              data.filter((row: any) => keys.includes(row.id)),
+            ),
+        },
+      });
+    },
+  };
+});
 
 vi.mock('antd', async () => {
   const React = await import('react');
@@ -210,7 +247,19 @@ describe('核销创建工作台组织候选', () => {
     serviceMocks.createVerification.mockReset();
     serviceMocks.listFinanceOrganizationOptions.mockReset();
     serviceMocks.listFinanceSettlementPartyOptions.mockReset();
-    serviceMocks.listVerificationCreationCandidates.mockReset();
+    serviceMocks.candidateFixture.mockReset();
+    serviceMocks.listCashflowCandidates.mockReset();
+    serviceMocks.listBillCandidates.mockReset();
+    serviceMocks.listCashflowCandidates.mockImplementation(async (params) => {
+      const fixture = await serviceMocks.candidateFixture(params);
+      const data = fixture?.data?.cashflows ?? [];
+      return fixture && { success: fixture.success, data, total: data.length };
+    });
+    serviceMocks.listBillCandidates.mockImplementation(async (params) => {
+      const fixture = await serviceMocks.candidateFixture(params);
+      const data = fixture?.data?.bills ?? [];
+      return fixture && { success: fixture.success, data, total: data.length };
+    });
     serviceMocks.getCreditLimitControlPolicy.mockReset();
     // 默认「超额后允许选择」为 true：true 会正常序列化，仅提醒模式生效。
     serviceMocks.getCreditLimitControlPolicy.mockResolvedValue({
@@ -235,7 +284,7 @@ describe('核销创建工作台组织候选', () => {
           ],
         }),
     );
-    serviceMocks.listVerificationCreationCandidates.mockResolvedValue({
+    serviceMocks.candidateFixture.mockResolvedValue({
       data: {
         cashflows: [
           {
@@ -299,9 +348,7 @@ describe('核销创建工作台组织候选', () => {
     await selectOrganizationAndParty('公司 A');
 
     await waitFor(() =>
-      expect(
-        serviceMocks.listVerificationCreationCandidates,
-      ).toHaveBeenCalledWith(
+      expect(serviceMocks.candidateFixture).toHaveBeenCalledWith(
         expect.objectContaining({
           organizationId: 'organization-a',
           direction: 'RECEIVABLE',
@@ -403,9 +450,7 @@ describe('核销创建工作台组织候选', () => {
       expect(
         serviceMocks.listFinanceSettlementPartyOptions,
       ).not.toHaveBeenCalled();
-      expect(
-        serviceMocks.listVerificationCreationCandidates,
-      ).not.toHaveBeenCalled();
+      expect(serviceMocks.candidateFixture).not.toHaveBeenCalled();
       expect(serviceMocks.createVerification).not.toHaveBeenCalled();
     },
   );
@@ -460,7 +505,7 @@ describe('核销创建工作台组织候选', () => {
   it.each(['cashflows', 'bills'])(
     '候选混入外公司%s时拒绝核销分配和提交',
     async (source) => {
-      serviceMocks.listVerificationCreationCandidates.mockResolvedValue({
+      serviceMocks.candidateFixture.mockResolvedValue({
         data: {
           cashflows: [
             {
@@ -515,7 +560,7 @@ describe('核销创建工作台组织候选', () => {
     expect(getAnyDirtyTabKey()).toBeUndefined();
   });
   it('补录差额只在最终核销提交且失败重试沿用同一意图键', async () => {
-    serviceMocks.listVerificationCreationCandidates.mockResolvedValue({
+    serviceMocks.candidateFixture.mockResolvedValue({
       data: {
         cashflows: [
           {
@@ -647,7 +692,7 @@ describe('核销创建工作台组织候选', () => {
             resolveWrite = resolve;
           }),
       );
-      serviceMocks.listVerificationCreationCandidates.mockResolvedValue({
+      serviceMocks.candidateFixture.mockResolvedValue({
         data: {
           cashflows: [
             {
@@ -720,7 +765,7 @@ describe('核销创建工作台组织候选', () => {
 
   it('未知结果后仅重排相同分配仍沿用原意图键', async () => {
     serviceMocks.createVerification.mockResolvedValue(undefined);
-    serviceMocks.listVerificationCreationCandidates.mockResolvedValue({
+    serviceMocks.candidateFixture.mockResolvedValue({
       data: {
         cashflows: [
           {

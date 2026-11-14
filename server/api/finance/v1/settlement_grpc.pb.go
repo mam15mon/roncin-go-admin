@@ -52,7 +52,8 @@ const (
 	SettlementService_CreateCashflow_FullMethodName                            = "/finance.v1.SettlementService/CreateCashflow"
 	SettlementService_ConfirmCashflow_FullMethodName                           = "/finance.v1.SettlementService/ConfirmCashflow"
 	SettlementService_CancelCashflow_FullMethodName                            = "/finance.v1.SettlementService/CancelCashflow"
-	SettlementService_ListVerificationCreationCandidates_FullMethodName        = "/finance.v1.SettlementService/ListVerificationCreationCandidates"
+	SettlementService_ListVerificationCashflowCandidates_FullMethodName        = "/finance.v1.SettlementService/ListVerificationCashflowCandidates"
+	SettlementService_ListVerificationBillCandidates_FullMethodName            = "/finance.v1.SettlementService/ListVerificationBillCandidates"
 	SettlementService_ListVerifications_FullMethodName                         = "/finance.v1.SettlementService/ListVerifications"
 	SettlementService_ListCommissionVerificationCandidates_FullMethodName      = "/finance.v1.SettlementService/ListCommissionVerificationCandidates"
 	SettlementService_ListCommissionNettingCandidates_FullMethodName           = "/finance.v1.SettlementService/ListCommissionNettingCandidates"
@@ -143,7 +144,8 @@ type SettlementServiceClient interface {
 	CreateCashflow(ctx context.Context, in *CreateCashflowRequest, opts ...grpc.CallOption) (*CreateCashflowResponse, error)
 	ConfirmCashflow(ctx context.Context, in *ConfirmCashflowRequest, opts ...grpc.CallOption) (*ConfirmCashflowResponse, error)
 	CancelCashflow(ctx context.Context, in *CancelCashflowRequest, opts ...grpc.CallOption) (*CancelCashflowResponse, error)
-	ListVerificationCreationCandidates(ctx context.Context, in *ListVerificationCreationCandidatesRequest, opts ...grpc.CallOption) (*ListVerificationCreationCandidatesResponse, error)
+	ListVerificationCashflowCandidates(ctx context.Context, in *ListVerificationCashflowCandidatesRequest, opts ...grpc.CallOption) (*ListVerificationCashflowCandidatesResponse, error)
+	ListVerificationBillCandidates(ctx context.Context, in *ListVerificationBillCandidatesRequest, opts ...grpc.CallOption) (*ListVerificationBillCandidatesResponse, error)
 	ListVerifications(ctx context.Context, in *ListVerificationsRequest, opts ...grpc.CallOption) (*ListVerificationsResponse, error)
 	ListCommissionVerificationCandidates(ctx context.Context, in *ListCommissionVerificationCandidatesRequest, opts ...grpc.CallOption) (*ListCommissionVerificationCandidatesResponse, error)
 	// ListCommissionNettingCandidates 为对冲提成提供已确认且存在应收分摊的对冲单候选，按 commission.manage 可写组织过滤。
@@ -547,10 +549,20 @@ func (c *settlementServiceClient) CancelCashflow(ctx context.Context, in *Cancel
 	return out, nil
 }
 
-func (c *settlementServiceClient) ListVerificationCreationCandidates(ctx context.Context, in *ListVerificationCreationCandidatesRequest, opts ...grpc.CallOption) (*ListVerificationCreationCandidatesResponse, error) {
+func (c *settlementServiceClient) ListVerificationCashflowCandidates(ctx context.Context, in *ListVerificationCashflowCandidatesRequest, opts ...grpc.CallOption) (*ListVerificationCashflowCandidatesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListVerificationCreationCandidatesResponse)
-	err := c.cc.Invoke(ctx, SettlementService_ListVerificationCreationCandidates_FullMethodName, in, out, cOpts...)
+	out := new(ListVerificationCashflowCandidatesResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListVerificationCashflowCandidates_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) ListVerificationBillCandidates(ctx context.Context, in *ListVerificationBillCandidatesRequest, opts ...grpc.CallOption) (*ListVerificationBillCandidatesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListVerificationBillCandidatesResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListVerificationBillCandidates_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -996,7 +1008,8 @@ type SettlementServiceServer interface {
 	CreateCashflow(context.Context, *CreateCashflowRequest) (*CreateCashflowResponse, error)
 	ConfirmCashflow(context.Context, *ConfirmCashflowRequest) (*ConfirmCashflowResponse, error)
 	CancelCashflow(context.Context, *CancelCashflowRequest) (*CancelCashflowResponse, error)
-	ListVerificationCreationCandidates(context.Context, *ListVerificationCreationCandidatesRequest) (*ListVerificationCreationCandidatesResponse, error)
+	ListVerificationCashflowCandidates(context.Context, *ListVerificationCashflowCandidatesRequest) (*ListVerificationCashflowCandidatesResponse, error)
+	ListVerificationBillCandidates(context.Context, *ListVerificationBillCandidatesRequest) (*ListVerificationBillCandidatesResponse, error)
 	ListVerifications(context.Context, *ListVerificationsRequest) (*ListVerificationsResponse, error)
 	ListCommissionVerificationCandidates(context.Context, *ListCommissionVerificationCandidatesRequest) (*ListCommissionVerificationCandidatesResponse, error)
 	// ListCommissionNettingCandidates 为对冲提成提供已确认且存在应收分摊的对冲单候选，按 commission.manage 可写组织过滤。
@@ -1169,8 +1182,11 @@ func (UnimplementedSettlementServiceServer) ConfirmCashflow(context.Context, *Co
 func (UnimplementedSettlementServiceServer) CancelCashflow(context.Context, *CancelCashflowRequest) (*CancelCashflowResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CancelCashflow not implemented")
 }
-func (UnimplementedSettlementServiceServer) ListVerificationCreationCandidates(context.Context, *ListVerificationCreationCandidatesRequest) (*ListVerificationCreationCandidatesResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListVerificationCreationCandidates not implemented")
+func (UnimplementedSettlementServiceServer) ListVerificationCashflowCandidates(context.Context, *ListVerificationCashflowCandidatesRequest) (*ListVerificationCashflowCandidatesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListVerificationCashflowCandidates not implemented")
+}
+func (UnimplementedSettlementServiceServer) ListVerificationBillCandidates(context.Context, *ListVerificationBillCandidatesRequest) (*ListVerificationBillCandidatesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListVerificationBillCandidates not implemented")
 }
 func (UnimplementedSettlementServiceServer) ListVerifications(context.Context, *ListVerificationsRequest) (*ListVerificationsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListVerifications not implemented")
@@ -1904,20 +1920,38 @@ func _SettlementService_CancelCashflow_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SettlementService_ListVerificationCreationCandidates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListVerificationCreationCandidatesRequest)
+func _SettlementService_ListVerificationCashflowCandidates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListVerificationCashflowCandidatesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SettlementServiceServer).ListVerificationCreationCandidates(ctx, in)
+		return srv.(SettlementServiceServer).ListVerificationCashflowCandidates(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: SettlementService_ListVerificationCreationCandidates_FullMethodName,
+		FullMethod: SettlementService_ListVerificationCashflowCandidates_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SettlementServiceServer).ListVerificationCreationCandidates(ctx, req.(*ListVerificationCreationCandidatesRequest))
+		return srv.(SettlementServiceServer).ListVerificationCashflowCandidates(ctx, req.(*ListVerificationCashflowCandidatesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_ListVerificationBillCandidates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListVerificationBillCandidatesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ListVerificationBillCandidates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ListVerificationBillCandidates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ListVerificationBillCandidates(ctx, req.(*ListVerificationBillCandidatesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2764,8 +2798,12 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _SettlementService_CancelCashflow_Handler,
 		},
 		{
-			MethodName: "ListVerificationCreationCandidates",
-			Handler:    _SettlementService_ListVerificationCreationCandidates_Handler,
+			MethodName: "ListVerificationCashflowCandidates",
+			Handler:    _SettlementService_ListVerificationCashflowCandidates_Handler,
+		},
+		{
+			MethodName: "ListVerificationBillCandidates",
+			Handler:    _SettlementService_ListVerificationBillCandidates_Handler,
 		},
 		{
 			MethodName: "ListVerifications",

@@ -30,10 +30,10 @@ export function buildVerificationAllocations(
 
   for (const cashflow of cashflows) {
     let cashBalance = money(cashflow.balance);
-    if (!cashBalance.isPositive()) continue;
+    if (!cashBalance.gt(0)) continue;
     for (const bill of bills) {
       const billBalance = billBalances.get(bill.id) || new Decimal(0);
-      if (!billBalance.isPositive()) continue;
+      if (!billBalance.gt(0)) continue;
       const amount = Decimal.min(cashBalance, billBalance);
       allocations.push({
         cashflowId: cashflow.id,
@@ -42,7 +42,7 @@ export function buildVerificationAllocations(
       });
       cashBalance = cashBalance.minus(amount);
       billBalances.set(bill.id, billBalance.minus(amount));
-      if (!cashBalance.isPositive()) break;
+      if (!cashBalance.gt(0)) break;
     }
   }
   return allocations;
@@ -56,5 +56,5 @@ export function sumVerificationAmounts(values: string[]) {
 }
 
 export function isPositiveVerificationAmount(value?: string) {
-  return money(value).isPositive();
+  return money(value).gt(0);
 }

@@ -144,7 +144,15 @@ func TestVerificationCreationCandidatesKeepOrganizationPredicateInBothSourceQuer
 	mock.ExpectQuery(`SELECT .*FROM "finance_bills".*organization_id`).
 		WillReturnRows(sqlmock.NewRows(financebill.Columns))
 
-	result, err := repo.ListCreationCandidates(context.Background(), organizationID, biz.VerificationCreationCandidateFilter{
+	result, err := repo.ListCashflowCandidates(context.Background(), organizationID, biz.VerificationCreationCandidateFilter{Page: 1, PageSize: 200,
+		Direction:         biz.OrderFeeReceivable,
+		SettlementPartyID: partyID,
+		Currency:          "USD",
+	})
+	if err != nil {
+		t.Fatalf("查询资金候选失败: %v", err)
+	}
+	billCandidates, err := repo.ListBillCandidates(context.Background(), organizationID, biz.VerificationCreationCandidateFilter{Page: 1, PageSize: 200,
 		Direction:         biz.OrderFeeReceivable,
 		SettlementPartyID: partyID,
 		Currency:          "USD",
@@ -152,7 +160,7 @@ func TestVerificationCreationCandidatesKeepOrganizationPredicateInBothSourceQuer
 	if err != nil {
 		t.Fatalf("查询核销创建候选失败: %v", err)
 	}
-	if len(result.Cashflows) != 0 || len(result.Bills) != 0 {
+	if len(result.Items) != 0 || len(billCandidates.Items) != 0 {
 		t.Fatalf("空数据源不应返回跨组织候选: %+v", result)
 	}
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -190,7 +198,15 @@ func TestVerificationCreationCandidatesPushDownBalancePredicates(t *testing.T) {
 	mock.ExpectQuery(`SELECT .*FROM "finance_bills".*` + billBalance + `.*ORDER BY`).
 		WillReturnRows(sqlmock.NewRows(financebill.Columns))
 
-	result, err := repo.ListCreationCandidates(context.Background(), uuid.New(), biz.VerificationCreationCandidateFilter{
+	result, err := repo.ListCashflowCandidates(context.Background(), uuid.New(), biz.VerificationCreationCandidateFilter{Page: 1, PageSize: 200,
+		Direction:         biz.OrderFeeReceivable,
+		SettlementPartyID: uuid.New(),
+		Currency:          "CNY",
+	})
+	if err != nil {
+		t.Fatalf("查询资金候选失败: %v", err)
+	}
+	billCandidates, err := repo.ListBillCandidates(context.Background(), uuid.New(), biz.VerificationCreationCandidateFilter{Page: 1, PageSize: 200,
 		Direction:         biz.OrderFeeReceivable,
 		SettlementPartyID: uuid.New(),
 		Currency:          "CNY",
@@ -198,7 +214,7 @@ func TestVerificationCreationCandidatesPushDownBalancePredicates(t *testing.T) {
 	if err != nil {
 		t.Fatalf("查询核销创建候选失败: %v", err)
 	}
-	if len(result.Cashflows) != 0 || len(result.Bills) != 0 {
+	if len(result.Items) != 0 || len(billCandidates.Items) != 0 {
 		t.Fatalf("空数据源候选结果错误: %+v", result)
 	}
 	if err := mock.ExpectationsWereMet(); err != nil {

@@ -694,7 +694,15 @@ func TestVerificationCreationCandidatesBeyondSettledLimitPostgres(t *testing.T) 
 		})
 		openCashflow := fixture.createConfirmedCashflow("cand-open", settledAmount, openDate)
 
-		candidates, err := repo.ListCreationCandidates(ctx, fixture.organizationID, biz.VerificationCreationCandidateFilter{
+		candidates, err := repo.ListCashflowCandidates(ctx, fixture.organizationID, biz.VerificationCreationCandidateFilter{Page: 1, PageSize: 200,
+			Direction:         biz.OrderFeeReceivable,
+			SettlementPartyID: fixture.partnerID,
+			Currency:          "CNY",
+		})
+		if err != nil {
+			t.Fatalf("查询资金候选失败: %v", err)
+		}
+		billCandidates, err := repo.ListBillCandidates(ctx, fixture.organizationID, biz.VerificationCreationCandidateFilter{Page: 1, PageSize: 200,
 			Direction:         biz.OrderFeeReceivable,
 			SettlementPartyID: fixture.partnerID,
 			Currency:          "CNY",
@@ -702,17 +710,17 @@ func TestVerificationCreationCandidatesBeyondSettledLimitPostgres(t *testing.T) 
 		if err != nil {
 			t.Fatalf("查询核销创建候选失败: %v", err)
 		}
-		if len(candidates.Bills) != 1 || candidates.Bills[0].ID != openBill.ID {
-			t.Fatalf("超过 200 条已结清账单后未结清候选应可见：bills=%d", len(candidates.Bills))
+		if len(billCandidates.Items) != 1 || billCandidates.Items[0].ID != openBill.ID {
+			t.Fatalf("超过 200 条已结清账单后未结清候选应可见：bills=%d", len(billCandidates.Items))
 		}
-		if !candidates.Bills[0].UnverifiedAmount.Equal(decimal.RequireFromString("10")) {
-			t.Fatalf("未结清账单候选余额 = %s，期望 10", candidates.Bills[0].UnverifiedAmount)
+		if !billCandidates.Items[0].UnverifiedAmount.Equal(decimal.RequireFromString("10")) {
+			t.Fatalf("未结清账单候选余额 = %s，期望 10", billCandidates.Items[0].UnverifiedAmount)
 		}
-		if len(candidates.Cashflows) != 1 || candidates.Cashflows[0].ID != openCashflow.ID {
-			t.Fatalf("超过 200 条已核销流水后未核销候选应可见：cashflows=%d", len(candidates.Cashflows))
+		if len(candidates.Items) != 1 || candidates.Items[0].ID != openCashflow.ID {
+			t.Fatalf("超过 200 条已核销流水后未核销候选应可见：cashflows=%d", len(candidates.Items))
 		}
-		if !candidates.Cashflows[0].UnverifiedAmount.Equal(decimal.RequireFromString("10")) {
-			t.Fatalf("未核销流水候选余额 = %s，期望 10", candidates.Cashflows[0].UnverifiedAmount)
+		if !candidates.Items[0].UnverifiedAmount.Equal(decimal.RequireFromString("10")) {
+			t.Fatalf("未核销流水候选余额 = %s，期望 10", candidates.Items[0].UnverifiedAmount)
 		}
 	})
 }

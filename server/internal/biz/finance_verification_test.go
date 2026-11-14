@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/google/uuid"
@@ -39,7 +40,7 @@ type verificationCandidateRepoStub struct {
 	VerificationRepo
 	organizationID uuid.UUID
 	filter         VerificationCreationCandidateFilter
-	result         *VerificationCreationCandidates
+	result         *FinanceCashflowListResult
 	err            error
 }
 
@@ -50,13 +51,19 @@ type verificationListRepoStub struct {
 	err             error
 }
 
+func (s *verificationCandidateRepoStub) ListBillCandidates(_ context.Context, organizationID uuid.UUID, filter VerificationCreationCandidateFilter) (*FinanceBillListResult, error) {
+	s.organizationID = organizationID
+	s.filter = filter
+	return &FinanceBillListResult{}, s.err
+}
+
 func (s *verificationListRepoStub) ListScoped(_ context.Context, organizationIDs []uuid.UUID, filter VerificationFilter) (*VerificationListResult, error) {
 	s.organizationIDs = organizationIDs
 	s.filter = filter
 	return &VerificationListResult{}, s.err
 }
 
-func (s *verificationCandidateRepoStub) ListCreationCandidates(_ context.Context, organizationID uuid.UUID, filter VerificationCreationCandidateFilter) (*VerificationCreationCandidates, error) {
+func (s *verificationCandidateRepoStub) ListCashflowCandidates(_ context.Context, organizationID uuid.UUID, filter VerificationCreationCandidateFilter) (*FinanceCashflowListResult, error) {
 	s.organizationID = organizationID
 	s.filter = filter
 	return s.result, s.err
@@ -209,7 +216,8 @@ func TestVerificationCreationCandidatesUseOneExplicitOrganizationAndPreserveRepo
 	repo := &verificationCandidateRepoStub{err: expected}
 	usecase := NewVerificationUsecase(repo, nil, nil, nil)
 
-	_, err := usecase.ListCreationCandidates(context.Background(), organizationID, VerificationCreationCandidateFilter{
+	_, err := usecase.ListCashflowCandidates(context.Background(), organizationID, VerificationCreationCandidateFilter{
+		Page: 1, PageSize: 20, Keyword: "  客户  ",
 		Direction:         OrderFeeReceivable,
 		SettlementPartyID: partyID,
 		Currency:          " usd ",
@@ -220,10 +228,10 @@ func TestVerificationCreationCandidatesUseOneExplicitOrganizationAndPreserveRepo
 	if repo.organizationID != organizationID || repo.filter.Direction != OrderFeeReceivable || repo.filter.SettlementPartyID != partyID || repo.filter.Currency != "USD" {
 		t.Fatalf("候选组织或筛选条件未完整传递: org=%s filter=%+v", repo.organizationID, repo.filter)
 	}
-	if _, err := usecase.ListCreationCandidates(context.Background(), uuid.Nil, VerificationCreationCandidateFilter{Direction: OrderFeeReceivable, SettlementPartyID: partyID, Currency: "USD"}); err != ErrVerificationInvalid {
+	if _, err := usecase.ListCashflowCandidates(context.Background(), uuid.Nil, VerificationCreationCandidateFilter{Direction: OrderFeeReceivable, SettlementPartyID: partyID, Currency: "USD"}); err != ErrVerificationInvalid {
 		t.Fatalf("空组织错误 = %v，期望 %v", err, ErrVerificationInvalid)
 	}
-	if _, err := usecase.ListCreationCandidates(context.Background(), organizationID, VerificationCreationCandidateFilter{Direction: OrderFeeReceivable, Currency: "USD"}); err != ErrVerificationInvalid {
+	if _, err := usecase.ListCashflowCandidates(context.Background(), organizationID, VerificationCreationCandidateFilter{Direction: OrderFeeReceivable, Currency: "USD"}); err != ErrVerificationInvalid {
 		t.Fatalf("空结算单位错误 = %v，期望 %v", err, ErrVerificationInvalid)
 	}
 }
@@ -246,3 +254,30 @@ func TestVerificationListScopedValidatesDirectionAndPreservesRepositoryError(t *
 }
 
 var _ Transactor = (*verificationTransactorStub)(nil)
+
+func TestVerificationCandidatePaginationBoundaries(t *testing.T) {
+	org, party := uuid.New(), uuid.New()
+	for _, kind := range []string{"资金", "账单"} {
+		for _, pagination := range [][2]int{{0, 20}, {1, 0}, {1, 201}, {1, 1}, {2, 200}} {
+			t.Run(fmt.Sprintf("%s/%d/%d", kind, pagination[0], pagination[1]), func(t *testing.T) {
+				repositoryError := errors.New("仓储原错误")
+				repo := &verificationCandidateRepoStub{err: repositoryError}
+				usecase := NewVerificationUsecase(repo, nil, nil, nil)
+				filter := VerificationCreationCandidateFilter{Page: pagination[0], PageSize: pagination[1], Keyword: "  qdyh  ", Direction: OrderFeeReceivable, SettlementPartyID: party, Currency: " cny "}
+				var err error
+				if kind == "资金" {
+					_, err = usecase.ListCashflowCandidates(context.Background(), org, filter)
+				} else {
+					_, err = usecase.ListBillCandidates(context.Background(), org, filter)
+				}
+				if !ValidListPagination(filter.Page, filter.PageSize) {
+					if err != ErrVerificationInvalid || repo.organizationID != uuid.Nil {
+						t.Fatalf("非法分页进入仓储: %v", err)
+					}
+				} else if !errors.Is(err, repositoryError) || repo.filter.Keyword != "qdyh" || repo.filter.Currency != "CNY" || repo.filter.Page != filter.Page || repo.filter.PageSize != filter.PageSize {
+					t.Fatalf("候选条件未原样传递: %+v %v", repo.filter, err)
+				}
+			})
+		}
+	}
+}

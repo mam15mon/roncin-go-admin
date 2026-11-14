@@ -1,4 +1,5 @@
 import { ReloadOutlined } from '@ant-design/icons';
+import type { ProColumns } from '@ant-design/pro-components';
 import { useQuery } from '@tanstack/react-query';
 import {
   Alert,
@@ -21,11 +22,22 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import dayjs, { type Dayjs } from 'dayjs';
 import Decimal from 'decimal.js';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
-import { MODAL_SIZE, ResponsiveTable as Table } from '@/components/ui';
+import {
+  MODAL_SIZE,
+  ResponsiveProTable,
+  ResponsiveTable as Table,
+} from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
 import { paymentMethodOptions } from '@/features/finance/cashflow-entry';
@@ -38,7 +50,8 @@ import { PartnerSelectOptionTags } from '@/features/partners';
 import {
   settlementServiceCreateVerification,
   settlementServiceListFinanceSettlementPartyOptions,
-  settlementServiceListVerificationCreationCandidates,
+  settlementServiceListVerificationBillCandidates,
+  settlementServiceListVerificationCashflowCandidates,
 } from '@/services/roncin/settlementService';
 import type { SelectOption } from '@/types/select-option';
 import { isWriteResponse } from '@/utils/api';
@@ -51,6 +64,10 @@ import {
   sumVerificationAmounts,
   type VerificationAllocationDraft,
 } from './verification-allocation';
+import {
+  verificationCandidatePage,
+  verificationSelectedSnapshots,
+} from './verification-candidates';
 
 type Props = {
   open: boolean;
@@ -107,10 +124,14 @@ export default function VerificationWorkbench({
   // 关键字过滤后仍保留在展示列表头的当前选中结算单位（保持 label 可见）。
   const [selectedPartyOption, setSelectedPartyOption] =
     useState<SelectOption>();
-  const [selectedCashflowIds, setSelectedCashflowIds] = useState<React.Key[]>(
-    [],
+  const [selectedCashflows, setSelectedCashflows] = useState<
+    API.FinanceCashflow[]
+  >([]);
+  const [selectedBills, setSelectedBills] = useState<API.FinanceBill[]>([]);
+  const selectedCashflowIds = selectedCashflows.map(
+    (item) => item.id as string,
   );
-  const [selectedBillIds, setSelectedBillIds] = useState<React.Key[]>([]);
+  const selectedBillIds = selectedBills.map((item) => item.id as string);
   const [allocations, setAllocations] = useState<VerificationAllocationDraft[]>(
     [],
   );
@@ -204,48 +225,80 @@ export default function VerificationWorkbench({
     },
   });
 
-  // 第三段：待核销资金与账单候选，依赖组织 → 结算单位 → 币种全链就绪。
-  const candidatesQuery = useQuery({
-    queryKey: [
-      ...VERIFICATION_WORKBENCH_QUERY_BASE,
-      'candidates',
-      {
-        organizationId: organizationId,
-        direction: scope.direction,
-        settlementPartyId: scope.settlementPartyId,
-        currency: scope.currency,
-      },
-    ],
-    enabled: Boolean(
-      open &&
-        canOperate &&
-        organizationId &&
-        scope.settlementPartyId &&
-        scope.currency,
-    ),
-    meta: { errorMessage: '加载待核销资金和账单失败' },
-    queryFn: async () => {
+  const candidateScope = useMemo(
+    () => ({
+      organizationId: organizationId as string,
+      direction: scope.direction,
+      settlementPartyId: scope.settlementPartyId as string,
+      currency: scope.currency,
+    }),
+    [organizationId, scope.direction, scope.settlementPartyId, scope.currency],
+  );
+  const candidateScopeKey = JSON.stringify(candidateScope);
+  const loadCashflowCandidates = useCallback(
+    async (params: {
+      current?: number;
+      pageSize?: number;
+      keyword?: string;
+    }) => {
+      if (
+        !open ||
+        !canOperate ||
+        !candidateScope.organizationId ||
+        !candidateScope.settlementPartyId
+      )
+        return { data: [], success: false, total: 0 };
       const response =
-        await settlementServiceListVerificationCreationCandidates({
-          organizationId: organizationId as string,
-          direction: scope.direction,
-          settlementPartyId: scope.settlementPartyId as string,
-          currency: scope.currency,
-        });
-      return {
-        cashflows: response.data?.cashflows ?? [],
-        bills: response.data?.bills ?? [],
-      };
+        await settlementServiceListVerificationCashflowCandidates(
+          {
+            ...candidateScope,
+            page: params.current ?? 1,
+            pageSize: params.pageSize ?? 20,
+            keyword: params.keyword,
+          },
+          { skipErrorHandler: true },
+        );
+      return verificationCandidatePage(
+        response,
+        '加载待核销资金失败，请稍后重试',
+      );
     },
-  });
-  const cashflows = candidatesQuery.data?.cashflows ?? [];
-  const bills = candidatesQuery.data?.bills ?? [];
-  const candidateLoading = candidatesQuery.isFetching;
+    [candidateScope, open, canOperate],
+  );
+  const loadBillCandidates = useCallback(
+    async (params: {
+      current?: number;
+      pageSize?: number;
+      keyword?: string;
+    }) => {
+      if (
+        !open ||
+        !canOperate ||
+        !candidateScope.organizationId ||
+        !candidateScope.settlementPartyId
+      )
+        return { data: [], success: false, total: 0 };
+      const response = await settlementServiceListVerificationBillCandidates(
+        {
+          ...candidateScope,
+          page: params.current ?? 1,
+          pageSize: params.pageSize ?? 20,
+          keyword: params.keyword,
+        },
+        { skipErrorHandler: true },
+      );
+      return verificationCandidatePage(
+        response,
+        '加载待核销账单失败，请稍后重试',
+      );
+    },
+    [candidateScope, open, canOperate],
+  );
 
   // 作用域任一维度变化（含关闭弹窗）即清空勾选与分配，旧选择不跨作用域残留。
   useEffect(() => {
-    setSelectedCashflowIds([]);
-    setSelectedBillIds([]);
+    setSelectedCashflows([]);
+    setSelectedBills([]);
     setAllocations([]);
     setShortfallEnabled(false);
   }, [
@@ -266,21 +319,6 @@ export default function VerificationWorkbench({
         : [selectedPartyOption, ...options];
     return disableCreditExceededOptions(merged, creditInterventionActive);
   }, [partnerQuery.data, selectedPartyOption, creditInterventionActive]);
-
-  const selectedCashflows = useMemo(
-    () =>
-      selectedCashflowIds
-        .map((id) => cashflows.find((item) => item.id === id))
-        .filter((item): item is API.FinanceCashflow => Boolean(item?.id)),
-    [cashflows, selectedCashflowIds],
-  );
-  const selectedBills = useMemo(
-    () =>
-      selectedBillIds
-        .map((id) => bills.find((item) => item.id === id))
-        .filter((item): item is API.FinanceBill => Boolean(item?.id)),
-    [bills, selectedBillIds],
-  );
 
   const autoAllocate = () => {
     if (
@@ -316,12 +354,12 @@ export default function VerificationWorkbench({
   };
 
   const cashflowById = useMemo(
-    () => new Map(cashflows.map((item) => [item.id, item])),
-    [cashflows],
+    () => new Map(selectedCashflows.map((item) => [item.id, item])),
+    [selectedCashflows],
   );
   const billById = useMemo(
-    () => new Map(bills.map((item) => [item.id, item])),
-    [bills],
+    () => new Map(selectedBills.map((item) => [item.id, item])),
+    [selectedBills],
   );
   const allocationAmount = sumVerificationAmounts(
     allocations.map((item) => item.amount),
@@ -474,24 +512,26 @@ export default function VerificationWorkbench({
     return undefined;
   };
 
-  const cashflowColumns: ColumnsType<API.FinanceCashflow> = [
+  const cashflowColumns: ProColumns<API.FinanceCashflow>[] = [
     { title: '流水号', dataIndex: 'flowNo', width: 150 },
     { title: '交易日', dataIndex: 'transactionDate', width: 105 },
     {
       title: '未核销余额',
       dataIndex: 'unverifiedAmount',
       align: 'right',
-      render: (value) => `${formatAmount(value)} ${scope.currency}`,
+      render: (_, record) =>
+        `${formatAmount(record.unverifiedAmount)} ${scope.currency}`,
     },
   ];
-  const billColumns: ColumnsType<API.FinanceBill> = [
+  const billColumns: ProColumns<API.FinanceBill>[] = [
     { title: '账单号', dataIndex: 'billNo', width: 150 },
     { title: '账单日', dataIndex: 'billDate', width: 105 },
     {
       title: '未核销余额',
       dataIndex: 'unverifiedAmount',
       align: 'right',
-      render: (value) => `${formatAmount(value)} ${scope.currency}`,
+      render: (_, record) =>
+        `${formatAmount(record.unverifiedAmount)} ${scope.currency}`,
     },
   ];
   const allocationColumns: ColumnsType<VerificationAllocationDraft> = [
@@ -533,14 +573,12 @@ export default function VerificationWorkbench({
   ];
 
   const cashflowColumnSettings = useColumnSettings<
-    ColumnsType<API.FinanceCashflow>[number]
+    ProColumns<API.FinanceCashflow>
   >({
     tableKey: 'finance:verification-cashflow-candidates',
     columns: cashflowColumns,
   });
-  const billColumnSettings = useColumnSettings<
-    ColumnsType<API.FinanceBill>[number]
-  >({
+  const billColumnSettings = useColumnSettings<ProColumns<API.FinanceBill>>({
     tableKey: 'finance:verification-bill-candidates',
     columns: billColumns,
   });
@@ -667,9 +705,7 @@ export default function VerificationWorkbench({
           color={scope.direction === 'RECEIVABLE' ? 'blue' : 'orange'}
           style={{ marginTop: 12 }}
         >
-          {candidateLoading
-            ? '候选加载中'
-            : '候选已按所属公司、方向、结算单位和币种隔离'}
+          候选已按所属公司、方向、结算单位和币种隔离
         </Tag>
       </Card>
 
@@ -680,7 +716,7 @@ export default function VerificationWorkbench({
       ) : (
         <Row gutter={12}>
           <Col span={12}>
-            <Card size="small" title={`待核销资金（${cashflows.length}）`}>
+            <Card size="small" title="待核销资金">
               <div
                 style={{
                   display: 'flex',
@@ -690,19 +726,40 @@ export default function VerificationWorkbench({
               >
                 {cashflowColumnSettings.entry}
               </div>
-              <Table
+              <ResponsiveProTable<API.FinanceCashflow, { keyword?: string }>
+                key={`cashflow:${candidateScopeKey}`}
                 size="small"
-                loading={candidateLoading}
                 rowKey="id"
                 columns={cashflowColumnSettings.columns}
-                dataSource={cashflows}
-                pagination={{ pageSize: 6, showSizeChanger: false }}
+                request={loadCashflowCandidates}
+                manualRequest={!open || !canOperate}
+                search={false}
+                options={{
+                  search: {
+                    name: 'keyword',
+                    placeholder: '搜索流水号／单位／银行参考号',
+                  },
+                  density: false,
+                  setting: false,
+                  reload: true,
+                }}
+                tableAlertRender={false}
+                pagination={{
+                  defaultPageSize: 20,
+                  showSizeChanger: true,
+                  pageSizeOptions: [20, 50, 100, 200],
+                }}
+                onRequestError={(error) =>
+                  message.error(getErrorMessage(error, '加载待核销资金失败'))
+                }
                 rowSelection={{
                   selectedRowKeys: selectedCashflowIds,
                   preserveSelectedRowKeys: true,
-                  onChange: (keys) => {
+                  onChange: (keys, rows) => {
                     invalidateSubmitSession();
-                    setSelectedCashflowIds(keys);
+                    setSelectedCashflows((previous) =>
+                      verificationSelectedSnapshots(keys, rows, previous),
+                    );
                   },
                   getCheckboxProps: (record) => ({
                     disabled:
@@ -713,7 +770,7 @@ export default function VerificationWorkbench({
             </Card>
           </Col>
           <Col span={12}>
-            <Card size="small" title={`待核销账单（${bills.length}）`}>
+            <Card size="small" title="待核销账单">
               <div
                 style={{
                   display: 'flex',
@@ -723,19 +780,40 @@ export default function VerificationWorkbench({
               >
                 {billColumnSettings.entry}
               </div>
-              <Table
+              <ResponsiveProTable<API.FinanceBill, { keyword?: string }>
+                key={`bill:${candidateScopeKey}`}
                 size="small"
-                loading={candidateLoading}
                 rowKey="id"
                 columns={billColumnSettings.columns}
-                dataSource={bills}
-                pagination={{ pageSize: 6, showSizeChanger: false }}
+                request={loadBillCandidates}
+                manualRequest={!open || !canOperate}
+                search={false}
+                options={{
+                  search: {
+                    name: 'keyword',
+                    placeholder: '搜索账单号／单位／订单号',
+                  },
+                  density: false,
+                  setting: false,
+                  reload: true,
+                }}
+                tableAlertRender={false}
+                pagination={{
+                  defaultPageSize: 20,
+                  showSizeChanger: true,
+                  pageSizeOptions: [20, 50, 100, 200],
+                }}
+                onRequestError={(error) =>
+                  message.error(getErrorMessage(error, '加载待核销账单失败'))
+                }
                 rowSelection={{
                   selectedRowKeys: selectedBillIds,
                   preserveSelectedRowKeys: true,
-                  onChange: (keys) => {
+                  onChange: (keys, rows) => {
                     invalidateSubmitSession();
-                    setSelectedBillIds(keys);
+                    setSelectedBills((previous) =>
+                      verificationSelectedSnapshots(keys, rows, previous),
+                    );
                   },
                   getCheckboxProps: (record) => ({
                     disabled:

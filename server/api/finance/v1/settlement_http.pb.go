@@ -70,7 +70,8 @@ const OperationSettlementServiceListInvoiceCreationBills = "/finance.v1.Settleme
 const OperationSettlementServiceListInvoiceProfilesForBill = "/finance.v1.SettlementService/ListInvoiceProfilesForBill"
 const OperationSettlementServiceListInvoices = "/finance.v1.SettlementService/ListInvoices"
 const OperationSettlementServiceListNettings = "/finance.v1.SettlementService/ListNettings"
-const OperationSettlementServiceListVerificationCreationCandidates = "/finance.v1.SettlementService/ListVerificationCreationCandidates"
+const OperationSettlementServiceListVerificationBillCandidates = "/finance.v1.SettlementService/ListVerificationBillCandidates"
+const OperationSettlementServiceListVerificationCashflowCandidates = "/finance.v1.SettlementService/ListVerificationCashflowCandidates"
 const OperationSettlementServiceListVerifications = "/finance.v1.SettlementService/ListVerifications"
 const OperationSettlementServiceMarkCommissionAdjustmentPaid = "/finance.v1.SettlementService/MarkCommissionAdjustmentPaid"
 const OperationSettlementServiceMarkCommissionPaid = "/finance.v1.SettlementService/MarkCommissionPaid"
@@ -172,7 +173,8 @@ type SettlementServiceHTTPServer interface {
 	ListInvoices(context.Context, *ListInvoicesRequest) (*ListInvoicesResponse, error)
 	// ListNettings 对冲单：按组织、结算单位和账单币种预览双方未结余额，创建、确认、取消与反转同币种抵销。
 	ListNettings(context.Context, *ListNettingsRequest) (*ListNettingsResponse, error)
-	ListVerificationCreationCandidates(context.Context, *ListVerificationCreationCandidatesRequest) (*ListVerificationCreationCandidatesResponse, error)
+	ListVerificationBillCandidates(context.Context, *ListVerificationBillCandidatesRequest) (*ListVerificationBillCandidatesResponse, error)
+	ListVerificationCashflowCandidates(context.Context, *ListVerificationCashflowCandidatesRequest) (*ListVerificationCashflowCandidatesResponse, error)
 	ListVerifications(context.Context, *ListVerificationsRequest) (*ListVerificationsResponse, error)
 	MarkCommissionAdjustmentPaid(context.Context, *MarkCommissionAdjustmentPaidRequest) (*MarkCommissionAdjustmentPaidResponse, error)
 	MarkCommissionPaid(context.Context, *MarkCommissionPaidRequest) (*MarkCommissionPaidResponse, error)
@@ -236,7 +238,8 @@ func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHT
 	r.Handle("POST", "/api/v1/finance/cashflows", _SettlementService_CreateCashflow0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/cashflows/{id}/confirm", _SettlementService_ConfirmCashflow0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/cashflows/{id}/cancel", _SettlementService_CancelCashflow0_HTTP_Handler(srv))
-	r.Handle("GET", "/api/v1/finance/verifications/creation-candidates", _SettlementService_ListVerificationCreationCandidates0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/verifications/cashflow-candidates", _SettlementService_ListVerificationCashflowCandidates0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/verifications/bill-candidates", _SettlementService_ListVerificationBillCandidates0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/verifications", _SettlementService_ListVerifications0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commissions/verification-candidates", _SettlementService_ListCommissionVerificationCandidates0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/commissions/netting-candidates", _SettlementService_ListCommissionNettingCandidates0_HTTP_Handler(srv))
@@ -947,21 +950,40 @@ func _SettlementService_CancelCashflow0_HTTP_Handler(srv SettlementServiceHTTPSe
 	}
 }
 
-func _SettlementService_ListVerificationCreationCandidates0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+func _SettlementService_ListVerificationCashflowCandidates0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
-		var in ListVerificationCreationCandidatesRequest
+		var in ListVerificationCashflowCandidatesRequest
 		if err := ctx.BindQuery(&in); err != nil {
 			return err
 		}
-		http.SetOperation(ctx, OperationSettlementServiceListVerificationCreationCandidates)
+		http.SetOperation(ctx, OperationSettlementServiceListVerificationCashflowCandidates)
 		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ListVerificationCreationCandidates(ctx, req.(*ListVerificationCreationCandidatesRequest))
+			return srv.ListVerificationCashflowCandidates(ctx, req.(*ListVerificationCashflowCandidatesRequest))
 		})
 		out, err := h(ctx, &in)
 		if err != nil {
 			return err
 		}
-		reply := out.(*ListVerificationCreationCandidatesResponse)
+		reply := out.(*ListVerificationCashflowCandidatesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_ListVerificationBillCandidates0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListVerificationBillCandidatesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceListVerificationBillCandidates)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListVerificationBillCandidates(ctx, req.(*ListVerificationBillCandidatesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListVerificationBillCandidatesResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -1854,7 +1876,8 @@ type SettlementServiceHTTPClient interface {
 	ListInvoices(ctx context.Context, req *ListInvoicesRequest, opts ...http.CallOption) (rsp *ListInvoicesResponse, err error)
 	// ListNettings 对冲单：按组织、结算单位和账单币种预览双方未结余额，创建、确认、取消与反转同币种抵销。
 	ListNettings(ctx context.Context, req *ListNettingsRequest, opts ...http.CallOption) (rsp *ListNettingsResponse, err error)
-	ListVerificationCreationCandidates(ctx context.Context, req *ListVerificationCreationCandidatesRequest, opts ...http.CallOption) (rsp *ListVerificationCreationCandidatesResponse, err error)
+	ListVerificationBillCandidates(ctx context.Context, req *ListVerificationBillCandidatesRequest, opts ...http.CallOption) (rsp *ListVerificationBillCandidatesResponse, err error)
+	ListVerificationCashflowCandidates(ctx context.Context, req *ListVerificationCashflowCandidatesRequest, opts ...http.CallOption) (rsp *ListVerificationCashflowCandidatesResponse, err error)
 	ListVerifications(ctx context.Context, req *ListVerificationsRequest, opts ...http.CallOption) (rsp *ListVerificationsResponse, err error)
 	MarkCommissionAdjustmentPaid(ctx context.Context, req *MarkCommissionAdjustmentPaidRequest, opts ...http.CallOption) (rsp *MarkCommissionAdjustmentPaidResponse, err error)
 	MarkCommissionPaid(ctx context.Context, req *MarkCommissionPaidRequest, opts ...http.CallOption) (rsp *MarkCommissionPaidResponse, err error)
@@ -2789,13 +2812,29 @@ func (c *SettlementServiceHTTPClientImpl) ListNettings(ctx context.Context, in *
 	return &out, nil
 }
 
-func (c *SettlementServiceHTTPClientImpl) ListVerificationCreationCandidates(ctx context.Context, in *ListVerificationCreationCandidatesRequest, opts ...http.CallOption) (*ListVerificationCreationCandidatesResponse, error) {
-	var out ListVerificationCreationCandidatesResponse
-	pattern := "/api/v1/finance/verifications/creation-candidates"
+func (c *SettlementServiceHTTPClientImpl) ListVerificationBillCandidates(ctx context.Context, in *ListVerificationBillCandidatesRequest, opts ...http.CallOption) (*ListVerificationBillCandidatesResponse, error) {
+	var out ListVerificationBillCandidatesResponse
+	pattern := "/api/v1/finance/verifications/bill-candidates"
 	path := http.BuildPath(pattern, in, http.WithQueryParams())
 	opts = append([]http.CallOption{
 		http.Accept("application/protojson"),
-		http.Operation(OperationSettlementServiceListVerificationCreationCandidates),
+		http.Operation(OperationSettlementServiceListVerificationBillCandidates),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) ListVerificationCashflowCandidates(ctx context.Context, in *ListVerificationCashflowCandidatesRequest, opts ...http.CallOption) (*ListVerificationCashflowCandidatesResponse, error) {
+	var out ListVerificationCashflowCandidatesResponse
+	pattern := "/api/v1/finance/verifications/cashflow-candidates"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceListVerificationCashflowCandidates),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)

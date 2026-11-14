@@ -138,51 +138,23 @@ func (r *verificationRepo) LoadCashflowContextScoped(ctx context.Context, organi
 	return cashflowToBiz(x)
 }
 
-// ListCreationCandidates 复用账单和资金流水仓储的组织谓词与有效核销余额计算。
-// 未结清/未核销过滤下推到数据库（OnlyUnsettled / OnlyUnverified），保证发生在 LIMIT 之前，
-// 避免前列记录全部已结清时未结清候选被截断；Go 层保留防御性余额检查。
-// 候选只服务于工作台体验；创建事务仍会重新读取并加锁校验所有来源。
-func (r *verificationRepo) ListCreationCandidates(ctx context.Context, organizationID uuid.UUID, filter biz.VerificationCreationCandidateFilter) (*biz.VerificationCreationCandidates, error) {
-	cashflowResult, err := (&financeCashflowRepo{data: r.data}).ListScoped(ctx, []uuid.UUID{organizationID}, biz.FinanceCashflowFilter{
-		Page:              1,
-		PageSize:          biz.MaxListPageSize,
-		Direction:         filter.Direction,
-		Status:            biz.FinanceCashflowConfirmed,
-		SettlementPartyID: &filter.SettlementPartyID,
-		Currency:          filter.Currency,
-		OnlyUnverified:    true,
+// 核销资金和账单候选独立分页，余额谓词在 Count/LIMIT 前执行，total 为完整筛选结果。
+func (r *verificationRepo) ListCashflowCandidates(ctx context.Context, organizationID uuid.UUID, filter biz.VerificationCreationCandidateFilter) (*biz.FinanceCashflowListResult, error) {
+	return (&financeCashflowRepo{data: r.data}).ListScoped(ctx, []uuid.UUID{organizationID}, biz.FinanceCashflowFilter{
+		Page: filter.Page, PageSize: filter.PageSize, Keyword: filter.Keyword,
+		Direction: filter.Direction, Status: biz.FinanceCashflowConfirmed,
+		SettlementPartyID: &filter.SettlementPartyID, Currency: filter.Currency, OnlyUnverified: true,
 	})
-	if err != nil {
-		return nil, err
-	}
-	billResult, err := (&financeBillRepo{data: r.data}).List(ctx, []uuid.UUID{organizationID}, biz.FinanceBillFilter{
-		Page:              1,
-		PageSize:          biz.MaxListPageSize,
-		Direction:         filter.Direction,
-		Status:            biz.FinanceBillConfirmed,
-		SettlementPartyID: &filter.SettlementPartyID,
-		Currency:          filter.Currency,
-		OnlyUnsettled:     true,
-	})
-	if err != nil {
-		return nil, err
-	}
-	result := &biz.VerificationCreationCandidates{
-		Cashflows: make([]*biz.FinanceCashflow, 0, len(cashflowResult.Items)),
-		Bills:     make([]*biz.FinanceBill, 0, len(billResult.Items)),
-	}
-	for _, cashflow := range cashflowResult.Items {
-		if cashflow.UnverifiedAmount.IsPositive() {
-			result.Cashflows = append(result.Cashflows, cashflow)
-		}
-	}
-	for _, bill := range billResult.Items {
-		if bill.UnverifiedAmount.IsPositive() {
-			result.Bills = append(result.Bills, bill)
-		}
-	}
-	return result, nil
 }
+
+func (r *verificationRepo) ListBillCandidates(ctx context.Context, organizationID uuid.UUID, filter biz.VerificationCreationCandidateFilter) (*biz.FinanceBillListResult, error) {
+	return (&financeBillRepo{data: r.data}).List(ctx, []uuid.UUID{organizationID}, biz.FinanceBillFilter{
+		Page: filter.Page, PageSize: filter.PageSize, Keyword: filter.Keyword,
+		Direction: filter.Direction, Status: biz.FinanceBillConfirmed,
+		SettlementPartyID: &filter.SettlementPartyID, Currency: filter.Currency, OnlyUnsettled: true,
+	})
+}
+
 func (r *verificationRepo) Create(ctx context.Context, org, actor uuid.UUID, v *biz.FinanceVerification, audit *biz.AuditEvent) (*biz.FinanceVerification, error) {
 	var e error
 	e = r.data.WithTx(ctx, func(tx *ent.Tx) error {

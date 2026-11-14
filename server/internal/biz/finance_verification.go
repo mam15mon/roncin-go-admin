@@ -78,13 +78,11 @@ type VerificationListResult struct {
 // VerificationCreationCandidateFilter 是核销创建工作台的单组织候选约束。
 // 最终创建仍在事务内重读并锁定资金流水与账单，不以候选结果作为写入依据。
 type VerificationCreationCandidateFilter struct {
+	Page, PageSize    int
+	Keyword           string
 	Direction         OrderFeeDirection
 	SettlementPartyID uuid.UUID
 	Currency          string
-}
-type VerificationCreationCandidates struct {
-	Cashflows []*FinanceCashflow
-	Bills     []*FinanceBill
 }
 type VerificationSummary struct {
 	AmountsByBaseCurrency []FinanceBaseCurrencyAmount
@@ -97,7 +95,8 @@ type VerificationRepo interface {
 	GetByKey(context.Context, uuid.UUID, string) (*FinanceVerification, error)
 	LoadCashflowContext(context.Context, uuid.UUID, uuid.UUID) (*FinanceCashflow, error)
 	LoadCashflowContextScoped(context.Context, []uuid.UUID, uuid.UUID) (*FinanceCashflow, error)
-	ListCreationCandidates(context.Context, uuid.UUID, VerificationCreationCandidateFilter) (*VerificationCreationCandidates, error)
+	ListCashflowCandidates(context.Context, uuid.UUID, VerificationCreationCandidateFilter) (*FinanceCashflowListResult, error)
+	ListBillCandidates(context.Context, uuid.UUID, VerificationCreationCandidateFilter) (*FinanceBillListResult, error)
 	Create(context.Context, uuid.UUID, uuid.UUID, *FinanceVerification, *AuditEvent) (*FinanceVerification, error)
 	Reverse(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, uint64, string, *AuditEvent) (*FinanceVerification, error)
 }
@@ -136,14 +135,32 @@ func (u *VerificationUsecase) LoadCashflowContextScoped(ctx context.Context, org
 	return u.repo.LoadCashflowContextScoped(ctx, organizationIDs, id)
 }
 
-func (u *VerificationUsecase) ListCreationCandidates(ctx context.Context, organizationID uuid.UUID, filter VerificationCreationCandidateFilter) (*VerificationCreationCandidates, error) {
+func normalizeVerificationCandidateFilter(organizationID uuid.UUID, filter VerificationCreationCandidateFilter) (VerificationCreationCandidateFilter, error) {
 	filter.Currency = strings.ToUpper(strings.TrimSpace(filter.Currency))
+	filter.Keyword = strings.TrimSpace(filter.Keyword)
 	if organizationID == uuid.Nil || filter.SettlementPartyID == uuid.Nil ||
+		!ValidListPagination(filter.Page, filter.PageSize) || utf8.RuneCountInString(filter.Keyword) > 100 ||
 		(filter.Direction != OrderFeeReceivable && filter.Direction != OrderFeePayable) ||
 		!financeBillCurrencyPattern.MatchString(filter.Currency) {
-		return nil, ErrVerificationInvalid
+		return filter, ErrVerificationInvalid
 	}
-	return u.repo.ListCreationCandidates(ctx, organizationID, filter)
+	return filter, nil
+}
+
+func (u *VerificationUsecase) ListCashflowCandidates(ctx context.Context, organizationID uuid.UUID, filter VerificationCreationCandidateFilter) (*FinanceCashflowListResult, error) {
+	filter, err := normalizeVerificationCandidateFilter(organizationID, filter)
+	if err != nil {
+		return nil, err
+	}
+	return u.repo.ListCashflowCandidates(ctx, organizationID, filter)
+}
+
+func (u *VerificationUsecase) ListBillCandidates(ctx context.Context, organizationID uuid.UUID, filter VerificationCreationCandidateFilter) (*FinanceBillListResult, error) {
+	filter, err := normalizeVerificationCandidateFilter(organizationID, filter)
+	if err != nil {
+		return nil, err
+	}
+	return u.repo.ListBillCandidates(ctx, organizationID, filter)
 }
 
 func (u *VerificationUsecase) Create(ctx context.Context, org, actor uuid.UUID, in CreateVerificationInput) (*FinanceVerification, error) {

@@ -17,7 +17,7 @@ type verificationCreationCandidateRepoStub struct {
 	biz.VerificationRepo
 	organizationID uuid.UUID
 	filter         biz.VerificationCreationCandidateFilter
-	result         *biz.VerificationCreationCandidates
+	result         *biz.FinanceCashflowListResult
 	err            error
 }
 
@@ -151,10 +151,16 @@ func (s *invoiceCreationCandidateRepoStub) ListProfilesForBill(_ context.Context
 	return s.profileResult, s.profileErr
 }
 
-func (s *verificationCreationCandidateRepoStub) ListCreationCandidates(_ context.Context, organizationID uuid.UUID, filter biz.VerificationCreationCandidateFilter) (*biz.VerificationCreationCandidates, error) {
+func (s *verificationCreationCandidateRepoStub) ListCashflowCandidates(_ context.Context, organizationID uuid.UUID, filter biz.VerificationCreationCandidateFilter) (*biz.FinanceCashflowListResult, error) {
 	s.organizationID = organizationID
 	s.filter = filter
 	return s.result, s.err
+}
+
+func (s *verificationCreationCandidateRepoStub) ListBillCandidates(_ context.Context, organizationID uuid.UUID, filter biz.VerificationCreationCandidateFilter) (*biz.FinanceBillListResult, error) {
+	s.organizationID = organizationID
+	s.filter = filter
+	return &biz.FinanceBillListResult{}, s.err
 }
 
 func TestFeeLedgerRequestedOrganizationOnlyNarrowsMatchingPermissionScope(t *testing.T) {
@@ -507,7 +513,7 @@ func TestBillBatchPreviewAndCreateRequireDeclaredSourceOrganization(t *testing.T
 	}
 }
 
-func TestListVerificationCreationCandidatesUsesCreateWritableOrganization(t *testing.T) {
+func TestListVerificationCashflowCandidatesUsesCreateWritableOrganization(t *testing.T) {
 	organizationID := uuid.New()
 	partyID := uuid.New()
 	principal := &biz.Principal{
@@ -523,10 +529,11 @@ func TestListVerificationCreationCandidatesUsesCreateWritableOrganization(t *tes
 			},
 		}},
 	}
-	repo := &verificationCreationCandidateRepoStub{result: &biz.VerificationCreationCandidates{}}
+	repo := &verificationCreationCandidateRepoStub{result: &biz.FinanceCashflowListResult{}}
 	service := &SettlementService{verificationUsecase: biz.NewVerificationUsecase(repo, nil, nil, nil)}
 	ctx := biz.WithPrincipal(context.Background(), principal)
-	_, err := service.ListVerificationCreationCandidates(ctx, &v1.ListVerificationCreationCandidatesRequest{
+	_, err := service.ListVerificationCashflowCandidates(ctx, &v1.ListVerificationCashflowCandidatesRequest{
+		Page: 1, PageSize: 20,
 		OrganizationId:    organizationID.String(),
 		Direction:         "RECEIVABLE",
 		SettlementPartyId: partyID.String(),
@@ -538,7 +545,8 @@ func TestListVerificationCreationCandidatesUsesCreateWritableOrganization(t *tes
 	if repo.organizationID != organizationID || repo.filter.Direction != biz.OrderFeeReceivable || repo.filter.SettlementPartyID != partyID || repo.filter.Currency != "USD" {
 		t.Fatalf("候选未使用核销创建权限范围: org=%s filter=%+v", repo.organizationID, repo.filter)
 	}
-	if _, err := service.ListVerificationCreationCandidates(ctx, &v1.ListVerificationCreationCandidatesRequest{
+	if _, err := service.ListVerificationCashflowCandidates(ctx, &v1.ListVerificationCashflowCandidatesRequest{
+		Page: 1, PageSize: 20,
 		OrganizationId:    uuid.NewString(),
 		Direction:         "RECEIVABLE",
 		SettlementPartyId: partyID.String(),
@@ -549,7 +557,8 @@ func TestListVerificationCreationCandidatesUsesCreateWritableOrganization(t *tes
 
 	expected := errors.New("候选数据库故障")
 	repo.err = expected
-	if _, err := service.ListVerificationCreationCandidates(ctx, &v1.ListVerificationCreationCandidatesRequest{
+	if _, err := service.ListVerificationCashflowCandidates(ctx, &v1.ListVerificationCashflowCandidatesRequest{
+		Page: 1, PageSize: 20,
 		OrganizationId:    organizationID.String(),
 		Direction:         "RECEIVABLE",
 		SettlementPartyId: partyID.String(),

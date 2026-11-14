@@ -4603,11 +4603,21 @@ declare namespace API {
     traceId?: string;
   };
 
-  type ListVerificationCreationCandidatesResponse = {
+  type ListVerificationBillCandidatesResponse = {
     success?: boolean;
     code?: number;
     message?: string;
-    data?: VerificationCreationCandidates;
+    data?: FinanceBill[];
+    total?: string;
+    traceId?: string;
+  };
+
+  type ListVerificationCashflowCandidatesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceCashflow[];
+    total?: string;
     traceId?: string;
   };
 
@@ -8443,11 +8453,24 @@ declare namespace API {
     organizationId?: string;
   };
 
-  type SettlementServiceListVerificationCreationCandidatesParams = {
+  type SettlementServiceListVerificationBillCandidatesParams = {
     organizationId?: string;
     direction?: string;
     settlementPartyId?: string;
     currency?: string;
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+  };
+
+  type SettlementServiceListVerificationCashflowCandidatesParams = {
+    organizationId?: string;
+    direction?: string;
+    settlementPartyId?: string;
+    currency?: string;
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
   };
 
   type SettlementServiceListVerificationsParams = {
@@ -9430,11 +9453,6 @@ declare namespace API {
     cashflowId?: string;
     billId: string;
     amount: string;
-  };
-
-  type VerificationCreationCandidates = {
-    cashflows?: FinanceCashflow[];
-    bills?: FinanceBill[];
   };
 
   type VerificationShortfallCashflow = {

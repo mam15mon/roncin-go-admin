@@ -13,45 +13,62 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 )
 
-func (s *SettlementService) ListVerificationCreationCandidates(ctx context.Context, request *v1.ListVerificationCreationCandidatesRequest) (*v1.ListVerificationCreationCandidatesResponse, error) {
+func verificationCandidateScope(ctx context.Context, rawOrganizationID, direction, rawPartyID, currency, keyword string, page, pageSize int32) (uuid.UUID, biz.VerificationCreationCandidateFilter, error) {
+	filter := biz.VerificationCreationCandidateFilter{Page: int(page), PageSize: int(pageSize), Keyword: keyword,
+		Direction: biz.OrderFeeDirection(strings.ToUpper(strings.TrimSpace(direction))), Currency: currency}
 	principal, err := biz.RequirePrincipal(ctx)
 	if err != nil {
-		return nil, err
+		return uuid.Nil, filter, err
 	}
-	rawOrganizationID := strings.TrimSpace(request.GetOrganizationId())
+	rawOrganizationID = strings.TrimSpace(rawOrganizationID)
 	if rawOrganizationID == "" {
-		return nil, biz.ErrVerificationInvalid
+		return uuid.Nil, filter, biz.ErrVerificationInvalid
 	}
-	organizationIDs, err := organizationIDsForRequestedOrganization(principal, access.FinanceVerificationCreate, true, &rawOrganizationID)
+	ids, err := organizationIDsForRequestedOrganization(principal, access.FinanceVerificationCreate, true, &rawOrganizationID)
+	if err != nil {
+		return uuid.Nil, filter, err
+	}
+	if len(ids) != 1 {
+		return uuid.Nil, filter, biz.ErrVerificationInvalid
+	}
+	partyID, err := uuid.Parse(strings.TrimSpace(rawPartyID))
+	if err != nil {
+		return uuid.Nil, filter, biz.ErrVerificationInvalid
+	}
+	filter.SettlementPartyID = partyID
+	return ids[0], filter, nil
+}
+
+func (s *SettlementService) ListVerificationCashflowCandidates(ctx context.Context, request *v1.ListVerificationCashflowCandidatesRequest) (*v1.ListVerificationCashflowCandidatesResponse, error) {
+	org, filter, err := verificationCandidateScope(ctx, request.GetOrganizationId(), request.GetDirection(), request.GetSettlementPartyId(), request.GetCurrency(), request.GetKeyword(), request.GetPage(), request.GetPageSize())
 	if err != nil {
 		return nil, err
 	}
-	if len(organizationIDs) != 1 {
-		return nil, biz.ErrVerificationInvalid
-	}
-	settlementPartyID, err := uuid.Parse(strings.TrimSpace(request.GetSettlementPartyId()))
-	if err != nil {
-		return nil, biz.ErrVerificationInvalid
-	}
-	candidates, err := s.verificationUsecase.ListCreationCandidates(ctx, organizationIDs[0], biz.VerificationCreationCandidateFilter{
-		Direction:         biz.OrderFeeDirection(strings.ToUpper(strings.TrimSpace(request.GetDirection()))),
-		SettlementPartyID: settlementPartyID,
-		Currency:          request.GetCurrency(),
-	})
+	result, err := s.verificationUsecase.ListCashflowCandidates(ctx, org, filter)
 	if err != nil {
 		return nil, err
 	}
-	cashflows := make([]*v1.FinanceCashflow, 0, len(candidates.Cashflows))
-	for _, cashflow := range candidates.Cashflows {
-		cashflows = append(cashflows, cashflowToAPI(cashflow))
+	items := make([]*v1.FinanceCashflow, 0, len(result.Items))
+	for _, item := range result.Items {
+		items = append(items, cashflowToAPI(item))
 	}
-	bills := make([]*v1.FinanceBill, 0, len(candidates.Bills))
-	for _, bill := range candidates.Bills {
-		bills = append(bills, financeBillToAPI(bill))
+	return okList(ctx, &v1.ListVerificationCashflowCandidatesResponse{Data: items, Total: result.Total}), nil
+}
+
+func (s *SettlementService) ListVerificationBillCandidates(ctx context.Context, request *v1.ListVerificationBillCandidatesRequest) (*v1.ListVerificationBillCandidatesResponse, error) {
+	org, filter, err := verificationCandidateScope(ctx, request.GetOrganizationId(), request.GetDirection(), request.GetSettlementPartyId(), request.GetCurrency(), request.GetKeyword(), request.GetPage(), request.GetPageSize())
+	if err != nil {
+		return nil, err
 	}
-	return okList(ctx, &v1.ListVerificationCreationCandidatesResponse{
-		Data: &v1.VerificationCreationCandidates{Cashflows: cashflows, Bills: bills},
-	}), nil
+	result, err := s.verificationUsecase.ListBillCandidates(ctx, org, filter)
+	if err != nil {
+		return nil, err
+	}
+	items := make([]*v1.FinanceBill, 0, len(result.Items))
+	for _, item := range result.Items {
+		items = append(items, financeBillToAPI(item))
+	}
+	return okList(ctx, &v1.ListVerificationBillCandidatesResponse{Data: items, Total: result.Total}), nil
 }
 
 func (s *SettlementService) ListVerifications(ctx context.Context, r *v1.ListVerificationsRequest) (*v1.ListVerificationsResponse, error) {

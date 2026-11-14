@@ -128,7 +128,8 @@ service SettlementService {
   rpc CreateCashflow(CreateCashflowRequest) returns (CreateCashflowResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.cashflow.create" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/cashflows" body: "*"}; }
   rpc ConfirmCashflow(ConfirmCashflowRequest) returns (ConfirmCashflowResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.cashflow.update" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/cashflows/{id}/confirm" body: "*"}; }
   rpc CancelCashflow(CancelCashflowRequest) returns (CancelCashflowResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.cashflow.update" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {post: "/api/v1/finance/cashflows/{id}/cancel" body: "*"}; }
-  rpc ListVerificationCreationCandidates(ListVerificationCreationCandidatesRequest) returns (ListVerificationCreationCandidatesResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.verification.create" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/verifications/creation-candidates"}; }
+  rpc ListVerificationCashflowCandidates(ListVerificationCashflowCandidatesRequest) returns (ListVerificationCashflowCandidatesResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.verification.create" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/verifications/cashflow-candidates"}; }
+  rpc ListVerificationBillCandidates(ListVerificationBillCandidatesRequest) returns (ListVerificationBillCandidatesResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.verification.create" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/verifications/bill-candidates"}; }
   rpc ListVerifications(ListVerificationsRequest) returns (ListVerificationsResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.verification.read" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/verifications"}; }
   rpc ListCommissionVerificationCandidates(ListCommissionVerificationCandidatesRequest) returns (ListCommissionVerificationCandidatesResponse) { option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.commission.manage" scope: DATA_SCOPE_ORGANIZATION}; option (google.api.http) = {get: "/api/v1/finance/commissions/verification-candidates"}; }
   // ListCommissionNettingCandidates 为对冲提成提供已确认且存在应收分摊的对冲单候选，按 commission.manage 可写组织过滤。
@@ -984,9 +985,27 @@ message ListCommissionVerificationCandidatesRequest { string organization_id=1 [
 message ListCommissionVerificationCandidatesResponse { bool success=1; int32 code=2; string message=3; repeated FinanceVerification data=4; int64 total=5; string trace_id=6; }
 message ListCommissionNettingCandidatesRequest { string organization_id=1 [(google.api.field_behavior)=REQUIRED]; int32 page=2; int32 page_size=3; optional string keyword=4; }
 message ListCommissionNettingCandidatesResponse { bool success=1; int32 code=2; string message=3; repeated FinanceNetting data=4; int64 total=5; string trace_id=6; }
-message VerificationCreationCandidates { repeated FinanceCashflow cashflows = 1; repeated FinanceBill bills = 2; }
-message ListVerificationCreationCandidatesRequest { string organization_id = 1 [(google.api.field_behavior) = REQUIRED]; string direction = 2 [(google.api.field_behavior) = REQUIRED]; string settlement_party_id = 3 [(google.api.field_behavior) = REQUIRED]; string currency = 4 [(google.api.field_behavior) = REQUIRED]; }
-message ListVerificationCreationCandidatesResponse { bool success = 1; int32 code = 2; string message = 3; VerificationCreationCandidates data = 4; string trace_id = 5; }
+// 核销资金和账单候选独立分页，关键字复用各自业务编号及往来单位检索口径。
+message ListVerificationCashflowCandidatesRequest {
+  string organization_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string direction = 2 [(google.api.field_behavior) = REQUIRED];
+  string settlement_party_id = 3 [(google.api.field_behavior) = REQUIRED];
+  string currency = 4 [(google.api.field_behavior) = REQUIRED];
+  int32 page = 5 [(google.api.field_behavior) = REQUIRED];
+  int32 page_size = 6 [(google.api.field_behavior) = REQUIRED];
+  optional string keyword = 7;
+}
+message ListVerificationBillCandidatesRequest {
+  string organization_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string direction = 2 [(google.api.field_behavior) = REQUIRED];
+  string settlement_party_id = 3 [(google.api.field_behavior) = REQUIRED];
+  string currency = 4 [(google.api.field_behavior) = REQUIRED];
+  int32 page = 5 [(google.api.field_behavior) = REQUIRED];
+  int32 page_size = 6 [(google.api.field_behavior) = REQUIRED];
+  optional string keyword = 7;
+}
+message ListVerificationCashflowCandidatesResponse { bool success = 1; int32 code = 2; string message = 3; repeated FinanceCashflow data = 4; int64 total = 5; string trace_id = 6; }
+message ListVerificationBillCandidatesResponse { bool success = 1; int32 code = 2; string message = 3; repeated FinanceBill data = 4; int64 total = 5; string trace_id = 6; }
 // 差额流水只在最终核销提交的共享事务内创建并确认，幂等键由核销键派生。
 message VerificationShortfallCashflow {
   string organization_id = 1 [(google.api.field_behavior) = REQUIRED];

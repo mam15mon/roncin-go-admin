@@ -1366,14 +1366,32 @@ export async function settlementServiceReverseVerification(
   );
 }
 
-/** 此处后端没有提供注释 GET /api/v1/finance/verifications/creation-candidates */
-export async function settlementServiceListVerificationCreationCandidates(
+/** 此处后端没有提供注释 GET /api/v1/finance/verifications/bill-candidates */
+export async function settlementServiceListVerificationBillCandidates(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.SettlementServiceListVerificationCreationCandidatesParams,
+  params: API.SettlementServiceListVerificationBillCandidatesParams,
   options?: { [key: string]: any }
 ) {
-  return request<API.ListVerificationCreationCandidatesResponse>(
-    "/api/v1/finance/verifications/creation-candidates",
+  return request<API.ListVerificationBillCandidatesResponse>(
+    "/api/v1/finance/verifications/bill-candidates",
+    {
+      method: "GET",
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 GET /api/v1/finance/verifications/cashflow-candidates */
+export async function settlementServiceListVerificationCashflowCandidates(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceListVerificationCashflowCandidatesParams,
+  options?: { [key: string]: any }
+) {
+  return request<API.ListVerificationCashflowCandidatesResponse>(
+    "/api/v1/finance/verifications/cashflow-candidates",
     {
       method: "GET",
       params: {

@@ -31,7 +31,7 @@ func (r *financeCashflowRepo) List(ctx context.Context, org uuid.UUID, f biz.Fin
 func (r *financeCashflowRepo) ListScoped(ctx context.Context, organizationIDs []uuid.UUID, f biz.FinanceCashflowFilter) (*biz.FinanceCashflowListResult, error) {
 	p := []predicate.FinanceCashflow{cash.OrganizationIDIn(organizationIDs...)}
 	if f.Keyword != "" {
-		p = append(p, cash.Or(cash.FlowNoContainsFold(f.Keyword), cash.SettlementPartyNameContainsFold(f.Keyword), cash.BankReferenceNoContainsFold(f.Keyword)))
+		p = append(p, cash.Or(cash.FlowNoContainsFold(f.Keyword), cash.SettlementPartyNameContainsFold(f.Keyword), cash.BankReferenceNoContainsFold(f.Keyword), cash.HasSettlementPartyWith(financePartyKeywordPredicate(f.Keyword))))
 	}
 	if f.Direction != "" {
 		p = append(p, cash.DirectionEQ(cash.Direction(f.Direction)))
@@ -108,7 +108,7 @@ func (r *financeCashflowRepo) ListScoped(ctx context.Context, organizationIDs []
 		bucket.UnverifiedBaseAmount = bucket.UnverifiedBaseAmount.Sub(amount)
 	}
 	summary.AmountsByBaseCurrency = financeBaseCurrencyAmountItems(amountsByBaseCurrency)
-	xs, e := q.Order(cash.ByTransactionDate(entsql.OrderDesc()), cash.ByCreatedAt(entsql.OrderDesc())).Offset((f.Page - 1) * f.PageSize).Limit(f.PageSize).All(ctx)
+	xs, e := q.Order(cash.ByTransactionDate(entsql.OrderDesc()), cash.ByCreatedAt(entsql.OrderDesc()), cash.ByID(entsql.OrderDesc())).Offset((f.Page - 1) * f.PageSize).Limit(f.PageSize).All(ctx)
 	if e != nil {
 		return nil, e
 	}

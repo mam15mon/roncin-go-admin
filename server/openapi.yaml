@@ -4105,11 +4105,11 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.CreateVerificationResponse'
-    /api/v1/finance/verifications/creation-candidates:
+    /api/v1/finance/verifications/bill-candidates:
         get:
             tags:
                 - SettlementService
-            operationId: SettlementService_ListVerificationCreationCandidates
+            operationId: SettlementService_ListVerificationBillCandidates
             parameters:
                 - name: organizationId
                   in: query
@@ -4127,13 +4127,70 @@ paths:
                   in: query
                   schema:
                     type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/finance.v1.ListVerificationCreationCandidatesResponse'
+                                $ref: '#/components/schemas/finance.v1.ListVerificationBillCandidatesResponse'
+    /api/v1/finance/verifications/cashflow-candidates:
+        get:
+            tags:
+                - SettlementService
+            operationId: SettlementService_ListVerificationCashflowCandidates
+            parameters:
+                - name: organizationId
+                  in: query
+                  schema:
+                    type: string
+                - name: direction
+                  in: query
+                  schema:
+                    type: string
+                - name: settlementPartyId
+                  in: query
+                  schema:
+                    type: string
+                - name: currency
+                  in: query
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListVerificationCashflowCandidatesResponse'
     /api/v1/finance/verifications/{id}/reverse:
         post:
             tags:
@@ -14267,7 +14324,7 @@ components:
                 pageSize:
                     type: integer
                     format: int32
-        finance.v1.ListVerificationCreationCandidatesResponse:
+        finance.v1.ListVerificationBillCandidatesResponse:
             type: object
             properties:
                 success:
@@ -14278,7 +14335,29 @@ components:
                 message:
                     type: string
                 data:
-                    $ref: '#/components/schemas/finance.v1.VerificationCreationCandidates'
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceBill'
+                total:
+                    type: string
+                traceId:
+                    type: string
+        finance.v1.ListVerificationCashflowCandidatesResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FinanceCashflow'
+                total:
+                    type: string
                 traceId:
                     type: string
         finance.v1.ListVerificationsResponse:
@@ -15254,17 +15333,6 @@ components:
                 amount:
                     type: string
             description: cashflow_id 为空时引用本次 shortfall_cashflow，仅组合核销入口允许。
-        finance.v1.VerificationCreationCandidates:
-            type: object
-            properties:
-                cashflows:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/finance.v1.FinanceCashflow'
-                bills:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/finance.v1.FinanceBill'
         finance.v1.VerificationShortfallCashflow:
             required:
                 - organizationId
