@@ -1,4 +1,5 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { renderWithApp } from '@root/tests/renderWithApp';
+import { act, fireEvent, screen } from '@testing-library/react';
 import { Form } from 'antd';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
@@ -55,7 +56,7 @@ describe('BillGroupCard', () => {
       );
     }
 
-    render(<TestWrapper />);
+    renderWithApp(<TestWrapper />);
 
     // 散客Tag渲染
     expect(screen.getByText('散客')).toBeInTheDocument();
@@ -113,7 +114,7 @@ describe('BillGroupCard', () => {
       );
     }
 
-    render(<TestWrapper />);
+    renderWithApp(<TestWrapper />);
 
     expect(screen.queryByText('散客')).not.toBeInTheDocument();
     expect(
@@ -166,7 +167,7 @@ describe('BillGroupCard', () => {
       );
     }
 
-    render(<TestWrapper />);
+    renderWithApp(<TestWrapper />);
 
     // 超额预警展示余额、本单金额与额度（金额统一两位小数）
     expect(
@@ -220,7 +221,7 @@ describe('BillGroupCard', () => {
       );
     }
 
-    render(<TestWrapper />);
+    renderWithApp(<TestWrapper />);
 
     expect(
       screen.queryByText(/该客户应收未核销余额（本币）/),

@@ -16,15 +16,14 @@ import {
 } from 'antd';
 import type { NamePath } from 'antd/es/form/interface';
 import dayjs from 'dayjs';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { getCurrencyOptions } from '@/features/master-data/currencies';
-import { settlementServiceListBillSettlementAccountCandidates } from '@/services/roncin/settlementService';
 import type { SelectOption } from '@/types/select-option';
-import { unwrapList } from '@/utils/api';
 import { formatAmount, trimDecimal } from '@/utils/format';
 import BillTermsCreditWarnings from './BillTermsCreditWarnings';
+import SettlementAccountSelect from './SettlementAccountSelect';
 
 const { Text } = Typography;
 
@@ -36,140 +35,6 @@ type BillGroupCardProps = {
   directionText: (dir?: string) => string;
   onConfigurationChange: () => void;
 };
-
-type SettlementAccountSelectProps = Pick<
-  BillGroupCardProps,
-  'group' | 'organizationId' | 'sessionIdentity' | 'onConfigurationChange'
->;
-
-function settlementAccountLabel(account: API.FinanceSettlementAccountOption) {
-  const identity = account.name || account.accountHolder || '未命名账户';
-  const bank = account.bankName || '-';
-  const suffix = account.accountNo ? ` · ${account.accountNo}` : '';
-  return `${identity}｜${bank}${suffix}｜${account.currency || '-'}`;
-}
-
-/** 每个叶子以完整身份和单调序号隔离候选，旧请求不能回填新叶子。 */
-function SettlementAccountSelect({
-  group,
-  organizationId,
-  sessionIdentity,
-  onConfigurationChange,
-}: SettlementAccountSelectProps) {
-  const form = Form.useFormInstance();
-  const [loaded, setLoaded] = useState<{
-    identity: string;
-    options: API.FinanceSettlementAccountOption[];
-  }>();
-  const [loading, setLoading] = useState(false);
-  const requestSequenceRef = useRef(0);
-  const groupKey = group.groupKey || '';
-  const finalCurrency = group.currency || '';
-  const groupField = (field: 'settlementAccountId'): NamePath => [
-    'groups',
-    groupKey,
-    field,
-  ];
-  const identity = [
-    sessionIdentity,
-    organizationId,
-    groupKey,
-    group.settlementPartyId || '',
-    group.direction || '',
-    finalCurrency || '',
-  ].join(':');
-  const visibleOptions = loaded?.identity === identity ? loaded.options : [];
-
-  useEffect(() => {
-    const requestSequence = ++requestSequenceRef.current;
-    const requestIdentity = identity;
-    setLoaded(undefined);
-    if (
-      !organizationId ||
-      !groupKey ||
-      !group.settlementPartyId ||
-      !group.direction ||
-      !finalCurrency
-    ) {
-      setLoading(false);
-      return undefined;
-    }
-    setLoading(true);
-    void settlementServiceListBillSettlementAccountCandidates({
-      organizationId,
-      settlementPartyId: group.settlementPartyId,
-      direction: group.direction,
-      currency: finalCurrency,
-    })
-      .then((response) => {
-        if (
-          requestSequence !== requestSequenceRef.current ||
-          requestIdentity !== identity
-        ) {
-          return;
-        }
-        const accounts = unwrapList(response);
-        setLoaded({ identity: requestIdentity, options: accounts });
-        const selected = form.getFieldValue(groupField('settlementAccountId'));
-        if (selected && accounts.some((account) => account.id === selected)) {
-          return;
-        }
-        const defaultAccount = accounts.find((account) => account.isDefault);
-        if (defaultAccount?.id) {
-          form.setFieldValue(
-            groupField('settlementAccountId'),
-            defaultAccount.id,
-          );
-          onConfigurationChange();
-        }
-      })
-      .catch(() => {
-        if (
-          requestSequence === requestSequenceRef.current &&
-          requestIdentity === identity
-        ) {
-          setLoaded({ identity: requestIdentity, options: [] });
-        }
-      })
-      .finally(() => {
-        if (
-          requestSequence === requestSequenceRef.current &&
-          requestIdentity === identity
-        ) {
-          setLoading(false);
-        }
-      });
-    return () => {
-      requestSequenceRef.current += 1;
-    };
-  }, [
-    form,
-    group.direction,
-    group.settlementPartyId,
-    groupKey,
-    identity,
-    onConfigurationChange,
-    organizationId,
-  ]);
-
-  return (
-    <Form.Item
-      name={groupField('settlementAccountId')}
-      label="结算账户"
-      rules={[{ required: true, message: '请选择结算账户' }]}
-    >
-      <Select
-        allowClear
-        loading={loading}
-        placeholder="请选择与账单方向、最终币种一致的启用账户"
-        options={visibleOptions.map((account) => ({
-          value: account.id,
-          label: settlementAccountLabel(account),
-        }))}
-      />
-    </Form.Item>
-  );
-}
 
 export default function BillGroupCard({
   group,
