@@ -121,7 +121,6 @@ func TestScopedFinancePermissionWritesClassifiesAllMigratedPermissions(t *testin
 		access.FinanceCommissionExport:    false,
 		access.FinanceBillCreate:          true,
 		access.FinanceBillUpdate:          true,
-		access.FinanceBillConfirm:         true,
 		access.FinanceInvoiceCreate:       true,
 		access.FinanceInvoiceUpdate:       true,
 		access.FinanceCashflowCreate:      true,

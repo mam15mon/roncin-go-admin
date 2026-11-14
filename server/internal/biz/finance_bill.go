@@ -30,6 +30,8 @@ var (
 	ErrFinanceBillSettlementAccountInvalid = errors.BadRequest(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_BILL_SETTLEMENT_ACCOUNT_INVALID), "结算账户与账单结算单位、方向、币种或启用状态不匹配")
 	ErrFinanceBillMixedDirection           = errors.BadRequest("FINANCE_BILL_MIXED_DIRECTION", "普通账单需将应收、应付分别建账，请先完成一个方向，再创建另一个方向")
 	ErrFinanceBillGroupingModeUnsupported  = errors.BadRequest("FINANCE_BILL_GROUPING_MODE_UNSUPPORTED", "当前阶段暂不支持对冲建账模式")
+	// ErrFinanceBillProtectedFields 表示账单已有有效发票、核销或已确认对冲，只能修改不影响金额与结算的字段。
+	ErrFinanceBillProtectedFields = errors.Conflict("FINANCE_BILL_PROTECTED_FIELDS", "账单已登记发票、核销或对冲，只能修改备注、对账标题和到期日；如需调整账单日期、账户、账期或预计开票，请先撤销相关财务记录")
 )
 
 var financeBillCurrencyPattern = regexp.MustCompile(`^[A-Z]{3}$`)
@@ -181,6 +183,8 @@ func (uc *FinanceBillUsecase) Create(ctx context.Context, organizationID, actorI
 		if transactionErr != nil {
 			return transactionErr
 		}
+		// 账单免人工确认：创建人即确认人。
+		bill.ConfirmedBy = &actorID
 		// 与批量建账保持相同锁序：费用 → 账户 → 汇率设置。
 		if transactionErr = uc.repo.HydrateBillSettlementAccounts(txCtx, []*FinanceBill{bill}); transactionErr != nil {
 			return transactionErr
@@ -251,8 +255,8 @@ func (uc *FinanceBillUsecase) Update(ctx context.Context, organizationIDs []uuid
 	if err != nil {
 		return nil, err
 	}
-	if existing.Status != FinanceBillDraft || existing.Version != input.ExpectedVersion || uc.exchangeRate == nil || uc.transactor == nil {
-		if existing.Status != FinanceBillDraft {
+	if existing.Status != FinanceBillConfirmed || existing.Version != input.ExpectedVersion || uc.exchangeRate == nil || uc.transactor == nil {
+		if existing.Status != FinanceBillConfirmed {
 			return nil, ErrFinanceBillInvalidTransition
 		}
 		if existing.Version != input.ExpectedVersion {
@@ -265,17 +269,34 @@ func (uc *FinanceBillUsecase) Update(ctx context.Context, organizationIDs []uuid
 		feeIDs = append(feeIDs, line.OrderFeeID)
 	}
 	err = uc.transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
-		// 账单更新、取消和确认统一先锁账单；更新随后再按 ID 锁费用，避免与
+		// 账单更新与取消统一先锁订单与账单；更新随后再按 ID 锁费用，避免与
 		// “账单 → 费用”的状态操作形成反向等待。
 		current, transactionErr := uc.repo.Get(txCtx, organizationIDs, input.ID)
 		if transactionErr != nil {
 			return transactionErr
 		}
-		if current.Status != FinanceBillDraft {
+		if current.Status != FinanceBillConfirmed {
 			return ErrFinanceBillInvalidTransition
 		}
 		if current.Version != input.ExpectedVersion {
 			return ErrFinanceBillVersionConflict
+		}
+		// 受保护判定在订单与账单行锁内读取；发票、核销、对冲写路径同样先锁订单再锁账单。
+		protected, transactionErr := uc.repo.HasProtectedFinanceFact(txCtx, current.ID)
+		if transactionErr != nil {
+			return transactionErr
+		}
+		if protected {
+			if !financeBillProtectedFieldsUnchanged(current, input) {
+				return ErrFinanceBillProtectedFields
+			}
+			// 受保护账单不重取汇率、不重算金额，只写回备注、对账标题与到期日。
+			input.Protected = true
+			input.ExchangeRate, input.ExchangeRateSource, input.ExchangeRateDate, input.ExchangeRateSettingID = current.ExchangeRate, current.ExchangeRateSource, current.ExchangeRateDate, current.ExchangeRateSettingID
+			input.BaseCurrencyAmount, input.TotalAmount, input.NetAmount, input.TaxAmount, input.Lines = current.BaseCurrencyAmount, current.TotalAmount, current.NetAmount, current.TaxAmount, current.Lines
+			input.EstimatedInvoiceCurrency, input.EstimatedInvoiceRate, input.EstimatedInvoiceAmount = current.EstimatedInvoiceCurrency, current.EstimatedInvoiceRate, current.EstimatedInvoiceAmount
+			_, transactionErr = uc.repo.Update(txCtx, organizationIDs, input, financeBillAudit(current.OrganizationID, actorID, input.ID, "finance.bill.update"))
+			return transactionErr
 		}
 		lockedFees, transactionErr := uc.repo.LoadBillableFees(txCtx, current.OrganizationID, feeIDs)
 		if transactionErr != nil {
@@ -343,15 +364,21 @@ func validateLockedFinanceBillSourceFees(bill *FinanceBill, fees []*FinanceBilla
 	return nil
 }
 
-func (uc *FinanceBillUsecase) Confirm(ctx context.Context, organizationIDs []uuid.UUID, actorID, id uuid.UUID, expectedVersion uint64) (*FinanceBill, error) {
-	if !validFinanceBillOrganizationIDs(organizationIDs) || actorID == uuid.Nil || id == uuid.Nil || expectedVersion == 0 {
-		return nil, ErrFinanceBillInvalidArgument
+// financeBillProtectedFieldsUnchanged 判断受保护账单的请求是否只改动备注、对账标题与到期日。
+// 账单日期决定账单汇率；账户、账期与预计开票属于结算口径，均须撤销财务记录后才能调整。
+// 预计开票按与建账相同的默认规则归一后再与已存快照比对。
+func financeBillProtectedFieldsUnchanged(current *FinanceBill, input UpdateFinanceBillInput) bool {
+	if current.BillDate != input.BillDate || current.SettlementAccountID != input.SettlementAccountID || !intPointersEqual(current.PaymentTermsDays, input.PaymentTermsDays) {
+		return false
 	}
-	existing, err := uc.repo.Get(ctx, organizationIDs, id)
+	if current.EstimatedInvoiceCurrency == nil || current.EstimatedInvoiceRate == nil {
+		return input.EstimatedInvoiceCurrency == nil && input.EstimatedInvoiceRate == nil
+	}
+	currency, rate, _, err := financeBillEstimatedInvoiceSnapshot(current.Currency, current.TotalAmount, FinanceBillBatchPreviewGroupConfig{EstimatedInvoiceCurrency: input.EstimatedInvoiceCurrency, EstimatedInvoiceRate: input.EstimatedInvoiceRate})
 	if err != nil {
-		return nil, err
+		return false
 	}
-	return uc.repo.Confirm(ctx, organizationIDs, id, actorID, expectedVersion, financeBillAudit(existing.OrganizationID, actorID, id, "finance.bill.confirm"))
+	return currency == *current.EstimatedInvoiceCurrency && rate.Equal(*current.EstimatedInvoiceRate)
 }
 
 func (uc *FinanceBillUsecase) Cancel(ctx context.Context, organizationIDs []uuid.UUID, actorID, id uuid.UUID, expectedVersion uint64, reason string) (*FinanceBill, error) {
@@ -405,7 +432,7 @@ func buildFinanceBill(organizationID uuid.UUID, fees []*FinanceBillableFee, inpu
 	billID := uuid.Must(uuid.NewV7())
 	bill := &FinanceBill{
 		ID: billID, OrganizationID: organizationID, IdempotencyKey: input.IdempotencyKey,
-		CorrectionRequestID: correctionID, Purpose: FinanceBillPurposeForFee(first.Fee), Direction: SettlementDirection(first.Fee), Status: FinanceBillDraft, SettlementPartyID: first.Fee.SettlementPartyID,
+		CorrectionRequestID: correctionID, Purpose: FinanceBillPurposeForFee(first.Fee), Direction: SettlementDirection(first.Fee), Status: FinanceBillConfirmed, SettlementPartyID: first.Fee.SettlementPartyID,
 		SettlementPartyName: first.Fee.SettlementPartyName, SettlementAccountID: input.SettlementAccountID, Currency: first.Fee.Currency, BaseCurrency: first.Fee.BaseCurrency,
 		BillDate: input.BillDate, StatementTitle: input.StatementTitle, PaymentTermsDays: input.PaymentTermsDays, DueDate: input.DueDate, Note: input.Note, Version: 1,
 		Lines: make([]*FinanceBillLine, 0, len(fees)),

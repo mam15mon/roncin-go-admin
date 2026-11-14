@@ -96,7 +96,8 @@ export default function BillDetailDrawer({
           <Descriptions.Item label="状态">
             {statusTag(
               billStatusMeta,
-              detail.status ?? FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT,
+              detail.status ??
+                FinanceBillStatus.FINANCE_BILL_STATUS_UNSPECIFIED,
             )}
           </Descriptions.Item>
           <Descriptions.Item label="账单用途">

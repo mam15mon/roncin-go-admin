@@ -1676,30 +1676,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.PreviewBillBatchResponse'
-    /api/v1/finance/bill-batches/{id}/confirm:
-        post:
-            tags:
-                - SettlementService
-            operationId: SettlementService_ConfirmBillBatch
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/finance.v1.ConfirmBillBatchRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/finance.v1.ConfirmBillBatchResponse'
     /api/v1/finance/bill-settlement-account-candidates:
         get:
             tags:
@@ -2015,30 +1991,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.CancelBillResponse'
-    /api/v1/finance/bills/{id}/confirm:
-        post:
-            tags:
-                - SettlementService
-            operationId: SettlementService_ConfirmBill
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/finance.v1.ConfirmBillRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/finance.v1.ConfirmBillResponse'
     /api/v1/finance/cashflows:
         get:
             tags:
@@ -10623,16 +10575,6 @@ components:
             description: |-
                 BillBatchPreviewGroupConfigInput 由服务端上一轮返回的 group_key 标识叶子；
                  初次预览可以省略，服务端会返回待补齐状态，但不会签发可创建的预览令牌。
-        finance.v1.BillExpectedVersion:
-            required:
-                - billId
-                - expectedVersion
-            type: object
-            properties:
-                billId:
-                    type: string
-                expectedVersion:
-                    type: string
         finance.v1.BillGroupingPolicy:
             type: object
             properties:
@@ -11133,56 +11075,6 @@ components:
                     type: array
                     items:
                         type: string
-        finance.v1.ConfirmBillBatchRequest:
-            required:
-                - id
-                - bills
-            type: object
-            properties:
-                id:
-                    type: string
-                bills:
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/finance.v1.BillExpectedVersion'
-        finance.v1.ConfirmBillBatchResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/finance.v1.FinanceBillBatch'
-                traceId:
-                    type: string
-        finance.v1.ConfirmBillRequest:
-            required:
-                - id
-                - expectedVersion
-            type: object
-            properties:
-                id:
-                    type: string
-                expectedVersion:
-                    type: string
-        finance.v1.ConfirmBillResponse:
-            type: object
-            properties:
-                success:
-                    type: boolean
-                code:
-                    type: integer
-                    format: int32
-                message:
-                    type: string
-                data:
-                    $ref: '#/components/schemas/finance.v1.FinanceBill'
-                traceId:
-                    type: string
         finance.v1.ConfirmCashflowRequest:
             required:
                 - id

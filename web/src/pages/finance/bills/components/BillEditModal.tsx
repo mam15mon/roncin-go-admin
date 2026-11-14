@@ -51,7 +51,7 @@ export default function BillEditModal({
   const [accountsLoading, setAccountsLoading] = useState(false);
   const [currencyOptions, setCurrencyOptions] = useState<SelectOption[]>([]);
   const requestSequenceRef = useRef(0);
-  // 草稿编辑路径与创建工作台共用同一套预警组装：按对方档案与未核销余额重组散客/超额预警。
+  // 账单编辑路径与创建工作台共用同一套预警组装：按对方档案与未核销余额重组散客/超额预警。
   const [counterparty, setCounterparty] = useState<{
     isCasual?: boolean;
     creditLimitAmount?: string;

@@ -129,10 +129,10 @@ func (s *SettlementService) ListBillSettlementAccountUpdateCandidates(ctx contex
 	if err != nil {
 		return nil, err
 	}
-	if bill.Status != biz.FinanceBillDraft {
+	if bill.Status != biz.FinanceBillConfirmed {
 		return nil, biz.ErrFinanceBillInvalidTransition
 	}
-	// 普通账单的费用币种是不可变边界；草稿改账户只能查询账单自身币种的候选。
+	// 普通账单的费用币种是不可变边界；改账户只能查询账单自身币种的候选。
 	items, err := s.accountUsecase.List(ctx, bill.OrganizationID, bill.SettlementPartyID, biz.PartnerAccountFilter{Enabled: boolPointer(true), Currency: bill.Currency})
 	if err != nil {
 		return nil, err
@@ -332,40 +332,6 @@ func (s *SettlementService) CreateBillBatch(ctx context.Context, request *v1.Cre
 	return ok(ctx, &v1.CreateBillBatchResponse{Data: financeBillBatchToAPI(batch)}), nil
 }
 
-func (s *SettlementService) ConfirmBillBatch(ctx context.Context, request *v1.ConfirmBillBatchRequest) (*v1.ConfirmBillBatchResponse, error) {
-	principal, principalErr := biz.RequirePrincipal(ctx)
-	if principalErr != nil {
-		return nil, principalErr
-	}
-	batchID, err := uuid.Parse(strings.TrimSpace(request.GetId()))
-	if err != nil {
-		return nil, biz.ErrFinanceBillInvalidArgument
-	}
-	expectedVersions := make(map[uuid.UUID]uint64, len(request.GetBills()))
-	for _, item := range request.GetBills() {
-		if item == nil {
-			return nil, biz.ErrFinanceBillInvalidArgument
-		}
-		billID, parseErr := uuid.Parse(strings.TrimSpace(item.GetBillId()))
-		if parseErr != nil {
-			return nil, biz.ErrFinanceBillInvalidArgument
-		}
-		if _, exists := expectedVersions[billID]; exists {
-			return nil, biz.ErrFinanceBillInvalidArgument
-		}
-		expectedVersions[billID] = item.GetExpectedVersion()
-	}
-	organizationIDs, err := organizationIDsForPermission(principal, access.FinanceBillConfirm, true)
-	if err != nil {
-		return nil, err
-	}
-	batch, err := s.billUsecase.ConfirmBatch(ctx, organizationIDs, principal.UserID, batchID, expectedVersions)
-	if err != nil {
-		return nil, err
-	}
-	return ok(ctx, &v1.ConfirmBillBatchResponse{Data: financeBillBatchToAPI(batch)}), nil
-}
-
 func (s *SettlementService) UpdateBill(ctx context.Context, request *v1.UpdateBillRequest) (*v1.UpdateBillResponse, error) {
 	principal, id, err := financePrincipalAndID(ctx, request.GetId())
 	if err != nil {
@@ -400,22 +366,6 @@ func (s *SettlementService) UpdateBill(ctx context.Context, request *v1.UpdateBi
 		return nil, err
 	}
 	return ok(ctx, &v1.UpdateBillResponse{Data: financeBillToAPI(item)}), nil
-}
-
-func (s *SettlementService) ConfirmBill(ctx context.Context, request *v1.ConfirmBillRequest) (*v1.ConfirmBillResponse, error) {
-	principal, id, err := financePrincipalAndID(ctx, request.GetId())
-	if err != nil {
-		return nil, err
-	}
-	organizationIDs, err := organizationIDsForPermission(principal, access.FinanceBillConfirm, true)
-	if err != nil {
-		return nil, err
-	}
-	item, err := s.billUsecase.Confirm(ctx, organizationIDs, principal.UserID, id, request.GetExpectedVersion())
-	if err != nil {
-		return nil, err
-	}
-	return ok(ctx, &v1.ConfirmBillResponse{Data: financeBillToAPI(item)}), nil
 }
 
 func (s *SettlementService) CancelBill(ctx context.Context, request *v1.CancelBillRequest) (*v1.CancelBillResponse, error) {

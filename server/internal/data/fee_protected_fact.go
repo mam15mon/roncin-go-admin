@@ -43,6 +43,23 @@ func feeHasProtectedFinanceFact(ctx context.Context, client *ent.Client, feeID u
 		Exist(ctx)
 }
 
+// billHasProtectedFinanceFact 判断指定账单自身是否存在受保护财务事实，口径与
+// feeHasProtectedFinanceFact 相同（同一谓词）。调用方须已按「订单 → 账单」锁序持有账单行锁。
+func billHasProtectedFinanceFact(ctx context.Context, client *ent.Client, billID uuid.UUID) (bool, error) {
+	return client.FinanceBill.Query().
+		Where(financebill.IDEQ(billID), protectedFinanceFactPredicate()).
+		Exist(ctx)
+}
+
+// HasProtectedFinanceFact 供账单更新用例在共享事务内读取受保护事实。
+func (r *financeBillRepo) HasProtectedFinanceFact(ctx context.Context, billID uuid.UUID) (bool, error) {
+	client, err := r.data.client(ctx)
+	if err != nil {
+		return false, err
+	}
+	return billHasProtectedFinanceFact(ctx, client, billID)
+}
+
 // protectedFinanceFactPredicate 是账单级「受保护财务事实」谓词，见 feeHasProtectedFinanceFact。
 func protectedFinanceFactPredicate() predicate.FinanceBill {
 	return financebill.Or(

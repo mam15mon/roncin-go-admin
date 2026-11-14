@@ -1,5 +1,4 @@
 import {
-  CheckOutlined,
   CloseCircleOutlined,
   EditOutlined,
   EyeOutlined,
@@ -7,7 +6,6 @@ import {
 import type { ProColumns } from '@ant-design/pro-components';
 import { Space, Tag } from 'antd';
 import dayjs from 'dayjs';
-import { AsyncPopconfirm } from '@/components/ui';
 import { makeValueEnum, statusTag } from '@/constants/statusMeta';
 import { FinanceBillStatus } from '@/enums.generated';
 import { billStatusMeta } from '@/features/finance/bill-status';
@@ -17,11 +15,9 @@ interface GetFinanceBillColumnsParams {
   access: {
     canOperateOrganization: (organizationId?: string) => boolean;
     canUpdateFinanceBills?: boolean;
-    canConfirmFinanceBills?: boolean;
   };
   onOpenDetail: (bill: API.FinanceBill) => void;
   onOpenEdit: (bill: API.FinanceBill) => void;
-  onConfirmBill: (bill: API.FinanceBill) => Promise<unknown>;
   onCancelBill: (bill: API.FinanceBill) => void;
 }
 
@@ -29,7 +25,6 @@ export function getFinanceBillColumns({
   access,
   onOpenDetail,
   onOpenEdit,
-  onConfirmBill,
   onCancelBill,
 }: GetFinanceBillColumnsParams): ProColumns<API.FinanceBill>[] {
   return [
@@ -77,7 +72,7 @@ export function getFinanceBillColumns({
       render: (_, row) =>
         statusTag(
           billStatusMeta,
-          row.status ?? FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT,
+          row.status ?? FinanceBillStatus.FINANCE_BILL_STATUS_UNSPECIFIED,
         ),
     },
     {
@@ -255,23 +250,10 @@ export function getFinanceBillColumns({
         </a>,
         access.canUpdateFinanceBills &&
         access.canOperateOrganization(row.organizationId) &&
-        row.status === FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT ? (
+        row.status === FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED ? (
           <a key="edit" onClick={() => onOpenEdit(row)}>
             <EditOutlined /> 编辑
           </a>
-        ) : null,
-        access.canConfirmFinanceBills &&
-        access.canOperateOrganization(row.organizationId) &&
-        row.status === FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT ? (
-          <AsyncPopconfirm
-            key="confirm"
-            title={`确认 ${row.organizationName || '所属公司未标识'} 的该账单？确认后将锁定对账金额并进入开票与核销`}
-            onConfirm={() => onConfirmBill(row)}
-          >
-            <a>
-              <CheckOutlined /> 确认
-            </a>
-          </AsyncPopconfirm>
         ) : null,
         access.canUpdateFinanceBills &&
         access.canOperateOrganization(row.organizationId) &&

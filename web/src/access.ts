@@ -40,7 +40,6 @@ const permissions = {
   financeBillRead: 'system.finance.bill.read',
   financeBillCreate: 'system.finance.bill.create',
   financeBillUpdate: 'system.finance.bill.update',
-  financeBillConfirm: 'system.finance.bill.confirm',
   financeInvoiceRead: 'system.finance.invoice.read',
   financeInvoiceCreate: 'system.finance.invoice.create',
   financeInvoiceUpdate: 'system.finance.invoice.update',
@@ -243,8 +242,6 @@ export default function access(
       canOperateBusiness && has(permissions.financeBillCreate),
     canUpdateFinanceBills:
       canOperateBusiness && has(permissions.financeBillUpdate),
-    canConfirmFinanceBills:
-      canOperateBusiness && has(permissions.financeBillConfirm),
     canReadFinanceInvoices:
       canOperateBusiness && has(permissions.financeInvoiceRead),
     canCreateFinanceInvoices:

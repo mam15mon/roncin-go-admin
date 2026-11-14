@@ -198,6 +198,8 @@ type UpdateFinanceBillInput struct {
 	NetAmount                decimal.Decimal
 	TaxAmount                decimal.Decimal
 	Lines                    []*FinanceBillLine
+	// Protected 表示账单存在受保护财务事实，仓储只允许写回备注、对账标题与到期日。
+	Protected bool
 }
 
 type FinanceBillGroupingPolicy struct {
@@ -308,7 +310,6 @@ type FinanceBillRepo interface {
 	GetByIdempotencyKey(ctx context.Context, organizationID uuid.UUID, idempotencyKey string) (*FinanceBill, error)
 	GetBatchByIdempotencyKey(ctx context.Context, organizationID uuid.UUID, idempotencyKey string) (*FinanceBillBatch, error)
 	GetBatch(ctx context.Context, organizationIDs []uuid.UUID, batchID uuid.UUID) (*FinanceBillBatch, error)
-	ConfirmBatch(ctx context.Context, organizationIDs []uuid.UUID, batchID, actorID uuid.UUID, expectedVersions map[uuid.UUID]uint64, audit *AuditEvent) (*FinanceBillBatch, error)
 	LoadBillableFees(ctx context.Context, organizationID uuid.UUID, feeIDs []uuid.UUID) ([]*FinanceBillableFee, error)
 	LoadBillableFeesScoped(ctx context.Context, organizationIDs []uuid.UUID, feeIDs []uuid.UUID) ([]*FinanceBillableFee, error)
 	ListCreationCandidates(ctx context.Context, organizationID uuid.UUID, filter FinanceBillCreationCandidateFilter) (*FinanceBillCreationCandidateResult, error)
@@ -317,7 +318,8 @@ type FinanceBillRepo interface {
 	ValidateBillCurrencies(ctx context.Context, currencies []string) error
 	HydrateBillSettlementAccounts(ctx context.Context, bills []*FinanceBill) error
 	Update(ctx context.Context, organizationIDs []uuid.UUID, input UpdateFinanceBillInput, audit *AuditEvent) (*FinanceBill, error)
-	Confirm(ctx context.Context, organizationIDs []uuid.UUID, id, actorID uuid.UUID, expectedVersion uint64, audit *AuditEvent) (*FinanceBill, error)
+	// HasProtectedFinanceFact 在已锁定账单的事务内判断是否存在有效发票、核销或已确认对冲。
+	HasProtectedFinanceFact(ctx context.Context, billID uuid.UUID) (bool, error)
 	Cancel(ctx context.Context, organizationIDs []uuid.UUID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *AuditEvent) (*FinanceBill, error)
 	// GetPartnerUnsettledReceivableBaseAmount 返回指定往来户在组织内已确认应收账单的折本币未核销总额
 	// （总额 - 有效核销 - 有效对冲，负值钳零），口径与列表汇总的 unverified_base_amount 一致。

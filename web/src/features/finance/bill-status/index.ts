@@ -6,14 +6,12 @@ import { FinanceBillStatus } from '@/enums.generated';
  * 账单状态是独立实体状态机（费用无独立状态，是否建账由有效账单关联决定），
  * 不得与其他实体状态合并；标签渲染复用 @/constants/statusMeta 的
  * statusTag/statusText 通用函数。
+ * 账单免人工确认：新建即为 CONFIRMED（展示为「正常」），不再产生草稿；
+ * 草稿枚举仅保留在契约中，不作为筛选或展示选项。
  */
 export const billStatusMeta: Record<number, StatusMeta> = {
-  [FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT]: {
-    text: '草稿',
-    color: 'default',
-  },
   [FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED]: {
-    text: '已确认',
+    text: '正常',
     color: 'blue',
   },
   [FinanceBillStatus.FINANCE_BILL_STATUS_CANCELLED]: {

@@ -401,7 +401,7 @@ func (uc *FinanceBillUsecase) buildFixedCurrencyFinanceBill(ctx context.Context,
 	}
 	billID := uuid.Must(uuid.NewV7())
 	bill := &FinanceBill{
-		ID: billID, OrganizationID: organizationID, CorrectionRequestID: group.CorrectionRequestID, Purpose: group.Purpose, Direction: group.Direction, Status: FinanceBillDraft,
+		ID: billID, OrganizationID: organizationID, CorrectionRequestID: group.CorrectionRequestID, Purpose: group.Purpose, Direction: group.Direction, Status: FinanceBillConfirmed,
 		SettlementPartyID: group.SettlementPartyID, SettlementPartyName: group.SettlementPartyName,
 		SettlementAccountID: group.SettlementAccountID, Currency: group.Currency, BaseCurrency: group.BaseCurrency,
 		ExchangeRate: resolved.Rate.RoundBank(4), ExchangeRateSource: resolved.Source, ExchangeRateDate: billDate,
@@ -583,6 +583,8 @@ func (uc *FinanceBillUsecase) CreateBatch(ctx context.Context, organizationID, a
 			bill.ID = uuid.Must(uuid.NewV7())
 			bill.BatchID = &batchID
 			bill.IdempotencyKey = financeBillBatchBillKey(input.IdempotencyKey, previewGroup.GroupKey)
+			// 账单免人工确认：创建人即确认人。
+			bill.Status, bill.ConfirmedBy = FinanceBillConfirmed, &actorID
 			title := groupInput.StatementTitle
 			bill.StatementTitle = &title
 			// 服务端兜底注入（design 决策 A）：请求未显式提供账期且未提供到期日时，
@@ -616,7 +618,7 @@ func (uc *FinanceBillUsecase) CreateBatch(ctx context.Context, organizationID, a
 		nettingAudits := make([]*AuditEvent, 0)
 		if input.GroupingPolicy.Mode == "NETTING" {
 			// 对冲批次在同一事务内原子生成双方原始账单与对冲结算单；对冲单初始为草稿，
-			// 待账单确认后再单独确认生效。
+			// 账单创建即为已确认状态，对冲单仍需单独确认生效。
 			nettings, planErr := planBatchFinanceNettings(organizationID, batchID, input.IdempotencyKey, batch.Bills)
 			if planErr != nil {
 				return planErr
@@ -639,22 +641,6 @@ func (uc *FinanceBillUsecase) CreateBatch(ctx context.Context, organizationID, a
 		return existing, nil
 	}
 	return nil, err
-}
-
-func (uc *FinanceBillUsecase) ConfirmBatch(ctx context.Context, organizationIDs []uuid.UUID, actorID, batchID uuid.UUID, expectedVersions map[uuid.UUID]uint64) (*FinanceBillBatch, error) {
-	if !validFinanceBillOrganizationIDs(organizationIDs) || actorID == uuid.Nil || batchID == uuid.Nil || len(expectedVersions) == 0 || len(expectedVersions) > 500 {
-		return nil, ErrFinanceBillInvalidArgument
-	}
-	for billID, version := range expectedVersions {
-		if billID == uuid.Nil || version == 0 {
-			return nil, ErrFinanceBillInvalidArgument
-		}
-	}
-	batch, err := uc.repo.GetBatch(ctx, organizationIDs, batchID)
-	if err != nil {
-		return nil, err
-	}
-	return uc.repo.ConfirmBatch(ctx, organizationIDs, batchID, actorID, expectedVersions, financeBillBatchAudit(batch.OrganizationID, actorID, batchID, "finance.bill_batch.confirm"))
 }
 
 func normalizeFinanceBillBatchGroups(groups []CreateFinanceBillBatchGroupInput) ([]CreateFinanceBillBatchGroupInput, error) {

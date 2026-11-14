@@ -2,7 +2,6 @@ import { CheckCircleOutlined } from '@ant-design/icons';
 import type { TableColumnsType } from 'antd';
 import { Alert, Button, Descriptions, Empty, Result, Space, Tag } from 'antd';
 import React from 'react';
-import { useAccess } from '@/app/access';
 import { ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { statusTag } from '@/constants/statusMeta';
@@ -13,30 +12,24 @@ import { formatAmount } from '@/utils/format';
 
 type BillCreationResultTableProps = {
   result?: API.FinanceBillBatch;
-  confirming: boolean;
-  onConfirmBatch: () => void;
   directionText: (dir: string) => string;
 };
 
 export default function BillCreationResultTable({
   result,
-  confirming,
-  onConfirmBatch,
   directionText,
 }: BillCreationResultTableProps) {
-  const access = useAccess();
-
   const billColumns: TableColumnsType<API.FinanceBill> = [
     { title: '账单编号', dataIndex: 'billNo', width: 180 },
     {
       title: '状态',
       dataIndex: 'status',
       width: 90,
-      // 与账单列表共用 billStatusMeta 统一映射，替换原先内联的草稿/已确认判断。
+      // 与账单列表共用 billStatusMeta 统一映射。
       render: (value) =>
         statusTag(
           billStatusMeta,
-          value ?? FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT,
+          value ?? FinanceBillStatus.FINANCE_BILL_STATUS_UNSPECIFIED,
         ),
     },
     {
@@ -108,22 +101,9 @@ export default function BillCreationResultTable({
         status="success"
         icon={<CheckCircleOutlined />}
         title={`批次 ${result.batchNo || ''} 生成成功`}
-        subTitle={`${result.feeCount || 0} 笔费用已原子生成 ${result.billCount || 0} 张账单${result.nettings?.length ? `和 ${result.nettings.length} 张对冲结算单` : ''}，当前${result.bills?.every((bill) => bill.status === FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED) ? '已全部确认' : '为草稿状态'}，未发生部分成功。`}
+        subTitle={`${result.feeCount || 0} 笔费用已原子生成 ${result.billCount || 0} 张账单${result.nettings?.length ? `和 ${result.nettings.length} 张对冲结算单` : ''}，账单无需确认即可开票、收付款和核销，未发生部分成功。`}
         extra={
           <Space wrap>
-            {access.canConfirmFinanceBills &&
-              result.bills?.every(
-                (bill) =>
-                  bill.status === FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT,
-              ) && (
-                <Button
-                  type="primary"
-                  loading={confirming}
-                  onClick={onConfirmBatch}
-                >
-                  确认本批全部账单
-                </Button>
-              )}
             <Button onClick={() => history.push('/finance/invoices')}>
               前往开票 / 来票
             </Button>
@@ -170,7 +150,7 @@ export default function BillCreationResultTable({
             type="info"
             showIcon
             style={{ marginTop: 16, marginBottom: 8 }}
-            title="对冲结算单初始为草稿；请先确认本批账单，再在对冲管理中确认对冲单，抵销才会占用账单余额。"
+            title="对冲结算单初始为草稿；请在对冲管理中确认对冲单，抵销才会占用账单余额。"
           />
           <div style={{ fontWeight: 600, marginBottom: 8, fontSize: 13 }}>
             对冲结算单

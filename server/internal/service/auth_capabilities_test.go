@@ -17,7 +17,7 @@ func TestPrincipalToAPIProjectsEffectiveCapabilities(t *testing.T) {
 		RoleGrants: []biz.RoleGrant{
 			{RoleCode: "legacy", DataScope: biz.DataScopeSelf, Permissions: map[string]struct{}{access.UserCreate: {}}},
 			{RoleCode: "reader", DataScope: biz.DataScopeOrganization, Permissions: map[string]struct{}{access.UserRead: {}}},
-			{RoleCode: "operator", DataScope: biz.DataScopeAll, Permissions: map[string]struct{}{access.FinanceBillConfirm: {}}},
+			{RoleCode: "operator", DataScope: biz.DataScopeAll, Permissions: map[string]struct{}{access.FinanceBillUpdate: {}}},
 		},
 	}
 	got := principalToAPI(p)
@@ -33,7 +33,7 @@ func TestPrincipalToAPIProjectsEffectiveCapabilities(t *testing.T) {
 	p.Organization.Kind = biz.OrganizationKindCompany
 	p.OrganizationNodes[0].Kind = biz.OrganizationKindCompany
 	got = principalToAPI(p)
-	if len(got.PermissionCapabilities) != 2 || !slices.Contains(got.Permissions, access.FinanceBillConfirm) {
+	if len(got.PermissionCapabilities) != 2 || !slices.Contains(got.Permissions, access.FinanceBillUpdate) {
 		t.Fatalf("公司工作台应恢复合法经营能力: %v", got.PermissionCapabilities)
 	}
 }

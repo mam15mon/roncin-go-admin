@@ -30,7 +30,6 @@ import { getCurrencyOptions } from '@/features/master-data/currencies';
 import { searchPartnerOptions } from '@/features/partners';
 import {
   settlementServiceCancelBill,
-  settlementServiceConfirmBill,
   settlementServiceGetBill,
   settlementServiceListBills,
   settlementServiceUpdateBill,
@@ -188,7 +187,7 @@ export default function FinanceBillsPage() {
       label: '结清状态',
       type: 'select',
       placeholder: '全部',
-      options: [{ label: '仅看未结清（已确认）', value: 'true' }],
+      options: [{ label: '仅看未结清（不含已取消）', value: 'true' }],
     },
     {
       name: 'onlyOverdue',
@@ -289,27 +288,6 @@ export default function FinanceBillsPage() {
     return undefined;
   };
 
-  const confirmBill = (bill: API.FinanceBill) =>
-    billActions.run(
-      bill,
-      async ({ id, expectedVersion }): Promise<false | undefined> => {
-        try {
-          const writeResponse1 = await settlementServiceConfirmBill(
-            { id },
-            { id, expectedVersion },
-          );
-          if (!isWriteResponse(writeResponse1, true)) return false;
-          message.success('账单已确认，进入待开票/待核销流');
-          reload();
-        } catch (error) {
-          message.error(getErrorMessage(error, '确认账单失败'));
-          return false;
-        }
-
-        return undefined;
-      },
-    );
-
   const cancelBill = async (bill: API.FinanceBill) => {
     if (!bill.id) return;
     const signal = getModalOwnerSignal();
@@ -377,19 +355,19 @@ export default function FinanceBillsPage() {
     },
     {
       key: 'rec-bills',
-      title: '已确认应收账单折本币',
+      title: '有效应收账单折本币',
       value: formatBaseCurrencyAmounts('receivableBaseAmount'),
       valueColor: '#1677ff',
     },
     {
       key: 'pay-bills',
-      title: '已确认应付账单折本币',
+      title: '有效应付账单折本币',
       value: formatBaseCurrencyAmounts('payableBaseAmount'),
       valueColor: '#fa8c16',
     },
     {
       key: 'unv-bills',
-      title: '已确认账单未核销折本币',
+      title: '有效账单未核销折本币',
       value: formatBaseCurrencyAmounts('unverifiedBaseAmount'),
       valueColor: metricStats.amountsByBaseCurrency.some(
         (item) => Number(item.unverifiedBaseAmount ?? 0) > 0,
@@ -399,7 +377,7 @@ export default function FinanceBillsPage() {
     },
     {
       key: 'overdue-bills',
-      title: '已确认账单逾期应收折本币',
+      title: '有效账单逾期应收折本币',
       value: formatBaseCurrencyAmounts('overdueReceivableBaseAmount'),
       valueColor: metricStats.amountsByBaseCurrency.some(
         (item) => Number(item.overdueReceivableBaseAmount ?? 0) > 0,
@@ -413,7 +391,6 @@ export default function FinanceBillsPage() {
     access,
     onOpenDetail: openDetail,
     onOpenEdit: openEdit,
-    onConfirmBill: confirmBill,
     onCancelBill: cancelBill,
   });
 

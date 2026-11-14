@@ -133,6 +133,33 @@
   删除 `FinanceBillConfirm` 不需要手写权限迁移。
 - 账单币种固定边界规范 `.trellis/spec/server/backend/finance-bill-currency.md` 描述「确认」「草稿更新」，实施后需同步改写。
 
+### 1.10 阶段 0 核对结论（2026-11-14，实施第 1 步）
+
+核对方式：逐路径读码复核锁序，并对开发库做只读查询；未修改产品代码与数据。结论：**3.2 锁序与 7.3 前提均成立，
+阶段 A 可继续。**
+
+1. **发票、核销、对冲确认均先锁订单再锁账单**（3.2、3.3 前提成立）：
+   - 发票创建/开具：`lockExistingBillOrders`（预读有效账单行所属订单 → `lockBillEconomicOrders` 闭包升序加锁 →
+     锁后重读有效行，行数或行→订单映射变化即 `ErrFinanceBillVersionConflict`）→ 开票资料 → 账单 `ForUpdate`
+     （`data/finance_invoice.go:265-279`、`:339-352`）。
+   - 核销创建：`commissionEconomicAffectedOrderIDs` 预读 → `lockOrdersForFinanceReversal` 升序锁订单 →
+     `validateFinanceEconomicOrderSet` 锁后复核订单集合（变化即 `ErrOrderStatusConflict`）→ 流水 → 账单
+     （`data/finance_verification.go:196-213`）。
+   - 对冲确认：`LockNetting` 在事务内先预读分摊账单的订单闭包并加锁、复核，再锁对冲单；`LockNettingBills` 再次锁订单
+     （同事务可重入）后锁账单（`data/finance_netting.go:139-166`、`:292-309`）。
+   - 推论：增删费用的种子订单含账单现有有效行订单，与上述路径至少在同一订单行互斥；若增删改变了账单行集合或订单集合，
+     后获锁者的锁后复核会以冲突失败（fail-closed），不会在旧集合上写入。
+2. **共事务可组合**（1.5 成立）：发票 `Create`、核销 `Create`、流水 `Create`/`transition`、对冲 `Create`/`Confirm` 均走
+   `r.data.WithTx` / `WithinTransaction`，`withSQLTx` 仅 `data/auth.go`、`data/password_reset.go` 使用，与财务无关。
+3. **核销流水锁序与新建账单不冲突**（7.3 成立）：组事务锁序为「订单闭包 → 费用 → 账户 → 汇率 →（同事务重入订单）→
+   流水 → 新账单」；其他核销事务为「订单 → 流水 → 自身账单」。新账单提交前对外不可见，无人竞争其行锁；
+   流水均在订单之后加锁，且流水 `transition` 只锁流水行，不构成环。
+4. **存量 DRAFT 与回填性**（开发库只读查询）：账单 CONFIRMED 10、DRAFT 2、CANCELLED 1；2 张 DRAFT 均带 `batch_id`，
+   可由批次 `created_by` 回填，无需审计兜底，无不可回填项。已执行 `pnpm run migrate:dev` 应用阶段 A 迁移后为
+   CONFIRMED 12（`confirmed_by/at` 全部有值）、CANCELLED 1。
+5. **补充发现**：DB 约束 `finance_bills_confirmation_consistency` 允许 CONFIRMED 且 `confirmed_at/by` 同时为空，
+   但新建与迁移一律成对写入；`finance_bills.status` 列默认值仍为 `DRAFT`，写路径均显式赋值，本期不改列默认值。
+
 ## 2. 免确认：状态契约
 
 方案：状态枚举与 CHECK 不变；**创建时直接写 `CONFIRMED`**，`confirmed_at=创建时刻`、`confirmed_by=创建人`

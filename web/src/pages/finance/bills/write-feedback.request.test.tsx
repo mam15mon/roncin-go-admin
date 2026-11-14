@@ -2,15 +2,12 @@ import { renderWithApp } from '@root/tests/renderWithApp';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import type { AxiosAdapter } from 'axios';
 import { beforeEach, expect, it, vi } from 'vitest';
-import { AsyncPopconfirm } from '@/components/ui';
-import * as settlementService from '@/services/roncin/settlementService';
 import FinanceBillsPage from './index';
 
-const { transport, notify, reload, confirmOpenChange } = vi.hoisted(() => ({
+const { transport, notify, reload } = vi.hoisted(() => ({
   transport: vi.fn<AxiosAdapter>(),
   notify: vi.fn(),
   reload: vi.fn(),
-  confirmOpenChange: vi.fn(),
 }));
 vi.mock('axios', async (original) => {
   const actual = await original<typeof import('axios')>();
@@ -37,27 +34,16 @@ vi.mock('@/features/master-data/currencies', () => ({
 vi.mock('./components/billColumns', () => ({
   getFinanceBillColumns: (props: {
     onCancelBill: (bill: API.FinanceBill) => void;
-    onConfirmBill: (bill: API.FinanceBill) => Promise<unknown>;
   }) => [
     {
       valueType: 'option',
       render: () => (
-        <>
-          <button
-            type="button"
-            onClick={() => props.onCancelBill({ id: 'n-1', version: '2' })}
-          >
-            取消
-          </button>
-          <AsyncPopconfirm
-            title="确认真实账单？"
-            okText="提交确认"
-            onOpenChange={confirmOpenChange}
-            onConfirm={() => props.onConfirmBill({ id: 'n-1', version: '2' })}
-          >
-            <button type="button">确认账单</button>
-          </AsyncPopconfirm>
-        </>
+        <button
+          type="button"
+          onClick={() => props.onCancelBill({ id: 'n-1', version: '2' })}
+        >
+          取消
+        </button>
       ),
     },
   ],
@@ -213,53 +199,4 @@ it('账单只有历史失效费用时不打开取消确认', async () => {
   expect(
     transport.mock.calls.every(([config]) => config.method === 'get'),
   ).toBe(true);
-});
-
-it('账单确认的本地catch及空响应保留真实弹层，重试成功才刷新关闭', async () => {
-  const confirmBill = vi.spyOn(
-    settlementService,
-    'settlementServiceConfirmBill',
-  );
-  confirmBill
-    .mockRejectedValueOnce(new Error('版本冲突'))
-    .mockResolvedValueOnce(undefined as never)
-    .mockResolvedValueOnce({ success: false, data: { id: 'n-1' } })
-    .mockResolvedValueOnce({ success: true, data: {} })
-    .mockResolvedValueOnce({ success: true, data: { id: 'n-1' } });
-  transport.mockImplementation(async (config) => ({
-    config,
-    status: 200,
-    statusText: 'OK',
-    headers: {},
-    data: { success: true, data: [] },
-  }));
-  try {
-    renderWithApp(<FinanceBillsPage />);
-    fireEvent.click(screen.getByText('确认账单'));
-    for (let n = 1; n <= 4; n++) {
-      fireEvent.click(await screen.findByRole('button', { name: /提交确认$/ }));
-      await waitFor(() => expect(confirmBill).toHaveBeenCalledTimes(n));
-      await waitFor(() =>
-        expect(
-          screen.getByRole('button', { name: /提交确认$/ }),
-        ).not.toHaveClass('ant-btn-loading'),
-      );
-      expect(confirmOpenChange).not.toHaveBeenCalledWith(false);
-      expect(screen.getByText('确认账单')).toHaveClass('ant-popover-open');
-      expect(reload).not.toHaveBeenCalled();
-      expect(
-        screen.queryByText('账单已确认，进入待开票/待核销流'),
-      ).not.toBeInTheDocument();
-    }
-    fireEvent.click(screen.getByRole('button', { name: /提交确认$/ }));
-    await waitFor(() => expect(reload).toHaveBeenCalledOnce());
-    await waitFor(() => expect(confirmOpenChange).toHaveBeenCalledWith(false));
-    await waitFor(() =>
-      expect(
-        screen.getByText('确认真实账单？').closest('.ant-popconfirm'),
-      ).toHaveClass('ant-zoom-big-leave'),
-    );
-  } finally {
-    confirmBill.mockRestore();
-  }
 });

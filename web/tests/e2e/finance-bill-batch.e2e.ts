@@ -4,6 +4,7 @@ import {
   type Page,
   test,
 } from '@playwright/test';
+import { FinanceBillStatus } from '../../src/enums.generated';
 
 const expect = baseExpect.configure({ timeout: 20_000 });
 const orderKind = process.env.RONCIN_ACCEPTANCE_ORDER_KIND || 'sea-export';
@@ -345,8 +346,12 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
     feesInDraft.find((item: { id: string }) => item.id === fee.id)
       .hasActiveBill,
   ).toBe(true);
-  await billDrawer.getByRole('button', { name: '确认本批全部账单' }).click();
-  await expect(billDrawer.getByText(/当前已全部确认/)).toBeVisible();
+  // 账单免人工确认：生成即为正常状态，结果页不再提供确认入口。
+  expect(bill.status).toBe(FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED);
+  await expect(billDrawer.getByText(/账单无需确认/)).toBeVisible();
+  await expect(
+    billDrawer.getByRole('button', { name: '确认本批全部账单' }),
+  ).toHaveCount(0);
   await page.screenshot({
     path: testInfo.outputPath('02-bill.png'),
     fullPage: true,

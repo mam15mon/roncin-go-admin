@@ -785,11 +785,6 @@ declare namespace API {
     updatedByName?: string;
   };
 
-  type BillExpectedVersion = {
-    billId: string;
-    expectedVersion: string;
-  };
-
   type BillGroupingPolicy = {
     splitByOrder?: boolean;
     splitByTaxRate?: boolean;
@@ -1111,32 +1106,6 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: AirWeightConfirmation;
-    traceId?: string;
-  };
-
-  type ConfirmBillBatchRequest = {
-    id: string;
-    bills: BillExpectedVersion[];
-  };
-
-  type ConfirmBillBatchResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: FinanceBillBatch;
-    traceId?: string;
-  };
-
-  type ConfirmBillRequest = {
-    id: string;
-    expectedVersion: string;
-  };
-
-  type ConfirmBillResponse = {
-    success?: boolean;
-    code?: number;
-    message?: string;
-    data?: FinanceBill;
     traceId?: string;
   };
 
@@ -8124,14 +8093,6 @@ declare namespace API {
   };
 
   type SettlementServiceCancelNettingParams = {
-    id: string;
-  };
-
-  type SettlementServiceConfirmBillBatchParams = {
-    id: string;
-  };
-
-  type SettlementServiceConfirmBillParams = {
     id: string;
   };
 

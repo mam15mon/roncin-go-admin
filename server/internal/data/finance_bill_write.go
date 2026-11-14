@@ -59,6 +59,9 @@ func (r *financeBillRepo) Create(ctx context.Context, bill *biz.FinanceBill, aud
 		if err = hydrateFinanceBillSettlementAccount(ctx, tx, bill); err != nil {
 			return err
 		}
+		if bill.ConfirmedBy == nil || *bill.ConfirmedBy == uuid.Nil {
+			return biz.ErrFinanceBillInvalidArgument
+		}
 		now := time.Now().UTC()
 		billRule, billSequence, err := allocateNumberInTx(ctx, tx, bill.OrganizationID, biz.DocumentTypeBill, now)
 		if err != nil {
@@ -70,7 +73,9 @@ func (r *financeBillRepo) Create(ctx context.Context, bill *biz.FinanceBill, aud
 		}
 		_, err = tx.FinanceBill.Create().
 			SetID(bill.ID).SetOrganizationID(bill.OrganizationID).SetBillNo(bill.BillNo).SetIdempotencyKey(bill.IdempotencyKey).
-			SetPurpose(financebillent.Purpose(bill.Purpose)).SetDirection(financebillent.Direction(bill.Direction)).SetStatus(financebillent.StatusDRAFT).
+			SetPurpose(financebillent.Purpose(bill.Purpose)).SetDirection(financebillent.Direction(bill.Direction)).
+			// 账单免人工确认：创建即为已确认，创建人即确认人。
+			SetStatus(financebillent.StatusCONFIRMED).SetConfirmedAt(now).SetConfirmedBy(*bill.ConfirmedBy).
 			SetNillableBatchID(bill.BatchID).
 			SetSettlementPartyID(bill.SettlementPartyID).SetSettlementPartyName(bill.SettlementPartyName).
 			SetSettlementAccountID(bill.SettlementAccountID).SetSettlementAccountName(bill.SettlementAccountName).SetSettlementAccountHolder(bill.SettlementAccountHolder).SetSettlementBankName(bill.SettlementBankName).SetSettlementBankAccount(bill.SettlementBankAccount).SetSettlementAccountCurrency(bill.SettlementAccountCurrency).SetSettlementSwiftCode(bill.SettlementSwiftCode).SetNillableEstimatedInvoiceCurrency(bill.EstimatedInvoiceCurrency).SetNillableEstimatedInvoiceRate(financeDecimalString(bill.EstimatedInvoiceRate, 8)).SetNillableEstimatedInvoiceAmount(financeDecimalString(bill.EstimatedInvoiceAmount, 8)).
@@ -132,8 +137,22 @@ func (r *financeBillRepo) Update(ctx context.Context, organizationIDs []uuid.UUI
 		if item.Version != input.ExpectedVersion {
 			return biz.ErrFinanceBillVersionConflict
 		}
-		if item.Status != financebillent.StatusDRAFT {
+		if item.Status != financebillent.StatusCONFIRMED {
 			return biz.ErrFinanceBillInvalidTransition
+		}
+		// 锁内复核受保护事实：用例按快照决定是否重算，仓储以锁内最新事实兜底。
+		financeProtected, err := billHasProtectedFinanceFact(ctx, tx.Client(), input.ID)
+		if err != nil {
+			return err
+		}
+		if financeProtected != input.Protected {
+			if financeProtected {
+				return biz.ErrFinanceBillProtectedFields
+			}
+			return biz.ErrFinanceBillVersionConflict
+		}
+		if input.Protected {
+			return updateProtectedFinanceBill(ctx, tx, item, input, audit)
 		}
 		candidate := &biz.FinanceBill{OrganizationID: item.OrganizationID, SettlementPartyID: item.SettlementPartyID, Direction: biz.OrderFeeDirection(item.Direction), Currency: item.Currency, SettlementAccountID: input.SettlementAccountID}
 		if err = hydrateFinanceBillSettlementAccount(ctx, tx, candidate); err != nil {
@@ -210,30 +229,39 @@ func (r *financeBillRepo) Update(ctx context.Context, organizationIDs []uuid.UUI
 	return r.Get(ctx, organizationIDs, input.ID)
 }
 
-func (r *financeBillRepo) Confirm(ctx context.Context, organizationIDs []uuid.UUID, id, actorID uuid.UUID, expectedVersion uint64, audit *biz.AuditEvent) (*biz.FinanceBill, error) {
-	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		if err := lockExistingBillOrders(ctx, tx.Client(), organizationIDs, []uuid.UUID{id}); err != nil {
-			return err
-		}
-		item, err := tx.FinanceBill.Query().Where(financebillent.IDEQ(id), financeBillOrganizationScopePredicate(organizationIDs)).ForUpdate().Only(ctx)
-		if err != nil {
-			return mapEntError(err, biz.ErrFinanceBillNotFound, nil)
-		}
-		if item.Version != expectedVersion {
-			return biz.ErrFinanceBillVersionConflict
-		}
-		if item.Status != financebillent.StatusDRAFT {
-			return biz.ErrFinanceBillInvalidTransition
-		}
-		now := time.Now()
-		if _, err = tx.FinanceBill.UpdateOneID(id).SetStatus(financebillent.StatusCONFIRMED).SetConfirmedAt(now).SetConfirmedBy(actorID).SetVersion(item.Version + 1).Save(ctx); err != nil {
-			return err
-		}
-		return writeAudit(ctx, tx.AuditLog, audit)
-	}); err != nil {
-		return nil, err
+// updateProtectedFinanceBill 只写回备注、对账标题与到期日；金额、汇率、账户和账单行保持不变，
+// 因此无需提成经济重算。调用方已持有订单与账单行锁并复核受保护事实。
+func updateProtectedFinanceBill(ctx context.Context, tx *ent.Tx, item *ent.FinanceBill, input biz.UpdateFinanceBillInput, audit *biz.AuditEvent) error {
+	if item.BillDate != input.BillDate || item.SettlementAccountID != input.SettlementAccountID || !sameOptionalInt(input.PaymentTermsDays, item.PaymentTermsDays) {
+		return biz.ErrFinanceBillProtectedFields
 	}
-	return r.Get(ctx, organizationIDs, id)
+	update := tx.FinanceBill.UpdateOneID(item.ID).SetVersion(item.Version + 1)
+	if input.DueDate == nil {
+		update.ClearDueDate()
+	} else {
+		update.SetDueDate(*input.DueDate)
+	}
+	if input.Note == nil {
+		update.ClearNote()
+	} else {
+		update.SetNote(*input.Note)
+	}
+	if input.StatementTitle == nil {
+		update.ClearStatementTitle()
+	} else {
+		update.SetStatementTitle(*input.StatementTitle)
+	}
+	if _, err := update.Save(ctx); err != nil {
+		return err
+	}
+	return writeAudit(ctx, tx.AuditLog, audit)
+}
+
+func sameOptionalInt(left, right *int) bool {
+	if left == nil || right == nil {
+		return left == nil && right == nil
+	}
+	return *left == *right
 }
 
 func (r *financeBillRepo) Cancel(ctx context.Context, organizationIDs []uuid.UUID, id, actorID uuid.UUID, expectedVersion uint64, reason string, audit *biz.AuditEvent) (*biz.FinanceBill, error) {

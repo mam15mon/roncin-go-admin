@@ -69,7 +69,6 @@ vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceListBillCreationCandidates: mocks.candidates,
   settlementServicePreviewBillBatch: mocks.preview,
   settlementServiceCreateBillBatch: mocks.create,
-  settlementServiceConfirmBillBatch: vi.fn(),
   settlementServiceListBillSettlementAccountCandidates: mocks.accounts,
 }));
 vi.mock('@/features/master-data/currencies', () => ({

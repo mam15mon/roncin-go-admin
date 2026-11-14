@@ -378,7 +378,7 @@ func TestBillSettlementAccountCandidatesUseBillCreateScopeAndDirection(t *testin
 	}
 }
 
-func TestBillSettlementAccountUpdateCandidatesRejectNonDraftBill(t *testing.T) {
+func TestBillSettlementAccountUpdateCandidatesRejectCancelledBill(t *testing.T) {
 	organizationID, billID := uuid.New(), uuid.New()
 	principal := &biz.Principal{Organization: biz.Organization{Kind: biz.OrganizationKindCompany, ID: organizationID}, OrganizationNodes: []biz.OrganizationScopeNode{{ID: organizationID, Kind: biz.OrganizationKindCompany}}, RoleGrants: []biz.RoleGrant{{
 		RoleCode: "bill-editor", DataScope: biz.DataScopeOrganization,
@@ -386,14 +386,14 @@ func TestBillSettlementAccountUpdateCandidatesRejectNonDraftBill(t *testing.T) {
 	}}}
 	billRepo := &billSettlementAccountUpdateRepoStub{bill: &biz.FinanceBill{
 		ID: billID, OrganizationID: organizationID, SettlementPartyID: uuid.New(), Direction: biz.OrderFeeReceivable,
-		Currency: "CNY", Status: biz.FinanceBillConfirmed,
+		Currency: "CNY", Status: biz.FinanceBillCancelled,
 	}}
 	service := &SettlementService{
 		billUsecase:    biz.NewFinanceBillUsecase(billRepo, nil, nil, nil),
 		accountUsecase: biz.NewPartnerAccountUsecase(&billSettlementAccountRepoStub{}),
 	}
 	if _, err := service.ListBillSettlementAccountUpdateCandidates(biz.WithPrincipal(context.Background(), principal), &v1.ListBillSettlementAccountUpdateCandidatesRequest{BillId: billID.String()}); !errors.Is(err, biz.ErrFinanceBillInvalidTransition) {
-		t.Fatalf("已确认账单不能加载草稿改选账户候选: %v", err)
+		t.Fatalf("已取消账单不能加载改选账户候选: %v", err)
 	}
 }
 

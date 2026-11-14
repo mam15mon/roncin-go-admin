@@ -51,7 +51,6 @@ const (
 	FinanceBillRead            = "system.finance.bill.read"
 	FinanceBillCreate          = "system.finance.bill.create"
 	FinanceBillUpdate          = "system.finance.bill.update"
-	FinanceBillConfirm         = "system.finance.bill.confirm"
 	FinanceInvoiceRead         = "system.finance.invoice.read"
 	FinanceInvoiceCreate       = "system.finance.invoice.create"
 	FinanceInvoiceUpdate       = "system.finance.invoice.update"
@@ -225,7 +224,6 @@ var manifest = append([]Permission{
 	{Key: FinanceBillRead, Name: "查看账单", Group: "费用管理 · 账单", Description: "查看应收应付账单及明细"},
 	{Key: FinanceBillCreate, Name: "创建账单", Group: "费用管理 · 账单", Description: "按结算单位聚合未建账费用创建账单", Requires: []string{FinanceBillRead}},
 	{Key: FinanceBillUpdate, Name: "编辑账单", Group: "费用管理 · 账单", Description: "编辑、撤回或作废未结清账单", Requires: []string{FinanceBillRead}},
-	{Key: FinanceBillConfirm, Name: "确认账单", Group: "费用管理 · 账单", Description: "确认账单并锁定账单费用", Requires: []string{FinanceBillRead}},
 	{Key: FinanceInvoiceRead, Name: "查看开票记录", Group: "费用管理 · 开票", Description: "查看销项和进项发票台账"},
 	{Key: FinanceInvoiceCreate, Name: "登记发票", Group: "费用管理 · 开票", Description: "登记发票并向账单分配开票金额", Requires: []string{FinanceInvoiceRead}},
 	{Key: FinanceInvoiceUpdate, Name: "处理发票", Group: "费用管理 · 开票", Description: "开具、作废或红冲发票", Requires: []string{FinanceInvoiceRead}},

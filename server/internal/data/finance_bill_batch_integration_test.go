@@ -434,18 +434,13 @@ func TestFinanceBillBatchNettingCreatePostgres(t *testing.T) {
 			}
 		}
 
-		expectedVersions := make(map[uuid.UUID]uint64, len(batch.Bills))
 		directions := map[biz.OrderFeeDirection]uuid.UUID{}
 		for _, bill := range batch.Bills {
-			expectedVersions[bill.ID] = bill.Version
+			// 账单免人工确认：批量创建即为已确认，确认人为批次创建人。
+			if bill.Status != biz.FinanceBillConfirmed || bill.ConfirmedBy == nil || *bill.ConfirmedBy != fixture.actorUserID || bill.ConfirmedAt == nil {
+				t.Fatalf("批量创建的账单应直接为已确认: %#v", bill)
+			}
 			directions[bill.Direction] = bill.ID
-		}
-		confirmedBatch, err := usecase.ConfirmBatch(context.Background(), []uuid.UUID{fixture.organizationID}, fixture.actorUserID, batch.ID, expectedVersions)
-		if err != nil {
-			t.Fatalf("确认对冲批次账单失败: %v", err)
-		}
-		if len(confirmedBatch.Nettings) != 1 || confirmedBatch.Nettings[0].Status != biz.FinanceNettingDraft {
-			t.Fatalf("批次确认不应改变对冲单状态: %#v", confirmedBatch.Nettings)
 		}
 
 		nettingUsecase := biz.NewFinanceNettingUsecase(NewFinanceNettingRepo(data), data, nil)

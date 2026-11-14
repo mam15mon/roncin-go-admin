@@ -14,12 +14,10 @@ import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGua
 import { DRAWER_SIZE } from '@/components/ui';
 import { BillGroupingMode } from '@/enums.generated';
 import {
-  settlementServiceConfirmBillBatch,
   settlementServiceCreateBillBatch,
   settlementServicePreviewBillBatch,
 } from '@/services/roncin/settlementService';
 import { isWriteResponse, unwrapList } from '@/utils/api';
-import { getErrorMessage } from '@/utils/errorMessage';
 import { trimDecimal } from '@/utils/format';
 import { longRequestOptions } from '@/utils/requestTimeout';
 import { generateUUID } from '@/utils/uuid';
@@ -112,7 +110,6 @@ export default function BillCreationWorkbench({
   const [result, setResult] = useState<API.FinanceBillBatch>();
   const [submitting, setSubmitting] = useState(false);
   const [idempotencyKey, setIdempotencyKey] = useState('');
-  const [confirming, setConfirming] = useState(false);
   const [activeGroupKey, setActiveGroupKey] = useState<string>();
   const [sessionIdentity, setSessionIdentity] = useState('');
   // 防抖后进入 queryKey 的预览请求参数；undefined 表示当前没有待执行/进行中的预览。
@@ -336,7 +333,6 @@ export default function BillCreationWorkbench({
     setSplitByTaxRate(false);
     setResult(undefined);
     setSubmitting(false);
-    setConfirming(false);
     setIdempotencyKey(generateUUID());
     form.resetFields();
 
@@ -521,34 +517,6 @@ export default function BillCreationWorkbench({
       }
     } finally {
       setSubmitting(false);
-    }
-
-    return undefined;
-  };
-
-  const confirmBatch = async (): Promise<false | undefined> => {
-    if (!canOperate || !result?.id || !result.bills?.length) return;
-    setConfirming(true);
-    try {
-      const response = await settlementServiceConfirmBillBatch(
-        { id: result.id },
-        {
-          id: result.id,
-          bills: result.bills.map((bill) => ({
-            billId: bill.id || '',
-            expectedVersion: bill.version || '0',
-          })),
-        },
-        longRequestOptions,
-      );
-      if (!isWriteResponse(response, true)) return false;
-      if (response.data) setResult(response.data);
-      message.success('本批账单已全部确认，可以进入开票、收付款和核销流程');
-      onCreated?.(response.data || result);
-    } catch (error) {
-      message.error(getErrorMessage(error, '批量确认账单失败'));
-    } finally {
-      setConfirming(false);
     }
 
     return undefined;
@@ -747,8 +715,6 @@ export default function BillCreationWorkbench({
       {current === 3 && (
         <BillCreationResultTable
           result={result}
-          confirming={confirming}
-          onConfirmBatch={() => void confirmBatch()}
           directionText={directionText}
         />
       )}

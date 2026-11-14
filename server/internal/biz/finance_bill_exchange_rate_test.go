@@ -16,6 +16,12 @@ type financeBillTargetOrganizationRepoStub struct {
 	updateAudit  *AuditEvent
 	fees         []*FinanceBillableFee
 	callOrder    []string
+	protected    bool
+}
+
+func (s *financeBillTargetOrganizationRepoStub) HasProtectedFinanceFact(context.Context, uuid.UUID) (bool, error) {
+	s.callOrder = append(s.callOrder, "protected")
+	return s.protected, nil
 }
 
 func (s *financeBillTargetOrganizationRepoStub) Get(_ context.Context, _ []uuid.UUID, _ uuid.UUID) (*FinanceBill, error) {
@@ -141,7 +147,7 @@ func TestFinanceBillUpdateUsesTargetOrganizationForExchangeRateAndAudit(t *testi
 	taxRate := decimal.Zero
 	billRepo := &financeBillTargetOrganizationRepoStub{bill: &FinanceBill{
 		ID: billID, OrganizationID: targetOrganizationID, Direction: OrderFeeReceivable,
-		Status: FinanceBillDraft, SettlementPartyID: partyID, SettlementPartyName: "测试客户",
+		Status: FinanceBillConfirmed, SettlementPartyID: partyID, SettlementPartyName: "测试客户",
 		Currency: "USD", BaseCurrency: "CNY", TotalAmount: decimal.NewFromInt(100), NetAmount: decimal.NewFromInt(100), Version: 2,
 		Lines: []*FinanceBillLine{{ID: uuid.New(), OrderFeeID: feeID, OrderID: orderID, OrderNo: "SE001", FeeCode: "FEE", FeeName: "运费", Quantity: decimal.NewFromInt(1), UnitPrice: decimal.NewFromInt(100), TaxRate: &taxRate, Currency: "USD", TotalAmount: decimal.NewFromInt(100), NetAmount: decimal.NewFromInt(100), TaxAmount: decimal.Zero}},
 	}}
@@ -167,7 +173,73 @@ func TestFinanceBillUpdateUsesTargetOrganizationForExchangeRateAndAudit(t *testi
 	if billRepo.updateInput.ExchangeRate.StringFixed(8) != "7.20000000" || billRepo.updateInput.BaseCurrencyAmount.StringFixed(8) != "720.00000000" {
 		t.Fatalf("目标组织汇率快照未传入仓储: %#v", billRepo.updateInput)
 	}
-	if len(billRepo.callOrder) < 4 || billRepo.callOrder[0] != "get" || billRepo.callOrder[1] != "get" || billRepo.callOrder[2] != "fees" || billRepo.callOrder[3] != "account" {
-		t.Fatalf("草稿更新锁定顺序 = %v，期望预读后按账单、费用、账户处理", billRepo.callOrder)
+	if len(billRepo.callOrder) < 5 || billRepo.callOrder[0] != "get" || billRepo.callOrder[1] != "get" || billRepo.callOrder[2] != "protected" || billRepo.callOrder[3] != "fees" || billRepo.callOrder[4] != "account" {
+		t.Fatalf("账单更新锁定顺序 = %v，期望预读后按账单、受保护复核、费用、账户处理", billRepo.callOrder)
+	}
+	if billRepo.updateInput.Protected {
+		t.Fatal("未受保护账单不得走受限更新")
 	}
 }
+
+// 受保护账单（已有发票、核销或已确认对冲）只能改备注、对账标题与到期日，且不重取汇率。
+func TestFinanceBillUpdateProtectedOnlyAllowsNonFinancialFields(t *testing.T) {
+	organizationID, actorID, billID, accountID := uuid.New(), uuid.New(), uuid.New(), uuid.New()
+	terms := 30
+	currency, rate, amount := "USD", decimal.NewFromInt(1), decimal.NewFromInt(100)
+	newRepo := func() *financeBillTargetOrganizationRepoStub {
+		return &financeBillTargetOrganizationRepoStub{protected: true, bill: &FinanceBill{
+			ID: billID, OrganizationID: organizationID, Direction: OrderFeeReceivable, Status: FinanceBillConfirmed,
+			Currency: "USD", BaseCurrency: "CNY", TotalAmount: amount, NetAmount: amount, BaseCurrencyAmount: decimal.NewFromInt(710),
+			ExchangeRate: decimal.RequireFromString("7.1"), ExchangeRateSource: "WEEKLY", ExchangeRateDate: "2026-09-01",
+			BillDate: "2026-09-01", PaymentTermsDays: &terms, SettlementAccountID: accountID,
+			EstimatedInvoiceCurrency: &currency, EstimatedInvoiceRate: &rate, EstimatedInvoiceAmount: &amount, Version: 3,
+		}}
+	}
+	exchangeRepo := &financeBillTargetExchangeRateRepoStub{resolvedRate: decimal.RequireFromString("7.20")}
+	note := "仅改备注"
+	dueDate := "2026-10-01"
+	cases := []struct {
+		name  string
+		input UpdateFinanceBillInput
+	}{
+		{"改账单日期", UpdateFinanceBillInput{BillDate: "2026-09-02", PaymentTermsDays: &terms, SettlementAccountID: accountID}},
+		{"改结算账户", UpdateFinanceBillInput{BillDate: "2026-09-01", PaymentTermsDays: &terms, SettlementAccountID: uuid.New()}},
+		{"改账期", UpdateFinanceBillInput{BillDate: "2026-09-01", SettlementAccountID: accountID}},
+		{"改预计开票币种", UpdateFinanceBillInput{BillDate: "2026-09-01", PaymentTermsDays: &terms, SettlementAccountID: accountID, EstimatedInvoiceCurrency: stringPointer("CNY"), EstimatedInvoiceRate: decimalPointer(decimal.RequireFromString("7.1"))}},
+	}
+	for _, item := range cases {
+		repo := newRepo()
+		usecase := NewFinanceBillUsecase(repo, NewExchangeRateUsecase(exchangeRepo, nil), &financeBillTransactorStub{}, nil)
+		item.input.ID, item.input.ExpectedVersion = billID, 3
+		if _, err := usecase.Update(t.Context(), []uuid.UUID{organizationID}, actorID, item.input); err != ErrFinanceBillProtectedFields {
+			t.Fatalf("%s: 受保护账单应拒绝，实际 %v", item.name, err)
+		}
+		if repo.updateAudit != nil {
+			t.Fatalf("%s: 拒绝时不得写入", item.name)
+		}
+	}
+	repo := newRepo()
+	usecase := NewFinanceBillUsecase(repo, NewExchangeRateUsecase(exchangeRepo, nil), &financeBillTransactorStub{}, nil)
+	exchangeRepo.resolveDates = nil
+	if _, err := usecase.Update(t.Context(), []uuid.UUID{organizationID}, actorID, UpdateFinanceBillInput{ID: billID, ExpectedVersion: 3, BillDate: "2026-09-01", PaymentTermsDays: &terms, SettlementAccountID: accountID, Note: &note, EstimatedInvoiceCurrency: &currency}); err != nil {
+		t.Fatalf("受保护账单改备注应允许: %v", err)
+	}
+	if !repo.updateInput.Protected || len(exchangeRepo.resolveDates) != 0 || !repo.updateInput.ExchangeRate.Equal(decimal.RequireFromString("7.1")) || !repo.updateInput.BaseCurrencyAmount.Equal(decimal.NewFromInt(710)) {
+		t.Fatalf("受保护更新不得重取汇率或改金额: %#v resolve=%v", repo.updateInput, exchangeRepo.resolveDates)
+	}
+	if repo.updateInput.Note == nil || *repo.updateInput.Note != note {
+		t.Fatalf("备注未传入仓储: %#v", repo.updateInput.Note)
+	}
+	// 未设置账期时可单独改到期日。
+	repo = newRepo()
+	repo.bill.PaymentTermsDays = nil
+	usecase = NewFinanceBillUsecase(repo, NewExchangeRateUsecase(exchangeRepo, nil), &financeBillTransactorStub{}, nil)
+	if _, err := usecase.Update(t.Context(), []uuid.UUID{organizationID}, actorID, UpdateFinanceBillInput{ID: billID, ExpectedVersion: 3, BillDate: "2026-09-01", DueDate: &dueDate, SettlementAccountID: accountID}); err != nil {
+		t.Fatalf("受保护账单改到期日应允许: %v", err)
+	}
+	if repo.updateInput.DueDate == nil || *repo.updateInput.DueDate != dueDate || !repo.updateInput.Protected {
+		t.Fatalf("到期日未按受限更新传入: %#v", repo.updateInput)
+	}
+}
+
+func decimalPointer(value decimal.Decimal) *decimal.Decimal { return &value }

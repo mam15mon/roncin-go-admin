@@ -57,56 +57,6 @@ func (r *financeBillRepo) GetBatch(ctx context.Context, organizationIDs []uuid.U
 	return financeBillBatchToBiz(item)
 }
 
-func (r *financeBillRepo) ConfirmBatch(ctx context.Context, organizationIDs []uuid.UUID, batchID, actorID uuid.UUID, expectedVersions map[uuid.UUID]uint64, audit *biz.AuditEvent) (*biz.FinanceBillBatch, error) {
-	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		preBills, err := tx.FinanceBill.Query().Where(financebillent.BatchIDEQ(batchID), financebillent.OrganizationIDIn(organizationIDs...)).All(ctx)
-		if err != nil {
-			return err
-		}
-		ids := make([]uuid.UUID, 0, len(preBills))
-		for _, bill := range preBills {
-			ids = append(ids, bill.ID)
-		}
-		if err := lockExistingBillOrders(ctx, tx.Client(), organizationIDs, ids); err != nil {
-			return err
-		}
-		batch, err := tx.FinanceBillBatch.Query().Where(financebillbatchent.IDEQ(batchID), financebillbatchent.OrganizationIDIn(organizationIDs...)).ForUpdate().Only(ctx)
-		if err != nil {
-			return mapEntError(err, biz.ErrFinanceBillNotFound, nil)
-		}
-		bills, err := tx.FinanceBill.Query().Where(financebillent.BatchIDEQ(batchID)).Order(financebillent.ByID()).ForUpdate().All(ctx)
-		if err != nil {
-			return err
-		}
-		if len(bills) == 0 || len(bills) != len(expectedVersions) {
-			return biz.ErrFinanceBillBatchMismatch
-		}
-		now := time.Now().UTC()
-		for _, bill := range bills {
-			if bill.OrganizationID != batch.OrganizationID {
-				return biz.ErrFinanceBillBatchMismatch
-			}
-			expected, exists := expectedVersions[bill.ID]
-			if !exists {
-				return biz.ErrFinanceBillBatchMismatch
-			}
-			if bill.Version != expected {
-				return biz.ErrFinanceBillVersionConflict
-			}
-			if bill.Status != financebillent.StatusDRAFT {
-				return biz.ErrFinanceBillInvalidTransition
-			}
-			if _, err = tx.FinanceBill.UpdateOneID(bill.ID).SetStatus(financebillent.StatusCONFIRMED).SetConfirmedAt(now).SetConfirmedBy(actorID).SetVersion(bill.Version + 1).Save(ctx); err != nil {
-				return err
-			}
-		}
-		return writeAudit(ctx, tx.AuditLog, audit)
-	}); err != nil {
-		return nil, err
-	}
-	return r.GetBatch(ctx, organizationIDs, batchID)
-}
-
 func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBillBatch, _ string, audit *biz.AuditEvent, nettingAudits []*biz.AuditEvent) (*biz.FinanceBillBatch, error) {
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
 		feeIDs := make([]uuid.UUID, 0, batch.FeeCount)
@@ -173,7 +123,7 @@ func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBil
 				return allocateErr
 			}
 			bill.BatchNo = batch.BatchNo
-			_, saveErr := tx.FinanceBill.Create().SetID(bill.ID).SetOrganizationID(batch.OrganizationID).SetBatchID(batch.ID).SetBillNo(bill.BillNo).SetIdempotencyKey(bill.IdempotencyKey).SetPurpose(financebillent.Purpose(bill.Purpose)).SetDirection(financebillent.Direction(bill.Direction)).SetStatus(financebillent.StatusDRAFT).SetSettlementPartyID(bill.SettlementPartyID).SetSettlementPartyName(bill.SettlementPartyName).SetSettlementAccountID(bill.SettlementAccountID).SetSettlementAccountName(bill.SettlementAccountName).SetSettlementAccountHolder(bill.SettlementAccountHolder).SetSettlementBankName(bill.SettlementBankName).SetSettlementBankAccount(bill.SettlementBankAccount).SetSettlementAccountCurrency(bill.SettlementAccountCurrency).SetSettlementSwiftCode(bill.SettlementSwiftCode).SetNillableEstimatedInvoiceCurrency(bill.EstimatedInvoiceCurrency).SetNillableEstimatedInvoiceRate(financeDecimalString(bill.EstimatedInvoiceRate, 8)).SetNillableEstimatedInvoiceAmount(financeDecimalString(bill.EstimatedInvoiceAmount, 8)).SetCurrency(bill.Currency).SetBaseCurrency(bill.BaseCurrency).SetExchangeRate(bill.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(bill.ExchangeRateSource)).SetExchangeRateDate(bill.ExchangeRateDate).SetNillableExchangeRateSettingID(bill.ExchangeRateSettingID).SetTotalAmount(bill.TotalAmount.StringFixed(8)).SetNetAmount(bill.NetAmount.StringFixed(8)).SetTaxAmount(bill.TaxAmount.StringFixed(8)).SetBaseCurrencyAmount(bill.BaseCurrencyAmount.StringFixed(8)).SetFeeCount(bill.FeeCount).SetBillDate(bill.BillDate).SetNillableStatementTitle(bill.StatementTitle).SetNillablePaymentTermsDays(bill.PaymentTermsDays).SetNillableDueDate(bill.DueDate).SetNillableNote(bill.Note).SetVersion(1).Save(ctx)
+			_, saveErr := tx.FinanceBill.Create().SetID(bill.ID).SetOrganizationID(batch.OrganizationID).SetBatchID(batch.ID).SetBillNo(bill.BillNo).SetIdempotencyKey(bill.IdempotencyKey).SetPurpose(financebillent.Purpose(bill.Purpose)).SetDirection(financebillent.Direction(bill.Direction)).SetStatus(financebillent.StatusCONFIRMED).SetConfirmedAt(now).SetConfirmedBy(batch.CreatedBy).SetSettlementPartyID(bill.SettlementPartyID).SetSettlementPartyName(bill.SettlementPartyName).SetSettlementAccountID(bill.SettlementAccountID).SetSettlementAccountName(bill.SettlementAccountName).SetSettlementAccountHolder(bill.SettlementAccountHolder).SetSettlementBankName(bill.SettlementBankName).SetSettlementBankAccount(bill.SettlementBankAccount).SetSettlementAccountCurrency(bill.SettlementAccountCurrency).SetSettlementSwiftCode(bill.SettlementSwiftCode).SetNillableEstimatedInvoiceCurrency(bill.EstimatedInvoiceCurrency).SetNillableEstimatedInvoiceRate(financeDecimalString(bill.EstimatedInvoiceRate, 8)).SetNillableEstimatedInvoiceAmount(financeDecimalString(bill.EstimatedInvoiceAmount, 8)).SetCurrency(bill.Currency).SetBaseCurrency(bill.BaseCurrency).SetExchangeRate(bill.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(bill.ExchangeRateSource)).SetExchangeRateDate(bill.ExchangeRateDate).SetNillableExchangeRateSettingID(bill.ExchangeRateSettingID).SetTotalAmount(bill.TotalAmount.StringFixed(8)).SetNetAmount(bill.NetAmount.StringFixed(8)).SetTaxAmount(bill.TaxAmount.StringFixed(8)).SetBaseCurrencyAmount(bill.BaseCurrencyAmount.StringFixed(8)).SetFeeCount(bill.FeeCount).SetBillDate(bill.BillDate).SetNillableStatementTitle(bill.StatementTitle).SetNillablePaymentTermsDays(bill.PaymentTermsDays).SetNillableDueDate(bill.DueDate).SetNillableNote(bill.Note).SetVersion(1).Save(ctx)
 			if saveErr != nil {
 				return saveErr
 			}

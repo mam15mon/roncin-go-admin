@@ -258,7 +258,7 @@ func scopedFinancePermissionWrites(permission string) (bool, bool) {
 		access.FinanceVerificationRead, access.FinanceNettingRead, access.FinanceCommissionRead,
 		access.FinanceCommissionExport, access.FinanceFeeRead:
 		return false, true
-	case access.FinanceBillCreate, access.FinanceBillUpdate, access.FinanceBillConfirm,
+	case access.FinanceBillCreate, access.FinanceBillUpdate,
 		access.FinanceInvoiceCreate, access.FinanceInvoiceUpdate, access.FinanceCashflowCreate,
 		access.FinanceCashflowUpdate, access.FinanceVerificationCreate, access.FinanceVerificationReverse,
 		access.FinanceNettingCreate, access.FinanceNettingConfirm, access.FinanceNettingReverse,

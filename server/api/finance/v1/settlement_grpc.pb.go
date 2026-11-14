@@ -33,9 +33,7 @@ const (
 	SettlementService_CreateBill_FullMethodName                                = "/finance.v1.SettlementService/CreateBill"
 	SettlementService_PreviewBillBatch_FullMethodName                          = "/finance.v1.SettlementService/PreviewBillBatch"
 	SettlementService_CreateBillBatch_FullMethodName                           = "/finance.v1.SettlementService/CreateBillBatch"
-	SettlementService_ConfirmBillBatch_FullMethodName                          = "/finance.v1.SettlementService/ConfirmBillBatch"
 	SettlementService_UpdateBill_FullMethodName                                = "/finance.v1.SettlementService/UpdateBill"
-	SettlementService_ConfirmBill_FullMethodName                               = "/finance.v1.SettlementService/ConfirmBill"
 	SettlementService_CancelBill_FullMethodName                                = "/finance.v1.SettlementService/CancelBill"
 	SettlementService_ListInvoices_FullMethodName                              = "/finance.v1.SettlementService/ListInvoices"
 	SettlementService_ListInvoiceCreationBills_FullMethodName                  = "/finance.v1.SettlementService/ListInvoiceCreationBills"
@@ -117,9 +115,7 @@ type SettlementServiceClient interface {
 	CreateBill(ctx context.Context, in *CreateBillRequest, opts ...grpc.CallOption) (*CreateBillResponse, error)
 	PreviewBillBatch(ctx context.Context, in *PreviewBillBatchRequest, opts ...grpc.CallOption) (*PreviewBillBatchResponse, error)
 	CreateBillBatch(ctx context.Context, in *CreateBillBatchRequest, opts ...grpc.CallOption) (*CreateBillBatchResponse, error)
-	ConfirmBillBatch(ctx context.Context, in *ConfirmBillBatchRequest, opts ...grpc.CallOption) (*ConfirmBillBatchResponse, error)
 	UpdateBill(ctx context.Context, in *UpdateBillRequest, opts ...grpc.CallOption) (*UpdateBillResponse, error)
-	ConfirmBill(ctx context.Context, in *ConfirmBillRequest, opts ...grpc.CallOption) (*ConfirmBillResponse, error)
 	CancelBill(ctx context.Context, in *CancelBillRequest, opts ...grpc.CallOption) (*CancelBillResponse, error)
 	ListInvoices(ctx context.Context, in *ListInvoicesRequest, opts ...grpc.CallOption) (*ListInvoicesResponse, error)
 	ListInvoiceCreationBills(ctx context.Context, in *ListInvoiceCreationBillsRequest, opts ...grpc.CallOption) (*ListInvoiceCreationBillsResponse, error)
@@ -348,30 +344,10 @@ func (c *settlementServiceClient) CreateBillBatch(ctx context.Context, in *Creat
 	return out, nil
 }
 
-func (c *settlementServiceClient) ConfirmBillBatch(ctx context.Context, in *ConfirmBillBatchRequest, opts ...grpc.CallOption) (*ConfirmBillBatchResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ConfirmBillBatchResponse)
-	err := c.cc.Invoke(ctx, SettlementService_ConfirmBillBatch_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *settlementServiceClient) UpdateBill(ctx context.Context, in *UpdateBillRequest, opts ...grpc.CallOption) (*UpdateBillResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdateBillResponse)
 	err := c.cc.Invoke(ctx, SettlementService_UpdateBill_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *settlementServiceClient) ConfirmBill(ctx context.Context, in *ConfirmBillRequest, opts ...grpc.CallOption) (*ConfirmBillResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ConfirmBillResponse)
-	err := c.cc.Invoke(ctx, SettlementService_ConfirmBill_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -943,9 +919,7 @@ type SettlementServiceServer interface {
 	CreateBill(context.Context, *CreateBillRequest) (*CreateBillResponse, error)
 	PreviewBillBatch(context.Context, *PreviewBillBatchRequest) (*PreviewBillBatchResponse, error)
 	CreateBillBatch(context.Context, *CreateBillBatchRequest) (*CreateBillBatchResponse, error)
-	ConfirmBillBatch(context.Context, *ConfirmBillBatchRequest) (*ConfirmBillBatchResponse, error)
 	UpdateBill(context.Context, *UpdateBillRequest) (*UpdateBillResponse, error)
-	ConfirmBill(context.Context, *ConfirmBillRequest) (*ConfirmBillResponse, error)
 	CancelBill(context.Context, *CancelBillRequest) (*CancelBillResponse, error)
 	ListInvoices(context.Context, *ListInvoicesRequest) (*ListInvoicesResponse, error)
 	ListInvoiceCreationBills(context.Context, *ListInvoiceCreationBillsRequest) (*ListInvoiceCreationBillsResponse, error)
@@ -1076,14 +1050,8 @@ func (UnimplementedSettlementServiceServer) PreviewBillBatch(context.Context, *P
 func (UnimplementedSettlementServiceServer) CreateBillBatch(context.Context, *CreateBillBatchRequest) (*CreateBillBatchResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateBillBatch not implemented")
 }
-func (UnimplementedSettlementServiceServer) ConfirmBillBatch(context.Context, *ConfirmBillBatchRequest) (*ConfirmBillBatchResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ConfirmBillBatch not implemented")
-}
 func (UnimplementedSettlementServiceServer) UpdateBill(context.Context, *UpdateBillRequest) (*UpdateBillResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateBill not implemented")
-}
-func (UnimplementedSettlementServiceServer) ConfirmBill(context.Context, *ConfirmBillRequest) (*ConfirmBillResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ConfirmBill not implemented")
 }
 func (UnimplementedSettlementServiceServer) CancelBill(context.Context, *CancelBillRequest) (*CancelBillResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CancelBill not implemented")
@@ -1520,24 +1488,6 @@ func _SettlementService_CreateBillBatch_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SettlementService_ConfirmBillBatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ConfirmBillBatchRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SettlementServiceServer).ConfirmBillBatch(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: SettlementService_ConfirmBillBatch_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SettlementServiceServer).ConfirmBillBatch(ctx, req.(*ConfirmBillBatchRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _SettlementService_UpdateBill_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateBillRequest)
 	if err := dec(in); err != nil {
@@ -1552,24 +1502,6 @@ func _SettlementService_UpdateBill_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SettlementServiceServer).UpdateBill(ctx, req.(*UpdateBillRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _SettlementService_ConfirmBill_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ConfirmBillRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SettlementServiceServer).ConfirmBill(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: SettlementService_ConfirmBill_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SettlementServiceServer).ConfirmBill(ctx, req.(*ConfirmBillRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2610,16 +2542,8 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _SettlementService_CreateBillBatch_Handler,
 		},
 		{
-			MethodName: "ConfirmBillBatch",
-			Handler:    _SettlementService_ConfirmBillBatch_Handler,
-		},
-		{
 			MethodName: "UpdateBill",
 			Handler:    _SettlementService_UpdateBill_Handler,
-		},
-		{
-			MethodName: "ConfirmBill",
-			Handler:    _SettlementService_ConfirmBill_Handler,
 		},
 		{
 			MethodName: "CancelBill",

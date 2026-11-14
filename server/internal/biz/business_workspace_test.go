@@ -23,7 +23,7 @@ func TestBusinessWorkspacePermissionsAndSwitch(t *testing.T) {
 			OrganizationNodes: []OrganizationScopeNode{{ID: hq, Kind: OrganizationKindSystem}, {ID: company, Kind: OrganizationKindCompany}, {ID: other, Kind: OrganizationKindCompany}},
 			RoleGrants:        []RoleGrant{{DataScope: DataScopeAll, Permissions: grants}},
 		}
-		for _, permission := range []string{access.PartnerRead, access.PartnerExport, access.FinanceCommissionExport, access.FinanceBillConfigure, access.FinanceCommissionConfigure, access.EnterpriseResourceCreate, access.PartnerUpdate, access.PartnerAttachmentRegister, access.FinanceBillConfirm, access.FinanceCommissionManage, access.OrderPermission(access.OrderBusinessSE, access.OrderSplit)} {
+		for _, permission := range []string{access.PartnerRead, access.PartnerExport, access.FinanceCommissionExport, access.FinanceBillConfigure, access.FinanceCommissionConfigure, access.EnterpriseResourceCreate, access.PartnerUpdate, access.PartnerAttachmentRegister, access.FinanceBillUpdate, access.FinanceCommissionManage, access.OrderPermission(access.OrderBusinessSE, access.OrderSplit)} {
 			if p.HasPermission(permission) || p.HasPermissionInScope(permission, DataScopeOrganization) || slices.Contains(p.PermissionKeys(), permission) {
 				t.Fatalf("总部 admin=%v 暴露经营权限 %s", admin, permission)
 			}
@@ -37,18 +37,18 @@ func TestBusinessWorkspacePermissionsAndSwitch(t *testing.T) {
 			}
 		}
 		p.Organization = Organization{ID: company, Kind: OrganizationKindCompany}
-		if !p.HasPermission(access.FinanceBillConfirm) {
+		if !p.HasPermission(access.FinanceBillUpdate) {
 			t.Fatal("进入获授权公司后应恢复原角色经营权限")
 		}
-		scope, err := p.ResolvePermissionOrganizationScope(access.FinanceBillConfirm)
+		scope, err := p.ResolvePermissionOrganizationScope(access.FinanceBillUpdate)
 		if err != nil || !slices.Equal(scope.WritableOrganizationIDs, []uuid.UUID{company}) || !slices.Equal(scope.ReadableOrganizationIDs, []uuid.UUID{company}) {
 			t.Fatalf("公司经营写范围必须限当前公司，读写均限当前公司: %#v %v", scope, err)
 		}
-		if p.CanAccessOrganizationForPermission(access.FinanceBillConfirm, other, true) {
+		if p.CanAccessOrganizationForPermission(access.FinanceBillUpdate, other, true) {
 			t.Fatal("全量授权不能跨工作台写")
 		}
 		p.Organization = Organization{ID: hq, Kind: OrganizationKindSystem}
-		if p.HasPermission(access.FinanceBillConfirm) {
+		if p.HasPermission(access.FinanceBillUpdate) {
 			t.Fatal("返回总部应再次禁写")
 		}
 	}

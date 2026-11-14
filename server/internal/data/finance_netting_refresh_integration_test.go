@@ -70,19 +70,13 @@ func TestFinanceNettingRefreshDraftRatesPostgres(t *testing.T) {
 	if !netting.BaseCurrencyAmount.Equal(decimal.NewFromInt(700)) || !netting.PayableBaseAmount.Equal(decimal.NewFromInt(700)) {
 		t.Fatalf("草稿本币=%v", netting)
 	}
-	versions := make(map[uuid.UUID]uint64)
+	// 草稿对冲不构成受保护事实：账单（创建即已确认）仍可改账单日期并重取汇率。
 	for _, bill := range batch.Bills {
-		versions[bill.ID] = bill.Version
 		if bill.Direction == biz.OrderFeeReceivable {
-			changed, err := uc.Update(ctx, []uuid.UUID{f.organizationID}, f.actorUserID, biz.UpdateFinanceBillInput{ID: bill.ID, ExpectedVersion: bill.Version, BillDate: "2026-09-01", SettlementAccountID: f.usdAccountID})
-			if err != nil {
+			if _, err := uc.Update(ctx, []uuid.UUID{f.organizationID}, f.actorUserID, biz.UpdateFinanceBillInput{ID: bill.ID, ExpectedVersion: bill.Version, BillDate: "2026-09-01", SettlementAccountID: f.usdAccountID}); err != nil {
 				t.Fatal(err)
 			}
-			versions[bill.ID] = changed.Version
 		}
-	}
-	if _, err := uc.ConfirmBatch(ctx, []uuid.UUID{f.organizationID}, f.actorUserID, batch.ID, versions); err != nil {
-		t.Fatal(err)
 	}
 	netUC := biz.NewFinanceNettingUsecase(NewFinanceNettingRepo(data), data, nil)
 	audit := &biz.AuditEvent{OrganizationID: &f.organizationID, UserID: &f.actorUserID, Action: "finance.netting.confirm", Result: "invalid"}

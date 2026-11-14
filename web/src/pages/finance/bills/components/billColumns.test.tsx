@@ -10,11 +10,9 @@ describe('getFinanceBillColumns', () => {
     access: {
       canOperateOrganization: (id) => id === 'company-a',
       canUpdateFinanceBills: true,
-      canConfirmFinanceBills: true,
     },
     onOpenDetail: () => {},
     onOpenEdit: () => {},
-    onConfirmBill: async () => {},
     onCancelBill: () => {},
   });
 
@@ -26,27 +24,41 @@ describe('getFinanceBillColumns', () => {
       render(
         actions(undefined, {
           organizationId,
-          status: FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT,
+          status: FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED,
         }),
       );
       expect(screen.getByText('详情')).toBeInTheDocument();
       expect(screen.queryByText('编辑')).not.toBeInTheDocument();
-      expect(screen.queryByText('确认')).not.toBeInTheDocument();
       expect(screen.queryByText('取消')).not.toBeInTheDocument();
     },
   );
 
-  it('当前公司的草稿保留授权办理入口', () => {
+  it('当前公司的正常账单保留编辑与取消入口，不再提供确认', () => {
     const actions = columns.find((col) => col.valueType === 'option')
       ?.render as any;
     render(
       actions(undefined, {
         organizationId: 'company-a',
-        status: FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT,
+        status: FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED,
       }),
     );
     expect(screen.getByText('编辑')).toBeInTheDocument();
-    expect(screen.getByText('确认')).toBeInTheDocument();
+    expect(screen.getByText('取消')).toBeInTheDocument();
+    expect(screen.queryByText('确认')).not.toBeInTheDocument();
+  });
+
+  it('已取消账单仅显示详情', () => {
+    const actions = columns.find((col) => col.valueType === 'option')
+      ?.render as any;
+    render(
+      actions(undefined, {
+        organizationId: 'company-a',
+        status: FinanceBillStatus.FINANCE_BILL_STATUS_CANCELLED,
+      }),
+    );
+    expect(screen.getByText('详情')).toBeInTheDocument();
+    expect(screen.queryByText('编辑')).not.toBeInTheDocument();
+    expect(screen.queryByText('取消')).not.toBeInTheDocument();
   });
 
   const dueDateCol = columns.find((col) => col.dataIndex === 'dueDate');

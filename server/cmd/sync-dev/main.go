@@ -1696,7 +1696,7 @@ func seedFinanceBillsAndCashflows(ctx context.Context, sc *seedContext) error {
 		}
 	}
 
-	// 账单 3：草稿账单
+	// 账单 3：未核销账单（账单免人工确认，创建即为已确认）
 	bill3No := "AR26090003"
 	b3, _ := tx.FinanceBill.Query().Where(financebillent.OrganizationIDEQ(co.ID), financebillent.BillNoEQ(bill3No)).First(ctx)
 	if b3 == nil {
@@ -1715,7 +1715,7 @@ func seedFinanceBillsAndCashflows(ctx context.Context, sc *seedContext) error {
 			SetBillNo(bill3No).
 			SetIdempotencyKey("DEV-BILL-" + bill3No).
 			SetDirection(financebillent.DirectionRECEIVABLE).
-			SetStatus(financebillent.StatusDRAFT).
+			SetStatus(financebillent.StatusCONFIRMED).
 			SetSettlementPartyID(party1.ID).
 			SetSettlementPartyName(party1.LegalName).
 			SetSettlementAccountID(acc3ID).

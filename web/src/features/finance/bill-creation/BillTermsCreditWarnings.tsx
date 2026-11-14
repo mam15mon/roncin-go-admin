@@ -11,13 +11,13 @@ export type BillTermsCreditWarningsProps = {
   creditCurrency?: string;
   currentUnsettledAmount?: string;
   isCreditExceeded?: boolean;
-  /** 本单金额：建账工作台为叶子总额，草稿编辑为账单总额。 */
+  /** 本单金额：建账工作台为叶子总额，账单编辑为账单总额。 */
   billAmount?: string;
   billCurrency?: string;
 };
 
 /**
- * 散客账期与信用超额的统一预警组装：创建工作台与草稿编辑共用同一套文案与判定。
+ * 散客账期与信用超额的统一预警组装：创建工作台与账单编辑共用同一套文案与判定。
  * 两个预警均为软提示（黄色 Alert），不阻断提交——服务端只在建账预览返回信息，
  * 直接干预拦截仅作用于订单与应收费用写入路径。
  */

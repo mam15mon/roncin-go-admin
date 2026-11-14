@@ -21,8 +21,9 @@ export const billExportColumns: CsvColumn<API.FinanceBill>[] = [
   {
     header: '状态',
     value: (row) =>
-      billStatusMeta[row.status ?? FinanceBillStatus.FINANCE_BILL_STATUS_DRAFT]
-        ?.text ?? '',
+      billStatusMeta[
+        row.status ?? FinanceBillStatus.FINANCE_BILL_STATUS_UNSPECIFIED
+      ]?.text ?? '',
   },
   { header: '账单编号', value: (row) => row.billNo },
   { header: '所属公司', value: (row) => row.organizationName },
