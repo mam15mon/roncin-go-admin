@@ -22,21 +22,23 @@ describe('OrderFeeTableTabs 选行与建账资格', () => {
     } as any);
     const { props } = makeProps('order-1');
     await renderTabs(props);
-    await screen.findByText('海运费');
+    await screen.findAllByText(/海运费/);
 
-    const rowCheckbox = (rowText: string) =>
+    const rowCheckbox = (rowKey: string) =>
       within(
-        screen.getByText(rowText).closest('tr') as HTMLTableRowElement,
+        document.querySelector(
+          `tr[data-row-key="${rowKey}"]`,
+        ) as HTMLTableRowElement,
       ).getByRole('checkbox');
 
     // 未保存行（new_ 前缀且无版本）不可勾选
-    expect(rowCheckbox('未保存新行')).toBeDisabled();
-    expect(rowCheckbox('海运费')).not.toBeDisabled();
+    expect(rowCheckbox('new_1700000000000')).toBeDisabled();
+    expect(rowCheckbox('fee-a')).not.toBeDisabled();
 
     // sticky 将表头与表体放入不同 table，按当前业务表格容器定位全选入口。
-    const tableWrapper = screen
-      .getByText('海运费')
-      .closest('.ant-table-wrapper') as HTMLElement;
+    const tableWrapper = document.querySelector(
+      '.ant-table-wrapper',
+    ) as HTMLElement;
     const header = tableWrapper.querySelector('thead');
     expect(header).not.toBeNull();
     const selectAll = within(header as HTMLTableSectionElement).getByRole(
@@ -59,7 +61,7 @@ describe('OrderFeeTableTabs 选行与建账资格', () => {
     const { props } = makeProps('order-1');
     props.selectedReceivableFeeIds = ['fee-a', 'fee-c'];
     await renderTabs(props);
-    await screen.findByText('海运费');
+    await screen.findAllByText(/海运费/);
 
     await act(async () => {
       screen.getByRole('button', { name: /生成账单（2）/ }).click();

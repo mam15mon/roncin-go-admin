@@ -1,12 +1,16 @@
 import {
   DeleteOutlined,
   DownOutlined,
-  EditOutlined,
   FileDoneOutlined,
   PlusOutlined,
+  SaveOutlined,
   SwapOutlined,
 } from '@ant-design/icons';
-import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import type {
+  ActionType,
+  ProColumns,
+  ProFormInstance,
+} from '@ant-design/pro-components';
 import { ProFormTextArea } from '@ant-design/pro-components';
 import {
   Alert,
@@ -17,6 +21,7 @@ import {
   type MenuProps,
   Space,
   Tag,
+  Tooltip,
 } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
@@ -33,14 +38,14 @@ import {
 } from '@/components/ui';
 import { OrderBusinessType } from '@/enums.generated';
 import { financeErrorReasons } from '@/errorReasons.generated';
+import { describeRateMissing } from '@/requestErrorConfig';
 import { history } from '@/router/history';
 import {
-  orderFeeServiceAddFee,
   orderFeeServiceBulkRemoveOrderFees,
   orderFeeServiceBulkUpdateOrderFees,
   orderFeeServiceListFees,
   orderFeeServiceResolveFeeExchangeRate,
-  orderFeeServiceUpdateFee,
+  orderFeeServiceSaveOrderFees,
 } from '@/services/roncin/orderFeeService';
 import { isWriteResponse, unwrapList } from '@/utils/api';
 import {
@@ -66,11 +71,19 @@ import {
 } from './feeColumnPreference';
 import { feeDirectionCode, PAYABLE, RECEIVABLE } from './feeConstants';
 import { feeQuantityRuleError } from './feeQuantityRule';
+import { FeeQuantitySourceFields, FeeQuantityValue } from './feeQuantitySource';
 import {
-  FeeQuantitySourceFields,
-  FeeQuantityValue,
-  quantitySelectionForSave,
-} from './feeQuantitySource';
+  buildSaveRow,
+  type FeeDraftRow,
+  type FeeSaveRowError,
+  feeRowChanged,
+  isNewFeeRowKey,
+  NEW_FEE_ROW_PREFIX,
+  parseFeeSaveError,
+  SaveRequestKeyHolder,
+  taxRateInputPattern,
+  validateFeeRow,
+} from './feeSave';
 import {
   buildOptionalFeeColumns,
   orderColumnsByPreference,
@@ -165,7 +178,15 @@ interface OrderFeeTableTabsProps {
   setPayableSummary: (summary: { totalAmount: number; count: number }) => void;
   canCreateFinanceBills: boolean;
   canCreateFees: boolean;
+  /** 整表保存接口要求费用修改权限；仅有新增权限的用户不能保存。 */
+  canUpdateFees: boolean;
   canDeleteFees: boolean;
+  /** 订单费用税率更改权限（access.canEditFeeTaxRate）；无权限时税率列只读。 */
+  canEditFeeTaxRate?: boolean;
+  /** 外部「刷新」确认丢弃草稿后递增，两表整体重建并重新加载。 */
+  reloadToken?: number;
+  /** 任一侧存在未保存修改时通知页面（刷新前确认用）。 */
+  onDraftChange?: (hasDraft: boolean) => void;
   feeWritesDisabled: boolean;
   onOpenBillWorkbench: (feeIds: string[]) => void;
   onOpenFeeModal?: (direction: number, fee?: API.OrderFee) => void;
@@ -185,7 +206,7 @@ interface OrderFeeTableTabsProps {
   /** 关联账单投影；仅当页面具备财务费用读取权限时提供，两表共用一次查询。 */
   feeBillTracking?: FeeBillTrackingView;
   /** 行内保存成功后的通知（页面据此刷新关联账单投影）。 */
-  onFeeSaved?: () => void;
+  onFeeSaved?: (feeContentVersion?: string) => void;
 }
 
 export default function OrderFeeTableTabs({
@@ -204,7 +225,11 @@ export default function OrderFeeTableTabs({
   setPayableSummary,
   canCreateFinanceBills,
   canCreateFees,
+  canUpdateFees,
   canDeleteFees,
+  canEditFeeTaxRate = false,
+  reloadToken = 0,
+  onDraftChange,
   feeWritesDisabled,
   onOpenBillWorkbench,
   getTableColumns,
@@ -247,19 +272,68 @@ export default function OrderFeeTableTabs({
   const [payableEditableKeys, setPayableEditableKeys] = useState<React.Key[]>(
     [],
   );
-  // 两侧均为单行编辑；分别登记，保存或取消其中一侧不清另一侧待提交输入。
+  // 两侧均为多行常开编辑：所有可编辑行始终处于输入态，各侧独立保存；
+  // 草稿（输入、新增行、行错误、请求键）按方向隔离，一侧保存或刷新不影响另一侧。
+  const rowWritesLocked = feeWritesDisabled || !canUpdateFees;
+  const receivableEditable = rowWritesLocked ? [] : receivableEditableKeys;
+  const payableEditable = rowWritesLocked ? [] : payableEditableKeys;
+  const [dirty, setDirty] = useState({ receivable: false, payable: false });
+  const [saving, setSaving] = useState({ receivable: false, payable: false });
+  const savingRef = useRef({ receivable: false, payable: false });
+  const [rowErrors, setRowErrors] = useState<{
+    receivable: FeeSaveRowError[];
+    payable: FeeSaveRowError[];
+    rateDetail?: string;
+  }>({ receivable: [], payable: [] });
+  const receivableFormRef = useRef<ProFormInstance | undefined>(undefined);
+  const payableFormRef = useRef<ProFormInstance | undefined>(undefined);
+  const draftRowsRef = useRef<Record<number, Map<string, API.OrderFee>>>({
+    [RECEIVABLE]: new Map(),
+    [PAYABLE]: new Map(),
+  });
+  const requestKeyHoldersRef = useRef<Record<number, SaveRequestKeyHolder>>({
+    [RECEIVABLE]: new SaveRequestKeyHolder(generateUUID),
+    [PAYABLE]: new SaveRequestKeyHolder(generateUUID),
+  });
   const receivableGuard = useUnsavedChangesGuard({
-    enabled: receivableEditableKeys.length > 0,
-    identity: `${orderId}:${receivableEditableKeys.join(',')}`,
+    enabled: receivableEditable.length > 0,
+    identity: orderId,
   });
   const payableGuard = useUnsavedChangesGuard({
-    enabled: payableEditableKeys.length > 0,
-    identity: `${orderId}:${payableEditableKeys.join(',')}`,
+    enabled: payableEditable.length > 0,
+    identity: orderId,
   });
+  const sideName = (direction: number) =>
+    direction === RECEIVABLE ? 'receivable' : 'payable';
+  const formRefOf = (direction: number) =>
+    direction === RECEIVABLE ? receivableFormRef : payableFormRef;
+  const markDirty = (direction: number) => {
+    if (direction === RECEIVABLE) receivableGuard.markDirty();
+    else payableGuard.markDirty();
+    setDirty((prev) =>
+      prev[sideName(direction)]
+        ? prev
+        : { ...prev, [sideName(direction)]: true },
+    );
+  };
+  const clearDirty = (direction: number) => {
+    if (direction === RECEIVABLE) receivableGuard.resetDirty();
+    else payableGuard.resetDirty();
+    setDirty((prev) =>
+      prev[sideName(direction)]
+        ? { ...prev, [sideName(direction)]: false }
+        : prev,
+    );
+  };
+  const hasDraft = dirty.receivable || dirty.payable;
+  const onDraftChangeRef = useRef(onDraftChange);
+  onDraftChangeRef.current = onDraftChange;
+  useEffect(() => {
+    onDraftChangeRef.current?.(hasDraft);
+  }, [hasDraft]);
 
   // 列设置状态：应收/应付共享同一份偏好；编辑进行中禁用入口，避免丢失未保存行。
-  const columnEditing =
-    receivableEditableKeys.length > 0 || payableEditableKeys.length > 0;
+  const columnEditing = hasDraft;
   // 账单号与关联账单财务进度列仅在页面提供关联投影（财务读取权限）时可用。
   const financeAvailable = Boolean(feeBillTracking);
 
@@ -361,7 +435,7 @@ export default function OrderFeeTableTabs({
           disabled={columnEditing || Boolean(getTableColumns)}
           disabledReason={
             columnEditing
-              ? '请先保存或取消正在编辑的费用行'
+              ? '请先保存正在编辑的费用行'
               : '外部自定义列模式下不支持列设置'
           }
         />
@@ -515,7 +589,7 @@ export default function OrderFeeTableTabs({
   useEffect(() => {
     setRowPreviews((prev) => {
       const activeKeys = new Set(
-        [...receivableEditableKeys, ...payableEditableKeys].map(String),
+        [...receivableEditable, ...payableEditable].map(String),
       );
       const next: Record<string, RowEditPreview> = {};
       let changed = false;
@@ -528,12 +602,21 @@ export default function OrderFeeTableTabs({
       }
       return changed ? next : prev;
     });
-  }, [receivableEditableKeys, payableEditableKeys]);
+  }, [receivableEditable, payableEditable]);
 
+  // 切换订单或外部确认刷新后：丢弃全部草稿状态，表格随 key 重建并重新加载。
   useEffect(() => {
     setRowPreviews({});
     rateRequestSeqRef.current = {};
-  }, [orderId]);
+    setRowErrors({ receivable: [], payable: [] });
+    setDirty({ receivable: false, payable: false });
+    for (const holder of Object.values(requestKeyHoldersRef.current)) {
+      holder.clear();
+    }
+    for (const rows of Object.values(draftRowsRef.current)) rows.clear();
+    receivableGuard.resetDirty();
+    payableGuard.resetDirty();
+  }, [orderId, reloadToken]);
 
   // 默认计费单位：优先查找“票”（PIAO / 包含票），否则选用首项
   const defaultBillingUnit =
@@ -627,9 +710,18 @@ export default function OrderFeeTableTabs({
     const hasUnitPrice =
       unitPriceInput !== '' && Number.isFinite(Number(unitPriceInput));
     const feeSettingId = form?.getFieldValue([rowKey, 'feeSettingId']);
-    const taxRate = feeSettings?.find(
+    const catalogTaxRate = feeSettings?.find(
       (item) => item.id === feeSettingId,
     )?.taxRate;
+    // 税率列可编辑时，行内输入的有效税率优先于目录默认税率参与折算预览。
+    const taxInput = String(
+      form?.getFieldValue([rowKey, 'taxRate']) ?? '',
+    ).trim();
+    const taxRate =
+      taxInput !== '' &&
+      taxRateInputPattern.test(normalizeDecimalInput(taxInput))
+        ? normalizeDecimalInput(taxInput)
+        : catalogTaxRate;
     setRowPreviews((prev) => ({
       ...prev,
       [key]: {
@@ -667,262 +759,252 @@ export default function OrderFeeTableTabs({
     });
   };
 
-  const handleAddReceivable = () => {
-    if (feeWritesDisabled || !canCreateFees) return;
-    const newId = `new_${Date.now()}`;
-    const defaultPartyId = order?.customerId;
-    const defaultPartyName =
-      customerName ||
-      settlementParties?.find((p) => p.id === defaultPartyId)?.name;
-
-    receivableActionRef.current?.addEditRecord?.(
-      {
-        id: newId,
-        direction: RECEIVABLE,
-        currency: 'CNY',
-        quantity: '1',
-        billingUnitId: defaultBillingUnit?.id,
-        billingUnit: defaultBillingUnit?.name,
-        settlementPartyId: defaultPartyId,
-        settlementPartyName: defaultPartyName,
-      },
-      { position: 'top' },
-    );
-    resolveRowRatePreview(newId, RECEIVABLE, 'CNY');
-  };
-
-  const handleAddPayable = () => {
-    if (feeWritesDisabled || !canCreateFees) return;
-    const newId = `new_${Date.now()}`;
-    const defaultPartyId = order?.bookingAgentId;
-    const defaultPartyName = settlementParties?.find(
-      (p) => p.id === defaultPartyId,
-    )?.name;
-
-    payableActionRef.current?.addEditRecord?.(
-      {
-        id: newId,
-        direction: PAYABLE,
-        currency: 'CNY',
-        quantity: '1',
-        billingUnitId: defaultBillingUnit?.id,
-        billingUnit: defaultBillingUnit?.name,
-        settlementPartyId: defaultPartyId,
-        settlementPartyName: defaultPartyName,
-      },
-      { position: 'top' },
-    );
-    resolveRowRatePreview(newId, PAYABLE, 'CNY');
-  };
-
-  const handleSaveFee = async (
-    key: React.Key | React.Key[],
-    row: API.OrderFee,
-    originRow: API.OrderFee,
-    newLine?: boolean,
-  ) => {
-    if (!orderId) return false;
-    const singleKey = Array.isArray(key) ? key[0] : key;
-    const isNew =
-      newLine || String(singleKey).startsWith('new_') || !originRow?.version;
-    const direction = row.direction ?? RECEIVABLE;
-    if (
-      feeWritesDisabled ||
-      (isNew ? !canCreateFees : originRow.canEdit !== true)
-    ) {
-      message.warning(
-        originRow.blockedReasons?.join('；') ||
-          '费用当前不可修改，请刷新后重试',
-      );
-      return false;
-    }
-
-    if (!row.feeSettingId) {
-      message.error('请选择费用项目');
-      scrollToFirstTableError({
-        rowKey: singleKey,
-        errorFields: [
-          {
-            name: [String(singleKey), 'feeSettingId'],
-            errors: ['请选择费用项目'],
-          },
-        ],
-      });
-      return false;
-    }
-    if (!row.settlementPartyId) {
-      message.error('请选择结算单位');
-      scrollToFirstTableError({
-        rowKey: singleKey,
-        errorFields: [
-          {
-            name: [String(singleKey), 'settlementPartyId'],
-            errors: ['请选择结算单位'],
-          },
-        ],
-      });
-      return false;
-    }
-    if (!row.currency) {
-      message.error('请选择币种');
-      scrollToFirstTableError({
-        rowKey: singleKey,
-        errorFields: [
-          {
-            name: [String(singleKey), 'currency'],
-            errors: ['请选择币种'],
-          },
-        ],
-      });
-      return false;
-    }
-    if (
-      !row.unitPrice ||
-      !quantityOrPricePattern.test(
-        normalizeDecimalInput(String(row.unitPrice)),
-      ) ||
-      Number(row.unitPrice) <= 0
-    ) {
-      message.error('单价必须为大于 0 的有效数值');
-      scrollToFirstTableError({
-        rowKey: singleKey,
-        errorFields: [
-          {
-            name: [String(singleKey), 'unitPrice'],
-            errors: ['单价必须为大于 0 的有效数值'],
-          },
-        ],
-      });
-      return false;
-    }
-    if (
-      !row.quantity ||
-      !quantityOrPricePattern.test(
-        normalizeDecimalInput(String(row.quantity)),
-      ) ||
-      Number(row.quantity) <= 0
-    ) {
-      message.error('数量必须为大于 0 的有效数值');
-      scrollToFirstTableError({
-        rowKey: singleKey,
-        errorFields: [
-          {
-            name: [String(singleKey), 'quantity'],
-            errors: ['数量必须为大于 0 的有效数值'],
-          },
-        ],
-      });
-      return false;
-    }
-    if (!row.billingUnitId) {
-      message.error('请选择计费单位');
-      scrollToFirstTableError({
-        rowKey: singleKey,
-        errorFields: [
-          {
-            name: [String(singleKey), 'billingUnitId'],
-            errors: ['请选择计费单位'],
-          },
-        ],
-      });
-      return false;
-    }
-    const quantityRuleError = feeQuantityRuleError(
-      row.quantity,
-      row.billingUnitId,
-      billingUnits ?? [],
-      isNew ? undefined : originRow,
-    );
-    if (quantityRuleError) {
-      message.error(quantityRuleError);
-      scrollToFirstTableError({
-        rowKey: singleKey,
-        errorFields: [
-          {
-            name: [String(singleKey), 'quantity'],
-            errors: [quantityRuleError],
-          },
-        ],
-      });
-      return false;
-    }
-    const body = {
+  /** 在本侧表格顶部新增一行；新增行以 dataSource 模式加入，允许同时存在多行。 */
+  const handleAddRow = (direction: number) => {
+    if (rowWritesLocked || !canCreateFees) return;
+    const isReceivable = direction === RECEIVABLE;
+    const newId = `${NEW_FEE_ROW_PREFIX}${generateUUID()}`;
+    const defaultPartyId = isReceivable
+      ? order?.customerId
+      : order?.bookingAgentId;
+    const defaultPartyName = isReceivable
+      ? customerName ||
+        settlementParties?.find((p) => p.id === defaultPartyId)?.name
+      : settlementParties?.find((p) => p.id === defaultPartyId)?.name;
+    const record: API.OrderFee = {
+      id: newId,
       direction,
-      feeSettingId: row.feeSettingId,
-      settlementPartyId: row.settlementPartyId,
-      billingUnitId: row.billingUnitId,
-      // 提交前去掉小数尾部零，与后端固定位数十进制校验口径对齐。
-      quantity: normalizeDecimalInput(String(row.quantity)),
-      quantitySource: quantitySelectionForSave(
-        row.quantitySource,
-        row.quantity,
-      ),
-      unitPrice: normalizeDecimalInput(String(row.unitPrice)),
-      currency: row.currency,
-      note: row.note?.trim() || undefined,
-      taxInclusive: true,
+      currency: 'CNY',
+      quantity: '1',
+      billingUnitId: defaultBillingUnit?.id,
+      billingUnit: defaultBillingUnit?.name,
+      settlementPartyId: defaultPartyId,
+      settlementPartyName: defaultPartyName,
     };
+    const actionRef = isReceivable ? receivableActionRef : payableActionRef;
+    const added = actionRef.current?.addEditRecord?.(record, {
+      position: 'top',
+      newRecordType: 'dataSource',
+    });
+    if (added === false) return;
+    draftRowsRef.current[direction].set(newId, record);
+    markDirty(direction);
+    resolveRowRatePreview(newId, direction, 'CNY');
+  };
 
+  /** 费用字段标签：行错误提示用。 */
+  const feeFieldLabels: Record<string, string> = {
+    feeSettingId: '费用项目',
+    settlementPartyId: '结算单位',
+    currency: '币种',
+    billingUnitId: '计费单位',
+    quantity: '数量',
+    unitPrice: '单价',
+    taxRate: '税率',
+    note: '备注',
+    exchangeRateOverride: '汇率',
+    version: '版本',
+  };
+
+  const rowLabelOf = (direction: number, clientRowId: string) => {
+    const baseline = getDirectionItems(direction).find(
+      (item) => item.id === clientRowId,
+    );
+    if (baseline) return baseline.feeName || baseline.feeCode || '费用';
+    const settingId = formRefOf(direction).current?.getFieldValue([
+      clientRowId,
+      'feeSettingId',
+    ]);
+    const setting = feeSettings?.find((item) => item.id === settingId);
+    return setting?.nameZh || setting?.feeCode || '新增费用';
+  };
+
+  /** 把行级错误标到对应单元格；无对应列的字段只在错误汇总中展示。 */
+  const applyRowErrorsToForm = (
+    direction: number,
+    errors: FeeSaveRowError[],
+  ) => {
+    const form = formRefOf(direction).current;
+    if (!form) return;
+    const fields = errors
+      .filter(
+        (item) => item.field in feeFieldLabels && item.field !== 'version',
+      )
+      .map((item) => ({
+        name: [item.clientRowId, item.field],
+        errors: [item.message],
+      }));
+    if (fields.length > 0) form.setFields(fields);
+  };
+
+  /** 本侧整表保存：只提交新增行与已改动行，未改动行不提交，失败整体保留输入。 */
+  const handleSaveSide = async (direction: number) => {
+    const side = sideName(direction);
+    if (!orderId || savingRef.current[side]) return;
+    const form = formRefOf(direction).current;
+    if (!form) return;
+    if (rowWritesLocked) {
+      message.warning('费用当前不可修改，请刷新后重试');
+      return;
+    }
+    const requestedOrderId = orderId;
+    const baselineById = new Map(
+      getDirectionItems(direction).map((item) => [String(item.id), item]),
+    );
+    const editingKeys = (
+      direction === RECEIVABLE ? receivableEditable : payableEditable
+    ).map(String);
+
+    // 候选行：本侧所有编辑行，值取表单当前输入并以基线/新增默认值补齐未渲染字段。
+    const candidates = editingKeys.flatMap((key) => {
+      const isNew = isNewFeeRowKey(key);
+      const baseline = isNew ? undefined : baselineById.get(key);
+      if (!isNew && !baseline) return [];
+      const stored = (form.getFieldValue([key]) ?? {}) as FeeDraftRow;
+      const row: FeeDraftRow = {
+        ...(baseline ?? draftRowsRef.current[direction].get(key) ?? {}),
+        ...stored,
+      };
+      if (!isNew && baseline && !feeRowChanged(row, baseline)) return [];
+      return [{ key, isNew, baseline, row }];
+    });
+    if (candidates.length === 0) {
+      message.info('本侧费用没有需要保存的修改');
+      return;
+    }
+    if (!canCreateFees && candidates.some((item) => item.isNew)) {
+      message.warning('无费用录入权限，不能保存新增行');
+      return;
+    }
+
+    // 校验：先跑单元格规则，再跑提交前业务校验；任一失败不发请求。
+    const fieldNames = Object.keys(feeFieldLabels).filter(
+      (name) => name !== 'version' && name !== 'exchangeRateOverride',
+    );
     try {
-      if (isNew) {
-        const writeResponse1 = await orderFeeServiceAddFee(
-          { orderId },
-          { ...body, orderId, idempotencyKey: generateUUID() },
-        );
-        if (!isWriteResponse(writeResponse1, true)) return false;
-        message.success('费用录入成功');
-      } else {
-        if (!originRow.version) {
-          message.error('费用版本信息缺失，请刷新后重试');
-          return false;
-        }
-        const writeResponse2 = await orderFeeServiceUpdateFee(
-          { orderId, id: String(singleKey) },
-          {
-            ...body,
-            orderId,
-            id: String(singleKey),
-            expectedVersion: originRow.version,
-          },
-        );
-        if (!isWriteResponse(writeResponse2, true)) return false;
-        message.success('费用更新成功');
-      }
-      if (direction === RECEIVABLE) receivableGuard.resetDirty();
-      else payableGuard.resetDirty();
-      receivableActionRef.current?.reload();
-      payableActionRef.current?.reload();
-      onFeeSaved?.();
-      return true;
-    } catch (error) {
-      message.error(
-        getErrorMessage(error, isNew ? '录入费用失败' : '更新费用失败'),
+      await form.validateFields(
+        candidates.flatMap((item) =>
+          fieldNames.map((name) => [item.key, name]),
+        ),
       );
-      return false;
+    } catch (error) {
+      const first = (error as { errorFields?: { name: (string | number)[] }[] })
+        ?.errorFields?.[0];
+      message.warning('请先修正标红的费用行');
+      scrollToFirstTableError({
+        rowKey: first ? String(first.name[0]) : undefined,
+      });
+      return;
+    }
+    for (const item of candidates) {
+      const issue = validateFeeRow(
+        item.row,
+        item.baseline,
+        billingUnits ?? [],
+        canEditFeeTaxRate,
+      );
+      if (issue) {
+        form.setFields([
+          { name: [item.key, issue.field], errors: [issue.message] },
+        ]);
+        message.error(issue.message);
+        scrollToFirstTableError({
+          rowKey: item.key,
+          errorFields: [
+            { name: [item.key, issue.field], errors: [issue.message] },
+          ],
+        });
+        return;
+      }
+    }
+
+    const rows = candidates.map((item) =>
+      buildSaveRow({
+        clientRowId: item.key,
+        row: item.row,
+        baseline: item.baseline,
+        catalogTaxRate: feeSettings?.find(
+          (setting) => setting.id === item.row.feeSettingId,
+        )?.taxRate,
+      }),
+    );
+    const requestKey = requestKeyHoldersRef.current[direction].keyFor(rows);
+    savingRef.current[side] = true;
+    setSaving((prev) => ({ ...prev, [side]: true }));
+    setRowErrors((prev) => ({ ...prev, [side]: [], rateDetail: undefined }));
+    try {
+      const response = await orderFeeServiceSaveOrderFees(
+        { orderId },
+        { orderId, direction, requestKey, rows },
+        { skipErrorHandler: true },
+      );
+      if (currentOrderIdRef.current !== requestedOrderId) return;
+      if (!response || response.success === false) {
+        message.error('未能确认保存结果，原样重试不会重复新增');
+        return;
+      }
+      requestKeyHoldersRef.current[direction].clear();
+      for (const item of candidates) {
+        if (item.isNew) draftRowsRef.current[direction].delete(item.key);
+      }
+      clearDirty(direction);
+      message.success(
+        response.replayed
+          ? '这批费用此前已保存，已同步最新数据'
+          : `已保存 ${rows.length} 笔${direction === RECEIVABLE ? '应收' : '应付'}费用`,
+      );
+      // 只刷新本侧：另一侧的草稿与基线完全保留。
+      (direction === RECEIVABLE
+        ? receivableActionRef
+        : payableActionRef
+      ).current?.reload();
+      onFeeSaved?.(response.feeContentVersion);
+    } catch (error) {
+      if (currentOrderIdRef.current !== requestedOrderId) return;
+      const parsed = parseFeeSaveError(error);
+      const rateDetail = describeRateMissing({
+        reason: parsed.reason,
+        metadata: parsed.metadata,
+      });
+      if (parsed.rowErrors.length > 0) {
+        setRowErrors((prev) => ({
+          ...prev,
+          [side]: parsed.rowErrors,
+          rateDetail,
+        }));
+        applyRowErrorsToForm(direction, parsed.rowErrors);
+      } else if (rateDetail) {
+        setRowErrors((prev) => ({ ...prev, rateDetail }));
+      }
+      message.error(
+        rateDetail ? `${parsed.message}（${rateDetail}）` : parsed.message,
+      );
+    } finally {
+      savingRef.current[side] = false;
+      if (mountedRef.current) setSaving((prev) => ({ ...prev, [side]: false }));
     }
   };
 
-  // 渲染行内编辑操作列：为保存操作接入错误捕获与平滑导航
-  const renderEditableActions = (
-    rowKey: React.Key,
-    defaultDom: { save: React.ReactNode; cancel: React.ReactNode },
-  ) => [
-    <span
-      key={`save-action-${String(rowKey)}`}
-      onClickCapture={() => {
-        // 等待 Ant Design ProTable 表单校验执行完毕并完成 DOM 错误渲染
-        window.setTimeout(() => {
-          scrollToFirstTableError({
-            rowKey,
-            notify: (msg) => message.warning(msg),
-          });
-        }, 60);
-      }}
-    >
-      {defaultDom.save}
-    </span>,
-    defaultDom.cancel,
-  ];
+  /** 行操作：新增行可移除；已保存行保留删除（受服务端逐费能力约束）。 */
+  const renderRowActions = (
+    row: API.OrderFee,
+    defaultDom: { delete: React.ReactNode },
+  ) => {
+    if (isNewFeeRowKey(row.id)) return [defaultDom.delete];
+    return [
+      canDeleteFees && row.canDelete === true && onCancelFee ? (
+        <Button
+          key="cancel"
+          type="link"
+          size="small"
+          danger
+          onClick={() => onCancelFee(row)}
+        >
+          删除
+        </Button>
+      ) : null,
+    ].filter(Boolean);
+  };
 
   const buildColumns = (direction: number): ProColumns<API.OrderFee>[] => {
     if (getTableColumns) {
@@ -1193,10 +1275,7 @@ export default function OrderFeeTableTabs({
                         fee.id === String(rowKey) && fee.canEdit !== true,
                     )
                   }
-                  onSourceChange={() => {
-                    if (isReceivable) receivableGuard.markDirty();
-                    else payableGuard.markDirty();
-                  }}
+                  onSourceChange={() => markDirty(direction)}
                 />
               )}
             </Form.Item>
@@ -1235,8 +1314,7 @@ export default function OrderFeeTableTabs({
                     )
                   }
                   onConfirm={(quantity, selection) => {
-                    if (isReceivable) receivableGuard.markDirty();
-                    else payableGuard.markDirty();
+                    markDirty(direction);
                     form.setFieldValue([rowKey, 'quantity'], quantity);
                     form.setFieldValue(
                       [rowKey, 'quantitySource'],
@@ -1426,32 +1504,29 @@ export default function OrderFeeTableTabs({
           placeholder: '备注（可选）',
         },
       },
-      ...buildOptionalFeeColumns(feeBillTracking, rowPreviews),
+      ...buildOptionalFeeColumns(feeBillTracking, rowPreviews, {
+        taxRateEditable: canEditFeeTaxRate,
+        taxRateFieldProps: (form, { rowKey }) => ({
+          placeholder: '默认取目录税率',
+          allowClear: false,
+          onFocus: (event: React.FocusEvent<HTMLInputElement>) => {
+            event.currentTarget.select();
+          },
+          style: { textAlign: 'right' },
+          styles: { input: { textAlign: 'right' } },
+          onChange: () => refreshAmountPreview(rowKey, form),
+        }),
+      }),
       {
         title: '操作',
         valueType: 'option',
         width: 120,
         fixed: 'right',
-        render: (_, record, __, action) => {
+        render: (_, record) => {
           if (feeWritesDisabled) return [];
+          // 已建账（含草稿账单占用）费用不可删除，需先经财务链路取消账单；
+          // 补审产生的有效费用同样消费服务端当前能力。
           return [
-            record.canEdit === true && (
-              <Button
-                key="edit"
-                type="link"
-                size="small"
-                icon={<EditOutlined />}
-                onClick={() => {
-                  if (record.id) {
-                    action?.startEditable(record.id);
-                  }
-                }}
-              >
-                编辑
-              </Button>
-            ),
-            // 已建账（含草稿账单占用）费用不可删除，需先经财务链路取消账单；
-            // 补审产生的有效费用同样消费服务端当前能力。
             canDeleteFees && record.canDelete === true && onCancelFee && (
               <Button
                 key="cancel"
@@ -1469,44 +1544,228 @@ export default function OrderFeeTableTabs({
     ];
   };
 
-  return (
-    <>
+  const sideRefsOf = (direction: number) =>
+    direction === RECEIVABLE
+      ? {
+          sequence: receivableRequestSequenceRef,
+          latest: latestReceivableResultRef,
+          setAll: setAllReceivableItems,
+          setSummary: setReceivableSummary,
+          setKeys: setReceivableEditableKeys,
+        }
+      : {
+          sequence: payableRequestSequenceRef,
+          latest: latestPayableResultRef,
+          setAll: setAllPayableItems,
+          setSummary: setPayableSummary,
+          setKeys: setPayableEditableKeys,
+        };
+
+  /**
+   * 重新加载后同步表单：服务端版本已变化的行以服务端值覆盖本地输入（基线随之更新，
+   * 保存只会基于最新版本）；版本未变的行保留未保存输入。仅在本侧重载时执行，
+   * 另一侧表单不受影响。
+   */
+  const syncRefreshedRows = (
+    direction: number,
+    previous: API.OrderFee[],
+    next: API.OrderFee[],
+  ) => {
+    const form = formRefOf(direction).current;
+    if (!form) return;
+    const previousVersions = new Map(
+      previous.map((item) => [item.id, item.version]),
+    );
+    const refreshed = next.filter(
+      (item) =>
+        item.id &&
+        previousVersions.has(item.id) &&
+        previousVersions.get(item.id) !== item.version,
+    );
+    if (refreshed.length === 0) return;
+    form.setFieldsValue(
+      Object.fromEntries(
+        refreshed.map((item) => [
+          item.id,
+          {
+            feeSettingId: item.feeSettingId,
+            feeName: item.feeName,
+            feeCode: item.feeCode,
+            settlementPartyId: item.settlementPartyId,
+            settlementPartyName: item.settlementPartyName,
+            currency: item.currency,
+            billingUnitId: item.billingUnitId,
+            billingUnit: item.billingUnit,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            note: item.note ?? '',
+            taxRate: item.taxRate ?? '',
+            quantitySource: item.quantitySource,
+          },
+        ]),
+      ),
+    );
+    const refreshedIds = new Set(refreshed.map((item) => String(item.id)));
+    setRowPreviews((prev) => {
+      const kept = Object.entries(prev).filter(
+        ([key]) => !refreshedIds.has(key),
+      );
+      return kept.length === Object.keys(prev).length
+        ? prev
+        : Object.fromEntries(kept);
+    });
+  };
+
+  /** 本侧列表请求：返回服务端有效费用并保留本侧未保存的新增行。 */
+  const loadSide = async (direction: number) => {
+    if (!orderId) return { data: [], success: true };
+    const refs = sideRefsOf(direction);
+    const requestedOrderId = orderId;
+    const requestSequence = ++refs.sequence.current;
+    const isCurrentRequest = () =>
+      mountedRef.current &&
+      currentOrderIdRef.current === requestedOrderId &&
+      refs.sequence.current === requestSequence;
+    const currentRows = () => {
+      const result = refs.latest.current;
+      return result?.orderId === currentOrderIdRef.current ? result.items : [];
+    };
+    const withDrafts = (items: API.OrderFee[]) => [
+      ...draftRowsRef.current[direction].values(),
+      ...items,
+    ];
+    try {
+      const res = await orderFeeServiceListFees({ orderId });
+      // 录入表只保留有效费用（费用无独立状态，服务端仅返回现存费用行）、
+      // 最近请求结果与父级集合，笔数与金额消费同一有效集合。
+      const items = unwrapList(res).filter(
+        (fee) => feeDirectionCode(fee.direction) === direction,
+      );
+      if (!isCurrentRequest()) {
+        return { data: withDrafts(currentRows()), success: true };
+      }
+      const previous = currentRows();
+      refs.latest.current = { orderId: requestedOrderId, items };
+      syncRefreshedRows(direction, previous, items);
+      refs.setAll(items);
+      const total = items.reduce(
+        (acc, cur) =>
+          acc + (cur.baseCurrencyAmount ? Number(cur.baseCurrencyAmount) : 0),
+        0,
+      );
+      refs.setSummary({ totalAmount: total, count: items.length });
+      // 可编辑行常开编辑；新增行（草稿）保持编辑态。
+      refs.setKeys([
+        ...draftRowsRef.current[direction].keys(),
+        ...items
+          .filter((fee) => fee.id && fee.canEdit === true)
+          .map((fee) => fee.id as string),
+      ]);
+      return { data: withDrafts(items), success: true };
+    } catch {
+      if (isCurrentRequest()) return { data: [], success: false };
+      return { data: withDrafts(currentRows()), success: true };
+    }
+  };
+
+  const renderRowErrors = (direction: number) => {
+    const errors = rowErrors[sideName(direction)];
+    if (errors.length === 0) return null;
+    return (
+      <Alert
+        type="error"
+        showIcon
+        style={{ marginBottom: 8 }}
+        title="本次保存失败，所有输入已保留"
+        description={
+          <div>
+            {errors.map((item) => (
+              <div key={`${item.clientRowId}:${item.field}`}>
+                {rowLabelOf(direction, item.clientRowId)}
+                {item.field && feeFieldLabels[item.field]
+                  ? `（${feeFieldLabels[item.field]}）`
+                  : ''}
+                ：{item.message}
+              </div>
+            ))}
+            {rowErrors.rateDetail ? <div>{rowErrors.rateDetail}</div> : null}
+          </div>
+        }
+      />
+    );
+  };
+
+  const renderFeeSection = (direction: number) => {
+    const isReceivable = direction === RECEIVABLE;
+    const side = sideName(direction);
+    const summary = isReceivable ? receivableSummary : payableSummary;
+    const selectedIds = isReceivable
+      ? selectedReceivableFeeIds
+      : selectedPayableFeeIds;
+    const setSelectedIds = isReceivable
+      ? setSelectedReceivableFeeIds
+      : setSelectedPayableFeeIds;
+    const actionRef = isReceivable ? receivableActionRef : payableActionRef;
+    const editableKeys = isReceivable ? receivableEditable : payableEditable;
+    const setKeys = isReceivable
+      ? setReceivableEditableKeys
+      : setPayableEditableKeys;
+    const label = isReceivable ? '应收' : '应付';
+    return (
       <SectionCard
         title={
           <Space size={8} align="center">
-            <span>应收费用</span>
-            <Tag color="blue">{receivableSummary.count}</Tag>
+            <span>{`${label}费用`}</span>
+            <Tag color="blue">{summary.count}</Tag>
           </Space>
         }
         extra={
           <Space size={8} wrap>
             {renderColumnToolbar()}
-            {renderBulkToolbar(RECEIVABLE)}
+            {renderBulkToolbar(direction)}
             {canCreateFinanceBills && (
               <Button
                 key="bill"
                 icon={<FileDoneOutlined />}
-                disabled={selectedReceivableFeeIds.length === 0}
-                onClick={() => handleOpenBill(RECEIVABLE)}
+                disabled={selectedIds.length === 0}
+                onClick={() => handleOpenBill(direction)}
               >
-                生成账单（{selectedReceivableFeeIds.length}）
+                生成账单（{selectedIds.length}）
               </Button>
             )}
-            <Button
-              key="add"
-              type="primary"
-              icon={<PlusOutlined />}
-              disabled={feeWritesDisabled || !canCreateFees}
-              onClick={handleAddReceivable}
+            <Tooltip
+              title={
+                canCreateFees && !canUpdateFees
+                  ? '整表保存需要费用修改权限，当前账号不能新增或保存费用'
+                  : undefined
+              }
             >
-              新增应收费用
+              <Button
+                key="add"
+                icon={<PlusOutlined />}
+                disabled={rowWritesLocked || !canCreateFees}
+                onClick={() => handleAddRow(direction)}
+              >
+                新增{label}费用
+              </Button>
+            </Tooltip>
+            <Button
+              key="save"
+              type="primary"
+              icon={<SaveOutlined />}
+              loading={saving[side]}
+              disabled={rowWritesLocked}
+              onClick={() => void handleSaveSide(direction)}
+            >
+              保存{label}费用
             </Button>
           </Space>
         }
       >
+        {renderRowErrors(direction)}
         <EditableProTable<API.OrderFee>
-          key={`receivable:${orderId}`}
-          actionRef={receivableActionRef}
+          key={`${side}:${orderId}:${reloadToken}`}
+          actionRef={actionRef}
           rowKey="id"
           search={false}
           params={{ orderId }}
@@ -1519,249 +1778,52 @@ export default function OrderFeeTableTabs({
           recordCreatorProps={false}
           onRow={() => ({ onKeyDownCapture: handleFeeRowTab })}
           editable={{
-            type: 'single',
-            editableKeys: receivableEditableKeys,
-            onChange: setReceivableEditableKeys,
+            type: 'multiple',
+            editableKeys,
+            onChange: setKeys,
+            deleteText: '移除',
+            deletePopconfirmMessage: '移除这行尚未保存的新增费用？',
+            onDelete: async (key) => {
+              draftRowsRef.current[direction].delete(String(key));
+            },
             formProps: {
+              formRef: formRefOf(direction),
               // EditableProTable.onValuesChange 内部防抖 64ms；用字段事件同步保护紧接着的组织切换。
               onFieldsChange: (fields) => {
-                if (fields.some((field) => field.touched))
-                  receivableGuard.markDirty();
+                if (fields.some((field) => field.touched)) markDirty(direction);
               },
             },
-            onSave: (key, row, originRow, newLine) =>
-              handleSaveFee(key, row, originRow, Boolean(newLine)),
             actionRender: (row, _config, defaultDom) =>
-              renderEditableActions(row.id ?? '', defaultDom),
+              renderRowActions(row, defaultDom),
           }}
           rowSelection={{
-            selectedRowKeys: selectedReceivableFeeIds,
-            onChange: setSelectedReceivableFeeIds,
+            selectedRowKeys: selectedIds,
+            onChange: setSelectedIds,
             getCheckboxProps: (record) => ({
               // 所有已保存有效费用（含已建账）均可勾选；行内新增或
               // 缺少版本的未保存行不参与选择，避免提交不存在的事实。
               disabled:
-                !record.id ||
-                String(record.id).startsWith('new_') ||
-                !record.version,
+                !record.id || isNewFeeRowKey(record.id) || !record.version,
             }),
           }}
           tableAlertRender={({ selectedRowKeys }) =>
-            `已选择 ${selectedRowKeys.length} 笔有效应收费用`
+            `已选择 ${selectedRowKeys.length} 笔有效${label}费用`
           }
-          request={async () => {
-            if (!orderId) return { data: [], success: true };
-            const requestedOrderId = orderId;
-            const requestSequence = ++receivableRequestSequenceRef.current;
-            try {
-              const res = await orderFeeServiceListFees({ orderId });
-              // 录入表只保留有效费用（费用无独立状态，服务端仅返回现存费用行）、
-              // 最近请求结果与父级集合，笔数与金额消费同一有效集合。
-              const rItems = unwrapList(res).filter(
-                (f) => feeDirectionCode(f.direction) === RECEIVABLE,
-              );
-              const isCurrentRequest =
-                mountedRef.current &&
-                currentOrderIdRef.current === requestedOrderId &&
-                receivableRequestSequenceRef.current === requestSequence;
-              if (!isCurrentRequest) {
-                const currentResult = latestReceivableResultRef.current;
-                return {
-                  data:
-                    currentResult?.orderId === currentOrderIdRef.current
-                      ? currentResult.items
-                      : [],
-                  success: true,
-                };
-              }
-              latestReceivableResultRef.current = {
-                orderId: requestedOrderId,
-                items: rItems,
-              };
-              setAllReceivableItems(rItems);
-              const total = rItems.reduce(
-                (acc, cur) =>
-                  acc +
-                  (cur.baseCurrencyAmount ? Number(cur.baseCurrencyAmount) : 0),
-                0,
-              );
-              setReceivableSummary({
-                totalAmount: total,
-                count: rItems.length,
-              });
-              return { data: rItems, success: true };
-            } catch {
-              const isCurrentRequest =
-                mountedRef.current &&
-                currentOrderIdRef.current === requestedOrderId &&
-                receivableRequestSequenceRef.current === requestSequence;
-              if (isCurrentRequest) {
-                return { data: [], success: false };
-              }
-              const currentResult = latestReceivableResultRef.current;
-              return {
-                data:
-                  currentResult?.orderId === currentOrderIdRef.current
-                    ? currentResult.items
-                    : [],
-                success: true,
-              };
-            }
-          }}
+          request={() => loadSide(direction)}
           columns={
             getTableColumns
-              ? buildColumns(RECEIVABLE)
-              : orderColumnsByPreference(
-                  buildColumns(RECEIVABLE),
-                  feeColumnPref,
-                )
+              ? buildColumns(direction)
+              : orderColumnsByPreference(buildColumns(direction), feeColumnPref)
           }
         />
       </SectionCard>
+    );
+  };
 
-      <SectionCard
-        title={
-          <Space size={8} align="center">
-            <span>应付费用</span>
-            <Tag color="blue">{payableSummary.count}</Tag>
-          </Space>
-        }
-        extra={
-          <Space size={8} wrap>
-            {renderColumnToolbar()}
-            {renderBulkToolbar(PAYABLE)}
-            {canCreateFinanceBills && (
-              <Button
-                key="bill"
-                icon={<FileDoneOutlined />}
-                disabled={selectedPayableFeeIds.length === 0}
-                onClick={() => handleOpenBill(PAYABLE)}
-              >
-                生成账单（{selectedPayableFeeIds.length}）
-              </Button>
-            )}
-            <Button
-              key="add"
-              type="primary"
-              icon={<PlusOutlined />}
-              disabled={feeWritesDisabled || !canCreateFees}
-              onClick={handleAddPayable}
-            >
-              新增应付费用
-            </Button>
-          </Space>
-        }
-      >
-        <EditableProTable<API.OrderFee>
-          key={`payable:${orderId}`}
-          actionRef={payableActionRef}
-          rowKey="id"
-          search={false}
-          params={{ orderId }}
-          bordered
-          size="small"
-          cardProps={false}
-          toolBarRender={false}
-          pagination={false}
-          scroll={{ x: 'max-content' }}
-          recordCreatorProps={false}
-          onRow={() => ({ onKeyDownCapture: handleFeeRowTab })}
-          editable={{
-            type: 'single',
-            editableKeys: payableEditableKeys,
-            onChange: setPayableEditableKeys,
-            formProps: {
-              onFieldsChange: (fields) => {
-                if (fields.some((field) => field.touched))
-                  payableGuard.markDirty();
-              },
-            },
-            onSave: (key, row, originRow, newLine) =>
-              handleSaveFee(key, row, originRow, Boolean(newLine)),
-            actionRender: (row, _config, defaultDom) =>
-              renderEditableActions(row.id ?? '', defaultDom),
-          }}
-          rowSelection={{
-            selectedRowKeys: selectedPayableFeeIds,
-            onChange: setSelectedPayableFeeIds,
-            getCheckboxProps: (record) => ({
-              // 所有已保存有效费用（含已建账）均可勾选；行内新增或
-              // 缺少版本的未保存行不参与选择，避免提交不存在的事实。
-              disabled:
-                !record.id ||
-                String(record.id).startsWith('new_') ||
-                !record.version,
-            }),
-          }}
-          tableAlertRender={({ selectedRowKeys }) =>
-            `已选择 ${selectedRowKeys.length} 笔有效应付费用`
-          }
-          request={async () => {
-            if (!orderId) return { data: [], success: true };
-            const requestedOrderId = orderId;
-            const requestSequence = ++payableRequestSequenceRef.current;
-            try {
-              const res = await orderFeeServiceListFees({ orderId });
-              // 录入表只保留有效费用（费用无独立状态，服务端仅返回现存费用行）、
-              // 最近请求结果与父级集合，笔数与金额消费同一有效集合。
-              const pItems = unwrapList(res).filter(
-                (f) => feeDirectionCode(f.direction) === PAYABLE,
-              );
-              const isCurrentRequest =
-                mountedRef.current &&
-                currentOrderIdRef.current === requestedOrderId &&
-                payableRequestSequenceRef.current === requestSequence;
-              if (!isCurrentRequest) {
-                const currentResult = latestPayableResultRef.current;
-                return {
-                  data:
-                    currentResult?.orderId === currentOrderIdRef.current
-                      ? currentResult.items
-                      : [],
-                  success: true,
-                };
-              }
-              latestPayableResultRef.current = {
-                orderId: requestedOrderId,
-                items: pItems,
-              };
-              setAllPayableItems(pItems);
-              const total = pItems.reduce(
-                (acc, cur) =>
-                  acc +
-                  (cur.baseCurrencyAmount ? Number(cur.baseCurrencyAmount) : 0),
-                0,
-              );
-              setPayableSummary({
-                totalAmount: total,
-                count: pItems.length,
-              });
-              return { data: pItems, success: true };
-            } catch {
-              const isCurrentRequest =
-                mountedRef.current &&
-                currentOrderIdRef.current === requestedOrderId &&
-                payableRequestSequenceRef.current === requestSequence;
-              if (isCurrentRequest) {
-                return { data: [], success: false };
-              }
-              const currentResult = latestPayableResultRef.current;
-              return {
-                data:
-                  currentResult?.orderId === currentOrderIdRef.current
-                    ? currentResult.items
-                    : [],
-                success: true,
-              };
-            }
-          }}
-          columns={
-            getTableColumns
-              ? buildColumns(PAYABLE)
-              : orderColumnsByPreference(buildColumns(PAYABLE), feeColumnPref)
-          }
-        />
-      </SectionCard>
+  return (
+    <>
+      {renderFeeSection(RECEIVABLE)}
+      {renderFeeSection(PAYABLE)}
 
       {/* 批量修改结算单位 */}
       <GuardedModalForm<{ settlementPartyId: string }>

@@ -1,5 +1,5 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
-import { act, renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import type React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -102,5 +102,57 @@ describe('useFeeExchangePreview 请求隔离', () => {
       undefined,
     );
     expect(resolveExchangeRate).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    [
+      'ORDER_ETD_MISSING',
+      '请先填写订单 ETD 后再解析汇率',
+      { reason: 'ORDER_ETD_MISSING', message: '出口订单按 ETD 取汇率' },
+    ],
+    [
+      'ORDER_ETA_MISSING',
+      '请先填写订单 ETA 后再解析汇率',
+      { reason: 'ORDER_ETA_MISSING', message: '进口订单按 ETA 取汇率' },
+    ],
+    [
+      'FEE_EXCHANGE_RATE_MISSING',
+      /应付费用 USD 在 2026-09-21 起的自然周未维护汇率/,
+      {
+        reason: 'FEE_EXCHANGE_RATE_MISSING',
+        message: '订单取汇率日期所在周未维护该币种汇率，请先维护汇率',
+        metadata: {
+          currency: 'USD',
+          week_start: '2026-09-21',
+          direction: 'PAYABLE',
+        },
+      },
+    ],
+  ])('%s：状态为缺失并向用户展示对应提示', async (_name, expected, data) => {
+    resolveExchangeRate.mockRejectedValue(
+      Object.assign(new Error('Request failed'), {
+        response: { status: 400, data },
+      }),
+    );
+    const formRef = {
+      current: {
+        getFieldsValue: () => ({
+          direction: 2,
+          currency: 'USD',
+          quantity: '1',
+          unitPrice: '100',
+        }),
+        setFieldValue: vi.fn(),
+      } as unknown as ProFormInstance<FeeFormValues>,
+    };
+    const { result } = renderHook(
+      () => useFeeExchangePreview('order-A', formRef),
+      { wrapper },
+    );
+    act(() => result.current.handleValuesChange());
+    await waitFor(() =>
+      expect(result.current.exchangeRateStatus).toBe('missing'),
+    );
+    expect(await screen.findByText(expected)).toBeInTheDocument();
   });
 });

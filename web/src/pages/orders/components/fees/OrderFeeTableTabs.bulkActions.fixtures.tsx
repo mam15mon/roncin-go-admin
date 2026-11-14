@@ -15,13 +15,13 @@ import {
   orderFeeServiceBulkUpdateOrderFees,
   orderFeeServiceListFees,
   orderFeeServiceResolveFeeExchangeRate,
+  orderFeeServiceSaveOrderFees,
 } from '@/services/roncin/orderFeeService';
 import { RECEIVABLE } from './feeConstants';
 import OrderFeeTableTabs from './OrderFeeTableTabs';
 
 vi.mock('@/services/roncin/orderFeeService', () => ({
-  orderFeeServiceAddFee: vi.fn(),
-  orderFeeServiceUpdateFee: vi.fn(),
+  orderFeeServiceSaveOrderFees: vi.fn(),
   orderFeeServiceListFees: vi.fn(),
   orderFeeServiceResolveFeeExchangeRate: vi.fn(),
   orderFeeServiceBulkUpdateOrderFees: vi.fn(),
@@ -30,6 +30,7 @@ vi.mock('@/services/roncin/orderFeeService', () => ({
 
 export const listFees = vi.mocked(orderFeeServiceListFees);
 export const resolveRate = vi.mocked(orderFeeServiceResolveFeeExchangeRate);
+export const saveFees = vi.mocked(orderFeeServiceSaveOrderFees);
 export const bulkUpdate = vi.mocked(orderFeeServiceBulkUpdateOrderFees);
 export const bulkRemove = vi.mocked(orderFeeServiceBulkRemoveOrderFees);
 /** 模拟 antd Select：点开下拉并选择可见选项。 */
@@ -82,6 +83,7 @@ export const unbilledFeeA = makeFee({
   canBill: true,
   id: 'fee-a',
   version: '3',
+  feeSettingId: 'setting-of',
   feeName: '海运费',
 });
 export const unbilledFeeB = makeFee({
@@ -90,6 +92,7 @@ export const unbilledFeeB = makeFee({
   canBill: true,
   id: 'fee-b',
   version: '1',
+  feeSettingId: 'setting-tc',
   feeName: '拖车费',
 });
 export const billedFeeC = makeFee({
@@ -124,12 +127,16 @@ export function makeProps(orderId: string) {
       setPayableSummary: vi.fn(),
       canCreateFinanceBills: true,
       canCreateFees: true,
+      canUpdateFees: true,
       canDeleteFees: true,
       feeWritesDisabled: false,
       onOpenBillWorkbench: vi.fn(),
       onFeeSaved: vi.fn(),
       getTableColumns: undefined,
-      feeSettings: [{ id: 'setting-of', feeCode: 'OF', nameZh: '海运费' }],
+      feeSettings: [
+        { id: 'setting-of', feeCode: 'OF', nameZh: '海运费' },
+        { id: 'setting-tc', feeCode: 'TC', nameZh: '拖车费' },
+      ],
       settlementParties: [
         { id: 'party-old', name: '原结算单位', code: 'OLD' },
         { id: 'party-new', name: '新结算单位', code: 'NEW' },
@@ -141,7 +148,7 @@ export function makeProps(orderId: string) {
 }
 
 export async function renderTabs(
-  props: ReturnType<typeof makeProps>['props'],
+  props: React.ComponentProps<typeof OrderFeeTableTabs>,
   options?: RenderOptions,
 ) {
   render(
@@ -168,6 +175,7 @@ export function resetBulkActionMocks() {
     exchangeRate: '1.0000',
     exchangeRateSource: 'SYSTEM',
   } as Awaited<ReturnType<typeof resolveRate>>);
+  saveFees.mockReset();
   bulkUpdate.mockReset();
   bulkUpdate.mockResolvedValue({ updatedCount: 0 } as Awaited<
     ReturnType<typeof bulkUpdate>

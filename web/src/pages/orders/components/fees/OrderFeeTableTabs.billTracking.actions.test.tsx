@@ -13,7 +13,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   orderFeeServiceListFees,
   orderFeeServiceResolveFeeExchangeRate,
-  orderFeeServiceUpdateFee,
+  orderFeeServiceSaveOrderFees,
 } from '@/services/roncin/orderFeeService';
 
 const { historyPush } = vi.hoisted(() => ({ historyPush: vi.fn() }));
@@ -33,12 +33,12 @@ import OrderFeeTableTabs from './OrderFeeTableTabs';
 vi.mock('@/services/roncin/orderFeeService', () => ({
   orderFeeServiceListFees: vi.fn(),
   orderFeeServiceResolveFeeExchangeRate: vi.fn(),
-  orderFeeServiceUpdateFee: vi.fn(),
+  orderFeeServiceSaveOrderFees: vi.fn(),
 }));
 
 const listFees = vi.mocked(orderFeeServiceListFees);
 const resolveRate = vi.mocked(orderFeeServiceResolveFeeExchangeRate);
-const updateFee = vi.mocked(orderFeeServiceUpdateFee);
+const saveFees = vi.mocked(orderFeeServiceSaveOrderFees);
 
 function makeProps(orderId: string) {
   return {
@@ -61,6 +61,7 @@ function makeProps(orderId: string) {
     setPayableSummary: vi.fn(),
     canCreateFinanceBills: false,
     canCreateFees: true,
+    canUpdateFees: true,
     canDeleteFees: true,
     feeWritesDisabled: true,
     onOpenBillWorkbench: vi.fn(),
@@ -85,14 +86,16 @@ describe('OrderFeeTableTabs 账单投影相关操作', () => {
       exchangeRate: '1.0000',
       exchangeRateSource: 'SYSTEM',
     } as Awaited<ReturnType<typeof resolveRate>>);
-    updateFee.mockReset();
+    saveFees.mockReset();
   });
 
-  it('行内保存成功后通知页面刷新关联投影（A4）', async () => {
+  it('整表保存成功后携带费用内容版本通知页面刷新关联投影（A4）', async () => {
     const today = '2026-09-21';
     const onFeeSaved = vi.fn();
-    updateFee.mockResolvedValue({
-      data: { canEdit: true, canBill: true, id: 'fee-edit-1' },
+    saveFees.mockResolvedValue({
+      success: true,
+      data: [],
+      feeContentVersion: '9',
     } as any);
     listFees.mockResolvedValue({
       data: [
@@ -127,21 +130,14 @@ describe('OrderFeeTableTabs 账单投影相关操作', () => {
       </App>,
     );
 
-    await screen.findByText(/^编\s*辑$/);
+    const price = (await screen.findAllByDisplayValue('100'))[0];
+    fireEvent.change(price, { target: { value: '120' } });
     await act(async () => {
-      screen.getAllByRole('button', { name: /编\s*辑/ })[0].click();
-    });
-    const saveButton = await waitFor(() => {
-      const button = screen.getByText('保存');
-      expect(button).toBeInTheDocument();
-      return button;
-    });
-    await act(async () => {
-      fireEvent.click(saveButton);
+      fireEvent.click(screen.getByRole('button', { name: /保存应付费用/ }));
     });
 
-    await waitFor(() => expect(onFeeSaved).toHaveBeenCalledTimes(1));
-    expect(updateFee).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(onFeeSaved).toHaveBeenCalledWith('9'));
+    expect(saveFees).toHaveBeenCalledTimes(1);
   });
 
   it('只有删除权限的未建账费用仍可删除，已建账费用不开放操作', async () => {
@@ -235,20 +231,21 @@ describe('OrderFeeTableTabs 账单投影相关操作', () => {
         <OrderFeeTableTabs {...props} />
       </App>,
     );
-    await screen.findByText('拖车费');
+    await screen.findByText('海运费');
 
-    const rowCheckbox = (rowText: string) => {
-      const row = screen
-        .getByText(rowText)
-        .closest('tr') as HTMLTableRowElement;
+    // 未建账行处于常开编辑态（名称在下拉框内），按行 key 定位。
+    const rowCheckbox = (rowKey: string) => {
+      const row = document.querySelector(
+        `tr[data-row-key="${rowKey}"]`,
+      ) as HTMLTableRowElement;
       return within(row).getByRole('checkbox') as HTMLInputElement;
     };
     // 已保存的未建账与已建账费用都可直接勾选，无需先行确认
-    expect(rowCheckbox('拖车费')).not.toBeDisabled();
-    expect(rowCheckbox('海运费')).not.toBeDisabled();
+    expect(rowCheckbox('fee-unbilled')).not.toBeDisabled();
+    expect(rowCheckbox('fee-billed')).not.toBeDisabled();
 
     await act(async () => {
-      fireEvent.click(rowCheckbox('拖车费'));
+      fireEvent.click(rowCheckbox('fee-unbilled'));
     });
     // rowSelection.onChange 首参为选中行 key 集合
     expect(setSelectedReceivableFeeIds.mock.calls[0]?.[0]).toEqual([

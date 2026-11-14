@@ -65,6 +65,7 @@ function makeProps(orderId: string) {
     setPayableSummary: vi.fn(),
     canCreateFinanceBills: true,
     canCreateFees: true,
+    canUpdateFees: true,
     canDeleteFees: true,
     feeWritesDisabled: true,
     onOpenBillWorkbench: vi.fn(),
@@ -123,10 +124,8 @@ describe('OrderFeeTableTabs 计算列实时预览', () => {
       </App>,
     );
 
-    await screen.findByText(/^编\s*辑$/);
-    await act(async () => {
-      screen.getByRole('button', { name: /编\s*辑/ }).click();
-    });
+    // 已保存行常开编辑，无需先点击行内「编辑」。
+    await screen.findByPlaceholderText('0.00');
 
     const unitPriceInput = await waitFor(() => {
       const input = screen.getByPlaceholderText('0.00');
@@ -204,10 +203,8 @@ describe('OrderFeeTableTabs 计算列实时预览', () => {
       </App>,
     );
 
-    await screen.findByText(/^编\s*辑$/);
-    await act(async () => {
-      screen.getByRole('button', { name: /编\s*辑/ }).click();
-    });
+    // 已保存行常开编辑，无需先点击行内「编辑」。
+    await screen.findByPlaceholderText('0.00');
 
     // 不重新选择费用项目，直接改价也应读取当前费用项目税率。
     const priceInput = screen.getByPlaceholderText('0.00');
@@ -299,7 +296,7 @@ describe('OrderFeeTableTabs 计算列实时预览', () => {
           .getByRole('button', { name: new RegExp(`新增${direction}费用`) })
           .click();
       });
-      await waitFor(() => expect(screen.getByText('保存')).toBeInTheDocument());
+      await screen.findByPlaceholderText('0.00');
 
       // 未输入时显示空值占位，计算结果不依赖保存。
       expect(screen.queryByText('待保存')).not.toBeInTheDocument();
@@ -328,7 +325,6 @@ describe('OrderFeeTableTabs 计算列实时预览', () => {
         expect(screen.getByText('6.00')).toBeInTheDocument();
       });
       expect(screen.queryByText('待保存')).not.toBeInTheDocument();
-      expect(screen.getByText('保存')).toBeInTheDocument();
       await act(async () => {
         fireEvent.change(unitPriceInput, { target: { value: '' } });
       });

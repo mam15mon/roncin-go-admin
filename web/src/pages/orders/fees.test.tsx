@@ -24,11 +24,17 @@ const feeTestState = vi.hoisted(() => ({
   hasPendingSupplement: false,
   closureStatus: 1,
   feeCanEdit: true,
+  feeChanged: false,
+  rebaseline: vi.fn(),
+  acceptOwnSave: vi.fn(),
 }));
 
 beforeEach(() => {
   feeTestState.closureStatus = OrderClosureStatus.ORDER_CLOSURE_STATUS_OPEN;
   feeTestState.feeCanEdit = true;
+  feeTestState.feeChanged = false;
+  feeTestState.rebaseline.mockReset();
+  feeTestState.acceptOwnSave.mockReset();
 });
 
 // 本文件验证费用页已有编辑与跨订单状态；审核流程由独立组件用例验证。
@@ -200,6 +206,14 @@ vi.mock('./use-order-lock-state', async (importOriginal) => {
   };
 });
 
+vi.mock('./use-fee-change-notice', () => ({
+  useFeeChangeNotice: () => ({
+    changed: feeTestState.feeChanged,
+    rebaseline: feeTestState.rebaseline,
+    acceptOwnSave: feeTestState.acceptOwnSave,
+  }),
+}));
+
 vi.mock('./use-fee-exchange-preview', () => ({
   useFeeExchangePreview: () => ({
     totalPreview: undefined,
@@ -214,9 +228,10 @@ vi.mock('./use-fee-exchange-preview', () => ({
 }));
 
 vi.mock('./components/OrderPageHeader', () => ({
-  default: ({ orderId, orderNo }: any) => (
+  default: ({ orderId, orderNo, extra }: any) => (
     <div data-testid="order-page-header">
       {orderId}|{orderNo}
+      {extra}
     </div>
   ),
 }));
@@ -248,6 +263,13 @@ vi.mock('./components/fees/OrderFeeTableTabs', () => ({
       </div>
       <button type="button" onClick={() => props.onFeeSaved?.()}>
         通知行内保存
+      </button>
+      <button type="button" onClick={() => props.onFeeSaved?.('11')}>
+        通知整表保存
+      </button>
+      <div data-testid="fee-reload-token">{props.reloadToken}</div>
+      <button type="button" onClick={() => props.onDraftChange?.(true)}>
+        产生费用草稿
       </button>
       <button
         type="button"
@@ -675,5 +697,68 @@ describe('订单费用页关联账单追踪', () => {
     expect(screen.getByTestId('fee-bill-tracking')).not.toHaveTextContent(
       'BILL-order-A',
     );
+  });
+});
+
+describe('订单费用页外部变动提示与刷新保护', () => {
+  beforeEach(() => {
+    mockParams = { kind: 'sea-export', id: 'order-A' };
+    feeTestState.lockState = { isLocked: false };
+    feeTestState.canCreateFee = true;
+    feeTestState.canReadFee = true;
+    feeTestState.canReadFinanceFees = false;
+    feeTestState.canOperate = true;
+    feeTestState.feeChanged = false;
+  });
+
+  it('检测到外部变动时持续提示，且不自动刷新或重建费用表', async () => {
+    feeTestState.feeChanged = true;
+    renderFeesPage();
+    expect(
+      await screen.findByText('这个订单已经发生变动，请重新刷新。'),
+    ).toBeVisible();
+    expect(screen.getByTestId('fee-reload-token')).toHaveTextContent('0');
+  });
+
+  it('无草稿时刷新直接重建两张费用表并同步检查参考点', async () => {
+    renderFeesPage();
+    const token = await screen.findByTestId('fee-reload-token');
+    fireEvent.click(screen.getByRole('button', { name: /刷新数据/ }));
+    await waitFor(() => expect(token).toHaveTextContent('1'));
+    expect(feeTestState.rebaseline).toHaveBeenCalled();
+  });
+
+  it('有未保存草稿时刷新先确认；选择继续编辑则不重建', async () => {
+    renderFeesPage();
+    const token = await screen.findByTestId('fee-reload-token');
+    fireEvent.click(screen.getByRole('button', { name: '产生费用草稿' }));
+    fireEvent.click(screen.getByRole('button', { name: /刷新数据/ }));
+    expect(
+      (await screen.findAllByText('刷新将丢弃未保存的费用修改')).length,
+    ).toBeGreaterThan(0);
+    expect(token).toHaveTextContent('0');
+    fireEvent.click(await screen.findByRole('button', { name: /继续编辑/ }));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(token).toHaveTextContent('0');
+    expect(feeTestState.rebaseline).not.toHaveBeenCalled();
+  });
+
+  it('有未保存草稿时确认刷新才重建并同步检查参考点', async () => {
+    renderFeesPage();
+    const token = await screen.findByTestId('fee-reload-token');
+    fireEvent.click(screen.getByRole('button', { name: '产生费用草稿' }));
+    fireEvent.click(screen.getByRole('button', { name: /刷新数据/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /确认刷新/ }));
+    await waitFor(() => expect(token).toHaveTextContent('1'));
+    expect(feeTestState.rebaseline).toHaveBeenCalled();
+  });
+
+  it('本人整表保存携带费用内容版本同步检查参考点', async () => {
+    renderFeesPage();
+    fireEvent.click(
+      await screen.findByRole('button', { name: '通知整表保存' }),
+    );
+    expect(feeTestState.acceptOwnSave).toHaveBeenCalledWith('11');
+    expect(feeTestState.rebaseline).not.toHaveBeenCalled();
   });
 });

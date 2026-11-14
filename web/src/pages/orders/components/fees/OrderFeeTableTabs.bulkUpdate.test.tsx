@@ -30,7 +30,7 @@ describe('OrderFeeTableTabs 批量修改单位与日期', () => {
     const { props } = makeProps('order-1');
     props.selectedReceivableFeeIds = ['fee-b', 'fee-a'];
     await renderTabs(props);
-    await screen.findByText('海运费');
+    await screen.findByText(/海运费/);
     // 成功后两表 reload 会重新发起费用查询
     const listCallsBefore = listFees.mock.calls.length;
 
@@ -82,5 +82,4 @@ describe('OrderFeeTableTabs 批量修改单位与日期', () => {
     );
     expect(props.onFeeSaved).toHaveBeenCalled();
   });
-
 });

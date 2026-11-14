@@ -34,7 +34,7 @@ it('录入日期默认隐藏，可勾选显示，编辑或新增费用时均不�
     ),
   });
   await act(async () => response.resolve({ data: [fee] }));
-  expect(screen.getByText('海运费')).toBeInTheDocument();
+  expect((await screen.findAllByText(/海运费/)).length).toBeGreaterThan(0);
   expect(screen.queryByRole('columnheader', { name: '录入日期' })).toBeNull();
 
   fireEvent.click(screen.getAllByRole('button', { name: '列设置' })[0]);
@@ -51,20 +51,17 @@ it('录入日期默认隐藏，可勾选显示，编辑或新增费用时均不�
   fireEvent.click(within(dialog).getByRole('button', { name: /close|关闭/i }));
   await waitFor(() => expect(dialog).not.toBeInTheDocument());
 
-  fireEvent.click(screen.getByRole('button', { name: /编辑/ }));
-  await screen.findByText('保存');
+  // 已保存行常开编辑：录入日期仍是只读展示。
   const dateCell = screen
     .getByText(formatDate(fee.createdAt, 'minute'))
     .closest('td');
   expect(dateCell).not.toBeNull();
   expect(dateCell?.querySelector('input')).toBeNull();
 
-  fireEvent.click(screen.getByText('取消'));
-  await waitFor(() =>
-    expect(screen.queryByText('保存')).not.toBeInTheDocument(),
-  );
   fireEvent.click(screen.getByRole('button', { name: /新增应收费用/ }));
-  await screen.findByText('保存');
+  await waitFor(() =>
+    expect(document.querySelector('tr[data-row-key^="new_"]')).not.toBeNull(),
+  );
   const row = document.querySelector('tr[data-row-key^="new_"]');
   expect(row).not.toBeNull();
   const newDateCell = row?.querySelectorAll('td')[dateCell?.cellIndex ?? -1];

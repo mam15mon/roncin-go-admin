@@ -50,3 +50,9 @@
 - 禁止静默纠错、自动回退、旧数据兼容分支掩盖真实错误；发现兼容性风险记录在
   变更说明中。
 - 禁止用字符串匹配解析驱动错误细节；映射逻辑集中在 `internal/data`。
+
+## 错误 metadata 的对外白名单
+
+- HTTP 错误响应只放行固定键：`client_row_id`、`field`、`reason`、`row_errors`（整表保存行级定位）和 `currency`、`week_start`、`direction`（缺汇率提示），实现见 `server/internal/server/error.go` 的 `publicErrorMetadata`。密码重置冷却错误有自己的专用键。
+- 其他键即使在后端错误里设置了 `WithMetadata`，也不会到达浏览器；新增需要前端消费的 metadata 键时，必须同步加入白名单并补测试，否则只有后端集成测试通过、真实浏览器收不到。
+- 整表保存接口 `SaveOrderFees` 的 rpc 权限为 `fee.update`（中间件按单一操作拦截），仅有 `fee.create` 的用户进不了该接口；服务端按行类型仍分别校验新增与修改权限。需要放开时须扩展访问规则支持「任一权限」，而不是在页面绕过。

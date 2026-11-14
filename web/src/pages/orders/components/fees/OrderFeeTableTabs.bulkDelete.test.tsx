@@ -28,7 +28,7 @@ describe('OrderFeeTableTabs 批量删除', () => {
     const { props } = makeProps('order-1');
     props.selectedReceivableFeeIds = ['fee-a'];
     await renderTabs(props);
-    await screen.findByText('海运费');
+    await screen.findByText(/海运费/);
 
     await triggerBulkAction('批量删除');
     await waitFor(() =>

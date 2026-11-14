@@ -76,6 +76,7 @@ function makeProps(orderId: string) {
     setPayableSummary: vi.fn(),
     canCreateFinanceBills: true,
     canCreateFees: true,
+    canUpdateFees: true,
     canDeleteFees: true,
     feeWritesDisabled: true,
     onOpenBillWorkbench: vi.fn(),
@@ -415,8 +416,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
       expect(screen.getByDisplayValue('1')).toBeInTheDocument();
       expect(screen.getAllByText('票').length).toBeGreaterThan(0);
       expect(screen.getAllByText('测试客户').length).toBeGreaterThan(0);
-      expect(screen.getByText('保存')).toBeInTheDocument();
-      expect(screen.getByText('取消')).toBeInTheDocument();
+      expect(screen.getByText('移除')).toBeInTheDocument();
     });
 
     // 新增行默认 CNY，应立即解析参考汇率
@@ -480,11 +480,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
       </App>,
     );
 
-    await screen.findByText(/^编\s*辑$/);
-    await act(async () => {
-      screen.getByRole('button', { name: /编\s*辑/ }).click();
-    });
-
+    // 已保存行常开编辑，无需先点击行内「编辑」。
     const comboboxes = await waitFor(() => {
       const boxes = screen.getAllByRole('combobox');
       expect(boxes.length).toBeGreaterThanOrEqual(4);
@@ -553,11 +549,7 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
       </App>,
     );
 
-    await screen.findByText(/^编\s*辑$/);
-    await act(async () => {
-      screen.getByRole('button', { name: /编\s*辑/ }).click();
-    });
-
+    // 已保存行常开编辑，无需先点击行内「编辑」。
     const comboboxes = await waitFor(() => {
       const boxes = screen.getAllByRole('combobox');
       expect(boxes.length).toBeGreaterThanOrEqual(4);

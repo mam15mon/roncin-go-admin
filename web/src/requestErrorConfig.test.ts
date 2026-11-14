@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   errorConfig,
+  getRequestErrorMessage,
   getRequestErrorStatus,
   isRequestTimeoutError,
 } from './requestErrorConfig';
@@ -134,6 +135,35 @@ describe('requestErrorConfig', () => {
     expect(captureException).toHaveBeenCalledWith(expect.anything(), {
       tags: { kind: 'request', http_status: '500' },
     });
+  });
+
+  it('缺汇率错误附带币种、目标周与方向；缺 metadata 时只展示原消息', () => {
+    const envelope = {
+      success: false,
+      code: 400,
+      message: '订单取汇率日期所在周未维护该币种汇率，请先维护汇率',
+      reason: 'FEE_EXCHANGE_RATE_MISSING',
+      metadata: {
+        currency: 'USD',
+        week_start: '2026-09-21',
+        direction: 'PAYABLE',
+      },
+    };
+    const error = { response: { status: 400, data: envelope } };
+    expect(getRequestErrorMessage(error, '失败')).toBe(
+      `${envelope.message}（应付费用 USD 在 2026-09-21 起的自然周未维护汇率）`,
+    );
+    errorHandler(error as any, {});
+    expect(showErrorNotification).toHaveBeenCalledWith({
+      title: envelope.message,
+      description: '应付费用 USD 在 2026-09-21 起的自然周未维护汇率',
+    });
+    expect(
+      getRequestErrorMessage(
+        { response: { data: { ...envelope, metadata: undefined } } },
+        '失败',
+      ),
+    ).toBe(envelope.message);
   });
 
   it('should handle a generic network error', () => {

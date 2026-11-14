@@ -45,6 +45,7 @@ function table() {
       setReceivableSummary={vi.fn()}
       setPayableSummary={vi.fn()}
       canCreateFees
+      canUpdateFees
       canDeleteFees
       canCreateFinanceBills={false}
       feeWritesDisabled={false}
@@ -87,7 +88,7 @@ describe('行内费用数量带入', () => {
   });
 
   it.each([1, 2])(
-    '方向%s确认后同步标脏并重算金额，组织切换可取消，取消编辑后清理',
+    '方向%s确认后同步标脏并重算金额，组织切换可取消',
     async (direction) => {
       vi.mocked(orderFeeServiceListFees).mockResolvedValue({
         data: [
@@ -108,8 +109,7 @@ describe('行内费用数量带入', () => {
         ],
       });
       renderWithApp(table());
-      await screen.findByText('拼箱费用');
-      fireEvent.click(screen.getByRole('button', { name: /编\s*辑/ }));
+      // 已保存行常开编辑，直接出现数量带入入口。
       const fromOrder = await screen.findByRole('button', {
         name: '从订单带入',
       });
@@ -125,7 +125,7 @@ describe('行内费用数量带入', () => {
       expect(getAnyDirtyTabKey()).toBe('/orders/sea-export/order-1/fees');
       confirmation.mock.calls[0][0].onCancel?.();
       expect(switchOrganization).not.toHaveBeenCalled();
-      const row = screen.getByText('保存').closest('tr');
+      const row = document.querySelector('tr[data-row-key="fee-1"]');
       expect(row).not.toBeNull();
       expect(
         within(row as HTMLElement).getByDisplayValue('8'),
@@ -133,15 +133,6 @@ describe('行内费用数量带入', () => {
       expect(
         await within(row as HTMLElement).findByText('800.00 CNY'),
       ).toBeInTheDocument();
-      await act(async () => {
-        fireEvent.click(within(row as HTMLElement).getByText('取消'));
-      });
-      await waitFor(() =>
-        expect(
-          screen.queryByRole('button', { name: '从订单带入' }),
-        ).not.toBeInTheDocument(),
-      );
-      expect(getAnyDirtyTabKey()).toBeUndefined();
     },
   );
   it('已建账费用不开放编辑与数量带入', async () => {

@@ -35,8 +35,28 @@ func encodeError(writer nethttp.ResponseWriter, request *nethttp.Request, err er
 	var metadata map[string]string
 	if serviceError.Reason == "AUTH_PASSWORD_RESET_COOLDOWN" {
 		metadata = map[string]string{"serverTime": serviceError.Metadata["serverTime"], "resendAvailableAt": serviceError.Metadata["resendAvailableAt"]}
+	} else {
+		metadata = publicErrorMetadata(serviceError.Metadata)
 	}
 	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 	writer.WriteHeader(int(serviceError.Code))
 	_ = json.NewEncoder(writer).Encode(errorEnvelope{Metadata: metadata, Success: false, Code: serviceError.Code, Message: message, Reason: serviceError.Reason, TraceID: requestmeta.TraceID(request.Context())})
+}
+
+// publicErrorMetadataKeys 是允许随错误响应返回浏览器的 metadata 键：整表保存的行级定位
+// （client_row_id、field、reason、row_errors）与缺汇率提示（currency、week_start、direction）。
+// 仅放行这些固定键，避免把其他错误内部携带的元数据整体暴露给前端。
+var publicErrorMetadataKeys = []string{"client_row_id", "field", "reason", "row_errors", "currency", "week_start", "direction"}
+
+func publicErrorMetadata(source map[string]string) map[string]string {
+	var result map[string]string
+	for _, key := range publicErrorMetadataKeys {
+		if value, ok := source[key]; ok {
+			if result == nil {
+				result = make(map[string]string, len(publicErrorMetadataKeys))
+			}
+			result[key] = value
+		}
+	}
+	return result
 }

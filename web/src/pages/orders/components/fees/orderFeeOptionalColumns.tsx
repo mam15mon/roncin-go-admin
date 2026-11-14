@@ -8,9 +8,11 @@ import {
 } from '@/components/ui/column-settings';
 import { FeeLedgerFinancialProgress } from '@/enums.generated';
 import { feeLedgerProgressLabels } from '@/features/finance/fee-progress';
+import { normalizeDecimalInput } from '@/utils/decimal';
 import { formatAmount } from '@/utils/format';
 import type { FeeBillTrackingView } from './feeBillTracking';
 import type { FeeColumnPreference } from './feeColumnPreference';
+import { isNewFeeRowKey, taxRateInputPattern } from './feeSave';
 
 /** 关联账单查询的整体状态文案：加载中/失败不得显示成未建账。 */
 function trackingStateCell(tracking: FeeBillTrackingView) {
@@ -70,6 +72,15 @@ export type FeeRowPreview = {
   unitPrice?: string;
   amount?: { total: string; currency: string };
   rate?: { status: string; rate?: string };
+};
+
+/**
+ * 税率列的行内编辑配置：仅具备「订单费用税率更改权限」时可编辑，且只限新增行与
+ * 未建账、当前可编辑的已保存行；其余情况维持只读展示。
+ */
+export type FeeTaxRateColumnOptions = {
+  taxRateEditable: boolean;
+  taxRateFieldProps?: ProColumns<API.OrderFee>['fieldProps'];
 };
 
 /** 按行 key 索引的编辑预览集合。 */
@@ -145,6 +156,7 @@ function netUnitPriceNumberOf(record: API.OrderFee): number | undefined {
 export function buildOptionalFeeColumns(
   feeBillTracking?: FeeBillTrackingView,
   rowPreviews?: FeeRowPreviewMap,
+  taxRateOptions?: FeeTaxRateColumnOptions,
 ): ProColumns<API.OrderFee>[] {
   const previewOf = (record: API.OrderFee): FeeRowPreview | undefined =>
     rowPreviews?.[String(record.id ?? '')];
@@ -221,9 +233,37 @@ export function buildOptionalFeeColumns(
     {
       title: '税率(%)',
       dataIndex: 'taxRate',
-      width: 100,
+      width: taxRateOptions?.taxRateEditable ? 120 : 100,
       align: 'right',
-      editable: false,
+      editable: taxRateOptions?.taxRateEditable
+        ? (_, record) =>
+            isNewFeeRowKey(record.id) ||
+            (record.canEdit === true && record.hasActiveBill !== true)
+        : false,
+      formItemProps: taxRateOptions?.taxRateEditable
+        ? {
+            rules: [
+              {
+                validator: (_: unknown, value?: string) => {
+                  const text = String(value ?? '').trim();
+                  if (
+                    text === '' ||
+                    (taxRateInputPattern.test(normalizeDecimalInput(text)) &&
+                      Number(text) <= 100)
+                  ) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(
+                    new Error('税率必须为 0-100 且最多两位小数'),
+                  );
+                },
+              },
+            ],
+          }
+        : undefined,
+      fieldProps: taxRateOptions?.taxRateEditable
+        ? taxRateOptions.taxRateFieldProps
+        : undefined,
       shouldCellUpdate: () => true,
       render: (_, record) => {
         const previewTaxRate = previewOf(record)?.taxRate;

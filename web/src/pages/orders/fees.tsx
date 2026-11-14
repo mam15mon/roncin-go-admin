@@ -2,7 +2,7 @@ import { ReloadOutlined } from '@ant-design/icons';
 import type { ActionType, ProFormInstance } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { App, Button, Card, Empty, Result, Spin } from 'antd';
+import { Alert, App, Button, Card, Empty, Result, Spin } from 'antd';
 import React, {
   useCallback,
   useEffect,
@@ -48,6 +48,7 @@ import QuickAddFeeModal from './components/fees/QuickAddFeeModal';
 import QuickAddPartnerModal from './components/fees/QuickAddPartnerModal';
 import OrderPageHeader from './components/OrderPageHeader';
 import { getOrderKindDefinition } from './order-kinds/registry';
+import { useFeeChangeNotice } from './use-fee-change-notice';
 import { useFeeExchangePreview } from './use-fee-exchange-preview';
 import { useOrderFeeOptions } from './use-order-fee-options';
 import {
@@ -82,6 +83,9 @@ export default function OrderFeesPage() {
   const targetOrderId = canAccessPage ? orderId : undefined;
   const feeReview = useOrderFeeReview(targetOrderId);
   const [hasCorrections, setHasCorrections] = useState(false);
+  // 费用表未保存草稿与整体重建令牌：确认丢弃草稿后递增，两表重建并重新加载。
+  const [hasFeeDraft, setHasFeeDraft] = useState(false);
+  const [feeReloadToken, setFeeReloadToken] = useState(0);
   const [correctionCollapsed, setCorrectionCollapsed] = useState<boolean>();
 
   const receivableActionRef = useRef<ActionType | undefined>(undefined);
@@ -279,6 +283,11 @@ export default function OrderFeesPage() {
     canOperate: access.canOperateOrganization(order?.organizationId),
   });
   const feeWritesDisabled = lockWritePolicy.disabled;
+  // 已有订单的费用表可编辑时才检查外部变动；新建/只读/加载中不轮询。
+  const feeChangeNotice = useFeeChangeNotice({
+    orderId: targetOrderId,
+    enabled: Boolean(order) && !feeWritesDisabled,
+  });
   const feeWritePolicyRef = useRef(lockWritePolicy);
   feeWritePolicyRef.current = lockWritePolicy;
 
@@ -476,6 +485,33 @@ export default function OrderFeesPage() {
     payableActionRef.current?.reload();
     refreshFeeBillTracking();
     void feeReview.refetch();
+    void feeChangeNotice.rebaseline();
+  };
+
+  /**
+   * 显式刷新：存在未保存的费用修改时先确认；确认后整体重建两张表（丢弃草稿并以
+   * 服务端数据为准），再同步外部变动检查参考点。取消则保持输入不变。
+   */
+  const refreshFeeWorkbench = () => {
+    const run = () => {
+      setFeeReloadToken((token) => token + 1);
+      void loadData();
+      void refreshLockState();
+      refreshFeeBillTracking();
+      void feeChangeNotice.rebaseline();
+    };
+    if (!hasFeeDraft) {
+      run();
+      return;
+    }
+    modal.confirm({
+      title: '刷新将丢弃未保存的费用修改',
+      content:
+        '应收、应付费用表中尚未保存的输入和新增行会被服务端最新数据覆盖，确认刷新？',
+      okText: '确认刷新',
+      cancelText: '继续编辑',
+      onOk: run,
+    });
   };
 
   const handleCancelFee = (fee: API.OrderFee) => {
@@ -642,20 +678,26 @@ export default function OrderFeesPage() {
           />
         }
         extra={
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={() => {
-              void loadData();
-              void refreshLockState();
-              receivableActionRef.current?.reload();
-              payableActionRef.current?.reload();
-              refreshFeeBillTracking();
-            }}
-          >
+          <Button icon={<ReloadOutlined />} onClick={refreshFeeWorkbench}>
             刷新数据
           </Button>
         }
       />
+
+      {feeChangeNotice.changed ? (
+        <Alert
+          type="warning"
+          showIcon
+          style={{ marginBottom: 12 }}
+          title="这个订单已经发生变动，请重新刷新。"
+          description="你的输入已保留；刷新会用最新数据覆盖未保存的修改，刷新前会再次确认。"
+          action={
+            <Button size="small" type="primary" onClick={refreshFeeWorkbench}>
+              刷新
+            </Button>
+          }
+        />
+      ) : null}
 
       <SectionCard title="订单审核">
         <OrderFeeReviewSection
@@ -666,6 +708,7 @@ export default function OrderFeesPage() {
             receivableActionRef.current?.reload();
             payableActionRef.current?.reload();
             refreshFeeBillTracking();
+            void feeChangeNotice.rebaseline();
           }}
         />
       </SectionCard>
@@ -704,11 +747,22 @@ export default function OrderFeesPage() {
           Boolean(access.canCreateFinanceBills)
         }
         canCreateFees={access.canOrder(order.businessType || '', 'fee.create')}
+        canUpdateFees={access.canOrder(order.businessType || '', 'fee.update')}
+        canEditFeeTaxRate={Boolean(access.canEditFeeTaxRate)}
         canDeleteFees={access.canOrder(order.businessType || '', 'fee.delete')}
         feeWritesDisabled={feeWritesDisabled}
         columnSettingScope={feeColumnSettingScope}
         feeBillTracking={feeBillTracking}
-        onFeeSaved={refreshFeeBillTracking}
+        reloadToken={feeReloadToken}
+        onDraftChange={setHasFeeDraft}
+        onFeeSaved={(feeContentVersion) => {
+          refreshFeeBillTracking();
+          if (feeContentVersion) {
+            void feeChangeNotice.acceptOwnSave(feeContentVersion);
+          } else {
+            void feeChangeNotice.rebaseline();
+          }
+        }}
         onOpenBillWorkbench={(feeIds) => {
           if (!orderId) return;
           if (

@@ -2,6 +2,7 @@ import type { ProFormInstance } from '@ant-design/pro-components';
 import { App } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef, useState } from 'react';
+import { getRequestErrorMessage } from '@/requestErrorConfig';
 import { orderFeeServiceResolveFeeExchangeRate } from '@/services/roncin/orderFeeService';
 import {
   calculateExactFeeTotal,
@@ -79,9 +80,14 @@ export function useFeeExchangePreview(
           message.error('请先填写订单 ETD 后再解析汇率');
           return;
         }
+        if (code === 'ORDER_ETA_MISSING') {
+          setExchangeRateStatus('missing');
+          message.error('请先填写订单 ETA 后再解析汇率');
+          return;
+        }
         if (code === 'FEE_EXCHANGE_RATE_MISSING') {
           setExchangeRateStatus('missing');
-          message.error('请先维护汇率');
+          message.error(getRequestErrorMessage(error, '请先维护汇率'));
           return;
         }
         setExchangeRateStatus('error');

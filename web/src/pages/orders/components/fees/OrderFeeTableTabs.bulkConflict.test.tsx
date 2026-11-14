@@ -24,7 +24,7 @@ describe('OrderFeeTableTabs 批量修改版本冲突', () => {
     const { props } = makeProps('order-1');
     props.selectedReceivableFeeIds = ['fee-a', 'fee-b'];
     await renderTabs(props);
-    await screen.findByText('海运费');
+    await screen.findByText(/海运费/);
     const listCallsBefore = listFees.mock.calls.length;
 
     await triggerBulkAction('批量改结算单位');

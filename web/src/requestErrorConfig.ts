@@ -1,7 +1,8 @@
-import type { RequestOptions } from '@/utils/requestClient';
 import * as Sentry from '@sentry/react';
+import { financeErrorReasons } from '@/errorReasons.generated';
 import { history } from '@/router/history';
 import { showErrorMessage, showErrorNotification } from '@/utils/appFeedback';
+import type { RequestOptions } from '@/utils/requestClient';
 import { generateUUID } from '@/utils/uuid';
 
 interface ErrorEnvelope {
@@ -10,6 +11,8 @@ interface ErrorEnvelope {
   message: string;
   reason?: string;
   traceId?: string;
+  /** 服务端附带的结构化补充信息（如缺汇率的币种、目标周、方向）。 */
+  metadata?: Record<string, string>;
 }
 
 export interface RequestError extends Error {
@@ -40,14 +43,42 @@ export function getRequestErrorStatus(rawError: unknown): number | undefined {
   );
 }
 
+const rateMissingDirectionText: Record<string, string> = {
+  RECEIVABLE: '应收',
+  PAYABLE: '应付',
+};
+
+/** 缺汇率错误的补充说明：币种、目标周与方向；缺少币种或目标周时不输出。 */
+export function describeRateMissing(envelope?: {
+  reason?: string;
+  metadata?: Record<string, string>;
+}): string | undefined {
+  if (envelope?.reason !== financeErrorReasons.FEE_EXCHANGE_RATE_MISSING)
+    return undefined;
+  const {
+    currency,
+    week_start: weekStart,
+    direction,
+  } = envelope.metadata ?? {};
+  if (!currency || !weekStart) return undefined;
+  const directionText = direction
+    ? (rateMissingDirectionText[direction] ?? direction)
+    : undefined;
+  return `${directionText ? `${directionText}费用 ` : ''}${currency} 在 ${weekStart} 起的自然周未维护汇率`;
+}
+
 // 提取服务端业务报文中的用户可读提示。skipErrorHandler 的调用方（如登录页）
-// 用它展示后端原因，避免把 Axios 的英文默认文案直接抛给用户。
+// 用它展示后端原因，避免把 Axios 的英文默认文案直接抛给用户；缺汇率错误附带
+// 币种、目标周与方向，业务人员据此直接去维护对应汇率。
 export function getRequestErrorMessage(
   rawError: unknown,
   fallback: string,
 ): string {
   const error = rawError as RequestError;
-  return error.data?.message ?? error.response?.data?.message ?? fallback;
+  const envelope = error.data ?? error.response?.data;
+  const message = envelope?.message ?? fallback;
+  const detail = describeRateMissing(envelope);
+  return detail ? `${message}（${detail}）` : message;
 }
 
 export function isRequestTimeoutError(rawError: unknown): boolean {
@@ -142,12 +173,14 @@ export interface AppRequestConfig {
     ) => void;
   };
   requestInterceptors?: Array<(config: RequestOptions) => RequestOptions>;
-  responseInterceptors?: Array<[
-    (
-      response: AxiosResponseLike,
-    ) => AxiosResponseLike | Promise<AxiosResponseLike>,
-    (error: unknown) => unknown,
-  ]>;
+  responseInterceptors?: Array<
+    [
+      (
+        response: AxiosResponseLike,
+      ) => AxiosResponseLike | Promise<AxiosResponseLike>,
+      (error: unknown) => unknown,
+    ]
+  >;
 }
 
 export const errorConfig: AppRequestConfig = {
@@ -190,9 +223,11 @@ export const errorConfig: AppRequestConfig = {
       }
       showErrorNotification({
         title: envelope?.message ?? '请求失败',
-        description: envelope?.traceId
-          ? `追踪编号：${envelope.traceId}`
-          : '请联系系统管理员查看服务日志。',
+        description:
+          describeRateMissing(envelope) ??
+          (envelope?.traceId
+            ? `追踪编号：${envelope.traceId}`
+            : '请联系系统管理员查看服务日志。'),
       });
     },
   },

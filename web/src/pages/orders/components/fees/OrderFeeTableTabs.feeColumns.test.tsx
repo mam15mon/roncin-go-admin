@@ -49,6 +49,7 @@ function makeProps(orderId: string) {
     setPayableSummary: vi.fn(),
     canCreateFinanceBills: false,
     canCreateFees: true,
+    canUpdateFees: true,
     canDeleteFees: true,
     feeWritesDisabled: true,
     onOpenBillWorkbench: vi.fn(),
@@ -198,7 +199,11 @@ describe('OrderFeeTableTabs 列设置与只读金额列', () => {
         <OrderFeeTableTabs {...props} />
       </App>,
     );
-    await screen.findByText('海运费');
+    await waitFor(() =>
+      expect(
+        document.querySelector('tr[data-row-key="fee-tax-1"]'),
+      ).not.toBeNull(),
+    );
 
     const settingsButton = screen.getAllByRole('button', {
       name: /列设置/,
@@ -208,7 +213,9 @@ describe('OrderFeeTableTabs 列设置与只读金额列', () => {
     await act(async () => {
       screen.getByRole('button', { name: /新增应收费用/ }).click();
     });
-    await waitFor(() => expect(screen.getByText('保存')).toBeInTheDocument());
+    await waitFor(() =>
+      expect(document.querySelector('tr[data-row-key^="new_"]')).not.toBeNull(),
+    );
     expect(settingsButton).toBeDisabled();
   });
 

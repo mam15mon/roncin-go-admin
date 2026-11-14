@@ -35,6 +35,7 @@ function table() {
       setReceivableSummary={vi.fn()}
       setPayableSummary={vi.fn()}
       canCreateFees
+      canUpdateFees
       canDeleteFees
       canCreateFinanceBills={false}
       feeWritesDisabled={false}

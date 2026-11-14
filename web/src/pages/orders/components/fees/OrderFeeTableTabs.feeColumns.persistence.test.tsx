@@ -49,6 +49,7 @@ function makeProps(orderId: string) {
     setPayableSummary: vi.fn(),
     canCreateFinanceBills: false,
     canCreateFees: true,
+    canUpdateFees: true,
     canDeleteFees: true,
     feeWritesDisabled: true,
     onOpenBillWorkbench: vi.fn(),

@@ -15,14 +15,13 @@ import {
 import {
   orderFeeServiceListFees,
   orderFeeServiceResolveFeeExchangeRate,
-  orderFeeServiceUpdateFee,
+  orderFeeServiceSaveOrderFees,
 } from '@/services/roncin/orderFeeService';
 import { PAYABLE, RECEIVABLE } from './feeConstants';
 import OrderFeeTableTabs from './OrderFeeTableTabs';
 
 vi.mock('@/services/roncin/orderFeeService', () => ({
-  orderFeeServiceAddFee: vi.fn(),
-  orderFeeServiceUpdateFee: vi.fn(),
+  orderFeeServiceSaveOrderFees: vi.fn(),
   orderFeeServiceListFees: vi.fn(),
   orderFeeServiceResolveFeeExchangeRate: vi.fn(),
   orderFeeServiceBulkUpdateOrderFees: vi.fn(),
@@ -50,6 +49,7 @@ function makeProps() {
     setPayableSummary: vi.fn(),
     canCreateFinanceBills: false,
     canCreateFees: true,
+    canUpdateFees: true,
     canDeleteFees: true,
     feeWritesDisabled: false,
     onOpenBillWorkbench: vi.fn(),
@@ -67,7 +67,7 @@ beforeEach(() => {
     exchangeRateSource: 'SYSTEM',
   });
   window.history.replaceState({}, '', '/orders/sea-export/order-1/fees');
-  vi.mocked(orderFeeServiceUpdateFee).mockReset();
+  vi.mocked(orderFeeServiceSaveOrderFees).mockReset();
   listFees.mockResolvedValue({
     data: [RECEIVABLE, PAYABLE].map((direction) => ({
       id: `fee-${direction}`,
@@ -87,55 +87,87 @@ beforeEach(() => {
   });
 });
 
-it('行内真实输入同步保护；单纯进入编辑不脏，取消一侧不清另一侧，失败保留并在成功保存后清理', async () => {
+it('常开编辑：单纯进入不脏，真实输入同步标脏；保存一侧只清该侧，另一侧草稿继续受保护', async () => {
   const props = makeProps();
+  const saveFees = vi.mocked(orderFeeServiceSaveOrderFees);
   render(
     <App>
       <OrderFeeTableTabs {...props} />
     </App>,
   );
-  const receivableRow = (await screen.findByText('应收测试费')).closest('tr');
-  const payableRow = (await screen.findByText('应付测试费')).closest('tr');
-  if (!receivableRow || !payableRow) throw new Error('费用行不存在');
-  fireEvent.click(within(receivableRow).getByRole('button', { name: /编辑/ }));
-  fireEvent.click(within(payableRow).getByRole('button', { name: /编辑/ }));
+  const receivableRow = document.querySelector(
+    `tr[data-row-key="fee-${RECEIVABLE}"]`,
+  ) as HTMLElement | null;
+  const payableRow = (await waitFor(() => {
+    const row = document.querySelector(`tr[data-row-key="fee-${PAYABLE}"]`);
+    expect(row).not.toBeNull();
+    return row;
+  })) as HTMLElement;
+  const receivableRowEl =
+    receivableRow ??
+    (document.querySelector(
+      `tr[data-row-key="fee-${RECEIVABLE}"]`,
+    ) as HTMLElement);
   const receivableInput =
-    await within(receivableRow).findByPlaceholderText('备注（可选）');
+    await within(receivableRowEl).findByPlaceholderText('备注（可选）');
   const payableInput =
     await within(payableRow).findByPlaceholderText('备注（可选）');
+  // 所有可编辑行进入输入态本身不算修改。
   expect(getAnyDirtyTabKey()).toBeUndefined();
   fireEvent.change(receivableInput, { target: { value: '应收未保存' } });
   expect(getAnyDirtyTabKey()).toBe('/orders/sea-export/order-1/fees');
   fireEvent.change(payableInput, { target: { value: '应付未保存' } });
-  fireEvent.click(within(receivableRow).getByText('取消'));
-  await waitFor(() =>
-    expect(
-      within(receivableRow).queryByPlaceholderText('备注（可选）'),
-    ).not.toBeInTheDocument(),
-  );
-  expect(getAnyDirtyTabKey()).toBe('/orders/sea-export/order-1/fees');
+
   const leave = vi.fn();
   const confirmation = vi.fn();
   expect(confirmIfAnyTabDirty(leave, confirmation)).toBe(false);
   confirmation.mock.calls[0][0].onCancel?.();
   expect(leave).not.toHaveBeenCalled();
-  expect(payableInput).toHaveValue('应付未保存');
-  vi.mocked(orderFeeServiceUpdateFee).mockResolvedValue(undefined as never);
-  await act(async () => {
-    fireEvent.click(within(payableRow).getByText('保存'));
-  });
-  await waitFor(() => expect(orderFeeServiceUpdateFee).toHaveBeenCalledOnce());
-  expect(orderFeeServiceUpdateFee).toHaveBeenCalledWith(
-    expect.anything(),
-    expect.objectContaining({ id: 'fee-2', orderId: 'order-1' }),
+
+  // 保存失败：输入保留，仍受保护。
+  saveFees.mockRejectedValueOnce(
+    Object.assign(new Error('Request failed'), {
+      response: {
+        status: 400,
+        data: { code: 400, reason: 'ORDER_FEE_INVALID', message: '费用不合法' },
+      },
+    }),
   );
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: /保存应付费用/ }));
+  });
+  await waitFor(() => expect(saveFees).toHaveBeenCalledOnce());
   expect(payableInput).toHaveValue('应付未保存');
   expect(getAnyDirtyTabKey()).toBe('/orders/sea-export/order-1/fees');
-  vi.mocked(orderFeeServiceUpdateFee).mockResolvedValue({
-    data: { canEdit: true, canBill: true, id: 'fee-2' },
-  });
+
+  // 保存成功：只清理应付侧，应收未保存输入仍在并继续受保护。
+  saveFees.mockResolvedValueOnce({
+    success: true,
+    data: [],
+    feeContentVersion: '3',
+  } as never);
   await act(async () => {
-    fireEvent.click(within(payableRow).getByText('保存'));
+    fireEvent.click(screen.getByRole('button', { name: /保存应付费用/ }));
+  });
+  await waitFor(() => expect(saveFees).toHaveBeenCalledTimes(2));
+  await waitFor(() =>
+    expect(listFees.mock.calls.length).toBeGreaterThanOrEqual(3),
+  );
+  expect(receivableInput).toHaveValue('应收未保存');
+  expect(getAnyDirtyTabKey()).toBe('/orders/sea-export/order-1/fees');
+  expect(saveFees.mock.calls[1][1]).toMatchObject({
+    direction: PAYABLE,
+    rows: [expect.objectContaining({ feeId: `fee-${PAYABLE}` })],
+  });
+
+  // 再保存应收侧后，整页不再有未保存内容。
+  saveFees.mockResolvedValueOnce({
+    success: true,
+    data: [],
+    feeContentVersion: '4',
+  } as never);
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: /保存应收费用/ }));
   });
   await waitFor(() => expect(getAnyDirtyTabKey()).toBeUndefined());
 });
