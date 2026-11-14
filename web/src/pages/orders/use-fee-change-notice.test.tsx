@@ -140,3 +140,31 @@ describe('费用页外部变动检查', () => {
     expect(result.current.changed).toBe(false);
   });
 });
+
+// 应收独立保存不会刷新应付，已发现的应付外部变动须持续提示。
+it('本侧保存保留已发现的另一侧变动，显式刷新后才解除', async () => {
+  const { result } = mount();
+  await advance(0);
+  getLockState.mockResolvedValue(lockState('6'));
+  await advance(15_000);
+  expect(result.current.changed).toBe(true);
+  getLockState.mockResolvedValue(lockState('7'));
+  await act(async () => {
+    await result.current.acceptOwnSave('7');
+  });
+  await advance(0);
+  expect(result.current.changed).toBe(true);
+  await advance(15_000);
+  expect(result.current.changed).toBe(true);
+  getLockState.mockRejectedValue(new Error('network'));
+  await act(async () => {
+    await result.current.rebaseline();
+  });
+  expect(result.current.changed).toBe(true);
+  getLockState.mockResolvedValue(lockState('7'));
+  await act(async () => {
+    await result.current.rebaseline();
+  });
+  await advance(0);
+  expect(result.current.changed).toBe(false);
+});

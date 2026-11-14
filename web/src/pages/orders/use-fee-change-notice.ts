@@ -44,6 +44,8 @@ export function useFeeChangeNotice(options: {
     orderId: string;
     marker: FeeChangeMarker;
   }>();
+  // 单侧保存只刷新本侧，不能确认另一侧已探测到的变化已被用户采纳。
+  const [unresolvedOrderId, setUnresolvedOrderId] = useState<string>();
   const resumeRef = useRef<() => void>(() => undefined);
   const foreground = usePageForeground(() => resumeRef.current());
   const active = enabled && Boolean(orderId);
@@ -86,17 +88,19 @@ export function useFeeChangeNotice(options: {
   const current = baseline?.orderId === orderId ? baseline : undefined;
   const changed =
     active &&
-    current !== undefined &&
-    probe !== undefined &&
-    !sameMarker(current.marker, probe);
+    (unresolvedOrderId === orderId ||
+      (current !== undefined &&
+        probe !== undefined &&
+        !sameMarker(current.marker, probe)));
 
   /** 显式刷新或合法正式动作后：以最新探测结果重新建立参考点。 */
   const rebaseline = useCallback(async () => {
     if (!orderId) return;
     await queryClient.cancelQueries({ queryKey });
     const result = await refetch();
-    if (result.data) {
+    if (result.isSuccess && result.data) {
       setBaseline({ orderId, marker: result.data });
+      setUnresolvedOrderId((prev) => (prev === orderId ? undefined : prev));
     }
   }, [orderId, queryClient, queryKey, refetch]);
 
@@ -104,6 +108,7 @@ export function useFeeChangeNotice(options: {
   const acceptOwnSave = useCallback(
     async (feeContentVersion: string) => {
       if (!orderId) return;
+      if (changed) setUnresolvedOrderId(orderId);
       await queryClient.cancelQueries({ queryKey });
       setBaseline((prev) =>
         prev?.orderId === orderId
@@ -112,7 +117,7 @@ export function useFeeChangeNotice(options: {
       );
       void refetch();
     },
-    [orderId, queryClient, queryKey, refetch],
+    [changed, orderId, queryClient, queryKey, refetch],
   );
 
   return { changed, rebaseline, acceptOwnSave };
