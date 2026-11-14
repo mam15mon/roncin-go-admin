@@ -94,7 +94,7 @@ function RegistrationSession({
     queryFn: async ({ signal }) => {
       const response = await settlementServiceGetInvoiceRevisionImpact(
         { id: reviseInvoice?.id ?? '' },
-        { signal },
+        { signal, skipErrorHandler: true },
       );
       if (
         !response?.data?.invoice?.id ||

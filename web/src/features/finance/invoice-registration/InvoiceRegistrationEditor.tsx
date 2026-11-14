@@ -223,7 +223,7 @@ export default function InvoiceRegistrationEditor({
     queryFn: async ({ signal }) => {
       const response = await settlementServiceListInvoiceProfilesForParty(
         { settlementPartyId },
-        { signal },
+        { signal, skipErrorHandler: true },
       );
       if (
         !response?.data ||
