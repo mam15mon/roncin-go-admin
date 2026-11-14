@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 205
-- **Last Active**: 2026-11-11
+- **Total Sessions**: 206
+- **Last Active**: 2026-11-14
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~1642 | Active |
+| `journal-3.md` | ~1674 | Active |
 | `journal-2.md` | ~2003 | Archived |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 206 | 2026-11-14 | 费用台账整体审查修复与合并验收 | `8d83e5df`, `53e28553`, `b0ea667b` | `main` |
 | 205 | 2026-11-11 | 海运出口列表字段补齐与提成摘要退役 | `582dcba7`, `38513a05`, `ffc3d6c6` | `codex/sea-export-list-fields` |
 | 204 | 2026-11-11 | 海运出口列表主分单关系可见性 | `c7cb956f` | `codex/sea-order-bill-visibility` |
 | 203 | 2026-11-11 | 修复第二轮六项审计缺陷并合并推送 | `1a0f4a9d`, `fee61336`, `dbc3ee8b`, `80f883f6`, `53a681a9` | `main` |
