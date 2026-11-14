@@ -21,6 +21,6 @@
   "children": [],
   "parent": "11-13-order-fees-finance-workflow",
   "relatedFiles": [],
-  "notes": "",
+  "notes": "免票模型/权限/接口/历史及UI、筛选已入bd6afafa并定向验证；三层分配/手工税额/多记录/号码修改及组合入口尚待最终方案审阅后实施。",
   "meta": {}
 }

@@ -28,6 +28,6 @@
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "",
+  "notes": "2026-11-14继续核对：账单A/B/C已有提交；本轮f1e73b9d账户快建、bd6afafa逐组建账/免票/差额核销/检索及审查修复已提交。父任务仍planning：手工税额多发票登记、账单F组合、四报表尚未实施；剩余直接修改边界待回复，最终方案design/implement已补，完整集成验收进行中。",
   "meta": {}
 }

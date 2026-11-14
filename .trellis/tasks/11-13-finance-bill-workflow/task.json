@@ -21,6 +21,6 @@
   "children": [],
   "parent": "11-13-order-fees-finance-workflow",
   "relatedFiles": [],
-  "notes": "",
+  "notes": "A–E已有实现并通过独立复查；f1e73b9d、bd6afafa包含续做代码。F依赖发票多记录/三层分配与核销纯写入口，尚未实施；不能以账单局部通过宣称父任务完成。",
   "meta": {}
 }

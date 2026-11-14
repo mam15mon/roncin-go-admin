@@ -21,6 +21,6 @@
   "children": [],
   "parent": "11-13-order-fees-finance-workflow",
   "relatedFiles": [],
-  "notes": "",
+  "notes": "差额流水与核销原子闭环、三列表筛选及独立审查修复已入bd6afafa，定向PG/前端通过；候选分页与服务端搜索正在补齐，建账F只写编排入口待组合集成。",
   "meta": {}
 }

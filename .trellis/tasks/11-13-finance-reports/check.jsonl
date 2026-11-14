@@ -1,0 +1,19 @@
+{"file": ".trellis/tasks/11-13-finance-reports/prd.md", "reason": "四类报表需求与统一筛选要求"}
+{"file": ".trellis/tasks/11-13-finance-reports/design.md", "reason": "已确认日期、有效费用、现金与当前账龄设计"}
+{"file": ".trellis/tasks/11-13-finance-reports/implement.md", "reason": "实施顺序与定向/最终验证"}
+{"file": ".trellis/tasks/11-13-finance-reports/research/report-source-map.md", "reason": "源码事实、可复用入口与缺失维度"}
+{"file": ".trellis/spec/domain/glossary.md", "reason": "费用更正、账单、流水、核销和对冲术语"}
+{"file": ".trellis/spec/domain/architecture-map.md", "reason": "biz/data/service 与权限契约链路"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "SQL聚合、共享读快照、Ent与正式迁移"}
+{"file": ".trellis/spec/server/backend/quality-guidelines.md", "reason": "真实PostgreSQL与生成物验收"}
+{"file": ".trellis/spec/server/backend/finance-bill-currency.md", "reason": "账单币种、余额、汇率快照边界"}
+{"file": ".trellis/spec/server/backend/exchange-rate-single-rate.md", "reason": "费用与结算汇率各自的业务时区和快照"}
+{"file": ".trellis/spec/server/backend/order-fee-correction.md", "reason": "当前费用叶子、替换与反向清偿事实"}
+{"file": ".trellis/spec/server/backend/operating-company-commission-attribution.md", "reason": "当前公司和岗位/提成归属的区别"}
+{"file": ".trellis/spec/web/frontend/finance-current-workspace.md", "reason": "身份未就绪禁止请求、当前公司范围"}
+{"file": ".trellis/spec/web/frontend/finance-ledger-snapshots.md", "reason": "完整筛选汇总、onLoad采纳及币种分组"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "React Query、ProTable和迟到响应隔离"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "真实wire省略零值、decimal与CSV导出"}
+{"file": ".trellis/spec/web/frontend/component-guidelines.md", "reason": "全宽PageContainer、SectionCard与公共模板"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "定向测试、pnpm与重型suite拆分"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "最小领域共享与现有能力导航"}
