@@ -211,11 +211,13 @@ export default function OrderFeesPage() {
     },
   });
   const refreshFeeBillTracking = useCallback(() => {
+    // 费用写入同时推进审核内容版本，审核区不能继续使用保存前的锁定快照。
+    void refreshLockState();
     void queryClient.invalidateQueries({
       queryKey: ['orders', 'fee-bill-tracking'],
     });
     void queryClient.invalidateQueries({ queryKey: ['order-fee-review'] });
-  }, [queryClient]);
+  }, [queryClient, refreshLockState]);
   const feeBillTracking = useMemo<FeeBillTrackingView | undefined>(() => {
     if (!canTrackFeeBills) return undefined;
     const byFeeId: FeeBillTrackingView['byFeeId'] = {};
@@ -274,13 +276,24 @@ export default function OrderFeesPage() {
     resetPreviewRef.current();
   }, [targetOrderId]);
 
-  const lockWritePolicy = getOrderBusinessWritePolicy({
+  const orderWriteContext = {
     state: lockState,
     order,
-    loading: lockStateLoading,
     error: lockStateError,
     canOperate: access.canOperateOrganization(order?.organizationId),
+  };
+  const lockWritePolicy = getOrderBusinessWritePolicy({
+    ...orderWriteContext,
+    loading: lockStateLoading,
   });
+  // 审核同步中或读取失败时保留同身份草稿，由原写策略禁止提交；
+  // 明确失权或成功读到真实不可写状态时，才关闭原来的写入口。
+  const feeFormsUnavailable =
+    !orderWriteContext.canOperate ||
+    (!lockStateLoading &&
+      !lockStateError &&
+      Boolean(lockState) &&
+      lockWritePolicy.disabled);
   const feeWritesDisabled = lockWritePolicy.disabled;
   // 已有订单的费用表可编辑时才检查外部变动；新建/只读/加载中不轮询。
   const feeChangeNotice = useFeeChangeNotice({
@@ -317,12 +330,12 @@ export default function OrderFeesPage() {
   };
 
   useEffect(() => {
-    if (feeWritesDisabled) {
+    if (feeFormsUnavailable) {
       setModalOpen(false);
       setQuickAddFeeModalOpen(false);
       setQuickAddPartnerModalOpen(false);
     }
-  }, [feeWritesDisabled]);
+  }, [feeFormsUnavailable]);
 
   useEffect(() => {
     if (
@@ -495,7 +508,6 @@ export default function OrderFeesPage() {
     const run = () => {
       setFeeReloadToken((token) => token + 1);
       void loadData();
-      void refreshLockState();
       refreshFeeBillTracking();
       void feeChangeNotice.rebaseline();
     };
