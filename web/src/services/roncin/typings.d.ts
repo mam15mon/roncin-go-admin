@@ -3812,6 +3812,15 @@ declare namespace API {
     traceId?: string;
   };
 
+  type ListBillFeeCandidatesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FeeLedgerItem[];
+    total?: string;
+    traceId?: string;
+  };
+
   type ListBillingUnitsResponse = {
     success?: boolean;
     code?: number;
@@ -8180,6 +8189,13 @@ declare namespace API {
     direction?: string;
   };
 
+  type SettlementServiceListBillFeeCandidatesParams = {
+    billId: string;
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+  };
+
   type SettlementServiceListBillSettlementAccountCandidatesParams = {
     organizationId?: string;
     settlementPartyId?: string;
@@ -8399,6 +8415,10 @@ declare namespace API {
   };
 
   type SettlementServiceReverseVerificationParams = {
+    id: string;
+  };
+
+  type SettlementServiceUpdateBillFeesParams = {
     id: string;
   };
 
@@ -8657,6 +8677,21 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: BilledFeeEditPolicy;
+    traceId?: string;
+  };
+
+  type UpdateBillFeesRequest = {
+    id: string;
+    expectedVersion: string;
+    addFeeIds?: string[];
+    removeFeeIds?: string[];
+  };
+
+  type UpdateBillFeesResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceBill;
     traceId?: string;
   };
 

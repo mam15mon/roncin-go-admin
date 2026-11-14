@@ -588,6 +588,19 @@ export default function FinanceBillsPage() {
         loading={detailLoading}
         detail={detail}
         onClose={() => setDetailOpen(false)}
+        feeMaintenance={
+          access.canUpdateFinanceBills && hasCompanyScope
+            ? {
+                onUpdated: (updated) => {
+                  setDetail(updated);
+                  reload();
+                },
+                onRefresh: () => {
+                  if (detail) void openDetail(detail);
+                },
+              }
+            : undefined
+        }
       />
     </>
   );

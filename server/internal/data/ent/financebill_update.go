@@ -350,6 +350,27 @@ func (_u *FinanceBillUpdate) SetNillableBaseCurrencyAmount(v *string) *FinanceBi
 	return _u
 }
 
+// SetFeeCount sets the "fee_count" field.
+func (_u *FinanceBillUpdate) SetFeeCount(v int) *FinanceBillUpdate {
+	_u.mutation.ResetFeeCount()
+	_u.mutation.SetFeeCount(v)
+	return _u
+}
+
+// SetNillableFeeCount sets the "fee_count" field if the given value is not nil.
+func (_u *FinanceBillUpdate) SetNillableFeeCount(v *int) *FinanceBillUpdate {
+	if v != nil {
+		_u.SetFeeCount(*v)
+	}
+	return _u
+}
+
+// AddFeeCount adds value to the "fee_count" field.
+func (_u *FinanceBillUpdate) AddFeeCount(v int) *FinanceBillUpdate {
+	_u.mutation.AddFeeCount(v)
+	return _u
+}
+
 // SetBillDate sets the "bill_date" field.
 func (_u *FinanceBillUpdate) SetBillDate(v string) *FinanceBillUpdate {
 	_u.mutation.SetBillDate(v)
@@ -864,6 +885,11 @@ func (_u *FinanceBillUpdate) check() error {
 			return &ValidationError{Name: "exchange_rate_date", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.exchange_rate_date": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.FeeCount(); ok {
+		if err := financebill.FeeCountValidator(v); err != nil {
+			return &ValidationError{Name: "fee_count", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.fee_count": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.BillDate(); ok {
 		if err := financebill.BillDateValidator(v); err != nil {
 			return &ValidationError{Name: "bill_date", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.bill_date": %w`, err)}
@@ -992,6 +1018,12 @@ func (_u *FinanceBillUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if value, ok := _u.mutation.BaseCurrencyAmount(); ok {
 		_spec.SetField(financebill.FieldBaseCurrencyAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.FeeCount(); ok {
+		_spec.SetField(financebill.FieldFeeCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedFeeCount(); ok {
+		_spec.AddField(financebill.FieldFeeCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.BillDate(); ok {
 		_spec.SetField(financebill.FieldBillDate, field.TypeString, value)
@@ -1621,6 +1653,27 @@ func (_u *FinanceBillUpdateOne) SetNillableBaseCurrencyAmount(v *string) *Financ
 	return _u
 }
 
+// SetFeeCount sets the "fee_count" field.
+func (_u *FinanceBillUpdateOne) SetFeeCount(v int) *FinanceBillUpdateOne {
+	_u.mutation.ResetFeeCount()
+	_u.mutation.SetFeeCount(v)
+	return _u
+}
+
+// SetNillableFeeCount sets the "fee_count" field if the given value is not nil.
+func (_u *FinanceBillUpdateOne) SetNillableFeeCount(v *int) *FinanceBillUpdateOne {
+	if v != nil {
+		_u.SetFeeCount(*v)
+	}
+	return _u
+}
+
+// AddFeeCount adds value to the "fee_count" field.
+func (_u *FinanceBillUpdateOne) AddFeeCount(v int) *FinanceBillUpdateOne {
+	_u.mutation.AddFeeCount(v)
+	return _u
+}
+
 // SetBillDate sets the "bill_date" field.
 func (_u *FinanceBillUpdateOne) SetBillDate(v string) *FinanceBillUpdateOne {
 	_u.mutation.SetBillDate(v)
@@ -2148,6 +2201,11 @@ func (_u *FinanceBillUpdateOne) check() error {
 			return &ValidationError{Name: "exchange_rate_date", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.exchange_rate_date": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.FeeCount(); ok {
+		if err := financebill.FeeCountValidator(v); err != nil {
+			return &ValidationError{Name: "fee_count", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.fee_count": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.BillDate(); ok {
 		if err := financebill.BillDateValidator(v); err != nil {
 			return &ValidationError{Name: "bill_date", err: fmt.Errorf(`ent: validator failed for field "FinanceBill.bill_date": %w`, err)}
@@ -2293,6 +2351,12 @@ func (_u *FinanceBillUpdateOne) sqlSave(ctx context.Context) (_node *FinanceBill
 	}
 	if value, ok := _u.mutation.BaseCurrencyAmount(); ok {
 		_spec.SetField(financebill.FieldBaseCurrencyAmount, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.FeeCount(); ok {
+		_spec.SetField(financebill.FieldFeeCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedFeeCount(); ok {
+		_spec.AddField(financebill.FieldFeeCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.BillDate(); ok {
 		_spec.SetField(financebill.FieldBillDate, field.TypeString, value)

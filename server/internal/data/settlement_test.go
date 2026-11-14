@@ -166,7 +166,8 @@ func TestVerificationCreationCandidatesPushDownBalancePredicates(t *testing.T) {
 	settlementRepo, mock := setupTestSettlementRepo(t)
 	repo := &verificationRepo{data: settlementRepo.data}
 	cashflowBalance := `finance_cashflows"\."amount" > COALESCE\(\(SELECT SUM\(fva.amount\) FROM finance_verification_allocations AS fva JOIN finance_verifications AS fv`
-	billBalance := `finance_bills"\."total_amount" > \(COALESCE\(\(SELECT SUM\(fva.amount\) FROM finance_verification_allocations AS fva WHERE fva.bill_id = "finance_bills"\."id" AND fva.active = TRUE\), 0\) \+ COALESCE\(\(SELECT SUM\(fna.amount\) FROM finance_netting_allocations AS fna`
+	// 账单未结清为带符号比较（总额 <> 有效核销 + 有效对冲），零额与负数更正账单按净额判定。
+	billBalance := `finance_bills"\."total_amount" <> \(COALESCE\(\(SELECT SUM\(fva.amount\) FROM finance_verification_allocations AS fva WHERE fva.bill_id = "finance_bills"\."id" AND fva.active = TRUE\), 0\) \+ COALESCE\(\(SELECT SUM\(fna.amount\) FROM finance_netting_allocations AS fna`
 
 	mock.ExpectQuery(`SELECT .*"record_count".*FROM "finance_cashflows".*` + cashflowBalance).
 		WillReturnRows(sqlmock.NewRows([]string{"direction", "currency", "base_currency", "record_count", "amount", "base_amount", "unconverted_count"}).AddRow("RECEIVABLE", "CNY", "CNY", 0, "0", "0", 0))

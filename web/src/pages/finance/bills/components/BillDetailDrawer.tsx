@@ -10,12 +10,18 @@ import { statusTag } from '@/constants/statusMeta';
 import { FinanceBillStatus } from '@/enums.generated';
 import { billStatusMeta } from '@/features/finance/bill-status';
 import { formatAmount, trimDecimal } from '@/utils/format';
+import BillFeeMaintenance from './BillFeeMaintenance';
 
 interface BillDetailDrawerProps {
   open: boolean;
   loading: boolean;
   detail?: API.FinanceBill;
   onClose: () => void;
+  /** 具备账单编辑权限时提供：在账单行上启用费用增删。 */
+  feeMaintenance?: {
+    onUpdated: (bill: API.FinanceBill) => void;
+    onRefresh: () => void;
+  };
 }
 
 export default function BillDetailDrawer({
@@ -23,6 +29,7 @@ export default function BillDetailDrawer({
   loading,
   detail,
   onClose,
+  feeMaintenance,
 }: BillDetailDrawerProps) {
   const lineColumns: TableColumnsType<API.FinanceBillLine> = [
     { title: '订单编号', dataIndex: 'orderNo', width: 150 },
@@ -235,14 +242,24 @@ export default function BillDetailDrawer({
           >
             {lineColumnSettings.entry}
           </div>
-          <Table<API.FinanceBillLine>
-            rowKey="id"
-            size="small"
-            bordered
-            pagination={false}
-            dataSource={detail.lines || []}
-            columns={lineColumnSettings.columns}
-          />
+          {feeMaintenance ? (
+            <BillFeeMaintenance
+              key={detail.id}
+              bill={detail}
+              lineColumns={lineColumnSettings.columns}
+              onUpdated={feeMaintenance.onUpdated}
+              onRefresh={feeMaintenance.onRefresh}
+            />
+          ) : (
+            <Table<API.FinanceBillLine>
+              rowKey="id"
+              size="small"
+              bordered
+              pagination={false}
+              dataSource={detail.lines || []}
+              columns={lineColumnSettings.columns}
+            />
+          )}
         </>
       )}
     </DescriptionsDetailDrawer>

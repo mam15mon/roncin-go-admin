@@ -87,6 +87,20 @@ service SettlementService {
     option (google.api.http) = {put: "/api/v1/finance/bills/{id}" body: "*"};
   }
 
+  // ListBillFeeCandidates 返回可加入指定账单的未建账费用：同公司、同收付方向、同币种与本币、同结算单位，
+  // 服务端关键字（费用代码、费用名称、订单号）过滤并分页。
+  rpc ListBillFeeCandidates(ListBillFeeCandidatesRequest) returns (ListBillFeeCandidatesResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {get: "/api/v1/finance/bills/{bill_id}/fee-candidates"};
+  }
+
+  // UpdateBillFees 在同一请求中为账单增加与移除费用；存在有效发票、核销或对冲（含草稿对冲）时拒绝，
+  // 不允许移除最后一条费用（释放全部费用请取消账单）。
+  rpc UpdateBillFees(UpdateBillFeesRequest) returns (UpdateBillFeesResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.update" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/finance/bills/{id}/fees:update" body: "*"};
+  }
+
   rpc CancelBill(CancelBillRequest) returns (CancelBillResponse) {
     option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.bill.update" scope: DATA_SCOPE_ORGANIZATION};
     option (google.api.http) = {post: "/api/v1/finance/bills/{id}/cancel" body: "*"};
@@ -520,6 +534,23 @@ message UpdateBillRequest {
   optional string estimated_invoice_currency = 9;
   optional string estimated_invoice_rate = 10;
 }
+
+message ListBillFeeCandidatesRequest {
+  string bill_id = 1 [(google.api.field_behavior) = REQUIRED];
+  int32 page = 2;
+  int32 page_size = 3;
+  optional string keyword = 4;
+}
+message ListBillFeeCandidatesResponse { bool success = 1; int32 code = 2; string message = 3; repeated FeeLedgerItem data = 4; int64 total = 5; string trace_id = 6; }
+
+// UpdateBillFeesRequest 的增加与移除各不超过 200 条、至少一项非空、不得重复或互相交叉。
+message UpdateBillFeesRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+  repeated string add_fee_ids = 3;
+  repeated string remove_fee_ids = 4;
+}
+message UpdateBillFeesResponse { bool success = 1; int32 code = 2; string message = 3; FinanceBill data = 4; string trace_id = 5; }
 
 message CancelBillRequest {
   string id = 1 [(google.api.field_behavior) = REQUIRED];

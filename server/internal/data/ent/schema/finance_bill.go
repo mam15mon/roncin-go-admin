@@ -47,7 +47,8 @@ func (FinanceBill) Fields() []ent.Field {
 		field.String("net_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}),
 		field.String("tax_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}),
 		field.String("base_currency_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}),
-		field.Int("fee_count").Positive().Immutable(),
+		// fee_count 随账单费用增删更新为有效行数；DB 检查 fee_count > 0 不变。
+		field.Int("fee_count").Positive(),
 		field.String("bill_date").NotEmpty().MinLen(10).MaxLen(10),
 		field.String("statement_title").Optional().Nillable().MaxLen(200),
 		field.Int("payment_terms_days").Optional().Nillable().Min(0).Max(3650),

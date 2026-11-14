@@ -23,4 +23,8 @@ enum ErrorReason {
   ERROR_REASON_PARTNER_CREDIT_LIMIT_EXCEEDED = 13;
   // 锁后费用补录来源的冲减建议进入 CONFIRMED/PAID 后，禁止经通用取消接口转为 CANCELLED。
   ERROR_REASON_FINANCE_COMMISSION_ADJUSTMENT_CANCEL_NOT_ALLOWED = 14;
+  // 账单存在有效发票、核销、对冲（含草稿对冲）等财务事实时禁止增删费用。
+  ERROR_REASON_FINANCE_BILL_FEES_LOCKED = 15;
+  // 增删费用后账单不得没有有效费用；释放全部费用须取消账单。
+  ERROR_REASON_FINANCE_BILL_LAST_FEE = 16;
 }

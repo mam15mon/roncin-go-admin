@@ -391,6 +391,56 @@ func (s *SettlementService) CancelBill(ctx context.Context, request *v1.CancelBi
 	return ok(ctx, &v1.CancelBillResponse{Data: financeBillToAPI(item)}), nil
 }
 
+// ListBillFeeCandidates 返回可加入账单的费用候选；账单范围按 bill.update 写权限解析。
+func (s *SettlementService) ListBillFeeCandidates(ctx context.Context, request *v1.ListBillFeeCandidatesRequest) (*v1.ListBillFeeCandidatesResponse, error) {
+	principal, billID, err := financePrincipalAndID(ctx, request.GetBillId())
+	if err != nil {
+		return nil, err
+	}
+	organizationIDs, err := organizationIDsForPermission(principal, access.FinanceBillUpdate, true)
+	if err != nil {
+		return nil, err
+	}
+	page, pageSize, err := listPageValues(request.GetPage(), request.GetPageSize(), biz.ErrFinanceBillInvalidArgument)
+	if err != nil {
+		return nil, err
+	}
+	result, err := s.billUsecase.ListFeeCandidates(ctx, organizationIDs, billID, biz.FinanceBillFeeCandidateFilter{Page: page, PageSize: pageSize, Keyword: financeOptionalString(request.Keyword)})
+	if err != nil {
+		return nil, err
+	}
+	data := make([]*v1.FeeLedgerItem, 0, len(result.Items))
+	for _, item := range result.Items {
+		data = append(data, financeBillableFeeToAPI(item))
+	}
+	return okList(ctx, &v1.ListBillFeeCandidatesResponse{Data: data, Total: result.Total}), nil
+}
+
+// UpdateBillFees 为账单增加与移除费用，复用账单编辑权限 bill.update。
+func (s *SettlementService) UpdateBillFees(ctx context.Context, request *v1.UpdateBillFeesRequest) (*v1.UpdateBillFeesResponse, error) {
+	principal, id, err := financePrincipalAndID(ctx, request.GetId())
+	if err != nil {
+		return nil, err
+	}
+	organizationIDs, err := organizationIDsForPermission(principal, access.FinanceBillUpdate, true)
+	if err != nil {
+		return nil, err
+	}
+	addFeeIDs, err := parseTrimmedUUIDValues(request.GetAddFeeIds(), biz.ErrFinanceBillInvalidArgument)
+	if err != nil {
+		return nil, err
+	}
+	removeFeeIDs, err := parseTrimmedUUIDValues(request.GetRemoveFeeIds(), biz.ErrFinanceBillInvalidArgument)
+	if err != nil {
+		return nil, err
+	}
+	item, err := s.billUsecase.UpdateFees(ctx, organizationIDs, principal.UserID, biz.UpdateFinanceBillFeesInput{ID: id, ExpectedVersion: request.GetExpectedVersion(), AddFeeIDs: addFeeIDs, RemoveFeeIDs: removeFeeIDs})
+	if err != nil {
+		return nil, err
+	}
+	return ok(ctx, &v1.UpdateBillFeesResponse{Data: financeBillToAPI(item)}), nil
+}
+
 func financeBillToAPI(item *biz.FinanceBill) *v1.FinanceBill {
 	if item == nil {
 		return nil

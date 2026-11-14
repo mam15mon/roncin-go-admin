@@ -447,29 +447,15 @@ func buildFinanceBill(organizationID uuid.UUID, fees []*FinanceBillableFee, inpu
 		bill.StatementTitle = &bill.SettlementPartyName
 	}
 	for _, item := range fees {
-		if item == nil || item.Fee == nil || item.Fee.HasActiveBill {
-			return nil, ErrFinanceBillFeeInvalid
+		if err := validateBillFeeScope(bill, item); err != nil {
+			return nil, err
 		}
 		fee := item.Fee
-		if fee.SourceFeeID != nil && (bill.CorrectionRequestID == nil || fee.CorrectionRequestID == nil || *bill.CorrectionRequestID != *fee.CorrectionRequestID) {
-			return nil, ErrFinanceBillFeeMismatch
-		}
-		if fee.SourceFeeID == nil && bill.CorrectionRequestID != nil {
-			return nil, ErrFinanceBillFeeMismatch
-		}
-		if FinanceBillPurposeForFee(fee) != bill.Purpose || SettlementDirection(fee) != bill.Direction || fee.SettlementPartyID != bill.SettlementPartyID || fee.Currency != bill.Currency || fee.BaseCurrency != bill.BaseCurrency {
-			return nil, ErrFinanceBillFeeMismatch
-		}
 		bill.TotalAmount = bill.TotalAmount.Add(fee.TotalAmount)
 		bill.NetAmount = bill.NetAmount.Add(fee.NetAmount)
 		bill.TaxAmount = bill.TaxAmount.Add(fee.TaxAmount)
 		bill.BaseCurrencyAmount = bill.BaseCurrencyAmount.Add(fee.BaseCurrencyAmount)
-		bill.Lines = append(bill.Lines, &FinanceBillLine{
-			ID: uuid.Must(uuid.NewV7()), BillID: billID, OrderFeeID: fee.ID, OrderID: fee.OrderID,
-			OrderNo: item.OrderNo, BusinessType: item.BusinessType, FeeCode: fee.FeeCode, FeeName: fee.FeeName,
-			Quantity: fee.Quantity, UnitPrice: fee.UnitPrice, TotalAmount: fee.TotalAmount, NetAmount: fee.NetAmount, TaxAmount: fee.TaxAmount, Currency: fee.Currency,
-			TaxRate: fee.TaxRate, ExchangeRate: decimal.NewFromInt(1), BaseCurrency: fee.BaseCurrency, BaseCurrencyAmount: fee.BaseCurrencyAmount, Active: true,
-		})
+		bill.Lines = append(bill.Lines, NewFinanceBillLineFromFee(billID, item))
 	}
 	bill.FeeCount = len(bill.Lines)
 	return bill, nil

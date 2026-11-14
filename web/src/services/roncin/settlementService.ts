@@ -156,6 +156,49 @@ export async function settlementServiceCancelBill(
   );
 }
 
+/** ListBillFeeCandidates 返回可加入指定账单的未建账费用：同公司、同收付方向、同币种与本币、同结算单位，
+ 服务端关键字（费用代码、费用名称、订单号）过滤并分页。 GET /api/v1/finance/bills/${param0}/fee-candidates */
+export async function settlementServiceListBillFeeCandidates(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceListBillFeeCandidatesParams,
+  options?: { [key: string]: any }
+) {
+  const { billId: param0, ...queryParams } = params;
+  return request<API.ListBillFeeCandidatesResponse>(
+    `/api/v1/finance/bills/${param0}/fee-candidates`,
+    {
+      method: "GET",
+      params: {
+        ...queryParams,
+      },
+      ...(options || {}),
+    }
+  );
+}
+
+/** UpdateBillFees 在同一请求中为账单增加与移除费用；存在有效发票、核销或对冲（含草稿对冲）时拒绝，
+ 不允许移除最后一条费用（释放全部费用请取消账单）。 POST /api/v1/finance/bills/${param0}/fees:update */
+export async function settlementServiceUpdateBillFees(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceUpdateBillFeesParams,
+  body: API.UpdateBillFeesRequest,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.UpdateBillFeesResponse>(
+    `/api/v1/finance/bills/${param0}/fees:update`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/finance/bills/creation-candidates */
 export async function settlementServiceListBillCreationCandidates(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

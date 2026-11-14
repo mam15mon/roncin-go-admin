@@ -42,6 +42,10 @@ const (
 	ErrorReason_ERROR_REASON_PARTNER_CREDIT_LIMIT_EXCEEDED ErrorReason = 13
 	// 锁后费用补录来源的冲减建议进入 CONFIRMED/PAID 后，禁止经通用取消接口转为 CANCELLED。
 	ErrorReason_ERROR_REASON_FINANCE_COMMISSION_ADJUSTMENT_CANCEL_NOT_ALLOWED ErrorReason = 14
+	// 账单存在有效发票、核销、对冲（含草稿对冲）等财务事实时禁止增删费用。
+	ErrorReason_ERROR_REASON_FINANCE_BILL_FEES_LOCKED ErrorReason = 15
+	// 增删费用后账单不得没有有效费用；释放全部费用须取消账单。
+	ErrorReason_ERROR_REASON_FINANCE_BILL_LAST_FEE ErrorReason = 16
 )
 
 // Enum value maps for ErrorReason.
@@ -62,6 +66,8 @@ var (
 		12: "ERROR_REASON_FINANCE_CASHFLOW_CASUAL_SUPPLIER_ACCOUNT_REQUIRED",
 		13: "ERROR_REASON_PARTNER_CREDIT_LIMIT_EXCEEDED",
 		14: "ERROR_REASON_FINANCE_COMMISSION_ADJUSTMENT_CANCEL_NOT_ALLOWED",
+		15: "ERROR_REASON_FINANCE_BILL_FEES_LOCKED",
+		16: "ERROR_REASON_FINANCE_BILL_LAST_FEE",
 	}
 	ErrorReason_value = map[string]int32{
 		"ERROR_REASON_FINANCE_UNSPECIFIED":                               0,
@@ -79,6 +85,8 @@ var (
 		"ERROR_REASON_FINANCE_CASHFLOW_CASUAL_SUPPLIER_ACCOUNT_REQUIRED": 12,
 		"ERROR_REASON_PARTNER_CREDIT_LIMIT_EXCEEDED":                     13,
 		"ERROR_REASON_FINANCE_COMMISSION_ADJUSTMENT_CANCEL_NOT_ALLOWED":  14,
+		"ERROR_REASON_FINANCE_BILL_FEES_LOCKED":                          15,
+		"ERROR_REASON_FINANCE_BILL_LAST_FEE":                             16,
 	}
 )
 
@@ -114,7 +122,7 @@ var File_finance_v1_error_reason_proto protoreflect.FileDescriptor
 const file_finance_v1_error_reason_proto_rawDesc = "" +
 	"\n" +
 	"\x1dfinance/v1/error_reason.proto\x12\n" +
-	"finance.v1*\x9b\x06\n" +
+	"finance.v1*\xee\x06\n" +
 	"\vErrorReason\x12$\n" +
 	" ERROR_REASON_FINANCE_UNSPECIFIED\x10\x00\x12*\n" +
 	"&ERROR_REASON_FEE_EXCHANGE_RATE_MISSING\x10\x01\x12)\n" +
@@ -131,7 +139,9 @@ const file_finance_v1_error_reason_proto_rawDesc = "" +
 	"4ERROR_REASON_FINANCE_BILL_SETTLEMENT_ACCOUNT_INVALID\x10\v\x12B\n" +
 	">ERROR_REASON_FINANCE_CASHFLOW_CASUAL_SUPPLIER_ACCOUNT_REQUIRED\x10\f\x12.\n" +
 	"*ERROR_REASON_PARTNER_CREDIT_LIMIT_EXCEEDED\x10\r\x12A\n" +
-	"=ERROR_REASON_FINANCE_COMMISSION_ADJUSTMENT_CANCEL_NOT_ALLOWED\x10\x0eB<Z:github.com/roncin/roncin-go-admin/server/api/finance/v1;v1b\x06proto3"
+	"=ERROR_REASON_FINANCE_COMMISSION_ADJUSTMENT_CANCEL_NOT_ALLOWED\x10\x0e\x12)\n" +
+	"%ERROR_REASON_FINANCE_BILL_FEES_LOCKED\x10\x0f\x12&\n" +
+	"\"ERROR_REASON_FINANCE_BILL_LAST_FEE\x10\x10B<Z:github.com/roncin/roncin-go-admin/server/api/finance/v1;v1b\x06proto3"
 
 var (
 	file_finance_v1_error_reason_proto_rawDescOnce sync.Once

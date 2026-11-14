@@ -1940,6 +1940,41 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.ListBillCreationCandidatesResponse'
+    /api/v1/finance/bills/{billId}/fee-candidates:
+        get:
+            tags:
+                - SettlementService
+            description: |-
+                ListBillFeeCandidates 返回可加入指定账单的未建账费用：同公司、同收付方向、同币种与本币、同结算单位，
+                 服务端关键字（费用代码、费用名称、订单号）过滤并分页。
+            operationId: SettlementService_ListBillFeeCandidates
+            parameters:
+                - name: billId
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: page
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: keyword
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.ListBillFeeCandidatesResponse'
     /api/v1/finance/bills/{id}:
         get:
             tags:
@@ -2005,6 +2040,33 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/finance.v1.CancelBillResponse'
+    /api/v1/finance/bills/{id}/fees:update:
+        post:
+            tags:
+                - SettlementService
+            description: |-
+                UpdateBillFees 在同一请求中为账单增加与移除费用；存在有效发票、核销或对冲（含草稿对冲）时拒绝，
+                 不允许移除最后一条费用（释放全部费用请取消账单）。
+            operationId: SettlementService_UpdateBillFees
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/finance.v1.UpdateBillFeesRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/finance.v1.UpdateBillFeesResponse'
     /api/v1/finance/cashflows:
         get:
             tags:
@@ -13572,6 +13634,24 @@ components:
                     type: string
                 traceId:
                     type: string
+        finance.v1.ListBillFeeCandidatesResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/finance.v1.FeeLedgerItem'
+                total:
+                    type: string
+                traceId:
+                    type: string
         finance.v1.ListBillSettlementAccountCandidatesResponse:
             type: object
             properties:
@@ -14635,6 +14715,39 @@ components:
                 createdAt:
                     type: string
                 updatedAt:
+                    type: string
+        finance.v1.UpdateBillFeesRequest:
+            required:
+                - id
+                - expectedVersion
+            type: object
+            properties:
+                id:
+                    type: string
+                expectedVersion:
+                    type: string
+                addFeeIds:
+                    type: array
+                    items:
+                        type: string
+                removeFeeIds:
+                    type: array
+                    items:
+                        type: string
+            description: UpdateBillFeesRequest 的增加与移除各不超过 200 条、至少一项非空、不得重复或互相交叉。
+        finance.v1.UpdateBillFeesResponse:
+            type: object
+            properties:
+                success:
+                    type: boolean
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+                data:
+                    $ref: '#/components/schemas/finance.v1.FinanceBill'
+                traceId:
                     type: string
         finance.v1.UpdateBillRequest:
             required:

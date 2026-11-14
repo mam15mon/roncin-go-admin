@@ -1521,6 +1521,24 @@ func (u *FinanceBillUpsert) UpdateBaseCurrencyAmount() *FinanceBillUpsert {
 	return u
 }
 
+// SetFeeCount sets the "fee_count" field.
+func (u *FinanceBillUpsert) SetFeeCount(v int) *FinanceBillUpsert {
+	u.Set(financebill.FieldFeeCount, v)
+	return u
+}
+
+// UpdateFeeCount sets the "fee_count" field to the value that was provided on create.
+func (u *FinanceBillUpsert) UpdateFeeCount() *FinanceBillUpsert {
+	u.SetExcluded(financebill.FieldFeeCount)
+	return u
+}
+
+// AddFeeCount adds v to the "fee_count" field.
+func (u *FinanceBillUpsert) AddFeeCount(v int) *FinanceBillUpsert {
+	u.Add(financebill.FieldFeeCount, v)
+	return u
+}
+
 // SetBillDate sets the "bill_date" field.
 func (u *FinanceBillUpsert) SetBillDate(v string) *FinanceBillUpsert {
 	u.Set(financebill.FieldBillDate, v)
@@ -1765,9 +1783,6 @@ func (u *FinanceBillUpsertOne) UpdateNewValues() *FinanceBillUpsertOne {
 		}
 		if _, exists := u.create.mutation.BaseCurrency(); exists {
 			s.SetIgnore(financebill.FieldBaseCurrency)
-		}
-		if _, exists := u.create.mutation.FeeCount(); exists {
-			s.SetIgnore(financebill.FieldFeeCount)
 		}
 	}))
 	return u
@@ -2126,6 +2141,27 @@ func (u *FinanceBillUpsertOne) SetBaseCurrencyAmount(v string) *FinanceBillUpser
 func (u *FinanceBillUpsertOne) UpdateBaseCurrencyAmount() *FinanceBillUpsertOne {
 	return u.Update(func(s *FinanceBillUpsert) {
 		s.UpdateBaseCurrencyAmount()
+	})
+}
+
+// SetFeeCount sets the "fee_count" field.
+func (u *FinanceBillUpsertOne) SetFeeCount(v int) *FinanceBillUpsertOne {
+	return u.Update(func(s *FinanceBillUpsert) {
+		s.SetFeeCount(v)
+	})
+}
+
+// AddFeeCount adds v to the "fee_count" field.
+func (u *FinanceBillUpsertOne) AddFeeCount(v int) *FinanceBillUpsertOne {
+	return u.Update(func(s *FinanceBillUpsert) {
+		s.AddFeeCount(v)
+	})
+}
+
+// UpdateFeeCount sets the "fee_count" field to the value that was provided on create.
+func (u *FinanceBillUpsertOne) UpdateFeeCount() *FinanceBillUpsertOne {
+	return u.Update(func(s *FinanceBillUpsert) {
+		s.UpdateFeeCount()
 	})
 }
 
@@ -2573,9 +2609,6 @@ func (u *FinanceBillUpsertBulk) UpdateNewValues() *FinanceBillUpsertBulk {
 			if _, exists := b.mutation.BaseCurrency(); exists {
 				s.SetIgnore(financebill.FieldBaseCurrency)
 			}
-			if _, exists := b.mutation.FeeCount(); exists {
-				s.SetIgnore(financebill.FieldFeeCount)
-			}
 		}
 	}))
 	return u
@@ -2934,6 +2967,27 @@ func (u *FinanceBillUpsertBulk) SetBaseCurrencyAmount(v string) *FinanceBillUpse
 func (u *FinanceBillUpsertBulk) UpdateBaseCurrencyAmount() *FinanceBillUpsertBulk {
 	return u.Update(func(s *FinanceBillUpsert) {
 		s.UpdateBaseCurrencyAmount()
+	})
+}
+
+// SetFeeCount sets the "fee_count" field.
+func (u *FinanceBillUpsertBulk) SetFeeCount(v int) *FinanceBillUpsertBulk {
+	return u.Update(func(s *FinanceBillUpsert) {
+		s.SetFeeCount(v)
+	})
+}
+
+// AddFeeCount adds v to the "fee_count" field.
+func (u *FinanceBillUpsertBulk) AddFeeCount(v int) *FinanceBillUpsertBulk {
+	return u.Update(func(s *FinanceBillUpsert) {
+		s.AddFeeCount(v)
+	})
+}
+
+// UpdateFeeCount sets the "fee_count" field to the value that was provided on create.
+func (u *FinanceBillUpsertBulk) UpdateFeeCount() *FinanceBillUpsertBulk {
+	return u.Update(func(s *FinanceBillUpsert) {
+		s.UpdateFeeCount()
 	})
 }
 

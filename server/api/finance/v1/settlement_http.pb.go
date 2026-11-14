@@ -51,6 +51,7 @@ const OperationSettlementServiceGetMyFeeSupplementAdjustmentSource = "/finance.v
 const OperationSettlementServiceGetNetting = "/finance.v1.SettlementService/GetNetting"
 const OperationSettlementServiceIssueInvoice = "/finance.v1.SettlementService/IssueInvoice"
 const OperationSettlementServiceListBillCreationCandidates = "/finance.v1.SettlementService/ListBillCreationCandidates"
+const OperationSettlementServiceListBillFeeCandidates = "/finance.v1.SettlementService/ListBillFeeCandidates"
 const OperationSettlementServiceListBillSettlementAccountCandidates = "/finance.v1.SettlementService/ListBillSettlementAccountCandidates"
 const OperationSettlementServiceListBillSettlementAccountUpdateCandidates = "/finance.v1.SettlementService/ListBillSettlementAccountUpdateCandidates"
 const OperationSettlementServiceListBills = "/finance.v1.SettlementService/ListBills"
@@ -83,6 +84,7 @@ const OperationSettlementServiceRemoveCommissionRuleEmployees = "/finance.v1.Set
 const OperationSettlementServiceReverseNetting = "/finance.v1.SettlementService/ReverseNetting"
 const OperationSettlementServiceReverseVerification = "/finance.v1.SettlementService/ReverseVerification"
 const OperationSettlementServiceUpdateBill = "/finance.v1.SettlementService/UpdateBill"
+const OperationSettlementServiceUpdateBillFees = "/finance.v1.SettlementService/UpdateBillFees"
 const OperationSettlementServiceUpdateBilledFeeEditPolicy = "/finance.v1.SettlementService/UpdateBilledFeeEditPolicy"
 const OperationSettlementServiceUpdateCommissionRule = "/finance.v1.SettlementService/UpdateCommissionRule"
 const OperationSettlementServiceUpdateCreditLimitControlPolicy = "/finance.v1.SettlementService/UpdateCreditLimitControlPolicy"
@@ -136,6 +138,9 @@ type SettlementServiceHTTPServer interface {
 	GetNetting(context.Context, *GetNettingRequest) (*GetNettingResponse, error)
 	IssueInvoice(context.Context, *IssueInvoiceRequest) (*IssueInvoiceResponse, error)
 	ListBillCreationCandidates(context.Context, *ListBillCreationCandidatesRequest) (*ListBillCreationCandidatesResponse, error)
+	// ListBillFeeCandidates ListBillFeeCandidates 返回可加入指定账单的未建账费用：同公司、同收付方向、同币种与本币、同结算单位，
+	// 服务端关键字（费用代码、费用名称、订单号）过滤并分页。
+	ListBillFeeCandidates(context.Context, *ListBillFeeCandidatesRequest) (*ListBillFeeCandidatesResponse, error)
 	ListBillSettlementAccountCandidates(context.Context, *ListBillSettlementAccountCandidatesRequest) (*ListBillSettlementAccountCandidatesResponse, error)
 	ListBillSettlementAccountUpdateCandidates(context.Context, *ListBillSettlementAccountUpdateCandidatesRequest) (*ListBillSettlementAccountUpdateCandidatesResponse, error)
 	ListBills(context.Context, *ListBillsRequest) (*ListBillsResponse, error)
@@ -181,6 +186,9 @@ type SettlementServiceHTTPServer interface {
 	ReverseNetting(context.Context, *ReverseNettingRequest) (*ReverseNettingResponse, error)
 	ReverseVerification(context.Context, *ReverseVerificationRequest) (*ReverseVerificationResponse, error)
 	UpdateBill(context.Context, *UpdateBillRequest) (*UpdateBillResponse, error)
+	// UpdateBillFees UpdateBillFees 在同一请求中为账单增加与移除费用；存在有效发票、核销或对冲（含草稿对冲）时拒绝，
+	// 不允许移除最后一条费用（释放全部费用请取消账单）。
+	UpdateBillFees(context.Context, *UpdateBillFeesRequest) (*UpdateBillFeesResponse, error)
 	// UpdateBilledFeeEditPolicy UpdateBilledFeeEditPolicy 更新账单创建后的费用修改策略。
 	UpdateBilledFeeEditPolicy(context.Context, *UpdateBilledFeeEditPolicyRequest) (*UpdateBilledFeeEditPolicyResponse, error)
 	UpdateCommissionRule(context.Context, *UpdateCommissionRuleRequest) (*UpdateCommissionRuleResponse, error)
@@ -205,6 +213,8 @@ func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHT
 	r.Handle("POST", "/api/v1/finance/bill-batches/preview", _SettlementService_PreviewBillBatch0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/bill-batches", _SettlementService_CreateBillBatch0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/finance/bills/{id}", _SettlementService_UpdateBill0_HTTP_Handler(srv))
+	r.Handle("GET", "/api/v1/finance/bills/{bill_id}/fee-candidates", _SettlementService_ListBillFeeCandidates0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/bills/{id}/fees:update", _SettlementService_UpdateBillFees0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/bills/{id}/cancel", _SettlementService_CancelBill0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/invoices", _SettlementService_ListInvoices0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/invoices/creation-bills", _SettlementService_ListInvoiceCreationBills0_HTTP_Handler(srv))
@@ -551,6 +561,50 @@ func _SettlementService_UpdateBill0_HTTP_Handler(srv SettlementServiceHTTPServer
 			return err
 		}
 		reply := out.(*UpdateBillResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_ListBillFeeCandidates0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in ListBillFeeCandidatesRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceListBillFeeCandidates)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.ListBillFeeCandidates(ctx, req.(*ListBillFeeCandidatesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*ListBillFeeCandidatesResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_UpdateBillFees0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateBillFeesRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceUpdateBillFees)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateBillFees(ctx, req.(*UpdateBillFeesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*UpdateBillFeesResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -1717,6 +1771,9 @@ type SettlementServiceHTTPClient interface {
 	GetNetting(ctx context.Context, req *GetNettingRequest, opts ...http.CallOption) (rsp *GetNettingResponse, err error)
 	IssueInvoice(ctx context.Context, req *IssueInvoiceRequest, opts ...http.CallOption) (rsp *IssueInvoiceResponse, err error)
 	ListBillCreationCandidates(ctx context.Context, req *ListBillCreationCandidatesRequest, opts ...http.CallOption) (rsp *ListBillCreationCandidatesResponse, err error)
+	// ListBillFeeCandidates ListBillFeeCandidates 返回可加入指定账单的未建账费用：同公司、同收付方向、同币种与本币、同结算单位，
+	// 服务端关键字（费用代码、费用名称、订单号）过滤并分页。
+	ListBillFeeCandidates(ctx context.Context, req *ListBillFeeCandidatesRequest, opts ...http.CallOption) (rsp *ListBillFeeCandidatesResponse, err error)
 	ListBillSettlementAccountCandidates(ctx context.Context, req *ListBillSettlementAccountCandidatesRequest, opts ...http.CallOption) (rsp *ListBillSettlementAccountCandidatesResponse, err error)
 	ListBillSettlementAccountUpdateCandidates(ctx context.Context, req *ListBillSettlementAccountUpdateCandidatesRequest, opts ...http.CallOption) (rsp *ListBillSettlementAccountUpdateCandidatesResponse, err error)
 	ListBills(ctx context.Context, req *ListBillsRequest, opts ...http.CallOption) (rsp *ListBillsResponse, err error)
@@ -1762,6 +1819,9 @@ type SettlementServiceHTTPClient interface {
 	ReverseNetting(ctx context.Context, req *ReverseNettingRequest, opts ...http.CallOption) (rsp *ReverseNettingResponse, err error)
 	ReverseVerification(ctx context.Context, req *ReverseVerificationRequest, opts ...http.CallOption) (rsp *ReverseVerificationResponse, err error)
 	UpdateBill(ctx context.Context, req *UpdateBillRequest, opts ...http.CallOption) (rsp *UpdateBillResponse, err error)
+	// UpdateBillFees UpdateBillFees 在同一请求中为账单增加与移除费用；存在有效发票、核销或对冲（含草稿对冲）时拒绝，
+	// 不允许移除最后一条费用（释放全部费用请取消账单）。
+	UpdateBillFees(ctx context.Context, req *UpdateBillFeesRequest, opts ...http.CallOption) (rsp *UpdateBillFeesResponse, err error)
 	// UpdateBilledFeeEditPolicy UpdateBilledFeeEditPolicy 更新账单创建后的费用修改策略。
 	UpdateBilledFeeEditPolicy(ctx context.Context, req *UpdateBilledFeeEditPolicyRequest, opts ...http.CallOption) (rsp *UpdateBilledFeeEditPolicyResponse, err error)
 	UpdateCommissionRule(ctx context.Context, req *UpdateCommissionRuleRequest, opts ...http.CallOption) (rsp *UpdateCommissionRuleResponse, err error)
@@ -2358,6 +2418,24 @@ func (c *SettlementServiceHTTPClientImpl) ListBillCreationCandidates(ctx context
 	return &out, nil
 }
 
+// ListBillFeeCandidates ListBillFeeCandidates 返回可加入指定账单的未建账费用：同公司、同收付方向、同币种与本币、同结算单位，
+// 服务端关键字（费用代码、费用名称、订单号）过滤并分页。
+func (c *SettlementServiceHTTPClientImpl) ListBillFeeCandidates(ctx context.Context, in *ListBillFeeCandidatesRequest, opts ...http.CallOption) (*ListBillFeeCandidatesResponse, error) {
+	var out ListBillFeeCandidatesResponse
+	pattern := "/api/v1/finance/bills/{bill_id}/fee-candidates"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationSettlementServiceListBillFeeCandidates),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *SettlementServiceHTTPClientImpl) ListBillSettlementAccountCandidates(ctx context.Context, in *ListBillSettlementAccountCandidatesRequest, opts ...http.CallOption) (*ListBillSettlementAccountCandidatesResponse, error) {
 	var out ListBillSettlementAccountCandidatesResponse
 	pattern := "/api/v1/finance/bill-settlement-account-candidates"
@@ -2889,6 +2967,25 @@ func (c *SettlementServiceHTTPClientImpl) UpdateBill(ctx context.Context, in *Up
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "PUT", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateBillFees UpdateBillFees 在同一请求中为账单增加与移除费用；存在有效发票、核销或对冲（含草稿对冲）时拒绝，
+// 不允许移除最后一条费用（释放全部费用请取消账单）。
+func (c *SettlementServiceHTTPClientImpl) UpdateBillFees(ctx context.Context, in *UpdateBillFeesRequest, opts ...http.CallOption) (*UpdateBillFeesResponse, error) {
+	var out UpdateBillFeesResponse
+	pattern := "/api/v1/finance/bills/{id}/fees:update"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceUpdateBillFees),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

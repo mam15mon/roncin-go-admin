@@ -34,6 +34,8 @@ const (
 	SettlementService_PreviewBillBatch_FullMethodName                          = "/finance.v1.SettlementService/PreviewBillBatch"
 	SettlementService_CreateBillBatch_FullMethodName                           = "/finance.v1.SettlementService/CreateBillBatch"
 	SettlementService_UpdateBill_FullMethodName                                = "/finance.v1.SettlementService/UpdateBill"
+	SettlementService_ListBillFeeCandidates_FullMethodName                     = "/finance.v1.SettlementService/ListBillFeeCandidates"
+	SettlementService_UpdateBillFees_FullMethodName                            = "/finance.v1.SettlementService/UpdateBillFees"
 	SettlementService_CancelBill_FullMethodName                                = "/finance.v1.SettlementService/CancelBill"
 	SettlementService_ListInvoices_FullMethodName                              = "/finance.v1.SettlementService/ListInvoices"
 	SettlementService_ListInvoiceCreationBills_FullMethodName                  = "/finance.v1.SettlementService/ListInvoiceCreationBills"
@@ -116,6 +118,12 @@ type SettlementServiceClient interface {
 	PreviewBillBatch(ctx context.Context, in *PreviewBillBatchRequest, opts ...grpc.CallOption) (*PreviewBillBatchResponse, error)
 	CreateBillBatch(ctx context.Context, in *CreateBillBatchRequest, opts ...grpc.CallOption) (*CreateBillBatchResponse, error)
 	UpdateBill(ctx context.Context, in *UpdateBillRequest, opts ...grpc.CallOption) (*UpdateBillResponse, error)
+	// ListBillFeeCandidates 返回可加入指定账单的未建账费用：同公司、同收付方向、同币种与本币、同结算单位，
+	// 服务端关键字（费用代码、费用名称、订单号）过滤并分页。
+	ListBillFeeCandidates(ctx context.Context, in *ListBillFeeCandidatesRequest, opts ...grpc.CallOption) (*ListBillFeeCandidatesResponse, error)
+	// UpdateBillFees 在同一请求中为账单增加与移除费用；存在有效发票、核销或对冲（含草稿对冲）时拒绝，
+	// 不允许移除最后一条费用（释放全部费用请取消账单）。
+	UpdateBillFees(ctx context.Context, in *UpdateBillFeesRequest, opts ...grpc.CallOption) (*UpdateBillFeesResponse, error)
 	CancelBill(ctx context.Context, in *CancelBillRequest, opts ...grpc.CallOption) (*CancelBillResponse, error)
 	ListInvoices(ctx context.Context, in *ListInvoicesRequest, opts ...grpc.CallOption) (*ListInvoicesResponse, error)
 	ListInvoiceCreationBills(ctx context.Context, in *ListInvoiceCreationBillsRequest, opts ...grpc.CallOption) (*ListInvoiceCreationBillsResponse, error)
@@ -348,6 +356,26 @@ func (c *settlementServiceClient) UpdateBill(ctx context.Context, in *UpdateBill
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdateBillResponse)
 	err := c.cc.Invoke(ctx, SettlementService_UpdateBill_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) ListBillFeeCandidates(ctx context.Context, in *ListBillFeeCandidatesRequest, opts ...grpc.CallOption) (*ListBillFeeCandidatesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListBillFeeCandidatesResponse)
+	err := c.cc.Invoke(ctx, SettlementService_ListBillFeeCandidates_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *settlementServiceClient) UpdateBillFees(ctx context.Context, in *UpdateBillFeesRequest, opts ...grpc.CallOption) (*UpdateBillFeesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateBillFeesResponse)
+	err := c.cc.Invoke(ctx, SettlementService_UpdateBillFees_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -920,6 +948,12 @@ type SettlementServiceServer interface {
 	PreviewBillBatch(context.Context, *PreviewBillBatchRequest) (*PreviewBillBatchResponse, error)
 	CreateBillBatch(context.Context, *CreateBillBatchRequest) (*CreateBillBatchResponse, error)
 	UpdateBill(context.Context, *UpdateBillRequest) (*UpdateBillResponse, error)
+	// ListBillFeeCandidates 返回可加入指定账单的未建账费用：同公司、同收付方向、同币种与本币、同结算单位，
+	// 服务端关键字（费用代码、费用名称、订单号）过滤并分页。
+	ListBillFeeCandidates(context.Context, *ListBillFeeCandidatesRequest) (*ListBillFeeCandidatesResponse, error)
+	// UpdateBillFees 在同一请求中为账单增加与移除费用；存在有效发票、核销或对冲（含草稿对冲）时拒绝，
+	// 不允许移除最后一条费用（释放全部费用请取消账单）。
+	UpdateBillFees(context.Context, *UpdateBillFeesRequest) (*UpdateBillFeesResponse, error)
 	CancelBill(context.Context, *CancelBillRequest) (*CancelBillResponse, error)
 	ListInvoices(context.Context, *ListInvoicesRequest) (*ListInvoicesResponse, error)
 	ListInvoiceCreationBills(context.Context, *ListInvoiceCreationBillsRequest) (*ListInvoiceCreationBillsResponse, error)
@@ -1052,6 +1086,12 @@ func (UnimplementedSettlementServiceServer) CreateBillBatch(context.Context, *Cr
 }
 func (UnimplementedSettlementServiceServer) UpdateBill(context.Context, *UpdateBillRequest) (*UpdateBillResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateBill not implemented")
+}
+func (UnimplementedSettlementServiceServer) ListBillFeeCandidates(context.Context, *ListBillFeeCandidatesRequest) (*ListBillFeeCandidatesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListBillFeeCandidates not implemented")
+}
+func (UnimplementedSettlementServiceServer) UpdateBillFees(context.Context, *UpdateBillFeesRequest) (*UpdateBillFeesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateBillFees not implemented")
 }
 func (UnimplementedSettlementServiceServer) CancelBill(context.Context, *CancelBillRequest) (*CancelBillResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CancelBill not implemented")
@@ -1502,6 +1542,42 @@ func _SettlementService_UpdateBill_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SettlementServiceServer).UpdateBill(ctx, req.(*UpdateBillRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_ListBillFeeCandidates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListBillFeeCandidatesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).ListBillFeeCandidates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_ListBillFeeCandidates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).ListBillFeeCandidates(ctx, req.(*ListBillFeeCandidatesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SettlementService_UpdateBillFees_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateBillFeesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SettlementServiceServer).UpdateBillFees(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SettlementService_UpdateBillFees_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SettlementServiceServer).UpdateBillFees(ctx, req.(*UpdateBillFeesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2544,6 +2620,14 @@ var SettlementService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateBill",
 			Handler:    _SettlementService_UpdateBill_Handler,
+		},
+		{
+			MethodName: "ListBillFeeCandidates",
+			Handler:    _SettlementService_ListBillFeeCandidates_Handler,
+		},
+		{
+			MethodName: "UpdateBillFees",
+			Handler:    _SettlementService_UpdateBillFees_Handler,
 		},
 		{
 			MethodName: "CancelBill",
