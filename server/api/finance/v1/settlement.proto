@@ -319,6 +319,8 @@ message FeeLedgerItem {
   string netted_amount = 47;
   // 海运 MBL / 空运 MAWB；终态读取本次终止保留的关联。
   string master_no = 48;
+  // 只读计算字段：本币不含税金额，口径同 OrderFee.base_currency_net_amount。
+  string base_currency_net_amount = 49;
   reserved 32 to 33;
 }
 

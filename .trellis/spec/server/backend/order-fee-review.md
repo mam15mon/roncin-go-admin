@@ -67,3 +67,12 @@
 正确：完整读取 fee-review 的 fees，核对 contentVersion 与锁快照一致，
       使用该快照的订单/费用版本、指纹和幂等键确认；comment 可省略。
 ```
+
+## 订单费用税率更改权限
+
+- 权限码 `system.finance.order_fee.tax_rate.edit`（「订单费用税率更改权限」，依赖费用设置读取），与汇率覆盖权限分离；服务层以 `HasPermissionInScope` 的 bool 传入 `OrderFeeUsecase.Add/Update`。
+- `AddFeeRequest.tax_rate` / `UpdateFeeRequest.tax_rate` 为显式税率（0-100）。只有「与目录税率（新增）或与费用当前税率（修改）不同」才算更改，无权返回 403 `ORDER_FEE_TAX_RATE_FORBIDDEN`；值相同不要求授权。
+- 仅未建账费用可改；已建账（含草稿账单）仍返回 `ORDER_FEE_BILL_OCCUPIED`，走费用更正，补录路径行为不变。
+- 税率取值：显式税率优先；未提交时若费用设置未变更则保持已存税率，仅费用设置变更才取目录税率，目录不得覆盖显式或已存税率。
+- 税率变化后重算未税/税额/本币并经 `reconcileOrdinaryFeeEconomics` 重算提成；修改写审计 `fee.tax_rate_before/after`，新增写 `fee.tax_rate_changed`，操作者为审计 UserID。
+- `OrderFee` 与 `FeeLedgerItem` 新增只读计算字段 `base_currency_net_amount`，由 `OrderFee.BaseCurrencyNetAmount()`（即 `CommissionNetBase`）统一计算，不持久化；`base_currency_amount` 恒有值，故不使用 optional。

@@ -23,7 +23,7 @@ func TestClosedOrderFeeContentEditableUntilReviewPostgres(t *testing.T) {
 	}
 	fee := addOrdinaryTestFee(t, f, o, 100)
 	fee.UnitPrice = decimal.NewFromInt(120)
-	fee, err = normalFeeUsecaseForRollback(f).Update(f.ctx, f.organizationID, f.approverID, o.ID, fee.ID, fee, false)
+	fee, err = normalFeeUsecaseForRollback(f).Update(f.ctx, f.organizationID, f.approverID, o.ID, fee.ID, fee, false, false)
 	if err != nil || !fee.UnitPrice.Equal(decimal.NewFromInt(120)) {
 		t.Fatalf("完结未锁未建账费用应可修改: fee=%+v err=%v", fee, err)
 	}
@@ -38,7 +38,7 @@ func TestClosedOrderFeeContentEditableUntilReviewPostgres(t *testing.T) {
 	assertCapabilities(true, false)
 	bill := createOccupiedTestFeeBill(t, f, o, fee)
 	assertCapabilities(false, false)
-	if _, err = normalFeeUsecaseForRollback(f).Update(f.ctx, f.organizationID, f.approverID, o.ID, fee.ID, fee, false); err != biz.ErrOrderFeeBillOccupied {
+	if _, err = normalFeeUsecaseForRollback(f).Update(f.ctx, f.organizationID, f.approverID, o.ID, fee.ID, fee, false, false); err != biz.ErrOrderFeeBillOccupied {
 		t.Fatalf("已建草稿账单仍须阻止直接改费: %v", err)
 	}
 	if _, err = NewFinanceBillRepo(f.data).Cancel(f.ctx, []uuid.UUID{f.organizationID}, bill.ID, f.approverID, bill.Version, "按权限回退至未建账", &biz.AuditEvent{OrganizationID: &f.organizationID, UserID: &f.approverID, Action: "finance.bill.cancel", Result: "success"}); err != nil {
@@ -50,7 +50,7 @@ func TestClosedOrderFeeContentEditableUntilReviewPostgres(t *testing.T) {
 		t.Fatal(err)
 	}
 	fee.UnitPrice = decimal.NewFromInt(130)
-	fee, err = normalFeeUsecaseForRollback(f).Update(f.ctx, f.organizationID, f.approverID, o.ID, fee.ID, fee, false)
+	fee, err = normalFeeUsecaseForRollback(f).Update(f.ctx, f.organizationID, f.approverID, o.ID, fee.ID, fee, false, false)
 	if err != nil {
 		t.Fatalf("回退至未建账后应可修改: %v", err)
 	}
@@ -60,7 +60,7 @@ func TestClosedOrderFeeContentEditableUntilReviewPostgres(t *testing.T) {
 	}
 	seedManualOrderReviewForTest(t, f.data, o.ID, f.approverID)
 	assertCapabilities(false, true)
-	if _, err = normalFeeUsecaseForRollback(f).Update(f.ctx, f.organizationID, f.approverID, o.ID, fee.ID, fee, false); errors.FromError(err).Reason != "ORDER_ALREADY_LOCKED" {
+	if _, err = normalFeeUsecaseForRollback(f).Update(f.ctx, f.organizationID, f.approverID, o.ID, fee.ID, fee, false, false); errors.FromError(err).Reason != "ORDER_ALREADY_LOCKED" {
 		t.Fatalf("审核锁定后普通改费必须拒绝: %v", err)
 	}
 	stored, err := f.data.db.Order.Get(f.ctx, o.ID)

@@ -19347,6 +19347,10 @@
           "masterNo": {
             "type": "string",
             "description": "海运 MBL / 空运 MAWB；终态读取本次终止保留的关联。"
+          },
+          "baseCurrencyNetAmount": {
+            "type": "string",
+            "description": "只读计算字段：本币不含税金额，口径同 OrderFee.base_currency_net_amount。"
           }
         }
       },
@@ -25356,6 +25360,10 @@
           },
           "quantitySource": {
             "$ref": "#/components/schemas/order.v1.FeeQuantitySelection"
+          },
+          "taxRate": {
+            "type": "string",
+            "description": "tax_rate 显式税率（0-100）；与费用设置目录税率不同即视为更改税率，须具备订单费用税率更改权限。"
           }
         }
       },
@@ -29176,6 +29184,10 @@
           },
           "canDelete": {
             "type": "boolean"
+          },
+          "baseCurrencyNetAmount": {
+            "type": "string",
+            "description": "只读计算字段：本币不含税金额，由 base_currency_amount 按 net_amount/total_amount 折算，\n 沿用费用自身汇率快照；base_currency_amount 为必有的持久化金额，故此处不使用 optional。"
           }
         },
         "description": "OrderFee 是一条订单应收或应付费用。\n 所有十进制字段均使用普通十进制字符串，禁止科学计数法和浮点传输。"
@@ -34052,7 +34064,7 @@
           },
           "taxRate": {
             "type": "string",
-            "description": "tax_rate 请求字段；审核中及已批准费用均禁止直接更新，既有草稿编辑配置不能绕过。"
+            "description": "tax_rate 显式税率（0-100）；与费用当前税率不同即视为更改税率，须具备订单费用税率更改权限，\n 且费用未建账；已建账费用只能走费用更正。未提供时保持已存税率，不被费用设置目录税率覆盖。"
           },
           "feeName": {
             "type": "string",

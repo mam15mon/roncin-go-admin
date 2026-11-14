@@ -830,9 +830,11 @@ type FeeLedgerItem struct {
 	UnverifiedAmount string `protobuf:"bytes,46,opt,name=unverified_amount,json=unverifiedAmount,proto3" json:"unverified_amount,omitempty"`
 	NettedAmount     string `protobuf:"bytes,47,opt,name=netted_amount,json=nettedAmount,proto3" json:"netted_amount,omitempty"`
 	// 海运 MBL / 空运 MAWB；终态读取本次终止保留的关联。
-	MasterNo      string `protobuf:"bytes,48,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	MasterNo string `protobuf:"bytes,48,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
+	// 只读计算字段：本币不含税金额，口径同 OrderFee.base_currency_net_amount。
+	BaseCurrencyNetAmount string `protobuf:"bytes,49,opt,name=base_currency_net_amount,json=baseCurrencyNetAmount,proto3" json:"base_currency_net_amount,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *FeeLedgerItem) Reset() {
@@ -1148,6 +1150,13 @@ func (x *FeeLedgerItem) GetNettedAmount() string {
 func (x *FeeLedgerItem) GetMasterNo() string {
 	if x != nil {
 		return x.MasterNo
+	}
+	return ""
+}
+
+func (x *FeeLedgerItem) GetBaseCurrencyNetAmount() string {
+	if x != nil {
+		return x.BaseCurrencyNetAmount
 	}
 	return ""
 }
@@ -19329,7 +19338,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x1b_has_pending_fee_supplementB\x0f\n" +
 	"\r_order_lockedJ\x04\b\x06\x10\aJ\x04\b\t\x10\n" +
 	"J\x04\b\n" +
-	"\x10\vJ\x04\b\x0e\x10\x0fJ\x04\b\x0f\x10\x10J\x04\b\x11\x10\x12R\x06statusR\x11expense_date_fromR\x0fexpense_date_toR\x0efinance_lockedR\atag_idsR\x11fee_review_status\"\x91\r\n" +
+	"\x10\vJ\x04\b\x0e\x10\x0fJ\x04\b\x0f\x10\x10J\x04\b\x11\x10\x12R\x06statusR\x11expense_date_fromR\x0fexpense_date_toR\x0efinance_lockedR\atag_idsR\x11fee_review_status\"\xca\r\n" +
 	"\rFeeLedgerItem\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x12\x19\n" +
@@ -19378,7 +19387,8 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x0fverified_amount\x18- \x01(\tR\x0everifiedAmount\x12+\n" +
 	"\x11unverified_amount\x18. \x01(\tR\x10unverifiedAmount\x12#\n" +
 	"\rnetted_amount\x18/ \x01(\tR\fnettedAmount\x12\x1b\n" +
-	"\tmaster_no\x180 \x01(\tR\bmasterNoB\a\n" +
+	"\tmaster_no\x180 \x01(\tR\bmasterNo\x127\n" +
+	"\x18base_currency_net_amount\x181 \x01(\tR\x15baseCurrencyNetAmountB\a\n" +
 	"\x05_noteB\v\n" +
 	"\t_tax_rateB\n" +
 	"\n" +

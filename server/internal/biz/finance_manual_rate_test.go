@@ -64,9 +64,9 @@ func TestOrderFeeManualRatePreservesCurrencyIdentity(t *testing.T) {
 					var item *OrderFee
 					var err error
 					if operation == "新增" {
-						item, err = uc.Add(context.Background(), org, uuid.New(), uuid.New(), &input, true)
+						item, err = uc.Add(context.Background(), org, uuid.New(), uuid.New(), &input, true, false)
 					} else {
-						item, err = uc.Update(context.Background(), org, uuid.New(), uuid.New(), fee.ID, &input, true)
+						item, err = uc.Update(context.Background(), org, uuid.New(), uuid.New(), fee.ID, &input, true, false)
 					}
 					if tc.currency == base && tc.rate != "1" {
 						if err != ErrExchangeRateSameCurrencyInvalid || item != nil || repo.added != nil || repo.updated != nil {

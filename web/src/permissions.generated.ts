@@ -30,6 +30,7 @@ export const manifestPermissionKeys = [
   'system.finance.exchange_rate.create',
   'system.finance.exchange_rate.update',
   'system.finance.order_fee.exchange_rate.override',
+  'system.finance.order_fee.tax_rate.edit',
   'system.finance.exchange_rate.disable',
   'system.finance.fee_setting.read',
   'system.finance.fee_setting.create',

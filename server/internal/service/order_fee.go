@@ -118,7 +118,12 @@ func (s *OrderFeeService) AddFee(ctx context.Context, request *v1.AddFeeRequest)
 	if err != nil {
 		return nil, err
 	}
-	created, err := s.usecase.Add(ctx, principal.Organization.ID, principal.UserID, orderID, input, principal.HasPermissionInScope(access.FinanceOrderFeeExchangeRateOverride, biz.DataScopeOrganization))
+	if err := applyOrderFeeTaxRateOverride(input, request.TaxRate); err != nil {
+		return nil, err
+	}
+	created, err := s.usecase.Add(ctx, principal.Organization.ID, principal.UserID, orderID, input,
+		principal.HasPermissionInScope(access.FinanceOrderFeeExchangeRateOverride, biz.DataScopeOrganization),
+		principal.HasPermissionInScope(access.FinanceOrderFeeTaxRateEdit, biz.DataScopeOrganization))
 	if err != nil {
 		return nil, err
 	}
@@ -143,17 +148,15 @@ func (s *OrderFeeService) UpdateFee(ctx context.Context, request *v1.UpdateFeeRe
 		return nil, err
 	}
 	input.Version = request.GetExpectedVersion()
-	if request.TaxRate != nil {
-		taxRate, parseErr := parsePlainDecimal(*request.TaxRate)
-		if parseErr != nil {
-			return nil, biz.ErrOrderFeeInvalidArgument
-		}
-		input.TaxRateOverride = &taxRate
+	if err := applyOrderFeeTaxRateOverride(input, request.TaxRate); err != nil {
+		return nil, err
 	}
 	if request.FeeName != nil {
 		input.FeeNameOverride = request.FeeName
 	}
-	updated, err := s.usecase.Update(ctx, principal.Organization.ID, principal.UserID, orderID, id, input, principal.HasPermissionInScope(access.FinanceOrderFeeExchangeRateOverride, biz.DataScopeOrganization))
+	updated, err := s.usecase.Update(ctx, principal.Organization.ID, principal.UserID, orderID, id, input,
+		principal.HasPermissionInScope(access.FinanceOrderFeeExchangeRateOverride, biz.DataScopeOrganization),
+		principal.HasPermissionInScope(access.FinanceOrderFeeTaxRateEdit, biz.DataScopeOrganization))
 	if err != nil {
 		return nil, err
 	}
@@ -249,30 +252,31 @@ func parseOrderFeeBulkUpdateParty(settlementPartyIDText *string) (*uuid.UUID, er
 
 func orderFeeToAPI(value *biz.OrderFee) *v1.OrderFee {
 	result := &v1.OrderFee{
-		Id:                  value.ID.String(),
-		OrderId:             value.OrderID.String(),
-		Direction:           orderFeeDirectionToAPI(value.Direction),
-		FeeCode:             value.FeeCode,
-		FeeName:             value.FeeName,
-		SettlementPartyId:   value.SettlementPartyID.String(),
-		SettlementPartyName: value.SettlementPartyName,
-		BillingUnit:         value.BillingUnit,
-		QuantitySource:      feeQuantitySelectionToAPI(value.QuantitySource),
-		Quantity:            value.Quantity.StringFixed(4),
-		UnitPrice:           value.UnitPrice.StringFixed(4),
-		TotalAmount:         value.TotalAmount.StringFixed(8),
-		TaxInclusive:        value.TaxInclusive,
-		NetAmount:           value.NetAmount.StringFixed(8),
-		TaxAmount:           value.TaxAmount.StringFixed(8),
-		Currency:            value.Currency,
-		ExchangeRate:        value.ExchangeRate.StringFixed(8),
-		ExchangeRateSource:  value.ExchangeRateSource,
-		ExchangeRateDate:    value.ExchangeRateDate,
-		BaseCurrency:        value.BaseCurrency,
-		BaseCurrencyAmount:  value.BaseCurrencyAmount.StringFixed(8),
-		Version:             value.Version,
-		Note:                value.Note,
-		HasActiveBill:       value.HasActiveBill, EconomicEffect: string(value.EconomicEffect), AccountingRequired: value.AccountingRequired, CanBill: value.CanBill, CanEdit: value.CanEdit, CanDelete: value.CanDelete, HasPendingChange: value.HasPendingChange, BlockedReasons: value.BlockedReasons, CanCorrect: value.CanCorrect,
+		Id:                    value.ID.String(),
+		OrderId:               value.OrderID.String(),
+		Direction:             orderFeeDirectionToAPI(value.Direction),
+		FeeCode:               value.FeeCode,
+		FeeName:               value.FeeName,
+		SettlementPartyId:     value.SettlementPartyID.String(),
+		SettlementPartyName:   value.SettlementPartyName,
+		BillingUnit:           value.BillingUnit,
+		QuantitySource:        feeQuantitySelectionToAPI(value.QuantitySource),
+		Quantity:              value.Quantity.StringFixed(4),
+		UnitPrice:             value.UnitPrice.StringFixed(4),
+		TotalAmount:           value.TotalAmount.StringFixed(8),
+		TaxInclusive:          value.TaxInclusive,
+		NetAmount:             value.NetAmount.StringFixed(8),
+		TaxAmount:             value.TaxAmount.StringFixed(8),
+		Currency:              value.Currency,
+		ExchangeRate:          value.ExchangeRate.StringFixed(8),
+		ExchangeRateSource:    value.ExchangeRateSource,
+		ExchangeRateDate:      value.ExchangeRateDate,
+		BaseCurrency:          value.BaseCurrency,
+		BaseCurrencyAmount:    value.BaseCurrencyAmount.StringFixed(8),
+		BaseCurrencyNetAmount: value.BaseCurrencyNetAmount().StringFixed(8),
+		Version:               value.Version,
+		Note:                  value.Note,
+		HasActiveBill:         value.HasActiveBill, EconomicEffect: string(value.EconomicEffect), AccountingRequired: value.AccountingRequired, CanBill: value.CanBill, CanEdit: value.CanEdit, CanDelete: value.CanDelete, HasPendingChange: value.HasPendingChange, BlockedReasons: value.BlockedReasons, CanCorrect: value.CanCorrect,
 		CreatedAt: value.CreatedAt.UTC().Format(time.RFC3339),
 		UpdatedAt: value.UpdatedAt.UTC().Format(time.RFC3339),
 	}
@@ -307,6 +311,19 @@ func orderFeeToAPI(value *biz.OrderFee) *v1.OrderFee {
 		result.ExchangeRateSettingId = &settingID
 	}
 	return result
+}
+
+// applyOrderFeeTaxRateOverride 解析请求中显式给出的税率；是否构成更改及授权由用例判定。
+func applyOrderFeeTaxRateOverride(input *biz.OrderFee, taxRate *string) error {
+	if taxRate == nil {
+		return nil
+	}
+	value, err := parsePlainDecimal(*taxRate)
+	if err != nil {
+		return biz.ErrOrderFeeInvalidArgument
+	}
+	input.TaxRateOverride = &value
+	return nil
 }
 
 func orderFeeInputFromAPI(orderIDText string, direction v1.OrderFeeDirection, feeSettingIDText, partyIDText, billingUnitIDText, quantityText, unitPriceText, currency, note string, exchangeRateOverrideText *string, idempotencyKey string, taxInclusive *bool) (uuid.UUID, *biz.OrderFee, error) {

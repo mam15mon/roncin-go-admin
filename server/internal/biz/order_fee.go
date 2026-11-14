@@ -23,6 +23,7 @@ var (
 	ErrOrderFeeBillingUnitInvalid            = errors.BadRequest("ORDER_FEE_BILLING_UNIT_INVALID", "计费单位不存在、已停用或不属于当前组织")
 	ErrOrderFeeQuantityMustBeInteger         = errors.BadRequest("ORDER_FEE_QUANTITY_MUST_BE_INTEGER", "该计费单位的数量必须为正整数")
 	ErrOrderFeeExchangeRateOverrideForbidden = errors.Forbidden("ORDER_FEE_EXCHANGE_RATE_OVERRIDE_FORBIDDEN", "无权手工覆盖费用汇率")
+	ErrOrderFeeTaxRateForbidden              = errors.Forbidden("ORDER_FEE_TAX_RATE_FORBIDDEN", "无权更改订单费用税率")
 	ErrOrderFeeExchangeRateOverrideMismatch  = errors.Forbidden("ORDER_FEE_EXCHANGE_RATE_OVERRIDE_MISMATCH", "订单应收与应付费用币种不一致或尚不完整，不能手工调整汇率")
 	ErrOrderFeeEtdMissing                    = errors.BadRequest("ORDER_ETD_MISSING", "出口订单按 ETD 取汇率，请先填写订单 ETD")
 	ErrOrderFeeEtaMissing                    = errors.BadRequest("ORDER_ETA_MISSING", "进口订单按 ETA 取汇率，请先填写订单 ETA")
@@ -98,6 +99,12 @@ type OrderFee struct {
 	Version               uint64
 	CreatedAt             time.Time
 	UpdatedAt             time.Time
+}
+
+// BaseCurrencyNetAmount 返回本币不含税金额（只读计算值，不持久化）：
+// 含税本币金额按未税/含税比例折算，沿用费用自身汇率快照；列表、台账、详情共用此入口。
+func (f *OrderFee) BaseCurrencyNetAmount() decimal.Decimal {
+	return CommissionNetBase(f.BaseCurrencyAmount, f.NetAmount, f.TotalAmount)
 }
 
 type BilledFeeBillContext struct {
@@ -242,7 +249,7 @@ func (uc *OrderFeeUsecase) Options(ctx context.Context, organizationID, orderID 
 	return options, nil
 }
 
-func (uc *OrderFeeUsecase) Add(ctx context.Context, organizationID, actorID, orderID uuid.UUID, input *OrderFee, canOverrideExchangeRate bool) (*OrderFee, error) {
+func (uc *OrderFeeUsecase) Add(ctx context.Context, organizationID, actorID, orderID uuid.UUID, input *OrderFee, canOverrideExchangeRate, canEditTaxRate bool) (*OrderFee, error) {
 	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil {
 		return nil, ErrOrderFeeInvalidArgument
 	}
@@ -257,6 +264,14 @@ func (uc *OrderFeeUsecase) Add(ctx context.Context, organizationID, actorID, ord
 	}
 	if err := uc.resolveCatalog(ctx, organizationID, orderID, normalized, true, false); err != nil {
 		return nil, err
+	}
+	// 显式税率与目录税率不同才算更改税率，须具备专属权限；相同值不需要授权。
+	taxRateChanged := normalized.TaxRateOverride != nil && !decimalPointersEqual(normalized.TaxRateOverride, normalized.TaxRate)
+	if taxRateChanged {
+		if !canEditTaxRate {
+			return nil, ErrOrderFeeTaxRateForbidden
+		}
+		normalized.TaxRate = normalized.TaxRateOverride
 	}
 	existingFees, err := uc.repo.List(ctx, organizationID, orderID)
 	if err != nil {
@@ -278,7 +293,11 @@ func (uc *OrderFeeUsecase) Add(ctx context.Context, organizationID, actorID, ord
 		}
 		return nil, ErrOrderFeeIdempotencyConflict
 	}
-	created, err := uc.repo.Add(ctx, organizationID, orderID, normalized, orderFeeAudit(organizationID, actorID, orderID, normalized.ID, "order.fee.add", normalized))
+	addAudit := orderFeeAudit(organizationID, actorID, orderID, normalized.ID, "order.fee.add", normalized)
+	if taxRateChanged {
+		addAudit.Details["fee.tax_rate_changed"] = "true"
+	}
+	created, err := uc.repo.Add(ctx, organizationID, orderID, normalized, addAudit)
 	if err == nil {
 		return created, nil
 	}
@@ -304,6 +323,7 @@ func sameOrderFeeCreateIntent(existing, requested *OrderFee) bool {
 		existing.Currency == requested.Currency &&
 		stringPointersEqual(existing.Note, requested.Note) &&
 		existing.TaxInclusive == requested.TaxInclusive &&
+		decimalPointersEqual(existing.TaxRate, requested.TaxRate) &&
 		existing.TotalAmount.Equal(requested.TotalAmount) &&
 		existing.ExchangeRate.Equal(requested.ExchangeRate)
 }
@@ -316,7 +336,7 @@ func stringPointersEqual(left, right *string) bool {
 	return (left == nil && right == nil) || (left != nil && right != nil && *left == *right)
 }
 
-func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID, input *OrderFee, canOverrideExchangeRate bool) (*OrderFee, error) {
+func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, orderID, id uuid.UUID, input *OrderFee, canOverrideExchangeRate, canEditTaxRate bool) (*OrderFee, error) {
 	if organizationID == uuid.Nil || actorID == uuid.Nil || orderID == uuid.Nil || id == uuid.Nil || input == nil || input.Version == 0 {
 		return nil, ErrOrderFeeInvalidArgument
 	}
@@ -327,7 +347,6 @@ func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, 
 	if current.HasActiveBill {
 		return nil, ErrOrderFeeBillOccupied
 	}
-	requestedTaxRate := input.TaxRateOverride
 	input.ID = id
 	normalized, err := normalizeOrderFee(input)
 	if err != nil {
@@ -338,6 +357,16 @@ func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, 
 	}
 	if err := uc.resolveCatalog(ctx, organizationID, orderID, normalized, false, uuidPointersEqual(current.BillingUnitID, normalized.BillingUnitID)); err != nil {
 		return nil, err
+	}
+	// 税率取值：显式税率优先；否则费用设置未变更时保持已存税率，仅在费用设置变更时采用目录税率。
+	if normalized.TaxRateOverride != nil {
+		normalized.TaxRate = normalized.TaxRateOverride
+	} else if uuidPointersEqual(current.FeeSettingID, normalized.FeeSettingID) && current.TaxRate != nil {
+		normalized.TaxRate = current.TaxRate
+	}
+	taxRateChanged := !decimalPointersEqual(current.TaxRate, normalized.TaxRate)
+	if normalized.TaxRateOverride != nil && taxRateChanged && !canEditTaxRate {
+		return nil, ErrOrderFeeTaxRateForbidden
 	}
 	if normalized.ExchangeRateOverride == nil && normalized.Currency == current.Currency && normalized.Direction == current.Direction {
 		normalized.ExchangeRate, normalized.ExchangeRateSource, normalized.ExchangeRateDate, normalized.ExchangeRateSettingID = current.ExchangeRate, current.ExchangeRateSource, current.ExchangeRateDate, current.ExchangeRateSettingID
@@ -353,13 +382,18 @@ func (uc *OrderFeeUsecase) Update(ctx context.Context, organizationID, actorID, 
 	if err := uc.calculateAmounts(ctx, organizationID, normalized); err != nil {
 		return nil, err
 	}
-	if requestedTaxRate != nil || input.FeeNameOverride != nil {
+	if input.FeeNameOverride != nil {
 		return nil, ErrOrderFeeInvalidArgument
 	}
 	normalized.Version = input.Version
 	auditFee := *normalized
 	auditFee.Version = input.Version + 1
-	return uc.repo.Update(ctx, organizationID, orderID, id, normalized, nil, orderFeeAudit(organizationID, actorID, orderID, id, "order.fee.update", &auditFee))
+	updateAudit := orderFeeAudit(organizationID, actorID, orderID, id, "order.fee.update", &auditFee)
+	if taxRateChanged {
+		updateAudit.Details["fee.tax_rate_before"] = decimalPointerAuditText(current.TaxRate)
+		updateAudit.Details["fee.tax_rate_after"] = decimalPointerAuditText(normalized.TaxRate)
+	}
+	return uc.repo.Update(ctx, organizationID, orderID, id, normalized, nil, updateAudit)
 }
 
 // ValidateBilledFeeUpdate 校验已建账单费用的字段级修改范围；数据层会在事务锁内再次调用。
@@ -398,6 +432,13 @@ func ValidateBilledFeeUpdate(current, requested *OrderFee, policy *BilledFeeEdit
 		return ErrBilledFeeFieldForbidden
 	}
 	return nil
+}
+
+func decimalPointerAuditText(value *decimal.Decimal) string {
+	if value == nil {
+		return ""
+	}
+	return value.StringFixed(2)
 }
 
 func decimalPointersEqual(left, right *decimal.Decimal) bool {

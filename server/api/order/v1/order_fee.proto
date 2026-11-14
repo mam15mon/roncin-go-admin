@@ -209,6 +209,9 @@ message OrderFee {
   bool has_pending_change = 47;
   repeated string blocked_reasons = 48;
   bool can_delete = 49;
+  // 只读计算字段：本币不含税金额，由 base_currency_amount 按 net_amount/total_amount 折算，
+  // 沿用费用自身汇率快照；base_currency_amount 为必有的持久化金额，故此处不使用 optional。
+  string base_currency_net_amount = 50;
 }
 
 message ListFeesRequest {
@@ -285,6 +288,8 @@ message AddFeeRequest {
   string idempotency_key = 16 [(google.api.field_behavior) = REQUIRED];
   optional bool tax_inclusive = 17;
   FeeQuantitySelection quantity_source = 18;
+  // tax_rate 显式税率（0-100）；与费用设置目录税率不同即视为更改税率，须具备订单费用税率更改权限。
+  optional string tax_rate = 19;
 }
 
 message UpdateFeeRequest {
@@ -304,7 +309,8 @@ message UpdateFeeRequest {
   string billing_unit_id = 16 [(google.api.field_behavior) = REQUIRED];
   uint64 expected_version = 17 [(google.api.field_behavior) = REQUIRED];
   optional bool tax_inclusive = 18;
-  // tax_rate 请求字段；审核中及已批准费用均禁止直接更新，既有草稿编辑配置不能绕过。
+  // tax_rate 显式税率（0-100）；与费用当前税率不同即视为更改税率，须具备订单费用税率更改权限，
+  // 且费用未建账；已建账费用只能走费用更正。未提供时保持已存税率，不被费用设置目录税率覆盖。
   optional string tax_rate = 19;
   // fee_name 仅覆盖当前可编辑费用，不修改费用设置主数据。
   optional string fee_name = 20;

@@ -87,7 +87,7 @@ func TestOrderFeeAddSavesAsUnbilledAndImmediatelyBillable(t *testing.T) {
 	repo := &orderFeeAddCaptureRepoStub{}
 	usecase := NewOrderFeeUsecase(repo, NewExchangeRateUsecase(&orderFeeExchangeRateRepoStub{rate: decimal.NewFromInt(1)}, nil), nil, newReminderModeCreditControl(), nil)
 
-	created, err := usecase.Add(ctx, organizationID, actorID, orderID, validOrderFeeForTest(), false)
+	created, err := usecase.Add(ctx, organizationID, actorID, orderID, validOrderFeeForTest(), false, false)
 	if err != nil {
 		t.Fatalf("保存费用失败: %v", err)
 	}
@@ -132,7 +132,7 @@ func TestOrderFeeUpdatePreservesOldRateSnapshotWithoutManualRequest(t *testing.T
 			note := "仅修改备注"
 			input.Note = &note
 			input.ExchangeRateOverride = nil
-			_, err := usecase.Update(context.Background(), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), current.ID, &input, false)
+			_, err := usecase.Update(context.Background(), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), current.ID, &input, false, false)
 			if err != nil {
 				t.Fatalf("非汇率字段更新失败: %v", err)
 			}
@@ -152,7 +152,7 @@ func TestOrderFeeUpdateRejectsForgedManualRate(t *testing.T) {
 	input := *current
 	manualRate := decimal.RequireFromString("7.2")
 	input.ExchangeRateOverride = &manualRate
-	_, err := usecase.Update(context.Background(), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), current.ID, &input, false)
+	_, err := usecase.Update(context.Background(), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), current.ID, &input, false, false)
 	if err != ErrOrderFeeExchangeRateOverrideForbidden || repo.updated != nil {
 		t.Fatalf("无权限伪造手工汇率应拒绝，实际 err=%v updated=%+v", err, repo.updated)
 	}

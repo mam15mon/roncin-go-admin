@@ -28,7 +28,7 @@ func addOrdinaryTestFee(t *testing.T, f *feeSupplementPostgresFixture, o *ent.Or
 	input := correctionTestInput(f, "ADD", uuid.NewString(), nil, amount).After
 	input.IdempotencyKey = uuid.NewString()
 	input.TaxRateOverride = nil
-	value, err := normalFeeUsecaseForRollback(f).Add(f.ctx, f.organizationID, f.approverID, o.ID, input, false)
+	value, err := normalFeeUsecaseForRollback(f).Add(f.ctx, f.organizationID, f.approverID, o.ID, input, false, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,7 +62,7 @@ func TestUnifiedFeeBillingAndCorrectionAdmissionPostgres(t *testing.T) {
 	second := addOrdinaryTestFee(t, f, o, 200)
 	update := *first
 	update.Note = new(string)
-	if _, err = normalFeeUsecaseForRollback(f).Update(f.ctx, f.organizationID, f.approverID, o.ID, first.ID, &update, false); err != biz.ErrOrderFeeBillOccupied {
+	if _, err = normalFeeUsecaseForRollback(f).Update(f.ctx, f.organizationID, f.approverID, o.ID, first.ID, &update, false, false); err != biz.ErrOrderFeeBillOccupied {
 		t.Fatalf("草稿建账也应冻结原费: %v", err)
 	}
 	seedManualOrderReviewForTest(t, f.data, o.ID, f.approverID)
@@ -93,7 +93,7 @@ func TestUnifiedFeeBillingAndCorrectionAdmissionPostgres(t *testing.T) {
 		t.Fatal(err)
 	}
 	current.Note = new(string)
-	current, err = normalFeeUsecaseForRollback(f).Update(f.ctx, f.organizationID, f.approverID, o.ID, current.ID, current, false)
+	current, err = normalFeeUsecaseForRollback(f).Update(f.ctx, f.organizationID, f.approverID, o.ID, current.ID, current, false, false)
 	if err != nil {
 		t.Fatalf("解锁后替代费应可编辑: %v", err)
 	}
@@ -142,7 +142,7 @@ func TestOrdinaryFeeMutationReconcilesPaidCommissionPostgres(t *testing.T) {
 	assertNet("50.56603774")
 	fee.UnitPrice = decimal.NewFromInt(200)
 	fee.QuantitySource = nil
-	fee, err = normalFeeUsecaseForRollback(f).Update(f.ctx, f.organizationID, f.approverID, o.ID, fee.ID, fee, false)
+	fee, err = normalFeeUsecaseForRollback(f).Update(f.ctx, f.organizationID, f.approverID, o.ID, fee.ID, fee, false, false)
 	if err != nil {
 		t.Fatal(err)
 	}

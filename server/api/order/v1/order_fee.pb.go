@@ -174,6 +174,9 @@ type OrderFee struct {
 	HasPendingChange      bool                  `protobuf:"varint,47,opt,name=has_pending_change,json=hasPendingChange,proto3" json:"has_pending_change,omitempty"`
 	BlockedReasons        []string              `protobuf:"bytes,48,rep,name=blocked_reasons,json=blockedReasons,proto3" json:"blocked_reasons,omitempty"`
 	CanDelete             bool                  `protobuf:"varint,49,opt,name=can_delete,json=canDelete,proto3" json:"can_delete,omitempty"`
+	// 只读计算字段：本币不含税金额，由 base_currency_amount 按 net_amount/total_amount 折算，
+	// 沿用费用自身汇率快照；base_currency_amount 为必有的持久化金额，故此处不使用 optional。
+	BaseCurrencyNetAmount string `protobuf:"bytes,50,opt,name=base_currency_net_amount,json=baseCurrencyNetAmount,proto3" json:"base_currency_net_amount,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -507,6 +510,13 @@ func (x *OrderFee) GetCanDelete() bool {
 		return x.CanDelete
 	}
 	return false
+}
+
+func (x *OrderFee) GetBaseCurrencyNetAmount() string {
+	if x != nil {
+		return x.BaseCurrencyNetAmount
+	}
+	return ""
 }
 
 type ListFeesRequest struct {
@@ -1048,8 +1058,10 @@ type AddFeeRequest struct {
 	IdempotencyKey       string                 `protobuf:"bytes,16,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	TaxInclusive         *bool                  `protobuf:"varint,17,opt,name=tax_inclusive,json=taxInclusive,proto3,oneof" json:"tax_inclusive,omitempty"`
 	QuantitySource       *FeeQuantitySelection  `protobuf:"bytes,18,opt,name=quantity_source,json=quantitySource,proto3" json:"quantity_source,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	// tax_rate 显式税率（0-100）；与费用设置目录税率不同即视为更改税率，须具备订单费用税率更改权限。
+	TaxRate       *string `protobuf:"bytes,19,opt,name=tax_rate,json=taxRate,proto3,oneof" json:"tax_rate,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *AddFeeRequest) Reset() {
@@ -1173,6 +1185,13 @@ func (x *AddFeeRequest) GetQuantitySource() *FeeQuantitySelection {
 	return nil
 }
 
+func (x *AddFeeRequest) GetTaxRate() string {
+	if x != nil && x.TaxRate != nil {
+		return *x.TaxRate
+	}
+	return ""
+}
+
 type UpdateFeeRequest struct {
 	state                protoimpl.MessageState `protogen:"open.v1"`
 	OrderId              string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
@@ -1188,7 +1207,8 @@ type UpdateFeeRequest struct {
 	BillingUnitId        string                 `protobuf:"bytes,16,opt,name=billing_unit_id,json=billingUnitId,proto3" json:"billing_unit_id,omitempty"`
 	ExpectedVersion      uint64                 `protobuf:"varint,17,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
 	TaxInclusive         *bool                  `protobuf:"varint,18,opt,name=tax_inclusive,json=taxInclusive,proto3,oneof" json:"tax_inclusive,omitempty"`
-	// tax_rate 请求字段；审核中及已批准费用均禁止直接更新，既有草稿编辑配置不能绕过。
+	// tax_rate 显式税率（0-100）；与费用当前税率不同即视为更改税率，须具备订单费用税率更改权限，
+	// 且费用未建账；已建账费用只能走费用更正。未提供时保持已存税率，不被费用设置目录税率覆盖。
 	TaxRate *string `protobuf:"bytes,19,opt,name=tax_rate,json=taxRate,proto3,oneof" json:"tax_rate,omitempty"`
 	// fee_name 仅覆盖当前可编辑费用，不修改费用设置主数据。
 	FeeName        *string               `protobuf:"bytes,20,opt,name=fee_name,json=feeName,proto3,oneof" json:"fee_name,omitempty"`
@@ -7943,7 +7963,7 @@ var File_order_v1_order_fee_proto protoreflect.FileDescriptor
 
 const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\n" +
-	"\x18order/v1/order_fee.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x14order/v1/order.proto\"\xde\x0f\n" +
+	"\x18order/v1/order_fee.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x14order/v1/order.proto\"\x97\x10\n" +
 	"\bOrderFee\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\border_id\x18\x02 \x01(\tR\aorderId\x129\n" +
@@ -7995,7 +8015,8 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\x12has_pending_change\x18/ \x01(\bR\x10hasPendingChange\x12'\n" +
 	"\x0fblocked_reasons\x180 \x03(\tR\x0eblockedReasons\x12\x1d\n" +
 	"\n" +
-	"can_delete\x181 \x01(\bR\tcanDeleteB\a\n" +
+	"can_delete\x181 \x01(\bR\tcanDelete\x127\n" +
+	"\x18base_currency_net_amount\x182 \x01(\tR\x15baseCurrencyNetAmountB\a\n" +
 	"\x05_noteB\x1b\n" +
 	"\x19_exchange_rate_setting_idB\x11\n" +
 	"\x0f_fee_setting_idB\x12\n" +
@@ -8056,7 +8077,7 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\vcustomer_id\x18\r \x01(\tR\n" +
 	"customerId\x12#\n" +
 	"\rcustomer_name\x18\x0e \x01(\tR\fcustomerNameJ\x04\b\n" +
-	"\x10\vJ\x04\b\v\x10\fJ\x04\b\f\x10\rR\x0efinance_lockedR\x13finance_lock_reasonR\x1bfinance_lock_commission_nos\"\xcd\x05\n" +
+	"\x10\vJ\x04\b\v\x10\fJ\x04\b\f\x10\rR\x0efinance_lockedR\x13finance_lock_reasonR\x1bfinance_lock_commission_nos\"\xfa\x05\n" +
 	"\rAddFeeRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12>\n" +
 	"\tdirection\x18\x02 \x01(\x0e2\x1b.order.v1.OrderFeeDirectionB\x03\xe0A\x02R\tdirection\x123\n" +
@@ -8071,10 +8092,12 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\x0fbilling_unit_id\x18\x0f \x01(\tB\x03\xe0A\x02R\rbillingUnitId\x12,\n" +
 	"\x0fidempotency_key\x18\x10 \x01(\tB\x03\xe0A\x02R\x0eidempotencyKey\x12(\n" +
 	"\rtax_inclusive\x18\x11 \x01(\bH\x02R\ftaxInclusive\x88\x01\x01\x12G\n" +
-	"\x0fquantity_source\x18\x12 \x01(\v2\x1e.order.v1.FeeQuantitySelectionR\x0equantitySourceB\a\n" +
+	"\x0fquantity_source\x18\x12 \x01(\v2\x1e.order.v1.FeeQuantitySelectionR\x0equantitySource\x12\x1e\n" +
+	"\btax_rate\x18\x13 \x01(\tH\x03R\ataxRate\x88\x01\x01B\a\n" +
 	"\x05_noteB\x19\n" +
 	"\x17_exchange_rate_overrideB\x10\n" +
-	"\x0e_tax_inclusiveJ\x04\b\x03\x10\x04J\x04\b\x04\x10\x05J\x04\b\x06\x10\aJ\x04\b\n" +
+	"\x0e_tax_inclusiveB\v\n" +
+	"\t_tax_rateJ\x04\b\x03\x10\x04J\x04\b\x04\x10\x05J\x04\b\x06\x10\aJ\x04\b\n" +
 	"\x10\vJ\x04\b\v\x10\fR\bfee_codeR\bfee_nameR\fbilling_unit\"\xb7\x06\n" +
 	"\x10UpdateFeeRequest\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x12\x13\n" +

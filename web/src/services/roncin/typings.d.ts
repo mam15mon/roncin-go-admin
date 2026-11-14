@@ -50,6 +50,8 @@ declare namespace API {
     idempotencyKey: string;
     taxInclusive?: boolean;
     quantitySource?: FeeQuantitySelection;
+    /** tax_rate 显式税率（0-100）；与费用设置目录税率不同即视为更改税率，须具备订单费用税率更改权限。 */
+    taxRate?: string;
   };
 
   type AddFeeResponse = {
@@ -2606,6 +2608,8 @@ declare namespace API {
     nettedAmount?: string;
     /** 海运 MBL / 空运 MAWB；终态读取本次终止保留的关联。 */
     masterNo?: string;
+    /** 只读计算字段：本币不含税金额，口径同 OrderFee.base_currency_net_amount。 */
+    baseCurrencyNetAmount?: string;
   };
 
   type FeeLedgerOrderDetail = {
@@ -5223,6 +5227,9 @@ declare namespace API {
     hasPendingChange?: boolean;
     blockedReasons?: string[];
     canDelete?: boolean;
+    /** 只读计算字段：本币不含税金额，由 base_currency_amount 按 net_amount/total_amount 折算，
+ 沿用费用自身汇率快照；base_currency_amount 为必有的持久化金额，故此处不使用 optional。 */
+    baseCurrencyNetAmount?: string;
   };
 
   type OrderFeeBillingUnitOption = {
@@ -8795,7 +8802,8 @@ declare namespace API {
     billingUnitId: string;
     expectedVersion: string;
     taxInclusive?: boolean;
-    /** tax_rate 请求字段；审核中及已批准费用均禁止直接更新，既有草稿编辑配置不能绕过。 */
+    /** tax_rate 显式税率（0-100）；与费用当前税率不同即视为更改税率，须具备订单费用税率更改权限，
+ 且费用未建账；已建账费用只能走费用更正。未提供时保持已存税率，不被费用设置目录税率覆盖。 */
     taxRate?: string;
     /** fee_name 仅覆盖当前可编辑费用，不修改费用设置主数据。 */
     feeName?: string;

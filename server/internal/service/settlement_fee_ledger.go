@@ -96,7 +96,7 @@ func feeLedgerItemToAPI(item *biz.FeeLedgerItem) *v1.FeeLedgerItem {
 		Id: fee.ID.String(), OrderId: fee.OrderID.String(), OrderNo: item.OrderNo, BusinessType: item.Business, CustomerId: item.CustomerID.String(), CustomerName: item.CustomerName, OrganizationId: item.OrganizationID.String(), OrganizationName: item.OrganizationName,
 		Direction: string(biz.SettlementDirection(fee)), FeeCode: fee.FeeCode, FeeName: fee.FeeName, SettlementPartyId: fee.SettlementPartyID.String(), SettlementPartyName: fee.SettlementPartyName, BillingUnit: fee.BillingUnit,
 		Quantity: fee.Quantity.StringFixed(4), UnitPrice: fee.UnitPrice.StringFixed(4), TotalAmount: fee.TotalAmount.StringFixed(8), NetAmount: fee.NetAmount.StringFixed(8), TaxAmount: fee.TaxAmount.StringFixed(8), Currency: fee.Currency,
-		ExchangeRate: fee.ExchangeRate.StringFixed(8), BaseCurrency: fee.BaseCurrency, BaseCurrencyAmount: fee.BaseCurrencyAmount.StringFixed(8), Note: fee.Note, Version: fee.Version,
+		ExchangeRate: fee.ExchangeRate.StringFixed(8), BaseCurrency: fee.BaseCurrency, BaseCurrencyAmount: fee.BaseCurrencyAmount.StringFixed(8), BaseCurrencyNetAmount: fee.BaseCurrencyNetAmount().StringFixed(8), Note: fee.Note, Version: fee.Version,
 		CreatedAt: fee.CreatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"), UpdatedAt: fee.UpdatedAt.UTC().Format("2006-01-02T15:04:05Z07:00"), TaxRate: financeDecimalPointer(fee.TaxRate, 4),
 		MasterNo:          item.MasterNo,
 		FinancialProgress: feeLedgerFinancialProgressToAPI(item.FinancialProgress),
