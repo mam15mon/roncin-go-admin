@@ -24,7 +24,8 @@ var (
 	ErrOrderFeeQuantityMustBeInteger         = errors.BadRequest("ORDER_FEE_QUANTITY_MUST_BE_INTEGER", "该计费单位的数量必须为正整数")
 	ErrOrderFeeExchangeRateOverrideForbidden = errors.Forbidden("ORDER_FEE_EXCHANGE_RATE_OVERRIDE_FORBIDDEN", "无权手工覆盖费用汇率")
 	ErrOrderFeeExchangeRateOverrideMismatch  = errors.Forbidden("ORDER_FEE_EXCHANGE_RATE_OVERRIDE_MISMATCH", "订单应收与应付费用币种不一致或尚不完整，不能手工调整汇率")
-	ErrOrderFeeEtdMissing                    = errors.BadRequest("ORDER_ETD_MISSING", "请先填写订单 ETD 后再解析汇率")
+	ErrOrderFeeEtdMissing                    = errors.BadRequest("ORDER_ETD_MISSING", "出口订单按 ETD 取汇率，请先填写订单 ETD")
+	ErrOrderFeeEtaMissing                    = errors.BadRequest("ORDER_ETA_MISSING", "进口订单按 ETA 取汇率，请先填写订单 ETA")
 	ErrOrderFeeVersionConflict               = errors.Conflict("ORDER_FEE_VERSION_CONFLICT", "订单费用已被其他操作人修改，请刷新后重试")
 	ErrOrderFeeBillOccupied                  = errors.Conflict("ORDER_FEE_BILL_OCCUPIED", "费用已建立账单，请先逐步回退至账单未建立后再修改或删除")
 	ErrOrderFeeSupplementDeleteForbidden     = errors.Conflict("ORDER_FEE_SUPPLEMENT_DELETE_FORBIDDEN", "补录生成的费用不能普通删除，请前往补录申请专用撤销")
@@ -164,7 +165,9 @@ type OrderFeeRepo interface {
 	ConfirmedQuantityPreview(context.Context, uuid.UUID, uuid.UUID, uuid.UUID, string) (*FeeQuantityPreview, error)
 	QuantitySource(ctx context.Context, organizationID, orderID, billingUnitID uuid.UUID, source string) (*FeeQuantitySource, error)
 	Options(ctx context.Context, organizationID, orderID uuid.UUID) (*OrderFeeOptions, error)
-	OrderETDDate(ctx context.Context, organizationID, orderID uuid.UUID) (string, error)
+	// OrderRateDate 返回订单取汇率日期所需字段（仅 TradeDirection、ETD、ETA 有值），
+	// 订单不存在时报不存在。取值规则见 OrderRateDay。
+	OrderRateDate(ctx context.Context, organizationID, orderID uuid.UUID) (*Order, error)
 	ResolveCatalog(ctx context.Context, organizationID, orderID, feeSettingID, billingUnitID uuid.UUID, allowDisabledUnit bool) (*OrderFeeCatalogSnapshot, error)
 	List(ctx context.Context, organizationID, orderID uuid.UUID) ([]*OrderFee, error)
 	Get(ctx context.Context, organizationID, orderID, id uuid.UUID) (*OrderFee, error)
@@ -452,7 +455,7 @@ func ValidateFeeQuantityForUnit(quantity decimal.Decimal, mustBeInteger bool) er
 	return nil
 }
 
-// ResolveExchangeRate 按订单 ETD 所在自然周与收支方向解析折本币周汇率（携带
+// ResolveExchangeRate 按订单取汇率日期（出口 ETD、进口 ETA）所在自然周与收支方向解析折本币周汇率（携带
 // 来源与命中行），供前端录入费用时预览；应收命中 ar_rate，应付命中 ap_rate。
 func (uc *OrderFeeUsecase) ResolveExchangeRate(ctx context.Context, organizationID, orderID uuid.UUID, direction OrderFeeDirection, currency string) (ResolvedRate, error) {
 	if organizationID == uuid.Nil || orderID == uuid.Nil || (direction != OrderFeeReceivable && direction != OrderFeePayable) {
@@ -461,31 +464,48 @@ func (uc *OrderFeeUsecase) ResolveExchangeRate(ctx context.Context, organization
 	if _, err := uc.repo.Options(ctx, organizationID, orderID); err != nil {
 		return ResolvedRate{}, err
 	}
-	etdDay, err := uc.orderETDDay(ctx, organizationID, orderID)
+	rateDay, err := uc.orderRateDay(ctx, organizationID, orderID)
 	if err != nil {
 		return ResolvedRate{}, err
 	}
-	return uc.exchangeRate.ResolveRate(ctx, organizationID, direction, currency, etdDay)
+	resolved, err := uc.exchangeRate.ResolveRate(ctx, organizationID, direction, currency, rateDay)
+	if err != nil {
+		return ResolvedRate{}, wrapExchangeRateMissingForDate(err, currency, rateDay, direction)
+	}
+	return resolved, nil
 }
 
-// orderEtdBusinessDay 将订单 ETD（RFC3339 时刻）换算到业务时区后的自然日；
-// ETD 为空或格式不合法时返回 ErrOrderFeeEtdMissing，由前端提示先补 ETD。
-func orderEtdBusinessDay(etd string) (string, error) {
-	trimmed := strings.TrimSpace(etd)
-	parsed, err := time.Parse(time.RFC3339, trimmed)
+// OrderRateDay 返回订单取费用汇率所用的业务时区自然日：出口取 ETD，进口取 ETA。
+// 对应日期缺失或格式不合法时返回带字段名的专用错误，不回退另一日期或创建时间；
+// 贸易方向非法同样显式失败，不默认出口。
+func OrderRateDay(order *Order) (string, error) {
+	if order == nil {
+		return "", ErrOrderFeeInvalidArgument
+	}
+	var raw string
+	var missing error
+	switch order.TradeDirection {
+	case OrderTradeExport:
+		raw, missing = order.ETD, ErrOrderFeeEtdMissing
+	case OrderTradeImport:
+		raw, missing = order.ETA, ErrOrderFeeEtaMissing
+	default:
+		return "", ErrOrderFeeInvalidArgument
+	}
+	parsed, err := time.Parse(time.RFC3339, strings.TrimSpace(raw))
 	if err != nil {
-		return "", ErrOrderFeeEtdMissing
+		return "", missing
 	}
 	return parsed.In(exchangeRateBusinessLocation).Format("2006-01-02"), nil
 }
 
-// orderETDDay 读取订单 ETD 并换算为业务时区自然日，供汇率按周解析使用。
-func (uc *OrderFeeUsecase) orderETDDay(ctx context.Context, organizationID, orderID uuid.UUID) (string, error) {
-	etd, err := uc.repo.OrderETDDate(ctx, organizationID, orderID)
+// orderRateDay 读取订单方向与 ETD/ETA 并换算为业务时区自然日，供汇率按周解析使用。
+func (uc *OrderFeeUsecase) orderRateDay(ctx context.Context, organizationID, orderID uuid.UUID) (string, error) {
+	order, err := uc.repo.OrderRateDate(ctx, organizationID, orderID)
 	if err != nil {
 		return "", err
 	}
-	return orderEtdBusinessDay(etd)
+	return OrderRateDay(order)
 }
 
 // orderFeeCurrencySetsMatch 判断「本笔提交合并订单既有费用后」的应收币种集合
@@ -520,7 +540,7 @@ func orderFeeCurrencySetsMatch(existing []*OrderFee, pending *OrderFee) bool {
 }
 
 func (uc *OrderFeeUsecase) resolveExchangeRate(ctx context.Context, organizationID, orderID uuid.UUID, fee *OrderFee, canOverrideExchangeRate bool, existingFees []*OrderFee) error {
-	etdDay, err := uc.orderETDDay(ctx, organizationID, orderID)
+	rateDay, err := uc.orderRateDay(ctx, organizationID, orderID)
 	if err != nil {
 		return err
 	}
@@ -540,17 +560,17 @@ func (uc *OrderFeeUsecase) resolveExchangeRate(ctx context.Context, organization
 		}
 		fee.ExchangeRate = *fee.ExchangeRateOverride
 		fee.ExchangeRateSource = ExchangeRateSourceManual
-		fee.ExchangeRateDate = etdDay
+		fee.ExchangeRateDate = rateDay
 		fee.ExchangeRateSettingID = nil
 		return nil
 	}
-	resolved, err := uc.exchangeRate.ResolveRate(ctx, organizationID, fee.Direction, fee.Currency, etdDay)
+	resolved, err := uc.exchangeRate.ResolveRate(ctx, organizationID, fee.Direction, fee.Currency, rateDay)
 	if err != nil {
-		return err
+		return wrapExchangeRateMissingForDate(err, fee.Currency, rateDay, fee.Direction)
 	}
 	fee.ExchangeRate = resolved.Rate
 	fee.ExchangeRateSource = resolved.Source
-	fee.ExchangeRateDate = etdDay
+	fee.ExchangeRateDate = rateDay
 	fee.ExchangeRateSettingID = resolved.SettingID
 	return nil
 }

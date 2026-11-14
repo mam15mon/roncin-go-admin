@@ -145,20 +145,24 @@ func (r *orderFeeRepo) GetByIdempotencyKey(ctx context.Context, organizationID, 
 	return orderFeeToBiz(item)
 }
 
-// OrderETDDate 返回订单 ETD 原始字符串（RFC3339）；订单不存在时报不存在。
-func (r *orderFeeRepo) OrderETDDate(ctx context.Context, organizationID, orderID uuid.UUID) (string, error) {
+// OrderRateDate 返回订单取汇率日期所需的贸易方向与 ETD/ETA（出口取 ETD、进口取 ETA，
+// 由 biz.OrderRateDay 判定）；订单不存在时报不存在。
+func (r *orderFeeRepo) OrderRateDate(ctx context.Context, organizationID, orderID uuid.UUID) (*biz.Order, error) {
 	if err := r.order(ctx, organizationID, orderID); err != nil {
-		return "", err
+		return nil, err
 	}
 	client, err := r.data.client(ctx)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	item, err := client.Order.Query().Where(orderent.IDEQ(orderID), orderent.OrganizationIDEQ(organizationID)).Only(ctx)
 	if err != nil {
-		return "", mapEntError(err, biz.ErrOrderFeeNotFound, nil)
+		return nil, mapEntError(err, biz.ErrOrderFeeNotFound, nil)
 	}
-	return item.Etd, nil
+	return &biz.Order{
+		ID: item.ID, OrganizationID: item.OrganizationID,
+		TradeDirection: biz.OrderTradeDirection(item.TradeDirection), ETD: item.Etd, ETA: item.Eta,
+	}, nil
 }
 
 func (r *orderFeeRepo) Options(ctx context.Context, organizationID, orderID uuid.UUID) (*biz.OrderFeeOptions, error) {

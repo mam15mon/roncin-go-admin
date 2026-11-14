@@ -19,6 +19,9 @@ var (
 	ErrExchangeRateInvalidArgument     = errors.BadRequest("EXCHANGE_RATE_INVALID_ARGUMENT", "汇率设置字段不合法")
 	ErrExchangeRateSameCurrencyInvalid = errors.BadRequest("EXCHANGE_RATE_SAME_CURRENCY_INVALID", "同币种折算汇率必须为 1")
 	ErrExchangeRateMissing             = errors.BadRequest(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FEE_EXCHANGE_RATE_MISSING), "汇率日期未命中生效汇率，请先维护汇率")
+	// ErrExchangeRateMissingForDate 与 ErrExchangeRateMissing 共用错误码（errors.Is 互通，
+	// 前端沿用同一处理），由 newExchangeRateMissingForDate 附带币种、目标周与方向元数据。
+	ErrExchangeRateMissingForDate      = errors.BadRequest(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FEE_EXCHANGE_RATE_MISSING), "订单取汇率日期所在周未维护该币种汇率，请先维护汇率")
 	ErrExchangeRateOverlap             = errors.Conflict("EXCHANGE_RATE_OVERLAP", "汇率生效周与现有设置冲突，请刷新后重试")
 	ErrExchangeRateConflict            = errors.Conflict("FEE_EXCHANGE_RATE_CONFLICT", "汇率日期命中多条生效汇率")
 	ErrExchangeRateCurrencyInvalid     = errors.BadRequest("EXCHANGE_RATE_CURRENCY_INVALID", "汇率币种必须是启用的 ISO 币种")
@@ -620,3 +623,26 @@ func exchangeRateSyncAudit(organizationID, actorID uuid.UUID, target ExchangeRat
 func decimalPtr(value decimal.Decimal) *decimal.Decimal { return &value }
 
 func strPtr(value string) *string { return &value }
+
+// newExchangeRateMissingForDate 构造带元数据的缺汇率错误：currency 为缺失币种，
+// weekStart 为目标自然周周一（业务时区 YYYY-MM-DD），direction 为费用收支方向。
+func newExchangeRateMissingForDate(currency, rateDay string, direction OrderFeeDirection) error {
+	weekStart := rateDay
+	if day, ok := parseExchangeRateLookupTime(rateDay); ok {
+		monday, _ := ExchangeRateWeekWindow(day)
+		weekStart = monday.Format("2006-01-02")
+	}
+	return ErrExchangeRateMissingForDate.WithMetadata(map[string]string{
+		"currency":   strings.ToUpper(strings.TrimSpace(currency)),
+		"week_start": weekStart,
+		"direction":  string(direction),
+	})
+}
+
+// wrapExchangeRateMissingForDate 仅把「未命中汇率」转换为带元数据的专用错误，其余错误原样返回。
+func wrapExchangeRateMissingForDate(err error, currency, rateDay string, direction OrderFeeDirection) error {
+	if errors.Is(err, ErrExchangeRateMissing) {
+		return newExchangeRateMissingForDate(currency, rateDay, direction)
+	}
+	return err
+}

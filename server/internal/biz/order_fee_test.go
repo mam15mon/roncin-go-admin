@@ -29,10 +29,10 @@ type orderFeeRepoStub struct {
 	OrderFeeRepo
 }
 
-// OrderETDDate 提供固定 ETD 时刻（业务时区 2026-09-18 零点），供汇率按 ETD
-// 解析的用例测试使用。
-func (r *orderFeeRepoStub) OrderETDDate(context.Context, uuid.UUID, uuid.UUID) (string, error) {
-	return "2026-09-18T00:00:00+08:00", nil
+// OrderRateDate 提供出口订单与固定 ETD 时刻（业务时区 2026-09-18 零点），供汇率按
+// 订单取汇率日期解析的用例测试使用。
+func (r *orderFeeRepoStub) OrderRateDate(context.Context, uuid.UUID, uuid.UUID) (*Order, error) {
+	return &Order{TradeDirection: OrderTradeExport, ETD: "2026-09-18T00:00:00+08:00"}, nil
 }
 
 // List 返回空费用列表，供创建用例的同币种集合检查测试使用。
