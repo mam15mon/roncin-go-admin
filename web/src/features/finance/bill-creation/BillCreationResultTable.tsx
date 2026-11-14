@@ -4,55 +4,90 @@ import { Alert, Button, Descriptions, Empty, Result, Space, Tag } from 'antd';
 import React from 'react';
 import { ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
-import { statusTag } from '@/constants/statusMeta';
-import { FinanceBillStatus } from '@/enums.generated';
-import { billStatusMeta } from '@/features/finance/bill-status';
 import { history } from '@/router/history';
 import { formatAmount } from '@/utils/format';
+import type {
+  BillBatchGroupOutcome,
+  BillBatchOutcome,
+} from './billWorkbenchHelpers';
 
 type BillCreationResultTableProps = {
-  result?: API.FinanceBillBatch;
+  result?: BillBatchOutcome;
+  /** 提交时的预览分组快照，用于展示失败组（失败组没有账单）的结算单位与金额。 */
+  groups?: Record<string, API.BillBatchPreviewGroup>;
+  retrying?: boolean;
+  onRetryFailed?: () => void;
+  onAdjustFailed?: () => void;
   directionText: (dir: string) => string;
 };
 
 export default function BillCreationResultTable({
   result,
+  groups,
+  retrying,
+  onRetryFailed,
+  onAdjustFailed,
   directionText,
 }: BillCreationResultTableProps) {
-  const billColumns: TableColumnsType<API.FinanceBill> = [
-    { title: '账单编号', dataIndex: 'billNo', width: 180 },
+  const groupColumns: TableColumnsType<BillBatchGroupOutcome> = [
     {
-      title: '状态',
-      dataIndex: 'status',
-      width: 90,
-      // 与账单列表共用 billStatusMeta 统一映射。
-      render: (value) =>
-        statusTag(
-          billStatusMeta,
-          value ?? FinanceBillStatus.FINANCE_BILL_STATUS_UNSPECIFIED,
-        ),
+      title: '结果',
+      key: 'result',
+      width: 80,
+      render: (_, row) =>
+        row.bill ? <Tag color="success">成功</Tag> : <Tag color="error">失败</Tag>,
+    },
+    {
+      title: '结算单位',
+      key: 'party',
+      render: (_, row) =>
+        row.bill?.settlementPartyName ||
+        groups?.[row.groupKey]?.settlementPartyName ||
+        '-',
     },
     {
       title: '方向',
-      dataIndex: 'direction',
+      key: 'direction',
       width: 80,
-      render: (value) => directionText(String(value)),
+      render: (_, row) => {
+        const direction =
+          row.bill?.direction || groups?.[row.groupKey]?.direction;
+        return direction ? directionText(direction) : '-';
+      },
     },
-    { title: '结算单位', dataIndex: 'settlementPartyName' },
-    { title: '对账抬头', dataIndex: 'statementTitle' },
     {
       title: '金额',
       key: 'amount',
       align: 'right',
-      render: (_, row) => `${formatAmount(row.totalAmount)} ${row.currency}`,
+      render: (_, row) => {
+        const source = row.bill || groups?.[row.groupKey];
+        return source?.totalAmount
+          ? `${formatAmount(source.totalAmount)} ${source.currency || ''}`
+          : '-';
+      },
     },
-    { title: '到期日', dataIndex: 'dueDate', width: 120 },
+    {
+      title: '账单编号 / 失败原因',
+      key: 'detail',
+      render: (_, row) =>
+        row.bill ? (
+          row.bill.billNo
+        ) : (
+          <span style={{ color: '#cf1322' }}>{row.errorMessage}</span>
+        ),
+    },
+    {
+      title: '到期日',
+      key: 'dueDate',
+      width: 120,
+      render: (_, row) => row.bill?.dueDate || '-',
+    },
   ];
-  const billSettings = useColumnSettings<
-    TableColumnsType<API.FinanceBill>[number]
+  const groupSettings = useColumnSettings<
+    TableColumnsType<BillBatchGroupOutcome>[number]
   >({
-    tableKey: 'finance:bill-creation-results',
-    columns: billColumns,
+    tableKey: 'finance:bill-creation-group-results',
+    columns: groupColumns,
   });
 
   const nettingColumns: TableColumnsType<API.FinanceNetting> = [
@@ -95,22 +130,53 @@ export default function BillCreationResultTable({
 
   if (!result) return <Empty />;
 
+  const { batch, succeededCount, failedCount } = result;
+  const nettings = batch.nettings || [];
+  const status =
+    failedCount === 0 ? 'success' : succeededCount > 0 ? 'warning' : 'error';
+  const title =
+    failedCount === 0
+      ? `批次 ${batch.batchNo || ''} 生成成功`
+      : `批次 ${batch.batchNo || ''}：成功 ${succeededCount} 组，失败 ${failedCount} 组`;
+  const subTitle =
+    failedCount === 0
+      ? `已生成 ${succeededCount} 张账单${nettings.length ? `和 ${nettings.length} 张对冲结算单` : ''}，账单无需确认即可开票、收付款和核销。`
+      : '各组独立提交，失败组不影响已成功的账单；失败组的费用仍为未建账，可重试或返回调整后重新生成。';
+
   return (
     <>
       <Result
-        status="success"
-        icon={<CheckCircleOutlined />}
-        title={`批次 ${result.batchNo || ''} 生成成功`}
-        subTitle={`${result.feeCount || 0} 笔费用已原子生成 ${result.billCount || 0} 张账单${result.nettings?.length ? `和 ${result.nettings.length} 张对冲结算单` : ''}，账单无需确认即可开票、收付款和核销，未发生部分成功。`}
+        status={status}
+        icon={failedCount === 0 ? <CheckCircleOutlined /> : undefined}
+        title={title}
+        subTitle={subTitle}
         extra={
           <Space wrap>
-            <Button onClick={() => history.push('/finance/invoices')}>
-              前往开票 / 来票
-            </Button>
-            <Button onClick={() => history.push('/finance/verifications')}>
-              前往核销管理
-            </Button>
-            {result.nettings?.length ? (
+            {failedCount > 0 ? (
+              <>
+                <Button
+                  type="primary"
+                  loading={retrying}
+                  onClick={onRetryFailed}
+                >
+                  重试失败组
+                </Button>
+                <Button disabled={retrying} onClick={onAdjustFailed}>
+                  返回调整失败组
+                </Button>
+              </>
+            ) : null}
+            {succeededCount > 0 ? (
+              <>
+                <Button onClick={() => history.push('/finance/invoices')}>
+                  前往开票 / 来票
+                </Button>
+                <Button onClick={() => history.push('/finance/verifications')}>
+                  前往核销管理
+                </Button>
+              </>
+            ) : null}
+            {nettings.length ? (
               <Button onClick={() => history.push('/finance/nettings')}>
                 前往对冲管理
               </Button>
@@ -124,27 +190,38 @@ export default function BillCreationResultTable({
         column={4}
         style={{ marginBottom: 16 }}
       >
-        <Descriptions.Item label="批次号">{result.batchNo}</Descriptions.Item>
-        <Descriptions.Item label="费用数">{result.feeCount}</Descriptions.Item>
-        <Descriptions.Item label="账单数">{result.billCount}</Descriptions.Item>
+        <Descriptions.Item label="批次号">{batch.batchNo}</Descriptions.Item>
+        <Descriptions.Item label="已建账费用数">
+          {batch.feeCount ?? 0}
+        </Descriptions.Item>
+        <Descriptions.Item label="已生成账单数">
+          {batch.billCount ?? 0}
+        </Descriptions.Item>
         <Descriptions.Item label="本币合计">
-          {formatAmount(result.totalBaseAmount ?? '0')} {result.baseCurrency}
+          {batch.baseTotals?.length
+            ? batch.baseTotals.map((total) => (
+                <div key={total.baseCurrency}>
+                  {formatAmount(total.totalBaseAmount ?? '0')}{' '}
+                  {total.baseCurrency}
+                </div>
+              ))
+            : '-'}
         </Descriptions.Item>
       </Descriptions>
       <div
         style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}
       >
-        {billSettings.entry}
+        {groupSettings.entry}
       </div>
-      <Table<API.FinanceBill>
-        rowKey="id"
+      <Table<BillBatchGroupOutcome>
+        rowKey="groupKey"
         size="small"
         bordered
         pagination={false}
-        dataSource={result.bills || []}
-        columns={billSettings.columns}
+        dataSource={result.groups}
+        columns={groupSettings.columns}
       />
-      {result.nettings?.length ? (
+      {nettings.length ? (
         <>
           <Alert
             type="info"
@@ -169,7 +246,7 @@ export default function BillCreationResultTable({
             size="small"
             bordered
             pagination={false}
-            dataSource={result.nettings}
+            dataSource={nettings}
             columns={nettingSettings.columns}
           />
         </>

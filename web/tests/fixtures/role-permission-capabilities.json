@@ -33,10 +33,10 @@
     "system.finance.bill.read",
     "system.finance.bill.create",
     "system.finance.bill.update",
-    "system.finance.bill.confirm",
     "system.finance.invoice.read",
     "system.finance.invoice.create",
     "system.finance.invoice.update",
+    "system.finance.invoice.exempt",
     "system.finance.cashflow.read",
     "system.finance.cashflow.create",
     "system.finance.cashflow.update",
@@ -264,7 +264,7 @@
     "business.order.rail.fee.delete",
     "business.order.rail.lock"
   ],
-  "source": "server/internal/access.Manifest + PermissionAllowedInWorkspace（2026-10-20）",
+  "source": "server/internal/access.Manifest + PermissionAllowedInWorkspace（2026-11-14）",
   "system": [
     "system.platform.access",
     "system.notification.preview",

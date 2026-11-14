@@ -138,6 +138,9 @@ type FinanceInvoice func(*sql.Selector)
 // FinanceInvoiceBill is the predicate function for financeinvoicebill builders.
 type FinanceInvoiceBill func(*sql.Selector)
 
+// FinanceInvoiceExemption is the predicate function for financeinvoiceexemption builders.
+type FinanceInvoiceExemption func(*sql.Selector)
+
 // FinanceInvoiceLine is the predicate function for financeinvoiceline builders.
 type FinanceInvoiceLine func(*sql.Selector)
 

@@ -1638,10 +1638,6 @@ var (
 		{Name: "split_by_order", Type: field.TypeBool, Default: false},
 		{Name: "split_by_tax_rate", Type: field.TypeBool, Default: false},
 		{Name: "grouping_mode", Type: field.TypeEnum, Enums: []string{"NORMAL", "NETTING"}, Default: "NORMAL"},
-		{Name: "fee_count", Type: field.TypeInt},
-		{Name: "bill_count", Type: field.TypeInt},
-		{Name: "total_base_amount", Type: field.TypeString, SchemaType: map[string]string{"postgres": "numeric(28,8)"}},
-		{Name: "base_currency", Type: field.TypeString, Size: 3},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "created_by", Type: field.TypeUUID},
 	}
@@ -1653,13 +1649,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_bill_batches_organizations_finance_bill_batches",
-				Columns:    []*schema.Column{FinanceBillBatchesColumns[13]},
+				Columns:    []*schema.Column{FinanceBillBatchesColumns[9]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_bill_batches_users_created_finance_bill_batches",
-				Columns:    []*schema.Column{FinanceBillBatchesColumns[14]},
+				Columns:    []*schema.Column{FinanceBillBatchesColumns[10]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -1673,17 +1669,17 @@ var (
 			{
 				Name:    "financebillbatch_organization_id_batch_no",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceBillBatchesColumns[13], FinanceBillBatchesColumns[3]},
+				Columns: []*schema.Column{FinanceBillBatchesColumns[9], FinanceBillBatchesColumns[3]},
 			},
 			{
 				Name:    "financebillbatch_organization_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceBillBatchesColumns[13], FinanceBillBatchesColumns[4]},
+				Columns: []*schema.Column{FinanceBillBatchesColumns[9], FinanceBillBatchesColumns[4]},
 			},
 			{
 				Name:    "financebillbatch_organization_id_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceBillBatchesColumns[13], FinanceBillBatchesColumns[1]},
+				Columns: []*schema.Column{FinanceBillBatchesColumns[9], FinanceBillBatchesColumns[1]},
 			},
 		},
 	}
@@ -2802,6 +2798,60 @@ var (
 				Name:    "financeinvoicebill_bill_id_active",
 				Unique:  false,
 				Columns: []*schema.Column{FinanceInvoiceBillsColumns[8], FinanceInvoiceBillsColumns[7]},
+			},
+		},
+	}
+	// FinanceInvoiceExemptionsColumns holds the columns for the "finance_invoice_exemptions" table.
+	FinanceInvoiceExemptionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "marked_by", Type: field.TypeUUID},
+		{Name: "reason", Type: field.TypeString, Size: 500},
+		{Name: "version", Type: field.TypeUint64, Default: 1},
+		{Name: "revoked_at", Type: field.TypeTime, Nullable: true},
+		{Name: "revoked_by", Type: field.TypeUUID, Nullable: true},
+		{Name: "revocation_reason", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "bill_id", Type: field.TypeUUID},
+		{Name: "organization_id", Type: field.TypeUUID},
+	}
+	// FinanceInvoiceExemptionsTable holds the schema information for the "finance_invoice_exemptions" table.
+	FinanceInvoiceExemptionsTable = &schema.Table{
+		Name:       "finance_invoice_exemptions",
+		Columns:    FinanceInvoiceExemptionsColumns,
+		PrimaryKey: []*schema.Column{FinanceInvoiceExemptionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "finance_invoice_exemptions_finance_bills_invoice_exemptions",
+				Columns:    []*schema.Column{FinanceInvoiceExemptionsColumns[9]},
+				RefColumns: []*schema.Column{FinanceBillsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "finance_invoice_exemptions_organizations_finance_invoice_exemptions",
+				Columns:    []*schema.Column{FinanceInvoiceExemptionsColumns[10]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "financeinvoiceexemption_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceInvoiceExemptionsColumns[2]},
+			},
+			{
+				Name:    "finance_invoice_exemption_active_bill",
+				Unique:  true,
+				Columns: []*schema.Column{FinanceInvoiceExemptionsColumns[9]},
+				Annotation: &entsql.IndexAnnotation{
+					Where: "revoked_at IS NULL",
+				},
+			},
+			{
+				Name:    "financeinvoiceexemption_organization_id_bill_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceInvoiceExemptionsColumns[10], FinanceInvoiceExemptionsColumns[9], FinanceInvoiceExemptionsColumns[1]},
 			},
 		},
 	}
@@ -4066,6 +4116,7 @@ var (
 		{Name: "fee_code", Type: field.TypeString, Size: 30},
 		{Name: "fee_name", Type: field.TypeString, Size: 80},
 		{Name: "fee_name_en", Type: field.TypeString, Nullable: true, Size: 128},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "billing_unit", Type: field.TypeString, Size: 32},
 		{Name: "tax_rate", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "numeric(5,2)"}},
 		{Name: "taxable_service_name", Type: field.TypeString, Nullable: true, Size: 128},
@@ -4104,49 +4155,49 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "order_fees_billing_units_order_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[29]},
+				Columns:    []*schema.Column{OrderFeesColumns[30]},
 				RefColumns: []*schema.Column{BillingUnitsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "order_fees_fee_settings_order_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[30]},
+				Columns:    []*schema.Column{OrderFeesColumns[31]},
 				RefColumns: []*schema.Column{FeeSettingsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "order_fees_orders_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[31]},
+				Columns:    []*schema.Column{OrderFeesColumns[32]},
 				RefColumns: []*schema.Column{OrdersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_fees_order_fees_derived_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[32]},
+				Columns:    []*schema.Column{OrderFeesColumns[33]},
 				RefColumns: []*schema.Column{OrderFeesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_fees_order_fee_correction_requests_generated_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[33]},
-				RefColumns: []*schema.Column{OrderFeeCorrectionRequestsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "order_fees_order_fee_correction_requests_superseded_fees",
 				Columns:    []*schema.Column{OrderFeesColumns[34]},
 				RefColumns: []*schema.Column{OrderFeeCorrectionRequestsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "order_fees_order_fee_supplement_requests_fees",
+				Symbol:     "order_fees_order_fee_correction_requests_superseded_fees",
 				Columns:    []*schema.Column{OrderFeesColumns[35]},
+				RefColumns: []*schema.Column{OrderFeeCorrectionRequestsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "order_fees_order_fee_supplement_requests_fees",
+				Columns:    []*schema.Column{OrderFeesColumns[36]},
 				RefColumns: []*schema.Column{OrderFeeSupplementRequestsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "order_fees_partners_order_fees",
-				Columns:    []*schema.Column{OrderFeesColumns[36]},
+				Columns:    []*schema.Column{OrderFeesColumns[37]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -4160,22 +4211,22 @@ var (
 			{
 				Name:    "orderfee_order_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{OrderFeesColumns[31], OrderFeesColumns[3]},
+				Columns: []*schema.Column{OrderFeesColumns[32], OrderFeesColumns[3]},
 			},
 			{
 				Name:    "orderfee_supplement_request_id",
 				Unique:  true,
-				Columns: []*schema.Column{OrderFeesColumns[35]},
+				Columns: []*schema.Column{OrderFeesColumns[36]},
 			},
 			{
 				Name:    "orderfee_correction_request_id_economic_effect",
 				Unique:  true,
-				Columns: []*schema.Column{OrderFeesColumns[33], OrderFeesColumns[26]},
+				Columns: []*schema.Column{OrderFeesColumns[34], OrderFeesColumns[27]},
 			},
 			{
 				Name:    "orderfee_source_fee_id_economic_effect",
 				Unique:  true,
-				Columns: []*schema.Column{OrderFeesColumns[32], OrderFeesColumns[26]},
+				Columns: []*schema.Column{OrderFeesColumns[33], OrderFeesColumns[27]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "economic_effect = 'DECREASE'",
 				},
@@ -4183,22 +4234,31 @@ var (
 			{
 				Name:    "orderfee_order_id_direction_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{OrderFeesColumns[31], OrderFeesColumns[4], OrderFeesColumns[1]},
+				Columns: []*schema.Column{OrderFeesColumns[32], OrderFeesColumns[4], OrderFeesColumns[1]},
 			},
 			{
 				Name:    "orderfee_fee_setting_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrderFeesColumns[30]},
+				Columns: []*schema.Column{OrderFeesColumns[31]},
+			},
+			{
+				Name:    "order_fees_search_keywords_trgm",
+				Unique:  false,
+				Columns: []*schema.Column{OrderFeesColumns[8]},
+				Annotation: &entsql.IndexAnnotation{
+					OpClass: "gin_trgm_ops",
+					Type:    "GIN",
+				},
 			},
 			{
 				Name:    "orderfee_billing_unit_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrderFeesColumns[29]},
+				Columns: []*schema.Column{OrderFeesColumns[30]},
 			},
 			{
 				Name:    "orderfee_settlement_party_id_direction_currency",
 				Unique:  false,
-				Columns: []*schema.Column{OrderFeesColumns[36], OrderFeesColumns[4], OrderFeesColumns[18]},
+				Columns: []*schema.Column{OrderFeesColumns[37], OrderFeesColumns[4], OrderFeesColumns[19]},
 			},
 		},
 	}
@@ -7428,6 +7488,7 @@ var (
 		FinanceCustomSettingsTable,
 		FinanceInvoicesTable,
 		FinanceInvoiceBillsTable,
+		FinanceInvoiceExemptionsTable,
 		FinanceInvoiceLinesTable,
 		FinanceNettingsTable,
 		FinanceNettingAllocationsTable,
@@ -7666,6 +7727,13 @@ func init() {
 	FinanceInvoicesTable.ForeignKeys[5].RefTable = UsersTable
 	FinanceInvoiceBillsTable.ForeignKeys[0].RefTable = FinanceBillsTable
 	FinanceInvoiceBillsTable.ForeignKeys[1].RefTable = FinanceInvoicesTable
+	FinanceInvoiceExemptionsTable.ForeignKeys[0].RefTable = FinanceBillsTable
+	FinanceInvoiceExemptionsTable.ForeignKeys[1].RefTable = OrganizationsTable
+	FinanceInvoiceExemptionsTable.Annotation = &entsql.Annotation{}
+	FinanceInvoiceExemptionsTable.Annotation.Checks = map[string]string{
+		"finance_invoice_exemption_reason_check": "length(trim(reason)) > 0",
+		"finance_invoice_exemption_revoke_check": "(revoked_at IS NULL AND revoked_by IS NULL AND revocation_reason IS NULL) OR (revoked_at IS NOT NULL AND revoked_by IS NOT NULL AND revocation_reason IS NOT NULL AND length(trim(revocation_reason)) > 0)",
+	}
 	FinanceInvoiceLinesTable.ForeignKeys[0].RefTable = FinanceInvoicesTable
 	FinanceNettingsTable.ForeignKeys[0].RefTable = FinanceBillBatchesTable
 	FinanceNettingsTable.ForeignKeys[1].RefTable = OrderFeeCorrectionRequestsTable

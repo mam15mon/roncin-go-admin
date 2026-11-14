@@ -87,6 +87,16 @@ service SettlementService {
     option (google.api.http) = {put: "/api/v1/finance/bills/{id}" body: "*"};
   }
 
+  // 免票与撤销保留独立决定及原因，不产生虚构发票或核销事实。
+  rpc SetBillInvoiceExemption(SetBillInvoiceExemptionRequest) returns (SetBillInvoiceExemptionResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.invoice.exempt" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/finance/bills/{id}/invoice-exemption" body: "*"};
+  }
+  rpc RevokeBillInvoiceExemption(RevokeBillInvoiceExemptionRequest) returns (RevokeBillInvoiceExemptionResponse) {
+    option (access.v1.rule) = {mode: ACCESS_MODE_PERMISSION permission: "system.finance.invoice.exempt" scope: DATA_SCOPE_ORGANIZATION};
+    option (google.api.http) = {post: "/api/v1/finance/bills/{id}/invoice-exemption/revoke" body: "*"};
+  }
+
   // ListBillFeeCandidates 返回可加入指定账单的未建账费用：同公司、同收付方向、同币种与本币、同结算单位，
   // 服务端关键字（费用代码、费用名称、订单号）过滤并分页。
   rpc ListBillFeeCandidates(ListBillFeeCandidatesRequest) returns (ListBillFeeCandidatesResponse) {
@@ -644,6 +654,49 @@ message FinanceBill {
   // fees_locked 表示账单存在阻止增删费用的有效财务事实，类型见 fee_lock_facts。
   bool fees_locked = 58;
   repeated FinanceBillFeeLockFact fee_lock_facts = 59;
+  // 免票决定历史仅详情返回；有效决定 revoked_at 未设置。
+  repeated FinanceInvoiceExemption invoice_exemptions = 60;
+}
+
+message SetBillInvoiceExemptionRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+  string reason = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message SetBillInvoiceExemptionResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  FinanceBill data = 4;
+  string trace_id = 5;
+}
+
+message RevokeBillInvoiceExemptionRequest {
+  string id = 1 [(google.api.field_behavior) = REQUIRED];
+  uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED];
+  string reason = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+message RevokeBillInvoiceExemptionResponse {
+  bool success = 1;
+  int32 code = 2;
+  string message = 3;
+  FinanceBill data = 4;
+  string trace_id = 5;
+}
+
+message FinanceInvoiceExemption {
+  string id = 1;
+  string reason = 2;
+  string marked_by = 3;
+  string created_at = 4;
+  uint64 version = 5;
+  optional string revoked_at = 6;
+  optional string revoked_by = 7;
+  optional string revocation_reason = 8;
+  string marked_by_name = 9;
+  string revoked_by_name = 10;
 }
 
 message BillGroupingPolicy {
@@ -702,14 +755,18 @@ message BillBatchPreviewGroup {
   optional string credit_currency = 23;
   optional string current_unsettled_amount = 24;
   bool is_credit_exceeded = 25;
+  // group_token 是该组费用（ID、版本、金额）与叶子配置的摘要；配置完整时才签发，
+  // 创建时每组携带自己的令牌，陈旧只影响该组。
+  string group_token = 26;
 }
 
 message PreviewBillBatchResponse {
+  reserved 5;
+  reserved "preview_token";
   bool success = 1;
   int32 code = 2;
   string message = 3;
   repeated BillBatchPreviewGroup data = 4;
-  string preview_token = 5;
   string trace_id = 6;
   // netting_pairs 仅在对冲建账模式下返回，按结算单位与账单币种给出抵销前后金额。
   repeated BillBatchNettingPair netting_pairs = 7;
@@ -737,6 +794,10 @@ message CreateBillBatchGroupInput {
   string settlement_account_id = 7 [(google.api.field_behavior) = REQUIRED];
   optional string estimated_invoice_currency = 8;
   optional string estimated_invoice_rate = 9;
+  // group_token 取自预览响应中该组的 group_token。
+  string group_token = 10 [(google.api.field_behavior) = REQUIRED];
+  // fee_ids 为预览中归入该组的全部费用 ID；服务端在组事务内重新分组复核。
+  repeated string fee_ids = 11 [(google.api.field_behavior) = REQUIRED];
 }
 
 message FinanceSettlementAccountOption {
@@ -762,37 +823,68 @@ message ListBillSettlementAccountUpdateCandidatesRequest {
 }
 message ListBillSettlementAccountUpdateCandidatesResponse { bool success = 1; int32 code = 2; string message = 3; repeated FinanceSettlementAccountOption data = 4; string trace_id = 5; }
 
+// CreateBillBatchRequest 普通模式按组独立事务提交，某组失败不回滚其他组；
+// 对冲模式（NETTING）整批原子，任一组失败整批失败并返回错误。
+// 同幂等键、同请求重发：已成功的组原样返回，失败的组重新尝试。
 message CreateBillBatchRequest {
-  repeated string fee_ids = 1 [(google.api.field_behavior) = REQUIRED];
+  reserved 1, 4;
+  reserved "fee_ids", "preview_token";
   BillGroupingPolicy grouping_policy = 2 [(google.api.field_behavior) = REQUIRED];
   repeated CreateBillBatchGroupInput groups = 3 [(google.api.field_behavior) = REQUIRED];
-  string preview_token = 4 [(google.api.field_behavior) = REQUIRED];
   string idempotency_key = 5 [(google.api.field_behavior) = REQUIRED];
   string organization_id = 6 [(google.api.field_behavior) = REQUIRED];
 }
 
 message FinanceBillBatch {
+  reserved 7, 8;
+  reserved "total_base_amount", "base_currency";
   string id = 1;
   string batch_no = 2;
   bool split_by_order = 3;
   bool split_by_tax_rate = 4;
+  // fee_count、bill_count、base_totals 均按本批次已生成账单在读取时聚合。
   int32 fee_count = 5;
   int32 bill_count = 6;
-  string total_base_amount = 7;
-  string base_currency = 8;
   repeated FinanceBill bills = 9;
   string created_at = 10;
   BillGroupingMode mode = 11;
   // nettings 仅在对冲建账模式下返回：本批次原子生成的对冲结算单（初始为草稿）。
   repeated FinanceNetting nettings = 12;
+  // base_totals 按本位币分组的账单本位币合计，不跨本位币相加。
+  repeated FinanceBillBatchBaseTotal base_totals = 13;
 }
 
+message FinanceBillBatchBaseTotal {
+  string base_currency = 1;
+  string total_base_amount = 2;
+}
+
+// CreateBillBatchResponse 的 HTTP 200 不代表全部成功：逐组成败见 results。
 message CreateBillBatchResponse {
   bool success = 1;
   int32 code = 2;
   string message = 3;
   FinanceBillBatch data = 4;
   string trace_id = 5;
+  // results 按 group_key 升序覆盖请求内每一组。
+  repeated BillBatchGroupResult results = 6;
+  int32 succeeded_count = 7;
+  int32 failed_count = 8;
+}
+
+// BillBatchGroupResult 成功时携带 bill，失败时携带 error，二者互斥。
+message BillBatchGroupResult {
+  string group_key = 1;
+  bool success = 2;
+  FinanceBill bill = 3;
+  BillBatchGroupError error = 4;
+}
+
+message BillBatchGroupError {
+  string reason = 1;
+  string message = 2;
+  // metadata 仅放行缺汇率提示等公开键。
+  map<string, string> metadata = 3;
 }
 
 message ListBillsResponse {
@@ -885,7 +977,8 @@ message FinanceCashflowSummary { repeated FinanceBaseCurrencyAmount amounts_by_b
 message CreateCashflowResponse { bool success=1; int32 code=2; string message=3; FinanceCashflow data=4; string trace_id=5; }
 message ConfirmCashflowResponse { bool success=1; int32 code=2; string message=3; FinanceCashflow data=4; string trace_id=5; }
 message CancelCashflowResponse { bool success=1; int32 code=2; string message=3; FinanceCashflow data=4; string trace_id=5; }
-message VerificationAllocationInput { string cashflow_id=1 [(google.api.field_behavior)=REQUIRED]; string bill_id=2 [(google.api.field_behavior)=REQUIRED]; string amount=3 [(google.api.field_behavior)=REQUIRED]; }
+// cashflow_id 为空时引用本次 shortfall_cashflow，仅组合核销入口允许。
+message VerificationAllocationInput { string cashflow_id=1; string bill_id=2 [(google.api.field_behavior)=REQUIRED]; string amount=3 [(google.api.field_behavior)=REQUIRED]; }
 message ListVerificationsRequest { int32 page=1; int32 page_size=2; optional string keyword=3; optional FinanceVerificationStatus status=4; optional string organization_id=5; }
 message ListCommissionVerificationCandidatesRequest { string organization_id=1 [(google.api.field_behavior)=REQUIRED]; int32 page=2; int32 page_size=3; optional string keyword=4; }
 message ListCommissionVerificationCandidatesResponse { bool success=1; int32 code=2; string message=3; repeated FinanceVerification data=4; int64 total=5; string trace_id=6; }
@@ -894,7 +987,22 @@ message ListCommissionNettingCandidatesResponse { bool success=1; int32 code=2; 
 message VerificationCreationCandidates { repeated FinanceCashflow cashflows = 1; repeated FinanceBill bills = 2; }
 message ListVerificationCreationCandidatesRequest { string organization_id = 1 [(google.api.field_behavior) = REQUIRED]; string direction = 2 [(google.api.field_behavior) = REQUIRED]; string settlement_party_id = 3 [(google.api.field_behavior) = REQUIRED]; string currency = 4 [(google.api.field_behavior) = REQUIRED]; }
 message ListVerificationCreationCandidatesResponse { bool success = 1; int32 code = 2; string message = 3; VerificationCreationCandidates data = 4; string trace_id = 5; }
-message CreateVerificationRequest { repeated VerificationAllocationInput allocations=1 [(google.api.field_behavior)=REQUIRED]; string verification_date=2 [(google.api.field_behavior)=REQUIRED]; optional string note=3; string idempotency_key=4 [(google.api.field_behavior)=REQUIRED]; }
+// 差额流水只在最终核销提交的共享事务内创建并确认，幂等键由核销键派生。
+message VerificationShortfallCashflow {
+  string organization_id = 1 [(google.api.field_behavior) = REQUIRED];
+  string direction = 2 [(google.api.field_behavior) = REQUIRED];
+  string settlement_party_id = 3 [(google.api.field_behavior) = REQUIRED];
+  string currency = 4 [(google.api.field_behavior) = REQUIRED];
+  string amount = 5 [(google.api.field_behavior) = REQUIRED];
+  string transaction_date = 6 [(google.api.field_behavior) = REQUIRED];
+  string our_account = 7 [(google.api.field_behavior) = REQUIRED];
+  string payment_method = 8 [(google.api.field_behavior) = REQUIRED];
+  optional string counterparty_account = 9;
+  optional string bank_reference_no = 10;
+  optional string note = 11;
+  optional string exchange_rate = 12;
+}
+message CreateVerificationRequest { repeated VerificationAllocationInput allocations=1 [(google.api.field_behavior)=REQUIRED]; string verification_date=2 [(google.api.field_behavior)=REQUIRED]; optional string note=3; string idempotency_key=4 [(google.api.field_behavior)=REQUIRED]; VerificationShortfallCashflow shortfall_cashflow=5; }
 message ReverseVerificationRequest { string id=1 [(google.api.field_behavior)=REQUIRED]; uint64 expected_version=2 [(google.api.field_behavior)=REQUIRED]; string reason=3 [(google.api.field_behavior)=REQUIRED]; }
 message FinanceVerificationAllocation { string id=1; string cashflow_id=2; string bill_id=3; string cashflow_no=4; string bill_no=5; string amount=6; bool active=7; string bill_base_amount=8; string cashflow_base_amount=9; reserved 10; reserved "write_off_base_amount"; string exchange_gain_loss=11; }
 message FinanceVerification { string id=1; string verification_no=2; FinanceVerificationStatus status=3; string direction=4; string settlement_party_id=5; string settlement_party_name=6; string currency=7; string amount=8; string verification_date=9; optional string note=10; uint64 version=11; optional string reversed_at=12; optional string reversal_reason=13; repeated FinanceVerificationAllocation allocations=14; string created_at=15; string base_currency=16; reserved 17; reserved "exchange_rate"; reserved 18; reserved "exchange_rate_source"; reserved 19; reserved "exchange_rate_date"; reserved 20; reserved "exchange_rate_setting_id"; string base_amount=21; string bill_base_amount=22; string cashflow_base_amount=23; string exchange_gain_loss=24; string organization_id=25; string organization_name=26; }

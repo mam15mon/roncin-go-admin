@@ -1560,10 +1560,6 @@ func seedFinanceBillsAndCashflows(ctx context.Context, sc *seedContext) error {
 			SetRequestHash("DEVSEEDBT26090001" + strings.Repeat("0", 47)).
 			SetSplitByOrder(true).
 			SetGroupingMode(financebillbatchent.GroupingModeNORMAL).
-			SetFeeCount(1).
-			SetBillCount(1).
-			SetTotalBaseAmount("15225.00000000").
-			SetBaseCurrency("CNY").
 			SetCreatedBy(sc.adminUser.ID).
 			Save(ctx)
 		if err != nil {

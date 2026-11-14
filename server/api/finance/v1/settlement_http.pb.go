@@ -83,6 +83,8 @@ const OperationSettlementServiceRejectCommissionApplication = "/finance.v1.Settl
 const OperationSettlementServiceRemoveCommissionRuleEmployees = "/finance.v1.SettlementService/RemoveCommissionRuleEmployees"
 const OperationSettlementServiceReverseNetting = "/finance.v1.SettlementService/ReverseNetting"
 const OperationSettlementServiceReverseVerification = "/finance.v1.SettlementService/ReverseVerification"
+const OperationSettlementServiceRevokeBillInvoiceExemption = "/finance.v1.SettlementService/RevokeBillInvoiceExemption"
+const OperationSettlementServiceSetBillInvoiceExemption = "/finance.v1.SettlementService/SetBillInvoiceExemption"
 const OperationSettlementServiceUpdateBill = "/finance.v1.SettlementService/UpdateBill"
 const OperationSettlementServiceUpdateBillFees = "/finance.v1.SettlementService/UpdateBillFees"
 const OperationSettlementServiceUpdateBilledFeeEditPolicy = "/finance.v1.SettlementService/UpdateBilledFeeEditPolicy"
@@ -185,6 +187,9 @@ type SettlementServiceHTTPServer interface {
 	RemoveCommissionRuleEmployees(context.Context, *RemoveCommissionRuleEmployeesRequest) (*RemoveCommissionRuleEmployeesResponse, error)
 	ReverseNetting(context.Context, *ReverseNettingRequest) (*ReverseNettingResponse, error)
 	ReverseVerification(context.Context, *ReverseVerificationRequest) (*ReverseVerificationResponse, error)
+	RevokeBillInvoiceExemption(context.Context, *RevokeBillInvoiceExemptionRequest) (*RevokeBillInvoiceExemptionResponse, error)
+	// SetBillInvoiceExemption 免票与撤销保留独立决定及原因，不产生虚构发票或核销事实。
+	SetBillInvoiceExemption(context.Context, *SetBillInvoiceExemptionRequest) (*SetBillInvoiceExemptionResponse, error)
 	UpdateBill(context.Context, *UpdateBillRequest) (*UpdateBillResponse, error)
 	// UpdateBillFees UpdateBillFees 在同一请求中为账单增加与移除费用；存在有效发票、核销或对冲（含草稿对冲）时拒绝，
 	// 不允许移除最后一条费用（释放全部费用请取消账单）。
@@ -213,6 +218,8 @@ func RegisterSettlementServiceHTTPServer(s *http.Server, srv SettlementServiceHT
 	r.Handle("POST", "/api/v1/finance/bill-batches/preview", _SettlementService_PreviewBillBatch0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/bill-batches", _SettlementService_CreateBillBatch0_HTTP_Handler(srv))
 	r.Handle("PUT", "/api/v1/finance/bills/{id}", _SettlementService_UpdateBill0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/bills/{id}/invoice-exemption", _SettlementService_SetBillInvoiceExemption0_HTTP_Handler(srv))
+	r.Handle("POST", "/api/v1/finance/bills/{id}/invoice-exemption/revoke", _SettlementService_RevokeBillInvoiceExemption0_HTTP_Handler(srv))
 	r.Handle("GET", "/api/v1/finance/bills/{bill_id}/fee-candidates", _SettlementService_ListBillFeeCandidates0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/bills/{id}/fees:update", _SettlementService_UpdateBillFees0_HTTP_Handler(srv))
 	r.Handle("POST", "/api/v1/finance/bills/{id}/cancel", _SettlementService_CancelBill0_HTTP_Handler(srv))
@@ -561,6 +568,50 @@ func _SettlementService_UpdateBill0_HTTP_Handler(srv SettlementServiceHTTPServer
 			return err
 		}
 		reply := out.(*UpdateBillResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_SetBillInvoiceExemption0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in SetBillInvoiceExemptionRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceSetBillInvoiceExemption)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.SetBillInvoiceExemption(ctx, req.(*SetBillInvoiceExemptionRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*SetBillInvoiceExemptionResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _SettlementService_RevokeBillInvoiceExemption0_HTTP_Handler(srv SettlementServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in RevokeBillInvoiceExemptionRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSettlementServiceRevokeBillInvoiceExemption)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.RevokeBillInvoiceExemption(ctx, req.(*RevokeBillInvoiceExemptionRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*RevokeBillInvoiceExemptionResponse)
 		return ctx.Result(200, reply)
 	}
 }
@@ -1818,6 +1869,9 @@ type SettlementServiceHTTPClient interface {
 	RemoveCommissionRuleEmployees(ctx context.Context, req *RemoveCommissionRuleEmployeesRequest, opts ...http.CallOption) (rsp *RemoveCommissionRuleEmployeesResponse, err error)
 	ReverseNetting(ctx context.Context, req *ReverseNettingRequest, opts ...http.CallOption) (rsp *ReverseNettingResponse, err error)
 	ReverseVerification(ctx context.Context, req *ReverseVerificationRequest, opts ...http.CallOption) (rsp *ReverseVerificationResponse, err error)
+	RevokeBillInvoiceExemption(ctx context.Context, req *RevokeBillInvoiceExemptionRequest, opts ...http.CallOption) (rsp *RevokeBillInvoiceExemptionResponse, err error)
+	// SetBillInvoiceExemption 免票与撤销保留独立决定及原因，不产生虚构发票或核销事实。
+	SetBillInvoiceExemption(ctx context.Context, req *SetBillInvoiceExemptionRequest, opts ...http.CallOption) (rsp *SetBillInvoiceExemptionResponse, err error)
 	UpdateBill(ctx context.Context, req *UpdateBillRequest, opts ...http.CallOption) (rsp *UpdateBillResponse, err error)
 	// UpdateBillFees UpdateBillFees 在同一请求中为账单增加与移除费用；存在有效发票、核销或对冲（含草稿对冲）时拒绝，
 	// 不允许移除最后一条费用（释放全部费用请取消账单）。
@@ -2947,6 +3001,41 @@ func (c *SettlementServiceHTTPClientImpl) ReverseVerification(ctx context.Contex
 		http.Accept("application/protojson"),
 		http.ContentType("application/protojson"),
 		http.Operation(OperationSettlementServiceReverseVerification),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SettlementServiceHTTPClientImpl) RevokeBillInvoiceExemption(ctx context.Context, in *RevokeBillInvoiceExemptionRequest, opts ...http.CallOption) (*RevokeBillInvoiceExemptionResponse, error) {
+	var out RevokeBillInvoiceExemptionResponse
+	pattern := "/api/v1/finance/bills/{id}/invoice-exemption/revoke"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceRevokeBillInvoiceExemption),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SetBillInvoiceExemption 免票与撤销保留独立决定及原因，不产生虚构发票或核销事实。
+func (c *SettlementServiceHTTPClientImpl) SetBillInvoiceExemption(ctx context.Context, in *SetBillInvoiceExemptionRequest, opts ...http.CallOption) (*SetBillInvoiceExemptionResponse, error) {
+	var out SetBillInvoiceExemptionResponse
+	pattern := "/api/v1/finance/bills/{id}/invoice-exemption"
+	path := http.BuildPath(pattern, in)
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationSettlementServiceSetBillInvoiceExemption),
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)

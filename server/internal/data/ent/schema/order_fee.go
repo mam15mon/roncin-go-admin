@@ -28,6 +28,7 @@ func (OrderFee) Fields() []ent.Field {
 		field.String("fee_code").NotEmpty().MaxLen(30),
 		field.String("fee_name").NotEmpty().MaxLen(80),
 		field.String("fee_name_en").Optional().Nillable().MaxLen(128),
+		searchKeywordsField(),
 		field.UUID("settlement_party_id", uuid.Nil),
 		field.UUID("billing_unit_id", uuid.Nil).Optional().Nillable(),
 		field.String("billing_unit").NotEmpty().MaxLen(32),
@@ -66,6 +67,10 @@ func (OrderFee) Fields() []ent.Field {
 	}
 }
 
+func (OrderFee) Hooks() []ent.Hook {
+	return []ent.Hook{searchKeywordsHook("fee_name", "fee_name_en")}
+}
+
 func (OrderFee) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("order", Order.Type).Ref("fees").Field("order_id").Unique().Required(),
@@ -92,6 +97,7 @@ func (OrderFee) Indexes() []ent.Index {
 		index.Fields("source_fee_id", "economic_effect").Unique().Annotations(entsql.IndexWhere("economic_effect = 'DECREASE'")),
 		index.Fields("order_id", "direction", "created_at"),
 		index.Fields("fee_setting_id"),
+		index.Fields("search_keywords").StorageKey("order_fees_search_keywords_trgm").Annotations(entsql.IndexType("GIN"), entsql.OpClass("gin_trgm_ops")),
 		index.Fields("billing_unit_id"),
 		index.Fields("settlement_party_id", "direction", "currency"),
 	}

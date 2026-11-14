@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
@@ -34,6 +35,8 @@ const (
 	FieldFeeName = "fee_name"
 	// FieldFeeNameEn holds the string denoting the fee_name_en field in the database.
 	FieldFeeNameEn = "fee_name_en"
+	// FieldSearchKeywords holds the string denoting the search_keywords field in the database.
+	FieldSearchKeywords = "search_keywords"
 	// FieldSettlementPartyID holds the string denoting the settlement_party_id field in the database.
 	FieldSettlementPartyID = "settlement_party_id"
 	// FieldBillingUnitID holds the string denoting the billing_unit_id field in the database.
@@ -206,6 +209,7 @@ var Columns = []string{
 	FieldFeeCode,
 	FieldFeeName,
 	FieldFeeNameEn,
+	FieldSearchKeywords,
 	FieldSettlementPartyID,
 	FieldBillingUnitID,
 	FieldBillingUnit,
@@ -245,7 +249,13 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+// Note that the variables below are initialized by the runtime
+// package on the initialization of the application. Therefore,
+// it should be imported in the main as follows:
+//
+//	import _ "github.com/roncin/roncin-go-admin/server/internal/data/ent/runtime"
 var (
+	Hooks [1]ent.Hook
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -260,6 +270,8 @@ var (
 	FeeNameValidator func(string) error
 	// FeeNameEnValidator is a validator for the "fee_name_en" field. It is called by the builders before save.
 	FeeNameEnValidator func(string) error
+	// DefaultSearchKeywords holds the default value on creation for the "search_keywords" field.
+	DefaultSearchKeywords string
 	// BillingUnitValidator is a validator for the "billing_unit" field. It is called by the builders before save.
 	BillingUnitValidator func(string) error
 	// TaxableServiceNameValidator is a validator for the "taxable_service_name" field. It is called by the builders before save.
@@ -409,6 +421,11 @@ func ByFeeName(opts ...sql.OrderTermOption) OrderOption {
 // ByFeeNameEn orders the results by the fee_name_en field.
 func ByFeeNameEn(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldFeeNameEn, opts...).ToFunc()
+}
+
+// BySearchKeywords orders the results by the search_keywords field.
+func BySearchKeywords(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSearchKeywords, opts...).ToFunc()
 }
 
 // BySettlementPartyID orders the results by the settlement_party_id field.

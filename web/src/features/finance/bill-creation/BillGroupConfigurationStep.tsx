@@ -34,6 +34,7 @@ type BillGroupConfigurationStepProps = {
   organizationId?: string;
   sessionIdentity: string;
   loading: boolean;
+  frozen?: boolean;
   splitByOrder: boolean;
   splitByTaxRate: boolean;
   onSplitByOrderChange: React.Dispatch<React.SetStateAction<boolean>>;
@@ -63,6 +64,7 @@ export default function BillGroupConfigurationStep({
   organizationId,
   sessionIdentity,
   loading,
+  frozen,
   splitByOrder,
   splitByTaxRate,
   onSplitByOrderChange,
@@ -82,6 +84,7 @@ export default function BillGroupConfigurationStep({
   return (
     <Form
       form={form}
+      disabled={frozen}
       layout="vertical"
       onValuesChange={(changedValues) => {
         onUserEdit?.();
@@ -162,6 +165,7 @@ export default function BillGroupConfigurationStep({
                 size="small"
                 icon={<ReloadOutlined />}
                 loading={loading}
+                disabled={frozen}
                 onClick={() => void loadPreview()}
               >
                 刷新快照
@@ -197,7 +201,9 @@ export default function BillGroupConfigurationStep({
               group={group}
               organizationId={organizationId || ''}
               sessionIdentity={sessionIdentity}
-              feeColumns={getPreviewFeeColumns(onRemoveFee)}
+              feeColumns={getPreviewFeeColumns(
+                frozen ? undefined : onRemoveFee,
+              )}
               directionText={directionText}
               onConfigurationChange={onConfigurationChange}
             />

@@ -2,21 +2,25 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
 import { act } from '@testing-library/react';
 import { App } from 'antd';
+import type { ReactElement } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   ListQueryStateProvider,
   useListQueryState,
 } from '@/components/ui/list-query-state';
+import { paymentMethodOptions } from '@/features/finance/cashflow-entry';
 import { settlementServiceListCashflows } from '@/services/roncin/settlementService';
 import FinanceCashflowsPage from './index';
-import { cashflowExportColumns, paymentMethodOptions } from './ledgerExport';
+import { cashflowExportColumns } from './ledgerExport';
 
 type LedgerProps = {
   columns: ProColumns<API.FinanceCashflow>[];
-  form: { initialValues: Record<string, unknown> };
-  formRef: { current: unknown };
-  onReset: () => void;
-  onSubmit: (v: { direction: string; status: string }) => void;
+  customSearch: ReactElement<{
+    initialValues: Record<string, unknown>;
+    onReset: () => void;
+    onSearch: (v: { direction: string; status: string }) => void;
+  }>;
+  pagination: { defaultCurrent: number; defaultPageSize: number };
   request: (p: {
     current: number;
     pageSize: number;
@@ -49,12 +53,12 @@ vi.mock('@/app/access', () => ({
   }),
 }));
 vi.mock('@/components/ui', async () => ({
+  SearchFilterTemplate: () => null,
   GuardedModalForm: (await import('@/components/ui/GuardedModalForm'))
     .GuardedModalForm,
   FinanceLedgerTemplate: (p: LedgerProps) => {
     state.ledger = p;
     state.searchForm ??= { setFieldsValue: vi.fn() };
-    p.formRef.current = state.searchForm;
     return null;
   },
   ProFormSearchableSelect: () => null,
@@ -153,11 +157,13 @@ describe('流水原生搜索恢复消费', () => {
         </ListQueryStateProvider>
       </QueryClientProvider>,
     );
-    expect(state.ledger?.form.initialValues).toMatchObject({
+    expect(state.ledger?.customSearch.props.initialValues).toMatchObject({
       direction: 'PAYABLE',
       status: '2',
-      current: 2,
-      pageSize: 20,
+    });
+    expect(state.ledger?.pagination).toMatchObject({
+      defaultCurrent: 2,
+      defaultPageSize: 20,
     });
     await act(async () => {
       await state.ledger?.request({ current: 2, pageSize: 20 });
@@ -172,10 +178,7 @@ describe('流水原生搜索恢复消费', () => {
       }),
       { skipErrorHandler: true },
     );
-    act(() => state.ledger?.onReset());
-    expect(state.searchForm?.setFieldsValue).toHaveBeenCalledWith(
-      expect.objectContaining({ direction: undefined, status: undefined }),
-    );
+    act(() => state.ledger?.customSearch.props.onReset());
     await act(async () => {
       await state.ledger?.request({
         current: 1,
@@ -192,7 +195,12 @@ describe('流水原生搜索恢复消费', () => {
       }),
       { skipErrorHandler: true },
     );
-    act(() => state.ledger?.onSubmit({ direction: 'RECEIVABLE', status: '1' }));
+    act(() =>
+      state.ledger?.customSearch.props.onSearch({
+        direction: 'RECEIVABLE',
+        status: '1',
+      }),
+    );
     await act(async () => {
       await state.ledger?.request({ current: 1, pageSize: 20 });
     });

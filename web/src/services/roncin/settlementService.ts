@@ -199,6 +199,50 @@ export async function settlementServiceUpdateBillFees(
   );
 }
 
+/** 免票与撤销保留独立决定及原因，不产生虚构发票或核销事实。 POST /api/v1/finance/bills/${param0}/invoice-exemption */
+export async function settlementServiceSetBillInvoiceExemption(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceSetBillInvoiceExemptionParams,
+  body: API.SetBillInvoiceExemptionRequest,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.SetBillInvoiceExemptionResponse>(
+    `/api/v1/finance/bills/${param0}/invoice-exemption`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
+/** 此处后端没有提供注释 POST /api/v1/finance/bills/${param0}/invoice-exemption/revoke */
+export async function settlementServiceRevokeBillInvoiceExemption(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.SettlementServiceRevokeBillInvoiceExemptionParams,
+  body: API.RevokeBillInvoiceExemptionRequest,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.RevokeBillInvoiceExemptionResponse>(
+    `/api/v1/finance/bills/${param0}/invoice-exemption/revoke`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    }
+  );
+}
+
 /** 此处后端没有提供注释 GET /api/v1/finance/bills/creation-candidates */
 export async function settlementServiceListBillCreationCandidates(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

@@ -15,14 +15,24 @@ import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
 import {
   type FinanceLedgerMetricCard,
   FinanceLedgerTemplate,
+  type SearchFilterFieldItem,
+  SearchFilterTemplate,
   ResponsiveTable as Table,
 } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
+import {
+  FilterSettingsEntry,
+  type FilterSettingsField,
+  omitHiddenFilterValues,
+  useFilterSettings,
+} from '@/components/ui/filter-settings';
+import { useListQueryState } from '@/components/ui/list-query-state';
 import { FinanceNettingStatus } from '@/enums.generated';
 import { ExchangeGainLossTag } from '@/features/finance/exchange-gain-loss';
 import {
   mapMatchedSummary,
   nettingLedgerSummaryConfig,
+  useLedgerSelectionScope,
 } from '@/features/finance/ledger-summary';
 import {
   settlementServiceCancelNetting,
@@ -43,6 +53,7 @@ import { nettingExportColumns, nettingStatusText } from './ledgerExport';
 
 /** 台账内置搜索表单提交的筛选字段（keyword 等分页字段由模板统一注入，不在此声明） */
 type NettingLedgerFilterParams = {
+  keyword?: string;
   status?: string;
   currency?: string;
 };
@@ -62,6 +73,12 @@ function nettingStatusTag(status?: number) {
   }
 }
 
+const filterFields: FilterSettingsField[] = [
+  { name: 'keyword', label: '综合搜索', defaultVisible: true },
+  { name: 'status', label: '对冲状态', defaultVisible: true },
+  { name: 'currency', label: '币种', defaultVisible: true },
+];
+
 export default function FinanceNettingsPage() {
   const access = useAccess();
   const { initialState } = useInitialState();
@@ -73,6 +90,26 @@ export default function FinanceNettingsPage() {
       access.canOperateOrganization(organizationId),
   );
   const getModalOwnerSignal = useModalOwnerSignal();
+  const filterSettings = useFilterSettings({
+    pageKey: 'finance:nettings',
+    fields: filterFields,
+  });
+  const queryState = useListQueryState<NettingLedgerFilterParams>({
+    tabKey: '/finance/nettings',
+    listId: 'finance:nettings',
+    defaultPageSize: 40,
+    defaultFilters: {},
+    sanitizeRestored: (filters) =>
+      omitHiddenFilterValues(
+        filters,
+        filterFields,
+        filterSettings.visibleNames,
+      ),
+  });
+  const { selectionScope, commitFilters } = useLedgerSelectionScope(
+    queryState.commit,
+    () => queryState.snapshotRef.current.filters,
+  );
   const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [detail, setDetail] = useState<API.FinanceNetting>();
@@ -169,6 +206,25 @@ export default function FinanceNettingsPage() {
       value: formatNettingBaseAmounts(),
       valueColor: '#52c41a',
     },
+  ];
+
+  const filterItems: SearchFilterFieldItem[] = [
+    { name: 'keyword', label: '综合搜索', placeholder: '对冲单号／结算单位' },
+    {
+      name: 'status',
+      label: '对冲状态',
+      type: 'select',
+      options: [
+        FinanceNettingStatus.FINANCE_NETTING_STATUS_DRAFT,
+        FinanceNettingStatus.FINANCE_NETTING_STATUS_CONFIRMED,
+        FinanceNettingStatus.FINANCE_NETTING_STATUS_CANCELLED,
+        FinanceNettingStatus.FINANCE_NETTING_STATUS_REVERSED,
+      ].map((value) => ({
+        value: String(value),
+        label: nettingStatusText(value),
+      })),
+    },
+    { name: 'currency', label: '币种', placeholder: '请输入币种代码' },
   ];
 
   const columns: ProColumns<API.FinanceNetting>[] = [
@@ -431,8 +487,35 @@ export default function FinanceNettingsPage() {
         columns={columns}
         columnSettingsKey="finance:nettings"
         metricCards={metricCards}
+        search={false}
+        pagination={queryState.pagination}
+        customSearch={
+          <SearchFilterTemplate<NettingLedgerFilterParams>
+            items={filterItems}
+            initialValues={queryState.initial.filters}
+            initialLabels={queryState.initial.labels}
+            visibleNames={filterSettings.visibleNames}
+            extraRight={
+              <FilterSettingsEntry
+                fields={filterFields}
+                visibleNames={filterSettings.visibleNames}
+                onChange={filterSettings.setVisible}
+                onReset={filterSettings.reset}
+              />
+            }
+            onCommit={(values, labels) => commitFilters(values, labels)}
+            onSearch={(values) => {
+              commitFilters(values);
+              actionRef.current?.reload(true);
+            }}
+            onReset={() => {
+              commitFilters({}, {});
+              actionRef.current?.reload(true);
+            }}
+          />
+        }
         summaryConfig={nettingLedgerSummaryConfig}
-        selectionScope={organizationId}
+        selectionScope={selectionScope}
         onAcceptedSnapshot={(snapshot) => {
           setMetricStats({
             confirmedCount: Number(snapshot.summary?.confirmedCount ?? 0),
@@ -446,9 +529,11 @@ export default function FinanceNettingsPage() {
             {
               page: params.current,
               pageSize: params.pageSize,
-              keyword: params.keyword,
-              currency: params.currency,
-              status: params.status ? Number(params.status) : undefined,
+              keyword: queryState.snapshotRef.current.filters.keyword,
+              currency: queryState.snapshotRef.current.filters.currency,
+              status: queryState.snapshotRef.current.filters.status
+                ? Number(queryState.snapshotRef.current.filters.status)
+                : undefined,
               organizationId,
             },
             { skipErrorHandler: true },

@@ -117,7 +117,7 @@ func TestRetireWeComMigrationPreservesAccountsAndRelationsPostgres(t *testing.T)
 		t.Fatal(err)
 	}
 	assertRetiredIdentitySchema(t, data)
-	if err := BackfillSelectorSearchKeywords(ctx, data.sqlDB); err != nil {
+	if err := backfillSelectorSearchKeywords(ctx, data.sqlDB, searchKeywordBackfillSpec{table: "users", columns: []string{"display_name", "dingtalk_name"}}); err != nil {
 		t.Fatal(err)
 	}
 	for name, query := range queries {
@@ -140,11 +140,14 @@ func TestRetireWeComMigrationPreservesAccountsAndRelationsPostgres(t *testing.T)
 	if err := migration.Apply(ctx, data.sqlDB, dir); err != nil {
 		t.Fatal(err)
 	}
-	if err := BackfillSelectorSearchKeywords(ctx, data.sqlDB); err != nil {
+	if err := backfillSelectorSearchKeywords(ctx, data.sqlDB, searchKeywordBackfillSpec{table: "users", columns: []string{"display_name", "dingtalk_name"}}); err != nil {
 		t.Fatal(err)
 	}
-	// 当前认证仓储按最新契约运行；历史快照断言完成后再升级并验证现有账号可用。
+	// 当前认证仓储与全表回填按最新契约运行；历史快照断言后先完整升级，再验证现有账号可用。
 	if err := migration.Apply(ctx, data.sqlDB, fullDir); err != nil {
+		t.Fatal(err)
+	}
+	if err := BackfillSelectorSearchKeywords(ctx, data.sqlDB); err != nil {
 		t.Fatal(err)
 	}
 	// 权限同步会使用当前 Ent 组织投影（包含 name_en），须在历史快照断言及完整升级后验证。

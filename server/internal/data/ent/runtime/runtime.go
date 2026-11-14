@@ -50,6 +50,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceexemption"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
@@ -2711,33 +2712,6 @@ func init() {
 	financebillbatchDescSplitByTaxRate := financebillbatchFields[5].Descriptor()
 	// financebillbatch.DefaultSplitByTaxRate holds the default value on creation for the split_by_tax_rate field.
 	financebillbatch.DefaultSplitByTaxRate = financebillbatchDescSplitByTaxRate.Default.(bool)
-	// financebillbatchDescFeeCount is the schema descriptor for fee_count field.
-	financebillbatchDescFeeCount := financebillbatchFields[7].Descriptor()
-	// financebillbatch.FeeCountValidator is a validator for the "fee_count" field. It is called by the builders before save.
-	financebillbatch.FeeCountValidator = financebillbatchDescFeeCount.Validators[0].(func(int) error)
-	// financebillbatchDescBillCount is the schema descriptor for bill_count field.
-	financebillbatchDescBillCount := financebillbatchFields[8].Descriptor()
-	// financebillbatch.BillCountValidator is a validator for the "bill_count" field. It is called by the builders before save.
-	financebillbatch.BillCountValidator = financebillbatchDescBillCount.Validators[0].(func(int) error)
-	// financebillbatchDescBaseCurrency is the schema descriptor for base_currency field.
-	financebillbatchDescBaseCurrency := financebillbatchFields[10].Descriptor()
-	// financebillbatch.BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
-	financebillbatch.BaseCurrencyValidator = func() func(string) error {
-		validators := financebillbatchDescBaseCurrency.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-			validators[2].(func(string) error),
-		}
-		return func(base_currency string) error {
-			for _, fn := range fns {
-				if err := fn(base_currency); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
 	// financebillbatchDescID is the schema descriptor for id field.
 	financebillbatchDescID := financebillbatchMixinFields0[0].Descriptor()
 	// financebillbatch.DefaultID holds the default value on creation for the id field.
@@ -4289,6 +4263,53 @@ func init() {
 	financeinvoicebillDescID := financeinvoicebillMixinFields0[0].Descriptor()
 	// financeinvoicebill.DefaultID holds the default value on creation for the id field.
 	financeinvoicebill.DefaultID = financeinvoicebillDescID.Default.(func() uuid.UUID)
+	financeinvoiceexemptionMixin := schema.FinanceInvoiceExemption{}.Mixin()
+	financeinvoiceexemptionMixinFields0 := financeinvoiceexemptionMixin[0].Fields()
+	_ = financeinvoiceexemptionMixinFields0
+	financeinvoiceexemptionMixinFields1 := financeinvoiceexemptionMixin[1].Fields()
+	_ = financeinvoiceexemptionMixinFields1
+	financeinvoiceexemptionFields := schema.FinanceInvoiceExemption{}.Fields()
+	_ = financeinvoiceexemptionFields
+	// financeinvoiceexemptionDescCreatedAt is the schema descriptor for created_at field.
+	financeinvoiceexemptionDescCreatedAt := financeinvoiceexemptionMixinFields1[0].Descriptor()
+	// financeinvoiceexemption.DefaultCreatedAt holds the default value on creation for the created_at field.
+	financeinvoiceexemption.DefaultCreatedAt = financeinvoiceexemptionDescCreatedAt.Default.(func() time.Time)
+	// financeinvoiceexemptionDescUpdatedAt is the schema descriptor for updated_at field.
+	financeinvoiceexemptionDescUpdatedAt := financeinvoiceexemptionMixinFields1[1].Descriptor()
+	// financeinvoiceexemption.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	financeinvoiceexemption.DefaultUpdatedAt = financeinvoiceexemptionDescUpdatedAt.Default.(func() time.Time)
+	// financeinvoiceexemption.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	financeinvoiceexemption.UpdateDefaultUpdatedAt = financeinvoiceexemptionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// financeinvoiceexemptionDescReason is the schema descriptor for reason field.
+	financeinvoiceexemptionDescReason := financeinvoiceexemptionFields[3].Descriptor()
+	// financeinvoiceexemption.ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
+	financeinvoiceexemption.ReasonValidator = func() func(string) error {
+		validators := financeinvoiceexemptionDescReason.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(reason string) error {
+			for _, fn := range fns {
+				if err := fn(reason); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// financeinvoiceexemptionDescVersion is the schema descriptor for version field.
+	financeinvoiceexemptionDescVersion := financeinvoiceexemptionFields[4].Descriptor()
+	// financeinvoiceexemption.DefaultVersion holds the default value on creation for the version field.
+	financeinvoiceexemption.DefaultVersion = financeinvoiceexemptionDescVersion.Default.(uint64)
+	// financeinvoiceexemptionDescRevocationReason is the schema descriptor for revocation_reason field.
+	financeinvoiceexemptionDescRevocationReason := financeinvoiceexemptionFields[7].Descriptor()
+	// financeinvoiceexemption.RevocationReasonValidator is a validator for the "revocation_reason" field. It is called by the builders before save.
+	financeinvoiceexemption.RevocationReasonValidator = financeinvoiceexemptionDescRevocationReason.Validators[0].(func(string) error)
+	// financeinvoiceexemptionDescID is the schema descriptor for id field.
+	financeinvoiceexemptionDescID := financeinvoiceexemptionMixinFields0[0].Descriptor()
+	// financeinvoiceexemption.DefaultID holds the default value on creation for the id field.
+	financeinvoiceexemption.DefaultID = financeinvoiceexemptionDescID.Default.(func() uuid.UUID)
 	financeinvoicelineMixin := schema.FinanceInvoiceLine{}.Mixin()
 	financeinvoicelineMixinFields0 := financeinvoicelineMixin[0].Fields()
 	_ = financeinvoicelineMixinFields0
@@ -5739,6 +5760,8 @@ func init() {
 	// ordercontainerrequest.DefaultID holds the default value on creation for the id field.
 	ordercontainerrequest.DefaultID = ordercontainerrequestDescID.Default.(func() uuid.UUID)
 	orderfeeMixin := schema.OrderFee{}.Mixin()
+	orderfeeHooks := schema.OrderFee{}.Hooks()
+	orderfee.Hooks[0] = orderfeeHooks[0]
 	orderfeeMixinFields0 := orderfeeMixin[0].Fields()
 	_ = orderfeeMixinFields0
 	orderfeeMixinFields1 := orderfeeMixin[1].Fields()
@@ -5813,8 +5836,12 @@ func init() {
 	orderfeeDescFeeNameEn := orderfeeFields[6].Descriptor()
 	// orderfee.FeeNameEnValidator is a validator for the "fee_name_en" field. It is called by the builders before save.
 	orderfee.FeeNameEnValidator = orderfeeDescFeeNameEn.Validators[0].(func(string) error)
+	// orderfeeDescSearchKeywords is the schema descriptor for search_keywords field.
+	orderfeeDescSearchKeywords := orderfeeFields[7].Descriptor()
+	// orderfee.DefaultSearchKeywords holds the default value on creation for the search_keywords field.
+	orderfee.DefaultSearchKeywords = orderfeeDescSearchKeywords.Default.(string)
 	// orderfeeDescBillingUnit is the schema descriptor for billing_unit field.
-	orderfeeDescBillingUnit := orderfeeFields[9].Descriptor()
+	orderfeeDescBillingUnit := orderfeeFields[10].Descriptor()
 	// orderfee.BillingUnitValidator is a validator for the "billing_unit" field. It is called by the builders before save.
 	orderfee.BillingUnitValidator = func() func(string) error {
 		validators := orderfeeDescBillingUnit.Validators
@@ -5832,15 +5859,15 @@ func init() {
 		}
 	}()
 	// orderfeeDescTaxableServiceName is the schema descriptor for taxable_service_name field.
-	orderfeeDescTaxableServiceName := orderfeeFields[11].Descriptor()
+	orderfeeDescTaxableServiceName := orderfeeFields[12].Descriptor()
 	// orderfee.TaxableServiceNameValidator is a validator for the "taxable_service_name" field. It is called by the builders before save.
 	orderfee.TaxableServiceNameValidator = orderfeeDescTaxableServiceName.Validators[0].(func(string) error)
 	// orderfeeDescTaxInclusive is the schema descriptor for tax_inclusive field.
-	orderfeeDescTaxInclusive := orderfeeFields[16].Descriptor()
+	orderfeeDescTaxInclusive := orderfeeFields[17].Descriptor()
 	// orderfee.DefaultTaxInclusive holds the default value on creation for the tax_inclusive field.
 	orderfee.DefaultTaxInclusive = orderfeeDescTaxInclusive.Default.(bool)
 	// orderfeeDescCurrency is the schema descriptor for currency field.
-	orderfeeDescCurrency := orderfeeFields[19].Descriptor()
+	orderfeeDescCurrency := orderfeeFields[20].Descriptor()
 	// orderfee.CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	orderfee.CurrencyValidator = func() func(string) error {
 		validators := orderfeeDescCurrency.Validators
@@ -5859,7 +5886,7 @@ func init() {
 		}
 	}()
 	// orderfeeDescExchangeRateDate is the schema descriptor for exchange_rate_date field.
-	orderfeeDescExchangeRateDate := orderfeeFields[22].Descriptor()
+	orderfeeDescExchangeRateDate := orderfeeFields[23].Descriptor()
 	// orderfee.ExchangeRateDateValidator is a validator for the "exchange_rate_date" field. It is called by the builders before save.
 	orderfee.ExchangeRateDateValidator = func() func(string) error {
 		validators := orderfeeDescExchangeRateDate.Validators
@@ -5878,7 +5905,7 @@ func init() {
 		}
 	}()
 	// orderfeeDescBaseCurrency is the schema descriptor for base_currency field.
-	orderfeeDescBaseCurrency := orderfeeFields[24].Descriptor()
+	orderfeeDescBaseCurrency := orderfeeFields[25].Descriptor()
 	// orderfee.BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
 	orderfee.BaseCurrencyValidator = func() func(string) error {
 		validators := orderfeeDescBaseCurrency.Validators
@@ -5897,15 +5924,15 @@ func init() {
 		}
 	}()
 	// orderfeeDescNote is the schema descriptor for note field.
-	orderfeeDescNote := orderfeeFields[26].Descriptor()
+	orderfeeDescNote := orderfeeFields[27].Descriptor()
 	// orderfee.NoteValidator is a validator for the "note" field. It is called by the builders before save.
 	orderfee.NoteValidator = orderfeeDescNote.Validators[0].(func(string) error)
 	// orderfeeDescAccountingRequired is the schema descriptor for accounting_required field.
-	orderfeeDescAccountingRequired := orderfeeFields[29].Descriptor()
+	orderfeeDescAccountingRequired := orderfeeFields[30].Descriptor()
 	// orderfee.DefaultAccountingRequired holds the default value on creation for the accounting_required field.
 	orderfee.DefaultAccountingRequired = orderfeeDescAccountingRequired.Default.(bool)
 	// orderfeeDescVersion is the schema descriptor for version field.
-	orderfeeDescVersion := orderfeeFields[33].Descriptor()
+	orderfeeDescVersion := orderfeeFields[34].Descriptor()
 	// orderfee.DefaultVersion holds the default value on creation for the version field.
 	orderfee.DefaultVersion = orderfeeDescVersion.Default.(uint64)
 	// orderfeeDescID is the schema descriptor for id field.

@@ -120,15 +120,7 @@ func (uc *FinanceCashflowUsecase) GetScoped(ctx context.Context, organizationIDs
 }
 
 func (uc *FinanceCashflowUsecase) Create(ctx context.Context, org, actor uuid.UUID, in CreateFinanceCashflowInput, canOverrideExchangeRate bool) (*FinanceCashflow, error) {
-	in.Currency = strings.ToUpper(strings.TrimSpace(in.Currency))
-	in.BaseCurrency = strings.ToUpper(strings.TrimSpace(in.BaseCurrency))
-	in.TransactionDate = strings.TrimSpace(in.TransactionDate)
-	in.OurAccount = strings.TrimSpace(in.OurAccount)
-	in.PaymentMethod = strings.TrimSpace(in.PaymentMethod)
-	in.IdempotencyKey = strings.TrimSpace(in.IdempotencyKey)
-	in.CounterpartyAccount = normalizedOptionalFinanceString(in.CounterpartyAccount)
-	in.BankReferenceNo = normalizedOptionalFinanceString(in.BankReferenceNo)
-	in.Note = normalizedOptionalFinanceString(in.Note)
+	in = normalizeCreateFinanceCashflowInput(in)
 	if org == uuid.Nil || actor == uuid.Nil || in.SettlementPartyID == uuid.Nil || (in.Direction != OrderFeeReceivable && in.Direction != OrderFeePayable) || !financeBillCurrencyPattern.MatchString(in.Currency) || !in.Amount.IsPositive() || !validFinanceDate(in.TransactionDate) || in.OurAccount == "" || in.PaymentMethod == "" || in.IdempotencyKey == "" || utf8.RuneCountInString(in.IdempotencyKey) > 128 {
 		return nil, ErrFinanceCashflowInvalidArgument
 	}
@@ -211,4 +203,17 @@ func (uc *FinanceCashflowUsecase) Cancel(ctx context.Context, org, actor, id uui
 }
 func cashflowAudit(org, actor, id uuid.UUID, action string) *AuditEvent {
 	return &AuditEvent{OrganizationID: &org, UserID: &actor, Action: action, Result: "success", ResourceType: "finance_cashflow", ResourceID: id.String()}
+}
+
+func normalizeCreateFinanceCashflowInput(in CreateFinanceCashflowInput) CreateFinanceCashflowInput {
+	in.Currency = strings.ToUpper(strings.TrimSpace(in.Currency))
+	in.BaseCurrency = strings.ToUpper(strings.TrimSpace(in.BaseCurrency))
+	in.TransactionDate = strings.TrimSpace(in.TransactionDate)
+	in.OurAccount = strings.TrimSpace(in.OurAccount)
+	in.PaymentMethod = strings.TrimSpace(in.PaymentMethod)
+	in.IdempotencyKey = strings.TrimSpace(in.IdempotencyKey)
+	in.CounterpartyAccount = normalizedOptionalFinanceString(in.CounterpartyAccount)
+	in.BankReferenceNo = normalizedOptionalFinanceString(in.BankReferenceNo)
+	in.Note = normalizedOptionalFinanceString(in.Note)
+	return in
 }

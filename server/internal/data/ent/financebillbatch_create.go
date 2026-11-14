@@ -122,30 +122,6 @@ func (_c *FinanceBillBatchCreate) SetNillableGroupingMode(v *financebillbatch.Gr
 	return _c
 }
 
-// SetFeeCount sets the "fee_count" field.
-func (_c *FinanceBillBatchCreate) SetFeeCount(v int) *FinanceBillBatchCreate {
-	_c.mutation.SetFeeCount(v)
-	return _c
-}
-
-// SetBillCount sets the "bill_count" field.
-func (_c *FinanceBillBatchCreate) SetBillCount(v int) *FinanceBillBatchCreate {
-	_c.mutation.SetBillCount(v)
-	return _c
-}
-
-// SetTotalBaseAmount sets the "total_base_amount" field.
-func (_c *FinanceBillBatchCreate) SetTotalBaseAmount(v string) *FinanceBillBatchCreate {
-	_c.mutation.SetTotalBaseAmount(v)
-	return _c
-}
-
-// SetBaseCurrency sets the "base_currency" field.
-func (_c *FinanceBillBatchCreate) SetBaseCurrency(v string) *FinanceBillBatchCreate {
-	_c.mutation.SetBaseCurrency(v)
-	return _c
-}
-
 // SetCreatedBy sets the "created_by" field.
 func (_c *FinanceBillBatchCreate) SetCreatedBy(v uuid.UUID) *FinanceBillBatchCreate {
 	_c.mutation.SetCreatedBy(v)
@@ -322,33 +298,6 @@ func (_c *FinanceBillBatchCreate) check() error {
 			return &ValidationError{Name: "grouping_mode", err: fmt.Errorf(`ent: validator failed for field "FinanceBillBatch.grouping_mode": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.FeeCount(); !ok {
-		return &ValidationError{Name: "fee_count", err: errors.New(`ent: missing required field "FinanceBillBatch.fee_count"`)}
-	}
-	if v, ok := _c.mutation.FeeCount(); ok {
-		if err := financebillbatch.FeeCountValidator(v); err != nil {
-			return &ValidationError{Name: "fee_count", err: fmt.Errorf(`ent: validator failed for field "FinanceBillBatch.fee_count": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.BillCount(); !ok {
-		return &ValidationError{Name: "bill_count", err: errors.New(`ent: missing required field "FinanceBillBatch.bill_count"`)}
-	}
-	if v, ok := _c.mutation.BillCount(); ok {
-		if err := financebillbatch.BillCountValidator(v); err != nil {
-			return &ValidationError{Name: "bill_count", err: fmt.Errorf(`ent: validator failed for field "FinanceBillBatch.bill_count": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.TotalBaseAmount(); !ok {
-		return &ValidationError{Name: "total_base_amount", err: errors.New(`ent: missing required field "FinanceBillBatch.total_base_amount"`)}
-	}
-	if _, ok := _c.mutation.BaseCurrency(); !ok {
-		return &ValidationError{Name: "base_currency", err: errors.New(`ent: missing required field "FinanceBillBatch.base_currency"`)}
-	}
-	if v, ok := _c.mutation.BaseCurrency(); ok {
-		if err := financebillbatch.BaseCurrencyValidator(v); err != nil {
-			return &ValidationError{Name: "base_currency", err: fmt.Errorf(`ent: validator failed for field "FinanceBillBatch.base_currency": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.CreatedBy(); !ok {
 		return &ValidationError{Name: "created_by", err: errors.New(`ent: missing required field "FinanceBillBatch.created_by"`)}
 	}
@@ -425,22 +374,6 @@ func (_c *FinanceBillBatchCreate) createSpec() (*FinanceBillBatch, *sqlgraph.Cre
 	if value, ok := _c.mutation.GroupingMode(); ok {
 		_spec.SetField(financebillbatch.FieldGroupingMode, field.TypeEnum, value)
 		_node.GroupingMode = value
-	}
-	if value, ok := _c.mutation.FeeCount(); ok {
-		_spec.SetField(financebillbatch.FieldFeeCount, field.TypeInt, value)
-		_node.FeeCount = value
-	}
-	if value, ok := _c.mutation.BillCount(); ok {
-		_spec.SetField(financebillbatch.FieldBillCount, field.TypeInt, value)
-		_node.BillCount = value
-	}
-	if value, ok := _c.mutation.TotalBaseAmount(); ok {
-		_spec.SetField(financebillbatch.FieldTotalBaseAmount, field.TypeString, value)
-		_node.TotalBaseAmount = value
-	}
-	if value, ok := _c.mutation.BaseCurrency(); ok {
-		_spec.SetField(financebillbatch.FieldBaseCurrency, field.TypeString, value)
-		_node.BaseCurrency = value
 	}
 	if nodes := _c.mutation.OrganizationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -612,18 +545,6 @@ func (u *FinanceBillBatchUpsertOne) UpdateNewValues() *FinanceBillBatchUpsertOne
 		}
 		if _, exists := u.create.mutation.GroupingMode(); exists {
 			s.SetIgnore(financebillbatch.FieldGroupingMode)
-		}
-		if _, exists := u.create.mutation.FeeCount(); exists {
-			s.SetIgnore(financebillbatch.FieldFeeCount)
-		}
-		if _, exists := u.create.mutation.BillCount(); exists {
-			s.SetIgnore(financebillbatch.FieldBillCount)
-		}
-		if _, exists := u.create.mutation.TotalBaseAmount(); exists {
-			s.SetIgnore(financebillbatch.FieldTotalBaseAmount)
-		}
-		if _, exists := u.create.mutation.BaseCurrency(); exists {
-			s.SetIgnore(financebillbatch.FieldBaseCurrency)
 		}
 		if _, exists := u.create.mutation.CreatedBy(); exists {
 			s.SetIgnore(financebillbatch.FieldCreatedBy)
@@ -879,18 +800,6 @@ func (u *FinanceBillBatchUpsertBulk) UpdateNewValues() *FinanceBillBatchUpsertBu
 			}
 			if _, exists := b.mutation.GroupingMode(); exists {
 				s.SetIgnore(financebillbatch.FieldGroupingMode)
-			}
-			if _, exists := b.mutation.FeeCount(); exists {
-				s.SetIgnore(financebillbatch.FieldFeeCount)
-			}
-			if _, exists := b.mutation.BillCount(); exists {
-				s.SetIgnore(financebillbatch.FieldBillCount)
-			}
-			if _, exists := b.mutation.TotalBaseAmount(); exists {
-				s.SetIgnore(financebillbatch.FieldTotalBaseAmount)
-			}
-			if _, exists := b.mutation.BaseCurrency(); exists {
-				s.SetIgnore(financebillbatch.FieldBaseCurrency)
 			}
 			if _, exists := b.mutation.CreatedBy(); exists {
 				s.SetIgnore(financebillbatch.FieldCreatedBy)

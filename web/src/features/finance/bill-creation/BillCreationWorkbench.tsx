@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { App, Drawer, Form, Steps } from 'antd';
+import { Alert, App, Drawer, Form, Steps } from 'antd';
 import dayjs from 'dayjs';
 import React, {
   useCallback,
@@ -27,11 +27,13 @@ import BillGroupConfigurationStep from './BillGroupConfigurationStep';
 import BillSplitStrategyCards from './BillSplitStrategyCards';
 import BillWorkbenchFooter from './BillWorkbenchFooter';
 import {
+  type BillBatchOutcome,
   type BillCreationMode,
   directionText,
   type GroupFormValue,
   isGroupComplete,
   makeGroupConfig,
+  normalizeBillBatchResponse,
   type RequestError,
   requestMessage,
   requestReason,
@@ -48,6 +50,12 @@ export type BillCreationWorkbenchProps = {
   mode?: BillCreationMode;
   onClose: () => void;
   onCreated?: (batch: API.FinanceBillBatch) => void;
+};
+
+/** 已提交的批量建账请求与提交时的分组展示快照；同键重试原样复用该请求。 */
+type BatchSubmission = {
+  request: API.CreateBillBatchRequest;
+  groups: Record<string, API.BillBatchPreviewGroup>;
 };
 
 /** 预览快照 queryKey 域前缀；会话序号与防抖后请求参数逐层进 key。 */
@@ -84,7 +92,7 @@ export default function BillCreationWorkbench({
   onClose,
   onCreated,
 }: BillCreationWorkbenchProps) {
-  // 对冲模式在服务端仍按方向分别生成原始账单叶子，并额外原子生成草稿对冲结算单。
+  // 普通模式按组独立提交、可部分成功；对冲模式按方向生成原始账单叶子并整批原子生成草稿对冲结算单。
   const groupingMode =
     mode === 'NETTING'
       ? BillGroupingMode.BILL_GROUPING_MODE_NETTING
@@ -95,7 +103,7 @@ export default function BillCreationWorkbench({
   const [form] = Form.useForm<WorkbenchFormValue>();
   const [current, setCurrent] = useState(0);
   const [selectedFeeIds, setSelectedFeeIds] = useState<React.Key[]>([]);
-  const [splitByOrder, setSplitByOrder] = useState(true);
+  const [splitByOrder, setSplitByOrder] = useState(false);
   const [splitByTaxRate, setSplitByTaxRate] = useState(false);
   const { initialState } = useInitialState();
   const access = useAccess();
@@ -107,7 +115,9 @@ export default function BillCreationWorkbench({
     access.canOperateOrganization(organizationId);
   const validSource =
     !initialFeeIds.length || initialOrganizationId === organizationId;
-  const [result, setResult] = useState<API.FinanceBillBatch>();
+  const [result, setResult] = useState<BillBatchOutcome>();
+  const [submission, setSubmission] = useState<BatchSubmission>();
+  const awaitingConfirmation = submission !== undefined && result === undefined;
   const [submitting, setSubmitting] = useState(false);
   const [idempotencyKey, setIdempotencyKey] = useState('');
   const [activeGroupKey, setActiveGroupKey] = useState<string>();
@@ -115,8 +125,8 @@ export default function BillCreationWorkbench({
   // 防抖后进入 queryKey 的预览请求参数；undefined 表示当前没有待执行/进行中的预览。
   const [previewRequest, setPreviewRequest] =
     useState<API.PreviewBillBatchRequest>();
-  // 快照令牌失效时间戳：晚于该时间成功落地的预览才允许携带 previewToken
-  // 参与建单，等价原 fingerprint/previewTokenFingerprint 双 ref 的失效语义。
+  // 快照令牌失效时间戳：晚于该时间成功落地的预览才允许携带各组 groupToken
+  // 参与建单，等价原 fingerprint/groupTokenFingerprint 双 ref 的失效语义。
   const [snapshotInvalidatedAt, setSnapshotInvalidatedAt] = useState(0);
 
   const previewInitKeyRef = useRef<string | undefined>(undefined);
@@ -192,7 +202,7 @@ export default function BillCreationWorkbench({
   ]);
 
   // 仅当展示中的数据是「当前参数、当前会话、失效标记之后」的成功响应时，
-  // 其 previewToken 才可用于创建；配置变更即刻失效，等待新预览落地。
+  // 其 groupToken 才可用于创建；配置变更即刻失效，等待新预览落地。
   const snapshotTokenUsable =
     previewQuery.isSuccess &&
     !previewQuery.isPlaceholderData &&
@@ -319,6 +329,7 @@ export default function BillCreationWorkbench({
         previewTimerRef.current = undefined;
       }
       previewInitKeyRef.current = undefined;
+      clearPreviewSnapshot();
       return;
     }
     const initialIds = initialFeeKey
@@ -329,23 +340,26 @@ export default function BillCreationWorkbench({
     previewInitKeyRef.current = initKey;
     clearPreviewSnapshot();
     setSelectedFeeIds(initialIds);
-    setSplitByOrder(true);
+    setSplitByOrder(false);
     setSplitByTaxRate(false);
     setResult(undefined);
+    setSubmission(undefined);
     setSubmitting(false);
     setIdempotencyKey(generateUUID());
     form.resetFields();
 
     if (initialIds.length > 0 && canOperate && validSource) {
+      const requestedSession = sessionSequenceRef.current;
       // 极速模式：从单票/多选费用带入时，直接拉取预览并切到账单资料页
       void runPreviewRef
         .current(initialIds, {
           mode: groupingMode,
-          splitByOrder: true,
+          splitByOrder: false,
           splitByTaxRate: false,
         })
         .then((ok) => {
-          setCurrent(ok ? 2 : 0);
+          if (requestedSession === sessionSequenceRef.current)
+            setCurrent(ok ? 2 : 0);
         });
     } else {
       setCurrent(0);
@@ -397,6 +411,7 @@ export default function BillCreationWorkbench({
       return;
     }
     if (current === 1) {
+      const requestedSession = sessionSequenceRef.current;
       if (
         await runPreview(undefined, {
           mode: groupingMode,
@@ -404,7 +419,7 @@ export default function BillCreationWorkbench({
           splitByTaxRate,
         })
       ) {
-        setCurrent(2);
+        if (requestedSession === sessionSequenceRef.current) setCurrent(2);
       }
     }
   };
@@ -416,6 +431,11 @@ export default function BillCreationWorkbench({
           ? '请在当前公司工作区建账'
           : '所选费用不属于当前公司，不能建账',
       );
+      return;
+    }
+    // 结果未知时直接确认原载荷，不能按编辑后的表单重建请求。
+    if (awaitingConfirmation && submission) {
+      await submitBatch(submission);
       return;
     }
     const currentValues = form.getFieldsValue(true) as WorkbenchFormValue;
@@ -434,10 +454,11 @@ export default function BillCreationWorkbench({
       return;
     }
     if (
-      !preview?.previewToken ||
-      !preview.data?.length ||
+      !preview?.data?.length ||
       !snapshotTokenUsable ||
-      preview.data.some((group) => group.configurationComplete !== true)
+      preview.data.some(
+        (group) => group.configurationComplete !== true || !group.groupToken,
+      )
     ) {
       message.warning('账单预览快照尚未完整或已失效，请补齐配置后重新预览');
       return;
@@ -458,68 +479,130 @@ export default function BillCreationWorkbench({
       message.warning('请为每张拟生成账单补齐必填资料和结算账户');
       return;
     }
-    setSubmitting(true);
+    let nextSubmission: BatchSubmission;
     try {
       const allFormValues = form.getFieldsValue(true) as WorkbenchFormValue;
-      const response = await settlementServiceCreateBillBatch(
-        {
-          feeIds: selectedIds,
-          groupingPolicy: {
-            mode: groupingMode,
-            splitByOrder,
-            splitByTaxRate,
-          },
-          previewToken: preview.previewToken,
+      const groupSnapshots: Record<string, API.BillBatchPreviewGroup> = {};
+      const groups = preview.data.map((group) => {
+        const groupKey = group.groupKey || '';
+        const value =
+          values?.groups?.[groupKey] || allFormValues.groups?.[groupKey];
+        const feeIds = (group.fees || []).map((fee) => fee.id || '');
+        if (!value || !group.groupToken) {
+          throw new Error(
+            `账单组 ${group.settlementPartyName || groupKey} 缺少配置数据`,
+          );
+        }
+        if (feeIds.length === 0 || feeIds.some((id) => !id)) {
+          throw new Error(
+            `账单组 ${group.settlementPartyName || groupKey} 缺少费用标识`,
+          );
+        }
+        groupSnapshots[groupKey] = group;
+        return {
+          groupKey,
+          groupToken: group.groupToken,
+          feeIds,
+          statementTitle: value.statementTitle.trim(),
+          billDate: value.billDate.format('YYYY-MM-DD'),
+          paymentTermsDays: value.paymentTermsDays,
+          note: value.note?.trim() || undefined,
+          settlementAccountId: value.settlementAccountId || '',
+          estimatedInvoiceCurrency: value.estimatedInvoiceCurrency || undefined,
+          estimatedInvoiceRate: value.estimatedInvoiceRate?.trim() || undefined,
+        };
+      });
+      nextSubmission = {
+        request: {
+          groupingPolicy: { mode: groupingMode, splitByOrder, splitByTaxRate },
           idempotencyKey,
           organizationId,
-          groups: preview.data.map((group) => {
-            const groupKey = group.groupKey || '';
-            const value =
-              values?.groups?.[groupKey] || allFormValues.groups?.[groupKey];
-            if (!value) {
-              throw new Error(
-                `账单组 ${group.settlementPartyName || groupKey} 缺少配置数据`,
-              );
-            }
-            return {
-              groupKey,
-              statementTitle: value.statementTitle.trim(),
-              billDate: value.billDate.format('YYYY-MM-DD'),
-              paymentTermsDays: value.paymentTermsDays,
-              note: value.note?.trim() || undefined,
-              settlementAccountId: value.settlementAccountId || '',
-              estimatedInvoiceCurrency:
-                value.estimatedInvoiceCurrency || undefined,
-              estimatedInvoiceRate:
-                value.estimatedInvoiceRate?.trim() || undefined,
-            };
-          }),
+          groups,
         },
-        { ...longRequestOptions, skipErrorHandler: true },
-      );
-      if (!isWriteResponse(response, true)) return false;
-      if (!response.data) throw new Error('服务端未返回建单结果');
-      resetDirty();
-      setResult(response.data);
-      setCurrent(3);
-      message.success(`批次 ${response.data.batchNo || ''} 已原子生成`);
-      onCreated?.(response.data);
+        groups: groupSnapshots,
+      };
     } catch (rawError: unknown) {
+      message.error(
+        requestMessage(rawError as RequestError, '批量生成账单失败'),
+      );
+      return;
+    }
+    await submitBatch(nextSubmission);
+    return undefined;
+  };
+
+  /**
+   * 提交批量建账并逐组展示结果。普通模式各组独立提交，HTTP 200 不代表全部成功；
+   * 同一提交（同幂等键、同请求）重发时，已成功组由服务端原样返回，失败组重新尝试。
+   */
+  const submitBatch = async (target: BatchSubmission) => {
+    const requestedSession = sessionSequenceRef.current;
+    setSubmitting(true);
+    setSubmission(target);
+    try {
+      const response = await settlementServiceCreateBillBatch(target.request, {
+        ...longRequestOptions,
+        skipErrorHandler: true,
+      });
+      if (requestedSession !== sessionSequenceRef.current) return;
+      if (!isWriteResponse(response, true)) return;
+      const outcome = normalizeBillBatchResponse(
+        response,
+        target.request.groups.map((group) => group.groupKey),
+      );
+      setResult(outcome);
+      setCurrent(3);
+      if (outcome.failedCount === 0) {
+        resetDirty();
+        message.success(
+          `批次 ${outcome.batch.batchNo || ''} 已生成 ${outcome.succeededCount} 张账单`,
+        );
+      } else {
+        message.warning(
+          `批次 ${outcome.batch.batchNo || ''}：成功 ${outcome.succeededCount} 组，失败 ${outcome.failedCount} 组`,
+        );
+      }
+      if (outcome.succeededCount > 0) onCreated?.(outcome.batch);
+    } catch (rawError: unknown) {
+      if (requestedSession !== sessionSequenceRef.current) return;
       const error = rawError as RequestError;
       if (requestReason(error) === 'FINANCE_BILL_PREVIEW_STALE') {
         message.warning('费用已发生变化，请重新预览后再生成账单');
+        setSubmission(undefined);
+        setResult(undefined);
         clearPreviewSnapshot();
         setCurrent(1);
       } else if (requestReason(error) === 'FINANCE_BILL_FEE_INVALID') {
+        setSubmission(undefined);
         message.error('所选费用必须为未建账状态且尚未进入其他账单');
       } else {
         message.error(requestMessage(error, '批量生成账单失败'));
       }
     } finally {
-      setSubmitting(false);
+      if (requestedSession === sessionSequenceRef.current) setSubmitting(false);
     }
+  };
 
-    return undefined;
+  /** 失败组改用新幂等键回到账单资料页：只保留失败组费用，叶子配置按 groupKey 保留。 */
+  const adjustFailedGroups = async () => {
+    if (!result || !submission) return;
+    const failedKeys = new Set(
+      result.groups
+        .filter((group) => !group.bill)
+        .map((group) => group.groupKey),
+    );
+    const feeIds = submission.request.groups
+      .filter((group) => failedKeys.has(group.groupKey))
+      .flatMap((group) => group.feeIds);
+    if (feeIds.length === 0) return;
+    setSelectedFeeIds(feeIds);
+    setIdempotencyKey(generateUUID());
+    setResult(undefined);
+    setSubmission(undefined);
+    invalidatePreview();
+    const requestedSession = sessionSequenceRef.current;
+    const ok = await runPreview(feeIds);
+    if (requestedSession === sessionSequenceRef.current) setCurrent(ok ? 2 : 1);
   };
 
   // 预览快照落地后的草稿归位：新叶子补默认值、已编辑叶子按 groupKey 原样
@@ -617,6 +700,7 @@ export default function BillCreationWorkbench({
     <BillWorkbenchFooter
       current={current}
       loading={loading}
+      awaitingConfirmation={awaitingConfirmation}
       mode={mode}
       groupCount={preview?.data?.length || 0}
       nettingPairCount={preview?.nettingPairs?.length || 0}
@@ -682,6 +766,16 @@ export default function BillCreationWorkbench({
         />
       )}
 
+      {awaitingConfirmation && !submitting && (
+        <Alert
+          type="warning"
+          showIcon
+          style={{ marginBottom: 12 }}
+          title="上次建账结果尚未确认，请确认原请求结果后继续。"
+          description="本次配置已保留，确认时使用相同请求与幂等键，不会重复生成已成功的账单。"
+        />
+      )}
+
       {current === 2 && preview?.data && (
         <BillGroupConfigurationStep
           mode={mode}
@@ -691,6 +785,7 @@ export default function BillCreationWorkbench({
           organizationId={organizationId}
           sessionIdentity={sessionIdentity}
           loading={loading}
+          frozen={awaitingConfirmation}
           splitByOrder={splitByOrder}
           splitByTaxRate={splitByTaxRate}
           onSplitByOrderChange={(checked) => {
@@ -715,6 +810,12 @@ export default function BillCreationWorkbench({
       {current === 3 && (
         <BillCreationResultTable
           result={result}
+          groups={submission?.groups}
+          retrying={submitting}
+          onRetryFailed={() => {
+            if (submission) void submitBatch(submission);
+          }}
+          onAdjustFailed={() => void adjustFailedGroups()}
           directionText={directionText}
         />
       )}

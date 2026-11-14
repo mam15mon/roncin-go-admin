@@ -1,10 +1,15 @@
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import { act } from '@testing-library/react';
 import { App } from 'antd';
+import type { ReactElement } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { settlementServiceListNettings } from '@/services/roncin/settlementService';
 import FinanceNettingsPage from './index';
 
 type LedgerProps = {
+  customSearch: ReactElement<{
+    onSearch: (values: { keyword?: string }) => void;
+  }>;
   topBar?: unknown;
   columns: { title?: unknown }[];
   request: (params: {
@@ -36,6 +41,7 @@ vi.mock('@/app/access', () => ({
   }),
 }));
 vi.mock('@/components/ui', () => ({
+  SearchFilterTemplate: () => null,
   ResponsiveTable: () => null,
   FinanceLedgerTemplate: (props: LedgerProps) => {
     state.ledger = props;
@@ -64,6 +70,7 @@ describe('nettings列表当前公司', () => {
     expect(
       state.ledger?.columns.some((column) => column.title === '所属公司'),
     ).toBe(true);
+    act(() => state.ledger?.customSearch.props.onSearch({ keyword: '条件' }));
     await state.ledger?.request({
       current: 2,
       pageSize: 20,

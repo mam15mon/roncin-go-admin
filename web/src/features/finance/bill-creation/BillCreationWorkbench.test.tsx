@@ -19,16 +19,16 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
   });
   it('预览后的对账抬头默认结算单位名称，且不请求 Partner 服务', async () => {
     mocks.preview.mockResolvedValue({
-      previewToken: 'token',
       data: [
         {
           groupKey: 'g',
+          groupToken: 'token',
           settlementPartyId: 'partner-a',
           settlementPartyName: '结算单位甲',
           direction: 'RECEIVABLE',
           currency: 'CNY',
           configurationComplete: true,
-          fees: [],
+          fees: [{ id: 'fee-A' }],
         },
       ],
     });
@@ -48,22 +48,25 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
         organizationId: 'A',
         groupingPolicy: {
           mode: BillGroupingMode.BILL_GROUPING_MODE_NORMAL,
-          splitByOrder: true,
+          splitByOrder: false,
           splitByTaxRate: false,
         },
       }),
       expect.anything(),
     );
     await waitFor(() =>
-      expect(mocks.accounts).toHaveBeenCalledWith({
-        organizationId: 'A',
-        settlementPartyId: 'partner-a',
-        direction: 'RECEIVABLE',
-        currency: 'CNY',
-      }),
+      expect(mocks.accounts).toHaveBeenCalledWith(
+        {
+          organizationId: 'A',
+          settlementPartyId: 'partner-a',
+          direction: 'RECEIVABLE',
+          currency: 'CNY',
+        },
+        expect.anything(),
+      ),
     );
     await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(2));
-    fireEvent.click(screen.getByRole('button', { name: /原子生成 1 张账单/ }));
+    fireEvent.click(screen.getByRole('button', { name: /生成 1 张账单/ }));
     await waitFor(() =>
       expect(mocks.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -71,9 +74,10 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
           groups: [
             expect.objectContaining({
               settlementAccountId: 'account-default',
+              groupToken: 'token',
+              feeIds: ['fee-A'],
             }),
           ],
-          previewToken: 'token',
         }),
         expect.anything(),
       ),
@@ -88,27 +92,37 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
       direction: 'RECEIVABLE',
       currency: 'CNY',
       configurationComplete: true,
-      fees: [],
+      fees: [{ id: 'fee-A' }],
     };
+    // 应收、应付同批并存：结算单位 B 的应付费用落在独立分组。
     const groupB = {
       groupKey: 'group-b',
       settlementPartyId: 'partner-b',
       settlementPartyName: '结算单位 B',
-      direction: 'RECEIVABLE',
+      direction: 'PAYABLE',
       currency: 'USD',
       configurationComplete: true,
-      fees: [],
+      fees: [{ id: 'fee-B' }],
     };
     mocks.preview
       .mockResolvedValueOnce({
-        previewToken: 'token-first',
-        data: [groupA, groupB],
+        data: [
+          { ...groupA, groupToken: 'token-first-a' },
+          { ...groupB, groupToken: 'token-first-b' },
+        ],
       })
       .mockResolvedValue({
-        previewToken: 'token-second',
         data: [
-          { ...groupB, settlementPartyName: '结算单位 B（重排）' },
-          { ...groupA, settlementPartyName: '结算单位 A（重排）' },
+          {
+            ...groupB,
+            groupToken: 'token-second-b',
+            settlementPartyName: '结算单位 B（重排）',
+          },
+          {
+            ...groupA,
+            groupToken: 'token-second-a',
+            settlementPartyName: '结算单位 A（重排）',
+          },
         ],
       });
     mocks.accounts.mockImplementation(({ settlementPartyId }) =>
@@ -152,22 +166,25 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
     expect(screen.getByText('账户 B｜测试银行｜USD')).toBeInTheDocument();
 
     const createBtn = await screen.findByRole('button', {
-      name: /原子生成 2 张账单/,
+      name: /生成 2 张账单/,
     });
     await waitFor(() => expect(createBtn).not.toHaveClass('ant-btn-loading'));
     fireEvent.click(createBtn);
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1));
     expect(mocks.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        previewToken: 'token-second',
         groups: expect.arrayContaining([
           expect.objectContaining({
             groupKey: 'group-b',
+            groupToken: 'token-second-b',
+            feeIds: ['fee-B'],
             statementTitle: '结算单位 B',
             settlementAccountId: 'account-b',
           }),
           expect.objectContaining({
             groupKey: 'group-a',
+            groupToken: 'token-second-a',
+            feeIds: ['fee-A'],
             statementTitle: '结算单位 A',
             settlementAccountId: 'account-a',
           }),
@@ -189,7 +206,6 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
     };
     mocks.preview
       .mockResolvedValueOnce({
-        previewToken: 'token-first',
         data: [
           {
             groupKey: 'removed',
@@ -203,7 +219,6 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
         ],
       })
       .mockResolvedValue({
-        previewToken: 'token-second',
         data: [remainingGroup],
       });
     mocks.accounts.mockImplementation(({ settlementPartyId }) =>
@@ -259,10 +274,10 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
 
   it('任一叶子没有可选结算账户时阻断整批创建', async () => {
     mocks.preview.mockResolvedValue({
-      previewToken: 'token',
       data: [
         {
           groupKey: 'without-account',
+          groupToken: 'token',
           settlementPartyId: 'partner-a',
           settlementPartyName: '未配置账户单位',
           direction: 'RECEIVABLE',
@@ -287,7 +302,7 @@ describe('BillCreationWorkbench 建账候选组织范围', () => {
     ).toBeInTheDocument();
     await waitFor(() => expect(mocks.accounts).toHaveBeenCalledTimes(1));
 
-    fireEvent.click(screen.getByRole('button', { name: /原子生成 1 张账单/ }));
+    fireEvent.click(screen.getByRole('button', { name: /生成 1 张账单/ }));
     await waitFor(() =>
       expect(
         screen.getByText('请先补齐首个标记叶子的日期和结算账户'),
@@ -301,8 +316,7 @@ describe('BillCreationWorkbench 预览触发边界', () => {
   beforeEach(() => {
     resetWorkbenchMocks();
     mocks.preview.mockResolvedValue({
-      previewToken: 'token',
-      data: [singlePreviewGroup],
+      data: [{ ...singlePreviewGroup, groupToken: 'token' }],
     });
   });
 
@@ -359,10 +373,10 @@ describe('BillCreationWorkbench 预览触发边界', () => {
 
   it('预览种子的预计开票汇率预填时收敛服务端尾零（1.00000000 → 1）', async () => {
     mocks.preview.mockResolvedValue({
-      previewToken: 'token',
       data: [
         {
           ...singlePreviewGroup,
+          groupToken: 'token',
           estimatedInvoiceRate: '1.00000000',
         },
       ],

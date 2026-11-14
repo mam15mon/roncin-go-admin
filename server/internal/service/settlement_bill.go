@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	kratoserrors "github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
@@ -279,9 +280,9 @@ func (s *SettlementService) PreviewBillBatch(ctx context.Context, request *v1.Pr
 			v := int32(*group.DefaultPaymentTermsDays)
 			defaultPaymentTermsDays = &v
 		}
-		groups = append(groups, &v1.BillBatchPreviewGroup{GroupKey: group.GroupKey, Direction: string(group.Direction), SettlementPartyId: group.SettlementPartyID.String(), SettlementPartyName: group.SettlementPartyName, Currency: group.Currency, BaseCurrency: group.BaseCurrency, OrderId: uuidStringPtr(group.OrderID), OrderNo: group.OrderNo, TaxRate: financeDecimalPointer(group.TaxRate, 4), Fees: fees, TotalAmount: group.TotalAmount.StringFixed(8), NetAmount: group.NetAmount.StringFixed(8), TaxAmount: group.TaxAmount.StringFixed(8), BaseCurrencyAmount: group.BaseCurrencyAmount.StringFixed(8), IsTemporaryBillDate: group.TemporaryBillDate, ConfigurationComplete: group.ConfigurationComplete, EstimatedInvoiceCurrency: group.EstimatedInvoiceCurrency, EstimatedInvoiceRate: group.EstimatedInvoiceRate.StringFixed(8), EstimatedInvoiceAmount: group.EstimatedInvoiceAmount.StringFixed(8), IsCasual: group.IsCasual, DefaultPaymentTermsDays: defaultPaymentTermsDays, CreditLimitAmount: financeDecimalPointer(group.CreditLimitAmount, 2), CreditCurrency: group.CreditCurrency, CurrentUnsettledAmount: financeDecimalPointer(group.CurrentUnsettledAmount, 2), IsCreditExceeded: group.IsCreditExceeded})
+		groups = append(groups, &v1.BillBatchPreviewGroup{GroupKey: group.GroupKey, Direction: string(group.Direction), SettlementPartyId: group.SettlementPartyID.String(), SettlementPartyName: group.SettlementPartyName, Currency: group.Currency, BaseCurrency: group.BaseCurrency, OrderId: uuidStringPtr(group.OrderID), OrderNo: group.OrderNo, TaxRate: financeDecimalPointer(group.TaxRate, 4), Fees: fees, TotalAmount: group.TotalAmount.StringFixed(8), NetAmount: group.NetAmount.StringFixed(8), TaxAmount: group.TaxAmount.StringFixed(8), BaseCurrencyAmount: group.BaseCurrencyAmount.StringFixed(8), IsTemporaryBillDate: group.TemporaryBillDate, ConfigurationComplete: group.ConfigurationComplete, EstimatedInvoiceCurrency: group.EstimatedInvoiceCurrency, EstimatedInvoiceRate: group.EstimatedInvoiceRate.StringFixed(8), EstimatedInvoiceAmount: group.EstimatedInvoiceAmount.StringFixed(8), IsCasual: group.IsCasual, DefaultPaymentTermsDays: defaultPaymentTermsDays, CreditLimitAmount: financeDecimalPointer(group.CreditLimitAmount, 2), CreditCurrency: group.CreditCurrency, CurrentUnsettledAmount: financeDecimalPointer(group.CurrentUnsettledAmount, 2), IsCreditExceeded: group.IsCreditExceeded, GroupToken: group.GroupToken})
 	}
-	return ok(ctx, &v1.PreviewBillBatchResponse{Data: groups, NettingPairs: billBatchNettingPairsToAPI(preview.NettingPairs), PreviewToken: preview.PreviewToken}), nil
+	return ok(ctx, &v1.PreviewBillBatchResponse{Data: groups, NettingPairs: billBatchNettingPairsToAPI(preview.NettingPairs)}), nil
 }
 
 func (s *SettlementService) CreateBillBatch(ctx context.Context, request *v1.CreateBillBatchRequest) (*v1.CreateBillBatchResponse, error) {
@@ -289,16 +290,21 @@ func (s *SettlementService) CreateBillBatch(ctx context.Context, request *v1.Cre
 	if principalErr != nil {
 		return nil, principalErr
 	}
-	feeIDs, err := parseTrimmedUUIDValues(request.GetFeeIds(), biz.ErrFinanceBillInvalidArgument)
 	requestedOrganizationID, organizationErr := uuid.Parse(strings.TrimSpace(request.GetOrganizationId()))
-	if err != nil || organizationErr != nil || request.GetGroupingPolicy() == nil {
+	if organizationErr != nil || request.GetGroupingPolicy() == nil || len(request.GetGroups()) == 0 {
 		return nil, biz.ErrFinanceBillInvalidArgument
 	}
 	groups := make([]biz.CreateFinanceBillBatchGroupInput, 0, len(request.GetGroups()))
+	feeIDs := make([]uuid.UUID, 0)
 	for _, group := range request.GetGroups() {
 		if group == nil {
 			return nil, biz.ErrFinanceBillInvalidArgument
 		}
+		groupFeeIDs, feeErr := parseTrimmedUUIDValues(group.GetFeeIds(), biz.ErrFinanceBillInvalidArgument)
+		if feeErr != nil || len(groupFeeIDs) == 0 {
+			return nil, biz.ErrFinanceBillInvalidArgument
+		}
+		feeIDs = append(feeIDs, groupFeeIDs...)
 		accountID, accountErr := uuid.Parse(strings.TrimSpace(group.GetSettlementAccountId()))
 		if accountErr != nil {
 			return nil, biz.ErrFinanceBillSettlementAccountInvalid
@@ -318,7 +324,7 @@ func (s *SettlementService) CreateBillBatch(ctx context.Context, request *v1.Cre
 		if estimatedRate != nil && estimatedCurrency == nil {
 			return nil, biz.ErrFinanceBillInvalidArgument
 		}
-		groups = append(groups, biz.CreateFinanceBillBatchGroupInput{GroupKey: group.GetGroupKey(), StatementTitle: group.GetStatementTitle(), BillDate: group.GetBillDate(), DueDate: group.DueDate, PaymentTermsDays: financeInt32Pointer(group.PaymentTermsDays), Note: group.Note, SettlementAccountID: accountID, EstimatedInvoiceCurrency: estimatedCurrency, EstimatedInvoiceRate: estimatedRate})
+		groups = append(groups, biz.CreateFinanceBillBatchGroupInput{GroupKey: group.GetGroupKey(), StatementTitle: group.GetStatementTitle(), BillDate: group.GetBillDate(), DueDate: group.DueDate, PaymentTermsDays: financeInt32Pointer(group.PaymentTermsDays), Note: group.Note, SettlementAccountID: accountID, EstimatedInvoiceCurrency: estimatedCurrency, EstimatedInvoiceRate: estimatedRate, GroupToken: group.GetGroupToken(), FeeIDs: groupFeeIDs})
 	}
 	requestedOrganization := requestedOrganizationID.String()
 	organizationIDs, scopeErr := organizationIDsForRequestedOrganization(principal, access.FinanceBillCreate, true, &requestedOrganization)
@@ -332,11 +338,49 @@ func (s *SettlementService) CreateBillBatch(ctx context.Context, request *v1.Cre
 	if organizationID != requestedOrganizationID {
 		return nil, biz.ErrFinanceBillInvalidArgument
 	}
-	batch, err := s.billUsecase.CreateBatch(ctx, organizationID, principal.UserID, biz.CreateFinanceBillBatchInput{FeeIDs: feeIDs, GroupingPolicy: financeBillGroupingPolicyFromAPI(request.GetGroupingPolicy()), Groups: groups, PreviewToken: request.GetPreviewToken(), IdempotencyKey: request.GetIdempotencyKey()})
+	created, err := s.billUsecase.CreateBatch(ctx, organizationID, principal.UserID, biz.CreateFinanceBillBatchInput{GroupingPolicy: financeBillGroupingPolicyFromAPI(request.GetGroupingPolicy()), Groups: groups, IdempotencyKey: request.GetIdempotencyKey()})
 	if err != nil {
 		return nil, err
 	}
-	return ok(ctx, &v1.CreateBillBatchResponse{Data: financeBillBatchToAPI(batch)}), nil
+	// HTTP 200 只表示请求已逐组处理完毕；各组成败由 results 表达，失败组不影响已成功组。
+	response := &v1.CreateBillBatchResponse{Data: financeBillBatchToAPI(created.Batch), Results: make([]*v1.BillBatchGroupResult, 0, len(created.Groups))}
+	for _, group := range created.Groups {
+		result := &v1.BillBatchGroupResult{GroupKey: group.GroupKey}
+		if group.Err == nil && group.Bill != nil {
+			result.Success = true
+			result.Bill = financeBillToAPI(group.Bill)
+			response.SucceededCount++
+		} else {
+			result.Error = billBatchGroupErrorToAPI(group.Err)
+			response.FailedCount++
+		}
+		response.Results = append(response.Results, result)
+	}
+	return ok(ctx, response), nil
+}
+
+// billBatchGroupPublicMetadataKeys 与 HTTP 错误响应的公开键口径一致，仅放行缺汇率提示。
+var billBatchGroupPublicMetadataKeys = []string{"currency", "week_start", "direction"}
+
+// billBatchGroupErrorToAPI 把单组失败转换为响应体错误；未知内部错误不透出原始文本。
+func billBatchGroupErrorToAPI(err error) *v1.BillBatchGroupError {
+	if err == nil {
+		err = biz.ErrFinanceBillNotFound
+	}
+	serviceError := kratoserrors.FromError(err)
+	if serviceError.Reason == kratoserrors.UnknownReason || serviceError.Code >= 500 {
+		return &v1.BillBatchGroupError{Reason: "FINANCE_BILL_BATCH_GROUP_FAILED", Message: "该组账单生成失败，请稍后重试"}
+	}
+	result := &v1.BillBatchGroupError{Reason: serviceError.Reason, Message: serviceError.Message}
+	for _, key := range billBatchGroupPublicMetadataKeys {
+		if value, exists := serviceError.Metadata[key]; exists {
+			if result.Metadata == nil {
+				result.Metadata = make(map[string]string, len(billBatchGroupPublicMetadataKeys))
+			}
+			result.Metadata[key] = value
+		}
+	}
+	return result
 }
 
 func (s *SettlementService) UpdateBill(ctx context.Context, request *v1.UpdateBillRequest) (*v1.UpdateBillResponse, error) {
@@ -474,6 +518,7 @@ func financeBillToAPI(item *biz.FinanceBill) *v1.FinanceBill {
 		Purpose: string(item.Purpose), InvoiceableAmount: financeDecimalPointer(item.InvoiceableAmount, 8), InvoiceableNetAmount: financeDecimalPointer(item.InvoiceableNetAmount, 8), InvoiceableTaxAmount: financeDecimalPointer(item.InvoiceableTaxAmount, 8), OverdueDays: item.OverdueDays,
 		SettlementProgress: financeBillSettlementProgressToAPI(item.SettlementProgress), InvoiceProgress: financeBillInvoiceProgressToAPI(item.InvoiceProgress),
 		Completed: item.Completed, FeesLocked: item.FeesLocked(), FeeLockFacts: financeBillFeeLockFactsToAPI(item.FeeLockFacts),
+		InvoiceExemptions: financeInvoiceExemptionsToAPI(item.InvoiceExemptions),
 	}
 }
 
@@ -528,7 +573,11 @@ func financeBillBatchToAPI(item *biz.FinanceBillBatch) *v1.FinanceBillBatch {
 	for _, netting := range item.Nettings {
 		nettings = append(nettings, financeNettingToAPI(netting))
 	}
-	return &v1.FinanceBillBatch{Id: item.ID.String(), BatchNo: item.BatchNo, SplitByOrder: item.GroupingPolicy.SplitByOrder, SplitByTaxRate: item.GroupingPolicy.SplitByTaxRate, Mode: financeBillGroupingModeToAPI(item.GroupingPolicy.Mode), FeeCount: int32(item.FeeCount), BillCount: int32(item.BillCount), TotalBaseAmount: item.TotalBaseAmount.StringFixed(8), BaseCurrency: item.BaseCurrency, Bills: bills, Nettings: nettings, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339)}
+	baseTotals := make([]*v1.FinanceBillBatchBaseTotal, 0, len(item.BaseTotals))
+	for _, total := range item.BaseTotals {
+		baseTotals = append(baseTotals, &v1.FinanceBillBatchBaseTotal{BaseCurrency: total.BaseCurrency, TotalBaseAmount: total.TotalBaseAmount.StringFixed(8)})
+	}
+	return &v1.FinanceBillBatch{Id: item.ID.String(), BatchNo: item.BatchNo, SplitByOrder: item.GroupingPolicy.SplitByOrder, SplitByTaxRate: item.GroupingPolicy.SplitByTaxRate, Mode: financeBillGroupingModeToAPI(item.GroupingPolicy.Mode), FeeCount: int32(item.FeeCount), BillCount: int32(item.BillCount), BaseTotals: baseTotals, Bills: bills, Nettings: nettings, CreatedAt: item.CreatedAt.UTC().Format(time.RFC3339)}
 }
 
 func financeBillGroupingModeToAPI(value string) v1.BillGroupingMode {

@@ -282,6 +282,9 @@ func (r *financeBillRepo) Get(ctx context.Context, organizationIDs []uuid.UUID, 
 	if err = r.enrichFinanceBillProjection(ctx, []*biz.FinanceBill{converted}, time.Now().In(biz.ExchangeRateBusinessLocation()).Format("2006-01-02")); err != nil {
 		return nil, err
 	}
+	if err := r.enrichInvoiceExemptionHistory(ctx, converted); err != nil {
+		return nil, err
+	}
 	return converted, nil
 }
 
@@ -355,9 +358,12 @@ func (r *financeBillRepo) enrichFinanceBillProjection(ctx context.Context, bills
 	}
 	for _, bill := range bills {
 		settled := bill.VerifiedAmount.Add(bill.NettedAmount)
-		// 无需发票标记由发票任务落地，届时以有效标记替换此处的 false。
-		bill.SettlementProgress, bill.InvoiceProgress, bill.Completed = biz.ResolveFinanceBillProgress(bill.Status, bill.TotalAmount, settled, invoiced[bill.ID].Round(8), false)
 		bill.FeeLockFacts = facts[bill.ID]
+		exempt := false
+		for _, fact := range bill.FeeLockFacts {
+			exempt = exempt || fact == biz.FinanceBillFeeLockInvoiceExemption
+		}
+		bill.SettlementProgress, bill.InvoiceProgress, bill.Completed = biz.ResolveFinanceBillProgress(bill.Status, bill.TotalAmount, settled, invoiced[bill.ID].Round(8), exempt)
 	}
 	return nil
 }
@@ -384,15 +390,21 @@ func financeBillOrganizationScopePredicate(organizationIDs []uuid.UUID) predicat
 
 func (r *financeBillRepo) financeBillQueryWithLines(query *ent.FinanceBillQuery) *ent.FinanceBillQuery {
 	return query.WithBatch().WithLines(func(lineQuery *ent.FinanceBillLineQuery) {
-		lineQuery.WithOrder().Order(financebilllineent.ByCreatedAt(), financebilllineent.ByID())
+		lineQuery.WithOrder().WithOrderFee().Order(financebilllineent.ByCreatedAt(), financebilllineent.ByID())
 	})
 }
 
 func (r *financeBillRepo) LoadBillableFees(ctx context.Context, organizationID uuid.UUID, feeIDs []uuid.UUID) ([]*biz.FinanceBillableFee, error) {
-	return r.LoadBillableFeesScoped(ctx, []uuid.UUID{organizationID}, feeIDs)
+	return r.loadBillableFees(ctx, []uuid.UUID{organizationID}, feeIDs, true)
 }
 
+// LoadBillableFeesScoped 仅用于请求级公司归属校验；待审更正等建账资格在各组事务内复核，
+// 避免某组业务受阻时连带拒绝同公司内的其他组。
 func (r *financeBillRepo) LoadBillableFeesScoped(ctx context.Context, organizationIDs []uuid.UUID, feeIDs []uuid.UUID) ([]*biz.FinanceBillableFee, error) {
+	return r.loadBillableFees(ctx, organizationIDs, feeIDs, false)
+}
+
+func (r *financeBillRepo) loadBillableFees(ctx context.Context, organizationIDs []uuid.UUID, feeIDs []uuid.UUID, validatePending bool) ([]*biz.FinanceBillableFee, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
 		return nil, err
@@ -412,9 +424,12 @@ func (r *financeBillRepo) LoadBillableFeesScoped(ctx context.Context, organizati
 	if err != nil {
 		return nil, err
 	}
-	pendingSources, err := pendingCorrectionSourceFees(ctx, client, feeIDs)
-	if err != nil {
-		return nil, err
+	var pendingSources map[uuid.UUID]bool
+	if validatePending {
+		pendingSources, err = pendingCorrectionSourceFees(ctx, client, feeIDs)
+		if err != nil {
+			return nil, err
+		}
 	}
 	result := make([]*biz.FinanceBillableFee, 0, len(items))
 	for _, item := range items {
@@ -533,7 +548,7 @@ func (r *financeBillRepo) ListCreationCandidates(ctx context.Context, organizati
 	// 候选口径 = 未被有效账单关联占用（活动账单行且所属账单未取消，含草稿账单）。
 	predicates := []predicate.OrderFee{orderfeeent.AccountingRequiredEQ(true), orderfeeent.SupersededByRequestIDIsNil(), orderfeeent.HasOrderWith(orderent.OrganizationIDEQ(organizationID)), orderfeeent.Not(orderfeeent.HasFinanceBillLinesWith(effectiveBillLinePredicate()))}
 	if filter.Keyword != "" {
-		predicates = append(predicates, orderfeeent.Or(orderfeeent.FeeCodeContainsFold(filter.Keyword), orderfeeent.FeeNameContainsFold(filter.Keyword), orderfeeent.HasOrderWith(orderent.OrderNoContainsFold(filter.Keyword)), orderfeeent.HasSettlementPartyWith(partnerent.Or(partnerent.CodeContainsFold(filter.Keyword), partnerent.LegalNameContainsFold(filter.Keyword), partnerent.SearchKeywordsContainsFold(filter.Keyword), partnerent.HasAliasesWith(partneraliasent.Or(partneraliasent.AliasNameContainsFold(filter.Keyword), partneraliasent.SearchKeywordsContainsFold(filter.Keyword)))))))
+		predicates = append(predicates, orderfeeent.Or(financeBillFeeKeywordPredicate(organizationID, filter.Keyword), orderfeeent.HasSettlementPartyWith(partnerent.Or(partnerent.CodeContainsFold(filter.Keyword), partnerent.LegalNameContainsFold(filter.Keyword), partnerent.SearchKeywordsContainsFold(filter.Keyword), partnerent.HasAliasesWith(partneraliasent.Or(partneraliasent.AliasNameContainsFold(filter.Keyword), partneraliasent.SearchKeywordsContainsFold(filter.Keyword)))))))
 	}
 	if filter.Direction != "" {
 		opposite := orderfeeent.DirectionPAYABLE

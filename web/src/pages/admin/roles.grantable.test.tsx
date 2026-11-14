@@ -150,6 +150,12 @@ describe('角色可授予权限与真实权限清单', () => {
     expect(manifestPermissionKeys).toHaveLength(281);
     expect(capabilityFixture.company).toHaveLength(263);
     expect(capabilityFixture.system).toHaveLength(44);
+    expect(capabilityFixture.company).toContain(
+      'system.finance.invoice.exempt',
+    );
+    expect(capabilityFixture.system).not.toContain(
+      'system.finance.invoice.exempt',
+    );
     expect(
       new Set([...capabilityFixture.company, ...capabilityFixture.system]),
     ).toEqual(new Set(manifestPermissionKeys));

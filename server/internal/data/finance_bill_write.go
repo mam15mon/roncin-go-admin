@@ -15,6 +15,7 @@ import (
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	financebilllineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	financeinvoicebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceexemption"
 	financenettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	financenettingallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	verificationallocationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
@@ -409,6 +410,15 @@ func billCancellationDependencies(ctx context.Context, client *ent.Client, bill 
 	instructions := []string{}
 	details := []string{}
 	permissions := []string{}
+	exempt, err := client.FinanceInvoiceExemption.Query().Where(financeinvoiceexemption.BillIDEQ(bill.ID), financeinvoiceexemption.RevokedAtIsNil()).Exist(ctx)
+	if err != nil {
+		return err
+	}
+	if exempt {
+		instructions = append(instructions, "撤销无需发票标记")
+		details = append(details, "invoice_exemption:"+bill.ID.String())
+		permissions = append(permissions, access.FinanceInvoiceExempt)
+	}
 	invoices, err := client.FinanceInvoiceBill.Query().Where(financeinvoicebillent.BillIDEQ(bill.ID), financeinvoicebillent.ActiveEQ(true)).WithInvoice().Order(financeinvoicebillent.ByID()).All(ctx)
 	if err != nil {
 		return err

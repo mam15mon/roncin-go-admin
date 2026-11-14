@@ -18,6 +18,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceexemption"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -40,6 +41,7 @@ type FinanceBillQuery struct {
 	withCancelledByUser         *UserQuery
 	withLines                   *FinanceBillLineQuery
 	withInvoiceLinks            *FinanceInvoiceBillQuery
+	withInvoiceExemptions       *FinanceInvoiceExemptionQuery
 	withVerificationAllocations *FinanceVerificationAllocationQuery
 	withNettingAllocations      *FinanceNettingAllocationQuery
 	modifiers                   []func(*sql.Selector)
@@ -226,6 +228,28 @@ func (_q *FinanceBillQuery) QueryInvoiceLinks() *FinanceInvoiceBillQuery {
 			sqlgraph.From(financebill.Table, financebill.FieldID, selector),
 			sqlgraph.To(financeinvoicebill.Table, financeinvoicebill.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, financebill.InvoiceLinksTable, financebill.InvoiceLinksColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryInvoiceExemptions chains the current query on the "invoice_exemptions" edge.
+func (_q *FinanceBillQuery) QueryInvoiceExemptions() *FinanceInvoiceExemptionQuery {
+	query := (&FinanceInvoiceExemptionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financebill.Table, financebill.FieldID, selector),
+			sqlgraph.To(financeinvoiceexemption.Table, financeinvoiceexemption.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financebill.InvoiceExemptionsTable, financebill.InvoiceExemptionsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -476,6 +500,7 @@ func (_q *FinanceBillQuery) Clone() *FinanceBillQuery {
 		withCancelledByUser:         _q.withCancelledByUser.Clone(),
 		withLines:                   _q.withLines.Clone(),
 		withInvoiceLinks:            _q.withInvoiceLinks.Clone(),
+		withInvoiceExemptions:       _q.withInvoiceExemptions.Clone(),
 		withVerificationAllocations: _q.withVerificationAllocations.Clone(),
 		withNettingAllocations:      _q.withNettingAllocations.Clone(),
 		// clone intermediate query.
@@ -558,6 +583,17 @@ func (_q *FinanceBillQuery) WithInvoiceLinks(opts ...func(*FinanceInvoiceBillQue
 		opt(query)
 	}
 	_q.withInvoiceLinks = query
+	return _q
+}
+
+// WithInvoiceExemptions tells the query-builder to eager-load the nodes that are connected to
+// the "invoice_exemptions" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *FinanceBillQuery) WithInvoiceExemptions(opts ...func(*FinanceInvoiceExemptionQuery)) *FinanceBillQuery {
+	query := (&FinanceInvoiceExemptionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withInvoiceExemptions = query
 	return _q
 }
 
@@ -661,7 +697,7 @@ func (_q *FinanceBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*FinanceBill{}
 		_spec       = _q.querySpec()
-		loadedTypes = [9]bool{
+		loadedTypes = [10]bool{
 			_q.withOrganization != nil,
 			_q.withBatch != nil,
 			_q.withSettlementParty != nil,
@@ -669,6 +705,7 @@ func (_q *FinanceBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			_q.withCancelledByUser != nil,
 			_q.withLines != nil,
 			_q.withInvoiceLinks != nil,
+			_q.withInvoiceExemptions != nil,
 			_q.withVerificationAllocations != nil,
 			_q.withNettingAllocations != nil,
 		}
@@ -735,6 +772,15 @@ func (_q *FinanceBillQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 		if err := _q.loadInvoiceLinks(ctx, query, nodes,
 			func(n *FinanceBill) { n.Edges.InvoiceLinks = []*FinanceInvoiceBill{} },
 			func(n *FinanceBill, e *FinanceInvoiceBill) { n.Edges.InvoiceLinks = append(n.Edges.InvoiceLinks, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withInvoiceExemptions; query != nil {
+		if err := _q.loadInvoiceExemptions(ctx, query, nodes,
+			func(n *FinanceBill) { n.Edges.InvoiceExemptions = []*FinanceInvoiceExemption{} },
+			func(n *FinanceBill, e *FinanceInvoiceExemption) {
+				n.Edges.InvoiceExemptions = append(n.Edges.InvoiceExemptions, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -958,6 +1004,36 @@ func (_q *FinanceBillQuery) loadInvoiceLinks(ctx context.Context, query *Finance
 	}
 	query.Where(predicate.FinanceInvoiceBill(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(financebill.InvoiceLinksColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.BillID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "bill_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *FinanceBillQuery) loadInvoiceExemptions(ctx context.Context, query *FinanceInvoiceExemptionQuery, nodes []*FinanceBill, init func(*FinanceBill), assign func(*FinanceBill, *FinanceInvoiceExemption)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*FinanceBill)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(financeinvoiceexemption.FieldBillID)
+	}
+	query.Where(predicate.FinanceInvoiceExemption(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(financebill.InvoiceExemptionsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {

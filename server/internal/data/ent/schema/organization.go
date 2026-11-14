@@ -58,6 +58,7 @@ func (Organization) Edges() []ent.Edge {
 		edge.To("finance_bill_batches", FinanceBillBatch.Type),
 		edge.To("partner_invoice_profiles", PartnerInvoiceProfile.Type),
 		edge.To("finance_invoices", FinanceInvoice.Type),
+		edge.To("finance_invoice_exemptions", FinanceInvoiceExemption.Type),
 		edge.To("finance_cashflows", FinanceCashflow.Type),
 		edge.To("finance_verifications", FinanceVerification.Type),
 		edge.To("finance_nettings", FinanceNetting.Type),

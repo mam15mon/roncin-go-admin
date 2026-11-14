@@ -147,6 +147,11 @@ func (u *VerificationUsecase) ListCreationCandidates(ctx context.Context, organi
 }
 
 func (u *VerificationUsecase) Create(ctx context.Context, org, actor uuid.UUID, in CreateVerificationInput) (*FinanceVerification, error) {
+	return u.create(ctx, org, actor, in, true)
+}
+
+// create 的组合写路径只返回事务内已写入对象，完整响应由外层提交后重读。
+func (u *VerificationUsecase) create(ctx context.Context, org, actor uuid.UUID, in CreateVerificationInput, readResponse bool) (*FinanceVerification, error) {
 	in.IdempotencyKey = strings.TrimSpace(in.IdempotencyKey)
 	in.Note = normalizedOptionalFinanceString(in.Note)
 	if org == uuid.Nil || actor == uuid.Nil || len(in.Allocations) == 0 || len(in.Allocations) > 500 || !validFinanceDate(in.VerificationDate) || in.IdempotencyKey == "" || utf8.RuneCountInString(in.IdempotencyKey) > 128 || (in.Note != nil && utf8.RuneCountInString(*in.Note) > 500) {
@@ -204,7 +209,13 @@ func (u *VerificationUsecase) Create(ctx context.Context, org, actor uuid.UUID, 
 		return transactionErr
 	})
 	if err == nil {
+		if !readResponse {
+			return created, nil
+		}
 		return u.repo.Get(ctx, org, created.ID)
+	}
+	if !readResponse {
+		return nil, err
 	}
 	old, lookupErr := u.repo.GetByKey(ctx, org, in.IdempotencyKey)
 	if lookupErr == nil && old != nil && sameVerificationIntent(old, in) {

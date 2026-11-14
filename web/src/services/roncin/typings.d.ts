@@ -725,6 +725,20 @@ declare namespace API {
     traceId?: string;
   };
 
+  type BillBatchGroupError = {
+    reason?: string;
+    message?: string;
+    /** metadata 仅放行缺汇率提示等公开键。 */
+    metadata?: Record<string, any>;
+  };
+
+  type BillBatchGroupResult = {
+    groupKey?: string;
+    success?: boolean;
+    bill?: FinanceBill;
+    error?: BillBatchGroupError;
+  };
+
   type BillBatchNettingPair = {
     settlementPartyId?: string;
     settlementPartyName?: string;
@@ -763,6 +777,9 @@ declare namespace API {
     creditCurrency?: string;
     currentUnsettledAmount?: string;
     isCreditExceeded?: boolean;
+    /** group_token 是该组费用（ID、版本、金额）与叶子配置的摘要；配置完整时才签发，
+ 创建时每组携带自己的令牌，陈旧只影响该组。 */
+    groupToken?: string;
   };
 
   type BillBatchPreviewGroupConfigInput = {
@@ -1273,13 +1290,15 @@ declare namespace API {
     settlementAccountId: string;
     estimatedInvoiceCurrency?: string;
     estimatedInvoiceRate?: string;
+    /** group_token 取自预览响应中该组的 group_token。 */
+    groupToken: string;
+    /** fee_ids 为预览中归入该组的全部费用 ID；服务端在组事务内重新分组复核。 */
+    feeIds: string[];
   };
 
   type CreateBillBatchRequest = {
-    feeIds: string[];
     groupingPolicy: BillGroupingPolicy;
     groups: CreateBillBatchGroupInput[];
-    previewToken: string;
     idempotencyKey: string;
     organizationId: string;
   };
@@ -1290,6 +1309,10 @@ declare namespace API {
     message?: string;
     data?: FinanceBillBatch;
     traceId?: string;
+    /** results 按 group_key 升序覆盖请求内每一组。 */
+    results?: BillBatchGroupResult[];
+    succeededCount?: number;
+    failedCount?: number;
   };
 
   type CreateBillingUnitRequest = {
@@ -1861,6 +1884,7 @@ declare namespace API {
     verificationDate: string;
     note?: string;
     idempotencyKey: string;
+    shortfallCashflow?: VerificationShortfallCashflow;
   };
 
   type CreateVerificationResponse = {
@@ -2771,6 +2795,8 @@ declare namespace API {
     /** fees_locked 表示账单存在阻止增删费用的有效财务事实，类型见 fee_lock_facts。 */
     feesLocked?: boolean;
     feeLockFacts?: number[];
+    /** 免票决定历史仅详情返回；有效决定 revoked_at 未设置。 */
+    invoiceExemptions?: FinanceInvoiceExemption[];
   };
 
   type FinanceBillBatch = {
@@ -2778,15 +2804,21 @@ declare namespace API {
     batchNo?: string;
     splitByOrder?: boolean;
     splitByTaxRate?: boolean;
+    /** fee_count、bill_count、base_totals 均按本批次已生成账单在读取时聚合。 */
     feeCount?: number;
     billCount?: number;
-    totalBaseAmount?: string;
-    baseCurrency?: string;
     bills?: FinanceBill[];
     createdAt?: string;
     mode?: number;
     /** nettings 仅在对冲建账模式下返回：本批次原子生成的对冲结算单（初始为草稿）。 */
     nettings?: FinanceNetting[];
+    /** base_totals 按本位币分组的账单本位币合计，不跨本位币相加。 */
+    baseTotals?: FinanceBillBatchBaseTotal[];
+  };
+
+  type FinanceBillBatchBaseTotal = {
+    baseCurrency?: string;
+    totalBaseAmount?: string;
   };
 
   type FinanceBillLine = {
@@ -3095,6 +3127,19 @@ declare namespace API {
     taxAmount?: string;
     active?: boolean;
     sourceFeeIds?: string[];
+  };
+
+  type FinanceInvoiceExemption = {
+    id?: string;
+    reason?: string;
+    markedBy?: string;
+    createdAt?: string;
+    version?: string;
+    revokedAt?: string;
+    revokedBy?: string;
+    revocationReason?: string;
+    markedByName?: string;
+    revokedByName?: string;
   };
 
   type FinanceInvoiceLine = {
@@ -6489,7 +6534,6 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: BillBatchPreviewGroup[];
-    previewToken?: string;
     traceId?: string;
     /** netting_pairs 仅在对冲建账模式下返回，按结算单位与账单币种给出抵销前后金额。 */
     nettingPairs?: BillBatchNettingPair[];
@@ -6973,6 +7017,20 @@ declare namespace API {
     code?: number;
     message?: string;
     data?: FinanceVerification;
+    traceId?: string;
+  };
+
+  type RevokeBillInvoiceExemptionRequest = {
+    id: string;
+    expectedVersion: string;
+    reason: string;
+  };
+
+  type RevokeBillInvoiceExemptionResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceBill;
     traceId?: string;
   };
 
@@ -8052,6 +8110,20 @@ declare namespace API {
     traceId?: string;
   };
 
+  type SetBillInvoiceExemptionRequest = {
+    id: string;
+    expectedVersion: string;
+    reason: string;
+  };
+
+  type SetBillInvoiceExemptionResponse = {
+    success?: boolean;
+    code?: number;
+    message?: string;
+    data?: FinanceBill;
+    traceId?: string;
+  };
+
   type SetCurrencyEnabledRequest = {
     code: string;
     enabled?: boolean;
@@ -8415,6 +8487,14 @@ declare namespace API {
   };
 
   type SettlementServiceReverseVerificationParams = {
+    id: string;
+  };
+
+  type SettlementServiceRevokeBillInvoiceExemptionParams = {
+    id: string;
+  };
+
+  type SettlementServiceSetBillInvoiceExemptionParams = {
     id: string;
   };
 
@@ -9347,7 +9427,7 @@ declare namespace API {
   };
 
   type VerificationAllocationInput = {
-    cashflowId: string;
+    cashflowId?: string;
     billId: string;
     amount: string;
   };
@@ -9355,6 +9435,21 @@ declare namespace API {
   type VerificationCreationCandidates = {
     cashflows?: FinanceCashflow[];
     bills?: FinanceBill[];
+  };
+
+  type VerificationShortfallCashflow = {
+    organizationId: string;
+    direction: string;
+    settlementPartyId: string;
+    currency: string;
+    amount: string;
+    transactionDate: string;
+    ourAccount: string;
+    paymentMethod: string;
+    counterpartyAccount?: string;
+    bankReferenceNo?: string;
+    note?: string;
+    exchangeRate?: string;
   };
 
   type VoyageDifferenceItem = {

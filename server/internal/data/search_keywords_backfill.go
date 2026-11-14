@@ -27,6 +27,7 @@ var selectorSearchKeywordBackfills = []searchKeywordBackfillSpec{
 	{table: "administrative_regions", columns: []string{"name"}},
 	{table: "users", columns: []string{"display_name", "dingtalk_name"}},
 	{table: "fee_settings", columns: []string{"name_zh", "name_en", "alias_name"}},
+	{table: "order_fees", columns: []string{"fee_name", "fee_name_en"}},
 	{table: "billing_units", columns: []string{"name"}},
 	{table: "taxable_services", columns: []string{"name", "short_name"}},
 }

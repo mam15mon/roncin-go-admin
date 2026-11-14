@@ -130,13 +130,15 @@ type FinanceBillEdges struct {
 	Lines []*FinanceBillLine `json:"lines,omitempty"`
 	// InvoiceLinks holds the value of the invoice_links edge.
 	InvoiceLinks []*FinanceInvoiceBill `json:"invoice_links,omitempty"`
+	// InvoiceExemptions holds the value of the invoice_exemptions edge.
+	InvoiceExemptions []*FinanceInvoiceExemption `json:"invoice_exemptions,omitempty"`
 	// VerificationAllocations holds the value of the verification_allocations edge.
 	VerificationAllocations []*FinanceVerificationAllocation `json:"verification_allocations,omitempty"`
 	// NettingAllocations holds the value of the netting_allocations edge.
 	NettingAllocations []*FinanceNettingAllocation `json:"netting_allocations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [9]bool
+	loadedTypes [10]bool
 }
 
 // OrganizationOrErr returns the Organization value or an error if the edge
@@ -212,10 +214,19 @@ func (e FinanceBillEdges) InvoiceLinksOrErr() ([]*FinanceInvoiceBill, error) {
 	return nil, &NotLoadedError{edge: "invoice_links"}
 }
 
+// InvoiceExemptionsOrErr returns the InvoiceExemptions value or an error if the edge
+// was not loaded in eager-loading.
+func (e FinanceBillEdges) InvoiceExemptionsOrErr() ([]*FinanceInvoiceExemption, error) {
+	if e.loadedTypes[7] {
+		return e.InvoiceExemptions, nil
+	}
+	return nil, &NotLoadedError{edge: "invoice_exemptions"}
+}
+
 // VerificationAllocationsOrErr returns the VerificationAllocations value or an error if the edge
 // was not loaded in eager-loading.
 func (e FinanceBillEdges) VerificationAllocationsOrErr() ([]*FinanceVerificationAllocation, error) {
-	if e.loadedTypes[7] {
+	if e.loadedTypes[8] {
 		return e.VerificationAllocations, nil
 	}
 	return nil, &NotLoadedError{edge: "verification_allocations"}
@@ -224,7 +235,7 @@ func (e FinanceBillEdges) VerificationAllocationsOrErr() ([]*FinanceVerification
 // NettingAllocationsOrErr returns the NettingAllocations value or an error if the edge
 // was not loaded in eager-loading.
 func (e FinanceBillEdges) NettingAllocationsOrErr() ([]*FinanceNettingAllocation, error) {
-	if e.loadedTypes[8] {
+	if e.loadedTypes[9] {
 		return e.NettingAllocations, nil
 	}
 	return nil, &NotLoadedError{edge: "netting_allocations"}
@@ -584,6 +595,11 @@ func (_m *FinanceBill) QueryLines() *FinanceBillLineQuery {
 // QueryInvoiceLinks queries the "invoice_links" edge of the FinanceBill entity.
 func (_m *FinanceBill) QueryInvoiceLinks() *FinanceInvoiceBillQuery {
 	return NewFinanceBillClient(_m.config).QueryInvoiceLinks(_m)
+}
+
+// QueryInvoiceExemptions queries the "invoice_exemptions" edge of the FinanceBill entity.
+func (_m *FinanceBill) QueryInvoiceExemptions() *FinanceInvoiceExemptionQuery {
+	return NewFinanceBillClient(_m.config).QueryInvoiceExemptions(_m)
 }
 
 // QueryVerificationAllocations queries the "verification_allocations" edge of the FinanceBill entity.

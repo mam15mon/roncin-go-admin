@@ -163,6 +163,8 @@ var operationAccessRules = map[string]accessRule{
 	"/finance.v1.SettlementService/RemoveCommissionRuleEmployees":                               {mode: accessModePermission, permission: "system.finance.commission.configure", scope: biz.DataScopeOrganization},
 	"/finance.v1.SettlementService/ReverseNetting":                                              {mode: accessModePermission, permission: "system.finance.netting.reverse", scope: biz.DataScopeOrganization},
 	"/finance.v1.SettlementService/ReverseVerification":                                         {mode: accessModePermission, permission: "system.finance.verification.reverse", scope: biz.DataScopeOrganization},
+	"/finance.v1.SettlementService/RevokeBillInvoiceExemption":                                  {mode: accessModePermission, permission: "system.finance.invoice.exempt", scope: biz.DataScopeOrganization},
+	"/finance.v1.SettlementService/SetBillInvoiceExemption":                                     {mode: accessModePermission, permission: "system.finance.invoice.exempt", scope: biz.DataScopeOrganization},
 	"/finance.v1.SettlementService/UpdateBill":                                                  {mode: accessModePermission, permission: "system.finance.bill.update", scope: biz.DataScopeOrganization},
 	"/finance.v1.SettlementService/UpdateBillFees":                                              {mode: accessModePermission, permission: "system.finance.bill.update", scope: biz.DataScopeOrganization},
 	"/finance.v1.SettlementService/UpdateBilledFeeEditPolicy":                                   {mode: accessModePermission, permission: "system.finance.bill.configure", scope: biz.DataScopeOrganization},

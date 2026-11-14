@@ -1,5 +1,11 @@
 import { renderWithApp } from '@root/tests/renderWithApp';
-import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FinanceBillFeeLockFact, FinanceBillStatus } from '@/enums.generated';
@@ -56,7 +62,7 @@ function wireBill(overrides: Partial<API.FinanceBill> = {}): API.FinanceBill {
 function mount(bill: API.FinanceBill) {
   const onUpdated = vi.fn();
   const onRefresh = vi.fn();
-  renderWithApp(
+  const view = renderWithApp(
     <BillFeeMaintenance
       bill={bill}
       lineColumns={lineColumns}
@@ -64,7 +70,7 @@ function mount(bill: API.FinanceBill) {
       onRefresh={onRefresh}
     />,
   );
-  return { onUpdated, onRefresh };
+  return { ...view, onUpdated, onRefresh };
 }
 
 function removeButtons() {
@@ -155,6 +161,41 @@ describe('账单费用维护', () => {
         removeFeeIds: ['fee-a'],
       },
     );
+  });
+
+  it('移除失败保留确认框，允许按当前版本重试', async () => {
+    updateFees.mockResolvedValueOnce(undefined as unknown as UpdateResult);
+    const { onUpdated } = mount(wireBill());
+    fireEvent.click(removeButtons()[0]);
+    fireEvent.click(await screen.findByRole('button', { name: /确\s*定|OK/ }));
+    await waitFor(() => expect(updateFees).toHaveBeenCalledTimes(1));
+    expect(onUpdated).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /确\s*定|OK/ })).toBeEnabled(),
+    );
+    expect(screen.getByText('确认从账单移除该费用？')).toBeInTheDocument();
+  });
+
+  it('切换单据卸载后，旧移除请求的迟到成功不再回填父详情', async () => {
+    let resolveUpdate: ((response: UpdateResult) => void) | undefined;
+    updateFees.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveUpdate = resolve;
+        }),
+    );
+    const { onUpdated, unmount } = mount(wireBill());
+    fireEvent.click(removeButtons()[0]);
+    fireEvent.click(await screen.findByRole('button', { name: /确\s*定|OK/ }));
+    await waitFor(() => expect(updateFees).toHaveBeenCalledTimes(1));
+    unmount();
+    await act(async () => {
+      resolveUpdate?.({
+        success: true,
+        data: wireBill({ version: '4' }),
+      } as UpdateResult);
+    });
+    expect(onUpdated).not.toHaveBeenCalled();
   });
 
   it('候选由服务端关键字过滤分页，多选后一次提交；失败保留选择', async () => {

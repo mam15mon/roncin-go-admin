@@ -96,6 +96,11 @@ func FeeNameEn(v string) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldEQ(FieldFeeNameEn, v))
 }
 
+// SearchKeywords applies equality check predicate on the "search_keywords" field. It's identical to SearchKeywordsEQ.
+func SearchKeywords(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEQ(FieldSearchKeywords, v))
+}
+
 // SettlementPartyID applies equality check predicate on the "settlement_party_id" field. It's identical to SettlementPartyIDEQ.
 func SettlementPartyID(v uuid.UUID) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldEQ(FieldSettlementPartyID, v))
@@ -634,6 +639,71 @@ func FeeNameEnEqualFold(v string) predicate.OrderFee {
 // FeeNameEnContainsFold applies the ContainsFold predicate on the "fee_name_en" field.
 func FeeNameEnContainsFold(v string) predicate.OrderFee {
 	return predicate.OrderFee(sql.FieldContainsFold(FieldFeeNameEn, v))
+}
+
+// SearchKeywordsEQ applies the EQ predicate on the "search_keywords" field.
+func SearchKeywordsEQ(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEQ(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsNEQ applies the NEQ predicate on the "search_keywords" field.
+func SearchKeywordsNEQ(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNEQ(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsIn applies the In predicate on the "search_keywords" field.
+func SearchKeywordsIn(vs ...string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldIn(FieldSearchKeywords, vs...))
+}
+
+// SearchKeywordsNotIn applies the NotIn predicate on the "search_keywords" field.
+func SearchKeywordsNotIn(vs ...string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldNotIn(FieldSearchKeywords, vs...))
+}
+
+// SearchKeywordsGT applies the GT predicate on the "search_keywords" field.
+func SearchKeywordsGT(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldGT(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsGTE applies the GTE predicate on the "search_keywords" field.
+func SearchKeywordsGTE(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldGTE(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsLT applies the LT predicate on the "search_keywords" field.
+func SearchKeywordsLT(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldLT(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsLTE applies the LTE predicate on the "search_keywords" field.
+func SearchKeywordsLTE(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldLTE(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsContains applies the Contains predicate on the "search_keywords" field.
+func SearchKeywordsContains(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldContains(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsHasPrefix applies the HasPrefix predicate on the "search_keywords" field.
+func SearchKeywordsHasPrefix(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldHasPrefix(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsHasSuffix applies the HasSuffix predicate on the "search_keywords" field.
+func SearchKeywordsHasSuffix(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldHasSuffix(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsEqualFold applies the EqualFold predicate on the "search_keywords" field.
+func SearchKeywordsEqualFold(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldEqualFold(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsContainsFold applies the ContainsFold predicate on the "search_keywords" field.
+func SearchKeywordsContainsFold(v string) predicate.OrderFee {
+	return predicate.OrderFee(sql.FieldContainsFold(FieldSearchKeywords, v))
 }
 
 // SettlementPartyIDEQ applies the EQ predicate on the "settlement_party_id" field.

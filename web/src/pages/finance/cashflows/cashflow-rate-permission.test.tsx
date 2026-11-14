@@ -34,6 +34,7 @@ vi.mock('@/app/access', () => ({
     }),
 }));
 vi.mock('@/components/ui', () => ({
+  SearchFilterTemplate: () => null,
   GuardedModalForm: ({
     open,
     children,

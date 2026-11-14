@@ -118,6 +118,20 @@ func (_c *OrderFeeCreate) SetNillableFeeNameEn(v *string) *OrderFeeCreate {
 	return _c
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_c *OrderFeeCreate) SetSearchKeywords(v string) *OrderFeeCreate {
+	_c.mutation.SetSearchKeywords(v)
+	return _c
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_c *OrderFeeCreate) SetNillableSearchKeywords(v *string) *OrderFeeCreate {
+	if v != nil {
+		_c.SetSearchKeywords(*v)
+	}
+	return _c
+}
+
 // SetSettlementPartyID sets the "settlement_party_id" field.
 func (_c *OrderFeeCreate) SetSettlementPartyID(v uuid.UUID) *OrderFeeCreate {
 	_c.mutation.SetSettlementPartyID(v)
@@ -519,7 +533,9 @@ func (_c *OrderFeeCreate) Mutation() *OrderFeeMutation {
 
 // Save creates the OrderFee in the database.
 func (_c *OrderFeeCreate) Save(ctx context.Context) (*OrderFee, error) {
-	_c.defaults()
+	if err := _c.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -546,14 +562,24 @@ func (_c *OrderFeeCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *OrderFeeCreate) defaults() {
+func (_c *OrderFeeCreate) defaults() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
+		if orderfee.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized orderfee.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
 		v := orderfee.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		if orderfee.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized orderfee.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := orderfee.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		v := orderfee.DefaultSearchKeywords
+		_c.mutation.SetSearchKeywords(v)
 	}
 	if _, ok := _c.mutation.TaxInclusive(); !ok {
 		v := orderfee.DefaultTaxInclusive
@@ -572,9 +598,13 @@ func (_c *OrderFeeCreate) defaults() {
 		_c.mutation.SetVersion(v)
 	}
 	if _, ok := _c.mutation.ID(); !ok {
+		if orderfee.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized orderfee.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := orderfee.DefaultID()
 		_c.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -624,6 +654,9 @@ func (_c *OrderFeeCreate) check() error {
 		if err := orderfee.FeeNameEnValidator(v); err != nil {
 			return &ValidationError{Name: "fee_name_en", err: fmt.Errorf(`ent: validator failed for field "OrderFee.fee_name_en": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "OrderFee.search_keywords"`)}
 	}
 	if _, ok := _c.mutation.SettlementPartyID(); !ok {
 		return &ValidationError{Name: "settlement_party_id", err: errors.New(`ent: missing required field "OrderFee.settlement_party_id"`)}
@@ -785,6 +818,10 @@ func (_c *OrderFeeCreate) createSpec() (*OrderFee, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.FeeNameEn(); ok {
 		_spec.SetField(orderfee.FieldFeeNameEn, field.TypeString, value)
 		_node.FeeNameEn = &value
+	}
+	if value, ok := _c.mutation.SearchKeywords(); ok {
+		_spec.SetField(orderfee.FieldSearchKeywords, field.TypeString, value)
+		_node.SearchKeywords = value
 	}
 	if value, ok := _c.mutation.BillingUnit(); ok {
 		_spec.SetField(orderfee.FieldBillingUnit, field.TypeString, value)
@@ -1215,6 +1252,18 @@ func (u *OrderFeeUpsert) UpdateFeeNameEn() *OrderFeeUpsert {
 // ClearFeeNameEn clears the value of the "fee_name_en" field.
 func (u *OrderFeeUpsert) ClearFeeNameEn() *OrderFeeUpsert {
 	u.SetNull(orderfee.FieldFeeNameEn)
+	return u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *OrderFeeUpsert) SetSearchKeywords(v string) *OrderFeeUpsert {
+	u.Set(orderfee.FieldSearchKeywords, v)
+	return u
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *OrderFeeUpsert) UpdateSearchKeywords() *OrderFeeUpsert {
+	u.SetExcluded(orderfee.FieldSearchKeywords)
 	return u
 }
 
@@ -1717,6 +1766,20 @@ func (u *OrderFeeUpsertOne) UpdateFeeNameEn() *OrderFeeUpsertOne {
 func (u *OrderFeeUpsertOne) ClearFeeNameEn() *OrderFeeUpsertOne {
 	return u.Update(func(s *OrderFeeUpsert) {
 		s.ClearFeeNameEn()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *OrderFeeUpsertOne) SetSearchKeywords(v string) *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *OrderFeeUpsertOne) UpdateSearchKeywords() *OrderFeeUpsertOne {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateSearchKeywords()
 	})
 }
 
@@ -2440,6 +2503,20 @@ func (u *OrderFeeUpsertBulk) UpdateFeeNameEn() *OrderFeeUpsertBulk {
 func (u *OrderFeeUpsertBulk) ClearFeeNameEn() *OrderFeeUpsertBulk {
 	return u.Update(func(s *OrderFeeUpsert) {
 		s.ClearFeeNameEn()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *OrderFeeUpsertBulk) SetSearchKeywords(v string) *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *OrderFeeUpsertBulk) UpdateSearchKeywords() *OrderFeeUpsertBulk {
+	return u.Update(func(s *OrderFeeUpsert) {
+		s.UpdateSearchKeywords()
 	})
 }
 

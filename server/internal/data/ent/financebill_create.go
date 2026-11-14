@@ -17,6 +17,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillbatch"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceexemption"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverificationallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
@@ -545,6 +546,21 @@ func (_c *FinanceBillCreate) AddInvoiceLinks(v ...*FinanceInvoiceBill) *FinanceB
 		ids[i] = v[i].ID
 	}
 	return _c.AddInvoiceLinkIDs(ids...)
+}
+
+// AddInvoiceExemptionIDs adds the "invoice_exemptions" edge to the FinanceInvoiceExemption entity by IDs.
+func (_c *FinanceBillCreate) AddInvoiceExemptionIDs(ids ...uuid.UUID) *FinanceBillCreate {
+	_c.mutation.AddInvoiceExemptionIDs(ids...)
+	return _c
+}
+
+// AddInvoiceExemptions adds the "invoice_exemptions" edges to the FinanceInvoiceExemption entity.
+func (_c *FinanceBillCreate) AddInvoiceExemptions(v ...*FinanceInvoiceExemption) *FinanceBillCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddInvoiceExemptionIDs(ids...)
 }
 
 // AddVerificationAllocationIDs adds the "verification_allocations" edge to the FinanceVerificationAllocation entity by IDs.
@@ -1148,6 +1164,22 @@ func (_c *FinanceBillCreate) createSpec() (*FinanceBill, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeinvoicebill.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.InvoiceExemptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   financebill.InvoiceExemptionsTable,
+			Columns: []string{financebill.InvoiceExemptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoiceexemption.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

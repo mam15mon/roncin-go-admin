@@ -2727,6 +2727,29 @@ func HasInvoiceLinksWith(preds ...predicate.FinanceInvoiceBill) predicate.Financ
 	})
 }
 
+// HasInvoiceExemptions applies the HasEdge predicate on the "invoice_exemptions" edge.
+func HasInvoiceExemptions() predicate.FinanceBill {
+	return predicate.FinanceBill(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, InvoiceExemptionsTable, InvoiceExemptionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasInvoiceExemptionsWith applies the HasEdge predicate on the "invoice_exemptions" edge with a given conditions (other predicates).
+func HasInvoiceExemptionsWith(preds ...predicate.FinanceInvoiceExemption) predicate.FinanceBill {
+	return predicate.FinanceBill(func(s *sql.Selector) {
+		step := newInvoiceExemptionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasVerificationAllocations applies the HasEdge predicate on the "verification_allocations" edge.
 func HasVerificationAllocations() predicate.FinanceBill {
 	return predicate.FinanceBill(func(s *sql.Selector) {

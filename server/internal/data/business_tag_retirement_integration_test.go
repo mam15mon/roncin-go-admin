@@ -15,7 +15,6 @@ import (
 	resourceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
 	billent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
-	feeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	permissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
 	"github.com/roncin/roncin-go-admin/server/internal/platform/migration"
 )
@@ -44,15 +43,19 @@ func TestBusinessTagRetirementUpgradePostgres(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fee, err := client.OrderFee.Create().SetOrderID(order.ID).SetSettlementPartyID(partner.ID).SetIdempotencyKey(uuid.NewString()).SetDirection(feeent.DirectionRECEIVABLE).SetFeeCode("TEST").SetFeeName("保留海运费").SetBillingUnit("票").SetQuantity("1").SetUnitPrice("123.45").SetTotalAmount("123.45").SetNetAmount("123.45").SetTaxAmount("0").SetCurrency("CNY").SetExchangeRate("1").SetExchangeRateSource(feeent.ExchangeRateSourceSYSTEM).SetExchangeRateDate("2026-11-09").SetBaseCurrency("CNY").SetBaseCurrencyAmount("123.45").SetVersion(3).Save(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
+	// 标签退役前态尚无费用检索列，按该时点正式表形构造原始费用，不用现行 Ent 写入未来字段。
+	feeID := uuid.New()
+	execTagRetirementSQL(t, data.sqlDB, `INSERT INTO order_fees
+		(id,created_at,updated_at,order_id,settlement_party_id,idempotency_key,direction,fee_code,fee_name,billing_unit,
+		 quantity,unit_price,total_amount,net_amount,tax_amount,currency,exchange_rate,exchange_rate_source,
+		 exchange_rate_date,base_currency,base_currency_amount,version)
+		VALUES($1,now(),now(),$2,$3,$4,'RECEIVABLE','TEST','保留海运费','票',1,123.45,123.45,123.45,0,'CNY',1,'SYSTEM','2026-11-09','CNY',123.45,3)`,
+		feeID, order.ID, partner.ID, uuid.NewString())
 	bill, err := withTestFinanceBillSettlementAccountSnapshot(client.FinanceBill.Create(), uuid.New(), "CNY").SetOrganizationID(org.ID).SetExchangeRate("1").SetExchangeRateSource(billent.ExchangeRateSourceSYSTEM).SetExchangeRateDate("2026-11-09").SetBillNo("KEEP-BILL").SetIdempotencyKey(uuid.NewString()).SetDirection(billent.DirectionRECEIVABLE).SetSettlementPartyID(partner.ID).SetSettlementPartyName(partner.LegalName).SetCurrency("CNY").SetBaseCurrency("CNY").SetTotalAmount("123.45").SetNetAmount("123.45").SetTaxAmount("0").SetBaseCurrencyAmount("123.45").SetFeeCount(1).SetBillDate("2026-11-09").SetStatus(billent.StatusCONFIRMED).SetConfirmedAt(time.Date(2026, 11, 9, 0, 0, 0, 0, time.UTC)).SetConfirmedBy(actor.ID).SetVersion(4).Save(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = client.FinanceBillLine.Create().SetBillID(bill.ID).SetOrderFeeID(fee.ID).SetOrderID(order.ID).SetOrderNo(order.OrderNo).SetQuantity(fee.Quantity).SetUnitPrice(fee.UnitPrice).SetFeeCode(fee.FeeCode).SetFeeName(fee.FeeName).SetTotalAmount(fee.TotalAmount).SetNetAmount(fee.NetAmount).SetTaxAmount(fee.TaxAmount).SetCurrency(fee.Currency).SetExchangeRate(fee.ExchangeRate).SetBaseCurrency(fee.BaseCurrency).SetBaseCurrencyAmount(fee.BaseCurrencyAmount).Save(ctx)
+	_, err = client.FinanceBillLine.Create().SetBillID(bill.ID).SetOrderFeeID(feeID).SetOrderID(order.ID).SetOrderNo(order.OrderNo).SetQuantity("1").SetUnitPrice("123.45").SetFeeCode("TEST").SetFeeName("保留海运费").SetTotalAmount("123.45").SetNetAmount("123.45").SetTaxAmount("0").SetCurrency("CNY").SetExchangeRate("1").SetBaseCurrency("CNY").SetBaseCurrencyAmount("123.45").Save(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,7 +70,7 @@ func TestBusinessTagRetirementUpgradePostgres(t *testing.T) {
 	for _, link := range []struct {
 		table, owner string
 		id           uuid.UUID
-	}{{"order_enterprise_tags", "order_id", order.ID}, {"order_fee_enterprise_tags", "order_fee_id", fee.ID}, {"finance_bill_enterprise_tags", "finance_bill_id", bill.ID}} {
+	}{{"order_enterprise_tags", "order_id", order.ID}, {"order_fee_enterprise_tags", "order_fee_id", feeID}, {"finance_bill_enterprise_tags", "finance_bill_id", bill.ID}} {
 		execTagRetirementSQL(t, data.sqlDB, `INSERT INTO `+link.table+`(id,created_at,updated_at,organization_id,tag_resource_id,`+link.owner+`) VALUES($1,now(),now(),$2,$3,$4)`, uuid.New(), org.ID, tagID, link.id)
 	}
 	execTagRetirementSQL(t, data.sqlDB, `INSERT INTO enterprise_resource_partners(id,created_at,updated_at,resource_id,partner_id,resource_type) VALUES($1,now(),now(),$2,$3,'TAG')`, uuid.New(), tagID, partner.ID)
@@ -221,8 +224,13 @@ func tagRetirementSnapshots(t *testing.T, db *sql.DB, tables []string, excludeTa
 				filter = " WHERE t.resource_id IN (SELECT id FROM enterprise_resources WHERE resource_type <> 'TAG')"
 			}
 		}
+		rowJSON := "to_jsonb(t)"
+		if table == "order_fees" {
+			// 后续迁移允许新增派生检索列，仍逐字段比较全部费用业务数据。
+			rowJSON += " - 'search_keywords'"
+		}
 		var snapshot string
-		if err := db.QueryRowContext(context.Background(), `SELECT COALESCE(jsonb_agg(to_jsonb(t) ORDER BY id),'[]'::jsonb)::text FROM "`+table+`" t`+filter).Scan(&snapshot); err != nil {
+		if err := db.QueryRowContext(context.Background(), `SELECT COALESCE(jsonb_agg(`+rowJSON+` ORDER BY id),'[]'::jsonb)::text FROM "`+table+`" t`+filter).Scan(&snapshot); err != nil {
 			t.Fatal(err)
 		}
 		snapshots[table] = snapshot

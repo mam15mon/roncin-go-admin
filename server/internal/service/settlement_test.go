@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/google/uuid"
@@ -93,14 +94,34 @@ func (s *billCreationCandidateServiceRepoStub) LoadBillableFees(_ context.Contex
 	return s.fees, s.err
 }
 
-func (s *billCreationCandidateServiceRepoStub) GetBatchByIdempotencyKey(context.Context, uuid.UUID, string) (*biz.FinanceBillBatch, error) {
-	return s.batch, nil
+func (s *billCreationCandidateServiceRepoStub) GetBatchByIdempotencyKey(_ context.Context, _ uuid.UUID, key string) (*biz.FinanceBillBatch, error) {
+	if s.batch != nil && s.batch.IdempotencyKey == key {
+		return s.batch, nil
+	}
+	return nil, nil
 }
 
-func (s *billCreationCandidateServiceRepoStub) CreateBatch(_ context.Context, batch *biz.FinanceBillBatch, _ string, _ *biz.AuditEvent, _ []*biz.AuditEvent) (*biz.FinanceBillBatch, error) {
+func (s *billCreationCandidateServiceRepoStub) CreateBatchHead(_ context.Context, batch *biz.FinanceBillBatch, _ *biz.AuditEvent) (*biz.FinanceBillBatch, error) {
 	s.createdOrganizationID = batch.OrganizationID
+	batch.BatchNo = "BATCH-STUB"
 	s.batch = batch
 	return batch, s.err
+}
+
+func (s *billCreationCandidateServiceRepoStub) CreateBatchBills(_ context.Context, write biz.FinanceBillBatchWrite) error {
+	s.batch.Bills = append(s.batch.Bills, write.Bills...)
+	return s.err
+}
+
+func (s *billCreationCandidateServiceRepoStub) GetByIdempotencyKey(_ context.Context, _ uuid.UUID, key string) (*biz.FinanceBill, error) {
+	if s.batch != nil {
+		for _, bill := range s.batch.Bills {
+			if bill.IdempotencyKey == key {
+				return bill, nil
+			}
+		}
+	}
+	return nil, nil
 }
 
 func (*billCreationCandidateServiceRepoStub) ValidateBillCurrencies(context.Context, []string) error {
@@ -447,16 +468,24 @@ func TestBillBatchPreviewAndCreateRequireDeclaredSourceOrganization(t *testing.T
 		FeeIds: []string{feeID.String()}, GroupingPolicy: policy, OrganizationId: organizationID.String(),
 		GroupConfigs: []*v1.BillBatchPreviewGroupConfigInput{{GroupKey: preview.Data[0].GetGroupKey(), BillDate: "2026-09-10", SettlementAccountId: accountID.String()}},
 	})
-	if err != nil || preview.GetPreviewToken() == "" {
+	if err != nil || preview.Data[0].GetGroupToken() == "" {
 		t.Fatalf("完整配置预览失败: response=%#v err=%v", preview, err)
 	}
 	created, err := service.CreateBillBatch(ctx, &v1.CreateBillBatchRequest{
-		FeeIds: []string{feeID.String()}, GroupingPolicy: policy, OrganizationId: organizationID.String(),
-		PreviewToken: preview.GetPreviewToken(), IdempotencyKey: "bill-batch-org-assertion",
-		Groups: []*v1.CreateBillBatchGroupInput{{GroupKey: preview.Data[0].GetGroupKey(), StatementTitle: "测试客户", BillDate: "2026-09-10", SettlementAccountId: accountID.String()}},
+		GroupingPolicy: policy, OrganizationId: organizationID.String(), IdempotencyKey: "bill-batch-org-assertion",
+		Groups: []*v1.CreateBillBatchGroupInput{{GroupKey: preview.Data[0].GetGroupKey(), GroupToken: preview.Data[0].GetGroupToken(), FeeIds: []string{feeID.String()}, StatementTitle: "测试客户", BillDate: "2026-09-10", SettlementAccountId: accountID.String()}},
 	})
-	if err != nil || created.GetData() == nil || repo.createdOrganizationID != organizationID {
+	if err != nil || created.GetData() == nil || repo.createdOrganizationID != organizationID || created.GetSucceededCount() != 1 || created.GetFailedCount() != 0 || len(created.GetResults()) != 1 || !created.Results[0].GetSuccess() || created.Results[0].GetBill() == nil || created.Results[0].GetError() != nil {
 		t.Fatalf("同组织创建失败: response=%#v err=%v", created, err)
+	}
+
+	// 组令牌陈旧：HTTP 层仍成功返回，该组以结构化错误失败。
+	stale, err := service.CreateBillBatch(ctx, &v1.CreateBillBatchRequest{
+		GroupingPolicy: policy, OrganizationId: organizationID.String(), IdempotencyKey: "bill-batch-stale-group",
+		Groups: []*v1.CreateBillBatchGroupInput{{GroupKey: preview.Data[0].GetGroupKey(), GroupToken: strings.Repeat("0", 64), FeeIds: []string{feeID.String()}, StatementTitle: "测试客户", BillDate: "2026-09-10", SettlementAccountId: accountID.String()}},
+	})
+	if err != nil || stale.GetSucceededCount() != 0 || stale.GetFailedCount() != 1 || stale.Results[0].GetSuccess() || stale.Results[0].GetBill() != nil || stale.Results[0].GetError().GetReason() != "FINANCE_BILL_PREVIEW_STALE" {
+		t.Fatalf("陈旧组令牌应以组错误返回: response=%#v err=%v", stale, err)
 	}
 
 	fee.OrganizationID = otherOrganizationID
@@ -466,7 +495,8 @@ func TestBillBatchPreviewAndCreateRequireDeclaredSourceOrganization(t *testing.T
 		t.Fatalf("来源声明为 A、费用解析为 B 时预览错误 = %v", err)
 	}
 	if _, err := service.CreateBillBatch(ctx, &v1.CreateBillBatchRequest{
-		FeeIds: []string{feeID.String()}, GroupingPolicy: policy, OrganizationId: organizationID.String(),
+		GroupingPolicy: policy, OrganizationId: organizationID.String(), IdempotencyKey: "bill-batch-other-org",
+		Groups: []*v1.CreateBillBatchGroupInput{{GroupKey: preview.Data[0].GetGroupKey(), GroupToken: preview.Data[0].GetGroupToken(), FeeIds: []string{feeID.String()}, StatementTitle: "测试客户", BillDate: "2026-09-10", SettlementAccountId: accountID.String()}},
 	}); !errors.Is(err, biz.ErrFinanceBillInvalidArgument) {
 		t.Fatalf("来源声明为 A、费用解析为 B 时创建错误 = %v", err)
 	}
@@ -549,5 +579,17 @@ func TestFinanceBillProgressProjectionToAPI(t *testing.T) {
 	plain := financeBillToAPI(&biz.FinanceBill{ID: uuid.New()})
 	if plain.SettlementProgress != v1.FinanceBillSettlementProgress_FINANCE_BILL_SETTLEMENT_PROGRESS_UNSPECIFIED || plain.FeesLocked || len(plain.FeeLockFacts) != 0 {
 		t.Fatalf("未投影账单 = %v %v", plain.SettlementProgress, plain.FeesLocked)
+	}
+}
+
+func TestBillBatchGroupErrorHidesUnknownErrors(t *testing.T) {
+	unknown := billBatchGroupErrorToAPI(errors.New("pq: connection reset by peer"))
+	if unknown.GetReason() != "FINANCE_BILL_BATCH_GROUP_FAILED" || strings.Contains(unknown.GetMessage(), "pq") || unknown.GetMetadata() != nil {
+		t.Fatalf("未知错误不得透出内部文本: %#v", unknown)
+	}
+	rate := biz.ErrExchangeRateMissingForDate.WithMetadata(map[string]string{"currency": "USD", "week_start": "2026-09-07", "direction": "RECEIVABLE", "internal": "x"})
+	missing := billBatchGroupErrorToAPI(rate)
+	if missing.GetReason() == "" || missing.GetMetadata()["currency"] != "USD" || missing.GetMetadata()["internal"] != "" {
+		t.Fatalf("缺汇率组错误应保留公开元数据: %#v", missing)
 	}
 }

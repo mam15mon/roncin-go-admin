@@ -14,12 +14,22 @@ import { useAccess } from '@/app/access';
 import {
   type FinanceLedgerMetricCard,
   FinanceLedgerTemplate,
+  type SearchFilterFieldItem,
+  SearchFilterTemplate,
 } from '@/components/ui';
+import {
+  FilterSettingsEntry,
+  type FilterSettingsField,
+  omitHiddenFilterValues,
+  useFilterSettings,
+} from '@/components/ui/filter-settings';
+import { useListQueryState } from '@/components/ui/list-query-state';
 import { FinanceInvoiceStatus } from '@/enums.generated';
 import { financeErrorReasons } from '@/errorReasons.generated';
 import {
   invoiceLedgerSummaryConfig,
   mapMatchedSummary,
+  useLedgerSelectionScope,
 } from '@/features/finance/ledger-summary';
 import {
   settlementServiceCancelInvoice,
@@ -56,11 +66,47 @@ import {
 
 import { invoiceExportColumns } from './ledgerExport';
 
-/** 台账内置搜索表单提交的筛选字段（keyword 等分页字段由模板统一注入，不在此声明） */
+/** 已提交的发票筛选条件，表格、汇总与导出共用官方采纳快照。 */
 type InvoiceLedgerFilterParams = {
+  keyword?: string;
   direction?: string;
   status?: string;
 };
+
+const invoiceFilterFields: FilterSettingsField[] = [
+  { name: 'keyword', label: '综合搜索', defaultVisible: true },
+  { name: 'direction', label: '发票方向', defaultVisible: true },
+  { name: 'status', label: '发票状态', defaultVisible: true },
+];
+
+const invoiceFilterItems: SearchFilterFieldItem[] = [
+  {
+    name: 'keyword',
+    label: '综合搜索',
+    placeholder: '记录编号、发票号或结算单位',
+  },
+  {
+    name: 'direction',
+    label: '发票方向',
+    type: 'select',
+    options: [
+      { label: '销项', value: 'RECEIVABLE' },
+      { label: '进项', value: 'PAYABLE' },
+    ],
+  },
+  {
+    name: 'status',
+    label: '发票状态',
+    type: 'select',
+    options: Object.entries(invoiceStates).map(([value, meta]) => ({
+      value,
+      label:
+        Number(value) === FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_ISSUED
+          ? '已开具 / 已收票'
+          : meta.text,
+    })),
+  },
+];
 
 type CreateValues = {
   invoiceProfileId: string;
@@ -104,6 +150,26 @@ export default function FinanceInvoicesPage() {
     currentUser?.id &&
       organizationId &&
       access.canOperateOrganization(organizationId),
+  );
+  const filterSettings = useFilterSettings({
+    pageKey: 'finance:invoices',
+    fields: invoiceFilterFields,
+  });
+  const queryState = useListQueryState<InvoiceLedgerFilterParams>({
+    tabKey: '/finance/invoices',
+    listId: 'finance:invoices',
+    defaultPageSize: 40,
+    defaultFilters: {},
+    sanitizeRestored: (filters) =>
+      omitHiddenFilterValues(
+        filters,
+        invoiceFilterFields,
+        filterSettings.visibleNames,
+      ),
+  });
+  const { selectionScope, commitFilters } = useLedgerSelectionScope(
+    queryState.commit,
+    () => queryState.snapshotRef.current.filters,
   );
   const { message } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
@@ -551,6 +617,33 @@ export default function FinanceInvoicesPage() {
         columns={columns}
         columnSettingsKey="finance:invoices"
         metricCards={metricCards}
+        search={false}
+        pagination={queryState.pagination}
+        customSearch={
+          <SearchFilterTemplate<InvoiceLedgerFilterParams>
+            items={invoiceFilterItems}
+            initialValues={queryState.initial.filters}
+            initialLabels={queryState.initial.labels}
+            visibleNames={filterSettings.visibleNames}
+            extraRight={
+              <FilterSettingsEntry
+                fields={invoiceFilterFields}
+                visibleNames={filterSettings.visibleNames}
+                onChange={filterSettings.setVisible}
+                onReset={filterSettings.reset}
+              />
+            }
+            onCommit={(values, labels) => commitFilters(values, labels)}
+            onSearch={(values) => {
+              commitFilters(values);
+              actionRef.current?.reload(true);
+            }}
+            onReset={() => {
+              commitFilters({}, {});
+              actionRef.current?.reload(true);
+            }}
+          />
+        }
         primaryActionText={
           access.canCreateFinanceInvoices ? '从账单创建开票' : undefined
         }
@@ -562,7 +655,7 @@ export default function FinanceInvoicesPage() {
           setCreateOpen(true);
         }}
         summaryConfig={invoiceLedgerSummaryConfig}
-        selectionScope={organizationId}
+        selectionScope={selectionScope}
         onAcceptedSnapshot={(snapshot) => {
           setMetricStats({
             totalCount: snapshot.total,
@@ -577,9 +670,11 @@ export default function FinanceInvoicesPage() {
             {
               page: p.current,
               pageSize: p.pageSize,
-              keyword: p.keyword,
-              direction: p.direction,
-              status: p.status ? Number(p.status) : undefined,
+              keyword: queryState.snapshotRef.current.filters.keyword,
+              direction: queryState.snapshotRef.current.filters.direction,
+              status: queryState.snapshotRef.current.filters.status
+                ? Number(queryState.snapshotRef.current.filters.status)
+                : undefined,
               organizationId,
             },
             { skipErrorHandler: true },

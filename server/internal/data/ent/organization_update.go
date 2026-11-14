@@ -30,6 +30,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommissionruleassignment"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceexemption"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/membership"
@@ -557,6 +558,21 @@ func (_u *OrganizationUpdate) AddFinanceInvoices(v ...*FinanceInvoice) *Organiza
 		ids[i] = v[i].ID
 	}
 	return _u.AddFinanceInvoiceIDs(ids...)
+}
+
+// AddFinanceInvoiceExemptionIDs adds the "finance_invoice_exemptions" edge to the FinanceInvoiceExemption entity by IDs.
+func (_u *OrganizationUpdate) AddFinanceInvoiceExemptionIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.AddFinanceInvoiceExemptionIDs(ids...)
+	return _u
+}
+
+// AddFinanceInvoiceExemptions adds the "finance_invoice_exemptions" edges to the FinanceInvoiceExemption entity.
+func (_u *OrganizationUpdate) AddFinanceInvoiceExemptions(v ...*FinanceInvoiceExemption) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFinanceInvoiceExemptionIDs(ids...)
 }
 
 // AddFinanceCashflowIDs adds the "finance_cashflows" edge to the FinanceCashflow entity by IDs.
@@ -1546,6 +1562,27 @@ func (_u *OrganizationUpdate) RemoveFinanceInvoices(v ...*FinanceInvoice) *Organ
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFinanceInvoiceIDs(ids...)
+}
+
+// ClearFinanceInvoiceExemptions clears all "finance_invoice_exemptions" edges to the FinanceInvoiceExemption entity.
+func (_u *OrganizationUpdate) ClearFinanceInvoiceExemptions() *OrganizationUpdate {
+	_u.mutation.ClearFinanceInvoiceExemptions()
+	return _u
+}
+
+// RemoveFinanceInvoiceExemptionIDs removes the "finance_invoice_exemptions" edge to FinanceInvoiceExemption entities by IDs.
+func (_u *OrganizationUpdate) RemoveFinanceInvoiceExemptionIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	_u.mutation.RemoveFinanceInvoiceExemptionIDs(ids...)
+	return _u
+}
+
+// RemoveFinanceInvoiceExemptions removes "finance_invoice_exemptions" edges to FinanceInvoiceExemption entities.
+func (_u *OrganizationUpdate) RemoveFinanceInvoiceExemptions(v ...*FinanceInvoiceExemption) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFinanceInvoiceExemptionIDs(ids...)
 }
 
 // ClearFinanceCashflows clears all "finance_cashflows" edges to the FinanceCashflow entity.
@@ -3407,6 +3444,51 @@ func (_u *OrganizationUpdate) sqlSave(ctx context.Context) (_node int, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeinvoice.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FinanceInvoiceExemptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceInvoiceExemptionsTable,
+			Columns: []string{organization.FinanceInvoiceExemptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoiceexemption.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFinanceInvoiceExemptionsIDs(); len(nodes) > 0 && !_u.mutation.FinanceInvoiceExemptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceInvoiceExemptionsTable,
+			Columns: []string{organization.FinanceInvoiceExemptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoiceexemption.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FinanceInvoiceExemptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceInvoiceExemptionsTable,
+			Columns: []string{organization.FinanceInvoiceExemptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoiceexemption.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -5395,6 +5477,21 @@ func (_u *OrganizationUpdateOne) AddFinanceInvoices(v ...*FinanceInvoice) *Organ
 	return _u.AddFinanceInvoiceIDs(ids...)
 }
 
+// AddFinanceInvoiceExemptionIDs adds the "finance_invoice_exemptions" edge to the FinanceInvoiceExemption entity by IDs.
+func (_u *OrganizationUpdateOne) AddFinanceInvoiceExemptionIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.AddFinanceInvoiceExemptionIDs(ids...)
+	return _u
+}
+
+// AddFinanceInvoiceExemptions adds the "finance_invoice_exemptions" edges to the FinanceInvoiceExemption entity.
+func (_u *OrganizationUpdateOne) AddFinanceInvoiceExemptions(v ...*FinanceInvoiceExemption) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddFinanceInvoiceExemptionIDs(ids...)
+}
+
 // AddFinanceCashflowIDs adds the "finance_cashflows" edge to the FinanceCashflow entity by IDs.
 func (_u *OrganizationUpdateOne) AddFinanceCashflowIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
 	_u.mutation.AddFinanceCashflowIDs(ids...)
@@ -6382,6 +6479,27 @@ func (_u *OrganizationUpdateOne) RemoveFinanceInvoices(v ...*FinanceInvoice) *Or
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveFinanceInvoiceIDs(ids...)
+}
+
+// ClearFinanceInvoiceExemptions clears all "finance_invoice_exemptions" edges to the FinanceInvoiceExemption entity.
+func (_u *OrganizationUpdateOne) ClearFinanceInvoiceExemptions() *OrganizationUpdateOne {
+	_u.mutation.ClearFinanceInvoiceExemptions()
+	return _u
+}
+
+// RemoveFinanceInvoiceExemptionIDs removes the "finance_invoice_exemptions" edge to FinanceInvoiceExemption entities by IDs.
+func (_u *OrganizationUpdateOne) RemoveFinanceInvoiceExemptionIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	_u.mutation.RemoveFinanceInvoiceExemptionIDs(ids...)
+	return _u
+}
+
+// RemoveFinanceInvoiceExemptions removes "finance_invoice_exemptions" edges to FinanceInvoiceExemption entities.
+func (_u *OrganizationUpdateOne) RemoveFinanceInvoiceExemptions(v ...*FinanceInvoiceExemption) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveFinanceInvoiceExemptionIDs(ids...)
 }
 
 // ClearFinanceCashflows clears all "finance_cashflows" edges to the FinanceCashflow entity.
@@ -8273,6 +8391,51 @@ func (_u *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizati
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(financeinvoice.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.FinanceInvoiceExemptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceInvoiceExemptionsTable,
+			Columns: []string{organization.FinanceInvoiceExemptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoiceexemption.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedFinanceInvoiceExemptionsIDs(); len(nodes) > 0 && !_u.mutation.FinanceInvoiceExemptionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceInvoiceExemptionsTable,
+			Columns: []string{organization.FinanceInvoiceExemptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoiceexemption.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.FinanceInvoiceExemptionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FinanceInvoiceExemptionsTable,
+			Columns: []string{organization.FinanceInvoiceExemptionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(financeinvoiceexemption.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

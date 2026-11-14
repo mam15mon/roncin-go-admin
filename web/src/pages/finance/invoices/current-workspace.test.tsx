@@ -1,7 +1,7 @@
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
 import { act } from '@testing-library/react';
 import { App, Form, type FormInstance } from 'antd';
-import type { Dispatch, SetStateAction } from 'react';
+import type { Dispatch, ReactElement, SetStateAction } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   settlementServiceCreateInvoice,
@@ -11,6 +11,9 @@ import FinanceInvoicesPage from './index';
 
 type LedgerProps = {
   topBar?: unknown;
+  customSearch?: ReactElement<{
+    onSearch: (values: { keyword?: string }) => void;
+  }>;
   columns: { title?: unknown }[];
   request: (params: {
     current: number;
@@ -50,6 +53,7 @@ vi.mock('@/app/access', () => ({
 }));
 vi.mock('@/components/ui', () => ({
   ResponsiveTable: () => null,
+  SearchFilterTemplate: () => null,
   FinanceLedgerTemplate: (props: LedgerProps) => {
     state.ledger = props;
     return null;
@@ -96,6 +100,7 @@ describe('invoices列表当前公司', () => {
     expect(
       state.ledger?.columns.some((column) => column.title === '所属公司'),
     ).toBe(true);
+    act(() => state.ledger?.customSearch?.props.onSearch({ keyword: '条件' }));
     await state.ledger?.request({
       current: 2,
       pageSize: 20,

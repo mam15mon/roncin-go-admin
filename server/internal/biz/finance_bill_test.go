@@ -484,12 +484,28 @@ func (s *defaultTermsWriteRepoStub) GetBatchByIdempotencyKey(_ context.Context, 
 	return nil, nil
 }
 
-func (s *defaultTermsWriteRepoStub) CreateBatch(_ context.Context, batch *FinanceBillBatch, _ string, _ *AuditEvent, _ []*AuditEvent) (*FinanceBillBatch, error) {
+func (s *defaultTermsWriteRepoStub) CreateBatchHead(_ context.Context, batch *FinanceBillBatch, _ *AuditEvent) (*FinanceBillBatch, error) {
+	batch.BatchNo = "BATCH-STUB"
 	s.savedBatch = batch
 	return batch, nil
 }
 
-func (s *defaultTermsWriteRepoStub) GetByIdempotencyKey(context.Context, uuid.UUID, string) (*FinanceBill, error) {
+func (s *defaultTermsWriteRepoStub) CreateBatchBills(_ context.Context, write FinanceBillBatchWrite) error {
+	if write.CreateHead {
+		s.savedBatch = write.Batch
+	}
+	s.savedBatch.Bills = append(s.savedBatch.Bills, write.Bills...)
+	return nil
+}
+
+func (s *defaultTermsWriteRepoStub) GetByIdempotencyKey(_ context.Context, _ uuid.UUID, key string) (*FinanceBill, error) {
+	if s.savedBatch != nil {
+		for _, bill := range s.savedBatch.Bills {
+			if bill.IdempotencyKey == key {
+				return bill, nil
+			}
+		}
+	}
 	return s.existingBill, nil
 }
 
@@ -533,16 +549,18 @@ func TestCreateBatchInjectsDefaultPaymentTermsForDirectAPICalls(t *testing.T) {
 		group.GroupKey = initial.Groups[0].GroupKey
 		configs := []FinanceBillBatchPreviewGroupConfig{{GroupKey: group.GroupKey, BillDate: billDate, SettlementAccountID: accountID}}
 		preview, err := uc.PreviewBatch(context.Background(), organizationID, PreviewFinanceBillBatchInput{FeeIDs: feeIDs, GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL"}, GroupConfigs: configs})
-		if err != nil || preview.PreviewToken == "" {
-			t.Fatalf("完整预览失败: token=%q err=%v", preview.PreviewToken, err)
+		if err != nil || preview.Groups[0].GroupToken == "" {
+			t.Fatalf("完整预览失败: preview=%#v err=%v", preview, err)
 		}
+		group.GroupToken, group.FeeIDs = preview.Groups[0].GroupToken, feeIDs
+		repo.savedBatch = nil
 		created, err := uc.CreateBatch(context.Background(), organizationID, uuid.Must(uuid.NewV7()), CreateFinanceBillBatchInput{
-			FeeIDs: feeIDs, GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL"}, Groups: []CreateFinanceBillBatchGroupInput{group}, PreviewToken: preview.PreviewToken, IdempotencyKey: "batch-" + uuid.NewString(),
+			GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL"}, Groups: []CreateFinanceBillBatchGroupInput{group}, IdempotencyKey: "batch-" + uuid.NewString(),
 		})
-		if err != nil {
-			t.Fatalf("批量建账失败: %v", err)
+		if err != nil || len(created.Groups) != 1 || created.Groups[0].Err != nil {
+			t.Fatalf("批量建账失败: %#v %v", created, err)
 		}
-		return created
+		return created.Batch
 	}
 
 	t.Run("API直录不带账期的正式客户按激活规则注入并联动到期日", func(t *testing.T) {

@@ -56,6 +56,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceexemption"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
@@ -230,6 +231,7 @@ func checkColumn(t, c string) error {
 			financecustomsetting.Table:             financecustomsetting.ValidColumn,
 			financeinvoice.Table:                   financeinvoice.ValidColumn,
 			financeinvoicebill.Table:               financeinvoicebill.ValidColumn,
+			financeinvoiceexemption.Table:          financeinvoiceexemption.ValidColumn,
 			financeinvoiceline.Table:               financeinvoiceline.ValidColumn,
 			financenetting.Table:                   financenetting.ValidColumn,
 			financenettingallocation.Table:         financenettingallocation.ValidColumn,

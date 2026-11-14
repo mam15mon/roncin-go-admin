@@ -1,20 +1,7 @@
 import { FinanceCashflowStatus } from '@/enums.generated';
+import { getPaymentMethodLabel } from '@/features/finance/cashflow-entry';
 import { type CsvColumn, csvAmount, csvDecimal } from '@/utils/csv';
 import { formatDate } from '@/utils/format';
-
-export const paymentMethodOptions = [
-  { label: '银行转账', value: 'BANK_TRANSFER' },
-  { label: '支票', value: 'CHECK' },
-  { label: '现金', value: 'CASH' },
-  { label: '第三方支付', value: 'THIRD_PARTY' },
-];
-
-export function getPaymentMethodLabel(paymentMethod: string | undefined) {
-  return (
-    paymentMethodOptions.find((option) => option.value === paymentMethod)
-      ?.label ?? paymentMethod
-  );
-}
 
 export const cashflowStates: Record<number, { text: string; color: string }> = {
   [FinanceCashflowStatus.FINANCE_CASHFLOW_STATUS_DRAFT]: {

@@ -54,6 +54,7 @@ const (
 	FinanceInvoiceRead         = "system.finance.invoice.read"
 	FinanceInvoiceCreate       = "system.finance.invoice.create"
 	FinanceInvoiceUpdate       = "system.finance.invoice.update"
+	FinanceInvoiceExempt       = "system.finance.invoice.exempt"
 	FinanceCashflowRead        = "system.finance.cashflow.read"
 	FinanceCashflowCreate      = "system.finance.cashflow.create"
 	FinanceCashflowUpdate      = "system.finance.cashflow.update"
@@ -227,6 +228,7 @@ var manifest = append([]Permission{
 	{Key: FinanceInvoiceRead, Name: "查看开票记录", Group: "费用管理 · 开票", Description: "查看销项和进项发票台账"},
 	{Key: FinanceInvoiceCreate, Name: "登记发票", Group: "费用管理 · 开票", Description: "登记发票并向账单分配开票金额", Requires: []string{FinanceInvoiceRead}},
 	{Key: FinanceInvoiceUpdate, Name: "处理发票", Group: "费用管理 · 开票", Description: "开具、作废或红冲发票", Requires: []string{FinanceInvoiceRead}},
+	{Key: FinanceInvoiceExempt, Name: "账单免票管理", Group: "费用管理 · 开票", Description: "填写原因标记或撤销账单无需发票决定", Requires: []string{FinanceBillRead}},
 	{Key: FinanceCashflowRead, Name: "查看收付", Group: "费用管理 · 收付", Description: "查看银行流水和收付款单"},
 	{Key: FinanceCashflowCreate, Name: "登记收付", Group: "费用管理 · 收付", Description: "登记银行流水和收付款单", Requires: []string{FinanceCashflowRead}},
 	{Key: FinanceCashflowUpdate, Name: "处理收付", Group: "费用管理 · 收付", Description: "认领、确认或冲销收付款单", Requires: []string{FinanceCashflowRead}},

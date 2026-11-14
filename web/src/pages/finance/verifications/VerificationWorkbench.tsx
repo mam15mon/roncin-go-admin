@@ -5,6 +5,7 @@ import {
   App,
   Button,
   Card,
+  Checkbox,
   Col,
   DatePicker,
   Descriptions,
@@ -20,13 +21,14 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import dayjs, { type Dayjs } from 'dayjs';
 import Decimal from 'decimal.js';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { MODAL_SIZE, ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
+import { paymentMethodOptions } from '@/features/finance/cashflow-entry';
 import {
   disableCreditExceededOptions,
   useCreditLimitIntervention,
@@ -54,6 +56,17 @@ type Props = {
   open: boolean;
   onClose: () => void;
   onCreated: () => void;
+};
+
+const SHORTFALL_ID = 'new-shortfall-cashflow';
+
+type ShortfallDraft = {
+  amount: string;
+  transactionDate: Dayjs;
+  ourAccount: string;
+  counterpartyAccount: string;
+  paymentMethod: string;
+  bankReferenceNo: string;
 };
 
 type Scope = {
@@ -102,6 +115,42 @@ export default function VerificationWorkbench({
     [],
   );
   const [submitting, setSubmitting] = useState(false);
+  const canCreateShortfall =
+    canOperate &&
+    access.canCreateFinanceCashflows &&
+    access.canUpdateFinanceCashflows;
+  const [shortfallEnabled, setShortfallEnabled] = useState(false);
+  const [shortfall, setShortfall] = useState<ShortfallDraft>({
+    amount: '',
+    transactionDate: dayjs(),
+    ourAccount: '',
+    counterpartyAccount: '',
+    paymentMethod: 'BANK_TRANSFER',
+    bankReferenceNo: '',
+  });
+  const intentKeys = useRef(new Map<string, string>());
+  const submitSession = useRef(0);
+  useLayoutEffect(() => {
+    submitSession.current += 1;
+    setSubmitting(false);
+    return () => {
+      submitSession.current += 1;
+    };
+  }, [
+    open,
+    organizationId,
+    scope.direction,
+    scope.settlementPartyId,
+    scope.currency,
+  ]);
+  const invalidateSubmitSession = () => {
+    submitSession.current += 1;
+    setSubmitting(false);
+  };
+  const markDraftDirty = () => {
+    invalidateSubmitSession();
+    markDirty();
+  };
   // 直接干预模式下超额客户禁选（标签与禁用都由契约字段渲染）。
   const creditInterventionActive = useCreditLimitIntervention(
     open && canOperate,
@@ -198,6 +247,7 @@ export default function VerificationWorkbench({
     setSelectedCashflowIds([]);
     setSelectedBillIds([]);
     setAllocations([]);
+    setShortfallEnabled(false);
   }, [
     open,
     organizationId,
@@ -244,16 +294,23 @@ export default function VerificationWorkbench({
       return;
     }
     const next = buildVerificationAllocations(
-      selectedCashflows.map((item) => ({
-        id: item.id as string,
-        balance: item.unverifiedAmount || '0',
-      })),
+      [
+        ...selectedCashflows.map((item) => ({
+          id: item.id as string,
+          balance: item.unverifiedAmount || '0',
+        })),
+        ...(shortfallEnabled &&
+        canCreateShortfall &&
+        isPositiveVerificationAmount(shortfall.amount)
+          ? [{ id: SHORTFALL_ID, balance: shortfall.amount }]
+          : []),
+      ],
       selectedBills.map((item) => ({
         id: item.id as string,
         balance: item.unverifiedAmount || '0',
       })),
     );
-    if (next.length) markDirty();
+    if (next.length || allocations.length) markDraftDirty();
     setAllocations(next);
     if (next.length === 0) message.warning('请先选择资金流水和账单');
   };
@@ -277,6 +334,16 @@ export default function VerificationWorkbench({
   );
   const validationMessage = useMemo(() => {
     if (allocations.length === 0) return '请选择资金与账单并生成核销分配';
+    if (
+      shortfallEnabled &&
+      (!canCreateShortfall ||
+        !isPositiveVerificationAmount(shortfall.amount) ||
+        !shortfall.ourAccount.trim() ||
+        !shortfall.paymentMethod.trim())
+    )
+      return '请填写完整的差额收付款资料';
+    if (shortfallEnabled && new Decimal(shortfall.amount).decimalPlaces() > 8)
+      return '差额金额最多保留 8 位小数';
     const pairs = new Set<string>();
     const cashUsed = new Map<string, Decimal>();
     const billUsed = new Map<string, Decimal>();
@@ -287,6 +354,7 @@ export default function VerificationWorkbench({
       if (pairs.has(pair)) return '同一资金与账单组合不能重复';
       pairs.add(pair);
       const amount = new Decimal(allocation.amount);
+      if (amount.decimalPlaces() > 8) return '核销金额最多保留 8 位小数';
       cashUsed.set(
         allocation.cashflowId,
         (cashUsed.get(allocation.cashflowId) || new Decimal(0)).plus(amount),
@@ -297,6 +365,11 @@ export default function VerificationWorkbench({
       );
     }
     for (const [id, used] of cashUsed) {
+      if (id === SHORTFALL_ID) {
+        if (!shortfallEnabled || !used.eq(shortfall.amount || 0))
+          return '差额流水金额必须等于本次差额核销分配';
+        continue;
+      }
       if (used.gt(cashflowById.get(id)?.unverifiedAmount || 0))
         return '核销金额超过资金未核销余额';
     }
@@ -304,8 +377,17 @@ export default function VerificationWorkbench({
       if (used.gt(billById.get(id)?.unverifiedAmount || 0))
         return '核销金额超过账单未核销余额';
     }
+    if (shortfallEnabled && !cashUsed.has(SHORTFALL_ID))
+      return '请重新生成包含差额流水的核销分配';
     return undefined;
-  }, [allocations, billById, cashflowById]);
+  }, [
+    allocations,
+    billById,
+    cashflowById,
+    shortfallEnabled,
+    shortfall,
+    canCreateShortfall,
+  ]);
 
   const submit = async (): Promise<false | undefined> => {
     if (
@@ -320,31 +402,73 @@ export default function VerificationWorkbench({
     if (
       allocations.some(
         (item) =>
-          cashflowById.get(item.cashflowId)?.organizationId !==
-            organizationId ||
+          (item.cashflowId !== SHORTFALL_ID &&
+            cashflowById.get(item.cashflowId)?.organizationId !==
+              organizationId) ||
           billById.get(item.billId)?.organizationId !== organizationId,
       )
     ) {
       message.warning('所选资金或账单不属于当前公司，不能核销');
       return;
     }
+    const payload: Omit<API.CreateVerificationRequest, 'idempotencyKey'> = {
+      allocations: allocations.map((item) => ({
+        ...item,
+        cashflowId: item.cashflowId === SHORTFALL_ID ? '' : item.cashflowId,
+        amount: new Decimal(item.amount).toFixed(8),
+      })),
+      verificationDate: scope.verificationDate.format('YYYY-MM-DD'),
+      note: scope.note?.trim() || undefined,
+      shortfallCashflow: shortfallEnabled
+        ? {
+            organizationId,
+            direction: scope.direction,
+            settlementPartyId: scope.settlementPartyId,
+            currency: scope.currency,
+            amount: new Decimal(shortfall.amount).toFixed(),
+            transactionDate: shortfall.transactionDate.format('YYYY-MM-DD'),
+            ourAccount: shortfall.ourAccount.trim(),
+            counterpartyAccount:
+              shortfall.counterpartyAccount.trim() || undefined,
+            paymentMethod: shortfall.paymentMethod.trim(),
+            bankReferenceNo: shortfall.bankReferenceNo.trim() || undefined,
+          }
+        : undefined,
+    };
+    // 服务端按资金＋账单组合比较意图，分配顺序不代表新的核销。
+    const fingerprint = JSON.stringify({
+      ...payload,
+      allocations: [...(payload.allocations ?? [])].sort((left, right) =>
+        `${left.cashflowId}:${left.billId}`.localeCompare(
+          `${right.cashflowId}:${right.billId}`,
+        ),
+      ),
+    });
+    const idempotencyKey =
+      intentKeys.current.get(fingerprint) ?? generateUUID();
+    intentKeys.current.set(fingerprint, idempotencyKey);
+    const session = submitSession.current;
     setSubmitting(true);
     try {
       const writeResponse1 = await settlementServiceCreateVerification({
-        allocations,
-        verificationDate: scope.verificationDate.format('YYYY-MM-DD'),
-        note: scope.note,
-        idempotencyKey: generateUUID(),
+        ...payload,
+        idempotencyKey,
       });
-      if (!isWriteResponse(writeResponse1, true)) return false;
+      if (
+        !isWriteResponse(writeResponse1, true) ||
+        session !== submitSession.current
+      )
+        return false;
+      intentKeys.current.delete(fingerprint);
       resetDirty();
       message.success('核销成功，资金与账单余额已同步更新');
       onCreated();
       onClose();
     } catch (error) {
-      message.error(getErrorMessage(error, '核销失败'));
+      if (session === submitSession.current)
+        message.error(getErrorMessage(error, '核销失败'));
     } finally {
-      setSubmitting(false);
+      if (session === submitSession.current) setSubmitting(false);
     }
 
     return undefined;
@@ -374,7 +498,10 @@ export default function VerificationWorkbench({
     {
       title: '资金流水',
       dataIndex: 'cashflowId',
-      render: (id) => cashflowById.get(id)?.flowNo || id,
+      render: (id) =>
+        id === SHORTFALL_ID
+          ? '本次差额收付款'
+          : cashflowById.get(id)?.flowNo || id,
     },
     {
       title: '账单',
@@ -391,7 +518,7 @@ export default function VerificationWorkbench({
           value={value}
           suffix={scope.currency}
           onChange={(event) => {
-            markDirty();
+            markDraftDirty();
             setAllocations((current) =>
               current.map((item, itemIndex) =>
                 itemIndex === index
@@ -462,6 +589,7 @@ export default function VerificationWorkbench({
                 { value: 'PAYABLE', label: '应付核销' },
               ]}
               onChange={(direction) => {
+                invalidateSubmitSession();
                 setScope((value) => ({ ...value, direction }));
               }}
             />
@@ -497,6 +625,7 @@ export default function VerificationWorkbench({
                 </div>
               )}
               onChange={(settlementPartyId) => {
+                invalidateSubmitSession();
                 setSelectedPartyOption(
                   (partnerQuery.data ?? []).find(
                     (option) => option.value === settlementPartyId,
@@ -515,6 +644,7 @@ export default function VerificationWorkbench({
               options={currencyOptions}
               style={{ width: '100%', marginTop: 6 }}
               onChange={(currency) => {
+                invalidateSubmitSession();
                 setScope((value) => ({ ...value, currency }));
               }}
             />
@@ -527,7 +657,7 @@ export default function VerificationWorkbench({
               style={{ width: '100%', marginTop: 6 }}
               onChange={(verificationDate) => {
                 if (!verificationDate) return;
-                markDirty();
+                markDraftDirty();
                 setScope((value) => ({ ...value, verificationDate }));
               }}
             />
@@ -570,7 +700,10 @@ export default function VerificationWorkbench({
                 rowSelection={{
                   selectedRowKeys: selectedCashflowIds,
                   preserveSelectedRowKeys: true,
-                  onChange: setSelectedCashflowIds,
+                  onChange: (keys) => {
+                    invalidateSubmitSession();
+                    setSelectedCashflowIds(keys);
+                  },
                   getCheckboxProps: (record) => ({
                     disabled:
                       !canOperate || record.organizationId !== organizationId,
@@ -600,7 +733,10 @@ export default function VerificationWorkbench({
                 rowSelection={{
                   selectedRowKeys: selectedBillIds,
                   preserveSelectedRowKeys: true,
-                  onChange: setSelectedBillIds,
+                  onChange: (keys) => {
+                    invalidateSubmitSession();
+                    setSelectedBillIds(keys);
+                  },
                   getCheckboxProps: (record) => ({
                     disabled:
                       !canOperate || record.organizationId !== organizationId,
@@ -610,6 +746,138 @@ export default function VerificationWorkbench({
             </Card>
           </Col>
         </Row>
+      )}
+
+      {canCreateShortfall && (
+        <Card size="small" style={{ marginTop: 12 }}>
+          <Checkbox
+            checked={shortfallEnabled}
+            onChange={(event) => {
+              markDraftDirty();
+              setShortfallEnabled(event.target.checked);
+              setAllocations([]);
+            }}
+          >
+            补录差额收付款（与核销一起保存）
+          </Checkbox>
+          {shortfallEnabled && (
+            <Space
+              orientation="vertical"
+              style={{ width: '100%', marginTop: 12 }}
+            >
+              <Alert
+                type="info"
+                showIcon
+                title="最终保存时一起登记并确认流水、完成核销；取消不会产生流水。"
+              />
+              <Row gutter={[12, 12]}>
+                <Col span={8}>
+                  <Typography.Text>差额金额</Typography.Text>
+                  <Input
+                    aria-label="差额金额"
+                    value={shortfall.amount}
+                    suffix={scope.currency}
+                    onChange={(event) => {
+                      markDraftDirty();
+                      setShortfall((value) => ({
+                        ...value,
+                        amount: event.target.value,
+                      }));
+                    }}
+                  />
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      markDraftDirty();
+                      setShortfall((value) => ({
+                        ...value,
+                        amount: Decimal.max(
+                          selectedBillAmount.minus(selectedCashAmount),
+                          0,
+                        ).toFixed(),
+                      }));
+                    }}
+                  >
+                    按已选余额填写差额
+                  </Button>
+                </Col>
+                <Col span={8}>
+                  <Typography.Text>交易日期</Typography.Text>
+                  <DatePicker
+                    aria-label="差额交易日期"
+                    value={shortfall.transactionDate}
+                    onChange={(date) => {
+                      if (date) {
+                        markDraftDirty();
+                        setShortfall((value) => ({
+                          ...value,
+                          transactionDate: date,
+                        }));
+                      }
+                    }}
+                  />
+                </Col>
+                <Col span={8}>
+                  <Typography.Text>我方账户（必填）</Typography.Text>
+                  <Input
+                    aria-label="差额我方账户"
+                    value={shortfall.ourAccount}
+                    onChange={(event) => {
+                      markDraftDirty();
+                      setShortfall((value) => ({
+                        ...value,
+                        ourAccount: event.target.value,
+                      }));
+                    }}
+                  />
+                </Col>
+                <Col span={8}>
+                  <Typography.Text>支付方式</Typography.Text>
+                  <Select
+                    aria-label="差额支付方式"
+                    style={{ width: '100%' }}
+                    value={shortfall.paymentMethod}
+                    options={paymentMethodOptions}
+                    onChange={(paymentMethod) => {
+                      markDraftDirty();
+                      setShortfall((value) => ({ ...value, paymentMethod }));
+                    }}
+                  />
+                </Col>
+                <Col span={8}>
+                  <Typography.Text>
+                    对方账户（散客供应商付款必填）
+                  </Typography.Text>
+                  <Input
+                    aria-label="差额对方账户"
+                    value={shortfall.counterpartyAccount}
+                    onChange={(event) => {
+                      markDraftDirty();
+                      setShortfall((value) => ({
+                        ...value,
+                        counterpartyAccount: event.target.value,
+                      }));
+                    }}
+                  />
+                </Col>
+                <Col span={8}>
+                  <Typography.Text>银行参考号</Typography.Text>
+                  <Input
+                    aria-label="差额银行参考号"
+                    value={shortfall.bankReferenceNo}
+                    onChange={(event) => {
+                      markDraftDirty();
+                      setShortfall((value) => ({
+                        ...value,
+                        bankReferenceNo: event.target.value,
+                      }));
+                    }}
+                  />
+                </Col>
+              </Row>
+            </Space>
+          )}
+        </Card>
       )}
 
       <Card
@@ -675,7 +943,7 @@ export default function VerificationWorkbench({
           placeholder="核销备注（选填）"
           style={{ marginTop: 12 }}
           onChange={(event) => {
-            markDirty();
+            markDraftDirty();
             setScope((value) => ({ ...value, note: event.target.value }));
           }}
         />

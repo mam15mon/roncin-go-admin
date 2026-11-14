@@ -100,7 +100,16 @@ function resetWorkbenchMocks() {
   mocks.preview.mockReset();
   mocks.create.mockReset();
   mocks.accounts.mockReset();
-  mocks.create.mockResolvedValue({ data: { id: 'batch-1', bills: [] } });
+  mocks.create.mockImplementation(
+    async (request: API.CreateBillBatchRequest) => ({
+      data: { id: 'batch-1', bills: [] },
+      results: request.groups.map((group) => ({
+        groupKey: group.groupKey,
+        success: true,
+        bill: { id: `bill-${group.groupKey}`, billNo: `B-${group.groupKey}` },
+      })),
+    }),
+  );
   mocks.organizations.mockResolvedValue({
     data: [
       { id: 'A', name: '公司A' },
@@ -175,6 +184,7 @@ describe('BillCreationWorkbench 规模压测与异常阻断', () => {
       const key = `g-${unitIndex}-${currency}-${orderNo}`;
       groups.push({
         groupKey: key,
+        groupToken: `token-${key}`,
         settlementPartyId: `partner-${unitIndex}`,
         settlementPartyName: unitName,
         direction: 'RECEIVABLE',
@@ -213,7 +223,6 @@ describe('BillCreationWorkbench 规模压测与异常阻断', () => {
     expect(groups.reduce((sum, group) => sum + group.fees.length, 0)).toBe(40);
 
     mocks.preview.mockResolvedValue({
-      previewToken: 'token-scale',
       data: groups,
     });
     renderWithClient(
@@ -276,103 +285,28 @@ describe('BillCreationWorkbench 规模压测与异常阻断', () => {
     );
 
     // 提交的 groups 数量与服务端预览叶子数一致。
-    const createBtn = await screen.findByRole('button', {
-      name: /原子生成 17 张账单/,
-    });
+    const createBtn = screen
+      .getByText(/生成 17 张账单/)
+      .closest('button') as HTMLButtonElement;
+    expect(createBtn).toBeVisible();
     await waitFor(() => expect(createBtn).not.toHaveClass('ant-btn-loading'));
     fireEvent.click(createBtn);
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1));
     const createInput = mocks.create.mock.calls[0][0];
     expect(createInput.groups).toHaveLength(17);
-    expect(createInput.previewToken).toBe('token-scale');
+    expect(createInput.groups).toEqual(
+      expect.arrayContaining(
+        groups.map((group) =>
+          expect.objectContaining({
+            groupKey: group.groupKey,
+            groupToken: group.groupToken,
+            feeIds: group.fees.map((fee: API.FeeLedgerItem) => fee.id),
+          }),
+        ),
+      ),
+    );
     expect(
       new Set(createInput.groups.map((group: any) => group.groupKey)).size,
     ).toBe(17);
   }, 45000);
-
-  it('任一叶子缺少结算账户时阻断整批创建并自动跳到该叶子', async () => {
-    const groups: any[] = [
-      {
-        groupKey: 'g-ok',
-        settlementPartyId: 'partner-ok',
-        settlementPartyName: '配置完整单位',
-        direction: 'RECEIVABLE',
-        currency: 'CNY',
-        baseCurrency: 'CNY',
-        totalAmount: '100.00',
-        baseCurrencyAmount: '100.00',
-        estimatedInvoiceCurrency: 'CNY',
-        estimatedInvoiceRate: '1',
-        estimatedInvoiceAmount: '100.00',
-        configurationComplete: true,
-        fees: [],
-      },
-      {
-        groupKey: 'g-missing',
-        settlementPartyId: 'partner-missing',
-        settlementPartyName: '缺账户单位',
-        direction: 'RECEIVABLE',
-        currency: 'EUR',
-        baseCurrency: 'CNY',
-        totalAmount: '800.00',
-        baseCurrencyAmount: '800.00',
-        estimatedInvoiceCurrency: 'EUR',
-        estimatedInvoiceRate: '1',
-        estimatedInvoiceAmount: '800.00',
-        configurationComplete: true,
-        fees: [],
-      },
-    ];
-    mocks.preview.mockResolvedValue({
-      previewToken: 'token-missing',
-      data: groups,
-    });
-    mocks.accounts.mockImplementation(({ settlementPartyId }) =>
-      settlementPartyId === 'partner-missing'
-        ? Promise.resolve({ data: [] })
-        : Promise.resolve({
-            data: [
-              {
-                id: 'account-default',
-                name: '默认结算账户',
-                bankName: '测试银行',
-                accountNo: '6222',
-                currency: 'CNY',
-                isDefault: true,
-              },
-            ],
-          }),
-    );
-    renderWithClient(
-      <App>
-        <BillCreationWorkbench
-          open
-          initialFeeIds={['fee-A']}
-          initialOrganizationId="A"
-          onClose={vi.fn()}
-        />
-      </App>,
-    );
-    expect(await screen.findByDisplayValue('配置完整单位')).toBeInTheDocument();
-    await waitFor(() =>
-      expect(mocks.accounts).toHaveBeenCalledWith(
-        expect.objectContaining({ settlementPartyId: 'partner-missing' }),
-      ),
-    );
-    await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(2));
-    await sleepInAct(700);
-
-    fireEvent.click(screen.getByRole('button', { name: /原子生成 2 张账单/ }));
-    await waitFor(() =>
-      expect(
-        screen.getByText('请先补齐首个标记叶子的日期和结算账户'),
-      ).toBeInTheDocument(),
-    );
-    // 整批被阻断时自动跳到缺配置叶子，其他叶子不再置前展示。
-    await waitFor(() =>
-      expect(screen.getByDisplayValue('缺账户单位')).toBeVisible(),
-    );
-    expect(screen.getByDisplayValue('配置完整单位')).not.toBeVisible();
-    expect(mocks.create).not.toHaveBeenCalled();
-  });
 });

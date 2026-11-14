@@ -44,17 +44,22 @@ func TestConfiguredFinanceBillPreviewSplitsByFeeCurrencyAndUsesBillBaseRate(t *t
 	uc := NewFinanceBillUsecase(&configuredFinanceBillRepoStub{fees: fees}, rates, nil, nil)
 	input := PreviewFinanceBillBatchInput{FeeIDs: []uuid.UUID{cnyFee.Fee.ID, usdFee.Fee.ID}, GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL"}}
 	initial, err := uc.PreviewBatch(t.Context(), organizationID, input)
-	if err != nil || len(initial.Groups) != 2 || initial.PreviewToken != "" {
+	if err != nil || len(initial.Groups) != 2 || initial.Groups[0].GroupToken != "" || initial.Groups[1].GroupToken != "" {
 		t.Fatalf("初次预览应按费用币种分叶且未签发令牌: %#v, %v", initial, err)
 	}
 	for _, group := range initial.Groups {
 		input.GroupConfigs = append(input.GroupConfigs, FinanceBillBatchPreviewGroupConfig{GroupKey: group.GroupKey, BillDate: "2026-09-10", SettlementAccountID: accountID})
 	}
 	preview, err := uc.PreviewBatch(t.Context(), organizationID, input)
-	if err != nil || preview.PreviewToken == "" {
+	if err != nil {
 		t.Fatalf("完整预览失败: %#v, %v", preview, err)
 	}
+	tokens := map[string]string{}
 	for _, group := range preview.Groups {
+		if len(group.GroupToken) != 64 {
+			t.Fatalf("完整配置的组必须签发组令牌: %#v", group)
+		}
+		tokens[group.Currency] = group.GroupToken
 		if !group.ConfigurationComplete || group.preparedBill == nil || group.Currency != group.Fees[0].Fee.Currency || group.preparedBill.ExchangeRateDate != "2026-09-10" {
 			t.Fatalf("费用币种或账单日汇率未固化: %#v", group)
 		}
@@ -62,19 +67,41 @@ func TestConfiguredFinanceBillPreviewSplitsByFeeCurrencyAndUsesBillBaseRate(t *t
 			t.Fatal(err)
 		}
 	}
+	// 只改 USD 费用版本：仅 USD 组令牌轮转，CNY 组令牌保持不变（组内陈旧只影响该组）。
 	fees[0].Fee.Version++
 	changed, err := uc.PreviewBatch(t.Context(), organizationID, input)
-	if err != nil || changed.PreviewToken == preview.PreviewToken {
-		t.Fatalf("费用版本变化后预览令牌必须轮转: %#v, %v", changed, err)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, group := range changed.Groups {
+		if group.Currency == "USD" && group.GroupToken == tokens["USD"] {
+			t.Fatalf("费用版本变化后该组令牌必须轮转: %#v", group)
+		}
+		if group.Currency == "CNY" && group.GroupToken != tokens["CNY"] {
+			t.Fatalf("其他组令牌不应受影响: %#v", group)
+		}
 	}
 }
 
-func TestConfiguredFinanceBillPreviewRejectsMixedDirection(t *testing.T) {
+func TestConfiguredFinanceBillPreviewSplitsMixedDirectionIntoGroups(t *testing.T) {
 	organizationID, partyID := uuid.New(), uuid.New()
 	receivable, payable := financeBillableFeeForTest(partyID, "100", "100", "0", "100"), financeBillableFeeForTest(partyID, "20", "20", "0", "20")
 	payable.Fee.Direction = OrderFeePayable
-	if _, err := BuildConfiguredFinanceBillBatchPreview(organizationID, []*FinanceBillableFee{receivable, payable}, PreviewFinanceBillBatchInput{GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL"}}); err != ErrFinanceBillMixedDirection {
-		t.Fatalf("混方向错误=%v", err)
+	preview, err := BuildConfiguredFinanceBillBatchPreview(organizationID, []*FinanceBillableFee{receivable, payable}, PreviewFinanceBillBatchInput{GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL"}})
+	if err != nil || len(preview.Groups) != 2 {
+		t.Fatalf("普通模式应收应付应并存并分为两组: %#v, %v", preview, err)
+	}
+	directions := map[OrderFeeDirection]int{}
+	for _, group := range preview.Groups {
+		for _, fee := range group.Fees {
+			if fee.Fee.Direction != group.Direction {
+				t.Fatalf("每组只能有单一方向: %#v", group)
+			}
+		}
+		directions[group.Direction]++
+	}
+	if directions[OrderFeeReceivable] != 1 || directions[OrderFeePayable] != 1 {
+		t.Fatalf("应收、应付应各成一组: %#v", directions)
 	}
 }
 
@@ -91,7 +118,7 @@ func TestConfiguredFinanceBillInitialPreviewDoesNotRequireTemporaryDateRate(t *t
 	uc := NewFinanceBillUsecase(&configuredFinanceBillRepoStub{fees: []*FinanceBillableFee{fee}}, NewExchangeRateUsecase(rateRepo, nil), nil, nil)
 	input := PreviewFinanceBillBatchInput{FeeIDs: []uuid.UUID{fee.Fee.ID}, GroupingPolicy: FinanceBillGroupingPolicy{Mode: "NORMAL"}}
 	initial, err := uc.PreviewBatch(t.Context(), organizationID, input)
-	if err != nil || len(initial.Groups) != 1 || initial.PreviewToken != "" || !initial.Groups[0].TemporaryBillDate || len(rateRepo.resolveDates) != 0 {
+	if err != nil || len(initial.Groups) != 1 || initial.Groups[0].GroupToken != "" || !initial.Groups[0].TemporaryBillDate || len(rateRepo.resolveDates) != 0 {
 		t.Fatalf("初次预览不应依赖临时日期汇率: preview=%#v resolveDates=%v err=%v", initial, rateRepo.resolveDates, err)
 	}
 	input.GroupConfigs = []FinanceBillBatchPreviewGroupConfig{{GroupKey: initial.Groups[0].GroupKey, BillDate: "2026-09-10", SettlementAccountID: accountID}}
@@ -180,6 +207,8 @@ func TestNormalizeFinanceBillBatchGroupsRejectsEstimatedRateWithoutCurrency(t *t
 	rate := decimal.RequireFromString("1.2")
 	if _, err := normalizeFinanceBillBatchGroups([]CreateFinanceBillBatchGroupInput{{
 		GroupKey:             strings.Repeat("a", 64),
+		GroupToken:           strings.Repeat("b", 64),
+		FeeIDs:               []uuid.UUID{uuid.New()},
 		StatementTitle:       "测试结算单位",
 		BillDate:             "2026-09-10",
 		SettlementAccountID:  uuid.New(),

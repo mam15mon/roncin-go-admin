@@ -2,7 +2,6 @@ package schema
 
 import (
 	"entgo.io/ent"
-	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
@@ -11,7 +10,8 @@ import (
 	"github.com/google/uuid"
 )
 
-// FinanceBillBatch 保存一次原子批量建单的拆单策略、请求摘要和汇总快照。
+// FinanceBillBatch 只保存一次批量建账的身份：拆单策略、幂等键与请求摘要。
+// 普通模式逐组独立提交、可部分成功，费用数、账单数与本位币合计在读取时按账单聚合。
 type FinanceBillBatch struct{ ent.Schema }
 
 func (FinanceBillBatch) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
@@ -25,10 +25,6 @@ func (FinanceBillBatch) Fields() []ent.Field {
 		field.Bool("split_by_order").Default(false).Immutable(),
 		field.Bool("split_by_tax_rate").Default(false).Immutable(),
 		field.Enum("grouping_mode").Values("NORMAL", "NETTING").Default("NORMAL").Immutable(),
-		field.Int("fee_count").Positive().Immutable(),
-		field.Int("bill_count").Positive().Immutable(),
-		field.String("total_base_amount").SchemaType(map[string]string{dialect.Postgres: "numeric(28,8)"}).Immutable(),
-		field.String("base_currency").NotEmpty().MinLen(3).MaxLen(3).Immutable(),
 		field.UUID("created_by", uuid.Nil).Immutable(),
 	}
 }

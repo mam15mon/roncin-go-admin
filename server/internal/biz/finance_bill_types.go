@@ -88,6 +88,8 @@ type FinanceBill struct {
 	Completed          bool
 	// FeeLockFacts 为阻止增删费用的有效财务事实类型，按固定顺序去重；非空即费用锁定。
 	FeeLockFacts []FinanceBillFeeLockFact
+	// InvoiceExemptions 仅详情提供免票决定历史，列表根据 FeeLockFacts 判断当前事实。
+	InvoiceExemptions []*FinanceInvoiceExemption
 }
 
 // FeesLocked 表示账单存在阻止增删费用的有效财务事实。
@@ -248,14 +250,15 @@ type FinanceBillBatchPreviewGroup struct {
 	CreditCurrency         *string
 	CurrentUnsettledAmount *decimal.Decimal
 	IsCreditExceeded       bool
-	preparedBill           *FinanceBill
-	config                 FinanceBillBatchPreviewGroupConfig
+	// GroupToken 是该组费用事实与叶子配置的摘要；仅配置完整时签发，创建时逐组比对。
+	GroupToken   string
+	preparedBill *FinanceBill
+	config       FinanceBillBatchPreviewGroupConfig
 }
 
 type FinanceBillBatchPreview struct {
 	Groups       []*FinanceBillBatchPreviewGroup
 	NettingPairs []*FinanceBillBatchNettingPair
-	PreviewToken string
 }
 
 // FinanceBillBatchNettingPair 是对冲建账模式下同一结算单位、同一账单币种的抵销汇总；
@@ -281,13 +284,14 @@ type CreateFinanceBillBatchGroupInput struct {
 	SettlementAccountID      uuid.UUID
 	EstimatedInvoiceCurrency *string
 	EstimatedInvoiceRate     *decimal.Decimal
+	// GroupToken 取自预览中该组的令牌；FeeIDs 为预览归入该组的全部费用。
+	GroupToken string
+	FeeIDs     []uuid.UUID
 }
 
 type CreateFinanceBillBatchInput struct {
-	FeeIDs         []uuid.UUID
 	GroupingPolicy FinanceBillGroupingPolicy
 	Groups         []CreateFinanceBillBatchGroupInput
-	PreviewToken   string
 	IdempotencyKey string
 }
 
@@ -306,16 +310,48 @@ type FinanceBillBatchPreviewGroupConfig struct {
 	EstimatedInvoiceRate     *decimal.Decimal
 }
 
+// FinanceBillBatch 的批次头只保存身份；FeeCount、BillCount、BaseTotals 由已生成账单在读取时聚合。
 type FinanceBillBatch struct {
 	ID, OrganizationID, CreatedBy        uuid.UUID
 	BatchNo, IdempotencyKey, RequestHash string
 	GroupingPolicy                       FinanceBillGroupingPolicy
 	FeeCount, BillCount                  int
-	TotalBaseAmount                      decimal.Decimal
-	BaseCurrency                         string
+	BaseTotals                           []FinanceBillBatchBaseTotal
 	Bills                                []*FinanceBill
 	Nettings                             []*FinanceNetting
 	CreatedAt, UpdatedAt                 time.Time
+}
+
+// FinanceBillBatchBaseTotal 是批次内同一本位币账单的本位币合计，不跨本位币相加。
+type FinanceBillBatchBaseTotal struct {
+	BaseCurrency    string
+	TotalBaseAmount decimal.Decimal
+}
+
+// FinanceBillBatchGroupResult 是批量建账单组的结果：成功时 Bill 非空，失败时 Err 非空。
+type FinanceBillBatchGroupResult struct {
+	GroupKey string
+	Bill     *FinanceBill
+	Err      error
+}
+
+// FinanceBillBatchCreateResult 汇总批次头（含已成功账单）与按 group_key 升序的逐组结果。
+type FinanceBillBatchCreateResult struct {
+	Batch  *FinanceBillBatch
+	Groups []*FinanceBillBatchGroupResult
+}
+
+// FinanceBillBatchWrite 是一次组事务的写入内容。CreateHead 为真时（对冲整批原子模式）
+// 批次头在同一事务内创建；普通模式批次头已由独立短事务写入。
+type FinanceBillBatchWrite struct {
+	Batch         *FinanceBillBatch
+	ActorID       uuid.UUID
+	CreateHead    bool
+	HeadAudit     *AuditEvent
+	Bills         []*FinanceBill
+	BillAudits    []*AuditEvent
+	Nettings      []*FinanceNetting
+	NettingAudits []*AuditEvent
 }
 
 type FinanceBillRepo interface {
@@ -328,7 +364,10 @@ type FinanceBillRepo interface {
 	LoadBillableFeesScoped(ctx context.Context, organizationIDs []uuid.UUID, feeIDs []uuid.UUID) ([]*FinanceBillableFee, error)
 	ListCreationCandidates(ctx context.Context, organizationID uuid.UUID, filter FinanceBillCreationCandidateFilter) (*FinanceBillCreationCandidateResult, error)
 	Create(ctx context.Context, bill *FinanceBill, audit *AuditEvent) (*FinanceBill, error)
-	CreateBatch(ctx context.Context, batch *FinanceBillBatch, previewToken string, audit *AuditEvent, nettingAudits []*AuditEvent) (*FinanceBillBatch, error)
+	// CreateBatchHead 以独立短事务写入批次头（分配批次号），同幂等键唯一冲突返回批次冲突。
+	CreateBatchHead(ctx context.Context, batch *FinanceBillBatch, audit *AuditEvent) (*FinanceBillBatch, error)
+	// CreateBatchBills 在调用方事务内锁定并复核费用后写入账单（及对冲单）。
+	CreateBatchBills(ctx context.Context, write FinanceBillBatchWrite) error
 	ValidateBillCurrencies(ctx context.Context, currencies []string) error
 	HydrateBillSettlementAccounts(ctx context.Context, bills []*FinanceBill) error
 	Update(ctx context.Context, organizationIDs []uuid.UUID, input UpdateFinanceBillInput, audit *AuditEvent) (*FinanceBill, error)

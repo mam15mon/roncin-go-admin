@@ -21,7 +21,7 @@
 | 提成实付登记 | `finance_commission_payment.go`、`finance_commission_lifecycle.go` | 原额与调整净发预览、实际金额、抵扣关联、独立执行保护 | 用累计权益净额代替历史实付；同一冲减重复少发及扣回 |
 | 六类财务列表筛选合计 | `finance_ledger_summary.go` 与各列表仓储接口 | 纯领域 matchedSummary，count等于total；data克隆完整筛选聚合原币/本币/未折算，见[契约](../../web/frontend/finance-ledger-snapshots.md) | 当前页代算全部、组织范围外聚合、把未折算null当零 |
 | 账单 | `finance_bill.go`、`finance_bill_batch.go` | 建账、批量建账、固定费用币种边界 | 跨币种人工折算旁路 |
-| 核销 | `finance_verification.go` | 费用核销、反核销、汇兑损益 | 绕过 idempotencyKey 重放 |
+| 核销 | `finance_verification.go`、`finance_verification_shortfall.go` | 核销、反核销、汇兑损益及差额流水原子补录 | 绕过 idempotencyKey 重放 |
 | 对冲 | `finance_netting.go` | 应收应付对冲、汇差 | 独立实现汇差口径 |
 | 收付 | `finance_cashflow.go` | 收付款流水、散户出款账户刚性 | 散户出款走普通账户 |
 | 发票 | `finance_invoice.go`、`partner_invoice_profile.go` | 发票登记、开票资料 | 修改他人组织发票 |

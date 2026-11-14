@@ -43,6 +43,7 @@ export const manifestPermissionKeys = [
   'system.finance.invoice.read',
   'system.finance.invoice.create',
   'system.finance.invoice.update',
+  'system.finance.invoice.exempt',
   'system.finance.cashflow.read',
   'system.finance.cashflow.create',
   'system.finance.cashflow.update',

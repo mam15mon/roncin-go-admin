@@ -8,13 +8,23 @@ import { useModalOwnerSignal } from '@/components/layout/useModalOwnerSignal';
 import {
   type FinanceLedgerMetricCard,
   FinanceLedgerTemplate,
+  type SearchFilterFieldItem,
+  SearchFilterTemplate,
   ResponsiveTable as Table,
 } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
+import {
+  FilterSettingsEntry,
+  type FilterSettingsField,
+  omitHiddenFilterValues,
+  useFilterSettings,
+} from '@/components/ui/filter-settings';
+import { useListQueryState } from '@/components/ui/list-query-state';
 import { FinanceVerificationStatus } from '@/enums.generated';
 import { ExchangeGainLossTag } from '@/features/finance/exchange-gain-loss';
 import {
   mapMatchedSummary,
+  useLedgerSelectionScope,
   verificationLedgerSummaryConfig,
 } from '@/features/finance/ledger-summary';
 import {
@@ -37,8 +47,14 @@ import VerificationWorkbench from './VerificationWorkbench';
 
 /** 台账内置搜索表单提交的筛选字段（keyword 等分页字段由模板统一注入，不在此声明） */
 type VerificationLedgerFilterParams = {
+  keyword?: string;
   status?: string;
 };
+
+const filterFields: FilterSettingsField[] = [
+  { name: 'keyword', label: '综合搜索', defaultVisible: true },
+  { name: 'status', label: '核销状态', defaultVisible: true },
+];
 
 export default function FinanceVerificationsPage() {
   const access = useAccess();
@@ -51,6 +67,26 @@ export default function FinanceVerificationsPage() {
       access.canOperateOrganization(organizationId),
   );
   const getModalOwnerSignal = useModalOwnerSignal();
+  const filterSettings = useFilterSettings({
+    pageKey: 'finance:verifications',
+    fields: filterFields,
+  });
+  const queryState = useListQueryState<VerificationLedgerFilterParams>({
+    tabKey: '/finance/verifications',
+    listId: 'finance:verifications',
+    defaultPageSize: 40,
+    defaultFilters: {},
+    sanitizeRestored: (filters) =>
+      omitHiddenFilterValues(
+        filters,
+        filterFields,
+        filterSettings.visibleNames,
+      ),
+  });
+  const { selectionScope, commitFilters } = useLedgerSelectionScope(
+    queryState.commit,
+    () => queryState.snapshotRef.current.filters,
+  );
   const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [open, setOpen] = useState(false);
@@ -116,6 +152,33 @@ export default function FinanceVerificationsPage() {
       title: '有效应付核销金额',
       value: formatBaseCurrencyAmounts('payableBaseAmount'),
       valueColor: '#fa8c16',
+    },
+  ];
+
+  const filterItems: SearchFilterFieldItem[] = [
+    {
+      name: 'keyword',
+      label: '综合搜索',
+      placeholder: '核销号／结算单位／账单号／流水号',
+    },
+    {
+      name: 'status',
+      label: '核销状态',
+      type: 'select',
+      options: [
+        {
+          value: String(
+            FinanceVerificationStatus.FINANCE_VERIFICATION_STATUS_ACTIVE,
+          ),
+          label: '有效',
+        },
+        {
+          value: String(
+            FinanceVerificationStatus.FINANCE_VERIFICATION_STATUS_REVERSED,
+          ),
+          label: '已反核销',
+        },
+      ],
     },
   ];
 
@@ -366,13 +429,40 @@ export default function FinanceVerificationsPage() {
         columns={columns}
         columnSettingsKey="finance:verifications"
         metricCards={metricCards}
+        search={false}
+        pagination={queryState.pagination}
+        customSearch={
+          <SearchFilterTemplate<VerificationLedgerFilterParams>
+            items={filterItems}
+            initialValues={queryState.initial.filters}
+            initialLabels={queryState.initial.labels}
+            visibleNames={filterSettings.visibleNames}
+            extraRight={
+              <FilterSettingsEntry
+                fields={filterFields}
+                visibleNames={filterSettings.visibleNames}
+                onChange={filterSettings.setVisible}
+                onReset={filterSettings.reset}
+              />
+            }
+            onCommit={(values, labels) => commitFilters(values, labels)}
+            onSearch={(values) => {
+              commitFilters(values);
+              actionRef.current?.reload(true);
+            }}
+            onReset={() => {
+              commitFilters({}, {});
+              actionRef.current?.reload(true);
+            }}
+          />
+        }
         primaryActionText="新建核销"
         primaryActionIcon={<PlusOutlined />}
         onPrimaryAction={
           access.canCreateFinanceVerifications ? () => setOpen(true) : undefined
         }
         summaryConfig={verificationLedgerSummaryConfig}
-        selectionScope={organizationId}
+        selectionScope={selectionScope}
         onAcceptedSnapshot={(snapshot) => {
           setMetricStats({
             totalCount: snapshot.total,
@@ -386,8 +476,10 @@ export default function FinanceVerificationsPage() {
             {
               page: p.current,
               pageSize: p.pageSize,
-              keyword: p.keyword,
-              status: p.status ? Number(p.status) : undefined,
+              keyword: queryState.snapshotRef.current.filters.keyword,
+              status: queryState.snapshotRef.current.filters.status
+                ? Number(queryState.snapshotRef.current.filters.status)
+                : undefined,
               organizationId,
             },
             { skipErrorHandler: true },

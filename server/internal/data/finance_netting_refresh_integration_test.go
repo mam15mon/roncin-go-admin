@@ -58,14 +58,15 @@ func TestFinanceNettingRefreshDraftRatesPostgres(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	create := biz.CreateFinanceBillBatchInput{FeeIDs: input.FeeIDs, GroupingPolicy: policy, PreviewToken: pre.PreviewToken, IdempotencyKey: "refresh-" + f.suffix}
-	for _, group := range input.GroupConfigs {
-		create.Groups = append(create.Groups, biz.CreateFinanceBillBatchGroupInput{GroupKey: group.GroupKey, StatementTitle: "测试账单", BillDate: group.BillDate, SettlementAccountID: group.SettlementAccountID})
+	create := biz.CreateFinanceBillBatchInput{GroupingPolicy: policy, IdempotencyKey: "refresh-" + f.suffix}
+	for _, group := range pre.Groups {
+		create.Groups = append(create.Groups, biz.CreateFinanceBillBatchGroupInput{GroupKey: group.GroupKey, GroupToken: group.GroupToken, FeeIDs: previewGroupFeeIDs(group), StatementTitle: "测试账单", BillDate: group.BillDate, SettlementAccountID: group.SettlementAccountID})
 	}
-	batch, err := uc.CreateBatch(ctx, f.organizationID, f.actorUserID, create)
+	created, err := uc.CreateBatch(ctx, f.organizationID, f.actorUserID, create)
 	if err != nil {
 		t.Fatal(err)
 	}
+	batch := created.Batch
 	netting := batch.Nettings[0]
 	if !netting.BaseCurrencyAmount.Equal(decimal.NewFromInt(700)) || !netting.PayableBaseAmount.Equal(decimal.NewFromInt(700)) {
 		t.Fatalf("草稿本币=%v", netting)

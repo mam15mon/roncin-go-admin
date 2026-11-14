@@ -588,6 +588,21 @@ export default function FinanceBillsPage() {
         loading={detailLoading}
         detail={detail}
         onClose={() => setDetailOpen(false)}
+        invoiceExemptionActions={
+          access.canExemptFinanceInvoices &&
+          hasCompanyScope &&
+          access.canOperateOrganization(detail?.organizationId)
+            ? {
+                onUpdated: (updated) => {
+                  setDetail(updated);
+                  reload();
+                },
+                onRefresh: () => {
+                  if (detail) void openDetail(detail);
+                },
+              }
+            : undefined
+        }
         feeMaintenance={
           access.canUpdateFinanceBills && hasCompanyScope
             ? {

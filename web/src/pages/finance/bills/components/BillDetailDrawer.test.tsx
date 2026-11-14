@@ -1,10 +1,10 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import BillDetailDrawer from './BillDetailDrawer';
 
 describe('BillDetailDrawer 结算账户快照', () => {
-  it('只展示账单 DTO 固化的账户快照，不请求往来单位账户主数据', () => {
+  it('只展示账单 DTO 固化的账户快照，不请求往来单位账户主数据', async () => {
     render(
       <BillDetailDrawer
         open
@@ -29,9 +29,10 @@ describe('BillDetailDrawer 结算账户快照', () => {
     expect(screen.getByText('测试银行')).toBeInTheDocument();
     expect(screen.getByText('62220001')).toBeInTheDocument();
     expect(screen.getByText('TESTCNBJ')).toBeInTheDocument();
+    await act(async () => {});
   });
 
-  it('展示固化的预计开票币种、预计开票汇率和预计开票金额', () => {
+  it('展示固化的预计开票币种、预计开票汇率和预计开票金额', async () => {
     render(
       <BillDetailDrawer
         open
@@ -52,5 +53,6 @@ describe('BillDetailDrawer 结算账户快照', () => {
     expect(screen.getByText('CNY')).toBeInTheDocument();
     expect(screen.getByText('7.12345679')).toBeInTheDocument();
     expect(screen.getByText('712.35 CNY')).toBeInTheDocument();
+    await act(async () => {});
   });
 });

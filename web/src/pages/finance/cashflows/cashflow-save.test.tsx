@@ -37,6 +37,7 @@ vi.mock('@/app/access', () => ({
   }),
 }));
 vi.mock('@/components/ui', async () => ({
+  SearchFilterTemplate: () => null,
   GuardedModalForm: (await import('@/components/ui/GuardedModalForm'))
     .GuardedModalForm,
   FinanceLedgerTemplate: ({

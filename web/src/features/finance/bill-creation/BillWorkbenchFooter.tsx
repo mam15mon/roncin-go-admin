@@ -6,6 +6,7 @@ import type { BillCreationMode } from './billWorkbenchHelpers';
 type BillWorkbenchFooterProps = {
   current: number;
   loading: boolean;
+  awaitingConfirmation?: boolean;
   mode: BillCreationMode;
   groupCount: number;
   nettingPairCount: number;
@@ -19,6 +20,7 @@ type BillWorkbenchFooterProps = {
 export default function BillWorkbenchFooter({
   current,
   loading,
+  awaitingConfirmation,
   mode,
   groupCount,
   nettingPairCount,
@@ -35,7 +37,7 @@ export default function BillWorkbenchFooter({
           {current > 0 && (
             <Button
               icon={<ArrowLeftOutlined />}
-              disabled={loading}
+              disabled={loading || awaitingConfirmation}
               onClick={onBack}
             >
               上一步
@@ -53,9 +55,11 @@ export default function BillWorkbenchFooter({
               loading={loading}
               onClick={onCreate}
             >
-              {mode === 'NETTING'
-                ? `原子生成 ${groupCount} 张账单与 ${nettingPairCount} 张对冲单`
-                : `原子生成 ${groupCount} 张账单`}
+              {awaitingConfirmation
+                ? '确认原请求结果'
+                : mode === 'NETTING'
+                  ? `原子生成 ${groupCount} 张账单与 ${nettingPairCount} 张对冲单`
+                  : `生成 ${groupCount} 张账单（逐组提交）`}
             </Button>
           )}
         </Space>

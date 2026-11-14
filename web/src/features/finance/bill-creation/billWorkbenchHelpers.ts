@@ -102,3 +102,67 @@ export function isGroupComplete(
   }
   return true;
 }
+
+/** 单组建账结果：成功时有 bill，失败时有 errorMessage。 */
+export type BillBatchGroupOutcome = {
+  groupKey: string;
+  bill?: API.FinanceBill;
+  errorReason?: string;
+  errorMessage?: string;
+};
+
+export type BillBatchOutcome = {
+  batch: API.FinanceBillBatch;
+  groups: BillBatchGroupOutcome[];
+  succeededCount: number;
+  failedCount: number;
+};
+
+/**
+ * 把批量建账响应收敛为逐组结果。HTTP 200 不代表全部成功，必须逐组读取 results：
+ * ProtoJSON 省略 false 的 success，省略即视为失败；成功组缺账单或请求组缺结果属于契约错误，
+ * 显式抛出而不是当作成功或空结果。
+ */
+export function normalizeBillBatchResponse(
+  response: API.CreateBillBatchResponse,
+  requestedGroupKeys: string[],
+): BillBatchOutcome {
+  if (!response.data?.id) throw new Error('服务端未返回建单批次');
+  const byKey = new Map<string, API.BillBatchGroupResult>();
+  for (const item of response.results ?? []) {
+    if (!item.groupKey) throw new Error('服务端返回的建单结果缺少分组标识');
+    if (byKey.has(item.groupKey))
+      throw new Error('服务端返回重复的建单分组结果');
+    byKey.set(item.groupKey, item);
+  }
+  if (byKey.size !== requestedGroupKeys.length) {
+    throw new Error('服务端返回的建单分组与本次请求不一致');
+  }
+  const groups = requestedGroupKeys.map((groupKey): BillBatchGroupOutcome => {
+    const item = byKey.get(groupKey);
+    if (!item) throw new Error('服务端未返回完整的逐组建单结果');
+    if (item.success === true) {
+      if (!item.bill?.id) throw new Error('服务端未返回成功分组的账单');
+      return { groupKey, bill: item.bill };
+    }
+    if (!item.error?.reason || !item.error.message) {
+      throw new Error('服务端未返回失败分组的原因');
+    }
+    const reason = item.error.reason;
+    return {
+      groupKey,
+      errorReason: reason,
+      errorMessage:
+        reason === financeErrorReasons.FINANCE_BILL_PREVIEW_STALE
+          ? '费用已发生变化，请返回调整失败组后重新预览'
+          : item.error.message,
+    };
+  });
+  const succeededCount = groups.filter((group) => group.bill).length;
+  return {
+    batch: response.data,
+    groups,
+    succeededCount,
+    failedCount: groups.length - succeededCount,
+  };
+}

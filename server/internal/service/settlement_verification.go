@@ -119,8 +119,17 @@ func (s *SettlementService) CreateVerification(ctx context.Context, r *v1.Create
 	}
 	as := make([]*biz.VerificationAllocation, 0, len(r.GetAllocations()))
 	for _, x := range r.GetAllocations() {
-		c, e := uuid.Parse(x.GetCashflowId())
-		if e != nil {
+		if x == nil {
+			return nil, biz.ErrVerificationInvalid
+		}
+		var c uuid.UUID
+		if strings.TrimSpace(x.GetCashflowId()) != "" {
+			var parseErr error
+			c, parseErr = uuid.Parse(x.GetCashflowId())
+			if parseErr != nil {
+				return nil, biz.ErrVerificationInvalid
+			}
+		} else if r.ShortfallCashflow == nil {
 			return nil, biz.ErrVerificationInvalid
 		}
 		b, e := uuid.Parse(x.GetBillId())
@@ -140,11 +149,56 @@ func (s *SettlementService) CreateVerification(ctx context.Context, r *v1.Create
 	if len(as) == 0 {
 		return nil, biz.ErrVerificationInvalid
 	}
+	input := biz.CreateVerificationInput{Allocations: as, VerificationDate: r.GetVerificationDate(), Note: r.Note, IdempotencyKey: r.GetIdempotencyKey()}
+	if r.ShortfallCashflow != nil {
+		shortfall := r.ShortfallCashflow
+		organizationID, parseErr := uuid.Parse(strings.TrimSpace(shortfall.GetOrganizationId()))
+		if parseErr != nil || !uuidIn(organizationID, organizationIDs) {
+			return nil, biz.ErrPermissionDenied
+		}
+		for _, permission := range []string{access.FinanceCashflowCreate, access.FinanceCashflowUpdate} {
+			ids, err := organizationIDsForPermission(p, permission, true)
+			if err != nil || !uuidIn(organizationID, ids) {
+				return nil, biz.ErrPermissionDenied
+			}
+		}
+		partyID, parseErr := uuid.Parse(shortfall.GetSettlementPartyId())
+		if parseErr != nil {
+			return nil, biz.ErrFinanceCashflowInvalidArgument
+		}
+		amount, parseErr := decimal.NewFromString(shortfall.GetAmount())
+		if parseErr != nil {
+			return nil, biz.ErrFinanceCashflowInvalidArgument
+		}
+		var rate *decimal.Decimal
+		if shortfall.ExchangeRate != nil {
+			rawRate, err := decimal.NewFromString(strings.TrimSpace(*shortfall.ExchangeRate))
+			if err != nil {
+				return nil, biz.ErrFinanceCashflowInvalidArgument
+			}
+			ids, err := organizationIDsForPermission(p, access.FinanceExchangeRateUpdate, true)
+			if err != nil || !uuidIn(organizationID, ids) {
+				return nil, biz.ErrPermissionDenied
+			}
+			rate = &rawRate
+		}
+		result, err := s.verificationUsecase.CreateWithCashflow(ctx, organizationID, p.UserID, input, biz.CreateFinanceCashflowInput{
+			Direction:         biz.OrderFeeDirection(strings.ToUpper(strings.TrimSpace(shortfall.GetDirection()))),
+			SettlementPartyID: partyID, Currency: shortfall.GetCurrency(), Amount: amount,
+			TransactionDate: shortfall.GetTransactionDate(), OurAccount: shortfall.GetOurAccount(), PaymentMethod: shortfall.GetPaymentMethod(),
+			CounterpartyAccount: shortfall.CounterpartyAccount, BankReferenceNo: shortfall.BankReferenceNo, Note: shortfall.Note,
+			ExchangeRateOverride: rate,
+		}, s.cashflowUsecase, rate != nil)
+		if err != nil {
+			return nil, err
+		}
+		return ok(ctx, &v1.CreateVerificationResponse{Data: verificationToAPI(result)}), nil
+	}
 	firstCashflow, e := s.verificationUsecase.LoadCashflowContextScoped(ctx, organizationIDs, as[0].CashflowID)
 	if e != nil {
 		return nil, e
 	}
-	x, e := s.verificationUsecase.Create(ctx, firstCashflow.OrganizationID, p.UserID, biz.CreateVerificationInput{Allocations: as, VerificationDate: r.GetVerificationDate(), Note: r.Note, IdempotencyKey: r.GetIdempotencyKey()})
+	x, e := s.verificationUsecase.Create(ctx, firstCashflow.OrganizationID, p.UserID, input)
 	if e != nil {
 		return nil, e
 	}

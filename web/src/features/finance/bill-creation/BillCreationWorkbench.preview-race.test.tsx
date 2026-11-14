@@ -38,16 +38,14 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
     await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(1));
     await act(async () => {
       pending.shift()?.({
-        previewToken: 'token-init',
-        data: [singlePreviewGroup],
+        data: [{ ...singlePreviewGroup, groupToken: 'token-init' }],
       });
     });
     expect(await screen.findByDisplayValue('结算单位甲')).toBeInTheDocument();
     await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(2));
     await act(async () => {
       pending.shift()?.({
-        previewToken: 'token-init',
-        data: [singlePreviewGroup],
+        data: [{ ...singlePreviewGroup, groupToken: 'token-init' }],
       });
     });
     await sleepInAct(700);
@@ -68,10 +66,10 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
     // 请求 2（D2）先完成并生效；resolve 的后续状态更新包进 act。
     await act(async () => {
       pending[1]?.({
-        previewToken: 'token-d2',
         data: [
           {
             ...singlePreviewGroup,
+            groupToken: 'token-d2',
             baseCurrencyAmount: '200.00',
             estimatedInvoiceAmount: '200.00',
           },
@@ -83,10 +81,10 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
     // 请求 1（D1）后完成，不得覆盖金额、完成状态或创建令牌。
     await act(async () => {
       pending[0]?.({
-        previewToken: 'token-d1',
         data: [
           {
             ...singlePreviewGroup,
+            groupToken: 'token-d1',
             baseCurrencyAmount: '999.00',
             estimatedInvoiceAmount: '999.00',
           },
@@ -98,13 +96,17 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
     expect(screen.getByText('200.00 CNY')).toBeInTheDocument();
 
     const createBtn = await screen.findByRole('button', {
-      name: /原子生成 1 张账单/,
+      name: /生成 1 张账单/,
     });
     await waitFor(() => expect(createBtn).not.toHaveClass('ant-btn-loading'));
     fireEvent.click(createBtn);
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1));
     expect(mocks.create).toHaveBeenCalledWith(
-      expect.objectContaining({ previewToken: 'token-d2' }),
+      expect.objectContaining({
+        groups: [
+          expect.objectContaining({ groupToken: 'token-d2', feeIds: ['fee-A'] }),
+        ],
+      }),
       expect.anything(),
     );
   });
@@ -130,16 +132,14 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
     await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(1));
     await act(async () => {
       pending.shift()?.({
-        previewToken: 'token-init',
-        data: [singlePreviewGroup],
+        data: [{ ...singlePreviewGroup, groupToken: 'token-init' }],
       });
     });
     expect(await screen.findByDisplayValue('结算单位甲')).toBeInTheDocument();
     await waitFor(() => expect(mocks.preview).toHaveBeenCalledTimes(2));
     await act(async () => {
       pending.shift()?.({
-        previewToken: 'token-init',
-        data: [singlePreviewGroup],
+        data: [{ ...singlePreviewGroup, groupToken: 'token-init' }],
       });
     });
     await sleepInAct(700);
@@ -164,10 +164,10 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
     // 请求 2 先完成并生效；resolve 的后续状态更新包进 act。
     await act(async () => {
       pending[1]?.({
-        previewToken: 'token-rate',
         data: [
           {
             ...singlePreviewGroup,
+            groupToken: 'token-rate',
             baseCurrencyAmount: '300.00',
             estimatedInvoiceAmount: '300.00',
           },
@@ -179,10 +179,10 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
     // 请求 1 后完成，不得覆盖。
     await act(async () => {
       pending[0]?.({
-        previewToken: 'token-currency',
         data: [
           {
             ...singlePreviewGroup,
+            groupToken: 'token-currency',
             baseCurrencyAmount: '111.00',
             estimatedInvoiceAmount: '111.00',
           },
@@ -194,13 +194,17 @@ describe('BillCreationWorkbench 预览竞态与规模', () => {
     expect(screen.getByText('300.00 CNY')).toBeInTheDocument();
 
     const createBtn = await screen.findByRole('button', {
-      name: /原子生成 1 张账单/,
+      name: /生成 1 张账单/,
     });
     await waitFor(() => expect(createBtn).not.toHaveClass('ant-btn-loading'));
     fireEvent.click(createBtn);
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1));
     expect(mocks.create).toHaveBeenCalledWith(
-      expect.objectContaining({ previewToken: 'token-rate' }),
+      expect.objectContaining({
+        groups: [
+          expect.objectContaining({ groupToken: 'token-rate', feeIds: ['fee-A'] }),
+        ],
+      }),
       expect.anything(),
     );
   });

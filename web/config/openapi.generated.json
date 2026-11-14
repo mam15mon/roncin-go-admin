@@ -3430,6 +3430,87 @@
         }
       }
     },
+    "/api/v1/finance/bills/{id}/invoice-exemption": {
+      "post": {
+        "tags": [
+          "SettlementService"
+        ],
+        "description": "免票与撤销保留独立决定及原因，不产生虚构发票或核销事实。",
+        "operationId": "SettlementService_SetBillInvoiceExemption",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finance.v1.SetBillInvoiceExemptionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.SetBillInvoiceExemptionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/finance/bills/{id}/invoice-exemption/revoke": {
+      "post": {
+        "tags": [
+          "SettlementService"
+        ],
+        "operationId": "SettlementService_RevokeBillInvoiceExemption",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/finance.v1.RevokeBillInvoiceExemptionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/finance.v1.RevokeBillInvoiceExemptionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/finance/cashflows": {
       "get": {
         "tags": [
@@ -16999,6 +17080,42 @@
           }
         }
       },
+      "finance.v1.BillBatchGroupError": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "metadata 仅放行缺汇率提示等公开键。"
+          }
+        }
+      },
+      "finance.v1.BillBatchGroupResult": {
+        "type": "object",
+        "properties": {
+          "groupKey": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "bill": {
+            "$ref": "#/components/schemas/finance.v1.FinanceBill"
+          },
+          "error": {
+            "$ref": "#/components/schemas/finance.v1.BillBatchGroupError"
+          }
+        },
+        "description": "BillBatchGroupResult 成功时携带 bill，失败时携带 error，二者互斥。"
+      },
       "finance.v1.BillBatchNettingPair": {
         "type": "object",
         "properties": {
@@ -17111,6 +17228,10 @@
           },
           "isCreditExceeded": {
             "type": "boolean"
+          },
+          "groupToken": {
+            "type": "string",
+            "description": "group_token 是该组费用（ID、版本、金额）与叶子配置的摘要；配置完整时才签发，\n 创建时每组携带自己的令牌，陈旧只影响该组。"
           }
         }
       },
@@ -18119,7 +18240,9 @@
           "groupKey",
           "statementTitle",
           "billDate",
-          "settlementAccountId"
+          "settlementAccountId",
+          "groupToken",
+          "feeIds"
         ],
         "type": "object",
         "properties": {
@@ -18150,26 +18273,29 @@
           },
           "estimatedInvoiceRate": {
             "type": "string"
+          },
+          "groupToken": {
+            "type": "string",
+            "description": "group_token 取自预览响应中该组的 group_token。"
+          },
+          "feeIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "fee_ids 为预览中归入该组的全部费用 ID；服务端在组事务内重新分组复核。"
           }
         }
       },
       "finance.v1.CreateBillBatchRequest": {
         "required": [
-          "feeIds",
           "groupingPolicy",
           "groups",
-          "previewToken",
           "idempotencyKey",
           "organizationId"
         ],
         "type": "object",
         "properties": {
-          "feeIds": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
           "groupingPolicy": {
             "$ref": "#/components/schemas/finance.v1.BillGroupingPolicy"
           },
@@ -18179,16 +18305,14 @@
               "$ref": "#/components/schemas/finance.v1.CreateBillBatchGroupInput"
             }
           },
-          "previewToken": {
-            "type": "string"
-          },
           "idempotencyKey": {
             "type": "string"
           },
           "organizationId": {
             "type": "string"
           }
-        }
+        },
+        "description": "CreateBillBatchRequest 普通模式按组独立事务提交，某组失败不回滚其他组；\n 对冲模式（NETTING）整批原子，任一组失败整批失败并返回错误。\n 同幂等键、同请求重发：已成功的组原样返回，失败的组重新尝试。"
       },
       "finance.v1.CreateBillBatchResponse": {
         "type": "object",
@@ -18208,8 +18332,24 @@
           },
           "traceId": {
             "type": "string"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.BillBatchGroupResult"
+            },
+            "description": "results 按 group_key 升序覆盖请求内每一组。"
+          },
+          "succeededCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "failedCount": {
+            "type": "integer",
+            "format": "int32"
           }
-        }
+        },
+        "description": "CreateBillBatchResponse 的 HTTP 200 不代表全部成功：逐组成败见 results。"
       },
       "finance.v1.CreateBillRequest": {
         "required": [
@@ -18849,6 +18989,9 @@
           },
           "idempotencyKey": {
             "type": "string"
+          },
+          "shortfallCashflow": {
+            "$ref": "#/components/schemas/finance.v1.VerificationShortfallCashflow"
           }
         }
       },
@@ -19766,6 +19909,13 @@
               "type": "integer",
               "format": "enum"
             }
+          },
+          "invoiceExemptions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceInvoiceExemption"
+            },
+            "description": "免票决定历史仅详情返回；有效决定 revoked_at 未设置。"
           }
         }
       },
@@ -19786,17 +19936,12 @@
           },
           "feeCount": {
             "type": "integer",
+            "description": "fee_count、bill_count、base_totals 均按本批次已生成账单在读取时聚合。",
             "format": "int32"
           },
           "billCount": {
             "type": "integer",
             "format": "int32"
-          },
-          "totalBaseAmount": {
-            "type": "string"
-          },
-          "baseCurrency": {
-            "type": "string"
           },
           "bills": {
             "type": "array",
@@ -19817,6 +19962,24 @@
               "$ref": "#/components/schemas/finance.v1.FinanceNetting"
             },
             "description": "nettings 仅在对冲建账模式下返回：本批次原子生成的对冲结算单（初始为草稿）。"
+          },
+          "baseTotals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/finance.v1.FinanceBillBatchBaseTotal"
+            },
+            "description": "base_totals 按本位币分组的账单本位币合计，不跨本位币相加。"
+          }
+        }
+      },
+      "finance.v1.FinanceBillBatchBaseTotal": {
+        "type": "object",
+        "properties": {
+          "baseCurrency": {
+            "type": "string"
+          },
+          "totalBaseAmount": {
+            "type": "string"
           }
         }
       },
@@ -20733,6 +20896,41 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "finance.v1.FinanceInvoiceExemption": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "markedBy": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "revokedAt": {
+            "type": "string"
+          },
+          "revokedBy": {
+            "type": "string"
+          },
+          "revocationReason": {
+            "type": "string"
+          },
+          "markedByName": {
+            "type": "string"
+          },
+          "revokedByName": {
+            "type": "string"
           }
         }
       },
@@ -22540,9 +22738,6 @@
               "$ref": "#/components/schemas/finance.v1.BillBatchPreviewGroup"
             }
           },
-          "previewToken": {
-            "type": "string"
-          },
           "traceId": {
             "type": "string"
           },
@@ -22922,6 +23117,46 @@
           }
         }
       },
+      "finance.v1.RevokeBillInvoiceExemptionRequest": {
+        "required": [
+          "id",
+          "expectedVersion",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.RevokeBillInvoiceExemptionResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.FinanceBill"
+          },
+          "traceId": {
+            "type": "string"
+          }
+        }
+      },
       "finance.v1.SearchBillingUnitsResponse": {
         "type": "object",
         "properties": {
@@ -23027,6 +23262,46 @@
           "pageSize": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "finance.v1.SetBillInvoiceExemptionRequest": {
+        "required": [
+          "id",
+          "expectedVersion",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "finance.v1.SetBillInvoiceExemptionResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/finance.v1.FinanceBill"
+          },
+          "traceId": {
+            "type": "string"
           }
         }
       },
@@ -23632,7 +23907,6 @@
       },
       "finance.v1.VerificationAllocationInput": {
         "required": [
-          "cashflowId",
           "billId",
           "amount"
         ],
@@ -23647,7 +23921,8 @@
           "amount": {
             "type": "string"
           }
-        }
+        },
+        "description": "cashflow_id 为空时引用本次 shortfall_cashflow，仅组合核销入口允许。"
       },
       "finance.v1.VerificationCreationCandidates": {
         "type": "object",
@@ -23665,6 +23940,58 @@
             }
           }
         }
+      },
+      "finance.v1.VerificationShortfallCashflow": {
+        "required": [
+          "organizationId",
+          "direction",
+          "settlementPartyId",
+          "currency",
+          "amount",
+          "transactionDate",
+          "ourAccount",
+          "paymentMethod"
+        ],
+        "type": "object",
+        "properties": {
+          "organizationId": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "string"
+          },
+          "settlementPartyId": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "transactionDate": {
+            "type": "string"
+          },
+          "ourAccount": {
+            "type": "string"
+          },
+          "paymentMethod": {
+            "type": "string"
+          },
+          "counterpartyAccount": {
+            "type": "string"
+          },
+          "bankReferenceNo": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "exchangeRate": {
+            "type": "string"
+          }
+        },
+        "description": "差额流水只在最终核销提交的共享事务内创建并确认，幂等键由核销键派生。"
       },
       "masterdata.v1.AdministrativeRegion": {
         "type": "object",

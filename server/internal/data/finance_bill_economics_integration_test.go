@@ -184,12 +184,12 @@ func TestFinanceBillEconomicReconcilePostgres(t *testing.T) {
 					if err != nil {
 						t.Fatal(err)
 					}
-					input := biz.CreateFinanceBillBatchInput{FeeIDs: []uuid.UUID{cost.ID}, GroupingPolicy: policy, PreviewToken: pre.PreviewToken, IdempotencyKey: "rebuild-batch-" + f.suffix, Groups: []biz.CreateFinanceBillBatchGroupInput{{GroupKey: config.GroupKey, StatementTitle: "测试账单", BillDate: config.BillDate, SettlementAccountID: config.SettlementAccountID}}}
+					input := biz.CreateFinanceBillBatchInput{GroupingPolicy: policy, IdempotencyKey: "rebuild-batch-" + f.suffix, Groups: []biz.CreateFinanceBillBatchGroupInput{{GroupKey: config.GroupKey, GroupToken: pre.Groups[0].GroupToken, FeeIDs: []uuid.UUID{cost.ID}, StatementTitle: "测试账单", BillDate: config.BillDate, SettlementAccountID: config.SettlementAccountID}}}
 					result, err := billUC.CreateBatch(ctx, f.organizationID, f.actorID, input)
-					if err != nil {
-						t.Fatal(err)
+					if err != nil || result.Groups[0].Err != nil {
+						t.Fatal(err, result)
 					}
-					rebuilt = result.Bills[0]
+					rebuilt = result.Batch.Bills[0]
 					// 幂等回放不得再次生成差额。
 					if _, err = billUC.CreateBatch(ctx, f.organizationID, f.actorID, input); err != nil {
 						t.Fatal(err)

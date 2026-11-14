@@ -141,6 +141,7 @@ type FinanceInvoiceIssueInput struct {
 }
 
 type FinanceInvoiceRepo interface {
+	SetBillInvoiceExemption(context.Context, []uuid.UUID, uuid.UUID, uuid.UUID, uint64, string, bool, *AuditEvent) error
 	List(context.Context, uuid.UUID, FinanceInvoiceFilter) (*FinanceInvoiceListResult, error)
 	ListScoped(context.Context, []uuid.UUID, FinanceInvoiceFilter) (*FinanceInvoiceListResult, error)
 	Get(context.Context, uuid.UUID, uuid.UUID) (*FinanceInvoice, error)

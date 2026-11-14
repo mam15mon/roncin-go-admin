@@ -34,14 +34,6 @@ const (
 	FieldSplitByTaxRate = "split_by_tax_rate"
 	// FieldGroupingMode holds the string denoting the grouping_mode field in the database.
 	FieldGroupingMode = "grouping_mode"
-	// FieldFeeCount holds the string denoting the fee_count field in the database.
-	FieldFeeCount = "fee_count"
-	// FieldBillCount holds the string denoting the bill_count field in the database.
-	FieldBillCount = "bill_count"
-	// FieldTotalBaseAmount holds the string denoting the total_base_amount field in the database.
-	FieldTotalBaseAmount = "total_base_amount"
-	// FieldBaseCurrency holds the string denoting the base_currency field in the database.
-	FieldBaseCurrency = "base_currency"
 	// FieldCreatedBy holds the string denoting the created_by field in the database.
 	FieldCreatedBy = "created_by"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
@@ -96,10 +88,6 @@ var Columns = []string{
 	FieldSplitByOrder,
 	FieldSplitByTaxRate,
 	FieldGroupingMode,
-	FieldFeeCount,
-	FieldBillCount,
-	FieldTotalBaseAmount,
-	FieldBaseCurrency,
 	FieldCreatedBy,
 }
 
@@ -130,12 +118,6 @@ var (
 	DefaultSplitByOrder bool
 	// DefaultSplitByTaxRate holds the default value on creation for the "split_by_tax_rate" field.
 	DefaultSplitByTaxRate bool
-	// FeeCountValidator is a validator for the "fee_count" field. It is called by the builders before save.
-	FeeCountValidator func(int) error
-	// BillCountValidator is a validator for the "bill_count" field. It is called by the builders before save.
-	BillCountValidator func(int) error
-	// BaseCurrencyValidator is a validator for the "base_currency" field. It is called by the builders before save.
-	BaseCurrencyValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -217,26 +199,6 @@ func BySplitByTaxRate(opts ...sql.OrderTermOption) OrderOption {
 // ByGroupingMode orders the results by the grouping_mode field.
 func ByGroupingMode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldGroupingMode, opts...).ToFunc()
-}
-
-// ByFeeCount orders the results by the fee_count field.
-func ByFeeCount(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldFeeCount, opts...).ToFunc()
-}
-
-// ByBillCount orders the results by the bill_count field.
-func ByBillCount(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldBillCount, opts...).ToFunc()
-}
-
-// ByTotalBaseAmount orders the results by the total_base_amount field.
-func ByTotalBaseAmount(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTotalBaseAmount, opts...).ToFunc()
-}
-
-// ByBaseCurrency orders the results by the base_currency field.
-func ByBaseCurrency(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldBaseCurrency, opts...).ToFunc()
 }
 
 // ByCreatedBy orders the results by the created_by field.

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
@@ -36,7 +37,7 @@ func (r *financeBillRepo) GetBatchByIdempotencyKey(ctx context.Context, organiza
 func (r *financeBillRepo) financeBillBatchQuery(query *ent.FinanceBillBatchQuery) *ent.FinanceBillBatchQuery {
 	return query.WithBills(func(query *ent.FinanceBillQuery) {
 		query.WithOrganization().WithLines(func(lineQuery *ent.FinanceBillLineQuery) {
-			lineQuery.WithOrder().Order(financebilllineent.ByCreatedAt(), financebilllineent.ByID())
+			lineQuery.WithOrder().WithOrderFee().Order(financebilllineent.ByCreatedAt(), financebilllineent.ByID())
 		}).Order(financebillent.ByCreatedAt(), financebillent.ByID())
 	}).WithNettings(func(nettingQuery *ent.FinanceNettingQuery) {
 		nettingQuery.WithAllocations(func(allocationQuery *ent.FinanceNettingAllocationQuery) {
@@ -57,17 +58,52 @@ func (r *financeBillRepo) GetBatch(ctx context.Context, organizationIDs []uuid.U
 	return financeBillBatchToBiz(item)
 }
 
-func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBillBatch, _ string, audit *biz.AuditEvent, nettingAudits []*biz.AuditEvent) (*biz.FinanceBillBatch, error) {
+// CreateBatchHead 以独立短事务分配批次号并写入批次头；同组织同幂等键唯一冲突映射为批次冲突。
+func (r *financeBillRepo) CreateBatchHead(ctx context.Context, batch *biz.FinanceBillBatch, audit *biz.AuditEvent) (*biz.FinanceBillBatch, error) {
 	if err := r.data.WithTx(ctx, func(tx *ent.Tx) error {
-		feeIDs := make([]uuid.UUID, 0, batch.FeeCount)
-		expectedLines := make(map[uuid.UUID]*biz.FinanceBillLine, batch.FeeCount)
-		for _, bill := range batch.Bills {
+		return createFinanceBillBatchHead(ctx, tx, batch, time.Now().UTC(), audit)
+	}); err != nil {
+		return nil, err
+	}
+	return r.GetBatchByIdempotencyKey(ctx, batch.OrganizationID, batch.IdempotencyKey)
+}
+
+func createFinanceBillBatchHead(ctx context.Context, tx *ent.Tx, batch *biz.FinanceBillBatch, now time.Time, audit *biz.AuditEvent) error {
+	batchRule, batchSequence, err := allocateNumberInTx(ctx, tx, batch.OrganizationID, biz.DocumentTypeBillBatch, now)
+	if err != nil {
+		return err
+	}
+	batch.BatchNo, err = biz.FormatAllocatedNumber(now, batchRule, batchSequence, "")
+	if err != nil {
+		return err
+	}
+	if _, err = tx.FinanceBillBatch.Create().SetID(batch.ID).SetOrganizationID(batch.OrganizationID).SetBatchNo(batch.BatchNo).SetIdempotencyKey(batch.IdempotencyKey).SetRequestHash(batch.RequestHash).SetSplitByOrder(batch.GroupingPolicy.SplitByOrder).SetSplitByTaxRate(batch.GroupingPolicy.SplitByTaxRate).SetGroupingMode(financebillbatchent.GroupingMode(batch.GroupingPolicy.Mode)).SetCreatedBy(batch.CreatedBy).Save(ctx); err != nil {
+		return mapEntError(err, nil, biz.ErrFinanceBillBatchConflict)
+	}
+	return writeAudit(ctx, tx.AuditLog, audit)
+}
+
+// CreateBatchBills 在调用方事务内写入一组（普通模式）或整批（对冲模式）账单。
+// 锁序与单张建账一致：订单闭包 → 费用 → 结算账户 → 编号；对冲模式批次头在账户锁之后、账单之前创建。
+func (r *financeBillRepo) CreateBatchBills(ctx context.Context, write biz.FinanceBillBatchWrite) error {
+	batch := write.Batch
+	if batch == nil || write.ActorID == uuid.Nil || len(write.Bills) == 0 || len(write.BillAudits) != len(write.Bills) || (write.CreateHead && write.HeadAudit == nil) || (!write.CreateHead && batch.BatchNo == "") {
+		return biz.ErrFinanceBillBatchMismatch
+	}
+	// 普通模式每个组事务只写一张账单，提成经济重算以该账单为触发标识，避免同批多组共用幂等键。
+	if batch.GroupingPolicy.Mode == "NORMAL" && len(write.Bills) != 1 {
+		return biz.ErrFinanceBillBatchMismatch
+	}
+	return r.data.WithTx(ctx, func(tx *ent.Tx) error {
+		feeIDs := make([]uuid.UUID, 0)
+		expectedLines := make(map[uuid.UUID]*biz.FinanceBillLine)
+		for _, bill := range write.Bills {
 			for _, line := range bill.Lines {
 				feeIDs = append(feeIDs, line.OrderFeeID)
 				expectedLines[line.OrderFeeID] = line
 			}
 		}
-		if len(feeIDs) != batch.FeeCount || len(expectedLines) != batch.FeeCount || len(batch.Bills) != batch.BillCount {
+		if len(feeIDs) == 0 || len(expectedLines) != len(feeIDs) {
 			return biz.ErrFinanceBillBatchMismatch
 		}
 		sort.Slice(feeIDs, func(i, j int) bool { return feeIDs[i].String() < feeIDs[j].String() })
@@ -97,23 +133,16 @@ func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBil
 			return biz.ErrFinanceBillPreviewStale
 		}
 		// 与单张建账保持“费用 → 账户”的固定加锁顺序，避免批量与单张并发建账互相等待。
-		if err := hydrateFinanceBillSettlementAccounts(ctx, tx, batch.Bills); err != nil {
+		if err := hydrateFinanceBillSettlementAccounts(ctx, tx, write.Bills); err != nil {
 			return err
 		}
 		now := time.Now().UTC()
-		batchRule, batchSequence, err := allocateNumberInTx(ctx, tx, batch.OrganizationID, biz.DocumentTypeBillBatch, now)
-		if err != nil {
-			return err
+		if write.CreateHead {
+			if err := createFinanceBillBatchHead(ctx, tx, batch, now, write.HeadAudit); err != nil {
+				return err
+			}
 		}
-		batch.BatchNo, err = biz.FormatAllocatedNumber(now, batchRule, batchSequence, "")
-		if err != nil {
-			return err
-		}
-		_, err = tx.FinanceBillBatch.Create().SetID(batch.ID).SetOrganizationID(batch.OrganizationID).SetBatchNo(batch.BatchNo).SetIdempotencyKey(batch.IdempotencyKey).SetRequestHash(batch.RequestHash).SetSplitByOrder(batch.GroupingPolicy.SplitByOrder).SetSplitByTaxRate(batch.GroupingPolicy.SplitByTaxRate).SetGroupingMode(financebillbatchent.GroupingMode(batch.GroupingPolicy.Mode)).SetFeeCount(batch.FeeCount).SetBillCount(batch.BillCount).SetTotalBaseAmount(batch.TotalBaseAmount.StringFixed(8)).SetBaseCurrency(batch.BaseCurrency).SetCreatedBy(batch.CreatedBy).Save(ctx)
-		if err != nil {
-			return mapEntError(err, nil, biz.ErrFinanceBillBatchConflict)
-		}
-		for _, bill := range batch.Bills {
+		for index, bill := range write.Bills {
 			billRule, billSequence, allocateErr := allocateNumberInTx(ctx, tx, batch.OrganizationID, biz.DocumentTypeBill, now)
 			if allocateErr != nil {
 				return allocateErr
@@ -123,9 +152,9 @@ func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBil
 				return allocateErr
 			}
 			bill.BatchNo = batch.BatchNo
-			_, saveErr := tx.FinanceBill.Create().SetID(bill.ID).SetOrganizationID(batch.OrganizationID).SetBatchID(batch.ID).SetBillNo(bill.BillNo).SetIdempotencyKey(bill.IdempotencyKey).SetPurpose(financebillent.Purpose(bill.Purpose)).SetDirection(financebillent.Direction(bill.Direction)).SetStatus(financebillent.StatusCONFIRMED).SetConfirmedAt(now).SetConfirmedBy(batch.CreatedBy).SetSettlementPartyID(bill.SettlementPartyID).SetSettlementPartyName(bill.SettlementPartyName).SetSettlementAccountID(bill.SettlementAccountID).SetSettlementAccountName(bill.SettlementAccountName).SetSettlementAccountHolder(bill.SettlementAccountHolder).SetSettlementBankName(bill.SettlementBankName).SetSettlementBankAccount(bill.SettlementBankAccount).SetSettlementAccountCurrency(bill.SettlementAccountCurrency).SetSettlementSwiftCode(bill.SettlementSwiftCode).SetNillableEstimatedInvoiceCurrency(bill.EstimatedInvoiceCurrency).SetNillableEstimatedInvoiceRate(financeDecimalString(bill.EstimatedInvoiceRate, 8)).SetNillableEstimatedInvoiceAmount(financeDecimalString(bill.EstimatedInvoiceAmount, 8)).SetCurrency(bill.Currency).SetBaseCurrency(bill.BaseCurrency).SetExchangeRate(bill.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(bill.ExchangeRateSource)).SetExchangeRateDate(bill.ExchangeRateDate).SetNillableExchangeRateSettingID(bill.ExchangeRateSettingID).SetTotalAmount(bill.TotalAmount.StringFixed(8)).SetNetAmount(bill.NetAmount.StringFixed(8)).SetTaxAmount(bill.TaxAmount.StringFixed(8)).SetBaseCurrencyAmount(bill.BaseCurrencyAmount.StringFixed(8)).SetFeeCount(bill.FeeCount).SetBillDate(bill.BillDate).SetNillableStatementTitle(bill.StatementTitle).SetNillablePaymentTermsDays(bill.PaymentTermsDays).SetNillableDueDate(bill.DueDate).SetNillableNote(bill.Note).SetVersion(1).Save(ctx)
+			_, saveErr := tx.FinanceBill.Create().SetID(bill.ID).SetOrganizationID(batch.OrganizationID).SetBatchID(batch.ID).SetBillNo(bill.BillNo).SetIdempotencyKey(bill.IdempotencyKey).SetPurpose(financebillent.Purpose(bill.Purpose)).SetDirection(financebillent.Direction(bill.Direction)).SetStatus(financebillent.StatusCONFIRMED).SetConfirmedAt(now).SetConfirmedBy(write.ActorID).SetSettlementPartyID(bill.SettlementPartyID).SetSettlementPartyName(bill.SettlementPartyName).SetSettlementAccountID(bill.SettlementAccountID).SetSettlementAccountName(bill.SettlementAccountName).SetSettlementAccountHolder(bill.SettlementAccountHolder).SetSettlementBankName(bill.SettlementBankName).SetSettlementBankAccount(bill.SettlementBankAccount).SetSettlementAccountCurrency(bill.SettlementAccountCurrency).SetSettlementSwiftCode(bill.SettlementSwiftCode).SetNillableEstimatedInvoiceCurrency(bill.EstimatedInvoiceCurrency).SetNillableEstimatedInvoiceRate(financeDecimalString(bill.EstimatedInvoiceRate, 8)).SetNillableEstimatedInvoiceAmount(financeDecimalString(bill.EstimatedInvoiceAmount, 8)).SetCurrency(bill.Currency).SetBaseCurrency(bill.BaseCurrency).SetExchangeRate(bill.ExchangeRate.StringFixed(8)).SetExchangeRateSource(financebillent.ExchangeRateSource(bill.ExchangeRateSource)).SetExchangeRateDate(bill.ExchangeRateDate).SetNillableExchangeRateSettingID(bill.ExchangeRateSettingID).SetTotalAmount(bill.TotalAmount.StringFixed(8)).SetNetAmount(bill.NetAmount.StringFixed(8)).SetTaxAmount(bill.TaxAmount.StringFixed(8)).SetBaseCurrencyAmount(bill.BaseCurrencyAmount.StringFixed(8)).SetFeeCount(bill.FeeCount).SetBillDate(bill.BillDate).SetNillableStatementTitle(bill.StatementTitle).SetNillablePaymentTermsDays(bill.PaymentTermsDays).SetNillableDueDate(bill.DueDate).SetNillableNote(bill.Note).SetVersion(1).Save(ctx)
 			if saveErr != nil {
-				return saveErr
+				return mapEntError(saveErr, nil, biz.ErrFinanceBillBatchConflict)
 			}
 			lineBuilders := make([]*ent.FinanceBillLineCreate, 0, len(bill.Lines))
 			for _, line := range bill.Lines {
@@ -133,6 +162,9 @@ func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBil
 			}
 			if _, saveErr = tx.FinanceBillLine.CreateBulk(lineBuilders...).Save(ctx); saveErr != nil {
 				return mapEntError(saveErr, nil, biz.ErrFinanceBillFeeInvalid)
+			}
+			if auditErr := writeAudit(ctx, tx.AuditLog, write.BillAudits[index]); auditErr != nil {
+				return auditErr
 			}
 		}
 		// 费用行已在锁内通过关联资格复核，直接递增版本；受影响行数校验保留。
@@ -143,11 +175,11 @@ func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBil
 		if affected != len(feeIDs) {
 			return biz.ErrFinanceBillFeeInvalid
 		}
-		billNos := make(map[uuid.UUID]string, len(batch.Bills))
-		for _, bill := range batch.Bills {
+		billNos := make(map[uuid.UUID]string, len(write.Bills))
+		for _, bill := range write.Bills {
 			billNos[bill.ID] = bill.BillNo
 		}
-		for index, netting := range batch.Nettings {
+		for index, netting := range write.Nettings {
 			nettingRule, nettingSequence, nettingErr := allocateNumberInTx(ctx, tx, batch.OrganizationID, biz.DocumentTypeNetting, now)
 			if nettingErr != nil {
 				return nettingErr
@@ -181,32 +213,28 @@ func (r *financeBillRepo) CreateBatch(ctx context.Context, batch *biz.FinanceBil
 			if _, nettingErr = tx.FinanceNettingAllocation.CreateBulk(allocationBuilders...).Save(ctx); nettingErr != nil {
 				return mapEntConstraint(nettingErr, "netting_allocation_pair_unique", biz.ErrFinanceNettingInvalid)
 			}
-			if index < len(nettingAudits) {
-				if auditErr := writeAudit(ctx, tx.AuditLog, nettingAudits[index]); auditErr != nil {
+			if index < len(write.NettingAudits) {
+				if auditErr := writeAudit(ctx, tx.AuditLog, write.NettingAudits[index]); auditErr != nil {
 					return auditErr
 				}
 			}
 		}
 		var orderIDs []uuid.UUID
-		for _, bill := range batch.Bills {
+		for _, bill := range write.Bills {
 			orderIDs = append(orderIDs, billEconomicOrderIDs(bill.Lines)...)
 		}
-		if err := reconcileBillEconomics(ctx, tx.Client(), batch.OrganizationID, orderIDs, batch.CreatedBy, biz.CommissionEconomicTrigger{Kind: "BILL_BATCH_CREATE", ID: batch.ID, Version: 1}); err != nil {
-			return err
+		triggerID := batch.ID
+		if batch.GroupingPolicy.Mode == "NORMAL" {
+			triggerID = write.Bills[0].ID
 		}
-		return writeAudit(ctx, tx.AuditLog, audit)
-	}); err != nil {
-		return nil, err
-	}
-	return r.GetBatchByIdempotencyKey(ctx, batch.OrganizationID, batch.IdempotencyKey)
+		return reconcileBillEconomics(ctx, tx.Client(), batch.OrganizationID, orderIDs, write.ActorID, biz.CommissionEconomicTrigger{Kind: "BILL_BATCH_CREATE", ID: triggerID, Version: 1})
+	})
 }
 
+// financeBillBatchToBiz 转换批次头，并按本批次已生成账单聚合费用数、账单数与按本位币分组的合计。
 func financeBillBatchToBiz(item *ent.FinanceBillBatch) (*biz.FinanceBillBatch, error) {
-	totalBaseAmount, err := decimalOf(item.TotalBaseAmount)
-	if err != nil {
-		return nil, err
-	}
-	result := &biz.FinanceBillBatch{ID: item.ID, OrganizationID: item.OrganizationID, CreatedBy: item.CreatedBy, BatchNo: item.BatchNo, IdempotencyKey: item.IdempotencyKey, RequestHash: item.RequestHash, GroupingPolicy: biz.FinanceBillGroupingPolicy{Mode: string(item.GroupingMode), SplitByOrder: item.SplitByOrder, SplitByTaxRate: item.SplitByTaxRate}, FeeCount: item.FeeCount, BillCount: item.BillCount, TotalBaseAmount: totalBaseAmount, BaseCurrency: item.BaseCurrency, Bills: make([]*biz.FinanceBill, 0, len(item.Edges.Bills)), Nettings: make([]*biz.FinanceNetting, 0, len(item.Edges.Nettings)), CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
+	result := &biz.FinanceBillBatch{ID: item.ID, OrganizationID: item.OrganizationID, CreatedBy: item.CreatedBy, BatchNo: item.BatchNo, IdempotencyKey: item.IdempotencyKey, RequestHash: item.RequestHash, GroupingPolicy: biz.FinanceBillGroupingPolicy{Mode: string(item.GroupingMode), SplitByOrder: item.SplitByOrder, SplitByTaxRate: item.SplitByTaxRate}, Bills: make([]*biz.FinanceBill, 0, len(item.Edges.Bills)), Nettings: make([]*biz.FinanceNetting, 0, len(item.Edges.Nettings)), CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
+	baseTotals := make(map[string]decimal.Decimal)
 	for _, billItem := range item.Edges.Bills {
 		bill, convertErr := financeBillToBiz(billItem)
 		if convertErr != nil {
@@ -214,6 +242,17 @@ func financeBillBatchToBiz(item *ent.FinanceBillBatch) (*biz.FinanceBillBatch, e
 		}
 		bill.BatchNo = item.BatchNo
 		result.Bills = append(result.Bills, bill)
+		result.FeeCount += bill.FeeCount
+		baseTotals[bill.BaseCurrency] = baseTotals[bill.BaseCurrency].Add(bill.BaseCurrencyAmount)
+	}
+	result.BillCount = len(result.Bills)
+	currencies := make([]string, 0, len(baseTotals))
+	for currency := range baseTotals {
+		currencies = append(currencies, currency)
+	}
+	sort.Strings(currencies)
+	for _, currency := range currencies {
+		result.BaseTotals = append(result.BaseTotals, biz.FinanceBillBatchBaseTotal{BaseCurrency: currency, TotalBaseAmount: baseTotals[currency].RoundBank(8)})
 	}
 	for _, nettingItem := range item.Edges.Nettings {
 		netting, convertErr := financeNettingToBiz(nettingItem)

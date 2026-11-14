@@ -2,7 +2,7 @@
 
 ## 1. Scope / Trigger
 
-本规范适用于普通账单的批量预览、批量创建、草稿更新、账单行快照和前端建账工作台。
+本规范适用于普通账单的批量预览、批量创建、已确认账单更新、费用维护、账单行快照和前端建账工作台。
 新增或修改费用分组、账单币种、账单日期汇率、结算账户或预计开票字段时必须遵循。
 
 项目采用固定币种边界：不同费用币种永远拆成不同账单，不建设费用原币到可选目标账单币种的
@@ -22,6 +22,8 @@ split_by_order: bool
 
 ```text
 group_key
+group_token
+fee_ids
 bill_date
 settlement_account_id
 estimated_invoice_currency
@@ -38,7 +40,7 @@ bill.base_currency_amount = bill.total_amount * bill.exchange_rate
 
 ## 3. Contracts
 
-- 组织、结算单位、费用币种和组织本位币始终参与普通账单分组；税率和订单是可选维度。
+- 组织、收付方向、结算单位、费用币种和组织本位币始终参与普通账单分组；税率和订单是可选细分且默认关闭。
 - API 不定义 `split_by_currency`，也不接受目标账单币种、费用原币到目标币种汇率或人工覆盖。
 - `group_key` 必须包含费用币种；修改账单日期、账户或预计开票配置不得改变 `group_key`，但必须
   轮转预览令牌。
@@ -52,21 +54,21 @@ bill.base_currency_amount = bill.total_amount * bill.exchange_rate
   核销或实际发票汇率。
 - 创建事务必须先按订单主键排序锁定完整订单集合，再按稳定顺序锁定费用、账户和汇率设置；
   选中费用须当前有效、需要建账、无有效账单占用且自身无待审更正。以同一纯分组内核重算并校验
-  预览令牌；整批成功或整批失败。人工订单审核不是建账前置，无关费用与 ADD 待审不阻塞本批正式费用。
-- 草稿更新、确认、取消等已有账单操作统一先定位并按主键锁订单，再锁账单和账单行；
+  每组预览令牌；普通模式每组独立事务，NETTING整批原子。人工订单审核不是建账前置，无关费用与 ADD 待审不阻塞正式费用。公司归属加载不执行组级资格判断，否则一组待审会误阻整批。
+- 新建账单直接CONFIRMED，无人工确认入口；更新、费用增删、免票、取消等已有账单操作统一先定位并按主键锁订单，再锁账单和账单行；
   需要费用行锁时最后锁费用。锁内重读来源归属，集合变化返回冲突。普通创建没有已有账单，
   直接走“订单 → 费用”；禁止任何“费用 → 订单”或“账单 → 订单”的反向路径。
 - 人工审核锁固化当时整票费用内容版本、指纹与利润快照；账单关联及费用行 version 变化不改写该历史快照。
   锁定后的正式费用仍可建账；单笔、批量建账均在写事务内重新复核逐费准入，不能仅依赖候选列表 can_bill。
 - `NETTING` 按同公司、同结算单位、同费用币种配对应收与应付；预览生成配对，同事务建立双方
-  原始账单及草稿对冲。账单确认后另行确认对冲，草稿对冲不提前抵减余额。
+  已确认原始账单及草稿对冲。对冲仍需另行确认，草稿对冲不提前抵减余额。
 
 ## 4. Validation & Error Matrix
 
 | 条件 | 服务端行为 |
 |---|---|
-| 选中费用被替代、无需建账、已有有效账单占用或自身存在待审更正 | 拒绝该批预览/建账；未人工审核本身不阻断 |
-| 普通模式混入应收和应付 | 拒绝，提示普通账单需分方向创建 |
+| 选中费用被替代、无需建账、已有有效账单占用或自身存在待审更正 | 预览或所属创建组拒绝；普通模式不回滚其他组；未人工审核本身不阻断 |
+| 普通模式混入应收和应付 | 允许并按方向拆组，每张账单自身方向唯一 |
 | `mode` 未指定或未知 | 显式拒绝，不默认采用普通或对冲模式 |
 | `NETTING` 同单位同币种缺少应收或应付一侧 | 拒绝配对，不跨单位或币种拼凑 |
 | 不同费用币种 | 必须形成不同叶子，不允许合单 |
@@ -75,12 +77,12 @@ bill.base_currency_amount = bill.total_amount * bill.exchange_rate
 | 账单币种到本位币缺少账单日有效汇率 | 拒绝创建，不允许 `1`、`0` 或任意日期回退 |
 | 账单日期为空 | 返回固定币种叶子，不查询临时汇率；配置不完整且不得签发可创建令牌 |
 | 预计开票币种不同但汇率为空、非正数或精度非法 | 拒绝该叶子配置 |
-| 锁内费用版本、状态、金额、币种或分组事实变化 | 预览令牌冲突，整批不创建 |
+| 锁内费用版本、状态、金额、币种或分组事实变化 | 所属group_token冲突；普通模式只拒绝该组，NETTING整批失败 |
 
 ## 5. Good / Base / Bad Cases
 
 - Good：同一单位同时有 USD、EUR 费用，服务端稳定返回两个叶子；各自选择同币种账户，按各自账单
-  日期解析到组织本位币的汇率，一次事务生成两张账单。
+  日期解析到组织本位币的汇率，普通模式逐组事务生成两张账单。
 - Base：账单币种等于组织本位币，账单汇率为 `1`；预计开票不填写时默认同账单币种、汇率为 `1`。
 - Bad：隐藏前端“分币种”开关，但 API 仍保留 `split_by_currency=false` 或目标币种字段，让调用方
   可以绕过页面形成跨币种账单。
@@ -89,13 +91,13 @@ bill.base_currency_amount = bill.total_amount * bill.exchange_rate
 ## 6. Tests Required
 
 - Biz：不同费用币种一定生成不同 `group_key`；税率和订单开关只影响各自维度。
-- Biz：`NORMAL` 单方向成功，混合方向及未指定/未知模式拒绝；`NETTING` 合法双向配对成功，缺侧或错单位/币种拒绝。
+- Biz：`NORMAL` 单方向/混合方向均按组成功，未指定/未知模式拒绝；`NETTING` 合法双向配对成功，缺侧或错单位/币种拒绝。
 - Biz/Data：账单日期为空时返回叶子且不调用汇率解析；同币种汇率为 `1`；日期确定后外币缺账单日汇率明确失败。
 - Biz/Data：账户错组织、错单位、错用途、停用和错币种均被拒绝，创建事务锁内再次校验。
 - Biz：预计开票默认值、不同币种显式正汇率及预计金额计算正确，并断言不改变账单金额与本位币。
 - Biz/Data：账单头本位币金额等于账单行本位币合计，末行吸收 Decimal 舍入尾差。
 - 并发：两个批次争抢同一费用只有一个成功；费用或配置变化后旧令牌不能创建。
-- 并发：草稿更新、确认、取消统一按“订单 → 账单 → 账单行 → 费用”处理，与审核锁定/解锁、费用删除和补审串行。
+- 并发：账单更新、费用增删、免票、取消统一按“订单 → 账单 → 账单行 → 费用”处理，与审核锁定/解锁、费用删除和补审串行。
 - Web：没有分币种开关和账单币种编辑器；导航始终包含币种层；提交契约不携带目标币种。
 
 ## 7. Wrong vs Correct
@@ -107,8 +109,6 @@ policy.split_by_currency = false
 group.currency = user_selected_currency
 line.amount = convert(fee.amount, manual_pair_rate)
 ```
-
-该实现让同一账单混入多个费用币种，并额外制造默认币种、组合汇率、人工覆盖和审计分支。
 
 ### Correct
 
@@ -194,7 +194,7 @@ netting summary amount = sum(nettings where status = CONFIRMED)
 
 `financeNettingRepo.LoadPreview` 按公司、结算单位、账单币种和 CONFIRMED 筛选，并在
 `LIMIT MaxFinanceNettingBills + 1` 之前应用 `billUnsettledPredicate()`。未结定义为
-总金额大于有效核销与有效对冲之和，不能用确认状态代替结清状态；500 张上限只限制可参与
+总金额不等于有效核销与有效对冲之和（候选仍只处理正数余额），不能用确认状态代替结清状态；500 张上限只限制可参与
 候选，不能先装入已结清历史再报超限。真正 501 张未结仍返回 `ErrFinanceNettingTooManyBills`。
 
 正式迁移回归覆盖 500 张已清历史加两张未清、真正 500/501 未清边界、核销/对冲/混合结清、
@@ -212,7 +212,7 @@ netting summary amount = sum(nettings where status = CONFIRMED)
 **Why**：用户澄清「取消账单后费用可删，不能因曾建过账永久禁删」（2026-09-22）；同时历史
 账单及其金额快照必须原样保留，故来源引用改可空而非级联删行。
 
-**Example**：费用已入草稿账单 → 先按实际依赖与权限回退并取消有效账单；订单 ACTIVE 且未人工审核锁定时，
+**Example**：费用已入账单 → 先按实际依赖与权限回退并取消有效账单；订单 ACTIVE 且未人工审核锁定时，
 当前有效费用可按权限删除。仍锁定时先解锁或走费用补审，不恢复独立费用批准或提成财务锁。
 账单行保留快照且 `order_fee_id` 为空。删除与建账并发在订单及费用行
 `ForUpdate` 上串行，不会出现账单引用已删除费用（集成测试
@@ -220,3 +220,63 @@ netting summary amount = sum(nettings where status = CONFIRMED)
 
 被替代的原费及内部 `DECREASE` 冲回属于受保护历史，不允许普通修改/删除。未被再次替代的当前有效替代费用，
 在解锁、未建账且通过普通权限/版本门禁后可修改或删除；更正来源本身不形成永久冻结。普通删除同事务执行提成经济重算，保留已发事实。
+
+## 场景：免确认、逐组建账与费用维护
+
+### 1. 适用范围
+
+新建、编辑、增删费用、免票与批量建账。已确认是内部有效状态，不要求业务人员执行确认操作。
+
+### 2. 签名
+
+```text
+PreviewBillBatch.data[].group_token
+CreateBillBatch.groups[] = { group_key, group_token, fee_ids, ...叶子配置 }
+CreateBillBatch.results[] = { group_key, success, bill? | error? }
+UpdateBillFees = { id, expected_version, add_fee_ids, remove_fee_ids }
+SetBillInvoiceExemption / RevokeBillInvoiceExemption = { id, expected_version, reason }
+FinanceBill = { settlement_progress, invoice_progress, completed, fees_locked, fee_lock_facts, invoice_exemptions[] }
+```
+
+实际字段以Proto为准；批次头仅持有身份，费用数、账单数及base_totals按已有账单读取聚合。
+
+### 3. 契约
+
+- HTTP 200与顶层success只表示请求已处理，普通批量必须逐组读取results；成功含bill、失败含error，严格覆盖本次所有组。失败组可单独重试，成功组同键回放；结果未知时冻结原意图同键重试，禁止编辑后冒充重试。
+- 普通组不同方向可共批；逐组令牌只覆盖该组费用与配置，其他组变动不得误伤。NETTING保留整批原子。续做失败组的确认人与审计取本次实际actor，不能借批次创建人。
+- 费用增删在订单→账单→账单行→费用锁内再次校验同公司/方向/币种/对象、当前来源及未占用，至少留一条。更正归属由当前活动行的来源费用重建；普通编辑也只校验活动行，停用历史行可能已无来源费用，不能参与本次写入。
+- 发票、核销、已确认对冲和有效免票属于受保护事实；草稿对冲额外只阻止费用增删。免票与有效发票互斥，独立权限system.finance.invoice.exempt，原因必填，撤销保留历史并推进账单版本。
+- 结算净额＝有效核销＋有效对冲（带符号）；普通需票完成＝结清且票齐，免票完成＝结清。SQL筛选与ResolveFinanceBillProgress同源。零额/负数本期只验证纯判断，不放开创建约束。
+- 决定的revoked_at/by/reason要么全空，要么全有；CHECK必须显式写revocation_reason IS NOT NULL，不能靠length(NULL)>0阻止缺失。
+
+### 4. 错误矩阵
+
+| 触发 | 结果 |
+| --- | --- |
+| 陈旧expected_version | 409，保留输入，不借探测的新版本重提 |
+| 费用已有任一锁定事实 | 拒绝增删，提示对应事实；不隐式撤销 |
+| 移除最后一条 | 拒绝，释放全部请取消账单 |
+| 有有效发票时设免票，或有效免票时开票 | 整次拒绝，不留下互斥事实 |
+| 撤销免票但仍有核销/对冲 | 保留其他事实保护 |
+| 普通一组失败 | 其他成功组保留；NETTING同情形整批失败 |
+| 确认/审计任一步失败 | 所属事务整体回滚，版本与关联不提前变化 |
+
+### 5. 正常／基准／错误场景
+
+正常：同批应收USD成功、应付CNY失败，响应两组明细；基准：单组按旧键重试回放同一账单；错误：把HTTP 200当全成功后关闭失败输入，或为普通重试更换全部幂等键。
+
+### 6. 验证
+
+真实PG覆盖逐组/NETTING/正式前态升级、并发争用、更正来源重读、历史费用移除并删除后编辑、免票标记/撤销/互斥/审计回滚/空值CHECK；前端覆盖部分成功、逐组缺字段、未知结果冻结、旧会话预览与写入迟到、取消确认保留输入。对应实现与用例见finance_bill_batch*、finance_bill_correction_scope_integration_test.go、finance_invoice_exemption_integration_test.go及BillCreationWorkbench*。
+
+### 7. 错误与正确
+
+```text
+错误：await CreateBillBatch(); 直接清全部输入；confirmed_by = batch.created_by
+正确：校验results逐组结果；只处理已成功组；confirmed_by = 本组实际actor
+
+错误：编辑账单遍历全部历史Lines加载源费；CHECK length(revocation_reason)>0
+正确：仅活动Lines参与写入；撤销分支同时要求revocation_reason IS NOT NULL且非空
+```
+
+该实现让同一账单混入多个费用币种，并额外制造默认币种、组合汇率、人工覆盖和审计分支。

@@ -28,7 +28,6 @@ var (
 	ErrFinanceBillBatchMismatch            = errors.BadRequest("FINANCE_BILL_BATCH_MISMATCH", "批量账单分组资料与服务端预览不一致")
 	ErrFinanceBillBatchConflict            = errors.Conflict("FINANCE_BILL_BATCH_CONFLICT", "批量建单幂等键已被其他请求使用")
 	ErrFinanceBillSettlementAccountInvalid = errors.BadRequest(reasonFromProto(financev1.ErrorReason_ERROR_REASON_FINANCE_BILL_SETTLEMENT_ACCOUNT_INVALID), "结算账户与账单结算单位、方向、币种或启用状态不匹配")
-	ErrFinanceBillMixedDirection           = errors.BadRequest("FINANCE_BILL_MIXED_DIRECTION", "普通账单需将应收、应付分别建账，请先完成一个方向，再创建另一个方向")
 	ErrFinanceBillGroupingModeUnsupported  = errors.BadRequest("FINANCE_BILL_GROUPING_MODE_UNSUPPORTED", "当前阶段暂不支持对冲建账模式")
 	// ErrFinanceBillProtectedFields 表示账单已有有效发票、核销或已确认对冲，只能修改不影响金额与结算的字段。
 	ErrFinanceBillProtectedFields = errors.Conflict("FINANCE_BILL_PROTECTED_FIELDS", "账单已登记发票、核销或对冲，只能修改备注、对账标题和到期日；如需调整账单日期、账户、账期或预计开票，请先撤销相关财务记录")
@@ -270,10 +269,6 @@ func (uc *FinanceBillUsecase) Update(ctx context.Context, organizationIDs []uuid
 		}
 		return nil, ErrFinanceBillInvalidArgument
 	}
-	feeIDs := make([]uuid.UUID, 0, len(existing.Lines))
-	for _, line := range existing.Lines {
-		feeIDs = append(feeIDs, line.OrderFeeID)
-	}
 	err = uc.transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
 		// 账单更新与取消统一先锁订单与账单；更新随后再按 ID 锁费用，避免与
 		// “账单 → 费用”的状态操作形成反向等待。
@@ -303,6 +298,13 @@ func (uc *FinanceBillUsecase) Update(ctx context.Context, organizationIDs []uuid
 			input.EstimatedInvoiceCurrency, input.EstimatedInvoiceRate, input.EstimatedInvoiceAmount = current.EstimatedInvoiceCurrency, current.EstimatedInvoiceRate, current.EstimatedInvoiceAmount
 			_, transactionErr = uc.repo.Update(txCtx, organizationIDs, input, financeBillAudit(current.OrganizationID, actorID, input.ID, "finance.bill.update"))
 			return transactionErr
+		}
+		// 详情保留已移除行；账单编辑只重算当前活动行，历史行及已释放/删除费用不得再次参与。
+		feeIDs := make([]uuid.UUID, 0, len(current.Lines))
+		for _, line := range current.Lines {
+			if line.Active {
+				feeIDs = append(feeIDs, line.OrderFeeID)
+			}
 		}
 		lockedFees, transactionErr := uc.repo.LoadBillableFees(txCtx, current.OrganizationID, feeIDs)
 		if transactionErr != nil {
@@ -335,7 +337,9 @@ func (uc *FinanceBillUsecase) Update(ctx context.Context, organizationIDs []uuid
 		rebuilt.SettlementBankAccount, rebuilt.SettlementAccountCurrency, rebuilt.SettlementSwiftCode = account.SettlementBankAccount, account.SettlementAccountCurrency, account.SettlementSwiftCode
 		lineIDs := make(map[uuid.UUID]uuid.UUID, len(current.Lines))
 		for _, line := range current.Lines {
-			lineIDs[line.OrderFeeID] = line.ID
+			if line.Active {
+				lineIDs[line.OrderFeeID] = line.ID
+			}
 		}
 		for _, line := range rebuilt.Lines {
 			line.ID = lineIDs[line.OrderFeeID]
@@ -354,12 +358,17 @@ func (uc *FinanceBillUsecase) Update(ctx context.Context, organizationIDs []uuid
 }
 
 func validateLockedFinanceBillSourceFees(bill *FinanceBill, fees []*FinanceBillableFee) error {
-	if bill == nil || len(fees) != len(bill.Lines) {
+	if bill == nil {
 		return ErrFinanceBillPreviewStale
 	}
 	lines := make(map[uuid.UUID]*FinanceBillLine, len(bill.Lines))
 	for _, line := range bill.Lines {
-		lines[line.OrderFeeID] = line
+		if line.Active {
+			lines[line.OrderFeeID] = line
+		}
+	}
+	if len(fees) != len(lines) {
+		return ErrFinanceBillPreviewStale
 	}
 	for _, item := range fees {
 		fee, line := item.Fee, lines[item.Fee.ID]

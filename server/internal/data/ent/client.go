@@ -60,6 +60,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceexemption"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
@@ -225,6 +226,8 @@ type Client struct {
 	FinanceInvoice *FinanceInvoiceClient
 	// FinanceInvoiceBill is the client for interacting with the FinanceInvoiceBill builders.
 	FinanceInvoiceBill *FinanceInvoiceBillClient
+	// FinanceInvoiceExemption is the client for interacting with the FinanceInvoiceExemption builders.
+	FinanceInvoiceExemption *FinanceInvoiceExemptionClient
 	// FinanceInvoiceLine is the client for interacting with the FinanceInvoiceLine builders.
 	FinanceInvoiceLine *FinanceInvoiceLineClient
 	// FinanceNetting is the client for interacting with the FinanceNetting builders.
@@ -420,6 +423,7 @@ func (c *Client) init() {
 	c.FinanceCustomSetting = NewFinanceCustomSettingClient(c.config)
 	c.FinanceInvoice = NewFinanceInvoiceClient(c.config)
 	c.FinanceInvoiceBill = NewFinanceInvoiceBillClient(c.config)
+	c.FinanceInvoiceExemption = NewFinanceInvoiceExemptionClient(c.config)
 	c.FinanceInvoiceLine = NewFinanceInvoiceLineClient(c.config)
 	c.FinanceNetting = NewFinanceNettingClient(c.config)
 	c.FinanceNettingAllocation = NewFinanceNettingAllocationClient(c.config)
@@ -626,6 +630,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		FinanceCustomSetting:             NewFinanceCustomSettingClient(cfg),
 		FinanceInvoice:                   NewFinanceInvoiceClient(cfg),
 		FinanceInvoiceBill:               NewFinanceInvoiceBillClient(cfg),
+		FinanceInvoiceExemption:          NewFinanceInvoiceExemptionClient(cfg),
 		FinanceInvoiceLine:               NewFinanceInvoiceLineClient(cfg),
 		FinanceNetting:                   NewFinanceNettingClient(cfg),
 		FinanceNettingAllocation:         NewFinanceNettingAllocationClient(cfg),
@@ -759,6 +764,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		FinanceCustomSetting:             NewFinanceCustomSettingClient(cfg),
 		FinanceInvoice:                   NewFinanceInvoiceClient(cfg),
 		FinanceInvoiceBill:               NewFinanceInvoiceBillClient(cfg),
+		FinanceInvoiceExemption:          NewFinanceInvoiceExemptionClient(cfg),
 		FinanceInvoiceLine:               NewFinanceInvoiceLineClient(cfg),
 		FinanceNetting:                   NewFinanceNettingClient(cfg),
 		FinanceNettingAllocation:         NewFinanceNettingAllocationClient(cfg),
@@ -874,14 +880,15 @@ func (c *Client) Use(hooks ...Hook) {
 		c.FinanceCommissionApplicationLine, c.FinanceCommissionLine,
 		c.FinanceCommissionRule, c.FinanceCommissionRuleAssignment,
 		c.FinanceCustomSetting, c.FinanceInvoice, c.FinanceInvoiceBill,
-		c.FinanceInvoiceLine, c.FinanceNetting, c.FinanceNettingAllocation,
-		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
-		c.MasterDataItem, c.Membership, c.NotificationDelivery, c.NumberRule,
-		c.NumberSequence, c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase,
-		c.OrderAttachment, c.OrderAttachmentAsset, c.OrderCargoCategory,
-		c.OrderCargoItem, c.OrderCommissionAttribution, c.OrderContainer,
-		c.OrderContainerRequest, c.OrderFee, c.OrderFeeCorrectionRequest,
-		c.OrderFeeReviewEvent, c.OrderFeeSupplementRequest, c.OrderLifecycleEvent,
+		c.FinanceInvoiceExemption, c.FinanceInvoiceLine, c.FinanceNetting,
+		c.FinanceNettingAllocation, c.FinanceVerification,
+		c.FinanceVerificationAllocation, c.LoginRateLimitBucket, c.MasterDataItem,
+		c.Membership, c.NotificationDelivery, c.NumberRule, c.NumberSequence,
+		c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase, c.OrderAttachment,
+		c.OrderAttachmentAsset, c.OrderCargoCategory, c.OrderCargoItem,
+		c.OrderCommissionAttribution, c.OrderContainer, c.OrderContainerRequest,
+		c.OrderFee, c.OrderFeeCorrectionRequest, c.OrderFeeReviewEvent,
+		c.OrderFeeSupplementRequest, c.OrderLifecycleEvent,
 		c.OrderLockHouseBillSnapshot, c.OrderLockRecord, c.OrderPersonnel,
 		c.OrderReleasePod, c.OrderShippingDocument, c.OrderUnlockApproverCandidate,
 		c.OrderUnlockRequest, c.Organization, c.Partner, c.PartnerAccount,
@@ -920,14 +927,15 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.FinanceCommissionApplicationLine, c.FinanceCommissionLine,
 		c.FinanceCommissionRule, c.FinanceCommissionRuleAssignment,
 		c.FinanceCustomSetting, c.FinanceInvoice, c.FinanceInvoiceBill,
-		c.FinanceInvoiceLine, c.FinanceNetting, c.FinanceNettingAllocation,
-		c.FinanceVerification, c.FinanceVerificationAllocation, c.LoginRateLimitBucket,
-		c.MasterDataItem, c.Membership, c.NotificationDelivery, c.NumberRule,
-		c.NumberSequence, c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase,
-		c.OrderAttachment, c.OrderAttachmentAsset, c.OrderCargoCategory,
-		c.OrderCargoItem, c.OrderCommissionAttribution, c.OrderContainer,
-		c.OrderContainerRequest, c.OrderFee, c.OrderFeeCorrectionRequest,
-		c.OrderFeeReviewEvent, c.OrderFeeSupplementRequest, c.OrderLifecycleEvent,
+		c.FinanceInvoiceExemption, c.FinanceInvoiceLine, c.FinanceNetting,
+		c.FinanceNettingAllocation, c.FinanceVerification,
+		c.FinanceVerificationAllocation, c.LoginRateLimitBucket, c.MasterDataItem,
+		c.Membership, c.NotificationDelivery, c.NumberRule, c.NumberSequence,
+		c.ObjectStorageDeletion, c.Order, c.OrderAbnormalCase, c.OrderAttachment,
+		c.OrderAttachmentAsset, c.OrderCargoCategory, c.OrderCargoItem,
+		c.OrderCommissionAttribution, c.OrderContainer, c.OrderContainerRequest,
+		c.OrderFee, c.OrderFeeCorrectionRequest, c.OrderFeeReviewEvent,
+		c.OrderFeeSupplementRequest, c.OrderLifecycleEvent,
 		c.OrderLockHouseBillSnapshot, c.OrderLockRecord, c.OrderPersonnel,
 		c.OrderReleasePod, c.OrderShippingDocument, c.OrderUnlockApproverCandidate,
 		c.OrderUnlockRequest, c.Organization, c.Partner, c.PartnerAccount,
@@ -1037,6 +1045,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.FinanceInvoice.mutate(ctx, m)
 	case *FinanceInvoiceBillMutation:
 		return c.FinanceInvoiceBill.mutate(ctx, m)
+	case *FinanceInvoiceExemptionMutation:
+		return c.FinanceInvoiceExemption.mutate(ctx, m)
 	case *FinanceInvoiceLineMutation:
 		return c.FinanceInvoiceLine.mutate(ctx, m)
 	case *FinanceNettingMutation:
@@ -6264,6 +6274,22 @@ func (c *FinanceBillClient) QueryInvoiceLinks(_m *FinanceBill) *FinanceInvoiceBi
 	return query
 }
 
+// QueryInvoiceExemptions queries the invoice_exemptions edge of a FinanceBill.
+func (c *FinanceBillClient) QueryInvoiceExemptions(_m *FinanceBill) *FinanceInvoiceExemptionQuery {
+	query := (&FinanceInvoiceExemptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financebill.Table, financebill.FieldID, id),
+			sqlgraph.To(financeinvoiceexemption.Table, financeinvoiceexemption.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, financebill.InvoiceExemptionsTable, financebill.InvoiceExemptionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryVerificationAllocations queries the verification_allocations edge of a FinanceBill.
 func (c *FinanceBillClient) QueryVerificationAllocations(_m *FinanceBill) *FinanceVerificationAllocationQuery {
 	query := (&FinanceVerificationAllocationClient{config: c.config}).Query()
@@ -9135,6 +9161,171 @@ func (c *FinanceInvoiceBillClient) mutate(ctx context.Context, m *FinanceInvoice
 		return (&FinanceInvoiceBillDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown FinanceInvoiceBill mutation op: %q", m.Op())
+	}
+}
+
+// FinanceInvoiceExemptionClient is a client for the FinanceInvoiceExemption schema.
+type FinanceInvoiceExemptionClient struct {
+	config
+}
+
+// NewFinanceInvoiceExemptionClient returns a client for the FinanceInvoiceExemption from the given config.
+func NewFinanceInvoiceExemptionClient(c config) *FinanceInvoiceExemptionClient {
+	return &FinanceInvoiceExemptionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `financeinvoiceexemption.Hooks(f(g(h())))`.
+func (c *FinanceInvoiceExemptionClient) Use(hooks ...Hook) {
+	c.hooks.FinanceInvoiceExemption = append(c.hooks.FinanceInvoiceExemption, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `financeinvoiceexemption.Intercept(f(g(h())))`.
+func (c *FinanceInvoiceExemptionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.FinanceInvoiceExemption = append(c.inters.FinanceInvoiceExemption, interceptors...)
+}
+
+// Create returns a builder for creating a FinanceInvoiceExemption entity.
+func (c *FinanceInvoiceExemptionClient) Create() *FinanceInvoiceExemptionCreate {
+	mutation := newFinanceInvoiceExemptionMutation(c.config, OpCreate)
+	return &FinanceInvoiceExemptionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of FinanceInvoiceExemption entities.
+func (c *FinanceInvoiceExemptionClient) CreateBulk(builders ...*FinanceInvoiceExemptionCreate) *FinanceInvoiceExemptionCreateBulk {
+	return &FinanceInvoiceExemptionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FinanceInvoiceExemptionClient) MapCreateBulk(slice any, setFunc func(*FinanceInvoiceExemptionCreate, int)) *FinanceInvoiceExemptionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FinanceInvoiceExemptionCreateBulk{err: fmt.Errorf("calling to FinanceInvoiceExemptionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FinanceInvoiceExemptionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &FinanceInvoiceExemptionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for FinanceInvoiceExemption.
+func (c *FinanceInvoiceExemptionClient) Update() *FinanceInvoiceExemptionUpdate {
+	mutation := newFinanceInvoiceExemptionMutation(c.config, OpUpdate)
+	return &FinanceInvoiceExemptionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FinanceInvoiceExemptionClient) UpdateOne(_m *FinanceInvoiceExemption) *FinanceInvoiceExemptionUpdateOne {
+	mutation := newFinanceInvoiceExemptionMutation(c.config, OpUpdateOne, withFinanceInvoiceExemption(_m))
+	return &FinanceInvoiceExemptionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FinanceInvoiceExemptionClient) UpdateOneID(id uuid.UUID) *FinanceInvoiceExemptionUpdateOne {
+	mutation := newFinanceInvoiceExemptionMutation(c.config, OpUpdateOne, withFinanceInvoiceExemptionID(id))
+	return &FinanceInvoiceExemptionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for FinanceInvoiceExemption.
+func (c *FinanceInvoiceExemptionClient) Delete() *FinanceInvoiceExemptionDelete {
+	mutation := newFinanceInvoiceExemptionMutation(c.config, OpDelete)
+	return &FinanceInvoiceExemptionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FinanceInvoiceExemptionClient) DeleteOne(_m *FinanceInvoiceExemption) *FinanceInvoiceExemptionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FinanceInvoiceExemptionClient) DeleteOneID(id uuid.UUID) *FinanceInvoiceExemptionDeleteOne {
+	builder := c.Delete().Where(financeinvoiceexemption.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FinanceInvoiceExemptionDeleteOne{builder}
+}
+
+// Query returns a query builder for FinanceInvoiceExemption.
+func (c *FinanceInvoiceExemptionClient) Query() *FinanceInvoiceExemptionQuery {
+	return &FinanceInvoiceExemptionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFinanceInvoiceExemption},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a FinanceInvoiceExemption entity by its id.
+func (c *FinanceInvoiceExemptionClient) Get(ctx context.Context, id uuid.UUID) (*FinanceInvoiceExemption, error) {
+	return c.Query().Where(financeinvoiceexemption.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FinanceInvoiceExemptionClient) GetX(ctx context.Context, id uuid.UUID) *FinanceInvoiceExemption {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryBill queries the bill edge of a FinanceInvoiceExemption.
+func (c *FinanceInvoiceExemptionClient) QueryBill(_m *FinanceInvoiceExemption) *FinanceBillQuery {
+	query := (&FinanceBillClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financeinvoiceexemption.Table, financeinvoiceexemption.FieldID, id),
+			sqlgraph.To(financebill.Table, financebill.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financeinvoiceexemption.BillTable, financeinvoiceexemption.BillColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrganization queries the organization edge of a FinanceInvoiceExemption.
+func (c *FinanceInvoiceExemptionClient) QueryOrganization(_m *FinanceInvoiceExemption) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(financeinvoiceexemption.Table, financeinvoiceexemption.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, financeinvoiceexemption.OrganizationTable, financeinvoiceexemption.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FinanceInvoiceExemptionClient) Hooks() []Hook {
+	return c.hooks.FinanceInvoiceExemption
+}
+
+// Interceptors returns the client interceptors.
+func (c *FinanceInvoiceExemptionClient) Interceptors() []Interceptor {
+	return c.inters.FinanceInvoiceExemption
+}
+
+func (c *FinanceInvoiceExemptionClient) mutate(ctx context.Context, m *FinanceInvoiceExemptionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FinanceInvoiceExemptionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FinanceInvoiceExemptionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FinanceInvoiceExemptionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FinanceInvoiceExemptionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown FinanceInvoiceExemption mutation op: %q", m.Op())
 	}
 }
 
@@ -13690,7 +13881,8 @@ func (c *OrderFeeClient) QueryFinanceBillLines(_m *OrderFee) *FinanceBillLineQue
 
 // Hooks returns the client hooks.
 func (c *OrderFeeClient) Hooks() []Hook {
-	return c.hooks.OrderFee
+	hooks := c.hooks.OrderFee
+	return append(hooks[:len(hooks):len(hooks)], orderfee.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -16589,6 +16781,22 @@ func (c *OrganizationClient) QueryFinanceInvoices(_m *Organization) *FinanceInvo
 			sqlgraph.From(organization.Table, organization.FieldID, id),
 			sqlgraph.To(financeinvoice.Table, financeinvoice.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.FinanceInvoicesTable, organization.FinanceInvoicesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFinanceInvoiceExemptions queries the finance_invoice_exemptions edge of a Organization.
+func (c *OrganizationClient) QueryFinanceInvoiceExemptions(_m *Organization) *FinanceInvoiceExemptionQuery {
+	query := (&FinanceInvoiceExemptionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(financeinvoiceexemption.Table, financeinvoiceexemption.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.FinanceInvoiceExemptionsTable, organization.FinanceInvoiceExemptionsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -25688,11 +25896,12 @@ type (
 		FinanceCommission, FinanceCommissionAdjustment, FinanceCommissionApplication,
 		FinanceCommissionApplicationLine, FinanceCommissionLine, FinanceCommissionRule,
 		FinanceCommissionRuleAssignment, FinanceCustomSetting, FinanceInvoice,
-		FinanceInvoiceBill, FinanceInvoiceLine, FinanceNetting,
-		FinanceNettingAllocation, FinanceVerification, FinanceVerificationAllocation,
-		LoginRateLimitBucket, MasterDataItem, Membership, NotificationDelivery,
-		NumberRule, NumberSequence, ObjectStorageDeletion, Order, OrderAbnormalCase,
-		OrderAttachment, OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
+		FinanceInvoiceBill, FinanceInvoiceExemption, FinanceInvoiceLine,
+		FinanceNetting, FinanceNettingAllocation, FinanceVerification,
+		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
+		Membership, NotificationDelivery, NumberRule, NumberSequence,
+		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
+		OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderContainer, OrderContainerRequest, OrderFee,
 		OrderFeeCorrectionRequest, OrderFeeReviewEvent, OrderFeeSupplementRequest,
 		OrderLifecycleEvent, OrderLockHouseBillSnapshot, OrderLockRecord,
@@ -25723,11 +25932,12 @@ type (
 		FinanceCommission, FinanceCommissionAdjustment, FinanceCommissionApplication,
 		FinanceCommissionApplicationLine, FinanceCommissionLine, FinanceCommissionRule,
 		FinanceCommissionRuleAssignment, FinanceCustomSetting, FinanceInvoice,
-		FinanceInvoiceBill, FinanceInvoiceLine, FinanceNetting,
-		FinanceNettingAllocation, FinanceVerification, FinanceVerificationAllocation,
-		LoginRateLimitBucket, MasterDataItem, Membership, NotificationDelivery,
-		NumberRule, NumberSequence, ObjectStorageDeletion, Order, OrderAbnormalCase,
-		OrderAttachment, OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
+		FinanceInvoiceBill, FinanceInvoiceExemption, FinanceInvoiceLine,
+		FinanceNetting, FinanceNettingAllocation, FinanceVerification,
+		FinanceVerificationAllocation, LoginRateLimitBucket, MasterDataItem,
+		Membership, NotificationDelivery, NumberRule, NumberSequence,
+		ObjectStorageDeletion, Order, OrderAbnormalCase, OrderAttachment,
+		OrderAttachmentAsset, OrderCargoCategory, OrderCargoItem,
 		OrderCommissionAttribution, OrderContainer, OrderContainerRequest, OrderFee,
 		OrderFeeCorrectionRequest, OrderFeeReviewEvent, OrderFeeSupplementRequest,
 		OrderLifecycleEvent, OrderLockHouseBillSnapshot, OrderLockRecord,

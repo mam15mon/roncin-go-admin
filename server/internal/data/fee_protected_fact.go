@@ -12,6 +12,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceexemption"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeverification"
@@ -22,13 +23,14 @@ import (
 // feeHasProtectedFinanceFact 判断费用是否受后续财务事实保护（此时禁止按订单日期变化自动重取汇率）。
 // 判定是账单级的：费用所在有效账单（活动账单行且账单未取消）上只要存在下列任一有效事实即受保护，
 // 不要求事实逐行落到该费用上：
+//
 //   - 发票：活动开票关联且发票状态为 DRAFT 或 ISSUED（CANCELLED、RED_FLUSHED 不算）；
+//
 //   - 核销：活动核销分摊且核销单为 ACTIVE；
+//
 //   - 对冲：活动对冲分摊且对冲单为 CONFIRMED（草稿对冲不算）。
 //
-// 扩展点：发票任务引入「无需发票」标记后，在 protectedFinanceFactPredicate 追加一项
-// 「账单存在有效无需发票标记」条件，并在 loadFinanceBillFeeLockFacts 产出
-// biz.FinanceBillFeeLockInvoiceExemption；标记模型落地前不创建字段、不产生该事实。
+//   - 免票：存在未撤销的无需发票决定。
 //
 // 口径分层（同一组事实，按用途取舍）：
 //   - 受保护事实（本谓词）：费用汇率联动与账单字段修改共用，草稿对冲不计入；
@@ -72,6 +74,7 @@ func (r *financeBillRepo) HasProtectedFinanceFact(ctx context.Context, billID uu
 // protectedFinanceFactPredicate 是账单级「受保护财务事实」谓词，见 feeHasProtectedFinanceFact。
 func protectedFinanceFactPredicate() predicate.FinanceBill {
 	return financebill.Or(
+		financebill.HasInvoiceExemptionsWith(financeinvoiceexemption.RevokedAtIsNil()),
 		financebill.HasInvoiceLinksWith(
 			financeinvoicebill.ActiveEQ(true),
 			financeinvoicebill.HasInvoiceWith(financeinvoice.StatusIn(financeinvoice.StatusDRAFT, financeinvoice.StatusISSUED)),
@@ -97,7 +100,7 @@ func billFeeLockFacts(ctx context.Context, client *ent.Client, billID uuid.UUID)
 	return facts[billID], nil
 }
 
-// loadFinanceBillFeeLockFacts 批量读取账单的费用锁定事实与有效发票登记额，固定 4 次查询、无逐行 N+1：
+// loadFinanceBillFeeLockFacts 批量读取账单的费用锁定事实与有效发票登记额，固定 5 次查询、无逐行 N+1：
 //   - INVOICE：活动开票关联且发票为 DRAFT/ISSUED；同一查询累计登记额（开票进度的 invoiced）；
 //   - VERIFICATION：活动核销分摊且核销单 ACTIVE；
 //   - NETTING：活动对冲分摊且对冲单 CONFIRMED；
@@ -140,6 +143,7 @@ func loadFinanceBillFeeLockFacts(ctx context.Context, client *ent.Client, billID
 		fact      biz.FinanceBillFeeLockFact
 		predicate predicate.FinanceBill
 	}{
+		{biz.FinanceBillFeeLockInvoiceExemption, financebill.HasInvoiceExemptionsWith(financeinvoiceexemption.RevokedAtIsNil())},
 		{biz.FinanceBillFeeLockVerification, financebill.HasVerificationAllocationsWith(
 			financeverificationallocation.ActiveEQ(true),
 			financeverificationallocation.HasVerificationWith(financeverification.StatusEQ(financeverification.StatusACTIVE)),

@@ -43,6 +43,8 @@ type OrderFee struct {
 	FeeName string `json:"fee_name,omitempty"`
 	// FeeNameEn holds the value of the "fee_name_en" field.
 	FeeNameEn *string `json:"fee_name_en,omitempty"`
+	// SearchKeywords holds the value of the "search_keywords" field.
+	SearchKeywords string `json:"search_keywords,omitempty"`
 	// SettlementPartyID holds the value of the "settlement_party_id" field.
 	SettlementPartyID uuid.UUID `json:"settlement_party_id,omitempty"`
 	// BillingUnitID holds the value of the "billing_unit_id" field.
@@ -271,7 +273,7 @@ func (*OrderFee) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case orderfee.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case orderfee.FieldIdempotencyKey, orderfee.FieldDirection, orderfee.FieldFeeCode, orderfee.FieldFeeName, orderfee.FieldFeeNameEn, orderfee.FieldBillingUnit, orderfee.FieldTaxRate, orderfee.FieldTaxableServiceName, orderfee.FieldQuantity, orderfee.FieldUnitPrice, orderfee.FieldTotalAmount, orderfee.FieldNetAmount, orderfee.FieldTaxAmount, orderfee.FieldCurrency, orderfee.FieldExchangeRate, orderfee.FieldExchangeRateSource, orderfee.FieldExchangeRateDate, orderfee.FieldBaseCurrency, orderfee.FieldBaseCurrencyAmount, orderfee.FieldNote, orderfee.FieldEconomicEffect:
+		case orderfee.FieldIdempotencyKey, orderfee.FieldDirection, orderfee.FieldFeeCode, orderfee.FieldFeeName, orderfee.FieldFeeNameEn, orderfee.FieldSearchKeywords, orderfee.FieldBillingUnit, orderfee.FieldTaxRate, orderfee.FieldTaxableServiceName, orderfee.FieldQuantity, orderfee.FieldUnitPrice, orderfee.FieldTotalAmount, orderfee.FieldNetAmount, orderfee.FieldTaxAmount, orderfee.FieldCurrency, orderfee.FieldExchangeRate, orderfee.FieldExchangeRateSource, orderfee.FieldExchangeRateDate, orderfee.FieldBaseCurrency, orderfee.FieldBaseCurrencyAmount, orderfee.FieldNote, orderfee.FieldEconomicEffect:
 			values[i] = new(sql.NullString)
 		case orderfee.FieldCreatedAt, orderfee.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -353,6 +355,12 @@ func (_m *OrderFee) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.FeeNameEn = new(string)
 				*_m.FeeNameEn = value.String
+			}
+		case orderfee.FieldSearchKeywords:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field search_keywords", values[i])
+			} else if value.Valid {
+				_m.SearchKeywords = value.String
 			}
 		case orderfee.FieldSettlementPartyID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -652,6 +660,9 @@ func (_m *OrderFee) String() string {
 		builder.WriteString("fee_name_en=")
 		builder.WriteString(*v)
 	}
+	builder.WriteString(", ")
+	builder.WriteString("search_keywords=")
+	builder.WriteString(_m.SearchKeywords)
 	builder.WriteString(", ")
 	builder.WriteString("settlement_party_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.SettlementPartyID))

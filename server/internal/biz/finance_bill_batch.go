@@ -9,6 +9,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 )
@@ -62,7 +63,6 @@ func buildConfiguredFinanceBillGroups(organizationID uuid.UUID, fees []*FinanceB
 	ordered := append([]*FinanceBillableFee(nil), fees...)
 	sort.Slice(ordered, func(i, j int) bool { return ordered[i].Fee.ID.String() < ordered[j].Fee.ID.String() })
 	seen := make(map[uuid.UUID]struct{}, len(ordered))
-	var direction OrderFeeDirection
 	groupsByRawKey := make(map[string]*FinanceBillBatchPreviewGroup)
 	rawKeys := make([]string, 0)
 	for _, item := range ordered {
@@ -74,15 +74,8 @@ func buildConfiguredFinanceBillGroups(organizationID uuid.UUID, fees []*FinanceB
 			return nil, ErrFinanceBillInvalidArgument
 		}
 		seen[fee.ID] = struct{}{}
-		// 普通模式一次建账只允许单一收付方向；对冲模式允许混合方向，但方向仍参与叶子身份，
-		// 应收、应付费用分别形成各自的原始账单叶子。
-		if policy.Mode == "NORMAL" {
-			if direction == "" {
-				direction = SettlementDirection(fee)
-			} else if direction != SettlementDirection(fee) {
-				return nil, ErrFinanceBillMixedDirection
-			}
-		}
+		// 分组固定维度为「公司＋收付方向＋币种＋结算对象」（公司即请求公司）：同一请求可同时含应收、应付，
+		// 方向不同必然落在不同组，每组只有单一方向；税率、订单是组内可选细分，默认关闭。
 		// 普通账单始终以费用币种拆分；币种是叶子身份的一部分，不能由请求覆盖。
 		parts := []string{string(SettlementDirection(fee)), string(FinanceBillPurposeForFee(fee)), fee.SettlementPartyID.String(), fee.Currency, fee.BaseCurrency}
 		if fee.SourceFeeID != nil && fee.CorrectionRequestID != nil {
@@ -217,7 +210,6 @@ func (uc *FinanceBillUsecase) buildConfiguredFinanceBillBatchPreview(ctx context
 		return nil, err
 	}
 
-	complete := true
 	for _, group := range preview.Groups {
 		if strings.TrimSpace(group.BillDate) == "" {
 			group.TemporaryBillDate = true
@@ -236,7 +228,6 @@ func (uc *FinanceBillUsecase) buildConfiguredFinanceBillBatchPreview(ctx context
 			group.EstimatedInvoiceRate = estimatedRate
 			group.EstimatedInvoiceAmount = estimatedAmount
 			group.ConfigurationComplete = false
-			complete = false
 			continue
 		}
 		bill, buildErr := uc.buildFixedCurrencyFinanceBill(ctx, organizationID, group, group.BillDate)
@@ -258,19 +249,15 @@ func (uc *FinanceBillUsecase) buildConfiguredFinanceBillBatchPreview(ctx context
 		group.BaseCurrencyAmount = bill.BaseCurrencyAmount
 		if group.BillDate == "" || group.SettlementAccountID == uuid.Nil {
 			group.ConfigurationComplete = false
-			complete = false
 			continue
 		}
 		group.ConfigurationComplete = true
+		// 令牌只摘要本组事实与配置，不含其他组：单组重算结果与整批预览一致。
+		group.GroupToken = financeBillGroupToken(organizationID, input.GroupingPolicy, group)
 	}
 	if input.GroupingPolicy.Mode == "NETTING" {
 		preview.NettingPairs = buildFinanceNettingPairs(preview.Groups)
 	}
-	if !complete {
-		preview.PreviewToken = ""
-		return preview, nil
-	}
-	preview.PreviewToken = financeBillConfiguredPreviewToken(organizationID, input.GroupingPolicy, preview.Groups)
 	return preview, nil
 }
 
@@ -469,32 +456,32 @@ func financeBillEstimatedInvoiceSnapshot(billCurrency string, totalAmount decima
 	return estimatedCurrency, estimatedRate, totalAmount.Mul(estimatedRate).RoundBank(8), nil
 }
 
-func financeBillConfiguredPreviewToken(organizationID uuid.UUID, policy FinanceBillGroupingPolicy, groups []*FinanceBillBatchPreviewGroup) string {
+// financeBillGroupToken 摘要单组的费用 ID、版本、金额与叶子配置；组织与拆单策略参与摘要，
+// 防止跨公司或换策略复用令牌。
+func financeBillGroupToken(organizationID uuid.UUID, policy FinanceBillGroupingPolicy, group *FinanceBillBatchPreviewGroup) string {
 	builder := strings.Builder{}
 	writeFinanceHashParts(&builder, organizationID.String(), policy.Mode, strconv.FormatBool(policy.SplitByTaxRate), strconv.FormatBool(policy.SplitByOrder))
-	for _, group := range groups {
-		bill := group.preparedBill
-		orderID, orderNo, taxRate, headerSettingID := "", "", "", ""
-		if group.OrderID != nil {
-			orderID = group.OrderID.String()
+	bill := group.preparedBill
+	orderID, orderNo, taxRate, headerSettingID := "", "", "", ""
+	if group.OrderID != nil {
+		orderID = group.OrderID.String()
+	}
+	if group.OrderNo != nil {
+		orderNo = *group.OrderNo
+	}
+	if group.TaxRate != nil {
+		taxRate = group.TaxRate.StringFixed(4)
+	}
+	if bill.ExchangeRateSettingID != nil {
+		headerSettingID = bill.ExchangeRateSettingID.String()
+	}
+	writeFinanceHashParts(&builder, group.GroupKey, string(group.Direction), group.SettlementPartyID.String(), group.SettlementPartyName, group.Currency, group.BaseCurrency, orderID, orderNo, taxRate, group.BillDate, group.SettlementAccountID.String(), bill.SettlementAccountName, bill.SettlementAccountHolder, bill.SettlementBankName, bill.SettlementBankAccount, bill.SettlementAccountCurrency, bill.SettlementSwiftCode, bill.ExchangeRate.StringFixed(8), bill.ExchangeRateSource, bill.ExchangeRateDate, headerSettingID, group.EstimatedInvoiceCurrency, group.EstimatedInvoiceRate.StringFixed(8), group.EstimatedInvoiceAmount.StringFixed(8))
+	for _, line := range bill.Lines {
+		lineTaxRate := ""
+		if line.TaxRate != nil {
+			lineTaxRate = line.TaxRate.StringFixed(4)
 		}
-		if group.OrderNo != nil {
-			orderNo = *group.OrderNo
-		}
-		if group.TaxRate != nil {
-			taxRate = group.TaxRate.StringFixed(4)
-		}
-		if bill.ExchangeRateSettingID != nil {
-			headerSettingID = bill.ExchangeRateSettingID.String()
-		}
-		writeFinanceHashParts(&builder, group.GroupKey, string(group.Direction), group.SettlementPartyID.String(), group.SettlementPartyName, group.Currency, group.BaseCurrency, orderID, orderNo, taxRate, group.BillDate, group.SettlementAccountID.String(), bill.SettlementAccountName, bill.SettlementAccountHolder, bill.SettlementBankName, bill.SettlementBankAccount, bill.SettlementAccountCurrency, bill.SettlementSwiftCode, bill.ExchangeRate.StringFixed(8), bill.ExchangeRateSource, bill.ExchangeRateDate, headerSettingID, group.EstimatedInvoiceCurrency, group.EstimatedInvoiceRate.StringFixed(8), group.EstimatedInvoiceAmount.StringFixed(8))
-		for _, line := range bill.Lines {
-			taxRate := ""
-			if line.TaxRate != nil {
-				taxRate = line.TaxRate.StringFixed(4)
-			}
-			writeFinanceHashParts(&builder, line.OrderFeeID.String(), line.OrderID.String(), line.OrderNo, line.BusinessType, line.FeeCode, line.FeeName, taxRate, line.Currency, line.TotalAmount.StringFixed(8), line.NetAmount.StringFixed(8), line.TaxAmount.StringFixed(8), line.ExchangeRate.StringFixed(8), line.BaseCurrencyAmount.StringFixed(8), strconv.FormatUint(financeBillFeeVersion(group.Fees, line.OrderFeeID), 10))
-		}
+		writeFinanceHashParts(&builder, line.OrderFeeID.String(), line.OrderID.String(), line.OrderNo, line.BusinessType, line.FeeCode, line.FeeName, lineTaxRate, line.Currency, line.TotalAmount.StringFixed(8), line.NetAmount.StringFixed(8), line.TaxAmount.StringFixed(8), line.ExchangeRate.StringFixed(8), line.BaseCurrencyAmount.StringFixed(8), strconv.FormatUint(financeBillFeeVersion(group.Fees, line.OrderFeeID), 10))
 	}
 	return financeSHA256(builder.String())
 }
@@ -515,139 +502,317 @@ func financeBillFeeByID(items []*FinanceBillableFee, id uuid.UUID) *OrderFee {
 	return nil
 }
 
-func (uc *FinanceBillUsecase) CreateBatch(ctx context.Context, organizationID, actorID uuid.UUID, input CreateFinanceBillBatchInput) (*FinanceBillBatch, error) {
-	feeIDs, err := normalizeFinanceBillFeeIDs(input.FeeIDs)
-	if err != nil || organizationID == uuid.Nil || actorID == uuid.Nil {
+// CreateBatch 按建账模式提交批量建账：
+//   - 普通模式（NORMAL）：批次头独立短事务写入，随后按 group_key 升序逐组独立 WithinTransaction；
+//     某组失败不回滚其他组，逐组结果写入 Groups。组与组串行处理，不同时持有跨组锁。
+//   - 对冲模式（NETTING）：双方账单与草稿对冲单依赖整批原子，批次头、全部账单和对冲单同一事务，
+//     任一组失败整批返回错误。
+//
+// 同幂等键、同请求摘要重发：已成功的组按派生幂等键原样返回，失败的组重新尝试；
+// 同幂等键、不同请求摘要返回批次冲突。
+func (uc *FinanceBillUsecase) CreateBatch(ctx context.Context, organizationID, actorID uuid.UUID, input CreateFinanceBillBatchInput) (*FinanceBillBatchCreateResult, error) {
+	input.IdempotencyKey = strings.TrimSpace(input.IdempotencyKey)
+	if organizationID == uuid.Nil || actorID == uuid.Nil || input.IdempotencyKey == "" || utf8.RuneCountInString(input.IdempotencyKey) > 128 || len(input.Groups) == 0 {
 		return nil, ErrFinanceBillInvalidArgument
 	}
-	input.FeeIDs = feeIDs
-	input.PreviewToken = strings.TrimSpace(input.PreviewToken)
-	input.IdempotencyKey = strings.TrimSpace(input.IdempotencyKey)
-	if input.PreviewToken == "" || len(input.PreviewToken) != 64 || input.IdempotencyKey == "" || utf8.RuneCountInString(input.IdempotencyKey) > 128 || len(input.Groups) == 0 || len(input.Groups) > len(input.FeeIDs) {
-		return nil, ErrFinanceBillInvalidArgument
+	if input.GroupingPolicy.Mode != "NORMAL" && input.GroupingPolicy.Mode != "NETTING" {
+		return nil, ErrFinanceBillGroupingModeUnsupported
 	}
 	normalizedGroups, err := normalizeFinanceBillBatchGroups(input.Groups)
 	if err != nil {
 		return nil, err
 	}
 	input.Groups = normalizedGroups
-	requestHash := financeBillBatchRequestHash(input)
-	if existing, lookupErr := uc.repo.GetBatchByIdempotencyKey(ctx, organizationID, input.IdempotencyKey); lookupErr != nil {
-		return nil, lookupErr
-	} else if existing != nil {
-		if existing.RequestHash == requestHash {
-			return existing, nil
-		}
-		return nil, ErrFinanceBillBatchConflict
-	}
 	if uc.transactor == nil {
 		return nil, ErrFinanceBillInvalidArgument
 	}
-	err = uc.transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
-		fees, transactionErr := uc.repo.LoadBillableFees(txCtx, organizationID, input.FeeIDs)
-		if transactionErr != nil {
-			return transactionErr
-		}
-		if len(fees) != len(input.FeeIDs) {
-			return ErrFinanceBillFeeInvalid
-		}
-		groupConfigs := make([]FinanceBillBatchPreviewGroupConfig, 0, len(input.Groups))
-		for _, group := range input.Groups {
-			groupConfigs = append(groupConfigs, FinanceBillBatchPreviewGroupConfig{
-				GroupKey: group.GroupKey, BillDate: group.BillDate,
-				SettlementAccountID:      group.SettlementAccountID,
-				EstimatedInvoiceCurrency: group.EstimatedInvoiceCurrency, EstimatedInvoiceRate: group.EstimatedInvoiceRate,
-			})
-		}
-		previewInput := PreviewFinanceBillBatchInput{FeeIDs: input.FeeIDs, GroupingPolicy: input.GroupingPolicy, GroupConfigs: groupConfigs}
-		preview, transactionErr := uc.buildConfiguredFinanceBillBatchPreview(txCtx, organizationID, fees, previewInput)
-		if transactionErr != nil {
-			return transactionErr
-		}
-		if preview.PreviewToken == "" || preview.PreviewToken != input.PreviewToken {
-			return ErrFinanceBillPreviewStale
-		}
-		groupInputs := make(map[string]CreateFinanceBillBatchGroupInput, len(input.Groups))
-		for _, group := range input.Groups {
-			groupInputs[group.GroupKey] = group
-		}
-		batchID := uuid.Must(uuid.NewV7())
-		batch := &FinanceBillBatch{ID: batchID, OrganizationID: organizationID, CreatedBy: actorID, IdempotencyKey: input.IdempotencyKey, RequestHash: requestHash, GroupingPolicy: input.GroupingPolicy, FeeCount: len(input.FeeIDs), BillCount: len(preview.Groups), Bills: make([]*FinanceBill, 0, len(preview.Groups))}
-		for _, previewGroup := range preview.Groups {
-			groupInput, ok := groupInputs[previewGroup.GroupKey]
-			if !ok || previewGroup.preparedBill == nil {
-				return ErrFinanceBillBatchMismatch
-			}
-			delete(groupInputs, previewGroup.GroupKey)
-			bill := previewGroup.preparedBill
-			bill.ID = uuid.Must(uuid.NewV7())
-			bill.BatchID = &batchID
-			bill.IdempotencyKey = financeBillBatchBillKey(input.IdempotencyKey, previewGroup.GroupKey)
-			// 账单免人工确认：创建人即确认人。
-			bill.Status, bill.ConfirmedBy = FinanceBillConfirmed, &actorID
-			title := groupInput.StatementTitle
-			bill.StatementTitle = &title
-			// 服务端兜底注入（design 决策 A）：请求未显式提供账期且未提供到期日时，
-			// 按预览同口径注入默认账期并联动到期日；显式账期（含 0）与显式到期日均不覆盖。
-			paymentTermsDays := groupInput.PaymentTermsDays
-			if paymentTermsDays == nil && groupInput.DueDate == nil {
-				paymentTermsDays = previewGroup.DefaultPaymentTermsDays
-			}
-			bill.PaymentTermsDays = paymentTermsDays
-			bill.DueDate = normalizedFinanceBillDueDate(groupInput.BillDate, groupInput.DueDate, paymentTermsDays)
-			bill.Note = normalizedOptionalFinanceString(groupInput.Note)
-			for _, line := range bill.Lines {
-				line.ID = uuid.Must(uuid.NewV7())
-				line.BillID = bill.ID
-			}
-			if !validFinanceBillTerms(bill.BillDate, bill.DueDate, bill.PaymentTermsDays) {
-				return ErrFinanceBillInvalidArgument
-			}
-			batch.Bills = append(batch.Bills, bill)
-			batch.TotalBaseAmount = batch.TotalBaseAmount.Add(bill.BaseCurrencyAmount)
-			if batch.BaseCurrency == "" {
-				batch.BaseCurrency = bill.BaseCurrency
-			} else if batch.BaseCurrency != bill.BaseCurrency {
-				return ErrFinanceBillBatchMismatch
-			}
-		}
-		if len(groupInputs) != 0 {
-			return ErrFinanceBillBatchMismatch
-		}
-		batch.TotalBaseAmount = batch.TotalBaseAmount.RoundBank(8)
-		nettingAudits := make([]*AuditEvent, 0)
-		if input.GroupingPolicy.Mode == "NETTING" {
-			// 对冲批次在同一事务内原子生成双方原始账单与对冲结算单；对冲单初始为草稿，
-			// 账单创建即为已确认状态，对冲单仍需单独确认生效。
-			nettings, planErr := planBatchFinanceNettings(organizationID, batchID, input.IdempotencyKey, batch.Bills)
-			if planErr != nil {
-				return planErr
-			}
-			batch.Nettings = nettings
-			for _, netting := range nettings {
-				nettingAudits = append(nettingAudits, financeNettingAudit(organizationID, actorID, netting.ID, "finance.netting.create"))
-			}
-		}
-		_, transactionErr = uc.repo.CreateBatch(txCtx, batch, input.PreviewToken, financeBillBatchAudit(organizationID, actorID, batchID, "finance.bill_batch.create"), nettingAudits)
-		return transactionErr
-	})
-	if err == nil {
-		createdBatch, lookupErr := uc.repo.GetBatchByIdempotencyKey(ctx, organizationID, input.IdempotencyKey)
-		if lookupErr == nil && createdBatch != nil {
-		}
-		return createdBatch, lookupErr
+	requestHash := financeBillBatchRequestHash(input)
+	if input.GroupingPolicy.Mode == "NETTING" {
+		return uc.createNettingFinanceBillBatch(ctx, organizationID, actorID, input, requestHash)
 	}
-	if existing, lookupErr := uc.repo.GetBatchByIdempotencyKey(ctx, organizationID, input.IdempotencyKey); lookupErr == nil && existing != nil && existing.RequestHash == requestHash {
+	return uc.createNormalFinanceBillBatch(ctx, organizationID, actorID, input, requestHash)
+}
+
+func (uc *FinanceBillUsecase) createNettingFinanceBillBatch(ctx context.Context, organizationID, actorID uuid.UUID, input CreateFinanceBillBatchInput, requestHash string) (*FinanceBillBatchCreateResult, error) {
+	existing, err := uc.repo.GetBatchByIdempotencyKey(ctx, organizationID, input.IdempotencyKey)
+	if err != nil {
+		return nil, err
+	}
+	if existing != nil {
+		return financeBillBatchReplay(existing, input, requestHash)
+	}
+	feeIDs := financeBillBatchFeeIDs(input.Groups)
+	err = uc.transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
+		batchID := uuid.Must(uuid.NewV7())
+		bills, prepareErr := uc.prepareFinanceBillBatchBills(txCtx, organizationID, actorID, batchID, input, input.Groups, feeIDs)
+		if prepareErr != nil {
+			return prepareErr
+		}
+		// 对冲批次在同一事务内原子生成双方原始账单与对冲结算单；对冲单初始为草稿，需单独确认生效。
+		nettings, planErr := planBatchFinanceNettings(organizationID, batchID, input.IdempotencyKey, bills)
+		if planErr != nil {
+			return planErr
+		}
+		nettingAudits := make([]*AuditEvent, 0, len(nettings))
+		for _, netting := range nettings {
+			nettingAudits = append(nettingAudits, financeNettingAudit(organizationID, actorID, netting.ID, "finance.netting.create"))
+		}
+		batch := &FinanceBillBatch{ID: batchID, OrganizationID: organizationID, CreatedBy: actorID, IdempotencyKey: input.IdempotencyKey, RequestHash: requestHash, GroupingPolicy: input.GroupingPolicy}
+		return uc.repo.CreateBatchBills(txCtx, FinanceBillBatchWrite{
+			Batch: batch, ActorID: actorID, CreateHead: true, HeadAudit: financeBillBatchAudit(organizationID, actorID, batchID, "finance.bill_batch.create"),
+			Bills: bills, BillAudits: financeBillBatchBillAudits(organizationID, actorID, batchID, bills),
+			Nettings: nettings, NettingAudits: nettingAudits,
+		})
+	})
+	if err != nil {
+		// 同键并发请求可能已由另一请求整批建成；摘要一致时回放，不一致时按批次冲突处理。
+		if existing, lookupErr := uc.repo.GetBatchByIdempotencyKey(ctx, organizationID, input.IdempotencyKey); lookupErr == nil && existing != nil {
+			return financeBillBatchReplay(existing, input, requestHash)
+		}
+		return nil, err
+	}
+	created, err := uc.repo.GetBatchByIdempotencyKey(ctx, organizationID, input.IdempotencyKey)
+	if err != nil {
+		return nil, err
+	}
+	if created == nil {
+		return nil, ErrFinanceBillNotFound
+	}
+	return financeBillBatchReplay(created, input, requestHash)
+}
+
+// financeBillBatchReplay 以已提交批次回放对冲整批结果：每组账单按派生幂等键定位。
+func financeBillBatchReplay(batch *FinanceBillBatch, input CreateFinanceBillBatchInput, requestHash string) (*FinanceBillBatchCreateResult, error) {
+	if batch.RequestHash != requestHash {
+		return nil, ErrFinanceBillBatchConflict
+	}
+	billsByKey := make(map[string]*FinanceBill, len(batch.Bills))
+	for _, bill := range batch.Bills {
+		billsByKey[bill.IdempotencyKey] = bill
+	}
+	result := &FinanceBillBatchCreateResult{Batch: batch, Groups: make([]*FinanceBillBatchGroupResult, 0, len(input.Groups))}
+	for _, group := range input.Groups {
+		bill := billsByKey[financeBillBatchBillKey(input.IdempotencyKey, group.GroupKey)]
+		if bill == nil {
+			return nil, ErrFinanceBillBatchMismatch
+		}
+		result.Groups = append(result.Groups, &FinanceBillBatchGroupResult{GroupKey: group.GroupKey, Bill: bill})
+	}
+	return result, nil
+}
+
+func (uc *FinanceBillUsecase) createNormalFinanceBillBatch(ctx context.Context, organizationID, actorID uuid.UUID, input CreateFinanceBillBatchInput, requestHash string) (*FinanceBillBatchCreateResult, error) {
+	head, err := uc.ensureFinanceBillBatchHead(ctx, organizationID, actorID, input, requestHash)
+	if err != nil {
+		return nil, err
+	}
+	groups := make([]*FinanceBillBatchGroupResult, 0, len(input.Groups))
+	for _, group := range input.Groups {
+		result := uc.createFinanceBillBatchGroup(ctx, organizationID, actorID, head, input, group)
+		// 请求已取消或超时时不再继续后续组；客户端以同键重发即可续做。
+		if result.Err != nil && ctx.Err() != nil {
+			return nil, ctx.Err()
+		}
+		groups = append(groups, result)
+	}
+	batch, err := uc.repo.GetBatchByIdempotencyKey(ctx, organizationID, input.IdempotencyKey)
+	if err != nil {
+		return nil, err
+	}
+	if batch == nil {
+		return nil, ErrFinanceBillNotFound
+	}
+	return &FinanceBillBatchCreateResult{Batch: batch, Groups: groups}, nil
+}
+
+// ensureFinanceBillBatchHead 返回同幂等键的已有批次头或以独立短事务新建；并发同键创建以唯一索引兜底。
+func (uc *FinanceBillUsecase) ensureFinanceBillBatchHead(ctx context.Context, organizationID, actorID uuid.UUID, input CreateFinanceBillBatchInput, requestHash string) (*FinanceBillBatch, error) {
+	existing, err := uc.repo.GetBatchByIdempotencyKey(ctx, organizationID, input.IdempotencyKey)
+	if err != nil {
+		return nil, err
+	}
+	if existing != nil {
+		if existing.RequestHash != requestHash {
+			return nil, ErrFinanceBillBatchConflict
+		}
 		return existing, nil
 	}
-	return nil, err
+	batchID := uuid.Must(uuid.NewV7())
+	batch := &FinanceBillBatch{ID: batchID, OrganizationID: organizationID, CreatedBy: actorID, IdempotencyKey: input.IdempotencyKey, RequestHash: requestHash, GroupingPolicy: input.GroupingPolicy}
+	created, err := uc.repo.CreateBatchHead(ctx, batch, financeBillBatchAudit(organizationID, actorID, batchID, "finance.bill_batch.create"))
+	if err != nil {
+		if existing, lookupErr := uc.repo.GetBatchByIdempotencyKey(ctx, organizationID, input.IdempotencyKey); lookupErr == nil && existing != nil {
+			if existing.RequestHash != requestHash {
+				return nil, ErrFinanceBillBatchConflict
+			}
+			return existing, nil
+		}
+		return nil, err
+	}
+	return created, nil
+}
+
+// createFinanceBillBatchGroup 在独立事务内创建一组账单；已按派生幂等键建成的组原样返回。
+func (uc *FinanceBillUsecase) createFinanceBillBatchGroup(ctx context.Context, organizationID, actorID uuid.UUID, head *FinanceBillBatch, input CreateFinanceBillBatchInput, group CreateFinanceBillBatchGroupInput) *FinanceBillBatchGroupResult {
+	result := &FinanceBillBatchGroupResult{GroupKey: group.GroupKey}
+	billKey := financeBillBatchBillKey(input.IdempotencyKey, group.GroupKey)
+	existing, err := uc.repo.GetByIdempotencyKey(ctx, organizationID, billKey)
+	if err != nil {
+		result.Err = err
+		return result
+	}
+	if existing != nil {
+		return financeBillBatchGroupReplay(result, existing, head)
+	}
+	err = uc.transactor.WithinTransaction(ctx, func(txCtx context.Context) error {
+		bills, prepareErr := uc.prepareFinanceBillBatchBills(txCtx, organizationID, actorID, head.ID, input, []CreateFinanceBillBatchGroupInput{group}, group.FeeIDs)
+		if prepareErr != nil {
+			return prepareErr
+		}
+		return uc.repo.CreateBatchBills(txCtx, FinanceBillBatchWrite{Batch: head, ActorID: actorID, Bills: bills, BillAudits: financeBillBatchBillAudits(organizationID, actorID, head.ID, bills)})
+	})
+	if err != nil {
+		// 同键并发请求可能已由另一请求建成该组账单。
+		if created, lookupErr := uc.repo.GetByIdempotencyKey(ctx, organizationID, billKey); lookupErr == nil && created != nil {
+			return financeBillBatchGroupReplay(result, created, head)
+		}
+		if uc.logger != nil && errors.FromError(err).Reason == errors.UnknownReason {
+			uc.logger.ErrorContext(ctx, "批量建账单组失败", "batch_id", head.ID.String(), "group_key", group.GroupKey, "error", err)
+		}
+		result.Err = err
+		return result
+	}
+	created, err := uc.repo.GetByIdempotencyKey(ctx, organizationID, billKey)
+	if err != nil {
+		result.Err = err
+		return result
+	}
+	if created == nil {
+		result.Err = ErrFinanceBillNotFound
+		return result
+	}
+	result.Bill = created
+	return result
+}
+
+func financeBillBatchGroupReplay(result *FinanceBillBatchGroupResult, bill *FinanceBill, head *FinanceBillBatch) *FinanceBillBatchGroupResult {
+	if bill.BatchID == nil || *bill.BatchID != head.ID {
+		result.Err = ErrFinanceBillBatchConflict
+		return result
+	}
+	result.Bill = bill
+	return result
+}
+
+// prepareFinanceBillBatchBills 在事务内加锁读取费用、按同一纯分组内核重算预览，逐组比对令牌与费用集合，
+// 再组装待写账单。普通模式每次只传一组；对冲模式传入整批全部组。
+func (uc *FinanceBillUsecase) prepareFinanceBillBatchBills(txCtx context.Context, organizationID, actorID, batchID uuid.UUID, input CreateFinanceBillBatchInput, groups []CreateFinanceBillBatchGroupInput, feeIDs []uuid.UUID) ([]*FinanceBill, error) {
+	fees, err := uc.repo.LoadBillableFees(txCtx, organizationID, feeIDs)
+	if err != nil {
+		return nil, err
+	}
+	if len(fees) != len(feeIDs) {
+		return nil, ErrFinanceBillFeeInvalid
+	}
+	configs := make([]FinanceBillBatchPreviewGroupConfig, 0, len(groups))
+	for _, group := range groups {
+		configs = append(configs, FinanceBillBatchPreviewGroupConfig{
+			GroupKey: group.GroupKey, BillDate: group.BillDate, SettlementAccountID: group.SettlementAccountID,
+			EstimatedInvoiceCurrency: group.EstimatedInvoiceCurrency, EstimatedInvoiceRate: group.EstimatedInvoiceRate,
+		})
+	}
+	preview, err := uc.buildConfiguredFinanceBillBatchPreview(txCtx, organizationID, fees, PreviewFinanceBillBatchInput{FeeIDs: feeIDs, GroupingPolicy: input.GroupingPolicy, GroupConfigs: configs})
+	if err != nil {
+		return nil, err
+	}
+	// 费用事实变化使分组结果与请求不一致（组数、组身份或组内费用不同）时一律视为预览陈旧。
+	if len(preview.Groups) != len(groups) {
+		return nil, ErrFinanceBillPreviewStale
+	}
+	previewByKey := make(map[string]*FinanceBillBatchPreviewGroup, len(preview.Groups))
+	for _, previewGroup := range preview.Groups {
+		previewByKey[previewGroup.GroupKey] = previewGroup
+	}
+	bills := make([]*FinanceBill, 0, len(groups))
+	for _, group := range groups {
+		previewGroup := previewByKey[group.GroupKey]
+		if previewGroup == nil || previewGroup.preparedBill == nil || previewGroup.GroupToken == "" || previewGroup.GroupToken != group.GroupToken || !financeBillGroupFeesMatch(previewGroup.Fees, group.FeeIDs) {
+			return nil, ErrFinanceBillPreviewStale
+		}
+		bill := previewGroup.preparedBill
+		bill.ID = uuid.Must(uuid.NewV7())
+		bill.BatchID = &batchID
+		bill.IdempotencyKey = financeBillBatchBillKey(input.IdempotencyKey, group.GroupKey)
+		// 账单免人工确认：创建人即确认人。
+		bill.Status, bill.ConfirmedBy = FinanceBillConfirmed, &actorID
+		title := group.StatementTitle
+		bill.StatementTitle = &title
+		// 服务端兜底注入（design 决策 A）：请求未显式提供账期且未提供到期日时，
+		// 按预览同口径注入默认账期并联动到期日；显式账期（含 0）与显式到期日均不覆盖。
+		paymentTermsDays := group.PaymentTermsDays
+		if paymentTermsDays == nil && group.DueDate == nil {
+			paymentTermsDays = previewGroup.DefaultPaymentTermsDays
+		}
+		bill.PaymentTermsDays = paymentTermsDays
+		bill.DueDate = normalizedFinanceBillDueDate(group.BillDate, group.DueDate, paymentTermsDays)
+		bill.Note = normalizedOptionalFinanceString(group.Note)
+		for _, line := range bill.Lines {
+			line.ID = uuid.Must(uuid.NewV7())
+			line.BillID = bill.ID
+		}
+		if !validFinanceBillTerms(bill.BillDate, bill.DueDate, bill.PaymentTermsDays) {
+			return nil, ErrFinanceBillInvalidArgument
+		}
+		bills = append(bills, bill)
+	}
+	return bills, nil
+}
+
+func financeBillGroupFeesMatch(fees []*FinanceBillableFee, feeIDs []uuid.UUID) bool {
+	if len(fees) != len(feeIDs) {
+		return false
+	}
+	expected := make(map[uuid.UUID]struct{}, len(feeIDs))
+	for _, id := range feeIDs {
+		expected[id] = struct{}{}
+	}
+	for _, item := range fees {
+		if item == nil || item.Fee == nil {
+			return false
+		}
+		if _, ok := expected[item.Fee.ID]; !ok {
+			return false
+		}
+	}
+	return true
+}
+
+func financeBillBatchFeeIDs(groups []CreateFinanceBillBatchGroupInput) []uuid.UUID {
+	result := make([]uuid.UUID, 0)
+	for _, group := range groups {
+		result = append(result, group.FeeIDs...)
+	}
+	sort.Slice(result, func(i, j int) bool { return result[i].String() < result[j].String() })
+	return result
+}
+
+func financeBillBatchBillAudits(organizationID, actorID, batchID uuid.UUID, bills []*FinanceBill) []*AuditEvent {
+	audits := make([]*AuditEvent, 0, len(bills))
+	for _, bill := range bills {
+		audit := financeBillAudit(organizationID, actorID, bill.ID, "finance.bill.create")
+		audit.Details["finance_bill_batch.id"] = batchID.String()
+		audits = append(audits, audit)
+	}
+	return audits
 }
 
 func normalizeFinanceBillBatchGroups(groups []CreateFinanceBillBatchGroupInput) ([]CreateFinanceBillBatchGroupInput, error) {
 	result := make([]CreateFinanceBillBatchGroupInput, 0, len(groups))
 	seen := make(map[string]struct{}, len(groups))
+	seenFees := make(map[uuid.UUID]struct{})
 	for _, item := range groups {
 		item.GroupKey = strings.TrimSpace(item.GroupKey)
+		item.GroupToken = strings.TrimSpace(item.GroupToken)
 		item.StatementTitle = strings.TrimSpace(item.StatementTitle)
 		item.BillDate = strings.TrimSpace(item.BillDate)
 		if item.EstimatedInvoiceCurrency != nil {
@@ -657,14 +822,29 @@ func normalizeFinanceBillBatchGroups(groups []CreateFinanceBillBatchGroupInput) 
 		item.DueDate = normalizedOptionalFinanceString(item.DueDate)
 		item.Note = normalizedOptionalFinanceString(item.Note)
 		item.DueDate = normalizedFinanceBillDueDate(item.BillDate, item.DueDate, item.PaymentTermsDays)
-		if item.GroupKey == "" || len(item.GroupKey) != 64 || item.SettlementAccountID == uuid.Nil || item.StatementTitle == "" || utf8.RuneCountInString(item.StatementTitle) > 200 || !validFinanceDate(item.BillDate) || !validFinanceBillTerms(item.BillDate, item.DueDate, item.PaymentTermsDays) || (item.Note != nil && utf8.RuneCountInString(*item.Note) > 500) || (item.EstimatedInvoiceCurrency != nil && !financeBillCurrencyPattern.MatchString(*item.EstimatedInvoiceCurrency)) || (item.EstimatedInvoiceRate != nil && (!item.EstimatedInvoiceRate.IsPositive() || item.EstimatedInvoiceRate.Exponent() < -8)) || (item.EstimatedInvoiceRate != nil && item.EstimatedInvoiceCurrency == nil) {
+		if item.GroupKey == "" || len(item.GroupKey) != 64 || len(item.GroupToken) != 64 || item.SettlementAccountID == uuid.Nil || item.StatementTitle == "" || utf8.RuneCountInString(item.StatementTitle) > 200 || !validFinanceDate(item.BillDate) || !validFinanceBillTerms(item.BillDate, item.DueDate, item.PaymentTermsDays) || (item.Note != nil && utf8.RuneCountInString(*item.Note) > 500) || (item.EstimatedInvoiceCurrency != nil && !financeBillCurrencyPattern.MatchString(*item.EstimatedInvoiceCurrency)) || (item.EstimatedInvoiceRate != nil && (!item.EstimatedInvoiceRate.IsPositive() || item.EstimatedInvoiceRate.Exponent() < -8)) || (item.EstimatedInvoiceRate != nil && item.EstimatedInvoiceCurrency == nil) {
 			return nil, ErrFinanceBillInvalidArgument
 		}
+		feeIDs, err := normalizeFinanceBillFeeIDs(item.FeeIDs)
+		if err != nil {
+			return nil, err
+		}
+		for _, id := range feeIDs {
+			if _, exists := seenFees[id]; exists {
+				return nil, ErrFinanceBillInvalidArgument
+			}
+			seenFees[id] = struct{}{}
+		}
+		item.FeeIDs = feeIDs
 		if _, exists := seen[item.GroupKey]; exists {
 			return nil, ErrFinanceBillBatchMismatch
 		}
 		seen[item.GroupKey] = struct{}{}
 		result = append(result, item)
+	}
+	// 与单张建账同一费用上限：一次批量最多 500 笔费用。
+	if len(seenFees) > 500 {
+		return nil, ErrFinanceBillInvalidArgument
 	}
 	sort.Slice(result, func(i, j int) bool { return result[i].GroupKey < result[j].GroupKey })
 	return result, nil
@@ -672,10 +852,7 @@ func normalizeFinanceBillBatchGroups(groups []CreateFinanceBillBatchGroupInput) 
 
 func financeBillBatchRequestHash(input CreateFinanceBillBatchInput) string {
 	builder := strings.Builder{}
-	writeFinanceHashParts(&builder, input.PreviewToken, input.GroupingPolicy.Mode, strconv.FormatBool(input.GroupingPolicy.SplitByOrder), strconv.FormatBool(input.GroupingPolicy.SplitByTaxRate))
-	for _, id := range input.FeeIDs {
-		writeFinanceHashParts(&builder, id.String())
-	}
+	writeFinanceHashParts(&builder, input.GroupingPolicy.Mode, strconv.FormatBool(input.GroupingPolicy.SplitByOrder), strconv.FormatBool(input.GroupingPolicy.SplitByTaxRate))
 	for _, group := range input.Groups {
 		dueDate := ""
 		if group.DueDate != nil {
@@ -696,7 +873,10 @@ func financeBillBatchRequestHash(input CreateFinanceBillBatchInput) string {
 		if group.EstimatedInvoiceRate != nil {
 			estimatedRate = group.EstimatedInvoiceRate.StringFixed(8)
 		}
-		writeFinanceHashParts(&builder, group.GroupKey, group.StatementTitle, group.BillDate, dueDate, paymentTermsDays, note, group.SettlementAccountID.String(), estimatedCurrency, estimatedRate)
+		writeFinanceHashParts(&builder, group.GroupKey, group.GroupToken, group.StatementTitle, group.BillDate, dueDate, paymentTermsDays, note, group.SettlementAccountID.String(), estimatedCurrency, estimatedRate, strconv.Itoa(len(group.FeeIDs)))
+		for _, id := range group.FeeIDs {
+			writeFinanceHashParts(&builder, id.String())
+		}
 	}
 	return financeSHA256(builder.String())
 }

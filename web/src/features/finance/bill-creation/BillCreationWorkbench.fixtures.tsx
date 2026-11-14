@@ -95,7 +95,16 @@ export function resetWorkbenchMocks() {
   mocks.preview.mockReset();
   mocks.create.mockReset();
   mocks.accounts.mockReset();
-  mocks.create.mockResolvedValue({ data: { id: 'batch-1', bills: [] } });
+  mocks.create.mockImplementation(
+    async (request: API.CreateBillBatchRequest) => ({
+      data: { id: 'batch-1', bills: [] },
+      results: request.groups.map((group) => ({
+        groupKey: group.groupKey,
+        success: true,
+        bill: { id: `bill-${group.groupKey}`, billNo: `B-${group.groupKey}` },
+      })),
+    }),
+  );
   mocks.organizations.mockResolvedValue({
     data: [
       { id: 'A', name: '公司A' },
@@ -150,7 +159,7 @@ export const singlePreviewGroup = {
   estimatedInvoiceRate: '1',
   estimatedInvoiceAmount: '100.00',
   configurationComplete: true,
-  fees: [],
+  fees: [{ id: 'fee-A', feeName: '海运费' }],
 };
 
 export function pickBillDate(isoDate: string) {

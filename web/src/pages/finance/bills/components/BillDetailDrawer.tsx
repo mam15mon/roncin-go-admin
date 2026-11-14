@@ -11,6 +11,9 @@ import { FinanceBillStatus } from '@/enums.generated';
 import { billStatusMeta } from '@/features/finance/bill-status';
 import { formatAmount, trimDecimal } from '@/utils/format';
 import BillFeeMaintenance from './BillFeeMaintenance';
+import BillInvoiceExemptionSection, {
+  type BillInvoiceExemptionActions,
+} from './BillInvoiceExemptionSection';
 
 interface BillDetailDrawerProps {
   open: boolean;
@@ -18,6 +21,7 @@ interface BillDetailDrawerProps {
   detail?: API.FinanceBill;
   onClose: () => void;
   /** 具备账单编辑权限时提供：在账单行上启用费用增删。 */
+  invoiceExemptionActions?: BillInvoiceExemptionActions;
   feeMaintenance?: {
     onUpdated: (bill: API.FinanceBill) => void;
     onRefresh: () => void;
@@ -30,6 +34,7 @@ export default function BillDetailDrawer({
   detail,
   onClose,
   feeMaintenance,
+  invoiceExemptionActions,
 }: BillDetailDrawerProps) {
   const lineColumns: TableColumnsType<API.FinanceBillLine> = [
     { title: '订单编号', dataIndex: 'orderNo', width: 150 },
@@ -260,6 +265,10 @@ export default function BillDetailDrawer({
               columns={lineColumnSettings.columns}
             />
           )}
+          <BillInvoiceExemptionSection
+            bill={detail}
+            actions={open ? invoiceExemptionActions : undefined}
+          />
         </>
       )}
     </DescriptionsDetailDrawer>

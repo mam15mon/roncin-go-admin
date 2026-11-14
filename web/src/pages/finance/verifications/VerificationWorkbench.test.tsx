@@ -33,6 +33,8 @@ vi.mock('@/app/AppProvider', () => ({
 vi.mock('@/app/access', () => ({
   useAccess: () => ({
     canCreateFinanceVerifications: serviceMocks.canOperate,
+    canCreateFinanceCashflows: serviceMocks.canOperate,
+    canUpdateFinanceCashflows: serviceMocks.canOperate,
     canOperateOrganization: (id?: string) =>
       serviceMocks.canOperate &&
       Boolean(id) &&
@@ -174,7 +176,13 @@ vi.mock('antd', async () => {
     Tooltip: passthrough,
     Typography: { Text: passthrough },
     // 统一列设置浮层内容在组件渲染期即会取用以下导出（浮层关闭时不实际展示）。
-    Checkbox: passthrough,
+    Checkbox: ({ children, checked, onChange }: any) =>
+      React.createElement(
+        'label',
+        null,
+        React.createElement('input', { type: 'checkbox', checked, onChange }),
+        children,
+      ),
     Radio: Object.assign(passthrough, { Group: passthrough }),
     Tabs: () => null,
     Popover: () => null,
@@ -505,5 +513,268 @@ describe('核销创建工作台组织候选', () => {
     expect(getAnyDirtyTabKey()).toBe('/finance/verifications');
     view.unmount();
     expect(getAnyDirtyTabKey()).toBeUndefined();
+  });
+  it('补录差额只在最终核销提交且失败重试沿用同一意图键', async () => {
+    serviceMocks.listVerificationCreationCandidates.mockResolvedValue({
+      data: {
+        cashflows: [
+          {
+            id: 'cashflow-a',
+            flowNo: 'FLOW-A',
+            unverifiedAmount: '600',
+            organizationId: 'organization-a',
+          },
+        ],
+        bills: [
+          {
+            id: 'bill-a',
+            billNo: 'BILL-A',
+            unverifiedAmount: '1000',
+            organizationId: 'organization-a',
+          },
+        ],
+      },
+    });
+    serviceMocks.createVerification
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce({ data: { id: 'verification-new' } });
+    const onClose = vi.fn();
+    renderWithClient(
+      <App>
+        <VerificationWorkbench open onClose={onClose} onCreated={vi.fn()} />
+      </App>,
+    );
+    await selectOrganizationAndParty('公司 A');
+    const cashRow = (await screen.findByText('FLOW-A')).closest('tr');
+    const billRow = screen.getByText('BILL-A').closest('tr');
+    if (!cashRow || !billRow) throw new Error('候选行不存在');
+    fireEvent.click(within(cashRow).getByRole('checkbox'));
+    fireEvent.click(within(billRow).getByRole('checkbox'));
+    fireEvent.click(screen.getByRole('checkbox', { name: /补录差额收付款/ }));
+    fireEvent.click(screen.getByRole('button', { name: '按已选余额填写差额' }));
+    fireEvent.change(screen.getByLabelText('差额我方账户'), {
+      target: { value: '差额账户' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /按余额自动分配/ }));
+    expect(serviceMocks.createVerification).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: /提交核销/ }));
+    await waitFor(() =>
+      expect(serviceMocks.createVerification).toHaveBeenCalledTimes(1),
+    );
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('差额我方账户')).toHaveValue('差额账户');
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /提交核销/ })).toBeEnabled(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: /提交核销/ }));
+    await waitFor(() =>
+      expect(serviceMocks.createVerification).toHaveBeenCalledTimes(2),
+    );
+    const [first] = serviceMocks.createVerification.mock.calls[0];
+    const [second] = serviceMocks.createVerification.mock.calls[1];
+    expect(first.idempotencyKey).toBe(second.idempotencyKey);
+    expect(first.shortfallCashflow).toEqual(
+      expect.objectContaining({
+        amount: '400',
+        organizationId: 'organization-a',
+        ourAccount: '差额账户',
+      }),
+    );
+    expect(first.allocations).toEqual([
+      { cashflowId: 'cashflow-a', billId: 'bill-a', amount: '600.00000000' },
+      { cashflowId: '', billId: 'bill-a', amount: '400.00000000' },
+    ]);
+    await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
+  });
+
+  it('取消差额输入不会创建流水或核销', async () => {
+    const onClose = vi.fn();
+    renderWithClient(
+      <App>
+        <VerificationWorkbench open onClose={onClose} onCreated={vi.fn()} />
+      </App>,
+    );
+    await selectOrganizationAndParty('公司 A');
+    fireEvent.click(screen.getByRole('checkbox', { name: /补录差额收付款/ }));
+    fireEvent.change(screen.getByLabelText('差额金额'), {
+      target: { value: '400' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '取消' }));
+    expect(onClose).toHaveBeenCalledOnce();
+    expect(serviceMocks.createVerification).not.toHaveBeenCalled();
+  });
+  it('提交后继续修改分配时旧成功不关闭或清空新输入', async () => {
+    let resolveWrite: ((response: unknown) => void) | undefined;
+    serviceMocks.createVerification.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveWrite = resolve;
+        }),
+    );
+    const onClose = vi.fn();
+    renderWithClient(
+      <App>
+        <VerificationWorkbench open onClose={onClose} onCreated={vi.fn()} />
+      </App>,
+    );
+    await selectOrganizationAndParty('公司 A');
+    const cashRow = (await screen.findByText('FLOW-A')).closest('tr');
+    const billRow = screen.getByText('BILL-A').closest('tr');
+    if (!cashRow || !billRow) throw new Error('候选行不存在');
+    fireEvent.click(within(cashRow).getByRole('checkbox'));
+    fireEvent.click(within(billRow).getByRole('checkbox'));
+    fireEvent.click(screen.getByRole('button', { name: /按余额自动分配/ }));
+    fireEvent.click(screen.getByRole('button', { name: /提交核销/ }));
+    await waitFor(() =>
+      expect(serviceMocks.createVerification).toHaveBeenCalledOnce(),
+    );
+    fireEvent.change(screen.getByLabelText('第 1 行核销金额'), {
+      target: { value: '9' },
+    });
+    await act(async () => resolveWrite?.({ data: { id: 'verification-old' } }));
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('第 1 行核销金额')).toHaveValue('9');
+    expect(getAnyDirtyTabKey()).toBe('/finance/verifications');
+  });
+
+  it.each(['新增资金', '移除资金', '移除账单', '全清并生成空分配'])(
+    '提交后%s时旧成功不关闭新选择',
+    async (change) => {
+      let resolveWrite: ((response: unknown) => void) | undefined;
+      serviceMocks.createVerification.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveWrite = resolve;
+          }),
+      );
+      serviceMocks.listVerificationCreationCandidates.mockResolvedValue({
+        data: {
+          cashflows: [
+            {
+              id: 'cashflow-a',
+              flowNo: 'FLOW-A',
+              unverifiedAmount: '10',
+              organizationId: 'organization-a',
+            },
+            {
+              id: 'cashflow-b',
+              flowNo: 'FLOW-B',
+              unverifiedAmount: '10',
+              organizationId: 'organization-a',
+            },
+          ],
+          bills: [
+            {
+              id: 'bill-a',
+              billNo: 'BILL-A',
+              unverifiedAmount: '20',
+              organizationId: 'organization-a',
+            },
+          ],
+        },
+      });
+      const onClose = vi.fn();
+      const onCreated = vi.fn();
+      renderWithClient(
+        <App>
+          <VerificationWorkbench open onClose={onClose} onCreated={onCreated} />
+        </App>,
+      );
+      await selectOrganizationAndParty('公司 A');
+      const cashRow = (await screen.findByText('FLOW-A')).closest('tr');
+      const otherCashRow = screen.getByText('FLOW-B').closest('tr');
+      const billRow = screen.getByText('BILL-A').closest('tr');
+      if (!cashRow || !otherCashRow || !billRow)
+        throw new Error('候选行不存在');
+      fireEvent.click(within(cashRow).getByRole('checkbox'));
+      fireEvent.click(within(billRow).getByRole('checkbox'));
+      fireEvent.click(screen.getByRole('button', { name: /按余额自动分配/ }));
+      fireEvent.click(screen.getByRole('button', { name: /提交核销/ }));
+      await waitFor(() =>
+        expect(serviceMocks.createVerification).toHaveBeenCalledOnce(),
+      );
+      if (change === '新增资金') {
+        fireEvent.click(within(otherCashRow).getByRole('checkbox'));
+      } else if (change === '移除资金') {
+        fireEvent.click(within(cashRow).getByRole('checkbox'));
+      } else {
+        fireEvent.click(within(billRow).getByRole('checkbox'));
+        if (change === '全清并生成空分配') {
+          fireEvent.click(within(cashRow).getByRole('checkbox'));
+          fireEvent.click(
+            screen.getByRole('button', { name: /按余额自动分配/ }),
+          );
+          expect(
+            screen.queryByLabelText('第 1 行核销金额'),
+          ).not.toBeInTheDocument();
+        }
+      }
+      await act(async () =>
+        resolveWrite?.({ data: { id: 'verification-old' } }),
+      );
+      expect(onClose).not.toHaveBeenCalled();
+      expect(onCreated).not.toHaveBeenCalled();
+      expect(getAnyDirtyTabKey()).toBe('/finance/verifications');
+    },
+  );
+
+  it('未知结果后仅重排相同分配仍沿用原意图键', async () => {
+    serviceMocks.createVerification.mockResolvedValue(undefined);
+    serviceMocks.listVerificationCreationCandidates.mockResolvedValue({
+      data: {
+        cashflows: [
+          {
+            id: 'cashflow-a',
+            flowNo: 'FLOW-A',
+            unverifiedAmount: '10',
+            organizationId: 'organization-a',
+          },
+          {
+            id: 'cashflow-b',
+            flowNo: 'FLOW-B',
+            unverifiedAmount: '10',
+            organizationId: 'organization-a',
+          },
+        ],
+        bills: [
+          {
+            id: 'bill-a',
+            billNo: 'BILL-A',
+            unverifiedAmount: '100',
+            organizationId: 'organization-a',
+          },
+        ],
+      },
+    });
+    renderWithClient(
+      <App>
+        <VerificationWorkbench open onClose={vi.fn()} onCreated={vi.fn()} />
+      </App>,
+    );
+    await selectOrganizationAndParty('公司 A');
+    const cashRow = (await screen.findByText('FLOW-A')).closest('tr');
+    const otherCashRow = screen.getByText('FLOW-B').closest('tr');
+    const billRow = screen.getByText('BILL-A').closest('tr');
+    if (!cashRow || !otherCashRow || !billRow) throw new Error('候选行不存在');
+    fireEvent.click(within(cashRow).getByRole('checkbox'));
+    fireEvent.click(within(otherCashRow).getByRole('checkbox'));
+    fireEvent.click(within(billRow).getByRole('checkbox'));
+    fireEvent.click(screen.getByRole('button', { name: /按余额自动分配/ }));
+    fireEvent.click(screen.getByRole('button', { name: /提交核销/ }));
+    await waitFor(() =>
+      expect(serviceMocks.createVerification).toHaveBeenCalledOnce(),
+    );
+    fireEvent.click(within(cashRow).getByRole('checkbox'));
+    fireEvent.click(within(cashRow).getByRole('checkbox'));
+    fireEvent.click(screen.getByRole('button', { name: /按余额自动分配/ }));
+    fireEvent.click(screen.getByRole('button', { name: /提交核销/ }));
+    await waitFor(() =>
+      expect(serviceMocks.createVerification).toHaveBeenCalledTimes(2),
+    );
+    const [first] = serviceMocks.createVerification.mock.calls[0];
+    const [second] = serviceMocks.createVerification.mock.calls[1];
+    expect(first.allocations).not.toEqual(second.allocations);
+    expect(second.allocations).toEqual([...first.allocations].reverse());
+    expect(second.idempotencyKey).toBe(first.idempotencyKey);
   });
 });

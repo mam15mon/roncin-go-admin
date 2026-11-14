@@ -72,6 +72,7 @@ func (FinanceBill) Edges() []ent.Edge {
 		edge.From("cancelled_by_user", User.Type).Ref("cancelled_finance_bills").Field("cancelled_by").Unique(),
 		edge.To("lines", FinanceBillLine.Type),
 		edge.To("invoice_links", FinanceInvoiceBill.Type),
+		edge.To("invoice_exemptions", FinanceInvoiceExemption.Type),
 		edge.To("verification_allocations", FinanceVerificationAllocation.Type),
 		edge.To("netting_allocations", FinanceNettingAllocation.Type),
 	}

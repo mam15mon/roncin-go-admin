@@ -9,6 +9,7 @@ import (
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	feesettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	financebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	financebilllineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
@@ -19,7 +20,7 @@ import (
 
 // ListBillFeeCandidates 返回可加入账单的未建账费用。SQL 条件与 biz.ValidateBillFeeForAttach 同口径：
 // 同公司、需要建账、当前有效（未被替代、经济效果为 INCREASE，故收付方向即费用方向）、无有效账单占用、
-// 同结算单位、同币种与本币、更正来源与账单一致，并排除待审更正的源费用。关键字覆盖费用代码、名称与订单号。
+// 同结算单位、同币种与本币、更正来源与账单一致，并排除待审更正的源费用。关键字覆盖费用代码、中英文名称、拼音与订单号，别名由所属公司的费用设置补充。
 func (r *financeBillRepo) ListBillFeeCandidates(ctx context.Context, bill *biz.FinanceBill, filter biz.FinanceBillFeeCandidateFilter) (*biz.FinanceBillCreationCandidateResult, error) {
 	client, err := r.data.client(ctx)
 	if err != nil {
@@ -43,7 +44,7 @@ func (r *financeBillRepo) ListBillFeeCandidates(ctx context.Context, bill *biz.F
 		predicates = append(predicates, orderfeeent.SourceFeeIDNotNil(), orderfeeent.CorrectionRequestIDEQ(*bill.CorrectionRequestID))
 	}
 	if filter.Keyword != "" {
-		predicates = append(predicates, orderfeeent.Or(orderfeeent.FeeCodeContainsFold(filter.Keyword), orderfeeent.FeeNameContainsFold(filter.Keyword), orderfeeent.HasOrderWith(orderent.OrderNoContainsFold(filter.Keyword))))
+		predicates = append(predicates, financeBillFeeKeywordPredicate(bill.OrganizationID, filter.Keyword))
 	}
 	query := client.OrderFee.Query().Where(predicates...)
 	total, err := query.Clone().Count(ctx)
@@ -66,6 +67,22 @@ func (r *financeBillRepo) ListBillFeeCandidates(ctx context.Context, bill *biz.F
 		result.Items = append(result.Items, converted)
 	}
 	return result, nil
+}
+
+// financeBillFeeKeywordPredicate 共用于建账与账单追加候选：按费用名称快照检索，
+// 同公司费目仅补足别名，不能代替更正费用的自定义名称或借其他公司的字典扩大匹配。
+func financeBillFeeKeywordPredicate(organizationID uuid.UUID, keyword string) predicate.OrderFee {
+	return orderfeeent.Or(
+		orderfeeent.FeeCodeContainsFold(keyword),
+		orderfeeent.FeeNameContainsFold(keyword),
+		orderfeeent.FeeNameEnContainsFold(keyword),
+		orderfeeent.SearchKeywordsContainsFold(keyword),
+		orderfeeent.HasOrderWith(orderent.OrderNoContainsFold(keyword)),
+		orderfeeent.HasFeeSettingWith(
+			feesettingent.OrganizationIDEQ(organizationID),
+			feesettingent.Or(feesettingent.AliasNameContainsFold(keyword), feesettingent.SearchKeywordsContainsFold(keyword)),
+		),
+	)
 }
 
 func financeBillableFeeFromEnt(item *ent.OrderFee) (*biz.FinanceBillableFee, error) {
@@ -160,13 +177,14 @@ func (r *financeBillRepo) UpdateFees(ctx context.Context, organizationIDs []uuid
 			}
 		}
 		lines, err := client.FinanceBillLine.Query().Where(financebilllineent.BillIDEQ(item.ID), financebilllineent.ActiveEQ(true)).
-			WithOrder().Order(financebilllineent.ByID()).ForUpdate().All(ctx)
+			WithOrder().WithOrderFee().Order(financebilllineent.ByID()).ForUpdate().All(ctx)
 		if err != nil {
 			return err
 		}
 		if !sameBillLineOrders(preLines, lines) {
 			return biz.ErrFinanceBillVersionConflict
 		}
+		item.Edges.Lines = lines
 		bill, err := financeBillToBiz(item)
 		if err != nil {
 			return err

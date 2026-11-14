@@ -13,6 +13,7 @@ import (
 	financebilllineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	financeinvoiceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	financeinvoicebillent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceexemption"
 	financeinvoicelineent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceline"
 	orderfeeent "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderfee"
 	profileent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnerinvoiceprofile"
@@ -167,6 +168,7 @@ func (r *financeInvoiceRepo) ListCreationBills(ctx context.Context, organization
 		financebillent.OrganizationIDEQ(organizationID),
 		financebillent.StatusEQ(financebillent.StatusCONFIRMED),
 		financebillent.PurposeEQ(financebillent.PurposeNORMAL),
+		financebillent.Not(financebillent.HasInvoiceExemptionsWith(financeinvoiceexemption.RevokedAtIsNil())),
 		financebillent.HasLinesWith(financebilllineent.ActiveEQ(true), financebilllineent.HasOrderFeeWith(orderfeeent.EconomicEffectEQ(orderfeeent.EconomicEffectINCREASE), orderfeeent.SupersededByRequestIDIsNil())),
 		financebillent.Not(financebillent.HasInvoiceLinksWith(financeinvoicebillent.ActiveEQ(true))),
 	}
@@ -219,6 +221,7 @@ func (r *financeInvoiceRepo) ListProfilesForBill(ctx context.Context, organizati
 		financebillent.OrganizationIDIn(organizationIDs...),
 		financebillent.StatusEQ(financebillent.StatusCONFIRMED),
 		financebillent.PurposeEQ(financebillent.PurposeNORMAL),
+		financebillent.Not(financebillent.HasInvoiceExemptionsWith(financeinvoiceexemption.RevokedAtIsNil())),
 		financebillent.HasLinesWith(financebilllineent.ActiveEQ(true), financebilllineent.HasOrderFeeWith(orderfeeent.EconomicEffectEQ(orderfeeent.EconomicEffectINCREASE), orderfeeent.SupersededByRequestIDIsNil())),
 		financebillent.Not(financebillent.HasInvoiceLinksWith(financeinvoicebillent.ActiveEQ(true))),
 	).Only(ctx)
@@ -282,6 +285,13 @@ func (r *financeInvoiceRepo) Create(ctx context.Context, invoice *biz.FinanceInv
 		}
 		if len(bills) != len(ids) {
 			return biz.ErrFinanceInvoiceBillInvalid
+		}
+		exempt, queryErr := tx.FinanceInvoiceExemption.Query().Where(financeinvoiceexemption.BillIDIn(ids...), financeinvoiceexemption.RevokedAtIsNil()).Exist(ctx)
+		if queryErr != nil {
+			return queryErr
+		}
+		if exempt {
+			return biz.ErrFinanceInvoiceExemptionConflict
 		}
 		for _, bill := range bills {
 			if bill.Status != financebillent.StatusCONFIRMED || string(bill.Direction) != string(invoice.Direction) || bill.SettlementPartyID != invoice.SettlementPartyID || bill.Currency != invoice.Currency {

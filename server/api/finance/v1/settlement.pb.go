@@ -3805,10 +3805,12 @@ type FinanceBill struct {
 	// completed 为已确认账单结清且开票完成（或无需开票）。
 	Completed bool `protobuf:"varint,57,opt,name=completed,proto3" json:"completed,omitempty"`
 	// fees_locked 表示账单存在阻止增删费用的有效财务事实，类型见 fee_lock_facts。
-	FeesLocked    bool                     `protobuf:"varint,58,opt,name=fees_locked,json=feesLocked,proto3" json:"fees_locked,omitempty"`
-	FeeLockFacts  []FinanceBillFeeLockFact `protobuf:"varint,59,rep,packed,name=fee_lock_facts,json=feeLockFacts,proto3,enum=finance.v1.FinanceBillFeeLockFact" json:"fee_lock_facts,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	FeesLocked   bool                     `protobuf:"varint,58,opt,name=fees_locked,json=feesLocked,proto3" json:"fees_locked,omitempty"`
+	FeeLockFacts []FinanceBillFeeLockFact `protobuf:"varint,59,rep,packed,name=fee_lock_facts,json=feeLockFacts,proto3,enum=finance.v1.FinanceBillFeeLockFact" json:"fee_lock_facts,omitempty"`
+	// 免票决定历史仅详情返回；有效决定 revoked_at 未设置。
+	InvoiceExemptions []*FinanceInvoiceExemption `protobuf:"bytes,60,rep,name=invoice_exemptions,json=invoiceExemptions,proto3" json:"invoice_exemptions,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *FinanceBill) Reset() {
@@ -4247,6 +4249,401 @@ func (x *FinanceBill) GetFeeLockFacts() []FinanceBillFeeLockFact {
 	return nil
 }
 
+func (x *FinanceBill) GetInvoiceExemptions() []*FinanceInvoiceExemption {
+	if x != nil {
+		return x.InvoiceExemptions
+	}
+	return nil
+}
+
+type SetBillInvoiceExemptionRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ExpectedVersion uint64                 `protobuf:"varint,2,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	Reason          string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *SetBillInvoiceExemptionRequest) Reset() {
+	*x = SetBillInvoiceExemptionRequest{}
+	mi := &file_finance_v1_settlement_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetBillInvoiceExemptionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetBillInvoiceExemptionRequest) ProtoMessage() {}
+
+func (x *SetBillInvoiceExemptionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_settlement_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetBillInvoiceExemptionRequest.ProtoReflect.Descriptor instead.
+func (*SetBillInvoiceExemptionRequest) Descriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *SetBillInvoiceExemptionRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *SetBillInvoiceExemptionRequest) GetExpectedVersion() uint64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
+}
+
+func (x *SetBillInvoiceExemptionRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+type SetBillInvoiceExemptionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *FinanceBill           `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetBillInvoiceExemptionResponse) Reset() {
+	*x = SetBillInvoiceExemptionResponse{}
+	mi := &file_finance_v1_settlement_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetBillInvoiceExemptionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetBillInvoiceExemptionResponse) ProtoMessage() {}
+
+func (x *SetBillInvoiceExemptionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_settlement_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetBillInvoiceExemptionResponse.ProtoReflect.Descriptor instead.
+func (*SetBillInvoiceExemptionResponse) Descriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *SetBillInvoiceExemptionResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *SetBillInvoiceExemptionResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *SetBillInvoiceExemptionResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *SetBillInvoiceExemptionResponse) GetData() *FinanceBill {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *SetBillInvoiceExemptionResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type RevokeBillInvoiceExemptionRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ExpectedVersion uint64                 `protobuf:"varint,2,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	Reason          string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *RevokeBillInvoiceExemptionRequest) Reset() {
+	*x = RevokeBillInvoiceExemptionRequest{}
+	mi := &file_finance_v1_settlement_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RevokeBillInvoiceExemptionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RevokeBillInvoiceExemptionRequest) ProtoMessage() {}
+
+func (x *RevokeBillInvoiceExemptionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_settlement_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RevokeBillInvoiceExemptionRequest.ProtoReflect.Descriptor instead.
+func (*RevokeBillInvoiceExemptionRequest) Descriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *RevokeBillInvoiceExemptionRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *RevokeBillInvoiceExemptionRequest) GetExpectedVersion() uint64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
+}
+
+func (x *RevokeBillInvoiceExemptionRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+type RevokeBillInvoiceExemptionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *FinanceBill           `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RevokeBillInvoiceExemptionResponse) Reset() {
+	*x = RevokeBillInvoiceExemptionResponse{}
+	mi := &file_finance_v1_settlement_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RevokeBillInvoiceExemptionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RevokeBillInvoiceExemptionResponse) ProtoMessage() {}
+
+func (x *RevokeBillInvoiceExemptionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_settlement_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RevokeBillInvoiceExemptionResponse.ProtoReflect.Descriptor instead.
+func (*RevokeBillInvoiceExemptionResponse) Descriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *RevokeBillInvoiceExemptionResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *RevokeBillInvoiceExemptionResponse) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *RevokeBillInvoiceExemptionResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *RevokeBillInvoiceExemptionResponse) GetData() *FinanceBill {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *RevokeBillInvoiceExemptionResponse) GetTraceId() string {
+	if x != nil {
+		return x.TraceId
+	}
+	return ""
+}
+
+type FinanceInvoiceExemption struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Reason           string                 `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
+	MarkedBy         string                 `protobuf:"bytes,3,opt,name=marked_by,json=markedBy,proto3" json:"marked_by,omitempty"`
+	CreatedAt        string                 `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Version          uint64                 `protobuf:"varint,5,opt,name=version,proto3" json:"version,omitempty"`
+	RevokedAt        *string                `protobuf:"bytes,6,opt,name=revoked_at,json=revokedAt,proto3,oneof" json:"revoked_at,omitempty"`
+	RevokedBy        *string                `protobuf:"bytes,7,opt,name=revoked_by,json=revokedBy,proto3,oneof" json:"revoked_by,omitempty"`
+	RevocationReason *string                `protobuf:"bytes,8,opt,name=revocation_reason,json=revocationReason,proto3,oneof" json:"revocation_reason,omitempty"`
+	MarkedByName     string                 `protobuf:"bytes,9,opt,name=marked_by_name,json=markedByName,proto3" json:"marked_by_name,omitempty"`
+	RevokedByName    string                 `protobuf:"bytes,10,opt,name=revoked_by_name,json=revokedByName,proto3" json:"revoked_by_name,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *FinanceInvoiceExemption) Reset() {
+	*x = FinanceInvoiceExemption{}
+	mi := &file_finance_v1_settlement_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FinanceInvoiceExemption) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FinanceInvoiceExemption) ProtoMessage() {}
+
+func (x *FinanceInvoiceExemption) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_settlement_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FinanceInvoiceExemption.ProtoReflect.Descriptor instead.
+func (*FinanceInvoiceExemption) Descriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *FinanceInvoiceExemption) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *FinanceInvoiceExemption) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *FinanceInvoiceExemption) GetMarkedBy() string {
+	if x != nil {
+		return x.MarkedBy
+	}
+	return ""
+}
+
+func (x *FinanceInvoiceExemption) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *FinanceInvoiceExemption) GetVersion() uint64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *FinanceInvoiceExemption) GetRevokedAt() string {
+	if x != nil && x.RevokedAt != nil {
+		return *x.RevokedAt
+	}
+	return ""
+}
+
+func (x *FinanceInvoiceExemption) GetRevokedBy() string {
+	if x != nil && x.RevokedBy != nil {
+		return *x.RevokedBy
+	}
+	return ""
+}
+
+func (x *FinanceInvoiceExemption) GetRevocationReason() string {
+	if x != nil && x.RevocationReason != nil {
+		return *x.RevocationReason
+	}
+	return ""
+}
+
+func (x *FinanceInvoiceExemption) GetMarkedByName() string {
+	if x != nil {
+		return x.MarkedByName
+	}
+	return ""
+}
+
+func (x *FinanceInvoiceExemption) GetRevokedByName() string {
+	if x != nil {
+		return x.RevokedByName
+	}
+	return ""
+}
+
 type BillGroupingPolicy struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	SplitByOrder   bool                   `protobuf:"varint,1,opt,name=split_by_order,json=splitByOrder,proto3" json:"split_by_order,omitempty"`
@@ -4258,7 +4655,7 @@ type BillGroupingPolicy struct {
 
 func (x *BillGroupingPolicy) Reset() {
 	*x = BillGroupingPolicy{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[33]
+	mi := &file_finance_v1_settlement_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4270,7 +4667,7 @@ func (x *BillGroupingPolicy) String() string {
 func (*BillGroupingPolicy) ProtoMessage() {}
 
 func (x *BillGroupingPolicy) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[33]
+	mi := &file_finance_v1_settlement_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4283,7 +4680,7 @@ func (x *BillGroupingPolicy) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BillGroupingPolicy.ProtoReflect.Descriptor instead.
 func (*BillGroupingPolicy) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{33}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *BillGroupingPolicy) GetSplitByOrder() bool {
@@ -4319,7 +4716,7 @@ type PreviewBillBatchRequest struct {
 
 func (x *PreviewBillBatchRequest) Reset() {
 	*x = PreviewBillBatchRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[34]
+	mi := &file_finance_v1_settlement_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4331,7 +4728,7 @@ func (x *PreviewBillBatchRequest) String() string {
 func (*PreviewBillBatchRequest) ProtoMessage() {}
 
 func (x *PreviewBillBatchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[34]
+	mi := &file_finance_v1_settlement_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4344,7 +4741,7 @@ func (x *PreviewBillBatchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreviewBillBatchRequest.ProtoReflect.Descriptor instead.
 func (*PreviewBillBatchRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{34}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *PreviewBillBatchRequest) GetFeeIds() []string {
@@ -4390,7 +4787,7 @@ type BillBatchPreviewGroupConfigInput struct {
 
 func (x *BillBatchPreviewGroupConfigInput) Reset() {
 	*x = BillBatchPreviewGroupConfigInput{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[35]
+	mi := &file_finance_v1_settlement_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4402,7 +4799,7 @@ func (x *BillBatchPreviewGroupConfigInput) String() string {
 func (*BillBatchPreviewGroupConfigInput) ProtoMessage() {}
 
 func (x *BillBatchPreviewGroupConfigInput) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[35]
+	mi := &file_finance_v1_settlement_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4415,7 +4812,7 @@ func (x *BillBatchPreviewGroupConfigInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BillBatchPreviewGroupConfigInput.ProtoReflect.Descriptor instead.
 func (*BillBatchPreviewGroupConfigInput) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{35}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *BillBatchPreviewGroupConfigInput) GetGroupKey() string {
@@ -4481,13 +4878,16 @@ type BillBatchPreviewGroup struct {
 	CreditCurrency         *string `protobuf:"bytes,23,opt,name=credit_currency,json=creditCurrency,proto3,oneof" json:"credit_currency,omitempty"`
 	CurrentUnsettledAmount *string `protobuf:"bytes,24,opt,name=current_unsettled_amount,json=currentUnsettledAmount,proto3,oneof" json:"current_unsettled_amount,omitempty"`
 	IsCreditExceeded       bool    `protobuf:"varint,25,opt,name=is_credit_exceeded,json=isCreditExceeded,proto3" json:"is_credit_exceeded,omitempty"`
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	// group_token 是该组费用（ID、版本、金额）与叶子配置的摘要；配置完整时才签发，
+	// 创建时每组携带自己的令牌，陈旧只影响该组。
+	GroupToken    string `protobuf:"bytes,26,opt,name=group_token,json=groupToken,proto3" json:"group_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *BillBatchPreviewGroup) Reset() {
 	*x = BillBatchPreviewGroup{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[36]
+	mi := &file_finance_v1_settlement_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4499,7 +4899,7 @@ func (x *BillBatchPreviewGroup) String() string {
 func (*BillBatchPreviewGroup) ProtoMessage() {}
 
 func (x *BillBatchPreviewGroup) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[36]
+	mi := &file_finance_v1_settlement_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4512,7 +4912,7 @@ func (x *BillBatchPreviewGroup) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BillBatchPreviewGroup.ProtoReflect.Descriptor instead.
 func (*BillBatchPreviewGroup) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{36}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *BillBatchPreviewGroup) GetGroupKey() string {
@@ -4690,14 +5090,20 @@ func (x *BillBatchPreviewGroup) GetIsCreditExceeded() bool {
 	return false
 }
 
+func (x *BillBatchPreviewGroup) GetGroupToken() string {
+	if x != nil {
+		return x.GroupToken
+	}
+	return ""
+}
+
 type PreviewBillBatchResponse struct {
-	state        protoimpl.MessageState   `protogen:"open.v1"`
-	Success      bool                     `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code         int32                    `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message      string                   `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	Data         []*BillBatchPreviewGroup `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
-	PreviewToken string                   `protobuf:"bytes,5,opt,name=preview_token,json=previewToken,proto3" json:"preview_token,omitempty"`
-	TraceId      string                   `protobuf:"bytes,6,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	state   protoimpl.MessageState   `protogen:"open.v1"`
+	Success bool                     `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code    int32                    `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message string                   `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data    []*BillBatchPreviewGroup `protobuf:"bytes,4,rep,name=data,proto3" json:"data,omitempty"`
+	TraceId string                   `protobuf:"bytes,6,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
 	// netting_pairs 仅在对冲建账模式下返回，按结算单位与账单币种给出抵销前后金额。
 	NettingPairs  []*BillBatchNettingPair `protobuf:"bytes,7,rep,name=netting_pairs,json=nettingPairs,proto3" json:"netting_pairs,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -4706,7 +5112,7 @@ type PreviewBillBatchResponse struct {
 
 func (x *PreviewBillBatchResponse) Reset() {
 	*x = PreviewBillBatchResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[37]
+	mi := &file_finance_v1_settlement_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4718,7 +5124,7 @@ func (x *PreviewBillBatchResponse) String() string {
 func (*PreviewBillBatchResponse) ProtoMessage() {}
 
 func (x *PreviewBillBatchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[37]
+	mi := &file_finance_v1_settlement_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4731,7 +5137,7 @@ func (x *PreviewBillBatchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreviewBillBatchResponse.ProtoReflect.Descriptor instead.
 func (*PreviewBillBatchResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{37}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *PreviewBillBatchResponse) GetSuccess() bool {
@@ -4760,13 +5166,6 @@ func (x *PreviewBillBatchResponse) GetData() []*BillBatchPreviewGroup {
 		return x.Data
 	}
 	return nil
-}
-
-func (x *PreviewBillBatchResponse) GetPreviewToken() string {
-	if x != nil {
-		return x.PreviewToken
-	}
-	return ""
 }
 
 func (x *PreviewBillBatchResponse) GetTraceId() string {
@@ -4800,7 +5199,7 @@ type BillBatchNettingPair struct {
 
 func (x *BillBatchNettingPair) Reset() {
 	*x = BillBatchNettingPair{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[38]
+	mi := &file_finance_v1_settlement_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4812,7 +5211,7 @@ func (x *BillBatchNettingPair) String() string {
 func (*BillBatchNettingPair) ProtoMessage() {}
 
 func (x *BillBatchNettingPair) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[38]
+	mi := &file_finance_v1_settlement_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4825,7 +5224,7 @@ func (x *BillBatchNettingPair) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BillBatchNettingPair.ProtoReflect.Descriptor instead.
 func (*BillBatchNettingPair) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{38}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *BillBatchNettingPair) GetSettlementPartyId() string {
@@ -4895,13 +5294,17 @@ type CreateBillBatchGroupInput struct {
 	SettlementAccountId      string                 `protobuf:"bytes,7,opt,name=settlement_account_id,json=settlementAccountId,proto3" json:"settlement_account_id,omitempty"`
 	EstimatedInvoiceCurrency *string                `protobuf:"bytes,8,opt,name=estimated_invoice_currency,json=estimatedInvoiceCurrency,proto3,oneof" json:"estimated_invoice_currency,omitempty"`
 	EstimatedInvoiceRate     *string                `protobuf:"bytes,9,opt,name=estimated_invoice_rate,json=estimatedInvoiceRate,proto3,oneof" json:"estimated_invoice_rate,omitempty"`
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
+	// group_token 取自预览响应中该组的 group_token。
+	GroupToken string `protobuf:"bytes,10,opt,name=group_token,json=groupToken,proto3" json:"group_token,omitempty"`
+	// fee_ids 为预览中归入该组的全部费用 ID；服务端在组事务内重新分组复核。
+	FeeIds        []string `protobuf:"bytes,11,rep,name=fee_ids,json=feeIds,proto3" json:"fee_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateBillBatchGroupInput) Reset() {
 	*x = CreateBillBatchGroupInput{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[39]
+	mi := &file_finance_v1_settlement_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4913,7 +5316,7 @@ func (x *CreateBillBatchGroupInput) String() string {
 func (*CreateBillBatchGroupInput) ProtoMessage() {}
 
 func (x *CreateBillBatchGroupInput) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[39]
+	mi := &file_finance_v1_settlement_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4926,7 +5329,7 @@ func (x *CreateBillBatchGroupInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateBillBatchGroupInput.ProtoReflect.Descriptor instead.
 func (*CreateBillBatchGroupInput) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{39}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *CreateBillBatchGroupInput) GetGroupKey() string {
@@ -4992,6 +5395,20 @@ func (x *CreateBillBatchGroupInput) GetEstimatedInvoiceRate() string {
 	return ""
 }
 
+func (x *CreateBillBatchGroupInput) GetGroupToken() string {
+	if x != nil {
+		return x.GroupToken
+	}
+	return ""
+}
+
+func (x *CreateBillBatchGroupInput) GetFeeIds() []string {
+	if x != nil {
+		return x.FeeIds
+	}
+	return nil
+}
+
 type FinanceSettlementAccountOption struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -5008,7 +5425,7 @@ type FinanceSettlementAccountOption struct {
 
 func (x *FinanceSettlementAccountOption) Reset() {
 	*x = FinanceSettlementAccountOption{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[40]
+	mi := &file_finance_v1_settlement_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5020,7 +5437,7 @@ func (x *FinanceSettlementAccountOption) String() string {
 func (*FinanceSettlementAccountOption) ProtoMessage() {}
 
 func (x *FinanceSettlementAccountOption) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[40]
+	mi := &file_finance_v1_settlement_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5033,7 +5450,7 @@ func (x *FinanceSettlementAccountOption) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceSettlementAccountOption.ProtoReflect.Descriptor instead.
 func (*FinanceSettlementAccountOption) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{40}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *FinanceSettlementAccountOption) GetId() string {
@@ -5104,7 +5521,7 @@ type ListBillSettlementAccountCandidatesRequest struct {
 
 func (x *ListBillSettlementAccountCandidatesRequest) Reset() {
 	*x = ListBillSettlementAccountCandidatesRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[41]
+	mi := &file_finance_v1_settlement_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5116,7 +5533,7 @@ func (x *ListBillSettlementAccountCandidatesRequest) String() string {
 func (*ListBillSettlementAccountCandidatesRequest) ProtoMessage() {}
 
 func (x *ListBillSettlementAccountCandidatesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[41]
+	mi := &file_finance_v1_settlement_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5129,7 +5546,7 @@ func (x *ListBillSettlementAccountCandidatesRequest) ProtoReflect() protoreflect
 
 // Deprecated: Use ListBillSettlementAccountCandidatesRequest.ProtoReflect.Descriptor instead.
 func (*ListBillSettlementAccountCandidatesRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{41}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *ListBillSettlementAccountCandidatesRequest) GetOrganizationId() string {
@@ -5173,7 +5590,7 @@ type ListBillSettlementAccountCandidatesResponse struct {
 
 func (x *ListBillSettlementAccountCandidatesResponse) Reset() {
 	*x = ListBillSettlementAccountCandidatesResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[42]
+	mi := &file_finance_v1_settlement_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5185,7 +5602,7 @@ func (x *ListBillSettlementAccountCandidatesResponse) String() string {
 func (*ListBillSettlementAccountCandidatesResponse) ProtoMessage() {}
 
 func (x *ListBillSettlementAccountCandidatesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[42]
+	mi := &file_finance_v1_settlement_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5198,7 +5615,7 @@ func (x *ListBillSettlementAccountCandidatesResponse) ProtoReflect() protoreflec
 
 // Deprecated: Use ListBillSettlementAccountCandidatesResponse.ProtoReflect.Descriptor instead.
 func (*ListBillSettlementAccountCandidatesResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{42}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *ListBillSettlementAccountCandidatesResponse) GetSuccess() bool {
@@ -5245,7 +5662,7 @@ type ListBillSettlementAccountUpdateCandidatesRequest struct {
 
 func (x *ListBillSettlementAccountUpdateCandidatesRequest) Reset() {
 	*x = ListBillSettlementAccountUpdateCandidatesRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[43]
+	mi := &file_finance_v1_settlement_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5257,7 +5674,7 @@ func (x *ListBillSettlementAccountUpdateCandidatesRequest) String() string {
 func (*ListBillSettlementAccountUpdateCandidatesRequest) ProtoMessage() {}
 
 func (x *ListBillSettlementAccountUpdateCandidatesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[43]
+	mi := &file_finance_v1_settlement_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5270,7 +5687,7 @@ func (x *ListBillSettlementAccountUpdateCandidatesRequest) ProtoReflect() protor
 
 // Deprecated: Use ListBillSettlementAccountUpdateCandidatesRequest.ProtoReflect.Descriptor instead.
 func (*ListBillSettlementAccountUpdateCandidatesRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{43}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *ListBillSettlementAccountUpdateCandidatesRequest) GetBillId() string {
@@ -5293,7 +5710,7 @@ type ListBillSettlementAccountUpdateCandidatesResponse struct {
 
 func (x *ListBillSettlementAccountUpdateCandidatesResponse) Reset() {
 	*x = ListBillSettlementAccountUpdateCandidatesResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[44]
+	mi := &file_finance_v1_settlement_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5305,7 +5722,7 @@ func (x *ListBillSettlementAccountUpdateCandidatesResponse) String() string {
 func (*ListBillSettlementAccountUpdateCandidatesResponse) ProtoMessage() {}
 
 func (x *ListBillSettlementAccountUpdateCandidatesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[44]
+	mi := &file_finance_v1_settlement_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5318,7 +5735,7 @@ func (x *ListBillSettlementAccountUpdateCandidatesResponse) ProtoReflect() proto
 
 // Deprecated: Use ListBillSettlementAccountUpdateCandidatesResponse.ProtoReflect.Descriptor instead.
 func (*ListBillSettlementAccountUpdateCandidatesResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{44}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *ListBillSettlementAccountUpdateCandidatesResponse) GetSuccess() bool {
@@ -5356,12 +5773,13 @@ func (x *ListBillSettlementAccountUpdateCandidatesResponse) GetTraceId() string 
 	return ""
 }
 
+// CreateBillBatchRequest 普通模式按组独立事务提交，某组失败不回滚其他组；
+// 对冲模式（NETTING）整批原子，任一组失败整批失败并返回错误。
+// 同幂等键、同请求重发：已成功的组原样返回，失败的组重新尝试。
 type CreateBillBatchRequest struct {
 	state          protoimpl.MessageState       `protogen:"open.v1"`
-	FeeIds         []string                     `protobuf:"bytes,1,rep,name=fee_ids,json=feeIds,proto3" json:"fee_ids,omitempty"`
 	GroupingPolicy *BillGroupingPolicy          `protobuf:"bytes,2,opt,name=grouping_policy,json=groupingPolicy,proto3" json:"grouping_policy,omitempty"`
 	Groups         []*CreateBillBatchGroupInput `protobuf:"bytes,3,rep,name=groups,proto3" json:"groups,omitempty"`
-	PreviewToken   string                       `protobuf:"bytes,4,opt,name=preview_token,json=previewToken,proto3" json:"preview_token,omitempty"`
 	IdempotencyKey string                       `protobuf:"bytes,5,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	OrganizationId string                       `protobuf:"bytes,6,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
 	unknownFields  protoimpl.UnknownFields
@@ -5370,7 +5788,7 @@ type CreateBillBatchRequest struct {
 
 func (x *CreateBillBatchRequest) Reset() {
 	*x = CreateBillBatchRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[45]
+	mi := &file_finance_v1_settlement_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5382,7 +5800,7 @@ func (x *CreateBillBatchRequest) String() string {
 func (*CreateBillBatchRequest) ProtoMessage() {}
 
 func (x *CreateBillBatchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[45]
+	mi := &file_finance_v1_settlement_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5395,14 +5813,7 @@ func (x *CreateBillBatchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateBillBatchRequest.ProtoReflect.Descriptor instead.
 func (*CreateBillBatchRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{45}
-}
-
-func (x *CreateBillBatchRequest) GetFeeIds() []string {
-	if x != nil {
-		return x.FeeIds
-	}
-	return nil
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *CreateBillBatchRequest) GetGroupingPolicy() *BillGroupingPolicy {
@@ -5417,13 +5828,6 @@ func (x *CreateBillBatchRequest) GetGroups() []*CreateBillBatchGroupInput {
 		return x.Groups
 	}
 	return nil
-}
-
-func (x *CreateBillBatchRequest) GetPreviewToken() string {
-	if x != nil {
-		return x.PreviewToken
-	}
-	return ""
 }
 
 func (x *CreateBillBatchRequest) GetIdempotencyKey() string {
@@ -5441,27 +5845,28 @@ func (x *CreateBillBatchRequest) GetOrganizationId() string {
 }
 
 type FinanceBillBatch struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	BatchNo         string                 `protobuf:"bytes,2,opt,name=batch_no,json=batchNo,proto3" json:"batch_no,omitempty"`
-	SplitByOrder    bool                   `protobuf:"varint,3,opt,name=split_by_order,json=splitByOrder,proto3" json:"split_by_order,omitempty"`
-	SplitByTaxRate  bool                   `protobuf:"varint,4,opt,name=split_by_tax_rate,json=splitByTaxRate,proto3" json:"split_by_tax_rate,omitempty"`
-	FeeCount        int32                  `protobuf:"varint,5,opt,name=fee_count,json=feeCount,proto3" json:"fee_count,omitempty"`
-	BillCount       int32                  `protobuf:"varint,6,opt,name=bill_count,json=billCount,proto3" json:"bill_count,omitempty"`
-	TotalBaseAmount string                 `protobuf:"bytes,7,opt,name=total_base_amount,json=totalBaseAmount,proto3" json:"total_base_amount,omitempty"`
-	BaseCurrency    string                 `protobuf:"bytes,8,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
-	Bills           []*FinanceBill         `protobuf:"bytes,9,rep,name=bills,proto3" json:"bills,omitempty"`
-	CreatedAt       string                 `protobuf:"bytes,10,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	Mode            BillGroupingMode       `protobuf:"varint,11,opt,name=mode,proto3,enum=finance.v1.BillGroupingMode" json:"mode,omitempty"`
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	BatchNo        string                 `protobuf:"bytes,2,opt,name=batch_no,json=batchNo,proto3" json:"batch_no,omitempty"`
+	SplitByOrder   bool                   `protobuf:"varint,3,opt,name=split_by_order,json=splitByOrder,proto3" json:"split_by_order,omitempty"`
+	SplitByTaxRate bool                   `protobuf:"varint,4,opt,name=split_by_tax_rate,json=splitByTaxRate,proto3" json:"split_by_tax_rate,omitempty"`
+	// fee_count、bill_count、base_totals 均按本批次已生成账单在读取时聚合。
+	FeeCount  int32            `protobuf:"varint,5,opt,name=fee_count,json=feeCount,proto3" json:"fee_count,omitempty"`
+	BillCount int32            `protobuf:"varint,6,opt,name=bill_count,json=billCount,proto3" json:"bill_count,omitempty"`
+	Bills     []*FinanceBill   `protobuf:"bytes,9,rep,name=bills,proto3" json:"bills,omitempty"`
+	CreatedAt string           `protobuf:"bytes,10,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Mode      BillGroupingMode `protobuf:"varint,11,opt,name=mode,proto3,enum=finance.v1.BillGroupingMode" json:"mode,omitempty"`
 	// nettings 仅在对冲建账模式下返回：本批次原子生成的对冲结算单（初始为草稿）。
-	Nettings      []*FinanceNetting `protobuf:"bytes,12,rep,name=nettings,proto3" json:"nettings,omitempty"`
+	Nettings []*FinanceNetting `protobuf:"bytes,12,rep,name=nettings,proto3" json:"nettings,omitempty"`
+	// base_totals 按本位币分组的账单本位币合计，不跨本位币相加。
+	BaseTotals    []*FinanceBillBatchBaseTotal `protobuf:"bytes,13,rep,name=base_totals,json=baseTotals,proto3" json:"base_totals,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *FinanceBillBatch) Reset() {
 	*x = FinanceBillBatch{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[46]
+	mi := &file_finance_v1_settlement_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5473,7 +5878,7 @@ func (x *FinanceBillBatch) String() string {
 func (*FinanceBillBatch) ProtoMessage() {}
 
 func (x *FinanceBillBatch) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[46]
+	mi := &file_finance_v1_settlement_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5486,7 +5891,7 @@ func (x *FinanceBillBatch) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceBillBatch.ProtoReflect.Descriptor instead.
 func (*FinanceBillBatch) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{46}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *FinanceBillBatch) GetId() string {
@@ -5531,20 +5936,6 @@ func (x *FinanceBillBatch) GetBillCount() int32 {
 	return 0
 }
 
-func (x *FinanceBillBatch) GetTotalBaseAmount() string {
-	if x != nil {
-		return x.TotalBaseAmount
-	}
-	return ""
-}
-
-func (x *FinanceBillBatch) GetBaseCurrency() string {
-	if x != nil {
-		return x.BaseCurrency
-	}
-	return ""
-}
-
 func (x *FinanceBillBatch) GetBills() []*FinanceBill {
 	if x != nil {
 		return x.Bills
@@ -5573,20 +5964,84 @@ func (x *FinanceBillBatch) GetNettings() []*FinanceNetting {
 	return nil
 }
 
+func (x *FinanceBillBatch) GetBaseTotals() []*FinanceBillBatchBaseTotal {
+	if x != nil {
+		return x.BaseTotals
+	}
+	return nil
+}
+
+type FinanceBillBatchBaseTotal struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	BaseCurrency    string                 `protobuf:"bytes,1,opt,name=base_currency,json=baseCurrency,proto3" json:"base_currency,omitempty"`
+	TotalBaseAmount string                 `protobuf:"bytes,2,opt,name=total_base_amount,json=totalBaseAmount,proto3" json:"total_base_amount,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *FinanceBillBatchBaseTotal) Reset() {
+	*x = FinanceBillBatchBaseTotal{}
+	mi := &file_finance_v1_settlement_proto_msgTypes[52]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FinanceBillBatchBaseTotal) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FinanceBillBatchBaseTotal) ProtoMessage() {}
+
+func (x *FinanceBillBatchBaseTotal) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_settlement_proto_msgTypes[52]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FinanceBillBatchBaseTotal.ProtoReflect.Descriptor instead.
+func (*FinanceBillBatchBaseTotal) Descriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{52}
+}
+
+func (x *FinanceBillBatchBaseTotal) GetBaseCurrency() string {
+	if x != nil {
+		return x.BaseCurrency
+	}
+	return ""
+}
+
+func (x *FinanceBillBatchBaseTotal) GetTotalBaseAmount() string {
+	if x != nil {
+		return x.TotalBaseAmount
+	}
+	return ""
+}
+
+// CreateBillBatchResponse 的 HTTP 200 不代表全部成功：逐组成败见 results。
 type CreateBillBatchResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Code          int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
-	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	Data          *FinanceBillBatch      `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
-	TraceId       string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Success bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Code    int32                  `protobuf:"varint,2,opt,name=code,proto3" json:"code,omitempty"`
+	Message string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Data    *FinanceBillBatch      `protobuf:"bytes,4,opt,name=data,proto3" json:"data,omitempty"`
+	TraceId string                 `protobuf:"bytes,5,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	// results 按 group_key 升序覆盖请求内每一组。
+	Results        []*BillBatchGroupResult `protobuf:"bytes,6,rep,name=results,proto3" json:"results,omitempty"`
+	SucceededCount int32                   `protobuf:"varint,7,opt,name=succeeded_count,json=succeededCount,proto3" json:"succeeded_count,omitempty"`
+	FailedCount    int32                   `protobuf:"varint,8,opt,name=failed_count,json=failedCount,proto3" json:"failed_count,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *CreateBillBatchResponse) Reset() {
 	*x = CreateBillBatchResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[47]
+	mi := &file_finance_v1_settlement_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5598,7 +6053,7 @@ func (x *CreateBillBatchResponse) String() string {
 func (*CreateBillBatchResponse) ProtoMessage() {}
 
 func (x *CreateBillBatchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[47]
+	mi := &file_finance_v1_settlement_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5611,7 +6066,7 @@ func (x *CreateBillBatchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateBillBatchResponse.ProtoReflect.Descriptor instead.
 func (*CreateBillBatchResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{47}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *CreateBillBatchResponse) GetSuccess() bool {
@@ -5649,6 +6104,157 @@ func (x *CreateBillBatchResponse) GetTraceId() string {
 	return ""
 }
 
+func (x *CreateBillBatchResponse) GetResults() []*BillBatchGroupResult {
+	if x != nil {
+		return x.Results
+	}
+	return nil
+}
+
+func (x *CreateBillBatchResponse) GetSucceededCount() int32 {
+	if x != nil {
+		return x.SucceededCount
+	}
+	return 0
+}
+
+func (x *CreateBillBatchResponse) GetFailedCount() int32 {
+	if x != nil {
+		return x.FailedCount
+	}
+	return 0
+}
+
+// BillBatchGroupResult 成功时携带 bill，失败时携带 error，二者互斥。
+type BillBatchGroupResult struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GroupKey      string                 `protobuf:"bytes,1,opt,name=group_key,json=groupKey,proto3" json:"group_key,omitempty"`
+	Success       bool                   `protobuf:"varint,2,opt,name=success,proto3" json:"success,omitempty"`
+	Bill          *FinanceBill           `protobuf:"bytes,3,opt,name=bill,proto3" json:"bill,omitempty"`
+	Error         *BillBatchGroupError   `protobuf:"bytes,4,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BillBatchGroupResult) Reset() {
+	*x = BillBatchGroupResult{}
+	mi := &file_finance_v1_settlement_proto_msgTypes[54]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BillBatchGroupResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BillBatchGroupResult) ProtoMessage() {}
+
+func (x *BillBatchGroupResult) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_settlement_proto_msgTypes[54]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BillBatchGroupResult.ProtoReflect.Descriptor instead.
+func (*BillBatchGroupResult) Descriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{54}
+}
+
+func (x *BillBatchGroupResult) GetGroupKey() string {
+	if x != nil {
+		return x.GroupKey
+	}
+	return ""
+}
+
+func (x *BillBatchGroupResult) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *BillBatchGroupResult) GetBill() *FinanceBill {
+	if x != nil {
+		return x.Bill
+	}
+	return nil
+}
+
+func (x *BillBatchGroupResult) GetError() *BillBatchGroupError {
+	if x != nil {
+		return x.Error
+	}
+	return nil
+}
+
+type BillBatchGroupError struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Reason  string                 `protobuf:"bytes,1,opt,name=reason,proto3" json:"reason,omitempty"`
+	Message string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	// metadata 仅放行缺汇率提示等公开键。
+	Metadata      map[string]string `protobuf:"bytes,3,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BillBatchGroupError) Reset() {
+	*x = BillBatchGroupError{}
+	mi := &file_finance_v1_settlement_proto_msgTypes[55]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BillBatchGroupError) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BillBatchGroupError) ProtoMessage() {}
+
+func (x *BillBatchGroupError) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_settlement_proto_msgTypes[55]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BillBatchGroupError.ProtoReflect.Descriptor instead.
+func (*BillBatchGroupError) Descriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{55}
+}
+
+func (x *BillBatchGroupError) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *BillBatchGroupError) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *BillBatchGroupError) GetMetadata() map[string]string {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
 type ListBillsResponse struct {
 	state          protoimpl.MessageState       `protogen:"open.v1"`
 	Success        bool                         `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -5665,7 +6271,7 @@ type ListBillsResponse struct {
 
 func (x *ListBillsResponse) Reset() {
 	*x = ListBillsResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[48]
+	mi := &file_finance_v1_settlement_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5677,7 +6283,7 @@ func (x *ListBillsResponse) String() string {
 func (*ListBillsResponse) ProtoMessage() {}
 
 func (x *ListBillsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[48]
+	mi := &file_finance_v1_settlement_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5690,7 +6296,7 @@ func (x *ListBillsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListBillsResponse.ProtoReflect.Descriptor instead.
 func (*ListBillsResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{48}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *ListBillsResponse) GetSuccess() bool {
@@ -5762,7 +6368,7 @@ type FinanceBaseCurrencyAmount struct {
 
 func (x *FinanceBaseCurrencyAmount) Reset() {
 	*x = FinanceBaseCurrencyAmount{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[49]
+	mi := &file_finance_v1_settlement_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5774,7 +6380,7 @@ func (x *FinanceBaseCurrencyAmount) String() string {
 func (*FinanceBaseCurrencyAmount) ProtoMessage() {}
 
 func (x *FinanceBaseCurrencyAmount) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[49]
+	mi := &file_finance_v1_settlement_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5787,7 +6393,7 @@ func (x *FinanceBaseCurrencyAmount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceBaseCurrencyAmount.ProtoReflect.Descriptor instead.
 func (*FinanceBaseCurrencyAmount) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{49}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *FinanceBaseCurrencyAmount) GetBaseCurrency() string {
@@ -5834,7 +6440,7 @@ type FinanceBillSummary struct {
 
 func (x *FinanceBillSummary) Reset() {
 	*x = FinanceBillSummary{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[50]
+	mi := &file_finance_v1_settlement_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5846,7 +6452,7 @@ func (x *FinanceBillSummary) String() string {
 func (*FinanceBillSummary) ProtoMessage() {}
 
 func (x *FinanceBillSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[50]
+	mi := &file_finance_v1_settlement_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5859,7 +6465,7 @@ func (x *FinanceBillSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceBillSummary.ProtoReflect.Descriptor instead.
 func (*FinanceBillSummary) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{50}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *FinanceBillSummary) GetAmountsByBaseCurrency() []*FinanceBaseCurrencyAmount {
@@ -5882,7 +6488,7 @@ type GetBillResponse struct {
 
 func (x *GetBillResponse) Reset() {
 	*x = GetBillResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[51]
+	mi := &file_finance_v1_settlement_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5894,7 +6500,7 @@ func (x *GetBillResponse) String() string {
 func (*GetBillResponse) ProtoMessage() {}
 
 func (x *GetBillResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[51]
+	mi := &file_finance_v1_settlement_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5907,7 +6513,7 @@ func (x *GetBillResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBillResponse.ProtoReflect.Descriptor instead.
 func (*GetBillResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{51}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *GetBillResponse) GetSuccess() bool {
@@ -5958,7 +6564,7 @@ type CreateBillResponse struct {
 
 func (x *CreateBillResponse) Reset() {
 	*x = CreateBillResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[52]
+	mi := &file_finance_v1_settlement_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5970,7 +6576,7 @@ func (x *CreateBillResponse) String() string {
 func (*CreateBillResponse) ProtoMessage() {}
 
 func (x *CreateBillResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[52]
+	mi := &file_finance_v1_settlement_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5983,7 +6589,7 @@ func (x *CreateBillResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateBillResponse.ProtoReflect.Descriptor instead.
 func (*CreateBillResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{52}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *CreateBillResponse) GetSuccess() bool {
@@ -6034,7 +6640,7 @@ type UpdateBillResponse struct {
 
 func (x *UpdateBillResponse) Reset() {
 	*x = UpdateBillResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[53]
+	mi := &file_finance_v1_settlement_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6046,7 +6652,7 @@ func (x *UpdateBillResponse) String() string {
 func (*UpdateBillResponse) ProtoMessage() {}
 
 func (x *UpdateBillResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[53]
+	mi := &file_finance_v1_settlement_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6059,7 +6665,7 @@ func (x *UpdateBillResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateBillResponse.ProtoReflect.Descriptor instead.
 func (*UpdateBillResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{53}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *UpdateBillResponse) GetSuccess() bool {
@@ -6110,7 +6716,7 @@ type CancelBillResponse struct {
 
 func (x *CancelBillResponse) Reset() {
 	*x = CancelBillResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[54]
+	mi := &file_finance_v1_settlement_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6122,7 +6728,7 @@ func (x *CancelBillResponse) String() string {
 func (*CancelBillResponse) ProtoMessage() {}
 
 func (x *CancelBillResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[54]
+	mi := &file_finance_v1_settlement_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6135,7 +6741,7 @@ func (x *CancelBillResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelBillResponse.ProtoReflect.Descriptor instead.
 func (*CancelBillResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{54}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *CancelBillResponse) GetSuccess() bool {
@@ -6187,7 +6793,7 @@ type ListInvoicesRequest struct {
 
 func (x *ListInvoicesRequest) Reset() {
 	*x = ListInvoicesRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[55]
+	mi := &file_finance_v1_settlement_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6199,7 +6805,7 @@ func (x *ListInvoicesRequest) String() string {
 func (*ListInvoicesRequest) ProtoMessage() {}
 
 func (x *ListInvoicesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[55]
+	mi := &file_finance_v1_settlement_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6212,7 +6818,7 @@ func (x *ListInvoicesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListInvoicesRequest.ProtoReflect.Descriptor instead.
 func (*ListInvoicesRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{55}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *ListInvoicesRequest) GetPage() int32 {
@@ -6266,7 +6872,7 @@ type GetInvoiceRequest struct {
 
 func (x *GetInvoiceRequest) Reset() {
 	*x = GetInvoiceRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[56]
+	mi := &file_finance_v1_settlement_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6278,7 +6884,7 @@ func (x *GetInvoiceRequest) String() string {
 func (*GetInvoiceRequest) ProtoMessage() {}
 
 func (x *GetInvoiceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[56]
+	mi := &file_finance_v1_settlement_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6291,7 +6897,7 @@ func (x *GetInvoiceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetInvoiceRequest.ProtoReflect.Descriptor instead.
 func (*GetInvoiceRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{56}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *GetInvoiceRequest) GetId() string {
@@ -6314,7 +6920,7 @@ type CreateInvoiceRequest struct {
 
 func (x *CreateInvoiceRequest) Reset() {
 	*x = CreateInvoiceRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[57]
+	mi := &file_finance_v1_settlement_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6326,7 +6932,7 @@ func (x *CreateInvoiceRequest) String() string {
 func (*CreateInvoiceRequest) ProtoMessage() {}
 
 func (x *CreateInvoiceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[57]
+	mi := &file_finance_v1_settlement_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6339,7 +6945,7 @@ func (x *CreateInvoiceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateInvoiceRequest.ProtoReflect.Descriptor instead.
 func (*CreateInvoiceRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{57}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *CreateInvoiceRequest) GetBillIds() []string {
@@ -6389,7 +6995,7 @@ type IssueInvoiceRequest struct {
 
 func (x *IssueInvoiceRequest) Reset() {
 	*x = IssueInvoiceRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[58]
+	mi := &file_finance_v1_settlement_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6401,7 +7007,7 @@ func (x *IssueInvoiceRequest) String() string {
 func (*IssueInvoiceRequest) ProtoMessage() {}
 
 func (x *IssueInvoiceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[58]
+	mi := &file_finance_v1_settlement_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6414,7 +7020,7 @@ func (x *IssueInvoiceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IssueInvoiceRequest.ProtoReflect.Descriptor instead.
 func (*IssueInvoiceRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{58}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *IssueInvoiceRequest) GetId() string {
@@ -6456,7 +7062,7 @@ type CancelInvoiceRequest struct {
 
 func (x *CancelInvoiceRequest) Reset() {
 	*x = CancelInvoiceRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[59]
+	mi := &file_finance_v1_settlement_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6468,7 +7074,7 @@ func (x *CancelInvoiceRequest) String() string {
 func (*CancelInvoiceRequest) ProtoMessage() {}
 
 func (x *CancelInvoiceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[59]
+	mi := &file_finance_v1_settlement_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6481,7 +7087,7 @@ func (x *CancelInvoiceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelInvoiceRequest.ProtoReflect.Descriptor instead.
 func (*CancelInvoiceRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{59}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *CancelInvoiceRequest) GetId() string {
@@ -6518,7 +7124,7 @@ type RedFlushInvoiceRequest struct {
 
 func (x *RedFlushInvoiceRequest) Reset() {
 	*x = RedFlushInvoiceRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[60]
+	mi := &file_finance_v1_settlement_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6530,7 +7136,7 @@ func (x *RedFlushInvoiceRequest) String() string {
 func (*RedFlushInvoiceRequest) ProtoMessage() {}
 
 func (x *RedFlushInvoiceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[60]
+	mi := &file_finance_v1_settlement_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6543,7 +7149,7 @@ func (x *RedFlushInvoiceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RedFlushInvoiceRequest.ProtoReflect.Descriptor instead.
 func (*RedFlushInvoiceRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{60}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *RedFlushInvoiceRequest) GetId() string {
@@ -6596,7 +7202,7 @@ type FinanceInvoiceBill struct {
 
 func (x *FinanceInvoiceBill) Reset() {
 	*x = FinanceInvoiceBill{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[61]
+	mi := &file_finance_v1_settlement_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6608,7 +7214,7 @@ func (x *FinanceInvoiceBill) String() string {
 func (*FinanceInvoiceBill) ProtoMessage() {}
 
 func (x *FinanceInvoiceBill) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[61]
+	mi := &file_finance_v1_settlement_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6621,7 +7227,7 @@ func (x *FinanceInvoiceBill) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceInvoiceBill.ProtoReflect.Descriptor instead.
 func (*FinanceInvoiceBill) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{61}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *FinanceInvoiceBill) GetId() string {
@@ -6691,7 +7297,7 @@ type FinanceInvoiceLine struct {
 
 func (x *FinanceInvoiceLine) Reset() {
 	*x = FinanceInvoiceLine{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[62]
+	mi := &file_finance_v1_settlement_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6703,7 +7309,7 @@ func (x *FinanceInvoiceLine) String() string {
 func (*FinanceInvoiceLine) ProtoMessage() {}
 
 func (x *FinanceInvoiceLine) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[62]
+	mi := &file_finance_v1_settlement_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6716,7 +7322,7 @@ func (x *FinanceInvoiceLine) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceInvoiceLine.ProtoReflect.Descriptor instead.
 func (*FinanceInvoiceLine) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{62}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *FinanceInvoiceLine) GetId() string {
@@ -6839,7 +7445,7 @@ type FinanceInvoice struct {
 
 func (x *FinanceInvoice) Reset() {
 	*x = FinanceInvoice{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[63]
+	mi := &file_finance_v1_settlement_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6851,7 +7457,7 @@ func (x *FinanceInvoice) String() string {
 func (*FinanceInvoice) ProtoMessage() {}
 
 func (x *FinanceInvoice) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[63]
+	mi := &file_finance_v1_settlement_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6864,7 +7470,7 @@ func (x *FinanceInvoice) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceInvoice.ProtoReflect.Descriptor instead.
 func (*FinanceInvoice) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{63}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *FinanceInvoice) GetId() string {
@@ -7177,7 +7783,7 @@ type ListInvoicesResponse struct {
 
 func (x *ListInvoicesResponse) Reset() {
 	*x = ListInvoicesResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[64]
+	mi := &file_finance_v1_settlement_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7189,7 +7795,7 @@ func (x *ListInvoicesResponse) String() string {
 func (*ListInvoicesResponse) ProtoMessage() {}
 
 func (x *ListInvoicesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[64]
+	mi := &file_finance_v1_settlement_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7202,7 +7808,7 @@ func (x *ListInvoicesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListInvoicesResponse.ProtoReflect.Descriptor instead.
 func (*ListInvoicesResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{64}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *ListInvoicesResponse) GetSuccess() bool {
@@ -7271,7 +7877,7 @@ type FinanceInvoiceSummary struct {
 
 func (x *FinanceInvoiceSummary) Reset() {
 	*x = FinanceInvoiceSummary{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[65]
+	mi := &file_finance_v1_settlement_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7283,7 +7889,7 @@ func (x *FinanceInvoiceSummary) String() string {
 func (*FinanceInvoiceSummary) ProtoMessage() {}
 
 func (x *FinanceInvoiceSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[65]
+	mi := &file_finance_v1_settlement_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7296,7 +7902,7 @@ func (x *FinanceInvoiceSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceInvoiceSummary.ProtoReflect.Descriptor instead.
 func (*FinanceInvoiceSummary) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{65}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *FinanceInvoiceSummary) GetAmountsByBaseCurrency() []*FinanceBaseCurrencyAmount {
@@ -7328,7 +7934,7 @@ type ListInvoiceCreationBillsRequest struct {
 
 func (x *ListInvoiceCreationBillsRequest) Reset() {
 	*x = ListInvoiceCreationBillsRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[66]
+	mi := &file_finance_v1_settlement_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7340,7 +7946,7 @@ func (x *ListInvoiceCreationBillsRequest) String() string {
 func (*ListInvoiceCreationBillsRequest) ProtoMessage() {}
 
 func (x *ListInvoiceCreationBillsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[66]
+	mi := &file_finance_v1_settlement_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7353,7 +7959,7 @@ func (x *ListInvoiceCreationBillsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListInvoiceCreationBillsRequest.ProtoReflect.Descriptor instead.
 func (*ListInvoiceCreationBillsRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{66}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *ListInvoiceCreationBillsRequest) GetOrganizationId() string {
@@ -7419,7 +8025,7 @@ type ListInvoiceCreationBillsResponse struct {
 
 func (x *ListInvoiceCreationBillsResponse) Reset() {
 	*x = ListInvoiceCreationBillsResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[67]
+	mi := &file_finance_v1_settlement_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7431,7 +8037,7 @@ func (x *ListInvoiceCreationBillsResponse) String() string {
 func (*ListInvoiceCreationBillsResponse) ProtoMessage() {}
 
 func (x *ListInvoiceCreationBillsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[67]
+	mi := &file_finance_v1_settlement_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7444,7 +8050,7 @@ func (x *ListInvoiceCreationBillsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListInvoiceCreationBillsResponse.ProtoReflect.Descriptor instead.
 func (*ListInvoiceCreationBillsResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{67}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *ListInvoiceCreationBillsResponse) GetSuccess() bool {
@@ -7502,7 +8108,7 @@ type FinanceInvoiceProfileOption struct {
 
 func (x *FinanceInvoiceProfileOption) Reset() {
 	*x = FinanceInvoiceProfileOption{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[68]
+	mi := &file_finance_v1_settlement_proto_msgTypes[76]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7514,7 +8120,7 @@ func (x *FinanceInvoiceProfileOption) String() string {
 func (*FinanceInvoiceProfileOption) ProtoMessage() {}
 
 func (x *FinanceInvoiceProfileOption) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[68]
+	mi := &file_finance_v1_settlement_proto_msgTypes[76]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7527,7 +8133,7 @@ func (x *FinanceInvoiceProfileOption) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceInvoiceProfileOption.ProtoReflect.Descriptor instead.
 func (*FinanceInvoiceProfileOption) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{68}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *FinanceInvoiceProfileOption) GetId() string {
@@ -7576,7 +8182,7 @@ type FinanceInvoiceProfilesForBill struct {
 
 func (x *FinanceInvoiceProfilesForBill) Reset() {
 	*x = FinanceInvoiceProfilesForBill{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[69]
+	mi := &file_finance_v1_settlement_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7588,7 +8194,7 @@ func (x *FinanceInvoiceProfilesForBill) String() string {
 func (*FinanceInvoiceProfilesForBill) ProtoMessage() {}
 
 func (x *FinanceInvoiceProfilesForBill) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[69]
+	mi := &file_finance_v1_settlement_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7601,7 +8207,7 @@ func (x *FinanceInvoiceProfilesForBill) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceInvoiceProfilesForBill.ProtoReflect.Descriptor instead.
 func (*FinanceInvoiceProfilesForBill) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{69}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *FinanceInvoiceProfilesForBill) GetOrganizationId() string {
@@ -7634,7 +8240,7 @@ type ListInvoiceProfilesForBillRequest struct {
 
 func (x *ListInvoiceProfilesForBillRequest) Reset() {
 	*x = ListInvoiceProfilesForBillRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[70]
+	mi := &file_finance_v1_settlement_proto_msgTypes[78]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7646,7 +8252,7 @@ func (x *ListInvoiceProfilesForBillRequest) String() string {
 func (*ListInvoiceProfilesForBillRequest) ProtoMessage() {}
 
 func (x *ListInvoiceProfilesForBillRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[70]
+	mi := &file_finance_v1_settlement_proto_msgTypes[78]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7659,7 +8265,7 @@ func (x *ListInvoiceProfilesForBillRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ListInvoiceProfilesForBillRequest.ProtoReflect.Descriptor instead.
 func (*ListInvoiceProfilesForBillRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{70}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{78}
 }
 
 func (x *ListInvoiceProfilesForBillRequest) GetBillId() string {
@@ -7682,7 +8288,7 @@ type ListInvoiceProfilesForBillResponse struct {
 
 func (x *ListInvoiceProfilesForBillResponse) Reset() {
 	*x = ListInvoiceProfilesForBillResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[71]
+	mi := &file_finance_v1_settlement_proto_msgTypes[79]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7694,7 +8300,7 @@ func (x *ListInvoiceProfilesForBillResponse) String() string {
 func (*ListInvoiceProfilesForBillResponse) ProtoMessage() {}
 
 func (x *ListInvoiceProfilesForBillResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[71]
+	mi := &file_finance_v1_settlement_proto_msgTypes[79]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7707,7 +8313,7 @@ func (x *ListInvoiceProfilesForBillResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use ListInvoiceProfilesForBillResponse.ProtoReflect.Descriptor instead.
 func (*ListInvoiceProfilesForBillResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{71}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{79}
 }
 
 func (x *ListInvoiceProfilesForBillResponse) GetSuccess() bool {
@@ -7758,7 +8364,7 @@ type GetInvoiceResponse struct {
 
 func (x *GetInvoiceResponse) Reset() {
 	*x = GetInvoiceResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[72]
+	mi := &file_finance_v1_settlement_proto_msgTypes[80]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7770,7 +8376,7 @@ func (x *GetInvoiceResponse) String() string {
 func (*GetInvoiceResponse) ProtoMessage() {}
 
 func (x *GetInvoiceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[72]
+	mi := &file_finance_v1_settlement_proto_msgTypes[80]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7783,7 +8389,7 @@ func (x *GetInvoiceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetInvoiceResponse.ProtoReflect.Descriptor instead.
 func (*GetInvoiceResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{72}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{80}
 }
 
 func (x *GetInvoiceResponse) GetSuccess() bool {
@@ -7834,7 +8440,7 @@ type CreateInvoiceResponse struct {
 
 func (x *CreateInvoiceResponse) Reset() {
 	*x = CreateInvoiceResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[73]
+	mi := &file_finance_v1_settlement_proto_msgTypes[81]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7846,7 +8452,7 @@ func (x *CreateInvoiceResponse) String() string {
 func (*CreateInvoiceResponse) ProtoMessage() {}
 
 func (x *CreateInvoiceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[73]
+	mi := &file_finance_v1_settlement_proto_msgTypes[81]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7859,7 +8465,7 @@ func (x *CreateInvoiceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateInvoiceResponse.ProtoReflect.Descriptor instead.
 func (*CreateInvoiceResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{73}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{81}
 }
 
 func (x *CreateInvoiceResponse) GetSuccess() bool {
@@ -7910,7 +8516,7 @@ type IssueInvoiceResponse struct {
 
 func (x *IssueInvoiceResponse) Reset() {
 	*x = IssueInvoiceResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[74]
+	mi := &file_finance_v1_settlement_proto_msgTypes[82]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7922,7 +8528,7 @@ func (x *IssueInvoiceResponse) String() string {
 func (*IssueInvoiceResponse) ProtoMessage() {}
 
 func (x *IssueInvoiceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[74]
+	mi := &file_finance_v1_settlement_proto_msgTypes[82]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7935,7 +8541,7 @@ func (x *IssueInvoiceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IssueInvoiceResponse.ProtoReflect.Descriptor instead.
 func (*IssueInvoiceResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{74}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{82}
 }
 
 func (x *IssueInvoiceResponse) GetSuccess() bool {
@@ -7986,7 +8592,7 @@ type CancelInvoiceResponse struct {
 
 func (x *CancelInvoiceResponse) Reset() {
 	*x = CancelInvoiceResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[75]
+	mi := &file_finance_v1_settlement_proto_msgTypes[83]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7998,7 +8604,7 @@ func (x *CancelInvoiceResponse) String() string {
 func (*CancelInvoiceResponse) ProtoMessage() {}
 
 func (x *CancelInvoiceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[75]
+	mi := &file_finance_v1_settlement_proto_msgTypes[83]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8011,7 +8617,7 @@ func (x *CancelInvoiceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelInvoiceResponse.ProtoReflect.Descriptor instead.
 func (*CancelInvoiceResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{75}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{83}
 }
 
 func (x *CancelInvoiceResponse) GetSuccess() bool {
@@ -8062,7 +8668,7 @@ type RedFlushInvoiceResponse struct {
 
 func (x *RedFlushInvoiceResponse) Reset() {
 	*x = RedFlushInvoiceResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[76]
+	mi := &file_finance_v1_settlement_proto_msgTypes[84]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8074,7 +8680,7 @@ func (x *RedFlushInvoiceResponse) String() string {
 func (*RedFlushInvoiceResponse) ProtoMessage() {}
 
 func (x *RedFlushInvoiceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[76]
+	mi := &file_finance_v1_settlement_proto_msgTypes[84]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8087,7 +8693,7 @@ func (x *RedFlushInvoiceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RedFlushInvoiceResponse.ProtoReflect.Descriptor instead.
 func (*RedFlushInvoiceResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{76}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{84}
 }
 
 func (x *RedFlushInvoiceResponse) GetSuccess() bool {
@@ -8141,7 +8747,7 @@ type ListCashflowsRequest struct {
 
 func (x *ListCashflowsRequest) Reset() {
 	*x = ListCashflowsRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[77]
+	mi := &file_finance_v1_settlement_proto_msgTypes[85]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8153,7 +8759,7 @@ func (x *ListCashflowsRequest) String() string {
 func (*ListCashflowsRequest) ProtoMessage() {}
 
 func (x *ListCashflowsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[77]
+	mi := &file_finance_v1_settlement_proto_msgTypes[85]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8166,7 +8772,7 @@ func (x *ListCashflowsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCashflowsRequest.ProtoReflect.Descriptor instead.
 func (*ListCashflowsRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{77}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{85}
 }
 
 func (x *ListCashflowsRequest) GetPage() int32 {
@@ -8247,7 +8853,7 @@ type CreateCashflowRequest struct {
 
 func (x *CreateCashflowRequest) Reset() {
 	*x = CreateCashflowRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[78]
+	mi := &file_finance_v1_settlement_proto_msgTypes[86]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8259,7 +8865,7 @@ func (x *CreateCashflowRequest) String() string {
 func (*CreateCashflowRequest) ProtoMessage() {}
 
 func (x *CreateCashflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[78]
+	mi := &file_finance_v1_settlement_proto_msgTypes[86]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8272,7 +8878,7 @@ func (x *CreateCashflowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateCashflowRequest.ProtoReflect.Descriptor instead.
 func (*CreateCashflowRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{78}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{86}
 }
 
 func (x *CreateCashflowRequest) GetDirection() string {
@@ -8383,7 +8989,7 @@ type ConfirmCashflowRequest struct {
 
 func (x *ConfirmCashflowRequest) Reset() {
 	*x = ConfirmCashflowRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[79]
+	mi := &file_finance_v1_settlement_proto_msgTypes[87]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8395,7 +9001,7 @@ func (x *ConfirmCashflowRequest) String() string {
 func (*ConfirmCashflowRequest) ProtoMessage() {}
 
 func (x *ConfirmCashflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[79]
+	mi := &file_finance_v1_settlement_proto_msgTypes[87]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8408,7 +9014,7 @@ func (x *ConfirmCashflowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfirmCashflowRequest.ProtoReflect.Descriptor instead.
 func (*ConfirmCashflowRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{79}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{87}
 }
 
 func (x *ConfirmCashflowRequest) GetId() string {
@@ -8436,7 +9042,7 @@ type CancelCashflowRequest struct {
 
 func (x *CancelCashflowRequest) Reset() {
 	*x = CancelCashflowRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[80]
+	mi := &file_finance_v1_settlement_proto_msgTypes[88]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8448,7 +9054,7 @@ func (x *CancelCashflowRequest) String() string {
 func (*CancelCashflowRequest) ProtoMessage() {}
 
 func (x *CancelCashflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[80]
+	mi := &file_finance_v1_settlement_proto_msgTypes[88]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8461,7 +9067,7 @@ func (x *CancelCashflowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelCashflowRequest.ProtoReflect.Descriptor instead.
 func (*CancelCashflowRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{80}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{88}
 }
 
 func (x *CancelCashflowRequest) GetId() string {
@@ -8523,7 +9129,7 @@ type FinanceCashflow struct {
 
 func (x *FinanceCashflow) Reset() {
 	*x = FinanceCashflow{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[81]
+	mi := &file_finance_v1_settlement_proto_msgTypes[89]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8535,7 +9141,7 @@ func (x *FinanceCashflow) String() string {
 func (*FinanceCashflow) ProtoMessage() {}
 
 func (x *FinanceCashflow) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[81]
+	mi := &file_finance_v1_settlement_proto_msgTypes[89]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8548,7 +9154,7 @@ func (x *FinanceCashflow) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceCashflow.ProtoReflect.Descriptor instead.
 func (*FinanceCashflow) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{81}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{89}
 }
 
 func (x *FinanceCashflow) GetId() string {
@@ -8777,7 +9383,7 @@ type ListCashflowsResponse struct {
 
 func (x *ListCashflowsResponse) Reset() {
 	*x = ListCashflowsResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[82]
+	mi := &file_finance_v1_settlement_proto_msgTypes[90]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8789,7 +9395,7 @@ func (x *ListCashflowsResponse) String() string {
 func (*ListCashflowsResponse) ProtoMessage() {}
 
 func (x *ListCashflowsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[82]
+	mi := &file_finance_v1_settlement_proto_msgTypes[90]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8802,7 +9408,7 @@ func (x *ListCashflowsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCashflowsResponse.ProtoReflect.Descriptor instead.
 func (*ListCashflowsResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{82}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{90}
 }
 
 func (x *ListCashflowsResponse) GetSuccess() bool {
@@ -8870,7 +9476,7 @@ type FinanceCashflowSummary struct {
 
 func (x *FinanceCashflowSummary) Reset() {
 	*x = FinanceCashflowSummary{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[83]
+	mi := &file_finance_v1_settlement_proto_msgTypes[91]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8882,7 +9488,7 @@ func (x *FinanceCashflowSummary) String() string {
 func (*FinanceCashflowSummary) ProtoMessage() {}
 
 func (x *FinanceCashflowSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[83]
+	mi := &file_finance_v1_settlement_proto_msgTypes[91]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8895,7 +9501,7 @@ func (x *FinanceCashflowSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceCashflowSummary.ProtoReflect.Descriptor instead.
 func (*FinanceCashflowSummary) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{83}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{91}
 }
 
 func (x *FinanceCashflowSummary) GetAmountsByBaseCurrency() []*FinanceBaseCurrencyAmount {
@@ -8918,7 +9524,7 @@ type CreateCashflowResponse struct {
 
 func (x *CreateCashflowResponse) Reset() {
 	*x = CreateCashflowResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[84]
+	mi := &file_finance_v1_settlement_proto_msgTypes[92]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8930,7 +9536,7 @@ func (x *CreateCashflowResponse) String() string {
 func (*CreateCashflowResponse) ProtoMessage() {}
 
 func (x *CreateCashflowResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[84]
+	mi := &file_finance_v1_settlement_proto_msgTypes[92]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8943,7 +9549,7 @@ func (x *CreateCashflowResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateCashflowResponse.ProtoReflect.Descriptor instead.
 func (*CreateCashflowResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{84}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{92}
 }
 
 func (x *CreateCashflowResponse) GetSuccess() bool {
@@ -8994,7 +9600,7 @@ type ConfirmCashflowResponse struct {
 
 func (x *ConfirmCashflowResponse) Reset() {
 	*x = ConfirmCashflowResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[85]
+	mi := &file_finance_v1_settlement_proto_msgTypes[93]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9006,7 +9612,7 @@ func (x *ConfirmCashflowResponse) String() string {
 func (*ConfirmCashflowResponse) ProtoMessage() {}
 
 func (x *ConfirmCashflowResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[85]
+	mi := &file_finance_v1_settlement_proto_msgTypes[93]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9019,7 +9625,7 @@ func (x *ConfirmCashflowResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfirmCashflowResponse.ProtoReflect.Descriptor instead.
 func (*ConfirmCashflowResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{85}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{93}
 }
 
 func (x *ConfirmCashflowResponse) GetSuccess() bool {
@@ -9070,7 +9676,7 @@ type CancelCashflowResponse struct {
 
 func (x *CancelCashflowResponse) Reset() {
 	*x = CancelCashflowResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[86]
+	mi := &file_finance_v1_settlement_proto_msgTypes[94]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9082,7 +9688,7 @@ func (x *CancelCashflowResponse) String() string {
 func (*CancelCashflowResponse) ProtoMessage() {}
 
 func (x *CancelCashflowResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[86]
+	mi := &file_finance_v1_settlement_proto_msgTypes[94]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9095,7 +9701,7 @@ func (x *CancelCashflowResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelCashflowResponse.ProtoReflect.Descriptor instead.
 func (*CancelCashflowResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{86}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{94}
 }
 
 func (x *CancelCashflowResponse) GetSuccess() bool {
@@ -9133,6 +9739,7 @@ func (x *CancelCashflowResponse) GetTraceId() string {
 	return ""
 }
 
+// cashflow_id 为空时引用本次 shortfall_cashflow，仅组合核销入口允许。
 type VerificationAllocationInput struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	CashflowId    string                 `protobuf:"bytes,1,opt,name=cashflow_id,json=cashflowId,proto3" json:"cashflow_id,omitempty"`
@@ -9144,7 +9751,7 @@ type VerificationAllocationInput struct {
 
 func (x *VerificationAllocationInput) Reset() {
 	*x = VerificationAllocationInput{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[87]
+	mi := &file_finance_v1_settlement_proto_msgTypes[95]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9156,7 +9763,7 @@ func (x *VerificationAllocationInput) String() string {
 func (*VerificationAllocationInput) ProtoMessage() {}
 
 func (x *VerificationAllocationInput) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[87]
+	mi := &file_finance_v1_settlement_proto_msgTypes[95]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9169,7 +9776,7 @@ func (x *VerificationAllocationInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerificationAllocationInput.ProtoReflect.Descriptor instead.
 func (*VerificationAllocationInput) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{87}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{95}
 }
 
 func (x *VerificationAllocationInput) GetCashflowId() string {
@@ -9206,7 +9813,7 @@ type ListVerificationsRequest struct {
 
 func (x *ListVerificationsRequest) Reset() {
 	*x = ListVerificationsRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[88]
+	mi := &file_finance_v1_settlement_proto_msgTypes[96]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9218,7 +9825,7 @@ func (x *ListVerificationsRequest) String() string {
 func (*ListVerificationsRequest) ProtoMessage() {}
 
 func (x *ListVerificationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[88]
+	mi := &file_finance_v1_settlement_proto_msgTypes[96]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9231,7 +9838,7 @@ func (x *ListVerificationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListVerificationsRequest.ProtoReflect.Descriptor instead.
 func (*ListVerificationsRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{88}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{96}
 }
 
 func (x *ListVerificationsRequest) GetPage() int32 {
@@ -9281,7 +9888,7 @@ type ListCommissionVerificationCandidatesRequest struct {
 
 func (x *ListCommissionVerificationCandidatesRequest) Reset() {
 	*x = ListCommissionVerificationCandidatesRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[89]
+	mi := &file_finance_v1_settlement_proto_msgTypes[97]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9293,7 +9900,7 @@ func (x *ListCommissionVerificationCandidatesRequest) String() string {
 func (*ListCommissionVerificationCandidatesRequest) ProtoMessage() {}
 
 func (x *ListCommissionVerificationCandidatesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[89]
+	mi := &file_finance_v1_settlement_proto_msgTypes[97]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9306,7 +9913,7 @@ func (x *ListCommissionVerificationCandidatesRequest) ProtoReflect() protoreflec
 
 // Deprecated: Use ListCommissionVerificationCandidatesRequest.ProtoReflect.Descriptor instead.
 func (*ListCommissionVerificationCandidatesRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{89}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{97}
 }
 
 func (x *ListCommissionVerificationCandidatesRequest) GetOrganizationId() string {
@@ -9351,7 +9958,7 @@ type ListCommissionVerificationCandidatesResponse struct {
 
 func (x *ListCommissionVerificationCandidatesResponse) Reset() {
 	*x = ListCommissionVerificationCandidatesResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[90]
+	mi := &file_finance_v1_settlement_proto_msgTypes[98]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9363,7 +9970,7 @@ func (x *ListCommissionVerificationCandidatesResponse) String() string {
 func (*ListCommissionVerificationCandidatesResponse) ProtoMessage() {}
 
 func (x *ListCommissionVerificationCandidatesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[90]
+	mi := &file_finance_v1_settlement_proto_msgTypes[98]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9376,7 +9983,7 @@ func (x *ListCommissionVerificationCandidatesResponse) ProtoReflect() protorefle
 
 // Deprecated: Use ListCommissionVerificationCandidatesResponse.ProtoReflect.Descriptor instead.
 func (*ListCommissionVerificationCandidatesResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{90}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{98}
 }
 
 func (x *ListCommissionVerificationCandidatesResponse) GetSuccess() bool {
@@ -9433,7 +10040,7 @@ type ListCommissionNettingCandidatesRequest struct {
 
 func (x *ListCommissionNettingCandidatesRequest) Reset() {
 	*x = ListCommissionNettingCandidatesRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[91]
+	mi := &file_finance_v1_settlement_proto_msgTypes[99]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9445,7 +10052,7 @@ func (x *ListCommissionNettingCandidatesRequest) String() string {
 func (*ListCommissionNettingCandidatesRequest) ProtoMessage() {}
 
 func (x *ListCommissionNettingCandidatesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[91]
+	mi := &file_finance_v1_settlement_proto_msgTypes[99]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9458,7 +10065,7 @@ func (x *ListCommissionNettingCandidatesRequest) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use ListCommissionNettingCandidatesRequest.ProtoReflect.Descriptor instead.
 func (*ListCommissionNettingCandidatesRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{91}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{99}
 }
 
 func (x *ListCommissionNettingCandidatesRequest) GetOrganizationId() string {
@@ -9503,7 +10110,7 @@ type ListCommissionNettingCandidatesResponse struct {
 
 func (x *ListCommissionNettingCandidatesResponse) Reset() {
 	*x = ListCommissionNettingCandidatesResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[92]
+	mi := &file_finance_v1_settlement_proto_msgTypes[100]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9515,7 +10122,7 @@ func (x *ListCommissionNettingCandidatesResponse) String() string {
 func (*ListCommissionNettingCandidatesResponse) ProtoMessage() {}
 
 func (x *ListCommissionNettingCandidatesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[92]
+	mi := &file_finance_v1_settlement_proto_msgTypes[100]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9528,7 +10135,7 @@ func (x *ListCommissionNettingCandidatesResponse) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use ListCommissionNettingCandidatesResponse.ProtoReflect.Descriptor instead.
 func (*ListCommissionNettingCandidatesResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{92}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{100}
 }
 
 func (x *ListCommissionNettingCandidatesResponse) GetSuccess() bool {
@@ -9583,7 +10190,7 @@ type VerificationCreationCandidates struct {
 
 func (x *VerificationCreationCandidates) Reset() {
 	*x = VerificationCreationCandidates{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[93]
+	mi := &file_finance_v1_settlement_proto_msgTypes[101]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9595,7 +10202,7 @@ func (x *VerificationCreationCandidates) String() string {
 func (*VerificationCreationCandidates) ProtoMessage() {}
 
 func (x *VerificationCreationCandidates) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[93]
+	mi := &file_finance_v1_settlement_proto_msgTypes[101]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9608,7 +10215,7 @@ func (x *VerificationCreationCandidates) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerificationCreationCandidates.ProtoReflect.Descriptor instead.
 func (*VerificationCreationCandidates) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{93}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{101}
 }
 
 func (x *VerificationCreationCandidates) GetCashflows() []*FinanceCashflow {
@@ -9637,7 +10244,7 @@ type ListVerificationCreationCandidatesRequest struct {
 
 func (x *ListVerificationCreationCandidatesRequest) Reset() {
 	*x = ListVerificationCreationCandidatesRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[94]
+	mi := &file_finance_v1_settlement_proto_msgTypes[102]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9649,7 +10256,7 @@ func (x *ListVerificationCreationCandidatesRequest) String() string {
 func (*ListVerificationCreationCandidatesRequest) ProtoMessage() {}
 
 func (x *ListVerificationCreationCandidatesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[94]
+	mi := &file_finance_v1_settlement_proto_msgTypes[102]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9662,7 +10269,7 @@ func (x *ListVerificationCreationCandidatesRequest) ProtoReflect() protoreflect.
 
 // Deprecated: Use ListVerificationCreationCandidatesRequest.ProtoReflect.Descriptor instead.
 func (*ListVerificationCreationCandidatesRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{94}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{102}
 }
 
 func (x *ListVerificationCreationCandidatesRequest) GetOrganizationId() string {
@@ -9706,7 +10313,7 @@ type ListVerificationCreationCandidatesResponse struct {
 
 func (x *ListVerificationCreationCandidatesResponse) Reset() {
 	*x = ListVerificationCreationCandidatesResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[95]
+	mi := &file_finance_v1_settlement_proto_msgTypes[103]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9718,7 +10325,7 @@ func (x *ListVerificationCreationCandidatesResponse) String() string {
 func (*ListVerificationCreationCandidatesResponse) ProtoMessage() {}
 
 func (x *ListVerificationCreationCandidatesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[95]
+	mi := &file_finance_v1_settlement_proto_msgTypes[103]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9731,7 +10338,7 @@ func (x *ListVerificationCreationCandidatesResponse) ProtoReflect() protoreflect
 
 // Deprecated: Use ListVerificationCreationCandidatesResponse.ProtoReflect.Descriptor instead.
 func (*ListVerificationCreationCandidatesResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{95}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{103}
 }
 
 func (x *ListVerificationCreationCandidatesResponse) GetSuccess() bool {
@@ -9769,19 +10376,153 @@ func (x *ListVerificationCreationCandidatesResponse) GetTraceId() string {
 	return ""
 }
 
+// 差额流水只在最终核销提交的共享事务内创建并确认，幂等键由核销键派生。
+type VerificationShortfallCashflow struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	OrganizationId      string                 `protobuf:"bytes,1,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	Direction           string                 `protobuf:"bytes,2,opt,name=direction,proto3" json:"direction,omitempty"`
+	SettlementPartyId   string                 `protobuf:"bytes,3,opt,name=settlement_party_id,json=settlementPartyId,proto3" json:"settlement_party_id,omitempty"`
+	Currency            string                 `protobuf:"bytes,4,opt,name=currency,proto3" json:"currency,omitempty"`
+	Amount              string                 `protobuf:"bytes,5,opt,name=amount,proto3" json:"amount,omitempty"`
+	TransactionDate     string                 `protobuf:"bytes,6,opt,name=transaction_date,json=transactionDate,proto3" json:"transaction_date,omitempty"`
+	OurAccount          string                 `protobuf:"bytes,7,opt,name=our_account,json=ourAccount,proto3" json:"our_account,omitempty"`
+	PaymentMethod       string                 `protobuf:"bytes,8,opt,name=payment_method,json=paymentMethod,proto3" json:"payment_method,omitempty"`
+	CounterpartyAccount *string                `protobuf:"bytes,9,opt,name=counterparty_account,json=counterpartyAccount,proto3,oneof" json:"counterparty_account,omitempty"`
+	BankReferenceNo     *string                `protobuf:"bytes,10,opt,name=bank_reference_no,json=bankReferenceNo,proto3,oneof" json:"bank_reference_no,omitempty"`
+	Note                *string                `protobuf:"bytes,11,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	ExchangeRate        *string                `protobuf:"bytes,12,opt,name=exchange_rate,json=exchangeRate,proto3,oneof" json:"exchange_rate,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *VerificationShortfallCashflow) Reset() {
+	*x = VerificationShortfallCashflow{}
+	mi := &file_finance_v1_settlement_proto_msgTypes[104]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VerificationShortfallCashflow) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VerificationShortfallCashflow) ProtoMessage() {}
+
+func (x *VerificationShortfallCashflow) ProtoReflect() protoreflect.Message {
+	mi := &file_finance_v1_settlement_proto_msgTypes[104]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VerificationShortfallCashflow.ProtoReflect.Descriptor instead.
+func (*VerificationShortfallCashflow) Descriptor() ([]byte, []int) {
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{104}
+}
+
+func (x *VerificationShortfallCashflow) GetOrganizationId() string {
+	if x != nil {
+		return x.OrganizationId
+	}
+	return ""
+}
+
+func (x *VerificationShortfallCashflow) GetDirection() string {
+	if x != nil {
+		return x.Direction
+	}
+	return ""
+}
+
+func (x *VerificationShortfallCashflow) GetSettlementPartyId() string {
+	if x != nil {
+		return x.SettlementPartyId
+	}
+	return ""
+}
+
+func (x *VerificationShortfallCashflow) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
+}
+
+func (x *VerificationShortfallCashflow) GetAmount() string {
+	if x != nil {
+		return x.Amount
+	}
+	return ""
+}
+
+func (x *VerificationShortfallCashflow) GetTransactionDate() string {
+	if x != nil {
+		return x.TransactionDate
+	}
+	return ""
+}
+
+func (x *VerificationShortfallCashflow) GetOurAccount() string {
+	if x != nil {
+		return x.OurAccount
+	}
+	return ""
+}
+
+func (x *VerificationShortfallCashflow) GetPaymentMethod() string {
+	if x != nil {
+		return x.PaymentMethod
+	}
+	return ""
+}
+
+func (x *VerificationShortfallCashflow) GetCounterpartyAccount() string {
+	if x != nil && x.CounterpartyAccount != nil {
+		return *x.CounterpartyAccount
+	}
+	return ""
+}
+
+func (x *VerificationShortfallCashflow) GetBankReferenceNo() string {
+	if x != nil && x.BankReferenceNo != nil {
+		return *x.BankReferenceNo
+	}
+	return ""
+}
+
+func (x *VerificationShortfallCashflow) GetNote() string {
+	if x != nil && x.Note != nil {
+		return *x.Note
+	}
+	return ""
+}
+
+func (x *VerificationShortfallCashflow) GetExchangeRate() string {
+	if x != nil && x.ExchangeRate != nil {
+		return *x.ExchangeRate
+	}
+	return ""
+}
+
 type CreateVerificationRequest struct {
-	state            protoimpl.MessageState         `protogen:"open.v1"`
-	Allocations      []*VerificationAllocationInput `protobuf:"bytes,1,rep,name=allocations,proto3" json:"allocations,omitempty"`
-	VerificationDate string                         `protobuf:"bytes,2,opt,name=verification_date,json=verificationDate,proto3" json:"verification_date,omitempty"`
-	Note             *string                        `protobuf:"bytes,3,opt,name=note,proto3,oneof" json:"note,omitempty"`
-	IdempotencyKey   string                         `protobuf:"bytes,4,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state             protoimpl.MessageState         `protogen:"open.v1"`
+	Allocations       []*VerificationAllocationInput `protobuf:"bytes,1,rep,name=allocations,proto3" json:"allocations,omitempty"`
+	VerificationDate  string                         `protobuf:"bytes,2,opt,name=verification_date,json=verificationDate,proto3" json:"verification_date,omitempty"`
+	Note              *string                        `protobuf:"bytes,3,opt,name=note,proto3,oneof" json:"note,omitempty"`
+	IdempotencyKey    string                         `protobuf:"bytes,4,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	ShortfallCashflow *VerificationShortfallCashflow `protobuf:"bytes,5,opt,name=shortfall_cashflow,json=shortfallCashflow,proto3" json:"shortfall_cashflow,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *CreateVerificationRequest) Reset() {
 	*x = CreateVerificationRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[96]
+	mi := &file_finance_v1_settlement_proto_msgTypes[105]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9793,7 +10534,7 @@ func (x *CreateVerificationRequest) String() string {
 func (*CreateVerificationRequest) ProtoMessage() {}
 
 func (x *CreateVerificationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[96]
+	mi := &file_finance_v1_settlement_proto_msgTypes[105]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9806,7 +10547,7 @@ func (x *CreateVerificationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateVerificationRequest.ProtoReflect.Descriptor instead.
 func (*CreateVerificationRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{96}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{105}
 }
 
 func (x *CreateVerificationRequest) GetAllocations() []*VerificationAllocationInput {
@@ -9837,6 +10578,13 @@ func (x *CreateVerificationRequest) GetIdempotencyKey() string {
 	return ""
 }
 
+func (x *CreateVerificationRequest) GetShortfallCashflow() *VerificationShortfallCashflow {
+	if x != nil {
+		return x.ShortfallCashflow
+	}
+	return nil
+}
+
 type ReverseVerificationRequest struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -9848,7 +10596,7 @@ type ReverseVerificationRequest struct {
 
 func (x *ReverseVerificationRequest) Reset() {
 	*x = ReverseVerificationRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[97]
+	mi := &file_finance_v1_settlement_proto_msgTypes[106]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9860,7 +10608,7 @@ func (x *ReverseVerificationRequest) String() string {
 func (*ReverseVerificationRequest) ProtoMessage() {}
 
 func (x *ReverseVerificationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[97]
+	mi := &file_finance_v1_settlement_proto_msgTypes[106]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9873,7 +10621,7 @@ func (x *ReverseVerificationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReverseVerificationRequest.ProtoReflect.Descriptor instead.
 func (*ReverseVerificationRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{97}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{106}
 }
 
 func (x *ReverseVerificationRequest) GetId() string {
@@ -9915,7 +10663,7 @@ type FinanceVerificationAllocation struct {
 
 func (x *FinanceVerificationAllocation) Reset() {
 	*x = FinanceVerificationAllocation{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[98]
+	mi := &file_finance_v1_settlement_proto_msgTypes[107]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9927,7 +10675,7 @@ func (x *FinanceVerificationAllocation) String() string {
 func (*FinanceVerificationAllocation) ProtoMessage() {}
 
 func (x *FinanceVerificationAllocation) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[98]
+	mi := &file_finance_v1_settlement_proto_msgTypes[107]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9940,7 +10688,7 @@ func (x *FinanceVerificationAllocation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceVerificationAllocation.ProtoReflect.Descriptor instead.
 func (*FinanceVerificationAllocation) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{98}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{107}
 }
 
 func (x *FinanceVerificationAllocation) GetId() string {
@@ -10043,7 +10791,7 @@ type FinanceVerification struct {
 
 func (x *FinanceVerification) Reset() {
 	*x = FinanceVerification{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[99]
+	mi := &file_finance_v1_settlement_proto_msgTypes[108]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10055,7 +10803,7 @@ func (x *FinanceVerification) String() string {
 func (*FinanceVerification) ProtoMessage() {}
 
 func (x *FinanceVerification) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[99]
+	mi := &file_finance_v1_settlement_proto_msgTypes[108]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10068,7 +10816,7 @@ func (x *FinanceVerification) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceVerification.ProtoReflect.Descriptor instead.
 func (*FinanceVerification) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{99}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{108}
 }
 
 func (x *FinanceVerification) GetId() string {
@@ -10241,7 +10989,7 @@ type ListVerificationsResponse struct {
 
 func (x *ListVerificationsResponse) Reset() {
 	*x = ListVerificationsResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[100]
+	mi := &file_finance_v1_settlement_proto_msgTypes[109]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10253,7 +11001,7 @@ func (x *ListVerificationsResponse) String() string {
 func (*ListVerificationsResponse) ProtoMessage() {}
 
 func (x *ListVerificationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[100]
+	mi := &file_finance_v1_settlement_proto_msgTypes[109]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10266,7 +11014,7 @@ func (x *ListVerificationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListVerificationsResponse.ProtoReflect.Descriptor instead.
 func (*ListVerificationsResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{100}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{109}
 }
 
 func (x *ListVerificationsResponse) GetSuccess() bool {
@@ -10334,7 +11082,7 @@ type FinanceVerificationSummary struct {
 
 func (x *FinanceVerificationSummary) Reset() {
 	*x = FinanceVerificationSummary{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[101]
+	mi := &file_finance_v1_settlement_proto_msgTypes[110]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10346,7 +11094,7 @@ func (x *FinanceVerificationSummary) String() string {
 func (*FinanceVerificationSummary) ProtoMessage() {}
 
 func (x *FinanceVerificationSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[101]
+	mi := &file_finance_v1_settlement_proto_msgTypes[110]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10359,7 +11107,7 @@ func (x *FinanceVerificationSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceVerificationSummary.ProtoReflect.Descriptor instead.
 func (*FinanceVerificationSummary) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{101}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{110}
 }
 
 func (x *FinanceVerificationSummary) GetAmountsByBaseCurrency() []*FinanceBaseCurrencyAmount {
@@ -10382,7 +11130,7 @@ type CreateVerificationResponse struct {
 
 func (x *CreateVerificationResponse) Reset() {
 	*x = CreateVerificationResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[102]
+	mi := &file_finance_v1_settlement_proto_msgTypes[111]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10394,7 +11142,7 @@ func (x *CreateVerificationResponse) String() string {
 func (*CreateVerificationResponse) ProtoMessage() {}
 
 func (x *CreateVerificationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[102]
+	mi := &file_finance_v1_settlement_proto_msgTypes[111]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10407,7 +11155,7 @@ func (x *CreateVerificationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateVerificationResponse.ProtoReflect.Descriptor instead.
 func (*CreateVerificationResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{102}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{111}
 }
 
 func (x *CreateVerificationResponse) GetSuccess() bool {
@@ -10458,7 +11206,7 @@ type ReverseVerificationResponse struct {
 
 func (x *ReverseVerificationResponse) Reset() {
 	*x = ReverseVerificationResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[103]
+	mi := &file_finance_v1_settlement_proto_msgTypes[112]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10470,7 +11218,7 @@ func (x *ReverseVerificationResponse) String() string {
 func (*ReverseVerificationResponse) ProtoMessage() {}
 
 func (x *ReverseVerificationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[103]
+	mi := &file_finance_v1_settlement_proto_msgTypes[112]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10483,7 +11231,7 @@ func (x *ReverseVerificationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReverseVerificationResponse.ProtoReflect.Descriptor instead.
 func (*ReverseVerificationResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{103}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{112}
 }
 
 func (x *ReverseVerificationResponse) GetSuccess() bool {
@@ -10537,7 +11285,7 @@ type FinanceNettingAllocation struct {
 
 func (x *FinanceNettingAllocation) Reset() {
 	*x = FinanceNettingAllocation{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[104]
+	mi := &file_finance_v1_settlement_proto_msgTypes[113]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10549,7 +11297,7 @@ func (x *FinanceNettingAllocation) String() string {
 func (*FinanceNettingAllocation) ProtoMessage() {}
 
 func (x *FinanceNettingAllocation) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[104]
+	mi := &file_finance_v1_settlement_proto_msgTypes[113]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10562,7 +11310,7 @@ func (x *FinanceNettingAllocation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceNettingAllocation.ProtoReflect.Descriptor instead.
 func (*FinanceNettingAllocation) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{104}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{113}
 }
 
 func (x *FinanceNettingAllocation) GetId() string {
@@ -10656,7 +11404,7 @@ type FinanceNetting struct {
 
 func (x *FinanceNetting) Reset() {
 	*x = FinanceNetting{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[105]
+	mi := &file_finance_v1_settlement_proto_msgTypes[114]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10668,7 +11416,7 @@ func (x *FinanceNetting) String() string {
 func (*FinanceNetting) ProtoMessage() {}
 
 func (x *FinanceNetting) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[105]
+	mi := &file_finance_v1_settlement_proto_msgTypes[114]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10681,7 +11429,7 @@ func (x *FinanceNetting) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceNetting.ProtoReflect.Descriptor instead.
 func (*FinanceNetting) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{105}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{114}
 }
 
 func (x *FinanceNetting) GetId() string {
@@ -10882,7 +11630,7 @@ type FinanceNettingBillBalance struct {
 
 func (x *FinanceNettingBillBalance) Reset() {
 	*x = FinanceNettingBillBalance{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[106]
+	mi := &file_finance_v1_settlement_proto_msgTypes[115]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10894,7 +11642,7 @@ func (x *FinanceNettingBillBalance) String() string {
 func (*FinanceNettingBillBalance) ProtoMessage() {}
 
 func (x *FinanceNettingBillBalance) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[106]
+	mi := &file_finance_v1_settlement_proto_msgTypes[115]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -10907,7 +11655,7 @@ func (x *FinanceNettingBillBalance) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceNettingBillBalance.ProtoReflect.Descriptor instead.
 func (*FinanceNettingBillBalance) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{106}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{115}
 }
 
 func (x *FinanceNettingBillBalance) GetBillId() string {
@@ -10986,7 +11734,7 @@ type FinanceNettingPreview struct {
 
 func (x *FinanceNettingPreview) Reset() {
 	*x = FinanceNettingPreview{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[107]
+	mi := &file_finance_v1_settlement_proto_msgTypes[116]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -10998,7 +11746,7 @@ func (x *FinanceNettingPreview) String() string {
 func (*FinanceNettingPreview) ProtoMessage() {}
 
 func (x *FinanceNettingPreview) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[107]
+	mi := &file_finance_v1_settlement_proto_msgTypes[116]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11011,7 +11759,7 @@ func (x *FinanceNettingPreview) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceNettingPreview.ProtoReflect.Descriptor instead.
 func (*FinanceNettingPreview) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{107}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{116}
 }
 
 func (x *FinanceNettingPreview) GetOrganizationId() string {
@@ -11109,7 +11857,7 @@ type PreviewNettingRequest struct {
 
 func (x *PreviewNettingRequest) Reset() {
 	*x = PreviewNettingRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[108]
+	mi := &file_finance_v1_settlement_proto_msgTypes[117]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11121,7 +11869,7 @@ func (x *PreviewNettingRequest) String() string {
 func (*PreviewNettingRequest) ProtoMessage() {}
 
 func (x *PreviewNettingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[108]
+	mi := &file_finance_v1_settlement_proto_msgTypes[117]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11134,7 +11882,7 @@ func (x *PreviewNettingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreviewNettingRequest.ProtoReflect.Descriptor instead.
 func (*PreviewNettingRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{108}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{117}
 }
 
 func (x *PreviewNettingRequest) GetOrganizationId() string {
@@ -11171,7 +11919,7 @@ type PreviewNettingResponse struct {
 
 func (x *PreviewNettingResponse) Reset() {
 	*x = PreviewNettingResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[109]
+	mi := &file_finance_v1_settlement_proto_msgTypes[118]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11183,7 +11931,7 @@ func (x *PreviewNettingResponse) String() string {
 func (*PreviewNettingResponse) ProtoMessage() {}
 
 func (x *PreviewNettingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[109]
+	mi := &file_finance_v1_settlement_proto_msgTypes[118]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11196,7 +11944,7 @@ func (x *PreviewNettingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreviewNettingResponse.ProtoReflect.Descriptor instead.
 func (*PreviewNettingResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{109}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{118}
 }
 
 func (x *PreviewNettingResponse) GetSuccess() bool {
@@ -11244,7 +11992,7 @@ type NettingBillExpectedVersion struct {
 
 func (x *NettingBillExpectedVersion) Reset() {
 	*x = NettingBillExpectedVersion{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[110]
+	mi := &file_finance_v1_settlement_proto_msgTypes[119]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11256,7 +12004,7 @@ func (x *NettingBillExpectedVersion) String() string {
 func (*NettingBillExpectedVersion) ProtoMessage() {}
 
 func (x *NettingBillExpectedVersion) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[110]
+	mi := &file_finance_v1_settlement_proto_msgTypes[119]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11269,7 +12017,7 @@ func (x *NettingBillExpectedVersion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NettingBillExpectedVersion.ProtoReflect.Descriptor instead.
 func (*NettingBillExpectedVersion) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{110}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{119}
 }
 
 func (x *NettingBillExpectedVersion) GetBillId() string {
@@ -11298,7 +12046,7 @@ type CreateNettingRequest struct {
 
 func (x *CreateNettingRequest) Reset() {
 	*x = CreateNettingRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[111]
+	mi := &file_finance_v1_settlement_proto_msgTypes[120]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11310,7 +12058,7 @@ func (x *CreateNettingRequest) String() string {
 func (*CreateNettingRequest) ProtoMessage() {}
 
 func (x *CreateNettingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[111]
+	mi := &file_finance_v1_settlement_proto_msgTypes[120]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11323,7 +12071,7 @@ func (x *CreateNettingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateNettingRequest.ProtoReflect.Descriptor instead.
 func (*CreateNettingRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{111}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{120}
 }
 
 func (x *CreateNettingRequest) GetOrganizationId() string {
@@ -11367,7 +12115,7 @@ type CreateNettingResponse struct {
 
 func (x *CreateNettingResponse) Reset() {
 	*x = CreateNettingResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[112]
+	mi := &file_finance_v1_settlement_proto_msgTypes[121]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11379,7 +12127,7 @@ func (x *CreateNettingResponse) String() string {
 func (*CreateNettingResponse) ProtoMessage() {}
 
 func (x *CreateNettingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[112]
+	mi := &file_finance_v1_settlement_proto_msgTypes[121]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11392,7 +12140,7 @@ func (x *CreateNettingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateNettingResponse.ProtoReflect.Descriptor instead.
 func (*CreateNettingResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{112}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{121}
 }
 
 func (x *CreateNettingResponse) GetSuccess() bool {
@@ -11440,7 +12188,7 @@ type ConfirmNettingRequest struct {
 
 func (x *ConfirmNettingRequest) Reset() {
 	*x = ConfirmNettingRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[113]
+	mi := &file_finance_v1_settlement_proto_msgTypes[122]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11452,7 +12200,7 @@ func (x *ConfirmNettingRequest) String() string {
 func (*ConfirmNettingRequest) ProtoMessage() {}
 
 func (x *ConfirmNettingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[113]
+	mi := &file_finance_v1_settlement_proto_msgTypes[122]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11465,7 +12213,7 @@ func (x *ConfirmNettingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfirmNettingRequest.ProtoReflect.Descriptor instead.
 func (*ConfirmNettingRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{113}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{122}
 }
 
 func (x *ConfirmNettingRequest) GetId() string {
@@ -11495,7 +12243,7 @@ type ConfirmNettingResponse struct {
 
 func (x *ConfirmNettingResponse) Reset() {
 	*x = ConfirmNettingResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[114]
+	mi := &file_finance_v1_settlement_proto_msgTypes[123]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11507,7 +12255,7 @@ func (x *ConfirmNettingResponse) String() string {
 func (*ConfirmNettingResponse) ProtoMessage() {}
 
 func (x *ConfirmNettingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[114]
+	mi := &file_finance_v1_settlement_proto_msgTypes[123]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11520,7 +12268,7 @@ func (x *ConfirmNettingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfirmNettingResponse.ProtoReflect.Descriptor instead.
 func (*ConfirmNettingResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{114}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{123}
 }
 
 func (x *ConfirmNettingResponse) GetSuccess() bool {
@@ -11569,7 +12317,7 @@ type CancelNettingRequest struct {
 
 func (x *CancelNettingRequest) Reset() {
 	*x = CancelNettingRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[115]
+	mi := &file_finance_v1_settlement_proto_msgTypes[124]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11581,7 +12329,7 @@ func (x *CancelNettingRequest) String() string {
 func (*CancelNettingRequest) ProtoMessage() {}
 
 func (x *CancelNettingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[115]
+	mi := &file_finance_v1_settlement_proto_msgTypes[124]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11594,7 +12342,7 @@ func (x *CancelNettingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelNettingRequest.ProtoReflect.Descriptor instead.
 func (*CancelNettingRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{115}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{124}
 }
 
 func (x *CancelNettingRequest) GetId() string {
@@ -11631,7 +12379,7 @@ type CancelNettingResponse struct {
 
 func (x *CancelNettingResponse) Reset() {
 	*x = CancelNettingResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[116]
+	mi := &file_finance_v1_settlement_proto_msgTypes[125]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11643,7 +12391,7 @@ func (x *CancelNettingResponse) String() string {
 func (*CancelNettingResponse) ProtoMessage() {}
 
 func (x *CancelNettingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[116]
+	mi := &file_finance_v1_settlement_proto_msgTypes[125]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11656,7 +12404,7 @@ func (x *CancelNettingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelNettingResponse.ProtoReflect.Descriptor instead.
 func (*CancelNettingResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{116}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{125}
 }
 
 func (x *CancelNettingResponse) GetSuccess() bool {
@@ -11705,7 +12453,7 @@ type ReverseNettingRequest struct {
 
 func (x *ReverseNettingRequest) Reset() {
 	*x = ReverseNettingRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[117]
+	mi := &file_finance_v1_settlement_proto_msgTypes[126]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11717,7 +12465,7 @@ func (x *ReverseNettingRequest) String() string {
 func (*ReverseNettingRequest) ProtoMessage() {}
 
 func (x *ReverseNettingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[117]
+	mi := &file_finance_v1_settlement_proto_msgTypes[126]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11730,7 +12478,7 @@ func (x *ReverseNettingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReverseNettingRequest.ProtoReflect.Descriptor instead.
 func (*ReverseNettingRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{117}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{126}
 }
 
 func (x *ReverseNettingRequest) GetId() string {
@@ -11767,7 +12515,7 @@ type ReverseNettingResponse struct {
 
 func (x *ReverseNettingResponse) Reset() {
 	*x = ReverseNettingResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[118]
+	mi := &file_finance_v1_settlement_proto_msgTypes[127]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11779,7 +12527,7 @@ func (x *ReverseNettingResponse) String() string {
 func (*ReverseNettingResponse) ProtoMessage() {}
 
 func (x *ReverseNettingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[118]
+	mi := &file_finance_v1_settlement_proto_msgTypes[127]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11792,7 +12540,7 @@ func (x *ReverseNettingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReverseNettingResponse.ProtoReflect.Descriptor instead.
 func (*ReverseNettingResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{118}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{127}
 }
 
 func (x *ReverseNettingResponse) GetSuccess() bool {
@@ -11845,7 +12593,7 @@ type ListNettingsRequest struct {
 
 func (x *ListNettingsRequest) Reset() {
 	*x = ListNettingsRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[119]
+	mi := &file_finance_v1_settlement_proto_msgTypes[128]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11857,7 +12605,7 @@ func (x *ListNettingsRequest) String() string {
 func (*ListNettingsRequest) ProtoMessage() {}
 
 func (x *ListNettingsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[119]
+	mi := &file_finance_v1_settlement_proto_msgTypes[128]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11870,7 +12618,7 @@ func (x *ListNettingsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNettingsRequest.ProtoReflect.Descriptor instead.
 func (*ListNettingsRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{119}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{128}
 }
 
 func (x *ListNettingsRequest) GetPage() int32 {
@@ -11932,7 +12680,7 @@ type FinanceNettingBaseCurrencyAmount struct {
 
 func (x *FinanceNettingBaseCurrencyAmount) Reset() {
 	*x = FinanceNettingBaseCurrencyAmount{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[120]
+	mi := &file_finance_v1_settlement_proto_msgTypes[129]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11944,7 +12692,7 @@ func (x *FinanceNettingBaseCurrencyAmount) String() string {
 func (*FinanceNettingBaseCurrencyAmount) ProtoMessage() {}
 
 func (x *FinanceNettingBaseCurrencyAmount) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[120]
+	mi := &file_finance_v1_settlement_proto_msgTypes[129]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -11957,7 +12705,7 @@ func (x *FinanceNettingBaseCurrencyAmount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceNettingBaseCurrencyAmount.ProtoReflect.Descriptor instead.
 func (*FinanceNettingBaseCurrencyAmount) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{120}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{129}
 }
 
 func (x *FinanceNettingBaseCurrencyAmount) GetBaseCurrency() string {
@@ -11984,7 +12732,7 @@ type FinanceNettingSummary struct {
 
 func (x *FinanceNettingSummary) Reset() {
 	*x = FinanceNettingSummary{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[121]
+	mi := &file_finance_v1_settlement_proto_msgTypes[130]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -11996,7 +12744,7 @@ func (x *FinanceNettingSummary) String() string {
 func (*FinanceNettingSummary) ProtoMessage() {}
 
 func (x *FinanceNettingSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[121]
+	mi := &file_finance_v1_settlement_proto_msgTypes[130]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12009,7 +12757,7 @@ func (x *FinanceNettingSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceNettingSummary.ProtoReflect.Descriptor instead.
 func (*FinanceNettingSummary) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{121}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{130}
 }
 
 func (x *FinanceNettingSummary) GetAmountsByBaseCurrency() []*FinanceNettingBaseCurrencyAmount {
@@ -12042,7 +12790,7 @@ type ListNettingsResponse struct {
 
 func (x *ListNettingsResponse) Reset() {
 	*x = ListNettingsResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[122]
+	mi := &file_finance_v1_settlement_proto_msgTypes[131]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12054,7 +12802,7 @@ func (x *ListNettingsResponse) String() string {
 func (*ListNettingsResponse) ProtoMessage() {}
 
 func (x *ListNettingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[122]
+	mi := &file_finance_v1_settlement_proto_msgTypes[131]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12067,7 +12815,7 @@ func (x *ListNettingsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNettingsResponse.ProtoReflect.Descriptor instead.
 func (*ListNettingsResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{122}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{131}
 }
 
 func (x *ListNettingsResponse) GetSuccess() bool {
@@ -12135,7 +12883,7 @@ type GetNettingRequest struct {
 
 func (x *GetNettingRequest) Reset() {
 	*x = GetNettingRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[123]
+	mi := &file_finance_v1_settlement_proto_msgTypes[132]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12147,7 +12895,7 @@ func (x *GetNettingRequest) String() string {
 func (*GetNettingRequest) ProtoMessage() {}
 
 func (x *GetNettingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[123]
+	mi := &file_finance_v1_settlement_proto_msgTypes[132]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12160,7 +12908,7 @@ func (x *GetNettingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNettingRequest.ProtoReflect.Descriptor instead.
 func (*GetNettingRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{123}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{132}
 }
 
 func (x *GetNettingRequest) GetId() string {
@@ -12183,7 +12931,7 @@ type GetNettingResponse struct {
 
 func (x *GetNettingResponse) Reset() {
 	*x = GetNettingResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[124]
+	mi := &file_finance_v1_settlement_proto_msgTypes[133]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12195,7 +12943,7 @@ func (x *GetNettingResponse) String() string {
 func (*GetNettingResponse) ProtoMessage() {}
 
 func (x *GetNettingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[124]
+	mi := &file_finance_v1_settlement_proto_msgTypes[133]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12208,7 +12956,7 @@ func (x *GetNettingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNettingResponse.ProtoReflect.Descriptor instead.
 func (*GetNettingResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{124}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{133}
 }
 
 func (x *GetNettingResponse) GetSuccess() bool {
@@ -12261,7 +13009,7 @@ type ListCommissionsRequest struct {
 
 func (x *ListCommissionsRequest) Reset() {
 	*x = ListCommissionsRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[125]
+	mi := &file_finance_v1_settlement_proto_msgTypes[134]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12273,7 +13021,7 @@ func (x *ListCommissionsRequest) String() string {
 func (*ListCommissionsRequest) ProtoMessage() {}
 
 func (x *ListCommissionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[125]
+	mi := &file_finance_v1_settlement_proto_msgTypes[134]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12286,7 +13034,7 @@ func (x *ListCommissionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCommissionsRequest.ProtoReflect.Descriptor instead.
 func (*ListCommissionsRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{125}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{134}
 }
 
 func (x *ListCommissionsRequest) GetPage() int32 {
@@ -12347,7 +13095,7 @@ type GetCommissionRequest struct {
 
 func (x *GetCommissionRequest) Reset() {
 	*x = GetCommissionRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[126]
+	mi := &file_finance_v1_settlement_proto_msgTypes[135]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12359,7 +13107,7 @@ func (x *GetCommissionRequest) String() string {
 func (*GetCommissionRequest) ProtoMessage() {}
 
 func (x *GetCommissionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[126]
+	mi := &file_finance_v1_settlement_proto_msgTypes[135]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12372,7 +13120,7 @@ func (x *GetCommissionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCommissionRequest.ProtoReflect.Descriptor instead.
 func (*GetCommissionRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{126}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{135}
 }
 
 func (x *GetCommissionRequest) GetId() string {
@@ -12394,7 +13142,7 @@ type ListCommissionEmployeesRequest struct {
 
 func (x *ListCommissionEmployeesRequest) Reset() {
 	*x = ListCommissionEmployeesRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[127]
+	mi := &file_finance_v1_settlement_proto_msgTypes[136]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12406,7 +13154,7 @@ func (x *ListCommissionEmployeesRequest) String() string {
 func (*ListCommissionEmployeesRequest) ProtoMessage() {}
 
 func (x *ListCommissionEmployeesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[127]
+	mi := &file_finance_v1_settlement_proto_msgTypes[136]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12419,7 +13167,7 @@ func (x *ListCommissionEmployeesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCommissionEmployeesRequest.ProtoReflect.Descriptor instead.
 func (*ListCommissionEmployeesRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{127}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{136}
 }
 
 func (x *ListCommissionEmployeesRequest) GetPage() int32 {
@@ -12466,7 +13214,7 @@ type ListCommissionCandidatesRequest struct {
 
 func (x *ListCommissionCandidatesRequest) Reset() {
 	*x = ListCommissionCandidatesRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[128]
+	mi := &file_finance_v1_settlement_proto_msgTypes[137]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12478,7 +13226,7 @@ func (x *ListCommissionCandidatesRequest) String() string {
 func (*ListCommissionCandidatesRequest) ProtoMessage() {}
 
 func (x *ListCommissionCandidatesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[128]
+	mi := &file_finance_v1_settlement_proto_msgTypes[137]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12491,7 +13239,7 @@ func (x *ListCommissionCandidatesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCommissionCandidatesRequest.ProtoReflect.Descriptor instead.
 func (*ListCommissionCandidatesRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{128}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{137}
 }
 
 func (x *ListCommissionCandidatesRequest) GetVerificationId() string {
@@ -12546,7 +13294,7 @@ type CommissionEmployeeOption struct {
 
 func (x *CommissionEmployeeOption) Reset() {
 	*x = CommissionEmployeeOption{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[129]
+	mi := &file_finance_v1_settlement_proto_msgTypes[138]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12558,7 +13306,7 @@ func (x *CommissionEmployeeOption) String() string {
 func (*CommissionEmployeeOption) ProtoMessage() {}
 
 func (x *CommissionEmployeeOption) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[129]
+	mi := &file_finance_v1_settlement_proto_msgTypes[138]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12571,7 +13319,7 @@ func (x *CommissionEmployeeOption) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommissionEmployeeOption.ProtoReflect.Descriptor instead.
 func (*CommissionEmployeeOption) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{129}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{138}
 }
 
 func (x *CommissionEmployeeOption) GetId() string {
@@ -12604,7 +13352,7 @@ type ListCommissionEmployeesResponse struct {
 
 func (x *ListCommissionEmployeesResponse) Reset() {
 	*x = ListCommissionEmployeesResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[130]
+	mi := &file_finance_v1_settlement_proto_msgTypes[139]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12616,7 +13364,7 @@ func (x *ListCommissionEmployeesResponse) String() string {
 func (*ListCommissionEmployeesResponse) ProtoMessage() {}
 
 func (x *ListCommissionEmployeesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[130]
+	mi := &file_finance_v1_settlement_proto_msgTypes[139]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12629,7 +13377,7 @@ func (x *ListCommissionEmployeesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCommissionEmployeesResponse.ProtoReflect.Descriptor instead.
 func (*ListCommissionEmployeesResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{130}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{139}
 }
 
 func (x *ListCommissionEmployeesResponse) GetSuccess() bool {
@@ -12703,7 +13451,7 @@ type ListCommissionRulesRequest struct {
 
 func (x *ListCommissionRulesRequest) Reset() {
 	*x = ListCommissionRulesRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[131]
+	mi := &file_finance_v1_settlement_proto_msgTypes[140]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12715,7 +13463,7 @@ func (x *ListCommissionRulesRequest) String() string {
 func (*ListCommissionRulesRequest) ProtoMessage() {}
 
 func (x *ListCommissionRulesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[131]
+	mi := &file_finance_v1_settlement_proto_msgTypes[140]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12728,7 +13476,7 @@ func (x *ListCommissionRulesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCommissionRulesRequest.ProtoReflect.Descriptor instead.
 func (*ListCommissionRulesRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{131}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{140}
 }
 
 func (x *ListCommissionRulesRequest) GetPage() int32 {
@@ -12797,7 +13545,7 @@ type CommissionRuleInput struct {
 
 func (x *CommissionRuleInput) Reset() {
 	*x = CommissionRuleInput{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[132]
+	mi := &file_finance_v1_settlement_proto_msgTypes[141]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12809,7 +13557,7 @@ func (x *CommissionRuleInput) String() string {
 func (*CommissionRuleInput) ProtoMessage() {}
 
 func (x *CommissionRuleInput) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[132]
+	mi := &file_finance_v1_settlement_proto_msgTypes[141]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12822,7 +13570,7 @@ func (x *CommissionRuleInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommissionRuleInput.ProtoReflect.Descriptor instead.
 func (*CommissionRuleInput) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{132}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{141}
 }
 
 func (x *CommissionRuleInput) GetName() string {
@@ -12898,7 +13646,7 @@ type CreateCommissionRuleRequest struct {
 
 func (x *CreateCommissionRuleRequest) Reset() {
 	*x = CreateCommissionRuleRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[133]
+	mi := &file_finance_v1_settlement_proto_msgTypes[142]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12910,7 +13658,7 @@ func (x *CreateCommissionRuleRequest) String() string {
 func (*CreateCommissionRuleRequest) ProtoMessage() {}
 
 func (x *CreateCommissionRuleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[133]
+	mi := &file_finance_v1_settlement_proto_msgTypes[142]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12923,7 +13671,7 @@ func (x *CreateCommissionRuleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateCommissionRuleRequest.ProtoReflect.Descriptor instead.
 func (*CreateCommissionRuleRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{133}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{142}
 }
 
 func (x *CreateCommissionRuleRequest) GetRule() *CommissionRuleInput {
@@ -12951,7 +13699,7 @@ type UpdateCommissionRuleRequest struct {
 
 func (x *UpdateCommissionRuleRequest) Reset() {
 	*x = UpdateCommissionRuleRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[134]
+	mi := &file_finance_v1_settlement_proto_msgTypes[143]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -12963,7 +13711,7 @@ func (x *UpdateCommissionRuleRequest) String() string {
 func (*UpdateCommissionRuleRequest) ProtoMessage() {}
 
 func (x *UpdateCommissionRuleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[134]
+	mi := &file_finance_v1_settlement_proto_msgTypes[143]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -12976,7 +13724,7 @@ func (x *UpdateCommissionRuleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateCommissionRuleRequest.ProtoReflect.Descriptor instead.
 func (*UpdateCommissionRuleRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{134}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{143}
 }
 
 func (x *UpdateCommissionRuleRequest) GetId() string {
@@ -13014,7 +13762,7 @@ type CommissionRuleEmployeeChangeInput struct {
 
 func (x *CommissionRuleEmployeeChangeInput) Reset() {
 	*x = CommissionRuleEmployeeChangeInput{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[135]
+	mi := &file_finance_v1_settlement_proto_msgTypes[144]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13026,7 +13774,7 @@ func (x *CommissionRuleEmployeeChangeInput) String() string {
 func (*CommissionRuleEmployeeChangeInput) ProtoMessage() {}
 
 func (x *CommissionRuleEmployeeChangeInput) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[135]
+	mi := &file_finance_v1_settlement_proto_msgTypes[144]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13039,7 +13787,7 @@ func (x *CommissionRuleEmployeeChangeInput) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use CommissionRuleEmployeeChangeInput.ProtoReflect.Descriptor instead.
 func (*CommissionRuleEmployeeChangeInput) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{135}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{144}
 }
 
 func (x *CommissionRuleEmployeeChangeInput) GetEmployeeIds() []string {
@@ -13073,7 +13821,7 @@ type AssignCommissionRuleEmployeesRequest struct {
 
 func (x *AssignCommissionRuleEmployeesRequest) Reset() {
 	*x = AssignCommissionRuleEmployeesRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[136]
+	mi := &file_finance_v1_settlement_proto_msgTypes[145]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13085,7 +13833,7 @@ func (x *AssignCommissionRuleEmployeesRequest) String() string {
 func (*AssignCommissionRuleEmployeesRequest) ProtoMessage() {}
 
 func (x *AssignCommissionRuleEmployeesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[136]
+	mi := &file_finance_v1_settlement_proto_msgTypes[145]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13098,7 +13846,7 @@ func (x *AssignCommissionRuleEmployeesRequest) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use AssignCommissionRuleEmployeesRequest.ProtoReflect.Descriptor instead.
 func (*AssignCommissionRuleEmployeesRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{136}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{145}
 }
 
 func (x *AssignCommissionRuleEmployeesRequest) GetId() string {
@@ -13125,7 +13873,7 @@ type RemoveCommissionRuleEmployeesRequest struct {
 
 func (x *RemoveCommissionRuleEmployeesRequest) Reset() {
 	*x = RemoveCommissionRuleEmployeesRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[137]
+	mi := &file_finance_v1_settlement_proto_msgTypes[146]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13137,7 +13885,7 @@ func (x *RemoveCommissionRuleEmployeesRequest) String() string {
 func (*RemoveCommissionRuleEmployeesRequest) ProtoMessage() {}
 
 func (x *RemoveCommissionRuleEmployeesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[137]
+	mi := &file_finance_v1_settlement_proto_msgTypes[146]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13150,7 +13898,7 @@ func (x *RemoveCommissionRuleEmployeesRequest) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use RemoveCommissionRuleEmployeesRequest.ProtoReflect.Descriptor instead.
 func (*RemoveCommissionRuleEmployeesRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{137}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{146}
 }
 
 func (x *RemoveCommissionRuleEmployeesRequest) GetId() string {
@@ -13186,7 +13934,7 @@ type CopyCommissionRuleRequest struct {
 
 func (x *CopyCommissionRuleRequest) Reset() {
 	*x = CopyCommissionRuleRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[138]
+	mi := &file_finance_v1_settlement_proto_msgTypes[147]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13198,7 +13946,7 @@ func (x *CopyCommissionRuleRequest) String() string {
 func (*CopyCommissionRuleRequest) ProtoMessage() {}
 
 func (x *CopyCommissionRuleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[138]
+	mi := &file_finance_v1_settlement_proto_msgTypes[147]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13211,7 +13959,7 @@ func (x *CopyCommissionRuleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CopyCommissionRuleRequest.ProtoReflect.Descriptor instead.
 func (*CopyCommissionRuleRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{138}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{147}
 }
 
 func (x *CopyCommissionRuleRequest) GetId() string {
@@ -13292,7 +14040,7 @@ type CommissionRuleAssignmentProjection struct {
 
 func (x *CommissionRuleAssignmentProjection) Reset() {
 	*x = CommissionRuleAssignmentProjection{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[139]
+	mi := &file_finance_v1_settlement_proto_msgTypes[148]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13304,7 +14052,7 @@ func (x *CommissionRuleAssignmentProjection) String() string {
 func (*CommissionRuleAssignmentProjection) ProtoMessage() {}
 
 func (x *CommissionRuleAssignmentProjection) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[139]
+	mi := &file_finance_v1_settlement_proto_msgTypes[148]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13317,7 +14065,7 @@ func (x *CommissionRuleAssignmentProjection) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use CommissionRuleAssignmentProjection.ProtoReflect.Descriptor instead.
 func (*CommissionRuleAssignmentProjection) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{139}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{148}
 }
 
 func (x *CommissionRuleAssignmentProjection) GetId() string {
@@ -13380,7 +14128,7 @@ type FinanceCommissionRule struct {
 
 func (x *FinanceCommissionRule) Reset() {
 	*x = FinanceCommissionRule{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[140]
+	mi := &file_finance_v1_settlement_proto_msgTypes[149]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13392,7 +14140,7 @@ func (x *FinanceCommissionRule) String() string {
 func (*FinanceCommissionRule) ProtoMessage() {}
 
 func (x *FinanceCommissionRule) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[140]
+	mi := &file_finance_v1_settlement_proto_msgTypes[149]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13405,7 +14153,7 @@ func (x *FinanceCommissionRule) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceCommissionRule.ProtoReflect.Descriptor instead.
 func (*FinanceCommissionRule) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{140}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{149}
 }
 
 func (x *FinanceCommissionRule) GetId() string {
@@ -13541,7 +14289,7 @@ type ListCommissionRulesResponse struct {
 
 func (x *ListCommissionRulesResponse) Reset() {
 	*x = ListCommissionRulesResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[141]
+	mi := &file_finance_v1_settlement_proto_msgTypes[150]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13553,7 +14301,7 @@ func (x *ListCommissionRulesResponse) String() string {
 func (*ListCommissionRulesResponse) ProtoMessage() {}
 
 func (x *ListCommissionRulesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[141]
+	mi := &file_finance_v1_settlement_proto_msgTypes[150]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13566,7 +14314,7 @@ func (x *ListCommissionRulesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCommissionRulesResponse.ProtoReflect.Descriptor instead.
 func (*ListCommissionRulesResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{141}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{150}
 }
 
 func (x *ListCommissionRulesResponse) GetSuccess() bool {
@@ -13624,7 +14372,7 @@ type CreateCommissionRuleResponse struct {
 
 func (x *CreateCommissionRuleResponse) Reset() {
 	*x = CreateCommissionRuleResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[142]
+	mi := &file_finance_v1_settlement_proto_msgTypes[151]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13636,7 +14384,7 @@ func (x *CreateCommissionRuleResponse) String() string {
 func (*CreateCommissionRuleResponse) ProtoMessage() {}
 
 func (x *CreateCommissionRuleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[142]
+	mi := &file_finance_v1_settlement_proto_msgTypes[151]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13649,7 +14397,7 @@ func (x *CreateCommissionRuleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateCommissionRuleResponse.ProtoReflect.Descriptor instead.
 func (*CreateCommissionRuleResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{142}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{151}
 }
 
 func (x *CreateCommissionRuleResponse) GetSuccess() bool {
@@ -13700,7 +14448,7 @@ type UpdateCommissionRuleResponse struct {
 
 func (x *UpdateCommissionRuleResponse) Reset() {
 	*x = UpdateCommissionRuleResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[143]
+	mi := &file_finance_v1_settlement_proto_msgTypes[152]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13712,7 +14460,7 @@ func (x *UpdateCommissionRuleResponse) String() string {
 func (*UpdateCommissionRuleResponse) ProtoMessage() {}
 
 func (x *UpdateCommissionRuleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[143]
+	mi := &file_finance_v1_settlement_proto_msgTypes[152]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13725,7 +14473,7 @@ func (x *UpdateCommissionRuleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateCommissionRuleResponse.ProtoReflect.Descriptor instead.
 func (*UpdateCommissionRuleResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{143}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{152}
 }
 
 func (x *UpdateCommissionRuleResponse) GetSuccess() bool {
@@ -13776,7 +14524,7 @@ type AssignCommissionRuleEmployeesResponse struct {
 
 func (x *AssignCommissionRuleEmployeesResponse) Reset() {
 	*x = AssignCommissionRuleEmployeesResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[144]
+	mi := &file_finance_v1_settlement_proto_msgTypes[153]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13788,7 +14536,7 @@ func (x *AssignCommissionRuleEmployeesResponse) String() string {
 func (*AssignCommissionRuleEmployeesResponse) ProtoMessage() {}
 
 func (x *AssignCommissionRuleEmployeesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[144]
+	mi := &file_finance_v1_settlement_proto_msgTypes[153]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13801,7 +14549,7 @@ func (x *AssignCommissionRuleEmployeesResponse) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use AssignCommissionRuleEmployeesResponse.ProtoReflect.Descriptor instead.
 func (*AssignCommissionRuleEmployeesResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{144}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{153}
 }
 
 func (x *AssignCommissionRuleEmployeesResponse) GetSuccess() bool {
@@ -13852,7 +14600,7 @@ type RemoveCommissionRuleEmployeesResponse struct {
 
 func (x *RemoveCommissionRuleEmployeesResponse) Reset() {
 	*x = RemoveCommissionRuleEmployeesResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[145]
+	mi := &file_finance_v1_settlement_proto_msgTypes[154]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13864,7 +14612,7 @@ func (x *RemoveCommissionRuleEmployeesResponse) String() string {
 func (*RemoveCommissionRuleEmployeesResponse) ProtoMessage() {}
 
 func (x *RemoveCommissionRuleEmployeesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[145]
+	mi := &file_finance_v1_settlement_proto_msgTypes[154]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13877,7 +14625,7 @@ func (x *RemoveCommissionRuleEmployeesResponse) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use RemoveCommissionRuleEmployeesResponse.ProtoReflect.Descriptor instead.
 func (*RemoveCommissionRuleEmployeesResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{145}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{154}
 }
 
 func (x *RemoveCommissionRuleEmployeesResponse) GetSuccess() bool {
@@ -13928,7 +14676,7 @@ type CopyCommissionRuleResponse struct {
 
 func (x *CopyCommissionRuleResponse) Reset() {
 	*x = CopyCommissionRuleResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[146]
+	mi := &file_finance_v1_settlement_proto_msgTypes[155]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -13940,7 +14688,7 @@ func (x *CopyCommissionRuleResponse) String() string {
 func (*CopyCommissionRuleResponse) ProtoMessage() {}
 
 func (x *CopyCommissionRuleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[146]
+	mi := &file_finance_v1_settlement_proto_msgTypes[155]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -13953,7 +14701,7 @@ func (x *CopyCommissionRuleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CopyCommissionRuleResponse.ProtoReflect.Descriptor instead.
 func (*CopyCommissionRuleResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{146}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{155}
 }
 
 func (x *CopyCommissionRuleResponse) GetSuccess() bool {
@@ -14008,7 +14756,7 @@ type PreviewCommissionRequest struct {
 
 func (x *PreviewCommissionRequest) Reset() {
 	*x = PreviewCommissionRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[147]
+	mi := &file_finance_v1_settlement_proto_msgTypes[156]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14020,7 +14768,7 @@ func (x *PreviewCommissionRequest) String() string {
 func (*PreviewCommissionRequest) ProtoMessage() {}
 
 func (x *PreviewCommissionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[147]
+	mi := &file_finance_v1_settlement_proto_msgTypes[156]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14033,7 +14781,7 @@ func (x *PreviewCommissionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreviewCommissionRequest.ProtoReflect.Descriptor instead.
 func (*PreviewCommissionRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{147}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{156}
 }
 
 func (x *PreviewCommissionRequest) GetVerificationId() string {
@@ -14086,7 +14834,7 @@ type CreateCommissionRequest struct {
 
 func (x *CreateCommissionRequest) Reset() {
 	*x = CreateCommissionRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[148]
+	mi := &file_finance_v1_settlement_proto_msgTypes[157]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14098,7 +14846,7 @@ func (x *CreateCommissionRequest) String() string {
 func (*CreateCommissionRequest) ProtoMessage() {}
 
 func (x *CreateCommissionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[148]
+	mi := &file_finance_v1_settlement_proto_msgTypes[157]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14111,7 +14859,7 @@ func (x *CreateCommissionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateCommissionRequest.ProtoReflect.Descriptor instead.
 func (*CreateCommissionRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{148}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{157}
 }
 
 func (x *CreateCommissionRequest) GetVerificationId() string {
@@ -14173,7 +14921,7 @@ type ConfirmCommissionRequest struct {
 
 func (x *ConfirmCommissionRequest) Reset() {
 	*x = ConfirmCommissionRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[149]
+	mi := &file_finance_v1_settlement_proto_msgTypes[158]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14185,7 +14933,7 @@ func (x *ConfirmCommissionRequest) String() string {
 func (*ConfirmCommissionRequest) ProtoMessage() {}
 
 func (x *ConfirmCommissionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[149]
+	mi := &file_finance_v1_settlement_proto_msgTypes[158]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14198,7 +14946,7 @@ func (x *ConfirmCommissionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfirmCommissionRequest.ProtoReflect.Descriptor instead.
 func (*ConfirmCommissionRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{149}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{158}
 }
 
 func (x *ConfirmCommissionRequest) GetId() string {
@@ -14228,7 +14976,7 @@ type MarkCommissionPaidRequest struct {
 
 func (x *MarkCommissionPaidRequest) Reset() {
 	*x = MarkCommissionPaidRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[150]
+	mi := &file_finance_v1_settlement_proto_msgTypes[159]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14240,7 +14988,7 @@ func (x *MarkCommissionPaidRequest) String() string {
 func (*MarkCommissionPaidRequest) ProtoMessage() {}
 
 func (x *MarkCommissionPaidRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[150]
+	mi := &file_finance_v1_settlement_proto_msgTypes[159]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14253,7 +15001,7 @@ func (x *MarkCommissionPaidRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MarkCommissionPaidRequest.ProtoReflect.Descriptor instead.
 func (*MarkCommissionPaidRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{150}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{159}
 }
 
 func (x *MarkCommissionPaidRequest) GetId() string {
@@ -14301,7 +15049,7 @@ type PreviewCommissionPaymentRequest struct {
 
 func (x *PreviewCommissionPaymentRequest) Reset() {
 	*x = PreviewCommissionPaymentRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[151]
+	mi := &file_finance_v1_settlement_proto_msgTypes[160]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14313,7 +15061,7 @@ func (x *PreviewCommissionPaymentRequest) String() string {
 func (*PreviewCommissionPaymentRequest) ProtoMessage() {}
 
 func (x *PreviewCommissionPaymentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[151]
+	mi := &file_finance_v1_settlement_proto_msgTypes[160]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14326,7 +15074,7 @@ func (x *PreviewCommissionPaymentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreviewCommissionPaymentRequest.ProtoReflect.Descriptor instead.
 func (*PreviewCommissionPaymentRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{151}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{160}
 }
 
 func (x *PreviewCommissionPaymentRequest) GetId() string {
@@ -14356,7 +15104,7 @@ type CommissionPaymentAdjustment struct {
 
 func (x *CommissionPaymentAdjustment) Reset() {
 	*x = CommissionPaymentAdjustment{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[152]
+	mi := &file_finance_v1_settlement_proto_msgTypes[161]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14368,7 +15116,7 @@ func (x *CommissionPaymentAdjustment) String() string {
 func (*CommissionPaymentAdjustment) ProtoMessage() {}
 
 func (x *CommissionPaymentAdjustment) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[152]
+	mi := &file_finance_v1_settlement_proto_msgTypes[161]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14381,7 +15129,7 @@ func (x *CommissionPaymentAdjustment) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommissionPaymentAdjustment.ProtoReflect.Descriptor instead.
 func (*CommissionPaymentAdjustment) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{152}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{161}
 }
 
 func (x *CommissionPaymentAdjustment) GetId() string {
@@ -14436,7 +15184,7 @@ type CommissionPaymentPreview struct {
 
 func (x *CommissionPaymentPreview) Reset() {
 	*x = CommissionPaymentPreview{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[153]
+	mi := &file_finance_v1_settlement_proto_msgTypes[162]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14448,7 +15196,7 @@ func (x *CommissionPaymentPreview) String() string {
 func (*CommissionPaymentPreview) ProtoMessage() {}
 
 func (x *CommissionPaymentPreview) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[153]
+	mi := &file_finance_v1_settlement_proto_msgTypes[162]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14461,7 +15209,7 @@ func (x *CommissionPaymentPreview) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommissionPaymentPreview.ProtoReflect.Descriptor instead.
 func (*CommissionPaymentPreview) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{153}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{162}
 }
 
 func (x *CommissionPaymentPreview) GetCommissionId() string {
@@ -14540,7 +15288,7 @@ type PreviewCommissionPaymentResponse struct {
 
 func (x *PreviewCommissionPaymentResponse) Reset() {
 	*x = PreviewCommissionPaymentResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[154]
+	mi := &file_finance_v1_settlement_proto_msgTypes[163]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14552,7 +15300,7 @@ func (x *PreviewCommissionPaymentResponse) String() string {
 func (*PreviewCommissionPaymentResponse) ProtoMessage() {}
 
 func (x *PreviewCommissionPaymentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[154]
+	mi := &file_finance_v1_settlement_proto_msgTypes[163]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14565,7 +15313,7 @@ func (x *PreviewCommissionPaymentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreviewCommissionPaymentResponse.ProtoReflect.Descriptor instead.
 func (*PreviewCommissionPaymentResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{154}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{163}
 }
 
 func (x *PreviewCommissionPaymentResponse) GetSuccess() bool {
@@ -14614,7 +15362,7 @@ type CancelCommissionRequest struct {
 
 func (x *CancelCommissionRequest) Reset() {
 	*x = CancelCommissionRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[155]
+	mi := &file_finance_v1_settlement_proto_msgTypes[164]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14626,7 +15374,7 @@ func (x *CancelCommissionRequest) String() string {
 func (*CancelCommissionRequest) ProtoMessage() {}
 
 func (x *CancelCommissionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[155]
+	mi := &file_finance_v1_settlement_proto_msgTypes[164]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14639,7 +15387,7 @@ func (x *CancelCommissionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelCommissionRequest.ProtoReflect.Descriptor instead.
 func (*CancelCommissionRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{155}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{164}
 }
 
 func (x *CancelCommissionRequest) GetId() string {
@@ -14678,7 +15426,7 @@ type CreateCommissionAdjustmentRequest struct {
 
 func (x *CreateCommissionAdjustmentRequest) Reset() {
 	*x = CreateCommissionAdjustmentRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[156]
+	mi := &file_finance_v1_settlement_proto_msgTypes[165]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14690,7 +15438,7 @@ func (x *CreateCommissionAdjustmentRequest) String() string {
 func (*CreateCommissionAdjustmentRequest) ProtoMessage() {}
 
 func (x *CreateCommissionAdjustmentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[156]
+	mi := &file_finance_v1_settlement_proto_msgTypes[165]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14703,7 +15451,7 @@ func (x *CreateCommissionAdjustmentRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use CreateCommissionAdjustmentRequest.ProtoReflect.Descriptor instead.
 func (*CreateCommissionAdjustmentRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{156}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{165}
 }
 
 func (x *CreateCommissionAdjustmentRequest) GetCommissionId() string {
@@ -14765,7 +15513,7 @@ type ConfirmCommissionAdjustmentRequest struct {
 
 func (x *ConfirmCommissionAdjustmentRequest) Reset() {
 	*x = ConfirmCommissionAdjustmentRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[157]
+	mi := &file_finance_v1_settlement_proto_msgTypes[166]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14777,7 +15525,7 @@ func (x *ConfirmCommissionAdjustmentRequest) String() string {
 func (*ConfirmCommissionAdjustmentRequest) ProtoMessage() {}
 
 func (x *ConfirmCommissionAdjustmentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[157]
+	mi := &file_finance_v1_settlement_proto_msgTypes[166]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14790,7 +15538,7 @@ func (x *ConfirmCommissionAdjustmentRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use ConfirmCommissionAdjustmentRequest.ProtoReflect.Descriptor instead.
 func (*ConfirmCommissionAdjustmentRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{157}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{166}
 }
 
 func (x *ConfirmCommissionAdjustmentRequest) GetId() string {
@@ -14817,7 +15565,7 @@ type MarkCommissionAdjustmentPaidRequest struct {
 
 func (x *MarkCommissionAdjustmentPaidRequest) Reset() {
 	*x = MarkCommissionAdjustmentPaidRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[158]
+	mi := &file_finance_v1_settlement_proto_msgTypes[167]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14829,7 +15577,7 @@ func (x *MarkCommissionAdjustmentPaidRequest) String() string {
 func (*MarkCommissionAdjustmentPaidRequest) ProtoMessage() {}
 
 func (x *MarkCommissionAdjustmentPaidRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[158]
+	mi := &file_finance_v1_settlement_proto_msgTypes[167]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14842,7 +15590,7 @@ func (x *MarkCommissionAdjustmentPaidRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use MarkCommissionAdjustmentPaidRequest.ProtoReflect.Descriptor instead.
 func (*MarkCommissionAdjustmentPaidRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{158}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{167}
 }
 
 func (x *MarkCommissionAdjustmentPaidRequest) GetId() string {
@@ -14870,7 +15618,7 @@ type CancelCommissionAdjustmentRequest struct {
 
 func (x *CancelCommissionAdjustmentRequest) Reset() {
 	*x = CancelCommissionAdjustmentRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[159]
+	mi := &file_finance_v1_settlement_proto_msgTypes[168]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14882,7 +15630,7 @@ func (x *CancelCommissionAdjustmentRequest) String() string {
 func (*CancelCommissionAdjustmentRequest) ProtoMessage() {}
 
 func (x *CancelCommissionAdjustmentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[159]
+	mi := &file_finance_v1_settlement_proto_msgTypes[168]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14895,7 +15643,7 @@ func (x *CancelCommissionAdjustmentRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use CancelCommissionAdjustmentRequest.ProtoReflect.Descriptor instead.
 func (*CancelCommissionAdjustmentRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{159}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{168}
 }
 
 func (x *CancelCommissionAdjustmentRequest) GetId() string {
@@ -14934,7 +15682,7 @@ type ListCommissionAdjustmentsRequest struct {
 
 func (x *ListCommissionAdjustmentsRequest) Reset() {
 	*x = ListCommissionAdjustmentsRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[160]
+	mi := &file_finance_v1_settlement_proto_msgTypes[169]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -14946,7 +15694,7 @@ func (x *ListCommissionAdjustmentsRequest) String() string {
 func (*ListCommissionAdjustmentsRequest) ProtoMessage() {}
 
 func (x *ListCommissionAdjustmentsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[160]
+	mi := &file_finance_v1_settlement_proto_msgTypes[169]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -14959,7 +15707,7 @@ func (x *ListCommissionAdjustmentsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCommissionAdjustmentsRequest.ProtoReflect.Descriptor instead.
 func (*ListCommissionAdjustmentsRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{160}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{169}
 }
 
 func (x *ListCommissionAdjustmentsRequest) GetPage() int32 {
@@ -15038,7 +15786,7 @@ type MyFeeSupplementAdjustmentSource struct {
 
 func (x *MyFeeSupplementAdjustmentSource) Reset() {
 	*x = MyFeeSupplementAdjustmentSource{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[161]
+	mi := &file_finance_v1_settlement_proto_msgTypes[170]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -15050,7 +15798,7 @@ func (x *MyFeeSupplementAdjustmentSource) String() string {
 func (*MyFeeSupplementAdjustmentSource) ProtoMessage() {}
 
 func (x *MyFeeSupplementAdjustmentSource) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[161]
+	mi := &file_finance_v1_settlement_proto_msgTypes[170]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15063,7 +15811,7 @@ func (x *MyFeeSupplementAdjustmentSource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MyFeeSupplementAdjustmentSource.ProtoReflect.Descriptor instead.
 func (*MyFeeSupplementAdjustmentSource) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{161}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{170}
 }
 
 func (x *MyFeeSupplementAdjustmentSource) GetAdjustmentId() string {
@@ -15218,7 +15966,7 @@ type CommissionFeeDetail struct {
 
 func (x *CommissionFeeDetail) Reset() {
 	*x = CommissionFeeDetail{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[162]
+	mi := &file_finance_v1_settlement_proto_msgTypes[171]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -15230,7 +15978,7 @@ func (x *CommissionFeeDetail) String() string {
 func (*CommissionFeeDetail) ProtoMessage() {}
 
 func (x *CommissionFeeDetail) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[162]
+	mi := &file_finance_v1_settlement_proto_msgTypes[171]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15243,7 +15991,7 @@ func (x *CommissionFeeDetail) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommissionFeeDetail.ProtoReflect.Descriptor instead.
 func (*CommissionFeeDetail) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{162}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{171}
 }
 
 func (x *CommissionFeeDetail) GetFeeId() string {
@@ -15356,7 +16104,7 @@ type FinanceCommissionLine struct {
 
 func (x *FinanceCommissionLine) Reset() {
 	*x = FinanceCommissionLine{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[163]
+	mi := &file_finance_v1_settlement_proto_msgTypes[172]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -15368,7 +16116,7 @@ func (x *FinanceCommissionLine) String() string {
 func (*FinanceCommissionLine) ProtoMessage() {}
 
 func (x *FinanceCommissionLine) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[163]
+	mi := &file_finance_v1_settlement_proto_msgTypes[172]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15381,7 +16129,7 @@ func (x *FinanceCommissionLine) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceCommissionLine.ProtoReflect.Descriptor instead.
 func (*FinanceCommissionLine) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{163}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{172}
 }
 
 func (x *FinanceCommissionLine) GetId() string {
@@ -15595,7 +16343,7 @@ type CommissionCalculation struct {
 
 func (x *CommissionCalculation) Reset() {
 	*x = CommissionCalculation{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[164]
+	mi := &file_finance_v1_settlement_proto_msgTypes[173]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -15607,7 +16355,7 @@ func (x *CommissionCalculation) String() string {
 func (*CommissionCalculation) ProtoMessage() {}
 
 func (x *CommissionCalculation) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[164]
+	mi := &file_finance_v1_settlement_proto_msgTypes[173]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15620,7 +16368,7 @@ func (x *CommissionCalculation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommissionCalculation.ProtoReflect.Descriptor instead.
 func (*CommissionCalculation) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{164}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{173}
 }
 
 func (x *CommissionCalculation) GetVerificationId() string {
@@ -15846,7 +16594,7 @@ type CommissionCandidateSummary struct {
 
 func (x *CommissionCandidateSummary) Reset() {
 	*x = CommissionCandidateSummary{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[165]
+	mi := &file_finance_v1_settlement_proto_msgTypes[174]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -15858,7 +16606,7 @@ func (x *CommissionCandidateSummary) String() string {
 func (*CommissionCandidateSummary) ProtoMessage() {}
 
 func (x *CommissionCandidateSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[165]
+	mi := &file_finance_v1_settlement_proto_msgTypes[174]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15871,7 +16619,7 @@ func (x *CommissionCandidateSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommissionCandidateSummary.ProtoReflect.Descriptor instead.
 func (*CommissionCandidateSummary) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{165}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{174}
 }
 
 func (x *CommissionCandidateSummary) GetEmployeeId() string {
@@ -16009,7 +16757,7 @@ type ListCommissionCandidatesResponse struct {
 
 func (x *ListCommissionCandidatesResponse) Reset() {
 	*x = ListCommissionCandidatesResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[166]
+	mi := &file_finance_v1_settlement_proto_msgTypes[175]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -16021,7 +16769,7 @@ func (x *ListCommissionCandidatesResponse) String() string {
 func (*ListCommissionCandidatesResponse) ProtoMessage() {}
 
 func (x *ListCommissionCandidatesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[166]
+	mi := &file_finance_v1_settlement_proto_msgTypes[175]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16034,7 +16782,7 @@ func (x *ListCommissionCandidatesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCommissionCandidatesResponse.ProtoReflect.Descriptor instead.
 func (*ListCommissionCandidatesResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{166}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{175}
 }
 
 func (x *ListCommissionCandidatesResponse) GetSuccess() bool {
@@ -16137,7 +16885,7 @@ type FinanceCommissionAdjustment struct {
 
 func (x *FinanceCommissionAdjustment) Reset() {
 	*x = FinanceCommissionAdjustment{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[167]
+	mi := &file_finance_v1_settlement_proto_msgTypes[176]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -16149,7 +16897,7 @@ func (x *FinanceCommissionAdjustment) String() string {
 func (*FinanceCommissionAdjustment) ProtoMessage() {}
 
 func (x *FinanceCommissionAdjustment) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[167]
+	mi := &file_finance_v1_settlement_proto_msgTypes[176]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16162,7 +16910,7 @@ func (x *FinanceCommissionAdjustment) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceCommissionAdjustment.ProtoReflect.Descriptor instead.
 func (*FinanceCommissionAdjustment) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{167}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{176}
 }
 
 func (x *FinanceCommissionAdjustment) GetId() string {
@@ -16432,7 +17180,7 @@ type ListCommissionApplicationsRequest struct {
 
 func (x *ListCommissionApplicationsRequest) Reset() {
 	*x = ListCommissionApplicationsRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[168]
+	mi := &file_finance_v1_settlement_proto_msgTypes[177]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -16444,7 +17192,7 @@ func (x *ListCommissionApplicationsRequest) String() string {
 func (*ListCommissionApplicationsRequest) ProtoMessage() {}
 
 func (x *ListCommissionApplicationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[168]
+	mi := &file_finance_v1_settlement_proto_msgTypes[177]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16457,7 +17205,7 @@ func (x *ListCommissionApplicationsRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ListCommissionApplicationsRequest.ProtoReflect.Descriptor instead.
 func (*ListCommissionApplicationsRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{168}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{177}
 }
 
 func (x *ListCommissionApplicationsRequest) GetPage() int32 {
@@ -16532,7 +17280,7 @@ type FinanceCommissionApplication struct {
 
 func (x *FinanceCommissionApplication) Reset() {
 	*x = FinanceCommissionApplication{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[169]
+	mi := &file_finance_v1_settlement_proto_msgTypes[178]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -16544,7 +17292,7 @@ func (x *FinanceCommissionApplication) String() string {
 func (*FinanceCommissionApplication) ProtoMessage() {}
 
 func (x *FinanceCommissionApplication) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[169]
+	mi := &file_finance_v1_settlement_proto_msgTypes[178]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16557,7 +17305,7 @@ func (x *FinanceCommissionApplication) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceCommissionApplication.ProtoReflect.Descriptor instead.
 func (*FinanceCommissionApplication) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{169}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{178}
 }
 
 func (x *FinanceCommissionApplication) GetId() string {
@@ -16716,7 +17464,7 @@ type ListCommissionApplicationsResponse struct {
 
 func (x *ListCommissionApplicationsResponse) Reset() {
 	*x = ListCommissionApplicationsResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[170]
+	mi := &file_finance_v1_settlement_proto_msgTypes[179]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -16728,7 +17476,7 @@ func (x *ListCommissionApplicationsResponse) String() string {
 func (*ListCommissionApplicationsResponse) ProtoMessage() {}
 
 func (x *ListCommissionApplicationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[170]
+	mi := &file_finance_v1_settlement_proto_msgTypes[179]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16741,7 +17489,7 @@ func (x *ListCommissionApplicationsResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use ListCommissionApplicationsResponse.ProtoReflect.Descriptor instead.
 func (*ListCommissionApplicationsResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{170}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{179}
 }
 
 func (x *ListCommissionApplicationsResponse) GetSuccess() bool {
@@ -16809,7 +17557,7 @@ type GetCommissionApplicationRequest struct {
 
 func (x *GetCommissionApplicationRequest) Reset() {
 	*x = GetCommissionApplicationRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[171]
+	mi := &file_finance_v1_settlement_proto_msgTypes[180]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -16821,7 +17569,7 @@ func (x *GetCommissionApplicationRequest) String() string {
 func (*GetCommissionApplicationRequest) ProtoMessage() {}
 
 func (x *GetCommissionApplicationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[171]
+	mi := &file_finance_v1_settlement_proto_msgTypes[180]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16834,7 +17582,7 @@ func (x *GetCommissionApplicationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCommissionApplicationRequest.ProtoReflect.Descriptor instead.
 func (*GetCommissionApplicationRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{171}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{180}
 }
 
 func (x *GetCommissionApplicationRequest) GetId() string {
@@ -16854,7 +17602,7 @@ type FinanceCommissionApplicationDetail struct {
 
 func (x *FinanceCommissionApplicationDetail) Reset() {
 	*x = FinanceCommissionApplicationDetail{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[172]
+	mi := &file_finance_v1_settlement_proto_msgTypes[181]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -16866,7 +17614,7 @@ func (x *FinanceCommissionApplicationDetail) String() string {
 func (*FinanceCommissionApplicationDetail) ProtoMessage() {}
 
 func (x *FinanceCommissionApplicationDetail) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[172]
+	mi := &file_finance_v1_settlement_proto_msgTypes[181]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16879,7 +17627,7 @@ func (x *FinanceCommissionApplicationDetail) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use FinanceCommissionApplicationDetail.ProtoReflect.Descriptor instead.
 func (*FinanceCommissionApplicationDetail) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{172}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{181}
 }
 
 func (x *FinanceCommissionApplicationDetail) GetApplication() *FinanceCommissionApplication {
@@ -16925,7 +17673,7 @@ type FinanceCommissionApplicationLine struct {
 
 func (x *FinanceCommissionApplicationLine) Reset() {
 	*x = FinanceCommissionApplicationLine{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[173]
+	mi := &file_finance_v1_settlement_proto_msgTypes[182]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -16937,7 +17685,7 @@ func (x *FinanceCommissionApplicationLine) String() string {
 func (*FinanceCommissionApplicationLine) ProtoMessage() {}
 
 func (x *FinanceCommissionApplicationLine) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[173]
+	mi := &file_finance_v1_settlement_proto_msgTypes[182]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16950,7 +17698,7 @@ func (x *FinanceCommissionApplicationLine) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceCommissionApplicationLine.ProtoReflect.Descriptor instead.
 func (*FinanceCommissionApplicationLine) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{173}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{182}
 }
 
 func (x *FinanceCommissionApplicationLine) GetId() string {
@@ -17099,7 +17847,7 @@ type GetCommissionApplicationResponse struct {
 
 func (x *GetCommissionApplicationResponse) Reset() {
 	*x = GetCommissionApplicationResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[174]
+	mi := &file_finance_v1_settlement_proto_msgTypes[183]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -17111,7 +17859,7 @@ func (x *GetCommissionApplicationResponse) String() string {
 func (*GetCommissionApplicationResponse) ProtoMessage() {}
 
 func (x *GetCommissionApplicationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[174]
+	mi := &file_finance_v1_settlement_proto_msgTypes[183]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17124,7 +17872,7 @@ func (x *GetCommissionApplicationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCommissionApplicationResponse.ProtoReflect.Descriptor instead.
 func (*GetCommissionApplicationResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{174}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{183}
 }
 
 func (x *GetCommissionApplicationResponse) GetSuccess() bool {
@@ -17172,7 +17920,7 @@ type ApproveCommissionApplicationRequest struct {
 
 func (x *ApproveCommissionApplicationRequest) Reset() {
 	*x = ApproveCommissionApplicationRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[175]
+	mi := &file_finance_v1_settlement_proto_msgTypes[184]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -17184,7 +17932,7 @@ func (x *ApproveCommissionApplicationRequest) String() string {
 func (*ApproveCommissionApplicationRequest) ProtoMessage() {}
 
 func (x *ApproveCommissionApplicationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[175]
+	mi := &file_finance_v1_settlement_proto_msgTypes[184]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17197,7 +17945,7 @@ func (x *ApproveCommissionApplicationRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use ApproveCommissionApplicationRequest.ProtoReflect.Descriptor instead.
 func (*ApproveCommissionApplicationRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{175}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{184}
 }
 
 func (x *ApproveCommissionApplicationRequest) GetId() string {
@@ -17227,7 +17975,7 @@ type ApproveCommissionApplicationResponse struct {
 
 func (x *ApproveCommissionApplicationResponse) Reset() {
 	*x = ApproveCommissionApplicationResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[176]
+	mi := &file_finance_v1_settlement_proto_msgTypes[185]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -17239,7 +17987,7 @@ func (x *ApproveCommissionApplicationResponse) String() string {
 func (*ApproveCommissionApplicationResponse) ProtoMessage() {}
 
 func (x *ApproveCommissionApplicationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[176]
+	mi := &file_finance_v1_settlement_proto_msgTypes[185]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17252,7 +18000,7 @@ func (x *ApproveCommissionApplicationResponse) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use ApproveCommissionApplicationResponse.ProtoReflect.Descriptor instead.
 func (*ApproveCommissionApplicationResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{176}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{185}
 }
 
 func (x *ApproveCommissionApplicationResponse) GetSuccess() bool {
@@ -17301,7 +18049,7 @@ type RejectCommissionApplicationRequest struct {
 
 func (x *RejectCommissionApplicationRequest) Reset() {
 	*x = RejectCommissionApplicationRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[177]
+	mi := &file_finance_v1_settlement_proto_msgTypes[186]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -17313,7 +18061,7 @@ func (x *RejectCommissionApplicationRequest) String() string {
 func (*RejectCommissionApplicationRequest) ProtoMessage() {}
 
 func (x *RejectCommissionApplicationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[177]
+	mi := &file_finance_v1_settlement_proto_msgTypes[186]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17326,7 +18074,7 @@ func (x *RejectCommissionApplicationRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use RejectCommissionApplicationRequest.ProtoReflect.Descriptor instead.
 func (*RejectCommissionApplicationRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{177}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{186}
 }
 
 func (x *RejectCommissionApplicationRequest) GetId() string {
@@ -17363,7 +18111,7 @@ type RejectCommissionApplicationResponse struct {
 
 func (x *RejectCommissionApplicationResponse) Reset() {
 	*x = RejectCommissionApplicationResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[178]
+	mi := &file_finance_v1_settlement_proto_msgTypes[187]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -17375,7 +18123,7 @@ func (x *RejectCommissionApplicationResponse) String() string {
 func (*RejectCommissionApplicationResponse) ProtoMessage() {}
 
 func (x *RejectCommissionApplicationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[178]
+	mi := &file_finance_v1_settlement_proto_msgTypes[187]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17388,7 +18136,7 @@ func (x *RejectCommissionApplicationResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use RejectCommissionApplicationResponse.ProtoReflect.Descriptor instead.
 func (*RejectCommissionApplicationResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{178}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{187}
 }
 
 func (x *RejectCommissionApplicationResponse) GetSuccess() bool {
@@ -17439,7 +18187,7 @@ type FinanceSettlementPartyOption struct {
 
 func (x *FinanceSettlementPartyOption) Reset() {
 	*x = FinanceSettlementPartyOption{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[179]
+	mi := &file_finance_v1_settlement_proto_msgTypes[188]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -17451,7 +18199,7 @@ func (x *FinanceSettlementPartyOption) String() string {
 func (*FinanceSettlementPartyOption) ProtoMessage() {}
 
 func (x *FinanceSettlementPartyOption) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[179]
+	mi := &file_finance_v1_settlement_proto_msgTypes[188]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17464,7 +18212,7 @@ func (x *FinanceSettlementPartyOption) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceSettlementPartyOption.ProtoReflect.Descriptor instead.
 func (*FinanceSettlementPartyOption) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{179}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{188}
 }
 
 func (x *FinanceSettlementPartyOption) GetId() string {
@@ -17515,7 +18263,7 @@ type ListFinanceSettlementPartyOptionsRequest struct {
 
 func (x *ListFinanceSettlementPartyOptionsRequest) Reset() {
 	*x = ListFinanceSettlementPartyOptionsRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[180]
+	mi := &file_finance_v1_settlement_proto_msgTypes[189]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -17527,7 +18275,7 @@ func (x *ListFinanceSettlementPartyOptionsRequest) String() string {
 func (*ListFinanceSettlementPartyOptionsRequest) ProtoMessage() {}
 
 func (x *ListFinanceSettlementPartyOptionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[180]
+	mi := &file_finance_v1_settlement_proto_msgTypes[189]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17540,7 +18288,7 @@ func (x *ListFinanceSettlementPartyOptionsRequest) ProtoReflect() protoreflect.M
 
 // Deprecated: Use ListFinanceSettlementPartyOptionsRequest.ProtoReflect.Descriptor instead.
 func (*ListFinanceSettlementPartyOptionsRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{180}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{189}
 }
 
 func (x *ListFinanceSettlementPartyOptionsRequest) GetPurpose() FinanceOrganizationPurpose {
@@ -17592,7 +18340,7 @@ type ListFinanceSettlementPartyOptionsResponse struct {
 
 func (x *ListFinanceSettlementPartyOptionsResponse) Reset() {
 	*x = ListFinanceSettlementPartyOptionsResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[181]
+	mi := &file_finance_v1_settlement_proto_msgTypes[190]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -17604,7 +18352,7 @@ func (x *ListFinanceSettlementPartyOptionsResponse) String() string {
 func (*ListFinanceSettlementPartyOptionsResponse) ProtoMessage() {}
 
 func (x *ListFinanceSettlementPartyOptionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[181]
+	mi := &file_finance_v1_settlement_proto_msgTypes[190]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17617,7 +18365,7 @@ func (x *ListFinanceSettlementPartyOptionsResponse) ProtoReflect() protoreflect.
 
 // Deprecated: Use ListFinanceSettlementPartyOptionsResponse.ProtoReflect.Descriptor instead.
 func (*ListFinanceSettlementPartyOptionsResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{181}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{190}
 }
 
 func (x *ListFinanceSettlementPartyOptionsResponse) GetSuccess() bool {
@@ -17721,7 +18469,7 @@ type FinanceCommission struct {
 
 func (x *FinanceCommission) Reset() {
 	*x = FinanceCommission{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[182]
+	mi := &file_finance_v1_settlement_proto_msgTypes[191]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -17733,7 +18481,7 @@ func (x *FinanceCommission) String() string {
 func (*FinanceCommission) ProtoMessage() {}
 
 func (x *FinanceCommission) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[182]
+	mi := &file_finance_v1_settlement_proto_msgTypes[191]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -17746,7 +18494,7 @@ func (x *FinanceCommission) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinanceCommission.ProtoReflect.Descriptor instead.
 func (*FinanceCommission) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{182}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{191}
 }
 
 func (x *FinanceCommission) GetId() string {
@@ -18119,7 +18867,7 @@ type ExportCommissionsRequest struct {
 
 func (x *ExportCommissionsRequest) Reset() {
 	*x = ExportCommissionsRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[183]
+	mi := &file_finance_v1_settlement_proto_msgTypes[192]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -18131,7 +18879,7 @@ func (x *ExportCommissionsRequest) String() string {
 func (*ExportCommissionsRequest) ProtoMessage() {}
 
 func (x *ExportCommissionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[183]
+	mi := &file_finance_v1_settlement_proto_msgTypes[192]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18144,7 +18892,7 @@ func (x *ExportCommissionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExportCommissionsRequest.ProtoReflect.Descriptor instead.
 func (*ExportCommissionsRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{183}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{192}
 }
 
 func (x *ExportCommissionsRequest) GetKeyword() string {
@@ -18212,7 +18960,7 @@ type CommissionExportItem struct {
 
 func (x *CommissionExportItem) Reset() {
 	*x = CommissionExportItem{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[184]
+	mi := &file_finance_v1_settlement_proto_msgTypes[193]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -18224,7 +18972,7 @@ func (x *CommissionExportItem) String() string {
 func (*CommissionExportItem) ProtoMessage() {}
 
 func (x *CommissionExportItem) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[184]
+	mi := &file_finance_v1_settlement_proto_msgTypes[193]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18237,7 +18985,7 @@ func (x *CommissionExportItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CommissionExportItem.ProtoReflect.Descriptor instead.
 func (*CommissionExportItem) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{184}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{193}
 }
 
 func (x *CommissionExportItem) GetCommissionNo() string {
@@ -18393,7 +19141,7 @@ type ExportCommissionsResponse struct {
 
 func (x *ExportCommissionsResponse) Reset() {
 	*x = ExportCommissionsResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[185]
+	mi := &file_finance_v1_settlement_proto_msgTypes[194]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -18405,7 +19153,7 @@ func (x *ExportCommissionsResponse) String() string {
 func (*ExportCommissionsResponse) ProtoMessage() {}
 
 func (x *ExportCommissionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[185]
+	mi := &file_finance_v1_settlement_proto_msgTypes[194]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18418,7 +19166,7 @@ func (x *ExportCommissionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExportCommissionsResponse.ProtoReflect.Descriptor instead.
 func (*ExportCommissionsResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{185}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{194}
 }
 
 func (x *ExportCommissionsResponse) GetSuccess() bool {
@@ -18470,7 +19218,7 @@ type ListCommissionsResponse struct {
 
 func (x *ListCommissionsResponse) Reset() {
 	*x = ListCommissionsResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[186]
+	mi := &file_finance_v1_settlement_proto_msgTypes[195]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -18482,7 +19230,7 @@ func (x *ListCommissionsResponse) String() string {
 func (*ListCommissionsResponse) ProtoMessage() {}
 
 func (x *ListCommissionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[186]
+	mi := &file_finance_v1_settlement_proto_msgTypes[195]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18495,7 +19243,7 @@ func (x *ListCommissionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCommissionsResponse.ProtoReflect.Descriptor instead.
 func (*ListCommissionsResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{186}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{195}
 }
 
 func (x *ListCommissionsResponse) GetSuccess() bool {
@@ -18553,7 +19301,7 @@ type PreviewCommissionResponse struct {
 
 func (x *PreviewCommissionResponse) Reset() {
 	*x = PreviewCommissionResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[187]
+	mi := &file_finance_v1_settlement_proto_msgTypes[196]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -18565,7 +19313,7 @@ func (x *PreviewCommissionResponse) String() string {
 func (*PreviewCommissionResponse) ProtoMessage() {}
 
 func (x *PreviewCommissionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[187]
+	mi := &file_finance_v1_settlement_proto_msgTypes[196]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18578,7 +19326,7 @@ func (x *PreviewCommissionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreviewCommissionResponse.ProtoReflect.Descriptor instead.
 func (*PreviewCommissionResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{187}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{196}
 }
 
 func (x *PreviewCommissionResponse) GetSuccess() bool {
@@ -18629,7 +19377,7 @@ type CreateCommissionResponse struct {
 
 func (x *CreateCommissionResponse) Reset() {
 	*x = CreateCommissionResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[188]
+	mi := &file_finance_v1_settlement_proto_msgTypes[197]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -18641,7 +19389,7 @@ func (x *CreateCommissionResponse) String() string {
 func (*CreateCommissionResponse) ProtoMessage() {}
 
 func (x *CreateCommissionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[188]
+	mi := &file_finance_v1_settlement_proto_msgTypes[197]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18654,7 +19402,7 @@ func (x *CreateCommissionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateCommissionResponse.ProtoReflect.Descriptor instead.
 func (*CreateCommissionResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{188}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{197}
 }
 
 func (x *CreateCommissionResponse) GetSuccess() bool {
@@ -18705,7 +19453,7 @@ type GetCommissionResponse struct {
 
 func (x *GetCommissionResponse) Reset() {
 	*x = GetCommissionResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[189]
+	mi := &file_finance_v1_settlement_proto_msgTypes[198]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -18717,7 +19465,7 @@ func (x *GetCommissionResponse) String() string {
 func (*GetCommissionResponse) ProtoMessage() {}
 
 func (x *GetCommissionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[189]
+	mi := &file_finance_v1_settlement_proto_msgTypes[198]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18730,7 +19478,7 @@ func (x *GetCommissionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCommissionResponse.ProtoReflect.Descriptor instead.
 func (*GetCommissionResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{189}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{198}
 }
 
 func (x *GetCommissionResponse) GetSuccess() bool {
@@ -18781,7 +19529,7 @@ type ConfirmCommissionResponse struct {
 
 func (x *ConfirmCommissionResponse) Reset() {
 	*x = ConfirmCommissionResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[190]
+	mi := &file_finance_v1_settlement_proto_msgTypes[199]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -18793,7 +19541,7 @@ func (x *ConfirmCommissionResponse) String() string {
 func (*ConfirmCommissionResponse) ProtoMessage() {}
 
 func (x *ConfirmCommissionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[190]
+	mi := &file_finance_v1_settlement_proto_msgTypes[199]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18806,7 +19554,7 @@ func (x *ConfirmCommissionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfirmCommissionResponse.ProtoReflect.Descriptor instead.
 func (*ConfirmCommissionResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{190}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{199}
 }
 
 func (x *ConfirmCommissionResponse) GetSuccess() bool {
@@ -18857,7 +19605,7 @@ type MarkCommissionPaidResponse struct {
 
 func (x *MarkCommissionPaidResponse) Reset() {
 	*x = MarkCommissionPaidResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[191]
+	mi := &file_finance_v1_settlement_proto_msgTypes[200]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -18869,7 +19617,7 @@ func (x *MarkCommissionPaidResponse) String() string {
 func (*MarkCommissionPaidResponse) ProtoMessage() {}
 
 func (x *MarkCommissionPaidResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[191]
+	mi := &file_finance_v1_settlement_proto_msgTypes[200]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18882,7 +19630,7 @@ func (x *MarkCommissionPaidResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MarkCommissionPaidResponse.ProtoReflect.Descriptor instead.
 func (*MarkCommissionPaidResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{191}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{200}
 }
 
 func (x *MarkCommissionPaidResponse) GetSuccess() bool {
@@ -18933,7 +19681,7 @@ type CancelCommissionResponse struct {
 
 func (x *CancelCommissionResponse) Reset() {
 	*x = CancelCommissionResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[192]
+	mi := &file_finance_v1_settlement_proto_msgTypes[201]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -18945,7 +19693,7 @@ func (x *CancelCommissionResponse) String() string {
 func (*CancelCommissionResponse) ProtoMessage() {}
 
 func (x *CancelCommissionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[192]
+	mi := &file_finance_v1_settlement_proto_msgTypes[201]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18958,7 +19706,7 @@ func (x *CancelCommissionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelCommissionResponse.ProtoReflect.Descriptor instead.
 func (*CancelCommissionResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{192}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{201}
 }
 
 func (x *CancelCommissionResponse) GetSuccess() bool {
@@ -19009,7 +19757,7 @@ type CreateCommissionAdjustmentResponse struct {
 
 func (x *CreateCommissionAdjustmentResponse) Reset() {
 	*x = CreateCommissionAdjustmentResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[193]
+	mi := &file_finance_v1_settlement_proto_msgTypes[202]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -19021,7 +19769,7 @@ func (x *CreateCommissionAdjustmentResponse) String() string {
 func (*CreateCommissionAdjustmentResponse) ProtoMessage() {}
 
 func (x *CreateCommissionAdjustmentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[193]
+	mi := &file_finance_v1_settlement_proto_msgTypes[202]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19034,7 +19782,7 @@ func (x *CreateCommissionAdjustmentResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use CreateCommissionAdjustmentResponse.ProtoReflect.Descriptor instead.
 func (*CreateCommissionAdjustmentResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{193}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{202}
 }
 
 func (x *CreateCommissionAdjustmentResponse) GetSuccess() bool {
@@ -19085,7 +19833,7 @@ type ConfirmCommissionAdjustmentResponse struct {
 
 func (x *ConfirmCommissionAdjustmentResponse) Reset() {
 	*x = ConfirmCommissionAdjustmentResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[194]
+	mi := &file_finance_v1_settlement_proto_msgTypes[203]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -19097,7 +19845,7 @@ func (x *ConfirmCommissionAdjustmentResponse) String() string {
 func (*ConfirmCommissionAdjustmentResponse) ProtoMessage() {}
 
 func (x *ConfirmCommissionAdjustmentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[194]
+	mi := &file_finance_v1_settlement_proto_msgTypes[203]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19110,7 +19858,7 @@ func (x *ConfirmCommissionAdjustmentResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use ConfirmCommissionAdjustmentResponse.ProtoReflect.Descriptor instead.
 func (*ConfirmCommissionAdjustmentResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{194}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{203}
 }
 
 func (x *ConfirmCommissionAdjustmentResponse) GetSuccess() bool {
@@ -19161,7 +19909,7 @@ type MarkCommissionAdjustmentPaidResponse struct {
 
 func (x *MarkCommissionAdjustmentPaidResponse) Reset() {
 	*x = MarkCommissionAdjustmentPaidResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[195]
+	mi := &file_finance_v1_settlement_proto_msgTypes[204]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -19173,7 +19921,7 @@ func (x *MarkCommissionAdjustmentPaidResponse) String() string {
 func (*MarkCommissionAdjustmentPaidResponse) ProtoMessage() {}
 
 func (x *MarkCommissionAdjustmentPaidResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[195]
+	mi := &file_finance_v1_settlement_proto_msgTypes[204]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19186,7 +19934,7 @@ func (x *MarkCommissionAdjustmentPaidResponse) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use MarkCommissionAdjustmentPaidResponse.ProtoReflect.Descriptor instead.
 func (*MarkCommissionAdjustmentPaidResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{195}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{204}
 }
 
 func (x *MarkCommissionAdjustmentPaidResponse) GetSuccess() bool {
@@ -19237,7 +19985,7 @@ type CancelCommissionAdjustmentResponse struct {
 
 func (x *CancelCommissionAdjustmentResponse) Reset() {
 	*x = CancelCommissionAdjustmentResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[196]
+	mi := &file_finance_v1_settlement_proto_msgTypes[205]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -19249,7 +19997,7 @@ func (x *CancelCommissionAdjustmentResponse) String() string {
 func (*CancelCommissionAdjustmentResponse) ProtoMessage() {}
 
 func (x *CancelCommissionAdjustmentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[196]
+	mi := &file_finance_v1_settlement_proto_msgTypes[205]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19262,7 +20010,7 @@ func (x *CancelCommissionAdjustmentResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use CancelCommissionAdjustmentResponse.ProtoReflect.Descriptor instead.
 func (*CancelCommissionAdjustmentResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{196}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{205}
 }
 
 func (x *CancelCommissionAdjustmentResponse) GetSuccess() bool {
@@ -19316,7 +20064,7 @@ type ListCommissionAdjustmentsResponse struct {
 
 func (x *ListCommissionAdjustmentsResponse) Reset() {
 	*x = ListCommissionAdjustmentsResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[197]
+	mi := &file_finance_v1_settlement_proto_msgTypes[206]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -19328,7 +20076,7 @@ func (x *ListCommissionAdjustmentsResponse) String() string {
 func (*ListCommissionAdjustmentsResponse) ProtoMessage() {}
 
 func (x *ListCommissionAdjustmentsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[197]
+	mi := &file_finance_v1_settlement_proto_msgTypes[206]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19341,7 +20089,7 @@ func (x *ListCommissionAdjustmentsResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ListCommissionAdjustmentsResponse.ProtoReflect.Descriptor instead.
 func (*ListCommissionAdjustmentsResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{197}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{206}
 }
 
 func (x *ListCommissionAdjustmentsResponse) GetSuccess() bool {
@@ -19409,7 +20157,7 @@ type GetMyFeeSupplementAdjustmentSourceRequest struct {
 
 func (x *GetMyFeeSupplementAdjustmentSourceRequest) Reset() {
 	*x = GetMyFeeSupplementAdjustmentSourceRequest{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[198]
+	mi := &file_finance_v1_settlement_proto_msgTypes[207]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -19421,7 +20169,7 @@ func (x *GetMyFeeSupplementAdjustmentSourceRequest) String() string {
 func (*GetMyFeeSupplementAdjustmentSourceRequest) ProtoMessage() {}
 
 func (x *GetMyFeeSupplementAdjustmentSourceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[198]
+	mi := &file_finance_v1_settlement_proto_msgTypes[207]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19434,7 +20182,7 @@ func (x *GetMyFeeSupplementAdjustmentSourceRequest) ProtoReflect() protoreflect.
 
 // Deprecated: Use GetMyFeeSupplementAdjustmentSourceRequest.ProtoReflect.Descriptor instead.
 func (*GetMyFeeSupplementAdjustmentSourceRequest) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{198}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{207}
 }
 
 func (x *GetMyFeeSupplementAdjustmentSourceRequest) GetId() string {
@@ -19457,7 +20205,7 @@ type GetMyFeeSupplementAdjustmentSourceResponse struct {
 
 func (x *GetMyFeeSupplementAdjustmentSourceResponse) Reset() {
 	*x = GetMyFeeSupplementAdjustmentSourceResponse{}
-	mi := &file_finance_v1_settlement_proto_msgTypes[199]
+	mi := &file_finance_v1_settlement_proto_msgTypes[208]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -19469,7 +20217,7 @@ func (x *GetMyFeeSupplementAdjustmentSourceResponse) String() string {
 func (*GetMyFeeSupplementAdjustmentSourceResponse) ProtoMessage() {}
 
 func (x *GetMyFeeSupplementAdjustmentSourceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_finance_v1_settlement_proto_msgTypes[199]
+	mi := &file_finance_v1_settlement_proto_msgTypes[208]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -19482,7 +20230,7 @@ func (x *GetMyFeeSupplementAdjustmentSourceResponse) ProtoReflect() protoreflect
 
 // Deprecated: Use GetMyFeeSupplementAdjustmentSourceResponse.ProtoReflect.Descriptor instead.
 func (*GetMyFeeSupplementAdjustmentSourceResponse) Descriptor() ([]byte, []int) {
-	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{199}
+	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{208}
 }
 
 func (x *GetMyFeeSupplementAdjustmentSourceResponse) GetSuccess() bool {
@@ -19875,7 +20623,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\bquantity\x18\x11 \x01(\tR\bquantity\x12\x1d\n" +
 	"\n" +
 	"unit_price\x18\x12 \x01(\tR\tunitPriceB\v\n" +
-	"\t_tax_rate\"\xb2\x17\n" +
+	"\t_tax_rate\"\x86\x18\n" +
 	"\vFinanceBill\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\abill_no\x18\x02 \x01(\tR\x06billNo\x12\x1c\n" +
@@ -19941,7 +20689,8 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\tcompleted\x189 \x01(\bR\tcompleted\x12\x1f\n" +
 	"\vfees_locked\x18: \x01(\bR\n" +
 	"feesLocked\x12H\n" +
-	"\x0efee_lock_facts\x18; \x03(\x0e2\".finance.v1.FinanceBillFeeLockFactR\ffeeLockFactsB\v\n" +
+	"\x0efee_lock_facts\x18; \x03(\x0e2\".finance.v1.FinanceBillFeeLockFactR\ffeeLockFacts\x12R\n" +
+	"\x12invoice_exemptions\x18< \x03(\v2#.finance.v1.FinanceInvoiceExemptionR\x11invoiceExemptionsB\v\n" +
 	"\t_due_dateB\a\n" +
 	"\x05_noteB\x0f\n" +
 	"\r_confirmed_atB\x0f\n" +
@@ -19959,7 +20708,45 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x19_estimated_invoice_amountB\x15\n" +
 	"\x13_invoiceable_amountB\x19\n" +
 	"\x17_invoiceable_net_amountB\x19\n" +
-	"\x17_invoiceable_tax_amountJ\x04\b$\x10%R\x04tags\"\x97\x01\n" +
+	"\x17_invoiceable_tax_amountJ\x04\b$\x10%R\x04tags\"\x82\x01\n" +
+	"\x1eSetBillInvoiceExemptionRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
+	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12\x1b\n" +
+	"\x06reason\x18\x03 \x01(\tB\x03\xe0A\x02R\x06reason\"\xb1\x01\n" +
+	"\x1fSetBillInvoiceExemptionResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12+\n" +
+	"\x04data\x18\x04 \x01(\v2\x17.finance.v1.FinanceBillR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x85\x01\n" +
+	"!RevokeBillInvoiceExemptionRequest\x12\x13\n" +
+	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
+	"\x10expected_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x0fexpectedVersion\x12\x1b\n" +
+	"\x06reason\x18\x03 \x01(\tB\x03\xe0A\x02R\x06reason\"\xb4\x01\n" +
+	"\"RevokeBillInvoiceExemptionResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x12+\n" +
+	"\x04data\x18\x04 \x01(\v2\x17.finance.v1.FinanceBillR\x04data\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\x93\x03\n" +
+	"\x17FinanceInvoiceExemption\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\x12\x1b\n" +
+	"\tmarked_by\x18\x03 \x01(\tR\bmarkedBy\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x04 \x01(\tR\tcreatedAt\x12\x18\n" +
+	"\aversion\x18\x05 \x01(\x04R\aversion\x12\"\n" +
+	"\n" +
+	"revoked_at\x18\x06 \x01(\tH\x00R\trevokedAt\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"revoked_by\x18\a \x01(\tH\x01R\trevokedBy\x88\x01\x01\x120\n" +
+	"\x11revocation_reason\x18\b \x01(\tH\x02R\x10revocationReason\x88\x01\x01\x12$\n" +
+	"\x0emarked_by_name\x18\t \x01(\tR\fmarkedByName\x12&\n" +
+	"\x0frevoked_by_name\x18\n" +
+	" \x01(\tR\rrevokedByNameB\r\n" +
+	"\v_revoked_atB\r\n" +
+	"\v_revoked_byB\x14\n" +
+	"\x12_revocation_reason\"\x97\x01\n" +
 	"\x12BillGroupingPolicy\x12$\n" +
 	"\x0esplit_by_order\x18\x01 \x01(\bR\fsplitByOrder\x12)\n" +
 	"\x11split_by_tax_rate\x18\x02 \x01(\bR\x0esplitByTaxRate\x120\n" +
@@ -19976,7 +20763,8 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x1aestimated_invoice_currency\x18\x04 \x01(\tH\x00R\x18estimatedInvoiceCurrency\x88\x01\x01\x129\n" +
 	"\x16estimated_invoice_rate\x18\x05 \x01(\tH\x01R\x14estimatedInvoiceRate\x88\x01\x01B\x1d\n" +
 	"\x1b_estimated_invoice_currencyB\x19\n" +
-	"\x17_estimated_invoice_rate\"\xf1\t\n" +
+	"\x17_estimated_invoice_rate\"\x92\n" +
+	"\n" +
 	"\x15BillBatchPreviewGroup\x12\x1b\n" +
 	"\tgroup_key\x18\x01 \x01(\tR\bgroupKey\x12\x1c\n" +
 	"\tdirection\x18\x02 \x01(\tR\tdirection\x12.\n" +
@@ -20005,22 +20793,23 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x13credit_limit_amount\x18\x16 \x01(\tH\x04R\x11creditLimitAmount\x88\x01\x01\x12,\n" +
 	"\x0fcredit_currency\x18\x17 \x01(\tH\x05R\x0ecreditCurrency\x88\x01\x01\x12=\n" +
 	"\x18current_unsettled_amount\x18\x18 \x01(\tH\x06R\x16currentUnsettledAmount\x88\x01\x01\x12,\n" +
-	"\x12is_credit_exceeded\x18\x19 \x01(\bR\x10isCreditExceededB\v\n" +
+	"\x12is_credit_exceeded\x18\x19 \x01(\bR\x10isCreditExceeded\x12\x1f\n" +
+	"\vgroup_token\x18\x1a \x01(\tR\n" +
+	"groupTokenB\v\n" +
 	"\t_order_idB\v\n" +
 	"\t_order_noB\v\n" +
 	"\t_tax_rateB\x1d\n" +
 	"\x1b_default_payment_terms_daysB\x16\n" +
 	"\x14_credit_limit_amountB\x12\n" +
 	"\x10_credit_currencyB\x1b\n" +
-	"\x19_current_unsettled_amount\"\xa0\x02\n" +
+	"\x19_current_unsettled_amount\"\x90\x02\n" +
 	"\x18PreviewBillBatchResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x125\n" +
-	"\x04data\x18\x04 \x03(\v2!.finance.v1.BillBatchPreviewGroupR\x04data\x12#\n" +
-	"\rpreview_token\x18\x05 \x01(\tR\fpreviewToken\x12\x19\n" +
+	"\x04data\x18\x04 \x03(\v2!.finance.v1.BillBatchPreviewGroupR\x04data\x12\x19\n" +
 	"\btrace_id\x18\x06 \x01(\tR\atraceId\x12E\n" +
-	"\rnetting_pairs\x18\a \x03(\v2 .finance.v1.BillBatchNettingPairR\fnettingPairs\"\x87\x03\n" +
+	"\rnetting_pairs\x18\a \x03(\v2 .finance.v1.BillBatchNettingPairR\fnettingPairsJ\x04\b\x05\x10\x06R\rpreview_token\"\x87\x03\n" +
 	"\x14BillBatchNettingPair\x12.\n" +
 	"\x13settlement_party_id\x18\x01 \x01(\tR\x11settlementPartyId\x122\n" +
 	"\x15settlement_party_name\x18\x02 \x01(\tR\x13settlementPartyName\x12\x1a\n" +
@@ -20029,7 +20818,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x14payable_gross_amount\x18\x05 \x01(\tR\x12payableGrossAmount\x12#\n" +
 	"\roffset_amount\x18\x06 \x01(\tR\foffsetAmount\x122\n" +
 	"\x15net_receivable_amount\x18\a \x01(\tR\x13netReceivableAmount\x12,\n" +
-	"\x12net_payable_amount\x18\b \x01(\tR\x10netPayableAmount\"\x97\x04\n" +
+	"\x12net_payable_amount\x18\b \x01(\tR\x10netPayableAmount\"\xdb\x04\n" +
 	"\x19CreateBillBatchGroupInput\x12 \n" +
 	"\tgroup_key\x18\x01 \x01(\tB\x03\xe0A\x02R\bgroupKey\x12,\n" +
 	"\x0fstatement_title\x18\x02 \x01(\tB\x03\xe0A\x02R\x0estatementTitle\x12 \n" +
@@ -20039,7 +20828,11 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x04note\x18\x06 \x01(\tH\x02R\x04note\x88\x01\x01\x127\n" +
 	"\x15settlement_account_id\x18\a \x01(\tB\x03\xe0A\x02R\x13settlementAccountId\x12A\n" +
 	"\x1aestimated_invoice_currency\x18\b \x01(\tH\x03R\x18estimatedInvoiceCurrency\x88\x01\x01\x129\n" +
-	"\x16estimated_invoice_rate\x18\t \x01(\tH\x04R\x14estimatedInvoiceRate\x88\x01\x01B\v\n" +
+	"\x16estimated_invoice_rate\x18\t \x01(\tH\x04R\x14estimatedInvoiceRate\x88\x01\x01\x12$\n" +
+	"\vgroup_token\x18\n" +
+	" \x01(\tB\x03\xe0A\x02R\n" +
+	"groupToken\x12\x1c\n" +
+	"\afee_ids\x18\v \x03(\tB\x03\xe0A\x02R\x06feeIdsB\v\n" +
 	"\t_due_dateB\x15\n" +
 	"\x13_payment_terms_daysB\a\n" +
 	"\x05_noteB\x1d\n" +
@@ -20075,14 +20868,12 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12>\n" +
 	"\x04data\x18\x04 \x03(\v2*.finance.v1.FinanceSettlementAccountOptionR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xce\x02\n" +
-	"\x16CreateBillBatchRequest\x12\x1c\n" +
-	"\afee_ids\x18\x01 \x03(\tB\x03\xe0A\x02R\x06feeIds\x12L\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xaa\x02\n" +
+	"\x16CreateBillBatchRequest\x12L\n" +
 	"\x0fgrouping_policy\x18\x02 \x01(\v2\x1e.finance.v1.BillGroupingPolicyB\x03\xe0A\x02R\x0egroupingPolicy\x12B\n" +
-	"\x06groups\x18\x03 \x03(\v2%.finance.v1.CreateBillBatchGroupInputB\x03\xe0A\x02R\x06groups\x12(\n" +
-	"\rpreview_token\x18\x04 \x01(\tB\x03\xe0A\x02R\fpreviewToken\x12,\n" +
+	"\x06groups\x18\x03 \x03(\v2%.finance.v1.CreateBillBatchGroupInputB\x03\xe0A\x02R\x06groups\x12,\n" +
 	"\x0fidempotency_key\x18\x05 \x01(\tB\x03\xe0A\x02R\x0eidempotencyKey\x12,\n" +
-	"\x0forganization_id\x18\x06 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\"\xd3\x03\n" +
+	"\x0forganization_id\x18\x06 \x01(\tB\x03\xe0A\x02R\x0eorganizationIdJ\x04\b\x01\x10\x02J\x04\b\x04\x10\x05R\afee_idsR\rpreview_token\"\xf8\x03\n" +
 	"\x10FinanceBillBatch\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\bbatch_no\x18\x02 \x01(\tR\abatchNo\x12$\n" +
@@ -20090,21 +20881,39 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x11split_by_tax_rate\x18\x04 \x01(\bR\x0esplitByTaxRate\x12\x1b\n" +
 	"\tfee_count\x18\x05 \x01(\x05R\bfeeCount\x12\x1d\n" +
 	"\n" +
-	"bill_count\x18\x06 \x01(\x05R\tbillCount\x12*\n" +
-	"\x11total_base_amount\x18\a \x01(\tR\x0ftotalBaseAmount\x12#\n" +
-	"\rbase_currency\x18\b \x01(\tR\fbaseCurrency\x12-\n" +
+	"bill_count\x18\x06 \x01(\x05R\tbillCount\x12-\n" +
 	"\x05bills\x18\t \x03(\v2\x17.finance.v1.FinanceBillR\x05bills\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\n" +
 	" \x01(\tR\tcreatedAt\x120\n" +
 	"\x04mode\x18\v \x01(\x0e2\x1c.finance.v1.BillGroupingModeR\x04mode\x126\n" +
-	"\bnettings\x18\f \x03(\v2\x1a.finance.v1.FinanceNettingR\bnettings\"\xae\x01\n" +
+	"\bnettings\x18\f \x03(\v2\x1a.finance.v1.FinanceNettingR\bnettings\x12F\n" +
+	"\vbase_totals\x18\r \x03(\v2%.finance.v1.FinanceBillBatchBaseTotalR\n" +
+	"baseTotalsJ\x04\b\a\x10\bJ\x04\b\b\x10\tR\x11total_base_amountR\rbase_currency\"l\n" +
+	"\x19FinanceBillBatchBaseTotal\x12#\n" +
+	"\rbase_currency\x18\x01 \x01(\tR\fbaseCurrency\x12*\n" +
+	"\x11total_base_amount\x18\x02 \x01(\tR\x0ftotalBaseAmount\"\xb6\x02\n" +
 	"\x17CreateBillBatchResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
 	"\x04data\x18\x04 \x01(\v2\x1c.finance.v1.FinanceBillBatchR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xc5\x02\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\x12:\n" +
+	"\aresults\x18\x06 \x03(\v2 .finance.v1.BillBatchGroupResultR\aresults\x12'\n" +
+	"\x0fsucceeded_count\x18\a \x01(\x05R\x0esucceededCount\x12!\n" +
+	"\ffailed_count\x18\b \x01(\x05R\vfailedCount\"\xb1\x01\n" +
+	"\x14BillBatchGroupResult\x12\x1b\n" +
+	"\tgroup_key\x18\x01 \x01(\tR\bgroupKey\x12\x18\n" +
+	"\asuccess\x18\x02 \x01(\bR\asuccess\x12+\n" +
+	"\x04bill\x18\x03 \x01(\v2\x17.finance.v1.FinanceBillR\x04bill\x125\n" +
+	"\x05error\x18\x04 \x01(\v2\x1f.finance.v1.BillBatchGroupErrorR\x05error\"\xcf\x01\n" +
+	"\x13BillBatchGroupError\x12\x16\n" +
+	"\x06reason\x18\x01 \x01(\tR\x06reason\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12I\n" +
+	"\bmetadata\x18\x03 \x03(\v2-.finance.v1.BillBatchGroupError.MetadataEntryR\bmetadata\x1a;\n" +
+	"\rMetadataEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xc5\x02\n" +
 	"\x11ListBillsResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
@@ -20480,9 +21289,9 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12/\n" +
 	"\x04data\x18\x04 \x01(\v2\x1b.finance.v1.FinanceCashflowR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"~\n" +
-	"\x1bVerificationAllocationInput\x12$\n" +
-	"\vcashflow_id\x18\x01 \x01(\tB\x03\xe0A\x02R\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"y\n" +
+	"\x1bVerificationAllocationInput\x12\x1f\n" +
+	"\vcashflow_id\x18\x01 \x01(\tR\n" +
 	"cashflowId\x12\x1c\n" +
 	"\abill_id\x18\x02 \x01(\tB\x03\xe0A\x02R\x06billId\x12\x1b\n" +
 	"\x06amount\x18\x03 \x01(\tB\x03\xe0A\x02R\x06amount\"\x87\x02\n" +
@@ -20537,12 +21346,32 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12>\n" +
 	"\x04data\x18\x04 \x01(\v2*.finance.v1.VerificationCreationCandidatesR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xed\x01\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xdb\x04\n" +
+	"\x1dVerificationShortfallCashflow\x12,\n" +
+	"\x0forganization_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eorganizationId\x12!\n" +
+	"\tdirection\x18\x02 \x01(\tB\x03\xe0A\x02R\tdirection\x123\n" +
+	"\x13settlement_party_id\x18\x03 \x01(\tB\x03\xe0A\x02R\x11settlementPartyId\x12\x1f\n" +
+	"\bcurrency\x18\x04 \x01(\tB\x03\xe0A\x02R\bcurrency\x12\x1b\n" +
+	"\x06amount\x18\x05 \x01(\tB\x03\xe0A\x02R\x06amount\x12.\n" +
+	"\x10transaction_date\x18\x06 \x01(\tB\x03\xe0A\x02R\x0ftransactionDate\x12$\n" +
+	"\vour_account\x18\a \x01(\tB\x03\xe0A\x02R\n" +
+	"ourAccount\x12*\n" +
+	"\x0epayment_method\x18\b \x01(\tB\x03\xe0A\x02R\rpaymentMethod\x126\n" +
+	"\x14counterparty_account\x18\t \x01(\tH\x00R\x13counterpartyAccount\x88\x01\x01\x12/\n" +
+	"\x11bank_reference_no\x18\n" +
+	" \x01(\tH\x01R\x0fbankReferenceNo\x88\x01\x01\x12\x17\n" +
+	"\x04note\x18\v \x01(\tH\x02R\x04note\x88\x01\x01\x12(\n" +
+	"\rexchange_rate\x18\f \x01(\tH\x03R\fexchangeRate\x88\x01\x01B\x17\n" +
+	"\x15_counterparty_accountB\x14\n" +
+	"\x12_bank_reference_noB\a\n" +
+	"\x05_noteB\x10\n" +
+	"\x0e_exchange_rate\"\xc7\x02\n" +
 	"\x19CreateVerificationRequest\x12N\n" +
 	"\vallocations\x18\x01 \x03(\v2'.finance.v1.VerificationAllocationInputB\x03\xe0A\x02R\vallocations\x120\n" +
 	"\x11verification_date\x18\x02 \x01(\tB\x03\xe0A\x02R\x10verificationDate\x12\x17\n" +
 	"\x04note\x18\x03 \x01(\tH\x00R\x04note\x88\x01\x01\x12,\n" +
-	"\x0fidempotency_key\x18\x04 \x01(\tB\x03\xe0A\x02R\x0eidempotencyKeyB\a\n" +
+	"\x0fidempotency_key\x18\x04 \x01(\tB\x03\xe0A\x02R\x0eidempotencyKey\x12X\n" +
+	"\x12shortfall_cashflow\x18\x05 \x01(\v2).finance.v1.VerificationShortfallCashflowR\x11shortfallCashflowB\a\n" +
 	"\x05_note\"~\n" +
 	"\x1aReverseVerificationRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\tB\x03\xe0A\x02R\x02id\x12.\n" +
@@ -21681,7 +22510,7 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	",FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_CREATE\x10\x04\x124\n" +
 	"0FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_CREATE\x10\t\"\x04\b\x01\x10\x01\"\x04\b\x02\x10\x02\"\x04\b\x03\x10\x03\"\x04\b\x05\x10\x05\"\x04\b\x06\x10\x06\"\x04\b\a\x10\a\"\x04\b\b\x10\b\"\x04\b\n" +
 	"\x10\n" +
-	"\"\x04\b\v\x10\v\"\x04\b\f\x10\f*&FINANCE_ORGANIZATION_PURPOSE_BILL_READ*)FINANCE_ORGANIZATION_PURPOSE_INVOICE_READ**FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_READ*.FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_READ*,FINANCE_ORGANIZATION_PURPOSE_COMMISSION_READ*.FINANCE_ORGANIZATION_PURPOSE_COMMISSION_MANAGE*%FINANCE_ORGANIZATION_PURPOSE_FEE_READ*+FINANCE_ORGANIZATION_PURPOSE_INVOICE_CREATE*(FINANCE_ORGANIZATION_PURPOSE_BILL_CREATE*)FINANCE_ORGANIZATION_PURPOSE_NETTING_READ2\xabm\n" +
+	"\"\x04\b\v\x10\v\"\x04\b\f\x10\f*&FINANCE_ORGANIZATION_PURPOSE_BILL_READ*)FINANCE_ORGANIZATION_PURPOSE_INVOICE_READ**FINANCE_ORGANIZATION_PURPOSE_CASHFLOW_READ*.FINANCE_ORGANIZATION_PURPOSE_VERIFICATION_READ*,FINANCE_ORGANIZATION_PURPOSE_COMMISSION_READ*.FINANCE_ORGANIZATION_PURPOSE_COMMISSION_MANAGE*%FINANCE_ORGANIZATION_PURPOSE_FEE_READ*+FINANCE_ORGANIZATION_PURPOSE_INVOICE_CREATE*(FINANCE_ORGANIZATION_PURPOSE_BILL_CREATE*)FINANCE_ORGANIZATION_PURPOSE_NETTING_READ2\xe5p\n" +
 	"\x11SettlementService\x12\x93\x01\n" +
 	"\rListFeeLedger\x12 .finance.v1.ListFeeLedgerRequest\x1a!.finance.v1.ListFeeLedgerResponse\"=\x82\xb5\x18\x1d\b\x03\x12\x17system.finance.fee.read \x02\x82\xd3\xe4\x93\x02\x16\x12\x14/api/v1/finance/fees\x12\xc3\x01\n" +
 	"\x17GetFeeLedgerOrderDetail\x12*.finance.v1.GetFeeLedgerOrderDetailRequest\x1a+.finance.v1.GetFeeLedgerOrderDetailResponse\"O\x82\xb5\x18\x1d\b\x03\x12\x17system.finance.fee.read \x02\x82\xd3\xe4\x93\x02(\x12&/api/v1/finance/fees/orders/{order_id}\x12\xd1\x01\n" +
@@ -21699,7 +22528,9 @@ const file_finance_v1_settlement_proto_rawDesc = "" +
 	"\x10PreviewBillBatch\x12#.finance.v1.PreviewBillBatchRequest\x1a$.finance.v1.PreviewBillBatchResponse\"S\x82\xb5\x18 \b\x03\x12\x1asystem.finance.bill.create \x02\x82\xd3\xe4\x93\x02):\x01*\"$/api/v1/finance/bill-batches/preview\x12\xa7\x01\n" +
 	"\x0fCreateBillBatch\x12\".finance.v1.CreateBillBatchRequest\x1a#.finance.v1.CreateBillBatchResponse\"K\x82\xb5\x18 \b\x03\x12\x1asystem.finance.bill.create \x02\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/api/v1/finance/bill-batches\x12\x96\x01\n" +
 	"\n" +
-	"UpdateBill\x12\x1d.finance.v1.UpdateBillRequest\x1a\x1e.finance.v1.UpdateBillResponse\"I\x82\xb5\x18 \b\x03\x12\x1asystem.finance.bill.update \x02\x82\xd3\xe4\x93\x02\x1f:\x01*\x1a\x1a/api/v1/finance/bills/{id}\x12\xc8\x01\n" +
+	"UpdateBill\x12\x1d.finance.v1.UpdateBillRequest\x1a\x1e.finance.v1.UpdateBillResponse\"I\x82\xb5\x18 \b\x03\x12\x1asystem.finance.bill.update \x02\x82\xd3\xe4\x93\x02\x1f:\x01*\x1a\x1a/api/v1/finance/bills/{id}\x12\xd2\x01\n" +
+	"\x17SetBillInvoiceExemption\x12*.finance.v1.SetBillInvoiceExemptionRequest\x1a+.finance.v1.SetBillInvoiceExemptionResponse\"^\x82\xb5\x18#\b\x03\x12\x1dsystem.finance.invoice.exempt \x02\x82\xd3\xe4\x93\x021:\x01*\",/api/v1/finance/bills/{id}/invoice-exemption\x12\xe2\x01\n" +
+	"\x1aRevokeBillInvoiceExemption\x12-.finance.v1.RevokeBillInvoiceExemptionRequest\x1a..finance.v1.RevokeBillInvoiceExemptionResponse\"e\x82\xb5\x18#\b\x03\x12\x1dsystem.finance.invoice.exempt \x02\x82\xd3\xe4\x93\x028:\x01*\"3/api/v1/finance/bills/{id}/invoice-exemption/revoke\x12\xc8\x01\n" +
 	"\x15ListBillFeeCandidates\x12(.finance.v1.ListBillFeeCandidatesRequest\x1a).finance.v1.ListBillFeeCandidatesResponse\"Z\x82\xb5\x18 \b\x03\x12\x1asystem.finance.bill.update \x02\x82\xd3\xe4\x93\x020\x12./api/v1/finance/bills/{bill_id}/fee-candidates\x12\xae\x01\n" +
 	"\x0eUpdateBillFees\x12!.finance.v1.UpdateBillFeesRequest\x1a\".finance.v1.UpdateBillFeesResponse\"U\x82\xb5\x18 \b\x03\x12\x1asystem.finance.bill.update \x02\x82\xd3\xe4\x93\x02+:\x01*\"&/api/v1/finance/bills/{id}/fees:update\x12\x9d\x01\n" +
 	"\n" +
@@ -21773,7 +22604,7 @@ func file_finance_v1_settlement_proto_rawDescGZIP() []byte {
 }
 
 var file_finance_v1_settlement_proto_enumTypes = make([]protoimpl.EnumInfo, 14)
-var file_finance_v1_settlement_proto_msgTypes = make([]protoimpl.MessageInfo, 200)
+var file_finance_v1_settlement_proto_msgTypes = make([]protoimpl.MessageInfo, 210)
 var file_finance_v1_settlement_proto_goTypes = []any{
 	(FinanceBillStatus)(0),                                    // 0: finance.v1.FinanceBillStatus
 	(FinanceBillSettlementProgress)(0),                        // 1: finance.v1.FinanceBillSettlementProgress
@@ -21822,174 +22653,184 @@ var file_finance_v1_settlement_proto_goTypes = []any{
 	(*CancelBillRequest)(nil),                                 // 44: finance.v1.CancelBillRequest
 	(*FinanceBillLine)(nil),                                   // 45: finance.v1.FinanceBillLine
 	(*FinanceBill)(nil),                                       // 46: finance.v1.FinanceBill
-	(*BillGroupingPolicy)(nil),                                // 47: finance.v1.BillGroupingPolicy
-	(*PreviewBillBatchRequest)(nil),                           // 48: finance.v1.PreviewBillBatchRequest
-	(*BillBatchPreviewGroupConfigInput)(nil),                  // 49: finance.v1.BillBatchPreviewGroupConfigInput
-	(*BillBatchPreviewGroup)(nil),                             // 50: finance.v1.BillBatchPreviewGroup
-	(*PreviewBillBatchResponse)(nil),                          // 51: finance.v1.PreviewBillBatchResponse
-	(*BillBatchNettingPair)(nil),                              // 52: finance.v1.BillBatchNettingPair
-	(*CreateBillBatchGroupInput)(nil),                         // 53: finance.v1.CreateBillBatchGroupInput
-	(*FinanceSettlementAccountOption)(nil),                    // 54: finance.v1.FinanceSettlementAccountOption
-	(*ListBillSettlementAccountCandidatesRequest)(nil),        // 55: finance.v1.ListBillSettlementAccountCandidatesRequest
-	(*ListBillSettlementAccountCandidatesResponse)(nil),       // 56: finance.v1.ListBillSettlementAccountCandidatesResponse
-	(*ListBillSettlementAccountUpdateCandidatesRequest)(nil),  // 57: finance.v1.ListBillSettlementAccountUpdateCandidatesRequest
-	(*ListBillSettlementAccountUpdateCandidatesResponse)(nil), // 58: finance.v1.ListBillSettlementAccountUpdateCandidatesResponse
-	(*CreateBillBatchRequest)(nil),                            // 59: finance.v1.CreateBillBatchRequest
-	(*FinanceBillBatch)(nil),                                  // 60: finance.v1.FinanceBillBatch
-	(*CreateBillBatchResponse)(nil),                           // 61: finance.v1.CreateBillBatchResponse
-	(*ListBillsResponse)(nil),                                 // 62: finance.v1.ListBillsResponse
-	(*FinanceBaseCurrencyAmount)(nil),                         // 63: finance.v1.FinanceBaseCurrencyAmount
-	(*FinanceBillSummary)(nil),                                // 64: finance.v1.FinanceBillSummary
-	(*GetBillResponse)(nil),                                   // 65: finance.v1.GetBillResponse
-	(*CreateBillResponse)(nil),                                // 66: finance.v1.CreateBillResponse
-	(*UpdateBillResponse)(nil),                                // 67: finance.v1.UpdateBillResponse
-	(*CancelBillResponse)(nil),                                // 68: finance.v1.CancelBillResponse
-	(*ListInvoicesRequest)(nil),                               // 69: finance.v1.ListInvoicesRequest
-	(*GetInvoiceRequest)(nil),                                 // 70: finance.v1.GetInvoiceRequest
-	(*CreateInvoiceRequest)(nil),                              // 71: finance.v1.CreateInvoiceRequest
-	(*IssueInvoiceRequest)(nil),                               // 72: finance.v1.IssueInvoiceRequest
-	(*CancelInvoiceRequest)(nil),                              // 73: finance.v1.CancelInvoiceRequest
-	(*RedFlushInvoiceRequest)(nil),                            // 74: finance.v1.RedFlushInvoiceRequest
-	(*FinanceInvoiceBill)(nil),                                // 75: finance.v1.FinanceInvoiceBill
-	(*FinanceInvoiceLine)(nil),                                // 76: finance.v1.FinanceInvoiceLine
-	(*FinanceInvoice)(nil),                                    // 77: finance.v1.FinanceInvoice
-	(*ListInvoicesResponse)(nil),                              // 78: finance.v1.ListInvoicesResponse
-	(*FinanceInvoiceSummary)(nil),                             // 79: finance.v1.FinanceInvoiceSummary
-	(*ListInvoiceCreationBillsRequest)(nil),                   // 80: finance.v1.ListInvoiceCreationBillsRequest
-	(*ListInvoiceCreationBillsResponse)(nil),                  // 81: finance.v1.ListInvoiceCreationBillsResponse
-	(*FinanceInvoiceProfileOption)(nil),                       // 82: finance.v1.FinanceInvoiceProfileOption
-	(*FinanceInvoiceProfilesForBill)(nil),                     // 83: finance.v1.FinanceInvoiceProfilesForBill
-	(*ListInvoiceProfilesForBillRequest)(nil),                 // 84: finance.v1.ListInvoiceProfilesForBillRequest
-	(*ListInvoiceProfilesForBillResponse)(nil),                // 85: finance.v1.ListInvoiceProfilesForBillResponse
-	(*GetInvoiceResponse)(nil),                                // 86: finance.v1.GetInvoiceResponse
-	(*CreateInvoiceResponse)(nil),                             // 87: finance.v1.CreateInvoiceResponse
-	(*IssueInvoiceResponse)(nil),                              // 88: finance.v1.IssueInvoiceResponse
-	(*CancelInvoiceResponse)(nil),                             // 89: finance.v1.CancelInvoiceResponse
-	(*RedFlushInvoiceResponse)(nil),                           // 90: finance.v1.RedFlushInvoiceResponse
-	(*ListCashflowsRequest)(nil),                              // 91: finance.v1.ListCashflowsRequest
-	(*CreateCashflowRequest)(nil),                             // 92: finance.v1.CreateCashflowRequest
-	(*ConfirmCashflowRequest)(nil),                            // 93: finance.v1.ConfirmCashflowRequest
-	(*CancelCashflowRequest)(nil),                             // 94: finance.v1.CancelCashflowRequest
-	(*FinanceCashflow)(nil),                                   // 95: finance.v1.FinanceCashflow
-	(*ListCashflowsResponse)(nil),                             // 96: finance.v1.ListCashflowsResponse
-	(*FinanceCashflowSummary)(nil),                            // 97: finance.v1.FinanceCashflowSummary
-	(*CreateCashflowResponse)(nil),                            // 98: finance.v1.CreateCashflowResponse
-	(*ConfirmCashflowResponse)(nil),                           // 99: finance.v1.ConfirmCashflowResponse
-	(*CancelCashflowResponse)(nil),                            // 100: finance.v1.CancelCashflowResponse
-	(*VerificationAllocationInput)(nil),                       // 101: finance.v1.VerificationAllocationInput
-	(*ListVerificationsRequest)(nil),                          // 102: finance.v1.ListVerificationsRequest
-	(*ListCommissionVerificationCandidatesRequest)(nil),       // 103: finance.v1.ListCommissionVerificationCandidatesRequest
-	(*ListCommissionVerificationCandidatesResponse)(nil),      // 104: finance.v1.ListCommissionVerificationCandidatesResponse
-	(*ListCommissionNettingCandidatesRequest)(nil),            // 105: finance.v1.ListCommissionNettingCandidatesRequest
-	(*ListCommissionNettingCandidatesResponse)(nil),           // 106: finance.v1.ListCommissionNettingCandidatesResponse
-	(*VerificationCreationCandidates)(nil),                    // 107: finance.v1.VerificationCreationCandidates
-	(*ListVerificationCreationCandidatesRequest)(nil),         // 108: finance.v1.ListVerificationCreationCandidatesRequest
-	(*ListVerificationCreationCandidatesResponse)(nil),        // 109: finance.v1.ListVerificationCreationCandidatesResponse
-	(*CreateVerificationRequest)(nil),                         // 110: finance.v1.CreateVerificationRequest
-	(*ReverseVerificationRequest)(nil),                        // 111: finance.v1.ReverseVerificationRequest
-	(*FinanceVerificationAllocation)(nil),                     // 112: finance.v1.FinanceVerificationAllocation
-	(*FinanceVerification)(nil),                               // 113: finance.v1.FinanceVerification
-	(*ListVerificationsResponse)(nil),                         // 114: finance.v1.ListVerificationsResponse
-	(*FinanceVerificationSummary)(nil),                        // 115: finance.v1.FinanceVerificationSummary
-	(*CreateVerificationResponse)(nil),                        // 116: finance.v1.CreateVerificationResponse
-	(*ReverseVerificationResponse)(nil),                       // 117: finance.v1.ReverseVerificationResponse
-	(*FinanceNettingAllocation)(nil),                          // 118: finance.v1.FinanceNettingAllocation
-	(*FinanceNetting)(nil),                                    // 119: finance.v1.FinanceNetting
-	(*FinanceNettingBillBalance)(nil),                         // 120: finance.v1.FinanceNettingBillBalance
-	(*FinanceNettingPreview)(nil),                             // 121: finance.v1.FinanceNettingPreview
-	(*PreviewNettingRequest)(nil),                             // 122: finance.v1.PreviewNettingRequest
-	(*PreviewNettingResponse)(nil),                            // 123: finance.v1.PreviewNettingResponse
-	(*NettingBillExpectedVersion)(nil),                        // 124: finance.v1.NettingBillExpectedVersion
-	(*CreateNettingRequest)(nil),                              // 125: finance.v1.CreateNettingRequest
-	(*CreateNettingResponse)(nil),                             // 126: finance.v1.CreateNettingResponse
-	(*ConfirmNettingRequest)(nil),                             // 127: finance.v1.ConfirmNettingRequest
-	(*ConfirmNettingResponse)(nil),                            // 128: finance.v1.ConfirmNettingResponse
-	(*CancelNettingRequest)(nil),                              // 129: finance.v1.CancelNettingRequest
-	(*CancelNettingResponse)(nil),                             // 130: finance.v1.CancelNettingResponse
-	(*ReverseNettingRequest)(nil),                             // 131: finance.v1.ReverseNettingRequest
-	(*ReverseNettingResponse)(nil),                            // 132: finance.v1.ReverseNettingResponse
-	(*ListNettingsRequest)(nil),                               // 133: finance.v1.ListNettingsRequest
-	(*FinanceNettingBaseCurrencyAmount)(nil),                  // 134: finance.v1.FinanceNettingBaseCurrencyAmount
-	(*FinanceNettingSummary)(nil),                             // 135: finance.v1.FinanceNettingSummary
-	(*ListNettingsResponse)(nil),                              // 136: finance.v1.ListNettingsResponse
-	(*GetNettingRequest)(nil),                                 // 137: finance.v1.GetNettingRequest
-	(*GetNettingResponse)(nil),                                // 138: finance.v1.GetNettingResponse
-	(*ListCommissionsRequest)(nil),                            // 139: finance.v1.ListCommissionsRequest
-	(*GetCommissionRequest)(nil),                              // 140: finance.v1.GetCommissionRequest
-	(*ListCommissionEmployeesRequest)(nil),                    // 141: finance.v1.ListCommissionEmployeesRequest
-	(*ListCommissionCandidatesRequest)(nil),                   // 142: finance.v1.ListCommissionCandidatesRequest
-	(*CommissionEmployeeOption)(nil),                          // 143: finance.v1.CommissionEmployeeOption
-	(*ListCommissionEmployeesResponse)(nil),                   // 144: finance.v1.ListCommissionEmployeesResponse
-	(*ListCommissionRulesRequest)(nil),                        // 145: finance.v1.ListCommissionRulesRequest
-	(*CommissionRuleInput)(nil),                               // 146: finance.v1.CommissionRuleInput
-	(*CreateCommissionRuleRequest)(nil),                       // 147: finance.v1.CreateCommissionRuleRequest
-	(*UpdateCommissionRuleRequest)(nil),                       // 148: finance.v1.UpdateCommissionRuleRequest
-	(*CommissionRuleEmployeeChangeInput)(nil),                 // 149: finance.v1.CommissionRuleEmployeeChangeInput
-	(*AssignCommissionRuleEmployeesRequest)(nil),              // 150: finance.v1.AssignCommissionRuleEmployeesRequest
-	(*RemoveCommissionRuleEmployeesRequest)(nil),              // 151: finance.v1.RemoveCommissionRuleEmployeesRequest
-	(*CopyCommissionRuleRequest)(nil),                         // 152: finance.v1.CopyCommissionRuleRequest
-	(*CommissionRuleAssignmentProjection)(nil),                // 153: finance.v1.CommissionRuleAssignmentProjection
-	(*FinanceCommissionRule)(nil),                             // 154: finance.v1.FinanceCommissionRule
-	(*ListCommissionRulesResponse)(nil),                       // 155: finance.v1.ListCommissionRulesResponse
-	(*CreateCommissionRuleResponse)(nil),                      // 156: finance.v1.CreateCommissionRuleResponse
-	(*UpdateCommissionRuleResponse)(nil),                      // 157: finance.v1.UpdateCommissionRuleResponse
-	(*AssignCommissionRuleEmployeesResponse)(nil),             // 158: finance.v1.AssignCommissionRuleEmployeesResponse
-	(*RemoveCommissionRuleEmployeesResponse)(nil),             // 159: finance.v1.RemoveCommissionRuleEmployeesResponse
-	(*CopyCommissionRuleResponse)(nil),                        // 160: finance.v1.CopyCommissionRuleResponse
-	(*PreviewCommissionRequest)(nil),                          // 161: finance.v1.PreviewCommissionRequest
-	(*CreateCommissionRequest)(nil),                           // 162: finance.v1.CreateCommissionRequest
-	(*ConfirmCommissionRequest)(nil),                          // 163: finance.v1.ConfirmCommissionRequest
-	(*MarkCommissionPaidRequest)(nil),                         // 164: finance.v1.MarkCommissionPaidRequest
-	(*PreviewCommissionPaymentRequest)(nil),                   // 165: finance.v1.PreviewCommissionPaymentRequest
-	(*CommissionPaymentAdjustment)(nil),                       // 166: finance.v1.CommissionPaymentAdjustment
-	(*CommissionPaymentPreview)(nil),                          // 167: finance.v1.CommissionPaymentPreview
-	(*PreviewCommissionPaymentResponse)(nil),                  // 168: finance.v1.PreviewCommissionPaymentResponse
-	(*CancelCommissionRequest)(nil),                           // 169: finance.v1.CancelCommissionRequest
-	(*CreateCommissionAdjustmentRequest)(nil),                 // 170: finance.v1.CreateCommissionAdjustmentRequest
-	(*ConfirmCommissionAdjustmentRequest)(nil),                // 171: finance.v1.ConfirmCommissionAdjustmentRequest
-	(*MarkCommissionAdjustmentPaidRequest)(nil),               // 172: finance.v1.MarkCommissionAdjustmentPaidRequest
-	(*CancelCommissionAdjustmentRequest)(nil),                 // 173: finance.v1.CancelCommissionAdjustmentRequest
-	(*ListCommissionAdjustmentsRequest)(nil),                  // 174: finance.v1.ListCommissionAdjustmentsRequest
-	(*MyFeeSupplementAdjustmentSource)(nil),                   // 175: finance.v1.MyFeeSupplementAdjustmentSource
-	(*CommissionFeeDetail)(nil),                               // 176: finance.v1.CommissionFeeDetail
-	(*FinanceCommissionLine)(nil),                             // 177: finance.v1.FinanceCommissionLine
-	(*CommissionCalculation)(nil),                             // 178: finance.v1.CommissionCalculation
-	(*CommissionCandidateSummary)(nil),                        // 179: finance.v1.CommissionCandidateSummary
-	(*ListCommissionCandidatesResponse)(nil),                  // 180: finance.v1.ListCommissionCandidatesResponse
-	(*FinanceCommissionAdjustment)(nil),                       // 181: finance.v1.FinanceCommissionAdjustment
-	(*ListCommissionApplicationsRequest)(nil),                 // 182: finance.v1.ListCommissionApplicationsRequest
-	(*FinanceCommissionApplication)(nil),                      // 183: finance.v1.FinanceCommissionApplication
-	(*ListCommissionApplicationsResponse)(nil),                // 184: finance.v1.ListCommissionApplicationsResponse
-	(*GetCommissionApplicationRequest)(nil),                   // 185: finance.v1.GetCommissionApplicationRequest
-	(*FinanceCommissionApplicationDetail)(nil),                // 186: finance.v1.FinanceCommissionApplicationDetail
-	(*FinanceCommissionApplicationLine)(nil),                  // 187: finance.v1.FinanceCommissionApplicationLine
-	(*GetCommissionApplicationResponse)(nil),                  // 188: finance.v1.GetCommissionApplicationResponse
-	(*ApproveCommissionApplicationRequest)(nil),               // 189: finance.v1.ApproveCommissionApplicationRequest
-	(*ApproveCommissionApplicationResponse)(nil),              // 190: finance.v1.ApproveCommissionApplicationResponse
-	(*RejectCommissionApplicationRequest)(nil),                // 191: finance.v1.RejectCommissionApplicationRequest
-	(*RejectCommissionApplicationResponse)(nil),               // 192: finance.v1.RejectCommissionApplicationResponse
-	(*FinanceSettlementPartyOption)(nil),                      // 193: finance.v1.FinanceSettlementPartyOption
-	(*ListFinanceSettlementPartyOptionsRequest)(nil),          // 194: finance.v1.ListFinanceSettlementPartyOptionsRequest
-	(*ListFinanceSettlementPartyOptionsResponse)(nil),         // 195: finance.v1.ListFinanceSettlementPartyOptionsResponse
-	(*FinanceCommission)(nil),                                 // 196: finance.v1.FinanceCommission
-	(*ExportCommissionsRequest)(nil),                          // 197: finance.v1.ExportCommissionsRequest
-	(*CommissionExportItem)(nil),                              // 198: finance.v1.CommissionExportItem
-	(*ExportCommissionsResponse)(nil),                         // 199: finance.v1.ExportCommissionsResponse
-	(*ListCommissionsResponse)(nil),                           // 200: finance.v1.ListCommissionsResponse
-	(*PreviewCommissionResponse)(nil),                         // 201: finance.v1.PreviewCommissionResponse
-	(*CreateCommissionResponse)(nil),                          // 202: finance.v1.CreateCommissionResponse
-	(*GetCommissionResponse)(nil),                             // 203: finance.v1.GetCommissionResponse
-	(*ConfirmCommissionResponse)(nil),                         // 204: finance.v1.ConfirmCommissionResponse
-	(*MarkCommissionPaidResponse)(nil),                        // 205: finance.v1.MarkCommissionPaidResponse
-	(*CancelCommissionResponse)(nil),                          // 206: finance.v1.CancelCommissionResponse
-	(*CreateCommissionAdjustmentResponse)(nil),                // 207: finance.v1.CreateCommissionAdjustmentResponse
-	(*ConfirmCommissionAdjustmentResponse)(nil),               // 208: finance.v1.ConfirmCommissionAdjustmentResponse
-	(*MarkCommissionAdjustmentPaidResponse)(nil),              // 209: finance.v1.MarkCommissionAdjustmentPaidResponse
-	(*CancelCommissionAdjustmentResponse)(nil),                // 210: finance.v1.CancelCommissionAdjustmentResponse
-	(*ListCommissionAdjustmentsResponse)(nil),                 // 211: finance.v1.ListCommissionAdjustmentsResponse
-	(*GetMyFeeSupplementAdjustmentSourceRequest)(nil),         // 212: finance.v1.GetMyFeeSupplementAdjustmentSourceRequest
-	(*GetMyFeeSupplementAdjustmentSourceResponse)(nil),        // 213: finance.v1.GetMyFeeSupplementAdjustmentSourceResponse
-	(*wrapperspb.UInt64Value)(nil),                            // 214: google.protobuf.UInt64Value
+	(*SetBillInvoiceExemptionRequest)(nil),                    // 47: finance.v1.SetBillInvoiceExemptionRequest
+	(*SetBillInvoiceExemptionResponse)(nil),                   // 48: finance.v1.SetBillInvoiceExemptionResponse
+	(*RevokeBillInvoiceExemptionRequest)(nil),                 // 49: finance.v1.RevokeBillInvoiceExemptionRequest
+	(*RevokeBillInvoiceExemptionResponse)(nil),                // 50: finance.v1.RevokeBillInvoiceExemptionResponse
+	(*FinanceInvoiceExemption)(nil),                           // 51: finance.v1.FinanceInvoiceExemption
+	(*BillGroupingPolicy)(nil),                                // 52: finance.v1.BillGroupingPolicy
+	(*PreviewBillBatchRequest)(nil),                           // 53: finance.v1.PreviewBillBatchRequest
+	(*BillBatchPreviewGroupConfigInput)(nil),                  // 54: finance.v1.BillBatchPreviewGroupConfigInput
+	(*BillBatchPreviewGroup)(nil),                             // 55: finance.v1.BillBatchPreviewGroup
+	(*PreviewBillBatchResponse)(nil),                          // 56: finance.v1.PreviewBillBatchResponse
+	(*BillBatchNettingPair)(nil),                              // 57: finance.v1.BillBatchNettingPair
+	(*CreateBillBatchGroupInput)(nil),                         // 58: finance.v1.CreateBillBatchGroupInput
+	(*FinanceSettlementAccountOption)(nil),                    // 59: finance.v1.FinanceSettlementAccountOption
+	(*ListBillSettlementAccountCandidatesRequest)(nil),        // 60: finance.v1.ListBillSettlementAccountCandidatesRequest
+	(*ListBillSettlementAccountCandidatesResponse)(nil),       // 61: finance.v1.ListBillSettlementAccountCandidatesResponse
+	(*ListBillSettlementAccountUpdateCandidatesRequest)(nil),  // 62: finance.v1.ListBillSettlementAccountUpdateCandidatesRequest
+	(*ListBillSettlementAccountUpdateCandidatesResponse)(nil), // 63: finance.v1.ListBillSettlementAccountUpdateCandidatesResponse
+	(*CreateBillBatchRequest)(nil),                            // 64: finance.v1.CreateBillBatchRequest
+	(*FinanceBillBatch)(nil),                                  // 65: finance.v1.FinanceBillBatch
+	(*FinanceBillBatchBaseTotal)(nil),                         // 66: finance.v1.FinanceBillBatchBaseTotal
+	(*CreateBillBatchResponse)(nil),                           // 67: finance.v1.CreateBillBatchResponse
+	(*BillBatchGroupResult)(nil),                              // 68: finance.v1.BillBatchGroupResult
+	(*BillBatchGroupError)(nil),                               // 69: finance.v1.BillBatchGroupError
+	(*ListBillsResponse)(nil),                                 // 70: finance.v1.ListBillsResponse
+	(*FinanceBaseCurrencyAmount)(nil),                         // 71: finance.v1.FinanceBaseCurrencyAmount
+	(*FinanceBillSummary)(nil),                                // 72: finance.v1.FinanceBillSummary
+	(*GetBillResponse)(nil),                                   // 73: finance.v1.GetBillResponse
+	(*CreateBillResponse)(nil),                                // 74: finance.v1.CreateBillResponse
+	(*UpdateBillResponse)(nil),                                // 75: finance.v1.UpdateBillResponse
+	(*CancelBillResponse)(nil),                                // 76: finance.v1.CancelBillResponse
+	(*ListInvoicesRequest)(nil),                               // 77: finance.v1.ListInvoicesRequest
+	(*GetInvoiceRequest)(nil),                                 // 78: finance.v1.GetInvoiceRequest
+	(*CreateInvoiceRequest)(nil),                              // 79: finance.v1.CreateInvoiceRequest
+	(*IssueInvoiceRequest)(nil),                               // 80: finance.v1.IssueInvoiceRequest
+	(*CancelInvoiceRequest)(nil),                              // 81: finance.v1.CancelInvoiceRequest
+	(*RedFlushInvoiceRequest)(nil),                            // 82: finance.v1.RedFlushInvoiceRequest
+	(*FinanceInvoiceBill)(nil),                                // 83: finance.v1.FinanceInvoiceBill
+	(*FinanceInvoiceLine)(nil),                                // 84: finance.v1.FinanceInvoiceLine
+	(*FinanceInvoice)(nil),                                    // 85: finance.v1.FinanceInvoice
+	(*ListInvoicesResponse)(nil),                              // 86: finance.v1.ListInvoicesResponse
+	(*FinanceInvoiceSummary)(nil),                             // 87: finance.v1.FinanceInvoiceSummary
+	(*ListInvoiceCreationBillsRequest)(nil),                   // 88: finance.v1.ListInvoiceCreationBillsRequest
+	(*ListInvoiceCreationBillsResponse)(nil),                  // 89: finance.v1.ListInvoiceCreationBillsResponse
+	(*FinanceInvoiceProfileOption)(nil),                       // 90: finance.v1.FinanceInvoiceProfileOption
+	(*FinanceInvoiceProfilesForBill)(nil),                     // 91: finance.v1.FinanceInvoiceProfilesForBill
+	(*ListInvoiceProfilesForBillRequest)(nil),                 // 92: finance.v1.ListInvoiceProfilesForBillRequest
+	(*ListInvoiceProfilesForBillResponse)(nil),                // 93: finance.v1.ListInvoiceProfilesForBillResponse
+	(*GetInvoiceResponse)(nil),                                // 94: finance.v1.GetInvoiceResponse
+	(*CreateInvoiceResponse)(nil),                             // 95: finance.v1.CreateInvoiceResponse
+	(*IssueInvoiceResponse)(nil),                              // 96: finance.v1.IssueInvoiceResponse
+	(*CancelInvoiceResponse)(nil),                             // 97: finance.v1.CancelInvoiceResponse
+	(*RedFlushInvoiceResponse)(nil),                           // 98: finance.v1.RedFlushInvoiceResponse
+	(*ListCashflowsRequest)(nil),                              // 99: finance.v1.ListCashflowsRequest
+	(*CreateCashflowRequest)(nil),                             // 100: finance.v1.CreateCashflowRequest
+	(*ConfirmCashflowRequest)(nil),                            // 101: finance.v1.ConfirmCashflowRequest
+	(*CancelCashflowRequest)(nil),                             // 102: finance.v1.CancelCashflowRequest
+	(*FinanceCashflow)(nil),                                   // 103: finance.v1.FinanceCashflow
+	(*ListCashflowsResponse)(nil),                             // 104: finance.v1.ListCashflowsResponse
+	(*FinanceCashflowSummary)(nil),                            // 105: finance.v1.FinanceCashflowSummary
+	(*CreateCashflowResponse)(nil),                            // 106: finance.v1.CreateCashflowResponse
+	(*ConfirmCashflowResponse)(nil),                           // 107: finance.v1.ConfirmCashflowResponse
+	(*CancelCashflowResponse)(nil),                            // 108: finance.v1.CancelCashflowResponse
+	(*VerificationAllocationInput)(nil),                       // 109: finance.v1.VerificationAllocationInput
+	(*ListVerificationsRequest)(nil),                          // 110: finance.v1.ListVerificationsRequest
+	(*ListCommissionVerificationCandidatesRequest)(nil),       // 111: finance.v1.ListCommissionVerificationCandidatesRequest
+	(*ListCommissionVerificationCandidatesResponse)(nil),      // 112: finance.v1.ListCommissionVerificationCandidatesResponse
+	(*ListCommissionNettingCandidatesRequest)(nil),            // 113: finance.v1.ListCommissionNettingCandidatesRequest
+	(*ListCommissionNettingCandidatesResponse)(nil),           // 114: finance.v1.ListCommissionNettingCandidatesResponse
+	(*VerificationCreationCandidates)(nil),                    // 115: finance.v1.VerificationCreationCandidates
+	(*ListVerificationCreationCandidatesRequest)(nil),         // 116: finance.v1.ListVerificationCreationCandidatesRequest
+	(*ListVerificationCreationCandidatesResponse)(nil),        // 117: finance.v1.ListVerificationCreationCandidatesResponse
+	(*VerificationShortfallCashflow)(nil),                     // 118: finance.v1.VerificationShortfallCashflow
+	(*CreateVerificationRequest)(nil),                         // 119: finance.v1.CreateVerificationRequest
+	(*ReverseVerificationRequest)(nil),                        // 120: finance.v1.ReverseVerificationRequest
+	(*FinanceVerificationAllocation)(nil),                     // 121: finance.v1.FinanceVerificationAllocation
+	(*FinanceVerification)(nil),                               // 122: finance.v1.FinanceVerification
+	(*ListVerificationsResponse)(nil),                         // 123: finance.v1.ListVerificationsResponse
+	(*FinanceVerificationSummary)(nil),                        // 124: finance.v1.FinanceVerificationSummary
+	(*CreateVerificationResponse)(nil),                        // 125: finance.v1.CreateVerificationResponse
+	(*ReverseVerificationResponse)(nil),                       // 126: finance.v1.ReverseVerificationResponse
+	(*FinanceNettingAllocation)(nil),                          // 127: finance.v1.FinanceNettingAllocation
+	(*FinanceNetting)(nil),                                    // 128: finance.v1.FinanceNetting
+	(*FinanceNettingBillBalance)(nil),                         // 129: finance.v1.FinanceNettingBillBalance
+	(*FinanceNettingPreview)(nil),                             // 130: finance.v1.FinanceNettingPreview
+	(*PreviewNettingRequest)(nil),                             // 131: finance.v1.PreviewNettingRequest
+	(*PreviewNettingResponse)(nil),                            // 132: finance.v1.PreviewNettingResponse
+	(*NettingBillExpectedVersion)(nil),                        // 133: finance.v1.NettingBillExpectedVersion
+	(*CreateNettingRequest)(nil),                              // 134: finance.v1.CreateNettingRequest
+	(*CreateNettingResponse)(nil),                             // 135: finance.v1.CreateNettingResponse
+	(*ConfirmNettingRequest)(nil),                             // 136: finance.v1.ConfirmNettingRequest
+	(*ConfirmNettingResponse)(nil),                            // 137: finance.v1.ConfirmNettingResponse
+	(*CancelNettingRequest)(nil),                              // 138: finance.v1.CancelNettingRequest
+	(*CancelNettingResponse)(nil),                             // 139: finance.v1.CancelNettingResponse
+	(*ReverseNettingRequest)(nil),                             // 140: finance.v1.ReverseNettingRequest
+	(*ReverseNettingResponse)(nil),                            // 141: finance.v1.ReverseNettingResponse
+	(*ListNettingsRequest)(nil),                               // 142: finance.v1.ListNettingsRequest
+	(*FinanceNettingBaseCurrencyAmount)(nil),                  // 143: finance.v1.FinanceNettingBaseCurrencyAmount
+	(*FinanceNettingSummary)(nil),                             // 144: finance.v1.FinanceNettingSummary
+	(*ListNettingsResponse)(nil),                              // 145: finance.v1.ListNettingsResponse
+	(*GetNettingRequest)(nil),                                 // 146: finance.v1.GetNettingRequest
+	(*GetNettingResponse)(nil),                                // 147: finance.v1.GetNettingResponse
+	(*ListCommissionsRequest)(nil),                            // 148: finance.v1.ListCommissionsRequest
+	(*GetCommissionRequest)(nil),                              // 149: finance.v1.GetCommissionRequest
+	(*ListCommissionEmployeesRequest)(nil),                    // 150: finance.v1.ListCommissionEmployeesRequest
+	(*ListCommissionCandidatesRequest)(nil),                   // 151: finance.v1.ListCommissionCandidatesRequest
+	(*CommissionEmployeeOption)(nil),                          // 152: finance.v1.CommissionEmployeeOption
+	(*ListCommissionEmployeesResponse)(nil),                   // 153: finance.v1.ListCommissionEmployeesResponse
+	(*ListCommissionRulesRequest)(nil),                        // 154: finance.v1.ListCommissionRulesRequest
+	(*CommissionRuleInput)(nil),                               // 155: finance.v1.CommissionRuleInput
+	(*CreateCommissionRuleRequest)(nil),                       // 156: finance.v1.CreateCommissionRuleRequest
+	(*UpdateCommissionRuleRequest)(nil),                       // 157: finance.v1.UpdateCommissionRuleRequest
+	(*CommissionRuleEmployeeChangeInput)(nil),                 // 158: finance.v1.CommissionRuleEmployeeChangeInput
+	(*AssignCommissionRuleEmployeesRequest)(nil),              // 159: finance.v1.AssignCommissionRuleEmployeesRequest
+	(*RemoveCommissionRuleEmployeesRequest)(nil),              // 160: finance.v1.RemoveCommissionRuleEmployeesRequest
+	(*CopyCommissionRuleRequest)(nil),                         // 161: finance.v1.CopyCommissionRuleRequest
+	(*CommissionRuleAssignmentProjection)(nil),                // 162: finance.v1.CommissionRuleAssignmentProjection
+	(*FinanceCommissionRule)(nil),                             // 163: finance.v1.FinanceCommissionRule
+	(*ListCommissionRulesResponse)(nil),                       // 164: finance.v1.ListCommissionRulesResponse
+	(*CreateCommissionRuleResponse)(nil),                      // 165: finance.v1.CreateCommissionRuleResponse
+	(*UpdateCommissionRuleResponse)(nil),                      // 166: finance.v1.UpdateCommissionRuleResponse
+	(*AssignCommissionRuleEmployeesResponse)(nil),             // 167: finance.v1.AssignCommissionRuleEmployeesResponse
+	(*RemoveCommissionRuleEmployeesResponse)(nil),             // 168: finance.v1.RemoveCommissionRuleEmployeesResponse
+	(*CopyCommissionRuleResponse)(nil),                        // 169: finance.v1.CopyCommissionRuleResponse
+	(*PreviewCommissionRequest)(nil),                          // 170: finance.v1.PreviewCommissionRequest
+	(*CreateCommissionRequest)(nil),                           // 171: finance.v1.CreateCommissionRequest
+	(*ConfirmCommissionRequest)(nil),                          // 172: finance.v1.ConfirmCommissionRequest
+	(*MarkCommissionPaidRequest)(nil),                         // 173: finance.v1.MarkCommissionPaidRequest
+	(*PreviewCommissionPaymentRequest)(nil),                   // 174: finance.v1.PreviewCommissionPaymentRequest
+	(*CommissionPaymentAdjustment)(nil),                       // 175: finance.v1.CommissionPaymentAdjustment
+	(*CommissionPaymentPreview)(nil),                          // 176: finance.v1.CommissionPaymentPreview
+	(*PreviewCommissionPaymentResponse)(nil),                  // 177: finance.v1.PreviewCommissionPaymentResponse
+	(*CancelCommissionRequest)(nil),                           // 178: finance.v1.CancelCommissionRequest
+	(*CreateCommissionAdjustmentRequest)(nil),                 // 179: finance.v1.CreateCommissionAdjustmentRequest
+	(*ConfirmCommissionAdjustmentRequest)(nil),                // 180: finance.v1.ConfirmCommissionAdjustmentRequest
+	(*MarkCommissionAdjustmentPaidRequest)(nil),               // 181: finance.v1.MarkCommissionAdjustmentPaidRequest
+	(*CancelCommissionAdjustmentRequest)(nil),                 // 182: finance.v1.CancelCommissionAdjustmentRequest
+	(*ListCommissionAdjustmentsRequest)(nil),                  // 183: finance.v1.ListCommissionAdjustmentsRequest
+	(*MyFeeSupplementAdjustmentSource)(nil),                   // 184: finance.v1.MyFeeSupplementAdjustmentSource
+	(*CommissionFeeDetail)(nil),                               // 185: finance.v1.CommissionFeeDetail
+	(*FinanceCommissionLine)(nil),                             // 186: finance.v1.FinanceCommissionLine
+	(*CommissionCalculation)(nil),                             // 187: finance.v1.CommissionCalculation
+	(*CommissionCandidateSummary)(nil),                        // 188: finance.v1.CommissionCandidateSummary
+	(*ListCommissionCandidatesResponse)(nil),                  // 189: finance.v1.ListCommissionCandidatesResponse
+	(*FinanceCommissionAdjustment)(nil),                       // 190: finance.v1.FinanceCommissionAdjustment
+	(*ListCommissionApplicationsRequest)(nil),                 // 191: finance.v1.ListCommissionApplicationsRequest
+	(*FinanceCommissionApplication)(nil),                      // 192: finance.v1.FinanceCommissionApplication
+	(*ListCommissionApplicationsResponse)(nil),                // 193: finance.v1.ListCommissionApplicationsResponse
+	(*GetCommissionApplicationRequest)(nil),                   // 194: finance.v1.GetCommissionApplicationRequest
+	(*FinanceCommissionApplicationDetail)(nil),                // 195: finance.v1.FinanceCommissionApplicationDetail
+	(*FinanceCommissionApplicationLine)(nil),                  // 196: finance.v1.FinanceCommissionApplicationLine
+	(*GetCommissionApplicationResponse)(nil),                  // 197: finance.v1.GetCommissionApplicationResponse
+	(*ApproveCommissionApplicationRequest)(nil),               // 198: finance.v1.ApproveCommissionApplicationRequest
+	(*ApproveCommissionApplicationResponse)(nil),              // 199: finance.v1.ApproveCommissionApplicationResponse
+	(*RejectCommissionApplicationRequest)(nil),                // 200: finance.v1.RejectCommissionApplicationRequest
+	(*RejectCommissionApplicationResponse)(nil),               // 201: finance.v1.RejectCommissionApplicationResponse
+	(*FinanceSettlementPartyOption)(nil),                      // 202: finance.v1.FinanceSettlementPartyOption
+	(*ListFinanceSettlementPartyOptionsRequest)(nil),          // 203: finance.v1.ListFinanceSettlementPartyOptionsRequest
+	(*ListFinanceSettlementPartyOptionsResponse)(nil),         // 204: finance.v1.ListFinanceSettlementPartyOptionsResponse
+	(*FinanceCommission)(nil),                                 // 205: finance.v1.FinanceCommission
+	(*ExportCommissionsRequest)(nil),                          // 206: finance.v1.ExportCommissionsRequest
+	(*CommissionExportItem)(nil),                              // 207: finance.v1.CommissionExportItem
+	(*ExportCommissionsResponse)(nil),                         // 208: finance.v1.ExportCommissionsResponse
+	(*ListCommissionsResponse)(nil),                           // 209: finance.v1.ListCommissionsResponse
+	(*PreviewCommissionResponse)(nil),                         // 210: finance.v1.PreviewCommissionResponse
+	(*CreateCommissionResponse)(nil),                          // 211: finance.v1.CreateCommissionResponse
+	(*GetCommissionResponse)(nil),                             // 212: finance.v1.GetCommissionResponse
+	(*ConfirmCommissionResponse)(nil),                         // 213: finance.v1.ConfirmCommissionResponse
+	(*MarkCommissionPaidResponse)(nil),                        // 214: finance.v1.MarkCommissionPaidResponse
+	(*CancelCommissionResponse)(nil),                          // 215: finance.v1.CancelCommissionResponse
+	(*CreateCommissionAdjustmentResponse)(nil),                // 216: finance.v1.CreateCommissionAdjustmentResponse
+	(*ConfirmCommissionAdjustmentResponse)(nil),               // 217: finance.v1.ConfirmCommissionAdjustmentResponse
+	(*MarkCommissionAdjustmentPaidResponse)(nil),              // 218: finance.v1.MarkCommissionAdjustmentPaidResponse
+	(*CancelCommissionAdjustmentResponse)(nil),                // 219: finance.v1.CancelCommissionAdjustmentResponse
+	(*ListCommissionAdjustmentsResponse)(nil),                 // 220: finance.v1.ListCommissionAdjustmentsResponse
+	(*GetMyFeeSupplementAdjustmentSourceRequest)(nil),         // 221: finance.v1.GetMyFeeSupplementAdjustmentSourceRequest
+	(*GetMyFeeSupplementAdjustmentSourceResponse)(nil),        // 222: finance.v1.GetMyFeeSupplementAdjustmentSourceResponse
+	nil,                            // 223: finance.v1.BillBatchGroupError.MetadataEntry
+	(*wrapperspb.UInt64Value)(nil), // 224: google.protobuf.UInt64Value
 }
 var file_finance_v1_settlement_proto_depIdxs = []int32{
 	9,   // 0: finance.v1.ListFeeLedgerRequest.financial_progress:type_name -> finance.v1.FeeLedgerFinancialProgress
@@ -22005,10 +22846,10 @@ var file_finance_v1_settlement_proto_depIdxs = []int32{
 	10,  // 10: finance.v1.BilledFeeEditPolicy.editable_fields:type_name -> finance.v1.BilledFeeEditableField
 	24,  // 11: finance.v1.GetBilledFeeEditPolicyResponse.data:type_name -> finance.v1.BilledFeeEditPolicy
 	10,  // 12: finance.v1.UpdateBilledFeeEditPolicyRequest.editable_fields:type_name -> finance.v1.BilledFeeEditableField
-	214, // 13: finance.v1.UpdateBilledFeeEditPolicyRequest.expected_version:type_name -> google.protobuf.UInt64Value
+	224, // 13: finance.v1.UpdateBilledFeeEditPolicyRequest.expected_version:type_name -> google.protobuf.UInt64Value
 	24,  // 14: finance.v1.UpdateBilledFeeEditPolicyResponse.data:type_name -> finance.v1.BilledFeeEditPolicy
 	29,  // 15: finance.v1.GetCreditLimitControlPolicyResponse.data:type_name -> finance.v1.CreditLimitControlPolicy
-	214, // 16: finance.v1.UpdateCreditLimitControlPolicyRequest.expected_version:type_name -> google.protobuf.UInt64Value
+	224, // 16: finance.v1.UpdateCreditLimitControlPolicyRequest.expected_version:type_name -> google.protobuf.UInt64Value
 	29,  // 17: finance.v1.UpdateCreditLimitControlPolicyResponse.data:type_name -> finance.v1.CreditLimitControlPolicy
 	0,   // 18: finance.v1.ListBillsRequest.status:type_name -> finance.v1.FinanceBillStatus
 	1,   // 19: finance.v1.ListBillsRequest.settlement_progress:type_name -> finance.v1.FinanceBillSettlementProgress
@@ -22021,281 +22862,294 @@ var file_finance_v1_settlement_proto_depIdxs = []int32{
 	1,   // 26: finance.v1.FinanceBill.settlement_progress:type_name -> finance.v1.FinanceBillSettlementProgress
 	2,   // 27: finance.v1.FinanceBill.invoice_progress:type_name -> finance.v1.FinanceBillInvoiceProgress
 	3,   // 28: finance.v1.FinanceBill.fee_lock_facts:type_name -> finance.v1.FinanceBillFeeLockFact
-	11,  // 29: finance.v1.BillGroupingPolicy.mode:type_name -> finance.v1.BillGroupingMode
-	47,  // 30: finance.v1.PreviewBillBatchRequest.grouping_policy:type_name -> finance.v1.BillGroupingPolicy
-	49,  // 31: finance.v1.PreviewBillBatchRequest.group_configs:type_name -> finance.v1.BillBatchPreviewGroupConfigInput
-	15,  // 32: finance.v1.BillBatchPreviewGroup.fees:type_name -> finance.v1.FeeLedgerItem
-	50,  // 33: finance.v1.PreviewBillBatchResponse.data:type_name -> finance.v1.BillBatchPreviewGroup
-	52,  // 34: finance.v1.PreviewBillBatchResponse.netting_pairs:type_name -> finance.v1.BillBatchNettingPair
-	54,  // 35: finance.v1.ListBillSettlementAccountCandidatesResponse.data:type_name -> finance.v1.FinanceSettlementAccountOption
-	54,  // 36: finance.v1.ListBillSettlementAccountUpdateCandidatesResponse.data:type_name -> finance.v1.FinanceSettlementAccountOption
-	47,  // 37: finance.v1.CreateBillBatchRequest.grouping_policy:type_name -> finance.v1.BillGroupingPolicy
-	53,  // 38: finance.v1.CreateBillBatchRequest.groups:type_name -> finance.v1.CreateBillBatchGroupInput
-	46,  // 39: finance.v1.FinanceBillBatch.bills:type_name -> finance.v1.FinanceBill
-	11,  // 40: finance.v1.FinanceBillBatch.mode:type_name -> finance.v1.BillGroupingMode
-	119, // 41: finance.v1.FinanceBillBatch.nettings:type_name -> finance.v1.FinanceNetting
-	60,  // 42: finance.v1.CreateBillBatchResponse.data:type_name -> finance.v1.FinanceBillBatch
-	46,  // 43: finance.v1.ListBillsResponse.data:type_name -> finance.v1.FinanceBill
-	64,  // 44: finance.v1.ListBillsResponse.summary:type_name -> finance.v1.FinanceBillSummary
-	17,  // 45: finance.v1.ListBillsResponse.matched_summary:type_name -> finance.v1.FinanceLedgerMatchedSummary
-	63,  // 46: finance.v1.FinanceBillSummary.amounts_by_base_currency:type_name -> finance.v1.FinanceBaseCurrencyAmount
-	46,  // 47: finance.v1.GetBillResponse.data:type_name -> finance.v1.FinanceBill
-	46,  // 48: finance.v1.CreateBillResponse.data:type_name -> finance.v1.FinanceBill
-	46,  // 49: finance.v1.UpdateBillResponse.data:type_name -> finance.v1.FinanceBill
-	46,  // 50: finance.v1.CancelBillResponse.data:type_name -> finance.v1.FinanceBill
-	4,   // 51: finance.v1.ListInvoicesRequest.status:type_name -> finance.v1.FinanceInvoiceStatus
-	4,   // 52: finance.v1.FinanceInvoice.status:type_name -> finance.v1.FinanceInvoiceStatus
-	75,  // 53: finance.v1.FinanceInvoice.bill_links:type_name -> finance.v1.FinanceInvoiceBill
-	76,  // 54: finance.v1.FinanceInvoice.lines:type_name -> finance.v1.FinanceInvoiceLine
-	77,  // 55: finance.v1.ListInvoicesResponse.data:type_name -> finance.v1.FinanceInvoice
-	79,  // 56: finance.v1.ListInvoicesResponse.summary:type_name -> finance.v1.FinanceInvoiceSummary
-	17,  // 57: finance.v1.ListInvoicesResponse.matched_summary:type_name -> finance.v1.FinanceLedgerMatchedSummary
-	63,  // 58: finance.v1.FinanceInvoiceSummary.amounts_by_base_currency:type_name -> finance.v1.FinanceBaseCurrencyAmount
-	46,  // 59: finance.v1.ListInvoiceCreationBillsResponse.data:type_name -> finance.v1.FinanceBill
-	82,  // 60: finance.v1.FinanceInvoiceProfilesForBill.data:type_name -> finance.v1.FinanceInvoiceProfileOption
-	83,  // 61: finance.v1.ListInvoiceProfilesForBillResponse.data:type_name -> finance.v1.FinanceInvoiceProfilesForBill
-	77,  // 62: finance.v1.GetInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
-	77,  // 63: finance.v1.CreateInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
-	77,  // 64: finance.v1.IssueInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
-	77,  // 65: finance.v1.CancelInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
-	77,  // 66: finance.v1.RedFlushInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
-	5,   // 67: finance.v1.ListCashflowsRequest.status:type_name -> finance.v1.FinanceCashflowStatus
-	5,   // 68: finance.v1.FinanceCashflow.status:type_name -> finance.v1.FinanceCashflowStatus
-	95,  // 69: finance.v1.ListCashflowsResponse.data:type_name -> finance.v1.FinanceCashflow
-	97,  // 70: finance.v1.ListCashflowsResponse.summary:type_name -> finance.v1.FinanceCashflowSummary
-	17,  // 71: finance.v1.ListCashflowsResponse.matched_summary:type_name -> finance.v1.FinanceLedgerMatchedSummary
-	63,  // 72: finance.v1.FinanceCashflowSummary.amounts_by_base_currency:type_name -> finance.v1.FinanceBaseCurrencyAmount
-	95,  // 73: finance.v1.CreateCashflowResponse.data:type_name -> finance.v1.FinanceCashflow
-	95,  // 74: finance.v1.ConfirmCashflowResponse.data:type_name -> finance.v1.FinanceCashflow
-	95,  // 75: finance.v1.CancelCashflowResponse.data:type_name -> finance.v1.FinanceCashflow
-	6,   // 76: finance.v1.ListVerificationsRequest.status:type_name -> finance.v1.FinanceVerificationStatus
-	113, // 77: finance.v1.ListCommissionVerificationCandidatesResponse.data:type_name -> finance.v1.FinanceVerification
-	119, // 78: finance.v1.ListCommissionNettingCandidatesResponse.data:type_name -> finance.v1.FinanceNetting
-	95,  // 79: finance.v1.VerificationCreationCandidates.cashflows:type_name -> finance.v1.FinanceCashflow
-	46,  // 80: finance.v1.VerificationCreationCandidates.bills:type_name -> finance.v1.FinanceBill
-	107, // 81: finance.v1.ListVerificationCreationCandidatesResponse.data:type_name -> finance.v1.VerificationCreationCandidates
-	101, // 82: finance.v1.CreateVerificationRequest.allocations:type_name -> finance.v1.VerificationAllocationInput
-	6,   // 83: finance.v1.FinanceVerification.status:type_name -> finance.v1.FinanceVerificationStatus
-	112, // 84: finance.v1.FinanceVerification.allocations:type_name -> finance.v1.FinanceVerificationAllocation
-	113, // 85: finance.v1.ListVerificationsResponse.data:type_name -> finance.v1.FinanceVerification
-	115, // 86: finance.v1.ListVerificationsResponse.summary:type_name -> finance.v1.FinanceVerificationSummary
-	17,  // 87: finance.v1.ListVerificationsResponse.matched_summary:type_name -> finance.v1.FinanceLedgerMatchedSummary
-	63,  // 88: finance.v1.FinanceVerificationSummary.amounts_by_base_currency:type_name -> finance.v1.FinanceBaseCurrencyAmount
-	113, // 89: finance.v1.CreateVerificationResponse.data:type_name -> finance.v1.FinanceVerification
-	113, // 90: finance.v1.ReverseVerificationResponse.data:type_name -> finance.v1.FinanceVerification
-	7,   // 91: finance.v1.FinanceNetting.status:type_name -> finance.v1.FinanceNettingStatus
-	118, // 92: finance.v1.FinanceNetting.allocations:type_name -> finance.v1.FinanceNettingAllocation
-	120, // 93: finance.v1.FinanceNettingPreview.receivable_bills:type_name -> finance.v1.FinanceNettingBillBalance
-	120, // 94: finance.v1.FinanceNettingPreview.payable_bills:type_name -> finance.v1.FinanceNettingBillBalance
-	121, // 95: finance.v1.PreviewNettingResponse.data:type_name -> finance.v1.FinanceNettingPreview
-	124, // 96: finance.v1.CreateNettingRequest.bills:type_name -> finance.v1.NettingBillExpectedVersion
-	119, // 97: finance.v1.CreateNettingResponse.data:type_name -> finance.v1.FinanceNetting
-	119, // 98: finance.v1.ConfirmNettingResponse.data:type_name -> finance.v1.FinanceNetting
-	119, // 99: finance.v1.CancelNettingResponse.data:type_name -> finance.v1.FinanceNetting
-	119, // 100: finance.v1.ReverseNettingResponse.data:type_name -> finance.v1.FinanceNetting
-	7,   // 101: finance.v1.ListNettingsRequest.status:type_name -> finance.v1.FinanceNettingStatus
-	134, // 102: finance.v1.FinanceNettingSummary.amounts_by_base_currency:type_name -> finance.v1.FinanceNettingBaseCurrencyAmount
-	119, // 103: finance.v1.ListNettingsResponse.data:type_name -> finance.v1.FinanceNetting
-	135, // 104: finance.v1.ListNettingsResponse.summary:type_name -> finance.v1.FinanceNettingSummary
-	17,  // 105: finance.v1.ListNettingsResponse.matched_summary:type_name -> finance.v1.FinanceLedgerMatchedSummary
-	119, // 106: finance.v1.GetNettingResponse.data:type_name -> finance.v1.FinanceNetting
-	8,   // 107: finance.v1.ListCommissionsRequest.status:type_name -> finance.v1.FinanceCommissionStatus
-	143, // 108: finance.v1.ListCommissionEmployeesResponse.data:type_name -> finance.v1.CommissionEmployeeOption
-	146, // 109: finance.v1.CreateCommissionRuleRequest.rule:type_name -> finance.v1.CommissionRuleInput
-	146, // 110: finance.v1.UpdateCommissionRuleRequest.rule:type_name -> finance.v1.CommissionRuleInput
-	149, // 111: finance.v1.AssignCommissionRuleEmployeesRequest.change:type_name -> finance.v1.CommissionRuleEmployeeChangeInput
-	149, // 112: finance.v1.RemoveCommissionRuleEmployeesRequest.change:type_name -> finance.v1.CommissionRuleEmployeeChangeInput
-	153, // 113: finance.v1.FinanceCommissionRule.assignments:type_name -> finance.v1.CommissionRuleAssignmentProjection
-	154, // 114: finance.v1.ListCommissionRulesResponse.data:type_name -> finance.v1.FinanceCommissionRule
-	154, // 115: finance.v1.CreateCommissionRuleResponse.data:type_name -> finance.v1.FinanceCommissionRule
-	154, // 116: finance.v1.UpdateCommissionRuleResponse.data:type_name -> finance.v1.FinanceCommissionRule
-	154, // 117: finance.v1.AssignCommissionRuleEmployeesResponse.data:type_name -> finance.v1.FinanceCommissionRule
-	154, // 118: finance.v1.RemoveCommissionRuleEmployeesResponse.data:type_name -> finance.v1.FinanceCommissionRule
-	154, // 119: finance.v1.CopyCommissionRuleResponse.data:type_name -> finance.v1.FinanceCommissionRule
-	166, // 120: finance.v1.CommissionPaymentPreview.adjustments:type_name -> finance.v1.CommissionPaymentAdjustment
-	167, // 121: finance.v1.PreviewCommissionPaymentResponse.data:type_name -> finance.v1.CommissionPaymentPreview
-	8,   // 122: finance.v1.ListCommissionAdjustmentsRequest.status:type_name -> finance.v1.FinanceCommissionStatus
-	8,   // 123: finance.v1.MyFeeSupplementAdjustmentSource.status:type_name -> finance.v1.FinanceCommissionStatus
-	176, // 124: finance.v1.FinanceCommissionLine.fees:type_name -> finance.v1.CommissionFeeDetail
-	177, // 125: finance.v1.CommissionCalculation.lines:type_name -> finance.v1.FinanceCommissionLine
-	179, // 126: finance.v1.ListCommissionCandidatesResponse.data:type_name -> finance.v1.CommissionCandidateSummary
-	8,   // 127: finance.v1.FinanceCommissionAdjustment.status:type_name -> finance.v1.FinanceCommissionStatus
-	12,  // 128: finance.v1.ListCommissionApplicationsRequest.status:type_name -> finance.v1.FinanceCommissionApplicationStatus
-	12,  // 129: finance.v1.FinanceCommissionApplication.status:type_name -> finance.v1.FinanceCommissionApplicationStatus
-	183, // 130: finance.v1.ListCommissionApplicationsResponse.data:type_name -> finance.v1.FinanceCommissionApplication
-	183, // 131: finance.v1.FinanceCommissionApplicationDetail.application:type_name -> finance.v1.FinanceCommissionApplication
-	187, // 132: finance.v1.FinanceCommissionApplicationDetail.lines:type_name -> finance.v1.FinanceCommissionApplicationLine
-	186, // 133: finance.v1.GetCommissionApplicationResponse.data:type_name -> finance.v1.FinanceCommissionApplicationDetail
-	183, // 134: finance.v1.ApproveCommissionApplicationResponse.data:type_name -> finance.v1.FinanceCommissionApplication
-	183, // 135: finance.v1.RejectCommissionApplicationResponse.data:type_name -> finance.v1.FinanceCommissionApplication
-	13,  // 136: finance.v1.ListFinanceSettlementPartyOptionsRequest.purpose:type_name -> finance.v1.FinanceOrganizationPurpose
-	193, // 137: finance.v1.ListFinanceSettlementPartyOptionsResponse.data:type_name -> finance.v1.FinanceSettlementPartyOption
-	8,   // 138: finance.v1.FinanceCommission.status:type_name -> finance.v1.FinanceCommissionStatus
-	177, // 139: finance.v1.FinanceCommission.lines:type_name -> finance.v1.FinanceCommissionLine
-	181, // 140: finance.v1.FinanceCommission.adjustments:type_name -> finance.v1.FinanceCommissionAdjustment
-	8,   // 141: finance.v1.ExportCommissionsRequest.status:type_name -> finance.v1.FinanceCommissionStatus
-	8,   // 142: finance.v1.CommissionExportItem.status:type_name -> finance.v1.FinanceCommissionStatus
-	198, // 143: finance.v1.ExportCommissionsResponse.data:type_name -> finance.v1.CommissionExportItem
-	196, // 144: finance.v1.ListCommissionsResponse.data:type_name -> finance.v1.FinanceCommission
-	178, // 145: finance.v1.PreviewCommissionResponse.data:type_name -> finance.v1.CommissionCalculation
-	196, // 146: finance.v1.CreateCommissionResponse.data:type_name -> finance.v1.FinanceCommission
-	196, // 147: finance.v1.GetCommissionResponse.data:type_name -> finance.v1.FinanceCommission
-	196, // 148: finance.v1.ConfirmCommissionResponse.data:type_name -> finance.v1.FinanceCommission
-	196, // 149: finance.v1.MarkCommissionPaidResponse.data:type_name -> finance.v1.FinanceCommission
-	196, // 150: finance.v1.CancelCommissionResponse.data:type_name -> finance.v1.FinanceCommission
-	181, // 151: finance.v1.CreateCommissionAdjustmentResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
-	181, // 152: finance.v1.ConfirmCommissionAdjustmentResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
-	181, // 153: finance.v1.MarkCommissionAdjustmentPaidResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
-	181, // 154: finance.v1.CancelCommissionAdjustmentResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
-	181, // 155: finance.v1.ListCommissionAdjustmentsResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
-	175, // 156: finance.v1.GetMyFeeSupplementAdjustmentSourceResponse.data:type_name -> finance.v1.MyFeeSupplementAdjustmentSource
-	14,  // 157: finance.v1.SettlementService.ListFeeLedger:input_type -> finance.v1.ListFeeLedgerRequest
-	21,  // 158: finance.v1.SettlementService.GetFeeLedgerOrderDetail:input_type -> finance.v1.GetFeeLedgerOrderDetailRequest
-	25,  // 159: finance.v1.SettlementService.GetBilledFeeEditPolicy:input_type -> finance.v1.GetBilledFeeEditPolicyRequest
-	27,  // 160: finance.v1.SettlementService.UpdateBilledFeeEditPolicy:input_type -> finance.v1.UpdateBilledFeeEditPolicyRequest
-	30,  // 161: finance.v1.SettlementService.GetCreditLimitControlPolicy:input_type -> finance.v1.GetCreditLimitControlPolicyRequest
-	32,  // 162: finance.v1.SettlementService.UpdateCreditLimitControlPolicy:input_type -> finance.v1.UpdateCreditLimitControlPolicyRequest
-	34,  // 163: finance.v1.SettlementService.ListBills:input_type -> finance.v1.ListBillsRequest
-	35,  // 164: finance.v1.SettlementService.ListBillCreationCandidates:input_type -> finance.v1.ListBillCreationCandidatesRequest
-	55,  // 165: finance.v1.SettlementService.ListBillSettlementAccountCandidates:input_type -> finance.v1.ListBillSettlementAccountCandidatesRequest
-	57,  // 166: finance.v1.SettlementService.ListBillSettlementAccountUpdateCandidates:input_type -> finance.v1.ListBillSettlementAccountUpdateCandidatesRequest
-	37,  // 167: finance.v1.SettlementService.GetBill:input_type -> finance.v1.GetBillRequest
-	38,  // 168: finance.v1.SettlementService.CreateBill:input_type -> finance.v1.CreateBillRequest
-	48,  // 169: finance.v1.SettlementService.PreviewBillBatch:input_type -> finance.v1.PreviewBillBatchRequest
-	59,  // 170: finance.v1.SettlementService.CreateBillBatch:input_type -> finance.v1.CreateBillBatchRequest
-	39,  // 171: finance.v1.SettlementService.UpdateBill:input_type -> finance.v1.UpdateBillRequest
-	40,  // 172: finance.v1.SettlementService.ListBillFeeCandidates:input_type -> finance.v1.ListBillFeeCandidatesRequest
-	42,  // 173: finance.v1.SettlementService.UpdateBillFees:input_type -> finance.v1.UpdateBillFeesRequest
-	44,  // 174: finance.v1.SettlementService.CancelBill:input_type -> finance.v1.CancelBillRequest
-	69,  // 175: finance.v1.SettlementService.ListInvoices:input_type -> finance.v1.ListInvoicesRequest
-	80,  // 176: finance.v1.SettlementService.ListInvoiceCreationBills:input_type -> finance.v1.ListInvoiceCreationBillsRequest
-	84,  // 177: finance.v1.SettlementService.ListInvoiceProfilesForBill:input_type -> finance.v1.ListInvoiceProfilesForBillRequest
-	70,  // 178: finance.v1.SettlementService.GetInvoice:input_type -> finance.v1.GetInvoiceRequest
-	71,  // 179: finance.v1.SettlementService.CreateInvoice:input_type -> finance.v1.CreateInvoiceRequest
-	72,  // 180: finance.v1.SettlementService.IssueInvoice:input_type -> finance.v1.IssueInvoiceRequest
-	73,  // 181: finance.v1.SettlementService.CancelInvoice:input_type -> finance.v1.CancelInvoiceRequest
-	74,  // 182: finance.v1.SettlementService.RedFlushInvoice:input_type -> finance.v1.RedFlushInvoiceRequest
-	91,  // 183: finance.v1.SettlementService.ListCashflows:input_type -> finance.v1.ListCashflowsRequest
-	194, // 184: finance.v1.SettlementService.ListFinanceSettlementPartyOptions:input_type -> finance.v1.ListFinanceSettlementPartyOptionsRequest
-	92,  // 185: finance.v1.SettlementService.CreateCashflow:input_type -> finance.v1.CreateCashflowRequest
-	93,  // 186: finance.v1.SettlementService.ConfirmCashflow:input_type -> finance.v1.ConfirmCashflowRequest
-	94,  // 187: finance.v1.SettlementService.CancelCashflow:input_type -> finance.v1.CancelCashflowRequest
-	108, // 188: finance.v1.SettlementService.ListVerificationCreationCandidates:input_type -> finance.v1.ListVerificationCreationCandidatesRequest
-	102, // 189: finance.v1.SettlementService.ListVerifications:input_type -> finance.v1.ListVerificationsRequest
-	103, // 190: finance.v1.SettlementService.ListCommissionVerificationCandidates:input_type -> finance.v1.ListCommissionVerificationCandidatesRequest
-	105, // 191: finance.v1.SettlementService.ListCommissionNettingCandidates:input_type -> finance.v1.ListCommissionNettingCandidatesRequest
-	110, // 192: finance.v1.SettlementService.CreateVerification:input_type -> finance.v1.CreateVerificationRequest
-	111, // 193: finance.v1.SettlementService.ReverseVerification:input_type -> finance.v1.ReverseVerificationRequest
-	133, // 194: finance.v1.SettlementService.ListNettings:input_type -> finance.v1.ListNettingsRequest
-	122, // 195: finance.v1.SettlementService.PreviewNetting:input_type -> finance.v1.PreviewNettingRequest
-	125, // 196: finance.v1.SettlementService.CreateNetting:input_type -> finance.v1.CreateNettingRequest
-	137, // 197: finance.v1.SettlementService.GetNetting:input_type -> finance.v1.GetNettingRequest
-	127, // 198: finance.v1.SettlementService.ConfirmNetting:input_type -> finance.v1.ConfirmNettingRequest
-	129, // 199: finance.v1.SettlementService.CancelNetting:input_type -> finance.v1.CancelNettingRequest
-	131, // 200: finance.v1.SettlementService.ReverseNetting:input_type -> finance.v1.ReverseNettingRequest
-	139, // 201: finance.v1.SettlementService.ListCommissions:input_type -> finance.v1.ListCommissionsRequest
-	197, // 202: finance.v1.SettlementService.ExportCommissions:input_type -> finance.v1.ExportCommissionsRequest
-	141, // 203: finance.v1.SettlementService.ListCommissionEmployees:input_type -> finance.v1.ListCommissionEmployeesRequest
-	142, // 204: finance.v1.SettlementService.ListCommissionCandidates:input_type -> finance.v1.ListCommissionCandidatesRequest
-	140, // 205: finance.v1.SettlementService.GetCommission:input_type -> finance.v1.GetCommissionRequest
-	145, // 206: finance.v1.SettlementService.ListCommissionRules:input_type -> finance.v1.ListCommissionRulesRequest
-	147, // 207: finance.v1.SettlementService.CreateCommissionRule:input_type -> finance.v1.CreateCommissionRuleRequest
-	148, // 208: finance.v1.SettlementService.UpdateCommissionRule:input_type -> finance.v1.UpdateCommissionRuleRequest
-	150, // 209: finance.v1.SettlementService.AssignCommissionRuleEmployees:input_type -> finance.v1.AssignCommissionRuleEmployeesRequest
-	151, // 210: finance.v1.SettlementService.RemoveCommissionRuleEmployees:input_type -> finance.v1.RemoveCommissionRuleEmployeesRequest
-	152, // 211: finance.v1.SettlementService.CopyCommissionRule:input_type -> finance.v1.CopyCommissionRuleRequest
-	161, // 212: finance.v1.SettlementService.PreviewCommission:input_type -> finance.v1.PreviewCommissionRequest
-	162, // 213: finance.v1.SettlementService.CreateCommission:input_type -> finance.v1.CreateCommissionRequest
-	163, // 214: finance.v1.SettlementService.ConfirmCommission:input_type -> finance.v1.ConfirmCommissionRequest
-	165, // 215: finance.v1.SettlementService.PreviewCommissionPayment:input_type -> finance.v1.PreviewCommissionPaymentRequest
-	164, // 216: finance.v1.SettlementService.MarkCommissionPaid:input_type -> finance.v1.MarkCommissionPaidRequest
-	169, // 217: finance.v1.SettlementService.CancelCommission:input_type -> finance.v1.CancelCommissionRequest
-	170, // 218: finance.v1.SettlementService.CreateCommissionAdjustment:input_type -> finance.v1.CreateCommissionAdjustmentRequest
-	171, // 219: finance.v1.SettlementService.ConfirmCommissionAdjustment:input_type -> finance.v1.ConfirmCommissionAdjustmentRequest
-	172, // 220: finance.v1.SettlementService.MarkCommissionAdjustmentPaid:input_type -> finance.v1.MarkCommissionAdjustmentPaidRequest
-	173, // 221: finance.v1.SettlementService.CancelCommissionAdjustment:input_type -> finance.v1.CancelCommissionAdjustmentRequest
-	174, // 222: finance.v1.SettlementService.ListCommissionAdjustments:input_type -> finance.v1.ListCommissionAdjustmentsRequest
-	182, // 223: finance.v1.SettlementService.ListCommissionApplications:input_type -> finance.v1.ListCommissionApplicationsRequest
-	185, // 224: finance.v1.SettlementService.GetCommissionApplication:input_type -> finance.v1.GetCommissionApplicationRequest
-	189, // 225: finance.v1.SettlementService.ApproveCommissionApplication:input_type -> finance.v1.ApproveCommissionApplicationRequest
-	191, // 226: finance.v1.SettlementService.RejectCommissionApplication:input_type -> finance.v1.RejectCommissionApplicationRequest
-	212, // 227: finance.v1.SettlementService.GetMyFeeSupplementAdjustmentSource:input_type -> finance.v1.GetMyFeeSupplementAdjustmentSourceRequest
-	20,  // 228: finance.v1.SettlementService.ListFeeLedger:output_type -> finance.v1.ListFeeLedgerResponse
-	23,  // 229: finance.v1.SettlementService.GetFeeLedgerOrderDetail:output_type -> finance.v1.GetFeeLedgerOrderDetailResponse
-	26,  // 230: finance.v1.SettlementService.GetBilledFeeEditPolicy:output_type -> finance.v1.GetBilledFeeEditPolicyResponse
-	28,  // 231: finance.v1.SettlementService.UpdateBilledFeeEditPolicy:output_type -> finance.v1.UpdateBilledFeeEditPolicyResponse
-	31,  // 232: finance.v1.SettlementService.GetCreditLimitControlPolicy:output_type -> finance.v1.GetCreditLimitControlPolicyResponse
-	33,  // 233: finance.v1.SettlementService.UpdateCreditLimitControlPolicy:output_type -> finance.v1.UpdateCreditLimitControlPolicyResponse
-	62,  // 234: finance.v1.SettlementService.ListBills:output_type -> finance.v1.ListBillsResponse
-	36,  // 235: finance.v1.SettlementService.ListBillCreationCandidates:output_type -> finance.v1.ListBillCreationCandidatesResponse
-	56,  // 236: finance.v1.SettlementService.ListBillSettlementAccountCandidates:output_type -> finance.v1.ListBillSettlementAccountCandidatesResponse
-	58,  // 237: finance.v1.SettlementService.ListBillSettlementAccountUpdateCandidates:output_type -> finance.v1.ListBillSettlementAccountUpdateCandidatesResponse
-	65,  // 238: finance.v1.SettlementService.GetBill:output_type -> finance.v1.GetBillResponse
-	66,  // 239: finance.v1.SettlementService.CreateBill:output_type -> finance.v1.CreateBillResponse
-	51,  // 240: finance.v1.SettlementService.PreviewBillBatch:output_type -> finance.v1.PreviewBillBatchResponse
-	61,  // 241: finance.v1.SettlementService.CreateBillBatch:output_type -> finance.v1.CreateBillBatchResponse
-	67,  // 242: finance.v1.SettlementService.UpdateBill:output_type -> finance.v1.UpdateBillResponse
-	41,  // 243: finance.v1.SettlementService.ListBillFeeCandidates:output_type -> finance.v1.ListBillFeeCandidatesResponse
-	43,  // 244: finance.v1.SettlementService.UpdateBillFees:output_type -> finance.v1.UpdateBillFeesResponse
-	68,  // 245: finance.v1.SettlementService.CancelBill:output_type -> finance.v1.CancelBillResponse
-	78,  // 246: finance.v1.SettlementService.ListInvoices:output_type -> finance.v1.ListInvoicesResponse
-	81,  // 247: finance.v1.SettlementService.ListInvoiceCreationBills:output_type -> finance.v1.ListInvoiceCreationBillsResponse
-	85,  // 248: finance.v1.SettlementService.ListInvoiceProfilesForBill:output_type -> finance.v1.ListInvoiceProfilesForBillResponse
-	86,  // 249: finance.v1.SettlementService.GetInvoice:output_type -> finance.v1.GetInvoiceResponse
-	87,  // 250: finance.v1.SettlementService.CreateInvoice:output_type -> finance.v1.CreateInvoiceResponse
-	88,  // 251: finance.v1.SettlementService.IssueInvoice:output_type -> finance.v1.IssueInvoiceResponse
-	89,  // 252: finance.v1.SettlementService.CancelInvoice:output_type -> finance.v1.CancelInvoiceResponse
-	90,  // 253: finance.v1.SettlementService.RedFlushInvoice:output_type -> finance.v1.RedFlushInvoiceResponse
-	96,  // 254: finance.v1.SettlementService.ListCashflows:output_type -> finance.v1.ListCashflowsResponse
-	195, // 255: finance.v1.SettlementService.ListFinanceSettlementPartyOptions:output_type -> finance.v1.ListFinanceSettlementPartyOptionsResponse
-	98,  // 256: finance.v1.SettlementService.CreateCashflow:output_type -> finance.v1.CreateCashflowResponse
-	99,  // 257: finance.v1.SettlementService.ConfirmCashflow:output_type -> finance.v1.ConfirmCashflowResponse
-	100, // 258: finance.v1.SettlementService.CancelCashflow:output_type -> finance.v1.CancelCashflowResponse
-	109, // 259: finance.v1.SettlementService.ListVerificationCreationCandidates:output_type -> finance.v1.ListVerificationCreationCandidatesResponse
-	114, // 260: finance.v1.SettlementService.ListVerifications:output_type -> finance.v1.ListVerificationsResponse
-	104, // 261: finance.v1.SettlementService.ListCommissionVerificationCandidates:output_type -> finance.v1.ListCommissionVerificationCandidatesResponse
-	106, // 262: finance.v1.SettlementService.ListCommissionNettingCandidates:output_type -> finance.v1.ListCommissionNettingCandidatesResponse
-	116, // 263: finance.v1.SettlementService.CreateVerification:output_type -> finance.v1.CreateVerificationResponse
-	117, // 264: finance.v1.SettlementService.ReverseVerification:output_type -> finance.v1.ReverseVerificationResponse
-	136, // 265: finance.v1.SettlementService.ListNettings:output_type -> finance.v1.ListNettingsResponse
-	123, // 266: finance.v1.SettlementService.PreviewNetting:output_type -> finance.v1.PreviewNettingResponse
-	126, // 267: finance.v1.SettlementService.CreateNetting:output_type -> finance.v1.CreateNettingResponse
-	138, // 268: finance.v1.SettlementService.GetNetting:output_type -> finance.v1.GetNettingResponse
-	128, // 269: finance.v1.SettlementService.ConfirmNetting:output_type -> finance.v1.ConfirmNettingResponse
-	130, // 270: finance.v1.SettlementService.CancelNetting:output_type -> finance.v1.CancelNettingResponse
-	132, // 271: finance.v1.SettlementService.ReverseNetting:output_type -> finance.v1.ReverseNettingResponse
-	200, // 272: finance.v1.SettlementService.ListCommissions:output_type -> finance.v1.ListCommissionsResponse
-	199, // 273: finance.v1.SettlementService.ExportCommissions:output_type -> finance.v1.ExportCommissionsResponse
-	144, // 274: finance.v1.SettlementService.ListCommissionEmployees:output_type -> finance.v1.ListCommissionEmployeesResponse
-	180, // 275: finance.v1.SettlementService.ListCommissionCandidates:output_type -> finance.v1.ListCommissionCandidatesResponse
-	203, // 276: finance.v1.SettlementService.GetCommission:output_type -> finance.v1.GetCommissionResponse
-	155, // 277: finance.v1.SettlementService.ListCommissionRules:output_type -> finance.v1.ListCommissionRulesResponse
-	156, // 278: finance.v1.SettlementService.CreateCommissionRule:output_type -> finance.v1.CreateCommissionRuleResponse
-	157, // 279: finance.v1.SettlementService.UpdateCommissionRule:output_type -> finance.v1.UpdateCommissionRuleResponse
-	158, // 280: finance.v1.SettlementService.AssignCommissionRuleEmployees:output_type -> finance.v1.AssignCommissionRuleEmployeesResponse
-	159, // 281: finance.v1.SettlementService.RemoveCommissionRuleEmployees:output_type -> finance.v1.RemoveCommissionRuleEmployeesResponse
-	160, // 282: finance.v1.SettlementService.CopyCommissionRule:output_type -> finance.v1.CopyCommissionRuleResponse
-	201, // 283: finance.v1.SettlementService.PreviewCommission:output_type -> finance.v1.PreviewCommissionResponse
-	202, // 284: finance.v1.SettlementService.CreateCommission:output_type -> finance.v1.CreateCommissionResponse
-	204, // 285: finance.v1.SettlementService.ConfirmCommission:output_type -> finance.v1.ConfirmCommissionResponse
-	168, // 286: finance.v1.SettlementService.PreviewCommissionPayment:output_type -> finance.v1.PreviewCommissionPaymentResponse
-	205, // 287: finance.v1.SettlementService.MarkCommissionPaid:output_type -> finance.v1.MarkCommissionPaidResponse
-	206, // 288: finance.v1.SettlementService.CancelCommission:output_type -> finance.v1.CancelCommissionResponse
-	207, // 289: finance.v1.SettlementService.CreateCommissionAdjustment:output_type -> finance.v1.CreateCommissionAdjustmentResponse
-	208, // 290: finance.v1.SettlementService.ConfirmCommissionAdjustment:output_type -> finance.v1.ConfirmCommissionAdjustmentResponse
-	209, // 291: finance.v1.SettlementService.MarkCommissionAdjustmentPaid:output_type -> finance.v1.MarkCommissionAdjustmentPaidResponse
-	210, // 292: finance.v1.SettlementService.CancelCommissionAdjustment:output_type -> finance.v1.CancelCommissionAdjustmentResponse
-	211, // 293: finance.v1.SettlementService.ListCommissionAdjustments:output_type -> finance.v1.ListCommissionAdjustmentsResponse
-	184, // 294: finance.v1.SettlementService.ListCommissionApplications:output_type -> finance.v1.ListCommissionApplicationsResponse
-	188, // 295: finance.v1.SettlementService.GetCommissionApplication:output_type -> finance.v1.GetCommissionApplicationResponse
-	190, // 296: finance.v1.SettlementService.ApproveCommissionApplication:output_type -> finance.v1.ApproveCommissionApplicationResponse
-	192, // 297: finance.v1.SettlementService.RejectCommissionApplication:output_type -> finance.v1.RejectCommissionApplicationResponse
-	213, // 298: finance.v1.SettlementService.GetMyFeeSupplementAdjustmentSource:output_type -> finance.v1.GetMyFeeSupplementAdjustmentSourceResponse
-	228, // [228:299] is the sub-list for method output_type
-	157, // [157:228] is the sub-list for method input_type
-	157, // [157:157] is the sub-list for extension type_name
-	157, // [157:157] is the sub-list for extension extendee
-	0,   // [0:157] is the sub-list for field type_name
+	51,  // 29: finance.v1.FinanceBill.invoice_exemptions:type_name -> finance.v1.FinanceInvoiceExemption
+	46,  // 30: finance.v1.SetBillInvoiceExemptionResponse.data:type_name -> finance.v1.FinanceBill
+	46,  // 31: finance.v1.RevokeBillInvoiceExemptionResponse.data:type_name -> finance.v1.FinanceBill
+	11,  // 32: finance.v1.BillGroupingPolicy.mode:type_name -> finance.v1.BillGroupingMode
+	52,  // 33: finance.v1.PreviewBillBatchRequest.grouping_policy:type_name -> finance.v1.BillGroupingPolicy
+	54,  // 34: finance.v1.PreviewBillBatchRequest.group_configs:type_name -> finance.v1.BillBatchPreviewGroupConfigInput
+	15,  // 35: finance.v1.BillBatchPreviewGroup.fees:type_name -> finance.v1.FeeLedgerItem
+	55,  // 36: finance.v1.PreviewBillBatchResponse.data:type_name -> finance.v1.BillBatchPreviewGroup
+	57,  // 37: finance.v1.PreviewBillBatchResponse.netting_pairs:type_name -> finance.v1.BillBatchNettingPair
+	59,  // 38: finance.v1.ListBillSettlementAccountCandidatesResponse.data:type_name -> finance.v1.FinanceSettlementAccountOption
+	59,  // 39: finance.v1.ListBillSettlementAccountUpdateCandidatesResponse.data:type_name -> finance.v1.FinanceSettlementAccountOption
+	52,  // 40: finance.v1.CreateBillBatchRequest.grouping_policy:type_name -> finance.v1.BillGroupingPolicy
+	58,  // 41: finance.v1.CreateBillBatchRequest.groups:type_name -> finance.v1.CreateBillBatchGroupInput
+	46,  // 42: finance.v1.FinanceBillBatch.bills:type_name -> finance.v1.FinanceBill
+	11,  // 43: finance.v1.FinanceBillBatch.mode:type_name -> finance.v1.BillGroupingMode
+	128, // 44: finance.v1.FinanceBillBatch.nettings:type_name -> finance.v1.FinanceNetting
+	66,  // 45: finance.v1.FinanceBillBatch.base_totals:type_name -> finance.v1.FinanceBillBatchBaseTotal
+	65,  // 46: finance.v1.CreateBillBatchResponse.data:type_name -> finance.v1.FinanceBillBatch
+	68,  // 47: finance.v1.CreateBillBatchResponse.results:type_name -> finance.v1.BillBatchGroupResult
+	46,  // 48: finance.v1.BillBatchGroupResult.bill:type_name -> finance.v1.FinanceBill
+	69,  // 49: finance.v1.BillBatchGroupResult.error:type_name -> finance.v1.BillBatchGroupError
+	223, // 50: finance.v1.BillBatchGroupError.metadata:type_name -> finance.v1.BillBatchGroupError.MetadataEntry
+	46,  // 51: finance.v1.ListBillsResponse.data:type_name -> finance.v1.FinanceBill
+	72,  // 52: finance.v1.ListBillsResponse.summary:type_name -> finance.v1.FinanceBillSummary
+	17,  // 53: finance.v1.ListBillsResponse.matched_summary:type_name -> finance.v1.FinanceLedgerMatchedSummary
+	71,  // 54: finance.v1.FinanceBillSummary.amounts_by_base_currency:type_name -> finance.v1.FinanceBaseCurrencyAmount
+	46,  // 55: finance.v1.GetBillResponse.data:type_name -> finance.v1.FinanceBill
+	46,  // 56: finance.v1.CreateBillResponse.data:type_name -> finance.v1.FinanceBill
+	46,  // 57: finance.v1.UpdateBillResponse.data:type_name -> finance.v1.FinanceBill
+	46,  // 58: finance.v1.CancelBillResponse.data:type_name -> finance.v1.FinanceBill
+	4,   // 59: finance.v1.ListInvoicesRequest.status:type_name -> finance.v1.FinanceInvoiceStatus
+	4,   // 60: finance.v1.FinanceInvoice.status:type_name -> finance.v1.FinanceInvoiceStatus
+	83,  // 61: finance.v1.FinanceInvoice.bill_links:type_name -> finance.v1.FinanceInvoiceBill
+	84,  // 62: finance.v1.FinanceInvoice.lines:type_name -> finance.v1.FinanceInvoiceLine
+	85,  // 63: finance.v1.ListInvoicesResponse.data:type_name -> finance.v1.FinanceInvoice
+	87,  // 64: finance.v1.ListInvoicesResponse.summary:type_name -> finance.v1.FinanceInvoiceSummary
+	17,  // 65: finance.v1.ListInvoicesResponse.matched_summary:type_name -> finance.v1.FinanceLedgerMatchedSummary
+	71,  // 66: finance.v1.FinanceInvoiceSummary.amounts_by_base_currency:type_name -> finance.v1.FinanceBaseCurrencyAmount
+	46,  // 67: finance.v1.ListInvoiceCreationBillsResponse.data:type_name -> finance.v1.FinanceBill
+	90,  // 68: finance.v1.FinanceInvoiceProfilesForBill.data:type_name -> finance.v1.FinanceInvoiceProfileOption
+	91,  // 69: finance.v1.ListInvoiceProfilesForBillResponse.data:type_name -> finance.v1.FinanceInvoiceProfilesForBill
+	85,  // 70: finance.v1.GetInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
+	85,  // 71: finance.v1.CreateInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
+	85,  // 72: finance.v1.IssueInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
+	85,  // 73: finance.v1.CancelInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
+	85,  // 74: finance.v1.RedFlushInvoiceResponse.data:type_name -> finance.v1.FinanceInvoice
+	5,   // 75: finance.v1.ListCashflowsRequest.status:type_name -> finance.v1.FinanceCashflowStatus
+	5,   // 76: finance.v1.FinanceCashflow.status:type_name -> finance.v1.FinanceCashflowStatus
+	103, // 77: finance.v1.ListCashflowsResponse.data:type_name -> finance.v1.FinanceCashflow
+	105, // 78: finance.v1.ListCashflowsResponse.summary:type_name -> finance.v1.FinanceCashflowSummary
+	17,  // 79: finance.v1.ListCashflowsResponse.matched_summary:type_name -> finance.v1.FinanceLedgerMatchedSummary
+	71,  // 80: finance.v1.FinanceCashflowSummary.amounts_by_base_currency:type_name -> finance.v1.FinanceBaseCurrencyAmount
+	103, // 81: finance.v1.CreateCashflowResponse.data:type_name -> finance.v1.FinanceCashflow
+	103, // 82: finance.v1.ConfirmCashflowResponse.data:type_name -> finance.v1.FinanceCashflow
+	103, // 83: finance.v1.CancelCashflowResponse.data:type_name -> finance.v1.FinanceCashflow
+	6,   // 84: finance.v1.ListVerificationsRequest.status:type_name -> finance.v1.FinanceVerificationStatus
+	122, // 85: finance.v1.ListCommissionVerificationCandidatesResponse.data:type_name -> finance.v1.FinanceVerification
+	128, // 86: finance.v1.ListCommissionNettingCandidatesResponse.data:type_name -> finance.v1.FinanceNetting
+	103, // 87: finance.v1.VerificationCreationCandidates.cashflows:type_name -> finance.v1.FinanceCashflow
+	46,  // 88: finance.v1.VerificationCreationCandidates.bills:type_name -> finance.v1.FinanceBill
+	115, // 89: finance.v1.ListVerificationCreationCandidatesResponse.data:type_name -> finance.v1.VerificationCreationCandidates
+	109, // 90: finance.v1.CreateVerificationRequest.allocations:type_name -> finance.v1.VerificationAllocationInput
+	118, // 91: finance.v1.CreateVerificationRequest.shortfall_cashflow:type_name -> finance.v1.VerificationShortfallCashflow
+	6,   // 92: finance.v1.FinanceVerification.status:type_name -> finance.v1.FinanceVerificationStatus
+	121, // 93: finance.v1.FinanceVerification.allocations:type_name -> finance.v1.FinanceVerificationAllocation
+	122, // 94: finance.v1.ListVerificationsResponse.data:type_name -> finance.v1.FinanceVerification
+	124, // 95: finance.v1.ListVerificationsResponse.summary:type_name -> finance.v1.FinanceVerificationSummary
+	17,  // 96: finance.v1.ListVerificationsResponse.matched_summary:type_name -> finance.v1.FinanceLedgerMatchedSummary
+	71,  // 97: finance.v1.FinanceVerificationSummary.amounts_by_base_currency:type_name -> finance.v1.FinanceBaseCurrencyAmount
+	122, // 98: finance.v1.CreateVerificationResponse.data:type_name -> finance.v1.FinanceVerification
+	122, // 99: finance.v1.ReverseVerificationResponse.data:type_name -> finance.v1.FinanceVerification
+	7,   // 100: finance.v1.FinanceNetting.status:type_name -> finance.v1.FinanceNettingStatus
+	127, // 101: finance.v1.FinanceNetting.allocations:type_name -> finance.v1.FinanceNettingAllocation
+	129, // 102: finance.v1.FinanceNettingPreview.receivable_bills:type_name -> finance.v1.FinanceNettingBillBalance
+	129, // 103: finance.v1.FinanceNettingPreview.payable_bills:type_name -> finance.v1.FinanceNettingBillBalance
+	130, // 104: finance.v1.PreviewNettingResponse.data:type_name -> finance.v1.FinanceNettingPreview
+	133, // 105: finance.v1.CreateNettingRequest.bills:type_name -> finance.v1.NettingBillExpectedVersion
+	128, // 106: finance.v1.CreateNettingResponse.data:type_name -> finance.v1.FinanceNetting
+	128, // 107: finance.v1.ConfirmNettingResponse.data:type_name -> finance.v1.FinanceNetting
+	128, // 108: finance.v1.CancelNettingResponse.data:type_name -> finance.v1.FinanceNetting
+	128, // 109: finance.v1.ReverseNettingResponse.data:type_name -> finance.v1.FinanceNetting
+	7,   // 110: finance.v1.ListNettingsRequest.status:type_name -> finance.v1.FinanceNettingStatus
+	143, // 111: finance.v1.FinanceNettingSummary.amounts_by_base_currency:type_name -> finance.v1.FinanceNettingBaseCurrencyAmount
+	128, // 112: finance.v1.ListNettingsResponse.data:type_name -> finance.v1.FinanceNetting
+	144, // 113: finance.v1.ListNettingsResponse.summary:type_name -> finance.v1.FinanceNettingSummary
+	17,  // 114: finance.v1.ListNettingsResponse.matched_summary:type_name -> finance.v1.FinanceLedgerMatchedSummary
+	128, // 115: finance.v1.GetNettingResponse.data:type_name -> finance.v1.FinanceNetting
+	8,   // 116: finance.v1.ListCommissionsRequest.status:type_name -> finance.v1.FinanceCommissionStatus
+	152, // 117: finance.v1.ListCommissionEmployeesResponse.data:type_name -> finance.v1.CommissionEmployeeOption
+	155, // 118: finance.v1.CreateCommissionRuleRequest.rule:type_name -> finance.v1.CommissionRuleInput
+	155, // 119: finance.v1.UpdateCommissionRuleRequest.rule:type_name -> finance.v1.CommissionRuleInput
+	158, // 120: finance.v1.AssignCommissionRuleEmployeesRequest.change:type_name -> finance.v1.CommissionRuleEmployeeChangeInput
+	158, // 121: finance.v1.RemoveCommissionRuleEmployeesRequest.change:type_name -> finance.v1.CommissionRuleEmployeeChangeInput
+	162, // 122: finance.v1.FinanceCommissionRule.assignments:type_name -> finance.v1.CommissionRuleAssignmentProjection
+	163, // 123: finance.v1.ListCommissionRulesResponse.data:type_name -> finance.v1.FinanceCommissionRule
+	163, // 124: finance.v1.CreateCommissionRuleResponse.data:type_name -> finance.v1.FinanceCommissionRule
+	163, // 125: finance.v1.UpdateCommissionRuleResponse.data:type_name -> finance.v1.FinanceCommissionRule
+	163, // 126: finance.v1.AssignCommissionRuleEmployeesResponse.data:type_name -> finance.v1.FinanceCommissionRule
+	163, // 127: finance.v1.RemoveCommissionRuleEmployeesResponse.data:type_name -> finance.v1.FinanceCommissionRule
+	163, // 128: finance.v1.CopyCommissionRuleResponse.data:type_name -> finance.v1.FinanceCommissionRule
+	175, // 129: finance.v1.CommissionPaymentPreview.adjustments:type_name -> finance.v1.CommissionPaymentAdjustment
+	176, // 130: finance.v1.PreviewCommissionPaymentResponse.data:type_name -> finance.v1.CommissionPaymentPreview
+	8,   // 131: finance.v1.ListCommissionAdjustmentsRequest.status:type_name -> finance.v1.FinanceCommissionStatus
+	8,   // 132: finance.v1.MyFeeSupplementAdjustmentSource.status:type_name -> finance.v1.FinanceCommissionStatus
+	185, // 133: finance.v1.FinanceCommissionLine.fees:type_name -> finance.v1.CommissionFeeDetail
+	186, // 134: finance.v1.CommissionCalculation.lines:type_name -> finance.v1.FinanceCommissionLine
+	188, // 135: finance.v1.ListCommissionCandidatesResponse.data:type_name -> finance.v1.CommissionCandidateSummary
+	8,   // 136: finance.v1.FinanceCommissionAdjustment.status:type_name -> finance.v1.FinanceCommissionStatus
+	12,  // 137: finance.v1.ListCommissionApplicationsRequest.status:type_name -> finance.v1.FinanceCommissionApplicationStatus
+	12,  // 138: finance.v1.FinanceCommissionApplication.status:type_name -> finance.v1.FinanceCommissionApplicationStatus
+	192, // 139: finance.v1.ListCommissionApplicationsResponse.data:type_name -> finance.v1.FinanceCommissionApplication
+	192, // 140: finance.v1.FinanceCommissionApplicationDetail.application:type_name -> finance.v1.FinanceCommissionApplication
+	196, // 141: finance.v1.FinanceCommissionApplicationDetail.lines:type_name -> finance.v1.FinanceCommissionApplicationLine
+	195, // 142: finance.v1.GetCommissionApplicationResponse.data:type_name -> finance.v1.FinanceCommissionApplicationDetail
+	192, // 143: finance.v1.ApproveCommissionApplicationResponse.data:type_name -> finance.v1.FinanceCommissionApplication
+	192, // 144: finance.v1.RejectCommissionApplicationResponse.data:type_name -> finance.v1.FinanceCommissionApplication
+	13,  // 145: finance.v1.ListFinanceSettlementPartyOptionsRequest.purpose:type_name -> finance.v1.FinanceOrganizationPurpose
+	202, // 146: finance.v1.ListFinanceSettlementPartyOptionsResponse.data:type_name -> finance.v1.FinanceSettlementPartyOption
+	8,   // 147: finance.v1.FinanceCommission.status:type_name -> finance.v1.FinanceCommissionStatus
+	186, // 148: finance.v1.FinanceCommission.lines:type_name -> finance.v1.FinanceCommissionLine
+	190, // 149: finance.v1.FinanceCommission.adjustments:type_name -> finance.v1.FinanceCommissionAdjustment
+	8,   // 150: finance.v1.ExportCommissionsRequest.status:type_name -> finance.v1.FinanceCommissionStatus
+	8,   // 151: finance.v1.CommissionExportItem.status:type_name -> finance.v1.FinanceCommissionStatus
+	207, // 152: finance.v1.ExportCommissionsResponse.data:type_name -> finance.v1.CommissionExportItem
+	205, // 153: finance.v1.ListCommissionsResponse.data:type_name -> finance.v1.FinanceCommission
+	187, // 154: finance.v1.PreviewCommissionResponse.data:type_name -> finance.v1.CommissionCalculation
+	205, // 155: finance.v1.CreateCommissionResponse.data:type_name -> finance.v1.FinanceCommission
+	205, // 156: finance.v1.GetCommissionResponse.data:type_name -> finance.v1.FinanceCommission
+	205, // 157: finance.v1.ConfirmCommissionResponse.data:type_name -> finance.v1.FinanceCommission
+	205, // 158: finance.v1.MarkCommissionPaidResponse.data:type_name -> finance.v1.FinanceCommission
+	205, // 159: finance.v1.CancelCommissionResponse.data:type_name -> finance.v1.FinanceCommission
+	190, // 160: finance.v1.CreateCommissionAdjustmentResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
+	190, // 161: finance.v1.ConfirmCommissionAdjustmentResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
+	190, // 162: finance.v1.MarkCommissionAdjustmentPaidResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
+	190, // 163: finance.v1.CancelCommissionAdjustmentResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
+	190, // 164: finance.v1.ListCommissionAdjustmentsResponse.data:type_name -> finance.v1.FinanceCommissionAdjustment
+	184, // 165: finance.v1.GetMyFeeSupplementAdjustmentSourceResponse.data:type_name -> finance.v1.MyFeeSupplementAdjustmentSource
+	14,  // 166: finance.v1.SettlementService.ListFeeLedger:input_type -> finance.v1.ListFeeLedgerRequest
+	21,  // 167: finance.v1.SettlementService.GetFeeLedgerOrderDetail:input_type -> finance.v1.GetFeeLedgerOrderDetailRequest
+	25,  // 168: finance.v1.SettlementService.GetBilledFeeEditPolicy:input_type -> finance.v1.GetBilledFeeEditPolicyRequest
+	27,  // 169: finance.v1.SettlementService.UpdateBilledFeeEditPolicy:input_type -> finance.v1.UpdateBilledFeeEditPolicyRequest
+	30,  // 170: finance.v1.SettlementService.GetCreditLimitControlPolicy:input_type -> finance.v1.GetCreditLimitControlPolicyRequest
+	32,  // 171: finance.v1.SettlementService.UpdateCreditLimitControlPolicy:input_type -> finance.v1.UpdateCreditLimitControlPolicyRequest
+	34,  // 172: finance.v1.SettlementService.ListBills:input_type -> finance.v1.ListBillsRequest
+	35,  // 173: finance.v1.SettlementService.ListBillCreationCandidates:input_type -> finance.v1.ListBillCreationCandidatesRequest
+	60,  // 174: finance.v1.SettlementService.ListBillSettlementAccountCandidates:input_type -> finance.v1.ListBillSettlementAccountCandidatesRequest
+	62,  // 175: finance.v1.SettlementService.ListBillSettlementAccountUpdateCandidates:input_type -> finance.v1.ListBillSettlementAccountUpdateCandidatesRequest
+	37,  // 176: finance.v1.SettlementService.GetBill:input_type -> finance.v1.GetBillRequest
+	38,  // 177: finance.v1.SettlementService.CreateBill:input_type -> finance.v1.CreateBillRequest
+	53,  // 178: finance.v1.SettlementService.PreviewBillBatch:input_type -> finance.v1.PreviewBillBatchRequest
+	64,  // 179: finance.v1.SettlementService.CreateBillBatch:input_type -> finance.v1.CreateBillBatchRequest
+	39,  // 180: finance.v1.SettlementService.UpdateBill:input_type -> finance.v1.UpdateBillRequest
+	47,  // 181: finance.v1.SettlementService.SetBillInvoiceExemption:input_type -> finance.v1.SetBillInvoiceExemptionRequest
+	49,  // 182: finance.v1.SettlementService.RevokeBillInvoiceExemption:input_type -> finance.v1.RevokeBillInvoiceExemptionRequest
+	40,  // 183: finance.v1.SettlementService.ListBillFeeCandidates:input_type -> finance.v1.ListBillFeeCandidatesRequest
+	42,  // 184: finance.v1.SettlementService.UpdateBillFees:input_type -> finance.v1.UpdateBillFeesRequest
+	44,  // 185: finance.v1.SettlementService.CancelBill:input_type -> finance.v1.CancelBillRequest
+	77,  // 186: finance.v1.SettlementService.ListInvoices:input_type -> finance.v1.ListInvoicesRequest
+	88,  // 187: finance.v1.SettlementService.ListInvoiceCreationBills:input_type -> finance.v1.ListInvoiceCreationBillsRequest
+	92,  // 188: finance.v1.SettlementService.ListInvoiceProfilesForBill:input_type -> finance.v1.ListInvoiceProfilesForBillRequest
+	78,  // 189: finance.v1.SettlementService.GetInvoice:input_type -> finance.v1.GetInvoiceRequest
+	79,  // 190: finance.v1.SettlementService.CreateInvoice:input_type -> finance.v1.CreateInvoiceRequest
+	80,  // 191: finance.v1.SettlementService.IssueInvoice:input_type -> finance.v1.IssueInvoiceRequest
+	81,  // 192: finance.v1.SettlementService.CancelInvoice:input_type -> finance.v1.CancelInvoiceRequest
+	82,  // 193: finance.v1.SettlementService.RedFlushInvoice:input_type -> finance.v1.RedFlushInvoiceRequest
+	99,  // 194: finance.v1.SettlementService.ListCashflows:input_type -> finance.v1.ListCashflowsRequest
+	203, // 195: finance.v1.SettlementService.ListFinanceSettlementPartyOptions:input_type -> finance.v1.ListFinanceSettlementPartyOptionsRequest
+	100, // 196: finance.v1.SettlementService.CreateCashflow:input_type -> finance.v1.CreateCashflowRequest
+	101, // 197: finance.v1.SettlementService.ConfirmCashflow:input_type -> finance.v1.ConfirmCashflowRequest
+	102, // 198: finance.v1.SettlementService.CancelCashflow:input_type -> finance.v1.CancelCashflowRequest
+	116, // 199: finance.v1.SettlementService.ListVerificationCreationCandidates:input_type -> finance.v1.ListVerificationCreationCandidatesRequest
+	110, // 200: finance.v1.SettlementService.ListVerifications:input_type -> finance.v1.ListVerificationsRequest
+	111, // 201: finance.v1.SettlementService.ListCommissionVerificationCandidates:input_type -> finance.v1.ListCommissionVerificationCandidatesRequest
+	113, // 202: finance.v1.SettlementService.ListCommissionNettingCandidates:input_type -> finance.v1.ListCommissionNettingCandidatesRequest
+	119, // 203: finance.v1.SettlementService.CreateVerification:input_type -> finance.v1.CreateVerificationRequest
+	120, // 204: finance.v1.SettlementService.ReverseVerification:input_type -> finance.v1.ReverseVerificationRequest
+	142, // 205: finance.v1.SettlementService.ListNettings:input_type -> finance.v1.ListNettingsRequest
+	131, // 206: finance.v1.SettlementService.PreviewNetting:input_type -> finance.v1.PreviewNettingRequest
+	134, // 207: finance.v1.SettlementService.CreateNetting:input_type -> finance.v1.CreateNettingRequest
+	146, // 208: finance.v1.SettlementService.GetNetting:input_type -> finance.v1.GetNettingRequest
+	136, // 209: finance.v1.SettlementService.ConfirmNetting:input_type -> finance.v1.ConfirmNettingRequest
+	138, // 210: finance.v1.SettlementService.CancelNetting:input_type -> finance.v1.CancelNettingRequest
+	140, // 211: finance.v1.SettlementService.ReverseNetting:input_type -> finance.v1.ReverseNettingRequest
+	148, // 212: finance.v1.SettlementService.ListCommissions:input_type -> finance.v1.ListCommissionsRequest
+	206, // 213: finance.v1.SettlementService.ExportCommissions:input_type -> finance.v1.ExportCommissionsRequest
+	150, // 214: finance.v1.SettlementService.ListCommissionEmployees:input_type -> finance.v1.ListCommissionEmployeesRequest
+	151, // 215: finance.v1.SettlementService.ListCommissionCandidates:input_type -> finance.v1.ListCommissionCandidatesRequest
+	149, // 216: finance.v1.SettlementService.GetCommission:input_type -> finance.v1.GetCommissionRequest
+	154, // 217: finance.v1.SettlementService.ListCommissionRules:input_type -> finance.v1.ListCommissionRulesRequest
+	156, // 218: finance.v1.SettlementService.CreateCommissionRule:input_type -> finance.v1.CreateCommissionRuleRequest
+	157, // 219: finance.v1.SettlementService.UpdateCommissionRule:input_type -> finance.v1.UpdateCommissionRuleRequest
+	159, // 220: finance.v1.SettlementService.AssignCommissionRuleEmployees:input_type -> finance.v1.AssignCommissionRuleEmployeesRequest
+	160, // 221: finance.v1.SettlementService.RemoveCommissionRuleEmployees:input_type -> finance.v1.RemoveCommissionRuleEmployeesRequest
+	161, // 222: finance.v1.SettlementService.CopyCommissionRule:input_type -> finance.v1.CopyCommissionRuleRequest
+	170, // 223: finance.v1.SettlementService.PreviewCommission:input_type -> finance.v1.PreviewCommissionRequest
+	171, // 224: finance.v1.SettlementService.CreateCommission:input_type -> finance.v1.CreateCommissionRequest
+	172, // 225: finance.v1.SettlementService.ConfirmCommission:input_type -> finance.v1.ConfirmCommissionRequest
+	174, // 226: finance.v1.SettlementService.PreviewCommissionPayment:input_type -> finance.v1.PreviewCommissionPaymentRequest
+	173, // 227: finance.v1.SettlementService.MarkCommissionPaid:input_type -> finance.v1.MarkCommissionPaidRequest
+	178, // 228: finance.v1.SettlementService.CancelCommission:input_type -> finance.v1.CancelCommissionRequest
+	179, // 229: finance.v1.SettlementService.CreateCommissionAdjustment:input_type -> finance.v1.CreateCommissionAdjustmentRequest
+	180, // 230: finance.v1.SettlementService.ConfirmCommissionAdjustment:input_type -> finance.v1.ConfirmCommissionAdjustmentRequest
+	181, // 231: finance.v1.SettlementService.MarkCommissionAdjustmentPaid:input_type -> finance.v1.MarkCommissionAdjustmentPaidRequest
+	182, // 232: finance.v1.SettlementService.CancelCommissionAdjustment:input_type -> finance.v1.CancelCommissionAdjustmentRequest
+	183, // 233: finance.v1.SettlementService.ListCommissionAdjustments:input_type -> finance.v1.ListCommissionAdjustmentsRequest
+	191, // 234: finance.v1.SettlementService.ListCommissionApplications:input_type -> finance.v1.ListCommissionApplicationsRequest
+	194, // 235: finance.v1.SettlementService.GetCommissionApplication:input_type -> finance.v1.GetCommissionApplicationRequest
+	198, // 236: finance.v1.SettlementService.ApproveCommissionApplication:input_type -> finance.v1.ApproveCommissionApplicationRequest
+	200, // 237: finance.v1.SettlementService.RejectCommissionApplication:input_type -> finance.v1.RejectCommissionApplicationRequest
+	221, // 238: finance.v1.SettlementService.GetMyFeeSupplementAdjustmentSource:input_type -> finance.v1.GetMyFeeSupplementAdjustmentSourceRequest
+	20,  // 239: finance.v1.SettlementService.ListFeeLedger:output_type -> finance.v1.ListFeeLedgerResponse
+	23,  // 240: finance.v1.SettlementService.GetFeeLedgerOrderDetail:output_type -> finance.v1.GetFeeLedgerOrderDetailResponse
+	26,  // 241: finance.v1.SettlementService.GetBilledFeeEditPolicy:output_type -> finance.v1.GetBilledFeeEditPolicyResponse
+	28,  // 242: finance.v1.SettlementService.UpdateBilledFeeEditPolicy:output_type -> finance.v1.UpdateBilledFeeEditPolicyResponse
+	31,  // 243: finance.v1.SettlementService.GetCreditLimitControlPolicy:output_type -> finance.v1.GetCreditLimitControlPolicyResponse
+	33,  // 244: finance.v1.SettlementService.UpdateCreditLimitControlPolicy:output_type -> finance.v1.UpdateCreditLimitControlPolicyResponse
+	70,  // 245: finance.v1.SettlementService.ListBills:output_type -> finance.v1.ListBillsResponse
+	36,  // 246: finance.v1.SettlementService.ListBillCreationCandidates:output_type -> finance.v1.ListBillCreationCandidatesResponse
+	61,  // 247: finance.v1.SettlementService.ListBillSettlementAccountCandidates:output_type -> finance.v1.ListBillSettlementAccountCandidatesResponse
+	63,  // 248: finance.v1.SettlementService.ListBillSettlementAccountUpdateCandidates:output_type -> finance.v1.ListBillSettlementAccountUpdateCandidatesResponse
+	73,  // 249: finance.v1.SettlementService.GetBill:output_type -> finance.v1.GetBillResponse
+	74,  // 250: finance.v1.SettlementService.CreateBill:output_type -> finance.v1.CreateBillResponse
+	56,  // 251: finance.v1.SettlementService.PreviewBillBatch:output_type -> finance.v1.PreviewBillBatchResponse
+	67,  // 252: finance.v1.SettlementService.CreateBillBatch:output_type -> finance.v1.CreateBillBatchResponse
+	75,  // 253: finance.v1.SettlementService.UpdateBill:output_type -> finance.v1.UpdateBillResponse
+	48,  // 254: finance.v1.SettlementService.SetBillInvoiceExemption:output_type -> finance.v1.SetBillInvoiceExemptionResponse
+	50,  // 255: finance.v1.SettlementService.RevokeBillInvoiceExemption:output_type -> finance.v1.RevokeBillInvoiceExemptionResponse
+	41,  // 256: finance.v1.SettlementService.ListBillFeeCandidates:output_type -> finance.v1.ListBillFeeCandidatesResponse
+	43,  // 257: finance.v1.SettlementService.UpdateBillFees:output_type -> finance.v1.UpdateBillFeesResponse
+	76,  // 258: finance.v1.SettlementService.CancelBill:output_type -> finance.v1.CancelBillResponse
+	86,  // 259: finance.v1.SettlementService.ListInvoices:output_type -> finance.v1.ListInvoicesResponse
+	89,  // 260: finance.v1.SettlementService.ListInvoiceCreationBills:output_type -> finance.v1.ListInvoiceCreationBillsResponse
+	93,  // 261: finance.v1.SettlementService.ListInvoiceProfilesForBill:output_type -> finance.v1.ListInvoiceProfilesForBillResponse
+	94,  // 262: finance.v1.SettlementService.GetInvoice:output_type -> finance.v1.GetInvoiceResponse
+	95,  // 263: finance.v1.SettlementService.CreateInvoice:output_type -> finance.v1.CreateInvoiceResponse
+	96,  // 264: finance.v1.SettlementService.IssueInvoice:output_type -> finance.v1.IssueInvoiceResponse
+	97,  // 265: finance.v1.SettlementService.CancelInvoice:output_type -> finance.v1.CancelInvoiceResponse
+	98,  // 266: finance.v1.SettlementService.RedFlushInvoice:output_type -> finance.v1.RedFlushInvoiceResponse
+	104, // 267: finance.v1.SettlementService.ListCashflows:output_type -> finance.v1.ListCashflowsResponse
+	204, // 268: finance.v1.SettlementService.ListFinanceSettlementPartyOptions:output_type -> finance.v1.ListFinanceSettlementPartyOptionsResponse
+	106, // 269: finance.v1.SettlementService.CreateCashflow:output_type -> finance.v1.CreateCashflowResponse
+	107, // 270: finance.v1.SettlementService.ConfirmCashflow:output_type -> finance.v1.ConfirmCashflowResponse
+	108, // 271: finance.v1.SettlementService.CancelCashflow:output_type -> finance.v1.CancelCashflowResponse
+	117, // 272: finance.v1.SettlementService.ListVerificationCreationCandidates:output_type -> finance.v1.ListVerificationCreationCandidatesResponse
+	123, // 273: finance.v1.SettlementService.ListVerifications:output_type -> finance.v1.ListVerificationsResponse
+	112, // 274: finance.v1.SettlementService.ListCommissionVerificationCandidates:output_type -> finance.v1.ListCommissionVerificationCandidatesResponse
+	114, // 275: finance.v1.SettlementService.ListCommissionNettingCandidates:output_type -> finance.v1.ListCommissionNettingCandidatesResponse
+	125, // 276: finance.v1.SettlementService.CreateVerification:output_type -> finance.v1.CreateVerificationResponse
+	126, // 277: finance.v1.SettlementService.ReverseVerification:output_type -> finance.v1.ReverseVerificationResponse
+	145, // 278: finance.v1.SettlementService.ListNettings:output_type -> finance.v1.ListNettingsResponse
+	132, // 279: finance.v1.SettlementService.PreviewNetting:output_type -> finance.v1.PreviewNettingResponse
+	135, // 280: finance.v1.SettlementService.CreateNetting:output_type -> finance.v1.CreateNettingResponse
+	147, // 281: finance.v1.SettlementService.GetNetting:output_type -> finance.v1.GetNettingResponse
+	137, // 282: finance.v1.SettlementService.ConfirmNetting:output_type -> finance.v1.ConfirmNettingResponse
+	139, // 283: finance.v1.SettlementService.CancelNetting:output_type -> finance.v1.CancelNettingResponse
+	141, // 284: finance.v1.SettlementService.ReverseNetting:output_type -> finance.v1.ReverseNettingResponse
+	209, // 285: finance.v1.SettlementService.ListCommissions:output_type -> finance.v1.ListCommissionsResponse
+	208, // 286: finance.v1.SettlementService.ExportCommissions:output_type -> finance.v1.ExportCommissionsResponse
+	153, // 287: finance.v1.SettlementService.ListCommissionEmployees:output_type -> finance.v1.ListCommissionEmployeesResponse
+	189, // 288: finance.v1.SettlementService.ListCommissionCandidates:output_type -> finance.v1.ListCommissionCandidatesResponse
+	212, // 289: finance.v1.SettlementService.GetCommission:output_type -> finance.v1.GetCommissionResponse
+	164, // 290: finance.v1.SettlementService.ListCommissionRules:output_type -> finance.v1.ListCommissionRulesResponse
+	165, // 291: finance.v1.SettlementService.CreateCommissionRule:output_type -> finance.v1.CreateCommissionRuleResponse
+	166, // 292: finance.v1.SettlementService.UpdateCommissionRule:output_type -> finance.v1.UpdateCommissionRuleResponse
+	167, // 293: finance.v1.SettlementService.AssignCommissionRuleEmployees:output_type -> finance.v1.AssignCommissionRuleEmployeesResponse
+	168, // 294: finance.v1.SettlementService.RemoveCommissionRuleEmployees:output_type -> finance.v1.RemoveCommissionRuleEmployeesResponse
+	169, // 295: finance.v1.SettlementService.CopyCommissionRule:output_type -> finance.v1.CopyCommissionRuleResponse
+	210, // 296: finance.v1.SettlementService.PreviewCommission:output_type -> finance.v1.PreviewCommissionResponse
+	211, // 297: finance.v1.SettlementService.CreateCommission:output_type -> finance.v1.CreateCommissionResponse
+	213, // 298: finance.v1.SettlementService.ConfirmCommission:output_type -> finance.v1.ConfirmCommissionResponse
+	177, // 299: finance.v1.SettlementService.PreviewCommissionPayment:output_type -> finance.v1.PreviewCommissionPaymentResponse
+	214, // 300: finance.v1.SettlementService.MarkCommissionPaid:output_type -> finance.v1.MarkCommissionPaidResponse
+	215, // 301: finance.v1.SettlementService.CancelCommission:output_type -> finance.v1.CancelCommissionResponse
+	216, // 302: finance.v1.SettlementService.CreateCommissionAdjustment:output_type -> finance.v1.CreateCommissionAdjustmentResponse
+	217, // 303: finance.v1.SettlementService.ConfirmCommissionAdjustment:output_type -> finance.v1.ConfirmCommissionAdjustmentResponse
+	218, // 304: finance.v1.SettlementService.MarkCommissionAdjustmentPaid:output_type -> finance.v1.MarkCommissionAdjustmentPaidResponse
+	219, // 305: finance.v1.SettlementService.CancelCommissionAdjustment:output_type -> finance.v1.CancelCommissionAdjustmentResponse
+	220, // 306: finance.v1.SettlementService.ListCommissionAdjustments:output_type -> finance.v1.ListCommissionAdjustmentsResponse
+	193, // 307: finance.v1.SettlementService.ListCommissionApplications:output_type -> finance.v1.ListCommissionApplicationsResponse
+	197, // 308: finance.v1.SettlementService.GetCommissionApplication:output_type -> finance.v1.GetCommissionApplicationResponse
+	199, // 309: finance.v1.SettlementService.ApproveCommissionApplication:output_type -> finance.v1.ApproveCommissionApplicationResponse
+	201, // 310: finance.v1.SettlementService.RejectCommissionApplication:output_type -> finance.v1.RejectCommissionApplicationResponse
+	222, // 311: finance.v1.SettlementService.GetMyFeeSupplementAdjustmentSource:output_type -> finance.v1.GetMyFeeSupplementAdjustmentSourceResponse
+	239, // [239:312] is the sub-list for method output_type
+	166, // [166:239] is the sub-list for method input_type
+	166, // [166:166] is the sub-list for extension type_name
+	166, // [166:166] is the sub-list for extension extendee
+	0,   // [0:166] is the sub-list for field type_name
 }
 
 func init() { file_finance_v1_settlement_proto_init() }
@@ -22317,55 +23171,57 @@ func file_finance_v1_settlement_proto_init() {
 	file_finance_v1_settlement_proto_msgTypes[26].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[31].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[32].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[35].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[36].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[39].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[55].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[57].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[37].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[40].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[41].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[44].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[63].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[66].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[77].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[78].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[81].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[88].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[65].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[71].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[74].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[85].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[86].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[89].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[91].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[96].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[97].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[99].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[104].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[105].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[111].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[119].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[125].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[127].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[108].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[113].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[114].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[120].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[128].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[131].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[132].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[135].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[138].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[139].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[134].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[136].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[137].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[140].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[141].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[144].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[147].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[148].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[149].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[156].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[160].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[161].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[164].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[167].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[168].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[157].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[165].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[169].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[170].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[173].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[180].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[176].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[177].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[178].OneofWrappers = []any{}
 	file_finance_v1_settlement_proto_msgTypes[182].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[183].OneofWrappers = []any{}
-	file_finance_v1_settlement_proto_msgTypes[184].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[189].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[191].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[192].OneofWrappers = []any{}
+	file_finance_v1_settlement_proto_msgTypes[193].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_finance_v1_settlement_proto_rawDesc), len(file_finance_v1_settlement_proto_rawDesc)),
 			NumEnums:      14,
-			NumMessages:   200,
+			NumMessages:   210,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

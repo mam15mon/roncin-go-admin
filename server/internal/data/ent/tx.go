@@ -100,6 +100,8 @@ type Tx struct {
 	FinanceInvoice *FinanceInvoiceClient
 	// FinanceInvoiceBill is the client for interacting with the FinanceInvoiceBill builders.
 	FinanceInvoiceBill *FinanceInvoiceBillClient
+	// FinanceInvoiceExemption is the client for interacting with the FinanceInvoiceExemption builders.
+	FinanceInvoiceExemption *FinanceInvoiceExemptionClient
 	// FinanceInvoiceLine is the client for interacting with the FinanceInvoiceLine builders.
 	FinanceInvoiceLine *FinanceInvoiceLineClient
 	// FinanceNetting is the client for interacting with the FinanceNetting builders.
@@ -415,6 +417,7 @@ func (tx *Tx) init() {
 	tx.FinanceCustomSetting = NewFinanceCustomSettingClient(tx.config)
 	tx.FinanceInvoice = NewFinanceInvoiceClient(tx.config)
 	tx.FinanceInvoiceBill = NewFinanceInvoiceBillClient(tx.config)
+	tx.FinanceInvoiceExemption = NewFinanceInvoiceExemptionClient(tx.config)
 	tx.FinanceInvoiceLine = NewFinanceInvoiceLineClient(tx.config)
 	tx.FinanceNetting = NewFinanceNettingClient(tx.config)
 	tx.FinanceNettingAllocation = NewFinanceNettingAllocationClient(tx.config)

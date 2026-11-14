@@ -5,15 +5,15 @@ import {
   Button,
   Input,
   Modal,
-  Popconfirm,
   Space,
   type TableColumnsType,
   Tooltip,
 } from 'antd';
 import React, { useState } from 'react';
-import { ResponsiveTable as Table } from '@/components/ui';
+import { AsyncPopconfirm, ResponsiveTable as Table } from '@/components/ui';
 import { FinanceBillStatus } from '@/enums.generated';
 import { billFeeLockFactLabels } from '@/features/finance/bill-status';
+import { useAsyncGuard } from '@/hooks/useAsyncGuard';
 import {
   settlementServiceListBillFeeCandidates,
   settlementServiceUpdateBillFees,
@@ -45,6 +45,7 @@ export default function BillFeeMaintenance({
   onRefresh,
 }: BillFeeMaintenanceProps) {
   const { message, modal } = App.useApp();
+  const submitGuard = useAsyncGuard();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [page, setPage] = useState(1);
@@ -90,21 +91,30 @@ export default function BillFeeMaintenance({
   });
 
   const submit = async (addFeeIds: string[], removeFeeIds: string[]) => {
-    if (!bill.id || !bill.version) return false;
+    const { id, version } = bill;
+    if (!id || !version) return false;
     try {
-      const response = await mutation.mutateAsync({
-        id: bill.id,
-        expectedVersion: bill.version,
-        addFeeIds,
-        removeFeeIds,
-      });
-      if (response?.success !== true || response.data?.id !== bill.id)
-        return false;
-      message.success(
-        addFeeIds.length ? '费用已加入账单' : '费用已从账单移除，可重新建账',
+      let succeeded = false;
+      const result = await submitGuard.run(
+        () =>
+          mutation.mutateAsync({
+            id,
+            expectedVersion: version,
+            addFeeIds,
+            removeFeeIds,
+          }),
+        (response) => {
+          if (response?.success !== true || response.data?.id !== id) return;
+          message.success(
+            addFeeIds.length
+              ? '费用已加入账单'
+              : '费用已从账单移除，可重新建账',
+          );
+          onUpdated(response.data);
+          succeeded = true;
+        },
       );
-      onUpdated(response.data);
-      return true;
+      return result.current && succeeded;
     } catch {
       // 统一请求错误处理已提示（如版本冲突、费用已锁定）；保留当前选择供用户刷新后重试。
       return false;
@@ -152,13 +162,11 @@ export default function BillFeeMaintenance({
             line.active === true && line.orderFeeId ? (
               <Tooltip title={removeBlockedReason}>
                 <span>
-                  <Popconfirm
+                  <AsyncPopconfirm
                     title="确认从账单移除该费用？"
                     description="只解除账单关联，费用本身不变，可重新建账。"
                     disabled={Boolean(removeBlockedReason)}
-                    onConfirm={() =>
-                      submit([], [line.orderFeeId as string]).then(() => {})
-                    }
+                    onConfirm={() => submit([], [line.orderFeeId as string])}
                   >
                     <Button
                       type="link"
@@ -170,7 +178,7 @@ export default function BillFeeMaintenance({
                     >
                       移除
                     </Button>
-                  </Popconfirm>
+                  </AsyncPopconfirm>
                 </span>
               </Tooltip>
             ) : null,

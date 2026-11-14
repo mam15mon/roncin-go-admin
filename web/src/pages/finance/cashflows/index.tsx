@@ -6,7 +6,6 @@ import {
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import {
   ProFormDatePicker,
-  type ProFormInstance,
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
@@ -22,12 +21,24 @@ import {
   FinanceLedgerTemplate,
   GuardedModalForm,
   ProFormSearchableSelect,
+  type SearchFilterFieldItem,
+  SearchFilterTemplate,
 } from '@/components/ui';
+import {
+  FilterSettingsEntry,
+  type FilterSettingsField,
+  omitHiddenFilterValues,
+  useFilterSettings,
+} from '@/components/ui/filter-settings';
 import { useListQueryState } from '@/components/ui/list-query-state';
 import {
   FinanceCashflowStatus,
   FinanceOrganizationPurpose,
 } from '@/enums.generated';
+import {
+  getPaymentMethodLabel,
+  paymentMethodOptions,
+} from '@/features/finance/cashflow-entry';
 import {
   disableCreditExceededOptions,
   useCreditLimitIntervention,
@@ -59,13 +70,12 @@ import { makeVersionActions } from '@/utils/versionActions';
 import { buildCashflowCreateIntent } from './cashflowCreateIntent';
 import {
   cashflowExportColumns,
-  getPaymentMethodLabel,
-  paymentMethodOptions,
   cashflowStates as states,
 } from './ledgerExport';
 
 /** 台账内置搜索表单提交的筛选字段（keyword 等分页字段由模板统一注入，不在此声明） */
 type CashflowLedgerFilterParams = {
+  keyword?: string;
   direction?: string;
   status?: string;
 };
@@ -89,6 +99,12 @@ const decimalRule = {
   message: '请输入大于 0 且最多 8 位小数的金额',
 };
 
+const filterFields: FilterSettingsField[] = [
+  { name: 'keyword', label: '综合搜索', defaultVisible: true },
+  { name: 'direction', label: '收付方向', defaultVisible: true },
+  { name: 'status', label: '流水状态', defaultVisible: true },
+];
+
 export default function FinanceCashflowsPage() {
   const access = useAccess();
   const { initialState } = useInitialState();
@@ -100,17 +116,23 @@ export default function FinanceCashflowsPage() {
       access.canOperateOrganization(organizationId),
   );
   const getModalOwnerSignal = useModalOwnerSignal();
-  const queryState = useListQueryState<{
-    direction?: string;
-    status?: string;
-  }>({
+  const filterSettings = useFilterSettings({
+    pageKey: 'finance:cashflows',
+    fields: filterFields,
+  });
+  const queryState = useListQueryState<CashflowLedgerFilterParams>({
     tabKey: '/finance/cashflows',
     listId: 'finance:cashflows',
     defaultPageSize: 40,
     defaultFilters: {},
+    sanitizeRestored: (filters) =>
+      omitHiddenFilterValues(
+        filters,
+        filterFields,
+        filterSettings.visibleNames,
+      ),
   });
   const { message, modal } = App.useApp();
-  const searchFormRef = useRef<ProFormInstance | undefined>(undefined);
   const actionRef = useRef<ActionType | undefined>(undefined);
   const [form] = Form.useForm<Values>();
   const [open, setOpen] = useState(false);
@@ -223,6 +245,32 @@ export default function FinanceCashflowsPage() {
       title: '已确认流水未核销资金',
       value: formatBaseCurrencyAmounts('unverifiedBaseAmount'),
       valueColor: '#52c41a',
+    },
+  ];
+
+  const filterItems: SearchFilterFieldItem[] = [
+    {
+      name: 'keyword',
+      label: '综合搜索',
+      placeholder: '流水号／结算单位／银行参考号',
+    },
+    {
+      name: 'direction',
+      label: '收付方向',
+      type: 'select',
+      options: [
+        { value: 'RECEIVABLE', label: '收款' },
+        { value: 'PAYABLE', label: '付款' },
+      ],
+    },
+    {
+      name: 'status',
+      label: '流水状态',
+      type: 'select',
+      options: Object.entries(states).map(([value, meta]) => ({
+        value,
+        label: meta.text,
+      })),
     },
   ];
 
@@ -438,31 +486,6 @@ export default function FinanceCashflowsPage() {
         CashflowLedgerFilterParams,
         API.FinanceCashflowSummary
       >
-        formRef={searchFormRef}
-        pagination={queryState.pagination}
-        form={{
-          initialValues: {
-            direction: queryState.initial.filters.direction,
-            status: queryState.initial.filters.status,
-            current: queryState.initial.current,
-            pageSize: queryState.initial.pageSize,
-          },
-        }}
-        onSubmit={(values) =>
-          commitFilters({
-            direction: values.direction,
-            status: values.status,
-          })
-        }
-        onReset={() => {
-          searchFormRef.current?.setFieldsValue({
-            direction: undefined,
-            status: undefined,
-            current: undefined,
-            pageSize: undefined,
-          });
-          commitFilters({}, {});
-        }}
         pageTitle="收付管理"
         pageSubTitle="银行流水认领、资金收付流水台账及状态跟踪"
         headerTitle="资金流水列表"
@@ -471,6 +494,33 @@ export default function FinanceCashflowsPage() {
         columns={columns}
         columnSettingsKey="finance:cashflows"
         metricCards={metricCards}
+        search={false}
+        pagination={queryState.pagination}
+        customSearch={
+          <SearchFilterTemplate<CashflowLedgerFilterParams>
+            items={filterItems}
+            initialValues={queryState.initial.filters}
+            initialLabels={queryState.initial.labels}
+            visibleNames={filterSettings.visibleNames}
+            extraRight={
+              <FilterSettingsEntry
+                fields={filterFields}
+                visibleNames={filterSettings.visibleNames}
+                onChange={filterSettings.setVisible}
+                onReset={filterSettings.reset}
+              />
+            }
+            onCommit={(values, labels) => commitFilters(values, labels)}
+            onSearch={(values) => {
+              commitFilters(values);
+              actionRef.current?.reload(true);
+            }}
+            onReset={() => {
+              commitFilters({}, {});
+              actionRef.current?.reload(true);
+            }}
+          />
+        }
         primaryActionText="登记流水"
         primaryActionIcon={<PlusOutlined />}
         onPrimaryAction={
@@ -496,7 +546,7 @@ export default function FinanceCashflowsPage() {
             {
               page: p.current,
               pageSize: p.pageSize,
-              keyword: p.keyword,
+              keyword: queryState.snapshotRef.current.filters.keyword,
               direction: queryState.snapshotRef.current.filters.direction,
               status: queryState.snapshotRef.current.filters.status
                 ? Number(queryState.snapshotRef.current.filters.status)

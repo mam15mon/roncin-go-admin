@@ -1,6 +1,7 @@
 package data
 
 import (
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
@@ -60,13 +61,35 @@ func financeBillToBiz(item *ent.FinanceBill) (*biz.FinanceBill, error) {
 	if batchItem, edgeErr := item.Edges.BatchOrErr(); edgeErr == nil {
 		result.BatchNo = batchItem.BatchNo
 	}
+	var activeSourceSeen bool
+	var correctionRequestID *uuid.UUID
 	for _, line := range item.Edges.Lines {
 		converted, convertErr := financeBillLineToBiz(line)
 		if convertErr != nil {
 			return nil, convertErr
 		}
 		result.Lines = append(result.Lines, converted)
+		if !line.Active {
+			continue
+		}
+		fee, edgeErr := line.Edges.OrderFeeOrErr()
+		if edgeErr != nil {
+			return nil, edgeErr
+		}
+		var sourceRequestID *uuid.UUID
+		if fee.SourceFeeID != nil {
+			if fee.CorrectionRequestID == nil {
+				return nil, biz.ErrFinanceBillFeeMismatch
+			}
+			sourceRequestID = fee.CorrectionRequestID
+		}
+		if activeSourceSeen && ((correctionRequestID == nil) != (sourceRequestID == nil) || (correctionRequestID != nil && *correctionRequestID != *sourceRequestID)) {
+			return nil, biz.ErrFinanceBillFeeMismatch
+		}
+		activeSourceSeen, correctionRequestID = true, sourceRequestID
 	}
+	// 更正归属属于活动来源费用事实，不另存可漂移的账单字段；重读后仍须保持建账时的分组边界。
+	result.CorrectionRequestID = correctionRequestID
 	return result, nil
 }
 

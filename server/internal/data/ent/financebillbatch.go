@@ -38,14 +38,6 @@ type FinanceBillBatch struct {
 	SplitByTaxRate bool `json:"split_by_tax_rate,omitempty"`
 	// GroupingMode holds the value of the "grouping_mode" field.
 	GroupingMode financebillbatch.GroupingMode `json:"grouping_mode,omitempty"`
-	// FeeCount holds the value of the "fee_count" field.
-	FeeCount int `json:"fee_count,omitempty"`
-	// BillCount holds the value of the "bill_count" field.
-	BillCount int `json:"bill_count,omitempty"`
-	// TotalBaseAmount holds the value of the "total_base_amount" field.
-	TotalBaseAmount string `json:"total_base_amount,omitempty"`
-	// BaseCurrency holds the value of the "base_currency" field.
-	BaseCurrency string `json:"base_currency,omitempty"`
 	// CreatedBy holds the value of the "created_by" field.
 	CreatedBy uuid.UUID `json:"created_by,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -116,9 +108,7 @@ func (*FinanceBillBatch) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case financebillbatch.FieldSplitByOrder, financebillbatch.FieldSplitByTaxRate:
 			values[i] = new(sql.NullBool)
-		case financebillbatch.FieldFeeCount, financebillbatch.FieldBillCount:
-			values[i] = new(sql.NullInt64)
-		case financebillbatch.FieldBatchNo, financebillbatch.FieldIdempotencyKey, financebillbatch.FieldRequestHash, financebillbatch.FieldGroupingMode, financebillbatch.FieldTotalBaseAmount, financebillbatch.FieldBaseCurrency:
+		case financebillbatch.FieldBatchNo, financebillbatch.FieldIdempotencyKey, financebillbatch.FieldRequestHash, financebillbatch.FieldGroupingMode:
 			values[i] = new(sql.NullString)
 		case financebillbatch.FieldCreatedAt, financebillbatch.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -198,30 +188,6 @@ func (_m *FinanceBillBatch) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field grouping_mode", values[i])
 			} else if value.Valid {
 				_m.GroupingMode = financebillbatch.GroupingMode(value.String)
-			}
-		case financebillbatch.FieldFeeCount:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field fee_count", values[i])
-			} else if value.Valid {
-				_m.FeeCount = int(value.Int64)
-			}
-		case financebillbatch.FieldBillCount:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field bill_count", values[i])
-			} else if value.Valid {
-				_m.BillCount = int(value.Int64)
-			}
-		case financebillbatch.FieldTotalBaseAmount:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field total_base_amount", values[i])
-			} else if value.Valid {
-				_m.TotalBaseAmount = value.String
-			}
-		case financebillbatch.FieldBaseCurrency:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field base_currency", values[i])
-			} else if value.Valid {
-				_m.BaseCurrency = value.String
 			}
 		case financebillbatch.FieldCreatedBy:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -311,18 +277,6 @@ func (_m *FinanceBillBatch) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("grouping_mode=")
 	builder.WriteString(fmt.Sprintf("%v", _m.GroupingMode))
-	builder.WriteString(", ")
-	builder.WriteString("fee_count=")
-	builder.WriteString(fmt.Sprintf("%v", _m.FeeCount))
-	builder.WriteString(", ")
-	builder.WriteString("bill_count=")
-	builder.WriteString(fmt.Sprintf("%v", _m.BillCount))
-	builder.WriteString(", ")
-	builder.WriteString("total_base_amount=")
-	builder.WriteString(_m.TotalBaseAmount)
-	builder.WriteString(", ")
-	builder.WriteString("base_currency=")
-	builder.WriteString(_m.BaseCurrency)
 	builder.WriteString(", ")
 	builder.WriteString("created_by=")
 	builder.WriteString(fmt.Sprintf("%v", _m.CreatedBy))

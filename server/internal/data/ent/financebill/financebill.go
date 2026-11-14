@@ -116,6 +116,8 @@ const (
 	EdgeLines = "lines"
 	// EdgeInvoiceLinks holds the string denoting the invoice_links edge name in mutations.
 	EdgeInvoiceLinks = "invoice_links"
+	// EdgeInvoiceExemptions holds the string denoting the invoice_exemptions edge name in mutations.
+	EdgeInvoiceExemptions = "invoice_exemptions"
 	// EdgeVerificationAllocations holds the string denoting the verification_allocations edge name in mutations.
 	EdgeVerificationAllocations = "verification_allocations"
 	// EdgeNettingAllocations holds the string denoting the netting_allocations edge name in mutations.
@@ -171,6 +173,13 @@ const (
 	InvoiceLinksInverseTable = "finance_invoice_bills"
 	// InvoiceLinksColumn is the table column denoting the invoice_links relation/edge.
 	InvoiceLinksColumn = "bill_id"
+	// InvoiceExemptionsTable is the table that holds the invoice_exemptions relation/edge.
+	InvoiceExemptionsTable = "finance_invoice_exemptions"
+	// InvoiceExemptionsInverseTable is the table name for the FinanceInvoiceExemption entity.
+	// It exists in this package in order to avoid circular dependency with the "financeinvoiceexemption" package.
+	InvoiceExemptionsInverseTable = "finance_invoice_exemptions"
+	// InvoiceExemptionsColumn is the table column denoting the invoice_exemptions relation/edge.
+	InvoiceExemptionsColumn = "bill_id"
 	// VerificationAllocationsTable is the table that holds the verification_allocations relation/edge.
 	VerificationAllocationsTable = "finance_verification_allocations"
 	// VerificationAllocationsInverseTable is the table name for the FinanceVerificationAllocation entity.
@@ -687,6 +696,20 @@ func ByInvoiceLinks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByInvoiceExemptionsCount orders the results by invoice_exemptions count.
+func ByInvoiceExemptionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newInvoiceExemptionsStep(), opts...)
+	}
+}
+
+// ByInvoiceExemptions orders the results by invoice_exemptions terms.
+func ByInvoiceExemptions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newInvoiceExemptionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByVerificationAllocationsCount orders the results by verification_allocations count.
 func ByVerificationAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -761,6 +784,13 @@ func newInvoiceLinksStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(InvoiceLinksInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, InvoiceLinksTable, InvoiceLinksColumn),
+	)
+}
+func newInvoiceExemptionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(InvoiceExemptionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, InvoiceExemptionsTable, InvoiceExemptionsColumn),
 	)
 }
 func newVerificationAllocationsStep() *sqlgraph.Step {

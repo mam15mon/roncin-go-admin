@@ -40,6 +40,13 @@ func writeBillInvoicedSum(builder *entsql.Builder, billID string) {
 	builder.WriteString(" AND fib.active = TRUE AND fi.status IN ('DRAFT', 'ISSUED')), 0)")
 }
 
+func writeBillInvoiceExempt(builder *entsql.Builder, billID string) {
+	// 与保护事实谓词共用同一有效性：撤销保留历史，但不再计入当前免票决定。
+	builder.WriteString("EXISTS (SELECT 1 FROM finance_invoice_exemptions AS fie WHERE fie.bill_id = ")
+	builder.Ident(billID)
+	builder.WriteString(" AND fie.revoked_at IS NULL)")
+}
+
 // billAmountPredicate 以账单总额、结算净额、开票额组装谓词；write 负责写出完整布尔表达式。
 func billAmountPredicate(write func(builder *entsql.Builder, total, billID string)) predicate.FinanceBill {
 	return func(selector *entsql.Selector) {
@@ -103,13 +110,19 @@ func billSettlementProgressPredicate(progress biz.FinanceBillSettlementProgress)
 }
 
 // billInvoiceProgressPredicate 与 biz.ResolveFinanceBillProgress 的开票进度同源。
-// 「无需发票」标记由发票任务落地后在 NOT_REQUIRED 分支追加，其他分支同步排除。
+// 有效免票与零额共同组成 NOT_REQUIRED；其余分支显式排除有效免票。
 func billInvoiceProgressPredicate(progress biz.FinanceBillInvoiceProgress) predicate.FinanceBill {
 	return billAmountPredicate(func(builder *entsql.Builder, total, billID string) {
+		if progress != biz.FinanceBillInvoiceNotRequired {
+			builder.WriteString("NOT ")
+			writeBillInvoiceExempt(builder, billID)
+			builder.WriteString(" AND ")
+		}
 		switch progress {
 		case biz.FinanceBillInvoiceNotRequired:
 			builder.Ident(total)
-			builder.WriteString(" = 0")
+			builder.WriteString(" = 0 OR ")
+			writeBillInvoiceExempt(builder, billID)
 		case biz.FinanceBillInvoiceNone:
 			builder.Ident(total)
 			builder.WriteString(" <> 0 AND ")
@@ -146,11 +159,13 @@ func billCompletedPredicate(completed bool) predicate.FinanceBill {
 			builder.Ident(total)
 			builder.WriteString(" = ")
 			writeBillSettledSum(builder, billID)
-			builder.WriteString(" AND ")
+			builder.WriteString(" AND (")
+			writeBillInvoiceExempt(builder, billID)
+			builder.WriteString(" OR ")
 			builder.Ident(total)
 			builder.WriteString(" = ")
 			writeBillInvoicedSum(builder, billID)
-			builder.WriteString(")")
+			builder.WriteString("))")
 		}),
 	)
 	if completed {

@@ -118,12 +118,13 @@ func TestFinanceBillAutoConfirmMigrationPostgres(t *testing.T) {
 	client := data.db
 	org, partner, batchCreator, auditCreator, laterActor := seedAutoConfirmMigrationBase(t, data, "OK")
 
-	batch, err := client.FinanceBillBatch.Create().SetOrganizationID(org).SetBatchNo("BG-AUTO").SetIdempotencyKey(uuid.NewString()).
-		SetRequestHash(strings.Repeat("a", 64)).SetFeeCount(1).SetBillCount(1).SetTotalBaseAmount("100").SetBaseCurrency("CNY").SetCreatedBy(batchCreator).Save(ctx)
-	if err != nil {
+	// 迁移前态的批次头仍含后续迁移删除的汇总列，当前 Ent Schema 已不声明这些列，故以正式前态列直接写入。
+	batchID := uuid.New()
+	if _, err := data.sqlDB.ExecContext(ctx, `INSERT INTO "finance_bill_batches"("id","created_at","updated_at","organization_id","batch_no","idempotency_key","request_hash","fee_count","bill_count","total_base_amount","base_currency","created_by") VALUES ($1,now(),now(),$2,'BG-AUTO',$3,$4,1,1,100,'CNY',$5)`,
+		batchID, org, uuid.NewString(), strings.Repeat("a", 64), batchCreator); err != nil {
 		t.Fatal(err)
 	}
-	batchBill := createAutoConfirmMigrationBill(t, data, org, partner, "BATCH", financebillent.StatusDRAFT, &batch.ID)
+	batchBill := createAutoConfirmMigrationBill(t, data, org, partner, "BATCH", financebillent.StatusDRAFT, &batchID)
 	auditBill := createAutoConfirmMigrationBill(t, data, org, partner, "AUDIT", financebillent.StatusDRAFT, nil)
 	for _, item := range []struct {
 		actor  uuid.UUID

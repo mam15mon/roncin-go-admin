@@ -138,6 +138,20 @@ func (_u *OrderFeeUpdate) ClearFeeNameEn() *OrderFeeUpdate {
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *OrderFeeUpdate) SetSearchKeywords(v string) *OrderFeeUpdate {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *OrderFeeUpdate) SetNillableSearchKeywords(v *string) *OrderFeeUpdate {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetSettlementPartyID sets the "settlement_party_id" field.
 func (_u *OrderFeeUpdate) SetSettlementPartyID(v uuid.UUID) *OrderFeeUpdate {
 	_u.mutation.SetSettlementPartyID(v)
@@ -721,7 +735,9 @@ func (_u *OrderFeeUpdate) RemoveFinanceBillLines(v ...*FinanceBillLine) *OrderFe
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *OrderFeeUpdate) Save(ctx context.Context) (int, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -748,11 +764,15 @@ func (_u *OrderFeeUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *OrderFeeUpdate) defaults() {
+func (_u *OrderFeeUpdate) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if orderfee.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized orderfee.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := orderfee.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -850,6 +870,9 @@ func (_u *OrderFeeUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.FeeNameEnCleared() {
 		_spec.ClearField(orderfee.FieldFeeNameEn, field.TypeString)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(orderfee.FieldSearchKeywords, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.BillingUnit(); ok {
 		_spec.SetField(orderfee.FieldBillingUnit, field.TypeString, value)
@@ -1373,6 +1396,20 @@ func (_u *OrderFeeUpdateOne) SetNillableFeeNameEn(v *string) *OrderFeeUpdateOne 
 // ClearFeeNameEn clears the value of the "fee_name_en" field.
 func (_u *OrderFeeUpdateOne) ClearFeeNameEn() *OrderFeeUpdateOne {
 	_u.mutation.ClearFeeNameEn()
+	return _u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *OrderFeeUpdateOne) SetSearchKeywords(v string) *OrderFeeUpdateOne {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *OrderFeeUpdateOne) SetNillableSearchKeywords(v *string) *OrderFeeUpdateOne {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
 	return _u
 }
 
@@ -1972,7 +2009,9 @@ func (_u *OrderFeeUpdateOne) Select(field string, fields ...string) *OrderFeeUpd
 
 // Save executes the query and returns the updated OrderFee entity.
 func (_u *OrderFeeUpdateOne) Save(ctx context.Context) (*OrderFee, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -1999,11 +2038,15 @@ func (_u *OrderFeeUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *OrderFeeUpdateOne) defaults() {
+func (_u *OrderFeeUpdateOne) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if orderfee.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized orderfee.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := orderfee.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -2118,6 +2161,9 @@ func (_u *OrderFeeUpdateOne) sqlSave(ctx context.Context) (_node *OrderFee, err 
 	}
 	if _u.mutation.FeeNameEnCleared() {
 		_spec.ClearField(orderfee.FieldFeeNameEn, field.TypeString)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(orderfee.FieldSearchKeywords, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.BillingUnit(); ok {
 		_spec.SetField(orderfee.FieldBillingUnit, field.TypeString, value)

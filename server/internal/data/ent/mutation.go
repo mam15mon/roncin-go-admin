@@ -57,6 +57,7 @@ import (
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecustomsetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoice"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoicebill"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceexemption"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financeinvoiceline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financenettingallocation"
@@ -184,6 +185,7 @@ const (
 	TypeFinanceCustomSetting             = "FinanceCustomSetting"
 	TypeFinanceInvoice                   = "FinanceInvoice"
 	TypeFinanceInvoiceBill               = "FinanceInvoiceBill"
+	TypeFinanceInvoiceExemption          = "FinanceInvoiceExemption"
 	TypeFinanceInvoiceLine               = "FinanceInvoiceLine"
 	TypeFinanceNetting                   = "FinanceNetting"
 	TypeFinanceNettingAllocation         = "FinanceNettingAllocation"
@@ -33418,6 +33420,9 @@ type FinanceBillMutation struct {
 	invoice_links                   map[uuid.UUID]struct{}
 	removedinvoice_links            map[uuid.UUID]struct{}
 	clearedinvoice_links            bool
+	invoice_exemptions              map[uuid.UUID]struct{}
+	removedinvoice_exemptions       map[uuid.UUID]struct{}
+	clearedinvoice_exemptions       bool
 	verification_allocations        map[uuid.UUID]struct{}
 	removedverification_allocations map[uuid.UUID]struct{}
 	clearedverification_allocations bool
@@ -35606,6 +35611,60 @@ func (m *FinanceBillMutation) ResetInvoiceLinks() {
 	m.removedinvoice_links = nil
 }
 
+// AddInvoiceExemptionIDs adds the "invoice_exemptions" edge to the FinanceInvoiceExemption entity by ids.
+func (m *FinanceBillMutation) AddInvoiceExemptionIDs(ids ...uuid.UUID) {
+	if m.invoice_exemptions == nil {
+		m.invoice_exemptions = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.invoice_exemptions[ids[i]] = struct{}{}
+	}
+}
+
+// ClearInvoiceExemptions clears the "invoice_exemptions" edge to the FinanceInvoiceExemption entity.
+func (m *FinanceBillMutation) ClearInvoiceExemptions() {
+	m.clearedinvoice_exemptions = true
+}
+
+// InvoiceExemptionsCleared reports if the "invoice_exemptions" edge to the FinanceInvoiceExemption entity was cleared.
+func (m *FinanceBillMutation) InvoiceExemptionsCleared() bool {
+	return m.clearedinvoice_exemptions
+}
+
+// RemoveInvoiceExemptionIDs removes the "invoice_exemptions" edge to the FinanceInvoiceExemption entity by IDs.
+func (m *FinanceBillMutation) RemoveInvoiceExemptionIDs(ids ...uuid.UUID) {
+	if m.removedinvoice_exemptions == nil {
+		m.removedinvoice_exemptions = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.invoice_exemptions, ids[i])
+		m.removedinvoice_exemptions[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedInvoiceExemptions returns the removed IDs of the "invoice_exemptions" edge to the FinanceInvoiceExemption entity.
+func (m *FinanceBillMutation) RemovedInvoiceExemptionsIDs() (ids []uuid.UUID) {
+	for id := range m.removedinvoice_exemptions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// InvoiceExemptionsIDs returns the "invoice_exemptions" edge IDs in the mutation.
+func (m *FinanceBillMutation) InvoiceExemptionsIDs() (ids []uuid.UUID) {
+	for id := range m.invoice_exemptions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetInvoiceExemptions resets all changes to the "invoice_exemptions" edge.
+func (m *FinanceBillMutation) ResetInvoiceExemptions() {
+	m.invoice_exemptions = nil
+	m.clearedinvoice_exemptions = false
+	m.removedinvoice_exemptions = nil
+}
+
 // AddVerificationAllocationIDs adds the "verification_allocations" edge to the FinanceVerificationAllocation entity by ids.
 func (m *FinanceBillMutation) AddVerificationAllocationIDs(ids ...uuid.UUID) {
 	if m.verification_allocations == nil {
@@ -36693,7 +36752,7 @@ func (m *FinanceBillMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *FinanceBillMutation) AddedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 10)
 	if m.organization != nil {
 		edges = append(edges, financebill.EdgeOrganization)
 	}
@@ -36714,6 +36773,9 @@ func (m *FinanceBillMutation) AddedEdges() []string {
 	}
 	if m.invoice_links != nil {
 		edges = append(edges, financebill.EdgeInvoiceLinks)
+	}
+	if m.invoice_exemptions != nil {
+		edges = append(edges, financebill.EdgeInvoiceExemptions)
 	}
 	if m.verification_allocations != nil {
 		edges = append(edges, financebill.EdgeVerificationAllocations)
@@ -36760,6 +36822,12 @@ func (m *FinanceBillMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case financebill.EdgeInvoiceExemptions:
+		ids := make([]ent.Value, 0, len(m.invoice_exemptions))
+		for id := range m.invoice_exemptions {
+			ids = append(ids, id)
+		}
+		return ids
 	case financebill.EdgeVerificationAllocations:
 		ids := make([]ent.Value, 0, len(m.verification_allocations))
 		for id := range m.verification_allocations {
@@ -36778,12 +36846,15 @@ func (m *FinanceBillMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *FinanceBillMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 10)
 	if m.removedlines != nil {
 		edges = append(edges, financebill.EdgeLines)
 	}
 	if m.removedinvoice_links != nil {
 		edges = append(edges, financebill.EdgeInvoiceLinks)
+	}
+	if m.removedinvoice_exemptions != nil {
+		edges = append(edges, financebill.EdgeInvoiceExemptions)
 	}
 	if m.removedverification_allocations != nil {
 		edges = append(edges, financebill.EdgeVerificationAllocations)
@@ -36810,6 +36881,12 @@ func (m *FinanceBillMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case financebill.EdgeInvoiceExemptions:
+		ids := make([]ent.Value, 0, len(m.removedinvoice_exemptions))
+		for id := range m.removedinvoice_exemptions {
+			ids = append(ids, id)
+		}
+		return ids
 	case financebill.EdgeVerificationAllocations:
 		ids := make([]ent.Value, 0, len(m.removedverification_allocations))
 		for id := range m.removedverification_allocations {
@@ -36828,7 +36905,7 @@ func (m *FinanceBillMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *FinanceBillMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 10)
 	if m.clearedorganization {
 		edges = append(edges, financebill.EdgeOrganization)
 	}
@@ -36849,6 +36926,9 @@ func (m *FinanceBillMutation) ClearedEdges() []string {
 	}
 	if m.clearedinvoice_links {
 		edges = append(edges, financebill.EdgeInvoiceLinks)
+	}
+	if m.clearedinvoice_exemptions {
+		edges = append(edges, financebill.EdgeInvoiceExemptions)
 	}
 	if m.clearedverification_allocations {
 		edges = append(edges, financebill.EdgeVerificationAllocations)
@@ -36877,6 +36957,8 @@ func (m *FinanceBillMutation) EdgeCleared(name string) bool {
 		return m.clearedlines
 	case financebill.EdgeInvoiceLinks:
 		return m.clearedinvoice_links
+	case financebill.EdgeInvoiceExemptions:
+		return m.clearedinvoice_exemptions
 	case financebill.EdgeVerificationAllocations:
 		return m.clearedverification_allocations
 	case financebill.EdgeNettingAllocations:
@@ -36933,6 +37015,9 @@ func (m *FinanceBillMutation) ResetEdge(name string) error {
 	case financebill.EdgeInvoiceLinks:
 		m.ResetInvoiceLinks()
 		return nil
+	case financebill.EdgeInvoiceExemptions:
+		m.ResetInvoiceExemptions()
+		return nil
 	case financebill.EdgeVerificationAllocations:
 		m.ResetVerificationAllocations()
 		return nil
@@ -36957,12 +37042,6 @@ type FinanceBillBatchMutation struct {
 	split_by_order      *bool
 	split_by_tax_rate   *bool
 	grouping_mode       *financebillbatch.GroupingMode
-	fee_count           *int
-	addfee_count        *int
-	bill_count          *int
-	addbill_count       *int
-	total_base_amount   *string
-	base_currency       *string
 	clearedFields       map[string]struct{}
 	organization        *uuid.UUID
 	clearedorganization bool
@@ -37407,190 +37486,6 @@ func (m *FinanceBillBatchMutation) ResetGroupingMode() {
 	m.grouping_mode = nil
 }
 
-// SetFeeCount sets the "fee_count" field.
-func (m *FinanceBillBatchMutation) SetFeeCount(i int) {
-	m.fee_count = &i
-	m.addfee_count = nil
-}
-
-// FeeCount returns the value of the "fee_count" field in the mutation.
-func (m *FinanceBillBatchMutation) FeeCount() (r int, exists bool) {
-	v := m.fee_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldFeeCount returns the old "fee_count" field's value of the FinanceBillBatch entity.
-// If the FinanceBillBatch object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FinanceBillBatchMutation) OldFeeCount(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldFeeCount is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldFeeCount requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldFeeCount: %w", err)
-	}
-	return oldValue.FeeCount, nil
-}
-
-// AddFeeCount adds i to the "fee_count" field.
-func (m *FinanceBillBatchMutation) AddFeeCount(i int) {
-	if m.addfee_count != nil {
-		*m.addfee_count += i
-	} else {
-		m.addfee_count = &i
-	}
-}
-
-// AddedFeeCount returns the value that was added to the "fee_count" field in this mutation.
-func (m *FinanceBillBatchMutation) AddedFeeCount() (r int, exists bool) {
-	v := m.addfee_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetFeeCount resets all changes to the "fee_count" field.
-func (m *FinanceBillBatchMutation) ResetFeeCount() {
-	m.fee_count = nil
-	m.addfee_count = nil
-}
-
-// SetBillCount sets the "bill_count" field.
-func (m *FinanceBillBatchMutation) SetBillCount(i int) {
-	m.bill_count = &i
-	m.addbill_count = nil
-}
-
-// BillCount returns the value of the "bill_count" field in the mutation.
-func (m *FinanceBillBatchMutation) BillCount() (r int, exists bool) {
-	v := m.bill_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldBillCount returns the old "bill_count" field's value of the FinanceBillBatch entity.
-// If the FinanceBillBatch object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FinanceBillBatchMutation) OldBillCount(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldBillCount is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldBillCount requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldBillCount: %w", err)
-	}
-	return oldValue.BillCount, nil
-}
-
-// AddBillCount adds i to the "bill_count" field.
-func (m *FinanceBillBatchMutation) AddBillCount(i int) {
-	if m.addbill_count != nil {
-		*m.addbill_count += i
-	} else {
-		m.addbill_count = &i
-	}
-}
-
-// AddedBillCount returns the value that was added to the "bill_count" field in this mutation.
-func (m *FinanceBillBatchMutation) AddedBillCount() (r int, exists bool) {
-	v := m.addbill_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetBillCount resets all changes to the "bill_count" field.
-func (m *FinanceBillBatchMutation) ResetBillCount() {
-	m.bill_count = nil
-	m.addbill_count = nil
-}
-
-// SetTotalBaseAmount sets the "total_base_amount" field.
-func (m *FinanceBillBatchMutation) SetTotalBaseAmount(s string) {
-	m.total_base_amount = &s
-}
-
-// TotalBaseAmount returns the value of the "total_base_amount" field in the mutation.
-func (m *FinanceBillBatchMutation) TotalBaseAmount() (r string, exists bool) {
-	v := m.total_base_amount
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldTotalBaseAmount returns the old "total_base_amount" field's value of the FinanceBillBatch entity.
-// If the FinanceBillBatch object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FinanceBillBatchMutation) OldTotalBaseAmount(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTotalBaseAmount is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTotalBaseAmount requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTotalBaseAmount: %w", err)
-	}
-	return oldValue.TotalBaseAmount, nil
-}
-
-// ResetTotalBaseAmount resets all changes to the "total_base_amount" field.
-func (m *FinanceBillBatchMutation) ResetTotalBaseAmount() {
-	m.total_base_amount = nil
-}
-
-// SetBaseCurrency sets the "base_currency" field.
-func (m *FinanceBillBatchMutation) SetBaseCurrency(s string) {
-	m.base_currency = &s
-}
-
-// BaseCurrency returns the value of the "base_currency" field in the mutation.
-func (m *FinanceBillBatchMutation) BaseCurrency() (r string, exists bool) {
-	v := m.base_currency
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldBaseCurrency returns the old "base_currency" field's value of the FinanceBillBatch entity.
-// If the FinanceBillBatch object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FinanceBillBatchMutation) OldBaseCurrency(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldBaseCurrency is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldBaseCurrency requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldBaseCurrency: %w", err)
-	}
-	return oldValue.BaseCurrency, nil
-}
-
-// ResetBaseCurrency resets all changes to the "base_currency" field.
-func (m *FinanceBillBatchMutation) ResetBaseCurrency() {
-	m.base_currency = nil
-}
-
 // SetCreatedBy sets the "created_by" field.
 func (m *FinanceBillBatchMutation) SetCreatedBy(u uuid.UUID) {
 	m.creator = &u
@@ -37836,7 +37731,7 @@ func (m *FinanceBillBatchMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceBillBatchMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 10)
 	if m.created_at != nil {
 		fields = append(fields, financebillbatch.FieldCreatedAt)
 	}
@@ -37863,18 +37758,6 @@ func (m *FinanceBillBatchMutation) Fields() []string {
 	}
 	if m.grouping_mode != nil {
 		fields = append(fields, financebillbatch.FieldGroupingMode)
-	}
-	if m.fee_count != nil {
-		fields = append(fields, financebillbatch.FieldFeeCount)
-	}
-	if m.bill_count != nil {
-		fields = append(fields, financebillbatch.FieldBillCount)
-	}
-	if m.total_base_amount != nil {
-		fields = append(fields, financebillbatch.FieldTotalBaseAmount)
-	}
-	if m.base_currency != nil {
-		fields = append(fields, financebillbatch.FieldBaseCurrency)
 	}
 	if m.creator != nil {
 		fields = append(fields, financebillbatch.FieldCreatedBy)
@@ -37905,14 +37788,6 @@ func (m *FinanceBillBatchMutation) Field(name string) (ent.Value, bool) {
 		return m.SplitByTaxRate()
 	case financebillbatch.FieldGroupingMode:
 		return m.GroupingMode()
-	case financebillbatch.FieldFeeCount:
-		return m.FeeCount()
-	case financebillbatch.FieldBillCount:
-		return m.BillCount()
-	case financebillbatch.FieldTotalBaseAmount:
-		return m.TotalBaseAmount()
-	case financebillbatch.FieldBaseCurrency:
-		return m.BaseCurrency()
 	case financebillbatch.FieldCreatedBy:
 		return m.CreatedBy()
 	}
@@ -37942,14 +37817,6 @@ func (m *FinanceBillBatchMutation) OldField(ctx context.Context, name string) (e
 		return m.OldSplitByTaxRate(ctx)
 	case financebillbatch.FieldGroupingMode:
 		return m.OldGroupingMode(ctx)
-	case financebillbatch.FieldFeeCount:
-		return m.OldFeeCount(ctx)
-	case financebillbatch.FieldBillCount:
-		return m.OldBillCount(ctx)
-	case financebillbatch.FieldTotalBaseAmount:
-		return m.OldTotalBaseAmount(ctx)
-	case financebillbatch.FieldBaseCurrency:
-		return m.OldBaseCurrency(ctx)
 	case financebillbatch.FieldCreatedBy:
 		return m.OldCreatedBy(ctx)
 	}
@@ -38024,34 +37891,6 @@ func (m *FinanceBillBatchMutation) SetField(name string, value ent.Value) error 
 		}
 		m.SetGroupingMode(v)
 		return nil
-	case financebillbatch.FieldFeeCount:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetFeeCount(v)
-		return nil
-	case financebillbatch.FieldBillCount:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetBillCount(v)
-		return nil
-	case financebillbatch.FieldTotalBaseAmount:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetTotalBaseAmount(v)
-		return nil
-	case financebillbatch.FieldBaseCurrency:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetBaseCurrency(v)
-		return nil
 	case financebillbatch.FieldCreatedBy:
 		v, ok := value.(uuid.UUID)
 		if !ok {
@@ -38066,26 +37905,13 @@ func (m *FinanceBillBatchMutation) SetField(name string, value ent.Value) error 
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *FinanceBillBatchMutation) AddedFields() []string {
-	var fields []string
-	if m.addfee_count != nil {
-		fields = append(fields, financebillbatch.FieldFeeCount)
-	}
-	if m.addbill_count != nil {
-		fields = append(fields, financebillbatch.FieldBillCount)
-	}
-	return fields
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *FinanceBillBatchMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case financebillbatch.FieldFeeCount:
-		return m.AddedFeeCount()
-	case financebillbatch.FieldBillCount:
-		return m.AddedBillCount()
-	}
 	return nil, false
 }
 
@@ -38094,20 +37920,6 @@ func (m *FinanceBillBatchMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *FinanceBillBatchMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case financebillbatch.FieldFeeCount:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddFeeCount(v)
-		return nil
-	case financebillbatch.FieldBillCount:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddBillCount(v)
-		return nil
 	}
 	return fmt.Errorf("unknown FinanceBillBatch numeric field %s", name)
 }
@@ -38161,18 +37973,6 @@ func (m *FinanceBillBatchMutation) ResetField(name string) error {
 		return nil
 	case financebillbatch.FieldGroupingMode:
 		m.ResetGroupingMode()
-		return nil
-	case financebillbatch.FieldFeeCount:
-		m.ResetFeeCount()
-		return nil
-	case financebillbatch.FieldBillCount:
-		m.ResetBillCount()
-		return nil
-	case financebillbatch.FieldTotalBaseAmount:
-		m.ResetTotalBaseAmount()
-		return nil
-	case financebillbatch.FieldBaseCurrency:
-		m.ResetBaseCurrency()
 		return nil
 	case financebillbatch.FieldCreatedBy:
 		m.ResetCreatedBy()
@@ -63456,6 +63256,1020 @@ func (m *FinanceInvoiceBillMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown FinanceInvoiceBill edge %s", name)
+}
+
+// FinanceInvoiceExemptionMutation represents an operation that mutates the FinanceInvoiceExemption nodes in the graph.
+type FinanceInvoiceExemptionMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	created_at          *time.Time
+	updated_at          *time.Time
+	marked_by           *uuid.UUID
+	reason              *string
+	version             *uint64
+	addversion          *int64
+	revoked_at          *time.Time
+	revoked_by          *uuid.UUID
+	revocation_reason   *string
+	clearedFields       map[string]struct{}
+	bill                *uuid.UUID
+	clearedbill         bool
+	organization        *uuid.UUID
+	clearedorganization bool
+	done                bool
+	oldValue            func(context.Context) (*FinanceInvoiceExemption, error)
+	predicates          []predicate.FinanceInvoiceExemption
+}
+
+var _ ent.Mutation = (*FinanceInvoiceExemptionMutation)(nil)
+
+// financeinvoiceexemptionOption allows management of the mutation configuration using functional options.
+type financeinvoiceexemptionOption func(*FinanceInvoiceExemptionMutation)
+
+// newFinanceInvoiceExemptionMutation creates new mutation for the FinanceInvoiceExemption entity.
+func newFinanceInvoiceExemptionMutation(c config, op Op, opts ...financeinvoiceexemptionOption) *FinanceInvoiceExemptionMutation {
+	m := &FinanceInvoiceExemptionMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeFinanceInvoiceExemption,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withFinanceInvoiceExemptionID sets the ID field of the mutation.
+func withFinanceInvoiceExemptionID(id uuid.UUID) financeinvoiceexemptionOption {
+	return func(m *FinanceInvoiceExemptionMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *FinanceInvoiceExemption
+		)
+		m.oldValue = func(ctx context.Context) (*FinanceInvoiceExemption, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().FinanceInvoiceExemption.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withFinanceInvoiceExemption sets the old FinanceInvoiceExemption of the mutation.
+func withFinanceInvoiceExemption(node *FinanceInvoiceExemption) financeinvoiceexemptionOption {
+	return func(m *FinanceInvoiceExemptionMutation) {
+		m.oldValue = func(context.Context) (*FinanceInvoiceExemption, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m FinanceInvoiceExemptionMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m FinanceInvoiceExemptionMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of FinanceInvoiceExemption entities.
+func (m *FinanceInvoiceExemptionMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *FinanceInvoiceExemptionMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *FinanceInvoiceExemptionMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().FinanceInvoiceExemption.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *FinanceInvoiceExemptionMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *FinanceInvoiceExemptionMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the FinanceInvoiceExemption entity.
+// If the FinanceInvoiceExemption object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceInvoiceExemptionMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *FinanceInvoiceExemptionMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *FinanceInvoiceExemptionMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *FinanceInvoiceExemptionMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the FinanceInvoiceExemption entity.
+// If the FinanceInvoiceExemption object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceInvoiceExemptionMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *FinanceInvoiceExemptionMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOrganizationID sets the "organization_id" field.
+func (m *FinanceInvoiceExemptionMutation) SetOrganizationID(u uuid.UUID) {
+	m.organization = &u
+}
+
+// OrganizationID returns the value of the "organization_id" field in the mutation.
+func (m *FinanceInvoiceExemptionMutation) OrganizationID() (r uuid.UUID, exists bool) {
+	v := m.organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrganizationID returns the old "organization_id" field's value of the FinanceInvoiceExemption entity.
+// If the FinanceInvoiceExemption object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceInvoiceExemptionMutation) OldOrganizationID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrganizationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrganizationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrganizationID: %w", err)
+	}
+	return oldValue.OrganizationID, nil
+}
+
+// ResetOrganizationID resets all changes to the "organization_id" field.
+func (m *FinanceInvoiceExemptionMutation) ResetOrganizationID() {
+	m.organization = nil
+}
+
+// SetBillID sets the "bill_id" field.
+func (m *FinanceInvoiceExemptionMutation) SetBillID(u uuid.UUID) {
+	m.bill = &u
+}
+
+// BillID returns the value of the "bill_id" field in the mutation.
+func (m *FinanceInvoiceExemptionMutation) BillID() (r uuid.UUID, exists bool) {
+	v := m.bill
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBillID returns the old "bill_id" field's value of the FinanceInvoiceExemption entity.
+// If the FinanceInvoiceExemption object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceInvoiceExemptionMutation) OldBillID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBillID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBillID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBillID: %w", err)
+	}
+	return oldValue.BillID, nil
+}
+
+// ResetBillID resets all changes to the "bill_id" field.
+func (m *FinanceInvoiceExemptionMutation) ResetBillID() {
+	m.bill = nil
+}
+
+// SetMarkedBy sets the "marked_by" field.
+func (m *FinanceInvoiceExemptionMutation) SetMarkedBy(u uuid.UUID) {
+	m.marked_by = &u
+}
+
+// MarkedBy returns the value of the "marked_by" field in the mutation.
+func (m *FinanceInvoiceExemptionMutation) MarkedBy() (r uuid.UUID, exists bool) {
+	v := m.marked_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMarkedBy returns the old "marked_by" field's value of the FinanceInvoiceExemption entity.
+// If the FinanceInvoiceExemption object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceInvoiceExemptionMutation) OldMarkedBy(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMarkedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMarkedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMarkedBy: %w", err)
+	}
+	return oldValue.MarkedBy, nil
+}
+
+// ResetMarkedBy resets all changes to the "marked_by" field.
+func (m *FinanceInvoiceExemptionMutation) ResetMarkedBy() {
+	m.marked_by = nil
+}
+
+// SetReason sets the "reason" field.
+func (m *FinanceInvoiceExemptionMutation) SetReason(s string) {
+	m.reason = &s
+}
+
+// Reason returns the value of the "reason" field in the mutation.
+func (m *FinanceInvoiceExemptionMutation) Reason() (r string, exists bool) {
+	v := m.reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReason returns the old "reason" field's value of the FinanceInvoiceExemption entity.
+// If the FinanceInvoiceExemption object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceInvoiceExemptionMutation) OldReason(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReason: %w", err)
+	}
+	return oldValue.Reason, nil
+}
+
+// ResetReason resets all changes to the "reason" field.
+func (m *FinanceInvoiceExemptionMutation) ResetReason() {
+	m.reason = nil
+}
+
+// SetVersion sets the "version" field.
+func (m *FinanceInvoiceExemptionMutation) SetVersion(u uint64) {
+	m.version = &u
+	m.addversion = nil
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *FinanceInvoiceExemptionMutation) Version() (r uint64, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the FinanceInvoiceExemption entity.
+// If the FinanceInvoiceExemption object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceInvoiceExemptionMutation) OldVersion(ctx context.Context) (v uint64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// AddVersion adds u to the "version" field.
+func (m *FinanceInvoiceExemptionMutation) AddVersion(u int64) {
+	if m.addversion != nil {
+		*m.addversion += u
+	} else {
+		m.addversion = &u
+	}
+}
+
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *FinanceInvoiceExemptionMutation) AddedVersion() (r int64, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *FinanceInvoiceExemptionMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
+}
+
+// SetRevokedAt sets the "revoked_at" field.
+func (m *FinanceInvoiceExemptionMutation) SetRevokedAt(t time.Time) {
+	m.revoked_at = &t
+}
+
+// RevokedAt returns the value of the "revoked_at" field in the mutation.
+func (m *FinanceInvoiceExemptionMutation) RevokedAt() (r time.Time, exists bool) {
+	v := m.revoked_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRevokedAt returns the old "revoked_at" field's value of the FinanceInvoiceExemption entity.
+// If the FinanceInvoiceExemption object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceInvoiceExemptionMutation) OldRevokedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRevokedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRevokedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRevokedAt: %w", err)
+	}
+	return oldValue.RevokedAt, nil
+}
+
+// ClearRevokedAt clears the value of the "revoked_at" field.
+func (m *FinanceInvoiceExemptionMutation) ClearRevokedAt() {
+	m.revoked_at = nil
+	m.clearedFields[financeinvoiceexemption.FieldRevokedAt] = struct{}{}
+}
+
+// RevokedAtCleared returns if the "revoked_at" field was cleared in this mutation.
+func (m *FinanceInvoiceExemptionMutation) RevokedAtCleared() bool {
+	_, ok := m.clearedFields[financeinvoiceexemption.FieldRevokedAt]
+	return ok
+}
+
+// ResetRevokedAt resets all changes to the "revoked_at" field.
+func (m *FinanceInvoiceExemptionMutation) ResetRevokedAt() {
+	m.revoked_at = nil
+	delete(m.clearedFields, financeinvoiceexemption.FieldRevokedAt)
+}
+
+// SetRevokedBy sets the "revoked_by" field.
+func (m *FinanceInvoiceExemptionMutation) SetRevokedBy(u uuid.UUID) {
+	m.revoked_by = &u
+}
+
+// RevokedBy returns the value of the "revoked_by" field in the mutation.
+func (m *FinanceInvoiceExemptionMutation) RevokedBy() (r uuid.UUID, exists bool) {
+	v := m.revoked_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRevokedBy returns the old "revoked_by" field's value of the FinanceInvoiceExemption entity.
+// If the FinanceInvoiceExemption object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceInvoiceExemptionMutation) OldRevokedBy(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRevokedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRevokedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRevokedBy: %w", err)
+	}
+	return oldValue.RevokedBy, nil
+}
+
+// ClearRevokedBy clears the value of the "revoked_by" field.
+func (m *FinanceInvoiceExemptionMutation) ClearRevokedBy() {
+	m.revoked_by = nil
+	m.clearedFields[financeinvoiceexemption.FieldRevokedBy] = struct{}{}
+}
+
+// RevokedByCleared returns if the "revoked_by" field was cleared in this mutation.
+func (m *FinanceInvoiceExemptionMutation) RevokedByCleared() bool {
+	_, ok := m.clearedFields[financeinvoiceexemption.FieldRevokedBy]
+	return ok
+}
+
+// ResetRevokedBy resets all changes to the "revoked_by" field.
+func (m *FinanceInvoiceExemptionMutation) ResetRevokedBy() {
+	m.revoked_by = nil
+	delete(m.clearedFields, financeinvoiceexemption.FieldRevokedBy)
+}
+
+// SetRevocationReason sets the "revocation_reason" field.
+func (m *FinanceInvoiceExemptionMutation) SetRevocationReason(s string) {
+	m.revocation_reason = &s
+}
+
+// RevocationReason returns the value of the "revocation_reason" field in the mutation.
+func (m *FinanceInvoiceExemptionMutation) RevocationReason() (r string, exists bool) {
+	v := m.revocation_reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRevocationReason returns the old "revocation_reason" field's value of the FinanceInvoiceExemption entity.
+// If the FinanceInvoiceExemption object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceInvoiceExemptionMutation) OldRevocationReason(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRevocationReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRevocationReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRevocationReason: %w", err)
+	}
+	return oldValue.RevocationReason, nil
+}
+
+// ClearRevocationReason clears the value of the "revocation_reason" field.
+func (m *FinanceInvoiceExemptionMutation) ClearRevocationReason() {
+	m.revocation_reason = nil
+	m.clearedFields[financeinvoiceexemption.FieldRevocationReason] = struct{}{}
+}
+
+// RevocationReasonCleared returns if the "revocation_reason" field was cleared in this mutation.
+func (m *FinanceInvoiceExemptionMutation) RevocationReasonCleared() bool {
+	_, ok := m.clearedFields[financeinvoiceexemption.FieldRevocationReason]
+	return ok
+}
+
+// ResetRevocationReason resets all changes to the "revocation_reason" field.
+func (m *FinanceInvoiceExemptionMutation) ResetRevocationReason() {
+	m.revocation_reason = nil
+	delete(m.clearedFields, financeinvoiceexemption.FieldRevocationReason)
+}
+
+// ClearBill clears the "bill" edge to the FinanceBill entity.
+func (m *FinanceInvoiceExemptionMutation) ClearBill() {
+	m.clearedbill = true
+	m.clearedFields[financeinvoiceexemption.FieldBillID] = struct{}{}
+}
+
+// BillCleared reports if the "bill" edge to the FinanceBill entity was cleared.
+func (m *FinanceInvoiceExemptionMutation) BillCleared() bool {
+	return m.clearedbill
+}
+
+// BillIDs returns the "bill" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// BillID instead. It exists only for internal usage by the builders.
+func (m *FinanceInvoiceExemptionMutation) BillIDs() (ids []uuid.UUID) {
+	if id := m.bill; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetBill resets all changes to the "bill" edge.
+func (m *FinanceInvoiceExemptionMutation) ResetBill() {
+	m.bill = nil
+	m.clearedbill = false
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *FinanceInvoiceExemptionMutation) ClearOrganization() {
+	m.clearedorganization = true
+	m.clearedFields[financeinvoiceexemption.FieldOrganizationID] = struct{}{}
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *FinanceInvoiceExemptionMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *FinanceInvoiceExemptionMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *FinanceInvoiceExemptionMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// Where appends a list predicates to the FinanceInvoiceExemptionMutation builder.
+func (m *FinanceInvoiceExemptionMutation) Where(ps ...predicate.FinanceInvoiceExemption) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the FinanceInvoiceExemptionMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *FinanceInvoiceExemptionMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.FinanceInvoiceExemption, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *FinanceInvoiceExemptionMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *FinanceInvoiceExemptionMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (FinanceInvoiceExemption).
+func (m *FinanceInvoiceExemptionMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *FinanceInvoiceExemptionMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.created_at != nil {
+		fields = append(fields, financeinvoiceexemption.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, financeinvoiceexemption.FieldUpdatedAt)
+	}
+	if m.organization != nil {
+		fields = append(fields, financeinvoiceexemption.FieldOrganizationID)
+	}
+	if m.bill != nil {
+		fields = append(fields, financeinvoiceexemption.FieldBillID)
+	}
+	if m.marked_by != nil {
+		fields = append(fields, financeinvoiceexemption.FieldMarkedBy)
+	}
+	if m.reason != nil {
+		fields = append(fields, financeinvoiceexemption.FieldReason)
+	}
+	if m.version != nil {
+		fields = append(fields, financeinvoiceexemption.FieldVersion)
+	}
+	if m.revoked_at != nil {
+		fields = append(fields, financeinvoiceexemption.FieldRevokedAt)
+	}
+	if m.revoked_by != nil {
+		fields = append(fields, financeinvoiceexemption.FieldRevokedBy)
+	}
+	if m.revocation_reason != nil {
+		fields = append(fields, financeinvoiceexemption.FieldRevocationReason)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *FinanceInvoiceExemptionMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case financeinvoiceexemption.FieldCreatedAt:
+		return m.CreatedAt()
+	case financeinvoiceexemption.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case financeinvoiceexemption.FieldOrganizationID:
+		return m.OrganizationID()
+	case financeinvoiceexemption.FieldBillID:
+		return m.BillID()
+	case financeinvoiceexemption.FieldMarkedBy:
+		return m.MarkedBy()
+	case financeinvoiceexemption.FieldReason:
+		return m.Reason()
+	case financeinvoiceexemption.FieldVersion:
+		return m.Version()
+	case financeinvoiceexemption.FieldRevokedAt:
+		return m.RevokedAt()
+	case financeinvoiceexemption.FieldRevokedBy:
+		return m.RevokedBy()
+	case financeinvoiceexemption.FieldRevocationReason:
+		return m.RevocationReason()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *FinanceInvoiceExemptionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case financeinvoiceexemption.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case financeinvoiceexemption.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case financeinvoiceexemption.FieldOrganizationID:
+		return m.OldOrganizationID(ctx)
+	case financeinvoiceexemption.FieldBillID:
+		return m.OldBillID(ctx)
+	case financeinvoiceexemption.FieldMarkedBy:
+		return m.OldMarkedBy(ctx)
+	case financeinvoiceexemption.FieldReason:
+		return m.OldReason(ctx)
+	case financeinvoiceexemption.FieldVersion:
+		return m.OldVersion(ctx)
+	case financeinvoiceexemption.FieldRevokedAt:
+		return m.OldRevokedAt(ctx)
+	case financeinvoiceexemption.FieldRevokedBy:
+		return m.OldRevokedBy(ctx)
+	case financeinvoiceexemption.FieldRevocationReason:
+		return m.OldRevocationReason(ctx)
+	}
+	return nil, fmt.Errorf("unknown FinanceInvoiceExemption field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FinanceInvoiceExemptionMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case financeinvoiceexemption.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case financeinvoiceexemption.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case financeinvoiceexemption.FieldOrganizationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrganizationID(v)
+		return nil
+	case financeinvoiceexemption.FieldBillID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBillID(v)
+		return nil
+	case financeinvoiceexemption.FieldMarkedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMarkedBy(v)
+		return nil
+	case financeinvoiceexemption.FieldReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReason(v)
+		return nil
+	case financeinvoiceexemption.FieldVersion:
+		v, ok := value.(uint64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
+	case financeinvoiceexemption.FieldRevokedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRevokedAt(v)
+		return nil
+	case financeinvoiceexemption.FieldRevokedBy:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRevokedBy(v)
+		return nil
+	case financeinvoiceexemption.FieldRevocationReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRevocationReason(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceInvoiceExemption field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *FinanceInvoiceExemptionMutation) AddedFields() []string {
+	var fields []string
+	if m.addversion != nil {
+		fields = append(fields, financeinvoiceexemption.FieldVersion)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *FinanceInvoiceExemptionMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case financeinvoiceexemption.FieldVersion:
+		return m.AddedVersion()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *FinanceInvoiceExemptionMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case financeinvoiceexemption.FieldVersion:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceInvoiceExemption numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *FinanceInvoiceExemptionMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(financeinvoiceexemption.FieldRevokedAt) {
+		fields = append(fields, financeinvoiceexemption.FieldRevokedAt)
+	}
+	if m.FieldCleared(financeinvoiceexemption.FieldRevokedBy) {
+		fields = append(fields, financeinvoiceexemption.FieldRevokedBy)
+	}
+	if m.FieldCleared(financeinvoiceexemption.FieldRevocationReason) {
+		fields = append(fields, financeinvoiceexemption.FieldRevocationReason)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *FinanceInvoiceExemptionMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *FinanceInvoiceExemptionMutation) ClearField(name string) error {
+	switch name {
+	case financeinvoiceexemption.FieldRevokedAt:
+		m.ClearRevokedAt()
+		return nil
+	case financeinvoiceexemption.FieldRevokedBy:
+		m.ClearRevokedBy()
+		return nil
+	case financeinvoiceexemption.FieldRevocationReason:
+		m.ClearRevocationReason()
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceInvoiceExemption nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *FinanceInvoiceExemptionMutation) ResetField(name string) error {
+	switch name {
+	case financeinvoiceexemption.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case financeinvoiceexemption.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case financeinvoiceexemption.FieldOrganizationID:
+		m.ResetOrganizationID()
+		return nil
+	case financeinvoiceexemption.FieldBillID:
+		m.ResetBillID()
+		return nil
+	case financeinvoiceexemption.FieldMarkedBy:
+		m.ResetMarkedBy()
+		return nil
+	case financeinvoiceexemption.FieldReason:
+		m.ResetReason()
+		return nil
+	case financeinvoiceexemption.FieldVersion:
+		m.ResetVersion()
+		return nil
+	case financeinvoiceexemption.FieldRevokedAt:
+		m.ResetRevokedAt()
+		return nil
+	case financeinvoiceexemption.FieldRevokedBy:
+		m.ResetRevokedBy()
+		return nil
+	case financeinvoiceexemption.FieldRevocationReason:
+		m.ResetRevocationReason()
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceInvoiceExemption field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *FinanceInvoiceExemptionMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.bill != nil {
+		edges = append(edges, financeinvoiceexemption.EdgeBill)
+	}
+	if m.organization != nil {
+		edges = append(edges, financeinvoiceexemption.EdgeOrganization)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *FinanceInvoiceExemptionMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case financeinvoiceexemption.EdgeBill:
+		if id := m.bill; id != nil {
+			return []ent.Value{*id}
+		}
+	case financeinvoiceexemption.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *FinanceInvoiceExemptionMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *FinanceInvoiceExemptionMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *FinanceInvoiceExemptionMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedbill {
+		edges = append(edges, financeinvoiceexemption.EdgeBill)
+	}
+	if m.clearedorganization {
+		edges = append(edges, financeinvoiceexemption.EdgeOrganization)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *FinanceInvoiceExemptionMutation) EdgeCleared(name string) bool {
+	switch name {
+	case financeinvoiceexemption.EdgeBill:
+		return m.clearedbill
+	case financeinvoiceexemption.EdgeOrganization:
+		return m.clearedorganization
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *FinanceInvoiceExemptionMutation) ClearEdge(name string) error {
+	switch name {
+	case financeinvoiceexemption.EdgeBill:
+		m.ClearBill()
+		return nil
+	case financeinvoiceexemption.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceInvoiceExemption unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *FinanceInvoiceExemptionMutation) ResetEdge(name string) error {
+	switch name {
+	case financeinvoiceexemption.EdgeBill:
+		m.ResetBill()
+		return nil
+	case financeinvoiceexemption.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	}
+	return fmt.Errorf("unknown FinanceInvoiceExemption edge %s", name)
 }
 
 // FinanceInvoiceLineMutation represents an operation that mutates the FinanceInvoiceLine nodes in the graph.
@@ -93391,6 +94205,7 @@ type OrderFeeMutation struct {
 	fee_code                              *string
 	fee_name                              *string
 	fee_name_en                           *string
+	search_keywords                       *string
 	billing_unit                          *string
 	tax_rate                              *string
 	taxable_service_name                  *string
@@ -93899,6 +94714,42 @@ func (m *OrderFeeMutation) FeeNameEnCleared() bool {
 func (m *OrderFeeMutation) ResetFeeNameEn() {
 	m.fee_name_en = nil
 	delete(m.clearedFields, orderfee.FieldFeeNameEn)
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *OrderFeeMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *OrderFeeMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the OrderFee entity.
+// If the OrderFee object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderFeeMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *OrderFeeMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
 }
 
 // SetSettlementPartyID sets the "settlement_party_id" field.
@@ -95502,7 +96353,7 @@ func (m *OrderFeeMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderFeeMutation) Fields() []string {
-	fields := make([]string, 0, 36)
+	fields := make([]string, 0, 37)
 	if m.created_at != nil {
 		fields = append(fields, orderfee.FieldCreatedAt)
 	}
@@ -95529,6 +96380,9 @@ func (m *OrderFeeMutation) Fields() []string {
 	}
 	if m.fee_name_en != nil {
 		fields = append(fields, orderfee.FieldFeeNameEn)
+	}
+	if m.search_keywords != nil {
+		fields = append(fields, orderfee.FieldSearchKeywords)
 	}
 	if m.settlement_party != nil {
 		fields = append(fields, orderfee.FieldSettlementPartyID)
@@ -95637,6 +96491,8 @@ func (m *OrderFeeMutation) Field(name string) (ent.Value, bool) {
 		return m.FeeName()
 	case orderfee.FieldFeeNameEn:
 		return m.FeeNameEn()
+	case orderfee.FieldSearchKeywords:
+		return m.SearchKeywords()
 	case orderfee.FieldSettlementPartyID:
 		return m.SettlementPartyID()
 	case orderfee.FieldBillingUnitID:
@@ -95718,6 +96574,8 @@ func (m *OrderFeeMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldFeeName(ctx)
 	case orderfee.FieldFeeNameEn:
 		return m.OldFeeNameEn(ctx)
+	case orderfee.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	case orderfee.FieldSettlementPartyID:
 		return m.OldSettlementPartyID(ctx)
 	case orderfee.FieldBillingUnitID:
@@ -95843,6 +96701,13 @@ func (m *OrderFeeMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetFeeNameEn(v)
+		return nil
+	case orderfee.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	case orderfee.FieldSettlementPartyID:
 		v, ok := value.(uuid.UUID)
@@ -96198,6 +97063,9 @@ func (m *OrderFeeMutation) ResetField(name string) error {
 		return nil
 	case orderfee.FieldFeeNameEn:
 		m.ResetFeeNameEn()
+		return nil
+	case orderfee.FieldSearchKeywords:
+		m.ResetSearchKeywords()
 		return nil
 	case orderfee.FieldSettlementPartyID:
 		m.ResetSettlementPartyID()
@@ -115597,6 +116465,9 @@ type OrganizationMutation struct {
 	finance_invoices                            map[uuid.UUID]struct{}
 	removedfinance_invoices                     map[uuid.UUID]struct{}
 	clearedfinance_invoices                     bool
+	finance_invoice_exemptions                  map[uuid.UUID]struct{}
+	removedfinance_invoice_exemptions           map[uuid.UUID]struct{}
+	clearedfinance_invoice_exemptions           bool
 	finance_cashflows                           map[uuid.UUID]struct{}
 	removedfinance_cashflows                    map[uuid.UUID]struct{}
 	clearedfinance_cashflows                    bool
@@ -117536,6 +118407,60 @@ func (m *OrganizationMutation) ResetFinanceInvoices() {
 	m.finance_invoices = nil
 	m.clearedfinance_invoices = false
 	m.removedfinance_invoices = nil
+}
+
+// AddFinanceInvoiceExemptionIDs adds the "finance_invoice_exemptions" edge to the FinanceInvoiceExemption entity by ids.
+func (m *OrganizationMutation) AddFinanceInvoiceExemptionIDs(ids ...uuid.UUID) {
+	if m.finance_invoice_exemptions == nil {
+		m.finance_invoice_exemptions = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.finance_invoice_exemptions[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFinanceInvoiceExemptions clears the "finance_invoice_exemptions" edge to the FinanceInvoiceExemption entity.
+func (m *OrganizationMutation) ClearFinanceInvoiceExemptions() {
+	m.clearedfinance_invoice_exemptions = true
+}
+
+// FinanceInvoiceExemptionsCleared reports if the "finance_invoice_exemptions" edge to the FinanceInvoiceExemption entity was cleared.
+func (m *OrganizationMutation) FinanceInvoiceExemptionsCleared() bool {
+	return m.clearedfinance_invoice_exemptions
+}
+
+// RemoveFinanceInvoiceExemptionIDs removes the "finance_invoice_exemptions" edge to the FinanceInvoiceExemption entity by IDs.
+func (m *OrganizationMutation) RemoveFinanceInvoiceExemptionIDs(ids ...uuid.UUID) {
+	if m.removedfinance_invoice_exemptions == nil {
+		m.removedfinance_invoice_exemptions = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.finance_invoice_exemptions, ids[i])
+		m.removedfinance_invoice_exemptions[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFinanceInvoiceExemptions returns the removed IDs of the "finance_invoice_exemptions" edge to the FinanceInvoiceExemption entity.
+func (m *OrganizationMutation) RemovedFinanceInvoiceExemptionsIDs() (ids []uuid.UUID) {
+	for id := range m.removedfinance_invoice_exemptions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FinanceInvoiceExemptionsIDs returns the "finance_invoice_exemptions" edge IDs in the mutation.
+func (m *OrganizationMutation) FinanceInvoiceExemptionsIDs() (ids []uuid.UUID) {
+	for id := range m.finance_invoice_exemptions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFinanceInvoiceExemptions resets all changes to the "finance_invoice_exemptions" edge.
+func (m *OrganizationMutation) ResetFinanceInvoiceExemptions() {
+	m.finance_invoice_exemptions = nil
+	m.clearedfinance_invoice_exemptions = false
+	m.removedfinance_invoice_exemptions = nil
 }
 
 // AddFinanceCashflowIDs adds the "finance_cashflows" edge to the FinanceCashflow entity by ids.
@@ -119650,7 +120575,7 @@ func (m *OrganizationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrganizationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 57)
+	edges := make([]string, 0, 58)
 	if m.parent != nil {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -119722,6 +120647,9 @@ func (m *OrganizationMutation) AddedEdges() []string {
 	}
 	if m.finance_invoices != nil {
 		edges = append(edges, organization.EdgeFinanceInvoices)
+	}
+	if m.finance_invoice_exemptions != nil {
+		edges = append(edges, organization.EdgeFinanceInvoiceExemptions)
 	}
 	if m.finance_cashflows != nil {
 		edges = append(edges, organization.EdgeFinanceCashflows)
@@ -119971,6 +120899,12 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeFinanceInvoiceExemptions:
+		ids := make([]ent.Value, 0, len(m.finance_invoice_exemptions))
+		for id := range m.finance_invoice_exemptions {
+			ids = append(ids, id)
+		}
+		return ids
 	case organization.EdgeFinanceCashflows:
 		ids := make([]ent.Value, 0, len(m.finance_cashflows))
 		for id := range m.finance_cashflows {
@@ -120175,7 +121109,7 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrganizationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 57)
+	edges := make([]string, 0, 58)
 	if m.removedchildren != nil {
 		edges = append(edges, organization.EdgeChildren)
 	}
@@ -120244,6 +121178,9 @@ func (m *OrganizationMutation) RemovedEdges() []string {
 	}
 	if m.removedfinance_invoices != nil {
 		edges = append(edges, organization.EdgeFinanceInvoices)
+	}
+	if m.removedfinance_invoice_exemptions != nil {
+		edges = append(edges, organization.EdgeFinanceInvoiceExemptions)
 	}
 	if m.removedfinance_cashflows != nil {
 		edges = append(edges, organization.EdgeFinanceCashflows)
@@ -120489,6 +121426,12 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeFinanceInvoiceExemptions:
+		ids := make([]ent.Value, 0, len(m.removedfinance_invoice_exemptions))
+		for id := range m.removedfinance_invoice_exemptions {
+			ids = append(ids, id)
+		}
+		return ids
 	case organization.EdgeFinanceCashflows:
 		ids := make([]ent.Value, 0, len(m.removedfinance_cashflows))
 		for id := range m.removedfinance_cashflows {
@@ -120693,7 +121636,7 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrganizationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 57)
+	edges := make([]string, 0, 58)
 	if m.clearedparent {
 		edges = append(edges, organization.EdgeParent)
 	}
@@ -120765,6 +121708,9 @@ func (m *OrganizationMutation) ClearedEdges() []string {
 	}
 	if m.clearedfinance_invoices {
 		edges = append(edges, organization.EdgeFinanceInvoices)
+	}
+	if m.clearedfinance_invoice_exemptions {
+		edges = append(edges, organization.EdgeFinanceInvoiceExemptions)
 	}
 	if m.clearedfinance_cashflows {
 		edges = append(edges, organization.EdgeFinanceCashflows)
@@ -120920,6 +121866,8 @@ func (m *OrganizationMutation) EdgeCleared(name string) bool {
 		return m.clearedpartner_invoice_profiles
 	case organization.EdgeFinanceInvoices:
 		return m.clearedfinance_invoices
+	case organization.EdgeFinanceInvoiceExemptions:
+		return m.clearedfinance_invoice_exemptions
 	case organization.EdgeFinanceCashflows:
 		return m.clearedfinance_cashflows
 	case organization.EdgeFinanceVerifications:
@@ -121076,6 +122024,9 @@ func (m *OrganizationMutation) ResetEdge(name string) error {
 		return nil
 	case organization.EdgeFinanceInvoices:
 		m.ResetFinanceInvoices()
+		return nil
+	case organization.EdgeFinanceInvoiceExemptions:
+		m.ResetFinanceInvoiceExemptions()
 		return nil
 	case organization.EdgeFinanceCashflows:
 		m.ResetFinanceCashflows()
