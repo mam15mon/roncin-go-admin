@@ -1,0 +1,18 @@
+{"file": ".trellis/spec/domain/glossary.md", "reason": "业务术语"}
+{"file": ".trellis/spec/domain/architecture-map.md", "reason": "跨层调用链"}
+{"file": ".trellis/spec/server/backend/database-guidelines.md", "reason": "事务、锁序与正式迁移验证"}
+{"file": ".trellis/spec/server/backend/exchange-rate-single-rate.md", "reason": "汇率取值与手工覆盖，需同步 ETD/ETA"}
+{"file": ".trellis/spec/server/backend/finance-bill-currency.md", "reason": "账单汇率快照与锁序"}
+{"file": ".trellis/spec/server/backend/order-lock-and-document-version.md", "reason": "审核锁、共享主单成员锁序"}
+{"file": ".trellis/spec/server/backend/order-fee-review.md", "reason": "费用写入口与审核补录"}
+{"file": ".trellis/spec/server/backend/order-fee-correction.md", "reason": "费用更正与税率路径"}
+{"file": ".trellis/spec/server/backend/finance-commission-lock.md", "reason": "经济重算与不含税口径"}
+{"file": ".trellis/spec/server/backend/error-handling.md", "reason": "领域错误与元数据"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "外部变动检测与草稿保护"}
+{"file": ".trellis/spec/web/frontend/finance-ledger-snapshots.md", "reason": "列表汇总与导出共用快照"}
+{"file": ".trellis/spec/web/frontend/finance-current-workspace.md", "reason": "公司工作区契约"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "wire 形态与类型安全"}
+{"file": ".trellis/spec/web/frontend/capability-navigation.md", "reason": "新能力提取后同步导航"}
+{"file": ".trellis/tasks/11-13-finance-fee-entry-ledger/research/r1-exchange-rate-date.md", "reason": "R1 调研"}
+{"file": ".trellis/tasks/11-13-finance-fee-entry-ledger/research/r2-r5-save-tax-board-columns.md", "reason": "R2-R5 调研"}
+{"file": ".trellis/tasks/11-13-finance-fee-entry-ledger/research/r6-r7-master-no-filter-settings.md", "reason": "R6-R7 调研"}
