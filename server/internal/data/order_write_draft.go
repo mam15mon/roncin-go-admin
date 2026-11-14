@@ -299,8 +299,16 @@ func (r *orderRepo) UpdateDraft(ctx context.Context, organizationID, id uuid.UUI
 		} else {
 			update.SetTotalVolumeCbm(*input.TotalVolumeCbm)
 		}
-		if _, updateErr := update.Save(ctx); updateErr != nil {
+		updatedOrder, updateErr := update.Save(ctx)
+		if updateErr != nil {
 			return mapEntConstraint(updateErr, "order_organization_id_order_no", biz.ErrOrderNumberExists)
+		}
+		// 费用取汇率日（出口 ETD、进口 ETA）变化时，同事务联动重取可更新费用的周汇率；
+		// 缺汇率等失败使整个订单保存回滚。单票 SE 内联改 MBL/TE 的日期也经由此处写入订单列。
+		if orderRateDayChanged(existing, updatedOrder) {
+			if refreshErr := refreshFeeRatesForOrders(ctx, tx, organizationID, *audit.UserID, []uuid.UUID{id}); refreshErr != nil {
+				return refreshErr
+			}
 		}
 		if replaceErr := replaceOrderSelections(ctx, tx, id, input.CargoCategoryIDs); replaceErr != nil {
 			return replaceErr

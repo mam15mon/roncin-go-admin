@@ -30,6 +30,13 @@ func (r *exchangeRateRepo) ResolveContext(ctx context.Context, organizationID uu
 	if err != nil {
 		return nil, err
 	}
+	_, transactional := transactionFromContext(ctx)
+	return resolveExchangeRateContextWithClient(ctx, client, transactional, organizationID)
+}
+
+// resolveExchangeRateContextWithClient 用显式客户端沿组织父链解析公司及本币；
+// forShare 为真时对组织行加共享锁。供 WithTx 回调内（ctx 不携带事务）显式传入事务客户端。
+func resolveExchangeRateContextWithClient(ctx context.Context, client *ent.Client, forShare bool, organizationID uuid.UUID) (*biz.ExchangeRateContext, error) {
 	currentID := organizationID
 	visited := map[uuid.UUID]struct{}{}
 	for {
@@ -38,7 +45,7 @@ func (r *exchangeRateRepo) ResolveContext(ctx context.Context, organizationID uu
 		}
 		visited[currentID] = struct{}{}
 		query := client.Organization.Query().Where(organizationent.IDEQ(currentID), organizationent.EnabledEQ(true))
-		if _, transactional := transactionFromContext(ctx); transactional {
+		if forShare {
 			query.ForShare()
 		}
 		item, err := query.Only(ctx)
@@ -310,6 +317,12 @@ func (r *exchangeRateRepo) resolveWeeklyRow(ctx context.Context, organizationID 
 	if err != nil {
 		return decimal.Decimal{}, nil, "", false, err
 	}
+	_, transactional := transactionFromContext(ctx)
+	return resolveWeeklyRowWithClient(ctx, client, transactional, organizationID, direction, fromCurrency, toCurrency, lookup)
+}
+
+// resolveWeeklyRowWithClient 同 resolveWeeklyRow，但客户端与加锁方式由调用方显式给定。
+func resolveWeeklyRowWithClient(ctx context.Context, client *ent.Client, forShare bool, organizationID uuid.UUID, direction biz.OrderFeeDirection, fromCurrency, toCurrency string, lookup time.Time) (decimal.Decimal, *uuid.UUID, string, bool, error) {
 	weekFrom, _ := biz.ExchangeRateWeekWindow(lookup)
 	query := client.ExchangeRateSetting.Query().Where(
 		exchangerateent.OrganizationIDEQ(organizationID),
@@ -317,7 +330,7 @@ func (r *exchangeRateRepo) resolveWeeklyRow(ctx context.Context, organizationID 
 		exchangerateent.IsActiveEQ(true),
 		exchangerateent.EffectiveFromEQ(weekFrom),
 	).Limit(2)
-	if _, transactional := transactionFromContext(ctx); transactional {
+	if forShare {
 		query.ForShare()
 	}
 	items, err := query.All(ctx)
@@ -421,3 +434,28 @@ func parseExchangeRateStorageTime(value string) (time.Time, error) {
 }
 
 var _ biz.ExchangeRateRepo = (*exchangeRateRepo)(nil)
+
+// resolveRateWithClient 用显式（事务）客户端按订单取值日解析周汇率，语义与
+// ExchangeRateUsecase.ResolveRate + exchangeRateRepo.ResolveRate 一致：公司本币恒为 1（SYSTEM），
+// 其余只匹配目标自然周的本公司启用行并对汇率行加共享锁；未命中返回带币种、周、方向元数据的缺汇率错误。
+func resolveRateWithClient(ctx context.Context, client *ent.Client, organizationID uuid.UUID, direction biz.OrderFeeDirection, currency, rateDay string) (biz.ResolvedRate, error) {
+	lookup, err := parseExchangeRateStorageTime(rateDay)
+	if err != nil {
+		return biz.ResolvedRate{}, biz.ErrExchangeRateInvalidArgument
+	}
+	rateContext, err := resolveExchangeRateContextWithClient(ctx, client, true, organizationID)
+	if err != nil {
+		return biz.ResolvedRate{}, err
+	}
+	if currency == rateContext.BaseCurrency {
+		return biz.ResolvedRate{Rate: decimal.NewFromInt(1), Source: biz.ExchangeRateSourceSystem, Date: rateDay}, nil
+	}
+	rate, settingID, rowSource, found, err := resolveWeeklyRowWithClient(ctx, client, true, rateContext.OwnerOrganizationID, direction, currency, rateContext.BaseCurrency, lookup)
+	if err != nil {
+		return biz.ResolvedRate{}, err
+	}
+	if !found {
+		return biz.ResolvedRate{}, biz.NewExchangeRateMissingForDate(currency, rateDay, direction)
+	}
+	return biz.ResolvedRate{Rate: rate, Source: weeklySnapshotSource(rowSource), SettingID: settingID, Date: lookup.Format("2006-01-02")}, nil
+}

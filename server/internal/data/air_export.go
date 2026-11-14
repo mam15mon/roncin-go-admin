@@ -426,6 +426,10 @@ func (r *airExportRepo) Update(ctx context.Context, org, actor, id uuid.UUID, v 
 		if e = writeAirMasterHistory(ctx, tx, m, actor, "UPDATE", reason); e != nil {
 			return e
 		}
+		// 主单新日期写回成员订单列并逐票联动费用汇率；缺汇率则整次回滚。
+		if e = syncMemberOrderDatesAndRefreshFeeRates(ctx, tx, org, actor, locked.members, in.ETD, in.ETA); e != nil {
+			return e
+		}
 		return writeAudit(ctx, tx.AuditLog, &biz.AuditEvent{OrganizationID: &org, UserID: &actor, Action: "air.master.update", Result: "success", ResourceID: id.String(), Details: map[string]string{"reason": reason}})
 	})
 }

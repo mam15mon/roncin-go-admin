@@ -225,6 +225,17 @@ func (r *seaOrderChangeRepo) ExecuteTransportExecutionUpdate(ctx context.Context
 		if err != nil {
 			return err
 		}
+		// 共享航程新日期写回各成员订单列并逐票联动费用汇率；缺汇率则整次回滚。
+		var etdText, etaText string
+		if input.Input.ETD != nil {
+			etdText = input.Input.ETD.Format(time.RFC3339)
+		}
+		if input.Input.ETA != nil {
+			etaText = input.Input.ETA.Format(time.RFC3339)
+		}
+		if err := syncMemberOrderDatesAndRefreshFeeRates(ctx, tx, organizationID, actorID, orders, etdText, etaText); err != nil {
+			return err
+		}
 		executionID, versionID = updated.ID, version.ID
 		audit.Details["transport_execution.id"] = updated.ID.String()
 		audit.Details["transport_execution.version_id"] = version.ID.String()

@@ -646,3 +646,8 @@ func wrapExchangeRateMissingForDate(err error, currency, rateDay string, directi
 	}
 	return err
 }
+
+// NewExchangeRateMissingForDate 供 data 层在事务内解析汇率未命中时构造带元数据的缺汇率错误。
+func NewExchangeRateMissingForDate(currency, rateDay string, direction OrderFeeDirection) error {
+	return newExchangeRateMissingForDate(currency, rateDay, direction)
+}
