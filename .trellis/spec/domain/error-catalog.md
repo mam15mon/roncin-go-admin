@@ -10,17 +10,17 @@
 - 「中文消息」列为定义处的静态消息；同一错误码多处定义时逐行列出全部消息。含 `%s` 的为动态模板（`fmt.Sprintf` 或字符串拼接），完全动态（变量传参）时记为「（动态消息）」。
 - 「关联 proto ErrorReason」列仅在错误码经 `reasonFromProto(...)` 关联 `server/api/**/error_reason.proto` 枚举时填写。
 - 分组按定义文件所属业务域（同一错误码出现在多个业务域时在各域分别列出），组内按错误码排序；「定义位置」为 `server/internal/biz/` 下的文件名。
-- 当前共 403 个唯一错误码，406 条目录记录。
+- 当前共 405 个唯一错误码，408 条目录记录。
 
 ## 汇总
 
 | 业务域 | 错误码数 |
 | --- | --- |
-| 订单 | 119 |
+| 订单 | 120 |
 | 单证 | 29 |
 | 财务 | 86 |
 | 提成 | 40 |
-| 往来单位 | 34 |
+| 往来单位 | 35 |
 | 权限 | 49 |
 | 平台 | 49 |
 
@@ -77,7 +77,8 @@
 | ORDER_CONTAINER_SPEC_INVALID | 400 Bad Request | 集装箱规格不存在或已被禁用 | order_container.go | — |
 | ORDER_CUSTOMER_INVALID | 400 Bad Request | 订单客户必须是启用的客户角色 | order.go | — |
 | ORDER_CUSTOMER_STAFF_MISSING | 400 Bad Request | 客户档案未配置业务/客服人员，请先维护客户档案后再开单 | order.go | — |
-| ORDER_ETD_MISSING | 400 Bad Request | 请先填写订单 ETD 后再解析汇率 | order_fee.go | — |
+| ORDER_ETA_MISSING | 400 Bad Request | 进口订单按 ETA 取汇率，请先填写订单 ETA | order_fee.go | — |
+| ORDER_ETD_MISSING | 400 Bad Request | 出口订单按 ETD 取汇率，请先填写订单 ETD | order_fee.go | — |
 | ORDER_FEE_BILLING_UNIT_INVALID | 400 Bad Request | 计费单位不存在、已停用或不属于当前组织 | order_fee.go | — |
 | ORDER_FEE_BILL_OCCUPIED | 409 Conflict | 费用已建立账单，请先逐步回退至账单未建立后再修改或删除 | order_fee.go | — |
 | ORDER_FEE_CURRENCY_INVALID | 400 Bad Request | 币种必须是启用的 ISO 币种 | order_fee.go | — |
@@ -214,7 +215,7 @@
 | FEE_CATALOG_INVALID_ARGUMENT | 400 Bad Request | 费用设置字段不合法 | fee_catalog.go | — |
 | FEE_CATALOG_REFERENCE_INVALID | 400 Bad Request | 费用设置引用的基础资料不存在、已停用或不属于当前组织 | fee_catalog.go | — |
 | FEE_EXCHANGE_RATE_CONFLICT | 409 Conflict | 汇率日期命中多条生效汇率 | exchange_rate.go | — |
-| FEE_EXCHANGE_RATE_MISSING | 400 Bad Request | 汇率日期未命中生效汇率，请先维护汇率 | exchange_rate.go | ERROR_REASON_FEE_EXCHANGE_RATE_MISSING |
+| FEE_EXCHANGE_RATE_MISSING | 400 Bad Request | 汇率日期未命中生效汇率，请先维护汇率<br>订单取汇率日期所在周未维护该币种汇率，请先维护汇率 | exchange_rate.go | ERROR_REASON_FEE_EXCHANGE_RATE_MISSING |
 | FEE_SETTING_CODE_EXISTS | 409 Conflict | 费用代码已存在 | fee_catalog.go | — |
 | FEE_SETTING_NOT_FOUND | 404 Not Found | 费用设置不存在 | fee_catalog.go | — |
 | FINANCE_BILL_BATCH_CONFLICT | 409 Conflict | 批量建单幂等键已被其他请求使用 | finance_bill.go | — |
@@ -337,8 +338,8 @@
 | PARTNER_CONTRACT_NOT_FOUND | 404 Not Found | 合同不存在 | partner_contract.go | — |
 | PARTNER_CONTRACT_NO_EXISTS | 409 Conflict | 合同编号已存在 | partner_contract.go | — |
 | PARTNER_CONTRACT_STATUS_CONFLICT | 409 Conflict | 合同状态不允许该变更 | partner_contract.go | — |
-| PARTNER_CREDIT_LIMIT_EXCEEDED | 400 Bad Request | 该客户应收未核销总额已超出信用额度，系统已限制选择 | partner_credit.go | ERROR_REASON_PARTNER_CREDIT_LIMIT_EXCEEDED |
 | PARTNER_CREDIT_CURRENCY_MISMATCH | 400 Bad Request | 信用额度必须使用所属公司本币，请在往来单位结算规则中重新填写本币额度 | partner_settlement_rule.go | — |
+| PARTNER_CREDIT_LIMIT_EXCEEDED | 400 Bad Request | 该客户应收未核销总额已超出信用额度，系统已限制选择 | partner_credit.go | ERROR_REASON_PARTNER_CREDIT_LIMIT_EXCEEDED |
 | PARTNER_INVALID_ARGUMENT | 400 Bad Request | 往来单位字段不合法<br>往来单位导入参数不合法 | partner.go | — |
 | PARTNER_INVALID_ROLE | 400 Bad Request | 往来单位角色不合法 | partner.go | — |
 | PARTNER_INVOICE_PROFILE_DEFAULT_REQUIRED | 409 Conflict | 请先将其他启用抬头设为默认抬头 | partner_invoice_profile.go | — |

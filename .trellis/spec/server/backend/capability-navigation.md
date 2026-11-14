@@ -29,6 +29,7 @@
 | 提成方案与分配 | `finance_commission_rules.go` | 方案区间、员工分配、资格门禁 | 实际区间允许重叠 |
 | 月度提成申请 | `finance_commission_application.go`、`finance_commission_lifecycle.go` | 自然月申请、整单批准/驳回、待审更正门禁与净额发放 | 把已发事实改写为当前权益；恢复提成财务锁 |
 | 汇率 | `exchange_rate.go`、`exchange_rate_import.go`、`exchange_rate_reminder.go` | 周汇率双轨、导入、到期提醒 | 自造第二套汇率容灾链 |
+| 费用汇率日期联动 | `order_fee.go`（`OrderRateDay`）、`exchange_rate.go`；`data/fee_rate_refresh.go` | 出口 ETD/进口 ETA 取汇率日；日期变化同事务重取非手工、无保护财务事实费用的周汇率，缺汇率整体回滚（见 [exchange-rate-single-rate](./exchange-rate-single-rate.md)） | 在写日期入口各自复制联动逻辑、联动中补锁订单或放宽提成闭包检查 |
 | 主数据 | `masterdata.go`、`industry_reference.go`、`reference_data.go`、`fee_catalog.go` | 公共船代全量维护与订单选择、船公司/港口/机场/行政区划、费目目录；船代补缺执行 `pnpm run sync:shipping-agents` | 绕过 B 型统一读取谓词 |
 | 往来单位档案 | `partner.go` | 档案、散客契约、角色黑名单、专用 UpdateRoles 身份维护 | 用不完整全量更新修改身份，误删子资料 |
 | 往来单位财务配置 | `partner_account.go`、`partner_contract.go`、`partner_credit.go`、`partner_settlement_rule.go`、`partner_shipping_preset.go`、`partner_attachment.go` | 账户、合同、信用、结算规则、运输预设、附件 | 信用口径与账单不一致 |

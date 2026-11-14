@@ -801,8 +801,16 @@ func (r *seaOrderChangeRepo) ExecuteReassignment(ctx context.Context, organizati
 		} else {
 			orderUpdate.ClearEta()
 		}
-		if _, err := orderUpdate.Save(ctx); err != nil {
+		updatedOrder, err := orderUpdate.Save(ctx)
+		if err != nil {
 			return err
+		}
+		// 目标航程的 ETD/ETA 改变了本票取汇率日（出口 ETD、进口 ETA）时，同事务重取可更新费用的周汇率；
+		// 沿用上方已持有的订单锁，缺目标周汇率则整个改配回滚。
+		if orderRateDayChanged(order, updatedOrder) {
+			if err := refreshFeeRatesForOrders(ctx, tx, organizationID, actorID, []uuid.UUID{order.ID}); err != nil {
+				return err
+			}
 		}
 
 		reassignEvtID := uuid.Must(uuid.NewV7())

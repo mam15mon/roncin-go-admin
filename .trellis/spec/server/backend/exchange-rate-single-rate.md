@@ -37,7 +37,13 @@ ResolveRate(ctx context.Context, companyID uuid.UUID, direction OrderFeeDirectio
 
 **订单费用汇率的解析与手工覆盖口径**（2026-10 起）：
 
-- 订单费用（应收与应付）折本币汇率统一按**订单 ETD** 所在自然周解析，解析日期不再是费用发生日期（发生日期字段已退役，录入时间以 `created_at` 为准）；费用快照的 `exchange_rate_date` 记录 ETD 所在业务日。订单未填写 ETD 时解析返回 `ORDER_ETD_MISSING`，前端提示先补 ETD。
+- 订单费用（应收与应付）折本币汇率按订单贸易方向取日期：**出口订单取 ETD、进口订单取 ETA**，换算为业务时区（Asia/Shanghai）自然日后定位所在周；解析日期不再是费用发生日期（发生日期字段已退役，录入时间以 `created_at` 为准）；费用快照的 `exchange_rate_date` 记录该业务日。取值日缺失或非法时分别返回 `ORDER_ETD_MISSING`（出口）/`ORDER_ETA_MISSING`（进口），前端提示先补对应日期；方向非法返回费用参数错误。统一入口 `biz.OrderRateDay`。
+- 当周无本公司汇率时返回 `FEE_EXCHANGE_RATE_MISSING`（`ErrExchangeRateMissingForDate`，与 `ErrExchangeRateMissing` `errors.Is` 互通），元数据：`currency`（缺失币种，大写）、`week_start`（目标自然周周一，`YYYY-MM-DD`）、`direction`（费用方向）。
+- **日期保存联动**（`internal/data/fee_rate_refresh.go`）：订单取汇率日（出口 ETD、进口 ETA 所在业务日）发生变化时，同一事务内按新取值日重取费用周汇率。触发入口：订单保存（`UpdateDraft`，含单票 SE 内联改航程日期）、共享海运航程更新、空运主单更新、改配、拆票（原票改配与新票改配）。只改非基准日期或同一业务日内改时分不触发；任一侧日期缺失视为变化，使新取值日不可用时显式失败。
+  - 可更新费用：来源不是 `MANUAL`（`SYSTEM/WEEKLY/BOC_SYNC/DERIVED/INHERITED_LAST_WEEK` 均视为系统汇率）、当前有效（未被替代、非内部 `DECREASE` 冲回）、锁内无受保护财务事实（有效发票、核销、对冲，判定见 `fee_protected_fact.go` / `feeHasProtectedFinanceFact`）。已建账但无保护事实的费用同样更新，账单行汇率与折本币快照不动。更新汇率、取值日、来源、设置 ID、折本币金额，费用 `version+1`、订单 `fee_content_version+1`，写 `order.fee.exchange_rate_refresh` 审计，并经 `reconcileOrdinaryFeeEconomics` 重算提成（保留已付事实）。
+  - 缺汇率整体失败：先解析全部目标汇率，任一缺失返回上述专用错误，调用方事务整体回滚，日期（订单列、TE、主单）与费用都不落库；不需更新的费用不要求汇率存在。
+  - 共享航程/主单改期同步写回成员订单 `etd/eta` 列并令订单 `version+1`，再逐票判定是否联动（各票按自身方向取 ETD 或 ETA）。改配与拆票把目标 TE 的日期写入订单列，同样按 `orderRateDayChanged` 判定；拆票中新票费用先整行克隆（沿用来源汇率），再按新票目标日期联动。退关恢复不写订单日期（要求运输执行与订单一致），无需联动。
+  - 锁范围：联动沿用调用方已按主键升序持有的订单锁，只再锁费用行（订单 → 费用行升序），不锁账单、发票、核销、对冲，不得补锁订单。提成经济重算会写入关联父单涉及的全部订单：若提成关联闭包超出调用方已锁订单集合，联动 fail-closed 返回 `ErrOrderStatusConflict`（409），不中途补锁、不放宽该检查；拆票/改配后订单集合变化较大时该情形可能更常见，需用户刷新后重试。
 - 订单费用中的手工汇率覆盖使用独立权限 `system.finance.order_fee.exchange_rate.override`（「调整订单费用汇率」），与维护公司周汇率的 `update` 权限分离；且仅当订单内应收费用币种集合与应付费用币种集合一致且均非空时允许（`orderFeeCurrencySetsMatch`），否则返回 `ORDER_FEE_EXCHANGE_RATE_OVERRIDE_MISMATCH`。
 - 账单、资金流水等其他折本币调用的权限与日期口径不变（账单按账单日期、资金流水仍用 `update` 权限）。流水页面复用 `access.canUpdateExchangeRates`，不得误用费用专属 `canOverrideFeeExchangeRate`；服务端继续独立校验权限。
 - 发票确认按单据方向解析周汇率：应收开票取 `ar_rate`，应付收票取 `ap_rate`；不能把全部发票视为应收。

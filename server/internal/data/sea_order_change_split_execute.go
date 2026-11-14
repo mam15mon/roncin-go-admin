@@ -1079,6 +1079,8 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 		reassignmentEventIDs := make([]uuid.UUID, 0)
 		createdOrdersMap := make(map[string]*ent.Order)
 		originalResultKey := ""
+		// 取汇率日因改配目标航程而变化的订单；费用迁移完成后统一联动重取周汇率。
+		var rateRefreshOrderIDs []uuid.UUID
 
 		for _, res := range input.Results {
 			target := targetInputMap[res.ClientTargetKey]
@@ -1213,8 +1215,12 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 					} else {
 						orderUpdate.ClearEta()
 					}
-					if _, err := orderUpdate.Save(ctx); err != nil {
+					updatedSource, err := orderUpdate.Save(ctx)
+					if err != nil {
 						return err
+					}
+					if orderRateDayChanged(sourceOrder, updatedSource) {
+						rateRefreshOrderIDs = append(rateRefreshOrderIDs, updatedSource.ID)
 					}
 				} else {
 					// 留在当前母单
@@ -1524,8 +1530,13 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 					} else {
 						orderUpdate.ClearEta()
 					}
-					if _, err := orderUpdate.Save(ctx); err != nil {
+					updatedChild, err := orderUpdate.Save(ctx)
+					if err != nil {
 						return err
+					}
+					// 新票的费用克隆自来源订单（取汇率日以来源日期为准）；与来源取汇率日不同时需联动。
+					if orderRateDayChanged(sourceOrder, updatedChild) {
+						rateRefreshOrderIDs = append(rateRefreshOrderIDs, updatedChild.ID)
 					}
 				}
 				resultFinalMblMap[res.ClientResultKey] = finalMblID
@@ -1921,6 +1932,12 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 					resultFeeOldNewMap[res.ClientResultKey][oldFee.ID.String()] = newFeeID.String()
 				}
 			}
+		}
+
+		// 费用迁移完成后，对取汇率日变化的订单（原票改配、新票改配）重取可更新费用的周汇率：
+		// 沿用拆票已持有的来源订单锁，新订单为本事务新建；缺目标周汇率则整个拆票回滚。
+		if err := refreshFeeRatesForOrders(ctx, tx, organizationID, actorID, rateRefreshOrderIDs); err != nil {
+			return err
 		}
 
 		// A.9: 处理附件引用 OrderAttachment (显式引用，不复制对象)
