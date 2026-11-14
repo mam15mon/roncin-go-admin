@@ -323,6 +323,8 @@ func TestFinanceInvoiceListUsesFilteredDatabaseSummary(t *testing.T) {
 	data, mock := setupFinanceSummaryData(t)
 	repo := &financeInvoiceRepo{data: data}
 
+	// 汇总与分页明细在同一只读快照事务内读取。
+	mock.ExpectBegin()
 	mock.ExpectQuery(`SELECT .*"record_count".*FROM "finance_invoices"`).
 		WillReturnRows(sqlmock.NewRows([]string{"direction", "currency", "base_currency", "record_count", "amount", "base_amount", "unconverted_count"}).AddRow("RECEIVABLE", "CNY", "CNY", 4, "0", "0", 0))
 	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_invoices".*GROUP BY`).
@@ -333,6 +335,8 @@ func TestFinanceInvoiceListUsesFilteredDatabaseSummary(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(2))
 	mock.ExpectQuery(`SELECT "finance_invoices"\..*FROM "finance_invoices".*ORDER BY.*LIMIT 20`).
 		WillReturnRows(sqlmock.NewRows(financeinvoiceent.Columns))
+
+	mock.ExpectCommit()
 
 	result, err := repo.List(context.Background(), uuid.New(), biz.FinanceInvoiceFilter{Page: 1, PageSize: 20})
 	if err != nil {
@@ -489,6 +493,7 @@ func TestFinanceSummaryExcludesInvalidStatuses(t *testing.T) {
 
 	// 2. 验证发票汇总严格过滤已开具状态
 	invoiceRepo := &financeInvoiceRepo{data: data}
+	mock.ExpectBegin()
 	mock.ExpectQuery(`SELECT .*"record_count".*FROM "finance_invoices"`).
 		WillReturnRows(sqlmock.NewRows([]string{"direction", "currency", "base_currency", "record_count", "amount", "base_amount", "unconverted_count"}).AddRow("RECEIVABLE", "CNY", "CNY", 1, "0", "0", 0))
 	mock.ExpectQuery(`SELECT .*"base_amount".*FROM "finance_invoices".*"status".*GROUP BY`).
@@ -498,6 +503,8 @@ func TestFinanceSummaryExcludesInvalidStatuses(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 	mock.ExpectQuery(`SELECT "finance_invoices"\..*FROM "finance_invoices".*ORDER BY.*LIMIT 20`).
 		WillReturnRows(sqlmock.NewRows(financeinvoiceent.Columns))
+
+	mock.ExpectCommit()
 
 	_, err = invoiceRepo.List(context.Background(), orgID, biz.FinanceInvoiceFilter{Page: 1, PageSize: 20})
 	if err != nil {
