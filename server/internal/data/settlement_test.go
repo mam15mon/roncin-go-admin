@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"regexp"
 	"testing"
 
 	"entgo.io/ent/dialect"
@@ -42,14 +43,14 @@ func TestFeeLedgerFinancialProgressPredicate(t *testing.T) {
 			query:    `SELECT COUNT.*FROM "order_fees".*NOT EXISTS.*finance_bill_lines`,
 		},
 		{
-			name:     "未开票部分结清",
+			name:     "未票齐部分结清",
 			progress: biz.FeeLedgerPartiallyVerifiedUninvoiced,
-			query:    `SELECT COUNT.*FROM "order_fees".*NOT EXISTS.*finance_invoice_bills.*COALESCE.*\) > 0 AND \(COALESCE.*\+ COALESCE.*\) < fb.total_amount`,
+			query:    `SELECT COUNT.*FROM "order_fees".*fbl.active = TRUE AND fb.status <>.*NOT \(COALESCE\(\(SELECT SUM\(fib.amount\) FROM finance_invoice_bills AS fib JOIN finance_invoices AS fi ON fi.id=fib.invoice_id WHERE fib.bill_id=fb.id AND fib.active=TRUE AND fi.status=.*\),0\) >= fb.total_amount\) AND COALESCE.*\) > 0 AND \(COALESCE.*\+ COALESCE.*\) < fb.total_amount`,
 		},
 		{
 			name:     "已完成",
 			progress: biz.FeeLedgerCompleted,
-			query:    `SELECT COUNT.*FROM "order_fees".*EXISTS.*finance_invoice_bills.*COALESCE.*\+ COALESCE.*\) >= fb.total_amount`,
+			query:    `SELECT COUNT.*FROM "order_fees".*fbl.active = TRUE AND fb.status <>.*AND \(COALESCE\(\(SELECT SUM\(fib.amount\) FROM finance_invoice_bills AS fib JOIN finance_invoices AS fi ON fi.id=fib.invoice_id WHERE fib.bill_id=fb.id AND fib.active=TRUE AND fi.status=.*\),0\) >= fb.total_amount\) AND COALESCE.*\+ COALESCE.*\) >= fb.total_amount`,
 		},
 	}
 
@@ -283,10 +284,15 @@ func TestInvoiceCreationCandidatesUseOrganizationAndActiveInvoicePredicates(t *t
 	repo := &financeInvoiceRepo{data: settlementRepo.data}
 	organizationID := uuid.New()
 
-	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_bills".*organization_id.*status.*NOT.*finance_invoice_bills`).
+	// 候选允许部分登记：逐活动费用金额须大于当前有效已登记分配，过滤先于 COUNT/LIMIT。
+	remaining := regexp.QuoteMeta("l.active=TRUE AND f.economic_effect='INCREASE' AND f.superseded_by_request_id IS NULL AND l.total_amount > COALESCE((SELECT sum(a.amount) FROM finance_invoice_fee_allocations a JOIN finance_invoice_bills ib ON ib.id=a.invoice_bill_id JOIN finance_invoices i ON i.id=ib.invoice_id WHERE a.bill_line_id=l.id AND ib.active=TRUE AND i.status='ISSUED'),0)")
+	eligibility := `organization_id.*status.*purpose.*NOT.*finance_invoice_exemptions.*revoked_at.*IS NULL.*active.*economic_effect.*superseded_by_request_id.*` + remaining
+	mock.ExpectBegin()
+	mock.ExpectQuery(`SELECT COUNT.*FROM "finance_bills".*` + eligibility).
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
-	mock.ExpectQuery(`SELECT "finance_bills".*FROM "finance_bills".*organization_id.*status.*NOT.*finance_invoice_bills.*ORDER BY.*LIMIT 20`).
+	mock.ExpectQuery(`SELECT "finance_bills".*FROM "finance_bills".*` + eligibility + `.*direction.*currency.*ORDER BY.*LIMIT 20`).
 		WillReturnRows(sqlmock.NewRows(financebill.Columns))
+	mock.ExpectCommit()
 
 	result, err := repo.ListCreationBills(context.Background(), organizationID, biz.FinanceInvoiceCreationBillFilter{
 		Page: 1, PageSize: 20, Direction: biz.OrderFeeReceivable, Currency: "USD",

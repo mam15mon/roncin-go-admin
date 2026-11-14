@@ -129,7 +129,7 @@ func (FinanceBillSettlementProgress) EnumDescriptor() ([]byte, []int) {
 	return file_finance_v1_settlement_proto_rawDescGZIP(), []int{1}
 }
 
-// 账单开票进度：按有效发票（草稿或已开具）对本账单的登记额与账单总额比较；零额账单无需开票。
+// 账单开票进度：按有效已登记发票对本账单的分配额与账单总额比较；零额账单无需开票。
 type FinanceBillInvoiceProgress int32
 
 const (
