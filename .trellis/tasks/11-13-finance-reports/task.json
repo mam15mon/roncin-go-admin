@@ -3,7 +3,7 @@
   "name": "finance-reports",
   "title": "财务四类报表建设",
   "description": "R15：利润分析图、利润报表、实际收付款报表、账龄表",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -12,7 +12,7 @@
   "assignee": "mam15mon",
   "createdAt": "2026-11-13",
   "completedAt": null,
-  "branch": null,
+  "branch": "feat/bill-workflow",
   "base_branch": "main",
   "worktree_path": null,
   "commit": null,
@@ -21,6 +21,6 @@
   "children": [],
   "parent": "11-13-order-fees-finance-workflow",
   "relatedFiles": [],
-  "notes": "",
+  "notes": "2026-11-14：最新最终方案已呈现，用户随后明确回复“按此方案实施并完成交付”，授权剩余实施、验收、合并推送。",
   "meta": {}
 }

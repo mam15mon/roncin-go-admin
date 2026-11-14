@@ -1,6 +1,6 @@
 # 财务四类报表：最小交付设计
 
-状态：方案待主会话向用户呈现；本文件不授权实施。源码证据见 [report-source-map.md](research/report-source-map.md)，需求见 [prd.md](prd.md)。
+状态：已由主会话向用户呈现最终方案并获明确实施确认。源码证据见 [report-source-map.md](research/report-source-map.md)，需求见 [prd.md](prd.md)。
 
 ## 1. 边界与已确认口径
 

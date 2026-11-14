@@ -3,7 +3,7 @@
   "name": "finance-invoice-registration",
   "title": "发票分次登记与开票记录",
   "description": "R10、R12：多张发票登记、累计进度、批量登记与独立发票记录",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -12,7 +12,7 @@
   "assignee": "mam15mon",
   "createdAt": "2026-11-13",
   "completedAt": null,
-  "branch": null,
+  "branch": "feat/bill-workflow",
   "base_branch": "main",
   "worktree_path": null,
   "commit": null,
@@ -21,6 +21,6 @@
   "children": [],
   "parent": "11-13-order-fees-finance-workflow",
   "relatedFiles": [],
-  "notes": "免票模型/权限/接口/历史及UI、筛选已入bd6afafa并定向验证；三层分配/手工税额/多记录/号码修改及组合入口尚待最终方案审阅后实施。",
+  "notes": "2026-11-14：用户最终明确批准实施交付。免票/筛选检查点bd6afafa已提交；当前实施RegisterInvoices多记录直登记、三层金额与手填税额、修订历史及受控更正、账单共享登记入口和F内部只写编排。",
   "meta": {}
 }

@@ -551,3 +551,17 @@ Ent 生成：`go -C server generate ./...`。迁移后用空库冷启动与已�
 5. 草稿对冲视为阻止费用增删。
 6. 「按税率拆分／按订单拆分」保留为同组内可选细分，默认关闭。
 10. 完成状态读取时按当前金额推导，不冻结。
+
+## 阶段 F 最终信封与编排（2026-11-14）
+
+每组新增可选 `invoices[]` 与 `verifications[]`。发票记录使用号码、日期、类型、抬头ID、总额、备注和本组源费用分配（费用ID、金额、税额）；不接受尚未存在的账单ID或版本。核销记录使用核销日、备注和逐资金ID/金额分配，可附差额流水交易资料；空资金ID指本记录附带的新流水。流水方向、结算对象、币种及公司一律由本组新账单填充，不给用户猜ID或更改归属。
+
+组事务在建账写入后先按ID升序预锁本原子单元全部已有资金：NORMAL为当前组，NETTING为整批，避免多条核销或跨组依次取得不同资金锁造成环。新流水在提交前不可见。随后发票整组一次 `RegisterWithinTransaction`（全部共享新账单起始version=1，由登记命令统一递增一次），再逐条核销。核销公开 `CreateWithinTransaction` / `CreateWithCashflowWithinTransaction` 只写或回放ID，不在外层事务内读取完整响应。原独立入口保留事务提交后重读。
+
+组合依赖由Service将既有invoice/verification/cashflow usecase显式传给Bill用例，不新增构造器循环；权限范围由Service逐动作解析为本公司授权位，Biz在各组事务前执行整组门禁。带发票要求invoice.create；带核销要求verification.create；带差额要求cashflow.create及cashflow.update（确认）；显式差额汇率另要求exchange_rate.update。缺任一步权限整组拒绝，不退化为只建账；NORMAL其他组继续。
+
+主请求摘要包括所有规范化附带意图；序号与其顺序有意义，费用/资金集合内部规范排序。步骤键由批次键、组键、步骤和序号派生，发票命令为整组一个键。已成功组按已存在账单直接回放，不重放附带写入；失败组无孤立账单、发票、核销、流水、审计或编号增量，下一次原键可重试。
+
+NORMAL逐组错误新增 `items[]`，字段为step（BILL/INVOICE/VERIFICATION）、1起记录序号（0表示整步骤）、reason和message。发票用例提供的0起invoice_index转换为业务序号。NETTING维持整批原子及现行HTTP失败语义，错误公开metadata补step/item_index/group_key；只公开这三个定位键及既有白名单，不暴露内部错误。成功完整账单和批次响应均提交后按普通上下文重读。
+
+请求级结构错误（UUID/decimal无法解析、重复组/费用等）仍整请求拒绝；事务内的登记/分配余额、权限、号码冲突等业务错误归对应组和步骤。金额/税额计算和发票表单复用发票任务共享能力；不复制其计算或引入新手续费算法。
