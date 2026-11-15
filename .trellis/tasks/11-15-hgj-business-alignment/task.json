@@ -18,7 +18,14 @@
   "commit": null,
   "pr_url": null,
   "subtasks": [],
-  "children": [],
+  "children": [
+    "11-15-hgj-order-direction",
+    "11-15-hgj-air-documents",
+    "11-15-hgj-sea-import",
+    "11-15-hgj-air-import",
+    "11-15-hgj-air-waybill-pdf",
+    "11-15-hgj-cross-module-acceptance"
+  ],
   "parent": null,
   "relatedFiles": [],
   "notes": "",
