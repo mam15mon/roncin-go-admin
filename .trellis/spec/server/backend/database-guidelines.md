@@ -345,6 +345,7 @@ current := locked.EnabledCurrencies // 从锁定行读取权威列表后再计�
 - 正确：目标非空时只 Set，目标为空时只 Clear。基础场景为无地点/日期的目标；不得通过保留旧值隐藏目标空值。
 - 验证：真实 PostgreSQL 必须分别覆盖空值清除与非空赋值，并断言持久化字段和事务原子性；只验证空值不能发现 Clear+Set 的生成 SQL 缺陷。
 - 回归入口：`TestSeaOrderSplitAndReassignment_PostgresIntegration/DIRECT拆票阻断与整票改配成功`。
+- 同类主数据更新同样适用：客商常用单证预设的 Party 联系资料及 Text 内容/编码/备注更新复用 `setOptionalString`，每列只能 Set 或 Clear。回归 `TestPartnerShippingPresetOptionalUpdatePostgres` 覆盖发货人、唛头和 HS 编码非空更新及清空；不能只验证默认切换时的空字段。
 
 ```go
 // 错误：非空来源同时产生清空与赋值。

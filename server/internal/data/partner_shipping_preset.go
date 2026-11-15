@@ -169,13 +169,20 @@ func createShippingPresetDetail(ctx context.Context, tx *ent.Tx, id, organizatio
 func updateShippingPresetDetail(ctx context.Context, tx *ent.Tx, id uuid.UUID, input *biz.PartnerShippingPreset) error {
 	if input.PresetType.Party() {
 		party := input.Party
-		builder := tx.EnterpriseResourceParty.Update().Where(partyent.ResourceIDEQ(id)).SetCompanyName(party.CompanyName).SetCountryCode(party.CountryCode).ClearAddress().ClearContactName().ClearContactPhone().ClearEmail().ClearTaxIdentifier().ClearRemark()
-		builder.SetNillableAddress(optionalString(party.Address)).SetNillableContactName(optionalString(party.ContactName)).SetNillableContactPhone(optionalString(party.Phone)).SetNillableEmail(optionalString(party.Email)).SetNillableTaxIdentifier(optionalString(party.TaxIdentifier)).SetNillableRemark(optionalString(input.Remark))
+		builder := tx.EnterpriseResourceParty.Update().Where(partyent.ResourceIDEQ(id)).SetCompanyName(party.CompanyName).SetCountryCode(party.CountryCode)
+		setOptionalString(builder.SetAddress, builder.ClearAddress, optionalString(party.Address))
+		setOptionalString(builder.SetContactName, builder.ClearContactName, optionalString(party.ContactName))
+		setOptionalString(builder.SetContactPhone, builder.ClearContactPhone, optionalString(party.Phone))
+		setOptionalString(builder.SetEmail, builder.ClearEmail, optionalString(party.Email))
+		setOptionalString(builder.SetTaxIdentifier, builder.ClearTaxIdentifier, optionalString(party.TaxIdentifier))
+		setOptionalString(builder.SetRemark, builder.ClearRemark, optionalString(input.Remark))
 		_, err := builder.Save(ctx)
 		return err
 	}
-	builder := tx.EnterpriseResourceShippingText.Update().Where(textent.ResourceIDEQ(id)).ClearContent().ClearCode().ClearRemark()
-	builder.SetNillableContent(optionalString(input.Text.Content)).SetNillableCode(optionalString(input.Text.Code)).SetNillableRemark(optionalString(input.Remark))
+	builder := tx.EnterpriseResourceShippingText.Update().Where(textent.ResourceIDEQ(id))
+	setOptionalString(builder.SetContent, builder.ClearContent, optionalString(input.Text.Content))
+	setOptionalString(builder.SetCode, builder.ClearCode, optionalString(input.Text.Code))
+	setOptionalString(builder.SetRemark, builder.ClearRemark, optionalString(input.Remark))
 	_, err := builder.Save(ctx)
 	return err
 }
