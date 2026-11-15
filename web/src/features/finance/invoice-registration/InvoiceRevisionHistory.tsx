@@ -1,6 +1,7 @@
 import { Alert, Collapse, Descriptions, Typography } from 'antd';
 import { ResponsiveTable } from '@/components/ui';
 import { formatAmount, formatDate, trimDecimal } from '@/utils/format';
+import { invoiceTypeLabel } from './invoiceTypes';
 
 type FeeSnapshot = {
   code?: string;
@@ -80,8 +81,7 @@ function SnapshotView({ value }: { value?: string }) {
           {
             key: 'type',
             label: '发票类型',
-            children:
-              snapshot.invoiceType === 'SPECIAL' ? '专用发票' : '普通发票',
+            children: invoiceTypeLabel(snapshot.invoiceType),
           },
           {
             key: 'amount',

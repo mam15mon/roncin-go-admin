@@ -18,6 +18,12 @@ import {
 } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import {
+  DEFAULT_INVOICE_TYPE,
+  INVOICE_TYPE_OPTIONS,
+  invoiceTypeLabel,
+  isSpecialInvoiceType,
+} from '@/features/finance/invoice-registration';
+import {
   partnerServiceCreatePartnerInvoiceProfile,
   partnerServiceListPartnerInvoiceProfiles,
   partnerServiceUpdatePartnerInvoiceProfile,
@@ -79,7 +85,7 @@ export default function InvoiceProfilesPanel({
       title: '默认票种',
       dataIndex: 'defaultInvoiceType',
       width: 100,
-      renderText: (value) => (value === 'SPECIAL' ? '专用发票' : '普通发票'),
+      renderText: (value) => invoiceTypeLabel(value),
     },
     {
       title: '默认',
@@ -171,7 +177,7 @@ export default function InvoiceProfilesPanel({
             invoiceTitle: partner?.legalName,
             taxpayerIdentificationNo: partner?.unifiedSocialCreditCode,
             registeredAddress: partner?.registeredAddress,
-            defaultInvoiceType: 'NORMAL',
+            defaultInvoiceType: DEFAULT_INVOICE_TYPE,
             isDefault: false,
             enabled: true,
           }
@@ -193,7 +199,8 @@ export default function InvoiceProfilesPanel({
             registeredPhone: values.registeredPhone?.trim() || '',
             bankName: values.bankName?.trim() || '',
             bankAccount: values.bankAccount?.trim() || '',
-            defaultInvoiceType: values.defaultInvoiceType || 'NORMAL',
+            defaultInvoiceType:
+              values.defaultInvoiceType || DEFAULT_INVOICE_TYPE,
             isDefault: Boolean(values.isDefault),
           };
           if (editingProfile?.id) {
@@ -252,15 +259,12 @@ export default function InvoiceProfilesPanel({
         <ProFormSelect
           name="defaultInvoiceType"
           label="默认发票类型"
-          options={[
-            { label: '增值税普通发票', value: 'NORMAL' },
-            { label: '增值税专用发票', value: 'SPECIAL' },
-          ]}
+          options={[...INVOICE_TYPE_OPTIONS]}
           rules={[{ required: true, message: '请选择默认发票类型' }]}
         />
         <ProFormDependency name={['defaultInvoiceType']}>
           {({ defaultInvoiceType }) => {
-            const required = defaultInvoiceType === 'SPECIAL';
+            const required = isSpecialInvoiceType(defaultInvoiceType);
             return (
               <>
                 <ProFormText

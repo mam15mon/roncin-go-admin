@@ -96,7 +96,7 @@ func compositionFixture(t *testing.T, data *Data) (*financeBillBatchPostgresFixt
 }
 
 func compositionInvoice(profile, fee uuid.UUID, number string, amount int64) biz.FinanceBillBatchInvoiceInput {
-	return biz.FinanceBillBatchInvoiceInput{InvoiceProfileID: profile, InvoiceType: biz.FinanceInvoiceNormal, TaxInvoiceNo: number, InvoiceDate: financeBillIntegrationDate, TotalAmount: decimal.NewFromInt(amount), Fees: []biz.FinanceInvoiceFeeInput{{OrderFeeID: fee, Amount: decimal.NewFromInt(amount), TaxAmount: decimal.Zero}}}
+	return biz.FinanceBillBatchInvoiceInput{InvoiceProfileID: profile, InvoiceType: biz.FinanceInvoiceDigitalNormal, TaxInvoiceNo: number, InvoiceDate: financeBillIntegrationDate, TotalAmount: decimal.NewFromInt(amount), Fees: []biz.FinanceInvoiceFeeInput{{OrderFeeID: fee, Amount: decimal.NewFromInt(amount), TaxAmount: decimal.Zero}}}
 }
 func compositionShortfall(amount int64) biz.FinanceBillBatchVerificationInput {
 	return biz.FinanceBillBatchVerificationInput{VerificationDate: financeBillIntegrationDate, Allocations: []biz.FinanceBillBatchVerificationAllocation{{Amount: decimal.NewFromInt(amount)}}, ShortfallCashflow: &biz.FinanceBillBatchCashflowInput{Amount: decimal.NewFromInt(amount), TransactionDate: financeBillIntegrationDate, OurAccount: "组合收款账户", PaymentMethod: "BANK_TRANSFER"}}

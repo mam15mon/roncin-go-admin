@@ -1,3 +1,4 @@
+import { invoiceTypeLabel } from '@/features/finance/invoice-registration';
 import { type CsvColumn, csvAmount, csvDecimal } from '@/utils/csv';
 import { formatDate } from '@/utils/format';
 import { invoiceStateText } from './components/invoiceConstants';
@@ -21,12 +22,7 @@ export const invoiceExportColumns: CsvColumn<API.FinanceInvoice>[] = [
   { header: '结算单位', value: (row) => row.settlementPartyName },
   {
     header: '发票类型',
-    value: (row) =>
-      row.invoiceType === 'SPECIAL'
-        ? '专用发票'
-        : row.invoiceType
-          ? '普通发票'
-          : '',
+    value: (row) => (row.invoiceType ? invoiceTypeLabel(row.invoiceType) : ''),
   },
   { header: '原币币种', value: (row) => row.currency },
   {

@@ -33,9 +33,31 @@ const (
 	FinanceInvoiceIssued     FinanceInvoiceStatus = "ISSUED"
 	FinanceInvoiceCancelled  FinanceInvoiceStatus = "CANCELLED"
 	FinanceInvoiceRedFlushed FinanceInvoiceStatus = "RED_FLUSHED"
-	FinanceInvoiceNormal     FinanceInvoiceType   = "NORMAL"
-	FinanceInvoiceSpecial    FinanceInvoiceType   = "SPECIAL"
 )
+
+// 发票票种只用于登记记录与查询，不对接税务；专票类要求抬头开户资料齐全。
+const (
+	FinanceInvoiceDigitalNormal     FinanceInvoiceType = "DIGITAL_NORMAL"
+	FinanceInvoiceDigitalSpecial    FinanceInvoiceType = "DIGITAL_SPECIAL"
+	FinanceInvoicePaperNormal       FinanceInvoiceType = "PAPER_NORMAL"
+	FinanceInvoicePaperSpecial      FinanceInvoiceType = "PAPER_SPECIAL"
+	FinanceInvoiceElectronicNormal  FinanceInvoiceType = "ELECTRONIC_NORMAL"
+	FinanceInvoiceElectronicSpecial FinanceInvoiceType = "ELECTRONIC_SPECIAL"
+)
+
+// Valid 判断是否为受支持票种。
+func (t FinanceInvoiceType) Valid() bool {
+	switch t {
+	case FinanceInvoiceDigitalNormal, FinanceInvoiceDigitalSpecial, FinanceInvoicePaperNormal, FinanceInvoicePaperSpecial, FinanceInvoiceElectronicNormal, FinanceInvoiceElectronicSpecial:
+		return true
+	}
+	return false
+}
+
+// Special 判断是否为专用发票类，需要抬头登记地址、电话、开户行与账号。
+func (t FinanceInvoiceType) Special() bool {
+	return t == FinanceInvoiceDigitalSpecial || t == FinanceInvoicePaperSpecial || t == FinanceInvoiceElectronicSpecial
+}
 
 type FinanceInvoice struct {
 	ID, OrganizationID, SettlementPartyID  uuid.UUID

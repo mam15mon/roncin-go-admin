@@ -50,7 +50,7 @@ func TestFeeLedgerPaymentProgressPostgres(t *testing.T) {
 				}
 				// 直登记事实必须与本场景实际分配一致；不复用固定100元的旧整票关联夹具。
 				create := d.db.FinanceInvoice.Create().SetOrganizationID(f.organizationID).SetRecordNo("PAYMENT-" + f.suffix).SetIdempotencyKey("payment-" + f.suffix).
-					SetDirection(invoiceent.DirectionRECEIVABLE).SetStatus(tc.status).SetInvoiceType(invoiceent.InvoiceTypeNORMAL).
+					SetDirection(invoiceent.DirectionRECEIVABLE).SetStatus(tc.status).SetInvoiceType(invoiceent.InvoiceTypeDIGITAL_NORMAL).
 					SetSettlementPartyID(f.partnerID).SetSettlementPartyName("付款进度测试客商").SetCurrency("CNY").SetBaseCurrency("CNY").
 					SetTotalAmount(amount).SetNetAmount(amount).SetTaxAmount("0").SetBillCount(1).SetTaxInvoiceNo("TAX-" + f.suffix).
 					SetInvoiceDate(financeBillIntegrationDate).SetIssuedAt(time.Now()).SetIssuedBy(f.actorID).

@@ -19,7 +19,7 @@ function values(): GroupFormValue {
     billDate: dayjs('2026-11-14'),
     invoices: [40, 60].map((amount, index) => ({
       invoiceProfileId: 'profile',
-      invoiceType: 'NORMAL',
+      invoiceType: 'DIGITAL_NORMAL',
       taxInvoiceNo: `TAX-${index}`,
       invoiceDate: dayjs('2026-11-14'),
       totalAmount: String(amount),
@@ -59,7 +59,7 @@ describe('建账组合载荷与逐项失败回显', () => {
     expect(payload.invoices).toHaveLength(2);
     expect(payload.invoices?.[0]).toEqual({
       invoiceProfileId: 'profile',
-      invoiceType: 'NORMAL',
+      invoiceType: 'DIGITAL_NORMAL',
       taxInvoiceNo: 'TAX-0',
       invoiceDate: '2026-11-14',
       totalAmount: '40.00000000',

@@ -52,7 +52,7 @@ func TestFinanceBillProgressProjectionPostgres(t *testing.T) {
 		amount8 := decimal.RequireFromString(amount).StringFixed(8)
 		invoice, err := data.db.FinanceInvoice.Create().
 			SetOrganizationID(f.organizationID).SetRecordNo("INV-PG-" + key + "-" + f.suffix).SetIdempotencyKey("inv-pg-" + key + "-" + f.suffix).
-			SetDirection(financeinvoiceent.DirectionRECEIVABLE).SetInvoiceType(financeinvoiceent.InvoiceTypeNORMAL).
+			SetDirection(financeinvoiceent.DirectionRECEIVABLE).SetInvoiceType(financeinvoiceent.InvoiceTypeDIGITAL_NORMAL).
 			SetSettlementPartyID(f.partnerID).SetSettlementPartyName("进度投影").SetCurrency("CNY").SetBaseCurrency("CNY").
 			SetTotalAmount(amount8).SetNetAmount(amount8).SetTaxAmount("0").SetBillCount(1).SetStatus(financeinvoiceent.StatusDRAFT).
 			Save(ctx)

@@ -240,4 +240,35 @@ describe('登记自动带入', () => {
     );
     expect(dialog.getAllByLabelText('发票含税总额')[1]).toHaveValue('');
   });
+  it('唯一抬头自动选中并带入其默认票种，提交实际票种', async () => {
+    mocks.profiles.mockResolvedValue({
+      success: true,
+      data: {
+        organizationId: 'company',
+        settlementPartyId: 'party',
+        data: [
+          {
+            id: 'profile',
+            invoiceTitle: '测试抬头',
+            taxpayerIdentificationNo: 'TAX',
+            defaultInvoiceType: 'PAPER_SPECIAL',
+          },
+        ],
+      },
+    });
+    const dialog = open([taxedBill]);
+    await fillHeader(dialog, '1060');
+    await waitFor(() =>
+      expect(dialog.getByText('纸质专票')).toBeInTheDocument(),
+    );
+    submitRegistration();
+    await waitFor(() => expect(mocks.register).toHaveBeenCalled());
+    expect(mocks.register.mock.calls[0][0].records[0]).toMatchObject({
+      invoiceProfileId: 'profile',
+      invoiceType: 'PAPER_SPECIAL',
+    });
+    expect(JSON.stringify(mocks.register.mock.calls[0][0])).not.toContain(
+      'invoiceTypeSource',
+    );
+  });
 });

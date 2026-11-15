@@ -235,7 +235,7 @@ export function requireSuccessfulBillBatch(response, expectedGroups) {
 }
 
 // 正式发票登记一次提交明确账单与逐费用金额/税额，不再生成开票草稿后单独issue。
-export function invoiceRegistrationForBills(bills, { invoiceProfileId, taxInvoiceNo, invoiceDate, invoiceType = 'NORMAL', note }) {
+export function invoiceRegistrationForBills(bills, { invoiceProfileId, taxInvoiceNo, invoiceDate, invoiceType = 'DIGITAL_NORMAL', note }) {
   const toUnits = (text) => {
     const [whole, fraction = ''] = String(text).split('.');
     return BigInt(whole) * 100000000n + BigInt(fraction.padEnd(8, '0'));
@@ -258,7 +258,7 @@ export async function verifyCompositeFinanceWorkflow(request, { organizationId, 
   const initial = await post('/api/v1/finance/bill-batches/preview', common);
   const preview = await post('/api/v1/finance/bill-batches/preview', { ...common, groupConfigs: initial.data.map((group) => ({ groupKey: group.groupKey, billDate, settlementAccountId })) });
   const group = preview.data[0];
-  const invoice = (amount, index) => ({ invoiceProfileId, invoiceType: 'NORMAL', taxInvoiceNo: `COMBO-TAX-${stamp}-${index}`, invoiceDate: billDate, totalAmount: String(amount), fees: [{ orderFeeId: fee.id, amount: String(amount), taxAmount: index === 1 ? '1.23' : '4.56' }] });
+  const invoice = (amount, index) => ({ invoiceProfileId, invoiceType: 'DIGITAL_NORMAL', taxInvoiceNo: `COMBO-TAX-${stamp}-${index}`, invoiceDate: billDate, totalAmount: String(amount), fees: [{ orderFeeId: fee.id, amount: String(amount), taxAmount: index === 1 ? '1.23' : '4.56' }] });
   const verification = (amount) => ({ verificationDate: billDate, allocations: [{ cashflowId: '', amount: String(amount) }], shortfallCashflow: { amount: String(amount), transactionDate: billDate, ourAccount: `组合验收账户-${stamp}`, paymentMethod: 'BANK_TRANSFER' } });
   const baseGroup = { groupKey: group.groupKey, groupToken: group.groupToken, feeIds: [fee.id], billDate, settlementAccountId, statementTitle: '组合登记核销验收', invoices: [invoice(40, 1), invoice(60, 2)] };
   const failed = await post('/api/v1/finance/bill-batches', { organizationId, groupingPolicy: common.groupingPolicy, idempotencyKey: `combo-fail-${stamp}`, groups: [{ ...baseGroup, verifications: [verification(40), verification(61)] }] });

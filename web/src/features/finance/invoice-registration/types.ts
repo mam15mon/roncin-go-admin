@@ -35,6 +35,8 @@ export type InvoiceRegistrationDraft = {
   sourceInvoiceId?: string;
   invoiceProfileId?: string;
   invoiceType: string;
+  /** 票种是否由财务手选；手选后切换抬头不再带入抬头默认票种。不进入载荷。 */
+  invoiceTypeSource?: InvoiceRegistrationFieldSource;
   taxInvoiceNo?: string;
   invoiceDate: Dayjs;
   totalAmount?: string;

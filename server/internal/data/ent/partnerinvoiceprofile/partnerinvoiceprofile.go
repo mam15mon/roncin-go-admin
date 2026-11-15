@@ -136,13 +136,17 @@ var (
 // DefaultInvoiceType defines the type for the "default_invoice_type" enum field.
 type DefaultInvoiceType string
 
-// DefaultInvoiceTypeNORMAL is the default value of the DefaultInvoiceType enum.
-const DefaultDefaultInvoiceType = DefaultInvoiceTypeNORMAL
+// DefaultInvoiceTypeDIGITAL_NORMAL is the default value of the DefaultInvoiceType enum.
+const DefaultDefaultInvoiceType = DefaultInvoiceTypeDIGITAL_NORMAL
 
 // DefaultInvoiceType values.
 const (
-	DefaultInvoiceTypeNORMAL  DefaultInvoiceType = "NORMAL"
-	DefaultInvoiceTypeSPECIAL DefaultInvoiceType = "SPECIAL"
+	DefaultInvoiceTypeDIGITAL_NORMAL     DefaultInvoiceType = "DIGITAL_NORMAL"
+	DefaultInvoiceTypeDIGITAL_SPECIAL    DefaultInvoiceType = "DIGITAL_SPECIAL"
+	DefaultInvoiceTypePAPER_NORMAL       DefaultInvoiceType = "PAPER_NORMAL"
+	DefaultInvoiceTypePAPER_SPECIAL      DefaultInvoiceType = "PAPER_SPECIAL"
+	DefaultInvoiceTypeELECTRONIC_NORMAL  DefaultInvoiceType = "ELECTRONIC_NORMAL"
+	DefaultInvoiceTypeELECTRONIC_SPECIAL DefaultInvoiceType = "ELECTRONIC_SPECIAL"
 )
 
 func (dit DefaultInvoiceType) String() string {
@@ -152,7 +156,7 @@ func (dit DefaultInvoiceType) String() string {
 // DefaultInvoiceTypeValidator is a validator for the "default_invoice_type" field enum values. It is called by the builders before save.
 func DefaultInvoiceTypeValidator(dit DefaultInvoiceType) error {
 	switch dit {
-	case DefaultInvoiceTypeNORMAL, DefaultInvoiceTypeSPECIAL:
+	case DefaultInvoiceTypeDIGITAL_NORMAL, DefaultInvoiceTypeDIGITAL_SPECIAL, DefaultInvoiceTypePAPER_NORMAL, DefaultInvoiceTypePAPER_SPECIAL, DefaultInvoiceTypeELECTRONIC_NORMAL, DefaultInvoiceTypeELECTRONIC_SPECIAL:
 		return nil
 	default:
 		return fmt.Errorf("partnerinvoiceprofile: invalid enum value for default_invoice_type field: %q", dit)

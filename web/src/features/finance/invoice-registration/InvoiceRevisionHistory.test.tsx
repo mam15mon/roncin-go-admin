@@ -7,7 +7,7 @@ import InvoiceRevisionHistory from './InvoiceRevisionHistory';
 const snapshot = JSON.stringify({
   number: 'INV-1',
   date: '2026-11-14',
-  invoiceType: 'NORMAL',
+  invoiceType: 'DIGITAL_NORMAL',
   status: 'ISSUED',
   invoiceTitle: '原票抬头',
   currency: 'CNY',

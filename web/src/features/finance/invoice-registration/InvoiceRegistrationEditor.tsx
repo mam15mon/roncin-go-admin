@@ -15,7 +15,7 @@ import {
   Typography,
 } from 'antd';
 import Decimal from 'decimal.js';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAccess } from '@/app/access';
 import { settlementServiceListInvoiceProfilesForParty } from '@/services/roncin/settlementService';
 import { formatAmount } from '@/utils/format';
@@ -31,6 +31,7 @@ import InvoiceAllocationFields, {
   GapText,
   type RecordUpdater,
 } from './InvoiceAllocationFields';
+import { INVOICE_TYPE_OPTIONS, isInvoiceType } from './invoiceTypes';
 import type {
   InvoiceRegistrationBillSource,
   InvoiceRegistrationDraft,
@@ -141,14 +142,35 @@ export default function InvoiceRegistrationEditor({
     },
   });
   // 结算单位仅一个有效抬头时自动选中新增发票的抬头；多个抬头仍由财务明确选择。
-  const onlyProfile = query.data?.length === 1 ? query.data[0].id : undefined;
+  const onlyProfile = query.data?.length === 1 ? query.data[0] : undefined;
   const recordCount = records?.length ?? 0;
+  // 选中抬头时带入其默认票种；财务手选过票种或修订原票不改写。
+  const applyProfile = (
+    index: number,
+    profile?: API.FinanceInvoiceProfileOption,
+  ) => {
+    const record = form.getFieldValue([...name, index]) as
+      | InvoiceRegistrationDraft
+      | undefined;
+    if (!record || record.sourceInvoiceId) return;
+    form.setFieldValue([...name, index], {
+      ...record,
+      invoiceProfileId: profile?.id ?? record.invoiceProfileId,
+      invoiceType:
+        record.invoiceTypeSource !== 'manual' &&
+        isInvoiceType(profile?.defaultInvoiceType)
+          ? profile?.defaultInvoiceType
+          : record.invoiceType,
+    });
+  };
+  const applyProfileRef = useRef(applyProfile);
+  applyProfileRef.current = applyProfile;
   useEffect(() => {
     if (!onlyProfile || !recordCount) return;
     const all = (form.getFieldValue(name) ?? []) as InvoiceRegistrationDraft[];
     all.forEach((record, index) => {
       if (record && !record.sourceInvoiceId && !record.invoiceProfileId)
-        form.setFieldValue([...name, index, 'invoiceProfileId'], onlyProfile);
+        applyProfileRef.current(index, onlyProfile);
     });
   }, [onlyProfile, recordCount, form, name]);
   const profileOptions = (items: API.FinanceInvoiceProfileOption[]) =>
@@ -218,6 +240,12 @@ export default function InvoiceRegistrationEditor({
                             : (query.data ?? []),
                         )}
                         loading={query.isFetching}
+                        onChange={(value: string) =>
+                          applyProfile(
+                            field.name,
+                            query.data?.find((item) => item.id === value),
+                          )
+                        }
                         disabled={Boolean(
                           records?.[field.name]?.sourceInvoiceId,
                         )}
@@ -231,10 +259,13 @@ export default function InvoiceRegistrationEditor({
                       rules={[required]}
                     >
                       <Select
-                        options={[
-                          { value: 'NORMAL', label: '普通发票' },
-                          { value: 'SPECIAL', label: '专用发票' },
-                        ]}
+                        options={[...INVOICE_TYPE_OPTIONS]}
+                        onChange={() =>
+                          form.setFieldValue(
+                            [...name, field.name, 'invoiceTypeSource'],
+                            'manual',
+                          )
+                        }
                       />
                     </Form.Item>
                   </Col>

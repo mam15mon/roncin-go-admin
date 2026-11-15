@@ -45,7 +45,7 @@ func (f *registrationFixture) record(b *ent.FinanceBill, no, amount, tax string)
 	if len(lines) != 1 {
 		f.t.Fatal("夹具必须一条来源费用")
 	}
-	return biz.FinanceInvoiceRegistrationInput{InvoiceProfileID: f.profile.ID, InvoiceType: biz.FinanceInvoiceNormal, TaxInvoiceNo: no, InvoiceDate: financeInvoiceIntegrationDate, TotalAmount: decimal.RequireFromString(amount), Allocations: []biz.FinanceInvoiceAllocationInput{{BillID: b.ID, ExpectedVersion: b.Version, Amount: decimal.RequireFromString(amount), Fees: []biz.FinanceInvoiceFeeInput{{OrderFeeID: lines[0].OrderFeeID, Amount: decimal.RequireFromString(amount), TaxAmount: decimal.RequireFromString(tax)}}}}}
+	return biz.FinanceInvoiceRegistrationInput{InvoiceProfileID: f.profile.ID, InvoiceType: biz.FinanceInvoiceDigitalNormal, TaxInvoiceNo: no, InvoiceDate: financeInvoiceIntegrationDate, TotalAmount: decimal.RequireFromString(amount), Allocations: []biz.FinanceInvoiceAllocationInput{{BillID: b.ID, ExpectedVersion: b.Version, Amount: decimal.RequireFromString(amount), Fees: []biz.FinanceInvoiceFeeInput{{OrderFeeID: lines[0].OrderFeeID, Amount: decimal.RequireFromString(amount), TaxAmount: decimal.RequireFromString(tax)}}}}}
 }
 func (f *registrationFixture) register(key string, records ...biz.FinanceInvoiceRegistrationInput) ([]*biz.FinanceInvoice, error) {
 	return f.uc.RegisterScoped(context.Background(), []uuid.UUID{f.organizationID}, f.actorID, biz.RegisterFinanceInvoicesInput{IdempotencyKey: key, Records: records})

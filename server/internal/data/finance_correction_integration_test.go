@@ -238,7 +238,7 @@ func correctionFinanceInvoice(t *testing.T, f *financeInvoicePostgresFixture, ke
 			return nil, err
 		}
 	}
-	record := biz.FinanceInvoiceRegistrationInput{InvoiceProfileID: profile.ID, InvoiceType: biz.FinanceInvoiceNormal, TaxInvoiceNo: key, InvoiceDate: financeInvoiceIntegrationDate}
+	record := biz.FinanceInvoiceRegistrationInput{InvoiceProfileID: profile.ID, InvoiceType: biz.FinanceInvoiceDigitalNormal, TaxInvoiceNo: key, InvoiceDate: financeInvoiceIntegrationDate}
 	for _, b := range bills {
 		if b.Purpose != biz.FinanceBillNormal || len(b.Lines) == 0 {
 			return nil, biz.ErrFinanceInvoiceBillInvalid

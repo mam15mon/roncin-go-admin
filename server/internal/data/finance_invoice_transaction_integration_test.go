@@ -170,7 +170,7 @@ func (f *financeInvoicePostgresFixture) createInvoiceWithStatus(key string, stat
 		SetIdempotencyKey("inv-" + key + "-" + f.suffix).
 		SetDirection(financeinvoiceent.DirectionRECEIVABLE).
 		SetStatus(status).
-		SetInvoiceType(financeinvoiceent.InvoiceTypeNORMAL).
+		SetInvoiceType(financeinvoiceent.InvoiceTypeDIGITAL_NORMAL).
 		SetSettlementPartyID(f.partnerID).
 		SetSettlementPartyName("发票事务测试客户-" + f.suffix).
 		SetCurrency("CNY").

@@ -511,7 +511,7 @@ if (!profile) {
         registeredPhone: '',
         bankName: '',
         bankAccount: '',
-        defaultInvoiceType: 'NORMAL',
+        defaultInvoiceType: 'DIGITAL_NORMAL',
         isDefault: true,
       }),
     },
@@ -536,7 +536,7 @@ const secondaryProfileResponse = await request(
       registeredPhone: '',
       bankName: '',
       bankAccount: '',
-      defaultInvoiceType: 'NORMAL',
+      defaultInvoiceType: 'DIGITAL_NORMAL',
       isDefault: false,
     }),
   },
@@ -609,7 +609,7 @@ profile = enabledProfiles.find((item) => item.id === primaryProfile.id);
 assert(profile && !profile.isDefault, '原默认抬头未正确切换为非默认抬头');
 
 const invoiceResponse = await request('/api/v1/finance/invoices/register', {
-  method: 'POST', body: JSON.stringify({ idempotencyKey: `acc-fin-invoice-${stamp}`, records: [invoiceRegistrationForBills(confirmedBatch.data.bills, { invoiceProfileId: profile.id, invoiceType: 'NORMAL', taxInvoiceNo: `ACC-TAX-${stamp}`, invoiceDate: today, note: '财务批量转账单自动验收' })] }),
+  method: 'POST', body: JSON.stringify({ idempotencyKey: `acc-fin-invoice-${stamp}`, records: [invoiceRegistrationForBills(confirmedBatch.data.bills, { invoiceProfileId: profile.id, invoiceType: 'DIGITAL_NORMAL', taxInvoiceNo: `ACC-TAX-${stamp}`, invoiceDate: today, note: '财务批量转账单自动验收' })] }),
 });
 const invoice = invoiceResponse.data?.[0];
 assert(invoice?.id && invoice?.recordNo, '创建开票记录失败');

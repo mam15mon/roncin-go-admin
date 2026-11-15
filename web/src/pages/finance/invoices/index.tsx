@@ -24,7 +24,10 @@ import {
 } from '@/components/ui/filter-settings';
 import { useListQueryState } from '@/components/ui/list-query-state';
 import { FinanceInvoiceStatus } from '@/enums.generated';
-import { InvoiceRegistrationModal } from '@/features/finance/invoice-registration';
+import {
+  InvoiceRegistrationModal,
+  invoiceTypeLabel,
+} from '@/features/finance/invoice-registration';
 import {
   invoiceLedgerSummaryConfig,
   mapMatchedSummary,
@@ -304,7 +307,7 @@ export default function FinanceInvoicesPage() {
       dataIndex: 'invoiceType',
       width: 100,
       search: false,
-      renderText: (v) => (v === 'SPECIAL' ? '专用发票' : '普通发票'),
+      renderText: (v) => invoiceTypeLabel(v),
     },
     {
       title: '金额',

@@ -1786,6 +1786,7 @@ declare namespace API {
     registeredPhone?: string;
     bankName?: string;
     bankAccount?: string;
+    /** 默认票种：DIGITAL_NORMAL 数电普票、DIGITAL_SPECIAL 数电专票、PAPER_NORMAL 纸质普票、PAPER_SPECIAL 纸质专票、ELECTRONIC_NORMAL 电子普票、ELECTRONIC_SPECIAL 电子专票；专票类要求抬头开户资料齐全。 */
     defaultInvoiceType: string;
     isDefault?: boolean;
   };
@@ -6518,6 +6519,7 @@ declare namespace API {
     registeredPhone?: string;
     bankName?: string;
     bankAccount?: string;
+    /** 默认票种：DIGITAL_NORMAL 数电普票、DIGITAL_SPECIAL 数电专票、PAPER_NORMAL 纸质普票、PAPER_SPECIAL 纸质专票、ELECTRONIC_NORMAL 电子普票、ELECTRONIC_SPECIAL 电子专票；专票类要求抬头开户资料齐全。 */
     defaultInvoiceType?: string;
     version?: string;
     isDefault?: boolean;
@@ -9619,6 +9621,7 @@ declare namespace API {
     registeredAddress?: string;
     registeredPhone?: string;
     bankName?: string;
+    /** 默认票种：DIGITAL_NORMAL 数电普票、DIGITAL_SPECIAL 数电专票、PAPER_NORMAL 纸质普票、PAPER_SPECIAL 纸质专票、ELECTRONIC_NORMAL 电子普票、ELECTRONIC_SPECIAL 电子专票；专票类要求抬头开户资料齐全。 */
     bankAccount?: string;
     defaultInvoiceType: string;
     isDefault?: boolean;

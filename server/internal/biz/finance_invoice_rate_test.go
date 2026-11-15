@@ -47,7 +47,7 @@ func TestInvoiceRegistrationResolvesRateByBillDirection(t *testing.T) {
 				}
 				uc := NewFinanceInvoiceUsecase(repo, NewOrderConfigUsecase(orderConfigNumberStub{}), NewExchangeRateUsecase(rates, nil), nil)
 				bill := &FinanceBill{ID: uuid.New(), OrganizationID: org, Status: FinanceBillConfirmed, Purpose: FinanceBillNormal, Direction: direction, SettlementPartyID: party, Currency: "USD", BaseCurrency: "CNY", Lines: []*FinanceBillLine{{ID: lineID, OrderFeeID: feeID, Active: true, TotalAmount: decimal.NewFromInt(100)}}}
-				input := FinanceInvoiceRegistrationInput{InvoiceProfileID: profileID, InvoiceType: FinanceInvoiceNormal, TaxInvoiceNo: "INV-001", InvoiceDate: "2026-11-04", TotalAmount: decimal.NewFromInt(100), Allocations: []FinanceInvoiceAllocationInput{{BillID: bill.ID, ExpectedVersion: 1, Amount: decimal.NewFromInt(100), Fees: []FinanceInvoiceFeeInput{{OrderFeeID: feeID, Amount: decimal.NewFromInt(100), TaxAmount: decimal.NewFromInt(9)}}}}}
+				input := FinanceInvoiceRegistrationInput{InvoiceProfileID: profileID, InvoiceType: FinanceInvoiceDigitalNormal, TaxInvoiceNo: "INV-001", InvoiceDate: "2026-11-04", TotalAmount: decimal.NewFromInt(100), Allocations: []FinanceInvoiceAllocationInput{{BillID: bill.ID, ExpectedVersion: 1, Amount: decimal.NewFromInt(100), Fees: []FinanceInvoiceFeeInput{{OrderFeeID: feeID, Amount: decimal.NewFromInt(100), TaxAmount: decimal.NewFromInt(9)}}}}}
 				invoices, err := uc.buildRegistrationInvoices(context.Background(), org, []FinanceInvoiceRegistrationInput{input}, []*FinanceBill{bill}, nil)
 				if missing {
 					if !errors.Is(err, ErrExchangeRateMissing) {
@@ -76,7 +76,7 @@ func TestInvoiceRevisionUsesEachOriginalProfileSnapshot(t *testing.T) {
 	first, second, third := makeBill(), makeBill(), makeBill()
 	second.Lines[0].TaxRate = &rate
 	makeRecord := func(b *FinanceBill, no string) FinanceInvoiceRegistrationInput {
-		return FinanceInvoiceRegistrationInput{InvoiceProfileID: profileID, InvoiceType: FinanceInvoiceNormal, TaxInvoiceNo: no, InvoiceDate: "2026-11-14", TotalAmount: decimal.NewFromInt(10), Allocations: []FinanceInvoiceAllocationInput{{BillID: b.ID, ExpectedVersion: 1, Amount: decimal.NewFromInt(10), Fees: []FinanceInvoiceFeeInput{{OrderFeeID: b.Lines[0].OrderFeeID, Amount: decimal.NewFromInt(10), TaxAmount: decimal.NewFromInt(2)}}}}}
+		return FinanceInvoiceRegistrationInput{InvoiceProfileID: profileID, InvoiceType: FinanceInvoiceDigitalNormal, TaxInvoiceNo: no, InvoiceDate: "2026-11-14", TotalAmount: decimal.NewFromInt(10), Allocations: []FinanceInvoiceAllocationInput{{BillID: b.ID, ExpectedVersion: 1, Amount: decimal.NewFromInt(10), Fees: []FinanceInvoiceFeeInput{{OrderFeeID: b.Lines[0].OrderFeeID, Amount: decimal.NewFromInt(10), TaxAmount: decimal.NewFromInt(2)}}}}}
 	}
 	old1 := &FinanceInvoice{InvoiceProfileID: &profileID, InvoiceTitle: "早期原抬头", TaxpayerIdentificationNo: "OLD-1", RecordNo: "OLD-REC-1"}
 	old2 := &FinanceInvoice{InvoiceProfileID: &profileID, InvoiceTitle: "后期原抬头", TaxpayerIdentificationNo: "OLD-2", RegisteredAddress: "原地址", RegisteredPhone: "原电话", BankName: "原银行", BankAccount: "原账号", RecordNo: "OLD-REC-2"}
@@ -94,8 +94,18 @@ func TestInvoiceRevisionUsesEachOriginalProfileSnapshot(t *testing.T) {
 	if invoices[0].Links[0].Fees[0].SourceTaxRate != nil || invoices[0].Lines[0].TaxRate != nil || invoices[1].Links[0].Fees[0].SourceTaxRate == nil || !invoices[1].Links[0].Fees[0].SourceTaxRate.IsZero() {
 		t.Fatal("来源未设与显式零税率应分别保留")
 	}
-	records[0].InvoiceType = FinanceInvoiceSpecial
+	records[0].InvoiceType = FinanceInvoiceDigitalSpecial
 	if _, err = uc.buildRegistrationInvoices(context.Background(), org, records, []*FinanceBill{first, second, third}, []*FinanceInvoice{old1, old2, nil}); !errors.Is(err, ErrFinanceInvoiceProfileRequired) {
 		t.Fatalf("普通改专票须按该票原快照检查完整性，不得使用另一票快照: %v", err)
+	}
+	for _, special := range []FinanceInvoiceType{FinanceInvoicePaperSpecial, FinanceInvoiceElectronicSpecial} {
+		records[0].InvoiceType = special
+		if _, err = uc.buildRegistrationInvoices(context.Background(), org, records, []*FinanceBill{first, second, third}, []*FinanceInvoice{old1, old2, nil}); !errors.Is(err, ErrFinanceInvoiceProfileRequired) {
+			t.Fatalf("%s 属专票类，须要求抬头开户资料齐全: %v", special, err)
+		}
+	}
+	records[0].InvoiceType = FinanceInvoicePaperNormal
+	if _, err = uc.buildRegistrationInvoices(context.Background(), org, records, []*FinanceBill{first, second, third}, []*FinanceInvoice{old1, old2, nil}); err != nil {
+		t.Fatalf("纸质普票不要求开户资料: %v", err)
 	}
 }

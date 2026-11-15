@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import Decimal from 'decimal.js';
+import { DEFAULT_INVOICE_TYPE } from './invoiceTypes';
 import type {
   InvoiceRegistrationAllocationDraft,
   InvoiceRegistrationBillSource,
@@ -154,7 +155,7 @@ export function newInvoiceRecord(
   selfIndex = records?.length ?? 0,
 ): InvoiceRegistrationDraft {
   const record: InvoiceRegistrationDraft = {
-    invoiceType: 'NORMAL',
+    invoiceType: DEFAULT_INVOICE_TYPE,
     invoiceDate: dayjs(),
     allocations: [],
   };

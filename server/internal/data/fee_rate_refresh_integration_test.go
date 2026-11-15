@@ -252,7 +252,7 @@ func TestFeeRateRefreshMatrixPostgres(t *testing.T) {
 		invBill := billFee(orderID, "p-inv", invoiced)
 		invoice, err := data.db.FinanceInvoice.Create().
 			SetOrganizationID(f.organizationID).SetRecordNo("INV-RR-" + f.suffix).SetIdempotencyKey("inv-rr-" + f.suffix).
-			SetDirection(financeinvoiceent.DirectionRECEIVABLE).SetInvoiceType(financeinvoiceent.InvoiceTypeNORMAL).
+			SetDirection(financeinvoiceent.DirectionRECEIVABLE).SetInvoiceType(financeinvoiceent.InvoiceTypeDIGITAL_NORMAL).
 			SetSettlementPartyID(f.partnerID).SetSettlementPartyName("联动").SetCurrency("CNY").SetBaseCurrency("CNY").
 			SetTotalAmount("100").SetNetAmount("100").SetTaxAmount("0").SetBillCount(1).SetStatus(financeinvoiceent.StatusDRAFT).Save(ctx)
 		if err != nil {

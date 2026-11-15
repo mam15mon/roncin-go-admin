@@ -502,7 +502,7 @@ func TestFinanceBillFeeUpdatePostgres(t *testing.T) {
 		extra := f.fee(billFeeSpec{key: "extra", total: "10"})
 		invoice, err := data.db.FinanceInvoice.Create().
 			SetOrganizationID(f.organizationID).SetRecordNo("INV-FEE-" + f.suffix).SetIdempotencyKey("inv-fee-" + f.suffix).
-			SetDirection(financeinvoiceent.DirectionRECEIVABLE).SetInvoiceType(financeinvoiceent.InvoiceTypeNORMAL).
+			SetDirection(financeinvoiceent.DirectionRECEIVABLE).SetInvoiceType(financeinvoiceent.InvoiceTypeDIGITAL_NORMAL).
 			SetSettlementPartyID(f.partnerID).SetSettlementPartyName("增删发票").SetCurrency("CNY").SetBaseCurrency("CNY").
 			SetTotalAmount("100.00000000").SetNetAmount("100.00000000").SetTaxAmount("0").SetBillCount(1).SetStatus(financeinvoiceent.StatusDRAFT).Save(f.ctx)
 		if err != nil {

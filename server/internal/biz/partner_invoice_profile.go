@@ -98,7 +98,7 @@ func (uc *PartnerInvoiceProfileUsecase) Update(ctx context.Context, organization
 }
 
 func validPartnerInvoiceProfile(profile *PartnerInvoiceProfile) bool {
-	return profile != nil && profile.PartnerID != uuid.Nil && profile.InvoiceTitle != "" && utf8.RuneCountInString(profile.InvoiceTitle) <= 200 && profile.TaxpayerIdentificationNo != "" && utf8.RuneCountInString(profile.TaxpayerIdentificationNo) <= 64 && utf8.RuneCountInString(profile.RegisteredAddress) <= 500 && utf8.RuneCountInString(profile.RegisteredPhone) <= 50 && utf8.RuneCountInString(profile.BankName) <= 200 && utf8.RuneCountInString(profile.BankAccount) <= 100 && (profile.DefaultInvoiceType == FinanceInvoiceNormal || profile.DefaultInvoiceType == FinanceInvoiceSpecial) && (profile.DefaultInvoiceType != FinanceInvoiceSpecial || (profile.RegisteredAddress != "" && profile.RegisteredPhone != "" && profile.BankName != "" && profile.BankAccount != ""))
+	return profile != nil && profile.PartnerID != uuid.Nil && profile.InvoiceTitle != "" && utf8.RuneCountInString(profile.InvoiceTitle) <= 200 && profile.TaxpayerIdentificationNo != "" && utf8.RuneCountInString(profile.TaxpayerIdentificationNo) <= 64 && utf8.RuneCountInString(profile.RegisteredAddress) <= 500 && utf8.RuneCountInString(profile.RegisteredPhone) <= 50 && utf8.RuneCountInString(profile.BankName) <= 200 && utf8.RuneCountInString(profile.BankAccount) <= 100 && profile.DefaultInvoiceType.Valid() && (!profile.DefaultInvoiceType.Special() || (profile.RegisteredAddress != "" && profile.RegisteredPhone != "" && profile.BankName != "" && profile.BankAccount != ""))
 }
 
 func partnerInvoiceProfileAudit(organizationID, actorID uuid.UUID, profile *PartnerInvoiceProfile, action string) *AuditEvent {

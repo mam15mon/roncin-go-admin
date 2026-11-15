@@ -51,7 +51,7 @@ func TestFeeHasProtectedFinanceFactPostgres(t *testing.T) {
 		t.Helper()
 		create := data.db.FinanceInvoice.Create().
 			SetOrganizationID(f.organizationID).SetRecordNo("INV-" + key + "-" + f.suffix).SetIdempotencyKey("inv-" + key + "-" + f.suffix).
-			SetDirection(financeinvoiceent.DirectionRECEIVABLE).SetInvoiceType(financeinvoiceent.InvoiceTypeNORMAL).
+			SetDirection(financeinvoiceent.DirectionRECEIVABLE).SetInvoiceType(financeinvoiceent.InvoiceTypeDIGITAL_NORMAL).
 			SetSettlementPartyID(f.partnerID).SetSettlementPartyName("保护事实").SetCurrency("CNY").SetBaseCurrency("CNY").
 			SetTotalAmount("100").SetNetAmount("100").SetTaxAmount("0").SetBillCount(1)
 		switch status {

@@ -434,7 +434,7 @@ const profileResponse = await request(
       registeredPhone: '',
       bankName: '',
       bankAccount: '',
-      defaultInvoiceType: 'NORMAL',
+      defaultInvoiceType: 'DIGITAL_NORMAL',
       isDefault: true,
     }),
   },
@@ -444,7 +444,7 @@ assert(profile?.id, '开票资料创建失败');
 
 await updateEURRate('1.22000000');
 const invoiceResponse = await request('/api/v1/finance/invoices/register', {
-  method: 'POST', body: JSON.stringify({ idempotencyKey: `acc-fc-invoice-${stamp}`, records: [invoiceRegistrationForBills([confirmedBill], { invoiceProfileId: profile.id, invoiceType: 'NORMAL', taxInvoiceNo: `ACC-FC-TAX-${stamp}`, invoiceDate: today, note: '外币发票全链路自动验收' })] }),
+  method: 'POST', body: JSON.stringify({ idempotencyKey: `acc-fc-invoice-${stamp}`, records: [invoiceRegistrationForBills([confirmedBill], { invoiceProfileId: profile.id, invoiceType: 'DIGITAL_NORMAL', taxInvoiceNo: `ACC-FC-TAX-${stamp}`, invoiceDate: today, note: '外币发票全链路自动验收' })] }),
 });
 const issuedInvoiceResponse = { data: invoiceResponse.data?.[0] };
 const issuedInvoice = issuedInvoiceResponse.data;

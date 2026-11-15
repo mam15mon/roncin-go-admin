@@ -33,7 +33,7 @@ function Scene({ allowAdd = true }: { allowAdd?: boolean }) {
           records: [
             {
               invoiceProfileId: 'profile',
-              invoiceType: 'NORMAL',
+              invoiceType: 'DIGITAL_NORMAL',
               taxInvoiceNo: 'TAX-1',
               invoiceDate: dayjs('2026-11-14'),
               totalAmount: '10',

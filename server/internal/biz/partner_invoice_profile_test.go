@@ -29,7 +29,7 @@ func (stub *partnerInvoiceProfileRepoStub) Update(_ context.Context, _ uuid.UUID
 func TestPartnerInvoiceProfileSpecialRequiresCompleteBankRegistration(t *testing.T) {
 	repo := &partnerInvoiceProfileRepoStub{}
 	usecase := NewPartnerInvoiceProfileUsecase(repo)
-	input := CreatePartnerInvoiceProfileInput{PartnerID: uuid.Must(uuid.NewV7()), InvoiceTitle: " 测试客户 ", TaxpayerIdentificationNo: " 91310000TEST ", DefaultInvoiceType: FinanceInvoiceSpecial}
+	input := CreatePartnerInvoiceProfileInput{PartnerID: uuid.Must(uuid.NewV7()), InvoiceTitle: " 测试客户 ", TaxpayerIdentificationNo: " 91310000TEST ", DefaultInvoiceType: FinanceInvoiceDigitalSpecial}
 	if _, err := usecase.Create(context.Background(), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), input); err != ErrPartnerInvoiceProfileInvalidArgument {
 		t.Fatalf("专票资料缺少注册地址、电话和银行资料应被拒绝，实际错误为 %v", err)
 	}
@@ -48,7 +48,7 @@ func TestPartnerInvoiceProfileSpecialRequiresCompleteBankRegistration(t *testing
 func TestPartnerInvoiceProfileRejectsDisabledDefault(t *testing.T) {
 	usecase := NewPartnerInvoiceProfileUsecase(&partnerInvoiceProfileRepoStub{})
 	_, err := usecase.Update(context.Background(), uuid.Must(uuid.NewV7()), uuid.Must(uuid.NewV7()), UpdatePartnerInvoiceProfileInput{
-		PartnerID: uuid.Must(uuid.NewV7()), ID: uuid.Must(uuid.NewV7()), InvoiceTitle: "测试客户", TaxpayerIdentificationNo: "91310000TEST", DefaultInvoiceType: FinanceInvoiceNormal, IsDefault: true, Enabled: false, ExpectedVersion: 1,
+		PartnerID: uuid.Must(uuid.NewV7()), ID: uuid.Must(uuid.NewV7()), InvoiceTitle: "测试客户", TaxpayerIdentificationNo: "91310000TEST", DefaultInvoiceType: FinanceInvoiceDigitalNormal, IsDefault: true, Enabled: false, ExpectedVersion: 1,
 	})
 	if err != ErrPartnerInvoiceProfileInvalidArgument {
 		t.Fatalf("停用抬头不能同时设为默认，实际错误为 %v", err)

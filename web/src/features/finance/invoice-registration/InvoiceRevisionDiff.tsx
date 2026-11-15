@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import Decimal from 'decimal.js';
 import { ResponsiveTable } from '@/components/ui';
 import { formatAmount } from '@/utils/format';
+import { invoiceTypeLabel } from './invoiceTypes';
 import type {
   InvoiceRegistrationBillSource,
   InvoiceRegistrationDraft,
@@ -13,11 +14,6 @@ export type RevisionDiffRow = {
   item: string;
   before: string;
   after: string;
-};
-
-const typeLabels: Record<string, string> = {
-  NORMAL: '普通发票',
-  SPECIAL: '专用发票',
 };
 
 function sameAmount(left?: string, right?: string) {
@@ -73,8 +69,8 @@ export function revisionDiffRows(
   push(
     'type',
     '发票类型',
-    typeLabels[original.invoiceType ?? ''] ?? original.invoiceType ?? '-',
-    typeLabels[draft.invoiceType] ?? draft.invoiceType ?? '-',
+    invoiceTypeLabel(original.invoiceType),
+    invoiceTypeLabel(draft.invoiceType),
   );
   if (!sameAmount(original.totalAmount, draft.totalAmount))
     rows.push({

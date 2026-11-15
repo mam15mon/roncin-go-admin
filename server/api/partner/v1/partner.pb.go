@@ -6984,14 +6984,15 @@ type PartnerInvoiceProfile struct {
 	RegisteredPhone          string                 `protobuf:"bytes,6,opt,name=registered_phone,json=registeredPhone,proto3" json:"registered_phone,omitempty"`
 	BankName                 string                 `protobuf:"bytes,7,opt,name=bank_name,json=bankName,proto3" json:"bank_name,omitempty"`
 	BankAccount              string                 `protobuf:"bytes,8,opt,name=bank_account,json=bankAccount,proto3" json:"bank_account,omitempty"`
-	DefaultInvoiceType       string                 `protobuf:"bytes,9,opt,name=default_invoice_type,json=defaultInvoiceType,proto3" json:"default_invoice_type,omitempty"`
-	Version                  uint64                 `protobuf:"varint,10,opt,name=version,proto3" json:"version,omitempty"`
-	IsDefault                bool                   `protobuf:"varint,11,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
-	Enabled                  bool                   `protobuf:"varint,12,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	CreatedAt                string                 `protobuf:"bytes,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt                string                 `protobuf:"bytes,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
+	// 默认票种：DIGITAL_NORMAL 数电普票、DIGITAL_SPECIAL 数电专票、PAPER_NORMAL 纸质普票、PAPER_SPECIAL 纸质专票、ELECTRONIC_NORMAL 电子普票、ELECTRONIC_SPECIAL 电子专票；专票类要求抬头开户资料齐全。
+	DefaultInvoiceType string `protobuf:"bytes,9,opt,name=default_invoice_type,json=defaultInvoiceType,proto3" json:"default_invoice_type,omitempty"`
+	Version            uint64 `protobuf:"varint,10,opt,name=version,proto3" json:"version,omitempty"`
+	IsDefault          bool   `protobuf:"varint,11,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
+	Enabled            bool   `protobuf:"varint,12,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	CreatedAt          string `protobuf:"bytes,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt          string `protobuf:"bytes,14,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *PartnerInvoiceProfile) Reset() {
@@ -7175,10 +7176,11 @@ type CreatePartnerInvoiceProfileRequest struct {
 	RegisteredPhone          string                 `protobuf:"bytes,5,opt,name=registered_phone,json=registeredPhone,proto3" json:"registered_phone,omitempty"`
 	BankName                 string                 `protobuf:"bytes,6,opt,name=bank_name,json=bankName,proto3" json:"bank_name,omitempty"`
 	BankAccount              string                 `protobuf:"bytes,7,opt,name=bank_account,json=bankAccount,proto3" json:"bank_account,omitempty"`
-	DefaultInvoiceType       string                 `protobuf:"bytes,8,opt,name=default_invoice_type,json=defaultInvoiceType,proto3" json:"default_invoice_type,omitempty"`
-	IsDefault                bool                   `protobuf:"varint,9,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
+	// 默认票种：DIGITAL_NORMAL 数电普票、DIGITAL_SPECIAL 数电专票、PAPER_NORMAL 纸质普票、PAPER_SPECIAL 纸质专票、ELECTRONIC_NORMAL 电子普票、ELECTRONIC_SPECIAL 电子专票；专票类要求抬头开户资料齐全。
+	DefaultInvoiceType string `protobuf:"bytes,8,opt,name=default_invoice_type,json=defaultInvoiceType,proto3" json:"default_invoice_type,omitempty"`
+	IsDefault          bool   `protobuf:"varint,9,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *CreatePartnerInvoiceProfileRequest) Reset() {
@@ -7283,13 +7285,14 @@ type UpdatePartnerInvoiceProfileRequest struct {
 	RegisteredAddress        string                 `protobuf:"bytes,5,opt,name=registered_address,json=registeredAddress,proto3" json:"registered_address,omitempty"`
 	RegisteredPhone          string                 `protobuf:"bytes,6,opt,name=registered_phone,json=registeredPhone,proto3" json:"registered_phone,omitempty"`
 	BankName                 string                 `protobuf:"bytes,7,opt,name=bank_name,json=bankName,proto3" json:"bank_name,omitempty"`
-	BankAccount              string                 `protobuf:"bytes,8,opt,name=bank_account,json=bankAccount,proto3" json:"bank_account,omitempty"`
-	DefaultInvoiceType       string                 `protobuf:"bytes,9,opt,name=default_invoice_type,json=defaultInvoiceType,proto3" json:"default_invoice_type,omitempty"`
-	IsDefault                bool                   `protobuf:"varint,10,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
-	Enabled                  bool                   `protobuf:"varint,11,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	ExpectedVersion          uint64                 `protobuf:"varint,12,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
+	// 默认票种：DIGITAL_NORMAL 数电普票、DIGITAL_SPECIAL 数电专票、PAPER_NORMAL 纸质普票、PAPER_SPECIAL 纸质专票、ELECTRONIC_NORMAL 电子普票、ELECTRONIC_SPECIAL 电子专票；专票类要求抬头开户资料齐全。
+	BankAccount        string `protobuf:"bytes,8,opt,name=bank_account,json=bankAccount,proto3" json:"bank_account,omitempty"`
+	DefaultInvoiceType string `protobuf:"bytes,9,opt,name=default_invoice_type,json=defaultInvoiceType,proto3" json:"default_invoice_type,omitempty"`
+	IsDefault          bool   `protobuf:"varint,10,opt,name=is_default,json=isDefault,proto3" json:"is_default,omitempty"`
+	Enabled            bool   `protobuf:"varint,11,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	ExpectedVersion    uint64 `protobuf:"varint,12,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *UpdatePartnerInvoiceProfileRequest) Reset() {

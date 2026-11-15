@@ -1271,6 +1271,7 @@ message GetMyFeeSupplementAdjustmentSourceResponse { bool success=1; int32 code=
 // 发票登记逐层金额由财务明确填写，税额不按来源税率自动重算。
 message InvoiceRegistrationFeeInput { string order_fee_id = 1 [(google.api.field_behavior) = REQUIRED]; string amount = 2 [(google.api.field_behavior) = REQUIRED]; string tax_amount = 3 [(google.api.field_behavior) = REQUIRED]; }
 message InvoiceRegistrationAllocationInput { string bill_id = 1 [(google.api.field_behavior) = REQUIRED]; uint64 expected_version = 2 [(google.api.field_behavior) = REQUIRED]; string amount = 3 [(google.api.field_behavior) = REQUIRED]; repeated InvoiceRegistrationFeeInput fees = 4; }
+// invoice_type 票种：DIGITAL_NORMAL 数电普票、DIGITAL_SPECIAL 数电专票、PAPER_NORMAL 纸质普票、PAPER_SPECIAL 纸质专票、ELECTRONIC_NORMAL 电子普票、ELECTRONIC_SPECIAL 电子专票；专票类要求抬头开户资料齐全。
 message InvoiceRegistrationInput { string invoice_profile_id = 1 [(google.api.field_behavior) = REQUIRED]; string invoice_type = 2 [(google.api.field_behavior) = REQUIRED]; string tax_invoice_no = 3 [(google.api.field_behavior) = REQUIRED]; string invoice_date = 4 [(google.api.field_behavior) = REQUIRED]; string total_amount = 5 [(google.api.field_behavior) = REQUIRED]; optional string note = 6; repeated InvoiceRegistrationAllocationInput allocations = 7; }
 message RegisterInvoicesRequest { string idempotency_key = 1 [(google.api.field_behavior) = REQUIRED]; repeated InvoiceRegistrationInput records = 2; }
 message RegisterInvoicesResponse { bool success = 1; int32 code = 2; string message = 3; repeated FinanceInvoice data = 4; string trace_id = 5; }

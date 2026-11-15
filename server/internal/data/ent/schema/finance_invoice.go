@@ -22,7 +22,7 @@ func (FinanceInvoice) Fields() []ent.Field {
 		field.String("idempotency_key").NotEmpty().MaxLen(128).Immutable(),
 		field.Enum("direction").Values("RECEIVABLE", "PAYABLE").Immutable(),
 		field.Enum("status").Values("DRAFT", "ISSUED", "CANCELLED", "RED_FLUSHED").Default("DRAFT"),
-		field.Enum("invoice_type").Values("NORMAL", "SPECIAL"),
+		field.Enum("invoice_type").Values("DIGITAL_NORMAL", "DIGITAL_SPECIAL", "PAPER_NORMAL", "PAPER_SPECIAL", "ELECTRONIC_NORMAL", "ELECTRONIC_SPECIAL"),
 		field.UUID("invoice_profile_id", uuid.Nil).Optional().Nillable().Immutable(),
 		field.UUID("settlement_party_id", uuid.Nil).Immutable(),
 		field.String("settlement_party_name").NotEmpty().MaxLen(200).Immutable(),

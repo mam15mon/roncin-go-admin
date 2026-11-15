@@ -307,7 +307,7 @@ func normalizeInvoiceRegistrations(input *RegisterFinanceInvoicesInput) error {
 		r.TaxInvoiceNo = strings.TrimSpace(r.TaxInvoiceNo)
 		r.InvoiceDate = strings.TrimSpace(r.InvoiceDate)
 		r.Note = normalizedOptionalFinanceString(r.Note)
-		if r.InvoiceProfileID == uuid.Nil || (r.InvoiceType != FinanceInvoiceNormal && r.InvoiceType != FinanceInvoiceSpecial) || r.TaxInvoiceNo == "" || utf8.RuneCountInString(r.TaxInvoiceNo) > 100 || numbers[r.TaxInvoiceNo] || !validFinanceDate(r.InvoiceDate) || !invoiceAmountValid(r.TotalAmount, true) || len(r.Allocations) == 0 || len(r.Allocations) > 500 || (r.Note != nil && utf8.RuneCountInString(*r.Note) > 500) {
+		if r.InvoiceProfileID == uuid.Nil || !r.InvoiceType.Valid() || r.TaxInvoiceNo == "" || utf8.RuneCountInString(r.TaxInvoiceNo) > 100 || numbers[r.TaxInvoiceNo] || !validFinanceDate(r.InvoiceDate) || !invoiceAmountValid(r.TotalAmount, true) || len(r.Allocations) == 0 || len(r.Allocations) > 500 || (r.Note != nil && utf8.RuneCountInString(*r.Note) > 500) {
 			return invoiceRegistrationError(ErrFinanceInvoiceInvalidArgument, i)
 		}
 		numbers[r.TaxInvoiceNo] = true
@@ -404,7 +404,7 @@ func (uc *FinanceInvoiceUsecase) buildRegistrationInvoices(ctx context.Context, 
 		if err != nil {
 			return nil, invoiceRegistrationError(ErrFinanceInvoiceProfileRequired, recordIndex)
 		}
-		if profile.InvoiceTitle == "" || profile.TaxpayerIdentificationNo == "" || !profile.Enabled || (r.InvoiceType == FinanceInvoiceSpecial && (profile.RegisteredAddress == "" || profile.RegisteredPhone == "" || profile.BankName == "" || profile.BankAccount == "")) {
+		if profile.InvoiceTitle == "" || profile.TaxpayerIdentificationNo == "" || !profile.Enabled || (r.InvoiceType.Special() && (profile.RegisteredAddress == "" || profile.RegisteredPhone == "" || profile.BankName == "" || profile.BankAccount == "")) {
 			return nil, invoiceRegistrationError(ErrFinanceInvoiceProfileRequired, recordIndex)
 		}
 		id := uuid.Must(uuid.NewV7())

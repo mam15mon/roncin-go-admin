@@ -976,6 +976,7 @@ message PartnerInvoiceProfile {
   string registered_phone = 6;
   string bank_name = 7;
   string bank_account = 8;
+  // 默认票种：DIGITAL_NORMAL 数电普票、DIGITAL_SPECIAL 数电专票、PAPER_NORMAL 纸质普票、PAPER_SPECIAL 纸质专票、ELECTRONIC_NORMAL 电子普票、ELECTRONIC_SPECIAL 电子专票；专票类要求抬头开户资料齐全。
   string default_invoice_type = 9;
   uint64 version = 10;
   bool is_default = 11;
@@ -996,6 +997,7 @@ message CreatePartnerInvoiceProfileRequest {
   string registered_phone = 5;
   string bank_name = 6;
   string bank_account = 7;
+  // 默认票种：DIGITAL_NORMAL 数电普票、DIGITAL_SPECIAL 数电专票、PAPER_NORMAL 纸质普票、PAPER_SPECIAL 纸质专票、ELECTRONIC_NORMAL 电子普票、ELECTRONIC_SPECIAL 电子专票；专票类要求抬头开户资料齐全。
   string default_invoice_type = 8 [(google.api.field_behavior) = REQUIRED];
   bool is_default = 9;
 }
@@ -1008,6 +1010,7 @@ message UpdatePartnerInvoiceProfileRequest {
   string registered_address = 5;
   string registered_phone = 6;
   string bank_name = 7;
+  // 默认票种：DIGITAL_NORMAL 数电普票、DIGITAL_SPECIAL 数电专票、PAPER_NORMAL 纸质普票、PAPER_SPECIAL 纸质专票、ELECTRONIC_NORMAL 电子普票、ELECTRONIC_SPECIAL 电子专票；专票类要求抬头开户资料齐全。
   string bank_account = 8;
   string default_invoice_type = 9 [(google.api.field_behavior) = REQUIRED];
   bool is_default = 10;

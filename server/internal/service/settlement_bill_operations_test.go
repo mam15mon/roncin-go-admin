@@ -71,7 +71,7 @@ func TestBillBatchMalformedInvoiceKeepsOtherGroup(t *testing.T) {
 					case "exponent":
 						fee.Amount = "1e1000000000"
 					}
-					input.Invoices = []*v1.BillBatchInvoiceInput{{InvoiceProfileId: uuid.NewString(), InvoiceType: "NORMAL", TaxInvoiceNo: "TEST-001", InvoiceDate: "2026-09-10", TotalAmount: "100", Fees: []*v1.InvoiceRegistrationFeeInput{fee}}}
+					input.Invoices = []*v1.BillBatchInvoiceInput{{InvoiceProfileId: uuid.NewString(), InvoiceType: "DIGITAL_NORMAL", TaxInvoiceNo: "TEST-001", InvoiceDate: "2026-09-10", TotalAmount: "100", Fees: []*v1.InvoiceRegistrationFeeInput{fee}}}
 				}
 				request.Groups = append(request.Groups, input)
 			}

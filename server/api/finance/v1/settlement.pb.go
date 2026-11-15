@@ -20713,6 +20713,7 @@ func (x *InvoiceRegistrationAllocationInput) GetFees() []*InvoiceRegistrationFee
 	return nil
 }
 
+// invoice_type 票种：DIGITAL_NORMAL 数电普票、DIGITAL_SPECIAL 数电专票、PAPER_NORMAL 纸质普票、PAPER_SPECIAL 纸质专票、ELECTRONIC_NORMAL 电子普票、ELECTRONIC_SPECIAL 电子专票；专票类要求抬头开户资料齐全。
 type InvoiceRegistrationInput struct {
 	state            protoimpl.MessageState                `protogen:"open.v1"`
 	InvoiceProfileId string                                `protobuf:"bytes,1,opt,name=invoice_profile_id,json=invoiceProfileId,proto3" json:"invoice_profile_id,omitempty"`

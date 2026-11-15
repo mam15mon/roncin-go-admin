@@ -24,7 +24,7 @@ func (PartnerInvoiceProfile) Fields() []ent.Field {
 		field.String("registered_phone").Optional().MaxLen(50),
 		field.String("bank_name").Optional().MaxLen(200),
 		field.String("bank_account").Optional().MaxLen(100),
-		field.Enum("default_invoice_type").Values("NORMAL", "SPECIAL").Default("NORMAL"),
+		field.Enum("default_invoice_type").Values("DIGITAL_NORMAL", "DIGITAL_SPECIAL", "PAPER_NORMAL", "PAPER_SPECIAL", "ELECTRONIC_NORMAL", "ELECTRONIC_SPECIAL").Default("DIGITAL_NORMAL"),
 		field.Bool("is_default").Default(false),
 		field.Bool("enabled").Default(true),
 		field.Uint64("version").Default(1),

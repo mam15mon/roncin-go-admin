@@ -32,7 +32,7 @@ func (s *financeInvoiceCandidateRepoStub) ListProfilesForBill(_ context.Context,
 
 func TestNormalizeInvoiceRegistrationsManualTaxAndHierarchy(t *testing.T) {
 	valid := func() RegisterFinanceInvoicesInput {
-		return RegisterFinanceInvoicesInput{IdempotencyKey: "manual-tax", Records: []FinanceInvoiceRegistrationInput{{InvoiceProfileID: uuid.New(), InvoiceType: FinanceInvoiceNormal, TaxInvoiceNo: " 原票 ", InvoiceDate: "2026-11-14", TotalAmount: decimal.RequireFromString("100.00000001"), Allocations: []FinanceInvoiceAllocationInput{{BillID: uuid.New(), ExpectedVersion: 1, Amount: decimal.RequireFromString("100.00000001"), Fees: []FinanceInvoiceFeeInput{{OrderFeeID: uuid.New(), Amount: decimal.RequireFromString("100.00000001"), TaxAmount: decimal.RequireFromString("7.00000001")}}}}}}}
+		return RegisterFinanceInvoicesInput{IdempotencyKey: "manual-tax", Records: []FinanceInvoiceRegistrationInput{{InvoiceProfileID: uuid.New(), InvoiceType: FinanceInvoiceDigitalNormal, TaxInvoiceNo: " 原票 ", InvoiceDate: "2026-11-14", TotalAmount: decimal.RequireFromString("100.00000001"), Allocations: []FinanceInvoiceAllocationInput{{BillID: uuid.New(), ExpectedVersion: 1, Amount: decimal.RequireFromString("100.00000001"), Fees: []FinanceInvoiceFeeInput{{OrderFeeID: uuid.New(), Amount: decimal.RequireFromString("100.00000001"), TaxAmount: decimal.RequireFromString("7.00000001")}}}}}}}
 	}
 	input := valid()
 	if err := normalizeInvoiceRegistrations(&input); err != nil {

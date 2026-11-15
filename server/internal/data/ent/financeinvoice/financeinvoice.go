@@ -365,8 +365,12 @@ type InvoiceType string
 
 // InvoiceType values.
 const (
-	InvoiceTypeNORMAL  InvoiceType = "NORMAL"
-	InvoiceTypeSPECIAL InvoiceType = "SPECIAL"
+	InvoiceTypeDIGITAL_NORMAL     InvoiceType = "DIGITAL_NORMAL"
+	InvoiceTypeDIGITAL_SPECIAL    InvoiceType = "DIGITAL_SPECIAL"
+	InvoiceTypePAPER_NORMAL       InvoiceType = "PAPER_NORMAL"
+	InvoiceTypePAPER_SPECIAL      InvoiceType = "PAPER_SPECIAL"
+	InvoiceTypeELECTRONIC_NORMAL  InvoiceType = "ELECTRONIC_NORMAL"
+	InvoiceTypeELECTRONIC_SPECIAL InvoiceType = "ELECTRONIC_SPECIAL"
 )
 
 func (it InvoiceType) String() string {
@@ -376,7 +380,7 @@ func (it InvoiceType) String() string {
 // InvoiceTypeValidator is a validator for the "invoice_type" field enum values. It is called by the builders before save.
 func InvoiceTypeValidator(it InvoiceType) error {
 	switch it {
-	case InvoiceTypeNORMAL, InvoiceTypeSPECIAL:
+	case InvoiceTypeDIGITAL_NORMAL, InvoiceTypeDIGITAL_SPECIAL, InvoiceTypePAPER_NORMAL, InvoiceTypePAPER_SPECIAL, InvoiceTypeELECTRONIC_NORMAL, InvoiceTypeELECTRONIC_SPECIAL:
 		return nil
 	default:
 		return fmt.Errorf("financeinvoice: invalid enum value for invoice_type field: %q", it)

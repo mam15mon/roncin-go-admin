@@ -146,7 +146,7 @@ func TestPartnerInvoiceProfileDefaultVersionPostgres(t *testing.T) {
 		t.Run(mode, func(t *testing.T) {
 			partnerID, _ := f.newCreditPartner("抬头" + mode)
 			profile := func(title string, isDefault bool) *biz.PartnerInvoiceProfile {
-				return &biz.PartnerInvoiceProfile{ID: uuid.New(), PartnerID: partnerID, InvoiceTitle: title, TaxpayerIdentificationNo: "913100000000000000", DefaultInvoiceType: biz.FinanceInvoiceNormal, IsDefault: isDefault, Enabled: true}
+				return &biz.PartnerInvoiceProfile{ID: uuid.New(), PartnerID: partnerID, InvoiceTitle: title, TaxpayerIdentificationNo: "913100000000000000", DefaultInvoiceType: biz.FinanceInvoiceDigitalNormal, IsDefault: isDefault, Enabled: true}
 			}
 			a, err := repo.Create(ctx, f.organizationID, profile("默认A", true), audit())
 			if err != nil {

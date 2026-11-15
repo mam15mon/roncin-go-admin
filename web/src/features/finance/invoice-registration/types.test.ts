@@ -15,7 +15,7 @@ const source: InvoiceRegistrationBillSource = {
 };
 const record = (): InvoiceRegistrationDraft => ({
   invoiceProfileId: 'profile',
-  invoiceType: 'NORMAL',
+  invoiceType: 'DIGITAL_NORMAL',
   taxInvoiceNo: ' NO-1 ',
   invoiceDate: dayjs('2026-11-14'),
   totalAmount: '30',
@@ -34,7 +34,7 @@ describe('发票登记载荷', () => {
     expect(invoiceRegistrationPayload([input], [source])).toEqual([
       {
         invoiceProfileId: 'profile',
-        invoiceType: 'NORMAL',
+        invoiceType: 'DIGITAL_NORMAL',
         taxInvoiceNo: 'NO-1',
         invoiceDate: '2026-11-14',
         totalAmount: '30.00000000',

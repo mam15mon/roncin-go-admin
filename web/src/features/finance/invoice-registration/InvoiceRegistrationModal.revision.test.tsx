@@ -32,7 +32,7 @@ const invoice: API.FinanceInvoice = {
   invoiceTitle: '原快照抬头',
   taxpayerIdentificationNo: 'OLD-TAX',
   status: FinanceInvoiceStatus.FINANCE_INVOICE_STATUS_ISSUED,
-  invoiceType: 'NORMAL',
+  invoiceType: 'DIGITAL_NORMAL',
   taxInvoiceNo: 'OLD-1',
   invoiceDate: '2026-11-14',
   totalAmount: '30',
