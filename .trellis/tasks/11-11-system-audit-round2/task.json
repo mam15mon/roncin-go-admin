@@ -15,7 +15,7 @@
   "branch": "main",
   "base_branch": "main",
   "worktree_path": null,
-  "commit": null,
+  "commit": "49a26e7e",
   "pr_url": null,
   "subtasks": [],
   "children": [
@@ -23,6 +23,6 @@
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "",
+  "notes": "本期审计结束；B1–B7已交付，B8可空字段重复赋值修复及真实PG回归通过，最终check:fast通过，无剩余已确认阻断。",
   "meta": {}
 }
