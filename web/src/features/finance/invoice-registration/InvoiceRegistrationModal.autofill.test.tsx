@@ -101,8 +101,9 @@ function open(bills: API.FinanceBill[]) {
   return within(screen.getByRole('dialog'));
 }
 async function fillHeader(dialog: ReturnType<typeof within>, total: string) {
-  fireEvent.mouseDown(await dialog.findByLabelText('开票抬头'));
-  fireEvent.click(await screen.findByText('测试抬头 · TAX'));
+  await waitFor(() =>
+    expect(dialog.getByText('测试抬头 · TAX')).toBeInTheDocument(),
+  );
   fireEvent.change(dialog.getByLabelText('已有发票号码'), {
     target: { value: 'NO-1' },
   });

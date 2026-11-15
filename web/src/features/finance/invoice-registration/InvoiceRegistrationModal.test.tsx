@@ -1,5 +1,11 @@
 import { renderWithApp } from '@root/tests/renderWithApp';
-import { act, fireEvent, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import InvoiceRegistrationModal from './InvoiceRegistrationModal';
 import {
@@ -185,5 +191,36 @@ describe('登记弹窗', () => {
     await waitFor(() => expect(mocks.register).toHaveBeenCalledTimes(3));
     expect(mocks.register.mock.calls[2][0].idempotencyKey).toBe(first);
     expect(closed).not.toHaveBeenCalledWith(false);
+  });
+  it('候选查询不嵌套表单，回车只查询候选不提交登记；唯一抬头自动选中', async () => {
+    renderWithApp(
+      <NoMotion>
+        <InvoiceRegistrationModal
+          open
+          onOpenChange={vi.fn()}
+          onSuccess={vi.fn()}
+        />
+      </NoMotion>,
+      { user: invoiceUser },
+    );
+    expect(await screen.findByText('BI-001')).toBeInTheDocument();
+    expect(document.querySelectorAll('form form')).toHaveLength(0);
+    const keyword = screen.getByPlaceholderText('账单号、结算单位、拼音');
+    fireEvent.change(keyword, { target: { value: 'BI-001' } });
+    fireEvent.keyDown(keyword, { key: 'Enter', code: 'Enter', keyCode: 13 });
+    await waitFor(() =>
+      expect(mocks.candidates).toHaveBeenCalledWith(
+        expect.objectContaining({ keyword: 'BI-001' }),
+      ),
+    );
+    expect(mocks.register).not.toHaveBeenCalled();
+    fireEvent.click(
+      within(screen.getByText('BI-001').closest('tr') as HTMLElement).getByRole(
+        'checkbox',
+      ),
+    );
+    await waitFor(() =>
+      expect(screen.getByText('测试抬头 · TAX')).toBeInTheDocument(),
+    );
   });
 });

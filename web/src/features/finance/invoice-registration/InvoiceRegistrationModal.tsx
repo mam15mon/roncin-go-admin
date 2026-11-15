@@ -1,4 +1,4 @@
-import type { ProColumns } from '@ant-design/pro-components';
+import type { ProColumns, ProFormInstance } from '@ant-design/pro-components';
 import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, App, Button, Form, Input, Space, Typography } from 'antd';
 import dayjs from 'dayjs';
@@ -75,6 +75,7 @@ function RegistrationSession({
   const [failure, setFailure] = useState<string>();
   const [changed, setChanged] = useState(false);
   const inputRevision = useRef(0);
+  const searchForm = useRef<ProFormInstance>(undefined);
   const resume = useRef<() => void>(() => undefined);
   const foreground = usePageForeground(() => resume.current());
   const authorized =
@@ -228,7 +229,14 @@ function RegistrationSession({
       title: '关键字',
       dataIndex: 'keyword',
       hideInTable: true,
-      fieldProps: { placeholder: '账单号、结算单位、拼音' },
+      fieldProps: {
+        placeholder: '账单号、结算单位、拼音',
+        // 查询栏不再是独立 <form>：回车只触发候选查询，不提交外层登记。
+        onPressEnter: (event: KeyboardEvent) => {
+          event.preventDefault();
+          searchForm.current?.submit();
+        },
+      },
     },
     { title: '账单编号', dataIndex: 'billNo', search: false },
     { title: '结算单位', dataIndex: 'settlementPartyName', search: false },
@@ -451,6 +459,9 @@ function RegistrationSession({
         <ResponsiveProTable<API.FinanceBill>
           rowKey="id"
           columns={columns}
+          // 候选查询位于登记表单内：不渲染独立 <form>，避免表单嵌套。
+          form={{ component: false }}
+          formRef={searchForm}
           options={false}
           size="small"
           pagination={{ defaultPageSize: 20 }}

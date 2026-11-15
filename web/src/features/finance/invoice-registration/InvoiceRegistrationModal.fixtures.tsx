@@ -49,9 +49,10 @@ export function NoMotion({ children }: { children: ReactNode }) {
 /** 一账单一费用的简单登记：弹窗自动生成发票并选好账单和费用，只填头部四项与税额。 */
 export async function fillRegistration() {
   const dialog = within(screen.getByRole('dialog'));
-  const profile = await dialog.findByLabelText('开票抬头');
-  fireEvent.mouseDown(profile);
-  fireEvent.click(await screen.findByText('测试抬头 · TAX'));
+  // 唯一有效抬头会自动选中。
+  await waitFor(() =>
+    expect(dialog.getByText('测试抬头 · TAX')).toBeInTheDocument(),
+  );
   fireEvent.change(dialog.getByLabelText('已有发票号码'), {
     target: { value: 'NO-1' },
   });
