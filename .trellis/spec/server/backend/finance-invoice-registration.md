@@ -41,7 +41,7 @@ ReviseInvoiceRegistrations = {
 
 - 同一票所有账单必须同当前公司、方向、结算对象、原币与本币，且是有效普通账单。费用必须来自该账单的当前有效普通经济行；不可拿别账单、已失效、重复或越公司来源凑额。
 - `sum(费用含税分配)=账单分配`，`sum(账单分配)=票总额`。本次所有票对同一费用累计分配不得超过实时剩余额；同一次多票共用一个提交账单基线，不能要求第二张票预填第一张写后的版本。
-- 金额复用 `numeric(28,8)`：含税额严格大于0，税额满足 `0<=tax<=gross`，未税额为二者相减，不自动算税、补尾差或反写原费用及提成税基。值域绝对值小于 `10^20`、小数最多8位；领域先对指数 `-8..19` 短路，再比较值域和生成JSON指纹，不能展开巨大指数。独立RPC输入拒科学记数文本。
+- 金额复用 `numeric(28,8)`：含税额严格大于0，税额满足 `0<=tax<=gross`，未税额为二者相减；服务端不算税、不补尾差，也不反写原费用及提成税基。值域绝对值小于 `10^20`、小数最多8位；领域先对指数 `-8..19` 短路，再比较值域和生成JSON指纹，不能展开巨大指数。独立RPC输入拒科学记数文本。
 - `FinanceInvoiceFeeAllocation.source_tax_rate` 为可空不可变来源快照；领域为指针、Schema为Optional/Nillable、Proto为optional。未设保持未设，显式0保持0；界面分别显示 `-` 与 `0%`，不能用 `COALESCE(...,0)` 或页面默认值抹掉存在性。
 
 ### 事务、版本与幂等
@@ -60,6 +60,7 @@ ReviseInvoiceRegistrations = {
 - 修订停用旧关联并追加新逐费事实；当前头及行指向新修订序号。不可变 `FinanceInvoiceRevision` 保存原币金额、号/日期/类型/备注、抬头、全部分配、来源税率以及汇率/来源/日期/本币/折本币金额的前后业务快照，另存操作人、时间、原因。分配为空输出 `[]`，不得输出 `null` 让合法移除被当成损坏历史。
 - 有任一结算依赖先展示全部关联单号/账单/金额，再按既有授权完成必要反核销、反转或调整，之后重读。修订、作废、红冲均在写锁内再次检查，不隐式撤销资金或对冲，也不假设反向操作必然可执行。
 - 反向成功仅停用原活动关联并推进账单版本；余额由活动事实派生，不能重复加回原金额。另一张票、有效核销/对冲或免票仍存在时保持费用保护；最后一项解除才恢复业务允许的增删及后续系统汇率更新资格，不解除人工订单审核锁。
+- 前端登记辅助（`features/finance/invoice-registration/autofill.ts`）只改表单值，提交仍走完整三层校验：单账单仅一条可登记费用时自动建票并选好来源，发票总额经账单分配带入费用；费用来源税率明确时按含税口径 `G×r/(100+r)` 四舍五入两位**预填可编辑建议税额**并标注“建议值，请以实际发票税额为准”，税率未设置不建议（留空必填），显式0建议0；混合税率逐费计算，不补尾差。字段区分 `auto`/`manual` 来源，手改值不被后续联动覆盖，分配不平时显示发票与账单差额并阻止提交；“按可登记余额分配”须用户主动触发（已有分配先确认），按账单/费用顺序填至扣除本会话其他票占用后的余额，不补齐。修订预填全部视为手改，并展示原值→修改后对照。
 - 前端已有单据每15秒前台探测、回焦立即探测；不以探测新版本替换提交基线。发现变动保留输入并持续提示，刷新覆盖先确认。关闭/切公司/卸载或在途编辑后旧响应不得关闭、覆盖新会话；结果未知保留同意图键。历史仅结构化显示业务内容，时间/金额/汇率使用统一格式化，不显示原始JSON或内部UUID/版本。
 
 ## 4. 错误矩阵
@@ -99,7 +100,7 @@ Schema为真相源，新增 `FinanceInvoiceFeeAllocation` / `FinanceInvoiceComma
 go -C server test -p 32 ./internal/biz ./internal/service -run 'TestInvoiceRegistration|TestNormalizeInvoice|TestInvoiceRevision|TestInvoiceAllocation|TestInvoicePartyProfilesUseCreatePermissionAndCurrentCompany'
 go -C server test -p 32 ./internal/server -run '^TestInvoiceCreationPartyProfilesHTTPRoute$'
 go -C server test -p 32 ./internal/data -run '^TestFinanceInvoice(Registration|BillListAllocationProjection|CreationBillKeyword|RevisionReadSnapshot|Terminal|Exemption)' -count=1 -timeout=5m
-pnpm --dir web exec vitest run src/features/finance/invoice-registration/InvoiceRegistrationModal.test.tsx src/features/finance/invoice-registration/InvoiceRevisionHistory.test.tsx src/pages/finance/bills/components/BillInvoiceRegistrationSection.test.tsx
+pnpm --dir web exec vitest run src/features/finance/invoice-registration/autofill.test.ts src/features/finance/invoice-registration/InvoiceRegistrationModal.autofill.test.tsx src/features/finance/invoice-registration/InvoiceRegistrationModal.test.tsx src/features/finance/invoice-registration/InvoiceRevisionHistory.test.tsx src/pages/finance/bills/components/BillInvoiceRegistrationSection.test.tsx
 ```
 
 其他现有测试：`finance_invoice_text_length_integration_test.go` 验证登记/修订备注、作废/红冲原因的500中文接受及501拒绝；`finance_invoice_registration_migration_integration_test.go` 验证正式前态/升级回滚/NULL与0；`finance_invoice_review_integration_test.go` 在读头后另一连接提交真实修订，校验本请求旧快照、下请求新事实；`settlement_invoice_registration_test.go` 验证新增权限与wire存在性；共享编辑器/载荷/会话测试覆盖手税、三层、旧快照、失败/迟到、未知结果原键及当前公司。
@@ -107,8 +108,8 @@ pnpm --dir web exec vitest run src/features/finance/invoice-registration/Invoice
 ## 7. 错误与正确对照
 
 ```text
-错误：费用税率×本次含税额自动补税；部分登记即视整账单已开票。
-正确：财务明确填税，未税=含税−税；进度按有效逐费分配累计。
+错误：服务端或前端静默按费用税率补税、补尾差后直接提交；部分登记即视整账单已开票。
+正确：前端仅预填可编辑、带“建议值”标注的税额，提交以财务确认的表单值为准，未税=含税−税；进度按有效逐费分配累计。
 
 错误：按profile ID合并旧票快照；修订覆盖旧分配；只存号码和原币头。
 正确：按原票身份保留各自抬头；旧分配失效并追加；保存完整经济前后快照。
