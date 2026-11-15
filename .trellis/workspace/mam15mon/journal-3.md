@@ -1718,3 +1718,35 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Next Steps
 
 - 本期已完成，按既有授权推送main；账龄历史截止日、税务平台、零负费创建等不在本期。
+
+
+## Session 208: 现有四项任务统一验收收尾并交付main
+<!-- trellis-session: v=2 fp=7f53a071cb13d386 -->
+
+**Date**: 2026-11-15
+**Task**: 现有四项任务统一验收收尾并交付main
+**Branch**: `main`
+
+### Summary
+
+完成海运排版、系统审计父子及发票易用性四条记录，修复预设可空字段SQL重复赋值，补齐六票种真实PG与浏览器验收并全部归档。
+
+### Main Changes
+
+- 所有业务实现与验收提交均在main；临时资源清理完毕，未操作日常业务库。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `49a26e7e` | fix(partner): 修复单证预设可空字段更新并闭环审计 |
+| `7ba4f5fd` | test(orders): 补齐海运排版浏览器验收并完成任务 |
+| `69f1ff0e` | feat(finance): 发票类型细分为数电/纸质/电子普票与专票六类 |
+
+### Testing
+
+- [OK] check:fast完整通过，前端2572通过/11既有跳过；海运布局八浏览器场景通过；发票103例及真实PG、CNY浏览器和CNY/USD HTTP通过。
+
+### Status
+
+[OK] **Completed**
