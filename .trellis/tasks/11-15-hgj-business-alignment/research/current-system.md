@@ -15,7 +15,7 @@
 | SE 已有拆票、改配和共享航程 | `server/api/order/v1/sea_order_change.proto:28`、`:46`、`:64` |
 | SE 已有改单/作废/模式切换及结构化单证 | `server/api/order/v1/sea_document.proto:44`、`:62`、`:80`、`:184` |
 
-## 必须保留的历史决定
+## 历史决定（新批准覆盖项见下节）
 
 来源：`.trellis/tasks/archive/2026-10/10-20-air-export-business-loop/prd.md:69` 起。
 
@@ -29,3 +29,7 @@
 
 后端：`air_export_test.go`、`air_weight_test.go`、`air_export_integration_test.go`、`air_weight_integration_test.go`、`air_order_location_integration_test.go`、`air_workbench_integration_test.go`。
 前端：`detail-air-house-save*.test.tsx`、`detail-change-notice-air.test.tsx`、`air-master.permissions.test.tsx`、`templates/air-create-layout.test.tsx`、`AirWeightPanel.test.tsx`。
+
+## 本次需求已覆盖的历史决定
+
+用户已明确 AE/AI 同时提供 MAWB 直单与主分单，取代此前“无 HAWB 直单不提供”的范围限制。现有代码尚未更改；这是新需求，不应删除原有历史记录。主、分空运单结构化及制作/预览/PDF打印也已批准。复杂拆拼、改配及多航段仍等待明确范围选择。
