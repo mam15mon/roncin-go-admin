@@ -1,7 +1,8 @@
-import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import {
   Alert,
+  App,
   Button,
   Card,
   Col,
@@ -10,13 +11,25 @@ import {
   Input,
   Row,
   Select,
+  Space,
   Typography,
 } from 'antd';
-import dayjs from 'dayjs';
 import Decimal from 'decimal.js';
 import { useAccess } from '@/app/access';
 import { settlementServiceListInvoiceProfilesForParty } from '@/services/roncin/settlementService';
-import { formatAmount, trimDecimal } from '@/utils/format';
+import { formatAmount } from '@/utils/format';
+import {
+  applyBillSelection,
+  applyTotalChange,
+  autoAllocate,
+  hasManualAllocation,
+  newInvoiceRecord,
+  recordGaps,
+} from './autofill';
+import InvoiceAllocationFields, {
+  GapText,
+  type RecordUpdater,
+} from './InvoiceAllocationFields';
 import type {
   InvoiceRegistrationBillSource,
   InvoiceRegistrationDraft,
@@ -47,146 +60,19 @@ const listRule = {
   },
 };
 
-function AllocationFields({
-  path,
-  name,
-  bills,
-  remove,
-}: {
-  path: Name;
-  name: number;
-  bills: InvoiceRegistrationBillSource[];
-  remove: () => void;
-}) {
-  const form = Form.useFormInstance();
-  const billID = Form.useWatch([...path, name, 'billId'], form);
-  const bill = bills.find((item) => item.id === billID);
+/** 发票层汇总：总额、已分配与待分配差额。 */
+function RecordSummary({ record }: { record?: InvoiceRegistrationDraft }) {
+  const gaps = recordGaps(record);
   return (
-    <Card
-      size="small"
-      style={{ marginBottom: 8 }}
-      title="账单分配"
-      extra={
-        <Button type="text" danger onClick={remove}>
-          移除账单分配
-        </Button>
-      }
-    >
-      <Row gutter={12}>
-        <Col xs={24} md={16}>
-          <Form.Item
-            name={[name, 'billId']}
-            label="来源账单"
-            rules={[required]}
-          >
-            <Select
-              options={bills.map((item) => ({
-                value: item.id,
-                label: item.billNo || '本组新账单',
-              }))}
-              onChange={() => {
-                form.setFieldValue([...path, name, 'fees'], []);
-              }}
-            />
-          </Form.Item>
-        </Col>
-        <Col xs={24} md={8}>
-          <Form.Item
-            name={[name, 'amount']}
-            label={`本账单含税分配（${bill?.currency ?? ''}）`}
-            rules={[required, amountRule]}
-          >
-            <Input />
-          </Form.Item>
-        </Col>
-      </Row>
-      <Form.List name={[name, 'fees']} rules={[listRule]}>
-        {(fields, { add, remove: removeFee }, errors) => (
-          <>
-            {fields.map((field) => (
-              <Row key={field.key} gutter={8} align="middle">
-                <Col xs={24} md={11}>
-                  <Form.Item
-                    name={[field.name, 'orderFeeId']}
-                    label="来源费用及可登记余额"
-                    rules={[required]}
-                  >
-                    <Select
-                      options={(bill?.fees ?? []).map((fee) => ({
-                        value: fee.orderFeeId,
-                        label: `${fee.feeCode ?? ''} ${fee.feeName ?? ''} · ${formatAmount(fee.invoiceableAmount ?? fee.totalAmount)} · 来源税率 ${fee.sourceTaxRate === undefined ? '-' : `${trimDecimal(fee.sourceTaxRate)}%`}`,
-                      }))}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={6}>
-                  <Form.Item
-                    name={[field.name, 'amount']}
-                    label="本次含税金额"
-                    rules={[required, amountRule]}
-                  >
-                    <Input />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={6}>
-                  <Form.Item
-                    name={[field.name, 'taxAmount']}
-                    dependencies={[
-                      [...path, name, 'fees', field.name, 'amount'],
-                    ]}
-                    label="本次登记税额（财务填写）"
-                    rules={[
-                      required,
-                      {
-                        validator: async (_, value: string) => {
-                          const amount = form.getFieldValue([
-                            ...path,
-                            name,
-                            'fees',
-                            field.name,
-                            'amount',
-                          ]);
-                          if (
-                            !/^(?:0|[1-9]\d{0,19})(?:\.\d{1,8})?$/.test(
-                              value ?? '',
-                            ) ||
-                            !amount ||
-                            new Decimal(value).gt(amount)
-                          )
-                            throw new Error(
-                              '税额须在0与本次含税金额之间，最多8位小数',
-                            );
-                        },
-                      },
-                    ]}
-                  >
-                    <Input />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={1}>
-                  <Button
-                    type="text"
-                    danger
-                    icon={<MinusCircleOutlined />}
-                    aria-label="移除费用分配"
-                    onClick={() => removeFee(field.name)}
-                  />
-                </Col>
-              </Row>
-            ))}
-            <Form.ErrorList errors={errors.errors} />
-            <Button
-              size="small"
-              icon={<PlusOutlined />}
-              disabled={!bill}
-              onClick={() => add({})}
-            >
-              添加费用分配
-            </Button>
-          </>
-        )}
-      </Form.List>
-    </Card>
+    <Space size="large" wrap style={{ marginBottom: 8 }}>
+      <Typography.Text>
+        发票总额 {formatAmount(record?.totalAmount || undefined)}
+      </Typography.Text>
+      <Typography.Text>
+        已分配 {formatAmount(gaps.allocated.toFixed())}
+      </Typography.Text>
+      <GapText label="待分配" gap={gaps.invoiceGap} />
+    </Space>
   );
 }
 
@@ -200,10 +86,28 @@ export default function InvoiceRegistrationEditor({
   allowAdd = true,
 }: Props) {
   const form = Form.useFormInstance();
-  const records = Form.useWatch(name, form) as
+  const records = Form.useWatch(name, { form, preserve: true }) as
     | InvoiceRegistrationDraft[]
     | undefined;
   const access = useAccess();
+  const { modal } = App.useApp();
+  const update: RecordUpdater = (index, change) => {
+    const all = (form.getFieldValue(name) ?? []) as InvoiceRegistrationDraft[];
+    if (!all[index]) return;
+    form.setFieldValue([...name, index], change(all[index], all));
+  };
+  const allocateByBalance = (index: number) => {
+    const run = () =>
+      update(index, (current, all) => autoAllocate(current, bills, all, index));
+    const current = (form.getFieldValue(name) ?? [])[index];
+    if (hasManualAllocation(current) || current?.allocations?.length)
+      modal.confirm({
+        title: '按可登记余额重新分配？',
+        content: '将覆盖本张发票现有的账单分配、费用金额和税额（含手动修改）。',
+        onOk: run,
+      });
+    else run();
+  };
   const canQuery =
     access.canCreateFinanceInvoices &&
     access.canOperateOrganization(organizationId);
@@ -245,7 +149,7 @@ export default function InvoiceRegistrationEditor({
       <Alert
         type="info"
         showIcon
-        title="登记已有发票。逐费用手填含税额和税额，费用合计须等于账单分配，账单合计须等于发票总额。"
+        title="登记已有发票。单账单单费用时填写发票总额即自动带入分配；税额按来源税率给出建议值，请以实际发票为准。手动修改过的金额和税额不会被自动覆盖，分配不平时显示差额。"
         style={{ marginBottom: 12 }}
       />
       <Form.List
@@ -268,9 +172,21 @@ export default function InvoiceRegistrationEditor({
                 title={`第${field.name + 1}张发票`}
                 style={{ marginBottom: 12 }}
                 extra={
-                  <Button type="text" danger onClick={() => remove(field.name)}>
-                    移除发票记录
-                  </Button>
+                  <Space>
+                    <Button
+                      size="small"
+                      onClick={() => allocateByBalance(field.name)}
+                    >
+                      按可登记余额分配
+                    </Button>
+                    <Button
+                      type="text"
+                      danger
+                      onClick={() => remove(field.name)}
+                    >
+                      移除发票记录
+                    </Button>
+                  </Space>
                 }
               >
                 <Form.Item name={[field.name, 'sourceInvoiceId']} hidden>
@@ -334,10 +250,17 @@ export default function InvoiceRegistrationEditor({
                       label="发票含税总额"
                       rules={[required, amountRule]}
                     >
-                      <Input />
+                      <Input
+                        onChange={() =>
+                          update(field.name, (current) =>
+                            applyTotalChange(current, bills),
+                          )
+                        }
+                      />
                     </Form.Item>
                   </Col>
                 </Row>
+                <RecordSummary record={records?.[field.name]} />
                 <Form.List
                   name={[field.name, 'allocations']}
                   rules={[listRule]}
@@ -345,11 +268,13 @@ export default function InvoiceRegistrationEditor({
                   {(allocations, actions, allocationErrors) => (
                     <>
                       {allocations.map((allocation) => (
-                        <AllocationFields
+                        <InvoiceAllocationFields
                           key={allocation.key}
                           name={allocation.name}
-                          path={[...name, field.name, 'allocations']}
+                          listName={name}
+                          recordIndex={field.name}
                           bills={bills}
+                          update={update}
                           remove={() => actions.remove(allocation.name)}
                         />
                       ))}
@@ -357,13 +282,24 @@ export default function InvoiceRegistrationEditor({
                       <Button
                         size="small"
                         icon={<PlusOutlined />}
-                        onClick={() =>
+                        onClick={() => {
                           actions.add({
                             billId:
                               bills.length === 1 ? bills[0].id : undefined,
+                            amountSource: 'auto',
                             fees: [],
-                          })
-                        }
+                          });
+                          if (bills.length === 1)
+                            update(field.name, (current, all) =>
+                              applyBillSelection(
+                                current,
+                                current.allocations.length - 1,
+                                bills,
+                                all,
+                                field.name,
+                              ),
+                            );
+                        }}
                       >
                         添加账单分配
                       </Button>
@@ -384,13 +320,7 @@ export default function InvoiceRegistrationEditor({
             {allowAdd && (
               <Button
                 icon={<PlusOutlined />}
-                onClick={() =>
-                  add({
-                    invoiceDate: dayjs(),
-                    invoiceType: 'NORMAL',
-                    allocations: [],
-                  })
-                }
+                onClick={() => add(newInvoiceRecord(bills))}
               >
                 继续添加发票
               </Button>
@@ -399,7 +329,7 @@ export default function InvoiceRegistrationEditor({
         )}
       </Form.List>
       <Typography.Paragraph type="secondary" style={{ marginTop: 12 }}>
-        来源税率仅供追溯，登记税额不改写原费用。任一登记失败，当前提交全部回滚并保留输入。
+        来源税率仅用于给出建议税额；登记税额以财务确认的发票实际值为准，不改写原费用。任一登记失败，当前提交全部回滚并保留输入。
       </Typography.Paragraph>
     </>
   );

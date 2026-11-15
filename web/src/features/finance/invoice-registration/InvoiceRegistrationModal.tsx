@@ -18,7 +18,9 @@ import { toTableRequest } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { formatAmount } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
+import { newInvoiceRecord } from './autofill';
 import InvoiceRegistrationEditor from './InvoiceRegistrationEditor';
+import InvoiceRevisionDiff from './InvoiceRevisionDiff';
 import {
   type InvoiceRegistrationDraft,
   invoiceBillSource,
@@ -65,6 +67,9 @@ function RegistrationSession({
   const queryClient = useQueryClient();
   const guard = useAsyncGuard();
   const [form] = Form.useForm<Values>();
+  const watchedRecords = Form.useWatch('records', { form, preserve: true }) as
+    | Values['records']
+    | undefined;
   const [bills, setBills] = useState(initialBills ?? []);
   const [baseline, setBaseline] = useState<API.FinanceInvoiceRevisionImpact>();
   const [failure, setFailure] = useState<string>();
@@ -129,10 +134,13 @@ function RegistrationSession({
             .map((link) => ({
               billId: link.billId ?? '',
               amount: link.amount ?? '',
+              amountSource: 'manual',
               fees: (link.fees ?? []).map((fee) => ({
                 orderFeeId: fee.orderFeeId ?? '',
                 amount: fee.amount ?? '',
                 taxAmount: fee.taxAmount ?? '0',
+                amountSource: 'manual',
+                taxSource: 'manual',
               })),
             })),
         },
@@ -249,7 +257,12 @@ function RegistrationSession({
       form={form}
       width={1100}
       dateFormatter={false}
-      initialValues={{ records: [] }}
+      initialValues={{
+        records:
+          !reviseInvoice && authorized && validBills && sources.length
+            ? [newInvoiceRecord(sources)]
+            : [],
+      }}
       modalProps={{ destroyOnHidden: true }}
       submitter={{
         searchConfig: { submitText: '保存登记' },
@@ -412,6 +425,15 @@ function RegistrationSession({
               }
             />
           )}
+          {baseline.invoice && (
+            <InvoiceRevisionDiff
+              original={baseline.invoice}
+              draft={watchedRecords?.find(
+                (record) => record?.sourceInvoiceId === baseline.invoice?.id,
+              )}
+              bills={sources}
+            />
+          )}
           <Form.Item
             name="reason"
             label="修订原因"
@@ -439,11 +461,14 @@ function RegistrationSession({
               const all = new Map(
                 [...bills, ...rows].map((bill) => [bill.id, bill]),
               );
-              setBills(
-                keys
-                  .map((key) => all.get(String(key)))
-                  .filter((bill): bill is API.FinanceBill => Boolean(bill)),
-              );
+              const next = keys
+                .map((key) => all.get(String(key)))
+                .filter((bill): bill is API.FinanceBill => Boolean(bill));
+              setBills(next);
+              if (next.length && !form.getFieldValue('records')?.length)
+                form.setFieldValue('records', [
+                  newInvoiceRecord(next.map(invoiceBillSource)),
+                ]);
             },
             getCheckboxProps: (bill) => ({
               disabled:

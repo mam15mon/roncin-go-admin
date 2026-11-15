@@ -150,4 +150,40 @@ describe('发票修订与影响', () => {
     expect(mocks.revise).not.toHaveBeenCalled();
     await act(async () => {});
   });
+  it('修订展示原值与修改后对照；原分配视为手填，改总额不被自动改写', async () => {
+    renderWithApp(
+      <NoMotion>
+        <InvoiceRegistrationModal
+          open
+          reviseInvoice={invoice}
+          onOpenChange={vi.fn()}
+          onSuccess={vi.fn()}
+        />
+      </NoMotion>,
+      { user: invoiceUser },
+    );
+    await waitFor(() =>
+      expect(screen.getByLabelText('已有发票号码')).toHaveValue('OLD-1'),
+    );
+    expect(screen.getByText('尚未修改任何登记内容')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('发票含税总额'), {
+      target: { value: '40' },
+    });
+    fireEvent.change(screen.getByLabelText('已有发票号码'), {
+      target: { value: 'NEW-1' },
+    });
+    await waitFor(() => expect(screen.getByText('40.00')).toBeInTheDocument());
+    expect(screen.getAllByText('发票含税总额')).toHaveLength(2);
+    expect(screen.getByText('NEW-1')).toBeInTheDocument();
+    expect(screen.getByLabelText('本次含税金额')).toHaveValue('30');
+    expect(screen.getByText('待分配 10.00')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('本次含税金额'), {
+      target: { value: '40' },
+    });
+    await waitFor(() =>
+      expect(
+        screen.getByText('BI-001 · FEE 海运费 含税分配'),
+      ).toBeInTheDocument(),
+    );
+  });
 });

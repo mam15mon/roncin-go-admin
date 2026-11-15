@@ -16,19 +16,30 @@ export type InvoiceRegistrationBillSource = {
   currency?: string;
   fees: InvoiceRegistrationFeeSource[];
 };
+/** 字段来源：auto 为系统带入可被联动改写；manual 为用户手改，联动不再覆盖。 */
+export type InvoiceRegistrationFieldSource = 'auto' | 'manual';
+export type InvoiceRegistrationFeeDraft = {
+  orderFeeId: string;
+  amount: string;
+  taxAmount: string;
+  amountSource?: InvoiceRegistrationFieldSource;
+  taxSource?: InvoiceRegistrationFieldSource;
+};
+export type InvoiceRegistrationAllocationDraft = {
+  billId: string;
+  amount: string;
+  amountSource?: InvoiceRegistrationFieldSource;
+  fees: InvoiceRegistrationFeeDraft[];
+};
 export type InvoiceRegistrationDraft = {
   sourceInvoiceId?: string;
-  invoiceProfileId: string;
+  invoiceProfileId?: string;
   invoiceType: string;
-  taxInvoiceNo: string;
+  taxInvoiceNo?: string;
   invoiceDate: Dayjs;
-  totalAmount: string;
+  totalAmount?: string;
   note?: string;
-  allocations: {
-    billId: string;
-    amount: string;
-    fees: { orderFeeId: string; amount: string; taxAmount: string }[];
-  }[];
+  allocations: InvoiceRegistrationAllocationDraft[];
 };
 
 export function invoiceBillSource(
@@ -56,9 +67,12 @@ export function invoiceBillSource(
   };
 }
 
-function registrationAmount(value: string, positive = true): Decimal {
-  const text = value?.trim();
-  if (!/^(?:0|[1-9]\d{0,19})(?:\.\d{1,8})?$/.test(text ?? ''))
+function registrationAmount(
+  value: string | undefined,
+  positive = true,
+): Decimal {
+  const text = value?.trim() ?? '';
+  if (!/^(?:0|[1-9]\d{0,19})(?:\.\d{1,8})?$/.test(text))
     throw new Error('请填写有效金额，最多8位小数');
   const amount = new Decimal(text);
   if (positive && !amount.gt(0)) throw new Error('含税金额必须大于0');

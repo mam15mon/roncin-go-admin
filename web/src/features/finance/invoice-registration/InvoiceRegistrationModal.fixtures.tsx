@@ -46,13 +46,11 @@ export function NoMotion({ children }: { children: ReactNode }) {
     </ConfigProvider>
   );
 }
+/** 一账单一费用的简单登记：弹窗自动生成发票并选好账单和费用，只填头部四项与税额。 */
 export async function fillRegistration() {
   const dialog = within(screen.getByRole('dialog'));
-  const add = dialog.getByText('继续添加发票').closest('button');
-  if (!add) throw new Error('缺少新增发票按钮');
-  await waitFor(() => expect(add).toBeVisible());
-  fireEvent.click(add);
-  fireEvent.mouseDown(dialog.getByLabelText('开票抬头'));
+  const profile = await dialog.findByLabelText('开票抬头');
+  fireEvent.mouseDown(profile);
   fireEvent.click(await screen.findByText('测试抬头 · TAX'));
   fireEvent.change(dialog.getByLabelText('已有发票号码'), {
     target: { value: 'NO-1' },
@@ -60,20 +58,14 @@ export async function fillRegistration() {
   fireEvent.change(dialog.getByLabelText('发票含税总额'), {
     target: { value: '30' },
   });
-  fireEvent.click(dialog.getByText('添加账单分配'));
-  const addFee = dialog.getByText('添加费用分配').closest('button');
-  if (!addFee) throw new Error('缺少费用分配按钮');
-  await waitFor(() => expect(addFee).toBeEnabled());
-  fireEvent.click(addFee);
-  fireEvent.mouseDown(dialog.getByLabelText('来源费用及可登记余额'));
-  fireEvent.click(await screen.findByText('FEE 海运费 · 100.00 · 来源税率 -'));
-  fireEvent.change(dialog.getByLabelText('本账单含税分配（CNY）'), {
-    target: { value: '30' },
-  });
-  fireEvent.change(dialog.getByLabelText('本次含税金额'), {
-    target: { value: '30' },
-  });
-  fireEvent.change(dialog.getByLabelText('本次登记税额（财务填写）'), {
+  await waitFor(() =>
+    expect(dialog.getByLabelText('本次含税金额')).toHaveValue('30'),
+  );
+  expect(dialog.getByLabelText('本账单含税分配（CNY）')).toHaveValue('30');
+  expect(
+    dialog.getByText('来源税率未设置，请按发票填写税额'),
+  ).toBeInTheDocument();
+  fireEvent.change(dialog.getByLabelText('本次登记税额'), {
     target: { value: '3.00000001' },
   });
   return dialog;

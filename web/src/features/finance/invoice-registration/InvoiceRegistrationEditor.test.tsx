@@ -122,12 +122,12 @@ describe('共享发票编辑器', () => {
       await expect(form.validateFields()).rejects.toBeTruthy();
     });
     expect(
-      await screen.findByText('请输入大于0的金额，最多8位小数'),
-    ).toBeInTheDocument();
+      await screen.findAllByText('请输入大于0的金额，最多8位小数'),
+    ).toHaveLength(3);
     fireEvent.change(screen.getByLabelText('发票含税总额'), {
       target: { value: '10' },
     });
-    fireEvent.change(screen.getByLabelText('本次登记税额（财务填写）'), {
+    fireEvent.change(screen.getByLabelText('本次登记税额'), {
       target: { value: '5' },
     });
     await act(async () => {
@@ -136,9 +136,12 @@ describe('共享发票编辑器', () => {
     fireEvent.change(screen.getByLabelText('本次含税金额'), {
       target: { value: '1' },
     });
-    expect(
-      await screen.findByText('税额须在0与本次含税金额之间，最多8位小数'),
-    ).toBeInTheDocument();
+    // 联动写值会再次触发依赖复核并重建错误节点，断言最终状态而非首个节点。
+    await waitFor(() =>
+      expect(
+        screen.getByText('税额须在0与本次含税金额之间，最多8位小数'),
+      ).toBeInTheDocument(),
+    );
   });
   it('无新增票授权只显示原登记编辑，不提供新增行', async () => {
     renderWithApp(<Scene allowAdd={false} />, { user });
