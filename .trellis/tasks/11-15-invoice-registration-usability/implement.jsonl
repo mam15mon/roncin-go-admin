@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/server/backend/finance-invoice-registration.md", "reason": "发票登记三层守恒、税额边界、修订与结算依赖契约"}
+{"file": ".trellis/spec/web/frontend/finance-current-workspace.md", "reason": "财务弹窗绑定当前公司工作区"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "已有单据变动探测、输入保护与提交基线"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "optional 税率存在性与 wire 形态"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "前端测试拆分与质量门禁"}

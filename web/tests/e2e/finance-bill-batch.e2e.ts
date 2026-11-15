@@ -633,7 +633,7 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
     invoiceTitle: customer.legalName,
     taxpayerIdentificationNo: customer.unifiedSocialCreditCode,
     registeredAddress: customer.registeredAddress,
-    defaultInvoiceType: 'NORMAL',
+    defaultInvoiceType: 'DIGITAL_NORMAL',
     isDefault: true,
   });
   await page.goto('/finance/bills');
@@ -646,28 +646,28 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
     name: '登记已有发票',
     exact: true,
   });
-  await invoiceDialog.getByRole('button', { name: /继续添加发票$/ }).click();
+  // 唯一抬头、余额及逐费分配在打开时带入；这里只填写实际票面资料。
+  await expect(
+    invoiceDialog.getByLabel('开票抬头', { exact: true }),
+  ).toHaveCount(1);
+  await expect(
+    invoiceDialog.getByText(customer.legalName, { exact: false }),
+  ).toBeVisible();
+  await expect(
+    invoiceDialog.getByLabel('发票含税总额', { exact: true }),
+  ).toHaveValue('125');
+  await expect(
+    invoiceDialog.getByLabel('本次含税金额', { exact: true }),
+  ).toHaveValue('125');
   await selectOption(
     page,
-    invoiceDialog.getByLabel('开票抬头', { exact: true }),
-    customer.legalName,
+    invoiceDialog.getByLabel('发票类型', { exact: true }),
+    '纸质普票',
   );
   await invoiceDialog
     .getByLabel('已有发票号码', { exact: true })
     .fill(`UI-TAX-${stamp}`);
-  await invoiceDialog.getByLabel('发票含税总额', { exact: true }).fill('125');
-  await invoiceDialog.getByRole('button', { name: /添加账单分配$/ }).click();
-  await invoiceDialog.getByLabel(/本账单含税分配/).fill('125');
-  await invoiceDialog.getByRole('button', { name: /添加费用分配$/ }).click();
-  await selectOption(
-    page,
-    invoiceDialog.getByLabel('来源费用及可登记余额', { exact: true }),
-    feeSetting.nameZh,
-  );
-  await invoiceDialog.getByLabel('本次含税金额', { exact: true }).fill('125');
-  await invoiceDialog
-    .getByLabel('本次登记税额（财务填写）', { exact: true })
-    .fill('7.89');
+  await invoiceDialog.getByLabel('本次登记税额', { exact: true }).fill('7.89');
   const invoiceSaved = page.waitForResponse(
     (response) =>
       response.url().endsWith('/api/v1/finance/invoices/register') &&
@@ -679,6 +679,7 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
   const invoiceSaveResponse = await invoiceSaved;
   expect(invoiceSaveResponse.ok()).toBeTruthy();
   const issuedInvoice = (await invoiceSaveResponse.json()).data[0];
+  expect(issuedInvoice.invoiceType).toBe('PAPER_NORMAL');
   expect(issuedInvoice.taxInvoiceNo).toBe(`UI-TAX-${stamp}`);
   expect(issuedInvoice.taxAmount).toBe('7.89000000');
   expect(issuedInvoice.netAmount).toBe('117.11000000');
