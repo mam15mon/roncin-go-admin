@@ -38,6 +38,7 @@ export type InvoiceRegistrationDraft = {
   taxInvoiceNo?: string;
   invoiceDate: Dayjs;
   totalAmount?: string;
+  totalSource?: InvoiceRegistrationFieldSource;
   note?: string;
   allocations: InvoiceRegistrationAllocationDraft[];
 };

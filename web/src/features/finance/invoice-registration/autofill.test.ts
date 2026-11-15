@@ -8,6 +8,7 @@ import {
   availableFor,
   hasManualAllocation,
   newInvoiceRecord,
+  rebuildUntouchedRecords,
   recordGaps,
   suggestTax,
 } from './autofill';
@@ -78,9 +79,17 @@ describe('一账单一费用自动带入', () => {
     });
     expect(JSON.stringify(payload)).not.toContain('Source');
   });
-  it('多条可登记费用时只选账单不猜费用；多账单不预选', () => {
-    expect(newInvoiceRecord([mixed[0]]).allocations[0].fees).toEqual([]);
-    expect(newInvoiceRecord(mixed).allocations).toEqual([]);
+  it('无可登记余额时总额留空：单账单只预选账单，多账单不预选', () => {
+    const empty = {
+      ...mixed[0],
+      fees: mixed[0].fees.map((fee) => ({ ...fee, invoiceableAmount: '0' })),
+    };
+    const record = newInvoiceRecord([empty]);
+    expect(record.totalAmount).toBeUndefined();
+    expect(record.allocations).toMatchObject([{ billId: 'a', fees: [] }]);
+    expect(
+      newInvoiceRecord([empty, { ...mixed[1], fees: [] }]).allocations,
+    ).toEqual([]);
   });
   it('税率未设置时税额留空待财务填写', () => {
     const bill = {
@@ -212,6 +221,74 @@ describe('按可登记余额分配', () => {
     expect(record.allocations).toMatchObject([
       { billId: 'a', amount: '40', fees: [{ orderFeeId: 'a1', amount: '40' }] },
     ]);
+  });
+});
+
+describe('默认总额', () => {
+  it('批量账单默认带出余额合计并分配平，逐费建议税额', () => {
+    const record = newInvoiceRecord(mixed);
+    expect(record).toMatchObject({ totalAmount: '180.5', totalSource: 'auto' });
+    expect(recordGaps(record).invoiceGap?.toFixed()).toBe('0');
+    expect(record.allocations.map((item) => item.amount)).toEqual([
+      '150.5',
+      '30',
+    ]);
+  });
+  it('继续添加发票默认剩余余额，余额用尽时留空', () => {
+    const first = applyTotalChange(
+      {
+        ...newInvoiceRecord([single]),
+        totalAmount: '1500',
+        totalSource: 'manual',
+      },
+      [single],
+    );
+    const second = newInvoiceRecord([single], [first]);
+    expect(second.totalAmount).toBe('500');
+    expect(second.allocations[0].fees[0]).toMatchObject({
+      amount: '500',
+      taxAmount: '28.30',
+    });
+    expect(
+      newInvoiceRecord([single], [first, second]).totalAmount,
+    ).toBeUndefined();
+  });
+  it('增减账单只重建未手改发票，保留表头；手改与修订原票不动', () => {
+    const untouched = {
+      ...newInvoiceRecord([mixed[0]]),
+      taxInvoiceNo: 'NO-1',
+      invoiceProfileId: 'p',
+    };
+    const manual = {
+      ...newInvoiceRecord([mixed[0]]),
+      totalAmount: '10',
+      totalSource: 'manual' as const,
+      allocations: [],
+    };
+    const original = {
+      ...newInvoiceRecord([mixed[0]]),
+      sourceInvoiceId: 'inv',
+      allocations: [],
+    };
+    const [a, b, c] = rebuildUntouchedRecords(
+      [untouched, manual, original],
+      mixed,
+    );
+    expect(a).toMatchObject({ taxInvoiceNo: 'NO-1', invoiceProfileId: 'p' });
+    expect(a.allocations.map((item) => item.billId)).toEqual(['a', 'b']);
+    expect(b).toBe(manual);
+    expect(c).toBe(original);
+  });
+  it('多张未手改发票按顺序重建，后序旧占用不挤占前序', () => {
+    const one = newInvoiceRecord([mixed[1]]);
+    const two = {
+      ...newInvoiceRecord([mixed[1]]),
+      totalAmount: '30',
+      totalSource: 'auto' as const,
+    };
+    const [first, second] = rebuildUntouchedRecords([one, two], [mixed[1]]);
+    expect(first.totalAmount).toBe('30');
+    expect(second.totalAmount).toBeUndefined();
   });
 });
 

@@ -127,15 +127,45 @@ function followTax(
   };
 }
 
-/** 新发票：单账单且仅一条可登记费用时直接选好账单与费用。 */
+/** 所选账单扣除本会话其他发票占用后的可登记余额合计。 */
+export function remainingBalance(
+  bills: InvoiceRegistrationBillSource[],
+  records: InvoiceRegistrationDraft[] | undefined,
+  selfIndex: number,
+): Decimal {
+  return bills.reduce(
+    (sum, bill) =>
+      bill.fees.reduce(
+        (inner, fee) =>
+          inner.plus(availableFor(fee, bill.id, records, selfIndex)),
+        sum,
+      ),
+    ZERO,
+  );
+}
+
+/**
+ * 新发票：总额默认带出所选账单尚未分配的余额合计并按余额自动分配；
+ * 无余额时总额留空，单账单仍预选账单（仅一条可登记费用时同时选好费用）。
+ */
 export function newInvoiceRecord(
   bills: InvoiceRegistrationBillSource[],
+  records?: InvoiceRegistrationDraft[],
+  selfIndex = records?.length ?? 0,
 ): InvoiceRegistrationDraft {
   const record: InvoiceRegistrationDraft = {
     invoiceType: 'NORMAL',
     invoiceDate: dayjs(),
     allocations: [],
   };
+  const total = remainingBalance(bills, records, selfIndex);
+  if (total.gt(0))
+    return autoAllocate(
+      { ...record, totalAmount: plain(total), totalSource: 'auto' },
+      bills,
+      records,
+      selfIndex,
+    );
   if (bills.length !== 1) return record;
   const fees = registrableFees(bills[0]);
   record.allocations = [
@@ -147,6 +177,38 @@ export function newInvoiceRecord(
     },
   ];
   return record;
+}
+
+/** 总额与全部分配均为系统带入、且不是原票修订项时，才允许随账单选择重建。 */
+export function isUntouchedRecord(record?: InvoiceRegistrationDraft) {
+  return Boolean(
+    record &&
+      !record.sourceInvoiceId &&
+      record.totalSource !== 'manual' &&
+      !hasManualAllocation(record),
+  );
+}
+
+/** 账单选择变化：重建未手改的发票（保留抬头、号码、日期、类型、备注），手改过的保持不变。 */
+export function rebuildUntouchedRecords(
+  records: InvoiceRegistrationDraft[],
+  bills: InvoiceRegistrationBillSource[],
+): InvoiceRegistrationDraft[] {
+  // 先释放所有待重建发票的旧占用，再按顺序逐张分配，避免后序旧值挤占前序余额。
+  const next = records.map((record) =>
+    isUntouchedRecord(record) ? { ...record, allocations: [] } : record,
+  );
+  next.forEach((record, index) => {
+    if (!isUntouchedRecord(records[index])) return;
+    const fresh = newInvoiceRecord(bills, next, index);
+    next[index] = {
+      ...record,
+      totalAmount: fresh.totalAmount,
+      totalSource: fresh.totalSource,
+      allocations: fresh.allocations,
+    };
+  });
+  return next;
 }
 
 /** 单账单单费用时，未手改的账单分配与费用金额跟随发票总额。 */

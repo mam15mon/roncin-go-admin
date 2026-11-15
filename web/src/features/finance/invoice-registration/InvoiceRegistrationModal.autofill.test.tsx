@@ -183,4 +183,60 @@ describe('登记自动带入', () => {
     );
     expect(mocks.register).not.toHaveBeenCalled();
   });
+  it('批量勾选账单默认带出余额合计并分配平，改总额显示差额，继续添加默认剩余', async () => {
+    const second = { ...twoFeeBill, version: invoiceBill.version };
+    mocks.candidates.mockImplementation(async ({ billId }) =>
+      billId
+        ? {
+            success: true,
+            data: [{ id: billId, version: invoiceBill.version }],
+            total: '1',
+          }
+        : { success: true, data: [invoiceBill, second], total: '2' },
+    );
+    renderWithApp(
+      <NoMotion>
+        <InvoiceRegistrationModal
+          open
+          onOpenChange={vi.fn()}
+          onSuccess={vi.fn()}
+        />
+      </NoMotion>,
+      { user: invoiceUser },
+    );
+    const dialog = within(await screen.findByRole('dialog'));
+    await dialog.findByText('BI-002');
+    for (const name of ['BI-001', 'BI-002'])
+      fireEvent.click(
+        within(dialog.getByText(name).closest('tr') as HTMLElement).getByRole(
+          'checkbox',
+        ),
+      );
+    await waitFor(() =>
+      expect(dialog.getByLabelText('发票含税总额')).toHaveValue('250'),
+    );
+    expect(
+      dialog.getByText('默认为所选账单未登记余额，请按实际发票金额修改'),
+    ).toBeInTheDocument();
+    expect(dialog.getByText('待分配 0.00')).toBeInTheDocument();
+    expect(
+      dialog
+        .getAllByLabelText('本次含税金额')
+        .map((input) => input.getAttribute('value')),
+    ).toEqual(['100', '100', '50']);
+    fireEvent.change(dialog.getByLabelText('发票含税总额'), {
+      target: { value: '240' },
+    });
+    await waitFor(() =>
+      expect(dialog.getByText('待分配 -10.00')).toBeInTheDocument(),
+    );
+    expect(
+      dialog.queryByText('默认为所选账单未登记余额，请按实际发票金额修改'),
+    ).not.toBeInTheDocument();
+    fireEvent.click(dialog.getByText('继续添加发票'));
+    await waitFor(() =>
+      expect(dialog.getAllByLabelText('发票含税总额')).toHaveLength(2),
+    );
+    expect(dialog.getAllByLabelText('发票含税总额')[1]).toHaveValue('');
+  });
 });

@@ -149,7 +149,7 @@ export default function InvoiceRegistrationEditor({
       <Alert
         type="info"
         showIcon
-        title="登记已有发票。单账单单费用时填写发票总额即自动带入分配；税额按来源税率给出建议值，请以实际发票为准。手动修改过的金额和税额不会被自动覆盖，分配不平时显示差额。"
+        title="登记已有发票。发票总额默认带出所选账单未登记余额并自动分配，请按实际发票修改；单账单单费用时改总额会同步分配。税额按来源税率给出建议值，请以实际发票为准。手动修改过的金额和税额不会被自动覆盖，分配不平时显示差额。"
         style={{ marginBottom: 12 }}
       />
       <Form.List
@@ -249,11 +249,20 @@ export default function InvoiceRegistrationEditor({
                       name={[field.name, 'totalAmount']}
                       label="发票含税总额"
                       rules={[required, amountRule]}
+                      extra={
+                        records?.[field.name]?.totalSource === 'auto' &&
+                        records?.[field.name]?.totalAmount
+                          ? '默认为所选账单未登记余额，请按实际发票金额修改'
+                          : undefined
+                      }
                     >
                       <Input
                         onChange={() =>
                           update(field.name, (current) =>
-                            applyTotalChange(current, bills),
+                            applyTotalChange(
+                              { ...current, totalSource: 'manual' },
+                              bills,
+                            ),
                           )
                         }
                       />
@@ -320,7 +329,7 @@ export default function InvoiceRegistrationEditor({
             {allowAdd && (
               <Button
                 icon={<PlusOutlined />}
-                onClick={() => add(newInvoiceRecord(bills))}
+                onClick={() => add(newInvoiceRecord(bills, records ?? []))}
               >
                 继续添加发票
               </Button>

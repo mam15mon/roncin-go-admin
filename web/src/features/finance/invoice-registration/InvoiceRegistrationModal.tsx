@@ -18,7 +18,7 @@ import { toTableRequest } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { formatAmount } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
-import { newInvoiceRecord } from './autofill';
+import { newInvoiceRecord, rebuildUntouchedRecords } from './autofill';
 import InvoiceRegistrationEditor from './InvoiceRegistrationEditor';
 import InvoiceRevisionDiff from './InvoiceRevisionDiff';
 import {
@@ -128,6 +128,7 @@ function RegistrationSession({
           taxInvoiceNo: invoice.taxInvoiceNo ?? '',
           invoiceDate: dayjs(invoice.invoiceDate),
           totalAmount: invoice.totalAmount ?? '',
+          totalSource: 'manual',
           note: invoice.note,
           allocations: (invoice.billLinks ?? [])
             .filter((link) => link.active === true)
@@ -465,10 +466,15 @@ function RegistrationSession({
                 .map((key) => all.get(String(key)))
                 .filter((bill): bill is API.FinanceBill => Boolean(bill));
               setBills(next);
-              if (next.length && !form.getFieldValue('records')?.length)
-                form.setFieldValue('records', [
-                  newInvoiceRecord(next.map(invoiceBillSource)),
-                ]);
+              const nextSources = next.map(invoiceBillSource);
+              const current = form.getFieldValue('records') ?? [];
+              if (!next.length) return;
+              form.setFieldValue(
+                'records',
+                current.length
+                  ? rebuildUntouchedRecords(current, nextSources)
+                  : [newInvoiceRecord(nextSources)],
+              );
             },
             getCheckboxProps: (bill) => ({
               disabled:
