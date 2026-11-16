@@ -49,6 +49,7 @@
 | 主数据 DTO 公共字段转换（模块内复用） | [`pages/master-data/components/masterDataMapper.ts`](../../../../web/src/pages/master-data/components/masterDataMapper.ts) | `mapPersistedMasterDataFields` 统一身份、来源、启停、排序、更新时间；通用/专用 mapper 组合入口，区分 ProtoJSON 零值和业务必填 | 将专有字段规则塞入公共表格、全局按字段名补值、因 TS `?` 猜 Proto optional |
 | 币种候选 | [`features/master-data/currencies`](../../../../web/src/features/master-data/currencies/index.ts) | `getCurrencies` / `getCurrencyOptions`，启停后显式强制刷新 | 在每个页面重复维护币种请求缓存 |
 | 船公司候选 | [`features/master-data/shipping-lines`](../../../../web/src/features/master-data/shipping-lines/index.ts) | `searchShippingLineOptions` 服务端关键字搜索 | 循环翻页拼接全量 |
+| 全站名称与拼音搜索 | [`utils/search.ts`](../../../../web/src/utils/search.ts)、[`components/ui/searchable-select`](../../../../web/src/components/ui/searchable-select/index.ts) | 本地原文/全拼/首字母、JSX候选文本与费用英文别名；远程关闭本地过滤，契约见 [拼音搜索](./pinyin-search.md) | 逐页复制文本匹配、远程结果二次过滤、循环翻页拉全量 |
 | 通用候选类型 | [`types/select-option.ts`](../../../../web/src/types/select-option.ts) | `SelectOption` 基础字段，业务类型按领域组合 | 散客、信用超额等业务字段 |
 | 权限判定 | [`web/src/app/access.tsx`](../../../../web/src/app/access.tsx)、[`web/src/access.ts`](../../../../web/src/access.ts) | 按钮与路由使用 `useAccess`；角色候选复用 `createPermissionCapabilityChecker` 消费 auth/me 有效能力（键名来自生成物） | 页面硬编码第二套权限规则、将全量字典当作可授予候选 |
 | CSV 序列化与下载 | [`web/src/utils/csv.ts`](../../../../web/src/utils/csv.ts) | `CsvColumn`/`serializeCsv`/`downloadCsv`：BOM、CRLF、文本公式防护、数值精度与下载清理；财务字段映射留各页 `ledgerExport.ts` | 从界面 `dataIndex` 推断业务导出、循环翻页获取全量、重新计算业务金额 |

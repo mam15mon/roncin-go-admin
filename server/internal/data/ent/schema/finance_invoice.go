@@ -17,6 +17,7 @@ func (FinanceInvoice) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMi
 
 func (FinanceInvoice) Fields() []ent.Field {
 	return []ent.Field{
+		searchKeywordsField(),
 		field.UUID("organization_id", uuid.Nil).Immutable(),
 		field.String("record_no").NotEmpty().MaxLen(64).Immutable(),
 		field.String("idempotency_key").NotEmpty().MaxLen(128).Immutable(),
@@ -78,6 +79,7 @@ func (FinanceInvoice) Edges() []ent.Edge {
 
 func (FinanceInvoice) Indexes() []ent.Index {
 	return []ent.Index{
+		searchKeywordsIndex("finance_invoices_search_keywords_trgm"),
 		index.Fields("organization_id", "record_no").Unique(),
 		index.Fields("organization_id", "idempotency_key").Unique(),
 		index.Fields("organization_id", "status", "created_at"),
@@ -86,4 +88,8 @@ func (FinanceInvoice) Indexes() []ent.Index {
 		index.Fields("organization_id", "tax_invoice_no").Unique().StorageKey("financeinvoice_org_tax_invoice_no").Annotations(entsql.IndexWhere("tax_invoice_no IS NOT NULL")),
 		index.Fields("organization_id", "red_invoice_no").Unique().StorageKey("financeinvoice_org_red_invoice_no").Annotations(entsql.IndexWhere("red_invoice_no IS NOT NULL")),
 	}
+}
+
+func (FinanceInvoice) Hooks() []ent.Hook {
+	return []ent.Hook{searchKeywordsHook("settlement_party_name")}
 }

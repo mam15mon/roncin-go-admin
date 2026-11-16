@@ -37,7 +37,7 @@ func (r *verificationRepo) List(ctx context.Context, org uuid.UUID, f biz.Verifi
 func (r *verificationRepo) ListScoped(ctx context.Context, organizationIDs []uuid.UUID, f biz.VerificationFilter) (*biz.VerificationListResult, error) {
 	p := []predicate.FinanceVerification{ver.OrganizationIDIn(organizationIDs...)}
 	if f.Keyword != "" {
-		p = append(p, ver.Or(ver.VerificationNoContainsFold(f.Keyword), ver.SettlementPartyNameContainsFold(f.Keyword), ver.HasAllocationsWith(alloc.Or(alloc.BillNoContainsFold(f.Keyword), alloc.CashflowNoContainsFold(f.Keyword)))))
+		p = append(p, ver.Or(ver.VerificationNoContainsFold(f.Keyword), ver.SettlementPartyNameContainsFold(f.Keyword), ver.SearchKeywordsContainsFold(f.Keyword), ver.HasSettlementPartyWith(financePartyKeywordPredicate(f.Keyword)), ver.HasAllocationsWith(alloc.Or(alloc.BillNoContainsFold(f.Keyword), alloc.CashflowNoContainsFold(f.Keyword)))))
 	}
 	if f.Status != "" {
 		p = append(p, ver.StatusEQ(ver.Status(f.Status)))

@@ -31,7 +31,7 @@ func (r *financeCashflowRepo) List(ctx context.Context, org uuid.UUID, f biz.Fin
 func (r *financeCashflowRepo) ListScoped(ctx context.Context, organizationIDs []uuid.UUID, f biz.FinanceCashflowFilter) (*biz.FinanceCashflowListResult, error) {
 	p := []predicate.FinanceCashflow{cash.OrganizationIDIn(organizationIDs...)}
 	if f.Keyword != "" {
-		p = append(p, cash.Or(cash.FlowNoContainsFold(f.Keyword), cash.SettlementPartyNameContainsFold(f.Keyword), cash.BankReferenceNoContainsFold(f.Keyword), cash.HasSettlementPartyWith(financePartyKeywordPredicate(f.Keyword))))
+		p = append(p, cash.Or(cash.FlowNoContainsFold(f.Keyword), cash.SettlementPartyNameContainsFold(f.Keyword), cash.SearchKeywordsContainsFold(f.Keyword), cash.BankReferenceNoContainsFold(f.Keyword), cash.HasSettlementPartyWith(financePartyKeywordPredicate(f.Keyword))))
 	}
 	if f.Direction != "" {
 		p = append(p, cash.DirectionEQ(cash.Direction(f.Direction)))

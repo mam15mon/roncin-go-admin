@@ -1,7 +1,6 @@
 import {
   ProFormDatePicker,
   ProFormDigit,
-  ProFormSelect,
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
@@ -133,7 +132,7 @@ export default function CommissionRuleCopyModal({
         extra="必须为当天或未来日期。"
       />
       <ProFormDatePicker name="effectiveTo" label="新方案生效终止日（可选）" />
-      <ProFormSelect
+      <ProFormSearchableSelect
         name="employeeIds"
         label="适用员工"
         extra="默认带出原方案当前/未来名单，可调整。"

@@ -33,9 +33,16 @@ type financeInvoicePostgresFixture struct {
 	orderID        uuid.UUID
 	actorID        uuid.UUID
 	suffix         string
+	beforePinyin   bool
 }
 
 func newFinanceInvoicePostgresFixture(t *testing.T, data *Data) *financeInvoicePostgresFixture {
+	return newFinanceInvoiceFixture(t, data, false)
+}
+func newFinanceInvoiceMigrationFixture(t *testing.T, data *Data) *financeInvoicePostgresFixture {
+	return newFinanceInvoiceFixture(t, data, true)
+}
+func newFinanceInvoiceFixture(t *testing.T, data *Data, beforePinyin bool) *financeInvoicePostgresFixture {
 	t.Helper()
 	ctx := context.Background()
 	suffix := strings.ReplaceAll(uuid.NewString(), "-", "")[:12]
@@ -57,7 +64,7 @@ func newFinanceInvoicePostgresFixture(t *testing.T, data *Data) *financeInvoiceP
 	if err != nil {
 		t.Fatalf("创建测试往来单位: %v", err)
 	}
-	order, err := data.db.Order.Create().
+	orderCreate := data.db.Order.Create().
 		SetIdempotencyKey(uuid.NewString()).
 		SetOrganizationID(organization.ID).
 		SetOrderNo("SE" + suffix).
@@ -65,8 +72,13 @@ func newFinanceInvoicePostgresFixture(t *testing.T, data *Data) *financeInvoiceP
 		SetBusinessType(orderent.BusinessTypeSE).
 		SetTradeDirection(orderent.TradeDirectionExport).
 		SetTradeTerm(orderent.TradeTermFOB).
-		SetPaymentTerm(orderent.PaymentTermPREPAID).
-		Save(ctx)
+		SetPaymentTerm(orderent.PaymentTermPREPAID)
+	var order *ent.Order
+	if beforePinyin {
+		order, err = insertMigrationFixture[ent.Order](ctx, data, "orders", orderCreate.Mutation())
+	} else {
+		order, err = orderCreate.Save(ctx)
+	}
 	if err != nil {
 		t.Fatalf("创建测试订单: %v", err)
 	}
@@ -78,7 +90,7 @@ func newFinanceInvoicePostgresFixture(t *testing.T, data *Data) *financeInvoiceP
 	}
 	return &financeInvoicePostgresFixture{
 		t: t, data: data, organizationID: organization.ID, partnerID: partner.ID,
-		orderID: order.ID, actorID: actor.ID, suffix: suffix,
+		orderID: order.ID, actorID: actor.ID, suffix: suffix, beforePinyin: beforePinyin,
 	}
 }
 
@@ -130,7 +142,13 @@ func (f *financeInvoicePostgresFixture) createConfirmedBill(key string) *ent.Fin
 		SetBaseCurrencyAmount("100.00000000").
 		SetFeeCount(1).
 		SetBillDate(financeInvoiceIntegrationDate)
-	bill, err := withTestFinanceBillSettlementAccountSnapshot(billCreate, uuid.New(), "CNY").Save(ctx)
+	billCreate = withTestFinanceBillSettlementAccountSnapshot(billCreate, uuid.New(), "CNY")
+	var bill *ent.FinanceBill
+	if f.beforePinyin {
+		bill, err = insertMigrationFixture[ent.FinanceBill](ctx, f.data, "finance_bills", billCreate.Mutation())
+	} else {
+		bill, err = billCreate.Save(ctx)
+	}
 	if err != nil {
 		f.t.Fatalf("创建测试账单: %v", err)
 	}

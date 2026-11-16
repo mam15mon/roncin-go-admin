@@ -10,6 +10,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.20.1
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.109.1
 	github.com/fxamacker/cbor/v2 v2.9.4
+	github.com/go-ego/gpy v0.50.0
 	github.com/go-webauthn/webauthn v0.18.2
 	github.com/google/wire v0.7.0
 	github.com/jackc/pgx/v5 v5.9.2
@@ -49,6 +50,7 @@ require (
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/go-ego/gse v1.3.1 // indirect
 	github.com/go-openapi/inflect v0.19.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/go-webauthn/x v0.3.1 // indirect
@@ -72,6 +74,7 @@ require (
 	github.com/richardlehane/msoleps v1.0.6 // indirect
 	github.com/tiendc/go-deepcopy v1.7.2 // indirect
 	github.com/tinylib/msgp v1.6.4 // indirect
+	github.com/vcaesar/cedar v0.50.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xuri/efp v0.0.2 // indirect
 	github.com/xuri/nfp v0.0.2-0.20250530014748-2ddeb826f9a9 // indirect

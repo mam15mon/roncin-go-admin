@@ -55,6 +55,20 @@ func (_c *FinanceCommissionRuleCreate) SetNillableUpdatedAt(v *time.Time) *Finan
 	return _c
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_c *FinanceCommissionRuleCreate) SetSearchKeywords(v string) *FinanceCommissionRuleCreate {
+	_c.mutation.SetSearchKeywords(v)
+	return _c
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_c *FinanceCommissionRuleCreate) SetNillableSearchKeywords(v *string) *FinanceCommissionRuleCreate {
+	if v != nil {
+		_c.SetSearchKeywords(*v)
+	}
+	return _c
+}
+
 // SetOrganizationID sets the "organization_id" field.
 func (_c *FinanceCommissionRuleCreate) SetOrganizationID(v uuid.UUID) *FinanceCommissionRuleCreate {
 	_c.mutation.SetOrganizationID(v)
@@ -225,7 +239,9 @@ func (_c *FinanceCommissionRuleCreate) Mutation() *FinanceCommissionRuleMutation
 
 // Save creates the FinanceCommissionRule in the database.
 func (_c *FinanceCommissionRuleCreate) Save(ctx context.Context) (*FinanceCommissionRule, error) {
-	_c.defaults()
+	if err := _c.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -252,14 +268,24 @@ func (_c *FinanceCommissionRuleCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *FinanceCommissionRuleCreate) defaults() {
+func (_c *FinanceCommissionRuleCreate) defaults() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
+		if financecommissionrule.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized financecommissionrule.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
 		v := financecommissionrule.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		if financecommissionrule.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized financecommissionrule.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := financecommissionrule.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		v := financecommissionrule.DefaultSearchKeywords
+		_c.mutation.SetSearchKeywords(v)
 	}
 	if _, ok := _c.mutation.Enabled(); !ok {
 		v := financecommissionrule.DefaultEnabled
@@ -274,9 +300,13 @@ func (_c *FinanceCommissionRuleCreate) defaults() {
 		_c.mutation.SetVersion(v)
 	}
 	if _, ok := _c.mutation.ID(); !ok {
+		if financecommissionrule.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized financecommissionrule.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := financecommissionrule.DefaultID()
 		_c.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -286,6 +316,9 @@ func (_c *FinanceCommissionRuleCreate) check() error {
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "FinanceCommissionRule.updated_at"`)}
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "FinanceCommissionRule.search_keywords"`)}
 	}
 	if _, ok := _c.mutation.OrganizationID(); !ok {
 		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "FinanceCommissionRule.organization_id"`)}
@@ -387,6 +420,10 @@ func (_c *FinanceCommissionRuleCreate) createSpec() (*FinanceCommissionRule, *sq
 	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(financecommissionrule.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if value, ok := _c.mutation.SearchKeywords(); ok {
+		_spec.SetField(financecommissionrule.FieldSearchKeywords, field.TypeString, value)
+		_node.SearchKeywords = value
 	}
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(financecommissionrule.FieldName, field.TypeString, value)
@@ -538,6 +575,18 @@ func (u *FinanceCommissionRuleUpsert) SetUpdatedAt(v time.Time) *FinanceCommissi
 // UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
 func (u *FinanceCommissionRuleUpsert) UpdateUpdatedAt() *FinanceCommissionRuleUpsert {
 	u.SetExcluded(financecommissionrule.FieldUpdatedAt)
+	return u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *FinanceCommissionRuleUpsert) SetSearchKeywords(v string) *FinanceCommissionRuleUpsert {
+	u.Set(financecommissionrule.FieldSearchKeywords, v)
+	return u
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsert) UpdateSearchKeywords() *FinanceCommissionRuleUpsert {
+	u.SetExcluded(financecommissionrule.FieldSearchKeywords)
 	return u
 }
 
@@ -750,6 +799,20 @@ func (u *FinanceCommissionRuleUpsertOne) SetUpdatedAt(v time.Time) *FinanceCommi
 func (u *FinanceCommissionRuleUpsertOne) UpdateUpdatedAt() *FinanceCommissionRuleUpsertOne {
 	return u.Update(func(s *FinanceCommissionRuleUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *FinanceCommissionRuleUpsertOne) SetSearchKeywords(v string) *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsertOne) UpdateSearchKeywords() *FinanceCommissionRuleUpsertOne {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.UpdateSearchKeywords()
 	})
 }
 
@@ -1153,6 +1216,20 @@ func (u *FinanceCommissionRuleUpsertBulk) SetUpdatedAt(v time.Time) *FinanceComm
 func (u *FinanceCommissionRuleUpsertBulk) UpdateUpdatedAt() *FinanceCommissionRuleUpsertBulk {
 	return u.Update(func(s *FinanceCommissionRuleUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *FinanceCommissionRuleUpsertBulk) SetSearchKeywords(v string) *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *FinanceCommissionRuleUpsertBulk) UpdateSearchKeywords() *FinanceCommissionRuleUpsertBulk {
+	return u.Update(func(s *FinanceCommissionRuleUpsert) {
+		s.UpdateSearchKeywords()
 	})
 }
 

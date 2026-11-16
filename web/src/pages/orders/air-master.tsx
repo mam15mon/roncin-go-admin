@@ -857,6 +857,7 @@ function AirMasterContent({
               }));
             }}
             fieldProps={{
+              filterOption: false,
               onChange: (_value, option) => {
                 const selected = Array.isArray(option) ? option[0] : option;
                 if (selected && 'order' in selected) {

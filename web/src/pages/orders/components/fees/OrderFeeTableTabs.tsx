@@ -1050,6 +1050,8 @@ export default function OrderFeeTableTabs({
             label: `${item.nameZh || item.nameEn || item.feeCode} (${item.feeCode})`,
             value: item.id ?? '',
             nameZh: item.nameZh,
+            nameEn: item.nameEn,
+            aliasName: item.aliasName,
             feeCode: item.feeCode,
             taxRate: item.taxRate,
             defaultCurrency: item.defaultCurrency,

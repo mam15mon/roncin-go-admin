@@ -85,6 +85,48 @@ func (_c *OrderCreate) SetNillableUpdatedAt(v *time.Time) *OrderCreate {
 	return _c
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_c *OrderCreate) SetSearchKeywords(v string) *OrderCreate {
+	_c.mutation.SetSearchKeywords(v)
+	return _c
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableSearchKeywords(v *string) *OrderCreate {
+	if v != nil {
+		_c.SetSearchKeywords(*v)
+	}
+	return _c
+}
+
+// SetShipperSearchKeywords sets the "shipper_search_keywords" field.
+func (_c *OrderCreate) SetShipperSearchKeywords(v string) *OrderCreate {
+	_c.mutation.SetShipperSearchKeywords(v)
+	return _c
+}
+
+// SetNillableShipperSearchKeywords sets the "shipper_search_keywords" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableShipperSearchKeywords(v *string) *OrderCreate {
+	if v != nil {
+		_c.SetShipperSearchKeywords(*v)
+	}
+	return _c
+}
+
+// SetConsigneeSearchKeywords sets the "consignee_search_keywords" field.
+func (_c *OrderCreate) SetConsigneeSearchKeywords(v string) *OrderCreate {
+	_c.mutation.SetConsigneeSearchKeywords(v)
+	return _c
+}
+
+// SetNillableConsigneeSearchKeywords sets the "consignee_search_keywords" field if the given value is not nil.
+func (_c *OrderCreate) SetNillableConsigneeSearchKeywords(v *string) *OrderCreate {
+	if v != nil {
+		_c.SetConsigneeSearchKeywords(*v)
+	}
+	return _c
+}
+
 // SetOrganizationID sets the "organization_id" field.
 func (_c *OrderCreate) SetOrganizationID(v uuid.UUID) *OrderCreate {
 	_c.mutation.SetOrganizationID(v)
@@ -1611,7 +1653,9 @@ func (_c *OrderCreate) Mutation() *OrderMutation {
 
 // Save creates the Order in the database.
 func (_c *OrderCreate) Save(ctx context.Context) (*Order, error) {
-	_c.defaults()
+	if err := _c.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -1638,14 +1682,32 @@ func (_c *OrderCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *OrderCreate) defaults() {
+func (_c *OrderCreate) defaults() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
+		if order.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized order.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
 		v := order.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		if order.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized order.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := order.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		v := order.DefaultSearchKeywords
+		_c.mutation.SetSearchKeywords(v)
+	}
+	if _, ok := _c.mutation.ShipperSearchKeywords(); !ok {
+		v := order.DefaultShipperSearchKeywords
+		_c.mutation.SetShipperSearchKeywords(v)
+	}
+	if _, ok := _c.mutation.ConsigneeSearchKeywords(); !ok {
+		v := order.DefaultConsigneeSearchKeywords
+		_c.mutation.SetConsigneeSearchKeywords(v)
 	}
 	if _, ok := _c.mutation.ShipperShortName(); !ok {
 		v := order.DefaultShipperShortName
@@ -1692,9 +1754,13 @@ func (_c *OrderCreate) defaults() {
 		_c.mutation.SetFeeReviewVersion(v)
 	}
 	if _, ok := _c.mutation.ID(); !ok {
+		if order.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized order.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := order.DefaultID()
 		_c.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -1704,6 +1770,15 @@ func (_c *OrderCreate) check() error {
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Order.updated_at"`)}
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "Order.search_keywords"`)}
+	}
+	if _, ok := _c.mutation.ShipperSearchKeywords(); !ok {
+		return &ValidationError{Name: "shipper_search_keywords", err: errors.New(`ent: missing required field "Order.shipper_search_keywords"`)}
+	}
+	if _, ok := _c.mutation.ConsigneeSearchKeywords(); !ok {
+		return &ValidationError{Name: "consignee_search_keywords", err: errors.New(`ent: missing required field "Order.consignee_search_keywords"`)}
 	}
 	if _, ok := _c.mutation.OrganizationID(); !ok {
 		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "Order.organization_id"`)}
@@ -2068,6 +2143,18 @@ func (_c *OrderCreate) createSpec() (*Order, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(order.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if value, ok := _c.mutation.SearchKeywords(); ok {
+		_spec.SetField(order.FieldSearchKeywords, field.TypeString, value)
+		_node.SearchKeywords = value
+	}
+	if value, ok := _c.mutation.ShipperSearchKeywords(); ok {
+		_spec.SetField(order.FieldShipperSearchKeywords, field.TypeString, value)
+		_node.ShipperSearchKeywords = value
+	}
+	if value, ok := _c.mutation.ConsigneeSearchKeywords(); ok {
+		_spec.SetField(order.FieldConsigneeSearchKeywords, field.TypeString, value)
+		_node.ConsigneeSearchKeywords = value
 	}
 	if value, ok := _c.mutation.OrderNo(); ok {
 		_spec.SetField(order.FieldOrderNo, field.TypeString, value)
@@ -2958,6 +3045,42 @@ func (u *OrderUpsert) SetUpdatedAt(v time.Time) *OrderUpsert {
 // UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
 func (u *OrderUpsert) UpdateUpdatedAt() *OrderUpsert {
 	u.SetExcluded(order.FieldUpdatedAt)
+	return u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *OrderUpsert) SetSearchKeywords(v string) *OrderUpsert {
+	u.Set(order.FieldSearchKeywords, v)
+	return u
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateSearchKeywords() *OrderUpsert {
+	u.SetExcluded(order.FieldSearchKeywords)
+	return u
+}
+
+// SetShipperSearchKeywords sets the "shipper_search_keywords" field.
+func (u *OrderUpsert) SetShipperSearchKeywords(v string) *OrderUpsert {
+	u.Set(order.FieldShipperSearchKeywords, v)
+	return u
+}
+
+// UpdateShipperSearchKeywords sets the "shipper_search_keywords" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateShipperSearchKeywords() *OrderUpsert {
+	u.SetExcluded(order.FieldShipperSearchKeywords)
+	return u
+}
+
+// SetConsigneeSearchKeywords sets the "consignee_search_keywords" field.
+func (u *OrderUpsert) SetConsigneeSearchKeywords(v string) *OrderUpsert {
+	u.Set(order.FieldConsigneeSearchKeywords, v)
+	return u
+}
+
+// UpdateConsigneeSearchKeywords sets the "consignee_search_keywords" field to the value that was provided on create.
+func (u *OrderUpsert) UpdateConsigneeSearchKeywords() *OrderUpsert {
+	u.SetExcluded(order.FieldConsigneeSearchKeywords)
 	return u
 }
 
@@ -4352,6 +4475,48 @@ func (u *OrderUpsertOne) SetUpdatedAt(v time.Time) *OrderUpsertOne {
 func (u *OrderUpsertOne) UpdateUpdatedAt() *OrderUpsertOne {
 	return u.Update(func(s *OrderUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *OrderUpsertOne) SetSearchKeywords(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateSearchKeywords() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateSearchKeywords()
+	})
+}
+
+// SetShipperSearchKeywords sets the "shipper_search_keywords" field.
+func (u *OrderUpsertOne) SetShipperSearchKeywords(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetShipperSearchKeywords(v)
+	})
+}
+
+// UpdateShipperSearchKeywords sets the "shipper_search_keywords" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateShipperSearchKeywords() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateShipperSearchKeywords()
+	})
+}
+
+// SetConsigneeSearchKeywords sets the "consignee_search_keywords" field.
+func (u *OrderUpsertOne) SetConsigneeSearchKeywords(v string) *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetConsigneeSearchKeywords(v)
+	})
+}
+
+// UpdateConsigneeSearchKeywords sets the "consignee_search_keywords" field to the value that was provided on create.
+func (u *OrderUpsertOne) UpdateConsigneeSearchKeywords() *OrderUpsertOne {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateConsigneeSearchKeywords()
 	})
 }
 
@@ -6134,6 +6299,48 @@ func (u *OrderUpsertBulk) SetUpdatedAt(v time.Time) *OrderUpsertBulk {
 func (u *OrderUpsertBulk) UpdateUpdatedAt() *OrderUpsertBulk {
 	return u.Update(func(s *OrderUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *OrderUpsertBulk) SetSearchKeywords(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateSearchKeywords() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateSearchKeywords()
+	})
+}
+
+// SetShipperSearchKeywords sets the "shipper_search_keywords" field.
+func (u *OrderUpsertBulk) SetShipperSearchKeywords(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetShipperSearchKeywords(v)
+	})
+}
+
+// UpdateShipperSearchKeywords sets the "shipper_search_keywords" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateShipperSearchKeywords() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateShipperSearchKeywords()
+	})
+}
+
+// SetConsigneeSearchKeywords sets the "consignee_search_keywords" field.
+func (u *OrderUpsertBulk) SetConsigneeSearchKeywords(v string) *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.SetConsigneeSearchKeywords(v)
+	})
+}
+
+// UpdateConsigneeSearchKeywords sets the "consignee_search_keywords" field to the value that was provided on create.
+func (u *OrderUpsertBulk) UpdateConsigneeSearchKeywords() *OrderUpsertBulk {
+	return u.Update(func(s *OrderUpsert) {
+		s.UpdateConsigneeSearchKeywords()
 	})
 }
 

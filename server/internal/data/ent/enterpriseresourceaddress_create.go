@@ -53,6 +53,20 @@ func (_c *EnterpriseResourceAddressCreate) SetNillableUpdatedAt(v *time.Time) *E
 	return _c
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_c *EnterpriseResourceAddressCreate) SetSearchKeywords(v string) *EnterpriseResourceAddressCreate {
+	_c.mutation.SetSearchKeywords(v)
+	return _c
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_c *EnterpriseResourceAddressCreate) SetNillableSearchKeywords(v *string) *EnterpriseResourceAddressCreate {
+	if v != nil {
+		_c.SetSearchKeywords(*v)
+	}
+	return _c
+}
+
 // SetResourceID sets the "resource_id" field.
 func (_c *EnterpriseResourceAddressCreate) SetResourceID(v uuid.UUID) *EnterpriseResourceAddressCreate {
 	_c.mutation.SetResourceID(v)
@@ -181,7 +195,9 @@ func (_c *EnterpriseResourceAddressCreate) Mutation() *EnterpriseResourceAddress
 
 // Save creates the EnterpriseResourceAddress in the database.
 func (_c *EnterpriseResourceAddressCreate) Save(ctx context.Context) (*EnterpriseResourceAddress, error) {
-	_c.defaults()
+	if err := _c.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -208,19 +224,33 @@ func (_c *EnterpriseResourceAddressCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *EnterpriseResourceAddressCreate) defaults() {
+func (_c *EnterpriseResourceAddressCreate) defaults() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
+		if enterpriseresourceaddress.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized enterpriseresourceaddress.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
 		v := enterpriseresourceaddress.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		if enterpriseresourceaddress.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized enterpriseresourceaddress.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := enterpriseresourceaddress.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		v := enterpriseresourceaddress.DefaultSearchKeywords
+		_c.mutation.SetSearchKeywords(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
+		if enterpriseresourceaddress.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized enterpriseresourceaddress.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := enterpriseresourceaddress.DefaultID()
 		_c.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -230,6 +260,9 @@ func (_c *EnterpriseResourceAddressCreate) check() error {
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "EnterpriseResourceAddress.updated_at"`)}
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "EnterpriseResourceAddress.search_keywords"`)}
 	}
 	if _, ok := _c.mutation.ResourceID(); !ok {
 		return &ValidationError{Name: "resource_id", err: errors.New(`ent: missing required field "EnterpriseResourceAddress.resource_id"`)}
@@ -326,6 +359,10 @@ func (_c *EnterpriseResourceAddressCreate) createSpec() (*EnterpriseResourceAddr
 	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(enterpriseresourceaddress.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if value, ok := _c.mutation.SearchKeywords(); ok {
+		_spec.SetField(enterpriseresourceaddress.FieldSearchKeywords, field.TypeString, value)
+		_node.SearchKeywords = value
 	}
 	if value, ok := _c.mutation.ContactName(); ok {
 		_spec.SetField(enterpriseresourceaddress.FieldContactName, field.TypeString, value)
@@ -437,6 +474,18 @@ func (u *EnterpriseResourceAddressUpsert) SetUpdatedAt(v time.Time) *EnterpriseR
 // UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
 func (u *EnterpriseResourceAddressUpsert) UpdateUpdatedAt() *EnterpriseResourceAddressUpsert {
 	u.SetExcluded(enterpriseresourceaddress.FieldUpdatedAt)
+	return u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *EnterpriseResourceAddressUpsert) SetSearchKeywords(v string) *EnterpriseResourceAddressUpsert {
+	u.Set(enterpriseresourceaddress.FieldSearchKeywords, v)
+	return u
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsert) UpdateSearchKeywords() *EnterpriseResourceAddressUpsert {
+	u.SetExcluded(enterpriseresourceaddress.FieldSearchKeywords)
 	return u
 }
 
@@ -637,6 +686,20 @@ func (u *EnterpriseResourceAddressUpsertOne) SetUpdatedAt(v time.Time) *Enterpri
 func (u *EnterpriseResourceAddressUpsertOne) UpdateUpdatedAt() *EnterpriseResourceAddressUpsertOne {
 	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *EnterpriseResourceAddressUpsertOne) SetSearchKeywords(v string) *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsertOne) UpdateSearchKeywords() *EnterpriseResourceAddressUpsertOne {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.UpdateSearchKeywords()
 	})
 }
 
@@ -1026,6 +1089,20 @@ func (u *EnterpriseResourceAddressUpsertBulk) SetUpdatedAt(v time.Time) *Enterpr
 func (u *EnterpriseResourceAddressUpsertBulk) UpdateUpdatedAt() *EnterpriseResourceAddressUpsertBulk {
 	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *EnterpriseResourceAddressUpsertBulk) SetSearchKeywords(v string) *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *EnterpriseResourceAddressUpsertBulk) UpdateSearchKeywords() *EnterpriseResourceAddressUpsertBulk {
+	return u.Update(func(s *EnterpriseResourceAddressUpsert) {
+		s.UpdateSearchKeywords()
 	})
 }
 

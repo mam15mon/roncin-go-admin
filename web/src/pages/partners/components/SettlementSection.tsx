@@ -1,8 +1,8 @@
 import { QuestionCircleOutlined } from '@ant-design/icons';
-import { ProFormDigit, ProFormSelect } from '@ant-design/pro-components';
+import { ProFormDigit } from '@ant-design/pro-components';
 import { Col, Form, Input, Row, Select, Space, Tooltip } from 'antd';
 import React from 'react';
-import { SectionCard } from '@/components/ui';
+import { ProFormSearchableSelect, SectionCard } from '@/components/ui';
 import {
   PartnerSettlementBase,
   PartnerSettlementMethod,
@@ -107,7 +107,7 @@ export default function SettlementSection({
         <Row gutter={[20, 12]} align="middle">
           {/* Row 1 - Col 1: 对账方式 */}
           <Col xs={24} sm={12} md={8}>
-            <ProFormSelect
+            <ProFormSearchableSelect
               disabled={disabled}
               name="statementMode"
               label="对账方式"
@@ -119,7 +119,7 @@ export default function SettlementSection({
 
           {/* Row 1 - Col 2: 结算方式 */}
           <Col xs={24} sm={12} md={8}>
-            <ProFormSelect
+            <ProFormSearchableSelect
               disabled={disabled}
               name="settlementMethod"
               label="结算方式"
@@ -131,7 +131,7 @@ export default function SettlementSection({
 
           {/* Row 1 - Col 3: 结算币种 */}
           <Col xs={24} sm={12} md={8}>
-            <ProFormSelect
+            <ProFormSearchableSelect
               disabled={disabled}
               name="settlementCurrency"
               label="结算币种"

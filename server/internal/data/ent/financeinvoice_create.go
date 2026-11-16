@@ -60,6 +60,20 @@ func (_c *FinanceInvoiceCreate) SetNillableUpdatedAt(v *time.Time) *FinanceInvoi
 	return _c
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_c *FinanceInvoiceCreate) SetSearchKeywords(v string) *FinanceInvoiceCreate {
+	_c.mutation.SetSearchKeywords(v)
+	return _c
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_c *FinanceInvoiceCreate) SetNillableSearchKeywords(v *string) *FinanceInvoiceCreate {
+	if v != nil {
+		_c.SetSearchKeywords(*v)
+	}
+	return _c
+}
+
 // SetOrganizationID sets the "organization_id" field.
 func (_c *FinanceInvoiceCreate) SetOrganizationID(v uuid.UUID) *FinanceInvoiceCreate {
 	_c.mutation.SetOrganizationID(v)
@@ -683,7 +697,9 @@ func (_c *FinanceInvoiceCreate) Mutation() *FinanceInvoiceMutation {
 
 // Save creates the FinanceInvoice in the database.
 func (_c *FinanceInvoiceCreate) Save(ctx context.Context) (*FinanceInvoice, error) {
-	_c.defaults()
+	if err := _c.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -710,14 +726,24 @@ func (_c *FinanceInvoiceCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *FinanceInvoiceCreate) defaults() {
+func (_c *FinanceInvoiceCreate) defaults() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
+		if financeinvoice.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized financeinvoice.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
 		v := financeinvoice.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		if financeinvoice.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized financeinvoice.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := financeinvoice.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		v := financeinvoice.DefaultSearchKeywords
+		_c.mutation.SetSearchKeywords(v)
 	}
 	if _, ok := _c.mutation.Status(); !ok {
 		v := financeinvoice.DefaultStatus
@@ -732,9 +758,13 @@ func (_c *FinanceInvoiceCreate) defaults() {
 		_c.mutation.SetRevisionNumber(v)
 	}
 	if _, ok := _c.mutation.ID(); !ok {
+		if financeinvoice.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized financeinvoice.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := financeinvoice.DefaultID()
 		_c.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -744,6 +774,9 @@ func (_c *FinanceInvoiceCreate) check() error {
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "FinanceInvoice.updated_at"`)}
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "FinanceInvoice.search_keywords"`)}
 	}
 	if _, ok := _c.mutation.OrganizationID(); !ok {
 		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "FinanceInvoice.organization_id"`)}
@@ -962,6 +995,10 @@ func (_c *FinanceInvoiceCreate) createSpec() (*FinanceInvoice, *sqlgraph.CreateS
 	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(financeinvoice.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if value, ok := _c.mutation.SearchKeywords(); ok {
+		_spec.SetField(financeinvoice.FieldSearchKeywords, field.TypeString, value)
+		_node.SearchKeywords = value
 	}
 	if value, ok := _c.mutation.RecordNo(); ok {
 		_spec.SetField(financeinvoice.FieldRecordNo, field.TypeString, value)
@@ -1330,6 +1367,18 @@ func (u *FinanceInvoiceUpsert) SetUpdatedAt(v time.Time) *FinanceInvoiceUpsert {
 // UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
 func (u *FinanceInvoiceUpsert) UpdateUpdatedAt() *FinanceInvoiceUpsert {
 	u.SetExcluded(financeinvoice.FieldUpdatedAt)
+	return u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *FinanceInvoiceUpsert) SetSearchKeywords(v string) *FinanceInvoiceUpsert {
+	u.Set(financeinvoice.FieldSearchKeywords, v)
+	return u
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsert) UpdateSearchKeywords() *FinanceInvoiceUpsert {
+	u.SetExcluded(financeinvoice.FieldSearchKeywords)
 	return u
 }
 
@@ -1878,6 +1927,20 @@ func (u *FinanceInvoiceUpsertOne) SetUpdatedAt(v time.Time) *FinanceInvoiceUpser
 func (u *FinanceInvoiceUpsertOne) UpdateUpdatedAt() *FinanceInvoiceUpsertOne {
 	return u.Update(func(s *FinanceInvoiceUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *FinanceInvoiceUpsertOne) SetSearchKeywords(v string) *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertOne) UpdateSearchKeywords() *FinanceInvoiceUpsertOne {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateSearchKeywords()
 	})
 }
 
@@ -2666,6 +2729,20 @@ func (u *FinanceInvoiceUpsertBulk) SetUpdatedAt(v time.Time) *FinanceInvoiceUpse
 func (u *FinanceInvoiceUpsertBulk) UpdateUpdatedAt() *FinanceInvoiceUpsertBulk {
 	return u.Update(func(s *FinanceInvoiceUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *FinanceInvoiceUpsertBulk) SetSearchKeywords(v string) *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *FinanceInvoiceUpsertBulk) UpdateSearchKeywords() *FinanceInvoiceUpsertBulk {
+	return u.Update(func(s *FinanceInvoiceUpsert) {
+		s.UpdateSearchKeywords()
 	})
 }
 

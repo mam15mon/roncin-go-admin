@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
@@ -20,6 +21,8 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// FieldSearchKeywords holds the string denoting the search_keywords field in the database.
+	FieldSearchKeywords = "search_keywords"
 	// FieldCorrectionRequestID holds the string denoting the correction_request_id field in the database.
 	FieldCorrectionRequestID = "correction_request_id"
 	// FieldOrganizationID holds the string denoting the organization_id field in the database.
@@ -169,6 +172,7 @@ var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
+	FieldSearchKeywords,
 	FieldCorrectionRequestID,
 	FieldOrganizationID,
 	FieldNettingNo,
@@ -206,13 +210,21 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+// Note that the variables below are initialized by the runtime
+// package on the initialization of the application. Therefore,
+// it should be imported in the main as follows:
+//
+//	import _ "github.com/roncin/roncin-go-admin/server/internal/data/ent/runtime"
 var (
+	Hooks [1]ent.Hook
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
+	// DefaultSearchKeywords holds the default value on creation for the "search_keywords" field.
+	DefaultSearchKeywords string
 	// NettingNoValidator is a validator for the "netting_no" field. It is called by the builders before save.
 	NettingNoValidator func(string) error
 	// IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
@@ -281,6 +293,11 @@ func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByUpdatedAt orders the results by the updated_at field.
 func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// BySearchKeywords orders the results by the search_keywords field.
+func BySearchKeywords(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSearchKeywords, opts...).ToFunc()
 }
 
 // ByCorrectionRequestID orders the results by the correction_request_id field.

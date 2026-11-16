@@ -1,6 +1,7 @@
 import { DatePicker, Form, Input, Select } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useEffect, useState } from 'react';
+import { defaultSelectFilterOption } from '@/components/ui/searchable-select/utils';
 import { orderAttachmentServiceListAttachments } from '@/services/roncin/orderAttachmentService';
 
 export type SeaExternalConfirmationFormValues = {
@@ -95,7 +96,7 @@ export default function SeaExternalConfirmationFields({
         <Select
           allowClear
           loading={loading}
-          showSearch={{ optionFilterProp: 'label' }}
+          showSearch={{ filterOption: defaultSelectFilterOption }}
           placeholder="仅可选择当前订单附件"
           options={attachments
             .filter((attachment) => attachment.id)

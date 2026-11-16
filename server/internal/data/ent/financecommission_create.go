@@ -60,6 +60,20 @@ func (_c *FinanceCommissionCreate) SetNillableUpdatedAt(v *time.Time) *FinanceCo
 	return _c
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_c *FinanceCommissionCreate) SetSearchKeywords(v string) *FinanceCommissionCreate {
+	_c.mutation.SetSearchKeywords(v)
+	return _c
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_c *FinanceCommissionCreate) SetNillableSearchKeywords(v *string) *FinanceCommissionCreate {
+	if v != nil {
+		_c.SetSearchKeywords(*v)
+	}
+	return _c
+}
+
 // SetOrganizationID sets the "organization_id" field.
 func (_c *FinanceCommissionCreate) SetOrganizationID(v uuid.UUID) *FinanceCommissionCreate {
 	_c.mutation.SetOrganizationID(v)
@@ -706,7 +720,9 @@ func (_c *FinanceCommissionCreate) Mutation() *FinanceCommissionMutation {
 
 // Save creates the FinanceCommission in the database.
 func (_c *FinanceCommissionCreate) Save(ctx context.Context) (*FinanceCommission, error) {
-	_c.defaults()
+	if err := _c.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -733,14 +749,24 @@ func (_c *FinanceCommissionCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *FinanceCommissionCreate) defaults() {
+func (_c *FinanceCommissionCreate) defaults() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
+		if financecommission.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized financecommission.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
 		v := financecommission.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		if financecommission.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized financecommission.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := financecommission.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		v := financecommission.DefaultSearchKeywords
+		_c.mutation.SetSearchKeywords(v)
 	}
 	if _, ok := _c.mutation.RuleVersion(); !ok {
 		v := financecommission.DefaultRuleVersion
@@ -767,9 +793,13 @@ func (_c *FinanceCommissionCreate) defaults() {
 		_c.mutation.SetVersion(v)
 	}
 	if _, ok := _c.mutation.ID(); !ok {
+		if financecommission.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized financecommission.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := financecommission.DefaultID()
 		_c.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -779,6 +809,9 @@ func (_c *FinanceCommissionCreate) check() error {
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "FinanceCommission.updated_at"`)}
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "FinanceCommission.search_keywords"`)}
 	}
 	if _, ok := _c.mutation.OrganizationID(); !ok {
 		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "FinanceCommission.organization_id"`)}
@@ -1017,6 +1050,10 @@ func (_c *FinanceCommissionCreate) createSpec() (*FinanceCommission, *sqlgraph.C
 	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(financecommission.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if value, ok := _c.mutation.SearchKeywords(); ok {
+		_spec.SetField(financecommission.FieldSearchKeywords, field.TypeString, value)
+		_node.SearchKeywords = value
 	}
 	if value, ok := _c.mutation.CommissionNo(); ok {
 		_spec.SetField(financecommission.FieldCommissionNo, field.TypeString, value)
@@ -1419,6 +1456,18 @@ func (u *FinanceCommissionUpsert) SetUpdatedAt(v time.Time) *FinanceCommissionUp
 // UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
 func (u *FinanceCommissionUpsert) UpdateUpdatedAt() *FinanceCommissionUpsert {
 	u.SetExcluded(financecommission.FieldUpdatedAt)
+	return u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *FinanceCommissionUpsert) SetSearchKeywords(v string) *FinanceCommissionUpsert {
+	u.Set(financecommission.FieldSearchKeywords, v)
+	return u
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *FinanceCommissionUpsert) UpdateSearchKeywords() *FinanceCommissionUpsert {
+	u.SetExcluded(financecommission.FieldSearchKeywords)
 	return u
 }
 
@@ -2120,6 +2169,20 @@ func (u *FinanceCommissionUpsertOne) SetUpdatedAt(v time.Time) *FinanceCommissio
 func (u *FinanceCommissionUpsertOne) UpdateUpdatedAt() *FinanceCommissionUpsertOne {
 	return u.Update(func(s *FinanceCommissionUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *FinanceCommissionUpsertOne) SetSearchKeywords(v string) *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertOne) UpdateSearchKeywords() *FinanceCommissionUpsertOne {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateSearchKeywords()
 	})
 }
 
@@ -3090,6 +3153,20 @@ func (u *FinanceCommissionUpsertBulk) SetUpdatedAt(v time.Time) *FinanceCommissi
 func (u *FinanceCommissionUpsertBulk) UpdateUpdatedAt() *FinanceCommissionUpsertBulk {
 	return u.Update(func(s *FinanceCommissionUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *FinanceCommissionUpsertBulk) SetSearchKeywords(v string) *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *FinanceCommissionUpsertBulk) UpdateSearchKeywords() *FinanceCommissionUpsertBulk {
+	return u.Update(func(s *FinanceCommissionUpsert) {
+		s.UpdateSearchKeywords()
 	})
 }
 

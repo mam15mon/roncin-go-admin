@@ -33,6 +33,7 @@ import {
   toTableRequest,
   unwrapList,
 } from '@/utils/api';
+import { matchesSearch } from '@/utils/search';
 import {
   buildPermissionTree,
   filterPermissionTree,
@@ -351,11 +352,7 @@ export default function RolesPanel() {
           let list = unwrapList(response);
           if (searchParams.keyword) {
             const kw = searchParams.keyword.toLowerCase().trim();
-            list = list.filter(
-              (r) =>
-                r.name?.toLowerCase().includes(kw) ||
-                r.code?.toLowerCase().includes(kw),
-            );
+            list = list.filter((r) => matchesSearch(kw, r.name, r.code));
           }
           return toTableRequest({ ...response, data: list });
         }}

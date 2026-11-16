@@ -242,9 +242,9 @@ func TestOrderFeeSearchKeywordsMigrationPostgres(t *testing.T) {
 	t.Cleanup(cleanup)
 	ctx := context.Background()
 	organizationID, partyID, _, _, _ := seedAutoConfirmMigrationBase(t, data, "SEARCH-UPGRADE")
-	order := data.db.Order.Create().SetOrganizationID(organizationID).SetCustomerID(partyID).
+	order := mustMigrationFixture(insertMigrationFixture[ent.Order](ctx, data, "orders", data.db.Order.Create().SetOrganizationID(organizationID).SetCustomerID(partyID).
 		SetOrderNo("SE-SEARCH-UPGRADE").SetIdempotencyKey(uuid.NewString()).SetBusinessType(orderent.BusinessTypeSE).
-		SetTradeDirection(orderent.TradeDirectionExport).SetPaymentTerm(orderent.PaymentTermPREPAID).SaveX(ctx)
+		SetTradeDirection(orderent.TradeDirectionExport).SetPaymentTerm(orderent.PaymentTermPREPAID).Mutation()))
 	feeID := uuid.New()
 	if _, err := data.sqlDB.ExecContext(ctx, `INSERT INTO order_fees
 		(id,created_at,updated_at,order_id,settlement_party_id,idempotency_key,direction,fee_code,fee_name,fee_name_en,billing_unit,

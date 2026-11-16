@@ -25,6 +25,8 @@ type FinanceCashflow struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// SearchKeywords holds the value of the "search_keywords" field.
+	SearchKeywords string `json:"search_keywords,omitempty"`
 	// OrganizationID holds the value of the "organization_id" field.
 	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// FlowNo holds the value of the "flow_no" field.
@@ -164,7 +166,7 @@ func (*FinanceCashflow) scanValues(columns []string) ([]any, error) {
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case financecashflow.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case financecashflow.FieldFlowNo, financecashflow.FieldIdempotencyKey, financecashflow.FieldDirection, financecashflow.FieldStatus, financecashflow.FieldSettlementPartyName, financecashflow.FieldCurrency, financecashflow.FieldAmount, financecashflow.FieldExchangeRate, financecashflow.FieldExchangeRateSource, financecashflow.FieldExchangeRateDate, financecashflow.FieldBaseCurrency, financecashflow.FieldBaseAmount, financecashflow.FieldTransactionDate, financecashflow.FieldOurAccount, financecashflow.FieldCounterpartyAccount, financecashflow.FieldPaymentMethod, financecashflow.FieldBankReferenceNo, financecashflow.FieldNote, financecashflow.FieldCancellationReason:
+		case financecashflow.FieldSearchKeywords, financecashflow.FieldFlowNo, financecashflow.FieldIdempotencyKey, financecashflow.FieldDirection, financecashflow.FieldStatus, financecashflow.FieldSettlementPartyName, financecashflow.FieldCurrency, financecashflow.FieldAmount, financecashflow.FieldExchangeRate, financecashflow.FieldExchangeRateSource, financecashflow.FieldExchangeRateDate, financecashflow.FieldBaseCurrency, financecashflow.FieldBaseAmount, financecashflow.FieldTransactionDate, financecashflow.FieldOurAccount, financecashflow.FieldCounterpartyAccount, financecashflow.FieldPaymentMethod, financecashflow.FieldBankReferenceNo, financecashflow.FieldNote, financecashflow.FieldCancellationReason:
 			values[i] = new(sql.NullString)
 		case financecashflow.FieldCreatedAt, financecashflow.FieldUpdatedAt, financecashflow.FieldConfirmedAt, financecashflow.FieldCancelledAt:
 			values[i] = new(sql.NullTime)
@@ -202,6 +204,12 @@ func (_m *FinanceCashflow) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
+			}
+		case financecashflow.FieldSearchKeywords:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field search_keywords", values[i])
+			} else if value.Valid {
+				_m.SearchKeywords = value.String
 			}
 		case financecashflow.FieldOrganizationID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -440,6 +448,9 @@ func (_m *FinanceCashflow) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("search_keywords=")
+	builder.WriteString(_m.SearchKeywords)
 	builder.WriteString(", ")
 	builder.WriteString("organization_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))

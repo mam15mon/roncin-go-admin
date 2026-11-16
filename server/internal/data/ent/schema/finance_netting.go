@@ -19,6 +19,7 @@ func (FinanceNetting) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMi
 
 func (FinanceNetting) Fields() []ent.Field {
 	return []ent.Field{
+		searchKeywordsField(),
 		field.UUID("correction_request_id", uuid.Nil).Optional().Nillable().Immutable(),
 		field.UUID("organization_id", uuid.Nil).Immutable(),
 		field.String("netting_no").NotEmpty().MaxLen(64).Immutable(),
@@ -65,6 +66,7 @@ func (FinanceNetting) Edges() []ent.Edge {
 
 func (FinanceNetting) Indexes() []ent.Index {
 	return []ent.Index{
+		searchKeywordsIndex("finance_nettings_search_keywords_trgm"),
 		index.Fields("organization_id", "netting_no").Unique(),
 		index.Fields("organization_id", "idempotency_key").Unique(),
 		index.Fields("organization_id", "status", "created_at"),
@@ -80,4 +82,8 @@ func (FinanceNetting) Annotations() []schema.Annotation {
 		"financenetting_base_amount_non_negative":         "base_currency_amount >= 0",
 		"financenetting_payable_base_amount_non_negative": "payable_base_amount >= 0",
 	})}
+}
+
+func (FinanceNetting) Hooks() []ent.Hook {
+	return []ent.Hook{searchKeywordsHook("settlement_party_name")}
 }

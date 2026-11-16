@@ -56,6 +56,20 @@ func (_c *FinanceCashflowCreate) SetNillableUpdatedAt(v *time.Time) *FinanceCash
 	return _c
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_c *FinanceCashflowCreate) SetSearchKeywords(v string) *FinanceCashflowCreate {
+	_c.mutation.SetSearchKeywords(v)
+	return _c
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_c *FinanceCashflowCreate) SetNillableSearchKeywords(v *string) *FinanceCashflowCreate {
+	if v != nil {
+		_c.SetSearchKeywords(*v)
+	}
+	return _c
+}
+
 // SetOrganizationID sets the "organization_id" field.
 func (_c *FinanceCashflowCreate) SetOrganizationID(v uuid.UUID) *FinanceCashflowCreate {
 	_c.mutation.SetOrganizationID(v)
@@ -390,7 +404,9 @@ func (_c *FinanceCashflowCreate) Mutation() *FinanceCashflowMutation {
 
 // Save creates the FinanceCashflow in the database.
 func (_c *FinanceCashflowCreate) Save(ctx context.Context) (*FinanceCashflow, error) {
-	_c.defaults()
+	if err := _c.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -417,14 +433,24 @@ func (_c *FinanceCashflowCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *FinanceCashflowCreate) defaults() {
+func (_c *FinanceCashflowCreate) defaults() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
+		if financecashflow.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized financecashflow.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
 		v := financecashflow.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		if financecashflow.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized financecashflow.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := financecashflow.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		v := financecashflow.DefaultSearchKeywords
+		_c.mutation.SetSearchKeywords(v)
 	}
 	if _, ok := _c.mutation.Status(); !ok {
 		v := financecashflow.DefaultStatus
@@ -435,9 +461,13 @@ func (_c *FinanceCashflowCreate) defaults() {
 		_c.mutation.SetVersion(v)
 	}
 	if _, ok := _c.mutation.ID(); !ok {
+		if financecashflow.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized financecashflow.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := financecashflow.DefaultID()
 		_c.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -447,6 +477,9 @@ func (_c *FinanceCashflowCreate) check() error {
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "FinanceCashflow.updated_at"`)}
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "FinanceCashflow.search_keywords"`)}
 	}
 	if _, ok := _c.mutation.OrganizationID(); !ok {
 		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "FinanceCashflow.organization_id"`)}
@@ -631,6 +664,10 @@ func (_c *FinanceCashflowCreate) createSpec() (*FinanceCashflow, *sqlgraph.Creat
 	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(financecashflow.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if value, ok := _c.mutation.SearchKeywords(); ok {
+		_spec.SetField(financecashflow.FieldSearchKeywords, field.TypeString, value)
+		_node.SearchKeywords = value
 	}
 	if value, ok := _c.mutation.FlowNo(); ok {
 		_spec.SetField(financecashflow.FieldFlowNo, field.TypeString, value)
@@ -869,6 +906,18 @@ func (u *FinanceCashflowUpsert) SetUpdatedAt(v time.Time) *FinanceCashflowUpsert
 // UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
 func (u *FinanceCashflowUpsert) UpdateUpdatedAt() *FinanceCashflowUpsert {
 	u.SetExcluded(financecashflow.FieldUpdatedAt)
+	return u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *FinanceCashflowUpsert) SetSearchKeywords(v string) *FinanceCashflowUpsert {
+	u.Set(financecashflow.FieldSearchKeywords, v)
+	return u
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *FinanceCashflowUpsert) UpdateSearchKeywords() *FinanceCashflowUpsert {
+	u.SetExcluded(financecashflow.FieldSearchKeywords)
 	return u
 }
 
@@ -1186,6 +1235,20 @@ func (u *FinanceCashflowUpsertOne) SetUpdatedAt(v time.Time) *FinanceCashflowUps
 func (u *FinanceCashflowUpsertOne) UpdateUpdatedAt() *FinanceCashflowUpsertOne {
 	return u.Update(func(s *FinanceCashflowUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *FinanceCashflowUpsertOne) SetSearchKeywords(v string) *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertOne) UpdateSearchKeywords() *FinanceCashflowUpsertOne {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateSearchKeywords()
 	})
 }
 
@@ -1705,6 +1768,20 @@ func (u *FinanceCashflowUpsertBulk) SetUpdatedAt(v time.Time) *FinanceCashflowUp
 func (u *FinanceCashflowUpsertBulk) UpdateUpdatedAt() *FinanceCashflowUpsertBulk {
 	return u.Update(func(s *FinanceCashflowUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *FinanceCashflowUpsertBulk) SetSearchKeywords(v string) *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *FinanceCashflowUpsertBulk) UpdateSearchKeywords() *FinanceCashflowUpsertBulk {
+	return u.Update(func(s *FinanceCashflowUpsert) {
+		s.UpdateSearchKeywords()
 	})
 }
 

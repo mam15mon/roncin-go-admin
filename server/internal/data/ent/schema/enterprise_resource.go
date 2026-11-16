@@ -51,6 +51,7 @@ func (EnterpriseResource) Edges() []ent.Edge {
 
 func (EnterpriseResource) Indexes() []ent.Index {
 	return []ent.Index{
+		searchKeywordsIndex("enterprise_resources_search_keywords_trgm"),
 		index.Fields("organization_id", "resource_type", "enabled", "sort_order"),
 		index.Fields("organization_id", "updated_at"),
 	}

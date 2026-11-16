@@ -25,6 +25,7 @@ import (
 	partnercontactent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partnercontact"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/predicate"
 	userent "github.com/roncin/roncin-go-admin/server/internal/data/ent/user"
+	"github.com/roncin/roncin-go-admin/server/internal/platform/searchtext"
 )
 
 type enterpriseResourceRepo struct{ data *Data }
@@ -49,7 +50,7 @@ func (r *enterpriseResourceRepo) SearchPartnerOptions(ctx context.Context, organ
 		query.Where(partnerent.Or(
 			partnerent.CodeContainsFold(keyword), partnerent.LegalNameContainsFold(keyword), partnerent.SearchKeywordsContainsFold(keyword),
 			partnerent.HasAliasesWith(partneraliasent.Or(partneraliasent.AliasNameContainsFold(keyword), partneraliasent.SearchKeywordsContainsFold(keyword))),
-			partnerent.HasContactsWith(partnercontactent.Or(partnercontactent.NameContainsFold(keyword), partnercontactent.PhoneContainsFold(keyword), partnercontactent.EmailContainsFold(keyword))),
+			partnerent.HasContactsWith(partnercontactent.Or(partnercontactent.NameContainsFold(keyword), partnercontactent.SearchKeywordsContainsFold(keyword), partnercontactent.PhoneContainsFold(keyword), partnercontactent.EmailContainsFold(keyword))),
 		))
 	}
 	total, err := query.Clone().Count(ctx)
@@ -172,9 +173,9 @@ func (r *enterpriseResourceRepo) List(ctx context.Context, organizationID uuid.U
 		keyword := options.Keyword
 		query.Where(resourceent.Or(
 			resourceent.ShortNameContainsFold(keyword), resourceent.SearchKeywordsContainsFold(keyword),
-			resourceent.HasAddressWith(addressent.Or(addressent.AddressDetailContainsFold(keyword), addressent.ContactNameContainsFold(keyword), addressent.ContactPhoneContainsFold(keyword))),
-			resourceent.HasRemarkWith(remarkent.ContentContainsFold(keyword)),
-			resourceent.HasPartyWith(partyent.Or(partyent.CompanyNameContainsFold(keyword), partyent.BusinessCodeContainsFold(keyword), partyent.AddressContainsFold(keyword), partyent.ContactNameContainsFold(keyword))),
+			resourceent.HasAddressWith(addressent.Or(addressent.AddressDetailContainsFold(keyword), addressent.SearchKeywordsContainsFold(keyword), addressent.ContactNameContainsFold(keyword), addressent.ContactPhoneContainsFold(keyword))),
+			resourceent.HasRemarkWith(remarkent.Or(remarkent.ContentContainsFold(keyword), remarkent.SearchKeywordsContainsFold(keyword))),
+			resourceent.HasPartyWith(partyent.Or(partyent.CompanyNameContainsFold(keyword), partyent.SearchKeywordsContainsFold(keyword), partyent.BusinessCodeContainsFold(keyword), partyent.AddressContainsFold(keyword), partyent.ContactNameContainsFold(keyword))),
 		))
 	}
 	total, err := query.Clone().Count(ctx)
@@ -555,7 +556,7 @@ func (r *enterpriseResourceRepo) Import(ctx context.Context, organizationID, act
 			if err := validateEnterpriseResourceRelations(ctx, tx, organizationID, input); err != nil {
 				return err
 			}
-			if _, err := tx.EnterpriseResource.Update().Where(resourceent.IDEQ(id), resourceent.OrganizationIDEQ(organizationID), resourceent.ResourceTypeEQ(resourceent.ResourceType(input.ResourceType))).SetShortName(input.ShortName).SetUpdatedBy(actorID).Save(ctx); err != nil {
+			if _, err := tx.EnterpriseResource.UpdateOneID(id).Where(resourceent.OrganizationIDEQ(organizationID), resourceent.ResourceTypeEQ(resourceent.ResourceType(input.ResourceType))).SetShortName(input.ShortName).SetUpdatedBy(actorID).Save(ctx); err != nil {
 				return err
 			}
 			if err := updateImportedEnterpriseResourceParty(ctx, tx, id, input.Party); err != nil {
@@ -720,7 +721,7 @@ func createEnterpriseResourceDetail(ctx context.Context, tx *ent.Tx, id, organiz
 		_, err := tx.EnterpriseResourceAddress.Create().SetResourceID(id).SetNillableContactName(optionalString(v.ContactName)).SetNillableContactPhone(optionalString(v.ContactPhone)).SetCountryCode(v.CountryCode).SetNillableProvinceCode(optionalString(v.ProvinceCode)).SetNillableCityCode(optionalString(v.CityCode)).SetNillableDistrictCode(optionalString(v.DistrictCode)).SetAddressDetail(v.AddressDetail).SetNillableRemark(optionalString(v.Remark)).Save(ctx)
 		return err
 	case biz.EnterpriseResourceRemarkType:
-		_, err := tx.EnterpriseResourceRemark.Create().SetResourceID(id).SetRemarkType(remarkent.RemarkType(input.Remark.RemarkType)).SetContent(input.Remark.Content).Save(ctx)
+		_, err := tx.EnterpriseResourceRemark.Create().SetResourceID(id).SetRemarkType(remarkent.RemarkType(input.Remark.RemarkType)).SetContent(input.Remark.Content).SetSearchKeywords(searchtext.Build(input.Remark.Content)).Save(ctx)
 		return err
 	case biz.EnterpriseResourceImageType:
 		v := input.Image
@@ -744,44 +745,48 @@ func updateEnterpriseResourceDetail(ctx context.Context, tx *ent.Tx, id, organiz
 	switch input.ResourceType {
 	case biz.EnterpriseResourceAddressType:
 		v := input.Address
-		builder := tx.EnterpriseResourceAddress.Update().Where(func(s *sql.Selector) { s.Where(sql.EQ(s.C("resource_id"), id)) }).SetCountryCode(v.CountryCode).SetAddressDetail(v.AddressDetail).ClearContactName().ClearContactPhone().ClearProvinceCode().ClearCityCode().ClearDistrictCode().ClearRemark()
-		builder.SetNillableContactName(optionalString(v.ContactName)).SetNillableContactPhone(optionalString(v.ContactPhone)).SetNillableProvinceCode(optionalString(v.ProvinceCode)).SetNillableCityCode(optionalString(v.CityCode)).SetNillableDistrictCode(optionalString(v.DistrictCode)).SetNillableRemark(optionalString(v.Remark))
+		builder := tx.EnterpriseResourceAddress.Update().Where(addressent.ResourceIDEQ(id)).SetCountryCode(v.CountryCode).SetAddressDetail(v.AddressDetail).SetSearchKeywords(searchtext.Build(v.AddressDetail, v.ContactName))
+		setOptionalString(builder.SetContactName, builder.ClearContactName, optionalString(v.ContactName))
+		setOptionalString(builder.SetContactPhone, builder.ClearContactPhone, optionalString(v.ContactPhone))
+		setOptionalString(builder.SetProvinceCode, builder.ClearProvinceCode, optionalString(v.ProvinceCode))
+		setOptionalString(builder.SetCityCode, builder.ClearCityCode, optionalString(v.CityCode))
+		setOptionalString(builder.SetDistrictCode, builder.ClearDistrictCode, optionalString(v.DistrictCode))
+		setOptionalString(builder.SetRemark, builder.ClearRemark, optionalString(v.Remark))
 		_, err := builder.Save(ctx)
 		return err
 	case biz.EnterpriseResourceRemarkType:
-		_, err := tx.EnterpriseResourceRemark.Update().Where(func(s *sql.Selector) { s.Where(sql.EQ(s.C("resource_id"), id)) }).SetRemarkType(remarkent.RemarkType(input.Remark.RemarkType)).SetContent(input.Remark.Content).Save(ctx)
+		_, err := tx.EnterpriseResourceRemark.Update().Where(remarkent.ResourceIDEQ(id)).SetRemarkType(remarkent.RemarkType(input.Remark.RemarkType)).SetContent(input.Remark.Content).SetSearchKeywords(searchtext.Build(input.Remark.Content)).Save(ctx)
 		return err
 	case biz.EnterpriseResourceImageType:
 		return biz.ErrEnterpriseResourceInvalidArgument
 	default:
 		v := input.Party
-		builder := tx.EnterpriseResourceParty.Update().Where(partyent.ResourceIDEQ(id)).SetCompanyName(v.CompanyName).SetCountryCode(v.CountryCode).SetCustomDisplay(v.CustomDisplay).ClearBusinessCode().ClearNormalizedBusinessCode().ClearAddress().ClearContactName().ClearContactPhone().ClearEmail().ClearTaxIdentifier().ClearAeoCode().ClearDisplayContent().ClearRemark()
-		builder.SetNillableBusinessCode(optionalString(v.BusinessCode)).SetNillableNormalizedBusinessCode(optionalString(strings.ToUpper(v.BusinessCode))).SetNillableAddress(optionalString(v.Address)).SetNillableContactName(optionalString(v.ContactName)).SetNillableContactPhone(optionalString(v.ContactPhone)).SetNillableEmail(optionalString(v.Email)).SetNillableTaxIdentifier(optionalString(v.TaxIdentifier)).SetNillableAeoCode(optionalString(v.AEOCode)).SetNillableDisplayContent(optionalString(v.DisplayContent)).SetNillableRemark(optionalString(v.Remark))
+		builder := tx.EnterpriseResourceParty.Update().Where(partyent.ResourceIDEQ(id)).SetCompanyName(v.CompanyName).SetCountryCode(v.CountryCode).SetCustomDisplay(v.CustomDisplay).SetSearchKeywords(searchtext.Build(v.CompanyName, v.Address, v.ContactName))
+		setOptionalString(builder.SetBusinessCode, builder.ClearBusinessCode, optionalString(v.BusinessCode))
+		setOptionalString(builder.SetNormalizedBusinessCode, builder.ClearNormalizedBusinessCode, optionalString(strings.ToUpper(v.BusinessCode)))
+		setOptionalString(builder.SetAddress, builder.ClearAddress, optionalString(v.Address))
+		setOptionalString(builder.SetContactName, builder.ClearContactName, optionalString(v.ContactName))
+		setOptionalString(builder.SetContactPhone, builder.ClearContactPhone, optionalString(v.ContactPhone))
+		setOptionalString(builder.SetEmail, builder.ClearEmail, optionalString(v.Email))
+		setOptionalString(builder.SetTaxIdentifier, builder.ClearTaxIdentifier, optionalString(v.TaxIdentifier))
+		setOptionalString(builder.SetAeoCode, builder.ClearAeoCode, optionalString(v.AEOCode))
+		setOptionalString(builder.SetDisplayContent, builder.ClearDisplayContent, optionalString(v.DisplayContent))
+		setOptionalString(builder.SetRemark, builder.ClearRemark, optionalString(v.Remark))
 		_, err := builder.Save(ctx)
 		return err
 	}
 }
 
 func updateImportedEnterpriseResourceParty(ctx context.Context, tx *ent.Tx, id uuid.UUID, input *biz.EnterpriseResourceParty) error {
-	builder := tx.EnterpriseResourceParty.Update().Where(partyent.ResourceIDEQ(id)).
-		SetCompanyName(input.CompanyName).
-		SetCountryCode(input.CountryCode).
-		ClearBusinessCode().
-		ClearNormalizedBusinessCode().
-		ClearAddress().
-		ClearContactName().
-		ClearContactPhone().
-		ClearEmail().
-		ClearTaxIdentifier().
-		ClearAeoCode()
-	builder.SetNillableBusinessCode(optionalString(input.BusinessCode)).
-		SetNillableNormalizedBusinessCode(optionalString(strings.ToUpper(input.BusinessCode))).
-		SetNillableAddress(optionalString(input.Address)).
-		SetNillableContactName(optionalString(input.ContactName)).
-		SetNillableContactPhone(optionalString(input.ContactPhone)).
-		SetNillableEmail(optionalString(input.Email)).
-		SetNillableTaxIdentifier(optionalString(input.TaxIdentifier)).
-		SetNillableAeoCode(optionalString(input.AEOCode))
+	builder := tx.EnterpriseResourceParty.Update().Where(partyent.ResourceIDEQ(id)).SetCompanyName(input.CompanyName).SetCountryCode(input.CountryCode).SetSearchKeywords(searchtext.Build(input.CompanyName, input.Address, input.ContactName))
+	setOptionalString(builder.SetBusinessCode, builder.ClearBusinessCode, optionalString(input.BusinessCode))
+	setOptionalString(builder.SetNormalizedBusinessCode, builder.ClearNormalizedBusinessCode, optionalString(strings.ToUpper(input.BusinessCode)))
+	setOptionalString(builder.SetAddress, builder.ClearAddress, optionalString(input.Address))
+	setOptionalString(builder.SetContactName, builder.ClearContactName, optionalString(input.ContactName))
+	setOptionalString(builder.SetContactPhone, builder.ClearContactPhone, optionalString(input.ContactPhone))
+	setOptionalString(builder.SetEmail, builder.ClearEmail, optionalString(input.Email))
+	setOptionalString(builder.SetTaxIdentifier, builder.ClearTaxIdentifier, optionalString(input.TaxIdentifier))
+	setOptionalString(builder.SetAeoCode, builder.ClearAeoCode, optionalString(input.AEOCode))
 	_, err := builder.Save(ctx)
 	return err
 }

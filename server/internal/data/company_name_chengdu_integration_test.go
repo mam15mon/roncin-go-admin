@@ -46,6 +46,9 @@ func TestChengduCompanyNameEnMigrationPostgres(t *testing.T) {
 			if err = migration.Apply(ctx, data.sqlDB, filepath.Join("..", "..", "migrations")); err != nil {
 				t.Fatal(err)
 			}
+			if err := BackfillSelectorSearchKeywords(ctx, data.sqlDB); err != nil {
+				t.Fatal(err)
+			}
 			after, err := data.db.Organization.Get(ctx, initial.ID)
 			if err != nil {
 				t.Fatal(err)
@@ -70,6 +73,9 @@ func TestChengduCompanyNameEnMigrationPostgres(t *testing.T) {
 				t.Fatal("补名改变已有业务更新时间")
 			}
 			if err = migration.Apply(ctx, data.sqlDB, filepath.Join("..", "..", "migrations")); err != nil {
+				t.Fatal(err)
+			}
+			if err := BackfillSelectorSearchKeywords(ctx, data.sqlDB); err != nil {
 				t.Fatal(err)
 			}
 			repeated, err := data.db.Organization.Get(ctx, initial.ID)

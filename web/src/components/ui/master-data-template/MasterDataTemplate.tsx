@@ -14,7 +14,6 @@ import {
   ProFormCheckbox,
   ProFormDigit,
   ProFormRadio,
-  ProFormSelect,
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
@@ -37,7 +36,9 @@ import {
 } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { GuardedModalForm } from '@/components/ui/GuardedModalForm';
+import { ProFormSearchableSelect } from '@/components/ui/searchable-select/SearchableSelect';
 import { formatDate } from '@/utils/format';
+import { matchesSearch } from '@/utils/search';
 import { AsyncPopconfirm } from '../async-popconfirm';
 import { useColumnSettings } from '../column-settings';
 import { ResponsiveProTable } from '../responsive-table';
@@ -135,26 +136,7 @@ export function MasterDataTemplate<
   const filteredItems = useMemo(() => {
     if (isRequestMode || serverMode || !items) return items ?? [];
     return items.filter((item) => {
-      // 1. Keyword search (code, name, nameEn)
-      if (search.trim()) {
-        const q = search.trim().toLowerCase();
-        const matchCode = item.code?.toLowerCase().includes(q);
-        const matchName = item.name?.toLowerCase().includes(q);
-        const matchNameEn = (item.nameEn || '').toLowerCase().includes(q);
-        if (!matchCode && !matchName && !matchNameEn) {
-          let matchAny = false;
-          for (const key of Object.keys(item)) {
-            if (
-              typeof item[key] === 'string' &&
-              item[key].toLowerCase().includes(q)
-            ) {
-              matchAny = true;
-              break;
-            }
-          }
-          if (!matchAny) return false;
-        }
-      }
+      if (!matchesSearch(search, ...Object.values(item))) return false;
 
       // 2. Active status filter
       if (activeFilter === 'true' && !item.enabled) return false;
@@ -813,7 +795,7 @@ export function MasterDataTemplate<
           if (field.type === 'select') {
             return (
               <Col span={span} key={field.name}>
-                <ProFormSelect
+                <ProFormSearchableSelect
                   name={field.name}
                   label={field.label}
                   options={field.options}

@@ -15,6 +15,7 @@ import { useAccess } from '@/app/access';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { MODAL_SIZE, ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
+import { defaultSelectFilterOption } from '@/components/ui/searchable-select/utils';
 import {
   settlementServiceAssignCommissionRuleEmployees,
   settlementServiceRemoveCommissionRuleEmployees,
@@ -280,6 +281,7 @@ function RosterChangeForms({
             placeholder="选择当前名单内员工"
             style={{ minWidth: 260 }}
             options={currentEmployees}
+            showSearch={{ filterOption: defaultSelectFilterOption }}
           />
         </Form.Item>
         <Form.Item name="changeDate" label="退出日">

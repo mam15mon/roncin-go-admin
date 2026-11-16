@@ -15,6 +15,7 @@ func (EnterpriseResourceAddress) Mixin() []ent.Mixin { return []ent.Mixin{IDMixi
 
 func (EnterpriseResourceAddress) Fields() []ent.Field {
 	return []ent.Field{
+		searchKeywordsField(),
 		field.UUID("resource_id", uuid.Nil).Immutable(),
 		field.String("contact_name").Optional().Nillable().MaxLen(100),
 		field.String("contact_phone").Optional().Nillable().MaxLen(64),
@@ -32,5 +33,10 @@ func (EnterpriseResourceAddress) Edges() []ent.Edge {
 }
 
 func (EnterpriseResourceAddress) Indexes() []ent.Index {
-	return []ent.Index{index.Fields("resource_id").Unique()}
+	return []ent.Index{
+		searchKeywordsIndex("enterprise_resource_addresses_search_keywords_trgm"), index.Fields("resource_id").Unique()}
+}
+
+func (EnterpriseResourceAddress) Hooks() []ent.Hook {
+	return []ent.Hook{searchKeywordsHook("address_detail", "contact_name")}
 }

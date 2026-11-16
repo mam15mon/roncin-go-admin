@@ -4372,7 +4372,8 @@ func (c *EnterpriseResourceAddressClient) QueryResource(_m *EnterpriseResourceAd
 
 // Hooks returns the client hooks.
 func (c *EnterpriseResourceAddressClient) Hooks() []Hook {
-	return c.hooks.EnterpriseResourceAddress
+	hooks := c.hooks.EnterpriseResourceAddress
+	return append(hooks[:len(hooks):len(hooks)], enterpriseresourceaddress.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -5165,7 +5166,8 @@ func (c *EnterpriseResourcePartyClient) QueryResource(_m *EnterpriseResourcePart
 
 // Hooks returns the client hooks.
 func (c *EnterpriseResourcePartyClient) Hooks() []Hook {
-	return c.hooks.EnterpriseResourceParty
+	hooks := c.hooks.EnterpriseResourceParty
+	return append(hooks[:len(hooks):len(hooks)], enterpriseresourceparty.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -5314,7 +5316,8 @@ func (c *EnterpriseResourceRemarkClient) QueryResource(_m *EnterpriseResourceRem
 
 // Hooks returns the client hooks.
 func (c *EnterpriseResourceRemarkClient) Hooks() []Hook {
-	return c.hooks.EnterpriseResourceRemark
+	hooks := c.hooks.EnterpriseResourceRemark
+	return append(hooks[:len(hooks):len(hooks)], enterpriseresourceremark.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -6370,7 +6373,8 @@ func (c *FinanceBillClient) QueryNettingAllocations(_m *FinanceBill) *FinanceNet
 
 // Hooks returns the client hooks.
 func (c *FinanceBillClient) Hooks() []Hook {
-	return c.hooks.FinanceBill
+	hooks := c.hooks.FinanceBill
+	return append(hooks[:len(hooks):len(hooks)], financebill.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -6977,7 +6981,8 @@ func (c *FinanceCashflowClient) QueryVerificationAllocations(_m *FinanceCashflow
 
 // Hooks returns the client hooks.
 func (c *FinanceCashflowClient) Hooks() []Hook {
-	return c.hooks.FinanceCashflow
+	hooks := c.hooks.FinanceCashflow
+	return append(hooks[:len(hooks):len(hooks)], financecashflow.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -7286,7 +7291,8 @@ func (c *FinanceCommissionClient) QueryApplicationLines(_m *FinanceCommission) *
 
 // Hooks returns the client hooks.
 func (c *FinanceCommissionClient) Hooks() []Hook {
-	return c.hooks.FinanceCommission
+	hooks := c.hooks.FinanceCommission
+	return append(hooks[:len(hooks):len(hooks)], financecommission.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -8383,7 +8389,8 @@ func (c *FinanceCommissionRuleClient) QueryAssignments(_m *FinanceCommissionRule
 
 // Hooks returns the client hooks.
 func (c *FinanceCommissionRuleClient) Hooks() []Hook {
-	return c.hooks.FinanceCommissionRule
+	hooks := c.hooks.FinanceCommissionRule
+	return append(hooks[:len(hooks):len(hooks)], financecommissionrule.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -9070,7 +9077,8 @@ func (c *FinanceInvoiceClient) QueryRevisions(_m *FinanceInvoice) *FinanceInvoic
 
 // Hooks returns the client hooks.
 func (c *FinanceInvoiceClient) Hooks() []Hook {
-	return c.hooks.FinanceInvoice
+	hooks := c.hooks.FinanceInvoice
+	return append(hooks[:len(hooks):len(hooks)], financeinvoice.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -10337,7 +10345,8 @@ func (c *FinanceNettingClient) QueryCommissions(_m *FinanceNetting) *FinanceComm
 
 // Hooks returns the client hooks.
 func (c *FinanceNettingClient) Hooks() []Hook {
-	return c.hooks.FinanceNetting
+	hooks := c.hooks.FinanceNetting
+	return append(hooks[:len(hooks):len(hooks)], financenetting.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -10747,7 +10756,8 @@ func (c *FinanceVerificationClient) QueryCommissionReversalAdjustments(_m *Finan
 
 // Hooks returns the client hooks.
 func (c *FinanceVerificationClient) Hooks() []Hook {
-	return c.hooks.FinanceVerification
+	hooks := c.hooks.FinanceVerification
+	return append(hooks[:len(hooks):len(hooks)], financeverification.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -12697,7 +12707,8 @@ func (c *OrderClient) QuerySeaDocumentVoidEvents(_m *Order) *SeaDocumentVoidEven
 
 // Hooks returns the client hooks.
 func (c *OrderClient) Hooks() []Hook {
-	return c.hooks.Order
+	hooks := c.hooks.Order
+	return append(hooks[:len(hooks):len(hooks)], order.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
@@ -19518,7 +19529,8 @@ func (c *PartnerContactClient) QueryPartner(_m *PartnerContact) *PartnerQuery {
 
 // Hooks returns the client hooks.
 func (c *PartnerContactClient) Hooks() []Hook {
-	return c.hooks.PartnerContact
+	hooks := c.hooks.PartnerContact
+	return append(hooks[:len(hooks):len(hooks)], partnercontact.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.

@@ -19,7 +19,7 @@ import (
 func commissionListPredicatesScoped(organizationIDs []uuid.UUID, f biz.CommissionFilter) []predicate.FinanceCommission {
 	p := []predicate.FinanceCommission{commission.OrganizationIDIn(organizationIDs...)}
 	if f.Keyword != "" {
-		p = append(p, commission.Or(commission.CommissionNoContainsFold(f.Keyword), commission.EmployeeNameContainsFold(f.Keyword), commission.RuleNameContainsFold(f.Keyword)))
+		p = append(p, commission.Or(commission.CommissionNoContainsFold(f.Keyword), commission.EmployeeNameContainsFold(f.Keyword), commission.RuleNameContainsFold(f.Keyword), commission.SearchKeywordsContainsFold(f.Keyword)))
 	}
 	if f.Status != "" {
 		p = append(p, commission.StatusEQ(commission.Status(f.Status)))

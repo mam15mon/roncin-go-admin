@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
+	feesettingent "github.com/roncin/roncin-go-admin/server/internal/data/ent/feesetting"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financebillline"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/financecommission"
@@ -422,10 +423,12 @@ func (r *settlementRepo) listFeeLedger(ctx context.Context, organizationIDs []uu
 		predicates = append(predicates, orderfee.Or(
 			orderfee.FeeCodeContainsFold(filter.Keyword),
 			orderfee.FeeNameContainsFold(filter.Keyword),
+			orderfee.FeeNameEnContainsFold(filter.Keyword), orderfee.SearchKeywordsContainsFold(filter.Keyword),
+			orderfee.HasFeeSettingWith(feesettingent.OrganizationIDIn(organizationIDs...), feesettingent.Or(feesettingent.AliasNameContainsFold(filter.Keyword), feesettingent.SearchKeywordsContainsFold(filter.Keyword))),
 			orderfee.HasOrderWith(order.OrderNoContainsFold(filter.Keyword)),
 			orderfee.HasOrderWith(feeLedgerMasterNoPredicate(filter.Keyword)),
-			orderfee.HasSettlementPartyWith(partner.LegalNameContainsFold(filter.Keyword)),
-			orderfee.HasOrderWith(order.HasCustomerWith(partner.LegalNameContainsFold(filter.Keyword))),
+			orderfee.HasSettlementPartyWith(financePartyKeywordPredicate(filter.Keyword)),
+			orderfee.HasOrderWith(order.HasCustomerWith(financePartyKeywordPredicate(filter.Keyword))),
 			orderfee.HasFinanceBillLinesWith(
 				financebillline.ActiveEQ(true),
 				financebillline.HasBillWith(

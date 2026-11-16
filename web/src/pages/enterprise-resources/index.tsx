@@ -24,6 +24,7 @@ import {
   ResponsiveProTable as ProTable,
 } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
+import { defaultSelectFilterOption } from '@/components/ui/searchable-select/utils';
 import { getRequestErrorMessage } from '@/requestErrorConfig';
 import { history } from '@/router/history';
 import {
@@ -371,6 +372,7 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
         hideInTable: true,
         valueType: 'select',
         fieldProps: {
+          filterOption: defaultSelectFilterOption,
           options: [
             { label: '已关联', value: 'true' },
             { label: '独立资源', value: 'false' },
@@ -398,7 +400,10 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
               dataIndex: 'addressType',
               hideInTable: true,
               valueType: 'select' as const,
-              fieldProps: { options: addressTypes },
+              fieldProps: {
+                options: addressTypes,
+                filterOption: defaultSelectFilterOption,
+              },
             },
             {
               title: '关联人员',
@@ -441,6 +446,7 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
         width: 80,
         valueType: 'select',
         fieldProps: {
+          filterOption: defaultSelectFilterOption,
           options: [
             { label: '启用', value: 'true' },
             { label: '停用', value: 'false' },

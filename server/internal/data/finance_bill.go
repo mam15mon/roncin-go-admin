@@ -45,7 +45,7 @@ func (r *financeBillRepo) List(ctx context.Context, organizationIDs []uuid.UUID,
 	if filter.Keyword != "" {
 		predicates = append(predicates, financebillent.Or(
 			financebillent.BillNoContainsFold(filter.Keyword),
-			financebillent.SettlementPartyNameContainsFold(filter.Keyword),
+			financebillent.SettlementPartyNameContainsFold(filter.Keyword), financebillent.SearchKeywordsContainsFold(filter.Keyword),
 			financebillent.HasSettlementPartyWith(financePartyKeywordPredicate(filter.Keyword)),
 			financebillent.HasLinesWith(financebilllineent.OrderNoContainsFold(filter.Keyword)),
 		))

@@ -1,12 +1,11 @@
 import {
   ProFormDigit,
-  ProFormSelect,
   ProFormSwitch,
   ProFormText,
 } from '@ant-design/pro-components';
 import { Col, type FormInstance } from 'antd';
 import React from 'react';
-import { GuardedModalForm } from '@/components/ui';
+import { GuardedModalForm, ProFormSearchableSelect } from '@/components/ui';
 import {
   DOC_TYPES,
   getDocTypeMeta,
@@ -54,7 +53,7 @@ export default function NumberRuleEditModal({
       grid
     >
       <Col span={24}>
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="documentType"
           label="单据类型"
           options={DOC_TYPES.map((t) => {
@@ -88,7 +87,7 @@ export default function NumberRuleEditModal({
         />
       </Col>
       <Col span={24}>
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="dateFormat"
           label="日期格式"
           options={[
@@ -111,7 +110,7 @@ export default function NumberRuleEditModal({
         />
       </Col>
       <Col span={24}>
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="resetPolicy"
           label="重置周期"
           options={[

@@ -171,6 +171,8 @@ export default function FeeFormModal({
               value: item.id ?? '',
               code: item.feeCode,
               name: item.nameZh,
+              nameEn: item.nameEn,
+              aliasName: item.aliasName,
             }))}
             fieldProps={{
               dropdownRender: (menu) => (

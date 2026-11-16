@@ -23,6 +23,8 @@ type EnterpriseResourceRemark struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// SearchKeywords holds the value of the "search_keywords" field.
+	SearchKeywords string `json:"search_keywords,omitempty"`
 	// ResourceID holds the value of the "resource_id" field.
 	ResourceID uuid.UUID `json:"resource_id,omitempty"`
 	// RemarkType holds the value of the "remark_type" field.
@@ -60,7 +62,7 @@ func (*EnterpriseResourceRemark) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case enterpriseresourceremark.FieldRemarkType, enterpriseresourceremark.FieldContent:
+		case enterpriseresourceremark.FieldSearchKeywords, enterpriseresourceremark.FieldRemarkType, enterpriseresourceremark.FieldContent:
 			values[i] = new(sql.NullString)
 		case enterpriseresourceremark.FieldCreatedAt, enterpriseresourceremark.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -98,6 +100,12 @@ func (_m *EnterpriseResourceRemark) assignValues(columns []string, values []any)
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
+			}
+		case enterpriseresourceremark.FieldSearchKeywords:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field search_keywords", values[i])
+			} else if value.Valid {
+				_m.SearchKeywords = value.String
 			}
 		case enterpriseresourceremark.FieldResourceID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -163,6 +171,9 @@ func (_m *EnterpriseResourceRemark) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("search_keywords=")
+	builder.WriteString(_m.SearchKeywords)
 	builder.WriteString(", ")
 	builder.WriteString("resource_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ResourceID))

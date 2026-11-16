@@ -23,6 +23,8 @@ type FinanceCommissionRule struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// SearchKeywords holds the value of the "search_keywords" field.
+	SearchKeywords string `json:"search_keywords,omitempty"`
 	// OrganizationID holds the value of the "organization_id" field.
 	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// Name holds the value of the "name" field.
@@ -102,7 +104,7 @@ func (*FinanceCommissionRule) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case financecommissionrule.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case financecommissionrule.FieldName, financecommissionrule.FieldPersonnelRole, financecommissionrule.FieldCalculationBasis, financecommissionrule.FieldRatePercent, financecommissionrule.FieldEffectiveFrom, financecommissionrule.FieldEffectiveTo, financecommissionrule.FieldNote:
+		case financecommissionrule.FieldSearchKeywords, financecommissionrule.FieldName, financecommissionrule.FieldPersonnelRole, financecommissionrule.FieldCalculationBasis, financecommissionrule.FieldRatePercent, financecommissionrule.FieldEffectiveFrom, financecommissionrule.FieldEffectiveTo, financecommissionrule.FieldNote:
 			values[i] = new(sql.NullString)
 		case financecommissionrule.FieldCreatedAt, financecommissionrule.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -140,6 +142,12 @@ func (_m *FinanceCommissionRule) assignValues(columns []string, values []any) er
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
+			}
+		case financecommissionrule.FieldSearchKeywords:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field search_keywords", values[i])
+			} else if value.Valid {
+				_m.SearchKeywords = value.String
 			}
 		case financecommissionrule.FieldOrganizationID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -266,6 +274,9 @@ func (_m *FinanceCommissionRule) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("search_keywords=")
+	builder.WriteString(_m.SearchKeywords)
 	builder.WriteString(", ")
 	builder.WriteString("organization_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))

@@ -65,7 +65,7 @@ func TestFinanceInvoiceTypeMigrationPostgres(t *testing.T) {
 	expectedInvoices := map[uuid.UUID]string{}
 	expectedProfiles := map[uuid.UUID]string{}
 	for _, legacy := range []string{"NORMAL", "SPECIAL"} {
-		f := newFinanceInvoicePostgresFixture(t, d)
+		f := newFinanceInvoiceMigrationFixture(t, d)
 		invoiceID, _, _ := oldRegistrationInvoice(t, d, f, "ISSUED")
 		if _, err := d.sqlDB.ExecContext(ctx, `UPDATE finance_invoices SET invoice_type=$1 WHERE id=$2`, legacy, invoiceID); err != nil {
 			t.Fatal(err)

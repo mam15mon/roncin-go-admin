@@ -1,13 +1,10 @@
-import {
-  ProFormDependency,
-  ProFormSelect,
-  ProFormTextArea,
-} from '@ant-design/pro-components';
+import { ProFormDependency, ProFormTextArea } from '@ant-design/pro-components';
 import { App, Button } from 'antd';
 import dayjs from 'dayjs';
 import { useState } from 'react';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
-import { GuardedModalForm } from '@/components/ui';
+import { GuardedModalForm, ProFormSearchableSelect } from '@/components/ui';
+import { defaultSelectFilterOption } from '@/components/ui/searchable-select/utils';
 import { orderFeeServiceCreateOrderFeeCorrection } from '@/services/roncin/orderFeeService';
 import { isWriteResponse } from '@/utils/api';
 import { normalizeDecimalInput } from '@/utils/decimal';
@@ -143,7 +140,7 @@ export default function FeeCorrectionCreate({
           return true;
         }}
       >
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="operation"
           label="补录方式"
           rules={[{ required: true }]}
@@ -157,11 +154,14 @@ export default function FeeCorrectionCreate({
           {({ operation }) => (
             <>
               {operation !== 1 && (
-                <ProFormSelect
+                <ProFormSearchableSelect
                   name="sourceFeeId"
                   label="原费用"
                   rules={[{ required: true }]}
-                  fieldProps={{ showSearch: true, optionFilterProp: 'label' }}
+                  fieldProps={{
+                    showSearch: true,
+                    filterOption: defaultSelectFilterOption,
+                  }}
                   options={currentFees.map((fee) => ({
                     value: fee.id,
                     disabled: fee.canCorrect !== true,

@@ -36,7 +36,7 @@ func cashflowReportSource(org uuid.UUID, f biz.FinanceReportFilter) (string, []a
 	}
 	if f.Keyword != "" {
 		p := q.arg("%" + strings.ToLower(f.Keyword) + "%")
-		q.conditions = append(q.conditions, "(LOWER(flow_no) LIKE "+p+" OR LOWER(settlement_party_name) LIKE "+p+" OR LOWER(COALESCE(bank_reference_no,'')) LIKE "+p+")")
+		q.conditions = append(q.conditions, "(LOWER(flow_no) LIKE "+p+" OR LOWER(settlement_party_name) LIKE "+p+" OR LOWER(search_keywords) LIKE "+p+" OR LOWER(COALESCE(bank_reference_no,'')) LIKE "+p+")")
 	}
 	return `WITH matched AS (SELECT * FROM finance_cashflows WHERE ` + q.sql() + `)`, q.args
 }

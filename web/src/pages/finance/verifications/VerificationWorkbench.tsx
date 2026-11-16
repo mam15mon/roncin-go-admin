@@ -39,6 +39,7 @@ import {
   ResponsiveTable as Table,
 } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
+import { defaultSelectFilterOption } from '@/components/ui/searchable-select/utils';
 import { FinanceOrganizationPurpose } from '@/enums.generated';
 import { paymentMethodOptions } from '@/features/finance/cashflow-entry';
 import {
@@ -676,7 +677,7 @@ export default function VerificationWorkbench({
           <Col span={4}>
             <Typography.Text>币种</Typography.Text>
             <Select
-              showSearch={{ optionFilterProp: ['label', 'value'] }}
+              showSearch={{ filterOption: defaultSelectFilterOption }}
               aria-label="核销币种"
               value={scope.currency}
               options={currencyOptions}

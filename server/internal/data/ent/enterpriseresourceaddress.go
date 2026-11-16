@@ -23,6 +23,8 @@ type EnterpriseResourceAddress struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// SearchKeywords holds the value of the "search_keywords" field.
+	SearchKeywords string `json:"search_keywords,omitempty"`
 	// ResourceID holds the value of the "resource_id" field.
 	ResourceID uuid.UUID `json:"resource_id,omitempty"`
 	// ContactName holds the value of the "contact_name" field.
@@ -72,7 +74,7 @@ func (*EnterpriseResourceAddress) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case enterpriseresourceaddress.FieldContactName, enterpriseresourceaddress.FieldContactPhone, enterpriseresourceaddress.FieldCountryCode, enterpriseresourceaddress.FieldProvinceCode, enterpriseresourceaddress.FieldCityCode, enterpriseresourceaddress.FieldDistrictCode, enterpriseresourceaddress.FieldAddressDetail, enterpriseresourceaddress.FieldRemark:
+		case enterpriseresourceaddress.FieldSearchKeywords, enterpriseresourceaddress.FieldContactName, enterpriseresourceaddress.FieldContactPhone, enterpriseresourceaddress.FieldCountryCode, enterpriseresourceaddress.FieldProvinceCode, enterpriseresourceaddress.FieldCityCode, enterpriseresourceaddress.FieldDistrictCode, enterpriseresourceaddress.FieldAddressDetail, enterpriseresourceaddress.FieldRemark:
 			values[i] = new(sql.NullString)
 		case enterpriseresourceaddress.FieldCreatedAt, enterpriseresourceaddress.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -110,6 +112,12 @@ func (_m *EnterpriseResourceAddress) assignValues(columns []string, values []any
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
+			}
+		case enterpriseresourceaddress.FieldSearchKeywords:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field search_keywords", values[i])
+			} else if value.Valid {
+				_m.SearchKeywords = value.String
 			}
 		case enterpriseresourceaddress.FieldResourceID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -217,6 +225,9 @@ func (_m *EnterpriseResourceAddress) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("search_keywords=")
+	builder.WriteString(_m.SearchKeywords)
 	builder.WriteString(", ")
 	builder.WriteString("resource_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ResourceID))

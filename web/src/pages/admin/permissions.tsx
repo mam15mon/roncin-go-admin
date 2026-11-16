@@ -4,8 +4,10 @@ import { Button, Space, Tag, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
 import { ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
+import { defaultSelectFilterOption } from '@/components/ui/searchable-select/utils';
 import { adminServiceListPermissions } from '@/services/roncin/adminService';
 import { toTableRequest } from '@/utils/api';
+import { matchesSearch } from '@/utils/search';
 import { getPermissionGroupSegments } from './components/permissionGrouping';
 
 const { Text } = Typography;
@@ -34,6 +36,7 @@ export default function PermissionsPanel() {
       valueType: 'select',
       fieldProps: {
         placeholder: '全部模块',
+        filterOption: defaultSelectFilterOption,
         allowClear: true,
         options: moduleOptions,
       },
@@ -123,13 +126,14 @@ export default function PermissionsPanel() {
           const segments = getPermissionGroupSegments(permission.group);
           return (
             (!params.module || segments[0] === params.module) &&
-            [
+            matchesSearch(
+              keyword,
               permission.name,
               permission.key,
               permission.group,
               segments.join(' → '),
               permission.description,
-            ].some((value) => value?.toLowerCase().includes(keyword))
+            )
           );
         });
         return { ...result, data, total: data.length };

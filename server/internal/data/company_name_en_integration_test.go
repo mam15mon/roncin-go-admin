@@ -29,6 +29,9 @@ func TestCompanyNameEnMigrationPostgres(t *testing.T) {
 	if err = migration.Apply(ctx, data.sqlDB, filepath.Join("..", "..", "migrations")); err != nil {
 		t.Fatal(err)
 	}
+	if err := BackfillSelectorSearchKeywords(ctx, data.sqlDB); err != nil {
+		t.Fatal(err)
+	}
 	beforeRepeat := map[uuid.UUID]time.Time{}
 	for _, id := range []uuid.UUID{bj, cd, department} {
 		item, err := data.db.Organization.Get(ctx, id)
@@ -52,6 +55,9 @@ func TestCompanyNameEnMigrationPostgres(t *testing.T) {
 		beforeRepeat[id] = item.UpdatedAt
 	}
 	if err = migration.Apply(ctx, data.sqlDB, filepath.Join("..", "..", "migrations")); err != nil {
+		t.Fatal(err)
+	}
+	if err := BackfillSelectorSearchKeywords(ctx, data.sqlDB); err != nil {
 		t.Fatal(err)
 	}
 	for id, stamp := range beforeRepeat {

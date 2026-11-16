@@ -4,7 +4,9 @@ import (
 	"context"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 	"github.com/roncin/roncin-go-admin/server/internal/platform/searchtext"
 )
 
@@ -12,7 +14,15 @@ func searchKeywordsField() ent.Field {
 	return field.Text("search_keywords").Default("")
 }
 
+func searchKeywordsIndex(name string) ent.Index {
+	return index.Fields("search_keywords").StorageKey(name).Annotations(entsql.IndexType("GIN"), entsql.OpClass("gin_trgm_ops"))
+}
+
 func searchKeywordsHook(sourceFields ...string) ent.Hook {
+	return searchKeywordsFieldHook("search_keywords", sourceFields...)
+}
+
+func searchKeywordsFieldHook(targetField string, sourceFields ...string) ent.Hook {
 	return func(next ent.Mutator) ent.Mutator {
 		return ent.MutateFunc(func(ctx context.Context, mutation ent.Mutation) (ent.Value, error) {
 			sourceChanged := false
@@ -53,7 +63,7 @@ func searchKeywordsHook(sourceFields ...string) ent.Hook {
 					}
 				}
 			}
-			if err := mutation.SetField("search_keywords", searchtext.Build(values...)); err != nil {
+			if err := mutation.SetField(targetField, searchtext.Build(values...)); err != nil {
 				return nil, err
 			}
 			return next.Mutate(ctx, mutation)

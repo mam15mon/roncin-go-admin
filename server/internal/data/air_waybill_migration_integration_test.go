@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/platform/migration"
 )
@@ -31,7 +32,7 @@ func newAirContentMigrationFixture(t *testing.T) *airContentMigrationFixture {
 	t.Cleanup(cleanup)
 	f := newAirExportFixture(t, d)
 	ctx := context.Background()
-	o := d.db.Order.Create().SetOrganizationID(f.organizationID).SetOrderNo("AIR-MIGRATION").SetIdempotencyKey(uuid.NewString()).SetCustomerID(f.partnerID).SetBusinessType(orderent.BusinessTypeAE).SetTradeDirection(orderent.TradeDirectionExport).SetPaymentTerm(orderent.PaymentTermPREPAID).SaveX(ctx)
+	o := mustMigrationFixture(insertMigrationFixture[ent.Order](ctx, d, "orders", d.db.Order.Create().SetOrganizationID(f.organizationID).SetOrderNo("AIR-MIGRATION").SetIdempotencyKey(uuid.NewString()).SetCustomerID(f.partnerID).SetBusinessType(orderent.BusinessTypeAE).SetTradeDirection(orderent.TradeDirectionExport).SetPaymentTerm(orderent.PaymentTermPREPAID).Mutation()))
 	x := &airContentMigrationFixture{d: d, f: f, orderID: o.ID, masterID: uuid.New(), houseID: uuid.New(), linkID: uuid.New(), versionID: uuid.New(), historyID: uuid.New(), oldContent: "  旧正文\n\"引号\"\\反斜杠<>&\u2028\u2029" + strings.Repeat("长", 3500)}
 	exec := func(q string, args ...any) {
 		t.Helper()

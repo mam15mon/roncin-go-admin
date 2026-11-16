@@ -66,6 +66,21 @@ func UpdatedAt(v time.Time) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
+// SearchKeywords applies equality check predicate on the "search_keywords" field. It's identical to SearchKeywordsEQ.
+func SearchKeywords(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldSearchKeywords, v))
+}
+
+// ShipperSearchKeywords applies equality check predicate on the "shipper_search_keywords" field. It's identical to ShipperSearchKeywordsEQ.
+func ShipperSearchKeywords(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldShipperSearchKeywords, v))
+}
+
+// ConsigneeSearchKeywords applies equality check predicate on the "consignee_search_keywords" field. It's identical to ConsigneeSearchKeywordsEQ.
+func ConsigneeSearchKeywords(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldConsigneeSearchKeywords, v))
+}
+
 // OrganizationID applies equality check predicate on the "organization_id" field. It's identical to OrganizationIDEQ.
 func OrganizationID(v uuid.UUID) predicate.Order {
 	return predicate.Order(sql.FieldEQ(FieldOrganizationID, v))
@@ -459,6 +474,201 @@ func UpdatedAtLT(v time.Time) predicate.Order {
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.Order {
 	return predicate.Order(sql.FieldLTE(FieldUpdatedAt, v))
+}
+
+// SearchKeywordsEQ applies the EQ predicate on the "search_keywords" field.
+func SearchKeywordsEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsNEQ applies the NEQ predicate on the "search_keywords" field.
+func SearchKeywordsNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsIn applies the In predicate on the "search_keywords" field.
+func SearchKeywordsIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldSearchKeywords, vs...))
+}
+
+// SearchKeywordsNotIn applies the NotIn predicate on the "search_keywords" field.
+func SearchKeywordsNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldSearchKeywords, vs...))
+}
+
+// SearchKeywordsGT applies the GT predicate on the "search_keywords" field.
+func SearchKeywordsGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsGTE applies the GTE predicate on the "search_keywords" field.
+func SearchKeywordsGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsLT applies the LT predicate on the "search_keywords" field.
+func SearchKeywordsLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsLTE applies the LTE predicate on the "search_keywords" field.
+func SearchKeywordsLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsContains applies the Contains predicate on the "search_keywords" field.
+func SearchKeywordsContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsHasPrefix applies the HasPrefix predicate on the "search_keywords" field.
+func SearchKeywordsHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsHasSuffix applies the HasSuffix predicate on the "search_keywords" field.
+func SearchKeywordsHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsEqualFold applies the EqualFold predicate on the "search_keywords" field.
+func SearchKeywordsEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsContainsFold applies the ContainsFold predicate on the "search_keywords" field.
+func SearchKeywordsContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldSearchKeywords, v))
+}
+
+// ShipperSearchKeywordsEQ applies the EQ predicate on the "shipper_search_keywords" field.
+func ShipperSearchKeywordsEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldShipperSearchKeywords, v))
+}
+
+// ShipperSearchKeywordsNEQ applies the NEQ predicate on the "shipper_search_keywords" field.
+func ShipperSearchKeywordsNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldShipperSearchKeywords, v))
+}
+
+// ShipperSearchKeywordsIn applies the In predicate on the "shipper_search_keywords" field.
+func ShipperSearchKeywordsIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldShipperSearchKeywords, vs...))
+}
+
+// ShipperSearchKeywordsNotIn applies the NotIn predicate on the "shipper_search_keywords" field.
+func ShipperSearchKeywordsNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldShipperSearchKeywords, vs...))
+}
+
+// ShipperSearchKeywordsGT applies the GT predicate on the "shipper_search_keywords" field.
+func ShipperSearchKeywordsGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldShipperSearchKeywords, v))
+}
+
+// ShipperSearchKeywordsGTE applies the GTE predicate on the "shipper_search_keywords" field.
+func ShipperSearchKeywordsGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldShipperSearchKeywords, v))
+}
+
+// ShipperSearchKeywordsLT applies the LT predicate on the "shipper_search_keywords" field.
+func ShipperSearchKeywordsLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldShipperSearchKeywords, v))
+}
+
+// ShipperSearchKeywordsLTE applies the LTE predicate on the "shipper_search_keywords" field.
+func ShipperSearchKeywordsLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldShipperSearchKeywords, v))
+}
+
+// ShipperSearchKeywordsContains applies the Contains predicate on the "shipper_search_keywords" field.
+func ShipperSearchKeywordsContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldShipperSearchKeywords, v))
+}
+
+// ShipperSearchKeywordsHasPrefix applies the HasPrefix predicate on the "shipper_search_keywords" field.
+func ShipperSearchKeywordsHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldShipperSearchKeywords, v))
+}
+
+// ShipperSearchKeywordsHasSuffix applies the HasSuffix predicate on the "shipper_search_keywords" field.
+func ShipperSearchKeywordsHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldShipperSearchKeywords, v))
+}
+
+// ShipperSearchKeywordsEqualFold applies the EqualFold predicate on the "shipper_search_keywords" field.
+func ShipperSearchKeywordsEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldShipperSearchKeywords, v))
+}
+
+// ShipperSearchKeywordsContainsFold applies the ContainsFold predicate on the "shipper_search_keywords" field.
+func ShipperSearchKeywordsContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldShipperSearchKeywords, v))
+}
+
+// ConsigneeSearchKeywordsEQ applies the EQ predicate on the "consignee_search_keywords" field.
+func ConsigneeSearchKeywordsEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldEQ(FieldConsigneeSearchKeywords, v))
+}
+
+// ConsigneeSearchKeywordsNEQ applies the NEQ predicate on the "consignee_search_keywords" field.
+func ConsigneeSearchKeywordsNEQ(v string) predicate.Order {
+	return predicate.Order(sql.FieldNEQ(FieldConsigneeSearchKeywords, v))
+}
+
+// ConsigneeSearchKeywordsIn applies the In predicate on the "consignee_search_keywords" field.
+func ConsigneeSearchKeywordsIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldIn(FieldConsigneeSearchKeywords, vs...))
+}
+
+// ConsigneeSearchKeywordsNotIn applies the NotIn predicate on the "consignee_search_keywords" field.
+func ConsigneeSearchKeywordsNotIn(vs ...string) predicate.Order {
+	return predicate.Order(sql.FieldNotIn(FieldConsigneeSearchKeywords, vs...))
+}
+
+// ConsigneeSearchKeywordsGT applies the GT predicate on the "consignee_search_keywords" field.
+func ConsigneeSearchKeywordsGT(v string) predicate.Order {
+	return predicate.Order(sql.FieldGT(FieldConsigneeSearchKeywords, v))
+}
+
+// ConsigneeSearchKeywordsGTE applies the GTE predicate on the "consignee_search_keywords" field.
+func ConsigneeSearchKeywordsGTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldGTE(FieldConsigneeSearchKeywords, v))
+}
+
+// ConsigneeSearchKeywordsLT applies the LT predicate on the "consignee_search_keywords" field.
+func ConsigneeSearchKeywordsLT(v string) predicate.Order {
+	return predicate.Order(sql.FieldLT(FieldConsigneeSearchKeywords, v))
+}
+
+// ConsigneeSearchKeywordsLTE applies the LTE predicate on the "consignee_search_keywords" field.
+func ConsigneeSearchKeywordsLTE(v string) predicate.Order {
+	return predicate.Order(sql.FieldLTE(FieldConsigneeSearchKeywords, v))
+}
+
+// ConsigneeSearchKeywordsContains applies the Contains predicate on the "consignee_search_keywords" field.
+func ConsigneeSearchKeywordsContains(v string) predicate.Order {
+	return predicate.Order(sql.FieldContains(FieldConsigneeSearchKeywords, v))
+}
+
+// ConsigneeSearchKeywordsHasPrefix applies the HasPrefix predicate on the "consignee_search_keywords" field.
+func ConsigneeSearchKeywordsHasPrefix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasPrefix(FieldConsigneeSearchKeywords, v))
+}
+
+// ConsigneeSearchKeywordsHasSuffix applies the HasSuffix predicate on the "consignee_search_keywords" field.
+func ConsigneeSearchKeywordsHasSuffix(v string) predicate.Order {
+	return predicate.Order(sql.FieldHasSuffix(FieldConsigneeSearchKeywords, v))
+}
+
+// ConsigneeSearchKeywordsEqualFold applies the EqualFold predicate on the "consignee_search_keywords" field.
+func ConsigneeSearchKeywordsEqualFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldEqualFold(FieldConsigneeSearchKeywords, v))
+}
+
+// ConsigneeSearchKeywordsContainsFold applies the ContainsFold predicate on the "consignee_search_keywords" field.
+func ConsigneeSearchKeywordsContainsFold(v string) predicate.Order {
+	return predicate.Order(sql.FieldContainsFold(FieldConsigneeSearchKeywords, v))
 }
 
 // OrganizationIDEQ applies the EQ predicate on the "organization_id" field.

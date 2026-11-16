@@ -68,6 +68,48 @@ func (_u *OrderUpdate) SetUpdatedAt(v time.Time) *OrderUpdate {
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *OrderUpdate) SetSearchKeywords(v string) *OrderUpdate {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableSearchKeywords(v *string) *OrderUpdate {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
+// SetShipperSearchKeywords sets the "shipper_search_keywords" field.
+func (_u *OrderUpdate) SetShipperSearchKeywords(v string) *OrderUpdate {
+	_u.mutation.SetShipperSearchKeywords(v)
+	return _u
+}
+
+// SetNillableShipperSearchKeywords sets the "shipper_search_keywords" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableShipperSearchKeywords(v *string) *OrderUpdate {
+	if v != nil {
+		_u.SetShipperSearchKeywords(*v)
+	}
+	return _u
+}
+
+// SetConsigneeSearchKeywords sets the "consignee_search_keywords" field.
+func (_u *OrderUpdate) SetConsigneeSearchKeywords(v string) *OrderUpdate {
+	_u.mutation.SetConsigneeSearchKeywords(v)
+	return _u
+}
+
+// SetNillableConsigneeSearchKeywords sets the "consignee_search_keywords" field if the given value is not nil.
+func (_u *OrderUpdate) SetNillableConsigneeSearchKeywords(v *string) *OrderUpdate {
+	if v != nil {
+		_u.SetConsigneeSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetOrganizationID sets the "organization_id" field.
 func (_u *OrderUpdate) SetOrganizationID(v uuid.UUID) *OrderUpdate {
 	_u.mutation.SetOrganizationID(v)
@@ -2664,7 +2706,9 @@ func (_u *OrderUpdate) RemoveSeaDocumentVoidEvents(v ...*SeaDocumentVoidEvent) *
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *OrderUpdate) Save(ctx context.Context) (int, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -2691,11 +2735,15 @@ func (_u *OrderUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *OrderUpdate) defaults() {
+func (_u *OrderUpdate) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if order.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized order.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := order.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -2978,6 +3026,15 @@ func (_u *OrderUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(order.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(order.FieldSearchKeywords, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ShipperSearchKeywords(); ok {
+		_spec.SetField(order.FieldShipperSearchKeywords, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ConsigneeSearchKeywords(); ok {
+		_spec.SetField(order.FieldConsigneeSearchKeywords, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.IdempotencyKey(); ok {
 		_spec.SetField(order.FieldIdempotencyKey, field.TypeString, value)
@@ -4837,6 +4894,48 @@ type OrderUpdateOne struct {
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *OrderUpdateOne) SetUpdatedAt(v time.Time) *OrderUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *OrderUpdateOne) SetSearchKeywords(v string) *OrderUpdateOne {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableSearchKeywords(v *string) *OrderUpdateOne {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
+// SetShipperSearchKeywords sets the "shipper_search_keywords" field.
+func (_u *OrderUpdateOne) SetShipperSearchKeywords(v string) *OrderUpdateOne {
+	_u.mutation.SetShipperSearchKeywords(v)
+	return _u
+}
+
+// SetNillableShipperSearchKeywords sets the "shipper_search_keywords" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableShipperSearchKeywords(v *string) *OrderUpdateOne {
+	if v != nil {
+		_u.SetShipperSearchKeywords(*v)
+	}
+	return _u
+}
+
+// SetConsigneeSearchKeywords sets the "consignee_search_keywords" field.
+func (_u *OrderUpdateOne) SetConsigneeSearchKeywords(v string) *OrderUpdateOne {
+	_u.mutation.SetConsigneeSearchKeywords(v)
+	return _u
+}
+
+// SetNillableConsigneeSearchKeywords sets the "consignee_search_keywords" field if the given value is not nil.
+func (_u *OrderUpdateOne) SetNillableConsigneeSearchKeywords(v *string) *OrderUpdateOne {
+	if v != nil {
+		_u.SetConsigneeSearchKeywords(*v)
+	}
 	return _u
 }
 
@@ -7449,7 +7548,9 @@ func (_u *OrderUpdateOne) Select(field string, fields ...string) *OrderUpdateOne
 
 // Save executes the query and returns the updated Order entity.
 func (_u *OrderUpdateOne) Save(ctx context.Context) (*Order, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -7476,11 +7577,15 @@ func (_u *OrderUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *OrderUpdateOne) defaults() {
+func (_u *OrderUpdateOne) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if order.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized order.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := order.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -7780,6 +7885,15 @@ func (_u *OrderUpdateOne) sqlSave(ctx context.Context) (_node *Order, err error)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(order.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(order.FieldSearchKeywords, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ShipperSearchKeywords(); ok {
+		_spec.SetField(order.FieldShipperSearchKeywords, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ConsigneeSearchKeywords(); ok {
+		_spec.SetField(order.FieldConsigneeSearchKeywords, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.IdempotencyKey(); ok {
 		_spec.SetField(order.FieldIdempotencyKey, field.TypeString, value)

@@ -1,6 +1,5 @@
 import { UploadOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { ProFormSelect } from '@ant-design/pro-components';
 import type { UploadFile } from 'antd';
 import {
   Alert,
@@ -25,6 +24,7 @@ import { useInitialState } from '@/app/AppProvider';
 import {
   AsyncPopconfirm,
   GuardedModalForm,
+  ProFormSearchableSelect,
   ResponsiveProTable,
   useColumnSettings,
 } from '@/components/ui';
@@ -407,7 +407,7 @@ function AttachmentDrawerContent({
         }}
         onFinish={submitUpload}
       >
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="docType"
           label="文档类型"
           allowClear={false}

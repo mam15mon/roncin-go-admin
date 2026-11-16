@@ -15,6 +15,7 @@ func (EnterpriseResourceRemark) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin
 
 func (EnterpriseResourceRemark) Fields() []ent.Field {
 	return []ent.Field{
+		searchKeywordsField(),
 		field.UUID("resource_id", uuid.Nil).Immutable(),
 		field.Enum("remark_type").Values("BOOKING", "ALLOCATION", "TRANSPORT", "ORDER", "BILL_OF_LADING", "CUSTOMER", "SUPPLIER", "FOREIGN_AGENT", "QUOTATION", "MANIFEST", "PACKING_LIST", "OPERATION", "COMMISSION", "WAREHOUSE"),
 		field.String("content").NotEmpty().MaxLen(4000),
@@ -26,5 +27,8 @@ func (EnterpriseResourceRemark) Edges() []ent.Edge {
 }
 
 func (EnterpriseResourceRemark) Indexes() []ent.Index {
-	return []ent.Index{index.Fields("resource_id").Unique(), index.Fields("remark_type")}
+	return []ent.Index{
+		searchKeywordsIndex("enterprise_resource_remarks_search_keywords_trgm"), index.Fields("resource_id").Unique(), index.Fields("remark_type")}
 }
+
+func (EnterpriseResourceRemark) Hooks() []ent.Hook { return []ent.Hook{searchKeywordsHook("content")} }

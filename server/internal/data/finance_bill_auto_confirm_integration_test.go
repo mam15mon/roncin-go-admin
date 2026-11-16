@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
 	auditlogent "github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
@@ -182,9 +183,12 @@ func TestFinanceBillAutoConfirmMigrationRejectsUnknownCreatorPostgres(t *testing
 	if err == nil || !strings.Contains(err.Error(), "无法确定创建人") {
 		t.Fatalf("无法回填创建人时迁移必须失败，实际 %v", err)
 	}
-	stored, getErr := data.db.FinanceBill.Get(ctx, orphan.ID)
-	if getErr != nil || stored.Status != financebillent.StatusDRAFT || stored.ConfirmedBy != nil || stored.Version != orphan.Version {
-		t.Fatalf("迁移失败后草稿账单必须保持原样: %#v %v", stored, getErr)
+	var status string
+	var confirmedBy *uuid.UUID
+	var version uint64
+	getErr := data.sqlDB.QueryRowContext(ctx, `SELECT status,confirmed_by,version FROM finance_bills WHERE id=$1`, orphan.ID).Scan(&status, &confirmedBy, &version)
+	if getErr != nil || status != string(financebillent.StatusDRAFT) || confirmedBy != nil || version != orphan.Version {
+		t.Fatalf("迁移失败后草稿账单必须保持原样: status=%s confirmedBy=%v version=%d err=%v", status, confirmedBy, version, getErr)
 	}
 }
 
@@ -219,15 +223,12 @@ func createAutoConfirmMigrationBill(t *testing.T, data *Data, org, partner uuid.
 		SetExchangeRate("1").SetExchangeRateSource(financebillent.ExchangeRateSourceSYSTEM).SetExchangeRateDate(financeBillIntegrationDate).
 		SetTotalAmount("100").SetNetAmount("100").SetTaxAmount("0").SetBaseCurrencyAmount("100").SetFeeCount(1).SetBillDate(financeBillIntegrationDate).
 		SetNillableBatchID(batchID).SetVersion(1).SetCreatedAt(time.Now().Add(-24 * time.Hour).Truncate(time.Microsecond))
-	bill, err := create.Save(ctx)
+	bill, err := insertMigrationFixture[ent.FinanceBill](ctx, data, "finance_bills", create.Mutation())
 	if err != nil {
 		t.Fatalf("创建迁移前态账单 %s: %v", key, err)
 	}
 	// 重读数据库值作为快照，避免内存时间精度与数据库微秒精度不一致。
-	stored, err := data.db.FinanceBill.Get(ctx, bill.ID)
-	if err != nil {
-		t.Fatal(err)
-	}
+	stored := bill
 	return &entFinanceBillSnapshot{ID: stored.ID, Version: stored.Version, UpdatedAt: stored.UpdatedAt}
 }
 

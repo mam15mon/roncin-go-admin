@@ -5,7 +5,6 @@ import {
 } from '@ant-design/icons';
 import {
   ProFormRadio,
-  ProFormSelect,
   ProFormSwitch,
   ProFormText,
 } from '@ant-design/pro-components';
@@ -23,13 +22,15 @@ import {
   Typography,
 } from 'antd';
 import React from 'react';
-import { SectionCard } from '@/components/ui';
+import { ProFormSearchableSelect, SectionCard } from '@/components/ui';
+import { defaultSelectFilterOption } from '@/components/ui/searchable-select/utils';
 import {
   PartnerBusinessType,
   PartnerCustomerType,
   PartnerRoleType,
 } from '@/enums.generated';
 import { pcaCascaderOptions } from '@/utils/chinaDivision';
+import { matchesSearch } from '@/utils/search';
 
 const { Text } = Typography;
 
@@ -253,7 +254,13 @@ export default function BasicInfoSection({
                         placeholder="省 / 市 / 区"
                         style={{ width: 280 }}
                         allowClear
-                        showSearch
+                        showSearch={{
+                          filter: (input, path) =>
+                            matchesSearch(
+                              input,
+                              ...path.map((option) => option.label),
+                            ),
+                        }}
                       />
                     </Form.Item>
                     <Form.Item name="addressDetail" noStyle>
@@ -363,7 +370,7 @@ export default function BasicInfoSection({
           )}
 
           <Col xs={24} sm={12} md={isCustomer ? 6 : 12}>
-            <ProFormSelect
+            <ProFormSearchableSelect
               name="developmentMethod"
               label="开发方式"
               labelCol={labelCol(LABEL_COL_WIDTH.attribute)}
@@ -374,7 +381,7 @@ export default function BasicInfoSection({
           </Col>
 
           <Col xs={24} sm={12} md={isCustomer ? 6 : 12}>
-            <ProFormSelect
+            <ProFormSearchableSelect
               name="businessTypes"
               label="业务类型"
               labelCol={labelCol(LABEL_COL_WIDTH.attribute)}
@@ -419,7 +426,7 @@ export default function BasicInfoSection({
               style={{ marginBottom: 0 }}
             >
               <Select
-                showSearch
+                showSearch={{ filterOption: defaultSelectFilterOption }}
                 placeholder="选择人员"
                 prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
                 options={userSelectOptions}
@@ -438,7 +445,7 @@ export default function BasicInfoSection({
               style={{ marginBottom: 0 }}
             >
               <Select
-                showSearch
+                showSearch={{ filterOption: defaultSelectFilterOption }}
                 placeholder="选择人员"
                 prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
                 options={userSelectOptions}
@@ -457,7 +464,7 @@ export default function BasicInfoSection({
               style={{ marginBottom: 0 }}
             >
               <Select
-                showSearch
+                showSearch={{ filterOption: defaultSelectFilterOption }}
                 placeholder="选择人员"
                 prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
                 options={userSelectOptions}
@@ -476,7 +483,7 @@ export default function BasicInfoSection({
             >
               <Form.Item name="assignContactUser" noStyle>
                 <Select
-                  showSearch
+                  showSearch={{ filterOption: defaultSelectFilterOption }}
                   placeholder="选择人员"
                   prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
                   options={userSelectOptions}
@@ -496,7 +503,7 @@ export default function BasicInfoSection({
             >
               <Form.Item name="assignFinanceUser" noStyle>
                 <Select
-                  showSearch
+                  showSearch={{ filterOption: defaultSelectFilterOption }}
                   placeholder="选择人员"
                   prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
                   options={userSelectOptions}
@@ -516,7 +523,7 @@ export default function BasicInfoSection({
             >
               <Form.Item name="assignDocUser" noStyle>
                 <Select
-                  showSearch
+                  showSearch={{ filterOption: defaultSelectFilterOption }}
                   placeholder="选择人员"
                   prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
                   options={userSelectOptions}
@@ -536,7 +543,7 @@ export default function BasicInfoSection({
             >
               <Form.Item name="assignCommercialUser" noStyle>
                 <Select
-                  showSearch
+                  showSearch={{ filterOption: defaultSelectFilterOption }}
                   placeholder="选择人员"
                   prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
                   options={userSelectOptions}
@@ -556,7 +563,7 @@ export default function BasicInfoSection({
             >
               <Form.Item name="assignContact2User" noStyle>
                 <Select
-                  showSearch
+                  showSearch={{ filterOption: defaultSelectFilterOption }}
                   placeholder="选择人员"
                   prefix={<UserOutlined style={{ color: '#8c8c8c' }} />}
                   options={userSelectOptions}

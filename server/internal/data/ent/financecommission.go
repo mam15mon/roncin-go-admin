@@ -27,6 +27,8 @@ type FinanceCommission struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// SearchKeywords holds the value of the "search_keywords" field.
+	SearchKeywords string `json:"search_keywords,omitempty"`
 	// OrganizationID holds the value of the "organization_id" field.
 	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// CommissionNo holds the value of the "commission_no" field.
@@ -280,7 +282,7 @@ func (*FinanceCommission) scanValues(columns []string) ([]any, error) {
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case financecommission.FieldCustomerCount, financecommission.FieldOrderCount, financecommission.FieldFeeCount, financecommission.FieldRuleVersion, financecommission.FieldAdjustmentSequence, financecommission.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case financecommission.FieldCommissionNo, financecommission.FieldIdempotencyKey, financecommission.FieldVerificationNo, financecommission.FieldNettingNo, financecommission.FieldEmployeeName, financecommission.FieldRuleName, financecommission.FieldPersonnelRole, financecommission.FieldCalculationBasis, financecommission.FieldCalculationVersion, financecommission.FieldSourceFingerprint, financecommission.FieldStatus, financecommission.FieldBaseCurrency, financecommission.FieldRealizedRevenue, financecommission.FieldAllocatedCost, financecommission.FieldRealizedProfit, financecommission.FieldCommissionBaseAmount, financecommission.FieldRatePercent, financecommission.FieldCommissionAmount, financecommission.FieldCommissionDate, financecommission.FieldCnyExchangeRate, financecommission.FieldCnyExchangeRateSource, financecommission.FieldCnyExchangeRateDate, financecommission.FieldCnyCommissionAmount, financecommission.FieldNote, financecommission.FieldPaidAmount, financecommission.FieldPaymentKey, financecommission.FieldPaymentFingerprint, financecommission.FieldPaymentSnapshot, financecommission.FieldCancellationReason:
+		case financecommission.FieldSearchKeywords, financecommission.FieldCommissionNo, financecommission.FieldIdempotencyKey, financecommission.FieldVerificationNo, financecommission.FieldNettingNo, financecommission.FieldEmployeeName, financecommission.FieldRuleName, financecommission.FieldPersonnelRole, financecommission.FieldCalculationBasis, financecommission.FieldCalculationVersion, financecommission.FieldSourceFingerprint, financecommission.FieldStatus, financecommission.FieldBaseCurrency, financecommission.FieldRealizedRevenue, financecommission.FieldAllocatedCost, financecommission.FieldRealizedProfit, financecommission.FieldCommissionBaseAmount, financecommission.FieldRatePercent, financecommission.FieldCommissionAmount, financecommission.FieldCommissionDate, financecommission.FieldCnyExchangeRate, financecommission.FieldCnyExchangeRateSource, financecommission.FieldCnyExchangeRateDate, financecommission.FieldCnyCommissionAmount, financecommission.FieldNote, financecommission.FieldPaidAmount, financecommission.FieldPaymentKey, financecommission.FieldPaymentFingerprint, financecommission.FieldPaymentSnapshot, financecommission.FieldCancellationReason:
 			values[i] = new(sql.NullString)
 		case financecommission.FieldCreatedAt, financecommission.FieldUpdatedAt, financecommission.FieldConfirmedAt, financecommission.FieldPaidAt, financecommission.FieldCancelledAt:
 			values[i] = new(sql.NullTime)
@@ -318,6 +320,12 @@ func (_m *FinanceCommission) assignValues(columns []string, values []any) error 
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
+			}
+		case financecommission.FieldSearchKeywords:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field search_keywords", values[i])
+			} else if value.Valid {
+				_m.SearchKeywords = value.String
 			}
 		case financecommission.FieldOrganizationID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -718,6 +726,9 @@ func (_m *FinanceCommission) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("search_keywords=")
+	builder.WriteString(_m.SearchKeywords)
 	builder.WriteString(", ")
 	builder.WriteString("organization_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))

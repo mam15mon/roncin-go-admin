@@ -38,7 +38,7 @@ func profitReportSource(org uuid.UUID, f biz.FinanceReportFilter) (string, []any
 	}
 	if f.Keyword != "" {
 		p := q.arg("%" + strings.ToLower(f.Keyword) + "%")
-		q.conditions = append(q.conditions, "(LOWER(o.order_no) LIKE "+p+" OR LOWER(c.legal_name) LIKE "+p+")")
+		q.conditions = append(q.conditions, "(LOWER(o.order_no) LIKE "+p+" OR LOWER(c.legal_name) LIKE "+p+" OR LOWER(c.search_keywords) LIKE "+p+")")
 	}
 	for _, item := range []struct {
 		role string

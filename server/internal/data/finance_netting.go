@@ -36,7 +36,7 @@ func (r *financeNettingRepo) List(ctx context.Context, organizationIDs []uuid.UU
 	if filter.Keyword != "" {
 		predicates = append(predicates, financenettingent.Or(
 			financenettingent.NettingNoContainsFold(filter.Keyword),
-			financenettingent.SettlementPartyNameContainsFold(filter.Keyword),
+			financenettingent.SettlementPartyNameContainsFold(filter.Keyword), financenettingent.SearchKeywordsContainsFold(filter.Keyword), financenettingent.HasSettlementPartyWith(financePartyKeywordPredicate(filter.Keyword)),
 		))
 	}
 	if filter.Status != "" {

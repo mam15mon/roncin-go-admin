@@ -1,3 +1,4 @@
+import { matchesSearch } from '@/utils/search';
 export type OrgTreeNode = {
   key: string;
   title: string;
@@ -124,10 +125,12 @@ export function filterOrgTree(
   const matchedKeys: string[] = [];
 
   const filterNode = (node: OrgTreeNode): OrgTreeNode | null => {
-    const titleMatch = node.title.toLowerCase().includes(kw);
-    const codeMatch = node.code.toLowerCase().includes(kw);
-    const nameEnMatch = node.raw.nameEn?.toLowerCase().includes(kw) ?? false;
-    const isSelfMatch = titleMatch || codeMatch || nameEnMatch;
+    const isSelfMatch = matchesSearch(
+      kw,
+      node.title,
+      node.code,
+      node.raw.nameEn,
+    );
 
     const filteredChildren = node.children
       ?.map(filterNode)

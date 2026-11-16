@@ -31,6 +31,9 @@ func (Order) Annotations() []schema.Annotation {
 
 func (Order) Fields() []ent.Field {
 	return []ent.Field{
+		searchKeywordsField(),
+		field.Text("shipper_search_keywords").Default(""),
+		field.Text("consignee_search_keywords").Default(""),
 		field.UUID("organization_id", uuid.Nil),
 		field.String("order_no").NotEmpty().MaxLen(64).Immutable(),
 		// idempotency_key 为可变最新键：创建时写入请求幂等键（缺省由服务端生成），
@@ -157,6 +160,9 @@ func (Order) Edges() []ent.Edge {
 
 func (Order) Indexes() []ent.Index {
 	return []ent.Index{
+		searchKeywordsIndex("orders_search_keywords_trgm"),
+		index.Fields("shipper_search_keywords").StorageKey("orders_shipper_search_keywords_trgm").Annotations(entsql.IndexType("GIN"), entsql.OpClass("gin_trgm_ops")),
+		index.Fields("consignee_search_keywords").StorageKey("orders_consignee_search_keywords_trgm").Annotations(entsql.IndexType("GIN"), entsql.OpClass("gin_trgm_ops")),
 		index.Fields("organization_id", "order_no").Unique(),
 		index.Fields("organization_id", "idempotency_key").Unique(),
 		index.Fields("organization_id", "flow_status"),
@@ -170,5 +176,13 @@ func (Order) Indexes() []ent.Index {
 		index.Fields("organization_id", "locked_at"),
 		index.Fields("organization_id", "is_shared"),
 		index.Fields("organization_id", "booking_no"),
+	}
+}
+
+func (Order) Hooks() []ent.Hook {
+	return []ent.Hook{
+		searchKeywordsHook("vessel_voyage", "goods_description"),
+		searchKeywordsFieldHook("shipper_search_keywords", "shipper_short_name"),
+		searchKeywordsFieldHook("consignee_search_keywords", "consignee_short_name"),
 	}
 }

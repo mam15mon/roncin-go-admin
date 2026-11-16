@@ -165,7 +165,7 @@ func (r *commissionRepo) ListNettingCandidates(ctx context.Context, org uuid.UUI
 	if f.Keyword != "" {
 		predicates = append(predicates, nettingent.Or(
 			nettingent.NettingNoContainsFold(f.Keyword),
-			nettingent.SettlementPartyNameContainsFold(f.Keyword),
+			nettingent.SettlementPartyNameContainsFold(f.Keyword), nettingent.SearchKeywordsContainsFold(f.Keyword), nettingent.HasSettlementPartyWith(financePartyKeywordPredicate(f.Keyword)),
 		))
 	}
 	query := client.FinanceNetting.Query().Where(predicates...)

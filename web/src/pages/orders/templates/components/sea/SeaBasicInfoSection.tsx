@@ -3,7 +3,6 @@ import {
   ProFormDatePicker,
   ProFormDateTimePicker,
   ProFormRadio,
-  ProFormSelect,
   ProFormText,
 } from '@ant-design/pro-components';
 import { useQuery } from '@tanstack/react-query';
@@ -255,7 +254,7 @@ export function SeaDangerousGoodsFields({
             </div>
             {showPackingGroup && (
               <div>
-                <ProFormSelect
+                <ProFormSearchableSelect
                   name="dangerousPackingGroup"
                   label="包装类别"
                   tooltip="IATA DGR 包装类别：Ⅰ类危险性最大、Ⅲ类最小；Class 1/2/7 无包装类别，可留空"
@@ -340,6 +339,7 @@ function SeaCarrierField({
       }
       rules={[{ required: true, message: '请选择船公司' }]}
       fieldProps={{
+        filterOption: false,
         labelRender: ({ label }) => (
           <Tooltip title={label}>
             <span>{label}</span>
@@ -735,7 +735,7 @@ export function getSeaBaseInfoFields(props: TemplateProps) {
       />
     ),
     payment: (
-      <ProFormSelect
+      <ProFormSearchableSelect
         name="paymentTerm"
         label="业务付款方式"
         options={paymentTermOptions}

@@ -10,12 +10,13 @@ import (
 )
 
 type searchKeywordBackfillSpec struct {
-	table   string
-	columns []string
+	table        string
+	columns      []string
+	targetColumn string
 }
 
 var selectorSearchKeywordBackfills = []searchKeywordBackfillSpec{
-	{table: "organizations", columns: []string{"name"}},
+	{table: "organizations", columns: []string{"code", "name", "name_en"}},
 	{table: "currencies", columns: []string{"name"}},
 	{table: "partners", columns: []string{"legal_name"}},
 	{table: "partner_alias", columns: []string{"alias_name"}},
@@ -27,9 +28,25 @@ var selectorSearchKeywordBackfills = []searchKeywordBackfillSpec{
 	{table: "administrative_regions", columns: []string{"name"}},
 	{table: "users", columns: []string{"display_name", "dingtalk_name"}},
 	{table: "fee_settings", columns: []string{"name_zh", "name_en", "alias_name"}},
+	{table: "fee_setting_templates", columns: []string{"name_zh", "name_en", "alias_name"}},
 	{table: "order_fees", columns: []string{"fee_name", "fee_name_en"}},
 	{table: "billing_units", columns: []string{"name"}},
 	{table: "taxable_services", columns: []string{"name", "short_name"}},
+	{table: "finance_bills", columns: []string{"settlement_party_name"}},
+	{table: "finance_cashflows", columns: []string{"settlement_party_name"}},
+	{table: "finance_invoices", columns: []string{"settlement_party_name"}},
+	{table: "finance_nettings", columns: []string{"settlement_party_name"}},
+	{table: "finance_verifications", columns: []string{"settlement_party_name"}},
+	{table: "finance_commissions", columns: []string{"employee_name", "rule_name"}},
+	{table: "finance_commission_rules", columns: []string{"name"}},
+	{table: "partner_contacts", columns: []string{"name"}},
+	{table: "enterprise_resource_addresses", columns: []string{"address_detail", "contact_name"}},
+	{table: "enterprise_resource_parties", columns: []string{"company_name", "address", "contact_name"}},
+	{table: "enterprise_resource_remarks", columns: []string{"content"}},
+	{table: "enterprise_resources", columns: []string{"short_name"}},
+	{table: "orders", columns: []string{"vessel_voyage", "goods_description"}},
+	{table: "orders", columns: []string{"shipper_short_name"}, targetColumn: "shipper_search_keywords"},
+	{table: "orders", columns: []string{"consignee_short_name"}, targetColumn: "consignee_search_keywords"},
 }
 
 // BackfillSelectorSearchKeywords 为迁移前已有的候选项数据补齐拼音检索键。
@@ -44,11 +61,15 @@ func BackfillSelectorSearchKeywords(ctx context.Context, db *sql.DB) error {
 }
 
 func backfillSelectorSearchKeywords(ctx context.Context, db *sql.DB, spec searchKeywordBackfillSpec) error {
+	targetColumn := spec.targetColumn
+	if targetColumn == "" {
+		targetColumn = "search_keywords"
+	}
 	quotedColumns := make([]string, 0, len(spec.columns))
 	for _, column := range spec.columns {
 		quotedColumns = append(quotedColumns, fmt.Sprintf("COALESCE(\"%s\", '')", column))
 	}
-	query := fmt.Sprintf("SELECT \"id\", %s FROM \"%s\" WHERE \"search_keywords\" = ''", strings.Join(quotedColumns, ", "), spec.table)
+	query := fmt.Sprintf("SELECT \"id\", %s FROM \"%s\" WHERE \"%s\" = ''", strings.Join(quotedColumns, ", "), spec.table, targetColumn)
 	rows, err := db.QueryContext(ctx, query)
 	if err != nil {
 		return fmt.Errorf("读取 %s 拼音检索回填数据: %w", spec.table, err)
@@ -92,9 +113,9 @@ func backfillSelectorSearchKeywords(ctx context.Context, db *sql.DB, spec search
 			arguments = append(arguments, item.id, item.keywords)
 		}
 		update := fmt.Sprintf(
-			"UPDATE \"%s\" AS target SET \"search_keywords\" = source.keywords FROM (VALUES %s) AS source(id, keywords) WHERE target.\"id\" = source.id AND target.\"search_keywords\" = ''",
-			spec.table,
-			strings.Join(placeholders, ", "),
+			"UPDATE \"%s\" AS target SET \"%s\" = source.keywords FROM (VALUES %s) AS source(id, keywords) WHERE target.\"id\" = source.id AND target.\"%s\" = ''",
+			spec.table, targetColumn,
+			strings.Join(placeholders, ", "), targetColumn,
 		)
 		if _, err := db.ExecContext(ctx, update, arguments...); err != nil {
 			return fmt.Errorf("批量回填 %s 拼音检索键: %w", spec.table, err)

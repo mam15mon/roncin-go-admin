@@ -1,7 +1,6 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
 import {
   ProFormDatePicker,
-  ProFormSelect,
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
@@ -267,7 +266,7 @@ export default function FeeSupplementModal({
           style={{ marginBottom: 16 }}
         />
       )}
-      <ProFormSelect
+      <ProFormSearchableSelect
         name="direction"
         label="费用方向"
         rules={[{ required: true }]}
@@ -293,6 +292,8 @@ export default function FeeSupplementModal({
               value: item.id ?? '',
               code: item.feeCode,
               name: item.nameZh,
+              nameEn: item.nameEn,
+              aliasName: item.aliasName,
             }))}
             fieldProps={{
               onChange: (val) => {

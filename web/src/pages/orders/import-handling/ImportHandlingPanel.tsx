@@ -212,6 +212,7 @@ function StepFields({
                     ]
                   : []
               }
+              fieldProps={{ filterOption: false }}
               request={async ({ keyWords }) => {
                 if (!canSearchPersonnel || !guard.current.alive) return [];
                 const generation = guard.current.generation;
@@ -738,6 +739,7 @@ export default function ImportHandlingPanel({
                   ]
                 : []
             }
+            fieldProps={{ filterOption: false }}
             request={async ({ keyWords }) => {
               if (!access.canReadPartners || !guard.current.alive) return [];
               const generation = guard.current.generation;

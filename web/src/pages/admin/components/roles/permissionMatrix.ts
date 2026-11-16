@@ -1,3 +1,4 @@
+import { matchesSearch } from '@/utils/search';
 import { getPermissionGroupSegments } from '../permissionGrouping';
 import { applyPermissionLinkage } from './permissionLinkage';
 
@@ -414,17 +415,16 @@ export function filterResources(
   }
 
   const filtered = resources.filter((res) => {
-    const pathMatch =
-      res.fullPath.toLowerCase().includes(kw) ||
-      res.name.toLowerCase().includes(kw) ||
-      Boolean(res.subModule?.toLowerCase().includes(kw));
+    const pathMatch = matchesSearch(kw, res.fullPath, res.name, res.subModule);
 
     let hasActionMatch = false;
     for (const action of res.allActions) {
-      const match =
-        action.name.toLowerCase().includes(kw) ||
-        action.key.toLowerCase().includes(kw) ||
-        Boolean(action.description?.toLowerCase().includes(kw));
+      const match = matchesSearch(
+        kw,
+        action.name,
+        action.key,
+        action.description,
+      );
       if (match) {
         hasActionMatch = true;
         matchedActionKeys.add(action.key);

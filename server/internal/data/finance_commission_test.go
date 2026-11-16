@@ -330,7 +330,7 @@ func commissionExportScanRow(t *testing.T, org uuid.UUID) []driver.Value {
 	t.Helper()
 	now := time.Now()
 	return []driver.Value{
-		uuid.New(), now, now, org, "TC20260815000001", "idempotency-export", uuid.New(), "VR20260815000001", nil, nil,
+		uuid.New(), now, now, "", org, "TC20260815000001", "idempotency-export", uuid.New(), "VR20260815000001", nil, nil,
 		uuid.New(), "张三", 1, 2, 5, nil, "销售提成", "SALES", "REALIZED_PROFIT", 1, biz.CommissionCalculationVersion,
 		"fingerprint", "CONFIRMED", "USD", "500.00000000", "200.00000000", "300.00000000", "300.00000000",
 		"10.0000", "30.00000000", "2026-08-15", "0.50000000", "DERIVED", "2026-08-14", nil, "15.00000000",
@@ -428,7 +428,7 @@ func TestCommissionCalculationBillsQueryOrderingAndLocking(t *testing.T) {
 
 		// 先只读定位来源及分摊，再锁完整订单集合；账单锁仍由生产路径取得。
 		orderID := uuid.New()
-		mock.ExpectQuery(`SELECT .* FROM "finance_verifications" WHERE .* LIMIT 2$`).WillReturnRows(sqlmock.NewRows(financeverification.Columns).AddRow(verificationID, now, now, org, "VR202608300001", "key1", "ACTIVE", "RECEIVABLE", uuid.New(), "客户A", "USD", "100.00", "CNY", "720.00", "720.00", "720.00", "0.00", "2026-08-30", nil, 1, nil, nil, nil))
+		mock.ExpectQuery(`SELECT .* FROM "finance_verifications" WHERE .* LIMIT 2$`).WillReturnRows(sqlmock.NewRows(financeverification.Columns).AddRow(verificationID, now, now, "", org, "VR202608300001", "key1", "ACTIVE", "RECEIVABLE", uuid.New(), "客户A", "USD", "100.00", "CNY", "720.00", "720.00", "720.00", "0.00", "2026-08-30", nil, 1, nil, nil, nil))
 		mock.ExpectQuery(`SELECT .* FROM "finance_verification_allocations" WHERE .*`).WillReturnRows(sqlmock.NewRows(financeverificationallocation.Columns).AddRow(uuid.New(), now, now, verificationID, cashflowID, billID1, "CF1", "BILL1", "100.00", "720.00", "720.00", "0.00", true))
 		mock.ExpectQuery(`SELECT .* FROM "finance_bill_lines" WHERE .*`).WillReturnRows(sqlmock.NewRows([]string{"id", "order_id"}).AddRow(uuid.New(), orderID))
 		mock.ExpectQuery(`SELECT .* FROM "orders" WHERE .* ORDER BY "orders"."id" FOR UPDATE$`).WillReturnRows(orderReferenceRows(orderID, org, uuid.New(), "SE-LOCK-001"))
@@ -437,7 +437,7 @@ func TestCommissionCalculationBillsQueryOrderingAndLocking(t *testing.T) {
 		// 1. 核销单查询 (lock=true -> FOR UPDATE)
 		mock.ExpectQuery(`SELECT .* FROM "finance_verifications" WHERE .* FOR UPDATE$`).
 			WillReturnRows(sqlmock.NewRows(financeverification.Columns).AddRow(
-				verificationID, now, now, org, "VR202608300001", "key1", "ACTIVE", "RECEIVABLE",
+				verificationID, now, now, "", org, "VR202608300001", "key1", "ACTIVE", "RECEIVABLE",
 				uuid.New(), "客户A", "USD", "100.00", "CNY",
 				"720.00", "720.00", "720.00", "0.00", "2026-08-30", nil, 1, nil, nil, nil,
 			))

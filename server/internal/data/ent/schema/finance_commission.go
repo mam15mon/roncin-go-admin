@@ -22,6 +22,7 @@ func (FinanceCommission) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, Tim
 
 func (FinanceCommission) Fields() []ent.Field {
 	return []ent.Field{
+		searchKeywordsField(),
 		field.UUID("organization_id", uuid.Nil).Immutable(),
 		field.String("commission_no").NotEmpty().MaxLen(64).Immutable(),
 		field.String("idempotency_key").NotEmpty().MaxLen(128).Immutable(),
@@ -93,6 +94,7 @@ func (FinanceCommission) Edges() []ent.Edge {
 
 func (FinanceCommission) Indexes() []ent.Index {
 	return []ent.Index{
+		searchKeywordsIndex("finance_commissions_search_keywords_trgm"),
 		index.Fields("organization_id", "commission_no").Unique(),
 		index.Fields("organization_id", "idempotency_key").Unique(),
 		// 活跃去重按来源拆分：同来源同员工同角色仅一条非终态提成。
@@ -113,4 +115,8 @@ func (FinanceCommission) Indexes() []ent.Index {
 		index.Fields("organization_id", "commission_date"),
 		index.Fields("organization_id", "status", "created_at"),
 	}
+}
+
+func (FinanceCommission) Hooks() []ent.Hook {
+	return []ent.Hook{searchKeywordsHook("employee_name", "rule_name")}
 }

@@ -24,7 +24,7 @@ func agingReportSource(org uuid.UUID, f biz.FinanceReportFilter, today string) (
 	}
 	if f.Keyword != "" {
 		p := q.arg("%" + strings.ToLower(f.Keyword) + "%")
-		q.conditions = append(q.conditions, "(LOWER(b.bill_no) LIKE "+p+" OR LOWER(b.settlement_party_name) LIKE "+p+")")
+		q.conditions = append(q.conditions, "(LOWER(b.bill_no) LIKE "+p+" OR LOWER(b.settlement_party_name) LIKE "+p+" OR LOWER(b.search_keywords) LIKE "+p+")")
 	}
 	date := q.arg(today)
 	bucketFilter := "TRUE"

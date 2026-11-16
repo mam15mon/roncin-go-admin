@@ -27,6 +27,8 @@ type FinanceNetting struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// SearchKeywords holds the value of the "search_keywords" field.
+	SearchKeywords string `json:"search_keywords,omitempty"`
 	// CorrectionRequestID holds the value of the "correction_request_id" field.
 	CorrectionRequestID *uuid.UUID `json:"correction_request_id,omitempty"`
 	// OrganizationID holds the value of the "organization_id" field.
@@ -223,7 +225,7 @@ func (*FinanceNetting) scanValues(columns []string) ([]any, error) {
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case financenetting.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case financenetting.FieldNettingNo, financenetting.FieldIdempotencyKey, financenetting.FieldRequestHash, financenetting.FieldStatus, financenetting.FieldSettlementPartyName, financenetting.FieldCurrency, financenetting.FieldAmount, financenetting.FieldBaseCurrency, financenetting.FieldBaseCurrencyAmount, financenetting.FieldPayableBaseAmount, financenetting.FieldExchangeGainLoss, financenetting.FieldNote, financenetting.FieldCancellationReason, financenetting.FieldReversalReason:
+		case financenetting.FieldSearchKeywords, financenetting.FieldNettingNo, financenetting.FieldIdempotencyKey, financenetting.FieldRequestHash, financenetting.FieldStatus, financenetting.FieldSettlementPartyName, financenetting.FieldCurrency, financenetting.FieldAmount, financenetting.FieldBaseCurrency, financenetting.FieldBaseCurrencyAmount, financenetting.FieldPayableBaseAmount, financenetting.FieldExchangeGainLoss, financenetting.FieldNote, financenetting.FieldCancellationReason, financenetting.FieldReversalReason:
 			values[i] = new(sql.NullString)
 		case financenetting.FieldCreatedAt, financenetting.FieldUpdatedAt, financenetting.FieldConfirmedAt, financenetting.FieldCancelledAt, financenetting.FieldReversedAt:
 			values[i] = new(sql.NullTime)
@@ -261,6 +263,12 @@ func (_m *FinanceNetting) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
+			}
+		case financenetting.FieldSearchKeywords:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field search_keywords", values[i])
+			} else if value.Valid {
+				_m.SearchKeywords = value.String
 			}
 		case financenetting.FieldCorrectionRequestID:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -514,6 +522,9 @@ func (_m *FinanceNetting) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("search_keywords=")
+	builder.WriteString(_m.SearchKeywords)
 	builder.WriteString(", ")
 	if v := _m.CorrectionRequestID; v != nil {
 		builder.WriteString("correction_request_id=")

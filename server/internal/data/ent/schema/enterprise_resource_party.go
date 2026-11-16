@@ -16,6 +16,7 @@ func (EnterpriseResourceParty) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{
 
 func (EnterpriseResourceParty) Fields() []ent.Field {
 	return []ent.Field{
+		searchKeywordsField(),
 		field.UUID("resource_id", uuid.Nil).Immutable(),
 		field.UUID("organization_id", uuid.Nil).Immutable(),
 		field.Enum("resource_type").Values("SHIPPER", "CONSIGNEE", "NOTIFY_PARTY").Immutable(),
@@ -41,7 +42,12 @@ func (EnterpriseResourceParty) Edges() []ent.Edge {
 
 func (EnterpriseResourceParty) Indexes() []ent.Index {
 	return []ent.Index{
+		searchKeywordsIndex("enterprise_resource_parties_search_keywords_trgm"),
 		index.Fields("resource_id").Unique(),
 		index.Fields("organization_id", "resource_type", "normalized_business_code").Unique().Annotations(entsql.IndexWhere("normalized_business_code IS NOT NULL AND normalized_business_code <> ''")),
 	}
+}
+
+func (EnterpriseResourceParty) Hooks() []ent.Hook {
+	return []ent.Hook{searchKeywordsHook("company_name", "address", "contact_name")}
 }

@@ -2,7 +2,6 @@ import type { ProFormInstance } from '@ant-design/pro-components';
 import {
   ProFormDateRangePicker,
   ProFormDigit,
-  ProFormSelect,
   ProFormSwitch,
   ProFormText,
   ProFormTextArea,
@@ -177,7 +176,7 @@ export default function CommissionRuleFormModal({
         disabled={Boolean(editingRule?.legacyReadonly)}
       />
       {!editingRule && (
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="employeeIds"
           label="适用员工"
           extra="同一批员工共享方案的身份、口径、比例与有效期；个别员工比例不同请另建方案。启用方案必须至少分配一名员工。"

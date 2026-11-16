@@ -36,6 +36,20 @@ func (_u *PartnerContactUpdate) SetUpdatedAt(v time.Time) *PartnerContactUpdate 
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *PartnerContactUpdate) SetSearchKeywords(v string) *PartnerContactUpdate {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *PartnerContactUpdate) SetNillableSearchKeywords(v *string) *PartnerContactUpdate {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetPartnerID sets the "partner_id" field.
 func (_u *PartnerContactUpdate) SetPartnerID(v uuid.UUID) *PartnerContactUpdate {
 	_u.mutation.SetPartnerID(v)
@@ -156,7 +170,9 @@ func (_u *PartnerContactUpdate) ClearPartner() *PartnerContactUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *PartnerContactUpdate) Save(ctx context.Context) (int, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -183,11 +199,15 @@ func (_u *PartnerContactUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *PartnerContactUpdate) defaults() {
+func (_u *PartnerContactUpdate) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if partnercontact.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized partnercontact.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := partnercontact.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -232,6 +252,9 @@ func (_u *PartnerContactUpdate) sqlSave(ctx context.Context) (_node int, err err
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(partnercontact.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(partnercontact.FieldSearchKeywords, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(partnercontact.FieldName, field.TypeString, value)
@@ -309,6 +332,20 @@ type PartnerContactUpdateOne struct {
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *PartnerContactUpdateOne) SetUpdatedAt(v time.Time) *PartnerContactUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *PartnerContactUpdateOne) SetSearchKeywords(v string) *PartnerContactUpdateOne {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *PartnerContactUpdateOne) SetNillableSearchKeywords(v *string) *PartnerContactUpdateOne {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
 	return _u
 }
 
@@ -445,7 +482,9 @@ func (_u *PartnerContactUpdateOne) Select(field string, fields ...string) *Partn
 
 // Save executes the query and returns the updated PartnerContact entity.
 func (_u *PartnerContactUpdateOne) Save(ctx context.Context) (*PartnerContact, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -472,11 +511,15 @@ func (_u *PartnerContactUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *PartnerContactUpdateOne) defaults() {
+func (_u *PartnerContactUpdateOne) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if partnercontact.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized partnercontact.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := partnercontact.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -538,6 +581,9 @@ func (_u *PartnerContactUpdateOne) sqlSave(ctx context.Context) (_node *PartnerC
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(partnercontact.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(partnercontact.FieldSearchKeywords, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(partnercontact.FieldName, field.TypeString, value)

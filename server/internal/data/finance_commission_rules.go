@@ -27,7 +27,7 @@ func (r *commissionRepo) ListRulesScoped(ctx context.Context, organizationIDs []
 	if f.Keyword != "" {
 		// 关键字覆盖方案名称与适用员工（用户名、展示名与已有搜索键）。
 		p = append(p, rule.Or(
-			rule.NameContainsFold(f.Keyword),
+			rule.NameContainsFold(f.Keyword), rule.SearchKeywordsContainsFold(f.Keyword),
 			rule.HasAssignmentsWith(
 				assignment.CancelledAtIsNil(),
 				assignment.HasEmployeeWith(user.Or(

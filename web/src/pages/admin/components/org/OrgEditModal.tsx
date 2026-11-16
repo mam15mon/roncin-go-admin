@@ -1,12 +1,8 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
-import {
-  ProFormSelect,
-  ProFormSwitch,
-  ProFormText,
-} from '@ant-design/pro-components';
+import { ProFormSwitch, ProFormText } from '@ant-design/pro-components';
 import { App, Typography } from 'antd';
 import React, { useRef } from 'react';
-import { GuardedModalForm } from '@/components/ui';
+import { GuardedModalForm, ProFormSearchableSelect } from '@/components/ui';
 import { getCurrencyOptions } from '@/features/master-data/currencies';
 import { adminServiceUpdateOrganization } from '@/services/roncin/adminService';
 import { isWriteResponse } from '@/utils/api';
@@ -102,7 +98,7 @@ export default function OrgEditModal({
         extra="停用后该组织及其关联成员将无法进行业务操作"
       />
       {(editingOrg?.kind === 1 || editingOrg?.kind === 2) && (
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="baseCurrency"
           label="本币"
           placeholder="请选择组织本币"

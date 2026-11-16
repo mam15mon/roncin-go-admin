@@ -94,7 +94,7 @@ func (r *orderRepo) List(ctx context.Context, scopes []biz.OrderOrganizationScop
 func orderListQuery(client *ent.Client, scopes []biz.OrderOrganizationScope, options biz.OrderListOptions) *ent.OrderQuery {
 	query := client.Order.Query().Where(orderOrganizationScopePredicate(scopes))
 	if options.Keyword != "" {
-		query.Where(orderent.Or(orderent.OrderNoContainsFold(options.Keyword), orderent.VesselVoyageContainsFold(options.Keyword), orderent.GoodsDescriptionContainsFold(options.Keyword), airOrderNumberContainsFold(options.Keyword, false, false), airOrderNumberContainsFold(options.Keyword, true, false)))
+		query.Where(orderent.Or(orderent.OrderNoContainsFold(options.Keyword), orderent.VesselVoyageContainsFold(options.Keyword), orderent.GoodsDescriptionContainsFold(options.Keyword), orderent.SearchKeywordsContainsFold(options.Keyword), airOrderNumberContainsFold(options.Keyword, false, false), airOrderNumberContainsFold(options.Keyword, true, false)))
 	}
 	if options.NumberKeyword != "" {
 		switch options.NumberType {
@@ -176,10 +176,10 @@ func orderListQuery(client *ent.Client, scopes []biz.OrderOrganizationScope, opt
 		query.Where(orderent.ShippingLineIDEQ(*options.ShippingLineID))
 	}
 	if options.ConsigneeShortName != "" {
-		query.Where(orderent.ConsigneeShortNameContainsFold(options.ConsigneeShortName))
+		query.Where(orderent.Or(orderent.ConsigneeShortNameContainsFold(options.ConsigneeShortName), orderent.ConsigneeSearchKeywordsContainsFold(options.ConsigneeShortName)))
 	}
 	if options.ShipperShortName != "" {
-		query.Where(orderent.ShipperShortNameContainsFold(options.ShipperShortName))
+		query.Where(orderent.Or(orderent.ShipperShortNameContainsFold(options.ShipperShortName), orderent.ShipperSearchKeywordsContainsFold(options.ShipperShortName)))
 	}
 	applyOrderPersonnelFilter(query, orderpersonnelent.RoleOPERATOR, options.Operator)
 	applyOrderPersonnelFilter(query, orderpersonnelent.RoleSALES, options.Sales)

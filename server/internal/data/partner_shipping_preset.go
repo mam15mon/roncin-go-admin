@@ -11,6 +11,7 @@ import (
 	partyent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceparty"
 	textent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresourceshippingtext"
 	partnerent "github.com/roncin/roncin-go-admin/server/internal/data/ent/partner"
+	"github.com/roncin/roncin-go-admin/server/internal/platform/searchtext"
 )
 
 type partnerShippingPresetRepo struct{ data *Data }
@@ -169,7 +170,7 @@ func createShippingPresetDetail(ctx context.Context, tx *ent.Tx, id, organizatio
 func updateShippingPresetDetail(ctx context.Context, tx *ent.Tx, id uuid.UUID, input *biz.PartnerShippingPreset) error {
 	if input.PresetType.Party() {
 		party := input.Party
-		builder := tx.EnterpriseResourceParty.Update().Where(partyent.ResourceIDEQ(id)).SetCompanyName(party.CompanyName).SetCountryCode(party.CountryCode)
+		builder := tx.EnterpriseResourceParty.Update().Where(partyent.ResourceIDEQ(id)).SetCompanyName(party.CompanyName).SetCountryCode(party.CountryCode).SetSearchKeywords(searchtext.Build(party.CompanyName, party.Address, party.ContactName))
 		setOptionalString(builder.SetAddress, builder.ClearAddress, optionalString(party.Address))
 		setOptionalString(builder.SetContactName, builder.ClearContactName, optionalString(party.ContactName))
 		setOptionalString(builder.SetContactPhone, builder.ClearContactPhone, optionalString(party.Phone))

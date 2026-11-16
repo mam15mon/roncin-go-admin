@@ -1,3 +1,4 @@
+import { matchesSearch } from '@/utils/search';
 import type {
   PermissionGroupNode,
   PermissionLeafNode,
@@ -103,9 +104,7 @@ export function filterPermissionTree(
 
   const filterNode = (node: PermissionTreeNode): PermissionTreeNode | null => {
     if (!isPermissionGroupNode(node)) {
-      return node.name.toLowerCase().includes(normalized) ||
-        node.key.toLowerCase().includes(normalized) ||
-        node.description?.toLowerCase().includes(normalized)
+      return matchesSearch(normalized, node.name, node.key, node.description)
         ? node
         : null;
     }

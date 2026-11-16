@@ -1,6 +1,7 @@
 import { DeleteOutlined, PlusCircleFilled } from '@ant-design/icons';
 import { Button, Col, Form, Input, InputNumber, Select, Tooltip } from 'antd';
 import React from 'react';
+import { defaultSelectFilterOption } from '@/components/ui/searchable-select/utils';
 import { OrderShippingDocumentStatus } from '@/enums.generated';
 import {
   type HouseDocItem,
@@ -313,7 +314,7 @@ function ContainerRequestsControl({
             <Select
               placeholder="请选择"
               options={options}
-              showSearch={{ optionFilterProp: 'label' }}
+              showSearch={{ filterOption: defaultSelectFilterOption }}
               style={{ width: 140 }}
               onChange={(val) => {
                 onChange?.([{ containerSpecId: val, quantity: 1 }]);
@@ -357,7 +358,7 @@ function ContainerRequestsControl({
                   value={req.containerSpecId || undefined}
                   placeholder="请选择"
                   options={options}
-                  showSearch={{ optionFilterProp: 'label' }}
+                  showSearch={{ filterOption: defaultSelectFilterOption }}
                   style={{ width: 130 }}
                   onChange={(val) => handleChange(idx, 'containerSpecId', val)}
                 />

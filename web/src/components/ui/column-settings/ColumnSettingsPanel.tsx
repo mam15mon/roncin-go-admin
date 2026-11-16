@@ -14,6 +14,7 @@ import {
   Tooltip,
 } from 'antd';
 import React, { useMemo, useState } from 'react';
+import { matchesSearch } from '@/utils/search';
 import './ColumnSettingsPanel.less';
 import {
   deriveColumnFreezeDefaults,
@@ -158,7 +159,7 @@ export default function ColumnSettingsPanel({
     );
   };
   const matches = (field: ColumnSettingsField) =>
-    field.title.toLowerCase().includes(keyword.trim().toLowerCase());
+    matchesSearch(keyword, field.title);
 
   return (
     <div className="roncin-column-settings-panel">

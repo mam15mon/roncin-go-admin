@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/access"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	permissionent "github.com/roncin/roncin-go-admin/server/internal/data/ent/permission"
@@ -36,7 +37,7 @@ func TestOrderMilestoneRetirementUpgradePostgres(t *testing.T) {
 		t.Fatal(err)
 	}
 	lockedAt := time.Date(2026, 10, 29, 3, 4, 5, 0, time.UTC)
-	order, err := client.Order.Create().
+	order, err := insertMigrationFixture[ent.Order](ctx, data, "orders", client.Order.Create().
 		SetOrganizationID(organization.ID).SetCustomerID(partner.ID).
 		SetOrderNo("SE-MILESTONE-RETIRE").SetIdempotencyKey(uuid.NewString()).
 		SetBusinessType(orderent.BusinessTypeSE).SetTradeDirection(orderent.TradeDirectionExport).
@@ -44,7 +45,7 @@ func TestOrderMilestoneRetirementUpgradePostgres(t *testing.T) {
 		SetClosureStatus(orderent.ClosureStatusCLOSED).SetVersion(7).
 		SetClosureReason("保留完结状态").SetClosedAt(lockedAt).SetClosedBy(actor.ID).
 		SetLockedAt(lockedAt).SetLockedBy(actor.ID).SetLockSource(orderent.LockSourceMANUAL).
-		SetLockGeneration(2).Save(ctx)
+		SetLockGeneration(2).Mutation())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -168,7 +169,7 @@ func TestOrderMilestoneRetirementColdStartPostgres(t *testing.T) {
 func retirementRowSnapshot(t *testing.T, db *sql.DB, table string, id uuid.UUID) string {
 	t.Helper()
 	var snapshot string
-	if err := db.QueryRowContext(context.Background(), `SELECT row_to_json(t)::text FROM "`+table+`" AS t WHERE id=$1`, id).Scan(&snapshot); err != nil {
+	if err := db.QueryRowContext(context.Background(), `SELECT (to_jsonb(t) - 'search_keywords' - 'shipper_search_keywords' - 'consignee_search_keywords')::text FROM "`+table+`" AS t WHERE id=$1`, id).Scan(&snapshot); err != nil {
 		t.Fatal(err)
 	}
 	return snapshot

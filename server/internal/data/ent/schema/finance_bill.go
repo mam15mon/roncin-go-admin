@@ -18,6 +18,7 @@ func (FinanceBill) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin
 
 func (FinanceBill) Fields() []ent.Field {
 	return []ent.Field{
+		searchKeywordsField(),
 		field.Enum("purpose").Values("NORMAL", "CORRECTION_REVERSAL").Default("NORMAL").Immutable(),
 		field.UUID("organization_id", uuid.Nil).Immutable(),
 		field.String("bill_no").NotEmpty().MaxLen(64).Immutable(),
@@ -80,6 +81,7 @@ func (FinanceBill) Edges() []ent.Edge {
 
 func (FinanceBill) Indexes() []ent.Index {
 	return []ent.Index{
+		searchKeywordsIndex("finance_bills_search_keywords_trgm"),
 		index.Fields("organization_id", "bill_no").Unique(),
 		index.Fields("organization_id", "idempotency_key").Unique(),
 		index.Fields("organization_id", "status", "bill_date"),
@@ -95,3 +97,5 @@ func (FinanceBill) Annotations() []schema.Annotation {
 		"finance_bills_estimated_invoice_snapshot_check": "(estimated_invoice_currency IS NULL AND estimated_invoice_rate IS NULL AND estimated_invoice_amount IS NULL) OR (estimated_invoice_currency IS NOT NULL AND estimated_invoice_rate IS NOT NULL AND estimated_invoice_amount IS NOT NULL AND estimated_invoice_rate > 0 AND estimated_invoice_amount >= 0)",
 	})}
 }
+
+func (FinanceBill) Hooks() []ent.Hook { return []ent.Hook{searchKeywordsHook("settlement_party_name")} }

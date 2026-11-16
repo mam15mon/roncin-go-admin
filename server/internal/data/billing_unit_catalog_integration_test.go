@@ -28,6 +28,9 @@ func TestBillingUnitCatalogColdStartPostgres(t *testing.T) {
 	if err := migration.Apply(ctx, d.sqlDB, filepath.Join("..", "..", "migrations")); err != nil {
 		t.Fatalf("重复执行迁移: %v", err)
 	}
+	if err := BackfillSelectorSearchKeywords(ctx, d.sqlDB); err != nil {
+		t.Fatal(err)
+	}
 	if after := billingUnitCatalogSnapshot(t, d, `SELECT COALESCE(jsonb_agg(to_jsonb(u) ORDER BY code), '[]')::text FROM billing_units u`); before != after {
 		t.Fatal("重复迁移改变了单位记录")
 	}
@@ -54,6 +57,9 @@ func TestBillingUnitCatalogUpgradeAndSeedPostgres(t *testing.T) {
 	unitBefore := billingUnitCatalogSnapshot(t, d, `SELECT jsonb_agg(to_jsonb(u) ORDER BY code)::text FROM billing_units u`)
 	if err := migration.Apply(ctx, d.sqlDB, filepath.Join("..", "..", "migrations")); err != nil {
 		t.Fatalf("执行升级迁移: %v", err)
+	}
+	if err := BackfillSelectorSearchKeywords(ctx, d.sqlDB); err != nil {
+		t.Fatal(err)
 	}
 	oldCodes := `'CONT','BL','CBM','TON','SET','DOC','DAY','CUSTOM'`
 	unitAfter := billingUnitCatalogSnapshot(t, d, `SELECT jsonb_agg(to_jsonb(u) ORDER BY code)::text FROM billing_units u WHERE code IN (`+oldCodes+`)`)

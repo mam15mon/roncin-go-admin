@@ -23,6 +23,8 @@ type EnterpriseResourceParty struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// SearchKeywords holds the value of the "search_keywords" field.
+	SearchKeywords string `json:"search_keywords,omitempty"`
 	// ResourceID holds the value of the "resource_id" field.
 	ResourceID uuid.UUID `json:"resource_id,omitempty"`
 	// OrganizationID holds the value of the "organization_id" field.
@@ -88,7 +90,7 @@ func (*EnterpriseResourceParty) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case enterpriseresourceparty.FieldCustomDisplay:
 			values[i] = new(sql.NullBool)
-		case enterpriseresourceparty.FieldResourceType, enterpriseresourceparty.FieldCompanyName, enterpriseresourceparty.FieldBusinessCode, enterpriseresourceparty.FieldNormalizedBusinessCode, enterpriseresourceparty.FieldAddress, enterpriseresourceparty.FieldCountryCode, enterpriseresourceparty.FieldContactName, enterpriseresourceparty.FieldContactPhone, enterpriseresourceparty.FieldEmail, enterpriseresourceparty.FieldTaxIdentifier, enterpriseresourceparty.FieldAeoCode, enterpriseresourceparty.FieldDisplayContent, enterpriseresourceparty.FieldRemark:
+		case enterpriseresourceparty.FieldSearchKeywords, enterpriseresourceparty.FieldResourceType, enterpriseresourceparty.FieldCompanyName, enterpriseresourceparty.FieldBusinessCode, enterpriseresourceparty.FieldNormalizedBusinessCode, enterpriseresourceparty.FieldAddress, enterpriseresourceparty.FieldCountryCode, enterpriseresourceparty.FieldContactName, enterpriseresourceparty.FieldContactPhone, enterpriseresourceparty.FieldEmail, enterpriseresourceparty.FieldTaxIdentifier, enterpriseresourceparty.FieldAeoCode, enterpriseresourceparty.FieldDisplayContent, enterpriseresourceparty.FieldRemark:
 			values[i] = new(sql.NullString)
 		case enterpriseresourceparty.FieldCreatedAt, enterpriseresourceparty.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -126,6 +128,12 @@ func (_m *EnterpriseResourceParty) assignValues(columns []string, values []any) 
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
+			}
+		case enterpriseresourceparty.FieldSearchKeywords:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field search_keywords", values[i])
+			} else if value.Valid {
+				_m.SearchKeywords = value.String
 			}
 		case enterpriseresourceparty.FieldResourceID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -279,6 +287,9 @@ func (_m *EnterpriseResourceParty) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("search_keywords=")
+	builder.WriteString(_m.SearchKeywords)
 	builder.WriteString(", ")
 	builder.WriteString("resource_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ResourceID))

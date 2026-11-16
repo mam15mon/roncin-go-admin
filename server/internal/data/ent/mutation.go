@@ -21624,6 +21624,7 @@ type EnterpriseResourceAddressMutation struct {
 	id              *uuid.UUID
 	created_at      *time.Time
 	updated_at      *time.Time
+	search_keywords *string
 	contact_name    *string
 	contact_phone   *string
 	country_code    *string
@@ -21814,6 +21815,42 @@ func (m *EnterpriseResourceAddressMutation) OldUpdatedAt(ctx context.Context) (v
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *EnterpriseResourceAddressMutation) ResetUpdatedAt() {
 	m.updated_at = nil
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *EnterpriseResourceAddressMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *EnterpriseResourceAddressMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the EnterpriseResourceAddress entity.
+// If the EnterpriseResourceAddress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceAddressMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *EnterpriseResourceAddressMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
 }
 
 // SetResourceID sets the "resource_id" field.
@@ -22279,12 +22316,15 @@ func (m *EnterpriseResourceAddressMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EnterpriseResourceAddressMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 12)
 	if m.created_at != nil {
 		fields = append(fields, enterpriseresourceaddress.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, enterpriseresourceaddress.FieldUpdatedAt)
+	}
+	if m.search_keywords != nil {
+		fields = append(fields, enterpriseresourceaddress.FieldSearchKeywords)
 	}
 	if m.resource != nil {
 		fields = append(fields, enterpriseresourceaddress.FieldResourceID)
@@ -22325,6 +22365,8 @@ func (m *EnterpriseResourceAddressMutation) Field(name string) (ent.Value, bool)
 		return m.CreatedAt()
 	case enterpriseresourceaddress.FieldUpdatedAt:
 		return m.UpdatedAt()
+	case enterpriseresourceaddress.FieldSearchKeywords:
+		return m.SearchKeywords()
 	case enterpriseresourceaddress.FieldResourceID:
 		return m.ResourceID()
 	case enterpriseresourceaddress.FieldContactName:
@@ -22356,6 +22398,8 @@ func (m *EnterpriseResourceAddressMutation) OldField(ctx context.Context, name s
 		return m.OldCreatedAt(ctx)
 	case enterpriseresourceaddress.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
+	case enterpriseresourceaddress.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	case enterpriseresourceaddress.FieldResourceID:
 		return m.OldResourceID(ctx)
 	case enterpriseresourceaddress.FieldContactName:
@@ -22396,6 +22440,13 @@ func (m *EnterpriseResourceAddressMutation) SetField(name string, value ent.Valu
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
+		return nil
+	case enterpriseresourceaddress.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	case enterpriseresourceaddress.FieldResourceID:
 		v, ok := value.(uuid.UUID)
@@ -22553,6 +22604,9 @@ func (m *EnterpriseResourceAddressMutation) ResetField(name string) error {
 		return nil
 	case enterpriseresourceaddress.FieldUpdatedAt:
 		m.ResetUpdatedAt()
+		return nil
+	case enterpriseresourceaddress.FieldSearchKeywords:
+		m.ResetSearchKeywords()
 		return nil
 	case enterpriseresourceaddress.FieldResourceID:
 		m.ResetResourceID()
@@ -25641,6 +25695,7 @@ type EnterpriseResourcePartyMutation struct {
 	id                       *uuid.UUID
 	created_at               *time.Time
 	updated_at               *time.Time
+	search_keywords          *string
 	organization_id          *uuid.UUID
 	resource_type            *enterpriseresourceparty.ResourceType
 	company_name             *string
@@ -25838,6 +25893,42 @@ func (m *EnterpriseResourcePartyMutation) OldUpdatedAt(ctx context.Context) (v t
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *EnterpriseResourcePartyMutation) ResetUpdatedAt() {
 	m.updated_at = nil
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *EnterpriseResourcePartyMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *EnterpriseResourcePartyMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the EnterpriseResourceParty entity.
+// If the EnterpriseResourceParty object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourcePartyMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *EnterpriseResourcePartyMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
 }
 
 // SetResourceID sets the "resource_id" field.
@@ -26607,12 +26698,15 @@ func (m *EnterpriseResourcePartyMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EnterpriseResourcePartyMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 19)
 	if m.created_at != nil {
 		fields = append(fields, enterpriseresourceparty.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, enterpriseresourceparty.FieldUpdatedAt)
+	}
+	if m.search_keywords != nil {
+		fields = append(fields, enterpriseresourceparty.FieldSearchKeywords)
 	}
 	if m.resource != nil {
 		fields = append(fields, enterpriseresourceparty.FieldResourceID)
@@ -26674,6 +26768,8 @@ func (m *EnterpriseResourcePartyMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case enterpriseresourceparty.FieldUpdatedAt:
 		return m.UpdatedAt()
+	case enterpriseresourceparty.FieldSearchKeywords:
+		return m.SearchKeywords()
 	case enterpriseresourceparty.FieldResourceID:
 		return m.ResourceID()
 	case enterpriseresourceparty.FieldOrganizationID:
@@ -26719,6 +26815,8 @@ func (m *EnterpriseResourcePartyMutation) OldField(ctx context.Context, name str
 		return m.OldCreatedAt(ctx)
 	case enterpriseresourceparty.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
+	case enterpriseresourceparty.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	case enterpriseresourceparty.FieldResourceID:
 		return m.OldResourceID(ctx)
 	case enterpriseresourceparty.FieldOrganizationID:
@@ -26773,6 +26871,13 @@ func (m *EnterpriseResourcePartyMutation) SetField(name string, value ent.Value)
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
+		return nil
+	case enterpriseresourceparty.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	case enterpriseresourceparty.FieldResourceID:
 		v, ok := value.(uuid.UUID)
@@ -27004,6 +27109,9 @@ func (m *EnterpriseResourcePartyMutation) ResetField(name string) error {
 	case enterpriseresourceparty.FieldUpdatedAt:
 		m.ResetUpdatedAt()
 		return nil
+	case enterpriseresourceparty.FieldSearchKeywords:
+		m.ResetSearchKeywords()
+		return nil
 	case enterpriseresourceparty.FieldResourceID:
 		m.ResetResourceID()
 		return nil
@@ -27138,6 +27246,7 @@ type EnterpriseResourceRemarkMutation struct {
 	id              *uuid.UUID
 	created_at      *time.Time
 	updated_at      *time.Time
+	search_keywords *string
 	remark_type     *enterpriseresourceremark.RemarkType
 	content         *string
 	clearedFields   map[string]struct{}
@@ -27324,6 +27433,42 @@ func (m *EnterpriseResourceRemarkMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *EnterpriseResourceRemarkMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *EnterpriseResourceRemarkMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the EnterpriseResourceRemark entity.
+// If the EnterpriseResourceRemark object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EnterpriseResourceRemarkMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *EnterpriseResourceRemarkMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
+}
+
 // SetResourceID sets the "resource_id" field.
 func (m *EnterpriseResourceRemarkMutation) SetResourceID(u uuid.UUID) {
 	m.resource = &u
@@ -27493,12 +27638,15 @@ func (m *EnterpriseResourceRemarkMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EnterpriseResourceRemarkMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.created_at != nil {
 		fields = append(fields, enterpriseresourceremark.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, enterpriseresourceremark.FieldUpdatedAt)
+	}
+	if m.search_keywords != nil {
+		fields = append(fields, enterpriseresourceremark.FieldSearchKeywords)
 	}
 	if m.resource != nil {
 		fields = append(fields, enterpriseresourceremark.FieldResourceID)
@@ -27521,6 +27669,8 @@ func (m *EnterpriseResourceRemarkMutation) Field(name string) (ent.Value, bool) 
 		return m.CreatedAt()
 	case enterpriseresourceremark.FieldUpdatedAt:
 		return m.UpdatedAt()
+	case enterpriseresourceremark.FieldSearchKeywords:
+		return m.SearchKeywords()
 	case enterpriseresourceremark.FieldResourceID:
 		return m.ResourceID()
 	case enterpriseresourceremark.FieldRemarkType:
@@ -27540,6 +27690,8 @@ func (m *EnterpriseResourceRemarkMutation) OldField(ctx context.Context, name st
 		return m.OldCreatedAt(ctx)
 	case enterpriseresourceremark.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
+	case enterpriseresourceremark.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	case enterpriseresourceremark.FieldResourceID:
 		return m.OldResourceID(ctx)
 	case enterpriseresourceremark.FieldRemarkType:
@@ -27568,6 +27720,13 @@ func (m *EnterpriseResourceRemarkMutation) SetField(name string, value ent.Value
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
+		return nil
+	case enterpriseresourceremark.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	case enterpriseresourceremark.FieldResourceID:
 		v, ok := value.(uuid.UUID)
@@ -27644,6 +27803,9 @@ func (m *EnterpriseResourceRemarkMutation) ResetField(name string) error {
 		return nil
 	case enterpriseresourceremark.FieldUpdatedAt:
 		m.ResetUpdatedAt()
+		return nil
+	case enterpriseresourceremark.FieldSearchKeywords:
+		m.ResetSearchKeywords()
 		return nil
 	case enterpriseresourceremark.FieldResourceID:
 		m.ResetResourceID()
@@ -33800,6 +33962,7 @@ type FinanceBillMutation struct {
 	id                              *uuid.UUID
 	created_at                      *time.Time
 	updated_at                      *time.Time
+	search_keywords                 *string
 	purpose                         *financebill.Purpose
 	bill_no                         *string
 	idempotency_key                 *string
@@ -34044,6 +34207,42 @@ func (m *FinanceBillMutation) OldUpdatedAt(ctx context.Context) (v time.Time, er
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *FinanceBillMutation) ResetUpdatedAt() {
 	m.updated_at = nil
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *FinanceBillMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *FinanceBillMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the FinanceBill entity.
+// If the FinanceBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceBillMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *FinanceBillMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
 }
 
 // SetPurpose sets the "purpose" field.
@@ -36243,12 +36442,15 @@ func (m *FinanceBillMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceBillMutation) Fields() []string {
-	fields := make([]string, 0, 43)
+	fields := make([]string, 0, 44)
 	if m.created_at != nil {
 		fields = append(fields, financebill.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, financebill.FieldUpdatedAt)
+	}
+	if m.search_keywords != nil {
+		fields = append(fields, financebill.FieldSearchKeywords)
 	}
 	if m.purpose != nil {
 		fields = append(fields, financebill.FieldPurpose)
@@ -36385,6 +36587,8 @@ func (m *FinanceBillMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case financebill.FieldUpdatedAt:
 		return m.UpdatedAt()
+	case financebill.FieldSearchKeywords:
+		return m.SearchKeywords()
 	case financebill.FieldPurpose:
 		return m.Purpose()
 	case financebill.FieldOrganizationID:
@@ -36480,6 +36684,8 @@ func (m *FinanceBillMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldCreatedAt(ctx)
 	case financebill.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
+	case financebill.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	case financebill.FieldPurpose:
 		return m.OldPurpose(ctx)
 	case financebill.FieldOrganizationID:
@@ -36584,6 +36790,13 @@ func (m *FinanceBillMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
+		return nil
+	case financebill.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	case financebill.FieldPurpose:
 		v, ok := value.(financebill.Purpose)
@@ -37058,6 +37271,9 @@ func (m *FinanceBillMutation) ResetField(name string) error {
 		return nil
 	case financebill.FieldUpdatedAt:
 		m.ResetUpdatedAt()
+		return nil
+	case financebill.FieldSearchKeywords:
+		m.ResetSearchKeywords()
 		return nil
 	case financebill.FieldPurpose:
 		m.ResetPurpose()
@@ -40147,6 +40363,7 @@ type FinanceCashflowMutation struct {
 	id                              *uuid.UUID
 	created_at                      *time.Time
 	updated_at                      *time.Time
+	search_keywords                 *string
 	flow_no                         *string
 	idempotency_key                 *string
 	direction                       *financecashflow.Direction
@@ -40362,6 +40579,42 @@ func (m *FinanceCashflowMutation) OldUpdatedAt(ctx context.Context) (v time.Time
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *FinanceCashflowMutation) ResetUpdatedAt() {
 	m.updated_at = nil
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *FinanceCashflowMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *FinanceCashflowMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the FinanceCashflow entity.
+// If the FinanceCashflow object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCashflowMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *FinanceCashflowMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
 }
 
 // SetOrganizationID sets the "organization_id" field.
@@ -41695,12 +41948,15 @@ func (m *FinanceCashflowMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceCashflowMutation) Fields() []string {
-	fields := make([]string, 0, 29)
+	fields := make([]string, 0, 30)
 	if m.created_at != nil {
 		fields = append(fields, financecashflow.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, financecashflow.FieldUpdatedAt)
+	}
+	if m.search_keywords != nil {
+		fields = append(fields, financecashflow.FieldSearchKeywords)
 	}
 	if m.organization != nil {
 		fields = append(fields, financecashflow.FieldOrganizationID)
@@ -41795,6 +42051,8 @@ func (m *FinanceCashflowMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case financecashflow.FieldUpdatedAt:
 		return m.UpdatedAt()
+	case financecashflow.FieldSearchKeywords:
+		return m.SearchKeywords()
 	case financecashflow.FieldOrganizationID:
 		return m.OrganizationID()
 	case financecashflow.FieldFlowNo:
@@ -41862,6 +42120,8 @@ func (m *FinanceCashflowMutation) OldField(ctx context.Context, name string) (en
 		return m.OldCreatedAt(ctx)
 	case financecashflow.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
+	case financecashflow.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	case financecashflow.FieldOrganizationID:
 		return m.OldOrganizationID(ctx)
 	case financecashflow.FieldFlowNo:
@@ -41938,6 +42198,13 @@ func (m *FinanceCashflowMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
+		return nil
+	case financecashflow.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	case financecashflow.FieldOrganizationID:
 		v, ok := value.(uuid.UUID)
@@ -42255,6 +42522,9 @@ func (m *FinanceCashflowMutation) ResetField(name string) error {
 	case financecashflow.FieldUpdatedAt:
 		m.ResetUpdatedAt()
 		return nil
+	case financecashflow.FieldSearchKeywords:
+		m.ResetSearchKeywords()
+		return nil
 	case financecashflow.FieldOrganizationID:
 		m.ResetOrganizationID()
 		return nil
@@ -42504,6 +42774,7 @@ type FinanceCommissionMutation struct {
 	id                           *uuid.UUID
 	created_at                   *time.Time
 	updated_at                   *time.Time
+	search_keywords              *string
 	commission_no                *string
 	idempotency_key              *string
 	verification_no              *string
@@ -42754,6 +43025,42 @@ func (m *FinanceCommissionMutation) OldUpdatedAt(ctx context.Context) (v time.Ti
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *FinanceCommissionMutation) ResetUpdatedAt() {
 	m.updated_at = nil
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *FinanceCommissionMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *FinanceCommissionMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the FinanceCommission entity.
+// If the FinanceCommission object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *FinanceCommissionMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
 }
 
 // SetOrganizationID sets the "organization_id" field.
@@ -45292,12 +45599,15 @@ func (m *FinanceCommissionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceCommissionMutation) Fields() []string {
-	fields := make([]string, 0, 49)
+	fields := make([]string, 0, 50)
 	if m.created_at != nil {
 		fields = append(fields, financecommission.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, financecommission.FieldUpdatedAt)
+	}
+	if m.search_keywords != nil {
+		fields = append(fields, financecommission.FieldSearchKeywords)
 	}
 	if m.organization != nil {
 		fields = append(fields, financecommission.FieldOrganizationID)
@@ -45452,6 +45762,8 @@ func (m *FinanceCommissionMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case financecommission.FieldUpdatedAt:
 		return m.UpdatedAt()
+	case financecommission.FieldSearchKeywords:
+		return m.SearchKeywords()
 	case financecommission.FieldOrganizationID:
 		return m.OrganizationID()
 	case financecommission.FieldCommissionNo:
@@ -45559,6 +45871,8 @@ func (m *FinanceCommissionMutation) OldField(ctx context.Context, name string) (
 		return m.OldCreatedAt(ctx)
 	case financecommission.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
+	case financecommission.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	case financecommission.FieldOrganizationID:
 		return m.OldOrganizationID(ctx)
 	case financecommission.FieldCommissionNo:
@@ -45675,6 +45989,13 @@ func (m *FinanceCommissionMutation) SetField(name string, value ent.Value) error
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
+		return nil
+	case financecommission.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	case financecommission.FieldOrganizationID:
 		v, ok := value.(uuid.UUID)
@@ -46263,6 +46584,9 @@ func (m *FinanceCommissionMutation) ResetField(name string) error {
 		return nil
 	case financecommission.FieldUpdatedAt:
 		m.ResetUpdatedAt()
+		return nil
+	case financecommission.FieldSearchKeywords:
+		m.ResetSearchKeywords()
 		return nil
 	case financecommission.FieldOrganizationID:
 		m.ResetOrganizationID()
@@ -55549,6 +55873,7 @@ type FinanceCommissionRuleMutation struct {
 	id                  *uuid.UUID
 	created_at          *time.Time
 	updated_at          *time.Time
+	search_keywords     *string
 	name                *string
 	personnel_role      *financecommissionrule.PersonnelRole
 	calculation_basis   *financecommissionrule.CalculationBasis
@@ -55748,6 +56073,42 @@ func (m *FinanceCommissionRuleMutation) OldUpdatedAt(ctx context.Context) (v tim
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *FinanceCommissionRuleMutation) ResetUpdatedAt() {
 	m.updated_at = nil
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *FinanceCommissionRuleMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *FinanceCommissionRuleMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the FinanceCommissionRule entity.
+// If the FinanceCommissionRule object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceCommissionRuleMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *FinanceCommissionRuleMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
 }
 
 // SetOrganizationID sets the "organization_id" field.
@@ -56374,12 +56735,15 @@ func (m *FinanceCommissionRuleMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceCommissionRuleMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.created_at != nil {
 		fields = append(fields, financecommissionrule.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, financecommissionrule.FieldUpdatedAt)
+	}
+	if m.search_keywords != nil {
+		fields = append(fields, financecommissionrule.FieldSearchKeywords)
 	}
 	if m.organization != nil {
 		fields = append(fields, financecommissionrule.FieldOrganizationID)
@@ -56426,6 +56790,8 @@ func (m *FinanceCommissionRuleMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case financecommissionrule.FieldUpdatedAt:
 		return m.UpdatedAt()
+	case financecommissionrule.FieldSearchKeywords:
+		return m.SearchKeywords()
 	case financecommissionrule.FieldOrganizationID:
 		return m.OrganizationID()
 	case financecommissionrule.FieldName:
@@ -56461,6 +56827,8 @@ func (m *FinanceCommissionRuleMutation) OldField(ctx context.Context, name strin
 		return m.OldCreatedAt(ctx)
 	case financecommissionrule.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
+	case financecommissionrule.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	case financecommissionrule.FieldOrganizationID:
 		return m.OldOrganizationID(ctx)
 	case financecommissionrule.FieldName:
@@ -56505,6 +56873,13 @@ func (m *FinanceCommissionRuleMutation) SetField(name string, value ent.Value) e
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
+		return nil
+	case financecommissionrule.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	case financecommissionrule.FieldOrganizationID:
 		v, ok := value.(uuid.UUID)
@@ -56673,6 +57048,9 @@ func (m *FinanceCommissionRuleMutation) ResetField(name string) error {
 		return nil
 	case financecommissionrule.FieldUpdatedAt:
 		m.ResetUpdatedAt()
+		return nil
+	case financecommissionrule.FieldSearchKeywords:
+		m.ResetSearchKeywords()
 		return nil
 	case financecommissionrule.FieldOrganizationID:
 		m.ResetOrganizationID()
@@ -59323,6 +59701,7 @@ type FinanceInvoiceMutation struct {
 	id                         *uuid.UUID
 	created_at                 *time.Time
 	updated_at                 *time.Time
+	search_keywords            *string
 	record_no                  *string
 	idempotency_key            *string
 	direction                  *financeinvoice.Direction
@@ -59565,6 +59944,42 @@ func (m *FinanceInvoiceMutation) OldUpdatedAt(ctx context.Context) (v time.Time,
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *FinanceInvoiceMutation) ResetUpdatedAt() {
 	m.updated_at = nil
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *FinanceInvoiceMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *FinanceInvoiceMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the FinanceInvoice entity.
+// If the FinanceInvoice object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceInvoiceMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *FinanceInvoiceMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
 }
 
 // SetOrganizationID sets the "organization_id" field.
@@ -61879,12 +62294,15 @@ func (m *FinanceInvoiceMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceInvoiceMutation) Fields() []string {
-	fields := make([]string, 0, 43)
+	fields := make([]string, 0, 44)
 	if m.created_at != nil {
 		fields = append(fields, financeinvoice.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, financeinvoice.FieldUpdatedAt)
+	}
+	if m.search_keywords != nil {
+		fields = append(fields, financeinvoice.FieldSearchKeywords)
 	}
 	if m.organization != nil {
 		fields = append(fields, financeinvoice.FieldOrganizationID)
@@ -62021,6 +62439,8 @@ func (m *FinanceInvoiceMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case financeinvoice.FieldUpdatedAt:
 		return m.UpdatedAt()
+	case financeinvoice.FieldSearchKeywords:
+		return m.SearchKeywords()
 	case financeinvoice.FieldOrganizationID:
 		return m.OrganizationID()
 	case financeinvoice.FieldRecordNo:
@@ -62116,6 +62536,8 @@ func (m *FinanceInvoiceMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldCreatedAt(ctx)
 	case financeinvoice.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
+	case financeinvoice.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	case financeinvoice.FieldOrganizationID:
 		return m.OldOrganizationID(ctx)
 	case financeinvoice.FieldRecordNo:
@@ -62220,6 +62642,13 @@ func (m *FinanceInvoiceMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
+		return nil
+	case financeinvoice.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	case financeinvoice.FieldOrganizationID:
 		v, ok := value.(uuid.UUID)
@@ -62754,6 +63183,9 @@ func (m *FinanceInvoiceMutation) ResetField(name string) error {
 		return nil
 	case financeinvoice.FieldUpdatedAt:
 		m.ResetUpdatedAt()
+		return nil
+	case financeinvoice.FieldSearchKeywords:
+		m.ResetSearchKeywords()
 		return nil
 	case financeinvoice.FieldOrganizationID:
 		m.ResetOrganizationID()
@@ -69165,6 +69597,7 @@ type FinanceNettingMutation struct {
 	id                                     *uuid.UUID
 	created_at                             *time.Time
 	updated_at                             *time.Time
+	search_keywords                        *string
 	netting_no                             *string
 	idempotency_key                        *string
 	request_hash                           *string
@@ -69387,6 +69820,42 @@ func (m *FinanceNettingMutation) OldUpdatedAt(ctx context.Context) (v time.Time,
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *FinanceNettingMutation) ResetUpdatedAt() {
 	m.updated_at = nil
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *FinanceNettingMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *FinanceNettingMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the FinanceNetting entity.
+// If the FinanceNetting object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceNettingMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *FinanceNettingMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
 }
 
 // SetCorrectionRequestID sets the "correction_request_id" field.
@@ -70876,12 +71345,15 @@ func (m *FinanceNettingMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceNettingMutation) Fields() []string {
-	fields := make([]string, 0, 27)
+	fields := make([]string, 0, 28)
 	if m.created_at != nil {
 		fields = append(fields, financenetting.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, financenetting.FieldUpdatedAt)
+	}
+	if m.search_keywords != nil {
+		fields = append(fields, financenetting.FieldSearchKeywords)
 	}
 	if m.correction_request != nil {
 		fields = append(fields, financenetting.FieldCorrectionRequestID)
@@ -70970,6 +71442,8 @@ func (m *FinanceNettingMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case financenetting.FieldUpdatedAt:
 		return m.UpdatedAt()
+	case financenetting.FieldSearchKeywords:
+		return m.SearchKeywords()
 	case financenetting.FieldCorrectionRequestID:
 		return m.CorrectionRequestID()
 	case financenetting.FieldOrganizationID:
@@ -71033,6 +71507,8 @@ func (m *FinanceNettingMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldCreatedAt(ctx)
 	case financenetting.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
+	case financenetting.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	case financenetting.FieldCorrectionRequestID:
 		return m.OldCorrectionRequestID(ctx)
 	case financenetting.FieldOrganizationID:
@@ -71105,6 +71581,13 @@ func (m *FinanceNettingMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
+		return nil
+	case financenetting.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	case financenetting.FieldCorrectionRequestID:
 		v, ok := value.(uuid.UUID)
@@ -71419,6 +71902,9 @@ func (m *FinanceNettingMutation) ResetField(name string) error {
 		return nil
 	case financenetting.FieldUpdatedAt:
 		m.ResetUpdatedAt()
+		return nil
+	case financenetting.FieldSearchKeywords:
+		m.ResetSearchKeywords()
 		return nil
 	case financenetting.FieldCorrectionRequestID:
 		m.ResetCorrectionRequestID()
@@ -72755,6 +73241,7 @@ type FinanceVerificationMutation struct {
 	id                                     *uuid.UUID
 	created_at                             *time.Time
 	updated_at                             *time.Time
+	search_keywords                        *string
 	verification_no                        *string
 	idempotency_key                        *string
 	status                                 *financeverification.Status
@@ -72968,6 +73455,42 @@ func (m *FinanceVerificationMutation) OldUpdatedAt(ctx context.Context) (v time.
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *FinanceVerificationMutation) ResetUpdatedAt() {
 	m.updated_at = nil
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *FinanceVerificationMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *FinanceVerificationMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the FinanceVerification entity.
+// If the FinanceVerification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FinanceVerificationMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *FinanceVerificationMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
 }
 
 // SetOrganizationID sets the "organization_id" field.
@@ -74052,12 +74575,15 @@ func (m *FinanceVerificationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FinanceVerificationMutation) Fields() []string {
-	fields := make([]string, 0, 22)
+	fields := make([]string, 0, 23)
 	if m.created_at != nil {
 		fields = append(fields, financeverification.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, financeverification.FieldUpdatedAt)
+	}
+	if m.search_keywords != nil {
+		fields = append(fields, financeverification.FieldSearchKeywords)
 	}
 	if m.organization != nil {
 		fields = append(fields, financeverification.FieldOrganizationID)
@@ -74131,6 +74657,8 @@ func (m *FinanceVerificationMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case financeverification.FieldUpdatedAt:
 		return m.UpdatedAt()
+	case financeverification.FieldSearchKeywords:
+		return m.SearchKeywords()
 	case financeverification.FieldOrganizationID:
 		return m.OrganizationID()
 	case financeverification.FieldVerificationNo:
@@ -74184,6 +74712,8 @@ func (m *FinanceVerificationMutation) OldField(ctx context.Context, name string)
 		return m.OldCreatedAt(ctx)
 	case financeverification.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
+	case financeverification.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	case financeverification.FieldOrganizationID:
 		return m.OldOrganizationID(ctx)
 	case financeverification.FieldVerificationNo:
@@ -74246,6 +74776,13 @@ func (m *FinanceVerificationMutation) SetField(name string, value ent.Value) err
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
+		return nil
+	case financeverification.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	case financeverification.FieldOrganizationID:
 		v, ok := value.(uuid.UUID)
@@ -74483,6 +75020,9 @@ func (m *FinanceVerificationMutation) ResetField(name string) error {
 		return nil
 	case financeverification.FieldUpdatedAt:
 		m.ResetUpdatedAt()
+		return nil
+	case financeverification.FieldSearchKeywords:
+		m.ResetSearchKeywords()
 		return nil
 	case financeverification.FieldOrganizationID:
 		m.ResetOrganizationID()
@@ -81544,6 +82084,9 @@ type OrderMutation struct {
 	id                                      *uuid.UUID
 	created_at                              *time.Time
 	updated_at                              *time.Time
+	search_keywords                         *string
+	shipper_search_keywords                 *string
+	consignee_search_keywords               *string
 	order_no                                *string
 	idempotency_key                         *string
 	customer_reference_no                   *string
@@ -81900,6 +82443,114 @@ func (m *OrderMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err erro
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *OrderMutation) ResetUpdatedAt() {
 	m.updated_at = nil
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *OrderMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *OrderMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *OrderMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
+}
+
+// SetShipperSearchKeywords sets the "shipper_search_keywords" field.
+func (m *OrderMutation) SetShipperSearchKeywords(s string) {
+	m.shipper_search_keywords = &s
+}
+
+// ShipperSearchKeywords returns the value of the "shipper_search_keywords" field in the mutation.
+func (m *OrderMutation) ShipperSearchKeywords() (r string, exists bool) {
+	v := m.shipper_search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldShipperSearchKeywords returns the old "shipper_search_keywords" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldShipperSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldShipperSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldShipperSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldShipperSearchKeywords: %w", err)
+	}
+	return oldValue.ShipperSearchKeywords, nil
+}
+
+// ResetShipperSearchKeywords resets all changes to the "shipper_search_keywords" field.
+func (m *OrderMutation) ResetShipperSearchKeywords() {
+	m.shipper_search_keywords = nil
+}
+
+// SetConsigneeSearchKeywords sets the "consignee_search_keywords" field.
+func (m *OrderMutation) SetConsigneeSearchKeywords(s string) {
+	m.consignee_search_keywords = &s
+}
+
+// ConsigneeSearchKeywords returns the value of the "consignee_search_keywords" field in the mutation.
+func (m *OrderMutation) ConsigneeSearchKeywords() (r string, exists bool) {
+	v := m.consignee_search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConsigneeSearchKeywords returns the old "consignee_search_keywords" field's value of the Order entity.
+// If the Order object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrderMutation) OldConsigneeSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConsigneeSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConsigneeSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConsigneeSearchKeywords: %w", err)
+	}
+	return oldValue.ConsigneeSearchKeywords, nil
+}
+
+// ResetConsigneeSearchKeywords resets all changes to the "consignee_search_keywords" field.
+func (m *OrderMutation) ResetConsigneeSearchKeywords() {
+	m.consignee_search_keywords = nil
 }
 
 // SetOrganizationID sets the "organization_id" field.
@@ -87354,12 +88005,21 @@ func (m *OrderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrderMutation) Fields() []string {
-	fields := make([]string, 0, 80)
+	fields := make([]string, 0, 83)
 	if m.created_at != nil {
 		fields = append(fields, order.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, order.FieldUpdatedAt)
+	}
+	if m.search_keywords != nil {
+		fields = append(fields, order.FieldSearchKeywords)
+	}
+	if m.shipper_search_keywords != nil {
+		fields = append(fields, order.FieldShipperSearchKeywords)
+	}
+	if m.consignee_search_keywords != nil {
+		fields = append(fields, order.FieldConsigneeSearchKeywords)
 	}
 	if m.organization != nil {
 		fields = append(fields, order.FieldOrganizationID)
@@ -87607,6 +88267,12 @@ func (m *OrderMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case order.FieldUpdatedAt:
 		return m.UpdatedAt()
+	case order.FieldSearchKeywords:
+		return m.SearchKeywords()
+	case order.FieldShipperSearchKeywords:
+		return m.ShipperSearchKeywords()
+	case order.FieldConsigneeSearchKeywords:
+		return m.ConsigneeSearchKeywords()
 	case order.FieldOrganizationID:
 		return m.OrganizationID()
 	case order.FieldOrderNo:
@@ -87776,6 +88442,12 @@ func (m *OrderMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldCreatedAt(ctx)
 	case order.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
+	case order.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
+	case order.FieldShipperSearchKeywords:
+		return m.OldShipperSearchKeywords(ctx)
+	case order.FieldConsigneeSearchKeywords:
+		return m.OldConsigneeSearchKeywords(ctx)
 	case order.FieldOrganizationID:
 		return m.OldOrganizationID(ctx)
 	case order.FieldOrderNo:
@@ -87954,6 +88626,27 @@ func (m *OrderMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
+		return nil
+	case order.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
+		return nil
+	case order.FieldShipperSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetShipperSearchKeywords(v)
+		return nil
+	case order.FieldConsigneeSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConsigneeSearchKeywords(v)
 		return nil
 	case order.FieldOrganizationID:
 		v, ok := value.(uuid.UUID)
@@ -89005,6 +89698,15 @@ func (m *OrderMutation) ResetField(name string) error {
 		return nil
 	case order.FieldUpdatedAt:
 		m.ResetUpdatedAt()
+		return nil
+	case order.FieldSearchKeywords:
+		m.ResetSearchKeywords()
+		return nil
+	case order.FieldShipperSearchKeywords:
+		m.ResetShipperSearchKeywords()
+		return nil
+	case order.FieldConsigneeSearchKeywords:
+		m.ResetConsigneeSearchKeywords()
 		return nil
 	case order.FieldOrganizationID:
 		m.ResetOrganizationID()
@@ -133612,22 +134314,23 @@ func (m *PartnerAttachmentMutation) ResetEdge(name string) error {
 // PartnerContactMutation represents an operation that mutates the PartnerContact nodes in the graph.
 type PartnerContactMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *uuid.UUID
-	created_at     *time.Time
-	updated_at     *time.Time
-	name           *string
-	phone          *string
-	email          *string
-	note           *string
-	is_primary     *bool
-	clearedFields  map[string]struct{}
-	partner        *uuid.UUID
-	clearedpartner bool
-	done           bool
-	oldValue       func(context.Context) (*PartnerContact, error)
-	predicates     []predicate.PartnerContact
+	op              Op
+	typ             string
+	id              *uuid.UUID
+	created_at      *time.Time
+	updated_at      *time.Time
+	search_keywords *string
+	name            *string
+	phone           *string
+	email           *string
+	note            *string
+	is_primary      *bool
+	clearedFields   map[string]struct{}
+	partner         *uuid.UUID
+	clearedpartner  bool
+	done            bool
+	oldValue        func(context.Context) (*PartnerContact, error)
+	predicates      []predicate.PartnerContact
 }
 
 var _ ent.Mutation = (*PartnerContactMutation)(nil)
@@ -133804,6 +134507,42 @@ func (m *PartnerContactMutation) OldUpdatedAt(ctx context.Context) (v time.Time,
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *PartnerContactMutation) ResetUpdatedAt() {
 	m.updated_at = nil
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (m *PartnerContactMutation) SetSearchKeywords(s string) {
+	m.search_keywords = &s
+}
+
+// SearchKeywords returns the value of the "search_keywords" field in the mutation.
+func (m *PartnerContactMutation) SearchKeywords() (r string, exists bool) {
+	v := m.search_keywords
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSearchKeywords returns the old "search_keywords" field's value of the PartnerContact entity.
+// If the PartnerContact object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PartnerContactMutation) OldSearchKeywords(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSearchKeywords is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSearchKeywords requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSearchKeywords: %w", err)
+	}
+	return oldValue.SearchKeywords, nil
+}
+
+// ResetSearchKeywords resets all changes to the "search_keywords" field.
+func (m *PartnerContactMutation) ResetSearchKeywords() {
+	m.search_keywords = nil
 }
 
 // SetPartnerID sets the "partner_id" field.
@@ -134122,12 +134861,15 @@ func (m *PartnerContactMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PartnerContactMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.created_at != nil {
 		fields = append(fields, partnercontact.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, partnercontact.FieldUpdatedAt)
+	}
+	if m.search_keywords != nil {
+		fields = append(fields, partnercontact.FieldSearchKeywords)
 	}
 	if m.partner != nil {
 		fields = append(fields, partnercontact.FieldPartnerID)
@@ -134159,6 +134901,8 @@ func (m *PartnerContactMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case partnercontact.FieldUpdatedAt:
 		return m.UpdatedAt()
+	case partnercontact.FieldSearchKeywords:
+		return m.SearchKeywords()
 	case partnercontact.FieldPartnerID:
 		return m.PartnerID()
 	case partnercontact.FieldName:
@@ -134184,6 +134928,8 @@ func (m *PartnerContactMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldCreatedAt(ctx)
 	case partnercontact.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
+	case partnercontact.FieldSearchKeywords:
+		return m.OldSearchKeywords(ctx)
 	case partnercontact.FieldPartnerID:
 		return m.OldPartnerID(ctx)
 	case partnercontact.FieldName:
@@ -134218,6 +134964,13 @@ func (m *PartnerContactMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
+		return nil
+	case partnercontact.FieldSearchKeywords:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSearchKeywords(v)
 		return nil
 	case partnercontact.FieldPartnerID:
 		v, ok := value.(uuid.UUID)
@@ -134336,6 +135089,9 @@ func (m *PartnerContactMutation) ResetField(name string) error {
 		return nil
 	case partnercontact.FieldUpdatedAt:
 		m.ResetUpdatedAt()
+		return nil
+	case partnercontact.FieldSearchKeywords:
+		m.ResetSearchKeywords()
 		return nil
 	case partnercontact.FieldPartnerID:
 		m.ResetPartnerID()

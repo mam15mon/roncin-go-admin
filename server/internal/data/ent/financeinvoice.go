@@ -26,6 +26,8 @@ type FinanceInvoice struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// SearchKeywords holds the value of the "search_keywords" field.
+	SearchKeywords string `json:"search_keywords,omitempty"`
 	// OrganizationID holds the value of the "organization_id" field.
 	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// RecordNo holds the value of the "record_no" field.
@@ -252,7 +254,7 @@ func (*FinanceInvoice) scanValues(columns []string) ([]any, error) {
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case financeinvoice.FieldBillCount, financeinvoice.FieldVersion, financeinvoice.FieldRevisionNumber:
 			values[i] = new(sql.NullInt64)
-		case financeinvoice.FieldRecordNo, financeinvoice.FieldIdempotencyKey, financeinvoice.FieldDirection, financeinvoice.FieldStatus, financeinvoice.FieldInvoiceType, financeinvoice.FieldSettlementPartyName, financeinvoice.FieldInvoiceTitle, financeinvoice.FieldTaxpayerIdentificationNo, financeinvoice.FieldRegisteredAddress, financeinvoice.FieldRegisteredPhone, financeinvoice.FieldBankName, financeinvoice.FieldBankAccount, financeinvoice.FieldCurrency, financeinvoice.FieldBaseCurrency, financeinvoice.FieldExchangeRate, financeinvoice.FieldExchangeRateSource, financeinvoice.FieldExchangeRateDate, financeinvoice.FieldBaseCurrencyAmount, financeinvoice.FieldTotalAmount, financeinvoice.FieldNetAmount, financeinvoice.FieldTaxAmount, financeinvoice.FieldTaxInvoiceNo, financeinvoice.FieldInvoiceDate, financeinvoice.FieldNote, financeinvoice.FieldCancellationReason, financeinvoice.FieldRedInvoiceNo, financeinvoice.FieldRedInvoiceDate, financeinvoice.FieldRedFlushReason:
+		case financeinvoice.FieldSearchKeywords, financeinvoice.FieldRecordNo, financeinvoice.FieldIdempotencyKey, financeinvoice.FieldDirection, financeinvoice.FieldStatus, financeinvoice.FieldInvoiceType, financeinvoice.FieldSettlementPartyName, financeinvoice.FieldInvoiceTitle, financeinvoice.FieldTaxpayerIdentificationNo, financeinvoice.FieldRegisteredAddress, financeinvoice.FieldRegisteredPhone, financeinvoice.FieldBankName, financeinvoice.FieldBankAccount, financeinvoice.FieldCurrency, financeinvoice.FieldBaseCurrency, financeinvoice.FieldExchangeRate, financeinvoice.FieldExchangeRateSource, financeinvoice.FieldExchangeRateDate, financeinvoice.FieldBaseCurrencyAmount, financeinvoice.FieldTotalAmount, financeinvoice.FieldNetAmount, financeinvoice.FieldTaxAmount, financeinvoice.FieldTaxInvoiceNo, financeinvoice.FieldInvoiceDate, financeinvoice.FieldNote, financeinvoice.FieldCancellationReason, financeinvoice.FieldRedInvoiceNo, financeinvoice.FieldRedInvoiceDate, financeinvoice.FieldRedFlushReason:
 			values[i] = new(sql.NullString)
 		case financeinvoice.FieldCreatedAt, financeinvoice.FieldUpdatedAt, financeinvoice.FieldIssuedAt, financeinvoice.FieldCancelledAt, financeinvoice.FieldRedFlushedAt:
 			values[i] = new(sql.NullTime)
@@ -290,6 +292,12 @@ func (_m *FinanceInvoice) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
+			}
+		case financeinvoice.FieldSearchKeywords:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field search_keywords", values[i])
+			} else if value.Valid {
+				_m.SearchKeywords = value.String
 			}
 		case financeinvoice.FieldOrganizationID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -653,6 +661,9 @@ func (_m *FinanceInvoice) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("search_keywords=")
+	builder.WriteString(_m.SearchKeywords)
 	builder.WriteString(", ")
 	builder.WriteString("organization_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))

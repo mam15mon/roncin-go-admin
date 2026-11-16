@@ -14,7 +14,7 @@ import (
 
 func seedLegacyImportOrder(t *testing.T, d *Data, ctx context.Context, org, customer uuid.UUID) *ent.Order {
 	t.Helper()
-	return d.db.Order.Create().SetOrganizationID(org).SetCustomerID(customer).SetOrderNo("SI-OLD-" + uuid.NewString()).SetIdempotencyKey(uuid.NewString()).SetBusinessType("SI").SetTradeDirection("import").SetPaymentTerm("PREPAID").SetNotes("原始进口备注完整保留").SaveX(ctx)
+	return mustMigrationFixture(insertMigrationFixture[ent.Order](ctx, d, "orders", d.db.Order.Create().SetOrganizationID(org).SetCustomerID(customer).SetOrderNo("SI-OLD-"+uuid.NewString()).SetIdempotencyKey(uuid.NewString()).SetBusinessType("SI").SetTradeDirection("import").SetPaymentTerm("PREPAID").SetNotes("原始进口备注完整保留").Mutation()))
 }
 func TestSeaImportMigrationPreservesDataPostgres(t *testing.T) {
 	d, cleanup := getIntegrationDataBeforeMigration(t, "20261116160000_sea_import_handling.sql")
@@ -22,7 +22,7 @@ func TestSeaImportMigrationPreservesDataPostgres(t *testing.T) {
 	ctx := context.Background()
 	f := seaImportMigrationFixture(t, d)
 	o := seedLegacyImportOrder(t, d, ctx, f.organizationID, f.partnerID)
-	o = d.db.Order.GetX(ctx, o.ID)
+
 	if e := migration.Apply(ctx, d.sqlDB, filepath.Join("..", "..", "migrations")); e != nil {
 		t.Fatal(e)
 	}
@@ -65,7 +65,11 @@ func TestSeaImportMigrationRejectsUnverifiableSnapshotsPostgres(t *testing.T) {
 	if exists {
 		t.Fatal("迁移失败留下部分DDL")
 	}
-	if actual := d.db.Order.GetX(ctx, o.ID); actual.FlowStatus != o.FlowStatus {
+	var flowStatus string
+	if e := d.sqlDB.QueryRowContext(ctx, `SELECT flow_status FROM orders WHERE id=$1`, o.ID).Scan(&flowStatus); e != nil {
+		t.Fatal(e)
+	}
+	if flowStatus != string(o.FlowStatus) {
 		t.Fatal("迁移失败未回滚摘要")
 	}
 	var count int

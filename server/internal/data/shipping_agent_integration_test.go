@@ -181,28 +181,34 @@ func TestShippingAgentMigrationPostgres(t *testing.T) {
 	ctx := t.Context()
 	f := newOrderPostgresFixture(t, d)
 	// 船代迁移只依赖历史订单引用；当前完整建单会读取后续迁移才加入的组织字段。
-	created, err := d.db.Order.Create().SetIdempotencyKey(uuid.NewString()).
-		SetOrganizationID(f.organizationID).SetOrderNo("SHIPPING-MIGRATION-" + f.suffix).
+	created, err := insertMigrationFixture[ent.Order](ctx, d, "orders", d.db.Order.Create().SetIdempotencyKey(uuid.NewString()).
+		SetOrganizationID(f.organizationID).SetOrderNo("SHIPPING-MIGRATION-"+f.suffix).
 		SetCustomerID(f.partnerID).SetBusinessType(orderent.BusinessTypeSE).
-		SetTradeDirection(orderent.TradeDirectionExport).SetPaymentTerm(orderent.PaymentTermPREPAID).
-		Save(ctx)
+		SetTradeDirection(orderent.TradeDirectionExport).SetPaymentTerm(orderent.PaymentTermPREPAID).Mutation())
 	if err != nil {
 		t.Fatal(err)
 	}
 	// 历史合同允许供应商 UUID；仅构造这一已确认历史前态，迁移必须原子拒绝。
-	d.db.Order.UpdateOneID(created.ID).SetShippingAgentID(f.partnerID).SaveX(ctx)
+	if _, err := d.sqlDB.ExecContext(ctx, `UPDATE orders SET shipping_agent_id=$1 WHERE id=$2`, f.partnerID, created.ID); err != nil {
+		t.Fatal(err)
+	}
 	if err := migration.Apply(ctx, d.sqlDB, filepath.Join("..", "..", "migrations")); err == nil || !strings.Contains(err.Error(), "未映射") {
 		t.Fatalf("旧引用应显式拒绝: %v", err)
 	}
-	old := d.db.Order.GetX(ctx, created.ID)
-	if old.ShippingAgentID == nil || *old.ShippingAgentID != f.partnerID {
+	var shippingAgentID *uuid.UUID
+	if err := d.sqlDB.QueryRowContext(ctx, `SELECT shipping_agent_id FROM orders WHERE id=$1`, created.ID).Scan(&shippingAgentID); err != nil {
+		t.Fatal(err)
+	}
+	if shippingAgentID == nil || *shippingAgentID != f.partnerID {
 		t.Fatal("失败迁移修改旧引用")
 	}
 	var revisions int
 	if err := d.sqlDB.QueryRowContext(ctx, `SELECT count(*) FROM schema_migrations WHERE version='20261027100000_shipping_agent_masterdata'`).Scan(&revisions); err != nil || revisions != 0 {
 		t.Fatalf("失败迁移不应记录 revision %d %v", revisions, err)
 	}
-	d.db.Order.UpdateOneID(created.ID).ClearShippingAgentID().SaveX(ctx)
+	if _, err := d.sqlDB.ExecContext(ctx, `UPDATE orders SET shipping_agent_id=NULL WHERE id=$1`, created.ID); err != nil {
+		t.Fatal(err)
+	}
 	// 已核实开发库缺少同名约束，验证该前态也能收敛。
 	if _, err := d.sqlDB.ExecContext(ctx, `ALTER TABLE master_data_items DROP CONSTRAINT IF EXISTS master_data_items_kind_check`); err != nil {
 		t.Fatal(err)

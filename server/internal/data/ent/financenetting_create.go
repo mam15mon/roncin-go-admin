@@ -60,6 +60,20 @@ func (_c *FinanceNettingCreate) SetNillableUpdatedAt(v *time.Time) *FinanceNetti
 	return _c
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_c *FinanceNettingCreate) SetSearchKeywords(v string) *FinanceNettingCreate {
+	_c.mutation.SetSearchKeywords(v)
+	return _c
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_c *FinanceNettingCreate) SetNillableSearchKeywords(v *string) *FinanceNettingCreate {
+	if v != nil {
+		_c.SetSearchKeywords(*v)
+	}
+	return _c
+}
+
 // SetCorrectionRequestID sets the "correction_request_id" field.
 func (_c *FinanceNettingCreate) SetCorrectionRequestID(v uuid.UUID) *FinanceNettingCreate {
 	_c.mutation.SetCorrectionRequestID(v)
@@ -457,7 +471,9 @@ func (_c *FinanceNettingCreate) Mutation() *FinanceNettingMutation {
 
 // Save creates the FinanceNetting in the database.
 func (_c *FinanceNettingCreate) Save(ctx context.Context) (*FinanceNetting, error) {
-	_c.defaults()
+	if err := _c.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -484,14 +500,24 @@ func (_c *FinanceNettingCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *FinanceNettingCreate) defaults() {
+func (_c *FinanceNettingCreate) defaults() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
+		if financenetting.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized financenetting.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
 		v := financenetting.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		if financenetting.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized financenetting.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := financenetting.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		v := financenetting.DefaultSearchKeywords
+		_c.mutation.SetSearchKeywords(v)
 	}
 	if _, ok := _c.mutation.Status(); !ok {
 		v := financenetting.DefaultStatus
@@ -502,9 +528,13 @@ func (_c *FinanceNettingCreate) defaults() {
 		_c.mutation.SetVersion(v)
 	}
 	if _, ok := _c.mutation.ID(); !ok {
+		if financenetting.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized financenetting.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := financenetting.DefaultID()
 		_c.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -514,6 +544,9 @@ func (_c *FinanceNettingCreate) check() error {
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "FinanceNetting.updated_at"`)}
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "FinanceNetting.search_keywords"`)}
 	}
 	if _, ok := _c.mutation.OrganizationID(); !ok {
 		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "FinanceNetting.organization_id"`)}
@@ -656,6 +689,10 @@ func (_c *FinanceNettingCreate) createSpec() (*FinanceNetting, *sqlgraph.CreateS
 	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(financenetting.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if value, ok := _c.mutation.SearchKeywords(); ok {
+		_spec.SetField(financenetting.FieldSearchKeywords, field.TypeString, value)
+		_node.SearchKeywords = value
 	}
 	if value, ok := _c.mutation.NettingNo(); ok {
 		_spec.SetField(financenetting.FieldNettingNo, field.TypeString, value)
@@ -957,6 +994,18 @@ func (u *FinanceNettingUpsert) SetUpdatedAt(v time.Time) *FinanceNettingUpsert {
 // UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
 func (u *FinanceNettingUpsert) UpdateUpdatedAt() *FinanceNettingUpsert {
 	u.SetExcluded(financenetting.FieldUpdatedAt)
+	return u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *FinanceNettingUpsert) SetSearchKeywords(v string) *FinanceNettingUpsert {
+	u.Set(financenetting.FieldSearchKeywords, v)
+	return u
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *FinanceNettingUpsert) UpdateSearchKeywords() *FinanceNettingUpsert {
+	u.SetExcluded(financenetting.FieldSearchKeywords)
 	return u
 }
 
@@ -1283,6 +1332,20 @@ func (u *FinanceNettingUpsertOne) SetUpdatedAt(v time.Time) *FinanceNettingUpser
 func (u *FinanceNettingUpsertOne) UpdateUpdatedAt() *FinanceNettingUpsertOne {
 	return u.Update(func(s *FinanceNettingUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *FinanceNettingUpsertOne) SetSearchKeywords(v string) *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *FinanceNettingUpsertOne) UpdateSearchKeywords() *FinanceNettingUpsertOne {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateSearchKeywords()
 	})
 }
 
@@ -1814,6 +1877,20 @@ func (u *FinanceNettingUpsertBulk) SetUpdatedAt(v time.Time) *FinanceNettingUpse
 func (u *FinanceNettingUpsertBulk) UpdateUpdatedAt() *FinanceNettingUpsertBulk {
 	return u.Update(func(s *FinanceNettingUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *FinanceNettingUpsertBulk) SetSearchKeywords(v string) *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *FinanceNettingUpsertBulk) UpdateSearchKeywords() *FinanceNettingUpsertBulk {
+	return u.Update(func(s *FinanceNettingUpsert) {
+		s.UpdateSearchKeywords()
 	})
 }
 

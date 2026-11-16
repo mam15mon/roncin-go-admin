@@ -1,8 +1,8 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
-import { ProFormSelect, ProFormText } from '@ant-design/pro-components';
+import { ProFormText } from '@ant-design/pro-components';
 import { Alert, App } from 'antd';
 import React, { useRef } from 'react';
-import { GuardedModalForm } from '@/components/ui';
+import { GuardedModalForm, ProFormSearchableSelect } from '@/components/ui';
 import { getCurrencyOptions } from '@/features/master-data/currencies';
 import { adminServiceCreateOrganization } from '@/services/roncin/adminService';
 import { isWriteResponse } from '@/utils/api';
@@ -101,7 +101,7 @@ export default function OrgCreateModal({
       {childKind === 2 && (
         <>
           <CompanyEnglishNameField />
-          <ProFormSelect
+          <ProFormSearchableSelect
             name="baseCurrency"
             label="本币"
             placeholder="请选择公司本币"

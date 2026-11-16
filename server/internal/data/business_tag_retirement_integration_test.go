@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/access"
 	"github.com/roncin/roncin-go-admin/server/internal/biz"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/auditlog"
 	resourceent "github.com/roncin/roncin-go-admin/server/internal/data/ent/enterpriseresource"
 	billent "github.com/roncin/roncin-go-admin/server/internal/data/ent/financebill"
@@ -39,7 +40,7 @@ func TestBusinessTagRetirementUpgradePostgres(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	order, err := client.Order.Create().SetOrganizationID(org.ID).SetCustomerID(partner.ID).SetOrderNo("SE-TAG-RETIRE").SetIdempotencyKey(uuid.NewString()).SetBusinessType(orderent.BusinessTypeSE).SetTradeDirection(orderent.TradeDirectionExport).SetPaymentTerm(orderent.PaymentTermPREPAID).SetVersion(7).Save(ctx)
+	order, err := insertMigrationFixture[ent.Order](ctx, data, "orders", client.Order.Create().SetOrganizationID(org.ID).SetCustomerID(partner.ID).SetOrderNo("SE-TAG-RETIRE").SetIdempotencyKey(uuid.NewString()).SetBusinessType(orderent.BusinessTypeSE).SetTradeDirection(orderent.TradeDirectionExport).SetPaymentTerm(orderent.PaymentTermPREPAID).SetVersion(7).Mutation())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,7 +52,7 @@ func TestBusinessTagRetirementUpgradePostgres(t *testing.T) {
 		 exchange_rate_date,base_currency,base_currency_amount,version)
 		VALUES($1,now(),now(),$2,$3,$4,'RECEIVABLE','TEST','保留海运费','票',1,123.45,123.45,123.45,0,'CNY',1,'SYSTEM','2026-11-09','CNY',123.45,3)`,
 		feeID, order.ID, partner.ID, uuid.NewString())
-	bill, err := withTestFinanceBillSettlementAccountSnapshot(client.FinanceBill.Create(), uuid.New(), "CNY").SetOrganizationID(org.ID).SetExchangeRate("1").SetExchangeRateSource(billent.ExchangeRateSourceSYSTEM).SetExchangeRateDate("2026-11-09").SetBillNo("KEEP-BILL").SetIdempotencyKey(uuid.NewString()).SetDirection(billent.DirectionRECEIVABLE).SetSettlementPartyID(partner.ID).SetSettlementPartyName(partner.LegalName).SetCurrency("CNY").SetBaseCurrency("CNY").SetTotalAmount("123.45").SetNetAmount("123.45").SetTaxAmount("0").SetBaseCurrencyAmount("123.45").SetFeeCount(1).SetBillDate("2026-11-09").SetStatus(billent.StatusCONFIRMED).SetConfirmedAt(time.Date(2026, 11, 9, 0, 0, 0, 0, time.UTC)).SetConfirmedBy(actor.ID).SetVersion(4).Save(ctx)
+	bill, err := insertMigrationFixture[ent.FinanceBill](ctx, data, "finance_bills", withTestFinanceBillSettlementAccountSnapshot(client.FinanceBill.Create(), uuid.New(), "CNY").SetOrganizationID(org.ID).SetExchangeRate("1").SetExchangeRateSource(billent.ExchangeRateSourceSYSTEM).SetExchangeRateDate("2026-11-09").SetBillNo("KEEP-BILL").SetIdempotencyKey(uuid.NewString()).SetDirection(billent.DirectionRECEIVABLE).SetSettlementPartyID(partner.ID).SetSettlementPartyName(partner.LegalName).SetCurrency("CNY").SetBaseCurrency("CNY").SetTotalAmount("123.45").SetNetAmount("123.45").SetTaxAmount("0").SetBaseCurrencyAmount("123.45").SetFeeCount(1).SetBillDate("2026-11-09").SetStatus(billent.StatusCONFIRMED).SetConfirmedAt(time.Date(2026, 11, 9, 0, 0, 0, 0, time.UTC)).SetConfirmedBy(actor.ID).SetVersion(4).Mutation())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -224,11 +225,8 @@ func tagRetirementSnapshots(t *testing.T, db *sql.DB, tables []string, excludeTa
 				filter = " WHERE t.resource_id IN (SELECT id FROM enterprise_resources WHERE resource_type <> 'TAG')"
 			}
 		}
-		rowJSON := "to_jsonb(t)"
-		if table == "order_fees" {
-			// 后续迁移允许新增派生检索列，仍逐字段比较全部费用业务数据。
-			rowJSON += " - 'search_keywords'"
-		}
+		// 后续迁移允许新增派生检索列，仍逐字段比较全部业务数据。
+		rowJSON := "to_jsonb(t) - 'search_keywords' - 'shipper_search_keywords' - 'consignee_search_keywords'"
 		var snapshot string
 		if err := db.QueryRowContext(context.Background(), `SELECT COALESCE(jsonb_agg(`+rowJSON+` ORDER BY id),'[]'::jsonb)::text FROM "`+table+`" t`+filter).Scan(&snapshot); err != nil {
 			t.Fatal(err)

@@ -10,7 +10,6 @@ import type {
 } from '@ant-design/pro-components';
 import {
   ProFormDateRangePicker,
-  ProFormSelect,
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
@@ -19,6 +18,7 @@ import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
 import {
   GuardedModalForm,
+  ProFormSearchableSelect,
   ResponsiveProTable as ProTable,
 } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
@@ -265,7 +265,7 @@ export default function ContractsPanel({
           placeholder="例如：2026年度国际海运出口货代服务框架协议"
           rules={[{ required: true, message: '请输入合同名称' }]}
         />
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="status"
           label="合同生命周期状态"
           options={availableContractStatuses(editingContract)}

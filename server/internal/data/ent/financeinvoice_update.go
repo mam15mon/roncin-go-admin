@@ -40,6 +40,20 @@ func (_u *FinanceInvoiceUpdate) SetUpdatedAt(v time.Time) *FinanceInvoiceUpdate 
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *FinanceInvoiceUpdate) SetSearchKeywords(v string) *FinanceInvoiceUpdate {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdate) SetNillableSearchKeywords(v *string) *FinanceInvoiceUpdate {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetStatus sets the "status" field.
 func (_u *FinanceInvoiceUpdate) SetStatus(v financeinvoice.Status) *FinanceInvoiceUpdate {
 	_u.mutation.SetStatus(v)
@@ -759,7 +773,9 @@ func (_u *FinanceInvoiceUpdate) RemoveRevisions(v ...*FinanceInvoiceRevision) *F
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *FinanceInvoiceUpdate) Save(ctx context.Context) (int, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -786,11 +802,15 @@ func (_u *FinanceInvoiceUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *FinanceInvoiceUpdate) defaults() {
+func (_u *FinanceInvoiceUpdate) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if financeinvoice.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized financeinvoice.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := financeinvoice.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -878,6 +898,9 @@ func (_u *FinanceInvoiceUpdate) sqlSave(ctx context.Context) (_node int, err err
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financeinvoice.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(financeinvoice.FieldSearchKeywords, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(financeinvoice.FieldStatus, field.TypeEnum, value)
@@ -1310,6 +1333,20 @@ type FinanceInvoiceUpdateOne struct {
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *FinanceInvoiceUpdateOne) SetUpdatedAt(v time.Time) *FinanceInvoiceUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *FinanceInvoiceUpdateOne) SetSearchKeywords(v string) *FinanceInvoiceUpdateOne {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *FinanceInvoiceUpdateOne) SetNillableSearchKeywords(v *string) *FinanceInvoiceUpdateOne {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
 	return _u
 }
 
@@ -2045,7 +2082,9 @@ func (_u *FinanceInvoiceUpdateOne) Select(field string, fields ...string) *Finan
 
 // Save executes the query and returns the updated FinanceInvoice entity.
 func (_u *FinanceInvoiceUpdateOne) Save(ctx context.Context) (*FinanceInvoice, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -2072,11 +2111,15 @@ func (_u *FinanceInvoiceUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *FinanceInvoiceUpdateOne) defaults() {
+func (_u *FinanceInvoiceUpdateOne) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if financeinvoice.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized financeinvoice.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := financeinvoice.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -2181,6 +2224,9 @@ func (_u *FinanceInvoiceUpdateOne) sqlSave(ctx context.Context) (_node *FinanceI
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financeinvoice.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(financeinvoice.FieldSearchKeywords, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(financeinvoice.FieldStatus, field.TypeEnum, value)

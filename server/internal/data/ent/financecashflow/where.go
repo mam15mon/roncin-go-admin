@@ -66,6 +66,11 @@ func UpdatedAt(v time.Time) predicate.FinanceCashflow {
 	return predicate.FinanceCashflow(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
+// SearchKeywords applies equality check predicate on the "search_keywords" field. It's identical to SearchKeywordsEQ.
+func SearchKeywords(v string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldEQ(FieldSearchKeywords, v))
+}
+
 // OrganizationID applies equality check predicate on the "organization_id" field. It's identical to OrganizationIDEQ.
 func OrganizationID(v uuid.UUID) predicate.FinanceCashflow {
 	return predicate.FinanceCashflow(sql.FieldEQ(FieldOrganizationID, v))
@@ -264,6 +269,71 @@ func UpdatedAtLT(v time.Time) predicate.FinanceCashflow {
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.FinanceCashflow {
 	return predicate.FinanceCashflow(sql.FieldLTE(FieldUpdatedAt, v))
+}
+
+// SearchKeywordsEQ applies the EQ predicate on the "search_keywords" field.
+func SearchKeywordsEQ(v string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldEQ(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsNEQ applies the NEQ predicate on the "search_keywords" field.
+func SearchKeywordsNEQ(v string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldNEQ(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsIn applies the In predicate on the "search_keywords" field.
+func SearchKeywordsIn(vs ...string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldIn(FieldSearchKeywords, vs...))
+}
+
+// SearchKeywordsNotIn applies the NotIn predicate on the "search_keywords" field.
+func SearchKeywordsNotIn(vs ...string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldNotIn(FieldSearchKeywords, vs...))
+}
+
+// SearchKeywordsGT applies the GT predicate on the "search_keywords" field.
+func SearchKeywordsGT(v string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldGT(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsGTE applies the GTE predicate on the "search_keywords" field.
+func SearchKeywordsGTE(v string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldGTE(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsLT applies the LT predicate on the "search_keywords" field.
+func SearchKeywordsLT(v string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldLT(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsLTE applies the LTE predicate on the "search_keywords" field.
+func SearchKeywordsLTE(v string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldLTE(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsContains applies the Contains predicate on the "search_keywords" field.
+func SearchKeywordsContains(v string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldContains(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsHasPrefix applies the HasPrefix predicate on the "search_keywords" field.
+func SearchKeywordsHasPrefix(v string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldHasPrefix(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsHasSuffix applies the HasSuffix predicate on the "search_keywords" field.
+func SearchKeywordsHasSuffix(v string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldHasSuffix(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsEqualFold applies the EqualFold predicate on the "search_keywords" field.
+func SearchKeywordsEqualFold(v string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldEqualFold(FieldSearchKeywords, v))
+}
+
+// SearchKeywordsContainsFold applies the ContainsFold predicate on the "search_keywords" field.
+func SearchKeywordsContainsFold(v string) predicate.FinanceCashflow {
+	return predicate.FinanceCashflow(sql.FieldContainsFold(FieldSearchKeywords, v))
 }
 
 // OrganizationIDEQ applies the EQ predicate on the "organization_id" field.

@@ -11,6 +11,7 @@ import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import { DRAWER_SIZE, ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
+import { defaultSelectFilterOption } from '@/components/ui/searchable-select/utils';
 import { financeErrorReasons } from '@/errorReasons.generated';
 import {
   settlementServiceCopyCommissionRule,
@@ -281,6 +282,7 @@ export default function CommissionRulesDrawer({
       title: '适用角色',
       dataIndex: 'personnelRole',
       valueType: 'select',
+      fieldProps: { filterOption: defaultSelectFilterOption },
       width: 100,
       valueEnum: personnelRoleMeta,
       renderText: (value) => personnelRoleText(value),
@@ -289,6 +291,7 @@ export default function CommissionRulesDrawer({
       title: '计提口径',
       dataIndex: 'calculationBasis',
       valueType: 'select',
+      fieldProps: { filterOption: defaultSelectFilterOption },
       width: 110,
       valueEnum: calculationBasisMeta,
       renderText: (value) => calculationBasisText(value),
@@ -338,6 +341,7 @@ export default function CommissionRulesDrawer({
       title: '状态',
       dataIndex: 'enabled',
       valueType: 'select',
+      fieldProps: { filterOption: defaultSelectFilterOption },
       width: 90,
       valueEnum: {
         true: { text: '已启用', status: 'Success' },

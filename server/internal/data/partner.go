@@ -72,7 +72,7 @@ func (r *partnerRepo) List(ctx context.Context, organizationIDs []uuid.UUID, opt
 				partneraliasent.SearchKeywordsContainsFold(options.Keyword),
 			)),
 			partnerent.HasContactsWith(partnercontactent.Or(
-				partnercontactent.NameContainsFold(options.Keyword),
+				partnercontactent.NameContainsFold(options.Keyword), partnercontactent.SearchKeywordsContainsFold(options.Keyword),
 				partnercontactent.PhoneContainsFold(options.Keyword),
 				partnercontactent.EmailContainsFold(options.Keyword),
 			)),

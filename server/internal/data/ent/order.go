@@ -26,6 +26,12 @@ type Order struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// SearchKeywords holds the value of the "search_keywords" field.
+	SearchKeywords string `json:"search_keywords,omitempty"`
+	// ShipperSearchKeywords holds the value of the "shipper_search_keywords" field.
+	ShipperSearchKeywords string `json:"shipper_search_keywords,omitempty"`
+	// ConsigneeSearchKeywords holds the value of the "consignee_search_keywords" field.
+	ConsigneeSearchKeywords string `json:"consignee_search_keywords,omitempty"`
 	// OrganizationID holds the value of the "organization_id" field.
 	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// OrderNo holds the value of the "order_no" field.
@@ -579,7 +585,7 @@ func (*Order) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case order.FieldLockGeneration, order.FieldVersion, order.FieldFeeContentVersion, order.FieldFeeReviewVersion, order.FieldTotalPackages:
 			values[i] = new(sql.NullInt64)
-		case order.FieldOrderNo, order.FieldIdempotencyKey, order.FieldCustomerReferenceNo, order.FieldInternalReferenceNo, order.FieldShipperShortName, order.FieldConsigneeShortName, order.FieldContractNo, order.FieldCargoValue, order.FieldCargoCurrency, order.FieldInsurancePremium, order.FieldInsuranceCurrency, order.FieldUnNumber, order.FieldHazardClass, order.FieldDangerousPackingGroup, order.FieldFactoryName, order.FieldCargoReadyAt, order.FieldDeclarationCutoffAt, order.FieldReceivedAt, order.FieldBusinessType, order.FieldTradeDirection, order.FieldTradeTerm, order.FieldPaymentTerm, order.FieldShipmentType, order.FieldContainerOwnership, order.FieldShipmentMode, order.FieldFlowStatus, order.FieldTerminationStatus, order.FieldTerminationType, order.FieldTerminationReason, order.FieldClosureStatus, order.FieldClosureReason, order.FieldLockSource, order.FieldAutoLockTriggerType, order.FieldFeeReviewStatus, order.FieldVesselVoyage, order.FieldEtd, order.FieldEta, order.FieldSiCutoff, order.FieldDocCutoff, order.FieldCustomsCutoff, order.FieldVgmCutoff, order.FieldGoodsDescription, order.FieldTotalPackageUnit, order.FieldSpecialRequirements, order.FieldOrderDate, order.FieldBookingNo, order.FieldNotes, order.FieldBookingNotes, order.FieldAllocationNotes, order.FieldOperationNotes:
+		case order.FieldSearchKeywords, order.FieldShipperSearchKeywords, order.FieldConsigneeSearchKeywords, order.FieldOrderNo, order.FieldIdempotencyKey, order.FieldCustomerReferenceNo, order.FieldInternalReferenceNo, order.FieldShipperShortName, order.FieldConsigneeShortName, order.FieldContractNo, order.FieldCargoValue, order.FieldCargoCurrency, order.FieldInsurancePremium, order.FieldInsuranceCurrency, order.FieldUnNumber, order.FieldHazardClass, order.FieldDangerousPackingGroup, order.FieldFactoryName, order.FieldCargoReadyAt, order.FieldDeclarationCutoffAt, order.FieldReceivedAt, order.FieldBusinessType, order.FieldTradeDirection, order.FieldTradeTerm, order.FieldPaymentTerm, order.FieldShipmentType, order.FieldContainerOwnership, order.FieldShipmentMode, order.FieldFlowStatus, order.FieldTerminationStatus, order.FieldTerminationType, order.FieldTerminationReason, order.FieldClosureStatus, order.FieldClosureReason, order.FieldLockSource, order.FieldAutoLockTriggerType, order.FieldFeeReviewStatus, order.FieldVesselVoyage, order.FieldEtd, order.FieldEta, order.FieldSiCutoff, order.FieldDocCutoff, order.FieldCustomsCutoff, order.FieldVgmCutoff, order.FieldGoodsDescription, order.FieldTotalPackageUnit, order.FieldSpecialRequirements, order.FieldOrderDate, order.FieldBookingNo, order.FieldNotes, order.FieldBookingNotes, order.FieldAllocationNotes, order.FieldOperationNotes:
 			values[i] = new(sql.NullString)
 		case order.FieldCreatedAt, order.FieldUpdatedAt, order.FieldTerminatedAt, order.FieldClosedAt, order.FieldLockedAt:
 			values[i] = new(sql.NullTime)
@@ -617,6 +623,24 @@ func (_m *Order) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
+			}
+		case order.FieldSearchKeywords:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field search_keywords", values[i])
+			} else if value.Valid {
+				_m.SearchKeywords = value.String
+			}
+		case order.FieldShipperSearchKeywords:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field shipper_search_keywords", values[i])
+			} else if value.Valid {
+				_m.ShipperSearchKeywords = value.String
+			}
+		case order.FieldConsigneeSearchKeywords:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field consignee_search_keywords", values[i])
+			} else if value.Valid {
+				_m.ConsigneeSearchKeywords = value.String
 			}
 		case order.FieldOrganizationID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -1323,6 +1347,15 @@ func (_m *Order) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("search_keywords=")
+	builder.WriteString(_m.SearchKeywords)
+	builder.WriteString(", ")
+	builder.WriteString("shipper_search_keywords=")
+	builder.WriteString(_m.ShipperSearchKeywords)
+	builder.WriteString(", ")
+	builder.WriteString("consignee_search_keywords=")
+	builder.WriteString(_m.ConsigneeSearchKeywords)
 	builder.WriteString(", ")
 	builder.WriteString("organization_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))

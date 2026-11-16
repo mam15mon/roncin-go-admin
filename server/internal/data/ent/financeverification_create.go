@@ -58,6 +58,20 @@ func (_c *FinanceVerificationCreate) SetNillableUpdatedAt(v *time.Time) *Finance
 	return _c
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_c *FinanceVerificationCreate) SetSearchKeywords(v string) *FinanceVerificationCreate {
+	_c.mutation.SetSearchKeywords(v)
+	return _c
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_c *FinanceVerificationCreate) SetNillableSearchKeywords(v *string) *FinanceVerificationCreate {
+	if v != nil {
+		_c.SetSearchKeywords(*v)
+	}
+	return _c
+}
+
 // SetOrganizationID sets the "organization_id" field.
 func (_c *FinanceVerificationCreate) SetOrganizationID(v uuid.UUID) *FinanceVerificationCreate {
 	_c.mutation.SetOrganizationID(v)
@@ -321,7 +335,9 @@ func (_c *FinanceVerificationCreate) Mutation() *FinanceVerificationMutation {
 
 // Save creates the FinanceVerification in the database.
 func (_c *FinanceVerificationCreate) Save(ctx context.Context) (*FinanceVerification, error) {
-	_c.defaults()
+	if err := _c.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -348,14 +364,24 @@ func (_c *FinanceVerificationCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *FinanceVerificationCreate) defaults() {
+func (_c *FinanceVerificationCreate) defaults() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
+		if financeverification.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized financeverification.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
 		v := financeverification.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		if financeverification.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized financeverification.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := financeverification.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		v := financeverification.DefaultSearchKeywords
+		_c.mutation.SetSearchKeywords(v)
 	}
 	if _, ok := _c.mutation.Status(); !ok {
 		v := financeverification.DefaultStatus
@@ -366,9 +392,13 @@ func (_c *FinanceVerificationCreate) defaults() {
 		_c.mutation.SetVersion(v)
 	}
 	if _, ok := _c.mutation.ID(); !ok {
+		if financeverification.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized financeverification.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := financeverification.DefaultID()
 		_c.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -378,6 +408,9 @@ func (_c *FinanceVerificationCreate) check() error {
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "FinanceVerification.updated_at"`)}
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "FinanceVerification.search_keywords"`)}
 	}
 	if _, ok := _c.mutation.OrganizationID(); !ok {
 		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "FinanceVerification.organization_id"`)}
@@ -526,6 +559,10 @@ func (_c *FinanceVerificationCreate) createSpec() (*FinanceVerification, *sqlgra
 	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(financeverification.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if value, ok := _c.mutation.SearchKeywords(); ok {
+		_spec.SetField(financeverification.FieldSearchKeywords, field.TypeString, value)
+		_node.SearchKeywords = value
 	}
 	if value, ok := _c.mutation.VerificationNo(); ok {
 		_spec.SetField(financeverification.FieldVerificationNo, field.TypeString, value)
@@ -758,6 +795,18 @@ func (u *FinanceVerificationUpsert) UpdateUpdatedAt() *FinanceVerificationUpsert
 	return u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *FinanceVerificationUpsert) SetSearchKeywords(v string) *FinanceVerificationUpsert {
+	u.Set(financeverification.FieldSearchKeywords, v)
+	return u
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *FinanceVerificationUpsert) UpdateSearchKeywords() *FinanceVerificationUpsert {
+	u.SetExcluded(financeverification.FieldSearchKeywords)
+	return u
+}
+
 // SetStatus sets the "status" field.
 func (u *FinanceVerificationUpsert) SetStatus(v financeverification.Status) *FinanceVerificationUpsert {
 	u.Set(financeverification.FieldStatus, v)
@@ -964,6 +1013,20 @@ func (u *FinanceVerificationUpsertOne) SetUpdatedAt(v time.Time) *FinanceVerific
 func (u *FinanceVerificationUpsertOne) UpdateUpdatedAt() *FinanceVerificationUpsertOne {
 	return u.Update(func(s *FinanceVerificationUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *FinanceVerificationUpsertOne) SetSearchKeywords(v string) *FinanceVerificationUpsertOne {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *FinanceVerificationUpsertOne) UpdateSearchKeywords() *FinanceVerificationUpsertOne {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.UpdateSearchKeywords()
 	})
 }
 
@@ -1357,6 +1420,20 @@ func (u *FinanceVerificationUpsertBulk) SetUpdatedAt(v time.Time) *FinanceVerifi
 func (u *FinanceVerificationUpsertBulk) UpdateUpdatedAt() *FinanceVerificationUpsertBulk {
 	return u.Update(func(s *FinanceVerificationUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *FinanceVerificationUpsertBulk) SetSearchKeywords(v string) *FinanceVerificationUpsertBulk {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *FinanceVerificationUpsertBulk) UpdateSearchKeywords() *FinanceVerificationUpsertBulk {
+	return u.Update(func(s *FinanceVerificationUpsert) {
+		s.UpdateSearchKeywords()
 	})
 }
 

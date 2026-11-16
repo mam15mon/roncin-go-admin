@@ -1,5 +1,6 @@
 import { Form, InputNumber, Select, Space } from 'antd';
 import React, { useMemo, useState } from 'react';
+import { defaultSelectFilterOption } from '@/components/ui/searchable-select/utils';
 import { PACKAGE_UNIT_OPTIONS } from './packageUnits';
 import type { PackageCountInputProps } from './types';
 
@@ -63,12 +64,10 @@ export const PackageCountInput: React.FC<PackageCountInputProps> = ({
     option?: { label?: React.ReactNode; value?: string },
   ) => {
     if (!input || !option?.value) return true;
-    const normInput = input.replace(/[\s\-_/]/g, '').toLowerCase();
-    const normVal = option.value.replace(/[\s\-_/]/g, '').toLowerCase();
-    const normLabel = String(option.label ?? '')
-      .replace(/[\s\-_/]/g, '')
-      .toLowerCase();
-    return normVal.includes(normInput) || normLabel.includes(normInput);
+    return defaultSelectFilterOption(input.replace(/[\s\-_/]/g, ''), {
+      label: String(option.label ?? '').replace(/[\s\-_/]/g, ''),
+      value: option.value.replace(/[\s\-_/]/g, ''),
+    });
   };
 
   return (

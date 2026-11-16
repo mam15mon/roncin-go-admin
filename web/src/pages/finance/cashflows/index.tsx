@@ -677,6 +677,7 @@ export default function FinanceCashflowsPage() {
             });
           }}
           fieldProps={{
+            filterOption: false,
             optionRender: (option) => {
               const item = option.data as
                 | { isCasual?: boolean; creditExceeded?: boolean }

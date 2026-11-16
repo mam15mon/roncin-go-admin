@@ -11,6 +11,7 @@ import React, {
 import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import { ProFormSearchableSelect, QuickCreateModal } from '@/components/ui';
+import { defaultSelectFilterOption } from '@/components/ui/searchable-select/utils';
 import { PartnerAssignmentRole, PartnerRoleType } from '@/enums.generated';
 import { formatPersonnelLabel } from '@/features/personnel';
 import { useAsyncGuard } from '@/hooks/useAsyncGuard';
@@ -228,6 +229,7 @@ export default function PartnerQuickAddSelect({
       open: selectOpen,
       onOpenChange: setSelectOpen,
       onSearch: triggerLoadOptions,
+      filterOption: false,
       optionRender: (option: {
         label?: ReactNode;
         value?: unknown;
@@ -417,7 +419,7 @@ export default function PartnerQuickAddSelect({
           <>
             <Form.Item label="业务人员" name="assignSalesUser">
               <Select
-                showSearch
+                showSearch={{ filterOption: defaultSelectFilterOption }}
                 allowClear
                 placeholder="选择人员"
                 options={staffSelectOptions}
@@ -426,7 +428,7 @@ export default function PartnerQuickAddSelect({
             </Form.Item>
             <Form.Item label="操作人员" name="assignOperatorUser">
               <Select
-                showSearch
+                showSearch={{ filterOption: defaultSelectFilterOption }}
                 allowClear
                 placeholder="选择人员"
                 options={staffSelectOptions}
@@ -435,7 +437,7 @@ export default function PartnerQuickAddSelect({
             </Form.Item>
             <Form.Item label="客服人员" name="assignServiceUser">
               <Select
-                showSearch
+                showSearch={{ filterOption: defaultSelectFilterOption }}
                 allowClear
                 placeholder="选择人员"
                 options={staffSelectOptions}

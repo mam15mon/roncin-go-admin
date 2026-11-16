@@ -7,11 +7,7 @@ import {
   UploadOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import {
-  ProFormDatePicker,
-  ProFormSelect,
-  ProFormText,
-} from '@ant-design/pro-components';
+import { ProFormDatePicker, ProFormText } from '@ant-design/pro-components';
 import { paginationSizeChanger } from '@root/config/pagination';
 import { App, Button, Card, Form, Space, Tag, Tooltip } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
@@ -20,6 +16,7 @@ import { useAccess } from '@/app/access';
 import {
   AsyncPopconfirm,
   GuardedModalForm,
+  ProFormSearchableSelect,
   ResponsiveProTable as ProTable,
 } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
@@ -412,7 +409,7 @@ export function ExchangeRatesPanel() {
           return true;
         }}
       >
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="fromCurrency"
           label="原币"
           showSearch
@@ -430,7 +427,7 @@ export function ExchangeRatesPanel() {
             }),
           ]}
         />
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="toCurrency"
           label="本币"
           showSearch

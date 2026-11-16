@@ -12,6 +12,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/roncin/roncin-go-admin/server/internal/data/ent"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	"github.com/roncin/roncin-go-admin/server/internal/platform/migration"
 )
@@ -61,8 +62,8 @@ func newOrderDirectionMigrationFixture(t *testing.T) *orderDirectionMigrationFix
 
 func (f *orderDirectionMigrationFixture) order(businessType, direction string) uuid.UUID {
 	f.t.Helper()
-	return f.data.db.Order.Create().SetOrganizationID(f.organizationID).SetOrderNo(uuid.NewString()).SetIdempotencyKey(uuid.NewString()).SetCustomerID(f.partnerID).
-		SetBusinessType(orderent.BusinessType(businessType)).SetTradeDirection(orderent.TradeDirection(direction)).SetPaymentTerm(orderent.PaymentTermPREPAID).SaveX(context.Background()).ID
+	return mustMigrationFixture(insertMigrationFixture[ent.Order](context.Background(), f.data, "orders", f.data.db.Order.Create().SetOrganizationID(f.organizationID).SetOrderNo(uuid.NewString()).SetIdempotencyKey(uuid.NewString()).SetCustomerID(f.partnerID).
+		SetBusinessType(orderent.BusinessType(businessType)).SetTradeDirection(orderent.TradeDirection(direction)).SetPaymentTerm(orderent.PaymentTermPREPAID).Mutation())).ID
 }
 
 func (f *orderDirectionMigrationFixture) exec(query string, args ...any) {

@@ -39,7 +39,7 @@ func TestFinanceInvoiceRegistrationMigrationPostgres(t *testing.T) {
 	t.Run("完整已登记与取消历史通过并保留税率存在性", func(t *testing.T) {
 		d, cleanup := getIntegrationDataBeforeMigration(t, "20261114140000")
 		defer cleanup()
-		f := newFinanceInvoicePostgresFixture(t, d)
+		f := newFinanceInvoiceMigrationFixture(t, d)
 		ctx := context.Background()
 		issued, _, _ := oldRegistrationInvoice(t, d, f, "ISSUED")
 		cancelled, zeroLine, _ := oldRegistrationInvoice(t, d, f, "CANCELLED")
@@ -72,7 +72,7 @@ func TestFinanceInvoiceRegistrationMigrationPostgres(t *testing.T) {
 		t.Run(scenario, func(t *testing.T) {
 			d, cleanup := getIntegrationDataBeforeMigration(t, "20261114140000")
 			defer cleanup()
-			f := newFinanceInvoicePostgresFixture(t, d)
+			f := newFinanceInvoiceMigrationFixture(t, d)
 			ctx := context.Background()
 			status := "DRAFT"
 			if scenario != "不完备草稿" {

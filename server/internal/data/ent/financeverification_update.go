@@ -39,6 +39,20 @@ func (_u *FinanceVerificationUpdate) SetUpdatedAt(v time.Time) *FinanceVerificat
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *FinanceVerificationUpdate) SetSearchKeywords(v string) *FinanceVerificationUpdate {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *FinanceVerificationUpdate) SetNillableSearchKeywords(v *string) *FinanceVerificationUpdate {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetStatus sets the "status" field.
 func (_u *FinanceVerificationUpdate) SetStatus(v financeverification.Status) *FinanceVerificationUpdate {
 	_u.mutation.SetStatus(v)
@@ -294,7 +308,9 @@ func (_u *FinanceVerificationUpdate) RemoveCommissionReversalAdjustments(v ...*F
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *FinanceVerificationUpdate) Save(ctx context.Context) (int, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -321,11 +337,15 @@ func (_u *FinanceVerificationUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *FinanceVerificationUpdate) defaults() {
+func (_u *FinanceVerificationUpdate) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if financeverification.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized financeverification.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := financeverification.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -368,6 +388,9 @@ func (_u *FinanceVerificationUpdate) sqlSave(ctx context.Context) (_node int, er
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financeverification.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(financeverification.FieldSearchKeywords, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(financeverification.FieldStatus, field.TypeEnum, value)
@@ -583,6 +606,20 @@ type FinanceVerificationUpdateOne struct {
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *FinanceVerificationUpdateOne) SetUpdatedAt(v time.Time) *FinanceVerificationUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *FinanceVerificationUpdateOne) SetSearchKeywords(v string) *FinanceVerificationUpdateOne {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *FinanceVerificationUpdateOne) SetNillableSearchKeywords(v *string) *FinanceVerificationUpdateOne {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
 	return _u
 }
 
@@ -854,7 +891,9 @@ func (_u *FinanceVerificationUpdateOne) Select(field string, fields ...string) *
 
 // Save executes the query and returns the updated FinanceVerification entity.
 func (_u *FinanceVerificationUpdateOne) Save(ctx context.Context) (*FinanceVerification, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -881,11 +920,15 @@ func (_u *FinanceVerificationUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *FinanceVerificationUpdateOne) defaults() {
+func (_u *FinanceVerificationUpdateOne) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if financeverification.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized financeverification.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := financeverification.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -945,6 +988,9 @@ func (_u *FinanceVerificationUpdateOne) sqlSave(ctx context.Context) (_node *Fin
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financeverification.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(financeverification.FieldSearchKeywords, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(financeverification.FieldStatus, field.TypeEnum, value)

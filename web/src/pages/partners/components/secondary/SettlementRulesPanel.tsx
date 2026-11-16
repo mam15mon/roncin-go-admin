@@ -6,7 +6,6 @@ import type {
 } from '@ant-design/pro-components';
 import {
   ProFormDigit,
-  ProFormSelect,
   ProFormSwitch,
   ProFormText,
 } from '@ant-design/pro-components';
@@ -15,6 +14,7 @@ import React, { useRef, useState } from 'react';
 import { useInitialState } from '@/app/AppProvider';
 import {
   GuardedModalForm,
+  ProFormSearchableSelect,
   ResponsiveProTable as ProTable,
 } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
@@ -449,7 +449,7 @@ export default function SettlementRulesPanel({
             style={{ marginBottom: 16 }}
           />
         )}
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="roleType"
           label="适用业务角色"
           options={(partner?.roles ?? []).map((r) => ({
@@ -459,19 +459,19 @@ export default function SettlementRulesPanel({
           disabled={Boolean(editingRule)}
           rules={[{ required: true, message: '请选择角色' }]}
         />
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="statementMode"
           label="对账核销模式"
           options={statementModeOptions}
           rules={[{ required: true, message: '请选择对账模式' }]}
         />
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="settlementMethod"
           label="结算账期方式"
           options={settlementMethodOptions}
           rules={[{ required: true, message: '请选择结算方式' }]}
         />
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="settlementBase"
           label="账期起算基准"
           options={settlementBaseOptions}

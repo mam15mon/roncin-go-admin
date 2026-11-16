@@ -6,7 +6,6 @@ import {
 } from '@ant-design/icons';
 import {
   ProFormDateRangePicker,
-  ProFormSelect,
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
@@ -25,7 +24,11 @@ import {
 } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useEffect, useState } from 'react';
-import { AsyncPopconfirm, GuardedModalForm } from '@/components/ui';
+import {
+  AsyncPopconfirm,
+  GuardedModalForm,
+  ProFormSearchableSelect,
+} from '@/components/ui';
 import { partnerContractStatusMeta } from '@/constants/statusMeta';
 import { PartnerContractStatus } from '@/enums.generated';
 import {
@@ -439,7 +442,7 @@ export default function ContractCardList({
           />
         </Col>
         <Col span={12}>
-          <ProFormSelect
+          <ProFormSearchableSelect
             name="status"
             label="合同状态"
             options={contractStatusOptions}

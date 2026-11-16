@@ -40,6 +40,20 @@ func (_u *FinanceCommissionUpdate) SetUpdatedAt(v time.Time) *FinanceCommissionU
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *FinanceCommissionUpdate) SetSearchKeywords(v string) *FinanceCommissionUpdate {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *FinanceCommissionUpdate) SetNillableSearchKeywords(v *string) *FinanceCommissionUpdate {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetVerificationNo sets the "verification_no" field.
 func (_u *FinanceCommissionUpdate) SetVerificationNo(v string) *FinanceCommissionUpdate {
 	_u.mutation.SetVerificationNo(v)
@@ -937,7 +951,9 @@ func (_u *FinanceCommissionUpdate) RemoveApplicationLines(v ...*FinanceCommissio
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *FinanceCommissionUpdate) Save(ctx context.Context) (int, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -964,11 +980,15 @@ func (_u *FinanceCommissionUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *FinanceCommissionUpdate) defaults() {
+func (_u *FinanceCommissionUpdate) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if financecommission.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized financecommission.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := financecommission.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -1086,6 +1106,9 @@ func (_u *FinanceCommissionUpdate) sqlSave(ctx context.Context) (_node int, err 
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financecommission.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(financecommission.FieldSearchKeywords, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.VerificationNo(); ok {
 		_spec.SetField(financecommission.FieldVerificationNo, field.TypeString, value)
@@ -1529,6 +1552,20 @@ type FinanceCommissionUpdateOne struct {
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *FinanceCommissionUpdateOne) SetUpdatedAt(v time.Time) *FinanceCommissionUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *FinanceCommissionUpdateOne) SetSearchKeywords(v string) *FinanceCommissionUpdateOne {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *FinanceCommissionUpdateOne) SetNillableSearchKeywords(v *string) *FinanceCommissionUpdateOne {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
 	return _u
 }
 
@@ -2442,7 +2479,9 @@ func (_u *FinanceCommissionUpdateOne) Select(field string, fields ...string) *Fi
 
 // Save executes the query and returns the updated FinanceCommission entity.
 func (_u *FinanceCommissionUpdateOne) Save(ctx context.Context) (*FinanceCommission, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -2469,11 +2508,15 @@ func (_u *FinanceCommissionUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *FinanceCommissionUpdateOne) defaults() {
+func (_u *FinanceCommissionUpdateOne) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if financecommission.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized financecommission.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := financecommission.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -2608,6 +2651,9 @@ func (_u *FinanceCommissionUpdateOne) sqlSave(ctx context.Context) (_node *Finan
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financecommission.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(financecommission.FieldSearchKeywords, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.VerificationNo(); ok {
 		_spec.SetField(financecommission.FieldVerificationNo, field.TypeString, value)

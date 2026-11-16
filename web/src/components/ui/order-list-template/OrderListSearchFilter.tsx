@@ -19,6 +19,7 @@ import {
 } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
+import { defaultSelectFilterOption } from '@/components/ui/searchable-select/utils';
 import { standardDateRangePresets } from '../date-presets';
 import type {
   OrderListFilterOptions,
@@ -159,12 +160,7 @@ function RemoteSelect({
         onChange?.(value, option);
       }}
       showSearch={{
-        filterOption: loadOptions
-          ? false
-          : (input, option) =>
-              String(option?.label ?? '')
-                .toLowerCase()
-                .includes(input.toLowerCase()),
+        filterOption: loadOptions ? false : defaultSelectFilterOption,
         onSearch: loadOptions
           ? (keyword) => {
               if (timerRef.current) clearTimeout(timerRef.current);

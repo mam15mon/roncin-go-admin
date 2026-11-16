@@ -24,6 +24,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAccess } from '@/app/access';
 import { adminServiceListOrganizations } from '@/services/roncin/adminService';
 import { unwrapList } from '@/utils/api';
+import { matchesSearch } from '@/utils/search';
 import OrgChartCanvas from './components/org/OrgChartCanvas';
 import OrgCreateModal from './components/org/OrgCreateModal';
 import OrgDetailCard from './components/org/OrgDetailCard';
@@ -202,11 +203,7 @@ export default function OrganizationsPanel() {
     const title = node.title || '未命名组织';
     const code = node.code || '';
     const kindMeta = getOrganizationKindMeta(node.kind);
-    const isMatched =
-      kw &&
-      (title.toLowerCase().includes(kw) ||
-        code.toLowerCase().includes(kw) ||
-        Boolean(node.raw.nameEn?.toLowerCase().includes(kw)));
+    const isMatched = kw && matchesSearch(kw, title, code, node.raw.nameEn);
 
     return (
       <span

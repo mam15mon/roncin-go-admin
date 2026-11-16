@@ -19,6 +19,7 @@ func (FinanceCommissionRule) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{},
 
 func (FinanceCommissionRule) Fields() []ent.Field {
 	return []ent.Field{
+		searchKeywordsField(),
 		field.UUID("organization_id", uuid.Nil).Immutable(),
 		field.String("name").NotEmpty().MaxLen(100),
 		field.Enum("personnel_role").Values("SALES", "OPERATOR", "CUSTOMER_SERVICE"),
@@ -46,7 +47,10 @@ func (FinanceCommissionRule) Edges() []ent.Edge {
 
 func (FinanceCommissionRule) Indexes() []ent.Index {
 	return []ent.Index{
+		searchKeywordsIndex("finance_commission_rules_search_keywords_trgm"),
 		index.Fields("organization_id", "name").Unique(),
 		index.Fields("organization_id", "enabled", "personnel_role"),
 	}
 }
+
+func (FinanceCommissionRule) Hooks() []ent.Hook { return []ent.Hook{searchKeywordsHook("name")} }

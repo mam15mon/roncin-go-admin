@@ -935,6 +935,15 @@ var (
 				Columns: []*schema.Column{EnterpriseResourcesColumns[2]},
 			},
 			{
+				Name:    "enterprise_resources_search_keywords_trgm",
+				Unique:  false,
+				Columns: []*schema.Column{EnterpriseResourcesColumns[7]},
+				Annotation: &entsql.IndexAnnotation{
+					OpClass: "gin_trgm_ops",
+					Type:    "GIN",
+				},
+			},
+			{
 				Name:    "enterpriseresource_organization_id_resource_type_enabled_sort_order",
 				Unique:  false,
 				Columns: []*schema.Column{EnterpriseResourcesColumns[8], EnterpriseResourcesColumns[3], EnterpriseResourcesColumns[5], EnterpriseResourcesColumns[6]},
@@ -951,6 +960,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "contact_name", Type: field.TypeString, Nullable: true, Size: 100},
 		{Name: "contact_phone", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "country_code", Type: field.TypeString, Size: 2},
@@ -969,7 +979,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "enterprise_resource_addresses_enterprise_resources_address",
-				Columns:    []*schema.Column{EnterpriseResourceAddressesColumns[11]},
+				Columns:    []*schema.Column{EnterpriseResourceAddressesColumns[12]},
 				RefColumns: []*schema.Column{EnterpriseResourcesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -981,9 +991,18 @@ var (
 				Columns: []*schema.Column{EnterpriseResourceAddressesColumns[2]},
 			},
 			{
+				Name:    "enterprise_resource_addresses_search_keywords_trgm",
+				Unique:  false,
+				Columns: []*schema.Column{EnterpriseResourceAddressesColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					OpClass: "gin_trgm_ops",
+					Type:    "GIN",
+				},
+			},
+			{
 				Name:    "enterpriseresourceaddress_resource_id",
 				Unique:  true,
-				Columns: []*schema.Column{EnterpriseResourceAddressesColumns[11]},
+				Columns: []*schema.Column{EnterpriseResourceAddressesColumns[12]},
 			},
 		},
 	}
@@ -1175,6 +1194,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "organization_id", Type: field.TypeUUID},
 		{Name: "resource_type", Type: field.TypeEnum, Enums: []string{"SHIPPER", "CONSIGNEE", "NOTIFY_PARTY"}},
 		{Name: "company_name", Type: field.TypeString, Size: 200},
@@ -1200,7 +1220,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "enterprise_resource_parties_enterprise_resources_party",
-				Columns:    []*schema.Column{EnterpriseResourcePartiesColumns[18]},
+				Columns:    []*schema.Column{EnterpriseResourcePartiesColumns[19]},
 				RefColumns: []*schema.Column{EnterpriseResourcesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -1212,14 +1232,23 @@ var (
 				Columns: []*schema.Column{EnterpriseResourcePartiesColumns[2]},
 			},
 			{
+				Name:    "enterprise_resource_parties_search_keywords_trgm",
+				Unique:  false,
+				Columns: []*schema.Column{EnterpriseResourcePartiesColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					OpClass: "gin_trgm_ops",
+					Type:    "GIN",
+				},
+			},
+			{
 				Name:    "enterpriseresourceparty_resource_id",
 				Unique:  true,
-				Columns: []*schema.Column{EnterpriseResourcePartiesColumns[18]},
+				Columns: []*schema.Column{EnterpriseResourcePartiesColumns[19]},
 			},
 			{
 				Name:    "enterpriseresourceparty_organization_id_resource_type_normalized_business_code",
 				Unique:  true,
-				Columns: []*schema.Column{EnterpriseResourcePartiesColumns[3], EnterpriseResourcePartiesColumns[4], EnterpriseResourcePartiesColumns[7]},
+				Columns: []*schema.Column{EnterpriseResourcePartiesColumns[4], EnterpriseResourcePartiesColumns[5], EnterpriseResourcePartiesColumns[8]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "normalized_business_code IS NOT NULL AND normalized_business_code <> ''",
 				},
@@ -1231,6 +1260,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "remark_type", Type: field.TypeEnum, Enums: []string{"BOOKING", "ALLOCATION", "TRANSPORT", "ORDER", "BILL_OF_LADING", "CUSTOMER", "SUPPLIER", "FOREIGN_AGENT", "QUOTATION", "MANIFEST", "PACKING_LIST", "OPERATION", "COMMISSION", "WAREHOUSE"}},
 		{Name: "content", Type: field.TypeString, Size: 4000},
 		{Name: "resource_id", Type: field.TypeUUID, Unique: true},
@@ -1243,7 +1273,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "enterprise_resource_remarks_enterprise_resources_remark",
-				Columns:    []*schema.Column{EnterpriseResourceRemarksColumns[5]},
+				Columns:    []*schema.Column{EnterpriseResourceRemarksColumns[6]},
 				RefColumns: []*schema.Column{EnterpriseResourcesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -1255,14 +1285,23 @@ var (
 				Columns: []*schema.Column{EnterpriseResourceRemarksColumns[2]},
 			},
 			{
+				Name:    "enterprise_resource_remarks_search_keywords_trgm",
+				Unique:  false,
+				Columns: []*schema.Column{EnterpriseResourceRemarksColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					OpClass: "gin_trgm_ops",
+					Type:    "GIN",
+				},
+			},
+			{
 				Name:    "enterpriseresourceremark_resource_id",
 				Unique:  true,
-				Columns: []*schema.Column{EnterpriseResourceRemarksColumns[5]},
+				Columns: []*schema.Column{EnterpriseResourceRemarksColumns[6]},
 			},
 			{
 				Name:    "enterpriseresourceremark_remark_type",
 				Unique:  false,
-				Columns: []*schema.Column{EnterpriseResourceRemarksColumns[3]},
+				Columns: []*schema.Column{EnterpriseResourceRemarksColumns[4]},
 			},
 		},
 	}
@@ -1530,6 +1569,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "purpose", Type: field.TypeEnum, Enums: []string{"NORMAL", "CORRECTION_REVERSAL"}, Default: "NORMAL"},
 		{Name: "bill_no", Type: field.TypeString, Size: 64},
 		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
@@ -1580,31 +1620,31 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_bills_finance_bill_batches_bills",
-				Columns:    []*schema.Column{FinanceBillsColumns[39]},
+				Columns:    []*schema.Column{FinanceBillsColumns[40]},
 				RefColumns: []*schema.Column{FinanceBillBatchesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_bills_organizations_finance_bills",
-				Columns:    []*schema.Column{FinanceBillsColumns[40]},
+				Columns:    []*schema.Column{FinanceBillsColumns[41]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_bills_partners_finance_bills",
-				Columns:    []*schema.Column{FinanceBillsColumns[41]},
+				Columns:    []*schema.Column{FinanceBillsColumns[42]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_bills_users_confirmed_finance_bills",
-				Columns:    []*schema.Column{FinanceBillsColumns[42]},
+				Columns:    []*schema.Column{FinanceBillsColumns[43]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_bills_users_cancelled_finance_bills",
-				Columns:    []*schema.Column{FinanceBillsColumns[43]},
+				Columns:    []*schema.Column{FinanceBillsColumns[44]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -1616,34 +1656,43 @@ var (
 				Columns: []*schema.Column{FinanceBillsColumns[2]},
 			},
 			{
+				Name:    "finance_bills_search_keywords_trgm",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceBillsColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					OpClass: "gin_trgm_ops",
+					Type:    "GIN",
+				},
+			},
+			{
 				Name:    "financebill_organization_id_bill_no",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceBillsColumns[40], FinanceBillsColumns[4]},
+				Columns: []*schema.Column{FinanceBillsColumns[41], FinanceBillsColumns[5]},
 			},
 			{
 				Name:    "financebill_organization_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceBillsColumns[40], FinanceBillsColumns[5]},
+				Columns: []*schema.Column{FinanceBillsColumns[41], FinanceBillsColumns[6]},
 			},
 			{
 				Name:    "financebill_organization_id_status_bill_date",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceBillsColumns[40], FinanceBillsColumns[7], FinanceBillsColumns[30]},
+				Columns: []*schema.Column{FinanceBillsColumns[41], FinanceBillsColumns[8], FinanceBillsColumns[31]},
 			},
 			{
 				Name:    "financebill_settlement_party_id_direction_currency",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceBillsColumns[41], FinanceBillsColumns[6], FinanceBillsColumns[19]},
+				Columns: []*schema.Column{FinanceBillsColumns[42], FinanceBillsColumns[7], FinanceBillsColumns[20]},
 			},
 			{
 				Name:    "financebill_settlement_account_id",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceBillsColumns[9]},
+				Columns: []*schema.Column{FinanceBillsColumns[10]},
 			},
 			{
 				Name:    "financebill_batch_id",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceBillsColumns[39]},
+				Columns: []*schema.Column{FinanceBillsColumns[40]},
 			},
 		},
 	}
@@ -1787,6 +1836,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "flow_no", Type: field.TypeString, Size: 64},
 		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
 		{Name: "direction", Type: field.TypeEnum, Enums: []string{"RECEIVABLE", "PAYABLE"}},
@@ -1823,25 +1873,25 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_cashflows_organizations_finance_cashflows",
-				Columns:    []*schema.Column{FinanceCashflowsColumns[26]},
+				Columns:    []*schema.Column{FinanceCashflowsColumns[27]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_cashflows_partners_finance_cashflows",
-				Columns:    []*schema.Column{FinanceCashflowsColumns[27]},
+				Columns:    []*schema.Column{FinanceCashflowsColumns[28]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_cashflows_users_confirmed_finance_cashflows",
-				Columns:    []*schema.Column{FinanceCashflowsColumns[28]},
+				Columns:    []*schema.Column{FinanceCashflowsColumns[29]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_cashflows_users_cancelled_finance_cashflows",
-				Columns:    []*schema.Column{FinanceCashflowsColumns[29]},
+				Columns:    []*schema.Column{FinanceCashflowsColumns[30]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -1853,29 +1903,38 @@ var (
 				Columns: []*schema.Column{FinanceCashflowsColumns[2]},
 			},
 			{
+				Name:    "finance_cashflows_search_keywords_trgm",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceCashflowsColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					OpClass: "gin_trgm_ops",
+					Type:    "GIN",
+				},
+			},
+			{
 				Name:    "financecashflow_organization_id_flow_no",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceCashflowsColumns[26], FinanceCashflowsColumns[3]},
+				Columns: []*schema.Column{FinanceCashflowsColumns[27], FinanceCashflowsColumns[4]},
 			},
 			{
 				Name:    "financecashflow_organization_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceCashflowsColumns[26], FinanceCashflowsColumns[4]},
+				Columns: []*schema.Column{FinanceCashflowsColumns[27], FinanceCashflowsColumns[5]},
 			},
 			{
 				Name:    "financecashflow_organization_id_status_transaction_date",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceCashflowsColumns[26], FinanceCashflowsColumns[6], FinanceCashflowsColumns[16]},
+				Columns: []*schema.Column{FinanceCashflowsColumns[27], FinanceCashflowsColumns[7], FinanceCashflowsColumns[17]},
 			},
 			{
 				Name:    "financecashflow_settlement_party_id_direction_currency",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceCashflowsColumns[27], FinanceCashflowsColumns[5], FinanceCashflowsColumns[8]},
+				Columns: []*schema.Column{FinanceCashflowsColumns[28], FinanceCashflowsColumns[6], FinanceCashflowsColumns[9]},
 			},
 			{
 				Name:    "financecashflow_bank_reference_no",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceCashflowsColumns[20]},
+				Columns: []*schema.Column{FinanceCashflowsColumns[21]},
 			},
 		},
 	}
@@ -1884,6 +1943,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "commission_no", Type: field.TypeString, Size: 64},
 		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
 		{Name: "verification_no", Type: field.TypeString, Nullable: true, Size: 64},
@@ -1940,49 +2000,49 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_commissions_finance_commission_rules_commissions",
-				Columns:    []*schema.Column{FinanceCommissionsColumns[42]},
+				Columns:    []*schema.Column{FinanceCommissionsColumns[43]},
 				RefColumns: []*schema.Column{FinanceCommissionRulesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_commissions_finance_nettings_commissions",
-				Columns:    []*schema.Column{FinanceCommissionsColumns[43]},
+				Columns:    []*schema.Column{FinanceCommissionsColumns[44]},
 				RefColumns: []*schema.Column{FinanceNettingsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_commissions_finance_verifications_commissions",
-				Columns:    []*schema.Column{FinanceCommissionsColumns[44]},
+				Columns:    []*schema.Column{FinanceCommissionsColumns[45]},
 				RefColumns: []*schema.Column{FinanceVerificationsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_commissions_organizations_finance_commissions",
-				Columns:    []*schema.Column{FinanceCommissionsColumns[45]},
+				Columns:    []*schema.Column{FinanceCommissionsColumns[46]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_commissions_users_finance_commissions",
-				Columns:    []*schema.Column{FinanceCommissionsColumns[46]},
+				Columns:    []*schema.Column{FinanceCommissionsColumns[47]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_commissions_users_confirmed_finance_commissions",
-				Columns:    []*schema.Column{FinanceCommissionsColumns[47]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:     "finance_commissions_users_paid_finance_commissions",
 				Columns:    []*schema.Column{FinanceCommissionsColumns[48]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:     "finance_commissions_users_cancelled_finance_commissions",
+				Symbol:     "finance_commissions_users_paid_finance_commissions",
 				Columns:    []*schema.Column{FinanceCommissionsColumns[49]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "finance_commissions_users_cancelled_finance_commissions",
+				Columns:    []*schema.Column{FinanceCommissionsColumns[50]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -1994,19 +2054,28 @@ var (
 				Columns: []*schema.Column{FinanceCommissionsColumns[2]},
 			},
 			{
+				Name:    "finance_commissions_search_keywords_trgm",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceCommissionsColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					OpClass: "gin_trgm_ops",
+					Type:    "GIN",
+				},
+			},
+			{
 				Name:    "financecommission_organization_id_commission_no",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceCommissionsColumns[45], FinanceCommissionsColumns[3]},
+				Columns: []*schema.Column{FinanceCommissionsColumns[46], FinanceCommissionsColumns[4]},
 			},
 			{
 				Name:    "financecommission_organization_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceCommissionsColumns[45], FinanceCommissionsColumns[4]},
+				Columns: []*schema.Column{FinanceCommissionsColumns[46], FinanceCommissionsColumns[5]},
 			},
 			{
 				Name:    "finance_commissions_verification_active_unique",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceCommissionsColumns[45], FinanceCommissionsColumns[44], FinanceCommissionsColumns[46], FinanceCommissionsColumns[12]},
+				Columns: []*schema.Column{FinanceCommissionsColumns[46], FinanceCommissionsColumns[45], FinanceCommissionsColumns[47], FinanceCommissionsColumns[13]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "status <> 'CANCELLED' AND verification_id IS NOT NULL",
 				},
@@ -2014,7 +2083,7 @@ var (
 			{
 				Name:    "finance_commissions_netting_active_unique",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceCommissionsColumns[45], FinanceCommissionsColumns[43], FinanceCommissionsColumns[46], FinanceCommissionsColumns[12]},
+				Columns: []*schema.Column{FinanceCommissionsColumns[46], FinanceCommissionsColumns[44], FinanceCommissionsColumns[47], FinanceCommissionsColumns[13]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "status <> 'CANCELLED' AND netting_id IS NOT NULL",
 				},
@@ -2022,7 +2091,7 @@ var (
 			{
 				Name:    "financecommission_source_employee_status",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceCommissionsColumns[44], FinanceCommissionsColumns[46], FinanceCommissionsColumns[17]},
+				Columns: []*schema.Column{FinanceCommissionsColumns[45], FinanceCommissionsColumns[47], FinanceCommissionsColumns[18]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "verification_id IS NOT NULL",
 				},
@@ -2030,7 +2099,7 @@ var (
 			{
 				Name:    "financecommission_netting_employee_status",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceCommissionsColumns[43], FinanceCommissionsColumns[46], FinanceCommissionsColumns[17]},
+				Columns: []*schema.Column{FinanceCommissionsColumns[44], FinanceCommissionsColumns[47], FinanceCommissionsColumns[18]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "netting_id IS NOT NULL",
 				},
@@ -2038,12 +2107,12 @@ var (
 			{
 				Name:    "financecommission_organization_id_commission_date",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceCommissionsColumns[45], FinanceCommissionsColumns[25]},
+				Columns: []*schema.Column{FinanceCommissionsColumns[46], FinanceCommissionsColumns[26]},
 			},
 			{
 				Name:    "financecommission_organization_id_status_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceCommissionsColumns[45], FinanceCommissionsColumns[17], FinanceCommissionsColumns[1]},
+				Columns: []*schema.Column{FinanceCommissionsColumns[46], FinanceCommissionsColumns[18], FinanceCommissionsColumns[1]},
 			},
 		},
 	}
@@ -2459,6 +2528,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "name", Type: field.TypeString, Size: 100},
 		{Name: "personnel_role", Type: field.TypeEnum, Enums: []string{"SALES", "OPERATOR", "CUSTOMER_SERVICE"}},
 		{Name: "calculation_basis", Type: field.TypeEnum, Enums: []string{"REALIZED_PROFIT", "REALIZED_REVENUE"}},
@@ -2479,7 +2549,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_commission_rules_organizations_finance_commission_rules",
-				Columns:    []*schema.Column{FinanceCommissionRulesColumns[13]},
+				Columns:    []*schema.Column{FinanceCommissionRulesColumns[14]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -2491,14 +2561,23 @@ var (
 				Columns: []*schema.Column{FinanceCommissionRulesColumns[2]},
 			},
 			{
+				Name:    "finance_commission_rules_search_keywords_trgm",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceCommissionRulesColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					OpClass: "gin_trgm_ops",
+					Type:    "GIN",
+				},
+			},
+			{
 				Name:    "financecommissionrule_organization_id_name",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceCommissionRulesColumns[13], FinanceCommissionRulesColumns[3]},
+				Columns: []*schema.Column{FinanceCommissionRulesColumns[14], FinanceCommissionRulesColumns[4]},
 			},
 			{
 				Name:    "financecommissionrule_organization_id_enabled_personnel_role",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceCommissionRulesColumns[13], FinanceCommissionRulesColumns[9], FinanceCommissionRulesColumns[4]},
+				Columns: []*schema.Column{FinanceCommissionRulesColumns[14], FinanceCommissionRulesColumns[10], FinanceCommissionRulesColumns[5]},
 			},
 		},
 	}
@@ -2638,6 +2717,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "record_no", Type: field.TypeString, Size: 64},
 		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
 		{Name: "direction", Type: field.TypeEnum, Enums: []string{"RECEIVABLE", "PAYABLE"}},
@@ -2688,37 +2768,37 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_invoices_organizations_finance_invoices",
-				Columns:    []*schema.Column{FinanceInvoicesColumns[38]},
+				Columns:    []*schema.Column{FinanceInvoicesColumns[39]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_invoices_partners_finance_invoices",
-				Columns:    []*schema.Column{FinanceInvoicesColumns[39]},
+				Columns:    []*schema.Column{FinanceInvoicesColumns[40]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_invoices_partner_invoice_profiles_finance_invoices",
-				Columns:    []*schema.Column{FinanceInvoicesColumns[40]},
+				Columns:    []*schema.Column{FinanceInvoicesColumns[41]},
 				RefColumns: []*schema.Column{PartnerInvoiceProfilesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_invoices_users_issued_finance_invoices",
-				Columns:    []*schema.Column{FinanceInvoicesColumns[41]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:     "finance_invoices_users_cancelled_finance_invoices",
 				Columns:    []*schema.Column{FinanceInvoicesColumns[42]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:     "finance_invoices_users_red_flushed_finance_invoices",
+				Symbol:     "finance_invoices_users_cancelled_finance_invoices",
 				Columns:    []*schema.Column{FinanceInvoicesColumns[43]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "finance_invoices_users_red_flushed_finance_invoices",
+				Columns:    []*schema.Column{FinanceInvoicesColumns[44]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -2730,34 +2810,43 @@ var (
 				Columns: []*schema.Column{FinanceInvoicesColumns[2]},
 			},
 			{
+				Name:    "finance_invoices_search_keywords_trgm",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceInvoicesColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					OpClass: "gin_trgm_ops",
+					Type:    "GIN",
+				},
+			},
+			{
 				Name:    "financeinvoice_organization_id_record_no",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceInvoicesColumns[38], FinanceInvoicesColumns[3]},
+				Columns: []*schema.Column{FinanceInvoicesColumns[39], FinanceInvoicesColumns[4]},
 			},
 			{
 				Name:    "financeinvoice_organization_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceInvoicesColumns[38], FinanceInvoicesColumns[4]},
+				Columns: []*schema.Column{FinanceInvoicesColumns[39], FinanceInvoicesColumns[5]},
 			},
 			{
 				Name:    "financeinvoice_organization_id_status_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceInvoicesColumns[38], FinanceInvoicesColumns[6], FinanceInvoicesColumns[1]},
+				Columns: []*schema.Column{FinanceInvoicesColumns[39], FinanceInvoicesColumns[7], FinanceInvoicesColumns[1]},
 			},
 			{
 				Name:    "financeinvoice_settlement_party_id_direction_currency",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceInvoicesColumns[39], FinanceInvoicesColumns[5], FinanceInvoicesColumns[15]},
+				Columns: []*schema.Column{FinanceInvoicesColumns[40], FinanceInvoicesColumns[6], FinanceInvoicesColumns[16]},
 			},
 			{
 				Name:    "financeinvoice_invoice_profile_id",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceInvoicesColumns[40]},
+				Columns: []*schema.Column{FinanceInvoicesColumns[41]},
 			},
 			{
 				Name:    "financeinvoice_org_tax_invoice_no",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceInvoicesColumns[38], FinanceInvoicesColumns[26]},
+				Columns: []*schema.Column{FinanceInvoicesColumns[39], FinanceInvoicesColumns[27]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "tax_invoice_no IS NOT NULL",
 				},
@@ -2765,7 +2854,7 @@ var (
 			{
 				Name:    "financeinvoice_org_red_invoice_no",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceInvoicesColumns[38], FinanceInvoicesColumns[34]},
+				Columns: []*schema.Column{FinanceInvoicesColumns[39], FinanceInvoicesColumns[35]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "red_invoice_no IS NOT NULL",
 				},
@@ -3067,6 +3156,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "netting_no", Type: field.TypeString, Size: 64},
 		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
 		{Name: "request_hash", Type: field.TypeString, Size: 64},
@@ -3101,43 +3191,43 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_nettings_finance_bill_batches_nettings",
-				Columns:    []*schema.Column{FinanceNettingsColumns[21]},
+				Columns:    []*schema.Column{FinanceNettingsColumns[22]},
 				RefColumns: []*schema.Column{FinanceBillBatchesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "finance_nettings_order_fee_correction_requests_nettings",
-				Columns:    []*schema.Column{FinanceNettingsColumns[22]},
+				Columns:    []*schema.Column{FinanceNettingsColumns[23]},
 				RefColumns: []*schema.Column{OrderFeeCorrectionRequestsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_nettings_organizations_finance_nettings",
-				Columns:    []*schema.Column{FinanceNettingsColumns[23]},
+				Columns:    []*schema.Column{FinanceNettingsColumns[24]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_nettings_partners_finance_nettings",
-				Columns:    []*schema.Column{FinanceNettingsColumns[24]},
+				Columns:    []*schema.Column{FinanceNettingsColumns[25]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_nettings_users_confirmed_finance_nettings",
-				Columns:    []*schema.Column{FinanceNettingsColumns[25]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:     "finance_nettings_users_cancelled_finance_nettings",
 				Columns:    []*schema.Column{FinanceNettingsColumns[26]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:     "finance_nettings_users_reversed_finance_nettings",
+				Symbol:     "finance_nettings_users_cancelled_finance_nettings",
 				Columns:    []*schema.Column{FinanceNettingsColumns[27]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "finance_nettings_users_reversed_finance_nettings",
+				Columns:    []*schema.Column{FinanceNettingsColumns[28]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -3149,29 +3239,38 @@ var (
 				Columns: []*schema.Column{FinanceNettingsColumns[2]},
 			},
 			{
+				Name:    "finance_nettings_search_keywords_trgm",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceNettingsColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					OpClass: "gin_trgm_ops",
+					Type:    "GIN",
+				},
+			},
+			{
 				Name:    "financenetting_organization_id_netting_no",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceNettingsColumns[23], FinanceNettingsColumns[3]},
+				Columns: []*schema.Column{FinanceNettingsColumns[24], FinanceNettingsColumns[4]},
 			},
 			{
 				Name:    "financenetting_organization_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceNettingsColumns[23], FinanceNettingsColumns[4]},
+				Columns: []*schema.Column{FinanceNettingsColumns[24], FinanceNettingsColumns[5]},
 			},
 			{
 				Name:    "financenetting_organization_id_status_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceNettingsColumns[23], FinanceNettingsColumns[6], FinanceNettingsColumns[1]},
+				Columns: []*schema.Column{FinanceNettingsColumns[24], FinanceNettingsColumns[7], FinanceNettingsColumns[1]},
 			},
 			{
 				Name:    "financenetting_settlement_party_id_currency",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceNettingsColumns[24], FinanceNettingsColumns[8]},
+				Columns: []*schema.Column{FinanceNettingsColumns[25], FinanceNettingsColumns[9]},
 			},
 			{
 				Name:    "financenetting_batch_id",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceNettingsColumns[21]},
+				Columns: []*schema.Column{FinanceNettingsColumns[22]},
 			},
 		},
 	}
@@ -3242,6 +3341,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "verification_no", Type: field.TypeString, Size: 64},
 		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "REVERSED"}, Default: "ACTIVE"},
@@ -3271,19 +3371,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "finance_verifications_organizations_finance_verifications",
-				Columns:    []*schema.Column{FinanceVerificationsColumns[20]},
+				Columns:    []*schema.Column{FinanceVerificationsColumns[21]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_verifications_partners_finance_verifications",
-				Columns:    []*schema.Column{FinanceVerificationsColumns[21]},
+				Columns:    []*schema.Column{FinanceVerificationsColumns[22]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "finance_verifications_users_reversed_finance_verifications",
-				Columns:    []*schema.Column{FinanceVerificationsColumns[22]},
+				Columns:    []*schema.Column{FinanceVerificationsColumns[23]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -3295,19 +3395,28 @@ var (
 				Columns: []*schema.Column{FinanceVerificationsColumns[2]},
 			},
 			{
+				Name:    "finance_verifications_search_keywords_trgm",
+				Unique:  false,
+				Columns: []*schema.Column{FinanceVerificationsColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					OpClass: "gin_trgm_ops",
+					Type:    "GIN",
+				},
+			},
+			{
 				Name:    "financeverification_organization_id_verification_no",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceVerificationsColumns[20], FinanceVerificationsColumns[3]},
+				Columns: []*schema.Column{FinanceVerificationsColumns[21], FinanceVerificationsColumns[4]},
 			},
 			{
 				Name:    "financeverification_organization_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{FinanceVerificationsColumns[20], FinanceVerificationsColumns[4]},
+				Columns: []*schema.Column{FinanceVerificationsColumns[21], FinanceVerificationsColumns[5]},
 			},
 			{
 				Name:    "financeverification_organization_id_status_verification_date",
 				Unique:  false,
-				Columns: []*schema.Column{FinanceVerificationsColumns[20], FinanceVerificationsColumns[5], FinanceVerificationsColumns[15]},
+				Columns: []*schema.Column{FinanceVerificationsColumns[21], FinanceVerificationsColumns[6], FinanceVerificationsColumns[16]},
 			},
 		},
 	}
@@ -3673,6 +3782,9 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "shipper_search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "consignee_search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "order_no", Type: field.TypeString, Size: 64},
 		{Name: "idempotency_key", Type: field.TypeString, Size: 128},
 		{Name: "customer_reference_no", Type: field.TypeString, Nullable: true, Size: 100},
@@ -3760,25 +3872,25 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "orders_organizations_orders",
-				Columns:    []*schema.Column{OrdersColumns[77]},
+				Columns:    []*schema.Column{OrdersColumns[80]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "orders_partners_orders",
-				Columns:    []*schema.Column{OrdersColumns[78]},
+				Columns:    []*schema.Column{OrdersColumns[81]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "orders_shipping_lines_orders",
-				Columns:    []*schema.Column{OrdersColumns[79]},
+				Columns:    []*schema.Column{OrdersColumns[82]},
 				RefColumns: []*schema.Column{ShippingLinesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "orders_users_locked_orders",
-				Columns:    []*schema.Column{OrdersColumns[80]},
+				Columns:    []*schema.Column{OrdersColumns[83]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -3790,69 +3902,96 @@ var (
 				Columns: []*schema.Column{OrdersColumns[2]},
 			},
 			{
+				Name:    "orders_search_keywords_trgm",
+				Unique:  false,
+				Columns: []*schema.Column{OrdersColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					OpClass: "gin_trgm_ops",
+					Type:    "GIN",
+				},
+			},
+			{
+				Name:    "orders_shipper_search_keywords_trgm",
+				Unique:  false,
+				Columns: []*schema.Column{OrdersColumns[4]},
+				Annotation: &entsql.IndexAnnotation{
+					OpClass: "gin_trgm_ops",
+					Type:    "GIN",
+				},
+			},
+			{
+				Name:    "orders_consignee_search_keywords_trgm",
+				Unique:  false,
+				Columns: []*schema.Column{OrdersColumns[5]},
+				Annotation: &entsql.IndexAnnotation{
+					OpClass: "gin_trgm_ops",
+					Type:    "GIN",
+				},
+			},
+			{
 				Name:    "order_organization_id_order_no",
 				Unique:  true,
-				Columns: []*schema.Column{OrdersColumns[77], OrdersColumns[3]},
+				Columns: []*schema.Column{OrdersColumns[80], OrdersColumns[6]},
 			},
 			{
 				Name:    "order_organization_id_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{OrdersColumns[77], OrdersColumns[4]},
+				Columns: []*schema.Column{OrdersColumns[80], OrdersColumns[7]},
 			},
 			{
 				Name:    "order_organization_id_flow_status",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[77], OrdersColumns[31]},
+				Columns: []*schema.Column{OrdersColumns[80], OrdersColumns[34]},
 			},
 			{
 				Name:    "order_organization_id_termination_status",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[77], OrdersColumns[32]},
+				Columns: []*schema.Column{OrdersColumns[80], OrdersColumns[35]},
 			},
 			{
 				Name:    "order_organization_id_closure_status",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[77], OrdersColumns[37]},
+				Columns: []*schema.Column{OrdersColumns[80], OrdersColumns[40]},
 			},
 			{
 				Name:    "order_organization_id_business_type",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[77], OrdersColumns[24]},
+				Columns: []*schema.Column{OrdersColumns[80], OrdersColumns[27]},
 			},
 			{
 				Name:    "order_organization_id_customer_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[77], OrdersColumns[78]},
+				Columns: []*schema.Column{OrdersColumns[80], OrdersColumns[81]},
 			},
 			{
 				Name:    "order_organization_id_shipping_line_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[77], OrdersColumns[79]},
+				Columns: []*schema.Column{OrdersColumns[80], OrdersColumns[82]},
 			},
 			{
 				Name:    "order_organization_id_origin_location_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[77], OrdersColumns[54]},
+				Columns: []*schema.Column{OrdersColumns[80], OrdersColumns[57]},
 			},
 			{
 				Name:    "order_organization_id_destination_location_id",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[77], OrdersColumns[55]},
+				Columns: []*schema.Column{OrdersColumns[80], OrdersColumns[58]},
 			},
 			{
 				Name:    "order_organization_id_locked_at",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[77], OrdersColumns[41]},
+				Columns: []*schema.Column{OrdersColumns[80], OrdersColumns[44]},
 			},
 			{
 				Name:    "order_organization_id_is_shared",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[77], OrdersColumns[47]},
+				Columns: []*schema.Column{OrdersColumns[80], OrdersColumns[50]},
 			},
 			{
 				Name:    "order_organization_id_booking_no",
 				Unique:  false,
-				Columns: []*schema.Column{OrdersColumns[77], OrdersColumns[72]},
+				Columns: []*schema.Column{OrdersColumns[80], OrdersColumns[75]},
 			},
 		},
 	}
@@ -5621,6 +5760,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "search_keywords", Type: field.TypeString, Size: 2147483647, Default: ""},
 		{Name: "name", Type: field.TypeString, Size: 100},
 		{Name: "phone", Type: field.TypeString, Nullable: true, Size: 64},
 		{Name: "email", Type: field.TypeString, Nullable: true, Size: 254},
@@ -5636,7 +5776,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "partner_contacts_partners_contacts",
-				Columns:    []*schema.Column{PartnerContactsColumns[8]},
+				Columns:    []*schema.Column{PartnerContactsColumns[9]},
 				RefColumns: []*schema.Column{PartnersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -5648,14 +5788,23 @@ var (
 				Columns: []*schema.Column{PartnerContactsColumns[2]},
 			},
 			{
+				Name:    "partner_contacts_search_keywords_trgm",
+				Unique:  false,
+				Columns: []*schema.Column{PartnerContactsColumns[3]},
+				Annotation: &entsql.IndexAnnotation{
+					OpClass: "gin_trgm_ops",
+					Type:    "GIN",
+				},
+			},
+			{
 				Name:    "partnercontact_partner_id",
 				Unique:  false,
-				Columns: []*schema.Column{PartnerContactsColumns[8]},
+				Columns: []*schema.Column{PartnerContactsColumns[9]},
 			},
 			{
 				Name:    "partner_primary_contact_key",
 				Unique:  true,
-				Columns: []*schema.Column{PartnerContactsColumns[8]},
+				Columns: []*schema.Column{PartnerContactsColumns[9]},
 				Annotation: &entsql.IndexAnnotation{
 					Where: "is_primary",
 				},

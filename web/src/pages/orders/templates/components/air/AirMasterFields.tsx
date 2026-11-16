@@ -99,6 +99,7 @@ export function AirMasterRouteFields({
                 ]
               : undefined
           }
+          fieldProps={{ filterOption: false }}
           request={async ({ keyWords }) => {
             const response = ensureListResponse(
               await masterDataServiceListAirlines({
@@ -146,6 +147,7 @@ export function AirMasterRouteFields({
               ]}
               rules={[{ required: true, message: '请选择机场' }]}
               disabled={props.readonly}
+              fieldProps={{ filterOption: false }}
               request={({ keyWords }) => props.searchLocations(keyWords)}
             />
           </FormCell>
@@ -532,6 +534,7 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
                 });
               }}
               fieldProps={{
+                filterOption: false,
                 onChange: (_value, option) => {
                   const selected = Array.isArray(option) ? option[0] : option;
                   if (selected && 'master' in selected) {

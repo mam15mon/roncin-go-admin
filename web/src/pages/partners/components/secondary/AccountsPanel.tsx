@@ -5,7 +5,6 @@ import type {
   ProFormInstance,
 } from '@ant-design/pro-components';
 import {
-  ProFormSelect,
   ProFormSwitch,
   ProFormText,
   ProFormTextArea,
@@ -14,6 +13,7 @@ import { App, Button, Space, Tag, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
 import {
   GuardedModalForm,
+  ProFormSearchableSelect,
   ResponsiveProTable as ProTable,
 } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
@@ -282,7 +282,7 @@ export default function AccountsPanel({
             placeholder="如 CNY、USD"
             rules={[{ required: true, len: 3, message: '请输入三位币种代码' }]}
           />
-          <ProFormSelect
+          <ProFormSearchableSelect
             name="usage"
             label="允许用途"
             width="sm"

@@ -34,6 +34,20 @@ func (_u *EnterpriseResourceAddressUpdate) SetUpdatedAt(v time.Time) *Enterprise
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *EnterpriseResourceAddressUpdate) SetSearchKeywords(v string) *EnterpriseResourceAddressUpdate {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *EnterpriseResourceAddressUpdate) SetNillableSearchKeywords(v *string) *EnterpriseResourceAddressUpdate {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetContactName sets the "contact_name" field.
 func (_u *EnterpriseResourceAddressUpdate) SetContactName(v string) *EnterpriseResourceAddressUpdate {
 	_u.mutation.SetContactName(v)
@@ -189,7 +203,9 @@ func (_u *EnterpriseResourceAddressUpdate) Mutation() *EnterpriseResourceAddress
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *EnterpriseResourceAddressUpdate) Save(ctx context.Context) (int, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -216,11 +232,15 @@ func (_u *EnterpriseResourceAddressUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *EnterpriseResourceAddressUpdate) defaults() {
+func (_u *EnterpriseResourceAddressUpdate) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if enterpriseresourceaddress.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized enterpriseresourceaddress.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := enterpriseresourceaddress.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -285,6 +305,9 @@ func (_u *EnterpriseResourceAddressUpdate) sqlSave(ctx context.Context) (_node i
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(enterpriseresourceaddress.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(enterpriseresourceaddress.FieldSearchKeywords, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.ContactName(); ok {
 		_spec.SetField(enterpriseresourceaddress.FieldContactName, field.TypeString, value)
@@ -351,6 +374,20 @@ type EnterpriseResourceAddressUpdateOne struct {
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *EnterpriseResourceAddressUpdateOne) SetUpdatedAt(v time.Time) *EnterpriseResourceAddressUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *EnterpriseResourceAddressUpdateOne) SetSearchKeywords(v string) *EnterpriseResourceAddressUpdateOne {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *EnterpriseResourceAddressUpdateOne) SetNillableSearchKeywords(v *string) *EnterpriseResourceAddressUpdateOne {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
 	return _u
 }
 
@@ -522,7 +559,9 @@ func (_u *EnterpriseResourceAddressUpdateOne) Select(field string, fields ...str
 
 // Save executes the query and returns the updated EnterpriseResourceAddress entity.
 func (_u *EnterpriseResourceAddressUpdateOne) Save(ctx context.Context) (*EnterpriseResourceAddress, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -549,11 +588,15 @@ func (_u *EnterpriseResourceAddressUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *EnterpriseResourceAddressUpdateOne) defaults() {
+func (_u *EnterpriseResourceAddressUpdateOne) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if enterpriseresourceaddress.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized enterpriseresourceaddress.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := enterpriseresourceaddress.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -635,6 +678,9 @@ func (_u *EnterpriseResourceAddressUpdateOne) sqlSave(ctx context.Context) (_nod
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(enterpriseresourceaddress.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(enterpriseresourceaddress.FieldSearchKeywords, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.ContactName(); ok {
 		_spec.SetField(enterpriseresourceaddress.FieldContactName, field.TypeString, value)

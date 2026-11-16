@@ -50,7 +50,7 @@ func (r *financeInvoiceRepo) listScopedSnapshot(ctx context.Context, organizatio
 		p = append(p, financeinvoiceent.HasBillLinksWith(financeinvoicebillent.BillIDEQ(*filter.BillID)))
 	}
 	if filter.Keyword != "" {
-		p = append(p, financeinvoiceent.Or(financeinvoiceent.RecordNoContainsFold(filter.Keyword), financeinvoiceent.SettlementPartyNameContainsFold(filter.Keyword), financeinvoiceent.TaxInvoiceNoContainsFold(filter.Keyword), financeinvoiceent.HasBillLinksWith(financeinvoicebillent.BillNoContainsFold(filter.Keyword))))
+		p = append(p, financeinvoiceent.Or(financeinvoiceent.RecordNoContainsFold(filter.Keyword), financeinvoiceent.SettlementPartyNameContainsFold(filter.Keyword), financeinvoiceent.SearchKeywordsContainsFold(filter.Keyword), financeinvoiceent.HasSettlementPartyWith(financePartyKeywordPredicate(filter.Keyword)), financeinvoiceent.TaxInvoiceNoContainsFold(filter.Keyword), financeinvoiceent.HasBillLinksWith(financeinvoicebillent.BillNoContainsFold(filter.Keyword))))
 	}
 	if filter.Direction != "" {
 		p = append(p, financeinvoiceent.DirectionEQ(financeinvoiceent.Direction(filter.Direction)))
@@ -212,7 +212,7 @@ func (r *financeInvoiceRepo) listCreationBillsSnapshot(ctx context.Context, orga
 	if filter.Keyword != "" {
 		predicates = append(predicates, financebillent.Or(
 			financebillent.BillNoContainsFold(filter.Keyword),
-			financebillent.SettlementPartyNameContainsFold(filter.Keyword),
+			financebillent.SettlementPartyNameContainsFold(filter.Keyword), financebillent.SearchKeywordsContainsFold(filter.Keyword),
 			financebillent.HasSettlementPartyWith(financePartyKeywordPredicate(filter.Keyword)),
 			financebillent.HasLinesWith(financebilllineent.OrderNoContainsFold(filter.Keyword)),
 		))

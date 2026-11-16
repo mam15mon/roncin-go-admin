@@ -34,6 +34,20 @@ func (_u *EnterpriseResourceRemarkUpdate) SetUpdatedAt(v time.Time) *EnterpriseR
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *EnterpriseResourceRemarkUpdate) SetSearchKeywords(v string) *EnterpriseResourceRemarkUpdate {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *EnterpriseResourceRemarkUpdate) SetNillableSearchKeywords(v *string) *EnterpriseResourceRemarkUpdate {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetRemarkType sets the "remark_type" field.
 func (_u *EnterpriseResourceRemarkUpdate) SetRemarkType(v enterpriseresourceremark.RemarkType) *EnterpriseResourceRemarkUpdate {
 	_u.mutation.SetRemarkType(v)
@@ -69,7 +83,9 @@ func (_u *EnterpriseResourceRemarkUpdate) Mutation() *EnterpriseResourceRemarkMu
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *EnterpriseResourceRemarkUpdate) Save(ctx context.Context) (int, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -96,11 +112,15 @@ func (_u *EnterpriseResourceRemarkUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *EnterpriseResourceRemarkUpdate) defaults() {
+func (_u *EnterpriseResourceRemarkUpdate) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if enterpriseresourceremark.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized enterpriseresourceremark.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := enterpriseresourceremark.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -136,6 +156,9 @@ func (_u *EnterpriseResourceRemarkUpdate) sqlSave(ctx context.Context) (_node in
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(enterpriseresourceremark.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(enterpriseresourceremark.FieldSearchKeywords, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.RemarkType(); ok {
 		_spec.SetField(enterpriseresourceremark.FieldRemarkType, field.TypeEnum, value)
 	}
@@ -165,6 +188,20 @@ type EnterpriseResourceRemarkUpdateOne struct {
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *EnterpriseResourceRemarkUpdateOne) SetUpdatedAt(v time.Time) *EnterpriseResourceRemarkUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *EnterpriseResourceRemarkUpdateOne) SetSearchKeywords(v string) *EnterpriseResourceRemarkUpdateOne {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *EnterpriseResourceRemarkUpdateOne) SetNillableSearchKeywords(v *string) *EnterpriseResourceRemarkUpdateOne {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
 	return _u
 }
 
@@ -216,7 +253,9 @@ func (_u *EnterpriseResourceRemarkUpdateOne) Select(field string, fields ...stri
 
 // Save executes the query and returns the updated EnterpriseResourceRemark entity.
 func (_u *EnterpriseResourceRemarkUpdateOne) Save(ctx context.Context) (*EnterpriseResourceRemark, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -243,11 +282,15 @@ func (_u *EnterpriseResourceRemarkUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *EnterpriseResourceRemarkUpdateOne) defaults() {
+func (_u *EnterpriseResourceRemarkUpdateOne) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if enterpriseresourceremark.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized enterpriseresourceremark.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := enterpriseresourceremark.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -299,6 +342,9 @@ func (_u *EnterpriseResourceRemarkUpdateOne) sqlSave(ctx context.Context) (_node
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(enterpriseresourceremark.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(enterpriseresourceremark.FieldSearchKeywords, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.RemarkType(); ok {
 		_spec.SetField(enterpriseresourceremark.FieldRemarkType, field.TypeEnum, value)

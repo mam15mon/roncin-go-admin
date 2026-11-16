@@ -37,6 +37,20 @@ func (_u *FinanceCashflowUpdate) SetUpdatedAt(v time.Time) *FinanceCashflowUpdat
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *FinanceCashflowUpdate) SetSearchKeywords(v string) *FinanceCashflowUpdate {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *FinanceCashflowUpdate) SetNillableSearchKeywords(v *string) *FinanceCashflowUpdate {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetStatus sets the "status" field.
 func (_u *FinanceCashflowUpdate) SetStatus(v financecashflow.Status) *FinanceCashflowUpdate {
 	_u.mutation.SetStatus(v)
@@ -367,7 +381,9 @@ func (_u *FinanceCashflowUpdate) RemoveVerificationAllocations(v ...*FinanceVeri
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *FinanceCashflowUpdate) Save(ctx context.Context) (int, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -394,11 +410,15 @@ func (_u *FinanceCashflowUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *FinanceCashflowUpdate) defaults() {
+func (_u *FinanceCashflowUpdate) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if financecashflow.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized financecashflow.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := financecashflow.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -466,6 +486,9 @@ func (_u *FinanceCashflowUpdate) sqlSave(ctx context.Context) (_node int, err er
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financecashflow.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(financecashflow.FieldSearchKeywords, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(financecashflow.FieldStatus, field.TypeEnum, value)
@@ -650,6 +673,20 @@ type FinanceCashflowUpdateOne struct {
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *FinanceCashflowUpdateOne) SetUpdatedAt(v time.Time) *FinanceCashflowUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *FinanceCashflowUpdateOne) SetSearchKeywords(v string) *FinanceCashflowUpdateOne {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *FinanceCashflowUpdateOne) SetNillableSearchKeywords(v *string) *FinanceCashflowUpdateOne {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
 	return _u
 }
 
@@ -996,7 +1033,9 @@ func (_u *FinanceCashflowUpdateOne) Select(field string, fields ...string) *Fina
 
 // Save executes the query and returns the updated FinanceCashflow entity.
 func (_u *FinanceCashflowUpdateOne) Save(ctx context.Context) (*FinanceCashflow, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -1023,11 +1062,15 @@ func (_u *FinanceCashflowUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *FinanceCashflowUpdateOne) defaults() {
+func (_u *FinanceCashflowUpdateOne) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if financecashflow.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized financecashflow.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := financecashflow.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -1112,6 +1155,9 @@ func (_u *FinanceCashflowUpdateOne) sqlSave(ctx context.Context) (_node *Finance
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(financecashflow.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(financecashflow.FieldSearchKeywords, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(financecashflow.FieldStatus, field.TypeEnum, value)

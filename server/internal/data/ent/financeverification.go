@@ -25,6 +25,8 @@ type FinanceVerification struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// SearchKeywords holds the value of the "search_keywords" field.
+	SearchKeywords string `json:"search_keywords,omitempty"`
 	// OrganizationID holds the value of the "organization_id" field.
 	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// VerificationNo holds the value of the "verification_no" field.
@@ -159,7 +161,7 @@ func (*FinanceVerification) scanValues(columns []string) ([]any, error) {
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case financeverification.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case financeverification.FieldVerificationNo, financeverification.FieldIdempotencyKey, financeverification.FieldStatus, financeverification.FieldDirection, financeverification.FieldSettlementPartyName, financeverification.FieldCurrency, financeverification.FieldAmount, financeverification.FieldBaseCurrency, financeverification.FieldBaseAmount, financeverification.FieldBillBaseAmount, financeverification.FieldCashflowBaseAmount, financeverification.FieldExchangeGainLoss, financeverification.FieldVerificationDate, financeverification.FieldNote, financeverification.FieldReversalReason:
+		case financeverification.FieldSearchKeywords, financeverification.FieldVerificationNo, financeverification.FieldIdempotencyKey, financeverification.FieldStatus, financeverification.FieldDirection, financeverification.FieldSettlementPartyName, financeverification.FieldCurrency, financeverification.FieldAmount, financeverification.FieldBaseCurrency, financeverification.FieldBaseAmount, financeverification.FieldBillBaseAmount, financeverification.FieldCashflowBaseAmount, financeverification.FieldExchangeGainLoss, financeverification.FieldVerificationDate, financeverification.FieldNote, financeverification.FieldReversalReason:
 			values[i] = new(sql.NullString)
 		case financeverification.FieldCreatedAt, financeverification.FieldUpdatedAt, financeverification.FieldReversedAt:
 			values[i] = new(sql.NullTime)
@@ -197,6 +199,12 @@ func (_m *FinanceVerification) assignValues(columns []string, values []any) erro
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
+			}
+		case financeverification.FieldSearchKeywords:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field search_keywords", values[i])
+			} else if value.Valid {
+				_m.SearchKeywords = value.String
 			}
 		case financeverification.FieldOrganizationID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -393,6 +401,9 @@ func (_m *FinanceVerification) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("search_keywords=")
+	builder.WriteString(_m.SearchKeywords)
 	builder.WriteString(", ")
 	builder.WriteString("organization_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))

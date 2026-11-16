@@ -16,6 +16,7 @@ func (PartnerContact) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMi
 
 func (PartnerContact) Fields() []ent.Field {
 	return []ent.Field{
+		searchKeywordsField(),
 		field.UUID("partner_id", uuid.Nil),
 		field.String("name").NotEmpty().MaxLen(100),
 		field.String("phone").Optional().MaxLen(64),
@@ -33,7 +34,10 @@ func (PartnerContact) Edges() []ent.Edge {
 
 func (PartnerContact) Indexes() []ent.Index {
 	return []ent.Index{
+		searchKeywordsIndex("partner_contacts_search_keywords_trgm"),
 		index.Fields("partner_id"),
 		index.Fields("partner_id").Unique().StorageKey("partner_primary_contact_key").Annotations(entsql.IndexWhere("is_primary")),
 	}
 }
+
+func (PartnerContact) Hooks() []ent.Hook { return []ent.Hook{searchKeywordsHook("name")} }

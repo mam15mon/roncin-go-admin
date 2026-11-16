@@ -139,3 +139,23 @@ it.each([undefined, false, true])(
     expect(orgMap.get('wire-org')?.enabled).toBe(enabled);
   },
 );
+
+it('组织树支持拼音并保留祖先链', () => {
+  const { treeData } = buildOrgTree([
+    { id: 'root', name: '系统管理', code: 'ROOT', kind: 1, enabled: true },
+    {
+      id: 'company',
+      parentId: 'root',
+      name: '重庆公司',
+      code: 'COMPANY',
+      kind: 2,
+      enabled: true,
+    },
+  ]);
+  for (const keyword of ['chongqing', 'cqgs']) {
+    const { filteredTree, matchedKeys } = filterOrgTree(treeData, keyword);
+    expect(filteredTree[0].key).toBe('root');
+    expect(filteredTree[0].children?.[0].key).toBe('company');
+    expect(matchedKeys).toContain('company');
+  }
+});

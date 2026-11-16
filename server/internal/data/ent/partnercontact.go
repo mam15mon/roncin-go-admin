@@ -23,6 +23,8 @@ type PartnerContact struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// SearchKeywords holds the value of the "search_keywords" field.
+	SearchKeywords string `json:"search_keywords,omitempty"`
 	// PartnerID holds the value of the "partner_id" field.
 	PartnerID uuid.UUID `json:"partner_id,omitempty"`
 	// Name holds the value of the "name" field.
@@ -68,7 +70,7 @@ func (*PartnerContact) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case partnercontact.FieldIsPrimary:
 			values[i] = new(sql.NullBool)
-		case partnercontact.FieldName, partnercontact.FieldPhone, partnercontact.FieldEmail, partnercontact.FieldNote:
+		case partnercontact.FieldSearchKeywords, partnercontact.FieldName, partnercontact.FieldPhone, partnercontact.FieldEmail, partnercontact.FieldNote:
 			values[i] = new(sql.NullString)
 		case partnercontact.FieldCreatedAt, partnercontact.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -106,6 +108,12 @@ func (_m *PartnerContact) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
+			}
+		case partnercontact.FieldSearchKeywords:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field search_keywords", values[i])
+			} else if value.Valid {
+				_m.SearchKeywords = value.String
 			}
 		case partnercontact.FieldPartnerID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -189,6 +197,9 @@ func (_m *PartnerContact) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("search_keywords=")
+	builder.WriteString(_m.SearchKeywords)
 	builder.WriteString(", ")
 	builder.WriteString("partner_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.PartnerID))

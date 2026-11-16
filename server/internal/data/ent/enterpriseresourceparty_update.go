@@ -34,6 +34,20 @@ func (_u *EnterpriseResourcePartyUpdate) SetUpdatedAt(v time.Time) *EnterpriseRe
 	return _u
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *EnterpriseResourcePartyUpdate) SetSearchKeywords(v string) *EnterpriseResourcePartyUpdate {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *EnterpriseResourcePartyUpdate) SetNillableSearchKeywords(v *string) *EnterpriseResourcePartyUpdate {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
+	return _u
+}
+
 // SetCompanyName sets the "company_name" field.
 func (_u *EnterpriseResourcePartyUpdate) SetCompanyName(v string) *EnterpriseResourcePartyUpdate {
 	_u.mutation.SetCompanyName(v)
@@ -283,7 +297,9 @@ func (_u *EnterpriseResourcePartyUpdate) Mutation() *EnterpriseResourcePartyMuta
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *EnterpriseResourcePartyUpdate) Save(ctx context.Context) (int, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -310,11 +326,15 @@ func (_u *EnterpriseResourcePartyUpdate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *EnterpriseResourcePartyUpdate) defaults() {
+func (_u *EnterpriseResourcePartyUpdate) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if enterpriseresourceparty.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized enterpriseresourceparty.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := enterpriseresourceparty.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -399,6 +419,9 @@ func (_u *EnterpriseResourcePartyUpdate) sqlSave(ctx context.Context) (_node int
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(enterpriseresourceparty.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(enterpriseresourceparty.FieldSearchKeywords, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.CompanyName(); ok {
 		_spec.SetField(enterpriseresourceparty.FieldCompanyName, field.TypeString, value)
@@ -492,6 +515,20 @@ type EnterpriseResourcePartyUpdateOne struct {
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *EnterpriseResourcePartyUpdateOne) SetUpdatedAt(v time.Time) *EnterpriseResourcePartyUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (_u *EnterpriseResourcePartyUpdateOne) SetSearchKeywords(v string) *EnterpriseResourcePartyUpdateOne {
+	_u.mutation.SetSearchKeywords(v)
+	return _u
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_u *EnterpriseResourcePartyUpdateOne) SetNillableSearchKeywords(v *string) *EnterpriseResourcePartyUpdateOne {
+	if v != nil {
+		_u.SetSearchKeywords(*v)
+	}
 	return _u
 }
 
@@ -757,7 +794,9 @@ func (_u *EnterpriseResourcePartyUpdateOne) Select(field string, fields ...strin
 
 // Save executes the query and returns the updated EnterpriseResourceParty entity.
 func (_u *EnterpriseResourcePartyUpdateOne) Save(ctx context.Context) (*EnterpriseResourceParty, error) {
-	_u.defaults()
+	if err := _u.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -784,11 +823,15 @@ func (_u *EnterpriseResourcePartyUpdateOne) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_u *EnterpriseResourcePartyUpdateOne) defaults() {
+func (_u *EnterpriseResourcePartyUpdateOne) defaults() error {
 	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		if enterpriseresourceparty.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized enterpriseresourceparty.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := enterpriseresourceparty.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -890,6 +933,9 @@ func (_u *EnterpriseResourcePartyUpdateOne) sqlSave(ctx context.Context) (_node 
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(enterpriseresourceparty.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.SearchKeywords(); ok {
+		_spec.SetField(enterpriseresourceparty.FieldSearchKeywords, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.CompanyName(); ok {
 		_spec.SetField(enterpriseresourceparty.FieldCompanyName, field.TypeString, value)

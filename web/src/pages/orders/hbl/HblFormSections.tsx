@@ -1,11 +1,10 @@
 import {
   ProFormDatePicker,
   ProFormDigit,
-  ProFormSelect,
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { FormRow } from '@/components/ui';
+import { FormRow, ProFormSearchableSelect } from '@/components/ui';
 import type { OrderFormTemplateSection } from '@/components/ui/order-template/types';
 import {
   SEA_BILL_FORM_OPTIONS,
@@ -188,22 +187,22 @@ export function buildHblFormSections({
             max={12000}
           />
           <FormRow cols={4}>
-            <ProFormSelect
+            <ProFormSearchableSelect
               name={['content', 'freightTerms']}
               label="运费条款"
               options={SEA_FREIGHT_TERM_OPTIONS}
             />
-            <ProFormSelect
+            <ProFormSearchableSelect
               name={['content', 'transportTerms']}
               label="运输条款"
               options={SEA_TRANSPORT_TERM_OPTIONS}
             />
-            <ProFormSelect
+            <ProFormSearchableSelect
               name={['content', 'billForm']}
               label="提单形式"
               options={SEA_BILL_FORM_OPTIONS}
             />
-            <ProFormSelect
+            <ProFormSearchableSelect
               name={['content', 'releaseType']}
               label="放单方式"
               options={SEA_RELEASE_TYPE_OPTIONS}

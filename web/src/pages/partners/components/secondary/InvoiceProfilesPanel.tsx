@@ -6,7 +6,6 @@ import type {
 } from '@ant-design/pro-components';
 import {
   ProFormDependency,
-  ProFormSelect,
   ProFormSwitch,
   ProFormText,
 } from '@ant-design/pro-components';
@@ -14,6 +13,7 @@ import { Alert, App, Button, Space, Tag, Typography } from 'antd';
 import React, { useRef, useState } from 'react';
 import {
   GuardedModalForm,
+  ProFormSearchableSelect,
   ResponsiveProTable as ProTable,
 } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
@@ -256,7 +256,7 @@ export default function InvoiceProfilesPanel({
             { required: true, whitespace: true, message: '请输入纳税人识别号' },
           ]}
         />
-        <ProFormSelect
+        <ProFormSearchableSelect
           name="defaultInvoiceType"
           label="默认发票类型"
           options={[...INVOICE_TYPE_OPTIONS]}

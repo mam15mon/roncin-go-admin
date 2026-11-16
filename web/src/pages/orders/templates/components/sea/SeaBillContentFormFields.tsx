@@ -2,13 +2,17 @@ import { DownloadOutlined, SwapOutlined } from '@ant-design/icons';
 import {
   GridContext,
   ProFormDigit,
-  ProFormSelect,
   ProFormTextArea,
 } from '@ant-design/pro-components';
 import { App, Button, Checkbox, Form, Segmented, Space, Tag } from 'antd';
 import { createStyles } from 'antd-style';
 import React, { useState } from 'react';
-import { FormRow, PackageCountInput } from '@/components/ui';
+import {
+  FormRow,
+  PackageCountInput,
+  ProFormSearchableSelect,
+} from '@/components/ui';
+import { defaultSelectFilterOption } from '@/components/ui/searchable-select/utils';
 
 const NON_GRID_CONTEXT = { grid: false };
 
@@ -1256,7 +1260,7 @@ export function SeaBillContentFormFields({
         )}
         {/* 提单条款：与全页一致使用上方标签，标签与下拉框建立可访问关联。 */}
         <FormRow cols={4}>
-          <ProFormSelect
+          <ProFormSearchableSelect
             label="付款方式"
             name={[...namePathPrefix, 'freightTerms']}
             placeholder="请选择付款方式"
@@ -1265,6 +1269,7 @@ export function SeaBillContentFormFields({
             fieldProps={{
               style: { width: '100%' },
               showSearch: true,
+              filterOption: defaultSelectFilterOption,
               allowClear: true,
               onChange: (val) => {
                 if (form) {
@@ -1276,17 +1281,9 @@ export function SeaBillContentFormFields({
                   }
                 }
               },
-              filterOption: (input, option) => {
-                const normInput = input.trim().toLowerCase();
-                const normLabel = String(option?.label ?? '').toLowerCase();
-                const normValue = String(option?.value ?? '').toLowerCase();
-                return (
-                  normLabel.includes(normInput) || normValue.includes(normInput)
-                );
-              },
             }}
           />
-          <ProFormSelect
+          <ProFormSearchableSelect
             label="运输条款"
             name={[...namePathPrefix, 'transportTerms']}
             placeholder="请选择运输条款"
@@ -1295,22 +1292,16 @@ export function SeaBillContentFormFields({
             fieldProps={{
               style: { width: '100%' },
               showSearch: true,
+              filterOption: (input, option) =>
+                defaultSelectFilterOption(input.replace(/[\s\-_/]/g, ''), {
+                  ...option,
+                  label: String(option?.label ?? '').replace(/[\s\-_/]/g, ''),
+                  value: String(option?.value ?? '').replace(/[\s\-_/]/g, ''),
+                }),
               allowClear: true,
-              filterOption: (input, option) => {
-                const normInput = input.replace(/[\s\-_/]/g, '').toLowerCase();
-                const normLabel = String(option?.label ?? '')
-                  .replace(/[\s\-_/]/g, '')
-                  .toLowerCase();
-                const normValue = String(option?.value ?? '')
-                  .replace(/[\s\-_/]/g, '')
-                  .toLowerCase();
-                return (
-                  normLabel.includes(normInput) || normValue.includes(normInput)
-                );
-              },
             }}
           />
-          <ProFormSelect
+          <ProFormSearchableSelect
             label="提单形式"
             name={[...namePathPrefix, 'billForm']}
             placeholder="请选择提单形式"
@@ -1320,9 +1311,10 @@ export function SeaBillContentFormFields({
               style: { width: '100%' },
               allowClear: true,
               showSearch: true,
+              filterOption: defaultSelectFilterOption,
             }}
           />
-          <ProFormSelect
+          <ProFormSearchableSelect
             label="放单方式"
             name={[...namePathPrefix, 'releaseType']}
             placeholder="请选择放单方式"
@@ -1332,6 +1324,7 @@ export function SeaBillContentFormFields({
               style: { width: '100%' },
               allowClear: true,
               showSearch: true,
+              filterOption: defaultSelectFilterOption,
             }}
           />
         </FormRow>

@@ -53,6 +53,20 @@ func (_c *PartnerContactCreate) SetNillableUpdatedAt(v *time.Time) *PartnerConta
 	return _c
 }
 
+// SetSearchKeywords sets the "search_keywords" field.
+func (_c *PartnerContactCreate) SetSearchKeywords(v string) *PartnerContactCreate {
+	_c.mutation.SetSearchKeywords(v)
+	return _c
+}
+
+// SetNillableSearchKeywords sets the "search_keywords" field if the given value is not nil.
+func (_c *PartnerContactCreate) SetNillableSearchKeywords(v *string) *PartnerContactCreate {
+	if v != nil {
+		_c.SetSearchKeywords(*v)
+	}
+	return _c
+}
+
 // SetPartnerID sets the "partner_id" field.
 func (_c *PartnerContactCreate) SetPartnerID(v uuid.UUID) *PartnerContactCreate {
 	_c.mutation.SetPartnerID(v)
@@ -147,7 +161,9 @@ func (_c *PartnerContactCreate) Mutation() *PartnerContactMutation {
 
 // Save creates the PartnerContact in the database.
 func (_c *PartnerContactCreate) Save(ctx context.Context) (*PartnerContact, error) {
-	_c.defaults()
+	if err := _c.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -174,23 +190,37 @@ func (_c *PartnerContactCreate) ExecX(ctx context.Context) {
 }
 
 // defaults sets the default values of the builder before save.
-func (_c *PartnerContactCreate) defaults() {
+func (_c *PartnerContactCreate) defaults() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
+		if partnercontact.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized partnercontact.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
 		v := partnercontact.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		if partnercontact.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized partnercontact.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
 		v := partnercontact.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		v := partnercontact.DefaultSearchKeywords
+		_c.mutation.SetSearchKeywords(v)
 	}
 	if _, ok := _c.mutation.IsPrimary(); !ok {
 		v := partnercontact.DefaultIsPrimary
 		_c.mutation.SetIsPrimary(v)
 	}
 	if _, ok := _c.mutation.ID(); !ok {
+		if partnercontact.DefaultID == nil {
+			return fmt.Errorf("ent: uninitialized partnercontact.DefaultID (forgotten import ent/runtime?)")
+		}
 		v := partnercontact.DefaultID()
 		_c.mutation.SetID(v)
 	}
+	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -200,6 +230,9 @@ func (_c *PartnerContactCreate) check() error {
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "PartnerContact.updated_at"`)}
+	}
+	if _, ok := _c.mutation.SearchKeywords(); !ok {
+		return &ValidationError{Name: "search_keywords", err: errors.New(`ent: missing required field "PartnerContact.search_keywords"`)}
 	}
 	if _, ok := _c.mutation.PartnerID(); !ok {
 		return &ValidationError{Name: "partner_id", err: errors.New(`ent: missing required field "PartnerContact.partner_id"`)}
@@ -276,6 +309,10 @@ func (_c *PartnerContactCreate) createSpec() (*PartnerContact, *sqlgraph.CreateS
 	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(partnercontact.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if value, ok := _c.mutation.SearchKeywords(); ok {
+		_spec.SetField(partnercontact.FieldSearchKeywords, field.TypeString, value)
+		_node.SearchKeywords = value
 	}
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(partnercontact.FieldName, field.TypeString, value)
@@ -375,6 +412,18 @@ func (u *PartnerContactUpsert) SetUpdatedAt(v time.Time) *PartnerContactUpsert {
 // UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
 func (u *PartnerContactUpsert) UpdateUpdatedAt() *PartnerContactUpsert {
 	u.SetExcluded(partnercontact.FieldUpdatedAt)
+	return u
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *PartnerContactUpsert) SetSearchKeywords(v string) *PartnerContactUpsert {
+	u.Set(partnercontact.FieldSearchKeywords, v)
+	return u
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *PartnerContactUpsert) UpdateSearchKeywords() *PartnerContactUpsert {
+	u.SetExcluded(partnercontact.FieldSearchKeywords)
 	return u
 }
 
@@ -530,6 +579,20 @@ func (u *PartnerContactUpsertOne) SetUpdatedAt(v time.Time) *PartnerContactUpser
 func (u *PartnerContactUpsertOne) UpdateUpdatedAt() *PartnerContactUpsertOne {
 	return u.Update(func(s *PartnerContactUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *PartnerContactUpsertOne) SetSearchKeywords(v string) *PartnerContactUpsertOne {
+	return u.Update(func(s *PartnerContactUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *PartnerContactUpsertOne) UpdateSearchKeywords() *PartnerContactUpsertOne {
+	return u.Update(func(s *PartnerContactUpsert) {
+		s.UpdateSearchKeywords()
 	})
 }
 
@@ -867,6 +930,20 @@ func (u *PartnerContactUpsertBulk) SetUpdatedAt(v time.Time) *PartnerContactUpse
 func (u *PartnerContactUpsertBulk) UpdateUpdatedAt() *PartnerContactUpsertBulk {
 	return u.Update(func(s *PartnerContactUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetSearchKeywords sets the "search_keywords" field.
+func (u *PartnerContactUpsertBulk) SetSearchKeywords(v string) *PartnerContactUpsertBulk {
+	return u.Update(func(s *PartnerContactUpsert) {
+		s.SetSearchKeywords(v)
+	})
+}
+
+// UpdateSearchKeywords sets the "search_keywords" field to the value that was provided on create.
+func (u *PartnerContactUpsertBulk) UpdateSearchKeywords() *PartnerContactUpsertBulk {
+	return u.Update(func(s *PartnerContactUpsert) {
+		s.UpdateSearchKeywords()
 	})
 }
 
