@@ -1862,3 +1862,29 @@ AI真实类型权限、DIRECT/HOUSE、独立重量与ETA费用、审核恢复和
 ### Status
 
 [OK] **Completed**
+
+
+## Session 213: 四类订单页面体验对齐与验收
+<!-- trellis-session: v=2 fp=10c3002e9ab4680e -->
+
+**Date**: 2026-11-16
+**Task**: 四类订单页面体验对齐与验收
+**Branch**: `codex/order-pages-usability`
+
+### Summary
+
+以海运出口为基线完善空运运输原地维护、重量核对、主分单页签；进口服务前移及列表确认摘要。后端门禁与真实PG专项通过，前端全量2878项通过，24项浏览器场景通过，任务已归档。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `5cb906bd` | docs: 明确四类订单页面体验改造需求与实施计划 |
+| `e4b79007` | feat: 对齐四类订单页面的空运操作体验 |
+| `fad6fb3f` | fix: 保留订单只读操作并同步列表回归断言 |
+| `b9f197c4` | test: 验收四类订单布局并修正航空单证全宽展示 |
+| `c84cf18f` | docs: 记录订单页面合同与最终验收结果 |
+
+### Status
+
+[OK] **Completed**
