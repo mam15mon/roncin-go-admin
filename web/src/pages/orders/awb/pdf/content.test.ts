@@ -39,6 +39,19 @@ describe('航空 PDF 输出事实', () => {
       }),
     ).toContain('其他费用第 1 行 · 费用名称');
   });
+  it('签发主体、号码与嵌套明细均拒绝中文，保留字段路径', () => {
+    for (const delta of [
+      { houseNo: '中文号' },
+      { issuerDisplayName: '中文签发方' },
+      { content: { shipperText: '中文发货人' } },
+      { content: { destinationText: '新加坡' } },
+      { content: { rateLines: [{ goodsDescription: '中文品名' }] } },
+      { content: { otherCharges: [{ name: '中文费用' }] } },
+    ])
+      expect(validateAwbPdf({ ...awbPdfSample, ...delta })).toContain(
+        '须使用英文',
+      );
+  });
   it('主体、正文与版本均影响输出指纹，号码摘要有界且下载名去除非法字符', () => {
     const fingerprint = awbPdfFingerprint(awbPdfSample);
     for (const delta of [

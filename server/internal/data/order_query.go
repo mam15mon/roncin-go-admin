@@ -245,6 +245,7 @@ func attachOrderDisplayNames(ctx context.Context, client *ent.Client, orders []*
 		}
 	}
 	locationNames := make(map[uuid.UUID]string)
+	locationNamesEn := make(map[uuid.UUID]string)
 	if len(locationIDs) > 0 {
 		ports, err := client.Port.Query().Where(portent.IDIn(locationIDs...)).All(ctx)
 		if err != nil {
@@ -263,6 +264,7 @@ func attachOrderDisplayNames(ctx context.Context, client *ent.Client, orders []*
 				name = name + " (" + p.UnLocode + ")"
 			}
 			locationNames[p.ID] = name
+			locationNamesEn[p.ID] = p.NameEn
 		}
 		for _, a := range airports {
 			name := a.NameEn
@@ -273,6 +275,7 @@ func attachOrderDisplayNames(ctx context.Context, client *ent.Client, orders []*
 				name = name + " (" + a.IataCode + ")"
 			}
 			locationNames[a.ID] = name
+			locationNamesEn[a.ID] = a.NameEn
 		}
 	}
 	partnerNames := make(map[uuid.UUID]string)
@@ -313,12 +316,15 @@ func attachOrderDisplayNames(ctx context.Context, client *ent.Client, orders []*
 		}
 		if order.OriginLocationID != nil {
 			order.OriginLocationName = locationNames[*order.OriginLocationID]
+			order.OriginLocationNameEn = locationNamesEn[*order.OriginLocationID]
 		}
 		if order.DestinationLocationID != nil {
 			order.DestinationLocationName = locationNames[*order.DestinationLocationID]
+			order.DestinationLocationNameEn = locationNamesEn[*order.DestinationLocationID]
 		}
 		if order.DischargeLocationID != nil {
 			order.DischargeLocationName = locationNames[*order.DischargeLocationID]
+			order.DischargeLocationNameEn = locationNamesEn[*order.DischargeLocationID]
 		}
 		if order.TransitLocationID != nil {
 			order.TransitLocationName = locationNames[*order.TransitLocationID]

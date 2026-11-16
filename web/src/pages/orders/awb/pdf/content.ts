@@ -1,5 +1,5 @@
 import { formatAmount, formatDate, trimDecimal } from '@/utils/format';
-import { hasPdfGlyph } from '../../documents/pdf/text';
+import { hasNonEnglishPdfText, hasPdfGlyph } from '../../documents/pdf/text';
 import { AWB_PDF_TEMPLATE_REVISION, type AwbPdfModel } from './types';
 
 export function awbDecimal(value?: string): string {
@@ -55,6 +55,8 @@ export function validateAwbPdf(model: AwbPdfModel): string | null {
       ];
       if (unsupported.length)
         return `${label}含暂不支持打印的字符「${unsupported.join('')}」，请调整后重试。`;
+      if (hasNonEnglishPdfText(value))
+        return `${label}须使用英文，请修改后再预览、打印或下载。`;
     } else if (Array.isArray(value)) {
       for (const [index, child] of value.entries()) {
         const error = inspect(`${label}第 ${index + 1} 行`, child);

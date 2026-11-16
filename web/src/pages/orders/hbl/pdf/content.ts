@@ -1,5 +1,5 @@
 import { formatDate, trimDecimal } from '@/utils/format';
-import { hasPdfGlyph } from '../../documents/pdf/text';
+import { hasNonEnglishPdfText, hasPdfGlyph } from '../../documents/pdf/text';
 
 export { pdfText } from '../../documents/pdf/text';
 
@@ -53,16 +53,19 @@ export function validateHblPdfCharacters(model: HblPdfModel): string | null {
     return '外部提单缺少真实签发方资料，请先补齐后归档。';
   if (model.outputKind !== 'external-archive' && !model.issuerNameEn?.trim())
     return '签发公司尚未维护英文名称，请在公司档案中补齐后输出。';
+  const archive = model.outputKind === 'external-archive';
+  const content = hblPdfContent(model);
   const fields: [string, unknown][] = [
     ['HBL 号码', model.houseNo],
-    ['签发公司英文名称', model.issuerNameEn],
-    ['外部签发方', model.issuerDisplayName],
-    ...Object.entries(model.content ?? {}).map(
-      ([key, value]): [string, unknown] => [
+    ['签发公司英文名称', archive ? undefined : model.issuerNameEn],
+    ['外部签发方', archive ? model.issuerDisplayName : undefined],
+    ['保存版本', archive ? model.savedVersion : undefined],
+    ...Object.entries(content)
+      .filter(([key]) => archive || !['billForm', 'releaseType'].includes(key))
+      .map(([key, value]): [string, unknown] => [
         CONTENT_LABELS[key as keyof API.SeaBillContent] ?? key,
         value,
-      ],
-    ),
+      ]),
     ...Object.entries(model.printDetails ?? {}).map(
       ([key, value]): [string, unknown] => [
         PRINT_LABELS[key as keyof API.SeaHouseBillPrintDetails] ?? key,
@@ -77,6 +80,8 @@ export function validateHblPdfCharacters(model: HblPdfModel): string | null {
     ];
     if (unsupported.length > 0)
       return `${label}含暂不支持打印的字符「${unsupported.join('')}」，请调整后重试。`;
+    if (hasNonEnglishPdfText(value))
+      return `${label}须使用英文，请修改后再预览、打印或下载。`;
   }
   return null;
 }
@@ -102,4 +107,28 @@ export function hblPdfFileName(
     .join('');
   const time = formatDate(now, 'datetime').replaceAll(':', '-');
   return `HBL-${cleanNo}-${variant}-${time}.pdf`;
+}
+
+/** 中文业务枚举只在输出边界映射英文，不改写已保存单证。 */
+export function hblPdfContent(model: HblPdfModel): API.SeaBillContent {
+  const content = model.content ?? {};
+  const releaseTypes = new Map([
+    ['电放', 'TELEX RELEASE'],
+    ['正本', 'ORIGINAL'],
+    ['海运单', 'SEA WAYBILL'],
+    ['异地放单', 'RELEASE AT ANOTHER LOCATION'],
+  ]);
+  const freightTerms = new Map([
+    ['预付', 'FREIGHT PREPAID'],
+    ['到付', 'FREIGHT COLLECT'],
+  ]);
+  return {
+    ...content,
+    freightTerms: content.freightTerms
+      ? (freightTerms.get(content.freightTerms) ?? content.freightTerms)
+      : undefined,
+    releaseType: content.releaseType
+      ? (releaseTypes.get(content.releaseType) ?? content.releaseType)
+      : undefined,
+  };
 }

@@ -69,7 +69,7 @@ describe('HBL PDF 签发公司抬头', () => {
         {
           houseNo: 'HBL-COMPANY-001',
           issuerNameEn,
-          content: { shipperText: '真实发货人 / SAMPLE SHIPPER' },
+          content: { shipperText: 'SAMPLE SHIPPER' },
         },
         variant,
       );
@@ -84,6 +84,7 @@ describe('HBL PDF 签发公司抬头', () => {
       const text = textOf(layout).replaceAll('\n', '');
       expect(text.split(issuerNameEn)).toHaveLength(4);
       expect(text).not.toContain('RONCIN (BEIJING)');
+      expect(text).not.toMatch(/\p{Script=Han}/u);
       expect(text).toContain(HBL_PDF_VARIANT_MARKS[variant]);
       const pdf = bytes.toString('latin1');
       const authorObject = pdf.match(/\/Author (\d+) 0 R/)?.[1];
@@ -99,8 +100,8 @@ describe('HBL PDF 签发公司抬头', () => {
         houseNo: 'HBL-LONG-COMPANY-001',
         issuerNameEn,
         content: {
-          shipperText: '多页抬头验收发货人',
-          goodsDescriptionText: '货描续页验证'.repeat(600),
+          shipperText: 'SAMPLE LONG SHIPPER',
+          goodsDescriptionText: 'PARTS~'.repeat(600),
         },
       },
       'original',
@@ -135,7 +136,7 @@ describe('HBL PDF 签发公司抬头', () => {
         expect(node.box.top + node.box.height).toBeLessThan(797);
       }
     }
-    expect([...textOf(layout)].filter((char) => char === '描')).toHaveLength(
+    expect([...textOf(layout)].filter((char) => char === '~')).toHaveLength(
       600,
     );
   });

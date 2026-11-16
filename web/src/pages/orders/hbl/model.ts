@@ -34,9 +34,9 @@ export function buildHblFormValues(bundle: HblBundle): HblFormValues {
   const details = documents.houseBill?.printDetails ?? {
     bookingNoText: order.bookingNo,
     vesselVoyageText: order.vesselVoyage,
-    portOfLoadingText: order.originLocationName,
-    portOfDischargeText: order.dischargeLocationName,
-    placeOfDeliveryText: order.destinationLocationName,
+    portOfLoadingText: order.originLocationNameEn,
+    portOfDischargeText: order.dischargeLocationNameEn,
+    placeOfDeliveryText: order.destinationLocationNameEn,
   };
   return {
     source: {

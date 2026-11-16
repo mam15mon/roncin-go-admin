@@ -412,6 +412,10 @@ message Order {
   repeated string container_nos = 105;
   optional int32 attachment_count = 106;
   optional string customer_service_name = 107;
+  // 单证印字直接取主数据英文名称，不拼接中文展示名或代码。
+  optional string origin_location_name_en = 108;
+  optional string destination_location_name_en = 109;
+  optional string discharge_location_name_en = 110;
 }
 
 message OrderCargoMeasurement {

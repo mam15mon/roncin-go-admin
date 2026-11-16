@@ -32,15 +32,15 @@ const model: HblPdfModel = {
   outputKind: 'external-archive',
   houseNo: 'IMPORT-HBL-001',
   issuerNameEn: '',
-  issuerDisplayName: '境外真实签发方 / EXTERNAL ISSUER',
+  issuerDisplayName: 'EXTERNAL ISSUER',
   savedVersion: '7',
   content: {
-    shipperText: '原单发货人 SAMPLE SHIPPER',
-    consigneeText: '原单收货人',
+    shipperText: 'SAMPLE SHIPPER',
+    consigneeText: 'SAMPLE CONSIGNEE',
     packageCount: 0,
     grossWeightKg: 123.456,
     volumeCbm: 2.5,
-    goodsDescriptionText: '阀门及配件 VALVES',
+    goodsDescriptionText: 'VALVES',
   },
   printDetails: {
     issueDate: '2026-11-16',
@@ -82,9 +82,10 @@ describe('外部 HBL 归档 PDF 实际渲染', () => {
     const { bytes, layout } = await renderArchive(model);
     const text = textOf(layout).replaceAll('\n', '');
     expect(bytes.subarray(0, 8).toString()).toBe('%PDF-1.3');
-    expect(text).toContain('外部提单登记资料（归档）');
-    expect(text).toContain('境外真实签发方 / EXTERNAL ISSUER');
+    expect(text).toContain('EXTERNAL BILL OF LADING RECORD (ARCHIVE)');
+    expect(text).toContain('EXTERNAL ISSUER');
     expect(text).toContain('IMPORT-HBL-001');
+    expect(text).not.toMatch(/\p{Script=Han}/u);
     expect(text).toContain('2026-11-16');
     expect(text).toContain('123.456');
     expect(text).not.toContain('COMBINED TRANSPORT BILL OF LADING');
@@ -95,27 +96,27 @@ describe('外部 HBL 归档 PDF 实际渲染', () => {
   });
 
   it('长多行号码正文完整，固定页脚仅展示有界摘要并保留版本', async () => {
-    const houseNo = `${'号码'.repeat(40)}\nFULL-NUMBER-END`;
+    const houseNo = `${'NO'.repeat(40)}\nFULL-NUMBER-END`;
     const { bytes, layout } = await renderArchive({ ...model, houseNo });
     const text = textOf(layout);
     expect(text.replaceAll('\n', '')).toContain(houseNo.replaceAll('\n', ''));
     const page = layout.children?.[0];
     const footer = page?.children?.find(
-      (node) => node.props?.fixed && textOf(node).includes('保存版本'),
+      (node) => node.props?.fixed && textOf(node).includes('Saved version'),
     );
     if (!footer) throw new Error('缺少固定归档页脚');
-    expect(textOf(footer)).toContain(`HBL ${'号码'.repeat(16)}…`);
+    expect(textOf(footer)).toContain(`HBL ${'NO'.repeat(16)}…`);
     expect(textOf(footer)).not.toContain('FULL-NUMBER-END');
     await writeFile('/tmp/roncin-si-hbl-archive-long-number.pdf', bytes);
   });
 
-  it('连续中文和多行续页完整，实际页面正文边界内无裁切', async () => {
+  it('连续英文和多行续页完整，实际页面正文边界内无裁切', async () => {
     const input = {
       ...model,
       content: {
         ...model.content,
-        shipperText: '长地址'.repeat(1000),
-        goodsDescriptionText: `${'明细'.repeat(3000)}\nARCHIVE-END-MARKER`,
+        shipperText: 'qqq'.repeat(1000),
+        goodsDescriptionText: `${'zz'.repeat(3000)}\nARCHIVE-END-MARKER`,
       },
       printDetails: {
         ...model.printDetails,
@@ -129,14 +130,14 @@ describe('外部 HBL 归档 PDF 实际渲染', () => {
     const { bytes, layout } = await renderArchive(input);
     const text = textOf(layout).replaceAll('\n', '');
     expect(layout.children?.length).toBeGreaterThan(3);
-    expect(text.match(/长/g)).toHaveLength(1000);
-    expect(text.match(/明/g)).toHaveLength(3000);
+    expect(text.match(/q/g)).toHaveLength(3000);
+    expect(text.match(/z/g)).toHaveLength(6000);
     expect(text).toContain('ARCHIVE-END-MARKER');
     expect(text).toContain('TEST0000109 / SEAL-109 / 20GP');
     for (const page of layout.children ?? []) {
       const pageText = textOf(page);
       expect(pageText).toContain('HBL IMPORT-HBL-001');
-      expect(pageText).toContain('保存版本 7');
+      expect(pageText).toContain('Saved version 7');
       for (const node of page.children ?? []) {
         if (node.props?.fixed || !node.box) continue;
         expect(node.box.top + node.box.height).toBeLessThan(802);

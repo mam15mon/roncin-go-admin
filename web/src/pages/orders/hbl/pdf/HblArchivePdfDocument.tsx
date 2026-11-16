@@ -1,5 +1,6 @@
 import { Document, Page, Text, View } from '@react-pdf/renderer';
 import {
+  hblPdfContent,
   pdfDate,
   pdfQuantity,
   pdfText,
@@ -15,69 +16,69 @@ export function HblArchivePdfDocument({ model }: { model: HblPdfModel }) {
   // 固定页脚只放有界摘要，完整号码仍在可分页正文中保留。
   const numberCharacters = [...model.houseNo.replace(/\s+/gu, ' ')];
   const numberSummary = `${numberCharacters.slice(0, 32).join('')}${numberCharacters.length > 32 ? '…' : ''}`;
-  const content = model.content ?? {};
+  const content = hblPdfContent(model);
   const print = model.printDetails ?? {};
   const fields: [string, string | undefined][] = [
-    ['HBL 号码', model.houseNo],
-    ['外部签发方', model.issuerDisplayName],
-    ['保存版本', model.savedVersion],
-    ['发货人', content.shipperText],
-    ['收货人', content.consigneeText],
-    ['通知人', content.notifyPartyText],
-    ['第二通知人', content.secondNotifyPartyText],
-    ['国外代理', content.foreignAgentText],
-    ['唛头', content.marksText],
-    ['货物描述', content.goodsDescriptionText],
+    ['HBL number', model.houseNo],
+    ['External issuer', model.issuerDisplayName],
+    ['Saved version', model.savedVersion],
+    ['Shipper', content.shipperText],
+    ['Consignee', content.consigneeText],
+    ['Notify party', content.notifyPartyText],
+    ['Second notify party', content.secondNotifyPartyText],
+    ['Forwarding agent', content.foreignAgentText],
+    ['Marks and numbers', content.marksText],
+    ['Description of goods', content.goodsDescriptionText],
     [
-      '件数',
+      'Number of packages',
       content.packageCount == null
         ? undefined
         : pdfQuantity(content.packageCount),
     ],
-    ['包装单位', content.packageUnit],
+    ['Package unit', content.packageUnit],
     [
-      '毛重 (KG)',
+      'Gross weight (KG)',
       content.grossWeightKg == null
         ? undefined
         : pdfQuantity(content.grossWeightKg),
     ],
     [
-      '体积 (CBM)',
+      'Volume (CBM)',
       content.volumeCbm == null ? undefined : pdfQuantity(content.volumeCbm),
     ],
-    ['运费条款', content.freightTerms],
-    ['运输条款', content.transportTerms],
-    ['提单形式（原单登记）', content.billForm],
-    ['放单方式（原单登记）', content.releaseType],
-    ['特别条款（原单登记）', content.clauses],
-    ['联系方式', print.headerContactText],
-    ['订舱号', print.bookingNoText],
-    ['业务参考号', print.exportReferencesText],
-    ['前程运输', print.preCarriageText],
-    ['收货地', print.placeOfReceiptText],
-    ['境内运输指示', print.domesticRoutingText],
-    ['原产地', print.pointOfOriginText],
-    ['后续内陆运输', print.onwardRoutingText],
-    ['船名航次', print.vesselVoyageText],
-    ['装货港', print.portOfLoadingText],
-    ['卸货港', print.portOfDischargeText],
-    ['交货地', print.placeOfDeliveryText],
-    ['箱号与封号', print.containersText],
+    ['Freight terms', content.freightTerms],
+    ['Transport terms', content.transportTerms],
+    ['Bill form (as registered)', content.billForm],
+    ['Release type (as registered)', content.releaseType],
+    ['Additional clauses (as registered)', content.clauses],
+    ['Contact details', print.headerContactText],
+    ['Booking number', print.bookingNoText],
+    ['Reference number', print.exportReferencesText],
+    ['Pre-carriage', print.preCarriageText],
+    ['Place of receipt', print.placeOfReceiptText],
+    ['Domestic routing instructions', print.domesticRoutingText],
+    ['Point of origin', print.pointOfOriginText],
+    ['Onward inland routing', print.onwardRoutingText],
+    ['Vessel / voyage', print.vesselVoyageText],
+    ['Port of loading', print.portOfLoadingText],
+    ['Port of discharge', print.portOfDischargeText],
+    ['Place of delivery', print.placeOfDeliveryText],
+    ['Container / seal numbers', print.containersText],
     [
-      '正本份数（原单登记）',
+      'Number of originals (as registered)',
       print.originalCount == null ? undefined : String(print.originalCount),
     ],
-    ['装船日期', pdfDate(print.shippedOnBoardDate)],
-    ['签发地（原单登记）', print.issuePlaceText],
-    ['签发日期（原单登记）', pdfDate(print.issueDate)],
-    ['交货联系信息', print.deliveryContactText],
-    ['其他参考', print.footerReferenceText],
+    ['Shipped on board date', pdfDate(print.shippedOnBoardDate)],
+    ['Place of issue (as registered)', print.issuePlaceText],
+    ['Date of issue (as registered)', pdfDate(print.issueDate)],
+    ['Delivery contact details', print.deliveryContactText],
+    ['Other references', print.footerReferenceText],
   ];
   return (
     <Document
-      title={`外部提单归档 ${model.houseNo}`}
+      title={`External bill of lading archive ${model.houseNo}`}
       author={model.issuerDisplayName}
-      language="zh-CN"
+      language="en"
     >
       <Page
         size="A4"
@@ -94,9 +95,12 @@ export function HblArchivePdfDocument({ model }: { model: HblPdfModel }) {
           fixed
           style={{ position: 'absolute', top: 22, left: 30, right: 30 }}
         >
-          <Text style={{ fontSize: 14 }}>外部提单登记资料（归档）</Text>
+          <Text style={{ fontSize: 14 }}>
+            EXTERNAL BILL OF LADING RECORD (ARCHIVE)
+          </Text>
           <Text style={{ fontSize: 8, marginTop: 5 }}>
-            本资料记录原单信息，不代表本公司签发提单或办理放货。
+            This record reflects the original document. It does not constitute
+            issuance or cargo release by this company.
           </Text>
         </View>
         {fields
@@ -134,7 +138,7 @@ export function HblArchivePdfDocument({ model }: { model: HblPdfModel }) {
             fontSize: 8,
           }}
           render={({ pageNumber, totalPages }) =>
-            `HBL ${numberSummary} · 保存版本 ${model.savedVersion ?? '-'} · 第 ${pageNumber} / ${totalPages} 页`
+            `HBL ${numberSummary} · Saved version ${model.savedVersion ?? '-'} · Page ${pageNumber} / ${totalPages}`
           }
         />
       </Page>

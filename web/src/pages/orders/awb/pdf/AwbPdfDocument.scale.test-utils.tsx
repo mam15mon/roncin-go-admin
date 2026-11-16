@@ -74,6 +74,7 @@ export async function verifyScale(
   const text = [...columns.values()]
     .map((value) => value.replaceAll(/\s/gu, ''))
     .join('\n');
+  expect(text).not.toMatch(/\p{Script=Han}/u);
   for (const marker of markers)
     expect(
       text.includes(marker.replaceAll(/\s/gu, '')),

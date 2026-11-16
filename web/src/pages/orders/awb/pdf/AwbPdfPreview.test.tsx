@@ -53,7 +53,7 @@ describe('航空 PDF Blob 生命周期', () => {
     await screen.findByTitle('HAWB SAMPLE-HAWB-001 PDF 预览');
     for (const [index, model] of [
       { ...awbPdfSample, version: '8' },
-      { ...awbPdfSample, content: { remarks: '新正文' } },
+      { ...awbPdfSample, content: { remarks: 'NEW CONTENT' } },
       { ...awbPdfSample, issuerDisplayName: 'OTHER ISSUER' },
     ].entries()) {
       view.rerender(<AwbPdfPreview {...initial} model={model} />);

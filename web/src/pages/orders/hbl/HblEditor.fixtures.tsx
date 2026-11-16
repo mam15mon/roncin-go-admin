@@ -104,7 +104,8 @@ beforeEach(() => {
       organizationId: 'org-1',
       version: '1',
       bookingNo: 'BOOK001',
-      originLocationName: 'SHANGHAI',
+      originLocationName: '上海港 (CNSHA)',
+      originLocationNameEn: 'SHANGHAI',
       shipmentType: 1,
     },
     documents: {

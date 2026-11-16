@@ -100,6 +100,7 @@ func TestOrderListProjectionNamesPostgres(t *testing.T) {
 		SetPaymentTerm(orderent.PaymentTermPREPAID).
 		SetOriginLocationID(originPort.ID).
 		SetDestinationLocationID(destAirport.ID).
+		SetDischargeLocationID(originPort.ID).
 		SetBookingAgentID(bookingAgent.ID).
 		SetShippingLineID(shippingLine.ID).
 		Save(ctx)
@@ -130,6 +131,9 @@ func TestOrderListProjectionNamesPostgres(t *testing.T) {
 		}
 		if projected.DestinationLocationName != "洛杉矶机场 (LAX)" {
 			t.Fatalf("%s 目的地点名称投影 = %q", label, projected.DestinationLocationName)
+		}
+		if projected.OriginLocationNameEn != "Shanghai" || projected.DestinationLocationNameEn != "Los Angeles" || projected.DischargeLocationNameEn != "Shanghai" {
+			t.Fatalf("%s 单证英文名称投影 = %q/%q/%q", label, projected.OriginLocationNameEn, projected.DestinationLocationNameEn, projected.DischargeLocationNameEn)
 		}
 		if projected.BookingAgentName != bookingAgent.LegalName {
 			t.Fatalf("%s 订舱代理名称投影 = %q", label, projected.BookingAgentName)

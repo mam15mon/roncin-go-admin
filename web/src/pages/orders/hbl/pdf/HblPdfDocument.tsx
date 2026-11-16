@@ -7,6 +7,7 @@ import {
   View,
 } from '@react-pdf/renderer';
 import {
+  hblPdfContent,
   pdfDate,
   pdfQuantity,
   pdfText,
@@ -190,12 +191,6 @@ function FlowText({
     ));
 }
 
-function freightText(value?: string): string {
-  if (value === '预付') return 'FREIGHT PREPAID';
-  if (value === '到付') return 'FREIGHT COLLECT';
-  return value ?? '';
-}
-
 export type HblPdfDocumentProps = {
   model: HblPdfModel;
   variant: HblPdfVariant;
@@ -210,7 +205,7 @@ export function HblPdfDocument({
 }: HblPdfDocumentProps) {
   const error = validateHblPdfCharacters(model);
   if (error) throw new Error(error);
-  const content = model.content ?? {};
+  const content = hblPdfContent(model);
   const details = model.printDetails ?? {};
   const company = model.issuerNameEn;
   const companyLines = pdfText(company, COMPANY_TEXT_WIDTH / COMPANY_FONT_SIZE)
@@ -235,7 +230,7 @@ export function HblPdfDocument({
       ? `\nCONTAINER / SEAL / PARTICULARS\n${details.containersText}`
       : '',
     content.clauses ? `\n${content.clauses}` : '',
-    content.freightTerms ? `\n${freightText(content.freightTerms)}` : '',
+    content.freightTerms ? `\n${content.freightTerms}` : '',
   ]
     .filter(Boolean)
     .join('\n');
@@ -244,7 +239,7 @@ export function HblPdfDocument({
     <Document
       title={`HBL ${model.houseNo} - ${variantMark}`}
       author={company}
-      language="zh-CN"
+      language="en"
     >
       <Page size="A4" style={[styles.page, { paddingTop, paddingBottom }]} wrap>
         <View style={[styles.header, { height: headerHeight }]} fixed>

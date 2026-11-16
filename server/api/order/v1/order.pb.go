@@ -1328,8 +1328,12 @@ type Order struct {
 	ContainerNos        []string `protobuf:"bytes,105,rep,name=container_nos,json=containerNos,proto3" json:"container_nos,omitempty"`
 	AttachmentCount     *int32   `protobuf:"varint,106,opt,name=attachment_count,json=attachmentCount,proto3,oneof" json:"attachment_count,omitempty"`
 	CustomerServiceName *string  `protobuf:"bytes,107,opt,name=customer_service_name,json=customerServiceName,proto3,oneof" json:"customer_service_name,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	// 单证印字直接取主数据英文名称，不拼接中文展示名或代码。
+	OriginLocationNameEn      *string `protobuf:"bytes,108,opt,name=origin_location_name_en,json=originLocationNameEn,proto3,oneof" json:"origin_location_name_en,omitempty"`
+	DestinationLocationNameEn *string `protobuf:"bytes,109,opt,name=destination_location_name_en,json=destinationLocationNameEn,proto3,oneof" json:"destination_location_name_en,omitempty"`
+	DischargeLocationNameEn   *string `protobuf:"bytes,110,opt,name=discharge_location_name_en,json=dischargeLocationNameEn,proto3,oneof" json:"discharge_location_name_en,omitempty"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
 }
 
 func (x *Order) Reset() {
@@ -2072,6 +2076,27 @@ func (x *Order) GetAttachmentCount() int32 {
 func (x *Order) GetCustomerServiceName() string {
 	if x != nil && x.CustomerServiceName != nil {
 		return *x.CustomerServiceName
+	}
+	return ""
+}
+
+func (x *Order) GetOriginLocationNameEn() string {
+	if x != nil && x.OriginLocationNameEn != nil {
+		return *x.OriginLocationNameEn
+	}
+	return ""
+}
+
+func (x *Order) GetDestinationLocationNameEn() string {
+	if x != nil && x.DestinationLocationNameEn != nil {
+		return *x.DestinationLocationNameEn
+	}
+	return ""
+}
+
+func (x *Order) GetDischargeLocationNameEn() string {
+	if x != nil && x.DischargeLocationNameEn != nil {
+		return *x.DischargeLocationNameEn
 	}
 	return ""
 }
@@ -7131,7 +7156,7 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\roperator_name\x18\x03 \x01(\tR\foperatorName\x12\x1d\n" +
 	"\n" +
 	"changed_at\x18\x04 \x01(\tR\tchangedAt\x12\x16\n" +
-	"\x06reason\x18\x05 \x01(\tR\x06reason\"\x8a5\n" +
+	"\x06reason\x18\x05 \x01(\tR\x06reason\"\xaa7\n" +
 	"\x05Order\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x19\n" +
@@ -7252,7 +7277,10 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x0estatus_records\x18h \x03(\v2\x1b.order.v1.OrderStatusRecordR\rstatusRecords\x12#\n" +
 	"\rcontainer_nos\x18i \x03(\tR\fcontainerNos\x12.\n" +
 	"\x10attachment_count\x18j \x01(\x05HJR\x0fattachmentCount\x88\x01\x01\x127\n" +
-	"\x15customer_service_name\x18k \x01(\tHKR\x13customerServiceName\x88\x01\x01B\x13\n" +
+	"\x15customer_service_name\x18k \x01(\tHKR\x13customerServiceName\x88\x01\x01\x12:\n" +
+	"\x17origin_location_name_en\x18l \x01(\tHLR\x14originLocationNameEn\x88\x01\x01\x12D\n" +
+	"\x1cdestination_location_name_en\x18m \x01(\tHMR\x19destinationLocationNameEn\x88\x01\x01\x12@\n" +
+	"\x1adischarge_location_name_en\x18n \x01(\tHNR\x17dischargeLocationNameEn\x88\x01\x01B\x13\n" +
 	"\x11_shipping_line_idB\x13\n" +
 	"\x11_booking_agent_idB\r\n" +
 	"\v_trade_termB\x10\n" +
@@ -7333,7 +7361,10 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\r_creator_nameB\x15\n" +
 	"\x13_shipping_line_nameB\x13\n" +
 	"\x11_attachment_countB\x18\n" +
-	"\x16_customer_service_nameJ\x04\b\x0f\x10\x10J\x04\b\x10\x10\x11J\x04\b2\x103J\x04\bO\x10PJ\x04\bV\x10WR\x12status_template_idR\x10service_type_idsR\rloading_termsR\x04tagsR\x12commission_summary\"z\n" +
+	"\x16_customer_service_nameB\x1a\n" +
+	"\x18_origin_location_name_enB\x1f\n" +
+	"\x1d_destination_location_name_enB\x1d\n" +
+	"\x1b_discharge_location_name_enJ\x04\b\x0f\x10\x10J\x04\b\x10\x10\x11J\x04\b2\x103J\x04\bO\x10PJ\x04\bV\x10WR\x12status_template_idR\x10service_type_idsR\rloading_termsR\x04tagsR\x12commission_summary\"z\n" +
 	"\x15OrderCargoMeasurement\x12\x1a\n" +
 	"\bpackages\x18\x01 \x01(\x05R\bpackages\x12&\n" +
 	"\x0fgross_weight_kg\x18\x02 \x01(\x01R\rgrossWeightKg\x12\x1d\n" +

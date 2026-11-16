@@ -5590,6 +5590,10 @@ declare namespace API {
     containerNos?: string[];
     attachmentCount?: number;
     customerServiceName?: string;
+    /** 单证印字直接取主数据英文名称，不拼接中文展示名或代码。 */
+    originLocationNameEn?: string;
+    destinationLocationNameEn?: string;
+    dischargeLocationNameEn?: string;
   };
 
   type OrderAbnormalCase = {

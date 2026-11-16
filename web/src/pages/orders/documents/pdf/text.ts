@@ -44,3 +44,12 @@ export function pdfText(value?: string | null, maxGlyphs?: number): string {
     })
     .join('\n');
 }
+
+/** 正式单证使用英文；保留原值并让调用方提示字段，不删除或翻译自由正文。 */
+export function hasNonEnglishPdfText(value: string): boolean {
+  return [...value].some(
+    (character) =>
+      (/\p{Letter}/u.test(character) && !/\p{Script=Latin}/u.test(character)) ||
+      /[\u3000-\u303f\uff00-\uffef]/u.test(character),
+  );
+}

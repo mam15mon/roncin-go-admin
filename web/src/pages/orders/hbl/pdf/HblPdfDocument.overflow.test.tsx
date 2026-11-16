@@ -16,7 +16,7 @@ type LayoutNode = {
 
 const publicRoot = path.resolve(import.meta.dirname, '../../../../../public');
 
-it('长度上限的连续中文按短行跨页，正文全部保留且行框不会互相压缩', async () => {
+it('长度上限的连续英文按短行跨页，正文全部保留且行框不会互相压缩', async () => {
   Font.register({
     family: HBL_PDF_FONT_FAMILY,
     src: path.join(publicRoot, 'fonts/roncin-hbl/RoncinHBLSansSC-Regular.ttf'),
@@ -27,18 +27,18 @@ it('长度上限的连续中文按短行跨页，正文全部保留且行框不�
       houseNo: '⸻'.repeat(128),
       issuerNameEn: 'SAMPLE EAST LOGISTICS CO., LTD',
       content: {
-        shipperText: '无空白地址'.repeat(1000),
-        goodsDescriptionText: '连续货描'.repeat(2500),
-        marksText: '连续唛头'.repeat(1250),
+        shipperText: '~~~~~'.repeat(1000),
+        goodsDescriptionText: '^^^^'.repeat(2500),
+        marksText: '!!!!'.repeat(1250),
         packageCount: 10,
-        packageUnit: '包装单位'.repeat(25),
+        packageUnit: '{{{{'.repeat(25),
         grossWeightKg: 123456789012345,
         volumeCbm: 123456789012345,
       },
       printDetails: {
-        bookingNoText: '宽⸻'.repeat(250),
-        exportReferencesText: '出口参考'.repeat(750),
-        containersText: '箱号明细'.repeat(3000),
+        bookingNoText: '}⸻'.repeat(250),
+        exportReferencesText: '[[[['.repeat(750),
+        containersText: ']]]]'.repeat(3000),
       },
     },
     variant: 'copy',
@@ -57,7 +57,7 @@ it('长度上限的连续中文按短行跨页，正文全部保留且行框不�
   );
   expect(bytes.subarray(0, 8).toString()).toBe('%PDF-1.3');
   const pages = layout?.children ?? [];
-  expect(pages.length).toBeGreaterThan(10);
+  expect(pages.length).toBeGreaterThanOrEqual(8);
   expect(pages.length).toBeLessThan(25);
 
   let text = '';
@@ -87,19 +87,17 @@ it('长度上限的连续中文按短行跨页，正文全部保留且行框不�
       }
     }
   }
+  // 独立 ASCII 标记在固定条款中不存在，逐字段核对全部字符数，防止中段丢字。
   for (const [char, count] of [
-    ['无', 1000],
-    ['空', 1000],
-    ['白', 1000],
-    ['址', 1000],
-    ['描', 2500],
-    ['唛', 1250],
-    ['头', 1250],
-    ['出', 750],
-    ['参', 750],
-    ['箱', 3000],
-    ['号', 3000],
+    ['~', 5000],
+    ['^', 10000],
+    ['!', 5000],
+    ['{', 100],
+    ['}', 250],
+    ['[', 3000],
+    [']', 12000],
   ] as const) {
     expect([...text].filter((value) => value === char)).toHaveLength(count);
   }
+  expect(text).not.toMatch(/\p{Script=Han}/u);
 }, 30_000);

@@ -16,8 +16,12 @@ const bundle: HblBundle = {
     id: 'order-1',
     bookingNo: 'BOOK-001',
     vesselVoyage: 'SHIP V1',
-    originLocationName: 'SHANGHAI',
-    destinationLocationName: 'SINGAPORE',
+    originLocationName: '上海港 (CNSHA)',
+    originLocationNameEn: 'SHANGHAI',
+    dischargeLocationName: '新加坡港 (SGSIN)',
+    dischargeLocationNameEn: 'SINGAPORE',
+    destinationLocationName: '洛杉矶港 (USLAX)',
+    destinationLocationNameEn: 'LOS ANGELES',
   },
   documents: {
     orderId: 'order-1',
@@ -42,12 +46,28 @@ describe('HBL 制作资料模型', () => {
       bookingNoText: 'BOOK-001',
       vesselVoyageText: 'SHIP V1',
       portOfLoadingText: 'SHANGHAI',
+      portOfDischargeText: 'SINGAPORE',
+      placeOfDeliveryText: 'LOS ANGELES',
     });
     expect(values.printDetails.issueDate).toBeUndefined();
     expect(values.printDetails.shippedOnBoardDate).toBeUndefined();
     expect(values.printDetails.originalCount).toBeUndefined();
     expect(values.printDetails.headerContactText).toBeUndefined();
     expect(values.content.grossWeightKg).toBe(33.125);
+  });
+  it('未维护英文名称时留空，不用中文展示名或代码替代', () => {
+    const values = buildHblFormValues({
+      ...bundle,
+      order: {
+        ...bundle.order,
+        originLocationNameEn: undefined,
+        dischargeLocationNameEn: '',
+        destinationLocationNameEn: undefined,
+      },
+    });
+    expect(values.printDetails.portOfLoadingText).toBeUndefined();
+    expect(values.printDetails.portOfDischargeText).toBe('');
+    expect(values.printDetails.placeOfDeliveryText).toBeUndefined();
   });
   it('已保存印字优先，包括有意清空；纯日期保持当天，零份数无损', () => {
     const updated = {

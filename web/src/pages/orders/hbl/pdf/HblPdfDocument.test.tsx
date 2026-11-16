@@ -13,11 +13,11 @@ const model: HblPdfModel = {
   houseNo: 'HBL-TEST-001',
   issuerNameEn: 'SAMPLE EAST LOGISTICS CO., LTD',
   content: {
-    shipperText: '测试发货企业 SAMPLE EXPORTER\nSHANGHAI, CHINA',
+    shipperText: 'SAMPLE EXPORTER\nSHANGHAI, CHINA',
     consigneeText: 'TO ORDER',
-    notifyPartyText: '测试通知人 SAMPLE NOTIFY PARTY',
+    notifyPartyText: 'SAMPLE NOTIFY PARTY',
     marksText: 'TEST CARGO 1-11',
-    goodsDescriptionText: 'VALVES AND SPARE PARTS\n阀门及配件',
+    goodsDescriptionText: 'VALVES AND SPARE PARTS\nVALVE COMPONENTS',
     packageCount: 11,
     packageUnit: 'CASES',
     grossWeightKg: 10918,
@@ -81,24 +81,24 @@ describe('HBL PDF 实际渲染', () => {
         ...model.content,
         shipperText: Array.from(
           { length: 55 },
-          (_, i) => `发货地址第${i + 1}行 SAMPLE ADDRESS`,
+          (_, i) => `SHIPPER ADDRESS LINE ${i + 1} SAMPLE ADDRESS`,
         ).join('\n'),
         goodsDescriptionText: Array.from(
           { length: 110 },
-          (_, i) => `货物明细第${i + 1}行 VALVE PARTS`,
+          (_, i) => `GOODS LINE ${i + 1} VALVE PARTS`,
         ).join('\n'),
       },
       printDetails: {
         ...model.printDetails,
         headerContactText: Array.from(
           { length: 50 },
-          (_, i) => `联系人第${i + 1}行 CONTACT`,
+          (_, i) => `CONTACT LINE ${i + 1}`,
         ).join('\n'),
         containersText: Array.from(
           { length: 55 },
           (_, i) => `TEST${String(i).padStart(7, '0')} / SEAL / 20GP`,
         ).join('\n'),
-        footerReferenceText: '参考信息'.repeat(60),
+        footerReferenceText: 'REFS'.repeat(60),
       },
     };
     const bytes = await act(async () =>
@@ -131,7 +131,7 @@ describe('HBL PDF 实际渲染', () => {
     const bytes = await act(async () =>
       renderToBuffer(
         <HblPdfDocument
-          model={{ ...model, houseNo: '号\n'.repeat(64) }}
+          model={{ ...model, houseNo: 'N\n'.repeat(64) }}
           variant="copy"
           logoSrc={path.join(publicRoot, 'images/roncin-hbl-logo.png')}
         />,

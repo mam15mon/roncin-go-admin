@@ -297,6 +297,12 @@ type Order struct {
 	InsuranceCurrency       string
 	UNNumber                string
 	HazardClass             string
+
+	// 单证英文地点投影只取主数据英文名称。
+	OriginLocationNameEn      string
+	DestinationLocationNameEn string
+	DischargeLocationNameEn   string
+
 	// DangerousPackingGroup 为可选危险品包装类别；nil 表示未填或不适用
 	// （Class 1/2/7 无包装类别），更新时 nil 走清空语义。
 	DangerousPackingGroup *OrderDangerousPackingGroup

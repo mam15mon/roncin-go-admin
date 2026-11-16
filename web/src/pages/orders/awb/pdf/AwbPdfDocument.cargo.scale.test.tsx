@@ -18,7 +18,7 @@ it('各10000字唛头品名、5000字备注和10000字单行货描完整续页',
         rateLines: [
           {
             ...awbPdfSample.content.rateLines?.[0],
-            goodsDescription: `${'单行货描'.repeat(2495)}RATE-LONG-GOODS-END`,
+            goodsDescription: `${'LLLL'.repeat(2495)}RATE-LONG-GOODS-END`,
           },
         ],
       },

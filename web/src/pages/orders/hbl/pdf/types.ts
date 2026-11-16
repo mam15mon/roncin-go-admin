@@ -1,5 +1,5 @@
 /** 输出版式、字体或分页变化时同步推进，参与预览与变动检查指纹。 */
-export const HBL_PDF_TEMPLATE_REVISION = '2026-11-16.2';
+export const HBL_PDF_TEMPLATE_REVISION = '2026-11-16.3';
 
 export type HblPdfVariant = 'draft' | 'original' | 'surrendered' | 'copy';
 

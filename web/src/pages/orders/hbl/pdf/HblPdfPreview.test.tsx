@@ -32,7 +32,7 @@ const initial: HblPdfPreviewProps = {
   model: {
     houseNo: 'HBL-TEST-001',
     issuerNameEn: 'SAMPLE EAST LOGISTICS CO., LTD',
-    content: { shipperText: '测试发货人' },
+    content: { shipperText: 'SAMPLE SHIPPER' },
   },
   variant: 'draft',
 };

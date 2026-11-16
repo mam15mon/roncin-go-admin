@@ -20578,6 +20578,13 @@ components:
                     format: int32
                 customerServiceName:
                     type: string
+                originLocationNameEn:
+                    type: string
+                    description: 单证印字直接取主数据英文名称，不拼接中文展示名或代码。
+                destinationLocationNameEn:
+                    type: string
+                dischargeLocationNameEn:
+                    type: string
         order.v1.OrderAbnormalCase:
             type: object
             properties:
