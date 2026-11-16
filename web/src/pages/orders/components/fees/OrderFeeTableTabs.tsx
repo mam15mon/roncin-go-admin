@@ -2,6 +2,7 @@ import {
   DeleteOutlined,
   DownOutlined,
   FileDoneOutlined,
+  LockOutlined,
   PlusOutlined,
   SaveOutlined,
   SwapOutlined,
@@ -1008,10 +1009,29 @@ export default function OrderFeeTableTabs({
         editable: false,
         // 行内编辑预览依赖外部状态，单元格需随组件重渲染刷新。
         shouldCellUpdate: () => true,
-        render: (_, record) =>
-          rowPreviews[String(record.id ?? '')]?.feeCode ??
-          record.feeCode ??
-          '-',
+        render: (_, record) => {
+          const code =
+            rowPreviews[String(record.id ?? '')]?.feeCode ??
+            record.feeCode ??
+            '-';
+          const rowKey = String(record.id ?? '');
+          const editingKeys = isReceivable
+            ? receivableEditable
+            : payableEditable;
+          if (!rowKey || editingKeys.map(String).includes(rowKey)) return code;
+          // 只读行：悬停说明不可编辑原因，优先使用服务端返回的阻断原因。
+          const reason =
+            record.blockedReasons?.join('；') ||
+            (!canUpdateFees ? '没有费用编辑权限' : '当前费用不可编辑');
+          return (
+            <Tooltip title={reason}>
+              <Space size={4} data-testid={`fee-readonly-${rowKey}`}>
+                <LockOutlined style={{ color: '#8c8c8c' }} />
+                <span>{code}</span>
+              </Space>
+            </Tooltip>
+          );
+        },
       },
       {
         title: '费用名称',
