@@ -142,6 +142,14 @@ describe('OrderListTemplate', () => {
     expect(row.getByText('异常')).toBeVisible();
     expect(row.queryByText('异常挂起')).not.toBeInTheDocument();
 
+    const checkbox = row.getByRole('checkbox');
+    fireEvent.click(checkbox);
+    expect(checkbox).toBeChecked();
+    expect(screen.queryByText('取消选择')).not.toBeInTheDocument();
+    expect(container.querySelector('.ant-pro-table-alert')).toBeNull();
+    fireEvent.click(checkbox);
+    expect(checkbox).not.toBeChecked();
+
     fireEvent.mouseEnter(row.getByRole('button', { name: /更多/ }));
     const feesAction = await screen.findByText('费用核算');
     await waitFor(() => expect(feesAction).toBeVisible());

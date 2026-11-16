@@ -797,6 +797,7 @@ export function OrderListTemplate({
             pageSizeOptions: ['10', '20', '50', '100'],
             showTotal: (total) => `共 ${total} 笔订单`,
           }}
+          tableAlertRender={false}
           rowSelection={{
             selectedRowKeys,
             onChange: (keys, rows) => {
