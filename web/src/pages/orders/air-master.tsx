@@ -267,6 +267,14 @@ function AirMasterContent({
         }
         actions={
           <Space>
+            <Button
+              disabled={!query.isSuccess}
+              onClick={() =>
+                history.push(`/orders/${kind}/masters/${masterId}/awb`)
+              }
+            >
+              MAWB 制作归档
+            </Button>
             {access.canOrder(businessType, 'create') && (
               <Button
                 type="primary"

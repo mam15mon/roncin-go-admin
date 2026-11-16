@@ -1,6 +1,8 @@
 import { formatDate, trimDecimal } from '@/utils/format';
-import fontCoverage from './fontCoverage.json';
-import fontGlyphWidths from './fontGlyphWidths.json';
+import { hasPdfGlyph } from '../../documents/pdf/text';
+
+export { pdfText } from '../../documents/pdf/text';
+
 import type { HblPdfModel, HblPdfVariant } from './types';
 
 const CONTENT_LABELS: Partial<Record<keyof API.SeaBillContent, string>> = {
@@ -42,22 +44,6 @@ const PRINT_LABELS: Partial<
   deliveryContactText: '交货联系信息',
 };
 
-function hasGlyph(character: string): boolean {
-  if (/^[\n\r\t]$/.test(character)) return true;
-  const point = character.codePointAt(0);
-  if (point === undefined) return true;
-  let start = 0;
-  let end = fontCoverage.length - 1;
-  while (start <= end) {
-    const middle = Math.floor((start + end) / 2);
-    const [first, last] = fontCoverage[middle];
-    if (point < first) end = middle - 1;
-    else if (point > last) start = middle + 1;
-    else return true;
-  }
-  return false;
-}
-
 /** 与实际嵌入字体的字符表校验，避免 PDF 引擎将未知字符输出为空白。 */
 export function validateHblPdfCharacters(model: HblPdfModel): string | null {
   if (
@@ -87,40 +73,12 @@ export function validateHblPdfCharacters(model: HblPdfModel): string | null {
   for (const [label, value] of fields) {
     if (typeof value !== 'string') continue;
     const unsupported = [
-      ...new Set([...value].filter((char) => !hasGlyph(char))),
+      ...new Set([...value].filter((char) => !hasPdfGlyph(char))),
     ];
     if (unsupported.length > 0)
       return `${label}含暂不支持打印的字符「${unsupported.join('')}」，请调整后重试。`;
   }
   return null;
-}
-
-export function pdfText(value?: string | null, maxGlyphs?: number): string {
-  const text = value?.replace(/\r\n?/g, '\n').replace(/\t/g, '    ') ?? '';
-  if (!maxGlyphs) return text;
-  // 按列宽显式拆行；ASCII 与超宽字形使用嵌入字体的 advance，
-  // 其余字形按一字一 em 的保守上界，只换行，不插入连字符。
-  return text
-    .split('\n')
-    .map((word) => {
-      const lines: string[] = [];
-      let line = '';
-      let width = 0;
-      for (const char of word) {
-        const advance =
-          fontGlyphWidths[char as keyof typeof fontGlyphWidths] ?? 1;
-        if (line && width + advance > maxGlyphs) {
-          lines.push(line);
-          line = '';
-          width = 0;
-        }
-        line += char;
-        width += advance;
-      }
-      if (line) lines.push(line);
-      return lines.join('\n');
-    })
-    .join('\n');
 }
 
 export function pdfQuantity(value?: number, unit?: string): string {

@@ -131,6 +131,8 @@ message AirMasterWaybillInput {
   AirWaybillContent waybill_content = 17;
 }
 message AirMasterWaybill {
+  // 实际经营公司的英文名称，仅供本公司 HAWB 抬头；不改写运单印发人。
+  string organization_name_en = 16 [(google.api.field_behavior) = OUTPUT_ONLY];
   string business_type = 11;
   string content_hash = 12;
   string document_mode = 13;

@@ -11,14 +11,16 @@
 
 ## 验收标准
 
-- [ ] AE/AI DIRECT/HOUSE适用主/分单实际PDF与页面交互验证，零/空/非零、PPD/COLL、NVD/NCV/XXX、AS ARRANGED正确。
-- [ ] 超长收发/唛头/品名、费率多行、中文、分页、币种/数量精度无丢失；同版本三种输出一致。
-- [ ] 保存失败不输出新稿、外部版本变化不覆盖输入/冒用旧稿；生产同域字体和按需加载通过。
+- [x] AE/AI DIRECT/HOUSE适用主/分单实际PDF与页面交互验证，零/空/非零、PPD/COLL、NVD/NCV/XXX、AS ARRANGED正确。
+- [x] 超长收发/唛头/品名、费率多行、中文、分页、币种/数量精度无丢失；同版本三种输出一致。
+- [x] 保存失败不输出新稿、外部版本变化不覆盖输入/冒用旧稿；生产同域字体和按需加载通过。
 
 ## 依赖与边界
 
-前置：.trellis/tasks/archive/2026-11/11-15-hgj-air-documents、.trellis/tasks/11-15-hgj-air-import。前置交付未完成不能把树形位置当作已满足依赖。
+前置：.trellis/tasks/archive/2026-11/11-15-hgj-air-documents、.trellis/tasks/archive/2026-11/11-15-hgj-air-import。前置交付未完成不能把树形位置当作已满足依赖。
 
 本期不增加真正多航段、复杂空运拆拼改配、批量导入或另五类实现；不提交海管家单据、不清库、不手改生成物。父最终方案已批准，按前置交付验收顺序start。
 
 实施授权同步：父最终方案已获用户明确批准，按前置依赖执行；具体完成状态以实际验证结果为准。
+
+验收结果：`research/awb-root-validation.md`汇总实现、两独立复核、64页专项PDF及6份16页真实浏览器下载、check:fast和生产build；详细实际命令与首轮失败修复见各专项报告。物理打印和外部发送不在本组。

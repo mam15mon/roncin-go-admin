@@ -1,7 +1,7 @@
 // @vitest-environment node
 import path from 'node:path';
 import { Font, renderToBuffer } from '@react-pdf/renderer';
-import { cloneElement } from 'react';
+import { act, cloneElement } from 'react';
 import { expect, it } from 'vitest';
 import { HBL_PDF_FONT_FAMILY } from './font';
 import { HblPdfDocument } from './HblPdfDocument';
@@ -44,14 +44,16 @@ it('长度上限的连续中文按短行跨页，正文全部保留且行框不�
     variant: 'copy',
     logoSrc: path.join(publicRoot, 'images/roncin-hbl-logo.png'),
   });
-  const bytes = await renderToBuffer(
-    cloneElement(document, {
-      onRender: (data: unknown) => {
-        // 渲染器内部布局只用于回归探针，生产代码不依赖其私有结构。
-        layout = (data as { _INTERNAL__LAYOUT__DATA_: LayoutNode })
-          ._INTERNAL__LAYOUT__DATA_;
-      },
-    }),
+  const bytes = await act(async () =>
+    renderToBuffer(
+      cloneElement(document, {
+        onRender: (data: unknown) => {
+          // 渲染器内部布局只用于回归探针，生产代码不依赖其私有结构。
+          layout = (data as { _INTERNAL__LAYOUT__DATA_: LayoutNode })
+            ._INTERNAL__LAYOUT__DATA_;
+        },
+      }),
+    ),
   );
   expect(bytes.subarray(0, 8).toString()).toBe('%PDF-1.3');
   const pages = layout?.children ?? [];

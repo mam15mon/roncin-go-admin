@@ -34,3 +34,16 @@ SE/SI/AE/AI各需真实订单及适用单证关系，至少各有应收与应付
   复核。SI/AI创建接通不证明这些出口硬编码已清除；不得借AE/SE权限或恢复业务标签。
 - 前序阶段通过的check:fast/build只属于各自提交。最终横切/CSV完成后跑风险匹配最终门禁；
   航空PDF组的生产入口、字体和同Blob输出要有实际PDF及同域证据。
+
+## PDF组期间追加的精确入口（仍为只读盘点）
+
+- 当前`ListOrdersRequest`在`server/api/order/v1/order.proto`，包含page/pageSize、全部筛选、sortBy/sortOrder；新专用导出不复制分页参数，不改变常规列表200上限。
+- `web/src/pages/orders/list.tsx`与`list-query.ts`承接kind和真实列表请求；公共`components/ui/order-list-template/OrderListTemplate.tsx`当前只有request返回，没有用于导出的onLoad采纳快照，Toolbar亦尚未接onExportTable。必须在官方采纳后保存本次筛选/排序，再给完整导出使用；不能仅取currentFilterRef或request完成时直接更新快照。
+- `Data.withReadSnapshot`位于`server/internal/data/transaction.go`，现有`finance_report_{profit,cashflow,aging}.go`可作为真实调用范本；该只读快照和共享写事务ctx边界保持原合同。
+- `workbench-todos.md`当前仍写SE/AE与两类出口直达，属于本组需要按真实实现同步的旧规范，不表示进口已接通。
+
+已确认的产品硬编码（尚未修改）：
+
+- `service/workbench.go`第31行只遍历SE/AE，`data/workbench_todo.go`第20行也仅接受SE/AE；需同时扩展作用范围与权限交集，不能只改前端链接。`web/pages/workbench/MyTodosDrawer.tsx`第61行及`WorkbenchSideCards.tsx`第258行附近亦仅处理两出口。
+- `biz/notification.go`第232、262行及`notification_test_usecase.go`第49行只处理两出口；本组验证通知受控预览和深链即可，禁止向真实员工发送测试。
+- `scripts/acceptance-finance-fixtures.mjs`已公开`prepareAcceptanceCompany`、`verifyCompositeFinanceWorkflow`等函数，可减少新验收编排重复；这些现有函数不是四类新建票协议的替代。

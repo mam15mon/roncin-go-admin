@@ -28105,6 +28105,11 @@
       "order.v1.AirMasterWaybill": {
         "type": "object",
         "properties": {
+          "organizationNameEn": {
+            "readOnly": true,
+            "type": "string",
+            "description": "实际经营公司的英文名称，仅供本公司 HAWB 抬头；不改写运单印发人。"
+          },
           "businessType": {
             "type": "string"
           },

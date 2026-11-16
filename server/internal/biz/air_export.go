@@ -44,6 +44,7 @@ type AirMasterWaybillInput struct {
 	Notes                 string
 }
 type AirMasterWaybill struct {
+	OrganizationNameEn     string
 	ContentHash            string
 	DocumentMode           string
 	CanAttach              bool

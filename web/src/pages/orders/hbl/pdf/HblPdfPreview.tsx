@@ -1,11 +1,7 @@
-import {
-  DownloadOutlined,
-  PrinterOutlined,
-  ReloadOutlined,
-} from '@ant-design/icons';
-import { usePDF } from '@react-pdf/renderer';
-import { Alert, Button, Drawer, Space, Spin } from 'antd';
+import { ReloadOutlined } from '@ant-design/icons';
+import { Alert, Button, Drawer } from 'antd';
 import { useState } from 'react';
+import { PdfBlobView } from '../../documents/pdf/PdfBlobView';
 import { hblPdfFileName, validateHblPdfCharacters } from './content';
 import { registerHblPdfFont } from './font';
 import { HblArchivePdfDocument } from './HblArchivePdfDocument';
@@ -36,58 +32,18 @@ function GeneratedPdf({
       ? name.replace(`-${variant}-`, '-archive-')
       : name;
   });
-  const [instance] = usePDF({
-    document:
-      model.outputKind === 'external-archive' ? (
-        <HblArchivePdfDocument model={model} />
-      ) : (
-        <HblPdfDocument model={model} variant={variant} />
-      ),
-  });
-  const ready = Boolean(instance.url && !instance.loading && !instance.error);
-
   return (
-    <>
-      <Space wrap style={{ marginBottom: 12 }}>
-        <Button
-          type="primary"
-          icon={<DownloadOutlined />}
-          disabled={!ready}
-          href={ready ? (instance.url ?? undefined) : undefined}
-          download={fileName}
-        >
-          下载 PDF
-        </Button>
-        <Button
-          icon={<PrinterOutlined />}
-          disabled={!ready}
-          href={ready ? (instance.url ?? undefined) : undefined}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          打开打印
-        </Button>
-      </Space>
-      {instance.loading && (
-        <Spin description="正在生成提单 PDF" fullscreen={false}>
-          <div style={{ height: 180 }} />
-        </Spin>
-      )}
-      {instance.error && (
-        <Alert type="error" showIcon title="PDF 生成失败，请重试。" />
-      )}
-      {ready && (
-        <iframe
-          src={instance.url ?? undefined}
-          title={`HBL ${model.houseNo} PDF 预览`}
-          style={{
-            width: '100%',
-            height: 'calc(100vh - 190px)',
-            border: '1px solid #f0f0f0',
-          }}
-        />
-      )}
-    </>
+    <PdfBlobView
+      document={
+        model.outputKind === 'external-archive' ? (
+          <HblArchivePdfDocument model={model} />
+        ) : (
+          <HblPdfDocument model={model} variant={variant} />
+        )
+      }
+      fileName={fileName}
+      title={`HBL ${model.houseNo} PDF 预览`}
+    />
   );
 }
 

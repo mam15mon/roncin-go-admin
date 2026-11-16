@@ -461,6 +461,8 @@ declare namespace API {
   };
 
   type AirMasterWaybill = {
+    /** 实际经营公司的英文名称，仅供本公司 HAWB 抬头；不改写运单印发人。 */
+    organizationNameEn?: string;
     businessType?: string;
     contentHash?: string;
     documentMode?: string;

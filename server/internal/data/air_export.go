@@ -18,6 +18,7 @@ import (
 	airport "github.com/roncin/roncin-go-admin/server/internal/data/ent/airport"
 	orderent "github.com/roncin/roncin-go-admin/server/internal/data/ent/order"
 	lifecycle "github.com/roncin/roncin-go-admin/server/internal/data/ent/orderlifecycleevent"
+	organizationent "github.com/roncin/roncin-go-admin/server/internal/data/ent/organization"
 )
 
 type airExportRepo struct{ data *Data }
@@ -137,6 +138,12 @@ func airMasterToBiz(m *ent.AirMasterWaybill) *biz.AirMasterWaybill {
 	return &biz.AirMasterWaybill{ID: m.ID, OrganizationID: m.OrganizationID, BusinessType: biz.OrderBusinessType(m.BusinessType), Version: m.Version, ContentHash: m.ContentHash, Content: biz.AirMasterWaybillInput{MasterNo: m.MasterNo, AirlineID: m.AirlineID, OriginAirportID: m.OriginAirportID, DestinationAirportID: m.DestinationAirportID, FlightNo: m.FlightNo, ETD: m.Etd, ETA: m.Eta, ActualDepartureAt: m.ActualDepartureAt, ActualArrivalAt: m.ActualArrivalAt, DocumentCutoffAt: m.DocumentCutoffAt, CustomsCutoffAt: m.CustomsCutoffAt, Status: m.Status, DeclaredPackages: m.DeclaredPackages, DeclaredGrossWeightKg: m.DeclaredGrossWeightKg, DeclaredVolumeCbm: m.DeclaredVolumeCbm, Notes: m.Notes, WaybillContent: airContentFromJSON(m.WaybillContent)}, CreatedAt: m.CreatedAt, UpdatedAt: m.UpdatedAt}
 }
 func decorateAirMaster(ctx context.Context, c *ent.Client, m *biz.AirMasterWaybill) error {
+	// 抬头取目标主单所属的真实公司，不能借当前工作区名称或固定默认值。
+	company, err := c.Organization.Query().Where(organizationent.IDEQ(m.OrganizationID), organizationent.KindEQ(organizationent.KindCompany)).Only(ctx)
+	if err != nil {
+		return err
+	}
+	m.OrganizationNameEn = orderOptionalStringValue(company.NameEn)
 	a, err := c.Airline.Query().Where(airline.IDEQ(m.Content.AirlineID)).Only(ctx)
 	if err != nil {
 		return err

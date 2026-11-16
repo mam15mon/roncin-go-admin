@@ -22,6 +22,35 @@ export default function AirExportDetailFeatures({
     <>
       {children({
         actionMenuItems: [
+          ...(masterId && context.canOrder('read')
+            ? [
+                {
+                  key: 'awb-master',
+                  label: 'MAWB 制作归档',
+                  onClick: () =>
+                    history.push(
+                      `/orders/${context.kind}/masters/${masterId}/awb`,
+                    ),
+                },
+              ]
+            : []),
+          ...(context.order.airExport?.documentMode === 'HOUSE' &&
+          context.order.airExport.house?.id &&
+          context.canOrder('read')
+            ? [
+                {
+                  key: 'awb-house',
+                  label:
+                    context.kind === 'air-import'
+                      ? 'HAWB 制作归档'
+                      : 'HAWB 制作',
+                  onClick: () =>
+                    history.push(
+                      `/orders/${context.kind}/${context.orderId}/awb/HAWB`,
+                    ),
+                },
+              ]
+            : []),
           ...(context.canOrder('cargo_item.read')
             ? [
                 {

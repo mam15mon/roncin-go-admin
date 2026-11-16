@@ -1,7 +1,8 @@
 // @vitest-environment node
+import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { Font, renderToBuffer } from '@react-pdf/renderer';
-import { cloneElement } from 'react';
+import { act, cloneElement } from 'react';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { HBL_PDF_FONT_FAMILY } from './font';
 import { HblPdfDocument } from './HblPdfDocument';
@@ -41,14 +42,16 @@ async function renderCompany(model: HblPdfModel, variant: HblPdfVariant) {
     variant,
     logoSrc: path.join(publicRoot, 'images/roncin-hbl-logo.png'),
   });
-  const bytes = await renderToBuffer(
-    cloneElement(document, {
-      onRender: (data: unknown) => {
-        // 实际布局探针仅用于检查渲染结果，不进入产品代码。
-        layout = (data as { _INTERNAL__LAYOUT__DATA_: LayoutNode })
-          ._INTERNAL__LAYOUT__DATA_;
-      },
-    }),
+  const bytes = await act(async () =>
+    renderToBuffer(
+      cloneElement(document, {
+        onRender: (data: unknown) => {
+          // 实际布局探针仅用于检查渲染结果，不进入产品代码。
+          layout = (data as { _INTERNAL__LAYOUT__DATA_: LayoutNode })
+            ._INTERNAL__LAYOUT__DATA_;
+        },
+      }),
+    ),
   );
   if (!layout) throw new Error('未取得实际 PDF 布局');
   return { bytes, layout };
@@ -70,6 +73,13 @@ describe('HBL PDF 签发公司抬头', () => {
         },
         variant,
       );
+      if (process.env.AWB_PDF_VALIDATION_DIR) {
+        await mkdir(process.env.AWB_PDF_VALIDATION_DIR, { recursive: true });
+        await writeFile(
+          path.join(process.env.AWB_PDF_VALIDATION_DIR, `hbl-${variant}.pdf`),
+          bytes,
+        );
+      }
       expect(layout.children).toHaveLength(1);
       const text = textOf(layout).replaceAll('\n', '');
       expect(text.split(issuerNameEn)).toHaveLength(4);

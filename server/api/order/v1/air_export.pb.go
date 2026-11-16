@@ -1162,7 +1162,9 @@ func (x *AirMasterWaybillInput) GetWaybillContent() *AirWaybillContent {
 }
 
 type AirMasterWaybill struct {
-	state                  protoimpl.MessageState `protogen:"open.v1"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 实际经营公司的英文名称，仅供本公司 HAWB 抬头；不改写运单印发人。
+	OrganizationNameEn     string                 `protobuf:"bytes,16,opt,name=organization_name_en,json=organizationNameEn,proto3" json:"organization_name_en,omitempty"`
 	BusinessType           string                 `protobuf:"bytes,11,opt,name=business_type,json=businessType,proto3" json:"business_type,omitempty"`
 	ContentHash            string                 `protobuf:"bytes,12,opt,name=content_hash,json=contentHash,proto3" json:"content_hash,omitempty"`
 	DocumentMode           string                 `protobuf:"bytes,13,opt,name=document_mode,json=documentMode,proto3" json:"document_mode,omitempty"`
@@ -1210,6 +1212,13 @@ func (x *AirMasterWaybill) ProtoReflect() protoreflect.Message {
 // Deprecated: Use AirMasterWaybill.ProtoReflect.Descriptor instead.
 func (*AirMasterWaybill) Descriptor() ([]byte, []int) {
 	return file_order_v1_air_export_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *AirMasterWaybill) GetOrganizationNameEn() string {
+	if x != nil {
+		return x.OrganizationNameEn
+	}
+	return ""
 }
 
 func (x *AirMasterWaybill) GetBusinessType() string {
@@ -3273,8 +3282,9 @@ const file_order_v1_air_export_proto_rawDesc = "" +
 	"\x0fwaybill_content\x18\x11 \x01(\v2\x1b.order.v1.AirWaybillContentR\x0ewaybillContentB\x14\n" +
 	"\x12_declared_packagesB\x1b\n" +
 	"\x19_declared_gross_weight_kgB\x16\n" +
-	"\x14_declared_volume_cbm\"\xce\x04\n" +
-	"\x10AirMasterWaybill\x12#\n" +
+	"\x14_declared_volume_cbm\"\x85\x05\n" +
+	"\x10AirMasterWaybill\x125\n" +
+	"\x14organization_name_en\x18\x10 \x01(\tB\x03\xe0A\x03R\x12organizationNameEn\x12#\n" +
 	"\rbusiness_type\x18\v \x01(\tR\fbusinessType\x12!\n" +
 	"\fcontent_hash\x18\f \x01(\tR\vcontentHash\x12#\n" +
 	"\rdocument_mode\x18\r \x01(\tR\fdocumentMode\x12\x1d\n" +

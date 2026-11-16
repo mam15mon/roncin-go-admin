@@ -2,7 +2,7 @@
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { Font, renderToBuffer } from '@react-pdf/renderer';
-import { cloneElement } from 'react';
+import { act, cloneElement } from 'react';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { HBL_PDF_FONT_FAMILY } from './font';
 import { HblArchivePdfDocument } from './HblArchivePdfDocument';
@@ -51,13 +51,15 @@ const model: HblPdfModel = {
 async function renderArchive(input: HblPdfModel) {
   let layout: LayoutNode | undefined;
   const document = HblArchivePdfDocument({ model: input });
-  const bytes = await renderToBuffer(
-    cloneElement(document, {
-      onRender: (data: unknown) => {
-        layout = (data as { _INTERNAL__LAYOUT__DATA_: LayoutNode })
-          ._INTERNAL__LAYOUT__DATA_;
-      },
-    }),
+  const bytes = await act(async () =>
+    renderToBuffer(
+      cloneElement(document, {
+        onRender: (data: unknown) => {
+          layout = (data as { _INTERNAL__LAYOUT__DATA_: LayoutNode })
+            ._INTERNAL__LAYOUT__DATA_;
+        },
+      }),
+    ),
   );
   if (!layout) throw new Error('没有取得PDF实际渲染布局');
   function checkTextBox(node: LayoutNode) {

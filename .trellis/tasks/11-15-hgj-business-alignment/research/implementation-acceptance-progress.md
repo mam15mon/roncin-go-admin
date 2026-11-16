@@ -11,7 +11,9 @@
 | 主单方向身份 | `375a20c2`；`.trellis/tasks/archive/2026-11/11-15-hgj-order-direction/research/` | 海空方向隔离、正式迁移保留与异常回滚、同号跨方向、候选/直接ID/完整共享集合、终止恢复及并发门禁；真实PG无跳过，生成幂等及阶段check:fast通过 | 航空PDF、横切和完整CSV |
 | 航空内容及DIRECT/HOUSE | `df217ccd`；`.trellis/tasks/archive/2026-11/11-15-hgj-air-documents/research/` | AE直单无HAWB、HOUSE独立正文/版本/哈希、共享主单模式与成员、重量及锁/恢复；真实PG、定向前端、生成幂等和阶段check:fast通过 | 主分AWB实际PDF及最终业务财务链 |
 | 海运进口及固定服务 | `74f86b3e`；`.trellis/tasks/archive/2026-11/11-15-hgj-sea-import/research/` | SI单证/箱货/费用ETA、五服务/事件/完结重开/并发/回滚及正式迁移；独立复核、build/门禁、真实浏览器和HBL实际PDF通过 | 航空PDF及父最终业务财务/横切闭环 |
-| 空运进口 | 本组已验收、待提交归档；`.trellis/tasks/11-15-hgj-air-import/research/` | AI双模式、真实权限/重量/审核/恢复/ETA及五服务；真实PG、120场HTTP、仅AI权限真实UI浏览器及check:fast237.0秒通过 | 航空PDF、四类完整业务财务/工作台/CSV |
+| 空运进口 | `734bb814`；`.trellis/tasks/archive/2026-11/11-15-hgj-air-import/research/` | AI双模式、真实权限/重量/审核/恢复/ETA及五服务；真实PG、120场HTTP、仅AI权限真实UI浏览器及check:fast237.0秒通过 | 航空PDF、四类完整业务财务/工作台/CSV |
+
+航空PDF组已完成独立复核、真实输出和生产同域验收，待本组提交归档后记录正式提交。最终横切/CSV/四类财务仍未完成。
 
 普通Go门禁未注入数据库时的集成跳过不算真实数据库通过；以上PG结论以显式注入
 `RONCIN_INTEGRATION_DATABASE_SOURCE`、随机隔离Schema顺序执行正式SQL的专项记录为准。
@@ -24,10 +26,10 @@
 | AC1 / V19 | 研究证据索引、逐字段表及其他五类矩阵已完成规划复核 | 最终交付时重新核对观察/推断/未知及范围陈述 |
 | AC2 / V2,V4–V7,V18 | 方向与航空两组真实PG/前端/相邻出口回归 | PDF和横切修改后的相邻验证 |
 | AC3 / V1,V8–V13 | SI/AI真实PG/HTTP/UI完整验收通过 | 四类完整财务链/工作台 |
-| AC4 / V14,V15 | SI外部HBL普通/极值及真实浏览器PDF4页提字/逐页图、生产同域通过；原自签回归 | 航空主分实际PDF、长文与同一Blob生命周期 |
+| AC4 / V14,V15 | SI外部HBL、HBL四版；航空64页专项及AE/AI双模式适用6份16页真实下载，长文/双200行/同Blob/真实主体/生产同域均通过 | 最终横切修改后核对无回退 |
 | AC5 / V19 | 五类仅调研边界及无样本限制已写入研究 | 最终复核后确认，不实施另五类 |
 | AC6 / V10,V16,V17 | 前四组正式迁移/权限/并发/生成及门禁证据 | 所有后续组及最终整体门禁、秘密扫描 |
-| AC7 / V3,V4,V7,V9 | AE/AI双模式真实PG/前端及AI真实UI浏览器证据 | AE/AI实际打印及四类完整业务财务链 |
+| AC7 / V3,V4,V7,V9 | AE/AI双模式真实PG/前端及AI真实UI、主分实际PDF/同Blob入口浏览器通过 | 四类完整业务财务链 |
 | AC8 / V20 | 已批准完整筛选CSV合同 | 专用导出接口、已采纳筛选前端、超过200行及真实文件验收尚未实现 |
 
 ## 开发库应用限制

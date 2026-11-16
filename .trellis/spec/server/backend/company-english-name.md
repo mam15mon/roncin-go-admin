@@ -1,14 +1,15 @@
-# 公司英文名称与自签 HBL 抬头
+# 公司英文名称与自签单证抬头
 
 ## 1 适用范围
 
-维护公司档案、默认公司种子、组织检索或 HBL 输出抬头时适用。公司英文名由管理员或用户明确规则确认，运行时不能从中文翻译、替换城市或按工作台猜测。
+维护公司档案、默认公司种子、组织检索或自签 HBL、AE HAWB 输出抬头时适用。公司英文名由管理员或用户明确规则确认，运行时不能从中文翻译、替换城市或按工作台猜测。航空输出的具体边界见[航空制作与PDF](./air-waybill-production.md)。
 
 ## 2 签名与字段
 
 - Ent：`Organization.name_en`，可空字符串；biz：`AdminOrganization.NameEn`。
 - `admin.v1.CreateOrganizationRequest`、`UpdateOrganizationRequest`、`AdminOrganization` 追加 `name_en`；Web 为 `nameEn`，沿现有组织管理 API 及权限读写。
 - 当前 `SeaHouseBill.issuer_organization_name_en` 为只读投影（Web `issuerOrganizationNameEn`），来自真实 `issuer_organization_id` 的公司档案。
+- `AirMasterWaybill.organization_name_en` 为只读投影（Web `organizationNameEn`），来自真实 `organization_id` 对应的公司，仅用于AE本公司HAWB抬头；MAWB和AI主分归档仍取保存的 `issuedBy`，不借公司英文名。
 - 模板统一 `RONCIN_SELF`，不再识别旧 `RONCIN_BEIJING`；正文及印字写接口没有新增可改公司抬头字段。
 - PDF 模型：`HblPdfModel.issuerNameEn: string`，必须显式提供。
 - 正式迁移：`20261104100000_organization_name_en.sql` 新增字段及北京补值；`20261104110000_chengdu_company_name_en.sql` 按用户城市拼音规则补齐成都。
@@ -25,6 +26,7 @@
 - 页眉、PDF 作者、条款中的公司名称、签发区统一读取本次模型的 `issuerNameEn`，字体支持校验覆盖该字段；长名称正常折行并增加固定页眉与正文预留空间。
 - HBL 变动指纹包含签发公司 ID、英文名和模板；名称变更同样触发前台 15 秒、回焦及输出前检查，保留输入和旧提交基线、关闭旧预览，刷新覆盖输入先确认。
 - 公司英文名属于当前主数据，不写入 HBL 正文哈希或不可变历史；已有下载文件不随后续公司改名而修改。
+- 航空同样不将公司英文名写入主分正文哈希或历史。更名不必推进MAWB版本，制作页仍需将该投影纳入变动与输出指纹；缺名只阻AE自签HAWB输出，不阻正文维护或真实外部归档。
 - 北京既有公司通过正式迁移补入用户参考模板已确认英文名；成都依用户确认的城市拼音替换规则补入 `RONCIN (CHENGDU) SUPPLY CHAIN MANAGEMENT CO., LTD`。新环境种子仅在新建 BJ/CD 时写各自固定名称，不覆盖既有公司人工值或主动清空；未知公司仍人工维护。
 
 ## 4 校验与错误矩阵

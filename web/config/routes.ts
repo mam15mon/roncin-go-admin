@@ -176,6 +176,24 @@ const routes: UmiRoute[] = [
         hideInMenu: true,
         component: './orders/air-master',
       },
+      ...(['air-export', 'air-import'] as const).flatMap<UmiRoute>((kind) => [
+        {
+          path: `/orders/${kind}/masters/:masterId/awb`,
+          organizationSwitch: { list: `/orders/${kind}` },
+          name: kind === 'air-import' ? '进口 MAWB 制作归档' : 'MAWB 制作归档',
+          access: kind === 'air-import' ? 'canReadAIOrders' : 'canReadAEOrders',
+          hideInMenu: true,
+          component: './orders/awb',
+        },
+        {
+          path: `/orders/${kind}/:id/awb/:target`,
+          organizationSwitch: { list: `/orders/${kind}` },
+          name: kind === 'air-import' ? '进口航空运单制作归档' : '航空运单制作',
+          access: kind === 'air-import' ? 'canReadAIOrders' : 'canReadAEOrders',
+          hideInMenu: true,
+          component: './orders/awb',
+        },
+      ]),
       {
         path: '/orders/:kind/new',
         organizationSwitch: { list: '/orders/:kind' },

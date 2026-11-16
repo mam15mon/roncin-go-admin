@@ -2,6 +2,7 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { Font, renderToBuffer } from '@react-pdf/renderer';
+import { act } from 'react';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { HBL_PDF_FONT_FAMILY } from './font';
 import { HblPdfDocument } from './HblPdfDocument';
@@ -50,12 +51,14 @@ function countPages(bytes: Buffer) {
 
 describe('HBL PDF 实际渲染', () => {
   it('使用仓库 React 和嵌入中文字体生成单页 A4 提单', async () => {
-    const bytes = await renderToBuffer(
-      <HblPdfDocument
-        model={model}
-        variant="original"
-        logoSrc={path.join(publicRoot, 'images/roncin-hbl-logo.png')}
-      />,
+    const bytes = await act(async () =>
+      renderToBuffer(
+        <HblPdfDocument
+          model={model}
+          variant="original"
+          logoSrc={path.join(publicRoot, 'images/roncin-hbl-logo.png')}
+        />,
+      ),
     );
     expect(bytes.subarray(0, 8).toString()).toBe('%PDF-1.3');
     expect(countPages(bytes)).toBe(1);
@@ -98,12 +101,14 @@ describe('HBL PDF 实际渲染', () => {
         footerReferenceText: '参考信息'.repeat(60),
       },
     };
-    const bytes = await renderToBuffer(
-      <HblPdfDocument
-        model={longModel}
-        variant="draft"
-        logoSrc={path.join(publicRoot, 'images/roncin-hbl-logo.png')}
-      />,
+    const bytes = await act(async () =>
+      renderToBuffer(
+        <HblPdfDocument
+          model={longModel}
+          variant="draft"
+          logoSrc={path.join(publicRoot, 'images/roncin-hbl-logo.png')}
+        />,
+      ),
     );
     expect(countPages(bytes)).toBeGreaterThan(3);
     expect(countPages(bytes)).toBeLessThan(10);
@@ -123,12 +128,14 @@ describe('HBL PDF 实际渲染', () => {
   });
 
   it('含多次换行的号码在正文正常续页，固定页脚不会撑满页面', async () => {
-    const bytes = await renderToBuffer(
-      <HblPdfDocument
-        model={{ ...model, houseNo: '号\n'.repeat(64) }}
-        variant="copy"
-        logoSrc={path.join(publicRoot, 'images/roncin-hbl-logo.png')}
-      />,
+    const bytes = await act(async () =>
+      renderToBuffer(
+        <HblPdfDocument
+          model={{ ...model, houseNo: '号\n'.repeat(64) }}
+          variant="copy"
+          logoSrc={path.join(publicRoot, 'images/roncin-hbl-logo.png')}
+        />,
+      ),
     );
     expect(countPages(bytes)).toBeGreaterThan(1);
     expect(countPages(bytes)).toBeLessThan(5);

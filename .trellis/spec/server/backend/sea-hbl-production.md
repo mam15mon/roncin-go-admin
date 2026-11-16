@@ -37,6 +37,10 @@
 
 使用按需加载的 `@react-pdf/renderer`，同一个生成 Blob 用于预览、下载和浏览器 PDF 打印入口。不得另画一份网页打印版导致内容不一致，也不把表单本身当提单打印。
 
+HBL与AWB真实共用的字体、字形覆盖、字宽断行及同Blob预览组件位于
+`web/src/pages/orders/documents/pdf/`；HBL原 `pdf/font.ts` 和 `content.ts`
+保留业务包装与公开入口。不得为共用工具改变HBL四版本或SI归档的主体、条款和模型。
+
 公司名称作为 `HblPdfModel.issuerNameEn` 传入页眉、作者、条款和签发区，缺名或字体不支持明确阻止输出。页眉按实际名称折行数预留空间，不截断正式英文名。
 上述自签公司规则只用于 RONCIN_SELF；EXTERNAL_ARCHIVE 展示真实 `issuerPartnerName`，
 保留当前HBL正文/印字/版本，不以公司英文名缺失阻断外部归档，也不输出四类自签法律版本。
