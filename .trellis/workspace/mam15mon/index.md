@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 214
+- **Total Sessions**: 215
 - **Last Active**: 2026-11-16
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~1914 | Active |
+| `journal-3.md` | ~1953 | Active |
 | `journal-2.md` | ~2003 | Archived |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 215 | 2026-11-16 | 全站服务端状态迁移与请求生命周期收敛 | `dee1312a`, `28ad3458`, `4e5ab166`, `b541b59a`, `f9f87462`, `91ec95be`, `ee491086`, `ad0ade3e`, `a899e7a0`, `548a0b25` | `codex/global-server-state-migration` |
 | 214 | 2026-11-16 | 航空单证内部对齐海运 | `3bddf4c9`, `97870df5`, `199720c3` | `codex/order-pages-usability` |
 | 213 | 2026-11-16 | 四类订单页面体验对齐与验收 | `5cb906bd`, `e4b79007`, `fad6fb3f`, `b9f197c4`, `c84cf18f` | `codex/order-pages-usability` |
 | 212 | 2026-11-16 | 海空进出口六组交付与最终CSV财务验收 | `8e4c4616`, `a0326041` | `codex/hgj-business-alignment` |

@@ -1912,3 +1912,42 @@ AI真实类型权限、DIRECT/HOUSE、独立重量与ETA费用、审核恢复和
 ### Status
 
 [OK] **Completed**
+
+
+## Session 215: 全站服务端状态迁移与请求生命周期收敛
+<!-- trellis-session: v=2 fp=2b5897e3577e8265 -->
+
+**Date**: 2026-11-16
+**Task**: 全站服务端状态迁移与请求生命周期收敛
+**Branch**: `codex/global-server-state-migration`
+
+### Summary
+
+完成31个查询消费文件、2套模块缓存与7个命令入口迁移，补齐账单变动检查；三组交叉审阅修复后check:web通过（577文件、3004测试），合成API浏览器交互复核通过，保留源工作区其他改动。
+
+### Main Changes
+
+- 统一Query缓存、取消和失效，保留输入/版本/幂等意图，完成规范与逐项验收记录
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `dee1312a` | refactor: 统一公共候选查询并移除模块级结果缓存 |
+| `28ad3458` | refactor: 迁移客商和基础维护查询并隔离级联候选 |
+| `4e5ab166` | refactor: 按查询身份管理订单资源与客商联想 |
+| `b541b59a` | test: 重渲染时保留同一查询客户端和外层上下文 |
+| `f9f87462` | refactor: 以查询身份管理费用汇率解析和行内参考值 |
+| `91ec95be` | refactor: 统一财务查询与预检并保护账单编辑会话 |
+| `ee491086` | refactor: 完善公共查询取消链与货币依赖失效 |
+| `ad0ade3e` | test: 重渲染回归沿用查询客户端并保留列表上下文 |
+| `a899e7a0` | refactor: 统一订单单证查询并隔离历史与预览会话 |
+| `548a0b25` | docs: 记录服务端状态迁移验收与查询生命周期契约 |
+
+### Testing
+
+- [OK] pnpm run check:web通过；定向订单最终8文件37例；git diff --check通过
+
+### Status
+
+[OK] **Completed**
