@@ -54,6 +54,12 @@ describe('SI独立服务保存与整票编辑输入', () => {
   it('本人服务保存仅推进确切Order版本，不清未保存业务字段和主单内容基线', async () => {
     renderDetail();
     expect(screen.getByText('本票进口服务')).toBeVisible();
+    expect(
+      screen
+        .getByText('本票进口服务')
+        .compareDocumentPosition(screen.getByLabelText('客户业务编号')) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     fireEvent.change(screen.getByLabelText('客户业务编号'), {
       target: { value: '尚未保存的客户编号' },
     });

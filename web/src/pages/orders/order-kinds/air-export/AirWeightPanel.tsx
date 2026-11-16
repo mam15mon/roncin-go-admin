@@ -8,6 +8,7 @@ import type { FormInstance } from 'antd';
 import {
   Alert,
   Button,
+  Collapse,
   Descriptions,
   InputNumber,
   Radio,
@@ -15,7 +16,7 @@ import {
   Spin,
 } from 'antd';
 import type { Rule } from 'antd/es/form';
-import { useRef, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import {
   GuardedModalForm,
   ResponsiveProTable,
@@ -35,18 +36,34 @@ export default function AirWeightPanel({
   canUpdate,
   businessType,
   onConfirmed,
+  embedded = false,
+  unsavedCargo = false,
 }: {
   scope: 'ORDER' | 'MASTER';
   targetId: string;
   canUpdate: boolean;
   businessType?: number;
   onConfirmed?: () => void | Promise<void>;
+  /** 订单货物卡内嵌，不重复包一层分节卡片。 */
+  embedded?: boolean;
+  unsavedCargo?: boolean;
 }) {
   const [source, setSource] = useState<'ACTUAL' | 'PLANNED'>('ACTUAL');
   const [divisor, setDivisor] = useState('6000');
   const [numerator, setNumerator] = useState(1);
   const [denominator, setDenominator] = useState(1);
-  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmation, setConfirmation] = useState<{
+    input: API.PreviewAirWeightRequest;
+    data: API.AirWeightPreview;
+  }>();
+  const alive = useRef(true);
+  const revision = useRef(0);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
   const client = useQueryClient();
   const historyRef = useRef<ActionType | undefined>(undefined);
   const validRule =
@@ -80,16 +97,39 @@ export default function AirWeightPanel({
     !validRule || preview.isError || preview.isFetching
       ? undefined
       : preview.data;
-  return (
-    <SectionCard
-      title={scope === 'ORDER' ? '本票计费重量' : '主单计费重量'}
-      extra={
+  const confirmData = confirmation?.data;
+  const confirmationChanged = Boolean(
+    confirmation &&
+      (JSON.stringify(input) !== JSON.stringify(confirmation.input) ||
+        !data ||
+        data.inputFingerprint !== confirmData?.inputFingerprint ||
+        data.currentConfirmation?.version !==
+          confirmData?.currentConfirmation?.version),
+  );
+  const wrap = (content: ReactNode) =>
+    embedded ? (
+      <div>{content}</div>
+    ) : (
+      <SectionCard title={scope === 'ORDER' ? '本票计费重量' : '主单计费重量'}>
+        {content}
+      </SectionCard>
+    );
+  return wrap(
+    <>
+      <Space style={{ marginBottom: 12 }}>
         <Button disabled={!validRule} onClick={() => void preview.refetch()}>
           重新核对
         </Button>
-      }
-    >
+      </Space>
       <Space orientation="vertical" size={12} style={{ width: '100%' }}>
+        {unsavedCargo && (
+          <Alert
+            type="warning"
+            showIcon
+            title="委托货量有未保存修改"
+            description="下面的参考与确认依据均为已保存货量。请先保存订单，再重新核对并确认重量。"
+          />
+        )}
         {!validRule && (
           <Alert
             type="warning"
@@ -218,89 +258,151 @@ export default function AirWeightPanel({
               />
             )}
             {canUpdate && (
-              <Button type="primary" onClick={() => setConfirmOpen(true)}>
+              <Button
+                type="primary"
+                disabled={unsavedCargo}
+                onClick={() => {
+                  revision.current += 1;
+                  setConfirmation({
+                    input: { ...input },
+                    data: structuredClone(data),
+                  });
+                }}
+              >
                 确认或调整计费重
               </Button>
             )}
           </>
         )}
-        <ResponsiveProTable<API.AirWeightConfirmation>
-          rowKey="id"
-          actionRef={historyRef}
-          search={false}
-          options={false}
+        <Collapse
           size="small"
-          headerTitle="确认历史"
-          pagination={{ defaultPageSize: 10 }}
-          request={async ({ current, pageSize }) => {
-            const response = await airWeightServiceListAirWeightConfirmations({
-              scope,
-              targetId,
-              page: current || 1,
-              pageSize: pageSize || 10,
-            });
-            ensureListResponse(response, '重量历史加载失败');
-            return {
-              data: response?.data || [],
-              total: response?.total || 0,
-              success: true,
-            };
-          }}
-          columns={[
-            { title: '版本', dataIndex: 'version', width: 70 },
+          items={[
             {
-              title: '货量来源',
-              render: (_, item) =>
-                item.source === 'PLANNED' ? '订单委托货量' : '实际货物明细',
-            },
-            {
-              title: '确认重量（KG）',
-              dataIndex: 'confirmedWeightKg',
-              render: (_, item) => trimDecimal(item.confirmedWeightKg),
-            },
-            { title: '依据/调整原因', dataIndex: 'reason', ellipsis: true },
-            {
-              title: '确认时间',
-              dataIndex: 'confirmedAt',
-              render: (_, item) => formatDate(item.confirmedAt, 'datetime'),
-              width: 180,
+              key: 'history',
+              label: '确认历史',
+              children: (
+                <ResponsiveProTable<API.AirWeightConfirmation>
+                  rowKey="id"
+                  actionRef={historyRef}
+                  search={false}
+                  options={false}
+                  size="small"
+                  headerTitle="确认历史"
+                  pagination={{ defaultPageSize: 10 }}
+                  request={async ({ current, pageSize }) => {
+                    const response =
+                      await airWeightServiceListAirWeightConfirmations({
+                        scope,
+                        targetId,
+                        page: current || 1,
+                        pageSize: pageSize || 10,
+                      });
+                    ensureListResponse(response, '重量历史加载失败');
+                    return {
+                      data: response?.data || [],
+                      total: response?.total || 0,
+                      success: true,
+                    };
+                  }}
+                  columns={[
+                    { title: '版本', dataIndex: 'version', width: 70 },
+                    {
+                      title: '货量来源',
+                      render: (_, item) =>
+                        item.source === 'PLANNED'
+                          ? '订单委托货量'
+                          : '实际货物明细',
+                    },
+                    {
+                      title: '确认重量（KG）',
+                      dataIndex: 'confirmedWeightKg',
+                      render: (_, item) => trimDecimal(item.confirmedWeightKg),
+                    },
+                    {
+                      title: '依据/调整原因',
+                      dataIndex: 'reason',
+                      ellipsis: true,
+                    },
+                    {
+                      title: '确认时间',
+                      dataIndex: 'confirmedAt',
+                      render: (_, item) =>
+                        formatDate(item.confirmedAt, 'datetime'),
+                      width: 180,
+                    },
+                  ]}
+                />
+              ),
             },
           ]}
         />
       </Space>
-      {confirmOpen && data && (
+      {confirmation && confirmData && (
         <GuardedModalForm<{ confirmedWeightKg: string; reason?: string }>
           title="确认计费重量"
           open
-          onOpenChange={setConfirmOpen}
+          onOpenChange={(open) => {
+            if (!open) {
+              revision.current += 1;
+              setConfirmation(undefined);
+            }
+          }}
+          onValuesChange={() => {
+            revision.current += 1;
+          }}
           guardIdentity={`${scope}:${targetId}`}
           initialValues={{
             confirmedWeightKg:
-              data.suggestedChargeableWeightKg ||
-              data.currentConfirmation?.confirmedWeightKg,
+              confirmData.suggestedChargeableWeightKg ||
+              confirmData.currentConfirmation?.confirmedWeightKg,
           }}
           modalProps={{ destroyOnHidden: true }}
+          submitter={{
+            submitButtonProps: {
+              disabled: confirmationChanged || unsavedCargo || !canUpdate,
+            },
+          }}
           onFinish={async (values) => {
-            if (preview.isFetching || preview.isError || !data.inputFingerprint)
+            if (
+              !canUpdate ||
+              unsavedCargo ||
+              confirmationChanged ||
+              preview.isFetching ||
+              preview.isError ||
+              !confirmData.inputFingerprint
+            )
               return false;
+            const submittedRevision = revision.current;
             const response = await airWeightServiceConfirmAirWeight({
-              ...input,
-              inputFingerprint: data.inputFingerprint,
-              expectedVersion: data.currentConfirmation?.version || '0',
+              ...confirmation.input,
+              inputFingerprint: confirmData.inputFingerprint,
+              expectedVersion: confirmData.currentConfirmation?.version || '0',
               confirmedWeightKg: values.confirmedWeightKg,
               reason: values.reason || '',
             });
             if (!isWriteResponse(response, true)) return false;
+            if (!alive.current || submittedRevision !== revision.current)
+              return false;
             await client.invalidateQueries({ queryKey: ['air-weight'] });
             historyRef.current?.reload();
             await onConfirmed?.();
-            setConfirmOpen(false);
+            if (!alive.current || submittedRevision !== revision.current)
+              return false;
+            setConfirmation(undefined);
             return true;
           }}
         >
+          {confirmationChanged && (
+            <Alert
+              type="warning"
+              showIcon
+              title="重量核对依据已经变化，请关闭后重新核对。"
+              style={{ marginBottom: 12 }}
+            />
+          )}
           <Alert
             type="info"
-            title={`本次参考：${trimDecimal(data.suggestedChargeableWeightKg)} KG`}
+            title={`本次参考：${trimDecimal(confirmData.suggestedChargeableWeightKg)} KG`}
             description="最终值允许人工调整；不同于参考或无参考时必须填写依据。保存时服务端再次校验货量、成员和版本。"
             style={{ marginBottom: 16 }}
           />
@@ -323,9 +425,9 @@ export default function AirWeightPanel({
                 ({
                   validator: async (_, value) => {
                     if (
-                      (!data.available ||
+                      (!confirmData.available ||
                         Number(getFieldValue('confirmedWeightKg')) !==
-                          Number(data.suggestedChargeableWeightKg)) &&
+                          Number(confirmData.suggestedChargeableWeightKg)) &&
                       !String(value || '').trim()
                     )
                       throw new Error('人工调整或无参考时请填写依据');
@@ -336,6 +438,6 @@ export default function AirWeightPanel({
           />
         </GuardedModalForm>
       )}
-    </SectionCard>
+    </>,
   );
 }

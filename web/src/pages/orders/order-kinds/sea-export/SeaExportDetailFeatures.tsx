@@ -242,7 +242,7 @@ export default function SeaExportDetailFeatures({
     !canOrder('reassign') ||
     businessWritesDisabled ||
     changeActions?.canReassign !== true;
-  const actionMenuItems: MenuProps['items'] = [
+  const documentMenuItems: MenuProps['items'] = [
     ...(canOrder('read')
       ? [
           {
@@ -253,6 +253,8 @@ export default function SeaExportDetailFeatures({
           },
         ]
       : []),
+  ];
+  const actionMenuItems: MenuProps['items'] = [
     ...(isExport && canOrder('split')
       ? [
           {
@@ -407,6 +409,7 @@ export default function SeaExportDetailFeatures({
       />
     ),
     actionMenuItems,
+    documentMenuItems,
     moreMenuItems,
     appendTabs: isExport
       ? appendTabs

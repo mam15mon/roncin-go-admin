@@ -92,6 +92,8 @@ export interface OrderListItem {
   masterBlNo?: string;
   houseBlNo?: string;
   documentMode?: 'DIRECT' | 'HOUSE';
+  airMasterStatus?: string;
+  airHouseStatus?: string;
   /** 页面完成海运单证投影，模板不解释接口枚举。 */
   billRelation?: {
     kind: 'house' | 'direct' | 'unknown';
@@ -143,6 +145,13 @@ export interface OrderListItem {
   packageUnit?: string;
   grossWeightKg?: number;
   volumeCbm?: number;
+  /** 本票各独立来源的确认摘要；缺省表示尚无确认，不从主单推算。 */
+  airWeightSummaries?: {
+    source: 'PLANNED' | 'ACTUAL';
+    confirmedWeightKg: string;
+    confirmationStale: boolean;
+    confirmedAt?: string;
+  }[];
 
   // 单证与商务
   paymentTerm?: string | number;
@@ -181,6 +190,10 @@ export interface OrderListTemplateProps {
   columnSettingsKey?: string;
   /** 品类扩展列的默认隐藏项，与公共低频列合并。 */
   defaultHiddenColumnKeys?: string[];
+  /** 品类默认展开的公共字段，仍可由个人列偏好覆盖。 */
+  defaultVisibleColumnKeys?: string[];
+  /** 页面给出当前业务进度的显示名称。 */
+  progressColumnTitle?: string;
   /** 页面/工作台主标题，如 "海运出口订单" */
   title?: string;
   /** 表格动作 Ref（支持外部受控刷新） */

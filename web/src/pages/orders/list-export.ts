@@ -64,6 +64,34 @@ export function orderExportColumns(access: {
     { header: '企业内部编号', value: (row) => row.internalReferenceNo },
     { header: '主单号', value: (row) => row.masterBlNo },
     { header: '分单号', value: (row) => row.houseBlNo },
+    ...(['PLANNED', 'ACTUAL'] as const).flatMap(
+      (source): CsvColumn<OrderListItem>[] => [
+        {
+          header: `${source === 'PLANNED' ? '委托' : '实际'}确认计费重(KG)`,
+          kind: 'number',
+          value: (row) =>
+            csvDecimal(
+              row.airWeightSummaries?.find(
+                (summary) => summary.source === source,
+              )?.confirmedWeightKg,
+            ),
+        },
+        {
+          header: `${source === 'PLANNED' ? '委托' : '实际'}重量确认状态`,
+          value: (row) => {
+            if (!row.airWeightSummaries) return '';
+            const summary = row.airWeightSummaries.find(
+              (item) => item.source === source,
+            );
+            return !summary
+              ? '未确认'
+              : summary.confirmationStale
+                ? '需重确认'
+                : '已确认';
+          },
+        },
+      ],
+    ),
     {
       header: '主分单模式',
       value: (row) =>

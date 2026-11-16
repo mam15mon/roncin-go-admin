@@ -283,7 +283,7 @@ func attachAirOrders(ctx context.Context, c *ent.Client, orders []*biz.Order) er
 		o.DocCutoff = m.Content.DocumentCutoffAt
 		o.CustomsCutoff = m.Content.CustomsCutoffAt
 	}
-	return nil
+	return attachAirOrderWeightSummaries(ctx, c, orders)
 }
 func (r *airExportRepo) List(ctx context.Context, org uuid.UUID, businessType biz.OrderBusinessType, o biz.SelectorListOptions) ([]*biz.AirMasterWaybill, int, error) {
 	c, e := r.data.client(ctx)

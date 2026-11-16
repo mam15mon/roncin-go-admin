@@ -15,6 +15,13 @@ export type StatusMeta = {
   color?: TagProps['color'];
 };
 
+/** 航空主分运单共享的单证状态文案，独立于订单操作进度与审核状态。 */
+export const airWaybillStatusMeta: Record<string, StatusMeta> = {
+  DRAFT: { text: '资料待完善' },
+  CONFIRMED: { text: '已确认' },
+  RELEASED: { text: '已签发' },
+};
+
 export const businessTypeMeta: Record<number, StatusMeta> = {
   [OrderBusinessType.BUSINESS_TYPE_SE]: { text: '海运出口' },
   [OrderBusinessType.BUSINESS_TYPE_SI]: { text: '海运进口' },

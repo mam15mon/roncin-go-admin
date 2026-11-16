@@ -80,6 +80,14 @@ export interface OrderDetailFeaturesContext {
 
 /** 类型扩展向通用详情布局贡献的 UI 描述与刷新命令。 */
 export interface OrderDetailFeatureContribution {
+  /** 航空本票货物汇总与重量确认，就近嵌入货物区。 */
+  airCargoWorkspace?: React.ReactNode;
+  /** 航空共同运输的原地维护入口。 */
+  airTransportMaintenance?: React.ReactNode;
+  /** 主、分运单各自的制作和历史入口。 */
+  airDocumentActions?: Partial<Record<'MAWB' | 'HAWB', React.ReactNode>>;
+  /** 页头直接展示的单证制作菜单，权限由类型扩展裁剪。 */
+  documentMenuItems?: MenuProps['items'];
   /** 品类实际装箱区域，由业务扩展持有查询与抽屉。 */
   actualContainers?: React.ReactNode;
   /** 运输分节内复用现有共享航程预览与更新动作的入口。 */

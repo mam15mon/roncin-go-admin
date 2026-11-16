@@ -28,6 +28,8 @@ type OrderDetailHeaderProps = {
   canReadAbnormal: boolean;
   /** 类型专属业务菜单（如拆票、改配），由订单类型详情扩展提供。 */
   businessMenuItems?: MenuProps['items'];
+  /** 高频单证入口独立于更多操作，保持真实目标与权限。 */
+  documentMenuItems?: MenuProps['items'];
   moreMenuItems: MenuProps['items'];
   hasAction: (action: number) => boolean;
   onSave: () => void;
@@ -55,6 +57,7 @@ export default function OrderDetailHeader({
   canCreatePod,
   canReadAbnormal,
   businessMenuItems,
+  documentMenuItems,
   moreMenuItems,
   hasAction,
   onSave,
@@ -146,6 +149,13 @@ export default function OrderDetailHeader({
           >
             费用录入
           </Button>
+        )}
+        {Boolean(documentMenuItems?.length) && (
+          <Dropdown menu={{ items: documentMenuItems }} trigger={['click']}>
+            <Button icon={<FileDoneOutlined />}>
+              单证制作 <DownOutlined />
+            </Button>
+          </Dropdown>
         )}
         {canReadAttachments && (
           <Button icon={<PaperClipOutlined />} onClick={onOpenAttachments}>

@@ -71,12 +71,21 @@ type AirOrderInput struct {
 	ChangeReason          string
 }
 type AirOrderInfo struct {
-	DocumentMode string
-	House        *AirHouseWaybill
-	Master       *AirMasterWaybill
-	LinkID       uuid.UUID
-	LinkVersion  uint64
-	Active       bool
+	DocumentMode    string
+	House           *AirHouseWaybill
+	Master          *AirMasterWaybill
+	LinkID          uuid.UUID
+	LinkVersion     uint64
+	Active          bool
+	WeightSummaries []*AirOrderWeightSummary
+}
+
+// AirOrderWeightSummary 仅展示本票某一货量来源的当前确认，不改变费用采用来源。
+type AirOrderWeightSummary struct {
+	Source            string
+	ConfirmedWeightKG string
+	ConfirmationStale bool
+	ConfirmedAt       time.Time
 }
 type AirMasterMember struct {
 	OrderID                     uuid.UUID

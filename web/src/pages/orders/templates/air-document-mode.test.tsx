@@ -1,7 +1,7 @@
 import { ProForm } from '@ant-design/pro-components';
 import { renderWithApp } from '@root/tests/renderWithApp';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
-import { Form, type FormInstance } from 'antd';
+import { ConfigProvider, Form, type FormInstance } from 'antd';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { OrderBusinessType } from '@/enums.generated';
 import { airExportServiceListAirMasterWaybills } from '@/services/roncin/airExportService';
@@ -41,17 +41,19 @@ function setup(initialValues: Record<string, unknown>, isDetail = false) {
     const [form] = Form.useForm();
     current = form;
     return (
-      <ProForm form={form} submitter={false} initialValues={initialValues}>
-        {getAirTemplateSections({ ...props, isDetail })
-          .filter((item) =>
-            ['bookingTransport', 'airDocuments'].includes(item.key),
-          )
-          .map((item) => (
-            <section key={item.key} aria-label={item.title}>
-              {item.content}
-            </section>
-          ))}
-      </ProForm>
+      <ConfigProvider theme={{ token: { motion: false } }}>
+        <ProForm form={form} submitter={false} initialValues={initialValues}>
+          {getAirTemplateSections({ ...props, isDetail })
+            .filter((item) =>
+              ['bookingTransport', 'airDocuments'].includes(item.key),
+            )
+            .map((item) => (
+              <section key={item.key} aria-label={item.title}>
+                {item.content}
+              </section>
+            ))}
+        </ProForm>
+      </ConfigProvider>
     );
   }
   renderWithApp(<Editor />, { user });
@@ -78,10 +80,14 @@ describe('航空直单与主分单表单', () => {
       screen.getByRole('radio', { name: '直单（DIRECT，无 HAWB）' }),
     );
     await waitFor(() =>
-      expect(
-        screen.queryByRole('textbox', { name: /本票分运单号（HAWB）/ }),
-      ).toBeNull(),
+      expect(readForm().getFieldValue('airDocumentMode')).toBe('DIRECT'),
     );
+    await waitFor(() =>
+      expect(screen.queryByRole('tab', { name: '分运单 HAWB' })).toBeNull(),
+    );
+    expect(
+      screen.queryByRole('textbox', { name: /本票分运单号（HAWB）/ }),
+    ).toBeNull();
     expect(screen.getByText('直单：本票使用主运单，无 HAWB')).toBeVisible();
     expect(screen.getByText('主运单正文')).toBeVisible();
     expect(readForm().getFieldValue('airHouseNo')).toBe('HAWB-001');
@@ -100,9 +106,10 @@ describe('航空直单与主分单表单', () => {
       },
       true,
     );
+    expect(screen.getByText('主分单（HOUSE）')).toBeVisible();
     expect(
-      screen.getByRole('radio', { name: '直单（DIRECT，无 HAWB）' }),
-    ).toBeDisabled();
+      screen.queryByRole('radio', { name: '直单（DIRECT，无 HAWB）' }),
+    ).toBeNull();
     expect(
       screen.getByRole('textbox', { name: /本票分运单号（HAWB）/ }),
     ).toBeDisabled();
@@ -144,7 +151,7 @@ describe('航空直单与主分单表单', () => {
       expect(readForm().getFieldValue('airMasterId')).toBe('master'),
     );
     expect(readForm().getFieldValue('airMasterExpectedVersion')).toBe('3');
-    expect(screen.queryByText('主运单正文')).toBeNull();
+    expect(screen.getByRole('tab', { name: '主运单 MAWB' })).toBeVisible();
   });
 
   it('Proto省略canAttach=false时拒绝关联，保留服务端阻断原因', async () => {

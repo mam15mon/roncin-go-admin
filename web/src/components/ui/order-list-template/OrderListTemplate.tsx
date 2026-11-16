@@ -94,6 +94,8 @@ export function OrderListTemplate({
   readonly = false,
   columnSettingsKey = 'orders:list',
   defaultHiddenColumnKeys = [],
+  defaultVisibleColumnKeys = [],
+  progressColumnTitle = '操作进度',
 }: OrderListTemplateProps) {
   const internalActionRef = useRef<ActionType | undefined>(undefined);
   const actionRef =
@@ -229,7 +231,11 @@ export function OrderListTemplate({
               render: (_: unknown, record: OrderListItem) => (
                 <div className="roncin-order-bills">
                   <div className="roncin-order-bills-line">
-                    <span className="roncin-order-bills-label">主单 MBL</span>
+                    <span className="roncin-order-bills-label">
+                      {options?.transportMode === 'air'
+                        ? '主单 MAWB'
+                        : '主单 MBL'}
+                    </span>
                     <span className="roncin-order-bills-number">
                       {record.masterBlNo || '未填写'}
                     </span>
@@ -256,7 +262,9 @@ export function OrderListTemplate({
                     ) : record.billRelation?.kind === 'house' ? (
                       <>
                         <span className="roncin-order-bills-label">
-                          分单 HBL
+                          {options?.transportMode === 'air'
+                            ? '分单 HAWB'
+                            : '分单 HBL'}
                         </span>
                         <span className="roncin-order-bills-number">
                           {record.billRelation.houseNo || '未填写'}
@@ -538,7 +546,7 @@ export function OrderListTemplate({
 
       // 13. 右侧固定状态与异常
       {
-        title: '操作进度',
+        title: progressColumnTitle,
         dataIndex: 'statusName',
         width: 100,
         fixed: 'right',
@@ -681,6 +689,7 @@ export function OrderListTemplate({
       onOpenConsolidations,
       onOpenAbnormal,
       readonly,
+      progressColumnTitle,
     ],
   );
 
@@ -692,7 +701,9 @@ export function OrderListTemplate({
     columns,
     structuralKeys: ['option'],
     defaultHiddenKeys: [
-      ...DEFAULT_HIDDEN_COLUMN_KEYS,
+      ...DEFAULT_HIDDEN_COLUMN_KEYS.filter(
+        (key) => !defaultVisibleColumnKeys.includes(key),
+      ),
       ...defaultHiddenColumnKeys,
     ],
   });

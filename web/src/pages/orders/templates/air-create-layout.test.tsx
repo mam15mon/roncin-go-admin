@@ -7,7 +7,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
-import { Form, type FormInstance } from 'antd';
+import { ConfigProvider, Form, type FormInstance } from 'antd';
 import { describe, expect, it, vi } from 'vitest';
 import { OrderBusinessType } from '@/enums.generated';
 import { airExportServiceListAirMasterWaybills } from '@/services/roncin/airExportService';
@@ -73,18 +73,20 @@ function SectionCards({
     isDetail,
   });
   return (
-    <ProForm
-      form={form}
-      submitter={false}
-      layout="vertical"
-      initialValues={initialValues}
-    >
-      {sections.map((section) => (
-        <section key={section.key} aria-label={section.title}>
-          {section.content}
-        </section>
-      ))}
-    </ProForm>
+    <ConfigProvider theme={{ token: { motion: false } }}>
+      <ProForm
+        form={form}
+        submitter={false}
+        layout="vertical"
+        initialValues={initialValues}
+      >
+        {sections.map((section) => (
+          <section key={section.key} aria-label={section.title}>
+            {section.content}
+          </section>
+        ))}
+      </ProForm>
+    </ConfigProvider>
   );
 }
 
@@ -103,8 +105,8 @@ describe('AE 新建与详情五卡片合同', () => {
     const expected = [
       { key: 'businessCustomer', title: '业务与客户' },
       { key: 'bookingTransport', title: '订舱与运输' },
-      { key: 'cargoCommercial', title: '本票货物' },
-      { key: 'airDocuments', title: '分单信息' },
+      { key: 'cargoCommercial', title: '货物与商业' },
+      { key: 'airDocuments', title: '单证信息' },
       { key: 'internalPersonnel', title: '内部人员' },
     ];
     expect(
@@ -156,7 +158,7 @@ describe('AE 新建与详情五卡片合同', () => {
     expect(business).not.toHaveTextContent('订舱号');
     expect(business).not.toHaveTextContent('本票分运单号');
 
-    const documents = screen.getByRole('region', { name: '分单信息' });
+    const documents = screen.getByRole('region', { name: '单证信息' });
     expect(documents).toHaveTextContent('本票分运单号（HAWB）');
     expect(documents).toHaveTextContent('本票分单状态');
     expect(documents).toHaveTextContent('本票单证资料');
@@ -187,10 +189,10 @@ describe('AE 新建与详情五卡片合同', () => {
     expect(booking).toHaveTextContent('共享主单 78112345675');
     expect(booking).toHaveTextContent('订舱号');
     expect(booking).not.toHaveTextContent('主单关联方式');
-    expect(booking).not.toHaveTextContent('主运单号（MAWB）');
-    expect(booking).not.toHaveTextContent('航线与班期');
+    expect(booking).toHaveTextContent('主运单号（MAWB）');
+    expect(booking).toHaveTextContent('共同航线与班期');
 
-    const documents = screen.getByRole('region', { name: '分单信息' });
+    const documents = screen.getByRole('region', { name: '单证信息' });
     expect(documents).toHaveTextContent('已签发分单修改原因');
     await flushMountRequests();
   });
@@ -208,7 +210,7 @@ describe('AE 新建与详情五卡片合同', () => {
       />,
       { user },
     );
-    const cargo = screen.getByRole('region', { name: '本票货物' });
+    const cargo = screen.getByRole('region', { name: '货物与商业' });
     // 渲染初始即收起（未勾选任何品类）。
     let motion = within(cargo).getByTestId('sea-dangerous-goods-motion');
     expect(motion).toHaveAttribute('data-open', 'false');
@@ -286,7 +288,7 @@ describe('AE 新建与详情五卡片合同', () => {
       { user },
     );
     const business = screen.getByRole('region', { name: '业务与客户' });
-    const cargo = screen.getByRole('region', { name: '本票货物' });
+    const cargo = screen.getByRole('region', { name: '货物与商业' });
     for (const label of [
       '集运/跨境',
       '贸易条款',

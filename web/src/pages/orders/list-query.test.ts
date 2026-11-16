@@ -597,7 +597,7 @@ describe('queryOrderList', () => {
     },
   );
 
-  it('HOUSE 没有 HBL 号码时保留缺失，空运不启用海运关系模型', async () => {
+  it('HOUSE 没有 HBL 号码时保留缺失，空运关系不借用海运单证结构', async () => {
     listOrdersMock.mockResolvedValue({
       success: true,
       data: [
@@ -624,7 +624,11 @@ describe('queryOrderList', () => {
       houseNo: undefined,
     });
     const air = await queryOrderList({}, airExportDefinition, ctx);
-    expect(air.data[0].billRelation).toBeUndefined();
+    expect(air.data[0].billRelation).toEqual({
+      kind: 'unknown',
+      houseNo: undefined,
+      memberCount: 0,
+    });
   });
   it.each(['orderNo', 'createdAt', 'etd', 'eta'])(
     '向服务端传递 %s 排序，清除排序恢复默认',

@@ -59,6 +59,12 @@ describe('AI服务独立保存与真实整票表单', () => {
       };
       renderAirSaveDetail();
       expect(screen.getByText('本票AI进口服务')).toBeVisible();
+      expect(
+        screen
+          .getByText('本票AI进口服务')
+          .compareDocumentPosition(screen.getByLabelText('客户参考号')) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
       fireEvent.change(screen.getByLabelText('客户参考号'), {
         target: { value: '尚未保存客户输入' },
       });

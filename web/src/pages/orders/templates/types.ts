@@ -50,6 +50,14 @@ export interface TemplateProps {
   seaDocuments?: API.SeaOrderDocuments;
   /** 详情扩展贡献的实际装箱，独立于计划及整页保存。 */
   actualContainers?: ReactNode;
+  /** 航空详情扩展提供的货物核对与重量确认。 */
+  airCargoWorkspace?: ReactNode;
+  /** 航空共同运输资料的就近维护入口。 */
+  airTransportMaintenance?: ReactNode;
+  /** 对应真实主、分单的制作与历史入口。 */
+  airDocumentActions?: Partial<Record<'MAWB' | 'HAWB', ReactNode>>;
+  /** 详情刷新后的共同运输只读快照；不写回本票编辑表单基线。 */
+  airTransportSnapshot?: API.AirMasterWaybill;
   /** 复用详情现有共享航程命令提供就近维护入口，不另建写路径。 */
   sharedVoyageMaintenance?: ReactNode;
   /** 新建分单的主单及指定航程来源。 */

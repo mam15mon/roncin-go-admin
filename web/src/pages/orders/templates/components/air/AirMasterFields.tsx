@@ -5,11 +5,21 @@ import {
   ProFormTextArea,
 } from '@ant-design/pro-components';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, Button, Form, Radio, Space, Typography } from 'antd';
+import {
+  Alert,
+  Button,
+  Descriptions,
+  Form,
+  Radio,
+  Space,
+  Tag,
+  Typography,
+} from 'antd';
 import { useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router';
 import { useInitialState } from '@/app/AppProvider';
-import { FormRow, ProFormSearchableSelect } from '@/components/ui';
+import { FormCell, FormRow, ProFormSearchableSelect } from '@/components/ui';
+import { OrderBusinessType } from '@/enums.generated';
 import { history } from '@/router/history';
 import {
   airExportServiceGetAirMasterWaybill,
@@ -17,6 +27,7 @@ import {
 } from '@/services/roncin/airExportService';
 import { masterDataServiceListAirlines } from '@/services/roncin/masterDataService';
 import { ensureListResponse } from '@/utils/api';
+import { formatDate, trimDecimal } from '@/utils/format';
 import {
   airBusinessTypeCode,
   requireAirMasterIdentity,
@@ -24,7 +35,6 @@ import {
 import type { TemplateProps } from '../../types';
 import { TemplateControlGroup, TemplateFieldGroup } from '../FieldGroup';
 import { SeaCollapsibleNotesField } from '../sea/SeaCollapsibleNotesField';
-import { AirWaybillFields } from './AirWaybillFields';
 
 type AirMasterFieldProps = Pick<
   TemplateProps,
@@ -45,95 +55,102 @@ export function AirMasterRouteFields({
 }) {
   const name = (key: string) => [...prefix, key];
   return (
-    <FormRow cols={4}>
+    <FormRow cols={6} style={{ rowGap: 4 }}>
       {includeIdentity && (
-        <ProFormText
-          name={name('masterNo')}
-          label="主运单号（MAWB）"
-          rules={[
-            { required: true, message: '请输入主运单号' },
-            {
-              validator: async (_, value) => {
-                const normalized = String(value || '').replace(/[\s-]/g, '');
-                if (
-                  normalized &&
-                  (!/^\d{11}$/.test(normalized) ||
-                    Number(normalized.slice(3, 10)) % 7 !==
-                      Number(normalized[10]))
-                )
-                  throw new Error(
-                    '请输入 11 位有效航空主单号（含模 7 校验位）',
-                  );
-              },
-            },
-          ]}
-          fieldProps={{ maxLength: 20 }}
-          disabled={props.readonly || Boolean(master)}
-        />
-      )}
-      <ProFormSearchableSelect
-        name={name('airlineId')}
-        label="航空公司"
-        rules={[{ required: true, message: '请选择航空公司' }]}
-        disabled={props.readonly}
-        options={
-          master?.content?.airlineId
-            ? [
-                {
-                  value: master.content.airlineId,
-                  label: master.airlineName || '',
+        <FormCell span={2}>
+          <ProFormText
+            name={name('masterNo')}
+            label="主运单号（MAWB）"
+            rules={[
+              { required: true, message: '请输入主运单号' },
+              {
+                validator: async (_, value) => {
+                  const normalized = String(value || '').replace(/[\s-]/g, '');
+                  if (
+                    normalized &&
+                    (!/^\d{11}$/.test(normalized) ||
+                      Number(normalized.slice(3, 10)) % 7 !==
+                        Number(normalized[10]))
+                  )
+                    throw new Error(
+                      '请输入 11 位有效航空主单号（含模 7 校验位）',
+                    );
                 },
-              ]
-            : undefined
-        }
-        request={async ({ keyWords }) => {
-          const response = ensureListResponse(
-            await masterDataServiceListAirlines({
-              page: 1,
-              pageSize: 50,
-              keyword: keyWords,
-              enabled: true,
-            }),
-            '航空公司加载失败',
-          );
-          return (response.data ?? []).map((item) => ({
-            value: item.id || '',
-            label: `${item.nameZh || item.nameEn || ''} (${item.iataCode || item.icaoCode || ''})`,
-          }));
-        }}
-      />
+              },
+            ]}
+            fieldProps={{ maxLength: 20 }}
+            disabled={props.readonly || Boolean(master)}
+          />
+        </FormCell>
+      )}
+      <FormCell span={2}>
+        <ProFormSearchableSelect
+          name={name('airlineId')}
+          label="航空公司"
+          rules={[{ required: true, message: '请选择航空公司' }]}
+          disabled={props.readonly}
+          options={
+            master?.content?.airlineId
+              ? [
+                  {
+                    value: master.content.airlineId,
+                    label: master.airlineName || '',
+                  },
+                ]
+              : undefined
+          }
+          request={async ({ keyWords }) => {
+            const response = ensureListResponse(
+              await masterDataServiceListAirlines({
+                page: 1,
+                pageSize: 50,
+                keyword: keyWords,
+                enabled: true,
+              }),
+              '航空公司加载失败',
+            );
+            return (response.data ?? []).map((item) => ({
+              value: item.id || '',
+              label: `${item.nameZh || item.nameEn || ''} (${item.iataCode || item.icaoCode || ''})`,
+            }));
+          }}
+        />
+      </FormCell>
+      <FormCell span={2}>
+        <ProFormText
+          name={name('flightNo')}
+          label="航班号"
+          disabled={props.readonly}
+          fieldProps={{ maxLength: 40 }}
+        />
+      </FormCell>
       {(['originAirportId', 'destinationAirportId'] as const).map(
         (key, index) => (
-          <ProFormSearchableSelect
-            key={key}
-            name={name(key)}
-            label={index === 0 ? '起运机场' : '目的机场'}
-            options={[
-              ...props.locationOptions,
-              ...(master?.content?.[key]
-                ? [
-                    {
-                      value: master.content[key] || '',
-                      label:
-                        index === 0
-                          ? master.originAirportName || ''
-                          : master.destinationAirportName || '',
-                    },
-                  ]
-                : []),
-            ]}
-            rules={[{ required: true, message: '请选择机场' }]}
-            disabled={props.readonly}
-            request={({ keyWords }) => props.searchLocations(keyWords)}
-          />
+          <FormCell key={key} span={3}>
+            <ProFormSearchableSelect
+              name={name(key)}
+              label={index === 0 ? '起运机场' : '目的机场'}
+              options={[
+                ...props.locationOptions,
+                ...(master?.content?.[key]
+                  ? [
+                      {
+                        value: master.content[key] || '',
+                        label:
+                          index === 0
+                            ? master.originAirportName || ''
+                            : master.destinationAirportName || '',
+                      },
+                    ]
+                  : []),
+              ]}
+              rules={[{ required: true, message: '请选择机场' }]}
+              disabled={props.readonly}
+              request={({ keyWords }) => props.searchLocations(keyWords)}
+            />
+          </FormCell>
         ),
       )}
-      <ProFormText
-        name={name('flightNo')}
-        label="航班号"
-        disabled={props.readonly}
-        fieldProps={{ maxLength: 40 }}
-      />
     </FormRow>
   );
 }
@@ -148,7 +165,7 @@ export function AirMasterScheduleFields({
 }) {
   const name = (key: string) => [...prefix, key];
   return (
-    <FormRow cols={4}>
+    <FormRow cols={6} style={{ rowGap: 4 }}>
       <ProFormDateTimePicker
         name={name('etd')}
         label="计划起飞"
@@ -188,7 +205,7 @@ export function AirMasterDeclarationFields({
   const name = (key: string) => [...prefix, key];
   return (
     <>
-      <FormRow cols={4}>
+      <FormRow cols={6} style={{ rowGap: 4 }}>
         <ProFormDateTimePicker
           name={name('documentCutoffAt')}
           label="截单时间"
@@ -213,7 +230,7 @@ export function AirMasterDeclarationFields({
           disabled={props.readonly}
         />
       </FormRow>
-      <FormRow cols={3}>
+      <FormRow cols={6} style={{ rowGap: 4 }}>
         <ProFormDigit
           name={name('declaredPackages')}
           label="主单申报件数"
@@ -359,34 +376,46 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
     requestedMasterId,
   ]);
   const masterEditable = !props.isDetail && mode === 'NEW';
+  const master = props.isDetail
+    ? (props.airTransportSnapshot ?? air?.master)
+    : selectedIdentity;
+  const isImport = businessType === OrderBusinessType.BUSINESS_TYPE_AI;
   return (
     <div style={{ display: 'grid', gap: 12, width: '100%' }}>
       {preselected.isError && (
         <Alert type="error" showIcon title="所选主单加载失败，请重新选择。" />
       )}
-      <TemplateFieldGroup title="主单与订舱">
+      <TemplateFieldGroup title={isImport ? '承运与主单' : '主单与订舱'}>
         <TemplateControlGroup title="航空单证模式" required>
           <Form.Item
             name="airDocumentMode"
             rules={[{ required: true, message: '请选择航空单证模式' }]}
           >
-            <Radio.Group
-              aria-label="航空单证模式"
-              disabled={props.readonly || props.isDetail}
-              options={[
-                { label: '主分单（HOUSE）', value: 'HOUSE' },
-                { label: '直单（DIRECT，无 HAWB）', value: 'DIRECT' },
-              ]}
-              onChange={() => {
-                if (mode === 'EXISTING')
-                  form.setFieldsValue({
-                    airMasterId: undefined,
-                    airMasterExpectedVersion: undefined,
-                    airMasterSelection: undefined,
-                    airMaster: undefined,
-                  });
-              }}
-            />
+            {props.isDetail ? (
+              <Tag color="blue">
+                {documentMode === 'DIRECT' || air?.documentMode === 'DIRECT'
+                  ? '直单（DIRECT，无 HAWB）'
+                  : '主分单（HOUSE）'}
+              </Tag>
+            ) : (
+              <Radio.Group
+                aria-label="航空单证模式"
+                disabled={props.readonly || props.isDetail}
+                options={[
+                  { label: '主分单（HOUSE）', value: 'HOUSE' },
+                  { label: '直单（DIRECT，无 HAWB）', value: 'DIRECT' },
+                ]}
+                onChange={() => {
+                  if (mode === 'EXISTING')
+                    form.setFieldsValue({
+                      airMasterId: undefined,
+                      airMasterExpectedVersion: undefined,
+                      airMasterSelection: undefined,
+                      airMaster: undefined,
+                    });
+                }}
+              />
+            )}
           </Form.Item>
         </TemplateControlGroup>
         <Form.Item name="airMaster" hidden>
@@ -545,32 +574,22 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
               )}
           </>
         )}
-        {props.isDetail && (
-          <Alert
-            type="info"
-            showIcon
-            title={`共享主单 ${air?.master?.content?.masterNo || '-'}`}
-            description={
-              <Space wrap>
-                <Typography.Text>
-                  {air?.master?.airlineName} · {air?.master?.originAirportName}{' '}
-                  → {air?.master?.destinationAirportName} ·{' '}
-                  {air?.master?.memberCount || 0} 票
-                </Typography.Text>
-                <a
-                  onClick={() =>
-                    history.push(
-                      `/orders/${props.orderKind}/masters/${air?.master?.id}`,
-                    )
-                  }
-                >
-                  查看主单与成员
-                </a>
-              </Space>
-            }
-          />
+        {props.isDetail && master?.id && (
+          <Space wrap>
+            <Typography.Text>
+              共享主单 {master.content?.masterNo || '-'}
+            </Typography.Text>
+            <Button
+              type="link"
+              onClick={() =>
+                history.push(`/orders/${props.orderKind}/masters/${master.id}`)
+              }
+            >
+              查看主单与成员
+            </Button>
+          </Space>
         )}
-        <FormRow cols={4}>
+        <FormRow cols={6} style={{ rowGap: 4 }}>
           <ProFormText
             name="bookingNo"
             label="订舱号"
@@ -601,13 +620,15 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
             placeholder="请输入主单备注"
             disabled={props.readonly}
           />
-          <TemplateFieldGroup title="主运单正文">
-            <AirWaybillFields
-              prefix={['airMaster', 'waybillContent']}
-              disabled={props.readonly}
-            />
-          </TemplateFieldGroup>
         </>
+      )}
+      {!masterEditable && master && (
+        <TemplateFieldGroup
+          title="共同航线与班期"
+          extra={props.airTransportMaintenance}
+        >
+          <AirMasterTransportSummary master={master} />
+        </TemplateFieldGroup>
       )}
       <SeaCollapsibleNotesField
         name="operationNotes"
@@ -692,4 +713,84 @@ function AirMasterCandidateHint({
       }
     />
   ) : null;
+}
+
+/** 展示权威主单资料，不注册可随本票整单保存的副本字段。 */
+export function AirMasterTransportSummary({
+  master,
+}: {
+  master: API.AirMasterWaybill;
+}) {
+  const content = master.content;
+  return (
+    <Descriptions
+      size="small"
+      layout="vertical"
+      column={{ xs: 1, md: 3, xl: 6 }}
+      items={[
+        {
+          key: 'masterNo',
+          label: '主运单号（MAWB）',
+          children: content?.masterNo || '-',
+        },
+        {
+          key: 'airline',
+          label: '航空公司',
+          children: master.airlineName || '-',
+        },
+        { key: 'flight', label: '航班号', children: content?.flightNo || '-' },
+        {
+          key: 'origin',
+          label: '起运机场',
+          children: master.originAirportName || '-',
+        },
+        {
+          key: 'destination',
+          label: '目的机场',
+          children: master.destinationAirportName || '-',
+        },
+        {
+          key: 'status',
+          label: '主单单证状态',
+          children:
+            content?.status === 'RELEASED'
+              ? '已签发'
+              : content?.status === 'CONFIRMED'
+                ? '已确认'
+                : content?.status === 'DRAFT'
+                  ? '资料待完善'
+                  : '-',
+        },
+        ...(
+          [
+            ['etd', '计划起飞'],
+            ['eta', '计划到达'],
+            ['actualDepartureAt', '实际起飞'],
+            ['actualArrivalAt', '实际到达'],
+            ['documentCutoffAt', '截单时间'],
+            ['customsCutoffAt', '报关截止'],
+          ] as const
+        ).map(([key, label]) => ({
+          key,
+          label,
+          children: formatDate(content?.[key], 'minute'),
+        })),
+        {
+          key: 'packages',
+          label: '主单申报件数',
+          children: trimDecimal(content?.declaredPackages),
+        },
+        {
+          key: 'gross',
+          label: '主单申报毛重（KG）',
+          children: trimDecimal(content?.declaredGrossWeightKg),
+        },
+        {
+          key: 'volume',
+          label: '主单申报体积（m³）',
+          children: trimDecimal(content?.declaredVolumeCbm),
+        },
+      ]}
+    />
+  );
 }

@@ -18248,6 +18248,11 @@ components:
                     type: string
                 active:
                     type: boolean
+                weightSummaries:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/order.v1.AirOrderWeightSummary'
+                    description: 本票各货量来源的当前确认摘要，不包含主单确认；未确认的来源不返回。
         order.v1.AirOrderInput:
             type: object
             properties:
@@ -18264,6 +18269,17 @@ components:
                 changeReason:
                     type: string
                 expectedLinkVersion:
+                    type: string
+        order.v1.AirOrderWeightSummary:
+            type: object
+            properties:
+                source:
+                    type: string
+                confirmedWeightKg:
+                    type: string
+                confirmationStale:
+                    type: boolean
+                confirmedAt:
                     type: string
         order.v1.AirOtherCharge:
             type: object

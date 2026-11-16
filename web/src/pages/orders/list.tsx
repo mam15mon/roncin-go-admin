@@ -11,12 +11,14 @@ import type {
   OrderListAcceptedSnapshot,
   OrderListItem,
 } from '@/components/ui/order-list-template/types';
+import { TradeDirection } from '@/enums.generated';
 import { FeeReviewSummary } from '@/features/orders/fee-review';
 import { history } from '@/router/history';
 import { downloadCsv, serializeCsv } from '@/utils/csv';
 import AbnormalCasePanel, {
   type AbnormalCasePanelRef,
 } from './abnormal-case-panel';
+import { AIR_VISIBLE_CARGO_COLUMNS, airListColumns } from './air-list-columns';
 import AttachmentDrawer, {
   type AttachmentDrawerRef,
 } from './components/drawers/AttachmentDrawer';
@@ -229,14 +231,42 @@ export default function OrderListPage() {
         }}
         actionRef={actionRef}
         title={definition.title}
-        showBillRelations={definition.transportMode === 'sea'}
-        subTitle={`统一维护${definition.title}全流程状态、主分单据、箱量配载、费用核算与业务履约轨迹`}
+        showBillRelations
+        subTitle={
+          definition.transportMode === 'air'
+            ? '集中核对主分运单、航班机场、货量与本票确认计费重'
+            : `统一维护${definition.title}全流程状态、主分单据、箱量配载、费用核算与业务履约轨迹`
+        }
         columnSettingsKey={`orders:${definition.kind}`}
         extraColumns={
-          definition.transportMode === 'sea' ? seaExportListColumns : []
+          definition.transportMode === 'sea'
+            ? seaExportListColumns
+            : airListColumns
         }
         defaultHiddenColumnKeys={
-          definition.transportMode === 'sea' ? SEA_EXPORT_HIDDEN_COLUMNS : []
+          definition.transportMode === 'sea'
+            ? definition.tradeDirection ===
+              TradeDirection.TRADE_DIRECTION_IMPORT
+              ? SEA_EXPORT_HIDDEN_COLUMNS.filter((key) => key !== 'eta').concat(
+                  'etd',
+                )
+              : SEA_EXPORT_HIDDEN_COLUMNS
+            : [
+                definition.tradeDirection ===
+                TradeDirection.TRADE_DIRECTION_IMPORT
+                  ? 'etd'
+                  : 'eta',
+                'airMasterStatus',
+                'airHouseStatus',
+              ]
+        }
+        defaultVisibleColumnKeys={
+          definition.transportMode === 'air' ? AIR_VISIBLE_CARGO_COLUMNS : []
+        }
+        progressColumnTitle={
+          definition.tradeDirection === TradeDirection.TRADE_DIRECTION_IMPORT
+            ? '进口服务进度'
+            : '操作进度'
         }
         trailingColumns={reviewColumns}
         options={{

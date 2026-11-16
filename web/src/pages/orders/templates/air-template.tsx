@@ -3,21 +3,16 @@ import {
   ProFormDatePicker,
   ProFormDigit,
   ProFormText,
-  ProFormTextArea,
 } from '@ant-design/pro-components';
-import { Alert, Form } from 'antd';
-import {
-  FormRow,
-  PackageCountInput,
-  ProFormSearchableSelect,
-} from '@/components/ui';
+import { Form } from 'antd';
+import { FormCell, FormRow, PackageCountInput } from '@/components/ui';
+import { OrderBusinessType } from '@/enums.generated';
 import {
   AirBusinessFields,
   AirCargoCommercialFields,
 } from './components/air/AirCommercialFields';
+import { AirDocumentSection } from './components/air/AirDocumentSection';
 import { AirMasterTransportSection } from './components/air/AirMasterFields';
-import { AirWaybillFields } from './components/air/AirWaybillFields';
-import { TemplateFieldGroup } from './components/FieldGroup';
 import {
   SeaCustomerField,
   SeaDangerousGoodsFields,
@@ -27,10 +22,8 @@ import { buildSeaPersonnelSection } from './components/sea/SeaPersonnelSection';
 import type { TemplateProps, TemplateSection } from './types';
 
 /**
- * 五卡片信息架构与海运出口对齐：业务与客户 / 订舱与运输 / 本票货物 /
- * 分单信息 / 内部人员；新建与详情共用同一分节组合，`isDetail` 只影响
- * 字段能力（编号时间仅新建可改、主单资料详情只读展示摘要、已签发分单
- * 修改原因仅详情展示）。
+ * 海空订单统一五卡与六列紧凑栅格；航空重量、运输维护及单证动作由
+ * 详情扩展贡献到对应业务区域，新建与详情保持同一字段归属。
  */
 export function getAirTemplateSections(
   props: TemplateProps,
@@ -41,16 +34,22 @@ export function getAirTemplateSections(
       title: '业务与客户',
       content: (
         <>
-          <FormRow cols={4}>
+          <FormRow cols={6} style={{ rowGap: 4 }}>
+            <FormCell span={2}>
+              <SeaCustomerField
+                searchCustomers={props.searchCustomers}
+                readonly={props.readonly}
+                setCustomerCode={props.setCustomerCode}
+                personnelOptions={props.personnelOptions}
+              />
+            </FormCell>
+            <ProFormText name="customerCode" label="委托单位代码" disabled />
             <ProFormText
               name="orderNo"
               label="订单编号"
               disabled
               placeholder="保存后自动生成"
             />
-            {!props.isDetail && (
-              <ProFormDatePicker name="orderDate" label="订单编号时间" />
-            )}
             <SeaOrderReferenceField
               name="customerReferenceNo"
               isDetail={props.isDetail}
@@ -59,15 +58,9 @@ export function getAirTemplateSections(
               name="internalReferenceNo"
               isDetail={props.isDetail}
             />
-          </FormRow>
-          <FormRow cols={2}>
-            <SeaCustomerField
-              searchCustomers={props.searchCustomers}
-              readonly={props.readonly}
-              setCustomerCode={props.setCustomerCode}
-              personnelOptions={props.personnelOptions}
-            />
-            <ProFormText name="customerCode" label="委托单位代码" disabled />
+            {!props.isDetail && (
+              <ProFormDatePicker name="orderDate" label="订单编号时间" />
+            )}
           </FormRow>
           <AirBusinessFields props={props} />
         </>
@@ -75,12 +68,15 @@ export function getAirTemplateSections(
     },
     {
       key: 'bookingTransport',
-      title: '订舱与运输',
+      title:
+        props.businessType === OrderBusinessType.BUSINESS_TYPE_AI
+          ? '承运与运输'
+          : '订舱与运输',
       content: <AirMasterTransportSection props={props} />,
     },
     {
       key: 'cargoCommercial',
-      title: '本票货物',
+      title: '货物与商业',
       content: (
         <>
           <ProFormCheckbox.Group
@@ -93,101 +89,45 @@ export function getAirTemplateSections(
             disabled={props.readonly}
             showPackingGroup
           />
-          <AirCargoCommercialFields props={props} />
-          <FormRow cols={3}>
-            <Form.Item label="本票件数">
-              <PackageCountInput
-                countName="totalPackages"
-                unitName="totalPackageUnit"
+          <FormRow cols={6} style={{ rowGap: 4 }}>
+            <FormCell span={2}>
+              <Form.Item label="委托件数">
+                <PackageCountInput
+                  countName="totalPackages"
+                  unitName="totalPackageUnit"
+                  disabled={props.readonly}
+                />
+              </Form.Item>
+            </FormCell>
+            <FormCell span={2}>
+              <ProFormDigit
+                name="totalGrossWeightKg"
+                label="委托毛重（KG）"
+                min={0}
                 disabled={props.readonly}
+                fieldProps={{ precision: 3 }}
               />
-            </Form.Item>
-            <ProFormDigit
-              name="totalGrossWeightKg"
-              label="本票毛重（KG）"
-              min={0}
-              disabled={props.readonly}
-              fieldProps={{ precision: 3 }}
-            />
-            <ProFormDigit
-              name="totalVolumeCbm"
-              label="本票体积（m³）"
-              min={0}
-              disabled={props.readonly}
-              fieldProps={{ precision: 3 }}
-            />
+            </FormCell>
+            <FormCell span={2}>
+              <ProFormDigit
+                name="totalVolumeCbm"
+                label="委托体积（m³）"
+                min={0}
+                disabled={props.readonly}
+                fieldProps={{ precision: 3 }}
+              />
+            </FormCell>
           </FormRow>
+          {props.airCargoWorkspace}
+          <AirCargoCommercialFields props={props} />
         </>
       ),
     },
     {
       key: 'airDocuments',
-      title: '分单信息',
-      content: <AirHouseDocumentFields props={props} />,
+      title: '单证信息',
+      content: <AirDocumentSection props={props} />,
     },
     buildSeaPersonnelSection(props),
   ];
-}
-
-/** 分单信息卡：本票分运单号 / 状态 / 单证资料，详情已签发时展示修改原因。 */
-function AirHouseDocumentFields({ props }: { props: TemplateProps }) {
-  const form = Form.useFormInstance();
-  const documentMode = Form.useWatch('airDocumentMode', {
-    form,
-    preserve: true,
-  });
-  const air = Form.useWatch('airExport', { form, preserve: true }) as
-    | API.AirOrderInfo
-    | undefined;
-  if (documentMode === 'DIRECT' || air?.documentMode === 'DIRECT')
-    return (
-      <Alert
-        type="info"
-        showIcon
-        title="直单：本票使用主运单，无 HAWB"
-        description="主运单正文在主单工作台维护。直单同一主单只能有一张当前操作票；保存后不能在普通编辑中切换单证模式。"
-      />
-    );
-  return (
-    <>
-      <FormRow cols={4}>
-        <ProFormText
-          name="airHouseNo"
-          label="本票分运单号（HAWB）"
-          rules={[
-            { required: true, whitespace: true, message: '请输入本票分运单号' },
-          ]}
-          disabled={props.readonly || props.isDetail}
-          fieldProps={{ maxLength: 64 }}
-          tooltip="同一主单内不允许重号，不同主单可重复；号码会统一大写。"
-        />
-        <ProFormSearchableSelect
-          name="airHouseStatus"
-          label="本票分单状态"
-          initialValue={props.isDetail ? undefined : 'DRAFT'}
-          options={[
-            { label: '资料待完善', value: 'DRAFT' },
-            { label: '已确认', value: 'CONFIRMED' },
-            { label: '已签发', value: 'RELEASED' },
-          ]}
-          disabled={props.readonly}
-        />
-      </FormRow>
-      <TemplateFieldGroup title="本票单证资料">
-        <AirWaybillFields
-          prefix={['airHouseContent']}
-          disabled={props.readonly}
-        />
-      </TemplateFieldGroup>
-      {props.isDetail && air?.house?.status === 'RELEASED' && (
-        <ProFormTextArea
-          name="airHouseChangeReason"
-          label="已签发分单修改原因"
-          tooltip="修改已签发分单内容或状态时必填；仅保存本票客户、货量等字段时可空。分单号保存后不在普通编辑中修改。"
-          fieldProps={{ maxLength: 500 }}
-          disabled={props.readonly}
-        />
-      )}
-    </>
-  );
 }

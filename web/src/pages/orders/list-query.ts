@@ -1,5 +1,8 @@
 import type { OrderListFilterParams, OrderListItem } from '@/components/ui';
-import { getOrderFlowStatusText } from '@/constants/statusMeta';
+import {
+  airWaybillStatusMeta,
+  getOrderFlowStatusText,
+} from '@/constants/statusMeta';
 import {
   OrderClosureStatus,
   OrderNumberFilterType,
@@ -173,20 +176,31 @@ export async function mapOrderListItems(
             ? 'DIRECT'
             : undefined,
       billRelation:
-        definition.transportMode === 'sea'
+        definition.transportMode === 'air'
           ? {
               kind:
-                order.seaDocumentSummary?.documentStructure ===
-                SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
+                order.airExport?.documentMode === 'HOUSE'
                   ? 'house'
-                  : order.seaDocumentSummary?.documentStructure ===
-                      SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT
+                  : order.airExport?.documentMode === 'DIRECT'
                     ? 'direct'
                     : 'unknown',
-              houseNo: order.seaDocumentSummary?.houseNo,
-              memberCount: order.seaMasterBill?.memberCount ?? 0,
+              houseNo: order.airExport?.house?.houseNo,
+              memberCount: order.airExport?.master?.memberCount ?? 0,
             }
-          : undefined,
+          : definition.transportMode === 'sea'
+            ? {
+                kind:
+                  order.seaDocumentSummary?.documentStructure ===
+                  SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE
+                    ? 'house'
+                    : order.seaDocumentSummary?.documentStructure ===
+                        SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT
+                      ? 'direct'
+                      : 'unknown',
+                houseNo: order.seaDocumentSummary?.houseNo,
+                memberCount: order.seaMasterBill?.memberCount ?? 0,
+              }
+            : undefined,
       bookingAgentName: order.bookingAgentName,
       shippingLineName:
         order.airExport?.master?.airlineName || order.shippingLineName,
@@ -230,6 +244,30 @@ export async function mapOrderListItems(
       packageUnit: order.totalPackageUnit,
       grossWeightKg: order.totalGrossWeightKg,
       volumeCbm: order.totalVolumeCbm,
+      airWeightSummaries:
+        definition.transportMode === 'air'
+          ? (order.airExport?.weightSummaries ?? []).map((summary) => {
+              if (
+                (summary.source !== 'PLANNED' && summary.source !== 'ACTUAL') ||
+                !summary.confirmedWeightKg ||
+                !/^(0|[1-9]\d*)(\.\d+)?$/.test(summary.confirmedWeightKg)
+              )
+                throw new Error('订单计费重量摘要不完整，请重新刷新。');
+              return {
+                source: summary.source,
+                confirmedWeightKg: summary.confirmedWeightKg,
+                confirmationStale: summary.confirmationStale ?? false,
+                confirmedAt: summary.confirmedAt,
+              };
+            })
+          : undefined,
+      airMasterStatus:
+        airWaybillStatusMeta[order.airExport?.master?.content?.status ?? '']
+          ?.text,
+      airHouseStatus:
+        order.airExport?.documentMode === 'DIRECT'
+          ? '直单 · 无分单'
+          : airWaybillStatusMeta[order.airExport?.house?.status ?? '']?.text,
       paymentTerm: paymentTermOptions.find((o) => o.value === order.paymentTerm)
         ?.label,
       tradeTerm: tradeTermOptions.find((o) => o.value === order.tradeTerm)

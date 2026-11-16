@@ -178,4 +178,33 @@ describe('订单详情页头操作层级', () => {
     fireEvent.click(item);
     expect(open).toHaveBeenCalledOnce();
   });
+
+  it('单证制作直接展示在页头，锁定时仍能进入只读制作页且不混入更多菜单', () => {
+    const openMaster = vi.fn();
+    const openHouse = vi.fn();
+    renderHeader(false, {
+      documentMenuItems: [
+        { key: 'mawb', label: 'MAWB 制作归档', onClick: openMaster },
+        { key: 'hawb', label: 'HAWB 制作', onClick: openHouse },
+      ],
+    });
+    const button = screen.getByRole('button', { name: /单证制作/ });
+    expect(button).toBeEnabled();
+    fireEvent.click(button);
+    fireEvent.click(screen.getByRole('menuitem', { name: 'MAWB 制作归档' }));
+    expect(openMaster).toHaveBeenCalledOnce();
+    expect(openHouse).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: /更多操作/ }));
+    const moreMenu = screen
+      .getByRole('menuitem', { name: /撤销审核记录/ })
+      .closest('[role="menu"]') as HTMLElement;
+    expect(
+      within(moreMenu).queryByRole('menuitem', { name: 'HAWB 制作' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('未贡献有权限的单证目标时不展示空的单证制作菜单', () => {
+    renderHeader(false, { documentMenuItems: [] });
+    expect(screen.queryByRole('button', { name: /单证制作/ })).toBeNull();
+  });
 });

@@ -1419,15 +1419,17 @@ func (x *AirOrderInput) GetExpectedLinkVersion() uint64 {
 }
 
 type AirOrderInfo struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Master        *AirMasterWaybill      `protobuf:"bytes,1,opt,name=master,proto3" json:"master,omitempty"`
-	DocumentMode  string                 `protobuf:"bytes,10,opt,name=document_mode,json=documentMode,proto3" json:"document_mode,omitempty"`
-	House         *AirHouseWaybill       `protobuf:"bytes,11,opt,name=house,proto3" json:"house,omitempty"`
-	LinkId        string                 `protobuf:"bytes,5,opt,name=link_id,json=linkId,proto3" json:"link_id,omitempty"`
-	LinkVersion   uint64                 `protobuf:"varint,6,opt,name=link_version,json=linkVersion,proto3" json:"link_version,omitempty"`
-	Active        bool                   `protobuf:"varint,9,opt,name=active,proto3" json:"active,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	Master       *AirMasterWaybill      `protobuf:"bytes,1,opt,name=master,proto3" json:"master,omitempty"`
+	DocumentMode string                 `protobuf:"bytes,10,opt,name=document_mode,json=documentMode,proto3" json:"document_mode,omitempty"`
+	House        *AirHouseWaybill       `protobuf:"bytes,11,opt,name=house,proto3" json:"house,omitempty"`
+	LinkId       string                 `protobuf:"bytes,5,opt,name=link_id,json=linkId,proto3" json:"link_id,omitempty"`
+	LinkVersion  uint64                 `protobuf:"varint,6,opt,name=link_version,json=linkVersion,proto3" json:"link_version,omitempty"`
+	Active       bool                   `protobuf:"varint,9,opt,name=active,proto3" json:"active,omitempty"`
+	// 本票各货量来源的当前确认摘要，不包含主单确认；未确认的来源不返回。
+	WeightSummaries []*AirOrderWeightSummary `protobuf:"bytes,12,rep,name=weight_summaries,json=weightSummaries,proto3" json:"weight_summaries,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *AirOrderInfo) Reset() {
@@ -1502,6 +1504,81 @@ func (x *AirOrderInfo) GetActive() bool {
 	return false
 }
 
+func (x *AirOrderInfo) GetWeightSummaries() []*AirOrderWeightSummary {
+	if x != nil {
+		return x.WeightSummaries
+	}
+	return nil
+}
+
+type AirOrderWeightSummary struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Source            string                 `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`
+	ConfirmedWeightKg string                 `protobuf:"bytes,2,opt,name=confirmed_weight_kg,json=confirmedWeightKg,proto3" json:"confirmed_weight_kg,omitempty"`
+	ConfirmationStale bool                   `protobuf:"varint,3,opt,name=confirmation_stale,json=confirmationStale,proto3" json:"confirmation_stale,omitempty"`
+	ConfirmedAt       string                 `protobuf:"bytes,4,opt,name=confirmed_at,json=confirmedAt,proto3" json:"confirmed_at,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *AirOrderWeightSummary) Reset() {
+	*x = AirOrderWeightSummary{}
+	mi := &file_order_v1_air_export_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AirOrderWeightSummary) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AirOrderWeightSummary) ProtoMessage() {}
+
+func (x *AirOrderWeightSummary) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_air_export_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AirOrderWeightSummary.ProtoReflect.Descriptor instead.
+func (*AirOrderWeightSummary) Descriptor() ([]byte, []int) {
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *AirOrderWeightSummary) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *AirOrderWeightSummary) GetConfirmedWeightKg() string {
+	if x != nil {
+		return x.ConfirmedWeightKg
+	}
+	return ""
+}
+
+func (x *AirOrderWeightSummary) GetConfirmationStale() bool {
+	if x != nil {
+		return x.ConfirmationStale
+	}
+	return false
+}
+
+func (x *AirOrderWeightSummary) GetConfirmedAt() string {
+	if x != nil {
+		return x.ConfirmedAt
+	}
+	return ""
+}
+
 type AirMasterMember struct {
 	state                       protoimpl.MessageState `protogen:"open.v1"`
 	OrderId                     string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
@@ -1526,7 +1603,7 @@ type AirMasterMember struct {
 
 func (x *AirMasterMember) Reset() {
 	*x = AirMasterMember{}
-	mi := &file_order_v1_air_export_proto_msgTypes[11]
+	mi := &file_order_v1_air_export_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1538,7 +1615,7 @@ func (x *AirMasterMember) String() string {
 func (*AirMasterMember) ProtoMessage() {}
 
 func (x *AirMasterMember) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[11]
+	mi := &file_order_v1_air_export_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1551,7 +1628,7 @@ func (x *AirMasterMember) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AirMasterMember.ProtoReflect.Descriptor instead.
 func (*AirMasterMember) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{11}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *AirMasterMember) GetOrderId() string {
@@ -1676,7 +1753,7 @@ type AirPackageTotal struct {
 
 func (x *AirPackageTotal) Reset() {
 	*x = AirPackageTotal{}
-	mi := &file_order_v1_air_export_proto_msgTypes[12]
+	mi := &file_order_v1_air_export_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1688,7 +1765,7 @@ func (x *AirPackageTotal) String() string {
 func (*AirPackageTotal) ProtoMessage() {}
 
 func (x *AirPackageTotal) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[12]
+	mi := &file_order_v1_air_export_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1701,7 +1778,7 @@ func (x *AirPackageTotal) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AirPackageTotal.ProtoReflect.Descriptor instead.
 func (*AirPackageTotal) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{12}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *AirPackageTotal) GetUnit() string {
@@ -1731,7 +1808,7 @@ type AirMasterTotals struct {
 
 func (x *AirMasterTotals) Reset() {
 	*x = AirMasterTotals{}
-	mi := &file_order_v1_air_export_proto_msgTypes[13]
+	mi := &file_order_v1_air_export_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1743,7 +1820,7 @@ func (x *AirMasterTotals) String() string {
 func (*AirMasterTotals) ProtoMessage() {}
 
 func (x *AirMasterTotals) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[13]
+	mi := &file_order_v1_air_export_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1756,7 +1833,7 @@ func (x *AirMasterTotals) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AirMasterTotals.ProtoReflect.Descriptor instead.
 func (*AirMasterTotals) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{13}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *AirMasterTotals) GetPackagesByUnit() []*AirPackageTotal {
@@ -1810,7 +1887,7 @@ type AirMasterHistory struct {
 
 func (x *AirMasterHistory) Reset() {
 	*x = AirMasterHistory{}
-	mi := &file_order_v1_air_export_proto_msgTypes[14]
+	mi := &file_order_v1_air_export_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1822,7 +1899,7 @@ func (x *AirMasterHistory) String() string {
 func (*AirMasterHistory) ProtoMessage() {}
 
 func (x *AirMasterHistory) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[14]
+	mi := &file_order_v1_air_export_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1835,7 +1912,7 @@ func (x *AirMasterHistory) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AirMasterHistory.ProtoReflect.Descriptor instead.
 func (*AirMasterHistory) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{14}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *AirMasterHistory) GetContentHash() string {
@@ -1906,7 +1983,7 @@ type ListAirMasterWaybillsRequest struct {
 
 func (x *ListAirMasterWaybillsRequest) Reset() {
 	*x = ListAirMasterWaybillsRequest{}
-	mi := &file_order_v1_air_export_proto_msgTypes[15]
+	mi := &file_order_v1_air_export_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1918,7 +1995,7 @@ func (x *ListAirMasterWaybillsRequest) String() string {
 func (*ListAirMasterWaybillsRequest) ProtoMessage() {}
 
 func (x *ListAirMasterWaybillsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[15]
+	mi := &file_order_v1_air_export_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1931,7 +2008,7 @@ func (x *ListAirMasterWaybillsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAirMasterWaybillsRequest.ProtoReflect.Descriptor instead.
 func (*ListAirMasterWaybillsRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{15}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ListAirMasterWaybillsRequest) GetBusinessType() string {
@@ -1975,7 +2052,7 @@ type ListAirMasterWaybillsResponse struct {
 
 func (x *ListAirMasterWaybillsResponse) Reset() {
 	*x = ListAirMasterWaybillsResponse{}
-	mi := &file_order_v1_air_export_proto_msgTypes[16]
+	mi := &file_order_v1_air_export_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1987,7 +2064,7 @@ func (x *ListAirMasterWaybillsResponse) String() string {
 func (*ListAirMasterWaybillsResponse) ProtoMessage() {}
 
 func (x *ListAirMasterWaybillsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[16]
+	mi := &file_order_v1_air_export_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2000,7 +2077,7 @@ func (x *ListAirMasterWaybillsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAirMasterWaybillsResponse.ProtoReflect.Descriptor instead.
 func (*ListAirMasterWaybillsResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{16}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ListAirMasterWaybillsResponse) GetSuccess() bool {
@@ -2049,7 +2126,7 @@ type GetAirMasterWaybillRequest struct {
 
 func (x *GetAirMasterWaybillRequest) Reset() {
 	*x = GetAirMasterWaybillRequest{}
-	mi := &file_order_v1_air_export_proto_msgTypes[17]
+	mi := &file_order_v1_air_export_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2061,7 +2138,7 @@ func (x *GetAirMasterWaybillRequest) String() string {
 func (*GetAirMasterWaybillRequest) ProtoMessage() {}
 
 func (x *GetAirMasterWaybillRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[17]
+	mi := &file_order_v1_air_export_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2074,7 +2151,7 @@ func (x *GetAirMasterWaybillRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAirMasterWaybillRequest.ProtoReflect.Descriptor instead.
 func (*GetAirMasterWaybillRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{17}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *GetAirMasterWaybillRequest) GetId() string {
@@ -2116,7 +2193,7 @@ type GetAirMasterWaybillResponse struct {
 
 func (x *GetAirMasterWaybillResponse) Reset() {
 	*x = GetAirMasterWaybillResponse{}
-	mi := &file_order_v1_air_export_proto_msgTypes[18]
+	mi := &file_order_v1_air_export_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2128,7 +2205,7 @@ func (x *GetAirMasterWaybillResponse) String() string {
 func (*GetAirMasterWaybillResponse) ProtoMessage() {}
 
 func (x *GetAirMasterWaybillResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[18]
+	mi := &file_order_v1_air_export_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2141,7 +2218,7 @@ func (x *GetAirMasterWaybillResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAirMasterWaybillResponse.ProtoReflect.Descriptor instead.
 func (*GetAirMasterWaybillResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{18}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *GetAirMasterWaybillResponse) GetSuccess() bool {
@@ -2225,7 +2302,7 @@ type PreviewAirMasterWaybillUpdateRequest struct {
 
 func (x *PreviewAirMasterWaybillUpdateRequest) Reset() {
 	*x = PreviewAirMasterWaybillUpdateRequest{}
-	mi := &file_order_v1_air_export_proto_msgTypes[19]
+	mi := &file_order_v1_air_export_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2237,7 +2314,7 @@ func (x *PreviewAirMasterWaybillUpdateRequest) String() string {
 func (*PreviewAirMasterWaybillUpdateRequest) ProtoMessage() {}
 
 func (x *PreviewAirMasterWaybillUpdateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[19]
+	mi := &file_order_v1_air_export_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2250,7 +2327,7 @@ func (x *PreviewAirMasterWaybillUpdateRequest) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use PreviewAirMasterWaybillUpdateRequest.ProtoReflect.Descriptor instead.
 func (*PreviewAirMasterWaybillUpdateRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{19}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *PreviewAirMasterWaybillUpdateRequest) GetId() string {
@@ -2289,7 +2366,7 @@ type PreviewAirMasterWaybillUpdateResponse struct {
 
 func (x *PreviewAirMasterWaybillUpdateResponse) Reset() {
 	*x = PreviewAirMasterWaybillUpdateResponse{}
-	mi := &file_order_v1_air_export_proto_msgTypes[20]
+	mi := &file_order_v1_air_export_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2301,7 +2378,7 @@ func (x *PreviewAirMasterWaybillUpdateResponse) String() string {
 func (*PreviewAirMasterWaybillUpdateResponse) ProtoMessage() {}
 
 func (x *PreviewAirMasterWaybillUpdateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[20]
+	mi := &file_order_v1_air_export_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2314,7 +2391,7 @@ func (x *PreviewAirMasterWaybillUpdateResponse) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use PreviewAirMasterWaybillUpdateResponse.ProtoReflect.Descriptor instead.
 func (*PreviewAirMasterWaybillUpdateResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{20}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *PreviewAirMasterWaybillUpdateResponse) GetSuccess() bool {
@@ -2379,7 +2456,7 @@ type UpdateAirMasterWaybillRequest struct {
 
 func (x *UpdateAirMasterWaybillRequest) Reset() {
 	*x = UpdateAirMasterWaybillRequest{}
-	mi := &file_order_v1_air_export_proto_msgTypes[21]
+	mi := &file_order_v1_air_export_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2391,7 +2468,7 @@ func (x *UpdateAirMasterWaybillRequest) String() string {
 func (*UpdateAirMasterWaybillRequest) ProtoMessage() {}
 
 func (x *UpdateAirMasterWaybillRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[21]
+	mi := &file_order_v1_air_export_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2404,7 +2481,7 @@ func (x *UpdateAirMasterWaybillRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateAirMasterWaybillRequest.ProtoReflect.Descriptor instead.
 func (*UpdateAirMasterWaybillRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{21}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *UpdateAirMasterWaybillRequest) GetId() string {
@@ -2456,7 +2533,7 @@ type LinkAirMasterWaybillRequest struct {
 
 func (x *LinkAirMasterWaybillRequest) Reset() {
 	*x = LinkAirMasterWaybillRequest{}
-	mi := &file_order_v1_air_export_proto_msgTypes[22]
+	mi := &file_order_v1_air_export_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2468,7 +2545,7 @@ func (x *LinkAirMasterWaybillRequest) String() string {
 func (*LinkAirMasterWaybillRequest) ProtoMessage() {}
 
 func (x *LinkAirMasterWaybillRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[22]
+	mi := &file_order_v1_air_export_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2481,7 +2558,7 @@ func (x *LinkAirMasterWaybillRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LinkAirMasterWaybillRequest.ProtoReflect.Descriptor instead.
 func (*LinkAirMasterWaybillRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{22}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *LinkAirMasterWaybillRequest) GetId() string {
@@ -2538,7 +2615,7 @@ type ListAirLinkCandidatesRequest struct {
 
 func (x *ListAirLinkCandidatesRequest) Reset() {
 	*x = ListAirLinkCandidatesRequest{}
-	mi := &file_order_v1_air_export_proto_msgTypes[23]
+	mi := &file_order_v1_air_export_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2550,7 +2627,7 @@ func (x *ListAirLinkCandidatesRequest) String() string {
 func (*ListAirLinkCandidatesRequest) ProtoMessage() {}
 
 func (x *ListAirLinkCandidatesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[23]
+	mi := &file_order_v1_air_export_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2563,7 +2640,7 @@ func (x *ListAirLinkCandidatesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAirLinkCandidatesRequest.ProtoReflect.Descriptor instead.
 func (*ListAirLinkCandidatesRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{23}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ListAirLinkCandidatesRequest) GetId() string {
@@ -2607,7 +2684,7 @@ type ListAirLinkCandidatesResponse struct {
 
 func (x *ListAirLinkCandidatesResponse) Reset() {
 	*x = ListAirLinkCandidatesResponse{}
-	mi := &file_order_v1_air_export_proto_msgTypes[24]
+	mi := &file_order_v1_air_export_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2619,7 +2696,7 @@ func (x *ListAirLinkCandidatesResponse) String() string {
 func (*ListAirLinkCandidatesResponse) ProtoMessage() {}
 
 func (x *ListAirLinkCandidatesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[24]
+	mi := &file_order_v1_air_export_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2632,7 +2709,7 @@ func (x *ListAirLinkCandidatesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAirLinkCandidatesResponse.ProtoReflect.Descriptor instead.
 func (*ListAirLinkCandidatesResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{24}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *ListAirLinkCandidatesResponse) GetSuccess() bool {
@@ -2687,7 +2764,7 @@ type AirHouseWaybillVersion struct {
 
 func (x *AirHouseWaybillVersion) Reset() {
 	*x = AirHouseWaybillVersion{}
-	mi := &file_order_v1_air_export_proto_msgTypes[25]
+	mi := &file_order_v1_air_export_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2699,7 +2776,7 @@ func (x *AirHouseWaybillVersion) String() string {
 func (*AirHouseWaybillVersion) ProtoMessage() {}
 
 func (x *AirHouseWaybillVersion) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[25]
+	mi := &file_order_v1_air_export_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2712,7 +2789,7 @@ func (x *AirHouseWaybillVersion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AirHouseWaybillVersion.ProtoReflect.Descriptor instead.
 func (*AirHouseWaybillVersion) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{25}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *AirHouseWaybillVersion) GetId() string {
@@ -2789,7 +2866,7 @@ type ListAirHouseWaybillVersionsRequest struct {
 
 func (x *ListAirHouseWaybillVersionsRequest) Reset() {
 	*x = ListAirHouseWaybillVersionsRequest{}
-	mi := &file_order_v1_air_export_proto_msgTypes[26]
+	mi := &file_order_v1_air_export_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2801,7 +2878,7 @@ func (x *ListAirHouseWaybillVersionsRequest) String() string {
 func (*ListAirHouseWaybillVersionsRequest) ProtoMessage() {}
 
 func (x *ListAirHouseWaybillVersionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[26]
+	mi := &file_order_v1_air_export_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2814,7 +2891,7 @@ func (x *ListAirHouseWaybillVersionsRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use ListAirHouseWaybillVersionsRequest.ProtoReflect.Descriptor instead.
 func (*ListAirHouseWaybillVersionsRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{26}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ListAirHouseWaybillVersionsRequest) GetOrderId() string {
@@ -2851,7 +2928,7 @@ type ListAirHouseWaybillVersionsResponse struct {
 
 func (x *ListAirHouseWaybillVersionsResponse) Reset() {
 	*x = ListAirHouseWaybillVersionsResponse{}
-	mi := &file_order_v1_air_export_proto_msgTypes[27]
+	mi := &file_order_v1_air_export_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2863,7 +2940,7 @@ func (x *ListAirHouseWaybillVersionsResponse) String() string {
 func (*ListAirHouseWaybillVersionsResponse) ProtoMessage() {}
 
 func (x *ListAirHouseWaybillVersionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[27]
+	mi := &file_order_v1_air_export_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2876,7 +2953,7 @@ func (x *ListAirHouseWaybillVersionsResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use ListAirHouseWaybillVersionsResponse.ProtoReflect.Descriptor instead.
 func (*ListAirHouseWaybillVersionsResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{27}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ListAirHouseWaybillVersionsResponse) GetSuccess() bool {
@@ -2932,7 +3009,7 @@ type UpdateAirMasterWaybillResponse struct {
 
 func (x *UpdateAirMasterWaybillResponse) Reset() {
 	*x = UpdateAirMasterWaybillResponse{}
-	mi := &file_order_v1_air_export_proto_msgTypes[28]
+	mi := &file_order_v1_air_export_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2944,7 +3021,7 @@ func (x *UpdateAirMasterWaybillResponse) String() string {
 func (*UpdateAirMasterWaybillResponse) ProtoMessage() {}
 
 func (x *UpdateAirMasterWaybillResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[28]
+	mi := &file_order_v1_air_export_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2957,7 +3034,7 @@ func (x *UpdateAirMasterWaybillResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateAirMasterWaybillResponse.ProtoReflect.Descriptor instead.
 func (*UpdateAirMasterWaybillResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{28}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *UpdateAirMasterWaybillResponse) GetSuccess() bool {
@@ -3048,7 +3125,7 @@ type LinkAirMasterWaybillResponse struct {
 
 func (x *LinkAirMasterWaybillResponse) Reset() {
 	*x = LinkAirMasterWaybillResponse{}
-	mi := &file_order_v1_air_export_proto_msgTypes[29]
+	mi := &file_order_v1_air_export_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3060,7 +3137,7 @@ func (x *LinkAirMasterWaybillResponse) String() string {
 func (*LinkAirMasterWaybillResponse) ProtoMessage() {}
 
 func (x *LinkAirMasterWaybillResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[29]
+	mi := &file_order_v1_air_export_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3073,7 +3150,7 @@ func (x *LinkAirMasterWaybillResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LinkAirMasterWaybillResponse.ProtoReflect.Descriptor instead.
 func (*LinkAirMasterWaybillResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{29}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *LinkAirMasterWaybillResponse) GetSuccess() bool {
@@ -3313,7 +3390,7 @@ const file_order_v1_air_export_proto_rawDesc = "" +
 	" \x01(\v2\x1e.order.v1.AirHouseWaybillInputR\x05house\x12#\n" +
 	"\rchange_reason\x18\a \x01(\tR\fchangeReason\x122\n" +
 	"\x15expected_link_version\x18\b \x01(\x04R\x13expectedLinkVersionB\x14\n" +
-	"\x12_master_waybill_idJ\x04\b\x04\x10\x05J\x04\b\x05\x10\x06J\x04\b\x06\x10\a\"\x8a\x02\n" +
+	"\x12_master_waybill_idJ\x04\b\x04\x10\x05J\x04\b\x05\x10\x06J\x04\b\x06\x10\a\"\xd6\x02\n" +
 	"\fAirOrderInfo\x122\n" +
 	"\x06master\x18\x01 \x01(\v2\x1a.order.v1.AirMasterWaybillR\x06master\x12#\n" +
 	"\rdocument_mode\x18\n" +
@@ -3321,7 +3398,13 @@ const file_order_v1_air_export_proto_rawDesc = "" +
 	"\x05house\x18\v \x01(\v2\x19.order.v1.AirHouseWaybillR\x05house\x12\x17\n" +
 	"\alink_id\x18\x05 \x01(\tR\x06linkId\x12!\n" +
 	"\flink_version\x18\x06 \x01(\x04R\vlinkVersion\x12\x16\n" +
-	"\x06active\x18\t \x01(\bR\x06activeJ\x04\b\x02\x10\x03J\x04\b\x03\x10\x04J\x04\b\x04\x10\x05J\x04\b\a\x10\bJ\x04\b\b\x10\t\"\x97\x05\n" +
+	"\x06active\x18\t \x01(\bR\x06active\x12J\n" +
+	"\x10weight_summaries\x18\f \x03(\v2\x1f.order.v1.AirOrderWeightSummaryR\x0fweightSummariesJ\x04\b\x02\x10\x03J\x04\b\x03\x10\x04J\x04\b\x04\x10\x05J\x04\b\a\x10\bJ\x04\b\b\x10\t\"\xb1\x01\n" +
+	"\x15AirOrderWeightSummary\x12\x16\n" +
+	"\x06source\x18\x01 \x01(\tR\x06source\x12.\n" +
+	"\x13confirmed_weight_kg\x18\x02 \x01(\tR\x11confirmedWeightKg\x12-\n" +
+	"\x12confirmation_stale\x18\x03 \x01(\bR\x11confirmationStale\x12!\n" +
+	"\fconfirmed_at\x18\x04 \x01(\tR\vconfirmedAt\"\x97\x05\n" +
 	"\x0fAirMasterMember\x12\x19\n" +
 	"\border_id\x18\x01 \x01(\tR\aorderId\x12\x19\n" +
 	"\border_no\x18\x02 \x01(\tR\aorderNo\x12#\n" +
@@ -3500,7 +3583,7 @@ func file_order_v1_air_export_proto_rawDescGZIP() []byte {
 	return file_order_v1_air_export_proto_rawDescData
 }
 
-var file_order_v1_air_export_proto_msgTypes = make([]protoimpl.MessageInfo, 30)
+var file_order_v1_air_export_proto_msgTypes = make([]protoimpl.MessageInfo, 31)
 var file_order_v1_air_export_proto_goTypes = []any{
 	(*AirDeclaredValue)(nil),                      // 0: order.v1.AirDeclaredValue
 	(*AirRateLine)(nil),                           // 1: order.v1.AirRateLine
@@ -3513,25 +3596,26 @@ var file_order_v1_air_export_proto_goTypes = []any{
 	(*AirMasterWaybill)(nil),                      // 8: order.v1.AirMasterWaybill
 	(*AirOrderInput)(nil),                         // 9: order.v1.AirOrderInput
 	(*AirOrderInfo)(nil),                          // 10: order.v1.AirOrderInfo
-	(*AirMasterMember)(nil),                       // 11: order.v1.AirMasterMember
-	(*AirPackageTotal)(nil),                       // 12: order.v1.AirPackageTotal
-	(*AirMasterTotals)(nil),                       // 13: order.v1.AirMasterTotals
-	(*AirMasterHistory)(nil),                      // 14: order.v1.AirMasterHistory
-	(*ListAirMasterWaybillsRequest)(nil),          // 15: order.v1.ListAirMasterWaybillsRequest
-	(*ListAirMasterWaybillsResponse)(nil),         // 16: order.v1.ListAirMasterWaybillsResponse
-	(*GetAirMasterWaybillRequest)(nil),            // 17: order.v1.GetAirMasterWaybillRequest
-	(*GetAirMasterWaybillResponse)(nil),           // 18: order.v1.GetAirMasterWaybillResponse
-	(*PreviewAirMasterWaybillUpdateRequest)(nil),  // 19: order.v1.PreviewAirMasterWaybillUpdateRequest
-	(*PreviewAirMasterWaybillUpdateResponse)(nil), // 20: order.v1.PreviewAirMasterWaybillUpdateResponse
-	(*UpdateAirMasterWaybillRequest)(nil),         // 21: order.v1.UpdateAirMasterWaybillRequest
-	(*LinkAirMasterWaybillRequest)(nil),           // 22: order.v1.LinkAirMasterWaybillRequest
-	(*ListAirLinkCandidatesRequest)(nil),          // 23: order.v1.ListAirLinkCandidatesRequest
-	(*ListAirLinkCandidatesResponse)(nil),         // 24: order.v1.ListAirLinkCandidatesResponse
-	(*AirHouseWaybillVersion)(nil),                // 25: order.v1.AirHouseWaybillVersion
-	(*ListAirHouseWaybillVersionsRequest)(nil),    // 26: order.v1.ListAirHouseWaybillVersionsRequest
-	(*ListAirHouseWaybillVersionsResponse)(nil),   // 27: order.v1.ListAirHouseWaybillVersionsResponse
-	(*UpdateAirMasterWaybillResponse)(nil),        // 28: order.v1.UpdateAirMasterWaybillResponse
-	(*LinkAirMasterWaybillResponse)(nil),          // 29: order.v1.LinkAirMasterWaybillResponse
+	(*AirOrderWeightSummary)(nil),                 // 11: order.v1.AirOrderWeightSummary
+	(*AirMasterMember)(nil),                       // 12: order.v1.AirMasterMember
+	(*AirPackageTotal)(nil),                       // 13: order.v1.AirPackageTotal
+	(*AirMasterTotals)(nil),                       // 14: order.v1.AirMasterTotals
+	(*AirMasterHistory)(nil),                      // 15: order.v1.AirMasterHistory
+	(*ListAirMasterWaybillsRequest)(nil),          // 16: order.v1.ListAirMasterWaybillsRequest
+	(*ListAirMasterWaybillsResponse)(nil),         // 17: order.v1.ListAirMasterWaybillsResponse
+	(*GetAirMasterWaybillRequest)(nil),            // 18: order.v1.GetAirMasterWaybillRequest
+	(*GetAirMasterWaybillResponse)(nil),           // 19: order.v1.GetAirMasterWaybillResponse
+	(*PreviewAirMasterWaybillUpdateRequest)(nil),  // 20: order.v1.PreviewAirMasterWaybillUpdateRequest
+	(*PreviewAirMasterWaybillUpdateResponse)(nil), // 21: order.v1.PreviewAirMasterWaybillUpdateResponse
+	(*UpdateAirMasterWaybillRequest)(nil),         // 22: order.v1.UpdateAirMasterWaybillRequest
+	(*LinkAirMasterWaybillRequest)(nil),           // 23: order.v1.LinkAirMasterWaybillRequest
+	(*ListAirLinkCandidatesRequest)(nil),          // 24: order.v1.ListAirLinkCandidatesRequest
+	(*ListAirLinkCandidatesResponse)(nil),         // 25: order.v1.ListAirLinkCandidatesResponse
+	(*AirHouseWaybillVersion)(nil),                // 26: order.v1.AirHouseWaybillVersion
+	(*ListAirHouseWaybillVersionsRequest)(nil),    // 27: order.v1.ListAirHouseWaybillVersionsRequest
+	(*ListAirHouseWaybillVersionsResponse)(nil),   // 28: order.v1.ListAirHouseWaybillVersionsResponse
+	(*UpdateAirMasterWaybillResponse)(nil),        // 29: order.v1.UpdateAirMasterWaybillResponse
+	(*LinkAirMasterWaybillResponse)(nil),          // 30: order.v1.LinkAirMasterWaybillResponse
 }
 var file_order_v1_air_export_proto_depIdxs = []int32{
 	0,  // 0: order.v1.AirWaybillContent.carriage_value:type_name -> order.v1.AirDeclaredValue
@@ -3549,46 +3633,47 @@ var file_order_v1_air_export_proto_depIdxs = []int32{
 	5,  // 12: order.v1.AirOrderInput.house:type_name -> order.v1.AirHouseWaybillInput
 	8,  // 13: order.v1.AirOrderInfo.master:type_name -> order.v1.AirMasterWaybill
 	6,  // 14: order.v1.AirOrderInfo.house:type_name -> order.v1.AirHouseWaybill
-	12, // 15: order.v1.AirMasterTotals.packages_by_unit:type_name -> order.v1.AirPackageTotal
-	7,  // 16: order.v1.AirMasterHistory.content:type_name -> order.v1.AirMasterWaybillInput
-	8,  // 17: order.v1.ListAirMasterWaybillsResponse.data:type_name -> order.v1.AirMasterWaybill
-	8,  // 18: order.v1.GetAirMasterWaybillResponse.data:type_name -> order.v1.AirMasterWaybill
-	11, // 19: order.v1.GetAirMasterWaybillResponse.members:type_name -> order.v1.AirMasterMember
-	13, // 20: order.v1.GetAirMasterWaybillResponse.totals:type_name -> order.v1.AirMasterTotals
-	14, // 21: order.v1.GetAirMasterWaybillResponse.history:type_name -> order.v1.AirMasterHistory
-	7,  // 22: order.v1.PreviewAirMasterWaybillUpdateRequest.input:type_name -> order.v1.AirMasterWaybillInput
-	11, // 23: order.v1.PreviewAirMasterWaybillUpdateResponse.members:type_name -> order.v1.AirMasterMember
-	7,  // 24: order.v1.UpdateAirMasterWaybillRequest.input:type_name -> order.v1.AirMasterWaybillInput
-	11, // 25: order.v1.ListAirLinkCandidatesResponse.data:type_name -> order.v1.AirMasterMember
-	4,  // 26: order.v1.AirHouseWaybillVersion.content:type_name -> order.v1.AirWaybillContent
-	25, // 27: order.v1.ListAirHouseWaybillVersionsResponse.data:type_name -> order.v1.AirHouseWaybillVersion
-	8,  // 28: order.v1.UpdateAirMasterWaybillResponse.data:type_name -> order.v1.AirMasterWaybill
-	11, // 29: order.v1.UpdateAirMasterWaybillResponse.members:type_name -> order.v1.AirMasterMember
-	13, // 30: order.v1.UpdateAirMasterWaybillResponse.totals:type_name -> order.v1.AirMasterTotals
-	14, // 31: order.v1.UpdateAirMasterWaybillResponse.history:type_name -> order.v1.AirMasterHistory
-	8,  // 32: order.v1.LinkAirMasterWaybillResponse.data:type_name -> order.v1.AirMasterWaybill
-	11, // 33: order.v1.LinkAirMasterWaybillResponse.members:type_name -> order.v1.AirMasterMember
-	13, // 34: order.v1.LinkAirMasterWaybillResponse.totals:type_name -> order.v1.AirMasterTotals
-	14, // 35: order.v1.LinkAirMasterWaybillResponse.history:type_name -> order.v1.AirMasterHistory
-	26, // 36: order.v1.AirExportService.ListAirHouseWaybillVersions:input_type -> order.v1.ListAirHouseWaybillVersionsRequest
-	23, // 37: order.v1.AirExportService.ListAirLinkCandidates:input_type -> order.v1.ListAirLinkCandidatesRequest
-	15, // 38: order.v1.AirExportService.ListAirMasterWaybills:input_type -> order.v1.ListAirMasterWaybillsRequest
-	17, // 39: order.v1.AirExportService.GetAirMasterWaybill:input_type -> order.v1.GetAirMasterWaybillRequest
-	19, // 40: order.v1.AirExportService.PreviewAirMasterWaybillUpdate:input_type -> order.v1.PreviewAirMasterWaybillUpdateRequest
-	21, // 41: order.v1.AirExportService.UpdateAirMasterWaybill:input_type -> order.v1.UpdateAirMasterWaybillRequest
-	22, // 42: order.v1.AirExportService.LinkAirMasterWaybill:input_type -> order.v1.LinkAirMasterWaybillRequest
-	27, // 43: order.v1.AirExportService.ListAirHouseWaybillVersions:output_type -> order.v1.ListAirHouseWaybillVersionsResponse
-	24, // 44: order.v1.AirExportService.ListAirLinkCandidates:output_type -> order.v1.ListAirLinkCandidatesResponse
-	16, // 45: order.v1.AirExportService.ListAirMasterWaybills:output_type -> order.v1.ListAirMasterWaybillsResponse
-	18, // 46: order.v1.AirExportService.GetAirMasterWaybill:output_type -> order.v1.GetAirMasterWaybillResponse
-	20, // 47: order.v1.AirExportService.PreviewAirMasterWaybillUpdate:output_type -> order.v1.PreviewAirMasterWaybillUpdateResponse
-	28, // 48: order.v1.AirExportService.UpdateAirMasterWaybill:output_type -> order.v1.UpdateAirMasterWaybillResponse
-	29, // 49: order.v1.AirExportService.LinkAirMasterWaybill:output_type -> order.v1.LinkAirMasterWaybillResponse
-	43, // [43:50] is the sub-list for method output_type
-	36, // [36:43] is the sub-list for method input_type
-	36, // [36:36] is the sub-list for extension type_name
-	36, // [36:36] is the sub-list for extension extendee
-	0,  // [0:36] is the sub-list for field type_name
+	11, // 15: order.v1.AirOrderInfo.weight_summaries:type_name -> order.v1.AirOrderWeightSummary
+	13, // 16: order.v1.AirMasterTotals.packages_by_unit:type_name -> order.v1.AirPackageTotal
+	7,  // 17: order.v1.AirMasterHistory.content:type_name -> order.v1.AirMasterWaybillInput
+	8,  // 18: order.v1.ListAirMasterWaybillsResponse.data:type_name -> order.v1.AirMasterWaybill
+	8,  // 19: order.v1.GetAirMasterWaybillResponse.data:type_name -> order.v1.AirMasterWaybill
+	12, // 20: order.v1.GetAirMasterWaybillResponse.members:type_name -> order.v1.AirMasterMember
+	14, // 21: order.v1.GetAirMasterWaybillResponse.totals:type_name -> order.v1.AirMasterTotals
+	15, // 22: order.v1.GetAirMasterWaybillResponse.history:type_name -> order.v1.AirMasterHistory
+	7,  // 23: order.v1.PreviewAirMasterWaybillUpdateRequest.input:type_name -> order.v1.AirMasterWaybillInput
+	12, // 24: order.v1.PreviewAirMasterWaybillUpdateResponse.members:type_name -> order.v1.AirMasterMember
+	7,  // 25: order.v1.UpdateAirMasterWaybillRequest.input:type_name -> order.v1.AirMasterWaybillInput
+	12, // 26: order.v1.ListAirLinkCandidatesResponse.data:type_name -> order.v1.AirMasterMember
+	4,  // 27: order.v1.AirHouseWaybillVersion.content:type_name -> order.v1.AirWaybillContent
+	26, // 28: order.v1.ListAirHouseWaybillVersionsResponse.data:type_name -> order.v1.AirHouseWaybillVersion
+	8,  // 29: order.v1.UpdateAirMasterWaybillResponse.data:type_name -> order.v1.AirMasterWaybill
+	12, // 30: order.v1.UpdateAirMasterWaybillResponse.members:type_name -> order.v1.AirMasterMember
+	14, // 31: order.v1.UpdateAirMasterWaybillResponse.totals:type_name -> order.v1.AirMasterTotals
+	15, // 32: order.v1.UpdateAirMasterWaybillResponse.history:type_name -> order.v1.AirMasterHistory
+	8,  // 33: order.v1.LinkAirMasterWaybillResponse.data:type_name -> order.v1.AirMasterWaybill
+	12, // 34: order.v1.LinkAirMasterWaybillResponse.members:type_name -> order.v1.AirMasterMember
+	14, // 35: order.v1.LinkAirMasterWaybillResponse.totals:type_name -> order.v1.AirMasterTotals
+	15, // 36: order.v1.LinkAirMasterWaybillResponse.history:type_name -> order.v1.AirMasterHistory
+	27, // 37: order.v1.AirExportService.ListAirHouseWaybillVersions:input_type -> order.v1.ListAirHouseWaybillVersionsRequest
+	24, // 38: order.v1.AirExportService.ListAirLinkCandidates:input_type -> order.v1.ListAirLinkCandidatesRequest
+	16, // 39: order.v1.AirExportService.ListAirMasterWaybills:input_type -> order.v1.ListAirMasterWaybillsRequest
+	18, // 40: order.v1.AirExportService.GetAirMasterWaybill:input_type -> order.v1.GetAirMasterWaybillRequest
+	20, // 41: order.v1.AirExportService.PreviewAirMasterWaybillUpdate:input_type -> order.v1.PreviewAirMasterWaybillUpdateRequest
+	22, // 42: order.v1.AirExportService.UpdateAirMasterWaybill:input_type -> order.v1.UpdateAirMasterWaybillRequest
+	23, // 43: order.v1.AirExportService.LinkAirMasterWaybill:input_type -> order.v1.LinkAirMasterWaybillRequest
+	28, // 44: order.v1.AirExportService.ListAirHouseWaybillVersions:output_type -> order.v1.ListAirHouseWaybillVersionsResponse
+	25, // 45: order.v1.AirExportService.ListAirLinkCandidates:output_type -> order.v1.ListAirLinkCandidatesResponse
+	17, // 46: order.v1.AirExportService.ListAirMasterWaybills:output_type -> order.v1.ListAirMasterWaybillsResponse
+	19, // 47: order.v1.AirExportService.GetAirMasterWaybill:output_type -> order.v1.GetAirMasterWaybillResponse
+	21, // 48: order.v1.AirExportService.PreviewAirMasterWaybillUpdate:output_type -> order.v1.PreviewAirMasterWaybillUpdateResponse
+	29, // 49: order.v1.AirExportService.UpdateAirMasterWaybill:output_type -> order.v1.UpdateAirMasterWaybillResponse
+	30, // 50: order.v1.AirExportService.LinkAirMasterWaybill:output_type -> order.v1.LinkAirMasterWaybillResponse
+	44, // [44:51] is the sub-list for method output_type
+	37, // [37:44] is the sub-list for method input_type
+	37, // [37:37] is the sub-list for extension type_name
+	37, // [37:37] is the sub-list for extension extendee
+	0,  // [0:37] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_air_export_proto_init() }
@@ -3598,14 +3683,14 @@ func file_order_v1_air_export_proto_init() {
 	}
 	file_order_v1_air_export_proto_msgTypes[7].OneofWrappers = []any{}
 	file_order_v1_air_export_proto_msgTypes[9].OneofWrappers = []any{}
-	file_order_v1_air_export_proto_msgTypes[11].OneofWrappers = []any{}
+	file_order_v1_air_export_proto_msgTypes[12].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_order_v1_air_export_proto_rawDesc), len(file_order_v1_air_export_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   30,
+			NumMessages:   31,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

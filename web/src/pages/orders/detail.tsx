@@ -604,6 +604,7 @@ export default function OrderDetailPage() {
       organizationId: order?.organizationId,
       seaHouseOrderSourceOrderId: order?.id,
       seaDocuments: currentDocuments,
+      airTransportSnapshot: order?.airExport?.master,
       searchCustomers: withSeededOptions(
         (keyword?: string) =>
           searchPartnersByRole(PARTNER_ROLES.CUSTOMER, keyword),
@@ -1415,6 +1416,7 @@ export default function OrderDetailPage() {
                     'abnormal_case.read',
                   )}
                   businessMenuItems={features.actionMenuItems}
+                  documentMenuItems={features.documentMenuItems}
                   moreMenuItems={moreMenuItems}
                   hasAction={hasAction}
                   onSave={() => formRef.current?.submit()}
@@ -1447,27 +1449,8 @@ export default function OrderDetailPage() {
                   onSynchronizeLockChange={synchronizeLockChange}
                 />
               }
-              prependSections={prependSections}
-              sections={
-                features.actualContainers || features.sharedVoyageMaintenance
-                  ? definition.form
-                      .buildSections({
-                        ...templateProps,
-                        actualContainers: features.actualContainers,
-                        sharedVoyageMaintenance:
-                          features.sharedVoyageMaintenance,
-                      })
-                      .filter(
-                        (section) =>
-                          section.key !== 'internalPersonnel' ||
-                          canReadPersonnel,
-                      )
-                  : formSections
-              }
-              onRevealError={({ errorFields }) =>
-                revealSeaFormErrors(errorFields)
-              }
-              appendSections={[
+              prependSections={[
+                ...prependSections,
                 ...(definition.tradeDirection ===
                 TradeDirection.TRADE_DIRECTION_IMPORT
                   ? [
@@ -1535,6 +1518,35 @@ export default function OrderDetailPage() {
                       },
                     ]
                   : []),
+              ]}
+              sections={
+                features.actualContainers ||
+                features.sharedVoyageMaintenance ||
+                features.airCargoWorkspace ||
+                features.airTransportMaintenance ||
+                features.airDocumentActions
+                  ? definition.form
+                      .buildSections({
+                        ...templateProps,
+                        actualContainers: features.actualContainers,
+                        airCargoWorkspace: features.airCargoWorkspace,
+                        airTransportMaintenance:
+                          features.airTransportMaintenance,
+                        airDocumentActions: features.airDocumentActions,
+                        sharedVoyageMaintenance:
+                          features.sharedVoyageMaintenance,
+                      })
+                      .filter(
+                        (section) =>
+                          section.key !== 'internalPersonnel' ||
+                          canReadPersonnel,
+                      )
+                  : formSections
+              }
+              onRevealError={({ errorFields }) =>
+                revealSeaFormErrors(errorFields)
+              }
+              appendSections={[
                 buildOrderRecordsSection(order, features.appendTabs),
               ]}
             />

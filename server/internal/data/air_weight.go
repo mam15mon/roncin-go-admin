@@ -113,78 +113,20 @@ func airWeightFacts(ctx context.Context, client *ent.Client, org uuid.UUID, inpu
 	}
 
 	if input.Source == "PLANNED" {
-		var rows []struct {
-			ID     uuid.UUID `json:"id"`
-			Weight *string   `json:"total_gross_weight_kg"`
-			Volume *string   `json:"total_volume_cbm"`
-		}
+		var rows []airPlannedWeightRow
 		err := client.Order.Query().Where(orderent.OrganizationIDEQ(org), orderent.IDIn(ids...), orderent.BusinessTypeIn(orderent.BusinessTypeAE, orderent.BusinessTypeAI)).Order(orderent.ByID()).Select(orderent.FieldID, orderent.FieldTotalGrossWeightKg, orderent.FieldTotalVolumeCbm).Scan(ctx, &rows)
 		if err != nil {
 			return nil, err
 		}
-		weight, volume := decimal.Zero, decimal.Zero
-		complete := len(rows) == len(ids)
-		for _, row := range rows {
-			identity = append(identity, row.ID.String(), row.Weight, row.Volume)
-			if row.Weight == nil || row.Volume == nil {
-				complete = false
-				continue
-			}
-			g, err := decimal.NewFromString(*row.Weight)
-			if err != nil {
-				return nil, err
-			}
-			v, err := decimal.NewFromString(*row.Volume)
-			if err != nil {
-				return nil, err
-			}
-			if !g.IsPositive() || !v.IsPositive() {
-				complete = false
-			}
-			weight = weight.Add(g)
-			volume = volume.Add(v)
-		}
-		facts.HasCargo = complete
-		facts.GrossWeightKG = weight.String()
-		facts.VolumeCBM = volume.String()
-		serialized, _ := json.Marshal(identity)
-		facts.Identity = string(serialized)
-		return facts, nil
+		return airPlannedWeightFacts(rows, len(ids), identity)
 	}
 	// numeric 直接扫描字符串，避免先转 float64 再参与重量计算。
-	var rows []struct {
-		ID            uuid.UUID `json:"id"`
-		OrderID       uuid.UUID `json:"order_id"`
-		Version       uint64    `json:"version"`
-		GrossWeightKG string    `json:"gross_weight_kg"`
-		VolumeCBM     string    `json:"volume_cbm"`
-	}
+	var rows []airCargoWeightRow
 	err = client.OrderCargoItem.Query().Where(cargoent.OrganizationIDEQ(org), cargoent.OrderIDIn(ids...)).Order(cargoent.ByID()).Select(cargoent.FieldID, cargoent.FieldOrderID, cargoent.FieldVersion, cargoent.FieldGrossWeightKg, cargoent.FieldVolumeCbm).Scan(ctx, &rows)
 	if err != nil {
 		return nil, err
 	}
-	weight, volume := decimal.Zero, decimal.Zero
-	coveredOrders := map[uuid.UUID]bool{}
-	for _, row := range rows {
-		coveredOrders[row.OrderID] = true
-		g, e := decimal.NewFromString(row.GrossWeightKG)
-		if e != nil {
-			return nil, e
-		}
-		v, e := decimal.NewFromString(row.VolumeCBM)
-		if e != nil {
-			return nil, e
-		}
-		weight = weight.Add(g)
-		volume = volume.Add(v)
-		identity = append(identity, row.ID.String(), row.Version, row.GrossWeightKG, row.VolumeCBM)
-	}
-	facts.HasCargo = len(rows) > 0 && len(coveredOrders) == len(ids)
-	facts.GrossWeightKG = weight.String()
-	facts.VolumeCBM = volume.String()
-	serialized, _ := json.Marshal(identity)
-	facts.Identity = string(serialized)
-	return facts, nil
+	return airCargoWeightFacts(rows, ids, identity)
 }
 func (r *airWeightRepo) Preview(ctx context.Context, org uuid.UUID, input *biz.AirWeightInput) (*biz.AirWeightPreview, error) {
 	client, err := r.data.client(ctx)

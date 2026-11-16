@@ -91,7 +91,8 @@ func verifyAirWeightConfirmationAndFeeSourcePostgres(t *testing.T, businessType 
 	if p := preview(plannedInput); p.ConfirmationStale {
 		t.Fatal("私有备注变化不能使计划重量过期")
 	}
-	confirmed := confirm(input, "130", "客户确认计费重")
+	confirm(input, "120", "首次确认")
+	confirmed := confirm(input, "130", "客户重新确认计费重")
 	unit, e := c.BillingUnit.Query().Where(billingunitent.CodeEQ("KG")).Only(ctx)
 	if e != nil {
 		t.Fatal(e)
@@ -147,6 +148,26 @@ func verifyAirWeightConfirmationAndFeeSourcePostgres(t *testing.T, businessType 
 	stale := preview(input)
 	if !stale.ConfirmationStale || stale.CurrentConfirmation.ConfirmedWeightKG != "130" {
 		t.Fatalf("输入变化保留130并提示过期: %+v", stale)
+	}
+	// 列表批量投影必须与独立预览采用相同指纹；不能把实际确认覆盖委托确认。
+	batch := []*biz.Order{
+		{ID: a.ID, OrganizationID: f.organizationID, BusinessType: businessType, AirExport: &biz.AirOrderInfo{}},
+		{ID: b.ID, OrganizationID: f.organizationID, BusinessType: businessType, AirExport: &biz.AirOrderInfo{}},
+	}
+	if err := attachAirOrderWeightSummaries(ctx, c, batch); err != nil {
+		t.Fatal(err)
+	}
+	if len(batch[0].AirExport.WeightSummaries) != 2 || len(batch[1].AirExport.WeightSummaries) != 0 {
+		t.Fatalf("确认来源或未确认票投影错误：%+v %+v", batch[0].AirExport.WeightSummaries, batch[1].AirExport.WeightSummaries)
+	}
+	for _, summary := range batch[0].AirExport.WeightSummaries {
+		expectedWeight, expectedStale := "105", false
+		if summary.Source == "ACTUAL" {
+			expectedWeight, expectedStale = "130", true
+		}
+		if summary.ConfirmedWeightKG != expectedWeight || summary.ConfirmationStale != expectedStale || summary.ConfirmedAt.IsZero() {
+			t.Fatalf("列表摘要与权威确认不一致：%+v", summary)
+		}
 	}
 	staleInput := *input
 	staleInput.InputFingerprint = oldPreview.InputFingerprint
@@ -247,7 +268,7 @@ func verifyAirWeightConfirmationAndFeeSourcePostgres(t *testing.T, businessType 
 		}
 	}
 	history, total, e := uc.List(ctx, f.organizationID, "ORDER", a.ID, 1, 20)
-	if e != nil || total != 4 || len(history) != 4 {
+	if e != nil || total != 5 || len(history) != 5 {
 		t.Fatalf("确认历史: %d %v", total, e)
 	}
 	if _, e := uc.Preview(ctx, uuid.New(), input); !errors.Is(e, biz.ErrOrderNotFound) {

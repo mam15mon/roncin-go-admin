@@ -5,8 +5,10 @@ import {
 } from '@ant-design/pro-components';
 import { Alert, Button, Collapse, Form, Space, Typography } from 'antd';
 import type { NamePath } from 'antd/es/form/interface';
-import { FormRow, ProFormSearchableSelect } from '@/components/ui';
+import { useEffect, useState } from 'react';
+import { FormCell, FormRow, ProFormSearchableSelect } from '@/components/ui';
 import { formatAmount } from '@/utils/format';
+import { onSeaFormErrorReveal } from '../../sea-form-error-reveal';
 
 type Path = (string | number)[];
 type Props = { prefix: Path; disabled?: boolean };
@@ -61,6 +63,40 @@ const paymentOptions = [
   { label: '到付 COLL', value: 'COLL' },
 ];
 const decimalPattern = /^(0|[1-9]\d{0,15})(\.\d{1,8})?$/;
+const commonPartyKeys = new Set<keyof API.AirWaybillContent>([
+  'shipperText',
+  'consigneeText',
+  'notifyPartyText',
+  'secondNotifyPartyText',
+  'agentText',
+]);
+const commonCargoKeys = new Set<keyof API.AirWaybillContent>([
+  'marks',
+  'goodsDescription',
+]);
+
+function fieldSection(field: string): string {
+  if (parties.some(([key]) => key === field)) return 'parties';
+  if (routing.some(([key]) => key === field) || field === 'flightDate')
+    return 'routing';
+  if (information.some(([key]) => key === field)) return 'information';
+  if (signatures.some(([key]) => key === field) || field === 'issueDate')
+    return 'signatures';
+  if (field === 'rateLines' || field === 'asArranged') return 'rates';
+  if (
+    [
+      'currency',
+      'chargeCode',
+      'weightPayment',
+      'otherPayment',
+      'carriageValue',
+      'customsValue',
+      'insuranceValue',
+    ].includes(field)
+  )
+    return 'declarations';
+  return 'charges';
+}
 
 function DecimalField({
   name,
@@ -96,28 +132,42 @@ function TextFields({
   prefix,
   disabled,
   fields,
-}: Props & { fields: readonly TextField[] }) {
+  dense = false,
+}: Props & { fields: readonly TextField[]; dense?: boolean }) {
   return (
-    <FormRow cols={2}>
-      {fields.map(([key, label, maxLength = 200]) =>
-        maxLength > 200 ? (
-          <ProFormTextArea
-            key={key}
-            name={[...prefix, key]}
-            label={label}
-            disabled={disabled}
-            fieldProps={{ maxLength, autoSize: { minRows: 2, maxRows: 8 } }}
-          />
+    <FormRow cols={dense ? 6 : 2} style={dense ? { rowGap: 4 } : undefined}>
+      {fields.map(([key, label, maxLength = 200]) => {
+        const field =
+          maxLength > 200 ? (
+            <ProFormTextArea
+              key={key}
+              name={[...prefix, key]}
+              label={label}
+              disabled={disabled}
+              fieldProps={{
+                maxLength,
+                ...(dense
+                  ? { rows: 2 }
+                  : { autoSize: { minRows: 2, maxRows: 8 } }),
+              }}
+            />
+          ) : (
+            <ProFormText
+              key={key}
+              name={[...prefix, key]}
+              label={label}
+              disabled={disabled}
+              fieldProps={{ maxLength }}
+            />
+          );
+        return dense ? (
+          <FormCell key={key} span={maxLength > 200 ? 3 : 2}>
+            {field}
+          </FormCell>
         ) : (
-          <ProFormText
-            key={key}
-            name={[...prefix, key]}
-            label={label}
-            disabled={disabled}
-            fieldProps={{ maxLength }}
-          />
-        ),
-      )}
+          field
+        );
+      })}
     </FormRow>
   );
 }
@@ -333,24 +383,71 @@ function OtherCharges({ prefix, disabled }: Props) {
 }
 
 /** MAWB/HAWB 共用字段定义，分别绑定自己的正文路径，不读取或改写运输、货量和经营费用。 */
-export function AirWaybillFields({ prefix, disabled }: Props) {
+export function AirWaybillFields({
+  prefix,
+  disabled,
+  variant = 'full',
+}: Props & { variant?: 'full' | 'order' }) {
   const form = Form.useFormInstance();
   const value = Form.useWatch(prefix, { form, preserve: true }) as
     | API.AirWaybillContent
     | undefined;
-  const textProps = { prefix, disabled };
+  const compact = variant === 'order';
+  const textProps = { prefix, disabled, dense: compact };
+  const [openSections, setOpenSections] = useState<string[]>([]);
+  const prefixKey = JSON.stringify(prefix);
+  useEffect(
+    () =>
+      onSeaFormErrorReveal((fields) => {
+        const path = JSON.parse(prefixKey) as Path;
+        const name = fields[0]?.name;
+        if (!name || !path.every((part, index) => part === name[index])) return;
+        const section = fieldSection(String(name[path.length]));
+        setOpenSections((current) =>
+          current.includes(section) ? current : [...current, section],
+        );
+      }),
+    [prefixKey],
+  );
   return (
     <>
       <Form.Item name={prefix} hidden>
         <span />
       </Form.Item>
+      {compact && (
+        <>
+          <TextFields
+            {...textProps}
+            fields={parties.filter(([key]) => commonPartyKeys.has(key))}
+          />
+          <TextFields
+            {...textProps}
+            fields={information.filter(([key]) => commonCargoKeys.has(key))}
+          />
+        </>
+      )}
       <Collapse
         size="small"
+        activeKey={openSections}
+        onChange={(keys) =>
+          setOpenSections(
+            Array.isArray(keys) ? keys.map(String) : [String(keys)],
+          )
+        }
         items={[
           {
             key: 'parties',
             label: '收发货人与代理',
-            children: <TextFields {...textProps} fields={parties} />,
+            children: (
+              <TextFields
+                {...textProps}
+                fields={
+                  compact
+                    ? parties.filter(([key]) => !commonPartyKeys.has(key))
+                    : parties
+                }
+              />
+            ),
           },
           {
             key: 'routing',
@@ -373,7 +470,16 @@ export function AirWaybillFields({ prefix, disabled }: Props) {
           {
             key: 'information',
             label: '账务、处理与货物印字',
-            children: <TextFields {...textProps} fields={information} />,
+            children: (
+              <TextFields
+                {...textProps}
+                fields={
+                  compact
+                    ? information.filter(([key]) => !commonCargoKeys.has(key))
+                    : information
+                }
+              />
+            ),
           },
           {
             key: 'declarations',

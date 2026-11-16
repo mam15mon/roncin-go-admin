@@ -168,6 +168,14 @@ message AirOrderInfo {
   uint64 link_version = 6;
   reserved 7, 8;
   bool active = 9;
+  // 本票各货量来源的当前确认摘要，不包含主单确认；未确认的来源不返回。
+  repeated AirOrderWeightSummary weight_summaries = 12;
+}
+message AirOrderWeightSummary {
+  string source = 1;
+  string confirmed_weight_kg = 2;
+  bool confirmation_stale = 3;
+  string confirmed_at = 4;
 }
 message AirMasterMember {
   string order_id = 1;

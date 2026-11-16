@@ -507,6 +507,8 @@ declare namespace API {
     linkId?: string;
     linkVersion?: string;
     active?: boolean;
+    /** 本票各货量来源的当前确认摘要，不包含主单确认；未确认的来源不返回。 */
+    weightSummaries?: AirOrderWeightSummary[];
   };
 
   type AirOrderInput = {
@@ -517,6 +519,13 @@ declare namespace API {
     house?: AirHouseWaybillInput;
     changeReason?: string;
     expectedLinkVersion?: string;
+  };
+
+  type AirOrderWeightSummary = {
+    source?: string;
+    confirmedWeightKg?: string;
+    confirmationStale?: boolean;
+    confirmedAt?: string;
   };
 
   type AirOtherCharge = {

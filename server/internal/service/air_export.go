@@ -229,6 +229,9 @@ func airOrderToAPI(in *biz.AirOrderInfo) *v1.AirOrderInfo {
 		return nil
 	}
 	out := &v1.AirOrderInfo{Master: airMasterToAPI(in.Master), DocumentMode: in.DocumentMode, LinkId: in.LinkID.String(), LinkVersion: in.LinkVersion, Active: in.Active}
+	for _, summary := range in.WeightSummaries {
+		out.WeightSummaries = append(out.WeightSummaries, &v1.AirOrderWeightSummary{Source: summary.Source, ConfirmedWeightKg: summary.ConfirmedWeightKG, ConfirmationStale: summary.ConfirmationStale, ConfirmedAt: summary.ConfirmedAt.UTC().Format(time.RFC3339)})
+	}
 	if in.House != nil {
 		h := in.House
 		out.House = &v1.AirHouseWaybill{Id: h.ID.String(), HouseNo: h.HouseNo, Status: h.Status, Content: airContentToAPI(h.Content), Version: h.Version, ContentHash: h.ContentHash}
