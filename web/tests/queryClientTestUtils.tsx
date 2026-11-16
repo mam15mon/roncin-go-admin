@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render } from '@testing-library/react';
-import type { ReactElement } from 'react';
+import { type RenderOptions, render } from '@testing-library/react';
+import type { PropsWithChildren, ReactElement } from 'react';
 
 /**
  * 数据层测试工具：为每个用例创建独立 QueryClient，避免缓存串味。
@@ -16,10 +16,19 @@ export function createTestQueryClient(): QueryClient {
   });
 }
 
-export function renderWithClient(ui: ReactElement) {
+export function renderWithClient(
+  ui: ReactElement,
+  options: RenderOptions = {},
+) {
+  const { wrapper: Wrapper, ...renderOptions } = options;
   const queryClient = createTestQueryClient();
-  const result = render(
-    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
-  );
+  const result = render(ui, {
+    ...renderOptions,
+    wrapper: ({ children }: PropsWithChildren) => (
+      <QueryClientProvider client={queryClient}>
+        {Wrapper ? <Wrapper>{children}</Wrapper> : children}
+      </QueryClientProvider>
+    ),
+  });
   return { ...result, queryClient };
 }
