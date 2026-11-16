@@ -322,13 +322,17 @@ export default function ImportHandlingPanel({
     enabled &&
     foreground &&
     location.pathname.replace(/\/$/, '') === `/orders/${kind}/${order.id}`;
-  const query = useQuery({
+  const query = useQuery<HandlingSnapshot>({
     queryKey: [
       'orders',
       'import-handling',
       { scope: sessionScope, expectedVersion },
     ],
     enabled: active,
+    // 本人保存推进订单版本即换查询键；保留同一订单的上一份快照，避免面板闪回
+    // 「正在读取」。仅作展示占位，openReady 仍要求非 fetching 且版本一致。
+    placeholderData: (previous: HandlingSnapshot | undefined) =>
+      previous?.orderId === order.id ? previous : undefined,
     refetchInterval: active ? 15_000 : false,
     refetchIntervalInBackground: false,
     queryFn: async ({ signal }) => {
@@ -366,6 +370,9 @@ export default function ImportHandlingPanel({
   const serial = useRef(0);
   const editor = edit?.scope === sessionScope ? edit : undefined;
   const [changedSerial, setChangedSerial] = useState<number>();
+  // 本人写入在途（含写后订单与服务重读）：不比较版本，避免把本人写入误报为外部变动。
+  // 成功后保持至弹窗关闭，期间重读已取得新快照，关闭后比较不再出现先现后消的提醒。
+  const [ownWritePending, setOwnWritePending] = useState(false);
   const formRef = useRef<ProFormInstance<HandlingFormValues> | undefined>(
     undefined,
   );
@@ -373,18 +380,20 @@ export default function ImportHandlingPanel({
   useEffect(() => {
     if (
       editor &&
+      !ownWritePending &&
       (expectedVersion !== editor.snapshot.orderVersion ||
         (query.isSuccess &&
           query.data &&
           handlingChanged(editor.snapshot, query.data)))
     )
       setChangedSerial(editor.serial);
-  }, [editor, expectedVersion, query.data, query.isSuccess]);
+  }, [editor, ownWritePending, expectedVersion, query.data, query.isSuccess]);
   const changed = Boolean(
     editor &&
       (changedSerial === editor.serial ||
-        expectedVersion !== editor.snapshot.orderVersion ||
-        (query.data && handlingChanged(editor.snapshot, query.data))),
+        (!ownWritePending &&
+          (expectedVersion !== editor.snapshot.orderVersion ||
+            (query.data && handlingChanged(editor.snapshot, query.data))))),
   );
   const closed =
     order.closureStatus === OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED;
@@ -494,12 +503,13 @@ export default function ImportHandlingPanel({
               换单代理：{query.data.exchangeAgentName || '未指定'}
             </Typography.Paragraph>
             <SnapshotTable snapshot={query.data} attachments={files.data} />
-            {query.data.orderVersion !== expectedVersion && (
-              <Alert
-                type="warning"
-                title="这个订单已经发生变动，请重新刷新。"
-              />
-            )}
+            {!ownWritePending &&
+              query.data.orderVersion !== expectedVersion && (
+                <Alert
+                  type="warning"
+                  title="这个订单已经发生变动，请重新刷新。"
+                />
+              )}
           </>
         ) : (
           <Typography.Text>正在读取进口服务…</Typography.Text>
@@ -607,7 +617,10 @@ export default function ImportHandlingPanel({
             editRevision.current += 1;
           }}
           onOpenChange={(open) => {
-            if (!open) setEdit(undefined);
+            if (!open) {
+              setEdit(undefined);
+              setOwnWritePending(false);
+            }
           }}
           submitter={{
             submitButtonProps: {
@@ -645,56 +658,64 @@ export default function ImportHandlingPanel({
               editRevision.current !== revision
             )
               return false;
-            const response = await orderServiceSaveImportHandling(
-              { orderId: editor.snapshot.orderId },
-              payload,
-            );
-            if (
-              !response?.data ||
-              response.success === false ||
-              !guard.current.alive ||
-              generation !== guard.current.generation ||
-              serialRef.current !== editor.serial
-            )
-              return false;
-            const saved = handlingSnapshot(
-              response.data,
-              editor.snapshot.orderId,
-            );
-            message.success('进口服务资料已保存');
+            setOwnWritePending(true);
+            let closing = false;
             try {
-              await onSaved({
-                orderId: saved.orderId,
-                previousVersion: editor.snapshot.orderVersion,
-                saved,
-              });
-            } catch {
-              message.warning('服务已保存，订单资料刷新失败，请重新刷新。');
-            }
-            if (
-              !guard.current.alive ||
-              generation !== guard.current.generation ||
-              serialRef.current !== editor.serial
-            )
-              return false;
-            await queryClient.invalidateQueries({
-              queryKey: ['orders', 'import-handling'],
-            });
-            if (
-              !guard.current.alive ||
-              generation !== guard.current.generation ||
-              serialRef.current !== editor.serial
-            )
-              return false;
-            eventsRef.current?.reload();
-            if (editRevision.current !== revision) {
-              setChangedSerial(editor.serial);
-              message.warning(
-                '服务已保存，保存期间的新输入已保留，请重新读取后再提交。',
+              const response = await orderServiceSaveImportHandling(
+                { orderId: editor.snapshot.orderId },
+                payload,
               );
-              return false;
+              if (
+                !response?.data ||
+                response.success === false ||
+                !guard.current.alive ||
+                generation !== guard.current.generation ||
+                serialRef.current !== editor.serial
+              )
+                return false;
+              const saved = handlingSnapshot(
+                response.data,
+                editor.snapshot.orderId,
+              );
+              message.success('进口服务资料已保存');
+              try {
+                await onSaved({
+                  orderId: saved.orderId,
+                  previousVersion: editor.snapshot.orderVersion,
+                  saved,
+                });
+              } catch {
+                message.warning('服务已保存，订单资料刷新失败，请重新刷新。');
+              }
+              if (
+                !guard.current.alive ||
+                generation !== guard.current.generation ||
+                serialRef.current !== editor.serial
+              )
+                return false;
+              await queryClient.invalidateQueries({
+                queryKey: ['orders', 'import-handling'],
+              });
+              if (
+                !guard.current.alive ||
+                generation !== guard.current.generation ||
+                serialRef.current !== editor.serial
+              )
+                return false;
+              eventsRef.current?.reload();
+              if (editRevision.current !== revision) {
+                setChangedSerial(editor.serial);
+                message.warning(
+                  '服务已保存，保存期间的新输入已保留，请重新读取后再提交。',
+                );
+                return false;
+              }
+              closing = true;
+              return true;
+            } finally {
+              // 成功时弹窗随即关闭，由 onOpenChange 与 setEdit 同批复位。
+              if (!closing) setOwnWritePending(false);
             }
-            return true;
           }}
         >
           <Form.Item name="steps" hidden>

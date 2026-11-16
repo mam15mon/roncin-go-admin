@@ -12,15 +12,29 @@ function markerOf(response?: API.GetAirMasterWaybillResponse) {
   ]);
 }
 
-/** 仅检查主单版本与共享修改门禁；探测永远不替换表单与提交版本。 */
+/**
+ * 仅检查主单版本与共享修改门禁；探测永远不替换表单与提交版本。
+ *
+ * 本人写入在途（ownWritePending，含写后重读）时暂停探测且不记录新差异：此时读到的是
+ * 本人写后的版本，不能当作外部变动；写入前已记录的提醒保持不变。写入成功后编辑弹窗
+ * 关闭（会话结束），调用方保持 pending 直至关闭；失败时结束 pending 恢复检查。
+ */
 export function useAirMasterChangeNotice(options: {
   baseline?: API.GetAirMasterWaybillResponse;
   session: number;
   organizationId?: string;
   businessType?: number;
   enabled: boolean;
+  ownWritePending?: boolean;
 }) {
-  const { baseline, session, organizationId, businessType, enabled } = options;
+  const {
+    baseline,
+    session,
+    organizationId,
+    businessType,
+    enabled,
+    ownWritePending = false,
+  } = options;
   const masterId = baseline?.data?.id;
   const owner = useMemo(
     () => generateUUID(),
@@ -31,16 +45,18 @@ export function useAirMasterChangeNotice(options: {
   const resumeRef = useRef<() => void>(() => undefined);
   const foreground = usePageForeground(() => resumeRef.current());
   const active = enabled && Boolean(masterId && organizationId);
+  // 暂停时观察者失活：轮询停止，写后 invalidateQueries(['air-orders']) 也不会重查。
+  const polling = active && foreground && !ownWritePending;
   const query = useQuery({
     queryKey: [
       'air-orders',
       'master-change-notice',
       { masterId, organizationId, businessType, owner, session },
     ],
-    enabled: active && foreground,
+    enabled: polling,
     initialData: baseline,
     staleTime: Infinity,
-    refetchInterval: active && foreground ? 15_000 : false,
+    refetchInterval: polling ? 15_000 : false,
     refetchIntervalInBackground: false,
     meta: { silent: true },
     queryFn: async ({ signal }) => {
@@ -61,13 +77,15 @@ export function useAirMasterChangeNotice(options: {
     },
   });
   resumeRef.current = () => {
-    if (active) void query.refetch({ cancelRefetch: false });
+    // 回前台回调早于 foreground 状态渲染，不能依赖 polling。
+    if (active && !ownWritePending)
+      void query.refetch({ cancelRefetch: false });
   };
   const base = markerOf(baseline);
   const observed = markerOf(query.data);
   useEffect(() => {
-    if (active && query.isSuccess && observed !== base)
+    if (active && !ownWritePending && query.isSuccess && observed !== base)
       setChangedIdentity(identity);
-  }, [active, query.isSuccess, observed, base, identity]);
+  }, [active, ownWritePending, query.isSuccess, observed, base, identity]);
   return active && changedIdentity === identity;
 }

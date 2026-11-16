@@ -140,6 +140,7 @@ function AirTransportEditor({
   const [session, setSession] = useState(1);
   const [dirty, setDirty] = useState(false);
   const [refreshFailed, setRefreshFailed] = useState(false);
+  const [ownWritePending, setOwnWritePending] = useState(false);
   const [impact, setImpact] =
     useState<API.PreviewAirMasterWaybillUpdateResponse>();
   const form = useRef<ProFormInstance<TransportValues> | undefined>(undefined);
@@ -161,6 +162,7 @@ function AirTransportEditor({
     organizationId: context.order.organizationId,
     businessType: context.order.businessType,
     enabled: pathname === `/orders/${context.kind}/${context.orderId}`,
+    ownWritePending,
   });
   const allowed = () => {
     const current = activeContext.current;
@@ -267,38 +269,46 @@ function AirTransportEditor({
           return false;
         }
         if (impact.canExecute !== true) return false;
-        const response = await airExportServiceUpdateAirMasterWaybill(
-          { id: masterId },
-          {
-            ...payload,
-            inputFingerprint: impact.inputFingerprint,
-            reason: values.reason,
-          },
-        );
-        if (!isWriteResponse(response, true) || !current()) return false;
-        requireAirMasterIdentity(
-          response.data,
-          masterId,
-          context.order.organizationId,
-          context.order.businessType,
-        );
+        // 写入与写后重读期间暂停变动检查；成功后弹窗关闭，保持暂停直至卸载。
+        setOwnWritePending(true);
+        let saved = false;
         try {
-          await Promise.all([
-            context.refreshOrderAndLock(),
-            queryClient.invalidateQueries({ queryKey: ['air-orders'] }),
-            queryClient.invalidateQueries({ queryKey: ['air-weight'] }),
-          ]);
-        } catch {
-          if (current())
-            message.warning(
-              '共同运输资料已保存，订单摘要读取失败，请刷新。未保存的订单输入已保留。',
-            );
+          const response = await airExportServiceUpdateAirMasterWaybill(
+            { id: masterId },
+            {
+              ...payload,
+              inputFingerprint: impact.inputFingerprint,
+              reason: values.reason,
+            },
+          );
+          if (!isWriteResponse(response, true) || !current()) return false;
+          requireAirMasterIdentity(
+            response.data,
+            masterId,
+            context.order.organizationId,
+            context.order.businessType,
+          );
+          try {
+            await Promise.all([
+              context.refreshOrderAndLock(),
+              queryClient.invalidateQueries({ queryKey: ['air-orders'] }),
+              queryClient.invalidateQueries({ queryKey: ['air-weight'] }),
+            ]);
+          } catch {
+            if (current())
+              message.warning(
+                '共同运输资料已保存，订单摘要读取失败，请刷新。未保存的订单输入已保留。',
+              );
+          }
+          if (!current()) return false;
+          message.success(
+            '共同运输资料已保存。订单中未保存的输入已保留，请刷新核对最新资料。',
+          );
+          saved = true;
+          return true;
+        } finally {
+          if (!saved) setOwnWritePending(false);
         }
-        if (!current()) return false;
-        message.success(
-          '共同运输资料已保存。订单中未保存的输入已保留，请刷新核对最新资料。',
-        );
-        return true;
       }}
     >
       <Space

@@ -125,6 +125,52 @@ describe('航空主单前台变动检查', () => {
     });
     expect(view.result.current).toBe(false);
   });
+  it('本人写入在途时暂停探测，写后 invalidate 与迟到探测读到本人版本都不误报', async () => {
+    const queryClient = createTestQueryClient();
+    const v2: API.GetAirMasterWaybillResponse = {
+      data: { ...baseline.data, version: '2' },
+    };
+    let finishProbe!: (value: API.GetAirMasterWaybillResponse) => void;
+    const view = renderHook(
+      (props: { ownWritePending: boolean }) =>
+        useAirMasterChangeNotice({
+          baseline,
+          session: 1,
+          organizationId: 'org',
+          businessType: OrderBusinessType.BUSINESS_TYPE_AE,
+          enabled: true,
+          ...props,
+        }),
+      {
+        initialProps: { ownWritePending: false },
+        wrapper: ({ children }: { children: ReactNode }) => (
+          <QueryClientProvider client={queryClient}>
+            {children}
+          </QueryClientProvider>
+        ),
+      },
+    );
+    getMaster.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finishProbe = resolve;
+        }),
+    );
+    await advance(15_000);
+    expect(getMaster).toHaveBeenCalledTimes(1);
+    view.rerender({ ownWritePending: true });
+    await act(async () => finishProbe(v2));
+    await advance(0);
+    expect(view.result.current).toBe(false);
+    getMaster.mockResolvedValue(v2);
+    await act(async () => {
+      await queryClient.invalidateQueries({ queryKey: ['air-orders'] });
+    });
+    await advance(30_000);
+    expect(getMaster).toHaveBeenCalledTimes(1);
+    expect(view.result.current).toBe(false);
+  });
+
   it('AI公司A→B→A往返的旧探测迟到不能影响新会话，也不读取AE探测缓存', async () => {
     const queryClient = createTestQueryClient();
     const snapshot = (

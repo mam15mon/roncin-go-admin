@@ -81,6 +81,64 @@ describe('账单详情外部变动检查', () => {
     expect(result.current.changed).toBe(false);
   });
 
+  it('本人写入在途时暂停轮询，在途探测读到本人写后版本不误报，与采纳新版本同批结束', async () => {
+    const client = createTestQueryClient();
+    let finishProbe!: (value: Awaited<ReturnType<typeof getBill>>) => void;
+    const { result, rerender } = renderHook(
+      (props: { version: string; ownWritePending: boolean }) =>
+        useBillChangeNotice({ billId: 'bill-1', enabled: true, ...props }),
+      {
+        initialProps: { version: '3', ownWritePending: false },
+        wrapper: ({ children }: { children: ReactNode }) => (
+          <QueryClientProvider client={client}>{children}</QueryClientProvider>
+        ),
+      },
+    );
+    await advance(0);
+    expect(getBill).toHaveBeenCalledTimes(1);
+    // 15 秒探测发出后本人开始保存；服务端先提交，探测随后读到本人写入的 v4。
+    getBill.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finishProbe = resolve;
+        }),
+    );
+    await advance(15_000);
+    expect(getBill).toHaveBeenCalledTimes(2);
+    rerender({ version: '3', ownWritePending: true });
+    await act(async () => finishProbe(billVersion('4')));
+    await advance(0);
+    expect(result.current.changed).toBe(false);
+    await advance(30_000);
+    expect(getBill).toHaveBeenCalledTimes(2);
+    rerender({ version: '4', ownWritePending: false });
+    expect(result.current.changed).toBe(false);
+  });
+
+  it('写入开始前已发现的外部变动在本人写入期间保持提示', async () => {
+    const client = createTestQueryClient();
+    getBill.mockResolvedValue(billVersion('4'));
+    const { result, rerender } = renderHook(
+      (props: { ownWritePending: boolean }) =>
+        useBillChangeNotice({
+          billId: 'bill-1',
+          version: '3',
+          enabled: true,
+          ...props,
+        }),
+      {
+        initialProps: { ownWritePending: false },
+        wrapper: ({ children }: { children: ReactNode }) => (
+          <QueryClientProvider client={client}>{children}</QueryClientProvider>
+        ),
+      },
+    );
+    await advance(0);
+    expect(result.current.changed).toBe(true);
+    rerender({ ownWritePending: true });
+    expect(result.current.changed).toBe(true);
+  });
+
   it('页面隐藏时停止轮询，回到前台立即检查', async () => {
     mount();
     await advance(0);

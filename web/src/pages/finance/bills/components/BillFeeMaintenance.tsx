@@ -50,6 +50,8 @@ export default function BillFeeMaintenance({
   const [keyword, setKeyword] = useState('');
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<string[]>([]);
+  // 本人写入在途期间冻结变动提示，避免把本人写后的版本误报为外部变动。
+  const [ownWritePending, setOwnWritePending] = useState(false);
   const editable =
     bill.status === FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED;
   const lockLabels = billFeeLockFactLabels(bill);
@@ -59,6 +61,7 @@ export default function BillFeeMaintenance({
     billId: bill.id,
     version: bill.version,
     enabled: editable,
+    ownWritePending,
   });
 
   const candidates = useQuery({
@@ -93,6 +96,7 @@ export default function BillFeeMaintenance({
   const submit = async (addFeeIds: string[], removeFeeIds: string[]) => {
     const { id, version } = bill;
     if (!id || !version) return false;
+    setOwnWritePending(true);
     try {
       let succeeded = false;
       const result = await submitGuard.run(
@@ -111,6 +115,8 @@ export default function BillFeeMaintenance({
               : '费用已从账单移除，可重新建账',
           );
           onUpdated(response.data);
+          // 与采纳新版本同批结束 pending，不留旧版本对比新探测的窗口。
+          setOwnWritePending(false);
           succeeded = true;
         },
       );
@@ -118,6 +124,8 @@ export default function BillFeeMaintenance({
     } catch {
       // 统一请求错误处理已提示（如版本冲突、费用已锁定）；保留当前选择供用户刷新后重试。
       return false;
+    } finally {
+      setOwnWritePending(false);
     }
   };
 

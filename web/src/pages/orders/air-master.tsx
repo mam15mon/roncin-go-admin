@@ -113,6 +113,8 @@ function AirMasterContent({
     [],
   );
   const [editDirty, setEditDirty] = useState(false);
+  // 共同资料写入与写后重读期间暂停变动检查；成功后弹窗关闭，下次打开时复位。
+  const [editWritePending, setEditWritePending] = useState(false);
   const [chooseModeOpen, setChooseModeOpen] = useState(false);
   const [createMode, setCreateMode] = useState<'DIRECT' | 'HOUSE'>();
   const [linkSnapshot, setLinkSnapshot] = useState<API.AirMasterWaybill>();
@@ -187,6 +189,7 @@ function AirMasterContent({
     businessType,
     enabled:
       editOpen && canRead && pathname === `/orders/${kind}/masters/${masterId}`,
+    ownWritePending: editWritePending,
   });
   const acceptEditSnapshot = (snapshot: API.GetAirMasterWaybillResponse) => {
     setEditSnapshot(structuredClone(snapshot));
@@ -195,6 +198,7 @@ function AirMasterContent({
     editRevision.current += 1;
     setEditSession(editSessionRef.current);
     setEditDirty(false);
+    setEditWritePending(false);
     setImpact(undefined);
   };
   const reload = async () => {
@@ -693,24 +697,31 @@ function AirMasterContent({
               return false;
             }
             if (!impact.response.canExecute) return false;
-            const response = await airExportServiceUpdateAirMasterWaybill(
-              { id: masterId },
-              {
-                ...payload,
-                inputFingerprint: impact.response.inputFingerprint,
-                reason: values.reason,
-              },
-            );
-            if (!isWriteResponse(response, true)) return false;
-            if (!stillCurrent()) return false;
-            requireAirMasterIdentity(
-              response.data,
-              masterId,
-              organizationId,
-              businessType,
-            );
-            await reload();
-            return stillCurrent();
+            setEditWritePending(true);
+            let saved = false;
+            try {
+              const response = await airExportServiceUpdateAirMasterWaybill(
+                { id: masterId },
+                {
+                  ...payload,
+                  inputFingerprint: impact.response.inputFingerprint,
+                  reason: values.reason,
+                },
+              );
+              if (!isWriteResponse(response, true)) return false;
+              if (!stillCurrent()) return false;
+              requireAirMasterIdentity(
+                response.data,
+                masterId,
+                organizationId,
+                businessType,
+              );
+              await reload();
+              saved = stillCurrent();
+              return saved;
+            } finally {
+              if (!saved) setEditWritePending(false);
+            }
           }}
         >
           {masterChanged && (

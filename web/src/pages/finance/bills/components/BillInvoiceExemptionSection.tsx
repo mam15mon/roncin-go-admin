@@ -122,6 +122,8 @@ function ExemptionActions({
   const { message, modal } = App.useApp();
   const [form] = Form.useForm<{ reason: string }>();
   const [operation, setOperation] = useState<Operation>();
+  // 本人写入在途期间冻结变动提示；成功后弹窗随即关闭，保持冻结直到下次打开。
+  const [ownWritePending, setOwnWritePending] = useState(false);
   const guard = useAsyncGuard();
   const refreshConfirmRef = useRef<
     ReturnType<typeof modal.confirm> | undefined
@@ -144,6 +146,7 @@ function ExemptionActions({
     billId: operation?.billId,
     version: operation?.expectedVersion,
     enabled: Boolean(operation),
+    ownWritePending,
   });
   useEffect(
     () => () => {
@@ -190,6 +193,7 @@ function ExemptionActions({
           onClick={() => {
             if (!editable || (!active && hasInvoice)) return;
             form.resetFields();
+            setOwnWritePending(false);
             setOperation({
               billId: bill.id as string,
               organizationId: bill.organizationId as string,
@@ -222,6 +226,7 @@ function ExemptionActions({
           )
             return false;
           let saved = false;
+          setOwnWritePending(true);
           try {
             await guard.run(
               ({ signal }) => {
@@ -260,6 +265,9 @@ function ExemptionActions({
           } catch (error) {
             message.error(getErrorMessage(error, `${title}失败`));
             return false;
+          } finally {
+            // 失败保留弹窗与输入，恢复检查；成功时弹窗关闭，冻结至下次打开。
+            if (!saved) setOwnWritePending(false);
           }
         }}
       >

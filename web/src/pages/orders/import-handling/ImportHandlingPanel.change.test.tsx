@@ -103,7 +103,7 @@ describe('进口服务编辑基线与输入保护', () => {
     ).toBeDisabled();
   });
 
-  it('父聚合重读等待期间重新读取新服务稿，旧保存回调不得关闭新稿', async () => {
+  it('本人保存等待父聚合重读期间版本推进不误报变动，完成后正常关闭且面板不闪回读取态', async () => {
     let finishParent!: () => void;
     const onSaved = () =>
       new Promise<void>((resolve) => {
@@ -117,39 +117,52 @@ describe('进口服务编辑基线与输入保护', () => {
       within(dialog).getByRole('button', { name: '保存服务资料' }),
     );
     await waitFor(() => expect(finishParent).toBeTypeOf('function'));
+    // 父聚合按本人写响应推进订单版本，服务探测同时读到本人写入后的版本。
     services.get.mockResolvedValue(response('8'));
     view.rerender(view.ui('8'));
-    await within(dialog).findByText('这个订单已经发生变动，请重新刷新。');
-    fireEvent.click(within(dialog).getByRole('button', { name: '重新读取' }));
-    const confirmation = screen
-      .getAllByRole('dialog')
-      .find(
-        (item) => within(item).queryAllByText('重新读取服务资料？').length > 0,
-      );
-    expect(confirmation).toBeDefined();
-    fireEvent.click(
-      within(confirmation as HTMLElement).getByRole('button', {
-        name: '确 定',
-      }),
-    );
-    await waitFor(() => expect(dialog).not.toBeInTheDocument());
-    const next = await waitFor(() => {
-      const current = screen
-        .getAllByRole('dialog')
-        .find((item) =>
-          within(item).queryByRole('checkbox', { name: '承接提货' }),
-        );
-      expect(current).toBeDefined();
-      return current as HTMLElement;
-    });
-    fireEvent.click(within(next).getByRole('checkbox', { name: '承接提货' }));
-    const notes = await within(next).findByRole('textbox', {
-      name: '提货备注',
-    });
-    fireEvent.change(notes, { target: { value: '新会话不可被旧保存关闭' } });
+    await flush();
+    expect(
+      screen.queryByText('这个订单已经发生变动，请重新刷新。'),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('正在读取进口服务…')).not.toBeInTheDocument();
+    expect(dialog).toBeVisible();
     await act(async () => finishParent());
-    expect(next).toBeVisible();
-    expect(notes).toHaveValue('新会话不可被旧保存关闭');
+    await waitFor(() => expect(dialog).not.toBeInTheDocument());
+    await flush();
+    expect(
+      screen.queryByText('这个订单已经发生变动，请重新刷新。'),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('正在读取进口服务…')).not.toBeInTheDocument();
+  });
+
+  it('本人保存失败后恢复比较，期间他人推进的版本仍提示', async () => {
+    let fail!: () => void;
+    services.save.mockImplementation(
+      () =>
+        new Promise((_, reject) => {
+          fail = () => reject(new Error('保存失败'));
+        }),
+    );
+    const view = renderPanel();
+    const dialog = await openEditor();
+    fireEvent.click(within(dialog).getByRole('checkbox', { name: '承接清关' }));
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: '保存服务资料' }),
+    );
+    await waitFor(() => expect(services.save).toHaveBeenCalledTimes(1));
+    services.get.mockResolvedValue(response('8'));
+    view.rerender(view.ui('8'));
+    await flush();
+    expect(
+      within(dialog).queryByText('这个订单已经发生变动，请重新刷新。'),
+    ).not.toBeInTheDocument();
+    await act(async () => fail());
+    await waitFor(() =>
+      expect(
+        within(dialog).getByText('这个订单已经发生变动，请重新刷新。'),
+      ).toBeVisible(),
+    );
+    expect(dialog).toBeVisible();
   });
 
   it('当前公司不符或缺读取权限时不请求，父提交基线变化不自动借新服务版本', async () => {

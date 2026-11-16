@@ -72,18 +72,23 @@
   迟到隔离、输入保留以及刷新取消/成功/失败。规则约束新建或正在修改的协作编辑页，
   既有全站页面迁移另行明确范围。
 - 变动检查目前**没有全站公共 Hook**，各页按实体独立实现，修改一处的本人保存处理
-  不会自动覆盖其他页面。现状（2026-11-16 盘点）：
+  不会自动覆盖其他页面。现状（2026-11-16 盘点并修复）：
 
-  | 页面 / Hook | 写入在途 | 采纳响应后 | 备注 |
+  | 页面 / Hook | 写入在途 | 采纳响应后 | 状态 |
   |---|---|---|---|
-  | 费用页 `orders/use-fee-change-notice.ts` | `setOwnWritePending` 暂停 | `staleProbe` 屏蔽旧探测 | 已修复，提交 `8b7d2ea5` |
+  | 费用页 `orders/use-fee-change-notice.ts` | `setOwnWritePending` 暂停比较 | `staleProbe` 屏蔽旧探测 | 已覆盖 |
   | 订单详情 `orders/use-order-change-notice.ts` | `paused`（saving/loading/refreshing） | `acceptTransition` 只清除等于写响应的观察 | 已覆盖 |
-  | HBL `orders/hbl/use-hbl-data.ts`、拆票 `orders/split.tsx` | `paused` / `submitting` 暂停轮询 | 未逐项核对 | 待核对 |
-  | 账单 `finance/bills/components/use-bill-change-notice.ts` | **未暂停**，在途时可能短暂闪现 | 「探测 > 当前版本」天然不误报 | 待评估 |
-  | 空运主单 `orders/air-master-change-notice.ts` | **未暂停**，一旦观察到差异即按 session 粘滞 | 依赖父级更新 baseline / session | 待评估 |
-  | AWB `orders/awb/use-awb-data.ts`、进口操作 `ImportHandlingPanel.tsx` | 未核对 | 未核对 | 待核对 |
+  | 账单 `finance/bills/components/use-bill-change-notice.ts`（费用维护、无需发票弹窗） | `ownWritePending` 暂停轮询并冻结提示 | 「探测 > 当前版本」天然不误报；pending 与 `onUpdated` 同批结束 | 已覆盖 |
+  | 空运主单 `orders/air-master-change-notice.ts`（主单页、订单内运输维护） | `ownWritePending` 暂停探测且不记录差异；写后 `invalidateQueries(['air-orders'])` 不再重查 | 成功后弹窗关闭，pending 保持至关闭 | 已覆盖 |
+  | 进口操作 `orders/import-handling/ImportHandlingPanel.tsx` | `ownWritePending` 暂停比较（含父聚合与服务重读）；面板与弹窗横幅均屏蔽 | 成功后 pending 保持至弹窗关闭；同订单保留上一份快照占位，换键时不闪回「正在读取」 | 已覆盖 |
+  | HBL `orders/hbl/use-hbl-data.ts` | `paused=busy` 停止轮询 | 采纳后 base 变化，查询键与提醒随之更换 | 已覆盖；仅剩「保存前一刻发出的探测在服务端读到本人写入」的极小竞态 |
+  | AWB `orders/awb/use-awb-data.ts` | `enabled=!busy` 停止轮询 | 采纳后 session 递增，查询键与提醒随之更换 | 同 HBL |
+  | 拆票 `orders/split.tsx` | `submitting` 停止轮询 | 采纳拆票结果后更新基线 | 同 HBL |
 
-  新增或修改上述页面时按两个窗口补齐并更新本表；若后续统一为公共 Hook，须另行确认范围。
+  写入在途窗口的统一做法：写请求发出前置 pending，在采纳写响应（推进版本/基线）的
+  **同一同步回调**中结束；若成功后编辑弹窗随即关闭，则保持 pending 直至关闭并在下次
+  打开时复位；失败立即结束以恢复比较。新增或修改上述页面时按两个窗口补齐并更新本表；
+  若后续统一为公共 Hook，须另行确认范围。
 
 ### 事件驱动型请求处置约定
 
