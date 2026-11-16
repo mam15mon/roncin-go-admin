@@ -35,6 +35,7 @@ import {
 import type { TemplateProps } from '../../types';
 import { TemplateControlGroup, TemplateFieldGroup } from '../FieldGroup';
 import { SeaCollapsibleNotesField } from '../sea/SeaCollapsibleNotesField';
+import { AirNotesFields, getAirCommercialFields } from './AirCommercialFields';
 
 type AirMasterFieldProps = Pick<
   TemplateProps,
@@ -205,57 +206,54 @@ export function AirMasterDeclarationFields({
   prefix?: string[];
 }) {
   const name = (key: string) => [...prefix, key];
+  // 截单、报关截止、单证状态与申报件重尺恰好六格，同一网格一行排满。
   return (
-    <>
-      <FormRow cols={6} style={{ rowGap: 4 }}>
-        <ProFormDateTimePicker
-          name={name('documentCutoffAt')}
-          label="截单时间"
-          disabled={props.readonly}
-          fieldProps={{ style: { width: '100%' } }}
-        />
-        <ProFormDateTimePicker
-          name={name('customsCutoffAt')}
-          label="报关截止"
-          disabled={props.readonly}
-          fieldProps={{ style: { width: '100%' } }}
-        />
-        <ProFormSearchableSelect
-          name={name('status')}
-          label="主单单证状态"
-          initialValue="DRAFT"
-          options={[
-            { label: '资料待完善', value: 'DRAFT' },
-            { label: '已确认', value: 'CONFIRMED' },
-            { label: '已签发', value: 'RELEASED' },
-          ]}
-          disabled={props.readonly}
-        />
-      </FormRow>
-      <FormRow cols={6} style={{ rowGap: 4 }}>
-        <ProFormDigit
-          name={name('declaredPackages')}
-          label="主单申报件数"
-          min={0}
-          disabled={props.readonly}
-          fieldProps={{ precision: 0 }}
-        />
-        <ProFormDigit
-          name={name('declaredGrossWeightKg')}
-          label="主单申报毛重（KG）"
-          min={0}
-          disabled={props.readonly}
-          fieldProps={{ precision: 3 }}
-        />
-        <ProFormDigit
-          name={name('declaredVolumeCbm')}
-          label="主单申报体积（m³）"
-          min={0}
-          disabled={props.readonly}
-          fieldProps={{ precision: 3 }}
-        />
-      </FormRow>
-    </>
+    <FormRow cols={6} style={{ rowGap: 4 }}>
+      <ProFormDateTimePicker
+        name={name('documentCutoffAt')}
+        label="截单时间"
+        disabled={props.readonly}
+        fieldProps={{ style: { width: '100%' } }}
+      />
+      <ProFormDateTimePicker
+        name={name('customsCutoffAt')}
+        label="报关截止"
+        disabled={props.readonly}
+        fieldProps={{ style: { width: '100%' } }}
+      />
+      <ProFormSearchableSelect
+        name={name('status')}
+        label="主单单证状态"
+        initialValue="DRAFT"
+        options={[
+          { label: '资料待完善', value: 'DRAFT' },
+          { label: '已确认', value: 'CONFIRMED' },
+          { label: '已签发', value: 'RELEASED' },
+        ]}
+        disabled={props.readonly}
+      />
+      <ProFormDigit
+        name={name('declaredPackages')}
+        label="主单申报件数"
+        min={0}
+        disabled={props.readonly}
+        fieldProps={{ precision: 0 }}
+      />
+      <ProFormDigit
+        name={name('declaredGrossWeightKg')}
+        label="主单申报毛重（KG）"
+        min={0}
+        disabled={props.readonly}
+        fieldProps={{ precision: 3 }}
+      />
+      <ProFormDigit
+        name={name('declaredVolumeCbm')}
+        label="主单申报体积（m³）"
+        min={0}
+        disabled={props.readonly}
+        fieldProps={{ precision: 3 }}
+      />
+    </FormRow>
   );
 }
 
@@ -291,10 +289,28 @@ export function AirMasterFields({
   );
 }
 
+const AIR_DOCUMENT_MODE_OUTPUT_ID = 'airDocumentModeDisplay';
+
+/** 详情只读展示单证模式，与同行输入框等高对齐（同海运提单模式）。 */
+function AirDocumentModeValue({ direct }: { direct: boolean }) {
+  return (
+    <output
+      id={AIR_DOCUMENT_MODE_OUTPUT_ID}
+      aria-label="当前航空单证模式"
+      style={{ display: 'flex', alignItems: 'center', height: 32 }}
+    >
+      <Tag color="blue" style={{ margin: 0, paddingInline: 10 }}>
+        {direct ? '直单（DIRECT，无 HAWB）' : '主分单（HOUSE）'}
+      </Tag>
+    </output>
+  );
+}
+
 /**
- * 「订舱与运输」卡片：主单与订舱 / 航线与班期 / 时刻与申报三个小节，
- * 主单备注与操作备注使用可折叠交互。主单关联方式、共享主单选择、
- * masterId 预选与同号提示逻辑原样保留在「主单与订舱」小节。
+ * 「订舱与运输」卡片：与海运同节奏，主单与订舱 / 航线与班期 / 时刻与申报 /
+ * 备注四个小节。首行承载单证模式、主单关联方式、订舱号与订舱/国外代理；
+ * 主单备注随新建主单字段出现，本票四类备注统一在「备注」小节折叠维护。
+ * 主单关联方式、共享主单选择、masterId 预选与同号提示逻辑保持不变。
  */
 export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
   const form = Form.useFormInstance();
@@ -378,6 +394,7 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
     requestedMasterId,
   ]);
   const masterEditable = !props.isDetail && mode === 'NEW';
+  const commercial = getAirCommercialFields(props);
   const master = props.isDetail
     ? (props.airTransportSnapshot ?? air?.master)
     : selectedIdentity;
@@ -388,38 +405,67 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
         <Alert type="error" showIcon title="所选主单加载失败，请重新选择。" />
       )}
       <TemplateFieldGroup title={isImport ? '承运与主单' : '主单与订舱'}>
-        <TemplateControlGroup title="航空单证模式" required>
-          <Form.Item
-            name="airDocumentMode"
-            rules={[{ required: true, message: '请选择航空单证模式' }]}
-          >
-            {props.isDetail ? (
-              <Tag color="blue">
-                {documentMode === 'DIRECT' || air?.documentMode === 'DIRECT'
-                  ? '直单（DIRECT，无 HAWB）'
-                  : '主分单（HOUSE）'}
-              </Tag>
-            ) : (
-              <Radio.Group
-                aria-label="航空单证模式"
-                disabled={props.readonly || props.isDetail}
-                options={[
-                  { label: '主分单（HOUSE）', value: 'HOUSE' },
-                  { label: '直单（DIRECT，无 HAWB）', value: 'DIRECT' },
-                ]}
-                onChange={() => {
-                  if (mode === 'EXISTING')
-                    form.setFieldsValue({
-                      airMasterId: undefined,
-                      airMasterExpectedVersion: undefined,
-                      airMasterSelection: undefined,
-                      airMaster: undefined,
-                    });
-                }}
-              />
-            )}
-          </Form.Item>
-        </TemplateControlGroup>
+        {/* 与海运「提单模式」同规格：单证模式入首行字段格，订舱号与代理同行。 */}
+        <FormRow cols={6} style={{ rowGap: 4 }}>
+          <FormCell span={2}>
+            <Form.Item
+              name="airDocumentMode"
+              label="航空单证模式"
+              htmlFor={AIR_DOCUMENT_MODE_OUTPUT_ID}
+              rules={[{ required: true, message: '请选择航空单证模式' }]}
+            >
+              {props.isDetail ? (
+                <AirDocumentModeValue
+                  direct={
+                    documentMode === 'DIRECT' || air?.documentMode === 'DIRECT'
+                  }
+                />
+              ) : (
+                <Radio.Group
+                  id={AIR_DOCUMENT_MODE_OUTPUT_ID}
+                  aria-label="航空单证模式"
+                  disabled={props.readonly}
+                  options={[
+                    { label: '主分单（HOUSE）', value: 'HOUSE' },
+                    { label: '直单（DIRECT，无 HAWB）', value: 'DIRECT' },
+                  ]}
+                  onChange={() => {
+                    if (mode === 'EXISTING')
+                      form.setFieldsValue({
+                        airMasterId: undefined,
+                        airMasterExpectedVersion: undefined,
+                        airMasterSelection: undefined,
+                        airMaster: undefined,
+                      });
+                  }}
+                />
+              )}
+            </Form.Item>
+          </FormCell>
+          {!props.isDetail && (
+            <FormCell span={2}>
+              <TemplateControlGroup title="主单关联方式">
+                <Form.Item name="airMasterMode" style={{ marginBottom: 0 }}>
+                  <Radio.Group
+                    aria-label="主单关联方式"
+                    options={[
+                      { label: '新建主单', value: 'NEW' },
+                      { label: '明确关联已有主单', value: 'EXISTING' },
+                    ]}
+                  />
+                </Form.Item>
+              </TemplateControlGroup>
+            </FormCell>
+          )}
+          <FormCell span={2}>
+            <ProFormText
+              name="bookingNo"
+              label="订舱号"
+              disabled={props.readonly}
+            />
+          </FormCell>
+          {commercial.agents}
+        </FormRow>
         <Form.Item name="airMaster" hidden>
           <span />
         </Form.Item>
@@ -438,19 +484,6 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
               <span />
             </Form.Item>
           </>
-        )}
-        {!props.isDetail && (
-          <TemplateControlGroup title="主单关联方式">
-            <Form.Item name="airMasterMode" style={{ marginBottom: 0 }}>
-              <Radio.Group
-                aria-label="主单关联方式"
-                options={[
-                  { label: '新建主单', value: 'NEW' },
-                  { label: '明确关联已有主单', value: 'EXISTING' },
-                ]}
-              />
-            </Form.Item>
-          </TemplateControlGroup>
         )}
         {!props.isDetail && mode === 'EXISTING' && (
           <>
@@ -593,13 +626,6 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
             </Button>
           </Space>
         )}
-        <FormRow cols={6} style={{ rowGap: 4 }}>
-          <ProFormText
-            name="bookingNo"
-            label="订舱号"
-            disabled={props.readonly}
-          />
-        </FormRow>
         {masterEditable && (
           <>
             <AirMasterRouteFields props={props} />
@@ -634,13 +660,9 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
           <AirMasterTransportSummary master={master} />
         </TemplateFieldGroup>
       )}
-      <SeaCollapsibleNotesField
-        name="operationNotes"
-        label="操作备注"
-        placeholder="请输入操作备注"
-        disabled={props.readonly}
-        sectionHeading
-      />
+      <TemplateFieldGroup title="备注">
+        <AirNotesFields disabled={props.readonly} />
+      </TemplateFieldGroup>
     </div>
   );
 }

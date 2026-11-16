@@ -119,11 +119,11 @@ describe('AE 新建与详情五卡片合同', () => {
     ).toEqual(expected);
   });
 
-  it('订舱与运输卡按小节分组编排：主单与订舱 / 航线与班期 / 时刻与申报', async () => {
+  it('订舱与运输卡按小节分组编排：主单与订舱 / 航线与班期 / 时刻与申报 / 备注', async () => {
     renderWithApp(<SectionCards />, { user });
     const booking = screen.getByRole('region', { name: '订舱与运输' });
     // textContent 顺序即 DOM 顺序：三个小节标题按固定顺序出现。
-    const groupIndexes = ['主单与订舱', '航线与班期', '时刻与申报'].map(
+    const groupIndexes = ['主单与订舱', '航线与班期', '时刻与申报', '备注'].map(
       (title) => booking.textContent?.indexOf(title) ?? -1,
     );
     expect(groupIndexes.every((index) => index >= 0)).toBe(true);
@@ -141,12 +141,31 @@ describe('AE 新建与详情五卡片合同', () => {
       masterNotes.compareDocumentPosition(operationNotes) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
-    // 订舱号归入订舱与运输卡的主单小节；不渲染海运专属备注字段。
-    expect(booking).toHaveTextContent('订舱号');
-    expect(booking).toHaveTextContent('主运单号（MAWB）');
-    expect(booking).toHaveTextContent('航班号');
-    expect(booking).not.toHaveTextContent('订舱备注');
-    expect(booking).not.toHaveTextContent('配舱备注');
+    // 与海运同节奏：订舱号、订舱/国外代理归入主单小节，四类本票备注集中在「备注」小节。
+    for (const label of [
+      '订舱号',
+      '订舱代理',
+      '国外代理',
+      '主运单号（MAWB）',
+      '航班号',
+    ]) {
+      expect(booking).toHaveTextContent(label);
+    }
+    const noteIds = [
+      'bookingNotes',
+      'allocationNotes',
+      'operationNotes',
+      'notes',
+    ];
+    const noteNodes = noteIds.map((id) =>
+      within(booking).getByTestId(`sea-notes-${id}`),
+    );
+    noteNodes.slice(1).forEach((node, index) => {
+      expect(
+        noteNodes[index].compareDocumentPosition(node) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    });
     await flushMountRequests();
   });
 
@@ -289,27 +308,25 @@ describe('AE 新建与详情五卡片合同', () => {
     );
     const business = screen.getByRole('region', { name: '业务与客户' });
     const cargo = screen.getByRole('region', { name: '货物与商业' });
-    for (const label of [
-      '集运/跨境',
-      '贸易条款',
-      '业务付款方式',
-      '订舱代理',
-      '国外代理',
-      '合约号',
-    ]) {
-      expect(business).toHaveTextContent(label);
+    // 与海运同归属：业务卡只留客户、单号与集运/跨境；经营条款与金额随货物卡，备注不在货物卡。
+    expect(business).toHaveTextContent('集运/跨境');
+    for (const label of ['贸易条款', '业务付款方式', '合约号', '订舱代理']) {
+      expect(business).not.toHaveTextContent(label);
     }
     for (const label of [
+      '贸易条款',
+      '业务付款方式',
+      '合约号',
       '货值',
       '保费',
       '工厂',
       '接单时间',
       '货好时间',
-      '订舱备注',
-      '配舱备注',
-      '普通备注',
     ]) {
       expect(cargo).toHaveTextContent(label);
+    }
+    for (const label of ['订舱备注', '配舱备注', '普通备注']) {
+      expect(cargo).not.toHaveTextContent(label);
     }
     expect(
       screen.getAllByRole('combobox', { name: '业务付款方式' }),
