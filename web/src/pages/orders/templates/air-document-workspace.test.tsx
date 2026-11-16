@@ -72,8 +72,11 @@ describe('航空订单就近单证', () => {
     );
     fireEvent.click(screen.getByRole('tab', { name: '主运单 MAWB' }));
     const master = screen.getByRole('tabpanel', { name: '主运单 MAWB' });
-    expect(within(master).getByText('共享主单发货人')).toBeVisible();
-    expect(within(master).queryByRole('textbox')).toBeNull();
+    const readonlyShipper = within(master).getByRole('textbox', {
+      name: '发货人名称与地址',
+    });
+    expect(readonlyShipper).toHaveValue('共享主单发货人');
+    expect(readonlyShipper).toHaveAttribute('readonly');
     fireEvent.click(screen.getByRole('tab', { name: '分运单 HAWB' }));
     expect(
       screen.getByRole('textbox', { name: '发货人名称与地址' }),

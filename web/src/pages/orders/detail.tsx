@@ -82,6 +82,8 @@ import {
   seaDocumentFormValues,
 } from './sea-document-form';
 import { revealSeaFormErrors } from './templates';
+import { airDocumentImportPatch } from './templates/air-document-import';
+import type { TemplateProps } from './templates/types';
 import { useOrderAbnormalEntry } from './use-order-abnormal-entry';
 import { useOrderChangeNotice } from './use-order-change-notice';
 import { useOrderDetailData } from './use-order-detail-data';
@@ -591,7 +593,7 @@ export default function OrderDetailPage() {
   const creatorUserId = personnel.find(
     (item) => item.role === OrderPersonnelRole.ORDER_PERSONNEL_ROLE_CREATOR,
   )?.userId;
-  const templateProps = useMemo(
+  const templateProps = useMemo<TemplateProps>(
     () => ({
       businessType: definition?.businessType,
       orderKind: definition?.kind,
@@ -605,6 +607,10 @@ export default function OrderDetailPage() {
       seaHouseOrderSourceOrderId: order?.id,
       seaDocuments: currentDocuments,
       airTransportSnapshot: order?.airExport?.master,
+      onAirDocumentImport: (...args) =>
+        templateActionsRef.current?.applyValues(
+          airDocumentImportPatch(...args),
+        ),
       searchCustomers: withSeededOptions(
         (keyword?: string) =>
           searchPartnersByRole(PARTNER_ROLES.CUSTOMER, keyword),

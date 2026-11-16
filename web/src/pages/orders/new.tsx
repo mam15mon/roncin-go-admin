@@ -39,7 +39,11 @@ import {
   resolveSeaHouseOrderCreateRequest,
 } from './sea-house-order-context';
 import { revealSeaFormErrors } from './templates';
-import type { SeaHouseOrderCreateSource } from './templates/types';
+import { airDocumentImportPatch } from './templates/air-document-import';
+import type {
+  SeaHouseOrderCreateSource,
+  TemplateProps,
+} from './templates/types';
 import { useOrderCreateOptions } from './use-order-create-options';
 import { useSeaOrderCreate } from './use-sea-order-create';
 
@@ -169,7 +173,7 @@ function NewOrderContent({
     canCreate && !sourceRequest.error && (!sourceOrderId || canUseSource),
   );
 
-  const templateProps = useMemo(
+  const templateProps = useMemo<TemplateProps>(
     () => ({
       businessType: definition?.businessType,
       orderKind: definition?.kind,
@@ -191,6 +195,8 @@ function NewOrderContent({
       personnelOptions,
       organizationId,
       seaHouseOrderCreateSource: source,
+      onAirDocumentImport: (...args) =>
+        actionsRef.current?.applyValues(airDocumentImportPatch(...args)),
       creator: initialState?.currentUser?.id
         ? {
             userId: initialState.currentUser.id,

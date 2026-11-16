@@ -9,6 +9,10 @@ import { useEffect, useState } from 'react';
 import { FormCell, FormRow, ProFormSearchableSelect } from '@/components/ui';
 import { formatAmount } from '@/utils/format';
 import { onSeaFormErrorReveal } from '../../sea-form-error-reveal';
+import {
+  type AirDocumentImport,
+  AirOrderWaybillFields,
+} from './AirOrderWaybillFields';
 
 type Path = (string | number)[];
 type Props = { prefix: Path; disabled?: boolean };
@@ -387,13 +391,15 @@ export function AirWaybillFields({
   prefix,
   disabled,
   variant = 'full',
-}: Props & { variant?: 'full' | 'order' }) {
+  onImport,
+}: Props & { variant?: 'full' | 'order'; onImport?: AirDocumentImport }) {
   const form = Form.useFormInstance();
   const value = Form.useWatch(prefix, { form, preserve: true }) as
     | API.AirWaybillContent
     | undefined;
   const compact = variant === 'order';
   const textProps = { prefix, disabled, dense: compact };
+  const [moreOpen, setMoreOpen] = useState(false);
   const [openSections, setOpenSections] = useState<string[]>([]);
   const prefixKey = JSON.stringify(prefix);
   useEffect(
@@ -402,248 +408,269 @@ export function AirWaybillFields({
         const path = JSON.parse(prefixKey) as Path;
         const name = fields[0]?.name;
         if (!name || !path.every((part, index) => part === name[index])) return;
-        const section = fieldSection(String(name[path.length]));
+        const field = String(name[path.length]);
+        if (
+          compact &&
+          (commonPartyKeys.has(field as keyof API.AirWaybillContent) ||
+            commonCargoKeys.has(field as keyof API.AirWaybillContent))
+        )
+          return;
+        setMoreOpen(true);
+        const section = fieldSection(field);
         setOpenSections((current) =>
           current.includes(section) ? current : [...current, section],
         );
       }),
-    [prefixKey],
+    [prefixKey, compact],
+  );
+  const additional = (
+    <Collapse
+      size="small"
+      activeKey={openSections}
+      onChange={(keys) =>
+        setOpenSections(Array.isArray(keys) ? keys.map(String) : [String(keys)])
+      }
+      items={[
+        {
+          key: 'parties',
+          label: '收发货人与代理',
+          children: (
+            <TextFields
+              {...textProps}
+              fields={
+                compact
+                  ? parties.filter(([key]) => !commonPartyKeys.has(key))
+                  : parties
+              }
+            />
+          ),
+        },
+        {
+          key: 'routing',
+          label: '路线与航班印字',
+          children: (
+            <>
+              <Typography.Paragraph type="secondary">
+                以下为运单印字，实际运输机场、航班及时间在共同运输资料中维护。
+              </Typography.Paragraph>
+              <TextFields {...textProps} fields={routing} />
+              <ProFormText
+                name={[...prefix, 'flightDate']}
+                label="航班日期"
+                disabled={disabled}
+                fieldProps={{ type: 'date' }}
+              />
+            </>
+          ),
+        },
+        {
+          key: 'information',
+          label: '账务、处理与货物印字',
+          children: (
+            <TextFields
+              {...textProps}
+              fields={
+                compact
+                  ? information.filter(([key]) => !commonCargoKeys.has(key))
+                  : information
+              }
+            />
+          ),
+        },
+        {
+          key: 'declarations',
+          label: '币种、声明值与付款',
+          children: (
+            <>
+              <FormRow cols={4}>
+                <ProFormText
+                  name={[...prefix, 'currency']}
+                  label="运单币种"
+                  disabled={disabled}
+                  rules={[
+                    {
+                      pattern: /^[A-Z]{3}$/,
+                      message: '请输入三位大写币种，如 CNY',
+                    },
+                  ]}
+                  fieldProps={{ maxLength: 3 }}
+                />
+                <ProFormText
+                  name={[...prefix, 'chargeCode']}
+                  label="费用代码"
+                  disabled={disabled}
+                  fieldProps={{ maxLength: 200 }}
+                />
+                <ProFormSearchableSelect
+                  name={[...prefix, 'weightPayment']}
+                  label="重量费用付款"
+                  disabled={disabled}
+                  options={paymentOptions}
+                />
+                <ProFormSearchableSelect
+                  name={[...prefix, 'otherPayment']}
+                  label="其他费用付款"
+                  disabled={disabled}
+                  options={paymentOptions}
+                />
+              </FormRow>
+              <FormRow cols={3}>
+                <DeclaredValueFields
+                  {...textProps}
+                  field="carriageValue"
+                  token="NVD"
+                  label="运输声明价值"
+                />
+                <DeclaredValueFields
+                  {...textProps}
+                  field="customsValue"
+                  token="NCV"
+                  label="海关声明价值"
+                />
+                <DeclaredValueFields
+                  {...textProps}
+                  field="insuranceValue"
+                  token="XXX"
+                  label="保险声明"
+                />
+              </FormRow>
+            </>
+          ),
+        },
+        {
+          key: 'rates',
+          label: '运价明细',
+          children: (
+            <>
+              <ProFormCheckbox
+                name={[...prefix, 'asArranged']}
+                disabled={disabled}
+              >
+                AS ARRANGED（运费按约定，不记为零）
+              </ProFormCheckbox>
+              <Alert
+                type="info"
+                showIcon
+                title="金额按各行明确录入"
+                description="费率与计费重分别保留；系统按各行金额汇总，不自动报价。填写运价行时须明确运单币种和重量费用付款。"
+                style={{ marginBottom: 12 }}
+              />
+              <RateLines {...textProps} />
+            </>
+          ),
+        },
+        {
+          key: 'charges',
+          label: '其他费用与汇总',
+          children: (
+            <>
+              <OtherCharges {...textProps} />
+              <FormRow cols={4}>
+                {(['prepaid', 'collect'] as const).flatMap((payment) => [
+                  <DecimalField
+                    key={`${payment}-valuation`}
+                    name={[...prefix, payment, 'valuationCharge']}
+                    label={`${payment === 'prepaid' ? '预付' : '到付'}估价费`}
+                    disabled={disabled}
+                  />,
+                  <DecimalField
+                    key={`${payment}-tax`}
+                    name={[...prefix, payment, 'tax']}
+                    label={`${payment === 'prepaid' ? '预付' : '到付'}税额`}
+                    disabled={disabled}
+                  />,
+                ])}
+              </FormRow>
+              <Typography.Paragraph type="secondary">
+                保存时按币种与付款栏计算运费、代理/承运人其他费用及合计；未确定运费与
+                AS ARRANGED 不视为零。上次保存合计：预付{' '}
+                {formatAmount(value?.prepaid?.total || undefined)} / 到付{' '}
+                {formatAmount(value?.collect?.total || undefined)}。
+              </Typography.Paragraph>
+              <FormRow cols={3}>
+                <ProFormText
+                  name={[...prefix, 'destinationCurrency']}
+                  label="目的地币种"
+                  disabled={disabled}
+                  rules={[
+                    { pattern: /^[A-Z]{3}$/, message: '请输入三位大写币种' },
+                  ]}
+                  fieldProps={{ maxLength: 3 }}
+                />
+                {(
+                  [
+                    'currencyConversionRate',
+                    'destinationCollectCharge',
+                    'chargesAtDestination',
+                    'totalCollect',
+                  ] as const
+                ).map((key, index) => (
+                  <DecimalField
+                    key={key}
+                    name={[...prefix, key]}
+                    label={
+                      [
+                        '目的地换算汇率',
+                        '目的地到付费',
+                        '目的地费用',
+                        '到付总额',
+                      ][index]
+                    }
+                    disabled={disabled}
+                  />
+                ))}
+              </FormRow>
+            </>
+          ),
+        },
+        {
+          key: 'signatures',
+          label: '签发与备注',
+          children: (
+            <>
+              <ProFormText
+                name={[...prefix, 'issueDate']}
+                label="签发日期"
+                disabled={disabled}
+                fieldProps={{ type: 'date' }}
+              />
+              <TextFields {...textProps} fields={signatures} />
+            </>
+          ),
+        },
+      ]}
+    />
   );
   return (
     <>
       <Form.Item name={prefix} hidden>
         <span />
       </Form.Item>
-      {compact && (
+      {compact ? (
         <>
-          <TextFields
-            {...textProps}
-            fields={parties.filter(([key]) => commonPartyKeys.has(key))}
+          <AirOrderWaybillFields
+            prefix={prefix}
+            disabled={disabled}
+            onImport={onImport}
           />
-          <TextFields
-            {...textProps}
-            fields={information.filter(([key]) => commonCargoKeys.has(key))}
+          <Collapse
+            size="small"
+            activeKey={moreOpen ? ['more'] : []}
+            onChange={(keys) => setMoreOpen(keys.length > 0)}
+            items={[
+              {
+                key: 'more',
+                label: '更多运单资料',
+                forceRender: true,
+                children: additional,
+              },
+            ]}
+            style={{ marginTop: 16 }}
           />
         </>
+      ) : (
+        additional
       )}
-      <Collapse
-        size="small"
-        activeKey={openSections}
-        onChange={(keys) =>
-          setOpenSections(
-            Array.isArray(keys) ? keys.map(String) : [String(keys)],
-          )
-        }
-        items={[
-          {
-            key: 'parties',
-            label: '收发货人与代理',
-            children: (
-              <TextFields
-                {...textProps}
-                fields={
-                  compact
-                    ? parties.filter(([key]) => !commonPartyKeys.has(key))
-                    : parties
-                }
-              />
-            ),
-          },
-          {
-            key: 'routing',
-            label: '路线与航班印字',
-            children: (
-              <>
-                <Typography.Paragraph type="secondary">
-                  以下为运单印字，实际运输机场、航班及时间在共同运输资料中维护。
-                </Typography.Paragraph>
-                <TextFields {...textProps} fields={routing} />
-                <ProFormText
-                  name={[...prefix, 'flightDate']}
-                  label="航班日期"
-                  disabled={disabled}
-                  fieldProps={{ type: 'date' }}
-                />
-              </>
-            ),
-          },
-          {
-            key: 'information',
-            label: '账务、处理与货物印字',
-            children: (
-              <TextFields
-                {...textProps}
-                fields={
-                  compact
-                    ? information.filter(([key]) => !commonCargoKeys.has(key))
-                    : information
-                }
-              />
-            ),
-          },
-          {
-            key: 'declarations',
-            label: '币种、声明值与付款',
-            children: (
-              <>
-                <FormRow cols={4}>
-                  <ProFormText
-                    name={[...prefix, 'currency']}
-                    label="运单币种"
-                    disabled={disabled}
-                    rules={[
-                      {
-                        pattern: /^[A-Z]{3}$/,
-                        message: '请输入三位大写币种，如 CNY',
-                      },
-                    ]}
-                    fieldProps={{ maxLength: 3 }}
-                  />
-                  <ProFormText
-                    name={[...prefix, 'chargeCode']}
-                    label="费用代码"
-                    disabled={disabled}
-                    fieldProps={{ maxLength: 200 }}
-                  />
-                  <ProFormSearchableSelect
-                    name={[...prefix, 'weightPayment']}
-                    label="重量费用付款"
-                    disabled={disabled}
-                    options={paymentOptions}
-                  />
-                  <ProFormSearchableSelect
-                    name={[...prefix, 'otherPayment']}
-                    label="其他费用付款"
-                    disabled={disabled}
-                    options={paymentOptions}
-                  />
-                </FormRow>
-                <FormRow cols={3}>
-                  <DeclaredValueFields
-                    {...textProps}
-                    field="carriageValue"
-                    token="NVD"
-                    label="运输声明价值"
-                  />
-                  <DeclaredValueFields
-                    {...textProps}
-                    field="customsValue"
-                    token="NCV"
-                    label="海关声明价值"
-                  />
-                  <DeclaredValueFields
-                    {...textProps}
-                    field="insuranceValue"
-                    token="XXX"
-                    label="保险声明"
-                  />
-                </FormRow>
-              </>
-            ),
-          },
-          {
-            key: 'rates',
-            label: '运价明细',
-            children: (
-              <>
-                <ProFormCheckbox
-                  name={[...prefix, 'asArranged']}
-                  disabled={disabled}
-                >
-                  AS ARRANGED（运费按约定，不记为零）
-                </ProFormCheckbox>
-                <Alert
-                  type="info"
-                  showIcon
-                  title="金额按各行明确录入"
-                  description="费率与计费重分别保留；系统按各行金额汇总，不自动报价。填写运价行时须明确运单币种和重量费用付款。"
-                  style={{ marginBottom: 12 }}
-                />
-                <RateLines {...textProps} />
-              </>
-            ),
-          },
-          {
-            key: 'charges',
-            label: '其他费用与汇总',
-            children: (
-              <>
-                <OtherCharges {...textProps} />
-                <FormRow cols={4}>
-                  {(['prepaid', 'collect'] as const).flatMap((payment) => [
-                    <DecimalField
-                      key={`${payment}-valuation`}
-                      name={[...prefix, payment, 'valuationCharge']}
-                      label={`${payment === 'prepaid' ? '预付' : '到付'}估价费`}
-                      disabled={disabled}
-                    />,
-                    <DecimalField
-                      key={`${payment}-tax`}
-                      name={[...prefix, payment, 'tax']}
-                      label={`${payment === 'prepaid' ? '预付' : '到付'}税额`}
-                      disabled={disabled}
-                    />,
-                  ])}
-                </FormRow>
-                <Typography.Paragraph type="secondary">
-                  保存时按币种与付款栏计算运费、代理/承运人其他费用及合计；未确定运费与
-                  AS ARRANGED 不视为零。上次保存合计：预付{' '}
-                  {formatAmount(value?.prepaid?.total || undefined)} / 到付{' '}
-                  {formatAmount(value?.collect?.total || undefined)}。
-                </Typography.Paragraph>
-                <FormRow cols={3}>
-                  <ProFormText
-                    name={[...prefix, 'destinationCurrency']}
-                    label="目的地币种"
-                    disabled={disabled}
-                    rules={[
-                      { pattern: /^[A-Z]{3}$/, message: '请输入三位大写币种' },
-                    ]}
-                    fieldProps={{ maxLength: 3 }}
-                  />
-                  {(
-                    [
-                      'currencyConversionRate',
-                      'destinationCollectCharge',
-                      'chargesAtDestination',
-                      'totalCollect',
-                    ] as const
-                  ).map((key, index) => (
-                    <DecimalField
-                      key={key}
-                      name={[...prefix, key]}
-                      label={
-                        [
-                          '目的地换算汇率',
-                          '目的地到付费',
-                          '目的地费用',
-                          '到付总额',
-                        ][index]
-                      }
-                      disabled={disabled}
-                    />
-                  ))}
-                </FormRow>
-              </>
-            ),
-          },
-          {
-            key: 'signatures',
-            label: '签发与备注',
-            children: (
-              <>
-                <ProFormText
-                  name={[...prefix, 'issueDate']}
-                  label="签发日期"
-                  disabled={disabled}
-                  fieldProps={{ type: 'date' }}
-                />
-                <TextFields {...textProps} fields={signatures} />
-              </>
-            ),
-          },
-        ]}
-      />
     </>
   );
 }

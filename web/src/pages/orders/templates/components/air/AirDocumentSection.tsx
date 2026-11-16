@@ -12,46 +12,22 @@ import { useEffect, useState } from 'react';
 import { FormCell, FormRow, ProFormSearchableSelect } from '@/components/ui';
 import { onSeaFormErrorReveal } from '../../sea-form-error-reveal';
 import type { TemplateProps } from '../../types';
+import { AirOrderWaybillLayout } from './AirOrderWaybillFields';
 import { AirWaybillFields } from './AirWaybillFields';
 
 /** 主单正文为轻量只读快照，不注册字段、不进入本票整单提交。 */
 function MasterWaybillSnapshot({ master }: { master?: API.AirMasterWaybill }) {
   const content = master?.content?.waybillContent;
-  const fields = [
-    ['shipperText', '发货人名称与地址'],
-    ['consigneeText', '收货人名称与地址'],
-    ['notifyPartyText', '通知人'],
-    ['secondNotifyPartyText', '第二通知人'],
-    ['agentText', '代理名称与地址'],
-    ['marks', '唛头'],
-    ['goodsDescription', '运单品名'],
-  ] as const;
   return (
-    <Space
-      orientation="vertical"
-      size={12}
-      style={{ width: '100%', alignItems: 'stretch' }}
-    >
-      <Descriptions
-        size="small"
-        layout="vertical"
-        column={{ xs: 1, md: 2 }}
-        items={fields.map(([key, label]) => ({
-          key,
-          label,
-          children: (
-            <span style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
-              {content?.[key] || '-'}
-            </span>
-          ),
-        }))}
-      />
+    <>
+      <AirOrderWaybillLayout content={content} />
       <Collapse
         size="small"
+        style={{ marginTop: 16 }}
         items={[
           {
-            key: 'additional',
-            label: '其他主单资料',
+            key: 'more',
+            label: '更多运单资料',
             children: (
               <Descriptions
                 size="small"
@@ -85,7 +61,7 @@ function MasterWaybillSnapshot({ master }: { master?: API.AirMasterWaybill }) {
           },
         ]}
       />
-    </Space>
+    </>
   );
 }
 
@@ -168,6 +144,7 @@ export function AirDocumentSection({ props }: { props: TemplateProps }) {
                     prefix={['airMaster', 'waybillContent']}
                     disabled={props.readonly}
                     variant="order"
+                    onImport={props.onAirDocumentImport}
                   />
                 ) : (
                   <MasterWaybillSnapshot master={master} />
@@ -224,6 +201,7 @@ export function AirDocumentSection({ props }: { props: TemplateProps }) {
                         prefix={['airHouseContent']}
                         disabled={props.readonly}
                         variant="order"
+                        onImport={props.onAirDocumentImport}
                       />
                       {props.isDetail && air?.house?.status === 'RELEASED' && (
                         <ProFormTextArea

@@ -56,6 +56,12 @@ export interface TemplateProps {
   airTransportMaintenance?: ReactNode;
   /** 对应真实主、分单的制作与历史入口。 */
   airDocumentActions?: Partial<Record<'MAWB' | 'HAWB', ReactNode>>;
+  /** 用户明确带入单证文本，经整页模板标脏，不推进任何保存版本。 */
+  onAirDocumentImport?: (
+    prefix: (string | number)[],
+    field: 'shipperText' | 'agentText' | 'goodsDescription',
+    value: string,
+  ) => void;
   /** 详情刷新后的共同运输只读快照；不写回本票编辑表单基线。 */
   airTransportSnapshot?: API.AirMasterWaybill;
   /** 复用详情现有共享航程命令提供就近维护入口，不另建写路径。 */
