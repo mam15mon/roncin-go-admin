@@ -1,7 +1,7 @@
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
 import {
   act,
   fireEvent,
-  render,
   screen,
   waitFor,
   within,

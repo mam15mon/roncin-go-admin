@@ -4,9 +4,10 @@ import {
   ProFormDigit,
   ProFormTextArea,
 } from '@ant-design/pro-components';
+import { useQueryClient } from '@tanstack/react-query';
 import { App, Button, Checkbox, Form, Segmented, Space, Tag } from 'antd';
 import { createStyles } from 'antd-style';
-import React, { useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   FormRow,
   PackageCountInput,
@@ -216,6 +217,45 @@ export function SeaBillContentFormFields({
   const [notifyTab, setNotifyTab] = useState<'notify' | 'secondNotify'>(
     'notify',
   );
+  const importOrderId = Form.useWatch('id', { form, preserve: true });
+  const importCustomerId = Form.useWatch('customerId', {
+    form,
+    preserve: true,
+  });
+  const importAgentId = Form.useWatch('foreignAgentId', {
+    form,
+    preserve: true,
+  });
+  const importShipperText = Form.useWatch([...namePathPrefix, 'shipperText'], {
+    form,
+    preserve: true,
+  });
+  const importAgentText = Form.useWatch(
+    [...namePathPrefix, 'foreignAgentText'],
+    { form, preserve: true },
+  );
+  const importRevision = useRef(0);
+  useLayoutEffect(() => {
+    importRevision.current += 1;
+    return () => {
+      importRevision.current += 1;
+    };
+  }, [
+    form,
+    importOrderId,
+    importCustomerId,
+    importAgentId,
+    importShipperText,
+    importAgentText,
+  ]);
+  const queryClient = useQueryClient();
+  const activeRef = useRef(true);
+  useEffect(() => {
+    activeRef.current = true;
+    return () => {
+      activeRef.current = false;
+    };
+  }, []);
   const [importingShipper, setImportingShipper] = useState(false);
   const [importingAgent, setImportingAgent] = useState(false);
 
@@ -319,7 +359,36 @@ export function SeaBillContentFormFields({
     }
     try {
       setImportingShipper(true);
-      const res = await partnerServiceGetPartner({ id: customerId });
+      const revision = importRevision.current;
+      const previousText = form.getFieldValue([
+        ...namePathPrefix,
+        'shipperText',
+      ]);
+      const previousOrder = form.getFieldValue('id');
+      const res = await queryClient.fetchQuery({
+        queryKey: [
+          'orders',
+          'document-partner-import',
+          { partnerId: customerId },
+        ],
+        queryFn: ({ signal }) =>
+          partnerServiceGetPartner(
+            { id: customerId },
+            { signal, skipErrorHandler: true },
+          ),
+        staleTime: 0,
+        meta: { silent: true },
+      });
+      if (
+        !activeRef.current ||
+        revision !== importRevision.current ||
+        form.getFieldValue('customerId') !== customerId ||
+        form.getFieldValue('id') !== previousOrder ||
+        form.getFieldValue([...namePathPrefix, 'shipperText']) !== previousText
+      )
+        return;
+      if (!res || res.success === false)
+        throw new Error('获取委托客户信息失败');
       const partner = res.data;
       if (!partner) {
         message.warning('未获取到该委托客户的档案信息');
@@ -349,9 +418,9 @@ export function SeaBillContentFormFields({
       message.success('已从委托客户带入发货人抬头信息');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : '获取委托客户信息失败';
-      message.error(msg);
+      if (activeRef.current) message.error(msg);
     } finally {
-      setImportingShipper(false);
+      if (activeRef.current) setImportingShipper(false);
     }
   };
 
@@ -366,7 +435,37 @@ export function SeaBillContentFormFields({
     }
     try {
       setImportingAgent(true);
-      const res = await partnerServiceGetPartner({ id: foreignAgentId });
+      const revision = importRevision.current;
+      const previousText = form.getFieldValue([
+        ...namePathPrefix,
+        'foreignAgentText',
+      ]);
+      const previousOrder = form.getFieldValue('id');
+      const res = await queryClient.fetchQuery({
+        queryKey: [
+          'orders',
+          'document-partner-import',
+          { partnerId: foreignAgentId },
+        ],
+        queryFn: ({ signal }) =>
+          partnerServiceGetPartner(
+            { id: foreignAgentId },
+            { signal, skipErrorHandler: true },
+          ),
+        staleTime: 0,
+        meta: { silent: true },
+      });
+      if (
+        !activeRef.current ||
+        revision !== importRevision.current ||
+        form.getFieldValue('foreignAgentId') !== foreignAgentId ||
+        form.getFieldValue('id') !== previousOrder ||
+        form.getFieldValue([...namePathPrefix, 'foreignAgentText']) !==
+          previousText
+      )
+        return;
+      if (!res || res.success === false)
+        throw new Error('获取国外代理信息失败');
       const partner = res.data;
       if (!partner) {
         message.warning('未获取到该国外代理的档案信息');
@@ -396,9 +495,9 @@ export function SeaBillContentFormFields({
       message.success('已从订单国外代理带入抬头信息');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : '获取国外代理信息失败';
-      message.error(msg);
+      if (activeRef.current) message.error(msg);
     } finally {
-      setImportingAgent(false);
+      if (activeRef.current) setImportingAgent(false);
     }
   };
 

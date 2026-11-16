@@ -2,7 +2,7 @@ import {
   type ProFormInstance,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, App, Button, Space, Spin } from 'antd';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router';
@@ -143,6 +143,19 @@ function AirTransportEditor({
   const [ownWritePending, setOwnWritePending] = useState(false);
   const [impact, setImpact] =
     useState<API.PreviewAirMasterWaybillUpdateResponse>();
+  const previewImpactMutation = useMutation({
+    mutationFn: (
+      payload: Parameters<
+        typeof airExportServicePreviewAirMasterWaybillUpdate
+      >[1],
+    ) =>
+      airExportServicePreviewAirMasterWaybillUpdate(
+        { id: payload.id ?? '' },
+        payload,
+      ),
+    meta: { silent: true },
+  });
+
   const form = useRef<ProFormInstance<TransportValues> | undefined>(undefined);
   const revision = useRef(0);
   const alive = useRef(true);
@@ -255,10 +268,7 @@ function AirTransportEditor({
           input,
         };
         if (!impact) {
-          const response = await airExportServicePreviewAirMasterWaybillUpdate(
-            { id: masterId },
-            payload,
-          );
+          const response = await previewImpactMutation.mutateAsync(payload);
           if (
             !current() ||
             !response?.inputFingerprint ||

@@ -1,7 +1,8 @@
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
 import {
+  act,
   cleanup,
   fireEvent,
-  render,
   screen,
   waitFor,
 } from '@testing-library/react';
@@ -66,5 +67,52 @@ describe('SameBatchOrdersSection', () => {
     render(<SameBatchOrdersSection orderId="current" orderKind="sea-export" />);
 
     expect(await screen.findByText('暂无同批订单')).toBeInTheDocument();
+  });
+  it('切换订单后首帧隐藏旧记录且旧请求迟到不覆盖新订单', async () => {
+    let resolveOld!: (value: { data: API.SameBatchOrderSummary[] }) => void;
+    listSameBatchOrdersMock.mockImplementation(({ id }: { id: string }) =>
+      id === 'old'
+        ? new Promise((resolve) => {
+            resolveOld = resolve;
+          })
+        : Promise.resolve({
+            success: true,
+            data: [{ orderId: 'new-related', orderNo: 'NEW-RELATED' }],
+          }),
+    );
+    const view = render(
+      <SameBatchOrdersSection orderId="old" orderKind="sea-export" />,
+    );
+    view.rerender(
+      <SameBatchOrdersSection orderId="new" orderKind="sea-export" />,
+    );
+    expect(await screen.findByText('NEW-RELATED')).toBeVisible();
+    await act(async () =>
+      resolveOld({
+        data: [{ orderId: 'old-related', orderNo: 'OLD-RELATED' }],
+      }),
+    );
+    expect(screen.queryByText('OLD-RELATED')).not.toBeInTheDocument();
+    expect(screen.getByText('NEW-RELATED')).toBeVisible();
+  });
+
+  it.each([undefined, { success: false }, { data: {} }])(
+    '无效列表响应显示失败而非空列表：%j',
+    async (response) => {
+      listSameBatchOrdersMock.mockResolvedValue(response);
+      render(
+        <SameBatchOrdersSection orderId="current" orderKind="sea-export" />,
+      );
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        '同批订单加载失败',
+      );
+      expect(screen.queryByText('暂无同批订单')).not.toBeInTheDocument();
+    },
+  );
+
+  it('成功且省略空 repeated 时展示合法空列表', async () => {
+    listSameBatchOrdersMock.mockResolvedValue({ success: true });
+    render(<SameBatchOrdersSection orderId="current" orderKind="sea-export" />);
+    expect(await screen.findByText('暂无同批订单')).toBeVisible();
   });
 });

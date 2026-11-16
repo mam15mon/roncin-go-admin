@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import type { FormInstance } from 'antd';
 import { App, Form } from 'antd';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -225,7 +226,13 @@ describe('SeaDocumentSectionComponent', () => {
     fireEvent.click(importBtn);
 
     await waitFor(() => {
-      expect(getPartner).toHaveBeenCalledWith({ id: 'agent-1' });
+      expect(getPartner).toHaveBeenCalledWith(
+        { id: 'agent-1' },
+        expect.objectContaining({
+          signal: expect.anything(),
+          skipErrorHandler: true,
+        }),
+      );
       const foreignAgentVal = capturedForm?.getFieldValue([
         'seaMasterBillContent',
         'foreignAgentText',
@@ -332,7 +339,13 @@ describe('SeaDocumentSectionComponent', () => {
     fireEvent.click(importShipperBtn);
 
     await waitFor(() => {
-      expect(getPartner).toHaveBeenCalledWith({ id: 'cust-1' });
+      expect(getPartner).toHaveBeenCalledWith(
+        { id: 'cust-1' },
+        expect.objectContaining({
+          signal: expect.anything(),
+          skipErrorHandler: true,
+        }),
+      );
       const shipper = capturedForm?.getFieldValue([
         'seaMasterBillContent',
         'shipperText',

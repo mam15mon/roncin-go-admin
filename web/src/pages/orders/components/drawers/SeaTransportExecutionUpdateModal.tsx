@@ -1,4 +1,9 @@
-import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import {
   App,
   Button,
@@ -32,7 +37,6 @@ import { getOrderKindDefinitionByBusinessType } from '../../order-kinds/registry
 import './SeaTransportExecutionUpdateModal.less';
 
 const { Text } = Typography;
-const locationQueryKey = ['orders', 'shared-voyage-location'] as const;
 
 type VoyageUpdateFormValues = {
   originLocationId?: string;
@@ -85,22 +89,55 @@ export default function SeaTransportExecutionUpdateModal({
   });
   const [form] = Form.useForm<VoyageUpdateFormValues>();
   const { message } = App.useApp();
-  const [previewing, setPreviewing] = useState(false);
   const [executing, setExecuting] = useState(false);
-  const [preview, setPreview] =
-    useState<API.SeaTransportExecutionUpdatePreviewData>();
-  const [previewInput, setPreviewInput] =
-    useState<API.SeaTransportExecutionUpdateInput>();
   const [idempotencyKey, setIdempotencyKey] = useState('');
-  const previewRequestId = useRef(0);
+  const [previewRevision, setPreviewRevision] = useState(0);
+  const revisionRef = useRef(0);
+  const previewMutation = useMutation({
+    mutationFn: async ({
+      payload,
+      revision,
+    }: {
+      payload: Parameters<
+        typeof seaOrderChangeServicePreviewSeaTransportExecutionUpdate
+      >[1];
+      revision: number;
+    }) => {
+      const response =
+        await seaOrderChangeServicePreviewSeaTransportExecutionUpdate(
+          { orderId: payload.orderId ?? '' },
+          payload,
+        );
+      if (!response?.data || response.success === false)
+        throw new Error('共享航程预览失败');
+      return { preview: response.data, input: payload.input, revision };
+    },
+    meta: { silent: true },
+  });
+  const acceptedPreview =
+    previewMutation.data?.revision === previewRevision
+      ? previewMutation.data
+      : undefined;
+  const preview = acceptedPreview?.preview;
+  const previewInput = acceptedPreview?.input;
+  const previewing = previewMutation.isPending;
+  // 保留命令表单校验期间的修订身份，查询请求本身由 mutation 管理。
   const queryClient = useQueryClient();
   const [locationKeyword, setLocationKeyword] = useState<string>();
+  const locationQueryKey = [
+    'orders',
+    'shared-voyage-location',
+    {
+      organizationId: order.organizationId,
+      businessType: order.businessType,
+    },
+  ] as const;
   const locationQuery = useQuery({
     queryKey: [...locationQueryKey, locationKeyword],
     enabled: open && locationKeyword !== undefined && Boolean(searchLocations),
-    queryFn: ({ queryKey }) => {
+    queryFn: () => {
       if (!searchLocations) throw new Error('地点查询不可用');
-      return searchLocations(queryKey[2] || undefined);
+      return searchLocations(locationKeyword || undefined);
     },
     meta: { silent: true },
   });
@@ -163,51 +200,45 @@ export default function SeaTransportExecutionUpdateModal({
     [transportExecution],
   );
 
+  const { reset: resetPreview } = previewMutation;
   useEffect(() => {
-    previewRequestId.current += 1;
+    revisionRef.current += 1;
+    setPreviewRevision(revisionRef.current);
     if (!open) return;
     form.setFieldsValue(initialValues);
-    setPreview(undefined);
-    setPreviewInput(undefined);
-    setPreviewing(false);
+    resetPreview();
     setLocationKeyword(undefined);
     setIdempotencyKey(`sea-transport-update-${generateUUID()}`);
     return () => {
-      previewRequestId.current += 1;
+      revisionRef.current += 1;
     };
-  }, [form, initialValues, open]);
+  }, [form, initialValues, open, resetPreview]);
 
   const handlePreview = async () => {
     if (!order.id || !expectedVersion) return;
-    const requestId = ++previewRequestId.current;
+    const requestId = ++revisionRef.current;
+    setPreviewRevision(requestId);
     try {
       const values = await form.validateFields();
-      if (requestId !== previewRequestId.current) return;
+      if (requestId !== revisionRef.current) return;
       const input = toUpdateInput(values);
-      setPreviewing(true);
-      setPreview(undefined);
-      const response =
-        await seaOrderChangeServicePreviewSeaTransportExecutionUpdate(
-          { orderId: order.id },
-          {
-            orderId: order.id,
-            expectedTransportExecutionVersion: expectedVersion,
-            input,
-            reason: values.reason.trim(),
-          },
-        );
-      if (requestId !== previewRequestId.current) return;
-      setPreview(response?.data);
-      setPreviewInput(input);
+      await previewMutation.mutateAsync({
+        payload: {
+          orderId: order.id,
+          expectedTransportExecutionVersion: expectedVersion,
+          input,
+          reason: values.reason.trim(),
+        },
+        revision: requestId,
+      });
+      setPreviewRevision(revisionRef.current);
     } catch (error: unknown) {
-      if (requestId !== previewRequestId.current) return;
+      if (requestId !== revisionRef.current) return;
       if (!(typeof error === 'object' && error && 'errorFields' in error)) {
         message.error(
           error instanceof Error ? error.message : '共享航程预览失败',
         );
       }
-    } finally {
-      if (requestId === previewRequestId.current) setPreviewing(false);
     }
   };
 
@@ -374,10 +405,9 @@ export default function SeaTransportExecutionUpdateModal({
         layout="vertical"
         onValuesChange={() => {
           markDirty();
-          previewRequestId.current += 1;
-          setPreviewing(false);
-          setPreview(undefined);
-          setPreviewInput(undefined);
+          revisionRef.current += 1;
+          setPreviewRevision(revisionRef.current);
+          previewMutation.reset();
         }}
       >
         <SectionCard title="航程信息">

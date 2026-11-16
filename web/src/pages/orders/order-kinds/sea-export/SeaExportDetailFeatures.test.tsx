@@ -1,10 +1,5 @@
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App, Menu, type MenuProps } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -312,7 +307,11 @@ describe('SeaExportDetailFeatures', () => {
     const refreshOrderAndLock = vi.fn(() => refresh);
     const harness = renderFeatures(buildContext({ refreshOrderAndLock }));
 
-    await screen.findByRole('menuitem', { name: /改配/ });
+    await waitFor(() =>
+      expect(
+        screen.getByRole('menuitem', { name: /改配/ }),
+      ).not.toHaveAttribute('aria-disabled', 'true'),
+    );
     expect(mockGetChangeActions).toHaveBeenCalledTimes(1);
 
     fireEvent.click(screen.getByRole('menuitem', { name: /改配/ }));
@@ -339,7 +338,11 @@ describe('SeaExportDetailFeatures', () => {
   it('业务写入关闭时自动关闭已打开的改配弹窗', async () => {
     const harness = renderFeatures(buildContext());
 
-    fireEvent.click(await screen.findByRole('menuitem', { name: /改配/ }));
+    const reassign = await screen.findByRole('menuitem', { name: /改配/ });
+    await waitFor(() =>
+      expect(reassign).not.toHaveAttribute('aria-disabled', 'true'),
+    );
+    fireEvent.click(reassign);
     await waitFor(() =>
       expect(screen.getByTestId('reassign-modal')).toHaveTextContent('true'),
     );

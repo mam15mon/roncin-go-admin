@@ -6,6 +6,7 @@ import {
   ShareAltOutlined,
   SwapOutlined,
 } from '@ant-design/icons';
+import { useQuery } from '@tanstack/react-query';
 import { App, Badge, Button, type MenuProps, Tooltip, Typography } from 'antd';
 import React, {
   useCallback,
@@ -75,23 +76,33 @@ export default function SeaExportDetailFeatures({
   const isExport = kind === 'sea-export';
   const canMaintainVoyage = canOrder(isExport ? 'reassign' : 'update');
 
-  // —— 拆票/改配动作资格：请求序号 + 目标身份 + 实例存活三重门禁 ——
-  // 订单切换由页面按 orderFormIdentity 重挂载扩展；旧实例卸载后，仍在等待的
-  // 同步任务续体不得再对旧订单发起请求或写回状态。
+  // 动作资格随订单及已采纳版本查询，旧身份响应留在各自缓存。
   const aliveRef = useRef(true);
-  const changeActionsTargetKey = orderFormIdentity;
-  const activeChangeActionsTargetRef = useRef(changeActionsTargetKey);
-  activeChangeActionsTargetRef.current = changeActionsTargetKey;
-  const changeActionsRequestIdRef = useRef(0);
-  const [changeActionsState, setChangeActionsState] = useState<{
-    targetKey: string;
-    data: API.SeaOrderChangeActionsData;
-  } | null>(null);
-  const changeActions =
-    changeActionsState &&
-    changeActionsState.targetKey === changeActionsTargetKey
-      ? changeActionsState.data
-      : null;
+  const changeActionsQuery = useQuery({
+    queryKey: [
+      'orders',
+      'change-actions',
+      {
+        orderId,
+        orderFormIdentity,
+        version: order?.version,
+      },
+    ],
+    enabled: isExport && Boolean(orderId && orderFormIdentity),
+    meta: { errorMessage: '加载拆票与改配动作失败' },
+    queryFn: async ({ signal }) => {
+      const response = await seaOrderChangeServiceGetSeaOrderChangeActions(
+        { orderId },
+        { signal, skipErrorHandler: true },
+      );
+      if (!response?.data || response.success === false)
+        throw new Error('加载拆票与改配动作失败');
+      return response.data;
+    },
+  });
+  const changeActions = changeActionsQuery.isError
+    ? undefined
+    : changeActionsQuery.data;
 
   const [reassignModalOpen, setReassignModalOpen] = useState(false);
   const reassignSynchronizingRef = useRef(false);
@@ -106,51 +117,11 @@ export default function SeaExportDetailFeatures({
     string | undefined
   >(undefined);
 
+  const { refetch: refetchChangeActions } = changeActionsQuery;
   const loadChangeActions = useCallback(async () => {
-    const requestOrderId = orderId;
-    const requestTargetKey = changeActionsTargetKey;
-    if (!isExport || !requestOrderId || !requestTargetKey) {
-      changeActionsRequestIdRef.current += 1;
-      setChangeActionsState(null);
-      return;
-    }
-    // 等待其他刷新任务结束的旧闭包不得使当前订单请求失效。
-    if (
-      requestTargetKey !== activeChangeActionsTargetRef.current ||
-      !aliveRef.current
-    ) {
-      return;
-    }
-    const requestId = ++changeActionsRequestIdRef.current;
-    try {
-      const resp = await seaOrderChangeServiceGetSeaOrderChangeActions({
-        orderId: requestOrderId,
-      });
-      if (
-        requestId !== changeActionsRequestIdRef.current ||
-        requestTargetKey !== activeChangeActionsTargetRef.current ||
-        !aliveRef.current
-      ) {
-        return;
-      }
-
-      setChangeActionsState(
-        resp?.data ? { targetKey: requestTargetKey, data: resp.data } : null,
-      );
-    } catch (error: unknown) {
-      if (
-        requestId !== changeActionsRequestIdRef.current ||
-        requestTargetKey !== activeChangeActionsTargetRef.current ||
-        !aliveRef.current
-      ) {
-        return;
-      }
-      setChangeActionsState(null);
-      message.error(
-        error instanceof Error ? error.message : '加载拆票与改配动作失败',
-      );
-    }
-  }, [changeActionsTargetKey, message, orderId, isExport]);
+    // 写后续体不能对已离开的订单重新发起查询。
+    if (isExport && aliveRef.current) await refetchChangeActions();
+  }, [isExport, refetchChangeActions]);
 
   useEffect(() => {
     aliveRef.current = true;
@@ -158,15 +129,6 @@ export default function SeaExportDetailFeatures({
       aliveRef.current = false;
     };
   }, []);
-
-  useEffect(() => {
-    setChangeActionsState(null);
-    void loadChangeActions();
-
-    return () => {
-      changeActionsRequestIdRef.current += 1;
-    };
-  }, [loadChangeActions, order?.version]);
 
   useEffect(() => {
     if (businessWritesDisabled) {

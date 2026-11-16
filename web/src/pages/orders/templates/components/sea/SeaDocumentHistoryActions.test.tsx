@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -221,11 +222,17 @@ describe('SeaDocumentHistoryActions', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /版本与事件/ }));
     await waitFor(() => {
-      expect(historyServiceMocks.listMasterBillVersions).toHaveBeenCalledWith({
-        orderId: '00000000-0000-0000-0000-000000000001',
-        page: 1,
-        pageSize: 200,
-      });
+      expect(historyServiceMocks.listMasterBillVersions).toHaveBeenCalledWith(
+        {
+          orderId: '00000000-0000-0000-0000-000000000001',
+          page: 1,
+          pageSize: 200,
+        },
+        expect.objectContaining({
+          signal: expect.anything(),
+          skipErrorHandler: true,
+        }),
+      );
       expect(screen.getByText('v1')).toBeInTheDocument();
     });
     fireEvent.click(screen.getByRole('button', { name: /Expand row/i }));
@@ -322,11 +329,17 @@ describe('SeaDocumentHistoryActions', () => {
       await screen.findByRole('button', { name: '加载更多（共 2 条）' }),
     );
     await waitFor(() =>
-      expect(historyServiceMocks.listMasterBillVersions).toHaveBeenCalledWith({
-        orderId: '00000000-0000-0000-0000-000000000001',
-        page: 2,
-        pageSize: 200,
-      }),
+      expect(historyServiceMocks.listMasterBillVersions).toHaveBeenCalledWith(
+        {
+          orderId: '00000000-0000-0000-0000-000000000001',
+          page: 2,
+          pageSize: 200,
+        },
+        expect.objectContaining({
+          signal: expect.anything(),
+          skipErrorHandler: true,
+        }),
+      ),
     );
     expect(await screen.findByText('v2')).toBeInTheDocument();
     expect(screen.getByText('v1')).toBeInTheDocument();
@@ -339,11 +352,17 @@ describe('SeaDocumentHistoryActions', () => {
     await waitFor(() =>
       expect(
         historyServiceMocks.listMasterBillVersions,
-      ).toHaveBeenLastCalledWith({
-        orderId: '00000000-0000-0000-0000-000000000001',
-        page: 1,
-        pageSize: 200,
-      }),
+      ).toHaveBeenLastCalledWith(
+        {
+          orderId: '00000000-0000-0000-0000-000000000001',
+          page: 1,
+          pageSize: 200,
+        },
+        expect.objectContaining({
+          signal: expect.anything(),
+          skipErrorHandler: true,
+        }),
+      ),
     );
     expect(
       await screen.findByRole('button', { name: '加载更多（共 2 条）' }),
@@ -417,11 +436,17 @@ describe('SeaDocumentHistoryActions', () => {
       screen.getByRole('button', { name: '加载更多（共 2 条）' }),
     );
     await waitFor(() =>
-      expect(historyServiceMocks.listDocumentEvents).toHaveBeenCalledWith({
-        orderId: '00000000-0000-0000-0000-000000000001',
-        page: 2,
-        pageSize: 200,
-      }),
+      expect(historyServiceMocks.listDocumentEvents).toHaveBeenCalledWith(
+        {
+          orderId: '00000000-0000-0000-0000-000000000001',
+          page: 2,
+          pageSize: 200,
+        },
+        expect.objectContaining({
+          signal: expect.anything(),
+          skipErrorHandler: true,
+        }),
+      ),
     );
     // 第二页事件不属于本单证，展示层过滤但计入已加载数量，全部加载后按钮消失。
     await waitFor(() =>

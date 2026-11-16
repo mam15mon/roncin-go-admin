@@ -1,12 +1,14 @@
 import { LinkOutlined } from '@ant-design/icons';
+import { useQuery } from '@tanstack/react-query';
 import type { TableColumnsType } from 'antd';
 import { Alert, Button, Empty, Skeleton, Space, Tag } from 'antd';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { orderFlowStatusMeta, statusText } from '@/constants/statusMeta';
 import { history } from '@/router/history';
 import { orderServiceListSameBatchOrders } from '@/services/roncin/orderService';
+import { ensureListResponse, unwrapList } from '@/utils/api';
 
 const matchSourceLabels: Record<string, string> = {
   CUSTOMER_REFERENCE: '同客户业务号',
@@ -30,48 +32,33 @@ export default function SameBatchOrdersSection({
   orderKind,
   onCountChange,
 }: SameBatchOrdersSectionProps) {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [orders, setOrders] = useState<API.SameBatchOrderSummary[]>([]);
+  const query = useQuery({
+    queryKey: ['orders', 'same-batch', { orderId, orderKind }],
+    enabled: Boolean(orderId),
+    meta: { silent: true },
+    queryFn: async ({ signal }) => {
+      const response = await orderServiceListSameBatchOrders(
+        { id: orderId },
+        { signal, skipErrorHandler: true },
+      );
+      const seen = new Set<string>();
+      return unwrapList(
+        ensureListResponse(response, '同批订单加载失败'),
+      ).filter((item) => {
+        if (!item.orderId || item.orderId === orderId || seen.has(item.orderId))
+          return false;
+        seen.add(item.orderId);
+        return true;
+      });
+    },
+  });
+  const orders = query.data ?? [];
+  const loading = query.isPending && query.isFetching;
+  const error = query.error?.message;
 
   useEffect(() => {
-    let active = true;
-    setLoading(true);
-    setError('');
-    onCountChange?.(undefined);
-
-    orderServiceListSameBatchOrders({ id: orderId })
-      .then((response) => {
-        if (!active) return;
-        const seen = new Set<string>();
-        const deduped = (response.data ?? []).filter((item) => {
-          if (
-            !item.orderId ||
-            item.orderId === orderId ||
-            seen.has(item.orderId)
-          ) {
-            return false;
-          }
-          seen.add(item.orderId);
-          return true;
-        });
-        setOrders(deduped);
-        onCountChange?.(deduped.length);
-      })
-      .catch((reason: unknown) => {
-        if (!active) return;
-        setOrders([]);
-        setError(reason instanceof Error ? reason.message : '同批订单加载失败');
-        onCountChange?.(undefined);
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [orderId, onCountChange]);
+    onCountChange?.(query.isSuccess ? query.data.length : undefined);
+  }, [onCountChange, query.data, query.isSuccess]);
 
   const columns: TableColumnsType<API.SameBatchOrderSummary> = [
     {

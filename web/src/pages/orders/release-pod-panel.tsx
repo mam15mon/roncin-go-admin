@@ -5,6 +5,7 @@ import type {
   ProFormInstance,
 } from '@ant-design/pro-components';
 import { ProFormText, ProFormTextArea } from '@ant-design/pro-components';
+import { useQuery } from '@tanstack/react-query';
 import { Alert, App, Button, Drawer, Space, Typography } from 'antd';
 import {
   forwardRef,
@@ -36,7 +37,12 @@ import {
 } from '@/services/roncin/orderReleasePodService';
 import { orderShippingDocumentServiceListShippingDocuments } from '@/services/roncin/orderShippingDocumentService';
 import { seaDocumentServiceGetSeaOrderDocuments } from '@/services/roncin/seaDocumentService';
-import { isWriteResponse, toTableRequest, unwrapList } from '@/utils/api';
+import {
+  ensureListResponse,
+  isWriteResponse,
+  toTableRequest,
+  unwrapList,
+} from '@/utils/api';
 import { formatDate } from '@/utils/format';
 import { notifyReleasePodsChanged } from './release-pod-events';
 
@@ -139,12 +145,44 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
     const [order, setOrder] = useState<API.Order>();
-    const [documentOptions, setDocumentOptions] = useState<
-      ReleasePodDocumentOption[]
-    >([]);
-    const [documentsError, setDocumentsError] = useState('');
     const [editingRecord, setEditingRecord] = useState<API.OrderReleasePod>();
-    const activeOrderIdRef = useRef<string | undefined>(undefined);
+    const documentQuery = useQuery({
+      queryKey: [
+        'orders',
+        'release-pod-documents',
+        {
+          orderId: order?.id,
+          businessType: order?.businessType,
+        },
+      ],
+      enabled: drawerOpen && Boolean(order?.id),
+      meta: { silent: true },
+      queryFn: async ({ signal }) => {
+        const orderId = order?.id ?? '';
+        if (
+          order?.businessType === OrderBusinessType.BUSINESS_TYPE_SE ||
+          order?.businessType === OrderBusinessType.BUSINESS_TYPE_SI
+        ) {
+          const response = await seaDocumentServiceGetSeaOrderDocuments(
+            { orderId },
+            { signal, skipErrorHandler: true },
+          );
+          if (!response?.data || response.success === false)
+            throw new Error('关联提单加载失败');
+          return buildSeaReleasePodDocumentOptions(response.data);
+        }
+        const response =
+          await orderShippingDocumentServiceListShippingDocuments(
+            { orderId },
+            { signal, skipErrorHandler: true },
+          );
+        return buildLegacyReleasePodDocumentOptions(
+          unwrapList(ensureListResponse(response, '关联提单加载失败')),
+        );
+      },
+    });
+    const documentOptions = documentQuery.data ?? [];
+    const documentsError = documentQuery.error?.message ?? '';
 
     useEffect(() => {
       if (!canManage) setModalOpen(false);
@@ -159,34 +197,7 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
     useImperativeHandle(ref, () => ({
       open: (record) => {
         setOrder(record);
-        setDocumentOptions([]);
-        setDocumentsError('');
         setDrawerOpen(true);
-        const orderId = record.id as string;
-        activeOrderIdRef.current = orderId;
-        const loadDocuments =
-          record.businessType === OrderBusinessType.BUSINESS_TYPE_SE ||
-          record.businessType === OrderBusinessType.BUSINESS_TYPE_SI
-            ? seaDocumentServiceGetSeaOrderDocuments({ orderId }).then(
-                (response) => buildSeaReleasePodDocumentOptions(response.data),
-              )
-            : orderShippingDocumentServiceListShippingDocuments({
-                orderId,
-              }).then((response) =>
-                buildLegacyReleasePodDocumentOptions(unwrapList(response)),
-              );
-        loadDocuments
-          .then((response) => {
-            if (activeOrderIdRef.current === orderId) {
-              setDocumentOptions(response);
-            }
-          })
-          .catch((error: Error) => {
-            if (activeOrderIdRef.current === orderId) {
-              setDocumentOptions([]);
-              setDocumentsError(error.message || '关联提单加载失败');
-            }
-          });
       },
     }));
 
@@ -381,11 +392,8 @@ const ReleasePodPanel = forwardRef<ReleasePodPanelRef, ReleasePodPanelProps>(
           }
           open={drawerOpen}
           onClose={() => {
-            activeOrderIdRef.current = undefined;
             setDrawerOpen(false);
             setOrder(undefined);
-            setDocumentOptions([]);
-            setDocumentsError('');
           }}
           size={920}
           destroyOnHidden

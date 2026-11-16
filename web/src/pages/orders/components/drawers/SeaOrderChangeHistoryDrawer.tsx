@@ -1,6 +1,7 @@
 import { paginationSizeChanger } from '@root/config/pagination';
+import { useQuery } from '@tanstack/react-query';
 import {
-  App,
+  Alert,
   Button,
   Col,
   Descriptions,
@@ -22,7 +23,7 @@ import {
   seaOrderChangeServiceGetSeaOrderChangeEvent,
   seaOrderChangeServiceListSeaOrderChangeEvents,
 } from '@/services/roncin/seaOrderChangeService';
-import { getErrorMessage } from '@/utils/errorMessage';
+import { ensureListResponse, unwrapList } from '@/utils/api';
 import { formatDate } from '@/utils/format';
 
 const { Text, Paragraph } = Typography;
@@ -111,42 +112,35 @@ interface SeaOrderChangeHistorySectionProps {
 export const SeaOrderChangeHistorySection: React.FC<
   SeaOrderChangeHistorySectionProps
 > = ({ orderId, onOpenAll, onTotalChange }) => {
-  const { message } = App.useApp();
-  const [loading, setLoading] = useState(false);
-  const [events, setEvents] = useState<API.SeaOrderChangeEventSummary[]>([]);
-
+  const query = useQuery({
+    queryKey: ['orders', 'change-history-preview', { orderId }],
+    enabled: Boolean(orderId),
+    meta: { silent: true },
+    queryFn: async ({ signal }) => {
+      const response = await seaOrderChangeServiceListSeaOrderChangeEvents(
+        { orderId, page: 1, pageSize: 5 },
+        { signal, skipErrorHandler: true },
+      );
+      return {
+        events: unwrapList(
+          ensureListResponse(response, '加载拆票与改配记录失败'),
+        ),
+        total: typeof response.total === 'number' ? response.total : undefined,
+      };
+    },
+  });
+  const events = query.data?.events ?? [];
+  const loading = query.isPending && query.isFetching;
   useEffect(() => {
-    if (!orderId) return;
-    let active = true;
-    setLoading(true);
-    seaOrderChangeServiceListSeaOrderChangeEvents({
-      orderId,
-      page: 1,
-      pageSize: 5,
-    })
-      .then((response) => {
-        if (!active) return;
-        setEvents(response?.data || []);
-        if (active && typeof response?.total === 'number') {
-          onTotalChange?.(response.total);
-        }
-      })
-      .catch((error: unknown) => {
-        if (active)
-          message.error(getErrorMessage(error, '加载拆票与改配记录失败'));
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [message, orderId, onTotalChange]);
+    onTotalChange?.(query.isSuccess ? query.data.total : undefined);
+  }, [onTotalChange, query.data, query.isSuccess]);
 
   return (
     <Col span={24}>
       <Spin spinning={loading}>
-        {events.length === 0 ? (
+        {query.isError ? (
+          <Alert type="error" title="加载拆票与改配记录失败" />
+        ) : events.length === 0 ? (
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
             description="暂无拆票或改配记录"
@@ -197,63 +191,80 @@ interface SeaOrderChangeHistoryDrawerProps {
 export const SeaOrderChangeHistoryDrawer: React.FC<
   SeaOrderChangeHistoryDrawerProps
 > = ({ orderId, open, onClose }) => {
-  const { message } = App.useApp();
-  const [loading, setLoading] = useState(false);
-  const [events, setEvents] = useState<API.SeaOrderChangeEventSummary[]>([]);
-  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-
-  const [detailModalOpen, setDetailModalOpen] = useState(false);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [currentDetail, setCurrentDetail] =
-    useState<API.SeaOrderChangeEventDetailData | null>(null);
-
-  const loadEvents = async () => {
-    if (!orderId || !open) return;
-    setLoading(true);
-    try {
-      const resp = await seaOrderChangeServiceListSeaOrderChangeEvents({
+  const [detailSelection, setDetailSelection] = useState<{
+    orderId: string;
+    record: API.SeaOrderChangeEventSummary;
+  }>();
+  const detailTarget =
+    detailSelection?.orderId === orderId ? detailSelection.record : undefined;
+  const query = useQuery<{
+    events: API.SeaOrderChangeEventSummary[];
+    total: number;
+  }>({
+    queryKey: ['orders', 'change-history', { orderId, page, pageSize, open }],
+    enabled: open && Boolean(orderId),
+    placeholderData: (previous, previousQuery) =>
+      open &&
+      (
+        previousQuery?.queryKey[2] as
+          | { orderId?: string; open?: boolean }
+          | undefined
+      )?.open === true &&
+      (previousQuery?.queryKey[2] as { orderId?: string } | undefined)
+        ?.orderId === orderId
+        ? previous
+        : undefined,
+    meta: { silent: true },
+    queryFn: async ({ signal }) => {
+      const response = await seaOrderChangeServiceListSeaOrderChangeEvents(
+        { orderId, page, pageSize },
+        { signal, skipErrorHandler: true },
+      );
+      return {
+        events: unwrapList(
+          ensureListResponse(response, '加载拆票与改配历史失败'),
+        ),
+        total: Number(response.total ?? 0),
+      };
+    },
+  });
+  const detailQuery = useQuery({
+    queryKey: [
+      'orders',
+      'change-event-detail',
+      {
         orderId,
-        page,
-        pageSize,
-      });
-      if (resp?.data) {
-        setEvents(resp.data || []);
-        setTotal(resp.total || 0);
-      }
-    } catch (error: unknown) {
-      message.error(getErrorMessage(error, '加载拆票与改配历史失败'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (open) {
-      loadEvents();
-    }
-  }, [orderId, open, page, pageSize]);
-
-  const viewDetail = async (record: API.SeaOrderChangeEventSummary) => {
-    setDetailModalOpen(true);
-    setDetailLoading(true);
-    try {
-      const resp = await seaOrderChangeServiceGetSeaOrderChangeEvent({
-        orderId,
-        eventId: record.id || '',
-        eventType: record.eventType,
-      });
-      if (resp?.data) {
-        setCurrentDetail(resp.data);
-      }
-    } catch (error: unknown) {
-      message.error(getErrorMessage(error, '加载变更事件详情失败'));
-      setDetailModalOpen(false);
-    } finally {
-      setDetailLoading(false);
-    }
-  };
+        eventId: detailTarget?.id,
+        eventType: detailTarget?.eventType,
+        open,
+      },
+    ],
+    enabled: open && Boolean(detailTarget?.id),
+    meta: { silent: true },
+    queryFn: async ({ signal }) => {
+      const response = await seaOrderChangeServiceGetSeaOrderChangeEvent(
+        {
+          orderId,
+          eventId: detailTarget?.id ?? '',
+          eventType: detailTarget?.eventType,
+        },
+        { signal, skipErrorHandler: true },
+      );
+      if (!response?.data || response.success === false)
+        throw new Error('加载变更事件详情失败');
+      return response.data;
+    },
+  });
+  const events = query.data?.events ?? [];
+  const total = query.data?.total ?? 0;
+  const loading = query.isFetching;
+  const detailModalOpen = open && Boolean(detailTarget);
+  const detailLoading = detailQuery.isFetching;
+  const currentDetail = detailQuery.data;
+  const viewDetail = (record: API.SeaOrderChangeEventSummary) =>
+    setDetailSelection({ orderId, record });
 
   const columns: ColumnsType<API.SeaOrderChangeEventSummary> = [
     {
@@ -328,6 +339,7 @@ export const SeaOrderChangeHistoryDrawer: React.FC<
         >
           {columnSettings.entry}
         </div>
+        {query.isError && <Alert type="error" title="加载拆票与改配历史失败" />}
         <Table<API.SeaOrderChangeEventSummary>
           columns={columnSettings.columns}
           dataSource={events}
@@ -350,14 +362,15 @@ export const SeaOrderChangeHistoryDrawer: React.FC<
         title="变更事件前后快照详情"
         open={detailModalOpen}
         onCancel={() => {
-          setDetailModalOpen(false);
-          setCurrentDetail(null);
+          setDetailSelection(undefined);
         }}
         footer={null}
         width={750}
         destroyOnHidden
       >
-        {detailLoading || !currentDetail ? (
+        {detailQuery.isError ? (
+          <Alert type="error" title="加载变更事件详情失败" />
+        ) : detailLoading || !currentDetail ? (
           <div style={{ textAlign: 'center', padding: 40 }}>
             <Spin />
           </div>

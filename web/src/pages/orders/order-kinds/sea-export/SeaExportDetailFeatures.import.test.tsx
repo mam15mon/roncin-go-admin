@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { fireEvent, screen } from '@testing-library/react';
 import { App, Menu } from 'antd';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { OrderBusinessType } from '@/enums.generated';

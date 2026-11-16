@@ -16,6 +16,11 @@ vi.mock('@/app/access', () => ({
     canOperateOrganization: () => true,
   }),
 }));
+vi.mock('@/services/roncin/orderReleasePodService', () => ({
+  orderReleasePodServiceListReleasePods: vi
+    .fn()
+    .mockResolvedValue({ success: true }),
+}));
 vi.mock('./SeaBillContentFormFields', () => ({
   SeaBillContentFormFields: () => null,
 }));
@@ -109,11 +114,17 @@ it('退关只读入口可查看v1、v2和改单事件，写操作仍禁用', asy
   expect(await within(drawer).findByText('v1')).toBeVisible();
   expect(await within(drawer).findByText('退关前更正发货人')).toBeVisible();
   await waitFor(() =>
-    expect(historyMocks.versions).toHaveBeenCalledWith({
-      orderId: 'order-1',
-      page: 1,
-      pageSize: 200,
-    }),
+    expect(historyMocks.versions).toHaveBeenCalledWith(
+      {
+        orderId: 'order-1',
+        page: 1,
+        pageSize: 200,
+      },
+      expect.objectContaining({
+        signal: expect.anything(),
+        skipErrorHandler: true,
+      }),
+    ),
   );
   fireEvent.click(within(drawer).getAllByRole('button', { name: '展开行' })[1]);
   expect(await within(drawer).findByText(/原发货人/)).toBeVisible();

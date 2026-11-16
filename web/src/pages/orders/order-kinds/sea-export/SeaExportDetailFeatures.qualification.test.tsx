@@ -1,10 +1,5 @@
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App, Menu } from 'antd';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { seaOrderChangeServiceGetSeaOrderChangeActions } from '@/services/roncin/seaOrderChangeService';
@@ -101,7 +96,9 @@ describe('改配入口与已打开弹窗资格同步', () => {
         getActions.mockRejectedValueOnce(new Error('资格加载失败'));
       }
       await act(async () => harness.refresh());
-      expect(menu).toHaveAttribute('aria-disabled', 'true');
+      await waitFor(() =>
+        expect(menu).toHaveAttribute('aria-disabled', 'true'),
+      );
       expect(screen.getByTestId('资格门控')).toHaveAttribute(
         'data-disabled',
         'true',

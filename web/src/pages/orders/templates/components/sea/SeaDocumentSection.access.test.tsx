@@ -1,4 +1,5 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { screen, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { SeaDocumentStructure } from '@/enums.generated';
 import {

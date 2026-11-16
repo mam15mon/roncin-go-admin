@@ -1,8 +1,9 @@
-import { DatePicker, Form, Input, Select } from 'antd';
+import { useQuery } from '@tanstack/react-query';
+import { Alert, DatePicker, Form, Input, Select } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
-import { useEffect, useState } from 'react';
 import { defaultSelectFilterOption } from '@/components/ui/searchable-select/utils';
 import { orderAttachmentServiceListAttachments } from '@/services/roncin/orderAttachmentService';
+import { ensureListResponse, unwrapList } from '@/utils/api';
 
 export type SeaExternalConfirmationFormValues = {
   confirmedByParty?: string;
@@ -34,30 +35,26 @@ export default function SeaExternalConfirmationFields({
 }: {
   orderId: string;
 }) {
-  const [loading, setLoading] = useState(false);
-  const [attachments, setAttachments] = useState<API.OrderAttachment[]>([]);
-
-  useEffect(() => {
-    let active = true;
-    setLoading(true);
-    orderAttachmentServiceListAttachments({ orderId })
-      .then((response) => {
-        if (active) setAttachments(response.data ?? []);
-      })
-      .catch(() => {
-        if (active) setAttachments([]);
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [orderId]);
+  const query = useQuery({
+    queryKey: ['orders', 'confirmation-attachments', { orderId }],
+    enabled: Boolean(orderId),
+    meta: { silent: true },
+    queryFn: async ({ signal }) => {
+      const response = await orderAttachmentServiceListAttachments(
+        { orderId },
+        { signal, skipErrorHandler: true },
+      );
+      return unwrapList(ensureListResponse(response, '确认附件加载失败'));
+    },
+  });
+  const attachments = query.data ?? [];
+  const loading = query.isFetching;
 
   return (
     <>
+      {query.isError ? (
+        <Alert type="error" showIcon title="确认附件加载失败" />
+      ) : null}
       <Form.Item
         name="confirmedByParty"
         label="外部确认方"

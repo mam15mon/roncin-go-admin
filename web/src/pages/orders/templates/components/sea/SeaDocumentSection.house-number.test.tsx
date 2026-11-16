@@ -1,8 +1,10 @@
-import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import {
+  renderWithClient as render,
+  renderWithClient,
+} from '@root/tests/queryClientTestUtils';
 import {
   act,
   fireEvent,
-  render,
   screen,
   waitFor,
   within,

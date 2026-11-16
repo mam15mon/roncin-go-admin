@@ -1,11 +1,13 @@
 import { SwapOutlined } from '@ant-design/icons';
 import { ProFormTextArea } from '@ant-design/pro-components';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   Alert,
   App,
   Button,
   Col,
   Form,
+  Input,
   Modal,
   Row,
   Space,
@@ -31,7 +33,7 @@ import {
   seaDocumentServiceGetSeaOrderDocuments,
   seaDocumentServicePreviewChangeSeaDocumentMode,
 } from '@/services/roncin/seaDocumentService';
-import { isWriteResponse } from '@/utils/api';
+import { ensureListResponse, isWriteResponse, unwrapList } from '@/utils/api';
 import { generateUUID } from '@/utils/uuid';
 import { RELEASE_PODS_CHANGED_EVENT } from '../../../release-pod-events';
 import { seaBillContentFormValues } from '../../../sea-document-form';
@@ -109,32 +111,64 @@ export function SeaDocumentSectionComponent({
   const access = useAccess();
   const [modeForm] = Form.useForm<ModeChangeFormValues>();
   const [activeTabKey, setActiveTabKey] = useState('mbl');
-  const [loadedStructure, setLoadedStructure] =
-    useState<SeaDocumentStructure>();
-  const [linkVersion, setLinkVersion] = useState('0');
-  const [mblDetail, setMblDetail] = useState<API.SeaMasterBillDetail | null>(
-    null,
-  );
-  const [houseBill, setHouseBill] = useState<API.SeaHouseBill | null>(null);
-  const [fetchError, setFetchError] = useState<string | null>(null);
-  const [releasePods, setReleasePods] = useState<API.OrderReleasePod[]>([]);
-  const [releasePodsError, setReleasePodsError] = useState<string | null>(null);
+  // 已采纳的单证是编辑基线，后台查询只更新缓存，不覆盖正文。
+  const [documentBaseline, setDocumentBaseline] = useState<{
+    orderId: string;
+    documents: API.SeaOrderDocuments;
+  }>();
   const [modeModalOpen, setModeModalOpen] = useState(false);
   const { markDirty: markModeDirty } = useUnsavedChangesGuard({
     enabled: modeModalOpen,
   });
   const [modeTarget, setModeTarget] = useState<SeaDocumentStructure>();
-  const [modePreview, setModePreview] =
-    useState<API.SeaDocumentModeChangePreview | null>(null);
-  const [modePreviewing, setModePreviewing] = useState(false);
-  const [modeExecuting, setModeExecuting] = useState(false);
+  const modePreviewMutation = useMutation({
+    mutationFn: async ({
+      payload,
+      identity,
+    }: {
+      payload: Parameters<
+        typeof seaDocumentServicePreviewChangeSeaDocumentMode
+      >[1];
+      identity: string;
+    }) => {
+      const response = await seaDocumentServicePreviewChangeSeaDocumentMode(
+        { orderId: payload.orderId ?? '' },
+        payload,
+      );
+      if (!response?.data || response.success === false)
+        throw new Error('接口未返回模式切换预览');
+      return { preview: response.data, identity };
+    },
+    meta: { silent: true },
+  });
   const [modeIdempotencyKey, setModeIdempotencyKey] = useState('');
-  const documentRequestSequenceRef = useRef(0);
-  const releasePodRequestSequenceRef = useRef(0);
-  const activeOrderIdRef = useRef('');
+  const modePreview =
+    modePreviewMutation.data?.identity === modeIdempotencyKey
+      ? modePreviewMutation.data.preview
+      : undefined;
+  const modePreviewing = modePreviewMutation.isPending;
+  const [modeExecuting, setModeExecuting] = useState(false);
 
   const orderIdValue = Form.useWatch('id', form) ?? form.getFieldValue('id');
   const orderId = orderIdValue ? String(orderIdValue) : '';
+  const activeOrderRef = useRef(orderId);
+  activeOrderRef.current = orderId;
+  const modeSessionRef = useRef({
+    orderId,
+    identity: modeIdempotencyKey,
+    open: modeModalOpen,
+  });
+  modeSessionRef.current = {
+    orderId,
+    identity: modeIdempotencyKey,
+    open: modeModalOpen,
+  };
+  useEffect(
+    () => () => {
+      modeSessionRef.current.open = false;
+    },
+    [],
+  );
   const orderVersion =
     Form.useWatch('version', form) ?? form.getFieldValue('version');
   const watchedStructure = Form.useWatch('seaDocumentStructure', form) as
@@ -154,54 +188,52 @@ export function SeaDocumentSectionComponent({
     { form, preserve: true },
   );
   const creatingWithSharedMasterBill = !isDetail && !!candidateMasterBillId;
+  const effectiveDocuments =
+    documents ??
+    (documentBaseline?.orderId === orderId
+      ? documentBaseline.documents
+      : undefined);
+  const linkVersion = String(effectiveDocuments?.linkVersion ?? '0');
+  const mblDetail = effectiveDocuments?.masterBill ?? null;
+  const houseBill = effectiveDocuments?.houseBill ?? null;
   const docStructure = isDocumentStructure(watchedStructure)
     ? watchedStructure
     : isDocumentStructure(storedStructure)
       ? storedStructure
-      : loadedStructure;
-  activeOrderIdRef.current = orderId;
+      : effectiveDocuments?.documentStructure;
 
   const canReadReleasePods = access.canOrder(businessType, 'release_pod.read');
   const canChangeMode =
     access.canOperateOrganization(organizationId) &&
     access.canOrder(businessType, 'update');
 
-  const loadReleasePods = useCallback(async () => {
-    const requestedOrderId = orderId;
-    const requestSequence = ++releasePodRequestSequenceRef.current;
-    if (!requestedOrderId || !isDetail || !canReadReleasePods) {
-      setReleasePods([]);
-      setReleasePodsError(null);
-      return;
-    }
-    try {
-      const response = await orderReleasePodServiceListReleasePods({
-        orderId: requestedOrderId,
-      });
-      if (
-        requestedOrderId !== activeOrderIdRef.current ||
-        requestSequence !== releasePodRequestSequenceRef.current
-      )
-        return;
-      setReleasePodsError(null);
-      if (!response) throw new Error('放货记录加载失败，请重试');
-      setReleasePods(response.data ?? []);
-    } catch (error: unknown) {
-      if (
-        requestedOrderId !== activeOrderIdRef.current ||
-        requestSequence !== releasePodRequestSequenceRef.current
-      )
-        return;
-      setReleasePods([]);
-      setReleasePodsError(
-        error instanceof Error ? error.message : '放货记录加载失败',
+  const releasePodsQuery = useQuery({
+    queryKey: [
+      'orders',
+      'document-release-pods',
+      { orderId, businessType, organizationId },
+    ],
+    enabled: Boolean(orderId) && isDetail && canReadReleasePods,
+    meta: { silent: true },
+    queryFn: async ({ signal }) => {
+      const response = await orderReleasePodServiceListReleasePods(
+        { orderId },
+        { signal, skipErrorHandler: true },
       );
-    }
-  }, [canReadReleasePods, isDetail, orderId]);
+      return unwrapList(
+        ensureListResponse(response, '放货记录加载失败，请重试'),
+      );
+    },
+  });
+  const releasePods = releasePodsQuery.data ?? [];
+  const releasePodsError = releasePodsQuery.error?.message;
+  const { refetch: refetchReleasePods } = releasePodsQuery;
+  const loadReleasePods = useCallback(async () => {
+    if (orderId && isDetail && canReadReleasePods) await refetchReleasePods();
+  }, [canReadReleasePods, isDetail, orderId, refetchReleasePods]);
 
   const applyMasterBill = useCallback(
     (masterBill: API.SeaMasterBillDetail | null) => {
-      setMblDetail(masterBill);
       form.setFieldValue(
         'seaMasterBillContent',
         seaBillContentFormValues(masterBill?.content),
@@ -212,7 +244,6 @@ export function SeaDocumentSectionComponent({
 
   const applyHouseBill = useCallback(
     (currentHouseBill: API.SeaHouseBill | null) => {
-      setHouseBill(currentHouseBill);
       form.setFieldValue(
         'seaHouseBill',
         currentHouseBill
@@ -237,87 +268,74 @@ export function SeaDocumentSectionComponent({
     [form],
   );
 
-  const loadOrderDocuments = useCallback(async () => {
-    const requestedOrderId = orderId;
-    const requestSequence = ++documentRequestSequenceRef.current;
-    if (!requestedOrderId || !isDetail || documents) return;
-    try {
-      const response = await seaDocumentServiceGetSeaOrderDocuments({
-        orderId: requestedOrderId,
-      });
-      if (
-        requestedOrderId !== activeOrderIdRef.current ||
-        requestSequence !== documentRequestSequenceRef.current
-      )
-        return;
-      if (!response?.data) throw new Error('海运单证加载失败，请重试');
+  const documentsQuery = useQuery({
+    queryKey: [
+      'orders',
+      'sea-documents',
+      { orderId, businessType, organizationId },
+    ],
+    enabled: Boolean(orderId) && isDetail && !documents,
+    meta: { silent: true },
+    queryFn: async ({ signal }) => {
+      const response = await seaDocumentServiceGetSeaOrderDocuments(
+        { orderId },
+        { signal, skipErrorHandler: true },
+      );
+      if (!response?.data || response.success === false)
+        throw new Error('海运单证加载失败，请重试');
       const structure = response.data.documentStructure;
       if (!isDocumentStructure(structure))
         throw new Error('海运订单缺少明确的 HOUSE/DIRECT 提单模式');
-      const currentHouseBill = response.data.houseBill ?? null;
       if (
         (structure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE &&
-          !currentHouseBill) ||
+          !response.data.houseBill) ||
         (structure === SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT &&
-          currentHouseBill)
-      ) {
+          response.data.houseBill)
+      )
         throw new Error('海运提单模式与当前 HBL 不一致');
-      }
-
-      setFetchError(null);
-      setLoadedStructure(structure);
-      setLinkVersion(String(response.data.linkVersion ?? '0'));
-      form.setFieldValue('seaDocumentStructure', structure);
+      return response.data;
+    },
+  });
+  const fetchError = documents ? undefined : documentsQuery.error?.message;
+  const acceptDocuments = useCallback(
+    (next: API.SeaOrderDocuments) => {
+      setDocumentBaseline({ orderId, documents: next });
+      form.setFieldValue('seaDocumentStructure', next.documentStructure);
       form.setFieldValue(
         'seaMasterBillContentVersion',
-        response.data.masterBill?.version,
+        next.masterBill?.version,
       );
-      form.setFieldValue('seaDocumentLinkVersion', response.data.linkVersion);
-      applyMasterBill(response.data.masterBill ?? null);
-      applyHouseBill(currentHouseBill);
-    } catch (error: unknown) {
-      if (
-        requestedOrderId !== activeOrderIdRef.current ||
-        requestSequence !== documentRequestSequenceRef.current
-      )
-        return;
-      const errorMessage =
-        error instanceof Error ? error.message : '获取海运单证信息失败';
-      setFetchError(errorMessage);
-      message.error(errorMessage);
-    }
-  }, [
-    applyHouseBill,
-    applyMasterBill,
-    documents,
-    form,
-    isDetail,
-    message,
-    orderId,
-  ]);
+      form.setFieldValue('seaDocumentLinkVersion', next.linkVersion);
+      applyMasterBill(next.masterBill ?? null);
+      applyHouseBill(next.houseBill ?? null);
+    },
+    [applyHouseBill, applyMasterBill, form, orderId],
+  );
+  const { refetch: refetchDocuments } = documentsQuery;
+  const loadOrderDocuments = useCallback(async () => {
+    if (!orderId || !isDetail || documents) return;
+    const result = await refetchDocuments();
+    if (result.isSuccess && activeOrderRef.current === orderId)
+      acceptDocuments(result.data);
+  }, [acceptDocuments, documents, isDetail, orderId, refetchDocuments]);
 
   useEffect(() => {
-    if (!isDetail) return;
-    if (documents) {
-      setLoadedStructure(documents.documentStructure as SeaDocumentStructure);
-      setLinkVersion(String(documents.linkVersion ?? '0'));
-      setMblDetail(documents.masterBill ?? null);
-      setHouseBill(documents.houseBill ?? null);
-      void loadReleasePods();
+    if (
+      !isDetail ||
+      documents ||
+      documentBaseline?.orderId === orderId ||
+      !documentsQuery.data
+    )
       return;
-    }
-    setFetchError(null);
-    setReleasePodsError(null);
-    setLoadedStructure(undefined);
-    setLinkVersion('0');
-    setMblDetail(null);
-    setHouseBill(null);
-    form.setFieldValue('seaMasterBillContent', {});
-    form.setFieldValue('seaHouseBill', undefined);
-    setActiveTabKey('mbl');
-    void loadOrderDocuments();
-    void loadReleasePods();
-  }, [documents, form, isDetail, loadOrderDocuments, loadReleasePods]);
+    acceptDocuments(documentsQuery.data);
+  }, [
+    acceptDocuments,
+    documentBaseline?.orderId,
+    documents,
+    documentsQuery.data,
+    isDetail,
+    orderId,
+  ]);
 
   useEffect(() => {
     if (docStructure !== SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE)
@@ -418,7 +436,7 @@ export function SeaDocumentSectionComponent({
         ? SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_DIRECT
         : SeaDocumentStructure.SEA_DOCUMENT_STRUCTURE_HOUSE;
     setModeTarget(targetMode);
-    setModePreview(null);
+    modePreviewMutation.reset();
     setModeIdempotencyKey(`sea-document-mode:${generateUUID()}`);
     modeForm.resetFields();
     modeForm.setFieldsValue({ confirmedAt: dayjs() });
@@ -432,33 +450,40 @@ export function SeaDocumentSectionComponent({
 
   const previewModeChange = async () => {
     if (!orderId || !modeTarget) return;
-    setModePreviewing(true);
+    const identity = modeIdempotencyKey;
+    const stillCurrent = () =>
+      modeSessionRef.current.open &&
+      modeSessionRef.current.orderId === orderId &&
+      modeSessionRef.current.identity === identity;
     try {
       const values = await modeForm.validateFields();
-      const response = await seaDocumentServicePreviewChangeSeaDocumentMode(
-        { orderId },
-        {
+      if (!stillCurrent()) return;
+      await modePreviewMutation.mutateAsync({
+        payload: {
           orderId,
           targetMode: modeTarget,
           newHouseBill: buildModeChangeHouseBill(values),
           reason: values.reason?.trim() ?? '',
         },
-      );
-      if (!response.data) throw new Error('接口未返回模式切换预览');
-      setModePreview(response.data);
+        identity,
+      });
     } catch (error: unknown) {
-      if (error instanceof Error)
+      if (stillCurrent() && error instanceof Error)
         message.error(error.message || '模式切换预览失败');
-    } finally {
-      setModePreviewing(false);
     }
   };
 
   const executeModeChange = async (): Promise<false | undefined> => {
     if (!orderId || !modeTarget || !modePreview?.executable) return;
+    const identity = modeIdempotencyKey;
+    const stillCurrent = () =>
+      modeSessionRef.current.open &&
+      modeSessionRef.current.orderId === orderId &&
+      modeSessionRef.current.identity === identity;
     setModeExecuting(true);
     try {
       const values = await modeForm.validateFields();
+      if (!stillCurrent()) return false;
       if (!orderVersion || linkVersion === '0')
         throw new Error('订单或单证版本缺失，请刷新后重试');
       if (
@@ -491,6 +516,7 @@ export function SeaDocumentSectionComponent({
         );
       if (
         !isWriteResponse(writeResponse3) ||
+        !stillCurrent() ||
         writeResponse3.data?.orderId !== orderId
       )
         return false;
@@ -500,14 +526,14 @@ export function SeaDocumentSectionComponent({
           : '已切换为仅船公司主单（DIRECT），原 HBL 已形成作废历史',
       );
       setModeModalOpen(false);
-      setModePreview(null);
+      modePreviewMutation.reset();
       await onOrderDataChanged?.('mode');
       await Promise.all([loadOrderDocuments(), loadReleasePods()]);
     } catch (error: unknown) {
-      if (error instanceof Error)
+      if (stillCurrent() && error instanceof Error)
         message.error(error.message || '执行模式切换失败');
     } finally {
-      setModeExecuting(false);
+      if (modeSessionRef.current.identity === identity) setModeExecuting(false);
     }
 
     return undefined;
@@ -712,22 +738,22 @@ export function SeaDocumentSectionComponent({
       {isDetail ? (
         <>
           <Form.Item hidden name="id">
-            <input />
+            <Input />
           </Form.Item>
           <Form.Item hidden name="version">
-            <input />
+            <Input />
           </Form.Item>
           <Form.Item hidden name="seaMasterBillContentVersion">
-            <input />
+            <Input />
           </Form.Item>
           <Form.Item hidden name="seaDocumentLinkVersion">
-            <input />
+            <Input />
           </Form.Item>
           <Form.Item hidden name={['seaHouseBill', 'id']}>
-            <input />
+            <Input />
           </Form.Item>
           <Form.Item hidden name={['seaHouseBill', 'expectedVersion']}>
-            <input />
+            <Input />
           </Form.Item>
         </>
       ) : null}
@@ -794,7 +820,7 @@ export function SeaDocumentSectionComponent({
         onCancel={() => {
           if (modeExecuting) return;
           setModeModalOpen(false);
-          setModePreview(null);
+          modePreviewMutation.reset();
         }}
         footer={[
           <Button
@@ -854,7 +880,7 @@ export function SeaDocumentSectionComponent({
           onValuesChange={(changedValues) => {
             markModeDirty();
             if (Object.keys(changedValues).length === 0) return;
-            setModePreview(null);
+            modePreviewMutation.reset();
             setModeIdempotencyKey(`sea-document-mode:${generateUUID()}`);
           }}
         >

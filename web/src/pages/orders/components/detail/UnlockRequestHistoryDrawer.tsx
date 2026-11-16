@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import {
   Alert,
   Descriptions,
@@ -10,7 +11,8 @@ import {
   Typography,
 } from 'antd';
 import dayjs from 'dayjs';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useRef } from 'react';
+import { usePageForeground } from '@/hooks/usePageForeground';
 import { orderLockServiceListOrderUnlockRequests } from '@/services/roncin/orderLockService';
 
 const ACTIVE_UNLOCK_STATUSES = new Set([
@@ -95,40 +97,38 @@ export default function UnlockRequestHistoryDrawer({
   orderId,
   onClose,
 }: Props) {
-  const [loading, setLoading] = useState(false);
-  const [items, setItems] = useState<API.OrderUnlockRequestData[]>([]);
-  const [error, setError] = useState<string>();
-
-  const load = useCallback(async () => {
-    if (!orderId) return;
-    setLoading(true);
-    try {
-      const response = await orderLockServiceListOrderUnlockRequests({
-        orderId,
-        page: 1,
-        pageSize: 50,
-      });
-      setItems(response.data?.items || []);
-      setError(undefined);
-    } catch (caught: unknown) {
-      setError(
-        caught instanceof Error ? caught.message : '加载撤销审核审批记录失败',
+  const resumeRef = useRef<() => void>(() => undefined);
+  const foreground = usePageForeground(() => resumeRef.current());
+  const query = useQuery<API.OrderUnlockRequestData[]>({
+    queryKey: ['orders', 'unlock-request-history', { orderId, open }],
+    enabled: open && Boolean(orderId),
+    meta: { silent: true },
+    refetchInterval: (current) =>
+      foreground && shouldPollUnlockRequests(current.state.data ?? [])
+        ? 5000
+        : false,
+    refetchIntervalInBackground: false,
+    queryFn: async ({ signal }) => {
+      const response = await orderLockServiceListOrderUnlockRequests(
+        { orderId, page: 1, pageSize: 50 },
+        { signal, skipErrorHandler: true },
       );
-    } finally {
-      setLoading(false);
-    }
-  }, [orderId]);
-
-  useEffect(() => {
-    if (!open) return;
-    void load();
-  }, [load, open]);
-
-  useEffect(() => {
-    if (!open || !shouldPollUnlockRequests(items)) return;
-    const timer = window.setInterval(() => void load(), 5000);
-    return () => window.clearInterval(timer);
-  }, [items, load, open]);
+      if (
+        !response ||
+        response.success === false ||
+        (response.data?.items !== undefined &&
+          !Array.isArray(response.data.items))
+      )
+        throw new Error('加载撤销审核审批记录失败');
+      return response.data?.items ?? [];
+    },
+  });
+  resumeRef.current = () => {
+    if (open && orderId) void query.refetch({ cancelRefetch: false });
+  };
+  const items = query.data ?? [];
+  const loading = query.isFetching;
+  const error = query.error?.message;
 
   return (
     <Drawer
@@ -145,12 +145,14 @@ export default function UnlockRequestHistoryDrawer({
           showIcon
           title={error}
           action={
-            <Typography.Link onClick={() => void load()}>重试</Typography.Link>
+            <Typography.Link onClick={() => void query.refetch()}>
+              重试
+            </Typography.Link>
           }
         />
       )}
       <Spin spinning={loading && items.length === 0}>
-        {items.length === 0 && !loading ? (
+        {query.isSuccess && items.length === 0 && !loading ? (
           <Empty description="暂无撤销审核申请" />
         ) : (
           <Listy

@@ -5,7 +5,7 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Alert,
   App,
@@ -135,6 +135,18 @@ function AirMasterContent({
     values: MasterEditValues;
     response: API.PreviewAirMasterWaybillUpdateResponse;
   }>();
+  const previewImpactMutation = useMutation({
+    mutationFn: (
+      payload: Parameters<
+        typeof airExportServicePreviewAirMasterWaybillUpdate
+      >[1],
+    ) =>
+      airExportServicePreviewAirMasterWaybillUpdate(
+        { id: payload.id ?? '' },
+        payload,
+      ),
+    meta: { silent: true },
+  });
   const memberRef = useRef<ActionType | undefined>(undefined);
   const linkForm = useRef<
     | ProFormInstance<{
@@ -687,12 +699,13 @@ function AirMasterContent({
               input: serializeAirMaster(values.input),
             };
             if (!impact) {
-              const response =
-                await airExportServicePreviewAirMasterWaybillUpdate(
-                  { id: masterId },
-                  payload,
-                );
-              if (!response?.inputFingerprint || !stillCurrent()) return false;
+              const response = await previewImpactMutation.mutateAsync(payload);
+              if (
+                !response?.inputFingerprint ||
+                response.success === false ||
+                !stillCurrent()
+              )
+                return false;
               setImpact({ values, response });
               return false;
             }

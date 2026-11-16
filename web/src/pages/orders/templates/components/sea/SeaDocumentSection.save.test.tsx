@@ -1,12 +1,7 @@
 import { ProForm } from '@ant-design/pro-components';
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react';
-import { App, ConfigProvider, Form, type FormInstance } from 'antd';
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
+import { App, ConfigProvider, Form, type FormInstance, Input } from 'antd';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   SeaDocumentStructure,
@@ -49,7 +44,7 @@ vi.mock('./SeaBillContentFormFields', () => ({
     disabled?: boolean;
   }) => (
     <Form.Item name={[...namePathPrefix, 'shipperText']}>
-      <input disabled={disabled} />
+      <Input disabled={disabled} />
     </Form.Item>
   ),
 }));

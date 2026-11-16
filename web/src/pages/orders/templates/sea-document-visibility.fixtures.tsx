@@ -1,5 +1,6 @@
 import { type ProFormInstance, ProFormText } from '@ant-design/pro-components';
-import { render, screen } from '@testing-library/react';
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { screen } from '@testing-library/react';
 import { App, ConfigProvider } from 'antd';
 import { expect, vi } from 'vitest';
 import { OrderFormTemplate } from '@/components/ui/order-template/OrderFormTemplate';

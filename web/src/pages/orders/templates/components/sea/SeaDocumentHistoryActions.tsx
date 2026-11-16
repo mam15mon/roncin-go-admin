@@ -1,5 +1,10 @@
 import { HistoryOutlined, StopOutlined } from '@ant-design/icons';
 import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
+import {
   Alert,
   App,
   Button,
@@ -14,7 +19,7 @@ import {
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAccess } from '@/app/access';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { ResponsiveTable as Table } from '@/components/ui';
@@ -36,7 +41,7 @@ import {
   seaDocumentServicePreviewSeaDocumentAmendment,
   seaDocumentServicePreviewSeaDocumentVoid,
 } from '@/services/roncin/seaDocumentService';
-import { isWriteResponse } from '@/utils/api';
+import { ensureListResponse, isWriteResponse, unwrapList } from '@/utils/api';
 import { formatDate } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
 import SeaExternalConfirmationFields, {
@@ -215,27 +220,91 @@ export default function SeaDocumentHistoryActions({
   const { message } = App.useApp();
   const [form] = Form.useForm();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [historyLoading, setHistoryLoading] = useState(false);
-  const [versions, setVersions] = useState<API.SeaDocumentVersion[]>([]);
-  const [versionsTotal, setVersionsTotal] = useState(0);
-  const [versionPage, setVersionPage] = useState(1);
-  const [versionsLoading, setVersionsLoading] = useState(false);
-  const [events, setEvents] = useState<API.SeaDocumentEvent[]>([]);
-  // 事件按 documentId 过滤后展示，加载进度按接口原始返回条数计算。
-  const [eventsLoadedCount, setEventsLoadedCount] = useState(0);
-  const [eventsTotal, setEventsTotal] = useState(0);
-  const [eventPage, setEventPage] = useState(1);
-  const [eventsLoading, setEventsLoading] = useState(false);
+  const [previewRevision, setPreviewRevision] = useState(0);
   const [mode, setMode] = useState<ActionMode | null>(null);
   const { markDirty } = useUnsavedChangesGuard({
     enabled: mode !== null,
     identity: `${documentId}:${mode}`,
   });
-  const [preview, setPreview] = useState<ChangePreview | null>(null);
-  const [previewPayload, setPreviewPayload] = useState<PreviewPayload | null>(
-    null,
-  );
-  const [previewing, setPreviewing] = useState(false);
+  const previewIdentity = JSON.stringify([
+    orderId,
+    documentType,
+    documentId,
+    orderVersion,
+    documentVersion,
+    currentVersionId,
+  ]);
+  const previewMutation = useMutation({
+    mutationFn: async ({
+      action,
+      payload,
+      revision,
+    }: {
+      action: ActionMode;
+      payload: PreviewPayload;
+      revision: number;
+    }) => {
+      let response:
+        | Awaited<
+            ReturnType<typeof seaDocumentServicePreviewSeaDocumentAmendment>
+          >
+        | Awaited<ReturnType<typeof seaDocumentServicePreviewSeaDocumentVoid>>;
+      if (action === 'amendment') {
+        if (!payload.amendmentInput) throw new Error('缺少改单预览内容');
+        response = await seaDocumentServicePreviewSeaDocumentAmendment(
+          { orderId },
+          {
+            ...buildCommon(payload.values.reason),
+            input: payload.amendmentInput,
+          },
+        );
+      } else {
+        response = await seaDocumentServicePreviewSeaDocumentVoid(
+          { orderId },
+          buildCommon(payload.values.reason),
+        );
+      }
+      if (!response?.data || response.success === false)
+        throw new Error('预览失败');
+      return {
+        preview: response.data as ChangePreview,
+        payload,
+        revision,
+        identity: previewIdentity,
+      };
+    },
+    meta: { silent: true },
+  });
+  const acceptedPreview =
+    previewMutation.data?.revision === previewRevision &&
+    previewMutation.data.identity === previewIdentity
+      ? previewMutation.data
+      : undefined;
+  const sessionRef = useRef({
+    orderId,
+    documentId,
+    revision: previewRevision,
+    identity: previewIdentity,
+    mode,
+    active: true,
+  });
+  sessionRef.current = {
+    orderId,
+    documentId,
+    revision: previewRevision,
+    identity: previewIdentity,
+    mode,
+    active: true,
+  };
+  useEffect(() => {
+    sessionRef.current.active = true;
+    return () => {
+      sessionRef.current.active = false;
+    };
+  }, []);
+  const preview = acceptedPreview?.preview;
+  const previewPayload = acceptedPreview?.payload;
+  const previewing = previewMutation.isPending;
   const [executing, setExecuting] = useState(false);
   const [idempotencyKey, setIdempotencyKey] = useState('');
 
@@ -248,124 +317,103 @@ export default function SeaDocumentHistoryActions({
     orderVersion && documentVersion && currentVersionId && !terminal,
   );
 
-  // 历史重置代次：loadHistory 递增后，进行中的加载更多响应全部作废。
-  const historyGenerationRef = useRef(0);
-
-  const fetchVersions = useCallback(
-    (page: number) =>
-      isHouse
-        ? seaDocumentServiceListSeaHouseBillVersions({
-            orderId,
-            houseBillId: documentId,
-            page,
-            pageSize: HISTORY_PAGE_SIZE,
-          })
-        : seaDocumentServiceListSeaMasterBillVersions({
-            orderId,
-            page,
-            pageSize: HISTORY_PAGE_SIZE,
-          }),
-    [documentId, isHouse, orderId],
-  );
-
-  const fetchEvents = useCallback(
-    (page: number) =>
-      seaDocumentServiceListSeaDocumentEvents({
-        orderId,
-        page,
-        pageSize: HISTORY_PAGE_SIZE,
-      }),
-    [orderId],
-  );
-
-  const loadHistory = useCallback(async () => {
-    const generation = ++historyGenerationRef.current;
-    setHistoryLoading(true);
-    setVersionPage(1);
-    setEventPage(1);
-    try {
-      const [versionResult, eventResult] = await Promise.all([
-        fetchVersions(1),
-        fetchEvents(1),
-      ]);
-      if (generation !== historyGenerationRef.current) return;
-      const versionRows = versionResult.data ?? [];
-      setVersions(versionRows);
-      setVersionsTotal(Number(versionResult.total ?? versionRows.length));
-      const eventRows = eventResult.data ?? [];
-      setEvents(
-        eventRows.filter((event) => isRelevantEvent(event, documentId)),
+  const queryClient = useQueryClient();
+  const versionsKey = [
+    'orders',
+    'sea-document-versions',
+    { orderId, documentId, documentType, open: drawerOpen },
+  ] as const;
+  const eventsKey = [
+    'orders',
+    'sea-document-events',
+    { orderId, documentId, open: drawerOpen },
+  ] as const;
+  const versionQuery = useInfiniteQuery({
+    queryKey: versionsKey,
+    enabled: drawerOpen && Boolean(orderId && documentId),
+    initialPageParam: 1,
+    meta: { silent: true },
+    queryFn: async ({ pageParam, signal }) => {
+      const response = isHouse
+        ? await seaDocumentServiceListSeaHouseBillVersions(
+            {
+              orderId,
+              houseBillId: documentId,
+              page: pageParam,
+              pageSize: HISTORY_PAGE_SIZE,
+            },
+            { signal, skipErrorHandler: true },
+          )
+        : await seaDocumentServiceListSeaMasterBillVersions(
+            { orderId, page: pageParam, pageSize: HISTORY_PAGE_SIZE },
+            { signal, skipErrorHandler: true },
+          );
+      const rows = unwrapList(ensureListResponse(response, '读取单证历史失败'));
+      return { rows, total: Number(response.total ?? rows.length) };
+    },
+    getNextPageParam: (lastPage, pages) =>
+      lastPage.rows.length &&
+      pages.reduce((count, page) => count + page.rows.length, 0) <
+        lastPage.total
+        ? pages.length + 1
+        : undefined,
+  });
+  const eventQuery = useInfiniteQuery({
+    queryKey: eventsKey,
+    enabled: drawerOpen && Boolean(orderId && documentId),
+    initialPageParam: 1,
+    meta: { silent: true },
+    queryFn: async ({ pageParam, signal }) => {
+      const response = await seaDocumentServiceListSeaDocumentEvents(
+        { orderId, page: pageParam, pageSize: HISTORY_PAGE_SIZE },
+        { signal, skipErrorHandler: true },
       );
-      setEventsLoadedCount(eventRows.length);
-      setEventsTotal(Number(eventResult.total ?? eventRows.length));
-    } catch (error: unknown) {
-      message.error(
-        error instanceof Error ? error.message : '读取单证历史失败',
-      );
-    } finally {
-      if (generation === historyGenerationRef.current) {
-        setHistoryLoading(false);
-      }
-    }
-  }, [documentId, fetchEvents, fetchVersions, message]);
-
-  const loadMoreVersions = async () => {
-    const generation = historyGenerationRef.current;
-    const nextPage = versionPage + 1;
-    setVersionsLoading(true);
-    try {
-      const result = await fetchVersions(nextPage);
-      if (generation !== historyGenerationRef.current) return;
-      const rows = result.data ?? [];
-      setVersions((previous) => [...previous, ...rows]);
-      setVersionsTotal(Number(result.total ?? 0));
-      setVersionPage(nextPage);
-    } catch (error: unknown) {
-      message.error(
-        error instanceof Error ? error.message : '读取单证历史失败',
-      );
-    } finally {
-      if (generation === historyGenerationRef.current) {
-        setVersionsLoading(false);
-      }
-    }
-  };
-
-  const loadMoreEvents = async () => {
-    const generation = historyGenerationRef.current;
-    const nextPage = eventPage + 1;
-    setEventsLoading(true);
-    try {
-      const result = await fetchEvents(nextPage);
-      if (generation !== historyGenerationRef.current) return;
-      const rows = result.data ?? [];
-      setEvents((previous) => [
-        ...previous,
-        ...rows.filter((event) => isRelevantEvent(event, documentId)),
-      ]);
-      setEventsLoadedCount((previous) => previous + rows.length);
-      setEventsTotal(Number(result.total ?? 0));
-      setEventPage(nextPage);
-    } catch (error: unknown) {
-      message.error(
-        error instanceof Error ? error.message : '读取单证历史失败',
-      );
-    } finally {
-      if (generation === historyGenerationRef.current) {
-        setEventsLoading(false);
-      }
-    }
-  };
-
+      const rows = unwrapList(ensureListResponse(response, '读取单证历史失败'));
+      return { rows, total: Number(response.total ?? rows.length) };
+    },
+    getNextPageParam: (lastPage, pages) =>
+      lastPage.rows.length &&
+      pages.reduce((count, page) => count + page.rows.length, 0) <
+        lastPage.total
+        ? pages.length + 1
+        : undefined,
+  });
+  const versions = versionQuery.data?.pages.flatMap((page) => page.rows) ?? [];
+  const versionsTotal = versionQuery.data?.pages.at(-1)?.total ?? 0;
+  const events =
+    eventQuery.data?.pages.flatMap((page) =>
+      page.rows.filter((event) => isRelevantEvent(event, documentId)),
+    ) ?? [];
+  const eventsTotal = eventQuery.data?.pages.at(-1)?.total ?? 0;
+  const historyLoading = versionQuery.isFetching || eventQuery.isFetching;
+  const versionsLoading = versionQuery.isFetchingNextPage;
+  const eventsLoading = eventQuery.isFetchingNextPage;
+  const loadMoreVersions = () => void versionQuery.fetchNextPage();
+  const loadMoreEvents = () => void eventQuery.fetchNextPage();
   const openHistory = async () => {
     setDrawerOpen(true);
-    await loadHistory();
+    await Promise.all([
+      queryClient.resetQueries({
+        queryKey: [
+          ...versionsKey.slice(0, 2),
+          { orderId, documentId, documentType, open: true },
+        ],
+        exact: true,
+      }),
+      queryClient.resetQueries({
+        queryKey: [
+          ...eventsKey.slice(0, 2),
+          { orderId, documentId, open: true },
+        ],
+        exact: true,
+      }),
+    ]);
   };
 
   const openAction = (nextMode: ActionMode) => {
     setMode(nextMode);
-    setPreview(null);
-    setPreviewPayload(null);
+    setPreviewRevision((value) => value + 1);
+    previewMutation.reset();
     setIdempotencyKey(createIdempotencyKey());
     form.setFieldsValue({
       reason: undefined,
@@ -379,8 +427,7 @@ export default function SeaDocumentHistoryActions({
   const closeAction = () => {
     if (previewing || executing) return;
     setMode(null);
-    setPreview(null);
-    setPreviewPayload(null);
+    previewMutation.reset();
     form.resetFields();
   };
 
@@ -396,31 +443,32 @@ export default function SeaDocumentHistoryActions({
 
   const handlePreview = async () => {
     if (!mode || !commandReady || disabled) return;
+    const revision = previewRevision;
+    const stillCurrent = () =>
+      sessionRef.current.active &&
+      sessionRef.current.orderId === orderId &&
+      sessionRef.current.documentId === documentId &&
+      sessionRef.current.identity === previewIdentity &&
+      sessionRef.current.mode === mode &&
+      sessionRef.current.revision === revision;
     const values = (await form.validateFields()) as ActionFormValues;
-    setPreviewing(true);
-    setPreview(null);
-    setPreviewPayload(null);
+    if (!stillCurrent()) return;
+    previewMutation.reset();
     try {
-      if (mode === 'amendment') {
-        const amendmentInput = getAmendmentInput();
-        const result = await seaDocumentServicePreviewSeaDocumentAmendment(
-          { orderId },
-          { ...buildCommon(values.reason), input: amendmentInput },
-        );
-        setPreview(result.data ?? null);
-        setPreviewPayload({ values, amendmentInput });
-      } else {
-        const result = await seaDocumentServicePreviewSeaDocumentVoid(
-          { orderId },
-          buildCommon(values.reason),
-        );
-        setPreview(result.data ?? null);
-        setPreviewPayload({ values });
-      }
+      await previewMutation.mutateAsync({
+        action: mode,
+        revision: previewRevision,
+        payload: {
+          values,
+          amendmentInput:
+            mode === 'amendment'
+              ? structuredClone(getAmendmentInput())
+              : undefined,
+        },
+      });
     } catch (error: unknown) {
-      message.error(error instanceof Error ? error.message : '预览失败');
-    } finally {
-      setPreviewing(false);
+      if (stillCurrent())
+        message.error(error instanceof Error ? error.message : '预览失败');
     }
   };
 
@@ -455,8 +503,7 @@ export default function SeaDocumentHistoryActions({
       }
       message.success(mode === 'amendment' ? '改单版本已发布' : '单证已作废');
       setMode(null);
-      setPreview(null);
-      setPreviewPayload(null);
+      previewMutation.reset();
       form.resetFields();
       await onSuccess();
     } catch (error: unknown) {
@@ -566,6 +613,9 @@ export default function SeaDocumentHistoryActions({
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
       >
+        {versionQuery.isError || eventQuery.isError ? (
+          <Alert type="error" title="读取单证历史失败" />
+        ) : null}
         <Typography.Title level={5}>版本历史</Typography.Title>
         <div
           style={{
@@ -623,7 +673,7 @@ export default function SeaDocumentHistoryActions({
             ),
           }}
         />
-        {versions.length < versionsTotal ? (
+        {versionQuery.hasNextPage ? (
           <Button
             size="small"
             block
@@ -655,7 +705,7 @@ export default function SeaDocumentHistoryActions({
           dataSource={events}
           columns={eventSettings.columns}
         />
-        {eventsLoadedCount < eventsTotal ? (
+        {eventQuery.hasNextPage ? (
           <Button
             size="small"
             block
@@ -714,8 +764,8 @@ export default function SeaDocumentHistoryActions({
           layout="vertical"
           onValuesChange={() => {
             markDirty();
-            setPreview(null);
-            setPreviewPayload(null);
+            setPreviewRevision((value) => value + 1);
+            previewMutation.reset();
           }}
         >
           <Form.Item

@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import {
   SeaDocumentStructure,
@@ -20,9 +21,11 @@ describe('SeaDocumentSectionComponent', () => {
       <TestForm isDetail initialValues={{ id: 'order-1', version: '11' }} />,
     );
 
-    fireEvent.click(
-      await screen.findByRole('button', { name: /切换为有货代分单（HOUSE）/ }),
-    );
+    const switchMode = await screen.findByRole('button', {
+      name: /切换为有货代分单（HOUSE）/,
+    });
+    await waitFor(() => expect(switchMode).toBeEnabled());
+    fireEvent.click(switchMode);
     fireEvent.change(screen.getByPlaceholderText('请输入分单号'), {
       target: { value: 'HBL-NEW' },
     });

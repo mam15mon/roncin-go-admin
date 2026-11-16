@@ -236,6 +236,7 @@ function deferred<T>() {
 describe('订单详情页拆票与改配动作隔离', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetChangeActions.mockReset();
     detailTestState.canOperate = true;
     detailTestState.canRead = true;
     routeState.params = { kind: 'sea-export', id: 'ord-A' };
@@ -346,7 +347,13 @@ describe('订单详情页拆票与改配动作隔离', () => {
       </App>,
     );
     await waitFor(() => {
-      expect(mockGetChangeActions).toHaveBeenCalledWith({ orderId: 'ord-A' });
+      expect(mockGetChangeActions).toHaveBeenCalledWith(
+        { orderId: 'ord-A' },
+        expect.objectContaining({
+          signal: expect.anything(),
+          skipErrorHandler: true,
+        }),
+      );
     });
 
     routeState.params = { kind: 'sea-export', id: 'ord-B' };
@@ -356,7 +363,13 @@ describe('订单详情页拆票与改配动作隔离', () => {
       </App>,
     );
     await waitFor(() => {
-      expect(mockGetChangeActions).toHaveBeenCalledWith({ orderId: 'ord-B' });
+      expect(mockGetChangeActions).toHaveBeenCalledWith(
+        { orderId: 'ord-B' },
+        expect.objectContaining({
+          signal: expect.anything(),
+          skipErrorHandler: true,
+        }),
+      );
     });
 
     await act(async () => {
@@ -506,7 +519,13 @@ describe('订单详情页拆票与改配动作隔离', () => {
       </App>,
     );
     await waitFor(() =>
-      expect(mockGetChangeActions).toHaveBeenCalledWith({ orderId: 'ord-B' }),
+      expect(mockGetChangeActions).toHaveBeenCalledWith(
+        { orderId: 'ord-B' },
+        expect.objectContaining({
+          signal: expect.anything(),
+          skipErrorHandler: true,
+        }),
+      ),
     );
 
     await act(async () => {
