@@ -1,4 +1,4 @@
-import { Card, Col, Descriptions, Row, Space, Tag } from 'antd';
+import { Card, Col, Row, Space, Tag } from 'antd';
 import React from 'react';
 import { SectionCard } from '@/components/ui';
 import { OrderBusinessType } from '@/enums.generated';
@@ -10,6 +10,7 @@ import {
   type FeeCurrencyTotal,
   type FeeSideSummary,
 } from './feeSummary';
+import styles from './OrderFeeHeader.module.css';
 
 type OrderFeeHeaderProps = {
   order: API.Order;
@@ -118,80 +119,112 @@ export default function OrderFeeHeader({
     <>
       {/* 1. 基础信息卡片 */}
       <SectionCard title="订单基础信息" style={{ marginBottom: 16 }}>
-        <Descriptions
-          size="small"
-          column={{ xs: 1, sm: 2, md: 3, lg: 4, xl: 4 }}
-        >
-          <Descriptions.Item label="订单编号">
-            <span
-              style={{
-                fontWeight: 600,
-                fontFamily: 'monospace',
-              }}
-            >
+        <div className={styles.identity}>
+          <div className={styles.orderIdentity}>
+            <span className={styles.label}>订单编号</span>
+            <strong className={styles.orderNo}>
               {order.orderNo || order.id}
+            </strong>
+            <Tag color="blue">{configTitle}</Tag>
+            <span className={styles.tradeTerm}>
+              <span className={styles.label}>贸易条款</span>
+              {tradeTermOptions.find((o) => o.value === order.tradeTerm)
+                ?.label ?? '-'}
             </span>
-          </Descriptions.Item>
-          <Descriptions.Item label="委托单位">
-            {customerName || order.customerName || '-'}
-          </Descriptions.Item>
-          <Descriptions.Item label="业务类型">{configTitle}</Descriptions.Item>
-          <Descriptions.Item label="贸易条款">
-            {tradeTermOptions.find((o) => o.value === order.tradeTerm)?.label ??
-              '-'}
-          </Descriptions.Item>
-          <Descriptions.Item label={isAir ? '主运单号 (MAWB)' : '主单号 (MBL)'}>
-            {(isAir
-              ? master?.content?.masterNo
-              : order.seaMasterBill?.masterNo) || '-'}
-          </Descriptions.Item>
-          <Descriptions.Item label={isAir ? '航班号' : '船名航次'}>
-            {(isAir ? master?.content?.flightNo : order.vesselVoyage) || '-'}
-          </Descriptions.Item>
-          <Descriptions.Item label={isAir ? '起运机场' : '起运港 (POL)'}>
-            {(isAir ? master?.originAirportName : order.originLocationName) ||
-              '-'}
-          </Descriptions.Item>
-          <Descriptions.Item label={isAir ? '目的机场' : '目的港 (POD)'}>
-            {(isAir
-              ? master?.destinationAirportName
-              : order.destinationLocationName) || '-'}
-          </Descriptions.Item>
-          <Descriptions.Item label={isAir ? '航空公司' : '船公司'}>
-            {(isAir
-              ? master?.airlineName
-              : order.seaMasterBill?.shippingLineName) || '-'}
-          </Descriptions.Item>
-          <Descriptions.Item label="订舱代理">
-            {order.bookingAgentName || '-'}
-          </Descriptions.Item>
-          <Descriptions.Item
-            label={
-              isImport
+          </div>
+          <div className={styles.customer}>
+            <span className={styles.label}>委托单位</span>
+            <strong>{customerName || order.customerName || '-'}</strong>
+          </div>
+        </div>
+        <div className={styles.transport}>
+          <div className={styles.route}>
+            <div className={styles.location}>
+              <span className={styles.label}>
+                {isAir ? '起运机场' : '起运港 (POL)'}
+              </span>
+              <strong>
+                {(isAir
+                  ? master?.originAirportName
+                  : order.originLocationName) || '-'}
+              </strong>
+            </div>
+            <div className={styles.routeConnector} aria-hidden="true">
+              <span />
+              <span className={styles.routeArrow}>→</span>
+              <span />
+            </div>
+            <div className={styles.location}>
+              <span className={styles.label}>
+                {isAir ? '目的机场' : '目的港 (POD)'}
+              </span>
+              <strong>
+                {(isAir
+                  ? master?.destinationAirportName
+                  : order.destinationLocationName) || '-'}
+              </strong>
+            </div>
+          </div>
+          <div className={styles.schedule}>
+            <span className={styles.label}>
+              {isImport
                 ? isAir
                   ? '计划到达（经营日期）'
                   : 'ETA（经营日期）'
                 : isAir
                   ? '计划起飞'
-                  : 'ETD'
-            }
-          >
-            {formatDate(
-              isImport
-                ? isAir
-                  ? master?.content?.eta
-                  : order.eta
-                : isAir
-                  ? master?.content?.etd
-                  : order.etd,
-              isAir ? 'minute' : 'date',
-            )}
-          </Descriptions.Item>
-          <Descriptions.Item label="件重尺">
-            {order.totalPackages || '-'} 件 / {order.totalGrossWeightKg || '-'}{' '}
-            kg / {order.totalVolumeCbm || '-'} m³
-          </Descriptions.Item>
-        </Descriptions>
+                  : 'ETD'}
+            </span>
+            <strong>
+              {formatDate(
+                isImport
+                  ? isAir
+                    ? master?.content?.eta
+                    : order.eta
+                  : isAir
+                    ? master?.content?.etd
+                    : order.etd,
+                isAir ? 'minute' : 'date',
+              )}
+            </strong>
+          </div>
+        </div>
+        <dl className={styles.details}>
+          <div>
+            <dt>{isAir ? '主运单号 (MAWB)' : '主单号 (MBL)'}</dt>
+            <dd className={styles.documentNo}>
+              {(isAir
+                ? master?.content?.masterNo
+                : order.seaMasterBill?.masterNo) || '-'}
+            </dd>
+          </div>
+          <div>
+            <dt>{isAir ? '航空公司' : '船公司'}</dt>
+            <dd>
+              {(isAir
+                ? master?.airlineName
+                : order.seaMasterBill?.shippingLineName) || '-'}
+            </dd>
+          </div>
+          <div>
+            <dt>{isAir ? '航班号' : '船名航次'}</dt>
+            <dd>
+              {(isAir ? master?.content?.flightNo : order.vesselVoyage) || '-'}
+            </dd>
+          </div>
+          <div>
+            <dt>订舱代理</dt>
+            <dd>{order.bookingAgentName || '-'}</dd>
+          </div>
+          <div>
+            <dt>件重尺</dt>
+            <dd>
+              {order.totalPackages || '-'} 件 /{' '}
+              {order.totalGrossWeightKg || '-'} kg /{' '}
+              {order.totalVolumeCbm || '-'} m³
+            </dd>
+          </div>
+        </dl>
       </SectionCard>
 
       {/* 2. 费用汇总统计指标卡：含税与不含税同时展示 */}
