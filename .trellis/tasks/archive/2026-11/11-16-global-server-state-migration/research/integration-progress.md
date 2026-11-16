@@ -48,4 +48,6 @@
 
 ## 收尾
 
-代码按组提交完成。文档验收提交后，按 finish-work 归档本任务和记录会话，再本地合并 main；合并前后核对四个用户未提交文件的内容和暂存状态，最后移除本任务 managed worktree 并用 `git branch -d` 安全删除分支。无需创建 PR 或推送。
+代码与文档均已按组提交，finish-work 已归档任务（5ee3d253）并记录第 215 次会话（bbe74331）；main 已 fast-forward 合并全部提交。合并前后的四个用户未提交文件经 SHA256 和完整 binary diff 比对一致，暂存区保持为空。
+
+`codex/global-server-state-migration` 已确认被 main 完整包含，并使用 `git branch -d` 安全删除。应用 archive_worktree 返回 `The task's primary checkout cannot be removed.`，尝试关联原主目录也被拒绝（仅接受 linked worktree）；遵守应用保护，保留干净的临时工作树并切至 main 对应 detached HEAD，不强制删除当前聊天主检出。独立 Vite 服务已停止。未创建 PR 或推送。
