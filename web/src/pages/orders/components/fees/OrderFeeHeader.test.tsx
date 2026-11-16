@@ -121,6 +121,27 @@ describe('费用页含税与不含税双口径看板', () => {
     expect(profit.getByText('不含税')).toBeVisible();
     expect(profit.getByText('¥53.00')).toBeVisible();
     expect(profit.getByText('¥50.00')).toBeVisible();
+    expect(profit.getAllByText('50.0%')).toHaveLength(2);
+  });
+
+  it('含税与不含税毛利率分别按各自口径计算并展示', () => {
+    renderHeader(
+      summarizeFees([
+        fee({
+          baseCurrencyAmount: '106',
+          baseCurrencyNetAmount: '100',
+        }),
+      ]),
+      summarizeFees([
+        fee({
+          baseCurrencyAmount: '50',
+          baseCurrencyNetAmount: '50',
+        }),
+      ]),
+    );
+    const profit = within(screen.getByTestId('fee-summary-profit'));
+    expect(profit.getByText('52.8%')).toBeVisible();
+    expect(profit.getByText('50.0%')).toBeVisible();
   });
 
   it('零税额两组相同且都显示；空数据显示 0.00', () => {
@@ -146,7 +167,7 @@ describe('费用页含税与不含税双口径看板', () => {
     expect(pay.getByText('1 笔未折算，未计入本币合计')).toBeVisible();
   });
 
-  it('同一份行数据汇总，多币种原币分组展示且不混加', () => {
+  it('多币种只汇总折算后的本币合计，卡片底部不展示原币明细文字', () => {
     const summary = summarizeFees([
       fee({
         currency: 'USD',
@@ -167,7 +188,9 @@ describe('费用页含税与不含税双口径看板', () => {
     expect(summary.net).toBe('1077.36');
     renderHeader(summary, emptyFeeSummary);
     const recv = screen.getByTestId('fee-summary-receivable');
-    expect(recv).toHaveTextContent('USD：含税 106.00 / 不含税 100.00');
-    expect(recv).toHaveTextContent('EUR：含税 53.00 / 不含税 50.00');
+    expect(within(recv).getByText('¥1,142.00')).toBeVisible();
+    expect(within(recv).getByText('¥1,077.36')).toBeVisible();
+    expect(recv).not.toHaveTextContent('USD：');
+    expect(recv).not.toHaveTextContent('EUR：');
   });
 });

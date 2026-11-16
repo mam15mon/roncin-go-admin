@@ -63,7 +63,10 @@ export type FeeProfitSummary = {
   net: string;
   /** 毛利率（含税口径，百分数，一位小数） */
   rate: string;
+  /** 毛利率（不含税口径，百分数，一位小数） */
+  netRate: string;
   negative: boolean;
+  netNegative: boolean;
   unconvertedCount: number;
 };
 
@@ -75,12 +78,15 @@ export function computeFeeProfit(
   if (!receivable || !payable) return undefined;
   const gross = new Decimal(receivable.gross).minus(payable.gross);
   const net = new Decimal(receivable.net).minus(payable.net);
-  const recv = new Decimal(receivable.gross);
+  const recvGross = new Decimal(receivable.gross);
+  const recvNet = new Decimal(receivable.net);
   return {
     gross: gross.toString(),
     net: net.toString(),
-    rate: recv.gt(0) ? gross.div(recv).times(100).toFixed(1) : '0.0',
+    rate: recvGross.gt(0) ? gross.div(recvGross).times(100).toFixed(1) : '0.0',
+    netRate: recvNet.gt(0) ? net.div(recvNet).times(100).toFixed(1) : '0.0',
     negative: gross.lt(0),
+    netNegative: net.lt(0),
     unconvertedCount: receivable.unconvertedCount + payable.unconvertedCount,
   };
 }

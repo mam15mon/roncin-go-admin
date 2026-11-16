@@ -5,11 +5,7 @@ import { OrderBusinessType } from '@/enums.generated';
 import { formatAmount, formatDate } from '@/utils/format';
 import { tradeTermOptions } from '../../common';
 import type { OrderBusinessWritePolicy } from '../../use-order-lock-state';
-import {
-  computeFeeProfit,
-  type FeeCurrencyTotal,
-  type FeeSideSummary,
-} from './feeSummary';
+import { computeFeeProfit, type FeeSideSummary } from './feeSummary';
 
 type OrderFeeHeaderProps = {
   order: API.Order;
@@ -35,57 +31,162 @@ function shown(summary?: FeeSideSummary) {
 function SummaryCard({
   title,
   color,
+  netColor,
+  accentBg,
   gross,
   net,
+  grossExtra,
+  netExtra,
   unconvertedCount,
-  currencies,
-  extra,
   testId,
 }: {
   title: string;
   color: string;
+  netColor?: string;
+  accentBg: string;
   gross?: string;
   net?: string;
+  grossExtra?: React.ReactNode;
+  netExtra?: React.ReactNode;
   unconvertedCount: number;
-  currencies?: FeeCurrencyTotal[];
-  extra?: React.ReactNode;
   testId: string;
 }) {
-  const row = (label: string, value?: string) => (
-    <div
-      style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 4 }}
-    >
-      <span style={{ color: '#64748b', width: 64 }}>{label}</span>
-      <span style={{ color, fontWeight: 700, fontSize: 20 }}>
-        {value === undefined ? '-' : `¥${formatAmount(value)}`}
-      </span>
-    </div>
-  );
+  const formatMetric = (value?: string) =>
+    value === undefined ? '-' : `¥${formatAmount(value)}`;
+
+  const hasFooter = unconvertedCount > 0;
+
   return (
     <Card
       variant="borderless"
-      style={{ borderRadius: 6, border: '1px solid #f0f0f0' }}
+      style={{
+        height: '100%',
+        borderRadius: 8,
+        border: '1px solid #eef0f4',
+        borderTop: `3px solid ${color}`,
+        background: '#ffffff',
+        boxShadow: '0 1px 2px rgba(15, 23, 42, 0.03)',
+      }}
+      styles={{
+        body: {
+          height: '100%',
+          padding: '14px 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          gap: 12,
+        },
+      }}
       data-testid={testId}
     >
-      <Space style={{ color: '#64748b' }}>
-        <span>{title}（本币）</span>
-        {extra}
-      </Space>
-      {row('含税', gross)}
-      {row('不含税', net)}
-      {unconvertedCount > 0 ? (
-        <div style={{ color: '#fa8c16', marginTop: 4 }}>
-          {unconvertedCount} 笔未折算，未计入本币合计
+      <div>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 8,
+            marginBottom: 10,
+          }}
+        >
+          <Space size={6} align="center">
+            <span
+              aria-hidden="true"
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                backgroundColor: color,
+                boxShadow: `0 0 0 3px ${accentBg}`,
+                display: 'inline-block',
+              }}
+            />
+            <span style={{ color: '#475569', fontSize: 13, fontWeight: 500 }}>
+              {title}
+            </span>
+            <span style={{ color: '#94a3b8', fontSize: 12 }}>（本币）</span>
+          </Space>
         </div>
-      ) : null}
-      {currencies && currencies.length > 0 ? (
-        <div style={{ color: '#64748b', marginTop: 4, fontSize: 12 }}>
-          {currencies.map((item) => (
-            <div key={item.currency}>
-              {item.currency}：含税 {formatAmount(item.gross)} / 不含税{' '}
-              {formatAmount(item.net)}
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+            gap: 12,
+            alignItems: 'end',
+          }}
+        >
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                marginBottom: 2,
+              }}
+            >
+              <span style={{ color: '#64748b', fontSize: 12 }}>含税</span>
+              {grossExtra}
             </div>
-          ))}
+            <div
+              style={{
+                color,
+                fontWeight: 700,
+                fontSize: 21,
+                lineHeight: 1.25,
+                fontVariantNumeric: 'tabular-nums',
+                wordBreak: 'break-all',
+              }}
+            >
+              {formatMetric(gross)}
+            </div>
+          </div>
+          <div
+            style={{
+              minWidth: 0,
+              paddingLeft: 12,
+              borderLeft: '1px solid #f1f5f9',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                marginBottom: 2,
+              }}
+            >
+              <span style={{ color: '#64748b', fontSize: 12 }}>不含税</span>
+              {netExtra}
+            </div>
+            <div
+              style={{
+                color: netColor ?? '#1e293b',
+                fontWeight: 600,
+                fontSize: 18,
+                lineHeight: 1.25,
+                fontVariantNumeric: 'tabular-nums',
+                wordBreak: 'break-all',
+              }}
+            >
+              {formatMetric(net)}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {hasFooter ? (
+        <div
+          style={{
+            borderTop: '1px solid #f1f5f9',
+            paddingTop: 8,
+            fontSize: 12,
+            color: '#d46b08',
+            fontWeight: 500,
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
+          {unconvertedCount} 笔未折算，未计入本币合计
         </div>
       ) : null}
     </Card>
@@ -248,43 +349,58 @@ export default function OrderFeeHeader({
       </SectionCard>
 
       {/* 2. 费用汇总统计指标卡：含税与不含税同时展示 */}
-      <Row gutter={16} style={{ marginBottom: 16 }}>
-        <Col xs={24} sm={8}>
+      <Row gutter={[12, 12]} align="stretch" style={{ marginBottom: 16 }}>
+        <Col xs={24} md={8}>
           <SummaryCard
             title="应收总计"
             color="#1677ff"
+            accentBg="#e6f4ff"
             gross={shown(receivableSummary)?.gross}
             net={shown(receivableSummary)?.net}
             unconvertedCount={receivableSummary?.unconvertedCount ?? 0}
-            currencies={receivableSummary?.currencies}
             testId="fee-summary-receivable"
           />
         </Col>
-        <Col xs={24} sm={8}>
+        <Col xs={24} md={8}>
           <SummaryCard
             title="应付总计"
-            color="#fa8c16"
+            color="#d46b08"
+            accentBg="#fff7e6"
             gross={shown(payableSummary)?.gross}
             net={shown(payableSummary)?.net}
             unconvertedCount={payableSummary?.unconvertedCount ?? 0}
-            currencies={payableSummary?.currencies}
             testId="fee-summary-payable"
           />
         </Col>
-        <Col xs={24} sm={8}>
+        <Col xs={24} md={8}>
           <SummaryCard
             title="预计毛利"
-            color={profit?.negative ? '#ff4d4f' : '#52c41a'}
+            color={profit?.negative ? '#cf1322' : '#389e0d'}
+            netColor={profit?.netNegative ? '#cf1322' : '#389e0d'}
+            accentBg={profit?.negative ? '#fff1f0' : '#f6ffed'}
             gross={profit?.gross}
             net={profit?.net}
-            unconvertedCount={profit?.unconvertedCount ?? 0}
-            extra={
+            grossExtra={
               profit ? (
-                <Tag color={profit.negative ? 'error' : 'success'}>
+                <Tag
+                  color={profit.negative ? 'error' : 'success'}
+                  style={{ marginInlineEnd: 0, fontWeight: 600 }}
+                >
                   {profit.rate}%
                 </Tag>
               ) : undefined
             }
+            netExtra={
+              profit ? (
+                <Tag
+                  color={profit.netNegative ? 'error' : 'success'}
+                  style={{ marginInlineEnd: 0, fontWeight: 600 }}
+                >
+                  {profit.netRate}%
+                </Tag>
+              ) : undefined
+            }
+            unconvertedCount={profit?.unconvertedCount ?? 0}
             testId="fee-summary-profit"
           />
         </Col>
