@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/web/frontend/air-order-workspace.md", "reason": "航空单证UI与原保存合同"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "航空单证UI与原保存合同"}
+{"file": ".trellis/spec/web/frontend/hook-guidelines.md", "reason": "航空单证UI与原保存合同"}
+{"file": ".trellis/spec/web/frontend/quality-guidelines.md", "reason": "航空单证UI与原保存合同"}
+{"file": ".trellis/spec/server/backend/air-waybill-content-and-mode.md", "reason": "航空单证UI与原保存合同"}

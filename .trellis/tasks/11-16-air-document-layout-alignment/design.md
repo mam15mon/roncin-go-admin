@@ -1,0 +1,6 @@
+# 设计与变更边界
+
+问题位于AirWaybillFields(order variant)与AirDocumentSection只读MAWB摘要；海运SeaBillContentFormFields只作布局参考，不改其业务逻辑。
+新增航空订单正文常用区组件，在可编辑与只读模式复用同一排版；只读不注册表单字段。原AirWaybillFields full模式保留，订单模式常用区接新组件，其他完整字段包一层更多入口。必要时仅抽取已有真实共用的小工具，禁止复制海运1000行或新建全站单证平台。
+带入经既有生成partner客户端，接入Form/模板明确动作以标脏；必须保留目标字段/订单/公司身份和请求期间输入。缺少字段不凭空制造货量/费用；只从订单goodsDescription带入航空goodsDescription。
+文件范围：templates/components/air/AirWaybillFields、AirDocumentSection与新正文组件/带入逻辑；templates/types.ts和new/detail仅当标脏回调必需时改最小接口。相关单测、独立浏览器测试和规范。
