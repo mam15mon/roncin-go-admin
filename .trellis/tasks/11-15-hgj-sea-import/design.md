@@ -19,4 +19,6 @@
 
 写操作经Data.WithTx/WithinTransaction和Data.client，固定Order先行锁序、锁内完整集合/类型/公司/预期版本复验，提交后重读；不混用原生事务。新增Schema走正式有序SQL，保留旧文本/历史，异常存量显式拒绝，不自动纠错。Proto→绑定/OpenAPI→web客户端、Manifest→权限键同组。
 
-字段/验收详见父研究field-adoption-proposal.md、validation-matrix.md；本设计尚待父最终复核批准。
+字段/验收详见父研究field-adoption-proposal.md、validation-matrix.md；本设计随父最终方案获批，按前置交付验收顺序实现。
+
+实施授权同步：父最终方案已获用户明确批准，按前置依赖执行；具体完成状态以实际验证结果为准。

@@ -258,4 +258,100 @@ describe('AE 新建与详情五卡片合同', () => {
     ).toBeInTheDocument();
     await flushMountRequests();
   });
+  it('经营字段在本票卡片中可编辑，付款方式只注册一次且不写入主单', async () => {
+    let form!: FormInstance;
+    renderWithApp(
+      <SectionCards
+        initialValues={{
+          paymentTerm: 2,
+          factoryName: '工厂A',
+          contractNo: '合同A',
+          cargoCurrency: 'USD',
+          insuranceCurrency: 'CNY',
+        }}
+        exposeForm={(value) => {
+          form = value;
+        }}
+      />,
+      { user },
+    );
+    const business = screen.getByRole('region', { name: '业务与客户' });
+    const cargo = screen.getByRole('region', { name: '本票货物' });
+    for (const label of [
+      '集运/跨境',
+      '贸易条款',
+      '业务付款方式',
+      '订舱代理',
+      '国外代理',
+      '合约号',
+    ]) {
+      expect(business).toHaveTextContent(label);
+    }
+    for (const label of [
+      '货值',
+      '保费',
+      '工厂',
+      '接单时间',
+      '货好时间',
+      '订舱备注',
+      '配舱备注',
+      '普通备注',
+    ]) {
+      expect(cargo).toHaveTextContent(label);
+    }
+    expect(
+      screen.getAllByRole('combobox', { name: '业务付款方式' }),
+    ).toHaveLength(1);
+    expect(screen.getByRole('textbox', { name: '工厂' })).toHaveValue('工厂A');
+    fireEvent.change(screen.getByRole('textbox', { name: '工厂' }), {
+      target: { value: '' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: '合约号' }), {
+      target: { value: '合同B' },
+    });
+    expect(form.getFieldValue('factoryName')).toBe('');
+    expect(form.getFieldValue('contractNo')).toBe('合同B');
+    expect(form.getFieldValue('paymentTerm')).toBe(2);
+    expect(form.getFieldValue(['airMaster', 'contractNo'])).toBeUndefined();
+    const amountFields = [
+      'cargoValue',
+      'cargoCurrency',
+      'insurancePremium',
+      'insuranceCurrency',
+    ];
+    await act(async () => {
+      await expect(form.validateFields(amountFields)).rejects.toMatchObject({
+        errorFields: expect.arrayContaining([
+          expect.objectContaining({
+            name: ['cargoValue'],
+            errors: ['请输入货值'],
+          }),
+          expect.objectContaining({
+            name: ['insurancePremium'],
+            errors: ['请输入保费'],
+          }),
+        ]),
+      });
+      form.setFieldsValue({ cargoValue: '0', insurancePremium: '123.4567' });
+      await expect(form.validateFields(amountFields)).resolves.toMatchObject({
+        cargoValue: '0',
+        cargoCurrency: 'USD',
+        insurancePremium: '123.4567',
+        insuranceCurrency: 'CNY',
+      });
+      form.setFieldsValue({
+        cargoValue: '',
+        cargoCurrency: undefined,
+        insurancePremium: '',
+        insuranceCurrency: undefined,
+      });
+      await expect(form.validateFields(amountFields)).resolves.toMatchObject({
+        cargoValue: '',
+        cargoCurrency: undefined,
+        insurancePremium: '',
+        insuranceCurrency: undefined,
+      });
+    });
+    await flushMountRequests();
+  });
 });

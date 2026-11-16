@@ -182,3 +182,108 @@ describe('空运表单契约', () => {
     }
   });
 });
+
+describe('空运本票经营字段往返', () => {
+  it('新建保留原始金额精度、币种及本票日期时刻，不写进主单', () => {
+    const payload = airExportFormAdapter.buildCreatePayload({
+      customerId: 'customer',
+      paymentTerm: 2,
+      shipmentMode: 2,
+      tradeTerm: 1,
+      bookingAgentId: 'supplier',
+      foreignAgentId: 'agent',
+      contractNo: ' contract ',
+      cargoValue: '0',
+      cargoCurrency: 'USD',
+      insurancePremium: '123.4567',
+      insuranceCurrency: 'CNY',
+      factoryName: ' 工厂 ',
+      receivedAt: dayjs('2026-11-16T10:20:00+08:00'),
+      cargoReadyAt: dayjs('2026-11-17T01:02:03+08:00'),
+      bookingNotes: ' 订舱 ',
+      allocationNotes: ' 配舱 ',
+      operationNotes: ' 操作 ',
+      notes: ' 普通 ',
+    });
+    expect(payload).toMatchObject({
+      paymentTerm: 2,
+      shipmentMode: 2,
+      tradeTerm: 1,
+      bookingAgentId: 'supplier',
+      foreignAgentId: 'agent',
+      contractNo: 'contract',
+      cargoValue: '0',
+      cargoCurrency: 'USD',
+      insurancePremium: '123.4567',
+      insuranceCurrency: 'CNY',
+      factoryName: '工厂',
+      receivedAt: '2026-11-16T02:20:00.000Z',
+      cargoReadyAt: '2026-11-16T17:02:03.000Z',
+      bookingNotes: '订舱',
+      allocationNotes: '配舱',
+      operationNotes: '操作',
+      notes: '普通',
+    });
+    expect(payload.airExport?.master).toBeUndefined();
+  });
+
+  it('详情将时间回填DatePicker对象，省略optional字段不制造值，显式零金额不丢失', () => {
+    const values = airExportFormAdapter.buildDetailInitialValues(
+      {
+        customerId: 'customer',
+        paymentTerm: 2,
+        shipmentMode: 2,
+        cargoValue: '0',
+        cargoCurrency: 'USD',
+        receivedAt: '2026-11-16T02:20:00Z',
+        cargoReadyAt: '2026-11-16T17:02:03Z',
+      },
+      [],
+      [],
+    );
+    expect(dayjs.isDayjs(values.receivedAt)).toBe(true);
+    expect(dayjs.isDayjs(values.cargoReadyAt)).toBe(true);
+    expect(values.cargoValue).toBe('0');
+    expect(values.insurancePremium).toBeUndefined();
+    const payload = airExportFormAdapter.buildUpdatePayload('order', '4', {
+      ...values,
+      customerId: 'customer',
+      paymentTerm: 2,
+    });
+    expect(payload.receivedAt).toBe('2026-11-16T02:20:00.000Z');
+    expect(payload.cargoValue).toBe('0');
+    expect(payload.shipmentMode).toBe(2);
+  });
+
+  it('更新清空经营字段时发送明确空值，JSON序列化后仍保留清除意图', () => {
+    const payload = airExportFormAdapter.buildUpdatePayload('order', '4', {
+      customerId: 'customer',
+      paymentTerm: 1,
+      contractNo: ' ',
+      factoryName: '',
+      bookingNotes: '',
+      allocationNotes: '',
+      notes: '',
+    });
+    expect(JSON.parse(JSON.stringify(payload))).toMatchObject({
+      id: 'order',
+      expectedVersion: '4',
+      shipmentMode: 0,
+      tradeTerm: 0,
+      bookingAgentId: '',
+      foreignAgentId: '',
+      cargoValue: '',
+      cargoCurrency: '',
+      insurancePremium: '',
+      insuranceCurrency: '',
+      receivedAt: '',
+      cargoReadyAt: '',
+      factoryName: '',
+      contractNo: '',
+      bookingNotes: '',
+      allocationNotes: '',
+      notes: '',
+      operationNotes: '',
+    });
+  });
+});

@@ -11,13 +11,16 @@ import {
   PackageCountInput,
   ProFormSearchableSelect,
 } from '@/components/ui';
+import {
+  AirBusinessFields,
+  AirCargoCommercialFields,
+} from './components/air/AirCommercialFields';
 import { AirMasterTransportSection } from './components/air/AirMasterFields';
 import {
   SeaCustomerField,
   SeaDangerousGoodsFields,
   SeaOrderReferenceField,
 } from './components/sea/SeaBasicInfoSection';
-import { SeaCargoDescriptionFields } from './components/sea/SeaCargoSection';
 import { buildSeaPersonnelSection } from './components/sea/SeaPersonnelSection';
 import type { TemplateProps, TemplateSection } from './types';
 
@@ -64,6 +67,7 @@ export function getAirTemplateSections(
             />
             <ProFormText name="customerCode" label="委托单位代码" disabled />
           </FormRow>
+          <AirBusinessFields props={props} />
         </>
       ),
     },
@@ -87,7 +91,7 @@ export function getAirTemplateSections(
             disabled={props.readonly}
             showPackingGroup
           />
-          <SeaCargoDescriptionFields />
+          <AirCargoCommercialFields props={props} />
           <FormRow cols={3}>
             <Form.Item label="本票件数">
               <PackageCountInput

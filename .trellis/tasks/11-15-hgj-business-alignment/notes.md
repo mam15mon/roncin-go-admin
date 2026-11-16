@@ -26,3 +26,9 @@
 - 父/六子task.py validate均0；占位符、敏感值模式、22个可解析证据ID/digest与git diff --check通过。最终planning独立复核已通过（coverage-audit追加节），修复F34长度冲突、V5模式与V20 CSV覆盖及PDF依赖摘要；可展示最终规划摘要，但必须等待其后的用户明确实施批准，产品测试未运行。
 
 - 当前等待：用户对最终规划摘要明确批准。下一turn自动goal续行不是批准；若没有用户答案，允许必要只读核对，但不得start子任务/实施。规划门禁不要重复重启建任务。
+
+## 实施批准
+
+用户在最终方案摘要及确认请求之后明确回复“可以”，批准2a96d89e最终方案。解除此前等待实施确认的阻塞，按既定六组依赖开始。不得再次请求相同批准，也不得将既有不清库/外站不写入的边界扩大。
+
+- 实施当前分支codex/hgj-business-alignment；父和hgj-order-direction已in_progress。direction_core代理负责server方向身份/正式迁移/生成，air_common_fields已完成AE公共字段，check_air_common正独立检查；未跑全期最终门禁，其他子任务未start。

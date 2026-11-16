@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 import {
   OrderBusinessType,
   OrderPersonnelRole,
+  ShipmentMode,
   TradeDirection,
 } from '@/enums.generated';
 import { getAirTemplateSections } from '../../templates/air-template';
@@ -45,6 +46,14 @@ const personnelFields = [
 
 type CommonValues = Pick<
   CreateOrderFormValues,
+  | 'shipmentMode'
+  | 'cargoValue'
+  | 'cargoCurrency'
+  | 'insurancePremium'
+  | 'insuranceCurrency'
+  | 'receivedAt'
+  | 'cargoReadyAt'
+  | 'factoryName'
   | 'customerId'
   | 'customerReferenceNo'
   | 'internalReferenceNo'
@@ -71,19 +80,32 @@ type CommonValues = Pick<
   | 'operationNotes'
 >;
 
-function commonFields(values: Partial<CommonValues>) {
+/** 更新是整份表单提交：可清经营字段显式携带空值，避免 optional 省略保留旧值。 */
+function commonFields(values: Partial<CommonValues>, clearEmpty = false) {
+  const text = (value?: string) =>
+    value?.trim() || (clearEmpty ? '' : undefined);
+  const time = (value?: CommonValues['receivedAt']) =>
+    value ? dayjs(value).toISOString() : clearEmpty ? '' : undefined;
   return {
+    shipmentMode: values.shipmentMode ?? (clearEmpty ? 0 : undefined),
+    cargoValue: text(values.cargoValue),
+    cargoCurrency: text(values.cargoCurrency),
+    insurancePremium: text(values.insurancePremium),
+    insuranceCurrency: text(values.insuranceCurrency),
+    factoryName: text(values.factoryName),
+    receivedAt: time(values.receivedAt),
+    cargoReadyAt: time(values.cargoReadyAt),
     customerId: values.customerId,
-    customerReferenceNo: values.customerReferenceNo?.trim() || undefined,
-    internalReferenceNo: values.internalReferenceNo?.trim() || undefined,
-    bookingNo: values.bookingNo?.trim() || undefined,
+    customerReferenceNo: text(values.customerReferenceNo),
+    internalReferenceNo: text(values.internalReferenceNo),
+    bookingNo: text(values.bookingNo),
     paymentTerm: Number(values.paymentTerm || 1),
-    tradeTerm: values.tradeTerm,
-    bookingAgentId: values.bookingAgentId || undefined,
-    foreignAgentId: values.foreignAgentId || undefined,
-    contractNo: values.contractNo?.trim() || undefined,
-    goodsDescription: values.goodsDescription?.trim() || undefined,
-    specialRequirements: values.specialRequirements?.trim() || undefined,
+    tradeTerm: values.tradeTerm ?? (clearEmpty ? 0 : undefined),
+    bookingAgentId: values.bookingAgentId || (clearEmpty ? '' : undefined),
+    foreignAgentId: values.foreignAgentId || (clearEmpty ? '' : undefined),
+    contractNo: text(values.contractNo),
+    goodsDescription: text(values.goodsDescription),
+    specialRequirements: text(values.specialRequirements),
     cargoCategoryIds: values.cargoCategoryIds,
     unNumber: values.unNumber?.trim() || undefined,
     hazardClass: values.hazardClass?.trim() || undefined,
@@ -96,10 +118,10 @@ function commonFields(values: Partial<CommonValues>) {
     totalGrossWeightKg: values.totalGrossWeightKg,
     totalVolumeCbm: values.totalVolumeCbm,
     totalPackageUnit: values.totalPackageUnit,
-    notes: values.notes?.trim() || undefined,
-    bookingNotes: values.bookingNotes?.trim() || undefined,
-    allocationNotes: values.allocationNotes?.trim() || undefined,
-    operationNotes: values.operationNotes?.trim() || undefined,
+    notes: text(values.notes),
+    bookingNotes: text(values.bookingNotes),
+    allocationNotes: text(values.allocationNotes),
+    operationNotes: text(values.operationNotes),
   };
 }
 
@@ -108,6 +130,7 @@ export const airExportFormAdapter: OrderKindFormAdapter = {
   buildCreateDefaults: ({ creator, cargoCategoryOptions }) => ({
     orderDate: dayjs(),
     paymentTerm: 1,
+    shipmentMode: ShipmentMode.SHIPMENT_MODE_TRADITIONAL_FORWARDING,
     airMasterMode: 'NEW',
     creatorUserId: creator?.userId,
     totalPackageUnit: 'CTNS',
@@ -156,6 +179,8 @@ export const airExportFormAdapter: OrderKindFormAdapter = {
       customerId: order.customerId,
       orderDate: dayjs(order.orderDate || order.createdAt),
       // commonFields 序列化为 ISO 字符串；表单 DatePicker 需要 dayjs 对象回显。
+      receivedAt: order.receivedAt ? dayjs(order.receivedAt) : undefined,
+      cargoReadyAt: order.cargoReadyAt ? dayjs(order.cargoReadyAt) : undefined,
       declarationCutoffAt: order.declarationCutoffAt
         ? dayjs(order.declarationCutoffAt)
         : undefined,
@@ -178,7 +203,7 @@ export const airExportFormAdapter: OrderKindFormAdapter = {
   buildUpdatePayload: (id, expectedVersion, values: OrderDetailFormValues) => ({
     id,
     expectedVersion,
-    ...commonFields(values),
+    ...commonFields(values, true),
     airExport: {
       masterWaybillId: values.airMasterId,
       expectedMasterVersion: values.airMasterExpectedVersion,
