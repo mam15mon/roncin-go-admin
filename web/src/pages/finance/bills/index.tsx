@@ -1,5 +1,6 @@
 import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType } from '@ant-design/pro-components';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { App, Form } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
@@ -30,7 +31,7 @@ import {
   mapMatchedSummary,
   useLedgerSelectionScope,
 } from '@/features/finance/ledger-summary';
-import { getCurrencyOptions } from '@/features/master-data/currencies';
+import { fetchCurrencyOptions } from '@/features/master-data/currencies';
 import { searchPartnerOptions } from '@/features/partners';
 import {
   settlementServiceCancelBill,
@@ -129,9 +130,33 @@ export default function FinanceBillsPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [editing, setEditing] = useState<API.FinanceBill>();
   const [submitting, setSubmitting] = useState(false);
-  const [detailOpen, setDetailOpen] = useState(false);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [detail, setDetail] = useState<API.FinanceBill>();
+  const editSession = useRef(0);
+  const queryClient = useQueryClient();
+  const [detailId, setDetailId] = useState<string>();
+  const detailQuery = useQuery({
+    queryKey: ['finance', 'bill-detail', { id: detailId }],
+    enabled: hasCompanyScope && Boolean(detailId),
+    meta: { errorMessage: '加载账单详情失败' },
+    queryFn: async ({ signal }) => {
+      if (!detailId) throw new Error('缺少账单标识');
+      const response = await settlementServiceGetBill(
+        { id: detailId },
+        { signal, skipErrorHandler: true },
+      );
+      if (!response?.data?.id || response.success === false)
+        throw new Error('加载账单详情失败');
+      return response.data;
+    },
+  });
+  const detail = detailQuery.data;
+  const detailOpen = Boolean(detailId);
+  const detailLoading = detailQuery.isFetching;
+  const setDetail = (updated: API.FinanceBill) => {
+    queryClient.setQueryData(
+      ['finance', 'bill-detail', { id: updated.id }],
+      updated,
+    );
+  };
 
   // 统计指标
   const [metricStats, setMetricStats] = useState({
@@ -241,15 +266,23 @@ export default function FinanceBillsPage() {
       label: '结算单位',
       type: 'searchable-select',
       placeholder: '输入名称/全拼搜索结算单位',
-      request: ({ keyWords }) =>
-        hasCompanyScope ? searchPartnerOptions(keyWords) : Promise.resolve([]),
+      requestKey: [hasCompanyScope],
+      request: ({ keyWords, signal }) =>
+        hasCompanyScope
+          ? searchPartnerOptions(
+              keyWords,
+              {},
+              { signal, skipErrorHandler: true },
+            )
+          : Promise.resolve([]),
     },
     {
       name: 'currency',
       label: '计价币种',
       type: 'searchable-select',
       placeholder: '全部币种',
-      request: getCurrencyOptions,
+      request: ({ signal }) =>
+        fetchCurrencyOptions({ signal, skipErrorHandler: true }),
     },
   ];
 
@@ -263,6 +296,8 @@ export default function FinanceBillsPage() {
   };
 
   const openEdit = (bill: API.FinanceBill) => {
+    editSession.current += 1;
+    setSubmitting(false);
     setEditing(bill);
     form.setFieldsValue({
       statementTitle: bill.statementTitle,
@@ -279,23 +314,59 @@ export default function FinanceBillsPage() {
     setEditOpen(true);
   };
 
-  const openDetail = async (bill: API.FinanceBill) => {
-    if (!bill.id) return;
-    setDetailOpen(true);
-    setDetailLoading(true);
-    try {
-      const response = await settlementServiceGetBill({ id: bill.id });
-      setDetail(response.data);
-    } catch (error) {
-      message.error(getErrorMessage(error, '加载账单详情失败'));
-    } finally {
-      setDetailLoading(false);
+  const openDetail = (bill: API.FinanceBill) => {
+    if (!bill.id || !hasCompanyScope) return;
+    if (detailId === bill.id) {
+      void queryClient.invalidateQueries({
+        queryKey: ['finance', 'bill-detail'],
+      });
+    } else {
+      setDetailId(bill.id);
     }
   };
 
+  const closeEdit = () => {
+    editSession.current += 1;
+    setEditOpen(false);
+    setSubmitting(false);
+  };
+  const refreshEditing = async (): Promise<boolean> => {
+    const bill = editing;
+    const session = editSession.current;
+    if (!bill?.id || !hasCompanyScope) return false;
+    try {
+      const latest = await queryClient.fetchQuery({
+        queryKey: ['finance', 'bill-edit-refresh', { id: bill.id, session }],
+        staleTime: 0,
+        meta: { silent: true },
+        queryFn: async ({ signal }) => {
+          const response = await settlementServiceGetBill(
+            { id: bill.id as string },
+            { signal, skipErrorHandler: true },
+          );
+          if (
+            !response?.data?.version ||
+            response.data.id !== bill.id ||
+            response.success === false
+          )
+            throw new Error('刷新账单失败，请重试');
+          return response.data;
+        },
+      });
+      if (session !== editSession.current) return false;
+      openEdit(latest);
+      return true;
+    } catch (error) {
+      if (session === editSession.current)
+        message.error(getErrorMessage(error, '刷新账单失败，请重试'));
+      return false;
+    }
+  };
   const submitBill = async (): Promise<false | undefined> => {
-    if (!editing?.id || !editing.version) return;
+    if (!editing?.id || !editing.version) return false;
+    const session = editSession.current;
     const values = await form.validateFields();
+    if (session !== editSession.current) return false;
     setSubmitting(true);
     try {
       const response = await settlementServiceUpdateBill(
@@ -313,18 +384,20 @@ export default function FinanceBillsPage() {
           estimatedInvoiceRate: values.estimatedInvoiceRate || undefined,
         },
       );
-      if (!response) return;
-      if (!response.data?.id || response.success === false)
+      if (session !== editSession.current || !response) return false;
+      if (response.data?.id !== editing.id || response.success === false)
         throw new Error('更新账单失败，请重试');
       message.success('账单已成功更新并自动刷新汇率快照');
       setEditOpen(false);
+      void queryClient.invalidateQueries({ queryKey: ['finance'] });
       reload();
     } catch (error) {
-      message.error(getErrorMessage(error, '更新账单失败'));
+      if (session === editSession.current)
+        message.error(getErrorMessage(error, '更新账单失败'));
+      return false;
     } finally {
-      setSubmitting(false);
+      if (session === editSession.current) setSubmitting(false);
     }
-
     return undefined;
   };
 
@@ -573,8 +646,9 @@ export default function FinanceBillsPage() {
         editing={editing}
         form={form}
         submitting={submitting}
-        onCancel={() => setEditOpen(false)}
+        onCancel={closeEdit}
         onOk={submitBill}
+        onRefresh={refreshEditing}
       />
 
       <BillCreationWorkbench
@@ -587,7 +661,7 @@ export default function FinanceBillsPage() {
         open={detailOpen}
         loading={detailLoading}
         detail={detail}
-        onClose={() => setDetailOpen(false)}
+        onClose={() => setDetailId(undefined)}
         onRegistrationUpdated={() => {
           if (detail) void openDetail(detail);
           void actionRef.current?.reload();

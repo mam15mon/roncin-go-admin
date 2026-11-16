@@ -222,7 +222,7 @@ it('已生效有限区间编辑保留真实 Dayjs 提交且不触发新建日期
         formRef={ref}
         employeeOptions={[]}
         searchEmployees={vi.fn()}
-        onEmployeeOptionsChange={vi.fn()}
+        onEmployeeSelectionChange={vi.fn()}
         onCancel={vi.fn()}
         onFinish={onFinish}
       />

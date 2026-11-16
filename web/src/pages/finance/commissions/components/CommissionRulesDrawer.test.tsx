@@ -1,10 +1,5 @@
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import dayjs from 'dayjs';
 import React from 'react';
@@ -150,7 +145,7 @@ describe('提成方案抽屉', () => {
     );
     await screen.findByText('适用员工');
 
-    const createForm = drawerState.forms['新建提成方案'];
+    const createForm = drawerState.forms.新建提成方案;
     expect(createForm).toBeTruthy();
 
     // 启用方案缺少员工时不发起请求；提交走表单异步回调，包进 act 收敛消息与状态更新。
@@ -190,6 +185,49 @@ describe('提成方案抽屉', () => {
     );
   });
 
+  it('关闭员工表单取消在途候选，重开后不接收旧请求结果', async () => {
+    let oldSignal: AbortSignal | undefined;
+    let resolveOld: ((response: unknown) => void) | undefined;
+    serviceMocks.listCommissionEmployees.mockImplementationOnce(
+      (_params, options) => {
+        oldSignal = options.signal;
+        expect(options.skipErrorHandler).toBe(true);
+        return new Promise((resolve) => {
+          resolveOld = resolve;
+        });
+      },
+    );
+    const view = render(
+      <App>
+        <CommissionRulesDrawer open onClose={vi.fn()} canManage />
+      </App>,
+    );
+    fireEvent.click(screen.getByText('编辑'));
+    await waitFor(() => expect(oldSignal).toBeDefined());
+    await act(async () => {
+      drawerState.forms.编辑提成方案.modalProps.onCancel();
+    });
+    expect(oldSignal?.aborted).toBe(true);
+    fireEvent.click(screen.getByText('编辑'));
+    await waitFor(() =>
+      expect(serviceMocks.listCommissionEmployees).toHaveBeenCalledTimes(2),
+    );
+    await act(async () => {
+      resolveOld?.({ data: [{ id: 'old-employee', displayName: '迟到员工' }] });
+    });
+    const candidates = view.queryClient
+      .getQueriesData<{ value: string }[]>({
+        queryKey: ['finance', 'commission-rule-employees'],
+      })
+      .flatMap(([, options]) => options ?? []);
+    expect(candidates.some((option) => option.value === 'employee-1')).toBe(
+      true,
+    );
+    expect(candidates.some((option) => option.value === 'old-employee')).toBe(
+      false,
+    );
+  });
+
   it('复制为新方案提交新起始日与员工列表', async () => {
     render(
       <App>
@@ -199,8 +237,8 @@ describe('提成方案抽屉', () => {
     await screen.findByText('适用员工');
 
     fireEvent.click(screen.getByText('复制为新方案'));
-    await waitFor(() => expect(drawerState.forms['复制为新方案']).toBeTruthy());
-    const copyForm = drawerState.forms['复制为新方案'];
+    await waitFor(() => expect(drawerState.forms.复制为新方案).toBeTruthy());
+    const copyForm = drawerState.forms.复制为新方案;
 
     // 提交走表单异步回调，包进 act 收敛消息与状态更新。
     await act(async () => {
@@ -236,8 +274,8 @@ describe('提成方案抽屉', () => {
     await screen.findByText('适用员工');
 
     fireEvent.click(screen.getByText('复制为新方案'));
-    await waitFor(() => expect(drawerState.forms['复制为新方案']).toBeTruthy());
-    const copyForm = drawerState.forms['复制为新方案'];
+    await waitFor(() => expect(drawerState.forms.复制为新方案).toBeTruthy());
+    const copyForm = drawerState.forms.复制为新方案;
     // 缺起始日/缺员工均不提交；提交走表单异步回调，包进 act 收敛消息与状态更新。
     await act(async () => {
       await copyForm.onFinish({
@@ -287,11 +325,17 @@ describe('提成方案抽屉', () => {
     );
     fireEvent.click(screen.getByText('复制为新方案'));
     await waitFor(() =>
-      expect(serviceMocks.listCommissionEmployees).toHaveBeenCalledWith({
-        page: 1,
-        pageSize: 200,
-        organizationId: 'org-a',
-      }),
+      expect(serviceMocks.listCommissionEmployees).toHaveBeenCalledWith(
+        {
+          page: 1,
+          pageSize: 200,
+          organizationId: 'org-a',
+        },
+        expect.objectContaining({
+          signal: expect.any(AbortSignal),
+          skipErrorHandler: true,
+        }),
+      ),
     );
     await act(async () => {
       expect(

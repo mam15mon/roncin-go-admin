@@ -1,4 +1,6 @@
-import { act, render } from '@testing-library/react';
+import { createTestQueryClient } from '@root/tests/queryClientTestUtils';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { act, render as renderUI } from '@testing-library/react';
 import { App } from 'antd';
 import dayjs from 'dayjs';
 import type { ReactNode } from 'react';
@@ -9,6 +11,15 @@ import {
 } from '@/components/ui/list-query-state';
 import { settlementServiceListBills } from '@/services/roncin/settlementService';
 import FinanceBillsPage from './index';
+
+function render(ui: ReactNode) {
+  const client = createTestQueryClient();
+  return renderUI(ui, {
+    wrapper: ({ children }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    ),
+  });
+}
 
 type LedgerProps = {
   columns: { dataIndex?: unknown }[];
@@ -60,6 +71,7 @@ vi.mock('@/features/finance/bill-creation', () => ({
 }));
 vi.mock('@/features/master-data/currencies', () => ({
   getCurrencyOptions: vi.fn().mockResolvedValue([]),
+  fetchCurrencyOptions: vi.fn().mockResolvedValue([]),
 }));
 vi.mock('./components/BillEditModal', () => ({ default: () => null }));
 vi.mock('./components/BillDetailDrawer', () => ({ default: () => null }));

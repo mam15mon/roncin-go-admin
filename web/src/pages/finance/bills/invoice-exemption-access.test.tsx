@@ -1,5 +1,5 @@
 import { renderWithApp } from '@root/tests/renderWithApp';
-import { act } from '@testing-library/react';
+import { act, waitFor } from '@testing-library/react';
 import type { MutableRefObject } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthOrganizationKind, FinanceBillStatus } from '@/enums.generated';
@@ -92,6 +92,8 @@ describe('账单页免票操作独立授权', () => {
       await act(async () => {
         await state.openDetail?.({ id: 'bill-a' });
       });
+      await waitFor(() => expect(state.getBill).toHaveBeenCalledOnce());
+      await waitFor(() => expect(state.drawer?.detail?.id).toBe('bill-a'));
       expect(Boolean(state.drawer?.invoiceExemptionActions)).toBe(enabled);
       if (!enabled) return;
       act(() =>
@@ -100,12 +102,12 @@ describe('账单页免票操作独立授权', () => {
           version: '4',
         }),
       );
-      expect(state.drawer?.detail?.version).toBe('4');
+      await waitFor(() => expect(state.drawer?.detail?.version).toBe('4'));
       expect(state.reload).toHaveBeenCalledTimes(1);
       await act(async () => {
         state.drawer?.invoiceExemptionActions?.onRefresh();
       });
-      expect(state.getBill).toHaveBeenCalledTimes(2);
+      await waitFor(() => expect(state.getBill).toHaveBeenCalledTimes(2));
     },
   );
 });

@@ -9,6 +9,7 @@ import {
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   App,
   Button,
@@ -105,9 +106,27 @@ export default function FinanceCommissionsPage() {
   });
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [rulesDrawerOpen, setRulesDrawerOpen] = useState(false);
-  const [detailOpen, setDetailOpen] = useState(false);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [detail, setDetail] = useState<API.FinanceCommission>();
+  const queryClient = useQueryClient();
+  const [detailId, setDetailId] = useState<string>();
+  const detailQuery = useQuery({
+    queryKey: ['finance', 'commission-detail', { id: detailId }],
+    enabled:
+      hasCompanyScope && access.canReadFinanceCommissions && Boolean(detailId),
+    meta: { errorMessage: '提成明细加载失败' },
+    queryFn: async ({ signal }) => {
+      if (!detailId) throw new Error('缺少提成标识');
+      const response = await settlementServiceGetCommission(
+        { id: detailId },
+        { signal, skipErrorHandler: true },
+      );
+      if (!response?.data?.id || response.success === false)
+        throw new Error('提成明细加载失败');
+      return response.data;
+    },
+  });
+  const detail = detailQuery.data;
+  const detailOpen = Boolean(detailId);
+  const detailLoading = detailQuery.isFetching;
   const [adjustmentModalOpen, setAdjustmentModalOpen] = useState(false);
   const [paymentRecord, setPaymentRecord] = useState<API.FinanceCommission>();
   const [exporting, setExporting] = useState(false);
@@ -163,23 +182,10 @@ export default function FinanceCommissionsPage() {
     getModalOwnerSignal,
   );
 
-  const openDetailById = async (commissionId?: string) => {
+  const openDetailById = (commissionId?: string) => {
     if (!commissionId || !hasCompanyScope || !access.canReadFinanceCommissions)
       return;
-    setDetailOpen(true);
-    setDetailLoading(true);
-    setDetail(undefined);
-    try {
-      const response = await settlementServiceGetCommission({
-        id: commissionId,
-      });
-      setDetail(response.data);
-    } catch (error) {
-      message.error(getErrorMessage(error, '提成明细加载失败'));
-      setDetailOpen(false);
-    } finally {
-      setDetailLoading(false);
-    }
+    setDetailId(commissionId);
   };
 
   const openDetail = (record: API.FinanceCommission) => {
@@ -192,13 +198,7 @@ export default function FinanceCommissionsPage() {
   };
 
   const refreshDetail = async () => {
-    if (!detail?.id) return;
-    try {
-      const response = await settlementServiceGetCommission({ id: detail.id });
-      setDetail(response.data);
-    } catch {
-      // ignore
-    }
+    await queryClient.invalidateQueries({ queryKey: ['finance'] });
     reload();
   };
 
@@ -860,8 +860,7 @@ export default function FinanceCommissionsPage() {
       <CommissionDetailDrawer
         open={detailOpen}
         onClose={() => {
-          setDetailOpen(false);
-          setDetail(undefined);
+          setDetailId(undefined);
         }}
         detail={detail}
         loading={detailLoading}

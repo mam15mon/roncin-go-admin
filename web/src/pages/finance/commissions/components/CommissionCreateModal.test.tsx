@@ -108,12 +108,18 @@ describe('提成预览 CNY 快照', () => {
     fireEvent.click(screen.getByRole('button', { name: '选择核销单' }));
 
     await waitFor(() =>
-      expect(serviceMocks.listCommissionCandidates).toHaveBeenCalledWith({
-        page: 1,
-        pageSize: 200,
-        organizationId: 'org-a',
-        verificationId: 'verification-1',
-      }),
+      expect(serviceMocks.listCommissionCandidates).toHaveBeenCalledWith(
+        {
+          page: 1,
+          pageSize: 200,
+          organizationId: 'org-a',
+          verificationId: 'verification-1',
+        },
+        expect.objectContaining({
+          signal: expect.any(AbortSignal),
+          skipErrorHandler: true,
+        }),
+      ),
     );
     expect(
       await screen.findByText(
@@ -183,6 +189,10 @@ describe('提成预览 CNY 快照', () => {
           pageSize: 200,
           organizationId: 'org-a',
         },
+        expect.objectContaining({
+          signal: expect.any(AbortSignal),
+          skipErrorHandler: true,
+        }),
       ),
     );
     expect(await screen.findByText('NT-2026-001')).toBeInTheDocument();
@@ -337,11 +347,17 @@ describe('提成预览 CNY 快照', () => {
     await waitFor(() =>
       expect(
         serviceMocks.listCommissionVerificationCandidates,
-      ).toHaveBeenCalledWith({
-        page: 1,
-        pageSize: 200,
-        organizationId: 'org-a',
-      }),
+      ).toHaveBeenCalledWith(
+        {
+          page: 1,
+          pageSize: 200,
+          organizationId: 'org-a',
+        },
+        expect.objectContaining({
+          signal: expect.any(AbortSignal),
+          skipErrorHandler: true,
+        }),
+      ),
     );
 
     workspace.organizationId = 'org-b';
@@ -404,11 +420,17 @@ describe('提成预览 CNY 快照', () => {
     ).toBeInTheDocument();
     expect(
       serviceMocks.listCommissionVerificationCandidates,
-    ).toHaveBeenCalledWith({
-      page: 1,
-      pageSize: 200,
-      organizationId: 'org-a',
-    });
+    ).toHaveBeenCalledWith(
+      {
+        page: 1,
+        pageSize: 200,
+        organizationId: 'org-a',
+      },
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+        skipErrorHandler: true,
+      }),
+    );
 
     fireEvent.change(screen.getByLabelText('搜索有效应收核销'), {
       target: { value: 'A单位' },
@@ -421,12 +443,18 @@ describe('提成预览 CNY 快照', () => {
     await waitFor(() =>
       expect(
         serviceMocks.listCommissionVerificationCandidates,
-      ).toHaveBeenLastCalledWith({
-        page: 1,
-        pageSize: 200,
-        organizationId: 'org-a',
-        keyword: 'A单位',
-      }),
+      ).toHaveBeenLastCalledWith(
+        {
+          page: 1,
+          pageSize: 200,
+          organizationId: 'org-a',
+          keyword: 'A单位',
+        },
+        expect.objectContaining({
+          signal: expect.any(AbortSignal),
+          skipErrorHandler: true,
+        }),
+      ),
     );
     expect(
       await screen.findByText('VR-A-MATCH｜A单位｜200.00 CNY'),
@@ -449,11 +477,17 @@ describe('提成预览 CNY 快照', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: '对冲提成' }));
     expect(await screen.findByText('NT-2026-001')).toBeInTheDocument();
-    expect(serviceMocks.listCommissionNettingCandidates).toHaveBeenCalledWith({
-      page: 1,
-      pageSize: 200,
-      organizationId: 'org-a',
-    });
+    expect(serviceMocks.listCommissionNettingCandidates).toHaveBeenCalledWith(
+      {
+        page: 1,
+        pageSize: 200,
+        organizationId: 'org-a',
+      },
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+        skipErrorHandler: true,
+      }),
+    );
 
     fireEvent.change(screen.getByPlaceholderText('搜索对冲单号 / 结算单位'), {
       target: { value: '对冲' },
@@ -466,12 +500,18 @@ describe('提成预览 CNY 快照', () => {
     await waitFor(() =>
       expect(
         serviceMocks.listCommissionNettingCandidates,
-      ).toHaveBeenLastCalledWith({
-        page: 1,
-        pageSize: 200,
-        organizationId: 'org-a',
-        keyword: '对冲',
-      }),
+      ).toHaveBeenLastCalledWith(
+        {
+          page: 1,
+          pageSize: 200,
+          organizationId: 'org-a',
+          keyword: '对冲',
+        },
+        expect.objectContaining({
+          signal: expect.any(AbortSignal),
+          skipErrorHandler: true,
+        }),
+      ),
     );
 
     workspace.organizationId = 'org-b';
@@ -494,11 +534,17 @@ describe('提成预览 CNY 快照', () => {
     await waitFor(() =>
       expect(
         serviceMocks.listCommissionNettingCandidates,
-      ).toHaveBeenLastCalledWith({
-        page: 1,
-        pageSize: 200,
-        organizationId: 'org-b',
-      }),
+      ).toHaveBeenLastCalledWith(
+        {
+          page: 1,
+          pageSize: 200,
+          organizationId: 'org-b',
+        },
+        expect.objectContaining({
+          signal: expect.any(AbortSignal),
+          skipErrorHandler: true,
+        }),
+      ),
     );
   });
 });

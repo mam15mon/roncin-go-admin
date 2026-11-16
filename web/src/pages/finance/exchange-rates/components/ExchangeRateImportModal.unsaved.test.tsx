@@ -1,10 +1,5 @@
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import { beforeEach, expect, it, vi } from 'vitest';
 import { getAnyDirtyTabKey } from '@/components/layout/tabCloseGuard';
@@ -65,6 +60,10 @@ it('实际载入Excel预检payload才标脏，确认失败保留，成功清理'
   expect(getAnyDirtyTabKey()).toBe('/finance/exchange-rates');
   fireEvent.click(screen.getByRole('button', { name: /确认导入/ }));
   await waitFor(() => expect(onClose).toHaveBeenCalledOnce());
+  expect(mocks.confirm.mock.calls[0][0].idempotencyKey).toBe(
+    mocks.confirm.mock.calls[1][0].idempotencyKey,
+  );
+  expect(mocks.confirm.mock.calls[0][0].previewToken).toBe('token');
   expect(getAnyDirtyTabKey()).toBeUndefined();
 });
 

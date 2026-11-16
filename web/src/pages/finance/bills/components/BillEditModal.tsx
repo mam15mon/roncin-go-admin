@@ -1,5 +1,8 @@
+import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   Alert,
+  App,
+  Button,
   Card,
   DatePicker,
   Form,
@@ -11,7 +14,7 @@ import {
   Space,
 } from 'antd';
 import Decimal from 'decimal.js';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { FinanceBillStatus, PartnerRoleType } from '@/enums.generated';
 import { BillTermsCreditWarnings } from '@/features/finance/bill-creation';
@@ -19,15 +22,15 @@ import {
   billFeeLockFactLabels,
   isBillFieldProtected,
 } from '@/features/finance/bill-status';
-import { getCurrencyOptions } from '@/features/master-data/currencies';
+import { currencyOptionsQueryOptions } from '@/features/master-data/currencies';
 import { partnerServiceGetPartner } from '@/services/roncin/partnerService';
 import {
   settlementServiceListBillSettlementAccountUpdateCandidates,
   settlementServiceListBills,
 } from '@/services/roncin/settlementService';
-import type { SelectOption } from '@/types/select-option';
-import { unwrapList } from '@/utils/api';
+import { ensureListResponse, unwrapList } from '@/utils/api';
 import type { BillFormValues } from './billConstants';
+import { useBillChangeNotice } from './use-bill-change-notice';
 
 interface BillEditModalProps {
   open: boolean;
@@ -36,6 +39,7 @@ interface BillEditModalProps {
   submitting: boolean;
   onCancel: () => void;
   onOk: () => Promise<unknown>;
+  onRefresh: () => Promise<boolean>;
 }
 
 export default function BillEditModal({
@@ -45,146 +49,168 @@ export default function BillEditModal({
   submitting,
   onCancel,
   onOk,
+  onRefresh,
 }: BillEditModalProps) {
-  const { markDirty } = useUnsavedChangesGuard({
+  const { modal } = App.useApp();
+  const { markDirty, resetDirty } = useUnsavedChangesGuard({
     enabled: open,
     identity: editing?.id,
   });
-  const [accountOptions, setAccountOptions] = useState<
-    API.FinanceSettlementAccountOption[]
-  >([]);
-  const [accountsLoading, setAccountsLoading] = useState(false);
-  const [currencyOptions, setCurrencyOptions] = useState<SelectOption[]>([]);
-  const requestSequenceRef = useRef(0);
-  // 账单编辑路径与创建工作台共用同一套预警组装：按对方档案与未核销余额重组散客/超额预警。
-  const [counterparty, setCounterparty] = useState<{
-    isCasual?: boolean;
-    creditLimitAmount?: string;
-    creditCurrency?: string;
-    unsettledBaseAmount?: string;
-  }>();
+  const dirtyRef = useRef(false);
+  const initializedAccount = useRef<string | undefined>(undefined);
   const requestIdentity = open ? editing?.id : undefined;
-  // 列表快照中已有发票、核销或已确认对冲时，仅备注、对账标题与到期日可改；服务端仍做最终校验。
   const fieldsProtected = isBillFieldProtected(editing);
   const protectedFactText = billFeeLockFactLabels(editing)
     .filter((label) => label !== '草稿对冲')
     .join('、');
   const paymentTermsDays = Form.useWatch('paymentTermsDays', form);
-
-  useEffect(() => {
-    const settlementPartyId = editing?.settlementPartyId;
-    const baseCurrency = editing?.baseCurrency;
-    if (!open || !requestIdentity || !settlementPartyId || !baseCurrency) {
-      setCounterparty(undefined);
-      return undefined;
-    }
-    let cancelled = false;
-    void Promise.all([
-      partnerServiceGetPartner({ id: settlementPartyId }),
-      settlementServiceListBills({
-        page: 1,
-        pageSize: 1,
-        settlementPartyId,
-        direction: 'RECEIVABLE',
-        status: FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED,
-        onlyUnsettled: true,
-      }),
-    ])
-      .then(([partnerResponse, billsResponse]) => {
-        if (cancelled) return;
-        const partner = partnerResponse.data;
-        const customerRule = (partner?.roles ?? []).find(
-          (role) => role.type === PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
-        )?.settlementRule;
-        const unsettledBase = (
-          billsResponse.summary?.amountsByBaseCurrency ?? []
-        ).find(
-          (item) => item.baseCurrency === baseCurrency,
-        )?.unverifiedBaseAmount;
-        setCounterparty({
-          isCasual: Boolean(partner?.isCasual),
-          creditLimitAmount: customerRule?.creditLimitMinor
-            ? new Decimal(customerRule.creditLimitMinor).div(100).toString()
-            : undefined,
-          creditCurrency: customerRule?.creditCurrency,
-          unsettledBaseAmount: unsettledBase,
+  const { changed } = useBillChangeNotice({
+    billId: editing?.id,
+    version: editing?.version,
+    enabled: open,
+    ownWritePending: submitting,
+  });
+  const refresh = useMutation({
+    meta: { silent: true },
+    mutationFn: async () => {
+      if (dirtyRef.current) {
+        const confirmed = await new Promise<boolean>((resolve) => {
+          modal.confirm({
+            title: '有未保存的修改，是否放弃并刷新账单？',
+            okText: '放弃并刷新',
+            cancelText: '继续编辑',
+            onOk: () => resolve(true),
+            onCancel: () => resolve(false),
+          });
         });
-      })
-      .catch(() => {
-        if (!cancelled) setCounterparty(undefined);
-      });
-    return () => {
-      cancelled = true;
-    };
+        if (!confirmed) return false;
+      }
+      const refreshed = await onRefresh();
+      if (refreshed) {
+        dirtyRef.current = false;
+        resetDirty();
+      }
+      return refreshed;
+    },
+  });
+  const currencyQuery = useQuery({
+    ...currencyOptionsQueryOptions(),
+    enabled: open,
+  });
+  const currencyOptions = currencyQuery.data ?? [];
+  const counterpartyQuery = useQuery({
+    queryKey: [
+      'finance',
+      'bill-edit-counterparty',
+      {
+        billId: requestIdentity,
+        settlementPartyId: editing?.settlementPartyId,
+        baseCurrency: editing?.baseCurrency,
+      },
+    ],
+    enabled: Boolean(
+      requestIdentity && editing?.settlementPartyId && editing?.baseCurrency,
+    ),
+    meta: { errorMessage: '账单往来单位及未核销余额加载失败' },
+    queryFn: async ({ signal }) => {
+      const settlementPartyId = editing?.settlementPartyId;
+      const baseCurrency = editing?.baseCurrency;
+      if (!settlementPartyId || !baseCurrency)
+        throw new Error('缺少账单结算单位或本位币');
+      const [partnerResponse, billsResponse] = await Promise.all([
+        partnerServiceGetPartner(
+          { id: settlementPartyId },
+          { signal, skipErrorHandler: true },
+        ),
+        settlementServiceListBills(
+          {
+            page: 1,
+            pageSize: 1,
+            settlementPartyId,
+            direction: 'RECEIVABLE',
+            status: FinanceBillStatus.FINANCE_BILL_STATUS_CONFIRMED,
+            onlyUnsettled: true,
+          },
+          { signal, skipErrorHandler: true },
+        ),
+      ]);
+      if (!partnerResponse?.data || partnerResponse.success === false)
+        throw new Error('账单往来单位加载失败');
+      ensureListResponse(billsResponse, '账单未核销余额加载失败');
+      const partner = partnerResponse.data;
+      const customerRule = (partner.roles ?? []).find(
+        (role) => role.type === PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+      )?.settlementRule;
+      return {
+        isCasual: Boolean(partner.isCasual),
+        creditLimitAmount: customerRule?.creditLimitMinor
+          ? new Decimal(customerRule.creditLimitMinor).div(100).toString()
+          : undefined,
+        creditCurrency: customerRule?.creditCurrency,
+        unsettledBaseAmount: (
+          billsResponse.summary?.amountsByBaseCurrency ?? []
+        ).find((item) => item.baseCurrency === baseCurrency)
+          ?.unverifiedBaseAmount,
+      };
+    },
+  });
+  const counterparty = counterpartyQuery.data;
+  const isCreditExceeded = useMemo(() => {
+    if (!counterparty?.creditLimitAmount || !counterparty.unsettledBaseAmount)
+      return false;
+    const limit = new Decimal(counterparty.creditLimitAmount);
+    return (
+      limit.isPositive() &&
+      new Decimal(counterparty.unsettledBaseAmount).greaterThan(limit)
+    );
+  }, [counterparty?.creditLimitAmount, counterparty?.unsettledBaseAmount]);
+  const accountsQuery = useQuery({
+    queryKey: ['finance', 'bill-edit-accounts', { billId: requestIdentity }],
+    enabled: Boolean(requestIdentity),
+    meta: { errorMessage: '结算账户加载失败' },
+    queryFn: async ({ signal }) => {
+      if (!requestIdentity) throw new Error('缺少账单标识');
+      const response =
+        await settlementServiceListBillSettlementAccountUpdateCandidates(
+          {
+            billId: requestIdentity,
+          },
+          { signal, skipErrorHandler: true },
+        );
+      return unwrapList(ensureListResponse(response, '结算账户加载失败'));
+    },
+  });
+  const accountOptions = accountsQuery.data ?? [];
+  const accountsLoading = accountsQuery.isFetching;
+  useEffect(() => {
+    initializedAccount.current = undefined;
+    dirtyRef.current = false;
+  }, [requestIdentity, editing?.version]);
+  useEffect(() => {
+    if (
+      !requestIdentity ||
+      !accountsQuery.isSuccess ||
+      initializedAccount.current === requestIdentity ||
+      fieldsProtected
+    )
+      return;
+    initializedAccount.current = requestIdentity;
+    // 仅首次候选就绪时补默认账户；后台重查不覆盖人工选择。
+    const selected = form.getFieldValue('settlementAccountId');
+    if (selected && accountOptions.some((account) => account.id === selected))
+      return;
+    if (!dirtyRef.current)
+      form.setFieldValue(
+        'settlementAccountId',
+        accountOptions.find((account) => account.isDefault)?.id,
+      );
   }, [
-    editing?.baseCurrency,
-    editing?.settlementPartyId,
-    open,
+    accountOptions,
+    accountsQuery.isSuccess,
+    fieldsProtected,
+    form,
     requestIdentity,
   ]);
-
-  const isCreditExceeded = useMemo(() => {
-    if (!counterparty?.creditLimitAmount || !counterparty.unsettledBaseAmount) {
-      return false;
-    }
-    const limit = new Decimal(counterparty.creditLimitAmount);
-    if (!limit.isPositive()) return false;
-    return new Decimal(counterparty.unsettledBaseAmount).greaterThan(limit);
-  }, [counterparty?.creditLimitAmount, counterparty?.unsettledBaseAmount]);
-
-  useEffect(() => {
-    let cancelled = false;
-    void getCurrencyOptions()
-      .then((options) => {
-        if (!cancelled) setCurrencyOptions(options);
-      })
-      .catch(() => {
-        if (!cancelled) setCurrencyOptions([]);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    const requestSequence = ++requestSequenceRef.current;
-    setAccountOptions([]);
-    if (!open || !editing?.id) {
-      setAccountsLoading(false);
-      return undefined;
-    }
-    setAccountsLoading(true);
-    void settlementServiceListBillSettlementAccountUpdateCandidates({
-      billId: editing.id,
-    })
-      .then((response) => {
-        if (requestSequence !== requestSequenceRef.current) return;
-        const accounts = unwrapList(response);
-        setAccountOptions(accounts);
-        // 受保护账单不得改账户：保持原账户，不按候选回落到默认账户。
-        if (fieldsProtected) return;
-        const selected = form.getFieldValue('settlementAccountId');
-        const selectedStillAvailable = accounts.some(
-          (account) => account.id === selected,
-        );
-        if (selected && selectedStillAvailable) return;
-
-        const defaultAccount = accounts.find((account) => account.isDefault);
-        form.setFieldValue('settlementAccountId', defaultAccount?.id);
-      })
-      .catch(() => {
-        if (requestSequence === requestSequenceRef.current)
-          setAccountOptions([]);
-      })
-      .finally(() => {
-        if (requestSequence === requestSequenceRef.current) {
-          setAccountsLoading(false);
-        }
-      });
-    return () => {
-      requestSequenceRef.current += 1;
-    };
-  }, [editing?.id, fieldsProtected, form, open]);
 
   return (
     <Modal
@@ -196,8 +222,38 @@ export default function BillEditModal({
       okText="保存"
       onCancel={onCancel}
       onOk={() => void onOk()}
+      okButtonProps={{ disabled: changed || refresh.isPending }}
+      closable={!submitting && !refresh.isPending}
+      mask={{ closable: !submitting && !refresh.isPending }}
+      keyboard={!submitting && !refresh.isPending}
+      cancelButtonProps={{ disabled: submitting || refresh.isPending }}
     >
-      <Form form={form} layout="vertical" onValuesChange={markDirty}>
+      <Form
+        form={form}
+        disabled={refresh.isPending}
+        layout="vertical"
+        onValuesChange={() => {
+          dirtyRef.current = true;
+          markDirty();
+        }}
+      >
+        {changed && (
+          <Alert
+            type="warning"
+            showIcon
+            style={{ marginBottom: 12 }}
+            title="这个账单已经发生变动，请重新刷新。"
+            action={
+              <Button
+                size="small"
+                loading={refresh.isPending}
+                onClick={() => void refresh.mutateAsync()}
+              >
+                刷新账单
+              </Button>
+            }
+          />
+        )}
         {fieldsProtected ? (
           <Alert
             type="warning"

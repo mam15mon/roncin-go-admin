@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { App, Form, type FormInstance, Input } from 'antd';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { settlementServiceUpdateBill } from '@/services/roncin/settlementService';
@@ -48,6 +49,7 @@ vi.mock('@/features/finance/bill-creation', () => ({
 }));
 vi.mock('@/features/master-data/currencies', () => ({
   getCurrencyOptions: vi.fn().mockResolvedValue([]),
+  fetchCurrencyOptions: vi.fn().mockResolvedValue([]),
 }));
 vi.mock('./components/billColumns', () => ({
   getFinanceBillColumns: (p: {

@@ -1,4 +1,5 @@
-import { act, render } from '@testing-library/react';
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { act } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';

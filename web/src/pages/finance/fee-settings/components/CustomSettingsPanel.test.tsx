@@ -1,10 +1,5 @@
-import {
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -12,6 +7,25 @@ import {
   BILLED_FEE_EDITABLE_FIELD,
   CustomSettingsPanel,
 } from './CustomSettingsPanel';
+
+const workspace = vi.hoisted(() => ({
+  userId: 'user' as string | undefined,
+  organizationId: 'org-headquarter' as string | undefined,
+  company: true,
+}));
+vi.mock('@/app/AppProvider', () => ({
+  useInitialState: () => ({
+    initialState: {
+      currentUser: {
+        id: workspace.userId,
+        currentOrganization: { id: workspace.organizationId },
+      },
+    },
+  }),
+}));
+vi.mock('@/app/access', () => ({
+  useAccess: () => ({ canOperateOrganization: () => workspace.company }),
+}));
 
 // Mock API services
 const mockGetBilledFeeEditPolicy = vi.fn();
@@ -32,6 +46,9 @@ vi.mock('@/services/roncin/settlementService', () => ({
 describe('CustomSettingsPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    workspace.userId = 'user';
+    workspace.organizationId = 'org-headquarter';
+    workspace.company = true;
     // 信用额度管控策略默认返回仅提醒模式，避免每个用例重复准备。
     mockGetCreditLimitControlPolicy.mockResolvedValue({
       success: true,
@@ -361,4 +378,25 @@ describe('CustomSettingsPanel', () => {
       screen.getByText(new RegExp(`（操作人：${fallbackUserId}`)),
     ).toBeInTheDocument();
   });
+  it.each(['missing-user', 'missing-company', 'non-company'])(
+    '%s 不加载公司策略',
+    async (scenario) => {
+      if (scenario === 'missing-user') workspace.userId = undefined;
+      if (scenario === 'missing-company') workspace.organizationId = undefined;
+      if (scenario === 'non-company') workspace.company = false;
+      render(
+        <App>
+          <CustomSettingsPanel />
+        </App>,
+      );
+      expect(mockGetBilledFeeEditPolicy).not.toHaveBeenCalled();
+      expect(mockGetCreditLimitControlPolicy).not.toHaveBeenCalled();
+      expect(
+        screen.getByRole('switch', { name: '账单费用修改开关' }),
+      ).toBeDisabled();
+      expect(
+        screen.getByRole('switch', { name: '信用额度管控开关' }),
+      ).toBeDisabled();
+    },
+  );
 });

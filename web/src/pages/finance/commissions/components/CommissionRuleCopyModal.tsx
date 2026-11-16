@@ -29,13 +29,8 @@ export type CopyValues = {
 type CommissionRuleCopyModalProps = {
   copySourceRule: API.FinanceCommissionRule | undefined;
   employeeOptions: EmployeeOption[];
-  searchEmployees: (
-    keyword: string,
-    apply: (options: EmployeeOption[]) => void,
-  ) => Promise<void>;
-  onEmployeeOptionsChange: React.Dispatch<
-    React.SetStateAction<EmployeeOption[]>
-  >;
+  searchEmployees: (keyword?: string) => void;
+  onEmployeeSelectionChange: (ids: string[]) => void;
   onCancel: () => void;
   onFinish: (values: CopyValues) => Promise<boolean>;
 };
@@ -45,7 +40,7 @@ export default function CommissionRuleCopyModal({
   copySourceRule,
   employeeOptions,
   searchEmployees,
-  onEmployeeOptionsChange,
+  onEmployeeSelectionChange,
   onCancel,
   onFinish,
 }: CommissionRuleCopyModalProps) {
@@ -138,13 +133,14 @@ export default function CommissionRuleCopyModal({
         extra="默认带出原方案当前/未来名单，可调整。"
         fieldProps={{
           mode: 'multiple',
+          onChange: (ids: string[]) => onEmployeeSelectionChange(ids),
           filterOption: false,
           onSearch: (value: string) => {
-            void searchEmployees(value, onEmployeeOptionsChange);
+            searchEmployees(value);
           },
           onDropdownVisibleChange: (visible: boolean) => {
             if (visible) {
-              void searchEmployees('', onEmployeeOptionsChange);
+              searchEmployees();
             }
           },
         }}

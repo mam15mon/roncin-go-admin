@@ -1,5 +1,5 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { App, DatePicker, Space } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
@@ -19,7 +19,11 @@ import {
   settlementServiceListCommissionEmployees,
   settlementServiceRejectCommissionApplication,
 } from '@/services/roncin/settlementService';
-import { isWriteResponse, toTableRequest } from '@/utils/api';
+import {
+  ensureListResponse,
+  isWriteResponse,
+  toTableRequest,
+} from '@/utils/api';
 import { confirmWithReason } from '@/utils/confirmWithReason';
 import { formatDate } from '@/utils/format';
 import { decimalText } from '../types';
@@ -70,7 +74,7 @@ export default function CommissionApplicationsPanel() {
   const actionRef = useRef<ActionType | undefined>(undefined);
   const committedFiltersRef = useRef<CommittedApplicationFilters>({});
   const [detailId, setDetailId] = useState<string>();
-  const [detailRefreshToken, setDetailRefreshToken] = useState(0);
+  const queryClient = useQueryClient();
 
   const canManage =
     hasCompanyScope && access.canManageFinanceCommissions === true;
@@ -86,7 +90,9 @@ export default function CommissionApplicationsPanel() {
         pageSize: 200,
         organizationId,
       });
-      return (response.data ?? []).flatMap((item) =>
+      return (
+        ensureListResponse(response, '员工候选加载失败').data ?? []
+      ).flatMap((item) =>
         item.id ? [{ label: item.displayName || item.id, value: item.id }] : [],
       );
     },
@@ -95,7 +101,8 @@ export default function CommissionApplicationsPanel() {
 
   const reload = () => actionRef.current?.reload();
 
-  const refreshDetail = () => setDetailRefreshToken((token) => token + 1);
+  const refreshDetail = () =>
+    queryClient.invalidateQueries({ queryKey: ['commission-applications'] });
 
   const handleDecisionError = (error: unknown, fallback: string) => {
     if (isApplicationConflictError(error)) {
@@ -134,6 +141,7 @@ export default function CommissionApplicationsPanel() {
               );
             if (!isWriteResponse(writeResponse1, true)) return Promise.reject();
             message.success('申请已整单批准');
+            void refreshDetail();
             reload();
             setDetailId(undefined);
           } catch (error: unknown) {
@@ -164,6 +172,7 @@ export default function CommissionApplicationsPanel() {
             );
           if (!isWriteResponse(writeResponse2, true)) return false;
           message.success('申请已整单驳回，员工可在原申请上重新提交');
+          void refreshDetail();
           reload();
           setDetailId(undefined);
         } catch (error: unknown) {
@@ -364,7 +373,6 @@ export default function CommissionApplicationsPanel() {
         open={detailId !== undefined}
         applicationId={detailId}
         canManage={canManage}
-        refreshToken={detailRefreshToken}
         onClose={() => setDetailId(undefined)}
         onApprove={approve}
         onReject={reject}

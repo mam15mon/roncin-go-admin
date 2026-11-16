@@ -11,6 +11,13 @@ vi.mock('@/services/roncin/settlementService', () => ({
     .mockResolvedValue({ data: [] }),
 }));
 vi.mock('@/features/master-data/currencies', () => ({
+  currencyOptionsQueryOptions: () => ({
+    queryKey: ['master-data', 'currency-options'],
+    queryFn: async () => [
+      { label: 'CNY - 人民币', value: 'CNY' },
+      { label: 'USD - 美元', value: 'USD' },
+    ],
+  }),
   getCurrencyOptions: vi.fn().mockResolvedValue([]),
 }));
 vi.mock('@ant-design/pro-components', () => ({

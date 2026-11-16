@@ -6,10 +6,11 @@ import {
   InboxOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
+import { useMutation } from '@tanstack/react-query';
 import type { TableColumnsType } from 'antd';
 import { Alert, App, Button, Modal, Space, Tag, Upload } from 'antd';
 import type { UploadFile } from 'antd/es/upload/interface';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useUnsavedChangesGuard } from '@/components/layout/useUnsavedChangesGuard';
 import { ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
@@ -35,22 +36,59 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
   const { markDirty, resetDirty } = useUnsavedChangesGuard({ enabled: open });
   const { message } = App.useApp();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
-  const [previewing, setPreviewing] = useState(false);
-  const [confirming, setConfirming] = useState(false);
+  const previewImport = useMutation({
+    meta: { silent: true },
+    mutationFn: async (file: File) => {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          const commaIndex = result.indexOf(',');
+          resolve(commaIndex !== -1 ? result.slice(commaIndex + 1) : result);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const response = await exchangeRateServicePreviewExchangeRateImport(
+        { fileName: file.name, fileContent: base64 },
+        longRequestOptions,
+      );
+      if (
+        !response?.data ||
+        response.success === false ||
+        !response.previewToken
+      )
+        throw new Error('上传预检失败，请重试');
+      return { ...response, confirmationKey: generateUUID() };
+    },
+  });
+  const previewing = previewImport.isPending;
+  const batch = previewImport.data?.data;
+  const confirmation = useMutation({
+    meta: { silent: true },
+    mutationFn: (intent: API.ConfirmExchangeRateImportRequest) =>
+      exchangeRateServiceConfirmExchangeRateImport(intent, longRequestOptions),
+  });
+  const confirming = confirmation.isPending;
+  const resetPreview = previewImport.reset;
+  const resetConfirmation = confirmation.reset;
+  useEffect(() => {
+    if (!open) {
+      resetPreview();
+      resetConfirmation();
+    }
+  }, [open, resetPreview, resetConfirmation]);
   const [downloadingTemplate, setDownloadingTemplate] = useState(false);
-  const [previewToken, setPreviewToken] = useState<string>();
-  const [batch, setBatch] = useState<API.ExchangeRateImportBatch>();
 
   const reset = () => {
     resetDirty();
     setFileList([]);
-    setPreviewing(false);
-    setConfirming(false);
-    setPreviewToken(undefined);
-    setBatch(undefined);
+    previewImport.reset();
+    confirmation.reset();
   };
 
   const handleClose = () => {
+    if (confirming) return;
     reset();
     onClose();
   };
@@ -74,80 +112,57 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
       return;
     }
 
-    setPreviewing(true);
-    try {
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const result = reader.result as string;
-          // 去除 data:...;base64, 前缀
-          const commaIndex = result.indexOf(',');
-          resolve(commaIndex !== -1 ? result.slice(commaIndex + 1) : result);
-        };
-        reader.onerror = (error) => reject(error);
-        reader.readAsDataURL(file);
-      });
-
-      const res = await exchangeRateServicePreviewExchangeRateImport(
-        {
-          fileName: file.name,
-          fileContent: base64,
-        },
-        longRequestOptions,
-      );
-
-      if (res.previewToken && res.data?.canConfirm) markDirty();
-      setPreviewToken(res.previewToken);
-      setBatch(res.data);
-      if (res.data?.canConfirm) {
-        message.success(`预检成功：共 ${res.data.totalCount} 条汇率准备就绪`);
-      } else {
-        message.warning(
-          `预检发现问题：存在 ${res.data?.invalidCount || 0} 条无效数据`,
+    previewImport.mutate(file, {
+      onSuccess: (response) => {
+        if (response.data?.canConfirm) {
+          markDirty();
+          message.success(
+            `预检成功：共 ${response.data.totalCount} 条汇率准备就绪`,
+          );
+        } else {
+          message.warning(
+            `预检发现问题：存在 ${response.data?.invalidCount || 0} 条无效数据`,
+          );
+        }
+      },
+      onError: (error) => {
+        message.error(
+          isRequestTimeoutError(error)
+            ? '上传预检超时，请确认操作结果后重试'
+            : getErrorMessage(error, '上传预检失败'),
         );
-      }
-    } catch (e) {
-      message.error(
-        isRequestTimeoutError(e)
-          ? '上传预检超时，请确认操作结果后重试'
-          : getErrorMessage(e, '上传预检失败'),
-      );
-      setBatch(undefined);
-      setPreviewToken(undefined);
-    } finally {
-      setPreviewing(false);
-    }
+      },
+    });
   };
 
-  const handleConfirm = async (): Promise<false | undefined> => {
-    if (!previewToken) {
+  const handleConfirm = () => {
+    const snapshot = previewImport.data;
+    if (!snapshot?.previewToken) {
       message.error('缺少预检令牌，请重新上传文件');
       return;
     }
-    setConfirming(true);
-    try {
-      const writeResponse1 = await exchangeRateServiceConfirmExchangeRateImport(
-        {
-          previewToken,
-          idempotencyKey: generateUUID(),
+    confirmation.mutate(
+      {
+        previewToken: snapshot.previewToken,
+        idempotencyKey: snapshot.confirmationKey,
+      },
+      {
+        onSuccess: (response) => {
+          if (!isWriteResponse(response, true)) return;
+          message.success('汇率批量导入成功');
+          onSuccess();
+          reset();
+          onClose();
         },
-        longRequestOptions,
-      );
-      if (!isWriteResponse(writeResponse1, true)) return false;
-      message.success('汇率批量导入成功');
-      onSuccess();
-      handleClose();
-    } catch (e) {
-      message.error(
-        isRequestTimeoutError(e)
-          ? '确认导入超时，请确认操作结果后重试'
-          : getErrorMessage(e, '确认导入失败'),
-      );
-    } finally {
-      setConfirming(false);
-    }
-
-    return undefined;
+        onError: (error) => {
+          message.error(
+            isRequestTimeoutError(error)
+              ? '确认导入超时，请确认操作结果后重试'
+              : getErrorMessage(error, '确认导入失败'),
+          );
+        },
+      },
+    );
   };
 
   const previewColumns: TableColumnsType<API.ExchangeRateImportRow> = [
@@ -250,6 +265,9 @@ export function ExchangeRateImportModal({ open, onClose, onSuccess }: Props) {
       open={open}
       width={1060}
       destroyOnHidden
+      closable={!confirming}
+      mask={{ closable: !confirming }}
+      keyboard={!confirming}
       onCancel={handleClose}
       footer={
         <div

@@ -352,7 +352,13 @@ describe('CommissionApplicationsPanel 月度申请批次面板', () => {
     renderPanel();
 
     fireEvent.click(await screen.findByText('明细'));
-    expect(getApplication).toHaveBeenCalledWith({ id: 'app-1' });
+    expect(getApplication).toHaveBeenCalledWith(
+      { id: 'app-1' },
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+        skipErrorHandler: true,
+      }),
+    );
 
     expect(await screen.findByText('FC2026080001')).toBeInTheDocument();
     expect(screen.getByText('VR-2026-001')).toBeInTheDocument();
@@ -393,7 +399,13 @@ describe('CommissionApplicationsPanel 月度申请批次面板', () => {
     renderPanel();
 
     fireEvent.click(await screen.findByText('明细'));
-    expect(getApplication).toHaveBeenCalledWith({ id: 'app-1' });
+    expect(getApplication).toHaveBeenCalledWith(
+      { id: 'app-1' },
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+        skipErrorHandler: true,
+      }),
+    );
     // 列表行与详情头都展示已批准：允许重复出现。
     expect((await screen.findAllByText('已批准')).length).toBeGreaterThan(0);
     expect(screen.queryByText('整单批准')).not.toBeInTheDocument();

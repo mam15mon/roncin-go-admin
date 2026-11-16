@@ -29,7 +29,15 @@ vi.mock('@/app/access', () => ({
   useAccess: () => ({ canOperateOrganization: () => true }),
 }));
 vi.mock('@/features/master-data/currencies', () => ({
+  currencyOptionsQueryOptions: () => ({
+    queryKey: ['master-data', 'currency-options'],
+    queryFn: async () => [
+      { label: 'CNY - 人民币', value: 'CNY' },
+      { label: 'USD - 美元', value: 'USD' },
+    ],
+  }),
   getCurrencyOptions: vi.fn().mockResolvedValue([]),
+  fetchCurrencyOptions: vi.fn().mockResolvedValue([]),
 }));
 vi.mock('./components/billColumns', () => ({
   getFinanceBillColumns: (props: {

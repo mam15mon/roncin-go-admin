@@ -126,6 +126,10 @@ it('选中核销后搜索不包含它的新候选，仍以已选来源快照预�
       serviceMocks.listCommissionVerificationCandidates,
     ).toHaveBeenLastCalledWith(
       expect.objectContaining({ keyword: '不匹配', organizationId: 'org-a' }),
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+        skipErrorHandler: true,
+      }),
     ),
   );
   fireEvent.click(screen.getByRole('button', { name: '计算并核对预览' }));

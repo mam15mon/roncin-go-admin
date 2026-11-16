@@ -39,13 +39,8 @@ const assignmentStatus = (record: API.CommissionRuleAssignmentProjection) => {
 type CommissionRuleRosterModalProps = {
   rosterRule: API.FinanceCommissionRule | undefined;
   employeeOptions: EmployeeOption[];
-  searchEmployees: (
-    keyword: string,
-    apply: (options: EmployeeOption[]) => void,
-  ) => Promise<void>;
-  onEmployeeOptionsChange: React.Dispatch<
-    React.SetStateAction<EmployeeOption[]>
-  >;
+  searchEmployees: (keyword?: string) => void;
+  onEmployeeSelectionChange: (ids: string[]) => void;
   onCancel: () => void;
   onChanged: () => void;
   onError: (error: unknown, fallback: string) => void;
@@ -56,7 +51,7 @@ export default function CommissionRuleRosterModal({
   rosterRule,
   employeeOptions,
   searchEmployees,
-  onEmployeeOptionsChange,
+  onEmployeeSelectionChange,
   onCancel,
   onChanged,
   onError,
@@ -125,9 +120,8 @@ export default function CommissionRuleRosterModal({
           <RosterChangeForms
             rosterRule={rosterRule}
             employeeOptions={employeeOptions}
-            searchEmployees={(keyword) => {
-              void searchEmployees(keyword ?? '', onEmployeeOptionsChange);
-            }}
+            searchEmployees={searchEmployees}
+            onEmployeeSelectionChange={onEmployeeSelectionChange}
             onChanged={onChanged}
             onError={onError}
           />
@@ -141,6 +135,7 @@ type RosterChangeFormsProps = {
   rosterRule: API.FinanceCommissionRule;
   employeeOptions: EmployeeOption[];
   searchEmployees: (keyword?: string) => void;
+  onEmployeeSelectionChange: (ids: string[]) => void;
   onChanged: () => void;
   onError: (error: unknown, fallback: string) => void;
 };
@@ -155,6 +150,7 @@ function RosterChangeForms({
   rosterRule,
   employeeOptions,
   searchEmployees,
+  onEmployeeSelectionChange,
   onChanged,
   onError,
 }: RosterChangeFormsProps) {
@@ -250,6 +246,7 @@ function RosterChangeForms({
             placeholder="搜索当前组织员工"
             style={{ minWidth: 260 }}
             options={employeeOptions}
+            onChange={onEmployeeSelectionChange}
             onOpenChange={(visible) => {
               if (visible) searchEmployees();
             }}

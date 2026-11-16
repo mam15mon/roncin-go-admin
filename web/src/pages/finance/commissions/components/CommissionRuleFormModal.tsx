@@ -22,13 +22,8 @@ type CommissionRuleFormModalProps = {
   editingRule: API.FinanceCommissionRule | undefined;
   formRef: React.RefObject<ProFormInstance | undefined>;
   employeeOptions: EmployeeOption[];
-  searchEmployees: (
-    keyword: string,
-    apply: (options: EmployeeOption[]) => void,
-  ) => Promise<void>;
-  onEmployeeOptionsChange: React.Dispatch<
-    React.SetStateAction<EmployeeOption[]>
-  >;
+  searchEmployees: (keyword?: string) => void;
+  onEmployeeSelectionChange: (ids: string[]) => void;
   onCancel: () => void;
   onFinish: (values: RuleValues) => Promise<boolean>;
 };
@@ -40,7 +35,7 @@ export default function CommissionRuleFormModal({
   formRef,
   employeeOptions,
   searchEmployees,
-  onEmployeeOptionsChange,
+  onEmployeeSelectionChange,
   onCancel,
   onFinish,
 }: CommissionRuleFormModalProps) {
@@ -182,13 +177,14 @@ export default function CommissionRuleFormModal({
           extra="同一批员工共享方案的身份、口径、比例与有效期；个别员工比例不同请另建方案。启用方案必须至少分配一名员工。"
           fieldProps={{
             mode: 'multiple',
+            onChange: (ids: string[]) => onEmployeeSelectionChange(ids),
             filterOption: false,
             onSearch: (value: string) => {
-              void searchEmployees(value, onEmployeeOptionsChange);
+              searchEmployees(value);
             },
             onDropdownVisibleChange: (visible: boolean) => {
               if (visible) {
-                void searchEmployees('', onEmployeeOptionsChange);
+                searchEmployees();
               }
             },
           }}

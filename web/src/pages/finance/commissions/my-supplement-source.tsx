@@ -1,6 +1,7 @@
 import { PageContainer } from '@ant-design/pro-components';
+import { useQuery } from '@tanstack/react-query';
 import { Button, Descriptions, Result, Spin, Tag } from 'antd';
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { useParams } from 'react-router';
 import { SectionCard } from '@/components/ui';
 import { FinanceCommissionStatus } from '@/enums.generated';
@@ -15,40 +16,24 @@ import { commissionDecreaseStatusMeta, decimalText } from './types';
 export default function MySupplementSourcePage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
-  const requestSequenceRef = useRef(0);
-  const [loading, setLoading] = useState(Boolean(id));
-  const [notFound, setNotFound] = useState(!id);
-  const [source, setSource] = useState<API.MyFeeSupplementAdjustmentSource>();
-
-  useEffect(() => {
-    const requestSequence = ++requestSequenceRef.current;
-    if (!id) {
-      setNotFound(true);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setNotFound(false);
-    setSource(undefined);
-    settlementServiceGetMyFeeSupplementAdjustmentSource(
-      { id },
-      { skipErrorHandler: true },
-    )
-      .then((response) => {
-        if (requestSequence !== requestSequenceRef.current) return;
-        setSource(response.data);
-      })
-      .catch(() => {
-        // 他人调整、参数非法或已删除统一按不存在处理。
-        if (requestSequence !== requestSequenceRef.current) return;
-        setNotFound(true);
-      })
-      .finally(() => {
-        if (requestSequence === requestSequenceRef.current) {
-          setLoading(false);
-        }
-      });
-  }, [id]);
+  const sourceQuery = useQuery({
+    queryKey: ['finance', 'my-supplement-source', { id }],
+    enabled: Boolean(id),
+    meta: { silent: true },
+    queryFn: async ({ signal }) => {
+      const response =
+        await settlementServiceGetMyFeeSupplementAdjustmentSource(
+          { id: id as string },
+          { signal, skipErrorHandler: true },
+        );
+      if (!response?.data || response.success === false)
+        throw new Error('记录不存在');
+      return response.data;
+    },
+  });
+  const source = sourceQuery.data;
+  const loading = sourceQuery.isLoading;
+  const notFound = !id || sourceQuery.isError;
 
   const status = source?.status;
   const statusMeta =

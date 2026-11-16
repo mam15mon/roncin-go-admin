@@ -1,6 +1,11 @@
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { ProFormDependency, ProFormTextArea } from '@ant-design/pro-components';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import type { TableColumnsType } from 'antd';
 import {
   Alert,
@@ -24,7 +29,6 @@ import {
   ResponsiveTable as Table,
 } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
-import { useLatestAsync } from '@/hooks/useLatestAsync';
 import {
   settlementServiceCreateCommission,
   settlementServiceListCommissionCandidates,
@@ -32,7 +36,7 @@ import {
   settlementServiceListCommissionVerificationCandidates,
   settlementServicePreviewCommission,
 } from '@/services/roncin/settlementService';
-import { isWriteResponse, unwrapList } from '@/utils/api';
+import { ensureListResponse, isWriteResponse, unwrapList } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { formatAmount, formatDate, trimDecimal } from '@/utils/format';
 import { generateUUID } from '@/utils/uuid';
@@ -102,12 +106,38 @@ export default function CommissionCreateModal({
       access.canOperateOrganization(organizationId) &&
       access.canManageFinanceCommissions,
   );
-  const previewRequest = useLatestAsync();
+  const queryClient = useQueryClient();
+  const previewMutation = useMutation({
+    meta: { silent: true },
+    mutationFn: async (input: {
+      request: API.PreviewCommissionRequest;
+      signature: string;
+    }) => {
+      const response = await queryClient.fetchQuery({
+        queryKey: [
+          'finance',
+          'commission-calculation-preview',
+          { request: input.request },
+        ],
+        staleTime: 0,
+        meta: { silent: true },
+        queryFn: ({ signal }) =>
+          settlementServicePreviewCommission(input.request, {
+            signal,
+            skipErrorHandler: true,
+          }),
+      });
+      if (!response?.data || response.success === false)
+        throw new Error('提成预览计算失败');
+      return { calculation: response.data, signature: input.signature };
+    },
+  });
+  const preview = previewMutation.data?.calculation;
+  const previewSignature = previewMutation.data?.signature ?? '';
+  const previewLoading = previewMutation.isPending;
+  const resetPreviewMutation = previewMutation.reset;
   const formRef = useRef<ProFormInstance | undefined>(undefined);
   const { markDirty, resetDirty } = useUnsavedChangesGuard({ enabled: open });
-  const [preview, setPreview] = useState<API.CommissionCalculation>();
-  const [previewSignature, setPreviewSignature] = useState('');
-  const [previewLoading, setPreviewLoading] = useState(false);
   const [createIdempotencyKey, setCreateIdempotencyKey] = useState(() =>
     generateUUID(),
   );
@@ -128,10 +158,10 @@ export default function CommissionCreateModal({
   const [candidateSource, setCandidateSource] = useState<CandidateSource>();
 
   const resetPreview = () => {
-    previewRequest.invalidate();
-    setPreviewLoading(false);
-    setPreview(undefined);
-    setPreviewSignature('');
+    resetPreviewMutation();
+    void queryClient.cancelQueries({
+      queryKey: ['finance', 'commission-calculation-preview'],
+    });
     setCreateIdempotencyKey(generateUUID());
   };
 
@@ -141,27 +171,36 @@ export default function CommissionCreateModal({
     queryKey: [
       'commission-create',
       'verification-candidates',
-      { organizationId, keyword: verificationSearchKeyword || undefined },
+      {
+        organizationId,
+        keyword: verificationSearchKeyword || undefined,
+        active: open && canCreate,
+      },
     ],
     enabled: open && canCreate,
     placeholderData: keepPreviousData,
     meta: { errorMessage: '有效应收核销候选加载失败' },
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!organizationId || !canCreate) return [];
       const response =
-        await settlementServiceListCommissionVerificationCandidates({
-          page: 1,
-          pageSize: 200,
-          organizationId,
-          ...(verificationSearchKeyword
-            ? { keyword: verificationSearchKeyword }
-            : {}),
-        });
-      return unwrapList(response).map((item) => ({
-        label: `${item.verificationNo}｜${item.settlementPartyName}｜${formatAmount(item.amount)} ${item.currency}`,
-        value: item.id as string,
-        organizationId: item.organizationId,
-      }));
+        await settlementServiceListCommissionVerificationCandidates(
+          {
+            page: 1,
+            pageSize: 200,
+            organizationId,
+            ...(verificationSearchKeyword
+              ? { keyword: verificationSearchKeyword }
+              : {}),
+          },
+          { signal, skipErrorHandler: true },
+        );
+      return unwrapList(ensureListResponse(response, '提成候选加载失败')).map(
+        (item) => ({
+          label: `${item.verificationNo}｜${item.settlementPartyName}｜${formatAmount(item.amount)} ${item.currency}`,
+          value: item.id as string,
+          organizationId: item.organizationId,
+        }),
+      );
     },
   });
 
@@ -170,20 +209,27 @@ export default function CommissionCreateModal({
     queryKey: [
       'commission-create',
       'netting-candidates',
-      { organizationId, keyword: nettingSearchKeyword || undefined },
+      {
+        organizationId,
+        keyword: nettingSearchKeyword || undefined,
+        active: open && sourceType === 'netting' && canCreate,
+      },
     ],
     enabled: open && sourceType === 'netting' && canCreate,
     placeholderData: keepPreviousData,
     meta: { errorMessage: '对冲提成候选加载失败' },
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!organizationId || !canCreate) return [];
-      const response = await settlementServiceListCommissionNettingCandidates({
-        page: 1,
-        pageSize: 200,
-        organizationId,
-        ...(nettingSearchKeyword ? { keyword: nettingSearchKeyword } : {}),
-      });
-      return unwrapList(response);
+      const response = await settlementServiceListCommissionNettingCandidates(
+        {
+          page: 1,
+          pageSize: 200,
+          organizationId,
+          ...(nettingSearchKeyword ? { keyword: nettingSearchKeyword } : {}),
+        },
+        { signal, skipErrorHandler: true },
+      );
+      return unwrapList(ensureListResponse(response, '提成候选加载失败'));
     },
   });
 
@@ -194,6 +240,7 @@ export default function CommissionCreateModal({
       'commission-candidates',
       {
         organizationId,
+        active: open && canCreate,
         ...(candidateSource?.verificationId
           ? { verificationId: candidateSource.verificationId }
           : { nettingId: candidateSource?.nettingId }),
@@ -204,17 +251,22 @@ export default function CommissionCreateModal({
       canCreate &&
       Boolean(candidateSource?.verificationId || candidateSource?.nettingId),
     meta: { errorMessage: '计提候选加载失败' },
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       if (!organizationId || !canCreate || !candidateSource) return [];
-      const response = await settlementServiceListCommissionCandidates({
-        page: 1,
-        pageSize: 200,
-        organizationId,
-        ...(candidateSource.verificationId
-          ? { verificationId: candidateSource.verificationId }
-          : { nettingId: candidateSource.nettingId }),
-      });
-      return unwrapList(response).flatMap((item) => {
+      const response = await settlementServiceListCommissionCandidates(
+        {
+          page: 1,
+          pageSize: 200,
+          organizationId,
+          ...(candidateSource.verificationId
+            ? { verificationId: candidateSource.verificationId }
+            : { nettingId: candidateSource.nettingId }),
+        },
+        { signal, skipErrorHandler: true },
+      );
+      return unwrapList(
+        ensureListResponse(response, '提成候选加载失败'),
+      ).flatMap((item) => {
         const value = candidateKeyOf(item.employeeId, item.personnelRole);
         return value
           ? [
@@ -229,14 +281,14 @@ export default function CommissionCreateModal({
   });
 
   useEffect(() => {
-    previewRequest.invalidate();
-    setPreview(undefined);
-    setPreviewSignature('');
-    setPreviewLoading(false);
+    resetPreviewMutation();
+    void queryClient.cancelQueries({
+      queryKey: ['finance', 'commission-calculation-preview'],
+    });
     setSelectedVerification(undefined);
     setSelectedNetting(undefined);
     setCandidateSource(undefined);
-  }, [open, organizationId, previewRequest]);
+  }, [open, organizationId, resetPreviewMutation, queryClient]);
 
   // 核销关键字防抖：清空立即收敛为空，输入停顿 300ms 后收敛进 queryKey。
   useEffect(() => {
@@ -568,31 +620,26 @@ export default function CommissionCreateModal({
                     message.warning('请选择当前公司工作区的有效提成来源');
                     return;
                   }
-                  try {
-                    setPreviewLoading(true);
-                    await previewRequest.run(
-                      ({ signal }) =>
-                        settlementServicePreviewCommission(
-                          {
-                            ...(values.verificationId
-                              ? { verificationId: values.verificationId }
-                              : { nettingId: values.nettingId }),
-                            employeeId,
-                            personnelRole,
-                            organizationId,
-                          },
-                          { signal },
-                        ),
-                      (response) => {
-                        setPreview(response.data);
-                        setPreviewSignature(calculationSignature(values));
-                        setPreviewLoading(false);
+                  previewMutation.mutate(
+                    {
+                      request: {
+                        ...(values.verificationId
+                          ? { verificationId: values.verificationId }
+                          : { nettingId: values.nettingId }),
+                        employeeId,
+                        personnelRole,
+                        organizationId,
                       },
-                    );
-                  } catch (error) {
-                    resetPreview();
-                    message.error(getErrorMessage(error, '提成预览计算失败'));
-                  }
+                      signature: calculationSignature(values),
+                    },
+                    {
+                      onError: (error) => {
+                        message.error(
+                          getErrorMessage(error, '提成预览计算失败'),
+                        );
+                      },
+                    },
+                  );
                 }}
               >
                 计算并核对预览

@@ -5,6 +5,7 @@ import {
   SwapOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import { useQuery } from '@tanstack/react-query';
 import { App, Form, Space, Tag } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
@@ -147,7 +148,23 @@ export default function FinanceInvoicesPage() {
   const [redFlushTarget, setRedFlushTarget] = useState<API.FinanceInvoice>();
   const [cancelTarget, setCancelTarget] = useState<API.FinanceInvoice>();
   const [submitting, setSubmitting] = useState(false);
-  const [detail, setDetail] = useState<API.FinanceInvoice>();
+  const [detailId, setDetailId] = useState<string>();
+  const detailQuery = useQuery({
+    queryKey: ['finance', 'invoice-detail', { id: detailId }],
+    enabled: hasCompanyScope && Boolean(detailId),
+    meta: { errorMessage: '加载开票详情失败' },
+    queryFn: async ({ signal }) => {
+      if (!detailId) throw new Error('缺少发票标识');
+      const response = await settlementServiceGetInvoice(
+        { id: detailId },
+        { signal, skipErrorHandler: true },
+      );
+      if (!response?.data?.id || response.success === false)
+        throw new Error('加载开票详情失败');
+      return response.data;
+    },
+  });
+  const detail = detailQuery.data;
   const [metricStats, setMetricStats] = useState({
     totalCount: 0,
     issuedCount: 0,
@@ -164,13 +181,9 @@ export default function FinanceInvoicesPage() {
       .join(' / ') || '-';
   const reload = () => actionRef.current?.reload();
 
-  const showDetail = async (row: API.FinanceInvoice) => {
-    if (!row.id) return;
-    try {
-      setDetail((await settlementServiceGetInvoice({ id: row.id })).data);
-    } catch (error) {
-      message.error(getErrorMessage(error, '加载开票详情失败'));
-    }
+  const showDetail = (row: API.FinanceInvoice) => {
+    if (!row.id || !hasCompanyScope) return;
+    setDetailId(row.id);
   };
 
   const cancelInvoice = async (): Promise<false | undefined> => {
@@ -594,7 +607,7 @@ export default function FinanceInvoicesPage() {
 
       <InvoiceDetailDrawer
         detail={detail}
-        onClose={() => setDetail(undefined)}
+        onClose={() => setDetailId(undefined)}
       />
     </>
   );

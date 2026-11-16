@@ -3,6 +3,7 @@ import {
   ReloadOutlined,
   SafetyCertificateOutlined,
 } from '@ant-design/icons';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   App,
   Button,
@@ -16,7 +17,9 @@ import {
   Tag,
   Typography,
 } from 'antd';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { useInitialState } from '@/app/AppProvider';
+import { useAccess } from '@/app/access';
 import { SectionCard } from '@/components/ui';
 import {
   settlementServiceGetBilledFeeEditPolicy,
@@ -58,59 +61,82 @@ export const BILLED_FEE_FIELD_OPTIONS = [
 
 export function CustomSettingsPanel() {
   const { message } = App.useApp();
-  const [loadingPolicy, setLoadingPolicy] = useState(false);
+  const { initialState } = useInitialState();
+  const access = useAccess();
+  const currentUser = initialState?.currentUser;
+  const organizationId = currentUser?.currentOrganization?.id;
+  const hasCompanyScope = Boolean(
+    currentUser?.id &&
+      organizationId &&
+      access.canOperateOrganization(organizationId),
+  );
+  const queryClient = useQueryClient();
   const [savingPolicy, setSavingPolicy] = useState(false);
-  const [billedFeePolicy, setBilledFeePolicy] =
-    useState<API.BilledFeeEditPolicy>();
-  const [canUpdateBilledFeePolicy, setCanUpdateBilledFeePolicy] =
-    useState(false);
-  const [creditPolicy, setCreditPolicy] =
-    useState<API.CreditLimitControlPolicy>();
-  const [canUpdateCreditPolicy, setCanUpdateCreditPolicy] = useState(false);
   const [savingCreditPolicy, setSavingCreditPolicy] = useState(false);
-
-  const loadCreditPolicy = useCallback(async () => {
-    try {
-      const policyRes = await settlementServiceGetCreditLimitControlPolicy({});
-      if (!policyRes.data) {
-        throw new Error('信用额度管控策略响应不完整');
-      }
-      setCreditPolicy(policyRes.data);
-      setCanUpdateCreditPolicy(Boolean(policyRes.canUpdate));
-    } catch (e) {
-      setCreditPolicy(undefined);
-      setCanUpdateCreditPolicy(false);
-      message.error(getErrorMessage(e, '读取信用额度管控策略失败'));
-    }
-  }, [message]);
-
-  const loadBilledFeePolicy = useCallback(async () => {
-    setLoadingPolicy(true);
-    try {
-      const policyRes = await settlementServiceGetBilledFeeEditPolicy();
-      if (!policyRes.data) {
+  const billedPolicyQuery = useQuery({
+    queryKey: ['finance', 'billed-fee-edit-policy'],
+    enabled: hasCompanyScope,
+    meta: { errorMessage: '当前公司无此设置权限' },
+    queryFn: async ({ signal }) => {
+      const response = await settlementServiceGetBilledFeeEditPolicy({
+        signal,
+        skipErrorHandler: true,
+      });
+      if (!response?.data || response.success === false)
         throw new Error('自定义设置响应不完整');
-      }
-      setBilledFeePolicy(policyRes.data);
-      setCanUpdateBilledFeePolicy(Boolean(policyRes.canUpdate));
-    } catch (e) {
-      setBilledFeePolicy(undefined);
-      setCanUpdateBilledFeePolicy(false);
-      message.error(getErrorMessage(e, '当前公司无此设置权限'));
-    } finally {
-      setLoadingPolicy(false);
-    }
-  }, [message]);
-
-  useEffect(() => {
-    void loadBilledFeePolicy();
-    void loadCreditPolicy();
-  }, [loadBilledFeePolicy, loadCreditPolicy]);
+      return response;
+    },
+  });
+  const creditPolicyQuery = useQuery({
+    queryKey: ['finance', 'credit-limit-policy'],
+    enabled: hasCompanyScope,
+    meta: { errorMessage: '读取信用额度管控策略失败' },
+    queryFn: async ({ signal }) => {
+      const response = await settlementServiceGetCreditLimitControlPolicy(
+        {},
+        { signal, skipErrorHandler: true },
+      );
+      if (!response?.data || response.success === false)
+        throw new Error('信用额度管控策略响应不完整');
+      return response;
+    },
+  });
+  const billedFeePolicy = billedPolicyQuery.data?.data;
+  const creditPolicy = creditPolicyQuery.data?.data;
+  const loadingPolicy = billedPolicyQuery.isFetching;
+  const canUpdateBilledFeePolicy = billedPolicyQuery.data?.canUpdate === true;
+  const canUpdateCreditPolicy = creditPolicyQuery.data?.canUpdate === true;
+  const loadBilledFeePolicy = () =>
+    hasCompanyScope ? billedPolicyQuery.refetch() : Promise.resolve();
+  const loadCreditPolicy = () =>
+    hasCompanyScope ? creditPolicyQuery.refetch() : Promise.resolve();
+  const setBilledFeePolicy = (policy: API.BilledFeeEditPolicy) => {
+    queryClient.setQueryData<API.GetBilledFeeEditPolicyResponse>(
+      ['finance', 'billed-fee-edit-policy'],
+      (previous) => ({ ...previous, data: policy }),
+    );
+    void queryClient.invalidateQueries({
+      queryKey: ['finance'],
+      refetchType: 'none',
+    });
+  };
+  const setCreditPolicy = (policy: API.CreditLimitControlPolicy) => {
+    queryClient.setQueryData<API.GetCreditLimitControlPolicyResponse>(
+      ['finance', 'credit-limit-policy'],
+      (previous) => ({ ...previous, data: policy }),
+    );
+    void queryClient.invalidateQueries({
+      queryKey: ['finance'],
+      refetchType: 'none',
+    });
+    void queryClient.invalidateQueries({ queryKey: ['settlement'] });
+  };
 
   // 1. 保存账单费用修改总开关
   const handleToggleBilledFeePolicy = async (
     checked: boolean,
   ): Promise<false | undefined> => {
+    if (!hasCompanyScope) return false;
     setSavingPolicy(true);
     try {
       const response = await settlementServiceUpdateBilledFeeEditPolicy({
@@ -144,6 +170,7 @@ export function CustomSettingsPanel() {
   const handleChangeEditableFields = async (
     checkedFields: number[],
   ): Promise<false | undefined> => {
+    if (!hasCompanyScope) return false;
     setSavingPolicy(true);
     try {
       const response = await settlementServiceUpdateBilledFeeEditPolicy({
@@ -173,6 +200,7 @@ export function CustomSettingsPanel() {
   const handleToggleCreditPolicy = async (
     checked: boolean,
   ): Promise<false | undefined> => {
+    if (!hasCompanyScope) return false;
     setSavingCreditPolicy(true);
     try {
       const response = await settlementServiceUpdateCreditLimitControlPolicy({
@@ -240,11 +268,13 @@ export function CustomSettingsPanel() {
                     >
                       账单创建后允许修改费用
                     </Text>
-                    {billedFeePolicy?.enabled ? (
-                      <Tag color="success">已开启修改</Tag>
-                    ) : (
-                      <Tag>默认关闭</Tag>
-                    )}
+                    {billedFeePolicy ? (
+                      billedFeePolicy.enabled ? (
+                        <Tag color="success">已开启修改</Tag>
+                      ) : (
+                        <Tag>默认关闭</Tag>
+                      )
+                    ) : null}
                   </Space>
                   <Paragraph
                     type="secondary"
@@ -268,7 +298,11 @@ export function CustomSettingsPanel() {
                   aria-label="账单费用修改开关"
                   checked={Boolean(billedFeePolicy?.enabled)}
                   loading={savingPolicy}
-                  disabled={!canUpdateBilledFeePolicy || loadingPolicy}
+                  disabled={
+                    !hasCompanyScope ||
+                    !canUpdateBilledFeePolicy ||
+                    loadingPolicy
+                  }
                   onChange={handleToggleBilledFeePolicy}
                   style={{ minWidth: 70 }}
                 />
@@ -343,11 +377,13 @@ export function CustomSettingsPanel() {
                     >
                       往来户超信用额度后是否可以选择
                     </Text>
-                    {creditPolicy?.allowSelectionWhenCreditExceeded ? (
-                      <Tag color="warning">仅提醒模式</Tag>
-                    ) : (
-                      <Tag color="error">直接干预模式</Tag>
-                    )}
+                    {creditPolicy ? (
+                      creditPolicy.allowSelectionWhenCreditExceeded ? (
+                        <Tag color="warning">仅提醒模式</Tag>
+                      ) : (
+                        <Tag color="error">直接干预模式</Tag>
+                      )
+                    ) : null}
                   </Space>
                   <Paragraph
                     type="secondary"
@@ -373,7 +409,11 @@ export function CustomSettingsPanel() {
                     creditPolicy?.allowSelectionWhenCreditExceeded,
                   )}
                   loading={savingCreditPolicy}
-                  disabled={!canUpdateCreditPolicy || savingCreditPolicy}
+                  disabled={
+                    !hasCompanyScope ||
+                    !canUpdateCreditPolicy ||
+                    savingCreditPolicy
+                  }
                   onChange={handleToggleCreditPolicy}
                   style={{ minWidth: 70 }}
                 />

@@ -1,6 +1,7 @@
+import { useQuery } from '@tanstack/react-query';
 import type { TableColumnsType } from 'antd';
-import { Button, Descriptions, Drawer, Space, Spin } from 'antd';
-import React, { useEffect, useRef, useState } from 'react';
+import { Alert, Button, Descriptions, Drawer, Space, Spin } from 'antd';
+import React from 'react';
 import { useAccess } from '@/app/access';
 import { DRAWER_SIZE, ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
@@ -17,8 +18,6 @@ type Props = {
   open: boolean;
   applicationId?: string;
   canManage: boolean;
-  /** 变化时重新拉取详情（如整批决策冲突后刷新最新状态与版本）。 */
-  refreshToken: number;
   onClose: () => void;
   onApprove: (record: Application) => void;
   onReject: (record: Application) => void;
@@ -33,36 +32,34 @@ export default function CommissionApplicationDetailDrawer({
   open,
   applicationId,
   canManage,
-  refreshToken,
   onClose,
   onApprove,
   onReject,
 }: Props) {
   const access = useAccess();
-  const [detail, setDetail] =
-    useState<API.FinanceCommissionApplicationDetail>();
-  const [loading, setLoading] = useState(false);
-  const sequenceRef = useRef(0);
-
-  useEffect(() => {
-    if (!open || !applicationId) return;
-    const sequence = ++sequenceRef.current;
-    setLoading(true);
-    settlementServiceGetCommissionApplication({ id: applicationId })
-      .then((response) => {
-        if (sequence !== sequenceRef.current) return;
-        setDetail(response.data);
-      })
-      .catch(() => {
-        // 失败由统一请求错误处理提示；保留当前内容。
-      })
-      .finally(() => {
-        if (sequence === sequenceRef.current) setLoading(false);
-      });
-    return () => {
-      sequenceRef.current += 1;
-    };
-  }, [open, applicationId, refreshToken]);
+  const detailQuery = useQuery({
+    queryKey: ['commission-applications', 'detail', { applicationId }],
+    enabled: open && Boolean(applicationId),
+    meta: { silent: true },
+    queryFn: async ({ signal }) => {
+      const response = await settlementServiceGetCommissionApplication(
+        {
+          id: applicationId as string,
+        },
+        { signal, skipErrorHandler: true },
+      );
+      if (
+        !response?.data?.application?.id ||
+        response.success === false ||
+        (response.data.lines !== undefined &&
+          !Array.isArray(response.data.lines))
+      )
+        throw new Error('申请批次明细加载失败，请重试');
+      return response.data;
+    },
+  });
+  const detail = detailQuery.data;
+  const loading = detailQuery.isFetching;
 
   const application = detail?.application;
   const canDecide =
@@ -165,77 +162,89 @@ export default function CommissionApplicationDetailDrawer({
         ) : null
       }
     >
+      {detailQuery.isError && (
+        <Alert
+          type="error"
+          showIcon
+          title="申请批次明细加载失败"
+          action={
+            <Button onClick={() => void detailQuery.refetch()}>重试</Button>
+          }
+        />
+      )}
       <Spin spinning={loading}>
-        <Space orientation="vertical" size={12} style={{ width: '100%' }}>
-          <Space size={8}>
-            <span style={{ fontSize: 14, fontWeight: 600 }}>
-              {application?.employeeName || '-'}
-            </span>
-            {applicationStatusTag(application?.status)}
+        {detail && (
+          <Space orientation="vertical" size={12} style={{ width: '100%' }}>
+            <Space size={8}>
+              <span style={{ fontSize: 14, fontWeight: 600 }}>
+                {application?.employeeName || '-'}
+              </span>
+              {applicationStatusTag(application?.status)}
+            </Space>
+            <Descriptions
+              size="small"
+              column={3}
+              bordered
+              items={[
+                {
+                  key: 'month',
+                  label: '申请月份',
+                  children: application?.applicationMonth || '-',
+                },
+                {
+                  key: 'coverageTo',
+                  label: '覆盖截止日',
+                  children: application?.coverageTo || '-',
+                },
+                {
+                  key: 'version',
+                  label: '当前版本',
+                  children: application?.version ?? '-',
+                },
+                {
+                  key: 'count',
+                  label: '笔数',
+                  children: application?.commissionCount ?? 0,
+                },
+                {
+                  key: 'amount',
+                  label: '本位币总额',
+                  children: `${decimalText(application?.totalCommissionAmount)} ${application?.baseCurrency || ''}`,
+                },
+                {
+                  key: 'cny',
+                  label: 'CNY 总额',
+                  children: `${decimalText(application?.totalCnyCommissionAmount)} CNY`,
+                },
+                {
+                  key: 'submitted',
+                  label: '提交人 / 时间',
+                  children: `${application?.submittedBy || '-'} · ${formatDate(application?.submittedAt)}`,
+                },
+                {
+                  key: 'decided',
+                  label: '决策人 / 时间',
+                  children: `${application?.decidedBy || '-'} · ${formatDate(application?.decidedAt)}`,
+                },
+                {
+                  key: 'reason',
+                  label: '驳回原因',
+                  children: application?.decisionReason || '-',
+                },
+              ]}
+            />
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              {columnSettings.entry}
+            </div>
+            <Table<Line>
+              rowKey={(record) => record.id || record.commissionId || ''}
+              size="small"
+              columns={columnSettings.columns}
+              dataSource={detail?.lines ?? []}
+              pagination={false}
+            />
           </Space>
-          <Descriptions
-            size="small"
-            column={3}
-            bordered
-            items={[
-              {
-                key: 'month',
-                label: '申请月份',
-                children: application?.applicationMonth || '-',
-              },
-              {
-                key: 'coverageTo',
-                label: '覆盖截止日',
-                children: application?.coverageTo || '-',
-              },
-              {
-                key: 'version',
-                label: '当前版本',
-                children: application?.version ?? '-',
-              },
-              {
-                key: 'count',
-                label: '笔数',
-                children: application?.commissionCount ?? 0,
-              },
-              {
-                key: 'amount',
-                label: '本位币总额',
-                children: `${decimalText(application?.totalCommissionAmount)} ${application?.baseCurrency || ''}`,
-              },
-              {
-                key: 'cny',
-                label: 'CNY 总额',
-                children: `${decimalText(application?.totalCnyCommissionAmount)} CNY`,
-              },
-              {
-                key: 'submitted',
-                label: '提交人 / 时间',
-                children: `${application?.submittedBy || '-'} · ${formatDate(application?.submittedAt)}`,
-              },
-              {
-                key: 'decided',
-                label: '决策人 / 时间',
-                children: `${application?.decidedBy || '-'} · ${formatDate(application?.decidedAt)}`,
-              },
-              {
-                key: 'reason',
-                label: '驳回原因',
-                children: application?.decisionReason || '-',
-              },
-            ]}
-          />
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            {columnSettings.entry}
-          </div>
-          <Table<Line>
-            rowKey={(record) => record.id || record.commissionId || ''}
-            size="small"
-            columns={columnSettings.columns}
-            dataSource={detail?.lines ?? []}
-            pagination={false}
-          />
-        </Space>
+        )}
       </Spin>
     </Drawer>
   );

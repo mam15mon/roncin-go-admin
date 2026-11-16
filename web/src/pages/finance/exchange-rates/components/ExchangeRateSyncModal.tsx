@@ -5,11 +5,13 @@ import {
   SyncOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
+import { useMutation } from '@tanstack/react-query';
 import type { TableColumnsType } from 'antd';
 import {
   Alert,
   App,
   Button,
+  ConfigProvider,
   Flex,
   Input,
   Modal,
@@ -186,14 +188,31 @@ export function ExchangeRateSyncModal({
   const [target, setTarget] =
     useState<ExchangeRateSyncTargetValue>('CURRENT_WEEK');
   const [precision, setPrecision] = useState<ExchangeRatePrecision>('4');
-  const [fetching, setFetching] = useState(false);
+  const fetchRates = useMutation({
+    meta: { silent: true },
+    mutationFn: async (effectiveTarget: ExchangeRateSyncTargetValue) => {
+      const response = await exchangeRateServiceFetchExchangeRates({
+        target:
+          effectiveTarget === 'NEXT_WEEK'
+            ? ExchangeRateSyncTarget.EXCHANGE_RATE_SYNC_TARGET_NEXT_WEEK
+            : ExchangeRateSyncTarget.EXCHANGE_RATE_SYNC_TARGET_CURRENT_WEEK,
+      });
+      if (!response?.data || response.success === false)
+        throw new Error('抓取结果为空');
+      return response.data;
+    },
+  });
+  const fetching = fetchRates.isPending;
+  const resetFetch = fetchRates.reset;
   const [publishing, setPublishing] = useState(false);
   const [preview, setPreview] = useState<
     ExchangeRateSyncPreviewData | undefined
   >();
   const [rawRows, setRawRows] = useState<ExchangeRateSyncDraftRow[]>([]);
   const [draftRows, setDraftRows] = useState<ExchangeRateSyncDraftRow[]>([]);
-  const [fetchError, setFetchError] = useState<string>();
+  const fetchError = fetchRates.error
+    ? getErrorMessage(fetchRates.error, '牌价抓取失败')
+    : undefined;
 
   useEffect(() => {
     if (!open) {
@@ -202,9 +221,9 @@ export function ExchangeRateSyncModal({
       setPreview(undefined);
       setRawRows([]);
       setDraftRows([]);
-      setFetchError(undefined);
+      resetFetch();
     }
-  }, [open]);
+  }, [open, resetFetch]);
 
   const applyPreview = (
     data: ExchangeRateSyncPreviewData,
@@ -248,32 +267,18 @@ export function ExchangeRateSyncModal({
     );
   };
 
-  const handleFetch = async (nextTarget?: ExchangeRateSyncTargetValue) => {
+  const handleFetch = (nextTarget?: ExchangeRateSyncTargetValue) => {
+    if (publishing) return;
     const effectiveTarget = nextTarget ?? target;
-    if (nextTarget) {
-      setTarget(nextTarget);
-    }
-    setFetching(true);
-    setFetchError(undefined);
-    try {
-      const response = await exchangeRateServiceFetchExchangeRates({
-        target:
-          effectiveTarget === 'NEXT_WEEK'
-            ? ExchangeRateSyncTarget.EXCHANGE_RATE_SYNC_TARGET_NEXT_WEEK
-            : ExchangeRateSyncTarget.EXCHANGE_RATE_SYNC_TARGET_CURRENT_WEEK,
-      });
-      if (!response.data) {
-        throw new Error('抓取结果为空');
-      }
-      applyPreview(response.data as ExchangeRateSyncPreviewData, precision);
-    } catch (error) {
-      setPreview(undefined);
-      setRawRows([]);
-      setDraftRows([]);
-      setFetchError(getErrorMessage(error, '牌价抓取失败'));
-    } finally {
-      setFetching(false);
-    }
+    if (nextTarget) setTarget(nextTarget);
+    fetchRates.mutate(effectiveTarget, {
+      onSuccess: (data) => applyPreview(data, precision),
+      onError: () => {
+        setPreview(undefined);
+        setRawRows([]);
+        setDraftRows([]);
+      },
+    });
   };
 
   const updateDraft = (
@@ -343,7 +348,7 @@ export function ExchangeRateSyncModal({
   };
 
   const handlePublish = async (): Promise<false | undefined> => {
-    if (draftRows.length === 0) return;
+    if (draftRows.length === 0 || publishing || fetching) return false;
     setPublishing(true);
     try {
       const writeResponse1 = await exchangeRateServiceSyncExchangeRates({
@@ -704,115 +709,122 @@ export function ExchangeRateSyncModal({
           : `一键同步周汇率（本币 ${baseCurrency}）`
       }
       open={open}
-      onCancel={onClose}
+      onCancel={() => {
+        if (!publishing) onClose();
+      }}
+      closable={!publishing}
+      mask={{ closable: !publishing }}
+      keyboard={!publishing}
       width={1000}
       style={{ top: 28 }}
       destroyOnHidden
       footer={[
-        <Button key="cancel" onClick={onClose}>
+        <Button key="cancel" disabled={publishing} onClick={onClose}>
           取消
         </Button>,
         <Button
           key="publish"
           type="primary"
           loading={publishing}
-          disabled={draftRows.length === 0}
+          disabled={draftRows.length === 0 || fetching || publishing}
           onClick={handlePublish}
         >
           确认发布
         </Button>,
       ]}
     >
-      <Flex vertical gap={12} style={{ width: '100%' }}>
-        <Flex justify="space-between" align="center" wrap="wrap" gap={12}>
-          <Space wrap align="center">
-            <Text strong>目标生效周：</Text>
-            <Tag
-              color="blue"
-              style={{ fontSize: 13, padding: '2px 8px', margin: 0 }}
-            >
-              本周（周一至周日）
-            </Tag>
-            <Button
-              type="primary"
-              ghost
-              icon={<SyncOutlined />}
-              loading={fetching}
-              onClick={() => handleFetch()}
-            >
-              抓取牌价
-            </Button>
-          </Space>
-
-          {draftRows.length > 0 && (
-            <Space align="center" wrap>
-              <Text strong>小数精度：</Text>
-              <Radio.Group
-                value={precision}
-                onChange={(e) => handlePrecisionChange(e.target.value)}
-                optionType="button"
-                buttonStyle="solid"
-                options={[
-                  { label: '4 位（中行标准）', value: '4' },
-                  { label: '3 位', value: '3' },
-                  { label: '2 位（对账简化）', value: '2' },
-                  { label: '原始抓取', value: 'raw' },
-                ]}
-              />
-              <Button
-                icon={<HistoryOutlined />}
-                onClick={handleApplyLastMarkups}
-                title="按上次发布的微调偏好（如 USD +0.02、EUR +0.02 等）自动计算加点"
+      <ConfigProvider componentDisabled={publishing}>
+        <Flex vertical gap={12} style={{ width: '100%' }}>
+          <Flex justify="space-between" align="center" wrap="wrap" gap={12}>
+            <Space wrap align="center">
+              <Text strong>目标生效周：</Text>
+              <Tag
+                color="blue"
+                style={{ fontSize: 13, padding: '2px 8px', margin: 0 }}
               >
-                套用上次微调
-              </Button>
+                本周（周一至周日）
+              </Tag>
               <Button
-                icon={<ReloadOutlined />}
-                onClick={handleRestoreRaw}
-                title="恢复为中行原始抓取牌价（清除所有加点微调）"
+                type="primary"
+                ghost
+                icon={<SyncOutlined />}
+                loading={fetching}
+                onClick={() => handleFetch()}
               >
-                还原原价
+                抓取牌价
               </Button>
             </Space>
+
+            {draftRows.length > 0 && (
+              <Space align="center" wrap>
+                <Text strong>小数精度：</Text>
+                <Radio.Group
+                  value={precision}
+                  onChange={(e) => handlePrecisionChange(e.target.value)}
+                  optionType="button"
+                  buttonStyle="solid"
+                  options={[
+                    { label: '4 位（中行标准）', value: '4' },
+                    { label: '3 位', value: '3' },
+                    { label: '2 位（对账简化）', value: '2' },
+                    { label: '原始抓取', value: 'raw' },
+                  ]}
+                />
+                <Button
+                  icon={<HistoryOutlined />}
+                  onClick={handleApplyLastMarkups}
+                  title="按上次发布的微调偏好（如 USD +0.02、EUR +0.02 等）自动计算加点"
+                >
+                  套用上次微调
+                </Button>
+                <Button
+                  icon={<ReloadOutlined />}
+                  onClick={handleRestoreRaw}
+                  title="恢复为中行原始抓取牌价（清除所有加点微调）"
+                >
+                  还原原价
+                </Button>
+              </Space>
+            )}
+          </Flex>
+
+          {fetchError && (
+            <Alert
+              type="error"
+              showIcon
+              title="牌价抓取失败"
+              description={`${fetchError}。请检查网络后重试，或使用「新建汇率」手工录入本周汇率，单据不会因此受阻。`}
+            />
+          )}
+
+          {preview && (
+            <>
+              <Alert
+                type={preview.fallbackUsed ? 'warning' : 'info'}
+                showIcon={preview.fallbackUsed}
+                icon={preview.fallbackUsed ? <WarningOutlined /> : undefined}
+                title={`数据来源：${preview.source ?? '-'}（${weekRange}）`}
+                description={
+                  preview.fallbackUsed
+                    ? '主数据源暂不可用，已启用备选来源换算，请逐行核对后再发布。'
+                    : '请核对各币种建议值。支持直接修改或「套用上次微调」加点，系统会自动记住本次微调幅度。确认无误后点击「确认发布」生效。'
+                }
+              />
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                {columnSettings.entry}
+              </div>
+              <Table<ExchangeRateSyncDraftRow>
+                rowKey="fromCurrency"
+                size="small"
+                pagination={false}
+                dataSource={draftRows}
+                scroll={{ y: 400 }}
+                columns={columnSettings.columns}
+              />
+            </>
           )}
         </Flex>
-
-        {fetchError && (
-          <Alert
-            type="error"
-            showIcon
-            title="牌价抓取失败"
-            description={`${fetchError}。请检查网络后重试，或使用「新建汇率」手工录入本周汇率，单据不会因此受阻。`}
-          />
-        )}
-
-        {preview && (
-          <>
-            <Alert
-              type={preview.fallbackUsed ? 'warning' : 'info'}
-              showIcon={preview.fallbackUsed}
-              icon={preview.fallbackUsed ? <WarningOutlined /> : undefined}
-              title={`数据来源：${preview.source ?? '-'}（${weekRange}）`}
-              description={
-                preview.fallbackUsed
-                  ? '主数据源暂不可用，已启用备选来源换算，请逐行核对后再发布。'
-                  : '请核对各币种建议值。支持直接修改或「套用上次微调」加点，系统会自动记住本次微调幅度。确认无误后点击「确认发布」生效。'
-              }
-            />
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              {columnSettings.entry}
-            </div>
-            <Table<ExchangeRateSyncDraftRow>
-              rowKey="fromCurrency"
-              size="small"
-              pagination={false}
-              dataSource={draftRows}
-              scroll={{ y: 400 }}
-              columns={columnSettings.columns}
-            />
-          </>
-        )}
-      </Flex>
+      </ConfigProvider>
     </Modal>
   );
 }

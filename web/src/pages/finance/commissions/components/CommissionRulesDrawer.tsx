@@ -4,9 +4,10 @@ import type {
   ProColumns,
   ProFormInstance,
 } from '@ant-design/pro-components';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { App, Button, Drawer, Select, Tag } from 'antd';
 import dayjs from 'dayjs';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import { DRAWER_SIZE, ResponsiveProTable as ProTable } from '@/components/ui';
@@ -20,7 +21,11 @@ import {
   settlementServiceListCommissionRules,
   settlementServiceUpdateCommissionRule,
 } from '@/services/roncin/settlementService';
-import { isWriteResponse, toTableRequest } from '@/utils/api';
+import {
+  ensureListResponse,
+  isWriteResponse,
+  toTableRequest,
+} from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { trimDecimal } from '@/utils/format';
 import {
@@ -65,60 +70,133 @@ export default function CommissionRulesDrawer({
   const [ruleFormOpen, setRuleFormOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<API.FinanceCommissionRule>();
   // 员工候选（新建表单 / 名单 / 复制共用，固定当前公司）。
-  const [employeeOptions, setEmployeeOptions] = useState<EmployeeOption[]>([]);
+  const [employeeKeyword, setEmployeeKeyword] = useState('');
+  const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>([]);
+  const queryClient = useQueryClient();
   // 名单管理：当前操作的方案。
   const [rosterRule, setRosterRule] = useState<API.FinanceCommissionRule>();
   // 复制为新方案：源方案。
   const [copySourceRule, setCopySourceRule] =
     useState<API.FinanceCommissionRule>();
   // 列表「适用员工」过滤：远程搜索候选与选中值分离。
-  const [employeeFilterOptions, setEmployeeFilterOptions] = useState<
-    EmployeeOption[]
-  >([]);
+  const [employeeFilterKeyword, setEmployeeFilterKeyword] = useState('');
+  const [filterEmployeesOpen, setFilterEmployeesOpen] = useState(false);
   const [employeeFilter, setEmployeeFilter] = useState<string>();
-
-  /** 指定组织内员工远程搜索：服务端关键字分页，pageSize 不超过 200。 */
-  const searchEmployees = useCallback(
-    async (keyword: string, apply: (options: EmployeeOption[]) => void) => {
-      if (!canRead || !organizationId) {
-        apply([]);
-        return;
-      }
-      try {
-        const response = await settlementServiceListCommissionEmployees({
+  const employeeQuery = useQuery({
+    queryKey: [
+      'finance',
+      'commission-rule-employees',
+      {
+        organizationId,
+        keyword: employeeKeyword,
+        active:
+          open &&
+          canRead &&
+          Boolean(ruleFormOpen || rosterRule || copySourceRule),
+      },
+    ],
+    enabled:
+      open && canRead && Boolean(ruleFormOpen || rosterRule || copySourceRule),
+    meta: { errorMessage: '员工候选加载失败' },
+    queryFn: async ({ signal }) => {
+      const response = await settlementServiceListCommissionEmployees(
+        {
           page: 1,
           pageSize: 200,
           organizationId,
-          ...(keyword ? { keyword } : {}),
-        });
-        apply(toEmployeeOptions(response));
-      } catch {
-        apply([]);
-      }
+          keyword: employeeKeyword || undefined,
+        },
+        { signal, skipErrorHandler: true },
+      );
+      if (!response || response.success === false)
+        throw new Error('员工候选加载失败');
+      return toEmployeeOptions(
+        ensureListResponse(response, '员工候选加载失败'),
+      );
     },
-    [canRead, organizationId],
-  );
-
-  const searchEmployeeFilter = useCallback(
-    async (keyword = '') => {
-      if (!canRead || !organizationId) {
-        setEmployeeFilterOptions([]);
-        return;
-      }
-      try {
-        const response = await settlementServiceListCommissionEmployees({
+  });
+  const filterEmployeeQuery = useQuery({
+    queryKey: [
+      'finance',
+      'commission-rule-employees',
+      {
+        organizationId,
+        keyword: employeeFilterKeyword,
+        active: open && canRead && filterEmployeesOpen,
+      },
+    ],
+    enabled: open && canRead && filterEmployeesOpen,
+    meta: { errorMessage: '员工候选加载失败' },
+    queryFn: async ({ signal }) => {
+      const response = await settlementServiceListCommissionEmployees(
+        {
           page: 1,
           pageSize: 200,
-          ...(keyword ? { keyword } : {}),
           organizationId,
-        });
-        setEmployeeFilterOptions(toEmployeeOptions(response));
-      } catch {
-        setEmployeeFilterOptions([]);
-      }
+          keyword: employeeFilterKeyword || undefined,
+        },
+        { signal, skipErrorHandler: true },
+      );
+      if (!response || response.success === false)
+        throw new Error('员工候选加载失败');
+      return toEmployeeOptions(
+        ensureListResponse(response, '员工候选加载失败'),
+      );
     },
-    [canRead, organizationId],
-  );
+  });
+  const cachedEmployees = queryClient
+    .getQueriesData<EmployeeOption[]>({
+      queryKey: ['finance', 'commission-rule-employees'],
+      predicate: (query) =>
+        (query.queryKey[2] as { organizationId?: string } | undefined)
+          ?.organizationId === organizationId,
+    })
+    .flatMap(([, options]) => options ?? []);
+  const employeeOptions = useMemo(() => {
+    const selected = new Set(selectedEmployeeIds);
+    const preserved = cachedEmployees.filter((option) =>
+      selected.has(option.value),
+    );
+    const assignments = [
+      ...(copySourceRule?.assignments ?? []),
+      ...(rosterRule?.assignments ?? []),
+    ].flatMap((item) =>
+      item.employeeId
+        ? [
+            {
+              value: item.employeeId,
+              label: item.employeeName || item.employeeId,
+            },
+          ]
+        : [],
+    );
+    return [
+      ...new Map(
+        [...preserved, ...assignments, ...(employeeQuery.data ?? [])].map(
+          (option) => [option.value, option],
+        ),
+      ).values(),
+    ];
+  }, [
+    cachedEmployees,
+    copySourceRule?.assignments,
+    employeeQuery.data,
+    rosterRule?.assignments,
+    selectedEmployeeIds,
+  ]);
+  const employeeFilterOptions = [
+    ...new Map(
+      [
+        ...cachedEmployees.filter((option) => option.value === employeeFilter),
+        ...(filterEmployeeQuery.data ?? []),
+      ].map((option) => [option.value, option]),
+    ).values(),
+  ];
+  const searchEmployees = (keyword = '') => setEmployeeKeyword(keyword.trim());
+  const searchEmployeeFilter = (keyword = '') => {
+    setFilterEmployeesOpen(true);
+    setEmployeeFilterKeyword(keyword.trim());
+  };
 
   const requireCurrentRule = (record: API.FinanceCommissionRule) => {
     if (
@@ -134,8 +212,9 @@ export default function CommissionRulesDrawer({
   const openRoster = (record: API.FinanceCommissionRule) => {
     if (!canRead || !requireCurrentRule(record)) return;
     setRosterRule(record);
-    setEmployeeOptions([]);
-    void searchEmployees('', setEmployeeOptions);
+    setEmployeeKeyword('');
+    setSelectedEmployeeIds([]);
+    searchEmployees();
   };
 
   const handleRuleError = (error: unknown, fallback: string) => {
@@ -373,8 +452,9 @@ export default function CommissionRulesDrawer({
               onClick={() => {
                 if (!requireCurrentRule(record)) return;
                 setCopySourceRule(record);
-                setEmployeeOptions([]);
-                void searchEmployees('', setEmployeeOptions);
+                setEmployeeKeyword('');
+                setSelectedEmployeeIds([]);
+                searchEmployees();
               }}
             >
               复制为新方案
@@ -424,7 +504,8 @@ export default function CommissionRulesDrawer({
             value={employeeFilter}
             options={employeeFilterOptions}
             onOpenChange={(visible) => {
-              if (visible) void searchEmployeeFilter();
+              setFilterEmployeesOpen(visible);
+              if (visible) searchEmployeeFilter();
             }}
             onChange={(value) => {
               setEmployeeFilter(value);
@@ -450,9 +531,10 @@ export default function CommissionRulesDrawer({
                     icon={<PlusOutlined />}
                     onClick={() => {
                       setEditingRule(undefined);
-                      setEmployeeOptions([]);
+                      setEmployeeKeyword('');
+                      setSelectedEmployeeIds([]);
                       setRuleFormOpen(true);
-                      void searchEmployees('', setEmployeeOptions);
+                      searchEmployees();
                     }}
                   >
                     新建方案
@@ -483,7 +565,7 @@ export default function CommissionRulesDrawer({
         formRef={ruleFormRef}
         employeeOptions={employeeOptions}
         searchEmployees={searchEmployees}
-        onEmployeeOptionsChange={setEmployeeOptions}
+        onEmployeeSelectionChange={setSelectedEmployeeIds}
         onCancel={() => setRuleFormOpen(false)}
         onFinish={handleRuleSubmit}
       />
@@ -492,7 +574,7 @@ export default function CommissionRulesDrawer({
         rosterRule={rosterRule}
         employeeOptions={employeeOptions}
         searchEmployees={searchEmployees}
-        onEmployeeOptionsChange={setEmployeeOptions}
+        onEmployeeSelectionChange={setSelectedEmployeeIds}
         onCancel={() => setRosterRule(undefined)}
         onChanged={() => {
           ruleActionRef.current?.reload();
@@ -505,7 +587,7 @@ export default function CommissionRulesDrawer({
         copySourceRule={copySourceRule}
         employeeOptions={employeeOptions}
         searchEmployees={searchEmployees}
-        onEmployeeOptionsChange={setEmployeeOptions}
+        onEmployeeSelectionChange={setSelectedEmployeeIds}
         onCancel={() => setCopySourceRule(undefined)}
         onFinish={handleCopySubmit}
       />

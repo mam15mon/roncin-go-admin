@@ -1,4 +1,11 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { createTestQueryClient } from '@root/tests/queryClientTestUtils';
+import { QueryClientProvider } from '@tanstack/react-query';
+import {
+  fireEvent,
+  render as renderUI,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import { Form } from 'antd';
 import React, { useEffect } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -15,6 +22,13 @@ vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceListBillSettlementAccountUpdateCandidates: mocks.accounts,
 }));
 vi.mock('@/features/master-data/currencies', () => ({
+  currencyOptionsQueryOptions: () => ({
+    queryKey: ['master-data', 'currency-options'],
+    queryFn: async () => [
+      { label: 'CNY - 人民币', value: 'CNY' },
+      { label: 'USD - 美元', value: 'USD' },
+    ],
+  }),
   getCurrencyOptions: vi.fn().mockResolvedValue([
     { label: 'CNY - 人民币', value: 'CNY' },
     { label: 'USD - 美元', value: 'USD' },
@@ -22,6 +36,15 @@ vi.mock('@/features/master-data/currencies', () => ({
 }));
 
 import BillEditModal from './BillEditModal';
+
+function render(ui: React.ReactElement) {
+  const client = createTestQueryClient();
+  return renderUI(ui, {
+    wrapper: ({ children }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    ),
+  });
+}
 
 function EditHarness({ editing }: { editing?: API.FinanceBill }) {
   const [form] = Form.useForm<BillFormValues>();
@@ -49,6 +72,7 @@ function EditHarness({ editing }: { editing?: API.FinanceBill }) {
         submitting={false}
         onCancel={vi.fn()}
         onOk={async () => {}}
+        onRefresh={async () => false}
       />
       <output data-testid="settlement-account-id">{settlementAccountId}</output>
       <output data-testid="estimated-invoice-currency">
@@ -96,9 +120,15 @@ describe('BillEditModal 结算账户候选', () => {
       />,
     );
     await waitFor(() =>
-      expect(mocks.accounts).toHaveBeenCalledWith({
-        billId: 'bill-a',
-      }),
+      expect(mocks.accounts).toHaveBeenCalledWith(
+        {
+          billId: 'bill-a',
+        },
+        expect.objectContaining({
+          signal: expect.any(AbortSignal),
+          skipErrorHandler: true,
+        }),
+      ),
     );
     view.rerender(
       <EditHarness
@@ -111,9 +141,15 @@ describe('BillEditModal 结算账户候选', () => {
       />,
     );
     await waitFor(() =>
-      expect(mocks.accounts).toHaveBeenCalledWith({
-        billId: 'bill-b',
-      }),
+      expect(mocks.accounts).toHaveBeenCalledWith(
+        {
+          billId: 'bill-b',
+        },
+        expect.objectContaining({
+          signal: expect.any(AbortSignal),
+          skipErrorHandler: true,
+        }),
+      ),
     );
     resolveA?.({
       data: [
@@ -158,9 +194,15 @@ describe('BillEditModal 结算账户候选', () => {
       />,
     );
     await waitFor(() =>
-      expect(mocks.accounts).toHaveBeenCalledWith({
-        billId: 'bill-a',
-      }),
+      expect(mocks.accounts).toHaveBeenCalledWith(
+        {
+          billId: 'bill-a',
+        },
+        expect.objectContaining({
+          signal: expect.any(AbortSignal),
+          skipErrorHandler: true,
+        }),
+      ),
     );
     await waitFor(() =>
       expect(screen.getByTestId('settlement-account-id')).toHaveTextContent(

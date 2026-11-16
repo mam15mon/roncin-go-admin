@@ -1,4 +1,5 @@
 import type { ProColumns } from '@ant-design/pro-components';
+import { useQuery } from '@tanstack/react-query';
 import {
   Alert,
   Card,
@@ -16,13 +17,12 @@ import {
 } from 'antd';
 import type { NamePath } from 'antd/es/form/interface';
 import dayjs from 'dayjs';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useAccess } from '@/app/access';
 import { ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { InvoiceRegistrationEditor } from '@/features/finance/invoice-registration';
-import { getCurrencyOptions } from '@/features/master-data/currencies';
-import type { SelectOption } from '@/types/select-option';
+import { currencyOptionsQueryOptions } from '@/features/master-data/currencies';
 import { formatAmount, trimDecimal } from '@/utils/format';
 import BillTermsCreditWarnings from './BillTermsCreditWarnings';
 import BillVerificationFields from './BillVerificationFields';
@@ -50,7 +50,10 @@ export default function BillGroupCard({
   const form = Form.useFormInstance();
   const access = useAccess();
   const groupKey = group.groupKey || '';
-  const [currencyOptions, setCurrencyOptions] = useState<SelectOption[]>([]);
+  const currenciesQuery = useQuery({
+    ...currencyOptionsQueryOptions(),
+  });
+  const currencyOptions = currenciesQuery.data ?? [];
 
   const paymentTermsDays = Form.useWatch(
     ['groups', groupKey, 'paymentTermsDays'],
@@ -61,20 +64,6 @@ export default function BillGroupCard({
     billDate && typeof paymentTermsDays === 'number'
       ? dayjs(billDate).add(paymentTermsDays, 'day').format('YYYY-MM-DD')
       : undefined;
-
-  useEffect(() => {
-    let cancelled = false;
-    void getCurrencyOptions()
-      .then((options) => {
-        if (!cancelled) setCurrencyOptions(options);
-      })
-      .catch(() => {
-        if (!cancelled) setCurrencyOptions([]);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const feeColumnSettings = useColumnSettings<ProColumns<API.FeeLedgerItem>>({
     tableKey: 'finance:bill-group-fees',
