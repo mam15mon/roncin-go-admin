@@ -1,8 +1,14 @@
 import { renderWithDataRouter } from '@root/tests/renderWithApp';
-import { act, fireEvent, screen } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { App, ConfigProvider, Form, type FormInstance, Input } from 'antd';
 import React, { type ComponentType } from 'react';
-import { vi } from 'vitest';
+import { expect, vi } from 'vitest';
 import { OrderAllowedAction, OrderBusinessType } from '@/enums.generated';
 import { orderServiceUpdateOrder } from '@/services/roncin/orderService';
 import type { OrderDetailFeaturesProps } from './order-kinds/types';
@@ -240,7 +246,18 @@ export function getAirSaveState() {
 }
 
 export async function openAirHouseRemarks() {
-  const trigger = screen.getByRole('button', { name: '签发与备注' });
+  const house = screen.getByRole('tabpanel', { name: '分运单 HAWB' });
+  const more = within(house)
+    .getByText('更多运单资料')
+    .closest('[role="button"]');
+  if (!more) throw new Error('未找到更多运单资料入口');
+  await waitFor(() => expect(more).toBeVisible());
+  if (more.getAttribute('aria-expanded') !== 'true') fireEvent.click(more);
+  const trigger = within(house)
+    .getByText('签发与备注')
+    .closest('[role="button"]');
+  if (!trigger) throw new Error('未找到签发与备注入口');
+  await waitFor(() => expect(trigger).toBeVisible());
   if (trigger.getAttribute('aria-expanded') !== 'true')
     fireEvent.click(trigger);
   return screen.findByLabelText('单证备注');
