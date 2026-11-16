@@ -152,61 +152,6 @@ describe('OrderFeeTableTabs 账单投影相关操作', () => {
     expect(saveFees).toHaveBeenCalledTimes(1);
   });
 
-  it('只有删除权限的未建账费用仍可删除，已建账费用不开放操作', async () => {
-    const onCancelFee = vi.fn();
-    listFees.mockResolvedValue({
-      data: [
-        {
-          canEdit: false,
-          canDelete: true,
-          canBill: true,
-          id: 'fee-unbilled',
-          direction: RECEIVABLE,
-          createdAt: '2026-09-20',
-          version: '2',
-          feeName: '拖车费',
-        },
-        {
-          canEdit: false,
-          canDelete: false,
-          canBill: false,
-          id: 'fee-billed',
-          direction: RECEIVABLE,
-          hasActiveBill: true,
-          createdAt: '2026-09-20',
-          version: '3',
-          feeName: '海运费',
-        },
-      ],
-    } as any);
-
-    render(
-      <App>
-        <OrderFeeTableTabs
-          {...makeProps('order-1')}
-          feeWritesDisabled={false}
-          onCancelFee={onCancelFee}
-        />
-      </App>,
-    );
-    await screen.findByText('拖车费');
-
-    // 行内「删除」操作锚定整名匹配，避开工具栏批量维护新增的「批量删除」入口
-    const deleteButtons = screen.getAllByRole('button', {
-      name: /^删\s*除$/,
-    });
-    expect(deleteButtons).toHaveLength(1);
-    expect(
-      screen.queryByRole('button', { name: /作\s*废/ }),
-    ).not.toBeInTheDocument();
-    await act(async () => {
-      deleteButtons[0].click();
-    });
-    expect(onCancelFee).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 'fee-unbilled' }),
-    );
-  });
-
   it('未建账与已建账费用均可勾选，操作列不再提供确认/撤回入口（A1/R2）', async () => {
     const setSelectedReceivableFeeIds = vi.fn();
     listFees.mockResolvedValue({

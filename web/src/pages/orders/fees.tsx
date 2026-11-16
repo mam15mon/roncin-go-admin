@@ -24,7 +24,6 @@ import { history } from '@/router/history';
 import { feeCatalogServiceListTaxableServices } from '@/services/roncin/feeCatalogService';
 import {
   orderFeeServiceAddFee,
-  orderFeeServiceRemoveFee,
   orderFeeServiceUpdateFee,
 } from '@/services/roncin/orderFeeService';
 import { settlementServiceGetFeeLedgerOrderDetail } from '@/services/roncin/settlementService';
@@ -38,7 +37,6 @@ import FeeCorrectionCreate from './components/fees/FeeCorrectionCreate';
 import FeeFormModal, {
   type FeeFormValues,
 } from './components/fees/FeeFormModal';
-import { OrderFeeReviewSection } from './components/fees/fee-review/OrderFeeReview';
 import type { FeeBillTrackingView } from './components/fees/feeBillTracking';
 import { RECEIVABLE } from './components/fees/feeConstants';
 import { quantitySelectionForSave } from './components/fees/feeQuantitySource';
@@ -305,10 +303,7 @@ export default function OrderFeesPage() {
   const feeWritePolicyRef = useRef(lockWritePolicy);
   feeWritePolicyRef.current = lockWritePolicy;
 
-  const ensureFeeWriteAllowed = (
-    fee?: API.OrderFee,
-    capability: 'canEdit' | 'canDelete' = 'canEdit',
-  ) => {
+  const ensureFeeWriteAllowed = (fee?: API.OrderFee) => {
     if (feeWritePolicyRef.current.disabled) {
       message.warning(
         lockState?.isLocked
@@ -321,7 +316,7 @@ export default function OrderFeesPage() {
       message.warning('无费用录入权限');
       return false;
     }
-    if (fee && fee[capability] !== true) {
+    if (fee && fee.canEdit !== true) {
       message.warning(
         fee.blockedReasons?.join('；') ||
           '该费用当前不可编辑，请先完成账务回退',
@@ -527,41 +522,6 @@ export default function OrderFeesPage() {
     });
   };
 
-  const handleCancelFee = (fee: API.OrderFee) => {
-    const feeId = fee.id;
-    const version = fee.version;
-    if (!orderId || !feeId || !version) return;
-    // 删除为物理删除且不再采集原因；被未取消账单占用时服务端拒绝并提示先取消账单。
-    modal
-      .confirm({
-        title: '确认删除该笔费用？',
-        content: '删除后费用记录不再保留；已进入账单的费用需先取消对应账单。',
-        okText: '删除',
-        okButtonProps: { danger: true },
-        cancelText: '取消',
-        onOk: async () => {
-          if (!ensureFeeWriteAllowed(fee, 'canDelete')) return Promise.reject();
-          try {
-            const writeResponse3 = await orderFeeServiceRemoveFee({
-              orderId,
-              id: feeId,
-              expectedVersion: version,
-            });
-            if (!isWriteResponse(writeResponse3)) return Promise.reject();
-            message.success('费用已删除');
-            reloadFeeTables();
-          } catch (error) {
-            message.error(getErrorMessage(error, '删除费用失败'));
-            throw error;
-          }
-        },
-      })
-      .then(
-        () => {},
-        () => {},
-      );
-  };
-
   if (!definition) {
     return (
       <div style={{ padding: 48, background: '#f5f7fa', minHeight: '100vh' }}>
@@ -599,12 +559,6 @@ export default function OrderFeesPage() {
           navigationTitle={definition.navigationTitle}
           orderId={orderId}
         />
-        <SectionCard title="订单审核">
-          <OrderFeeReviewSection
-            orderId={targetOrderId}
-            onChanged={() => void feeReview.refetch()}
-          />
-        </SectionCard>
         <SectionCard title="费用补录补审">
           <FeeCorrectionSection
             key={targetOrderId}
@@ -706,20 +660,6 @@ export default function OrderFeesPage() {
         />
       ) : null}
 
-      <SectionCard title="订单审核">
-        <OrderFeeReviewSection
-          key={targetOrderId}
-          orderId={orderId || ''}
-          onChanged={() => {
-            void loadData();
-            receivableActionRef.current?.reload();
-            payableActionRef.current?.reload();
-            refreshFeeBillTracking();
-            void feeChangeNotice.rebaseline();
-          }}
-        />
-      </SectionCard>
-
       <OrderFeeHeader
         order={order}
         kind={definition.kind}
@@ -791,7 +731,6 @@ export default function OrderFeesPage() {
         customerName={customerName}
         onOpenQuickAddFee={handleOpenQuickAddFee}
         onOpenQuickAddPartner={handleOpenQuickAddPartner}
-        onCancelFee={handleCancelFee}
         onOpenFeeModal={openFeeModal}
       />
 

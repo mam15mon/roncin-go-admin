@@ -443,7 +443,10 @@ describe('OrderFeeTableTabs 业务锁策略', () => {
       expect(screen.getByDisplayValue('1')).toBeInTheDocument();
       expect(screen.getAllByText('票').length).toBeGreaterThan(0);
       expect(screen.getAllByText('测试客户').length).toBeGreaterThan(0);
-      expect(screen.getByText('移除')).toBeInTheDocument();
+      expect(screen.queryByText('移除')).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('columnheader', { name: '操作' }),
+      ).not.toBeInTheDocument();
     });
 
     // 新增行默认 CNY，应立即解析参考汇率

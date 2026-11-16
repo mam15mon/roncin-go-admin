@@ -111,7 +111,7 @@ describe('订单费用自定义多列冻结', () => {
       ],
     } as Awaited<ReturnType<typeof listFees>>);
   });
-  it('应收同时冻结两列并解除操作冻结，刷新后应付共享且保留显隐', async () => {
+  it('应收同时冻结两列，刷新后应付共享且保留显隐和无操作列', async () => {
     const props = makeProps('order-freeze');
     const rendered = render(
       <App>
@@ -122,7 +122,7 @@ describe('订单费用自定义多列冻结', () => {
     await openSettings();
     await setFreeze('费用名称', '左冻结');
     await setFreeze('结算单位', '左冻结');
-    await setFreeze('操作', '不冻结');
+    expect(screen.queryByRole('combobox', { name: '操作冻结位置' })).toBeNull();
     await act(async () => {
       fireEvent.click(screen.getByRole('checkbox', { name: '费用代码' }));
     });
@@ -135,7 +135,7 @@ describe('订单费用自定义多列冻结', () => {
     });
     expect(stored.hidden).toContain('feeCode');
     expect(stored.hidden).toContain('createdAt');
-    expect(stored.order.at(-1)).toBe('option');
+    expect(stored.order).not.toContain('option');
     rendered.unmount();
     render(
       <App>

@@ -16,7 +16,7 @@ const lockedKeys = DEFAULT_FEE_COLUMN_DEFS.filter((def) => def.lockVisible).map(
 );
 
 describe('feeColumnPreference 列定义与默认值', () => {
-  it('录入必备列与操作列必显，税额四列默认可见，日期与关联账单列默认隐藏', () => {
+  it('录入必备列必显且没有操作列，税额四列默认可见，日期与关联账单列默认隐藏', () => {
     const defaults = defaultFeeColumnPreference(false);
     expect(lockedKeys).toEqual(
       expect.arrayContaining([
@@ -26,12 +26,12 @@ describe('feeColumnPreference 列定义与默认值', () => {
         'unitPrice',
         'quantity',
         'billingUnitId',
-        'option',
       ]),
     );
     for (const key of lockedKeys) {
       expect(defaults.hidden).not.toContain(key);
     }
+    expect(defaults.order).not.toContain('option');
     expect(lockedKeys).not.toContain('createdAt');
     expect(DEFAULT_FEE_COLUMN_DEFS.map((def) => def.key)).not.toContain('tags');
     expect(defaults.hidden).toEqual(expect.arrayContaining(['createdAt']));
@@ -221,9 +221,9 @@ describe('feeColumnPreference 本地存储', () => {
 });
 
 describe('feeColumnPreference 字段冻结', () => {
-  it('默认只冻结末尾操作列；未配置冻结时保留已有顺序与显隐', () => {
+  it('默认不冻结列；未配置冻结时保留已有顺序与显隐', () => {
     const defaults = defaultFeeColumnPreference(false);
-    expect(defaults.freeze).toEqual({ left: [], right: ['option'] });
+    expect(defaults.freeze).toEqual({ left: [], right: [] });
     const resolved = resolveFeeColumnPreference(
       { order: ['note', 'feeCode'], hidden: ['taxRate'] },
       false,
@@ -245,7 +245,7 @@ describe('feeColumnPreference 字段冻结', () => {
     expect(loadFeeColumnPreference(scope)).toEqual(preference);
     expect(
       isDefaultFeeColumnPreference(
-        { ...defaults, freeze: { left: [], right: [] } },
+        { ...defaults, freeze: { left: [], right: ['note'] } },
         false,
       ),
     ).toBe(false);
@@ -270,21 +270,19 @@ describe('feeColumnPreference 字段冻结', () => {
     expect(resolved.hidden).toContain('taxAmount');
   });
 
-  it('操作列始终必显且在末尾，重复排序键去重，财务列继续按权限裁剪', () => {
+  it('重复排序键去重，财务列继续按权限裁剪', () => {
     const resolved = resolveFeeColumnPreference(
       {
-        order: ['option', 'note', 'billNo', 'note'],
-        hidden: ['option', 'note'],
-        freeze: { left: ['feeCode'], right: ['option'] },
+        order: ['note', 'billNo', 'note'],
+        hidden: ['note'],
+        freeze: { left: ['feeCode'], right: ['note'] },
       },
       false,
     );
     expect(resolved.order[0]).toBe('note');
-    expect(resolved.order.at(-1)).toBe('option');
     expect(resolved.order.filter((key) => key === 'note')).toHaveLength(1);
     expect(resolved.order).not.toContain('billNo');
-    expect(resolved.hidden).not.toContain('option');
     expect(resolved.hidden).toContain('note');
-    expect(resolved.freeze).toEqual({ left: ['feeCode'], right: ['option'] });
+    expect(resolved.freeze).toEqual({ left: ['feeCode'], right: ['note'] });
   });
 });

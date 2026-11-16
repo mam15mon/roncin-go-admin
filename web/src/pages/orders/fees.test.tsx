@@ -63,10 +63,6 @@ vi.mock('@/features/orders/fee-review', async (original) => ({
     refetch: vi.fn(),
   }),
 }));
-vi.mock('./components/fees/fee-review/OrderFeeReview', () => ({
-  OrderFeeReviewSection: () => null,
-}));
-
 vi.mock('@/router/history', () => ({
   history: {
     get location() {
@@ -163,7 +159,6 @@ vi.mock('@/services/roncin/orderFeeService', async (original) => ({
     data: { canEdit: true, canBill: true, status: 'UNSUBMITTED' },
   }),
   orderFeeServiceAddFee: vi.fn(),
-  orderFeeServiceRemoveFee: vi.fn(),
   orderFeeServiceUpdateFee: vi.fn(),
   orderFeeServiceListOrderFeeSupplementRequests: vi
     .fn()
@@ -545,13 +540,15 @@ describe('订单费用页统一补录入口', () => {
     feeTestState.hasPendingSupplement = false;
     vi.clearAllMocks();
   });
-  it('仅审核人读取补审列表，不加载普通费用候选', async () => {
+  it('仅审核人读取补审列表，不显示订单审核区或加载普通费用候选', async () => {
     feeTestState.canReadFee = false;
     renderFeesPage();
     await waitFor(() =>
       expect(orderFeeServiceListOrderFeeCorrectionRequests).toHaveBeenCalled(),
     );
     expect(feeTestState.feeOptions).toHaveBeenCalledWith(undefined);
+    expect(screen.queryByText('订单审核')).not.toBeInTheDocument();
+    expect(screen.getByText('费用补录补审')).toBeInTheDocument();
     expect(
       screen.queryByTestId('finance-summary-board'),
     ).not.toBeInTheDocument();
@@ -607,6 +604,10 @@ describe('订单费用页统一补录入口', () => {
     feeTestState.lockState = { isLocked: true };
     feeTestState.hasPendingSupplement = true;
     renderFeesPage();
+    expect(screen.queryByText('订单审核')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: '锁定订单' }),
+    ).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '费用补录与补审' }));
     expect(
       await screen.findByRole('button', { name: '申请费用补录' }),

@@ -9,13 +9,13 @@ import {
   resolveColumnFreeze,
 } from '@/components/ui/column-settings';
 
-/** 原费用表只固定末尾操作列，统一逐字段冻结后保持相同默认效果。 */
+/** 费用表默认不冻结列，按用户的逐字段设置应用冻结。 */
 const DEFAULT_FEE_COLUMN_FREEZE: ColumnFreezeValue = {
   left: [],
-  right: ['option'],
+  right: [],
 };
 
-/** 订单费用表稳定列 key（与表格列 dataIndex 一一对应；操作列固定为 option）。 */
+/** 订单费用表稳定列 key，与表格列 dataIndex 一一对应。 */
 export const FEE_COLUMN_KEYS = [
   'feeCode',
   'feeSettingId',
@@ -35,7 +35,6 @@ export const FEE_COLUMN_KEYS = [
   'note',
   'billNo',
   'financialProgress',
-  'option',
 ] as const;
 
 export type FeeColumnKey = (typeof FEE_COLUMN_KEYS)[number];
@@ -144,7 +143,6 @@ export const DEFAULT_FEE_COLUMN_DEFS: FeeColumnDef[] = [
     defaultVisible: false,
     financeOnly: true,
   },
-  { key: 'option', title: '操作', lockVisible: true, defaultVisible: true },
 ];
 
 /** 用户提交的列偏好：完整顺序、隐藏列与表格逐字段冻结。 */
@@ -222,17 +220,14 @@ export function resolveFeeColumnPreference(
     defs.filter((def) => def.lockVisible).map((def) => def.key),
   );
 
-  // 操作列始终位于末尾；存储顺序只调整普通列，重复列不重复渲染。
-  const storedOrder = [...new Set(stored.order ?? [])].filter(
-    (key) => knownKeys.has(key as FeeColumnKey) && key !== 'option',
+  // 按存储顺序排列可用列，重复列不重复渲染。
+  const storedOrder = [...new Set(stored.order ?? [])].filter((key) =>
+    knownKeys.has(key as FeeColumnKey),
   ) as FeeColumnKey[];
   const orderedKeys = new Set(storedOrder);
   const order: FeeColumnKey[] = [
     ...storedOrder,
-    ...defs
-      .filter((def) => !orderedKeys.has(def.key) && def.key !== 'option')
-      .map((def) => def.key),
-    'option',
+    ...defs.filter((def) => !orderedKeys.has(def.key)).map((def) => def.key),
   ];
 
   const mentioned = new Set<string>([

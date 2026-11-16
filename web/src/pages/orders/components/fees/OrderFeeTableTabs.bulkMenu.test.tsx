@@ -18,7 +18,10 @@ it.each([0, 1])(
     const button = buttons[tableIndex];
     fireEvent.click(button);
     expect(await screen.findByText('批量改结算单位')).toBeInTheDocument();
-    expect(screen.getByText('批量删除')).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /^删\s*除$/ })).toHaveLength(
+      2,
+    );
+    expect(screen.queryByText('批量删除')).not.toBeInTheDocument();
     expect(screen.queryByText('添加标签')).not.toBeInTheDocument();
     expect(screen.queryByText('删除标签')).not.toBeInTheDocument();
   },

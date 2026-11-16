@@ -163,13 +163,21 @@ export async function renderTabs(
   props: React.ComponentProps<typeof OrderFeeTableTabs>,
   options?: RenderOptions,
 ) {
-  render(
+  const result = render(
     <App>
       <OrderFeeTableTabs {...props} />
     </App>,
     options,
   );
   await waitFor(() => expect(listFees).toHaveBeenCalled());
+  return {
+    rerenderTabs: () =>
+      result.rerender(
+        <App>
+          <OrderFeeTableTabs {...props} />
+        </App>,
+      ),
+  };
 }
 
 export function getDialog() {

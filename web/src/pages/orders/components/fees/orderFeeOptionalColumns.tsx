@@ -385,9 +385,8 @@ export function buildOptionalFeeColumns(
   ];
 }
 
-/** 提取列稳定 key：优先 dataIndex，操作列（valueType=option）固定为 option。 */
+/** 提取列稳定 key，优先使用 dataIndex。 */
 function columnKeyOf(column: ProColumns<API.OrderFee>): string | undefined {
-  if (column.valueType === 'option') return 'option';
   const dataIndex = column.dataIndex;
   if (typeof dataIndex === 'string') return dataIndex;
   if (Array.isArray(dataIndex) && typeof dataIndex[0] === 'string') {
@@ -396,7 +395,7 @@ function columnKeyOf(column: ProColumns<API.OrderFee>): string | undefined {
   return column.key ? String(column.key) : undefined;
 }
 
-/** 普通列先显隐排序，操作列始终必显且置末，最后按统一规则应用逐字段冻结。 */
+/** 按偏好应用列显隐与顺序，再按统一规则应用逐字段冻结。 */
 export function orderColumnsByPreference(
   columns: ProColumns<API.OrderFee>[],
   preference: FeeColumnPreference,
@@ -411,20 +410,18 @@ export function orderColumnsByPreference(
   const placed = new Set<string>();
   for (const key of preference.order) {
     const column = byKey.get(key);
-    if (column && key !== 'option' && !placed.has(key) && !hidden.has(key)) {
+    if (column && !placed.has(key) && !hidden.has(key)) {
       ordered.push(column);
       placed.add(key);
     }
   }
   for (const column of columns) {
     const key = columnKeyOf(column);
-    if (key && key !== 'option' && !placed.has(key) && !hidden.has(key)) {
+    if (key && !placed.has(key) && !hidden.has(key)) {
       ordered.push(column);
       placed.add(key);
     }
   }
-  const option = byKey.get('option');
-  if (option) ordered.push(option);
   return applyColumnFreeze(
     ordered,
     resolveColumnFreeze(preference.freeze, deriveColumnFreezeDefaults(columns)),

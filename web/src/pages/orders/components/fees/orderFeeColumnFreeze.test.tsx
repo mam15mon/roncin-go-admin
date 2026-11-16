@@ -7,54 +7,41 @@ describe('订单费用可见列的字段冻结应用', () => {
   const columns: ProColumns<API.OrderFee>[] = [
     { title: '费用代码', dataIndex: 'feeCode', width: 100 },
     { title: '费用名称', dataIndex: 'feeSettingId', width: 180, onHeaderCell },
-    { title: '备注', dataIndex: 'note', width: 140 },
-    { title: '操作', valueType: 'option', width: 120, fixed: 'right' },
+    { title: '备注', dataIndex: 'note', width: 140, fixed: 'right' },
   ];
 
   it('隐藏其他字段后保留指定字段冻结、列宽与表头回调', () => {
     const result = orderColumnsByPreference(columns, {
-      order: ['feeCode', 'feeSettingId', 'note', 'option'],
+      order: ['feeCode', 'feeSettingId', 'note'],
       hidden: ['feeCode'],
-      freeze: { left: ['feeSettingId'], right: ['option'] },
+      freeze: { left: ['feeSettingId'], right: ['note'] },
     });
-    expect(result.map((column) => column.dataIndex ?? 'option')).toEqual([
+    expect(result.map((column) => column.dataIndex)).toEqual([
       'feeSettingId',
       'note',
-      'option',
     ]);
-    expect(result.map((column) => column.fixed)).toEqual([
-      'left',
-      false,
-      'right',
-    ]);
+    expect(result.map((column) => column.fixed)).toEqual(['left', 'right']);
     expect(result[0].width).toBe(180);
     expect(result[0].onHeaderCell).toBe(onHeaderCell);
     expect(columns[1].fixed).toBeUndefined();
   });
 
-  it('指定字段按区域排序；操作列不能被偏好隐藏或排到中间', () => {
+  it('指定字段按区域排序，隐藏列不再显示', () => {
     const result = orderColumnsByPreference(columns, {
-      order: ['option', 'note', 'feeCode', 'note', 'feeSettingId'],
-      hidden: ['option'],
+      order: ['note', 'feeCode', 'note', 'feeSettingId'],
+      hidden: ['feeCode'],
       freeze: { left: ['note'], right: [] },
     });
-    expect(result.map((column) => column.dataIndex ?? 'option')).toEqual([
+    expect(result.map((column) => column.dataIndex)).toEqual([
       'note',
-      'feeCode',
       'feeSettingId',
-      'option',
     ]);
-    expect(result.map((column) => column.fixed)).toEqual([
-      'left',
-      false,
-      false,
-      false,
-    ]);
+    expect(result.map((column) => column.fixed)).toEqual(['left', false]);
     expect(columns.at(-1)?.fixed).toBe('right');
   });
 
-  it('空冻结数组解除固定，未配置时从业务列推导默认操作列冻结', () => {
-    const order = ['feeCode', 'feeSettingId', 'note', 'option'] as const;
+  it('空冻结数组解除固定，未配置时从业务列推导默认冻结', () => {
+    const order = ['feeCode', 'feeSettingId', 'note'] as const;
     const unfreeze = orderColumnsByPreference(columns, {
       order: [...order],
       hidden: [],

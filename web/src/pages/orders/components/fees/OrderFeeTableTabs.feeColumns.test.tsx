@@ -194,7 +194,6 @@ describe('OrderFeeTableTabs 列设置与只读金额列', () => {
         '汇率',
         '折本币金额',
         '备注',
-        '操作',
       ]);
     }
     expect(tableHeaderCount('录入日期')).toBe(0);

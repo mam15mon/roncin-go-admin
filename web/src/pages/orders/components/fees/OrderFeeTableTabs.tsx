@@ -198,12 +198,11 @@ interface OrderFeeTableTabsProps {
   customerName?: string;
   onOpenQuickAddFee?: () => void;
   onOpenQuickAddPartner?: () => void;
-  onCancelFee?: (fee: API.OrderFee) => void;
   /** 列偏好隔离范围（用户 + 当前组织）；缺省时设置仅当前页面会话内生效。 */
   columnSettingScope?: FeeColumnPreferenceScope;
   /** 关联账单投影；仅当页面具备财务费用读取权限时提供，两表共用一次查询。 */
   feeBillTracking?: FeeBillTrackingView;
-  /** 行内保存成功后的通知（页面据此刷新关联账单投影）。 */
+  /** 费用写入成功后的通知（页面据此刷新关联账单投影）。 */
   onFeeSaved?: (feeContentVersion?: string) => void;
 }
 
@@ -239,13 +238,13 @@ export default function OrderFeeTableTabs({
   customerName,
   onOpenQuickAddFee,
   onOpenQuickAddPartner,
-  onCancelFee,
   columnSettingScope,
   feeBillTracking,
   onFeeSaved,
 }: OrderFeeTableTabsProps) {
   const { message } = App.useApp();
   const currentOrderIdRef = useRef(orderId);
+  const localReloadRef = useRef(new Set<number>());
   const mountedRef = useRef(true);
   const receivableRequestSequenceRef = useRef(0);
   const payableRequestSequenceRef = useRef(0);
@@ -390,9 +389,7 @@ export default function OrderFeeTableTabs({
   /** 订单费用列设置元数据：含权限裁剪与必显标记，供统一弹窗消费。 */
   const feeColumnFields: ColumnSettingsField[] = effectiveFeeColumnDefs(
     financeAvailable,
-  )
-    .filter(({ key }) => key !== 'option')
-    .map(({ key, title, lockVisible }) => ({ key, title, lockVisible }));
+  ).map(({ key, title, lockVisible }) => ({ key, title, lockVisible }));
 
   const renderColumnToolbar = () => {
     return (
@@ -423,7 +420,6 @@ export default function OrderFeeTableTabs({
         <ColumnSettingsEntry
           fields={feeColumnFields}
           value={feeColumnPref}
-          structuralFields={[{ key: 'option', title: '操作', fixed: 'right' }]}
           onChange={handleColumnSettingsChange}
           onReset={() =>
             handleColumnSettingsChange(
@@ -507,7 +503,16 @@ export default function OrderFeeTableTabs({
 
   /** 建账入口显式资格校验：仅未建账费用可生成账单，混合勾选时明确拒绝。 */
   const handleOpenBill = (direction: number) => {
+    if (savingRef.current[sideName(direction)]) return;
     const rows = getSelectedRows(direction);
+    const selectedIds =
+      direction === RECEIVABLE
+        ? selectedReceivableFeeIds
+        : selectedPayableFeeIds;
+    if (rows.length !== selectedIds.length) {
+      message.warning('请先保存新增费用，再执行财务操作');
+      return;
+    }
     if (rows.length === 0) {
       message.warning('未找到勾选的费用，请刷新后重试');
       return;
@@ -526,7 +531,10 @@ export default function OrderFeeTableTabs({
     const selectedIds = isReceivable
       ? selectedReceivableFeeIds
       : selectedPayableFeeIds;
-    const bulkDisabled = feeWritesDisabled || selectedIds.length === 0;
+    const bulkDisabled =
+      feeWritesDisabled ||
+      saving[sideName(direction)] ||
+      selectedIds.length === 0;
 
     const items: MenuProps['items'] = [
       {
@@ -535,17 +543,6 @@ export default function OrderFeeTableTabs({
         label: '批量改结算单位',
         onClick: () =>
           setBulkActionContext({ direction, type: 'settlementParty' }),
-      },
-      {
-        type: 'divider',
-      },
-      {
-        key: 'remove',
-        disabled: !canDeleteFees,
-        icon: <DeleteOutlined />,
-        danger: true,
-        label: '批量删除',
-        onClick: () => setBulkActionContext({ direction, type: 'remove' }),
       },
     ];
 
@@ -604,6 +601,7 @@ export default function OrderFeeTableTabs({
 
   // 切换订单或外部确认刷新后：丢弃全部草稿状态，表格随 key 重建并重新加载。
   useEffect(() => {
+    localReloadRef.current.clear();
     setRowPreviews({});
     rateRequestSeqRef.current = {};
     setRowErrors({ receivable: [], payable: [] });
@@ -994,27 +992,6 @@ export default function OrderFeeTableTabs({
       savingRef.current[side] = false;
       if (mountedRef.current) setSaving((prev) => ({ ...prev, [side]: false }));
     }
-  };
-
-  /** 行操作：新增行可移除；已保存行保留删除（受服务端逐费能力约束）。 */
-  const renderRowActions = (
-    row: API.OrderFee,
-    defaultDom: { delete: React.ReactNode },
-  ) => {
-    if (isNewFeeRowKey(row.id)) return [defaultDom.delete];
-    return [
-      canDeleteFees && row.canDelete === true && onCancelFee ? (
-        <Button
-          key="cancel"
-          type="link"
-          size="small"
-          danger
-          onClick={() => onCancelFee(row)}
-        >
-          删除
-        </Button>
-      ) : null,
-    ].filter(Boolean);
   };
 
   const buildColumns = (direction: number): ProColumns<API.OrderFee>[] => {
@@ -1530,30 +1507,6 @@ export default function OrderFeeTableTabs({
           onChange: () => refreshAmountPreview(rowKey, form),
         }),
       }),
-      {
-        title: '操作',
-        valueType: 'option',
-        width: 80,
-        fixed: 'right',
-        render: (_, record) => {
-          if (feeWritesDisabled) return [];
-          // 已建账（含草稿账单占用）费用不可删除，需先经财务链路取消账单；
-          // 补审产生的有效费用同样消费服务端当前能力。
-          return [
-            canDeleteFees && record.canDelete === true && onCancelFee && (
-              <Button
-                key="cancel"
-                type="link"
-                size="small"
-                danger
-                onClick={() => onCancelFee(record)}
-              >
-                删除
-              </Button>
-            ),
-          ].filter(Boolean);
-        },
-      },
     ];
   };
 
@@ -1647,6 +1600,22 @@ export default function OrderFeeTableTabs({
       ...draftRowsRef.current[direction].values(),
       ...items,
     ];
+    // 删除后仅重绘该侧已采纳快照，不读远端，保留其他费用的版本和输入。
+    if (localReloadRef.current.delete(direction)) {
+      await Promise.resolve();
+      if (!isCurrentRequest())
+        return { data: withDrafts(currentRows()), success: true };
+      const items = currentRows();
+      refs.setAll(items);
+      refs.setSummary(summarizeFees(items));
+      refs.setKeys([
+        ...draftRowsRef.current[direction].keys(),
+        ...items
+          .filter((fee) => fee.id && fee.canEdit === true)
+          .map((fee) => String(fee.id)),
+      ]);
+      return { data: withDrafts(items), success: true };
+    }
     try {
       const res = await orderFeeServiceListFees({ orderId });
       // 录入表只保留有效费用（费用无独立状态，服务端仅返回现存费用行）、
@@ -1731,6 +1700,24 @@ export default function OrderFeeTableTabs({
           <Space size={8} wrap>
             {renderColumnToolbar()}
             {renderBulkToolbar(direction)}
+            <Button
+              danger
+              icon={<DeleteOutlined aria-hidden />}
+              disabled={
+                feeWritesDisabled ||
+                (!canDeleteFees &&
+                  selectedIds.some(
+                    (id) => !draftRowsRef.current[direction].has(String(id)),
+                  )) ||
+                selectedIds.length === 0 ||
+                saving[side]
+              }
+              onClick={() =>
+                setBulkActionContext({ direction, type: 'remove' })
+              }
+            >
+              删除
+            </Button>
             {canCreateFinanceBills && (
               <Button
                 key="bill"
@@ -1789,11 +1776,6 @@ export default function OrderFeeTableTabs({
             type: 'multiple',
             editableKeys,
             onChange: setKeys,
-            deleteText: '移除',
-            deletePopconfirmMessage: '移除这行尚未保存的新增费用？',
-            onDelete: async (key) => {
-              draftRowsRef.current[direction].delete(String(key));
-            },
             formProps: {
               formRef: formRefOf(direction),
               disabled: saving[side],
@@ -1802,21 +1784,22 @@ export default function OrderFeeTableTabs({
                 if (fields.some((field) => field.touched)) markDirty(direction);
               },
             },
-            actionRender: (row, _config, defaultDom) =>
-              saving[side] ? [] : renderRowActions(row, defaultDom),
+            actionRender: () => [],
           }}
           rowSelection={{
             selectedRowKeys: selectedIds,
             onChange: setSelectedIds,
             getCheckboxProps: (record) => ({
-              // 所有已保存有效费用（含已建账）均可勾选；行内新增或
-              // 缺少版本的未保存行不参与选择，避免提交不存在的事实。
+              // 新增草稿也可勾选以从顶部移除；财务写入仍只接受真实费用版本。
               disabled:
-                !record.id || isNewFeeRowKey(record.id) || !record.version,
+                saving[side] ||
+                !record.id ||
+                (!draftRowsRef.current[direction].has(String(record.id)) &&
+                  !record.version),
             }),
           }}
           tableAlertRender={({ selectedRowKeys }) =>
-            `已选择 ${selectedRowKeys.length} 笔有效${label}费用`
+            `已选择 ${selectedRowKeys.length} 笔${label}费用`
           }
           request={() => loadSide(direction)}
           columns={
@@ -1852,7 +1835,17 @@ export default function OrderFeeTableTabs({
         onFinish={async (values) => {
           if (!bulkActionContext) return false;
           const { direction } = bulkActionContext;
+          if (savingRef.current[sideName(direction)] || feeWritesDisabled)
+            return false;
           const rows = getSelectedRows(direction);
+          const selectedIds =
+            direction === RECEIVABLE
+              ? selectedReceivableFeeIds
+              : selectedPayableFeeIds;
+          if (rows.length !== selectedIds.length) {
+            message.warning('请先保存新增费用，再执行财务操作');
+            return false;
+          }
           if (rows.length === 0) {
             message.warning('请先勾选要修改的费用');
             return false;
@@ -1912,42 +1905,106 @@ export default function OrderFeeTableTabs({
         onFinish={async (values) => {
           if (!bulkActionContext) return false;
           const { direction } = bulkActionContext;
+          const side = sideName(direction);
+          if (savingRef.current[side] || feeWritesDisabled) return false;
+          const selectedIds = (
+            direction === RECEIVABLE
+              ? selectedReceivableFeeIds
+              : selectedPayableFeeIds
+          ).map(String);
+          const localIds = selectedIds.filter((id) =>
+            draftRowsRef.current[direction].has(id),
+          );
           const rows = getSelectedRows(direction);
-          if (rows.length === 0) {
+          if (selectedIds.length === 0) {
             message.warning('请先勾选要删除的费用');
             return false;
           }
-          if (
-            !canDeleteFees ||
-            rejectUnavailableRows(rows, '批量删除', 'canDelete')
-          )
+          if (localIds.length + rows.length !== selectedIds.length) {
+            message.warning('勾选的费用已变化，请重新勾选后重试');
             return false;
+          }
+          if (rows.length > 0 && !canDeleteFees) return false;
+          if (rejectUnavailableRows(rows, '批量删除', 'canDelete'))
+            return false;
+          const requestedOrderId = orderId;
+          savingRef.current[side] = true;
+          setSaving((prev) => ({ ...prev, [side]: true }));
           try {
-            const response = await orderFeeServiceBulkRemoveOrderFees(
-              { orderId },
-              {
-                orderId,
-                targets: buildBulkTargets(rows),
-                reason: values.reason?.trim() || undefined,
-              },
+            let removedCount = 0;
+            if (rows.length > 0) {
+              const response = await orderFeeServiceBulkRemoveOrderFees(
+                { orderId },
+                {
+                  orderId,
+                  targets: buildBulkTargets(rows),
+                  reason: values.reason?.trim() || undefined,
+                },
+              );
+              if (!isWriteResponse(response)) return false;
+              removedCount = response.removedCount ?? rows.length;
+            }
+            if (currentOrderIdRef.current !== requestedOrderId) return true;
+            // 远端删除成功后才移除本地草稿，失败时全部输入和选择保留。
+            for (const id of localIds)
+              draftRowsRef.current[direction].delete(id);
+            const deletedIds = new Set(selectedIds);
+            setRowErrors((prev) => ({
+              ...prev,
+              [side]: prev[side].filter(
+                (error) => !deletedIds.has(error.clientRowId),
+              ),
+            }));
+            const remainingChanged = getDirectionItems(direction).some(
+              (row) =>
+                row.id &&
+                !deletedIds.has(row.id) &&
+                row.canEdit === true &&
+                feeRowChanged(
+                  {
+                    ...row,
+                    ...formRefOf(direction).current?.getFieldValue([row.id]),
+                  },
+                  row,
+                ),
             );
-            if (!isWriteResponse(response)) return false;
-            message.success(
-              `已删除 ${response.removedCount ?? rows.length} 笔费用`,
-            );
-            handleBulkDone(direction);
+            if (draftRowsRef.current[direction].size === 0 && !remainingChanged)
+              clearDirty(direction);
+            (direction === RECEIVABLE
+              ? setSelectedReceivableFeeIds
+              : setSelectedPayableFeeIds)([]);
+            message.success(`已删除 ${removedCount + localIds.length} 笔费用`);
             setBulkActionContext(undefined);
+            // 删除只采纳明确被删除的行，其他行继续使用原版本与草稿基线。
+            const refs = sideRefsOf(direction);
+            refs.latest.current = {
+              orderId,
+              items: getDirectionItems(direction).filter(
+                (row) => !deletedIds.has(String(row.id)),
+              ),
+            };
+            localReloadRef.current.add(direction);
+            await (direction === RECEIVABLE
+              ? receivableActionRef
+              : payableActionRef
+            ).current?.reload();
+            if (rows.length > 0) onFeeSaved?.();
             return true;
           } catch (error) {
-            message.error(getErrorMessage(error, '批量删除费用失败'));
+            if (currentOrderIdRef.current === requestedOrderId)
+              message.error(getErrorMessage(error, '批量删除费用失败'));
             return false;
+          } finally {
+            savingRef.current[side] = false;
+            if (mountedRef.current)
+              setSaving((prev) => ({ ...prev, [side]: false }));
           }
         }}
       >
         <Alert
           type="warning"
           showIcon
-          message={`将删除 ${
+          title={`将删除 ${
             (bulkActionContext?.direction === RECEIVABLE
               ? selectedReceivableFeeIds
               : selectedPayableFeeIds
