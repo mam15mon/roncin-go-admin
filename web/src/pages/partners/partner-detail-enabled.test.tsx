@@ -56,8 +56,8 @@ vi.mock('@/services/roncin/partnerService', () => ({
 vi.mock('@/services/roncin/adminService', () => ({
   adminServiceListUsers: vi.fn().mockResolvedValue({ data: [] }),
 }));
-vi.mock('@/features/master-data/currencies', () => ({
-  getCurrencyOptions: vi.fn().mockResolvedValue([]),
+vi.mock('@/services/roncin/masterDataService', () => ({
+  masterDataServiceListCurrencies: vi.fn().mockResolvedValue({ success: true }),
 }));
 vi.mock('./components/BasicInfoSection', () => ({
   default: (p: {

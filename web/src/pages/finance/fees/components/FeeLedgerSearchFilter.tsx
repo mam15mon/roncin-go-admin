@@ -7,7 +7,7 @@ import {
 } from '@/components/ui';
 import { FeeLedgerFinancialProgress } from '@/enums.generated';
 import { feeLedgerProgressLabels } from '@/features/finance/fee-progress';
-import { getCurrencyOptions } from '@/features/master-data/currencies';
+import { fetchCurrencyOptions } from '@/features/master-data/currencies';
 import { searchPartnerOptions } from '@/features/partners';
 
 export type FeeLedgerFilterParams = {
@@ -125,11 +125,18 @@ function buildFeeLedgerFilterItems(enabled: boolean): SearchFilterFieldItem[] {
     },
     {
       name: 'settlementPartyId',
+      requestKey: [enabled],
       label: '结算单位',
       type: 'searchable-select',
       placeholder: '输入名称/全拼搜索结算单位',
-      request: ({ keyWords }) =>
-        enabled ? searchPartnerOptions(keyWords) : Promise.resolve([]),
+      request: ({ keyWords, signal }) =>
+        enabled
+          ? searchPartnerOptions(
+              keyWords,
+              {},
+              { signal, skipErrorHandler: true },
+            )
+          : Promise.resolve([]),
     },
 
     {
@@ -162,12 +169,17 @@ function buildFeeLedgerFilterItems(enabled: boolean): SearchFilterFieldItem[] {
     },
     {
       name: 'customerId',
+      requestKey: [enabled],
       label: '委托单位',
       type: 'searchable-select',
       placeholder: '输入名称/全拼搜索委托单位',
-      request: ({ keyWords }) =>
+      request: ({ keyWords, signal }) =>
         enabled
-          ? searchPartnerOptions(keyWords, { role: 1 })
+          ? searchPartnerOptions(
+              keyWords,
+              { role: 1 },
+              { signal, skipErrorHandler: true },
+            )
           : Promise.resolve([]),
     },
     {
@@ -220,7 +232,8 @@ function buildFeeLedgerFilterItems(enabled: boolean): SearchFilterFieldItem[] {
       label: '计价币种',
       type: 'searchable-select',
       placeholder: '全部币种',
-      request: getCurrencyOptions,
+      request: ({ signal }) =>
+        fetchCurrencyOptions({ signal, skipErrorHandler: true }),
     },
     {
       name: 'salesName',

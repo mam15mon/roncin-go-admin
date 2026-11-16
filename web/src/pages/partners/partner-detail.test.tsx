@@ -110,8 +110,8 @@ vi.mock('@/services/roncin/partnerService', () => ({
   partnerServiceUpdatePartner: vi.fn(),
 }));
 
-vi.mock('@/features/master-data/currencies', () => ({
-  getCurrencyOptions: vi.fn().mockResolvedValue([]),
+vi.mock('@/services/roncin/masterDataService', () => ({
+  masterDataServiceListCurrencies: vi.fn().mockResolvedValue({ success: true }),
 }));
 
 describe('PartnerDetailPage', () => {

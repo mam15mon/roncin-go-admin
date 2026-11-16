@@ -77,6 +77,7 @@ export function useOrderDetailData(
       },
     ],
     enabled: queryEnabled,
+    meta: { currencyDependent: true },
     queryFn: async (): Promise<OrderDetailBundle> => {
       if (!orderId || !definition || !organizationId) {
         // enabled 已保证参数齐备；此处仅为类型收窄兜底。

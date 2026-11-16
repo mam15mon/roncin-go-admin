@@ -23,7 +23,10 @@ export interface RemoteSearchSelectProps
   queryKey: QueryKey;
   selectedOptions?: SearchableSelectProps['options'];
   /** 远程候选项请求：按关键字返回候选（服务端过滤），挂载时以空关键字调用一次 */
-  request: (keyWords?: string) => Promise<SearchableSelectProps['options']>;
+  request: (
+    keyWords: string | undefined,
+    options: { signal: AbortSignal; skipErrorHandler: true },
+  ) => Promise<SearchableSelectProps['options']>;
   /** 输入联想防抖毫秒数，默认 300 */
   debounceMs?: number;
 }

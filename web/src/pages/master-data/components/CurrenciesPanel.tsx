@@ -4,7 +4,7 @@ import {
   DollarOutlined,
 } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { App, Badge, Space, Tag } from 'antd';
+import { Alert, App, Badge, Button, Space, Tag } from 'antd';
 import React from 'react';
 import { useAccess } from '@/app/access';
 import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterDataTemplate';
@@ -42,6 +42,7 @@ export default function CurrenciesPanel() {
   const query = useQuery({
     ...currencyQueryOptions(false),
     select: mapCurrencies,
+    meta: { silent: true },
   });
   const data = query.data ?? [];
   const toggle = useMutation({
@@ -57,14 +58,16 @@ export default function CurrenciesPanel() {
     await query.refetch();
   };
 
-  const handleToggleActive = async (record: CurrencyItem): Promise<void> => {
+  const handleToggleActive = async (
+    record: CurrencyItem,
+  ): Promise<false | undefined> => {
     if (record.isBaseCurrency && record.enabled) {
       message.warning('本位币不可停用');
-      return;
+      return false;
     }
     try {
       const writeResponse1 = await toggle.mutateAsync(record);
-      if (!isWriteResponse(writeResponse1, true)) return;
+      if (!isWriteResponse(writeResponse1, true)) return false;
       message.success(
         `已${record.enabled ? '停用' : '启用'}货币【${record.code}】`,
       );
@@ -76,12 +79,27 @@ export default function CurrenciesPanel() {
       ]);
     } catch (err) {
       message.error(getErrorMessage(err, '操作失败'));
+      return false;
     }
+
+    return undefined;
   };
 
   const baseCurrencyCode = data.find((c) => c.isBaseCurrency)?.code || 'CNY';
   const enabledCount = data.filter((c) => c.enabled).length;
   const disabledCount = data.filter((c) => !c.enabled).length;
+
+  if (query.isError && !query.data) {
+    return (
+      <Alert
+        type="error"
+        showIcon
+        title="货币主数据加载失败"
+        description={query.error.message}
+        action={<Button onClick={() => void query.refetch()}>重试</Button>}
+      />
+    );
+  }
 
   return (
     <MasterDataTemplate<CurrencyItem>
@@ -92,6 +110,11 @@ export default function CurrenciesPanel() {
       items={data}
       loading={query.isFetching}
       onRefresh={fetchCurrencies}
+      notice={
+        query.isError
+          ? '货币数据刷新失败，请重试。当前显示上次读取的内容。'
+          : undefined
+      }
       onToggleActive={
         access.canUpdateMasterDataCurrencies ? handleToggleActive : undefined
       }

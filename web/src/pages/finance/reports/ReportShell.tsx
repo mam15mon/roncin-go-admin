@@ -158,18 +158,25 @@ export default function ReportShell<
       JSON.stringify([org?.id, makeReportQuery(kind, values, org?.id ?? '')]),
     );
   };
-  const candidates = async (keyword: string | undefined, personnel = false) => {
+  const candidates = async (
+    keyword: string | undefined,
+    personnel: boolean,
+    signal: AbortSignal,
+  ) => {
     const organizationId = org?.id;
     if (!enabled || !organizationId) return [];
     const fn = personnel
       ? financeReportServiceListFinanceReportPersonnelOptions
       : financeReportServiceListFinanceReportPartyOptions;
-    const response = await fn({
-      organizationId,
-      keyword: keyword?.trim() || undefined,
-      page: 1,
-      pageSize: 50,
-    });
+    const response = await fn(
+      {
+        organizationId,
+        keyword: keyword?.trim() || undefined,
+        page: 1,
+        pageSize: 50,
+      },
+      { signal, skipErrorHandler: true },
+    );
     if (organizationRef.current !== organizationId) return [];
     if (response?.success !== true) throw new Error('报表候选加载失败');
     return (response.data ?? []).map((item) => {
@@ -228,10 +235,12 @@ export default function ReportShell<
         ...base,
         type: 'searchable-select',
         placeholder: '名称 / 拼音搜索',
-        request: ({ keyWords }) =>
+        requestKey: [enabled, kind],
+        request: ({ keyWords, signal }) =>
           candidates(
             keyWords,
             ['salesId', 'operatorId', 'customerServiceId'].includes(field.name),
+            signal,
           ),
       };
     }

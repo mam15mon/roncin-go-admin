@@ -4,6 +4,7 @@ import {
   CURRENCY_QUERY_PREFIX,
   currencyOptionsQueryOptions,
   currencyQueryOptions,
+  fetchCurrencyOptions,
   getCurrencies,
   getCurrencyOptions,
 } from './currencies';
@@ -16,6 +17,20 @@ vi.mock('@/services/roncin/masterDataService', () => ({
 beforeEach(() => vi.resetAllMocks());
 
 describe('币种工作区查询', () => {
+  it('远程字段的显式取数入口传递取消信号，原生字段入口不接收框架参数', async () => {
+    listCurrencies.mockResolvedValue({
+      success: true,
+      data: [{ code: 'USD', enabled: true }],
+    });
+    const options = {
+      signal: new AbortController().signal,
+      skipErrorHandler: true,
+    };
+    expect(await fetchCurrencyOptions(options)).toEqual([
+      { label: 'USD', value: 'USD', code: 'USD', name: undefined },
+    ]);
+    expect(listCurrencies).toHaveBeenCalledWith({ enabledOnly: true }, options);
+  });
   it('纯请求函数不保留跨客户端缓存，并保留启用候选映射', async () => {
     listCurrencies.mockResolvedValue({
       data: [

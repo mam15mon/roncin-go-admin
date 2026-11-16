@@ -29,6 +29,7 @@ import {
   masterDataServiceSearchOptions,
 } from '@/services/roncin/masterDataService';
 import { ensureListResponse, unwrapList } from '@/utils/api';
+import type { RequestOptions } from '@/utils/requestClient';
 import type { OrderTransportMode } from './order-kinds/types';
 import type { SelectOption } from './templates';
 
@@ -145,15 +146,20 @@ export const PARTNER_ROLES = {
 export async function searchPartnersByRole(
   role: number,
   keyword?: string,
+  requestOptions?: RequestOptions,
 ): Promise<{ label: string; value: string; code?: string }[]> {
-  return searchPartnerOptions(keyword, {
-    role,
-    enabled: true,
-    ...(role === PARTNER_ROLES.CUSTOMER && {
-      blacklisted: false,
-      roleEnabled: true,
-    }),
-  });
+  return searchPartnerOptions(
+    keyword,
+    {
+      role,
+      enabled: true,
+      ...(role === PARTNER_ROLES.CUSTOMER && {
+        blacklisted: false,
+        roleEnabled: true,
+      }),
+    },
+    requestOptions,
+  );
 }
 
 /** 船代使用公共字典，与公司经营档案中的订舱代理、国外代理分开查询。 */
@@ -204,29 +210,39 @@ function assertTransportStationsSupported(
 export async function searchOrderLocations(
   transportMode: OrderTransportMode,
   keyword?: string,
+  requestOptions?: RequestOptions,
 ): Promise<{ label: string; value: string }[]> {
   assertTransportStationsSupported(transportMode);
   const [regionsResponse, transportResponse] = await Promise.all([
-    masterDataServiceListItems({
-      kind: MASTER_DATA_KINDS.REGION,
-      keyword,
-      enabled: true,
-      page: 1,
-      pageSize: 50,
-    }),
+    masterDataServiceListItems(
+      {
+        kind: MASTER_DATA_KINDS.REGION,
+        keyword,
+        enabled: true,
+        page: 1,
+        pageSize: 50,
+      },
+      requestOptions,
+    ),
     transportMode === 'sea'
-      ? masterDataServiceListPorts({
-          keyword,
-          enabled: true,
-          page: 1,
-          pageSize: 50,
-        })
-      : masterDataServiceListAirports({
-          keyword,
-          enabled: true,
-          page: 1,
-          pageSize: 50,
-        }),
+      ? masterDataServiceListPorts(
+          {
+            keyword,
+            enabled: true,
+            page: 1,
+            pageSize: 50,
+          },
+          requestOptions,
+        )
+      : masterDataServiceListAirports(
+          {
+            keyword,
+            enabled: true,
+            page: 1,
+            pageSize: 50,
+          },
+          requestOptions,
+        ),
   ]);
   const guardedTransportResponse = ensureListResponse(
     transportResponse,

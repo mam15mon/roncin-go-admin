@@ -226,16 +226,12 @@ vi.mock('antd', async () => {
   };
 });
 
-vi.mock('@/features/master-data/currencies', async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import('@/features/master-data/currencies')>();
-  return {
-    ...actual,
-    getCurrencyOptions: vi
-      .fn()
-      .mockResolvedValue([{ label: '美元', value: 'USD' }]),
-  };
-});
+vi.mock('@/services/roncin/masterDataService', () => ({
+  masterDataServiceListCurrencies: vi.fn().mockResolvedValue({
+    success: true,
+    data: [{ code: 'USD', name: '美元', enabled: true }],
+  }),
+}));
 
 import VerificationWorkbench from './VerificationWorkbench';
 

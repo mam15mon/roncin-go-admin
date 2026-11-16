@@ -25,13 +25,16 @@ export const RemoteSearchSelect: React.FC<RemoteSearchSelectProps> = ({
 
   const query = useQuery({
     queryKey: [...queryKey, { keyword: debouncedKeyword }],
-    queryFn: async () => {
-      const options = await requestRef.current(debouncedKeyword || undefined);
+    queryFn: async ({ signal }) => {
+      const options = await requestRef.current(debouncedKeyword || undefined, {
+        signal,
+        skipErrorHandler: true,
+      });
       if (!Array.isArray(options))
         throw new Error('候选项加载失败，请稍后重试');
       return options;
     },
-    meta: { silent: true },
+    meta: { errorMessage: '候选项加载失败，请稍后重试' },
   });
   const options = useMemo(() => {
     const values: unknown[] = Array.isArray(rest.value)

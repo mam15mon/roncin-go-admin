@@ -141,7 +141,10 @@ describe('SearchFilterTemplate', () => {
 
     // 挂载即以空关键字加载首屏候选
     await waitFor(() =>
-      expect(request).toHaveBeenCalledWith({ keyWords: undefined }),
+      expect(request).toHaveBeenCalledWith({
+        keyWords: undefined,
+        signal: expect.any(AbortSignal),
+      }),
     );
 
     fireEvent.mouseDown(screen.getByLabelText('结算单位'));
@@ -351,7 +354,10 @@ describe('SearchFilterTemplate', () => {
     );
 
     await waitFor(() =>
-      expect(request).toHaveBeenCalledWith({ keyWords: undefined }),
+      expect(request).toHaveBeenCalledWith({
+        keyWords: undefined,
+        signal: expect.any(AbortSignal),
+      }),
     );
     fireEvent.mouseDown(screen.getByLabelText('结算单位'));
     fireEvent.click(await screen.findByText('测试合作方 (TP)'));

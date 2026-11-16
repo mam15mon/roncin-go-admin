@@ -1,9 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { expect, it } from 'vitest';
-import {
-  searchPartners,
-  TestHost,
-} from './PartnerQuickAddSelect.fixtures';
+import { searchPartners, TestHost } from './PartnerQuickAddSelect.fixtures';
 
 it('客商别名拼音命中的官方名称保持可选并提交真实ID', async () => {
   searchPartners.mockImplementation(async (keyword) =>
@@ -23,5 +20,11 @@ it('客商别名拼音命中的官方名称保持可选并提交真实ID', async
       'partner-alias',
     ),
   );
-  expect(searchPartners).toHaveBeenCalledWith('haiyundaili');
+  expect(searchPartners).toHaveBeenCalledWith(
+    'haiyundaili',
+    expect.objectContaining({
+      signal: expect.any(AbortSignal),
+      skipErrorHandler: true,
+    }),
+  );
 });

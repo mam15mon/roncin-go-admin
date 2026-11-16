@@ -439,7 +439,7 @@ export function SeaCustomerField({
   personnelOptions,
   onCustomerChange,
 }: {
-  searchCustomers: (keyword?: string) => Promise<PartnerSelectOption[]>;
+  searchCustomers: TemplateProps['searchCustomers'];
   readonly?: boolean;
   setCustomerCode: (code?: string) => void;
   personnelOptions?: Array<{ userId?: string; displayName?: string }>;

@@ -66,6 +66,7 @@ export function useOrderFeeOptions(
       { orderId, businessType, organizationId },
     ],
     enabled: queryEnabled,
+    meta: { currencyDependent: true },
     queryFn: async (): Promise<OrderFeeOptionsBundle> => {
       if (!orderId || !organizationId) {
         // enabled 已保证订单身份齐备；此处仅为类型收窄兜底。

@@ -48,14 +48,14 @@ describe('订单远程候选项', () => {
 
     const options = await searchOrderLocations('sea', 'shang');
 
-    expect(listItems).toHaveBeenCalledWith({
+    expect(listItems.mock.calls[0][0]).toEqual({
       kind: MASTER_DATA_KINDS.REGION,
       keyword: 'shang',
       enabled: true,
       page: 1,
       pageSize: 50,
     });
-    expect(listPorts).toHaveBeenCalledWith({
+    expect(listPorts.mock.calls[0][0]).toEqual({
       keyword: 'shang',
       enabled: true,
       page: 1,
@@ -74,7 +74,7 @@ describe('订单远程候选项', () => {
 
       await searchPartnersByRole(1, keyword);
 
-      expect(listPartners).toHaveBeenCalledWith({
+      expect(listPartners.mock.calls[0][0]).toEqual({
         role: 1,
         enabled: true,
         blacklisted: false,
@@ -89,7 +89,7 @@ describe('订单远程候选项', () => {
   it.each([2, 3])('其他合作角色 %s 保留原有候选范围', async (role) => {
     listPartners.mockResolvedValue({ data: [] });
     await searchPartnersByRole(role, '合作方');
-    expect(listPartners).toHaveBeenCalledWith({
+    expect(listPartners.mock.calls[0][0]).toEqual({
       role,
       enabled: true,
       keyword: '合作方',

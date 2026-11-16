@@ -12,6 +12,23 @@ describe('船公司候选搜索', () => {
     vi.clearAllMocks();
   });
 
+  it('传递 Query 取消与外抛错误选项并拒绝缺失响应', async () => {
+    const options = {
+      signal: new AbortController().signal,
+      skipErrorHandler: true,
+    };
+    listShippingLines.mockResolvedValueOnce({ success: true });
+    expect(await searchShippingLineOptions('船司', options)).toEqual([]);
+    expect(listShippingLines).toHaveBeenCalledWith(
+      expect.objectContaining({ keyword: '船司' }),
+      options,
+    );
+    listShippingLines.mockResolvedValueOnce(undefined);
+    await expect(searchShippingLineOptions('船司', options)).rejects.toThrow(
+      '船公司候选加载失败',
+    );
+  });
+
   it('按关键字搜索启用船公司并输出中英文名与 SCAC 标签', async () => {
     listShippingLines.mockResolvedValue({
       data: [
@@ -26,7 +43,7 @@ describe('船公司候选搜索', () => {
 
     const result = await searchShippingLineOptions('zhongyuan');
 
-    expect(listShippingLines).toHaveBeenCalledWith({
+    expect(listShippingLines.mock.calls[0][0]).toEqual({
       page: 1,
       pageSize: 50,
       keyword: 'zhongyuan',

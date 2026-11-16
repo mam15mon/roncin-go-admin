@@ -407,7 +407,7 @@ export function SearchFilterTemplate<
               allowClear={allowClear}
               placeholder={placeholder as string}
               style={{ width: '100%' }}
-              request={(keyWords) => request({ keyWords })}
+              request={(keyWords, { signal }) => request({ keyWords, signal })}
               {...fieldProps}
               onChange={mergedOnChange}
             />

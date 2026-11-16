@@ -41,13 +41,55 @@ afterEach(() => {
 });
 
 describe('RemoteSearchSelect 的资源查询', () => {
+  it('关键词切换向请求转发取消信号，迟到取消不进入错误状态', async () => {
+    const signals: AbortSignal[] = [];
+    const request = vi.fn(
+      (
+        _keyword: string | undefined,
+        options: { signal: AbortSignal; skipErrorHandler: true },
+      ) => {
+        signals.push(options.signal);
+        if (signals.length > 1)
+          return Promise.resolve([{ label: '当前候选', value: 'current' }]);
+        return new Promise<Option[]>((_resolve, reject) => {
+          options.signal.addEventListener('abort', () =>
+            reject(new DOMException('已取消', 'AbortError')),
+          );
+        });
+      },
+    );
+    const { client } = mount(
+      <RemoteSearchSelect queryKey={key} request={request} debounceMs={0} />,
+    );
+    await advance();
+    fireEvent.change(screen.getByRole('combobox'), {
+      target: { value: '当前' },
+    });
+    await advance();
+    expect(signals[0].aborted).toBe(true);
+    expect(signals[1].aborted).toBe(false);
+    expect(request).toHaveBeenLastCalledWith('当前', {
+      signal: signals[1],
+      skipErrorHandler: true,
+    });
+    expect(client.getQueryState([...key, { keyword: '' }])?.error).toBeNull();
+    expect(client.getQueryState([...key, { keyword: '当前' }])?.status).toBe(
+      'success',
+    );
+  });
   it('挂载以空关键词加载首批候选', async () => {
     const request = vi
       .fn()
       .mockResolvedValue([{ label: '宁波中远海运', value: 'p-1' }]);
     mount(<RemoteSearchSelect queryKey={key} request={request} />);
     await advance();
-    expect(request).toHaveBeenCalledExactlyOnceWith(undefined);
+    expect(request).toHaveBeenCalledExactlyOnceWith(
+      undefined,
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+        skipErrorHandler: true,
+      }),
+    );
     fireEvent.mouseDown(screen.getByRole('combobox'));
     expect(screen.getByText('宁波中远海运')).toBeInTheDocument();
   });
@@ -64,7 +106,13 @@ describe('RemoteSearchSelect 的资源查询', () => {
     await advance(150);
     expect(request).toHaveBeenCalledOnce();
     await advance(150);
-    expect(request).toHaveBeenLastCalledWith('美森');
+    expect(request).toHaveBeenLastCalledWith(
+      '美森',
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+        skipErrorHandler: true,
+      }),
+    );
     expect(client.getQueryState([...key, { keyword: '美森' }])?.status).toBe(
       'success',
     );
@@ -146,7 +194,13 @@ describe('RemoteSearchSelect 的资源查询', () => {
       target: { value: '新词' },
     });
     await advance();
-    expect(second).toHaveBeenCalledExactlyOnceWith('新词');
+    expect(second).toHaveBeenCalledExactlyOnceWith(
+      '新词',
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+        skipErrorHandler: true,
+      }),
+    );
   });
 
   it('失败保留已选名称，后续搜索正常恢复且错误留在Query状态', async () => {
@@ -175,5 +229,34 @@ describe('RemoteSearchSelect 的资源查询', () => {
     fireEvent.mouseDown(screen.getByRole('combobox'));
     expect(screen.getByText('恢复候选')).toBeInTheDocument();
     expect(screen.getAllByText('已选名称').length).toBeGreaterThan(0);
+  });
+
+  it('已选项仅存在于旧关键词结果时从当前资源缓存保留名称', async () => {
+    const request = vi
+      .fn()
+      .mockResolvedValueOnce([{ label: '曾选单位', value: 'chosen' }])
+      .mockResolvedValue([{ label: '新搜索单位', value: 'new' }]);
+    const view = mount(
+      <RemoteSearchSelect queryKey={key} request={request} debounceMs={0} />,
+    );
+    await advance();
+    view.rerender(
+      <RemoteSearchSelect
+        queryKey={key}
+        request={request}
+        debounceMs={0}
+        value="chosen"
+      />,
+    );
+    fireEvent.mouseDown(screen.getByRole('combobox'));
+    fireEvent.change(screen.getByRole('combobox'), {
+      target: { value: '新搜索' },
+    });
+    await advance();
+    expect(screen.getByText('新搜索单位')).toBeInTheDocument();
+    expect(screen.getAllByText('曾选单位').length).toBeGreaterThan(0);
+    expect(
+      screen.getByRole('combobox').closest('.ant-select-content'),
+    ).toHaveAttribute('title', '曾选单位');
   });
 });

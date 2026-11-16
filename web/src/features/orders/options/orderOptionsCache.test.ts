@@ -30,6 +30,33 @@ const listPersonnel = vi.mocked(orderServiceListPersonnelOptions);
 beforeEach(() => vi.resetAllMocks());
 
 describe('订单候选纯取数入口', () => {
+  it('将当前 Query 的取消信号和错误策略原样传到生成客户端', async () => {
+    const options = {
+      signal: new AbortController().signal,
+      skipErrorHandler: true,
+    };
+    listOptions.mockResolvedValue({ success: true });
+    listPorts.mockResolvedValue({ success: true });
+    listAirports.mockResolvedValue({ success: true });
+    listPersonnel.mockResolvedValue({ success: true });
+    await getMasterDataOptions('org', options);
+    await getCachedPorts('org', options);
+    await getCachedAirports('org', options);
+    await getOrderPersonnelOptions('org', 1, options);
+    expect(listOptions).toHaveBeenCalledWith(options);
+    expect(listPorts).toHaveBeenCalledWith(
+      expect.objectContaining({ pageSize: 50 }),
+      options,
+    );
+    expect(listAirports).toHaveBeenCalledWith(
+      expect.objectContaining({ pageSize: 50 }),
+      options,
+    );
+    expect(listPersonnel).toHaveBeenCalledWith(
+      expect.objectContaining({ businessType: 1 }),
+      options,
+    );
+  });
   it('身份缺失时拒绝请求', async () => {
     await expect(getMasterDataOptions('')).rejects.toThrow('缺少当前组织');
     await expect(getCachedPorts('')).rejects.toThrow('缺少当前组织');
@@ -87,21 +114,30 @@ describe('订单候选纯取数入口', () => {
     expect(await getCachedPorts('org')).toEqual([]);
     expect(await getCachedAirports('org')).toEqual([]);
     expect(await getOrderPersonnelOptions('org', 2)).toEqual([]);
-    expect(listPorts).toHaveBeenCalledWith({
-      page: 1,
-      pageSize: 50,
-      enabled: true,
-    });
-    expect(listAirports).toHaveBeenCalledWith({
-      page: 1,
-      pageSize: 50,
-      enabled: true,
-    });
-    expect(listPersonnel).toHaveBeenCalledWith({
-      businessType: 2,
-      page: 1,
-      pageSize: 200,
-    });
+    expect(listPorts).toHaveBeenCalledWith(
+      {
+        page: 1,
+        pageSize: 50,
+        enabled: true,
+      },
+      undefined,
+    );
+    expect(listAirports).toHaveBeenCalledWith(
+      {
+        page: 1,
+        pageSize: 50,
+        enabled: true,
+      },
+      undefined,
+    );
+    expect(listPersonnel).toHaveBeenCalledWith(
+      {
+        businessType: 2,
+        page: 1,
+        pageSize: 200,
+      },
+      undefined,
+    );
   });
 
   it.each([

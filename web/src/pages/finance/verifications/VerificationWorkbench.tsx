@@ -46,7 +46,7 @@ import {
   disableCreditExceededOptions,
   useCreditLimitIntervention,
 } from '@/features/finance/credit-control';
-import { getCurrencyOptions } from '@/features/master-data/currencies';
+import { currencyOptionsQueryOptions } from '@/features/master-data/currencies';
 import { PartnerSelectOptionTags } from '@/features/partners';
 import {
   settlementServiceCreateVerification,
@@ -180,10 +180,9 @@ export default function VerificationWorkbench({
 
   // 币种候选只随当前公司工作台打开加载。
   const bootstrapQuery = useQuery({
-    queryKey: [...VERIFICATION_WORKBENCH_QUERY_BASE, 'currencies'],
+    ...currencyOptionsQueryOptions(),
     enabled: open && canOperate,
     meta: { errorMessage: '加载核销创建候选失败' },
-    queryFn: getCurrencyOptions,
   });
   const currencyOptions = bootstrapQuery.data ?? [];
 

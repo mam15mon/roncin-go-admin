@@ -19,11 +19,11 @@ vi.mock('@/features/finance/credit-control', () => ({
   useCreditLimitIntervention: () => false,
   disableCreditExceededOptions: (options: unknown) => options,
 }));
-vi.mock('@/features/master-data/currencies', async (original) => ({
-  ...(await original<typeof import('@/features/master-data/currencies')>()),
-  getCurrencyOptions: vi
-    .fn()
-    .mockResolvedValue([{ label: '人民币', value: 'CNY' }]),
+vi.mock('@/services/roncin/masterDataService', () => ({
+  masterDataServiceListCurrencies: vi.fn().mockResolvedValue({
+    success: true,
+    data: [{ code: 'CNY', name: '人民币', enabled: true }],
+  }),
 }));
 vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceListFinanceSettlementPartyOptions: vi

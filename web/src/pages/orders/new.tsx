@@ -25,6 +25,7 @@ import {
 } from '@/services/roncin/orderService';
 import { isWriteResponse } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
+import type { RequestOptions } from '@/utils/requestClient';
 import { generateUUID } from '@/utils/uuid';
 import {
   PARTNER_ROLES,
@@ -182,13 +183,23 @@ function NewOrderContent({
       searchLocations,
       currencyOptions,
       containerSpecOptions,
-      searchCustomers: (keyword?: string) =>
-        searchPartnersByRole(PARTNER_ROLES.CUSTOMER, keyword),
+      searchCustomers: (keyword?: string, requestOptions?: RequestOptions) =>
+        searchPartnersByRole(PARTNER_ROLES.CUSTOMER, keyword, requestOptions),
       searchShippingLines: searchShippingLineOptions,
-      searchBookingAgents: (keyword?: string) =>
-        searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword),
-      searchForeignAgents: (keyword?: string) =>
-        searchPartnersByRole(PARTNER_ROLES.FOREIGN_AGENT, keyword),
+      searchBookingAgents: (
+        keyword?: string,
+        requestOptions?: RequestOptions,
+      ) =>
+        searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword, requestOptions),
+      searchForeignAgents: (
+        keyword?: string,
+        requestOptions?: RequestOptions,
+      ) =>
+        searchPartnersByRole(
+          PARTNER_ROLES.FOREIGN_AGENT,
+          keyword,
+          requestOptions,
+        ),
       searchShippingAgents: searchShippingAgentOptions,
       setCustomerCode: (code?: string) =>
         formRef.current?.setFieldValue('customerCode', code ?? ''),

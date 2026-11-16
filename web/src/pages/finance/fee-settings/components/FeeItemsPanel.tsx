@@ -1,9 +1,10 @@
 import type { ProColumns } from '@ant-design/pro-components';
-import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import React from 'react';
 import { useAccess } from '@/app/access';
 import { SettingTableTemplate } from '@/components/ui';
 import { MasterDataKind } from '@/enums.generated';
-import { getCurrencies } from '@/features/master-data/currencies';
+import { currencyQueryOptions } from '@/features/master-data/currencies';
 import {
   feeCatalogServiceCreateFeeSetting,
   feeCatalogServiceListBillingUnits,
@@ -12,7 +13,7 @@ import {
   feeCatalogServiceUpdateFeeSetting,
 } from '@/services/roncin/feeCatalogService';
 import { masterDataServiceListOptions } from '@/services/roncin/masterDataService';
-import { toTableRequest, unwrapList } from '@/utils/api';
+import { ensureListResponse, toTableRequest, unwrapList } from '@/utils/api';
 import FeeSettingFields from './FeeSettingFields';
 
 type FeeSettingFormValues = {
@@ -31,12 +32,40 @@ type FeeSettingFormValues = {
 
 export function FeeItemsPanel() {
   const access = useAccess();
-  const [billingUnits, setBillingUnits] = useState<API.BillingUnit[]>([]);
-  const [taxableServices, setTaxableServices] = useState<API.TaxableService[]>(
-    [],
-  );
-  const [currencies, setCurrencies] = useState<API.Currency[]>([]);
-  const [abnormalCases, setAbnormalCases] = useState<API.MasterDataItem[]>([]);
+  const currencyQuery = useQuery(currencyQueryOptions());
+  const referenceQuery = useQuery({
+    queryKey: ['finance', 'fee-settings-reference-options', {}],
+    queryFn: async ({ signal }) => {
+      const [units, taxable, items] = await Promise.all([
+        feeCatalogServiceListBillingUnits({ signal, skipErrorHandler: true }),
+        feeCatalogServiceListTaxableServices({
+          signal,
+          skipErrorHandler: true,
+        }),
+        masterDataServiceListOptions({ signal, skipErrorHandler: true }),
+      ]);
+      return {
+        billingUnits: unwrapList(
+          ensureListResponse(units, '计费单位加载失败'),
+        ).filter((item) => item.enabled),
+        taxableServices: unwrapList(
+          ensureListResponse(taxable, '应税服务加载失败'),
+        ).filter((item) => item.enabled),
+        abnormalCases: unwrapList(
+          ensureListResponse(items, '异常类型加载失败'),
+        ).filter(
+          (item) =>
+            item.kind === MasterDataKind.MASTER_DATA_KIND_ABNORMAL_CASE &&
+            item.enabled !== false,
+        ),
+      };
+    },
+    meta: { errorMessage: '费用设置候选加载失败' },
+  });
+  const billingUnits = referenceQuery.data?.billingUnits ?? [];
+  const taxableServices = referenceQuery.data?.taxableServices ?? [];
+  const abnormalCases = referenceQuery.data?.abnormalCases ?? [];
+  const currencies = currencyQuery.data?.filter((item) => item.enabled) ?? [];
 
   // 表头汇总：序号、费用名称、费用名称(英文)、费用代码、归属、币种、计费单位、税率、货物或应税劳务名称、对应异常情况、操作
   const columns: ProColumns<API.FeeSetting>[] = [
@@ -103,39 +132,17 @@ export function FeeItemsPanel() {
       canCreate={access.canCreateFeeSettings}
       canUpdate={access.canUpdateFeeSettings}
       pagination={{ pageSize: 20 }}
-      query={async (params) => {
-        const [
-          feeResponse,
-          unitResponse,
-          taxableResponse,
-          currencyResponse,
-          optionResponse,
-        ] = await Promise.all([
-          feeCatalogServiceListFeeSettings({
-            page: Number(params?.current ?? 1),
-            pageSize: Number(params?.pageSize ?? 20),
-          }),
-          feeCatalogServiceListBillingUnits({ page: 1, pageSize: 200 }),
-          feeCatalogServiceListTaxableServices({ page: 1, pageSize: 200 }),
-          getCurrencies(),
-          masterDataServiceListOptions(),
-        ]);
-        setBillingUnits(
-          unwrapList(unitResponse).filter((item) => item.enabled),
-        );
-        setTaxableServices(
-          unwrapList(taxableResponse).filter((item) => item.enabled),
-        );
-        setCurrencies(currencyResponse.filter((item) => item.enabled));
-        setAbnormalCases(
-          unwrapList(optionResponse).filter(
-            (item) =>
-              item.kind === MasterDataKind.MASTER_DATA_KIND_ABNORMAL_CASE &&
-              item.enabled !== false,
+      query={async (params) =>
+        toTableRequest(
+          ensureListResponse(
+            await feeCatalogServiceListFeeSettings({
+              page: Number(params?.current ?? 1),
+              pageSize: Number(params?.pageSize ?? 20),
+            }),
+            '费用设置列表加载失败',
           ),
-        );
-        return toTableRequest(feeResponse);
-      }}
+        )
+      }
       createItem={(values) =>
         feeCatalogServiceCreateFeeSetting({
           feeCode: values.feeCode.trim().toUpperCase(),

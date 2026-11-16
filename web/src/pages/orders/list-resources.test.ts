@@ -161,8 +161,20 @@ describe('useOrderListResources', () => {
     });
 
     await waitFor(() => expect(result.current.ports).toHaveLength(1));
-    expect(mockGetMasterData).toHaveBeenCalledWith('org-1');
-    expect(mockGetPorts).toHaveBeenCalledWith('org-1');
+    expect(mockGetMasterData).toHaveBeenCalledWith(
+      'org-1',
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+        skipErrorHandler: true,
+      }),
+    );
+    expect(mockGetPorts).toHaveBeenCalledWith(
+      'org-1',
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+        skipErrorHandler: true,
+      }),
+    );
     expect(mockGetAirports).not.toHaveBeenCalled();
     expect(result.current.airports).toEqual([]);
     expect(result.current.customerMap).toEqual({ 'cust-1': '阿里巴巴' });
@@ -179,8 +191,20 @@ describe('useOrderListResources', () => {
     });
 
     await waitFor(() => expect(result.current.airports).toHaveLength(1));
-    expect(mockGetMasterData).toHaveBeenCalledWith('org-1');
-    expect(mockGetAirports).toHaveBeenCalledWith('org-1');
+    expect(mockGetMasterData).toHaveBeenCalledWith(
+      'org-1',
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+        skipErrorHandler: true,
+      }),
+    );
+    expect(mockGetAirports).toHaveBeenCalledWith(
+      'org-1',
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+        skipErrorHandler: true,
+      }),
+    );
     expect(mockGetPorts).not.toHaveBeenCalled();
     expect(result.current.ports).toEqual([]);
   });
@@ -504,9 +528,20 @@ describe('useOrderListResources', () => {
     mockSearchPersonnel.mockImplementationOnce(() => personnelSearch.promise);
     const locationPromise = result.current.searchLocations('旧海运地点');
     const personnelPromise = result.current.searchOrderPersonnel('旧海运人员');
-    expect(mockSearchLocations).toHaveBeenLastCalledWith('sea', '旧海运地点');
+    expect(mockSearchLocations).toHaveBeenLastCalledWith(
+      'sea',
+      '旧海运地点',
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+        skipErrorHandler: true,
+      }),
+    );
     expect(mockSearchPersonnel).toHaveBeenLastCalledWith(
       expect.objectContaining({ businessType: seaConfig.businessType }),
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+        skipErrorHandler: true,
+      }),
     );
 
     currentConfig = {

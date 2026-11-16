@@ -12,6 +12,25 @@ describe('往来单位候选搜索', () => {
     vi.clearAllMocks();
   });
 
+  it('筛选条件和传输选项分离，失败信封不落入 data TypeError', async () => {
+    const options = {
+      signal: new AbortController().signal,
+      skipErrorHandler: true,
+    };
+    listPartners.mockResolvedValueOnce({ success: true });
+    expect(await searchPartnerOptions('客户', { role: 1 }, options)).toEqual(
+      [],
+    );
+    expect(listPartners).toHaveBeenCalledWith(
+      expect.objectContaining({ keyword: '客户', role: 1 }),
+      options,
+    );
+    listPartners.mockResolvedValueOnce(undefined);
+    await expect(searchPartnerOptions('客户', {}, options)).rejects.toThrow(
+      '往来单位候选加载失败',
+    );
+  });
+
   it('按角色和启用状态搜索合作方并统一标签', async () => {
     listPartners.mockResolvedValue({
       data: [
@@ -25,7 +44,7 @@ describe('往来单位候选搜索', () => {
       enabled: true,
     });
 
-    expect(listPartners).toHaveBeenCalledWith({
+    expect(listPartners.mock.calls[0][0]).toEqual({
       page: 1,
       pageSize: 50,
       keyword: '示例',

@@ -45,6 +45,7 @@ import {
 import { searchShippingLineOptions } from '@/features/master-data/shipping-lines';
 import { history } from '@/router/history';
 import { orderServiceUpdateOrder } from '@/services/roncin/orderService';
+import type { RequestOptions } from '@/utils/requestClient';
 import { generateUUID } from '@/utils/uuid';
 import AbnormalCasePanel, {
   type AbnormalCasePanelRef,
@@ -574,12 +575,12 @@ export default function OrderDetailPage() {
   const withSeededOptions = <
     T extends { label: string; value: string | number },
   >(
-    search: (keyword?: string) => Promise<T[]>,
+    search: (keyword?: string, requestOptions?: RequestOptions) => Promise<T[]>,
     seeds: Array<{ label: string; value: string | number }>,
   ) => {
     if (seeds.length === 0) return search;
-    return async (keyword?: string) => {
-      const options = await search(keyword);
+    return async (keyword?: string, requestOptions?: RequestOptions) => {
+      const options = await search(keyword, requestOptions);
       const existing = new Set(options.map((item) => item.value));
       const missing = seeds.filter((seed) => !existing.has(seed.value));
       return [...(missing as T[]), ...options];
@@ -612,8 +613,8 @@ export default function OrderDetailPage() {
           airDocumentImportPatch(...args),
         ),
       searchCustomers: withSeededOptions(
-        (keyword?: string) =>
-          searchPartnersByRole(PARTNER_ROLES.CUSTOMER, keyword),
+        (keyword?: string, requestOptions?: RequestOptions) =>
+          searchPartnersByRole(PARTNER_ROLES.CUSTOMER, keyword, requestOptions),
         customerSeeds,
       ),
       searchShippingLines: withSeededOptions(
@@ -621,13 +622,17 @@ export default function OrderDetailPage() {
         shippingLineSeeds,
       ),
       searchBookingAgents: withSeededOptions(
-        (keyword?: string) =>
-          searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword),
+        (keyword?: string, requestOptions?: RequestOptions) =>
+          searchPartnersByRole(PARTNER_ROLES.SUPPLIER, keyword, requestOptions),
         bookingAgentSeeds,
       ),
       searchForeignAgents: withSeededOptions(
-        (keyword?: string) =>
-          searchPartnersByRole(PARTNER_ROLES.FOREIGN_AGENT, keyword),
+        (keyword?: string, requestOptions?: RequestOptions) =>
+          searchPartnersByRole(
+            PARTNER_ROLES.FOREIGN_AGENT,
+            keyword,
+            requestOptions,
+          ),
         foreignAgentSeeds,
       ),
       searchShippingAgents: withSeededOptions(

@@ -1,10 +1,5 @@
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import { renderWithClient as render } from '@root/tests/queryClientTestUtils';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { ConfigProvider } from 'antd';
 import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
@@ -139,6 +134,10 @@ describe('FeeLedgerSearchFilter', () => {
     await waitFor(() =>
       expect(partnerServiceListPartners).toHaveBeenCalledWith(
         expect.objectContaining({ page: 1, pageSize: 50 }),
+        expect.objectContaining({
+          skipErrorHandler: true,
+          signal: expect.any(AbortSignal),
+        }),
       ),
     );
 

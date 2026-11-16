@@ -1,6 +1,6 @@
 import { CompassOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
-import { Tag } from 'antd';
+import { Alert, Button, Tag } from 'antd';
 import React, { useMemo } from 'react';
 import { useAccess } from '@/app/access';
 import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterDataTemplate';
@@ -28,7 +28,7 @@ const mapRegion = (item: API.AdministrativeRegion): RegionItem => {
     parentCode: item.parentCode || undefined,
     regionType: item.regionType || undefined,
     sourceVersion: item.sourceVersion || undefined,
-    enabled: item.enabled ?? true,
+    enabled: Boolean(item.enabled),
     updatedAt: item.updatedAt,
   };
 };
@@ -47,7 +47,7 @@ export default function CitiesPanel() {
           '行政区划数据加载失败',
         ),
       ).map(mapRegion),
-    meta: { errorMessage: '行政区划数据加载失败' },
+    meta: { silent: true },
   });
   const data = query.data ?? [];
   const fetchServerData = async () => {
@@ -71,6 +71,18 @@ export default function CitiesPanel() {
     [data, namesByCode],
   );
 
+  if (query.isError && !query.data) {
+    return (
+      <Alert
+        type="error"
+        showIcon
+        title="行政区划数据加载失败"
+        description={query.error.message}
+        action={<Button onClick={() => void query.refetch()}>重试</Button>}
+      />
+    );
+  }
+
   return (
     <MasterDataTemplate<RegionItem>
       title="城市与行政区划管理"
@@ -81,7 +93,11 @@ export default function CitiesPanel() {
       loading={query.isFetching}
       onRefresh={fetchServerData}
       notice={
-        access.isSystemWorkspace ? undefined : '由系统管理员统一维护与共享'
+        query.isError
+          ? '行政区划刷新失败，请重试。当前显示上次读取的内容。'
+          : access.isSystemWorkspace
+            ? undefined
+            : '由系统管理员统一维护与共享'
       }
       searchPlaceholder="搜索12位区划代码(如 310115000000) / 城市区划名称..."
       extraStats={[

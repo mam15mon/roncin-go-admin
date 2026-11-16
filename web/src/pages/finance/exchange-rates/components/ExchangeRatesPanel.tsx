@@ -9,6 +9,7 @@ import {
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProFormDatePicker, ProFormText } from '@ant-design/pro-components';
 import { paginationSizeChanger } from '@root/config/pagination';
+import { useQuery } from '@tanstack/react-query';
 import { App, Button, Card, Form, Space, Tag, Tooltip } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, { useRef, useState } from 'react';
@@ -20,14 +21,18 @@ import {
   ResponsiveProTable as ProTable,
 } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
-import { getCurrencies } from '@/features/master-data/currencies';
+import { currencyQueryOptions } from '@/features/master-data/currencies';
 import {
   exchangeRateServiceCreateExchangeRateSetting,
   exchangeRateServiceDisableExchangeRateSetting,
   exchangeRateServiceListExchangeRateSettings,
   exchangeRateServiceUpdateExchangeRateSetting,
 } from '@/services/roncin/exchangeRateService';
-import { isWriteResponse, toTableRequest } from '@/utils/api';
+import {
+  ensureListResponse,
+  isWriteResponse,
+  toTableRequest,
+} from '@/utils/api';
 import { isPositiveExactDecimal } from '@/utils/decimal';
 import { formatDate, trimDecimal } from '@/utils/format';
 import { ExchangeRateImportModal } from './ExchangeRateImportModal';
@@ -67,7 +72,8 @@ export function ExchangeRatesPanel() {
   const [downloadingTemplate, setDownloadingTemplate] = useState(false);
   const [editing, setEditing] = useState<API.ExchangeRateSetting>();
   const [baseCurrency, setBaseCurrency] = useState('');
-  const [currencies, setCurrencies] = useState<API.Currency[]>([]);
+  const currencyQuery = useQuery(currencyQueryOptions());
+  const currencies = currencyQuery.data ?? [];
 
   const openCreate = () => {
     setEditing(undefined);
@@ -276,19 +282,14 @@ export function ExchangeRatesPanel() {
         tableAlertOptionRender={false}
         options={{ reload: true, density: true, setting: false }}
         request={async (params) => {
-          const [rateResponse, currencyResponse] = await Promise.all([
-            exchangeRateServiceListExchangeRateSettings({
+          const rateResponse = ensureListResponse(
+            await exchangeRateServiceListExchangeRateSettings({
               page: params.current,
               pageSize: params.pageSize,
             }),
-            currencies.length > 0
-              ? Promise.resolve(currencies)
-              : getCurrencies(),
-          ]);
+            '汇率列表加载失败',
+          );
           setBaseCurrency(rateResponse.baseCurrency ?? '');
-          if (currencies.length === 0) {
-            setCurrencies(currencyResponse);
-          }
           return toTableRequest(rateResponse);
         }}
         toolBarRender={() => [

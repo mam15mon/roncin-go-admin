@@ -19,6 +19,7 @@ import { useAsyncGuard } from '@/hooks/useAsyncGuard';
 import { history } from '@/router/history';
 import { partnerServiceCreatePartner } from '@/services/roncin/partnerService';
 import { isWriteResponse } from '@/utils/api';
+import type { RequestOptions } from '@/utils/requestClient';
 
 export type PartnerSelectOption = {
   label: string;
@@ -37,7 +38,10 @@ type PartnerQuickAddSelectProps = {
   /** 「添加公司详情」跳转的完整档案新建路由。 */
   createRoute: string;
   /** 按角色过滤的服务端关键字检索函数。 */
-  searchPartners: (keyword?: string) => Promise<PartnerSelectOption[]>;
+  searchPartners: (
+    keyword?: string,
+    requestOptions?: RequestOptions,
+  ) => Promise<PartnerSelectOption[]>;
   /** 客户快建时提成责任岗位（业务/操作/客服）的人员候选项。 */
   staffOptions?: API.OrderPersonnelOption[];
   required?: boolean;
@@ -113,12 +117,15 @@ export default function PartnerQuickAddSelect({
     queryKey: [...scopeKey, { keyword: debouncedKeyword }],
     enabled: Boolean(currentOrganizationId),
     queryFn: async ({ signal }) => {
-      const items = await searchRef.current(debouncedKeyword || undefined);
+      const items = await searchRef.current(debouncedKeyword || undefined, {
+        signal,
+        skipErrorHandler: true,
+      });
       signal.throwIfAborted();
       if (!Array.isArray(items)) throw new Error('往来单位候选加载失败');
       return items;
     },
-    meta: { silent: true },
+    meta: { errorMessage: '往来单位候选加载失败' },
   });
   const options = useMemo(() => {
     const created =

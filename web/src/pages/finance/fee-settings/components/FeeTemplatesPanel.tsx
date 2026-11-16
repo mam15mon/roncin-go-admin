@@ -13,7 +13,7 @@ import {
   feeCatalogServiceUpdateFeeSettingTemplate,
 } from '@/services/roncin/feeCatalogService';
 import { masterDataServiceListOptions } from '@/services/roncin/masterDataService';
-import { unwrapList } from '@/utils/api';
+import { ensureListResponse, unwrapList } from '@/utils/api';
 import FeeSettingFields from './FeeSettingFields';
 
 type TemplateRow = API.FeeSettingTemplateInput & { id?: string };
@@ -22,6 +22,7 @@ export default function FeeTemplatesPanel() {
   const access = useAccess();
   const { data: options } = useQuery({
     queryKey: ['fee-template-options'],
+    meta: { currencyDependent: true },
     queryFn: async () => {
       const [units, currencies, items] = await Promise.all([
         feeCatalogServiceListBillingUnits({ page: 1, pageSize: 200 }),
@@ -29,9 +30,13 @@ export default function FeeTemplatesPanel() {
         masterDataServiceListOptions(),
       ]);
       return {
-        billingUnits: unwrapList(units).filter((item) => item.enabled),
+        billingUnits: unwrapList(
+          ensureListResponse(units, '计费单位加载失败'),
+        ).filter((item) => item.enabled),
         currencies: currencies.filter((item) => item.enabled),
-        items: unwrapList(items).filter((item) => item.enabled),
+        items: unwrapList(ensureListResponse(items, '费用选项加载失败')).filter(
+          (item) => item.enabled,
+        ),
       };
     },
   });

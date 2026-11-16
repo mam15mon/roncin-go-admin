@@ -3,6 +3,7 @@ export {
   CURRENCY_QUERY_PREFIX,
   currencyOptionsQueryOptions,
   currencyQueryOptions,
+  fetchCurrencyOptions,
   getCurrencies,
   getCurrencyOptions,
 } from './currencies';

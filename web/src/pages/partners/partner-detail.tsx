@@ -29,7 +29,7 @@ import {
   PartnerSettlementMethod,
   PartnerStatementMode,
 } from '@/enums.generated';
-import { getCurrencyOptions } from '@/features/master-data/currencies';
+import { currencyOptionsQueryOptions } from '@/features/master-data/currencies';
 import { formatPersonnelLabel } from '@/features/personnel';
 import { history } from '@/router/history';
 import { adminServiceListUsers } from '@/services/roncin/adminService';
@@ -242,8 +242,7 @@ export default function PartnerDetailPage() {
     meta: { silent: true },
   });
   const currencyOptionsQuery = useQuery({
-    queryKey: ['partner-detail', 'options', 'currencies'],
-    queryFn: () => getCurrencyOptions(),
+    ...currencyOptionsQueryOptions(),
     meta: { silent: true },
   });
   const assignmentOptionsQuery = useQuery({

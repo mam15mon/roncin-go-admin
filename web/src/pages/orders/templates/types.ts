@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { OrderFormTemplateSection } from '@/components/ui/order-template/types';
+import type { RequestOptions } from '@/utils/requestClient';
 
 export interface SelectOption {
   label: string;
@@ -30,10 +31,19 @@ export interface TemplateProps {
   searchLocations: (keyword?: string) => Promise<SelectOption[]>;
   currencyOptions: SelectOption[];
   containerSpecOptions: SelectOption[];
-  searchCustomers: (keyword?: string) => Promise<SelectOption[]>;
+  searchCustomers: (
+    keyword?: string,
+    requestOptions?: RequestOptions,
+  ) => Promise<SelectOption[]>;
   searchShippingLines: (keyword?: string) => Promise<SelectOption[]>;
-  searchBookingAgents: (keyword?: string) => Promise<SelectOption[]>;
-  searchForeignAgents: (keyword?: string) => Promise<SelectOption[]>;
+  searchBookingAgents: (
+    keyword?: string,
+    requestOptions?: RequestOptions,
+  ) => Promise<SelectOption[]>;
+  searchForeignAgents: (
+    keyword?: string,
+    requestOptions?: RequestOptions,
+  ) => Promise<SelectOption[]>;
   searchShippingAgents: (keyword?: string) => Promise<SelectOption[]>;
   setCustomerCode: (code?: string) => void;
   personnelOptions: API.OrderPersonnelOption[];

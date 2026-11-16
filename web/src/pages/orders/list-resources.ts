@@ -60,17 +60,27 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
       if (!organizationId || !definition)
         throw new Error('缺少订单列表资源身份');
       const [masterOptions, ports, airports, customers] = await Promise.all([
-        getMasterDataOptions(organizationId),
+        getMasterDataOptions(organizationId, {
+          signal,
+          skipErrorHandler: true,
+        }),
         definition.transportMode === 'sea'
-          ? getCachedPorts(organizationId)
+          ? getCachedPorts(organizationId, { signal, skipErrorHandler: true })
           : Promise.resolve([]),
         definition.transportMode === 'air'
-          ? getCachedAirports(organizationId)
+          ? getCachedAirports(organizationId, {
+              signal,
+              skipErrorHandler: true,
+            })
           : Promise.resolve([]),
-        searchPartnerOptions(undefined, {
-          role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
-          enabled: true,
-        }),
+        searchPartnerOptions(
+          undefined,
+          {
+            role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+            enabled: true,
+          },
+          { signal, skipErrorHandler: true },
+        ),
       ]);
       signal.throwIfAborted();
       return {
@@ -93,7 +103,7 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
   const fetchOptions = <T>(
     resource: string,
     keyword: string | undefined,
-    queryFn: () => Promise<T>,
+    queryFn: (signal: AbortSignal) => Promise<T>,
   ) =>
     queryClient.fetchQuery({
       queryKey: [
@@ -101,7 +111,7 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
         resource,
         { ...identity, keyword: keyword?.trim() || undefined },
       ],
-      queryFn,
+      queryFn: ({ signal }) => queryFn(signal),
       meta: { silent: true },
     });
 
@@ -173,11 +183,15 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
     if (!requestOrgId || !resourcesEnabled) {
       return [];
     }
-    const options = await fetchOptions('list-customers', keyword, () =>
-      searchPartnerOptions(keyword, {
-        role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
-        enabled: true,
-      }),
+    const options = await fetchOptions('list-customers', keyword, (signal) =>
+      searchPartnerOptions(
+        keyword,
+        {
+          role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+          enabled: true,
+        },
+        { signal, skipErrorHandler: true },
+      ),
     );
     if (
       activeOrgIdRef.current !== requestOrgId ||
@@ -209,15 +223,18 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
     if (!requestOrgId || !resourcesEnabled || requestTransportMode !== 'sea') {
       return [];
     }
-    const result = await fetchOptions('list-ports', keyword, async () =>
+    const result = await fetchOptions('list-ports', keyword, async (signal) =>
       unwrapList(
         ensureListResponse(
-          await masterDataServiceListPorts({
-            page: 1,
-            pageSize: 50,
-            keyword,
-            enabled: true,
-          }),
+          await masterDataServiceListPorts(
+            {
+              page: 1,
+              pageSize: 50,
+              keyword,
+              enabled: true,
+            },
+            { signal, skipErrorHandler: true },
+          ),
           '港口主数据加载失败，请稍后重试',
         ),
       ),
@@ -252,8 +269,11 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
     if (!requestOrgId || !resourcesEnabled || !requestTransportMode) {
       return [];
     }
-    const options = await fetchOptions('list-locations', keyword, () =>
-      searchOrderLocations(requestTransportMode, keyword),
+    const options = await fetchOptions('list-locations', keyword, (signal) =>
+      searchOrderLocations(requestTransportMode, keyword, {
+        signal,
+        skipErrorHandler: true,
+      }),
     );
     return activeOrgIdRef.current === requestOrgId &&
       activeTransportModeRef.current === requestTransportMode &&
@@ -268,8 +288,8 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
     if (!requestOrgId || !resourcesEnabled) {
       return [];
     }
-    const options = await fetchOptions('list-carriers', keyword, () =>
-      searchShippingLineOptions(keyword),
+    const options = await fetchOptions('list-carriers', keyword, (signal) =>
+      searchShippingLineOptions(keyword, { signal, skipErrorHandler: true }),
     );
     return activeOrgIdRef.current === requestOrgId &&
       activeTransportModeRef.current === requestTransportMode &&
@@ -289,13 +309,16 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
     ) {
       return [];
     }
-    const response = await fetchOptions('list-personnel', keyword, () =>
-      orderServiceListPersonnelOptions({
-        businessType: requestBusinessType,
-        keyword,
-        page: 1,
-        pageSize: 50,
-      }),
+    const response = await fetchOptions('list-personnel', keyword, (signal) =>
+      orderServiceListPersonnelOptions(
+        {
+          businessType: requestBusinessType,
+          keyword,
+          page: 1,
+          pageSize: 50,
+        },
+        { signal, skipErrorHandler: true },
+      ),
     );
     if (
       activeOrgIdRef.current !== requestOrgId ||
