@@ -67,6 +67,97 @@ describe('订单远程候选项', () => {
     ]);
   });
 
+  it.each([
+    { mode: 'sea', keyword: 'cnsha', code: 'CNSHA' },
+    { mode: 'air', keyword: 'pvg', code: 'PVG' },
+    { mode: 'air', keyword: 'zspd', code: 'PVG', icaoCode: 'ZSPD' },
+  ] as const)(
+    '$mode 的代码精确命中排在地区名称模糊命中前（$keyword）',
+    async ({ mode, keyword, code, ...extra }) => {
+      listItems.mockResolvedValue({
+        data: [{ id: 'region', code: 'REG', name: `${keyword} 地区` }],
+      });
+      const rows = [
+        {
+          id: 'exact',
+          unLocode: code,
+          iataCode: code,
+          ...extra,
+          nameEn: 'Shanghai',
+        },
+        {
+          id: 'fuzzy',
+          unLocode: 'AABBB',
+          iataCode: 'AAA',
+          nameEn: `${keyword} name`,
+        },
+      ];
+      listPorts.mockResolvedValue({ data: rows });
+      listAirports.mockResolvedValue({ data: rows });
+
+      const options = await searchOrderLocations(mode, keyword);
+
+      expect(options.map((option) => option.value)).toEqual([
+        'exact',
+        'region',
+        'fuzzy',
+      ]);
+      expect(options[0]).toEqual({
+        value: 'exact',
+        label: `Shanghai (${code})`,
+      });
+    },
+  );
+
+  it.each(['sea', 'air'] as const)(
+    '%s 合并地区与运输地点时按精确、前缀、模糊分组，同级保留服务端顺序',
+    async (mode) => {
+      listItems.mockResolvedValue({
+        data: [
+          { id: 'region-fuzzy', code: 'REG', name: 'CN 地区' },
+          { id: 'region-exact', code: 'CN', name: '中国' },
+        ],
+      });
+      const rows = [
+        { id: 'prefix-1', unLocode: 'CNNGB', iataCode: 'CNB' },
+        { id: 'prefix-2', unLocode: 'CNSHA', iataCode: 'CNA' },
+        { id: 'fuzzy', unLocode: 'AABBB', iataCode: 'AAA' },
+      ];
+      listPorts.mockResolvedValue({ data: rows });
+      listAirports.mockResolvedValue({ data: rows });
+
+      const options = await searchOrderLocations(mode, 'cn');
+
+      expect(options.map((option) => option.value)).toEqual([
+        'region-exact',
+        'prefix-1',
+        'prefix-2',
+        'region-fuzzy',
+        'fuzzy',
+      ]);
+    },
+  );
+
+  it.each([undefined, '', '上海'])(
+    '无关键字或按中文名称搜索时保留地区与运输地点的原有顺序（%s）',
+    async (keyword) => {
+      listPorts.mockResolvedValue({
+        data: [
+          { id: 'port-2', unLocode: 'CNSHG', nameEn: 'Shanghai' },
+          { id: 'port-1', unLocode: 'CNSHA', nameEn: 'Shanghai' },
+        ],
+      });
+
+      const options = await searchOrderLocations('sea', keyword);
+
+      expect(options.map((option) => option.value)).toEqual([
+        'region-1',
+        'port-2',
+        'port-1',
+      ]);
+    },
+  );
+
   it.each([undefined, '客户'])(
     '委托单位候选在服务端排除黑名单和停用角色（关键词：%s）',
     async (keyword) => {

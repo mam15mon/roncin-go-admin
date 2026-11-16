@@ -32,7 +32,7 @@ func (r *industryReferenceRepo) ListPorts(ctx context.Context, organizationID uu
 		query.Where(port.EnabledEQ(*options.Enabled))
 	}
 	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.Port, error) {
-		return query.Order(port.BySortOrder(), port.ByUnLocode()).Offset(offset).Limit(limit).All(ctx)
+		return query.Order(industryReferenceCodeRelevance(options.Keyword, port.FieldUnLocode), port.BySortOrder(), port.ByUnLocode()).Offset(offset).Limit(limit).All(ctx)
 	}, options.Page, options.PageSize, infalliblePageConverter(portToBiz))
 }
 
@@ -85,7 +85,7 @@ func (r *industryReferenceRepo) ListAirports(ctx context.Context, organizationID
 		query.Where(airport.EnabledEQ(*options.Enabled))
 	}
 	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.Airport, error) {
-		return query.Order(airport.BySortOrder(), airport.ByIataCode()).Offset(offset).Limit(limit).All(ctx)
+		return query.Order(industryReferenceCodeRelevance(options.Keyword, airport.FieldIataCode, airport.FieldIcaoCode), airport.BySortOrder(), airport.ByIataCode()).Offset(offset).Limit(limit).All(ctx)
 	}, options.Page, options.PageSize, infalliblePageConverter(airportToBiz))
 }
 
@@ -150,7 +150,7 @@ func (r *industryReferenceRepo) ListAirlines(ctx context.Context, organizationID
 		query.Where(airline.EnabledEQ(*options.Enabled))
 	}
 	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.Airline, error) {
-		return query.Order(airline.BySortOrder(), airline.ByIataCode()).Offset(offset).Limit(limit).All(ctx)
+		return query.Order(industryReferenceCodeRelevance(options.Keyword, airline.FieldIataCode, airline.FieldIcaoCode, airline.FieldAwbPrefix), airline.BySortOrder(), airline.ByIataCode()).Offset(offset).Limit(limit).All(ctx)
 	}, options.Page, options.PageSize, infalliblePageConverter(airlineToBiz))
 }
 
@@ -238,7 +238,7 @@ func (r *industryReferenceRepo) ListShippingLines(ctx context.Context, organizat
 		query.Where(shippingline.EnabledEQ(*options.Enabled))
 	}
 	return paginate(ctx, query.Count, func(ctx context.Context, offset, limit int) ([]*ent.ShippingLine, error) {
-		return query.Order(shippingline.BySortOrder(), shippingline.ByScacCode()).Offset(offset).Limit(limit).All(ctx)
+		return query.Order(industryReferenceCodeRelevance(options.Keyword, shippingline.FieldScacCode), shippingline.BySortOrder(), shippingline.ByScacCode()).Offset(offset).Limit(limit).All(ctx)
 	}, options.Page, options.PageSize, infalliblePageConverter(shippingLineToBiz))
 }
 

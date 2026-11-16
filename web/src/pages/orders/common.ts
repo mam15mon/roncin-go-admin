@@ -248,11 +248,21 @@ export async function searchOrderLocations(
     transportResponse,
     '运输地点主数据搜索失败，请稍后重试',
   );
+  const normalizedKeyword = keyword?.trim().toLowerCase();
+  const codeRank = (...codes: (string | undefined)[]) => {
+    if (!normalizedKeyword) return 2;
+    const normalizedCodes = codes.map((code) => code?.toLowerCase());
+    if (normalizedCodes.includes(normalizedKeyword)) return 0;
+    return normalizedCodes.some((code) => code?.startsWith(normalizedKeyword))
+      ? 1
+      : 2;
+  };
   const regions = unwrapList(
     ensureListResponse(regionsResponse, '地区主数据搜索失败，请稍后重试'),
   ).map((item) => ({
     label: item.code ? `${item.name} (${item.code})` : (item.name ?? ''),
     value: item.id ?? '',
+    rank: codeRank(item.code),
   }));
   const transportLocations =
     transportMode === 'sea'
@@ -260,17 +270,21 @@ export async function searchOrderLocations(
           (item) => ({
             label: `${item.nameZh ? `${item.nameZh} / ` : ''}${item.nameEn} (${item.unLocode})`,
             value: item.id ?? '',
+            rank: codeRank(item.unLocode),
           }),
         ) ?? [])
       : ((guardedTransportResponse.data as API.Airport[] | undefined)?.map(
           (item) => ({
             label: `${item.nameZh ? `${item.nameZh} / ` : ''}${item.nameEn} (${item.iataCode})`,
             value: item.id ?? '',
+            rank: codeRank(item.iataCode, item.icaoCode),
           }),
         ) ?? []);
-  return [...regions, ...transportLocations].filter(
-    (item) => item.value !== '',
-  );
+  // 合并两个服务端结果时，仍让代码命中排在名称模糊命中之前；同级保留原顺序。
+  return [...regions, ...transportLocations]
+    .filter((item) => item.value !== '')
+    .sort((a, b) => a.rank - b.rank)
+    .map(({ label, value }) => ({ label, value }));
 }
 
 export async function fetchOrderMasterData(
