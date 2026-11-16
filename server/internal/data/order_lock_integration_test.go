@@ -496,7 +496,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 	destinationAirport := data.db.Airport.Create().SetIataCode("B" + aviationCode[:2]).SetNameEn("Lock AE Destination").SetCountryCode("US").SaveX(ctx)
 	airMaster := data.db.AirMasterWaybill.Create().SetBusinessType("AE").SetOrganizationID(org.ID).SetMasterNo("78112345675").SetAirlineID(airline.ID).SetOriginAirportID(originAirport.ID).SetDestinationAirportID(destinationAirport.ID).SaveX(ctx)
 	aeOrder := genericOrders[biz.OrderBusinessAE]
-	data.db.AirMasterWaybillOrderLink.Create().SetOrganizationID(org.ID).SetOrderID(aeOrder.ID).SetMasterWaybillID(airMaster.ID).SaveX(ctx)
+	data.db.AirMasterWaybillOrderLink.Create().SetDocumentMode("HOUSE").SetOrganizationID(org.ID).SetOrderID(aeOrder.ID).SetMasterWaybillID(airMaster.ID).SaveX(ctx)
 	data.db.AirHouseWaybill.Create().SetOrganizationID(org.ID).SetOrderID(aeOrder.ID).SetMasterWaybillID(airMaster.ID).SetHouseNo("LOCK-AE-" + suffix).SaveX(ctx)
 	t.Cleanup(func() {
 		for _, statement := range []string{"DELETE FROM air_master_waybill_order_links WHERE organization_id=$1", "DELETE FROM air_house_waybills WHERE organization_id=$1", "DELETE FROM air_master_waybills WHERE organization_id=$1"} {
@@ -2176,5 +2176,13 @@ func lockTestReviewInput(t *testing.T, d *Data, ctx context.Context, orderID uui
 	if err != nil {
 		t.Fatal(err)
 	}
-	return biz.OrderLockReviewInput{ExpectedFeeContentVersion: o.FeeContentVersion, FeeContentFingerprint: fingerprint, Comment: "集成验证：已核对订单与费用"}
+	review := biz.OrderLockReviewInput{ExpectedFeeContentVersion: o.FeeContentVersion, FeeContentFingerprint: fingerprint, Comment: "集成验证：已核对订单与费用"}
+	if o.BusinessType == orderent.BusinessTypeAE {
+		snapshot, e := readAirOrderDocumentSnapshot(ctx, d.db, o.OrganizationID, o.ID)
+		if e != nil {
+			t.Fatal(e)
+		}
+		review.AirDocumentFingerprint = airDocumentSnapshotFingerprint(snapshot)
+	}
+	return review
 }

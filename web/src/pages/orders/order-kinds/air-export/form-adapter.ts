@@ -12,11 +12,42 @@ import type {
 } from '../form-values';
 import type { OrderKindFormAdapter } from '../types';
 
+/** 仅清理声明控件注册产生的空子消息，其他零值及正文显式清空原样保留。 */
+export function serializeAirWaybillContent(
+  content?: API.AirWaybillContent,
+): API.AirWaybillContent | undefined {
+  if (content === undefined) return undefined;
+  const result = { ...content };
+  for (const field of [
+    'carriageValue',
+    'customsValue',
+    'insuranceValue',
+  ] as const) {
+    const declaration = result[field];
+    if (declaration && !declaration.kind && !declaration.amount) {
+      delete result[field];
+    }
+  }
+  for (const field of ['prepaid', 'collect'] as const) {
+    const summary = result[field];
+    if (
+      summary &&
+      Object.values(summary).every((value) => value == null || value === '')
+    ) {
+      delete result[field];
+    }
+  }
+  return result;
+}
+
 export function serializeAirMaster(
   input?: API.AirMasterWaybillInput,
 ): API.AirMasterWaybillInput | undefined {
   if (!input) return undefined;
-  const result = { ...input };
+  const result = {
+    ...input,
+    waybillContent: serializeAirWaybillContent(input.waybillContent),
+  };
   for (const key of [
     'etd',
     'eta',
@@ -132,6 +163,7 @@ export const airExportFormAdapter: OrderKindFormAdapter = {
     paymentTerm: 1,
     shipmentMode: ShipmentMode.SHIPMENT_MODE_TRADITIONAL_FORWARDING,
     airMasterMode: 'NEW',
+    airDocumentMode: 'HOUSE',
     creatorUserId: creator?.userId,
     totalPackageUnit: 'CTNS',
     cargoCategoryIds: cargoCategoryOptions.find(
@@ -164,10 +196,19 @@ export const airExportFormAdapter: OrderKindFormAdapter = {
         values.airMasterMode === 'EXISTING'
           ? values.airMasterExpectedVersion
           : undefined,
-      master: serializeAirMaster(values.airMaster),
-      houseNo: values.airHouseNo?.trim(),
-      houseContent: values.airHouseContent,
-      houseStatus: values.airHouseStatus,
+      master:
+        values.airMasterMode === 'EXISTING'
+          ? undefined
+          : serializeAirMaster(values.airMaster),
+      documentMode: values.airDocumentMode,
+      house:
+        values.airDocumentMode === 'HOUSE'
+          ? {
+              houseNo: values.airHouseNo?.trim(),
+              content: serializeAirWaybillContent(values.airHouseContent),
+              status: values.airHouseStatus,
+            }
+          : undefined,
     },
   }),
   buildDetailInitialValues: (order, _documents, personnel) => {
@@ -195,9 +236,13 @@ export const airExportFormAdapter: OrderKindFormAdapter = {
       airMasterMode: 'EXISTING',
       airMasterId: air?.master?.id,
       airMasterExpectedVersion: air?.master?.version,
-      airHouseNo: air?.houseNo,
-      airHouseContent: air?.houseContent,
-      airHouseStatus: air?.houseStatus,
+      airDocumentMode:
+        air?.documentMode === 'DIRECT' || air?.documentMode === 'HOUSE'
+          ? air.documentMode
+          : undefined,
+      airHouseNo: air?.house?.houseNo,
+      airHouseContent: air?.house?.content,
+      airHouseStatus: air?.house?.status,
     };
   },
   buildUpdatePayload: (id, expectedVersion, values: OrderDetailFormValues) => ({
@@ -205,11 +250,19 @@ export const airExportFormAdapter: OrderKindFormAdapter = {
     expectedVersion,
     ...commonFields(values, true),
     airExport: {
-      masterWaybillId: values.airMasterId,
-      expectedMasterVersion: values.airMasterExpectedVersion,
-      houseNo: values.airHouseNo?.trim(),
-      houseContent: values.airHouseContent,
-      houseStatus: values.airHouseStatus,
+      masterWaybillId: values.airExport?.master?.id,
+      expectedMasterVersion: values.airExport?.master?.version,
+      // 已有订单的关系身份取打开时的基线，表单不能借普通保存切换模式或主单。
+      documentMode: values.airExport?.documentMode,
+      house:
+        values.airExport?.documentMode === 'HOUSE'
+          ? {
+              houseNo: values.airHouseNo?.trim(),
+              content: serializeAirWaybillContent(values.airHouseContent),
+              status: values.airHouseStatus,
+              expectedVersion: values.airExport.house?.version,
+            }
+          : undefined,
       expectedLinkVersion: values.airExport?.linkVersion,
       changeReason: values.airHouseChangeReason?.trim(),
     },

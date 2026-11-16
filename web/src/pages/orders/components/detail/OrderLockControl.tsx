@@ -147,9 +147,16 @@ export default function OrderLockControl({
     feeReview.data?.orderId === lockSnapshot?.orderId &&
     feeReview.data?.contentVersion === lockSnapshot?.feeContentVersion &&
     state?.orderVersion === lockSnapshot?.orderVersion &&
-    state?.feeContentFingerprint === lockSnapshot?.feeContentFingerprint;
+    state?.feeContentFingerprint === lockSnapshot?.feeContentFingerprint &&
+    state?.airDocumentFingerprint === lockSnapshot?.airDocumentFingerprint;
   const feeReviewReady =
-    feeReview.isSuccess && !feeReview.isFetching && feeReviewMatchesSnapshot;
+    !loading &&
+    !error &&
+    state?.canLock === true &&
+    !state.isLocked &&
+    feeReview.isSuccess &&
+    !feeReview.isFetching &&
+    feeReviewMatchesSnapshot;
   const [unlocking, setUnlocking] = useState(false);
   const [unlockModalVisible, setUnlockModalVisible] = useState(false);
   const { markDirty: markUnlockDirty } = useUnsavedChangesGuard({
@@ -178,7 +185,10 @@ export default function OrderLockControl({
   const reviewSnapshotMissing =
     versionMissing ||
     !state?.feeContentVersion ||
-    !state?.feeContentFingerprint;
+    !state?.feeContentFingerprint ||
+    ((state.businessType === OrderBusinessType.BUSINESS_TYPE_AE ||
+      state.businessType === OrderBusinessType.BUSINESS_TYPE_AI) &&
+      !state.airDocumentFingerprint);
   const businessTypeLabel = getOrderBusinessTypeLabel(state?.businessType);
 
   const handleLock = () => {
@@ -186,7 +196,8 @@ export default function OrderLockControl({
       !state?.canLock ||
       !state.orderVersion ||
       !state.feeContentVersion ||
-      !state.feeContentFingerprint
+      !state.feeContentFingerprint ||
+      reviewSnapshotMissing
     ) {
       message.warning('订单审核快照或版本已变化，请刷新后重试');
       return;
@@ -268,7 +279,7 @@ export default function OrderLockControl({
   };
 
   const lockBlockedTip = reviewSnapshotMissing
-    ? '订单或费用审核快照缺失，请刷新后重试'
+    ? '订单、单证或费用审核快照缺失，请刷新后重试'
     : state?.lockBlockedReasons?.join('；');
   const unlockBlockedTip = versionMissing
     ? '订单版本信息缺失，请刷新后重试'
@@ -369,7 +380,12 @@ export default function OrderLockControl({
               lockSnapshot.orderId !== orderId ||
               !lockSnapshot.orderVersion ||
               !lockSnapshot.feeContentVersion ||
-              !lockSnapshot.feeContentFingerprint
+              !lockSnapshot.feeContentFingerprint ||
+              ((lockSnapshot.businessType ===
+                OrderBusinessType.BUSINESS_TYPE_AE ||
+                lockSnapshot.businessType ===
+                  OrderBusinessType.BUSINESS_TYPE_AI) &&
+                !lockSnapshot.airDocumentFingerprint)
             )
               return false;
             try {
@@ -380,6 +396,7 @@ export default function OrderLockControl({
                   expectedOrderVersion: lockSnapshot.orderVersion,
                   expectedFeeContentVersion: lockSnapshot.feeContentVersion,
                   feeContentFingerprint: lockSnapshot.feeContentFingerprint,
+                  airDocumentFingerprint: lockSnapshot.airDocumentFingerprint,
                   idempotencyKey: lockKey,
                 },
               );

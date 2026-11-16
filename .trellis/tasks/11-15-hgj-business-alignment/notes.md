@@ -76,3 +76,49 @@
 2. 若它完成，spawn trellis-check（Active task首行+责任范围+已跑结果）检查方向身份/迁移回填/索引/CHECK/候选必填/直接ID/完整成员恢复/生成一致和真实DB测试，不把SKIP算过。修复后同步实际规范并提交同组源+生成物+正式迁移+tests。
 3. 当前子独立验收完成再记录完成/归档，按六子依赖start下一组air-documents（大工作，需继续持久推进）及SI等；主会话协调规格/提交，实现/check默认用Trellis子代理，原生context优先。
 4. 父全目标远未完成，不update_goal complete，不再次请求最终规划批准。只有真实新用户业务决策未明才问，已批准的锁序/实体边界不重问。
+
+## 2026-11-16 00:52 UTC 实施检查点（窗口 01a1e1b3-ee77-7b40-8710-4f71df016cda）
+
+### 仍有效的目标与授权
+
+- 最终规划2a96d89e后的用户明确“可以”已经批准六组完整实施；不再问相同实施/提交批准。完整目标仍是SE/AE完善+SI/AI闭环+主分AWB制作预览PDF+四类完整筛选CSV，其他五类仅调研。父prd/design为已批准合同。未完成整个父目标，goal保持active。
+- 用户消息item id在当前工具环境不可见；目标线程01a1dff8-3ebb-77c1-b55b-385aacecba50。原始HGJ资料/真实单据不写入、不外发；不清开发数据。
+
+### 已完成并提交
+
+- c2c7435b：AE公共经营字段及双向映射/显式清空（前窗口已提交，17定向用例/tsc/Biome/antd通过）。
+- 375a20c2：方向身份整组108文件，海空主单/海运版本的必填Immutable business_type、方向唯一/查询索引/CHECK/正式迁移、DTO/候选显式businessType、ID/恢复/共享/拆票改配门禁、主单hash身份、源/生成物/种子夹具和针对性测试，含规范和验证记录。
+- 5342fd33：已归档方向任务至 `.trellis/tasks/archive/2026-11/11-15-hgj-order-direction`，父子完成计数1/6。不要继续使用旧活跃目录作为可写任务目录；验证记录均在归档research。
+- 新规范 `.trellis/spec/server/backend/order-master-business-identity.md`，已挂index并更新海空旧唯一键/签名描述，后续五组implement/check JSONL已加入此规范。
+
+### 方向组真实验证（均有归档记录）
+
+- 主会话新增 `order_direction_migration_integration_test.go`：3主测试、13异常及2约束子场景，最终36.05s PASS无SKIP，正式SQL前态→截至目标迁移，原列全行比较、四类与Ended关系/版本回填、异常DDL/revision回滚、方向公司唯一/NOT NULL/CHECK无默认。只随机Schema，不清开发数据。
+- 实现代理完整方向+出口相邻PG首轮144.383s含2FAIL（404语义、旧唯一索引映射），不能称该轮PASS；修复后受影响5主项补跑16.608s全PASS、0FAIL、0SKIP。其余所选新方向/迁移/共享/单证/终止恢复/审核锁/重量/拆票改配均PASS无SKIP，精确命令见 direction-core-validation.md。
+- 检查代理自修2项：共享正文预锁Order集合后MBL锁内完整Link集合比对、去逆序Link锁；拆票/改配Preview和Execute都验证原/目标已有MBL完整成员身份。新增2主PG测试（其中1含4子场景）实际PASS。最终404/索引名小修静态复核PASS。
+- Root5前端定向文件27tests PASS；7文件Biome、tsc、3组件antd lint PASS；biz/service/ent-migrate完整纯包PASS；相关vet PASS；Ent/API/web再生成指纹0变化。
+- 额外高风险 `pnpm run check:fast` 真实PASS，227.8s（WEB227.8 / SERVER225.5）。前端479文件/2576用例PASS，既有 sea-template.test.tsx 1文件/11用例SKIP（HEAD已有，未算通过）；普通Go全量没数据库环境，不能代替专用PG验收。全量存在既有Biome警告/环境getComputedStyle/localhost3000噪音；未改无关文件或关规则。无build，PDF生产入口组后续执行。
+
+### 开发库真实阻断（保留数据，未问用户处理）
+
+- Root只读实际开发库：1张海运孤立主单，有1条SeaVersion，无任何历史Link/HBL/锁/其他Order引用；其余海空未知/混向/跨公司/版本错误计数均0。不能从关联确定该记录方向；正式迁移按已批准合同应拒绝。不要猜SE/放宽迁移、不要删记录或清库。
+- 当前没有在开发库apply新迁移。使用隔离Schema继续代码/验收；整套代码具体就绪后，应用开发库前需要用户明确这条记录业务归属或明确批准具体处置。原始业务标识不写Git；必要时重新只读定位，本checkpoint不保存标识。
+- 本地 `.env.local` 包含DATABASE_SOURCE，shell没有；用 `node --env-file-if-exists=.env.local` 在进程内取source传Go子进程RONCIN_INTEGRATION_DATABASE_SOURCE，绝不打印源/凭据。helper自动迁移随机Schema并只drop自己Schema。postgres127.0.0.1:5432可用。
+
+### 现在正在进行的第二组
+
+- 当前任务已start：`.trellis/tasks/11-15-hgj-air-documents`（in_progress），branch codex/hgj-business-alignment。当前未提交仅该任务task.json（start状态）；其余产品干净。父仍in_progress，其他四子planning。
+- 已新派 `air_documents_core`（trellis-implement，fork none），独占所有server/Proto/Ent/正式迁移/生成物/种子/后端测试夹具，含生成web client。它不改非生成前端、不commit、不派子代理。
+- 主会话负责本组所有非生成前端UI/adapter/相关测试及spec/任务记录。不要抢写server或重复生成。它会先定Proto/领域/模式/内容shape并生成客户端，消息给主会话后再由主会话接前端。
+- 后端prompt明确AE显式DIRECT/HOUSE创建：DIRECT无HAWB、单当前成员不混HOUSE；HOUSE真实HAWB永久占号。已保存不互转/不换主单。AirWaybillContent独立结构化/JSONB、主/分独立hash/版本历史、可选house存在性、普通更新没改正文不清空、旧houseContent迁备注保全、不兼容双读；保留重量与费用来源/快照/锁序/原子性。本组不开放SI/AI创建、不做PDF（后续组）。内容字段和长度按父design+observations，decimal/声明文本/AS ARRANGED分清。候选应给实际成员模式/阻断或按请求模式过滤，前端不凭数量猜混挂。
+- Root尚未开始本组前端代码。下一步可读取当前前端air adapter/templates/AirMaster页等来准备；等air_documents_core发具体合同后实施模式选择、optional house、结构化正文/页面读取保存和定向测试；已有AE公共字段不要覆盖。按roncin-web-stack/antd规范查询API与检查，无关模式不扩展。
+- 方向旧代理 direction_core/check_direction 已完成并释放所有写权，无遗留产品工作。
+
+### 后续推进
+
+1. 持续和air_documents_core协调前后端责任，合同出来后主会话完成非生成前端。不要再跑方向已过全套；新改动按风险定向验证。
+2. 当前航空子组实现/真实PG/前端验证后派独立trellis-check全范围自修，更新规范，同组Conventional Commit+归档；再start SI固定进口服务组（依赖方向已满足），再AI、PDF、横切/完整CSV整体验收。
+3. 最终父AC1–AC8、F01–F45、V1–V20全对应真实证据（业务财务链、双空运模式、越权/并发、实际PDF长文分页、>200行CSV、check:fast/PDFbuild同域路径）。不把研究、枚举或基础模型当完成。
+4. 全部已授权工作应继续，不因单个子任务完成就结束父goal；只有真正新用户业务信息不明才澄清，已批准锁序/字段设计不重问。任务创建/实施/提交授权均持久有效。
+
+- air_documents_core 最新锁定待生成合同：AirOrderInput.documentMode:string DIRECT/HOUSE（创建必填、更新如传须一致）；house?:AirHouseWaybillInput {houseNo,status,content?:AirWaybillContent,expectedVersion}。AirOrderInfo {documentMode,master,house?:AirHouseWaybill{id,houseNo,status,version,content,contentHash},linkId,linkVersion,active}，删除旧扁平house字段。Master.content仍运输Input，新增waybillContent?:AirWaybillContent（省略保持，{}显式清空）和contentHash。候选Master返回documentMode（依据历史固定模式，空主单无值）、canAttach、attachBlockedReason；DIRECT仅无既有关系可新加票，原票恢复须单独合法放行（已提醒代理），HOUSE不混DIRECT。精确正文字段和生成就绪待它后续消息；Root已确认将按此接前端，尚未写代码。

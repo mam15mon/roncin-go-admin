@@ -66,6 +66,11 @@ func UpdatedAt(v time.Time) predicate.AirMasterWaybill {
 	return predicate.AirMasterWaybill(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
+// ContentHash applies equality check predicate on the "content_hash" field. It's identical to ContentHashEQ.
+func ContentHash(v string) predicate.AirMasterWaybill {
+	return predicate.AirMasterWaybill(sql.FieldEQ(FieldContentHash, v))
+}
+
 // BusinessType applies equality check predicate on the "business_type" field. It's identical to BusinessTypeEQ.
 func BusinessType(v string) predicate.AirMasterWaybill {
 	return predicate.AirMasterWaybill(sql.FieldEQ(FieldBusinessType, v))
@@ -239,6 +244,71 @@ func UpdatedAtLT(v time.Time) predicate.AirMasterWaybill {
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.AirMasterWaybill {
 	return predicate.AirMasterWaybill(sql.FieldLTE(FieldUpdatedAt, v))
+}
+
+// ContentHashEQ applies the EQ predicate on the "content_hash" field.
+func ContentHashEQ(v string) predicate.AirMasterWaybill {
+	return predicate.AirMasterWaybill(sql.FieldEQ(FieldContentHash, v))
+}
+
+// ContentHashNEQ applies the NEQ predicate on the "content_hash" field.
+func ContentHashNEQ(v string) predicate.AirMasterWaybill {
+	return predicate.AirMasterWaybill(sql.FieldNEQ(FieldContentHash, v))
+}
+
+// ContentHashIn applies the In predicate on the "content_hash" field.
+func ContentHashIn(vs ...string) predicate.AirMasterWaybill {
+	return predicate.AirMasterWaybill(sql.FieldIn(FieldContentHash, vs...))
+}
+
+// ContentHashNotIn applies the NotIn predicate on the "content_hash" field.
+func ContentHashNotIn(vs ...string) predicate.AirMasterWaybill {
+	return predicate.AirMasterWaybill(sql.FieldNotIn(FieldContentHash, vs...))
+}
+
+// ContentHashGT applies the GT predicate on the "content_hash" field.
+func ContentHashGT(v string) predicate.AirMasterWaybill {
+	return predicate.AirMasterWaybill(sql.FieldGT(FieldContentHash, v))
+}
+
+// ContentHashGTE applies the GTE predicate on the "content_hash" field.
+func ContentHashGTE(v string) predicate.AirMasterWaybill {
+	return predicate.AirMasterWaybill(sql.FieldGTE(FieldContentHash, v))
+}
+
+// ContentHashLT applies the LT predicate on the "content_hash" field.
+func ContentHashLT(v string) predicate.AirMasterWaybill {
+	return predicate.AirMasterWaybill(sql.FieldLT(FieldContentHash, v))
+}
+
+// ContentHashLTE applies the LTE predicate on the "content_hash" field.
+func ContentHashLTE(v string) predicate.AirMasterWaybill {
+	return predicate.AirMasterWaybill(sql.FieldLTE(FieldContentHash, v))
+}
+
+// ContentHashContains applies the Contains predicate on the "content_hash" field.
+func ContentHashContains(v string) predicate.AirMasterWaybill {
+	return predicate.AirMasterWaybill(sql.FieldContains(FieldContentHash, v))
+}
+
+// ContentHashHasPrefix applies the HasPrefix predicate on the "content_hash" field.
+func ContentHashHasPrefix(v string) predicate.AirMasterWaybill {
+	return predicate.AirMasterWaybill(sql.FieldHasPrefix(FieldContentHash, v))
+}
+
+// ContentHashHasSuffix applies the HasSuffix predicate on the "content_hash" field.
+func ContentHashHasSuffix(v string) predicate.AirMasterWaybill {
+	return predicate.AirMasterWaybill(sql.FieldHasSuffix(FieldContentHash, v))
+}
+
+// ContentHashEqualFold applies the EqualFold predicate on the "content_hash" field.
+func ContentHashEqualFold(v string) predicate.AirMasterWaybill {
+	return predicate.AirMasterWaybill(sql.FieldEqualFold(FieldContentHash, v))
+}
+
+// ContentHashContainsFold applies the ContainsFold predicate on the "content_hash" field.
+func ContentHashContainsFold(v string) predicate.AirMasterWaybill {
+	return predicate.AirMasterWaybill(sql.FieldContainsFold(FieldContentHash, v))
 }
 
 // BusinessTypeEQ applies the EQ predicate on the "business_type" field.

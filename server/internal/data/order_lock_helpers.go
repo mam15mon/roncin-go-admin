@@ -88,6 +88,7 @@ func computeHBLContentHash(hbl *ent.SeaHouseBill) string {
 func computeLockOrderFingerprint(organizationID, orderID uuid.UUID, expectedVersion uint64, callerID uuid.UUID, review biz.OrderLockReviewInput) string {
 	h := sha256.New()
 	fmt.Fprintf(h, "org:%s|order:%s|ver:%d|caller:%s|fee_ver:%d|fee_fp:%s|comment:%s", organizationID, orderID, expectedVersion, callerID, review.ExpectedFeeContentVersion, review.FeeContentFingerprint, review.Comment)
+	fmt.Fprintf(h, "|air_fp:%s", review.AirDocumentFingerprint)
 	return hex.EncodeToString(h.Sum(nil))
 }
 

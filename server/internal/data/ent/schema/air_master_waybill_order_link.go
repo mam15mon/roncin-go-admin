@@ -3,6 +3,7 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -17,6 +18,7 @@ func (AirMasterWaybillOrderLink) Mixin() []ent.Mixin { return []ent.Mixin{IDMixi
 func (AirMasterWaybillOrderLink) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("organization_id", uuid.Nil), field.UUID("master_waybill_id", uuid.Nil), field.UUID("order_id", uuid.Nil),
+		field.String("document_mode").NotEmpty().MaxLen(10).Immutable(),
 		field.String("status").Default("ACTIVE").MaxLen(10), field.Uint64("version").Default(1), field.Time("started_at").Default(time.Now),
 		field.Time("ended_at").Optional().Nillable(), field.String("ended_reason").Default("").MaxLen(500),
 	}
@@ -30,6 +32,11 @@ func (AirMasterWaybillOrderLink) Edges() []ent.Edge {
 }
 func (AirMasterWaybillOrderLink) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("organization_id", "master_waybill_id"), index.Fields("order_id").Unique().StorageKey("idx_air_links_active_order").Annotations(entsql.IndexWhere("status = 'ACTIVE'")),
+		index.Fields("organization_id", "master_waybill_id"),
+		index.Fields("master_waybill_id").Unique().StorageKey("idx_air_links_active_direct_master").Annotations(entsql.IndexWhere("status = 'ACTIVE' AND document_mode = 'DIRECT'")), index.Fields("order_id").Unique().StorageKey("idx_air_links_active_order").Annotations(entsql.IndexWhere("status = 'ACTIVE'")),
 	}
+}
+
+func (AirMasterWaybillOrderLink) Annotations() []schema.Annotation {
+	return []schema.Annotation{entsql.Checks(map[string]string{"air_links_document_mode_check": "document_mode IN ('DIRECT','HOUSE')"})}
 }

@@ -91,6 +91,30 @@ func lockAirMasterMembers(ctx context.Context, tx *ent.Tx, org, masterID uuid.UU
 			}
 		}
 	}
+	// 模式与分单存在性也是锁内事实，不允许缺失分单退化为空白展示。
+	houses, e := tx.AirHouseWaybill.Query().Where(airhouse.OrderIDIn(memberIDs...)).All(ctx)
+	if e != nil {
+		return nil, e
+	}
+	byOrder := map[uuid.UUID]*ent.AirHouseWaybill{}
+	for _, h := range houses {
+		byOrder[h.OrderID] = h
+	}
+	mode := ""
+	for _, l := range lockedLinks {
+		if mode != "" && mode != l.DocumentMode {
+			return nil, biz.ErrAirWaybillConflict
+		}
+		mode = l.DocumentMode
+		h := byOrder[l.OrderID]
+		if l.DocumentMode == "DIRECT" {
+			if len(lockedLinks) != 1 || h != nil {
+				return nil, biz.ErrAirWaybillConflict
+			}
+		} else if l.DocumentMode != "HOUSE" || h == nil || h.OrganizationID != org || h.MasterWaybillID != masterID {
+			return nil, biz.ErrAirWaybillConflict
+		}
+	}
 	return &airMasterLockContext{master: master, members: members, links: lockedLinks}, nil
 }
 func ensureAirMembersEditable(c *airMasterLockContext) error {
@@ -105,7 +129,7 @@ func airMasterToBiz(m *ent.AirMasterWaybill) *biz.AirMasterWaybill {
 	if m == nil {
 		return nil
 	}
-	return &biz.AirMasterWaybill{ID: m.ID, OrganizationID: m.OrganizationID, BusinessType: biz.OrderBusinessType(m.BusinessType), Version: m.Version, Content: biz.AirMasterWaybillInput{MasterNo: m.MasterNo, AirlineID: m.AirlineID, OriginAirportID: m.OriginAirportID, DestinationAirportID: m.DestinationAirportID, FlightNo: m.FlightNo, ETD: m.Etd, ETA: m.Eta, ActualDepartureAt: m.ActualDepartureAt, ActualArrivalAt: m.ActualArrivalAt, DocumentCutoffAt: m.DocumentCutoffAt, CustomsCutoffAt: m.CustomsCutoffAt, Status: m.Status, DeclaredPackages: m.DeclaredPackages, DeclaredGrossWeightKg: m.DeclaredGrossWeightKg, DeclaredVolumeCbm: m.DeclaredVolumeCbm, Notes: m.Notes}, CreatedAt: m.CreatedAt, UpdatedAt: m.UpdatedAt}
+	return &biz.AirMasterWaybill{ID: m.ID, OrganizationID: m.OrganizationID, BusinessType: biz.OrderBusinessType(m.BusinessType), Version: m.Version, ContentHash: m.ContentHash, Content: biz.AirMasterWaybillInput{MasterNo: m.MasterNo, AirlineID: m.AirlineID, OriginAirportID: m.OriginAirportID, DestinationAirportID: m.DestinationAirportID, FlightNo: m.FlightNo, ETD: m.Etd, ETA: m.Eta, ActualDepartureAt: m.ActualDepartureAt, ActualArrivalAt: m.ActualArrivalAt, DocumentCutoffAt: m.DocumentCutoffAt, CustomsCutoffAt: m.CustomsCutoffAt, Status: m.Status, DeclaredPackages: m.DeclaredPackages, DeclaredGrossWeightKg: m.DeclaredGrossWeightKg, DeclaredVolumeCbm: m.DeclaredVolumeCbm, Notes: m.Notes, WaybillContent: airContentFromJSON(m.WaybillContent)}, CreatedAt: m.CreatedAt, UpdatedAt: m.UpdatedAt}
 }
 func decorateAirMaster(ctx context.Context, c *ent.Client, m *biz.AirMasterWaybill) error {
 	a, err := c.Airline.Query().Where(airline.IDEQ(m.Content.AirlineID)).Only(ctx)
@@ -133,8 +157,40 @@ func decorateAirMaster(ctx context.Context, c *ent.Client, m *biz.AirMasterWaybi
 			m.DestinationAirportName = name
 		}
 	}
-	m.MemberCount, err = c.AirMasterWaybillOrderLink.Query().Where(airlink.MasterWaybillIDEQ(m.ID), airlink.StatusEQ("ACTIVE")).Count(ctx)
-	return err
+	if m.Content.WaybillContent == nil {
+		return biz.ErrAirWaybillConflict
+	}
+	links, e := c.AirMasterWaybillOrderLink.Query().Where(airlink.MasterWaybillIDEQ(m.ID)).All(ctx)
+	if e != nil {
+		return e
+	}
+	m.CanAttach = true
+	activeIDs := []uuid.UUID{}
+	for _, l := range links {
+		if m.DocumentMode != "" && m.DocumentMode != l.DocumentMode {
+			return biz.ErrAirWaybillConflict
+		}
+		m.DocumentMode = l.DocumentMode
+		if l.Status == "ACTIVE" {
+			m.MemberCount++
+			activeIDs = append(activeIDs, l.OrderID)
+		}
+	}
+	if m.DocumentMode == "DIRECT" && m.MemberCount > 0 {
+		m.CanAttach = false
+		m.AttachBlockedReason = "直单主单已有操作票"
+	}
+	if len(activeIDs) > 0 {
+		blocked, e := c.Order.Query().Where(orderent.IDIn(activeIDs...), orderent.Or(orderent.LockedAtNotNil(), orderent.TerminationStatusNEQ(orderent.TerminationStatusACTIVE))).Exist(ctx)
+		if e != nil {
+			return e
+		}
+		if blocked {
+			m.CanAttach = false
+			m.AttachBlockedReason = "主单成员已锁定或终止，不能关联"
+		}
+	}
+	return nil
 }
 func attachAirOrders(ctx context.Context, c *ent.Client, orders []*biz.Order) error {
 	ids := make([]uuid.UUID, 0)
@@ -169,7 +225,7 @@ func attachAirOrders(ctx context.Context, c *ent.Client, orders []*biz.Order) er
 		}
 		l := byOrder[o.ID]
 		h := byHouse[o.ID]
-		if l == nil || h == nil {
+		if l == nil || (l.DocumentMode == "HOUSE" && h == nil) || (l.DocumentMode == "DIRECT" && h != nil) {
 			return biz.ErrAirWaybillConflict
 		}
 		m := masters[l.MasterWaybillID]
@@ -184,10 +240,17 @@ func attachAirOrders(ctx context.Context, c *ent.Client, orders []*biz.Order) er
 			}
 			masters[m.ID] = m
 		}
-		if m.OrganizationID != o.OrganizationID || m.BusinessType != o.BusinessType || l.OrganizationID != o.OrganizationID || h.OrganizationID != o.OrganizationID {
+		if m.OrganizationID != o.OrganizationID || m.BusinessType != o.BusinessType || l.OrganizationID != o.OrganizationID || h != nil && (h.OrganizationID != o.OrganizationID || h.MasterWaybillID != m.ID) {
 			return biz.ErrAirWaybillConflict
 		}
-		o.AirExport = &biz.AirOrderInfo{Master: m, HouseNo: h.HouseNo, HouseStatus: h.Status, HouseVersion: h.Version, LinkID: l.ID, LinkVersion: l.Version, HouseID: h.ID, HouseContent: h.Content, Active: l.Status == "ACTIVE"}
+		o.AirExport = &biz.AirOrderInfo{Master: m, DocumentMode: l.DocumentMode, LinkID: l.ID, LinkVersion: l.Version, Active: l.Status == "ACTIVE"}
+		if h != nil {
+			content := airContentFromJSON(h.Content)
+			if content == nil {
+				return biz.ErrAirWaybillConflict
+			}
+			o.AirExport.House = &biz.AirHouseWaybill{ID: h.ID, HouseNo: h.HouseNo, Status: h.Status, Version: h.Version, Content: content, ContentHash: h.ContentHash}
+		}
 		o.OriginLocationID = &m.Content.OriginAirportID
 		o.DestinationLocationID = &m.Content.DestinationAirportID
 		o.ETD = m.Content.ETD
@@ -342,7 +405,7 @@ func readAirMasterDetail(ctx context.Context, c *ent.Client, org, id uuid.UUID, 
 		return nil, e
 	}
 	for _, h := range rows {
-		v := &biz.AirMasterHistory{ID: h.ID, Version: h.Version, Action: h.Action, Reason: h.Reason, ActorID: h.ActorID, OccurredAt: h.CreatedAt}
+		v := &biz.AirMasterHistory{ContentHash: h.ContentHash, ID: h.ID, Version: h.Version, Action: h.Action, Reason: h.Reason, ActorID: h.ActorID, OccurredAt: h.CreatedAt}
 		if e = json.Unmarshal(h.Content, &v.Content); e != nil {
 			return nil, e
 		}
@@ -391,7 +454,7 @@ func writeAirMasterHistory(ctx context.Context, tx *ent.Tx, m *ent.AirMasterWayb
 	if e != nil {
 		return e
 	}
-	_, e = tx.AirMasterWaybillHistory.Create().SetOrganizationID(m.OrganizationID).SetMasterWaybillID(m.ID).SetVersion(m.Version).SetAction(action).SetReason(reason).SetActorID(actor).SetContent(payload).Save(ctx)
+	_, e = tx.AirMasterWaybillHistory.Create().SetOrganizationID(m.OrganizationID).SetMasterWaybillID(m.ID).SetVersion(m.Version).SetAction(action).SetReason(reason).SetActorID(actor).SetContent(payload).SetContentHash(m.ContentHash).Save(ctx)
 	return e
 }
 func (r *airExportRepo) Update(ctx context.Context, org, actor, id uuid.UUID, v uint64, in *biz.AirMasterWaybillInput, fingerprint, reason string) error {
@@ -419,7 +482,12 @@ func (r *airExportRepo) Update(ctx context.Context, org, actor, id uuid.UUID, v 
 		if e = validateAirMasterReferences(ctx, tx, in); e != nil {
 			return e
 		}
-		update := locked.master.Update().SetVersion(v + 1).SetAirlineID(in.AirlineID).SetOriginAirportID(in.OriginAirportID).SetDestinationAirportID(in.DestinationAirportID).SetFlightNo(in.FlightNo).SetEtd(in.ETD).SetEta(in.ETA).SetActualDepartureAt(in.ActualDepartureAt).SetActualArrivalAt(in.ActualArrivalAt).SetDocumentCutoffAt(in.DocumentCutoffAt).SetCustomsCutoffAt(in.CustomsCutoffAt).SetStatus(in.Status).SetNotes(in.Notes)
+		if in.WaybillContent == nil {
+			inCopy := *in
+			inCopy.WaybillContent = airContentFromJSON(locked.master.WaybillContent)
+			in = &inCopy
+		}
+		update := locked.master.Update().SetVersion(v + 1).SetAirlineID(in.AirlineID).SetOriginAirportID(in.OriginAirportID).SetDestinationAirportID(in.DestinationAirportID).SetFlightNo(in.FlightNo).SetEtd(in.ETD).SetEta(in.ETA).SetActualDepartureAt(in.ActualDepartureAt).SetActualArrivalAt(in.ActualArrivalAt).SetDocumentCutoffAt(in.DocumentCutoffAt).SetCustomsCutoffAt(in.CustomsCutoffAt).SetStatus(in.Status).SetNotes(in.Notes).SetWaybillContent(airContentJSON(in.WaybillContent)).SetContentHash(biz.AirWaybillContentHash(in.WaybillContent))
 		if in.DeclaredPackages == nil {
 			update.ClearDeclaredPackages()
 		} else {
@@ -478,14 +546,27 @@ func (r *airExportRepo) Link(ctx context.Context, org, actor, masterID, orderID 
 		if active {
 			return biz.ErrAirWaybillConflict
 		}
-		h, e := tx.AirHouseWaybill.Query().Where(airhouse.OrderIDEQ(orderID)).ForUpdate().Only(ctx)
-		if e != nil {
+		last, e := tx.AirMasterWaybillOrderLink.Query().Where(airlink.OrderIDEQ(orderID), airlink.MasterWaybillIDEQ(masterID)).Order(ent.Desc(airlink.FieldStartedAt)).First(ctx)
+		if e != nil || last.OrganizationID != org {
+			return biz.ErrAirWaybillConflict
+		}
+		if e = ensureAirModeCanAttach(ctx, tx, locked.master, last.DocumentMode); e != nil {
 			return e
 		}
-		if h.MasterWaybillID != masterID || h.HouseNo != house {
-			return biz.ErrAirWaybillInvalid
+		h, e := tx.AirHouseWaybill.Query().Where(airhouse.OrderIDEQ(orderID)).ForUpdate().Only(ctx)
+		if last.DocumentMode == "HOUSE" {
+			if e != nil {
+				return e
+			}
+			if h.MasterWaybillID != masterID || h.HouseNo != house {
+				return biz.ErrAirWaybillInvalid
+			}
+		} else {
+			if !ent.IsNotFound(e) || house != "" {
+				return biz.ErrAirWaybillInvalid
+			}
 		}
-		if _, e = tx.AirMasterWaybillOrderLink.Create().SetOrganizationID(org).SetMasterWaybillID(masterID).SetOrderID(orderID).Save(ctx); e != nil {
+		if _, e = tx.AirMasterWaybillOrderLink.Create().SetDocumentMode(last.DocumentMode).SetOrganizationID(org).SetMasterWaybillID(masterID).SetOrderID(orderID).Save(ctx); e != nil {
 			return mapEntError(e, nil, biz.ErrAirWaybillExists)
 		}
 		if _, e = o.Update().SetTerminationStatus(orderent.TerminationStatusACTIVE).ClearTerminationType().ClearTerminationReason().ClearTerminatedAt().ClearTerminatedBy().SetVersion(ov + 1).Save(ctx); e != nil {
@@ -528,14 +609,21 @@ func (r *airExportRepo) LinkCandidates(ctx context.Context, org, masterID uuid.U
 	if !exists {
 		return nil, 0, biz.ErrAirWaybillNotFound
 	}
+	links, e := c.AirMasterWaybillOrderLink.Query().Where(airlink.OrganizationIDEQ(org), airlink.MasterWaybillIDEQ(masterID)).All(ctx)
+	if e != nil {
+		return nil, 0, e
+	}
+	ids := make([]uuid.UUID, 0, len(links))
+	for _, l := range links {
+		ids = append(ids, l.OrderID)
+	}
+	ids = sortAndDeduplicateUUIDs(ids)
 	houses, e := c.AirHouseWaybill.Query().Where(airhouse.OrganizationIDEQ(org), airhouse.MasterWaybillIDEQ(masterID)).All(ctx)
 	if e != nil {
 		return nil, 0, e
 	}
-	ids := make([]uuid.UUID, 0, len(houses))
 	hm := map[uuid.UUID]*ent.AirHouseWaybill{}
 	for _, h := range houses {
-		ids = append(ids, h.OrderID)
 		hm[h.OrderID] = h
 	}
 	active, e := c.AirMasterWaybillOrderLink.Query().Where(airlink.OrderIDIn(ids...), airlink.StatusEQ("ACTIVE")).All(ctx)
@@ -569,7 +657,7 @@ func (r *airExportRepo) LinkCandidates(ctx context.Context, org, masterID uuid.U
 }
 
 func writeAirHouseVersion(ctx context.Context, tx *ent.Tx, h *ent.AirHouseWaybill, actor uuid.UUID, reason string) error {
-	_, e := tx.AirHouseWaybillVersion.Create().SetOrganizationID(h.OrganizationID).SetOrderID(h.OrderID).SetHouseWaybillID(h.ID).SetVersion(h.Version).SetHouseNo(h.HouseNo).SetStatus(h.Status).SetContent(h.Content).SetActorID(actor).SetReason(reason).Save(ctx)
+	_, e := tx.AirHouseWaybillVersion.Create().SetOrganizationID(h.OrganizationID).SetOrderID(h.OrderID).SetHouseWaybillID(h.ID).SetVersion(h.Version).SetHouseNo(h.HouseNo).SetStatus(h.Status).SetContent(h.Content).SetContentHash(h.ContentHash).SetActorID(actor).SetReason(reason).Save(ctx)
 	return e
 }
 func (r *airExportRepo) HouseVersions(ctx context.Context, org, id uuid.UUID, o biz.SelectorListOptions) ([]*biz.AirHouseVersion, int, error) {
@@ -595,7 +683,7 @@ func (r *airExportRepo) HouseVersions(ctx context.Context, org, id uuid.UUID, o 
 	}
 	out := make([]*biz.AirHouseVersion, 0, len(rows))
 	for _, v := range rows {
-		out = append(out, &biz.AirHouseVersion{ID: v.ID, Version: v.Version, HouseNo: v.HouseNo, Status: v.Status, Content: v.Content, ActorID: v.ActorID, Reason: v.Reason, OccurredAt: v.CreatedAt})
+		out = append(out, &biz.AirHouseVersion{ID: v.ID, Version: v.Version, HouseNo: v.HouseNo, Status: v.Status, Content: airContentFromJSON(v.Content), ContentHash: v.ContentHash, ActorID: v.ActorID, Reason: v.Reason, OccurredAt: v.CreatedAt})
 	}
 	return out, total, nil
 }

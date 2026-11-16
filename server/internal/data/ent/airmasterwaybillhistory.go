@@ -37,6 +37,8 @@ type AirMasterWaybillHistory struct {
 	ActorID uuid.UUID `json:"actor_id,omitempty"`
 	// Content holds the value of the "content" field.
 	Content []byte `json:"content,omitempty"`
+	// ContentHash holds the value of the "content_hash" field.
+	ContentHash string `json:"content_hash,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AirMasterWaybillHistoryQuery when eager-loading is set.
 	Edges        AirMasterWaybillHistoryEdges `json:"edges"`
@@ -72,7 +74,7 @@ func (*AirMasterWaybillHistory) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case airmasterwaybillhistory.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case airmasterwaybillhistory.FieldAction, airmasterwaybillhistory.FieldReason:
+		case airmasterwaybillhistory.FieldAction, airmasterwaybillhistory.FieldReason, airmasterwaybillhistory.FieldContentHash:
 			values[i] = new(sql.NullString)
 		case airmasterwaybillhistory.FieldCreatedAt, airmasterwaybillhistory.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -153,6 +155,12 @@ func (_m *AirMasterWaybillHistory) assignValues(columns []string, values []any) 
 			} else if value != nil {
 				_m.Content = *value
 			}
+		case airmasterwaybillhistory.FieldContentHash:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field content_hash", values[i])
+			} else if value.Valid {
+				_m.ContentHash = value.String
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -220,6 +228,9 @@ func (_m *AirMasterWaybillHistory) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("content=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Content))
+	builder.WriteString(", ")
+	builder.WriteString("content_hash=")
+	builder.WriteString(_m.ContentHash)
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -73,6 +73,7 @@ func NewErrSeaMasterBillMemberOrderLocked(count int, lockedOrderNos []string) er
 
 // OrderLockState 订单锁状态与可用动作。
 type OrderLockState struct {
+	AirDocumentFingerprint  string
 	OrderID                 uuid.UUID
 	OrderNo                 string
 	BusinessType            OrderBusinessType
@@ -197,6 +198,7 @@ type OrderUnlockResult struct {
 
 // OrderLockReviewInput 绑定审核人已查看的费用内容，防止审核期间费用被覆盖。
 type OrderLockReviewInput struct {
+	AirDocumentFingerprint    string
 	ExpectedFeeContentVersion uint64
 	FeeContentFingerprint     string
 	Comment                   string

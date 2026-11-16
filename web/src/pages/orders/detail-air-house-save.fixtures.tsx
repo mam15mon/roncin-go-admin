@@ -51,6 +51,7 @@ vi.mock('@/app/access', () => ({
 }));
 vi.mock('@/services/roncin/orderService', () => ({
   orderServiceUpdateOrder: vi.fn(),
+  orderServiceGetOrder: vi.fn(),
 }));
 vi.mock('./use-order-detail-data', () => ({
   useOrderDetailData: () => ({
@@ -148,11 +149,15 @@ export async function resetAirSaveState(houseStatus = 'DRAFT') {
     seaMasterBill: undefined,
     customerReferenceNo: 'initial-reference',
     airExport: {
-      houseId: 'hawb-1',
-      houseNo: 'HAWB-001',
-      houseStatus,
-      houseVersion: '2',
-      houseContent: 'initial-content',
+      documentMode: 'HOUSE',
+      active: true,
+      house: {
+        id: 'hawb-1',
+        houseNo: 'HAWB-001',
+        status: houseStatus,
+        version: '2',
+        content: { remarks: 'initial-content' },
+      },
       linkId: 'link-1',
       linkVersion: '1',
       master: { id: 'mawb-1', version: '3', content: {} },
@@ -173,19 +178,28 @@ export function commitAirSave(payload: API.UpdateOrderRequest): API.Order {
   const previous = state.order.airExport;
   const input = payload.airExport;
   const changed =
-    previous?.houseStatus !== input?.houseStatus ||
-    (previous?.houseContent ?? '') !== (input?.houseContent ?? '');
+    previous?.house?.status !== input?.house?.status ||
+    JSON.stringify(previous?.house?.content) !==
+      JSON.stringify(input?.house?.content ?? previous?.house?.content);
   state.order = {
     ...state.order,
     version: String(BigInt(payload.expectedVersion ?? '0') + 1n),
     customerReferenceNo: payload.customerReferenceNo,
     airExport: {
       ...previous,
-      houseStatus: input?.houseStatus,
-      houseContent: input?.houseContent,
-      houseVersion: String(
-        BigInt(previous?.houseVersion ?? '0') + (changed ? 1n : 0n),
+      linkVersion: String(
+        BigInt(previous?.linkVersion ?? '0') + (changed ? 1n : 0n),
       ),
+      house: previous?.house
+        ? {
+            ...previous.house,
+            status: input?.house?.status,
+            content: input?.house?.content ?? previous.house.content,
+            version: String(
+              BigInt(previous.house.version ?? '0') + (changed ? 1n : 0n),
+            ),
+          }
+        : undefined,
     },
   };
   return state.order;
@@ -214,4 +228,11 @@ export function rerenderAirSavePage(
 
 export function getAirSaveState() {
   return state;
+}
+
+export async function openAirHouseRemarks() {
+  const trigger = screen.getByRole('button', { name: '签发与备注' });
+  if (trigger.getAttribute('aria-expanded') !== 'true')
+    fireEvent.click(trigger);
+  return screen.findByLabelText('单证备注');
 }

@@ -101,6 +101,11 @@ func Content(v []byte) predicate.AirMasterWaybillHistory {
 	return predicate.AirMasterWaybillHistory(sql.FieldEQ(FieldContent, v))
 }
 
+// ContentHash applies equality check predicate on the "content_hash" field. It's identical to ContentHashEQ.
+func ContentHash(v string) predicate.AirMasterWaybillHistory {
+	return predicate.AirMasterWaybillHistory(sql.FieldEQ(FieldContentHash, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.AirMasterWaybillHistory {
 	return predicate.AirMasterWaybillHistory(sql.FieldEQ(FieldCreatedAt, v))
@@ -489,6 +494,71 @@ func ContentLT(v []byte) predicate.AirMasterWaybillHistory {
 // ContentLTE applies the LTE predicate on the "content" field.
 func ContentLTE(v []byte) predicate.AirMasterWaybillHistory {
 	return predicate.AirMasterWaybillHistory(sql.FieldLTE(FieldContent, v))
+}
+
+// ContentHashEQ applies the EQ predicate on the "content_hash" field.
+func ContentHashEQ(v string) predicate.AirMasterWaybillHistory {
+	return predicate.AirMasterWaybillHistory(sql.FieldEQ(FieldContentHash, v))
+}
+
+// ContentHashNEQ applies the NEQ predicate on the "content_hash" field.
+func ContentHashNEQ(v string) predicate.AirMasterWaybillHistory {
+	return predicate.AirMasterWaybillHistory(sql.FieldNEQ(FieldContentHash, v))
+}
+
+// ContentHashIn applies the In predicate on the "content_hash" field.
+func ContentHashIn(vs ...string) predicate.AirMasterWaybillHistory {
+	return predicate.AirMasterWaybillHistory(sql.FieldIn(FieldContentHash, vs...))
+}
+
+// ContentHashNotIn applies the NotIn predicate on the "content_hash" field.
+func ContentHashNotIn(vs ...string) predicate.AirMasterWaybillHistory {
+	return predicate.AirMasterWaybillHistory(sql.FieldNotIn(FieldContentHash, vs...))
+}
+
+// ContentHashGT applies the GT predicate on the "content_hash" field.
+func ContentHashGT(v string) predicate.AirMasterWaybillHistory {
+	return predicate.AirMasterWaybillHistory(sql.FieldGT(FieldContentHash, v))
+}
+
+// ContentHashGTE applies the GTE predicate on the "content_hash" field.
+func ContentHashGTE(v string) predicate.AirMasterWaybillHistory {
+	return predicate.AirMasterWaybillHistory(sql.FieldGTE(FieldContentHash, v))
+}
+
+// ContentHashLT applies the LT predicate on the "content_hash" field.
+func ContentHashLT(v string) predicate.AirMasterWaybillHistory {
+	return predicate.AirMasterWaybillHistory(sql.FieldLT(FieldContentHash, v))
+}
+
+// ContentHashLTE applies the LTE predicate on the "content_hash" field.
+func ContentHashLTE(v string) predicate.AirMasterWaybillHistory {
+	return predicate.AirMasterWaybillHistory(sql.FieldLTE(FieldContentHash, v))
+}
+
+// ContentHashContains applies the Contains predicate on the "content_hash" field.
+func ContentHashContains(v string) predicate.AirMasterWaybillHistory {
+	return predicate.AirMasterWaybillHistory(sql.FieldContains(FieldContentHash, v))
+}
+
+// ContentHashHasPrefix applies the HasPrefix predicate on the "content_hash" field.
+func ContentHashHasPrefix(v string) predicate.AirMasterWaybillHistory {
+	return predicate.AirMasterWaybillHistory(sql.FieldHasPrefix(FieldContentHash, v))
+}
+
+// ContentHashHasSuffix applies the HasSuffix predicate on the "content_hash" field.
+func ContentHashHasSuffix(v string) predicate.AirMasterWaybillHistory {
+	return predicate.AirMasterWaybillHistory(sql.FieldHasSuffix(FieldContentHash, v))
+}
+
+// ContentHashEqualFold applies the EqualFold predicate on the "content_hash" field.
+func ContentHashEqualFold(v string) predicate.AirMasterWaybillHistory {
+	return predicate.AirMasterWaybillHistory(sql.FieldEqualFold(FieldContentHash, v))
+}
+
+// ContentHashContainsFold applies the ContainsFold predicate on the "content_hash" field.
+func ContentHashContainsFold(v string) predicate.AirMasterWaybillHistory {
+	return predicate.AirMasterWaybillHistory(sql.FieldContainsFold(FieldContentHash, v))
 }
 
 // HasMasterWaybill applies the HasEdge predicate on the "master_waybill" edge.

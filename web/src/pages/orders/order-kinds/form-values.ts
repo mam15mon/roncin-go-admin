@@ -84,13 +84,14 @@ export type CreateOrderFormValues = {
   seaMasterBillContentVersion?: string;
   seaHouseBill?: API.SeaHouseBillInput & { status?: number };
   seaDocument?: API.SeaOrderDocumentInput;
+  airDocumentMode?: 'DIRECT' | 'HOUSE';
   airMasterMode?: 'NEW' | 'EXISTING';
   airMasterId?: string;
   airMasterExpectedVersion?: string;
   airMaster?: API.AirMasterWaybillInput;
   airHouseNo?: string;
   airHouseStatus?: string;
-  airHouseContent?: string;
+  airHouseContent?: API.AirWaybillContent;
   airHouseChangeReason?: string;
   airExport?: API.AirOrderInfo;
 };

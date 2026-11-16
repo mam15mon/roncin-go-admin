@@ -145,6 +145,7 @@ func (x *GetOrderLockStateResponse) GetTraceId() string {
 
 type LockOrderRequest struct {
 	state                     protoimpl.MessageState `protogen:"open.v1"`
+	AirDocumentFingerprint    string                 `protobuf:"bytes,7,opt,name=air_document_fingerprint,json=airDocumentFingerprint,proto3" json:"air_document_fingerprint,omitempty"`
 	OrderId                   string                 `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
 	ExpectedOrderVersion      uint64                 `protobuf:"varint,2,opt,name=expected_order_version,json=expectedOrderVersion,proto3" json:"expected_order_version,omitempty"`
 	IdempotencyKey            string                 `protobuf:"bytes,3,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
@@ -183,6 +184,13 @@ func (x *LockOrderRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use LockOrderRequest.ProtoReflect.Descriptor instead.
 func (*LockOrderRequest) Descriptor() ([]byte, []int) {
 	return file_order_v1_order_lock_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *LockOrderRequest) GetAirDocumentFingerprint() string {
+	if x != nil {
+		return x.AirDocumentFingerprint
+	}
+	return ""
 }
 
 func (x *LockOrderRequest) GetOrderId() string {
@@ -713,6 +721,7 @@ func (x *GetOrderUnlockRequestResponse) GetTraceId() string {
 
 type OrderLockStateData struct {
 	state                   protoimpl.MessageState  `protogen:"open.v1"`
+	AirDocumentFingerprint  string                  `protobuf:"bytes,22,opt,name=air_document_fingerprint,json=airDocumentFingerprint,proto3" json:"air_document_fingerprint,omitempty"`
 	OrderId                 string                  `protobuf:"bytes,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
 	OrderNo                 string                  `protobuf:"bytes,2,opt,name=order_no,json=orderNo,proto3" json:"order_no,omitempty"`
 	IsLocked                bool                    `protobuf:"varint,3,opt,name=is_locked,json=isLocked,proto3" json:"is_locked,omitempty"`
@@ -767,6 +776,13 @@ func (x *OrderLockStateData) ProtoReflect() protoreflect.Message {
 // Deprecated: Use OrderLockStateData.ProtoReflect.Descriptor instead.
 func (*OrderLockStateData) Descriptor() ([]byte, []int) {
 	return file_order_v1_order_lock_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *OrderLockStateData) GetAirDocumentFingerprint() string {
+	if x != nil {
+		return x.AirDocumentFingerprint
+	}
+	return ""
 }
 
 func (x *OrderLockStateData) GetOrderId() string {
@@ -1775,8 +1791,9 @@ const file_order_v1_order_lock_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x120\n" +
 	"\x04data\x18\x04 \x01(\v2\x1c.order.v1.OrderLockStateDataR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xb8\x02\n" +
-	"\x10LockOrderRequest\x12\x1e\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xf2\x02\n" +
+	"\x10LockOrderRequest\x128\n" +
+	"\x18air_document_fingerprint\x18\a \x01(\tR\x16airDocumentFingerprint\x12\x1e\n" +
 	"\border_id\x18\x01 \x01(\tB\x03\xe0A\x02R\aorderId\x129\n" +
 	"\x16expected_order_version\x18\x02 \x01(\x04B\x03\xe0A\x02R\x14expectedOrderVersion\x12,\n" +
 	"\x0fidempotency_key\x18\x03 \x01(\tB\x03\xe0A\x02R\x0eidempotencyKey\x12D\n" +
@@ -1820,8 +1837,9 @@ const file_order_v1_order_lock_proto_rawDesc = "" +
 	"\x04code\x18\x02 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x124\n" +
 	"\x04data\x18\x04 \x01(\v2 .order.v1.OrderUnlockRequestDataR\x04data\x12\x19\n" +
-	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xf4\b\n" +
-	"\x12OrderLockStateData\x12\x19\n" +
+	"\btrace_id\x18\x05 \x01(\tR\atraceId\"\xae\t\n" +
+	"\x12OrderLockStateData\x128\n" +
+	"\x18air_document_fingerprint\x18\x16 \x01(\tR\x16airDocumentFingerprint\x12\x19\n" +
 	"\border_id\x18\x01 \x01(\tR\aorderId\x12\x19\n" +
 	"\border_no\x18\x02 \x01(\tR\aorderNo\x12\x1b\n" +
 	"\tis_locked\x18\x03 \x01(\bR\bisLocked\x12'\n" +

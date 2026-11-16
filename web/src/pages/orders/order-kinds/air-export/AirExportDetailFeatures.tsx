@@ -1,3 +1,4 @@
+import { Form } from 'antd';
 import { useRef } from 'react';
 import { ResponsiveProTable } from '@/components/ui';
 import { history } from '@/router/history';
@@ -7,6 +8,7 @@ import { formatDate } from '@/utils/format';
 import CargoItemDrawer, {
   type CargoItemDrawerRef,
 } from '../../components/drawers/CargoItemDrawer';
+import { AirWaybillFields } from '../../templates/components/air/AirWaybillFields';
 import type { OrderDetailFeaturesProps } from '../types';
 import AirWeightPanel from './AirWeightPanel';
 
@@ -54,54 +56,79 @@ export default function AirExportDetailFeatures({
               />
             ),
           },
-          {
-            key: 'airHouseHistory',
-            label: '本票分单历史',
-            content: (
-              <ResponsiveProTable<API.AirHouseWaybillVersion>
-                rowKey="id"
-                search={false}
-                options={false}
-                size="small"
-                pagination={{ defaultPageSize: 10 }}
-                request={async ({ current, pageSize }) => {
-                  const response =
-                    await airExportServiceListAirHouseWaybillVersions({
-                      orderId: context.orderId,
-                      page: current || 1,
-                      pageSize: pageSize || 10,
-                    });
-                  ensureListResponse(response, '分单历史加载失败');
-                  return {
-                    data: response?.data || [],
-                    total: response?.total || 0,
-                    success: true,
-                  };
-                }}
-                columns={[
-                  { title: '版本', dataIndex: 'version', width: 70 },
-                  { title: '分单号', dataIndex: 'houseNo' },
-                  {
-                    title: '单证状态',
-                    render: (_, item) =>
-                      item.status === 'RELEASED'
-                        ? '已签发'
-                        : item.status === 'CONFIRMED'
-                          ? '已确认'
-                          : '资料待完善',
-                  },
-                  { title: '单证资料', dataIndex: 'content', ellipsis: true },
-                  { title: '修改原因', dataIndex: 'reason', ellipsis: true },
-                  {
-                    title: '时间',
-                    render: (_, item) =>
-                      formatDate(item.occurredAt, 'datetime'),
-                    width: 180,
-                  },
-                ]}
-              />
-            ),
-          },
+          ...(context.order.airExport?.documentMode === 'HOUSE'
+            ? [
+                {
+                  key: 'airHouseHistory',
+                  label: '本票分单历史',
+                  content: (
+                    <ResponsiveProTable<API.AirHouseWaybillVersion>
+                      rowKey="id"
+                      search={false}
+                      options={false}
+                      size="small"
+                      pagination={{ defaultPageSize: 10 }}
+                      expandable={{
+                        expandedRowRender: (item) => (
+                          <Form
+                            key={item.id}
+                            initialValues={{ content: item.content }}
+                            layout="vertical"
+                            component={false}
+                            disabled
+                          >
+                            <AirWaybillFields prefix={['content']} disabled />
+                          </Form>
+                        ),
+                      }}
+                      request={async ({ current, pageSize }) => {
+                        const response =
+                          await airExportServiceListAirHouseWaybillVersions({
+                            orderId: context.orderId,
+                            page: current || 1,
+                            pageSize: pageSize || 10,
+                          });
+                        ensureListResponse(response, '分单历史加载失败');
+                        return {
+                          data: response?.data || [],
+                          total: response?.total || 0,
+                          success: true,
+                        };
+                      }}
+                      columns={[
+                        { title: '版本', dataIndex: 'version', width: 70 },
+                        { title: '分单号', dataIndex: 'houseNo' },
+                        {
+                          title: '单证状态',
+                          render: (_, item) =>
+                            item.status === 'RELEASED'
+                              ? '已签发'
+                              : item.status === 'CONFIRMED'
+                                ? '已确认'
+                                : '资料待完善',
+                        },
+                        {
+                          title: '单证备注',
+                          render: (_, item) => item.content?.remarks || '-',
+                          ellipsis: true,
+                        },
+                        {
+                          title: '修改原因',
+                          dataIndex: 'reason',
+                          ellipsis: true,
+                        },
+                        {
+                          title: '时间',
+                          render: (_, item) =>
+                            formatDate(item.occurredAt, 'datetime'),
+                          width: 180,
+                        },
+                      ]}
+                    />
+                  ),
+                },
+              ]
+            : []),
         ],
         overlays: (
           <CargoItemDrawer

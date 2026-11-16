@@ -5,7 +5,7 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
-import { Form } from 'antd';
+import { Alert, Form } from 'antd';
 import {
   FormRow,
   PackageCountInput,
@@ -16,6 +16,8 @@ import {
   AirCargoCommercialFields,
 } from './components/air/AirCommercialFields';
 import { AirMasterTransportSection } from './components/air/AirMasterFields';
+import { AirWaybillFields } from './components/air/AirWaybillFields';
+import { TemplateFieldGroup } from './components/FieldGroup';
 import {
   SeaCustomerField,
   SeaDangerousGoodsFields,
@@ -130,9 +132,22 @@ export function getAirTemplateSections(
 /** 分单信息卡：本票分运单号 / 状态 / 单证资料，详情已签发时展示修改原因。 */
 function AirHouseDocumentFields({ props }: { props: TemplateProps }) {
   const form = Form.useFormInstance();
+  const documentMode = Form.useWatch('airDocumentMode', {
+    form,
+    preserve: true,
+  });
   const air = Form.useWatch('airExport', { form, preserve: true }) as
     | API.AirOrderInfo
     | undefined;
+  if (documentMode === 'DIRECT' || air?.documentMode === 'DIRECT')
+    return (
+      <Alert
+        type="info"
+        showIcon
+        title="直单：本票使用主运单，无 HAWB"
+        description="主运单正文在主单工作台维护。直单同一主单只能有一张当前操作票；保存后不能在普通编辑中切换单证模式。"
+      />
+    );
   return (
     <>
       <FormRow cols={4}>
@@ -142,7 +157,7 @@ function AirHouseDocumentFields({ props }: { props: TemplateProps }) {
           rules={[
             { required: true, whitespace: true, message: '请输入本票分运单号' },
           ]}
-          disabled={props.readonly}
+          disabled={props.readonly || props.isDetail}
           fieldProps={{ maxLength: 64 }}
           tooltip="同一主单内不允许重号，不同主单可重复；号码会统一大写。"
         />
@@ -157,18 +172,18 @@ function AirHouseDocumentFields({ props }: { props: TemplateProps }) {
           ]}
           disabled={props.readonly}
         />
-        <ProFormTextArea
-          name="airHouseContent"
-          label="本票单证资料"
-          disabled={props.readonly}
-          fieldProps={{ maxLength: 4000, autoSize: { minRows: 1, maxRows: 4 } }}
-        />
       </FormRow>
-      {props.isDetail && air?.houseStatus === 'RELEASED' && (
+      <TemplateFieldGroup title="本票单证资料">
+        <AirWaybillFields
+          prefix={['airHouseContent']}
+          disabled={props.readonly}
+        />
+      </TemplateFieldGroup>
+      {props.isDetail && air?.house?.status === 'RELEASED' && (
         <ProFormTextArea
           name="airHouseChangeReason"
           label="已签发分单修改原因"
-          tooltip="修改已签发分单号、内容或状态时必填；仅保存本票客户、货量等字段时可空。"
+          tooltip="修改已签发分单内容或状态时必填；仅保存本票客户、货量等字段时可空。分单号保存后不在普通编辑中修改。"
           fieldProps={{ maxLength: 500 }}
           disabled={props.readonly}
         />

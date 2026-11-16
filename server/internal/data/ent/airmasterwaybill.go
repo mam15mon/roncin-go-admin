@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -25,6 +26,10 @@ type AirMasterWaybill struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// WaybillContent holds the value of the "waybill_content" field.
+	WaybillContent json.RawMessage `json:"waybill_content,omitempty"`
+	// ContentHash holds the value of the "content_hash" field.
+	ContentHash string `json:"content_hash,omitempty"`
 	// BusinessType holds the value of the "business_type" field.
 	BusinessType string `json:"business_type,omitempty"`
 	// OrganizationID holds the value of the "organization_id" field.
@@ -133,11 +138,13 @@ func (*AirMasterWaybill) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case airmasterwaybill.FieldWaybillContent:
+			values[i] = new([]byte)
 		case airmasterwaybill.FieldDeclaredGrossWeightKg, airmasterwaybill.FieldDeclaredVolumeCbm:
 			values[i] = new(sql.NullFloat64)
 		case airmasterwaybill.FieldVersion, airmasterwaybill.FieldDeclaredPackages:
 			values[i] = new(sql.NullInt64)
-		case airmasterwaybill.FieldBusinessType, airmasterwaybill.FieldMasterNo, airmasterwaybill.FieldFlightNo, airmasterwaybill.FieldEtd, airmasterwaybill.FieldEta, airmasterwaybill.FieldActualDepartureAt, airmasterwaybill.FieldActualArrivalAt, airmasterwaybill.FieldDocumentCutoffAt, airmasterwaybill.FieldCustomsCutoffAt, airmasterwaybill.FieldStatus, airmasterwaybill.FieldNotes:
+		case airmasterwaybill.FieldContentHash, airmasterwaybill.FieldBusinessType, airmasterwaybill.FieldMasterNo, airmasterwaybill.FieldFlightNo, airmasterwaybill.FieldEtd, airmasterwaybill.FieldEta, airmasterwaybill.FieldActualDepartureAt, airmasterwaybill.FieldActualArrivalAt, airmasterwaybill.FieldDocumentCutoffAt, airmasterwaybill.FieldCustomsCutoffAt, airmasterwaybill.FieldStatus, airmasterwaybill.FieldNotes:
 			values[i] = new(sql.NullString)
 		case airmasterwaybill.FieldCreatedAt, airmasterwaybill.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -175,6 +182,20 @@ func (_m *AirMasterWaybill) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
+			}
+		case airmasterwaybill.FieldWaybillContent:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field waybill_content", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.WaybillContent); err != nil {
+					return fmt.Errorf("unmarshal field waybill_content: %w", err)
+				}
+			}
+		case airmasterwaybill.FieldContentHash:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field content_hash", values[i])
+			} else if value.Valid {
+				_m.ContentHash = value.String
 			}
 		case airmasterwaybill.FieldBusinessType:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -354,6 +375,12 @@ func (_m *AirMasterWaybill) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("waybill_content=")
+	builder.WriteString(fmt.Sprintf("%v", _m.WaybillContent))
+	builder.WriteString(", ")
+	builder.WriteString("content_hash=")
+	builder.WriteString(_m.ContentHash)
 	builder.WriteString(", ")
 	builder.WriteString("business_type=")
 	builder.WriteString(_m.BusinessType)

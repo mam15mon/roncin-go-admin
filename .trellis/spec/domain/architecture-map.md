@@ -91,7 +91,7 @@ erDiagram
     SeaMasterBill ||--o{ SeaTransportExecution : voyages
     Order ||--o| SeaHouseBill : "HOUSE 结构"
     Order }o--o| AirMasterWaybill : "AE 活动 Link，终止保留历史"
-    Order ||--o| AirHouseWaybill : "AE 建票必填"
+    Order ||--o| AirHouseWaybill : "HOUSE存在，DIRECT无分单"
     AirHouseWaybill ||--o{ AirHouseWaybillVersion : "不可变版本"
     AirMasterWaybill ||--o{ AirWeightConfirmation : "主单独立确认"
     Order ||--o{ AirWeightConfirmation : "本票独立确认"

@@ -12,7 +12,7 @@
 | --- | --- | --- | --- |
 | 订单创建/查询/流转 | `order_usecase.go`、`order.go`、`order_transition.go` | 订单档案、状态流转、列表过滤、跨组织范围 | 在 service 写业务规则或绕过 biz 直查 data |
 | 海运出口单证 | `sea_document.go`、`sea_master_bill.go`、`sea_cargo_allocation.go` | 操作票、共享 MBL、货物分摊（契约见专项 spec） | 单证版本判断散落调用方 |
-| 空运出口主分单与重量 | `air_export.go`、`air_weight.go`、`order_fee_quantity_source.go` | 显式共享 MAWB、HAWB 历史、主单成员、独立重量确认和费用来源（见 air-export-contract） | 字符串隐式拼单、重复带入主单总重、覆盖人工确认 |
+| 空运出口主分单与重量 | `air_export.go`、`air_waybill_content.go`、`air_weight.go`、`order_fee_quantity_source.go` | 显式共享 MAWB、DIRECT/HOUSE、独立正文/哈希/历史、航空审核指纹、重量确认和费用来源（见 air-export-contract、air-waybill-content-and-mode） | 字符串隐式拼单、直单虚构HAWB、正文覆盖运输、重复带入主单总重、覆盖人工确认 |
 | 海运改单/作废/模式切换 | `sea_document_change.go`、`order_shipping_document.go` | 改单历史、财务门禁、不可变版本 | 跳过 Preview 直接改单 |
 | 统一订单审核锁 | `order_lock.go` | 人工审核资料与费用快照、解锁审批、固定锁序；结算不自动锁 | 独立费用审核门禁、拼接角色审核资格 |
 | 订单费用 | `order_fee.go`、`order_fee_quantity_preview.go` | 未锁未建账的逐费写入、分批建账能力、事务内提成经济重算、来源数量建议 | 用整票状态拦截无关费用、把 canEdit 当删除权限 |

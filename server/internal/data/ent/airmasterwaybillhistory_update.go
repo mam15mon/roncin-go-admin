@@ -133,6 +133,20 @@ func (_u *AirMasterWaybillHistoryUpdate) SetContent(v []byte) *AirMasterWaybillH
 	return _u
 }
 
+// SetContentHash sets the "content_hash" field.
+func (_u *AirMasterWaybillHistoryUpdate) SetContentHash(v string) *AirMasterWaybillHistoryUpdate {
+	_u.mutation.SetContentHash(v)
+	return _u
+}
+
+// SetNillableContentHash sets the "content_hash" field if the given value is not nil.
+func (_u *AirMasterWaybillHistoryUpdate) SetNillableContentHash(v *string) *AirMasterWaybillHistoryUpdate {
+	if v != nil {
+		_u.SetContentHash(*v)
+	}
+	return _u
+}
+
 // SetMasterWaybill sets the "master_waybill" edge to the AirMasterWaybill entity.
 func (_u *AirMasterWaybillHistoryUpdate) SetMasterWaybill(v *AirMasterWaybill) *AirMasterWaybillHistoryUpdate {
 	return _u.SetMasterWaybillID(v.ID)
@@ -197,6 +211,11 @@ func (_u *AirMasterWaybillHistoryUpdate) check() error {
 			return &ValidationError{Name: "reason", err: fmt.Errorf(`ent: validator failed for field "AirMasterWaybillHistory.reason": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.ContentHash(); ok {
+		if err := airmasterwaybillhistory.ContentHashValidator(v); err != nil {
+			return &ValidationError{Name: "content_hash", err: fmt.Errorf(`ent: validator failed for field "AirMasterWaybillHistory.content_hash": %w`, err)}
+		}
+	}
 	if _u.mutation.MasterWaybillCleared() && len(_u.mutation.MasterWaybillIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "AirMasterWaybillHistory.master_waybill"`)
 	}
@@ -238,6 +257,9 @@ func (_u *AirMasterWaybillHistoryUpdate) sqlSave(ctx context.Context) (_node int
 	}
 	if value, ok := _u.mutation.Content(); ok {
 		_spec.SetField(airmasterwaybillhistory.FieldContent, field.TypeBytes, value)
+	}
+	if value, ok := _u.mutation.ContentHash(); ok {
+		_spec.SetField(airmasterwaybillhistory.FieldContentHash, field.TypeString, value)
 	}
 	if _u.mutation.MasterWaybillCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -391,6 +413,20 @@ func (_u *AirMasterWaybillHistoryUpdateOne) SetContent(v []byte) *AirMasterWaybi
 	return _u
 }
 
+// SetContentHash sets the "content_hash" field.
+func (_u *AirMasterWaybillHistoryUpdateOne) SetContentHash(v string) *AirMasterWaybillHistoryUpdateOne {
+	_u.mutation.SetContentHash(v)
+	return _u
+}
+
+// SetNillableContentHash sets the "content_hash" field if the given value is not nil.
+func (_u *AirMasterWaybillHistoryUpdateOne) SetNillableContentHash(v *string) *AirMasterWaybillHistoryUpdateOne {
+	if v != nil {
+		_u.SetContentHash(*v)
+	}
+	return _u
+}
+
 // SetMasterWaybill sets the "master_waybill" edge to the AirMasterWaybill entity.
 func (_u *AirMasterWaybillHistoryUpdateOne) SetMasterWaybill(v *AirMasterWaybill) *AirMasterWaybillHistoryUpdateOne {
 	return _u.SetMasterWaybillID(v.ID)
@@ -468,6 +504,11 @@ func (_u *AirMasterWaybillHistoryUpdateOne) check() error {
 			return &ValidationError{Name: "reason", err: fmt.Errorf(`ent: validator failed for field "AirMasterWaybillHistory.reason": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.ContentHash(); ok {
+		if err := airmasterwaybillhistory.ContentHashValidator(v); err != nil {
+			return &ValidationError{Name: "content_hash", err: fmt.Errorf(`ent: validator failed for field "AirMasterWaybillHistory.content_hash": %w`, err)}
+		}
+	}
 	if _u.mutation.MasterWaybillCleared() && len(_u.mutation.MasterWaybillIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "AirMasterWaybillHistory.master_waybill"`)
 	}
@@ -526,6 +567,9 @@ func (_u *AirMasterWaybillHistoryUpdateOne) sqlSave(ctx context.Context) (_node 
 	}
 	if value, ok := _u.mutation.Content(); ok {
 		_spec.SetField(airmasterwaybillhistory.FieldContent, field.TypeBytes, value)
+	}
+	if value, ok := _u.mutation.ContentHash(); ok {
+		_spec.SetField(airmasterwaybillhistory.FieldContentHash, field.TypeString, value)
 	}
 	if _u.mutation.MasterWaybillCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -81,6 +81,11 @@ func OrderID(v uuid.UUID) predicate.AirMasterWaybillOrderLink {
 	return predicate.AirMasterWaybillOrderLink(sql.FieldEQ(FieldOrderID, v))
 }
 
+// DocumentMode applies equality check predicate on the "document_mode" field. It's identical to DocumentModeEQ.
+func DocumentMode(v string) predicate.AirMasterWaybillOrderLink {
+	return predicate.AirMasterWaybillOrderLink(sql.FieldEQ(FieldDocumentMode, v))
+}
+
 // Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
 func Status(v string) predicate.AirMasterWaybillOrderLink {
 	return predicate.AirMasterWaybillOrderLink(sql.FieldEQ(FieldStatus, v))
@@ -244,6 +249,71 @@ func OrderIDIn(vs ...uuid.UUID) predicate.AirMasterWaybillOrderLink {
 // OrderIDNotIn applies the NotIn predicate on the "order_id" field.
 func OrderIDNotIn(vs ...uuid.UUID) predicate.AirMasterWaybillOrderLink {
 	return predicate.AirMasterWaybillOrderLink(sql.FieldNotIn(FieldOrderID, vs...))
+}
+
+// DocumentModeEQ applies the EQ predicate on the "document_mode" field.
+func DocumentModeEQ(v string) predicate.AirMasterWaybillOrderLink {
+	return predicate.AirMasterWaybillOrderLink(sql.FieldEQ(FieldDocumentMode, v))
+}
+
+// DocumentModeNEQ applies the NEQ predicate on the "document_mode" field.
+func DocumentModeNEQ(v string) predicate.AirMasterWaybillOrderLink {
+	return predicate.AirMasterWaybillOrderLink(sql.FieldNEQ(FieldDocumentMode, v))
+}
+
+// DocumentModeIn applies the In predicate on the "document_mode" field.
+func DocumentModeIn(vs ...string) predicate.AirMasterWaybillOrderLink {
+	return predicate.AirMasterWaybillOrderLink(sql.FieldIn(FieldDocumentMode, vs...))
+}
+
+// DocumentModeNotIn applies the NotIn predicate on the "document_mode" field.
+func DocumentModeNotIn(vs ...string) predicate.AirMasterWaybillOrderLink {
+	return predicate.AirMasterWaybillOrderLink(sql.FieldNotIn(FieldDocumentMode, vs...))
+}
+
+// DocumentModeGT applies the GT predicate on the "document_mode" field.
+func DocumentModeGT(v string) predicate.AirMasterWaybillOrderLink {
+	return predicate.AirMasterWaybillOrderLink(sql.FieldGT(FieldDocumentMode, v))
+}
+
+// DocumentModeGTE applies the GTE predicate on the "document_mode" field.
+func DocumentModeGTE(v string) predicate.AirMasterWaybillOrderLink {
+	return predicate.AirMasterWaybillOrderLink(sql.FieldGTE(FieldDocumentMode, v))
+}
+
+// DocumentModeLT applies the LT predicate on the "document_mode" field.
+func DocumentModeLT(v string) predicate.AirMasterWaybillOrderLink {
+	return predicate.AirMasterWaybillOrderLink(sql.FieldLT(FieldDocumentMode, v))
+}
+
+// DocumentModeLTE applies the LTE predicate on the "document_mode" field.
+func DocumentModeLTE(v string) predicate.AirMasterWaybillOrderLink {
+	return predicate.AirMasterWaybillOrderLink(sql.FieldLTE(FieldDocumentMode, v))
+}
+
+// DocumentModeContains applies the Contains predicate on the "document_mode" field.
+func DocumentModeContains(v string) predicate.AirMasterWaybillOrderLink {
+	return predicate.AirMasterWaybillOrderLink(sql.FieldContains(FieldDocumentMode, v))
+}
+
+// DocumentModeHasPrefix applies the HasPrefix predicate on the "document_mode" field.
+func DocumentModeHasPrefix(v string) predicate.AirMasterWaybillOrderLink {
+	return predicate.AirMasterWaybillOrderLink(sql.FieldHasPrefix(FieldDocumentMode, v))
+}
+
+// DocumentModeHasSuffix applies the HasSuffix predicate on the "document_mode" field.
+func DocumentModeHasSuffix(v string) predicate.AirMasterWaybillOrderLink {
+	return predicate.AirMasterWaybillOrderLink(sql.FieldHasSuffix(FieldDocumentMode, v))
+}
+
+// DocumentModeEqualFold applies the EqualFold predicate on the "document_mode" field.
+func DocumentModeEqualFold(v string) predicate.AirMasterWaybillOrderLink {
+	return predicate.AirMasterWaybillOrderLink(sql.FieldEqualFold(FieldDocumentMode, v))
+}
+
+// DocumentModeContainsFold applies the ContainsFold predicate on the "document_mode" field.
+func DocumentModeContainsFold(v string) predicate.AirMasterWaybillOrderLink {
+	return predicate.AirMasterWaybillOrderLink(sql.FieldContainsFold(FieldDocumentMode, v))
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.

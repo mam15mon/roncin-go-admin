@@ -53,8 +53,8 @@ func TestFeeLedgerMasterNoPostgres(t *testing.T) {
 					return d.db.AirMasterWaybill.Create().SetBusinessType("AE").SetOrganizationID(f.organizationID).SetAirlineID(airline.ID).SetOriginAirportID(airport.ID).SetDestinationAirportID(airport.ID).SetMasterNo(no).SaveX(ctx)
 				}
 				old, current := createMaster(oldNo), createMaster(currentNo)
-				d.db.AirMasterWaybillOrderLink.Create().SetOrganizationID(f.organizationID).SetOrderID(f.orderID).SetMasterWaybillID(old.ID).SetStatus("ENDED").SetEndedAt(at.Add(-time.Hour)).SetEndedReason("订单终止").SaveX(ctx)
-				link := d.db.AirMasterWaybillOrderLink.Create().SetOrganizationID(f.organizationID).SetOrderID(f.orderID).SetMasterWaybillID(current.ID).SaveX(ctx)
+				d.db.AirMasterWaybillOrderLink.Create().SetDocumentMode("DIRECT").SetOrganizationID(f.organizationID).SetOrderID(f.orderID).SetMasterWaybillID(old.ID).SetStatus("ENDED").SetEndedAt(at.Add(-time.Hour)).SetEndedReason("订单终止").SaveX(ctx)
+				link := d.db.AirMasterWaybillOrderLink.Create().SetDocumentMode("DIRECT").SetOrganizationID(f.organizationID).SetOrderID(f.orderID).SetMasterWaybillID(current.ID).SaveX(ctx)
 				endCurrent = func() {
 					d.db.AirMasterWaybillOrderLink.UpdateOne(link).SetStatus("ENDED").SetEndedAt(at).SetEndedReason("订单终止").SaveX(ctx)
 				}

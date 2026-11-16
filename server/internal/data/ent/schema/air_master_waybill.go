@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"encoding/json"
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema"
@@ -16,6 +17,7 @@ type AirMasterWaybill struct{ ent.Schema }
 func (AirMasterWaybill) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
 func (AirMasterWaybill) Fields() []ent.Field {
 	return []ent.Field{
+		field.JSON("waybill_content", json.RawMessage{}).Default(json.RawMessage(`{}`)), field.String("content_hash").MaxLen(64).Default("44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"),
 		field.String("business_type").NotEmpty().MaxLen(2).Immutable(),
 		field.UUID("organization_id", uuid.Nil), field.String("master_no").MaxLen(11).NotEmpty(),
 		field.UUID("airline_id", uuid.Nil), field.UUID("origin_airport_id", uuid.Nil), field.UUID("destination_airport_id", uuid.Nil),

@@ -31,6 +31,8 @@ type AirMasterWaybillOrderLink struct {
 	MasterWaybillID uuid.UUID `json:"master_waybill_id,omitempty"`
 	// OrderID holds the value of the "order_id" field.
 	OrderID uuid.UUID `json:"order_id,omitempty"`
+	// DocumentMode holds the value of the "document_mode" field.
+	DocumentMode string `json:"document_mode,omitempty"`
 	// Status holds the value of the "status" field.
 	Status string `json:"status,omitempty"`
 	// Version holds the value of the "version" field.
@@ -100,7 +102,7 @@ func (*AirMasterWaybillOrderLink) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case airmasterwaybillorderlink.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case airmasterwaybillorderlink.FieldStatus, airmasterwaybillorderlink.FieldEndedReason:
+		case airmasterwaybillorderlink.FieldDocumentMode, airmasterwaybillorderlink.FieldStatus, airmasterwaybillorderlink.FieldEndedReason:
 			values[i] = new(sql.NullString)
 		case airmasterwaybillorderlink.FieldCreatedAt, airmasterwaybillorderlink.FieldUpdatedAt, airmasterwaybillorderlink.FieldStartedAt, airmasterwaybillorderlink.FieldEndedAt:
 			values[i] = new(sql.NullTime)
@@ -156,6 +158,12 @@ func (_m *AirMasterWaybillOrderLink) assignValues(columns []string, values []any
 				return fmt.Errorf("unexpected type %T for field order_id", values[i])
 			} else if value != nil {
 				_m.OrderID = *value
+			}
+		case airmasterwaybillorderlink.FieldDocumentMode:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field document_mode", values[i])
+			} else if value.Valid {
+				_m.DocumentMode = value.String
 			}
 		case airmasterwaybillorderlink.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -253,6 +261,9 @@ func (_m *AirMasterWaybillOrderLink) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("order_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrderID))
+	builder.WriteString(", ")
+	builder.WriteString("document_mode=")
+	builder.WriteString(_m.DocumentMode)
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(_m.Status)

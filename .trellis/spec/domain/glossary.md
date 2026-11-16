@@ -26,7 +26,7 @@
 | 术语 | 英文/代码 | 含义与要点 | 代码入口 |
 | --- | --- | --- | --- |
 | 主运单 | MAWB, `AirMasterWaybill` | 同公司多票共享航司、机场、航班与运输时刻；显式关联、版本控制和历史 | `data/ent/schema/air_master_waybill.go` |
-| 分运单 | HAWB, `AirHouseWaybill` | 每票一份，号码同主单永久占号且跨主单可重复；内容保留不可变版本 | `air_house_waybill.go`、`air_house_waybill_version.go` |
+| 分运单 | HAWB, `AirHouseWaybill` | HOUSE每票一份、DIRECT无实体；号码同主单永久占号且跨主单可重复；正文/哈希保留不可变版本 | `air_house_waybill.go`、`air_house_waybill_version.go` |
 | 空运活动关联 | `AirMasterWaybillOrderLink` | 一票同时一个 ACTIVE 关系；终止结束，恢复重新创建 Link | `air_master_waybill_order_link.go` |
 | 计费重确认 | `AirWeightConfirmation` | 本票/主单和委托/实际来源分别确认，保存规则/货量指纹与采用值；输入变化保留旧值并标过期 | `biz/air_weight.go` |
 | 体积重/泡差/分泡 | Volumetric/Bubble Difference/Shared Bubble | kg/m³ 归一后按明确除数计算，三者分别表达；参考值与人工采用值分开 | `.trellis/spec/server/backend/air-export-contract.md` |

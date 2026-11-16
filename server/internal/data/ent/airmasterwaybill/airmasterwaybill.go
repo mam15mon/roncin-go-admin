@@ -3,6 +3,7 @@
 package airmasterwaybill
 
 import (
+	"encoding/json"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -19,6 +20,10 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// FieldWaybillContent holds the string denoting the waybill_content field in the database.
+	FieldWaybillContent = "waybill_content"
+	// FieldContentHash holds the string denoting the content_hash field in the database.
+	FieldContentHash = "content_hash"
 	// FieldBusinessType holds the string denoting the business_type field in the database.
 	FieldBusinessType = "business_type"
 	// FieldOrganizationID holds the string denoting the organization_id field in the database.
@@ -102,6 +107,8 @@ var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
+	FieldWaybillContent,
+	FieldContentHash,
 	FieldBusinessType,
 	FieldOrganizationID,
 	FieldMasterNo,
@@ -140,6 +147,12 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
+	// DefaultWaybillContent holds the default value on creation for the "waybill_content" field.
+	DefaultWaybillContent json.RawMessage
+	// DefaultContentHash holds the default value on creation for the "content_hash" field.
+	DefaultContentHash string
+	// ContentHashValidator is a validator for the "content_hash" field. It is called by the builders before save.
+	ContentHashValidator func(string) error
 	// BusinessTypeValidator is a validator for the "business_type" field. It is called by the builders before save.
 	BusinessTypeValidator func(string) error
 	// MasterNoValidator is a validator for the "master_no" field. It is called by the builders before save.
@@ -202,6 +215,11 @@ func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByUpdatedAt orders the results by the updated_at field.
 func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByContentHash orders the results by the content_hash field.
+func ByContentHash(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldContentHash, opts...).ToFunc()
 }
 
 // ByBusinessType orders the results by the business_type field.

@@ -59,7 +59,7 @@ func airWeightFacts(ctx context.Context, client *ent.Client, org uuid.UUID, inpu
 	ids := []uuid.UUID{input.TargetID}
 	identity := []any{}
 	if input.Scope == "MASTER" {
-		master, err := client.AirMasterWaybill.Query().Where(masterent.IDEQ(input.TargetID), masterent.OrganizationIDEQ(org)).Only(ctx)
+		master, err := client.AirMasterWaybill.Query().Where(masterent.IDEQ(input.TargetID), masterent.OrganizationIDEQ(org), masterent.BusinessTypeEQ("AE")).Only(ctx)
 		if err != nil {
 			return nil, mapEntError(err, biz.ErrAirWeightNotFound, nil)
 		}
@@ -71,7 +71,7 @@ func airWeightFacts(ctx context.Context, client *ent.Client, org uuid.UUID, inpu
 		identity = append(identity, master.ID.String())
 		for _, link := range links {
 			ids = append(ids, link.OrderID)
-			identity = append(identity, link.ID.String(), link.Version)
+			identity = append(identity, link.ID.String(), link.DocumentMode)
 		}
 	} else {
 		exists, err := client.Order.Query().Where(orderent.IDEQ(input.TargetID), orderent.OrganizationIDEQ(org), orderent.BusinessTypeEQ(orderent.BusinessTypeAE)).Exist(ctx)

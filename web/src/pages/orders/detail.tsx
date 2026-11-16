@@ -65,6 +65,7 @@ import {
   confirmOrderFlow,
   confirmOrderTermination,
 } from './order-detail-transitions';
+import { acceptsAirSaveBaseline } from './order-kinds/air-export/air-save-baseline';
 import type { OrderDetailFormValues } from './order-kinds/form-values';
 import { getOrderKindDefinition } from './order-kinds/registry';
 import type {
@@ -213,11 +214,14 @@ export default function OrderDetailPage() {
     initialOrder: order,
     retainedDocuments: currentDocuments,
     enabled:
-      definition?.transportMode === 'sea' &&
+      (definition?.transportMode === 'sea' ||
+        definition?.transportMode === 'air') &&
       canAccessPage &&
-      Boolean(order && currentDocuments) &&
+      Boolean(
+        order && (definition?.transportMode === 'air' || currentDocuments),
+      ) &&
       !error,
-    paused: seaSave.frozen || loading || refreshing,
+    paused: seaSave.frozen || saving || loading || refreshing,
     readEditingOrder: () => {
       const values = formRef.current?.getFieldsValue(true) as
         | OrderDetailFormValues
@@ -231,6 +235,7 @@ export default function OrderDetailPage() {
         order: {
           id: values.id,
           version: values.version,
+          airExport: values.airExport,
           seaMasterBill: master
             ? {
                 ...master,
@@ -828,48 +833,21 @@ export default function OrderDetailPage() {
       if (definition.transportMode === 'air') {
         const saved = response.data;
         const savedAir = saved.airExport;
-        const houseChanged =
-          submittedAir?.houseStatus !== payload.airExport?.houseStatus ||
-          (submittedAir?.houseContent ?? '') !==
-            (payload.airExport?.houseContent ?? '');
-        // 更新接口提交后会重读完整详情；只采纳本次提交应推进的版本，
-        // 不把他人随后的修改或共享主单/关联版本套给当前编辑内容。
-        acceptedBaseline = Boolean(
-          saved.id === orderId &&
-            saved.organizationId === order?.organizationId &&
-            payload.expectedVersion &&
-            /^\d+$/.test(payload.expectedVersion) &&
-            saved.version &&
-            /^\d+$/.test(saved.version) &&
-            BigInt(saved.version) === BigInt(payload.expectedVersion) + 1n &&
-            submittedAir?.houseId &&
-            submittedAir.houseId === savedAir?.houseId &&
-            submittedAir.linkId === savedAir?.linkId &&
-            submittedAir.linkVersion === savedAir?.linkVersion &&
-            submittedAir.houseNo === savedAir?.houseNo &&
-            savedAir?.houseStatus === payload.airExport?.houseStatus &&
-            (savedAir?.houseContent ?? '') ===
-              (payload.airExport?.houseContent ?? '') &&
-            submittedAir?.houseVersion &&
-            /^\d+$/.test(submittedAir.houseVersion) &&
-            savedAir?.houseVersion &&
-            /^\d+$/.test(savedAir.houseVersion) &&
-            BigInt(savedAir.houseVersion) ===
-              BigInt(submittedAir.houseVersion) + (houseChanged ? 1n : 0n),
+        acceptedBaseline = acceptsAirSaveBaseline(
+          orderId,
+          order?.organizationId,
+          submittedAir,
+          payload,
+          saved,
         );
         if (acceptedBaseline && savedAir) {
           submittedForm?.setFieldValue('version', saved.version);
+          changeNotice.acceptSnapshot(saved);
+          // 只推进本次确认的私有单证与关系；输入字段继续保留用户在途编辑。
+          submittedForm?.setFieldValue(['airExport', 'house'], savedAir.house);
           submittedForm?.setFieldValue(
-            ['airExport', 'houseStatus'],
-            savedAir.houseStatus,
-          );
-          submittedForm?.setFieldValue(
-            ['airExport', 'houseVersion'],
-            savedAir.houseVersion,
-          );
-          submittedForm?.setFieldValue(
-            ['airExport', 'houseContent'],
-            savedAir.houseContent,
+            ['airExport', 'linkVersion'],
+            savedAir.linkVersion,
           );
           if (
             submittedForm?.getFieldValue('airHouseChangeReason') ===
@@ -1340,7 +1318,7 @@ export default function OrderDetailPage() {
 
         return (
           <>
-            {definition.transportMode === 'sea' && changeNotice.changed ? (
+            {changeNotice.changed ? (
               <Alert
                 style={{ marginBottom: 12 }}
                 type="warning"

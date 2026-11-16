@@ -73,6 +73,12 @@ func (_c *AirMasterWaybillOrderLinkCreate) SetOrderID(v uuid.UUID) *AirMasterWay
 	return _c
 }
 
+// SetDocumentMode sets the "document_mode" field.
+func (_c *AirMasterWaybillOrderLinkCreate) SetDocumentMode(v string) *AirMasterWaybillOrderLinkCreate {
+	_c.mutation.SetDocumentMode(v)
+	return _c
+}
+
 // SetStatus sets the "status" field.
 func (_c *AirMasterWaybillOrderLinkCreate) SetStatus(v string) *AirMasterWaybillOrderLinkCreate {
 	_c.mutation.SetStatus(v)
@@ -254,6 +260,14 @@ func (_c *AirMasterWaybillOrderLinkCreate) check() error {
 	if _, ok := _c.mutation.OrderID(); !ok {
 		return &ValidationError{Name: "order_id", err: errors.New(`ent: missing required field "AirMasterWaybillOrderLink.order_id"`)}
 	}
+	if _, ok := _c.mutation.DocumentMode(); !ok {
+		return &ValidationError{Name: "document_mode", err: errors.New(`ent: missing required field "AirMasterWaybillOrderLink.document_mode"`)}
+	}
+	if v, ok := _c.mutation.DocumentMode(); ok {
+		if err := airmasterwaybillorderlink.DocumentModeValidator(v); err != nil {
+			return &ValidationError{Name: "document_mode", err: fmt.Errorf(`ent: validator failed for field "AirMasterWaybillOrderLink.document_mode": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "AirMasterWaybillOrderLink.status"`)}
 	}
@@ -328,6 +342,10 @@ func (_c *AirMasterWaybillOrderLinkCreate) createSpec() (*AirMasterWaybillOrderL
 	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(airmasterwaybillorderlink.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if value, ok := _c.mutation.DocumentMode(); ok {
+		_spec.SetField(airmasterwaybillorderlink.FieldDocumentMode, field.TypeString, value)
+		_node.DocumentMode = value
 	}
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(airmasterwaybillorderlink.FieldStatus, field.TypeString, value)
@@ -591,6 +609,9 @@ func (u *AirMasterWaybillOrderLinkUpsertOne) UpdateNewValues() *AirMasterWaybill
 		}
 		if _, exists := u.create.mutation.CreatedAt(); exists {
 			s.SetIgnore(airmasterwaybillorderlink.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.DocumentMode(); exists {
+			s.SetIgnore(airmasterwaybillorderlink.FieldDocumentMode)
 		}
 	}))
 	return u
@@ -948,6 +969,9 @@ func (u *AirMasterWaybillOrderLinkUpsertBulk) UpdateNewValues() *AirMasterWaybil
 			}
 			if _, exists := b.mutation.CreatedAt(); exists {
 				s.SetIgnore(airmasterwaybillorderlink.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.DocumentMode(); exists {
+				s.SetIgnore(airmasterwaybillorderlink.FieldDocumentMode)
 			}
 		}
 	}))

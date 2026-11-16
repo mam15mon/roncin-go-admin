@@ -25,6 +25,7 @@ var (
 )
 
 type AirMasterWaybillInput struct {
+	WaybillContent        *AirWaybillContent
 	MasterNo              string
 	AirlineID             uuid.UUID
 	OriginAirportID       uuid.UUID
@@ -43,6 +44,10 @@ type AirMasterWaybillInput struct {
 	Notes                 string
 }
 type AirMasterWaybill struct {
+	ContentHash            string
+	DocumentMode           string
+	CanAttach              bool
+	AttachBlockedReason    string
 	BusinessType           OrderBusinessType
 	ID                     uuid.UUID
 	OrganizationID         uuid.UUID
@@ -56,24 +61,20 @@ type AirMasterWaybill struct {
 	UpdatedAt              time.Time
 }
 type AirOrderInput struct {
+	DocumentMode          string
+	House                 *AirHouseWaybillInput
 	MasterWaybillID       *uuid.UUID
 	ExpectedMasterVersion uint64
 	ExpectedLinkVersion   uint64
 	Master                *AirMasterWaybillInput
-	HouseNo               string
 	ChangeReason          string
-	HouseContent          string
-	HouseStatus           string
 }
 type AirOrderInfo struct {
+	DocumentMode string
+	House        *AirHouseWaybill
 	Master       *AirMasterWaybill
-	HouseNo      string
-	HouseStatus  string
-	HouseVersion uint64
 	LinkID       uuid.UUID
 	LinkVersion  uint64
-	HouseContent string
-	HouseID      uuid.UUID
 	Active       bool
 }
 type AirMasterMember struct {
@@ -102,13 +103,14 @@ type AirMasterTotals struct {
 	MemberCount    int
 }
 type AirMasterHistory struct {
-	ID         uuid.UUID
-	Version    uint64
-	Action     string
-	Reason     string
-	ActorID    uuid.UUID
-	OccurredAt time.Time
-	Content    AirMasterWaybillInput
+	ContentHash string
+	ID          uuid.UUID
+	Version     uint64
+	Action      string
+	Reason      string
+	ActorID     uuid.UUID
+	OccurredAt  time.Time
+	Content     AirMasterWaybillInput
 }
 type AirMasterDetail struct {
 	HistoryTotal   int
@@ -172,9 +174,12 @@ func (uc *AirExportUsecase) Update(ctx context.Context, org, actor, id uuid.UUID
 	return uc.repo.Update(ctx, org, actor, id, v, normalized, fingerprint, reason)
 }
 func (uc *AirExportUsecase) Link(ctx context.Context, org, actor, master, order uuid.UUID, mv, ov uint64, house, reason string) error {
-	house, err := NormalizeAirHouseNo(house)
-	if err != nil {
-		return err
+	if house != "" {
+		var err error
+		house, err = NormalizeAirHouseNo(house)
+		if err != nil {
+			return err
+		}
 	}
 	reason = strings.TrimSpace(reason)
 	if mv == 0 || ov == 0 || reason == "" || utf8.RuneCountInString(reason) > 500 {
@@ -267,6 +272,10 @@ func NormalizeAirMasterInput(input *AirMasterWaybillInput) (*AirMasterWaybillInp
 			return nil, ErrAirWaybillInvalid
 		}
 	}
+	v.WaybillContent, err = NormalizeAirWaybillContent(v.WaybillContent)
+	if err != nil {
+		return nil, err
+	}
 	return &v, nil
 }
 
@@ -293,37 +302,54 @@ func normalizeAirOrder(order *Order, creating bool) error {
 	in := order.AirExportInput
 	if in == nil {
 		if creating || order.AirExport == nil || order.AirExport.Master == nil {
-			return errors.BadRequest("AIR_WAYBILL_INVALID", "空运建票必须填写主单号及分单号")
+			return ErrAirWaybillInvalid
 		}
-		in = &AirOrderInput{HouseNo: order.AirExport.HouseNo, HouseContent: order.AirExport.HouseContent, HouseStatus: order.AirExport.HouseStatus, ExpectedLinkVersion: order.AirExport.LinkVersion}
+		in = &AirOrderInput{DocumentMode: order.AirExport.DocumentMode, ExpectedLinkVersion: order.AirExport.LinkVersion}
 	}
 	v := *in
+	if creating && v.DocumentMode != "DIRECT" && v.DocumentMode != "HOUSE" {
+		return ErrAirWaybillInvalid
+	}
+	if !creating && order.AirExport != nil {
+		if v.DocumentMode == "" {
+			v.DocumentMode = order.AirExport.DocumentMode
+		}
+		if v.DocumentMode != order.AirExport.DocumentMode {
+			return ErrAirWaybillInvalid
+		}
+	}
 	var err error
-	v.HouseNo, err = NormalizeAirHouseNo(v.HouseNo)
-	if err != nil {
-		return err
-	}
-	if utf8.RuneCountInString(v.HouseContent) > 4000 {
+	if v.DocumentMode == "DIRECT" && v.House != nil {
 		return ErrAirWaybillInvalid
 	}
-	if v.HouseStatus == "" {
-		v.HouseStatus = "DRAFT"
-	}
-	if v.HouseStatus != "DRAFT" && v.HouseStatus != "CONFIRMED" && v.HouseStatus != "RELEASED" {
-		return ErrAirWaybillInvalid
-	}
-	if creating {
-		if v.MasterWaybillID != nil {
-			if *v.MasterWaybillID == uuid.Nil || v.ExpectedMasterVersion == 0 || v.Master == nil {
+	if v.DocumentMode == "HOUSE" {
+		if creating && v.House == nil {
+			return ErrAirWaybillInvalid
+		}
+		if v.House != nil {
+			h := *v.House
+			h.HouseNo, err = NormalizeAirHouseNo(h.HouseNo)
+			if err != nil {
+				return err
+			}
+			if h.Status == "" {
+				h.Status = "DRAFT"
+			}
+			if h.Status != "DRAFT" && h.Status != "CONFIRMED" && h.Status != "RELEASED" {
 				return ErrAirWaybillInvalid
 			}
-			if v.Master != nil {
-				v.Master, err = NormalizeAirMasterInput(v.Master)
-				if err != nil {
-					return err
-				}
+			h.Content, err = NormalizeAirWaybillContent(h.Content)
+			if err != nil {
+				return err
 			}
-		} else {
+			v.House = &h
+		}
+	}
+	if creating {
+		if v.MasterWaybillID != nil && (*v.MasterWaybillID == uuid.Nil || v.ExpectedMasterVersion == 0) {
+			return ErrAirWaybillInvalid
+		}
+		if v.MasterWaybillID == nil || v.Master != nil {
 			v.Master, err = NormalizeAirMasterInput(v.Master)
 			if err != nil {
 				return err
@@ -339,6 +365,9 @@ func normalizeAirOrder(order *Order, creating bool) error {
 			normalized, e := NormalizeAirMasterInput(v.Master)
 			if e != nil {
 				return e
+			}
+			if normalized.WaybillContent == nil {
+				normalized.WaybillContent = master.Content.WaybillContent
 			}
 			a, _ := json.Marshal(normalized)
 			b, _ := json.Marshal(master.Content)
@@ -380,14 +409,15 @@ func (uc *AirExportUsecase) LinkCandidates(ctx context.Context, org, id uuid.UUI
 }
 
 type AirHouseVersion struct {
-	ID         uuid.UUID
-	Version    uint64
-	HouseNo    string
-	Status     string
-	Content    string
-	ActorID    uuid.UUID
-	Reason     string
-	OccurredAt time.Time
+	ID          uuid.UUID
+	Version     uint64
+	HouseNo     string
+	Status      string
+	Content     *AirWaybillContent
+	ContentHash string
+	ActorID     uuid.UUID
+	Reason      string
+	OccurredAt  time.Time
 }
 
 func (uc *AirExportUsecase) HouseVersions(ctx context.Context, org, id uuid.UUID, o SelectorListOptions) ([]*AirHouseVersion, int, error) {
@@ -395,4 +425,19 @@ func (uc *AirExportUsecase) HouseVersions(ctx context.Context, org, id uuid.UUID
 		return nil, 0, ErrAirWaybillInvalid
 	}
 	return uc.repo.HouseVersions(ctx, org, id, o)
+}
+
+type AirHouseWaybillInput struct {
+	HouseNo         string
+	Status          string
+	Content         *AirWaybillContent
+	ExpectedVersion uint64
+}
+type AirHouseWaybill struct {
+	ID          uuid.UUID
+	HouseNo     string
+	Status      string
+	Content     *AirWaybillContent
+	Version     uint64
+	ContentHash string
 }

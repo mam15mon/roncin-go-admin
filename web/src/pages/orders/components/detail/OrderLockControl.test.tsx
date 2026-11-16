@@ -95,6 +95,7 @@ describe('OrderLockControl', () => {
             orderVersion: '17',
             feeContentVersion: '8',
             feeContentFingerprint: 'server-fingerprint-8',
+            airDocumentFingerprint: 'air-document-snapshot-1',
           }}
           loading={false}
           error={null}
@@ -121,6 +122,7 @@ describe('OrderLockControl', () => {
       expectedOrderVersion: '17',
       expectedFeeContentVersion: '8',
       feeContentFingerprint: 'server-fingerprint-8',
+      airDocumentFingerprint: 'air-document-snapshot-1',
     });
     await waitFor(() => expect(onSynchronize).toHaveBeenCalledTimes(1));
   });

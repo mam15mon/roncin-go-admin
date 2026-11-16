@@ -27769,6 +27769,82 @@
         },
         "description": "AddShippingDocumentResponse 单条提单响应。"
       },
+      "order.v1.AirChargeSummary": {
+        "type": "object",
+        "properties": {
+          "weightCharge": {
+            "type": "string"
+          },
+          "valuationCharge": {
+            "type": "string"
+          },
+          "tax": {
+            "type": "string"
+          },
+          "otherDueAgent": {
+            "type": "string"
+          },
+          "otherDueCarrier": {
+            "type": "string"
+          },
+          "total": {
+            "type": "string"
+          }
+        },
+        "description": "weight_charge、other_due_agent、other_due_carrier、total 由服务端十进制计算。"
+      },
+      "order.v1.AirDeclaredValue": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          }
+        },
+        "description": "AirWaybillContent 为独立的航空印字内容，不改变订单运输、费用或签发状态。"
+      },
+      "order.v1.AirHouseWaybill": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "houseNo": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "content": {
+            "$ref": "#/components/schemas/order.v1.AirWaybillContent"
+          },
+          "version": {
+            "type": "string"
+          },
+          "contentHash": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.AirHouseWaybillInput": {
+        "type": "object",
+        "properties": {
+          "houseNo": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "content": {
+            "$ref": "#/components/schemas/order.v1.AirWaybillContent"
+          },
+          "expectedVersion": {
+            "type": "string"
+          }
+        }
+      },
       "order.v1.AirHouseWaybillVersion": {
         "type": "object",
         "properties": {
@@ -27785,6 +27861,9 @@
             "type": "string"
           },
           "content": {
+            "$ref": "#/components/schemas/order.v1.AirWaybillContent"
+          },
+          "contentHash": {
             "type": "string"
           },
           "actorId": {
@@ -27801,6 +27880,9 @@
       "order.v1.AirMasterHistory": {
         "type": "object",
         "properties": {
+          "contentHash": {
+            "type": "string"
+          },
           "id": {
             "type": "string"
           },
@@ -27912,6 +27994,18 @@
           "businessType": {
             "type": "string"
           },
+          "contentHash": {
+            "type": "string"
+          },
+          "documentMode": {
+            "type": "string"
+          },
+          "canAttach": {
+            "type": "boolean"
+          },
+          "attachBlockedReason": {
+            "type": "string"
+          },
           "id": {
             "type": "string"
           },
@@ -27998,6 +28092,9 @@
           },
           "notes": {
             "type": "string"
+          },
+          "waybillContent": {
+            "$ref": "#/components/schemas/order.v1.AirWaybillContent"
           }
         }
       },
@@ -28007,25 +28104,16 @@
           "master": {
             "$ref": "#/components/schemas/order.v1.AirMasterWaybill"
           },
-          "houseNo": {
+          "documentMode": {
             "type": "string"
           },
-          "houseStatus": {
-            "type": "string"
-          },
-          "houseVersion": {
-            "type": "string"
+          "house": {
+            "$ref": "#/components/schemas/order.v1.AirHouseWaybill"
           },
           "linkId": {
             "type": "string"
           },
           "linkVersion": {
-            "type": "string"
-          },
-          "houseContent": {
-            "type": "string"
-          },
-          "houseId": {
             "type": "string"
           },
           "active": {
@@ -28045,19 +28133,45 @@
           "master": {
             "$ref": "#/components/schemas/order.v1.AirMasterWaybillInput"
           },
-          "houseNo": {
+          "documentMode": {
             "type": "string"
           },
-          "houseContent": {
-            "type": "string"
-          },
-          "houseStatus": {
-            "type": "string"
+          "house": {
+            "$ref": "#/components/schemas/order.v1.AirHouseWaybillInput"
           },
           "changeReason": {
             "type": "string"
           },
           "expectedLinkVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.AirOtherCharge": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "billingUnit": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "unitPrice": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "dueTo": {
+            "type": "string"
+          },
+          "payment": {
             "type": "string"
           }
         }
@@ -28071,6 +28185,211 @@
           "packages": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "order.v1.AirRateLine": {
+        "type": "object",
+        "properties": {
+          "pieces": {
+            "type": "string"
+          },
+          "grossWeightKg": {
+            "type": "string"
+          },
+          "rateClass": {
+            "type": "string"
+          },
+          "commodityItemNo": {
+            "type": "string"
+          },
+          "chargeableWeightKg": {
+            "type": "string"
+          },
+          "rate": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "goodsDescription": {
+            "type": "string"
+          }
+        }
+      },
+      "order.v1.AirWaybillContent": {
+        "type": "object",
+        "properties": {
+          "shipperAccount": {
+            "type": "string"
+          },
+          "shipperText": {
+            "type": "string"
+          },
+          "consigneeAccount": {
+            "type": "string"
+          },
+          "consigneeText": {
+            "type": "string"
+          },
+          "notifyPartyText": {
+            "type": "string"
+          },
+          "secondNotifyPartyText": {
+            "type": "string"
+          },
+          "agentText": {
+            "type": "string"
+          },
+          "agentIataCode": {
+            "type": "string"
+          },
+          "agentAccount": {
+            "type": "string"
+          },
+          "issuedBy": {
+            "type": "string"
+          },
+          "departureText": {
+            "type": "string"
+          },
+          "routeTo": {
+            "type": "string"
+          },
+          "firstCarrier": {
+            "type": "string"
+          },
+          "routeTo2": {
+            "type": "string"
+          },
+          "carrier2": {
+            "type": "string"
+          },
+          "routeTo3": {
+            "type": "string"
+          },
+          "carrier3": {
+            "type": "string"
+          },
+          "destinationText": {
+            "type": "string"
+          },
+          "flightText": {
+            "type": "string"
+          },
+          "flightDate": {
+            "type": "string"
+          },
+          "accountingInformation": {
+            "type": "string"
+          },
+          "referenceNumber": {
+            "type": "string"
+          },
+          "information1": {
+            "type": "string"
+          },
+          "information2": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "chargeCode": {
+            "type": "string"
+          },
+          "weightPayment": {
+            "type": "string"
+          },
+          "otherPayment": {
+            "type": "string"
+          },
+          "sci": {
+            "type": "string"
+          },
+          "handlingInformation": {
+            "type": "string"
+          },
+          "marks": {
+            "type": "string"
+          },
+          "goodsDescription": {
+            "type": "string"
+          },
+          "clauses": {
+            "type": "string"
+          },
+          "transportTerms": {
+            "type": "string"
+          },
+          "otherChargesText": {
+            "type": "string"
+          },
+          "destinationCurrency": {
+            "type": "string"
+          },
+          "currencyConversionRate": {
+            "type": "string"
+          },
+          "destinationCollectCharge": {
+            "type": "string"
+          },
+          "chargesAtDestination": {
+            "type": "string"
+          },
+          "totalCollect": {
+            "type": "string"
+          },
+          "shipperCertification": {
+            "type": "string"
+          },
+          "shipperSignature": {
+            "type": "string"
+          },
+          "carrierExecution": {
+            "type": "string"
+          },
+          "issueDate": {
+            "type": "string"
+          },
+          "issuePlace": {
+            "type": "string"
+          },
+          "carrierSignature": {
+            "type": "string"
+          },
+          "remarks": {
+            "type": "string"
+          },
+          "carriageValue": {
+            "$ref": "#/components/schemas/order.v1.AirDeclaredValue"
+          },
+          "customsValue": {
+            "$ref": "#/components/schemas/order.v1.AirDeclaredValue"
+          },
+          "insuranceValue": {
+            "$ref": "#/components/schemas/order.v1.AirDeclaredValue"
+          },
+          "rateLines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.AirRateLine"
+            }
+          },
+          "otherCharges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/order.v1.AirOtherCharge"
+            }
+          },
+          "prepaid": {
+            "$ref": "#/components/schemas/order.v1.AirChargeSummary"
+          },
+          "collect": {
+            "$ref": "#/components/schemas/order.v1.AirChargeSummary"
+          },
+          "asArranged": {
+            "type": "boolean"
           }
         }
       },
@@ -30580,6 +30899,9 @@
         ],
         "type": "object",
         "properties": {
+          "airDocumentFingerprint": {
+            "type": "string"
+          },
           "orderId": {
             "type": "string"
           },
@@ -32233,6 +32555,9 @@
       "order.v1.OrderLockStateData": {
         "type": "object",
         "properties": {
+          "airDocumentFingerprint": {
+            "type": "string"
+          },
           "orderId": {
             "type": "string"
           },

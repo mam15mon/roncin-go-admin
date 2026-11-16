@@ -11,13 +11,17 @@
 
 ## 验收标准
 
-- [ ] AE的DIRECT/HOUSE全部创建/编辑/锁/终止恢复/重量费用可用；AI基础契约可复用且不借AE权限。
-- [ ] 直单第二票/混挂、HOUSE缺分单、跨类型ID、版本/锁冲突均拒绝且无半票。
-- [ ] 旧文本、主分内容和版本历史完整；真实wire零值/optional/清空往返不丢数据。
+- [x] AE的DIRECT/HOUSE全部创建/编辑/锁/终止恢复/重量费用可用；AI基础契约可复用且不借AE权限。
+- [x] 直单第二票/混挂、HOUSE缺分单、跨类型ID、版本/锁冲突均拒绝且无半票。
+- [x] 旧文本、主分内容和版本历史完整；真实wire零值/optional/清空往返不丢数据。
+
+验证依据：`research/backend-validation.md`、`air-server-review.md`、`air-web-review.md`
+及前端分工报告。真实 PostgreSQL、正式迁移、前端/类型检查与最终check:fast通过；
+当前组未声称真实浏览器或PDF完成，后续输出及父完整业务财务链仍继续验收。
 
 ## 依赖与边界
 
-前置：.trellis/tasks/11-15-hgj-order-direction。前置交付未完成不能把树形位置当作已满足依赖。
+前置：.trellis/tasks/archive/2026-11/11-15-hgj-order-direction。前置交付未完成不能把树形位置当作已满足依赖。
 
 本期不增加真正多航段、复杂空运拆拼改配、批量导入或另五类实现；不提交海管家单据、不清库、不手改生成物。父最终方案已批准，按前置交付验收顺序start。
 

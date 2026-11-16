@@ -65,6 +65,7 @@ message GetOrderLockStateResponse {
 }
 
 message LockOrderRequest {
+  string air_document_fingerprint = 7;
   string order_id = 1 [(google.api.field_behavior) = REQUIRED];
   uint64 expected_order_version = 2 [(google.api.field_behavior) = REQUIRED];
   string idempotency_key = 3 [(google.api.field_behavior) = REQUIRED];
@@ -128,6 +129,7 @@ message GetOrderUnlockRequestResponse {
 // -------------------------------------------------------------
 
 message OrderLockStateData {
+  string air_document_fingerprint = 22;
   string order_id = 1;
   string order_no = 2;
   bool is_locked = 3;

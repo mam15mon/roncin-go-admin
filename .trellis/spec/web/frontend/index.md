@@ -11,6 +11,7 @@
 | [Duplicate Report](./duplicate-report.md) | 前后端疑似重复函数扫描、证据与审查限制 | ✅ |
 | [Directory Structure](./directory-structure.md) | 页面组织、features 分层与依赖边界 | ✅ |
 | [空运公共经营字段](./air-order-commercial-fields.md) | AE本票经营字段UI、金额日期往返与显式清空 | ✅ |
+| [航空直单与结构化正文](../../server/backend/air-waybill-content-and-mode.md) | 模式与可选HAWB、正文数值/纯日期/清空、主单编辑快照及航空审核指纹 | ✅ |
 | [订单列表字段与排序](../../server/backend/order-list-fields.md) | 海运可选列、本票摘要、真实排序、品类偏好与列表提成退役 | ✅ |
 | [Column Settings](./column-settings.md) | 全量铺排排序、逐列多列冻结、偏好隔离和Pro适配 | ✅ |
 | [海运共享航程](./sea-master-voyage-inheritance.md) | 已有主单航程继承、差异采纳、只读来源与统一修改影响范围 | ✅ |

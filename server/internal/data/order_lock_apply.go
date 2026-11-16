@@ -17,13 +17,14 @@ import (
 
 // orderLockCoreSpec 描述人工审核锁定及其不可变费用证据。
 type orderLockCoreSpec struct {
-	reviewerID            uuid.UUID
-	idempotencyKey        string
-	requestFingerprint    string
-	feeSnapshot           json.RawMessage
-	feeContentVersion     uint64
-	feeContentFingerprint string
-	reviewComment         string
+	airDocumentFingerprint string
+	reviewerID             uuid.UUID
+	idempotencyKey         string
+	requestFingerprint     string
+	feeSnapshot            json.RawMessage
+	feeContentVersion      uint64
+	feeContentFingerprint  string
+	reviewComment          string
 }
 
 // applyOrderLockCore 写入人工审核锁。调用方必须在当前事务内取得 Order 行锁，
@@ -98,6 +99,9 @@ func applyOrderLockCore(ctx context.Context, tx *ent.Tx, organizationID uuid.UUI
 		snapshot, e := airOrderLockDocumentSnapshot(ctx, tx, organizationID, order.ID)
 		if e != nil {
 			return nil, nil, e
+		}
+		if len(spec.airDocumentFingerprint) != 64 || airDocumentSnapshotFingerprint(snapshot) != spec.airDocumentFingerprint {
+			return nil, nil, biz.ErrAirWaybillConflict
 		}
 		recordCreate.SetAirDocumentSnapshot(snapshot)
 	}
@@ -209,13 +213,14 @@ func (r *orderLockRepo) LockOrder(ctx context.Context, caller *biz.Principal, or
 
 		// 2. 原子固化人工审核费用证据、单证快照和唯一订单锁。
 		rec, seaSnapshot, coreErr := applyOrderLockCore(ctx, tx, organizationID, order, orderLockCoreSpec{
-			reviewerID:            caller.UserID,
-			idempotencyKey:        idempotencyKey,
-			requestFingerprint:    fingerprint,
-			feeSnapshot:           encodedSnapshot,
-			feeContentVersion:     order.FeeContentVersion,
-			feeContentFingerprint: contentFingerprint,
-			reviewComment:         review.Comment,
+			reviewerID:             caller.UserID,
+			airDocumentFingerprint: review.AirDocumentFingerprint,
+			idempotencyKey:         idempotencyKey,
+			requestFingerprint:     fingerprint,
+			feeSnapshot:            encodedSnapshot,
+			feeContentVersion:      order.FeeContentVersion,
+			feeContentFingerprint:  contentFingerprint,
+			reviewComment:          review.Comment,
 		})
 		if coreErr != nil {
 			return coreErr

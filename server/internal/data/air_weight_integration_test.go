@@ -33,7 +33,8 @@ func TestAirWeightConfirmationAndFeeSourcePostgres(t *testing.T) {
 	destination := c.Airport.Create().SetIataCode("ZTB").SetNameEn("Weight Destination").SetCountryCode("CN").SaveX(ctx)
 	master := c.AirMasterWaybill.Create().SetBusinessType("AE").SetOrganizationID(f.organizationID).SetMasterNo("99912345678").SetAirlineID(airline.ID).SetOriginAirportID(origin.ID).SetDestinationAirportID(destination.ID).SaveX(ctx)
 	for _, o := range []*ent.Order{a, b} {
-		c.AirMasterWaybillOrderLink.Create().SetOrganizationID(f.organizationID).SetMasterWaybillID(master.ID).SetOrderID(o.ID).SaveX(ctx)
+		c.AirMasterWaybillOrderLink.Create().SetDocumentMode("HOUSE").SetOrganizationID(f.organizationID).SetMasterWaybillID(master.ID).SetOrderID(o.ID).SaveX(ctx)
+		c.AirHouseWaybill.Create().SetOrganizationID(f.organizationID).SetMasterWaybillID(master.ID).SetOrderID(o.ID).SetHouseNo(o.OrderNo).SaveX(ctx)
 	}
 	uc := biz.NewAirWeightUsecase(NewAirWeightRepo(f.data))
 	input := &biz.AirWeightInput{Scope: "ORDER", TargetID: a.ID}
@@ -253,7 +254,8 @@ func TestAirWeightConfirmationAndFeeSourcePostgres(t *testing.T) {
 	masterConfirmed := confirm(masterActual, masterPreview.SuggestedChargeableWeightKG, "")
 	extra := f.createOrder("AE-WEIGHT-C-" + f.suffix)
 	c.Order.UpdateOneID(extra.ID).SetBusinessType(orderent.BusinessTypeAE).SaveX(ctx)
-	extraLink := c.AirMasterWaybillOrderLink.Create().SetOrganizationID(f.organizationID).SetMasterWaybillID(master.ID).SetOrderID(extra.ID).SaveX(ctx)
+	c.AirHouseWaybill.Create().SetOrganizationID(f.organizationID).SetMasterWaybillID(master.ID).SetOrderID(extra.ID).SetHouseNo(extra.OrderNo).SaveX(ctx)
+	extraLink := c.AirMasterWaybillOrderLink.Create().SetDocumentMode("HOUSE").SetOrganizationID(f.organizationID).SetMasterWaybillID(master.ID).SetOrderID(extra.ID).SaveX(ctx)
 	c.AirMasterWaybill.UpdateOne(master).AddVersion(1).SaveX(ctx)
 	changed := preview(masterActual)
 	if !changed.ConfirmationStale || changed.Available || changed.CurrentConfirmation.ID != masterConfirmed.ID {

@@ -3,6 +3,7 @@
 package airhousewaybill
 
 import (
+	"encoding/json"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -31,6 +32,8 @@ const (
 	FieldStatus = "status"
 	// FieldContent holds the string denoting the content field in the database.
 	FieldContent = "content"
+	// FieldContentHash holds the string denoting the content_hash field in the database.
+	FieldContentHash = "content_hash"
 	// FieldVersion holds the string denoting the version field in the database.
 	FieldVersion = "version"
 	// EdgeOrganization holds the string denoting the organization edge name in mutations.
@@ -75,6 +78,7 @@ var Columns = []string{
 	FieldHouseNo,
 	FieldStatus,
 	FieldContent,
+	FieldContentHash,
 	FieldVersion,
 }
 
@@ -102,9 +106,11 @@ var (
 	// StatusValidator is a validator for the "status" field. It is called by the builders before save.
 	StatusValidator func(string) error
 	// DefaultContent holds the default value on creation for the "content" field.
-	DefaultContent string
-	// ContentValidator is a validator for the "content" field. It is called by the builders before save.
-	ContentValidator func(string) error
+	DefaultContent json.RawMessage
+	// DefaultContentHash holds the default value on creation for the "content_hash" field.
+	DefaultContentHash string
+	// ContentHashValidator is a validator for the "content_hash" field. It is called by the builders before save.
+	ContentHashValidator func(string) error
 	// DefaultVersion holds the default value on creation for the "version" field.
 	DefaultVersion uint64
 	// DefaultID holds the default value on creation for the "id" field.
@@ -154,9 +160,9 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
 }
 
-// ByContent orders the results by the content field.
-func ByContent(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldContent, opts...).ToFunc()
+// ByContentHash orders the results by the content_hash field.
+func ByContentHash(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldContentHash, opts...).ToFunc()
 }
 
 // ByVersion orders the results by the version field.

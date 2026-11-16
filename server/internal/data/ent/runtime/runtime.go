@@ -3,6 +3,7 @@
 package runtime
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -307,11 +308,15 @@ func init() {
 	// airhousewaybillDescContent is the schema descriptor for content field.
 	airhousewaybillDescContent := airhousewaybillFields[5].Descriptor()
 	// airhousewaybill.DefaultContent holds the default value on creation for the content field.
-	airhousewaybill.DefaultContent = airhousewaybillDescContent.Default.(string)
-	// airhousewaybill.ContentValidator is a validator for the "content" field. It is called by the builders before save.
-	airhousewaybill.ContentValidator = airhousewaybillDescContent.Validators[0].(func(string) error)
+	airhousewaybill.DefaultContent = airhousewaybillDescContent.Default.(json.RawMessage)
+	// airhousewaybillDescContentHash is the schema descriptor for content_hash field.
+	airhousewaybillDescContentHash := airhousewaybillFields[6].Descriptor()
+	// airhousewaybill.DefaultContentHash holds the default value on creation for the content_hash field.
+	airhousewaybill.DefaultContentHash = airhousewaybillDescContentHash.Default.(string)
+	// airhousewaybill.ContentHashValidator is a validator for the "content_hash" field. It is called by the builders before save.
+	airhousewaybill.ContentHashValidator = airhousewaybillDescContentHash.Validators[0].(func(string) error)
 	// airhousewaybillDescVersion is the schema descriptor for version field.
-	airhousewaybillDescVersion := airhousewaybillFields[6].Descriptor()
+	airhousewaybillDescVersion := airhousewaybillFields[7].Descriptor()
 	// airhousewaybill.DefaultVersion holds the default value on creation for the version field.
 	airhousewaybill.DefaultVersion = airhousewaybillDescVersion.Default.(uint64)
 	// airhousewaybillDescID is the schema descriptor for id field.
@@ -335,12 +340,12 @@ func init() {
 	airhousewaybillversionDescStatus := airhousewaybillversionFields[6].Descriptor()
 	// airhousewaybillversion.StatusValidator is a validator for the "status" field. It is called by the builders before save.
 	airhousewaybillversion.StatusValidator = airhousewaybillversionDescStatus.Validators[0].(func(string) error)
-	// airhousewaybillversionDescContent is the schema descriptor for content field.
-	airhousewaybillversionDescContent := airhousewaybillversionFields[7].Descriptor()
-	// airhousewaybillversion.ContentValidator is a validator for the "content" field. It is called by the builders before save.
-	airhousewaybillversion.ContentValidator = airhousewaybillversionDescContent.Validators[0].(func(string) error)
+	// airhousewaybillversionDescContentHash is the schema descriptor for content_hash field.
+	airhousewaybillversionDescContentHash := airhousewaybillversionFields[8].Descriptor()
+	// airhousewaybillversion.ContentHashValidator is a validator for the "content_hash" field. It is called by the builders before save.
+	airhousewaybillversion.ContentHashValidator = airhousewaybillversionDescContentHash.Validators[0].(func(string) error)
 	// airhousewaybillversionDescReason is the schema descriptor for reason field.
-	airhousewaybillversionDescReason := airhousewaybillversionFields[9].Descriptor()
+	airhousewaybillversionDescReason := airhousewaybillversionFields[10].Descriptor()
 	// airhousewaybillversion.ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
 	airhousewaybillversion.ReasonValidator = airhousewaybillversionDescReason.Validators[0].(func(string) error)
 	// airhousewaybillversionDescID is the schema descriptor for id field.
@@ -364,8 +369,18 @@ func init() {
 	airmasterwaybill.DefaultUpdatedAt = airmasterwaybillDescUpdatedAt.Default.(func() time.Time)
 	// airmasterwaybill.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	airmasterwaybill.UpdateDefaultUpdatedAt = airmasterwaybillDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// airmasterwaybillDescWaybillContent is the schema descriptor for waybill_content field.
+	airmasterwaybillDescWaybillContent := airmasterwaybillFields[0].Descriptor()
+	// airmasterwaybill.DefaultWaybillContent holds the default value on creation for the waybill_content field.
+	airmasterwaybill.DefaultWaybillContent = airmasterwaybillDescWaybillContent.Default.(json.RawMessage)
+	// airmasterwaybillDescContentHash is the schema descriptor for content_hash field.
+	airmasterwaybillDescContentHash := airmasterwaybillFields[1].Descriptor()
+	// airmasterwaybill.DefaultContentHash holds the default value on creation for the content_hash field.
+	airmasterwaybill.DefaultContentHash = airmasterwaybillDescContentHash.Default.(string)
+	// airmasterwaybill.ContentHashValidator is a validator for the "content_hash" field. It is called by the builders before save.
+	airmasterwaybill.ContentHashValidator = airmasterwaybillDescContentHash.Validators[0].(func(string) error)
 	// airmasterwaybillDescBusinessType is the schema descriptor for business_type field.
-	airmasterwaybillDescBusinessType := airmasterwaybillFields[0].Descriptor()
+	airmasterwaybillDescBusinessType := airmasterwaybillFields[2].Descriptor()
 	// airmasterwaybill.BusinessTypeValidator is a validator for the "business_type" field. It is called by the builders before save.
 	airmasterwaybill.BusinessTypeValidator = func() func(string) error {
 		validators := airmasterwaybillDescBusinessType.Validators
@@ -383,7 +398,7 @@ func init() {
 		}
 	}()
 	// airmasterwaybillDescMasterNo is the schema descriptor for master_no field.
-	airmasterwaybillDescMasterNo := airmasterwaybillFields[2].Descriptor()
+	airmasterwaybillDescMasterNo := airmasterwaybillFields[4].Descriptor()
 	// airmasterwaybill.MasterNoValidator is a validator for the "master_no" field. It is called by the builders before save.
 	airmasterwaybill.MasterNoValidator = func() func(string) error {
 		validators := airmasterwaybillDescMasterNo.Validators
@@ -401,59 +416,59 @@ func init() {
 		}
 	}()
 	// airmasterwaybillDescFlightNo is the schema descriptor for flight_no field.
-	airmasterwaybillDescFlightNo := airmasterwaybillFields[6].Descriptor()
+	airmasterwaybillDescFlightNo := airmasterwaybillFields[8].Descriptor()
 	// airmasterwaybill.DefaultFlightNo holds the default value on creation for the flight_no field.
 	airmasterwaybill.DefaultFlightNo = airmasterwaybillDescFlightNo.Default.(string)
 	// airmasterwaybill.FlightNoValidator is a validator for the "flight_no" field. It is called by the builders before save.
 	airmasterwaybill.FlightNoValidator = airmasterwaybillDescFlightNo.Validators[0].(func(string) error)
 	// airmasterwaybillDescEtd is the schema descriptor for etd field.
-	airmasterwaybillDescEtd := airmasterwaybillFields[7].Descriptor()
+	airmasterwaybillDescEtd := airmasterwaybillFields[9].Descriptor()
 	// airmasterwaybill.DefaultEtd holds the default value on creation for the etd field.
 	airmasterwaybill.DefaultEtd = airmasterwaybillDescEtd.Default.(string)
 	// airmasterwaybill.EtdValidator is a validator for the "etd" field. It is called by the builders before save.
 	airmasterwaybill.EtdValidator = airmasterwaybillDescEtd.Validators[0].(func(string) error)
 	// airmasterwaybillDescEta is the schema descriptor for eta field.
-	airmasterwaybillDescEta := airmasterwaybillFields[8].Descriptor()
+	airmasterwaybillDescEta := airmasterwaybillFields[10].Descriptor()
 	// airmasterwaybill.DefaultEta holds the default value on creation for the eta field.
 	airmasterwaybill.DefaultEta = airmasterwaybillDescEta.Default.(string)
 	// airmasterwaybill.EtaValidator is a validator for the "eta" field. It is called by the builders before save.
 	airmasterwaybill.EtaValidator = airmasterwaybillDescEta.Validators[0].(func(string) error)
 	// airmasterwaybillDescActualDepartureAt is the schema descriptor for actual_departure_at field.
-	airmasterwaybillDescActualDepartureAt := airmasterwaybillFields[9].Descriptor()
+	airmasterwaybillDescActualDepartureAt := airmasterwaybillFields[11].Descriptor()
 	// airmasterwaybill.DefaultActualDepartureAt holds the default value on creation for the actual_departure_at field.
 	airmasterwaybill.DefaultActualDepartureAt = airmasterwaybillDescActualDepartureAt.Default.(string)
 	// airmasterwaybill.ActualDepartureAtValidator is a validator for the "actual_departure_at" field. It is called by the builders before save.
 	airmasterwaybill.ActualDepartureAtValidator = airmasterwaybillDescActualDepartureAt.Validators[0].(func(string) error)
 	// airmasterwaybillDescActualArrivalAt is the schema descriptor for actual_arrival_at field.
-	airmasterwaybillDescActualArrivalAt := airmasterwaybillFields[10].Descriptor()
+	airmasterwaybillDescActualArrivalAt := airmasterwaybillFields[12].Descriptor()
 	// airmasterwaybill.DefaultActualArrivalAt holds the default value on creation for the actual_arrival_at field.
 	airmasterwaybill.DefaultActualArrivalAt = airmasterwaybillDescActualArrivalAt.Default.(string)
 	// airmasterwaybill.ActualArrivalAtValidator is a validator for the "actual_arrival_at" field. It is called by the builders before save.
 	airmasterwaybill.ActualArrivalAtValidator = airmasterwaybillDescActualArrivalAt.Validators[0].(func(string) error)
 	// airmasterwaybillDescDocumentCutoffAt is the schema descriptor for document_cutoff_at field.
-	airmasterwaybillDescDocumentCutoffAt := airmasterwaybillFields[11].Descriptor()
+	airmasterwaybillDescDocumentCutoffAt := airmasterwaybillFields[13].Descriptor()
 	// airmasterwaybill.DefaultDocumentCutoffAt holds the default value on creation for the document_cutoff_at field.
 	airmasterwaybill.DefaultDocumentCutoffAt = airmasterwaybillDescDocumentCutoffAt.Default.(string)
 	// airmasterwaybill.DocumentCutoffAtValidator is a validator for the "document_cutoff_at" field. It is called by the builders before save.
 	airmasterwaybill.DocumentCutoffAtValidator = airmasterwaybillDescDocumentCutoffAt.Validators[0].(func(string) error)
 	// airmasterwaybillDescCustomsCutoffAt is the schema descriptor for customs_cutoff_at field.
-	airmasterwaybillDescCustomsCutoffAt := airmasterwaybillFields[12].Descriptor()
+	airmasterwaybillDescCustomsCutoffAt := airmasterwaybillFields[14].Descriptor()
 	// airmasterwaybill.DefaultCustomsCutoffAt holds the default value on creation for the customs_cutoff_at field.
 	airmasterwaybill.DefaultCustomsCutoffAt = airmasterwaybillDescCustomsCutoffAt.Default.(string)
 	// airmasterwaybill.CustomsCutoffAtValidator is a validator for the "customs_cutoff_at" field. It is called by the builders before save.
 	airmasterwaybill.CustomsCutoffAtValidator = airmasterwaybillDescCustomsCutoffAt.Validators[0].(func(string) error)
 	// airmasterwaybillDescStatus is the schema descriptor for status field.
-	airmasterwaybillDescStatus := airmasterwaybillFields[13].Descriptor()
+	airmasterwaybillDescStatus := airmasterwaybillFields[15].Descriptor()
 	// airmasterwaybill.DefaultStatus holds the default value on creation for the status field.
 	airmasterwaybill.DefaultStatus = airmasterwaybillDescStatus.Default.(string)
 	// airmasterwaybill.StatusValidator is a validator for the "status" field. It is called by the builders before save.
 	airmasterwaybill.StatusValidator = airmasterwaybillDescStatus.Validators[0].(func(string) error)
 	// airmasterwaybillDescVersion is the schema descriptor for version field.
-	airmasterwaybillDescVersion := airmasterwaybillFields[14].Descriptor()
+	airmasterwaybillDescVersion := airmasterwaybillFields[16].Descriptor()
 	// airmasterwaybill.DefaultVersion holds the default value on creation for the version field.
 	airmasterwaybill.DefaultVersion = airmasterwaybillDescVersion.Default.(uint64)
 	// airmasterwaybillDescNotes is the schema descriptor for notes field.
-	airmasterwaybillDescNotes := airmasterwaybillFields[18].Descriptor()
+	airmasterwaybillDescNotes := airmasterwaybillFields[20].Descriptor()
 	// airmasterwaybill.DefaultNotes holds the default value on creation for the notes field.
 	airmasterwaybill.DefaultNotes = airmasterwaybillDescNotes.Default.(string)
 	// airmasterwaybill.NotesValidator is a validator for the "notes" field. It is called by the builders before save.
@@ -487,6 +502,10 @@ func init() {
 	airmasterwaybillhistoryDescReason := airmasterwaybillhistoryFields[4].Descriptor()
 	// airmasterwaybillhistory.ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
 	airmasterwaybillhistory.ReasonValidator = airmasterwaybillhistoryDescReason.Validators[0].(func(string) error)
+	// airmasterwaybillhistoryDescContentHash is the schema descriptor for content_hash field.
+	airmasterwaybillhistoryDescContentHash := airmasterwaybillhistoryFields[7].Descriptor()
+	// airmasterwaybillhistory.ContentHashValidator is a validator for the "content_hash" field. It is called by the builders before save.
+	airmasterwaybillhistory.ContentHashValidator = airmasterwaybillhistoryDescContentHash.Validators[0].(func(string) error)
 	// airmasterwaybillhistoryDescID is the schema descriptor for id field.
 	airmasterwaybillhistoryDescID := airmasterwaybillhistoryMixinFields0[0].Descriptor()
 	// airmasterwaybillhistory.DefaultID holds the default value on creation for the id field.
@@ -508,22 +527,40 @@ func init() {
 	airmasterwaybillorderlink.DefaultUpdatedAt = airmasterwaybillorderlinkDescUpdatedAt.Default.(func() time.Time)
 	// airmasterwaybillorderlink.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	airmasterwaybillorderlink.UpdateDefaultUpdatedAt = airmasterwaybillorderlinkDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// airmasterwaybillorderlinkDescDocumentMode is the schema descriptor for document_mode field.
+	airmasterwaybillorderlinkDescDocumentMode := airmasterwaybillorderlinkFields[3].Descriptor()
+	// airmasterwaybillorderlink.DocumentModeValidator is a validator for the "document_mode" field. It is called by the builders before save.
+	airmasterwaybillorderlink.DocumentModeValidator = func() func(string) error {
+		validators := airmasterwaybillorderlinkDescDocumentMode.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(document_mode string) error {
+			for _, fn := range fns {
+				if err := fn(document_mode); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// airmasterwaybillorderlinkDescStatus is the schema descriptor for status field.
-	airmasterwaybillorderlinkDescStatus := airmasterwaybillorderlinkFields[3].Descriptor()
+	airmasterwaybillorderlinkDescStatus := airmasterwaybillorderlinkFields[4].Descriptor()
 	// airmasterwaybillorderlink.DefaultStatus holds the default value on creation for the status field.
 	airmasterwaybillorderlink.DefaultStatus = airmasterwaybillorderlinkDescStatus.Default.(string)
 	// airmasterwaybillorderlink.StatusValidator is a validator for the "status" field. It is called by the builders before save.
 	airmasterwaybillorderlink.StatusValidator = airmasterwaybillorderlinkDescStatus.Validators[0].(func(string) error)
 	// airmasterwaybillorderlinkDescVersion is the schema descriptor for version field.
-	airmasterwaybillorderlinkDescVersion := airmasterwaybillorderlinkFields[4].Descriptor()
+	airmasterwaybillorderlinkDescVersion := airmasterwaybillorderlinkFields[5].Descriptor()
 	// airmasterwaybillorderlink.DefaultVersion holds the default value on creation for the version field.
 	airmasterwaybillorderlink.DefaultVersion = airmasterwaybillorderlinkDescVersion.Default.(uint64)
 	// airmasterwaybillorderlinkDescStartedAt is the schema descriptor for started_at field.
-	airmasterwaybillorderlinkDescStartedAt := airmasterwaybillorderlinkFields[5].Descriptor()
+	airmasterwaybillorderlinkDescStartedAt := airmasterwaybillorderlinkFields[6].Descriptor()
 	// airmasterwaybillorderlink.DefaultStartedAt holds the default value on creation for the started_at field.
 	airmasterwaybillorderlink.DefaultStartedAt = airmasterwaybillorderlinkDescStartedAt.Default.(func() time.Time)
 	// airmasterwaybillorderlinkDescEndedReason is the schema descriptor for ended_reason field.
-	airmasterwaybillorderlinkDescEndedReason := airmasterwaybillorderlinkFields[7].Descriptor()
+	airmasterwaybillorderlinkDescEndedReason := airmasterwaybillorderlinkFields[8].Descriptor()
 	// airmasterwaybillorderlink.DefaultEndedReason holds the default value on creation for the ended_reason field.
 	airmasterwaybillorderlink.DefaultEndedReason = airmasterwaybillorderlinkDescEndedReason.Default.(string)
 	// airmasterwaybillorderlink.EndedReasonValidator is a validator for the "ended_reason" field. It is called by the builders before save.

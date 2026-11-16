@@ -59,7 +59,7 @@ func (s *OrderLockService) LockOrder(ctx context.Context, req *v1.LockOrderReque
 		Result:         "success",
 	}
 
-	res, err := s.usecase.LockOrder(ctx, principal, orderID, req.GetExpectedOrderVersion(), req.GetIdempotencyKey(), biz.OrderLockReviewInput{ExpectedFeeContentVersion: req.GetExpectedFeeContentVersion(), FeeContentFingerprint: req.GetFeeContentFingerprint(), Comment: req.GetComment()}, audit)
+	res, err := s.usecase.LockOrder(ctx, principal, orderID, req.GetExpectedOrderVersion(), req.GetIdempotencyKey(), biz.OrderLockReviewInput{AirDocumentFingerprint: req.GetAirDocumentFingerprint(), ExpectedFeeContentVersion: req.GetExpectedFeeContentVersion(), FeeContentFingerprint: req.GetFeeContentFingerprint(), Comment: req.GetComment()}, audit)
 	if err != nil {
 		return nil, err
 	}
@@ -166,6 +166,7 @@ func orderLockStateToAPI(s *biz.OrderLockState) *v1.OrderLockStateData {
 		return nil
 	}
 	data := &v1.OrderLockStateData{
+		AirDocumentFingerprint:  s.AirDocumentFingerprint,
 		OrderId:                 s.OrderID.String(),
 		OrderNo:                 s.OrderNo,
 		BusinessType:            orderBusinessTypeToAPI(s.BusinessType),

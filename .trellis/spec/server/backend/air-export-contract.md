@@ -12,12 +12,12 @@ Proto 真相源为 `api/order/v1/{order,air_export,air_weight,order_fee}.proto`�
 
 | 入口 | 契约 |
 | --- | --- |
-| `POST /api/v1/orders` | `businessType=AE`，`airExport{masterWaybillId?,expectedMasterVersion,master,houseNo,houseContent,houseStatus}` |
+| `POST /api/v1/orders` | `businessType=AE`，`airExport{documentMode,masterWaybillId?,expectedMasterVersion?,master?,house?}`；已有主单仅需身份/版本，新建主单才必填master |
 | `GET /api/v1/air-export/master-waybills` | `businessType=AE,keyword,page,pageSize`；类型必填，真实主单候选，不能按字符串隐式拼单 |
 | `GET /api/v1/air-export/master-waybills/{id}` | 共同资料、活动成员分页、完整集合汇总、历史分页和阻断原因 |
 | `GET .../{id}/link-candidates` | 已终止且原属本主单的恢复候选，服务端关键字过滤及分页 |
 | `POST .../{id}/preview` / `PUT .../{id}` | `expectedVersion,input`；执行另带预览 `inputFingerprint` 和 `reason` |
-| `POST .../{id}/members` | 显式恢复原主单已终止票；订单、主单版本及原 HAWB 均需匹配 |
+| `POST .../{id}/members` | 显式恢复原主单已终止票；订单/主单版本及原模式匹配，HOUSE需原HAWB，DIRECT无HAWB |
 | `GET /api/v1/air-export/orders/{order_id}/house-versions` | 本票分单不可变版本历史，校验本票读取范围及分页 |
 | `POST /api/v1/air-weights/preview` | `scope=ORDER/MASTER,targetId,source=PLANNED/ACTUAL,volumetricDivisor,bubbleShareNumerator,bubbleShareDenominator` |
 | `POST /api/v1/air-weights/confirm` | 同预览参数，另带 `inputFingerprint,expectedVersion,confirmedWeightKg,reason` |
@@ -27,20 +27,22 @@ Schema：`AirMasterWaybill`、`AirMasterWaybillOrderLink`、`AirHouseWaybill`、
 `AirHouseWaybillVersion`、`AirMasterWaybillHistory`、`AirWeightConfirmation`。
 `OrderLockRecord.air_document_snapshot` 单独保存空运锁单时的单证事实。
 正式迁移：`20261021100000_air_export_waybills.sql`、`20261021110000_air_weight_confirmation.sql`。
+DIRECT/HOUSE、结构化正文、版本/哈希/正式迁移及航空审核指纹以
+[航空直单与结构化正文](./air-waybill-content-and-mode.md) 为准。
 
 ## 3. 请求与响应不变量
 
 ### 身份、共享事实和生命周期
 
-- 草稿与普通创建均要求有效 MAWB/HAWB。MAWB 去空格和连字符后保留 11 位数字：
+- 草稿与普通创建均要求有效 MAWB，HOUSE 还要求真实 HAWB，DIRECT 无分单。MAWB 去空格和连字符后保留 11 位数字：
   三位航司前缀、七位序号、序号 mod7 校验位；同公司同业务类型号码唯一。
   主单不可变身份、方向隔离和历史回填见[海空主单进出口身份](./order-master-business-identity.md)。
 - 预计起降时间沿用公共订单必填与先后顺序校验，AE 从权威主单取得；
   航班号及后续单证内容可后补，在对应操作节点复验。
-- HAWB 去首尾空白并统一大写；同主单内永久占号，跨主单可重复；一票一分。
+- HAWB 去首尾空白并统一大写；同主单内永久占号，跨主单可重复；HOUSE 一票一分。
   每票最多一个 ACTIVE Link，终止结束 Link，恢复创建新 Link，不复活历史行。
 - 新建主单或明确选中候选是两条显式意图；同号冲突返回 409，不自动合并。
-  选已有主单必须携带其 ID、版本和权威共同资料。
+  选已有主单携带其 ID 和版本，服务端锁内取得权威共同资料；不能用副本改共享正文。
 - 订单列表 `originLocationId` / `destinationLocationId` 对 AE 读取与详情相同的最近关联主单机场（含终止后的最后关联），不能过滤 Order 旧地点字段；主单机场 A 改 B 后，新机场命中、旧机场不命中，分页总数与结果共用谓词。缺主单不得借旧字段伪造权威地点；非 AE 仍按原订单地点口径。
 - 航司、机场、航班、起降时刻和截止时间由主单统一维护；本票私有保存不覆盖共享事实。
   本票客户、人员、货物、HAWB 内容和费用独立。普通保存不能改配到另一主单。
@@ -83,7 +85,7 @@ Schema：`AirMasterWaybill`、`AirMasterWaybillOrderLink`、`AirHouseWaybill`、
 
 | 条件 | 结果 |
 | --- | --- |
-| MAWB/HAWB 缺失、校验位错误、机场/航司引用非法 | 400，建票事务不留下半票或部分关联 |
+| MAWB 缺失、HOUSE 缺 HAWB、校验位错误、机场/航司引用非法 | 400，建票事务不留下半票或部分关联 |
 | 主单号码冲突、同主单 HAWB 重复 | 409，数据库唯一约束兜底 |
 | 订单、主单、关系、预览指纹或重量确认版本过期 | 409，要求刷新重试 |
 | 跨公司或无 AE 对应权限 | 按权限/不存在契约拒绝，不返回其他公司成员及汇总 |

@@ -31,6 +31,8 @@ const (
 	FieldStatus = "status"
 	// FieldContent holds the string denoting the content field in the database.
 	FieldContent = "content"
+	// FieldContentHash holds the string denoting the content_hash field in the database.
+	FieldContentHash = "content_hash"
 	// FieldActorID holds the string denoting the actor_id field in the database.
 	FieldActorID = "actor_id"
 	// FieldReason holds the string denoting the reason field in the database.
@@ -59,6 +61,7 @@ var Columns = []string{
 	FieldHouseNo,
 	FieldStatus,
 	FieldContent,
+	FieldContentHash,
 	FieldActorID,
 	FieldReason,
 }
@@ -80,8 +83,8 @@ var (
 	HouseNoValidator func(string) error
 	// StatusValidator is a validator for the "status" field. It is called by the builders before save.
 	StatusValidator func(string) error
-	// ContentValidator is a validator for the "content" field. It is called by the builders before save.
-	ContentValidator func(string) error
+	// ContentHashValidator is a validator for the "content_hash" field. It is called by the builders before save.
+	ContentHashValidator func(string) error
 	// ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
 	ReasonValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
@@ -131,9 +134,9 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
 }
 
-// ByContent orders the results by the content field.
-func ByContent(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldContent, opts...).ToFunc()
+// ByContentHash orders the results by the content_hash field.
+func ByContentHash(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldContentHash, opts...).ToFunc()
 }
 
 // ByActorID orders the results by the actor_id field.

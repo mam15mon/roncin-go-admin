@@ -47,7 +47,7 @@ func seedAirExportOrders(ctx context.Context, sc *seedContext) error {
 	}
 	master, err := tx.AirMasterWaybill.Query().Where(masterent.OrganizationIDEQ(sc.company.ID), masterent.MasterNoEQ("78112345675")).Only(ctx)
 	if ent.IsNotFound(err) {
-		master, err = tx.AirMasterWaybill.Create().SetBusinessType("AE").SetOrganizationID(sc.company.ID).SetMasterNo("78112345675").
+		master, err = tx.AirMasterWaybill.Create().SetContentHash(biz.AirWaybillContentHash(nil)).SetBusinessType("AE").SetOrganizationID(sc.company.ID).SetMasterNo("78112345675").
 			SetAirlineID(airline.ID).SetOriginAirportID(airports["PVG"].ID).SetDestinationAirportID(airports["LAX"].ID).
 			SetFlightNo("MU583").SetEtd("2026-10-22T03:30:00Z").SetEta("2026-10-22T15:00:00Z").
 			SetDocumentCutoffAt("2026-10-21T08:00:00Z").SetCustomsCutoffAt("2026-10-21T10:00:00Z").
@@ -129,16 +129,16 @@ func seedAirExportOrders(ctx context.Context, sc *seedContext) error {
 				return err
 			}
 		}
-		if _, err = tx.AirMasterWaybillOrderLink.Create().SetOrganizationID(sc.company.ID).SetMasterWaybillID(master.ID).SetOrderID(ord.ID).Save(ctx); err != nil {
+		if _, err = tx.AirMasterWaybillOrderLink.Create().SetDocumentMode("HOUSE").SetOrganizationID(sc.company.ID).SetMasterWaybillID(master.ID).SetOrderID(ord.ID).Save(ctx); err != nil {
 			return err
 		}
-		house, err := tx.AirHouseWaybill.Create().SetOrganizationID(sc.company.ID).SetMasterWaybillID(master.ID).SetOrderID(ord.ID).SetHouseNo(spec.houseNo).Save(ctx)
+		house, err := tx.AirHouseWaybill.Create().SetOrganizationID(sc.company.ID).SetMasterWaybillID(master.ID).SetOrderID(ord.ID).SetHouseNo(spec.houseNo).SetContentHash(biz.AirWaybillContentHash(nil)).Save(ctx)
 		if err != nil {
 			return err
 		}
 		if err = tx.AirHouseWaybillVersion.Create().SetOrganizationID(sc.company.ID).SetOrderID(ord.ID).
 			SetHouseWaybillID(house.ID).SetVersion(1).SetHouseNo(house.HouseNo).SetStatus(house.Status).
-			SetContent(house.Content).SetActorID(sc.adminUser.ID).SetReason("开发空运建票样例").Exec(ctx); err != nil {
+			SetContent(house.Content).SetContentHash(house.ContentHash).SetActorID(sc.adminUser.ID).SetReason("开发空运建票样例").Exec(ctx); err != nil {
 			return err
 		}
 		master, err = master.Update().AddVersion(1).Save(ctx)
@@ -168,5 +168,5 @@ func seedAirMasterHistory(ctx context.Context, sc *seedContext, master *ent.AirM
 		return err
 	}
 	return sc.tx.AirMasterWaybillHistory.Create().SetOrganizationID(sc.company.ID).SetMasterWaybillID(master.ID).
-		SetVersion(master.Version).SetAction(action).SetReason("开发空运共享主单样例").SetActorID(sc.adminUser.ID).SetContent(content).Exec(ctx)
+		SetVersion(master.Version).SetAction(action).SetReason("开发空运共享主单样例").SetActorID(sc.adminUser.ID).SetContent(content).SetContentHash(master.ContentHash).Exec(ctx)
 }

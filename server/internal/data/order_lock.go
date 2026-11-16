@@ -228,6 +228,13 @@ func (r *orderLockRepo) GetOrderLockState(ctx context.Context, organizationID, o
 		state.FeeContentVersion = order.FeeContentVersion
 		state.FeeContentFingerprint = fingerprint
 		state.FeeSummary = &snapshot.Summary
+		if businessType == access.OrderBusinessAE && order.TerminationStatus == orderent.TerminationStatusACTIVE {
+			airSnapshot, e := readAirOrderDocumentSnapshot(ctx, client, organizationID, order.ID)
+			if e != nil {
+				return nil, e
+			}
+			state.AirDocumentFingerprint = airDocumentSnapshotFingerprint(airSnapshot)
+		}
 	}
 	pending, pendingErr := hasPendingFeeSupplement(ctx, client, order.ID)
 	if pendingErr != nil {

@@ -421,22 +421,26 @@ func normalizeOrder(input *Order, creating bool) (*Order, error) {
 	if (output.InsurancePremium == "") != (output.InsuranceCurrency == "") || output.InsurancePremium != "" && (!cargoValuePattern.MatchString(output.InsurancePremium) || len(output.InsuranceCurrency) != 3) || output.UNNumber != "" && !unNumberPattern.MatchString(output.UNNumber) {
 		return nil, ErrOrderInvalidArgument
 	}
-	if output.ETD == "" {
-		return nil, errors.BadRequest("ORDER_INVALID_ARGUMENT", "请填写 ETD（预计离港时间）")
-	}
-	if output.ETA == "" {
-		return nil, errors.BadRequest("ORDER_INVALID_ARGUMENT", "请填写 ETA（预计到港时间）")
-	}
-	etd, err := time.Parse(time.RFC3339, output.ETD)
-	if err != nil {
-		return nil, errors.BadRequest("ORDER_INVALID_ARGUMENT", "ETD（预计离港时间）格式不合法")
-	}
-	eta, err := time.Parse(time.RFC3339, output.ETA)
-	if err != nil {
-		return nil, errors.BadRequest("ORDER_INVALID_ARGUMENT", "ETA（预计到港时间）格式不合法")
-	}
-	if eta.Before(etd) {
-		return nil, errors.BadRequest("ORDER_INVALID_ARGUMENT", "ETA（预计到港时间）不能早于 ETD（预计离港时间）")
+	// 已有航空主单的运输事实在仓储取得完整成员与主单锁后校验，不读取客户端副本。
+	deferredAirMaster := creating && output.BusinessType == OrderBusinessAE && output.AirExportInput != nil && output.AirExportInput.MasterWaybillID != nil && output.AirExportInput.Master == nil
+	if !deferredAirMaster {
+		if output.ETD == "" {
+			return nil, errors.BadRequest("ORDER_INVALID_ARGUMENT", "请填写 ETD（预计离港时间）")
+		}
+		if output.ETA == "" {
+			return nil, errors.BadRequest("ORDER_INVALID_ARGUMENT", "请填写 ETA（预计到港时间）")
+		}
+		etd, err := time.Parse(time.RFC3339, output.ETD)
+		if err != nil {
+			return nil, errors.BadRequest("ORDER_INVALID_ARGUMENT", "ETD（预计离港时间）格式不合法")
+		}
+		eta, err := time.Parse(time.RFC3339, output.ETA)
+		if err != nil {
+			return nil, errors.BadRequest("ORDER_INVALID_ARGUMENT", "ETA（预计到港时间）格式不合法")
+		}
+		if eta.Before(etd) {
+			return nil, errors.BadRequest("ORDER_INVALID_ARGUMENT", "ETA（预计到港时间）不能早于 ETD（预计离港时间）")
+		}
 	}
 	for _, value := range []string{output.SICutoff, output.DocCutoff, output.CustomsCutoff, output.VGMCutoff, output.CargoReadyAt, output.DeclarationCutoffAt, output.ReceivedAt, output.OrderDate} {
 		if value != "" {
@@ -528,6 +532,22 @@ func sameOrderCreateIntent(existing *Order, requested *Order) bool {
 	if existing == nil || requested == nil {
 		return false
 	}
+	if requested.BusinessType == OrderBusinessAE && requested.AirExportInput != nil && requested.AirExportInput.MasterWaybillID != nil {
+		if existing.AirExport == nil || existing.AirExport.Master == nil || existing.AirExport.Master.ID != *requested.AirExportInput.MasterWaybillID {
+			return false
+		}
+		if requested.AirExportInput.Master == nil {
+			copyOrder := *requested
+			copyInput := *requested.AirExportInput
+			copyInput.Master = &existing.AirExport.Master.Content
+			copyOrder.AirExportInput = &copyInput
+			copyOrder.OriginLocationID = &copyInput.Master.OriginAirportID
+			copyOrder.DestinationLocationID = &copyInput.Master.DestinationAirportID
+			copyOrder.DocCutoff = copyInput.Master.DocumentCutoffAt
+			copyOrder.CustomsCutoff = copyInput.Master.CustomsCutoffAt
+			requested = &copyOrder
+		}
+	}
 	return orderCreateIntentHash(existing) == orderCreateIntentHash(requested)
 }
 
@@ -593,37 +613,48 @@ func orderCreateIntentHash(order *Order) string {
 	}
 	part("master-no", masterNo)
 	if order.BusinessType == OrderBusinessAE {
-		house, master := "", ""
+		var master *AirMasterWaybillInput
+		var content *AirWaybillContent
+		mode, no, status := "", "", ""
 		if order.AirExportInput != nil {
-			house = order.AirExportInput.HouseNo
-			if order.AirExportInput.Master != nil {
-				master = order.AirExportInput.Master.MasterNo
+			in := order.AirExportInput
+			mode = in.DocumentMode
+			master = in.Master
+			if in.House != nil {
+				no = in.House.HouseNo
+				status = in.House.Status
+				content = in.House.Content
+			}
+		} else if order.AirExport != nil {
+			in := order.AirExport
+			mode = in.DocumentMode
+			if in.Master != nil {
+				master = &in.Master.Content
+			}
+			if in.House != nil {
+				no = in.House.HouseNo
+				status = in.House.Status
+				content = in.House.Content
 			}
 		}
-		if order.AirExport != nil {
-			house = order.AirExport.HouseNo
-			if order.AirExport.Master != nil {
-				master = order.AirExport.Master.Content.MasterNo
+		if content == nil && mode == "HOUSE" {
+			content = &AirWaybillContent{}
+		}
+		if master != nil {
+			v := *master
+			if v.WaybillContent == nil {
+				v.WaybillContent = &AirWaybillContent{}
 			}
+			master = &v
 		}
-		part("air-waybills", master, house)
-		var content *AirMasterWaybillInput
-		houseContent, houseStatus := "", ""
-		if order.AirExportInput != nil {
-			content = order.AirExportInput.Master
-			houseContent = order.AirExportInput.HouseContent
-			houseStatus = order.AirExportInput.HouseStatus
-		}
-		if order.AirExport != nil {
-			if order.AirExport.Master != nil {
-				content = &order.AirExport.Master.Content
-			}
-			houseContent = order.AirExport.HouseContent
-			houseStatus = order.AirExport.HouseStatus
-		}
-		payload, _ := json.Marshal(content)
-		part("air-content", string(payload), houseContent, houseStatus)
+		payload, _ := json.Marshal(struct {
+			Mode, No, Status string
+			Master           *AirMasterWaybillInput
+			Content          *AirWaybillContent
+		}{mode, no, status, master, content})
+		part("air-waybills", string(payload))
 	}
+
 	return financeSHA256(builder.String())
 }
 

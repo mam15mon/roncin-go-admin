@@ -6,10 +6,20 @@ import {
   ProFormTextArea,
 } from '@ant-design/pro-components';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Alert, Button, Descriptions, Result, Space, Tag } from 'antd';
+import {
+  Alert,
+  App,
+  Button,
+  Descriptions,
+  Modal,
+  Radio,
+  Result,
+  Space,
+  Tag,
+} from 'antd';
 import dayjs from 'dayjs';
 import { useRef, useState } from 'react';
-import { useParams } from 'react-router';
+import { useLocation, useParams } from 'react-router';
 import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import {
@@ -31,10 +41,12 @@ import {
 } from '@/services/roncin/airExportService';
 import { ensureListResponse, isWriteResponse } from '@/utils/api';
 import { formatDate, trimDecimal } from '@/utils/format';
+import { useAirMasterChangeNotice } from './air-master-change-notice';
 import { searchOrderLocations } from './common';
 import AirWeightPanel from './order-kinds/air-export/AirWeightPanel';
 import { serializeAirMaster } from './order-kinds/air-export/form-adapter';
 import { AirMasterFields } from './templates/components/air/AirMasterFields';
+import { AirWaybillFields } from './templates/components/air/AirWaybillFields';
 
 type MasterEditValues = { input: API.AirMasterWaybillInput; reason: string };
 
@@ -45,6 +57,8 @@ function formatCargoSummary(value?: number): string {
 
 export default function AirMasterPage() {
   const { masterId = '' } = useParams<{ masterId: string }>();
+  const { pathname } = useLocation();
+  const { modal } = App.useApp();
   const access = useAccess();
   const queryClient = useQueryClient();
   const { initialState } = useInitialState();
@@ -58,6 +72,17 @@ export default function AirMasterPage() {
     canUpdate &&
     access.canOrder(OrderBusinessType.BUSINESS_TYPE_AE, 'transition');
   const [editOpen, setEditOpen] = useState(false);
+  const [editSnapshot, setEditSnapshot] =
+    useState<API.GetAirMasterWaybillResponse>();
+  const [editOwner, setEditOwner] = useState('');
+  const [editSession, setEditSession] = useState(0);
+  const editSessionRef = useRef(0);
+  const editRevision = useRef(0);
+  const editingScope = useRef('');
+  editingScope.current = `${organizationId}:${masterId}:${editOpen}`;
+  const [editDirty, setEditDirty] = useState(false);
+  const [chooseModeOpen, setChooseModeOpen] = useState(false);
+  const [createMode, setCreateMode] = useState<'DIRECT' | 'HOUSE'>();
   const [linkOpen, setLinkOpen] = useState(false);
   const [impact, setImpact] = useState<{
     values: MasterEditValues;
@@ -81,14 +106,46 @@ export default function AirMasterPage() {
         { id: masterId, page: 1, pageSize: 20 },
         { signal },
       );
-      if (!response?.data) throw new Error('主单加载失败');
+      if (
+        response?.success === false ||
+        response?.data?.id !== masterId ||
+        !response.data.version
+      )
+        throw new Error('主单加载失败');
       return response;
     },
   });
-  const current = query.isError ? undefined : query.data;
+  const current = query.data;
   const master = current?.data;
   const input = master?.content;
   const totals = current?.totals;
+  const attachMode = master?.documentMode;
+  const canAttach =
+    query.isSuccess &&
+    master?.canAttach === true &&
+    (!attachMode || attachMode === 'DIRECT' || attachMode === 'HOUSE');
+  const editingMaster =
+    editOwner === `${organizationId}:${masterId}`
+      ? editSnapshot?.data
+      : undefined;
+  const masterChanged = useAirMasterChangeNotice({
+    baseline: editingMaster ? editSnapshot : undefined,
+    session: editSession,
+    organizationId,
+    enabled:
+      editOpen &&
+      canRead &&
+      pathname === `/orders/air-export/masters/${masterId}`,
+  });
+  const acceptEditSnapshot = (snapshot: API.GetAirMasterWaybillResponse) => {
+    setEditSnapshot(structuredClone(snapshot));
+    setEditOwner(`${organizationId}:${masterId}`);
+    editSessionRef.current += 1;
+    editRevision.current += 1;
+    setEditSession(editSessionRef.current);
+    setEditDirty(false);
+    setImpact(undefined);
+  };
   const reload = async () => {
     await Promise.all([
       query.refetch(),
@@ -96,8 +153,40 @@ export default function AirMasterPage() {
     ]);
     memberRef.current?.reload();
   };
+  const refreshEditor = async () => {
+    const session = editSessionRef.current;
+    const revision = editRevision.current;
+    const scope = editingScope.current;
+    const result = await query.refetch();
+    if (!result.isSuccess || !result.data) return false;
+    if (
+      scope !== editingScope.current ||
+      session !== editSessionRef.current ||
+      revision !== editRevision.current
+    )
+      return false;
+    acceptEditSnapshot(result.data);
+    memberRef.current?.reload();
+    return true;
+  };
+  const requestRefresh = () => {
+    if (!editOpen || !editingMaster) {
+      void reload();
+      return;
+    }
+    if (editDirty) {
+      modal.confirm({
+        title: '刷新会覆盖尚未保存的主单修改，是否继续？',
+        okText: '确认刷新',
+        cancelText: '保留编辑',
+        onOk: refreshEditor,
+      });
+      return;
+    }
+    void refreshEditor();
+  };
   if (!canRead) return <Result status="403" title="无权查看空运主单" />;
-  if (query.isError)
+  if (query.isError && !current)
     return (
       <Result
         status="error"
@@ -115,15 +204,34 @@ export default function AirMasterPage() {
         title={input?.masterNo || '共享航空主运单'}
         subTitle="共同运输事实、真实成员与计费重量"
         onBack={() => history.push('/orders/air-export')}
-        tags={<Tag color="blue">MAWB · v{master?.version}</Tag>}
+        tags={
+          <Tag color="blue">
+            MAWB
+            {attachMode === 'DIRECT'
+              ? ' · 直单'
+              : attachMode === 'HOUSE'
+                ? ' · 主分单'
+                : ''}
+          </Tag>
+        }
         actions={
           <Space>
             {access.canOrder(OrderBusinessType.BUSINESS_TYPE_AE, 'create') && (
               <Button
                 type="primary"
-                onClick={() =>
-                  history.push(`/orders/air-export/new?masterId=${masterId}`)
-                }
+                disabled={!canAttach}
+                title={master?.attachBlockedReason}
+                onClick={() => {
+                  if (!canAttach) return;
+                  if (attachMode) {
+                    history.push(
+                      `/orders/air-export/new?masterId=${masterId}&documentMode=${attachMode}`,
+                    );
+                    return;
+                  }
+                  setCreateMode(undefined);
+                  setChooseModeOpen(true);
+                }}
               >
                 从本主单继续建票
               </Button>
@@ -136,8 +244,10 @@ export default function AirMasterPage() {
                   </Button>
                 )}
                 <Button
+                  disabled={!query.isSuccess}
                   onClick={() => {
-                    setImpact(undefined);
+                    if (!current) return;
+                    acceptEditSnapshot(current);
                     setEditOpen(true);
                   }}
                 >
@@ -145,7 +255,7 @@ export default function AirMasterPage() {
                 </Button>
               </>
             )}
-            <Button onClick={() => void reload()}>刷新</Button>
+            <Button onClick={requestRefresh}>刷新</Button>
           </Space>
         }
       />
@@ -154,6 +264,15 @@ export default function AirMasterPage() {
         size={12}
         style={{ width: '100%', marginTop: 12 }}
       >
+        {query.isError && current && (
+          <Alert
+            type="error"
+            title="主单刷新失败，已保留当前资料与编辑输入。"
+          />
+        )}
+        {master?.attachBlockedReason && (
+          <Alert type="info" title={master.attachBlockedReason} />
+        )}
         <SectionCard title="共同运输与单证">
           <Descriptions
             size="small"
@@ -329,7 +448,14 @@ export default function AirMasterPage() {
                 ),
               },
               { title: '客户', dataIndex: 'customerName', ellipsis: true },
-              { title: '分单号', dataIndex: 'houseNo' },
+              {
+                title: '分单号',
+                dataIndex: 'houseNo',
+                render: (_, item) =>
+                  master?.documentMode === 'DIRECT'
+                    ? '直单（无 HAWB）'
+                    : item.houseNo || '-',
+              },
               {
                 title: '计划确认计费重 KG',
                 render: (_, item) =>
@@ -356,11 +482,13 @@ export default function AirMasterPage() {
               {
                 title: '分单单证',
                 render: (_, item) =>
-                  item.houseStatus === 'RELEASED'
-                    ? '已签发'
-                    : item.houseStatus === 'CONFIRMED'
-                      ? '已确认'
-                      : '待完善',
+                  master?.documentMode === 'DIRECT'
+                    ? '不适用（直单）'
+                    : item.houseStatus === 'RELEASED'
+                      ? '已签发'
+                      : item.houseStatus === 'CONFIRMED'
+                        ? '已确认'
+                        : '待完善',
               },
             ]}
           />
@@ -408,16 +536,46 @@ export default function AirMasterPage() {
           />
         </SectionCard>
       </Space>
-      {editOpen && master && (
+      <Modal
+        title="选择新票单证模式"
+        open={chooseModeOpen}
+        onCancel={() => setChooseModeOpen(false)}
+        okText="继续建票"
+        okButtonProps={{
+          disabled: !createMode || !canAttach || Boolean(attachMode),
+        }}
+        onOk={() => {
+          if (!createMode || !canAttach || attachMode) return;
+          setChooseModeOpen(false);
+          history.push(
+            `/orders/air-export/new?masterId=${masterId}&documentMode=${createMode}`,
+          );
+        }}
+      >
+        <Radio.Group
+          value={createMode}
+          onChange={(event) => setCreateMode(event.target.value)}
+          options={[
+            { label: '直单（DIRECT，无 HAWB）', value: 'DIRECT' },
+            { label: '主分单（HOUSE，每票一份 HAWB）', value: 'HOUSE' },
+          ]}
+        />
+      </Modal>
+      {editOpen && editingMaster && (
         <GuardedModalForm<MasterEditValues>
+          key={editSession}
           title="修改共享主单共同资料"
           open
           onOpenChange={setEditOpen}
-          guardIdentity={masterId}
+          guardIdentity={editSession}
           width={1000}
-          initialValues={{ input: master.content }}
+          initialValues={{ input: structuredClone(editingMaster.content) }}
           modalProps={{ destroyOnHidden: true }}
-          onValuesChange={() => setImpact(undefined)}
+          onValuesChange={() => {
+            editRevision.current += 1;
+            setEditDirty(true);
+            setImpact(undefined);
+          }}
           submitter={{
             searchConfig: {
               submitText: impact?.response.canExecute
@@ -426,9 +584,17 @@ export default function AirMasterPage() {
             },
           }}
           onFinish={async (values) => {
+            if (!canUpdate) return false;
+            const session = editSessionRef.current;
+            const revision = editRevision.current;
+            const scope = editingScope.current;
+            const stillCurrent = () =>
+              session === editSessionRef.current &&
+              revision === editRevision.current &&
+              scope === editingScope.current;
             const payload = {
               id: masterId,
-              expectedVersion: master.version,
+              expectedVersion: editingMaster.version,
               input: serializeAirMaster(values.input),
             };
             if (!impact) {
@@ -437,7 +603,7 @@ export default function AirMasterPage() {
                   { id: masterId },
                   payload,
                 );
-              if (!response?.inputFingerprint) return false;
+              if (!response?.inputFingerprint || !stillCurrent()) return false;
               setImpact({ values, response });
               return false;
             }
@@ -451,11 +617,28 @@ export default function AirMasterPage() {
               },
             );
             if (!isWriteResponse(response, true)) return false;
+            if (!stillCurrent()) return false;
             setEditOpen(false);
             await reload();
             return true;
           }}
         >
+          {masterChanged && (
+            <Alert
+              type="warning"
+              showIcon
+              title="这个主单已经发生变动，请重新刷新。"
+              description="当前输入已保留；刷新成功后才能采用最新主单资料。"
+              action={<Button onClick={requestRefresh}>刷新主单资料</Button>}
+              style={{ marginBottom: 12 }}
+            />
+          )}
+          <Alert
+            type="info"
+            title="运输资料与运单印字正文分别保存"
+            description="正文路线与航班仅用于单证印字，不会改写运输机场和时刻；运价与其他费用合计由服务端计算，与订单经营费用独立。"
+            style={{ marginBottom: 12 }}
+          />
           <AirMasterFields
             props={{
               searchLocations: (keyword) =>
@@ -463,8 +646,9 @@ export default function AirMasterPage() {
               locationOptions: [],
             }}
             prefix={['input']}
-            master={master}
+            master={editingMaster}
           />
+          <AirWaybillFields prefix={['input', 'waybillContent']} />
           <ProFormTextArea
             name="reason"
             label="修改原因"
@@ -517,7 +701,12 @@ export default function AirMasterPage() {
               { id: masterId },
               {
                 id: masterId,
-                ...values,
+                orderId: values.orderId,
+                expectedOrderVersion: values.expectedOrderVersion,
+                reason: values.reason,
+                ...(master.documentMode === 'HOUSE'
+                  ? { houseNo: values.houseNo }
+                  : {}),
                 expectedMasterVersion: master.version,
               },
             );
@@ -567,11 +756,13 @@ export default function AirMasterPage() {
             }}
           />
           <ProFormText name="expectedOrderVersion" hidden />
-          <ProFormText
-            name="houseNo"
-            label="目标主单内分单号"
-            rules={[{ required: true, message: '请输入分单号' }]}
-          />
+          {master.documentMode === 'HOUSE' && (
+            <ProFormText
+              name="houseNo"
+              label="目标主单内分单号"
+              rules={[{ required: true, message: '请输入分单号' }]}
+            />
+          )}
           <ProFormTextArea
             name="reason"
             label="关联原因"

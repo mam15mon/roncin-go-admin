@@ -33,6 +33,8 @@ const (
 	FieldActorID = "actor_id"
 	// FieldContent holds the string denoting the content field in the database.
 	FieldContent = "content"
+	// FieldContentHash holds the string denoting the content_hash field in the database.
+	FieldContentHash = "content_hash"
 	// EdgeMasterWaybill holds the string denoting the master_waybill edge name in mutations.
 	EdgeMasterWaybill = "master_waybill"
 	// Table holds the table name of the airmasterwaybillhistory in the database.
@@ -58,6 +60,7 @@ var Columns = []string{
 	FieldReason,
 	FieldActorID,
 	FieldContent,
+	FieldContentHash,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -81,6 +84,8 @@ var (
 	ActionValidator func(string) error
 	// ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
 	ReasonValidator func(string) error
+	// ContentHashValidator is a validator for the "content_hash" field. It is called by the builders before save.
+	ContentHashValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -131,6 +136,11 @@ func ByReason(opts ...sql.OrderTermOption) OrderOption {
 // ByActorID orders the results by the actor_id field.
 func ByActorID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldActorID, opts...).ToFunc()
+}
+
+// ByContentHash orders the results by the content_hash field.
+func ByContentHash(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldContentHash, opts...).ToFunc()
 }
 
 // ByMasterWaybillField orders the results by master_waybill field.

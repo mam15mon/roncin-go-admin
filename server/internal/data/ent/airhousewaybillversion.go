@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -34,7 +35,9 @@ type AirHouseWaybillVersion struct {
 	// Status holds the value of the "status" field.
 	Status string `json:"status,omitempty"`
 	// Content holds the value of the "content" field.
-	Content string `json:"content,omitempty"`
+	Content json.RawMessage `json:"content,omitempty"`
+	// ContentHash holds the value of the "content_hash" field.
+	ContentHash string `json:"content_hash,omitempty"`
 	// ActorID holds the value of the "actor_id" field.
 	ActorID uuid.UUID `json:"actor_id,omitempty"`
 	// Reason holds the value of the "reason" field.
@@ -70,9 +73,11 @@ func (*AirHouseWaybillVersion) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case airhousewaybillversion.FieldContent:
+			values[i] = new([]byte)
 		case airhousewaybillversion.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case airhousewaybillversion.FieldHouseNo, airhousewaybillversion.FieldStatus, airhousewaybillversion.FieldContent, airhousewaybillversion.FieldReason:
+		case airhousewaybillversion.FieldHouseNo, airhousewaybillversion.FieldStatus, airhousewaybillversion.FieldContentHash, airhousewaybillversion.FieldReason:
 			values[i] = new(sql.NullString)
 		case airhousewaybillversion.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -142,10 +147,18 @@ func (_m *AirHouseWaybillVersion) assignValues(columns []string, values []any) e
 				_m.Status = value.String
 			}
 		case airhousewaybillversion.FieldContent:
-			if value, ok := values[i].(*sql.NullString); !ok {
+			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field content", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.Content); err != nil {
+					return fmt.Errorf("unmarshal field content: %w", err)
+				}
+			}
+		case airhousewaybillversion.FieldContentHash:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field content_hash", values[i])
 			} else if value.Valid {
-				_m.Content = value.String
+				_m.ContentHash = value.String
 			}
 		case airhousewaybillversion.FieldActorID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -222,7 +235,10 @@ func (_m *AirHouseWaybillVersion) String() string {
 	builder.WriteString(_m.Status)
 	builder.WriteString(", ")
 	builder.WriteString("content=")
-	builder.WriteString(_m.Content)
+	builder.WriteString(fmt.Sprintf("%v", _m.Content))
+	builder.WriteString(", ")
+	builder.WriteString("content_hash=")
+	builder.WriteString(_m.ContentHash)
 	builder.WriteString(", ")
 	builder.WriteString("actor_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ActorID))

@@ -1242,7 +1242,9 @@ type AirHouseWaybillMutation struct {
 	updated_at            *time.Time
 	house_no              *string
 	status                *string
-	content               *string
+	content               *json.RawMessage
+	appendcontent         json.RawMessage
+	content_hash          *string
 	version               *uint64
 	addversion            *int64
 	clearedFields         map[string]struct{}
@@ -1614,12 +1616,13 @@ func (m *AirHouseWaybillMutation) ResetStatus() {
 }
 
 // SetContent sets the "content" field.
-func (m *AirHouseWaybillMutation) SetContent(s string) {
-	m.content = &s
+func (m *AirHouseWaybillMutation) SetContent(jm json.RawMessage) {
+	m.content = &jm
+	m.appendcontent = nil
 }
 
 // Content returns the value of the "content" field in the mutation.
-func (m *AirHouseWaybillMutation) Content() (r string, exists bool) {
+func (m *AirHouseWaybillMutation) Content() (r json.RawMessage, exists bool) {
 	v := m.content
 	if v == nil {
 		return
@@ -1630,7 +1633,7 @@ func (m *AirHouseWaybillMutation) Content() (r string, exists bool) {
 // OldContent returns the old "content" field's value of the AirHouseWaybill entity.
 // If the AirHouseWaybill object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AirHouseWaybillMutation) OldContent(ctx context.Context) (v string, err error) {
+func (m *AirHouseWaybillMutation) OldContent(ctx context.Context) (v json.RawMessage, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldContent is only allowed on UpdateOne operations")
 	}
@@ -1644,9 +1647,59 @@ func (m *AirHouseWaybillMutation) OldContent(ctx context.Context) (v string, err
 	return oldValue.Content, nil
 }
 
+// AppendContent adds jm to the "content" field.
+func (m *AirHouseWaybillMutation) AppendContent(jm json.RawMessage) {
+	m.appendcontent = append(m.appendcontent, jm...)
+}
+
+// AppendedContent returns the list of values that were appended to the "content" field in this mutation.
+func (m *AirHouseWaybillMutation) AppendedContent() (json.RawMessage, bool) {
+	if len(m.appendcontent) == 0 {
+		return nil, false
+	}
+	return m.appendcontent, true
+}
+
 // ResetContent resets all changes to the "content" field.
 func (m *AirHouseWaybillMutation) ResetContent() {
 	m.content = nil
+	m.appendcontent = nil
+}
+
+// SetContentHash sets the "content_hash" field.
+func (m *AirHouseWaybillMutation) SetContentHash(s string) {
+	m.content_hash = &s
+}
+
+// ContentHash returns the value of the "content_hash" field in the mutation.
+func (m *AirHouseWaybillMutation) ContentHash() (r string, exists bool) {
+	v := m.content_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContentHash returns the old "content_hash" field's value of the AirHouseWaybill entity.
+// If the AirHouseWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirHouseWaybillMutation) OldContentHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContentHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContentHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContentHash: %w", err)
+	}
+	return oldValue.ContentHash, nil
+}
+
+// ResetContentHash resets all changes to the "content_hash" field.
+func (m *AirHouseWaybillMutation) ResetContentHash() {
+	m.content_hash = nil
 }
 
 // SetVersion sets the "version" field.
@@ -1820,7 +1873,7 @@ func (m *AirHouseWaybillMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AirHouseWaybillMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.created_at != nil {
 		fields = append(fields, airhousewaybill.FieldCreatedAt)
 	}
@@ -1844,6 +1897,9 @@ func (m *AirHouseWaybillMutation) Fields() []string {
 	}
 	if m.content != nil {
 		fields = append(fields, airhousewaybill.FieldContent)
+	}
+	if m.content_hash != nil {
+		fields = append(fields, airhousewaybill.FieldContentHash)
 	}
 	if m.version != nil {
 		fields = append(fields, airhousewaybill.FieldVersion)
@@ -1872,6 +1928,8 @@ func (m *AirHouseWaybillMutation) Field(name string) (ent.Value, bool) {
 		return m.Status()
 	case airhousewaybill.FieldContent:
 		return m.Content()
+	case airhousewaybill.FieldContentHash:
+		return m.ContentHash()
 	case airhousewaybill.FieldVersion:
 		return m.Version()
 	}
@@ -1899,6 +1957,8 @@ func (m *AirHouseWaybillMutation) OldField(ctx context.Context, name string) (en
 		return m.OldStatus(ctx)
 	case airhousewaybill.FieldContent:
 		return m.OldContent(ctx)
+	case airhousewaybill.FieldContentHash:
+		return m.OldContentHash(ctx)
 	case airhousewaybill.FieldVersion:
 		return m.OldVersion(ctx)
 	}
@@ -1960,11 +2020,18 @@ func (m *AirHouseWaybillMutation) SetField(name string, value ent.Value) error {
 		m.SetStatus(v)
 		return nil
 	case airhousewaybill.FieldContent:
-		v, ok := value.(string)
+		v, ok := value.(json.RawMessage)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetContent(v)
+		return nil
+	case airhousewaybill.FieldContentHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContentHash(v)
 		return nil
 	case airhousewaybill.FieldVersion:
 		v, ok := value.(uint64)
@@ -2060,6 +2127,9 @@ func (m *AirHouseWaybillMutation) ResetField(name string) error {
 		return nil
 	case airhousewaybill.FieldContent:
 		m.ResetContent()
+		return nil
+	case airhousewaybill.FieldContentHash:
+		m.ResetContentHash()
 		return nil
 	case airhousewaybill.FieldVersion:
 		m.ResetVersion()
@@ -2191,7 +2261,9 @@ type AirHouseWaybillVersionMutation struct {
 	addversion           *int64
 	house_no             *string
 	status               *string
-	content              *string
+	content              *json.RawMessage
+	appendcontent        json.RawMessage
+	content_hash         *string
 	actor_id             *uuid.UUID
 	reason               *string
 	clearedFields        map[string]struct{}
@@ -2579,12 +2651,13 @@ func (m *AirHouseWaybillVersionMutation) ResetStatus() {
 }
 
 // SetContent sets the "content" field.
-func (m *AirHouseWaybillVersionMutation) SetContent(s string) {
-	m.content = &s
+func (m *AirHouseWaybillVersionMutation) SetContent(jm json.RawMessage) {
+	m.content = &jm
+	m.appendcontent = nil
 }
 
 // Content returns the value of the "content" field in the mutation.
-func (m *AirHouseWaybillVersionMutation) Content() (r string, exists bool) {
+func (m *AirHouseWaybillVersionMutation) Content() (r json.RawMessage, exists bool) {
 	v := m.content
 	if v == nil {
 		return
@@ -2595,7 +2668,7 @@ func (m *AirHouseWaybillVersionMutation) Content() (r string, exists bool) {
 // OldContent returns the old "content" field's value of the AirHouseWaybillVersion entity.
 // If the AirHouseWaybillVersion object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AirHouseWaybillVersionMutation) OldContent(ctx context.Context) (v string, err error) {
+func (m *AirHouseWaybillVersionMutation) OldContent(ctx context.Context) (v json.RawMessage, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldContent is only allowed on UpdateOne operations")
 	}
@@ -2609,9 +2682,59 @@ func (m *AirHouseWaybillVersionMutation) OldContent(ctx context.Context) (v stri
 	return oldValue.Content, nil
 }
 
+// AppendContent adds jm to the "content" field.
+func (m *AirHouseWaybillVersionMutation) AppendContent(jm json.RawMessage) {
+	m.appendcontent = append(m.appendcontent, jm...)
+}
+
+// AppendedContent returns the list of values that were appended to the "content" field in this mutation.
+func (m *AirHouseWaybillVersionMutation) AppendedContent() (json.RawMessage, bool) {
+	if len(m.appendcontent) == 0 {
+		return nil, false
+	}
+	return m.appendcontent, true
+}
+
 // ResetContent resets all changes to the "content" field.
 func (m *AirHouseWaybillVersionMutation) ResetContent() {
 	m.content = nil
+	m.appendcontent = nil
+}
+
+// SetContentHash sets the "content_hash" field.
+func (m *AirHouseWaybillVersionMutation) SetContentHash(s string) {
+	m.content_hash = &s
+}
+
+// ContentHash returns the value of the "content_hash" field in the mutation.
+func (m *AirHouseWaybillVersionMutation) ContentHash() (r string, exists bool) {
+	v := m.content_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContentHash returns the old "content_hash" field's value of the AirHouseWaybillVersion entity.
+// If the AirHouseWaybillVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirHouseWaybillVersionMutation) OldContentHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContentHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContentHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContentHash: %w", err)
+	}
+	return oldValue.ContentHash, nil
+}
+
+// ResetContentHash resets all changes to the "content_hash" field.
+func (m *AirHouseWaybillVersionMutation) ResetContentHash() {
+	m.content_hash = nil
 }
 
 // SetActorID sets the "actor_id" field.
@@ -2747,7 +2870,7 @@ func (m *AirHouseWaybillVersionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AirHouseWaybillVersionMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.created_at != nil {
 		fields = append(fields, airhousewaybillversion.FieldCreatedAt)
 	}
@@ -2771,6 +2894,9 @@ func (m *AirHouseWaybillVersionMutation) Fields() []string {
 	}
 	if m.content != nil {
 		fields = append(fields, airhousewaybillversion.FieldContent)
+	}
+	if m.content_hash != nil {
+		fields = append(fields, airhousewaybillversion.FieldContentHash)
 	}
 	if m.actor_id != nil {
 		fields = append(fields, airhousewaybillversion.FieldActorID)
@@ -2802,6 +2928,8 @@ func (m *AirHouseWaybillVersionMutation) Field(name string) (ent.Value, bool) {
 		return m.Status()
 	case airhousewaybillversion.FieldContent:
 		return m.Content()
+	case airhousewaybillversion.FieldContentHash:
+		return m.ContentHash()
 	case airhousewaybillversion.FieldActorID:
 		return m.ActorID()
 	case airhousewaybillversion.FieldReason:
@@ -2831,6 +2959,8 @@ func (m *AirHouseWaybillVersionMutation) OldField(ctx context.Context, name stri
 		return m.OldStatus(ctx)
 	case airhousewaybillversion.FieldContent:
 		return m.OldContent(ctx)
+	case airhousewaybillversion.FieldContentHash:
+		return m.OldContentHash(ctx)
 	case airhousewaybillversion.FieldActorID:
 		return m.OldActorID(ctx)
 	case airhousewaybillversion.FieldReason:
@@ -2894,11 +3024,18 @@ func (m *AirHouseWaybillVersionMutation) SetField(name string, value ent.Value) 
 		m.SetStatus(v)
 		return nil
 	case airhousewaybillversion.FieldContent:
-		v, ok := value.(string)
+		v, ok := value.(json.RawMessage)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetContent(v)
+		return nil
+	case airhousewaybillversion.FieldContentHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContentHash(v)
 		return nil
 	case airhousewaybillversion.FieldActorID:
 		v, ok := value.(uuid.UUID)
@@ -3002,6 +3139,9 @@ func (m *AirHouseWaybillVersionMutation) ResetField(name string) error {
 	case airhousewaybillversion.FieldContent:
 		m.ResetContent()
 		return nil
+	case airhousewaybillversion.FieldContentHash:
+		m.ResetContentHash()
+		return nil
 	case airhousewaybillversion.FieldActorID:
 		m.ResetActorID()
 		return nil
@@ -3094,6 +3234,9 @@ type AirMasterWaybillMutation struct {
 	id                          *uuid.UUID
 	created_at                  *time.Time
 	updated_at                  *time.Time
+	waybill_content             *json.RawMessage
+	appendwaybill_content       json.RawMessage
+	content_hash                *string
 	business_type               *string
 	master_no                   *string
 	flight_no                   *string
@@ -3301,6 +3444,93 @@ func (m *AirMasterWaybillMutation) OldUpdatedAt(ctx context.Context) (v time.Tim
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *AirMasterWaybillMutation) ResetUpdatedAt() {
 	m.updated_at = nil
+}
+
+// SetWaybillContent sets the "waybill_content" field.
+func (m *AirMasterWaybillMutation) SetWaybillContent(jm json.RawMessage) {
+	m.waybill_content = &jm
+	m.appendwaybill_content = nil
+}
+
+// WaybillContent returns the value of the "waybill_content" field in the mutation.
+func (m *AirMasterWaybillMutation) WaybillContent() (r json.RawMessage, exists bool) {
+	v := m.waybill_content
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWaybillContent returns the old "waybill_content" field's value of the AirMasterWaybill entity.
+// If the AirMasterWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillMutation) OldWaybillContent(ctx context.Context) (v json.RawMessage, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWaybillContent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWaybillContent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWaybillContent: %w", err)
+	}
+	return oldValue.WaybillContent, nil
+}
+
+// AppendWaybillContent adds jm to the "waybill_content" field.
+func (m *AirMasterWaybillMutation) AppendWaybillContent(jm json.RawMessage) {
+	m.appendwaybill_content = append(m.appendwaybill_content, jm...)
+}
+
+// AppendedWaybillContent returns the list of values that were appended to the "waybill_content" field in this mutation.
+func (m *AirMasterWaybillMutation) AppendedWaybillContent() (json.RawMessage, bool) {
+	if len(m.appendwaybill_content) == 0 {
+		return nil, false
+	}
+	return m.appendwaybill_content, true
+}
+
+// ResetWaybillContent resets all changes to the "waybill_content" field.
+func (m *AirMasterWaybillMutation) ResetWaybillContent() {
+	m.waybill_content = nil
+	m.appendwaybill_content = nil
+}
+
+// SetContentHash sets the "content_hash" field.
+func (m *AirMasterWaybillMutation) SetContentHash(s string) {
+	m.content_hash = &s
+}
+
+// ContentHash returns the value of the "content_hash" field in the mutation.
+func (m *AirMasterWaybillMutation) ContentHash() (r string, exists bool) {
+	v := m.content_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContentHash returns the old "content_hash" field's value of the AirMasterWaybill entity.
+// If the AirMasterWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillMutation) OldContentHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContentHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContentHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContentHash: %w", err)
+	}
+	return oldValue.ContentHash, nil
+}
+
+// ResetContentHash resets all changes to the "content_hash" field.
+func (m *AirMasterWaybillMutation) ResetContentHash() {
+	m.content_hash = nil
 }
 
 // SetBusinessType sets the "business_type" field.
@@ -4251,12 +4481,18 @@ func (m *AirMasterWaybillMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AirMasterWaybillMutation) Fields() []string {
-	fields := make([]string, 0, 21)
+	fields := make([]string, 0, 23)
 	if m.created_at != nil {
 		fields = append(fields, airmasterwaybill.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, airmasterwaybill.FieldUpdatedAt)
+	}
+	if m.waybill_content != nil {
+		fields = append(fields, airmasterwaybill.FieldWaybillContent)
+	}
+	if m.content_hash != nil {
+		fields = append(fields, airmasterwaybill.FieldContentHash)
 	}
 	if m.business_type != nil {
 		fields = append(fields, airmasterwaybill.FieldBusinessType)
@@ -4327,6 +4563,10 @@ func (m *AirMasterWaybillMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case airmasterwaybill.FieldUpdatedAt:
 		return m.UpdatedAt()
+	case airmasterwaybill.FieldWaybillContent:
+		return m.WaybillContent()
+	case airmasterwaybill.FieldContentHash:
+		return m.ContentHash()
 	case airmasterwaybill.FieldBusinessType:
 		return m.BusinessType()
 	case airmasterwaybill.FieldOrganizationID:
@@ -4378,6 +4618,10 @@ func (m *AirMasterWaybillMutation) OldField(ctx context.Context, name string) (e
 		return m.OldCreatedAt(ctx)
 	case airmasterwaybill.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
+	case airmasterwaybill.FieldWaybillContent:
+		return m.OldWaybillContent(ctx)
+	case airmasterwaybill.FieldContentHash:
+		return m.OldContentHash(ctx)
 	case airmasterwaybill.FieldBusinessType:
 		return m.OldBusinessType(ctx)
 	case airmasterwaybill.FieldOrganizationID:
@@ -4438,6 +4682,20 @@ func (m *AirMasterWaybillMutation) SetField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
+		return nil
+	case airmasterwaybill.FieldWaybillContent:
+		v, ok := value.(json.RawMessage)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWaybillContent(v)
+		return nil
+	case airmasterwaybill.FieldContentHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContentHash(v)
 		return nil
 	case airmasterwaybill.FieldBusinessType:
 		v, ok := value.(string)
@@ -4699,6 +4957,12 @@ func (m *AirMasterWaybillMutation) ResetField(name string) error {
 	case airmasterwaybill.FieldUpdatedAt:
 		m.ResetUpdatedAt()
 		return nil
+	case airmasterwaybill.FieldWaybillContent:
+		m.ResetWaybillContent()
+		return nil
+	case airmasterwaybill.FieldContentHash:
+		m.ResetContentHash()
+		return nil
 	case airmasterwaybill.FieldBusinessType:
 		m.ResetBusinessType()
 		return nil
@@ -4903,6 +5167,7 @@ type AirMasterWaybillHistoryMutation struct {
 	reason                *string
 	actor_id              *uuid.UUID
 	content               *[]byte
+	content_hash          *string
 	clearedFields         map[string]struct{}
 	master_waybill        *uuid.UUID
 	clearedmaster_waybill bool
@@ -5359,6 +5624,42 @@ func (m *AirMasterWaybillHistoryMutation) ResetContent() {
 	m.content = nil
 }
 
+// SetContentHash sets the "content_hash" field.
+func (m *AirMasterWaybillHistoryMutation) SetContentHash(s string) {
+	m.content_hash = &s
+}
+
+// ContentHash returns the value of the "content_hash" field in the mutation.
+func (m *AirMasterWaybillHistoryMutation) ContentHash() (r string, exists bool) {
+	v := m.content_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContentHash returns the old "content_hash" field's value of the AirMasterWaybillHistory entity.
+// If the AirMasterWaybillHistory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillHistoryMutation) OldContentHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContentHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContentHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContentHash: %w", err)
+	}
+	return oldValue.ContentHash, nil
+}
+
+// ResetContentHash resets all changes to the "content_hash" field.
+func (m *AirMasterWaybillHistoryMutation) ResetContentHash() {
+	m.content_hash = nil
+}
+
 // ClearMasterWaybill clears the "master_waybill" edge to the AirMasterWaybill entity.
 func (m *AirMasterWaybillHistoryMutation) ClearMasterWaybill() {
 	m.clearedmaster_waybill = true
@@ -5420,7 +5721,7 @@ func (m *AirMasterWaybillHistoryMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AirMasterWaybillHistoryMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.created_at != nil {
 		fields = append(fields, airmasterwaybillhistory.FieldCreatedAt)
 	}
@@ -5448,6 +5749,9 @@ func (m *AirMasterWaybillHistoryMutation) Fields() []string {
 	if m.content != nil {
 		fields = append(fields, airmasterwaybillhistory.FieldContent)
 	}
+	if m.content_hash != nil {
+		fields = append(fields, airmasterwaybillhistory.FieldContentHash)
+	}
 	return fields
 }
 
@@ -5474,6 +5778,8 @@ func (m *AirMasterWaybillHistoryMutation) Field(name string) (ent.Value, bool) {
 		return m.ActorID()
 	case airmasterwaybillhistory.FieldContent:
 		return m.Content()
+	case airmasterwaybillhistory.FieldContentHash:
+		return m.ContentHash()
 	}
 	return nil, false
 }
@@ -5501,6 +5807,8 @@ func (m *AirMasterWaybillHistoryMutation) OldField(ctx context.Context, name str
 		return m.OldActorID(ctx)
 	case airmasterwaybillhistory.FieldContent:
 		return m.OldContent(ctx)
+	case airmasterwaybillhistory.FieldContentHash:
+		return m.OldContentHash(ctx)
 	}
 	return nil, fmt.Errorf("unknown AirMasterWaybillHistory field %s", name)
 }
@@ -5572,6 +5880,13 @@ func (m *AirMasterWaybillHistoryMutation) SetField(name string, value ent.Value)
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetContent(v)
+		return nil
+	case airmasterwaybillhistory.FieldContentHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContentHash(v)
 		return nil
 	}
 	return fmt.Errorf("unknown AirMasterWaybillHistory field %s", name)
@@ -5664,6 +5979,9 @@ func (m *AirMasterWaybillHistoryMutation) ResetField(name string) error {
 	case airmasterwaybillhistory.FieldContent:
 		m.ResetContent()
 		return nil
+	case airmasterwaybillhistory.FieldContentHash:
+		m.ResetContentHash()
+		return nil
 	}
 	return fmt.Errorf("unknown AirMasterWaybillHistory field %s", name)
 }
@@ -5750,6 +6068,7 @@ type AirMasterWaybillOrderLinkMutation struct {
 	id                    *uuid.UUID
 	created_at            *time.Time
 	updated_at            *time.Time
+	document_mode         *string
 	status                *string
 	version               *uint64
 	addversion            *int64
@@ -6050,6 +6369,42 @@ func (m *AirMasterWaybillOrderLinkMutation) OldOrderID(ctx context.Context) (v u
 // ResetOrderID resets all changes to the "order_id" field.
 func (m *AirMasterWaybillOrderLinkMutation) ResetOrderID() {
 	m._order = nil
+}
+
+// SetDocumentMode sets the "document_mode" field.
+func (m *AirMasterWaybillOrderLinkMutation) SetDocumentMode(s string) {
+	m.document_mode = &s
+}
+
+// DocumentMode returns the value of the "document_mode" field in the mutation.
+func (m *AirMasterWaybillOrderLinkMutation) DocumentMode() (r string, exists bool) {
+	v := m.document_mode
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDocumentMode returns the old "document_mode" field's value of the AirMasterWaybillOrderLink entity.
+// If the AirMasterWaybillOrderLink object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillOrderLinkMutation) OldDocumentMode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDocumentMode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDocumentMode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDocumentMode: %w", err)
+	}
+	return oldValue.DocumentMode, nil
+}
+
+// ResetDocumentMode resets all changes to the "document_mode" field.
+func (m *AirMasterWaybillOrderLinkMutation) ResetDocumentMode() {
+	m.document_mode = nil
 }
 
 // SetStatus sets the "status" field.
@@ -6380,7 +6735,7 @@ func (m *AirMasterWaybillOrderLinkMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AirMasterWaybillOrderLinkMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.created_at != nil {
 		fields = append(fields, airmasterwaybillorderlink.FieldCreatedAt)
 	}
@@ -6395,6 +6750,9 @@ func (m *AirMasterWaybillOrderLinkMutation) Fields() []string {
 	}
 	if m._order != nil {
 		fields = append(fields, airmasterwaybillorderlink.FieldOrderID)
+	}
+	if m.document_mode != nil {
+		fields = append(fields, airmasterwaybillorderlink.FieldDocumentMode)
 	}
 	if m.status != nil {
 		fields = append(fields, airmasterwaybillorderlink.FieldStatus)
@@ -6429,6 +6787,8 @@ func (m *AirMasterWaybillOrderLinkMutation) Field(name string) (ent.Value, bool)
 		return m.MasterWaybillID()
 	case airmasterwaybillorderlink.FieldOrderID:
 		return m.OrderID()
+	case airmasterwaybillorderlink.FieldDocumentMode:
+		return m.DocumentMode()
 	case airmasterwaybillorderlink.FieldStatus:
 		return m.Status()
 	case airmasterwaybillorderlink.FieldVersion:
@@ -6458,6 +6818,8 @@ func (m *AirMasterWaybillOrderLinkMutation) OldField(ctx context.Context, name s
 		return m.OldMasterWaybillID(ctx)
 	case airmasterwaybillorderlink.FieldOrderID:
 		return m.OldOrderID(ctx)
+	case airmasterwaybillorderlink.FieldDocumentMode:
+		return m.OldDocumentMode(ctx)
 	case airmasterwaybillorderlink.FieldStatus:
 		return m.OldStatus(ctx)
 	case airmasterwaybillorderlink.FieldVersion:
@@ -6511,6 +6873,13 @@ func (m *AirMasterWaybillOrderLinkMutation) SetField(name string, value ent.Valu
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetOrderID(v)
+		return nil
+	case airmasterwaybillorderlink.FieldDocumentMode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDocumentMode(v)
 		return nil
 	case airmasterwaybillorderlink.FieldStatus:
 		v, ok := value.(string)
@@ -6634,6 +7003,9 @@ func (m *AirMasterWaybillOrderLinkMutation) ResetField(name string) error {
 		return nil
 	case airmasterwaybillorderlink.FieldOrderID:
 		m.ResetOrderID()
+		return nil
+	case airmasterwaybillorderlink.FieldDocumentMode:
+		m.ResetDocumentMode()
 		return nil
 	case airmasterwaybillorderlink.FieldStatus:
 		m.ResetStatus()

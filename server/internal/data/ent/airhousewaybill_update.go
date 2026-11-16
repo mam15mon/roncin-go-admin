@@ -4,12 +4,14 @@ package ent
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airhousewaybill"
@@ -109,15 +111,27 @@ func (_u *AirHouseWaybillUpdate) SetNillableStatus(v *string) *AirHouseWaybillUp
 }
 
 // SetContent sets the "content" field.
-func (_u *AirHouseWaybillUpdate) SetContent(v string) *AirHouseWaybillUpdate {
+func (_u *AirHouseWaybillUpdate) SetContent(v json.RawMessage) *AirHouseWaybillUpdate {
 	_u.mutation.SetContent(v)
 	return _u
 }
 
-// SetNillableContent sets the "content" field if the given value is not nil.
-func (_u *AirHouseWaybillUpdate) SetNillableContent(v *string) *AirHouseWaybillUpdate {
+// AppendContent appends value to the "content" field.
+func (_u *AirHouseWaybillUpdate) AppendContent(v json.RawMessage) *AirHouseWaybillUpdate {
+	_u.mutation.AppendContent(v)
+	return _u
+}
+
+// SetContentHash sets the "content_hash" field.
+func (_u *AirHouseWaybillUpdate) SetContentHash(v string) *AirHouseWaybillUpdate {
+	_u.mutation.SetContentHash(v)
+	return _u
+}
+
+// SetNillableContentHash sets the "content_hash" field if the given value is not nil.
+func (_u *AirHouseWaybillUpdate) SetNillableContentHash(v *string) *AirHouseWaybillUpdate {
 	if v != nil {
-		_u.SetContent(*v)
+		_u.SetContentHash(*v)
 	}
 	return _u
 }
@@ -229,9 +243,9 @@ func (_u *AirHouseWaybillUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "AirHouseWaybill.status": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Content(); ok {
-		if err := airhousewaybill.ContentValidator(v); err != nil {
-			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "AirHouseWaybill.content": %w`, err)}
+	if v, ok := _u.mutation.ContentHash(); ok {
+		if err := airhousewaybill.ContentHashValidator(v); err != nil {
+			return &ValidationError{Name: "content_hash", err: fmt.Errorf(`ent: validator failed for field "AirHouseWaybill.content_hash": %w`, err)}
 		}
 	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
@@ -268,7 +282,15 @@ func (_u *AirHouseWaybillUpdate) sqlSave(ctx context.Context) (_node int, err er
 		_spec.SetField(airhousewaybill.FieldStatus, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Content(); ok {
-		_spec.SetField(airhousewaybill.FieldContent, field.TypeString, value)
+		_spec.SetField(airhousewaybill.FieldContent, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedContent(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, airhousewaybill.FieldContent, value)
+		})
+	}
+	if value, ok := _u.mutation.ContentHash(); ok {
+		_spec.SetField(airhousewaybill.FieldContentHash, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Version(); ok {
 		_spec.SetField(airhousewaybill.FieldVersion, field.TypeUint64, value)
@@ -460,15 +482,27 @@ func (_u *AirHouseWaybillUpdateOne) SetNillableStatus(v *string) *AirHouseWaybil
 }
 
 // SetContent sets the "content" field.
-func (_u *AirHouseWaybillUpdateOne) SetContent(v string) *AirHouseWaybillUpdateOne {
+func (_u *AirHouseWaybillUpdateOne) SetContent(v json.RawMessage) *AirHouseWaybillUpdateOne {
 	_u.mutation.SetContent(v)
 	return _u
 }
 
-// SetNillableContent sets the "content" field if the given value is not nil.
-func (_u *AirHouseWaybillUpdateOne) SetNillableContent(v *string) *AirHouseWaybillUpdateOne {
+// AppendContent appends value to the "content" field.
+func (_u *AirHouseWaybillUpdateOne) AppendContent(v json.RawMessage) *AirHouseWaybillUpdateOne {
+	_u.mutation.AppendContent(v)
+	return _u
+}
+
+// SetContentHash sets the "content_hash" field.
+func (_u *AirHouseWaybillUpdateOne) SetContentHash(v string) *AirHouseWaybillUpdateOne {
+	_u.mutation.SetContentHash(v)
+	return _u
+}
+
+// SetNillableContentHash sets the "content_hash" field if the given value is not nil.
+func (_u *AirHouseWaybillUpdateOne) SetNillableContentHash(v *string) *AirHouseWaybillUpdateOne {
 	if v != nil {
-		_u.SetContent(*v)
+		_u.SetContentHash(*v)
 	}
 	return _u
 }
@@ -593,9 +627,9 @@ func (_u *AirHouseWaybillUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "AirHouseWaybill.status": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Content(); ok {
-		if err := airhousewaybill.ContentValidator(v); err != nil {
-			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "AirHouseWaybill.content": %w`, err)}
+	if v, ok := _u.mutation.ContentHash(); ok {
+		if err := airhousewaybill.ContentHashValidator(v); err != nil {
+			return &ValidationError{Name: "content_hash", err: fmt.Errorf(`ent: validator failed for field "AirHouseWaybill.content_hash": %w`, err)}
 		}
 	}
 	if _u.mutation.OrganizationCleared() && len(_u.mutation.OrganizationIDs()) > 0 {
@@ -649,7 +683,15 @@ func (_u *AirHouseWaybillUpdateOne) sqlSave(ctx context.Context) (_node *AirHous
 		_spec.SetField(airhousewaybill.FieldStatus, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Content(); ok {
-		_spec.SetField(airhousewaybill.FieldContent, field.TypeString, value)
+		_spec.SetField(airhousewaybill.FieldContent, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedContent(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, airhousewaybill.FieldContent, value)
+		})
+	}
+	if value, ok := _u.mutation.ContentHash(); ok {
+		_spec.SetField(airhousewaybill.FieldContentHash, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Version(); ok {
 		_spec.SetField(airhousewaybill.FieldVersion, field.TypeUint64, value)

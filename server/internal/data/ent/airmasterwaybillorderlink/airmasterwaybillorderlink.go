@@ -25,6 +25,8 @@ const (
 	FieldMasterWaybillID = "master_waybill_id"
 	// FieldOrderID holds the string denoting the order_id field in the database.
 	FieldOrderID = "order_id"
+	// FieldDocumentMode holds the string denoting the document_mode field in the database.
+	FieldDocumentMode = "document_mode"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// FieldVersion holds the string denoting the version field in the database.
@@ -74,6 +76,7 @@ var Columns = []string{
 	FieldOrganizationID,
 	FieldMasterWaybillID,
 	FieldOrderID,
+	FieldDocumentMode,
 	FieldStatus,
 	FieldVersion,
 	FieldStartedAt,
@@ -98,6 +101,8 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
+	// DocumentModeValidator is a validator for the "document_mode" field. It is called by the builders before save.
+	DocumentModeValidator func(string) error
 	// DefaultStatus holds the default value on creation for the "status" field.
 	DefaultStatus string
 	// StatusValidator is a validator for the "status" field. It is called by the builders before save.
@@ -145,6 +150,11 @@ func ByMasterWaybillID(opts ...sql.OrderTermOption) OrderOption {
 // ByOrderID orders the results by the order_id field.
 func ByOrderID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOrderID, opts...).ToFunc()
+}
+
+// ByDocumentMode orders the results by the document_mode field.
+func ByDocumentMode(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDocumentMode, opts...).ToFunc()
 }
 
 // ByStatus orders the results by the status field.

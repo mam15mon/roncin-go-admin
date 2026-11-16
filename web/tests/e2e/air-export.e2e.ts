@@ -82,7 +82,7 @@ test('空运页面建双票、共享主单修改与独立重量确认刷新重�
     const response = await createdResponse;
     const body = await response.json();
     expect(response.ok(), body.message).toBeTruthy();
-    expect(body.data.airExport.houseNo).toBe(houseNo);
+    expect(body.data.airExport.house.houseNo).toBe(houseNo);
     await expect(page).toHaveURL(
       new RegExp(`/orders/air-export/${body.data.id}`),
     );
@@ -119,7 +119,7 @@ test('空运页面建双票、共享主单修改与独立重量确认刷新重�
   await page.reload();
   await expect(
     page.getByLabel('本票分运单号（HAWB）', { exact: true }),
-  ).toHaveValue(first.airExport.houseNo);
+  ).toHaveValue(first.airExport.house.houseNo);
   await page
     .getByLabel('操作备注', { exact: true })
     .fill('仅本票修改，保留共享主单事实');

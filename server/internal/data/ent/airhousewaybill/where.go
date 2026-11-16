@@ -91,9 +91,9 @@ func Status(v string) predicate.AirHouseWaybill {
 	return predicate.AirHouseWaybill(sql.FieldEQ(FieldStatus, v))
 }
 
-// Content applies equality check predicate on the "content" field. It's identical to ContentEQ.
-func Content(v string) predicate.AirHouseWaybill {
-	return predicate.AirHouseWaybill(sql.FieldEQ(FieldContent, v))
+// ContentHash applies equality check predicate on the "content_hash" field. It's identical to ContentHashEQ.
+func ContentHash(v string) predicate.AirHouseWaybill {
+	return predicate.AirHouseWaybill(sql.FieldEQ(FieldContentHash, v))
 }
 
 // Version applies equality check predicate on the "version" field. It's identical to VersionEQ.
@@ -371,69 +371,69 @@ func StatusContainsFold(v string) predicate.AirHouseWaybill {
 	return predicate.AirHouseWaybill(sql.FieldContainsFold(FieldStatus, v))
 }
 
-// ContentEQ applies the EQ predicate on the "content" field.
-func ContentEQ(v string) predicate.AirHouseWaybill {
-	return predicate.AirHouseWaybill(sql.FieldEQ(FieldContent, v))
+// ContentHashEQ applies the EQ predicate on the "content_hash" field.
+func ContentHashEQ(v string) predicate.AirHouseWaybill {
+	return predicate.AirHouseWaybill(sql.FieldEQ(FieldContentHash, v))
 }
 
-// ContentNEQ applies the NEQ predicate on the "content" field.
-func ContentNEQ(v string) predicate.AirHouseWaybill {
-	return predicate.AirHouseWaybill(sql.FieldNEQ(FieldContent, v))
+// ContentHashNEQ applies the NEQ predicate on the "content_hash" field.
+func ContentHashNEQ(v string) predicate.AirHouseWaybill {
+	return predicate.AirHouseWaybill(sql.FieldNEQ(FieldContentHash, v))
 }
 
-// ContentIn applies the In predicate on the "content" field.
-func ContentIn(vs ...string) predicate.AirHouseWaybill {
-	return predicate.AirHouseWaybill(sql.FieldIn(FieldContent, vs...))
+// ContentHashIn applies the In predicate on the "content_hash" field.
+func ContentHashIn(vs ...string) predicate.AirHouseWaybill {
+	return predicate.AirHouseWaybill(sql.FieldIn(FieldContentHash, vs...))
 }
 
-// ContentNotIn applies the NotIn predicate on the "content" field.
-func ContentNotIn(vs ...string) predicate.AirHouseWaybill {
-	return predicate.AirHouseWaybill(sql.FieldNotIn(FieldContent, vs...))
+// ContentHashNotIn applies the NotIn predicate on the "content_hash" field.
+func ContentHashNotIn(vs ...string) predicate.AirHouseWaybill {
+	return predicate.AirHouseWaybill(sql.FieldNotIn(FieldContentHash, vs...))
 }
 
-// ContentGT applies the GT predicate on the "content" field.
-func ContentGT(v string) predicate.AirHouseWaybill {
-	return predicate.AirHouseWaybill(sql.FieldGT(FieldContent, v))
+// ContentHashGT applies the GT predicate on the "content_hash" field.
+func ContentHashGT(v string) predicate.AirHouseWaybill {
+	return predicate.AirHouseWaybill(sql.FieldGT(FieldContentHash, v))
 }
 
-// ContentGTE applies the GTE predicate on the "content" field.
-func ContentGTE(v string) predicate.AirHouseWaybill {
-	return predicate.AirHouseWaybill(sql.FieldGTE(FieldContent, v))
+// ContentHashGTE applies the GTE predicate on the "content_hash" field.
+func ContentHashGTE(v string) predicate.AirHouseWaybill {
+	return predicate.AirHouseWaybill(sql.FieldGTE(FieldContentHash, v))
 }
 
-// ContentLT applies the LT predicate on the "content" field.
-func ContentLT(v string) predicate.AirHouseWaybill {
-	return predicate.AirHouseWaybill(sql.FieldLT(FieldContent, v))
+// ContentHashLT applies the LT predicate on the "content_hash" field.
+func ContentHashLT(v string) predicate.AirHouseWaybill {
+	return predicate.AirHouseWaybill(sql.FieldLT(FieldContentHash, v))
 }
 
-// ContentLTE applies the LTE predicate on the "content" field.
-func ContentLTE(v string) predicate.AirHouseWaybill {
-	return predicate.AirHouseWaybill(sql.FieldLTE(FieldContent, v))
+// ContentHashLTE applies the LTE predicate on the "content_hash" field.
+func ContentHashLTE(v string) predicate.AirHouseWaybill {
+	return predicate.AirHouseWaybill(sql.FieldLTE(FieldContentHash, v))
 }
 
-// ContentContains applies the Contains predicate on the "content" field.
-func ContentContains(v string) predicate.AirHouseWaybill {
-	return predicate.AirHouseWaybill(sql.FieldContains(FieldContent, v))
+// ContentHashContains applies the Contains predicate on the "content_hash" field.
+func ContentHashContains(v string) predicate.AirHouseWaybill {
+	return predicate.AirHouseWaybill(sql.FieldContains(FieldContentHash, v))
 }
 
-// ContentHasPrefix applies the HasPrefix predicate on the "content" field.
-func ContentHasPrefix(v string) predicate.AirHouseWaybill {
-	return predicate.AirHouseWaybill(sql.FieldHasPrefix(FieldContent, v))
+// ContentHashHasPrefix applies the HasPrefix predicate on the "content_hash" field.
+func ContentHashHasPrefix(v string) predicate.AirHouseWaybill {
+	return predicate.AirHouseWaybill(sql.FieldHasPrefix(FieldContentHash, v))
 }
 
-// ContentHasSuffix applies the HasSuffix predicate on the "content" field.
-func ContentHasSuffix(v string) predicate.AirHouseWaybill {
-	return predicate.AirHouseWaybill(sql.FieldHasSuffix(FieldContent, v))
+// ContentHashHasSuffix applies the HasSuffix predicate on the "content_hash" field.
+func ContentHashHasSuffix(v string) predicate.AirHouseWaybill {
+	return predicate.AirHouseWaybill(sql.FieldHasSuffix(FieldContentHash, v))
 }
 
-// ContentEqualFold applies the EqualFold predicate on the "content" field.
-func ContentEqualFold(v string) predicate.AirHouseWaybill {
-	return predicate.AirHouseWaybill(sql.FieldEqualFold(FieldContent, v))
+// ContentHashEqualFold applies the EqualFold predicate on the "content_hash" field.
+func ContentHashEqualFold(v string) predicate.AirHouseWaybill {
+	return predicate.AirHouseWaybill(sql.FieldEqualFold(FieldContentHash, v))
 }
 
-// ContentContainsFold applies the ContainsFold predicate on the "content" field.
-func ContentContainsFold(v string) predicate.AirHouseWaybill {
-	return predicate.AirHouseWaybill(sql.FieldContainsFold(FieldContent, v))
+// ContentHashContainsFold applies the ContainsFold predicate on the "content_hash" field.
+func ContentHashContainsFold(v string) predicate.AirHouseWaybill {
+	return predicate.AirHouseWaybill(sql.FieldContainsFold(FieldContentHash, v))
 }
 
 // VersionEQ applies the EQ predicate on the "version" field.

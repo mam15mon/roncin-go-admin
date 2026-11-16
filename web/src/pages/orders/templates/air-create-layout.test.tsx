@@ -168,7 +168,8 @@ describe('AE 新建与详情五卡片合同', () => {
         isDetail
         initialValues={{
           airExport: {
-            houseStatus: 'RELEASED',
+            documentMode: 'HOUSE',
+            house: { status: 'RELEASED' },
             master: {
               id: 'master-1',
               airlineName: '测试航空',

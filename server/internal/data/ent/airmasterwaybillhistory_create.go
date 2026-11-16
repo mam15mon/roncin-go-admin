@@ -95,6 +95,12 @@ func (_c *AirMasterWaybillHistoryCreate) SetContent(v []byte) *AirMasterWaybillH
 	return _c
 }
 
+// SetContentHash sets the "content_hash" field.
+func (_c *AirMasterWaybillHistoryCreate) SetContentHash(v string) *AirMasterWaybillHistoryCreate {
+	_c.mutation.SetContentHash(v)
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *AirMasterWaybillHistoryCreate) SetID(v uuid.UUID) *AirMasterWaybillHistoryCreate {
 	_c.mutation.SetID(v)
@@ -202,6 +208,14 @@ func (_c *AirMasterWaybillHistoryCreate) check() error {
 	if _, ok := _c.mutation.Content(); !ok {
 		return &ValidationError{Name: "content", err: errors.New(`ent: missing required field "AirMasterWaybillHistory.content"`)}
 	}
+	if _, ok := _c.mutation.ContentHash(); !ok {
+		return &ValidationError{Name: "content_hash", err: errors.New(`ent: missing required field "AirMasterWaybillHistory.content_hash"`)}
+	}
+	if v, ok := _c.mutation.ContentHash(); ok {
+		if err := airmasterwaybillhistory.ContentHashValidator(v); err != nil {
+			return &ValidationError{Name: "content_hash", err: fmt.Errorf(`ent: validator failed for field "AirMasterWaybillHistory.content_hash": %w`, err)}
+		}
+	}
 	if len(_c.mutation.MasterWaybillIDs()) == 0 {
 		return &ValidationError{Name: "master_waybill", err: errors.New(`ent: missing required edge "AirMasterWaybillHistory.master_waybill"`)}
 	}
@@ -272,6 +286,10 @@ func (_c *AirMasterWaybillHistoryCreate) createSpec() (*AirMasterWaybillHistory,
 	if value, ok := _c.mutation.Content(); ok {
 		_spec.SetField(airmasterwaybillhistory.FieldContent, field.TypeBytes, value)
 		_node.Content = value
+	}
+	if value, ok := _c.mutation.ContentHash(); ok {
+		_spec.SetField(airmasterwaybillhistory.FieldContentHash, field.TypeString, value)
+		_node.ContentHash = value
 	}
 	if nodes := _c.mutation.MasterWaybillIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -444,6 +462,18 @@ func (u *AirMasterWaybillHistoryUpsert) UpdateContent() *AirMasterWaybillHistory
 	return u
 }
 
+// SetContentHash sets the "content_hash" field.
+func (u *AirMasterWaybillHistoryUpsert) SetContentHash(v string) *AirMasterWaybillHistoryUpsert {
+	u.Set(airmasterwaybillhistory.FieldContentHash, v)
+	return u
+}
+
+// UpdateContentHash sets the "content_hash" field to the value that was provided on create.
+func (u *AirMasterWaybillHistoryUpsert) UpdateContentHash() *AirMasterWaybillHistoryUpsert {
+	u.SetExcluded(airmasterwaybillhistory.FieldContentHash)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -611,6 +641,20 @@ func (u *AirMasterWaybillHistoryUpsertOne) SetContent(v []byte) *AirMasterWaybil
 func (u *AirMasterWaybillHistoryUpsertOne) UpdateContent() *AirMasterWaybillHistoryUpsertOne {
 	return u.Update(func(s *AirMasterWaybillHistoryUpsert) {
 		s.UpdateContent()
+	})
+}
+
+// SetContentHash sets the "content_hash" field.
+func (u *AirMasterWaybillHistoryUpsertOne) SetContentHash(v string) *AirMasterWaybillHistoryUpsertOne {
+	return u.Update(func(s *AirMasterWaybillHistoryUpsert) {
+		s.SetContentHash(v)
+	})
+}
+
+// UpdateContentHash sets the "content_hash" field to the value that was provided on create.
+func (u *AirMasterWaybillHistoryUpsertOne) UpdateContentHash() *AirMasterWaybillHistoryUpsertOne {
+	return u.Update(func(s *AirMasterWaybillHistoryUpsert) {
+		s.UpdateContentHash()
 	})
 }
 
@@ -948,6 +992,20 @@ func (u *AirMasterWaybillHistoryUpsertBulk) SetContent(v []byte) *AirMasterWaybi
 func (u *AirMasterWaybillHistoryUpsertBulk) UpdateContent() *AirMasterWaybillHistoryUpsertBulk {
 	return u.Update(func(s *AirMasterWaybillHistoryUpsert) {
 		s.UpdateContent()
+	})
+}
+
+// SetContentHash sets the "content_hash" field.
+func (u *AirMasterWaybillHistoryUpsertBulk) SetContentHash(v string) *AirMasterWaybillHistoryUpsertBulk {
+	return u.Update(func(s *AirMasterWaybillHistoryUpsert) {
+		s.SetContentHash(v)
+	})
+}
+
+// UpdateContentHash sets the "content_hash" field to the value that was provided on create.
+func (u *AirMasterWaybillHistoryUpsertBulk) UpdateContentHash() *AirMasterWaybillHistoryUpsertBulk {
+	return u.Update(func(s *AirMasterWaybillHistoryUpsert) {
+		s.UpdateContentHash()
 	})
 }
 

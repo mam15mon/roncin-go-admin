@@ -324,6 +324,20 @@ declare namespace API {
     overdueDays?: number;
   };
 
+  type AirChargeSummary = {
+    weightCharge?: string;
+    valuationCharge?: string;
+    tax?: string;
+    otherDueAgent?: string;
+    otherDueCarrier?: string;
+    total?: string;
+  };
+
+  type AirDeclaredValue = {
+    kind?: string;
+    amount?: string;
+  };
+
   type AirExportServiceGetAirMasterWaybillParams = {
     id: string;
     page?: number;
@@ -362,12 +376,29 @@ declare namespace API {
     id: string;
   };
 
+  type AirHouseWaybill = {
+    id?: string;
+    houseNo?: string;
+    status?: string;
+    content?: AirWaybillContent;
+    version?: string;
+    contentHash?: string;
+  };
+
+  type AirHouseWaybillInput = {
+    houseNo?: string;
+    status?: string;
+    content?: AirWaybillContent;
+    expectedVersion?: string;
+  };
+
   type AirHouseWaybillVersion = {
     id?: string;
     version?: string;
     houseNo?: string;
     status?: string;
-    content?: string;
+    content?: AirWaybillContent;
+    contentHash?: string;
     actorId?: string;
     reason?: string;
     occurredAt?: string;
@@ -392,6 +423,7 @@ declare namespace API {
   };
 
   type AirMasterHistory = {
+    contentHash?: string;
     id?: string;
     version?: string;
     action?: string;
@@ -430,6 +462,10 @@ declare namespace API {
 
   type AirMasterWaybill = {
     businessType?: string;
+    contentHash?: string;
+    documentMode?: string;
+    canAttach?: boolean;
+    attachBlockedReason?: string;
     id?: string;
     organizationId?: string;
     version?: string;
@@ -459,17 +495,15 @@ declare namespace API {
     declaredGrossWeightKg?: number;
     declaredVolumeCbm?: number;
     notes?: string;
+    waybillContent?: AirWaybillContent;
   };
 
   type AirOrderInfo = {
     master?: AirMasterWaybill;
-    houseNo?: string;
-    houseStatus?: string;
-    houseVersion?: string;
+    documentMode?: string;
+    house?: AirHouseWaybill;
     linkId?: string;
     linkVersion?: string;
-    houseContent?: string;
-    houseId?: string;
     active?: boolean;
   };
 
@@ -477,11 +511,21 @@ declare namespace API {
     masterWaybillId?: string;
     expectedMasterVersion?: string;
     master?: AirMasterWaybillInput;
-    houseNo?: string;
-    houseContent?: string;
-    houseStatus?: string;
+    documentMode?: string;
+    house?: AirHouseWaybillInput;
     changeReason?: string;
     expectedLinkVersion?: string;
+  };
+
+  type AirOtherCharge = {
+    name?: string;
+    billingUnit?: string;
+    quantity?: string;
+    currency?: string;
+    unitPrice?: string;
+    amount?: string;
+    dueTo?: string;
+    payment?: string;
   };
 
   type AirPackageTotal = {
@@ -505,6 +549,75 @@ declare namespace API {
     updatedAt?: string;
     sourceVersion?: string;
     sourceHash?: string;
+  };
+
+  type AirRateLine = {
+    pieces?: string;
+    grossWeightKg?: string;
+    rateClass?: string;
+    commodityItemNo?: string;
+    chargeableWeightKg?: string;
+    rate?: string;
+    amount?: string;
+    goodsDescription?: string;
+  };
+
+  type AirWaybillContent = {
+    shipperAccount?: string;
+    shipperText?: string;
+    consigneeAccount?: string;
+    consigneeText?: string;
+    notifyPartyText?: string;
+    secondNotifyPartyText?: string;
+    agentText?: string;
+    agentIataCode?: string;
+    agentAccount?: string;
+    issuedBy?: string;
+    departureText?: string;
+    routeTo?: string;
+    firstCarrier?: string;
+    routeTo2?: string;
+    carrier2?: string;
+    routeTo3?: string;
+    carrier3?: string;
+    destinationText?: string;
+    flightText?: string;
+    flightDate?: string;
+    accountingInformation?: string;
+    referenceNumber?: string;
+    information1?: string;
+    information2?: string;
+    currency?: string;
+    chargeCode?: string;
+    weightPayment?: string;
+    otherPayment?: string;
+    sci?: string;
+    handlingInformation?: string;
+    marks?: string;
+    goodsDescription?: string;
+    clauses?: string;
+    transportTerms?: string;
+    otherChargesText?: string;
+    destinationCurrency?: string;
+    currencyConversionRate?: string;
+    destinationCollectCharge?: string;
+    chargesAtDestination?: string;
+    totalCollect?: string;
+    shipperCertification?: string;
+    shipperSignature?: string;
+    carrierExecution?: string;
+    issueDate?: string;
+    issuePlace?: string;
+    carrierSignature?: string;
+    remarks?: string;
+    carriageValue?: AirDeclaredValue;
+    customsValue?: AirDeclaredValue;
+    insuranceValue?: AirDeclaredValue;
+    rateLines?: AirRateLine[];
+    otherCharges?: AirOtherCharge[];
+    prepaid?: AirChargeSummary;
+    collect?: AirChargeSummary;
+    asArranged?: boolean;
   };
 
   type AirWeightConfirmation = {
@@ -5003,6 +5116,7 @@ declare namespace API {
   };
 
   type LockOrderRequest = {
+    airDocumentFingerprint?: string;
     orderId: string;
     expectedOrderVersion: string;
     idempotencyKey: string;
@@ -6038,6 +6152,7 @@ declare namespace API {
   };
 
   type OrderLockStateData = {
+    airDocumentFingerprint?: string;
     orderId?: string;
     orderNo?: string;
     isLocked?: boolean;

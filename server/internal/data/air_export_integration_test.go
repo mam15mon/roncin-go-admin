@@ -58,7 +58,7 @@ func (f *airExportFixture) input(no, house string) *biz.Order {
 	in.TotalPackages = &p
 	in.GoodsDescription = "空运测试货物"
 	in.OperationNotes = "报关资料已安排"
-	in.AirExportInput = &biz.AirOrderInput{Master: &biz.AirMasterWaybillInput{MasterNo: no, AirlineID: f.airlineID, OriginAirportID: f.originID, DestinationAirportID: f.destinationID, FlightNo: "MU587", ETD: "2026-10-25T08:00:00Z", ETA: "2026-10-25T20:00:00Z"}, HouseNo: house}
+	in.AirExportInput = &biz.AirOrderInput{Master: &biz.AirMasterWaybillInput{MasterNo: no, AirlineID: f.airlineID, OriginAirportID: f.originID, DestinationAirportID: f.destinationID, FlightNo: "MU587", ETD: "2026-10-25T08:00:00Z", ETA: "2026-10-25T20:00:00Z"}, DocumentMode: "HOUSE", House: &biz.AirHouseWaybillInput{HouseNo: house}}
 	return in
 }
 func (f *airExportFixture) create(t *testing.T, in *biz.Order) *biz.Order {
@@ -77,7 +77,7 @@ func TestAirExportSharedWaybillPostgres(t *testing.T) {
 	uc := f.newUsecase()
 	air := biz.NewAirExportUsecase(NewAirExportRepo(d))
 	a := f.create(t, f.input("781-12345675", "H-001"))
-	if a.AirExport == nil || a.AirExport.HouseNo != "H-001" {
+	if a.AirExport == nil || a.AirExport.House.HouseNo != "H-001" {
 		t.Fatalf("建票读回缺航空关系: %#v", a)
 	}
 	input := f.input("78112345675", "H002")
@@ -160,7 +160,7 @@ func TestAirExportRequiredNumbersUniquenessAndRollbackPostgres(t *testing.T) {
 			in.AirExportInput.Master.MasterNo = ""
 		}
 		if kind != "master" {
-			in.AirExportInput.HouseNo = ""
+			in.AirExportInput.House.HouseNo = ""
 		}
 		if _, e := uc.Create(ctx, f.organizationID, f.actorID, in); e == nil {
 			t.Fatalf("缺 %s 仍建票", kind)
@@ -260,7 +260,7 @@ func TestAirExportFlowVersionsAndSnapshotsPostgres(t *testing.T) {
 		t.Fatalf("过期主单版本未409: %v", e)
 	}
 	update := *o
-	update.AirExportInput = &biz.AirOrderInput{HouseNo: o.AirExport.HouseNo, HouseStatus: o.AirExport.HouseStatus, ExpectedLinkVersion: o.AirExport.LinkVersion + 1}
+	update.AirExportInput = &biz.AirOrderInput{DocumentMode: "HOUSE", House: &biz.AirHouseWaybillInput{HouseNo: o.AirExport.House.HouseNo, Status: o.AirExport.House.Status, ExpectedVersion: o.AirExport.House.Version}, ExpectedLinkVersion: o.AirExport.LinkVersion + 1}
 	if _, e := uc.UpdateDraft(ctx, f.organizationID, f.actorID, o.ID, o.Version, &update); !errors.Is(e, biz.ErrAirWaybillConflict) {
 		t.Fatalf("过期关联版本未409: %v", e)
 	}
@@ -300,7 +300,7 @@ func TestAirExportFlowVersionsAndSnapshotsPostgres(t *testing.T) {
 		t.Fatal("实际起降错误推进签单或结案")
 	}
 	private := *o
-	private.AirExportInput = &biz.AirOrderInput{HouseNo: o.AirExport.HouseNo, HouseStatus: "RELEASED", ExpectedLinkVersion: o.AirExport.LinkVersion}
+	private.AirExportInput = &biz.AirOrderInput{DocumentMode: "HOUSE", House: &biz.AirHouseWaybillInput{HouseNo: o.AirExport.House.HouseNo, Status: "RELEASED", ExpectedVersion: o.AirExport.House.Version}, ExpectedLinkVersion: o.AirExport.LinkVersion}
 	o, e = uc.UpdateDraft(ctx, f.organizationID, f.actorID, o.ID, o.Version, &private)
 	if e != nil {
 		t.Fatal(e)
@@ -314,7 +314,7 @@ func TestAirExportFlowVersionsAndSnapshotsPostgres(t *testing.T) {
 	}
 	// 本票签发后的改单必须留原因和不可变版本。
 	private = *o
-	private.AirExportInput = &biz.AirOrderInput{HouseNo: o.AirExport.HouseNo, HouseStatus: "RELEASED", HouseContent: "更正后货描", ExpectedLinkVersion: o.AirExport.LinkVersion}
+	private.AirExportInput = &biz.AirOrderInput{DocumentMode: "HOUSE", House: &biz.AirHouseWaybillInput{HouseNo: o.AirExport.House.HouseNo, Status: "RELEASED", Content: &biz.AirWaybillContent{Remarks: "更正后货描"}, ExpectedVersion: o.AirExport.House.Version}, ExpectedLinkVersion: o.AirExport.LinkVersion}
 	if _, e = uc.UpdateDraft(ctx, f.organizationID, f.actorID, o.ID, o.Version, &private); e == nil {
 		t.Fatal("已签发分单无改单原因仍保存")
 	}
@@ -518,5 +518,9 @@ func airTestReviewLockSpec(ctx context.Context, tx *ent.Tx, o *ent.Order, review
 	if err != nil {
 		return orderLockCoreSpec{}, err
 	}
-	return orderLockCoreSpec{reviewerID: reviewer, idempotencyKey: key, requestFingerprint: key, feeSnapshot: payload, feeContentVersion: o.FeeContentVersion, feeContentFingerprint: fingerprint, reviewComment: "航空单证集成验证：已核对订单与费用"}, nil
+	airSnapshot, e := readAirOrderDocumentSnapshot(ctx, tx.Client(), o.OrganizationID, o.ID)
+	if e != nil {
+		return orderLockCoreSpec{}, e
+	}
+	return orderLockCoreSpec{airDocumentFingerprint: airDocumentSnapshotFingerprint(airSnapshot), reviewerID: reviewer, idempotencyKey: key, requestFingerprint: key, feeSnapshot: payload, feeContentVersion: o.FeeContentVersion, feeContentFingerprint: fingerprint, reviewComment: "航空单证集成验证：已核对订单与费用"}, nil
 }

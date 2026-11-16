@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -36,7 +37,9 @@ type AirHouseWaybill struct {
 	// Status holds the value of the "status" field.
 	Status string `json:"status,omitempty"`
 	// Content holds the value of the "content" field.
-	Content string `json:"content,omitempty"`
+	Content json.RawMessage `json:"content,omitempty"`
+	// ContentHash holds the value of the "content_hash" field.
+	ContentHash string `json:"content_hash,omitempty"`
 	// Version holds the value of the "version" field.
 	Version uint64 `json:"version,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -96,9 +99,11 @@ func (*AirHouseWaybill) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case airhousewaybill.FieldContent:
+			values[i] = new([]byte)
 		case airhousewaybill.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case airhousewaybill.FieldHouseNo, airhousewaybill.FieldStatus, airhousewaybill.FieldContent:
+		case airhousewaybill.FieldHouseNo, airhousewaybill.FieldStatus, airhousewaybill.FieldContentHash:
 			values[i] = new(sql.NullString)
 		case airhousewaybill.FieldCreatedAt, airhousewaybill.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -168,10 +173,18 @@ func (_m *AirHouseWaybill) assignValues(columns []string, values []any) error {
 				_m.Status = value.String
 			}
 		case airhousewaybill.FieldContent:
-			if value, ok := values[i].(*sql.NullString); !ok {
+			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field content", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.Content); err != nil {
+					return fmt.Errorf("unmarshal field content: %w", err)
+				}
+			}
+		case airhousewaybill.FieldContentHash:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field content_hash", values[i])
 			} else if value.Valid {
-				_m.Content = value.String
+				_m.ContentHash = value.String
 			}
 		case airhousewaybill.FieldVersion:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -252,7 +265,10 @@ func (_m *AirHouseWaybill) String() string {
 	builder.WriteString(_m.Status)
 	builder.WriteString(", ")
 	builder.WriteString("content=")
-	builder.WriteString(_m.Content)
+	builder.WriteString(fmt.Sprintf("%v", _m.Content))
+	builder.WriteString(", ")
+	builder.WriteString("content_hash=")
+	builder.WriteString(_m.ContentHash)
 	builder.WriteString(", ")
 	builder.WriteString("version=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Version))

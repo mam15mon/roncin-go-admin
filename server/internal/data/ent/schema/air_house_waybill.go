@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"encoding/json"
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -15,7 +16,7 @@ func (AirHouseWaybill) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeM
 func (AirHouseWaybill) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("organization_id", uuid.Nil), field.UUID("master_waybill_id", uuid.Nil), field.UUID("order_id", uuid.Nil),
-		field.String("house_no").NotEmpty().MaxLen(64), field.String("status").Default("DRAFT").MaxLen(20), field.String("content").Default("").MaxLen(4000), field.Uint64("version").Default(1),
+		field.String("house_no").NotEmpty().MaxLen(64), field.String("status").Default("DRAFT").MaxLen(20), field.JSON("content", json.RawMessage{}).Default(json.RawMessage(`{}`)), field.String("content_hash").MaxLen(64).Default("44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"), field.Uint64("version").Default(1),
 	}
 }
 func (AirHouseWaybill) Edges() []ent.Edge {

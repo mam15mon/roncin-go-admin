@@ -23,6 +23,972 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// AirWaybillContent 为独立的航空印字内容，不改变订单运输、费用或签发状态。
+type AirDeclaredValue struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Kind          string                 `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
+	Amount        string                 `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AirDeclaredValue) Reset() {
+	*x = AirDeclaredValue{}
+	mi := &file_order_v1_air_export_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AirDeclaredValue) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AirDeclaredValue) ProtoMessage() {}
+
+func (x *AirDeclaredValue) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_air_export_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AirDeclaredValue.ProtoReflect.Descriptor instead.
+func (*AirDeclaredValue) Descriptor() ([]byte, []int) {
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *AirDeclaredValue) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *AirDeclaredValue) GetAmount() string {
+	if x != nil {
+		return x.Amount
+	}
+	return ""
+}
+
+type AirRateLine struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Pieces             string                 `protobuf:"bytes,1,opt,name=pieces,proto3" json:"pieces,omitempty"`
+	GrossWeightKg      string                 `protobuf:"bytes,2,opt,name=gross_weight_kg,json=grossWeightKg,proto3" json:"gross_weight_kg,omitempty"`
+	RateClass          string                 `protobuf:"bytes,3,opt,name=rate_class,json=rateClass,proto3" json:"rate_class,omitempty"`
+	CommodityItemNo    string                 `protobuf:"bytes,4,opt,name=commodity_item_no,json=commodityItemNo,proto3" json:"commodity_item_no,omitempty"`
+	ChargeableWeightKg string                 `protobuf:"bytes,5,opt,name=chargeable_weight_kg,json=chargeableWeightKg,proto3" json:"chargeable_weight_kg,omitempty"`
+	Rate               string                 `protobuf:"bytes,6,opt,name=rate,proto3" json:"rate,omitempty"`
+	Amount             string                 `protobuf:"bytes,7,opt,name=amount,proto3" json:"amount,omitempty"`
+	GoodsDescription   string                 `protobuf:"bytes,8,opt,name=goods_description,json=goodsDescription,proto3" json:"goods_description,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *AirRateLine) Reset() {
+	*x = AirRateLine{}
+	mi := &file_order_v1_air_export_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AirRateLine) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AirRateLine) ProtoMessage() {}
+
+func (x *AirRateLine) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_air_export_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AirRateLine.ProtoReflect.Descriptor instead.
+func (*AirRateLine) Descriptor() ([]byte, []int) {
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *AirRateLine) GetPieces() string {
+	if x != nil {
+		return x.Pieces
+	}
+	return ""
+}
+
+func (x *AirRateLine) GetGrossWeightKg() string {
+	if x != nil {
+		return x.GrossWeightKg
+	}
+	return ""
+}
+
+func (x *AirRateLine) GetRateClass() string {
+	if x != nil {
+		return x.RateClass
+	}
+	return ""
+}
+
+func (x *AirRateLine) GetCommodityItemNo() string {
+	if x != nil {
+		return x.CommodityItemNo
+	}
+	return ""
+}
+
+func (x *AirRateLine) GetChargeableWeightKg() string {
+	if x != nil {
+		return x.ChargeableWeightKg
+	}
+	return ""
+}
+
+func (x *AirRateLine) GetRate() string {
+	if x != nil {
+		return x.Rate
+	}
+	return ""
+}
+
+func (x *AirRateLine) GetAmount() string {
+	if x != nil {
+		return x.Amount
+	}
+	return ""
+}
+
+func (x *AirRateLine) GetGoodsDescription() string {
+	if x != nil {
+		return x.GoodsDescription
+	}
+	return ""
+}
+
+type AirOtherCharge struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	BillingUnit   string                 `protobuf:"bytes,2,opt,name=billing_unit,json=billingUnit,proto3" json:"billing_unit,omitempty"`
+	Quantity      string                 `protobuf:"bytes,3,opt,name=quantity,proto3" json:"quantity,omitempty"`
+	Currency      string                 `protobuf:"bytes,4,opt,name=currency,proto3" json:"currency,omitempty"`
+	UnitPrice     string                 `protobuf:"bytes,5,opt,name=unit_price,json=unitPrice,proto3" json:"unit_price,omitempty"`
+	Amount        string                 `protobuf:"bytes,6,opt,name=amount,proto3" json:"amount,omitempty"`
+	DueTo         string                 `protobuf:"bytes,7,opt,name=due_to,json=dueTo,proto3" json:"due_to,omitempty"`
+	Payment       string                 `protobuf:"bytes,8,opt,name=payment,proto3" json:"payment,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AirOtherCharge) Reset() {
+	*x = AirOtherCharge{}
+	mi := &file_order_v1_air_export_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AirOtherCharge) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AirOtherCharge) ProtoMessage() {}
+
+func (x *AirOtherCharge) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_air_export_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AirOtherCharge.ProtoReflect.Descriptor instead.
+func (*AirOtherCharge) Descriptor() ([]byte, []int) {
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *AirOtherCharge) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *AirOtherCharge) GetBillingUnit() string {
+	if x != nil {
+		return x.BillingUnit
+	}
+	return ""
+}
+
+func (x *AirOtherCharge) GetQuantity() string {
+	if x != nil {
+		return x.Quantity
+	}
+	return ""
+}
+
+func (x *AirOtherCharge) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
+}
+
+func (x *AirOtherCharge) GetUnitPrice() string {
+	if x != nil {
+		return x.UnitPrice
+	}
+	return ""
+}
+
+func (x *AirOtherCharge) GetAmount() string {
+	if x != nil {
+		return x.Amount
+	}
+	return ""
+}
+
+func (x *AirOtherCharge) GetDueTo() string {
+	if x != nil {
+		return x.DueTo
+	}
+	return ""
+}
+
+func (x *AirOtherCharge) GetPayment() string {
+	if x != nil {
+		return x.Payment
+	}
+	return ""
+}
+
+// weight_charge、other_due_agent、other_due_carrier、total 由服务端十进制计算。
+type AirChargeSummary struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	WeightCharge    string                 `protobuf:"bytes,1,opt,name=weight_charge,json=weightCharge,proto3" json:"weight_charge,omitempty"`
+	ValuationCharge string                 `protobuf:"bytes,2,opt,name=valuation_charge,json=valuationCharge,proto3" json:"valuation_charge,omitempty"`
+	Tax             string                 `protobuf:"bytes,3,opt,name=tax,proto3" json:"tax,omitempty"`
+	OtherDueAgent   string                 `protobuf:"bytes,4,opt,name=other_due_agent,json=otherDueAgent,proto3" json:"other_due_agent,omitempty"`
+	OtherDueCarrier string                 `protobuf:"bytes,5,opt,name=other_due_carrier,json=otherDueCarrier,proto3" json:"other_due_carrier,omitempty"`
+	Total           string                 `protobuf:"bytes,6,opt,name=total,proto3" json:"total,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *AirChargeSummary) Reset() {
+	*x = AirChargeSummary{}
+	mi := &file_order_v1_air_export_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AirChargeSummary) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AirChargeSummary) ProtoMessage() {}
+
+func (x *AirChargeSummary) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_air_export_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AirChargeSummary.ProtoReflect.Descriptor instead.
+func (*AirChargeSummary) Descriptor() ([]byte, []int) {
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *AirChargeSummary) GetWeightCharge() string {
+	if x != nil {
+		return x.WeightCharge
+	}
+	return ""
+}
+
+func (x *AirChargeSummary) GetValuationCharge() string {
+	if x != nil {
+		return x.ValuationCharge
+	}
+	return ""
+}
+
+func (x *AirChargeSummary) GetTax() string {
+	if x != nil {
+		return x.Tax
+	}
+	return ""
+}
+
+func (x *AirChargeSummary) GetOtherDueAgent() string {
+	if x != nil {
+		return x.OtherDueAgent
+	}
+	return ""
+}
+
+func (x *AirChargeSummary) GetOtherDueCarrier() string {
+	if x != nil {
+		return x.OtherDueCarrier
+	}
+	return ""
+}
+
+func (x *AirChargeSummary) GetTotal() string {
+	if x != nil {
+		return x.Total
+	}
+	return ""
+}
+
+type AirWaybillContent struct {
+	state                    protoimpl.MessageState `protogen:"open.v1"`
+	ShipperAccount           string                 `protobuf:"bytes,1,opt,name=shipper_account,json=shipperAccount,proto3" json:"shipper_account,omitempty"`
+	ShipperText              string                 `protobuf:"bytes,2,opt,name=shipper_text,json=shipperText,proto3" json:"shipper_text,omitempty"`
+	ConsigneeAccount         string                 `protobuf:"bytes,3,opt,name=consignee_account,json=consigneeAccount,proto3" json:"consignee_account,omitempty"`
+	ConsigneeText            string                 `protobuf:"bytes,4,opt,name=consignee_text,json=consigneeText,proto3" json:"consignee_text,omitempty"`
+	NotifyPartyText          string                 `protobuf:"bytes,5,opt,name=notify_party_text,json=notifyPartyText,proto3" json:"notify_party_text,omitempty"`
+	SecondNotifyPartyText    string                 `protobuf:"bytes,6,opt,name=second_notify_party_text,json=secondNotifyPartyText,proto3" json:"second_notify_party_text,omitempty"`
+	AgentText                string                 `protobuf:"bytes,7,opt,name=agent_text,json=agentText,proto3" json:"agent_text,omitempty"`
+	AgentIataCode            string                 `protobuf:"bytes,8,opt,name=agent_iata_code,json=agentIataCode,proto3" json:"agent_iata_code,omitempty"`
+	AgentAccount             string                 `protobuf:"bytes,9,opt,name=agent_account,json=agentAccount,proto3" json:"agent_account,omitempty"`
+	IssuedBy                 string                 `protobuf:"bytes,10,opt,name=issued_by,json=issuedBy,proto3" json:"issued_by,omitempty"`
+	DepartureText            string                 `protobuf:"bytes,11,opt,name=departure_text,json=departureText,proto3" json:"departure_text,omitempty"`
+	RouteTo                  string                 `protobuf:"bytes,12,opt,name=route_to,json=routeTo,proto3" json:"route_to,omitempty"`
+	FirstCarrier             string                 `protobuf:"bytes,13,opt,name=first_carrier,json=firstCarrier,proto3" json:"first_carrier,omitempty"`
+	RouteTo_2                string                 `protobuf:"bytes,14,opt,name=route_to_2,json=routeTo2,proto3" json:"route_to_2,omitempty"`
+	Carrier_2                string                 `protobuf:"bytes,15,opt,name=carrier_2,json=carrier2,proto3" json:"carrier_2,omitempty"`
+	RouteTo_3                string                 `protobuf:"bytes,16,opt,name=route_to_3,json=routeTo3,proto3" json:"route_to_3,omitempty"`
+	Carrier_3                string                 `protobuf:"bytes,17,opt,name=carrier_3,json=carrier3,proto3" json:"carrier_3,omitempty"`
+	DestinationText          string                 `protobuf:"bytes,18,opt,name=destination_text,json=destinationText,proto3" json:"destination_text,omitempty"`
+	FlightText               string                 `protobuf:"bytes,19,opt,name=flight_text,json=flightText,proto3" json:"flight_text,omitempty"`
+	FlightDate               string                 `protobuf:"bytes,20,opt,name=flight_date,json=flightDate,proto3" json:"flight_date,omitempty"`
+	AccountingInformation    string                 `protobuf:"bytes,21,opt,name=accounting_information,json=accountingInformation,proto3" json:"accounting_information,omitempty"`
+	ReferenceNumber          string                 `protobuf:"bytes,22,opt,name=reference_number,json=referenceNumber,proto3" json:"reference_number,omitempty"`
+	Information_1            string                 `protobuf:"bytes,23,opt,name=information_1,json=information1,proto3" json:"information_1,omitempty"`
+	Information_2            string                 `protobuf:"bytes,24,opt,name=information_2,json=information2,proto3" json:"information_2,omitempty"`
+	Currency                 string                 `protobuf:"bytes,25,opt,name=currency,proto3" json:"currency,omitempty"`
+	ChargeCode               string                 `protobuf:"bytes,26,opt,name=charge_code,json=chargeCode,proto3" json:"charge_code,omitempty"`
+	WeightPayment            string                 `protobuf:"bytes,27,opt,name=weight_payment,json=weightPayment,proto3" json:"weight_payment,omitempty"`
+	OtherPayment             string                 `protobuf:"bytes,28,opt,name=other_payment,json=otherPayment,proto3" json:"other_payment,omitempty"`
+	Sci                      string                 `protobuf:"bytes,29,opt,name=sci,proto3" json:"sci,omitempty"`
+	HandlingInformation      string                 `protobuf:"bytes,30,opt,name=handling_information,json=handlingInformation,proto3" json:"handling_information,omitempty"`
+	Marks                    string                 `protobuf:"bytes,31,opt,name=marks,proto3" json:"marks,omitempty"`
+	GoodsDescription         string                 `protobuf:"bytes,32,opt,name=goods_description,json=goodsDescription,proto3" json:"goods_description,omitempty"`
+	Clauses                  string                 `protobuf:"bytes,33,opt,name=clauses,proto3" json:"clauses,omitempty"`
+	TransportTerms           string                 `protobuf:"bytes,34,opt,name=transport_terms,json=transportTerms,proto3" json:"transport_terms,omitempty"`
+	OtherChargesText         string                 `protobuf:"bytes,35,opt,name=other_charges_text,json=otherChargesText,proto3" json:"other_charges_text,omitempty"`
+	DestinationCurrency      string                 `protobuf:"bytes,36,opt,name=destination_currency,json=destinationCurrency,proto3" json:"destination_currency,omitempty"`
+	CurrencyConversionRate   string                 `protobuf:"bytes,37,opt,name=currency_conversion_rate,json=currencyConversionRate,proto3" json:"currency_conversion_rate,omitempty"`
+	DestinationCollectCharge string                 `protobuf:"bytes,38,opt,name=destination_collect_charge,json=destinationCollectCharge,proto3" json:"destination_collect_charge,omitempty"`
+	ChargesAtDestination     string                 `protobuf:"bytes,39,opt,name=charges_at_destination,json=chargesAtDestination,proto3" json:"charges_at_destination,omitempty"`
+	TotalCollect             string                 `protobuf:"bytes,40,opt,name=total_collect,json=totalCollect,proto3" json:"total_collect,omitempty"`
+	ShipperCertification     string                 `protobuf:"bytes,41,opt,name=shipper_certification,json=shipperCertification,proto3" json:"shipper_certification,omitempty"`
+	ShipperSignature         string                 `protobuf:"bytes,42,opt,name=shipper_signature,json=shipperSignature,proto3" json:"shipper_signature,omitempty"`
+	CarrierExecution         string                 `protobuf:"bytes,43,opt,name=carrier_execution,json=carrierExecution,proto3" json:"carrier_execution,omitempty"`
+	IssueDate                string                 `protobuf:"bytes,44,opt,name=issue_date,json=issueDate,proto3" json:"issue_date,omitempty"`
+	IssuePlace               string                 `protobuf:"bytes,45,opt,name=issue_place,json=issuePlace,proto3" json:"issue_place,omitempty"`
+	CarrierSignature         string                 `protobuf:"bytes,46,opt,name=carrier_signature,json=carrierSignature,proto3" json:"carrier_signature,omitempty"`
+	Remarks                  string                 `protobuf:"bytes,47,opt,name=remarks,proto3" json:"remarks,omitempty"`
+	CarriageValue            *AirDeclaredValue      `protobuf:"bytes,48,opt,name=carriage_value,json=carriageValue,proto3" json:"carriage_value,omitempty"`
+	CustomsValue             *AirDeclaredValue      `protobuf:"bytes,49,opt,name=customs_value,json=customsValue,proto3" json:"customs_value,omitempty"`
+	InsuranceValue           *AirDeclaredValue      `protobuf:"bytes,50,opt,name=insurance_value,json=insuranceValue,proto3" json:"insurance_value,omitempty"`
+	RateLines                []*AirRateLine         `protobuf:"bytes,51,rep,name=rate_lines,json=rateLines,proto3" json:"rate_lines,omitempty"`
+	OtherCharges             []*AirOtherCharge      `protobuf:"bytes,52,rep,name=other_charges,json=otherCharges,proto3" json:"other_charges,omitempty"`
+	Prepaid                  *AirChargeSummary      `protobuf:"bytes,53,opt,name=prepaid,proto3" json:"prepaid,omitempty"`
+	Collect                  *AirChargeSummary      `protobuf:"bytes,54,opt,name=collect,proto3" json:"collect,omitempty"`
+	AsArranged               bool                   `protobuf:"varint,55,opt,name=as_arranged,json=asArranged,proto3" json:"as_arranged,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
+}
+
+func (x *AirWaybillContent) Reset() {
+	*x = AirWaybillContent{}
+	mi := &file_order_v1_air_export_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AirWaybillContent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AirWaybillContent) ProtoMessage() {}
+
+func (x *AirWaybillContent) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_air_export_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AirWaybillContent.ProtoReflect.Descriptor instead.
+func (*AirWaybillContent) Descriptor() ([]byte, []int) {
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *AirWaybillContent) GetShipperAccount() string {
+	if x != nil {
+		return x.ShipperAccount
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetShipperText() string {
+	if x != nil {
+		return x.ShipperText
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetConsigneeAccount() string {
+	if x != nil {
+		return x.ConsigneeAccount
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetConsigneeText() string {
+	if x != nil {
+		return x.ConsigneeText
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetNotifyPartyText() string {
+	if x != nil {
+		return x.NotifyPartyText
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetSecondNotifyPartyText() string {
+	if x != nil {
+		return x.SecondNotifyPartyText
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetAgentText() string {
+	if x != nil {
+		return x.AgentText
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetAgentIataCode() string {
+	if x != nil {
+		return x.AgentIataCode
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetAgentAccount() string {
+	if x != nil {
+		return x.AgentAccount
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetIssuedBy() string {
+	if x != nil {
+		return x.IssuedBy
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetDepartureText() string {
+	if x != nil {
+		return x.DepartureText
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetRouteTo() string {
+	if x != nil {
+		return x.RouteTo
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetFirstCarrier() string {
+	if x != nil {
+		return x.FirstCarrier
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetRouteTo_2() string {
+	if x != nil {
+		return x.RouteTo_2
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetCarrier_2() string {
+	if x != nil {
+		return x.Carrier_2
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetRouteTo_3() string {
+	if x != nil {
+		return x.RouteTo_3
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetCarrier_3() string {
+	if x != nil {
+		return x.Carrier_3
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetDestinationText() string {
+	if x != nil {
+		return x.DestinationText
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetFlightText() string {
+	if x != nil {
+		return x.FlightText
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetFlightDate() string {
+	if x != nil {
+		return x.FlightDate
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetAccountingInformation() string {
+	if x != nil {
+		return x.AccountingInformation
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetReferenceNumber() string {
+	if x != nil {
+		return x.ReferenceNumber
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetInformation_1() string {
+	if x != nil {
+		return x.Information_1
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetInformation_2() string {
+	if x != nil {
+		return x.Information_2
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetChargeCode() string {
+	if x != nil {
+		return x.ChargeCode
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetWeightPayment() string {
+	if x != nil {
+		return x.WeightPayment
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetOtherPayment() string {
+	if x != nil {
+		return x.OtherPayment
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetSci() string {
+	if x != nil {
+		return x.Sci
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetHandlingInformation() string {
+	if x != nil {
+		return x.HandlingInformation
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetMarks() string {
+	if x != nil {
+		return x.Marks
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetGoodsDescription() string {
+	if x != nil {
+		return x.GoodsDescription
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetClauses() string {
+	if x != nil {
+		return x.Clauses
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetTransportTerms() string {
+	if x != nil {
+		return x.TransportTerms
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetOtherChargesText() string {
+	if x != nil {
+		return x.OtherChargesText
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetDestinationCurrency() string {
+	if x != nil {
+		return x.DestinationCurrency
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetCurrencyConversionRate() string {
+	if x != nil {
+		return x.CurrencyConversionRate
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetDestinationCollectCharge() string {
+	if x != nil {
+		return x.DestinationCollectCharge
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetChargesAtDestination() string {
+	if x != nil {
+		return x.ChargesAtDestination
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetTotalCollect() string {
+	if x != nil {
+		return x.TotalCollect
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetShipperCertification() string {
+	if x != nil {
+		return x.ShipperCertification
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetShipperSignature() string {
+	if x != nil {
+		return x.ShipperSignature
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetCarrierExecution() string {
+	if x != nil {
+		return x.CarrierExecution
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetIssueDate() string {
+	if x != nil {
+		return x.IssueDate
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetIssuePlace() string {
+	if x != nil {
+		return x.IssuePlace
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetCarrierSignature() string {
+	if x != nil {
+		return x.CarrierSignature
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetRemarks() string {
+	if x != nil {
+		return x.Remarks
+	}
+	return ""
+}
+
+func (x *AirWaybillContent) GetCarriageValue() *AirDeclaredValue {
+	if x != nil {
+		return x.CarriageValue
+	}
+	return nil
+}
+
+func (x *AirWaybillContent) GetCustomsValue() *AirDeclaredValue {
+	if x != nil {
+		return x.CustomsValue
+	}
+	return nil
+}
+
+func (x *AirWaybillContent) GetInsuranceValue() *AirDeclaredValue {
+	if x != nil {
+		return x.InsuranceValue
+	}
+	return nil
+}
+
+func (x *AirWaybillContent) GetRateLines() []*AirRateLine {
+	if x != nil {
+		return x.RateLines
+	}
+	return nil
+}
+
+func (x *AirWaybillContent) GetOtherCharges() []*AirOtherCharge {
+	if x != nil {
+		return x.OtherCharges
+	}
+	return nil
+}
+
+func (x *AirWaybillContent) GetPrepaid() *AirChargeSummary {
+	if x != nil {
+		return x.Prepaid
+	}
+	return nil
+}
+
+func (x *AirWaybillContent) GetCollect() *AirChargeSummary {
+	if x != nil {
+		return x.Collect
+	}
+	return nil
+}
+
+func (x *AirWaybillContent) GetAsArranged() bool {
+	if x != nil {
+		return x.AsArranged
+	}
+	return false
+}
+
+type AirHouseWaybillInput struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	HouseNo         string                 `protobuf:"bytes,1,opt,name=house_no,json=houseNo,proto3" json:"house_no,omitempty"`
+	Status          string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
+	Content         *AirWaybillContent     `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
+	ExpectedVersion uint64                 `protobuf:"varint,4,opt,name=expected_version,json=expectedVersion,proto3" json:"expected_version,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *AirHouseWaybillInput) Reset() {
+	*x = AirHouseWaybillInput{}
+	mi := &file_order_v1_air_export_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AirHouseWaybillInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AirHouseWaybillInput) ProtoMessage() {}
+
+func (x *AirHouseWaybillInput) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_air_export_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AirHouseWaybillInput.ProtoReflect.Descriptor instead.
+func (*AirHouseWaybillInput) Descriptor() ([]byte, []int) {
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *AirHouseWaybillInput) GetHouseNo() string {
+	if x != nil {
+		return x.HouseNo
+	}
+	return ""
+}
+
+func (x *AirHouseWaybillInput) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *AirHouseWaybillInput) GetContent() *AirWaybillContent {
+	if x != nil {
+		return x.Content
+	}
+	return nil
+}
+
+func (x *AirHouseWaybillInput) GetExpectedVersion() uint64 {
+	if x != nil {
+		return x.ExpectedVersion
+	}
+	return 0
+}
+
+type AirHouseWaybill struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	HouseNo       string                 `protobuf:"bytes,2,opt,name=house_no,json=houseNo,proto3" json:"house_no,omitempty"`
+	Status        string                 `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	Content       *AirWaybillContent     `protobuf:"bytes,4,opt,name=content,proto3" json:"content,omitempty"`
+	Version       uint64                 `protobuf:"varint,5,opt,name=version,proto3" json:"version,omitempty"`
+	ContentHash   string                 `protobuf:"bytes,6,opt,name=content_hash,json=contentHash,proto3" json:"content_hash,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AirHouseWaybill) Reset() {
+	*x = AirHouseWaybill{}
+	mi := &file_order_v1_air_export_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AirHouseWaybill) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AirHouseWaybill) ProtoMessage() {}
+
+func (x *AirHouseWaybill) ProtoReflect() protoreflect.Message {
+	mi := &file_order_v1_air_export_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AirHouseWaybill.ProtoReflect.Descriptor instead.
+func (*AirHouseWaybill) Descriptor() ([]byte, []int) {
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *AirHouseWaybill) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *AirHouseWaybill) GetHouseNo() string {
+	if x != nil {
+		return x.HouseNo
+	}
+	return ""
+}
+
+func (x *AirHouseWaybill) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *AirHouseWaybill) GetContent() *AirWaybillContent {
+	if x != nil {
+		return x.Content
+	}
+	return nil
+}
+
+func (x *AirHouseWaybill) GetVersion() uint64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *AirHouseWaybill) GetContentHash() string {
+	if x != nil {
+		return x.ContentHash
+	}
+	return ""
+}
+
 type AirMasterWaybillInput struct {
 	state                 protoimpl.MessageState `protogen:"open.v1"`
 	MasterNo              string                 `protobuf:"bytes,1,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
@@ -41,13 +1007,14 @@ type AirMasterWaybillInput struct {
 	DeclaredGrossWeightKg *float64               `protobuf:"fixed64,14,opt,name=declared_gross_weight_kg,json=declaredGrossWeightKg,proto3,oneof" json:"declared_gross_weight_kg,omitempty"`
 	DeclaredVolumeCbm     *float64               `protobuf:"fixed64,15,opt,name=declared_volume_cbm,json=declaredVolumeCbm,proto3,oneof" json:"declared_volume_cbm,omitempty"`
 	Notes                 string                 `protobuf:"bytes,16,opt,name=notes,proto3" json:"notes,omitempty"`
+	WaybillContent        *AirWaybillContent     `protobuf:"bytes,17,opt,name=waybill_content,json=waybillContent,proto3" json:"waybill_content,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
 
 func (x *AirMasterWaybillInput) Reset() {
 	*x = AirMasterWaybillInput{}
-	mi := &file_order_v1_air_export_proto_msgTypes[0]
+	mi := &file_order_v1_air_export_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -59,7 +1026,7 @@ func (x *AirMasterWaybillInput) String() string {
 func (*AirMasterWaybillInput) ProtoMessage() {}
 
 func (x *AirMasterWaybillInput) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[0]
+	mi := &file_order_v1_air_export_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -72,7 +1039,7 @@ func (x *AirMasterWaybillInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AirMasterWaybillInput.ProtoReflect.Descriptor instead.
 func (*AirMasterWaybillInput) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{0}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *AirMasterWaybillInput) GetMasterNo() string {
@@ -187,9 +1154,20 @@ func (x *AirMasterWaybillInput) GetNotes() string {
 	return ""
 }
 
+func (x *AirMasterWaybillInput) GetWaybillContent() *AirWaybillContent {
+	if x != nil {
+		return x.WaybillContent
+	}
+	return nil
+}
+
 type AirMasterWaybill struct {
 	state                  protoimpl.MessageState `protogen:"open.v1"`
 	BusinessType           string                 `protobuf:"bytes,11,opt,name=business_type,json=businessType,proto3" json:"business_type,omitempty"`
+	ContentHash            string                 `protobuf:"bytes,12,opt,name=content_hash,json=contentHash,proto3" json:"content_hash,omitempty"`
+	DocumentMode           string                 `protobuf:"bytes,13,opt,name=document_mode,json=documentMode,proto3" json:"document_mode,omitempty"`
+	CanAttach              bool                   `protobuf:"varint,14,opt,name=can_attach,json=canAttach,proto3" json:"can_attach,omitempty"`
+	AttachBlockedReason    string                 `protobuf:"bytes,15,opt,name=attach_blocked_reason,json=attachBlockedReason,proto3" json:"attach_blocked_reason,omitempty"`
 	Id                     string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	OrganizationId         string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
 	Version                uint64                 `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
@@ -206,7 +1184,7 @@ type AirMasterWaybill struct {
 
 func (x *AirMasterWaybill) Reset() {
 	*x = AirMasterWaybill{}
-	mi := &file_order_v1_air_export_proto_msgTypes[1]
+	mi := &file_order_v1_air_export_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -218,7 +1196,7 @@ func (x *AirMasterWaybill) String() string {
 func (*AirMasterWaybill) ProtoMessage() {}
 
 func (x *AirMasterWaybill) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[1]
+	mi := &file_order_v1_air_export_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -231,12 +1209,40 @@ func (x *AirMasterWaybill) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AirMasterWaybill.ProtoReflect.Descriptor instead.
 func (*AirMasterWaybill) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{1}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *AirMasterWaybill) GetBusinessType() string {
 	if x != nil {
 		return x.BusinessType
+	}
+	return ""
+}
+
+func (x *AirMasterWaybill) GetContentHash() string {
+	if x != nil {
+		return x.ContentHash
+	}
+	return ""
+}
+
+func (x *AirMasterWaybill) GetDocumentMode() string {
+	if x != nil {
+		return x.DocumentMode
+	}
+	return ""
+}
+
+func (x *AirMasterWaybill) GetCanAttach() bool {
+	if x != nil {
+		return x.CanAttach
+	}
+	return false
+}
+
+func (x *AirMasterWaybill) GetAttachBlockedReason() string {
+	if x != nil {
+		return x.AttachBlockedReason
 	}
 	return ""
 }
@@ -316,9 +1322,8 @@ type AirOrderInput struct {
 	MasterWaybillId       *string                `protobuf:"bytes,1,opt,name=master_waybill_id,json=masterWaybillId,proto3,oneof" json:"master_waybill_id,omitempty"`
 	ExpectedMasterVersion uint64                 `protobuf:"varint,2,opt,name=expected_master_version,json=expectedMasterVersion,proto3" json:"expected_master_version,omitempty"`
 	Master                *AirMasterWaybillInput `protobuf:"bytes,3,opt,name=master,proto3" json:"master,omitempty"`
-	HouseNo               string                 `protobuf:"bytes,4,opt,name=house_no,json=houseNo,proto3" json:"house_no,omitempty"`
-	HouseContent          string                 `protobuf:"bytes,5,opt,name=house_content,json=houseContent,proto3" json:"house_content,omitempty"`
-	HouseStatus           string                 `protobuf:"bytes,6,opt,name=house_status,json=houseStatus,proto3" json:"house_status,omitempty"`
+	DocumentMode          string                 `protobuf:"bytes,9,opt,name=document_mode,json=documentMode,proto3" json:"document_mode,omitempty"`
+	House                 *AirHouseWaybillInput  `protobuf:"bytes,10,opt,name=house,proto3" json:"house,omitempty"`
 	ChangeReason          string                 `protobuf:"bytes,7,opt,name=change_reason,json=changeReason,proto3" json:"change_reason,omitempty"`
 	ExpectedLinkVersion   uint64                 `protobuf:"varint,8,opt,name=expected_link_version,json=expectedLinkVersion,proto3" json:"expected_link_version,omitempty"`
 	unknownFields         protoimpl.UnknownFields
@@ -327,7 +1332,7 @@ type AirOrderInput struct {
 
 func (x *AirOrderInput) Reset() {
 	*x = AirOrderInput{}
-	mi := &file_order_v1_air_export_proto_msgTypes[2]
+	mi := &file_order_v1_air_export_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -339,7 +1344,7 @@ func (x *AirOrderInput) String() string {
 func (*AirOrderInput) ProtoMessage() {}
 
 func (x *AirOrderInput) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[2]
+	mi := &file_order_v1_air_export_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -352,7 +1357,7 @@ func (x *AirOrderInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AirOrderInput.ProtoReflect.Descriptor instead.
 func (*AirOrderInput) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{2}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *AirOrderInput) GetMasterWaybillId() string {
@@ -376,25 +1381,18 @@ func (x *AirOrderInput) GetMaster() *AirMasterWaybillInput {
 	return nil
 }
 
-func (x *AirOrderInput) GetHouseNo() string {
+func (x *AirOrderInput) GetDocumentMode() string {
 	if x != nil {
-		return x.HouseNo
+		return x.DocumentMode
 	}
 	return ""
 }
 
-func (x *AirOrderInput) GetHouseContent() string {
+func (x *AirOrderInput) GetHouse() *AirHouseWaybillInput {
 	if x != nil {
-		return x.HouseContent
+		return x.House
 	}
-	return ""
-}
-
-func (x *AirOrderInput) GetHouseStatus() string {
-	if x != nil {
-		return x.HouseStatus
-	}
-	return ""
+	return nil
 }
 
 func (x *AirOrderInput) GetChangeReason() string {
@@ -414,13 +1412,10 @@ func (x *AirOrderInput) GetExpectedLinkVersion() uint64 {
 type AirOrderInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Master        *AirMasterWaybill      `protobuf:"bytes,1,opt,name=master,proto3" json:"master,omitempty"`
-	HouseNo       string                 `protobuf:"bytes,2,opt,name=house_no,json=houseNo,proto3" json:"house_no,omitempty"`
-	HouseStatus   string                 `protobuf:"bytes,3,opt,name=house_status,json=houseStatus,proto3" json:"house_status,omitempty"`
-	HouseVersion  uint64                 `protobuf:"varint,4,opt,name=house_version,json=houseVersion,proto3" json:"house_version,omitempty"`
+	DocumentMode  string                 `protobuf:"bytes,10,opt,name=document_mode,json=documentMode,proto3" json:"document_mode,omitempty"`
+	House         *AirHouseWaybill       `protobuf:"bytes,11,opt,name=house,proto3" json:"house,omitempty"`
 	LinkId        string                 `protobuf:"bytes,5,opt,name=link_id,json=linkId,proto3" json:"link_id,omitempty"`
 	LinkVersion   uint64                 `protobuf:"varint,6,opt,name=link_version,json=linkVersion,proto3" json:"link_version,omitempty"`
-	HouseContent  string                 `protobuf:"bytes,7,opt,name=house_content,json=houseContent,proto3" json:"house_content,omitempty"`
-	HouseId       string                 `protobuf:"bytes,8,opt,name=house_id,json=houseId,proto3" json:"house_id,omitempty"`
 	Active        bool                   `protobuf:"varint,9,opt,name=active,proto3" json:"active,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -428,7 +1423,7 @@ type AirOrderInfo struct {
 
 func (x *AirOrderInfo) Reset() {
 	*x = AirOrderInfo{}
-	mi := &file_order_v1_air_export_proto_msgTypes[3]
+	mi := &file_order_v1_air_export_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -440,7 +1435,7 @@ func (x *AirOrderInfo) String() string {
 func (*AirOrderInfo) ProtoMessage() {}
 
 func (x *AirOrderInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[3]
+	mi := &file_order_v1_air_export_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -453,7 +1448,7 @@ func (x *AirOrderInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AirOrderInfo.ProtoReflect.Descriptor instead.
 func (*AirOrderInfo) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{3}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *AirOrderInfo) GetMaster() *AirMasterWaybill {
@@ -463,25 +1458,18 @@ func (x *AirOrderInfo) GetMaster() *AirMasterWaybill {
 	return nil
 }
 
-func (x *AirOrderInfo) GetHouseNo() string {
+func (x *AirOrderInfo) GetDocumentMode() string {
 	if x != nil {
-		return x.HouseNo
+		return x.DocumentMode
 	}
 	return ""
 }
 
-func (x *AirOrderInfo) GetHouseStatus() string {
+func (x *AirOrderInfo) GetHouse() *AirHouseWaybill {
 	if x != nil {
-		return x.HouseStatus
+		return x.House
 	}
-	return ""
-}
-
-func (x *AirOrderInfo) GetHouseVersion() uint64 {
-	if x != nil {
-		return x.HouseVersion
-	}
-	return 0
+	return nil
 }
 
 func (x *AirOrderInfo) GetLinkId() string {
@@ -496,20 +1484,6 @@ func (x *AirOrderInfo) GetLinkVersion() uint64 {
 		return x.LinkVersion
 	}
 	return 0
-}
-
-func (x *AirOrderInfo) GetHouseContent() string {
-	if x != nil {
-		return x.HouseContent
-	}
-	return ""
-}
-
-func (x *AirOrderInfo) GetHouseId() string {
-	if x != nil {
-		return x.HouseId
-	}
-	return ""
 }
 
 func (x *AirOrderInfo) GetActive() bool {
@@ -543,7 +1517,7 @@ type AirMasterMember struct {
 
 func (x *AirMasterMember) Reset() {
 	*x = AirMasterMember{}
-	mi := &file_order_v1_air_export_proto_msgTypes[4]
+	mi := &file_order_v1_air_export_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -555,7 +1529,7 @@ func (x *AirMasterMember) String() string {
 func (*AirMasterMember) ProtoMessage() {}
 
 func (x *AirMasterMember) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[4]
+	mi := &file_order_v1_air_export_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -568,7 +1542,7 @@ func (x *AirMasterMember) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AirMasterMember.ProtoReflect.Descriptor instead.
 func (*AirMasterMember) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{4}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *AirMasterMember) GetOrderId() string {
@@ -693,7 +1667,7 @@ type AirPackageTotal struct {
 
 func (x *AirPackageTotal) Reset() {
 	*x = AirPackageTotal{}
-	mi := &file_order_v1_air_export_proto_msgTypes[5]
+	mi := &file_order_v1_air_export_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -705,7 +1679,7 @@ func (x *AirPackageTotal) String() string {
 func (*AirPackageTotal) ProtoMessage() {}
 
 func (x *AirPackageTotal) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[5]
+	mi := &file_order_v1_air_export_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -718,7 +1692,7 @@ func (x *AirPackageTotal) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AirPackageTotal.ProtoReflect.Descriptor instead.
 func (*AirPackageTotal) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{5}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *AirPackageTotal) GetUnit() string {
@@ -748,7 +1722,7 @@ type AirMasterTotals struct {
 
 func (x *AirMasterTotals) Reset() {
 	*x = AirMasterTotals{}
-	mi := &file_order_v1_air_export_proto_msgTypes[6]
+	mi := &file_order_v1_air_export_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -760,7 +1734,7 @@ func (x *AirMasterTotals) String() string {
 func (*AirMasterTotals) ProtoMessage() {}
 
 func (x *AirMasterTotals) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[6]
+	mi := &file_order_v1_air_export_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -773,7 +1747,7 @@ func (x *AirMasterTotals) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AirMasterTotals.ProtoReflect.Descriptor instead.
 func (*AirMasterTotals) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{6}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *AirMasterTotals) GetPackagesByUnit() []*AirPackageTotal {
@@ -813,6 +1787,7 @@ func (x *AirMasterTotals) GetMemberCount() int32 {
 
 type AirMasterHistory struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	ContentHash   string                 `protobuf:"bytes,8,opt,name=content_hash,json=contentHash,proto3" json:"content_hash,omitempty"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Version       uint64                 `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
 	Action        string                 `protobuf:"bytes,3,opt,name=action,proto3" json:"action,omitempty"`
@@ -826,7 +1801,7 @@ type AirMasterHistory struct {
 
 func (x *AirMasterHistory) Reset() {
 	*x = AirMasterHistory{}
-	mi := &file_order_v1_air_export_proto_msgTypes[7]
+	mi := &file_order_v1_air_export_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -838,7 +1813,7 @@ func (x *AirMasterHistory) String() string {
 func (*AirMasterHistory) ProtoMessage() {}
 
 func (x *AirMasterHistory) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[7]
+	mi := &file_order_v1_air_export_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -851,7 +1826,14 @@ func (x *AirMasterHistory) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AirMasterHistory.ProtoReflect.Descriptor instead.
 func (*AirMasterHistory) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{7}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *AirMasterHistory) GetContentHash() string {
+	if x != nil {
+		return x.ContentHash
+	}
+	return ""
 }
 
 func (x *AirMasterHistory) GetId() string {
@@ -915,7 +1897,7 @@ type ListAirMasterWaybillsRequest struct {
 
 func (x *ListAirMasterWaybillsRequest) Reset() {
 	*x = ListAirMasterWaybillsRequest{}
-	mi := &file_order_v1_air_export_proto_msgTypes[8]
+	mi := &file_order_v1_air_export_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -927,7 +1909,7 @@ func (x *ListAirMasterWaybillsRequest) String() string {
 func (*ListAirMasterWaybillsRequest) ProtoMessage() {}
 
 func (x *ListAirMasterWaybillsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[8]
+	mi := &file_order_v1_air_export_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -940,7 +1922,7 @@ func (x *ListAirMasterWaybillsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAirMasterWaybillsRequest.ProtoReflect.Descriptor instead.
 func (*ListAirMasterWaybillsRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{8}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ListAirMasterWaybillsRequest) GetBusinessType() string {
@@ -984,7 +1966,7 @@ type ListAirMasterWaybillsResponse struct {
 
 func (x *ListAirMasterWaybillsResponse) Reset() {
 	*x = ListAirMasterWaybillsResponse{}
-	mi := &file_order_v1_air_export_proto_msgTypes[9]
+	mi := &file_order_v1_air_export_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -996,7 +1978,7 @@ func (x *ListAirMasterWaybillsResponse) String() string {
 func (*ListAirMasterWaybillsResponse) ProtoMessage() {}
 
 func (x *ListAirMasterWaybillsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[9]
+	mi := &file_order_v1_air_export_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1009,7 +1991,7 @@ func (x *ListAirMasterWaybillsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAirMasterWaybillsResponse.ProtoReflect.Descriptor instead.
 func (*ListAirMasterWaybillsResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{9}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ListAirMasterWaybillsResponse) GetSuccess() bool {
@@ -1058,7 +2040,7 @@ type GetAirMasterWaybillRequest struct {
 
 func (x *GetAirMasterWaybillRequest) Reset() {
 	*x = GetAirMasterWaybillRequest{}
-	mi := &file_order_v1_air_export_proto_msgTypes[10]
+	mi := &file_order_v1_air_export_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1070,7 +2052,7 @@ func (x *GetAirMasterWaybillRequest) String() string {
 func (*GetAirMasterWaybillRequest) ProtoMessage() {}
 
 func (x *GetAirMasterWaybillRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[10]
+	mi := &file_order_v1_air_export_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1083,7 +2065,7 @@ func (x *GetAirMasterWaybillRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAirMasterWaybillRequest.ProtoReflect.Descriptor instead.
 func (*GetAirMasterWaybillRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{10}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *GetAirMasterWaybillRequest) GetId() string {
@@ -1125,7 +2107,7 @@ type GetAirMasterWaybillResponse struct {
 
 func (x *GetAirMasterWaybillResponse) Reset() {
 	*x = GetAirMasterWaybillResponse{}
-	mi := &file_order_v1_air_export_proto_msgTypes[11]
+	mi := &file_order_v1_air_export_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1137,7 +2119,7 @@ func (x *GetAirMasterWaybillResponse) String() string {
 func (*GetAirMasterWaybillResponse) ProtoMessage() {}
 
 func (x *GetAirMasterWaybillResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[11]
+	mi := &file_order_v1_air_export_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1150,7 +2132,7 @@ func (x *GetAirMasterWaybillResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAirMasterWaybillResponse.ProtoReflect.Descriptor instead.
 func (*GetAirMasterWaybillResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{11}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *GetAirMasterWaybillResponse) GetSuccess() bool {
@@ -1234,7 +2216,7 @@ type PreviewAirMasterWaybillUpdateRequest struct {
 
 func (x *PreviewAirMasterWaybillUpdateRequest) Reset() {
 	*x = PreviewAirMasterWaybillUpdateRequest{}
-	mi := &file_order_v1_air_export_proto_msgTypes[12]
+	mi := &file_order_v1_air_export_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1246,7 +2228,7 @@ func (x *PreviewAirMasterWaybillUpdateRequest) String() string {
 func (*PreviewAirMasterWaybillUpdateRequest) ProtoMessage() {}
 
 func (x *PreviewAirMasterWaybillUpdateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[12]
+	mi := &file_order_v1_air_export_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1259,7 +2241,7 @@ func (x *PreviewAirMasterWaybillUpdateRequest) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use PreviewAirMasterWaybillUpdateRequest.ProtoReflect.Descriptor instead.
 func (*PreviewAirMasterWaybillUpdateRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{12}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *PreviewAirMasterWaybillUpdateRequest) GetId() string {
@@ -1298,7 +2280,7 @@ type PreviewAirMasterWaybillUpdateResponse struct {
 
 func (x *PreviewAirMasterWaybillUpdateResponse) Reset() {
 	*x = PreviewAirMasterWaybillUpdateResponse{}
-	mi := &file_order_v1_air_export_proto_msgTypes[13]
+	mi := &file_order_v1_air_export_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1310,7 +2292,7 @@ func (x *PreviewAirMasterWaybillUpdateResponse) String() string {
 func (*PreviewAirMasterWaybillUpdateResponse) ProtoMessage() {}
 
 func (x *PreviewAirMasterWaybillUpdateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[13]
+	mi := &file_order_v1_air_export_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1323,7 +2305,7 @@ func (x *PreviewAirMasterWaybillUpdateResponse) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use PreviewAirMasterWaybillUpdateResponse.ProtoReflect.Descriptor instead.
 func (*PreviewAirMasterWaybillUpdateResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{13}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *PreviewAirMasterWaybillUpdateResponse) GetSuccess() bool {
@@ -1388,7 +2370,7 @@ type UpdateAirMasterWaybillRequest struct {
 
 func (x *UpdateAirMasterWaybillRequest) Reset() {
 	*x = UpdateAirMasterWaybillRequest{}
-	mi := &file_order_v1_air_export_proto_msgTypes[14]
+	mi := &file_order_v1_air_export_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1400,7 +2382,7 @@ func (x *UpdateAirMasterWaybillRequest) String() string {
 func (*UpdateAirMasterWaybillRequest) ProtoMessage() {}
 
 func (x *UpdateAirMasterWaybillRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[14]
+	mi := &file_order_v1_air_export_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1413,7 +2395,7 @@ func (x *UpdateAirMasterWaybillRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateAirMasterWaybillRequest.ProtoReflect.Descriptor instead.
 func (*UpdateAirMasterWaybillRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{14}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *UpdateAirMasterWaybillRequest) GetId() string {
@@ -1465,7 +2447,7 @@ type LinkAirMasterWaybillRequest struct {
 
 func (x *LinkAirMasterWaybillRequest) Reset() {
 	*x = LinkAirMasterWaybillRequest{}
-	mi := &file_order_v1_air_export_proto_msgTypes[15]
+	mi := &file_order_v1_air_export_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1477,7 +2459,7 @@ func (x *LinkAirMasterWaybillRequest) String() string {
 func (*LinkAirMasterWaybillRequest) ProtoMessage() {}
 
 func (x *LinkAirMasterWaybillRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[15]
+	mi := &file_order_v1_air_export_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1490,7 +2472,7 @@ func (x *LinkAirMasterWaybillRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LinkAirMasterWaybillRequest.ProtoReflect.Descriptor instead.
 func (*LinkAirMasterWaybillRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{15}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *LinkAirMasterWaybillRequest) GetId() string {
@@ -1547,7 +2529,7 @@ type ListAirLinkCandidatesRequest struct {
 
 func (x *ListAirLinkCandidatesRequest) Reset() {
 	*x = ListAirLinkCandidatesRequest{}
-	mi := &file_order_v1_air_export_proto_msgTypes[16]
+	mi := &file_order_v1_air_export_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1559,7 +2541,7 @@ func (x *ListAirLinkCandidatesRequest) String() string {
 func (*ListAirLinkCandidatesRequest) ProtoMessage() {}
 
 func (x *ListAirLinkCandidatesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[16]
+	mi := &file_order_v1_air_export_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1572,7 +2554,7 @@ func (x *ListAirLinkCandidatesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAirLinkCandidatesRequest.ProtoReflect.Descriptor instead.
 func (*ListAirLinkCandidatesRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{16}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ListAirLinkCandidatesRequest) GetId() string {
@@ -1616,7 +2598,7 @@ type ListAirLinkCandidatesResponse struct {
 
 func (x *ListAirLinkCandidatesResponse) Reset() {
 	*x = ListAirLinkCandidatesResponse{}
-	mi := &file_order_v1_air_export_proto_msgTypes[17]
+	mi := &file_order_v1_air_export_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1628,7 +2610,7 @@ func (x *ListAirLinkCandidatesResponse) String() string {
 func (*ListAirLinkCandidatesResponse) ProtoMessage() {}
 
 func (x *ListAirLinkCandidatesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[17]
+	mi := &file_order_v1_air_export_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1641,7 +2623,7 @@ func (x *ListAirLinkCandidatesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAirLinkCandidatesResponse.ProtoReflect.Descriptor instead.
 func (*ListAirLinkCandidatesResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{17}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ListAirLinkCandidatesResponse) GetSuccess() bool {
@@ -1685,7 +2667,8 @@ type AirHouseWaybillVersion struct {
 	Version       uint64                 `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
 	HouseNo       string                 `protobuf:"bytes,3,opt,name=house_no,json=houseNo,proto3" json:"house_no,omitempty"`
 	Status        string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
-	Content       string                 `protobuf:"bytes,5,opt,name=content,proto3" json:"content,omitempty"`
+	Content       *AirWaybillContent     `protobuf:"bytes,5,opt,name=content,proto3" json:"content,omitempty"`
+	ContentHash   string                 `protobuf:"bytes,9,opt,name=content_hash,json=contentHash,proto3" json:"content_hash,omitempty"`
 	ActorId       string                 `protobuf:"bytes,6,opt,name=actor_id,json=actorId,proto3" json:"actor_id,omitempty"`
 	Reason        string                 `protobuf:"bytes,7,opt,name=reason,proto3" json:"reason,omitempty"`
 	OccurredAt    string                 `protobuf:"bytes,8,opt,name=occurred_at,json=occurredAt,proto3" json:"occurred_at,omitempty"`
@@ -1695,7 +2678,7 @@ type AirHouseWaybillVersion struct {
 
 func (x *AirHouseWaybillVersion) Reset() {
 	*x = AirHouseWaybillVersion{}
-	mi := &file_order_v1_air_export_proto_msgTypes[18]
+	mi := &file_order_v1_air_export_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1707,7 +2690,7 @@ func (x *AirHouseWaybillVersion) String() string {
 func (*AirHouseWaybillVersion) ProtoMessage() {}
 
 func (x *AirHouseWaybillVersion) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[18]
+	mi := &file_order_v1_air_export_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1720,7 +2703,7 @@ func (x *AirHouseWaybillVersion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AirHouseWaybillVersion.ProtoReflect.Descriptor instead.
 func (*AirHouseWaybillVersion) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{18}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *AirHouseWaybillVersion) GetId() string {
@@ -1751,9 +2734,16 @@ func (x *AirHouseWaybillVersion) GetStatus() string {
 	return ""
 }
 
-func (x *AirHouseWaybillVersion) GetContent() string {
+func (x *AirHouseWaybillVersion) GetContent() *AirWaybillContent {
 	if x != nil {
 		return x.Content
+	}
+	return nil
+}
+
+func (x *AirHouseWaybillVersion) GetContentHash() string {
+	if x != nil {
+		return x.ContentHash
 	}
 	return ""
 }
@@ -1790,7 +2780,7 @@ type ListAirHouseWaybillVersionsRequest struct {
 
 func (x *ListAirHouseWaybillVersionsRequest) Reset() {
 	*x = ListAirHouseWaybillVersionsRequest{}
-	mi := &file_order_v1_air_export_proto_msgTypes[19]
+	mi := &file_order_v1_air_export_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1802,7 +2792,7 @@ func (x *ListAirHouseWaybillVersionsRequest) String() string {
 func (*ListAirHouseWaybillVersionsRequest) ProtoMessage() {}
 
 func (x *ListAirHouseWaybillVersionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[19]
+	mi := &file_order_v1_air_export_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1815,7 +2805,7 @@ func (x *ListAirHouseWaybillVersionsRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use ListAirHouseWaybillVersionsRequest.ProtoReflect.Descriptor instead.
 func (*ListAirHouseWaybillVersionsRequest) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{19}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ListAirHouseWaybillVersionsRequest) GetOrderId() string {
@@ -1852,7 +2842,7 @@ type ListAirHouseWaybillVersionsResponse struct {
 
 func (x *ListAirHouseWaybillVersionsResponse) Reset() {
 	*x = ListAirHouseWaybillVersionsResponse{}
-	mi := &file_order_v1_air_export_proto_msgTypes[20]
+	mi := &file_order_v1_air_export_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1864,7 +2854,7 @@ func (x *ListAirHouseWaybillVersionsResponse) String() string {
 func (*ListAirHouseWaybillVersionsResponse) ProtoMessage() {}
 
 func (x *ListAirHouseWaybillVersionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[20]
+	mi := &file_order_v1_air_export_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1877,7 +2867,7 @@ func (x *ListAirHouseWaybillVersionsResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use ListAirHouseWaybillVersionsResponse.ProtoReflect.Descriptor instead.
 func (*ListAirHouseWaybillVersionsResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{20}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ListAirHouseWaybillVersionsResponse) GetSuccess() bool {
@@ -1933,7 +2923,7 @@ type UpdateAirMasterWaybillResponse struct {
 
 func (x *UpdateAirMasterWaybillResponse) Reset() {
 	*x = UpdateAirMasterWaybillResponse{}
-	mi := &file_order_v1_air_export_proto_msgTypes[21]
+	mi := &file_order_v1_air_export_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1945,7 +2935,7 @@ func (x *UpdateAirMasterWaybillResponse) String() string {
 func (*UpdateAirMasterWaybillResponse) ProtoMessage() {}
 
 func (x *UpdateAirMasterWaybillResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[21]
+	mi := &file_order_v1_air_export_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1958,7 +2948,7 @@ func (x *UpdateAirMasterWaybillResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateAirMasterWaybillResponse.ProtoReflect.Descriptor instead.
 func (*UpdateAirMasterWaybillResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{21}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *UpdateAirMasterWaybillResponse) GetSuccess() bool {
@@ -2049,7 +3039,7 @@ type LinkAirMasterWaybillResponse struct {
 
 func (x *LinkAirMasterWaybillResponse) Reset() {
 	*x = LinkAirMasterWaybillResponse{}
-	mi := &file_order_v1_air_export_proto_msgTypes[22]
+	mi := &file_order_v1_air_export_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2061,7 +3051,7 @@ func (x *LinkAirMasterWaybillResponse) String() string {
 func (*LinkAirMasterWaybillResponse) ProtoMessage() {}
 
 func (x *LinkAirMasterWaybillResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_order_v1_air_export_proto_msgTypes[22]
+	mi := &file_order_v1_air_export_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2074,7 +3064,7 @@ func (x *LinkAirMasterWaybillResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LinkAirMasterWaybillResponse.ProtoReflect.Descriptor instead.
 func (*LinkAirMasterWaybillResponse) Descriptor() ([]byte, []int) {
-	return file_order_v1_air_export_proto_rawDescGZIP(), []int{22}
+	return file_order_v1_air_export_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *LinkAirMasterWaybillResponse) GetSuccess() bool {
@@ -2151,7 +3141,116 @@ var File_order_v1_air_export_proto protoreflect.FileDescriptor
 
 const file_order_v1_air_export_proto_rawDesc = "" +
 	"\n" +
-	"\x19order/v1/air_export.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xca\x05\n" +
+	"\x19order/v1/air_export.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\">\n" +
+	"\x10AirDeclaredValue\x12\x12\n" +
+	"\x04kind\x18\x01 \x01(\tR\x04kind\x12\x16\n" +
+	"\x06amount\x18\x02 \x01(\tR\x06amount\"\xa3\x02\n" +
+	"\vAirRateLine\x12\x16\n" +
+	"\x06pieces\x18\x01 \x01(\tR\x06pieces\x12&\n" +
+	"\x0fgross_weight_kg\x18\x02 \x01(\tR\rgrossWeightKg\x12\x1d\n" +
+	"\n" +
+	"rate_class\x18\x03 \x01(\tR\trateClass\x12*\n" +
+	"\x11commodity_item_no\x18\x04 \x01(\tR\x0fcommodityItemNo\x120\n" +
+	"\x14chargeable_weight_kg\x18\x05 \x01(\tR\x12chargeableWeightKg\x12\x12\n" +
+	"\x04rate\x18\x06 \x01(\tR\x04rate\x12\x16\n" +
+	"\x06amount\x18\a \x01(\tR\x06amount\x12+\n" +
+	"\x11goods_description\x18\b \x01(\tR\x10goodsDescription\"\xe7\x01\n" +
+	"\x0eAirOtherCharge\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
+	"\fbilling_unit\x18\x02 \x01(\tR\vbillingUnit\x12\x1a\n" +
+	"\bquantity\x18\x03 \x01(\tR\bquantity\x12\x1a\n" +
+	"\bcurrency\x18\x04 \x01(\tR\bcurrency\x12\x1d\n" +
+	"\n" +
+	"unit_price\x18\x05 \x01(\tR\tunitPrice\x12\x16\n" +
+	"\x06amount\x18\x06 \x01(\tR\x06amount\x12\x15\n" +
+	"\x06due_to\x18\a \x01(\tR\x05dueTo\x12\x18\n" +
+	"\apayment\x18\b \x01(\tR\apayment\"\xde\x01\n" +
+	"\x10AirChargeSummary\x12#\n" +
+	"\rweight_charge\x18\x01 \x01(\tR\fweightCharge\x12)\n" +
+	"\x10valuation_charge\x18\x02 \x01(\tR\x0fvaluationCharge\x12\x10\n" +
+	"\x03tax\x18\x03 \x01(\tR\x03tax\x12&\n" +
+	"\x0fother_due_agent\x18\x04 \x01(\tR\rotherDueAgent\x12*\n" +
+	"\x11other_due_carrier\x18\x05 \x01(\tR\x0fotherDueCarrier\x12\x14\n" +
+	"\x05total\x18\x06 \x01(\tR\x05total\"\x80\x12\n" +
+	"\x11AirWaybillContent\x12'\n" +
+	"\x0fshipper_account\x18\x01 \x01(\tR\x0eshipperAccount\x12!\n" +
+	"\fshipper_text\x18\x02 \x01(\tR\vshipperText\x12+\n" +
+	"\x11consignee_account\x18\x03 \x01(\tR\x10consigneeAccount\x12%\n" +
+	"\x0econsignee_text\x18\x04 \x01(\tR\rconsigneeText\x12*\n" +
+	"\x11notify_party_text\x18\x05 \x01(\tR\x0fnotifyPartyText\x127\n" +
+	"\x18second_notify_party_text\x18\x06 \x01(\tR\x15secondNotifyPartyText\x12\x1d\n" +
+	"\n" +
+	"agent_text\x18\a \x01(\tR\tagentText\x12&\n" +
+	"\x0fagent_iata_code\x18\b \x01(\tR\ragentIataCode\x12#\n" +
+	"\ragent_account\x18\t \x01(\tR\fagentAccount\x12\x1b\n" +
+	"\tissued_by\x18\n" +
+	" \x01(\tR\bissuedBy\x12%\n" +
+	"\x0edeparture_text\x18\v \x01(\tR\rdepartureText\x12\x19\n" +
+	"\broute_to\x18\f \x01(\tR\arouteTo\x12#\n" +
+	"\rfirst_carrier\x18\r \x01(\tR\ffirstCarrier\x12\x1c\n" +
+	"\n" +
+	"route_to_2\x18\x0e \x01(\tR\brouteTo2\x12\x1b\n" +
+	"\tcarrier_2\x18\x0f \x01(\tR\bcarrier2\x12\x1c\n" +
+	"\n" +
+	"route_to_3\x18\x10 \x01(\tR\brouteTo3\x12\x1b\n" +
+	"\tcarrier_3\x18\x11 \x01(\tR\bcarrier3\x12)\n" +
+	"\x10destination_text\x18\x12 \x01(\tR\x0fdestinationText\x12\x1f\n" +
+	"\vflight_text\x18\x13 \x01(\tR\n" +
+	"flightText\x12\x1f\n" +
+	"\vflight_date\x18\x14 \x01(\tR\n" +
+	"flightDate\x125\n" +
+	"\x16accounting_information\x18\x15 \x01(\tR\x15accountingInformation\x12)\n" +
+	"\x10reference_number\x18\x16 \x01(\tR\x0freferenceNumber\x12#\n" +
+	"\rinformation_1\x18\x17 \x01(\tR\finformation1\x12#\n" +
+	"\rinformation_2\x18\x18 \x01(\tR\finformation2\x12\x1a\n" +
+	"\bcurrency\x18\x19 \x01(\tR\bcurrency\x12\x1f\n" +
+	"\vcharge_code\x18\x1a \x01(\tR\n" +
+	"chargeCode\x12%\n" +
+	"\x0eweight_payment\x18\x1b \x01(\tR\rweightPayment\x12#\n" +
+	"\rother_payment\x18\x1c \x01(\tR\fotherPayment\x12\x10\n" +
+	"\x03sci\x18\x1d \x01(\tR\x03sci\x121\n" +
+	"\x14handling_information\x18\x1e \x01(\tR\x13handlingInformation\x12\x14\n" +
+	"\x05marks\x18\x1f \x01(\tR\x05marks\x12+\n" +
+	"\x11goods_description\x18  \x01(\tR\x10goodsDescription\x12\x18\n" +
+	"\aclauses\x18! \x01(\tR\aclauses\x12'\n" +
+	"\x0ftransport_terms\x18\" \x01(\tR\x0etransportTerms\x12,\n" +
+	"\x12other_charges_text\x18# \x01(\tR\x10otherChargesText\x121\n" +
+	"\x14destination_currency\x18$ \x01(\tR\x13destinationCurrency\x128\n" +
+	"\x18currency_conversion_rate\x18% \x01(\tR\x16currencyConversionRate\x12<\n" +
+	"\x1adestination_collect_charge\x18& \x01(\tR\x18destinationCollectCharge\x124\n" +
+	"\x16charges_at_destination\x18' \x01(\tR\x14chargesAtDestination\x12#\n" +
+	"\rtotal_collect\x18( \x01(\tR\ftotalCollect\x123\n" +
+	"\x15shipper_certification\x18) \x01(\tR\x14shipperCertification\x12+\n" +
+	"\x11shipper_signature\x18* \x01(\tR\x10shipperSignature\x12+\n" +
+	"\x11carrier_execution\x18+ \x01(\tR\x10carrierExecution\x12\x1d\n" +
+	"\n" +
+	"issue_date\x18, \x01(\tR\tissueDate\x12\x1f\n" +
+	"\vissue_place\x18- \x01(\tR\n" +
+	"issuePlace\x12+\n" +
+	"\x11carrier_signature\x18. \x01(\tR\x10carrierSignature\x12\x18\n" +
+	"\aremarks\x18/ \x01(\tR\aremarks\x12A\n" +
+	"\x0ecarriage_value\x180 \x01(\v2\x1a.order.v1.AirDeclaredValueR\rcarriageValue\x12?\n" +
+	"\rcustoms_value\x181 \x01(\v2\x1a.order.v1.AirDeclaredValueR\fcustomsValue\x12C\n" +
+	"\x0finsurance_value\x182 \x01(\v2\x1a.order.v1.AirDeclaredValueR\x0einsuranceValue\x124\n" +
+	"\n" +
+	"rate_lines\x183 \x03(\v2\x15.order.v1.AirRateLineR\trateLines\x12=\n" +
+	"\rother_charges\x184 \x03(\v2\x18.order.v1.AirOtherChargeR\fotherCharges\x124\n" +
+	"\aprepaid\x185 \x01(\v2\x1a.order.v1.AirChargeSummaryR\aprepaid\x124\n" +
+	"\acollect\x186 \x01(\v2\x1a.order.v1.AirChargeSummaryR\acollect\x12\x1f\n" +
+	"\vas_arranged\x187 \x01(\bR\n" +
+	"asArranged\"\xab\x01\n" +
+	"\x14AirHouseWaybillInput\x12\x19\n" +
+	"\bhouse_no\x18\x01 \x01(\tR\ahouseNo\x12\x16\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\x125\n" +
+	"\acontent\x18\x03 \x01(\v2\x1b.order.v1.AirWaybillContentR\acontent\x12)\n" +
+	"\x10expected_version\x18\x04 \x01(\x04R\x0fexpectedVersion\"\xc8\x01\n" +
+	"\x0fAirHouseWaybill\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
+	"\bhouse_no\x18\x02 \x01(\tR\ahouseNo\x12\x16\n" +
+	"\x06status\x18\x03 \x01(\tR\x06status\x125\n" +
+	"\acontent\x18\x04 \x01(\v2\x1b.order.v1.AirWaybillContentR\acontent\x12\x18\n" +
+	"\aversion\x18\x05 \x01(\x04R\aversion\x12!\n" +
+	"\fcontent_hash\x18\x06 \x01(\tR\vcontentHash\"\x90\x06\n" +
 	"\x15AirMasterWaybillInput\x12\x1b\n" +
 	"\tmaster_no\x18\x01 \x01(\tR\bmasterNo\x12\x1d\n" +
 	"\n" +
@@ -2170,12 +3269,18 @@ const file_order_v1_air_export_proto_rawDesc = "" +
 	"\x11declared_packages\x18\r \x01(\x05H\x00R\x10declaredPackages\x88\x01\x01\x12<\n" +
 	"\x18declared_gross_weight_kg\x18\x0e \x01(\x01H\x01R\x15declaredGrossWeightKg\x88\x01\x01\x123\n" +
 	"\x13declared_volume_cbm\x18\x0f \x01(\x01H\x02R\x11declaredVolumeCbm\x88\x01\x01\x12\x14\n" +
-	"\x05notes\x18\x10 \x01(\tR\x05notesB\x14\n" +
+	"\x05notes\x18\x10 \x01(\tR\x05notes\x12D\n" +
+	"\x0fwaybill_content\x18\x11 \x01(\v2\x1b.order.v1.AirWaybillContentR\x0ewaybillContentB\x14\n" +
 	"\x12_declared_packagesB\x1b\n" +
 	"\x19_declared_gross_weight_kgB\x16\n" +
-	"\x14_declared_volume_cbm\"\xb3\x03\n" +
+	"\x14_declared_volume_cbm\"\xce\x04\n" +
 	"\x10AirMasterWaybill\x12#\n" +
-	"\rbusiness_type\x18\v \x01(\tR\fbusinessType\x12\x0e\n" +
+	"\rbusiness_type\x18\v \x01(\tR\fbusinessType\x12!\n" +
+	"\fcontent_hash\x18\f \x01(\tR\vcontentHash\x12#\n" +
+	"\rdocument_mode\x18\r \x01(\tR\fdocumentMode\x12\x1d\n" +
+	"\n" +
+	"can_attach\x18\x0e \x01(\bR\tcanAttach\x122\n" +
+	"\x15attach_blocked_reason\x18\x0f \x01(\tR\x13attachBlockedReason\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x18\n" +
 	"\aversion\x18\x03 \x01(\x04R\aversion\x129\n" +
@@ -2188,27 +3293,25 @@ const file_order_v1_air_export_proto_rawDesc = "" +
 	"created_at\x18\t \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
 	"updated_at\x18\n" +
-	" \x01(\tR\tupdatedAt\"\x83\x03\n" +
+	" \x01(\tR\tupdatedAt\"\x8d\x03\n" +
 	"\rAirOrderInput\x12/\n" +
 	"\x11master_waybill_id\x18\x01 \x01(\tH\x00R\x0fmasterWaybillId\x88\x01\x01\x126\n" +
 	"\x17expected_master_version\x18\x02 \x01(\x04R\x15expectedMasterVersion\x127\n" +
-	"\x06master\x18\x03 \x01(\v2\x1f.order.v1.AirMasterWaybillInputR\x06master\x12\x19\n" +
-	"\bhouse_no\x18\x04 \x01(\tR\ahouseNo\x12#\n" +
-	"\rhouse_content\x18\x05 \x01(\tR\fhouseContent\x12!\n" +
-	"\fhouse_status\x18\x06 \x01(\tR\vhouseStatus\x12#\n" +
+	"\x06master\x18\x03 \x01(\v2\x1f.order.v1.AirMasterWaybillInputR\x06master\x12#\n" +
+	"\rdocument_mode\x18\t \x01(\tR\fdocumentMode\x124\n" +
+	"\x05house\x18\n" +
+	" \x01(\v2\x1e.order.v1.AirHouseWaybillInputR\x05house\x12#\n" +
 	"\rchange_reason\x18\a \x01(\tR\fchangeReason\x122\n" +
 	"\x15expected_link_version\x18\b \x01(\x04R\x13expectedLinkVersionB\x14\n" +
-	"\x12_master_waybill_id\"\xb9\x02\n" +
+	"\x12_master_waybill_idJ\x04\b\x04\x10\x05J\x04\b\x05\x10\x06J\x04\b\x06\x10\a\"\x8a\x02\n" +
 	"\fAirOrderInfo\x122\n" +
-	"\x06master\x18\x01 \x01(\v2\x1a.order.v1.AirMasterWaybillR\x06master\x12\x19\n" +
-	"\bhouse_no\x18\x02 \x01(\tR\ahouseNo\x12!\n" +
-	"\fhouse_status\x18\x03 \x01(\tR\vhouseStatus\x12#\n" +
-	"\rhouse_version\x18\x04 \x01(\x04R\fhouseVersion\x12\x17\n" +
+	"\x06master\x18\x01 \x01(\v2\x1a.order.v1.AirMasterWaybillR\x06master\x12#\n" +
+	"\rdocument_mode\x18\n" +
+	" \x01(\tR\fdocumentMode\x12/\n" +
+	"\x05house\x18\v \x01(\v2\x19.order.v1.AirHouseWaybillR\x05house\x12\x17\n" +
 	"\alink_id\x18\x05 \x01(\tR\x06linkId\x12!\n" +
-	"\flink_version\x18\x06 \x01(\x04R\vlinkVersion\x12#\n" +
-	"\rhouse_content\x18\a \x01(\tR\fhouseContent\x12\x19\n" +
-	"\bhouse_id\x18\b \x01(\tR\ahouseId\x12\x16\n" +
-	"\x06active\x18\t \x01(\bR\x06active\"\x97\x05\n" +
+	"\flink_version\x18\x06 \x01(\x04R\vlinkVersion\x12\x16\n" +
+	"\x06active\x18\t \x01(\bR\x06activeJ\x04\b\x02\x10\x03J\x04\b\x03\x10\x04J\x04\b\x04\x10\x05J\x04\b\a\x10\bJ\x04\b\b\x10\t\"\x97\x05\n" +
 	"\x0fAirMasterMember\x12\x19\n" +
 	"\border_id\x18\x01 \x01(\tR\aorderId\x12\x19\n" +
 	"\border_no\x18\x02 \x01(\tR\aorderNo\x12#\n" +
@@ -2241,8 +3344,9 @@ const file_order_v1_air_export_proto_rawDesc = "" +
 	"\n" +
 	"volume_cbm\x18\x03 \x01(\x01R\tvolumeCbm\x12\x1a\n" +
 	"\bcomplete\x18\x04 \x01(\bR\bcomplete\x12!\n" +
-	"\fmember_count\x18\x05 \x01(\x05R\vmemberCount\"\xe3\x01\n" +
-	"\x10AirMasterHistory\x12\x0e\n" +
+	"\fmember_count\x18\x05 \x01(\x05R\vmemberCount\"\x86\x02\n" +
+	"\x10AirMasterHistory\x12!\n" +
+	"\fcontent_hash\x18\b \x01(\tR\vcontentHash\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\x04R\aversion\x12\x16\n" +
 	"\x06action\x18\x03 \x01(\tR\x06action\x12\x16\n" +
@@ -2315,13 +3419,14 @@ const file_order_v1_air_export_proto_rawDesc = "" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x19\n" +
 	"\btrace_id\x18\x03 \x01(\tR\atraceId\x12-\n" +
 	"\x04data\x18\x04 \x03(\v2\x19.order.v1.AirMasterMemberR\x04data\x12\x14\n" +
-	"\x05total\x18\x05 \x01(\x05R\x05total\"\xe3\x01\n" +
+	"\x05total\x18\x05 \x01(\x05R\x05total\"\xa3\x02\n" +
 	"\x16AirHouseWaybillVersion\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\x04R\aversion\x12\x19\n" +
 	"\bhouse_no\x18\x03 \x01(\tR\ahouseNo\x12\x16\n" +
-	"\x06status\x18\x04 \x01(\tR\x06status\x12\x18\n" +
-	"\acontent\x18\x05 \x01(\tR\acontent\x12\x19\n" +
+	"\x06status\x18\x04 \x01(\tR\x06status\x125\n" +
+	"\acontent\x18\x05 \x01(\v2\x1b.order.v1.AirWaybillContentR\acontent\x12!\n" +
+	"\fcontent_hash\x18\t \x01(\tR\vcontentHash\x12\x19\n" +
 	"\bactor_id\x18\x06 \x01(\tR\aactorId\x12\x16\n" +
 	"\x06reason\x18\a \x01(\tR\x06reason\x12\x1f\n" +
 	"\voccurred_at\x18\b \x01(\tR\n" +
@@ -2381,75 +3486,95 @@ func file_order_v1_air_export_proto_rawDescGZIP() []byte {
 	return file_order_v1_air_export_proto_rawDescData
 }
 
-var file_order_v1_air_export_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
+var file_order_v1_air_export_proto_msgTypes = make([]protoimpl.MessageInfo, 30)
 var file_order_v1_air_export_proto_goTypes = []any{
-	(*AirMasterWaybillInput)(nil),                 // 0: order.v1.AirMasterWaybillInput
-	(*AirMasterWaybill)(nil),                      // 1: order.v1.AirMasterWaybill
-	(*AirOrderInput)(nil),                         // 2: order.v1.AirOrderInput
-	(*AirOrderInfo)(nil),                          // 3: order.v1.AirOrderInfo
-	(*AirMasterMember)(nil),                       // 4: order.v1.AirMasterMember
-	(*AirPackageTotal)(nil),                       // 5: order.v1.AirPackageTotal
-	(*AirMasterTotals)(nil),                       // 6: order.v1.AirMasterTotals
-	(*AirMasterHistory)(nil),                      // 7: order.v1.AirMasterHistory
-	(*ListAirMasterWaybillsRequest)(nil),          // 8: order.v1.ListAirMasterWaybillsRequest
-	(*ListAirMasterWaybillsResponse)(nil),         // 9: order.v1.ListAirMasterWaybillsResponse
-	(*GetAirMasterWaybillRequest)(nil),            // 10: order.v1.GetAirMasterWaybillRequest
-	(*GetAirMasterWaybillResponse)(nil),           // 11: order.v1.GetAirMasterWaybillResponse
-	(*PreviewAirMasterWaybillUpdateRequest)(nil),  // 12: order.v1.PreviewAirMasterWaybillUpdateRequest
-	(*PreviewAirMasterWaybillUpdateResponse)(nil), // 13: order.v1.PreviewAirMasterWaybillUpdateResponse
-	(*UpdateAirMasterWaybillRequest)(nil),         // 14: order.v1.UpdateAirMasterWaybillRequest
-	(*LinkAirMasterWaybillRequest)(nil),           // 15: order.v1.LinkAirMasterWaybillRequest
-	(*ListAirLinkCandidatesRequest)(nil),          // 16: order.v1.ListAirLinkCandidatesRequest
-	(*ListAirLinkCandidatesResponse)(nil),         // 17: order.v1.ListAirLinkCandidatesResponse
-	(*AirHouseWaybillVersion)(nil),                // 18: order.v1.AirHouseWaybillVersion
-	(*ListAirHouseWaybillVersionsRequest)(nil),    // 19: order.v1.ListAirHouseWaybillVersionsRequest
-	(*ListAirHouseWaybillVersionsResponse)(nil),   // 20: order.v1.ListAirHouseWaybillVersionsResponse
-	(*UpdateAirMasterWaybillResponse)(nil),        // 21: order.v1.UpdateAirMasterWaybillResponse
-	(*LinkAirMasterWaybillResponse)(nil),          // 22: order.v1.LinkAirMasterWaybillResponse
+	(*AirDeclaredValue)(nil),                      // 0: order.v1.AirDeclaredValue
+	(*AirRateLine)(nil),                           // 1: order.v1.AirRateLine
+	(*AirOtherCharge)(nil),                        // 2: order.v1.AirOtherCharge
+	(*AirChargeSummary)(nil),                      // 3: order.v1.AirChargeSummary
+	(*AirWaybillContent)(nil),                     // 4: order.v1.AirWaybillContent
+	(*AirHouseWaybillInput)(nil),                  // 5: order.v1.AirHouseWaybillInput
+	(*AirHouseWaybill)(nil),                       // 6: order.v1.AirHouseWaybill
+	(*AirMasterWaybillInput)(nil),                 // 7: order.v1.AirMasterWaybillInput
+	(*AirMasterWaybill)(nil),                      // 8: order.v1.AirMasterWaybill
+	(*AirOrderInput)(nil),                         // 9: order.v1.AirOrderInput
+	(*AirOrderInfo)(nil),                          // 10: order.v1.AirOrderInfo
+	(*AirMasterMember)(nil),                       // 11: order.v1.AirMasterMember
+	(*AirPackageTotal)(nil),                       // 12: order.v1.AirPackageTotal
+	(*AirMasterTotals)(nil),                       // 13: order.v1.AirMasterTotals
+	(*AirMasterHistory)(nil),                      // 14: order.v1.AirMasterHistory
+	(*ListAirMasterWaybillsRequest)(nil),          // 15: order.v1.ListAirMasterWaybillsRequest
+	(*ListAirMasterWaybillsResponse)(nil),         // 16: order.v1.ListAirMasterWaybillsResponse
+	(*GetAirMasterWaybillRequest)(nil),            // 17: order.v1.GetAirMasterWaybillRequest
+	(*GetAirMasterWaybillResponse)(nil),           // 18: order.v1.GetAirMasterWaybillResponse
+	(*PreviewAirMasterWaybillUpdateRequest)(nil),  // 19: order.v1.PreviewAirMasterWaybillUpdateRequest
+	(*PreviewAirMasterWaybillUpdateResponse)(nil), // 20: order.v1.PreviewAirMasterWaybillUpdateResponse
+	(*UpdateAirMasterWaybillRequest)(nil),         // 21: order.v1.UpdateAirMasterWaybillRequest
+	(*LinkAirMasterWaybillRequest)(nil),           // 22: order.v1.LinkAirMasterWaybillRequest
+	(*ListAirLinkCandidatesRequest)(nil),          // 23: order.v1.ListAirLinkCandidatesRequest
+	(*ListAirLinkCandidatesResponse)(nil),         // 24: order.v1.ListAirLinkCandidatesResponse
+	(*AirHouseWaybillVersion)(nil),                // 25: order.v1.AirHouseWaybillVersion
+	(*ListAirHouseWaybillVersionsRequest)(nil),    // 26: order.v1.ListAirHouseWaybillVersionsRequest
+	(*ListAirHouseWaybillVersionsResponse)(nil),   // 27: order.v1.ListAirHouseWaybillVersionsResponse
+	(*UpdateAirMasterWaybillResponse)(nil),        // 28: order.v1.UpdateAirMasterWaybillResponse
+	(*LinkAirMasterWaybillResponse)(nil),          // 29: order.v1.LinkAirMasterWaybillResponse
 }
 var file_order_v1_air_export_proto_depIdxs = []int32{
-	0,  // 0: order.v1.AirMasterWaybill.content:type_name -> order.v1.AirMasterWaybillInput
-	0,  // 1: order.v1.AirOrderInput.master:type_name -> order.v1.AirMasterWaybillInput
-	1,  // 2: order.v1.AirOrderInfo.master:type_name -> order.v1.AirMasterWaybill
-	5,  // 3: order.v1.AirMasterTotals.packages_by_unit:type_name -> order.v1.AirPackageTotal
-	0,  // 4: order.v1.AirMasterHistory.content:type_name -> order.v1.AirMasterWaybillInput
-	1,  // 5: order.v1.ListAirMasterWaybillsResponse.data:type_name -> order.v1.AirMasterWaybill
-	1,  // 6: order.v1.GetAirMasterWaybillResponse.data:type_name -> order.v1.AirMasterWaybill
-	4,  // 7: order.v1.GetAirMasterWaybillResponse.members:type_name -> order.v1.AirMasterMember
-	6,  // 8: order.v1.GetAirMasterWaybillResponse.totals:type_name -> order.v1.AirMasterTotals
-	7,  // 9: order.v1.GetAirMasterWaybillResponse.history:type_name -> order.v1.AirMasterHistory
-	0,  // 10: order.v1.PreviewAirMasterWaybillUpdateRequest.input:type_name -> order.v1.AirMasterWaybillInput
-	4,  // 11: order.v1.PreviewAirMasterWaybillUpdateResponse.members:type_name -> order.v1.AirMasterMember
-	0,  // 12: order.v1.UpdateAirMasterWaybillRequest.input:type_name -> order.v1.AirMasterWaybillInput
-	4,  // 13: order.v1.ListAirLinkCandidatesResponse.data:type_name -> order.v1.AirMasterMember
-	18, // 14: order.v1.ListAirHouseWaybillVersionsResponse.data:type_name -> order.v1.AirHouseWaybillVersion
-	1,  // 15: order.v1.UpdateAirMasterWaybillResponse.data:type_name -> order.v1.AirMasterWaybill
-	4,  // 16: order.v1.UpdateAirMasterWaybillResponse.members:type_name -> order.v1.AirMasterMember
-	6,  // 17: order.v1.UpdateAirMasterWaybillResponse.totals:type_name -> order.v1.AirMasterTotals
-	7,  // 18: order.v1.UpdateAirMasterWaybillResponse.history:type_name -> order.v1.AirMasterHistory
-	1,  // 19: order.v1.LinkAirMasterWaybillResponse.data:type_name -> order.v1.AirMasterWaybill
-	4,  // 20: order.v1.LinkAirMasterWaybillResponse.members:type_name -> order.v1.AirMasterMember
-	6,  // 21: order.v1.LinkAirMasterWaybillResponse.totals:type_name -> order.v1.AirMasterTotals
-	7,  // 22: order.v1.LinkAirMasterWaybillResponse.history:type_name -> order.v1.AirMasterHistory
-	19, // 23: order.v1.AirExportService.ListAirHouseWaybillVersions:input_type -> order.v1.ListAirHouseWaybillVersionsRequest
-	16, // 24: order.v1.AirExportService.ListAirLinkCandidates:input_type -> order.v1.ListAirLinkCandidatesRequest
-	8,  // 25: order.v1.AirExportService.ListAirMasterWaybills:input_type -> order.v1.ListAirMasterWaybillsRequest
-	10, // 26: order.v1.AirExportService.GetAirMasterWaybill:input_type -> order.v1.GetAirMasterWaybillRequest
-	12, // 27: order.v1.AirExportService.PreviewAirMasterWaybillUpdate:input_type -> order.v1.PreviewAirMasterWaybillUpdateRequest
-	14, // 28: order.v1.AirExportService.UpdateAirMasterWaybill:input_type -> order.v1.UpdateAirMasterWaybillRequest
-	15, // 29: order.v1.AirExportService.LinkAirMasterWaybill:input_type -> order.v1.LinkAirMasterWaybillRequest
-	20, // 30: order.v1.AirExportService.ListAirHouseWaybillVersions:output_type -> order.v1.ListAirHouseWaybillVersionsResponse
-	17, // 31: order.v1.AirExportService.ListAirLinkCandidates:output_type -> order.v1.ListAirLinkCandidatesResponse
-	9,  // 32: order.v1.AirExportService.ListAirMasterWaybills:output_type -> order.v1.ListAirMasterWaybillsResponse
-	11, // 33: order.v1.AirExportService.GetAirMasterWaybill:output_type -> order.v1.GetAirMasterWaybillResponse
-	13, // 34: order.v1.AirExportService.PreviewAirMasterWaybillUpdate:output_type -> order.v1.PreviewAirMasterWaybillUpdateResponse
-	21, // 35: order.v1.AirExportService.UpdateAirMasterWaybill:output_type -> order.v1.UpdateAirMasterWaybillResponse
-	22, // 36: order.v1.AirExportService.LinkAirMasterWaybill:output_type -> order.v1.LinkAirMasterWaybillResponse
-	30, // [30:37] is the sub-list for method output_type
-	23, // [23:30] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	0,  // 0: order.v1.AirWaybillContent.carriage_value:type_name -> order.v1.AirDeclaredValue
+	0,  // 1: order.v1.AirWaybillContent.customs_value:type_name -> order.v1.AirDeclaredValue
+	0,  // 2: order.v1.AirWaybillContent.insurance_value:type_name -> order.v1.AirDeclaredValue
+	1,  // 3: order.v1.AirWaybillContent.rate_lines:type_name -> order.v1.AirRateLine
+	2,  // 4: order.v1.AirWaybillContent.other_charges:type_name -> order.v1.AirOtherCharge
+	3,  // 5: order.v1.AirWaybillContent.prepaid:type_name -> order.v1.AirChargeSummary
+	3,  // 6: order.v1.AirWaybillContent.collect:type_name -> order.v1.AirChargeSummary
+	4,  // 7: order.v1.AirHouseWaybillInput.content:type_name -> order.v1.AirWaybillContent
+	4,  // 8: order.v1.AirHouseWaybill.content:type_name -> order.v1.AirWaybillContent
+	4,  // 9: order.v1.AirMasterWaybillInput.waybill_content:type_name -> order.v1.AirWaybillContent
+	7,  // 10: order.v1.AirMasterWaybill.content:type_name -> order.v1.AirMasterWaybillInput
+	7,  // 11: order.v1.AirOrderInput.master:type_name -> order.v1.AirMasterWaybillInput
+	5,  // 12: order.v1.AirOrderInput.house:type_name -> order.v1.AirHouseWaybillInput
+	8,  // 13: order.v1.AirOrderInfo.master:type_name -> order.v1.AirMasterWaybill
+	6,  // 14: order.v1.AirOrderInfo.house:type_name -> order.v1.AirHouseWaybill
+	12, // 15: order.v1.AirMasterTotals.packages_by_unit:type_name -> order.v1.AirPackageTotal
+	7,  // 16: order.v1.AirMasterHistory.content:type_name -> order.v1.AirMasterWaybillInput
+	8,  // 17: order.v1.ListAirMasterWaybillsResponse.data:type_name -> order.v1.AirMasterWaybill
+	8,  // 18: order.v1.GetAirMasterWaybillResponse.data:type_name -> order.v1.AirMasterWaybill
+	11, // 19: order.v1.GetAirMasterWaybillResponse.members:type_name -> order.v1.AirMasterMember
+	13, // 20: order.v1.GetAirMasterWaybillResponse.totals:type_name -> order.v1.AirMasterTotals
+	14, // 21: order.v1.GetAirMasterWaybillResponse.history:type_name -> order.v1.AirMasterHistory
+	7,  // 22: order.v1.PreviewAirMasterWaybillUpdateRequest.input:type_name -> order.v1.AirMasterWaybillInput
+	11, // 23: order.v1.PreviewAirMasterWaybillUpdateResponse.members:type_name -> order.v1.AirMasterMember
+	7,  // 24: order.v1.UpdateAirMasterWaybillRequest.input:type_name -> order.v1.AirMasterWaybillInput
+	11, // 25: order.v1.ListAirLinkCandidatesResponse.data:type_name -> order.v1.AirMasterMember
+	4,  // 26: order.v1.AirHouseWaybillVersion.content:type_name -> order.v1.AirWaybillContent
+	25, // 27: order.v1.ListAirHouseWaybillVersionsResponse.data:type_name -> order.v1.AirHouseWaybillVersion
+	8,  // 28: order.v1.UpdateAirMasterWaybillResponse.data:type_name -> order.v1.AirMasterWaybill
+	11, // 29: order.v1.UpdateAirMasterWaybillResponse.members:type_name -> order.v1.AirMasterMember
+	13, // 30: order.v1.UpdateAirMasterWaybillResponse.totals:type_name -> order.v1.AirMasterTotals
+	14, // 31: order.v1.UpdateAirMasterWaybillResponse.history:type_name -> order.v1.AirMasterHistory
+	8,  // 32: order.v1.LinkAirMasterWaybillResponse.data:type_name -> order.v1.AirMasterWaybill
+	11, // 33: order.v1.LinkAirMasterWaybillResponse.members:type_name -> order.v1.AirMasterMember
+	13, // 34: order.v1.LinkAirMasterWaybillResponse.totals:type_name -> order.v1.AirMasterTotals
+	14, // 35: order.v1.LinkAirMasterWaybillResponse.history:type_name -> order.v1.AirMasterHistory
+	26, // 36: order.v1.AirExportService.ListAirHouseWaybillVersions:input_type -> order.v1.ListAirHouseWaybillVersionsRequest
+	23, // 37: order.v1.AirExportService.ListAirLinkCandidates:input_type -> order.v1.ListAirLinkCandidatesRequest
+	15, // 38: order.v1.AirExportService.ListAirMasterWaybills:input_type -> order.v1.ListAirMasterWaybillsRequest
+	17, // 39: order.v1.AirExportService.GetAirMasterWaybill:input_type -> order.v1.GetAirMasterWaybillRequest
+	19, // 40: order.v1.AirExportService.PreviewAirMasterWaybillUpdate:input_type -> order.v1.PreviewAirMasterWaybillUpdateRequest
+	21, // 41: order.v1.AirExportService.UpdateAirMasterWaybill:input_type -> order.v1.UpdateAirMasterWaybillRequest
+	22, // 42: order.v1.AirExportService.LinkAirMasterWaybill:input_type -> order.v1.LinkAirMasterWaybillRequest
+	27, // 43: order.v1.AirExportService.ListAirHouseWaybillVersions:output_type -> order.v1.ListAirHouseWaybillVersionsResponse
+	24, // 44: order.v1.AirExportService.ListAirLinkCandidates:output_type -> order.v1.ListAirLinkCandidatesResponse
+	16, // 45: order.v1.AirExportService.ListAirMasterWaybills:output_type -> order.v1.ListAirMasterWaybillsResponse
+	18, // 46: order.v1.AirExportService.GetAirMasterWaybill:output_type -> order.v1.GetAirMasterWaybillResponse
+	20, // 47: order.v1.AirExportService.PreviewAirMasterWaybillUpdate:output_type -> order.v1.PreviewAirMasterWaybillUpdateResponse
+	28, // 48: order.v1.AirExportService.UpdateAirMasterWaybill:output_type -> order.v1.UpdateAirMasterWaybillResponse
+	29, // 49: order.v1.AirExportService.LinkAirMasterWaybill:output_type -> order.v1.LinkAirMasterWaybillResponse
+	43, // [43:50] is the sub-list for method output_type
+	36, // [36:43] is the sub-list for method input_type
+	36, // [36:36] is the sub-list for extension type_name
+	36, // [36:36] is the sub-list for extension extendee
+	0,  // [0:36] is the sub-list for field type_name
 }
 
 func init() { file_order_v1_air_export_proto_init() }
@@ -2457,16 +3582,16 @@ func file_order_v1_air_export_proto_init() {
 	if File_order_v1_air_export_proto != nil {
 		return
 	}
-	file_order_v1_air_export_proto_msgTypes[0].OneofWrappers = []any{}
-	file_order_v1_air_export_proto_msgTypes[2].OneofWrappers = []any{}
-	file_order_v1_air_export_proto_msgTypes[4].OneofWrappers = []any{}
+	file_order_v1_air_export_proto_msgTypes[7].OneofWrappers = []any{}
+	file_order_v1_air_export_proto_msgTypes[9].OneofWrappers = []any{}
+	file_order_v1_air_export_proto_msgTypes[11].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_order_v1_air_export_proto_rawDesc), len(file_order_v1_air_export_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   23,
+			NumMessages:   30,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

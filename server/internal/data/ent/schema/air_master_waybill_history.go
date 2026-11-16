@@ -15,7 +15,7 @@ func (AirMasterWaybillHistory) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{
 func (AirMasterWaybillHistory) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("organization_id", uuid.Nil), field.UUID("master_waybill_id", uuid.Nil), field.Uint64("version"),
-		field.String("action").MaxLen(40), field.String("reason").MaxLen(500), field.UUID("actor_id", uuid.Nil), field.Bytes("content"),
+		field.String("action").MaxLen(40), field.String("reason").MaxLen(500), field.UUID("actor_id", uuid.Nil), field.Bytes("content"), field.String("content_hash").MaxLen(64),
 	}
 }
 func (AirMasterWaybillHistory) Edges() []ent.Edge {

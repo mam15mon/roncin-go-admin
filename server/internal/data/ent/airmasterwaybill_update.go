@@ -4,12 +4,14 @@ package ent
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/roncin/roncin-go-admin/server/internal/data/ent/airline"
@@ -35,6 +37,32 @@ func (_u *AirMasterWaybillUpdate) Where(ps ...predicate.AirMasterWaybill) *AirMa
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *AirMasterWaybillUpdate) SetUpdatedAt(v time.Time) *AirMasterWaybillUpdate {
 	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetWaybillContent sets the "waybill_content" field.
+func (_u *AirMasterWaybillUpdate) SetWaybillContent(v json.RawMessage) *AirMasterWaybillUpdate {
+	_u.mutation.SetWaybillContent(v)
+	return _u
+}
+
+// AppendWaybillContent appends value to the "waybill_content" field.
+func (_u *AirMasterWaybillUpdate) AppendWaybillContent(v json.RawMessage) *AirMasterWaybillUpdate {
+	_u.mutation.AppendWaybillContent(v)
+	return _u
+}
+
+// SetContentHash sets the "content_hash" field.
+func (_u *AirMasterWaybillUpdate) SetContentHash(v string) *AirMasterWaybillUpdate {
+	_u.mutation.SetContentHash(v)
+	return _u
+}
+
+// SetNillableContentHash sets the "content_hash" field if the given value is not nil.
+func (_u *AirMasterWaybillUpdate) SetNillableContentHash(v *string) *AirMasterWaybillUpdate {
+	if v != nil {
+		_u.SetContentHash(*v)
+	}
 	return _u
 }
 
@@ -423,6 +451,11 @@ func (_u *AirMasterWaybillUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *AirMasterWaybillUpdate) check() error {
+	if v, ok := _u.mutation.ContentHash(); ok {
+		if err := airmasterwaybill.ContentHashValidator(v); err != nil {
+			return &ValidationError{Name: "content_hash", err: fmt.Errorf(`ent: validator failed for field "AirMasterWaybill.content_hash": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.MasterNo(); ok {
 		if err := airmasterwaybill.MasterNoValidator(v); err != nil {
 			return &ValidationError{Name: "master_no", err: fmt.Errorf(`ent: validator failed for field "AirMasterWaybill.master_no": %w`, err)}
@@ -502,6 +535,17 @@ func (_u *AirMasterWaybillUpdate) sqlSave(ctx context.Context) (_node int, err e
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(airmasterwaybill.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.WaybillContent(); ok {
+		_spec.SetField(airmasterwaybill.FieldWaybillContent, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedWaybillContent(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, airmasterwaybill.FieldWaybillContent, value)
+		})
+	}
+	if value, ok := _u.mutation.ContentHash(); ok {
+		_spec.SetField(airmasterwaybill.FieldContentHash, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.MasterNo(); ok {
 		_spec.SetField(airmasterwaybill.FieldMasterNo, field.TypeString, value)
@@ -705,6 +749,32 @@ type AirMasterWaybillUpdateOne struct {
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *AirMasterWaybillUpdateOne) SetUpdatedAt(v time.Time) *AirMasterWaybillUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetWaybillContent sets the "waybill_content" field.
+func (_u *AirMasterWaybillUpdateOne) SetWaybillContent(v json.RawMessage) *AirMasterWaybillUpdateOne {
+	_u.mutation.SetWaybillContent(v)
+	return _u
+}
+
+// AppendWaybillContent appends value to the "waybill_content" field.
+func (_u *AirMasterWaybillUpdateOne) AppendWaybillContent(v json.RawMessage) *AirMasterWaybillUpdateOne {
+	_u.mutation.AppendWaybillContent(v)
+	return _u
+}
+
+// SetContentHash sets the "content_hash" field.
+func (_u *AirMasterWaybillUpdateOne) SetContentHash(v string) *AirMasterWaybillUpdateOne {
+	_u.mutation.SetContentHash(v)
+	return _u
+}
+
+// SetNillableContentHash sets the "content_hash" field if the given value is not nil.
+func (_u *AirMasterWaybillUpdateOne) SetNillableContentHash(v *string) *AirMasterWaybillUpdateOne {
+	if v != nil {
+		_u.SetContentHash(*v)
+	}
 	return _u
 }
 
@@ -1106,6 +1176,11 @@ func (_u *AirMasterWaybillUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_u *AirMasterWaybillUpdateOne) check() error {
+	if v, ok := _u.mutation.ContentHash(); ok {
+		if err := airmasterwaybill.ContentHashValidator(v); err != nil {
+			return &ValidationError{Name: "content_hash", err: fmt.Errorf(`ent: validator failed for field "AirMasterWaybill.content_hash": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.MasterNo(); ok {
 		if err := airmasterwaybill.MasterNoValidator(v); err != nil {
 			return &ValidationError{Name: "master_no", err: fmt.Errorf(`ent: validator failed for field "AirMasterWaybill.master_no": %w`, err)}
@@ -1202,6 +1277,17 @@ func (_u *AirMasterWaybillUpdateOne) sqlSave(ctx context.Context) (_node *AirMas
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(airmasterwaybill.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.WaybillContent(); ok {
+		_spec.SetField(airmasterwaybill.FieldWaybillContent, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedWaybillContent(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, airmasterwaybill.FieldWaybillContent, value)
+		})
+	}
+	if value, ok := _u.mutation.ContentHash(); ok {
+		_spec.SetField(airmasterwaybill.FieldContentHash, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.MasterNo(); ok {
 		_spec.SetField(airmasterwaybill.FieldMasterNo, field.TypeString, value)

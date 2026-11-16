@@ -37,6 +37,80 @@ service AirExportService {
     option (google.api.http) = {post: "/api/v1/air-export/master-waybills/{id}/members" body: "*"};
   }
 }
+// AirWaybillContent 为独立的航空印字内容，不改变订单运输、费用或签发状态。
+message AirDeclaredValue { string kind = 1; string amount = 2; }
+message AirRateLine {
+ string pieces = 1; string gross_weight_kg = 2; string rate_class = 3; string commodity_item_no = 4;
+ string chargeable_weight_kg = 5; string rate = 6; string amount = 7; string goods_description = 8;
+}
+message AirOtherCharge {
+ string name = 1; string billing_unit = 2; string quantity = 3; string currency = 4;
+ string unit_price = 5; string amount = 6; string due_to = 7; string payment = 8;
+}
+// weight_charge、other_due_agent、other_due_carrier、total 由服务端十进制计算。
+message AirChargeSummary {
+ string weight_charge = 1; string valuation_charge = 2; string tax = 3;
+ string other_due_agent = 4; string other_due_carrier = 5; string total = 6;
+}
+message AirWaybillContent {
+ string shipper_account = 1;
+ string shipper_text = 2;
+ string consignee_account = 3;
+ string consignee_text = 4;
+ string notify_party_text = 5;
+ string second_notify_party_text = 6;
+ string agent_text = 7;
+ string agent_iata_code = 8;
+ string agent_account = 9;
+ string issued_by = 10;
+ string departure_text = 11;
+ string route_to = 12;
+ string first_carrier = 13;
+ string route_to_2 = 14;
+ string carrier_2 = 15;
+ string route_to_3 = 16;
+ string carrier_3 = 17;
+ string destination_text = 18;
+ string flight_text = 19;
+ string flight_date = 20;
+ string accounting_information = 21;
+ string reference_number = 22;
+ string information_1 = 23;
+ string information_2 = 24;
+ string currency = 25;
+ string charge_code = 26;
+ string weight_payment = 27;
+ string other_payment = 28;
+ string sci = 29;
+ string handling_information = 30;
+ string marks = 31;
+ string goods_description = 32;
+ string clauses = 33;
+ string transport_terms = 34;
+ string other_charges_text = 35;
+ string destination_currency = 36;
+ string currency_conversion_rate = 37;
+ string destination_collect_charge = 38;
+ string charges_at_destination = 39;
+ string total_collect = 40;
+ string shipper_certification = 41;
+ string shipper_signature = 42;
+ string carrier_execution = 43;
+ string issue_date = 44;
+ string issue_place = 45;
+ string carrier_signature = 46;
+ string remarks = 47;
+ AirDeclaredValue carriage_value = 48;
+ AirDeclaredValue customs_value = 49;
+ AirDeclaredValue insurance_value = 50;
+ repeated AirRateLine rate_lines = 51;
+ repeated AirOtherCharge other_charges = 52;
+ AirChargeSummary prepaid = 53;
+ AirChargeSummary collect = 54;
+ bool as_arranged = 55;
+}
+message AirHouseWaybillInput { string house_no=1; string status=2; AirWaybillContent content=3; uint64 expected_version=4; }
+message AirHouseWaybill { string id=1; string house_no=2; string status=3; AirWaybillContent content=4; uint64 version=5; string content_hash=6; }
 message AirMasterWaybillInput {
   string master_no = 1;
   string airline_id = 2;
@@ -54,9 +128,14 @@ message AirMasterWaybillInput {
   optional double declared_gross_weight_kg = 14;
   optional double declared_volume_cbm = 15;
   string notes = 16;
+  AirWaybillContent waybill_content = 17;
 }
 message AirMasterWaybill {
   string business_type = 11;
+  string content_hash = 12;
+  string document_mode = 13;
+  bool can_attach = 14;
+  string attach_blocked_reason = 15;
   string id = 1;
   string organization_id = 2;
   uint64 version = 3;
@@ -72,21 +151,20 @@ message AirOrderInput {
   optional string master_waybill_id = 1;
   uint64 expected_master_version = 2;
   AirMasterWaybillInput master = 3;
-  string house_no = 4;
-  string house_content = 5;
-  string house_status = 6;
+  reserved 4, 5, 6;
+  string document_mode = 9;
+  AirHouseWaybillInput house = 10;
  string change_reason = 7;
  uint64 expected_link_version = 8;
 }
 message AirOrderInfo {
   AirMasterWaybill master = 1;
-  string house_no = 2;
-  string house_status = 3;
-  uint64 house_version = 4;
+  reserved 2, 3, 4;
+  string document_mode = 10;
+  AirHouseWaybill house = 11;
   string link_id = 5;
   uint64 link_version = 6;
-  string house_content = 7;
-  string house_id = 8;
+  reserved 7, 8;
   bool active = 9;
 }
 message AirMasterMember {
@@ -116,6 +194,7 @@ message AirMasterTotals {
   int32 member_count = 5;
 }
 message AirMasterHistory {
+ string content_hash = 8;
   string id = 1;
   uint64 version = 2;
   string action = 3;
@@ -152,7 +231,7 @@ message LinkAirMasterWaybillRequest { string id = 1; string order_id = 2; uint64
 message ListAirLinkCandidatesRequest { string id = 1; string keyword = 2; int32 page = 3; int32 page_size = 4; }
 message ListAirLinkCandidatesResponse { bool success = 1; string message = 2; string trace_id = 3; repeated AirMasterMember data = 4; int32 total = 5; }
 
-message AirHouseWaybillVersion { string id=1; uint64 version=2; string house_no=3; string status=4; string content=5; string actor_id=6; string reason=7; string occurred_at=8; }
+message AirHouseWaybillVersion { string id=1; uint64 version=2; string house_no=3; string status=4; AirWaybillContent content=5; string content_hash=9; string actor_id=6; string reason=7; string occurred_at=8; }
 message ListAirHouseWaybillVersionsRequest { string order_id=1; int32 page=2; int32 page_size=3; }
 message ListAirHouseWaybillVersionsResponse { bool success=1; string message=2; string trace_id=3; repeated AirHouseWaybillVersion data=4; int32 total=5; }
 

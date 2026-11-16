@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -94,15 +95,21 @@ func (_c *AirHouseWaybillCreate) SetNillableStatus(v *string) *AirHouseWaybillCr
 }
 
 // SetContent sets the "content" field.
-func (_c *AirHouseWaybillCreate) SetContent(v string) *AirHouseWaybillCreate {
+func (_c *AirHouseWaybillCreate) SetContent(v json.RawMessage) *AirHouseWaybillCreate {
 	_c.mutation.SetContent(v)
 	return _c
 }
 
-// SetNillableContent sets the "content" field if the given value is not nil.
-func (_c *AirHouseWaybillCreate) SetNillableContent(v *string) *AirHouseWaybillCreate {
+// SetContentHash sets the "content_hash" field.
+func (_c *AirHouseWaybillCreate) SetContentHash(v string) *AirHouseWaybillCreate {
+	_c.mutation.SetContentHash(v)
+	return _c
+}
+
+// SetNillableContentHash sets the "content_hash" field if the given value is not nil.
+func (_c *AirHouseWaybillCreate) SetNillableContentHash(v *string) *AirHouseWaybillCreate {
 	if v != nil {
-		_c.SetContent(*v)
+		_c.SetContentHash(*v)
 	}
 	return _c
 }
@@ -201,6 +208,10 @@ func (_c *AirHouseWaybillCreate) defaults() {
 		v := airhousewaybill.DefaultContent
 		_c.mutation.SetContent(v)
 	}
+	if _, ok := _c.mutation.ContentHash(); !ok {
+		v := airhousewaybill.DefaultContentHash
+		_c.mutation.SetContentHash(v)
+	}
 	if _, ok := _c.mutation.Version(); !ok {
 		v := airhousewaybill.DefaultVersion
 		_c.mutation.SetVersion(v)
@@ -247,9 +258,12 @@ func (_c *AirHouseWaybillCreate) check() error {
 	if _, ok := _c.mutation.Content(); !ok {
 		return &ValidationError{Name: "content", err: errors.New(`ent: missing required field "AirHouseWaybill.content"`)}
 	}
-	if v, ok := _c.mutation.Content(); ok {
-		if err := airhousewaybill.ContentValidator(v); err != nil {
-			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "AirHouseWaybill.content": %w`, err)}
+	if _, ok := _c.mutation.ContentHash(); !ok {
+		return &ValidationError{Name: "content_hash", err: errors.New(`ent: missing required field "AirHouseWaybill.content_hash"`)}
+	}
+	if v, ok := _c.mutation.ContentHash(); ok {
+		if err := airhousewaybill.ContentHashValidator(v); err != nil {
+			return &ValidationError{Name: "content_hash", err: fmt.Errorf(`ent: validator failed for field "AirHouseWaybill.content_hash": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.Version(); !ok {
@@ -317,8 +331,12 @@ func (_c *AirHouseWaybillCreate) createSpec() (*AirHouseWaybill, *sqlgraph.Creat
 		_node.Status = value
 	}
 	if value, ok := _c.mutation.Content(); ok {
-		_spec.SetField(airhousewaybill.FieldContent, field.TypeString, value)
+		_spec.SetField(airhousewaybill.FieldContent, field.TypeJSON, value)
 		_node.Content = value
+	}
+	if value, ok := _c.mutation.ContentHash(); ok {
+		_spec.SetField(airhousewaybill.FieldContentHash, field.TypeString, value)
+		_node.ContentHash = value
 	}
 	if value, ok := _c.mutation.Version(); ok {
 		_spec.SetField(airhousewaybill.FieldVersion, field.TypeUint64, value)
@@ -500,7 +518,7 @@ func (u *AirHouseWaybillUpsert) UpdateStatus() *AirHouseWaybillUpsert {
 }
 
 // SetContent sets the "content" field.
-func (u *AirHouseWaybillUpsert) SetContent(v string) *AirHouseWaybillUpsert {
+func (u *AirHouseWaybillUpsert) SetContent(v json.RawMessage) *AirHouseWaybillUpsert {
 	u.Set(airhousewaybill.FieldContent, v)
 	return u
 }
@@ -508,6 +526,18 @@ func (u *AirHouseWaybillUpsert) SetContent(v string) *AirHouseWaybillUpsert {
 // UpdateContent sets the "content" field to the value that was provided on create.
 func (u *AirHouseWaybillUpsert) UpdateContent() *AirHouseWaybillUpsert {
 	u.SetExcluded(airhousewaybill.FieldContent)
+	return u
+}
+
+// SetContentHash sets the "content_hash" field.
+func (u *AirHouseWaybillUpsert) SetContentHash(v string) *AirHouseWaybillUpsert {
+	u.Set(airhousewaybill.FieldContentHash, v)
+	return u
+}
+
+// UpdateContentHash sets the "content_hash" field to the value that was provided on create.
+func (u *AirHouseWaybillUpsert) UpdateContentHash() *AirHouseWaybillUpsert {
+	u.SetExcluded(airhousewaybill.FieldContentHash)
 	return u
 }
 
@@ -665,7 +695,7 @@ func (u *AirHouseWaybillUpsertOne) UpdateStatus() *AirHouseWaybillUpsertOne {
 }
 
 // SetContent sets the "content" field.
-func (u *AirHouseWaybillUpsertOne) SetContent(v string) *AirHouseWaybillUpsertOne {
+func (u *AirHouseWaybillUpsertOne) SetContent(v json.RawMessage) *AirHouseWaybillUpsertOne {
 	return u.Update(func(s *AirHouseWaybillUpsert) {
 		s.SetContent(v)
 	})
@@ -675,6 +705,20 @@ func (u *AirHouseWaybillUpsertOne) SetContent(v string) *AirHouseWaybillUpsertOn
 func (u *AirHouseWaybillUpsertOne) UpdateContent() *AirHouseWaybillUpsertOne {
 	return u.Update(func(s *AirHouseWaybillUpsert) {
 		s.UpdateContent()
+	})
+}
+
+// SetContentHash sets the "content_hash" field.
+func (u *AirHouseWaybillUpsertOne) SetContentHash(v string) *AirHouseWaybillUpsertOne {
+	return u.Update(func(s *AirHouseWaybillUpsert) {
+		s.SetContentHash(v)
+	})
+}
+
+// UpdateContentHash sets the "content_hash" field to the value that was provided on create.
+func (u *AirHouseWaybillUpsertOne) UpdateContentHash() *AirHouseWaybillUpsertOne {
+	return u.Update(func(s *AirHouseWaybillUpsert) {
+		s.UpdateContentHash()
 	})
 }
 
@@ -1002,7 +1046,7 @@ func (u *AirHouseWaybillUpsertBulk) UpdateStatus() *AirHouseWaybillUpsertBulk {
 }
 
 // SetContent sets the "content" field.
-func (u *AirHouseWaybillUpsertBulk) SetContent(v string) *AirHouseWaybillUpsertBulk {
+func (u *AirHouseWaybillUpsertBulk) SetContent(v json.RawMessage) *AirHouseWaybillUpsertBulk {
 	return u.Update(func(s *AirHouseWaybillUpsert) {
 		s.SetContent(v)
 	})
@@ -1012,6 +1056,20 @@ func (u *AirHouseWaybillUpsertBulk) SetContent(v string) *AirHouseWaybillUpsertB
 func (u *AirHouseWaybillUpsertBulk) UpdateContent() *AirHouseWaybillUpsertBulk {
 	return u.Update(func(s *AirHouseWaybillUpsert) {
 		s.UpdateContent()
+	})
+}
+
+// SetContentHash sets the "content_hash" field.
+func (u *AirHouseWaybillUpsertBulk) SetContentHash(v string) *AirHouseWaybillUpsertBulk {
+	return u.Update(func(s *AirHouseWaybillUpsert) {
+		s.SetContentHash(v)
+	})
+}
+
+// UpdateContentHash sets the "content_hash" field to the value that was provided on create.
+func (u *AirHouseWaybillUpsertBulk) UpdateContentHash() *AirHouseWaybillUpsertBulk {
+	return u.Update(func(s *AirHouseWaybillUpsert) {
+		s.UpdateContentHash()
 	})
 }
 

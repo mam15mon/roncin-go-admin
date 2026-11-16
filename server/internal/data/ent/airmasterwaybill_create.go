@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -51,6 +52,26 @@ func (_c *AirMasterWaybillCreate) SetUpdatedAt(v time.Time) *AirMasterWaybillCre
 func (_c *AirMasterWaybillCreate) SetNillableUpdatedAt(v *time.Time) *AirMasterWaybillCreate {
 	if v != nil {
 		_c.SetUpdatedAt(*v)
+	}
+	return _c
+}
+
+// SetWaybillContent sets the "waybill_content" field.
+func (_c *AirMasterWaybillCreate) SetWaybillContent(v json.RawMessage) *AirMasterWaybillCreate {
+	_c.mutation.SetWaybillContent(v)
+	return _c
+}
+
+// SetContentHash sets the "content_hash" field.
+func (_c *AirMasterWaybillCreate) SetContentHash(v string) *AirMasterWaybillCreate {
+	_c.mutation.SetContentHash(v)
+	return _c
+}
+
+// SetNillableContentHash sets the "content_hash" field if the given value is not nil.
+func (_c *AirMasterWaybillCreate) SetNillableContentHash(v *string) *AirMasterWaybillCreate {
+	if v != nil {
+		_c.SetContentHash(*v)
 	}
 	return _c
 }
@@ -350,6 +371,14 @@ func (_c *AirMasterWaybillCreate) defaults() {
 		v := airmasterwaybill.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.WaybillContent(); !ok {
+		v := airmasterwaybill.DefaultWaybillContent
+		_c.mutation.SetWaybillContent(v)
+	}
+	if _, ok := _c.mutation.ContentHash(); !ok {
+		v := airmasterwaybill.DefaultContentHash
+		_c.mutation.SetContentHash(v)
+	}
 	if _, ok := _c.mutation.FlightNo(); !ok {
 		v := airmasterwaybill.DefaultFlightNo
 		_c.mutation.SetFlightNo(v)
@@ -403,6 +432,17 @@ func (_c *AirMasterWaybillCreate) check() error {
 	}
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "AirMasterWaybill.updated_at"`)}
+	}
+	if _, ok := _c.mutation.WaybillContent(); !ok {
+		return &ValidationError{Name: "waybill_content", err: errors.New(`ent: missing required field "AirMasterWaybill.waybill_content"`)}
+	}
+	if _, ok := _c.mutation.ContentHash(); !ok {
+		return &ValidationError{Name: "content_hash", err: errors.New(`ent: missing required field "AirMasterWaybill.content_hash"`)}
+	}
+	if v, ok := _c.mutation.ContentHash(); ok {
+		if err := airmasterwaybill.ContentHashValidator(v); err != nil {
+			return &ValidationError{Name: "content_hash", err: fmt.Errorf(`ent: validator failed for field "AirMasterWaybill.content_hash": %w`, err)}
+		}
 	}
 	if _, ok := _c.mutation.BusinessType(); !ok {
 		return &ValidationError{Name: "business_type", err: errors.New(`ent: missing required field "AirMasterWaybill.business_type"`)}
@@ -562,6 +602,14 @@ func (_c *AirMasterWaybillCreate) createSpec() (*AirMasterWaybill, *sqlgraph.Cre
 	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(airmasterwaybill.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if value, ok := _c.mutation.WaybillContent(); ok {
+		_spec.SetField(airmasterwaybill.FieldWaybillContent, field.TypeJSON, value)
+		_node.WaybillContent = value
+	}
+	if value, ok := _c.mutation.ContentHash(); ok {
+		_spec.SetField(airmasterwaybill.FieldContentHash, field.TypeString, value)
+		_node.ContentHash = value
 	}
 	if value, ok := _c.mutation.BusinessType(); ok {
 		_spec.SetField(airmasterwaybill.FieldBusinessType, field.TypeString, value)
@@ -752,6 +800,30 @@ func (u *AirMasterWaybillUpsert) SetUpdatedAt(v time.Time) *AirMasterWaybillUpse
 // UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
 func (u *AirMasterWaybillUpsert) UpdateUpdatedAt() *AirMasterWaybillUpsert {
 	u.SetExcluded(airmasterwaybill.FieldUpdatedAt)
+	return u
+}
+
+// SetWaybillContent sets the "waybill_content" field.
+func (u *AirMasterWaybillUpsert) SetWaybillContent(v json.RawMessage) *AirMasterWaybillUpsert {
+	u.Set(airmasterwaybill.FieldWaybillContent, v)
+	return u
+}
+
+// UpdateWaybillContent sets the "waybill_content" field to the value that was provided on create.
+func (u *AirMasterWaybillUpsert) UpdateWaybillContent() *AirMasterWaybillUpsert {
+	u.SetExcluded(airmasterwaybill.FieldWaybillContent)
+	return u
+}
+
+// SetContentHash sets the "content_hash" field.
+func (u *AirMasterWaybillUpsert) SetContentHash(v string) *AirMasterWaybillUpsert {
+	u.Set(airmasterwaybill.FieldContentHash, v)
+	return u
+}
+
+// UpdateContentHash sets the "content_hash" field to the value that was provided on create.
+func (u *AirMasterWaybillUpsert) UpdateContentHash() *AirMasterWaybillUpsert {
+	u.SetExcluded(airmasterwaybill.FieldContentHash)
 	return u
 }
 
@@ -1078,6 +1150,34 @@ func (u *AirMasterWaybillUpsertOne) SetUpdatedAt(v time.Time) *AirMasterWaybillU
 func (u *AirMasterWaybillUpsertOne) UpdateUpdatedAt() *AirMasterWaybillUpsertOne {
 	return u.Update(func(s *AirMasterWaybillUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetWaybillContent sets the "waybill_content" field.
+func (u *AirMasterWaybillUpsertOne) SetWaybillContent(v json.RawMessage) *AirMasterWaybillUpsertOne {
+	return u.Update(func(s *AirMasterWaybillUpsert) {
+		s.SetWaybillContent(v)
+	})
+}
+
+// UpdateWaybillContent sets the "waybill_content" field to the value that was provided on create.
+func (u *AirMasterWaybillUpsertOne) UpdateWaybillContent() *AirMasterWaybillUpsertOne {
+	return u.Update(func(s *AirMasterWaybillUpsert) {
+		s.UpdateWaybillContent()
+	})
+}
+
+// SetContentHash sets the "content_hash" field.
+func (u *AirMasterWaybillUpsertOne) SetContentHash(v string) *AirMasterWaybillUpsertOne {
+	return u.Update(func(s *AirMasterWaybillUpsert) {
+		s.SetContentHash(v)
+	})
+}
+
+// UpdateContentHash sets the "content_hash" field to the value that was provided on create.
+func (u *AirMasterWaybillUpsertOne) UpdateContentHash() *AirMasterWaybillUpsertOne {
+	return u.Update(func(s *AirMasterWaybillUpsert) {
+		s.UpdateContentHash()
 	})
 }
 
@@ -1614,6 +1714,34 @@ func (u *AirMasterWaybillUpsertBulk) SetUpdatedAt(v time.Time) *AirMasterWaybill
 func (u *AirMasterWaybillUpsertBulk) UpdateUpdatedAt() *AirMasterWaybillUpsertBulk {
 	return u.Update(func(s *AirMasterWaybillUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetWaybillContent sets the "waybill_content" field.
+func (u *AirMasterWaybillUpsertBulk) SetWaybillContent(v json.RawMessage) *AirMasterWaybillUpsertBulk {
+	return u.Update(func(s *AirMasterWaybillUpsert) {
+		s.SetWaybillContent(v)
+	})
+}
+
+// UpdateWaybillContent sets the "waybill_content" field to the value that was provided on create.
+func (u *AirMasterWaybillUpsertBulk) UpdateWaybillContent() *AirMasterWaybillUpsertBulk {
+	return u.Update(func(s *AirMasterWaybillUpsert) {
+		s.UpdateWaybillContent()
+	})
+}
+
+// SetContentHash sets the "content_hash" field.
+func (u *AirMasterWaybillUpsertBulk) SetContentHash(v string) *AirMasterWaybillUpsertBulk {
+	return u.Update(func(s *AirMasterWaybillUpsert) {
+		s.SetContentHash(v)
+	})
+}
+
+// UpdateContentHash sets the "content_hash" field to the value that was provided on create.
+func (u *AirMasterWaybillUpsertBulk) UpdateContentHash() *AirMasterWaybillUpsertBulk {
+	return u.Update(func(s *AirMasterWaybillUpsert) {
+		s.UpdateContentHash()
 	})
 }
 

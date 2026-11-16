@@ -166,19 +166,19 @@ func airMasterFromAPI(in *v1.AirMasterWaybillInput) (*biz.AirMasterWaybillInput,
 	if e != nil {
 		return nil, biz.ErrAirWaybillInvalid
 	}
-	return &biz.AirMasterWaybillInput{MasterNo: in.GetMasterNo(), AirlineID: a, OriginAirportID: o, DestinationAirportID: d, FlightNo: in.GetFlightNo(), ETD: in.GetEtd(), ETA: in.GetEta(), ActualDepartureAt: in.GetActualDepartureAt(), ActualArrivalAt: in.GetActualArrivalAt(), DocumentCutoffAt: in.GetDocumentCutoffAt(), CustomsCutoffAt: in.GetCustomsCutoffAt(), Status: in.GetStatus(), DeclaredPackages: optionalInt32ToInt(in.DeclaredPackages), DeclaredGrossWeightKg: in.DeclaredGrossWeightKg, DeclaredVolumeCbm: in.DeclaredVolumeCbm, Notes: in.GetNotes()}, nil
+	return &biz.AirMasterWaybillInput{MasterNo: in.GetMasterNo(), AirlineID: a, OriginAirportID: o, DestinationAirportID: d, FlightNo: in.GetFlightNo(), ETD: in.GetEtd(), ETA: in.GetEta(), ActualDepartureAt: in.GetActualDepartureAt(), ActualArrivalAt: in.GetActualArrivalAt(), DocumentCutoffAt: in.GetDocumentCutoffAt(), CustomsCutoffAt: in.GetCustomsCutoffAt(), Status: in.GetStatus(), DeclaredPackages: optionalInt32ToInt(in.DeclaredPackages), DeclaredGrossWeightKg: in.DeclaredGrossWeightKg, DeclaredVolumeCbm: in.DeclaredVolumeCbm, Notes: in.GetNotes(), WaybillContent: airContentFromAPI(in.WaybillContent)}, nil
 }
 func airMasterInputToAPI(in *biz.AirMasterWaybillInput) *v1.AirMasterWaybillInput {
 	if in == nil {
 		return nil
 	}
-	return &v1.AirMasterWaybillInput{MasterNo: in.MasterNo, AirlineId: in.AirlineID.String(), OriginAirportId: in.OriginAirportID.String(), DestinationAirportId: in.DestinationAirportID.String(), FlightNo: in.FlightNo, Etd: in.ETD, Eta: in.ETA, ActualDepartureAt: in.ActualDepartureAt, ActualArrivalAt: in.ActualArrivalAt, DocumentCutoffAt: in.DocumentCutoffAt, CustomsCutoffAt: in.CustomsCutoffAt, Status: in.Status, DeclaredPackages: intToInt32Ptr(in.DeclaredPackages), DeclaredGrossWeightKg: in.DeclaredGrossWeightKg, DeclaredVolumeCbm: in.DeclaredVolumeCbm, Notes: in.Notes}
+	return &v1.AirMasterWaybillInput{MasterNo: in.MasterNo, AirlineId: in.AirlineID.String(), OriginAirportId: in.OriginAirportID.String(), DestinationAirportId: in.DestinationAirportID.String(), FlightNo: in.FlightNo, Etd: in.ETD, Eta: in.ETA, ActualDepartureAt: in.ActualDepartureAt, ActualArrivalAt: in.ActualArrivalAt, DocumentCutoffAt: in.DocumentCutoffAt, CustomsCutoffAt: in.CustomsCutoffAt, Status: in.Status, DeclaredPackages: intToInt32Ptr(in.DeclaredPackages), DeclaredGrossWeightKg: in.DeclaredGrossWeightKg, DeclaredVolumeCbm: in.DeclaredVolumeCbm, Notes: in.Notes, WaybillContent: airContentToAPI(in.WaybillContent)}
 }
 func airMasterToAPI(m *biz.AirMasterWaybill) *v1.AirMasterWaybill {
 	if m == nil {
 		return nil
 	}
-	return &v1.AirMasterWaybill{BusinessType: string(m.BusinessType), Id: m.ID.String(), OrganizationId: m.OrganizationID.String(), Version: m.Version, Content: airMasterInputToAPI(&m.Content), AirlineName: m.AirlineName, OriginAirportName: m.OriginAirportName, DestinationAirportName: m.DestinationAirportName, MemberCount: int32(m.MemberCount), CreatedAt: m.CreatedAt.Format(time.RFC3339), UpdatedAt: m.UpdatedAt.Format(time.RFC3339)}
+	return &v1.AirMasterWaybill{ContentHash: m.ContentHash, DocumentMode: m.DocumentMode, CanAttach: m.CanAttach, AttachBlockedReason: m.AttachBlockedReason, BusinessType: string(m.BusinessType), Id: m.ID.String(), OrganizationId: m.OrganizationID.String(), Version: m.Version, Content: airMasterInputToAPI(&m.Content), AirlineName: m.AirlineName, OriginAirportName: m.OriginAirportName, DestinationAirportName: m.DestinationAirportName, MemberCount: int32(m.MemberCount), CreatedAt: m.CreatedAt.Format(time.RFC3339), UpdatedAt: m.UpdatedAt.Format(time.RFC3339)}
 }
 func airMemberToAPI(m *biz.AirMasterMember) *v1.AirMasterMember {
 	return &v1.AirMasterMember{OrderId: m.OrderID.String(), OrderNo: m.OrderNo, CustomerName: m.CustomerName, HouseNo: m.HouseNo, Packages: intToInt32Ptr(m.Packages), PackageUnit: m.PackageUnit, GrossWeightKg: m.GrossWeightKg, VolumeCbm: m.VolumeCbm, FlowStatus: m.FlowStatus, TerminationStatus: m.TerminationStatus, ClosureStatus: m.ClosureStatus, Locked: m.Locked, OrderVersion: m.OrderVersion, HouseStatus: m.HouseStatus, ConfirmedChargeableWeightKg: m.ConfirmedChargeableWeightKg, ConfirmationStale: m.ConfirmationStale}
@@ -197,7 +197,7 @@ func airDetailToAPI(v *biz.AirMasterDetail) *v1.GetAirMasterWaybillResponse {
 		out.Totals.PackagesByUnit = append(out.Totals.PackagesByUnit, &v1.AirPackageTotal{Unit: u, Packages: int32(v.Totals.PackagesByUnit[u])})
 	}
 	for _, h := range v.History {
-		out.History = append(out.History, &v1.AirMasterHistory{Id: h.ID.String(), Version: h.Version, Action: h.Action, Reason: h.Reason, ActorId: h.ActorID.String(), OccurredAt: h.OccurredAt.Format(time.RFC3339), Content: airMasterInputToAPI(&h.Content)})
+		out.History = append(out.History, &v1.AirMasterHistory{ContentHash: h.ContentHash, Id: h.ID.String(), Version: h.Version, Action: h.Action, Reason: h.Reason, ActorId: h.ActorID.String(), OccurredAt: h.OccurredAt.Format(time.RFC3339), Content: airMasterInputToAPI(&h.Content)})
 	}
 	return out
 }
@@ -205,7 +205,10 @@ func airOrderInputFromAPI(in *v1.AirOrderInput) (*biz.AirOrderInput, error) {
 	if in == nil {
 		return nil, nil
 	}
-	out := &biz.AirOrderInput{ExpectedMasterVersion: in.GetExpectedMasterVersion(), ExpectedLinkVersion: in.GetExpectedLinkVersion(), ChangeReason: in.GetChangeReason(), HouseNo: in.GetHouseNo(), HouseContent: in.GetHouseContent(), HouseStatus: in.GetHouseStatus()}
+	out := &biz.AirOrderInput{ExpectedMasterVersion: in.GetExpectedMasterVersion(), ExpectedLinkVersion: in.GetExpectedLinkVersion(), ChangeReason: in.GetChangeReason(), DocumentMode: in.GetDocumentMode()}
+	if in.House != nil {
+		out.House = &biz.AirHouseWaybillInput{HouseNo: in.House.HouseNo, Status: in.House.Status, Content: airContentFromAPI(in.House.Content), ExpectedVersion: in.House.ExpectedVersion}
+	}
 	var e error
 	if in.MasterWaybillId != nil {
 		out.MasterWaybillID, e = parseOptionalUUIDPointer(in.MasterWaybillId)
@@ -225,7 +228,12 @@ func airOrderToAPI(in *biz.AirOrderInfo) *v1.AirOrderInfo {
 	if in == nil {
 		return nil
 	}
-	return &v1.AirOrderInfo{Master: airMasterToAPI(in.Master), HouseNo: in.HouseNo, HouseStatus: in.HouseStatus, HouseVersion: in.HouseVersion, HouseContent: in.HouseContent, HouseId: in.HouseID.String(), LinkId: in.LinkID.String(), LinkVersion: in.LinkVersion, Active: in.Active}
+	out := &v1.AirOrderInfo{Master: airMasterToAPI(in.Master), DocumentMode: in.DocumentMode, LinkId: in.LinkID.String(), LinkVersion: in.LinkVersion, Active: in.Active}
+	if in.House != nil {
+		h := in.House
+		out.House = &v1.AirHouseWaybill{Id: h.ID.String(), HouseNo: h.HouseNo, Status: h.Status, Content: airContentToAPI(h.Content), Version: h.Version, ContentHash: h.ContentHash}
+	}
+	return out
 }
 
 func (s *AirExportService) ListAirLinkCandidates(ctx context.Context, req *v1.ListAirLinkCandidatesRequest) (*v1.ListAirLinkCandidatesResponse, error) {
@@ -265,7 +273,7 @@ func (s *AirExportService) ListAirHouseWaybillVersions(ctx context.Context, req 
 	}
 	out := &v1.ListAirHouseWaybillVersionsResponse{Total: int32(total)}
 	for _, v := range rows {
-		out.Data = append(out.Data, &v1.AirHouseWaybillVersion{Id: v.ID.String(), Version: v.Version, HouseNo: v.HouseNo, Status: v.Status, Content: v.Content, ActorId: v.ActorID.String(), Reason: v.Reason, OccurredAt: v.OccurredAt.Format(time.RFC3339)})
+		out.Data = append(out.Data, &v1.AirHouseWaybillVersion{Id: v.ID.String(), Version: v.Version, HouseNo: v.HouseNo, Status: v.Status, Content: airContentToAPI(v.Content), ContentHash: v.ContentHash, ActorId: v.ActorID.String(), Reason: v.Reason, OccurredAt: v.OccurredAt.Format(time.RFC3339)})
 	}
 	return ok(ctx, out), nil
 }

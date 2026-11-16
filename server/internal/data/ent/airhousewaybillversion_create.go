@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -76,8 +77,14 @@ func (_c *AirHouseWaybillVersionCreate) SetStatus(v string) *AirHouseWaybillVers
 }
 
 // SetContent sets the "content" field.
-func (_c *AirHouseWaybillVersionCreate) SetContent(v string) *AirHouseWaybillVersionCreate {
+func (_c *AirHouseWaybillVersionCreate) SetContent(v json.RawMessage) *AirHouseWaybillVersionCreate {
 	_c.mutation.SetContent(v)
+	return _c
+}
+
+// SetContentHash sets the "content_hash" field.
+func (_c *AirHouseWaybillVersionCreate) SetContentHash(v string) *AirHouseWaybillVersionCreate {
+	_c.mutation.SetContentHash(v)
 	return _c
 }
 
@@ -193,9 +200,12 @@ func (_c *AirHouseWaybillVersionCreate) check() error {
 	if _, ok := _c.mutation.Content(); !ok {
 		return &ValidationError{Name: "content", err: errors.New(`ent: missing required field "AirHouseWaybillVersion.content"`)}
 	}
-	if v, ok := _c.mutation.Content(); ok {
-		if err := airhousewaybillversion.ContentValidator(v); err != nil {
-			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "AirHouseWaybillVersion.content": %w`, err)}
+	if _, ok := _c.mutation.ContentHash(); !ok {
+		return &ValidationError{Name: "content_hash", err: errors.New(`ent: missing required field "AirHouseWaybillVersion.content_hash"`)}
+	}
+	if v, ok := _c.mutation.ContentHash(); ok {
+		if err := airhousewaybillversion.ContentHashValidator(v); err != nil {
+			return &ValidationError{Name: "content_hash", err: fmt.Errorf(`ent: validator failed for field "AirHouseWaybillVersion.content_hash": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.ActorID(); !ok {
@@ -273,8 +283,12 @@ func (_c *AirHouseWaybillVersionCreate) createSpec() (*AirHouseWaybillVersion, *
 		_node.Status = value
 	}
 	if value, ok := _c.mutation.Content(); ok {
-		_spec.SetField(airhousewaybillversion.FieldContent, field.TypeString, value)
+		_spec.SetField(airhousewaybillversion.FieldContent, field.TypeJSON, value)
 		_node.Content = value
+	}
+	if value, ok := _c.mutation.ContentHash(); ok {
+		_spec.SetField(airhousewaybillversion.FieldContentHash, field.TypeString, value)
+		_node.ContentHash = value
 	}
 	if value, ok := _c.mutation.ActorID(); ok {
 		_spec.SetField(airhousewaybillversion.FieldActorID, field.TypeUUID, value)
@@ -393,6 +407,9 @@ func (u *AirHouseWaybillVersionUpsertOne) UpdateNewValues() *AirHouseWaybillVers
 		}
 		if _, exists := u.create.mutation.Content(); exists {
 			s.SetIgnore(airhousewaybillversion.FieldContent)
+		}
+		if _, exists := u.create.mutation.ContentHash(); exists {
+			s.SetIgnore(airhousewaybillversion.FieldContentHash)
 		}
 		if _, exists := u.create.mutation.ActorID(); exists {
 			s.SetIgnore(airhousewaybillversion.FieldActorID)
@@ -637,6 +654,9 @@ func (u *AirHouseWaybillVersionUpsertBulk) UpdateNewValues() *AirHouseWaybillVer
 			}
 			if _, exists := b.mutation.Content(); exists {
 				s.SetIgnore(airhousewaybillversion.FieldContent)
+			}
+			if _, exists := b.mutation.ContentHash(); exists {
+				s.SetIgnore(airhousewaybillversion.FieldContentHash)
 			}
 			if _, exists := b.mutation.ActorID(); exists {
 				s.SetIgnore(airhousewaybillversion.FieldActorID)

@@ -4,6 +4,7 @@ import { isTabDirty } from '@/components/layout/tabCloseGuard';
 import {
   getAirSaveState,
   getAirUpdateMock,
+  openAirHouseRemarks,
   renderAirSaveDetail,
   resetAirSaveState,
   saveAirDetail,
@@ -22,7 +23,8 @@ describe('空运 HAWB 保存后同页改单', () => {
     await saveAirDetail();
     expect(await screen.findByLabelText('已签发分单修改原因')).toBeVisible();
     expect(isTabDirty('/orders/air-export/order-1')).toBe(false);
-    fireEvent.change(screen.getByLabelText('本票单证资料'), {
+    await openAirHouseRemarks();
+    fireEvent.change(screen.getByLabelText('单证备注'), {
       target: { value: 'amended-content' },
     });
     fireEvent.change(screen.getByLabelText('已签发分单修改原因'), {
@@ -33,13 +35,18 @@ describe('空运 HAWB 保存后同页改单', () => {
     expect(getAirUpdateMock().mock.calls[1][1]).toMatchObject({
       expectedVersion: '5',
       airExport: {
-        houseStatus: 'RELEASED',
-        houseContent: 'amended-content',
+        house: {
+          status: 'RELEASED',
+          content: { remarks: 'amended-content' },
+          expectedVersion: '3',
+        },
         changeReason: '客户确认修改',
-        expectedLinkVersion: '1',
+        expectedLinkVersion: '2',
       },
     });
-    expect(state.form?.getFieldValue(['airExport', 'houseVersion'])).toBe('4');
+    expect(state.form?.getFieldValue(['airExport', 'house', 'version'])).toBe(
+      '4',
+    );
     expect(screen.getByLabelText('已签发分单修改原因')).toHaveValue('');
   });
 
@@ -56,7 +63,7 @@ describe('空运 HAWB 保存后同页改单', () => {
       expect(screen.queryByLabelText('已签发分单修改原因')).toBeNull(),
     );
     expect(getAirUpdateMock().mock.calls[0][1].airExport).toMatchObject({
-      houseStatus: 'DRAFT',
+      house: { status: 'DRAFT', expectedVersion: '2' },
       changeReason: '退回资料待完善',
     });
   });
@@ -70,9 +77,11 @@ describe('空运 HAWB 保存后同页改单', () => {
     await saveAirDetail();
     expect(getAirUpdateMock().mock.calls[0][1]).toMatchObject({
       customerReferenceNo: 'updated-reference',
-      airExport: { houseStatus: 'RELEASED' },
+      airExport: { house: { status: 'RELEASED', expectedVersion: '2' } },
     });
-    expect(state.form?.getFieldValue(['airExport', 'houseVersion'])).toBe('2');
+    expect(state.form?.getFieldValue(['airExport', 'house', 'version'])).toBe(
+      '2',
+    );
     expect(state.form?.getFieldValue('version')).toBe('5');
   });
   it('不借用保存响应中后来更新的共享主单基线', async () => {
@@ -100,6 +109,6 @@ describe('空运 HAWB 保存后同页改单', () => {
     expect(state.form?.getFieldValue(['airExport', 'master', 'version'])).toBe(
       '3',
     );
-    expect(state.form?.getFieldValue('version')).toBe('5');
+    expect(state.form?.getFieldValue('version')).toBe('4');
   });
 });

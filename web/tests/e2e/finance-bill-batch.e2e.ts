@@ -277,6 +277,7 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
     const serial = stamp.slice(-7);
     transportInput = {
       airExport: {
+        documentMode: 'HOUSE',
         master: {
           masterNo: `${airline.awbPrefix}${serial}${Number(serial) % 7}`,
           airlineId: airline.id,
@@ -286,7 +287,7 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
           etd: new Date(Date.now() + 86_400_000).toISOString(),
           eta: new Date(Date.now() + 172_800_000).toISOString(),
         },
-        houseNo: `UI-AE-${stamp}`,
+        house: { houseNo: `UI-AE-${stamp}` },
       },
     };
   } else {
@@ -722,11 +723,12 @@ test(`${isAirExport ? '空运' : '海运'}订单完成录费、建账、收款�
           { userId: me.id, role: 4 },
         ],
         airExport: {
+          documentMode: 'HOUSE',
           master: {
             ...master.content,
             masterNo: `${master.content.masterNo.slice(0, 3)}${payableSerial}${Number(payableSerial) % 7}`,
           },
-          houseNo: `UI-AE-PAY-${stamp}`,
+          house: { houseNo: `UI-AE-PAY-${stamp}` },
         },
       })
     ).data;
