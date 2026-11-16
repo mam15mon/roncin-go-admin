@@ -28,6 +28,7 @@ type AirlineSyncRecord struct {
 type AirportSyncRecord struct {
 	IATACode    string
 	ICAOCode    *string
+	NameZH      string
 	NameEN      string
 	CityNameEN  *string
 	CountryCode string
@@ -151,6 +152,7 @@ func (s *IndustryReferenceSyncStore) ApplyAirports(ctx context.Context, source, 
 		for _, row := range rows {
 			if existing := existingByCode[row.IATACode]; existing != nil {
 				update := tx.Airport.UpdateOneID(existing.ID).
+					SetNameZh(row.NameZH).
 					SetNameEn(row.NameEN).
 					SetNillableCityNameEn(row.CityNameEN).
 					SetCountryCode(row.CountryCode).
@@ -172,6 +174,7 @@ func (s *IndustryReferenceSyncStore) ApplyAirports(ctx context.Context, source, 
 			create := tx.Airport.Create().
 				SetIataCode(row.IATACode).
 				SetNillableIcaoCode(row.ICAOCode).
+				SetNameZh(row.NameZH).
 				SetNameEn(row.NameEN).
 				SetNillableCityNameEn(row.CityNameEN).
 				SetCountryCode(row.CountryCode).

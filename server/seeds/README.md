@@ -16,6 +16,9 @@
 | **`SMDG-Terminal-Code-List-v20260609.xlsx`** | 全球集装箱码头与泊位代码表 | 国际船舶规划系统用户协会 (SMDG) | 2026-06-09 | [SMDG Terminal Code List](https://smdg.org/documents/smdg-terminal-code-list/) |
 | **`shipping-agents.hgj.20261027.json`** | 29 条船代候选字典 | 海管家订单候选快照（非完整行业名录） | 2026-10-27 | [来源与映射说明](shipping-agents.md) |
 | **`airlines.dat`** | 全球航空公司主数据 | OpenFlights 数据集 + 项目重点航司字典增强 | OpenFlights | [OpenFlights Airline Database](https://openflights.org/data.html) |
+| **`airlines.zh-CN.csv`** | 988 家航司完整中文对照 | 已有中文与编译名，逐行注明来源 | 配套当前 `airlines.dat` 与重点字典 | [航司中文说明](airlines.zh-CN.md) |
+| **`airports.csv`** | 全球机场原始快照 | OurAirports | 2026-10-27 归档快照 | [OurAirports 开放数据](https://ourairports.com/data/) |
+| **`airports.zh-CN.csv`** | 9,053 个有效 IATA 机场的中文对照 | 已有中文与编译名，逐行注明来源 | 与机场快照逐条配对 | [机场中文说明](airports.zh-CN.md) |
 
 ---
 
@@ -37,10 +40,10 @@ pnpm run sync:shipping-lines
 # 同步联合国港口数据及配套中文名（17,524 个海港）
 pnpm run sync:unlocode
 
-# 同步全球航空公司主数据（归档数据与重点字典合并为 988 条，136 家含中文名与 AWB 前缀）
+# 同步全球航空公司主数据（988 家全部带中文名，保留重点航司 AWB 前缀）
 pnpm run sync:airlines
 
-# 同步全球机场主数据（自动从 OurAirports 拉取或使用本地 airports.csv）
+# 同步全球机场主数据（读取仓库快照，9,053 个机场全部带中文名）
 pnpm run sync:airports
 ```
 
@@ -64,13 +67,9 @@ go -C server run ./cmd/sync-airlines
 go -C server run ./cmd/sync-airports
 ```
 
-输出示例：
-```text
-航司数据源：seeds/airlines.dat
-版本：OpenFlights，SHA-256：39be1a43...
-原始行 6162，有效活跃航司 988（中文对照 136，运单前缀 136，全货机 16），非活跃跳过 4907，无效跳过 253
-当前为预览模式；确认统计后使用 -apply 写入数据库
-```
+航司与机场预览会打印原始文件、中文表与联合 SHA-256，以及完整中文覆盖统计。
+未提供 `DATABASE_SOURCE` 时只离线校验源文件，并明确提示未检查数据库冲突；
+配置连接后预览还会检查同码冲突，只有显式 `-apply` 才写入。
 
 ### 3. 高级用法（指定文件或版本）
 
@@ -85,7 +84,10 @@ go -C server run ./cmd/sync-shipping-lines -source /path/to/custom_liner.xlsx -c
 go -C server run ./cmd/sync-unlocode -source /path/to/loc252csv.zip -chinese-source /path/to/ports.zh-CN.csv -release 2025-2 -apply
 
 # 同步指定路径的 OpenFlights 航司数据
-go -C server run ./cmd/sync-airlines -source /path/to/airlines.dat -apply
+go -C server run ./cmd/sync-airlines -source /path/to/airlines.dat -chinese-source /path/to/airlines.zh-CN.csv -apply
+
+# 同步指定版本的机场原始快照与配套中文表
+go -C server run ./cmd/sync-airports -source /path/to/airports.csv -chinese-source /path/to/airports.zh-CN.csv -apply
 ```
 
 ---
@@ -108,11 +110,14 @@ go -C server run ./cmd/sync-airlines -source /path/to/airlines.dat -apply
 ### 3. 航空公司主数据 (`airlines.dat`)
 - **全球基础数据**：复用 OpenFlights 全球航司开放数据集，基础记录须为 `Active=Y`、IATA 二字母/数字代码有效且国家可映射；先按项目字典注入重点航司，因此重点航司不受源文件 `Active=N` 过滤影响。当前归档解析为 988 条，不将其解释为全球实际运营航司总数。
 - **主流航司与前缀字典增强**：内置 136 家主流客货运航司（国航 CA、南航 CZ、东航 MU、汉莎 LH、FedEx FX、UPS 5X、Cargolux CV 等）的中文名称、AWB 三位运单前缀（如 999、784、112、023、406、172 等）与全货机属性。
-- **约束放宽**：`awb_prefix` 与 `name_zh` 均为可选字段，既兼容全球各类小型区域航司，又为骨干货代业务提供完整的单号识别支持。
+- **全量中文**：`airlines.zh-CN.csv` 为解析后的 988 家航司逐一配对中文名。导入前严格核对代码集合、英文身份、中文有效性、类别与来源；缺行或错版直接报错，不在线补译。`existing` 与 `translated` 区分已有名称和编译名，不将编译名称为官方名称。
+- **同步写入**：新建与同来源已有行都写入中文并更新拼音检索键，重复运行保持 ID；中文表与原始文件共同参与 `source_hash`。数据库字段仍允许手工资料不填写中文或 AWB 前缀，不额外更改 Schema。
 
-### 4. 机场主数据 (OurAirports)
-- **数据源**：默认从 [OurAirports 官方 GitHub 下载地址](https://davidmegginson.github.io/ourairports-data/airports.csv) 获取全球机场数据，也支持显式指定本地 `airports.csv`。下载保留 TLS 证书校验，失败直接报错，不自动改用缓存。
+### 4. 机场主数据 (`airports.csv` + `airports.zh-CN.csv`)
+- **固定快照**：默认读取本目录的 OurAirports 原始快照和配套中文表；日常执行 `pnpm run sync:airports` 无需联网下载或翻译。原始快照保留机场状态与英文名称，闭场记录沿用停用语义。
+- **全量中文**：当前解析口径的 9,053 个有效 IATA 机场全部附中文名，按 IATA、ICAO、国家、机场英文名及城市英文身份配对。中文表标注逐行来源与编译类别，错版、缺行或非法中文先于数据库写入失败。
 - **三字码索引**：严格校验 IATA 3 字码与 ICAO 4 字码唯一性，支持按中英文及拼音联想检索。
+- **同步写入**：已有同来源英文机场会补齐中文并刷新检索键，记录 ID 与既有订单引用保持不变；原始快照与中文 CSV 共同参与源摘要。升级时显式提供配套 `-source` 与 `-chinese-source`，不得只换英文底表。
 
 ---
 

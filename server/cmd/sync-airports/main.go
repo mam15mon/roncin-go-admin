@@ -8,23 +8,19 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/roncin/roncin-go-admin/server/cmd/internal/syncrunner"
 	"github.com/roncin/roncin-go-admin/server/internal/data"
 )
 
 const (
-	ourAirportsURL    = "https://davidmegginson.github.io/ourairports-data/airports.csv"
 	ourAirportsSource = "OURAIRPORTS"
-	requestTimeout    = 30 * time.Second
-	maxDownloadSize   = 100 << 20
+	archivedRelease   = "2026-10-27"
 )
 
 var (
@@ -34,13 +30,18 @@ var (
 )
 
 type airportParseSummary struct {
-	RawRows       int
-	ValidRows     int
-	SkippedIATA   int
-	InvalidICAO   int
-	Closed        int
-	SourceHash    string
-	FatalProblems []string
+	RawRows         int
+	ValidRows       int
+	SkippedIATA     int
+	InvalidICAO     int
+	Closed          int
+	SourceHash      string
+	AirportsHash    string
+	ChineseHash     string
+	ChineseNames    int
+	ExistingNames   int
+	TranslatedNames int
+	FatalProblems   []string
 }
 
 func main() {
@@ -48,7 +49,22 @@ func main() {
 }
 
 func run(ctx context.Context) error {
-	options := parseOptions()
+	options, err := parseOptions(os.Args[1:])
+	if errors.Is(err, flag.ErrHelp) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	return runWithOptions(ctx, options)
+}
+
+type airportOptions struct {
+	syncrunner.Options
+	ChineseSource string
+}
+
+func runWithOptions(ctx context.Context, options airportOptions) error {
 	raw, sourceLabel, err := loadSource(ctx, options.Source)
 	if err != nil {
 		return fmt.Errorf("读取 OurAirports 数据失败: %w", err)
@@ -57,15 +73,25 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("解析 OurAirports 数据失败: %w", err)
 	}
-	if options.Release == "" {
-		options.Release = time.Now().Format(time.DateOnly)
+	chineseRaw, err := os.ReadFile(options.ChineseSource)
+	if err != nil {
+		return fmt.Errorf("读取机场中文对照失败: %w", err)
 	}
-	if options.Source == "" {
-		cached, cacheErr := cacheDownload(raw, options.Release, summary.SourceHash)
-		if cacheErr != nil {
-			return fmt.Errorf("缓存 OurAirports 数据失败: %w", cacheErr)
-		}
-		sourceLabel = cached
+	rows, err = attachChineseNames(rows, chineseRaw, raw, &summary)
+	if err != nil {
+		return fmt.Errorf("校验机场中文对照失败: %w", err)
+	}
+	if options.Release == "" {
+		options.Release = "sha256:" + summary.AirportsHash[:12]
+	}
+	if len(summary.FatalProblems) > 0 {
+		printSummary(sourceLabel, options.Options, summary, nil)
+		return fmt.Errorf("机场源文件存在 %d 条致命冲突", len(summary.FatalProblems))
+	}
+	if !options.Apply && strings.TrimSpace(os.Getenv("DATABASE_SOURCE")) == "" {
+		printSummary(sourceLabel, options.Options, summary, nil)
+		fmt.Println("当前为离线预览模式，未检查数据库冲突；配置 DATABASE_SOURCE 后可预检，使用 -apply 显式写入")
+		return nil
 	}
 
 	store, cleanup, err := syncrunner.OpenStore()
@@ -77,7 +103,7 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("检查机场同步冲突失败: %w", err)
 	}
-	printSummary(sourceLabel, options, summary, conflicts)
+	printSummary(sourceLabel, options.Options, summary, conflicts)
 	if len(summary.FatalProblems) > 0 || len(conflicts) > 0 {
 		return fmt.Errorf("机场数据存在致命冲突: 源文件冲突 %d 条，数据库冲突 %d 条", len(summary.FatalProblems), len(conflicts))
 	}
@@ -93,41 +119,44 @@ func run(ctx context.Context) error {
 	return nil
 }
 
-func parseOptions() syncrunner.Options {
-	apply := flag.Bool("apply", false, "将机场数据写入数据库")
-	source := flag.String("source", "", "本地 airports.csv 路径；为空时从 OurAirports 下载")
-	release := flag.String("release", "", "数据版本；默认使用同步日期")
-	flag.Parse()
-	return syncrunner.Options{Apply: *apply, Source: strings.TrimSpace(*source), Release: strings.TrimSpace(*release)}
+func parseOptions(args []string) (airportOptions, error) {
+	flags := flag.NewFlagSet("sync-airports", flag.ContinueOnError)
+	apply := flags.Bool("apply", false, "将机场数据写入数据库")
+	source := flags.String("source", "", "本地 airports.csv 路径；默认读取仓库归档快照")
+	chineseSource := flags.String("chinese-source", "", "配套中文 CSV 路径；默认读取底表同目录 airports.zh-CN.csv")
+	release := flags.String("release", "", "数据版本；默认归档版本，自定义底表未指定时使用内容摘要")
+	if err := flags.Parse(args); err != nil {
+		return airportOptions{}, err
+	}
+	if flags.NArg() != 0 {
+		return airportOptions{}, fmt.Errorf("不支持的位置参数: %s", strings.Join(flags.Args(), " "))
+	}
+	path := strings.TrimSpace(*source)
+	version := strings.TrimSpace(*release)
+	if path == "" {
+		for _, candidate := range []string{filepath.Join("seeds", "airports.csv"), filepath.Join("server", "seeds", "airports.csv"), filepath.Join("..", "..", "seeds", "airports.csv")} {
+			if _, err := os.Stat(candidate); err == nil {
+				path = candidate
+				break
+			}
+		}
+		if path == "" {
+			return airportOptions{}, errors.New("未找到仓库 airports.csv 快照，请通过 -source 指定配套底表")
+		}
+		if version == "" {
+			version = archivedRelease
+		}
+	}
+	chinesePath := strings.TrimSpace(*chineseSource)
+	if chinesePath == "" {
+		chinesePath = filepath.Join(filepath.Dir(path), "airports.zh-CN.csv")
+	}
+	return airportOptions{Options: syncrunner.Options{Apply: *apply, Source: path, Release: version}, ChineseSource: chinesePath}, nil
 }
 
-func loadSource(ctx context.Context, source string) ([]byte, string, error) {
-	if source != "" {
-		raw, err := os.ReadFile(source)
-		return raw, source, err
-	}
-	request, err := http.NewRequestWithContext(ctx, http.MethodGet, ourAirportsURL, nil)
-	if err != nil {
-		return nil, "", err
-	}
-	request.Header.Set("User-Agent", "roncin-go-admin-airport-sync/1.0")
-	client := &http.Client{Timeout: requestTimeout}
-	response, err := client.Do(request)
-	if err != nil {
-		return nil, "", err
-	}
-	defer response.Body.Close()
-	if response.StatusCode != http.StatusOK {
-		return nil, "", fmt.Errorf("OurAirports 返回 HTTP %d", response.StatusCode)
-	}
-	raw, err := io.ReadAll(io.LimitReader(response.Body, maxDownloadSize+1))
-	if err != nil {
-		return nil, "", err
-	}
-	if len(raw) > maxDownloadSize {
-		return nil, "", fmt.Errorf("下载内容超过 %d 字节限制", maxDownloadSize)
-	}
-	return raw, ourAirportsURL, nil
+func loadSource(_ context.Context, source string) ([]byte, string, error) {
+	raw, err := os.ReadFile(source)
+	return raw, source, err
 }
 
 func parseAirports(raw []byte) ([]data.AirportSyncRecord, airportParseSummary, error) {
@@ -224,21 +253,11 @@ func cell(record []string, index int) string {
 	return record[index]
 }
 
-func cacheDownload(raw []byte, release, hash string) (string, error) {
-	directory := filepath.Join("..", ".cache", "master-data")
-	if err := os.MkdirAll(directory, 0o755); err != nil {
-		return "", err
-	}
-	path := filepath.Join(directory, fmt.Sprintf("ourairports-airports-%s-%s.csv", release, hash[:12]))
-	if err := os.WriteFile(path, raw, 0o644); err != nil {
-		return "", err
-	}
-	return filepath.Clean(path), nil
-}
-
 func printSummary(sourceLabel string, options syncrunner.Options, summary airportParseSummary, conflicts []data.IndustryReferenceSyncConflict) {
 	fmt.Printf("机场数据源：%s\n", sourceLabel)
 	fmt.Printf("版本：%s，SHA-256：%s\n", options.Release, summary.SourceHash)
+	fmt.Printf("机场底表 SHA-256：%s；中文表 SHA-256：%s\n", summary.AirportsHash, summary.ChineseHash)
+	fmt.Printf("中文覆盖 %d/%d（已有名称 %d，编制译名 %d）\n", summary.ChineseNames, summary.ValidRows, summary.ExistingNames, summary.TranslatedNames)
 	fmt.Printf("原始行 %d，有效机场 %d，无有效 IATA 跳过 %d，非法 ICAO %d，关闭机场 %d\n", summary.RawRows, summary.ValidRows, summary.SkippedIATA, summary.InvalidICAO, summary.Closed)
 	for index, problem := range summary.FatalProblems {
 		if index == 10 {

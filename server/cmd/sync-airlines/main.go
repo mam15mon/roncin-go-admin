@@ -22,9 +22,8 @@ import (
 )
 
 const (
-	openFlightsSource     = "OPENFLIGHTS"
-	defaultOpenFlightsURL = "https://raw.githubusercontent.com/jpatokal/openflights/master/data/airlines.dat"
-	httpTimeout           = 30 * time.Second
+	openFlightsSource = "OPENFLIGHTS"
+	httpTimeout       = 30 * time.Second
 )
 
 var (
@@ -41,6 +40,15 @@ type airlineParseSummary struct {
 	SkippedInactive int
 	SkippedInvalid  int
 	SourceHash      string
+	RawHash         string
+	ChineseHash     string
+	ExistingNames   int
+	TranslatedNames int
+}
+
+type airlineOptions struct {
+	syncrunner.Options
+	ChineseSource string
 }
 
 func main() {
@@ -48,7 +56,16 @@ func main() {
 }
 
 func run(ctx context.Context) error {
-	options := parseOptions()
+	return runWithOptions(ctx, parseOptions())
+}
+
+func runWithOptions(ctx context.Context, options airlineOptions) error {
+	if strings.TrimSpace(options.Source) == "" {
+		return fmt.Errorf("未找到仓库归档 airlines.dat，请检查种子文件或显式指定 -source")
+	}
+	if options.ChineseSource == "" {
+		return fmt.Errorf("缺少航司中文对照路径：远程源须显式指定 -chinese-source")
+	}
 	raw, sourceLabel, err := loadAirlineSource(ctx, options.Source)
 	if err != nil {
 		return fmt.Errorf("读取 OpenFlights 航司数据失败: %w", err)
@@ -60,8 +77,21 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("解析 OpenFlights 航司数据失败: %w", err)
 	}
+	chineseRaw, err := os.ReadFile(options.ChineseSource)
+	if err != nil {
+		return fmt.Errorf("读取航司中文对照失败: %w", err)
+	}
+	rows, err = attachChineseNames(rows, chineseRaw, raw, &summary)
+	if err != nil {
+		return fmt.Errorf("校验航司中文对照失败: %w", err)
+	}
 	if options.Release == "" {
 		options.Release = "OpenFlights"
+	}
+	if !options.Apply && strings.TrimSpace(os.Getenv("DATABASE_SOURCE")) == "" {
+		printSummary(sourceLabel, options, summary, nil)
+		fmt.Println("当前为离线预览模式，未检查数据库冲突；配置 DATABASE_SOURCE 后可预检，使用 -apply 显式写入")
+		return nil
 	}
 
 	store, cleanup, err := syncrunner.OpenStore()
@@ -93,28 +123,31 @@ func run(ctx context.Context) error {
 	return nil
 }
 
-func parseOptions() syncrunner.Options {
+func parseOptions() airlineOptions {
 	apply := flag.Bool("apply", false, "将航司数据写入数据库")
 	source := flag.String("source", "", "OpenFlights airlines.dat 路径或下载 URL")
+	chineseSource := flag.String("chinese-source", "", "配套航司中文 CSV 路径；本地源默认读取同目录 airlines.zh-CN.csv，远程源须显式指定")
 	release := flag.String("release", "", "数据版本；默认 OpenFlights")
 	flag.Parse()
 
-	path := resolveSourcePath(strings.TrimSpace(*source))
-	if path == "" {
-		defaultPaths := []string{
-			filepath.Join("seeds", "airlines.dat"),
-			filepath.Join("server", "seeds", "airlines.dat"),
-			filepath.Join("..", "seeds", "airlines.dat"),
-			filepath.Join("..", ".cache", "master-data", "airlines.dat"),
-		}
-		for _, p := range defaultPaths {
-			if _, err := os.Stat(p); err == nil {
-				path = p
-				break
-			}
+	path := resolveAirlineSource(strings.TrimSpace(*source))
+	chinesePath := resolveSourcePath(strings.TrimSpace(*chineseSource))
+	if chinesePath == "" && path != "" && !strings.HasPrefix(path, "http://") && !strings.HasPrefix(path, "https://") {
+		chinesePath = filepath.Join(filepath.Dir(path), "airlines.zh-CN.csv")
+	}
+	return airlineOptions{Options: syncrunner.Options{Apply: *apply, Source: path, Release: strings.TrimSpace(*release)}, ChineseSource: chinesePath}
+}
+
+func resolveAirlineSource(source string) string {
+	if source != "" {
+		return resolveSourcePath(source)
+	}
+	for _, path := range []string{filepath.Join("seeds", "airlines.dat"), filepath.Join("server", "seeds", "airlines.dat"), filepath.Join("..", "seeds", "airlines.dat")} {
+		if _, err := os.Stat(path); err == nil {
+			return path
 		}
 	}
-	return syncrunner.Options{Apply: *apply, Source: path, Release: strings.TrimSpace(*release)}
+	return ""
 }
 
 func resolveSourcePath(source string) string {
@@ -129,14 +162,14 @@ func resolveSourcePath(source string) string {
 }
 
 func loadAirlineSource(ctx context.Context, source string) ([]byte, string, error) {
-	if source != "" && !strings.HasPrefix(source, "http://") && !strings.HasPrefix(source, "https://") {
+	if strings.TrimSpace(source) == "" {
+		return nil, "", fmt.Errorf("未找到仓库归档 airlines.dat，不自动下载替代源")
+	}
+	if !strings.HasPrefix(source, "http://") && !strings.HasPrefix(source, "https://") {
 		raw, err := os.ReadFile(source)
 		return raw, source, err
 	}
 	url := source
-	if url == "" {
-		url = defaultOpenFlightsURL
-	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, "", err
@@ -337,10 +370,13 @@ func parseAirlines(raw []byte, sourceHash string) ([]data.AirlineSyncRecord, air
 	return result, summary, nil
 }
 
-func printSummary(sourceLabel string, options syncrunner.Options, summary airlineParseSummary, conflicts []data.IndustryReferenceSyncConflict) {
+func printSummary(sourceLabel string, options airlineOptions, summary airlineParseSummary, conflicts []data.IndustryReferenceSyncConflict) {
 	fmt.Printf("航司数据源：%s\n", sourceLabel)
-	fmt.Printf("版本：%s，SHA-256：%s\n", options.Release, summary.SourceHash)
-	fmt.Printf("原始行 %d，有效活跃航司 %d（中文对照 %d，运单前缀 %d，全货机 %d），非活跃跳过 %d，无效跳过 %d\n",
+	fmt.Printf("中文对照：%s\n", options.ChineseSource)
+	fmt.Printf("版本：%s，联合 SHA-256：%s\n", options.Release, summary.SourceHash)
+	fmt.Printf("原始文件 SHA-256：%s，中文表 SHA-256：%s\n", summary.RawHash, summary.ChineseHash)
+	fmt.Printf("中文覆盖 %d/%d（已有 %d，编制 %d）\n", summary.EnrichedChinese, summary.ValidAirlines, summary.ExistingNames, summary.TranslatedNames)
+	fmt.Printf("原始行 %d，有效航司记录 %d（中文对照 %d，运单前缀 %d，全货机 %d），非活跃跳过 %d，无效跳过 %d\n",
 		summary.RawRows, summary.ValidAirlines, summary.EnrichedChinese, summary.EnrichedAWB, summary.CargoOnly, summary.SkippedInactive, summary.SkippedInvalid)
 	if len(conflicts) > 0 {
 		fmt.Printf("发现 %d 条冲突：\n", len(conflicts))
