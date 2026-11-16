@@ -27,7 +27,11 @@ function MasterWaybillSnapshot({ master }: { master?: API.AirMasterWaybill }) {
     ['goodsDescription', '运单品名'],
   ] as const;
   return (
-    <Space orientation="vertical" size={12} style={{ width: '100%' }}>
+    <Space
+      orientation="vertical"
+      size={12}
+      style={{ width: '100%', alignItems: 'stretch' }}
+    >
       <Descriptions
         size="small"
         layout="vertical"
@@ -131,10 +135,11 @@ export function AirDocumentSection({ props }: { props: TemplateProps }) {
           type="info"
           showIcon
           title="直单：本票使用主运单，无 HAWB"
-          style={{ marginBottom: 12 }}
+          style={{ width: '100%', marginBottom: 12 }}
         />
       )}
       <Tabs
+        style={{ width: '100%' }}
         key={direct ? 'DIRECT' : 'HOUSE'}
         activeKey={direct ? 'MAWB' : activeTab}
         onChange={setActiveTab}
@@ -144,7 +149,11 @@ export function AirDocumentSection({ props }: { props: TemplateProps }) {
             label: '主运单 MAWB',
             forceRender: true,
             children: (
-              <Space orientation="vertical" size={12} style={{ width: '100%' }}>
+              <Space
+                orientation="vertical"
+                size={12}
+                style={{ width: '100%', alignItems: 'stretch' }}
+              >
                 <Space wrap>
                   <Typography.Text strong>主运单正文</Typography.Text>
                   {props.airDocumentActions?.MAWB}
@@ -176,7 +185,7 @@ export function AirDocumentSection({ props }: { props: TemplateProps }) {
                     <Space
                       orientation="vertical"
                       size={12}
-                      style={{ width: '100%' }}
+                      style={{ width: '100%', alignItems: 'stretch' }}
                     >
                       <Space wrap>
                         <Typography.Text strong>本票单证资料</Typography.Text>
