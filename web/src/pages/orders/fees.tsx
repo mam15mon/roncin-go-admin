@@ -1,5 +1,5 @@
 import { ReloadOutlined } from '@ant-design/icons';
-import type { ActionType, ProFormInstance } from '@ant-design/pro-components';
+import type { ActionType } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, App, Button, Card, Empty, Result, Spin } from 'antd';
@@ -15,31 +15,19 @@ import { useInitialState } from '@/app/AppProvider';
 import { useAccess } from '@/app/access';
 import { FinanceSummaryBoard, SectionCard } from '@/components/ui';
 import { aggregateLedgerAmounts } from '@/components/ui/finance-ledger-template/summary';
-import { OrderBusinessType, PartnerRoleType } from '@/enums.generated';
+import { PartnerRoleType } from '@/enums.generated';
 import { BillCreationWorkbench } from '@/features/finance/bill-creation';
 import { orderFeeSummaryConfig } from '@/features/finance/ledger-summary';
 import { FeeCorrectionSection } from '@/features/orders/fee-correction';
 import { useOrderFeeReview } from '@/features/orders/fee-review';
 import { history } from '@/router/history';
 import { feeCatalogServiceListTaxableServices } from '@/services/roncin/feeCatalogService';
-import {
-  orderFeeServiceAddFee,
-  orderFeeServiceUpdateFee,
-} from '@/services/roncin/orderFeeService';
 import { settlementServiceGetFeeLedgerOrderDetail } from '@/services/roncin/settlementService';
-import { isWriteResponse, unwrapList } from '@/utils/api';
-import { normalizeDecimalInput } from '@/utils/decimal';
-import { getErrorMessage } from '@/utils/errorMessage';
-import { trimDecimal } from '@/utils/format';
-import { generateUUID } from '@/utils/uuid';
+import { unwrapList } from '@/utils/api';
 import { OrderLockStatusTag } from './components/detail/OrderLockControl';
 import FeeCorrectionCreate from './components/fees/FeeCorrectionCreate';
-import FeeFormModal, {
-  type FeeFormValues,
-} from './components/fees/FeeFormModal';
 import type { FeeBillTrackingView } from './components/fees/feeBillTracking';
 import { RECEIVABLE } from './components/fees/feeConstants';
-import { quantitySelectionForSave } from './components/fees/feeQuantitySource';
 import type { FeeSideSummary } from './components/fees/feeSummary';
 import OrderFeeHeader from './components/fees/OrderFeeHeader';
 import OrderFeeTableTabs from './components/fees/OrderFeeTableTabs';
@@ -48,7 +36,6 @@ import QuickAddPartnerModal from './components/fees/QuickAddPartnerModal';
 import OrderPageHeader from './components/OrderPageHeader';
 import { getOrderKindDefinition } from './order-kinds/registry';
 import { useFeeChangeNotice } from './use-fee-change-notice';
-import { useFeeExchangePreview } from './use-fee-exchange-preview';
 import { useOrderFeeOptions } from './use-order-fee-options';
 import {
   getOrderBusinessWritePolicy,
@@ -89,10 +76,7 @@ export default function OrderFeesPage() {
 
   const receivableActionRef = useRef<ActionType | undefined>(undefined);
   const payableActionRef = useRef<ActionType | undefined>(undefined);
-  const formRef = useRef<ProFormInstance<FeeFormValues> | undefined>(undefined);
-  const createIdempotencyKeyRef = useRef(generateUUID());
   const activeFeeOrderIdRef = useRef(targetOrderId);
-  const feeFormPopulationIdRef = useRef(0);
   activeFeeOrderIdRef.current = targetOrderId;
 
   const {
@@ -124,22 +108,6 @@ export default function OrderFeesPage() {
   // 这些展示按最近确认的审核状态保持稳定，提交入口仍由 feeWritesDisabled 失败关闭。
   const lockStateSettling = lockStateLoading && !lockStateRefreshing;
 
-  const {
-    totalPreview,
-    exchangeRatePreview,
-    exchangeRateStatus,
-    manualExchangeRate,
-    setManualExchangeRate,
-    resetPreview,
-    seedFromFee,
-    handleValuesChange,
-  } = useFeeExchangePreview(targetOrderId, formRef);
-  const resetPreviewRef = useRef(resetPreview);
-  resetPreviewRef.current = resetPreview;
-
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalDirection, setModalDirection] = useState<number>(RECEIVABLE);
-  const [editingFee, setEditingFee] = useState<API.OrderFee>();
   const [billWorkbenchContext, setBillWorkbenchContext] = useState<{
     orderId: string;
     feeIds: string[];
@@ -159,8 +127,6 @@ export default function OrderFeesPage() {
     [],
   );
   const [allPayableItems, setAllPayableItems] = useState<API.OrderFee[]>([]);
-  const [_selectedFeeSetting, setSelectedFeeSetting] =
-    useState<API.OrderFeeSettingOption>();
 
   // 汇总统计数据
   const [receivableSummary, setReceivableSummary] = useState<
@@ -252,17 +218,15 @@ export default function OrderFeesPage() {
     feeBillTrackingQuery.refetch,
   ]);
 
-  // 快捷新建结算单位状态
+  // 快捷新建结算单位状态：默认往来角色按发起入口所在的应收/应付侧决定。
   const [quickAddPartnerModalOpen, setQuickAddPartnerModalOpen] =
     useState(false);
+  const [quickAddPartnerDirection, setQuickAddPartnerDirection] =
+    useState<number>(RECEIVABLE);
 
   // TagsView 会复用同一个页面实例。订单切换时，上一订单的选择、汇总和弹窗
   // 都必须立即失效，不能等新订单数据返回后再覆盖。
   useEffect(() => {
-    feeFormPopulationIdRef.current += 1;
-    setModalOpen(false);
-    setModalDirection(RECEIVABLE);
-    setEditingFee(undefined);
     setBillWorkbenchContext(undefined);
     setSelectedReceivableFeeIds([]);
     setSelectedPayableFeeIds([]);
@@ -270,14 +234,11 @@ export default function OrderFeesPage() {
     setAllPayableItems([]);
     setHasCorrections(false);
     setCorrectionCollapsed(undefined);
-    setSelectedFeeSetting(undefined);
     setReceivableSummary(undefined);
     setPayableSummary(undefined);
     setQuickAddFeeModalOpen(false);
     setQuickAddPartnerModalOpen(false);
-    createIdempotencyKeyRef.current = generateUUID();
-    formRef.current?.resetFields();
-    resetPreviewRef.current();
+    setQuickAddPartnerDirection(RECEIVABLE);
   }, [targetOrderId]);
 
   const orderWriteContext = {
@@ -336,7 +297,6 @@ export default function OrderFeesPage() {
 
   useEffect(() => {
     if (feeFormsUnavailable) {
-      setModalOpen(false);
       setQuickAddFeeModalOpen(false);
       setQuickAddPartnerModalOpen(false);
     }
@@ -367,134 +327,10 @@ export default function OrderFeesPage() {
     setQuickAddFeeModalOpen(true);
   };
 
-  const handleOpenQuickAddPartner = () => {
+  const handleOpenQuickAddPartner = (direction: number) => {
     if (!ensureFeeWriteAllowed()) return;
+    setQuickAddPartnerDirection(direction);
     setQuickAddPartnerModalOpen(true);
-  };
-
-  const openFeeModal = (direction: number, fee?: API.OrderFee) => {
-    if (!ensureFeeWriteAllowed(fee)) return;
-    const requestedOrderId = targetOrderId;
-    if (!requestedOrderId) return;
-    const populationId = ++feeFormPopulationIdRef.current;
-    if (!fee) createIdempotencyKeyRef.current = generateUUID();
-    setEditingFee(fee);
-    setModalDirection(direction);
-    setSelectedFeeSetting(undefined);
-    resetPreview();
-    setModalOpen(true);
-
-    if (fee) {
-      const setting = feeSettings.find((item) => item.id === fee.feeSettingId);
-      setSelectedFeeSetting(setting);
-      seedFromFee(fee);
-      setTimeout(() => {
-        if (
-          populationId !== feeFormPopulationIdRef.current ||
-          requestedOrderId !== activeFeeOrderIdRef.current
-        ) {
-          return;
-        }
-        formRef.current?.setFieldsValue({
-          direction: fee.direction ?? direction,
-          feeSettingId: fee.feeSettingId ?? '',
-          settlementPartyId: fee.settlementPartyId ?? '',
-          billingUnitId: fee.billingUnitId ?? '',
-          quantity: fee.quantity ? trimDecimal(fee.quantity) : '',
-          quantitySource: fee.quantitySource,
-          unitPrice: fee.unitPrice ? trimDecimal(fee.unitPrice) : '',
-          currency: fee.currency ?? '',
-          note: fee.note ?? '',
-        });
-      }, 0);
-    } else {
-      const defaultParty =
-        direction === RECEIVABLE ? order?.customerId : order?.bookingAgentId;
-      setTimeout(() => {
-        if (
-          populationId !== feeFormPopulationIdRef.current ||
-          requestedOrderId !== activeFeeOrderIdRef.current
-        ) {
-          return;
-        }
-        formRef.current?.setFieldsValue({
-          direction,
-          settlementPartyId: defaultParty ?? '',
-          currency: 'CNY',
-          quantity: '1',
-        });
-        handleValuesChange();
-      }, 0);
-    }
-  };
-
-  const handleModalSubmit = async (values: FeeFormValues) => {
-    if (!orderId || !ensureFeeWriteAllowed(editingFee)) return false;
-    const preservesManualSnapshot =
-      editingFee?.exchangeRateSource === 'MANUAL' &&
-      !manualExchangeRate &&
-      values.currency === editingFee.currency &&
-      (values.direction ?? modalDirection) === editingFee.direction;
-    if (
-      exchangeRateStatus === 'missing' &&
-      !manualExchangeRate &&
-      !preservesManualSnapshot
-    ) {
-      message.error('请先维护汇率');
-      return false;
-    }
-    const body = {
-      direction: values.direction ?? modalDirection,
-      feeSettingId: values.feeSettingId,
-      settlementPartyId: values.settlementPartyId,
-      billingUnitId: values.billingUnitId,
-      quantity: normalizeDecimalInput(String(values.quantity ?? '')),
-      quantitySource: quantitySelectionForSave(
-        values.quantitySource,
-        values.quantity,
-      ),
-      unitPrice: normalizeDecimalInput(String(values.unitPrice ?? '')),
-      currency: values.currency,
-      note: values.note,
-      exchangeRateOverride: manualExchangeRate
-        ? values.exchangeRateOverride
-        : undefined,
-      taxInclusive: true,
-    };
-
-    try {
-      if (editingFee?.id) {
-        if (!editingFee.version)
-          throw new Error('费用版本信息缺失，请刷新后重试');
-        const writeResponse1 = await orderFeeServiceUpdateFee(
-          { orderId, id: editingFee.id },
-          {
-            ...body,
-            orderId,
-            id: editingFee.id,
-            expectedVersion: editingFee.version,
-          },
-        );
-        if (!isWriteResponse(writeResponse1, true)) return false;
-        message.success('费用更新成功');
-      } else {
-        const writeResponse2 = await orderFeeServiceAddFee(
-          { orderId },
-          { ...body, orderId, idempotencyKey: createIdempotencyKeyRef.current },
-        );
-        if (!isWriteResponse(writeResponse2, true)) return false;
-        createIdempotencyKeyRef.current = generateUUID();
-        message.success('费用录入成功');
-      }
-      setModalOpen(false);
-      receivableActionRef.current?.reload();
-      payableActionRef.current?.reload();
-      refreshFeeBillTracking();
-      return true;
-    } catch (error) {
-      message.error(getErrorMessage(error, '保存费用失败'));
-      return false;
-    }
   };
 
   const reloadFeeTables = () => {
@@ -742,7 +578,6 @@ export default function OrderFeesPage() {
         customerName={customerName}
         onOpenQuickAddFee={handleOpenQuickAddFee}
         onOpenQuickAddPartner={handleOpenQuickAddPartner}
-        onOpenFeeModal={openFeeModal}
       />
 
       <SectionCard
@@ -827,37 +662,6 @@ export default function OrderFeesPage() {
         }}
       />
 
-      {/* 4. 费用录入/编辑 ModalForm */}
-      <FeeFormModal
-        allowChargeableQuantity={
-          order?.businessType === OrderBusinessType.BUSINESS_TYPE_AE ||
-          order?.businessType === OrderBusinessType.BUSINESS_TYPE_AI
-        }
-        orderId={targetOrderId ?? ''}
-        quantityAssistDisabled={feeWritesDisabled}
-        formRef={formRef}
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        editingFee={editingFee}
-        modalDirection={modalDirection}
-        isFeeBilled={editingFee?.hasActiveBill === true}
-        feeSettings={feeSettings}
-        settlementParties={settlementParties}
-        currencies={currencies}
-        billingUnits={billingUnits}
-        totalPreview={totalPreview}
-        exchangeRateStatus={exchangeRateStatus}
-        exchangeRatePreview={exchangeRatePreview}
-        manualExchangeRate={manualExchangeRate}
-        setManualExchangeRate={setManualExchangeRate}
-        onOpenQuickAddFee={handleOpenQuickAddFee}
-        onOpenQuickAddPartner={handleOpenQuickAddPartner}
-        onValuesChange={handleValuesChange}
-        onQuantityChange={() => handleValuesChange({ amountOnly: true })}
-        onFeeSettingSelect={setSelectedFeeSetting}
-        onSubmit={handleModalSubmit}
-      />
-
       {/* 快捷新增费用科目 Modal */}
       <QuickAddFeeModal
         open={quickAddFeeModalOpen}
@@ -882,19 +686,7 @@ export default function OrderFeesPage() {
             taxRate: created.taxRate,
           };
           setFeeSettings((prev) => [newOption, ...prev]);
-          formRef.current?.setFieldValue('feeSettingId', created.id);
-          setSelectedFeeSetting(newOption);
-          if (created.billingUnitId) {
-            formRef.current?.setFieldValue(
-              'billingUnitId',
-              created.billingUnitId,
-            );
-          }
-          if (created.defaultCurrency) {
-            formRef.current?.setFieldValue('currency', created.defaultCurrency);
-          }
-          handleValuesChange();
-          message.success(`已成功新建费用科目【${created.nameZh}】并自动选用`);
+          message.success(`已成功新建费用科目【${created.nameZh}】`);
           setQuickAddFeeModalOpen(false);
         }}
       />
@@ -903,7 +695,7 @@ export default function OrderFeesPage() {
       <QuickAddPartnerModal
         open={quickAddPartnerModalOpen}
         defaultRole={
-          modalDirection === RECEIVABLE
+          quickAddPartnerDirection === RECEIVABLE
             ? PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER
             : PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER
         }
@@ -913,8 +705,7 @@ export default function OrderFeesPage() {
             return;
           }
           setSettlementParties((prev) => [newOption, ...prev]);
-          formRef.current?.setFieldValue('settlementPartyId', newOption.id);
-          message.success(`已成功新建往来单位【${newOption.name}】并自动选用`);
+          message.success(`已成功新建往来单位【${newOption.name}】`);
           setQuickAddPartnerModalOpen(false);
         }}
       />

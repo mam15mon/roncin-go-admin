@@ -13,6 +13,7 @@ import {
   makeProps,
   renderTabs,
   resetBulkActionMocks,
+  resolveRate,
   saveFees,
 } from './OrderFeeTableTabs.bulkActions.fixtures';
 
@@ -102,6 +103,67 @@ describe('OrderFeeTableTabs 行内手工汇率', () => {
       clientRowId: 'r1',
       exchangeRateOverride: '7.1',
     });
+  });
+
+  it('已存手工汇率可改回系统汇率：预览系统汇率并提交 useSystemExchangeRate，填写手工汇率即撤销', async () => {
+    resolveRate.mockResolvedValue({ exchangeRate: '6.6623' } as never);
+    listFees.mockResolvedValue({
+      data: [
+        usdFee('manual', {
+          exchangeRate: '7.00000000',
+          exchangeRateSource: 'MANUAL',
+          baseCurrencyAmount: '700.00000000',
+        }),
+        usdFee('system'),
+      ],
+    } as never);
+    const { props } = makeProps('order-1');
+    await renderTabs({ ...props, canOverrideFeeExchangeRate: true });
+    await waitFor(() => expect(rateInput('manual')).not.toBeNull());
+    expect(rateInput('manual')).toHaveAttribute('placeholder', '7 手工');
+    // 系统来源的行没有改回入口。
+    expect(
+      within(rowOf('system')).queryByRole('button', { name: '改回系统汇率' }),
+    ).toBeNull();
+
+    await act(async () => {
+      fireEvent.click(
+        within(rowOf('manual')).getByRole('button', { name: '改回系统汇率' }),
+      );
+    });
+    await waitFor(() =>
+      expect(rateInput('manual')).toHaveAttribute('placeholder', '6.6623 系统'),
+    );
+    expect(within(rowOf('manual')).getByText('666.23')).toBeInTheDocument();
+    expect(
+      within(rowOf('manual')).getByRole('button', { name: '撤销改回系统汇率' }),
+    ).toBeInTheDocument();
+    await clickSave();
+    await waitFor(() => expect(saveFees).toHaveBeenCalledOnce());
+    const row = saveFees.mock.calls[0][1].rows[0];
+    expect(row).toMatchObject({
+      clientRowId: 'manual',
+      useSystemExchangeRate: true,
+    });
+    expect(row).not.toHaveProperty('exchangeRateOverride');
+
+    // 仍处于改回状态时填写手工汇率：自动放弃改回系统汇率，只提交手工汇率。
+    expect(
+      within(rowOf('manual')).getByRole('button', { name: '撤销改回系统汇率' }),
+    ).toBeInTheDocument();
+    fireEvent.change(rateInput('manual') as HTMLElement, {
+      target: { value: '7.2' },
+    });
+    await waitFor(() =>
+      expect(
+        within(rowOf('manual')).getByRole('button', { name: '改回系统汇率' }),
+      ).toBeInTheDocument(),
+    );
+    await clickSave();
+    await waitFor(() => expect(saveFees).toHaveBeenCalledTimes(2));
+    const overridden = saveFees.mock.calls[1][1].rows[0];
+    expect(overridden).toMatchObject({ exchangeRateOverride: '7.2' });
+    expect(overridden).not.toHaveProperty('useSystemExchangeRate');
   });
 
   it('本币费用的汇率输入禁用并固定显示 1', async () => {

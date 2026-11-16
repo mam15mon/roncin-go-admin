@@ -103,6 +103,24 @@ describe('整表保存纯逻辑', () => {
     ).toBeUndefined();
   });
 
+  it('改回系统汇率：仅已保存行提交，填写手工汇率时以手工汇率为准', () => {
+    const reset = { ...baseline, useSystemExchangeRate: true };
+    expect(feeRowChanged(reset, baseline)).toBe(true);
+    expect(
+      buildSaveRow({ clientRowId: 'f1', row: reset, baseline }),
+    ).toMatchObject({ useSystemExchangeRate: true });
+    expect(
+      buildSaveRow({ clientRowId: 'new_1', row: { ...reset, id: undefined } }),
+    ).not.toHaveProperty('useSystemExchangeRate');
+    const both = buildSaveRow({
+      clientRowId: 'f1',
+      row: { ...reset, exchangeRateOverride: '7' },
+      baseline,
+    });
+    expect(both.exchangeRateOverride).toBe('7');
+    expect(both).not.toHaveProperty('useSystemExchangeRate');
+  });
+
   it('提交前校验：必填、数量规则与税率范围', () => {
     expect(validateFeeRow(baseline, baseline, units, true)).toBeUndefined();
     expect(

@@ -30,6 +30,8 @@ type OrderFeeSaveRowInput struct {
 	FeeID           *uuid.UUID
 	ExpectedVersion uint64
 	Fee             *OrderFee
+	// UseSystemExchangeRate 改回系统汇率：仅修改行可用，与手工汇率互斥，须具备汇率覆盖权限。
+	UseSystemExchangeRate bool
 }
 
 // OrderFeeSavePermissions 是调用方已解析的细粒度授权；新增与修改分别授权。
@@ -219,6 +221,10 @@ func (uc *OrderFeeUsecase) Save(ctx context.Context, organizationID, actorID, or
 			return nil, ErrOrderFeeInvalidArgument
 		}
 		seenRows[row.ClientRowID] = struct{}{}
+		// 新增行本就取系统汇率；改回系统汇率与手工汇率不能同时提交。
+		if row.UseSystemExchangeRate && (row.FeeID == nil || row.Fee.ExchangeRateOverride != nil) {
+			return nil, ErrOrderFeeInvalidArgument
+		}
 		if row.FeeID != nil {
 			if *row.FeeID == uuid.Nil || row.ExpectedVersion == 0 {
 				return nil, ErrOrderFeeInvalidArgument
@@ -355,7 +361,11 @@ func (uc *OrderFeeUsecase) prepareSaveUpdateRow(ctx context.Context, organizatio
 		return nil, nil, ErrOrderFeeTaxRateForbidden
 	}
 	overridden := normalized.ExchangeRateOverride != nil
-	if !overridden && normalized.Currency == current.Currency && normalized.Direction == current.Direction {
+	// 改回系统汇率属于汇率调整，与手工覆盖同一权限。
+	if row.UseSystemExchangeRate && !perms.CanOverrideExchangeRate {
+		return nil, nil, ErrOrderFeeExchangeRateOverrideForbidden
+	}
+	if !overridden && !row.UseSystemExchangeRate && normalized.Currency == current.Currency && normalized.Direction == current.Direction {
 		normalized.ExchangeRate, normalized.ExchangeRateSource, normalized.ExchangeRateDate, normalized.ExchangeRateSettingID = current.ExchangeRate, current.ExchangeRateSource, current.ExchangeRateDate, current.ExchangeRateSettingID
 	} else if err := uc.resolveExchangeRateWithSets(ctx, organizationID, orderID, normalized, perms.CanOverrideExchangeRate, nil); err != nil {
 		return nil, nil, err
@@ -371,6 +381,11 @@ func (uc *OrderFeeUsecase) prepareSaveUpdateRow(ctx context.Context, organizatio
 	if taxRateChanged {
 		audit.Details["fee.tax_rate_before"] = decimalPointerAuditText(current.TaxRate)
 		audit.Details["fee.tax_rate_after"] = decimalPointerAuditText(normalized.TaxRate)
+	}
+	if row.UseSystemExchangeRate {
+		audit.Details["fee.exchange_rate_reset"] = "true"
+		audit.Details["fee.exchange_rate_before"] = current.ExchangeRate.String()
+		audit.Details["fee.exchange_rate_after"] = normalized.ExchangeRate.String()
 	}
 	return &OrderFeeSaveRow{ClientRowID: row.ClientRowID, FeeID: &id, ExpectedVersion: row.ExpectedVersion, Fee: normalized, ExchangeRateOverridden: overridden}, audit, nil
 }

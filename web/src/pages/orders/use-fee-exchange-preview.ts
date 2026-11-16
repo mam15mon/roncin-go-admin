@@ -9,7 +9,7 @@ import {
   quantityOrPricePattern,
 } from '@/utils/decimal';
 import { formatAmount, trimDecimal } from '@/utils/format';
-import type { FeeFormValues } from './components/fees/FeeFormModal';
+import type { FeeFormValues } from './components/fees/feeFormValues';
 
 type ExchangeRateStatus = 'idle' | 'loading' | 'resolved' | 'missing' | 'error';
 

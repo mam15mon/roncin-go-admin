@@ -6,6 +6,7 @@ import {
   PlusOutlined,
   SaveOutlined,
   SwapOutlined,
+  UndoOutlined,
 } from '@ant-design/icons';
 import type {
   ActionType,
@@ -175,6 +176,8 @@ type RowEditPreview = {
   unitPrice?: string;
   /** 行内手工汇率（格式有效时），优先于系统汇率参与折本币预览。 */
   rateOverride?: string;
+  /** 已存手工汇率改回系统汇率，折本币按 rate 中的系统汇率预览。 */
+  rateReset?: boolean;
 };
 
 type FeeRequestError = Error & {
@@ -217,7 +220,6 @@ interface OrderFeeTableTabsProps {
    */
   feeRowsLocked?: boolean;
   onOpenBillWorkbench: (feeIds: string[]) => void;
-  onOpenFeeModal?: (direction: number, fee?: API.OrderFee) => void;
   getTableColumns?: (direction: number) => ProColumns<API.OrderFee>[];
 
   feeSettings?: API.OrderFeeSettingOption[];
@@ -227,7 +229,8 @@ interface OrderFeeTableTabsProps {
   order?: API.Order;
   customerName?: string;
   onOpenQuickAddFee?: () => void;
-  onOpenQuickAddPartner?: () => void;
+  /** 快捷新建往来单位；direction 为发起入口所在侧，决定默认往来角色。 */
+  onOpenQuickAddPartner?: (direction: number) => void;
   /** 列偏好隔离范围（用户 + 当前组织）；缺省时设置仅当前页面会话内生效。 */
   columnSettingScope?: FeeColumnPreferenceScope;
   /** 关联账单投影；仅当页面具备财务费用读取权限时提供，两表共用一次查询。 */
@@ -697,7 +700,8 @@ export default function OrderFeeTableTabs({
           next.feeCode === undefined &&
           next.taxRate === undefined &&
           next.unitPrice === undefined &&
-          next.rateOverride === undefined
+          next.rateOverride === undefined &&
+          !next.rateReset
         ) {
           const { [key]: _removed, ...rest } = prev;
           return rest;
@@ -841,6 +845,36 @@ export default function OrderFeeTableTabs({
       if (current?.rateOverride === rateOverride) return prev;
       return { ...prev, [key]: { ...current, rateOverride } };
     });
+  };
+
+  /**
+   * 已存手工汇率行的「改回系统汇率」开关：状态写入行表单值 useSystemExchangeRate 随保存
+   * 提交；开启时清空手工输入并预览系统汇率，关闭时撤销预览回到当前手工汇率。
+   */
+  const setRowRateReset = (
+    direction: number,
+    form: {
+      setFieldValue: (name: [string, string], value: unknown) => void;
+    },
+    key: string,
+    enabled: boolean,
+    currency?: string,
+  ) => {
+    form.setFieldValue([key, 'useSystemExchangeRate'], enabled || undefined);
+    if (enabled) {
+      form.setFieldValue([key, 'exchangeRateOverride'], undefined);
+      setRowRateOverride(key, undefined);
+    }
+    setRowPreviews((prev) => {
+      const current = prev[key];
+      if (Boolean(current?.rateReset) === enabled) return prev;
+      return {
+        ...prev,
+        [key]: { ...current, rateReset: enabled || undefined },
+      };
+    });
+    resolveRowRatePreview(key, direction, enabled ? currency : undefined);
+    refreshDirty(direction);
   };
 
   /** 在本侧表格顶部新增一行；新增行以 dataSource 模式加入，允许同时存在多行。 */
@@ -1261,7 +1295,7 @@ export default function OrderFeeTableTabs({
                   onMouseDown={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    onOpenQuickAddPartner();
+                    onOpenQuickAddPartner(direction);
                   }}
                 >
                   <PlusOutlined /> 快捷新增往来单位
@@ -1292,8 +1326,21 @@ export default function OrderFeeTableTabs({
           })),
           onChange: (val: string) => {
             // 手工汇率针对原币种填写，换币种后清空，改按新币种系统汇率。
+            // 换币种后服务端本就重新解析系统汇率，「改回系统汇率」同时失去意义。
             form.setFieldValue([rowKey, 'exchangeRateOverride'], undefined);
+            form.setFieldValue([rowKey, 'useSystemExchangeRate'], undefined);
             setRowRateOverride(rowKey, undefined);
+            setRowPreviews((prev) =>
+              prev[String(rowKey)]?.rateReset
+                ? {
+                    ...prev,
+                    [String(rowKey)]: {
+                      ...prev[String(rowKey)],
+                      rateReset: undefined,
+                    },
+                  }
+                : prev,
+            );
             resolveRowRatePreview(rowKey, direction, val);
             refreshAmountPreview(rowKey, form);
           },
@@ -1538,7 +1585,8 @@ export default function OrderFeeTableTabs({
         dataIndex: canOverrideFeeExchangeRate
           ? 'exchangeRateOverride'
           : 'exchangeRate',
-        width: canOverrideFeeExchangeRate ? 130 : 110,
+        // 宽度不随权限变化，有无改汇率权限的用户看到相同列宽与表格布局。
+        width: 130,
         align: 'right',
         editable: canOverrideFeeExchangeRate
           ? (_, record) =>
@@ -1575,6 +1623,16 @@ export default function OrderFeeTableTabs({
                 form.getFieldValue([key, 'currency']) ?? entity?.currency;
               const baseCurrency = entity?.baseCurrency || 'CNY';
               const preview = rowPreviews[key]?.rate;
+              const resetting = form.getFieldValue([
+                key,
+                'useSystemExchangeRate',
+              ]);
+              // 仅已存手工汇率且未换币种的行可改回系统汇率。
+              const canReset =
+                !isNewFeeRowKey(key) &&
+                entity?.exchangeRateSource === 'MANUAL' &&
+                currency === entity.currency &&
+                currency !== baseCurrency;
               const placeholder = preview
                 ? preview.status === 'resolved'
                   ? `${preview.rate ?? ''} 系统`
@@ -1599,8 +1657,39 @@ export default function OrderFeeTableTabs({
                 onFocus: (event: React.FocusEvent<HTMLInputElement>) => {
                   event.currentTarget.select();
                 },
-                onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
-                  setRowRateOverride(key, event.target.value),
+                onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
+                  // 填写手工汇率即放弃「改回系统汇率」。
+                  if (resetting && event.target.value.trim() !== '') {
+                    setRowRateReset(direction, form, key, false);
+                  }
+                  setRowRateOverride(key, event.target.value);
+                },
+                suffix: canReset ? (
+                  <Tooltip
+                    title={resetting ? '撤销改回系统汇率' : '改回系统汇率'}
+                  >
+                    <UndoOutlined
+                      role="button"
+                      aria-label={
+                        resetting ? '撤销改回系统汇率' : '改回系统汇率'
+                      }
+                      aria-pressed={Boolean(resetting)}
+                      style={{
+                        color: resetting ? '#1677ff' : '#8c8c8c',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() =>
+                        setRowRateReset(
+                          direction,
+                          form,
+                          key,
+                          !resetting,
+                          currency,
+                        )
+                      }
+                    />
+                  </Tooltip>
+                ) : undefined,
               };
             }
           : undefined,
@@ -1728,6 +1817,7 @@ export default function OrderFeeTableTabs({
             note: item.note ?? '',
             taxRate: item.taxRate ?? '',
             exchangeRateOverride: undefined,
+            useSystemExchangeRate: undefined,
             quantitySource: item.quantitySource,
           },
         ]),

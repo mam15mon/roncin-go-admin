@@ -234,7 +234,7 @@ func saveOrderFeeRowFromAPI(orderIDText string, direction v1.OrderFeeDirection, 
 	if err := applyOrderFeeTaxRateOverride(input, item.TaxRate); err != nil {
 		return nil, err
 	}
-	row := &biz.OrderFeeSaveRowInput{ClientRowID: item.GetClientRowId(), Fee: input}
+	row := &biz.OrderFeeSaveRowInput{ClientRowID: item.GetClientRowId(), Fee: input, UseSystemExchangeRate: item.GetUseSystemExchangeRate()}
 	if item.FeeId != nil {
 		feeID, parseErr := uuid.Parse(item.GetFeeId())
 		if parseErr != nil || item.GetExpectedVersion() == 0 {

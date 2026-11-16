@@ -1377,9 +1377,12 @@ type SaveOrderFeeRow struct {
 	TaxInclusive         *bool                  `protobuf:"varint,12,opt,name=tax_inclusive,json=taxInclusive,proto3,oneof" json:"tax_inclusive,omitempty"`
 	QuantitySource       *FeeQuantitySelection  `protobuf:"bytes,13,opt,name=quantity_source,json=quantitySource,proto3" json:"quantity_source,omitempty"`
 	// tax_rate 显式税率（0-100）；语义与 AddFee/UpdateFee 一致，更改税率须具备订单费用税率更改权限。
-	TaxRate       *string `protobuf:"bytes,14,opt,name=tax_rate,json=taxRate,proto3,oneof" json:"tax_rate,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	TaxRate *string `protobuf:"bytes,14,opt,name=tax_rate,json=taxRate,proto3,oneof" json:"tax_rate,omitempty"`
+	// use_system_exchange_rate 为 true 时按订单汇率日重新解析系统汇率，丢弃已存手工汇率；
+	// 仅用于修改行，与 exchange_rate_override 互斥，须具备订单费用汇率覆盖权限。
+	UseSystemExchangeRate bool `protobuf:"varint,15,opt,name=use_system_exchange_rate,json=useSystemExchangeRate,proto3" json:"use_system_exchange_rate,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *SaveOrderFeeRow) Reset() {
@@ -1508,6 +1511,13 @@ func (x *SaveOrderFeeRow) GetTaxRate() string {
 		return *x.TaxRate
 	}
 	return ""
+}
+
+func (x *SaveOrderFeeRow) GetUseSystemExchangeRate() bool {
+	if x != nil {
+		return x.UseSystemExchangeRate
+	}
+	return false
 }
 
 type SaveOrderFeesRequest struct {
@@ -8437,7 +8447,7 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\x17_exchange_rate_overrideB\x10\n" +
 	"\x0e_tax_inclusiveB\v\n" +
 	"\t_tax_rateB\v\n" +
-	"\t_fee_nameJ\x04\b\x04\x10\x05J\x04\b\x05\x10\x06J\x04\b\a\x10\bJ\x04\b\v\x10\fJ\x04\b\f\x10\rR\bfee_codeR\fbilling_unit\"\xc3\x05\n" +
+	"\t_fee_nameJ\x04\b\x04\x10\x05J\x04\b\x05\x10\x06J\x04\b\a\x10\bJ\x04\b\v\x10\fJ\x04\b\f\x10\rR\bfee_codeR\fbilling_unit\"\xfc\x05\n" +
 	"\x0fSaveOrderFeeRow\x12'\n" +
 	"\rclient_row_id\x18\x01 \x01(\tB\x03\xe0A\x02R\vclientRowId\x12\x1a\n" +
 	"\x06fee_id\x18\x02 \x01(\tH\x00R\x05feeId\x88\x01\x01\x12.\n" +
@@ -8454,7 +8464,8 @@ const file_order_v1_order_fee_proto_rawDesc = "" +
 	"\x16exchange_rate_override\x18\v \x01(\tH\x03R\x14exchangeRateOverride\x88\x01\x01\x12(\n" +
 	"\rtax_inclusive\x18\f \x01(\bH\x04R\ftaxInclusive\x88\x01\x01\x12G\n" +
 	"\x0fquantity_source\x18\r \x01(\v2\x1e.order.v1.FeeQuantitySelectionR\x0equantitySource\x12\x1e\n" +
-	"\btax_rate\x18\x0e \x01(\tH\x05R\ataxRate\x88\x01\x01B\t\n" +
+	"\btax_rate\x18\x0e \x01(\tH\x05R\ataxRate\x88\x01\x01\x127\n" +
+	"\x18use_system_exchange_rate\x18\x0f \x01(\bR\x15useSystemExchangeRateB\t\n" +
 	"\a_fee_idB\x13\n" +
 	"\x11_expected_versionB\a\n" +
 	"\x05_noteB\x19\n" +
