@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MasterDataKind } from '@/enums.generated';
-import { clearOrderMasterDataCache } from '@/features/orders/options';
 import {
   businessTypeOptions,
   fetchOrderMasterData,
@@ -59,7 +58,6 @@ const numericMasterData = [
 describe('orders common and config', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    clearOrderMasterDataCache();
     listOptions.mockResolvedValue({ data: numericMasterData });
     listPorts.mockResolvedValue({ data: [] });
     listAirports.mockResolvedValue({ data: [] });

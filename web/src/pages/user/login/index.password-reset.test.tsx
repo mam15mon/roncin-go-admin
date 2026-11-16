@@ -5,23 +5,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useInitialState } from '@/app/AppProvider';
 import Login from './index';
 
-const { sendCode, confirmPassword, login, clearOrderCache } = vi.hoisted(
-  () => ({
-    sendCode: vi.fn(),
-    confirmPassword: vi.fn(),
-    login: vi.fn(),
-    clearOrderCache: vi.fn(),
-  }),
-);
+const { sendCode, confirmPassword, login } = vi.hoisted(() => ({
+  sendCode: vi.fn(),
+  confirmPassword: vi.fn(),
+  login: vi.fn(),
+}));
 vi.mock('@/services/roncin/authService', () => ({
   authServiceGetDingTalkLoginConfig: () =>
     Promise.resolve({ data: { enabled: false } }),
   authServiceRequestPasswordResetCode: sendCode,
   authServiceConfirmPasswordReset: confirmPassword,
   authServiceLogin: login,
-}));
-vi.mock('@/features/orders/options', () => ({
-  clearOrderMasterDataCache: clearOrderCache,
 }));
 
 function StateProbe() {
@@ -105,7 +99,7 @@ describe('登录页账号与自助设置衔接', () => {
       '13800138000',
     );
     expect(screen.getByPlaceholderText('请输入密码')).toHaveValue('');
-    expect(clearOrderCache).toHaveBeenCalledOnce();
+
     expect(queryClient.getQueryData(['old-user-business'])).toBeUndefined();
     expect(sessionStorage.getItem('dingtalk_login_redirect')).toBeNull();
     expect(login).not.toHaveBeenCalled();

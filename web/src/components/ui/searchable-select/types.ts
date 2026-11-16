@@ -1,4 +1,5 @@
 import type { ProFormSelectProps } from '@ant-design/pro-components';
+import type { QueryKey } from '@tanstack/react-query';
 import type { SelectProps } from 'antd';
 import type { BaseOptionType, DefaultOptionType } from 'antd/es/select';
 
@@ -18,6 +19,8 @@ export interface ProFormSearchableSelectProps extends ProFormSelectProps {
 
 export interface RemoteSearchSelectProps
   extends Omit<SearchableSelectProps, 'options' | 'filterOption'> {
+  /** 不含关键词的资源查询身份；父级依赖变化时同步变化。 */
+  queryKey: QueryKey;
   selectedOptions?: SearchableSelectProps['options'];
   /** 远程候选项请求：按关键字返回候选（服务端过滤），挂载时以空关键字调用一次 */
   request: (keyWords?: string) => Promise<SearchableSelectProps['options']>;

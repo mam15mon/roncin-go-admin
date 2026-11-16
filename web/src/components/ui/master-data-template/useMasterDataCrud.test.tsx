@@ -265,4 +265,38 @@ describe('useMasterDataCrud', () => {
     expect(result.current.activeTotal).toBe(0);
     expect(result.current.disabledTotal).toBe(0);
   });
+
+  it.each([
+    undefined,
+    { success: false, data: [] },
+    { success: true, data: null },
+  ])('列表响应 %j 不抛data TypeError或冒充成功', async (invalid) => {
+    const { queryClient, wrapper } = createHookWrapper();
+    const { result } = renderHook(
+      () =>
+        useMasterDataCrud<Item, Item>({
+          entityName: '港口',
+          fetchList: vi.fn(async (query) =>
+            query.enabled === undefined
+              ? (invalid as { data?: Item[]; success?: boolean })
+              : { success: true, total: 0 },
+          ),
+          mapItem: (item) => item,
+          createItem: vi.fn(),
+          updateItem: vi.fn(),
+        }),
+      { wrapper },
+    );
+    await waitFor(() =>
+      expect(
+        queryClient.getQueryState([
+          'master-data',
+          '港口',
+          { page: 1, pageSize: 10 },
+        ])?.error?.message,
+      ).toBe('港口主数据加载失败'),
+    );
+    expect(result.current.data).toEqual([]);
+    expect(result.current.loading).toBe(false);
+  });
 });

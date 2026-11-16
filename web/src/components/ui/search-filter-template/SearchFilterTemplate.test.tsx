@@ -1,3 +1,4 @@
+import { renderWithClient } from '@root/tests/queryClientTestUtils';
 import {
   cleanup,
   fireEvent,
@@ -123,7 +124,7 @@ describe('SearchFilterTemplate', () => {
       .fn()
       .mockResolvedValue([{ label: '测试合作方 (TP)', value: 'p-1' }]);
 
-    render(
+    renderWithClient(
       <SearchFilterTemplate
         layout="grid"
         items={[
@@ -333,7 +334,7 @@ describe('SearchFilterTemplate', () => {
       .fn()
       .mockResolvedValue([{ label: '测试合作方 (TP)', value: 'p-1' }]);
 
-    render(
+    renderWithClient(
       <SearchFilterTemplate
         layout="grid"
         items={[

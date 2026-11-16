@@ -1,4 +1,5 @@
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import { cleanup, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import CurrenciesPanel from './CurrenciesPanel';
@@ -61,7 +62,7 @@ describe('CurrenciesPanel Component', () => {
       ],
     });
 
-    render(<CurrenciesPanel />);
+    renderWithClient(<CurrenciesPanel />);
 
     await waitFor(() => {
       expect(mockListCurrencies).toHaveBeenCalledWith({ enabledOnly: false });

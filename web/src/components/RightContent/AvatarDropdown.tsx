@@ -8,7 +8,6 @@ import React, { startTransition, useEffect, useState } from 'react';
 import { useInitialState } from '@/app/AppProvider';
 import { confirmIfAnyTabDirty } from '@/components/layout/tabCloseGuard';
 import { PasskeyManagerModal } from '@/features/auth/passkeys';
-import { clearOrderMasterDataCache } from '@/features/orders/options';
 import { history } from '@/router/history';
 import { authServiceLogout } from '@/services/roncin/authService';
 import { isWriteResponse } from '@/utils/api';
@@ -41,7 +40,6 @@ export const AvatarDropdown: React.FC<AvatarDropdownProps> = () => {
     try {
       const writeResponse1 = await authServiceLogout({});
       if (!isWriteResponse(writeResponse1)) return;
-      clearOrderMasterDataCache();
       startTransition(() => {
         setInitialState((state) => ({ ...state, currentUser: undefined }));
       });

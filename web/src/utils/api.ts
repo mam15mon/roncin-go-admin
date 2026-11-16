@@ -1,5 +1,6 @@
 export type ApiListResponse<T> = {
   data?: T[];
+  success?: boolean;
 };
 
 export type ApiPageResponse<T> = ApiListResponse<T> & {
@@ -34,11 +35,16 @@ export function unwrapList<T>(response: ApiListResponse<T>): T[] {
  * 列表类调用用它把 undefined 转成明确业务错误，避免 unwrapList 在
  * undefined 上读 .data 抛 TypeError 文案直达用户。
  */
-export function ensureListResponse<T>(
-  response: ApiListResponse<T> | undefined,
+export function ensureListResponse<TResponse extends ApiListResponse<unknown>>(
+  response: TResponse | undefined,
   message: string,
-): ApiListResponse<T> {
-  if (!response) {
+): TResponse {
+  if (
+    !response ||
+    response.success === false ||
+    (response.data === undefined && response.success !== true) ||
+    (response.data !== undefined && !Array.isArray(response.data))
+  ) {
     throw new Error(message);
   }
   return response;

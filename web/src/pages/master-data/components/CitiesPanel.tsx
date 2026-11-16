@@ -1,12 +1,12 @@
 import { CompassOutlined } from '@ant-design/icons';
-import { App, Tag } from 'antd';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Tag } from 'antd';
+import React, { useMemo } from 'react';
 import { useAccess } from '@/app/access';
 import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterDataTemplate';
 import type { BaseMasterDataItem } from '@/components/ui/master-data-template/types';
 import { masterDataServiceListAdministrativeRegions } from '@/services/roncin/masterDataService';
-import { unwrapList } from '@/utils/api';
-import { getErrorMessage } from '@/utils/errorMessage';
+import { ensureListResponse, unwrapList } from '@/utils/api';
 
 export interface RegionItem extends BaseMasterDataItem {
   level: number;
@@ -34,26 +34,25 @@ const mapRegion = (item: API.AdministrativeRegion): RegionItem => {
 };
 
 export default function CitiesPanel() {
-  const { message } = App.useApp();
   const access = useAccess();
-  const [data, setData] = useState<RegionItem[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchServerData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await masterDataServiceListAdministrativeRegions({});
-      setData(unwrapList(response).map(mapRegion));
-    } catch (error) {
-      message.error(getErrorMessage(error, '行政区划数据加载失败'));
-    } finally {
-      setLoading(false);
-    }
-  }, [message]);
-
-  useEffect(() => {
-    void fetchServerData();
-  }, [fetchServerData]);
+  const query = useQuery({
+    queryKey: ['master-data', 'administrative-regions', {}],
+    queryFn: async ({ signal }) =>
+      unwrapList(
+        ensureListResponse(
+          await masterDataServiceListAdministrativeRegions(
+            {},
+            { signal, skipErrorHandler: true },
+          ),
+          '行政区划数据加载失败',
+        ),
+      ).map(mapRegion),
+    meta: { errorMessage: '行政区划数据加载失败' },
+  });
+  const data = query.data ?? [];
+  const fetchServerData = async () => {
+    await query.refetch();
+  };
 
   // 根据上级代码关联上级名称
   const namesByCode = useMemo(
@@ -79,7 +78,7 @@ export default function CitiesPanel() {
       icon={<CompassOutlined />}
       codeLabel="12位行政区划代码"
       items={displayedData}
-      loading={loading}
+      loading={query.isFetching}
       onRefresh={fetchServerData}
       notice={
         access.isSystemWorkspace ? undefined : '由系统管理员统一维护与共享'

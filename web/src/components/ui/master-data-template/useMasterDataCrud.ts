@@ -5,7 +5,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { useCallback, useState } from 'react';
-import { isWriteResponse, unwrapPage } from '@/utils/api';
+import { ensureListResponse, isWriteResponse, unwrapPage } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import type { BaseMasterDataItem, MasterDataListQuery } from './types';
 
@@ -24,7 +24,7 @@ export interface UseMasterDataCrudOptions<
   entityName: string;
   fetchList: (
     query: MasterDataListQuery,
-  ) => Promise<{ data?: TApiItem[]; total?: number }>;
+  ) => Promise<{ data?: TApiItem[]; total?: number; success?: boolean }>;
   mapItem: (apiItem: TApiItem) => TItem;
   createItem: (
     values: TFormValues,
@@ -98,7 +98,12 @@ export function useMasterDataCrud<
     queryKey: ['master-data', entityName, query],
     queryFn: async (): Promise<MasterDataPage<TItem>> => {
       try {
-        const page = unwrapPage(await fetchList(query));
+        const page = unwrapPage(
+          ensureListResponse(
+            await fetchList(query),
+            `${entityName}主数据加载失败`,
+          ),
+        );
         return {
           items: page.data.map((item) => mapItem(item)),
           total: page.total,
@@ -117,10 +122,18 @@ export function useMasterDataCrud<
     queryKey: ['master-data', entityName, 'stats'],
     queryFn: async (): Promise<MasterDataStats> => {
       try {
-        const [activeResponse, disabledResponse] = await Promise.all([
+        const [activeResult, disabledResult] = await Promise.all([
           fetchList({ page: 1, pageSize: 1, enabled: true }),
           fetchList({ page: 1, pageSize: 1, enabled: false }),
         ]);
+        const activeResponse = ensureListResponse(
+          activeResult,
+          `${entityName}统计加载失败`,
+        );
+        const disabledResponse = ensureListResponse(
+          disabledResult,
+          `${entityName}统计加载失败`,
+        );
         return {
           activeTotal: activeResponse.total ?? 0,
           disabledTotal: disabledResponse.total ?? 0,

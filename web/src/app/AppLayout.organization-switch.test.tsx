@@ -21,15 +21,11 @@ import {
   useInitialState,
 } from './AppProvider';
 
-const { switchOrganization, cacheClear } = vi.hoisted(() => ({
+const { switchOrganization } = vi.hoisted(() => ({
   switchOrganization: vi.fn(),
-  cacheClear: vi.fn(),
 }));
 vi.mock('@/services/roncin/authService', () => ({
   authServiceSwitchOrganization: switchOrganization,
-}));
-vi.mock('@/features/orders/options', () => ({
-  clearOrderMasterDataCache: cacheClear,
 }));
 vi.mock('@ant-design/pro-components', () => ({
   ProLayout: (props: ProLayoutProps) => (
@@ -187,7 +183,6 @@ describe('真实异步路由中的工作区转换', () => {
     expect(activeRouter.state.location.pathname).toBe('/orders/sea-export');
     expect(activeRouter.state.location.search).toBe('');
     expect(activeRouter.state.location.hash).toBe('');
-    expect(cacheClear).toHaveBeenCalledOnce();
   });
 
   it('同路径同子页签切换也提交新location，重建列表并清理旧输入', async () => {
@@ -231,7 +226,7 @@ describe('真实异步路由中的工作区转换', () => {
     );
     expect(screen.getByText('beijing:列表')).toBeInTheDocument();
     expect(screen.getByLabelText('当前输入')).toHaveValue('北京尚未保存');
-    expect(cacheClear).not.toHaveBeenCalled();
+
     expect(requests).toEqual(['beijing:list']);
   });
 

@@ -8,7 +8,6 @@ import {
 import { ConfigProvider } from 'antd';
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { clearOrderMasterDataCache } from '@/features/orders/options';
 import { history } from '@/router/history';
 import { authServiceLogout } from '@/services/roncin/authService';
 import { AvatarDropdown } from './AvatarDropdown';
@@ -50,12 +49,7 @@ vi.mock('@/features/auth/passkeys', () => ({
   ),
 }));
 
-vi.mock('@/features/orders/options', () => ({
-  clearOrderMasterDataCache: vi.fn(),
-}));
-
 const mockLogout = vi.mocked(authServiceLogout);
-const mockClearCache = vi.mocked(clearOrderMasterDataCache);
 
 describe('AvatarDropdown Component', () => {
   beforeEach(() => {
@@ -126,7 +120,7 @@ describe('AvatarDropdown Component', () => {
     });
   });
 
-  it('退出登录成功时调用 clearOrderMasterDataCache() 全量清理订单会话缓存并跳转登录页', async () => {
+  it('退出登录成功时清除身份并跳转登录页', async () => {
     mockLogout.mockResolvedValueOnce({ success: true });
     mockCurrentUser = {
       username: 'testadmin',
@@ -150,8 +144,9 @@ describe('AvatarDropdown Component', () => {
 
     await waitFor(() => {
       expect(mockLogout).toHaveBeenCalledTimes(1);
-      expect(mockClearCache).toHaveBeenCalledWith();
+
       expect(history.replace).toHaveBeenCalledWith('/user/login');
+      expect(mockSetInitialState).toHaveBeenCalledOnce();
     });
   });
 
@@ -180,9 +175,10 @@ describe('AvatarDropdown Component', () => {
       expect(mockLogout).toHaveBeenCalledTimes(1);
     });
 
-    // 失败时不清理缓存，不跳转登录页，不重置 currentUser
-    expect(mockClearCache).not.toHaveBeenCalled();
+    // 失败时不跳转登录页，不重置 currentUser
+
     expect(history.replace).not.toHaveBeenCalled();
+    expect(mockSetInitialState).not.toHaveBeenCalled();
   });
   it('已登录用户可从头像菜单打开本人通行密钥管理', async () => {
     mockCurrentUser = {

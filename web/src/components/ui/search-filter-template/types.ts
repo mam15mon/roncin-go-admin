@@ -25,6 +25,8 @@ export interface SearchFilterFieldItem {
   options?: SearchableSelectProps['options'];
   /** 异步请求获取候选项（当 type 为 select 或 searchable-select 时）：按关键字服务端过滤，配置后渲染远程搜索下拉 */
   request?: (params: { keyWords?: string }) => Promise<DefaultOptionType[]>;
+  /** 远程候选除关键词外的依赖；同一模板挂载内变化时必须同步进入查询身份。 */
+  requestKey?: readonly unknown[];
   /** 栅格跨度（默认 6，即 24 栅格下一行 4 列） */
   span?: number;
   /** 自定义渲染组件（当 type 为 'custom' 时） */

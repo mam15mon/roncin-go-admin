@@ -4,10 +4,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  clearOrderMasterDataCache,
-  getOrderPersonnelOptions,
-} from '@/features/orders/options';
+import { getOrderPersonnelOptions } from '@/features/orders/options';
 import { fetchOrderMasterData, searchOrderLocations } from './common';
 import { seaExportDefinition } from './order-kinds/sea-export/definition';
 import { useOrderCreateOptions } from './use-order-create-options';
@@ -24,7 +21,6 @@ vi.mock('@/app/AppProvider', () => ({
 }));
 
 vi.mock('@/features/orders/options', () => ({
-  clearOrderMasterDataCache: vi.fn(),
   getOrderPersonnelOptions: vi.fn(),
 }));
 
@@ -40,7 +36,6 @@ vi.mock('./common', async (importOriginal) => {
 const mockFetchMasterData = vi.mocked(fetchOrderMasterData);
 const mockSearchLocations = vi.mocked(searchOrderLocations);
 const mockGetPersonnel = vi.mocked(getOrderPersonnelOptions);
-const mockClearCache = vi.mocked(clearOrderMasterDataCache);
 
 const seaConfig = seaExportDefinition;
 
@@ -167,7 +162,7 @@ describe('useOrderCreateOptions', () => {
     expect(result.current.error?.message).toBe('数据字典加载超时');
   });
 
-  it('重试操作先失效当前组织缓存，再重新发起请求并成功恢复', async () => {
+  it('重试通过当前查询重新发起请求并成功恢复', async () => {
     mockFetchMasterData
       .mockRejectedValueOnce(new Error('主数据拉取失败'))
       .mockResolvedValueOnce(mockMasterDataSuccess);
@@ -184,9 +179,9 @@ describe('useOrderCreateOptions', () => {
       result.current.retry();
     });
 
-    expect(mockClearCache).toHaveBeenCalledWith('org-1');
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.error).toBeNull();
+    expect(mockFetchMasterData).toHaveBeenCalledTimes(2);
   });
 
   it('组织切换竞态：组织 A 请求慢，组织 B 请求快，组织 A 的迟到响应不得覆盖组织 B 的状态', async () => {

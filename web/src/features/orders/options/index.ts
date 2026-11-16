@@ -1,6 +1,5 @@
-/** 订单候选缓存能力公开入口：字典、首批港口/机场与人员候选的组织级在途缓存。 */
+/** 订单候选取数能力公开入口，结果生命周期由当前工作区 Query 管理。 */
 export {
-  clearOrderMasterDataCache,
   getCachedAirports,
   getCachedPorts,
   getMasterDataOptions,

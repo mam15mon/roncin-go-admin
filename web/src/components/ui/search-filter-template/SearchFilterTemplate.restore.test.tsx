@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { SearchFilterTemplate } from './SearchFilterTemplate';
 
@@ -7,7 +8,7 @@ describe('恢复查询的搜索表单', () => {
     const onCommit = vi.fn();
     const onSearch = vi.fn();
     const onReset = vi.fn();
-    render(
+    renderWithClient(
       <SearchFilterTemplate
         initialValues={{ keyword: '已提交', partnerId: 'outside-first-page' }}
         initialLabels={{ partnerId: '恢复客户' }}

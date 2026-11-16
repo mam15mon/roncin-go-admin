@@ -3,17 +3,18 @@ import {
   CloseCircleOutlined,
   DollarOutlined,
 } from '@ant-design/icons';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { App, Badge, Space, Tag } from 'antd';
-import React, { useCallback, useEffect, useState } from 'react';
+import React from 'react';
 import { useAccess } from '@/app/access';
 import { MasterDataTemplate } from '@/components/ui/master-data-template/MasterDataTemplate';
 import type { BaseMasterDataItem } from '@/components/ui/master-data-template/types';
-import { getCurrencies } from '@/features/master-data/currencies';
 import {
-  masterDataServiceListCurrencies,
-  masterDataServiceSetCurrencyEnabled,
-} from '@/services/roncin/masterDataService';
-import { isWriteResponse, unwrapList } from '@/utils/api';
+  CURRENCY_QUERY_PREFIX,
+  currencyQueryOptions,
+} from '@/features/master-data/currencies';
+import { masterDataServiceSetCurrencyEnabled } from '@/services/roncin/masterDataService';
+import { isWriteResponse } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 
 export interface CurrencyItem extends BaseMasterDataItem {
@@ -22,39 +23,39 @@ export interface CurrencyItem extends BaseMasterDataItem {
   isBaseCurrency?: boolean;
 }
 
+const mapCurrencies = (currencies: API.Currency[]): CurrencyItem[] =>
+  currencies.map((item) => ({
+    id: item.id || item.code || '',
+    code: item.code || '',
+    name: item.name || '',
+    symbol: item.symbol || '',
+    minorUnit: item.minorUnit ?? 2,
+    enabled: Boolean(item.enabled),
+    isBaseCurrency: Boolean(item.isBaseCurrency),
+    updatedAt: item.updatedAt,
+  }));
+
 export default function CurrenciesPanel() {
   const { message } = App.useApp();
   const access = useAccess();
-  const [data, setData] = useState<CurrencyItem[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchCurrencies = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await masterDataServiceListCurrencies({
-        enabledOnly: false,
-      });
-      const items: CurrencyItem[] = unwrapList(response).map((item) => ({
-        id: item.id || item.code || '',
-        code: item.code || '',
-        name: item.name || '',
-        symbol: item.symbol || '',
-        minorUnit: item.minorUnit ?? 2,
-        enabled: Boolean(item.enabled),
-        isBaseCurrency: Boolean(item.isBaseCurrency),
-        updatedAt: item.updatedAt,
-      }));
-      setData(items);
-    } catch (err) {
-      message.error(getErrorMessage(err, '货币主数据加载失败'));
-    } finally {
-      setLoading(false);
-    }
-  }, [message]);
-
-  useEffect(() => {
-    fetchCurrencies();
-  }, [fetchCurrencies]);
+  const client = useQueryClient();
+  const query = useQuery({
+    ...currencyQueryOptions(false),
+    select: mapCurrencies,
+  });
+  const data = query.data ?? [];
+  const toggle = useMutation({
+    mutationFn: (record: CurrencyItem) =>
+      masterDataServiceSetCurrencyEnabled(
+        { code: record.code },
+        { code: record.code, enabled: !record.enabled },
+        { skipErrorHandler: true },
+      ),
+    meta: { silent: true },
+  });
+  const fetchCurrencies = async () => {
+    await query.refetch();
+  };
 
   const handleToggleActive = async (record: CurrencyItem): Promise<void> => {
     if (record.isBaseCurrency && record.enabled) {
@@ -62,16 +63,17 @@ export default function CurrenciesPanel() {
       return;
     }
     try {
-      const writeResponse1 = await masterDataServiceSetCurrencyEnabled(
-        { code: record.code },
-        { code: record.code, enabled: !record.enabled },
-      );
+      const writeResponse1 = await toggle.mutateAsync(record);
       if (!isWriteResponse(writeResponse1, true)) return;
       message.success(
         `已${record.enabled ? '停用' : '启用'}货币【${record.code}】`,
       );
-      await fetchCurrencies();
-      getCurrencies(true);
+      await Promise.all([
+        client.invalidateQueries({ queryKey: CURRENCY_QUERY_PREFIX }),
+        client.invalidateQueries({
+          predicate: (cached) => cached.meta?.currencyDependent === true,
+        }),
+      ]);
     } catch (err) {
       message.error(getErrorMessage(err, '操作失败'));
     }
@@ -88,7 +90,7 @@ export default function CurrenciesPanel() {
       icon={<DollarOutlined />}
       codeLabel="ISO 4217 代码"
       items={data}
-      loading={loading}
+      loading={query.isFetching}
       onRefresh={fetchCurrencies}
       onToggleActive={
         access.canUpdateMasterDataCurrencies ? handleToggleActive : undefined

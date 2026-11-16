@@ -1,2 +1,8 @@
 /** 币种主数据候选能力公开入口。 */
-export { getCurrencies, getCurrencyOptions } from './currencies';
+export {
+  CURRENCY_QUERY_PREFIX,
+  currencyOptionsQueryOptions,
+  currencyQueryOptions,
+  getCurrencies,
+  getCurrencyOptions,
+} from './currencies';

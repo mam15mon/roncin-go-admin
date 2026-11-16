@@ -24,15 +24,11 @@ import { useRouteLeaveGuard } from '@/components/layout/useRouteLeaveGuard';
 import { bindRouter, history } from '@/router/history';
 import { AvatarDropdown } from './AvatarDropdown';
 
-const { logout, clearCache } = vi.hoisted(() => ({
+const { logout } = vi.hoisted(() => ({
   logout: vi.fn<() => Promise<API.LogoutResponse | undefined>>(),
-  clearCache: vi.fn(),
 }));
 vi.mock('@/services/roncin/authService', () => ({
   authServiceLogout: logout,
-}));
-vi.mock('@/features/orders/options', () => ({
-  clearOrderMasterDataCache: clearCache,
 }));
 vi.mock('@/features/auth/passkeys', () => ({
   PasskeyManagerModal: () => null,
@@ -132,7 +128,6 @@ async function requestLogout() {
 
 beforeEach(() => {
   logout.mockReset().mockResolvedValue({ success: true });
-  clearCache.mockReset();
 });
 afterEach(() => {
   cleanup();
@@ -150,7 +145,7 @@ describe('主动退出登录的未保存保护', () => {
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(logout).not.toHaveBeenCalled();
-    expect(clearCache).not.toHaveBeenCalled();
+
     expect(screen.getByTestId('current-user')).toHaveTextContent('user-a');
     expect(screen.getByLabelText('未保存订单输入')).toHaveValue('未保存编号');
     expect(getAnyDirtyTabKey()).toBe('/orders/sea-export');
@@ -165,7 +160,7 @@ describe('主动退出登录的未保存保护', () => {
     expect(await screen.findByText('登录页面')).toBeInTheDocument();
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(logout).toHaveBeenCalledOnce();
-    expect(clearCache).toHaveBeenCalledOnce();
+
     expect(replace).toHaveBeenCalledExactlyOnceWith('/user/login');
     expect(screen.getByTestId('current-user')).toHaveTextContent('anonymous');
     expect(getAnyDirtyTabKey()).toBeUndefined();
@@ -189,7 +184,7 @@ describe('主动退出登录的未保存保护', () => {
 
       await waitFor(() => expect(logout).toHaveBeenCalledOnce());
       await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-      expect(clearCache).not.toHaveBeenCalled();
+
       expect(screen.getByTestId('current-user')).toHaveTextContent('user-a');
       expect(router?.state.location.pathname).toBe(
         '/orders/sea-export/order-a',

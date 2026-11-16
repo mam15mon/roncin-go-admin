@@ -16,7 +16,7 @@ import {
   Space,
   Tag,
 } from 'antd';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { formatDate } from '@/utils/format';
 import { standardDateRangePresets } from '../date-presets';
 import { RemoteSearchSelect, SearchableSelect } from '../searchable-select';
@@ -135,6 +135,7 @@ export function SearchFilterTemplate<
   children,
   form: externalForm,
 }: SearchFilterTemplateProps<TValues>) {
+  const requestScope = useId();
   const [internalForm] = Form.useForm();
   const form = externalForm || internalForm;
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
@@ -382,6 +383,15 @@ export function SearchFilterTemplate<
         if (request) {
           return (
             <RemoteSearchSelect
+              queryKey={[
+                'search-filter',
+                'options',
+                {
+                  scope: requestScope,
+                  field: item.name,
+                  dependencies: item.requestKey,
+                },
+              ]}
               selectedOptions={
                 (typeof initialValues?.[item.name] === 'string' ||
                   typeof initialValues?.[item.name] === 'number') &&

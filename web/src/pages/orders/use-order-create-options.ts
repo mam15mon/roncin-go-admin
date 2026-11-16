@@ -1,10 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useRef } from 'react';
 import { useInitialState } from '@/app/AppProvider';
-import {
-  clearOrderMasterDataCache,
-  getOrderPersonnelOptions,
-} from '@/features/orders/options';
+import { getOrderPersonnelOptions } from '@/features/orders/options';
 import { getErrorMessage } from '@/utils/errorMessage';
 import {
   fetchOrderMasterData,
@@ -47,6 +44,7 @@ export function useOrderCreateOptions(
       { organizationId, transportMode, businessType },
     ],
     enabled: queryEnabled,
+    meta: { currencyDependent: true },
     queryFn: async (): Promise<OrderCreateOptionsBundle> => {
       if (!organizationId || !definition) {
         // enabled 已保证身份齐备；此处仅为类型收窄兜底。
@@ -133,8 +131,6 @@ export function useOrderCreateOptions(
     if (!organizationId) {
       return Promise.resolve();
     }
-    // 与旧行为一致：重试前先失效当前组织的主数据缓存。
-    clearOrderMasterDataCache(organizationId);
     // refetch 的 Promise 只以结果对象 resolve、从不 reject，
     // 与旧实现「吸收请求错误并正常 resolve」的语义一致。
     return refetch().then(() => undefined);

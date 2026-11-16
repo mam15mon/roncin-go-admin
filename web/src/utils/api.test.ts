@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { isWriteResponse, toTableRequest, unwrapList, unwrapPage } from './api';
+import {
+  ensureListResponse,
+  isWriteResponse,
+  toTableRequest,
+  unwrapList,
+  unwrapPage,
+} from './api';
 
 describe('API 响应解包', () => {
   it('将缺失的列表数据解包为空数组', () => {
@@ -37,5 +43,29 @@ describe('API 响应解包', () => {
     );
     expect(isWriteResponse({ data: { id: 'id' } }, true)).toBe(true);
     expect(isWriteResponse({ data: {} }, true)).toBe(false);
+  });
+});
+
+describe('列表响应信封校验', () => {
+  it.each([
+    undefined,
+    {},
+    { success: false, data: [] },
+    { success: true, data: null },
+    { success: true, data: {} },
+  ])('拒绝失败或非法响应 %j', (response) => {
+    expect(() =>
+      ensureListResponse(
+        response as Parameters<typeof ensureListResponse>[0],
+        '加载失败',
+      ),
+    ).toThrow('加载失败');
+  });
+  it('成功省略 repeated 保留合法空值，并保留分页元数据', () => {
+    const response = { success: true, total: 0 };
+    expect(ensureListResponse(response, '失败')).toBe(response);
+    expect(unwrapList(ensureListResponse(response, '失败'))).toEqual([]);
+    const page = { data: [{ id: 'one' }], total: 9 };
+    expect(unwrapPage(ensureListResponse(page, '失败')).total).toBe(9);
   });
 });

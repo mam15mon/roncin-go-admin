@@ -25,7 +25,6 @@ import {
 } from '@/components/layout/workspaceMenus';
 import OrganizationSwitcher from '@/components/OrganizationSwitcher';
 import { AvatarDropdown } from '@/components/RightContent/AvatarDropdown';
-import { clearOrderMasterDataCache } from '@/features/orders/options';
 import { buildMenuData } from '@/router/adaptRoutes';
 import { history } from '@/router/history';
 import { RouteErrorPage } from '@/router/RouteErrorPage';
@@ -135,7 +134,6 @@ export function AppLayout() {
       pendingSwitchRef.current = pending;
       // API 已成功轮转会话：先同步卸载旧详情及其请求/缓存，再发布新身份。
       flushSync(() => setWorkspaceSuspended(true));
-      clearOrderMasterDataCache();
       flushSync(() => {
         setInitialState((state) => ({ ...state, currentUser: user }));
       });

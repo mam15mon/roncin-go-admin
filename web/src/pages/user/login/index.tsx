@@ -14,7 +14,6 @@ import {
   usePasskeyEnrollment,
   usePasskeyLogin,
 } from '@/features/auth/passkeys';
-import { clearOrderMasterDataCache } from '@/features/orders/options';
 import { getRequestErrorMessage } from '@/requestErrorConfig';
 import { history } from '@/router/history';
 import { authServiceLogin } from '@/services/roncin/authService';
@@ -191,7 +190,6 @@ export default function Login() {
           initialMobile={form.getFieldValue('username')}
           onClose={() => setResetPasswordOpen(false)}
           onSuccess={(mobile) => {
-            clearOrderMasterDataCache();
             queryClient.clear();
             sessionStorage.removeItem('dingtalk_login_redirect');
             setInitialState((state) => ({ ...state, currentUser: undefined }));
