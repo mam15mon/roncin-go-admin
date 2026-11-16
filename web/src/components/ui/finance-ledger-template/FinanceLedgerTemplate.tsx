@@ -389,6 +389,7 @@ export function FinanceLedgerTemplate<
             density: true,
             setting: false,
           }}
+          tableAlertRender={false}
           rowSelection={
             rowSelection === false
               ? undefined

@@ -1,14 +1,12 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { paginationSizeChanger } from '@root/config/pagination';
-import { Alert, Card, Typography } from 'antd';
+import { Alert, Card } from 'antd';
 import React from 'react';
 import { ResponsiveProTable as ProTable } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import { settlementServiceListBillCreationCandidates } from '@/services/roncin/settlementService';
 import { toTableRequest } from '@/utils/api';
 import { selectionFeeColumns } from './billWorkbenchFeeColumns';
-
-const { Text } = Typography;
 
 type BillCandidateSelectionStepProps = {
   fixedSelection: boolean;
@@ -83,9 +81,7 @@ export default function BillCandidateSelectionStep({
           };
         },
       }}
-      tableAlertRender={({ selectedRowKeys }) => (
-        <Text>已选择 {selectedRowKeys.length} 笔未建账费用</Text>
-      )}
+      tableAlertRender={false}
       request={async (params) => {
         if (!canOperate || !organizationId)
           return { data: [], success: false, total: 0 };

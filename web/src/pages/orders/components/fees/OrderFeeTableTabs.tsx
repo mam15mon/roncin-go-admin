@@ -1867,9 +1867,7 @@ export default function OrderFeeTableTabs({
                   !record.version),
             }),
           }}
-          tableAlertRender={({ selectedRowKeys }) =>
-            `已选择 ${selectedRowKeys.length} 笔${label}费用`
-          }
+          tableAlertRender={false}
           request={() => loadSide(direction)}
           columns={
             getTableColumns

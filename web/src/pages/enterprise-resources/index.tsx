@@ -672,6 +672,7 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
         columns={columnSettings.columns}
         search={{ labelWidth: 'auto' }}
         cardProps={{ style: { borderRadius: 8, border: '1px solid #f0f0f0' } }}
+        tableAlertRender={false}
         rowSelection={{
           selectedRowKeys: selectedKeys,
           preserveSelectedRowKeys: true,

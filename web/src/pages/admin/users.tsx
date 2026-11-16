@@ -213,6 +213,7 @@ export default function UsersPanel() {
           if (!response) throw new Error('读取人员名单失败');
           return toTableRequest(response);
         }}
+        tableAlertRender={false}
         rowSelection={
           access.canAuthorizeDingTalkUsers && listTab === 'pending'
             ? {

@@ -465,6 +465,7 @@ function RegistrationSession({
           options={false}
           size="small"
           pagination={{ defaultPageSize: 20 }}
+          tableAlertRender={false}
           rowSelection={{
             selectedRowKeys: bills.map((bill) => bill.id ?? ''),
             preserveSelectedRowKeys: true,

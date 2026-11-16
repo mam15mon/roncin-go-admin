@@ -85,6 +85,8 @@ describe('财务台账跨页勾选', () => {
     const { request } = setup(true);
     await screen.findByText('明细1');
     select('明细1');
+    expect(screen.queryByText('取消选择')).not.toBeInTheDocument();
+    expect(document.querySelector('.ant-pro-table-alert')).toBeNull();
     fireEvent.change(screen.getByRole('textbox'), {
       target: { value: '新条件' },
     });
