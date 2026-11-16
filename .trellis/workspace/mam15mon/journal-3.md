@@ -1829,3 +1829,36 @@ AI真实类型权限、DIRECT/HOUSE、独立重量与ETA费用、审核恢复和
 ### Status
 
 [OK] **Completed**
+
+
+## Session 212: 海空进出口六组交付与最终CSV财务验收
+<!-- trellis-session: v=2 fp=da12735a3d4bf418 -->
+
+**Date**: 2026-11-16
+**Task**: 海空进出口六组交付与最终CSV财务验收
+**Branch**: `codex/hgj-business-alignment`
+
+### Summary
+
+完成四类订单完整筛选CSV、横切读取与最终真实财务全链，六组及父任务全部验收归档；四类205行文件、生产同域、单类角色/两公司隔离、危险字段真实HTTP与清理通过。
+
+### Main Changes
+
+- 完整无分页同快照导出、只读箱型投影、四类统一导航/工作台/通知边界，中文字符与航空清空修复
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `8e4c4616` | feat: 补齐四类订单横切与完整筛选CSV导出 |
+| `a0326041` | docs: 汇总海空进出口完整交付与最终验收 |
+
+### Testing
+
+- [OK] 最终check:fast exit0共246.2秒，527文件2855项通过，既有11跳过单列；build exit0，1139生成幂等零差异及真实PG无跳过
+- [OK] 一次性库runner exit0，浏览器1 passed1.3分钟；四类8账单100/40 completed、各提成6支付，4x205和生产205及只读206/52列文件独立解析、DB/role/端口清理全部通过
+- [OK] 全量新测试长尾22.69秒已等价拆分为两suite各3例5.40/13.14秒，定向/tsc/Biome通过且产品未变
+
+### Status
+
+[OK] **Completed**
