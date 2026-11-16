@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 216
+- **Total Sessions**: 217
 - **Last Active**: 2026-11-16
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~1976 | Active |
+| `journal-3.md` | ~1999 | Active |
 | `journal-2.md` | ~2003 | Archived |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 217 | 2026-11-16 | 空运 MAWB 同号主单判断对齐海运 | `ee7ecfbf`, `6562d2a1` | `main` |
 | 216 | 2026-11-16 | 空运订单新建与详情页排版对齐海运 | `16ca0e99`, `255083de` | `main` |
 | 215 | 2026-11-16 | 全站服务端状态迁移与请求生命周期收敛 | `dee1312a`, `28ad3458`, `4e5ab166`, `b541b59a`, `f9f87462`, `91ec95be`, `ee491086`, `ad0ade3e`, `a899e7a0`, `548a0b25` | `codex/global-server-state-migration` |
 | 214 | 2026-11-16 | 航空单证内部对齐海运 | `3bddf4c9`, `97870df5`, `199720c3` | `codex/order-pages-usability` |

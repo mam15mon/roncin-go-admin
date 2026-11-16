@@ -1974,3 +1974,26 @@ AI真实类型权限、DIRECT/HOUSE、独立重量与ETA费用、审核恢复和
 ### Status
 
 [OK] **Completed**
+
+
+## Session 217: 空运 MAWB 同号主单判断对齐海运
+<!-- trellis-session: v=2 fp=14fc4f23572d7f8f -->
+
+**Date**: 2026-11-16
+**Task**: 空运 MAWB 同号主单判断对齐海运
+**Branch**: `main`
+
+### Summary
+
+空运新建页取消新建/关联前置选择，输入 MAWB 后防抖精确核对同号主单，就地展示加入票数、资料差异采用、模式切换与不可关联原因并在保存前拦截；修复主单带入后下拉显示原始 ID；代理与单证模式、订舱号同行。REA 浏览器实测六种状态通过，定向测试通过。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `ee7ecfbf` | feat(web): 空运新建页输入 MAWB 自动核对同号主单 |
+| `6562d2a1` | fix(web): 空运主单带入回显名称并收紧首行排版 |
+
+### Status
+
+[OK] **Completed**
