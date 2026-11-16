@@ -10,10 +10,11 @@ import {
 } from '@ant-design/icons';
 import type { MenuDataItem } from '@ant-design/pro-components';
 import type { ComponentType, ReactNode } from 'react';
+import { useLayoutEffect } from 'react';
 import type { RouteObject } from 'react-router';
 import { Navigate, Outlet } from 'react-router';
 import umiRoutes from '../../config/routes';
-import { AppBootLoading } from '../app/AppBootLoading';
+import { dismissBootLoading } from '../app/bootLoading';
 import { AccessGuard } from './guard';
 import { RouteErrorPage } from './RouteErrorPage';
 import type { AccessState, UmiRoute } from './routeTypes';
@@ -101,19 +102,46 @@ export function buildRouterConfig(): RouteObject[] {
     (route.layout === false ? bare : shelled).push(toRoute(route));
   }
   return [
-    // HydrateFallback 只在首屏懒加载期间显示，复用启动画面保持与静态占位一致
-    ...bare.map((route) => ({ ...route, HydrateFallback: AppBootLoading })),
     {
-      // 布局壳懒加载，同时切断 router → AppLayout → history → router 的模块环
-      errorElement: <RouteErrorPage />,
-      HydrateFallback: AppBootLoading,
-      lazy: async () => {
-        const { AppLayout } = await import('../app/AppLayout');
-        return { Component: AppLayout };
-      },
-      children: shelled,
+      // 根路由：首屏懒加载期间不渲染任何占位（由 index.html 启动画面覆盖），
+      // 首个真实页面或错误页提交时在绘制前移除启动画面。
+      Component: BootRoute,
+      HydrateFallback: BootPending,
+      errorElement: <BootRouteError />,
+      children: [
+        ...bare,
+        {
+          // 布局壳懒加载，同时切断 router → AppLayout → history → router 的模块环
+          errorElement: <RouteErrorPage />,
+          lazy: async () => {
+            const { AppLayout } = await import('../app/AppLayout');
+            return { Component: AppLayout };
+          },
+          children: shelled,
+        },
+      ],
     },
   ];
+}
+
+function useDismissBootLoading() {
+  useLayoutEffect(() => {
+    dismissBootLoading();
+  }, []);
+}
+
+function BootRoute() {
+  useDismissBootLoading();
+  return <Outlet />;
+}
+
+function BootRouteError() {
+  useDismissBootLoading();
+  return <RouteErrorPage />;
+}
+
+function BootPending() {
+  return null;
 }
 
 // 菜单数据：同一份 routes.ts 产出 ProLayout route 树，按 access 过滤 +
