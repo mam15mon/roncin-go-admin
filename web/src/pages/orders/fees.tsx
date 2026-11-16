@@ -709,6 +709,7 @@ export default function OrderFeesPage() {
         feeBillTracking={feeBillTracking}
         reloadToken={feeReloadToken}
         onDraftChange={setHasFeeDraft}
+        onSavingChange={feeChangeNotice.setOwnWritePending}
         onFeeSaved={(feeContentVersion) => {
           refreshFeeBillTracking();
           if (feeContentVersion) {

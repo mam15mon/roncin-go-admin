@@ -168,3 +168,78 @@ it('本侧保存保留已发现的另一侧变动，显式刷新后才解除', a
   await advance(0);
   expect(result.current.changed).toBe(false);
 });
+
+describe('本人保存不误报外部变动', () => {
+  it('采纳保存版本后、重新探测返回前，旧探测结果不触发提示', async () => {
+    const { result } = mount();
+    await advance(0);
+    let resolveProbe!: (value: ReturnType<typeof lockState>) => void;
+    getLockState.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveProbe = resolve;
+      }),
+    );
+    await act(async () => {
+      await result.current.acceptOwnSave('6');
+    });
+    expect(result.current.changed).toBe(false);
+    await act(async () => {
+      resolveProbe(lockState('6'));
+    });
+    await advance(0);
+    expect(result.current.changed).toBe(false);
+  });
+
+  it('保存进行中的探测看到本人保存版本不提示，保存完成后基线为新版本', async () => {
+    const { result } = mount();
+    await advance(0);
+    act(() => result.current.setOwnWritePending(true));
+    getLockState.mockResolvedValue(lockState('6'));
+    await advance(15_000);
+    expect(result.current.changed).toBe(false);
+    await act(async () => {
+      await result.current.acceptOwnSave('6');
+    });
+    act(() => result.current.setOwnWritePending(false));
+    await advance(0);
+    expect(result.current.changed).toBe(false);
+    await advance(15_000);
+    expect(result.current.changed).toBe(false);
+
+    // 基线已是 6：之后他人改动仍正常提示。
+    getLockState.mockResolvedValue(lockState('7'));
+    await advance(15_000);
+    expect(result.current.changed).toBe(true);
+  });
+
+  it('保存进行中看到他人在本人之后的改动，采纳保存后仍提示', async () => {
+    const { result } = mount();
+    await advance(0);
+    act(() => result.current.setOwnWritePending(true));
+    getLockState.mockResolvedValue(lockState('7'));
+    await advance(15_000);
+    await act(async () => {
+      await result.current.acceptOwnSave('6');
+    });
+    act(() => result.current.setOwnWritePending(false));
+    await advance(0);
+    expect(result.current.changed).toBe(true);
+  });
+
+  it('保存前已提示的外部变动在保存期间与保存后持续提示', async () => {
+    const { result } = mount();
+    await advance(0);
+    getLockState.mockResolvedValue(lockState('6'));
+    await advance(15_000);
+    expect(result.current.changed).toBe(true);
+    act(() => result.current.setOwnWritePending(true));
+    expect(result.current.changed).toBe(true);
+    getLockState.mockResolvedValue(lockState('7'));
+    await act(async () => {
+      await result.current.acceptOwnSave('7');
+    });
+    act(() => result.current.setOwnWritePending(false));
+    await advance(0);
+    expect(result.current.changed).toBe(true);
+  });
+});

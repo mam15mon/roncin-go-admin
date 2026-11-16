@@ -228,6 +228,8 @@ interface OrderFeeTableTabsProps {
   feeBillTracking?: FeeBillTrackingView;
   /** 费用写入成功后的通知（页面据此刷新关联账单投影）。 */
   onFeeSaved?: (feeContentVersion?: string) => void;
+  /** 任一侧整表保存或批量删除进行中；父级据此暂停外部变动比较，避免把本人写入当成外部变动。 */
+  onSavingChange?: (saving: boolean) => void;
 }
 
 export default function OrderFeeTableTabs({
@@ -266,6 +268,7 @@ export default function OrderFeeTableTabs({
   columnSettingScope,
   feeBillTracking,
   onFeeSaved,
+  onSavingChange,
 }: OrderFeeTableTabsProps) {
   const { message } = App.useApp();
   const currentOrderIdRef = useRef(orderId);
@@ -303,6 +306,12 @@ export default function OrderFeeTableTabs({
   const [dirty, setDirty] = useState({ receivable: false, payable: false });
   const [saving, setSaving] = useState({ receivable: false, payable: false });
   const savingRef = useRef({ receivable: false, payable: false });
+  const anySaving = saving.receivable || saving.payable;
+  const onSavingChangeRef = useRef(onSavingChange);
+  onSavingChangeRef.current = onSavingChange;
+  useEffect(() => {
+    onSavingChangeRef.current?.(anySaving);
+  }, [anySaving]);
   const [rowErrors, setRowErrors] = useState<{
     receivable: FeeSaveRowError[];
     payable: FeeSaveRowError[];

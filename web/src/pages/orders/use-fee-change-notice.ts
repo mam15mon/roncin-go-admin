@@ -33,6 +33,10 @@ export const FEE_CHANGE_POLL_INTERVAL_MS = 15_000;
  * 费用页外部变动检测：前台每 15 秒读取一次轻量审核锁状态（含费用内容版本），
  * 切回页面立即检查，后台/隐藏不轮询。探测结果只用于判断是否变动，不回填输入，
  * 也不替换提交基线；本人保存、显式刷新后才同步检查参考点。检查失败保留已有提醒。
+ *
+ * 本人写入期间（setOwnWritePending）暂停比较：服务端已提交、响应尚未处理时的探测
+ * 会看到本人写入后的版本，不能当作外部变动。本人保存采纳新版本时，保存前留下的
+ * 旧探测结果同样不参与比较，直到下一次探测返回，避免横幅先出现再消失。
  */
 export function useFeeChangeNotice(options: {
   orderId?: string;
@@ -46,6 +50,12 @@ export function useFeeChangeNotice(options: {
   }>();
   // 单侧保存只刷新本侧，不能确认另一侧已探测到的变化已被用户采纳。
   const [unresolvedOrderId, setUnresolvedOrderId] = useState<string>();
+  // 比较闸门：pending 为本人写入进行中；staleProbe 为采纳本人保存时已过时的探测结果。
+  const [gate, setGate] = useState<{
+    orderId: string;
+    pending: boolean;
+    staleProbe?: FeeChangeMarker;
+  }>();
   const resumeRef = useRef<() => void>(() => undefined);
   const foreground = usePageForeground(() => resumeRef.current());
   const active = enabled && Boolean(orderId);
@@ -86,12 +96,35 @@ export function useFeeChangeNotice(options: {
   }, [orderId, probe]);
 
   const current = baseline?.orderId === orderId ? baseline : undefined;
+  const currentGate = gate?.orderId === orderId ? gate : undefined;
+  const comparableProbe =
+    probe !== undefined &&
+    !currentGate?.pending &&
+    probe !== currentGate?.staleProbe
+      ? probe
+      : undefined;
   const changed =
     active &&
     (unresolvedOrderId === orderId ||
       (current !== undefined &&
-        probe !== undefined &&
-        !sameMarker(current.marker, probe)));
+        comparableProbe !== undefined &&
+        !sameMarker(current.marker, comparableProbe)));
+  const latestRef = useRef({ changed, current, probe });
+  latestRef.current = { changed, current, probe };
+
+  /** 本人写入开始/结束：开始前已提示的变动转为待解除，进行中不比较新探测。 */
+  const setOwnWritePending = useCallback(
+    (pending: boolean) => {
+      if (!orderId) return;
+      if (pending && latestRef.current.changed) setUnresolvedOrderId(orderId);
+      setGate((prev) => ({
+        orderId,
+        pending,
+        staleProbe: prev?.orderId === orderId ? prev.staleProbe : undefined,
+      }));
+    },
+    [orderId],
+  );
 
   /** 显式刷新或合法正式动作后：以最新探测结果重新建立参考点。 */
   const rebaseline = useCallback(async () => {
@@ -108,17 +141,31 @@ export function useFeeChangeNotice(options: {
   const acceptOwnSave = useCallback(
     async (feeContentVersion: string) => {
       if (!orderId) return;
-      if (changed) setUnresolvedOrderId(orderId);
+      const {
+        changed: changedNow,
+        current: before,
+        probe: seen,
+      } = latestRef.current;
+      if (before) {
+        const next = { ...before.marker, feeContentVersion };
+        // 已看到的探测既不是保存前参考点、也不是本人保存结果时，才是外部变动。
+        if (seen && !sameMarker(seen, before.marker) && !sameMarker(seen, next))
+          setUnresolvedOrderId(orderId);
+        setBaseline({ orderId, marker: next });
+      } else if (changedNow) {
+        setUnresolvedOrderId(orderId);
+      }
+      // 同步更新参考点并屏蔽旧探测，等待重新探测期间不出现误报。
+      setGate((prev) => ({
+        orderId,
+        pending: prev?.orderId === orderId ? prev.pending : false,
+        staleProbe: seen,
+      }));
       await queryClient.cancelQueries({ queryKey });
-      setBaseline((prev) =>
-        prev?.orderId === orderId
-          ? { orderId, marker: { ...prev.marker, feeContentVersion } }
-          : prev,
-      );
       void refetch();
     },
-    [changed, orderId, queryClient, queryKey, refetch],
+    [orderId, queryClient, queryKey, refetch],
   );
 
-  return { changed, rebaseline, acceptOwnSave };
+  return { changed, rebaseline, acceptOwnSave, setOwnWritePending };
 }

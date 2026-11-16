@@ -5,8 +5,10 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
-import { beforeEach, describe, expect, it } from 'vitest';
+import type React from 'react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PAYABLE, RECEIVABLE } from './feeConstants';
+import type OrderFeeTableTabs from './OrderFeeTableTabs';
 import {
   listFees,
   makeFee,
@@ -46,7 +48,9 @@ const rowOf = (key: string) =>
 const noteInput = (key: string) =>
   within(rowOf(key)).getByPlaceholderText('备注（可选）');
 
-async function mountBoth() {
+async function mountBoth(
+  extra: Partial<React.ComponentProps<typeof OrderFeeTableTabs>> = {},
+) {
   listFees.mockResolvedValue({
     data: [
       wireFee('r1', RECEIVABLE),
@@ -54,7 +58,8 @@ async function mountBoth() {
       wireFee('p1', PAYABLE),
     ],
   } as never);
-  const { props } = makeProps('order-1');
+  const { props: base } = makeProps('order-1');
+  const props = { ...base, ...extra };
   await renderTabs(props);
   await waitFor(() => expect(rowOf('p1')).not.toBeNull());
   return props;
@@ -84,7 +89,10 @@ describe('OrderFeeTableTabs 整表保存', () => {
       data: [],
       feeContentVersion: '7',
     } as never);
-    const props = await mountBoth();
+    const onSavingChange = vi.fn();
+    const onFeeSaved = vi.fn();
+    const props = await mountBoth({ onSavingChange, onFeeSaved });
+    onSavingChange.mockClear();
     const loadsBefore = listFees.mock.calls.length;
     fireEvent.change(noteInput('r1'), { target: { value: '应收新备注' } });
     fireEvent.change(noteInput('p1'), { target: { value: '应付草稿' } });
@@ -112,6 +120,13 @@ describe('OrderFeeTableTabs 整表保存', () => {
     );
     expect(noteInput('p1')).toHaveValue('应付草稿');
     expect(props.onFeeSaved).toHaveBeenCalledWith('7');
+    // 写入进行中通知父级暂停变动比较；采纳新版本后才结束，期间不误报外部变动。
+    await waitFor(() =>
+      expect(onSavingChange.mock.calls).toEqual([[true], [false]]),
+    );
+    expect(onFeeSaved.mock.invocationCallOrder[0]).toBeLessThan(
+      onSavingChange.mock.invocationCallOrder[1],
+    );
   });
 
   it('保存期间只冻结本侧输入与新增操作，另一侧仍可继续编辑', async () => {
