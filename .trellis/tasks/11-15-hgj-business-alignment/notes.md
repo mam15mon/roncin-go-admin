@@ -224,3 +224,12 @@
 - 最终pnpm run build已实际exit0，Web27.12s+Go，/tmp/hgj-cross-build.log，exec6666完成；所有prod/generated此前冻结。现在pnpm run check:fast正在exec73566（/tmp/hgj-cross-check-fast.log），03:33:43左右启动；等待真实结果，若仅旧mock漂移test修不需build，prod变动才重build/必要重browser。不要无因重复已过PG/生成。
 - browser新整轮现已明确放行，agent sea_import_browser followup正在运行：RONCIN_ACCEPTANCE_WEB_PORT=8002 node /tmp/roncin-hgj-browser-acceptance/run.mjs。新schema randomDB/role/Go run+Vite，通知OSS关，8010/9010/8002 cleanup追踪，未知8001不动；不清开发库。准备脚本语法/Biome/list已过，不算业务PASS。会真实四类各业务/应收100应付40→workbench异常/进口服务2of5→完结/人工锁→建账→先收付确认核销→应收登记发票/应付免票→利润60的10%提成6确认/支付，报表业务日/交易日/账龄分别核验。四类各205匹配CSV+单类角色/两公司；Asia/Shanghai Intl独立核对UTC跨午夜+createdAt/ETD/ETA/本地文件名。新增AE/AI DG设→省略保持→显式清空HTTP每次精确version与读回；额外生产8010 SPA精确新dist/JS MIME/404+实际205CSV。
 - 下一步：持续收checkfast和browser进度/失败分类，必要仅协调确认prod缺陷，确保整轮API+浏览器+CSV+cleanup0全部PASS，Root独立看CSV/实图/facts。更新F01–45/V1–20/AC1–8实际矩阵，最后风险门禁/秘密扫描/diff并本组中文Conventional Commit，archive最后子+journal；父整体验收全齐才能归档父并update_goal complete。当前还未达成父目标，不结束。
+
+## 2026-11-16 03:51 UTC 最终收口
+
+- 最后产品提交8e4c4616完成，工作区在提交后干净。两侧独立复核、1139生成幂等、零SKIP PG、build27.12s、check:fast最终246.2s/527files2855tests通过；既有11skip不计通过。首轮旧通知负例已仅测试修正，再完整重跑通过。
+- 全量发现新页面测试22.69s，按硬约束等价拆成两个suite各3例，5.40/13.14s、tsc/Biome/diff通过；产品与生成不变，不重复完整门禁/build。
+- 最后browser第10轮/tmp/roncin-hgj-browser-uA0yfn整轮exit0，1passed1.3m/0SKIP；四类8账单100/40 completed、各提成6 PAID，业务日11/16交易11/17，DG三段HTTP、四类205+生产205+只读206/52列、两公司/单类角色、system示例拒经营全部通过，通知无发送。九次此前夹具/定位失败与清理报告完整记录。
+- Root独立读最终facts/6 CSV、核对全行序列/货值两位/数量精度/转义/公式/授权列，view生产SI及AI实图；清理独立证明DB0/role0/自己三端口free，未知8001不动。
+- 最后F04发现原“保留默认”研究描述与现行销售客服只读覆盖矛盾，trellis mem读回2026-10-24用户“前端两岗恒只读，且必填”，更正采纳表/旧spec措辞，保留已有产品/提成快照，不新开人员规则。
+- 父delivery.md及final-acceptance、field audit全部完成，无剩余批准内工作。接续只需docs工作提交、archive最后子与父、journal，再确认git clean并update_goal complete。不得把其他五类研究未知或批准延期范围误当当前需继续实施。

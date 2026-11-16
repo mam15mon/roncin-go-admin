@@ -1,6 +1,6 @@
 # 实施计划与交付依赖（最终复核稿）
 
-当前实施中。用户已批准最终方案，父任务和方向隔离子任务已 start；以下未勾选项仍待实际完成与验收。
+当前六组实现和实际验收已全部完成，工作代码按组提交。最终对应见`delivery.md`和`research/final-acceptance.md`，现收口归档。
 
 ## 规划完成情况
 
@@ -22,27 +22,27 @@
 | 海运进口 | `.trellis/tasks/archive/2026-11/11-15-hgj-sea-import` | 身份隔离 | SI真实单证/箱货/费用、固定进口服务与派生摘要 |
 | 空运进口 | `.trellis/tasks/archive/2026-11/11-15-hgj-air-import` | 航空内容/直单、海运进口服务 | AI双模式、货物重量/ETA及服务闭环 |
 | 航空PDF | `.trellis/tasks/archive/2026-11/11-15-hgj-air-waybill-pdf` | 航空内容/直单、空运进口 | 主分单制作、保存版本预览下载打印、完整分页 |
-| 横切/CSV/整体验收 | `.trellis/tasks/11-15-hgj-cross-module-acceptance` | 前五组全部 | 工作台/通知/台账/报表/完整CSV和四类整体验收 |
+| 横切/CSV/整体验收 | `.trellis/tasks/archive/2026-11/11-15-hgj-cross-module-acceptance` | 前五组全部 | 工作台/通知/台账/报表/完整CSV和四类整体验收 |
 
 推荐依次执行，迁移与生成物按组串行整合；可以独立的只读调研/检查才并行。每个子任务已有prd/design/implement和非空JSONL，依赖关系不能只由树形位置推断。
 
 ## 每组执行
 
-- [ ] 核对前置验收和Git状态，使用Trellis实现代理，明确文件责任并注入真实上下文。
-- [ ] 修改Proto/Ent/领域源，生成正式迁移并审阅；实现service/biz/data及前端调用/映射/交互。
-- [ ] 先实现功能，再按风险补测试；必要生成：make -C server api、pnpm run generate:web-client、Manifest变化时generate:permission-keys，Ent/Wire按源入口。
-- [ ] 运行相关Go及有序正式迁移集成测试；前端定向Vitest、修改文件Biome、必要tsc；git diff --check。
-- [ ] 派检查代理复核合同、拒绝/越权/并发/回滚及相邻路径，修复后本组Conventional Commit。
-- [ ] 将实际结果、未跑/跳过原因及剩余问题回填父验收，不以测试文件或SKIP当通过。
+- [x] 核对前置验收和Git状态，使用Trellis实现代理，明确文件责任并注入真实上下文。
+- [x] 修改Proto/Ent/领域源，生成正式迁移并审阅；实现service/biz/data及前端调用/映射/交互。
+- [x] 先实现功能，再按风险补测试；必要生成：make -C server api、pnpm run generate:web-client、Manifest变化时generate:permission-keys，Ent/Wire按源入口。
+- [x] 运行相关Go及有序正式迁移集成测试；前端定向Vitest、修改文件Biome、必要tsc；git diff --check。
+- [x] 派检查代理复核合同、拒绝/越权/并发/回滚及相邻路径，修复后本组Conventional Commit。
+- [x] 将实际结果、未跑/跳过原因及剩余问题回填父验收，不以测试文件或SKIP当通过。
 
 ## 最终验收
 
-- [ ] 按字段F01–F45及V1–V20逐项绑定实际证据；四类各一条业务与适用财务链，AE/AI双模式全覆盖。
-- [ ] 两公司/角色、同号跨方向、直接ID越权、锁/版本/并发/原子回滚、正式迁移保留数据。
-- [ ] 主分AWB和适用海运输出的真实PDF，长文/多行/多页、中文、金额/比例/日期和同一Blob一致。
-- [ ] CSV超过200行完整结果、筛选/排序/权限/行数与输出格式一致，禁止分页拼接或截页。
-- [ ] pnpm run check:fast；PDF生产路由/字体/按需入口变更运行pnpm run build及同域静态路径验证。
-- [ ] 更新规范和生成物、提交最终验收记录，再按父AC1–AC8完成审计；子任务全部完成才能归档父任务。
+- [x] 按字段F01–F45及V1–V20逐项绑定实际证据；四类各一条业务与适用财务链，AE/AI双模式全覆盖。
+- [x] 两公司/角色、同号跨方向、直接ID越权、锁/版本/并发/原子回滚、正式迁移保留数据。
+- [x] 主分AWB和适用海运输出的真实PDF，长文/多行/多页、中文、金额/比例/日期和同一Blob一致。
+- [x] CSV超过200行完整结果、筛选/排序/权限/行数与输出格式一致，禁止分页拼接或截页。
+- [x] pnpm run check:fast；PDF生产路由/字体/按需入口变更运行pnpm run build及同域静态路径验证。
+- [x] 更新规范和生成物、提交最终验收记录，再按父AC1–AC8完成审计；子任务全部完成才能归档父任务。
 
 ## 边界与回退
 
