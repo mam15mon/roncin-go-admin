@@ -466,6 +466,21 @@ export default function OrderFeeTableTabs({
     return result?.orderId === orderId ? result.items : [];
   };
 
+  /** 与保存使用相同的字段比较，改回原值后恢复无改动状态。 */
+  const refreshDirty = (direction: number) => {
+    const form = formRefOf(direction).current;
+    const changed =
+      draftRowsRef.current[direction].size > 0 ||
+      getDirectionItems(direction).some(
+        (row) =>
+          row.id &&
+          row.canEdit === true &&
+          feeRowChanged({ ...row, ...form?.getFieldValue([row.id]) }, row),
+      );
+    if (changed) markDirty(direction);
+    else clearDirty(direction);
+  };
+
   /** 由选中 ID 解析可执行批量操作的目标行：仅已保存且带版本的行。 */
   const getSelectedRows = (direction: number): API.OrderFee[] => {
     const selectedIds = new Set(
@@ -1785,7 +1800,7 @@ export default function OrderFeeTableTabs({
               type="primary"
               icon={<SaveOutlined />}
               loading={saving[side]}
-              disabled={rowWritesLocked}
+              disabled={rowWritesLocked || !dirty[side]}
               onClick={() => void handleSaveSide(direction)}
             >
               保存{label}费用
@@ -1817,7 +1832,8 @@ export default function OrderFeeTableTabs({
               disabled: saving[side],
               // EditableProTable.onValuesChange 内部防抖 64ms；用字段事件同步保护紧接着的组织切换。
               onFieldsChange: (fields) => {
-                if (fields.some((field) => field.touched)) markDirty(direction);
+                if (fields.some((field) => field.touched))
+                  refreshDirty(direction);
               },
             },
             actionRender: () => [],

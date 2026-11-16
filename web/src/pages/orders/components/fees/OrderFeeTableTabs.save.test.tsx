@@ -160,7 +160,7 @@ describe('OrderFeeTableTabs 整表保存', () => {
   it('没有改动时不发请求', async () => {
     await mountBoth();
     await clickSave('应收');
-    expect(await screen.findByText('本侧费用没有需要保存的修改')).toBeVisible();
+    expect(screen.getByRole('button', { name: /保存应收费用/ })).toBeDisabled();
     expect(saveFees).not.toHaveBeenCalled();
   });
 

@@ -126,6 +126,16 @@ it('常开编辑：单纯进入不脏，真实输入同步标脏；保存一侧�
     await within(payableRow).findByPlaceholderText('备注（可选）');
   // 所有可编辑行进入输入态本身不算修改。
   expect(getAnyDirtyTabKey()).toBeUndefined();
+  const receivableSave = screen.getByRole('button', { name: /保存应收费用/ });
+  const payableSave = screen.getByRole('button', { name: /保存应付费用/ });
+  expect(receivableSave).toBeDisabled();
+  expect(payableSave).toBeDisabled();
+  fireEvent.change(receivableInput, { target: { value: '临时修改' } });
+  expect(receivableSave).toBeEnabled();
+  expect(payableSave).toBeDisabled();
+  fireEvent.change(receivableInput, { target: { value: '应收测试费' } });
+  expect(receivableSave).toBeDisabled();
+  expect(getAnyDirtyTabKey()).toBeUndefined();
   fireEvent.change(receivableInput, { target: { value: '应收未保存' } });
   expect(getAnyDirtyTabKey()).toBe('/orders/sea-export/order-1/fees');
   fireEvent.change(payableInput, { target: { value: '应付未保存' } });
@@ -150,6 +160,7 @@ it('常开编辑：单纯进入不脏，真实输入同步标脏；保存一侧�
   });
   await waitFor(() => expect(saveFees).toHaveBeenCalledOnce());
   expect(payableInput).toHaveValue('应付未保存');
+  expect(payableSave).toBeEnabled();
   expect(getAnyDirtyTabKey()).toBe('/orders/sea-export/order-1/fees');
 
   // 保存成功：只清理应付侧，应收未保存输入仍在并继续受保护。
@@ -166,6 +177,8 @@ it('常开编辑：单纯进入不脏，真实输入同步标脏；保存一侧�
     expect(listFees.mock.calls.length).toBeGreaterThanOrEqual(3),
   );
   expect(receivableInput).toHaveValue('应收未保存');
+  expect(receivableSave).toBeEnabled();
+  expect(payableSave).toBeDisabled();
   expect(getAnyDirtyTabKey()).toBe('/orders/sea-export/order-1/fees');
   expect(saveFees.mock.calls[1][1]).toMatchObject({
     direction: PAYABLE,
@@ -182,6 +195,8 @@ it('常开编辑：单纯进入不脏，真实输入同步标脏；保存一侧�
     fireEvent.click(screen.getByRole('button', { name: /保存应收费用/ }));
   });
   await waitFor(() => expect(getAnyDirtyTabKey()).toBeUndefined());
+  expect(receivableSave).toBeDisabled();
+  expect(payableSave).toBeDisabled();
 });
 
 it('编辑后被外部审核锁定仍保留离开保护，不能因变只读丢失草稿提示', async () => {
