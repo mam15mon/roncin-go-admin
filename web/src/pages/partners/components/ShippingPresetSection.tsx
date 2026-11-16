@@ -15,7 +15,9 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  Alert,
   App,
   Button,
   Card,
@@ -30,7 +32,7 @@ import {
   Tag,
   Typography,
 } from 'antd';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { AsyncPopconfirm, GuardedModalForm } from '@/components/ui';
 import { PartnerShippingPresetType } from '@/enums.generated';
 import {
@@ -38,7 +40,7 @@ import {
   partnerServiceListPartnerShippingPresets,
   partnerServiceUpdatePartnerShippingPreset,
 } from '@/services/roncin/partnerService';
-import { isWriteResponse, unwrapList } from '@/utils/api';
+import { ensureListResponse, isWriteResponse, unwrapList } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 
 const { Text, Paragraph } = Typography;
@@ -124,8 +126,7 @@ export default function ShippingPresetSection({
   canUpdate = true,
 }: ShippingPresetSectionProps) {
   const { message } = App.useApp();
-  const [loading, setLoading] = useState(false);
-  const [presets, setPresets] = useState<API.PartnerShippingPreset[]>([]);
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<string>('all');
   const [modalOpen, setModalOpen] = useState(false);
   const [currentType, setCurrentType] = useState<number>(
@@ -136,22 +137,25 @@ export default function ShippingPresetSection({
   >(undefined);
   const [form] = Form.useForm();
 
-  const fetchPresets = async () => {
-    if (!partnerId) return;
-    setLoading(true);
-    try {
-      const res = await partnerServiceListPartnerShippingPresets({ partnerId });
-      setPresets(unwrapList(res));
-    } catch {
-      message.error('加载单证预设失败');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchPresets();
-  }, [partnerId]);
+  const presetsQuery = useQuery({
+    queryKey: ['partners', 'shipping-presets', { partnerId }],
+    enabled: Boolean(partnerId),
+    meta: { silent: true },
+    queryFn: async ({ signal }) => {
+      if (!partnerId) throw new Error('缺少往来单位标识');
+      const response = await partnerServiceListPartnerShippingPresets(
+        { partnerId },
+        { signal, skipErrorHandler: true },
+      );
+      return unwrapList(ensureListResponse(response, '加载单证预设失败'));
+    },
+  });
+  const presets = presetsQuery.data ?? [];
+  const loading = presetsQuery.isFetching;
+  const refreshPresets = () =>
+    queryClient.invalidateQueries({
+      queryKey: ['partners', 'shipping-presets'],
+    });
 
   const handleOpenAdd = (type: number) => {
     if (!partnerId) {
@@ -224,7 +228,7 @@ export default function ShippingPresetSection({
       );
       if (!isWriteResponse(writeResponse1, true)) return false;
       message.success('预设信息已停用并移出列表');
-      fetchPresets();
+      void refreshPresets();
     } catch {
       message.error('操作失败');
       return false;
@@ -286,7 +290,7 @@ export default function ShippingPresetSection({
         message.success('常用单证预设已添加');
       }
       setModalOpen(false);
-      fetchPresets();
+      void refreshPresets();
       return true;
     } catch (err) {
       message.error(getErrorMessage(err, '保存失败'));
@@ -344,6 +348,17 @@ export default function ShippingPresetSection({
 
   return (
     <div>
+      {presetsQuery.isError && (
+        <Alert
+          type="error"
+          showIcon
+          title="加载单证预设失败"
+          description={getErrorMessage(presetsQuery.error, '请稍后重试')}
+          action={
+            <Button onClick={() => void presetsQuery.refetch()}>重试</Button>
+          }
+        />
+      )}
       {/* Preset List / Card View with Tabs & Right-Aligned Add Action */}
       <Spin spinning={loading}>
         <Tabs
@@ -360,7 +375,7 @@ export default function ShippingPresetSection({
           ]}
         />
 
-        {filteredPresets.length === 0 ? (
+        {filteredPresets.length === 0 && !presetsQuery.isError && !loading ? (
           <Empty
             image={Empty.PRESENTED_IMAGE_SIMPLE}
             description="暂无常用单证预设，点击右上角按钮快捷录入"

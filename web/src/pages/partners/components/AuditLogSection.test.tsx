@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import { screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import AuditLogSection from './AuditLogSection';
 
@@ -12,7 +13,7 @@ describe('AuditLogSection', () => {
   it('加载失败时显示明确错误而不是空日志', async () => {
     listAuditLogs.mockRejectedValueOnce(new Error('审计服务不可用'));
 
-    render(<AuditLogSection partnerId="partner-1" />);
+    renderWithClient(<AuditLogSection partnerId="partner-1" />);
 
     expect(await screen.findByText('操作日志加载失败')).toBeInTheDocument();
     expect(screen.getByText('审计服务不可用')).toBeInTheDocument();
@@ -41,7 +42,7 @@ describe('AuditLogSection', () => {
       pageSize: 10,
     });
 
-    render(<AuditLogSection partnerId="partner-1" />);
+    renderWithClient(<AuditLogSection partnerId="partner-1" />);
 
     // 应该显示业务化操作标题与分类，而不是原始英文 partner.create
     expect(await screen.findByText('新增往来单位')).toBeInTheDocument();
@@ -61,5 +62,24 @@ describe('AuditLogSection', () => {
 
     // 应该提供折叠的技术明细
     expect(screen.getByText('技术明细')).toBeInTheDocument();
+  });
+
+  it.each([
+    ['统一请求层消费失败', undefined],
+    ['明确失败报文', { success: false, data: [] }],
+    ['非法列表数据', { success: true, data: {} }],
+  ])('%s 不冒充空日志', async (_scenario, response) => {
+    listAuditLogs.mockResolvedValueOnce(response);
+    renderWithClient(<AuditLogSection partnerId="partner-1" />);
+    expect(await screen.findByText('操作日志加载失败')).toBeInTheDocument();
+    expect(screen.queryByText('暂无操作记录流水')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Cannot read/)).not.toBeInTheDocument();
+  });
+
+  it('明确成功且省略空 repeated 是合法空日志', async () => {
+    listAuditLogs.mockResolvedValueOnce({ success: true });
+    renderWithClient(<AuditLogSection partnerId="partner-1" />);
+    expect(await screen.findByText('暂无操作记录流水')).toBeInTheDocument();
+    expect(screen.queryByText('操作日志加载失败')).not.toBeInTheDocument();
   });
 });

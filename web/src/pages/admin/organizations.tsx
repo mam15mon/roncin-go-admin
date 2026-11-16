@@ -8,7 +8,9 @@ import {
   TeamOutlined,
 } from '@ant-design/icons';
 import { ProCard } from '@ant-design/pro-components';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  Alert,
   Button,
   Card,
   Empty,
@@ -20,10 +22,10 @@ import {
   Tree,
 } from 'antd';
 import type { DataNode } from 'antd/es/tree';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useAccess } from '@/app/access';
 import { adminServiceListOrganizations } from '@/services/roncin/adminService';
-import { unwrapList } from '@/utils/api';
+import { ensureListResponse, unwrapList } from '@/utils/api';
 import { matchesSearch } from '@/utils/search';
 import OrgChartCanvas from './components/org/OrgChartCanvas';
 import OrgCreateModal from './components/org/OrgCreateModal';
@@ -44,11 +46,36 @@ import {
 
 export default function OrganizationsPanel() {
   const access = useAccess();
-  const [loading, setLoading] = useState(false);
-  const [organizations, setOrganizations] = useState<API.AdminOrganization[]>(
-    [],
+  const queryClient = useQueryClient();
+  const [selectedOrganizationId, setSelectedId] = useState('');
+  const organizationQuery = useQuery({
+    queryKey: ['admin', 'organizations', {}],
+    meta: { silent: true },
+    queryFn: async ({ signal }) => {
+      const response = await adminServiceListOrganizations({
+        signal,
+        skipErrorHandler: true,
+      });
+      return unwrapList(ensureListResponse(response, '组织机构加载失败'))
+        .map((organization) => ({
+          ...organization,
+          kind: normalizeOrganizationKind(organization.kind),
+        }))
+        .filter((organization) => [2, 3, 4].includes(organization.kind));
+    },
+  });
+  const organizations = useMemo(
+    () => organizationQuery.data ?? [],
+    [organizationQuery.data],
   );
-  const [selectedId, setSelectedId] = useState<string>('');
+  const loading = organizationQuery.isFetching;
+  const selectedId = organizations.some(
+    (organization) => organization.id === selectedOrganizationId,
+  )
+    ? selectedOrganizationId
+    : (organizations.find((organization) => !organization.parentId)?.id ??
+      organizations[0]?.id ??
+      '');
   const [searchKeyword, setSearchKeyword] = useState<string>('');
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [autoExpandParent, setAutoExpandParent] = useState(true);
@@ -68,41 +95,12 @@ export default function OrganizationsPanel() {
     null,
   );
 
-  // Load organizations from backend
-  const loadData = useCallback(
-    async (selectIdAfterLoad?: string) => {
-      setLoading(true);
-      try {
-        const response = await adminServiceListOrganizations();
-        const list = unwrapList(response)
-          .map((organization) => ({
-            ...organization,
-            kind: normalizeOrganizationKind(organization.kind),
-          }))
-          .filter((organization) => [2, 3, 4].includes(organization.kind));
-        setOrganizations(list);
-
-        const targetId = selectIdAfterLoad || selectedId;
-        if (targetId && list.some((o) => o.id === targetId)) {
-          setSelectedId(targetId);
-        } else if (list.length > 0) {
-          const rootOrg = list.find((o) => !o.parentId);
-          setSelectedId(rootOrg ? (rootOrg.id ?? '') : (list[0].id ?? ''));
-        } else {
-          setSelectedId('');
-        }
-      } catch {
-        // Handled by service
-      } finally {
-        setLoading(false);
-      }
-    },
-    [selectedId],
-  );
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  const loadData = async (selectIdAfterLoad?: string) => {
+    await queryClient.invalidateQueries({
+      queryKey: ['admin', 'organizations'],
+    });
+    if (selectIdAfterLoad) setSelectedId(selectIdAfterLoad);
+  };
 
   // Build Tree Data
   const { treeData, allKeys, orgMap } = useMemo(
@@ -288,6 +286,20 @@ export default function OrganizationsPanel() {
     setEditingOrg(targetOrg);
     setEditModalOpen(true);
   };
+
+  if (organizationQuery.isError && !organizationQuery.data) {
+    return (
+      <Alert
+        type="error"
+        showIcon
+        title="组织机构加载失败"
+        description={organizationQuery.error.message}
+        action={
+          <Button onClick={() => void organizationQuery.refetch()}>重试</Button>
+        }
+      />
+    );
+  }
 
   return (
     <>

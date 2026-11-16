@@ -9,7 +9,9 @@ import {
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  Alert,
   App,
   Button,
   Card,
@@ -23,7 +25,7 @@ import {
   Typography,
 } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   AsyncPopconfirm,
   GuardedModalForm,
@@ -36,7 +38,7 @@ import {
   partnerServiceListPartnerContracts,
   partnerServiceUpdatePartnerContract,
 } from '@/services/roncin/partnerService';
-import { isWriteResponse, unwrapList } from '@/utils/api';
+import { ensureListResponse, isWriteResponse, unwrapList } from '@/utils/api';
 import { getErrorMessage } from '@/utils/errorMessage';
 import { formatDate } from '@/utils/format';
 
@@ -71,30 +73,30 @@ export default function ContractCardList({
   canUpdate = true,
 }: ContractCardListProps) {
   const { message } = App.useApp();
-  const [loading, setLoading] = useState(false);
-  const [contracts, setContracts] = useState<API.PartnerContract[]>([]);
+  const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingContract, setEditingContract] = useState<
     API.PartnerContract | undefined
   >(undefined);
   const [form] = Form.useForm();
 
-  const fetchContracts = async () => {
-    if (!partnerId) return;
-    setLoading(true);
-    try {
-      const res = await partnerServiceListPartnerContracts({ partnerId });
-      setContracts(unwrapList(res));
-    } catch {
-      message.error('加载合同列表失败');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchContracts();
-  }, [partnerId]);
+  const contractsQuery = useQuery({
+    queryKey: ['partners', 'contracts', { partnerId }],
+    enabled: Boolean(partnerId),
+    meta: { silent: true },
+    queryFn: async ({ signal }) => {
+      if (!partnerId) throw new Error('缺少往来单位标识');
+      const response = await partnerServiceListPartnerContracts(
+        { partnerId },
+        { signal, skipErrorHandler: true },
+      );
+      return unwrapList(ensureListResponse(response, '加载合同列表失败'));
+    },
+  });
+  const contracts = contractsQuery.data ?? [];
+  const loading = contractsQuery.isFetching;
+  const refreshContracts = () =>
+    queryClient.invalidateQueries({ queryKey: ['partners', 'contracts'] });
 
   const handleOpenAdd = () => {
     if (!partnerId) {
@@ -151,7 +153,7 @@ export default function ContractCardList({
       );
       if (!isWriteResponse(writeResponse1, true)) return false;
       message.success('合同已终止');
-      fetchContracts();
+      void refreshContracts();
     } catch {
       message.error('操作失败');
       return false;
@@ -206,7 +208,7 @@ export default function ContractCardList({
         message.success('合同已添加');
       }
       setModalOpen(false);
-      fetchContracts();
+      void refreshContracts();
       return true;
     } catch (err) {
       message.error(getErrorMessage(err, '保存失败'));
@@ -216,6 +218,17 @@ export default function ContractCardList({
 
   return (
     <div>
+      {contractsQuery.isError && (
+        <Alert
+          type="error"
+          showIcon
+          title="加载合同列表失败"
+          description={getErrorMessage(contractsQuery.error, '请稍后重试')}
+          action={
+            <Button onClick={() => void contractsQuery.refetch()}>重试</Button>
+          }
+        />
+      )}
       <Spin spinning={loading}>
         <Row gutter={[16, 16]}>
           {contracts.map((item) => {
@@ -392,14 +405,17 @@ export default function ContractCardList({
             </Col>
           )}
 
-          {contracts.length === 0 && !canCreate && (
-            <Col span={24}>
-              <Empty
-                description="暂无合同记录"
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-              />
-            </Col>
-          )}
+          {contracts.length === 0 &&
+            !canCreate &&
+            !contractsQuery.isError &&
+            !loading && (
+              <Col span={24}>
+                <Empty
+                  description="暂无合同记录"
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                />
+              </Col>
+            )}
         </Row>
       </Spin>
 

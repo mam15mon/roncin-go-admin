@@ -1,4 +1,5 @@
 import { ClockCircleOutlined, UserOutlined } from '@ant-design/icons';
+import { useQuery } from '@tanstack/react-query';
 import {
   Alert,
   Button,
@@ -10,7 +11,7 @@ import {
   Timeline,
   Typography,
 } from 'antd';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
   auditActionPresentation,
   auditDetailLabel,
@@ -18,7 +19,7 @@ import {
   parseRoleBadges,
 } from '@/features/audit';
 import { partnerServiceListPartnerAuditLogs } from '@/services/roncin/partnerService';
-import { unwrapPage } from '@/utils/api';
+import { ensureListResponse, unwrapPage } from '@/utils/api';
 import { formatDate } from '@/utils/format';
 
 const { Text } = Typography;
@@ -125,50 +126,25 @@ export default function AuditLogSection({
   partnerId,
   roleLabel,
 }: AuditLogSectionProps) {
-  const [loading, setLoading] = useState(false);
-  const [logs, setLogs] = useState<API.PartnerAuditLog[]>([]);
-  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [loadError, setLoadError] = useState('');
-  const requestSequenceRef = useRef(0);
-
-  const fetchLogs = useCallback(
-    async (currentPage = 1, size = 10) => {
-      if (!partnerId) return;
-      const requestSequence = ++requestSequenceRef.current;
-      setLoading(true);
-      setLoadError('');
-      try {
-        const res = await partnerServiceListPartnerAuditLogs({
-          partnerId,
-          page: currentPage,
-          pageSize: size,
-        });
-        if (requestSequence !== requestSequenceRef.current) return;
-        const result = unwrapPage(res);
-        setLogs(result.data);
-        setTotal(result.total);
-      } catch (error) {
-        if (requestSequence !== requestSequenceRef.current) return;
-        setLogs([]);
-        setTotal(0);
-        setLoadError((error as Error).message || '操作日志加载失败');
-      } finally {
-        if (requestSequence === requestSequenceRef.current) {
-          setLoading(false);
-        }
-      }
+  const auditQuery = useQuery({
+    queryKey: ['partners', 'audit-logs', { partnerId, page, pageSize }],
+    enabled: Boolean(partnerId),
+    meta: { silent: true },
+    queryFn: async ({ signal }) => {
+      if (!partnerId) throw new Error('缺少往来单位标识');
+      const response = await partnerServiceListPartnerAuditLogs(
+        { partnerId, page, pageSize },
+        { signal, skipErrorHandler: true },
+      );
+      return unwrapPage(ensureListResponse(response, '操作日志加载失败'));
     },
-    [partnerId],
-  );
-
-  useEffect(() => {
-    void fetchLogs(page, pageSize);
-    return () => {
-      requestSequenceRef.current += 1;
-    };
-  }, [fetchLogs, page, pageSize]);
+  });
+  const logs = auditQuery.data?.data ?? [];
+  const total = auditQuery.data?.total ?? 0;
+  const loading = auditQuery.isFetching;
+  const loadError = auditQuery.error?.message;
 
   if (!partnerId) {
     return (
@@ -187,9 +163,9 @@ export default function AuditLogSection({
           type="error"
           showIcon
           title="操作日志加载失败"
-          description={loadError}
+          description={loadError === '操作日志加载失败' ? undefined : loadError}
           action={
-            <Button size="small" onClick={() => void fetchLogs(page, pageSize)}>
+            <Button size="small" onClick={() => void auditQuery.refetch()}>
               重试
             </Button>
           }

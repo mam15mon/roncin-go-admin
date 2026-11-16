@@ -9,7 +9,7 @@ type BatchAssociationModalProps = {
   partners: string[];
   setPartners: Dispatch<SetStateAction<string[]>>;
   partnerOptions: { label: string; value: string }[];
-  searchPartners: (keyword?: string) => Promise<void>;
+  searchPartners: (keyword?: string) => void;
   onOk: () => void;
 };
 

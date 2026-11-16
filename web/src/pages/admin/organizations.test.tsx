@@ -85,6 +85,18 @@ describe('OrganizationsPanel', () => {
     listOrganizations.mockResolvedValue({ data: organizations });
   });
 
+  it('选择组织节点只切换详情，不重新请求整棵组织树', async () => {
+    renderWithApp(<OrganizationsPanel />);
+    await screen.findByText('共 3 个组织节点');
+    expect(listOrganizations).toHaveBeenCalledOnce();
+    fireEvent.click(screen.getByText('树表列表'));
+    fireEvent.click(within(screen.getByRole('tree')).getByText('操作部'));
+    await waitFor(() =>
+      expect(screen.getByTestId('org-detail')).toHaveTextContent('操作部'),
+    );
+    expect(listOrganizations).toHaveBeenCalledOnce();
+  });
+
   it('拓扑图和树表均只展示经营组织，并默认选中公司', async () => {
     renderWithApp(<OrganizationsPanel />);
 

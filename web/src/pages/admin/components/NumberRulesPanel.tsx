@@ -7,7 +7,9 @@ import {
   ReloadOutlined,
   TableOutlined,
 } from '@ant-design/icons';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  Alert,
   App,
   Badge,
   Button,
@@ -24,7 +26,7 @@ import {
   Typography,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { ResponsiveTable as Table } from '@/components/ui';
 import { useColumnSettings } from '@/components/ui/column-settings';
 import {
@@ -32,7 +34,7 @@ import {
   masterDataServiceListNumberRules,
   masterDataServiceUpdateNumberRule,
 } from '@/services/roncin/masterDataService';
-import { isWriteResponse, unwrapList } from '@/utils/api';
+import { ensureListResponse, isWriteResponse, unwrapList } from '@/utils/api';
 import NumberRuleCard from './number-rules/NumberRuleCard';
 import NumberRuleEditModal from './number-rules/NumberRuleEditModal';
 import {
@@ -64,8 +66,7 @@ const { Text } = Typography;
 
 export function NumberRulesPanel() {
   const { message } = App.useApp();
-  const [data, setData] = useState<API.NumberRule[]>([]);
-  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
   const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
 
   // Dialog State
@@ -73,32 +74,31 @@ export function NumberRulesPanel() {
   const [editingItem, setEditingItem] = useState<API.NumberRule | null>(null);
   const [form] = Form.useForm();
 
-  // Load Rules
-  const fetchRules = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await masterDataServiceListNumberRules({});
-      setData(
-        filterVisibleNumberRules(unwrapList(res)).sort((left, right) => {
-          const leftOrder =
-            getDocTypeMeta(left.documentType)?.numValue ??
-            Number.MAX_SAFE_INTEGER;
-          const rightOrder =
-            getDocTypeMeta(right.documentType)?.numValue ??
-            Number.MAX_SAFE_INTEGER;
-          return leftOrder - rightOrder;
-        }),
-      );
-    } catch {
-      message.error('单号规则加载失败');
-    } finally {
-      setLoading(false);
-    }
-  }, [message]);
-
-  useEffect(() => {
-    fetchRules();
-  }, [fetchRules]);
+  const rulesQuery = useQuery({
+    queryKey: ['admin', 'number-rules', {}],
+    meta: { silent: true },
+    queryFn: async ({ signal }) => {
+      const response = await masterDataServiceListNumberRules({
+        signal,
+        skipErrorHandler: true,
+      });
+      return filterVisibleNumberRules(
+        unwrapList(ensureListResponse(response, '单号规则加载失败')),
+      ).sort((left, right) => {
+        const leftOrder =
+          getDocTypeMeta(left.documentType)?.numValue ??
+          Number.MAX_SAFE_INTEGER;
+        const rightOrder =
+          getDocTypeMeta(right.documentType)?.numValue ??
+          Number.MAX_SAFE_INTEGER;
+        return leftOrder - rightOrder;
+      });
+    },
+  });
+  const data = rulesQuery.data ?? [];
+  const loading = rulesQuery.isFetching;
+  const reloadRules = () =>
+    queryClient.invalidateQueries({ queryKey: ['admin', 'number-rules'] });
 
   // Handle Edit Click
   const handleOpenEdit = (rule: API.NumberRule) => {
@@ -140,9 +140,7 @@ export function NumberRulesPanel() {
         },
       );
       if (!isWriteResponse(writeResponse1, true)) return false;
-      setData((prev) =>
-        prev.map((r) => (r.id === rule.id ? { ...r, enabled: checked } : r)),
-      );
+      void reloadRules();
       const docMeta = getDocTypeMeta(rule.documentType);
       message.success(
         `${docMeta?.shortLabel || '单号规则'}已${checked ? '启用' : '停用'}`,
@@ -183,7 +181,7 @@ export function NumberRulesPanel() {
         message.success('单号规则创建成功');
       }
       setModalOpen(false);
-      await fetchRules();
+      await reloadRules();
       return true;
     } catch {
       message.error('操作失败');
@@ -356,6 +354,18 @@ export function NumberRulesPanel() {
     },
   );
 
+  if (rulesQuery.isError && !rulesQuery.data) {
+    return (
+      <Alert
+        type="error"
+        showIcon
+        title="单号规则加载失败"
+        description={rulesQuery.error.message}
+        action={<Button onClick={() => void rulesQuery.refetch()}>重试</Button>}
+      />
+    );
+  }
+
   return (
     <div>
       {/* 1. Header Toolbar */}
@@ -444,7 +454,7 @@ export function NumberRulesPanel() {
               </Radio.Button>
             </Radio.Group>
 
-            <Button icon={<ReloadOutlined />} onClick={fetchRules}>
+            <Button icon={<ReloadOutlined />} onClick={reloadRules}>
               刷新
             </Button>
             {data.length < DOC_TYPES.length && (

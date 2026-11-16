@@ -40,9 +40,9 @@ type ResourceEditorModalProps = {
   setImageFiles: Dispatch<SetStateAction<UploadFile[]>>;
   capabilities?: API.GetEnterpriseResourceCapabilitiesResponse;
   partnerOptions: { label: string; value: string }[];
-  searchPartners: (keyword?: string) => Promise<void>;
+  searchPartners: (keyword?: string) => void;
   assigneeOptions: { label: string; value: string }[];
-  searchAssignees: (keyword?: string) => Promise<void>;
+  searchAssignees: (keyword?: string) => void;
   provinceOptions: { label: string; value: string }[];
   cityOptions: { label: string; value: string }[];
   districtOptions: { label: string; value: string }[];

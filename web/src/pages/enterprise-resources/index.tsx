@@ -8,8 +8,9 @@ import {
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer } from '@ant-design/pro-components';
 import { paginationSizeChanger } from '@root/config/pagination';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { UploadFile } from 'antd';
-import { App, Button, Form, Tabs, Tag } from 'antd';
+import { Alert, App, Button, Form, Tabs, Tag } from 'antd';
 import React, {
   useCallback,
   useEffect,
@@ -45,7 +46,12 @@ import {
   enterpriseResourceServiceSearchEnterpriseResourcePartnerOptions,
   enterpriseResourceServiceUpdateEnterpriseResource,
 } from '@/services/roncin/enterpriseResourceService';
-import { isWriteResponse, toTableRequest, unwrapList } from '@/utils/api';
+import {
+  ensureListResponse,
+  isWriteResponse,
+  toTableRequest,
+  unwrapList,
+} from '@/utils/api';
 import { longRequestOptions } from '@/utils/requestTimeout';
 import BatchAddressTypeModal from './components/BatchAddressTypeModal';
 import BatchAssigneeModal from './components/BatchAssigneeModal';
@@ -64,6 +70,24 @@ import {
 } from './resourceConstants';
 import { useRegionOptions } from './useRegionOptions';
 
+type CandidateOption = { label: string; value: string };
+
+/** 只保留已选项的历史名称，不把旧关键词的全部候选混进当前结果。 */
+function withSelectedCandidates(
+  current: CandidateOption[],
+  history: CandidateOption[],
+  selected: string[],
+): CandidateOption[] {
+  const ids = new Set(selected);
+  return [
+    ...new Map(
+      [...history.filter((option) => ids.has(option.value)), ...current].map(
+        (option) => [option.value, option],
+      ),
+    ).values(),
+  ];
+}
+
 type ResourceTypePageProps = {
   active: ResourceTab;
   availableTabs: readonly ResourceTab[];
@@ -77,6 +101,7 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
 }) => {
   const access = useAccess();
   const { message } = App.useApp();
+  const queryClient = useQueryClient();
   const actionRef = useRef<ActionType>(undefined);
   const [form] = Form.useForm<EditorValues>();
   const activeTab = active.key;
@@ -99,12 +124,10 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
     'assign',
   );
   const [batchAssignees, setBatchAssignees] = useState<string[]>([]);
-  const [partnerOptions, setPartnerOptions] = useState<
-    { label: string; value: string }[]
-  >([]);
-  const [assigneeOptions, setAssigneeOptions] = useState<
-    { label: string; value: string }[]
-  >([]);
+  const [partnerKeyword, setPartnerKeyword] = useState<string>();
+  const [assigneeKeyword, setAssigneeKeyword] = useState<string>();
+  const [partnerFilterId, setPartnerFilterId] = useState<string>();
+  const [assigneeFilterId, setAssigneeFilterId] = useState<string>();
   const [imageFiles, setImageFiles] = useState<UploadFile[]>([]);
   const [importOpen, setImportOpen] = useState(false);
   const [importFiles, setImportFiles] = useState<UploadFile[]>([]);
@@ -129,15 +152,31 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
     setSelectedKeys([]);
   }, [active.type]);
 
-  const searchPartners = useCallback(async (keyword = '') => {
-    const response =
-      await enterpriseResourceServiceSearchEnterpriseResourcePartnerOptions({
-        page: 1,
-        pageSize: 50,
-        keyword,
-      });
-    setPartnerOptions(
-      unwrapList(response).flatMap((item) =>
+  const searchPartners = useCallback(
+    (keyword = '') => setPartnerKeyword(keyword.trim()),
+    [],
+  );
+  const searchAssignees = useCallback(
+    (keyword = '') => setAssigneeKeyword(keyword.trim()),
+    [],
+  );
+  const partnerQuery = useQuery({
+    queryKey: [
+      'enterprise-resources',
+      'partner-options',
+      { keyword: partnerKeyword },
+    ],
+    enabled: partnerKeyword !== undefined,
+    meta: { errorMessage: '企业候选加载失败' },
+    queryFn: async ({ signal }) => {
+      const response =
+        await enterpriseResourceServiceSearchEnterpriseResourcePartnerOptions(
+          { page: 1, pageSize: 50, keyword: partnerKeyword || undefined },
+          { signal, skipErrorHandler: true },
+        );
+      return unwrapList(
+        ensureListResponse(response, '企业候选加载失败'),
+      ).flatMap((item) =>
         item.id
           ? [
               {
@@ -146,19 +185,26 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
               },
             ]
           : [],
-      ),
-    );
-  }, []);
-
-  const searchAssignees = useCallback(async (keyword = '') => {
-    const response =
-      await enterpriseResourceServiceSearchEnterpriseResourceAssigneeOptions({
-        page: 1,
-        pageSize: 50,
-        keyword,
-      });
-    setAssigneeOptions(
-      unwrapList(response).flatMap((item) =>
+      );
+    },
+  });
+  const assigneeQuery = useQuery({
+    queryKey: [
+      'enterprise-resources',
+      'assignee-options',
+      { keyword: assigneeKeyword },
+    ],
+    enabled: assigneeKeyword !== undefined,
+    meta: { errorMessage: '人员候选加载失败' },
+    queryFn: async ({ signal }) => {
+      const response =
+        await enterpriseResourceServiceSearchEnterpriseResourceAssigneeOptions(
+          { page: 1, pageSize: 50, keyword: assigneeKeyword || undefined },
+          { signal, skipErrorHandler: true },
+        );
+      return unwrapList(
+        ensureListResponse(response, '人员候选加载失败'),
+      ).flatMap((item) =>
         item.id
           ? [
               {
@@ -167,9 +213,39 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
               },
             ]
           : [],
-      ),
-    );
-  }, []);
+      );
+    },
+  });
+  const editingPartners =
+    Form.useWatch('partnerIds', { form, preserve: true }) ?? [];
+  const editingAssignees =
+    Form.useWatch('assigneeIds', { form, preserve: true }) ?? [];
+  const partnerOptions = withSelectedCandidates(
+    partnerQuery.data ?? [],
+    queryClient
+      .getQueriesData<CandidateOption[]>({
+        queryKey: ['enterprise-resources', 'partner-options'],
+      })
+      .flatMap(([, options]) => options ?? []),
+    [
+      ...editingPartners,
+      ...associationPartners,
+      ...(partnerFilterId ? [partnerFilterId] : []),
+    ],
+  );
+  const assigneeOptions = withSelectedCandidates(
+    assigneeQuery.data ?? [],
+    queryClient
+      .getQueriesData<CandidateOption[]>({
+        queryKey: ['enterprise-resources', 'assignee-options'],
+      })
+      .flatMap(([, options]) => options ?? []),
+    [
+      ...editingAssignees,
+      ...batchAssignees,
+      ...(assigneeFilterId ? [assigneeFilterId] : []),
+    ],
+  );
 
   const openEditor = (record?: API.EnterpriseResource) => {
     setEditing(record);
@@ -391,6 +467,7 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
           },
           onFocus: () => void searchPartners(),
           options: partnerOptions,
+          onChange: (value?: string) => setPartnerFilterId(value),
         },
       },
       ...(active.type === 1
@@ -417,6 +494,7 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
                 },
                 onFocus: () => void searchAssignees(),
                 options: assigneeOptions,
+                onChange: (value?: string) => setAssigneeFilterId(value),
               },
             },
           ]
@@ -890,13 +968,21 @@ const ResourceTypePage: React.FC<ResourceTypePageProps> = ({
 
 const EnterpriseResourcesPage: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const [capabilities, setCapabilities] =
-    useState<API.GetEnterpriseResourceCapabilitiesResponse>();
-  useEffect(() => {
-    void enterpriseResourceServiceGetEnterpriseResourceCapabilities().then(
-      setCapabilities,
-    );
-  }, []);
+  const capabilitiesQuery = useQuery({
+    queryKey: ['enterprise-resources', 'capabilities', {}],
+    meta: { silent: true },
+    queryFn: async ({ signal }) => {
+      const response =
+        await enterpriseResourceServiceGetEnterpriseResourceCapabilities({
+          signal,
+          skipErrorHandler: true,
+        });
+      if (!response || response.success === false)
+        throw new Error('企业资源能力加载失败');
+      return response;
+    },
+  });
+  const capabilities = capabilitiesQuery.data;
   const availableTabs = useMemo(
     () =>
       capabilities?.imageEnabled
@@ -910,12 +996,26 @@ const EnterpriseResourcesPage: React.FC = () => {
 
   // 类型是请求、选择和所有编辑会话的边界，切换后卸载旧表格及其在途请求。
   return (
-    <ResourceTypePage
-      key={active.type}
-      active={active}
-      availableTabs={availableTabs}
-      capabilities={capabilities}
-    />
+    <>
+      {capabilitiesQuery.isError && (
+        <Alert
+          type="error"
+          showIcon
+          title="企业资源能力加载失败"
+          action={
+            <Button onClick={() => void capabilitiesQuery.refetch()}>
+              重试
+            </Button>
+          }
+        />
+      )}
+      <ResourceTypePage
+        key={active.type}
+        active={active}
+        availableTabs={availableTabs}
+        capabilities={capabilities}
+      />
+    </>
   );
 };
 

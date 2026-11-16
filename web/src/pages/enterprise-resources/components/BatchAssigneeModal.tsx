@@ -10,7 +10,7 @@ type BatchAssigneeModalProps = {
   batchAssignees: string[];
   setBatchAssignees: Dispatch<SetStateAction<string[]>>;
   assigneeOptions: { label: string; value: string }[];
-  searchAssignees: (keyword?: string) => Promise<void>;
+  searchAssignees: (keyword?: string) => void;
   onOk: () => void;
 };
 
