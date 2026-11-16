@@ -1,23 +1,18 @@
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { act, fireEvent, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { OrderClosureStatus } from '@/enums.generated';
+import { OrderClosureStatus, PartnerRoleType } from '@/enums.generated';
 import { feeCatalogServiceListTaxableServices } from '@/services/roncin/feeCatalogService';
-import {
-  orderFeeServiceAddFee,
-  orderFeeServiceListOrderFeeCorrectionRequests,
-  orderFeeServiceUpdateFee,
-} from '@/services/roncin/orderFeeService';
+import { orderFeeServiceListOrderFeeCorrectionRequests } from '@/services/roncin/orderFeeService';
 import { settlementServiceGetFeeLedgerOrderDetail } from '@/services/roncin/settlementService';
 import OrderFeesPage from './fees';
 
 let mockParams = { kind: 'sea-export', id: 'order-A' };
 
 const feeTestState = vi.hoisted(() => ({
-  resetPreview: vi.fn(),
   lockState: { isLocked: false } as Partial<API.OrderLockStateData> | null,
   canCreateFee: true,
   canReadFee: true,
@@ -27,7 +22,6 @@ const feeTestState = vi.hoisted(() => ({
   canOperate: true,
   hasPendingSupplement: false,
   closureStatus: 1,
-  feeCanEdit: true,
   feeChanged: false,
   rebaseline: vi.fn(),
   acceptOwnSave: vi.fn(),
@@ -35,12 +29,10 @@ const feeTestState = vi.hoisted(() => ({
   lockStateLoading: false,
   lockStateRefreshing: false,
   lockStateError: null as Error | null,
-  modalSubmitResult: vi.fn(),
 }));
 
 beforeEach(() => {
   feeTestState.closureStatus = OrderClosureStatus.ORDER_CLOSURE_STATUS_OPEN;
-  feeTestState.feeCanEdit = true;
   feeTestState.feeChanged = false;
   feeTestState.rebaseline.mockReset();
   feeTestState.acceptOwnSave.mockReset();
@@ -48,7 +40,6 @@ beforeEach(() => {
   feeTestState.lockStateLoading = false;
   feeTestState.lockStateRefreshing = false;
   feeTestState.lockStateError = null;
-  feeTestState.modalSubmitResult.mockReset();
 });
 
 // 本文件验证费用页已有编辑与跨订单状态；审核流程由独立组件用例验证。
@@ -160,8 +151,6 @@ vi.mock('@/services/roncin/orderFeeService', async (original) => ({
   orderFeeServicePreviewOrderFeeReview: vi.fn().mockResolvedValue({
     data: { canEdit: true, canBill: true, status: 'UNSUBMITTED' },
   }),
-  orderFeeServiceAddFee: vi.fn(),
-  orderFeeServiceUpdateFee: vi.fn(),
   orderFeeServiceListOrderFeeSupplementRequests: vi
     .fn()
     .mockResolvedValue({ data: { items: [], total: 0 }, success: true }),
@@ -221,19 +210,6 @@ vi.mock('./use-fee-change-notice', () => ({
     changed: feeTestState.feeChanged,
     rebaseline: feeTestState.rebaseline,
     acceptOwnSave: feeTestState.acceptOwnSave,
-  }),
-}));
-
-vi.mock('./use-fee-exchange-preview', () => ({
-  useFeeExchangePreview: () => ({
-    totalPreview: undefined,
-    exchangeRatePreview: undefined,
-    exchangeRateStatus: 'idle',
-    manualExchangeRate: false,
-    setManualExchangeRate: vi.fn(),
-    resetPreview: feeTestState.resetPreview,
-    seedFromFee: vi.fn(),
-    handleValuesChange: vi.fn(),
   }),
 }));
 
@@ -331,16 +307,11 @@ vi.mock('./components/fees/OrderFeeTableTabs', () => ({
       >
         准备当前订单费用
       </button>
-      <button
-        type="button"
-        onClick={() =>
-          props.onOpenFeeModal(1, {
-            id: `editing-${props.orderId}`,
-            canEdit: feeTestState.feeCanEdit,
-          })
-        }
-      >
-        编辑当前订单费用
+      <button type="button" onClick={() => props.onOpenQuickAddFee()}>
+        打开快捷费目
+      </button>
+      <button type="button" onClick={() => props.onOpenQuickAddPartner(2)}>
+        打开快捷往来单位
       </button>
     </div>
   ),
@@ -348,39 +319,6 @@ vi.mock('./components/fees/OrderFeeTableTabs', () => ({
 
 vi.mock('@/services/roncin/settlementService', () => ({
   settlementServiceGetFeeLedgerOrderDetail: vi.fn(),
-}));
-
-vi.mock('./components/fees/FeeFormModal', () => ({
-  default: ({
-    open,
-    editingFee,
-    onOpenQuickAddFee,
-    onOpenQuickAddPartner,
-    onSubmit,
-  }: any) => (
-    <div data-testid="fee-form-modal">
-      {String(open)}|{editingFee?.id || ''}
-      {open ? (
-        <>
-          <input aria-label="费用弹窗草稿" />
-          <button
-            type="button"
-            onClick={async () =>
-              feeTestState.modalSubmitResult(await onSubmit({}))
-            }
-          >
-            尝试提交费用草稿
-          </button>
-        </>
-      ) : null}
-      <button type="button" onClick={onOpenQuickAddFee}>
-        打开快捷费目
-      </button>
-      <button type="button" onClick={onOpenQuickAddPartner}>
-        打开快捷往来单位
-      </button>
-    </div>
-  ),
 }));
 
 vi.mock('./components/fees/QuickAddFeeModal', () => ({
@@ -394,9 +332,9 @@ vi.mock('./components/fees/QuickAddFeeModal', () => ({
 }));
 
 vi.mock('./components/fees/QuickAddPartnerModal', () => ({
-  default: ({ open }: any) => (
+  default: ({ open, defaultRole }: any) => (
     <div data-testid="quick-partner-modal">
-      {String(open)}
+      {String(open)}|{String(defaultRole)}
       {open ? <input aria-label="快捷往来草稿" /> : null}
     </div>
   ),
@@ -484,7 +422,6 @@ describe('订单费用页跨订单状态隔离', () => {
     const { rerender, queryClient } = renderFeesPage();
 
     fireEvent.click(screen.getByRole('button', { name: '准备当前订单费用' }));
-    fireEvent.click(screen.getByRole('button', { name: '编辑当前订单费用' }));
     fireEvent.click(screen.getByRole('button', { name: '打开快捷费目' }));
     fireEvent.click(screen.getByRole('button', { name: '打开快捷往来单位' }));
 
@@ -501,11 +438,11 @@ describe('订单费用页跨订单状态隔离', () => {
     expect(
       screen.getByRole('button', { name: '提交账单' }),
     ).toBeInTheDocument();
-    expect(screen.getByTestId('fee-form-modal')).toHaveTextContent(
-      'true|editing-order-A',
-    );
     expect(screen.getByTestId('quick-fee-modal')).toHaveTextContent('true');
-    expect(screen.getByTestId('quick-partner-modal')).toHaveTextContent('true');
+    // 从应付侧发起：默认往来角色为供应商。
+    expect(screen.getByTestId('quick-partner-modal')).toHaveTextContent(
+      `true|${PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER}`,
+    );
 
     mockParams = { kind: 'sea-export', id: 'order-B' };
     rerenderFeesPage(rerender, queryClient);
@@ -524,7 +461,6 @@ describe('订单费用页跨订单状态隔离', () => {
       expect(
         screen.queryByRole('button', { name: '提交账单' }),
       ).not.toBeInTheDocument();
-      expect(screen.getByTestId('fee-form-modal')).toHaveTextContent('false|');
       expect(screen.getByTestId('quick-fee-modal')).toHaveTextContent('false');
       expect(screen.getByTestId('quick-partner-modal')).toHaveTextContent(
         'false',
@@ -557,44 +493,6 @@ describe('订单费用页统一补录入口', () => {
       screen.queryByTestId('finance-summary-board'),
     ).not.toBeInTheDocument();
   });
-  it.each([true, false])(
-    '完结未锁订单仍按逐费能力开放直接修改：canEdit=%s',
-    async (canEdit) => {
-      feeTestState.closureStatus =
-        OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED;
-      feeTestState.feeCanEdit = canEdit;
-      renderFeesPage();
-      fireEvent.click(screen.getByRole('button', { name: '编辑当前订单费用' }));
-      expect(screen.getByTestId('fee-form-modal')).toHaveTextContent(
-        canEdit ? 'true|editing-order-A' : 'false|',
-      );
-      if (!canEdit) {
-        expect(
-          await screen.findByText('该费用当前不可编辑，请先完成账务回退'),
-        ).toBeInTheDocument();
-      }
-    },
-  );
-
-  it('完结后审核锁定会关闭已打开的直接修改入口', async () => {
-    feeTestState.closureStatus = OrderClosureStatus.ORDER_CLOSURE_STATUS_CLOSED;
-    const { rerender, queryClient } = renderFeesPage();
-    fireEvent.click(screen.getByRole('button', { name: '编辑当前订单费用' }));
-    expect(screen.getByTestId('fee-form-modal')).toHaveTextContent(
-      'true|editing-order-A',
-    );
-
-    feeTestState.lockState = { isLocked: true };
-    rerenderFeesPage(rerender, queryClient);
-    await waitFor(() =>
-      expect(screen.getByTestId('fee-form-modal')).toHaveTextContent('false|'),
-    );
-    fireEvent.click(screen.getByRole('button', { name: '编辑当前订单费用' }));
-    expect(screen.getByTestId('fee-form-modal')).toHaveTextContent('false|');
-    expect(
-      await screen.findByText('订单已审核，费用变更请申请补录并补审'),
-    ).toBeInTheDocument();
-  });
   it('无费用读取和对应品类审核权限时拒绝进入', () => {
     feeTestState.canReadFee = false;
     feeTestState.canLock = false;
@@ -619,8 +517,6 @@ describe('订单费用页统一补录入口', () => {
     expect(
       screen.queryByRole('button', { name: '费用补录' }),
     ).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: '编辑当前订单费用' }));
-    expect(screen.getByTestId('fee-form-modal')).toHaveTextContent('false|');
   });
   it('已锁定无待审时按费用权限开放补录，跨公司隐藏申请入口', async () => {
     feeTestState.lockState = { isLocked: true };
@@ -843,18 +739,13 @@ describe('订单费用页外部变动提示与刷新保护', () => {
   });
 
   it.each([
-    { label: '费用弹窗草稿', quickButton: undefined },
     { label: '快捷费目草稿', quickButton: '打开快捷费目' },
     { label: '快捷往来草稿', quickButton: '打开快捷往来单位' },
   ])(
     '审核同步及读取失败期间保留$label，真实锁定后仍关闭写入口',
     async ({ label, quickButton }) => {
       const { rerender, queryClient } = renderFeesPage();
-      fireEvent.click(
-        await screen.findByRole('button', { name: '编辑当前订单费用' }),
-      );
-      if (quickButton)
-        fireEvent.click(screen.getByRole('button', { name: quickButton }));
+      fireEvent.click(await screen.findByRole('button', { name: quickButton }));
       const input = await screen.findByLabelText(label);
       fireEvent.change(input, { target: { value: '另一侧未保存草稿' } });
       fireEvent.click(screen.getByRole('button', { name: '通知整表保存' }));
@@ -889,33 +780,4 @@ describe('订单费用页外部变动提示与刷新保护', () => {
       );
     },
   );
-
-  it('审核同步失败保留费用弹窗输入，但原写策略拒绝提交', async () => {
-    const { rerender, queryClient } = renderFeesPage();
-    fireEvent.click(
-      await screen.findByRole('button', { name: '编辑当前订单费用' }),
-    );
-    const input = await screen.findByLabelText('费用弹窗草稿');
-    fireEvent.change(input, { target: { value: '审核暂不可用仍保留我' } });
-    vi.mocked(orderFeeServiceAddFee).mockClear();
-    vi.mocked(orderFeeServiceUpdateFee).mockClear();
-    feeTestState.lockStateError = new Error('读取审核状态失败');
-    feeTestState.lockState = null;
-    rerenderFeesPage(rerender, queryClient);
-    expect(screen.getByLabelText('费用弹窗草稿')).toHaveValue(
-      '审核暂不可用仍保留我',
-    );
-    expect(screen.getByTestId('fee-write-disabled')).toHaveTextContent('true');
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: '尝试提交费用草稿' }));
-    });
-    await waitFor(() =>
-      expect(feeTestState.modalSubmitResult).toHaveBeenCalledWith(false),
-    );
-    expect(orderFeeServiceAddFee).not.toHaveBeenCalled();
-    expect(orderFeeServiceUpdateFee).not.toHaveBeenCalled();
-    expect(screen.getByLabelText('费用弹窗草稿')).toHaveValue(
-      '审核暂不可用仍保留我',
-    );
-  });
 });

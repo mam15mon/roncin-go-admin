@@ -27,7 +27,21 @@ export function isNewFeeRowKey(key: unknown): boolean {
  */
 export type FeeDraftRow = Partial<API.OrderFee> & {
   exchangeRateOverride?: string;
+  /** 已存手工汇率的行改回系统汇率；与手工汇率互斥，填写手工汇率时以手工汇率为准。 */
+  useSystemExchangeRate?: boolean;
 };
+
+/** 是否提交「改回系统汇率」：仅已保存行，且未同时填写手工汇率。 */
+export function resetsExchangeRate(
+  row: FeeDraftRow,
+  baseline?: API.OrderFee,
+): boolean {
+  return (
+    Boolean(baseline) &&
+    row.useSystemExchangeRate === true &&
+    exchangeRateOverrideInput(row) === ''
+  );
+}
 
 /** 行内手工汇率输入的规范化文本；未输入返回空串。 */
 export function exchangeRateOverrideInput(row: FeeDraftRow): string {
@@ -96,6 +110,7 @@ export function feeRowChanged(
     !sameText(row.note, baseline.note) ||
     taxRateChanged(row, baseline.taxRate) ||
     exchangeRateOverrideInput(row) !== '' ||
+    resetsExchangeRate(row, baseline) ||
     JSON.stringify(row.quantitySource ?? null) !==
       JSON.stringify(baseline.quantitySource ?? null)
   );
@@ -187,6 +202,8 @@ export function buildSaveRow(args: {
   }
   const rateOverride = exchangeRateOverrideInput(row);
   if (rateOverride !== '') saveRow.exchangeRateOverride = rateOverride;
+  else if (resetsExchangeRate(row, baseline))
+    saveRow.useSystemExchangeRate = true;
   return saveRow;
 }
 

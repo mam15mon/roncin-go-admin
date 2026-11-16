@@ -4,7 +4,7 @@ import { App } from 'antd';
 import type React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { orderFeeServiceResolveFeeExchangeRate } from '@/services/roncin/orderFeeService';
-import type { FeeFormValues } from './components/fees/FeeFormModal';
+import type { FeeFormValues } from './components/fees/feeFormValues';
 import { useFeeExchangePreview } from './use-fee-exchange-preview';
 
 vi.mock('@/services/roncin/orderFeeService', () => ({

@@ -232,6 +232,46 @@ func TestOrderFeeSavePostgres(t *testing.T) {
 		}
 	})
 
+	t.Run("改回系统汇率：丢弃手工汇率、需覆盖权限、仅修改行且与手工汇率互斥", func(t *testing.T) {
+		o := f.createOrder("SAVE-RATE-RESET-" + f.suffix)
+		addSideFee(t, f, o, biz.OrderFeeReceivable, 500)
+		one := decimal.NewFromInt(1)
+		manual := saveRow(f, biz.OrderFeePayable, "m", nil, 50)
+		manual.Fee.ExchangeRateOverride = &one
+		saved, err := save(o, biz.OrderFeePayable, uuid.NewString(), allSavePerms, manual)
+		if err != nil || len(saved.Fees) != 1 || saved.Fees[0].ExchangeRateSource != biz.ExchangeRateSourceManual {
+			t.Fatalf("准备手工汇率费用: %+v %v", saved, err)
+		}
+		fee := saved.Fees[0]
+		reset := func() *biz.OrderFeeSaveRowInput {
+			row := saveRow(f, biz.OrderFeePayable, "r", fee, 50)
+			row.UseSystemExchangeRate = true
+			return row
+		}
+		before := saveSnapshot(t, f, o.ID)
+		// 无汇率覆盖权限不能改回系统汇率。
+		_, err = save(o, biz.OrderFeePayable, uuid.NewString(), biz.OrderFeeSavePermissions{CanCreate: true, CanUpdate: true, CanEditTaxRate: true}, reset())
+		requireSaveRowError(t, err, biz.ErrOrderFeeExchangeRateOverrideForbidden, "r", "exchangeRateOverride")
+		// 与手工汇率同时提交、或用于新增行，均为非法参数。
+		both := reset()
+		both.Fee.ExchangeRateOverride = &one
+		if _, err = save(o, biz.OrderFeePayable, uuid.NewString(), allSavePerms, both); !errors.Is(err, biz.ErrOrderFeeInvalidArgument) {
+			t.Fatalf("改回系统汇率与手工汇率互斥: %v", err)
+		}
+		added := saveRow(f, biz.OrderFeePayable, "n", nil, 50)
+		added.UseSystemExchangeRate = true
+		if _, err = save(o, biz.OrderFeePayable, uuid.NewString(), allSavePerms, added); !errors.Is(err, biz.ErrOrderFeeInvalidArgument) {
+			t.Fatalf("新增行不接受改回系统汇率: %v", err)
+		}
+		if got := saveSnapshot(t, f, o.ID); got != before {
+			t.Fatal("拒绝时必须零写入")
+		}
+		result, err := save(o, biz.OrderFeePayable, uuid.NewString(), allSavePerms, reset())
+		if err != nil || len(result.Fees) != 1 || result.Fees[0].ExchangeRateSource != biz.ExchangeRateSourceSystem || result.Fees[0].Version != fee.Version+1 {
+			t.Fatalf("改回系统汇率应重新解析系统来源并递增版本: %+v %v", result, err)
+		}
+	})
+
 	t.Run("响应丢失后沿用 request_key 重试不重复新增", func(t *testing.T) {
 		o := f.createOrder("SAVE-REPLAY-" + f.suffix)
 		p1 := addSideFee(t, f, o, biz.OrderFeePayable, 100)

@@ -22406,6 +22406,11 @@ components:
                 taxRate:
                     type: string
                     description: tax_rate 显式税率（0-100）；语义与 AddFee/UpdateFee 一致，更改税率须具备订单费用税率更改权限。
+                useSystemExchangeRate:
+                    type: boolean
+                    description: |-
+                        use_system_exchange_rate 为 true 时按订单汇率日重新解析系统汇率，丢弃已存手工汇率；
+                         仅用于修改行，与 exchange_rate_override 互斥，须具备订单费用汇率覆盖权限。
             description: |-
                 SaveOrderFeeRow 是整表保存中的一行：带 fee_id 与 expected_version 为修改，
                  否则为新增；client_row_id 是前端行标识，用于幂等派生与行级错误定位。

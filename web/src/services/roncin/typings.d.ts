@@ -7785,6 +7785,9 @@ declare namespace API {
     quantitySource?: FeeQuantitySelection;
     /** tax_rate 显式税率（0-100）；语义与 AddFee/UpdateFee 一致，更改税率须具备订单费用税率更改权限。 */
     taxRate?: string;
+    /** use_system_exchange_rate 为 true 时按订单汇率日重新解析系统汇率，丢弃已存手工汇率；
+ 仅用于修改行，与 exchange_rate_override 互斥，须具备订单费用汇率覆盖权限。 */
+    useSystemExchangeRate?: boolean;
   };
 
   type SaveOrderFeesRequest = {

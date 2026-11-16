@@ -74,6 +74,8 @@ export type FeeRowPreview = {
   rate?: { status: string; rate?: string };
   /** 行内手工汇率（已通过格式校验的规范化文本），优先于系统汇率参与折本币预览。 */
   rateOverride?: string;
+  /** 已存手工汇率改回系统汇率：折本币按 rate 预览的系统汇率重算。 */
+  rateReset?: boolean;
 };
 
 /**
@@ -362,10 +364,13 @@ export function buildOptionalFeeColumns(
               ? preview.rate.rate
               : undefined
             : record.exchangeRate);
-        // 仅改手工汇率时金额未进入预览，按已存总金额折算。
+        // 仅改汇率（手工或改回系统）时金额未进入预览，按已存总金额折算。
+        const rateChanged = Boolean(
+          preview?.rateOverride || preview?.rateReset,
+        );
         const total =
           preview?.amount?.total ??
-          (preview?.rateOverride && preview.unitPrice === undefined
+          (rateChanged && preview?.unitPrice === undefined
             ? record.totalAmount
             : undefined);
         const previewBase =
@@ -376,7 +381,7 @@ export function buildOptionalFeeColumns(
                 .toString()
             : undefined;
         const amount = formatAmount(
-          preview?.unitPrice !== undefined || preview?.rateOverride
+          preview?.unitPrice !== undefined || rateChanged
             ? previewBase
             : record.baseCurrencyAmount,
         );

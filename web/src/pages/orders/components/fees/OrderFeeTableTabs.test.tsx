@@ -92,7 +92,6 @@ function makeProps(orderId: string) {
     canDeleteFees: true,
     feeWritesDisabled: true,
     onOpenBillWorkbench: vi.fn(),
-    onOpenFeeModal: vi.fn(),
     getTableColumns: () => [{ dataIndex: 'id', title: '费用 ID' }],
   };
 }

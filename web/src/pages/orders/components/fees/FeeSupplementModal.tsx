@@ -15,9 +15,9 @@ import {
   ProFormSearchableSelect,
 } from '@/components/ui';
 import { useFeeExchangePreview } from '../../use-fee-exchange-preview';
-import type { FeeFormValues } from './FeeFormModal';
 import { FeeQuantityFormAssist } from './FeeQuantityAssist';
 import { PAYABLE } from './feeConstants';
+import type { FeeFormValues } from './feeFormValues';
 import { feeQuantityRuleError } from './feeQuantityRule';
 
 export type FeeSupplementFormValues = FeeFormValues & {
