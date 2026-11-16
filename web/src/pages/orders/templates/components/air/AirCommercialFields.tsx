@@ -69,9 +69,10 @@ export function getAirCommercialFields(props: TemplateProps) {
         />
       </FormCell>
     ),
+    // 与单证模式（2 列）、订舱号（2 列）同行，两个代理各占 1 列恰好排满六列。
     agents: (
       <>
-        <FormCell span={2}>
+        <FormCell span={1}>
           <PartnerQuickAddSelect
             name="bookingAgentId"
             displayName="订舱代理"
@@ -81,7 +82,7 @@ export function getAirCommercialFields(props: TemplateProps) {
             disabled={props.readonly}
           />
         </FormCell>
-        <FormCell span={2}>
+        <FormCell span={1}>
           <PartnerQuickAddSelect
             name="foreignAgentId"
             displayName="国外代理"

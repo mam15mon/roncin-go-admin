@@ -41,6 +41,23 @@ type AirMasterFieldProps = Pick<
   'searchLocations' | 'locationOptions' | 'readonly'
 >;
 
+/** 无关键字查询时把主单已选值并入候选，保证回显名称而不是 ID。 */
+function withSeedOption<T extends { value?: unknown; label?: unknown }>(
+  options: T[],
+  value?: string,
+  label?: string,
+  keyWords?: string,
+): (T | { value: string; label: string })[] {
+  if (
+    !value ||
+    !label ||
+    keyWords ||
+    options.some((item) => item.value === value)
+  )
+    return options;
+  return [{ value, label }, ...options];
+}
+
 /** 主单身份与航线字段：主运单号、航空公司、起运/目的机场与航班号。 */
 export function AirMasterRouteFields({
   props,
@@ -100,16 +117,8 @@ export function AirMasterRouteFields({
           label="航空公司"
           rules={[{ required: true, message: '请选择航空公司' }]}
           disabled={props.readonly}
-          options={
-            master?.content?.airlineId
-              ? [
-                  {
-                    value: master.content.airlineId,
-                    label: master.airlineName || '',
-                  },
-                ]
-              : undefined
-          }
+          // 设置 request 后 ProFormSelect 不读静态 options：主单已选值须并入请求结果才能显示名称。
+          params={{ seedMasterId: master?.id }}
           fieldProps={{ filterOption: false }}
           request={async ({ keyWords }) => {
             const response = ensureListResponse(
@@ -121,10 +130,15 @@ export function AirMasterRouteFields({
               }),
               '航空公司加载失败',
             );
-            return (response.data ?? []).map((item) => ({
-              value: item.id || '',
-              label: `${[item.nameZh, item.nameEn].filter(Boolean).join(' / ')} (${item.iataCode || item.icaoCode || ''})`,
-            }));
+            return withSeedOption(
+              (response.data ?? []).map((item) => ({
+                value: item.id || '',
+                label: `${[item.nameZh, item.nameEn].filter(Boolean).join(' / ')} (${item.iataCode || item.icaoCode || ''})`,
+              })),
+              master?.content?.airlineId,
+              master?.airlineName,
+              keyWords,
+            );
           }}
         />
       </FormCell>
@@ -142,24 +156,21 @@ export function AirMasterRouteFields({
             <ProFormSearchableSelect
               name={name(key)}
               label={index === 0 ? '起运机场' : '目的机场'}
-              options={[
-                ...props.locationOptions,
-                ...(master?.content?.[key]
-                  ? [
-                      {
-                        value: master.content[key] || '',
-                        label:
-                          index === 0
-                            ? master.originAirportName || ''
-                            : master.destinationAirportName || '',
-                      },
-                    ]
-                  : []),
-              ]}
+              options={props.locationOptions}
               rules={[{ required: true, message: '请选择机场' }]}
               disabled={props.readonly}
+              params={{ seedMasterId: master?.id }}
               fieldProps={{ filterOption: false }}
-              request={({ keyWords }) => props.searchLocations(keyWords)}
+              request={async ({ keyWords }) =>
+                withSeedOption(
+                  await props.searchLocations(keyWords),
+                  master?.content?.[key],
+                  index === 0
+                    ? master?.originAirportName
+                    : master?.destinationAirportName,
+                  keyWords,
+                )
+              }
             />
           </FormCell>
         ),

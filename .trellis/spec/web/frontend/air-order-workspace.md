@@ -1,6 +1,16 @@
 # 航空订单就近工作区
 
 - `air-template.tsx` 沿用六列、4px 行距与五卡结构，卡内分组与字段顺序对齐海运（主单与订舱 / 航线与班期 / 时刻与申报 / 备注）；单证模式在首行字段格，详情为 32px 只读标签；AI运输标题为“承运与运输”。
+- 新建页主单只有主运单号一个入口，不提供「新建/关联」前置选择或共享主单下拉；
+  `useAirMasterCandidate` 在号码通过模 7 校验后防抖 300ms，按业务类型调列表接口并对
+  `content.masterNo` 完全相等筛选（11 位号包含匹配只会命中自身）。结论：未命中→新建；
+  命中且可关联→空字段自动带入、无差异即写 `airMasterMode=EXISTING`/`airMasterId`/
+  `airMasterExpectedVersion`，主单字段只读；非空差异→列出并经「采用主单资料」；模式不符→
+  「切换为主单模式」；`canAttach` 省略视为不可关联。核对中、失败、差异、模式不符、不可关联
+  均由主运单号字段 validator 在保存前拦截；改号即解除关联并保留已填值。
+  主单工作台 `masterId` 预选只写入主单号与单证模式，由同一核对完成关联。
+- 设置 `request` 后 ProFormSelect 不读静态 `options`：主单带入的航空公司/机场须用
+  `withSeedOption` 并入无关键字请求结果，并以 `params` 随主单变化重新请求，否则回显原始 ID。
 - `TemplateProps.airCargoWorkspace / airTransportMaintenance / airDocumentActions` 由类型扩展贡献；
   货物工作区位于委托货量后，重量历史折叠，普通保存与货物/重量/共同运输独立提交。
 - `airTransportSnapshot` 只展示刷新后的共同运输；表单内 `airExport` 与 expectedMasterVersion
@@ -11,7 +21,7 @@
   只有 `airMaster.waybillContent` 错误才切MAWB，运输字段错误不得误切单证。
 - SI/AI“进口服务”位于状态摘要后、五卡前；独立保存仍使用原有精确版本采纳规则。
 - `documentMenuItems` 贡献页头单证入口；制作/预览与历史的目标取真实主分单身份，DIRECT不虚构HAWB。
-- 回归入口：`air-document-workspace.test.tsx`、`air-transport-summary.test.tsx`、
+- 回归入口：`air-document-mode.test.tsx`（同号核对各状态）、`air-preselected-master.test.tsx`、`air-document-workspace.test.tsx`、`air-transport-summary.test.tsx`、
   `AirTransportMaintenance.test.tsx` 以及两类 `detail-*-import-service-save.test.tsx`。
 
 - 航空业务卡嵌入竖向 `Space` 时让内容项伸展到全宽（`alignItems: stretch`），避免页签内表单只占半幅。只读导航、历史和核对操作显式解除父表单禁用继承；确认/更新写入口仍检查各自权限与锁态。
