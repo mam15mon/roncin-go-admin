@@ -123,7 +123,7 @@ func (r *seaOrderChangeRepo) ExecuteTransportExecutionUpdate(ctx context.Context
 		if err != nil {
 			return mapEntError(err, biz.ErrSeaDocumentNoActiveLink, nil)
 		}
-		locatedLinks, err := tx.SeaMasterBillOrderLink.Query().Where(seamasterbillorderlinkent.OrganizationIDEQ(organizationID), seamasterbillorderlinkent.TransportExecutionIDEQ(requestLink.TransportExecutionID), seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE)).All(ctx)
+		locatedLinks, err := tx.SeaMasterBillOrderLink.Query().Where(seamasterbillorderlinkent.TransportExecutionIDEQ(requestLink.TransportExecutionID), seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE)).All(ctx)
 		if err != nil {
 			return err
 		}
@@ -141,12 +141,19 @@ func (r *seaOrderChangeRepo) ExecuteTransportExecutionUpdate(ctx context.Context
 		// 共享航程的船期更新属全部成员订单的业务内容写入：逐单执行统一内容门禁，
 		// 任一成员被业务锁定或处于终止状态即整体回滚。
 		for _, memberOrder := range orders {
+			if memberOrder.BusinessType != orderent.BusinessTypeSE {
+				return biz.ErrSeaDocumentStructureConflict
+			}
 			if err := ensureOrderBusinessEditable(ctx, tx, memberOrder); err != nil {
 				return err
 			}
 		}
-		if _, err = tx.SeaMasterBill.Query().Where(seamasterbillent.OrganizationIDEQ(organizationID), seamasterbillent.IDIn(masterBillIDs...)).Order(seamasterbillent.ByID()).ForUpdate().All(ctx); err != nil {
+		masters, err := tx.SeaMasterBill.Query().Where(seamasterbillent.BusinessTypeEQ("SE"), seamasterbillent.OrganizationIDEQ(organizationID), seamasterbillent.IDIn(masterBillIDs...)).Order(seamasterbillent.ByID()).ForUpdate().All(ctx)
+		if err != nil {
 			return err
+		}
+		if len(masters) != len(masterBillIDs) {
+			return biz.ErrSeaDocumentStructureConflict
 		}
 		lockedLinks, err := tx.SeaMasterBillOrderLink.Query().Where(seamasterbillorderlinkent.OrganizationIDEQ(organizationID), seamasterbillorderlinkent.IDIn(linkIDs...), seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE)).Order(seamasterbillorderlinkent.ByID()).ForUpdate().All(ctx)
 		if err != nil || len(lockedLinks) != len(linkIDs) {

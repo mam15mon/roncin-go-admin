@@ -30,7 +30,7 @@ func TestFeeLedgerMasterNoPostgres(t *testing.T) {
 				carrier := d.db.ShippingLine.Create().SetScacCode(newTestSCAC()).SetNameZh("台账测试").SetNameEn("Ledger Test").SetCountryCode("CN").SaveX(ctx)
 				execution := d.db.SeaTransportExecution.Create().SetOrganizationID(f.organizationID).SetShippingLineID(carrier.ID).SaveX(ctx)
 				createMaster := func(no string) *ent.SeaMasterBill {
-					return d.db.SeaMasterBill.Create().SetOrganizationID(f.organizationID).SetShippingLineID(carrier.ID).SetMasterNo(no).SetNormalizedMasterNo(no).SaveX(ctx)
+					return d.db.SeaMasterBill.Create().SetBusinessType("SE").SetOrganizationID(f.organizationID).SetShippingLineID(carrier.ID).SetMasterNo(no).SetNormalizedMasterNo(no).SaveX(ctx)
 				}
 				old, current := createMaster(oldNo), createMaster(currentNo)
 				d.db.SeaMasterBillOrderLink.Create().SetOrganizationID(f.organizationID).SetOrderID(f.orderID).SetMasterBillID(old.ID).SetTransportExecutionID(execution.ID).SetDocumentStructure("DIRECT").SetStatus("ENDED").SetEndedAt(at.Add(-time.Hour)).SetEndedReason(orderTerminationLinkEndedReason).SaveX(ctx)
@@ -50,7 +50,7 @@ func TestFeeLedgerMasterNoPostgres(t *testing.T) {
 				airline := d.db.Airline.Create().SetIataCode("LT").SetNameEn("Ledger Test").SetCountryCode("CN").SaveX(ctx)
 				airport := d.db.Airport.Create().SetIataCode("LGR").SetNameEn("Ledger Airport").SetCountryCode("CN").SaveX(ctx)
 				createMaster := func(no string) *ent.AirMasterWaybill {
-					return d.db.AirMasterWaybill.Create().SetOrganizationID(f.organizationID).SetAirlineID(airline.ID).SetOriginAirportID(airport.ID).SetDestinationAirportID(airport.ID).SetMasterNo(no).SaveX(ctx)
+					return d.db.AirMasterWaybill.Create().SetBusinessType("AE").SetOrganizationID(f.organizationID).SetAirlineID(airline.ID).SetOriginAirportID(airport.ID).SetDestinationAirportID(airport.ID).SetMasterNo(no).SaveX(ctx)
 				}
 				old, current := createMaster(oldNo), createMaster(currentNo)
 				d.db.AirMasterWaybillOrderLink.Create().SetOrganizationID(f.organizationID).SetOrderID(f.orderID).SetMasterWaybillID(old.ID).SetStatus("ENDED").SetEndedAt(at.Add(-time.Hour)).SetEndedReason("订单终止").SaveX(ctx)

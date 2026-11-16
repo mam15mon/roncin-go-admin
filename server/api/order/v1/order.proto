@@ -835,6 +835,7 @@ message SeaTransportExecution {
 
 // SeaMasterBillSummary 海运主单及当前航程摘要。
 message SeaMasterBillSummary {
+  string business_type = 22;
   string master_bill_id = 1;
   string master_no = 2;
   string shipping_line_id = 3;
@@ -888,6 +889,7 @@ message SeaMasterBillMemberSummary {
 
 // SeaMasterBillCandidate 匹配到的已有主单候选。
 message SeaMasterBillCandidate {
+  string business_type = 11;
   reserved 6;
   reserved "transport_execution";
   string id = 1;
@@ -903,6 +905,7 @@ message SeaMasterBillCandidate {
 
 // MatchSeaMasterBillCandidateRequest 共享主单候选匹配请求。
 message MatchSeaMasterBillCandidateRequest {
+ string business_type = 20 [(google.api.field_behavior) = REQUIRED];
   string shipping_line_id = 1 [(google.api.field_behavior) = REQUIRED];
   string master_no = 2 [(google.api.field_behavior) = REQUIRED];
   reserved 3;

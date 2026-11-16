@@ -45,6 +45,12 @@ func (_c *SeaMasterBillVersionCreate) SetNillableCreatedAt(v *time.Time) *SeaMas
 	return _c
 }
 
+// SetBusinessType sets the "business_type" field.
+func (_c *SeaMasterBillVersionCreate) SetBusinessType(v string) *SeaMasterBillVersionCreate {
+	_c.mutation.SetBusinessType(v)
+	return _c
+}
+
 // SetOrganizationID sets the "organization_id" field.
 func (_c *SeaMasterBillVersionCreate) SetOrganizationID(v uuid.UUID) *SeaMasterBillVersionCreate {
 	_c.mutation.SetOrganizationID(v)
@@ -589,6 +595,14 @@ func (_c *SeaMasterBillVersionCreate) check() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "SeaMasterBillVersion.created_at"`)}
 	}
+	if _, ok := _c.mutation.BusinessType(); !ok {
+		return &ValidationError{Name: "business_type", err: errors.New(`ent: missing required field "SeaMasterBillVersion.business_type"`)}
+	}
+	if v, ok := _c.mutation.BusinessType(); ok {
+		if err := seamasterbillversion.BusinessTypeValidator(v); err != nil {
+			return &ValidationError{Name: "business_type", err: fmt.Errorf(`ent: validator failed for field "SeaMasterBillVersion.business_type": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.OrganizationID(); !ok {
 		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "SeaMasterBillVersion.organization_id"`)}
 	}
@@ -757,6 +771,10 @@ func (_c *SeaMasterBillVersionCreate) createSpec() (*SeaMasterBillVersion, *sqlg
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(seamasterbillversion.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
+	}
+	if value, ok := _c.mutation.BusinessType(); ok {
+		_spec.SetField(seamasterbillversion.FieldBusinessType, field.TypeString, value)
+		_node.BusinessType = value
 	}
 	if value, ok := _c.mutation.VersionNo(); ok {
 		_spec.SetField(seamasterbillversion.FieldVersionNo, field.TypeUint64, value)
@@ -1079,6 +1097,9 @@ func (u *SeaMasterBillVersionUpsertOne) UpdateNewValues() *SeaMasterBillVersionU
 		if _, exists := u.create.mutation.CreatedAt(); exists {
 			s.SetIgnore(seamasterbillversion.FieldCreatedAt)
 		}
+		if _, exists := u.create.mutation.BusinessType(); exists {
+			s.SetIgnore(seamasterbillversion.FieldBusinessType)
+		}
 		if _, exists := u.create.mutation.OrganizationID(); exists {
 			s.SetIgnore(seamasterbillversion.FieldOrganizationID)
 		}
@@ -1397,6 +1418,9 @@ func (u *SeaMasterBillVersionUpsertBulk) UpdateNewValues() *SeaMasterBillVersion
 			}
 			if _, exists := b.mutation.CreatedAt(); exists {
 				s.SetIgnore(seamasterbillversion.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.BusinessType(); exists {
+				s.SetIgnore(seamasterbillversion.FieldBusinessType)
 			}
 			if _, exists := b.mutation.OrganizationID(); exists {
 				s.SetIgnore(seamasterbillversion.FieldOrganizationID)

@@ -25,6 +25,8 @@ type SeaMasterBillVersion struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
+	// BusinessType holds the value of the "business_type" field.
+	BusinessType string `json:"business_type,omitempty"`
 	// OrganizationID holds the value of the "organization_id" field.
 	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// MasterBillID holds the value of the "master_bill_id" field.
@@ -215,7 +217,7 @@ func (*SeaMasterBillVersion) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case seamasterbillversion.FieldVersionNo, seamasterbillversion.FieldSourceEntityVersion, seamasterbillversion.FieldPackageCount:
 			values[i] = new(sql.NullInt64)
-		case seamasterbillversion.FieldMasterNo, seamasterbillversion.FieldNormalizedMasterNo, seamasterbillversion.FieldStatus, seamasterbillversion.FieldContentHash, seamasterbillversion.FieldSource, seamasterbillversion.FieldReason, seamasterbillversion.FieldIdempotencyKey, seamasterbillversion.FieldRequestFingerprint, seamasterbillversion.FieldConfirmedByParty, seamasterbillversion.FieldConfirmationNote, seamasterbillversion.FieldShipperText, seamasterbillversion.FieldConsigneeText, seamasterbillversion.FieldNotifyPartyText, seamasterbillversion.FieldSecondNotifyPartyText, seamasterbillversion.FieldMarksText, seamasterbillversion.FieldGoodsDescriptionText, seamasterbillversion.FieldPackageUnit, seamasterbillversion.FieldFreightTerms, seamasterbillversion.FieldTransportTerms, seamasterbillversion.FieldBillForm, seamasterbillversion.FieldReleaseType, seamasterbillversion.FieldClauses, seamasterbillversion.FieldForeignAgentText:
+		case seamasterbillversion.FieldBusinessType, seamasterbillversion.FieldMasterNo, seamasterbillversion.FieldNormalizedMasterNo, seamasterbillversion.FieldStatus, seamasterbillversion.FieldContentHash, seamasterbillversion.FieldSource, seamasterbillversion.FieldReason, seamasterbillversion.FieldIdempotencyKey, seamasterbillversion.FieldRequestFingerprint, seamasterbillversion.FieldConfirmedByParty, seamasterbillversion.FieldConfirmationNote, seamasterbillversion.FieldShipperText, seamasterbillversion.FieldConsigneeText, seamasterbillversion.FieldNotifyPartyText, seamasterbillversion.FieldSecondNotifyPartyText, seamasterbillversion.FieldMarksText, seamasterbillversion.FieldGoodsDescriptionText, seamasterbillversion.FieldPackageUnit, seamasterbillversion.FieldFreightTerms, seamasterbillversion.FieldTransportTerms, seamasterbillversion.FieldBillForm, seamasterbillversion.FieldReleaseType, seamasterbillversion.FieldClauses, seamasterbillversion.FieldForeignAgentText:
 			values[i] = new(sql.NullString)
 		case seamasterbillversion.FieldCreatedAt, seamasterbillversion.FieldConfirmedAt:
 			values[i] = new(sql.NullTime)
@@ -247,6 +249,12 @@ func (_m *SeaMasterBillVersion) assignValues(columns []string, values []any) err
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
 				_m.CreatedAt = value.Time
+			}
+		case seamasterbillversion.FieldBusinessType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field business_type", values[i])
+			} else if value.Valid {
+				_m.BusinessType = value.String
 			}
 		case seamasterbillversion.FieldOrganizationID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -554,6 +562,9 @@ func (_m *SeaMasterBillVersion) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("business_type=")
+	builder.WriteString(_m.BusinessType)
 	builder.WriteString(", ")
 	builder.WriteString("organization_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))

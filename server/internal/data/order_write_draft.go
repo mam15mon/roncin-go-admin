@@ -72,7 +72,6 @@ func lockOrderDraftUpdateTarget(
 
 	activeLinks, err := tx.SeaMasterBillOrderLink.Query().
 		Where(
-			seamasterbillorderlink.OrganizationIDEQ(organizationID),
 			seamasterbillorderlink.MasterBillIDEQ(activeLink.MasterBillID),
 			seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
 		).
@@ -139,7 +138,6 @@ func revalidateSeaMasterBillUpdateMemberSet(
 
 	lockedActiveLinks, err := tx.SeaMasterBillOrderLink.Query().
 		Where(
-			seamasterbillorderlink.OrganizationIDEQ(organizationID),
 			seamasterbillorderlink.MasterBillIDEQ(masterBillID),
 			seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
 		).
@@ -159,6 +157,9 @@ func revalidateSeaMasterBillUpdateMemberSet(
 		if memberOrderID != lockContext.memberOrderIDs[index] {
 			return nil, biz.ErrSeaDocumentStructureConflict
 		}
+	}
+	if err := validateSeaMasterMemberIdentities(ctx, tx.Client(), organizationID, masterBillID, lockedActiveLinks); err != nil {
+		return nil, err
 	}
 	return lockedMemberOrderIDs, nil
 }

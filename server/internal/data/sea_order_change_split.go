@@ -314,7 +314,7 @@ func (r *seaOrderChangeRepo) PreviewSplit(ctx context.Context, organizationID uu
 			candidate, queryErr := client.SeaMasterBill.Query().
 				Where(
 					seamasterbillent.IDEQ(*target.CandidateID),
-					seamasterbillent.OrganizationIDEQ(organizationID),
+					seamasterbillent.BusinessTypeEQ("SE"), seamasterbillent.OrganizationIDEQ(organizationID),
 				).
 				WithOrderLinks(func(lq *ent.SeaMasterBillOrderLinkQuery) {
 					lq.Where(seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE)).
@@ -326,6 +326,9 @@ func (r *seaOrderChangeRepo) PreviewSplit(ctx context.Context, organizationID uu
 					return nil, biz.ErrSeaOrderSplitVersionConflict
 				}
 				return nil, queryErr
+			}
+			if err := validateSeaMasterMemberIdentities(ctx, client, organizationID, candidate.ID, candidate.Edges.OrderLinks); err != nil {
+				return nil, err
 			}
 			var candidateTE *ent.SeaTransportExecution
 			for _, l := range candidate.Edges.OrderLinks {

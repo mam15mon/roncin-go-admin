@@ -89,16 +89,16 @@ func TestMapEntConstraintPostgres(t *testing.T) {
 		}
 	})
 
-	t.Run("主单身份使用实际截断名", func(t *testing.T) {
+	t.Run("主单身份使用显式方向索引名", func(t *testing.T) {
 		createMaster := func() *ent.SeaMasterBillCreate {
-			return client.SeaMasterBill.Create().SetOrganizationID(org.ID).SetShippingLineID(shippingLine.ID).
+			return client.SeaMasterBill.Create().SetBusinessType("SE").SetOrganizationID(org.ID).SetShippingLineID(shippingLine.ID).
 				SetMasterNo("CSTR-MBL-" + suffix).SetNormalizedMasterNo("CSTR-MBL-" + suffix)
 		}
 		if _, err := createMaster().Save(ctx); err != nil {
 			t.Fatal(err)
 		}
 		_, err := createMaster().Save(ctx)
-		assertConstraint(t, err, "seamasterbill_organization_id_shipping_line_id_normalized_maste", biz.ErrSeaMasterBillExists)
+		assertConstraint(t, err, "sea_master_bill_business_no", biz.ErrSeaMasterBillExists)
 		if got := mapEntConstraint(err, "seamasterbill_organization_id_shipping_line_id_normalized_master_no", biz.ErrSeaMasterBillExists); got != err {
 			t.Fatalf("逻辑长名称不应匹配数据库实际名: %v", got)
 		}

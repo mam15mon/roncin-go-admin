@@ -125,6 +125,7 @@ export function useSeaMasterBillCandidate(
       const current = form.getFieldsValue(true) as SeaVoyageValues;
       const response = await orderServiceMatchSeaMasterBillCandidate(
         {
+          businessType: 'SE',
           masterNo: queryMasterNo,
           shippingLineId: queryShippingLineId,
           originLocationId: current.originLocationId || undefined,

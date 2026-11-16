@@ -47,7 +47,7 @@ func seedAirExportOrders(ctx context.Context, sc *seedContext) error {
 	}
 	master, err := tx.AirMasterWaybill.Query().Where(masterent.OrganizationIDEQ(sc.company.ID), masterent.MasterNoEQ("78112345675")).Only(ctx)
 	if ent.IsNotFound(err) {
-		master, err = tx.AirMasterWaybill.Create().SetOrganizationID(sc.company.ID).SetMasterNo("78112345675").
+		master, err = tx.AirMasterWaybill.Create().SetBusinessType("AE").SetOrganizationID(sc.company.ID).SetMasterNo("78112345675").
 			SetAirlineID(airline.ID).SetOriginAirportID(airports["PVG"].ID).SetDestinationAirportID(airports["LAX"].ID).
 			SetFlightNo("MU583").SetEtd("2026-10-22T03:30:00Z").SetEta("2026-10-22T15:00:00Z").
 			SetDocumentCutoffAt("2026-10-21T08:00:00Z").SetCustomsCutoffAt("2026-10-21T10:00:00Z").

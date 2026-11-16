@@ -43,6 +43,7 @@ type AirMasterWaybillInput struct {
 	Notes                 string
 }
 type AirMasterWaybill struct {
+	BusinessType           OrderBusinessType
 	ID                     uuid.UUID
 	OrganizationID         uuid.UUID
 	Version                uint64

@@ -99,7 +99,7 @@ func (r *seaOrderChangeRepo) PreviewReassignment(ctx context.Context, organizati
 		candMBL, err := client.SeaMasterBill.Query().
 			Where(
 				seamasterbillent.IDEQ(*input.Target.CandidateID),
-				seamasterbillent.OrganizationIDEQ(organizationID),
+				seamasterbillent.BusinessTypeEQ("SE"), seamasterbillent.OrganizationIDEQ(organizationID),
 			).
 			WithOrderLinks(func(lq *ent.SeaMasterBillOrderLinkQuery) {
 				lq.Where(
@@ -387,11 +387,14 @@ func (r *seaOrderChangeRepo) ExecuteReassignment(ctx context.Context, organizati
 		mbls := make(map[uuid.UUID]*ent.SeaMasterBill, len(mblIDs))
 		for _, mID := range mblIDs {
 			m, err := tx.SeaMasterBill.Query().
-				Where(seamasterbillent.IDEQ(mID), seamasterbillent.OrganizationIDEQ(organizationID)).
+				Where(seamasterbillent.IDEQ(mID), seamasterbillent.BusinessTypeEQ("SE"), seamasterbillent.OrganizationIDEQ(organizationID)).
 				ForUpdate().
 				Only(ctx)
 			if err != nil {
 				return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
+			}
+			if _, err := querySeaMasterBillActiveMemberLinks(ctx, tx.Client(), organizationID, mID, false); err != nil {
+				return err
 			}
 			mbls[mID] = m
 		}

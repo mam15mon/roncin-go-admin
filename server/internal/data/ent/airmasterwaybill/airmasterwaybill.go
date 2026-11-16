@@ -19,6 +19,8 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// FieldBusinessType holds the string denoting the business_type field in the database.
+	FieldBusinessType = "business_type"
 	// FieldOrganizationID holds the string denoting the organization_id field in the database.
 	FieldOrganizationID = "organization_id"
 	// FieldMasterNo holds the string denoting the master_no field in the database.
@@ -100,6 +102,7 @@ var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
+	FieldBusinessType,
 	FieldOrganizationID,
 	FieldMasterNo,
 	FieldAirlineID,
@@ -137,6 +140,8 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
+	// BusinessTypeValidator is a validator for the "business_type" field. It is called by the builders before save.
+	BusinessTypeValidator func(string) error
 	// MasterNoValidator is a validator for the "master_no" field. It is called by the builders before save.
 	MasterNoValidator func(string) error
 	// DefaultFlightNo holds the default value on creation for the "flight_no" field.
@@ -197,6 +202,11 @@ func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByUpdatedAt orders the results by the updated_at field.
 func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByBusinessType orders the results by the business_type field.
+func ByBusinessType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBusinessType, opts...).ToFunc()
 }
 
 // ByOrganizationID orders the results by the organization_id field.

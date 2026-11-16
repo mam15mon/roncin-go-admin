@@ -9,6 +9,7 @@ import {
 } from '@testing-library/react';
 import { Form, type FormInstance } from 'antd';
 import { describe, expect, it, vi } from 'vitest';
+import { airExportServiceListAirMasterWaybills } from '@/services/roncin/airExportService';
 import { getAirTemplateSections } from './air-template';
 import type { TemplateProps } from './types';
 
@@ -256,6 +257,11 @@ describe('AE 新建与详情五卡片合同', () => {
     expect(
       within(existing).getByTestId('sea-notes-operationNotes'),
     ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(airExportServiceListAirMasterWaybills).toHaveBeenCalledWith(
+        expect.objectContaining({ businessType: 'AE' }),
+      ),
+    );
     await flushMountRequests();
   });
   it('经营字段在本票卡片中可编辑，付款方式只注册一次且不写入主单', async () => {

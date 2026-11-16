@@ -140,6 +140,7 @@ function ReassignmentForm({
       if (!matchLookup) throw new Error('请先输入目标提单号并选择船公司');
       const response = await orderServiceMatchSeaMasterBillCandidate(
         {
+          businessType: 'SE',
           masterNo: matchLookup.masterNo,
           shippingLineId: matchLookup.shippingLineId,
         },

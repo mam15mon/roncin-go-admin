@@ -32,3 +32,47 @@
 用户在最终方案摘要及确认请求之后明确回复“可以”，批准2a96d89e最终方案。解除此前等待实施确认的阻塞，按既定六组依赖开始。不得再次请求相同批准，也不得将既有不清库/外站不写入的边界扩大。
 
 - 实施当前分支codex/hgj-business-alignment；父和hgj-order-direction已in_progress。direction_core代理负责server方向身份/正式迁移/生成，air_common_fields已完成AE公共字段，check_air_common正独立检查；未跑全期最终门禁，其他子任务未start。
+
+## 2026-11-16 当前实施检查点（窗口01a1dff8-3ebc-7380-9095-81092e5cc406结束前）
+
+### 用户授权与完整目标
+
+- 最新真实用户明确消息“可以”：回答最终方案审批，批准提交2a96d89e对应的父prd/design/implement及六组实施。此前blocked/自动goal续行不是批准；现在已真正批准，目标active，不要重复问。
+- 完整目标：对标HGJ可观察前后端规则格式，补齐SE/AE，实现SI/AI，其他5类仅调研。已确认主分AWB结构化/制作预览PDF、AE/AI直单一MAWB一票不混HOUSE、进口五服务全链按票适用、完整筛选CSV；高级空运多航段/拆拼改配与批量导入后续。细节以父最终design为已批准合同。
+- 用户消息与工具输出在本环境没有可见item id；以本窗口末的“可以”及提交2a96d89e之后的历史定位，不重新收敛需求。
+
+### 仓库当前状态
+
+- cwd /home/vince/roncin-go-admin；分支codex/hgj-business-alignment；从main创建，无worktree。
+- 父任务11-15-hgj-business-alignment、当前子任务11-15-hgj-order-direction均in_progress；task.py current指子。其余五子planning，按依赖继续，不因为当前子没完提前start其他。
+- 最新提交c2c7435b feat: 补齐空运本票经营字段及显式清空映射。它包含5前端文件、对应spec和用户批准/任务状态记录。之前2a96d89e是已审最终规划。
+- 工作区大量server未提交改动全部由direction_core负责，切勿重置或当用户无关改动删除。主会话未改server。前端5文件已提交，server方向API生成/调用方仍可能改前端，但不应覆盖新公共字段。
+
+### 代理状态与责任
+
+- direction_core（trellis-implement）仍运行，独占方向隔离server/Ent/正式迁移/生成物及必要候选调用参数。prompt要求不派子agent、不commit；先实现后测试。需后续等待其真实结果，再spawn trellis-check审查自修，然后主会话规范/提交/记录。
+- direction_core已加Sea/Air master和SeaMasterBillVersion的Immutable business_type及方向唯一键、一些biz/data/fixture/seed；正在贯穿Proto/candidate/history/恢复/共享集合。已消息提醒DB CHECK只允许SE/SI、AE/AI、版本快照也保存身份，未填候选类型不能默认SE/AE，不提前放开SI/AI创建假闭环。
+- air_common_fields已完成并检查，check_air_common独立修复两个CurrencyAmountInput漏requireAmountWhenCurrency；两定向17 tests、tsc、5文件Biome、antd lint、diff全部通过，已提交c2c7435b。无真实浏览器/API保存验证，仍需最终整组验收。
+- acceptance_commands只读research代理已写当前子research/validation-entrypoints.md（123行），涵盖精确Go/Vitest入口、隔离Schema和12files20直接fixture影响；主会话已读。代理因上下文切换忘派工，已消息告知文件满足派工、直接final，无需再探索。该研究未提交。
+- 其他早期调研代理completed，无产品实现工作。不必重复调研。
+
+### 本组已实现前端与规范
+
+5文件：web/src/pages/orders/templates/components/air/AirCommercialFields.tsx新，templates/air-template.tsx、templates/air-create-layout.test.tsx，order-kinds/air-export/form-adapter.ts及test。
+补shipmentMode、条款/业务付款、业务代理/合约、货值保费币种、receivedAt/cargoReadyAt、工厂和备注。金额原始字符串/零不丢，Dayjs回显ISO提交，更新显式空字符串/枚举零值清空（后端merge支持）；新建optional省略。付款字段可见仅注册一次，readonly全传，本票字段不写主单。危险品原省略语义未改，正文/模式/进口还未实现。
+新规范.trellis/spec/web/frontend/air-order-commercial-fields.md（7节）已挂frontend index；记录到当前子research/air-common-validation.md，均已提交。
+
+### 数据库/验证环境
+
+- PostgreSQL 127.0.0.1:5432已ready。当前shell没有DATABASE_SOURCE/RONCIN_INTEGRATION_DATABASE_SOURCE；.env.local有DATABASE_SOURCE和KRATOS_DATABASE_SOURCE。禁止输出值/真实密码。
+- 现有server/internal/data/integration_test_helper_test.go用RONCIN_INTEGRATION_DATABASE_SOURCE，CREATE随机roncin_test_iso_* Schema，在其内执行全部正式server/migrations，t.Cleanup只drop自己schema；不Schema.Create、不重置开发数据。
+- 已告诉direction_core可用node --env-file-if-exists=.env.local进程内取DATABASE_SOURCE传给go子进程的RONCIN_INTEGRATION_DATABASE_SOURCE，禁止shell打印/命令拼接连接串。无需migrate:dev改现有库。
+- Ent生成：go -C server generate ./internal/data/ent。仓库无Atlas diff脚本，正式SQL遵现有迁移惯例并与Ent声明一致。
+- 当前未跑check:fast或build，等阶段/最终风险匹配门禁；不能每组无因全量重复。
+
+### 下一步
+
+1. 继续等待direction_core具体实现/验证结果；可只读检查当前diff，不和它争写server/生成物。所有长等待保持每60秒以内用户更新。
+2. 若它完成，spawn trellis-check（Active task首行+责任范围+已跑结果）检查方向身份/迁移回填/索引/CHECK/候选必填/直接ID/完整成员恢复/生成一致和真实DB测试，不把SKIP算过。修复后同步实际规范并提交同组源+生成物+正式迁移+tests。
+3. 当前子独立验收完成再记录完成/归档，按六子依赖start下一组air-documents（大工作，需继续持久推进）及SI等；主会话协调规格/提交，实现/check默认用Trellis子代理，原生context优先。
+4. 父全目标远未完成，不update_goal complete，不再次请求最终规划批准。只有真实新用户业务决策未明才问，已批准的锁序/实体边界不重问。

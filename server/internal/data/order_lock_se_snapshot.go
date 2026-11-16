@@ -52,7 +52,7 @@ func createSeaOrderLockSnapshot(ctx context.Context, tx *ent.Tx, organizationID,
 
 	// 锁序 2: MBL FOR UPDATE。
 	mbl, err := tx.SeaMasterBill.Query().
-		Where(seamasterbillent.IDEQ(activeLink.MasterBillID), seamasterbillent.OrganizationIDEQ(organizationID)).
+		Where(seamasterbillent.IDEQ(activeLink.MasterBillID), seamasterbillent.BusinessTypeEQ("SE"), seamasterbillent.OrganizationIDEQ(organizationID)).
 		ForUpdate().
 		Only(ctx)
 	if err != nil {
@@ -159,7 +159,7 @@ func ensureSeaMasterBillLockVersion(ctx context.Context, tx *ent.Tx, organizatio
 		nextVersion = latest.VersionNo + 1
 	}
 
-	created, createErr := tx.SeaMasterBillVersion.Create().
+	created, createErr := tx.SeaMasterBillVersion.Create().SetBusinessType(mbl.BusinessType).
 		SetOrganizationID(organizationID).
 		SetMasterBillID(mbl.ID).
 		SetVersionNo(nextVersion).
@@ -282,7 +282,7 @@ type seaGroupLockContext struct {
 // 升序），随后重验活动成员集合。集合与期望不一致时返回结构冲突，整组零写入。
 func lockSeaGroupDocumentGraph(ctx context.Context, tx *ent.Tx, organizationID, masterBillID uuid.UUID, expectedMemberIDs []uuid.UUID) (*seaGroupLockContext, error) {
 	mbl, err := tx.SeaMasterBill.Query().
-		Where(seamasterbillent.IDEQ(masterBillID), seamasterbillent.OrganizationIDEQ(organizationID)).
+		Where(seamasterbillent.IDEQ(masterBillID), seamasterbillent.BusinessTypeEQ("SE"), seamasterbillent.OrganizationIDEQ(organizationID)).
 		ForUpdate().
 		Only(ctx)
 	if err != nil {
@@ -299,6 +299,9 @@ func lockSeaGroupDocumentGraph(ctx context.Context, tx *ent.Tx, organizationID, 
 		ForUpdate().
 		All(ctx)
 	if err != nil {
+		return nil, err
+	}
+	if err := validateSeaMasterMemberIdentities(ctx, tx.Client(), organizationID, masterBillID, links); err != nil {
 		return nil, err
 	}
 	memberSet := make(map[uuid.UUID]struct{}, len(expectedMemberIDs))

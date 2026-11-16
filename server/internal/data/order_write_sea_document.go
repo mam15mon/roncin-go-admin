@@ -180,7 +180,7 @@ func syncOrderSeaDocumentOnUpdate(
 	mbl, err := tx.SeaMasterBill.Query().
 		Where(
 			seamasterbill.IDEQ(activeLinkQuery.MasterBillID),
-			seamasterbill.OrganizationIDEQ(organizationID),
+			seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ("SE"),
 		).
 		ForUpdate().
 		Only(ctx)

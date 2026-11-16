@@ -364,6 +364,7 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
               request={async ({ keyWords }) => {
                 const response = ensureListResponse(
                   await airExportServiceListAirMasterWaybills({
+                    businessType: 'AE',
                     keyword: keyWords,
                     page: 1,
                     pageSize: 50,
@@ -486,7 +487,12 @@ function AirMasterCandidateHint({
     queryFn: async ({ signal }) => {
       const response = ensureListResponse(
         await airExportServiceListAirMasterWaybills(
-          { keyword: masterNo, page: 1, pageSize: 20 },
+          {
+            businessType: 'AE',
+            keyword: masterNo,
+            page: 1,
+            pageSize: 20,
+          },
           { signal },
         ),
         '主单身份核对失败',

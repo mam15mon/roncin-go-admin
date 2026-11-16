@@ -158,6 +158,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "business_type", Type: field.TypeString, Size: 2},
 		{Name: "master_no", Type: field.TypeString, Size: 11},
 		{Name: "flight_no", Type: field.TypeString, Size: 40, Default: ""},
 		{Name: "etd", Type: field.TypeString, Size: 64, Default: ""},
@@ -185,25 +186,25 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "air_master_waybills_organizations_organization",
-				Columns:    []*schema.Column{AirMasterWaybillsColumns[17]},
+				Columns:    []*schema.Column{AirMasterWaybillsColumns[18]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "air_master_waybills_airlines_airline",
-				Columns:    []*schema.Column{AirMasterWaybillsColumns[18]},
+				Columns:    []*schema.Column{AirMasterWaybillsColumns[19]},
 				RefColumns: []*schema.Column{AirlinesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "air_master_waybills_airports_origin_airport",
-				Columns:    []*schema.Column{AirMasterWaybillsColumns[19]},
+				Columns:    []*schema.Column{AirMasterWaybillsColumns[20]},
 				RefColumns: []*schema.Column{AirportsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "air_master_waybills_airports_destination_airport",
-				Columns:    []*schema.Column{AirMasterWaybillsColumns[20]},
+				Columns:    []*schema.Column{AirMasterWaybillsColumns[21]},
 				RefColumns: []*schema.Column{AirportsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -215,9 +216,14 @@ var (
 				Columns: []*schema.Column{AirMasterWaybillsColumns[2]},
 			},
 			{
-				Name:    "airmasterwaybill_organization_id_master_no",
+				Name:    "air_master_waybill_business_no",
 				Unique:  true,
-				Columns: []*schema.Column{AirMasterWaybillsColumns[17], AirMasterWaybillsColumns[3]},
+				Columns: []*schema.Column{AirMasterWaybillsColumns[18], AirMasterWaybillsColumns[3], AirMasterWaybillsColumns[4]},
+			},
+			{
+				Name:    "airmasterwaybill_organization_id_business_type",
+				Unique:  false,
+				Columns: []*schema.Column{AirMasterWaybillsColumns[18], AirMasterWaybillsColumns[3]},
 			},
 		},
 	}
@@ -6537,6 +6543,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "business_type", Type: field.TypeString, Size: 2},
 		{Name: "master_no", Type: field.TypeString, Size: 64},
 		{Name: "normalized_master_no", Type: field.TypeString, Size: 64},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"DRAFT", "CONFIRMED", "RELEASED", "VOIDED"}, Default: "DRAFT"},
@@ -6569,19 +6576,19 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "sea_master_bills_organizations_sea_master_bills",
-				Columns:    []*schema.Column{SeaMasterBillsColumns[23]},
+				Columns:    []*schema.Column{SeaMasterBillsColumns[24]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_master_bills_sea_master_bill_versions_current_version",
-				Columns:    []*schema.Column{SeaMasterBillsColumns[24]},
+				Columns:    []*schema.Column{SeaMasterBillsColumns[25]},
 				RefColumns: []*schema.Column{SeaMasterBillVersionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "sea_master_bills_shipping_lines_sea_master_bills",
-				Columns:    []*schema.Column{SeaMasterBillsColumns[25]},
+				Columns:    []*schema.Column{SeaMasterBillsColumns[26]},
 				RefColumns: []*schema.Column{ShippingLinesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -6593,9 +6600,14 @@ var (
 				Columns: []*schema.Column{SeaMasterBillsColumns[2]},
 			},
 			{
-				Name:    "seamasterbill_organization_id_shipping_line_id_normalized_master_no",
+				Name:    "sea_master_bill_business_no",
 				Unique:  true,
-				Columns: []*schema.Column{SeaMasterBillsColumns[23], SeaMasterBillsColumns[25], SeaMasterBillsColumns[4]},
+				Columns: []*schema.Column{SeaMasterBillsColumns[24], SeaMasterBillsColumns[3], SeaMasterBillsColumns[26], SeaMasterBillsColumns[5]},
+			},
+			{
+				Name:    "seamasterbill_organization_id_business_type",
+				Unique:  false,
+				Columns: []*schema.Column{SeaMasterBillsColumns[24], SeaMasterBillsColumns[3]},
 			},
 		},
 	}
@@ -6681,6 +6693,7 @@ var (
 	SeaMasterBillVersionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "created_at", Type: field.TypeTime},
+		{Name: "business_type", Type: field.TypeString, Size: 2},
 		{Name: "version_no", Type: field.TypeUint64},
 		{Name: "source_entity_version", Type: field.TypeUint64},
 		{Name: "master_no", Type: field.TypeString, Size: 64},
@@ -6724,31 +6737,31 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "sea_master_bill_versions_order_attachments_sea_master_bill_versions",
-				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[31]},
+				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[32]},
 				RefColumns: []*schema.Column{OrderAttachmentsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_master_bill_versions_organizations_sea_master_bill_versions",
-				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[32]},
+				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[33]},
 				RefColumns: []*schema.Column{OrganizationsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_master_bill_versions_sea_master_bills_versions",
-				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[33]},
+				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[34]},
 				RefColumns: []*schema.Column{SeaMasterBillsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_master_bill_versions_shipping_lines_sea_master_bill_versions",
-				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[34]},
+				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[35]},
 				RefColumns: []*schema.Column{ShippingLinesColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "sea_master_bill_versions_users_created_sea_master_bill_versions",
-				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[35]},
+				Columns:    []*schema.Column{SeaMasterBillVersionsColumns[36]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -6757,22 +6770,22 @@ var (
 			{
 				Name:    "sea_mbl_version_master_version_no",
 				Unique:  true,
-				Columns: []*schema.Column{SeaMasterBillVersionsColumns[33], SeaMasterBillVersionsColumns[2]},
+				Columns: []*schema.Column{SeaMasterBillVersionsColumns[34], SeaMasterBillVersionsColumns[3]},
 			},
 			{
 				Name:    "sea_mbl_version_source_hash",
 				Unique:  true,
-				Columns: []*schema.Column{SeaMasterBillVersionsColumns[33], SeaMasterBillVersionsColumns[3], SeaMasterBillVersionsColumns[7]},
+				Columns: []*schema.Column{SeaMasterBillVersionsColumns[34], SeaMasterBillVersionsColumns[4], SeaMasterBillVersionsColumns[8]},
 			},
 			{
 				Name:    "seamasterbillversion_organization_id_master_bill_id",
 				Unique:  false,
-				Columns: []*schema.Column{SeaMasterBillVersionsColumns[32], SeaMasterBillVersionsColumns[33]},
+				Columns: []*schema.Column{SeaMasterBillVersionsColumns[33], SeaMasterBillVersionsColumns[34]},
 			},
 			{
 				Name:    "sea_mbl_version_idempotency_key",
 				Unique:  true,
-				Columns: []*schema.Column{SeaMasterBillVersionsColumns[32], SeaMasterBillVersionsColumns[10]},
+				Columns: []*schema.Column{SeaMasterBillVersionsColumns[33], SeaMasterBillVersionsColumns[11]},
 			},
 		},
 	}
@@ -7720,6 +7733,10 @@ func init() {
 	AirMasterWaybillsTable.ForeignKeys[1].RefTable = AirlinesTable
 	AirMasterWaybillsTable.ForeignKeys[2].RefTable = AirportsTable
 	AirMasterWaybillsTable.ForeignKeys[3].RefTable = AirportsTable
+	AirMasterWaybillsTable.Annotation = &entsql.Annotation{}
+	AirMasterWaybillsTable.Annotation.Checks = map[string]string{
+		"air_master_waybill_business_type_check": "business_type IN ('AE','AI')",
+	}
 	AirMasterWaybillHistoriesTable.ForeignKeys[0].RefTable = AirMasterWaybillsTable
 	AirMasterWaybillOrderLinksTable.ForeignKeys[0].RefTable = OrganizationsTable
 	AirMasterWaybillOrderLinksTable.ForeignKeys[1].RefTable = AirMasterWaybillsTable
@@ -8137,6 +8154,10 @@ func init() {
 	SeaMasterBillsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	SeaMasterBillsTable.ForeignKeys[1].RefTable = SeaMasterBillVersionsTable
 	SeaMasterBillsTable.ForeignKeys[2].RefTable = ShippingLinesTable
+	SeaMasterBillsTable.Annotation = &entsql.Annotation{}
+	SeaMasterBillsTable.Annotation.Checks = map[string]string{
+		"sea_master_bill_business_type_check": "business_type IN ('SE','SI')",
+	}
 	SeaMasterBillOrderLinksTable.ForeignKeys[0].RefTable = OrdersTable
 	SeaMasterBillOrderLinksTable.ForeignKeys[1].RefTable = OrganizationsTable
 	SeaMasterBillOrderLinksTable.ForeignKeys[2].RefTable = SeaMasterBillsTable
@@ -8146,6 +8167,10 @@ func init() {
 	SeaMasterBillVersionsTable.ForeignKeys[2].RefTable = SeaMasterBillsTable
 	SeaMasterBillVersionsTable.ForeignKeys[3].RefTable = ShippingLinesTable
 	SeaMasterBillVersionsTable.ForeignKeys[4].RefTable = UsersTable
+	SeaMasterBillVersionsTable.Annotation = &entsql.Annotation{}
+	SeaMasterBillVersionsTable.Annotation.Checks = map[string]string{
+		"sea_master_bill_version_business_type_check": "business_type IN ('SE','SI')",
+	}
 	SeaOrderReassignmentEventsTable.ForeignKeys[0].RefTable = OrdersTable
 	SeaOrderReassignmentEventsTable.ForeignKeys[1].RefTable = OrderAttachmentsTable
 	SeaOrderReassignmentEventsTable.ForeignKeys[2].RefTable = OrganizationsTable

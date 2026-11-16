@@ -24,8 +24,11 @@ func seaRestoreConflict(message string) error {
 
 // lockSeaOrderRestore 先排序锁定完整成员订单，再锁主单、关系、航程及分单；不在取得主单锁后补锁成员。
 func lockSeaOrderRestore(ctx context.Context, tx *ent.Tx, org, orderID uuid.UUID, located *ent.SeaMasterBillOrderLink) (*ent.Order, *ent.SeaMasterBillOrderLink, error) {
-	memberLinks, err := tx.SeaMasterBillOrderLink.Query().Where(linkent.OrganizationIDEQ(org), linkent.MasterBillIDEQ(located.MasterBillID), linkent.StatusEQ(linkent.StatusACTIVE)).All(ctx)
+	memberLinks, err := tx.SeaMasterBillOrderLink.Query().Where(linkent.MasterBillIDEQ(located.MasterBillID), linkent.StatusEQ(linkent.StatusACTIVE)).All(ctx)
 	if err != nil {
+		return nil, nil, err
+	}
+	if err := validateSeaMasterMemberIdentities(ctx, tx.Client(), org, located.MasterBillID, memberLinks); err != nil {
 		return nil, nil, err
 	}
 	memberIDs := make([]uuid.UUID, 0, len(memberLinks)+1)
@@ -46,6 +49,9 @@ func lockSeaOrderRestore(ctx context.Context, tx *ent.Tx, org, orderID uuid.UUID
 		if order.ID == orderID {
 			target = order
 		}
+		if order.BusinessType != orderent.BusinessTypeSE {
+			return nil, nil, biz.ErrSeaDocumentStructureConflict
+		}
 		if order.LockedAt != nil {
 			return nil, nil, seaRestoreConflict("原主单关联订单已审核锁定，请先解锁后恢复")
 		}
@@ -56,14 +62,14 @@ func lockSeaOrderRestore(ctx context.Context, tx *ent.Tx, org, orderID uuid.UUID
 	if target == nil {
 		return nil, nil, biz.ErrOrderNotFound
 	}
-	master, err := tx.SeaMasterBill.Query().Where(masterent.IDEQ(located.MasterBillID), masterent.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
+	master, err := tx.SeaMasterBill.Query().Where(masterent.IDEQ(located.MasterBillID), masterent.OrganizationIDEQ(org), masterent.BusinessTypeEQ("SE")).ForUpdate().Only(ctx)
 	if err != nil {
 		return nil, nil, mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
 	}
 	if master.Status == masterent.StatusVOIDED {
 		return nil, nil, biz.ErrSeaDocumentVoided
 	}
-	links, err := tx.SeaMasterBillOrderLink.Query().Where(linkent.OrganizationIDEQ(org), linkent.Or(linkent.IDEQ(located.ID), linkent.And(linkent.MasterBillIDEQ(master.ID), linkent.StatusEQ(linkent.StatusACTIVE)))).Order(linkent.ByID()).ForUpdate().All(ctx)
+	links, err := tx.SeaMasterBillOrderLink.Query().Where(linkent.Or(linkent.IDEQ(located.ID), linkent.And(linkent.MasterBillIDEQ(master.ID), linkent.StatusEQ(linkent.StatusACTIVE)))).Order(linkent.ByID()).ForUpdate().All(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -77,10 +83,13 @@ func lockSeaOrderRestore(ctx context.Context, tx *ent.Tx, org, orderID uuid.UUID
 			actualMembers = append(actualMembers, link.OrderID)
 		}
 	}
+	if err := validateSeaMasterMemberIdentities(ctx, tx.Client(), org, master.ID, links); err != nil {
+		return nil, nil, err
+	}
 	if !equalUUIDSlices(sortAndDeduplicateUUIDs(actualMembers), memberIDs) {
 		return nil, nil, biz.ErrSeaDocumentStructureConflict
 	}
-	if source == nil || source.OrderID != orderID || source.Status != linkent.StatusENDED || source.MasterBillID != located.MasterBillID || source.TransportExecutionID != located.TransportExecutionID || source.DocumentStructure != located.DocumentStructure || source.Version != located.Version || source.EndedAt == nil || located.EndedAt == nil || !source.EndedAt.Equal(*located.EndedAt) || source.EndedReason == nil || *source.EndedReason != orderTerminationLinkEndedReason {
+	if source == nil || source.OrganizationID != org || source.OrderID != orderID || source.Status != linkent.StatusENDED || source.MasterBillID != located.MasterBillID || source.TransportExecutionID != located.TransportExecutionID || source.DocumentStructure != located.DocumentStructure || source.Version != located.Version || source.EndedAt == nil || located.EndedAt == nil || !source.EndedAt.Equal(*located.EndedAt) || source.EndedReason == nil || *source.EndedReason != orderTerminationLinkEndedReason {
 		return nil, nil, biz.ErrSeaDocumentStructureConflict
 	}
 	active, err := tx.SeaMasterBillOrderLink.Query().Where(linkent.OrganizationIDEQ(org), linkent.OrderIDEQ(orderID), linkent.StatusEQ(linkent.StatusACTIVE)).Exist(ctx)

@@ -42,7 +42,7 @@ func TestSeaDocumentTerminatedHistoryPostgres(t *testing.T) {
 	ended := f.data.db.SeaMasterBillOrderLink.GetX(ctx, f.linkID)
 	// 旧改配主单有独立版本，不能因结束时间较新而进入当前退关主单版本列表。
 	oldNo := "OLD" + strings.ToUpper(strings.ReplaceAll(uuid.NewString(), "-", ""))
-	old := f.data.db.SeaMasterBill.Create().SetOrganizationID(f.orgID).SetShippingLineID(mbl.ShippingLineID).SetMasterNo(oldNo).SetNormalizedMasterNo(oldNo).SaveX(ctx)
+	old := f.data.db.SeaMasterBill.Create().SetBusinessType("SE").SetOrganizationID(f.orgID).SetShippingLineID(mbl.ShippingLineID).SetMasterNo(oldNo).SetNormalizedMasterNo(oldNo).SaveX(ctx)
 	oldLink := f.data.db.SeaMasterBillOrderLink.Create().SetOrganizationID(f.orgID).SetOrderID(f.orderID).SetMasterBillID(old.ID).SetTransportExecutionID(ended.TransportExecutionID).SetDocumentStructure(linkent.DocumentStructureDIRECT).SetStatus(linkent.StatusENDED).SetEndedAt(ended.EndedAt.Add(time.Hour)).SetEndedReason("订单改配").SaveX(ctx)
 	if err := f.data.WithTx(ctx, func(tx *ent.Tx) error {
 		_, err := createMasterVersion(ctx, tx, old, nil, f.actorID, biz.VersionSourceOrderLock, nil, nil, nil, nil)

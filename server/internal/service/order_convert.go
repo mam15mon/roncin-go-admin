@@ -237,6 +237,7 @@ func seaMasterBillSummaryToAPI(item *biz.SeaMasterBillSummary) *v1.SeaMasterBill
 		return nil
 	}
 	res := &v1.SeaMasterBillSummary{
+		BusinessType:              string(item.BusinessType),
 		MasterBillId:              item.MasterBillID.String(),
 		MasterNo:                  item.MasterNo,
 		ShippingLineId:            item.ShippingLineID.String(),
@@ -292,6 +293,7 @@ func seaMasterBillCandidateToAPI(item *biz.SeaMasterBillCandidate) *v1.SeaMaster
 		return nil
 	}
 	res := &v1.SeaMasterBillCandidate{
+		BusinessType:            string(item.BusinessType),
 		Id:                      item.ID.String(),
 		Version:                 item.Version,
 		MasterNo:                item.MasterNo,

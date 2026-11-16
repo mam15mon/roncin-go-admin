@@ -76,7 +76,7 @@ func validateReleasePodDocumentReference(ctx context.Context, client *ent.Client
 		return err
 	}
 	mbl, err := client.SeaMasterBill.Query().
-		Where(seamasterbillent.IDEQ(candidate.MasterBillID), seamasterbillent.OrganizationIDEQ(order.OrganizationID)).
+		Where(seamasterbillent.IDEQ(candidate.MasterBillID), seamasterbillent.BusinessTypeEQ("SE"), seamasterbillent.OrganizationIDEQ(order.OrganizationID)).
 		ForUpdate().Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {

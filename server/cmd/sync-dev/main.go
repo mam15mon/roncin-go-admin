@@ -1231,7 +1231,7 @@ func seedOrdersAndFees(ctx context.Context, sc *seedContext) error {
 		if o.mblNo != "" {
 			mbl, _ := tx.SeaMasterBill.Query().Where(seamasterbillent.OrganizationIDEQ(co.ID), seamasterbillent.MasterNoEQ(o.mblNo)).First(ctx)
 			if mbl == nil {
-				createdMbl, err := tx.SeaMasterBill.Create().
+				createdMbl, err := tx.SeaMasterBill.Create().SetBusinessType("SE").
 					SetOrganizationID(co.ID).
 					SetShippingLineID(line.ID).
 					SetMasterNo(o.mblNo).
@@ -2018,7 +2018,7 @@ func ensureSeedMasterBillVersion(ctx context.Context, tx *ent.Tx, orgID uuid.UUI
 	if latest != nil {
 		nextNo = latest.VersionNo + 1
 	}
-	created, err := tx.SeaMasterBillVersion.Create().
+	created, err := tx.SeaMasterBillVersion.Create().SetBusinessType("SE").
 		SetOrganizationID(orgID).
 		SetMasterBillID(mbl.ID).
 		SetVersionNo(nextNo).

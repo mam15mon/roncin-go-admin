@@ -66,6 +66,9 @@ func readableSeaOrderDocumentLink(ctx context.Context, client *ent.Client, organ
 		return nil, nil, err
 	}
 
+	if link.Edges.MasterBill == nil || link.Edges.MasterBill.OrganizationID != organizationID || link.Edges.MasterBill.BusinessType != string(order.BusinessType) {
+		return nil, nil, biz.ErrSeaDocumentStructureConflict
+	}
 	return order, link, nil
 }
 
@@ -286,7 +289,7 @@ func (r *seaDocumentRepo) UpdateSeaHouseBill(ctx context.Context, organizationID
 		mbl, queryErr := tx.SeaMasterBill.Query().
 			Where(
 				seamasterbill.IDEQ(activeLinkQuery.MasterBillID),
-				seamasterbill.OrganizationIDEQ(organizationID),
+				seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ("SE"),
 			).
 			ForUpdate().
 			Only(ctx)
@@ -444,7 +447,8 @@ func (r *seaDocumentRepo) UpdateSeaMasterBillContent(ctx context.Context, organi
 			return queryErr
 		}
 
-		if err := ensureSharedMBLNotLocked(ctx, tx, activeLinkQuery.MasterBillID); err != nil {
+		lockedMemberIDs, err := ensureSharedMBLNotLocked(ctx, tx, activeLinkQuery.MasterBillID)
+		if err != nil {
 			return err
 		}
 		// ensureSharedMBLNotLocked 已按 UUID 顺序锁定全部活动成员 Order；此处重读并校验调用订单。
@@ -466,7 +470,7 @@ func (r *seaDocumentRepo) UpdateSeaMasterBillContent(ctx context.Context, organi
 		mbl, queryErr := tx.SeaMasterBill.Query().
 			Where(
 				seamasterbill.IDEQ(activeLinkQuery.MasterBillID),
-				seamasterbill.OrganizationIDEQ(organizationID),
+				seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ("SE"),
 			).
 			ForUpdate().
 			Only(ctx)
@@ -480,15 +484,22 @@ func (r *seaDocumentRepo) UpdateSeaMasterBillContent(ctx context.Context, organi
 			return biz.ErrSeaMasterBillConflict
 		}
 
-		// 3. 固定锁顺序：Active Link
-		link, queryErr := tx.SeaMasterBillOrderLink.Query().
-			Where(seamasterbillorderlink.IDEQ(activeLinkQuery.ID)).
-			ForUpdate().
-			Only(ctx)
+		// 3. 按 ID 锁定完整活动 Link，复验它仍对应预先加锁的成员集合。
+		// 并发加票或移出票必须刷新后重试，不能在主单锁后补锁未知 Order。
+		links, queryErr := querySeaMasterBillActiveMemberLinks(ctx, tx.Client(), organizationID, mbl.ID, true)
 		if queryErr != nil {
-			return mapEntError(queryErr, biz.ErrSeaMasterBillNotFound, nil)
+			return queryErr
 		}
-		if !seaDocumentLinkMatches(link, organizationID, orderID, activeLinkQuery.MasterBillID) {
+		memberIDs := make([]uuid.UUID, 0, len(links))
+		var targetLink *ent.SeaMasterBillOrderLink
+		for _, link := range links {
+			memberIDs = append(memberIDs, link.OrderID)
+			if link.ID == activeLinkQuery.ID {
+				targetLink = link
+			}
+		}
+		if !equalUUIDSlices(sortAndDeduplicateUUIDs(memberIDs), lockedMemberIDs) ||
+			targetLink == nil || !seaDocumentLinkMatches(targetLink, organizationID, orderID, activeLinkQuery.MasterBillID) {
 			return biz.ErrSeaDocumentStructureConflict
 		}
 
@@ -525,7 +536,7 @@ func (r *seaDocumentRepo) getSeaMasterBillDetailByID(ctx context.Context, organi
 	}
 
 	mbl, err := client.SeaMasterBill.Query().
-		Where(seamasterbill.IDEQ(mblID), seamasterbill.OrganizationIDEQ(organizationID)).
+		Where(seamasterbill.IDEQ(mblID), seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ("SE")).
 		Only(ctx)
 	if err != nil {
 		return nil, err
@@ -925,6 +936,7 @@ func seaMasterBillToDetail(item *ent.SeaMasterBill, shippingLineName string, mem
 		immutableVersionCount = versionCount[0]
 	}
 	return &biz.SeaMasterBillDetail{
+		BusinessType:          biz.OrderBusinessType(item.BusinessType),
 		ID:                    item.ID,
 		MasterNo:              item.MasterNo,
 		ShippingLineID:        item.ShippingLineID,

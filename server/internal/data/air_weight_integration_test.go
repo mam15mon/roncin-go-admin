@@ -31,7 +31,7 @@ func TestAirWeightConfirmationAndFeeSourcePostgres(t *testing.T) {
 	airline := c.Airline.Create().SetIataCode("ZT").SetNameEn("Weight Test Air").SetCountryCode("CN").SaveX(ctx)
 	origin := c.Airport.Create().SetIataCode("ZTA").SetNameEn("Weight Origin").SetCountryCode("CN").SaveX(ctx)
 	destination := c.Airport.Create().SetIataCode("ZTB").SetNameEn("Weight Destination").SetCountryCode("CN").SaveX(ctx)
-	master := c.AirMasterWaybill.Create().SetOrganizationID(f.organizationID).SetMasterNo("99912345678").SetAirlineID(airline.ID).SetOriginAirportID(origin.ID).SetDestinationAirportID(destination.ID).SaveX(ctx)
+	master := c.AirMasterWaybill.Create().SetBusinessType("AE").SetOrganizationID(f.organizationID).SetMasterNo("99912345678").SetAirlineID(airline.ID).SetOriginAirportID(origin.ID).SetDestinationAirportID(destination.ID).SaveX(ctx)
 	for _, o := range []*ent.Order{a, b} {
 		c.AirMasterWaybillOrderLink.Create().SetOrganizationID(f.organizationID).SetMasterWaybillID(master.ID).SetOrderID(o.ID).SaveX(ctx)
 	}

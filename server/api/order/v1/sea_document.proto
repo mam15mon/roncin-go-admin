@@ -262,6 +262,7 @@ message SeaHouseBillInput {
 
 // SeaMasterBillDetail 海运主单内容详情。
 message SeaMasterBillDetail {
+  string business_type = 11;
   string id = 1;
   string master_no = 2;
   string shipping_line_id = 3;

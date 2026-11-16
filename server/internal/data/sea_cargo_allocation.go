@@ -416,7 +416,7 @@ func (r *seaSharedContainerRepo) mutateAllocations(ctx context.Context, organiza
 			masterBillIDs = sortedUUIDs(masterBillIDs)
 			linkIDs = sortedUUIDs(linkIDs)
 			if len(masterBillIDs) > 0 {
-				locked, err := client.SeaMasterBill.Query().Where(seamasterbillent.IDIn(masterBillIDs...), seamasterbillent.OrganizationIDEQ(organizationID)).Order(seamasterbillent.ByID()).ForUpdate().All(txCtx)
+				locked, err := client.SeaMasterBill.Query().Where(seamasterbillent.IDIn(masterBillIDs...), seamasterbillent.BusinessTypeEQ("SE"), seamasterbillent.OrganizationIDEQ(organizationID)).Order(seamasterbillent.ByID()).ForUpdate().All(txCtx)
 				if err != nil {
 					return err
 				}

@@ -981,6 +981,13 @@
         "operationId": "AirExportService_ListAirMasterWaybills",
         "parameters": [
           {
+            "name": "businessType",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "keyword",
             "in": "query",
             "schema": {
@@ -8896,6 +8903,13 @@
         ],
         "operationId": "OrderService_MatchSeaMasterBillCandidate",
         "parameters": [
+          {
+            "name": "businessType",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "shippingLineId",
             "in": "query",
@@ -27895,6 +27909,9 @@
       "order.v1.AirMasterWaybill": {
         "type": "object",
         "properties": {
+          "businessType": {
+            "type": "string"
+          },
           "id": {
             "type": "string"
           },
@@ -34269,6 +34286,9 @@
       "order.v1.SeaMasterBillCandidate": {
         "type": "object",
         "properties": {
+          "businessType": {
+            "type": "string"
+          },
           "id": {
             "type": "string"
           },
@@ -34312,6 +34332,9 @@
       "order.v1.SeaMasterBillDetail": {
         "type": "object",
         "properties": {
+          "businessType": {
+            "type": "string"
+          },
           "id": {
             "type": "string"
           },
@@ -34395,6 +34418,9 @@
       "order.v1.SeaMasterBillSummary": {
         "type": "object",
         "properties": {
+          "businessType": {
+            "type": "string"
+          },
           "masterBillId": {
             "type": "string"
           },

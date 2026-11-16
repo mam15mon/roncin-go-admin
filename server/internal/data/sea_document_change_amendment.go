@@ -77,7 +77,13 @@ func (r *seaDocumentChangeRepo) executeMasterAmendment(ctx context.Context, tx *
 	if err != nil {
 		return err
 	}
+	if len(orders) != len(memberIDs) {
+		return biz.ErrSeaDocumentStructureConflict
+	}
 	for _, order := range orders {
+		if order.BusinessType != orderent.BusinessTypeSE {
+			return biz.ErrSeaDocumentStructureConflict
+		}
 		if order.ID == input.OrderID && order.Version != input.ExpectedOrderVersion {
 			return biz.ErrOrderStatusConflict
 		}
@@ -85,7 +91,7 @@ func (r *seaDocumentChangeRepo) executeMasterAmendment(ctx context.Context, tx *
 			return err
 		}
 	}
-	mbl, err := tx.SeaMasterBill.Query().Where(seamasterbillent.IDEQ(input.DocumentID), seamasterbillent.OrganizationIDEQ(orgID)).ForUpdate().Only(ctx)
+	mbl, err := tx.SeaMasterBill.Query().Where(seamasterbillent.IDEQ(input.DocumentID), seamasterbillent.BusinessTypeEQ("SE"), seamasterbillent.OrganizationIDEQ(orgID)).ForUpdate().Only(ctx)
 	if err != nil {
 		return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
 	}

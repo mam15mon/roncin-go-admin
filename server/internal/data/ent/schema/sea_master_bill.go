@@ -3,6 +3,7 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -16,6 +17,7 @@ func (SeaMasterBill) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMix
 
 func (SeaMasterBill) Fields() []ent.Field {
 	fields := []ent.Field{
+		field.String("business_type").NotEmpty().MaxLen(2).Immutable(),
 		field.UUID("organization_id", uuid.Nil),
 		field.UUID("shipping_line_id", uuid.Nil),
 		field.String("master_no").NotEmpty().MaxLen(64),
@@ -48,6 +50,11 @@ func (SeaMasterBill) Edges() []ent.Edge {
 
 func (SeaMasterBill) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("organization_id", "shipping_line_id", "normalized_master_no").Unique(),
+		index.Fields("organization_id", "business_type", "shipping_line_id", "normalized_master_no").Unique().StorageKey("sea_master_bill_business_no"),
+		index.Fields("organization_id", "business_type"),
 	}
+}
+
+func (SeaMasterBill) Annotations() []schema.Annotation {
+	return []schema.Annotation{entsql.Checks(map[string]string{"sea_master_bill_business_type_check": "business_type IN ('SE','SI')"})}
 }

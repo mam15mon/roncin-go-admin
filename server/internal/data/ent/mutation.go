@@ -3094,6 +3094,7 @@ type AirMasterWaybillMutation struct {
 	id                          *uuid.UUID
 	created_at                  *time.Time
 	updated_at                  *time.Time
+	business_type               *string
 	master_no                   *string
 	flight_no                   *string
 	etd                         *string
@@ -3300,6 +3301,42 @@ func (m *AirMasterWaybillMutation) OldUpdatedAt(ctx context.Context) (v time.Tim
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *AirMasterWaybillMutation) ResetUpdatedAt() {
 	m.updated_at = nil
+}
+
+// SetBusinessType sets the "business_type" field.
+func (m *AirMasterWaybillMutation) SetBusinessType(s string) {
+	m.business_type = &s
+}
+
+// BusinessType returns the value of the "business_type" field in the mutation.
+func (m *AirMasterWaybillMutation) BusinessType() (r string, exists bool) {
+	v := m.business_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBusinessType returns the old "business_type" field's value of the AirMasterWaybill entity.
+// If the AirMasterWaybill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirMasterWaybillMutation) OldBusinessType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBusinessType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBusinessType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBusinessType: %w", err)
+	}
+	return oldValue.BusinessType, nil
+}
+
+// ResetBusinessType resets all changes to the "business_type" field.
+func (m *AirMasterWaybillMutation) ResetBusinessType() {
+	m.business_type = nil
 }
 
 // SetOrganizationID sets the "organization_id" field.
@@ -4214,12 +4251,15 @@ func (m *AirMasterWaybillMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AirMasterWaybillMutation) Fields() []string {
-	fields := make([]string, 0, 20)
+	fields := make([]string, 0, 21)
 	if m.created_at != nil {
 		fields = append(fields, airmasterwaybill.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, airmasterwaybill.FieldUpdatedAt)
+	}
+	if m.business_type != nil {
+		fields = append(fields, airmasterwaybill.FieldBusinessType)
 	}
 	if m.organization != nil {
 		fields = append(fields, airmasterwaybill.FieldOrganizationID)
@@ -4287,6 +4327,8 @@ func (m *AirMasterWaybillMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case airmasterwaybill.FieldUpdatedAt:
 		return m.UpdatedAt()
+	case airmasterwaybill.FieldBusinessType:
+		return m.BusinessType()
 	case airmasterwaybill.FieldOrganizationID:
 		return m.OrganizationID()
 	case airmasterwaybill.FieldMasterNo:
@@ -4336,6 +4378,8 @@ func (m *AirMasterWaybillMutation) OldField(ctx context.Context, name string) (e
 		return m.OldCreatedAt(ctx)
 	case airmasterwaybill.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
+	case airmasterwaybill.FieldBusinessType:
+		return m.OldBusinessType(ctx)
 	case airmasterwaybill.FieldOrganizationID:
 		return m.OldOrganizationID(ctx)
 	case airmasterwaybill.FieldMasterNo:
@@ -4394,6 +4438,13 @@ func (m *AirMasterWaybillMutation) SetField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
+		return nil
+	case airmasterwaybill.FieldBusinessType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBusinessType(v)
 		return nil
 	case airmasterwaybill.FieldOrganizationID:
 		v, ok := value.(uuid.UUID)
@@ -4647,6 +4698,9 @@ func (m *AirMasterWaybillMutation) ResetField(name string) error {
 		return nil
 	case airmasterwaybill.FieldUpdatedAt:
 		m.ResetUpdatedAt()
+		return nil
+	case airmasterwaybill.FieldBusinessType:
+		m.ResetBusinessType()
 		return nil
 	case airmasterwaybill.FieldOrganizationID:
 		m.ResetOrganizationID()
@@ -155128,6 +155182,7 @@ type SeaMasterBillMutation struct {
 	id                                      *uuid.UUID
 	created_at                              *time.Time
 	updated_at                              *time.Time
+	business_type                           *string
 	master_no                               *string
 	normalized_master_no                    *string
 	status                                  *seamasterbill.Status
@@ -155371,6 +155426,42 @@ func (m *SeaMasterBillMutation) OldUpdatedAt(ctx context.Context) (v time.Time, 
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *SeaMasterBillMutation) ResetUpdatedAt() {
 	m.updated_at = nil
+}
+
+// SetBusinessType sets the "business_type" field.
+func (m *SeaMasterBillMutation) SetBusinessType(s string) {
+	m.business_type = &s
+}
+
+// BusinessType returns the value of the "business_type" field in the mutation.
+func (m *SeaMasterBillMutation) BusinessType() (r string, exists bool) {
+	v := m.business_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBusinessType returns the old "business_type" field's value of the SeaMasterBill entity.
+// If the SeaMasterBill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillMutation) OldBusinessType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBusinessType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBusinessType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBusinessType: %w", err)
+	}
+	return oldValue.BusinessType, nil
+}
+
+// ResetBusinessType resets all changes to the "business_type" field.
+func (m *SeaMasterBillMutation) ResetBusinessType() {
+	m.business_type = nil
 }
 
 // SetOrganizationID sets the "organization_id" field.
@@ -157214,12 +157305,15 @@ func (m *SeaMasterBillMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SeaMasterBillMutation) Fields() []string {
-	fields := make([]string, 0, 25)
+	fields := make([]string, 0, 26)
 	if m.created_at != nil {
 		fields = append(fields, seamasterbill.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, seamasterbill.FieldUpdatedAt)
+	}
+	if m.business_type != nil {
+		fields = append(fields, seamasterbill.FieldBusinessType)
 	}
 	if m.organization != nil {
 		fields = append(fields, seamasterbill.FieldOrganizationID)
@@ -157302,6 +157396,8 @@ func (m *SeaMasterBillMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case seamasterbill.FieldUpdatedAt:
 		return m.UpdatedAt()
+	case seamasterbill.FieldBusinessType:
+		return m.BusinessType()
 	case seamasterbill.FieldOrganizationID:
 		return m.OrganizationID()
 	case seamasterbill.FieldShippingLineID:
@@ -157361,6 +157457,8 @@ func (m *SeaMasterBillMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldCreatedAt(ctx)
 	case seamasterbill.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
+	case seamasterbill.FieldBusinessType:
+		return m.OldBusinessType(ctx)
 	case seamasterbill.FieldOrganizationID:
 		return m.OldOrganizationID(ctx)
 	case seamasterbill.FieldShippingLineID:
@@ -157429,6 +157527,13 @@ func (m *SeaMasterBillMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
+		return nil
+	case seamasterbill.FieldBusinessType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBusinessType(v)
 		return nil
 	case seamasterbill.FieldOrganizationID:
 		v, ok := value.(uuid.UUID)
@@ -157801,6 +157906,9 @@ func (m *SeaMasterBillMutation) ResetField(name string) error {
 		return nil
 	case seamasterbill.FieldUpdatedAt:
 		m.ResetUpdatedAt()
+		return nil
+	case seamasterbill.FieldBusinessType:
+		m.ResetBusinessType()
 		return nil
 	case seamasterbill.FieldOrganizationID:
 		m.ResetOrganizationID()
@@ -159475,6 +159583,7 @@ type SeaMasterBillVersionMutation struct {
 	typ                            string
 	id                             *uuid.UUID
 	created_at                     *time.Time
+	business_type                  *string
 	version_no                     *uint64
 	addversion_no                  *int64
 	source_entity_version          *uint64
@@ -159672,6 +159781,42 @@ func (m *SeaMasterBillVersionMutation) OldCreatedAt(ctx context.Context) (v time
 // ResetCreatedAt resets all changes to the "created_at" field.
 func (m *SeaMasterBillVersionMutation) ResetCreatedAt() {
 	m.created_at = nil
+}
+
+// SetBusinessType sets the "business_type" field.
+func (m *SeaMasterBillVersionMutation) SetBusinessType(s string) {
+	m.business_type = &s
+}
+
+// BusinessType returns the value of the "business_type" field in the mutation.
+func (m *SeaMasterBillVersionMutation) BusinessType() (r string, exists bool) {
+	v := m.business_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBusinessType returns the old "business_type" field's value of the SeaMasterBillVersion entity.
+// If the SeaMasterBillVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *SeaMasterBillVersionMutation) OldBusinessType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBusinessType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBusinessType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBusinessType: %w", err)
+	}
+	return oldValue.BusinessType, nil
+}
+
+// ResetBusinessType resets all changes to the "business_type" field.
+func (m *SeaMasterBillVersionMutation) ResetBusinessType() {
+	m.business_type = nil
 }
 
 // SetOrganizationID sets the "organization_id" field.
@@ -161657,9 +161802,12 @@ func (m *SeaMasterBillVersionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *SeaMasterBillVersionMutation) Fields() []string {
-	fields := make([]string, 0, 35)
+	fields := make([]string, 0, 36)
 	if m.created_at != nil {
 		fields = append(fields, seamasterbillversion.FieldCreatedAt)
+	}
+	if m.business_type != nil {
+		fields = append(fields, seamasterbillversion.FieldBusinessType)
 	}
 	if m.organization != nil {
 		fields = append(fields, seamasterbillversion.FieldOrganizationID)
@@ -161773,6 +161921,8 @@ func (m *SeaMasterBillVersionMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case seamasterbillversion.FieldCreatedAt:
 		return m.CreatedAt()
+	case seamasterbillversion.FieldBusinessType:
+		return m.BusinessType()
 	case seamasterbillversion.FieldOrganizationID:
 		return m.OrganizationID()
 	case seamasterbillversion.FieldMasterBillID:
@@ -161852,6 +162002,8 @@ func (m *SeaMasterBillVersionMutation) OldField(ctx context.Context, name string
 	switch name {
 	case seamasterbillversion.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
+	case seamasterbillversion.FieldBusinessType:
+		return m.OldBusinessType(ctx)
 	case seamasterbillversion.FieldOrganizationID:
 		return m.OldOrganizationID(ctx)
 	case seamasterbillversion.FieldMasterBillID:
@@ -161935,6 +162087,13 @@ func (m *SeaMasterBillVersionMutation) SetField(name string, value ent.Value) er
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreatedAt(v)
+		return nil
+	case seamasterbillversion.FieldBusinessType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBusinessType(v)
 		return nil
 	case seamasterbillversion.FieldOrganizationID:
 		v, ok := value.(uuid.UUID)
@@ -162435,6 +162594,9 @@ func (m *SeaMasterBillVersionMutation) ResetField(name string) error {
 	switch name {
 	case seamasterbillversion.FieldCreatedAt:
 		m.ResetCreatedAt()
+		return nil
+	case seamasterbillversion.FieldBusinessType:
+		m.ResetBusinessType()
 		return nil
 	case seamasterbillversion.FieldOrganizationID:
 		m.ResetOrganizationID()

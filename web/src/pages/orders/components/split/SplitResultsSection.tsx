@@ -375,6 +375,7 @@ export default function SplitResultsSection({
                         try {
                           const resp =
                             await orderServiceMatchSeaMasterBillCandidate({
+                              businessType: 'SE',
                               masterNo: res.masterNo,
                               shippingLineId: res.shippingLineId,
                             });

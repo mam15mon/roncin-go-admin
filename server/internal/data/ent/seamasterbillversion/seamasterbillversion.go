@@ -18,6 +18,8 @@ const (
 	FieldID = "id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
+	// FieldBusinessType holds the string denoting the business_type field in the database.
+	FieldBusinessType = "business_type"
 	// FieldOrganizationID holds the string denoting the organization_id field in the database.
 	FieldOrganizationID = "organization_id"
 	// FieldMasterBillID holds the string denoting the master_bill_id field in the database.
@@ -166,6 +168,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
+	FieldBusinessType,
 	FieldOrganizationID,
 	FieldMasterBillID,
 	FieldVersionNo,
@@ -215,6 +218,8 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
+	// BusinessTypeValidator is a validator for the "business_type" field. It is called by the builders before save.
+	BusinessTypeValidator func(string) error
 	// MasterNoValidator is a validator for the "master_no" field. It is called by the builders before save.
 	MasterNoValidator func(string) error
 	// NormalizedMasterNoValidator is a validator for the "normalized_master_no" field. It is called by the builders before save.
@@ -311,6 +316,11 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByCreatedAt orders the results by the created_at field.
 func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByBusinessType orders the results by the business_type field.
+func ByBusinessType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBusinessType, opts...).ToFunc()
 }
 
 // ByOrganizationID orders the results by the organization_id field.

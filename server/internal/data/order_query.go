@@ -415,7 +415,7 @@ func (r *orderRepo) ListConsolidationSummaries(ctx context.Context, organization
 			seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
 		).
 		WithMasterBill(func(query *ent.SeaMasterBillQuery) {
-			query.Where(seamasterbill.OrganizationIDEQ(organizationID))
+			query.Where(seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ("SE"))
 		}).
 		All(ctx)
 	if err != nil {
@@ -658,7 +658,7 @@ func (r *orderRepo) ListSameBatchOrders(ctx context.Context, organizationID, ord
 				seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
 			).
 				WithMasterBill(func(mq *ent.SeaMasterBillQuery) {
-					mq.Where(seamasterbill.OrganizationIDEQ(organizationID))
+					mq.Where(seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ("SE"))
 				})
 		}).
 		WithSeaHouseBills(func(q *ent.SeaHouseBillQuery) {

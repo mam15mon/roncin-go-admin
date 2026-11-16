@@ -2,6 +2,8 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -14,6 +16,7 @@ type AirMasterWaybill struct{ ent.Schema }
 func (AirMasterWaybill) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}, TimeMixin{}} }
 func (AirMasterWaybill) Fields() []ent.Field {
 	return []ent.Field{
+		field.String("business_type").NotEmpty().MaxLen(2).Immutable(),
 		field.UUID("organization_id", uuid.Nil), field.String("master_no").MaxLen(11).NotEmpty(),
 		field.UUID("airline_id", uuid.Nil), field.UUID("origin_airport_id", uuid.Nil), field.UUID("destination_airport_id", uuid.Nil),
 		field.String("flight_no").Default("").MaxLen(40), field.String("etd").Default("").MaxLen(64), field.String("eta").Default("").MaxLen(64),
@@ -33,5 +36,9 @@ func (AirMasterWaybill) Edges() []ent.Edge {
 	}
 }
 func (AirMasterWaybill) Indexes() []ent.Index {
-	return []ent.Index{index.Fields("organization_id", "master_no").Unique()}
+	return []ent.Index{index.Fields("organization_id", "business_type", "master_no").Unique().StorageKey("air_master_waybill_business_no"), index.Fields("organization_id", "business_type")}
+}
+
+func (AirMasterWaybill) Annotations() []schema.Annotation {
+	return []schema.Annotation{entsql.Checks(map[string]string{"air_master_waybill_business_type_check": "business_type IN ('AE','AI')"})}
 }

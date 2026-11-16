@@ -42,7 +42,7 @@ func TestClosedOrderManualReviewPostgres(t *testing.T) {
 				carrier := f.data.db.ShippingLine.Create().SetScacCode(newTestSCAC()).SetNameZh("完结审核测试船司").SetNameEn("Closed review carrier").SetCountryCode("CN").SaveX(f.ctx)
 				execution := f.data.db.SeaTransportExecution.Create().SetOrganizationID(f.organizationID).SetShippingLineID(carrier.ID).SaveX(f.ctx)
 				masterNo := "CLOSED-" + uuid.NewString()
-				master := f.data.db.SeaMasterBill.Create().SetOrganizationID(f.organizationID).SetMasterNo(masterNo).SetNormalizedMasterNo(masterNo).SetShippingLineID(carrier.ID).SaveX(f.ctx)
+				master := f.data.db.SeaMasterBill.Create().SetBusinessType("SE").SetOrganizationID(f.organizationID).SetMasterNo(masterNo).SetNormalizedMasterNo(masterNo).SetShippingLineID(carrier.ID).SaveX(f.ctx)
 				f.data.db.SeaMasterBillOrderLink.Create().SetOrganizationID(f.organizationID).SetOrderID(o.ID).SetMasterBillID(master.ID).SetTransportExecutionID(execution.ID).SetDocumentStructure(linkent.DocumentStructureDIRECT).SaveX(f.ctx)
 			}
 			// DRAFT 账单即占用费用，完结及审核均不能释放这条限制。

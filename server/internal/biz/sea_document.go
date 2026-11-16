@@ -388,6 +388,7 @@ type SeaHouseBillInput struct {
 
 // SeaMasterBillDetail 海运主单内容详情。
 type SeaMasterBillDetail struct {
+	BusinessType          OrderBusinessType
 	ID                    uuid.UUID
 	MasterNo              string
 	ShippingLineID        uuid.UUID

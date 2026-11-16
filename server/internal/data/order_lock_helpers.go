@@ -45,7 +45,7 @@ func derefUUID(u *uuid.UUID) string {
 
 func computeMBLContentHash(mbl *ent.SeaMasterBill) string {
 	h := sha256.New()
-	fmt.Fprintf(h, "no:%s|norm:%s|shipping_line:%s|", mbl.MasterNo, mbl.NormalizedMasterNo, mbl.ShippingLineID)
+	fmt.Fprintf(h, "business_type:%s|no:%s|norm:%s|shipping_line:%s|", mbl.BusinessType, mbl.MasterNo, mbl.NormalizedMasterNo, mbl.ShippingLineID)
 	fmt.Fprintf(h, "shipper:%s|consignee:%s|notify:%s|notify2:%s|marks:%s|goods:%s|",
 		derefStr(mbl.ShipperText), derefStr(mbl.ConsigneeText), derefStr(mbl.NotifyPartyText),
 		derefStr(mbl.SecondNotifyPartyText), derefStr(mbl.MarksText), derefStr(mbl.GoodsDescriptionText))

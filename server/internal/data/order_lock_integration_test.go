@@ -275,7 +275,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 	pkgCount := 500
 	gw := 12500.5
 	vol := 45.2
-	mbl, err := data.db.SeaMasterBill.Create().
+	mbl, err := data.db.SeaMasterBill.Create().SetBusinessType("SE").
 		SetOrganizationID(org.ID).
 		SetMasterNo("MBL-" + suffix).
 		SetNormalizedMasterNo("MBL-" + suffix).
@@ -494,7 +494,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 	airline := data.db.Airline.Create().SetIataCode(aviationCode[:2]).SetNameEn("Lock AE " + suffix).SetCountryCode("CN").SaveX(ctx)
 	originAirport := data.db.Airport.Create().SetIataCode("A" + aviationCode[:2]).SetNameEn("Lock AE Origin").SetCountryCode("CN").SaveX(ctx)
 	destinationAirport := data.db.Airport.Create().SetIataCode("B" + aviationCode[:2]).SetNameEn("Lock AE Destination").SetCountryCode("US").SaveX(ctx)
-	airMaster := data.db.AirMasterWaybill.Create().SetOrganizationID(org.ID).SetMasterNo("78112345675").SetAirlineID(airline.ID).SetOriginAirportID(originAirport.ID).SetDestinationAirportID(destinationAirport.ID).SaveX(ctx)
+	airMaster := data.db.AirMasterWaybill.Create().SetBusinessType("AE").SetOrganizationID(org.ID).SetMasterNo("78112345675").SetAirlineID(airline.ID).SetOriginAirportID(originAirport.ID).SetDestinationAirportID(destinationAirport.ID).SaveX(ctx)
 	aeOrder := genericOrders[biz.OrderBusinessAE]
 	data.db.AirMasterWaybillOrderLink.Create().SetOrganizationID(org.ID).SetOrderID(aeOrder.ID).SetMasterWaybillID(airMaster.ID).SaveX(ctx)
 	data.db.AirHouseWaybill.Create().SetOrganizationID(org.ID).SetOrderID(aeOrder.ID).SetMasterWaybillID(airMaster.ID).SetHouseNo("LOCK-AE-" + suffix).SaveX(ctx)
@@ -1354,7 +1354,7 @@ func TestOrderLock_PostgresFlows(t *testing.T) {
 		if err != nil {
 			t.Fatalf("创建 execD 失败: %v", err)
 		}
-		mblD, err := data.db.SeaMasterBill.Create().
+		mblD, err := data.db.SeaMasterBill.Create().SetBusinessType("SE").
 			SetOrganizationID(org.ID).
 			SetShippingLineID(routeShippingLineID).
 			SetMasterNo("MBL-D-" + suffix).

@@ -28,7 +28,7 @@ func prepareAirOrderCreate(ctx context.Context, tx *ent.Tx, org, actor uuid.UUID
 		if e != nil {
 			return nil, e
 		}
-		if locked.master.Version != in.ExpectedMasterVersion {
+		if locked.master.BusinessType != string(input.BusinessType) || locked.master.Version != in.ExpectedMasterVersion {
 			return nil, biz.ErrAirWaybillConflict
 		}
 		if e = ensureAirMembersEditable(locked); e != nil {
@@ -49,7 +49,7 @@ func prepareAirOrderCreate(ctx context.Context, tx *ent.Tx, org, actor uuid.UUID
 			return nil, e
 		}
 		var e error
-		m, e = tx.AirMasterWaybill.Create().SetOrganizationID(org).SetMasterNo(v.MasterNo).SetAirlineID(v.AirlineID).SetOriginAirportID(v.OriginAirportID).SetDestinationAirportID(v.DestinationAirportID).SetFlightNo(v.FlightNo).SetEtd(v.ETD).SetEta(v.ETA).SetActualDepartureAt(v.ActualDepartureAt).SetActualArrivalAt(v.ActualArrivalAt).SetDocumentCutoffAt(v.DocumentCutoffAt).SetCustomsCutoffAt(v.CustomsCutoffAt).SetStatus(v.Status).SetNillableDeclaredPackages(v.DeclaredPackages).SetNillableDeclaredGrossWeightKg(v.DeclaredGrossWeightKg).SetNillableDeclaredVolumeCbm(v.DeclaredVolumeCbm).SetNotes(v.Notes).Save(ctx)
+		m, e = tx.AirMasterWaybill.Create().SetBusinessType("AE").SetOrganizationID(org).SetMasterNo(v.MasterNo).SetAirlineID(v.AirlineID).SetOriginAirportID(v.OriginAirportID).SetDestinationAirportID(v.DestinationAirportID).SetFlightNo(v.FlightNo).SetEtd(v.ETD).SetEta(v.ETA).SetActualDepartureAt(v.ActualDepartureAt).SetActualArrivalAt(v.ActualArrivalAt).SetDocumentCutoffAt(v.DocumentCutoffAt).SetCustomsCutoffAt(v.CustomsCutoffAt).SetStatus(v.Status).SetNillableDeclaredPackages(v.DeclaredPackages).SetNillableDeclaredGrossWeightKg(v.DeclaredGrossWeightKg).SetNillableDeclaredVolumeCbm(v.DeclaredVolumeCbm).SetNotes(v.Notes).Save(ctx)
 		if e != nil {
 			return nil, mapEntError(e, nil, biz.ErrAirWaybillExists)
 		}

@@ -116,6 +116,7 @@ type SeaTransportExecution struct {
 
 // SeaMasterBill 海运共享 MBL。
 type SeaMasterBill struct {
+	BusinessType         OrderBusinessType
 	ID                   uuid.UUID
 	OrganizationID       uuid.UUID
 	ShippingLineID       uuid.UUID
@@ -173,6 +174,7 @@ type SeaMasterBillMemberSummary struct {
 
 // SeaMasterBillCandidate 已有共享主单候选。
 type SeaMasterBillCandidate struct {
+	BusinessType            OrderBusinessType
 	ID                      uuid.UUID
 	Version                 uint64
 	MasterNo                string
@@ -193,6 +195,7 @@ type SeaMasterBillMatchResult struct {
 
 // SeaMasterBillSummary 订单当前关联主单摘要。
 type SeaMasterBillSummary struct {
+	BusinessType              OrderBusinessType
 	MasterBillID              uuid.UUID
 	MasterNo                  string
 	ShippingLineID            uuid.UUID

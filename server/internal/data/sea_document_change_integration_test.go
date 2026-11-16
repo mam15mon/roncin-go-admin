@@ -84,7 +84,7 @@ func newSeaDocumentChangeFixture(t *testing.T) *seaDocumentChangeFixture {
 		SetVoyageNo("V001").
 		SetVersion(1).
 		SaveX(ctx)
-	mbl := data.db.SeaMasterBill.Create().
+	mbl := data.db.SeaMasterBill.Create().SetBusinessType("SE").
 		SetOrganizationID(org.ID).
 		SetShippingLineID(shippingLine.ID).
 		SetMasterNo("MBLDOC" + suffix).

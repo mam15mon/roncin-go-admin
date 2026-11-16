@@ -168,7 +168,7 @@ func newSplitTestEnv(t *testing.T) *splitTestEnv {
 		t.Fatalf("创建运输执行失败: %v", err)
 	}
 	mblNo := "MSK" + uuid.New().String()[:8]
-	mbl, err := data.db.SeaMasterBill.Create().
+	mbl, err := data.db.SeaMasterBill.Create().SetBusinessType("SE").
 		SetOrganizationID(org.ID).
 		SetShippingLineID(carrier.ID).
 		SetMasterNo(mblNo).
@@ -1095,7 +1095,7 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 			t.Fatalf("创建候选TE失败: %v", err)
 		}
 		candidateMBLNo := "CANDMBL" + uuid.NewString()[:6]
-		candidateMBL, err := env.data.db.SeaMasterBill.Create().
+		candidateMBL, err := env.data.db.SeaMasterBill.Create().SetBusinessType("SE").
 			SetOrganizationID(env.orgID).
 			SetMasterNo(candidateMBLNo).
 			SetNormalizedMasterNo(candidateMBLNo).
@@ -1239,7 +1239,7 @@ func TestSeaOrderSplitAndReassignment_PostgresIntegration(t *testing.T) {
 			t.Fatalf("创建候选TE失败: %v", err)
 		}
 		candidateMBLNo := "CANDMBL" + uuid.NewString()[:6]
-		candidateMBL, err := env.data.db.SeaMasterBill.Create().
+		candidateMBL, err := env.data.db.SeaMasterBill.Create().SetBusinessType("SE").
 			SetOrganizationID(env.orgID).
 			SetMasterNo(candidateMBLNo).
 			SetNormalizedMasterNo(candidateMBLNo).

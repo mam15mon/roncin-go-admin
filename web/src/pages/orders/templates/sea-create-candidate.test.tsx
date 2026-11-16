@@ -107,6 +107,7 @@ describe('SE 新建共享主单自动关联与批次排重', () => {
     );
     expect(matchSpy).toHaveBeenCalledWith(
       expect.objectContaining({
+        businessType: 'SE',
         masterNo: 'COSCOAUTO1',
         shippingLineId: 'carrier-1',
       }),

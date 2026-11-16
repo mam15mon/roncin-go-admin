@@ -107,7 +107,7 @@ func newSettlementOrderLockFixture(t *testing.T, data *Data) *settlementOrderLoc
 		t.Fatalf("创建运输执行: %v", err)
 	}
 	fixture.executionID = exec.ID
-	mbl, err := data.db.SeaMasterBill.Create().
+	mbl, err := data.db.SeaMasterBill.Create().SetBusinessType("SE").
 		SetOrganizationID(organization.ID).
 		SetMasterNo("MBL-" + suffix).
 		SetNormalizedMasterNo("MBL-" + suffix).
@@ -283,7 +283,6 @@ func (f *settlementOrderLockFixture) createReceivableBillAmounts(orders []*ent.O
 			SetExchangeRateDate(financeBillIntegrationDate).
 			SetBaseCurrency("CNY").
 			SetBaseCurrencyAmount(decimal.RequireFromString(lineAmount).Mul(decimal.RequireFromString("7.2")).StringFixed(8)).
-
 			SetVersion(1).
 			Save(f.ctx)
 		if feeErr != nil {

@@ -192,11 +192,14 @@ func (r *seaOrderChangeRepo) ExecuteSplit(ctx context.Context, organizationID, a
 		}
 		for _, mblID := range mblIDsToLock {
 			mbl, err := tx.SeaMasterBill.Query().
-				Where(seamasterbillent.IDEQ(mblID), seamasterbillent.OrganizationIDEQ(organizationID)).
+				Where(seamasterbillent.IDEQ(mblID), seamasterbillent.BusinessTypeEQ("SE"), seamasterbillent.OrganizationIDEQ(organizationID)).
 				ForUpdate().
 				Only(ctx)
 			if err != nil {
 				return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
+			}
+			if _, err := querySeaMasterBillActiveMemberLinks(ctx, tx.Client(), organizationID, mblID, false); err != nil {
+				return err
 			}
 			lockedMBLs[mblID] = mbl
 		}

@@ -47,7 +47,7 @@ func validateNewMasterBillInput(ctx context.Context, client *ent.Client, organiz
 	shippingLineID := *target.ShippingLineID
 
 	existingMBL, err := client.SeaMasterBill.Query().Where(
-		seamasterbillent.OrganizationIDEQ(organizationID),
+		seamasterbillent.BusinessTypeEQ("SE"), seamasterbillent.OrganizationIDEQ(organizationID),
 		seamasterbillent.ShippingLineIDEQ(shippingLineID),
 		seamasterbillent.NormalizedMasterNoEQ(normalizedMasterNo),
 	).Exist(ctx)
@@ -115,7 +115,7 @@ func createNewMasterBillInTx(ctx context.Context, tx *ent.Tx, organizationID uui
 		return nil, nil, err
 	}
 
-	mbl, err := tx.SeaMasterBill.Create().
+	mbl, err := tx.SeaMasterBill.Create().SetBusinessType("SE").
 		SetID(uuid.Must(uuid.NewV7())).
 		SetOrganizationID(organizationID).
 		SetShippingLineID(*target.ShippingLineID).
@@ -125,7 +125,7 @@ func createNewMasterBillInTx(ctx context.Context, tx *ent.Tx, organizationID uui
 		SetVersion(1).
 		Save(ctx)
 	if err != nil {
-		return nil, nil, mapEntConstraint(err, "seamasterbill_organization_id_shipping_line_id_normalized_maste", biz.ErrSeaMasterBillExists)
+		return nil, nil, mapEntConstraint(err, "sea_master_bill_business_no", biz.ErrSeaMasterBillExists)
 	}
 
 	return mbl, te, nil
@@ -181,7 +181,11 @@ func enabledShippingLineExists(ctx context.Context, client *ent.Client, organiza
 }
 
 func mblToSummary(ctx context.Context, client *ent.Client, organizationID uuid.UUID, mbl *ent.SeaMasterBill, te *ent.SeaTransportExecution) (*biz.SeaMasterBillSummary, error) {
+	if _, err := querySeaMasterBillActiveMemberLinks(ctx, client, organizationID, mbl.ID, false); err != nil {
+		return nil, err
+	}
 	s := &biz.SeaMasterBillSummary{
+		BusinessType:   biz.OrderBusinessType(mbl.BusinessType),
 		MasterBillID:   mbl.ID,
 		MasterNo:       mbl.MasterNo,
 		ShippingLineID: mbl.ShippingLineID,

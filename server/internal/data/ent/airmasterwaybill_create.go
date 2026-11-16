@@ -55,6 +55,12 @@ func (_c *AirMasterWaybillCreate) SetNillableUpdatedAt(v *time.Time) *AirMasterW
 	return _c
 }
 
+// SetBusinessType sets the "business_type" field.
+func (_c *AirMasterWaybillCreate) SetBusinessType(v string) *AirMasterWaybillCreate {
+	_c.mutation.SetBusinessType(v)
+	return _c
+}
+
 // SetOrganizationID sets the "organization_id" field.
 func (_c *AirMasterWaybillCreate) SetOrganizationID(v uuid.UUID) *AirMasterWaybillCreate {
 	_c.mutation.SetOrganizationID(v)
@@ -398,6 +404,14 @@ func (_c *AirMasterWaybillCreate) check() error {
 	if _, ok := _c.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "AirMasterWaybill.updated_at"`)}
 	}
+	if _, ok := _c.mutation.BusinessType(); !ok {
+		return &ValidationError{Name: "business_type", err: errors.New(`ent: missing required field "AirMasterWaybill.business_type"`)}
+	}
+	if v, ok := _c.mutation.BusinessType(); ok {
+		if err := airmasterwaybill.BusinessTypeValidator(v); err != nil {
+			return &ValidationError{Name: "business_type", err: fmt.Errorf(`ent: validator failed for field "AirMasterWaybill.business_type": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.OrganizationID(); !ok {
 		return &ValidationError{Name: "organization_id", err: errors.New(`ent: missing required field "AirMasterWaybill.organization_id"`)}
 	}
@@ -548,6 +562,10 @@ func (_c *AirMasterWaybillCreate) createSpec() (*AirMasterWaybill, *sqlgraph.Cre
 	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(airmasterwaybill.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if value, ok := _c.mutation.BusinessType(); ok {
+		_spec.SetField(airmasterwaybill.FieldBusinessType, field.TypeString, value)
+		_node.BusinessType = value
 	}
 	if value, ok := _c.mutation.MasterNo(); ok {
 		_spec.SetField(airmasterwaybill.FieldMasterNo, field.TypeString, value)
@@ -1014,6 +1032,9 @@ func (u *AirMasterWaybillUpsertOne) UpdateNewValues() *AirMasterWaybillUpsertOne
 		}
 		if _, exists := u.create.mutation.CreatedAt(); exists {
 			s.SetIgnore(airmasterwaybill.FieldCreatedAt)
+		}
+		if _, exists := u.create.mutation.BusinessType(); exists {
+			s.SetIgnore(airmasterwaybill.FieldBusinessType)
 		}
 	}))
 	return u
@@ -1546,6 +1567,9 @@ func (u *AirMasterWaybillUpsertBulk) UpdateNewValues() *AirMasterWaybillUpsertBu
 			}
 			if _, exists := b.mutation.CreatedAt(); exists {
 				s.SetIgnore(airmasterwaybill.FieldCreatedAt)
+			}
+			if _, exists := b.mutation.BusinessType(); exists {
+				s.SetIgnore(airmasterwaybill.FieldBusinessType)
 			}
 		}
 	}))

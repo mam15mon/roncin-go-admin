@@ -66,6 +66,11 @@ func UpdatedAt(v time.Time) predicate.SeaMasterBill {
 	return predicate.SeaMasterBill(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
+// BusinessType applies equality check predicate on the "business_type" field. It's identical to BusinessTypeEQ.
+func BusinessType(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldBusinessType, v))
+}
+
 // OrganizationID applies equality check predicate on the "organization_id" field. It's identical to OrganizationIDEQ.
 func OrganizationID(v uuid.UUID) predicate.SeaMasterBill {
 	return predicate.SeaMasterBill(sql.FieldEQ(FieldOrganizationID, v))
@@ -254,6 +259,71 @@ func UpdatedAtLT(v time.Time) predicate.SeaMasterBill {
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.SeaMasterBill {
 	return predicate.SeaMasterBill(sql.FieldLTE(FieldUpdatedAt, v))
+}
+
+// BusinessTypeEQ applies the EQ predicate on the "business_type" field.
+func BusinessTypeEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEQ(FieldBusinessType, v))
+}
+
+// BusinessTypeNEQ applies the NEQ predicate on the "business_type" field.
+func BusinessTypeNEQ(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNEQ(FieldBusinessType, v))
+}
+
+// BusinessTypeIn applies the In predicate on the "business_type" field.
+func BusinessTypeIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldIn(FieldBusinessType, vs...))
+}
+
+// BusinessTypeNotIn applies the NotIn predicate on the "business_type" field.
+func BusinessTypeNotIn(vs ...string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldNotIn(FieldBusinessType, vs...))
+}
+
+// BusinessTypeGT applies the GT predicate on the "business_type" field.
+func BusinessTypeGT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGT(FieldBusinessType, v))
+}
+
+// BusinessTypeGTE applies the GTE predicate on the "business_type" field.
+func BusinessTypeGTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldGTE(FieldBusinessType, v))
+}
+
+// BusinessTypeLT applies the LT predicate on the "business_type" field.
+func BusinessTypeLT(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLT(FieldBusinessType, v))
+}
+
+// BusinessTypeLTE applies the LTE predicate on the "business_type" field.
+func BusinessTypeLTE(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldLTE(FieldBusinessType, v))
+}
+
+// BusinessTypeContains applies the Contains predicate on the "business_type" field.
+func BusinessTypeContains(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContains(FieldBusinessType, v))
+}
+
+// BusinessTypeHasPrefix applies the HasPrefix predicate on the "business_type" field.
+func BusinessTypeHasPrefix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasPrefix(FieldBusinessType, v))
+}
+
+// BusinessTypeHasSuffix applies the HasSuffix predicate on the "business_type" field.
+func BusinessTypeHasSuffix(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldHasSuffix(FieldBusinessType, v))
+}
+
+// BusinessTypeEqualFold applies the EqualFold predicate on the "business_type" field.
+func BusinessTypeEqualFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldEqualFold(FieldBusinessType, v))
+}
+
+// BusinessTypeContainsFold applies the ContainsFold predicate on the "business_type" field.
+func BusinessTypeContainsFold(v string) predicate.SeaMasterBill {
+	return predicate.SeaMasterBill(sql.FieldContainsFold(FieldBusinessType, v))
 }
 
 // OrganizationIDEQ applies the EQ predicate on the "organization_id" field.

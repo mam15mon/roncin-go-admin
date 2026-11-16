@@ -77,7 +77,7 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 		}
 		candidateTEID := *mblInput.CandidateTEID
 		targetMBL, err := tx.SeaMasterBill.Query().
-			Where(seamasterbill.IDEQ(candidateID), seamasterbill.OrganizationIDEQ(organizationID)).
+			Where(seamasterbill.IDEQ(candidateID), seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ("SE")).
 			ForUpdate().
 			Only(ctx)
 		if err != nil {
@@ -176,7 +176,7 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 
 	exists, err := tx.SeaMasterBill.Query().
 		Where(
-			seamasterbill.OrganizationIDEQ(organizationID),
+			seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ("SE"),
 			seamasterbill.ShippingLineIDEQ(shippingLineID),
 			seamasterbill.NormalizedMasterNoEQ(mblInput.MasterNo),
 		).
@@ -216,7 +216,7 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 		return err
 	}
 
-	mblBuilder := tx.SeaMasterBill.Create().
+	mblBuilder := tx.SeaMasterBill.Create().SetBusinessType("SE").
 		SetID(uuid.Must(uuid.NewV7())).
 		SetOrganizationID(organizationID).
 		SetShippingLineID(shippingLineID).
@@ -227,7 +227,7 @@ func syncOrderSeaMasterBillOnCreate(ctx context.Context, tx *ent.Tx, organizatio
 
 	mbl, err := mblBuilder.Save(ctx)
 	if err != nil {
-		return mapEntConstraint(err, "seamasterbill_organization_id_shipping_line_id_normalized_maste", biz.ErrSeaMasterBillConfirmationRequired)
+		return mapEntConstraint(err, "sea_master_bill_business_no", biz.ErrSeaMasterBillConfirmationRequired)
 	}
 
 	_, err = tx.SeaMasterBillOrderLink.Create().
@@ -299,7 +299,7 @@ func syncOrderSeaMasterBillOnUpdate(
 	currentMBL, err := tx.SeaMasterBill.Query().
 		Where(
 			seamasterbill.IDEQ(activeLink.MasterBillID),
-			seamasterbill.OrganizationIDEQ(organizationID),
+			seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ("SE"),
 		).
 		ForUpdate().
 		Only(ctx)
@@ -390,7 +390,7 @@ func syncOrderSeaMasterBillOnUpdate(
 		}
 		otherExists, err := tx.SeaMasterBill.Query().
 			Where(
-				seamasterbill.OrganizationIDEQ(organizationID),
+				seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ("SE"),
 				seamasterbill.ShippingLineIDEQ(shippingLineID),
 				seamasterbill.NormalizedMasterNoEQ(mblInput.MasterNo),
 				seamasterbill.IDNEQ(currentMBL.ID),
@@ -415,7 +415,7 @@ func syncOrderSeaMasterBillOnUpdate(
 			SetNormalizedMasterNo(mblInput.MasterNo).
 			SetVersion(currentMBL.Version + 1).
 			Save(ctx); err != nil {
-			return mapEntConstraint(err, "seamasterbill_organization_id_shipping_line_id_normalized_maste", biz.ErrSeaMasterBillConfirmationRequired)
+			return mapEntConstraint(err, "sea_master_bill_business_no", biz.ErrSeaMasterBillConfirmationRequired)
 		}
 
 		if currentTE != nil && voyageChanged {

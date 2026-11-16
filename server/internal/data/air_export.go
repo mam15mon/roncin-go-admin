@@ -32,13 +32,20 @@ type airMasterLockContext struct {
 }
 
 func lockAirMasterMembers(ctx context.Context, tx *ent.Tx, org, masterID uuid.UUID, extraOrderIDs []uuid.UUID) (*airMasterLockContext, error) {
-	links, err := tx.AirMasterWaybillOrderLink.Query().Where(airlink.OrganizationIDEQ(org), airlink.MasterWaybillIDEQ(masterID), airlink.StatusEQ("ACTIVE")).All(ctx)
+	// 先确认调用方可见的主单身份，再定位完整集合；跨公司 ID 保持不存在语义。
+	if _, err := tx.AirMasterWaybill.Query().Where(airmaster.IDEQ(masterID), airmaster.OrganizationIDEQ(org), airmaster.BusinessTypeEQ("AE")).Only(ctx); err != nil {
+		return nil, mapEntError(err, biz.ErrAirWaybillNotFound, nil)
+	}
+	links, err := tx.AirMasterWaybillOrderLink.Query().Where(airlink.MasterWaybillIDEQ(masterID), airlink.StatusEQ("ACTIVE")).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	ids := append([]uuid.UUID(nil), extraOrderIDs...)
 	memberIDs := make([]uuid.UUID, 0, len(links))
 	for _, l := range links {
+		if l.OrganizationID != org {
+			return nil, biz.ErrAirWaybillConflict
+		}
 		ids = append(ids, l.OrderID)
 		memberIDs = append(memberIDs, l.OrderID)
 	}
@@ -51,16 +58,19 @@ func lockAirMasterMembers(ctx context.Context, tx *ent.Tx, org, masterID uuid.UU
 	if len(orders) != len(ids) {
 		return nil, biz.ErrAirWaybillConflict
 	}
-	master, err := tx.AirMasterWaybill.Query().Where(airmaster.IDEQ(masterID), airmaster.OrganizationIDEQ(org)).ForUpdate().Only(ctx)
+	master, err := tx.AirMasterWaybill.Query().Where(airmaster.IDEQ(masterID), airmaster.OrganizationIDEQ(org), airmaster.BusinessTypeEQ("AE")).ForUpdate().Only(ctx)
 	if err != nil {
 		return nil, mapEntError(err, biz.ErrAirWaybillNotFound, nil)
 	}
-	lockedLinks, err := tx.AirMasterWaybillOrderLink.Query().Where(airlink.OrganizationIDEQ(org), airlink.MasterWaybillIDEQ(masterID), airlink.StatusEQ("ACTIVE")).Order(airlink.ByID()).ForUpdate().All(ctx)
+	lockedLinks, err := tx.AirMasterWaybillOrderLink.Query().Where(airlink.MasterWaybillIDEQ(masterID), airlink.StatusEQ("ACTIVE")).Order(airlink.ByID()).ForUpdate().All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	currentIDs := make([]uuid.UUID, 0, len(lockedLinks))
 	for _, l := range lockedLinks {
+		if l.OrganizationID != org {
+			return nil, biz.ErrAirWaybillConflict
+		}
 		currentIDs = append(currentIDs, l.OrderID)
 	}
 	currentIDs = sortAndDeduplicateUUIDs(currentIDs)
@@ -85,7 +95,7 @@ func lockAirMasterMembers(ctx context.Context, tx *ent.Tx, org, masterID uuid.UU
 }
 func ensureAirMembersEditable(c *airMasterLockContext) error {
 	for _, o := range c.members {
-		if o.BusinessType != orderent.BusinessTypeAE || o.OrganizationID != c.master.OrganizationID || o.LockedAt != nil || o.TerminationStatus != orderent.TerminationStatusACTIVE {
+		if string(o.BusinessType) != c.master.BusinessType || o.OrganizationID != c.master.OrganizationID || o.LockedAt != nil || o.TerminationStatus != orderent.TerminationStatusACTIVE {
 			return biz.ErrAirWaybillBlocked
 		}
 	}
@@ -95,7 +105,7 @@ func airMasterToBiz(m *ent.AirMasterWaybill) *biz.AirMasterWaybill {
 	if m == nil {
 		return nil
 	}
-	return &biz.AirMasterWaybill{ID: m.ID, OrganizationID: m.OrganizationID, Version: m.Version, Content: biz.AirMasterWaybillInput{MasterNo: m.MasterNo, AirlineID: m.AirlineID, OriginAirportID: m.OriginAirportID, DestinationAirportID: m.DestinationAirportID, FlightNo: m.FlightNo, ETD: m.Etd, ETA: m.Eta, ActualDepartureAt: m.ActualDepartureAt, ActualArrivalAt: m.ActualArrivalAt, DocumentCutoffAt: m.DocumentCutoffAt, CustomsCutoffAt: m.CustomsCutoffAt, Status: m.Status, DeclaredPackages: m.DeclaredPackages, DeclaredGrossWeightKg: m.DeclaredGrossWeightKg, DeclaredVolumeCbm: m.DeclaredVolumeCbm, Notes: m.Notes}, CreatedAt: m.CreatedAt, UpdatedAt: m.UpdatedAt}
+	return &biz.AirMasterWaybill{ID: m.ID, OrganizationID: m.OrganizationID, BusinessType: biz.OrderBusinessType(m.BusinessType), Version: m.Version, Content: biz.AirMasterWaybillInput{MasterNo: m.MasterNo, AirlineID: m.AirlineID, OriginAirportID: m.OriginAirportID, DestinationAirportID: m.DestinationAirportID, FlightNo: m.FlightNo, ETD: m.Etd, ETA: m.Eta, ActualDepartureAt: m.ActualDepartureAt, ActualArrivalAt: m.ActualArrivalAt, DocumentCutoffAt: m.DocumentCutoffAt, CustomsCutoffAt: m.CustomsCutoffAt, Status: m.Status, DeclaredPackages: m.DeclaredPackages, DeclaredGrossWeightKg: m.DeclaredGrossWeightKg, DeclaredVolumeCbm: m.DeclaredVolumeCbm, Notes: m.Notes}, CreatedAt: m.CreatedAt, UpdatedAt: m.UpdatedAt}
 }
 func decorateAirMaster(ctx context.Context, c *ent.Client, m *biz.AirMasterWaybill) error {
 	a, err := c.Airline.Query().Where(airline.IDEQ(m.Content.AirlineID)).Only(ctx)
@@ -164,7 +174,7 @@ func attachAirOrders(ctx context.Context, c *ent.Client, orders []*biz.Order) er
 		}
 		m := masters[l.MasterWaybillID]
 		if m == nil {
-			row, e := c.AirMasterWaybill.Query().Where(airmaster.IDEQ(l.MasterWaybillID), airmaster.OrganizationIDEQ(o.OrganizationID)).Only(ctx)
+			row, e := c.AirMasterWaybill.Query().Where(airmaster.IDEQ(l.MasterWaybillID), airmaster.OrganizationIDEQ(o.OrganizationID), airmaster.BusinessTypeEQ(string(o.BusinessType))).Only(ctx)
 			if e != nil {
 				return e
 			}
@@ -173,6 +183,9 @@ func attachAirOrders(ctx context.Context, c *ent.Client, orders []*biz.Order) er
 				return e
 			}
 			masters[m.ID] = m
+		}
+		if m.OrganizationID != o.OrganizationID || m.BusinessType != o.BusinessType || l.OrganizationID != o.OrganizationID || h.OrganizationID != o.OrganizationID {
+			return biz.ErrAirWaybillConflict
 		}
 		o.AirExport = &biz.AirOrderInfo{Master: m, HouseNo: h.HouseNo, HouseStatus: h.Status, HouseVersion: h.Version, LinkID: l.ID, LinkVersion: l.Version, HouseID: h.ID, HouseContent: h.Content, Active: l.Status == "ACTIVE"}
 		o.OriginLocationID = &m.Content.OriginAirportID
@@ -189,7 +202,7 @@ func (r *airExportRepo) List(ctx context.Context, org uuid.UUID, o biz.SelectorL
 	if e != nil {
 		return nil, 0, e
 	}
-	q := c.AirMasterWaybill.Query().Where(airmaster.OrganizationIDEQ(org))
+	q := c.AirMasterWaybill.Query().Where(airmaster.OrganizationIDEQ(org), airmaster.BusinessTypeEQ("AE"))
 	if o.Keyword != "" {
 		q.Where(airmaster.Or(airmaster.MasterNoContainsFold(strings.ReplaceAll(o.Keyword, "-", "")), airmaster.FlightNoContainsFold(o.Keyword),
 			airmaster.HasAirlineWith(airline.SearchKeywordsContainsFold(o.Keyword)),
@@ -223,12 +236,15 @@ func airMember(o *ent.Order, h *ent.AirHouseWaybill) *biz.AirMasterMember {
 	return v
 }
 func loadAirMembers(ctx context.Context, c *ent.Client, org, id uuid.UUID) ([]*biz.AirMasterMember, error) {
-	links, err := c.AirMasterWaybillOrderLink.Query().Where(airlink.OrganizationIDEQ(org), airlink.MasterWaybillIDEQ(id), airlink.StatusEQ("ACTIVE")).All(ctx)
+	links, err := c.AirMasterWaybillOrderLink.Query().Where(airlink.MasterWaybillIDEQ(id), airlink.StatusEQ("ACTIVE")).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	ids := make([]uuid.UUID, 0, len(links))
 	for _, l := range links {
+		if l.OrganizationID != org {
+			return nil, biz.ErrAirWaybillConflict
+		}
 		ids = append(ids, l.OrderID)
 	}
 	orders, err := c.Order.Query().Where(orderent.OrganizationIDEQ(org), orderent.BusinessTypeEQ(orderent.BusinessTypeAE), orderent.IDIn(ids...)).WithCustomer().Order(orderent.ByID()).All(ctx)
@@ -283,7 +299,7 @@ func (r *airExportRepo) Get(ctx context.Context, org, id uuid.UUID, o biz.Select
 
 // readAirMasterDetail 在完整成员锁内生成聚合，避免分页/成员集合跨版本混合。
 func readAirMasterDetail(ctx context.Context, c *ent.Client, org, id uuid.UUID, o biz.SelectorListOptions) (*biz.AirMasterDetail, error) {
-	row, e := c.AirMasterWaybill.Query().Where(airmaster.IDEQ(id), airmaster.OrganizationIDEQ(org)).Only(ctx)
+	row, e := c.AirMasterWaybill.Query().Where(airmaster.IDEQ(id), airmaster.OrganizationIDEQ(org), airmaster.BusinessTypeEQ("AE")).Only(ctx)
 	if e != nil {
 		return nil, mapEntError(e, biz.ErrAirWaybillNotFound, nil)
 	}
@@ -339,7 +355,7 @@ func (r *airExportRepo) Preview(ctx context.Context, org, id uuid.UUID, v uint64
 	if e != nil {
 		return nil, e
 	}
-	row, e := c.AirMasterWaybill.Query().Where(airmaster.IDEQ(id), airmaster.OrganizationIDEQ(org)).Only(ctx)
+	row, e := c.AirMasterWaybill.Query().Where(airmaster.IDEQ(id), airmaster.OrganizationIDEQ(org), airmaster.BusinessTypeEQ("AE")).Only(ctx)
 	if e != nil {
 		return nil, mapEntError(e, biz.ErrAirWaybillNotFound, nil)
 	}
@@ -452,7 +468,7 @@ func (r *airExportRepo) Link(ctx context.Context, org, actor, masterID, orderID 
 		if o.Version != ov {
 			return biz.ErrAirWaybillConflict
 		}
-		if o.BusinessType != orderent.BusinessTypeAE || o.LockedAt != nil || o.ClosureStatus != orderent.ClosureStatusOPEN || o.TerminationStatus != orderent.TerminationStatusTERMINATED {
+		if string(o.BusinessType) != locked.master.BusinessType || o.LockedAt != nil || o.ClosureStatus != orderent.ClosureStatusOPEN || o.TerminationStatus != orderent.TerminationStatusTERMINATED {
 			return biz.ErrAirWaybillBlocked
 		}
 		active, e := tx.AirMasterWaybillOrderLink.Query().Where(airlink.OrderIDEQ(orderID), airlink.StatusEQ("ACTIVE")).Exist(ctx)
@@ -505,7 +521,7 @@ func (r *airExportRepo) LinkCandidates(ctx context.Context, org, masterID uuid.U
 	if e != nil {
 		return nil, 0, e
 	}
-	exists, e := c.AirMasterWaybill.Query().Where(airmaster.IDEQ(masterID), airmaster.OrganizationIDEQ(org)).Exist(ctx)
+	exists, e := c.AirMasterWaybill.Query().Where(airmaster.IDEQ(masterID), airmaster.OrganizationIDEQ(org), airmaster.BusinessTypeEQ("AE")).Exist(ctx)
 	if e != nil {
 		return nil, 0, e
 	}

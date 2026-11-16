@@ -331,6 +331,7 @@ func seaMasterBillDetailToAPI(m *biz.SeaMasterBillDetail) *v1.SeaMasterBillDetai
 		currentVersionID = &s
 	}
 	return &v1.SeaMasterBillDetail{
+		BusinessType:          string(m.BusinessType),
 		Id:                    m.ID.String(),
 		MasterNo:              m.MasterNo,
 		ShippingLineId:        m.ShippingLineID.String(),

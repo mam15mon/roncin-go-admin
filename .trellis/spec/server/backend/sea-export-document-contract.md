@@ -20,7 +20,7 @@
 
 ### 2. Signatures
 
-- 候选查询：`GET /api/v1/orders/sea-master-bill-candidate`。
+- 候选查询：`GET /api/v1/orders/sea-master-bill-candidate`，显式 `businessType=SE`，不默认类型。
 - 订单写入：
   - `CreateOrderRequest.sea_master_bill: SeaMasterBillInput`。
   - `CreateOrderRequest.sea_document: SeaOrderDocumentInput`。
@@ -61,7 +61,8 @@
   - 普通 HBL 更新会同时推进 HBL 和活动 Link 版本；写后必须同步完整基线，
     不能只把 HBL 响应版本回填表单而继续复用旧 Link 版本。
 - 数据库唯一键：
-  - `sea_master_bills(organization_id, shipping_line_id, normalized_master_no)`。
+  - `sea_master_bills(organization_id, business_type, shipping_line_id, normalized_master_no)`；
+    主单不可变身份和历史回填见[海空主单进出口身份](./order-master-business-identity.md)。
   - `sea_master_bill_order_links(order_id) WHERE status = 'ACTIVE'`。
   - HBL 批次唯一：`sea_house_bills(master_bill_id, normalized_house_no)`，**不过滤
     状态**（作废行一并锁号，一号一案）。2026-09 全员分单制口径确立时，撤销了旧的

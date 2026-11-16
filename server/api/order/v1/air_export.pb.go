@@ -189,6 +189,7 @@ func (x *AirMasterWaybillInput) GetNotes() string {
 
 type AirMasterWaybill struct {
 	state                  protoimpl.MessageState `protogen:"open.v1"`
+	BusinessType           string                 `protobuf:"bytes,11,opt,name=business_type,json=businessType,proto3" json:"business_type,omitempty"`
 	Id                     string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	OrganizationId         string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
 	Version                uint64                 `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
@@ -231,6 +232,13 @@ func (x *AirMasterWaybill) ProtoReflect() protoreflect.Message {
 // Deprecated: Use AirMasterWaybill.ProtoReflect.Descriptor instead.
 func (*AirMasterWaybill) Descriptor() ([]byte, []int) {
 	return file_order_v1_air_export_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *AirMasterWaybill) GetBusinessType() string {
+	if x != nil {
+		return x.BusinessType
+	}
+	return ""
 }
 
 func (x *AirMasterWaybill) GetId() string {
@@ -897,6 +905,7 @@ func (x *AirMasterHistory) GetContent() *AirMasterWaybillInput {
 
 type ListAirMasterWaybillsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	BusinessType  string                 `protobuf:"bytes,10,opt,name=business_type,json=businessType,proto3" json:"business_type,omitempty"`
 	Keyword       string                 `protobuf:"bytes,1,opt,name=keyword,proto3" json:"keyword,omitempty"`
 	Page          int32                  `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
 	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
@@ -932,6 +941,13 @@ func (x *ListAirMasterWaybillsRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use ListAirMasterWaybillsRequest.ProtoReflect.Descriptor instead.
 func (*ListAirMasterWaybillsRequest) Descriptor() ([]byte, []int) {
 	return file_order_v1_air_export_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ListAirMasterWaybillsRequest) GetBusinessType() string {
+	if x != nil {
+		return x.BusinessType
+	}
+	return ""
 }
 
 func (x *ListAirMasterWaybillsRequest) GetKeyword() string {
@@ -2135,7 +2151,7 @@ var File_order_v1_air_export_proto protoreflect.FileDescriptor
 
 const file_order_v1_air_export_proto_rawDesc = "" +
 	"\n" +
-	"\x19order/v1/air_export.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\"\xca\x05\n" +
+	"\x19order/v1/air_export.proto\x12\border.v1\x1a\x16access/v1/access.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\"\xca\x05\n" +
 	"\x15AirMasterWaybillInput\x12\x1b\n" +
 	"\tmaster_no\x18\x01 \x01(\tR\bmasterNo\x12\x1d\n" +
 	"\n" +
@@ -2157,8 +2173,9 @@ const file_order_v1_air_export_proto_rawDesc = "" +
 	"\x05notes\x18\x10 \x01(\tR\x05notesB\x14\n" +
 	"\x12_declared_packagesB\x1b\n" +
 	"\x19_declared_gross_weight_kgB\x16\n" +
-	"\x14_declared_volume_cbm\"\x8e\x03\n" +
-	"\x10AirMasterWaybill\x12\x0e\n" +
+	"\x14_declared_volume_cbm\"\xb3\x03\n" +
+	"\x10AirMasterWaybill\x12#\n" +
+	"\rbusiness_type\x18\v \x01(\tR\fbusinessType\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x18\n" +
 	"\aversion\x18\x03 \x01(\x04R\aversion\x129\n" +
@@ -2233,8 +2250,10 @@ const file_order_v1_air_export_proto_rawDesc = "" +
 	"\bactor_id\x18\x05 \x01(\tR\aactorId\x12\x1f\n" +
 	"\voccurred_at\x18\x06 \x01(\tR\n" +
 	"occurredAt\x129\n" +
-	"\acontent\x18\a \x01(\v2\x1f.order.v1.AirMasterWaybillInputR\acontent\"i\n" +
-	"\x1cListAirMasterWaybillsRequest\x12\x18\n" +
+	"\acontent\x18\a \x01(\v2\x1f.order.v1.AirMasterWaybillInputR\acontent\"\x93\x01\n" +
+	"\x1cListAirMasterWaybillsRequest\x12(\n" +
+	"\rbusiness_type\x18\n" +
+	" \x01(\tB\x03\xe0A\x02R\fbusinessType\x12\x18\n" +
 	"\akeyword\x18\x01 \x01(\tR\akeyword\x12\x12\n" +
 	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\"\xb4\x01\n" +

@@ -59,12 +59,16 @@ func loadCurrentDocumentBase(ctx context.Context, client *ent.Client, orgID, ord
 	if err != nil {
 		return nil, nil, mapEntError(err, biz.ErrSeaDocumentNoActiveLink, nil)
 	}
+	master, err := client.SeaMasterBill.Query().Where(seamasterbillent.IDEQ(link.MasterBillID), seamasterbillent.OrganizationIDEQ(orgID), seamasterbillent.BusinessTypeEQ("SE")).Only(ctx)
+	if err != nil || string(order.BusinessType) != master.BusinessType {
+		return nil, nil, biz.ErrSeaDocumentStructureConflict
+	}
 	switch documentType {
 	case biz.SeaDocumentTypeMasterBill:
 		if link.MasterBillID != documentID {
 			return nil, nil, biz.ErrSeaDocumentVersionConflict
 		}
-		mbl, err := client.SeaMasterBill.Query().Where(seamasterbillent.IDEQ(documentID), seamasterbillent.OrganizationIDEQ(orgID)).Only(ctx)
+		mbl, err := client.SeaMasterBill.Query().Where(seamasterbillent.IDEQ(documentID), seamasterbillent.BusinessTypeEQ("SE"), seamasterbillent.OrganizationIDEQ(orgID)).Only(ctx)
 		if err != nil {
 			return nil, nil, mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
 		}
@@ -80,6 +84,9 @@ func loadCurrentDocumentBase(ctx context.Context, client *ent.Client, orgID, ord
 		}
 		members, err := client.SeaMasterBillOrderLink.Query().Where(seamasterbillorderlinkent.OrganizationIDEQ(orgID), seamasterbillorderlinkent.MasterBillIDEQ(mbl.ID), seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE)).All(ctx)
 		if err != nil {
+			return nil, nil, err
+		}
+		if err := validateSeaMasterMemberIdentities(ctx, client, orgID, mbl.ID, members); err != nil {
 			return nil, nil, err
 		}
 		ids := make([]uuid.UUID, 0, len(members))
@@ -224,7 +231,7 @@ func locateMasterMemberOrderIDs(ctx context.Context, client *ent.Client, orgID, 
 	if err != nil {
 		return nil, uuid.Nil, mapEntError(err, biz.ErrSeaDocumentNoActiveLink, nil)
 	}
-	members, err := client.SeaMasterBillOrderLink.Query().Where(seamasterbillorderlinkent.OrganizationIDEQ(orgID), seamasterbillorderlinkent.MasterBillIDEQ(mblID), seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE)).All(ctx)
+	members, err := client.SeaMasterBillOrderLink.Query().Where(seamasterbillorderlinkent.MasterBillIDEQ(mblID), seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE)).All(ctx)
 	if err != nil {
 		return nil, uuid.Nil, err
 	}
@@ -239,7 +246,6 @@ func locateMasterMemberOrderIDs(ctx context.Context, client *ent.Client, orgID, 
 // 若成员集合在首次定位后发生变化，则让调用方刷新预览，避免用旧成员集合执行财务门禁。
 func lockAndValidateMasterMemberLinks(ctx context.Context, tx *ent.Tx, orgID, orderID, mblID, expectedActiveLinkID uuid.UUID, expectedMemberIDs []uuid.UUID) (*ent.SeaMasterBillOrderLink, error) {
 	links, err := tx.SeaMasterBillOrderLink.Query().Where(
-		seamasterbillorderlinkent.OrganizationIDEQ(orgID),
 		seamasterbillorderlinkent.MasterBillIDEQ(mblID),
 		seamasterbillorderlinkent.StatusEQ(seamasterbillorderlinkent.StatusACTIVE),
 	).Order(seamasterbillorderlinkent.ByID()).ForUpdate().All(ctx)
@@ -257,6 +263,9 @@ func lockAndValidateMasterMemberLinks(ctx context.Context, tx *ent.Tx, orgID, or
 	actualMemberIDs = sortAndDeduplicateUUIDs(actualMemberIDs)
 	if activeLink == nil || !equalUUIDSlices(actualMemberIDs, expectedMemberIDs) {
 		return nil, biz.ErrSeaDocumentStructureConflict
+	}
+	if err := validateSeaMasterMemberIdentities(ctx, tx.Client(), orgID, mblID, links); err != nil {
+		return nil, err
 	}
 	return activeLink, nil
 }
@@ -285,7 +294,7 @@ func lockHouseDocument(ctx context.Context, tx *ent.Tx, orgID, orderID, hblID uu
 	if err != nil {
 		return nil, nil, nil, nil, mapEntError(err, biz.ErrSeaDocumentNoActiveLink, nil)
 	}
-	mbl, err := tx.SeaMasterBill.Query().Where(seamasterbillent.IDEQ(located.MasterBillID), seamasterbillent.OrganizationIDEQ(orgID)).ForUpdate().Only(ctx)
+	mbl, err := tx.SeaMasterBill.Query().Where(seamasterbillent.IDEQ(located.MasterBillID), seamasterbillent.BusinessTypeEQ("SE"), seamasterbillent.OrganizationIDEQ(orgID)).ForUpdate().Only(ctx)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -321,7 +330,7 @@ func createMasterVersion(ctx context.Context, tx *ent.Tx, mbl *ent.SeaMasterBill
 	} else if !ent.IsNotFound(err) {
 		return nil, err
 	}
-	b := tx.SeaMasterBillVersion.Create().
+	b := tx.SeaMasterBillVersion.Create().SetBusinessType(mbl.BusinessType).
 		SetOrganizationID(mbl.OrganizationID).
 		SetMasterBillID(mbl.ID).
 		SetVersionNo(next).

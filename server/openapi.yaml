@@ -594,6 +594,10 @@ paths:
                 - AirExportService
             operationId: AirExportService_ListAirMasterWaybills
             parameters:
+                - name: businessType
+                  in: query
+                  schema:
+                    type: string
                 - name: keyword
                   in: query
                   schema:
@@ -5362,6 +5366,10 @@ paths:
                 - OrderService
             operationId: OrderService_MatchSeaMasterBillCandidate
             parameters:
+                - name: businessType
+                  in: query
+                  schema:
+                    type: string
                 - name: shippingLineId
                   in: query
                   schema:
@@ -17879,6 +17887,8 @@ components:
         order.v1.AirMasterWaybill:
             type: object
             properties:
+                businessType:
+                    type: string
                 id:
                     type: string
                 organizationId:
@@ -22220,6 +22230,8 @@ components:
         order.v1.SeaMasterBillCandidate:
             type: object
             properties:
+                businessType:
+                    type: string
                 id:
                     type: string
                 version:
@@ -22249,6 +22261,8 @@ components:
         order.v1.SeaMasterBillDetail:
             type: object
             properties:
+                businessType:
+                    type: string
                 id:
                     type: string
                 masterNo:
@@ -22305,6 +22319,8 @@ components:
         order.v1.SeaMasterBillSummary:
             type: object
             properties:
+                businessType:
+                    type: string
                 masterBillId:
                     type: string
                 masterNo:

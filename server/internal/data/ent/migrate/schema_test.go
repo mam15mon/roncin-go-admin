@@ -13,6 +13,18 @@ func TestGeneratedMigrateTables_CheckConstraints(t *testing.T) {
 		expectedChecks map[string]string
 	}{
 		{
+			tableName: "sea_master_bills", table: SeaMasterBillsTable,
+			expectedChecks: map[string]string{"sea_master_bill_business_type_check": "business_type IN ('SE','SI')"},
+		},
+		{
+			tableName: "sea_master_bill_versions", table: SeaMasterBillVersionsTable,
+			expectedChecks: map[string]string{"sea_master_bill_version_business_type_check": "business_type IN ('SE','SI')"},
+		},
+		{
+			tableName: "air_master_waybills", table: AirMasterWaybillsTable,
+			expectedChecks: map[string]string{"air_master_waybill_business_type_check": "business_type IN ('AE','AI')"},
+		},
+		{
 			tableName: "orders", table: OrdersTable,
 			expectedChecks: map[string]string{"orders_fee_review_status_check": "fee_review_status IN ('UNSUBMITTED', 'PENDING', 'APPROVED', 'REJECTED', 'REVOKED')"},
 		},

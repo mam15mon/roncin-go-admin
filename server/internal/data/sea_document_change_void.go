@@ -64,7 +64,13 @@ func (r *seaDocumentChangeRepo) executeMasterVoid(ctx context.Context, tx *ent.T
 		return err
 	}
 	var requestOrder *ent.Order
+	if len(orders) != len(memberIDs) {
+		return biz.ErrSeaDocumentStructureConflict
+	}
 	for _, order := range orders {
+		if order.BusinessType != orderent.BusinessTypeSE {
+			return biz.ErrSeaDocumentStructureConflict
+		}
 		if order.ID == input.OrderID {
 			requestOrder = order
 			if order.Version != input.ExpectedOrderVersion {
@@ -75,7 +81,7 @@ func (r *seaDocumentChangeRepo) executeMasterVoid(ctx context.Context, tx *ent.T
 			return err
 		}
 	}
-	mbl, err := tx.SeaMasterBill.Query().Where(seamasterbillent.IDEQ(input.DocumentID), seamasterbillent.OrganizationIDEQ(orgID)).ForUpdate().Only(ctx)
+	mbl, err := tx.SeaMasterBill.Query().Where(seamasterbillent.IDEQ(input.DocumentID), seamasterbillent.BusinessTypeEQ("SE"), seamasterbillent.OrganizationIDEQ(orgID)).ForUpdate().Only(ctx)
 	if err != nil {
 		return err
 	}

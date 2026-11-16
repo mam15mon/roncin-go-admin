@@ -13,7 +13,7 @@ Proto 真相源为 `api/order/v1/{order,air_export,air_weight,order_fee}.proto`�
 | 入口 | 契约 |
 | --- | --- |
 | `POST /api/v1/orders` | `businessType=AE`，`airExport{masterWaybillId?,expectedMasterVersion,master,houseNo,houseContent,houseStatus}` |
-| `GET /api/v1/air-export/master-waybills` | `keyword,page,pageSize`；真实主单候选，不能按字符串隐式拼单 |
+| `GET /api/v1/air-export/master-waybills` | `businessType=AE,keyword,page,pageSize`；类型必填，真实主单候选，不能按字符串隐式拼单 |
 | `GET /api/v1/air-export/master-waybills/{id}` | 共同资料、活动成员分页、完整集合汇总、历史分页和阻断原因 |
 | `GET .../{id}/link-candidates` | 已终止且原属本主单的恢复候选，服务端关键字过滤及分页 |
 | `POST .../{id}/preview` / `PUT .../{id}` | `expectedVersion,input`；执行另带预览 `inputFingerprint` 和 `reason` |
@@ -33,7 +33,8 @@ Schema：`AirMasterWaybill`、`AirMasterWaybillOrderLink`、`AirHouseWaybill`、
 ### 身份、共享事实和生命周期
 
 - 草稿与普通创建均要求有效 MAWB/HAWB。MAWB 去空格和连字符后保留 11 位数字：
-  三位航司前缀、七位序号、序号 mod7 校验位；同公司号码唯一。
+  三位航司前缀、七位序号、序号 mod7 校验位；同公司同业务类型号码唯一。
+  主单不可变身份、方向隔离和历史回填见[海空主单进出口身份](./order-master-business-identity.md)。
 - 预计起降时间沿用公共订单必填与先后顺序校验，AE 从权威主单取得；
   航班号及后续单证内容可后补，在对应操作节点复验。
 - HAWB 去首尾空白并统一大写；同主单内永久占号，跨主单可重复；一票一分。

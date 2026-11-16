@@ -5,6 +5,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -19,6 +20,7 @@ func (SeaMasterBillVersion) Mixin() []ent.Mixin { return []ent.Mixin{IDMixin{}} 
 func (SeaMasterBillVersion) Fields() []ent.Field {
 	fields := []ent.Field{
 		field.Time("created_at").Immutable().Default(time.Now),
+		field.String("business_type").NotEmpty().MaxLen(2).Immutable(),
 		field.UUID("organization_id", uuid.Nil).Immutable(),
 		field.UUID("master_bill_id", uuid.Nil).Immutable(),
 		field.Uint64("version_no").Immutable(),
@@ -61,4 +63,8 @@ func (SeaMasterBillVersion) Indexes() []ent.Index {
 		index.Fields("organization_id", "master_bill_id"),
 		index.Fields("organization_id", "idempotency_key").Unique().StorageKey("sea_mbl_version_idempotency_key"),
 	}
+}
+
+func (SeaMasterBillVersion) Annotations() []schema.Annotation {
+	return []schema.Annotation{entsql.Checks(map[string]string{"sea_master_bill_version_business_type_check": "business_type IN ('SE','SI')"})}
 }

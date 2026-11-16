@@ -5669,6 +5669,7 @@ func (x *SeaTransportExecution) GetVersion() uint64 {
 // SeaMasterBillSummary 海运主单及当前航程摘要。
 type SeaMasterBillSummary struct {
 	state                     protoimpl.MessageState `protogen:"open.v1"`
+	BusinessType              string                 `protobuf:"bytes,22,opt,name=business_type,json=businessType,proto3" json:"business_type,omitempty"`
 	MasterBillId              string                 `protobuf:"bytes,1,opt,name=master_bill_id,json=masterBillId,proto3" json:"master_bill_id,omitempty"`
 	MasterNo                  string                 `protobuf:"bytes,2,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
 	ShippingLineId            string                 `protobuf:"bytes,3,opt,name=shipping_line_id,json=shippingLineId,proto3" json:"shipping_line_id,omitempty"`
@@ -5720,6 +5721,13 @@ func (x *SeaMasterBillSummary) ProtoReflect() protoreflect.Message {
 // Deprecated: Use SeaMasterBillSummary.ProtoReflect.Descriptor instead.
 func (*SeaMasterBillSummary) Descriptor() ([]byte, []int) {
 	return file_order_v1_order_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *SeaMasterBillSummary) GetBusinessType() string {
+	if x != nil {
+		return x.BusinessType
+	}
+	return ""
 }
 
 func (x *SeaMasterBillSummary) GetMasterBillId() string {
@@ -6081,6 +6089,7 @@ func (x *SeaMasterBillMemberSummary) GetDocumentStructure() SeaDocumentStructure
 // SeaMasterBillCandidate 匹配到的已有主单候选。
 type SeaMasterBillCandidate struct {
 	state                   protoimpl.MessageState        `protogen:"open.v1"`
+	BusinessType            string                        `protobuf:"bytes,11,opt,name=business_type,json=businessType,proto3" json:"business_type,omitempty"`
 	Id                      string                        `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Version                 uint64                        `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
 	MasterNo                string                        `protobuf:"bytes,3,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
@@ -6122,6 +6131,13 @@ func (x *SeaMasterBillCandidate) ProtoReflect() protoreflect.Message {
 // Deprecated: Use SeaMasterBillCandidate.ProtoReflect.Descriptor instead.
 func (*SeaMasterBillCandidate) Descriptor() ([]byte, []int) {
 	return file_order_v1_order_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *SeaMasterBillCandidate) GetBusinessType() string {
+	if x != nil {
+		return x.BusinessType
+	}
+	return ""
 }
 
 func (x *SeaMasterBillCandidate) GetId() string {
@@ -6190,6 +6206,7 @@ func (x *SeaMasterBillCandidate) GetBatchNormalizedHouseNos() []string {
 // MatchSeaMasterBillCandidateRequest 共享主单候选匹配请求。
 type MatchSeaMasterBillCandidateRequest struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
+	BusinessType        string                 `protobuf:"bytes,20,opt,name=business_type,json=businessType,proto3" json:"business_type,omitempty"`
 	ShippingLineId      string                 `protobuf:"bytes,1,opt,name=shipping_line_id,json=shippingLineId,proto3" json:"shipping_line_id,omitempty"`
 	MasterNo            string                 `protobuf:"bytes,2,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
 	OriginLocationId    *string                `protobuf:"bytes,4,opt,name=origin_location_id,json=originLocationId,proto3,oneof" json:"origin_location_id,omitempty"`
@@ -6231,6 +6248,13 @@ func (x *MatchSeaMasterBillCandidateRequest) ProtoReflect() protoreflect.Message
 // Deprecated: Use MatchSeaMasterBillCandidateRequest.ProtoReflect.Descriptor instead.
 func (*MatchSeaMasterBillCandidateRequest) Descriptor() ([]byte, []int) {
 	return file_order_v1_order_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *MatchSeaMasterBillCandidateRequest) GetBusinessType() string {
+	if x != nil {
+		return x.BusinessType
+	}
+	return ""
 }
 
 func (x *MatchSeaMasterBillCandidateRequest) GetShippingLineId() string {
@@ -7411,8 +7435,9 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x14_transit_location_idB\x18\n" +
 	"\x16_transit_location_nameB\x06\n" +
 	"\x04_etdB\x06\n" +
-	"\x04_eta\"\xa0\b\n" +
-	"\x14SeaMasterBillSummary\x12$\n" +
+	"\x04_eta\"\xc5\b\n" +
+	"\x14SeaMasterBillSummary\x12#\n" +
+	"\rbusiness_type\x18\x16 \x01(\tR\fbusinessType\x12$\n" +
 	"\x0emaster_bill_id\x18\x01 \x01(\tR\fmasterBillId\x12\x1b\n" +
 	"\tmaster_no\x18\x02 \x01(\tR\bmasterNo\x12(\n" +
 	"\x10shipping_line_id\x18\x03 \x01(\tR\x0eshippingLineId\x121\n" +
@@ -7467,8 +7492,9 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\border_no\x18\x02 \x01(\tR\aorderNo\x127\n" +
 	"\x15customer_reference_no\x18\x03 \x01(\tH\x00R\x13customerReferenceNo\x88\x01\x01\x12M\n" +
 	"\x12document_structure\x18\x04 \x01(\x0e2\x1e.order.v1.SeaDocumentStructureR\x11documentStructureB\x18\n" +
-	"\x16_customer_reference_no\"\xe2\x03\n" +
-	"\x16SeaMasterBillCandidate\x12\x0e\n" +
+	"\x16_customer_reference_no\"\x87\x04\n" +
+	"\x16SeaMasterBillCandidate\x12#\n" +
+	"\rbusiness_type\x18\v \x01(\tR\fbusinessType\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\x04R\aversion\x12\x1b\n" +
 	"\tmaster_no\x18\x03 \x01(\tR\bmasterNo\x12(\n" +
@@ -7479,8 +7505,9 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x14transport_executions\x18\t \x03(\v2\x1f.order.v1.SeaTransportExecutionR\x13transportExecutions\x12;\n" +
 	"\x1abatch_normalized_house_nos\x18\n" +
 	" \x03(\tR\x17batchNormalizedHouseNosB\x15\n" +
-	"\x13_shipping_line_nameJ\x04\b\x06\x10\aR\x13transport_execution\"\x95\x04\n" +
-	"\"MatchSeaMasterBillCandidateRequest\x12-\n" +
+	"\x13_shipping_line_nameJ\x04\b\x06\x10\aR\x13transport_execution\"\xbf\x04\n" +
+	"\"MatchSeaMasterBillCandidateRequest\x12(\n" +
+	"\rbusiness_type\x18\x14 \x01(\tB\x03\xe0A\x02R\fbusinessType\x12-\n" +
 	"\x10shipping_line_id\x18\x01 \x01(\tB\x03\xe0A\x02R\x0eshippingLineId\x12 \n" +
 	"\tmaster_no\x18\x02 \x01(\tB\x03\xe0A\x02R\bmasterNo\x121\n" +
 	"\x12origin_location_id\x18\x04 \x01(\tH\x00R\x10originLocationId\x88\x01\x01\x127\n" +

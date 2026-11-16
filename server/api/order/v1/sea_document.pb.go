@@ -1060,6 +1060,7 @@ func (x *SeaHouseBillInput) GetPrintDetails() *SeaHouseBillPrintDetails {
 // SeaMasterBillDetail 海运主单内容详情。
 type SeaMasterBillDetail struct {
 	state                 protoimpl.MessageState `protogen:"open.v1"`
+	BusinessType          string                 `protobuf:"bytes,11,opt,name=business_type,json=businessType,proto3" json:"business_type,omitempty"`
 	Id                    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	MasterNo              string                 `protobuf:"bytes,2,opt,name=master_no,json=masterNo,proto3" json:"master_no,omitempty"`
 	ShippingLineId        string                 `protobuf:"bytes,3,opt,name=shipping_line_id,json=shippingLineId,proto3" json:"shipping_line_id,omitempty"`
@@ -1102,6 +1103,13 @@ func (x *SeaMasterBillDetail) ProtoReflect() protoreflect.Message {
 // Deprecated: Use SeaMasterBillDetail.ProtoReflect.Descriptor instead.
 func (*SeaMasterBillDetail) Descriptor() ([]byte, []int) {
 	return file_order_v1_sea_document_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *SeaMasterBillDetail) GetBusinessType() string {
+	if x != nil {
+		return x.BusinessType
+	}
+	return ""
 }
 
 func (x *SeaMasterBillDetail) GetId() string {
@@ -4548,8 +4556,9 @@ const file_order_v1_sea_document_proto_rawDesc = "" +
 	"\n" +
 	"\b_contentB\x13\n" +
 	"\x11_expected_versionB\x10\n" +
-	"\x0e_print_details\"\xc1\x03\n" +
-	"\x13SeaMasterBillDetail\x12\x0e\n" +
+	"\x0e_print_details\"\xe6\x03\n" +
+	"\x13SeaMasterBillDetail\x12#\n" +
+	"\rbusiness_type\x18\v \x01(\tR\fbusinessType\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\tmaster_no\x18\x02 \x01(\tR\bmasterNo\x12(\n" +
 	"\x10shipping_line_id\x18\x03 \x01(\tR\x0eshippingLineId\x121\n" +

@@ -25,6 +25,8 @@ type AirMasterWaybill struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// BusinessType holds the value of the "business_type" field.
+	BusinessType string `json:"business_type,omitempty"`
 	// OrganizationID holds the value of the "organization_id" field.
 	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// MasterNo holds the value of the "master_no" field.
@@ -135,7 +137,7 @@ func (*AirMasterWaybill) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case airmasterwaybill.FieldVersion, airmasterwaybill.FieldDeclaredPackages:
 			values[i] = new(sql.NullInt64)
-		case airmasterwaybill.FieldMasterNo, airmasterwaybill.FieldFlightNo, airmasterwaybill.FieldEtd, airmasterwaybill.FieldEta, airmasterwaybill.FieldActualDepartureAt, airmasterwaybill.FieldActualArrivalAt, airmasterwaybill.FieldDocumentCutoffAt, airmasterwaybill.FieldCustomsCutoffAt, airmasterwaybill.FieldStatus, airmasterwaybill.FieldNotes:
+		case airmasterwaybill.FieldBusinessType, airmasterwaybill.FieldMasterNo, airmasterwaybill.FieldFlightNo, airmasterwaybill.FieldEtd, airmasterwaybill.FieldEta, airmasterwaybill.FieldActualDepartureAt, airmasterwaybill.FieldActualArrivalAt, airmasterwaybill.FieldDocumentCutoffAt, airmasterwaybill.FieldCustomsCutoffAt, airmasterwaybill.FieldStatus, airmasterwaybill.FieldNotes:
 			values[i] = new(sql.NullString)
 		case airmasterwaybill.FieldCreatedAt, airmasterwaybill.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -173,6 +175,12 @@ func (_m *AirMasterWaybill) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
+			}
+		case airmasterwaybill.FieldBusinessType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field business_type", values[i])
+			} else if value.Valid {
+				_m.BusinessType = value.String
 			}
 		case airmasterwaybill.FieldOrganizationID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -346,6 +354,9 @@ func (_m *AirMasterWaybill) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("business_type=")
+	builder.WriteString(_m.BusinessType)
 	builder.WriteString(", ")
 	builder.WriteString("organization_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))

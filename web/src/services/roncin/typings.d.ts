@@ -348,6 +348,7 @@ declare namespace API {
   };
 
   type AirExportServiceListAirMasterWaybillsParams = {
+    businessType?: string;
     keyword?: string;
     page?: number;
     pageSize?: number;
@@ -428,6 +429,7 @@ declare namespace API {
   };
 
   type AirMasterWaybill = {
+    businessType?: string;
     id?: string;
     organizationId?: string;
     version?: string;
@@ -6199,6 +6201,7 @@ declare namespace API {
   };
 
   type OrderServiceMatchSeaMasterBillCandidateParams = {
+    businessType?: string;
     shippingLineId?: string;
     masterNo?: string;
     originLocationId?: string;
@@ -7799,6 +7802,7 @@ declare namespace API {
   };
 
   type SeaMasterBillCandidate = {
+    businessType?: string;
     id?: string;
     version?: string;
     masterNo?: string;
@@ -7811,6 +7815,7 @@ declare namespace API {
   };
 
   type SeaMasterBillDetail = {
+    businessType?: string;
     id?: string;
     masterNo?: string;
     shippingLineId?: string;
@@ -7840,6 +7845,7 @@ declare namespace API {
   };
 
   type SeaMasterBillSummary = {
+    businessType?: string;
     masterBillId?: string;
     masterNo?: string;
     shippingLineId?: string;

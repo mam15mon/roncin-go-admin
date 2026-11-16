@@ -33,14 +33,52 @@ func NewSeaMasterBillRepo(data *Data) biz.SeaMasterBillRepo {
 func querySeaMasterBillActiveMemberLinks(ctx context.Context, client *ent.Client, organizationID, masterBillID uuid.UUID, lock bool) ([]*ent.SeaMasterBillOrderLink, error) {
 	query := client.SeaMasterBillOrderLink.Query().
 		Where(
-			seamasterbillorderlink.OrganizationIDEQ(organizationID),
 			seamasterbillorderlink.MasterBillIDEQ(masterBillID),
 			seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
 		)
 	if lock {
 		query = query.Order(seamasterbillorderlink.ByID()).ForUpdate()
 	}
-	return query.All(ctx)
+	links, err := query.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := validateSeaMasterMemberIdentities(ctx, client, organizationID, masterBillID, links); err != nil {
+		return nil, err
+	}
+	return links, nil
+}
+
+// validateSeaMasterMemberIdentities 复验完整关联集合，不以公司过滤隐藏异常成员。
+// 写入口仍由调用方按既有 Order→MBL→Link 锁序取得锁，本函数不追加逆序锁。
+func validateSeaMasterMemberIdentities(ctx context.Context, client *ent.Client, organizationID, masterBillID uuid.UUID, links []*ent.SeaMasterBillOrderLink) error {
+	master, err := client.SeaMasterBill.Query().Where(seamasterbill.IDEQ(masterBillID), seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ("SE")).Only(ctx)
+	if err != nil {
+		return mapEntError(err, biz.ErrSeaMasterBillNotFound, nil)
+	}
+	ids := make([]uuid.UUID, 0, len(links))
+	for _, link := range links {
+		if link.OrganizationID != master.OrganizationID || link.MasterBillID != master.ID {
+			return biz.ErrSeaDocumentStructureConflict
+		}
+		ids = append(ids, link.OrderID)
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	orders, err := client.Order.Query().Where(orderent.IDIn(ids...)).All(ctx)
+	if err != nil {
+		return err
+	}
+	if len(orders) != len(sortAndDeduplicateUUIDs(ids)) {
+		return biz.ErrSeaDocumentStructureConflict
+	}
+	for _, order := range orders {
+		if order.OrganizationID != master.OrganizationID || string(order.BusinessType) != master.BusinessType {
+			return biz.ErrSeaDocumentStructureConflict
+		}
+	}
+	return nil
 }
 
 func (r *seaMasterBillRepo) MatchCandidate(ctx context.Context, organizationID, shippingLineID uuid.UUID, normalizedMasterNo string, voyage *biz.SeaTransportExecution) (*biz.SeaMasterBillMatchResult, error) {
@@ -55,13 +93,12 @@ func (r *seaMasterBillRepo) matchCandidateInternal(ctx context.Context, organiza
 
 	mbl, err := client.SeaMasterBill.Query().
 		Where(
-			seamasterbill.OrganizationIDEQ(organizationID),
+			seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ("SE"),
 			seamasterbill.ShippingLineIDEQ(shippingLineID),
 			seamasterbill.NormalizedMasterNoEQ(normalizedMasterNo),
 		).
 		WithOrderLinks(func(q *ent.SeaMasterBillOrderLinkQuery) {
 			q.Where(
-				seamasterbillorderlink.OrganizationIDEQ(organizationID),
 				seamasterbillorderlink.StatusEQ(seamasterbillorderlink.StatusACTIVE),
 			).
 				WithTransportExecution(func(tq *ent.SeaTransportExecutionQuery) {
@@ -77,6 +114,9 @@ func (r *seaMasterBillRepo) matchCandidateInternal(ctx context.Context, organiza
 		if ent.IsNotFound(err) {
 			return &biz.SeaMasterBillMatchResult{Matched: false}, nil
 		}
+		return nil, err
+	}
+	if err := validateSeaMasterMemberIdentities(ctx, client, organizationID, mbl.ID, mbl.Edges.OrderLinks); err != nil {
 		return nil, err
 	}
 
@@ -122,6 +162,7 @@ func (r *seaMasterBillRepo) matchCandidateInternal(ctx context.Context, organiza
 	}
 
 	candidate := &biz.SeaMasterBillCandidate{
+		BusinessType:            biz.OrderBusinessType(mbl.BusinessType),
 		ID:                      mbl.ID,
 		Version:                 mbl.Version,
 		MasterNo:                mbl.MasterNo,
@@ -164,7 +205,7 @@ func (r *seaMasterBillRepo) GetSummariesByOrderIDs(ctx context.Context, organiza
 		).
 		WithTransportExecution().
 		WithMasterBill(func(q *ent.SeaMasterBillQuery) {
-			q.Where(seamasterbill.OrganizationIDEQ(organizationID))
+			q.Where(seamasterbill.OrganizationIDEQ(organizationID), seamasterbill.BusinessTypeEQ("SE"))
 		}).
 		All(ctx)
 
@@ -212,6 +253,7 @@ func (r *seaMasterBillRepo) GetSummariesByOrderIDs(ctx context.Context, organiza
 			return nil, err
 		}
 		summary := &biz.SeaMasterBillSummary{
+			BusinessType:     biz.OrderBusinessType(mbl.BusinessType),
 			MasterBillID:     mbl.ID,
 			MasterNo:         mbl.MasterNo,
 			ShippingLineID:   mbl.ShippingLineID,

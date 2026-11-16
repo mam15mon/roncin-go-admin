@@ -134,6 +134,7 @@ func orderToBiz(item *ent.Order) *biz.Order {
 		if activeLink.Edges.MasterBill != nil {
 			mbl := activeLink.Edges.MasterBill
 			summary := &biz.SeaMasterBillSummary{
+				BusinessType:   biz.OrderBusinessType(mbl.BusinessType),
 				MasterBillID:   mbl.ID,
 				MasterNo:       mbl.MasterNo,
 				ShippingLineID: mbl.ShippingLineID,

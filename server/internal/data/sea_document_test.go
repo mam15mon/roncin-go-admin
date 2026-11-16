@@ -110,7 +110,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 		t.Fatalf("创建 DIRECT 运输执行失败: %v", err)
 	}
 	mblDirectNo := "TESTDIRMBL" + uuid.New().String()[:6]
-	mblDirect, err := data.db.SeaMasterBill.Create().
+	mblDirect, err := data.db.SeaMasterBill.Create().SetBusinessType("SE").
 		SetOrganizationID(businessCompany.ID).
 		SetMasterNo(mblDirectNo).
 		SetNormalizedMasterNo(mblDirectNo).
@@ -180,7 +180,7 @@ func TestSeaDocumentPostgresIntegration(t *testing.T) {
 		t.Fatalf("创建 HOUSE 运输执行失败: %v", err)
 	}
 	mblHouseNo := "TESTHSEMBL" + uuid.New().String()[:6]
-	mblHouse, err := data.db.SeaMasterBill.Create().
+	mblHouse, err := data.db.SeaMasterBill.Create().SetBusinessType("SE").
 		SetOrganizationID(businessCompany.ID).
 		SetMasterNo(mblHouseNo).
 		SetNormalizedMasterNo(mblHouseNo).
@@ -663,7 +663,7 @@ func TestSeaDocument_ConcurrentOperationsNoDeadlock(t *testing.T) {
 	}
 
 	masterNo := "CONCMBL" + uuid.New().String()[:8]
-	mbl, err := data.db.SeaMasterBill.Create().
+	mbl, err := data.db.SeaMasterBill.Create().SetBusinessType("SE").
 		SetOrganizationID(org.ID).
 		SetMasterNo(masterNo).
 		SetNormalizedMasterNo(masterNo).
@@ -805,7 +805,7 @@ func TestSeaDocument_UpdateOrderValidation(t *testing.T) {
 	}
 
 	masterNo := "UOMBL" + uuid.New().String()[:8]
-	mbl, err := data.db.SeaMasterBill.Create().
+	mbl, err := data.db.SeaMasterBill.Create().SetBusinessType("SE").
 		SetOrganizationID(org.ID).
 		SetMasterNo(masterNo).
 		SetNormalizedMasterNo(masterNo).

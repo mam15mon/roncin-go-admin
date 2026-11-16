@@ -25,6 +25,8 @@ type SeaMasterBill struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// BusinessType holds the value of the "business_type" field.
+	BusinessType string `json:"business_type,omitempty"`
 	// OrganizationID holds the value of the "organization_id" field.
 	OrganizationID uuid.UUID `json:"organization_id,omitempty"`
 	// ShippingLineID holds the value of the "shipping_line_id" field.
@@ -255,7 +257,7 @@ func (*SeaMasterBill) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case seamasterbill.FieldVersion, seamasterbill.FieldPackageCount:
 			values[i] = new(sql.NullInt64)
-		case seamasterbill.FieldMasterNo, seamasterbill.FieldNormalizedMasterNo, seamasterbill.FieldStatus, seamasterbill.FieldShipperText, seamasterbill.FieldConsigneeText, seamasterbill.FieldNotifyPartyText, seamasterbill.FieldSecondNotifyPartyText, seamasterbill.FieldMarksText, seamasterbill.FieldGoodsDescriptionText, seamasterbill.FieldPackageUnit, seamasterbill.FieldFreightTerms, seamasterbill.FieldTransportTerms, seamasterbill.FieldBillForm, seamasterbill.FieldReleaseType, seamasterbill.FieldClauses, seamasterbill.FieldForeignAgentText:
+		case seamasterbill.FieldBusinessType, seamasterbill.FieldMasterNo, seamasterbill.FieldNormalizedMasterNo, seamasterbill.FieldStatus, seamasterbill.FieldShipperText, seamasterbill.FieldConsigneeText, seamasterbill.FieldNotifyPartyText, seamasterbill.FieldSecondNotifyPartyText, seamasterbill.FieldMarksText, seamasterbill.FieldGoodsDescriptionText, seamasterbill.FieldPackageUnit, seamasterbill.FieldFreightTerms, seamasterbill.FieldTransportTerms, seamasterbill.FieldBillForm, seamasterbill.FieldReleaseType, seamasterbill.FieldClauses, seamasterbill.FieldForeignAgentText:
 			values[i] = new(sql.NullString)
 		case seamasterbill.FieldCreatedAt, seamasterbill.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -293,6 +295,12 @@ func (_m *SeaMasterBill) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				_m.UpdatedAt = value.Time
+			}
+		case seamasterbill.FieldBusinessType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field business_type", values[i])
+			} else if value.Valid {
+				_m.BusinessType = value.String
 			}
 		case seamasterbill.FieldOrganizationID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -560,6 +568,9 @@ func (_m *SeaMasterBill) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("updated_at=")
 	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("business_type=")
+	builder.WriteString(_m.BusinessType)
 	builder.WriteString(", ")
 	builder.WriteString("organization_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.OrganizationID))

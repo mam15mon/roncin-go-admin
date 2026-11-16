@@ -21,7 +21,7 @@ import (
 )
 
 // ensureSharedMBLNotLocked 检查共享 MBL 下的所有活动成员订单是否被锁定；任一被锁定则整体阻断。
-func ensureSharedMBLNotLocked(ctx context.Context, tx *ent.Tx, masterBillID uuid.UUID) error {
+func ensureSharedMBLNotLocked(ctx context.Context, tx *ent.Tx, masterBillID uuid.UUID) ([]uuid.UUID, error) {
 	links, err := tx.SeaMasterBillOrderLink.Query().
 		Where(
 			seamasterbillorderlinkent.MasterBillIDEQ(masterBillID),
@@ -29,10 +29,17 @@ func ensureSharedMBLNotLocked(ctx context.Context, tx *ent.Tx, masterBillID uuid
 		).
 		All(ctx)
 	if err != nil {
-		return err
+		return nil, err
+	}
+	master, err := tx.SeaMasterBill.Get(ctx, masterBillID)
+	if err != nil {
+		return nil, err
+	}
+	if err := validateSeaMasterMemberIdentities(ctx, tx.Client(), master.OrganizationID, masterBillID, links); err != nil {
+		return nil, err
 	}
 	if len(links) == 0 {
-		return nil
+		return nil, nil
 	}
 	orderIDs := make([]uuid.UUID, 0, len(links))
 	for _, l := range links {
@@ -49,7 +56,7 @@ func ensureSharedMBLNotLocked(ctx context.Context, tx *ent.Tx, masterBillID uuid
 		ForUpdate().
 		All(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var lockedOrderNos []string
@@ -60,9 +67,9 @@ func ensureSharedMBLNotLocked(ctx context.Context, tx *ent.Tx, masterBillID uuid
 	}
 	if len(lockedOrderNos) > 0 {
 		sort.Strings(lockedOrderNos)
-		return biz.NewErrSeaMasterBillMemberOrderLocked(len(lockedOrderNos), lockedOrderNos)
+		return nil, biz.NewErrSeaMasterBillMemberOrderLocked(len(lockedOrderNos), lockedOrderNos)
 	}
-	return nil
+	return sortAndDeduplicateUUIDs(orderIDs), nil
 }
 
 // companyGrantMembershipIDs 返回当前启用公司及其启用部门/团队，遇到其他公司即截止。

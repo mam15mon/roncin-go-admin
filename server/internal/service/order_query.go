@@ -13,6 +13,9 @@ import (
 )
 
 func (s *OrderService) MatchSeaMasterBillCandidate(ctx context.Context, request *v1.MatchSeaMasterBillCandidateRequest) (*v1.MatchSeaMasterBillCandidateResponse, error) {
+	if request.GetBusinessType() != "SE" {
+		return nil, biz.ErrSeaMasterBillInvalidArgument
+	}
 	principal, principalErr := biz.RequirePrincipal(ctx)
 	if principalErr != nil {
 		return nil, principalErr

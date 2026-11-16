@@ -107,7 +107,7 @@ func newSharedContainerFixture(t *testing.T) *sharedContainerFixture {
 		t.Fatalf("创建运输执行失败: %v", err)
 	}
 	mblNo := "SHRD" + uuid.New().String()[:8]
-	mbl, err := data.db.SeaMasterBill.Create().
+	mbl, err := data.db.SeaMasterBill.Create().SetBusinessType("SE").
 		SetOrganizationID(org.ID).
 		SetShippingLineID(line.ID).
 		SetMasterNo(mblNo).

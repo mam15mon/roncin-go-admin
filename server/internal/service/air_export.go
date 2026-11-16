@@ -44,6 +44,9 @@ func airPagination(page, size int32) biz.SelectorListOptions {
 	return biz.SelectorListOptions{Page: int(page), PageSize: int(size)}
 }
 func (s *AirExportService) ListAirMasterWaybills(ctx context.Context, req *v1.ListAirMasterWaybillsRequest) (*v1.ListAirMasterWaybillsResponse, error) {
+	if req.GetBusinessType() != "AE" {
+		return nil, biz.ErrAirWaybillInvalid
+	}
 	p, e := airPrincipal(ctx, false)
 	if e != nil {
 		return nil, e
@@ -175,7 +178,7 @@ func airMasterToAPI(m *biz.AirMasterWaybill) *v1.AirMasterWaybill {
 	if m == nil {
 		return nil
 	}
-	return &v1.AirMasterWaybill{Id: m.ID.String(), OrganizationId: m.OrganizationID.String(), Version: m.Version, Content: airMasterInputToAPI(&m.Content), AirlineName: m.AirlineName, OriginAirportName: m.OriginAirportName, DestinationAirportName: m.DestinationAirportName, MemberCount: int32(m.MemberCount), CreatedAt: m.CreatedAt.Format(time.RFC3339), UpdatedAt: m.UpdatedAt.Format(time.RFC3339)}
+	return &v1.AirMasterWaybill{BusinessType: string(m.BusinessType), Id: m.ID.String(), OrganizationId: m.OrganizationID.String(), Version: m.Version, Content: airMasterInputToAPI(&m.Content), AirlineName: m.AirlineName, OriginAirportName: m.OriginAirportName, DestinationAirportName: m.DestinationAirportName, MemberCount: int32(m.MemberCount), CreatedAt: m.CreatedAt.Format(time.RFC3339), UpdatedAt: m.UpdatedAt.Format(time.RFC3339)}
 }
 func airMemberToAPI(m *biz.AirMasterMember) *v1.AirMasterMember {
 	return &v1.AirMasterMember{OrderId: m.OrderID.String(), OrderNo: m.OrderNo, CustomerName: m.CustomerName, HouseNo: m.HouseNo, Packages: intToInt32Ptr(m.Packages), PackageUnit: m.PackageUnit, GrossWeightKg: m.GrossWeightKg, VolumeCbm: m.VolumeCbm, FlowStatus: m.FlowStatus, TerminationStatus: m.TerminationStatus, ClosureStatus: m.ClosureStatus, Locked: m.Locked, OrderVersion: m.OrderVersion, HouseStatus: m.HouseStatus, ConfirmedChargeableWeightKg: m.ConfirmedChargeableWeightKg, ConfirmationStale: m.ConfirmationStale}

@@ -152,6 +152,7 @@ describe('新建订单分单号可见核对反馈', () => {
     expect(screen.queryByLabelText(successLabel)).toBeNull();
     await waitFor(() => expect(match).toHaveBeenCalledTimes(2));
     expect(match.mock.calls[1][0]).toMatchObject({
+      businessType: 'SE',
       shippingLineId: 'carrier-2',
       masterNo: 'MBL123',
     });
