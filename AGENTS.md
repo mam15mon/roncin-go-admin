@@ -357,6 +357,10 @@ pnpm --dir web biome:lint
   确保 PostgreSQL 已启动，且具备 `DATABASE_SOURCE` 对应的数据库和用户凭据。
 - 私密配置只通过环境变量注入；仓库只提交 `.env.example` 和不含凭据的示例
   配置。不要把真实密码、令牌、Cookie、连接串或生产数据写入 Git。
+- 海管家（HGJ）调研登录凭据位于仓库根目录 `.env.hgj.local`，变量名为
+  `HGJ_USERNAME`、`HGJ_PASSWORD`。使用 REA 登录前先向执行登录的进程加载该文件；
+  MCP 进程未继承变量时，可用加载该文件的 REA CLI 执行登录，不要误判为缺少凭据。
+  该文件仅供本地使用，必须保持 Git 忽略；禁止在文档、命令输出或提交中暴露变量值。
 - PostgreSQL Schema 以 Ent Schema 为真相源。生产数据库变更必须生成、审阅
   并随代码提交迁移；不得绕过 Ent 在业务代码中散落手写 SQL（确有必要时说明
   原因并集中封装在 `internal/data`）。
