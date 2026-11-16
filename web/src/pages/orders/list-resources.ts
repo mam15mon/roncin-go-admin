@@ -1,5 +1,5 @@
-import { App } from 'antd';
-import { useEffect, useRef, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRef } from 'react';
 import { useInitialState } from '@/app/AppProvider';
 import { PartnerRoleType } from '@/enums.generated';
 import { searchShippingLineOptions } from '@/features/master-data/shipping-lines';
@@ -12,7 +12,7 @@ import { searchPartnerOptions } from '@/features/partners';
 import { formatPersonnelLabel } from '@/features/personnel';
 import { masterDataServiceListPorts } from '@/services/roncin/masterDataService';
 import { orderServiceListPersonnelOptions } from '@/services/roncin/orderService';
-import { unwrapList } from '@/utils/api';
+import { ensureListResponse, unwrapList } from '@/utils/api';
 import {
   isMasterDataKind,
   isUnimplementedTransportMode,
@@ -21,9 +21,16 @@ import {
 } from './common';
 import type { OrderKindDefinition } from './order-kinds/types';
 
+interface OrderListResourceData {
+  masterOptions: API.MasterDataItem[];
+  ports: API.Port[];
+  airports: API.Airport[];
+  customerMap: Record<string, string>;
+}
+
 /** 订单列表页共用的主数据加载、候选项派生与联想搜索逻辑。 */
 export function useOrderListResources(definition?: OrderKindDefinition) {
-  const { message } = App.useApp();
+  const queryClient = useQueryClient();
   const { initialState } = useInitialState();
   const organizationId = initialState?.currentUser?.currentOrganization?.id;
   const activeOrgIdRef = useRef(organizationId);
@@ -34,91 +41,69 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
   const personnelBusinessType = definition?.businessType;
   const activeBusinessTypeRef = useRef(personnelBusinessType);
   activeBusinessTypeRef.current = personnelBusinessType;
-  const requestIdRef = useRef(0);
+  const identity = {
+    organizationId,
+    transportMode: locationTransportMode,
+    businessType: personnelBusinessType,
+  };
+  const resourceKey = ['orders', 'list-resources', identity] as const;
+  const resourcesEnabled = Boolean(
+    organizationId &&
+      definition &&
+      !isUnimplementedTransportMode(definition.transportMode),
+  );
+  const resources = useQuery({
+    queryKey: resourceKey,
+    enabled: resourcesEnabled,
+    queryFn: async ({ signal }): Promise<OrderListResourceData> => {
+      signal.throwIfAborted();
+      if (!organizationId || !definition)
+        throw new Error('缺少订单列表资源身份');
+      const [masterOptions, ports, airports, customers] = await Promise.all([
+        getMasterDataOptions(organizationId),
+        definition.transportMode === 'sea'
+          ? getCachedPorts(organizationId)
+          : Promise.resolve([]),
+        definition.transportMode === 'air'
+          ? getCachedAirports(organizationId)
+          : Promise.resolve([]),
+        searchPartnerOptions(undefined, {
+          role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+          enabled: true,
+        }),
+      ]);
+      signal.throwIfAborted();
+      return {
+        masterOptions,
+        ports,
+        airports,
+        customerMap: Object.fromEntries(
+          customers.map((option) => [option.value, option.label]),
+        ),
+      };
+    },
+    meta: { errorMessage: '订单主数据加载失败' },
+  });
+  const currentResources = resourcesEnabled ? resources.data : undefined;
+  const effectiveMasterOptions = currentResources?.masterOptions ?? [];
+  const effectivePorts = currentResources?.ports ?? [];
+  const effectiveAirports = currentResources?.airports ?? [];
+  const effectiveCustomerMap = currentResources?.customerMap ?? {};
 
-  const [masterOptions, setMasterOptions] = useState<API.MasterDataItem[]>([]);
-  const [ports, setPorts] = useState<API.Port[]>([]);
-  const [airports, setAirports] = useState<API.Airport[]>([]);
-  const [customerMap, setCustomerMap] = useState<Record<string, string>>({});
-  // 已加载资源携带完整身份（组织 + 运输方式）：同组织 sea → air 切换时，
-  // 即使旧 state 尚未清空，身份不匹配也会让旧港口立即从对外结果中隐藏。
-  const [loadedResourceIdentity, setLoadedResourceIdentity] = useState<
-    string | undefined
-  >(undefined);
-
-  useEffect(() => {
-    // 未注册订单类型与未开放运输方式 fail-closed：不发任何主数据请求，
-    // 清空已加载资源；后续真实接入 land/rail 时在此接入其专属主数据装载。
-    if (
-      !organizationId ||
-      !definition ||
-      isUnimplementedTransportMode(definition.transportMode)
-    ) {
-      requestIdRef.current += 1;
-      setLoadedResourceIdentity(undefined);
-      setMasterOptions([]);
-      setPorts([]);
-      setAirports([]);
-      setCustomerMap({});
-      return;
-    }
-
-    const currentRequestId = ++requestIdRef.current;
-    const currentOrgId = organizationId;
-    const currentResourceIdentity = `${organizationId}:${definition.transportMode}`;
-    const shouldLoadPorts = definition.transportMode === 'sea';
-    const shouldLoadAirports = definition.transportMode === 'air';
-
-    void Promise.all([
-      getMasterDataOptions(organizationId),
-      shouldLoadPorts ? getCachedPorts(organizationId) : Promise.resolve([]),
-      shouldLoadAirports
-        ? getCachedAirports(organizationId)
-        : Promise.resolve([]),
-      searchPartnerOptions(undefined, {
-        role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
-        enabled: true,
-      }),
-    ])
-      .then(([options, portsList, airportsList, partnerOptions]) => {
-        if (
-          currentRequestId !== requestIdRef.current ||
-          currentOrgId !== activeOrgIdRef.current
-        ) {
-          return;
-        }
-        setLoadedResourceIdentity(currentResourceIdentity);
-        setMasterOptions(options);
-        setPorts(portsList);
-        setAirports(airportsList);
-        const nextCustomerMap: Record<string, string> = {};
-        for (const option of partnerOptions) {
-          nextCustomerMap[option.value] = option.label;
-        }
-        setCustomerMap(nextCustomerMap);
-      })
-      .catch((error: Error) => {
-        if (
-          currentRequestId !== requestIdRef.current ||
-          currentOrgId !== activeOrgIdRef.current
-        ) {
-          return;
-        }
-        setLoadedResourceIdentity(undefined);
-        message.error(error.message || '订单主数据加载失败');
-      });
-  }, [definition, message, organizationId]);
-
-  const resourceIdentity =
-    organizationId && definition
-      ? `${organizationId}:${definition.transportMode}`
-      : undefined;
-  const resourcesMatched =
-    Boolean(resourceIdentity) && loadedResourceIdentity === resourceIdentity;
-  const effectiveMasterOptions = resourcesMatched ? masterOptions : [];
-  const effectivePorts = resourcesMatched ? ports : [];
-  const effectiveAirports = resourcesMatched ? airports : [];
-  const effectiveCustomerMap = resourcesMatched ? customerMap : {};
+  const fetchOptions = <T>(
+    resource: string,
+    keyword: string | undefined,
+    queryFn: () => Promise<T>,
+  ) =>
+    queryClient.fetchQuery({
+      queryKey: [
+        'orders',
+        resource,
+        { ...identity, keyword: keyword?.trim() || undefined },
+      ],
+      queryFn,
+      meta: { silent: true },
+    });
 
   const containerSpecOptions = effectiveMasterOptions
     .filter(
@@ -166,13 +151,6 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
       value: item.id ?? '',
     }));
 
-  // 未注册类型与未开放运输方式的对外联想入口统一关闭：
-  // 既不请求，也不抛「尚未开放」，避免部分加载、部分报错的混合语义。
-  const resourcesEnabled =
-    definition?.transportMode !== undefined &&
-    !isUnimplementedTransportMode(definition.transportMode) &&
-    Boolean(organizationId);
-
   const locationOptions = [
     ...regionLocationOptions,
     ...effectivePorts
@@ -195,23 +173,32 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
     if (!requestOrgId || !resourcesEnabled) {
       return [];
     }
-    const options = await searchPartnerOptions(keyword, {
-      role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
-      enabled: true,
-    });
+    const options = await fetchOptions('list-customers', keyword, () =>
+      searchPartnerOptions(keyword, {
+        role: PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER,
+        enabled: true,
+      }),
+    );
     if (
       activeOrgIdRef.current !== requestOrgId ||
-      activeTransportModeRef.current !== requestTransportMode
+      activeTransportModeRef.current !== requestTransportMode ||
+      activeBusinessTypeRef.current !== personnelBusinessType
     ) {
       return [];
     }
-    setCustomerMap((prev) => {
-      const next = { ...prev };
-      for (const option of options) {
-        next[option.value] = option.label;
-      }
-      return next;
-    });
+    queryClient.setQueryData<OrderListResourceData>(resourceKey, (previous) =>
+      previous
+        ? {
+            ...previous,
+            customerMap: {
+              ...previous.customerMap,
+              ...Object.fromEntries(
+                options.map((option) => [option.value, option.label]),
+              ),
+            },
+          }
+        : undefined,
+    );
     return options;
   };
 
@@ -222,28 +209,36 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
     if (!requestOrgId || !resourcesEnabled || requestTransportMode !== 'sea') {
       return [];
     }
-    const response = await masterDataServiceListPorts({
-      page: 1,
-      pageSize: 50,
-      keyword,
-      enabled: true,
-    });
-    const result = unwrapList(response);
+    const result = await fetchOptions('list-ports', keyword, async () =>
+      unwrapList(
+        ensureListResponse(
+          await masterDataServiceListPorts({
+            page: 1,
+            pageSize: 50,
+            keyword,
+            enabled: true,
+          }),
+          '港口主数据加载失败，请稍后重试',
+        ),
+      ),
+    );
     // 组织或运输方式已切换的迟到港口响应不得写入当前资源。
     if (
       activeOrgIdRef.current !== requestOrgId ||
-      activeTransportModeRef.current !== requestTransportMode
+      activeTransportModeRef.current !== requestTransportMode ||
+      activeBusinessTypeRef.current !== personnelBusinessType
     ) {
       return [];
     }
-    setPorts((current) => {
+    queryClient.setQueryData<OrderListResourceData>(resourceKey, (previous) => {
+      if (!previous) return undefined;
       const merged = new Map(
-        current.filter((item) => item.id).map((item) => [item.id, item]),
+        previous.ports.filter((item) => item.id).map((item) => [item.id, item]),
       );
       for (const item of result) {
         if (item.id) merged.set(item.id, item);
       }
-      return [...merged.values()];
+      return { ...previous, ports: [...merged.values()] };
     });
     return result.map((item) => ({
       label: `${item.nameZh ? `${item.nameZh} / ` : ''}${item.nameEn} (${item.unLocode})`,
@@ -257,9 +252,12 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
     if (!requestOrgId || !resourcesEnabled || !requestTransportMode) {
       return [];
     }
-    const options = await searchOrderLocations(requestTransportMode, keyword);
+    const options = await fetchOptions('list-locations', keyword, () =>
+      searchOrderLocations(requestTransportMode, keyword),
+    );
     return activeOrgIdRef.current === requestOrgId &&
-      activeTransportModeRef.current === requestTransportMode
+      activeTransportModeRef.current === requestTransportMode &&
+      activeBusinessTypeRef.current === personnelBusinessType
       ? options
       : [];
   };
@@ -270,9 +268,12 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
     if (!requestOrgId || !resourcesEnabled) {
       return [];
     }
-    const options = await searchShippingLineOptions(keyword);
+    const options = await fetchOptions('list-carriers', keyword, () =>
+      searchShippingLineOptions(keyword),
+    );
     return activeOrgIdRef.current === requestOrgId &&
-      activeTransportModeRef.current === requestTransportMode
+      activeTransportModeRef.current === requestTransportMode &&
+      activeBusinessTypeRef.current === personnelBusinessType
       ? options
       : [];
   };
@@ -288,12 +289,14 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
     ) {
       return [];
     }
-    const response = await orderServiceListPersonnelOptions({
-      businessType: requestBusinessType,
-      keyword,
-      page: 1,
-      pageSize: 50,
-    });
+    const response = await fetchOptions('list-personnel', keyword, () =>
+      orderServiceListPersonnelOptions({
+        businessType: requestBusinessType,
+        keyword,
+        page: 1,
+        pageSize: 50,
+      }),
+    );
     if (
       activeOrgIdRef.current !== requestOrgId ||
       activeTransportModeRef.current !== requestTransportMode ||
@@ -301,7 +304,9 @@ export function useOrderListResources(definition?: OrderKindDefinition) {
     ) {
       return [];
     }
-    return unwrapList(response)
+    return unwrapList(
+      ensureListResponse(response, '订单人员选项加载失败，请稍后重试'),
+    )
       .filter((item) => item.userId && item.displayName)
       .map((item) => ({
         userId: item.userId as string,

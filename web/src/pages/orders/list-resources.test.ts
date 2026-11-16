@@ -1,3 +1,5 @@
+import { createTestQueryClient } from '@root/tests/queryClientTestUtils';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
@@ -67,8 +69,13 @@ const mockSearchPersonnel = vi.mocked(orderServiceListPersonnelOptions);
 
 const seaConfig = seaExportDefinition;
 
-function wrapper({ children }: { children: React.ReactNode }) {
-  return React.createElement(App, null, children);
+function Wrapper({ children }: { children: React.ReactNode }) {
+  const [client] = React.useState(createTestQueryClient);
+  return React.createElement(
+    QueryClientProvider,
+    { client },
+    React.createElement(App, null, children),
+  );
 }
 
 function deferred<T>() {
@@ -124,7 +131,7 @@ describe('useOrderListResources', () => {
     mockCurrentUser = { id: 'user-1', currentOrganization: null };
 
     const { result } = renderHook(() => useOrderListResources(seaConfig), {
-      wrapper,
+      wrapper: Wrapper,
     });
 
     expect(result.current.masterOptions).toEqual([]);
@@ -150,7 +157,7 @@ describe('useOrderListResources', () => {
 
   it('sea 模式按需拉取：仅拉取港口，不拉取机场', async () => {
     const { result } = renderHook(() => useOrderListResources(seaConfig), {
-      wrapper,
+      wrapper: Wrapper,
     });
 
     await waitFor(() => expect(result.current.ports).toHaveLength(1));
@@ -168,7 +175,7 @@ describe('useOrderListResources', () => {
     } as typeof seaConfig;
 
     const { result } = renderHook(() => useOrderListResources(airConfig), {
-      wrapper,
+      wrapper: Wrapper,
     });
 
     await waitFor(() => expect(result.current.airports).toHaveLength(1));
@@ -188,7 +195,7 @@ describe('useOrderListResources', () => {
 
       const { result } = renderHook(
         () => useOrderListResources(unimplementedDefinition),
-        { wrapper },
+        { wrapper: Wrapper },
       );
 
       expect(result.current.masterOptions).toEqual([]);
@@ -223,7 +230,7 @@ describe('useOrderListResources', () => {
     let currentDefinition = seaConfig;
     const { result, rerender } = renderHook(
       () => useOrderListResources(currentDefinition),
-      { wrapper },
+      { wrapper: Wrapper },
     );
     await waitFor(() => expect(result.current.ports).toHaveLength(1));
 
@@ -271,7 +278,7 @@ describe('useOrderListResources', () => {
     } as typeof seaConfig;
 
     const { result } = renderHook(() => useOrderListResources(airConfig), {
-      wrapper,
+      wrapper: Wrapper,
     });
 
     await waitFor(() => expect(result.current.airports).toHaveLength(1));
@@ -283,7 +290,7 @@ describe('useOrderListResources', () => {
 
   it('未注册订单类型时 fail-closed：不发起任何主数据请求，候选项全为空', async () => {
     const { result } = renderHook(() => useOrderListResources(undefined), {
-      wrapper,
+      wrapper: Wrapper,
     });
 
     expect(result.current.masterOptions).toEqual([]);
@@ -320,7 +327,7 @@ describe('useOrderListResources', () => {
 
     const { result, rerender } = renderHook(
       () => useOrderListResources(seaConfig),
-      { wrapper },
+      { wrapper: Wrapper },
     );
 
     // 切换到组织 B
@@ -370,7 +377,7 @@ describe('useOrderListResources', () => {
 
     const { result, rerender } = renderHook(
       () => useOrderListResources(seaConfig),
-      { wrapper },
+      { wrapper: Wrapper },
     );
 
     await waitFor(() =>
@@ -414,7 +421,7 @@ describe('useOrderListResources', () => {
     };
     const { result, rerender } = renderHook(
       () => useOrderListResources(seaConfig),
-      { wrapper },
+      { wrapper: Wrapper },
     );
 
     await waitFor(() => expect(result.current.masterOptions).toHaveLength(1));
@@ -487,7 +494,7 @@ describe('useOrderListResources', () => {
     let currentConfig = seaConfig;
     const { result, rerender } = renderHook(
       () => useOrderListResources(currentConfig),
-      { wrapper },
+      { wrapper: Wrapper },
     );
     await waitFor(() => expect(result.current.masterOptions).toHaveLength(1));
 

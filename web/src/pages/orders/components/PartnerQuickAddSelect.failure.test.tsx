@@ -1,3 +1,5 @@
+import { createTestQueryClient } from '@root/tests/queryClientTestUtils';
+import { QueryClientProvider } from '@tanstack/react-query';
 import {
   act,
   fireEvent,
@@ -7,6 +9,7 @@ import {
   within,
 } from '@testing-library/react';
 import { App, Form } from 'antd';
+import { useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { PartnerAssignmentRole, PartnerRoleType } from '@/enums.generated';
 import { partnerServiceCreatePartner } from '@/services/roncin/partnerService';
@@ -98,6 +101,7 @@ function TestHost({
   disabled?: boolean;
   onPartnerChange?: (option: PartnerSelectOption | undefined) => void;
 }) {
+  const [client] = useState(createTestQueryClient);
   const [form] = Form.useForm();
   const customerId = Form.useWatch('customerId', form);
   const customerCode = Form.useWatch('customerCode', {
@@ -105,26 +109,28 @@ function TestHost({
     preserve: true,
   });
   return (
-    <App>
-      <Form form={form}>
-        <PartnerQuickAddSelect
-          name="customerId"
-          displayName="委托单位"
-          role={PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER}
-          createRoute="/partners/customers/create"
-          searchPartners={searchPartners}
-          staffOptions={STAFF_OPTIONS}
-          required
-          disabled={disabled}
-          onPartnerChange={(option) => {
-            form.setFieldValue('customerCode', option?.code);
-            onPartnerChange?.(option);
-          }}
-        />
-        <output data-testid="customer-id">{customerId ?? ''}</output>
-        <output data-testid="customer-code">{customerCode ?? ''}</output>
-      </Form>
-    </App>
+    <QueryClientProvider client={client}>
+      <App>
+        <Form form={form}>
+          <PartnerQuickAddSelect
+            name="customerId"
+            displayName="委托单位"
+            role={PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER}
+            createRoute="/partners/customers/create"
+            searchPartners={searchPartners}
+            staffOptions={STAFF_OPTIONS}
+            required
+            disabled={disabled}
+            onPartnerChange={(option) => {
+              form.setFieldValue('customerCode', option?.code);
+              onPartnerChange?.(option);
+            }}
+          />
+          <output data-testid="customer-id">{customerId ?? ''}</output>
+          <output data-testid="customer-code">{customerCode ?? ''}</output>
+        </Form>
+      </App>
+    </QueryClientProvider>
   );
 }
 
@@ -206,5 +212,34 @@ describe('PartnerQuickAddSelect 创建失败恢复', () => {
     await openDropdown();
     fireEvent.click(screen.getByText('新增 委托单位'));
     expect(await screen.findByLabelText('公司抬头')).toHaveValue('');
+  });
+
+  it.each([
+    {
+      success: false,
+      data: { id: 'invalid-success', legalName: '未成功的客户' },
+    },
+    { success: true, data: {} },
+  ])('创建无有效成功实体 %j 时不回填、不关闭', async (response) => {
+    vi.mocked(partnerServiceCreatePartner).mockResolvedValueOnce(response);
+    const onPartnerChange = vi.fn();
+    render(<TestHost onPartnerChange={onPartnerChange} />);
+    await openDropdown();
+    fireEvent.click(screen.getByText('新增 委托单位'));
+    fireEvent.change(await screen.findByLabelText('公司抬头'), {
+      target: { value: '必须保留的客户' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /保\s*存/ }));
+    await waitFor(() =>
+      expect(partnerServiceCreatePartner).toHaveBeenCalledOnce(),
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: /保\s*存/ }),
+      ).not.toBeDisabled(),
+    );
+    expect(screen.getByLabelText('公司抬头')).toHaveValue('必须保留的客户');
+    expect(screen.getByTestId('customer-id')).toBeEmptyDOMElement();
+    expect(onPartnerChange).not.toHaveBeenCalled();
   });
 });

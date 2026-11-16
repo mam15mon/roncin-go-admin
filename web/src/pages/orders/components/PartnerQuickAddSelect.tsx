@@ -1,4 +1,5 @@
 import { PlusOutlined } from '@ant-design/icons';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, Checkbox, Form, Input, Select, Tag } from 'antd';
 import React, {
   type ReactNode,
@@ -15,9 +16,9 @@ import { defaultSelectFilterOption } from '@/components/ui/searchable-select/uti
 import { PartnerAssignmentRole, PartnerRoleType } from '@/enums.generated';
 import { formatPersonnelLabel } from '@/features/personnel';
 import { useAsyncGuard } from '@/hooks/useAsyncGuard';
-import { useLatestAsync } from '@/hooks/useLatestAsync';
 import { history } from '@/router/history';
 import { partnerServiceCreatePartner } from '@/services/roncin/partnerService';
+import { isWriteResponse } from '@/utils/api';
 
 export type PartnerSelectOption = {
   label: string;
@@ -51,7 +52,7 @@ type PartnerQuickAddSelectProps = {
  * - 快捷新增仅录入公司抬头；客户角色额外展示提成责任岗位（业务/操作/客服）
  *   选择作为开单带入默认值，提成归属以订单人员为唯一真相，三岗选填；
  *   成功后回填选中；本地新选项与远程结果按伙伴
- *   ID 去重合并，并通过 params 版本号触发重载，避免当前值退化为只显示 ID。
+ *   ID 去重合并，查询缓存保留已选名称，避免当前值退化为只显示 ID。
  * - 组织切换时清理本地新选项并使在途响应失效，旧组织数据不写入新组织表单。
  */
 export default function PartnerQuickAddSelect({
@@ -71,19 +72,74 @@ export default function PartnerQuickAddSelect({
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectOpen, setSelectOpen] = useState(false);
-  const [options, setOptions] = useState<PartnerSelectOption[]>([]);
+  const client = useQueryClient();
+  const [keyword, setKeyword] = useState('');
+  const [debouncedKeyword, setDebouncedKeyword] = useState('');
   const currentOrganizationId =
     initialState?.currentUser?.currentOrganization?.id;
-  const createdOptionsRef = useRef<PartnerSelectOption[]>([]);
-  const availableOptionsRef = useRef<Map<string | number, PartnerSelectOption>>(
-    new Map(),
-  );
-  const optionsOrganizationIdRef = useRef(currentOrganizationId);
+  const resourceIdentity = `${currentOrganizationId ?? ''}:${name}:${role}`;
+  const activeResourceRef = useRef(resourceIdentity);
+  activeResourceRef.current = resourceIdentity;
   const organizationIdRef = useRef(currentOrganizationId);
-  const previousOrganizationIdRef = useRef(currentOrganizationId);
-  const latestSearch = useLatestAsync();
-  const createGuard = useAsyncGuard();
   organizationIdRef.current = currentOrganizationId;
+  const previousResourceRef = useRef(resourceIdentity);
+  const createGuard = useAsyncGuard();
+  const searchRef = useRef(searchPartners);
+  searchRef.current = searchPartners;
+  const selectedValue = Form.useWatch(name, {
+    form: orderForm,
+    preserve: true,
+  });
+  const scopeKey = useMemo(
+    () =>
+      [
+        'orders',
+        'partner-options',
+        { organizationId: currentOrganizationId, name, role },
+      ] as const,
+    [currentOrganizationId, name, role],
+  );
+  const createdKey = useMemo(
+    () => [...scopeKey, 'created'] as const,
+    [scopeKey],
+  );
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedKeyword(keyword), 300);
+    return () => clearTimeout(timer);
+  }, [keyword]);
+
+  const candidates = useQuery({
+    queryKey: [...scopeKey, { keyword: debouncedKeyword }],
+    enabled: Boolean(currentOrganizationId),
+    queryFn: async ({ signal }) => {
+      const items = await searchRef.current(debouncedKeyword || undefined);
+      signal.throwIfAborted();
+      if (!Array.isArray(items)) throw new Error('往来单位候选加载失败');
+      return items;
+    },
+    meta: { silent: true },
+  });
+  const options = useMemo(() => {
+    const created =
+      client.getQueryData<PartnerSelectOption[]>(createdKey) ?? [];
+    const selected = client
+      .getQueriesData<PartnerSelectOption[]>({ queryKey: scopeKey })
+      .flatMap(([, items]) => items ?? [])
+      .filter((option) => option.value === selectedValue);
+    return Array.from(
+      new Map(
+        [...selected, ...(candidates.data ?? []), ...created].map((option) => [
+          option.value,
+          option,
+        ]),
+      ).values(),
+    );
+  }, [candidates.data, client, createdKey, modalOpen, scopeKey, selectedValue]);
+  const availableOptions = useMemo(
+    () => new Map(options.map((option) => [option.value, option])),
+    [options],
+  );
   const canQuickAdd = Boolean(access.canCreatePartners) && !disabled;
   // 客户快建展示提成责任岗位（业务/操作/客服）供录入开单带入默认值；
   // 提成归属以订单人员为唯一真相，三岗选填。其他角色保持仅录抬头。
@@ -100,91 +156,22 @@ export default function PartnerQuickAddSelect({
 
   useEffect(() => {
     if (canQuickAdd) return;
-    latestSearch.cancel();
     createGuard.invalidate();
     setSelectOpen(false);
     setModalOpen(false);
-  }, [canQuickAdd, createGuard, latestSearch]);
+  }, [canQuickAdd, createGuard]);
 
-  const loadOptions = useCallback(
-    (keyWords?: string) => {
-      const organizationAtRequest = organizationIdRef.current;
-      if (!organizationAtRequest) {
-        setOptions([]);
-        return Promise.resolve();
-      }
-
-      return latestSearch.run(
-        async () => {
-          try {
-            return {
-              organizationId: organizationAtRequest,
-              remote: await searchPartners(keyWords),
-            };
-          } catch (error) {
-            // 组织已经变化时，旧请求的错误也不能反馈到新工作区。
-            if (organizationAtRequest !== organizationIdRef.current) {
-              return { organizationId: organizationAtRequest, remote: [] };
-            }
-            throw error;
-          }
-        },
-        ({ organizationId, remote }) => {
-          // Hook 负责生命周期和 latest；组织身份仍是业务数据隔离条件。
-          if (organizationId !== organizationIdRef.current) return;
-          const local = createdOptionsRef.current;
-          const localIds = new Set(local.map((option) => option.value));
-          const merged = [
-            ...local,
-            ...remote.filter((option) => !localIds.has(option.value)),
-          ];
-          availableOptionsRef.current = new Map(
-            merged.map((option) => [option.value, option]),
-          );
-          optionsOrganizationIdRef.current = organizationId;
-          setOptions(merged);
-        },
-      );
-    },
-    [latestSearch, searchPartners],
-  );
-
-  const triggerLoadOptions = useCallback(
-    (keyWords?: string) => {
-      // requestErrorConfig 负责当前请求的用户提示；这里仅避免 Select 事件留下未处理 Promise。
-      void loadOptions(keyWords).catch(() => undefined);
-    },
-    [loadOptions],
-  );
-
-  // 受控 options 不会像 ProForm 的 request 一样自动在挂载时加载；保留首批
-  // 候选项和已选值标签的原有回显能力。
+  // 组织/角色/字段变化只清本地交互与创建会话，查询结果由资源键隔离。
   useEffect(() => {
-    triggerLoadOptions();
-  }, [triggerLoadOptions]);
-
-  // 组织切换：清除本地候选项、使在途请求/创建响应失效，并加载新组织首批候选项。
-  useEffect(() => {
-    if (previousOrganizationIdRef.current === currentOrganizationId) return;
-    previousOrganizationIdRef.current = currentOrganizationId;
-    latestSearch.cancel();
+    if (previousResourceRef.current === resourceIdentity) return;
+    previousResourceRef.current = resourceIdentity;
     createGuard.invalidate();
-    createdOptionsRef.current = [];
-    availableOptionsRef.current.clear();
-    optionsOrganizationIdRef.current = currentOrganizationId;
-    setOptions([]);
     orderForm?.setFieldValue(name, undefined);
+    setKeyword('');
+    setDebouncedKeyword('');
     setSelectOpen(false);
     setModalOpen(false);
-    triggerLoadOptions();
-  }, [
-    createGuard,
-    currentOrganizationId,
-    latestSearch,
-    name,
-    orderForm,
-    triggerLoadOptions,
-  ]);
+  }, [createGuard, name, orderForm, resourceIdentity]);
 
   const quickAddFooter = useCallback(
     (menu: ReactNode) => (
@@ -228,7 +215,8 @@ export default function PartnerQuickAddSelect({
       popupRender: canQuickAdd ? quickAddFooter : undefined,
       open: selectOpen,
       onOpenChange: setSelectOpen,
-      onSearch: triggerLoadOptions,
+      onSearch: (value: string) => setKeyword(value.trim()),
+      loading: candidates.isFetching,
       filterOption: false,
       optionRender: (option: {
         label?: ReactNode;
@@ -259,21 +247,19 @@ export default function PartnerQuickAddSelect({
           onPartnerChange?.(undefined);
           return;
         }
-        if (optionsOrganizationIdRef.current !== organizationIdRef.current) {
-          return;
-        }
         onPartnerChange?.(
-          availableOptionsRef.current.get(value as string | number) ??
+          availableOptions.get(value as string | number) ??
             (option as PartnerSelectOption),
         );
       },
     }),
     [
+      availableOptions,
+      candidates.isFetching,
       canQuickAdd,
       onPartnerChange,
       quickAddFooter,
       selectOpen,
-      triggerLoadOptions,
     ],
   );
 
@@ -301,7 +287,7 @@ export default function PartnerQuickAddSelect({
         },
         PartnerSelectOption
       >
-        key={`${currentOrganizationId ?? 'no-organization'}:${canQuickAdd ? 'enabled' : 'disabled'}`}
+        key={`${resourceIdentity}:${canQuickAdd ? 'enabled' : 'disabled'}`}
         centered
         title={`新增 ${displayName}`}
         open={modalOpen}
@@ -327,6 +313,7 @@ export default function PartnerQuickAddSelect({
         }}
         onSubmit={async (values) => {
           const organizationAtSubmit = organizationIdRef.current;
+          const resourceAtSubmit = activeResourceRef.current;
           if (!organizationAtSubmit) {
             throw new Error('当前组织不可用，请刷新后重试');
           }
@@ -366,11 +353,15 @@ export default function PartnerQuickAddSelect({
                 { signal },
               ),
             (response) => {
-              if (organizationAtSubmit !== organizationIdRef.current) return;
+              if (
+                organizationAtSubmit !== organizationIdRef.current ||
+                resourceAtSubmit !== activeResourceRef.current
+              )
+                return;
               // 请求层已提示的失败返回 undefined，保留表单以便重试。
-              if (!response) return;
+              if (!response || response.success === false) return;
               const partner = response.data;
-              if (!partner?.id) {
+              if (!isWriteResponse(response, true) || !partner?.id) {
                 throw new Error('创建结果缺少伙伴 ID，请重试');
               }
               const option = {
@@ -380,20 +371,15 @@ export default function PartnerQuickAddSelect({
                 isCasual: partner.isCasual ?? values.isCasual ?? true,
               };
               orderForm?.setFieldValue(name, option.value);
-              createdOptionsRef.current = [
-                option,
-                ...createdOptionsRef.current.filter(
-                  (existing) => existing.value !== option.value,
-                ),
-              ];
-              availableOptionsRef.current.set(option.value, option);
-              optionsOrganizationIdRef.current = organizationIdRef.current;
-              setOptions((current) => [
-                option,
-                ...current.filter(
-                  (existing) => existing.value !== option.value,
-                ),
-              ]);
+              client.setQueryData<PartnerSelectOption[]>(
+                createdKey,
+                (current) => [
+                  option,
+                  ...(current ?? []).filter(
+                    (existing) => existing.value !== option.value,
+                  ),
+                ],
+              );
               onPartnerChange?.(option);
               setModalOpen(false);
             },

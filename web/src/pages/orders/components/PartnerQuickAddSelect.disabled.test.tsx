@@ -1,4 +1,5 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { renderWithClient } from '@root/tests/queryClientTestUtils';
+import { act, fireEvent, screen } from '@testing-library/react';
 import { App, Form } from 'antd';
 import { expect, it, vi } from 'vitest';
 import { PartnerRoleType } from '@/enums.generated';
@@ -14,7 +15,7 @@ vi.mock('@/app/AppProvider', () => ({
 }));
 
 it('父表单禁用时客商选择继承禁用，不能在订单提交中继续更换客户', async () => {
-  render(
+  renderWithClient(
     <App>
       <Form disabled>
         <PartnerQuickAddSelect

@@ -152,4 +152,27 @@ describe('PartnerQuickAddSelect', () => {
       expect(screen.getByTestId('customer-code')).toHaveTextContent('');
     });
   });
+
+  it('搜索不包含已选客户时仍保留选中名称和业务代码', async () => {
+    searchPartners
+      .mockResolvedValueOnce([
+        { label: '既有单位', value: 'partner-0', code: 'P0' },
+      ])
+      .mockResolvedValue([
+        { label: '另一个单位', value: 'partner-other', code: 'PO' },
+      ]);
+    render(<TestHost />);
+    await openDropdown();
+    fireEvent.click(screen.getByText('既有单位'));
+    await waitFor(() =>
+      expect(screen.getByTestId('customer-id')).toHaveTextContent('partner-0'),
+    );
+    fireEvent.mouseDown(screen.getByRole('combobox'));
+    fireEvent.change(screen.getByRole('combobox'), {
+      target: { value: '另一个' },
+    });
+    expect(await screen.findByText('另一个单位')).toBeInTheDocument();
+    expect(screen.getByTestId('customer-code')).toHaveTextContent('P0');
+    expect(screen.getAllByText('既有单位').length).toBeGreaterThan(0);
+  });
 });

@@ -1,5 +1,8 @@
+import { createTestQueryClient } from '@root/tests/queryClientTestUtils';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { App, ConfigProvider, Form } from 'antd';
+import { useState } from 'react';
 import { afterEach, beforeEach, expect, vi } from 'vitest';
 import { PartnerRoleType } from '@/enums.generated';
 import type * as PartnerService from '@/services/roncin/partnerService';
@@ -103,6 +106,7 @@ function TestHost({
   disabled?: boolean;
   onPartnerChange?: (option: PartnerSelectOption | undefined) => void;
 }) {
+  const [client] = useState(createTestQueryClient);
   const [form] = Form.useForm();
   const customerId = Form.useWatch('customerId', form);
   const customerCode = Form.useWatch('customerCode', {
@@ -110,28 +114,30 @@ function TestHost({
     preserve: true,
   });
   return (
-    <ConfigProvider theme={{ token: { motion: false } }}>
-      <App>
-        <Form form={form}>
-          <PartnerQuickAddSelect
-            name="customerId"
-            displayName="委托单位"
-            role={PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER}
-            createRoute="/partners/customers/create"
-            searchPartners={searchPartners}
-            staffOptions={STAFF_OPTIONS}
-            required
-            disabled={disabled}
-            onPartnerChange={(option) => {
-              form.setFieldValue('customerCode', option?.code);
-              onPartnerChange?.(option);
-            }}
-          />
-          <output data-testid="customer-id">{customerId ?? ''}</output>
-          <output data-testid="customer-code">{customerCode ?? ''}</output>
-        </Form>
-      </App>
-    </ConfigProvider>
+    <QueryClientProvider client={client}>
+      <ConfigProvider theme={{ token: { motion: false } }}>
+        <App>
+          <Form form={form}>
+            <PartnerQuickAddSelect
+              name="customerId"
+              displayName="委托单位"
+              role={PartnerRoleType.PARTNER_ROLE_TYPE_CUSTOMER}
+              createRoute="/partners/customers/create"
+              searchPartners={searchPartners}
+              staffOptions={STAFF_OPTIONS}
+              required
+              disabled={disabled}
+              onPartnerChange={(option) => {
+                form.setFieldValue('customerCode', option?.code);
+                onPartnerChange?.(option);
+              }}
+            />
+            <output data-testid="customer-id">{customerId ?? ''}</output>
+            <output data-testid="customer-code">{customerCode ?? ''}</output>
+          </Form>
+        </App>
+      </ConfigProvider>
+    </QueryClientProvider>
   );
 }
 
@@ -175,22 +181,25 @@ afterEach(() => {
 });
 
 function SupplierHost() {
+  const [client] = useState(createTestQueryClient);
   const [form] = Form.useForm();
   return (
-    <ConfigProvider theme={{ token: { motion: false } }}>
-      <App>
-        <Form form={form}>
-          <PartnerQuickAddSelect
-            name="bookingAgentId"
-            displayName="订舱代理"
-            role={PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER}
-            createRoute="/partners/suppliers/create"
-            searchPartners={searchPartners}
-            staffOptions={STAFF_OPTIONS}
-          />
-        </Form>
-      </App>
-    </ConfigProvider>
+    <QueryClientProvider client={client}>
+      <ConfigProvider theme={{ token: { motion: false } }}>
+        <App>
+          <Form form={form}>
+            <PartnerQuickAddSelect
+              name="bookingAgentId"
+              displayName="订舱代理"
+              role={PartnerRoleType.PARTNER_ROLE_TYPE_SUPPLIER}
+              createRoute="/partners/suppliers/create"
+              searchPartners={searchPartners}
+              staffOptions={STAFF_OPTIONS}
+            />
+          </Form>
+        </App>
+      </ConfigProvider>
+    </QueryClientProvider>
   );
 }
 
