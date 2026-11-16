@@ -1750,3 +1750,29 @@ Order 共享契约新增 DangerousPackingGroup 枚举（严格照抄海运 shipm
 ### Status
 
 [OK] **Completed**
+
+
+## Session 209: 海运进口与固定服务闭环
+<!-- trellis-session: v=2 fp=58b8e13522bf9abb -->
+
+**Date**: 2026-11-16
+**Task**: 海运进口与固定服务闭环
+**Branch**: `codex/hgj-business-alignment`
+
+### Summary
+
+完成SI真实海运单证、箱货费用及固定进口服务；独立复核自修权限与基线，真实PG/前后端门禁/build/浏览器和四页归档PDF通过。用户授权开发孤立主单归SE并保留资料，正式迁移已完成。父任务3/6，继续AI。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `74f86b3e` | feat: 支持海运进口与按票服务及外部提单归档 |
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- 实施AI双模式及ETA/重量/固定服务，随后航空PDF与四类CSV/横切/完整财务验收
