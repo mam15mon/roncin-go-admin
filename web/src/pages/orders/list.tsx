@@ -231,7 +231,10 @@ export default function OrderListPage() {
         }}
         actionRef={actionRef}
         title={definition.title}
-        showBillRelations
+        showBillRelations={
+          definition.transportMode === 'sea' ||
+          definition.transportMode === 'air'
+        }
         subTitle={
           definition.transportMode === 'air'
             ? '集中核对主分运单、航班机场、货量与本票确认计费重'
@@ -241,7 +244,9 @@ export default function OrderListPage() {
         extraColumns={
           definition.transportMode === 'sea'
             ? seaExportListColumns
-            : airListColumns
+            : definition.transportMode === 'air'
+              ? airListColumns
+              : []
         }
         defaultHiddenColumnKeys={
           definition.transportMode === 'sea'
@@ -251,14 +256,16 @@ export default function OrderListPage() {
                   'etd',
                 )
               : SEA_EXPORT_HIDDEN_COLUMNS
-            : [
-                definition.tradeDirection ===
-                TradeDirection.TRADE_DIRECTION_IMPORT
-                  ? 'etd'
-                  : 'eta',
-                'airMasterStatus',
-                'airHouseStatus',
-              ]
+            : definition.transportMode === 'air'
+              ? [
+                  definition.tradeDirection ===
+                  TradeDirection.TRADE_DIRECTION_IMPORT
+                    ? 'etd'
+                    : 'eta',
+                  'airMasterStatus',
+                  'airHouseStatus',
+                ]
+              : []
         }
         defaultVisibleColumnKeys={
           definition.transportMode === 'air' ? AIR_VISIBLE_CARGO_COLUMNS : []

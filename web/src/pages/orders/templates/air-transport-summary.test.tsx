@@ -1,7 +1,7 @@
 import { ProForm } from '@ant-design/pro-components';
 import { renderWithApp } from '@root/tests/renderWithApp';
 import { act, screen } from '@testing-library/react';
-import { Form, type FormInstance } from 'antd';
+import { ConfigProvider, Form, type FormInstance } from 'antd';
 import { describe, expect, it, vi } from 'vitest';
 import { OrderBusinessType } from '@/enums.generated';
 import { getAirTemplateSections } from './air-template';
@@ -34,6 +34,33 @@ const props: TemplateProps = {
 };
 
 describe('航空运输摘要', () => {
+  it('父表单审核只读时仍可查看主单成员，独立修改保持业务禁用', async () => {
+    renderWithApp(
+      <ConfigProvider componentDisabled>
+        <ProForm
+          submitter={false}
+          disabled
+          initialValues={{
+            airDocumentMode: 'DIRECT',
+            airExport: {
+              documentMode: 'DIRECT',
+              master: {
+                id: 'master',
+                version: '1',
+                content: { masterNo: '78112345675' },
+              },
+            },
+          }}
+        >
+          <AirMasterTransportSection props={{ ...props, readonly: true }} />
+        </ProForm>
+      </ConfigProvider>,
+    );
+    expect(
+      screen.getByRole('button', { name: '查看主单与成员' }),
+    ).toBeEnabled();
+    await act(async () => {});
+  });
   it('已保存运输快照可刷新展示，保持整票原主单版本基线与私有输入', async () => {
     let form!: FormInstance;
     const master: API.AirMasterWaybill = {

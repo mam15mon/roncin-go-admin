@@ -34,18 +34,18 @@ const order: API.Order = {
   totalVolumeCbm: 1.2,
 };
 
-function mount() {
+function mount(locked = false, onOpenCargo = () => {}) {
   return renderWithApp(
     <ConfigProvider theme={{ token: { motion: false } }}>
-      <Form initialValues={order}>
+      <Form initialValues={order} disabled={locked}>
         <Form.Item name="totalGrossWeightKg" label="委托毛重">
           <InputNumber />
         </Form.Item>
         <AirCargoWorkspace
           order={order}
           canReadCargo
-          canUpdate
-          onOpenCargo={() => {}}
+          canUpdate={!locked}
+          onOpenCargo={onOpenCargo}
         />
       </Form>
     </ConfigProvider>,
@@ -55,6 +55,22 @@ function mount() {
 describe('空运订单就近货量核对', () => {
   beforeEach(() => {
     cargo.mockReset();
+  });
+
+  it('父表单审核只读时可查看实际货物、切换来源与重新核对，但不能确认重量', async () => {
+    cargo.mockResolvedValue({ success: true });
+    const open = vi.fn();
+    mount(true, open);
+    await screen.findByText('暂无货物明细');
+    const button = screen.getByRole('button', { name: '维护实际货物' });
+    expect(button).toBeEnabled();
+    fireEvent.click(button);
+    expect(open).toHaveBeenCalledOnce();
+    expect(screen.getByRole('radio', { name: '订单委托货量' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: '重新核对' })).toBeEnabled();
+    expect(
+      screen.queryByRole('button', { name: '确认或调整计费重' }),
+    ).not.toBeInTheDocument();
   });
 
   it('全量实际明细汇总超过200行，非optional零值省略仍为零，错票显式失败', () => {

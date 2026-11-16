@@ -145,6 +145,7 @@ function renderContribution(
         <div>
           {features.sharedVoyageMaintenance}
           <Menu items={features.actionMenuItems} selectable={false} />
+          <Menu items={features.documentMenuItems} selectable={false} />
           <Menu
             items={features.moreMenuItems?.filter(
               (item) => item?.key === 'shared-voyage-update',

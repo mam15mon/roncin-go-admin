@@ -9,6 +9,7 @@ import {
   Alert,
   Button,
   Collapse,
+  ConfigProvider,
   Descriptions,
   InputNumber,
   Radio,
@@ -115,7 +116,7 @@ export default function AirWeightPanel({
       </SectionCard>
     );
   return wrap(
-    <>
+    <ConfigProvider componentDisabled={false}>
       <Space style={{ marginBottom: 12 }}>
         <Button disabled={!validRule} onClick={() => void preview.refetch()}>
           重新核对
@@ -438,6 +439,6 @@ export default function AirWeightPanel({
           />
         </GuardedModalForm>
       )}
-    </>,
+    </ConfigProvider>,
   );
 }

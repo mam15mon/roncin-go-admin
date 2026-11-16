@@ -95,7 +95,11 @@ export default function AirCargoWorkspace({
     <Space orientation="vertical" size={12} style={{ width: '100%' }}>
       <Space wrap>
         <Typography.Text strong>实际货物与计费重量</Typography.Text>
-        {canReadCargo && <Button onClick={onOpenCargo}>维护实际货物</Button>}
+        {canReadCargo && (
+          <Button disabled={false} onClick={onOpenCargo}>
+            维护实际货物
+          </Button>
+        )}
       </Space>
       <Descriptions
         size="small"
@@ -130,7 +134,11 @@ export default function AirCargoWorkspace({
           <Alert
             type="error"
             title="实际货量加载失败"
-            action={<Button onClick={() => void cargo.refetch()}>重试</Button>}
+            action={
+              <Button disabled={false} onClick={() => void cargo.refetch()}>
+                重试
+              </Button>
+            }
           />
         ) : (
           cargo.data && (

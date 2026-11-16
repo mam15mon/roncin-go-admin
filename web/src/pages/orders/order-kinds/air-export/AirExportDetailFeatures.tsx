@@ -72,8 +72,11 @@ export default function AirExportDetailFeatures({
           MAWB:
             masterId && canRead ? (
               <Space wrap>
-                <Button onClick={openMaster}>制作 / 预览 MAWB</Button>
+                <Button disabled={false} onClick={openMaster}>
+                  制作 / 预览 MAWB
+                </Button>
                 <Button
+                  disabled={false}
                   onClick={() =>
                     history.push(`/orders/${context.kind}/masters/${masterId}`)
                   }
@@ -85,8 +88,13 @@ export default function AirExportDetailFeatures({
           HAWB:
             hasHouse && canRead ? (
               <Space wrap>
-                <Button onClick={openHouse}>制作 / 预览 HAWB</Button>
-                <Button onClick={() => setHouseHistoryOpen(true)}>
+                <Button disabled={false} onClick={openHouse}>
+                  制作 / 预览 HAWB
+                </Button>
+                <Button
+                  disabled={false}
+                  onClick={() => setHouseHistoryOpen(true)}
+                >
                   查看分单历史
                 </Button>
               </Space>

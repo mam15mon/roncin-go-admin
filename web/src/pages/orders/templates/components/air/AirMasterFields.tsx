@@ -581,6 +581,7 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
             </Typography.Text>
             <Button
               type="link"
+              disabled={false}
               onClick={() =>
                 history.push(`/orders/${props.orderKind}/masters/${master.id}`)
               }
