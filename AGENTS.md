@@ -37,6 +37,9 @@
 - 每完成一组可验证的修改就提交 Git。提交信息准确描述变更内容，使用
   Conventional Commits 前缀（如 `feat:`、`fix:`、`refactor:`、`docs:`、
   `test:`、`chore:`）。
+- 检索代码优先限定具体源码目录（如 `web/src/`、`server/internal/`），避免全仓扫描；
+  需要宽范围 `grep` 时必须排除 `.umi-production`、`.turbopack`、`node_modules`、
+  `dist` 等构建/缓存目录，定位目标后按需精读相关文件，不整段读取无关上下文。
 ## 仓库结构与职责
 
 > **AI 会话领域上手**：业务术语、模块地图、核心数据流与实体关系见
