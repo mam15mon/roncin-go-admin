@@ -6,8 +6,12 @@ AE/AI新建和详情的公共经营字段UI、默认值、载荷和回显；入�
 
 ## 2. 签名与字段
 
-- `AirBusinessFields({props: TemplateProps})`：集运/跨境、贸易条款、业务付款方式、订舱/国外代理、合约。
-- `AirCargoCommercialFields({props: TemplateProps})`：货值/币种、保费/币种、工厂、接单/货好时间、委托描述/特殊要求、订舱/配舱/普通备注。
+- `getAirCommercialFields(props: TemplateProps)`：返回字段片段（`shipmentMode/trade/payment/contract/agents/times/cargoValue/insurance/factory`），写法同海运 `getSeaBaseInfoFields`，由模板按海运同序摆放：
+  - 业务与客户：客户、单号片段复用海运，后接 `shipmentMode`；
+  - 订舱与运输首行：航空单证模式、主单关联方式（仅新建）、订舱号、`agents`；
+  - 货物与商业：品类 + `trade/payment/contract` 同行，件重尺 + `times` + `cargoValue/insurance/factory` 同一 6 列网格。
+- `AirCargoDescriptionFields`：委托描述/特殊要求对半。
+- `AirNotesFields`：订舱/配舱/操作/普通四类备注，可折叠，位于订舱与运输卡「备注」小节；主单备注写共享主单，随新建主单字段出现，不并入此处。
 - `airExportFormAdapter.buildCreatePayload/buildDetailInitialValues/buildUpdatePayload` 是公共字段往返入口。
 - 服务端继续用已有`CreateOrderRequest/UpdateOrderRequest`及Order本票字段；本组无新增Proto或Schema。
 
@@ -20,7 +24,7 @@ AE/AI新建和详情的公共经营字段UI、默认值、载荷和回显；入�
   `dangerousPackingGroup=UNSPECIFIED(0)`清除旧PG；创建未选仍省略。
   控件只写`undefined`再让JSON省略，会被后端optional合并解释为保持旧值，
   不能以危险品区块隐藏证明数据已清除。后端不从货类猜测清空，沿明确写入意图处理。
-- 业务付款方式提供可见选择，不能与海运货描组件的隐藏付款字段重复注册；操作备注保留既有运输卡入口。
+- 业务付款方式提供可见选择，不能与海运货描组件的隐藏付款字段重复注册；本票四类备注只在运输卡「备注」小节出现一次，货物卡不再放备注。
 - 候选复用订单域现有供应商/国外代理能力和权限，不添加新主数据副本；工厂是本票文本，不新建工厂平台。
 - 只读状态传递给所有新控件；普通业务字段不写入共享AirMaster或空运正文。
 - 本期公共文本上限按Unicode字符：客户/内部业务号及合约100、工厂200、各备注1000。

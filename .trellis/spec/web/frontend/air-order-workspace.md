@@ -1,6 +1,6 @@
 # 航空订单就近工作区
 
-- `air-template.tsx` 沿用六列、4px 行距与五卡结构；AI运输标题为“承运与运输”。
+- `air-template.tsx` 沿用六列、4px 行距与五卡结构，卡内分组与字段顺序对齐海运（主单与订舱 / 航线与班期 / 时刻与申报 / 备注）；单证模式在首行字段格，详情为 32px 只读标签；AI运输标题为“承运与运输”。
 - `TemplateProps.airCargoWorkspace / airTransportMaintenance / airDocumentActions` 由类型扩展贡献；
   货物工作区位于委托货量后，重量历史折叠，普通保存与货物/重量/共同运输独立提交。
 - `airTransportSnapshot` 只展示刷新后的共同运输；表单内 `airExport` 与 expectedMasterVersion
