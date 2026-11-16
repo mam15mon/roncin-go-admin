@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-3.md`
-- **Total Sessions**: 210
+- **Total Sessions**: 211
 - **Last Active**: 2026-11-16
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-3.md` | ~1804 | Active |
+| `journal-3.md` | ~1831 | Active |
 | `journal-2.md` | ~2003 | Archived |
 | `journal-1.md` | ~1979 | Archived |
 <!-- @@@/auto:active-documents -->
@@ -31,6 +31,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 211 | 2026-11-16 | 航空主分运单制作与PDF验收 | `b3b5b407` | `codex/hgj-business-alignment` |
 | 210 | 2026-11-16 | 空运进口双模式与重量服务闭环 | `734bb814` | `codex/hgj-business-alignment` |
 | 209 | 2026-11-16 | 海运进口与固定服务闭环 | `74f86b3e` | `codex/hgj-business-alignment` |
 | 208 | 2026-11-15 | 现有四项任务统一验收收尾并交付main | `49a26e7e`, `7ba4f5fd`, `69f1ff0e` | `main` |

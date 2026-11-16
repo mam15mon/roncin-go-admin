@@ -1802,3 +1802,30 @@ AI真实类型权限、DIRECT/HOUSE、独立重量与ETA费用、审核恢复和
 ### Next Steps
 
 - 航空主分制作与真实PDF、同域生产资源，再四类横切CSV和完整财务验收
+
+
+## Session 211: 航空主分运单制作与PDF验收
+<!-- trellis-session: v=2 fp=d80009b589887226 -->
+
+**Date**: 2026-11-16
+**Task**: 航空主分运单制作与PDF验收
+**Branch**: `codex/hgj-business-alignment`
+
+### Summary
+
+交付AE/AI主分航空制作、真实主体投影、同版本PDF和输入保护；64页极值专项及6份16页真实浏览器输出、生产同域、build和check:fast全部通过。继续最终完整CSV与四类业务财务横切验收。
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b3b5b407` | feat: 支持航空主分运单制作与同版本PDF输出 |
+
+### Testing
+
+- [OK] check:fast总245.3秒通过，521文件2799项通过，既有11项跳过未计通过
+- [OK] 真实PG投影AE/AI无跳过；64页专项及浏览器1 passed 1.7分钟与清理全部通过
+
+### Status
+
+[OK] **Completed**
