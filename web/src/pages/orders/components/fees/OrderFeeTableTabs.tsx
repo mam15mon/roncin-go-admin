@@ -696,6 +696,17 @@ export default function OrderFeeTableTabs({
       });
   };
 
+  /** 计费单位或带入数量变化后重跑数量字段规则；校验失败只展示错误，不抛出。 */
+  const revalidateQuantity = (
+    form:
+      | { validateFields: (names: React.Key[][]) => Promise<unknown> }
+      | undefined,
+    rowKey: React.Key | undefined,
+  ) => {
+    if (!form || rowKey === undefined) return;
+    void form.validateFields([[rowKey, 'quantity']]).catch(() => undefined);
+  };
+
   // 单价/数量/币种变化后重算总金额预览，并同步行内单价供不含税单价列
   // 实时折算；输入不完整时保留空预览，避免显示保存前的值。
   const refreshAmountPreview = (
@@ -1109,19 +1120,7 @@ export default function OrderFeeTableTabs({
                 if (bu) {
                   form?.setFieldValue([rowKey, 'billingUnit'], bu.name);
                 }
-                const baseline = [
-                  ...(latestReceivableResultRef.current?.items ?? []),
-                  ...(latestPayableResultRef.current?.items ?? []),
-                ].find((item) => item.id === rowKey);
-                const error = feeQuantityRuleError(
-                  form?.getFieldValue([rowKey, 'quantity']),
-                  option.defaultBillingUnitId,
-                  billingUnits ?? [],
-                  baseline,
-                );
-                form?.setFields([
-                  { name: [rowKey, 'quantity'], errors: error ? [error] : [] },
-                ]);
+                revalidateQuantity(form, rowKey);
               }
             }
           },
@@ -1274,6 +1273,23 @@ export default function OrderFeeTableTabs({
                 '数量必须大于 0',
               ),
             },
+            {
+              // 整数单位（箱、票等）随表单规则校验，避免手写错误被字段校验覆盖。
+              validator: (_: unknown, value?: string) => {
+                const error = feeQuantityRuleError(
+                  value,
+                  form.getFieldValue([rowKey, 'billingUnitId']),
+                  billingUnits ?? [],
+                  [
+                    ...(latestReceivableResultRef.current?.items ?? []),
+                    ...(latestPayableResultRef.current?.items ?? []),
+                  ].find((item) => item.id === String(rowKey)),
+                );
+                return error
+                  ? Promise.reject(new Error(error))
+                  : Promise.resolve();
+              },
+            },
           ],
           // 无来源说明时不渲染 extra，避免空说明区撑高单元格使输入框偏上。
           extra: form.getFieldValue([
@@ -1347,22 +1363,7 @@ export default function OrderFeeTableTabs({
                       selection || { mode: 'MANUAL' },
                     );
                     refreshAmountPreview(rowKey, form);
-                    const baseline = [
-                      ...(latestReceivableResultRef.current?.items ?? []),
-                      ...(latestPayableResultRef.current?.items ?? []),
-                    ].find((fee) => fee.id === String(rowKey));
-                    const error = feeQuantityRuleError(
-                      quantity,
-                      form.getFieldValue([rowKey, 'billingUnitId']),
-                      billingUnits ?? [],
-                      baseline,
-                    );
-                    form.setFields([
-                      {
-                        name: [rowKey, 'quantity'],
-                        errors: error ? [error] : [],
-                      },
-                    ]);
+                    revalidateQuantity(form, rowKey);
                   }}
                 />
               )}
@@ -1371,19 +1372,6 @@ export default function OrderFeeTableTabs({
 
           onChange: () => {
             refreshAmountPreview(rowKey, form);
-            const baseline = [
-              ...(latestReceivableResultRef.current?.items ?? []),
-              ...(latestPayableResultRef.current?.items ?? []),
-            ].find((item) => item.id === rowKey);
-            const error = feeQuantityRuleError(
-              form?.getFieldValue([rowKey, 'quantity']),
-              form?.getFieldValue([rowKey, 'billingUnitId']),
-              billingUnits ?? [],
-              baseline,
-            );
-            form?.setFields([
-              { name: [rowKey, 'quantity'], errors: error ? [error] : [] },
-            ]);
           },
         }),
       },
@@ -1408,19 +1396,7 @@ export default function OrderFeeTableTabs({
           onChange: (_: string, option?: { label?: string }) => {
             form?.setFieldValue([rowKey, 'billingUnit'], option?.label);
             form?.setFieldValue([rowKey, 'quantitySource'], { mode: 'MANUAL' });
-            const baseline = [
-              ...(latestReceivableResultRef.current?.items ?? []),
-              ...(latestPayableResultRef.current?.items ?? []),
-            ].find((item) => item.id === rowKey);
-            const error = feeQuantityRuleError(
-              form?.getFieldValue([rowKey, 'quantity']),
-              form?.getFieldValue([rowKey, 'billingUnitId']),
-              billingUnits ?? [],
-              baseline,
-            );
-            form?.setFields([
-              { name: [rowKey, 'quantity'], errors: error ? [error] : [] },
-            ]);
+            revalidateQuantity(form, rowKey);
           },
         }),
       },
