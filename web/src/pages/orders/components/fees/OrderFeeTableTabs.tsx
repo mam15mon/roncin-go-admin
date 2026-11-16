@@ -91,6 +91,17 @@ import {
   orderColumnsByPreference,
 } from './orderFeeOptionalColumns';
 
+/** 输入框展示用：去掉后端 decimal 的小数尾零（1.0000 → 1），空值原样保留。 */
+const trimDecimalInput = (value?: string) =>
+  value ? trimDecimal(value) : value;
+
+/** 已保存费用进入行内表单前，数量与单价按去尾零文本展示；比较与提交仍按数值。 */
+const toFeeFormRow = (fee: API.OrderFee): API.OrderFee => ({
+  ...fee,
+  quantity: trimDecimalInput(fee.quantity),
+  unitPrice: trimDecimalInput(fee.unitPrice),
+});
+
 /** 费用行按当前可见列顺序切换输入字段，跳过清空及带入等辅助按钮。 */
 const handleFeeRowTab = (event: React.KeyboardEvent<HTMLElement>) => {
   if (event.key !== 'Tab' || event.altKey || event.ctrlKey || event.metaKey)
@@ -1327,7 +1338,10 @@ export default function OrderFeeTableTabs({
                   }
                   onConfirm={(quantity, selection) => {
                     markDirty(direction);
-                    form.setFieldValue([rowKey, 'quantity'], quantity);
+                    form.setFieldValue(
+                      [rowKey, 'quantity'],
+                      trimDecimalInput(quantity),
+                    );
                     form.setFieldValue(
                       [rowKey, 'quantitySource'],
                       selection || { mode: 'MANUAL' },
@@ -1584,8 +1598,8 @@ export default function OrderFeeTableTabs({
             currency: item.currency,
             billingUnitId: item.billingUnitId,
             billingUnit: item.billingUnit,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
+            quantity: trimDecimalInput(item.quantity),
+            unitPrice: trimDecimalInput(item.unitPrice),
             note: item.note ?? '',
             taxRate: item.taxRate ?? '',
             quantitySource: item.quantitySource,
@@ -1620,7 +1634,7 @@ export default function OrderFeeTableTabs({
     };
     const withDrafts = (items: API.OrderFee[]) => [
       ...draftRowsRef.current[direction].values(),
-      ...items,
+      ...items.map(toFeeFormRow),
     ];
     // 删除后仅重绘该侧已采纳快照，不读远端，保留其他费用的版本和输入。
     if (localReloadRef.current.delete(direction)) {
