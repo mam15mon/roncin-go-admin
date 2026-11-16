@@ -113,7 +113,7 @@ export function AirMasterRouteFields({
             );
             return (response.data ?? []).map((item) => ({
               value: item.id || '',
-              label: `${item.nameZh || item.nameEn || ''} (${item.iataCode || item.icaoCode || ''})`,
+              label: `${[item.nameZh, item.nameEn].filter(Boolean).join(' / ')} (${item.iataCode || item.icaoCode || ''})`,
             }));
           }}
         />
