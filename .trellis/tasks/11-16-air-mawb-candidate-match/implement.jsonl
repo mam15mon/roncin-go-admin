@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/web/frontend/air-order-workspace.md", "reason": "空运主单/单证工作区约定"}
+{"file": ".trellis/spec/web/frontend/air-order-commercial-fields.md", "reason": "空运字段归属与载荷存在性约束"}
+{"file": ".trellis/spec/web/frontend/state-management.md", "reason": "React Query 与表单状态约定"}
+{"file": ".trellis/spec/web/frontend/type-safety.md", "reason": "ProtoJSON 省略零值等 wire 形态判断"}

@@ -4,7 +4,10 @@ import { act, screen, waitFor } from '@testing-library/react';
 import { Form, type FormInstance } from 'antd';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { OrderBusinessType } from '@/enums.generated';
-import { airExportServiceGetAirMasterWaybill } from '@/services/roncin/airExportService';
+import {
+  airExportServiceGetAirMasterWaybill,
+  airExportServiceListAirMasterWaybills,
+} from '@/services/roncin/airExportService';
 import { AirMasterTransportSection } from './components/air/AirMasterFields';
 import type { TemplateProps } from './types';
 
@@ -65,75 +68,72 @@ function setup(query: string, cachedMaster?: API.GetAirMasterWaybillResponse) {
   return { readForm: () => current, queryClient: view.queryClient };
 }
 
+const presetMaster = (patch: Partial<API.AirMasterWaybill> = {}) => ({
+  id: 'master',
+  organizationId: 'company',
+  businessType: 'AE',
+  version: '3',
+  documentMode: 'HOUSE',
+  canAttach: true,
+  content: { masterNo: '78112345675' },
+  ...patch,
+});
+const validateMasterNo = (form: FormInstance) =>
+  form.validateFields([['airMaster', 'masterNo']]);
+
 describe('航空主单预选与显式模式', () => {
   beforeEach(() => {
     vi.mocked(airExportServiceGetAirMasterWaybill).mockResolvedValue({
-      data: {
-        id: 'master',
-        organizationId: 'company',
-        businessType: 'AE',
-        version: '3',
-        documentMode: 'HOUSE',
-        canAttach: true,
-        content: { masterNo: '78112345675' },
-      },
+      data: presetMaster(),
+    });
+    vi.mocked(airExportServiceListAirMasterWaybills).mockResolvedValue({
+      data: [presetMaster()],
     });
   });
 
   it('URL明确DIRECT时保留用户选择并阻止关联HOUSE主单', async () => {
     const { readForm } = setup('masterId=master&documentMode=DIRECT');
     await waitFor(() =>
-      expect(readForm().getFieldValue('airMasterId')).toBe('master'),
+      expect(readForm().getFieldValue(['airMaster', 'masterNo'])).toBe(
+        '78112345675',
+      ),
     );
     expect(readForm().getFieldValue('airDocumentMode')).toBe('DIRECT');
     expect(
       screen.getByRole('radio', { name: '直单（DIRECT，无 HAWB）' }),
     ).toBeChecked();
+    expect(await screen.findByText(/该主单为主分单（HOUSE）/)).toBeVisible();
+    expect(readForm().getFieldValue('airMasterId')).toBeUndefined();
     await act(async () => {
-      await expect(
-        readForm().validateFields(['airMasterId']),
-      ).rejects.toMatchObject({
+      await expect(validateMasterNo(readForm())).rejects.toMatchObject({
         errorFields: [
-          { errors: ['所选主单不允许按当前单证模式建票，请重新选择'] },
+          { errors: ['该主单为主分单（HOUSE），请切换单证模式后再保存'] },
         ],
       });
     });
   });
 
-  it('未指定模式时采用主单已固定的DIRECT模式', async () => {
+  it('未指定模式时采用主单已固定的DIRECT模式并直接关联', async () => {
+    const direct = presetMaster({ documentMode: 'DIRECT' });
     vi.mocked(airExportServiceGetAirMasterWaybill).mockResolvedValue({
-      data: {
-        id: 'master',
-        organizationId: 'company',
-        businessType: 'AE',
-        version: '3',
-        documentMode: 'DIRECT',
-        canAttach: true,
-      },
+      data: direct,
+    });
+    vi.mocked(airExportServiceListAirMasterWaybills).mockResolvedValue({
+      data: [direct],
     });
     const { readForm } = setup('masterId=master');
     await waitFor(() =>
-      expect(readForm().getFieldValue('airDocumentMode')).toBe('DIRECT'),
+      expect(readForm().getFieldValue('airMasterId')).toBe('master'),
     );
+    expect(readForm().getFieldValue('airDocumentMode')).toBe('DIRECT');
     await act(async () => {
-      await expect(readForm().validateFields(['airMasterId'])).resolves.toEqual(
-        {
-          airMasterId: 'master',
-        },
-      );
+      await expect(validateMasterNo(readForm())).resolves.toBeTruthy();
     });
   });
 
   it('从主单页进入建票时不共用不同形态的详情缓存', async () => {
     const cachedMaster: API.GetAirMasterWaybillResponse = {
-      data: {
-        id: 'master',
-        organizationId: 'company',
-        businessType: 'AE',
-        version: '2',
-        documentMode: 'HOUSE',
-        canAttach: true,
-      },
+      data: presetMaster({ version: '2' }),
       members: [{ orderId: 'original-order' }],
     };
     const { readForm, queryClient } = setup(

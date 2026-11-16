@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   Alert,
   Button,
+  Card,
   Descriptions,
   Form,
   Radio,
@@ -21,10 +22,7 @@ import { useInitialState } from '@/app/AppProvider';
 import { FormCell, FormRow, ProFormSearchableSelect } from '@/components/ui';
 import { OrderBusinessType } from '@/enums.generated';
 import { history } from '@/router/history';
-import {
-  airExportServiceGetAirMasterWaybill,
-  airExportServiceListAirMasterWaybills,
-} from '@/services/roncin/airExportService';
+import { airExportServiceGetAirMasterWaybill } from '@/services/roncin/airExportService';
 import { masterDataServiceListAirlines } from '@/services/roncin/masterDataService';
 import { ensureListResponse } from '@/utils/api';
 import { formatDate, trimDecimal } from '@/utils/format';
@@ -33,9 +31,10 @@ import {
   requireAirMasterIdentity,
 } from '../../../order-kinds/air-export/identity';
 import type { TemplateProps } from '../../types';
-import { TemplateControlGroup, TemplateFieldGroup } from '../FieldGroup';
+import { TemplateFieldGroup } from '../FieldGroup';
 import { SeaCollapsibleNotesField } from '../sea/SeaCollapsibleNotesField';
 import { AirNotesFields, getAirCommercialFields } from './AirCommercialFields';
+import { useAirMasterCandidate } from './useAirMasterCandidate';
 
 type AirMasterFieldProps = Pick<
   TemplateProps,
@@ -48,11 +47,17 @@ export function AirMasterRouteFields({
   prefix = ['airMaster'],
   includeIdentity = true,
   master,
+  masterNoEditable = false,
+  masterNoValidator,
 }: {
   props: AirMasterFieldProps;
   prefix?: string[];
   includeIdentity?: boolean;
   master?: API.AirMasterWaybill;
+  /** 新建页关联主单后仍允许改号以解除关联；维护场景主单号随主单锁定。 */
+  masterNoEditable?: boolean;
+  /** 新建页同号主单核对结论的保存前校验。 */
+  masterNoValidator?: () => Promise<void>;
 }) {
   const name = (key: string) => [...prefix, key];
   return (
@@ -78,9 +83,14 @@ export function AirMasterRouteFields({
                     );
                 },
               },
+              ...(masterNoValidator
+                ? [{ validator: () => masterNoValidator() }]
+                : []),
             ]}
             fieldProps={{ maxLength: 20 }}
-            disabled={props.readonly || Boolean(master)}
+            disabled={
+              masterNoEditable ? false : props.readonly || Boolean(master)
+            }
           />
         </FormCell>
       )}
@@ -308,25 +318,13 @@ function AirDocumentModeValue({ direct }: { direct: boolean }) {
 
 /**
  * 「订舱与运输」卡片：与海运同节奏，主单与订舱 / 航线与班期 / 时刻与申报 /
- * 备注四个小节。首行承载单证模式、主单关联方式、订舱号与订舱/国外代理；
- * 主单备注随新建主单字段出现，本票四类备注统一在「备注」小节折叠维护。
- * 主单关联方式、共享主单选择、masterId 预选与同号提示逻辑保持不变。
+ * 备注四个小节。新建页只有一个主运单号入口：输入后由 useAirMasterCandidate
+ * 自动核对同号主单并就地给出结论（新建 / 加入 / 不可用），不再要求先选
+ * 「新建/关联」；详情页展示共享主单摘要与运输维护入口。
  */
 export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
   const form = Form.useFormInstance();
-  const mode = Form.useWatch('airMasterMode', form) || 'NEW';
   const documentMode = Form.useWatch('airDocumentMode', form);
-  const selectedIdentity = Form.useWatch('airMasterSelection', {
-    form,
-    preserve: true,
-  }) as API.AirMasterWaybill | undefined;
-  const selectedMasterId = Form.useWatch('airMasterId', {
-    form,
-    preserve: true,
-  });
-  const selectedMaster = Form.useWatch('airMaster', { form, preserve: true }) as
-    | API.AirMasterWaybillInput
-    | undefined;
   const air = Form.useWatch('airExport', { form, preserve: true }) as
     | API.AirOrderInfo
     | undefined;
@@ -335,14 +333,17 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
   const businessType = props.businessType;
   const businessTypeCode = airBusinessTypeCode(businessType);
   const identity = `${organizationId}:${businessType}`;
-  const identityRef = useRef(identity);
-  identityRef.current = identity;
-  const documentModeRef = useRef(documentMode);
-  documentModeRef.current = documentMode;
   const preselectedApplied = useRef<string | undefined>(undefined);
   const [params] = useSearchParams();
   const requestedMode = params.get('documentMode');
   const requestedMasterId = props.isDetail ? undefined : params.get('masterId');
+  const isCreate = !props.isDetail;
+  const candidateState = useAirMasterCandidate({
+    enabled: isCreate,
+    organizationId,
+    businessType,
+    locationOptions: props.locationOptions,
+  });
   const preselected = useQuery({
     queryKey: [
       'air-orders',
@@ -365,20 +366,17 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
       );
     },
   });
+  // 主单工作台带 masterId 建票：只填入主单号与单证模式，由同号核对自然完成关联。
   useEffect(() => {
     const selectionKey = `${identity}:${requestedMasterId}:${requestedMode}`;
     if (
       preselected.data &&
-      !props.isDetail &&
+      isCreate &&
       preselectedApplied.current !== selectionKey
     ) {
       preselectedApplied.current = selectionKey;
       form.setFieldsValue({
-        airMasterMode: 'EXISTING',
-        airMasterId: preselected.data.id,
-        airMasterExpectedVersion: preselected.data.version,
-        airMaster: preselected.data.content,
-        airMasterSelection: preselected.data,
+        airMaster: { masterNo: preselected.data.content?.masterNo },
         airDocumentMode:
           requestedMode === 'DIRECT' || requestedMode === 'HOUSE'
             ? requestedMode
@@ -388,23 +386,49 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
   }, [
     form,
     preselected.data,
-    props.isDetail,
+    isCreate,
     requestedMode,
     identity,
     requestedMasterId,
   ]);
-  const masterEditable = !props.isDetail && mode === 'NEW';
-  const commercial = getAirCommercialFields(props);
   const master = props.isDetail
     ? (props.airTransportSnapshot ?? air?.master)
-    : selectedIdentity;
+    : undefined;
   const isImport = businessType === OrderBusinessType.BUSINESS_TYPE_AI;
+  const commercial = getAirCommercialFields(props);
+  // 已关联主单时共同资料以主单为准：主单字段只读，主运单号仍可修改以解除关联。
+  const sharedProps = {
+    ...props,
+    readonly: props.readonly || candidateState.linked,
+  };
   return (
     <div style={{ display: 'grid', gap: 12, width: '100%' }}>
       {preselected.isError && (
-        <Alert type="error" showIcon title="所选主单加载失败，请重新选择。" />
+        <Alert
+          type="error"
+          showIcon
+          title="所选主单加载失败，请重新输入主运单号。"
+        />
       )}
       <TemplateFieldGroup title={isImport ? '承运与主单' : '主单与订舱'}>
+        <Form.Item name="airMaster" hidden>
+          <span />
+        </Form.Item>
+        <Form.Item name="airExport" hidden>
+          <span />
+        </Form.Item>
+        <Form.Item name="airMasterSelection" hidden>
+          <span />
+        </Form.Item>
+        <Form.Item name="airMasterMode" hidden>
+          <span />
+        </Form.Item>
+        <Form.Item name="airMasterId" hidden>
+          <span />
+        </Form.Item>
+        <Form.Item name="airMasterExpectedVersion" hidden>
+          <span />
+        </Form.Item>
         {/* 与海运「提单模式」同规格：单证模式入首行字段格，订舱号与代理同行。 */}
         <FormRow cols={6} style={{ rowGap: 4 }}>
           <FormCell span={2}>
@@ -429,34 +453,10 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
                     { label: '主分单（HOUSE）', value: 'HOUSE' },
                     { label: '直单（DIRECT，无 HAWB）', value: 'DIRECT' },
                   ]}
-                  onChange={() => {
-                    if (mode === 'EXISTING')
-                      form.setFieldsValue({
-                        airMasterId: undefined,
-                        airMasterExpectedVersion: undefined,
-                        airMasterSelection: undefined,
-                        airMaster: undefined,
-                      });
-                  }}
                 />
               )}
             </Form.Item>
           </FormCell>
-          {!props.isDetail && (
-            <FormCell span={2}>
-              <TemplateControlGroup title="主单关联方式">
-                <Form.Item name="airMasterMode" style={{ marginBottom: 0 }}>
-                  <Radio.Group
-                    aria-label="主单关联方式"
-                    options={[
-                      { label: '新建主单', value: 'NEW' },
-                      { label: '明确关联已有主单', value: 'EXISTING' },
-                    ]}
-                  />
-                </Form.Item>
-              </TemplateControlGroup>
-            </FormCell>
-          )}
           <FormCell span={2}>
             <ProFormText
               name="bookingNo"
@@ -466,150 +466,6 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
           </FormCell>
           {commercial.agents}
         </FormRow>
-        <Form.Item name="airMaster" hidden>
-          <span />
-        </Form.Item>
-        <Form.Item name="airExport" hidden>
-          <span />
-        </Form.Item>
-        <Form.Item name="airMasterSelection" hidden>
-          <span />
-        </Form.Item>
-        {props.isDetail && (
-          <>
-            <Form.Item name="airMasterId" hidden>
-              <span />
-            </Form.Item>
-            <Form.Item name="airMasterExpectedVersion" hidden>
-              <span />
-            </Form.Item>
-          </>
-        )}
-        {!props.isDetail && mode === 'EXISTING' && (
-          <>
-            <ProFormSearchableSelect
-              name="airMasterId"
-              label="选择共享主单"
-              params={{ documentMode, businessType, organizationId }}
-              options={
-                selectedMasterId
-                  ? [
-                      {
-                        value: selectedMasterId,
-                        label:
-                          selectedMaster?.masterNo ||
-                          preselected.data?.content?.masterNo ||
-                          '',
-                      },
-                    ]
-                  : undefined
-              }
-              rules={[
-                { required: true, message: '请选择已有主单' },
-                {
-                  validator: async () => {
-                    if (selectedMasterId)
-                      requireAirMasterIdentity(
-                        selectedIdentity,
-                        selectedMasterId,
-                        organizationId,
-                        businessType,
-                      );
-                    if (
-                      selectedMasterId &&
-                      (selectedIdentity?.canAttach !== true ||
-                        (selectedIdentity.documentMode &&
-                          selectedIdentity.documentMode !== documentMode))
-                    ) {
-                      throw new Error(
-                        selectedIdentity?.attachBlockedReason ||
-                          '所选主单不允许按当前单证模式建票，请重新选择',
-                      );
-                    }
-                  },
-                },
-              ]}
-              request={async ({ keyWords }) => {
-                if (!organizationId || !businessTypeCode) return [];
-                const requestedDocumentMode = documentMode;
-                const response = ensureListResponse(
-                  await airExportServiceListAirMasterWaybills({
-                    businessType: businessTypeCode,
-                    keyword: keyWords,
-                    page: 1,
-                    pageSize: 50,
-                  }),
-                  '主单候选加载失败',
-                );
-                if (
-                  identityRef.current !== identity ||
-                  documentModeRef.current !== requestedDocumentMode
-                )
-                  return [];
-                return (response.data ?? []).map((item) => {
-                  const master = requireAirMasterIdentity(
-                    item,
-                    item.id,
-                    organizationId,
-                    businessType,
-                  );
-                  return {
-                    value: master.id || '',
-                    label: `${master.content?.masterNo} · ${master.airlineName || ''} · ${master.documentMode || '未定模式'} · ${master.memberCount || 0} 票${master.attachBlockedReason ? ` · ${master.attachBlockedReason}` : ''}`,
-                    disabled:
-                      master.canAttach !== true ||
-                      Boolean(
-                        master.documentMode &&
-                          master.documentMode !== requestedDocumentMode,
-                      ),
-                    master,
-                  };
-                });
-              }}
-              fieldProps={{
-                filterOption: false,
-                onChange: (_value, option) => {
-                  const selected = Array.isArray(option) ? option[0] : option;
-                  if (selected && 'master' in selected) {
-                    const master = selected.master as API.AirMasterWaybill;
-                    form.setFieldsValue({
-                      airMasterExpectedVersion: master.version,
-                      airMaster: master.content,
-                      airMasterSelection: master,
-                    });
-                  } else
-                    form.setFieldsValue({
-                      airMasterExpectedVersion: undefined,
-                      airMasterSelection: undefined,
-                      airMaster: undefined,
-                    });
-                },
-              }}
-            />
-            <Form.Item name="airMasterExpectedVersion" hidden>
-              <input />
-            </Form.Item>
-            <Alert
-              type="info"
-              showIcon
-              title="关联后共同运输资料以主单为准"
-              description="同号主单不会自动合并；保存时再次核验你选择的主单版本。共同资料请在主单工作台维护。"
-            />
-            {selectedIdentity &&
-              (selectedIdentity.canAttach !== true ||
-                (selectedIdentity.documentMode &&
-                  selectedIdentity.documentMode !== documentMode)) && (
-                <Alert
-                  type="error"
-                  showIcon
-                  title={
-                    selectedIdentity.attachBlockedReason ||
-                    '该主单与当前单证模式不匹配，请重新选择'
-                  }
-                />
-              )}
-          </>
-        )}
         {props.isDetail && master?.id && (
           <Space wrap>
             <Typography.Text>
@@ -626,33 +482,40 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
             </Button>
           </Space>
         )}
-        {masterEditable && (
+        {isCreate && (
           <>
-            <AirMasterRouteFields props={props} />
-            <AirMasterCandidateHint
-              organizationId={organizationId}
-              businessType={businessType}
+            <AirMasterRouteFields
+              props={sharedProps}
+              masterNoEditable={!props.readonly}
+              masterNoValidator={candidateState.validate}
+              master={
+                candidateState.linked ? candidateState.candidate : undefined
+              }
+            />
+            <AirMasterCandidatePanel
+              state={candidateState}
+              documentMode={documentMode}
             />
           </>
         )}
       </TemplateFieldGroup>
-      {masterEditable && (
+      {isCreate && (
         <>
           <TemplateFieldGroup title="航线与班期">
-            <AirMasterScheduleFields props={props} />
+            <AirMasterScheduleFields props={sharedProps} />
           </TemplateFieldGroup>
           <TemplateFieldGroup title="时刻与申报">
-            <AirMasterDeclarationFields props={props} />
+            <AirMasterDeclarationFields props={sharedProps} />
           </TemplateFieldGroup>
           <SeaCollapsibleNotesField
             name={['airMaster', 'notes']}
             label="主单备注"
             placeholder="请输入主单备注"
-            disabled={props.readonly}
+            disabled={sharedProps.readonly}
           />
         </>
       )}
-      {!masterEditable && master && (
+      {props.isDetail && master && (
         <TemplateFieldGroup
           title="共同航线与班期"
           extra={props.airTransportMaintenance}
@@ -667,78 +530,116 @@ export function AirMasterTransportSection({ props }: { props: TemplateProps }) {
   );
 }
 
-function AirMasterCandidateHint({
-  organizationId,
-  businessType,
+/** 就地核对结论卡片：与海运「已找到主单」卡同一信息层级。 */
+function AirMasterCandidatePanel({
+  state,
+  documentMode,
 }: {
-  organizationId?: string;
-  businessType?: number;
+  state: ReturnType<typeof useAirMasterCandidate>;
+  documentMode?: string;
 }) {
-  const businessTypeCode = airBusinessTypeCode(businessType);
-  const form = Form.useFormInstance();
-  const documentMode = Form.useWatch('airDocumentMode', form);
-  const value = Form.useWatch(['airMaster', 'masterNo'], form);
-  const masterNo = String(value || '').replace(/[\s-]/g, '');
-  const query = useQuery({
-    queryKey: [
-      'air-orders',
-      'identity-candidates',
-      { organizationId, businessType, masterNo },
-    ],
-    enabled: Boolean(
-      organizationId && businessTypeCode && /^\d{11}$/.test(masterNo),
-    ),
-    queryFn: async ({ signal }) => {
-      const response = ensureListResponse(
-        await airExportServiceListAirMasterWaybills(
-          {
-            businessType: businessTypeCode,
-            keyword: masterNo,
-            page: 1,
-            pageSize: 20,
-          },
-          { signal },
-        ),
-        '主单身份核对失败',
-      );
-      return (response.data || [])
-        .map((item) =>
-          requireAirMasterIdentity(item, item.id, organizationId, businessType),
-        )
-        .filter((candidate) => candidate.content?.masterNo === masterNo);
-    },
-  });
-  const candidate =
-    query.isFetching || query.isError ? undefined : query.data?.[0];
-  return candidate ? (
-    <Alert
-      type="warning"
-      showIcon
-      title="同号主单已存在，请明确选择关联"
-      description={`${candidate.content?.masterNo} · ${candidate.airlineName} · ${candidate.documentMode || '未定模式'} · ${candidate.memberCount || 0} 票${candidate.attachBlockedReason ? ` · ${candidate.attachBlockedReason}` : ''}`}
-      action={
-        <Button
-          disabled={
-            candidate.canAttach !== true ||
-            Boolean(
-              candidate.documentMode && candidate.documentMode !== documentMode,
-            )
-          }
-          onClick={() =>
-            form.setFieldsValue({
-              airMasterMode: 'EXISTING',
-              airMasterId: candidate.id,
-              airMasterExpectedVersion: candidate.version,
-              airMaster: candidate.content,
-              airMasterSelection: candidate,
-            })
-          }
-        >
-          选择此主单
-        </Button>
-      }
-    />
-  ) : null;
+  const { status, candidate, differences } = state;
+  if (status === 'idle') return null;
+  if (status === 'checking')
+    return (
+      <Typography.Text type="secondary" data-testid="air-master-candidate">
+        正在核对同号主单…
+      </Typography.Text>
+    );
+  if (status === 'error')
+    return (
+      <Alert
+        data-testid="air-master-candidate"
+        type="error"
+        showIcon
+        title={state.error || '同号主单核对失败，请重试后再保存'}
+      />
+    );
+  if (status === 'none')
+    return (
+      <Alert
+        data-testid="air-master-candidate"
+        type="info"
+        showIcon
+        title="未找到同号主单，保存后将新建主单"
+      />
+    );
+  if (!candidate) return null;
+  const memberCount = candidate.memberCount ?? 0;
+  const heading = `已找到主单 ${candidate.content?.masterNo || ''} · ${candidate.airlineName || '航空公司未填写'} · 已有 ${memberCount} 票`;
+  if (status === 'blocked')
+    return (
+      <Alert
+        data-testid="air-master-candidate"
+        type="error"
+        showIcon
+        title={candidate.attachBlockedReason || '该主单不允许关联'}
+        description={`${heading}。请核对主运单号，或更换为其他主单号。`}
+      />
+    );
+  return (
+    <Card size="small" data-testid="air-master-candidate">
+      <Space orientation="vertical" style={{ width: '100%' }}>
+        <div>
+          <Typography.Text strong>{heading}</Typography.Text>
+          <div>本票保存后将加入该主单，共 {memberCount + 1} 票。</div>
+          <Typography.Text type="secondary">
+            {[
+              candidate.content?.flightNo &&
+                `航班 ${candidate.content.flightNo}`,
+              [candidate.originAirportName, candidate.destinationAirportName]
+                .filter(Boolean)
+                .join(' → '),
+              candidate.content?.etd &&
+                `计划起飞 ${formatDate(candidate.content.etd, 'minute')}`,
+            ]
+              .filter(Boolean)
+              .join('；') || '主单共同资料未填写'}
+          </Typography.Text>
+        </div>
+        {status === 'modeMismatch' && (
+          <Alert
+            type="warning"
+            showIcon
+            title={`该主单为${state.documentModeLabel(candidate.documentMode)}，本票当前为${state.documentModeLabel(documentMode)}`}
+            action={
+              <Button htmlType="button" onClick={state.switchMode}>
+                切换为主单模式
+              </Button>
+            }
+          />
+        )}
+        {status === 'conflict' && (
+          <Alert
+            type="warning"
+            showIcon
+            title="本票已填主单资料与已有主单不同，请确认后采用"
+            description={
+              <>
+                <ul style={{ margin: '8px 0', paddingLeft: 20 }}>
+                  {differences.map((difference) => (
+                    <li key={difference.key}>
+                      {difference.label}：本票 {difference.currentValue}；主单{' '}
+                      {difference.sharedValue}
+                    </li>
+                  ))}
+                </ul>
+                <Button htmlType="button" onClick={state.adopt}>
+                  采用主单资料
+                </Button>
+              </>
+            }
+          />
+        )}
+        {status === 'ready' && (
+          <Typography.Text type="secondary">
+            已关联该主单，共同运输资料以主单为准（只读）；如需修改请到主单工作台维护。
+            客户、分单、货物与费用仍由本票独立维护。
+          </Typography.Text>
+        )}
+      </Space>
+    </Card>
+  );
 }
 
 /** 展示权威主单资料，不注册可随本票整单保存的副本字段。 */

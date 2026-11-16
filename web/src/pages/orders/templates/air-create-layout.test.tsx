@@ -10,7 +10,6 @@ import {
 import { ConfigProvider, Form, type FormInstance } from 'antd';
 import { describe, expect, it, vi } from 'vitest';
 import { OrderBusinessType } from '@/enums.generated';
-import { airExportServiceListAirMasterWaybills } from '@/services/roncin/airExportService';
 import { getAirTemplateSections } from './air-template';
 import type { TemplateProps } from './types';
 
@@ -262,31 +261,19 @@ describe('AE 新建与详情五卡片合同', () => {
     ).toBeInTheDocument();
   });
 
-  it('切到关联已有主单时收起航线/申报小节与主单备注，保留操作备注', async () => {
+  it('新建页只有主运单号入口，不再要求先选新建或关联主单', async () => {
     renderWithApp(<SectionCards />, { user });
     const booking = screen.getByRole('region', { name: '订舱与运输' });
+    expect(booking).not.toHaveTextContent('主单关联方式');
+    expect(booking).not.toHaveTextContent('选择共享主单');
+    expect(
+      within(booking).getByRole('textbox', { name: /主运单号（MAWB）/ }),
+    ).toBeEnabled();
     expect(booking).toHaveTextContent('航线与班期');
-
-    fireEvent.click(screen.getByRole('radio', { name: '明确关联已有主单' }));
-    await waitFor(() =>
-      expect(
-        screen.getByRole('region', { name: '订舱与运输' }),
-      ).not.toHaveTextContent('航线与班期'),
-    );
-    const existing = screen.getByRole('region', { name: '订舱与运输' });
-    expect(existing).toHaveTextContent('选择共享主单');
-    expect(existing).not.toHaveTextContent('时刻与申报');
+    expect(booking).toHaveTextContent('时刻与申报');
     expect(
-      within(existing).queryByTestId('sea-notes-airMaster.notes'),
-    ).toBeNull();
-    expect(
-      within(existing).getByTestId('sea-notes-operationNotes'),
+      within(booking).getByTestId('sea-notes-airMaster.notes'),
     ).toBeInTheDocument();
-    await waitFor(() =>
-      expect(airExportServiceListAirMasterWaybills).toHaveBeenCalledWith(
-        expect.objectContaining({ businessType: 'AE' }),
-      ),
-    );
     await flushMountRequests();
   });
   it('经营字段在本票卡片中可编辑，付款方式只注册一次且不写入主单', async () => {

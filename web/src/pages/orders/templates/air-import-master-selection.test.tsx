@@ -1,6 +1,6 @@
 import { ProForm } from '@ant-design/pro-components';
 import { renderWithApp } from '@root/tests/renderWithApp';
-import { act, fireEvent, screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import { ConfigProvider, Form, type FormInstance } from 'antd';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { OrderBusinessType } from '@/enums.generated';
@@ -55,7 +55,7 @@ function setup(query = 'masterId=master-ai') {
           form={form}
           submitter={false}
           initialValues={{
-            airMasterMode: 'EXISTING',
+            airMasterMode: 'NEW',
             airDocumentMode: 'HOUSE',
           }}
         >
@@ -86,11 +86,10 @@ describe('AI建票主单预选与候选', () => {
       expect(view.readForm().getFieldValue('airMasterId')).toBe('master-ai'),
     );
     expect(view.readForm().getFieldValue('airMasterExpectedVersion')).toBe('4');
-    fireEvent.mouseDown(screen.getByLabelText('选择共享主单'));
-    await waitFor(() =>
-      expect(airExportServiceListAirMasterWaybills).toHaveBeenCalledWith(
-        expect.objectContaining({ businessType: 'AI' }),
-      ),
+    // 同号核对按 AI 业务类型查询，只命中进口主单。
+    expect(airExportServiceListAirMasterWaybills).toHaveBeenCalledWith(
+      expect.objectContaining({ businessType: 'AI', keyword: '78112345675' }),
+      expect.anything(),
     );
     vi.mocked(airExportServiceGetAirMasterWaybill).mockResolvedValue({
       data: { ...master, version: '5' },
@@ -113,7 +112,7 @@ describe('AI建票主单预选与候选', () => {
     });
     const view = setup();
     expect(
-      await screen.findByText('所选主单加载失败，请重新选择。'),
+      await screen.findByText('所选主单加载失败，请重新输入主运单号。'),
     ).toBeVisible();
     expect(view.readForm().getFieldValue('airMasterId')).toBeUndefined();
     expect(
