@@ -1,5 +1,4 @@
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
-import { QueryClientProvider } from '@tanstack/react-query';
 import { act } from '@testing-library/react';
 import { App } from 'antd';
 import dayjs from 'dayjs';
@@ -90,21 +89,19 @@ describe('费用台账筛选设置接入', () => {
         currentUser: { id: 'u1', currentOrganization: { id: 'o1' } },
       },
     } as never;
-    const { rerender, queryClient } = renderWithClient(
+    const { rerender } = renderWithClient(
       <ListQueryStateProvider enabled>
         <Seed />
       </ListQueryStateProvider>,
     );
     rerender(
-      <QueryClientProvider client={queryClient}>
-        <ListQueryStateProvider enabled>
-          <App>
-            <appInitialStateContext.Provider value={ctx}>
-              <FinanceFeeLedgerPage />
-            </appInitialStateContext.Provider>
-          </App>
-        </ListQueryStateProvider>
-      </QueryClientProvider>,
+      <ListQueryStateProvider enabled>
+        <App>
+          <appInitialStateContext.Provider value={ctx}>
+            <FinanceFeeLedgerPage />
+          </appInitialStateContext.Provider>
+        </App>
+      </ListQueryStateProvider>,
     );
     expect(state.search?.visibleNames).not.toContain('masterNo');
     await act(async () => {

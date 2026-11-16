@@ -1,5 +1,4 @@
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
-import { QueryClientProvider } from '@tanstack/react-query';
 import { act } from '@testing-library/react';
 import { App } from 'antd';
 import dayjs from 'dayjs';
@@ -177,19 +176,17 @@ describe('费用查询恢复消费', () => {
   });
 
   it('保存原始筛选而保留原keyword优先级，日期/公司/分页恢复，提交立即生效，重置保公司', async () => {
-    const { rerender, queryClient } = renderWithClient(
+    const { rerender } = renderWithClient(
       <ListQueryStateProvider enabled>
         <Seed />
       </ListQueryStateProvider>,
     );
     rerender(
-      <QueryClientProvider client={queryClient}>
-        <ListQueryStateProvider enabled>
-          <App>
-            <FinanceFeeLedgerPage />
-          </App>
-        </ListQueryStateProvider>
-      </QueryClientProvider>,
+      <ListQueryStateProvider enabled>
+        <App>
+          <FinanceFeeLedgerPage />
+        </App>
+      </ListQueryStateProvider>,
     );
     expect(state.ledger?.pagination).toMatchObject({
       defaultCurrent: 4,

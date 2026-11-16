@@ -142,20 +142,17 @@ describe('流水原生搜索恢复消费', () => {
   });
 
   it('恢复方向状态与初始化分页，重置清恢复条件与表单但保目标公司', async () => {
-    const { rerender, queryClient } = renderWithClient(
+    const { rerender } = renderWithClient(
       <ListQueryStateProvider enabled>
         <Seed />
       </ListQueryStateProvider>,
     );
-    const { QueryClientProvider } = await import('@tanstack/react-query');
     rerender(
-      <QueryClientProvider client={queryClient}>
-        <ListQueryStateProvider enabled>
-          <App>
-            <FinanceCashflowsPage />
-          </App>
-        </ListQueryStateProvider>
-      </QueryClientProvider>,
+      <ListQueryStateProvider enabled>
+        <App>
+          <FinanceCashflowsPage />
+        </App>
+      </ListQueryStateProvider>,
     );
     expect(state.ledger?.customSearch.props.initialValues).toMatchObject({
       direction: 'PAYABLE',

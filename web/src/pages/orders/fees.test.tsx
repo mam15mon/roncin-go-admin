@@ -1,5 +1,4 @@
 import { renderWithClient } from '@root/tests/queryClientTestUtils';
-import { QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { App } from 'antd';
 import React from 'react';
@@ -350,16 +349,11 @@ function renderFeesPage() {
   );
 }
 
-function rerenderFeesPage(
-  rerender: (ui: React.ReactNode) => void,
-  queryClient: ReturnType<typeof renderWithClient>['queryClient'],
-) {
+function rerenderFeesPage(rerender: (ui: React.ReactNode) => void) {
   rerender(
-    <QueryClientProvider client={queryClient}>
-      <App>
-        <OrderFeesPage />
-      </App>
-    </QueryClientProvider>,
+    <App>
+      <OrderFeesPage />
+    </App>,
   );
 }
 
@@ -391,12 +385,12 @@ describe('订单费用页跨订单状态隔离', () => {
       .mockImplementationOnce(() => responseA)
       .mockImplementationOnce(() => responseB);
 
-    const { rerender, queryClient } = renderFeesPage();
+    const { rerender } = renderFeesPage();
     fireEvent.click(screen.getByRole('button', { name: '打开快捷费目' }));
     await waitFor(() => expect(listTaxableServices).toHaveBeenCalledTimes(1));
 
     mockParams = { kind: 'sea-export', id: 'order-B' };
-    rerenderFeesPage(rerender, queryClient);
+    rerenderFeesPage(rerender);
     fireEvent.click(screen.getByRole('button', { name: '打开快捷费目' }));
     await waitFor(() => expect(listTaxableServices).toHaveBeenCalledTimes(2));
 
@@ -419,7 +413,7 @@ describe('订单费用页跨订单状态隔离', () => {
   });
 
   it('同一页面实例从 A 切到 B 时关闭工作台并清空 A 的费用编辑状态', async () => {
-    const { rerender, queryClient } = renderFeesPage();
+    const { rerender } = renderFeesPage();
 
     fireEvent.click(screen.getByRole('button', { name: '准备当前订单费用' }));
     fireEvent.click(screen.getByRole('button', { name: '打开快捷费目' }));
@@ -445,7 +439,7 @@ describe('订单费用页跨订单状态隔离', () => {
     );
 
     mockParams = { kind: 'sea-export', id: 'order-B' };
-    rerenderFeesPage(rerender, queryClient);
+    rerenderFeesPage(rerender);
 
     await waitFor(() => {
       expect(screen.getByTestId('fee-table-state')).toHaveTextContent(
@@ -620,7 +614,7 @@ describe('订单费用页关联账单追踪', () => {
       } as any),
     );
 
-    const { rerender, queryClient } = renderFeesPage();
+    const { rerender } = renderFeesPage();
     await waitFor(() =>
       expect(screen.getByTestId('fee-bill-tracking')).toHaveTextContent(
         'ready|BILL-order-A',
@@ -628,7 +622,7 @@ describe('订单费用页关联账单追踪', () => {
     );
 
     mockParams = { kind: 'sea-export', id: 'order-B' };
-    rerenderFeesPage(rerender, queryClient);
+    rerenderFeesPage(rerender);
     await waitFor(() =>
       expect(getFeeLedgerOrderDetail).toHaveBeenCalledWith(
         { orderId: 'order-B' },
@@ -711,19 +705,19 @@ describe('订单费用页外部变动提示与刷新保护', () => {
   });
 
   it('保存后审核状态后台重读只关闭提交，不收起费用行', async () => {
-    const { rerender, queryClient } = renderFeesPage();
+    const { rerender } = renderFeesPage();
     expect(await screen.findByTestId('fee-rows-locked')).toHaveTextContent(
       'false',
     );
     feeTestState.lockStateLoading = true;
     feeTestState.lockStateRefreshing = true;
-    rerenderFeesPage(rerender, queryClient);
+    rerenderFeesPage(rerender);
     expect(screen.getByTestId('fee-write-disabled')).toHaveTextContent('true');
     expect(screen.getByTestId('fee-rows-locked')).toHaveTextContent('false');
 
     // 首次加载（无已确认快照）仍按同步中锁定费用行。
     feeTestState.lockStateRefreshing = false;
-    rerenderFeesPage(rerender, queryClient);
+    rerenderFeesPage(rerender);
     expect(screen.getByTestId('fee-rows-locked')).toHaveTextContent('true');
   });
 
@@ -744,14 +738,14 @@ describe('订单费用页外部变动提示与刷新保护', () => {
   ])(
     '审核同步及读取失败期间保留$label，真实锁定后仍关闭写入口',
     async ({ label, quickButton }) => {
-      const { rerender, queryClient } = renderFeesPage();
+      const { rerender } = renderFeesPage();
       fireEvent.click(await screen.findByRole('button', { name: quickButton }));
       const input = await screen.findByLabelText(label);
       fireEvent.change(input, { target: { value: '另一侧未保存草稿' } });
       fireEvent.click(screen.getByRole('button', { name: '通知整表保存' }));
 
       feeTestState.lockStateLoading = true;
-      rerenderFeesPage(rerender, queryClient);
+      rerenderFeesPage(rerender);
       expect(screen.getByTestId('fee-write-disabled')).toHaveTextContent(
         'true',
       );
@@ -759,14 +753,14 @@ describe('订单费用页外部变动提示与刷新保护', () => {
       feeTestState.lockStateLoading = false;
       feeTestState.lockState = null;
       feeTestState.lockStateError = new Error('读取审核状态失败');
-      rerenderFeesPage(rerender, queryClient);
+      rerenderFeesPage(rerender);
       expect(screen.getByTestId('fee-write-disabled')).toHaveTextContent(
         'true',
       );
       expect(screen.getByLabelText(label)).toHaveValue('另一侧未保存草稿');
       feeTestState.lockStateError = null;
       feeTestState.lockState = { isLocked: false };
-      rerenderFeesPage(rerender, queryClient);
+      rerenderFeesPage(rerender);
       expect(screen.getByTestId('fee-write-disabled')).toHaveTextContent(
         'false',
       );
@@ -774,7 +768,7 @@ describe('订单费用页外部变动提示与刷新保护', () => {
       expect(screen.getByTestId('fee-reload-token')).toHaveTextContent('0');
 
       feeTestState.lockState = { isLocked: true };
-      rerenderFeesPage(rerender, queryClient);
+      rerenderFeesPage(rerender);
       await waitFor(() =>
         expect(screen.queryByLabelText(label)).not.toBeInTheDocument(),
       );
